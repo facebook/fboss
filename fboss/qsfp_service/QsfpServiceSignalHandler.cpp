@@ -42,6 +42,9 @@ void QsfpServiceSignalHandler::signalReceived(int signum) noexcept {
       << "[Exit] Stopped thrift server listening. Stop time: "
       << duration_cast<duration<float>>(thriftServerStopped - begin).count();
 
+  // Set graceful eiting flag to true so that refreshStateMachine can break
+  qsfpServiceHandler_->getTransceiverManager()->setGracefulExitingFlag();
+
   // stop stats collection and state machine refresh
   functionScheduler_->shutdown();
   steady_clock::time_point functionSchedulerStopped = steady_clock::now();

@@ -63,6 +63,9 @@ class TransceiverManager {
       std::unique_ptr<PlatformMapping> platformMapping);
   virtual ~TransceiverManager();
   void gracefulExit();
+  void setGracefulExitingFlag() {
+    isExiting_ = true;
+  }
 
   /*
    * Initialize the qsfp_service components, which might include:

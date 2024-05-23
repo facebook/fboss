@@ -124,7 +124,7 @@ TransceiverManager::TransceiverManager(
 TransceiverManager::~TransceiverManager() {
   // Make sure if gracefulExit() is not called, we will still stop the threads
   if (!isExiting_) {
-    isExiting_ = true;
+    setGracefulExitingFlag();
     stopThreads();
   }
 }
@@ -320,7 +320,7 @@ void TransceiverManager::gracefulExit() {
   steady_clock::time_point begin = steady_clock::now();
   XLOG(INFO) << "[Exit] Starting TransceiverManager graceful exit";
   // Stop all the threads before shutdown
-  isExiting_ = true;
+  setGracefulExitingFlag();
   stopThreads();
   steady_clock::time_point stopThreadsDone = steady_clock::now();
   XLOG(INFO) << "[Exit] Stopped all state machine threads. Stop time: "
