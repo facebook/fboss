@@ -12769,7 +12769,7 @@
         "isVirtual": false,
         "isStateSyncDisabled": true,
         "type": 2,
-        "scope": 0
+        "scope": 1
       },
       {
         "intfID": 277,
@@ -12782,7 +12782,7 @@
         "isVirtual": false,
         "isStateSyncDisabled": true,
         "type": 2,
-        "scope": 0
+        "scope": 1
       },
       {
         "intfID": 2151,
@@ -12796,7 +12796,7 @@
         "isVirtual": false,
         "isStateSyncDisabled": true,
         "type": 2,
-        "scope": 0
+        "scope": 1
       },
       {
         "intfID": 2153,
@@ -12810,7 +12810,7 @@
         "isVirtual": false,
         "isStateSyncDisabled": true,
         "type": 2,
-        "scope": 0
+        "scope": 1
       }
     ],
     "arpTimeoutSeconds": 60,

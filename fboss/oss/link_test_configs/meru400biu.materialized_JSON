@@ -7345,7 +7345,7 @@
         "isVirtual": false,
         "isStateSyncDisabled": true,
         "type": 2,
-        "scope": 0
+        "scope": 1
       },
       {
         "intfID": 110,
@@ -7359,7 +7359,7 @@
         "isVirtual": false,
         "isStateSyncDisabled": true,
         "type": 2,
-        "scope": 0
+        "scope": 1
       },
       {
         "intfID": 112,
@@ -7373,7 +7373,7 @@
         "isVirtual": false,
         "isStateSyncDisabled": true,
         "type": 2,
-        "scope": 0
+        "scope": 1
       }
     ],
     "arpTimeoutSeconds": 60,
