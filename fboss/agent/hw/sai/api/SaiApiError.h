@@ -40,7 +40,7 @@ class SaiApiError : public FbossError {
   sai_api_t getSaiApiType() const {
     return apiType_;
   }
-  ~SaiApiError() throw() override {}
+  ~SaiApiError() noexcept override {}
 
  private:
   sai_status_t status_;

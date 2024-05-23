@@ -53,7 +53,7 @@ class BcmError : public FbossError {
         // enum values, so we don't bother distinguishing them.
         err_(static_cast<bcm_error_t>(err)) {}
 
-  ~BcmError() throw() override {}
+  ~BcmError() noexcept override {}
 
   bcm_error_t getBcmError() const {
     return err_;
