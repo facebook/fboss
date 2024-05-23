@@ -93,14 +93,14 @@ class FsdbPubSubManager {
       const MultiPath& subscribePath,
       SubscriptionStateChangeCb subscriptionStateChangeCb,
       FsdbExtDeltaSubscriber::FsdbOperDeltaUpdateCb operDeltaCb,
-      const std::string& fsdbHost = "::1",
-      int32_t fsdbPort = FLAGS_fsdbPort);
+      FsdbStreamClient::ServerOptions&& serverOptions =
+          kDefaultServerOptions());
   void addStatPathSubscription(
       const MultiPath& subscribePath,
       SubscriptionStateChangeCb subscriptionStateChangeCb,
       FsdbExtStateSubscriber::FsdbOperStateUpdateCb operDeltaCb,
-      const std::string& fsdbHost = "::1",
-      int32_t fsdbPort = FLAGS_fsdbPort);
+      FsdbStreamClient::ServerOptions&& serverOptions =
+          kDefaultServerOptions());
 
   /* Apis that use ServerOptions */
   // TODO: change all above apis to use server options

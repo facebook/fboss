@@ -320,14 +320,13 @@ void FsdbPubSubManager::addStatPathSubscription(
     const MultiPath& subscribePaths,
     SubscriptionStateChangeCb stateChangeCb,
     FsdbExtStateSubscriber::FsdbOperStateUpdateCb operStateCb,
-    const std::string& fsdbHost,
-    int32_t fsdbPort) {
+    FsdbStreamClient::ServerOptions&& serverOptions) {
   addSubscriptionImpl<FsdbExtStateSubscriber>(
       toExtendedOperPath(subscribePaths),
       stateChangeCb,
       operStateCb,
       true /*subscribeStat*/,
-      FsdbStreamClient::ServerOptions(fsdbHost, fsdbPort));
+      std::move(serverOptions));
 }
 
 void FsdbPubSubManager::addStateDeltaSubscription(
