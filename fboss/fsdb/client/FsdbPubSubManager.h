@@ -74,14 +74,14 @@ class FsdbPubSubManager {
       const Path& subscribePath,
       SubscriptionStateChangeCb subscriptionStateChangeCb,
       FsdbDeltaSubscriber::FsdbOperDeltaUpdateCb operDeltaCb,
-      const std::string& fsdbHost = "::1",
-      int32_t fsdbPort = FLAGS_fsdbPort);
+      FsdbStreamClient::ServerOptions&& serverOptions =
+          kDefaultServerOptions());
   void addStatPathSubscription(
       const Path& subscribePath,
       SubscriptionStateChangeCb subscriptionStateChangeCb,
       FsdbStateSubscriber::FsdbOperStateUpdateCb operDeltaCb,
-      const std::string& fsdbHost = "::1",
-      int32_t fsdbPort = FLAGS_fsdbPort);
+      FsdbStreamClient::ServerOptions&& serverOptions =
+          kDefaultServerOptions());
   /* multi path subscription */
   void addStateDeltaSubscription(
       const MultiPath& subscribePaths,

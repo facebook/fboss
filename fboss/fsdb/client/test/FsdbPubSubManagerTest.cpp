@@ -42,7 +42,10 @@ class PubSubManagerTest : public ::testing::Test {
       const std::vector<std::string>& path,
       const std::string& host = "::1") {
     pubSubManager_.addStatDeltaSubscription(
-        path, subscriptionStateChangeCb, operDeltaCb, host);
+        path,
+        subscriptionStateChangeCb,
+        operDeltaCb,
+        FsdbStreamClient::ServerOptions(host, FLAGS_fsdbPort));
   }
   void addStatePathSubscription(
       const std::vector<std::string>& path,
@@ -57,7 +60,10 @@ class PubSubManagerTest : public ::testing::Test {
       const std::vector<std::string>& path,
       const std::string& host = "::1") {
     pubSubManager_.addStatPathSubscription(
-        path, subscriptionStateChangeCb, operStateCb, host);
+        path,
+        subscriptionStateChangeCb,
+        operStateCb,
+        FsdbStreamClient::ServerOptions(host, FLAGS_fsdbPort));
   }
   FsdbPubSubManager pubSubManager_{"testMgr"};
 };
