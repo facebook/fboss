@@ -371,3 +371,18 @@ target_link_libraries(mirror_test_utils
   switch_config_cpp2
   Folly::folly
 )
+
+add_library(voq_test_utils
+  fboss/agent/test/utils/VoqTestUtils.cpp
+)
+
+target_link_libraries(voq_test_utils
+  config_factory
+  switch_asics
+  fboss_types
+  switchid_scope_resolver
+  switch_config_cpp2
+  state
+  ecmp_helper
+  test_ensemble_if
+)
