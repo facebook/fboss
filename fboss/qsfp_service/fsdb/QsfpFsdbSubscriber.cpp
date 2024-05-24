@@ -40,6 +40,8 @@ void QsfpFsdbSubscriber::subscribeToSwitchStatePortMap(
           portStatus.portEnabled =
               onePortInfo.portState().value() != "DISABLED";
           portStatus.operState = onePortInfo.portOperState().value();
+          auto asicPrbs = onePortInfo.asicPrbs().value();
+          portStatus.asicPrbsEnabled = asicPrbs.enabled().value();
           portStatus.profileID = onePortInfo.portProfileID().value();
           newPortStatus.emplace(onePortId, portStatus);
         }

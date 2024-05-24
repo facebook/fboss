@@ -47,6 +47,7 @@ struct NpuPortStatus {
   int portId;
   bool operState; // true for link up, false for link down
   bool portEnabled; // true for enabled, false for disabled
+  bool asicPrbsEnabled; // true for enabled, false for disabled
   std::string profileID;
 };
 
