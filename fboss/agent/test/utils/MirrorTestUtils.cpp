@@ -16,7 +16,7 @@ void configureSflowMirror(cfg::SwitchConfig& config, bool truncate, bool isV4) {
   cfg::SflowTunnel sflowTunnel;
   sflowTunnel.ip() = getSflowMirrorDestination(isV4).str();
   sflowTunnel.udpSrcPort() = 6545;
-  sflowTunnel.udpDstPort() = 5343;
+  sflowTunnel.udpDstPort() = 6343;
 
   cfg::MirrorTunnel tunnel;
   tunnel.sflowTunnel() = sflowTunnel;

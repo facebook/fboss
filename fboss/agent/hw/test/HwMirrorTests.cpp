@@ -138,7 +138,7 @@ class HwMirrorTest : public HwTest {
     cfg::SflowTunnel sflowTunnel;
     sflowTunnel.ip() = destinationIp.str();
     sflowTunnel.udpSrcPort() = 6545;
-    sflowTunnel.udpDstPort() = 5343;
+    sflowTunnel.udpDstPort() = 6343;
     tunnel.sflowTunnel() = sflowTunnel;
 
     destination.tunnel() = tunnel;

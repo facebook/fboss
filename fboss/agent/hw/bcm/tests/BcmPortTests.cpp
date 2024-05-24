@@ -296,7 +296,7 @@ TEST_F(BcmPortTest, SampleDestination) {
     cfg::SflowTunnel sflowTunnel;
     *sflowTunnel.ip() = "10.0.0.1";
     sflowTunnel.udpSrcPort() = 6545;
-    sflowTunnel.udpDstPort() = 5343;
+    sflowTunnel.udpDstPort() = 6343;
     tunnel.sflowTunnel() = sflowTunnel;
     newCfg.mirrors()->resize(1);
     *newCfg.mirrors()[0].name() = "sflow";
@@ -391,7 +391,7 @@ TEST_F(BcmPortTest, SampleDestinationMirror) {
     cfg::SflowTunnel sflowTunnel;
     *sflowTunnel.ip() = "10.0.0.1";
     sflowTunnel.udpSrcPort() = 6545;
-    sflowTunnel.udpDstPort() = 5343;
+    sflowTunnel.udpDstPort() = 6343;
     tunnel.sflowTunnel() = sflowTunnel;
     *mirror.name() = "mirror";
     mirror.destination()->tunnel() = tunnel;
