@@ -192,6 +192,9 @@
         },
         {
           "test_name_regex": "AgentLoadBalancerTestV6ToMpls.ECMPShrinkExpandLoadBalanceHalfHashCpuTraffic$"
+        },
+        {
+          "test_name_regex": "AgentDiagShellStressTest.stressDiagCmds$"
         }
     ],
     "brcm/10.2.0.0_odp/10.2.0.0_odp/tomahawk/mono": [
@@ -1108,6 +1111,9 @@
         },
         {
           "test_name_regex": "AgentPortBandwidthTest/AgentPortBandwidthParamTest.VerifyPortRateTraffic/0$"
+        },
+        {
+          "test_name_regex": "AgentDiagShellStressTest.*$"
         }
     ],
     "brcm/10.2.0.0_odp/10.2.0.0_odp/tomahawk4/multi_switch": [
@@ -1299,6 +1305,9 @@
         },
         {
           "test_name_regex": "AgentAqmTest.verifyEcnWithoutWredConfig$"
+        },
+        {
+          "test_name_regex": "AgentDiagShellStressTest.*$"
         }
     ],
     "brcm/11.0_ea_dnx_odp/11.0_ea_dnx_odp/jericho2/mono": [
@@ -3719,6 +3728,9 @@
         },
         {
           "test_name_regex": "AgentPortBandwidthTest/AgentPortBandwidthParamTest.VerifyPortRateTraffic/0$"
+        },
+        {
+          "test_name_regex": "AgentDiagShellStressTest.*$"
         }
     ],
     "brcm/8.2.0.0_odp/8.2.0.0_odp/tomahawk4/multi_switch": [
@@ -3910,6 +3922,9 @@
         },
         {
           "test_name_regex": "AgentAqmTest.verifyEcnWithoutWredConfig$"
+        },
+        {
+          "test_name_regex": "AgentDiagShellStressTest.*$"
         }
     ],
     "leaba/1.42.8/1.42.8/gibraltar/mono": [
@@ -4020,6 +4035,9 @@
         },
         {
           "test_name_regex": "AgentCoppTest/[01].Ipv6LinkLocalMcastToMidPriQ$"
+        },
+        {
+          "test_name_regex": "AgentDiagShellStressTest.stressDiagCmds$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].DstIpNetworkControlDscpToHighPriQ$"
@@ -4196,6 +4214,9 @@
         },
         {
           "test_name_regex": "AgentCoppTest/[01].Ipv6LinkLocalMcastToMidPriQ$"
+        },
+        {
+          "test_name_regex": "AgentDiagShellStressTest.stressDiagCmds$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].DstIpNetworkControlDscpToHighPriQ$"
