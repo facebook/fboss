@@ -12,8 +12,7 @@
 #include "fboss/agent/SwitchStats.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwSwitchEnsemble.h"
-#include "fboss/agent/hw/test/HwSwitchEnsembleFactory.h"
-#include "fboss/agent/hw/test/HwVoqUtils.h"
+#include "fboss/agent/test/utils/VoqTestUtils.h"
 
 #include "fboss/agent/benchmarks/AgentBenchmarks.h"
 

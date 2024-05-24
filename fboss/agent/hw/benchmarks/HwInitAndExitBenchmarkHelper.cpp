@@ -20,11 +20,11 @@
 #include "fboss/agent/hw/test/HwSwitchEnsembleRouteUpdateWrapper.h"
 #include "fboss/agent/hw/test/HwTestCoppUtils.h"
 #include "fboss/agent/hw/test/HwTestProdConfigUtils.h"
-#include "fboss/agent/hw/test/HwVoqUtils.h"
 #include "fboss/agent/hw/test/LoadBalancerUtils.h"
 #include "fboss/agent/test/RouteDistributionGenerator.h"
 #include "fboss/agent/test/RouteScaleGenerators.h"
 #include "fboss/agent/test/utils/FabricTestUtils.h"
+#include "fboss/agent/test/utils/VoqTestUtils.h"
 
 #include "fboss/lib/FunctionCallTimeReporter.h"
 #include "fboss/lib/platforms/PlatformMode.h"
