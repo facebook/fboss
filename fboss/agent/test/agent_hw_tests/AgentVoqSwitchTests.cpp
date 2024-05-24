@@ -10,6 +10,8 @@
 #include "fboss/agent/test/utils/AclTestUtils.h"
 #include "fboss/agent/test/utils/FabricTestUtils.h"
 #include "fboss/agent/test/utils/LoadBalancerTestUtils.h"
+#include "fboss/agent/test/utils/PacketSnooper.h"
+#include "fboss/agent/test/utils/TrapPacketUtils.h"
 #include "fboss/lib/CommonUtils.h"
 
 DECLARE_bool(disable_looped_fabric_ports);
@@ -890,4 +892,28 @@ TEST_F(AgentVoqSwitchTest, sendPacketCpuAndFrontPanel) {
 
   verifyAcrossWarmBoots(setup, verify);
 }
+
+TEST_F(AgentVoqSwitchTest, trapPktsOnPort) {
+  utility::EcmpSetupAnyNPorts6 ecmpHelper(getProgrammedState());
+  const auto kPort = ecmpHelper.ecmpPortDescriptorAt(0);
+  auto setup = [this, kPort, &ecmpHelper]() {
+    auto cfg = initialConfig(*getAgentEnsemble());
+    utility::addTrapPacketAcl(&cfg, kPort.phyPortID());
+    applyNewConfig(cfg);
+    applyNewState([=](const std::shared_ptr<SwitchState>& in) {
+      return ecmpHelper.resolveNextHops(getProgrammedState(), {kPort});
+    });
+  };
+  auto verify = [this, kPort, &ecmpHelper]() {
+    utility::SwSwitchPacketSnooper snooper(getSw(), "snoop");
+    auto frontPanelPort = ecmpHelper.ecmpPortDescriptorAt(1).phyPortID();
+    sendPacket(ecmpHelper.ip(kPort), frontPanelPort);
+    WITH_RETRIES({
+      auto frameRx = snooper.waitForPacket(1);
+      EXPECT_EVENTUALLY_TRUE(frameRx.has_value());
+    });
+  };
+  verifyAcrossWarmBoots(setup, verify);
+}
+
 } // namespace facebook::fboss
