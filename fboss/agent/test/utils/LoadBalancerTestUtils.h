@@ -197,16 +197,20 @@ void addFlowletConfigs(
     const std::vector<PortID>& ports,
     cfg::SwitchingMode switchingMode = cfg::SwitchingMode::FLOWLET_QUALITY);
 
-cfg::LoadBalancer getTrunkHalfHashConfig(const HwAsic& asic);
-cfg::LoadBalancer getEcmpHalfHashConfig(const HwAsic& asic);
-cfg::LoadBalancer getEcmpFullHashConfig(const HwAsic& asic);
-cfg::LoadBalancer getEcmpFullUdfHashConfig(const HwAsic& asic);
+cfg::LoadBalancer getTrunkHalfHashConfig(
+    const std::vector<const HwAsic*>& asics);
+cfg::LoadBalancer getEcmpHalfHashConfig(
+    const std::vector<const HwAsic*>& asics);
+cfg::LoadBalancer getEcmpFullHashConfig(
+    const std::vector<const HwAsic*>& asics);
+cfg::LoadBalancer getEcmpFullUdfHashConfig(
+    const std::vector<const HwAsic*>& asics);
 std::vector<cfg::LoadBalancer> getEcmpFullTrunkHalfHashConfig(
-    const HwAsic& asic);
+    const std::vector<const HwAsic*>& asics);
 std::vector<cfg::LoadBalancer> getEcmpHalfTrunkFullHashConfig(
-    const HwAsic& asic);
+    const std::vector<const HwAsic*>& asics);
 std::vector<cfg::LoadBalancer> getEcmpFullTrunkFullHashConfig(
-    const HwAsic& asic);
+    const std::vector<const HwAsic*>& asics);
 
 std::shared_ptr<SwitchState> setLoadBalancer(
     TestEnsembleIf* ensemble,

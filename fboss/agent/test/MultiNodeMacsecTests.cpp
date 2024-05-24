@@ -63,7 +63,7 @@ class MultiNodeMacsecTest : public MultiNodeTest {
         false /*setInterfaceMac*/);
     config.loadBalancers()->push_back(
         facebook::fboss::utility::getEcmpFullHashConfig(
-            *platform()->getAsic()));
+            {platform()->getAsic()}));
     return config;
   }
 

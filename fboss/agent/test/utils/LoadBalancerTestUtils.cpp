@@ -10,6 +10,7 @@
 #include "fboss/agent/packet/PktFactory.h"
 #include "fboss/agent/test/ResourceLibUtil.h"
 #include "fboss/agent/test/utils/AclTestUtils.h"
+#include "fboss/agent/test/utils/AsicUtils.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/lib/CommonUtils.h"
 
@@ -93,32 +94,44 @@ cfg::LoadBalancer getFullHashUdfConfig(
   return loadBalancer;
 }
 } // namespace
-cfg::LoadBalancer getTrunkHalfHashConfig(const HwAsic& asic) {
-  return getHalfHashConfig(asic, cfg::LoadBalancerID::AGGREGATE_PORT);
+cfg::LoadBalancer getTrunkHalfHashConfig(
+    const std::vector<const HwAsic*>& asics) {
+  return getHalfHashConfig(
+      *utility::checkSameAndGetAsic(asics),
+      cfg::LoadBalancerID::AGGREGATE_PORT);
 }
-cfg::LoadBalancer getTrunkFullHashConfig(const HwAsic& asic) {
-  return getFullHashConfig(asic, cfg::LoadBalancerID::AGGREGATE_PORT);
+cfg::LoadBalancer getTrunkFullHashConfig(
+    const std::vector<const HwAsic*>& asics) {
+  return getFullHashConfig(
+      *utility::checkSameAndGetAsic(asics),
+      cfg::LoadBalancerID::AGGREGATE_PORT);
 }
-cfg::LoadBalancer getEcmpHalfHashConfig(const HwAsic& asic) {
-  return getHalfHashConfig(asic, cfg::LoadBalancerID::ECMP);
+cfg::LoadBalancer getEcmpHalfHashConfig(
+    const std::vector<const HwAsic*>& asics) {
+  return getHalfHashConfig(
+      *utility::checkSameAndGetAsic(asics), cfg::LoadBalancerID::ECMP);
 }
-cfg::LoadBalancer getEcmpFullHashConfig(const HwAsic& asic) {
-  return getFullHashConfig(asic, cfg::LoadBalancerID::ECMP);
+cfg::LoadBalancer getEcmpFullHashConfig(
+    const std::vector<const HwAsic*>& asics) {
+  return getFullHashConfig(
+      *utility::checkSameAndGetAsic(asics), cfg::LoadBalancerID::ECMP);
 }
-cfg::LoadBalancer getEcmpFullUdfHashConfig(const HwAsic& asic) {
-  return getFullHashUdfConfig(asic, cfg::LoadBalancerID::ECMP);
+cfg::LoadBalancer getEcmpFullUdfHashConfig(
+    const std::vector<const HwAsic*>& asics) {
+  return getFullHashUdfConfig(
+      *utility::checkSameAndGetAsic(asics), cfg::LoadBalancerID::ECMP);
 }
 std::vector<cfg::LoadBalancer> getEcmpFullTrunkHalfHashConfig(
-    const HwAsic& asic) {
-  return {getEcmpFullHashConfig(asic), getTrunkHalfHashConfig(asic)};
+    const std::vector<const HwAsic*>& asics) {
+  return {getEcmpFullHashConfig(asics), getTrunkHalfHashConfig(asics)};
 }
 std::vector<cfg::LoadBalancer> getEcmpHalfTrunkFullHashConfig(
-    const HwAsic& asic) {
-  return {getEcmpHalfHashConfig(asic), getTrunkFullHashConfig(asic)};
+    const std::vector<const HwAsic*>& asics) {
+  return {getEcmpHalfHashConfig(asics), getTrunkFullHashConfig(asics)};
 }
 std::vector<cfg::LoadBalancer> getEcmpFullTrunkFullHashConfig(
-    const HwAsic& asic) {
-  return {getEcmpFullHashConfig(asic), getTrunkFullHashConfig(asic)};
+    const std::vector<const HwAsic*>& asics) {
+  return {getEcmpFullHashConfig(asics), getTrunkFullHashConfig(asics)};
 }
 
 static cfg::UdfConfig addUdfConfig(
@@ -835,10 +848,10 @@ void addLoadBalancerToConfig(
   }
   switch (hashType) {
     case LBHash::FULL_HASH:
-      config.loadBalancers()->push_back(getEcmpFullHashConfig(*hwAsic));
+      config.loadBalancers()->push_back(getEcmpFullHashConfig({hwAsic}));
       break;
     case LBHash::HALF_HASH:
-      config.loadBalancers()->push_back(getEcmpHalfHashConfig(*hwAsic));
+      config.loadBalancers()->push_back(getEcmpHalfHashConfig({hwAsic}));
       break;
     default:
       throw FbossError("invalid hashing option ", hashType);

@@ -47,7 +47,7 @@ void addProdFeaturesToConfig(
    * Enable Load balancer
    */
   if (hwAsic->isSupported(HwAsic::Feature::HASH_FIELDS_CUSTOMIZATION)) {
-    config.loadBalancers()->push_back(utility::getEcmpFullHashConfig(*hwAsic));
+    config.loadBalancers()->push_back(utility::getEcmpFullHashConfig({hwAsic}));
   }
 }
 } // namespace facebook::fboss::utility

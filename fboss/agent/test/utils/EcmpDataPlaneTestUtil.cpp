@@ -114,8 +114,8 @@ void HwEcmpDataPlaneTestUtil<AddrT>::programLoadBalancer(
     auto switchIds = ensemble_->getHwAsicTable()->getSwitchIDs(
         HwAsic::Feature::SAI_LAG_HASH);
     if (!switchIds.empty()) {
-      config.loadBalancers()->push_back(utility::getTrunkHalfHashConfig(
-          *ensemble_->getHwAsicTable()->getHwAsic(*switchIds.begin())));
+      config.loadBalancers()->push_back(
+          utility::getTrunkHalfHashConfig(ensemble_->getL3Asics()));
     }
   }
   XLOG(INFO) << "Programming load balancer: " << *lb.id();

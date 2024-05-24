@@ -95,10 +95,10 @@ class HwHashPolarizationTests : public HwLinkStateDependentTest {
     if (getHwSwitchEnsemble()->isSai()) {
       firstHashes = {
           firstHash,
-          utility::getTrunkHalfHashConfig(*getPlatform()->getAsic())};
+          utility::getTrunkHalfHashConfig({getPlatform()->getAsic()})};
       secondHashes = {
           secondHash,
-          utility::getTrunkHalfHashConfig(*getPlatform()->getAsic())};
+          utility::getTrunkHalfHashConfig({getPlatform()->getAsic()})};
     } else {
       firstHashes = {firstHash};
       secondHashes = {secondHash};
@@ -213,20 +213,20 @@ class HwHashPolarizationTests : public HwLinkStateDependentTest {
 };
 
 TEST_F(HwHashPolarizationTests, fullXfullHash) {
-  auto fullHashCfg = utility::getEcmpFullHashConfig(*getPlatform()->getAsic());
+  auto fullHashCfg = utility::getEcmpFullHashConfig({getPlatform()->getAsic()});
   runTest(fullHashCfg, fullHashCfg, true /*expect polarization*/);
 }
 
 TEST_F(HwHashPolarizationTests, fullXHalfHash) {
   auto firstHashes =
-      utility::getEcmpFullTrunkHalfHashConfig(*getPlatform()->getAsic());
+      utility::getEcmpFullTrunkHalfHashConfig({getPlatform()->getAsic()});
   firstHashes[0].seed() = getHwSwitch()->generateDeterministicSeed(
       LoadBalancerID::ECMP, kMacAddress01);
   firstHashes[1].seed() = getHwSwitch()->generateDeterministicSeed(
       LoadBalancerID::AGGREGATE_PORT, kMacAddress01);
 
   auto secondHashes =
-      utility::getEcmpFullTrunkHalfHashConfig(*getPlatform()->getAsic());
+      utility::getEcmpFullTrunkHalfHashConfig({getPlatform()->getAsic()});
   secondHashes[0].seed() = getHwSwitch()->generateDeterministicSeed(
       LoadBalancerID::ECMP, kMacAddress02);
   secondHashes[1].seed() = getHwSwitch()->generateDeterministicSeed(
@@ -238,13 +238,13 @@ TEST_F(HwHashPolarizationTests, fullXHalfHash) {
 TEST_F(HwHashPolarizationTests, fullXfullHashWithDifferentSeeds) {
   // Setup 2 identical hashes with only the seed changed
   auto firstHashes =
-      utility::getEcmpFullTrunkHalfHashConfig(*getPlatform()->getAsic());
+      utility::getEcmpFullTrunkHalfHashConfig({getPlatform()->getAsic()});
   firstHashes[0].seed() = getHwSwitch()->generateDeterministicSeed(
       LoadBalancerID::ECMP, kMacAddress01);
   firstHashes[1].seed() = getHwSwitch()->generateDeterministicSeed(
       LoadBalancerID::AGGREGATE_PORT, kMacAddress01);
   auto secondHashes =
-      utility::getEcmpFullTrunkHalfHashConfig(*getPlatform()->getAsic());
+      utility::getEcmpFullTrunkHalfHashConfig({getPlatform()->getAsic()});
   secondHashes[0].seed() = getHwSwitch()->generateDeterministicSeed(
       LoadBalancerID::ECMP, kMacAddress02);
   secondHashes[1].seed() = getHwSwitch()->generateDeterministicSeed(
@@ -273,7 +273,7 @@ struct HwHashPolarizationTestForAsic : public HwHashPolarizationTests {
     };
     auto verify = [=, this]() {
       auto secondHashes =
-          utility::getEcmpFullTrunkHalfHashConfig(*getPlatform()->getAsic());
+          utility::getEcmpFullTrunkHalfHashConfig({getPlatform()->getAsic()});
       secondHashes[0].seed() = getHwSwitch()->generateDeterministicSeed(
           LoadBalancerID::ECMP, kMacAddress02);
       secondHashes[1].seed() = getHwSwitch()->generateDeterministicSeed(
@@ -595,14 +595,14 @@ class HwHashTrunkPolarizationTests : public HwHashPolarizationTests {
  public:
   void runFullHalfxFullHalfTest() {
     auto firstHashes =
-        utility::getEcmpFullTrunkHalfHashConfig(*getPlatform()->getAsic());
+        utility::getEcmpFullTrunkHalfHashConfig({getPlatform()->getAsic()});
     firstHashes[0].seed() = getHwSwitch()->generateDeterministicSeed(
         LoadBalancerID::ECMP, kMacAddress01);
     firstHashes[1].seed() = getHwSwitch()->generateDeterministicSeed(
         LoadBalancerID::AGGREGATE_PORT, kMacAddress01);
 
     auto secondHashes =
-        utility::getEcmpFullTrunkHalfHashConfig(*getPlatform()->getAsic());
+        utility::getEcmpFullTrunkHalfHashConfig({getPlatform()->getAsic()});
     secondHashes[0].seed() = getHwSwitch()->generateDeterministicSeed(
         LoadBalancerID::ECMP, kMacAddress02);
     secondHashes[1].seed() = getHwSwitch()->generateDeterministicSeed(

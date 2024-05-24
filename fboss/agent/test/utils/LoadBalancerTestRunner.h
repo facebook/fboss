@@ -44,7 +44,7 @@
     runLoadBalanceTest(                                                      \
         8,                                                                   \
         facebook::fboss::utility::getEcmp##HASH_TYPE##HashConfig(            \
-            *getHwAsic()),                                                   \
+            {getHwAsic()}),                                                  \
         facebook::fboss::utility::kHwTest##MULTIPATH_TYPE##Weights(),        \
         kLoopThroughFrontPanelPort,                                          \
         true);                                                               \
@@ -62,7 +62,7 @@
     runLoadBalanceTest(                                                      \
         8,                                                                   \
         facebook::fboss::utility::getEcmp##HASH_TYPE##HashConfig(            \
-            *getHwAsic()),                                                   \
+            {getHwAsic()}),                                                  \
         facebook::fboss::utility::kHwTest##MULTIPATH_TYPE##Weights(),        \
         kLoopThroughFrontPanelPort,                                          \
         false);                                                              \
@@ -78,7 +78,7 @@
     runDynamicLoadBalanceTest(                                               \
         8,                                                                   \
         facebook::fboss::utility::getEcmp##HASH_TYPE##HashConfig(            \
-            *getHwAsic()),                                                   \
+            {getHwAsic()}),                                                  \
         facebook::fboss::utility::kHwTest##MULTIPATH_TYPE##Weights(),        \
         kLoopThroughFrontPanelPort,                                          \
         true,                                                                \
@@ -93,7 +93,7 @@
     runLoadBalanceTest(                                                      \
         8,                                                                   \
         facebook::fboss::utility::getEcmp##HASH_TYPE##HashConfig(            \
-            *getHwAsic()),                                                   \
+            {getHwAsic()}),                                                  \
         facebook::fboss::utility::kHwTest##MULTIPATH_TYPE##Weights(),        \
         kLoopThroughFrontPanelPort,                                          \
         false, /* since ECMP expected to send traffic on single link */      \
@@ -109,7 +109,7 @@
     runEcmpShrinkExpandLoadBalanceTest(                                  \
         8,                                                               \
         facebook::fboss::utility::getEcmp##HASH_TYPE##HashConfig(        \
-            *getHwAsic()));                                              \
+            {getHwAsic()}));                                             \
   }
 
 #define RUN_HW_LOAD_BALANCER_TEST_CPU(TEST_FIXTURE, MULTIPATH_TYPE, HASH_TYPE) \
