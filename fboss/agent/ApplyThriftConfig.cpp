@@ -288,7 +288,8 @@ class ThriftConfigApplier {
       const std::vector<cfg::PortQueue>& cfgPortQueues,
       uint16_t maxQueues,
       cfg::StreamType streamType,
-      std::optional<cfg::QosMap> qosMap = std::nullopt);
+      std::optional<cfg::QosMap> qosMap = std::nullopt,
+      bool resetDefaultQueue = true);
   // update cfg port queue attribute to state port queue object
   void setPortQueue(
       std::shared_ptr<PortQueue> newQueue,
@@ -809,11 +810,18 @@ std::optional<QueueConfig> ThriftConfigApplier::getDefaultVoqConfigIfChanged(
     std::shared_ptr<SwitchSettings> origSwitchSettings) {
   if (cfg_->defaultVoqConfig()->size()) {
     const auto kNumVoqs = 8;
+    auto origPortQueues = QueueConfig();
+    if (origSwitchSettings &&
+        !origSwitchSettings->getDefaultVoqConfig().empty()) {
+      origPortQueues = origSwitchSettings->getDefaultVoqConfig();
+    }
     std::optional<QueueConfig> defaultVoqConfig = updatePortQueues(
-        QueueConfig(),
+        origPortQueues,
         *cfg_->defaultVoqConfig(),
         kNumVoqs,
-        cfg::StreamType::UNICAST);
+        cfg::StreamType::UNICAST,
+        std::nullopt,
+        false);
     if (!origSwitchSettings ||
         (origSwitchSettings->getDefaultVoqConfig() != *defaultVoqConfig)) {
       return defaultVoqConfig;
@@ -1740,7 +1748,8 @@ QueueConfig ThriftConfigApplier::updatePortQueues(
     const std::vector<cfg::PortQueue>& cfgPortQueues,
     uint16_t maxQueues,
     cfg::StreamType streamType,
-    std::optional<cfg::QosMap> qosMap) {
+    std::optional<cfg::QosMap> qosMap,
+    bool resetDefaultQueue) {
   QueueConfig newPortQueues;
 
   /*
@@ -1808,14 +1817,17 @@ QueueConfig ThriftConfigApplier::updatePortQueues(
                 pfcPriorities)
           : createPortQueue(newQueueIter->second, trafficClass, pfcPriorities);
       newQueues.erase(newQueueIter);
-    } else {
+      newPortQueues.push_back(newPortQueue);
+    } else if (resetDefaultQueue) {
+      // Resetting defaut queues are not applicable to VOQs - we only configure
+      // the ones present in config.
       newPortQueue = std::make_shared<PortQueue>(static_cast<uint8_t>(queueId));
       newPortQueue->setStreamType(streamType);
       if (streamType == cfg::StreamType::FABRIC_TX) {
         newPortQueue->setScheduling(cfg::QueueScheduling::INTERNAL);
       }
+      newPortQueues.push_back(newPortQueue);
     }
-    newPortQueues.push_back(newPortQueue);
   }
 
   std::sort(
