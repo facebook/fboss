@@ -93,6 +93,7 @@ class SaiQueueManager {
   QueueConfig getQueueSettings(const SaiQueueHandles& queueHandles) const;
 
  private:
+  bool isVoqSwitchAndQueueHandleNotForVoq(SaiQueueHandle* queueHandle);
   const std::vector<sai_stat_id_t>& supportedNonWatermarkCounterIdsRead(
       int queueType,
       SaiQueueHandle* queueHandle) const;

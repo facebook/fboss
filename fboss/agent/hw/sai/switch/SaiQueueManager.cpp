@@ -186,14 +186,22 @@ SaiQueueManager::SaiQueueManager(
     const SaiPlatform* platform)
     : saiStore_(saiStore), managerTable_(managerTable), platform_(platform) {}
 
-void SaiQueueManager::changeQueueEcnWred(
-    SaiQueueHandle* queueHandle,
-    const PortQueue& newPortQueue) {
+bool SaiQueueManager::isVoqSwitchAndQueueHandleNotForVoq(
+    SaiQueueHandle* queueHandle) {
   auto qType = SaiApiTable::getInstance()->queueApi().getAttribute(
       queueHandle->queue->adapterKey(), SaiQueueTraits::Attributes::Type{});
   if (platform_->getAsic()->isSupported(HwAsic::Feature::VOQ) &&
       (SAI_QUEUE_TYPE_UNICAST_VOQ != qType) &&
       (SAI_QUEUE_TYPE_MULTICAST_VOQ != qType)) {
+    return true;
+  }
+  return false;
+}
+
+void SaiQueueManager::changeQueueEcnWred(
+    SaiQueueHandle* queueHandle,
+    const PortQueue& newPortQueue) {
+  if (isVoqSwitchAndQueueHandleNotForVoq(queueHandle)) {
     // VOQ switches support WRED/ECN configs on voqs only
     return;
   }
@@ -211,6 +219,10 @@ void SaiQueueManager::changeQueueEcnWred(
 void SaiQueueManager::changeQueueBufferProfile(
     SaiQueueHandle* queueHandle,
     const PortQueue& newPortQueue) {
+  if (isVoqSwitchAndQueueHandleNotForVoq(queueHandle)) {
+    // VOQ switches support buffer profiles on voqs only
+    return;
+  }
   auto newBufferProfile =
       managerTable_->bufferManager().getOrCreateProfile(newPortQueue);
   if (newBufferProfile != queueHandle->bufferProfile) {
