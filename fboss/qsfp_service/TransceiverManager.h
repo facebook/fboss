@@ -772,6 +772,8 @@ class TransceiverManager {
 
   bool upgradeFirmware(Transceiver& tcvr);
 
+  bool isRunningAsicPrbs(TransceiverID tcvr) const;
+
   // Returns the Firmware object from qsfp config for the given module.
   // If there is no firmware in config, returns empty optional
   std::optional<cfg::Firmware> getFirmwareFromCfg(Transceiver& tcvr) const;

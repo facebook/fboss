@@ -1907,6 +1907,20 @@ std::pair<bool, std::vector<std::string>> TransceiverManager::areAllPortsDown(
   return {!anyPortUp, downPorts};
 }
 
+bool TransceiverManager::isRunningAsicPrbs(TransceiverID tcvr) const {
+  auto ports = getAllPlatformPorts(tcvr);
+  for (const auto& port : ports) {
+    auto npuPortStatusCacheItr = npuPortStatusCache_.rlock()->find(port);
+    if (npuPortStatusCacheItr == npuPortStatusCache_.rlock()->end()) {
+      continue;
+    }
+    if (npuPortStatusCacheItr->second.asicPrbsEnabled) {
+      return true;
+    }
+  }
+  return false;
+}
+
 void TransceiverManager::triggerRemediateEvents(
     const std::vector<TransceiverID>& stableTcvrs) {
   if (stableTcvrs.empty()) {
@@ -1918,6 +1932,14 @@ void TransceiverManager::triggerRemediateEvents(
   }
   BlockingStateUpdateResultList results;
   for (auto tcvrID : stableTcvrs) {
+    // Check if any of the ports are running ASIC PRBS. If yes, skip triggering
+    // remediation on transceiver.
+    if (isRunningAsicPrbs(tcvrID)) {
+      XLOG(DBG2) << "Skip remediating Transceiver=" << tcvrID
+                 << ". Transceiver is running ASIC PRBS";
+      continue;
+    }
+
     const auto& programmedPortToPortInfo =
         getProgrammedIphyPortToPortInfo(tcvrID);
     if (programmedPortToPortInfo.empty()) {
