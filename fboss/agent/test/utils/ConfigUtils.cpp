@@ -60,6 +60,40 @@ std::string getLocalCpuMacStr() {
   return kLocalCpuMac().toString();
 }
 
+std::vector<cfg::PortQueue> getDefaultVoqCfg() {
+  std::vector<cfg::PortQueue> voqs;
+
+  cfg::PortQueue defaultQueue;
+  defaultQueue.id() = 0;
+  defaultQueue.name() = "default";
+  defaultQueue.streamType() = cfg::StreamType::UNICAST;
+  defaultQueue.scheduling() = cfg::QueueScheduling::INTERNAL;
+  voqs.push_back(defaultQueue);
+
+  cfg::PortQueue rdmaQueue;
+  rdmaQueue.id() = 2;
+  rdmaQueue.name() = "rdma";
+  rdmaQueue.streamType() = cfg::StreamType::UNICAST;
+  rdmaQueue.scheduling() = cfg::QueueScheduling::INTERNAL;
+  voqs.push_back(rdmaQueue);
+
+  cfg::PortQueue monitoringQueue;
+  monitoringQueue.id() = 6;
+  monitoringQueue.name() = "monitoring";
+  monitoringQueue.streamType() = cfg::StreamType::UNICAST;
+  monitoringQueue.scheduling() = cfg::QueueScheduling::INTERNAL;
+  voqs.push_back(monitoringQueue);
+
+  cfg::PortQueue ncQueue;
+  ncQueue.id() = 7;
+  ncQueue.name() = "nc";
+  ncQueue.streamType() = cfg::StreamType::UNICAST;
+  ncQueue.scheduling() = cfg::QueueScheduling::INTERNAL;
+  voqs.push_back(ncQueue);
+
+  return voqs;
+}
+
 const std::map<cfg::PortType, cfg::PortLoopbackMode>& kDefaultLoopbackMap() {
   static const std::map<cfg::PortType, cfg::PortLoopbackMode> kLoopbackMap = {
       {cfg::PortType::INTERFACE_PORT, cfg::PortLoopbackMode::NONE},
@@ -672,6 +706,12 @@ cfg::SwitchConfig genPortVlanCfg(
   }
   config.switchSettings()->switchIdToSwitchInfo() = {
       std::make_pair(switchId, switchInfo)};
+
+  // VOQ config
+  if (switchType == cfg::SwitchType::VOQ) {
+    config.defaultVoqConfig() = getDefaultVoqCfg();
+  }
+
   // Use getPortToDefaultProfileIDMap() to genetate the default config instead
   // of using PlatformMapping.
   // The main reason is to avoid using PlatformMapping is because some of the
