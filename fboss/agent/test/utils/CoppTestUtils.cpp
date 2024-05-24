@@ -130,6 +130,11 @@ uint16_t getCoppMidPriQueueId(const std::vector<const HwAsic*>& hwAsics) {
   return kCoppMidPriQueueId;
 }
 
+uint16_t getCoppHighPriQueueId(const std::vector<const HwAsic*>& hwAsics) {
+  auto hwAsic = checkSameAndGetAsic(hwAsics);
+  return getCoppHighPriQueueId(hwAsic);
+}
+
 cfg::ToCpuAction getCpuActionType(const HwAsic* hwAsic) {
   switch (hwAsic->getAsicType()) {
     case cfg::AsicType::ASIC_TYPE_FAKE:
