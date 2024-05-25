@@ -809,7 +809,7 @@ class TransceiverManager {
 
   // A global flag to indicate whether the service is exiting.
   // If it is, we should not accept any state update
-  bool isExiting_{false};
+  std::atomic<bool> isExiting_{false};
 
   /*
    * Flag that indicates whether the service has been fully initialized.
