@@ -15,7 +15,6 @@
 #include "fboss/agent/hw/test/HwTestAclUtils.h"
 #include "fboss/agent/hw/test/HwTestCoppUtils.h"
 #include "fboss/agent/hw/test/HwTestFabricUtils.h"
-#include "fboss/agent/hw/test/HwTestPacketSnooper.h"
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
 #include "fboss/agent/hw/test/HwTestPortUtils.h"
 #include "fboss/agent/hw/test/LoadBalancerUtils.h"
@@ -326,28 +325,6 @@ class HwVoqSwitchTest : public HwLinkStateDependentTest {
         HwSwitchEnsemble::TAM_NOTIFY};
   }
 };
-
-TEST_F(HwVoqSwitchTest, trapPktsOnPort) {
-  utility::EcmpSetupAnyNPorts6 ecmpHelper(getProgrammedState());
-  const auto kPort = ecmpHelper.ecmpPortDescriptorAt(0);
-  auto setup = [this, kPort, &ecmpHelper]() {
-    auto cfg = initialConfig();
-    utility::addTrapPacketAcl(&cfg, kPort.phyPortID());
-    applyNewConfig(cfg);
-    applyNewState(ecmpHelper.resolveNextHops(getProgrammedState(), {kPort}));
-  };
-  auto verify = [this, kPort, &ecmpHelper]() {
-    auto ensemble = getHwSwitchEnsemble();
-    auto snooper = std::make_unique<HwTestPacketSnooper>(ensemble);
-    auto frontPanelPort = ecmpHelper.ecmpPortDescriptorAt(1).phyPortID();
-    sendPacket(ecmpHelper.ip(kPort), frontPanelPort);
-    WITH_RETRIES({
-      auto frameRx = snooper->waitForPacket(1);
-      EXPECT_EVENTUALLY_TRUE(frameRx.has_value());
-    });
-  };
-  verifyAcrossWarmBoots(setup, verify);
-}
 
 TEST_F(HwVoqSwitchTest, rxPacketToCpu) {
   rxPacketToCpuHelper(
