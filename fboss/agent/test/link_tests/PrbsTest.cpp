@@ -223,6 +223,16 @@ class PrbsTest : public LinkTest {
       auto component = testPort.component;
       state.polynomial_ref() = testPort.polynomial;
       if (component == phy::PortComponent::ASIC) {
+        // Setting ASIC PRBS requires generator and checker to be both enabled
+        // or both disabled.
+        if ((state.generatorEnabled() && state.generatorEnabled().value()) ||
+            (state.checkerEnabled() && state.checkerEnabled().value())) {
+          state.generatorEnabled() = true;
+          state.checkerEnabled() = true;
+        } else {
+          state.generatorEnabled() = false;
+          state.checkerEnabled() = false;
+        }
         auto agentClient = utils::createWedgeAgentClient();
         WITH_RETRIES_N_TIMED(6, std::chrono::milliseconds(5000), {
           EXPECT_EVENTUALLY_TRUE(
