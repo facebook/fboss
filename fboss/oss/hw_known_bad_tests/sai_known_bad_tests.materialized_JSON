@@ -3213,12 +3213,6 @@
           "test_name_regex": "HwHashConsistencyTest.*"
         },
         {
-          "test_name_regex": "HwPfcTest.PfcWatchdog*"
-        },
-        {
-          "test_name_regex": "HwVerifyPfcConfigInHwTest.PfcWatchdog*"
-        },
-        {
           "test_name_regex": "HwIngressBufferTest.validateIngressPoolParamChange"
         },
         {
