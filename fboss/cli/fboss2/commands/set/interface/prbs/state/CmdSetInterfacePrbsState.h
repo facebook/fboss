@@ -10,6 +10,7 @@
 #include "fboss/agent/if/gen-cpp2/common_types.h"
 #include "fboss/cli/fboss2/CmdHandler.h"
 #include "fboss/cli/fboss2/commands/set/interface/prbs/CmdSetInterfacePrbs.h"
+#include "fboss/cli/fboss2/utils/CmdUtils.h"
 #include "fboss/cli/fboss2/utils/Table.h"
 #include "fboss/lib/phy/gen-cpp2/phy_types.h"
 #include "fboss/lib/phy/gen-cpp2/prbs_types.h"
@@ -57,35 +58,28 @@ class CmdSetInterfacePrbsState : public CmdHandler<
       const std::string& interfaceName,
       const phy::PortComponent& component,
       const ObjectArgType& state) {
+    prbs::InterfacePrbsState prbsState;
+    if (state.enabled) {
+      prbsState.polynomial() = state.polynomial;
+    }
+    if (state.generator.has_value()) {
+      prbsState.generatorEnabled() = *state.generator;
+    }
+    if (state.checker.has_value()) {
+      prbsState.checkerEnabled() = *state.checker;
+    }
     if (component == phy::PortComponent::TRANSCEIVER_LINE ||
         component == phy::PortComponent::TRANSCEIVER_SYSTEM ||
         component == phy::PortComponent::GB_LINE ||
         component == phy::PortComponent::GB_SYSTEM) {
-      auto qsfpClient = utils::createClient<QsfpServiceAsyncClient>(hostInfo);
-      prbs::InterfacePrbsState prbsState;
-      if (state.enabled) {
-        prbsState.polynomial() = state.polynomial;
-      }
-      if (state.generator.has_value()) {
-        prbsState.generatorEnabled() = *state.generator;
-      }
-      if (state.checker.has_value()) {
-        prbsState.checkerEnabled() = *state.checker;
-      }
+      auto qsfpClient =
+          utils::createClient<apache::thrift::Client<QsfpService>>(hostInfo);
       qsfpClient->sync_setInterfacePrbs(interfaceName, component, prbsState);
     } else if (component == phy::PortComponent::ASIC) {
       // Agent uses the setPortPrbs API currently, so handle it differently
       auto agentClient =
-          utils::createClient<facebook::fboss::FbossCtrlAsyncClient>(hostInfo);
-      if (portEntries_.empty()) {
-        // Fetch all the port info once
-        agentClient->sync_getAllPortInfo(portEntries_);
-      }
-      agentClient->sync_setPortPrbs(
-          utils::getPortIDList({interfaceName}, portEntries_)[0],
-          component,
-          state.enabled,
-          static_cast<int>(state.polynomial));
+          utils::createClient<apache::thrift::Client<FbossCtrl>>(hostInfo);
+      agentClient->sync_setInterfacePrbs(interfaceName, component, prbsState);
     } else {
       std::runtime_error(
           "Unsupported component " +
@@ -96,9 +90,6 @@ class CmdSetInterfacePrbsState : public CmdHandler<
   void printOutput(const RetType& model, std::ostream& out = std::cout) {
     out << model << std::endl;
   }
-
- private:
-  std::map<int32_t, facebook::fboss::PortInfoThrift> portEntries_;
 };
 
 } // namespace facebook::fboss
