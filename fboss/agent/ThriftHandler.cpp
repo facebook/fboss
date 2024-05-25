@@ -112,6 +112,11 @@ DEFINE_bool(
     false, // false => Prevents such mutations in prod
     "Allow mutations of running switch state by external thrift calls");
 
+DEFINE_bool(
+    skip_drain_check_for_prbs,
+    false,
+    "Skips drain check for local PRBS testing");
+
 DECLARE_bool(intf_nbr_tables);
 
 DECLARE_bool(enable_acl_table_group);
@@ -1576,7 +1581,19 @@ void ThriftHandler::setPortPrbs(
           capabilities.end()) {
     throw FbossError("Polynomial not supported");
   }
-
+  auto switchId = sw_->getScopeResolver()->scope(portId).switchId();
+  auto switchType = sw_->getHwAsicTable()->getHwAsic(switchId)->getSwitchType();
+  // If ASIC is DNX and --skip-drain-check-for-prbs is disabled, check if
+  // interface or device is drained before setting interface PRBS.
+  if (switchType == cfg::SwitchType::VOQ ||
+      switchType == cfg::SwitchType::FABRIC) {
+    auto isDrained =
+        (port->getPortDrainState() == cfg::PortDrainState::DRAINED) ||
+        isSwitchDrained();
+    if (!FLAGS_skip_drain_check_for_prbs && !isDrained) {
+      throw FbossError("Cannot set PRBS on undrained interface");
+    }
+  }
   phy::PortPrbsState newPrbsState;
   *newPrbsState.enabled() = enable;
   *newPrbsState.polynominal() = polynominal;
