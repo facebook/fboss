@@ -23,8 +23,6 @@ struct TestPort {
 
 class PrbsTest : public LinkTest {
  public:
-  static constexpr int kPauseRemediationTimeout = 86400;
-
   bool checkValidMedia(PortID port, MediaInterfaceCode media) {
     auto tcvrSpec = utility::getTransceiverSpec(sw(), port);
     this->platform()->getPlatformPort(port)->getTransceiverSpec();
@@ -76,15 +74,7 @@ class PrbsTest : public LinkTest {
     }
   }
 
-  void runTest(bool pauseRemediation = false) {
-    // Pause remediation on all port transceivers (only applies for ASIC <->
-    // ASIC PRBS)
-    if (pauseRemediation) {
-      WITH_RETRIES_N_TIMED(12, std::chrono::milliseconds(5000), {
-        EXPECT_EVENTUALLY_TRUE(pauseRemediationOnAllInterfaces());
-      });
-    }
-
+  void runTest() {
     prbs::InterfacePrbsState enabledState;
     enabledState.generatorEnabled() = true;
     enabledState.checkerEnabled() = true;
@@ -183,23 +173,6 @@ class PrbsTest : public LinkTest {
 
  private:
   std::vector<TestPort> portsToTest_;
-
-  bool pauseRemediationOnAllInterfaces() {
-    std::vector<std::string> interfaces;
-    auto qsfpServiceClient = utils::createQsfpServiceClient();
-    for (const auto& port : portsToTest_) {
-      interfaces.push_back(port.portName);
-    }
-    try {
-      qsfpServiceClient->sync_pauseRemediation(
-          kPauseRemediationTimeout, interfaces);
-    } catch (const std::exception& ex) {
-      XLOG(ERR) << "Pausing remediation failed with " << ex.what() << "for "
-                << folly::join(",", interfaces);
-      return false;
-    }
-    return true;
-  }
 
   template <class Client>
   bool setPrbsOnInterface(
@@ -650,7 +623,7 @@ class AsicToAsicPrbsTest : public PrbsTest {
   struct PRBS_ASIC_TEST_NAME(ASIC, POLYNOMIAL)                          \
       : public AsicToAsicPrbsTest<prbs::PrbsPolynomial::POLYNOMIAL> {}; \
   TEST_F(PRBS_ASIC_TEST_NAME(ASIC, POLYNOMIAL), prbsSanity) {           \
-    runTest(true);                                                      \
+    runTest();                                                          \
   }
 
 PRBS_TRANSCEIVER_LINE_TRANSCEIVER_LINE_TEST(FR1_100G, PRBS31);
