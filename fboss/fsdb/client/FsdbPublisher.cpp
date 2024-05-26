@@ -53,19 +53,12 @@ void FsdbPublisher<PubUnit>::handleStateChange(
 }
 template <typename PubUnit>
 bool FsdbPublisher<PubUnit>::write(PubUnit&& pubUnit) {
-  if constexpr (std::is_same_v<PubUnit, Patch>) {
-    // TODO: metadata for patches
-  } else {
-    if (!pubUnit.metadata()) {
-      pubUnit.metadata() = OperMetadata{};
-    }
-    if (!pubUnit.metadata()->lastConfirmedAt()) {
-      auto now = std::chrono::system_clock::now();
-      pubUnit.metadata()->lastConfirmedAt() =
-          std::chrono::duration_cast<std::chrono::seconds>(
-              now.time_since_epoch())
-              .count();
-    }
+  pubUnit.metadata().ensure();
+  if (!pubUnit.metadata()->lastConfirmedAt()) {
+    auto now = std::chrono::system_clock::now();
+    pubUnit.metadata()->lastConfirmedAt() =
+        std::chrono::duration_cast<std::chrono::seconds>(now.time_since_epoch())
+            .count();
   }
 #if FOLLY_HAS_COROUTINES
   auto pipeUPtr = asyncPipe_.ulock();

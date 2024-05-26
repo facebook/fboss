@@ -183,14 +183,8 @@ class NaivePeriodicSubscribableStorage
       return StorageError::TYPE_ERROR;
     }
     auto& path = *patch.basePath();
-    // TODO: include metadata in patch
-    OperMetadata metadata;
-    auto now = std::chrono::system_clock::now();
-    metadata.lastConfirmedAt() =
-        std::chrono::duration_cast<std::chrono::seconds>(now.time_since_epoch())
-            .count();
     auto state = currentState_.wlock();
-    updateMetadata(path.begin(), path.end(), metadata);
+    updateMetadata(path.begin(), path.end(), *patch.metadata());
     return state->patch(std::move(patch));
   }
   using NaivePeriodicSubscribableStorageBase::subscribe_patch_impl;

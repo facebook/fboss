@@ -142,6 +142,17 @@ Path buildPathUnion(facebook::fboss::fsdb::OperPublisherInfo info) {
   return pathUnion;
 }
 
+void updateMetadata(facebook::fboss::fsdb::OperMetadata& metadata) {
+  // Timestamp at server if chunk was not timestamped
+  // by publisher
+  if (!metadata.lastConfirmedAt()) {
+    auto now = std::chrono::system_clock::now();
+    metadata.lastConfirmedAt() =
+        std::chrono::duration_cast<std::chrono::seconds>(now.time_since_epoch())
+            .count();
+  }
+}
+
 } // namespace
 
 namespace facebook::fboss::fsdb {
@@ -397,32 +408,18 @@ ServiceHandler::makeSinkConsumer(
        isStats](folly::coro::AsyncGenerator<PubUnit&&> gen)
           -> folly::coro::Task<OperPubFinalResponse> {
         OperPubFinalResponse finalResponse;
-        auto updateMetadata = [](auto& chunk) {
-          if (!chunk->metadata()) {
-            chunk->metadata() = OperMetadata();
-          }
-          // Timestamp at server if chunk was not timestamped
-          // by publisher
-          if (!chunk->metadata()->lastConfirmedAt()) {
-            auto now = std::chrono::system_clock::now();
-            chunk->metadata()->lastConfirmedAt() =
-                std::chrono::duration_cast<std::chrono::seconds>(
-                    now.time_since_epoch())
-                    .count();
-          }
-        };
         try {
           while (auto chunk = co_await gen.next()) {
             XLOG(DBG3) << " chunk received";
             if constexpr (std::is_same_v<PubUnit, OperState>) {
-              updateMetadata(chunk);
+              updateMetadata(chunk->metadata().ensure());
               if (isStats) {
                 operStatsStorage_.set_encoded(path.begin(), path.end(), *chunk);
               } else {
                 operStorage_.set_encoded(path.begin(), path.end(), *chunk);
               }
             } else if constexpr (std::is_same_v<PubUnit, OperDelta>) {
-              updateMetadata(chunk);
+              updateMetadata(chunk->metadata().ensure());
               // filter out invalid paths for cases where publisher is newer
               // than fsdb
               auto isPathValid = isStats ? PathValidator::isStatsPathValid
@@ -454,9 +451,9 @@ ServiceHandler::makeSinkConsumer(
                 }
               }
             } else if constexpr (std::is_same_v<PubUnit, PublisherMessage>) {
-              // TODO: update metadata
               // TODO: need to use the publish path
               auto patchChunk = chunk->move_patch();
+              updateMetadata(*patchChunk.metadata());
               if (isStats) {
                 operStatsStorage_.patch(std::move(patchChunk));
               } else {
