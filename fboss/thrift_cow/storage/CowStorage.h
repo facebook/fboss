@@ -187,7 +187,7 @@ class CowStorage : public Storage<Root, CowStorage<Root, Node>> {
   }
 
 #ifdef ENABLE_PATCH_APIS
-  std::optional<StorageError> patch_impl(thrift_cow::Patch&& patch) {
+  std::optional<StorageError> patch_impl(Patch&& patch) {
     auto begin = patch.basePath()->begin();
     auto end = patch.basePath()->end();
     auto modifyResult = StorageImpl::modifyPath(&root_, begin, end);

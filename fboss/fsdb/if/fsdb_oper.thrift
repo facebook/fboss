@@ -133,13 +133,20 @@ struct SubRequest {
 // TODO: option to request shallow patches?
 }
 
+struct Patch {
+  1: list<string> basePath;
+  2: patch.PatchNode patch;
+// TODO: oper protocol
+}
+
 union PublisherMessage {
-  1: patch.Patch chunk;
+  1: Patch patch;
+// TODO: heartbeat
 }
 
 struct SubscriberChunk {
   1: SubscriptionKey key;
-  2: patch.Patch patch;
+  2: Patch patch;
 }
 
 union SubscriberMessage {

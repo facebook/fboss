@@ -323,9 +323,9 @@ void PatchSubscription::allPublishersGone(
   pipe_.write(Utils::createFsdbException(disconnectReason, msg));
 }
 
-std::optional<thrift_cow::Patch> PatchSubscription::moveFromCurrPatch(
+std::optional<Patch> PatchSubscription::moveFromCurrPatch(
     const SubscriptionMetadataServer& /* metadataServer */) {
-  std::optional<thrift_cow::Patch> patch = std::move(currPatch_);
+  std::optional<Patch> patch = std::move(currPatch_);
   currPatch_.reset();
   return patch;
 }
@@ -343,7 +343,7 @@ void PatchSubscription::flush(
 
 void PatchSubscription::setPatchRoot(thrift_cow::PatchNode node) {
   if (!currPatch_) {
-    currPatch_ = thrift_cow::Patch();
+    currPatch_ = Patch();
     // TODO: set path, protocol
   }
   currPatch_->patch() = std::move(node);

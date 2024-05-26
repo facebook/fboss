@@ -5,8 +5,8 @@
 #include "fboss/fsdb/client/FsdbPublisher.h"
 
 namespace facebook::fboss::fsdb {
-class FsdbPatchPublisher : public FsdbPublisher<thrift_cow::Patch> {
-  using BaseT = FsdbPublisher<thrift_cow::Patch>;
+class FsdbPatchPublisher : public FsdbPublisher<Patch> {
+  using BaseT = FsdbPublisher<Patch>;
 
  public:
   using BaseT::BaseT;

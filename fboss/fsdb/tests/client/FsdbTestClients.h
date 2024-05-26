@@ -35,7 +35,7 @@ class TestFsdbStreamClient : public FsdbStreamClient {
 };
 
 OperDelta makeDelta(const cfg::AgentConfig& cfg);
-thrift_cow::Patch makePatch(const cfg::AgentConfig& cfg);
+Patch makePatch(const cfg::AgentConfig& cfg);
 /*
  * makeState serializes FsdbOperStateRoot, after updating
  * agent config inside the root object
@@ -44,8 +44,7 @@ OperState makeState(const cfg::AgentConfig& cfg);
 
 OperDelta makeDelta(
     const folly::F14FastMap<std::string, HwPortStats>& portStats);
-thrift_cow::Patch makePatch(
-    const folly::F14FastMap<std::string, HwPortStats>& portStats);
+Patch makePatch(const folly::F14FastMap<std::string, HwPortStats>& portStats);
 /*
  * makeState serializes FsdbOperStatsRoot, after updating
  * agent config inside the root object
@@ -155,7 +154,7 @@ using StatePubSubForState = StatePubSubT<false>;
 
 template <bool pubSubStats>
 struct PatchPubSubT {
-  using PubUnitT = thrift_cow::Patch;
+  using PubUnitT = Patch;
   using PublisherT = FsdbPatchPublisher;
   using SubUnitT = OperDelta;
   // TODO: replace with patch subscriber once that is ready

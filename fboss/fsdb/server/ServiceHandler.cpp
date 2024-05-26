@@ -456,11 +456,11 @@ ServiceHandler::makeSinkConsumer(
             } else if constexpr (std::is_same_v<PubUnit, PublisherMessage>) {
               // TODO: update metadata
               // TODO: need to use the publish path
-              auto patch = chunk->move_chunk();
+              auto patchChunk = chunk->move_patch();
               if (isStats) {
-                operStatsStorage_.patch(std::move(patch));
+                operStatsStorage_.patch(std::move(patchChunk));
               } else {
-                operStorage_.patch(std::move(patch));
+                operStorage_.patch(std::move(patchChunk));
               }
             }
           }

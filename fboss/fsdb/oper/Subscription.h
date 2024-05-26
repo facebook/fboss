@@ -515,7 +515,7 @@ class PatchSubscription : public Subscription, private boost::noncopyable {
   using PathIter = std::vector<std::string>::const_iterator;
 
   static std::pair<
-      folly::coro::AsyncGenerator<thrift_cow::Patch&&>,
+      folly::coro::AsyncGenerator<Patch&&>,
       std::unique_ptr<PatchSubscription>>
   create(
       SubscriberId subscriber,
@@ -523,8 +523,7 @@ class PatchSubscription : public Subscription, private boost::noncopyable {
       PathIter end,
       OperProtocol protocol,
       std::optional<std::string> publisherRoot) {
-    auto [generator, pipe] =
-        folly::coro::AsyncPipe<thrift_cow::Patch>::create();
+    auto [generator, pipe] = folly::coro::AsyncPipe<Patch>::create();
     std::vector<std::string> path(begin, end);
     auto subscription = std::make_unique<PatchSubscription>(
         std::move(subscriber),
@@ -538,7 +537,7 @@ class PatchSubscription : public Subscription, private boost::noncopyable {
   PatchSubscription(
       SubscriberId subscriber,
       std::vector<std::string> path,
-      folly::coro::AsyncPipe<thrift_cow::Patch> pipe,
+      folly::coro::AsyncPipe<Patch> pipe,
       OperProtocol protocol,
       std::optional<std::string> publisherTreeRoot = std::nullopt)
       : Subscription(
@@ -573,12 +572,12 @@ class PatchSubscription : public Subscription, private boost::noncopyable {
       const std::string& msg = "All publishers dropped") override;
 
  private:
-  std::optional<thrift_cow::Patch> moveFromCurrPatch(
+  std::optional<Patch> moveFromCurrPatch(
       const SubscriptionMetadataServer& /* metadataServer */);
 
   OperProtocol protocol_;
-  std::optional<thrift_cow::Patch> currPatch_;
-  folly::coro::AsyncPipe<thrift_cow::Patch> pipe_;
+  std::optional<Patch> currPatch_;
+  folly::coro::AsyncPipe<Patch> pipe_;
 };
 
 } // namespace facebook::fboss::fsdb

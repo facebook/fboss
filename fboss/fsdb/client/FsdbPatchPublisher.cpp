@@ -44,7 +44,7 @@ folly::coro::Task<void> FsdbPatchPublisher::serveStream(StreamT&& stream) {
             break;
           }
           PublisherMessage message;
-          message.set_chunk(std::move(*patch));
+          message.set_patch(std::move(*patch));
           co_yield std::move(message);
         }
         co_return;

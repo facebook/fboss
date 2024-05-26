@@ -82,14 +82,14 @@ struct PatchBuilderTraverser : public TraverseHelper<PatchBuilderTraverser> {
 
 struct PatchBuilder {
   template <typename Node>
-  static thrift_cow::Patch build(
+  static fsdb::Patch build(
       const std::shared_ptr<Node>& oldNode,
       const std::shared_ptr<Node>& newNode,
       const std::vector<std::string>& basePath,
       bool incrementallyCompress = false) {
     using TC = typename Node::TC;
     // TODO: validate type at path == Node
-    thrift_cow::Patch patch;
+    fsdb::Patch patch;
     patch.basePath() = basePath;
     PatchNodeBuilder nodeBuilder(TCType<TC>, incrementallyCompress);
 

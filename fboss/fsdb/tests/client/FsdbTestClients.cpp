@@ -125,7 +125,7 @@ folly::F14FastMap<std::string, HwPortStats> makePortStats(
   return portStats;
 }
 
-thrift_cow::Patch makePatch(const cfg::AgentConfig& config) {
+Patch makePatch(const cfg::AgentConfig& config) {
   using AgentDataMembers = apache::thrift::reflect_struct<AgentData>::member;
   using FsdbOperStateRootMembers =
       apache::thrift::reflect_struct<FsdbOperStateRoot>::member;
@@ -139,15 +139,14 @@ thrift_cow::Patch makePatch(const cfg::AgentConfig& config) {
 
   thrift_cow::PatchNode root;
   root.set_struct_node(std::move(s));
-  thrift_cow::Patch p;
+  Patch p;
   p.patch() = std::move(root);
   p.basePath() = {
       folly::to<std::string>(FsdbOperStateRootMembers::agent::id::value)};
   return p;
 }
 
-thrift_cow::Patch makePatch(
-    const folly::F14FastMap<std::string, HwPortStats>& portStats) {
+Patch makePatch(const folly::F14FastMap<std::string, HwPortStats>& portStats) {
   using AgentStatsMembers = apache::thrift::reflect_struct<AgentStats>::member;
   using FsdbOperStatsRootMembers =
       apache::thrift::reflect_struct<FsdbOperStatsRoot>::member;
@@ -161,7 +160,7 @@ thrift_cow::Patch makePatch(
 
   thrift_cow::PatchNode root;
   root.set_struct_node(std::move(s));
-  thrift_cow::Patch p;
+  Patch p;
   p.patch() = std::move(root);
   p.basePath() = {"agent"};
   return p;

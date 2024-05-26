@@ -53,7 +53,7 @@ void FsdbPublisher<PubUnit>::handleStateChange(
 }
 template <typename PubUnit>
 bool FsdbPublisher<PubUnit>::write(PubUnit&& pubUnit) {
-  if constexpr (std::is_same_v<PubUnit, thrift_cow::Patch>) {
+  if constexpr (std::is_same_v<PubUnit, Patch>) {
     // TODO: metadata for patches
   } else {
     if (!pubUnit.metadata()) {
@@ -141,6 +141,6 @@ bool FsdbPublisher<PubUnit>::disconnectForGR() {
 
 template class FsdbPublisher<OperDelta>;
 template class FsdbPublisher<OperState>;
-template class FsdbPublisher<thrift_cow::Patch>;
+template class FsdbPublisher<Patch>;
 
 } // namespace facebook::fboss::fsdb

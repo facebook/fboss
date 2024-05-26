@@ -119,7 +119,7 @@ class Storage {
   }
 
 #ifdef ENABLE_PATCH_APIS
-  std::optional<StorageError> patch(thrift_cow::Patch&& patch) {
+  std::optional<StorageError> patch(Patch&& patch) {
     return static_cast<Derived*>(this)->patch_impl(std::move(patch));
   }
 #endif

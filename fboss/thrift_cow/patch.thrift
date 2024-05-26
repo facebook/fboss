@@ -48,8 +48,3 @@ union PatchNode {
   6: SetPatch set_node;
   7: VariantPatch variant_node;
 }
-
-struct Patch {
-  1: list<string> basePath;
-  2: PatchNode patch;
-}

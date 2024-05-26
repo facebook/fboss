@@ -167,7 +167,7 @@ class FsdbPubSubTest : public ::testing::Test {
       publisher_->write(makeDelta(config));
     } else if constexpr (std::is_same_v<PubUnitT, OperState>) {
       publisher_->write(makeState(config));
-    } else if constexpr (std::is_same_v<PubUnitT, thrift_cow::Patch>) {
+    } else if constexpr (std::is_same_v<PubUnitT, Patch>) {
       publisher_->write(makePatch(config));
     }
   }
@@ -177,7 +177,7 @@ class FsdbPubSubTest : public ::testing::Test {
       publisher_->write(makeDelta(portStats));
     } else if constexpr (std::is_same_v<PubUnitT, OperState>) {
       publisher_->write(makeState(portStats));
-    } else if constexpr (std::is_same_v<PubUnitT, thrift_cow::Patch>) {
+    } else if constexpr (std::is_same_v<PubUnitT, Patch>) {
       publisher_->write(makePatch(portStats));
     }
   }
@@ -188,7 +188,7 @@ class FsdbPubSubTest : public ::testing::Test {
     return std::is_same_v<PubUnitT, OperDelta>;
   }
   bool isPatch() const {
-    return std::is_same_v<PubUnitT, thrift_cow::Patch>;
+    return std::is_same_v<PubUnitT, Patch>;
   }
   template <typename SubRequestT>
   auto subscribe(const SubRequestT& reqIn) {
@@ -238,7 +238,7 @@ class FsdbPubSubTest : public ::testing::Test {
   }
 
   auto makePubRequest(std::string id, std::vector<std::string> path) {
-    if constexpr (std::is_same_v<PubUnitT, thrift_cow::Patch>) {
+    if constexpr (std::is_same_v<PubUnitT, Patch>) {
       PubRequest req;
       req.clientId()->client() = FsdbClient::ADHOC;
       req.clientId()->instanceId() = std::move(id);
