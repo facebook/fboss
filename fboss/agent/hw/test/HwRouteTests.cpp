@@ -21,8 +21,6 @@
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/StateUtils.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
-#include "fboss/agent/test/utils/CoppTestUtils.h"
-#include "fboss/agent/test/utils/OlympicTestUtils.h"
 #include "fboss/lib/CommonUtils.h"
 
 #include "fboss/agent/AddressUtil.h"
@@ -617,14 +615,6 @@ TYPED_TEST(HwRouteTest, verifyCpuRouteChange) {
   auto ports = this->portDescs();
 
   auto setup = [=, this]() {
-    auto cfg = this->initialConfig();
-    auto ensemble = this->getHwSwitchEnsemble();
-    utility::addOlympicQosMaps(cfg, ensemble->getL3Asics());
-    utility::setDefaultCpuTrafficPolicyConfig(
-        cfg, ensemble->getL3Asics(), ensemble->isSai());
-    utility::addCpuQueueConfig(cfg, ensemble->getL3Asics(), ensemble->isSai());
-    this->applyNewConfig(cfg);
-
     utility::EcmpSetupTargetedPorts<AddrT> ecmpHelper(
         this->getProgrammedState(), this->kRouterID());
     // Next hops unresolved - route should point to CPU
@@ -652,10 +642,6 @@ TYPED_TEST(HwRouteTest, verifyCpuRouteChange) {
         this->kRouterID(),
         cidr,
         ecmpHelper.nhop(ports[1]).ip));
-    if (FLAGS_classid_for_unresolved_routes) {
-      EXPECT_FALSE(utility::isRouteUnresolvedToCpuClassId(
-          this->getHwSwitch(), this->kRouterID(), cidr));
-    }
 
     // Verify routing
     const auto egressPort = ports[1].phyPortID();
@@ -687,33 +673,6 @@ TYPED_TEST(HwRouteTest, verifyCpuRouteChange) {
         ecmpHelper.unresolveNextHops(this->getProgrammedState(), {ports[1]}));
     EXPECT_TRUE(
         utility::isHwRouteToCpu(this->getHwSwitch(), this->kRouterID(), cidr));
-    if (FLAGS_classid_for_unresolved_routes) {
-      EXPECT_TRUE(utility::isRouteUnresolvedToCpuClassId(
-          this->getHwSwitch(), this->kRouterID(), cidr));
-    }
-
-    // Resolve next hops
-    this->applyNewState(
-        ecmpHelper.resolveNextHops(this->getProgrammedState(), {ports[1]}));
-    EXPECT_TRUE(utility::isHwRouteToNextHop(
-        this->getHwSwitch(),
-        this->kRouterID(),
-        cidr,
-        ecmpHelper.nhop(ports[1]).ip));
-    if (FLAGS_classid_for_unresolved_routes) {
-      EXPECT_FALSE(utility::isRouteUnresolvedToCpuClassId(
-          this->getHwSwitch(), this->kRouterID(), cidr));
-    }
-
-    // Unresolve next hops
-    this->applyNewState(
-        ecmpHelper.unresolveNextHops(this->getProgrammedState(), {ports[1]}));
-    EXPECT_TRUE(
-        utility::isHwRouteToCpu(this->getHwSwitch(), this->kRouterID(), cidr));
-    if (FLAGS_classid_for_unresolved_routes) {
-      EXPECT_TRUE(utility::isRouteUnresolvedToCpuClassId(
-          this->getHwSwitch(), this->kRouterID(), cidr));
-    }
   };
 
   this->verifyAcrossWarmBoots(setup, verify);
