@@ -782,6 +782,32 @@ void HwSwitchEnsemble::gracefulExit() {
   storeWarmBootState(thriftSwitchState);
 }
 
+uint64_t HwSwitchEnsemble::getTrafficRate(
+    const HwPortStats& prevPortStats,
+    const HwPortStats& curPortStats,
+    const int secondsBetweenStatsCollection) {
+  auto prevPortBytes = *prevPortStats.outBytes_();
+  auto prevPortPackets =
+      (*prevPortStats.outUnicastPkts_() + *prevPortStats.outMulticastPkts_() +
+       *prevPortStats.outBroadcastPkts_());
+
+  auto curPortPackets =
+      (*curPortStats.outUnicastPkts_() + *curPortStats.outMulticastPkts_() +
+       *curPortStats.outBroadcastPkts_());
+
+  // 20 bytes are consumed by ethernet preamble, start of frame and
+  // interpacket gap. Account for that in linerate.
+  auto packetPaddingBytes = (curPortPackets - prevPortPackets) * 20;
+  auto curPortBytes = *curPortStats.outBytes_() + packetPaddingBytes;
+  auto rate = static_cast<uint64_t>((curPortBytes - prevPortBytes) * 8) /
+      secondsBetweenStatsCollection;
+  XLOG(DBG2) << ": Current rate " << rate << " bps " << " . curPortBytes "
+             << curPortBytes << " prevPortBytes " << prevPortBytes
+             << " curPortPackets " << curPortPackets << " prevPortPackets "
+             << prevPortPackets;
+  return rate;
+}
+
 /*
  * Wait for traffic on port to reach specified rate. If the
  * specified rate is reached, return true, else false.

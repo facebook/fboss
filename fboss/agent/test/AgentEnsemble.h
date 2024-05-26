@@ -256,6 +256,10 @@ class AgentEnsemble : public TestEnsembleIf {
       std::optional<uint8_t> queue = std::nullopt);
 
   virtual void ensureHwSwitchConnected(SwitchID switchId) = 0;
+  uint64_t getTrafficRate(
+      const HwPortStats& prevPortStats,
+      const HwPortStats& curPortStats,
+      const int secondsBetweenStatsCollection);
 
  protected:
   void joinAsyncInitThread() {

@@ -327,6 +327,10 @@ class HwSwitchEnsemble : public TestEnsembleIf {
   cfg::SwitchConfig getCurrentConfig() const override {
     return currentConfig_;
   }
+  uint64_t getTrafficRate(
+      const HwPortStats& prevPortStats,
+      const HwPortStats& curPortStats,
+      const int secondsBetweenStatsCollection);
 
  protected:
   /*

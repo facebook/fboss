@@ -372,6 +372,32 @@ LinkStateToggler* AgentEnsemble::getLinkToggler() {
   return linkToggler_.get();
 }
 
+uint64_t AgentEnsemble::getTrafficRate(
+    const HwPortStats& prevPortStats,
+    const HwPortStats& curPortStats,
+    const int secondsBetweenStatsCollection) {
+  auto prevPortBytes = *prevPortStats.outBytes_();
+  auto prevPortPackets =
+      (*prevPortStats.outUnicastPkts_() + *prevPortStats.outMulticastPkts_() +
+       *prevPortStats.outBroadcastPkts_());
+
+  auto curPortPackets =
+      (*curPortStats.outUnicastPkts_() + *curPortStats.outMulticastPkts_() +
+       *curPortStats.outBroadcastPkts_());
+
+  // 20 bytes are consumed by ethernet preamble, start of frame and
+  // interpacket gap. Account for that in linerate.
+  auto packetPaddingBytes = (curPortPackets - prevPortPackets) * 20;
+  auto curPortBytes = *curPortStats.outBytes_() + packetPaddingBytes;
+  auto rate = static_cast<uint64_t>((curPortBytes - prevPortBytes) * 8) /
+      secondsBetweenStatsCollection;
+  XLOG(DBG2) << ": Current rate " << rate << " bps" << ", curPortBytes "
+             << curPortBytes << " prevPortBytes " << prevPortBytes
+             << " curPortPackets " << curPortPackets << " prevPortPackets "
+             << prevPortPackets;
+  return rate;
+}
+
 /*
  * Wait for traffic on port to reach specified rate. If the
  * specified rate is reached, return true, else false.
@@ -397,32 +423,22 @@ bool AgentEnsemble::waitForRateOnPort(
     return false;
   }
 
+  // The first iteration in the below loop will not be successful
+  // given the prev/curr stats collections are back to back!
+  auto prevPortStats = getLatestPortStats(port);
+  XLOG(DBG0) << "Desired rate " << desiredBps;
   WITH_RETRIES_N_TIMED(
       10, std::chrono::milliseconds(1000 * secondsToWaitPerIteration), {
-        const auto prevPortStats = getLatestPortStats(port);
-        auto prevPortBytes = *prevPortStats.outBytes_();
-        auto prevPortPackets =
-            (*prevPortStats.outUnicastPkts_() +
-             *prevPortStats.outMulticastPkts_() +
-             *prevPortStats.outBroadcastPkts_());
-
-        const auto curPortStats = getLatestPortStats(port);
-        auto curPortPackets =
-            (*curPortStats.outUnicastPkts_() +
-             *curPortStats.outMulticastPkts_() +
-             *curPortStats.outBroadcastPkts_());
-
-        // 20 bytes are consumed by ethernet preamble, start of frame and
-        // interpacket gap. Account for that in linerate.
-        auto packetPaddingBytes = (curPortPackets - prevPortPackets) * 20;
-        auto curPortBytes = *curPortStats.outBytes_() + packetPaddingBytes;
-        auto rate = static_cast<uint64_t>((curPortBytes - prevPortBytes) * 8) /
-            secondsToWaitPerIteration;
-        XLOG(DBG2) << ": Current rate " << rate << " bps < expected rate "
-                   << desiredBps << " bps. curPortBytes " << curPortBytes
-                   << " prevPortBytes " << prevPortBytes << " curPortPackets "
-                   << curPortPackets << " prevPortPackets " << prevPortPackets;
-        EXPECT_EVENTUALLY_TRUE(rate >= desiredBps);
+        auto curPortStats = getLatestPortStats(port);
+        auto rate = getTrafficRate(
+            prevPortStats, curPortStats, secondsToWaitPerIteration);
+        // Update prev stats for the next iteration if needed!
+        prevPortStats = curPortStats;
+        if (desiredBps == 0) {
+          EXPECT_EVENTUALLY_EQ(rate, desiredBps);
+        } else {
+          EXPECT_EVENTUALLY_TRUE(rate >= desiredBps);
+        }
         return true;
       });
   return false;
