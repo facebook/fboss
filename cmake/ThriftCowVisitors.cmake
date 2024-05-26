@@ -11,6 +11,13 @@ add_fbthrift_cpp_library(
     reflection
 )
 
+add_fbthrift_cpp_library(
+  cow_visitor_results_cpp2
+  fboss/thrift_cow/visitors/results.thrift
+  OPTIONS
+    json
+    reflection
+)
 
 add_library(
   thrift_cow_visitors
@@ -31,6 +38,7 @@ add_library(
 set_target_properties(thrift_cow_visitors PROPERTIES LINKER_LANGUAGE CXX)
 
 target_link_libraries(thrift_cow_visitors
+  cow_visitor_results_cpp2
   fsdb_oper_cpp2
   patch_cpp2
   Folly::folly

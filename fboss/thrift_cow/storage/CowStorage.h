@@ -19,24 +19,27 @@ inline std::optional<StorageError> parseTraverseResult(
     return std::nullopt;
   } else if (
       traverseResult == thrift_cow::ThriftTraverseResult::VISITOR_EXCEPTION) {
+    XLOG(DBG3) << "Visitor exception on traverse";
     return StorageError::TYPE_ERROR;
   } else {
+    XLOG(DBG3) << "Visitor error on traverse: "
+               << static_cast<int>(traverseResult);
     return StorageError::INVALID_PATH;
   }
 }
 
 inline std::optional<StorageError> parsePatchResult(
-    thrift_cow::PatchResult patchResult) {
+    thrift_cow::PatchApplyResult patchResult) {
   switch (patchResult) {
-    case thrift_cow::PatchResult::OK:
+    case thrift_cow::PatchApplyResult::OK:
       return std::nullopt;
-    case thrift_cow::PatchResult::INVALID_STRUCT_MEMBER:
-    case thrift_cow::PatchResult::INVALID_VARIANT_MEMBER:
-    case thrift_cow::PatchResult::NON_EXISTENT_NODE:
-    case thrift_cow::PatchResult::KEY_PARSE_ERROR:
-    case thrift_cow::PatchResult::PATCHING_IMMUTABLE_NODE:
+    case thrift_cow::PatchApplyResult::INVALID_STRUCT_MEMBER:
+    case thrift_cow::PatchApplyResult::INVALID_VARIANT_MEMBER:
+    case thrift_cow::PatchApplyResult::NON_EXISTENT_NODE:
+    case thrift_cow::PatchApplyResult::KEY_PARSE_ERROR:
+    case thrift_cow::PatchApplyResult::PATCHING_IMMUTABLE_NODE:
       return StorageError::INVALID_PATH;
-    case thrift_cow::PatchResult::INVALID_PATCH_TYPE:
+    case thrift_cow::PatchApplyResult::INVALID_PATCH_TYPE:
       return StorageError::TYPE_ERROR;
   }
 }
@@ -187,13 +190,18 @@ class CowStorage : public Storage<Root, CowStorage<Root, Node>> {
   std::optional<StorageError> patch_impl(thrift_cow::Patch&& patch) {
     auto begin = patch.basePath()->begin();
     auto end = patch.basePath()->end();
-    StorageImpl::modifyPath(&root_, begin, end);
-    thrift_cow::PatchResult patchResult;
+    auto modifyResult = StorageImpl::modifyPath(&root_, begin, end);
+    if (modifyResult != thrift_cow::ThriftTraverseResult::OK) {
+      return detail::parseTraverseResult(modifyResult);
+    }
+    thrift_cow::PatchApplyResult patchResult;
     auto op = thrift_cow::pvlambda([&](auto& node) {
       using NodeT = typename folly::remove_cvref_t<decltype(node)>;
       using TC = typename NodeT::TC;
       patchResult =
           thrift_cow::PatchApplier<TC>::apply(node, std::move(*patch.patch()));
+      XLOG(DBG3) << "Visited base path. patch result "
+                 << apache::thrift::util::enumNameSafe(patchResult);
     });
     auto visitResult = thrift_cow::RootPathVisitor::visit(
         *root_, begin, end, thrift_cow::PathVisitMode::LEAF, op);

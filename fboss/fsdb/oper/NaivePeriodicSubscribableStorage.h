@@ -180,7 +180,7 @@ class NaivePeriodicSubscribableStorage
 #ifdef ENABLE_PATCH_APIS
   std::optional<StorageError> patch_impl(thrift_cow::Patch&& patch) {
     if (patch.patch()->getType() == thrift_cow::PatchNode::Type::__EMPTY__) {
-      return std::nullopt;
+      return StorageError::TYPE_ERROR;
     }
     auto& path = *patch.basePath();
     // TODO: include metadata in patch

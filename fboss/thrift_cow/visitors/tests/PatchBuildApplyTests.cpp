@@ -24,7 +24,7 @@ void testPatchBuildApply(
            .patch();
   auto nodeC = nodeA->clone();
   auto ret = RootPatchApplier::apply(*nodeC, std::move(patch));
-  EXPECT_EQ(ret, PatchResult::OK);
+  EXPECT_EQ(ret, PatchApplyResult::OK);
   EXPECT_EQ(nodeB->toThrift(), nodeC->toThrift());
 }
 
