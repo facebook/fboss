@@ -96,5 +96,6 @@ enum FsdbClient {
 
 struct ClientId {
   1: FsdbClient client;
+  // Optional freeform id. Should be used sparingly, only for subscribers that have multiple idential subscriptions
   2: optional string instanceId;
 }

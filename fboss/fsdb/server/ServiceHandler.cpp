@@ -73,6 +73,8 @@ using facebook::fboss::fsdb::OperPubRequest;
 using facebook::fboss::fsdb::OperSubRequest;
 using facebook::fboss::fsdb::OperSubRequestExtended;
 using facebook::fboss::fsdb::Path;
+using facebook::fboss::fsdb::PubRequest;
+using facebook::fboss::fsdb::SubRequest;
 
 template <typename OperRequest>
 std::string getRequestDetails(const OperRequest& request) {
@@ -80,24 +82,43 @@ std::string getRequestDetails(const OperRequest& request) {
       std::is_same_v<OperRequest, OperPubRequest> ||
       std::is_same_v<OperRequest, OperSubRequest> ||
       std::is_same_v<OperRequest, OperSubRequestExtended> ||
-      std::is_same_v<OperRequest, OperGetRequest>);
+      std::is_same_v<OperRequest, OperGetRequest> ||
+      std::is_same_v<OperRequest, SubRequest> ||
+      std::is_same_v<OperRequest, PubRequest>);
   std::string clientID = "";
-  std::string pathStr = "";
-  if constexpr (std::is_same_v<OperRequest, OperPubRequest>) {
+  if constexpr (
+      std::is_same_v<OperRequest, PubRequest> ||
+      std::is_same_v<OperRequest, SubRequest>) {
+    clientID = *request.clientId()->instanceId();
+  } else if constexpr (std::is_same_v<OperRequest, OperPubRequest>) {
     clientID = request.get_publisherId();
-    pathStr = folly::join("/", *request.get_path().raw());
   } else if constexpr (std::is_same_v<OperRequest, OperSubRequest>) {
     clientID = request.get_subscriberId();
-    pathStr = folly::join("/", *request.get_path().raw());
   } else if constexpr (std::is_same_v<OperRequest, OperSubRequestExtended>) {
     clientID = request.get_subscriberId();
-    // TODO: set path str for extended subs
   } else if constexpr (std::is_same_v<OperRequest, OperGetRequest>) {
     // TODO: enforce clientId on polling apis
     clientID = "adhoc";
-    pathStr = folly::join("/", *request.get_path().raw());
   }
-  return fmt::format("Client ID: {}, Path: {}", clientID, pathStr);
+  std::string pathStr = "";
+  if constexpr (
+      std::is_same_v<OperRequest, OperPubRequest> ||
+      std::is_same_v<OperRequest, OperSubRequest>) {
+    pathStr = folly::join("/", request.path()->get_raw());
+  } else if constexpr (std::is_same_v<OperRequest, PubRequest>) {
+    pathStr = folly::join("/", request.path()->get_path());
+  } else if constexpr (std::is_same_v<OperRequest, SubRequest>) {
+    std::vector<std::string> pathStrings;
+    pathStrings.reserve(request.paths()->size());
+    for (const auto& path : *request.paths()) {
+      pathStrings.push_back(fmt::format(
+          "{}:{}", path.first, folly::join("/", *path.second.path())));
+    }
+    pathStr = folly::join(", ", std::move(pathStrings));
+  } else if constexpr (std::is_same_v<OperRequest, OperSubRequestExtended>) {
+    // TODO: set path str for extended subs
+  }
+  return fmt::format("Client ID: {}, Path: {}", std::move(clientID), pathStr);
 }
 
 Path buildPathUnion(facebook::fboss::fsdb::OperSubscriberInfo info) {
@@ -254,17 +275,17 @@ ServiceHandler::~ServiceHandler() {
 }
 
 OperPublisherInfo ServiceHandler::makePublisherInfo(
-    const OperPubRequest& req,
+    const RawPathT& path,
+    const PublisherId& publisherId,
     PubSubType type,
     bool isStats) {
   OperPublisherInfo info;
-  info.publisherId() = *req.publisherId();
+  info.publisherId() = publisherId;
   info.type() = type;
-  info.path() = *req.path();
+  info.path()->raw() = path;
   info.isStats() = isStats;
   try {
-    auto pathConfig =
-        fsdbConfig_->getPathConfig(*req.publisherId(), *req.path()->raw());
+    auto pathConfig = fsdbConfig_->getPathConfig(publisherId, path);
     info.isExpectedPath() = *pathConfig.get().isExpected();
   } catch (const std::exception& e) {
     // ignore exception if PathConfig is not available
@@ -348,16 +369,16 @@ void ServiceHandler::unregisterPublisher(
 template <typename PubUnit>
 apache::thrift::SinkConsumer<PubUnit, OperPubFinalResponse>
 ServiceHandler::makeSinkConsumer(
-    std::unique_ptr<OperPubRequest> request,
+    RawPathT&& path,
+    const PublisherId& publisherId,
     bool isStats) {
-  validateOperPublishPermissions(
-      *request->publisherId(), *request->path()->raw());
+  validateOperPublishPermissions(publisherId, path);
   PubSubType pubSubType{PubSubType::PATH};
   if constexpr (std::is_same_v<PubUnit, OperDelta>) {
     pubSubType = PubSubType::DELTA;
   }
 
-  auto info = makePublisherInfo(*request, pubSubType, isStats);
+  auto info = makePublisherInfo(path, publisherId, pubSubType, isStats);
   registerPublisher(info);
   std::shared_ptr<FsdbErrorCode> disconnectReason =
       std::make_shared<FsdbErrorCode>(FsdbErrorCode::ALL_PUBLISHERS_GONE);
@@ -370,7 +391,7 @@ ServiceHandler::makeSinkConsumer(
       [this,
        disconnectReason = std::move(disconnectReason),
        cleanupPublisher = std::move(cleanupPublisher),
-       request = std::move(request),
+       path = std::move(path),
        isStats](folly::coro::AsyncGenerator<PubUnit&&> gen)
           -> folly::coro::Task<OperPubFinalResponse> {
         OperPubFinalResponse finalResponse;
@@ -391,15 +412,9 @@ ServiceHandler::makeSinkConsumer(
             }
             if constexpr (std::is_same_v<PubUnit, OperState>) {
               if (isStats) {
-                operStatsStorage_.set_encoded(
-                    request->path()->raw()->begin(),
-                    request->path()->raw()->end(),
-                    *chunk);
+                operStatsStorage_.set_encoded(path.begin(), path.end(), *chunk);
               } else {
-                operStorage_.set_encoded(
-                    request->path()->raw()->begin(),
-                    request->path()->raw()->end(),
-                    *chunk);
+                operStorage_.set_encoded(path.begin(), path.end(), *chunk);
               }
             } else {
               // filter out invalid paths for cases where publisher is newer
@@ -458,7 +473,10 @@ ServiceHandler::co_publishOperStatePath(
     std::unique_ptr<OperPubRequest> request) {
   auto log = LOG_THRIFT_CALL(INFO, getRequestDetails(*request));
   PathValidator::validateStatePath(*request->path()->raw());
-  co_return {{}, makeSinkConsumer<OperState>(std::move(request), false)};
+  co_return {
+      {},
+      makeSinkConsumer<OperState>(
+          std::move(*request->path()->raw()), *request->publisherId(), false)};
 }
 
 folly::coro::Task<apache::thrift::ResponseAndSinkConsumer<
@@ -469,7 +487,10 @@ ServiceHandler::co_publishOperStatsPath(
     std::unique_ptr<OperPubRequest> request) {
   auto log = LOG_THRIFT_CALL(INFO, getRequestDetails(*request));
   PathValidator::validateStatsPath(*request->path()->raw());
-  co_return {{}, makeSinkConsumer<OperState>(std::move(request), true)};
+  co_return {
+      {},
+      makeSinkConsumer<OperState>(
+          std::move(*request->path()->raw()), *request->publisherId(), true)};
 }
 
 folly::coro::Task<apache::thrift::ResponseAndSinkConsumer<
@@ -480,7 +501,10 @@ ServiceHandler::co_publishOperStateDelta(
     std::unique_ptr<OperPubRequest> request) {
   auto log = LOG_THRIFT_CALL(INFO, getRequestDetails(*request));
   PathValidator::validateStatePath(*request->path()->raw());
-  co_return {{}, makeSinkConsumer<OperDelta>(std::move(request), false)};
+  co_return {
+      {},
+      makeSinkConsumer<OperDelta>(
+          std::move(*request->path()->raw()), *request->publisherId(), false)};
 }
 
 folly::coro::Task<apache::thrift::ResponseAndSinkConsumer<
@@ -491,7 +515,10 @@ ServiceHandler::co_publishOperStatsDelta(
     std::unique_ptr<OperPubRequest> request) {
   auto log = LOG_THRIFT_CALL(INFO, getRequestDetails(*request));
   PathValidator::validateStatsPath(*request->path()->raw());
-  co_return {{}, makeSinkConsumer<OperDelta>(std::move(request), true)};
+  co_return {
+      {},
+      makeSinkConsumer<OperDelta>(
+          std::move(*request->path()->raw()), *request->publisherId(), true)};
 }
 
 namespace {
@@ -1192,7 +1219,7 @@ void ServiceHandler::validateSubscriptionPermissions(
 
 void ServiceHandler::validateOperPublishPermissions(
     PublisherId id,
-    const std::vector<std::string>& path) {
+    const RawPathT& path) {
   if (!FLAGS_checkOperOwnership) {
     return;
   }

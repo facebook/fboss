@@ -39,6 +39,9 @@ struct OperSubscriberInfo {
   4: bool isStats;
   5: optional list<fsdb_oper.ExtendedOperPath> extendedPaths;
   6: optional i64 subscribedSince;
+  // Paths for Patch apis
+  // TODO: replace path above
+  7: optional map<fsdb_oper.SubscriptionKey, fsdb_oper.RawOperPath> paths;
 }
 
 @cpp.Type{template = "folly::F14FastMap"}
