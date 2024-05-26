@@ -135,6 +135,29 @@ class ServiceHandler : public FsdbServiceSvIf,
       co_subscribeOperStatsDeltaExtended(
           std::unique_ptr<OperSubRequestExtended> /*request*/) override;
 
+  // Patch apis
+  folly::coro::Task<apache::thrift::ResponseAndSinkConsumer<
+      OperPubInitResponse,
+      PublisherMessage,
+      OperPubFinalResponse>>
+  co_publishState(std::unique_ptr<PubRequest> request) override;
+
+  folly::coro::Task<apache::thrift::ResponseAndSinkConsumer<
+      OperPubInitResponse,
+      PublisherMessage,
+      OperPubFinalResponse>>
+  co_publishStats(std::unique_ptr<PubRequest> request) override;
+
+  folly::coro::Task<apache::thrift::ResponseAndServerStream<
+      OperSubInitResponse,
+      SubscriberMessage>>
+  co_subscribeState(std::unique_ptr<SubRequest> request) override;
+
+  folly::coro::Task<apache::thrift::ResponseAndServerStream<
+      OperSubInitResponse,
+      SubscriberMessage>>
+  co_subscribeStats(std::unique_ptr<SubRequest> request) override;
+
   // Management Plane related ---------------------------------------
 
   folly::coro::Task<std::unique_ptr<PublisherIdToOperPublisherInfo>>

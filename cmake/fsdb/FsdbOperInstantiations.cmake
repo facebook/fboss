@@ -26,6 +26,7 @@ add_library(fsdb_cow_storage
   fboss/fsdb/oper/instantiations/FsdbCowStorage.cpp
 )
 
+target_compile_options(fsdb_cow_storage PUBLIC "-DENABLE_PATCH_APIS")
 target_link_libraries(fsdb_cow_storage
   fsdb_model
   cow_storage
@@ -49,6 +50,7 @@ add_library(fsdb_naive_periodic_subscribable_storage
   fboss/fsdb/oper/instantiations/FsdbNaivePeriodicSubscribableStorage.cpp
 )
 
+target_compile_options(fsdb_naive_periodic_subscribable_storage PUBLIC "-DENABLE_PATCH_APIS")
 target_link_libraries(fsdb_naive_periodic_subscribable_storage
   fsdb_model
   fsdb_cow_storage

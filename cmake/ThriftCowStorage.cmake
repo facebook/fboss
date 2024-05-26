@@ -8,6 +8,7 @@ add_library(
   fboss/thrift_cow/storage/Storage.h
 )
 
+target_compile_options(storage PUBLIC "-DENABLE_PATCH_APIS")
 set_target_properties(storage PROPERTIES LINKER_LANGUAGE CXX)
 
 target_link_libraries(storage
@@ -22,6 +23,7 @@ add_library(
   fboss/thrift_cow/storage/CowStorage.h
 )
 
+target_compile_options(cow_storage PUBLIC "-DENABLE_PATCH_APIS")
 set_target_properties(cow_storage PROPERTIES LINKER_LANGUAGE CXX)
 
 target_link_libraries(cow_storage
@@ -30,7 +32,6 @@ target_link_libraries(cow_storage
   thrift_cow_visitors
   Folly::folly
 )
-
 
 
 add_library(

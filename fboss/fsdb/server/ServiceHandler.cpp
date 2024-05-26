@@ -376,6 +376,8 @@ ServiceHandler::makeSinkConsumer(
   PubSubType pubSubType{PubSubType::PATH};
   if constexpr (std::is_same_v<PubUnit, OperDelta>) {
     pubSubType = PubSubType::DELTA;
+  } else if constexpr (std::is_same_v<PubUnit, PublisherMessage>) {
+    pubSubType = PubSubType::PATCH;
   }
 
   auto info = makePublisherInfo(path, publisherId, pubSubType, isStats);
@@ -395,28 +397,32 @@ ServiceHandler::makeSinkConsumer(
        isStats](folly::coro::AsyncGenerator<PubUnit&&> gen)
           -> folly::coro::Task<OperPubFinalResponse> {
         OperPubFinalResponse finalResponse;
+        auto updateMetadata = [](auto& chunk) {
+          if (!chunk->metadata()) {
+            chunk->metadata() = OperMetadata();
+          }
+          // Timestamp at server if chunk was not timestamped
+          // by publisher
+          if (!chunk->metadata()->lastConfirmedAt()) {
+            auto now = std::chrono::system_clock::now();
+            chunk->metadata()->lastConfirmedAt() =
+                std::chrono::duration_cast<std::chrono::seconds>(
+                    now.time_since_epoch())
+                    .count();
+          }
+        };
         try {
           while (auto chunk = co_await gen.next()) {
             XLOG(DBG3) << " chunk received";
-            if (!chunk->metadata()) {
-              chunk->metadata() = OperMetadata();
-            }
-            // Timestamp at server if chunk was not timestamped
-            // by publisher
-            if (!chunk->metadata()->lastConfirmedAt()) {
-              auto now = std::chrono::system_clock::now();
-              chunk->metadata()->lastConfirmedAt() =
-                  std::chrono::duration_cast<std::chrono::seconds>(
-                      now.time_since_epoch())
-                      .count();
-            }
             if constexpr (std::is_same_v<PubUnit, OperState>) {
+              updateMetadata(chunk);
               if (isStats) {
                 operStatsStorage_.set_encoded(path.begin(), path.end(), *chunk);
               } else {
                 operStorage_.set_encoded(path.begin(), path.end(), *chunk);
               }
-            } else {
+            } else if constexpr (std::is_same_v<PubUnit, OperDelta>) {
+              updateMetadata(chunk);
               // filter out invalid paths for cases where publisher is newer
               // than fsdb
               auto isPathValid = isStats ? PathValidator::isStatsPathValid
@@ -446,6 +452,15 @@ ServiceHandler::makeSinkConsumer(
                 } else {
                   num_dropped_state_changes_.addValue(numDropped);
                 }
+              }
+            } else if constexpr (std::is_same_v<PubUnit, PublisherMessage>) {
+              // TODO: update metadata
+              // TODO: need to use the publish path
+              auto patch = chunk->move_chunk();
+              if (isStats) {
+                operStatsStorage_.patch(std::move(patch));
+              } else {
+                operStorage_.patch(std::move(patch));
               }
             }
           }
@@ -521,6 +536,36 @@ ServiceHandler::co_publishOperStatsDelta(
           std::move(*request->path()->raw()), *request->publisherId(), true)};
 }
 
+folly::coro::Task<apache::thrift::ResponseAndSinkConsumer<
+    OperPubInitResponse,
+    PublisherMessage,
+    OperPubFinalResponse>>
+ServiceHandler::co_publishState(std::unique_ptr<PubRequest> request) {
+  auto log = LOG_THRIFT_CALL(INFO, getRequestDetails(*request));
+  PathValidator::validateStatePath(*request->path()->path());
+  co_return {
+      {},
+      makeSinkConsumer<PublisherMessage>(
+          std::move(*request->path()->path()),
+          *request->clientId()->instanceId(),
+          false)};
+}
+
+folly::coro::Task<apache::thrift::ResponseAndSinkConsumer<
+    OperPubInitResponse,
+    PublisherMessage,
+    OperPubFinalResponse>>
+ServiceHandler::co_publishStats(std::unique_ptr<PubRequest> request) {
+  auto log = LOG_THRIFT_CALL(INFO, getRequestDetails(*request));
+  PathValidator::validateStatePath(*request->path()->path());
+  co_return {
+      {},
+      makeSinkConsumer<PublisherMessage>(
+          std::move(*request->path()->path()),
+          *request->clientId()->instanceId(),
+          true)};
+}
+
 namespace {
 
 OperSubscriberInfo
@@ -545,6 +590,48 @@ OperSubscriberInfo makeSubscriberInfo(
   info.isStats() = isStats;
   info.subscribedSince() = static_cast<int64_t>(std::time(nullptr));
   return info;
+}
+
+OperSubscriberInfo
+makeSubscriberInfo(const SubRequest& req, PubSubType type, bool isStats) {
+  OperSubscriberInfo info;
+  info.subscriberId() = *req.clientId()->instanceId();
+  info.type() = type;
+  info.paths() = *req.paths();
+  info.isStats() = isStats;
+  return info;
+}
+
+template <typename Storage>
+folly::coro::AsyncGenerator<SubscriberMessage&&> makeSubStreamGenerator(
+    Storage& storage,
+    std::unique_ptr<SubRequest> request) {
+  // TODO: for the sake of incremental diffs just looking at first path for
+  // now, later will support multi path
+  auto path = *request->paths()->begin()->second.path();
+  auto gen = storage.subscribe_patch(
+      *request->clientId()->instanceId(),
+      path.begin(),
+      path.end(),
+      *request->protocol());
+  while (auto chunk = co_await gen.next()) {
+    SubscriberMessage message;
+    // TODO: handle heartbeat
+    SubscriberChunk subChunk;
+    subChunk.patch() = std::move(*chunk);
+    message.set_chunk(std::move(subChunk));
+    co_yield std::move(message);
+  }
+}
+
+void validatePaths(
+    const std::map<SubscriptionKey, RawOperPath>& paths,
+    bool isStats) {
+  auto validatePath = isStats ? PathValidator::validateStatsPath
+                              : PathValidator::validateStatePath;
+  for (const auto& path : paths) {
+    validatePath(*path.second.path());
+  }
 }
 
 } // namespace
@@ -995,6 +1082,57 @@ ServiceHandler::co_subscribeOperStatsDeltaExtended(
               co_yield std::move(unit);
             }
           })};
+}
+
+folly::coro::Task<apache::thrift::ResponseAndServerStream<
+    OperSubInitResponse,
+    SubscriberMessage>>
+ServiceHandler::co_subscribeState(std::unique_ptr<SubRequest> request) {
+  auto log = LOG_THRIFT_CALL(INFO, getRequestDetails(*request));
+  validatePaths(*request->paths(), false);
+  auto subscriberInfo = makeSubscriberInfo(*request, PubSubType::PATCH, false);
+  registerSubscription(subscriberInfo);
+  auto cleanupSubscriber =
+      folly::makeGuard([this, subscriberInfo = std::move(subscriberInfo)]() {
+        unregisterSubscription(subscriberInfo);
+      });
+  auto stream = folly::coro::co_invoke(
+      [this,
+       request = std::move(request),
+       cleanupSubscriber = std::move(cleanupSubscriber)]() mutable
+      -> folly::coro::AsyncGenerator<SubscriberMessage&&> {
+        auto gen = makeSubStreamGenerator(operStorage_, std::move(request));
+        while (auto val = co_await gen.next()) {
+          co_yield std::move(*val);
+        }
+      });
+  co_return {{}, std::move(stream)};
+}
+
+folly::coro::Task<apache::thrift::ResponseAndServerStream<
+    OperSubInitResponse,
+    SubscriberMessage>>
+ServiceHandler::co_subscribeStats(std::unique_ptr<SubRequest> request) {
+  auto log = LOG_THRIFT_CALL(INFO, getRequestDetails(*request));
+  validatePaths(*request->paths(), true);
+  auto subscriberInfo = makeSubscriberInfo(*request, PubSubType::PATCH, true);
+  registerSubscription(subscriberInfo);
+  auto cleanupSubscriber =
+      folly::makeGuard([this, subscriberInfo = std::move(subscriberInfo)]() {
+        unregisterSubscription(subscriberInfo);
+      });
+  auto stream = folly::coro::co_invoke(
+      [this,
+       request = std::move(request),
+       cleanupSubscriber = std::move(cleanupSubscriber)]() mutable
+      -> folly::coro::AsyncGenerator<SubscriberMessage&&> {
+        auto gen =
+            makeSubStreamGenerator(operStatsStorage_, std::move(request));
+        while (auto val = co_await gen.next()) {
+          co_yield std::move(*val);
+        }
+      });
+  co_return {{}, std::move(stream)};
 }
 
 folly::coro::Task<std::unique_ptr<OperState>> ServiceHandler::co_getOperState(
