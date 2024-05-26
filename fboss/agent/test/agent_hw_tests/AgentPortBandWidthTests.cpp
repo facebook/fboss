@@ -56,7 +56,7 @@ class AgentPortBandwidthTest : public AgentHwTest {
       cfg::SwitchConfig* config,
       uint32_t maxPps,
       uint32_t maxKbps) const {
-    if (isSupportedOnAllAsics(HwAsic::Feature::L3_QOS)) {
+    if (isSupportedOnAllAsics(HwAsic::Feature::SCHEDULER_PPS)) {
       auto& queue0 = config->portQueueConfigs()["queue_config"][kQueueId0()];
       queue0.portQueueRate() = cfg::PortQueueRate();
       queue0.portQueueRate()->pktsPerSec_ref() =
@@ -408,6 +408,10 @@ void AgentPortBandwidthTest::verifyPortRateTraffic(cfg::PortSpeed portSpeed) {
 }
 
 TEST_F(AgentPortBandwidthTest, VerifyPps) {
+  if (!isSupportedOnAllAsics(HwAsic::Feature::SCHEDULER_PPS)) {
+    XLOG(DBG0) << "PPS feature is not supported on this ASIC, skip the test";
+    GTEST_SKIP();
+  }
   auto getPackets = [this](const HwPortStats& stats) {
     return stats.get_queueOutPackets_().at(kQueueId0());
   };
@@ -425,6 +429,10 @@ TEST_F(AgentPortBandwidthTest, VerifyKbps) {
 }
 
 TEST_F(AgentPortBandwidthTest, VerifyPpsDynamicChanges) {
+  if (!isSupportedOnAllAsics(HwAsic::Feature::SCHEDULER_PPS)) {
+    XLOG(DBG0) << "PPS feature is not supported on this ASIC, skip the test";
+    GTEST_SKIP();
+  }
   auto getPackets = [this](const HwPortStats& stats) {
     return stats.get_queueOutPackets_().at(kQueueId0());
   };
