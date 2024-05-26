@@ -79,6 +79,7 @@ class FsdbStreamClient : public ReconnectingThriftClient {
   using SubStreamT = apache::thrift::ClientBufferedStream<SubUnit>;
   using StatePubStreamT = PubStreamT<OperState>;
   using DeltaPubStreamT = PubStreamT<OperDelta>;
+  using PatchPubStreamT = PubStreamT<PublisherMessage>;
   using StateSubStreamT = SubStreamT<OperState>;
   using DeltaSubStreamT = SubStreamT<OperDelta>;
   using StateExtSubStreamT = SubStreamT<OperSubPathUnit>;
@@ -87,6 +88,7 @@ class FsdbStreamClient : public ReconnectingThriftClient {
   using StreamT = std::variant<
       StatePubStreamT,
       DeltaPubStreamT,
+      PatchPubStreamT,
       StateSubStreamT,
       DeltaSubStreamT,
       StateExtSubStreamT,

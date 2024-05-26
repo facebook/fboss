@@ -26,9 +26,7 @@ class FsdbPublisher : public FsdbStreamClient {
     return std::make_unique<GenPipeT>(PipeT::create(kPubQueueCapacity));
   }
 #endif
-  std::string typeStr() {
-    return std::is_same_v<PubUnit, OperDelta> ? "Delta" : "Path";
-  }
+  std::string typeStr();
 
  public:
   FsdbPublisher(
@@ -66,10 +64,10 @@ class FsdbPublisher : public FsdbStreamClient {
                 handleStateChange(oldState, newState);
               }
             }),
+        publishPath_(publishPath),
 #if FOLLY_HAS_COROUTINES
         asyncPipe_(makePipe()),
 #endif
-        publishPath_(publishPath),
         writeErrors_(
             fb303::ThreadCachedServiceData::get()->getThreadStats(),
             getCounterPrefix() + ".writeErrors",
@@ -94,6 +92,8 @@ class FsdbPublisher : public FsdbStreamClient {
 #endif
   OperPubRequest createRequest() const;
 
+  const std::vector<std::string> publishPath_;
+
  private:
   void handleStateChange(State oldState, State newState);
 // Note unique_ptr is synchronized, not GenT/PipeT. The latter manages its
@@ -102,7 +102,6 @@ class FsdbPublisher : public FsdbStreamClient {
   folly::Synchronized<std::unique_ptr<GenPipeT>> asyncPipe_;
 #endif
   std::atomic<ssize_t> queueSize_{0};
-  const std::vector<std::string> publishPath_;
   fb303::ThreadCachedServiceData::TLTimeseries writeErrors_;
 };
 } // namespace facebook::fboss::fsdb

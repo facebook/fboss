@@ -8,7 +8,8 @@
 
 #include <folly/experimental/coro/BlockingWait.h>
 #include <folly/io/async/ScopedEventBaseThread.h>
-
+#include <folly/logging/LogLevel.h>
+#include <folly/logging/LoggerDB.h>
 #include <thrift/lib/cpp2/protocol/Serializer.h>
 #include <memory>
 
@@ -37,6 +38,8 @@ class FsdbPubSubTest : public ::testing::Test {
   using SubUnitT = typename TestParam::SubUnitT;
 
   void SetUp() override {
+    folly::LoggerDB::get().setLevel("fboss.thrift_cow", folly::LogLevel::DBG4);
+    folly::LoggerDB::get().setLevel("fboss.fsdb", folly::LogLevel::DBG4);
     auto config = getFsdbConfig();
     fsdbTestServer_ = std::make_unique<FsdbTestServer>(std::move(config));
     publisherStreamEvbThread_ =
@@ -162,16 +165,20 @@ class FsdbPubSubTest : public ::testing::Test {
   void publishAgentConfig(const cfg::AgentConfig& config) {
     if constexpr (std::is_same_v<typename TestParam::PubUnitT, OperDelta>) {
       publisher_->write(makeDelta(config));
-    } else {
+    } else if constexpr (std::is_same_v<PubUnitT, OperState>) {
       publisher_->write(makeState(config));
+    } else if constexpr (std::is_same_v<PubUnitT, thrift_cow::Patch>) {
+      publisher_->write(makePatch(config));
     }
   }
   void publishPortStats(
       const folly::F14FastMap<std::string, HwPortStats>& portStats) {
     if constexpr (std::is_same_v<PubUnitT, OperDelta>) {
       publisher_->write(makeDelta(portStats));
-    } else {
+    } else if constexpr (std::is_same_v<PubUnitT, OperState>) {
       publisher_->write(makeState(portStats));
+    } else if constexpr (std::is_same_v<PubUnitT, thrift_cow::Patch>) {
+      publisher_->write(makePatch(portStats));
     }
   }
   bool pubSubStats() const {
@@ -180,13 +187,20 @@ class FsdbPubSubTest : public ::testing::Test {
   bool isDelta() const {
     return std::is_same_v<PubUnitT, OperDelta>;
   }
-  auto subscribe(const OperSubRequest& reqIn) {
-    auto req = std::make_unique<OperSubRequest>(reqIn);
+  bool isPatch() const {
+    return std::is_same_v<PubUnitT, thrift_cow::Patch>;
+  }
+  template <typename SubRequestT>
+  auto subscribe(const SubRequestT& reqIn) {
+    auto req = std::make_unique<SubRequestT>(reqIn);
+    // TODO: subscribe patch
     if constexpr (std::is_same_v<TestParam, DeltaPubSubForState>) {
       return folly::coro::blockingWait(
           this->fsdbTestServer_->serviceHandler().co_subscribeOperStateDelta(
               std::move(req)));
-    } else if constexpr (std::is_same_v<TestParam, StatePubSubForState>) {
+    } else if constexpr (
+        std::is_same_v<TestParam, StatePubSubForState> ||
+        std::is_same_v<TestParam, PatchPubSubForState>) {
       return folly::coro::blockingWait(
           this->fsdbTestServer_->serviceHandler().co_subscribeOperStatePath(
               std::move(req)));
@@ -194,8 +208,9 @@ class FsdbPubSubTest : public ::testing::Test {
       return folly::coro::blockingWait(
           this->fsdbTestServer_->serviceHandler().co_subscribeOperStatsDelta(
               std::move(req)));
-
-    } else if constexpr (std::is_same_v<TestParam, StatePubSubForStats>) {
+    } else if constexpr (
+        std::is_same_v<TestParam, StatePubSubForStats> ||
+        std::is_same_v<TestParam, PatchPubSubForStats>) {
       return folly::coro::blockingWait(
           this->fsdbTestServer_->serviceHandler().co_subscribeOperStatsPath(
               std::move(req)));
@@ -221,8 +236,25 @@ class FsdbPubSubTest : public ::testing::Test {
               reqIn));
     }
   }
-  auto setupPublisher(const OperPubRequest& reqIn) {
-    auto req = std::make_unique<OperPubRequest>(reqIn);
+
+  auto makePubRequest(std::string id, std::vector<std::string> path) {
+    if constexpr (std::is_same_v<PubUnitT, thrift_cow::Patch>) {
+      PubRequest req;
+      req.clientId()->client() = FsdbClient::ADHOC;
+      req.clientId()->instanceId() = std::move(id);
+      req.path()->path() = std::move(path);
+      return req;
+    } else {
+      OperPubRequest req;
+      req.publisherId() = std::move(id);
+      req.path()->raw() = std::move(path);
+      return req;
+    }
+  }
+
+  template <typename Req>
+  auto setupPublisher(const Req& reqIn) {
+    auto req = std::make_unique<Req>(reqIn);
     if constexpr (std::is_same_v<TestParam, DeltaPubSubForState>) {
       return folly::coro::blockingWait(
           this->fsdbTestServer_->serviceHandler().co_publishOperStateDelta(
@@ -235,10 +267,17 @@ class FsdbPubSubTest : public ::testing::Test {
       return folly::coro::blockingWait(
           this->fsdbTestServer_->serviceHandler().co_publishOperStatsDelta(
               std::move(req)));
-
     } else if constexpr (std::is_same_v<TestParam, StatePubSubForStats>) {
       return folly::coro::blockingWait(
           this->fsdbTestServer_->serviceHandler().co_publishOperStatsPath(
+              std::move(req)));
+    } else if constexpr (std::is_same_v<TestParam, PatchPubSubForState>) {
+      return folly::coro::blockingWait(
+          this->fsdbTestServer_->serviceHandler().co_publishState(
+              std::move(req)));
+    } else if constexpr (std::is_same_v<TestParam, PatchPubSubForStats>) {
+      return folly::coro::blockingWait(
+          this->fsdbTestServer_->serviceHandler().co_publishStats(
               std::move(req)));
     }
   }
@@ -255,8 +294,10 @@ class FsdbPubSubTest : public ::testing::Test {
 using TestTypes = ::testing::Types<
     DeltaPubSubForState,
     StatePubSubForState,
+    PatchPubSubForState,
     DeltaPubSubForStats,
-    StatePubSubForStats>;
+    StatePubSubForStats,
+    PatchPubSubForStats>;
 
 TYPED_TEST_SUITE(FsdbPubSubTest, TestTypes);
 
@@ -264,8 +305,9 @@ TYPED_TEST(FsdbPubSubTest, connectAndCancel) {
   if (this->pubSubStats()) {
     EXPECT_EQ(
         this->publisher_->getCounterPrefix(),
-        this->isDelta() ? "fsdbDeltaStatPublisher_agent"
-                        : "fsdbPathStatPublisher_agent");
+        this->isDelta()       ? "fsdbDeltaStatPublisher_agent"
+            : this->isPatch() ? "fsdbPatchStatPublisher_agent"
+                              : "fsdbPathStatPublisher_agent");
     EXPECT_EQ(
         this->subscriber_->getCounterPrefix(),
         this->isDelta() ? "fsdbDeltaStatSubscriber_agent"
@@ -273,8 +315,9 @@ TYPED_TEST(FsdbPubSubTest, connectAndCancel) {
   } else {
     EXPECT_EQ(
         this->publisher_->getCounterPrefix(),
-        this->isDelta() ? "fsdbDeltaStatePublisher_agent"
-                        : "fsdbPathStatePublisher_agent");
+        this->isDelta()       ? "fsdbDeltaStatePublisher_agent"
+            : this->isPatch() ? "fsdbPatchStatePublisher_agent"
+                              : "fsdbPathStatePublisher_agent");
     EXPECT_EQ(
         this->subscriber_->getCounterPrefix(),
         this->isDelta() ? "fsdbDeltaStateSubscriber_agent"
@@ -352,15 +395,16 @@ TYPED_TEST(FsdbPubSubTest, publish) {
 
 TYPED_TEST(FsdbPubSubTest, dupPublisher) {
   auto req = OperPubRequest();
-  req.path()->raw() = {"agent"};
-  req.publisherId() = "test";
-  auto res = this->setupPublisher(req);
+
+  auto res = this->setupPublisher(this->makePubRequest("test", {"agent"}));
   // we've had errors sneak through this in the past because the publisher
   // key depended on the current timestamp. Introducing a sleep To make sure we
   // validate publisher unique-ness even if timing is a factor
   // @lint-ignore CLANGTIDY
   std::this_thread::sleep_for(std::chrono::seconds(3));
-  EXPECT_THROW(this->setupPublisher(req), FsdbException);
+  EXPECT_THROW(
+      this->setupPublisher(this->makePubRequest("test", {"agent"})),
+      FsdbException);
 }
 
 TYPED_TEST(FsdbPubSubTest, reconnect) {
@@ -543,6 +587,9 @@ TYPED_TEST(FsdbPubSubTest, verifyExtendedSubAllowed) {
 }
 
 TYPED_TEST(FsdbPubSubTest, verifyWildcardSubDenied) {
+  if (this->isPatch()) {
+    return; // patch extended subs not implemented yet
+  }
   FLAGS_checkSubscriberConfig = true;
   FLAGS_enforceSubscriberConfig = true;
   std::vector<ExtendedOperPath> paths;
@@ -555,6 +602,9 @@ TYPED_TEST(FsdbPubSubTest, verifyWildcardSubDenied) {
 }
 
 TYPED_TEST(FsdbPubSubTest, verifyExtendedSubRestricted) {
+  if (this->isPatch()) {
+    return; // patch extended subs not implemented yet
+  }
   FLAGS_checkSubscriberConfig = true;
   FLAGS_enforceSubscriberConfig = true;
   std::vector<ExtendedOperPath> paths;

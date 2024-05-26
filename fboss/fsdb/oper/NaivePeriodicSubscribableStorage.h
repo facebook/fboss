@@ -184,7 +184,11 @@ class NaivePeriodicSubscribableStorage
     }
     auto& path = *patch.basePath();
     // TODO: include metadata in patch
-    auto metadata = OperMetadata();
+    OperMetadata metadata;
+    auto now = std::chrono::system_clock::now();
+    metadata.lastConfirmedAt() =
+        std::chrono::duration_cast<std::chrono::seconds>(now.time_since_epoch())
+            .count();
     auto state = currentState_.wlock();
     updateMetadata(path.begin(), path.end(), metadata);
     return state->patch(std::move(patch));

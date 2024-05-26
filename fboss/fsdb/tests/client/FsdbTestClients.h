@@ -8,6 +8,7 @@
 
 #include "fboss/fsdb/client/FsdbDeltaPublisher.h"
 #include "fboss/fsdb/client/FsdbDeltaSubscriber.h"
+#include "fboss/fsdb/client/FsdbPatchPublisher.h"
 #include "fboss/fsdb/client/FsdbStatePublisher.h"
 #include "fboss/fsdb/client/FsdbStateSubscriber.h"
 #include "fboss/fsdb/client/FsdbStreamClient.h"
@@ -34,6 +35,7 @@ class TestFsdbStreamClient : public FsdbStreamClient {
 };
 
 OperDelta makeDelta(const cfg::AgentConfig& cfg);
+thrift_cow::Patch makePatch(const cfg::AgentConfig& cfg);
 /*
  * makeState serializes FsdbOperStateRoot, after updating
  * agent config inside the root object
@@ -41,6 +43,8 @@ OperDelta makeDelta(const cfg::AgentConfig& cfg);
 OperState makeState(const cfg::AgentConfig& cfg);
 
 OperDelta makeDelta(
+    const folly::F14FastMap<std::string, HwPortStats>& portStats);
+thrift_cow::Patch makePatch(
     const folly::F14FastMap<std::string, HwPortStats>& portStats);
 /*
  * makeState serializes FsdbOperStatsRoot, after updating
@@ -148,4 +152,17 @@ struct StatePubSubT {
 
 using StatePubSubForStats = StatePubSubT<true>;
 using StatePubSubForState = StatePubSubT<false>;
+
+template <bool pubSubStats>
+struct PatchPubSubT {
+  using PubUnitT = thrift_cow::Patch;
+  using PublisherT = FsdbPatchPublisher;
+  using SubUnitT = OperDelta;
+  // TODO: replace with patch subscriber once that is ready
+  using SubscriberT = TestFsdbStateSubscriber;
+  static bool constexpr PubSubStats = pubSubStats;
+};
+
+using PatchPubSubForStats = PatchPubSubT<true>;
+using PatchPubSubForState = PatchPubSubT<false>;
 } // namespace facebook::fboss::fsdb::test

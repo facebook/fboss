@@ -79,6 +79,7 @@ enum FsdbSubscriptionState {
 }
 
 enum FsdbClient {
+  UNSPECIFIED = 0,
   AGENT = 1,
   QSFP_SERVICE = 2,
   MKA_SERVICE = 3,

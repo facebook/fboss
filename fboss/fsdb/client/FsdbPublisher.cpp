@@ -8,9 +8,21 @@
 #include <folly/logging/xlog.h>
 #include <chrono>
 #include <memory>
+#include <type_traits>
 #include <utility>
 
 namespace facebook::fboss::fsdb {
+
+template <typename PubUnit>
+std::string FsdbPublisher<PubUnit>::typeStr() {
+  if constexpr (std::is_same_v<PubUnit, OperDelta>) {
+    return "Delta";
+  } else if constexpr (std::is_same_v<PubUnit, OperState>) {
+    return "Path";
+  } else {
+    return "Patch";
+  }
+}
 
 template <typename PubUnit>
 OperPubRequest FsdbPublisher<PubUnit>::createRequest() const {
@@ -41,14 +53,19 @@ void FsdbPublisher<PubUnit>::handleStateChange(
 }
 template <typename PubUnit>
 bool FsdbPublisher<PubUnit>::write(PubUnit&& pubUnit) {
-  if (!pubUnit.metadata()) {
-    pubUnit.metadata() = OperMetadata{};
-  }
-  if (!pubUnit.metadata()->lastConfirmedAt()) {
-    auto now = std::chrono::system_clock::now();
-    pubUnit.metadata()->lastConfirmedAt() =
-        std::chrono::duration_cast<std::chrono::seconds>(now.time_since_epoch())
-            .count();
+  if constexpr (std::is_same_v<PubUnit, thrift_cow::Patch>) {
+    // TODO: metadata for patches
+  } else {
+    if (!pubUnit.metadata()) {
+      pubUnit.metadata() = OperMetadata{};
+    }
+    if (!pubUnit.metadata()->lastConfirmedAt()) {
+      auto now = std::chrono::system_clock::now();
+      pubUnit.metadata()->lastConfirmedAt() =
+          std::chrono::duration_cast<std::chrono::seconds>(
+              now.time_since_epoch())
+              .count();
+    }
   }
 #if FOLLY_HAS_COROUTINES
   auto pipeUPtr = asyncPipe_.ulock();
@@ -124,5 +141,6 @@ bool FsdbPublisher<PubUnit>::disconnectForGR() {
 
 template class FsdbPublisher<OperDelta>;
 template class FsdbPublisher<OperState>;
+template class FsdbPublisher<thrift_cow::Patch>;
 
 } // namespace facebook::fboss::fsdb
