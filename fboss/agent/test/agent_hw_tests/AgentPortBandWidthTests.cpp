@@ -376,6 +376,25 @@ void AgentPortBandwidthTest::verifyQueueShaper() {
         getPort0(),
         kMhnicPerHostBandwidthKbps * 1000, // BW in bps
         kWaitTimeForSpecificRate));
+    // This means the queue rate is >= kMhnicPerHostBandwidthKbps, now
+    // confirm that we are not exceeding an upper limit. This is hard to
+    // generalize, so lets keep this at 4% greater than the desired rate.
+    const int kTrafficRateCheckDurationSec{5};
+    const double kAcceptableTrafficRateDeltaPct{4};
+    auto stats1 = getLatestPortStats(getPort0());
+    sleep(kTrafficRateCheckDurationSec);
+    auto stats2 = getLatestPortStats(getPort0());
+    auto trafficRate = getAgentEnsemble()->getTrafficRate(
+        stats1, stats2, kTrafficRateCheckDurationSec);
+    // Make sure that the port rate is not exceeding expected rate by 4%
+    uint64_t allowedMaxTrafficRate =
+        (1 + kAcceptableTrafficRateDeltaPct / 100) *
+        kMhnicPerHostBandwidthKbps * 1000;
+    XLOG(DBG0) << "Shaper rate : " << kMhnicPerHostBandwidthKbps * 1000
+               << " bps. Rate seen on port: " << trafficRate
+               << " bps. Max acceptable rate: " << allowedMaxTrafficRate
+               << " bps!";
+    EXPECT_LT(trafficRate, allowedMaxTrafficRate);
   };
 
   verifyAcrossWarmBoots(setup, verify);
