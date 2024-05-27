@@ -19,6 +19,8 @@ class TransceiverImpl;
  */
 class CdbCommandBlock {
  public:
+  static constexpr uint8_t kCdbLplMemoryLength = 120;
+
   // Constructor to initialize data block from 0
   CdbCommandBlock() {
     resetCdbBlock();
@@ -108,7 +110,7 @@ class CdbCommandBlock {
     uint8_t cdbRlplLength; // Reg 134
     uint8_t cdbRlplChecksum; // Reg 135
     union {
-      uint8_t cdbLplFlatMemory[120]; // Reg 136-255
+      uint8_t cdbLplFlatMemory[kCdbLplMemoryLength]; // Reg 136-255
       struct {
         uint32_t cdbImageSize; // Reg 136-139
         uint32_t reserved;
