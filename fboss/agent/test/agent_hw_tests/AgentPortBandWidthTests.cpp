@@ -23,9 +23,7 @@ class AgentPortBandwidthTest : public AgentHwTest {
  public:
   std::vector<production_features::ProductionFeature>
   getProductionFeaturesVerified() const override {
-    return {
-        production_features::ProductionFeature::L3_QOS,
-        production_features::ProductionFeature::SCHEDULER_PPS};
+    return {production_features::ProductionFeature::L3_QOS};
   }
   cfg::SwitchConfig initialConfig(
       const AgentEnsemble& ensemble) const override {
@@ -247,6 +245,16 @@ class AgentPortBandwidthTest : public AgentHwTest {
   void verifyPortRateTraffic(cfg::PortSpeed portSpeed);
 };
 
+class AgentPortBandwidthPpsTest : public AgentPortBandwidthTest {
+ public:
+  std::vector<production_features::ProductionFeature>
+  getProductionFeaturesVerified() const override {
+    return {
+        production_features::ProductionFeature::L3_QOS,
+        production_features::ProductionFeature::SCHEDULER_PPS};
+  }
+};
+
 class AgentPortBandwidthParamTest
     : public AgentPortBandwidthTest,
       public testing::WithParamInterface<cfg::PortSpeed> {};
@@ -426,18 +434,6 @@ void AgentPortBandwidthTest::verifyPortRateTraffic(cfg::PortSpeed portSpeed) {
   verifyAcrossWarmBoots(setup, verify);
 }
 
-TEST_F(AgentPortBandwidthTest, VerifyPps) {
-  if (!isSupportedOnAllAsics(HwAsic::Feature::SCHEDULER_PPS)) {
-    XLOG(DBG0) << "PPS feature is not supported on this ASIC, skip the test";
-    GTEST_SKIP();
-  }
-  auto getPackets = [this](const HwPortStats& stats) {
-    return stats.get_queueOutPackets_().at(kQueueId0());
-  };
-
-  verifyRate("pps", kQueueId0Dscp(), kMaxPpsValues().front(), getPackets);
-}
-
 TEST_F(AgentPortBandwidthTest, VerifyKbps) {
   auto getKbits = [this](const HwPortStats& stats) {
     auto outBytes = stats.get_queueOutBytes_().at(kQueueId1());
@@ -445,18 +441,6 @@ TEST_F(AgentPortBandwidthTest, VerifyKbps) {
   };
 
   verifyRate("kbps", kQueueId1Dscp(), kMaxKbpsValues().front(), getKbits);
-}
-
-TEST_F(AgentPortBandwidthTest, VerifyPpsDynamicChanges) {
-  if (!isSupportedOnAllAsics(HwAsic::Feature::SCHEDULER_PPS)) {
-    XLOG(DBG0) << "PPS feature is not supported on this ASIC, skip the test";
-    GTEST_SKIP();
-  }
-  auto getPackets = [this](const HwPortStats& stats) {
-    return stats.get_queueOutPackets_().at(kQueueId0());
-  };
-
-  verifyRateDynamicChanges("pps", kQueueId0Dscp(), getPackets);
 }
 
 TEST_F(AgentPortBandwidthTest, VerifyKbpsDynamicChanges) {
@@ -484,6 +468,30 @@ TEST_P(AgentPortBandwidthParamTest, VerifyPortRateTraffic) {
     GTEST_SKIP();
   }
   verifyPortRateTraffic(portSpeed);
+}
+
+TEST_F(AgentPortBandwidthPpsTest, VerifyPps) {
+  if (!isSupportedOnAllAsics(HwAsic::Feature::SCHEDULER_PPS)) {
+    XLOG(DBG0) << "PPS feature is not supported on this ASIC, skip the test";
+    GTEST_SKIP();
+  }
+  auto getPackets = [this](const HwPortStats& stats) {
+    return stats.get_queueOutPackets_().at(kQueueId0());
+  };
+
+  verifyRate("pps", kQueueId0Dscp(), kMaxPpsValues().front(), getPackets);
+}
+
+TEST_F(AgentPortBandwidthPpsTest, VerifyPpsDynamicChanges) {
+  if (!isSupportedOnAllAsics(HwAsic::Feature::SCHEDULER_PPS)) {
+    XLOG(DBG0) << "PPS feature is not supported on this ASIC, skip the test";
+    GTEST_SKIP();
+  }
+  auto getPackets = [this](const HwPortStats& stats) {
+    return stats.get_queueOutPackets_().at(kQueueId0());
+  };
+
+  verifyRateDynamicChanges("pps", kQueueId0Dscp(), getPackets);
 }
 
 INSTANTIATE_TEST_CASE_P(
