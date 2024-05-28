@@ -111,7 +111,8 @@ void TCPHeader::write(CursorType* cursor) const {
   cursor->template writeBE<uint16_t>(dstPort);
   cursor->template writeBE<uint32_t>(sequenceNumber);
   cursor->template writeBE<uint32_t>(ackNumber);
-  cursor->template writeBE<uint16_t>(dataOffsetAndReserved);
+  cursor->template writeBE<uint8_t>(dataOffsetAndReserved);
+  cursor->template writeBE<uint8_t>(flags);
   cursor->template writeBE<uint16_t>(windowSize);
   cursor->template writeBE<uint16_t>(csum);
   cursor->template writeBE<uint16_t>(urgentPointer);
