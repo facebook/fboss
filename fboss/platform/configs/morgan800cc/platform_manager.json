@@ -3481,7 +3481,7 @@
     "/run/devmap/gpiochips/SMB_FPGA_GPIO2": "/SMB_SLOT@0/[SMB_DOM2_GPIO]"
   },
   "bspKmodsRpmName": "cisco_bsp_kmods",
-  "bspKmodsRpmVersion": "0.1.13-1",
+  "bspKmodsRpmVersion": "0.1.14-1",
   "bspKmodsToReload": [
     "cisco_fpga_pci",
     "cisco_fpga_spi",
