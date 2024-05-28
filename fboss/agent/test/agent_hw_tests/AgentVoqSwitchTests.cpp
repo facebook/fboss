@@ -1098,4 +1098,24 @@ TEST_F(AgentVoqSwitchTest, stressLocalForwardingPostIsolate) {
   verifyAcrossWarmBoots(setup, verify);
 }
 
+TEST_F(AgentVoqSwitchTest, localSystemPortEcmp) {
+  auto setup = [this]() {
+    utility::EcmpSetupTargetedPorts6 ecmpHelper(getProgrammedState());
+    auto prefix = RoutePrefixV6{folly::IPAddressV6("1::1"), 128};
+    flat_set<PortDescriptor> localSysPorts;
+    for (auto& systemPortMap :
+         std::as_const(*getProgrammedState()->getSystemPorts())) {
+      for (auto& [_, localSysPort] : std::as_const(*systemPortMap.second)) {
+        localSysPorts.insert(PortDescriptor(localSysPort->getID()));
+      }
+    }
+    applyNewState([=](const std::shared_ptr<SwitchState>& in) {
+      return ecmpHelper.resolveNextHops(in, localSysPorts);
+    });
+    auto wrapper = getSw()->getRouteUpdater();
+    ecmpHelper.programRoutes(&wrapper, localSysPorts, {prefix});
+  };
+  verifyAcrossWarmBoots(setup, [] {});
+}
+
 } // namespace facebook::fboss
