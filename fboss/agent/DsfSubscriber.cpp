@@ -321,8 +321,8 @@ void DsfSubscriber::processGRHoldTimerExpired(
     auto remoteInterfaces = out->getRemoteInterfaces()->modify(&out);
     for (auto& [_, remoteInterfaceMap] : *remoteInterfaces) {
       for (auto& [_, remoteInterface] : *remoteInterfaceMap) {
-        const auto& remoteSystemPort =
-            remoteSystemPorts->getNodeIf(*remoteInterface->getSystemPortID());
+        const auto& remoteSystemPort = in->getRemoteSystemPorts()->getNodeIf(
+            *remoteInterface->getSystemPortID());
 
         if (remoteSystemPort) {
           auto switchID = remoteSystemPort->getSwitchId();
