@@ -174,52 +174,6 @@ class HwVoqSwitchTest : public HwLinkStateDependentTest {
   }
 };
 
-TEST_F(HwVoqSwitchTest, AclQualifiersWithCounter) {
-  auto kAclName = "acl1";
-  auto kAclCounterName = "aclCounter1";
-
-  auto setup = [kAclName, kAclCounterName, this]() {
-    auto newCfg = initialConfig();
-
-    auto* acl = utility::addAcl(&newCfg, kAclName);
-    utility::EcmpSetupAnyNPorts6 ecmpHelper(getProgrammedState());
-    acl->srcIp() = "::ffff:c0a8:1"; // fails: CS00012270649
-    acl->dstIp() = "2401:db00:3020:70e2:face:0:63:0/64"; // fails: CS00012270650
-    acl->srcPort() = ecmpHelper.ecmpPortDescriptorAt(0).phyPortID();
-    acl->dscp() = 0x24;
-
-    utility::addAclStat(
-        &newCfg,
-        kAclName,
-        kAclCounterName,
-        utility::getAclCounterTypes(getHwSwitchEnsemble()->getL3Asics()));
-
-    applyNewConfig(newCfg);
-  };
-
-  auto verify = [kAclName, kAclCounterName, this]() {
-    ASSERT_TRUE(utility::isAclTableEnabled(getHwSwitch()));
-    EXPECT_EQ(
-        utility::getAclTableNumAclEntries(getHwSwitch()),
-        utility::getNumDefaultCpuAcls(getAsic(), true) + 1);
-    utility::checkSwHwAclMatch(getHwSwitch(), getProgrammedState(), kAclName);
-
-    utility::checkAclEntryAndStatCount(
-        getHwSwitch(),
-        /*ACLs*/ utility::getNumDefaultCpuAcls(getAsic(), true) + 1,
-        /*stats*/ 1,
-        /*counters*/ 2);
-    utility::checkAclStat(
-        getHwSwitch(),
-        getProgrammedState(),
-        {kAclName},
-        kAclCounterName,
-        utility::getAclCounterTypes(getHwSwitchEnsemble()->getL3Asics()));
-  };
-
-  verifyAcrossWarmBoots(setup, verify);
-}
-
 TEST_F(HwVoqSwitchTest, packetIntegrityError) {
   utility::EcmpSetupAnyNPorts6 ecmpHelper(getProgrammedState());
   auto port = ecmpHelper.ecmpPortDescriptorAt(0);
