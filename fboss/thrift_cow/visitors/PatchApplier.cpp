@@ -20,7 +20,7 @@ PatchApplyResult PatchTraverser::traverseResult(
     curResult_ = result;
   }
   if (curResult_ != PatchApplyResult::OK && XLOG_IS_ON(DBG4)) {
-    XLOG(DBG4) << "Error " << apache::thrift::util::enumNameSafe(result)
+    XLOG(DBG4) << "Error " << apache::thrift::util::enumNameSafe(curResult_)
                << " at path " << folly::join("/", curPath_);
   }
   return curResult_;

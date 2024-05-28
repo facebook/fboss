@@ -41,7 +41,7 @@ class PatchTraverser {
 
  private:
   std::vector<std::string> curPath_;
-  PatchApplyResult curResult_;
+  PatchApplyResult curResult_{PatchApplyResult::OK};
 };
 
 /*
