@@ -8,6 +8,7 @@
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/utils/AclTestUtils.h"
+#include "fboss/agent/test/utils/CoppTestUtils.h"
 #include "fboss/agent/test/utils/FabricTestUtils.h"
 #include "fboss/agent/test/utils/LoadBalancerTestUtils.h"
 #include "fboss/agent/test/utils/PacketSnooper.h"
@@ -67,6 +68,103 @@ class AgentVoqSwitchTest : public AgentHwTest {
   }
 
  protected:
+  void
+  rxPacketToCpuHelper(uint16_t l4SrcPort, uint16_t l4DstPort, uint8_t queueId) {
+    utility::EcmpSetupAnyNPorts6 ecmpHelper(getProgrammedState());
+    auto kPort = ecmpHelper.ecmpPortDescriptorAt(0);
+
+    auto verify = [this, ecmpHelper, kPort, l4SrcPort, l4DstPort, queueId]() {
+      // TODO(skhare)
+      // Send to only one IPv6 address for ease of debugging.
+      // Once SAI implementation bugs are fixed, send to ALL interface
+      // addresses.
+      auto ipAddrs =
+          *(initialConfig(*getAgentEnsemble()).interfaces()[0].ipAddresses());
+      auto ipv6Addr =
+          std::find_if(ipAddrs.begin(), ipAddrs.end(), [](const auto& ipAddr) {
+            auto ip = folly::IPAddress::createNetwork(ipAddr, -1, false).first;
+            return ip.isV6();
+          });
+
+      auto dstIp =
+          folly::IPAddress::createNetwork(*ipv6Addr, -1, false).first.asV6();
+      folly::IPAddressV6 kSrcIp("1::1");
+      const auto srcMac = folly::MacAddress("00:00:01:02:03:04");
+      const auto dstMac = utility::kLocalCpuMac();
+
+      auto createTxPacket =
+          [this, srcMac, dstMac, kSrcIp, dstIp, l4SrcPort, l4DstPort]() {
+            return utility::makeTCPTxPacket(
+                getSw(),
+                std::nullopt, // vlanID
+                srcMac,
+                dstMac,
+                kSrcIp,
+                dstIp,
+                l4SrcPort,
+                l4DstPort);
+          };
+
+      const PortID port = ecmpHelper.ecmpPortDescriptorAt(1).phyPortID();
+      auto switchId =
+          scopeResolver().scope(getProgrammedState(), port).switchId();
+      auto [beforeQueueOutPkts, beforeQueueOutBytes] =
+          utility::getCpuQueueOutPacketsAndBytes(getSw(), queueId, switchId);
+
+      auto txPacket = createTxPacket();
+      size_t txPacketSize = txPacket->buf()->length();
+
+      getSw()->sendPacketOutOfPortAsync(std::move(txPacket), port);
+      utility::SwSwitchPacketSnooper snooper(getSw(), "snoop");
+      txPacket = createTxPacket();
+      std::unique_ptr<folly::IOBuf> rxBuf;
+      WITH_RETRIES({
+        auto frameRx = snooper.waitForPacket(1);
+        ASSERT_EVENTUALLY_TRUE(frameRx.has_value());
+        CHECK(frameRx.has_value());
+        rxBuf = std::move(*frameRx);
+      });
+      WITH_RETRIES({
+        XLOG(DBG3) << "TX Packet Dump::" << std::endl
+                   << folly::hexDump(
+                          txPacket->buf()->data(), txPacket->buf()->length());
+        XLOG(DBG3) << "RX Packet Dump::" << std::endl
+                   << folly::hexDump(rxBuf->data(), rxBuf->length());
+
+        XLOG(DBG2) << "TX Packet Length: " << txPacket->buf()->length()
+                   << " RX Packet Length: " << rxBuf->length();
+        EXPECT_EVENTUALLY_EQ(txPacket->buf()->length(), rxBuf->length());
+        EXPECT_EVENTUALLY_EQ(
+            0, memcmp(txPacket->buf()->data(), rxBuf->data(), rxBuf->length()));
+
+        auto [afterQueueOutPkts, afterQueueOutBytes] =
+            utility::getCpuQueueOutPacketsAndBytes(getSw(), queueId, switchId);
+
+        XLOG(DBG2) << "Stats:: queueId: " << static_cast<int>(queueId)
+                   << " beforeQueueOutPkts: " << beforeQueueOutPkts
+                   << " beforeQueueOutBytes: " << beforeQueueOutBytes
+                   << " txPacketSize: " << txPacketSize
+                   << " afterQueueOutPkts: " << afterQueueOutPkts
+                   << " afterQueueOutBytes: " << afterQueueOutBytes;
+
+        EXPECT_EVENTUALLY_EQ(afterQueueOutPkts - 1, beforeQueueOutPkts);
+        // CS00012267635: debug why queue counter is 362, when txPacketSize is
+        // 322
+        EXPECT_EVENTUALLY_GE(afterQueueOutBytes, beforeQueueOutBytes);
+
+        for (auto i = 0; i <
+             utility::getCoppHighPriQueueId(getAgentEnsemble()->getL3Asics());
+             i++) {
+          auto [outPkts, outBytes] =
+              utility::getCpuQueueOutPacketsAndBytes(getSw(), i, switchId);
+          XLOG(DBG2) << "QueueID: " << i << " outPkts: " << outPkts
+                     << " outBytes: " << outBytes;
+        }
+      });
+    };
+
+    verifyAcrossWarmBoots([] {}, verify);
+  }
   // API to send a local service discovery packet which is an IPv6
   // multicast paket with UDP payload. This packet with a destination
   // MAC as the unicast NIF port MAC helps recreate CS00012323788.
