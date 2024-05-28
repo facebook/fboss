@@ -201,4 +201,14 @@ void setCreditWatchdogAndPortTx(
   ensemble->applyNewState(updateCreditWatchdogAndPortTx);
 }
 
+void setPortTx(TestEnsembleIf* ensemble, PortID port, bool enable) {
+  auto updatePortTx = [&](const std::shared_ptr<SwitchState>& in) {
+    auto switchState = in->clone();
+    auto newPort =
+        switchState->getPorts()->getNodeIf(port)->modify(&switchState);
+    newPort->setTxEnable(enable);
+    return switchState;
+  };
+  ensemble->applyNewState(updatePortTx);
+}
 } // namespace facebook::fboss::utility

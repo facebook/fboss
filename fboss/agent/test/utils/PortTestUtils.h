@@ -28,5 +28,6 @@ void setCreditWatchdogAndPortTx(
     TestEnsembleIf* ensemble,
     PortID port,
     bool enable);
+void setPortTx(TestEnsembleIf* ensemble, PortID port, bool enable);
 } // namespace utility
 } // namespace facebook::fboss
