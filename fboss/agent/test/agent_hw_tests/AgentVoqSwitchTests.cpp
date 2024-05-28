@@ -1014,4 +1014,24 @@ TEST_F(AgentVoqSwitchTest, trapPktsOnPort) {
   verifyAcrossWarmBoots(setup, verify);
 }
 
+TEST_F(AgentVoqSwitchTest, rxPacketToCpu) {
+  rxPacketToCpuHelper(
+      utility::kNonSpecialPort1,
+      utility::kNonSpecialPort2,
+      utility::getCoppMidPriQueueId(getAgentEnsemble()->getL3Asics()));
+}
+
+TEST_F(AgentVoqSwitchTest, rxPacketToCpuBgpDstPort) {
+  rxPacketToCpuHelper(
+      utility::kNonSpecialPort1,
+      utility::kBgpPort,
+      utility::getCoppHighPriQueueId(getAgentEnsemble()->getL3Asics()));
+}
+
+TEST_F(AgentVoqSwitchTest, rxPacketToCpuBgpSrcPort) {
+  rxPacketToCpuHelper(
+      utility::kBgpPort,
+      utility::kNonSpecialPort1,
+      utility::getCoppHighPriQueueId(getAgentEnsemble()->getL3Asics()));
+}
 } // namespace facebook::fboss
