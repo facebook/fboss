@@ -1118,4 +1118,45 @@ TEST_F(AgentVoqSwitchTest, localSystemPortEcmp) {
   verifyAcrossWarmBoots(setup, [] {});
 }
 
+TEST_F(AgentVoqSwitchTest, packetIntegrityError) {
+  utility::EcmpSetupAnyNPorts6 ecmpHelper(getProgrammedState());
+  auto port = ecmpHelper.ecmpPortDescriptorAt(0);
+  auto setup = [=, this]() { addRemoveNeighbor(port, true /*add*/); };
+  auto verify = [=, this]() {
+    const auto dstIp = ecmpHelper.ip(port);
+    auto switchId = scopeResolver().scope(port.phyPortID()).switchId();
+    auto switchAsic = getSw()->getHwAsicTable()->getHwAsic(switchId);
+    std::string out;
+    if (switchAsic->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO2) {
+      getAgentEnsemble()->runDiagCommand(
+          "m SPB_FORCE_CRC_ERROR FORCE_CRC_ERROR_ON_DATA=1 FORCE_CRC_ERROR_ON_CRC=1\n",
+          out);
+    } else if (switchAsic->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO3) {
+      getAgentEnsemble()->runDiagCommand(
+          "m IRE_FORCE_CRC_ERROR FORCE_CRC_ERROR_ON_CRC=1\n", out);
+    } else {
+      throw FbossError(
+          "Unsupported ASIC type: ",
+          apache::thrift::util::enumNameSafe(switchAsic->getAsicType()));
+    }
+    getAgentEnsemble()->runDiagCommand("quit\n", out);
+    sendPacket(dstIp, std::nullopt, std::vector<uint8_t>(1024, 0xff));
+    WITH_RETRIES({
+      auto switchIndex =
+          getSw()->getSwitchInfoTable().getSwitchIndexFromSwitchId(switchId);
+      auto switchStats = getSw()->getHwSwitchStatsExpensive()[switchIndex];
+      auto pktIntegrityDrops =
+          switchStats.switchDropStats()->packetIntegrityDrops().value_or(0);
+      XLOG(INFO) << " Packet integrity drops: " << pktIntegrityDrops;
+      EXPECT_EVENTUALLY_GT(pktIntegrityDrops, 0);
+    });
+    // Assert that packet Integrity drops don't continuously increment.
+    // Packet integrity drop counter is clear on read from HW. So we
+    // accumulate its value in memory. If HW/SDK ever changed this to
+    // not be clear on read, but cumulative, then our approach would
+    // yeild constantly increasing values. Assert against that.
+    checkNoStatsChange(30);
+  };
+  verifyAcrossWarmBoots(setup, verify);
+}
 } // namespace facebook::fboss

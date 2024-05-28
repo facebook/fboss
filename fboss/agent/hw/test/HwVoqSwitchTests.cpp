@@ -174,47 +174,6 @@ class HwVoqSwitchTest : public HwLinkStateDependentTest {
   }
 };
 
-TEST_F(HwVoqSwitchTest, packetIntegrityError) {
-  utility::EcmpSetupAnyNPorts6 ecmpHelper(getProgrammedState());
-  auto port = ecmpHelper.ecmpPortDescriptorAt(0);
-  auto setup = [=, this]() { addRemoveNeighbor(port, true /*add*/); };
-  auto verify = [=, this]() {
-    const auto dstIp = ecmpHelper.ip(port);
-    std::string out;
-    if (getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO2) {
-      getHwSwitchEnsemble()->runDiagCommand(
-          "m SPB_FORCE_CRC_ERROR FORCE_CRC_ERROR_ON_DATA=1 FORCE_CRC_ERROR_ON_CRC=1\n",
-          out);
-    } else if (getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO3) {
-      getHwSwitchEnsemble()->runDiagCommand(
-          "m IRE_FORCE_CRC_ERROR FORCE_CRC_ERROR_ON_CRC=1\n", out);
-    } else {
-      throw FbossError(
-          "Unsupported ASIC type: ",
-          apache::thrift::util::enumNameSafe(getAsic()->getAsicType()));
-    }
-    getHwSwitchEnsemble()->runDiagCommand("quit\n", out);
-    sendPacket(dstIp, std::nullopt, std::vector<uint8_t>(1024, 0xff));
-    WITH_RETRIES({
-      getHwSwitch()->updateStats();
-      fb303::ThreadCachedServiceData::get()->publishStats();
-      auto pktIntegrityDrops =
-          getHwSwitch()->getSwitchStats()->getPacketIntegrityDrops();
-      XLOG(INFO) << " Packet integrity drops: " << pktIntegrityDrops;
-      EXPECT_EVENTUALLY_GT(pktIntegrityDrops, 0);
-      EXPECT_EVENTUALLY_GT(
-          getHwSwitch()->getSwitchDropStats().packetIntegrityDrops(), 0);
-    });
-    // Assert that packet Integrity drops don't continuously increment.
-    // Packet integrity drop counter is clear on read from HW. So we
-    // accumulate its value in memory. If HW/SDK ever changed this to
-    // not be clear on read, but cumulative, then our approach would
-    // yeild constantly increasing values. Assert against that.
-    checkNoStatsChange();
-  };
-  verifyAcrossWarmBoots(setup, verify);
-}
-
 TEST_F(HwVoqSwitchTest, dramEnqueueDequeueBytes) {
   utility::EcmpSetupAnyNPorts6 ecmpHelper(getProgrammedState());
   const auto kPort = ecmpHelper.ecmpPortDescriptorAt(0);
