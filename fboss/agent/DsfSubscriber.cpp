@@ -302,17 +302,24 @@ void DsfSubscriber::processGRHoldTimerExpired(
       for (auto& [_, remoteSystemPort] : *remoteSystemPortMap) {
         // GR timeout expired for an Interface Node.
         // Mark all remote system ports synced over control plane (i.e.
-        // DYNAMIC) as STALE for every switchID on that Interface Node.
+        // DYNAMIC) as STALE for every switchID on that Interface Node
+        // if FLAGS_dsf_flush_remote_sysports_and_rifs_on_gr is not set.
+        // Otherwise, remove those remote system ports.
         if (allNodeSwitchIDs.count(remoteSystemPort->getSwitchId()) > 0 &&
             remoteSystemPort->getRemoteSystemPortType().has_value() &&
             remoteSystemPort->getRemoteSystemPortType().value() ==
                 RemoteSystemPortType::DYNAMIC_ENTRY) {
-          auto clonedNode = remoteSystemPort->isPublished()
-              ? remoteSystemPort->clone()
-              : remoteSystemPort;
-          clonedNode->setRemoteLivenessStatus(LivenessStatus::STALE);
-          remoteSystemPorts->updateNode(
-              clonedNode, sw_->getScopeResolver()->scope(clonedNode));
+          if (FLAGS_dsf_flush_remote_sysports_and_rifs_on_gr) {
+            remoteSystemPorts->removeNode(remoteSystemPort->getID());
+          } else {
+            auto clonedNode = remoteSystemPort->isPublished()
+                ? remoteSystemPort->clone()
+                : remoteSystemPort;
+            clonedNode->setRemoteLivenessStatus(LivenessStatus::STALE);
+            remoteSystemPorts->updateNode(
+                clonedNode, sw_->getScopeResolver()->scope(clonedNode));
+          }
+
           changed = true;
         }
       }
@@ -329,21 +336,28 @@ void DsfSubscriber::processGRHoldTimerExpired(
           // GR timeout expired for an Interface Node.
           // Mark all remote interfaces synced over control plane (i.e.
           // DYNAMIC) as STALE for every switchID on that Interface Node,
-          // Remove all the neighbor entries on that interface.
+          // if FLAGS_dsf_flush_remote_sysports_and_rifs_on_gr is not set.
+          // Otherwise, remove those remote rifs.
+          // Always remove all the neighbor entries on that interface or else
+          // we will end up blackholing the traffic.
           if (allNodeSwitchIDs.count(switchID) > 0 &&
-
               remoteInterface->getRemoteInterfaceType().has_value() &&
               remoteInterface->getRemoteInterfaceType().value() ==
                   RemoteInterfaceType::DYNAMIC_ENTRY) {
-            auto clonedNode = remoteInterface->isPublished()
-                ? remoteInterface->clone()
-                : remoteInterface;
-            clonedNode->setRemoteLivenessStatus(LivenessStatus::STALE);
-            clonedNode->setArpTable(state::NeighborEntries{});
-            clonedNode->setNdpTable(state::NeighborEntries{});
+            if (FLAGS_dsf_flush_remote_sysports_and_rifs_on_gr) {
+              remoteInterfaces->removeNode(remoteInterface->getID());
+            } else {
+              auto clonedNode = remoteInterface->isPublished()
+                  ? remoteInterface->clone()
+                  : remoteInterface;
+              clonedNode->setRemoteLivenessStatus(LivenessStatus::STALE);
+              clonedNode->setArpTable(state::NeighborEntries{});
+              clonedNode->setNdpTable(state::NeighborEntries{});
 
-            remoteInterfaces->updateNode(
-                clonedNode, sw_->getScopeResolver()->scope(clonedNode, out));
+              remoteInterfaces->updateNode(
+                  clonedNode, sw_->getScopeResolver()->scope(clonedNode, out));
+            }
+
             changed = true;
           }
         }
