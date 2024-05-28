@@ -37,6 +37,15 @@ DEFINE_uint32(
     dsf_gr_hold_time,
     0,
     "GR hold time for FSDB DsfSubscription in sec");
+// Remote neighbor entries are always flushed to avoid blackholing the traffic.
+// However, by default, remote{systemPorts, Rifs} are not flushed but marked
+// STALE in the software. This is to avoid hardware programmign churn.
+// Setting this flag to True will cause Agent to flush remote{systemPorts,
+// Rifs} from the hardware.
+DEFINE_bool(
+    dsf_flush_remote_sysports_and_rifs_on_gr,
+    false,
+    "Flush Remote{systemPorts, Rifs} on GR");
 DEFINE_uint32(
     dsf_num_parallel_sessions_per_remote_interface_node,
     1,
