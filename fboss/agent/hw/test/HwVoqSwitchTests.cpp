@@ -77,32 +77,6 @@ class HwVoqSwitchTest : public HwLinkStateDependentTest {
   }
 
  protected:
-  std::string kDscpAclName() const {
-    return "dscp_acl";
-  }
-  std::string kDscpAclCounterName() const {
-    return "dscp_acl_counter";
-  }
-
-  std::string kIpV6MulticastDropAclName() const {
-    return "drop_v6_multicast";
-  }
-
-  std::string kIpV6MulticastDropAclCounterName() const {
-    return "drop_v6_multicast_stat";
-  }
-
-  void addDscpAclWithCounter() {
-    auto newCfg = initialConfig();
-    auto* acl = utility::addAcl(&newCfg, kDscpAclName());
-    acl->dscp() = 0x24;
-    utility::addAclStat(
-        &newCfg,
-        kDscpAclName(),
-        kDscpAclCounterName(),
-        utility::getAclCounterTypes(getHwSwitchEnsemble()->getL3Asics()));
-    applyNewConfig(newCfg);
-  }
   void addRemoveNeighbor(
       PortDescriptor port,
       bool add,
@@ -114,17 +88,6 @@ class HwVoqSwitchTest : public HwLinkStateDependentTest {
     } else {
       applyNewState(ecmpHelper.unresolveNextHops(getProgrammedState(), {port}));
     }
-  }
-
-  SystemPortID getSystemPortID(const PortDescriptor& port) {
-    auto switchId = getHwSwitch()->getSwitchId();
-    CHECK(switchId.has_value());
-    auto sysPortRange = getProgrammedState()
-                            ->getDsfNodes()
-                            ->getNodeIf(SwitchID(*switchId))
-                            ->getSystemPortRange();
-    CHECK(sysPortRange.has_value());
-    return SystemPortID(port.intID() + *sysPortRange->minimum());
   }
 
   int sendPacket(
