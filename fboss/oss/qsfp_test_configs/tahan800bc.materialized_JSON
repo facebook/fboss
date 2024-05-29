@@ -16,6 +16,22 @@
   },
   "transceiverFirmwareVersions": {
     "versionsMap": {
+      "EOLO-138HG-5H-B": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "3.1"
+            }
+          ]
+      },
+      "EOLO-168HG-02-1B": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "3.7"
+            }
+          ]
+      },
       "EOLO-168HG-02-1T": {
           "versions": [
             {
