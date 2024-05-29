@@ -117,6 +117,7 @@ class ReconnectingThriftClient {
   virtual void resetClient() = 0;
   bool isCancelled() const;
   bool isConnectedToServer() const;
+  virtual void onCancellation() = 0;
 
  protected:
   virtual void setState(State state);

@@ -128,6 +128,7 @@ class ThriftSinkClient : public SplitAgentThriftClient {
       std::optional<std::string> multiSwitchStatsPrefix);
   ~ThriftSinkClient() override;
   void resetClient() override;
+  void onCancellation() override;
   void enqueue(CallbackObjectT callbackObject) {
     if (!isConnectedToServer()) {
       eventsDroppedCount_.add(1);
@@ -184,6 +185,7 @@ class ThriftStreamClient : public SplitAgentThriftClient {
   void resetClient() override;
   void startClientService() override;
   void disconnected() override {}
+  void onCancellation() override {}
 
  private:
 #if FOLLY_HAS_COROUTINES

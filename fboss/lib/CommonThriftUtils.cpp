@@ -75,6 +75,7 @@ void ReconnectingThriftClient::setState(State state) {
     fb303::fbData->setCounter(getConnectedCounterName(), 1);
   } else if (state == State::CANCELLED) {
 #if FOLLY_HAS_COROUTINES
+    onCancellation();
     if (isGracefulServiceLoopCompletionRequested()) {
       folly::coro::blockingWait(serviceLoopScope_.joinAsync());
     } else {

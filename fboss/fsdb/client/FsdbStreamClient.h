@@ -72,6 +72,7 @@ class FsdbStreamClient : public ReconnectingThriftClient {
   fsdb::FsdbErrorCode getDisconnectReason() const {
     return *disconnectReason_.rlock();
   }
+  void onCancellation() override {}
 
   template <typename PubUnit>
   using PubStreamT = apache::thrift::ClientSink<PubUnit, OperPubFinalResponse>;

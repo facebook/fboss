@@ -184,6 +184,7 @@ ThriftSinkClient<CallbackObjectT, EventQueueT>::serveStream() {
         while (true) {
           auto event = co_await eventsQueue_.dequeue();
           if (isCancelled()) {
+            XLOG(DBG2) << "Cancelled stream for " << clientId();
             co_return;
           }
           co_yield std::move(event);
@@ -196,6 +197,28 @@ ThriftSinkClient<CallbackObjectT, EventQueueT>::serveStream() {
 template <typename CallbackObjectT, typename EventQueueT>
 ThriftSinkClient<CallbackObjectT, EventQueueT>::~ThriftSinkClient() {
   CHECK(isCancelled());
+}
+
+/*
+ * This function is called when the sink is cancelled on HwAgent shutdown
+ * The sink async generator is constantly waiting for next event. In normal
+ * sequence of events, the sink generator will get an exception when server
+ * is unreachable or client disconnects. However in some cases, the exception
+ * is not thrown and the sink generator is blocked forever. For such cases, we
+ * need to enqueue a dummy event to unblock the sink generator and exit based on
+ * the connection state. Another way to unblock the sink generator is to use
+ * cancellation with dequeue. However in this case, the control does not return
+ * to the caller resulting in no reconnection attempts when sw agent alone
+ * restarts.
+ */
+template <typename CallbackObjectT, typename EventQueueT>
+void ThriftSinkClient<CallbackObjectT, EventQueueT>::onCancellation() {
+  auto dummyEvent = CallbackObjectT();
+  if constexpr (std::is_same_v<EventQueueT, RxPktEventQueueType>) {
+    folly::coro::blockingWait(eventsQueue_.enqueue(std::move(dummyEvent)));
+  } else {
+    eventsQueue_.enqueue(std::move(dummyEvent));
+  }
 }
 
 template <typename StreamObjectT>
