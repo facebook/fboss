@@ -3,6 +3,7 @@
 #include "fboss/qsfp_service/module/I2cLogBuffer.h"
 
 #include <algorithm>
+#include <fstream>
 #include <iomanip>
 #include <sstream>
 
@@ -192,6 +193,105 @@ std::pair<size_t, size_t> I2cLogBuffer::dumpToFile() {
   }
   folly::writeFile(ss.str(), logFile_.c_str());
   return std::make_pair(hdrSize, numContents);
+}
+
+TransceiverAccessParameter I2cLogBuffer::getParam(std::stringstream& ss) {
+  TransceiverAccessParameter param(0, 0, 0);
+  std::string token;
+  ss >> token;
+  if (token != ".") {
+    param.i2cAddress = folly::to<uint8_t>(token);
+  }
+  ss >> param.offset;
+  ss >> param.len;
+  ss >> token;
+  if (token != ".") {
+    param.page = folly::to<uint8_t>(token);
+  }
+  ss >> token;
+  if (token != ".") {
+    param.bank = folly::to<uint8_t>(token);
+  }
+  return param;
+}
+
+I2cLogBuffer::Operation I2cLogBuffer::getOp(std::stringstream& ss) {
+  char c;
+  ss >> c;
+  switch (c) {
+    case 'R':
+      return Operation::Read;
+      break;
+    case 'W':
+      return Operation::Write;
+      break;
+    default:
+      throw std::invalid_argument(fmt::format("Invalid Operation :{}", c));
+      break;
+  }
+}
+
+std::array<uint8_t, kMaxI2clogDataSize> I2cLogBuffer::getData(std::string str) {
+  if (str.size() != kMaxI2clogDataSize * 2) {
+    throw(std::invalid_argument("Invalid data length:" + str));
+  }
+  std::array<uint8_t, kMaxI2clogDataSize> arr;
+
+  for (size_t i = 0; i < str.length(); i += 2) {
+    std::string byteString = str.substr(i, 2);
+    uint8_t byte = static_cast<uint8_t>(std::stoi(byteString, nullptr, 16));
+    arr[i / 2] = byte;
+  }
+  return arr;
+}
+
+uint64_t I2cLogBuffer::getDelay(const std::string& str) {
+  size_t pos = str.rfind(' ');
+  if (pos != std::string::npos) {
+    return stoull(str.substr(pos + 1));
+  } else {
+    throw std::invalid_argument("Invalid delay:" + str);
+  }
+}
+
+std::string
+I2cLogBuffer::getField(const std::string& line, char left, char right) {
+  auto leftIndex = line.find(left);
+  auto rightIndex = line.find(right);
+  if (leftIndex == std::string::npos || rightIndex == std::string::npos ||
+      leftIndex >= rightIndex) {
+    throw std::invalid_argument(
+        fmt::format("Invalid log file format: {} {} {}", line, left, right));
+  }
+  return line.substr(leftIndex + 1, rightIndex - leftIndex - 1);
+}
+
+std::vector<I2cLogBuffer::I2cReplayEntry> I2cLogBuffer::loadFromLog(
+    std::string logFile) {
+  std::vector<I2cReplayEntry> entries;
+  std::string line;
+  std::ifstream file(logFile);
+  if (!file.is_open()) {
+    XLOG(ERR) << "Failed to open file " << logFile;
+    return entries;
+  }
+  for (auto i = 0; i < 2; i++) {
+    if (!std::getline(file, line)) {
+      XLOG(ERR) << "Failed to read log header from file " << logFile;
+      return entries;
+    }
+  }
+
+  while (std::getline(file, line)) {
+    auto ss = std::stringstream(getField(line, '<', '>'));
+    auto param = getParam(ss);
+    auto op = getOp(ss);
+    auto str = getField(line, '[', ']');
+    auto data = getData(str);
+    auto delay = getDelay(line);
+    entries.emplace_back(param, op, data, delay);
+  }
+  return entries;
 }
 
 } // namespace facebook::fboss

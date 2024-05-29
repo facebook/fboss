@@ -54,6 +54,19 @@ class I2cLogBuffer {
     I2cLogEntry() : param(TransceiverAccessParameter(0, 0, 0)) {}
   };
 
+  struct I2cReplayEntry {
+    TransceiverAccessParameter param;
+    Operation op;
+    std::array<uint8_t, kMaxI2clogDataSize> data;
+    uint64_t delay;
+    I2cReplayEntry(
+        TransceiverAccessParameter param,
+        Operation op,
+        std::array<uint8_t, kMaxI2clogDataSize> data,
+        uint64_t delay)
+        : param(param), op(op), data(std::move(data)), delay(delay) {}
+  };
+
   explicit I2cLogBuffer(cfg::TransceiverI2cLogging config, std::string logFile);
 
   // Insert a log entry into the buffer.
@@ -89,6 +102,10 @@ class I2cLogBuffer {
   // Returns a pair: header lines and number of log entries
   std::pair<size_t, size_t> dumpToFile();
 
+  // Translate from a log file back to a vector of entries. Can be used
+  // to replay the sequence of transactions or test the logging.
+  static std::vector<I2cReplayEntry> loadFromLog(std::string logFile);
+
  private:
   std::vector<I2cLogEntry> buffer_;
   const size_t size_;
@@ -101,6 +118,13 @@ class I2cLogBuffer {
 
   size_t getHeader(std::stringstream& ss, size_t entries, size_t numContents);
   void getEntryTime(std::stringstream& ss, const TimePointSystem& time_point);
+
+  // Operations to re-construct I2cReplayEntry from a log file.
+  static std::string getField(const std::string& line, char left, char right);
+  static TransceiverAccessParameter getParam(std::stringstream& ss);
+  static I2cLogBuffer::Operation getOp(std::stringstream& ss);
+  static std::array<uint8_t, kMaxI2clogDataSize> getData(std::string str);
+  static uint64_t getDelay(const std::string& str);
 };
 
 } // namespace facebook::fboss
