@@ -471,10 +471,6 @@ TEST_P(AgentPortBandwidthParamTest, VerifyPortRateTraffic) {
 }
 
 TEST_F(AgentPortBandwidthPpsTest, VerifyPps) {
-  if (!isSupportedOnAllAsics(HwAsic::Feature::SCHEDULER_PPS)) {
-    XLOG(DBG0) << "PPS feature is not supported on this ASIC, skip the test";
-    GTEST_SKIP();
-  }
   auto getPackets = [this](const HwPortStats& stats) {
     return stats.get_queueOutPackets_().at(kQueueId0());
   };
@@ -483,10 +479,6 @@ TEST_F(AgentPortBandwidthPpsTest, VerifyPps) {
 }
 
 TEST_F(AgentPortBandwidthPpsTest, VerifyPpsDynamicChanges) {
-  if (!isSupportedOnAllAsics(HwAsic::Feature::SCHEDULER_PPS)) {
-    XLOG(DBG0) << "PPS feature is not supported on this ASIC, skip the test";
-    GTEST_SKIP();
-  }
   auto getPackets = [this](const HwPortStats& stats) {
     return stats.get_queueOutPackets_().at(kQueueId0());
   };
