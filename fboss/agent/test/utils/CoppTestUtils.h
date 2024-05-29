@@ -256,5 +256,9 @@ void verifyCoppInvariantHelper(
     std::shared_ptr<SwitchState> swState,
     PortID srcPort);
 
+void excludeTTL1TrapConfig(cfg::SwitchConfig& config);
+
+CpuPortStats getCpuPortStats(SwSwitch* sw, SwitchID switchId);
+
 } // namespace utility
 } // namespace facebook::fboss

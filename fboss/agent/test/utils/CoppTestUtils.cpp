@@ -446,6 +446,23 @@ void setTTLZeroCpuConfig(
   config.cpuTrafficPolicy() = cpuConfig;
 }
 
+void excludeTTL1TrapConfig(cfg::SwitchConfig& config) {
+  std::vector<cfg::PacketRxReasonToQueue> rxReasons;
+  // Exclude TTL_1 trap since on some devices we disable it
+  // to set up data plane loops
+  CHECK(config.cpuTrafficPolicy().has_value());
+  CHECK(config.cpuTrafficPolicy()->rxReasonToQueueOrderedList().has_value());
+  if (config.cpuTrafficPolicy()->rxReasonToQueueOrderedList()->size()) {
+    for (auto rxReasonAndQueue :
+         *config.cpuTrafficPolicy()->rxReasonToQueueOrderedList()) {
+      if (*rxReasonAndQueue.rxReason() != cfg::PacketRxReason::TTL_1) {
+        rxReasons.push_back(rxReasonAndQueue);
+      }
+    }
+  }
+  config.cpuTrafficPolicy()->rxReasonToQueueOrderedList() = rxReasons;
+}
+
 void setPortQueueSharedBytes(cfg::PortQueue& queue, bool isSai) {
   // Setting Shared Bytes for SAI is a no-op
   if (!isSai) {
@@ -1117,6 +1134,15 @@ void verifyCoppInvariantHelper(
       srcPort);
 
   verifyCoppAcl(switchPtr, switchId, hwAsic, swState, srcPort);
+}
+
+CpuPortStats getCpuPortStats(SwSwitch* sw, SwitchID switchId) {
+  std::map<int, CpuPortStats> cpuStats;
+  sw->getAllCpuPortStats(cpuStats);
+  if (cpuStats.find(switchId) == cpuStats.end()) {
+    throw FbossError("No cpu port stats found for switchId: ", switchId);
+  }
+  return cpuStats.at(switchId);
 }
 
 /*
