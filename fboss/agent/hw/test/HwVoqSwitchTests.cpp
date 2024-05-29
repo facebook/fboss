@@ -36,8 +36,6 @@ constexpr uint8_t kDefaultQueue = 0;
 using namespace facebook::fb303;
 namespace facebook::fboss {
 class HwVoqSwitchTest : public HwLinkStateDependentTest {
-  using pktReceivedCb = folly::Function<void(RxPacket* pkt) const>;
-
  public:
   cfg::SwitchConfig initialConfig() const override {
     auto cfg = utility::onePortPerInterfaceConfig(
@@ -128,7 +126,6 @@ class HwVoqSwitchTest : public HwLinkStateDependentTest {
   }
 
  private:
-  folly::Synchronized<pktReceivedCb, std::mutex> pktReceivedCallback_;
   HwSwitchEnsemble::Features featuresDesired() const override {
     return {
         HwSwitchEnsemble::LINKSCAN,
@@ -136,63 +133,6 @@ class HwVoqSwitchTest : public HwLinkStateDependentTest {
         HwSwitchEnsemble::TAM_NOTIFY};
   }
 };
-
-TEST_F(HwVoqSwitchTest, dramEnqueueDequeueBytes) {
-  utility::EcmpSetupAnyNPorts6 ecmpHelper(getProgrammedState());
-  const auto kPort = ecmpHelper.ecmpPortDescriptorAt(0);
-  auto setup = [this, kPort]() {
-    addRemoveNeighbor(kPort, true /* add neighbor*/);
-  };
-
-  auto verify = [this, kPort, &ecmpHelper]() {
-    // Disable both port TX and credit watchdog
-    utility::setCreditWatchdogAndPortTx(
-        getHwSwitch(), kPort.phyPortID(), false);
-    auto sendPkts = [this, kPort, &ecmpHelper]() {
-      for (auto i = 0; i < 1000; ++i) {
-        sendPacket(ecmpHelper.ip(kPort), std::nullopt);
-      }
-    };
-    int64_t dramEnqueuedBytes = 0;
-    WITH_RETRIES({
-      sendPkts();
-      getHwSwitch()->updateStats();
-      fb303::ThreadCachedServiceData::get()->publishStats();
-      dramEnqueuedBytes =
-          getHwSwitch()->getSwitchStats()->getDramEnqueuedBytes();
-      XLOG(DBG2) << "Dram enqueued bytes : " << dramEnqueuedBytes;
-      EXPECT_EVENTUALLY_GT(dramEnqueuedBytes, 0);
-    });
-    // Enable port TX
-    utility::setPortTx(getHwSwitch(), kPort.phyPortID(), true);
-    WITH_RETRIES({
-      getHwSwitch()->updateStats();
-      fb303::ThreadCachedServiceData::get()->publishStats();
-      auto dramDequeuedBytes =
-          getHwSwitch()->getSwitchStats()->getDramDequeuedBytes();
-      XLOG(DBG2) << "Dram dequeued bytes : " << dramDequeuedBytes;
-      EXPECT_EVENTUALLY_GT(dramDequeuedBytes, 0);
-    });
-    // Assert that Dram enqueue/dequeue bytes don't continuously increment
-    // Eventually all pkts should be dequeued and we should stop getting
-    // increments
-    WITH_RETRIES({
-      auto prevDramEnqueuedBytes =
-          getHwSwitch()->getSwitchStats()->getDramEnqueuedBytes();
-      auto prevDramDequeuedBytes =
-          getHwSwitch()->getSwitchStats()->getDramDequeuedBytes();
-      getHwSwitch()->updateStats();
-      fb303::ThreadCachedServiceData::get()->publishStats();
-      EXPECT_EVENTUALLY_EQ(
-          getHwSwitch()->getSwitchStats()->getDramEnqueuedBytes(),
-          prevDramEnqueuedBytes);
-      EXPECT_EVENTUALLY_EQ(
-          getHwSwitch()->getSwitchStats()->getDramDequeuedBytes(),
-          prevDramDequeuedBytes);
-    });
-  };
-  verifyAcrossWarmBoots(setup, verify);
-}
 
 class HwVoqSwitchWithMultipleDsfNodesTest : public HwVoqSwitchTest {
  public:

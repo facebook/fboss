@@ -11,6 +11,7 @@
 #include "fboss/agent/test/utils/FabricTestUtils.h"
 #include "fboss/agent/test/utils/LoadBalancerTestUtils.h"
 #include "fboss/agent/test/utils/PacketSnooper.h"
+#include "fboss/agent/test/utils/PortTestUtils.h"
 #include "fboss/agent/test/utils/TrapPacketUtils.h"
 #include "fboss/lib/CommonUtils.h"
 
@@ -1160,4 +1161,50 @@ TEST_F(AgentVoqSwitchTest, packetIntegrityError) {
   };
   verifyAcrossWarmBoots(setup, verify);
 }
+
+TEST_F(AgentVoqSwitchTest, dramEnqueueDequeueBytes) {
+  utility::EcmpSetupAnyNPorts6 ecmpHelper(getProgrammedState());
+  const auto kPort = ecmpHelper.ecmpPortDescriptorAt(0);
+  auto setup = [this, kPort]() {
+    addRemoveNeighbor(kPort, true /* add neighbor*/);
+  };
+
+  auto verify = [this, kPort, &ecmpHelper]() {
+    // Disable both port TX and credit watchdog
+    utility::setCreditWatchdogAndPortTx(
+        getAgentEnsemble(), kPort.phyPortID(), false);
+    auto sendPkts = [this, kPort, &ecmpHelper]() {
+      for (auto i = 0; i < 1000; ++i) {
+        sendPacket(ecmpHelper.ip(kPort), std::nullopt);
+      }
+    };
+    int64_t dramEnqueuedBytes = 0;
+    auto switchId = scopeResolver().scope(kPort.phyPortID()).switchId();
+    auto switchIndex =
+        getSw()->getSwitchInfoTable().getSwitchIndexFromSwitchId(switchId);
+    WITH_RETRIES({
+      sendPkts();
+      auto switchStats = getSw()->getHwSwitchStatsExpensive()[switchIndex];
+      dramEnqueuedBytes =
+          *switchStats.fb303GlobalStats()->dram_enqueued_bytes();
+      XLOG(DBG2) << "Dram enqueued bytes : " << dramEnqueuedBytes;
+      EXPECT_EVENTUALLY_GT(dramEnqueuedBytes, 0);
+    });
+    // Enable port TX
+    utility::setPortTx(getAgentEnsemble(), kPort.phyPortID(), true);
+    WITH_RETRIES({
+      auto switchStats = getSw()->getHwSwitchStatsExpensive()[switchIndex];
+      auto dramDequeuedBytes =
+          *switchStats.fb303GlobalStats()->dram_dequeued_bytes();
+      XLOG(DBG2) << "Dram dequeued bytes : " << dramDequeuedBytes;
+      EXPECT_EVENTUALLY_GT(dramDequeuedBytes, 0);
+    });
+    // Assert that Dram enqueue/dequeue bytes don't continuously increment
+    // Eventually all pkts should be dequeued and we should stop getting
+    // increments
+    checkNoStatsChange(60);
+  };
+  verifyAcrossWarmBoots(setup, verify);
+}
+
 } // namespace facebook::fboss
