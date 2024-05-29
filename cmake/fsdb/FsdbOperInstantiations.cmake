@@ -46,6 +46,15 @@ target_link_libraries(fsdb_cow_subscription_manager
   thrift_cow_visitors
 )
 
+add_library(fsdb_path_converter
+  fboss/fsdb/oper/instantiations/FsdbPathConverter.cpp
+)
+
+target_link_libraries(fsdb_path_converter
+  fsdb_model
+  path_helpers
+)
+
 add_library(fsdb_naive_periodic_subscribable_storage
   fboss/fsdb/oper/instantiations/FsdbNaivePeriodicSubscribableStorage.cpp
 )
@@ -55,5 +64,6 @@ target_link_libraries(fsdb_naive_periodic_subscribable_storage
   fsdb_model
   fsdb_cow_storage
   fsdb_cow_subscription_manager
+  fsdb_path_converter
   subscribable_storage
 )
