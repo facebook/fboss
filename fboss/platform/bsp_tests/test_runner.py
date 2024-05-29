@@ -4,11 +4,10 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Dict, List, Optional
 
-import pkg_resources
 import pytest
 from dataclasses_json import dataclass_json
 
-from fboss.platform.bsp_tests.utils.cdev_types import FpgaSpec, spi_dev_info
+from fboss.platform.bsp_tests.utils.cdev_types import FpgaSpec
 from fboss.platform.bsp_tests.utils.cmd_utils import check_cmd
 
 
@@ -27,8 +26,11 @@ PLATFORMS = ["meru800bia", "meru800bfa"]
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--platform", type=str)
+    parser.add_argument("--platform", type=str, default="", choices=PLATFORMS)
     parser.add_argument("--config-file", type=str)
+    parser.add_argument("--install-dir", type=str, default="")
+    parser.add_argument("--config-subdir", type=str, default="configs")
+    parser.add_argument("--tests-subdir", type=str, default="tests")
     parser.add_argument("pytest_args", nargs=argparse.REMAINDER)
 
     return parser.parse_args()
@@ -36,21 +38,22 @@ def parse_args():
 
 def set_config(args):
     global CONFIG
+
+    config_file_path = ""
     if args.config_file:
-        with open(Path(args.config_file), "r") as f:
-            json_string = f.read()
-        CONFIG = Config.from_json(json_string)
-        return
+        config_file_path = args.config_file
+    else:
+        config_file_path = os.path.join(
+            args.install_dir, args.config_subdir, f"{args.platform}.json"
+        )
 
     if args.platform not in PLATFORMS:
         raise Exception(
             f"Unknown platform '{args.platform}'. Available platforms are {PLATFORMS}"
         )
 
-    # Use config file from the directory
-    json_string = pkg_resources.resource_string(
-        __name__, f"configs/{args.platform}.json"
-    ).decode("utf-8")
+    with open(Path(config_file_path), "r") as f:
+        json_string = f.read()
     CONFIG = Config.from_json(json_string)
     return
 
@@ -124,7 +127,9 @@ def main():
     args = parse_args()
     set_config(args)
 
-    pytest.main(args.pytest_args[1:] + ["/tmp/bsp_tests/"])
+    pytest.main(
+        args.pytest_args[1:] + [f"{os.path.join(args.install_dir, args.tests_subdir)}"]
+    )
 
 
 if __name__ == "__main__":

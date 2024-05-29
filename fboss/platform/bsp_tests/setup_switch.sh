@@ -49,4 +49,4 @@ if [ ${#POSITIONAL_ARGS[@]} -lt 1 ]; then
 fi
 hostname=${POSITIONAL_ARGS[0]}
 
-rsync -vz "$HOME"/fbsource/fbcode/fboss/platform/bsp_tests/tests/* "root@$hostname:/tmp/bsp_tests/"
+rsync -vzr "$HOME"/fbsource/fbcode/fboss/platform/bsp_tests "root@$hostname:/tmp/"
