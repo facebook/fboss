@@ -34,7 +34,8 @@ static constexpr uint8_t kCdbCommandStatusBusyCmdExec = 0x83;
 // firmware download takes too much time. During this each CDB command takes
 // average 5 seconds to increasing this CDB timeout value to 10 seconds
 constexpr int cdbCommandTimeoutUsec = 10000000;
-constexpr int cdbCommandIntervalUsec = 100000;
+constexpr int cdbCommandErrorIntervalUsec = 100000;
+constexpr int cdbCommandStatusPollIntervalUsec = 10000;
 constexpr int cdbMemoryWriteDelayUsec = 5000;
 
 // CMIS firmware related register offsets
@@ -69,7 +70,7 @@ void CdbCommandBlock::i2cWriteAndContinue(
     XLOG(INFO) << "write() raised exception: Sleep for 100ms and continue: "
                << e.what();
     /* sleep override */
-    usleep(cdbCommandIntervalUsec);
+    usleep(cdbCommandErrorIntervalUsec);
   }
 
   auto writeTime = std::chrono::steady_clock::now() - startTime;
@@ -162,7 +163,7 @@ bool CdbCommandBlock::cmisRunCdbCommand(TransceiverImpl* bus) {
   auto finishTime =
       startTime + std::chrono::microseconds(cdbCommandTimeoutUsec);
   /* sleep override */
-  usleep(cdbCommandIntervalUsec);
+  usleep(cdbCommandStatusPollIntervalUsec);
   while (true) {
     try {
       bus->readTransceiver(
@@ -173,7 +174,7 @@ bool CdbCommandBlock::cmisRunCdbCommand(TransceiverImpl* bus) {
           "cmisRunCdbCommand Mod{:d}: read status raised exception: Sleep for 100ms and continue",
           bus->getNum());
       /* sleep override */
-      usleep(cdbCommandIntervalUsec);
+      usleep(cdbCommandErrorIntervalUsec);
       status = kCdbCommandStatusBusyCmdCaptured;
     }
     if (status != kCdbCommandStatusBusyCmdCaptured &&
@@ -191,7 +192,7 @@ bool CdbCommandBlock::cmisRunCdbCommand(TransceiverImpl* bus) {
       break;
     }
     /* sleep override */
-    usleep(cdbCommandIntervalUsec);
+    usleep(cdbCommandStatusPollIntervalUsec);
   }
 
   auto cdbWaitTime = std::chrono::steady_clock::now() - startTime;
@@ -226,7 +227,7 @@ bool CdbCommandBlock::cmisRunCdbCommand(TransceiverImpl* bus) {
           "cmisRunCdbCommand Mod{:d}: read generic raised exception: Sleep for 100ms and retry",
           bus->getNum());
       /* sleep override */
-      usleep(cdbCommandIntervalUsec);
+      usleep(cdbCommandErrorIntervalUsec);
       bus->readTransceiver({i2cAddress, offset, length}, buf);
     }
   };
