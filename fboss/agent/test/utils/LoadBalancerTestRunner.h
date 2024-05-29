@@ -70,38 +70,20 @@
 
 // Adding new load balancer test for DLB since DLB need deviation of ~30%
 // in some runs.
-#define RUN_HW_LOAD_BALANCER_TEST_FOR_DLB(                                   \
-    TEST_FIXTURE, MULTIPATH_TYPE, HASH_TYPE, TRAFFIC_TYPE)                   \
-  TEST_F(TEST_FIXTURE, TEST_NAME(MULTIPATH_TYPE, HASH_TYPE, TRAFFIC_TYPE)) { \
-    static bool kLoopThroughFrontPanelPort =                                 \
-        (BOOST_PP_STRINGIZE(TRAFFIC_TYPE) != std::string{"Cpu"});            \
-    runDynamicLoadBalanceTest(                                               \
-        8,                                                                   \
-        facebook::fboss::utility::getEcmp##HASH_TYPE##HashConfig(            \
-            {getHwAsic()}),                                                  \
-        facebook::fboss::utility::kHwTest##MULTIPATH_TYPE##Weights(),        \
-        kLoopThroughFrontPanelPort,                                          \
-        true,                                                                \
-        35);                                                                 \
-  }
-
-#define RUN_HW_LOAD_BALANCER_TEST_FOR_ECMP_TO_DLB(                           \
-    TEST_FIXTURE, MULTIPATH_TYPE, HASH_TYPE, TRAFFIC_TYPE)                   \
-  TEST_F(TEST_FIXTURE, TEST_NAME(MULTIPATH_TYPE, HASH_TYPE, TRAFFIC_TYPE)) { \
-    static bool kLoopThroughFrontPanelPort =                                 \
-        (BOOST_PP_STRINGIZE(TRAFFIC_TYPE) != std::string{"Cpu"});            \
-    runLoadBalanceTest(                                                      \
-        8,                                                                   \
-        facebook::fboss::utility::getEcmp##HASH_TYPE##HashConfig(            \
-            {getHwAsic()}),                                                  \
-        facebook::fboss::utility::kHwTest##MULTIPATH_TYPE##Weights(),        \
-        kLoopThroughFrontPanelPort,                                          \
-        false, /* since ECMP expected to send traffic on single link */      \
-        60 /* TODO: Test failed intermittently in conveyor with previous 35  \
-        deviation threshold, Brcm suggested this might be expected in        \
-        our test scenario, and need to tune parameters like packet send      \
-        interval. Before that, relax deviation threshold to 60.*/            \
-    );                                                                       \
+#define RUN_HW_LOAD_BALANCER_TEST_FOR_DLB(                                 \
+    TEST_FIXTURE, TEST_TYPE, DLB_PRE_WB_MODE, DLB_POST_WB_MODE, DEVIATION) \
+  TEST_F(TEST_FIXTURE, TEST_TYPE) {                                        \
+    static bool kLoopThroughFrontPanelPort =                               \
+        (BOOST_PP_STRINGIZE(TRAFFIC_TYPE) != std::string{"Cpu"});          \
+    runDynamicLoadBalanceTest(                                             \
+        8,                                                                 \
+        facebook::fboss::utility::getEcmpFullHashConfig({getHwAsic()}),    \
+        facebook::fboss::utility::kHwTestEcmpWeights(),                    \
+        kLoopThroughFrontPanelPort,                                        \
+        true,                                                              \
+        DLB_PRE_WB_MODE,                                                   \
+        DLB_POST_WB_MODE,                                                  \
+        DEVIATION);                                                        \
   }
 
 #define RUN_SHRINK_EXPAND_HW_LOAD_BALANCER_TEST(TEST_FIXTURE, HASH_TYPE) \
@@ -244,53 +226,7 @@ class HwLoadBalancerTestRunner {
           loadBalanceExpected);
     };
 
-    auto setupPostWB = [&]() {
-      if constexpr (kFlowLetSwitching) {
-        auto cfg = utility::onePortPerInterfaceConfig(
-            getEnsemble(), getMasterLogicalPortIds());
-        // Add flowlet config to convert ECMP to DLB
-        cfg.udfConfig() = utility::addUdfFlowletAclConfig();
-        utility::addFlowletConfigs(cfg, getMasterLogicalPortIds());
-        utility::addFlowletAcl(cfg);
-        getEnsemble()->applyNewConfig(cfg);
-      }
-    };
-
-    auto verifyPostWB = [&]() {
-      if constexpr (kFlowLetSwitching) {
-        XLOG(DBG3) << "setting ECMP Member Status: ";
-        setEcmpMemberStatus(getEnsemble());
-        loadBalanceExpected = true;
-        helper_->pumpTrafficPortAndVerifyLoadBalanced(
-            ecmpWidth,
-            loopThroughFrontPanel,
-            weights,
-            deviation,
-            loadBalanceExpected);
-        auto l3EcmpDlbFailPackets = getL3EcmpDlbFailPackets(getEnsemble());
-        // utility::getL3EcmpDlbFailPackets(getEnsemble());
-        XLOG(INFO) << " L3 ECMP Dlb fail packets: " << l3EcmpDlbFailPackets;
-        // verfiy the Dlb fail packets is zero
-        EXPECT_EQ(l3EcmpDlbFailPackets, 0);
-
-        auto cfg = getEnsemble()->getCurrentConfig();
-        utility::addFlowletConfigs(
-            cfg,
-            getMasterLogicalPortIds(),
-            cfg::SwitchingMode::PER_PACKET_QUALITY);
-        utility::addFlowletAcl(cfg);
-        getEnsemble()->applyNewConfig(cfg);
-        setEcmpMemberStatus(getEnsemble());
-        helper_->pumpTrafficPortAndVerifyLoadBalanced(
-            ecmpWidth,
-            loopThroughFrontPanel,
-            weights,
-            deviation,
-            loadBalanceExpected);
-      }
-    };
-
-    runTestAcrossWarmBoots(setup, verify, setupPostWB, verifyPostWB);
+    runTestAcrossWarmBoots(setup, verify, []() {}, []() {});
   }
 
   void runEcmpShrinkExpandLoadBalanceTest(
@@ -346,6 +282,8 @@ class HwLoadBalancerTestRunner {
       const std::vector<NextHopWeight>& weights,
       bool loopThroughFrontPanel = false,
       bool loadBalanceExpected = true,
+      cfg::SwitchingMode preMode = cfg::SwitchingMode::FIXED_ASSIGNMENT,
+      cfg::SwitchingMode postMode = cfg::SwitchingMode::FLOWLET_QUALITY,
       uint8_t deviation = 25) {
     if (skipTest()) {
 #if defined(GTEST_SKIP)
@@ -353,45 +291,50 @@ class HwLoadBalancerTestRunner {
 #endif
       return;
     }
+    if constexpr (!kFlowLetSwitching) {
+      return;
+    }
+
     auto setup = [=, this]() {
       helper_->programRoutesAndLoadBalancer(ecmpWidth, weights, loadBalancer);
-    };
-    auto verify = [=, this]() {
-      // DLB engine can not detect port member hardware status
-      // when in "phy" loopback mode.
-      // Hence we are setting it forcibly here again for all the ecmp members.
-      if constexpr (kFlowLetSwitching) {
-        XLOG(DBG3) << "setting ECMP Member Status: ";
-        // utility::setEcmpMemberStatus(getEnsemble());
-        setEcmpMemberStatus(getEnsemble());
+      auto cfg = getEnsemble()->getCurrentConfig();
+      if (preMode != cfg::SwitchingMode::FIXED_ASSIGNMENT) {
+        cfg.udfConfig() = utility::addUdfFlowletAclConfig();
+        utility::addFlowletConfigs(cfg, getMasterLogicalPortIds(), preMode);
+        utility::addFlowletAcl(cfg);
       }
+      getEnsemble()->applyNewConfig(cfg);
+    };
+
+    auto verify = [=, this]() {
+      setEcmpMemberStatus(getEnsemble());
       helper_->pumpTrafficPortAndVerifyLoadBalanced(
           ecmpWidth,
           loopThroughFrontPanel,
           weights,
           deviation,
-          loadBalanceExpected);
+          preMode != cfg::SwitchingMode::FIXED_ASSIGNMENT);
     };
 
     auto setupPostWB = [&]() {
       auto cfg = utility::onePortPerInterfaceConfig(
           getEnsemble(), getMasterLogicalPortIds());
-      addLoadBalancerToConfig(cfg, getHwAsic(), utility::LBHash::FULL_HASH);
-      // Remove the flowlet configs
+      if (postMode != cfg::SwitchingMode::FIXED_ASSIGNMENT) {
+        cfg.udfConfig() = utility::addUdfFlowletAclConfig();
+        utility::addFlowletConfigs(cfg, getMasterLogicalPortIds(), postMode);
+        utility::addFlowletAcl(cfg);
+      }
       getEnsemble()->applyNewConfig(cfg);
     };
 
     auto verifyPostWB = [&]() {
-      // DLB config is removed. Since it is a single stream,
-      // all the traffic will move via single ECMP path.
-      // Hence set the loadBalanceExpected as false.
-      loadBalanceExpected = false;
+      setEcmpMemberStatus(getEnsemble());
       helper_->pumpTrafficPortAndVerifyLoadBalanced(
           ecmpWidth,
           loopThroughFrontPanel,
           weights,
           deviation,
-          loadBalanceExpected);
+          postMode != cfg::SwitchingMode::FIXED_ASSIGNMENT);
     };
 
     runTestAcrossWarmBoots(setup, verify, setupPostWB, verifyPostWB);

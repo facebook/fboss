@@ -71,6 +71,8 @@ class HwLoadBalancerTest
       const std::vector<NextHopWeight>& weights,
       bool loopThroughFrontPanel = false,
       bool loadBalanceExpected = true,
+      cfg::SwitchingMode preWBMode = cfg::SwitchingMode::FIXED_ASSIGNMENT,
+      cfg::SwitchingMode postWBMode = cfg::SwitchingMode::FLOWLET_QUALITY,
       uint8_t deviation = 25) {
     auto lbConfig = loadBalancer;
     auto seed = getHwSwitch()->generateDeterministicSeed(*lbConfig.id());
@@ -81,6 +83,8 @@ class HwLoadBalancerTest
         weights,
         loopThroughFrontPanel,
         loadBalanceExpected,
+        preWBMode,
+        postWBMode,
         deviation);
   }
 

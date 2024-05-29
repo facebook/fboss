@@ -29,9 +29,6 @@ class HwLoadBalancerTestV6Flowlet
   cfg::SwitchConfig initialConfig() const override {
     auto cfg = utility::onePortPerInterfaceConfig(
         getHwSwitchEnsemble(), masterLogicalPortIds());
-    cfg.udfConfig() = utility::addUdfFlowletAclConfig();
-    utility::addFlowletConfigs(cfg, masterLogicalPortIds());
-    utility::addFlowletAcl(cfg);
     return cfg;
   }
 
@@ -43,8 +40,44 @@ class HwLoadBalancerTestV6Flowlet
 
 RUN_HW_LOAD_BALANCER_TEST_FOR_DLB(
     HwLoadBalancerTestV6Flowlet,
-    Ecmp,
-    Full,
-    FrontPanel)
+    VerifyWBFromFixedToPerPacket,
+    cfg::SwitchingMode::FIXED_ASSIGNMENT,
+    cfg::SwitchingMode::PER_PACKET_QUALITY,
+    5)
+
+RUN_HW_LOAD_BALANCER_TEST_FOR_DLB(
+    HwLoadBalancerTestV6Flowlet,
+    VerifyWBFromPerPacketToFixed,
+    cfg::SwitchingMode::PER_PACKET_QUALITY,
+    cfg::SwitchingMode::FIXED_ASSIGNMENT,
+    5)
+
+RUN_HW_LOAD_BALANCER_TEST_FOR_DLB(
+    HwLoadBalancerTestV6Flowlet,
+    VerifyWBFromFixedToFlowlet,
+    cfg::SwitchingMode::FIXED_ASSIGNMENT,
+    cfg::SwitchingMode::FLOWLET_QUALITY,
+    60)
+
+RUN_HW_LOAD_BALANCER_TEST_FOR_DLB(
+    HwLoadBalancerTestV6Flowlet,
+    VerifyWBFromFlowletToFixed,
+    cfg::SwitchingMode::FLOWLET_QUALITY,
+    cfg::SwitchingMode::FIXED_ASSIGNMENT,
+    60)
+
+RUN_HW_LOAD_BALANCER_TEST_FOR_DLB(
+    HwLoadBalancerTestV6Flowlet,
+    VerifyWBFromFlowletToPerPacket,
+    cfg::SwitchingMode::FLOWLET_QUALITY,
+    cfg::SwitchingMode::PER_PACKET_QUALITY,
+    60)
+
+RUN_HW_LOAD_BALANCER_TEST_FOR_DLB(
+    HwLoadBalancerTestV6Flowlet,
+    VerifyWBFromPerPacketToFlowlet,
+    cfg::SwitchingMode::PER_PACKET_QUALITY,
+    cfg::SwitchingMode::FLOWLET_QUALITY,
+    60)
 
 } // namespace facebook::fboss
