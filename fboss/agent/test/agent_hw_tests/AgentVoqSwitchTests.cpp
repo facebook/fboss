@@ -997,7 +997,8 @@ TEST_F(AgentVoqSwitchTest, trapPktsOnPort) {
     auto cfg = initialConfig(*getAgentEnsemble());
     utility::addTrapPacketAcl(&cfg, kPort.phyPortID());
     applyNewConfig(cfg);
-    applyNewState([=](const std::shared_ptr<SwitchState>& in) {
+    applyNewState([this, kPort, &ecmpHelper](
+                      const std::shared_ptr<SwitchState>& /* in */) {
       return ecmpHelper.resolveNextHops(getProgrammedState(), {kPort});
     });
   };

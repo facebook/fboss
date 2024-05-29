@@ -42,6 +42,7 @@ inline std::optional<StorageError> parsePatchResult(
     case thrift_cow::PatchApplyResult::INVALID_PATCH_TYPE:
       return StorageError::TYPE_ERROR;
   }
+  return std::nullopt;
 }
 } // namespace detail
 
