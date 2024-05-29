@@ -368,6 +368,44 @@ TEST_F(HwSflowMirrorTest, StressMirrorSessionConfigUnconfig) {
   verifyAcrossWarmBoots(setup, verify);
 }
 
+// S410132 will be reproduced with n warmboot execution of this test
+// 1. Start with the test as is and run with --setup_for_warmboot
+// 2. Repeat again with --setup_for_warmboot. This would alter encap MAC used
+// 3. Run again with --setup_for_warmboot. MAC would again be different.
+// 4. Running again now would crash the agent
+//
+// Note that the crash was caused by a mismatched attribute (truncate size)
+// leading to a set_mirror_session_attribute call after each warmboot which was
+// messing up the internal state.
+TEST_F(HwSflowMirrorTest, SetMirrorSession) {
+  if (!getPlatform()->getAsic()->isSupported(HwAsic::Feature::SFLOW_SAMPLING)) {
+#if defined(GTEST_SKIP)
+    GTEST_SKIP();
+#endif
+    return;
+  }
+  auto setup = [=, this]() {
+    auto config = initialConfig();
+    configMirror(&config, true);
+    configSampling(&config, 1);
+    applyNewConfig(config);
+    resolveMirror();
+    resolveMirror(1, true);
+    resolveMirror(2, true);
+    resolveMirror();
+  };
+  auto setupPostWarmboot = [=, this]() {
+    // change to resolveMirror() after 2nd warmboot
+    auto mirror = getProgrammedState()->getMirrors()->getNodeIf("sflow_mirror");
+    if (mirror->getEgressPort().value() == getPortsForSampling()[0]) {
+      resolveMirror(1, true);
+    } else {
+      resolveMirror(0);
+    }
+  };
+  verifyAcrossWarmBoots(setup, []() {}, setupPostWarmboot, []() {});
+}
+
 TEST_F(HwSflowMirrorTest, VerifySampledPacket) {
   if (!getPlatform()->getAsic()->isSupported(HwAsic::Feature::SFLOW_SAMPLING)) {
 #if defined(GTEST_SKIP)
