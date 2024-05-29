@@ -2,17 +2,31 @@
 
 #include "fboss/qsfp_service/module/I2cLogBuffer.h"
 
-#include <folly/logging/xlog.h>
 #include <algorithm>
+#include <iomanip>
+#include <sstream>
+
+#include <folly/FileUtil.h>
+#include <folly/logging/xlog.h>
+
+namespace {
+constexpr size_t kMicrosecondsPerSecond = 1000000;
+}
 
 namespace facebook::fboss {
 
-I2cLogBuffer::I2cLogBuffer(cfg::TransceiverI2cLogging config)
+I2cLogBuffer::I2cLogBuffer(
+    cfg::TransceiverI2cLogging config,
+    std::string logFile)
     : buffer_(config.bufferSlots().value()),
       size_(config.bufferSlots().value()),
-      config_(config) {
+      config_(config),
+      logFile_(logFile) {
   if (size_ == 0) {
     throw std::invalid_argument("I2cLogBuffer size must be > 0");
+  }
+  if (logFile_.empty()) {
+    throw std::invalid_argument("I2cLogBuffer logFile must be non-empty");
   }
 }
 
@@ -29,10 +43,12 @@ void I2cLogBuffer::log(
     buffer_[head_].steadyTime = std::chrono::steady_clock::now();
     buffer_[head_].systemTime = std::chrono::system_clock::now();
     buffer_[head_].param = param;
-    std::copy(
-        data,
-        data + std::min(kMaxI2clogDataSize, param.len),
-        buffer_[head_].data.begin());
+    const size_t len = std::min(param.len, kMaxI2clogDataSize);
+    auto& bufferData = buffer_[head_].data;
+    std::copy(data, data + len, bufferData.begin());
+    if (len < kMaxI2clogDataSize) {
+      std::fill(bufferData.begin() + len, bufferData.end(), 0);
+    }
     buffer_[head_].op = op;
 
     // Let tail track the oldest entry.
@@ -94,4 +110,88 @@ void I2cLogBuffer::transactionError() {
     config_.writeLog() = false;
   }
 }
+
+size_t I2cLogBuffer::getHeader(
+    std::stringstream& ss,
+    size_t entries,
+    size_t numContents) {
+  // Format of the log:
+  ss << "I2cLogBuffer: Total Entries: " << entries << " Logged: " << numContents
+     << "\n";
+  ss << "Month D HH:MM:SS.uuuuuu <i2c_address  offset  len  page  bank  op>  [data]  steadyclock_ns"
+     << "\n";
+
+  auto str = ss.str();
+  return std::count(str.begin(), str.end(), '\n');
+}
+
+void I2cLogBuffer::getEntryTime(
+    std::stringstream& ss,
+    const TimePointSystem& time_point) {
+  std::time_t t = std::chrono::system_clock::to_time_t(time_point);
+  std::tm tm{};
+  // get the Month day HH:MM:SS
+  localtime_r(&t, &tm);
+  // get the microseconds
+  auto us =
+      duration_cast<std::chrono::microseconds>(time_point.time_since_epoch()) %
+      kMicrosecondsPerSecond;
+
+  ss << std::put_time(&tm, "%B %d %H:%M:%S");
+  ss << "." << std::setfill('0') << std::setw(6) << us.count();
+}
+
+std::pair<size_t, size_t> I2cLogBuffer::dumpToFile() {
+  std::vector<I2cLogEntry> entriesOut(size_);
+  auto entries = totalEntries_;
+  const size_t numContents = dump(entriesOut);
+  std::stringstream ss;
+
+  auto hdrSize = getHeader(ss, entries, numContents);
+
+  TimePointSteady prev;
+
+  for (size_t i = 0; i < numContents; i++) {
+    getEntryTime(ss, entriesOut[i].systemTime);
+    ss << " <";
+    auto& param = entriesOut[i].param;
+
+    if (param.i2cAddress.has_value()) {
+      ss << (uint16_t)param.i2cAddress.value() << " ";
+    } else {
+      ss << ". ";
+    }
+    ss << param.offset << " " << param.len << " ";
+    if (param.page.has_value()) {
+      ss << param.page.value() << " ";
+    } else {
+      ss << ". ";
+    }
+    if (param.bank.has_value()) {
+      ss << param.bank.value() << " ";
+    } else {
+      ss << ". ";
+    }
+    ss << (entriesOut[i].op == Operation::Read ? "R" : "W");
+    ss << "> [";
+    for (auto& data : entriesOut[i].data) {
+      ss << std::hex << std::setfill('0') << std::setw(2) << (uint16_t)data;
+    }
+    ss << "] ";
+
+    ss << std::dec;
+    if (i == 0) {
+      ss << 0;
+    } else {
+      ss << std::chrono::duration_cast<std::chrono::nanoseconds>(
+                entriesOut[i].steadyTime - prev)
+                .count();
+    }
+    prev = entriesOut[i].steadyTime;
+    ss << std::endl;
+  }
+  folly::writeFile(ss.str(), logFile_.c_str());
+  return std::make_pair(hdrSize, numContents);
+}
+
 } // namespace facebook::fboss

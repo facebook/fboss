@@ -54,7 +54,7 @@ class I2cLogBuffer {
     I2cLogEntry() : param(TransceiverAccessParameter(0, 0, 0)) {}
   };
 
-  explicit I2cLogBuffer(cfg::TransceiverI2cLogging config);
+  explicit I2cLogBuffer(cfg::TransceiverI2cLogging config, std::string logFile);
 
   // Insert a log entry into the buffer.
   void log(
@@ -82,6 +82,13 @@ class I2cLogBuffer {
   // disableOnError is set in config.
   void transactionError();
 
+  // Dumps the buffer contents into logFile_.
+  // Format: Each log entry will be dumped into a single line.
+  //         Month D HH:MM:SS.uuuuuu  <i2c_address  offset  len  page  bank  op>
+  //         [data] steadyclock_ns
+  // Returns a pair: header lines and number of log entries
+  std::pair<size_t, size_t> dumpToFile();
+
  private:
   std::vector<I2cLogEntry> buffer_;
   const size_t size_;
@@ -89,7 +96,11 @@ class I2cLogBuffer {
   size_t head_{0};
   size_t tail_{0};
   size_t totalEntries_{0};
+  std::string logFile_;
   std::mutex mutex_;
+
+  size_t getHeader(std::stringstream& ss, size_t entries, size_t numContents);
+  void getEntryTime(std::stringstream& ss, const TimePointSystem& time_point);
 };
 
 } // namespace facebook::fboss
