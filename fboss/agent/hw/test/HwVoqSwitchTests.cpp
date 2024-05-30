@@ -177,10 +177,6 @@ class HwVoqSwitchWithMultipleDsfNodesTest : public HwVoqSwitchTest {
   }
 };
 
-TEST_F(HwVoqSwitchWithMultipleDsfNodesTest, twoDsfNodes) {
-  verifyAcrossWarmBoots([] {}, [] {});
-}
-
 TEST_F(HwVoqSwitchWithMultipleDsfNodesTest, remoteSystemPort) {
   auto setup = [this]() {
     // in addRemoteDsfNodeCfg, we use numCores to calculate the remoteSwitchId

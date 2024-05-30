@@ -13,6 +13,7 @@
 #include "fboss/agent/test/utils/PacketSnooper.h"
 #include "fboss/agent/test/utils/PortTestUtils.h"
 #include "fboss/agent/test/utils/TrapPacketUtils.h"
+#include "fboss/agent/test/utils/VoqTestUtils.h"
 #include "fboss/lib/CommonUtils.h"
 
 DECLARE_bool(disable_looped_fabric_ports);
@@ -998,9 +999,8 @@ TEST_F(AgentVoqSwitchTest, trapPktsOnPort) {
     auto cfg = initialConfig(*getAgentEnsemble());
     utility::addTrapPacketAcl(&cfg, kPort.phyPortID());
     applyNewConfig(cfg);
-    applyNewState([this, kPort, &ecmpHelper](
-                      const std::shared_ptr<SwitchState>& /* in */) {
-      return ecmpHelper.resolveNextHops(getProgrammedState(), {kPort});
+    applyNewState([=](const std::shared_ptr<SwitchState>& in) {
+      return ecmpHelper.resolveNextHops(in, {kPort});
     });
   };
   auto verify = [this, kPort, &ecmpHelper]() {
@@ -1205,6 +1205,25 @@ TEST_F(AgentVoqSwitchTest, dramEnqueueDequeueBytes) {
     checkNoStatsChange(60);
   };
   verifyAcrossWarmBoots(setup, verify);
+}
+
+class AgentVoqSwitchWithMultipleDsfNodesTest : public AgentVoqSwitchTest {
+ public:
+  cfg::SwitchConfig initialConfig(
+      const AgentEnsemble& ensemble) const override {
+    auto cfg = AgentVoqSwitchTest::initialConfig(ensemble);
+    cfg.dsfNodes() = *overrideDsfNodes(*cfg.dsfNodes());
+    return cfg;
+  }
+
+  std::optional<std::map<int64_t, cfg::DsfNode>> overrideDsfNodes(
+      const std::map<int64_t, cfg::DsfNode>& curDsfNodes) const {
+    return utility::addRemoteDsfNodeCfg(curDsfNodes, 1);
+  }
+};
+
+TEST_F(AgentVoqSwitchWithMultipleDsfNodesTest, twoDsfNodes) {
+  verifyAcrossWarmBoots([] {}, [] {});
 }
 
 } // namespace facebook::fboss

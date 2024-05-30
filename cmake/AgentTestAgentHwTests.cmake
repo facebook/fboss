@@ -84,6 +84,7 @@ target_link_libraries(agent_hw_test_src
   sflow_shim_utils
   pktutil
   mirror_test_utils
+  voq_test_utils
 )
 
 add_executable(multi_switch_agent_hw_test
