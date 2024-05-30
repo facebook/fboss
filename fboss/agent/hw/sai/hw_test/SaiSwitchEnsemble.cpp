@@ -149,6 +149,10 @@ void SaiSwitchEnsemble::init(
   initFlagDefaults(*agentConfig->thrift.defaultCommandLineArgs());
   auto platform =
       initSaiPlatform(std::move(agentConfig), getHwSwitchFeatures(), 0);
+  if (platform->getAsic()->getAsicVendor() ==
+      HwAsic::AsicVendor::ASIC_VENDOR_TAJO) {
+    FLAGS_classid_for_unresolved_routes = true;
+  }
   if (auto tcvr = info.overrideTransceiverInfo) {
     platform->setOverrideTransceiverInfo(*tcvr);
   }
@@ -178,10 +182,6 @@ void SaiSwitchEnsemble::init(
     // TODO: enable after classid_for_connected_subnet_routes feature is fully
     // verified
     FLAGS_classid_for_connected_subnet_routes = false;
-  }
-  if (getPlatform()->getAsic()->getAsicVendor() ==
-      HwAsic::AsicVendor::ASIC_VENDOR_TAJO) {
-    FLAGS_classid_for_unresolved_routes = true;
   }
   auto hw = static_cast<SaiSwitch*>(getHwSwitch());
   diagShell_ = std::make_unique<DiagShell>(hw);

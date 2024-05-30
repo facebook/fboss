@@ -119,6 +119,13 @@ bool isHwRouteToNextHop(
     folly::IPAddress ip,
     std::optional<uint64_t> weight) {
   const auto saiSwitch = static_cast<const SaiSwitch*>(hwSwitch);
+  auto classId = getHwRouteClassID(hwSwitch, rid, cidrNetwork);
+  if (classId.has_value() &&
+      (classId.value() == cfg::AclLookupClass::DST_CLASS_L3_LOCAL_1 ||
+       classId.value() == cfg::AclLookupClass::DST_CLASS_L3_LOCAL_2)) {
+    XLOG(DBG2) << "resolved route has class ID 1 or 2";
+    return false;
+  }
 
   auto routeAdapterKey = getSaiRouteAdapterKey(saiSwitch, rid, cidrNetwork);
   sai_object_id_t nhop = SaiApiTable::getInstance()->routeApi().getAttribute(
