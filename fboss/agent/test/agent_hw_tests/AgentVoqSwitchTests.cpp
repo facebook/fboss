@@ -1220,6 +1220,13 @@ class AgentVoqSwitchWithMultipleDsfNodesTest : public AgentVoqSwitchTest {
       const std::map<int64_t, cfg::DsfNode>& curDsfNodes) const {
     return utility::addRemoteDsfNodeCfg(curDsfNodes, 1);
   }
+  SwitchID getRemoteVoqSwitchId() const {
+    auto dsfNodes = getSw()->getConfig().dsfNodes();
+    // We added remote switch Id at the end
+    auto [switchId, remoteNode] = *dsfNodes->rbegin();
+    CHECK(*remoteNode.type() == cfg::DsfNodeType::INTERFACE_NODE);
+    return SwitchID(switchId);
+  }
 };
 
 TEST_F(AgentVoqSwitchWithMultipleDsfNodesTest, twoDsfNodes) {
