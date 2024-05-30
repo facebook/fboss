@@ -1271,11 +1271,14 @@ void ServiceHandler::initPerStreamCounters(void) {
                   fsdb_common_constants::kFsdbServiceHandlerNativeStatsPrefix(),
                   "disconnected_subscriber.",
                   key)));
-      if (auto counter = disconnectedSubscribers_.find(key);
-          counter != disconnectedSubscribers_.end()) {
-        counter->second.incrementValue(1);
-      }
       auto count = value.numExpectedSubscriptions().value();
+      if (count > 0) {
+        if (auto counter = disconnectedSubscribers_.find(key);
+            counter != disconnectedSubscribers_.end()) {
+          counter->second.incrementValue(1);
+        }
+        num_disconnected_subscriptions_.incrementValue(count);
+      }
       disconnectedSubscriptions_.emplace(
           key,
           TLCounter(
@@ -1288,7 +1291,6 @@ void ServiceHandler::initPerStreamCounters(void) {
           counter != disconnectedSubscriptions_.end()) {
         counter->second.incrementValue(count);
       }
-      num_disconnected_subscriptions_.incrementValue(count);
       connectedSubscriptions_.emplace(
           key,
           TLCounter(
