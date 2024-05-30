@@ -105,7 +105,11 @@ cfg::SwitchConfig onePortPerInterfaceConfig(
     bool interfaceHasSubnet = true,
     bool setInterfaceMac = true,
     int baseIntfId = kBaseVlanId,
-    bool enableFabricPorts = false);
+    bool enableFabricPorts = false,
+    const std::optional<std::map<SwitchID, cfg::SwitchInfo>>&
+        switchIdToSwitchInfo = std::nullopt,
+    const std::optional<std::map<SwitchID, const HwAsic*>>& hwAsicTable =
+        std::nullopt);
 
 cfg::SwitchConfig onePortPerInterfaceConfig(
     const TestEnsembleIf* ensemble,
@@ -150,7 +154,11 @@ cfg::SwitchConfig multiplePortsPerIntfConfig(
     bool setInterfaceMac = true,
     const int baseVlanId = kBaseVlanId,
     const int portsPerVlan = 1,
-    bool enableFabricPorts = false);
+    bool enableFabricPorts = false,
+    const std::optional<std::map<SwitchID, cfg::SwitchInfo>>&
+        switchIdToSwitchInfo = std::nullopt,
+    const std::optional<std::map<SwitchID, const HwAsic*>>& hwAsicTable =
+        std::nullopt);
 
 cfg::SwitchConfig genPortVlanCfg(
     const PlatformMapping* platformMapping,
@@ -161,7 +169,16 @@ cfg::SwitchConfig genPortVlanCfg(
     const std::map<cfg::PortType, cfg::PortLoopbackMode> lbModeMap,
     bool supportsAddRemovePort,
     bool optimizePortProfile = true,
-    bool enableFabricPorts = false);
+    bool enableFabricPorts = false,
+    const std::optional<std::map<SwitchID, cfg::SwitchInfo>>&
+        switchIdToSwitchInfo = std::nullopt,
+    const std::optional<std::map<SwitchID, const HwAsic*>>& hwAsicTable =
+        std::nullopt);
+
+void populateSwitchInfo(
+    cfg::SwitchConfig& config,
+    const std::map<SwitchID, cfg::SwitchInfo>& switchIdToSwitchInfo,
+    const std::map<SwitchID, const HwAsic*>& hwAsicTable);
 
 cfg::SwitchConfig twoL3IntfConfig(
     SwSwitch* swSwitch,
