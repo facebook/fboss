@@ -80,6 +80,7 @@ class PrbsStatsEntry {
     if (locked_) {
       locked_ = false;
       accuErrorCount_ = 0;
+      maxBer_ = -1.;
       numLossOfLock_++;
     }
     timeLastCollect_ = now;
@@ -89,6 +90,7 @@ class PrbsStatsEntry {
     system_clock::time_point now = system_clock::now();
     locked_ = true;
     accuErrorCount_ = 0;
+    maxBer_ = -1.;
     numLossOfLock_++;
     timeLastLocked_ = now;
     timeLastCollect_ = now;
@@ -145,6 +147,7 @@ class PrbsStatsEntry {
   double rate_ = 0.;
   bool locked_ = false;
   int64_t accuErrorCount_ = 0;
+  // maxBer_ is the maximum BER seen since last lock
   double maxBer_ = -1.;
   int32_t numLossOfLock_ = 0;
   system_clock::time_point timeLastLocked_;
