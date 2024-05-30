@@ -307,6 +307,8 @@ class RoutingInformationBase {
         resolver, rid, prefixes, fibUpdateCallback, classId, cookie, true);
   }
 
+  void updateStateInRibThread(const std::function<void()>& fn);
+
   /*
    * FIB assisted fromThrift. With shared data structure of routes
    * all except the unresolved routes are shared b/w rib and FIB, so

@@ -730,6 +730,12 @@ RoutingInformationBase::UpdateStatistics RoutingInformationBase::update(
       cookie);
 }
 
+void RoutingInformationBase::updateStateInRibThread(
+    const std::function<void()>& fn) {
+  ensureRunning();
+  ribUpdateEventBase_.runInEventBaseThreadAndWait([fn] { fn(); });
+}
+
 state::RouteTableFields RibRouteTables::RouteTable ::toThrift() const {
   state::RouteTableFields obj{};
   obj.v4NetworkToRoute() = v4NetworkToRoute.toThrift();
