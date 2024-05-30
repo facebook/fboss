@@ -400,3 +400,19 @@ target_link_libraries(hw_anticipated_scale_route_del_speed
   Folly::folly
   Folly::follybenchmark
 )
+
+add_library(hw_voq_scale_route_add_speed
+  fboss/agent/hw/benchmarks/HwVoqScaleRouteAddBenchmark.cpp
+)
+
+target_link_libraries(hw_voq_scale_route_add_speed
+  route_scale_gen
+)
+
+add_library(hw_voq_scale_route_del_speed
+  fboss/agent/hw/benchmarks/HwVoqScaleRouteDelBenchmark.cpp
+)
+
+target_link_libraries(hw_voq_scale_route_del_speed
+  route_scale_gen
+)
