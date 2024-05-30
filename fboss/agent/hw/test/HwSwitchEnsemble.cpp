@@ -227,6 +227,7 @@ HwSwitchEnsemble::HwSwitchEnsemble(const Features& featuresDesired)
 
 HwSwitchEnsemble::~HwSwitchEnsemble() {
   if (thriftSyncer_) {
+    thriftSyncer_->stopOperDeltaSync();
     thriftSyncer_->stop();
   }
   if (swSwitchTestServer_) {
