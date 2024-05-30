@@ -18,9 +18,9 @@ namespace facebook::fboss {
 
 void SplitSwSwitchInitializer::initImpl(
     HwSwitchCallback* /* callback */,
-    const HwWriteBehavior& /* hwWriteBehavior */) {
+    const HwWriteBehavior& hwWriteBehavior) {
   // this blocks until at least one hardware switch is up
-  sw_->init(setupFlags());
+  sw_->init(hwWriteBehavior, setupFlags());
 }
 
 SplitSwAgentInitializer::SplitSwAgentInitializer() {

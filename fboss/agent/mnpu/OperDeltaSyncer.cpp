@@ -111,12 +111,17 @@ void OperDeltaSyncer::operSyncLoop() {
         stateOperDelta.operDelta()->changes()->size()) {
       if (*stateOperDelta.isFullState()) {
         XLOG(DBG2) << "Received full state oper delta from swswitch";
-        lastUpdateResult = processFullOperDelta(*stateOperDelta.operDelta());
+        lastUpdateResult = processFullOperDelta(
+            *stateOperDelta.operDelta(), *stateOperDelta.hwWriteBehavior());
       } else {
         auto oldState = hw_->getProgrammedState();
         lastUpdateResult = stateOperDelta.transaction().value()
-            ? hw_->stateChangedTransaction(*stateOperDelta.operDelta())
-            : hw_->stateChanged(*stateOperDelta.operDelta());
+            ? hw_->stateChangedTransaction(
+                  *stateOperDelta.operDelta(),
+                  HwWriteBehaviorRAII(*stateOperDelta.hwWriteBehavior()))
+            : hw_->stateChanged(
+                  *stateOperDelta.operDelta(),
+                  HwWriteBehaviorRAII(*stateOperDelta.hwWriteBehavior()));
         if (lastUpdateResult.changes()->empty()) {
           hw_->getPlatform()->stateChanged(
               StateDelta(oldState, hw_->getProgrammedState()));
@@ -137,12 +142,14 @@ void OperDeltaSyncer::operSyncLoop() {
 }
 
 fsdb::OperDelta OperDeltaSyncer::processFullOperDelta(
-    fsdb::OperDelta& operDelta) {
+    fsdb::OperDelta& operDelta,
+    const HwWriteBehavior& hwWriteBehavior) {
   // Enable deep comparison for full oper delta
   DeltaComparison::PolicyRAII policyGuard{DeltaComparison::Policy::DEEP};
   auto fullStateDelta = StateDelta(std::make_shared<SwitchState>(), operDelta);
   auto delta = StateDelta(hw_->getProgrammedState(), fullStateDelta.newState());
-  auto appliedState = hw_->stateChanged(delta);
+  auto appliedState =
+      hw_->stateChanged(delta, HwWriteBehaviorRAII(hwWriteBehavior));
   // return empty oper delta to indicate success. If update was not successful,
   // hwswitch would have crashed.
   CHECK(isStateDeltaEmpty(StateDelta(fullStateDelta.newState(), appliedState)));

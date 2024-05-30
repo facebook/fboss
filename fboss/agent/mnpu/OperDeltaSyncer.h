@@ -29,7 +29,9 @@ class OperDeltaSyncer {
  private:
   void initOperDeltaSync();
   void operSyncLoop();
-  fsdb::OperDelta processFullOperDelta(fsdb::OperDelta& operDelta);
+  fsdb::OperDelta processFullOperDelta(
+      fsdb::OperDelta& operDelta,
+      const HwWriteBehavior& hwWriteBehavior = HwWriteBehavior::WRITE);
 
   uint16_t serverPort_;
   SwitchID switchId_;

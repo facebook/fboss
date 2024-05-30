@@ -1194,7 +1194,7 @@ void SwSwitch::init(
       this, std::move(tunMgr), hwSwitchInitFn, HwWriteBehavior::WRITE, flags);
 }
 
-void SwSwitch::init(SwitchFlags flags) {
+void SwSwitch::init(const HwWriteBehavior& hwWriteBehavior, SwitchFlags flags) {
   /* used for split Software Switch init */
   auto initialState = preInit(flags);
   initialState->publish();
@@ -1216,7 +1216,8 @@ void SwSwitch::init(SwitchFlags flags) {
   // deleting any cold boot state entries that hwswitch has learned from sdk
   if (bootType_ == BootType::WARM_BOOT) {
     try {
-      getHwSwitchHandler()->stateChanged(initialStateDelta, false);
+      getHwSwitchHandler()->stateChanged(
+          initialStateDelta, false, hwWriteBehavior);
     } catch (const std::exception& ex) {
       throw FbossError("Failed to sync initial state to HwSwitch: ", ex.what());
     }

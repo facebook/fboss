@@ -89,7 +89,8 @@ class MultiSwitchHwSwitchHandler : public HwSwitchHandler {
       const std::shared_ptr<SwitchState>& state,
       const fsdb::OperDelta& delta,
       bool transaction,
-      int64_t lastSeqNum);
+      int64_t lastSeqNum,
+      const HwWriteBehavior& hwWriteBehavior = HwWriteBehavior::WRITE);
   void operDeltaAckTimeout();
 
   SwSwitch* sw_;

@@ -184,7 +184,7 @@ TEST_F(SwSwitchHandlerTest, partialUpdateAndFullSync) {
   auto delta3 = StateDelta(stateV0, stateV2);
 
   getHwSwitchHandler()->connected(SwitchID(1));
-  sw_->init(SwitchFlags::DEFAULT);
+  sw_->init(HwWriteBehavior::WRITE, SwitchFlags::DEFAULT);
   sw_->initialConfigApplied(std::chrono::steady_clock::now());
   getHwSwitchHandler()->stateChanged(
       StateDelta(std::make_shared<SwitchState>(), sw_->getState()), false);
@@ -396,7 +396,7 @@ TEST_F(SwSwitchHandlerTest, reconnectingHwSwitch) {
 
   getHwSwitchHandler()->connected(SwitchID(1));
   getHwSwitchHandler()->connected(SwitchID(2));
-  sw_->init(SwitchFlags::DEFAULT);
+  sw_->init(HwWriteBehavior::WRITE, SwitchFlags::DEFAULT);
   sw_->initialConfigApplied(std::chrono::steady_clock::now());
   getHwSwitchHandler()->stateChanged(
       StateDelta(std::make_shared<SwitchState>(), sw_->getState()), false);
@@ -657,7 +657,7 @@ TEST_F(SwSwitchHandlerTest, initialSync) {
   folly::Baton<> client2Baton;
   auto sw = sw_.get();
   getHwSwitchHandler()->connected(SwitchID(1));
-  sw_->init(SwitchFlags::DEFAULT);
+  sw_->init(HwWriteBehavior::WRITE, SwitchFlags::DEFAULT);
   getHwSwitchHandler()->stateChanged(
       StateDelta(std::make_shared<SwitchState>(), sw->getState()), false);
   sw_->initialConfigApplied(std::chrono::steady_clock::now());
@@ -738,7 +738,7 @@ TEST_F(SwSwitchHandlerTest, initialSyncSwSwitchNotConfigured) {
   std::thread clientRequestThread1([&]() { clientThreadBody(1); });
   std::thread clientRequestThread2([&]() { clientThreadBody(2); });
   getHwSwitchHandler()->waitUntilHwSwitchConnected();
-  sw_->init(SwitchFlags::DEFAULT);
+  sw_->init(HwWriteBehavior::WRITE, SwitchFlags::DEFAULT);
   getHwSwitchHandler()->stateChanged(
       StateDelta(std::make_shared<SwitchState>(), sw->getState()), false);
   sw_->initialConfigApplied(std::chrono::steady_clock::now());

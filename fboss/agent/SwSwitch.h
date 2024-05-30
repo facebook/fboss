@@ -244,7 +244,9 @@ class SwSwitch : public HwSwitchCallback {
       const HwWriteBehavior& hwWriteBehavior,
       SwitchFlags flags = SwitchFlags::DEFAULT);
 
-  void init(SwitchFlags flags = SwitchFlags::DEFAULT);
+  void init(
+      const HwWriteBehavior& hwWriteBehavior,
+      SwitchFlags flags = SwitchFlags::DEFAULT);
 
   bool isFullyInitialized() const;
 
