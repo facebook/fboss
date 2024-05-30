@@ -176,11 +176,14 @@ void SplitAgentThriftSyncer::stop() {
   // Stop any started services
   linkChangeEventSinkClient_->cancel();
   txPktEventStreamClient_->cancel();
-  operDeltaClient_->stopOperSync();
   fdbEventSinkClient_->cancel();
   rxPktEventSinkClient_->cancel();
   hwSwitchStatsSinkClient_->cancel();
   isRunning_ = false;
+}
+
+void SplitAgentThriftSyncer::stopOperDeltaSync() {
+  operDeltaClient_->stopOperSync();
 }
 
 SplitAgentThriftSyncer::~SplitAgentThriftSyncer() {

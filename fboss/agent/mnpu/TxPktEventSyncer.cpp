@@ -58,6 +58,10 @@ TxPktEventSyncer::initTxPktEventStream(
 void TxPktEventSyncer::TxPacketEventHandler(
     multiswitch::TxPacket& txPkt,
     HwSwitch* hw) {
+  if (hw->getRunState() == SwitchRunState::EXITING) {
+    XLOG(DBG4) << "TxPktEventSyncer: hwswitch exiting, dropping packet";
+    return;
+  }
   auto len = (*txPkt.data())->computeChainDataLength();
   auto pkt = hw->allocatePacket(len);
   folly::io::RWPrivateCursor cursor(pkt->buf());

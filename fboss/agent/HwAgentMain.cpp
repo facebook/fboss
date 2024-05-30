@@ -57,7 +57,7 @@ std::map<int, facebook::fboss::phy::PhyInfo> getPhyInfoForSwitchStats(
 void updateStats(
     facebook::fboss::HwSwitch* hw,
     facebook::fboss::SplitAgentThriftSyncer* syncer) {
-  if (hw->getRunState() >= SwitchRunState::CONFIGURED) {
+  if (hw->getRunState() == SwitchRunState::CONFIGURED) {
     hw->updateStats();
     auto hwSwitchStats = hw->getHwSwitchStats();
     hw->updateAllPhyInfo();
@@ -76,15 +76,18 @@ void SplitHwAgentSignalHandler::signalReceived(int /*signum*/) noexcept {
     XLOG(WARNING)
         << "[Exit] Signal received before initializing hw switch, waiting for initialization to finish.";
     hwAgent_->waitForInitDone();
+    XLOG(DBG2) << "[Exit] Wait for initialization done";
   }
   steady_clock::time_point begin = steady_clock::now();
+  // Mark HwSwitch run state as exiting
+  hwAgent_->getPlatform()->getHwSwitch()->switchRunStateChanged(
+      SwitchRunState::EXITING);
   // unregister sdk callbacks so that we do not get sdk updates while shutting
   // down
+  XLOG(DBG2) << "[Exit] unregistering callbacks";
   hwAgent_->getPlatform()->getHwSwitch()->unregisterCallbacks();
-  stopServices();
-  steady_clock::time_point servicesStopped = steady_clock::now();
-  XLOG(DBG2) << "[Exit] Services stop time "
-             << duration_cast<duration<float>>(servicesStopped - begin).count();
+  steady_clock::time_point unregisterCallbacks = steady_clock::now();
+  syncer_->stopOperDeltaSync();
   auto dirUtil = hwAgent_->getPlatform()->getDirectoryUtil();
   auto switchIndex = hwAgent_->getPlatform()->getAsic()->getSwitchIndex();
   auto exitForColdBootFile = dirUtil->exitHwSwitchForColdBootFile(switchIndex);
@@ -94,8 +97,7 @@ void SplitHwAgentSignalHandler::signalReceived(int /*signum*/) noexcept {
     SCOPE_EXIT {
       removeFile(exitForColdBootFile);
     };
-    XLOG(DBG2)
-        << "[Exit] Cold boot detected, skipping warmboot, unregistering callbacks";
+    XLOG(DBG2) << "[Exit] Cold boot detected, skipping warmboot";
     if (hwAgent_->getPlatform()->getAsic()->isSupported(
             HwAsic::Feature::ROUTE_PROGRAMMING)) {
       auto programmedState =
@@ -113,13 +115,20 @@ void SplitHwAgentSignalHandler::signalReceived(int /*signum*/) noexcept {
           StateDelta(programmedState, alpmState));
     }
     // invoke destructors
-    XLOG(DBG2) << "[Exit] destryoing hardware agent";
+    XLOG(DBG2) << "[Exit] destroying hardware agent";
     hwAgent_.reset();
   }
   steady_clock::time_point switchGracefulExit = steady_clock::now();
+  stopServices();
+  steady_clock::time_point servicesStopped = steady_clock::now();
   XLOG(DBG2)
       << "[Exit] Switch Graceful Exit time "
-      << duration_cast<duration<float>>(switchGracefulExit - servicesStopped)
+      << duration_cast<duration<float>>(
+             switchGracefulExit - unregisterCallbacks)
+             .count()
+      << std::endl
+      << "[Exit] Services Exit time "
+      << duration_cast<duration<float>>(servicesStopped - switchGracefulExit)
              .count()
       << std::endl
       << "[Exit] Total graceful Exit time "
@@ -196,7 +205,8 @@ int hwAgentMain(
           fs->shutdown();
         }
       },
-      std::move(hwAgent));
+      std::move(hwAgent),
+      thriftSyncer.get());
 
   /*
    * Updating stats could be expensive as each update must acquire lock. To

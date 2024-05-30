@@ -64,6 +64,7 @@ class SplitAgentThriftSyncer : public HwSwitchCallback {
   void start();
   void stop();
   void updateHwSwitchStats(multiswitch::HwSwitchStats stats);
+  void stopOperDeltaSync();
 
  private:
   std::shared_ptr<folly::ScopedEventBaseThread> retryThread_;

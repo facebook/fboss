@@ -19,19 +19,24 @@
 
 namespace facebook::fboss {
 
+class SplitAgentThriftSyncer;
+
 class SplitHwAgentSignalHandler : public SignalHandler {
  public:
   SplitHwAgentSignalHandler(
       folly::EventBase* eventBase,
       SignalHandler::StopServices stopServices,
-      std::unique_ptr<HwAgent> hwAgent)
+      std::unique_ptr<HwAgent> hwAgent,
+      SplitAgentThriftSyncer* syncer)
       : SignalHandler(eventBase, std::move(stopServices)),
-        hwAgent_(std::move(hwAgent)) {}
+        hwAgent_(std::move(hwAgent)),
+        syncer_(syncer) {}
 
   void signalReceived(int /*signum*/) noexcept override;
 
  private:
   std::unique_ptr<HwAgent> hwAgent_;
+  SplitAgentThriftSyncer* syncer_;
 };
 
 void setSDKVersionInfo();
