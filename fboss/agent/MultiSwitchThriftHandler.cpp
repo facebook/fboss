@@ -120,7 +120,8 @@ MultiSwitchThriftHandler::co_notifyLinkChangeEvent(int64_t switchId) {
             SwitchID(switchId));
         sw_->stats()->hwAgentLinkEventSinkConnectionStatus(switchIndex, true);
         try {
-          while (auto item = co_await gen.next()) {
+          while (auto item = co_await folly::coro::co_withCancellation(
+                     linkCancellationSource_.getToken(), gen.next())) {
             XLOG(DBG2) << "Got link change event from switch " << switchId;
             processLinkState(SwitchID(switchId), *item);
             processLinkActiveState(SwitchID(switchId), *item);
@@ -149,7 +150,8 @@ MultiSwitchThriftHandler::co_notifyFdbEvent(int64_t switchId) {
             SwitchID(switchId));
         sw_->stats()->hwAgentFdbEventSinkConnectionStatus(switchIndex, true);
         try {
-          while (auto item = co_await gen.next()) {
+          while (auto item = co_await folly::coro::co_withCancellation(
+                     fdbCancellationSource_.getToken(), gen.next())) {
             XLOG(DBG3) << "Got fdb event from switch " << switchId
                        << " for port " << *item->entry()->port()
                        << " mac :" << *item->entry()->mac();
@@ -178,7 +180,8 @@ MultiSwitchThriftHandler::co_notifyRxPacket(int64_t switchId) {
             SwitchID(switchId));
         sw_->stats()->hwAgentRxPktEventSinkConnectionStatus(switchIndex, true);
         try {
-          while (auto item = co_await gen.next()) {
+          while (auto item = co_await folly::coro::co_withCancellation(
+                     rxPktCancellationSource_.getToken(), gen.next())) {
             XLOG(DBG4) << "Got rx packet from switch " << switchId
                        << " for port " << *item->port();
             auto pkt = make_unique<SwRxPacket>(std::move(*item->data()));
@@ -242,7 +245,8 @@ MultiSwitchThriftHandler::co_syncHwStats(int16_t switchIndex) {
           -> folly::coro::Task<bool> {
         sw_->stats()->hwAgentStatsEventSinkConnectionStatus(switchIndex, true);
         try {
-          while (auto item = co_await gen.next()) {
+          while (auto item = co_await folly::coro::co_withCancellation(
+                     statsCancellationSource_.getToken(), gen.next())) {
             XLOG(DBG3) << "Got stats event from switchIndex " << switchIndex;
             sw_->updateHwSwitchStats(switchIndex, std::move(*item));
           }
@@ -271,6 +275,14 @@ void MultiSwitchThriftHandler::getNextStateOperDelta(
 
 void MultiSwitchThriftHandler::gracefulExit(int64_t switchId) {
   sw_->getHwSwitchHandler()->notifyHwSwitchGracefulExit(switchId);
+}
+
+void MultiSwitchThriftHandler::cancelEventSyncers() {
+  XLOG(DBG2) << "Cancelling all the cancellation sources";
+  linkCancellationSource_.requestCancellation();
+  fdbCancellationSource_.requestCancellation();
+  rxPktCancellationSource_.requestCancellation();
+  statsCancellationSource_.requestCancellation();
 }
 
 } // namespace facebook::fboss

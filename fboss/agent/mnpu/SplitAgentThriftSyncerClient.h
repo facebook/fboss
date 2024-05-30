@@ -185,7 +185,7 @@ class ThriftStreamClient : public SplitAgentThriftClient {
   void resetClient() override;
   void startClientService() override;
   void disconnected() override {}
-  void onCancellation() override {}
+  void onCancellation() override;
 
  private:
 #if FOLLY_HAS_COROUTINES
@@ -197,5 +197,6 @@ class ThriftStreamClient : public SplitAgentThriftClient {
 
   EventHandlerFn eventHandlerFn_;
   HwSwitch* hw_;
+  folly::CancellationSource cancellationSource_;
 };
 } // namespace facebook::fboss

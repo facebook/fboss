@@ -259,7 +259,8 @@ void ThriftStreamClient<StreamObjectT>::startClientService() {
 #if FOLLY_HAS_COROUTINES
 template <typename StreamObjectT>
 folly::coro::Task<void> ThriftStreamClient<StreamObjectT>::serveStream() {
-  while (const auto& event = co_await streamClient_->next()) {
+  while (const auto& event = co_await folly::coro::co_withCancellation(
+             cancellationSource_.getToken(), streamClient_->next())) {
     if (isCancelled()) {
       co_return;
     }
@@ -276,6 +277,11 @@ void ThriftStreamClient<StreamObjectT>::resetClient() {
   streamClient_.reset();
 #endif
   SplitAgentThriftClient::resetClient();
+}
+
+template <typename StreamObjectT>
+void ThriftStreamClient<StreamObjectT>::onCancellation() {
+  cancellationSource_.requestCancellation();
 }
 
 template <typename StreamObjectT>

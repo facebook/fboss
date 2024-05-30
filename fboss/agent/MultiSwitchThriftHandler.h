@@ -12,6 +12,7 @@ class MultiSwitchThriftHandler
     : public apache::thrift::ServiceHandler<multiswitch::MultiSwitchCtrl> {
  public:
   explicit MultiSwitchThriftHandler(SwSwitch* sw) : sw_(sw) {}
+  void cancelEventSyncers();
 
 #if FOLLY_HAS_COROUTINES
   folly::coro::Task<
@@ -53,5 +54,9 @@ class MultiSwitchThriftHandler
       const multiswitch::LinkChangeEvent& linkChangeEvent);
   void ensureConfigured(folly::StringPiece function) const;
   SwSwitch* sw_;
+  folly::CancellationSource rxPktCancellationSource_;
+  folly::CancellationSource linkCancellationSource_;
+  folly::CancellationSource fdbCancellationSource_;
+  folly::CancellationSource statsCancellationSource_;
 };
 } // namespace facebook::fboss

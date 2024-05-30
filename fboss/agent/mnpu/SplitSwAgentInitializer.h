@@ -10,6 +10,7 @@
 namespace facebook::fboss {
 
 class SwitchState;
+class MultiSwitchThriftHandler;
 
 class SplitSwSwitchInitializer : public SwSwitchInitializer {
  public:
@@ -37,6 +38,7 @@ class SplitSwAgentInitializer : public SwAgentInitializer {
   void exitForColdBoot();
   void exitForWarmBoot(bool gracefulExit);
   AgentDirectoryUtil agentDirectoryUtil_;
+  MultiSwitchThriftHandler* multiSwitchThriftHandler_{nullptr};
 };
 
 } // namespace facebook::fboss
