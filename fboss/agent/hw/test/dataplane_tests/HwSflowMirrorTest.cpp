@@ -378,7 +378,9 @@ TEST_F(HwSflowMirrorTest, StressMirrorSessionConfigUnconfig) {
 // leading to a set_mirror_session_attribute call after each warmboot which was
 // messing up the internal state.
 TEST_F(HwSflowMirrorTest, SetMirrorSession) {
-  if (!getPlatform()->getAsic()->isSupported(HwAsic::Feature::SFLOW_SAMPLING)) {
+  if (!getPlatform()->getAsic()->isSupported(HwAsic::Feature::SFLOW_SAMPLING) ||
+      !getPlatform()->getAsic()->isSupported(
+          HwAsic::Feature::MIRROR_PACKET_TRUNCATION)) {
 #if defined(GTEST_SKIP)
     GTEST_SKIP();
 #endif
