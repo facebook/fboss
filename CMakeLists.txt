@@ -592,6 +592,7 @@ add_fbthrift_cpp_library(
   SERVICES
     MultiSwitchCtrl
   DEPENDS
+    common_cpp2
     ctrl_cpp2
     fsdb_oper_cpp2
     hardware_stats_cpp2

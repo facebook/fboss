@@ -8,9 +8,10 @@
  *
  */
 #pragma once
-namespace facebook::fboss {
 
-enum class HwWriteBehavior : int { FAIL, SKIP, WRITE, LOG_FAIL };
+#include "fboss/agent/if/gen-cpp2/common_types.h"
+
+namespace facebook::fboss {
 
 /*
  * TODO - make HwWriteBehavior granularity be per swtich

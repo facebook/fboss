@@ -16,7 +16,7 @@ namespace facebook::fboss {
 namespace {
 std::atomic<HwWriteBehavior> curBehavior{HwWriteBehavior::WRITE};
 
-void setHwWiteBehavior(HwWriteBehavior behavior) {
+void setHwWriteBehavior(HwWriteBehavior behavior) {
   curBehavior = behavior;
 }
 } // namespace
@@ -26,10 +26,10 @@ HwWriteBehavior getHwWriteBehavior() {
 
 HwWriteBehaviorRAII::HwWriteBehaviorRAII(HwWriteBehavior behavior) {
   prevBehavior_ = getHwWriteBehavior();
-  setHwWiteBehavior(behavior);
+  setHwWriteBehavior(behavior);
 }
 
 HwWriteBehaviorRAII::~HwWriteBehaviorRAII() {
-  setHwWiteBehavior(prevBehavior_);
+  setHwWriteBehavior(prevBehavior_);
 }
 } // namespace facebook::fboss

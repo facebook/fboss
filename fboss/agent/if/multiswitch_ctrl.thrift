@@ -6,6 +6,7 @@ namespace py3 neteng.fboss.multiswitch
 namespace py.asyncio neteng.fboss.asyncio.multiswitch_ctrl
 
 include "fboss/fsdb/if/fsdb_oper.thrift"
+include "fboss/agent/if/common.thrift"
 include "fboss/agent/if/ctrl.thrift"
 include "thrift/annotation/cpp.thrift"
 include "fboss/lib/phy/phy.thrift"
@@ -64,6 +65,7 @@ struct StateOperDelta {
   3: i64 seqNum;
   # OperDelta can be applied to empty state to create full switchstate
   4: bool isFullState;
+  5: common.HwWriteBehavior hwWriteBehavior = common.HwWriteBehavior.WRITE;
 }
 
 struct HwSwitchStats {

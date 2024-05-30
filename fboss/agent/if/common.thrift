@@ -134,3 +134,10 @@ enum LivenessStatus {
    */
   STALE = 1,
 }
+
+enum HwWriteBehavior {
+  FAIL = 0,
+  SKIP = 1,
+  WRITE = 2,
+  LOG_FAIL = 3,
+}
