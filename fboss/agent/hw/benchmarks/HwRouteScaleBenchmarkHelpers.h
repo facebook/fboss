@@ -13,6 +13,8 @@
 #include "fboss/agent/hw/test/HwSwitchEnsemble.h"
 #include "fboss/agent/hw/test/HwSwitchEnsembleFactory.h"
 #include "fboss/agent/hw/test/HwSwitchEnsembleRouteUpdateWrapper.h"
+#include "fboss/agent/test/utils/FabricTestUtils.h"
+#include "fboss/agent/test/utils/VoqTestUtils.h"
 
 #include <folly/Benchmark.h>
 #include <iostream>
@@ -25,6 +27,11 @@
 #include "fboss/agent/test/AgentEnsemble.h"
 
 DECLARE_bool(json);
+
+namespace {
+const auto kEcmpWidth = 512;
+const auto kEcmpGroup = 8;
+}; // namespace
 
 namespace facebook::fboss {
 
@@ -167,6 +174,75 @@ void routeAddDelBenchmarker(bool measureAdd) {
   }
   done = true;
   lookupThread.join();
+}
+
+inline void voqRouteBenchmark(bool add) {
+  folly::BenchmarkSuspender suspender;
+
+  AgentEnsembleSwitchConfigFn voqInitialConfig =
+      [](const AgentEnsemble& ensemble) {
+        FLAGS_hide_fabric_ports = false;
+        auto config = utility::onePortPerInterfaceConfig(
+            ensemble.getSw(),
+            ensemble.masterLogicalPortIds(),
+            true, /*interfaceHasSubnet*/
+            true, /*setInterfaceMac*/
+            utility::kBaseVlanId,
+            true /*enable fabric ports*/);
+        utility::populatePortExpectedNeighbors(
+            ensemble.masterLogicalPortIds(), config);
+        config.dsfNodes() = *utility::addRemoteDsfNodeCfg(*config.dsfNodes());
+        return config;
+      };
+  auto ensemble = createAgentEnsemble(voqInitialConfig);
+  ScopedCallTimer timeIt;
+
+  ensemble->applyNewState([&](const std::shared_ptr<SwitchState>& in) {
+    return utility::setupRemoteIntfAndSysPorts(
+        in,
+        ensemble->scopeResolver(),
+        ensemble->getSw()->getConfig(),
+        ensemble->getSw()->getHwAsicTable()->isFeatureSupportedOnAllAsic(
+            HwAsic::Feature::RESERVED_ENCAP_INDEX_RANGE));
+  });
+
+  // Trigger config apply to add remote interface routes as directly connected
+  // in RIB. This is to resolve ECMP members pointing to remote nexthops.
+  ensemble->applyNewConfig(voqInitialConfig(*ensemble));
+
+  utility::EcmpSetupTargetedPorts6 ecmpHelper(ensemble->getProgrammedState());
+  auto portDescriptor = utility::resolveRemoteNhops(ensemble.get(), ecmpHelper);
+
+  // Measure the time of programming 8x512 wide ECMP
+  std::vector<RoutePrefixV6> prefixes;
+  std::vector<flat_set<PortDescriptor>> nhopSets;
+  for (int i = 0; i < kEcmpGroup; i++) {
+    prefixes.push_back(RoutePrefixV6{
+        folly::IPAddressV6(folly::to<std::string>(i, "::", i)),
+        static_cast<uint8_t>(i == 0 ? 0 : 128)});
+    nhopSets.push_back(flat_set<PortDescriptor>(
+        std::make_move_iterator(portDescriptor.begin() + i),
+        std::make_move_iterator(portDescriptor.begin() + i + kEcmpWidth)));
+  }
+
+  auto programRoutes = [&]() {
+    auto updater = ensemble->getSw()->getRouteUpdater();
+    ecmpHelper.programRoutes(&updater, nhopSets, prefixes);
+  };
+  auto unprogramRoutes = [&]() {
+    auto updater = ensemble->getSw()->getRouteUpdater();
+    ecmpHelper.unprogramRoutes(&updater, prefixes);
+  };
+  if (add) {
+    suspender.dismiss();
+    programRoutes();
+    suspender.rehire();
+  } else {
+    programRoutes();
+    suspender.dismiss();
+    unprogramRoutes();
+    suspender.rehire();
+  }
 }
 
 #define ROUTE_ADD_BENCHMARK(name, RouteScaleGeneratorT) \
