@@ -80,7 +80,8 @@ bool waitForAnyPorAndQueutOutBytesIncrement(
     TestEnsembleIf* ensemble,
     const std::map<PortID, HwPortStats>& originalPortStats,
     const std::vector<PortID>& portIds,
-    const HwPortStatsFunc& getHwPortStats) {
+    const HwPortStatsFunc& getHwPortStats,
+    const int msBetweenRetry) {
   bool queueStatsSupported =
       featureSupported(ensemble, HwAsic::Feature::L3_QOS);
   auto conditionFn = [&originalPortStats,
@@ -102,7 +103,11 @@ bool waitForAnyPorAndQueutOutBytesIncrement(
     return false;
   };
   return waitPortStatsCondition(
-      conditionFn, portIds, 20, std::chrono::milliseconds(20), getHwPortStats);
+      conditionFn,
+      portIds,
+      20,
+      std::chrono::milliseconds(msBetweenRetry),
+      getHwPortStats);
 }
 
 bool waitForAnyVoQOutBytesIncrement(
@@ -165,14 +170,19 @@ bool ensureSendPacketSwitched(
     const std::vector<PortID>& portIds,
     const HwPortStatsFunc& getHwPortStats,
     const std::vector<SystemPortID>& sysPortIds,
-    const HwSysPortStatsFunc& getHwSysPortStats) {
+    const HwSysPortStatsFunc& getHwSysPortStats,
+    const int msBetweenRetry) {
   auto originalPortStats = getHwPortStats(portIds);
   auto originalSysPortStats = getHwSysPortStats(sysPortIds);
   ensemble->sendPacketAsync(std::move(pkt));
   bool waitForVoqs =
       sysPortIds.size() && featureSupported(ensemble, HwAsic::Feature::VOQ);
   return waitForAnyPorAndQueutOutBytesIncrement(
-             ensemble, originalPortStats, portIds, getHwPortStats) &&
+             ensemble,
+             originalPortStats,
+             portIds,
+             getHwPortStats,
+             msBetweenRetry) &&
       (!waitForVoqs ||
        waitForAnyVoQOutBytesIncrement(
            ensemble, originalSysPortStats, sysPortIds, getHwSysPortStats));
@@ -182,7 +192,8 @@ bool ensureSendPacketSwitched(
     TestEnsembleIf* ensemble,
     std::unique_ptr<TxPacket> pkt,
     const std::vector<PortID>& portIds,
-    const HwPortStatsFunc& getHwPortStats) {
+    const HwPortStatsFunc& getHwPortStats,
+    const int msBetweenRetry) {
   auto noopGetSysPortStats = [](const std::vector<SystemPortID>&)
       -> std::map<SystemPortID, HwSysPortStats> { return {}; };
   return ensureSendPacketSwitched(
@@ -191,7 +202,8 @@ bool ensureSendPacketSwitched(
       portIds,
       getHwPortStats,
       {},
-      noopGetSysPortStats);
+      noopGetSysPortStats,
+      msBetweenRetry);
 }
 
 bool ensureSendPacketOutOfPort(
@@ -200,11 +212,12 @@ bool ensureSendPacketOutOfPort(
     PortID portID,
     const std::vector<PortID>& ports,
     const HwPortStatsFunc& getHwPortStats,
-    std::optional<uint8_t> queue) {
+    std::optional<uint8_t> queue,
+    const int msBetweenRetry) {
   auto originalPortStats = getHwPortStats(ports);
   ensemble->sendPacketAsync(std::move(pkt), PortDescriptor(portID), queue);
   return waitForAnyPorAndQueutOutBytesIncrement(
-      ensemble, originalPortStats, ports, getHwPortStats);
+      ensemble, originalPortStats, ports, getHwPortStats, msBetweenRetry);
 }
 
 } // namespace facebook::fboss::utility

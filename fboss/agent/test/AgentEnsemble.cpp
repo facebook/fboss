@@ -30,6 +30,7 @@ namespace {
 facebook::fboss::PlatformInitFn kPlatformInitFn;
 static std::string kInputConfigFile;
 std::optional<facebook::fboss::cfg::StreamType> kStreamTypeOpt{std::nullopt};
+static const int kMsWaitForStatsRetry = 2000;
 } // namespace
 
 namespace facebook::fboss {
@@ -520,7 +521,12 @@ bool AgentEnsemble::ensureSendPacketSwitched(std::unique_ptr<TxPacket> pkt) {
   // lambda that returns HwPortStats for the given port(s)
   auto getPortStats =
       [&](const std::vector<PortID>& portIds) -> std::map<PortID, HwPortStats> {
-    return getLatestPortStats(portIds);
+    std::map<PortID, HwPortStats> portStats;
+    WITH_RETRIES({
+      portStats = getLatestPortStats(portIds);
+      EXPECT_EVENTUALLY_TRUE(portStats.size());
+    });
+    return portStats;
   };
   auto getSysPortStats = [&](const std::vector<SystemPortID>& portIds)
       -> std::map<SystemPortID, HwSysPortStats> {
@@ -533,7 +539,8 @@ bool AgentEnsemble::ensureSendPacketSwitched(std::unique_ptr<TxPacket> pkt) {
       masterLogicalPortIds({cfg::PortType::INTERFACE_PORT}),
       getPortStats,
       masterLogicalSysPortIds(),
-      getSysPortStats);
+      getSysPortStats,
+      kMsWaitForStatsRetry);
 }
 
 bool AgentEnsemble::ensureSendPacketOutOfPort(
@@ -551,7 +558,8 @@ bool AgentEnsemble::ensureSendPacketOutOfPort(
       portID,
       masterLogicalPortIds({cfg::PortType::INTERFACE_PORT}),
       getPortStats,
-      queue);
+      queue,
+      kMsWaitForStatsRetry);
 }
 
 } // namespace facebook::fboss

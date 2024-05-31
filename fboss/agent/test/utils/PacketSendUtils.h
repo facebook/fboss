@@ -33,13 +33,15 @@ bool ensureSendPacketSwitched(
     const std::vector<PortID>& portIds,
     const HwPortStatsFunc& getHwPortStats,
     const std::vector<SystemPortID>& sysPortIds,
-    const HwSysPortStatsFunc& getHwSysPortStats);
+    const HwSysPortStatsFunc& getHwSysPortStats,
+    const int msBetweenRetry = 20);
 
 bool ensureSendPacketSwitched(
     TestEnsembleIf* ensemble,
     std::unique_ptr<TxPacket> pkt,
     const std::vector<PortID>& portIds,
-    const HwPortStatsFunc& getHwPortStats);
+    const HwPortStatsFunc& getHwPortStats,
+    const int msBetweenRetry = 20);
 
 bool ensureSendPacketOutOfPort(
     TestEnsembleIf* ensemble,
@@ -47,7 +49,8 @@ bool ensureSendPacketOutOfPort(
     PortID portID,
     const std::vector<PortID>& ports,
     const HwPortStatsFunc& getHwPortStats,
-    std::optional<uint8_t> queue = std::nullopt);
+    std::optional<uint8_t> queue = std::nullopt,
+    const int msBetweenRetry = 20);
 
 bool waitPortStatsCondition(
     std::function<bool(const std::map<PortID, HwPortStats>&)> conditionFn,
