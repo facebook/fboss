@@ -8698,7 +8698,7 @@
             "ucode_port_42.BCM8889X": "CDGE4_34:core_3.10",
             "ucode_port_43.BCM8889X": "CDGE4_35:core_3.11",
             "ucode_port_5.BCM8889X": "RCY.24:core_3.1",
-            "ucode_port_6.BCM8889X": "EVENTOR:core_1.2",
+            "ucode_port_6.BCM8889X": "EVENTOR:core_0.42",
             "ucode_port_7.BCM8889X": "CGE36:core_2.11",
             "ucode_port_8.BCM8889X": "CDGE4_0:core_0.2",
             "ucode_port_9.BCM8889X": "CDGE4_1:core_0.3",
