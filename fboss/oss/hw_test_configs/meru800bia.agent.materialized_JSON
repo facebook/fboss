@@ -1326,7 +1326,7 @@
             "ucode_port_40.BCM8889X": "D3CE16:core_3.8",
             "ucode_port_42.BCM8889X": "D3CE17:core_3.10",
             "ucode_port_5.BCM8889X": "RCY.24:core_3.1",
-            "ucode_port_6.BCM8889X": "EVENTOR:core_1.2",
+            "ucode_port_6.BCM8889X": "EVENTOR:core_0.42",
             "ucode_port_7.BCM8889X": "CGE36:core_2.11",
             "ucode_port_8.BCM8889X": "D3CE0:core_0.2",
             "warmboot_support.BCM8889X": "on",
