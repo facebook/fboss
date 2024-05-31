@@ -51,7 +51,6 @@ add_library(led_manager_lib
   fboss/led_service/oss/ElbertLedManager.cpp
   fboss/led_service/oss/FsdbSwitchStateSubscriber.cpp
   fboss/led_service/oss/FujiLedManager.cpp
-  fboss/led_service/oss/LassenLedManager.cpp
   fboss/led_service/oss/MinipackLedManager.cpp
   fboss/led_service/oss/Wedge400BaseLedManager.cpp
   fboss/led_service/oss/Wedge400CLedManager.cpp
@@ -82,7 +81,6 @@ target_link_libraries(led_manager_lib
   darwin_platform_mapping
   elbert_platform_mapping
   fuji_platform_mapping
-  lassen_platform_mapping
   minipack_platform_mapping
   montblanc_platform_mapping
   meru800bia_platform_mapping
