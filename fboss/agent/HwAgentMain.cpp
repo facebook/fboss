@@ -223,6 +223,7 @@ int hwAgentMain(
   // is migrated to ServiceFramework.
   // @lint-ignore CLANGTIDY
   server->serve();
+  server.reset();
   return 0;
 }
 
