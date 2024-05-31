@@ -29,11 +29,6 @@ std::unique_ptr<WedgeManager> createDarwinWedgeManager(
   return std::unique_ptr<WedgeManager>{};
 }
 
-std::unique_ptr<WedgeManager> createLassenWedgeManager(
-    const std::string& /* platformMappingStr */) {
-  return std::unique_ptr<WedgeManager>{};
-}
-
 std::unique_ptr<WedgeManager> createElbertWedgeManager(
     const std::string& /* platformMappingStr */) {
   return std::unique_ptr<WedgeManager>{};

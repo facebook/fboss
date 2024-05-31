@@ -36,9 +36,6 @@ std::unique_ptr<WedgeManager> createYampWedgeManager(
 std::unique_ptr<WedgeManager> createDarwinWedgeManager(
     const std::string& platformMappingStr);
 
-std::unique_ptr<WedgeManager> createLassenWedgeManager(
-    const std::string& platformMappingStr);
-
 std::unique_ptr<WedgeManager> createElbertWedgeManager(
     const std::string& platformMappingStr);
 
