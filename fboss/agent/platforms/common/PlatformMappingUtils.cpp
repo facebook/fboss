@@ -22,7 +22,6 @@
 #include "fboss/agent/platforms/common/galaxy/GalaxyFCPlatformMapping.h"
 #include "fboss/agent/platforms/common/galaxy/GalaxyLCPlatformMapping.h"
 #include "fboss/agent/platforms/common/janga800bic/Janga800bicPlatformMapping.h"
-#include "fboss/agent/platforms/common/lassen/LassenPlatformMapping.h"
 #include "fboss/agent/platforms/common/meru400bfu/Meru400bfuPlatformMapping.h"
 #include "fboss/agent/platforms/common/meru400bia/Meru400biaPlatformMapping.h"
 #include "fboss/agent/platforms/common/meru400biu/Meru400biuPlatformMapping.h"
@@ -114,10 +113,6 @@ std::unique_ptr<PlatformMapping> initPlatformMapping(PlatformType type) {
       return platformMappingStr.empty()
           ? std::make_unique<DarwinPlatformMapping>()
           : std::make_unique<DarwinPlatformMapping>(platformMappingStr);
-    case PlatformType::PLATFORM_LASSEN:
-      return platformMappingStr.empty()
-          ? std::make_unique<LassenPlatformMapping>()
-          : std::make_unique<LassenPlatformMapping>(platformMappingStr);
     case PlatformType::PLATFORM_SANDIA:
       return std::make_unique<SandiaPlatformMapping>(platformMappingStr);
     case PlatformType::PLATFORM_MONTBLANC:
@@ -171,6 +166,7 @@ std::unique_ptr<PlatformMapping> initPlatformMapping(PlatformType type) {
           : std::make_unique<Morgan800ccPlatformMapping>(platformMappingStr);
     case PlatformType::PLATFORM_FAKE_SAI:
       return std::make_unique<FakeTestPlatformMapping>(std::vector<int>{});
+    case PlatformType::PLATFORM_LASSEN:
     case PlatformType::PLATFORM_CLOUDRIPPER_FABRIC:
     case PlatformType::PLATFORM_CLOUDRIPPER_VOQ:
     case PlatformType::PLATFORM_WEDGE400C_FABRIC:
