@@ -2,11 +2,11 @@
     "platform": "meru800bfa",
     "kmods": [
         "scd",
-        "scd-spi",
-        "scd-leds",
-        "scd-xcvr",
-        "scd-smbus",
-        "dsf-fan-cpld",
+        "scd_spi",
+        "scd_leds",
+        "scd_xcvr",
+        "scd_smbus",
+        "dsf_fan_cpld",
         "decker_cpld"
     ],
     "fpgas": [

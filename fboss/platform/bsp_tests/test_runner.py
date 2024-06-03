@@ -9,6 +9,7 @@ from dataclasses_json import dataclass_json
 
 from fboss.platform.bsp_tests.utils.cdev_types import FpgaSpec
 from fboss.platform.bsp_tests.utils.cmd_utils import check_cmd
+from fboss.platform.bsp_tests.utils.kmod_utils import fbsp_remove
 
 
 @dataclass_json
@@ -77,6 +78,15 @@ class TestBase:
         cls.kmods = cls.config.kmods
         cls.fpgas = cls.config.fpgas
         cls.fpgaToDir = findFpgaDirs(cls.fpgas)
+
+        # Ensures a clean running environment (e.g. no lingering devices)
+        # for each test
+        try:
+            fbsp_remove()
+        except Exception:
+            # Ignore errors if fbsp-remove.sh is not present, will fail
+            # the specific test for this
+            pass
 
     def load_kmods(self) -> None:
         for kmod in self.kmods:
