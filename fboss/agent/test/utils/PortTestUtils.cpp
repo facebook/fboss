@@ -54,8 +54,8 @@ cfg::PortSpeed getSpeed(cfg::PortProfileID profile) {
     case cfg::PortProfileID::PROFILE_53POINT125G_1_PAM4_RS545_OPTICAL:
       return cfg::PortSpeed::FIFTYTHREEPOINTONETWOFIVEG;
 
-    case cfg::PortProfileID::PROFILE_100G_1_PAM4_RS544_COPPER:
-    case cfg::PortProfileID::PROFILE_100G_1_PAM4_RS544_OPTICAL:
+    case cfg::PortProfileID::PROFILE_106POINT25G_1_PAM4_RS544_COPPER:
+    case cfg::PortProfileID::PROFILE_106POINT25G_1_PAM4_RS544_OPTICAL:
       return cfg::PortSpeed::HUNDREDANDSIXPOINTTWOFIVEG;
 
     case cfg::PortProfileID::PROFILE_100G_2_PAM4_RS544X2N_OPTICAL:
@@ -69,6 +69,7 @@ cfg::PortSpeed getSpeed(cfg::PortProfileID profile) {
     case cfg::PortProfileID::PROFILE_100G_4_NRZ_CL91_OPTICAL:
     case cfg::PortProfileID::PROFILE_100G_4_NRZ_NOFEC_COPPER:
     case cfg::PortProfileID::PROFILE_100G_4_NRZ_CL91_COPPER_RACK_YV3_T1:
+    case cfg::PortProfileID::PROFILE_100G_1_PAM4_RS544_OPTICAL:
       return cfg::PortSpeed::HUNDREDG;
 
     case cfg::PortProfileID::PROFILE_200G_4_PAM4_RS544X2N:
@@ -111,7 +112,7 @@ TransmitterTechnology getMediaType(cfg::PortProfileID profile) {
     case cfg::PortProfileID::PROFILE_25G_1_NRZ_NOFEC_COPPER_RACK_YV3_T1:
     case cfg::PortProfileID::PROFILE_400G_8_PAM4_RS544X2N_COPPER:
     case cfg::PortProfileID::PROFILE_53POINT125G_1_PAM4_RS545_COPPER:
-    case cfg::PortProfileID::PROFILE_100G_1_PAM4_RS544_COPPER:
+    case cfg::PortProfileID::PROFILE_106POINT25G_1_PAM4_RS544_COPPER:
     case cfg::PortProfileID::PROFILE_50G_1_PAM4_RS544_COPPER:
     case cfg::PortProfileID::PROFILE_400G_4_PAM4_RS544X2N_COPPER:
     case cfg::PortProfileID::PROFILE_100G_2_PAM4_RS544X2N_COPPER:
@@ -130,6 +131,7 @@ TransmitterTechnology getMediaType(cfg::PortProfileID profile) {
     case cfg::PortProfileID::PROFILE_400G_8_PAM4_RS544X2N_OPTICAL:
     case cfg::PortProfileID::PROFILE_400G_4_PAM4_RS544X2N_OPTICAL:
     case cfg::PortProfileID::PROFILE_800G_8_PAM4_RS544X2N_OPTICAL:
+    case cfg::PortProfileID::PROFILE_106POINT25G_1_PAM4_RS544_OPTICAL:
     case cfg::PortProfileID::PROFILE_100G_1_PAM4_RS544_OPTICAL:
     case cfg::PortProfileID::PROFILE_50G_1_PAM4_RS544_OPTICAL:
       return TransmitterTechnology::OPTICAL;

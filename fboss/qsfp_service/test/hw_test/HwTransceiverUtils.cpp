@@ -96,6 +96,8 @@ void HwTransceiverUtils::verifyPortNameToLaneMap(
             expectedMediaLanes = {4, 5, 6, 7};
           }
         } else if (
+            profile ==
+                cfg::PortProfileID::PROFILE_106POINT25G_1_PAM4_RS544_OPTICAL ||
             profile == cfg::PortProfileID::PROFILE_100G_1_PAM4_RS544_OPTICAL) {
           expectedMediaLanes = {*hostLaneMap[portName].begin()};
         } else if (
@@ -268,6 +270,7 @@ void HwTransceiverUtils::verifyMediaInterfaceCompliance(
     case cfg::PortProfileID::PROFILE_100G_4_NRZ_RS528_OPTICAL:
     case cfg::PortProfileID::PROFILE_100G_4_NRZ_CL91_OPTICAL:
     case cfg::PortProfileID::PROFILE_100G_1_PAM4_RS544_OPTICAL:
+    case cfg::PortProfileID::PROFILE_106POINT25G_1_PAM4_RS544_OPTICAL:
       verify100gProfile(mgmtInterface, mediaInterfaces);
       break;
 
