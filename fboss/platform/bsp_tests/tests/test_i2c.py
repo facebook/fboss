@@ -1,5 +1,6 @@
 import concurrent.futures
 import os
+import re
 from collections import defaultdict
 from typing import Dict, List
 
@@ -36,6 +37,14 @@ class TestI2c(TestBase):
         for fpga in self.fpgas:
             path = make_cdev_path(fpga)
             assert os.path.exists(path)
+
+    def test_i2c_adapter_names(self) -> None:
+        for fpga in self.fpgas:
+            for adapter in fpga.i2cAdapters:
+                pattern = r"i2c_master(_.+)?"
+                assert re.search(
+                    pattern, adapter.auxDevice.deviceName
+                ), "I2C Adapter name {adapter.auxDevice.deviceName} does not match expected pattern"
 
     def test_i2c_adapter_creates_busses(self) -> None:
         for fpga in self.fpgas:
