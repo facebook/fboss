@@ -23,6 +23,11 @@ class TestXcvr(TestBase):
     def setup_method(self):
         self.load_kmods()
 
+    def test_xcvr_names(self) -> None:
+        for fpga in self.fpgas:
+            for xcvr in fpga.xcvrCtrls:
+                assert xcvr.deviceName == "xcvr_ctrl"
+
     def test_xcvr_creates_sysfs_files(self) -> None:
         if self.platform == "meru800bfa" or self.platform == "meru800bia":
             pytest.skip("DSF fails xcvr test currently.")
