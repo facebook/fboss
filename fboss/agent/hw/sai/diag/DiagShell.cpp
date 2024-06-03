@@ -182,7 +182,7 @@ std::unique_ptr<Repl> DiagShell::makeRepl() const {
     case PlatformType::PLATFORM_SANDIA:
     case PlatformType::PLATFORM_MORGAN800CC:
       return std::make_unique<PythonRepl>(ptys_->file.fd());
-    case PlatformType::PLATFORM_LASSEN:
+    case PlatformType::PLATFORM_LASSEN_DEPRECATED:
       throw FbossError("Shell not supported for lassen platform");
     case PlatformType::PLATFORM_FAKE_WEDGE:
     case PlatformType::PLATFORM_FAKE_WEDGE40:
@@ -414,7 +414,7 @@ std::string DiagCmdServer::getDelimiterDiagCmd(const std::string& UUID) const {
     case PlatformType::PLATFORM_SANDIA:
     case PlatformType::PLATFORM_MORGAN800CC:
       return folly::to<std::string>("print('", UUID, "')\n");
-    case PlatformType::PLATFORM_LASSEN:
+    case PlatformType::PLATFORM_LASSEN_DEPRECATED:
       throw FbossError("Shell not supported for lassen platform");
     case PlatformType::PLATFORM_FAKE_WEDGE:
     case PlatformType::PLATFORM_FAKE_WEDGE40:
@@ -477,7 +477,7 @@ std::string& DiagCmdServer::cleanUpOutput(
     case PlatformType::PLATFORM_CLOUDRIPPER_VOQ:
     case PlatformType::PLATFORM_CLOUDRIPPER_FABRIC:
       throw FbossError("Shell not supported for cloud ripper platform");
-    case PlatformType::PLATFORM_LASSEN:
+    case PlatformType::PLATFORM_LASSEN_DEPRECATED:
       throw FbossError("Shell not supported for lassen platform");
     case PlatformType::PLATFORM_FAKE_WEDGE:
     case PlatformType::PLATFORM_FAKE_WEDGE40:

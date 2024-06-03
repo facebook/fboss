@@ -39,7 +39,7 @@ TEST_F(HwTest, CheckDefaultXphyFirmwareVersion) {
     case PlatformType::PLATFORM_WEDGE400:
     case PlatformType::PLATFORM_WEDGE400_GRANDTETON:
     case PlatformType::PLATFORM_DARWIN:
-    case PlatformType::PLATFORM_LASSEN:
+    case PlatformType::PLATFORM_LASSEN_DEPRECATED:
     case PlatformType::PLATFORM_MERU400BIU:
     case PlatformType::PLATFORM_MERU800BIA:
     case PlatformType::PLATFORM_MERU800BFA:

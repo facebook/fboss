@@ -52,7 +52,7 @@ inline std::string toString(PlatformType mode) {
       return "CLOUDRIPPER";
     case PlatformType::PLATFORM_DARWIN:
       return "DARWIN";
-    case PlatformType::PLATFORM_LASSEN:
+    case PlatformType::PLATFORM_LASSEN_DEPRECATED:
       return "LASSEN";
     case PlatformType::PLATFORM_SANDIA:
       return "SANDIA";

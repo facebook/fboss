@@ -166,7 +166,7 @@ std::unique_ptr<PlatformMapping> initPlatformMapping(PlatformType type) {
           : std::make_unique<Morgan800ccPlatformMapping>(platformMappingStr);
     case PlatformType::PLATFORM_FAKE_SAI:
       return std::make_unique<FakeTestPlatformMapping>(std::vector<int>{});
-    case PlatformType::PLATFORM_LASSEN:
+    case PlatformType::PLATFORM_LASSEN_DEPRECATED:
     case PlatformType::PLATFORM_CLOUDRIPPER_FABRIC:
     case PlatformType::PLATFORM_CLOUDRIPPER_VOQ:
     case PlatformType::PLATFORM_WEDGE400C_FABRIC:
