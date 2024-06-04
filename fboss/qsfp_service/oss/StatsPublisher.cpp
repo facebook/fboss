@@ -26,5 +26,9 @@ void StatsPublisher::missingPorts(TransceiverID /* unused */) {}
 void StatsPublisher::bumpModuleErrors() {}
 // static
 void StatsPublisher::bumpAOIOverride() {}
+// static
+void StatsPublisher::bumpHighTemp() {}
+// static
+void StatsPublisher::bumpHighVcc() {}
 } // namespace fboss
 } // namespace facebook

@@ -23,7 +23,7 @@
 #include "fboss/agent/FbossError.h"
 #include "fboss/lib/phy/gen-cpp2/phy_types.h"
 #include "fboss/lib/usb/TransceiverI2CApi.h"
-#include "fboss/qsfp_service/QsfpConfig.h"
+#include "fboss/qsfp_service/StatsPublisher.h"
 #include "fboss/qsfp_service/TransceiverManager.h"
 #include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
 #include "fboss/qsfp_service/module/TransceiverImpl.h"
@@ -369,7 +369,18 @@ void QsfpModule::updateCachedTransceiverInfoLocked(ModuleStatus moduleStatus) {
       cacheMediaLaneSignals(*tcvrState.mediaLaneSignals());
     }
 
-    tcvrStats.sensor() = getSensorInfo();
+    auto sensorInfo = getSensorInfo();
+    if (auto tempFlags = sensorInfo.temp()->flags()) {
+      if (*tempFlags->alarm()->high() || *tempFlags->warn()->high()) {
+        StatsPublisher::bumpHighTemp();
+      }
+    }
+    if (auto vccFlags = sensorInfo.vcc()->flags()) {
+      if (*vccFlags->alarm()->high() || *vccFlags->warn()->high()) {
+        StatsPublisher::bumpHighVcc();
+      }
+    }
+    tcvrStats.sensor() = sensorInfo;
     tcvrState.vendor() = getVendorInfo();
     tcvrState.cable() = getCableInfo();
     if (auto threshold = getThresholdInfo()) {

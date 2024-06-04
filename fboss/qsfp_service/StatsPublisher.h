@@ -32,6 +32,8 @@ class StatsPublisher {
   static void bumpModuleErrors();
   static void missingPorts(TransceiverID module);
   static void bumpAOIOverride();
+  static void bumpHighTemp();
+  static void bumpHighVcc();
 
  private:
   TransceiverManager* transceiverManager_{nullptr};
