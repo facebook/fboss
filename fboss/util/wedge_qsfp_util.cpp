@@ -1142,7 +1142,7 @@ DOMDataUnion fetchDataFromLocalI2CBus(
     unsigned int port) {
   // port is 1 based and WedgeQsfp is 0 based.
   auto qsfpImpl = std::make_unique<WedgeQsfp>(
-      port - 1, i2cInfo.bus, i2cInfo.transceiverManager);
+      port - 1, i2cInfo.bus, i2cInfo.transceiverManager, /*logBuffer*/ nullptr);
   auto mgmtInterface = qsfpImpl->getTransceiverManagementInterface();
   if (!FLAGS_forced_module_type.empty()) {
     if (FLAGS_forced_module_type == "cmis") {
@@ -2833,7 +2833,7 @@ bool cliModulefirmwareUpgrade(
       FLAGS_dsp_image ? "dsp" : "application";
   auto fbossFwObj = std::make_unique<FbossFirmware>(firmwareAttr);
   auto qsfpImpl = std::make_unique<WedgeQsfp>(
-      port - 1, i2cInfo.bus, i2cInfo.transceiverManager);
+      port - 1, i2cInfo.bus, i2cInfo.transceiverManager, /*logBuffer*/ nullptr);
   auto fwUpgradeObj = std::make_unique<CmisFirmwareUpgrader>(
       qsfpImpl.get(), port, std::move(fbossFwObj));
 
@@ -2985,7 +2985,10 @@ void fwUpgradeThreadHandler(
         FLAGS_dsp_image ? "dsp" : "application";
     auto fbossFwObj = std::make_unique<FbossFirmware>(firmwareAttr);
     auto qsfpImpl = std::make_unique<WedgeQsfp>(
-        module - 1, i2cInfo.bus, i2cInfo.transceiverManager);
+        module - 1,
+        i2cInfo.bus,
+        i2cInfo.transceiverManager,
+        /*logBuffer*/ nullptr);
     auto fwUpgradeObj = std::make_unique<CmisFirmwareUpgrader>(
         qsfpImpl.get(), module, std::move(fbossFwObj));
 
@@ -3061,7 +3064,10 @@ std::vector<unsigned int> getUpgradeModList(
     }
 
     auto qsfpImpl = std::make_unique<WedgeQsfp>(
-        module - 1, i2cInfo.bus, i2cInfo.transceiverManager);
+        module - 1,
+        i2cInfo.bus,
+        i2cInfo.transceiverManager,
+        /*logBuffer*/ nullptr);
     auto mgmtInterface = qsfpImpl->getTransceiverManagementInterface();
 
     // Check if it is CMIS module
@@ -3303,7 +3309,10 @@ void doCdbCommand(DirectI2cInfo i2cInfo, unsigned int module) {
   CdbCommandBlock cdbBlock;
   cdbBlock.createCdbCmdGeneric(commandCode, lplMem);
   auto qsfpImpl = std::make_unique<WedgeQsfp>(
-      module - 1, i2cInfo.bus, i2cInfo.transceiverManager);
+      module - 1,
+      i2cInfo.bus,
+      i2cInfo.transceiverManager,
+      /*logBuffer*/ nullptr);
   cdbBlock.selectCdbPage(qsfpImpl.get());
   cdbBlock.setMsaPassword(qsfpImpl.get(), FLAGS_msa_password);
 

@@ -16,6 +16,7 @@ target_link_libraries(firmware_upgrader
 )
 
 add_library(qsfp_module STATIC
+  fboss/qsfp_service/module/I2cLogBuffer.cpp
   fboss/qsfp_service/module/QsfpHelper.cpp
   fboss/qsfp_service/module/QsfpModule.cpp
   fboss/qsfp_service/module/oss/QsfpModule.cpp

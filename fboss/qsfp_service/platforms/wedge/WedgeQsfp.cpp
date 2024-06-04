@@ -67,10 +67,12 @@ namespace fboss {
 WedgeQsfp::WedgeQsfp(
     int module,
     TransceiverI2CApi* wedgeI2CBus,
-    TransceiverManager* const tcvrManager)
+    TransceiverManager* const tcvrManager,
+    std::unique_ptr<I2cLogBuffer> logBuffer)
     : module_(module),
       threadSafeI2CBus_(wedgeI2CBus),
-      tcvrManager_(tcvrManager) {
+      tcvrManager_(tcvrManager),
+      logBuffer_(std::move(logBuffer)) {
   moduleName_ = folly::to<std::string>(module);
 }
 
@@ -95,9 +97,15 @@ int WedgeQsfp::readTransceiver(
     };
     generateIOErrorForTest("readTransceiver()");
     threadSafeI2CBus_->moduleRead(module_ + 1, param, fieldValue);
+    if (logBuffer_) {
+      logBuffer_->log(param, fieldValue, I2cLogBuffer::Operation::Read);
+    }
   } catch (const std::exception& ex) {
     XLOG(ERR) << "Read from transceiver " << module_ << " at offset " << offset
               << " with length " << len << " failed: " << ex.what();
+    if (logBuffer_) {
+      logBuffer_->transactionError();
+    }
     throw;
   }
   return len;
@@ -123,7 +131,9 @@ int WedgeQsfp::writeTransceiver(
     };
     generateIOErrorForTest("writeTransceiver()");
     threadSafeI2CBus_->moduleWrite(module_ + 1, param, fieldValue);
-
+    if (logBuffer_) {
+      logBuffer_->log(param, fieldValue, I2cLogBuffer::Operation::Write);
+    }
     // Intel transceiver require some delay for every write.
     // So in the case of writing succeeded, we wait for 20ms.
     // Also this works because we do not write more than 1 byte for now.
@@ -132,6 +142,9 @@ int WedgeQsfp::writeTransceiver(
     XLOG(ERR) << "Write to transceiver " << module_ << " at offset " << offset
               << " with length " << len
               << " failed: " << folly::exceptionStr(ex);
+    if (logBuffer_) {
+      logBuffer_->transactionError();
+    }
     throw;
   }
   return len;
