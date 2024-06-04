@@ -275,7 +275,10 @@ std::vector<I2cLogBuffer::I2cReplayEntry> I2cLogBuffer::loadFromLog(
     XLOG(ERR) << "Failed to open file " << logFile;
     return entries;
   }
-  for (auto i = 0; i < 2; i++) {
+
+  std::stringstream ss;
+  auto hdrSize = getHeader(ss, 0, 0);
+  for (auto i = 0; i < hdrSize; i++) {
     if (!std::getline(file, line)) {
       XLOG(ERR) << "Failed to read log header from file " << logFile;
       return entries;
@@ -283,7 +286,7 @@ std::vector<I2cLogBuffer::I2cReplayEntry> I2cLogBuffer::loadFromLog(
   }
 
   while (std::getline(file, line)) {
-    auto ss = std::stringstream(getField(line, '<', '>'));
+    ss = std::stringstream(getField(line, '<', '>'));
     auto param = getParam(ss);
     auto op = getOp(ss);
     auto str = getField(line, '[', ']');

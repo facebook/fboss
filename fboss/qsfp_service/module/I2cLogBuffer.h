@@ -116,10 +116,11 @@ class I2cLogBuffer {
   std::string logFile_;
   std::mutex mutex_;
 
-  size_t getHeader(std::stringstream& ss, size_t entries, size_t numContents);
   void getEntryTime(std::stringstream& ss, const TimePointSystem& time_point);
 
   // Operations to re-construct I2cReplayEntry from a log file.
+  static size_t
+  getHeader(std::stringstream& ss, size_t entries, size_t numContents);
   static std::string getField(const std::string& line, char left, char right);
   static TransceiverAccessParameter getParam(std::stringstream& ss);
   static I2cLogBuffer::Operation getOp(std::stringstream& ss);
