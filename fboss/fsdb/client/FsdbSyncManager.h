@@ -29,34 +29,34 @@ class FsdbSyncManager {
       const std::string& clientId,
       const std::vector<std::string>& basePath,
       bool isStats,
-      bool publishDeltas,
+      PubSubType pubType,
       bool useIdPaths = FLAGS_publish_use_id_paths)
       : FsdbSyncManager(
             std::make_shared<fsdb::FsdbPubSubManager>(clientId),
             basePath,
             isStats,
-            publishDeltas,
+            pubType,
             useIdPaths) {}
 
   FsdbSyncManager(
       const std::shared_ptr<fsdb::FsdbPubSubManager>& pubSubMr,
       const std::vector<std::string>& basePath,
       bool isStats,
-      bool publishDeltas,
+      PubSubType pubType,
       bool useIdPaths = FLAGS_publish_use_id_paths)
       : pubSubMgr_(pubSubMr),
         basePath_(basePath),
         isStats_(isStats),
-        publishDeltas_(publishDeltas),
+        pubType_(pubType),
         storage_([this](const auto& oldState, const auto& newState) {
           processDelta(oldState, newState);
         }),
         useIdPaths_(useIdPaths) {
     CHECK(pubSubMr);
     // make sure publisher is not already created for shared pubSubMgr
-    if (publishDeltas_) {
+    if (pubType_ == PubSubType::DELTA) {
       CHECK(!(pubSubMgr_->getDeltaPublisher(isStats)));
-    } else {
+    } else if (pubType_ == PubSubType::PATH) {
       CHECK(!(pubSubMgr_->getPathPublisher(isStats)));
     }
   }
@@ -77,18 +77,18 @@ class FsdbSyncManager {
     };
 
     if (isStats_ && FLAGS_publish_stats_to_fsdb) {
-      if (publishDeltas_) {
+      if (pubType_ == PubSubType::DELTA) {
         pubSubMgr_->createStatDeltaPublisher(
             basePath_, std::move(stateChangeCb));
-      } else {
+      } else if (pubType_ == PubSubType::PATH) {
         pubSubMgr_->createStatPathPublisher(
             basePath_, std::move(stateChangeCb));
       }
     } else if (!isStats_ && FLAGS_publish_state_to_fsdb) {
-      if (publishDeltas_) {
+      if (pubType_ == PubSubType::DELTA) {
         pubSubMgr_->createStateDeltaPublisher(
             basePath_, std::move(stateChangeCb));
-      } else {
+      } else if (pubType_ == PubSubType::PATH) {
         pubSubMgr_->createStatePathPublisher(
             basePath_, std::move(stateChangeCb));
       }
@@ -125,9 +125,9 @@ class FsdbSyncManager {
       const std::shared_ptr<CowState>& newState) {
     // TODO: hold lock here to sync with stop()?
     if (readyForPublishing_.load()) {
-      if (publishDeltas_) {
+      if (pubType_ == PubSubType::DELTA) {
         publishDelta(oldState, newState);
-      } else {
+      } else if (pubType_ == PubSubType::PATH) {
         publishPath(newState);
       }
     }
@@ -150,14 +150,14 @@ class FsdbSyncManager {
   void doInitialSync() {
     CHECK(storage_.getEventBase()->isInEventBaseThread());
     const auto currentState = storage_.getState();
-    if (publishDeltas_) {
+    if (pubType_ == PubSubType::DELTA) {
       auto deltaUnit = buildOperDeltaUnit(
           basePath_,
           std::shared_ptr<CowState>(),
           currentState,
           OperProtocol::BINARY);
       publish(createDelta({deltaUnit}));
-    } else {
+    } else if (pubType_ == PubSubType::PATH) {
       publishPath(currentState);
     }
   }
@@ -186,15 +186,15 @@ class FsdbSyncManager {
 
   void stopInternal(bool gracefulStop = false) {
     if (isStats_ && FLAGS_publish_stats_to_fsdb) {
-      if (publishDeltas_) {
+      if (pubType_ == PubSubType::DELTA) {
         pubSubMgr_->removeStatDeltaPublisher(gracefulStop);
-      } else {
+      } else if (pubType_ == PubSubType::PATH) {
         pubSubMgr_->removeStatPathPublisher(gracefulStop);
       }
     } else if (!isStats_ && FLAGS_publish_state_to_fsdb) {
-      if (publishDeltas_) {
+      if (pubType_ == PubSubType::DELTA) {
         pubSubMgr_->removeStateDeltaPublisher(gracefulStop);
-      } else {
+      } else if (pubType_ == PubSubType::PATH) {
         pubSubMgr_->removeStatePathPublisher(gracefulStop);
       }
     }
@@ -204,7 +204,7 @@ class FsdbSyncManager {
   std::shared_ptr<FsdbPubSubManager> pubSubMgr_;
   std::vector<std::string> basePath_;
   bool isStats_;
-  bool publishDeltas_;
+  PubSubType pubType_;
   CowStorageManager storage_;
   std::atomic_bool readyForPublishing_ = false;
   bool useIdPaths_ = false;

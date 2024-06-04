@@ -48,14 +48,14 @@ AgentFsdbSyncManager::AgentFsdbSyncManager(
           pubSubMgr,
           kAgentPath.tokens(),
           false /* isStats */,
-          true /* publishDeltas */) {}
+          fsdb::PubSubType::DELTA) {}
 
 AgentFsdbSyncManager::AgentFsdbSyncManager()
     : fsdb::FsdbSyncManager<fsdb::AgentData>(
           "agent",
           kAgentPath.tokens(),
           false /* isStats */,
-          true /* publishDeltas */) {}
+          fsdb::PubSubType::DELTA) {}
 
 void AgentFsdbSyncManager::stateUpdated(const StateDelta& delta) {
   if (!FLAGS_agent_fsdb_sync) {

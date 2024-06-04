@@ -22,11 +22,11 @@ QsfpFsdbSyncManager::QsfpFsdbSyncManager() {
   if (FLAGS_publish_state_to_fsdb) {
     stateSyncer_ =
         std::make_unique<fsdb::FsdbSyncManager<state::QsfpServiceData>>(
-            "qsfp_service", getStatePath(), false, true);
+            "qsfp_service", getStatePath(), false, fsdb::PubSubType::DELTA);
   }
   if (FLAGS_publish_stats_to_fsdb) {
     statsSyncer_ = std::make_unique<fsdb::FsdbSyncManager<stats::QsfpStats>>(
-        "qsfp_service", getStatsPath(), true, false);
+        "qsfp_service", getStatsPath(), true, fsdb::PubSubType::PATH);
   }
 }
 
