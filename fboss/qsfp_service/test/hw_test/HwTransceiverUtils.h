@@ -37,6 +37,9 @@ class HwTransceiverUtils {
       const PlatformMapping* platformMapping,
       std::map<int32_t, TransceiverInfo>& tcvrInfo);
 
+  static void verifyTempAndVccFlags(
+      std::map<std::string, TransceiverInfo>& portToTransceiverInfoMap);
+
  private:
   static void verifyOpticsSettings(
       const TcvrState& tcvrState,

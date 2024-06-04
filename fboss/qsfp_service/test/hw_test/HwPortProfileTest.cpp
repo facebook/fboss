@@ -124,6 +124,8 @@ class HwPortProfileTest : public HwTest {
           Profile,
           getHwQsfpEnsemble()->getPlatformMapping(),
           transceivers);
+      utility::HwTransceiverUtils::verifyTempAndVccFlags(
+          portToTransceiverInfoMap);
     };
     verifyAcrossWarmBoots(setup, verify);
   }
