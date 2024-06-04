@@ -34,7 +34,8 @@ I2cLogBuffer::I2cLogBuffer(
 void I2cLogBuffer::log(
     const TransceiverAccessParameter& param,
     const uint8_t* data,
-    Operation op) {
+    Operation op,
+    bool success) {
   if (data == nullptr) {
     throw std::invalid_argument("I2cLogBuffer data must be non-null");
   }
@@ -51,6 +52,7 @@ void I2cLogBuffer::log(
       std::fill(bufferData.begin() + len, bufferData.end(), 0);
     }
     buffer_[head_].op = op;
+    buffer_[head_].success = success;
 
     // Let tail track the oldest entry.
     if ((head_ == tail_) && (totalEntries_ != 0)) {
@@ -59,6 +61,11 @@ void I2cLogBuffer::log(
     // advance head_
     head_ = (head_ + 1) % size_;
     totalEntries_++;
+  }
+
+  if (!success && config_.disableOnFail().value()) {
+    config_.readLog() = false;
+    config_.writeLog() = false;
   }
 }
 
@@ -104,22 +111,18 @@ size_t I2cLogBuffer::dump(std::vector<I2cLogEntry>& entriesOut) {
   return entries;
 }
 
-void I2cLogBuffer::transactionError() {
-  std::lock_guard<std::mutex> g(mutex_);
-  if (config_.disableOnFail().value()) {
-    config_.readLog() = false;
-    config_.writeLog() = false;
-  }
-}
-
 size_t I2cLogBuffer::getHeader(
     std::stringstream& ss,
     size_t entries,
     size_t numContents) {
-  // Format of the log:
+  // Format of the log. All printed header lines must be terminated with \n to
+  // return the right number of lines in header.
   ss << "I2cLogBuffer: Total Entries: " << entries << " Logged: " << numContents
      << "\n";
-  ss << "Month D HH:MM:SS.uuuuuu <i2c_address  offset  len  page  bank  op>  [data]  steadyclock_ns"
+  ss << "Between the Operation <Param> and [Data], an 'F' indicates a failure in the transaction.\n";
+  ss << "If the read transaction failed [Data] may not be accurate.\n";
+  ss << "Header format: \n";
+  ss << "Month D HH:MM:SS.mmmuuu <i2c_address  offset  len  page  bank  op> F [data]  steadyclock_ns"
      << "\n";
 
   auto str = ss.str();
@@ -174,7 +177,14 @@ std::pair<size_t, size_t> I2cLogBuffer::dumpToFile() {
       ss << ". ";
     }
     ss << (entriesOut[i].op == Operation::Read ? "R" : "W");
-    ss << "> [";
+    ss << "> ";
+    if (entriesOut[i].success) {
+      ss << " ";
+    } else {
+      ss << "F";
+    }
+    ss << " [";
+
     for (auto& data : entriesOut[i].data) {
       ss << std::hex << std::setfill('0') << std::setw(2) << (uint16_t)data;
     }
@@ -254,6 +264,13 @@ uint64_t I2cLogBuffer::getDelay(const std::string& str) {
   }
 }
 
+bool I2cLogBuffer::getSuccess(const std::string& str) {
+  if (str == " F ") {
+    return false;
+  }
+  return true;
+}
+
 std::string
 I2cLogBuffer::getField(const std::string& line, char left, char right) {
   auto leftIndex = line.find(left);
@@ -292,7 +309,9 @@ std::vector<I2cLogBuffer::I2cReplayEntry> I2cLogBuffer::loadFromLog(
     auto str = getField(line, '[', ']');
     auto data = getData(str);
     auto delay = getDelay(line);
-    entries.emplace_back(param, op, data, delay);
+    str = getField(line, '>', '[');
+    auto success = getSuccess(str);
+    entries.emplace_back(param, op, data, delay, success);
   }
   return entries;
 }

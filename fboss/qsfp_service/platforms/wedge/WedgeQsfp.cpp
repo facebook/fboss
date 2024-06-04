@@ -104,7 +104,8 @@ int WedgeQsfp::readTransceiver(
     XLOG(ERR) << "Read from transceiver " << module_ << " at offset " << offset
               << " with length " << len << " failed: " << ex.what();
     if (logBuffer_) {
-      logBuffer_->transactionError();
+      logBuffer_->log(
+          param, fieldValue, I2cLogBuffer::Operation::Read, /*success*/ false);
     }
     throw;
   }
@@ -143,7 +144,8 @@ int WedgeQsfp::writeTransceiver(
               << " with length " << len
               << " failed: " << folly::exceptionStr(ex);
     if (logBuffer_) {
-      logBuffer_->transactionError();
+      logBuffer_->log(
+          param, fieldValue, I2cLogBuffer::Operation::Write, /*success*/ false);
     }
     throw;
   }

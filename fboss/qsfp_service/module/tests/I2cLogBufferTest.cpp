@@ -265,16 +265,17 @@ TEST_F(I2cLogBufferTest, testDisableOnFail) {
   logBuffer.log(param_, data_.data(), I2cLogBuffer::Operation::Read);
   // insert 1 elements write
   logBuffer.log(param_, data_.data(), I2cLogBuffer::Operation::Write);
-  // disable
-  logBuffer.transactionError();
+  // Transaction failure resulting in a fail log.
+  logBuffer.log(param_, data_.data(), I2cLogBuffer::Operation::Write, false);
   // insert 1 element Read (should not log)
   logBuffer.log(param_, data_.data(), I2cLogBuffer::Operation::Read);
   // insert 1 element write (should not log)
   logBuffer.log(param_, data_.data(), I2cLogBuffer::Operation::Write);
-  // check that we have 2 elements
+  // check that we have 3 elements (including the one that failed).
+  // since we have disableOnFail, we stop logging beyond error.
   std::vector<I2cLogBuffer::I2cLogEntry> entries;
   size_t count = logBuffer.dump(entries);
-  EXPECT_EQ(count, 2);
+  EXPECT_EQ(count, 3);
 }
 
 TEST_F(I2cLogBufferTest, testNoDisableOnFail) {
@@ -285,16 +286,16 @@ TEST_F(I2cLogBufferTest, testNoDisableOnFail) {
   logBuffer.log(param_, data_.data(), I2cLogBuffer::Operation::Read);
   // insert 1 elements write
   logBuffer.log(param_, data_.data(), I2cLogBuffer::Operation::Write);
-  // disable
-  logBuffer.transactionError();
+  // Transaction failure resulting in a fail log.
+  logBuffer.log(param_, data_.data(), I2cLogBuffer::Operation::Read, false);
   // insert 1 element Read
   logBuffer.log(param_, data_.data(), I2cLogBuffer::Operation::Read);
   // insert 1 element write
   logBuffer.log(param_, data_.data(), I2cLogBuffer::Operation::Write);
-  // check that we have 4 elements since we dont disable logging on fail
+  // check that we have 5 elements since we dont disable logging on fail
   std::vector<I2cLogBuffer::I2cLogEntry> entries;
   size_t count = logBuffer.dump(entries);
-  EXPECT_EQ(count, 4);
+  EXPECT_EQ(count, 5);
 }
 
 TEST_F(I2cLogBufferTest, testEmptyLogFile) {
@@ -413,7 +414,9 @@ TEST_F(I2cLogBufferTest, testReplayScenarios) {
         // fill data
         allData[i][j] = i;
       }
-      logBuffer.log(allParam[i], allData[i].data(), allOps[i]);
+      // Make odd transactions fail, to check replay data will be identical.
+      bool success = (i % 2 == 0) ? true : false;
+      logBuffer.log(allParam[i], allData[i].data(), allOps[i], success);
     }
 
     logBuffer.dumpToFile();
@@ -429,6 +432,8 @@ TEST_F(I2cLogBufferTest, testReplayScenarios) {
       EXPECT_EQ(replayEntries[i].param.page, allParam[i].page);
       EXPECT_EQ(replayEntries[i].param.bank, allParam[i].bank);
       EXPECT_EQ(replayEntries[i].op, allOps[i]);
+      bool success = (i % 2 == 0) ? true : false;
+      EXPECT_EQ(replayEntries[i].success, success);
       for (int j = 0; j < replayEntries[i].param.len; j++) {
         EXPECT_EQ(replayEntries[i].data[j], allData[i][j]);
       }

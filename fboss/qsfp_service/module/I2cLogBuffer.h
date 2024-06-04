@@ -49,6 +49,7 @@ class I2cLogBuffer {
     TransceiverAccessParameter param;
     std::array<uint8_t, kMaxI2clogDataSize> data;
     Operation op;
+    bool success{true};
     // Using default constructor for TransceiverAccessParameter when
     // initializing the buffer.
     I2cLogEntry() : param(TransceiverAccessParameter(0, 0, 0)) {}
@@ -59,12 +60,18 @@ class I2cLogBuffer {
     Operation op;
     std::array<uint8_t, kMaxI2clogDataSize> data;
     uint64_t delay;
+    bool success{true};
     I2cReplayEntry(
         TransceiverAccessParameter param,
         Operation op,
         std::array<uint8_t, kMaxI2clogDataSize> data,
-        uint64_t delay)
-        : param(param), op(op), data(std::move(data)), delay(delay) {}
+        uint64_t delay,
+        bool success)
+        : param(param),
+          op(op),
+          data(std::move(data)),
+          delay(delay),
+          success(success) {}
   };
 
   explicit I2cLogBuffer(cfg::TransceiverI2cLogging config, std::string logFile);
@@ -73,7 +80,8 @@ class I2cLogBuffer {
   void log(
       const TransceiverAccessParameter& param,
       const uint8_t* data,
-      Operation op);
+      Operation op,
+      bool success = true);
 
   // Dump the buffer contents into a vector of I2cLogEntry.
   // The vector (enriesOut) will be resized to the size of buffers,
@@ -90,10 +98,6 @@ class I2cLogBuffer {
   size_t getTotalEntries() const {
     return totalEntries_;
   }
-
-  // Disable Logging for both read/write operations if
-  // disableOnError is set in config.
-  void transactionError();
 
   // Dumps the buffer contents into logFile_.
   // Format: Each log entry will be dumped into a single line.
@@ -126,6 +130,7 @@ class I2cLogBuffer {
   static I2cLogBuffer::Operation getOp(std::stringstream& ss);
   static std::array<uint8_t, kMaxI2clogDataSize> getData(std::string str);
   static uint64_t getDelay(const std::string& str);
+  static bool getSuccess(const std::string& str);
 };
 
 } // namespace facebook::fboss
