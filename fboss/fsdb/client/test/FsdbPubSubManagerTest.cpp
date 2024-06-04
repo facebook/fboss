@@ -76,12 +76,18 @@ TEST_F(PubSubManagerTest, createStateAndStatDeltaPublisher) {
   EXPECT_THROW(
       pubSubManager_.createStatePathPublisher({}, stateChangeCb),
       std::runtime_error);
+  EXPECT_THROW(
+      pubSubManager_.createStatePatchPublisher({}, stateChangeCb),
+      std::runtime_error);
   pubSubManager_.createStatDeltaPublisher({}, stateChangeCb);
   EXPECT_THROW(
       pubSubManager_.createStatDeltaPublisher({}, stateChangeCb),
       std::runtime_error);
   EXPECT_THROW(
       pubSubManager_.createStatPathPublisher({}, stateChangeCb),
+      std::runtime_error);
+  EXPECT_THROW(
+      pubSubManager_.createStatPatchPublisher({}, stateChangeCb),
       std::runtime_error);
 }
 
@@ -93,12 +99,18 @@ TEST_F(PubSubManagerTest, createStateAndStatPathPublisher) {
   EXPECT_THROW(
       pubSubManager_.createStateDeltaPublisher({}, stateChangeCb),
       std::runtime_error);
+  EXPECT_THROW(
+      pubSubManager_.createStatePatchPublisher({}, stateChangeCb),
+      std::runtime_error);
   pubSubManager_.createStatPathPublisher({}, stateChangeCb);
   EXPECT_THROW(
       pubSubManager_.createStatPathPublisher({}, stateChangeCb),
       std::runtime_error);
   EXPECT_THROW(
       pubSubManager_.createStatDeltaPublisher({}, stateChangeCb),
+      std::runtime_error);
+  EXPECT_THROW(
+      pubSubManager_.createStatPatchPublisher({}, stateChangeCb),
       std::runtime_error);
 }
 
@@ -115,9 +127,11 @@ TEST_F(PubSubManagerTest, publishPathStatState) {
   pubSubManager_.createStatePathPublisher({}, stateChangeCb);
   pubSubManager_.publishState(OperState{});
   EXPECT_THROW(pubSubManager_.publishState(OperDelta{}), std::runtime_error);
+  EXPECT_THROW(pubSubManager_.publishState(Patch{}), std::runtime_error);
   pubSubManager_.createStatPathPublisher({}, stateChangeCb);
   pubSubManager_.publishStat(OperState{});
   EXPECT_THROW(pubSubManager_.publishStat(OperDelta{}), std::runtime_error);
+  EXPECT_THROW(pubSubManager_.publishStat(Patch{}), std::runtime_error);
 }
 
 TEST_F(PubSubManagerTest, addRemoveSubscriptions) {

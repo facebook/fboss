@@ -9,6 +9,7 @@
 #include "FsdbPubSubManager.h"
 #include "FsdbStreamClient.h"
 #include "fboss/fsdb/client/FsdbDeltaPublisher.h"
+#include "fboss/fsdb/client/FsdbPatchPublisher.h"
 #include "fboss/fsdb/client/FsdbStatePublisher.h"
 
 namespace {
@@ -194,6 +195,19 @@ void FsdbPubSubManager::createStatePathPublisher(
       fsdbPort);
 }
 
+void FsdbPubSubManager::createStatePatchPublisher(
+    const Path& publishPath,
+    FsdbStreamClient::FsdbStreamStateChangeCb publisherStateChangeCb,
+    int32_t fsdbPort) {
+  std::lock_guard<std::mutex> lk(publisherMutex_);
+  statePatchPublisher_ = createPublisherImpl<FsdbPatchPublisher>(
+      lk,
+      publishPath,
+      false /*subscribeStat*/,
+      publisherStateChangeCb,
+      fsdbPort);
+}
+
 void FsdbPubSubManager::createStatDeltaPublisher(
     const Path& publishPath,
     FsdbStreamClient::FsdbStreamStateChangeCb publisherStateChangeCb,
@@ -220,6 +234,19 @@ void FsdbPubSubManager::createStatPathPublisher(
       fsdbPort);
 }
 
+void FsdbPubSubManager::createStatPatchPublisher(
+    const Path& publishPath,
+    FsdbStreamClient::FsdbStreamStateChangeCb publisherStateChangeCb,
+    int32_t fsdbPort) {
+  std::lock_guard<std::mutex> lk(publisherMutex_);
+  statPatchPublisher_ = createPublisherImpl<FsdbPatchPublisher>(
+      lk,
+      publishPath,
+      true /*subscribeStat*/,
+      publisherStateChangeCb,
+      fsdbPort);
+}
+
 void FsdbPubSubManager::removeStateDeltaPublisher(bool gracefulRestart) {
   std::lock_guard<std::mutex> lk(publisherMutex_);
   if (gracefulRestart && stateDeltaPublisher_) {
@@ -234,6 +261,13 @@ void FsdbPubSubManager::removeStatePathPublisher(bool gracefulRestart) {
   }
   statePathPublisher_.reset();
 }
+void FsdbPubSubManager::removeStatePatchPublisher(bool gracefulRestart) {
+  std::lock_guard<std::mutex> lk(publisherMutex_);
+  if (gracefulRestart && statePatchPublisher_) {
+    statePatchPublisher_->disconnectForGR();
+  }
+  statePatchPublisher_.reset();
+}
 void FsdbPubSubManager::removeStatDeltaPublisher(bool gracefulRestart) {
   std::lock_guard<std::mutex> lk(publisherMutex_);
   if (gracefulRestart && statDeltaPublisher_) {
@@ -247,6 +281,13 @@ void FsdbPubSubManager::removeStatPathPublisher(bool gracefulRestart) {
     statPathPublisher_->disconnectForGR();
   }
   statPathPublisher_.reset();
+}
+void FsdbPubSubManager::removeStatPatchPublisher(bool gracefulRestart) {
+  std::lock_guard<std::mutex> lk(publisherMutex_);
+  if (gracefulRestart && statPatchPublisher_) {
+    statPatchPublisher_->disconnectForGR();
+  }
+  statPatchPublisher_.reset();
 }
 
 template <typename PublisherT, typename PubUnitT>
@@ -267,6 +308,11 @@ void FsdbPubSubManager::publishState(OperState&& pubUnit) {
   publishImpl(statePathPublisher_.get(), std::move(pubUnit));
 }
 
+void FsdbPubSubManager::publishState(Patch&& pubUnit) {
+  std::lock_guard<std::mutex> lk(publisherMutex_);
+  publishImpl(statePatchPublisher_.get(), std::move(pubUnit));
+}
+
 void FsdbPubSubManager::publishStat(OperDelta&& pubUnit) {
   std::lock_guard<std::mutex> lk(publisherMutex_);
   publishImpl(statDeltaPublisher_.get(), std::move(pubUnit));
@@ -275,6 +321,11 @@ void FsdbPubSubManager::publishStat(OperDelta&& pubUnit) {
 void FsdbPubSubManager::publishStat(OperState&& pubUnit) {
   std::lock_guard<std::mutex> lk(publisherMutex_);
   publishImpl(statPathPublisher_.get(), std::move(pubUnit));
+}
+
+void FsdbPubSubManager::publishStat(Patch&& pubUnit) {
+  std::lock_guard<std::mutex> lk(publisherMutex_);
+  publishImpl(statPatchPublisher_.get(), std::move(pubUnit));
 }
 
 void FsdbPubSubManager::addStatDeltaSubscription(

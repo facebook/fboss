@@ -17,6 +17,7 @@
 namespace facebook::fboss::fsdb {
 class FsdbDeltaPublisher;
 class FsdbStatePublisher;
+class FsdbPatchPublisher;
 class FsdbPubSubManager {
  public:
   explicit FsdbPubSubManager(
@@ -48,6 +49,10 @@ class FsdbPubSubManager {
       const Path& publishPath,
       FsdbStreamClient::FsdbStreamStateChangeCb publisherStateChangeCb,
       int32_t fsdbPort = FLAGS_fsdbPort);
+  void createStatePatchPublisher(
+      const Path& publishPath,
+      FsdbStreamClient::FsdbStreamStateChangeCb publisherStateChangeCb,
+      int32_t fsdbPort = FLAGS_fsdbPort);
   void createStatDeltaPublisher(
       const Path& publishPath,
       FsdbStreamClient::FsdbStreamStateChangeCb publisherStateChangeCb,
@@ -56,18 +61,26 @@ class FsdbPubSubManager {
       const Path& publishPath,
       FsdbStreamClient::FsdbStreamStateChangeCb publisherStateChangeCb,
       int32_t fsdbPort = FLAGS_fsdbPort);
+  void createStatPatchPublisher(
+      const Path& publishPath,
+      FsdbStreamClient::FsdbStreamStateChangeCb publisherStateChangeCb,
+      int32_t fsdbPort = FLAGS_fsdbPort);
 
   /* Publisher remove APIs */
   void removeStateDeltaPublisher(bool gracefulRestart = false);
   void removeStatePathPublisher(bool gracefulRestart = false);
+  void removeStatePatchPublisher(bool gracefulRestart = false);
   void removeStatDeltaPublisher(bool gracefulRestart = false);
   void removeStatPathPublisher(bool gracefulRestart = false);
+  void removeStatPatchPublisher(bool gracefulRestart = false);
 
   /* Publisher APIs */
   void publishState(OperDelta&& pubUnit);
   void publishState(OperState&& pubUnit);
+  void publishState(Patch&& pubUnit);
   void publishStat(OperDelta&& pubUnit);
   void publishStat(OperState&& pubUnit);
+  void publishStat(Patch&& pubUnit);
 
   /* Subscriber add APIs */
   void addStatDeltaSubscription(
@@ -210,6 +223,10 @@ class FsdbPubSubManager {
     return stats ? statPathPublisher_.get() : statePathPublisher_.get();
   }
 
+  FsdbPatchPublisher* getPatchPublisher(bool stats = false) {
+    return stats ? statPatchPublisher_.get() : statePatchPublisher_.get();
+  }
+
   std::string getClientId() const {
     return clientId_;
   }
@@ -277,9 +294,11 @@ class FsdbPubSubManager {
   // State Publishers
   std::unique_ptr<FsdbDeltaPublisher> stateDeltaPublisher_;
   std::unique_ptr<FsdbStatePublisher> statePathPublisher_;
+  std::unique_ptr<FsdbPatchPublisher> statePatchPublisher_;
   // Stat Publishers
   std::unique_ptr<FsdbDeltaPublisher> statDeltaPublisher_;
   std::unique_ptr<FsdbStatePublisher> statPathPublisher_;
+  std::unique_ptr<FsdbPatchPublisher> statPatchPublisher_;
   // Subscribers
   folly::Synchronized<
       std::unordered_map<std::string, std::unique_ptr<FsdbStreamClient>>>
