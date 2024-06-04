@@ -411,12 +411,15 @@ ServiceHandler::makeSinkConsumer(
         try {
           while (auto chunk = co_await gen.next()) {
             XLOG(DBG3) << " chunk received";
+            std::optional<StorageError> patchErr;
             if constexpr (std::is_same_v<PubUnit, OperState>) {
               updateMetadata(chunk->metadata().ensure());
               if (isStats) {
-                operStatsStorage_.set_encoded(path.begin(), path.end(), *chunk);
+                patchErr = operStatsStorage_.set_encoded(
+                    path.begin(), path.end(), *chunk);
               } else {
-                operStorage_.set_encoded(path.begin(), path.end(), *chunk);
+                patchErr =
+                    operStorage_.set_encoded(path.begin(), path.end(), *chunk);
               }
             } else if constexpr (std::is_same_v<PubUnit, OperDelta>) {
               updateMetadata(chunk->metadata().ensure());
@@ -435,9 +438,9 @@ ServiceHandler::makeSinkConsumer(
                   chunk->changes()->end());
 
               if (isStats) {
-                operStatsStorage_.patch(*chunk);
+                patchErr = operStatsStorage_.patch(*chunk);
               } else {
-                operStorage_.patch(*chunk);
+                patchErr = operStorage_.patch(*chunk);
               }
               auto numDropped = numChanges - chunk->changes()->size();
               if (numDropped) {
@@ -455,11 +458,16 @@ ServiceHandler::makeSinkConsumer(
               auto patchChunk = chunk->move_patch();
               updateMetadata(*patchChunk.metadata());
               if (isStats) {
-                operStatsStorage_.patch(std::move(patchChunk));
+                patchErr = operStatsStorage_.patch(std::move(patchChunk));
               } else {
-                operStorage_.patch(std::move(patchChunk));
+                patchErr = operStorage_.patch(std::move(patchChunk));
               }
             }
+            XLOG(DBG4) << "Chunk patch result "
+                       << (patchErr
+                               ? fmt::format(
+                                     "error: {}", fmt::underlying(*patchErr))
+                               : "success");
           }
           co_return finalResponse;
         } catch (const fsdb::FsdbException& ex) {

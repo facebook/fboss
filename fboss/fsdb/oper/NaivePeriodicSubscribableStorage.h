@@ -180,6 +180,7 @@ class NaivePeriodicSubscribableStorage
 #ifdef ENABLE_PATCH_APIS
   std::optional<StorageError> patch_impl(Patch&& patch) {
     if (patch.patch()->getType() == thrift_cow::PatchNode::Type::__EMPTY__) {
+      XLOG(DBG3) << "Patch is empty, nothing to do";
       return StorageError::TYPE_ERROR;
     }
     auto& path = *patch.basePath();
