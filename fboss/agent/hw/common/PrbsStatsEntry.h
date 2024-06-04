@@ -104,9 +104,10 @@ class PrbsStatsEntry {
     if (!locked_) {
       *prbsLaneStats.ber() = 0.;
     } else {
+      auto startTime = std::max(timeLastCleared_, timeLastLocked_);
       milliseconds duration =
           std::chrono::duration_cast<std::chrono::milliseconds>(
-              timeLastCollect_ - timeLastLocked_);
+              timeLastCollect_ - startTime);
       if (duration.count() == 0) {
         *prbsLaneStats.ber() = 0.;
       } else {
