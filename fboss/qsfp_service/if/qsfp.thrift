@@ -279,4 +279,11 @@ service QsfpService extends phy.FbossCommonPhyCtrl {
     1: list<string> interfaces,
     2: phy.PortComponent component,
   ) throws (1: fboss.FbossBaseError error);
+
+  /*
+   * Dump the i2c log for a transceiver
+   */
+  void dumpTransceiverI2cLog(1: string portName) throws (
+    1: fboss.FbossBaseError error,
+  );
 }
