@@ -197,8 +197,8 @@
   },
   "transceiverI2cLogging": {
     "writeLog": true,
-    "readLog": false,
+    "readLog": true,
     "disableOnFail": true,
-    "bufferSlots": 16384
+    "bufferSlots": 8192
   }
 }
