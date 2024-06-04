@@ -28,7 +28,7 @@ namespace facebook::fboss {
  *       min(kMaxI2clogDataSize, param.len)
  */
 
-constexpr int kMaxI2clogDataSize = 32;
+constexpr int kMaxI2clogDataSize = 128;
 
 class I2cLogBuffer {
   using TimePointSteady = std::chrono::steady_clock::time_point;
@@ -54,6 +54,11 @@ class I2cLogBuffer {
     // initializing the buffer.
     I2cLogEntry() : param(TransceiverAccessParameter(0, 0, 0)) {}
   };
+
+  // NOTE: The maximum number of entries in config is 8196. see qsfp_config.cinc
+  static_assert(
+      sizeof(I2cLogEntry) < 200,
+      "I2cLogEntry must be < 200B to accommodate 8196 log entries in < 2MB of DRAM per transceiver.");
 
   struct I2cReplayEntry {
     TransceiverAccessParameter param;
