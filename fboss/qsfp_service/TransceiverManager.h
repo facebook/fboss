@@ -501,6 +501,13 @@ class TransceiverManager {
     return stateMachineThreadHeartbeatMissedCount_;
   }
 
+  // Dump the transceiver I2C Log for a specific port.
+  // Returns the number of lines in log header and number of log entries.
+  // To be implemented by derived class.
+  virtual std::pair<size_t, size_t> dumpTransceiverI2cLog(const std::string&) {
+    return {0, 0};
+  }
+
   virtual void publishPhyStateToFsdb(
       std::string&& /* portName */,
       std::optional<phy::PhyState>&& /* newState */) const {}

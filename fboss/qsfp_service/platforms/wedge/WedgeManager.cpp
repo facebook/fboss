@@ -355,6 +355,15 @@ void WedgeManager::writeTransceiverRegister(
       .wait();
 }
 
+std::pair<size_t, size_t> WedgeManager::dumpTransceiverI2cLog(
+    const std::string& portName) {
+  auto itr = portNameToModule_.find(portName);
+  if (itr == portNameToModule_.end()) {
+    throw FbossError("Can't find transceiver module for port name: ", portName);
+  }
+  return qsfpImpls_[itr->second]->dumpTransceiverI2cLog();
+}
+
 void WedgeManager::syncPorts(
     std::map<int32_t, TransceiverInfo>& info,
     std::unique_ptr<std::map<int32_t, PortStatus>> ports) {

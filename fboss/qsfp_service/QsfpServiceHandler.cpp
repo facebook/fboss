@@ -262,6 +262,17 @@ void QsfpServiceHandler::bulkClearInterfacePrbsStats(
   manager_->bulkClearInterfacePrbsStats(std::move(interfaces), component);
 }
 
+void QsfpServiceHandler::dumpTransceiverI2cLog(
+    std::unique_ptr<std::string> portName) {
+  auto log = LOG_THRIFT_CALL(INFO);
+  auto ret = manager_->dumpTransceiverI2cLog(*portName);
+  // if the header of the log has size 0, logging is not enabled.
+  if (ret.first == 0) {
+    throw FbossError(
+        fmt::format("Failed to dump transceiver {} I2c log", *portName));
+  }
+}
+
 void QsfpServiceHandler::setPortPrbs(
     int32_t portId,
     phy::PortComponent component,

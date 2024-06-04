@@ -174,7 +174,7 @@ int main(int argc, char* argv[]) {
         FLAGS_app_sel || FLAGS_cdb_command || FLAGS_update_bulk_module_fw ||
         FLAGS_vdm_info || FLAGS_prbs_start || FLAGS_prbs_stop ||
         FLAGS_prbs_stats || FLAGS_module_io_stats || FLAGS_batch_ops ||
-        FLAGS_capabilities || FLAGS_qsfp_reset);
+        FLAGS_capabilities || FLAGS_qsfp_reset || FLAGS_dump_tcvr_i2c_log);
 
   if (FLAGS_direct_i2c || !printInfo) {
     try {
@@ -240,6 +240,10 @@ int main(int argc, char* argv[]) {
   if (FLAGS_module_io_stats) {
     printModuleTransactionStats(zeroBasedPortIds(ports), evb);
     return EX_OK;
+  }
+
+  if (FLAGS_dump_tcvr_i2c_log) {
+    return dumpTransceiverI2cLog(portNames, evb);
   }
 
   int retcode = EX_OK;

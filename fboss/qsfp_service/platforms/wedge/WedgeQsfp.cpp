@@ -289,5 +289,21 @@ std::array<uint8_t, 2> WedgeQsfp::getFirmwareVer() {
   return fwVer;
 }
 
+std::pair<size_t, size_t> WedgeQsfp::dumpTransceiverI2cLog() {
+  std::pair<size_t, size_t> entries = {0, 0};
+  if (logBuffer_) {
+    try {
+      entries = logBuffer_->dumpToFile();
+    } catch (std::exception& ex) {
+      XLOG(ERR) << fmt::format(
+          "Failed to dump log for module{}: {:s}", module_, ex.what());
+    }
+  } else {
+    XLOG(ERR) << fmt::format("Module has no I2C Log: {}", module_);
+  }
+
+  return entries;
+}
+
 } // namespace fboss
 } // namespace facebook

@@ -68,6 +68,7 @@ DECLARE_bool(generator);
 DECLARE_bool(checker);
 DECLARE_bool(module_io_stats);
 DECLARE_bool(capabilities);
+DECLARE_bool(dump_tcvr_i2c_log);
 
 enum LoopbackMode { noLoopback, electricalLoopback, opticalLoopback };
 
@@ -222,6 +223,10 @@ void tryOpenBus(TransceiverI2CApi* bus);
 bool doQsfpHardReset(TransceiverI2CApi* bus, unsigned int port);
 
 int resetQsfp(const std::vector<std::string>& ports, folly::EventBase& evb);
+
+int dumpTransceiverI2cLog(
+    const std::vector<std::string>& ports,
+    folly::EventBase& evb);
 
 bool doMiniphotonLoopbackDirect(
     TransceiverI2CApi* bus,

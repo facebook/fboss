@@ -105,6 +105,9 @@ class WedgeQsfp : public TransceiverImpl {
     tcvrManager_->updateStateBlocking(TransceiverID(module_), event);
   }
 
+  // Dump i2c log to file. Return number of header/log entries.
+  std::pair<size_t, size_t> dumpTransceiverI2cLog();
+
  private:
   int module_;
   std::string moduleName_;

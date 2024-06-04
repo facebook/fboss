@@ -332,6 +332,10 @@ DEFINE_bool(
     capabilities,
     false,
     "Show module capabilities for all present modules");
+DEFINE_bool(
+    dump_tcvr_i2c_log,
+    false,
+    "Dump the transceiver i2c log to /dev/shm/fboss/qsfp_service");
 
 namespace {
 struct ModulePartInfo_s {
@@ -2522,6 +2526,37 @@ int resetQsfp(const std::vector<std::string>& ports, folly::EventBase& evb) {
   }
 
   return EX_OK;
+}
+
+int dumpTransceiverI2cLog(
+    const std::vector<std::string>& ports,
+    folly::EventBase& evb) {
+  auto ret = EX_OK;
+  std::vector<std::string> successPorts;
+  std::vector<std::string> failedPorts;
+  for (auto& port : ports) {
+    try {
+      auto client = getQsfpClient(evb);
+      client->sync_dumpTransceiverI2cLog(port);
+      successPorts.push_back(port);
+    } catch (const std::exception& ex) {
+      failedPorts.push_back(port);
+      ret = EX_SOFTWARE;
+    }
+  }
+
+  if (!successPorts.empty()) {
+    XLOG(INFO) << fmt::format(
+        "Successfully dumped i2c log for ports: {:s}",
+        folly::join(",", successPorts));
+  }
+  if (!failedPorts.empty()) {
+    XLOG(INFO) << fmt::format(
+        "Failed to dump i2c log for ports: {:s}",
+        folly::join(",", failedPorts));
+  }
+
+  return ret;
 }
 
 bool setTransceiverLoopback(

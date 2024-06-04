@@ -135,6 +135,9 @@ class WedgeManager : public TransceiverManager {
       std::optional<OverrideTcvrToPortAndProfile> overrideTcvrToPortAndProfile =
           std::nullopt) override;
 
+  std::pair<size_t, size_t> dumpTransceiverI2cLog(
+      const std::string& portName) override;
+
   virtual void publishPhyStateToFsdb(
       std::string&& portName,
       std::optional<phy::PhyState>&& newState) const override;

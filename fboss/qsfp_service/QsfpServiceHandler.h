@@ -169,6 +169,8 @@ class QsfpServiceHandler
       std::unique_ptr<std::vector<std::string>> interfaces,
       phy::PortComponent component) override;
 
+  void dumpTransceiverI2cLog(std::unique_ptr<std::string> portName) override;
+
   /*
    * Get the list of supported PRBS polynomials for the given port and
    * prbs component
