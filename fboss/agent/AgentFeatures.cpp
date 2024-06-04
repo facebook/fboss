@@ -4,6 +4,8 @@
 
 DEFINE_bool(dsf_4k, false, "Enable DSF Scale Test config");
 
+DEFINE_bool(dsf_100g_nif_breakout, false, "Enable J3 DSF Scale Test config");
+
 DEFINE_bool(
     sai_user_defined_trap,
     false,

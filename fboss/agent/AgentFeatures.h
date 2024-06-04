@@ -30,6 +30,7 @@
  */
 
 DECLARE_bool(dsf_4k);
+DECLARE_bool(dsf_100g_nif_breakout);
 DECLARE_bool(enable_acl_table_chain_group);
 DECLARE_int32(oper_sync_req_timeout);
 DECLARE_bool(hide_fabric_ports);
