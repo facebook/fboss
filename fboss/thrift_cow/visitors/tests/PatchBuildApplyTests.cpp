@@ -19,9 +19,13 @@ using namespace facebook::fboss::thrift_cow;
 void testPatchBuildApply(
     std::shared_ptr<ThriftStructNode<TestStruct>> nodeA,
     std::shared_ptr<ThriftStructNode<TestStruct>> nodeB) {
-  auto patch =
-      *PatchBuilder::build(nodeA, nodeB, {}, true /* incrementallyCompress */)
-           .patch();
+  auto patch = *PatchBuilder::build(
+                    nodeA,
+                    nodeB,
+                    {},
+                    fsdb::OperProtocol::COMPACT,
+                    true /* incrementallyCompress */)
+                    .patch();
   auto nodeC = nodeA->clone();
   auto ret = RootPatchApplier::apply(*nodeC, std::move(patch));
   EXPECT_EQ(ret, PatchApplyResult::OK);
@@ -35,7 +39,7 @@ namespace facebook::fboss::thrift_cow::test {
 using k = facebook::fboss::test_tags::strings;
 using config_k = facebook::fboss::cfg::switch_config_tags::strings;
 
-TEST(PatchBuilderApplyTests, TestTruncationPrimitives) {
+TEST(PatchBuildApplyTests, TestTruncationPrimitives) {
   auto s = createSimpleTestStruct();
   auto nodeA = std::make_shared<ThriftStructNode<TestStruct>>(s);
   nodeA->publish();
@@ -47,7 +51,7 @@ TEST(PatchBuilderApplyTests, TestTruncationPrimitives) {
   testPatchBuildApply(nodeA, nodeB);
 }
 
-TEST(PatchBuilderApplyTests, TestTruncationInlineStruct) {
+TEST(PatchBuildApplyTests, TestTruncationInlineStruct) {
   auto s = createSimpleTestStruct();
   auto nodeA = std::make_shared<ThriftStructNode<TestStruct>>(s);
   nodeA->publish();
@@ -60,7 +64,7 @@ TEST(PatchBuilderApplyTests, TestTruncationInlineStruct) {
   testPatchBuildApply(nodeA, nodeB);
 }
 
-TEST(PatchBuilderApplyTests, TestTruncationMap) {
+TEST(PatchBuildApplyTests, TestTruncationMap) {
   auto s = createSimpleTestStruct();
   s.mapOfI32ToI32()[1] = 123;
   s.mapOfI32ToI32()[2] = 456;
@@ -77,7 +81,7 @@ TEST(PatchBuilderApplyTests, TestTruncationMap) {
   testPatchBuildApply(nodeA, nodeB);
 }
 
-TEST(PatchBuilderApplyTests, TestTruncationList) {
+TEST(PatchBuildApplyTests, TestTruncationList) {
   auto s = createSimpleTestStruct();
   s.listOfPrimitives() = {2, 3};
   auto nodeA = std::make_shared<ThriftStructNode<TestStruct>>(s);
@@ -92,7 +96,7 @@ TEST(PatchBuilderApplyTests, TestTruncationList) {
   testPatchBuildApply(nodeA, nodeB);
 }
 
-TEST(PatchBuilderApplyTests, TestTruncationSet) {
+TEST(PatchBuildApplyTests, TestTruncationSet) {
   auto s = createSimpleTestStruct();
   s.setOfI32() = {2, 3};
   auto nodeA = std::make_shared<ThriftStructNode<TestStruct>>(s);
@@ -107,7 +111,7 @@ TEST(PatchBuilderApplyTests, TestTruncationSet) {
   testPatchBuildApply(nodeA, nodeB);
 }
 
-TEST(PatchBuilderApplyTests, TestTruncactionNestedStruct) {
+TEST(PatchBuildApplyTests, TestTruncactionNestedStruct) {
   auto s = createSimpleTestStruct();
   s.mapOfI32ToListOfStructs()[1].emplace_back();
   (*s.mapOfI32ToListOfStructs())[1][0].min() = 1;

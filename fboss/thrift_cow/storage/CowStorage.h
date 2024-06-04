@@ -199,8 +199,8 @@ class CowStorage : public Storage<Root, CowStorage<Root, Node>> {
     auto op = thrift_cow::pvlambda([&](auto& node) {
       using NodeT = typename folly::remove_cvref_t<decltype(node)>;
       using TC = typename NodeT::TC;
-      patchResult =
-          thrift_cow::PatchApplier<TC>::apply(node, std::move(*patch.patch()));
+      patchResult = thrift_cow::PatchApplier<TC>::apply(
+          node, std::move(*patch.patch()), *patch.protocol());
       XLOG(DBG3) << "Visited base path. patch result "
                  << apache::thrift::util::enumNameSafe(patchResult);
     });

@@ -38,8 +38,9 @@ PatchNode constructEmptyPatch(ThriftTCType tc) {
 
 PatchNodeBuilder::PatchNodeBuilder(
     ThriftTCType rootTC,
+    fsdb::OperProtocol protocol,
     bool incrementallyCompress)
-    : incrementallyCompress_(incrementallyCompress) {
+    : protocol_(protocol), incrementallyCompress_(incrementallyCompress) {
   root_ = detail_pb::constructEmptyPatch(rootTC);
   curPath_ = {root_};
 }

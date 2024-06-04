@@ -19,10 +19,18 @@ namespace facebook::fboss::thrift_cow {
 // patch from two nodes, use PatchBuilder below
 class PatchNodeBuilder {
  public:
-  PatchNodeBuilder(ThriftTCType rootTC, bool incrementallyCompress);
+  PatchNodeBuilder(
+      ThriftTCType rootTC,
+      fsdb::OperProtocol protocol,
+      bool incrementallyCompress);
 
-  explicit PatchNodeBuilder(bool incrementallyCompress = false)
-      : PatchNodeBuilder(ThriftTCType::STRUCTURE, incrementallyCompress) {}
+  explicit PatchNodeBuilder(
+      fsdb::OperProtocol protocol = fsdb::OperProtocol::COMPACT,
+      bool incrementallyCompress = false)
+      : PatchNodeBuilder(
+            ThriftTCType::STRUCTURE,
+            protocol,
+            incrementallyCompress) {}
 
   void onPathPush(const std::string& tok, ThriftTCType tc);
 
@@ -31,7 +39,7 @@ class PatchNodeBuilder {
   template <typename Node>
   void setLeafPatch(Node& node) {
     if (node) {
-      curPatch().set_val(node->encodeBuf(fsdb::OperProtocol::COMPACT));
+      curPatch().set_val(node->encodeBuf(protocol_));
     } else {
       curPatch().set_del();
     }
@@ -48,6 +56,7 @@ class PatchNodeBuilder {
  private:
   void insertChild(PatchNode& node, const std::string& key, ThriftTCType tc);
 
+  fsdb::OperProtocol protocol_;
   bool incrementallyCompress_;
   PatchNode root_;
   std::vector<std::reference_wrapper<PatchNode>> curPath_;
@@ -86,12 +95,14 @@ struct PatchBuilder {
       const std::shared_ptr<Node>& oldNode,
       const std::shared_ptr<Node>& newNode,
       const std::vector<std::string>& basePath,
+      fsdb::OperProtocol protocol = fsdb::OperProtocol::COMPACT,
       bool incrementallyCompress = false) {
     using TC = typename Node::TC;
     // TODO: validate type at path == Node
     fsdb::Patch patch;
     patch.basePath() = basePath;
-    PatchNodeBuilder nodeBuilder(TCType<TC>, incrementallyCompress);
+    patch.protocol() = protocol;
+    PatchNodeBuilder nodeBuilder(TCType<TC>, protocol, incrementallyCompress);
 
     auto processDelta = [&](const PatchBuilderTraverser& traverser,
                             auto /* oldNode */,

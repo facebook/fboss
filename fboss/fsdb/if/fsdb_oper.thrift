@@ -137,7 +137,7 @@ struct Patch {
   1: list<string> basePath;
   2: patch.PatchNode patch;
   3: OperMetadata metadata;
-// TODO: oper protocol
+  4: OperProtocol protocol = OperProtocol.COMPACT;
 }
 
 union PublisherMessage {
