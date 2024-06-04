@@ -122,6 +122,9 @@ class I2cLogBuffer {
 
   void getEntryTime(std::stringstream& ss, const TimePointSystem& time_point);
 
+  template <typename T>
+  void getOptional(std::stringstream& ss, T value);
+
   // Operations to re-construct I2cReplayEntry from a log file.
   static size_t
   getHeader(std::stringstream& ss, size_t entries, size_t numContents);

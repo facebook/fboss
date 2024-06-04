@@ -12,7 +12,8 @@
 
 namespace {
 constexpr size_t kMicrosecondsPerSecond = 1000000;
-}
+const std::string kEmptyOptional = "...";
+} // namespace
 
 namespace facebook::fboss {
 
@@ -145,6 +146,16 @@ void I2cLogBuffer::getEntryTime(
   ss << "." << std::setfill('0') << std::setw(6) << us.count();
 }
 
+template <typename T>
+void I2cLogBuffer::getOptional(std::stringstream& ss, T value) {
+  if (value.has_value()) {
+    ss << std::setfill(' ') << std::setw(3) << (int)value.value();
+  } else {
+    ss << kEmptyOptional;
+  }
+  ss << " ";
+}
+
 std::pair<size_t, size_t> I2cLogBuffer::dumpToFile() {
   std::vector<I2cLogEntry> entriesOut(size_);
   auto entries = totalEntries_;
@@ -159,23 +170,11 @@ std::pair<size_t, size_t> I2cLogBuffer::dumpToFile() {
     getEntryTime(ss, entriesOut[i].systemTime);
     ss << " <";
     auto& param = entriesOut[i].param;
-
-    if (param.i2cAddress.has_value()) {
-      ss << (uint16_t)param.i2cAddress.value() << " ";
-    } else {
-      ss << ". ";
-    }
-    ss << param.offset << " " << param.len << " ";
-    if (param.page.has_value()) {
-      ss << param.page.value() << " ";
-    } else {
-      ss << ". ";
-    }
-    if (param.bank.has_value()) {
-      ss << param.bank.value() << " ";
-    } else {
-      ss << ". ";
-    }
+    getOptional(ss, param.i2cAddress);
+    ss << std::setfill(' ') << std::setw(3) << param.offset << " ";
+    ss << std::setfill(' ') << std::setw(3) << param.len << " ";
+    getOptional(ss, param.page);
+    getOptional(ss, param.bank);
     ss << (entriesOut[i].op == Operation::Read ? "R" : "W");
     ss << "> ";
     if (entriesOut[i].success) {
@@ -209,17 +208,17 @@ TransceiverAccessParameter I2cLogBuffer::getParam(std::stringstream& ss) {
   TransceiverAccessParameter param(0, 0, 0);
   std::string token;
   ss >> token;
-  if (token != ".") {
+  if (token != kEmptyOptional) {
     param.i2cAddress = folly::to<uint8_t>(token);
   }
   ss >> param.offset;
   ss >> param.len;
   ss >> token;
-  if (token != ".") {
+  if (token != kEmptyOptional) {
     param.page = folly::to<uint8_t>(token);
   }
   ss >> token;
-  if (token != ".") {
+  if (token != kEmptyOptional) {
     param.bank = folly::to<uint8_t>(token);
   }
   return param;
