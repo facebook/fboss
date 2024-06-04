@@ -319,8 +319,7 @@ class LinkDirection : public BaseObjectArgType<std::string> {
  public:
   /* implicit */ LinkDirection(std::vector<std::string> v) {
     if (v.empty()) {
-      throw std::runtime_error(
-          "Incomplete command, expecting '<ingress|egress>'");
+      throw std::runtime_error("Incomplete command, expecting '<system|line>'");
     }
 
     direction = getLinkDirection(v);
@@ -331,13 +330,13 @@ class LinkDirection : public BaseObjectArgType<std::string> {
 
  private:
   phy::Direction getLinkDirection(std::vector<std::string>& v) {
-    if (std::find(v.begin(), v.end(), "ingress") != v.end()) {
+    if (std::find(v.begin(), v.end(), "line") != v.end()) {
       return phy::Direction::RECEIVE;
-    } else if (std::find(v.begin(), v.end(), "egress") != v.end()) {
+    } else if (std::find(v.begin(), v.end(), "system") != v.end()) {
       return phy::Direction::TRANSMIT;
     } else {
       throw std::runtime_error(folly::to<std::string>(
-          "Unexpected direction '", v[0], "', expecting 'ingress|egress'"));
+          "Unexpected direction '", v[0], "', expecting 'system|line'"));
     }
   }
 };

@@ -31,7 +31,7 @@ class CmdShowInterfaceCountersFec : public CmdHandler<
   RetType queryClient(
       const HostInfo& /* hostInfo */,
       const std::vector<std::string>& /* queriedIfs */,
-      const ObjectArgType& /* ingress|egress */) {
+      const ObjectArgType& /* system|line */) {
     throw std::runtime_error(
         "Incomplete command, please use one the subcommands");
     return RetType();

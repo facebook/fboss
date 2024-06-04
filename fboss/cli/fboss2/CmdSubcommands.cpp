@@ -166,7 +166,7 @@ CLI::App* CmdSubcommands::addCommand(
         }
         case utils::ObjectArgTypeId::OBJECT_ARG_TYPE_LINK_DIRECTION: {
           subCmd->add_option(
-              "direction", args, "Link direction - ingress|egress\n");
+              "direction", args, "Link direction - system|line\n");
           break;
         }
         case utils::ObjectArgTypeId::OBJECT_ARG_TYPE_FSDB_PATH: {
