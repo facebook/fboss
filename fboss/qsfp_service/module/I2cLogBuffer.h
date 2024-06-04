@@ -104,6 +104,11 @@ class I2cLogBuffer {
     return totalEntries_;
   }
 
+  // Get the capacity
+  size_t getI2cLogBufferCapacity() const {
+    return config_.get_bufferSlots();
+  }
+
   // Dumps the buffer contents into logFile_.
   // Format: Each log entry will be dumped into a single line.
   //         Month D HH:MM:SS.uuuuuu  <i2c_address  offset  len  page  bank  op>

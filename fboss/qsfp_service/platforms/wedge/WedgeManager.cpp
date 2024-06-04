@@ -166,8 +166,7 @@ void WedgeManager::initQsfpImplMap() {
   for (int idx = 0; idx < getNumQsfpModules(); idx++) {
     std::unique_ptr<I2cLogBuffer> logBuffer;
     if (i2c_logging_Enabled) {
-      auto fileName = FLAGS_qsfp_service_volatile_dir + "/i2cLog" +
-          std::to_string(idx) + ".log";
+      auto fileName = getI2cLogName(idx);
       auto logConfig = apache::thrift::can_throw(i2cLogConfig.value());
       logBuffer = std::make_unique<I2cLogBuffer>(logConfig, fileName);
     }
@@ -355,13 +354,17 @@ void WedgeManager::writeTransceiverRegister(
       .wait();
 }
 
+size_t WedgeManager::getI2cLogBufferCapacity(int32_t portId) {
+  return qsfpImpls_[portId]->getI2cLogBufferCapacity();
+}
+
 std::pair<size_t, size_t> WedgeManager::dumpTransceiverI2cLog(
     const std::string& portName) {
   auto itr = portNameToModule_.find(portName);
   if (itr == portNameToModule_.end()) {
     throw FbossError("Can't find transceiver module for port name: ", portName);
   }
-  return qsfpImpls_[itr->second]->dumpTransceiverI2cLog();
+  return dumpTransceiverI2cLog(itr->second);
 }
 
 void WedgeManager::syncPorts(

@@ -9,11 +9,14 @@
 #include "thrift/lib/cpp/util/EnumUtils.h"
 
 #include <folly/gen/Base.h>
-#include <folly/logging/xlog.h>
+#include <folly/portability/Filesystem.h>
 
 namespace {
 constexpr int kI2cStressTestIterations = 200;
-}
+// Check that the dumped I2c log file size is less than 3MB. This confirms
+// that the config for number of I2c log buffer entries is reasonable.
+constexpr int kThreeMB = 3 * 1024 * 1024;
+} // namespace
 
 namespace facebook::fboss {
 
@@ -105,6 +108,90 @@ TEST_F(HwTest, i2cStressWrite) {
       EXPECT_TRUE(*curr.success());
     }
   }
+}
+
+TEST_F(HwTest, i2cLogCapacityRead) {
+  auto transceivers = utility::legacyTransceiverIds(
+      utility::getCabledPortTranceivers(getHwQsfpEnsemble()));
+  auto wedgeManager = getHwQsfpEnsemble()->getWedgeManager();
+  std::map<int32_t, TransceiverInfo> transceiversInfo;
+  getHwQsfpEnsemble()->getWedgeManager()->getTransceiversInfo(
+      transceiversInfo, std::make_unique<std::vector<int32_t>>(transceivers));
+  std::map<int32_t, ReadResponse> previousResponse;
+
+  ReadRequest request;
+  request.ids() = transceivers;
+  TransceiverIOParameters params;
+  params.offset() = 0;
+  request.parameter() = params;
+
+  if (transceivers.empty()) {
+    return;
+  }
+  auto tcvrId = transceivers[0];
+  auto capacity = wedgeManager->getI2cLogBufferCapacity(tcvrId);
+  if (capacity == 0) {
+    // Logging feature is not supported on this platform / transceiver.
+    return;
+  }
+  for (auto i = 0; i < kI2cStressTestIterations; i++) {
+    std::unique_ptr<ReadRequest> readRequest =
+        std::make_unique<ReadRequest>(request);
+    std::map<int32_t, ReadResponse> currentResponse;
+    wedgeManager->readTransceiverRegister(
+        currentResponse, std::move(readRequest));
+  }
+  auto entries = wedgeManager->dumpTransceiverI2cLog(tcvrId);
+  EXPECT_GE(entries.second, kI2cStressTestIterations);
+  auto logFile = wedgeManager->getI2cLogName(tcvrId);
+  auto fileSize = folly::fs::file_size(logFile);
+  EXPECT_TRUE(fileSize > 0);
+  // The estimated size of full log file is as follows:
+  // Full Log = average entry size * capacity
+  size_t estimatedFullSize = (fileSize / entries.second) * capacity;
+  EXPECT_TRUE(estimatedFullSize < kThreeMB);
+}
+
+TEST_F(HwTest, i2cLogCapacityWrite) {
+  auto wedgeManager = getHwQsfpEnsemble()->getWedgeManager();
+  auto transceivers = getCabledOpticalTransceiverIDs();
+  EXPECT_TRUE(!transceivers.empty());
+  WriteRequest request;
+  request.ids() = transceivers;
+  TransceiverIOParameters params;
+  // We can write to byte 123 which is password entry page register in both sff
+  // and cmis
+  // SFF: Password entry area = 123-126
+  // CMIS: Password entry area = 122-125
+  params.offset() = 123;
+  request.parameter() = params;
+  request.data() = 0;
+
+  if (transceivers.empty()) {
+    return;
+  }
+  auto tcvrId = transceivers[0];
+  auto capacity = wedgeManager->getI2cLogBufferCapacity(tcvrId);
+  if (capacity == 0) {
+    // Logging feature is not supported on this platform / transceiver.
+    return;
+  }
+  for (auto i = 0; i < kI2cStressTestIterations; i++) {
+    std::unique_ptr<WriteRequest> writeRequest =
+        std::make_unique<WriteRequest>(request);
+    std::map<int32_t, WriteResponse> currentResponse;
+    wedgeManager->writeTransceiverRegister(
+        currentResponse, std::move(writeRequest));
+  }
+  auto entries = wedgeManager->dumpTransceiverI2cLog(tcvrId);
+  EXPECT_GE(entries.second, kI2cStressTestIterations);
+  auto logFile = wedgeManager->getI2cLogName(tcvrId);
+  auto fileSize = folly::fs::file_size(logFile);
+  EXPECT_TRUE(fileSize > 0);
+  // The estimated size of full log file is as follows:
+  // Full Log = average entry size * capacity
+  size_t estimatedFullSize = (fileSize / entries.second) * capacity;
+  EXPECT_TRUE(estimatedFullSize < kThreeMB);
 }
 
 TEST_F(HwTest, cmisPageChange) {

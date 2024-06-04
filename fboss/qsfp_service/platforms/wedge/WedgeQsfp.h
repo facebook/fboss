@@ -108,6 +108,9 @@ class WedgeQsfp : public TransceiverImpl {
   // Dump i2c log to file. Return number of header/log entries.
   std::pair<size_t, size_t> dumpTransceiverI2cLog();
 
+  // Get the capacity of the i2c buffer.
+  size_t getI2cLogBufferCapacity();
+
  private:
   int module_;
   std::string moduleName_;

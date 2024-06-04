@@ -135,8 +135,17 @@ class WedgeManager : public TransceiverManager {
       std::optional<OverrideTcvrToPortAndProfile> overrideTcvrToPortAndProfile =
           std::nullopt) override;
 
+  // Transceiver I2C Logging APIs
+  size_t getI2cLogBufferCapacity(int32_t portId);
   std::pair<size_t, size_t> dumpTransceiverI2cLog(
       const std::string& portName) override;
+  std::pair<size_t, size_t> dumpTransceiverI2cLog(int32_t portId) {
+    return qsfpImpls_[portId]->dumpTransceiverI2cLog();
+  }
+  std::string getI2cLogName(int32_t portId) const {
+    return FLAGS_qsfp_service_volatile_dir + "/i2cLog" +
+        std::to_string(portId) + ".log";
+  }
 
   virtual void publishPhyStateToFsdb(
       std::string&& portName,

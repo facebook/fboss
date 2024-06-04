@@ -291,6 +291,13 @@ std::array<uint8_t, 2> WedgeQsfp::getFirmwareVer() {
   return fwVer;
 }
 
+size_t WedgeQsfp::getI2cLogBufferCapacity() {
+  if (logBuffer_) {
+    return logBuffer_->getI2cLogBufferCapacity();
+  }
+  return 0;
+}
+
 std::pair<size_t, size_t> WedgeQsfp::dumpTransceiverI2cLog() {
   std::pair<size_t, size_t> entries = {0, 0};
   if (logBuffer_) {
