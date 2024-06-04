@@ -6,6 +6,7 @@
 #include <fboss/fsdb/if/gen-cpp2/fsdb_oper_types.h>
 #include <fboss/thrift_cow/storage/CowStorage.h>
 #include <fboss/thrift_cow/visitors/DeltaVisitor.h>
+#include <fboss/thrift_cow/visitors/PatchBuilder.h>
 #include "fboss/fsdb/client/FsdbPubSubManager.h"
 #include "fboss/fsdb/client/FsdbStreamClient.h"
 #include "fboss/thrift_cow/storage/CowStorageMgr.h"
@@ -18,7 +19,7 @@ DECLARE_bool(publish_use_id_paths);
 
 namespace facebook::fboss::fsdb {
 
-template <typename PubRootT>
+template <typename PubRootT, bool EnablePatchAPIs = false>
 class FsdbSyncManager {
  public:
   using CowStorageManager = CowStorageMgr<PubRootT>;
@@ -36,7 +37,10 @@ class FsdbSyncManager {
             basePath,
             isStats,
             pubType,
-            useIdPaths) {}
+            useIdPaths) {
+    XLOG_IF(FATAL, pubType == PubSubType::PATCH && !EnablePatchAPIs)
+        << "Patch pub requested but not enabled";
+  }
 
   FsdbSyncManager(
       const std::shared_ptr<fsdb::FsdbPubSubManager>& pubSubMr,
@@ -55,9 +59,17 @@ class FsdbSyncManager {
     CHECK(pubSubMr);
     // make sure publisher is not already created for shared pubSubMgr
     if (pubType_ == PubSubType::DELTA) {
-      CHECK(!(pubSubMgr_->getDeltaPublisher(isStats)));
-    } else if (pubType_ == PubSubType::PATH) {
-      CHECK(!(pubSubMgr_->getPathPublisher(isStats)));
+      switch (pubType_) {
+        case PubSubType::DELTA:
+          CHECK(!(pubSubMgr_->getDeltaPublisher(isStats)));
+          break;
+        case PubSubType::PATH:
+          CHECK(!(pubSubMgr_->getPathPublisher(isStats)));
+          break;
+        case PubSubType::PATCH:
+          CHECK(!(pubSubMgr_->getPatchPublisher(isStats)));
+          break;
+      }
     }
   }
 
@@ -77,20 +89,34 @@ class FsdbSyncManager {
     };
 
     if (isStats_ && FLAGS_publish_stats_to_fsdb) {
-      if (pubType_ == PubSubType::DELTA) {
-        pubSubMgr_->createStatDeltaPublisher(
-            basePath_, std::move(stateChangeCb));
-      } else if (pubType_ == PubSubType::PATH) {
-        pubSubMgr_->createStatPathPublisher(
-            basePath_, std::move(stateChangeCb));
+      switch (pubType_) {
+        case PubSubType::DELTA:
+          pubSubMgr_->createStatDeltaPublisher(
+              basePath_, std::move(stateChangeCb));
+          break;
+        case PubSubType::PATH:
+          pubSubMgr_->createStatPathPublisher(
+              basePath_, std::move(stateChangeCb));
+          break;
+        case PubSubType::PATCH:
+          pubSubMgr_->createStatPatchPublisher(
+              basePath_, std::move(stateChangeCb));
+          break;
       }
     } else if (!isStats_ && FLAGS_publish_state_to_fsdb) {
-      if (pubType_ == PubSubType::DELTA) {
-        pubSubMgr_->createStateDeltaPublisher(
-            basePath_, std::move(stateChangeCb));
-      } else if (pubType_ == PubSubType::PATH) {
-        pubSubMgr_->createStatePathPublisher(
-            basePath_, std::move(stateChangeCb));
+      switch (pubType_) {
+        case PubSubType::DELTA:
+          pubSubMgr_->createStateDeltaPublisher(
+              basePath_, std::move(stateChangeCb));
+          break;
+        case PubSubType::PATH:
+          pubSubMgr_->createStatePathPublisher(
+              basePath_, std::move(stateChangeCb));
+          break;
+        case PubSubType::PATCH:
+          pubSubMgr_->createStatePatchPublisher(
+              basePath_, std::move(stateChangeCb));
+          break;
       }
     }
   }
@@ -125,10 +151,16 @@ class FsdbSyncManager {
       const std::shared_ptr<CowState>& newState) {
     // TODO: hold lock here to sync with stop()?
     if (readyForPublishing_.load()) {
-      if (pubType_ == PubSubType::DELTA) {
-        publishDelta(oldState, newState);
-      } else if (pubType_ == PubSubType::PATH) {
-        publishPath(newState);
+      switch (pubType_) {
+        case PubSubType::DELTA:
+          publishDelta(oldState, newState);
+          break;
+        case PubSubType::PATH:
+          publishPath(newState);
+          break;
+        case PubSubType::PATCH:
+          publishPatch(oldState, newState);
+          break;
       }
     }
   }
@@ -150,15 +182,27 @@ class FsdbSyncManager {
   void doInitialSync() {
     CHECK(storage_.getEventBase()->isInEventBaseThread());
     const auto currentState = storage_.getState();
-    if (pubType_ == PubSubType::DELTA) {
-      auto deltaUnit = buildOperDeltaUnit(
-          basePath_,
-          std::shared_ptr<CowState>(),
-          currentState,
-          OperProtocol::BINARY);
-      publish(createDelta({deltaUnit}));
-    } else if (pubType_ == PubSubType::PATH) {
-      publishPath(currentState);
+    switch (pubType_) {
+      case PubSubType::DELTA:
+        publish(createDelta({buildOperDeltaUnit(
+            basePath_,
+            std::shared_ptr<CowState>(),
+            currentState,
+            OperProtocol::BINARY)}));
+        break;
+      case PubSubType::PATH:
+        publishPath(currentState);
+        break;
+      case PubSubType::PATCH:
+        XLOG_IF(FATAL, !EnablePatchAPIs) << "Patch APIs not enabled";
+        Patch patch;
+        thrift_cow::PatchNode root;
+        // TODO: switch to binary?
+        root.set_val(currentState->encodeBuf(OperProtocol::COMPACT));
+        patch.patch() = std::move(root);
+        patch.basePath() = basePath_;
+        publish(std::move(patch));
+        break;
     }
   }
 
@@ -175,6 +219,25 @@ class FsdbSyncManager {
     publish(std::move(state));
   }
 
+  void publishPatch(
+      const std::shared_ptr<CowState>& oldState,
+      const std::shared_ptr<CowState>& newState)
+      // conditionally compile expensive patch API for the sake of clients who
+      // don't need it
+    requires(EnablePatchAPIs)
+  {
+    publish(thrift_cow::PatchBuilder::build(
+        oldState, newState, basePath_, true /* incrementallyCompress */));
+  }
+
+  void publishPatch(
+      const std::shared_ptr<CowState>&,
+      const std::shared_ptr<CowState>&)
+    requires(!EnablePatchAPIs)
+  {
+    XLOG(FATAL) << "Patch APIs not enabled";
+  }
+
   template <typename T>
   void publish(T&& state) {
     if (isStats_) {
@@ -186,16 +249,28 @@ class FsdbSyncManager {
 
   void stopInternal(bool gracefulStop = false) {
     if (isStats_ && FLAGS_publish_stats_to_fsdb) {
-      if (pubType_ == PubSubType::DELTA) {
-        pubSubMgr_->removeStatDeltaPublisher(gracefulStop);
-      } else if (pubType_ == PubSubType::PATH) {
-        pubSubMgr_->removeStatPathPublisher(gracefulStop);
+      switch (pubType_) {
+        case PubSubType::DELTA:
+          pubSubMgr_->removeStatDeltaPublisher(gracefulStop);
+          break;
+        case PubSubType::PATH:
+          pubSubMgr_->removeStatPathPublisher(gracefulStop);
+          break;
+        case PubSubType::PATCH:
+          pubSubMgr_->removeStatPatchPublisher(gracefulStop);
+          break;
       }
     } else if (!isStats_ && FLAGS_publish_state_to_fsdb) {
-      if (pubType_ == PubSubType::DELTA) {
-        pubSubMgr_->removeStateDeltaPublisher(gracefulStop);
-      } else if (pubType_ == PubSubType::PATH) {
-        pubSubMgr_->removeStatePathPublisher(gracefulStop);
+      switch (pubType_) {
+        case PubSubType::DELTA:
+          pubSubMgr_->removeStateDeltaPublisher(gracefulStop);
+          break;
+        case PubSubType::PATH:
+          pubSubMgr_->removeStatePathPublisher(gracefulStop);
+          break;
+        case PubSubType::PATCH:
+          pubSubMgr_->removeStatePatchPublisher(gracefulStop);
+          break;
       }
     }
     pubSubMgr_.reset();
