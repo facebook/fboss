@@ -111,7 +111,7 @@ class NaivePeriodicSubscribableStorageBase {
   folly::coro::AsyncGenerator<Patch&&>
   subscribe_patch_impl(SubscriberId subscriber, PathIter begin, PathIter end) {
     auto path = convertPath(ConcretePath(begin, end));
-    auto [gen, subscription] = PatchSubscription::create(
+    auto [gen, subscription] = ExtendedPatchSubscription::create(
         std::move(subscriber),
         path.begin(),
         path.end(),
@@ -119,7 +119,7 @@ class NaivePeriodicSubscribableStorageBase {
         getPublisherRoot(path.begin(), path.end()));
     withSubMgrWLocked([subscription = std::move(subscription)](
                           SubscriptionManagerBase& mgr) mutable {
-      mgr.registerSubscription(std::move(subscription));
+      mgr.registerExtendedSubscription(std::move(subscription));
     });
     return std::move(gen);
   }

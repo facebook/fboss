@@ -173,7 +173,7 @@ class CowSubscriptionManager
           // from an fbstring
           auto buf = folly::IOBuf::copyBuffer(op.val->data(), op.val->length());
           patchNode.set_val(*buf);
-          patchSubscription->setPatchRoot(std::move(patchNode));
+          patchSubscription->offer(std::move(patchNode));
           patchSubscription->flush(metadataServer);
         }
       } else if (this->requireResponseOnInitialSync_) {
@@ -353,8 +353,7 @@ class CowSubscriptionManager
               traverser.patchBuilder()) {
             // patches only supported when using id paths
             auto* patchSubscription = static_cast<PatchSubscription*>(relevant);
-            patchSubscription->setPatchRoot(
-                traverser.patchBuilder()->curPatch());
+            patchSubscription->offer(traverser.patchBuilder()->curPatch());
           }
         }
       }

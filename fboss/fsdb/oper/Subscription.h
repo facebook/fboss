@@ -485,42 +485,14 @@ class ExtendedDeltaSubscription : public ExtendedSubscription,
   std::optional<gen_type> buffered_;
 };
 
+class ExtendedPatchSubscription;
 class PatchSubscription : public Subscription, private boost::noncopyable {
  public:
   using PathIter = std::vector<std::string>::const_iterator;
 
-  static std::pair<
-      folly::coro::AsyncGenerator<Patch&&>,
-      std::unique_ptr<PatchSubscription>>
-  create(
-      SubscriberId subscriber,
-      PathIter begin,
-      PathIter end,
-      OperProtocol protocol,
-      std::optional<std::string> publisherRoot) {
-    auto [generator, pipe] = folly::coro::AsyncPipe<Patch>::create();
-    std::vector<std::string> path(begin, end);
-    auto subscription = std::make_unique<PatchSubscription>(
-        std::move(subscriber),
-        std::move(path),
-        std::move(pipe),
-        std::move(protocol),
-        std::move(publisherRoot));
-    return std::make_pair(std::move(generator), std::move(subscription));
-  }
-
   PatchSubscription(
-      SubscriberId subscriber,
       std::vector<std::string> path,
-      folly::coro::AsyncPipe<Patch> pipe,
-      OperProtocol protocol,
-      std::optional<std::string> publisherTreeRoot = std::nullopt)
-      : Subscription(
-            std::move(subscriber),
-            std::move(path),
-            std::move(protocol),
-            std::move(publisherTreeRoot)),
-        pipe_(std::move(pipe)) {}
+      ExtendedPatchSubscription& subscription);
 
   virtual ~PatchSubscription() override = default;
 
@@ -528,23 +500,75 @@ class PatchSubscription : public Subscription, private boost::noncopyable {
     return PubSubType::PATCH;
   }
 
-  void setPatchRoot(thrift_cow::PatchNode node);
+  void offer(thrift_cow::PatchNode node);
 
   void serveHeartbeat() override;
 
   void flush(const SubscriptionMetadataServer& metadataServer) override;
 
-  bool isActive() const override {
-    return !pipe_.isClosed();
-  }
+  bool isActive() const override;
 
   virtual void allPublishersGone(
       FsdbErrorCode disconnectReason = FsdbErrorCode::ALL_PUBLISHERS_GONE,
       const std::string& msg = "All publishers dropped") override;
 
  private:
+  std::optional<Patch> currPatch_;
+  ExtendedPatchSubscription& subscription_;
+};
+
+class ExtendedPatchSubscription : public ExtendedSubscription,
+                                  private boost::noncopyable {
+ public:
+  using PathIter = std::vector<std::string>::const_iterator;
+  using value_type = Patch;
+
+  virtual ~ExtendedPatchSubscription() override = default;
+
+  static std::pair<
+      folly::coro::AsyncGenerator<value_type&&>,
+      std::unique_ptr<ExtendedPatchSubscription>>
+  create(
+      SubscriberId subscriber,
+      PathIter begin,
+      PathIter end,
+      OperProtocol protocol,
+      std::optional<std::string> publisherRoot);
+
+  ExtendedPatchSubscription(
+      SubscriberId subscriber,
+      std::vector<ExtendedOperPath> path,
+      folly::coro::AsyncPipe<value_type> pipe,
+      OperProtocol protocol,
+      std::optional<std::string> publisherTreeRoot = std::nullopt)
+      : ExtendedSubscription(
+            std::move(subscriber),
+            std::move(path),
+            std::move(protocol),
+            std::move(publisherTreeRoot)),
+        pipe_(std::move(pipe)) {}
+
+  PubSubType type() const override {
+    return PubSubType::PATCH;
+  }
+
+  virtual std::unique_ptr<Subscription> resolve(
+      const std::vector<std::string>& path) override;
+
+  void buffer(value_type&& newVal);
+
+  void flush(const SubscriptionMetadataServer& metadataServer) override;
+
+  void serveHeartbeat() override;
+
+  bool isActive() const override;
+
+  void allPublishersGone(FsdbErrorCode disconnectReason, const std::string& msg)
+      override;
+
+ private:
   std::optional<Patch> moveFromCurrPatch(
-      const SubscriptionMetadataServer& /* metadataServer */);
+      const SubscriptionMetadataServer& metadataServer);
 
   std::optional<Patch> currPatch_;
   folly::coro::AsyncPipe<Patch> pipe_;
