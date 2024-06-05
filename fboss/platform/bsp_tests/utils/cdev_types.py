@@ -167,11 +167,18 @@ class I2CTestData:
 
 @dataclass_json
 @dataclass
+class HwmonTestData:
+    expectedFeatures: List[str] = field(default_factory=list)
+
+
+@dataclass_json
+@dataclass
 class I2CDevice:
     channel: int
     deviceName: str
     address: str
     testData: Optional[I2CTestData] = None
+    hwmonTestData: Optional[HwmonTestData] = None
 
 
 @dataclass_json

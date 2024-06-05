@@ -38,6 +38,9 @@
                                         "expected": "0xd0"
                                     }
                                 ]
+                            },
+                            "hwmonTestData": {
+                                "expectedFeatures": ["in1", "in2", "temp1", "power1", "curr1"]
                             }
                         },
                         {
@@ -102,8 +105,44 @@
                                         "value": "0x66"
                                     }
                                 ]
+                            },
+                            "hwmonTestData": {
+                                "expectedFeatures": ["fan1", "fan2", "fan3"]
+                            }
+                        },
+                        {
+                            "channel": 3,
+                            "deviceName": "oasis_cpld1",
+                            "address": "0x61",
+                            "testData": {
+                                "i2cSetData": [
+                                    {
+                                        "reg": "0x02",
+                                        "value": "0x66"
+                                    }
+                                ]
+                            },
+                            "hwmonTestData": {
+                                "expectedFeatures": ["fan1", "fan2", "fan3"]
+                            }
+                        },
+                        {
+                            "channel": 3,
+                            "deviceName": "oasis_cpld2",
+                            "address": "0x62",
+                            "testData": {
+                                "i2cSetData": [
+                                    {
+                                        "reg": "0x02",
+                                        "value": "0x66"
+                                    }
+                                ]
+                            },
+                            "hwmonTestData": {
+                                "expectedFeatures": ["fan1", "fan2", "fan3"]
                             }
                         }
+
                     ]
                 },
                 {
