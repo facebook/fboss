@@ -15,6 +15,7 @@
 #include "fboss/agent/test/utils/AclTestUtils.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/test/utils/LoadBalancerTestUtils.h"
+#include "fboss/agent/test/utils/ScaleTestUtils.h"
 #include "fboss/lib/CommonUtils.h"
 
 DECLARE_bool(flowletSwitchingEnable);
@@ -381,5 +382,182 @@ TEST_F(AgentFlowletSwitchingTest, VerifyOneUdfGroupAddition) {
 
 TEST_F(AgentFlowletSwitchingTest, VerifyOneUdfGroupDeletion) {
   verifyUdfAddDelete(AclType::UDF_FLOWLET_WITH_UDF_ACK, AclType::UDF_FLOWLET);
+}
+
+class AgentFlowletResourceTest : public AgentHwTest {
+ public:
+  std::vector<production_features::ProductionFeature>
+  getProductionFeaturesVerified() const override {
+    return {production_features::ProductionFeature::DLB};
+  }
+
+ protected:
+  void SetUp() override {
+    AgentHwTest::SetUp();
+    if (IsSkipped()) {
+      return;
+    }
+    helper_ = std::make_unique<utility::EcmpSetupTargetedPorts6>(
+        getProgrammedState());
+  }
+  cfg::SwitchConfig initialConfig(
+      const AgentEnsemble& ensemble) const override {
+    auto cfg = utility::onePortPerInterfaceConfig(
+        ensemble.getSw(),
+        ensemble.masterLogicalPortIds(),
+        true /*interfaceHasSubnet*/);
+    return cfg;
+  }
+  void setCmdLineFlagOverrides() const override {
+    AgentHwTest::setCmdLineFlagOverrides();
+    FLAGS_flowletSwitchingEnable = true;
+  }
+  void setup() {
+    std::vector<PortID> portIds = masterLogicalInterfacePortIds();
+    std::vector<PortDescriptor> portDescriptorIds;
+    for (auto& portId : portIds) {
+      portDescriptorIds.push_back(PortDescriptor(portId));
+    }
+    std::vector<std::vector<PortDescriptor>> allCombinations =
+        utility::generateEcmpGroupScale(portDescriptorIds, 512);
+    for (const auto& combination : allCombinations) {
+      nhopSets.emplace_back(combination.begin(), combination.end());
+    }
+    applyNewState(
+        [&portDescriptorIds, this](const std::shared_ptr<SwitchState>& in) {
+          return helper_->resolveNextHops(
+              in,
+              flat_set<PortDescriptor>(
+                  std::make_move_iterator(portDescriptorIds.begin()),
+                  std::make_move_iterator(portDescriptorIds.end())));
+        });
+
+    std::generate_n(std::back_inserter(prefixes), 512, [i = 0]() mutable {
+      return RoutePrefixV6{
+          folly::IPAddressV6(folly::to<std::string>(2401, "::", i++)), 128};
+    });
+  }
+
+  std::unique_ptr<utility::EcmpSetupTargetedPorts6> helper_;
+  std::vector<flat_set<PortDescriptor>> nhopSets;
+  std::vector<RoutePrefixV6> prefixes;
+};
+
+TEST_F(AgentFlowletResourceTest, CreateMaxDlbGroups) {
+  auto setup = [&]() { this->setup(); };
+  auto verify = [this] {
+    const auto kMaxDlbEcmpGroup =
+        utility::getMaxDlbEcmpGroups(getAgentEnsemble()->getL3Asics());
+    this->setup();
+    // install 60% of max DLB ecmp groups
+    {
+      int count = static_cast<int>(0.6 * kMaxDlbEcmpGroup);
+      auto wrapper = getSw()->getRouteUpdater();
+      std::vector<RoutePrefixV6> prefixes60 = {
+          prefixes.begin(), prefixes.begin() + count};
+      std::vector<flat_set<PortDescriptor>> nhopSets60 = {
+          nhopSets.begin(), nhopSets.begin() + count};
+      helper_->programRoutes(&wrapper, nhopSets60, prefixes60);
+    }
+    // install 128 groups, failed update
+    {
+      auto wrapper = getSw()->getRouteUpdater();
+      std::vector<RoutePrefixV6> prefixes128 = {
+          prefixes.begin(), prefixes.begin() + kMaxDlbEcmpGroup};
+      std::vector<flat_set<PortDescriptor>> nhopSets128 = {
+          nhopSets.begin(), nhopSets.begin() + kMaxDlbEcmpGroup};
+      EXPECT_THROW(
+          helper_->programRoutes(&wrapper, nhopSets128, prefixes128),
+          FbossError);
+    }
+    // install 10% of max DLB ecmp groups
+    {
+      int count = static_cast<int>(0.1 * kMaxDlbEcmpGroup);
+      auto wrapper = getSw()->getRouteUpdater();
+      std::vector<RoutePrefixV6> prefixes10 = {
+          prefixes.begin() + kMaxDlbEcmpGroup,
+          prefixes.begin() + kMaxDlbEcmpGroup + count};
+      std::vector<flat_set<PortDescriptor>> nhopSets10 = {
+          nhopSets.begin() + kMaxDlbEcmpGroup,
+          nhopSets.begin() + kMaxDlbEcmpGroup + count};
+      helper_->programRoutes(&wrapper, nhopSets10, prefixes10);
+    }
+  };
+  verifyAcrossWarmBoots(setup, verify);
+}
+
+TEST_F(AgentFlowletResourceTest, IgnoreDlbResourceCheck) {
+  // Start with 128 ECMP groups
+  auto setup = [this]() {
+    const auto kMaxDlbEcmpGroup =
+        utility::getMaxDlbEcmpGroups(getAgentEnsemble()->getL3Asics());
+    FLAGS_flowletSwitchingEnable = false;
+    this->setup();
+    auto wrapper = getSw()->getRouteUpdater();
+    std::vector<RoutePrefixV6> prefixes128 = {
+        prefixes.begin(), prefixes.begin() + kMaxDlbEcmpGroup};
+    std::vector<flat_set<PortDescriptor>> nhopSets128 = {
+        nhopSets.begin(), nhopSets.begin() + kMaxDlbEcmpGroup};
+    helper_->programRoutes(&wrapper, nhopSets128, prefixes128);
+  };
+  // Post warmboot, since there are already 128, dlb resource check is disabled
+  auto setupPostWarmboot = [this]() {
+    const auto kMaxDlbEcmpGroup =
+        utility::getMaxDlbEcmpGroups(getAgentEnsemble()->getL3Asics());
+    FLAGS_flowletSwitchingEnable = true;
+    this->setup();
+    auto wrapper = getSw()->getRouteUpdater();
+    std::vector<RoutePrefixV6> prefixes128 = {
+        prefixes.begin() + kMaxDlbEcmpGroup,
+        prefixes.begin() + 2 * kMaxDlbEcmpGroup};
+    std::vector<flat_set<PortDescriptor>> nhopSets128 = {
+        nhopSets.begin() + kMaxDlbEcmpGroup,
+        nhopSets.begin() + 2 * kMaxDlbEcmpGroup};
+    helper_->programRoutes(&wrapper, nhopSets128, prefixes128);
+  };
+  verifyAcrossWarmBoots(setup, [] {}, setupPostWarmboot, [] {});
+}
+
+TEST_F(AgentFlowletResourceTest, ApplyDlbResourceCheck) {
+  // Start with 60% ECMP groups
+  auto setup = [this]() {
+    const auto kMaxDlbEcmpGroup =
+        utility::getMaxDlbEcmpGroups(getAgentEnsemble()->getL3Asics());
+    this->setup();
+    int count = static_cast<int>(0.6 * kMaxDlbEcmpGroup);
+    auto wrapper = getSw()->getRouteUpdater();
+    std::vector<RoutePrefixV6> prefixes60 = {
+        prefixes.begin(), prefixes.begin() + count};
+    std::vector<flat_set<PortDescriptor>> nhopSets60 = {
+        nhopSets.begin(), nhopSets.begin() + count};
+    helper_->programRoutes(&wrapper, nhopSets60, prefixes60);
+  };
+  // Post warmboot, dlb resource check is enforced since >75%
+  auto setupPostWarmboot = [this]() {
+    const auto kMaxDlbEcmpGroup =
+        utility::getMaxDlbEcmpGroups(getAgentEnsemble()->getL3Asics());
+    this->setup();
+    {
+      auto wrapper = getSw()->getRouteUpdater();
+      std::vector<RoutePrefixV6> prefixes128 = {
+          prefixes.begin(), prefixes.begin() + kMaxDlbEcmpGroup};
+      std::vector<flat_set<PortDescriptor>> nhopSets128 = {
+          nhopSets.begin(), nhopSets.begin() + kMaxDlbEcmpGroup};
+      EXPECT_THROW(
+          helper_->programRoutes(&wrapper, nhopSets128, prefixes128),
+          FbossError);
+    }
+    // install 10% of max DLB ecmp groups
+    {
+      int count = static_cast<int>(0.1 * kMaxDlbEcmpGroup);
+      auto wrapper = getSw()->getRouteUpdater();
+      std::vector<RoutePrefixV6> prefixes10 = {
+          prefixes.begin(), prefixes.begin() + count};
+      std::vector<flat_set<PortDescriptor>> nhopSets10 = {
+          nhopSets.begin(), nhopSets.begin() + count};
+      helper_->programRoutes(&wrapper, nhopSets10, prefixes10);
+    }
+  };
+  verifyAcrossWarmBoots(setup, [] {}, setupPostWarmboot, [] {});
 }
 } // namespace facebook::fboss

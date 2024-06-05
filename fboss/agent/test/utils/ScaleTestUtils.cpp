@@ -14,6 +14,13 @@
 
 namespace facebook::fboss::utility {
 
+uint32_t getMaxDlbEcmpGroups(const std::vector<const HwAsic*>& asics) {
+  auto asic = checkSameAndGetAsic(asics);
+  auto maxDlbGroups = asic->getMaxDlbEcmpGroups();
+  CHECK(maxDlbGroups.has_value());
+  return maxDlbGroups.value();
+}
+
 uint32_t getMaxEcmpGroups(const std::vector<const HwAsic*>& asics) {
   auto asic = checkSameAndGetAsic(asics);
   auto maxEcmpGroups = asic->getMaxEcmpGroups();
