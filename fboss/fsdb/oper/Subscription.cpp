@@ -28,7 +28,7 @@ void BaseDeltaSubscription::appendRootDeltaUnit(const OperDeltaUnit& unit) {
   // objects to manage synchronization.
   if (!currDelta_) {
     currDelta_.emplace();
-    currDelta_->protocol() = *protocol_;
+    currDelta_->protocol() = operProtocol();
   }
 
   OperDeltaUnit toStore;
@@ -100,6 +100,7 @@ FullyResolvedExtendedPathSubscription::FullyResolvedExtendedPathSubscription(
     : BasePathSubscription(
           subscription.subscriberId(),
           path,
+          subscription.operProtocol(),
           subscription.publisherTreeRoot()),
       subscription_(subscription) {}
 
@@ -115,11 +116,6 @@ PubSubType FullyResolvedExtendedPathSubscription::type() const {
   return subscription_.type();
 }
 
-std::optional<OperProtocol>
-FullyResolvedExtendedPathSubscription::operProtocol() const {
-  return subscription_.operProtocol();
-}
-
 void FullyResolvedExtendedPathSubscription::offer(
     DeltaValue<OperState> source) {
   // Convert to DeltaValue<TaggedOperState>. Could do this in the
@@ -131,7 +127,7 @@ void FullyResolvedExtendedPathSubscription::offer(
   if (source.oldVal) {
     target.oldVal->state() = std::move(*source.oldVal);
   } else {
-    target.oldVal->state() = makeEmptyState(*operProtocol());
+    target.oldVal->state() = makeEmptyState(operProtocol());
   }
 
   target.newVal.emplace();
@@ -139,7 +135,7 @@ void FullyResolvedExtendedPathSubscription::offer(
   if (source.newVal) {
     target.newVal->state() = std::move(*source.newVal);
   } else {
-    target.newVal->state() = makeEmptyState(*operProtocol());
+    target.newVal->state() = makeEmptyState(operProtocol());
   }
 
   subscription_.buffer(std::move(target));
@@ -166,7 +162,7 @@ FullyResolvedExtendedDeltaSubscription::FullyResolvedExtendedDeltaSubscription(
     : BaseDeltaSubscription(
           subscription.subscriberId(),
           path,
-          *subscription.operProtocol(),
+          subscription.operProtocol(),
           subscription.publisherTreeRoot()),
       subscription_(subscription) {}
 
@@ -198,11 +194,6 @@ bool FullyResolvedExtendedDeltaSubscription::shouldPrune() const {
 
 PubSubType FullyResolvedExtendedDeltaSubscription::type() const {
   return subscription_.type();
-}
-
-std::optional<OperProtocol>
-FullyResolvedExtendedDeltaSubscription::operProtocol() const {
-  return subscription_.operProtocol();
 }
 
 void FullyResolvedExtendedDeltaSubscription::allPublishersGone(

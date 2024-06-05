@@ -137,7 +137,7 @@ class CowSubscriptionManager
       const auto& path = subscription->path();
 
       thrift_cow::GetEncodedPathVisitorOperator op(
-          *subscription->operProtocol());
+          subscription->operProtocol());
       const auto& root = *newRoot.root();
       thrift_cow::RootPathVisitor::visit(
           root, path.begin(), path.end(), thrift_cow::PathVisitMode::LEAF, op);
@@ -145,18 +145,15 @@ class CowSubscriptionManager
         if (subscription->type() == PubSubType::PATH) {
           auto pathSubscription =
               static_cast<BasePathSubscription*>(subscription);
-          if (auto proto = subscription->operProtocol(); proto) {
-            std::optional<OperState> state;
-            state.emplace();
-            state->contents() = std::move(*op.val);
-            state->protocol() = *proto;
-            state->metadata() = subscription->getMetadata(metadataServer);
-            auto value = DeltaValue<OperState>(std::nullopt, std::move(state));
-            pathSubscription->offer(std::move(value));
-          }
+          std::optional<OperState> state;
+          state.emplace();
+          state->contents() = std::move(*op.val);
+          state->protocol() = subscription->operProtocol();
+          state->metadata() = subscription->getMetadata(metadataServer);
+          auto value = DeltaValue<OperState>(std::nullopt, std::move(state));
+          pathSubscription->offer(std::move(value));
         } else if (subscription->type() == PubSubType::DELTA) {
           // Delta subscription
-          CHECK(subscription->operProtocol());
           OperDeltaUnit deltaUnit;
           deltaUnit.path()->raw() = path;
           deltaUnit.newState() = std::move(*op.val);
@@ -325,15 +322,13 @@ class CowSubscriptionManager
             auto* pathSubscription =
                 static_cast<BasePathSubscription*>(relevant);
 
-            if (auto proto = pathSubscription->operProtocol(); proto) {
-              servePathEncoded(
-                  pathSubscription,
-                  oldNode,
-                  newNode,
-                  *proto,
-                  newStorage,
-                  metadataServer);
-            }
+            servePathEncoded(
+                pathSubscription,
+                oldNode,
+                newNode,
+                pathSubscription->operProtocol(),
+                newStorage,
+                metadataServer);
           } else if (relevant->type() == PubSubType::DELTA) {
             // serve delta subscriptions if it's a MINIMAL change
             // OR
@@ -347,7 +342,7 @@ class CowSubscriptionManager
               auto* deltaSubscription =
                   static_cast<DeltaSubscription*>(relevant);
               deltaSubscription->appendRootDeltaUnit(
-                  deltaUnitCache.getEncoded(*relevant->operProtocol()));
+                  deltaUnitCache.getEncoded(relevant->operProtocol()));
             }
           } else if (
               relevant->type() == PubSubType::PATCH &&
@@ -381,7 +376,7 @@ class CowSubscriptionManager
           }
           auto* deltaSubscription = static_cast<DeltaSubscription*>(relevant);
           deltaSubscription->appendRootDeltaUnit(
-              deltaUnitCache.getEncoded(*relevant->operProtocol()));
+              deltaUnitCache.getEncoded(relevant->operProtocol()));
         }
       }
     };
@@ -392,7 +387,8 @@ class CowSubscriptionManager
     // can only build patches with id paths
     std::optional<thrift_cow::PatchNodeBuilder> patchBuilder;
     if (this->useIdPaths_) {
-      patchBuilder.emplace();
+      patchBuilder.emplace(
+          fsdb::OperProtocol::COMPACT, true /* incrementallyCompress */);
     }
     CowSubscriptionTraverseHelper traverser(&this->lookup_, patchBuilder);
     if (oldRoot && newRoot) {

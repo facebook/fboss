@@ -32,7 +32,11 @@ class TestSubscription : public Subscription {
   void serveHeartbeat() override {}
 
   explicit TestSubscription(std::vector<std::string> path)
-      : Subscription("testSubcriber", std::move(path), std::nullopt) {}
+      : Subscription(
+            "testSubcriber",
+            std::move(path),
+            OperProtocol::BINARY,
+            std::nullopt) {}
 };
 
 class TestDeltaSubscription : public Subscription {
@@ -53,13 +57,21 @@ class TestDeltaSubscription : public Subscription {
   void serveHeartbeat() override {}
 
   explicit TestDeltaSubscription(std::vector<std::string> path)
-      : Subscription("testSubcriber", std::move(path), std::nullopt) {}
+      : Subscription(
+            "testSubcriber",
+            std::move(path),
+            OperProtocol::BINARY,
+            std::nullopt) {}
 };
 
 class TestExtendedSubscription : public ExtendedSubscription {
  public:
   explicit TestExtendedSubscription(std::vector<ExtendedOperPath> paths)
-      : ExtendedSubscription("testSubcriber", std::move(paths), std::nullopt) {}
+      : ExtendedSubscription(
+            "testSubcriber",
+            std::move(paths),
+            OperProtocol::BINARY,
+            std::nullopt) {}
 
   PubSubType type() const override {
     return PubSubType::PATH;

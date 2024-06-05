@@ -35,8 +35,8 @@ class BaseSubscription {
     return false;
   }
 
-  virtual std::optional<OperProtocol> operProtocol() const {
-    return std::nullopt;
+  OperProtocol operProtocol() const {
+    return protocol_;
   }
 
   virtual bool isActive() const = 0;
@@ -71,12 +71,15 @@ class BaseSubscription {
  protected:
   BaseSubscription(
       SubscriberId subscriber,
+      OperProtocol protocol,
       std::optional<std::string> publisherRoot)
       : subscriber_(std::move(subscriber)),
+        protocol_(protocol),
         publisherTreeRoot_(std::move(publisherRoot)) {}
 
  private:
   const SubscriberId subscriber_;
+  const OperProtocol protocol_;
   const std::optional<std::string> publisherTreeRoot_;
 };
 
@@ -90,8 +93,12 @@ class Subscription : public BaseSubscription {
   Subscription(
       SubscriberId subscriber,
       std::vector<std::string> path,
+      OperProtocol protocol,
       std::optional<std::string> publisherRoot)
-      : BaseSubscription(std::move(subscriber), std::move(publisherRoot)),
+      : BaseSubscription(
+            std::move(subscriber),
+            std::move(protocol),
+            std::move(publisherRoot)),
         path_(std::move(path)) {}
 
  private:
@@ -130,8 +137,12 @@ class ExtendedSubscription : public BaseSubscription {
   ExtendedSubscription(
       SubscriberId subscriber,
       std::vector<ExtendedOperPath> paths,
+      OperProtocol protocol,
       std::optional<std::string> publisherRoot)
-      : BaseSubscription(std::move(subscriber), std::move(publisherRoot)),
+      : BaseSubscription(
+            std::move(subscriber),
+            std::move(protocol),
+            std::move(publisherRoot)),
         paths_(std::move(paths)) {}
 
  private:
@@ -165,10 +176,6 @@ class PathSubscription : public BasePathSubscription,
     pipe_.write(std::move(newVal));
   }
 
-  std::optional<OperProtocol> operProtocol() const override {
-    return protocol_;
-  }
-
   bool isActive() const override {
     return !pipe_.isClosed();
   }
@@ -181,7 +188,7 @@ class PathSubscription : public BasePathSubscription,
       PathIter begin,
       PathIter end,
       std::optional<std::string> publisherRoot,
-      std::optional<OperProtocol> protocol) {
+      OperProtocol protocol) {
     auto [generator, pipe] = folly::coro::AsyncPipe<value_type>::create();
     std::vector<std::string> path(begin, end);
     auto subscription = std::make_unique<PathSubscription>(
@@ -218,29 +225,16 @@ class PathSubscription : public BasePathSubscription,
       SubscriberId subscriber,
       std::vector<std::string> path,
       folly::coro::AsyncPipe<value_type> pipe,
-      std::optional<OperProtocol> protocol = std::nullopt,
+      OperProtocol protocol,
       std::optional<std::string> publisherTreeRoot = std::nullopt)
       : BasePathSubscription(
             std::move(subscriber),
             std::move(path),
+            std::move(protocol),
             std::move(publisherTreeRoot)),
-        protocol_(std::move(protocol)),
         pipe_(std::move(pipe)) {}
 
-  PathSubscription(
-      SubscriberId subscriber,
-      std::vector<std::string> path,
-      folly::coro::AsyncPipe<value_type> pipe,
-      std::optional<std::string> publisherTreeRoot = std::nullopt)
-      : PathSubscription(
-            std::move(subscriber),
-            std::move(path),
-            std::move(pipe),
-            std::nullopt,
-            std::move(publisherTreeRoot)) {}
-
  private:
-  std::optional<OperProtocol> protocol_;
   folly::coro::AsyncPipe<value_type> pipe_;
 };
 
@@ -250,10 +244,6 @@ class BaseDeltaSubscription : public Subscription {
 
   PubSubType type() const override {
     return PubSubType::DELTA;
-  }
-
-  std::optional<OperProtocol> operProtocol() const override {
-    return protocol_;
   }
 
   bool shouldConvertToDynamic() const override {
@@ -270,14 +260,13 @@ class BaseDeltaSubscription : public Subscription {
       : Subscription(
             std::move(subscriber),
             std::move(path),
-            std::move(publisherTreeRoot)),
-        protocol_(std::move(protocol)) {}
+            std::move(protocol),
+            std::move(publisherTreeRoot)) {}
 
   std::optional<OperDelta> moveFromCurrDelta(
       const SubscriptionMetadataServer& metadataServer);
 
  private:
-  std::optional<OperProtocol> protocol_;
   std::optional<OperDelta> currDelta_;
 };
 
@@ -338,8 +327,6 @@ class FullyResolvedExtendedPathSubscription : public BasePathSubscription,
   bool isActive() const override;
   bool shouldPrune() const override;
 
-  std::optional<OperProtocol> operProtocol() const override;
-
   void offer(DeltaValue<OperState> newVal) override;
 
   void allPublishersGone(FsdbErrorCode disconnectReason, const std::string& msg)
@@ -373,10 +360,6 @@ class ExtendedPathSubscription : public ExtendedSubscription,
     return PubSubType::PATH;
   }
 
-  std::optional<OperProtocol> operProtocol() const override {
-    return protocol_;
-  }
-
   virtual std::unique_ptr<Subscription> resolve(
       const std::vector<std::string>& path) override;
 
@@ -407,12 +390,11 @@ class ExtendedPathSubscription : public ExtendedSubscription,
       : ExtendedSubscription(
             std::move(subscriber),
             std::move(paths),
+            std::move(protocol),
             std::move(publisherTreeRoot)),
-        protocol_(std::move(protocol)),
         pipe_(std::move(pipe)) {}
 
  private:
-  OperProtocol protocol_;
   folly::coro::AsyncPipe<gen_type> pipe_;
   std::optional<gen_type> buffered_;
 };
@@ -437,8 +419,6 @@ class FullyResolvedExtendedDeltaSubscription : public BaseDeltaSubscription,
   bool isActive() const override;
   bool shouldPrune() const override;
 
-  std::optional<OperProtocol> operProtocol() const override;
-
   void allPublishersGone(FsdbErrorCode disconnectReason, const std::string& msg)
       override;
 
@@ -458,10 +438,6 @@ class ExtendedDeltaSubscription : public ExtendedSubscription,
 
   PubSubType type() const override {
     return PubSubType::DELTA;
-  }
-
-  std::optional<OperProtocol> operProtocol() const override {
-    return protocol_;
   }
 
   virtual std::unique_ptr<Subscription> resolve(
@@ -500,12 +476,11 @@ class ExtendedDeltaSubscription : public ExtendedSubscription,
       : ExtendedSubscription(
             std::move(subscriber),
             std::move(paths),
+            std::move(protocol),
             std::move(publisherTreeRoot)),
-        protocol_(std::move(protocol)),
         pipe_(std::move(pipe)) {}
 
  private:
-  OperProtocol protocol_;
   folly::coro::AsyncPipe<gen_type> pipe_;
   std::optional<gen_type> buffered_;
 };
@@ -543,18 +518,14 @@ class PatchSubscription : public Subscription, private boost::noncopyable {
       : Subscription(
             std::move(subscriber),
             std::move(path),
+            std::move(protocol),
             std::move(publisherTreeRoot)),
-        protocol_(std::move(protocol)),
         pipe_(std::move(pipe)) {}
 
   virtual ~PatchSubscription() override = default;
 
   PubSubType type() const override {
     return PubSubType::PATCH;
-  }
-
-  std::optional<OperProtocol> operProtocol() const override {
-    return protocol_;
   }
 
   void setPatchRoot(thrift_cow::PatchNode node);
@@ -575,7 +546,6 @@ class PatchSubscription : public Subscription, private boost::noncopyable {
   std::optional<Patch> moveFromCurrPatch(
       const SubscriptionMetadataServer& /* metadataServer */);
 
-  OperProtocol protocol_;
   std::optional<Patch> currPatch_;
   folly::coro::AsyncPipe<Patch> pipe_;
 };
