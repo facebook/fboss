@@ -12,6 +12,10 @@ DEFINE_bool(
     agent_fsdb_sync,
     true,
     "sync agent state to fsdb, do not turn this off as other services depend on agent state synced to fsdb");
+DEFINE_bool(
+    publish_patches_to_fsdb,
+    false,
+    "flip state publish mode to using patches instead of deltas");
 namespace {
 const thriftpath::RootThriftPath<facebook::fboss::fsdb::FsdbOperStateRoot>
     fsdbStateRootPath;
@@ -27,6 +31,12 @@ bool modifyImpl(
     return true;
   }
   return false;
+}
+
+facebook::fboss::fsdb::PubSubType getPubType() {
+  return FLAGS_publish_patches_to_fsdb
+      ? facebook::fboss::fsdb::PubSubType::PATCH
+      : facebook::fboss::fsdb::PubSubType::DELTA;
 }
 } // namespace
 
@@ -44,18 +54,18 @@ fsdb::computeOperDelta<thrift_cow::ThriftStructNode<fsdb::AgentData>>(
 
 AgentFsdbSyncManager::AgentFsdbSyncManager(
     const std::shared_ptr<fsdb::FsdbPubSubManager>& pubSubMgr)
-    : fsdb::FsdbSyncManager<fsdb::AgentData>(
+    : fsdb::FsdbSyncManager<fsdb::AgentData, true /* EnablePatchAPIs */>(
           pubSubMgr,
           kAgentPath.tokens(),
           false /* isStats */,
-          fsdb::PubSubType::DELTA) {}
+          getPubType()) {}
 
 AgentFsdbSyncManager::AgentFsdbSyncManager()
-    : fsdb::FsdbSyncManager<fsdb::AgentData>(
+    : fsdb::FsdbSyncManager<fsdb::AgentData, true /* EnablePatchAPIs */>(
           "agent",
           kAgentPath.tokens(),
           false /* isStats */,
-          fsdb::PubSubType::DELTA) {}
+          getPubType()) {}
 
 void AgentFsdbSyncManager::stateUpdated(const StateDelta& delta) {
   if (!FLAGS_agent_fsdb_sync) {

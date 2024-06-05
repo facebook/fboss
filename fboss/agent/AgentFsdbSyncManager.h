@@ -29,7 +29,9 @@ struct thrift_cow::ResolveMemberType<
   using type = SwitchState;
 };
 
-class AgentFsdbSyncManager : public fsdb::FsdbSyncManager<fsdb::AgentData> {
+class AgentFsdbSyncManager
+    : public fsdb::
+          FsdbSyncManager<fsdb::AgentData, true /* EnablePatchAPIs */> {
   /* list of maps which are subscribed to by external consumers */
   using SubscribedMaps = std::tuple<
       switch_state_tags::portMaps,
