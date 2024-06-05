@@ -105,9 +105,11 @@ class Subscription : public BaseSubscription {
   const std::vector<std::string> path_;
 };
 
+using ExtSubPathMap = std::map<SubscriptionKey, ExtendedOperPath>;
+
 class ExtendedSubscription : public BaseSubscription {
  public:
-  const std::vector<ExtendedOperPath>& paths() const {
+  const ExtSubPathMap& paths() const {
     return paths_;
   }
 
@@ -126,8 +128,8 @@ class ExtendedSubscription : public BaseSubscription {
     return shouldPrune_;
   }
 
-  const ExtendedOperPath& pathAt(std::size_t idx) const {
-    return paths_.at(idx);
+  const ExtendedOperPath& pathAt(SubscriptionKey key) const {
+    return paths_.at(key);
   }
 
   virtual std::unique_ptr<Subscription> resolve(
@@ -136,7 +138,7 @@ class ExtendedSubscription : public BaseSubscription {
  protected:
   ExtendedSubscription(
       SubscriberId subscriber,
-      std::vector<ExtendedOperPath> paths,
+      ExtSubPathMap paths,
       OperProtocol protocol,
       std::optional<std::string> publisherRoot)
       : BaseSubscription(
@@ -146,7 +148,7 @@ class ExtendedSubscription : public BaseSubscription {
         paths_(std::move(paths)) {}
 
  private:
-  const std::vector<ExtendedOperPath> paths_;
+  const ExtSubPathMap paths_;
   bool shouldPrune_{false};
 };
 
@@ -383,7 +385,7 @@ class ExtendedPathSubscription : public ExtendedSubscription,
 
   ExtendedPathSubscription(
       SubscriberId subscriber,
-      std::vector<ExtendedOperPath> paths,
+      ExtSubPathMap paths,
       folly::coro::AsyncPipe<gen_type> pipe,
       OperProtocol protocol,
       std::optional<std::string> publisherTreeRoot = std::nullopt)
@@ -469,7 +471,7 @@ class ExtendedDeltaSubscription : public ExtendedSubscription,
 
   ExtendedDeltaSubscription(
       SubscriberId subscriber,
-      std::vector<ExtendedOperPath> paths,
+      ExtSubPathMap paths,
       folly::coro::AsyncPipe<value_type> pipe,
       OperProtocol protocol,
       std::optional<std::string> publisherTreeRoot = std::nullopt)
@@ -550,19 +552,19 @@ class ExtendedPatchSubscription : public ExtendedSubscription,
       std::unique_ptr<ExtendedPatchSubscription>>
   create(
       SubscriberId subscriber,
-      std::map<SubscriptionKey, ExtendedOperPath> paths,
+      ExtSubPathMap paths,
       OperProtocol protocol,
       std::optional<std::string> publisherRoot);
 
   ExtendedPatchSubscription(
       SubscriberId subscriber,
-      std::vector<ExtendedOperPath> path,
+      ExtSubPathMap paths,
       folly::coro::AsyncPipe<value_type> pipe,
       OperProtocol protocol,
       std::optional<std::string> publisherTreeRoot = std::nullopt)
       : ExtendedSubscription(
             std::move(subscriber),
-            std::move(path),
+            std::move(paths),
             std::move(protocol),
             std::move(publisherTreeRoot)),
         pipe_(std::move(pipe)) {}

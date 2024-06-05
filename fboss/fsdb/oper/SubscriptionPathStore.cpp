@@ -20,12 +20,12 @@ void SubscriptionPathStore::remove(Subscription* subscription) {
 void SubscriptionPathStore::incrementallyResolve(
     SubscriptionManagerBase& manager,
     std::shared_ptr<ExtendedSubscription> subscription,
-    std::size_t pathIdx,
+    SubscriptionKey subKey,
     std::vector<std::string>& pathSoFar) {
   // This incrementally extends our subscription tree based on an extended
   // path. Logic is to build up tree until next wildcard, or end of the path.
 
-  const auto& path = subscription->pathAt(pathIdx).path().value();
+  const auto& path = subscription->pathAt(subKey).path().value();
   auto idx = pathSoFar.size();
 
   if (idx == path.size()) {
@@ -40,7 +40,7 @@ void SubscriptionPathStore::incrementallyResolve(
     // we hit another wildcard element. Add a partially resolved subscription
     PartiallyResolvedExtendedSubscription partial;
     partial.subscription = subscription;
-    partial.pathIdx = pathIdx;
+    partial.subKey = subKey;
     partial.elemIdx = idx;
 
     XLOG(DBG2) << this << ": Saving partially resolved subscription at "
@@ -56,7 +56,7 @@ void SubscriptionPathStore::incrementallyResolve(
   }
   pathSoFar.emplace_back(key);
   children_.at(key)->incrementallyResolve(
-      manager, std::move(subscription), pathIdx, pathSoFar);
+      manager, std::move(subscription), subKey, pathSoFar);
   pathSoFar.pop_back();
 }
 
@@ -103,7 +103,7 @@ void SubscriptionPathStore::processAddedPath(
     }
     partial.previouslyResolved.insert(key);
 
-    const auto& path = subscription->pathAt(partial.pathIdx).path().value();
+    const auto& path = subscription->pathAt(partial.subKey).path().value();
     const auto& elem = path.at(partial.elemIdx);
     bool matches{false};
 
@@ -122,7 +122,7 @@ void SubscriptionPathStore::processAddedPath(
         childStorePresent = true;
       }
       children_.at(key)->incrementallyResolve(
-          manager, std::move(subscription), partial.pathIdx, pathSoFar);
+          manager, std::move(subscription), partial.subKey, pathSoFar);
     }
 
     ++it;
@@ -331,7 +331,7 @@ void SubscriptionPathStore::debugPrint(
 
 void PartiallyResolvedExtendedSubscription::debugPrint() const {
   XLOG(INFO) << "\tsubscription=" << subscription.lock().get()
-             << ", pathIdx=" << pathIdx << ", elemIdx=" << elemIdx
+             << ", subKey=" << subKey << ", elemIdx=" << elemIdx
              << ", previouslyResolved=" << folly::join(',', previouslyResolved);
 }
 

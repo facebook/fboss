@@ -204,13 +204,12 @@ class CowSubscriptionManager
       }
 
       const auto& paths = subscription->paths();
-      for (int pathNum = 0; pathNum < paths.size(); ++pathNum) {
+      for (const auto& [key, path] : paths) {
         // seed beginnings of the path in to lookup tree
         std::vector<std::string> emptyPathSoFar;
         this->lookup_.incrementallyResolve(
-            *this, subscription, pathNum, emptyPathSoFar);
+            *this, subscription, key, emptyPathSoFar);
 
-        const auto& path = paths.at(pathNum);
         thrift_cow::ExtPathVisitorOptions options(this->useIdPaths_);
         thrift_cow::RootExtendedPathVisitor::visit(
             root, path.path()->begin(), path.path()->end(), options, process);

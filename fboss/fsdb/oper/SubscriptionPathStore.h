@@ -22,7 +22,7 @@ enum class LookupType { PARENTS, TARGET, CHILDREN };
 
 struct PartiallyResolvedExtendedSubscription {
   std::weak_ptr<ExtendedSubscription> subscription;
-  std::size_t pathIdx{0};
+  SubscriptionKey subKey{0};
   uint16_t elemIdx{0};
   std::unordered_set<std::string> previouslyResolved{};
 
@@ -42,7 +42,7 @@ class SubscriptionPathStore {
   void incrementallyResolve(
       SubscriptionManagerBase& manager,
       std::shared_ptr<ExtendedSubscription> subscription,
-      std::size_t pathIdx,
+      SubscriptionKey subKey,
       std::vector<std::string>& pathSoFar);
 
   void processAddedPath(

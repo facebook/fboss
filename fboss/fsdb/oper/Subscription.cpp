@@ -17,6 +17,14 @@ OperState makeEmptyState(OperProtocol proto) {
   return empty;
 }
 
+ExtSubPathMap makeSimplePathMap(std::vector<ExtendedOperPath> paths) {
+  ExtSubPathMap map;
+  for (auto i = 0; i < paths.size(); ++i) {
+    map[i] = std::move(paths[i]);
+  }
+  return map;
+}
+
 } // namespace
 
 void BaseDeltaSubscription::appendRootDeltaUnit(const OperDeltaUnit& unit) {
@@ -213,7 +221,7 @@ ExtendedPathSubscription::create(
   auto [generator, pipe] = folly::coro::AsyncPipe<gen_type>::create();
   auto subscription = std::make_shared<ExtendedPathSubscription>(
       std::move(subscriber),
-      std::move(paths),
+      makeSimplePathMap(paths),
       std::move(pipe),
       std::move(protocol),
       std::move(publisherRoot));
@@ -265,7 +273,7 @@ ExtendedDeltaSubscription::create(
   auto [generator, pipe] = folly::coro::AsyncPipe<gen_type>::create();
   auto subscription = std::make_shared<ExtendedDeltaSubscription>(
       std::move(subscriber),
-      std::move(paths),
+      makeSimplePathMap(paths),
       std::move(pipe),
       std::move(protocol),
       std::move(publisherRoot));
@@ -393,15 +401,10 @@ ExtendedPatchSubscription::create(
     std::map<SubscriptionKey, ExtendedOperPath> paths,
     OperProtocol protocol,
     std::optional<std::string> publisherRoot) {
-  // TODO: propagate idea of subscription key to ExtendedSubscription
-  std::vector<ExtendedOperPath> pathsList;
-  for (auto& [_, path] : paths) {
-    pathsList.emplace_back(std::move(path));
-  }
   auto [generator, pipe] = folly::coro::AsyncPipe<Patch>::create();
   auto subscription = std::make_unique<ExtendedPatchSubscription>(
       std::move(subscriber),
-      std::move(pathsList),
+      std::move(paths),
       std::move(pipe),
       std::move(protocol),
       std::move(publisherRoot));

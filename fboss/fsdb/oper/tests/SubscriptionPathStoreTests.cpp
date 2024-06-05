@@ -66,7 +66,7 @@ class TestDeltaSubscription : public Subscription {
 
 class TestExtendedSubscription : public ExtendedSubscription {
  public:
-  explicit TestExtendedSubscription(std::vector<ExtendedOperPath> paths)
+  explicit TestExtendedSubscription(ExtSubPathMap paths)
       : ExtendedSubscription(
             "testSubcriber",
             std::move(paths),
@@ -199,15 +199,14 @@ TEST(SubscriptionPathStoreTests, IncrementalResolveExtended) {
                    .get();
   auto path5 = ext_path_builder::raw("a").raw("b").get();
 
-  using PathVec = std::vector<ExtendedOperPath>;
-  auto extSub1 =
-      std::make_shared<TestExtendedSubscription>(PathVec{std::move(path1)});
-  auto extSub2 =
-      std::make_shared<TestExtendedSubscription>(PathVec{std::move(path2)});
+  auto extSub1 = std::make_shared<TestExtendedSubscription>(
+      ExtSubPathMap{{0, std::move(path1)}});
+  auto extSub2 = std::make_shared<TestExtendedSubscription>(
+      ExtSubPathMap{{0, std::move(path2)}});
   auto extSub3 = std::make_shared<TestExtendedSubscription>(
-      PathVec{std::move(path3), std::move(path4)});
-  auto extSub4 =
-      std::make_shared<TestExtendedSubscription>(PathVec{std::move(path5)});
+      ExtSubPathMap{{0, std::move(path3)}, {1, std::move(path4)}});
+  auto extSub4 = std::make_shared<TestExtendedSubscription>(
+      ExtSubPathMap{{0, std::move(path5)}});
 
   SubscriptionPathStore store;
   StubSubscriptionManager manager;
