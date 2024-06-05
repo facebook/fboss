@@ -5,6 +5,7 @@
 
 add_library(fsdb_oper_metadata_tracker
   fboss/fsdb/server/FsdbOperTreeMetadataTracker.cpp
+  fboss/fsdb/server/OperPathToPublisherRoot.cpp
 )
 
 target_link_libraries(fsdb_oper_metadata_tracker
