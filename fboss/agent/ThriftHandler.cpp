@@ -209,7 +209,8 @@ void getPortInfoHelper(
   if (port->getQosPolicy().has_value()) {
     auto appliedPolicyName = port->getQosPolicy();
     qosPolicy =
-        *appliedPolicyName == state->getDefaultDataPlaneQosPolicy()->getName()
+        (state->getDefaultDataPlaneQosPolicy() &&
+         *appliedPolicyName == state->getDefaultDataPlaneQosPolicy()->getName())
         ? state->getDefaultDataPlaneQosPolicy()
         : state->getQosPolicies()->getNodeIf(*appliedPolicyName);
     if (!qosPolicy) {
