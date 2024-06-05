@@ -147,6 +147,23 @@ TEST_F(AgentFabricSwitchTest, fabricPortIsolate) {
       utility::checkPortFabricReachability(
           getAgentEnsemble(), switchId, fabricPortId);
     }
+    std::vector<PortID> undrainedPortIds = masterLogicalFabricPortIds();
+    std::vector<PortID> drainedPortIds(
+        fabricPortIds.begin(), fabricPortIds.end());
+    // Remove the drained port
+    undrainedPortIds.erase(
+        std::remove_if(
+            undrainedPortIds.begin(),
+            undrainedPortIds.end(),
+            [&fabricPortIds](const PortID& portId) {
+              return fabricPortIds.find(portId) != fabricPortIds.end();
+            }),
+        undrainedPortIds.end());
+    // Only drained port will be inactive
+    utility::checkFabricPortsActiveState(
+        getAgentEnsemble(), drainedPortIds, false /*expectActive*/);
+    utility::checkFabricPortsActiveState(
+        getAgentEnsemble(), undrainedPortIds, true /*expectActive*/);
   };
   verifyAcrossWarmBoots(setup, verify);
 }
