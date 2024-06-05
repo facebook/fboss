@@ -609,17 +609,6 @@ makeSubscriberInfo(const SubRequest& req, PubSubType type, bool isStats) {
   return info;
 }
 
-template <typename Storage>
-folly::coro::AsyncGenerator<SubscriberMessage&&> makeSubStreamGenerator(
-    Storage& storage,
-    std::unique_ptr<SubRequest> request) {
-  // TODO: for the sake of incremental diffs just looking at first path for
-  // now, later will support multi path
-  auto path = *request->paths()->begin()->second.path();
-  return storage.subscribe_patch(
-      *request->clientId()->instanceId(), path.begin(), path.end());
-}
-
 void validatePaths(
     const std::map<SubscriptionKey, RawOperPath>& paths,
     bool isStats) {
@@ -1098,10 +1087,8 @@ ServiceHandler::co_subscribeState(std::unique_ptr<SubRequest> request) {
        request = std::move(request),
        cleanupSubscriber = std::move(cleanupSubscriber)]() mutable
       -> folly::coro::AsyncGenerator<SubscriberMessage&&> {
-        auto gen = makeSubStreamGenerator(operStorage_, std::move(request));
-        while (auto val = co_await gen.next()) {
-          co_yield std::move(*val);
-        }
+        return operStorage_.subscribe_patch(
+            *request->clientId()->instanceId(), *request->paths());
       });
   co_return {{}, std::move(stream)};
 }
@@ -1123,11 +1110,8 @@ ServiceHandler::co_subscribeStats(std::unique_ptr<SubRequest> request) {
        request = std::move(request),
        cleanupSubscriber = std::move(cleanupSubscriber)]() mutable
       -> folly::coro::AsyncGenerator<SubscriberMessage&&> {
-        auto gen =
-            makeSubStreamGenerator(operStatsStorage_, std::move(request));
-        while (auto val = co_await gen.next()) {
-          co_yield std::move(*val);
-        }
+        return operStatsStorage_.subscribe_patch(
+            *request->clientId()->instanceId(), *request->paths());
       });
   co_return {{}, std::move(stream)};
 }

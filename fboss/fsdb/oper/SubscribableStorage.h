@@ -166,9 +166,15 @@ class SubscribableStorage {
   folly::coro::AsyncGenerator<SubscriberMessage&&> subscribe_patch(
       SubscriberId subscriber,
       RawOperPath rawPath) {
-    return static_cast<Impl*>(this)->subscribe_patch_impl(
+    return subscribe_patch(
         std::move(subscriber),
         std::map<SubscriptionKey, RawOperPath>{{0, std::move(rawPath)}});
+  }
+  folly::coro::AsyncGenerator<SubscriberMessage&&> subscribe_patch(
+      SubscriberId subscriber,
+      std::map<SubscriptionKey, RawOperPath> rawPaths) {
+    return static_cast<Impl*>(this)->subscribe_patch_impl(
+        std::move(subscriber), std::move(rawPaths));
   }
 #endif
 
