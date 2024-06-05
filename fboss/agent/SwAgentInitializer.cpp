@@ -34,6 +34,10 @@ DEFINE_int32(port, 5909, "The thrift server port");
 DEFINE_int32(migrated_port, 5959, "New thrift server port migrate to");
 // @lint-ignore CLANGTIDY
 DECLARE_int32(thrift_idle_timeout);
+DEFINE_int32(
+    sw_thrift_server_stop_timeout_s,
+    10,
+    "Seconds to wait for thrift server to stop.");
 
 namespace facebook::fboss {
 
@@ -176,6 +180,20 @@ void SwAgentInitializer::stopAgent(bool setupWarmboot, bool gracefulExit) {
   }
 }
 
+void SwAgentInitializer::waitForServerStopped() {
+  if (serverStarted_) {
+    std::unique_lock<std::mutex> lock(serverStopMutex_);
+    serverStopCV_.wait_for(
+        lock, std::chrono::seconds(FLAGS_sw_thrift_server_stop_timeout_s), [&] {
+          return !serverStarted_;
+        });
+    if (serverStarted_) {
+      XLOG(WARNING) << "Thrift server failed to stop after waiting "
+                    << FLAGS_sw_thrift_server_stop_timeout_s << " seconds";
+    }
+  }
+}
+
 int SwAgentInitializer::initAgent() {
   CHECK_NE(sw_.get() != nullptr, (false));
   CHECK_NE((initializer_.get() != nullptr), (false));
@@ -221,11 +239,20 @@ int SwAgentInitializer::initAgent(
   SwAgentSignalHandler signalHandler(
       eventBase_, sw_.get(), [this]() { handleExitSignal(true); });
 
+  {
+    std::unique_lock<std::mutex> lk(serverStopMutex_);
+    serverStarted_ = true;
+  }
   XLOG(DBG2) << "serving on localhost on port " << FLAGS_port << " and "
              << FLAGS_migrated_port;
   // @lint-ignore CLANGTIDY
   server_->serve();
   server_.reset();
+  {
+    std::unique_lock<std::mutex> lk(serverStopMutex_);
+    serverStarted_ = false;
+  }
+  serverStopCV_.notify_one();
   return 0;
 }
 } // namespace facebook::fboss

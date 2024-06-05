@@ -93,6 +93,7 @@ void SplitSwAgentInitializer::handleExitSignal(bool gracefulExit) {
 #endif
 #endif
   initializer_.reset();
+  this->waitForServerStopped();
   if (gracefulExit) {
     exit(0);
   } else {
