@@ -57,7 +57,9 @@ FsdbDeltaSubscriberImpl<SubUnit, PathElement>::serveStream(StreamT&& stream) {
   co_return;
 }
 
-template class FsdbDeltaSubscriberImpl<OperDelta, std::string>;
-template class FsdbDeltaSubscriberImpl<OperSubDeltaUnit, ExtendedOperPath>;
+template class FsdbDeltaSubscriberImpl<OperDelta, std::vector<std::string>>;
+template class FsdbDeltaSubscriberImpl<
+    OperSubDeltaUnit,
+    std::vector<ExtendedOperPath>>;
 
 } // namespace facebook::fboss::fsdb

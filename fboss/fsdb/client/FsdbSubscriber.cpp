@@ -28,8 +28,18 @@ std::string extendedPathsStr(const std::vector<ExtendedOperPath>& extPaths) {
   }
   return folly::join("_", pathStrs);
 }
-template <typename SubUnit, typename PathElement>
-std::string FsdbSubscriber<SubUnit, PathElement>::typeStr() const {
+
+std::string multiPathMapStr(
+    const std::map<SubscriptionKey, RawOperPath>& paths) {
+  std::vector<std::string> pathStrs;
+  for (const auto& [key, path] : paths) {
+    pathStrs.push_back(folly::join("/", *path.path()));
+  }
+  return folly::join("_", pathStrs);
+}
+
+template <typename SubUnit, typename Paths>
+std::string FsdbSubscriber<SubUnit, Paths>::typeStr() const {
   if constexpr (
       std::is_same_v<SubUnit, OperDelta> ||
       std::is_same_v<SubUnit, TaggedOperDelta>) {
@@ -42,20 +52,23 @@ std::string FsdbSubscriber<SubUnit, PathElement>::typeStr() const {
     return "Patch";
   }
 }
-template <typename SubUnit, typename PathElement>
-std::string FsdbSubscriber<SubUnit, PathElement>::pathsStr(
-    const Paths& path) const {
-  if constexpr (std::is_same_v<PathElement, std::string>) {
+template <typename SubUnit, typename Paths>
+std::string FsdbSubscriber<SubUnit, Paths>::pathsStr(const Paths& path) const {
+  if constexpr (std::is_same_v<Paths, std::vector<std::string>>) {
     return folly::join('_', path);
-  } else {
+  } else if constexpr (std::is_same_v<Paths, std::vector<ExtendedOperPath>>) {
     return extendedPathsStr(path);
+  } else {
+    return multiPathMapStr(path);
   }
 }
 
-template class FsdbSubscriber<OperDelta, std::string>;
-template class FsdbSubscriber<OperState, std::string>;
-template class FsdbSubscriber<OperSubPathUnit, ExtendedOperPath>;
-template class FsdbSubscriber<OperSubDeltaUnit, ExtendedOperPath>;
-template class FsdbSubscriber<SubscriberChunk, std::string>;
+template class FsdbSubscriber<OperDelta, std::vector<std::string>>;
+template class FsdbSubscriber<OperState, std::vector<std::string>>;
+template class FsdbSubscriber<OperSubPathUnit, std::vector<ExtendedOperPath>>;
+template class FsdbSubscriber<OperSubDeltaUnit, std::vector<ExtendedOperPath>>;
+template class FsdbSubscriber<
+    SubscriberChunk,
+    std::map<SubscriptionKey, RawOperPath>>;
 
 } // namespace facebook::fboss::fsdb

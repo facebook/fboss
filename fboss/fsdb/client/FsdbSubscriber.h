@@ -61,9 +61,8 @@ inline std::string subscriptionStateToString(SubscriptionState state) {
 using SubscriptionStateChangeCb =
     std::function<void(SubscriptionState, SubscriptionState)>;
 
-template <typename SubUnit, typename PathElement>
+template <typename SubUnit, typename Paths>
 class FsdbSubscriber : public FsdbStreamClient {
-  using Paths = std::vector<PathElement>;
   std::string typeStr() const;
   std::string pathsStr(const Paths& path) const;
 
@@ -142,14 +141,14 @@ class FsdbSubscriber : public FsdbStreamClient {
 
  protected:
   auto createRequest() const {
-    if constexpr (std::is_same_v<PathElement, std::string>) {
+    if constexpr (std::is_same_v<Paths, std::vector<std::string>>) {
       OperPath operPath;
       operPath.raw() = subscribePaths_;
       OperSubRequest request;
       request.path() = operPath;
       request.subscriberId() = clientId();
       return request;
-    } else {
+    } else if constexpr (std::is_same_v<Paths, std::vector<ExtendedOperPath>>) {
       OperSubRequestExtended request;
       request.paths() = subscribePaths_;
       request.subscriberId() = clientId();

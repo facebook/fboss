@@ -69,10 +69,20 @@ class FsdbPubSubTest : public ::testing::Test {
   std::unique_ptr<SubsT> createSubscriberImpl(const std::string& id) const {
     return std::make_unique<SubsT>(
         id,
-        kPublishRoot,
+        getSubscribePath<SubsT>(),
         subscriberStreamEvbThread_->getEventBase(),
         connRetryEvbThread_->getEventBase(),
         TestParam::PubSubStats);
+  }
+  template <typename SubsT>
+  auto getSubscribePath() const {
+    if constexpr (std::is_same_v<typename SubsT::SubUnitT, SubscriberChunk>) {
+      RawOperPath p;
+      p.path() = kPublishRoot;
+      return std::map<SubscriptionKey, RawOperPath>{{0, std::move(p)}};
+    } else {
+      return kPublishRoot;
+    }
   }
   std::unique_ptr<SubscriberT> createSubscriber(const std::string& id) const {
     return createSubscriberImpl<SubscriberT>(id);

@@ -62,13 +62,14 @@ folly::F14FastMap<std::string, HwPortStats> makePortStats(
 
 template <typename PubSubT>
 class TestFsdbSubscriber : public PubSubT::SubscriberT {
+ public:
   using SubUnitT = typename PubSubT::SubUnitT;
   using BaseT = typename PubSubT::SubscriberT;
 
- public:
+  template <typename PathT>
   TestFsdbSubscriber(
       const std::string& clientId,
-      const std::vector<std::string>& subscribePath,
+      const PathT& subscribePath,
       folly::EventBase* streamEvb,
       folly::EventBase* connRetryEvb,
       bool subscribeStats = false)

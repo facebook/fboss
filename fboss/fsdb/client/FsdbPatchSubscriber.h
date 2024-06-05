@@ -31,7 +31,9 @@ class FsdbPatchSubscriberImpl : public FsdbSubscriber<SubUnit, PathElement> {
   SubRequest createRequest() const;
 };
 
-using FsdbPatchSubscriber =
-    FsdbPatchSubscriberImpl<SubscriberMessage, SubscriberChunk, std::string>;
+using FsdbPatchSubscriber = FsdbPatchSubscriberImpl<
+    SubscriberMessage,
+    SubscriberChunk,
+    std::map<SubscriptionKey, RawOperPath>>;
 // TODO: impl extended patch subscribers
 } // namespace facebook::fboss::fsdb

@@ -64,6 +64,8 @@ FsdbStateSubscriberImpl<SubUnit, PathElement>::serveStream(StreamT&& stream) {
   co_return;
 }
 
-template class FsdbStateSubscriberImpl<OperState, std::string>;
-template class FsdbStateSubscriberImpl<OperSubPathUnit, ExtendedOperPath>;
+template class FsdbStateSubscriberImpl<OperState, std::vector<std::string>>;
+template class FsdbStateSubscriberImpl<
+    OperSubPathUnit,
+    std::vector<ExtendedOperPath>>;
 } // namespace facebook::fboss::fsdb

@@ -14,9 +14,7 @@ FsdbPatchSubscriberImpl<MessageType, SubUnit, PathElement>::createRequest()
   SubRequest request;
   request.clientId()->instanceId() = clientId();
   RawOperPath path;
-  path.path() = this->subscribePaths();
-  // TODO: support multi path with a subscription key
-  request.paths() = {{0, std::move(path)}};
+  request.paths() = this->subscribePaths();
   return request;
 }
 
@@ -68,6 +66,6 @@ FsdbPatchSubscriberImpl<MessageType, SubUnit, PathElement>::serveStream(
 template class FsdbPatchSubscriberImpl<
     SubscriberMessage,
     SubscriberChunk,
-    std::string>;
+    std::map<SubscriptionKey, RawOperPath>>;
 
 } // namespace facebook::fboss::fsdb
