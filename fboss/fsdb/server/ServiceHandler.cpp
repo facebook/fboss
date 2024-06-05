@@ -622,7 +622,7 @@ folly::coro::AsyncGenerator<SubscriberMessage&&> makeSubStreamGenerator(
     SubscriberMessage message;
     // TODO: handle heartbeat
     SubscriberChunk subChunk;
-    subChunk.patch() = std::move(*chunk);
+    subChunk.patches() = {{0, *chunk}};
     message.set_chunk(std::move(subChunk));
     co_yield std::move(message);
   }

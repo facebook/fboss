@@ -146,8 +146,7 @@ union PublisherMessage {
 }
 
 struct SubscriberChunk {
-  1: SubscriptionKey key;
-  2: Patch patch;
+  1: map<SubscriptionKey, Patch> patches;
 }
 
 union SubscriberMessage {
