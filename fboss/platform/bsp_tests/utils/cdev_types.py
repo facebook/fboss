@@ -190,6 +190,19 @@ class I2CAdapter:
 
 @dataclass_json
 @dataclass
+class LedTestInfo:
+    expectedColors: List[str]
+
+
+@dataclass_json
+@dataclass
+class LedCtrlInfo:
+    auxDevice: AuxDevice
+    ledTestInfo: LedTestInfo
+
+
+@dataclass_json
+@dataclass
 class FpgaSpec:
     name: str
     vendorId: str
@@ -198,6 +211,7 @@ class FpgaSpec:
     subSystemDeviceId: str
     i2cAdapters: List[I2CAdapter] = field(default_factory=list)
     xcvrCtrls: List[AuxDevice] = field(default_factory=list)
+    ledCtrls: List[LedCtrlInfo] = field(default_factory=list)
     auxDevices: List[AuxDevice] = field(default_factory=list)
 
 
