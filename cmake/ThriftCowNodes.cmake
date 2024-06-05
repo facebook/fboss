@@ -36,6 +36,7 @@ target_link_libraries(thrift_cow_nodes
   thrift_cow_serializer
   nodebase
   thrift_cow_visitors
+  fsdb_oper_cpp2
   Folly::folly
   FBThrift::thriftcpp2
 )
