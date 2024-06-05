@@ -43363,8 +43363,8 @@ constexpr auto kJsonDsfJ3ScaleTestPlatformMappingStr = R"(
             }
           ],
           "portType": 5,
-          "attachedCoreId": 1,
-          "attachedCorePortIndex": 2,
+          "attachedCoreId": 0,
+          "attachedCorePortIndex": 42,
           "virtualDeviceId": 0,
           "scope": 0
         },
