@@ -108,17 +108,14 @@ class NaivePeriodicSubscribableStorageBase {
       OperProtocol protocol);
 
 #ifdef ENABLE_PATCH_APIS
-  folly::coro::AsyncGenerator<Patch&&> subscribe_patch_impl(
-      SubscriberId subscriber,
-      PathIter begin,
-      PathIter end,
-      OperProtocol protocol) {
+  folly::coro::AsyncGenerator<Patch&&>
+  subscribe_patch_impl(SubscriberId subscriber, PathIter begin, PathIter end) {
     auto path = convertPath(ConcretePath(begin, end));
     auto [gen, subscription] = PatchSubscription::create(
         std::move(subscriber),
         path.begin(),
         path.end(),
-        protocol,
+        patchOperProtocol_,
         getPublisherRoot(path.begin(), path.end()));
     withSubMgrWLocked([subscription = std::move(subscription)](
                           SubscriptionManagerBase& mgr) mutable {
@@ -200,7 +197,10 @@ class NaivePeriodicSubscribableStorageBase {
 
   std::chrono::steady_clock::time_point lastHeartbeatTime_;
 
- private:
+  // as an optimization, for now we decide what protocol is used in patches
+  // instead of letting the client choose
+  const OperProtocol patchOperProtocol_{OperProtocol::COMPACT};
+
  private:
   //  Helper methods to get sub mgr that support lambdas with return values
   template <

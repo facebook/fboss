@@ -198,8 +198,7 @@ TEST_P(SubscribableStorageTests, SubscribePatch) {
   auto storage = TestSubscribableStorage(testStruct);
   storage.setConvertToIDPaths(true);
 
-  auto generator =
-      storage.subscribe_patch(kSubscriber, root, OperProtocol::COMPACT);
+  auto generator = storage.subscribe_patch(kSubscriber, root);
   storage.start();
 
   // Initial sync post subscription setup
@@ -210,7 +209,7 @@ TEST_P(SubscribableStorageTests, SubscribePatch) {
   //   initial sync should just be a whole blob
   auto deserialized = facebook::fboss::thrift_cow::
       deserializeBuf<apache::thrift::type_class::structure, TestStruct>(
-          OperProtocol::COMPACT, std::move(*rootPatch));
+          *patch.protocol(), std::move(*rootPatch));
   EXPECT_EQ(deserialized, testStruct);
 
   // Make changes, we should see that come in as a patch now
@@ -244,8 +243,7 @@ TEST_P(SubscribableStorageTests, SubscribePatchUpdate) {
   storage.start();
 
   const auto& path = root.stringToStruct()["test"].max();
-  auto generator =
-      storage.subscribe_patch(kSubscriber, path, OperProtocol::COMPACT);
+  auto generator = storage.subscribe_patch(kSubscriber, path);
 
   // set and check
   EXPECT_EQ(storage.set(path, 1), std::nullopt);
@@ -254,7 +252,7 @@ TEST_P(SubscribableStorageTests, SubscribePatchUpdate) {
   auto newVal = *patch.patch()->val_ref();
   auto deserializedVal = facebook::fboss::thrift_cow::
       deserializeBuf<apache::thrift::type_class::integral, int>(
-          OperProtocol::COMPACT, std::move(newVal));
+          *patch.protocol(), std::move(newVal));
   EXPECT_EQ(deserializedVal, 1);
 
   // update and check

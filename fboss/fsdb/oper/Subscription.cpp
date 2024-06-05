@@ -317,6 +317,7 @@ void PatchSubscription::allPublishersGone(
 std::optional<Patch> PatchSubscription::moveFromCurrPatch(
     const SubscriptionMetadataServer& /* metadataServer */) {
   std::optional<Patch> patch = std::move(currPatch_);
+  // TODO: metadata
   currPatch_.reset();
   return patch;
 }
@@ -335,7 +336,8 @@ void PatchSubscription::flush(
 void PatchSubscription::setPatchRoot(thrift_cow::PatchNode node) {
   if (!currPatch_) {
     currPatch_ = Patch();
-    // TODO: set path, protocol
+    currPatch_->protocol() = operProtocol();
+    // TODO: set path
   }
   currPatch_->patch() = std::move(node);
 }

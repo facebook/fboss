@@ -617,10 +617,7 @@ folly::coro::AsyncGenerator<SubscriberMessage&&> makeSubStreamGenerator(
   // now, later will support multi path
   auto path = *request->paths()->begin()->second.path();
   auto gen = storage.subscribe_patch(
-      *request->clientId()->instanceId(),
-      path.begin(),
-      path.end(),
-      *request->protocol());
+      *request->clientId()->instanceId(), path.begin(), path.end());
   while (auto chunk = co_await gen.next()) {
     SubscriberMessage message;
     // TODO: handle heartbeat

@@ -129,7 +129,6 @@ typedef i32 SubscriptionKey
 
 struct SubRequest {
   1: map<SubscriptionKey, RawOperPath> paths;
-  2: OperProtocol protocol = OperProtocol.COMPACT;
   3: fsdb_common.ClientId clientId;
 // TODO: option to request shallow patches?
 }

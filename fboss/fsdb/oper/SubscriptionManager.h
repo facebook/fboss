@@ -18,6 +18,12 @@ class SubscriptionMetadataServer;
 
 class SubscriptionManagerBase {
  public:
+  explicit SubscriptionManagerBase(
+      OperProtocol patchOperProtocol = OperProtocol::COMPACT,
+      bool requireResponseOnInitialSync = false)
+      : patchOperProtocol_(patchOperProtocol),
+        requireResponseOnInitialSync_(requireResponseOnInitialSync) {}
+
   virtual ~SubscriptionManagerBase() = default;
 
   void pruneSimpleSubscriptions();
@@ -65,6 +71,10 @@ class SubscriptionManagerBase {
     requireResponseOnInitialSync_ = requireResponse;
   }
 
+  OperProtocol patchOperProtocol() {
+    return patchOperProtocol_;
+  }
+
  private:
   void registerSubscription(
       std::string name,
@@ -92,6 +102,7 @@ class SubscriptionManagerBase {
 
   bool useIdPaths_{false};
 
+  const OperProtocol patchOperProtocol_{OperProtocol::COMPACT};
   bool requireResponseOnInitialSync_{false};
 };
 
@@ -99,6 +110,8 @@ template <typename _Root, typename Impl>
 class SubscriptionManager : public SubscriptionManagerBase {
  public:
   using Root = _Root;
+
+  using SubscriptionManagerBase::SubscriptionManagerBase;
 
   void initialSyncForNewSubscriptions(
       const Root& newData,

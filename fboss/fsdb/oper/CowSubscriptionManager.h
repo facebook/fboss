@@ -93,7 +93,11 @@ template <typename _Root>
 class CowSubscriptionManager
     : public SubscriptionManager<_Root, CowSubscriptionManager<_Root>> {
  public:
+  using Base = SubscriptionManager<_Root, CowSubscriptionManager<_Root>>;
   using Root = _Root;
+
+  using Base::Base;
+  using Base::patchOperProtocol;
 
  private:
   template <typename NodeT>
@@ -388,7 +392,7 @@ class CowSubscriptionManager
     std::optional<thrift_cow::PatchNodeBuilder> patchBuilder;
     if (this->useIdPaths_) {
       patchBuilder.emplace(
-          fsdb::OperProtocol::COMPACT, true /* incrementallyCompress */);
+          patchOperProtocol(), true /* incrementallyCompress */);
     }
     CowSubscriptionTraverseHelper traverser(&this->lookup_, patchBuilder);
     if (oldRoot && newRoot) {
