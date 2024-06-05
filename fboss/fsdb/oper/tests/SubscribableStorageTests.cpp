@@ -328,6 +328,24 @@ TEST_P(SubscribableStorageTests, SubscribePatchMulti) {
   }
 }
 
+TEST_P(SubscribableStorageTests, SubscribePatchHeartbeat) {
+  FLAGS_serveHeartbeats = true;
+  auto storage = TestSubscribableStorage(testStruct);
+  storage.setConvertToIDPaths(true);
+  storage.start();
+
+  auto generator = storage.subscribe_patch(kSubscriber, root);
+
+  auto msg = folly::coro::blockingWait(
+      folly::coro::timeout(consumeOne(generator), std::chrono::seconds(20)));
+  // first message is initial sync
+  EXPECT_EQ(msg.getType(), SubscriberMessage::Type::chunk);
+  // Should eventually recv heartbeat
+  msg = folly::coro::blockingWait(
+      folly::coro::timeout(consumeOne(generator), std::chrono::seconds(20)));
+  EXPECT_EQ(msg.getType(), SubscriberMessage::Type::heartbeat);
+}
+
 TEST_P(SubscribableStorageTests, SubscribeDeltaUpdate) {
   auto storage = TestSubscribableStorage(testStruct);
   storage.start();

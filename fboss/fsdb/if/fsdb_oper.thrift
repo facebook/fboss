@@ -149,7 +149,9 @@ struct SubscriberChunk {
   1: map<SubscriptionKey, Patch> patches;
 }
 
+struct Heartbeat {}
+
 union SubscriberMessage {
   1: SubscriberChunk chunk;
-// TODO: add heartbeats
+  2: Heartbeat heartbeat;
 }

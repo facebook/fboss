@@ -452,7 +452,9 @@ void ExtendedPatchSubscription::flush(
 }
 
 void ExtendedPatchSubscription::serveHeartbeat() {
-  // TODO: implement heartbeat
+  SubscriberMessage msg;
+  msg.set_heartbeat();
+  pipe_.write(std::move(msg));
 }
 
 bool ExtendedPatchSubscription::isActive() const {

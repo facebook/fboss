@@ -55,7 +55,7 @@ FsdbPatchSubscriberImpl<MessageType, SubUnit, PathElement>::serveStream(
       case SubscriberMessage::Type::chunk:
         this->operSubUnitUpdate_(message->move_chunk());
         break;
-        // TODO: handle heartbeats
+      case SubscriberMessage::Type::heartbeat:
       case SubscriberMessage::Type::__EMPTY__:
         break;
     }
