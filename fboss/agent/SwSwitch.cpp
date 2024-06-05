@@ -2415,8 +2415,11 @@ void SwSwitch::sendPacketOutViaThriftStream(
     txPacket.queue() = queue.value();
   }
   txPacket.data() = Packet::extractIOBuf(std::move(pkt));
+  auto switchIndex =
+      getSwitchInfoTable().getSwitchIndexFromSwitchId(SwitchID(switchId));
   try {
     getPacketStreamMap()->getStream(switchId).next(std::move(txPacket));
+    stats()->hwAgentTxPktSent(switchIndex);
   } catch (const std::exception& e) {
     stats()->pktDropped();
     XLOG(DBG2) << "Error sending packet via thrift stream to switch "

@@ -501,6 +501,56 @@ SwitchStats::HwAgentStreamConnectionStatus::HwAgentStreamConnectionStatus(
               ".",
               "tx_pkt_event_sync_disconnects"),
           SUM,
+          RATE)),
+      statsEventsReceived_(TLTimeseries(
+          map,
+          folly::to<std::string>(
+              kCounterPrefix,
+              "switch.",
+              switchIndex,
+              ".",
+              "stats_event_received"),
+          SUM,
+          RATE)),
+      linkEventsReceived_(TLTimeseries(
+          map,
+          folly::to<std::string>(
+              kCounterPrefix,
+              "switch.",
+              switchIndex,
+              ".",
+              "link_event_received"),
+          SUM,
+          RATE)),
+      fdbEventsReceived_(TLTimeseries(
+          map,
+          folly::to<std::string>(
+              kCounterPrefix,
+              "switch.",
+              switchIndex,
+              ".",
+              "fdb_event_received"),
+          SUM,
+          RATE)),
+      rxPktEventsReceived_(TLTimeseries(
+          map,
+          folly::to<std::string>(
+              kCounterPrefix,
+              "switch.",
+              switchIndex,
+              ".",
+              "rx_pkt_event_received"),
+          SUM,
+          RATE)),
+      txPktEventsSent_(TLTimeseries(
+          map,
+          folly::to<std::string>(
+              kCounterPrefix,
+              "switch.",
+              switchIndex,
+              ".",
+              "tx_pkt_event_sent"),
+          SUM,
           RATE)) {}
 
 void SwitchStats::setFabricOverdrainPct(

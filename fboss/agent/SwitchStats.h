@@ -505,6 +505,26 @@ class SwitchStats : public boost::noncopyable {
         connected);
   }
 
+  void hwAgentStatsReceived(int switchIndex) {
+    thriftStreamConnectionStatus_[switchIndex].statsEventReceived();
+  }
+
+  void hwAgentLinkStatusReceived(int switchIndex) {
+    thriftStreamConnectionStatus_[switchIndex].linkEventReceived();
+  }
+
+  void hwAgentFdbEventReceived(int switchIndex) {
+    thriftStreamConnectionStatus_[switchIndex].fdbEventReceived();
+  }
+
+  void hwAgentRxPktReceived(int switchIndex) {
+    thriftStreamConnectionStatus_[switchIndex].rxPktEventReceived();
+  }
+
+  void hwAgentTxPktSent(int switchIndex) {
+    thriftStreamConnectionStatus_[switchIndex].txPktEventSent();
+  }
+
   void getHwAgentStatus(
       std::map<int16_t, HwAgentEventSyncStatus>& statusMap) const;
 
@@ -575,6 +595,21 @@ class SwitchStats : public boost::noncopyable {
       return getCumulativeValue(
           txPktEventStreamStatus_, false /*hasSumSuffix*/);
     }
+    void statsEventReceived() {
+      statsEventsReceived_.addValue(1);
+    }
+    void linkEventReceived() {
+      linkEventsReceived_.addValue(1);
+    }
+    void fdbEventReceived() {
+      fdbEventsReceived_.addValue(1);
+    }
+    void rxPktEventReceived() {
+      rxPktEventsReceived_.addValue(1);
+    }
+    void txPktEventSent() {
+      txPktEventsSent_.addValue(1);
+    }
     int64_t getStatsEventSinkDisconnectCount() const {
       return getCumulativeValue(statsEventSinkDisconnects_);
     }
@@ -590,6 +625,21 @@ class SwitchStats : public boost::noncopyable {
     int64_t getTxPktEventStreamDisconnectCount() const {
       return getCumulativeValue(txPktEventStreamDisconnects_);
     }
+    int64_t getStatsEventReceivedCount() const {
+      return getCumulativeValue(statsEventsReceived_);
+    }
+    int64_t getLinkEventReceivedCount() const {
+      return getCumulativeValue(linkEventsReceived_);
+    }
+    int64_t getFdbEventReceivedCount() const {
+      return getCumulativeValue(fdbEventsReceived_);
+    }
+    int64_t getRxPktEventReceivedCount() const {
+      return getCumulativeValue(rxPktEventsReceived_);
+    }
+    int64_t getTxPktEventSentCount() const {
+      return getCumulativeValue(txPktEventsSent_);
+    }
 
    private:
     TLCounter statsEventSinkStatus_;
@@ -603,6 +653,12 @@ class SwitchStats : public boost::noncopyable {
     TLTimeseries fdbEventSinkDisconnects_;
     TLTimeseries rxPktEventSinkDisconnects_;
     TLTimeseries txPktEventStreamDisconnects_;
+
+    TLTimeseries statsEventsReceived_;
+    TLTimeseries linkEventsReceived_;
+    TLTimeseries fdbEventsReceived_;
+    TLTimeseries rxPktEventsReceived_;
+    TLTimeseries txPktEventsSent_;
   };
 
   const int numSwitches_;

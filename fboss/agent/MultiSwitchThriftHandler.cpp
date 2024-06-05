@@ -123,6 +123,7 @@ MultiSwitchThriftHandler::co_notifyLinkChangeEvent(int64_t switchId) {
           while (auto item = co_await folly::coro::co_withCancellation(
                      linkCancellationSource_.getToken(), gen.next())) {
             XLOG(DBG2) << "Got link change event from switch " << switchId;
+            sw_->stats()->hwAgentLinkStatusReceived(switchIndex);
             processLinkState(SwitchID(switchId), *item);
             processLinkActiveState(SwitchID(switchId), *item);
             processLinkConnectivity(SwitchID(switchId), *item);
@@ -155,6 +156,7 @@ MultiSwitchThriftHandler::co_notifyFdbEvent(int64_t switchId) {
             XLOG(DBG3) << "Got fdb event from switch " << switchId
                        << " for port " << *item->entry()->port()
                        << " mac :" << *item->entry()->mac();
+            sw_->stats()->hwAgentFdbEventReceived(switchIndex);
             auto l2Entry = getL2Entry(*item->entry());
             sw_->l2LearningUpdateReceived(l2Entry, *item->updateType());
           }
@@ -184,6 +186,7 @@ MultiSwitchThriftHandler::co_notifyRxPacket(int64_t switchId) {
                      rxPktCancellationSource_.getToken(), gen.next())) {
             XLOG(DBG4) << "Got rx packet from switch " << switchId
                        << " for port " << *item->port();
+            sw_->stats()->hwAgentRxPktReceived(switchIndex);
             auto pkt = make_unique<SwRxPacket>(std::move(*item->data()));
             pkt->setSrcPort(PortID(*item->port()));
             if (item->vlan()) {
@@ -249,6 +252,7 @@ MultiSwitchThriftHandler::co_syncHwStats(int16_t switchIndex) {
                      statsCancellationSource_.getToken(), gen.next())) {
             XLOG(DBG3) << "Got stats event from switchIndex " << switchIndex;
             sw_->updateHwSwitchStats(switchIndex, std::move(*item));
+            sw_->stats()->hwAgentStatsReceived(switchIndex);
           }
         } catch (const std::exception& e) {
           XLOG(DBG2) << "Stats event sink cancelled for switchIndex "
