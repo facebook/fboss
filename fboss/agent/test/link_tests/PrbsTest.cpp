@@ -492,7 +492,7 @@ class TransceiverLineToTransceiverLinePrbsTest : public PrbsTest {
   std::vector<TestPort> getPortsToTest() override {
     std::vector<TestPort> portsToTest;
     auto connectedPairs = this->getConnectedPairs();
-    for (const auto [port1, port2] : connectedPairs) {
+    for (const auto& [port1, port2] : connectedPairs) {
       auto portName1 = this->getPortName(port1);
       auto portName2 = this->getPortName(port2);
 
@@ -526,8 +526,8 @@ class PhyToTransceiverSystemPrbsTest : public PrbsTest {
         ComponentA == phy::PortComponent::GB_LINE);
     std::vector<TestPort> portsToTest;
     auto connectedPairs = this->getConnectedPairs();
-    for (const auto [port1, port2] : connectedPairs) {
-      for (const auto port : {port1, port2}) {
+    for (const auto& [port1, port2] : connectedPairs) {
+      for (const auto& port : {port1, port2}) {
         auto portName = this->getPortName(port);
         if (!this->checkValidMedia(port, Media) ||
             !this->checkPrbsSupported(portName, ComponentA, PolynomialA) ||
@@ -552,7 +552,7 @@ class AsicToAsicPrbsTest : public PrbsTest {
   std::vector<TestPort> getPortsToTest() override {
     std::vector<TestPort> portsToTest;
     auto connectedPairs = this->getConnectedPairs();
-    for (const auto [port1, port2] : connectedPairs) {
+    for (const auto& [port1, port2] : connectedPairs) {
       auto portName1 = this->getPortName(port1);
       auto portName2 = this->getPortName(port2);
 
