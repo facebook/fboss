@@ -88,6 +88,7 @@ class TestExtendedSubscription : public ExtendedSubscription {
   void flush(const SubscriptionMetadataServer&) override {}
   void serveHeartbeat() override {}
   std::unique_ptr<Subscription> resolve(
+      const SubscriptionKey& /* key */,
       const std::vector<std::string>& path) override {
     return std::make_unique<TestSubscription>(path);
   }

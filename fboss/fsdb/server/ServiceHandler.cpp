@@ -616,16 +616,8 @@ folly::coro::AsyncGenerator<SubscriberMessage&&> makeSubStreamGenerator(
   // TODO: for the sake of incremental diffs just looking at first path for
   // now, later will support multi path
   auto path = *request->paths()->begin()->second.path();
-  auto gen = storage.subscribe_patch(
+  return storage.subscribe_patch(
       *request->clientId()->instanceId(), path.begin(), path.end());
-  while (auto chunk = co_await gen.next()) {
-    SubscriberMessage message;
-    // TODO: handle heartbeat
-    SubscriberChunk subChunk;
-    subChunk.patches() = {{0, *chunk}};
-    message.set_chunk(std::move(subChunk));
-    co_yield std::move(message);
-  }
 }
 
 void validatePaths(

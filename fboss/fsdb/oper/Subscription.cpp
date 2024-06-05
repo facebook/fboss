@@ -248,6 +248,7 @@ void ExtendedPathSubscription::flush(
 }
 
 std::unique_ptr<Subscription> ExtendedPathSubscription::resolve(
+    const SubscriptionKey& /* key */,
     const std::vector<std::string>& path) {
   return std::make_unique<FullyResolvedExtendedPathSubscription>(path, *this);
 }
@@ -281,6 +282,7 @@ ExtendedDeltaSubscription::create(
 }
 
 std::unique_ptr<Subscription> ExtendedDeltaSubscription::resolve(
+    const SubscriptionKey& /* key */,
     const std::vector<std::string>& path) {
   return std::make_unique<FullyResolvedExtendedDeltaSubscription>(path, *this);
 }
@@ -317,6 +319,7 @@ void ExtendedDeltaSubscription::allPublishersGone(
 }
 
 PatchSubscription::PatchSubscription(
+    const SubscriptionKey& key,
     std::vector<std::string> path,
     ExtendedPatchSubscription& subscription)
     : Subscription(
@@ -324,6 +327,7 @@ PatchSubscription::PatchSubscription(
           std::move(path),
           subscription.operProtocol(),
           subscription.publisherTreeRoot()),
+      key_(key),
       subscription_(subscription) {}
 
 void PatchSubscription::allPublishersGone(
@@ -345,7 +349,7 @@ void PatchSubscription::offer(thrift_cow::PatchNode node) {
   Patch patch;
   patch.basePath() = path();
   patch.patch() = std::move(node);
-  subscription_.buffer(std::move(patch));
+  subscription_.buffer(key_, std::move(patch));
 }
 
 bool PatchSubscription::isActive() const {
@@ -353,7 +357,7 @@ bool PatchSubscription::isActive() const {
 }
 
 std::pair<
-    folly::coro::AsyncGenerator<Patch&&>,
+    folly::coro::AsyncGenerator<ExtendedPatchSubscription::gen_type&&>,
     std::unique_ptr<ExtendedPatchSubscription>>
 ExtendedPatchSubscription::create(
     SubscriberId subscriber,
@@ -370,7 +374,7 @@ ExtendedPatchSubscription::create(
 }
 
 std::pair<
-    folly::coro::AsyncGenerator<Patch&&>,
+    folly::coro::AsyncGenerator<ExtendedPatchSubscription::gen_type&&>,
     std::unique_ptr<ExtendedPatchSubscription>>
 ExtendedPatchSubscription::create(
     SubscriberId subscriber,
@@ -394,14 +398,14 @@ ExtendedPatchSubscription::create(
 }
 
 std::pair<
-    folly::coro::AsyncGenerator<Patch&&>,
+    folly::coro::AsyncGenerator<ExtendedPatchSubscription::gen_type&&>,
     std::unique_ptr<ExtendedPatchSubscription>>
 ExtendedPatchSubscription::create(
     SubscriberId subscriber,
     std::map<SubscriptionKey, ExtendedOperPath> paths,
     OperProtocol protocol,
     std::optional<std::string> publisherRoot) {
-  auto [generator, pipe] = folly::coro::AsyncPipe<Patch>::create();
+  auto [generator, pipe] = folly::coro::AsyncPipe<gen_type>::create();
   auto subscription = std::make_unique<ExtendedPatchSubscription>(
       std::move(subscriber),
       std::move(paths),
@@ -412,30 +416,38 @@ ExtendedPatchSubscription::create(
 }
 
 std::unique_ptr<Subscription> ExtendedPatchSubscription::resolve(
+    const SubscriptionKey& key,
     const std::vector<std::string>& path) {
-  return std::make_unique<PatchSubscription>(path, *this);
+  return std::make_unique<PatchSubscription>(key, path, *this);
 }
 
-void ExtendedPatchSubscription::buffer(value_type&& newVal) {
-  currPatch_ = newVal;
+void ExtendedPatchSubscription::buffer(
+    const SubscriptionKey& key,
+    Patch&& newVal) {
+  buffered_[key] = std::move(newVal);
 }
 
-std::optional<Patch> ExtendedPatchSubscription::moveFromCurrPatch(
+std::optional<SubscriberChunk> ExtendedPatchSubscription::moveCurChunk(
     const SubscriptionMetadataServer& metadataServer) {
-  if (!currPatch_) {
+  if (buffered_.empty()) {
     return std::nullopt;
   }
-  std::optional<Patch> patch = std::move(currPatch_);
-  currPatch_.reset();
-  patch->metadata() = getMetadata(metadataServer);
-  patch->protocol() = operProtocol();
-  return patch;
+  for (auto& [_, patch] : buffered_) {
+    patch.metadata() = getMetadata(metadataServer);
+    patch.protocol() = operProtocol();
+  }
+  SubscriberChunk chunk;
+  chunk.patches() = std::move(buffered_);
+  buffered_ = {};
+  return chunk;
 }
 
 void ExtendedPatchSubscription::flush(
     const SubscriptionMetadataServer& metadataServer) {
-  if (auto patch = moveFromCurrPatch(metadataServer)) {
-    pipe_.write(*patch);
+  if (auto chunk = moveCurChunk(metadataServer)) {
+    SubscriberMessage msg;
+    msg.set_chunk(std::move(*chunk));
+    pipe_.write(std::move(msg));
   }
 }
 

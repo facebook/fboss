@@ -133,6 +133,7 @@ class ExtendedSubscription : public BaseSubscription {
   }
 
   virtual std::unique_ptr<Subscription> resolve(
+      const SubscriptionKey& key,
       const std::vector<std::string>& path) = 0;
 
  protected:
@@ -363,6 +364,7 @@ class ExtendedPathSubscription : public ExtendedSubscription,
   }
 
   virtual std::unique_ptr<Subscription> resolve(
+      const SubscriptionKey& key,
       const std::vector<std::string>& path) override;
 
   static std::pair<
@@ -443,6 +445,7 @@ class ExtendedDeltaSubscription : public ExtendedSubscription,
   }
 
   virtual std::unique_ptr<Subscription> resolve(
+      const SubscriptionKey& key,
       const std::vector<std::string>& path) override;
 
   static std::pair<
@@ -493,6 +496,7 @@ class PatchSubscription : public Subscription, private boost::noncopyable {
   using PathIter = std::vector<std::string>::const_iterator;
 
   PatchSubscription(
+      const SubscriptionKey& key,
       std::vector<std::string> path,
       ExtendedPatchSubscription& subscription);
 
@@ -515,6 +519,7 @@ class PatchSubscription : public Subscription, private boost::noncopyable {
       const std::string& msg = "All publishers dropped") override;
 
  private:
+  SubscriptionKey key_;
   std::optional<Patch> currPatch_;
   ExtendedPatchSubscription& subscription_;
 };
@@ -522,13 +527,13 @@ class PatchSubscription : public Subscription, private boost::noncopyable {
 class ExtendedPatchSubscription : public ExtendedSubscription,
                                   private boost::noncopyable {
  public:
-  using value_type = Patch;
+  using gen_type = SubscriberMessage;
 
   virtual ~ExtendedPatchSubscription() override = default;
 
   // Single path
   static std::pair<
-      folly::coro::AsyncGenerator<value_type&&>,
+      folly::coro::AsyncGenerator<gen_type&&>,
       std::unique_ptr<ExtendedPatchSubscription>>
   create(
       SubscriberId subscriber,
@@ -538,7 +543,7 @@ class ExtendedPatchSubscription : public ExtendedSubscription,
 
   // Multipath
   static std::pair<
-      folly::coro::AsyncGenerator<value_type&&>,
+      folly::coro::AsyncGenerator<gen_type&&>,
       std::unique_ptr<ExtendedPatchSubscription>>
   create(
       SubscriberId subscriber,
@@ -548,7 +553,7 @@ class ExtendedPatchSubscription : public ExtendedSubscription,
 
   // Extended paths
   static std::pair<
-      folly::coro::AsyncGenerator<value_type&&>,
+      folly::coro::AsyncGenerator<gen_type&&>,
       std::unique_ptr<ExtendedPatchSubscription>>
   create(
       SubscriberId subscriber,
@@ -559,7 +564,7 @@ class ExtendedPatchSubscription : public ExtendedSubscription,
   ExtendedPatchSubscription(
       SubscriberId subscriber,
       ExtSubPathMap paths,
-      folly::coro::AsyncPipe<value_type> pipe,
+      folly::coro::AsyncPipe<gen_type> pipe,
       OperProtocol protocol,
       std::optional<std::string> publisherTreeRoot = std::nullopt)
       : ExtendedSubscription(
@@ -574,9 +579,10 @@ class ExtendedPatchSubscription : public ExtendedSubscription,
   }
 
   virtual std::unique_ptr<Subscription> resolve(
+      const SubscriptionKey& key,
       const std::vector<std::string>& path) override;
 
-  void buffer(value_type&& newVal);
+  void buffer(const SubscriptionKey& key, Patch&& newVal);
 
   void flush(const SubscriptionMetadataServer& metadataServer) override;
 
@@ -588,11 +594,11 @@ class ExtendedPatchSubscription : public ExtendedSubscription,
       override;
 
  private:
-  std::optional<Patch> moveFromCurrPatch(
+  std::optional<SubscriberChunk> moveCurChunk(
       const SubscriptionMetadataServer& metadataServer);
 
-  std::optional<Patch> currPatch_;
-  folly::coro::AsyncPipe<Patch> pipe_;
+  std::map<SubscriptionKey, Patch> buffered_;
+  folly::coro::AsyncPipe<gen_type> pipe_;
 };
 
 } // namespace facebook::fboss::fsdb

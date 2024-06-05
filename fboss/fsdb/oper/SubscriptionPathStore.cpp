@@ -33,7 +33,7 @@ void SubscriptionPathStore::incrementallyResolve(
     // resolved Subscription*
     XLOG(DBG2) << this << ": Saving fully resolved extended subscription at "
                << folly::join('/', pathSoFar);
-    auto resolvedSub = subscription->resolve(pathSoFar);
+    auto resolvedSub = subscription->resolve(subKey, pathSoFar);
     manager.registerSubscription(std::move(resolvedSub));
     return;
   } else if (path.at(idx).getType() != OperPathElem::Type::raw) {

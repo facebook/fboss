@@ -147,23 +147,23 @@ class SubscribableStorage {
       typename = std::enable_if_t<
           std::is_same_v<typename folly::remove_cvref_t<Path>::RootT, RootT>,
           void>>
-  folly::coro::AsyncGenerator<Patch&&> subscribe_patch(
+  folly::coro::AsyncGenerator<SubscriberMessage&&> subscribe_patch(
       SubscriberId subscriber,
       Path&& path) {
     return this->subscribe_patch(subscriber, path.begin(), path.end());
   }
-  folly::coro::AsyncGenerator<Patch&&> subscribe_patch(
+  folly::coro::AsyncGenerator<SubscriberMessage&&> subscribe_patch(
       SubscriberId subscriber,
       const ConcretePath& path) {
     return this->subscribe_patch(subscriber, path.begin(), path.end());
   }
-  folly::coro::AsyncGenerator<Patch&&>
+  folly::coro::AsyncGenerator<SubscriberMessage&&>
   subscribe_patch(SubscriberId subscriber, PathIter begin, PathIter end) {
     RawOperPath rawPath;
     rawPath.path() = std::vector<std::string>(begin, end);
     return this->subscribe_patch(subscriber, std::move(rawPath));
   }
-  folly::coro::AsyncGenerator<Patch&&> subscribe_patch(
+  folly::coro::AsyncGenerator<SubscriberMessage&&> subscribe_patch(
       SubscriberId subscriber,
       RawOperPath rawPath) {
     return static_cast<Impl*>(this)->subscribe_patch_impl(

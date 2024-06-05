@@ -108,7 +108,7 @@ class NaivePeriodicSubscribableStorageBase {
       OperProtocol protocol);
 
 #ifdef ENABLE_PATCH_APIS
-  folly::coro::AsyncGenerator<Patch&&> subscribe_patch_impl(
+  folly::coro::AsyncGenerator<SubscriberMessage&&> subscribe_patch_impl(
       SubscriberId subscriber,
       std::map<SubscriptionKey, RawOperPath> rawPaths) {
     for (auto& [key, path] : rawPaths) {

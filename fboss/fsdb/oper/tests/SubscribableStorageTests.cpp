@@ -202,8 +202,11 @@ TEST_P(SubscribableStorageTests, SubscribePatch) {
   storage.start();
 
   // Initial sync post subscription setup
-  auto patch = folly::coro::blockingWait(
+  auto msg = folly::coro::blockingWait(
       folly::coro::timeout(consumeOne(generator), std::chrono::seconds(5)));
+  auto patches = *msg.get_chunk().patches();
+  EXPECT_EQ(patches.size(), 1);
+  auto patch = patches.begin()->second;
   auto rootPatch = patch.patch()->val_ref();
   EXPECT_TRUE(rootPatch);
   //   initial sync should just be a whole blob
@@ -214,8 +217,11 @@ TEST_P(SubscribableStorageTests, SubscribePatch) {
 
   // Make changes, we should see that come in as a patch now
   EXPECT_EQ(storage.set(root.tx(), false), std::nullopt);
-  patch = folly::coro::blockingWait(
+  msg = folly::coro::blockingWait(
       folly::coro::timeout(consumeOne(generator), std::chrono::seconds(5)));
+  patches = *msg.get_chunk().patches();
+  EXPECT_EQ(patches.size(), 1);
+  patch = patches.begin()->second;
 
   using TestStructMembers = apache::thrift::reflect_struct<TestStruct>::member;
   auto newVal = patch.patch()
@@ -247,8 +253,11 @@ TEST_P(SubscribableStorageTests, SubscribePatchUpdate) {
 
   // set and check
   EXPECT_EQ(storage.set(path, 1), std::nullopt);
-  auto patch = folly::coro::blockingWait(
+  auto msg = folly::coro::blockingWait(
       folly::coro::timeout(consumeOne(generator), std::chrono::seconds(1)));
+  auto patches = *msg.get_chunk().patches();
+  EXPECT_EQ(patches.size(), 1);
+  auto patch = patches.begin()->second;
   auto newVal = *patch.patch()->val_ref();
   auto deserializedVal = facebook::fboss::thrift_cow::
       deserializeBuf<apache::thrift::type_class::integral, int>(
@@ -257,8 +266,11 @@ TEST_P(SubscribableStorageTests, SubscribePatchUpdate) {
 
   // update and check
   EXPECT_EQ(storage.set(path, 10), std::nullopt);
-  patch = folly::coro::blockingWait(
+  msg = folly::coro::blockingWait(
       folly::coro::timeout(consumeOne(generator), std::chrono::seconds(1)));
+  patches = *msg.get_chunk().patches();
+  EXPECT_EQ(patches.size(), 1);
+  patch = patches.begin()->second;
   newVal = *patch.patch()->val_ref();
   deserializedVal = facebook::fboss::thrift_cow::
       deserializeBuf<apache::thrift::type_class::integral, int>(
