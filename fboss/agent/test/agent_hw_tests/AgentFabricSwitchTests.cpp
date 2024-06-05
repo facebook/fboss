@@ -178,6 +178,12 @@ TEST_F(AgentFabricSwitchTest, fabricSwitchIsolate) {
     for (const auto& switchId : getFabricSwitchIds()) {
       utility::checkFabricReachability(getAgentEnsemble(), switchId);
     }
+    // All ports should go to inactive state when switch is drained and
+    // ports are in loopback!
+    utility::checkFabricPortsActiveState(
+        getAgentEnsemble(),
+        masterLogicalFabricPortIds(),
+        false /*expectActive*/);
   };
   verifyAcrossWarmBoots(setup, verify);
 }
