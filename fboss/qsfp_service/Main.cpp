@@ -2,7 +2,7 @@
 
 #include <thrift/lib/cpp2/server/ThriftServer.h>
 
-#include <folly/experimental/FunctionScheduler.h>
+#include <folly/executors/FunctionScheduler.h>
 #include <folly/logging/Init.h>
 
 #include "fboss/qsfp_service/QsfpServer.h"

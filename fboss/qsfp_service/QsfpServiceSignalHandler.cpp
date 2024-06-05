@@ -11,7 +11,7 @@
 
 #include "fboss/qsfp_service/QsfpServiceHandler.h"
 
-#include <folly/experimental/FunctionScheduler.h>
+#include <folly/executors/FunctionScheduler.h>
 #include <thrift/lib/cpp2/server/ThriftServer.h>
 #include <chrono>
 #include <csignal>

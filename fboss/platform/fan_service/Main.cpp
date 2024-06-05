@@ -5,7 +5,7 @@
 #include <string>
 
 #include <fb303/FollyLoggingHandler.h>
-#include <folly/experimental/FunctionScheduler.h>
+#include <folly/executors/FunctionScheduler.h>
 #include <folly/logging/Init.h>
 #include <folly/logging/xlog.h>
 #include <gflags/gflags.h>

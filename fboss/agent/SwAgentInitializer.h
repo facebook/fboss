@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include <folly/experimental/FunctionScheduler.h>
+#include <folly/executors/FunctionScheduler.h>
 
 #include <thrift/lib/cpp2/server/ThriftServer.h>
 #include "fboss/agent/AgentInitializer.h"

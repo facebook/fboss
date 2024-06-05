@@ -16,7 +16,7 @@
 
 #include <thrift/lib/cpp2/server/ThriftServer.h>
 
-#include <folly/experimental/FunctionScheduler.h>
+#include <folly/executors/FunctionScheduler.h>
 
 #include "fboss/qsfp_service/QsfpServiceHandler.h"
 #include "fboss/qsfp_service/platforms/wedge/WedgeManager.h"

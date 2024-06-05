@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include <folly/experimental/FunctionScheduler.h>
+#include <folly/executors/FunctionScheduler.h>
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 #include "fboss/agent/hw/bcm/types.h"
 #include "fboss/agent/state/QcmConfig.h"

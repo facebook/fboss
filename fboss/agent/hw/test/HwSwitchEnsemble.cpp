@@ -35,7 +35,7 @@
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/test/LinkStateToggler.h"
 
-#include <folly/experimental/FunctionScheduler.h>
+#include <folly/executors/FunctionScheduler.h>
 #include <folly/gen/Base.h>
 #include <memory>
 #include <utility>

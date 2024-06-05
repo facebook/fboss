@@ -15,7 +15,7 @@
 #include <set>
 
 #include <folly/Synchronized.h>
-#include <folly/experimental/FunctionScheduler.h>
+#include <folly/executors/FunctionScheduler.h>
 #include <folly/futures/Future.h>
 
 #include "fboss/agent/gen-cpp2/switch_config_types.h"

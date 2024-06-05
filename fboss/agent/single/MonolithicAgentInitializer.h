@@ -3,7 +3,7 @@
 #pragma once
 #include <memory>
 
-#include <folly/experimental/FunctionScheduler.h>
+#include <folly/executors/FunctionScheduler.h>
 #include <thrift/lib/cpp2/server/ThriftServer.h>
 #include "fboss/agent/CommonInit.h"
 #include "fboss/agent/HwAgent.h"

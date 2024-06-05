@@ -7,7 +7,7 @@
 #include "fboss/qsfp_service/lib/QsfpCache.h"
 
 #include <folly/Random.h>
-#include <folly/experimental/FunctionScheduler.h>
+#include <folly/executors/FunctionScheduler.h>
 #include <folly/init/Init.h>
 #include <folly/io/async/EventBase.h>
 
