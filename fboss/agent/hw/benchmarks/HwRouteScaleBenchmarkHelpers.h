@@ -233,15 +233,19 @@ inline void voqRouteBenchmark(bool add) {
     auto updater = ensemble->getSw()->getRouteUpdater();
     ecmpHelper.unprogramRoutes(&updater, prefixes);
   };
-  if (add) {
-    suspender.dismiss();
-    programRoutes();
-    suspender.rehire();
-  } else {
-    programRoutes();
-    suspender.dismiss();
-    unprogramRoutes();
-    suspender.rehire();
+  const auto kVoqRouteIteration = 10;
+  for (int i = 0; i < kVoqRouteIteration; ++i) {
+    if (add) {
+      suspender.dismiss();
+      programRoutes();
+      suspender.rehire();
+      unprogramRoutes();
+    } else {
+      programRoutes();
+      suspender.dismiss();
+      unprogramRoutes();
+      suspender.rehire();
+    }
   }
 }
 
