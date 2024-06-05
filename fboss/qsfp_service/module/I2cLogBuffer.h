@@ -96,7 +96,10 @@ class I2cLogBuffer {
   // will be cleared.
   // It is recommended that entriesOut is created with capacity <size_>
   // on the stack before calling this function (reduce allocation latency).
-  size_t dump(std::vector<I2cLogEntry>& entriesOut);
+  // Returns a pair: total enties logged and number of entries in circular
+  // buffer. Total entries logged could be much higher than capacity of circular
+  // buffer.
+  std::pair<size_t, size_t> dump(std::vector<I2cLogEntry>& entriesOut);
 
   // Get the number of entries logged to the buffer. The size of the
   // buffer can be smaller than total entries logged.
@@ -129,6 +132,12 @@ class I2cLogBuffer {
   size_t totalEntries_{0};
   std::string logFile_;
   std::mutex mutex_;
+
+  size_t getSize() {
+    // Avoid the tsan errors. size_ is also a const member variable.
+    std::lock_guard<std::mutex> g(mutex_);
+    return size_;
+  }
 
   void getEntryTime(std::stringstream& ss, const TimePointSystem& time_point);
 

@@ -70,12 +70,14 @@ void I2cLogBuffer::log(
   }
 }
 
-size_t I2cLogBuffer::dump(std::vector<I2cLogEntry>& entriesOut) {
-  // resize the vector before locking the mutex. This is to avoid
-  // memory allocation while locking the mutex.
-  entriesOut.resize(size_);
-
+std::pair<size_t, size_t> I2cLogBuffer::dump(
+    std::vector<I2cLogEntry>& entriesOut) {
   std::lock_guard<std::mutex> g(mutex_);
+
+  if (entriesOut.size() != size_) {
+    entriesOut.resize(size_);
+  }
+
   size_t entries = 0;
   // Copy entries from tail to head.
   // If head < tail:
@@ -108,8 +110,9 @@ size_t I2cLogBuffer::dump(std::vector<I2cLogEntry>& entriesOut) {
     }
   }
 
+  auto retval = std::make_pair(totalEntries_, entries);
   totalEntries_ = head_ = tail_ = 0;
-  return entries;
+  return retval;
 }
 
 size_t I2cLogBuffer::getHeader(
@@ -122,6 +125,7 @@ size_t I2cLogBuffer::getHeader(
      << "\n";
   ss << "Between the Operation <Param> and [Data], an 'F' indicates a failure in the transaction.\n";
   ss << "If the read transaction failed [Data] may not be accurate.\n";
+  ss << "mmmuuu: milliseconds microseconds, steadclock_ns: time in ns between log entries \n";
   ss << "Header format: \n";
   ss << "Month D HH:MM:SS.mmmuuu <i2c_address  offset  len  page  bank  op> F [data]  steadyclock_ns"
      << "\n";
@@ -157,16 +161,20 @@ void I2cLogBuffer::getOptional(std::stringstream& ss, T value) {
 }
 
 std::pair<size_t, size_t> I2cLogBuffer::dumpToFile() {
-  std::vector<I2cLogEntry> entriesOut(size_);
-  auto entries = totalEntries_;
-  const size_t numContents = dump(entriesOut);
+  // To avoid high latency for lock (during memory allocation), the thrift API
+  // call will run this function and the entriesOut will be initialized to the
+  // right size before the call to dump();
+  const size_t size = getSize();
+  std::vector<I2cLogEntry> entriesOut(size);
+  auto entries = dump(entriesOut);
   std::stringstream ss;
 
-  auto hdrSize = getHeader(ss, entries, numContents);
+  auto logCount = entries.second;
+  auto hdrSize = getHeader(ss, entries.first, logCount);
 
   TimePointSteady prev;
 
-  for (size_t i = 0; i < numContents; i++) {
+  for (size_t i = 0; i < logCount; i++) {
     getEntryTime(ss, entriesOut[i].systemTime);
     ss << " <";
     auto& param = entriesOut[i].param;
@@ -201,7 +209,7 @@ std::pair<size_t, size_t> I2cLogBuffer::dumpToFile() {
     ss << std::endl;
   }
   folly::writeFile(ss.str(), logFile_.c_str());
-  return std::make_pair(hdrSize, numContents);
+  return std::make_pair(hdrSize, logCount);
 }
 
 TransceiverAccessParameter I2cLogBuffer::getParam(std::stringstream& ss) {
