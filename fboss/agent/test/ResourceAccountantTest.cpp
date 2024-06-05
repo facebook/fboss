@@ -54,6 +54,13 @@ class ResourceAccountantTest : public ::testing::Test {
     return maxEcmpMembers.value();
   }
 
+  uint64_t getMaxDlbEcmpGroups() {
+    auto maxDlbEcmpGroups =
+        asicTable_->getHwAsic(SwitchID(0))->getMaxDlbEcmpGroups();
+    CHECK(maxDlbEcmpGroups.has_value());
+    return maxDlbEcmpGroups.value();
+  }
+
   std::unique_ptr<ResourceAccountant> resourceAccountant_;
   std::unique_ptr<HwAsicTable> asicTable_;
 };
@@ -90,6 +97,35 @@ TEST_F(ResourceAccountantTest, getMemberCountForEcmpGroup) {
   EXPECT_EQ(
       expectedTotalMember,
       this->resourceAccountant_->getMemberCountForEcmpGroup(ucmpNextHopEntry));
+}
+
+TEST_F(ResourceAccountantTest, checkDlbResource) {
+  // MockAsic is configured to support 4 DLB groups
+  EXPECT_TRUE(
+      this->resourceAccountant_->checkDlbResource(75 /* resourcePercentage */));
+  EXPECT_TRUE(this->resourceAccountant_->checkDlbResource(
+      100 /* resourcePercentage */));
+
+  std::vector<RouteNextHopSet> ecmpNexthopsList;
+  for (int i = 0; i < getMaxEcmpGroups(); i++) {
+    ecmpNexthopsList.push_back(RouteNextHopSet{
+        ResolvedNextHop(
+            folly::IPAddress(folly::to<std::string>("1.1.1.", i + 1)),
+            InterfaceID(i + 1),
+            ecmpWeight),
+        ResolvedNextHop(
+            folly::IPAddress(folly::to<std::string>("1.1.1.", i + 2)),
+            InterfaceID(i + 2),
+            ecmpWeight)});
+  }
+  for (const auto& nhopSet : ecmpNexthopsList) {
+    this->resourceAccountant_->ecmpGroupRefMap_[nhopSet] = 1;
+    this->resourceAccountant_->ecmpMemberUsage_ += 2;
+  }
+  EXPECT_FALSE(
+      this->resourceAccountant_->checkDlbResource(75 /* resourcePercentage */));
+  EXPECT_TRUE(this->resourceAccountant_->checkDlbResource(
+      100 /* resourcePercentage */));
 }
 
 TEST_F(ResourceAccountantTest, checkEcmpResource) {

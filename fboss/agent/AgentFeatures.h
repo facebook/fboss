@@ -46,3 +46,5 @@ DECLARE_bool(classid_for_connected_subnet_routes);
 DECLARE_int32(stat_publish_interval_ms);
 DECLARE_int32(hwagent_port_base);
 DECLARE_bool(force_init_fp);
+DECLARE_bool(flowletSwitchingEnable);
+DECLARE_bool(dlbResourceCheckEnable);

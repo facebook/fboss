@@ -24,10 +24,12 @@ class ResourceAccountant {
 
   bool isValidRouteUpdate(const StateDelta& delta);
   void stateChanged(const StateDelta& delta);
+  void enableDlbResourceCheck(bool enable);
 
  private:
   int getMemberCountForEcmpGroup(const RouteNextHopEntry& fwd) const;
   bool checkEcmpResource(bool intermediateState) const;
+  bool checkDlbResource(uint32_t resourcePercentage) const;
   bool stateChangedImpl(const StateDelta& delta);
   bool shouldCheckRouteUpdate() const;
   bool isEcmp(const RouteNextHopEntry& fwd) const;
@@ -46,8 +48,10 @@ class ResourceAccountant {
   const HwAsicTable* asicTable_;
   bool nativeWeightedEcmp_{true};
   bool checkRouteUpdate_;
+  bool checkDlbResource_{true};
 
   FRIEND_TEST(ResourceAccountantTest, getMemberCountForEcmpGroup);
+  FRIEND_TEST(ResourceAccountantTest, checkDlbResource);
   FRIEND_TEST(ResourceAccountantTest, checkEcmpResource);
   FRIEND_TEST(ResourceAccountantTest, checkAndUpdateEcmpResource);
   FRIEND_TEST(ResourceAccountantTest, computeWeightedEcmpMemberCount);

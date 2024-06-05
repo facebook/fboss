@@ -8,6 +8,7 @@
  *
  */
 #include "fboss/agent/ResourceAccountant.h"
+#include "fboss/agent/AgentFeatures.h"
 
 #include "fboss/agent/state/DeltaFunctions.h"
 #include "fboss/agent/state/SwitchState.h"
@@ -100,6 +101,14 @@ bool ResourceAccountant::checkEcmpResource(bool intermediateState) const {
   uint32_t resourcePercentage =
       intermediateState ? kHundredPercentage : FLAGS_ecmp_resource_percentage;
 
+  // No need to check for DLB resources unless checkDlbResource_=True
+  if (FLAGS_dlbResourceCheckEnable && FLAGS_flowletSwitchingEnable &&
+      checkDlbResource_) {
+    if (!checkDlbResource(resourcePercentage)) {
+      return false;
+    }
+  }
+
   for (const auto& [_, hwAsic] : asicTable_->getHwAsics()) {
     const auto ecmpGroupLimit = hwAsic->getMaxEcmpGroups();
     const auto ecmpMemberLimit = hwAsic->getMaxEcmpMembers();
@@ -110,6 +119,18 @@ bool ResourceAccountant::checkEcmpResource(bool intermediateState) const {
         (ecmpMemberLimit.has_value() &&
          ecmpMemberUsage_ > (ecmpMemberLimit.value() * resourcePercentage) /
                  kHundredPercentage)) {
+      return false;
+    }
+  }
+  return true;
+}
+
+bool ResourceAccountant::checkDlbResource(uint32_t resourcePercentage) const {
+  for (const auto& [_, hwAsic] : asicTable_->getHwAsics()) {
+    const auto dlbGroupLimit = hwAsic->getMaxDlbEcmpGroups();
+    if (dlbGroupLimit.has_value() &&
+        ecmpGroupRefMap_.size() >
+            (dlbGroupLimit.value() * resourcePercentage) / kHundredPercentage) {
       return false;
     }
   }
@@ -191,6 +212,29 @@ bool ResourceAccountant::stateChangedImpl(const StateDelta& delta) {
 
 bool ResourceAccountant::isValidRouteUpdate(const StateDelta& delta) {
   bool validRouteUpdate = stateChangedImpl(delta);
+
+  if (FLAGS_dlbResourceCheckEnable && FLAGS_flowletSwitchingEnable &&
+      checkDlbResource_ && !validRouteUpdate) {
+    XLOG(WARNING)
+        << "Invalid route update - exceeding DLB resource limits. New state consumes "
+        << ecmpGroupRefMap_.size() << " DLB ECMP groups and "
+        << ecmpMemberUsage_ << " members.";
+    for (const auto& [switchId, hwAsic] : asicTable_->getHwAsics()) {
+      const auto dlbGroupLimit = hwAsic->getMaxDlbEcmpGroups();
+      const auto ecmpMemberLimit = hwAsic->getMaxEcmpMembers();
+      XLOG(WARNING) << "DLB ECMP resource limits for Switch " << switchId
+                    << ": max DLB groups="
+                    << (dlbGroupLimit.has_value()
+                            ? folly::to<std::string>(dlbGroupLimit.value())
+                            : "None")
+                    << ", max ECMP members="
+                    << (ecmpMemberLimit.has_value()
+                            ? folly::to<std::string>(ecmpMemberLimit.value())
+                            : "None");
+    }
+    return validRouteUpdate;
+  }
+
   if (!validRouteUpdate) {
     XLOG(WARNING)
         << "Invalid route update - exceeding ECMP resource limits. New state consumes "
@@ -215,6 +259,10 @@ bool ResourceAccountant::isValidRouteUpdate(const StateDelta& delta) {
 
 void ResourceAccountant::stateChanged(const StateDelta& delta) {
   stateChangedImpl(delta);
+}
+
+void ResourceAccountant::enableDlbResourceCheck(bool enable) {
+  checkDlbResource_ = enable;
 }
 
 template bool

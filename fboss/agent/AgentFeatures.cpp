@@ -71,3 +71,15 @@ DEFINE_int32(
     "The first thrift server port reserved for HwAgent");
 
 DEFINE_bool(force_init_fp, true, "Force full field processor initialization");
+
+DEFINE_bool(
+    flowletSwitchingEnable,
+    false,
+    "Flag to turn on flowlet switching for DLB");
+
+// TODO (ravi)
+// This is more a safety tool for fast rollback if RTSWs run into an issue
+DEFINE_bool(
+    dlbResourceCheckEnable,
+    true,
+    "Flag to enable resource checks on DLB ecmp groups");
