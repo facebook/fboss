@@ -146,6 +146,7 @@ class TestI2c(TestBase):
         with concurrent.futures.ThreadPoolExecutor() as executor:
             futures.append(executor.submit(self.run_i2c_dump_test, device, busNum))
             futures.append(executor.submit(self.run_i2c_get_test, device, busNum))
+            futures.append(executor.submit(self.run_i2c_set_test, device, busNum))
         concurrent.futures.wait(futures)
 
     def run_i2c_dump_test(self, device: I2CDevice, busNum: int) -> None:
