@@ -315,9 +315,12 @@ void PatchSubscription::allPublishersGone(
 }
 
 std::optional<Patch> PatchSubscription::moveFromCurrPatch(
-    const SubscriptionMetadataServer& /* metadataServer */) {
+    const SubscriptionMetadataServer& metadataServer) {
+  if (!currPatch_) {
+    return std::nullopt;
+  }
+  currPatch_->metadata() = getMetadata(metadataServer);
   std::optional<Patch> patch = std::move(currPatch_);
-  // TODO: metadata
   currPatch_.reset();
   return patch;
 }

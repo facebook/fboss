@@ -106,8 +106,7 @@ class TestFsdbSubscriber : public PubSubT::SubscriberT {
       ASSERT_EVENTUALLY_EQ(queueSize(), expectedSize);
       for (const auto& unit : queuedUnits()) {
         if constexpr (std::is_same_v<SubUnitT, SubscriberChunk>) {
-          // TODO: send metadata from server
-          // ASSERT_GT(*unit.patch()->metadata()->lastConfirmedAt(), 0);
+          ASSERT_GT(*unit.patch()->metadata()->lastConfirmedAt(), 0);
         } else {
           ASSERT_GT(*unit.metadata()->lastConfirmedAt(), 0);
         }
