@@ -100,8 +100,10 @@ class FsdbPubSubTest : public ::testing::Test {
     pubSub.setServerOptions(
         FsdbStreamClient::ServerOptions("::1", fsdbTestServer_->getFsdbPort()),
         updateServerPort);
-    WITH_RETRIES_N(
-        kRetries, ASSERT_EVENTUALLY_TRUE(pubSub.isConnectedToServer()));
+    WITH_RETRIES_N(kRetries, {
+      ASSERT_EVENTUALLY_TRUE(pubSub.isConnectedToServer())
+          << pubSub.clientId() << " did not connected";
+    });
   }
   void setupConnections(bool updateServerPort = false) {
     setupConnection(*publisher_, updateServerPort);
@@ -193,14 +195,11 @@ class FsdbPubSubTest : public ::testing::Test {
   template <typename SubRequestT>
   auto subscribe(const SubRequestT& reqIn) {
     auto req = std::make_unique<SubRequestT>(reqIn);
-    // TODO: subscribe patch
     if constexpr (std::is_same_v<TestParam, DeltaPubSubForState>) {
       return folly::coro::blockingWait(
           this->fsdbTestServer_->serviceHandler().co_subscribeOperStateDelta(
               std::move(req)));
-    } else if constexpr (
-        std::is_same_v<TestParam, StatePubSubForState> ||
-        std::is_same_v<TestParam, PatchPubSubForState>) {
+    } else if constexpr (std::is_same_v<TestParam, StatePubSubForState>) {
       return folly::coro::blockingWait(
           this->fsdbTestServer_->serviceHandler().co_subscribeOperStatePath(
               std::move(req)));
@@ -208,11 +207,17 @@ class FsdbPubSubTest : public ::testing::Test {
       return folly::coro::blockingWait(
           this->fsdbTestServer_->serviceHandler().co_subscribeOperStatsDelta(
               std::move(req)));
-    } else if constexpr (
-        std::is_same_v<TestParam, StatePubSubForStats> ||
-        std::is_same_v<TestParam, PatchPubSubForStats>) {
+    } else if constexpr (std::is_same_v<TestParam, StatePubSubForStats>) {
       return folly::coro::blockingWait(
           this->fsdbTestServer_->serviceHandler().co_subscribeOperStatsPath(
+              std::move(req)));
+    } else if constexpr (std::is_same_v<TestParam, PatchPubSubForState>) {
+      return folly::coro::blockingWait(
+          this->fsdbTestServer_->serviceHandler().co_subscribeState(
+              std::move(req)));
+    } else if constexpr (std::is_same_v<TestParam, PatchPubSubForStats>) {
+      return folly::coro::blockingWait(
+          this->fsdbTestServer_->serviceHandler().co_subscribeStats(
               std::move(req)));
     }
   }
@@ -252,6 +257,23 @@ class FsdbPubSubTest : public ::testing::Test {
     }
   }
 
+  auto makeSubRequest(std::string id, std::vector<std::string> path) {
+    if constexpr (std::is_same_v<PubUnitT, Patch>) {
+      SubRequest req;
+      req.clientId()->client() = FsdbClient::ADHOC;
+      req.clientId()->instanceId() = std::move(id);
+      RawOperPath p;
+      p.path() = std::move(path);
+      req.paths() = {{0, std::move(p)}};
+      return req;
+    } else {
+      OperSubRequest req;
+      req.subscriberId() = std::move(id);
+      req.path()->raw() = std::move(path);
+      return req;
+    }
+  }
+
   template <typename Req>
   auto setupPublisher(const Req& reqIn) {
     auto req = std::make_unique<Req>(reqIn);
@@ -282,7 +304,7 @@ class FsdbPubSubTest : public ::testing::Test {
     }
   }
 
-  static auto constexpr kRetries = 60;
+  static auto constexpr kRetries = 10;
   std::unique_ptr<FsdbTestServer> fsdbTestServer_;
   std::unique_ptr<folly::ScopedEventBaseThread> subscriberStreamEvbThread_;
   std::unique_ptr<folly::ScopedEventBaseThread> publisherStreamEvbThread_;
@@ -310,8 +332,9 @@ TYPED_TEST(FsdbPubSubTest, connectAndCancel) {
                               : "fsdbPathStatPublisher_agent");
     EXPECT_EQ(
         this->subscriber_->getCounterPrefix(),
-        this->isDelta() ? "fsdbDeltaStatSubscriber_agent"
-                        : "fsdbPathStatSubscriber_agent");
+        this->isDelta()       ? "fsdbDeltaStatSubscriber_agent"
+            : this->isPatch() ? "fsdbPatchStatSubscriber_agent"
+                              : "fsdbPathStatSubscriber_agent");
   } else {
     EXPECT_EQ(
         this->publisher_->getCounterPrefix(),
@@ -320,8 +343,9 @@ TYPED_TEST(FsdbPubSubTest, connectAndCancel) {
                               : "fsdbPathStatePublisher_agent");
     EXPECT_EQ(
         this->subscriber_->getCounterPrefix(),
-        this->isDelta() ? "fsdbDeltaStateSubscriber_agent"
-                        : "fsdbPathStateSubscriber_agent");
+        this->isDelta()       ? "fsdbDeltaStateSubscriber_agent"
+            : this->isPatch() ? "fsdbPatchStateSubscriber_agent"
+                              : "fsdbPathStateSubscriber_agent");
   }
   this->setupConnections();
   this->cancelConnections();
@@ -346,16 +370,14 @@ TYPED_TEST(FsdbPubSubTest, rePublishSubscribe) {
 }
 
 TYPED_TEST(FsdbPubSubTest, dupSubscriber) {
-  auto req = OperSubRequest();
-  req.path()->raw() = {"agent"};
-  req.subscriberId() = "test";
+  auto req = this->makeSubRequest("test", {"agent"});
   auto res = this->subscribe(req);
   // we've had errors sneak through this in the past because the subscription
   // key depended on the current timestamp. Introducing a sleep To make sure we
   // validate subscriber unique-ness even if timing is a factor
   // @lint-ignore CLANGTIDY
   std::this_thread::sleep_for(std::chrono::seconds(3));
-  EXPECT_THROW(this->subscribe(req), FsdbException);
+  EXPECT_THROW({ auto res2 = this->subscribe(req); }, FsdbException);
 }
 
 TYPED_TEST(FsdbPubSubTest, multiplePublishers) {
@@ -394,17 +416,14 @@ TYPED_TEST(FsdbPubSubTest, publish) {
 }
 
 TYPED_TEST(FsdbPubSubTest, dupPublisher) {
-  auto req = OperPubRequest();
-
-  auto res = this->setupPublisher(this->makePubRequest("test", {"agent"}));
+  auto req = this->makePubRequest("test", {"agent"});
+  auto res = this->setupPublisher(req);
   // we've had errors sneak through this in the past because the publisher
   // key depended on the current timestamp. Introducing a sleep To make sure we
   // validate publisher unique-ness even if timing is a factor
   // @lint-ignore CLANGTIDY
   std::this_thread::sleep_for(std::chrono::seconds(3));
-  EXPECT_THROW(
-      this->setupPublisher(this->makePubRequest("test", {"agent"})),
-      FsdbException);
+  EXPECT_THROW(this->setupPublisher(req), FsdbException);
 }
 
 TYPED_TEST(FsdbPubSubTest, reconnect) {

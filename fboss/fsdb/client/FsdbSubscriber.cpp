@@ -30,11 +30,17 @@ std::string extendedPathsStr(const std::vector<ExtendedOperPath>& extPaths) {
 }
 template <typename SubUnit, typename PathElement>
 std::string FsdbSubscriber<SubUnit, PathElement>::typeStr() const {
-  return std::disjunction_v<
-             std::is_same<SubUnit, OperDelta>,
-             std::is_same<SubUnit, TaggedOperDelta>>
-      ? "Delta"
-      : "Path";
+  if constexpr (
+      std::is_same_v<SubUnit, OperDelta> ||
+      std::is_same_v<SubUnit, TaggedOperDelta>) {
+    return "Delta";
+  } else if (
+      std::is_same_v<SubUnit, OperState> ||
+      std::is_same_v<SubUnit, TaggedOperState>) {
+    return "Path";
+  } else {
+    return "Patch";
+  }
 }
 template <typename SubUnit, typename PathElement>
 std::string FsdbSubscriber<SubUnit, PathElement>::pathsStr(
@@ -50,5 +56,6 @@ template class FsdbSubscriber<OperDelta, std::string>;
 template class FsdbSubscriber<OperState, std::string>;
 template class FsdbSubscriber<OperSubPathUnit, ExtendedOperPath>;
 template class FsdbSubscriber<OperSubDeltaUnit, ExtendedOperPath>;
+template class FsdbSubscriber<SubscriberChunk, std::string>;
 
 } // namespace facebook::fboss::fsdb

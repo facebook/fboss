@@ -9,6 +9,7 @@
 #include "fboss/fsdb/client/FsdbDeltaPublisher.h"
 #include "fboss/fsdb/client/FsdbDeltaSubscriber.h"
 #include "fboss/fsdb/client/FsdbPatchPublisher.h"
+#include "fboss/fsdb/client/FsdbPatchSubscriber.h"
 #include "fboss/fsdb/client/FsdbStatePublisher.h"
 #include "fboss/fsdb/client/FsdbStateSubscriber.h"
 #include "fboss/fsdb/client/FsdbStreamClient.h"
@@ -100,11 +101,16 @@ class TestFsdbSubscriber : public PubSubT::SubscriberT {
   bool initialSyncDone() const {
     return initialSyncDone_;
   }
-  void assertQueue(int expectedSize, int retries = 60) const {
+  void assertQueue(int expectedSize, int retries = 10) const {
     WITH_RETRIES_N(retries, {
       ASSERT_EVENTUALLY_EQ(queueSize(), expectedSize);
       for (const auto& unit : queuedUnits()) {
-        ASSERT_GT(*unit.metadata()->lastConfirmedAt(), 0);
+        if constexpr (std::is_same_v<SubUnitT, SubscriberChunk>) {
+          // TODO: send metadata from server
+          // ASSERT_GT(*unit.patch()->metadata()->lastConfirmedAt(), 0);
+        } else {
+          ASSERT_GT(*unit.metadata()->lastConfirmedAt(), 0);
+        }
       }
     });
   }
@@ -126,8 +132,13 @@ struct StateExtSubT {
   using SubUnitT = OperState;
   using SubscriberT = FsdbExtStateSubscriber;
 };
+struct PatchSubT {
+  using SubUnitT = SubscriberChunk;
+  using SubscriberT = FsdbPatchSubscriber;
+};
 using TestFsdbDeltaSubscriber = TestFsdbSubscriber<DeltaSubT>;
 using TestFsdbStateSubscriber = TestFsdbSubscriber<StateSubT>;
+using TestFsdbPatchSubscriber = TestFsdbSubscriber<PatchSubT>;
 using TestFsdbExtStateSubscriber = TestFsdbSubscriber<StateExtSubT>;
 
 template <bool pubSubStats>
@@ -156,9 +167,8 @@ template <bool pubSubStats>
 struct PatchPubSubT {
   using PubUnitT = Patch;
   using PublisherT = FsdbPatchPublisher;
-  using SubUnitT = OperDelta;
-  // TODO: replace with patch subscriber once that is ready
-  using SubscriberT = TestFsdbStateSubscriber;
+  using SubUnitT = SubscriberChunk;
+  using SubscriberT = TestFsdbPatchSubscriber;
   static bool constexpr PubSubStats = pubSubStats;
 };
 

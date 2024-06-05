@@ -219,6 +219,10 @@ class FsdbSubscriber : public FsdbStreamClient {
     updateSubscriptionState(SubscriptionState::DISCONNECTED_GR_HOLD_EXPIRED);
   }
 
+  const Paths& subscribePaths() const {
+    return subscribePaths_;
+  }
+
   FsdbSubUnitUpdateCb operSubUnitUpdate_;
 
  private:

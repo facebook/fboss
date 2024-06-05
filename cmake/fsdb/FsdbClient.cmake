@@ -43,6 +43,7 @@ set(fsdb_pub_sub_files
   fboss/fsdb/client/FsdbStatePublisher.cpp
   fboss/fsdb/client/FsdbStateSubscriber.cpp
   fboss/fsdb/client/FsdbPatchPublisher.cpp
+  fboss/fsdb/client/FsdbPatchSubscriber.cpp
 )
 
 add_library(fsdb_pub_sub ${fsdb_pub_sub_files})

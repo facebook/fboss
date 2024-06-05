@@ -130,6 +130,8 @@ Path buildPathUnion(facebook::fboss::fsdb::OperSubscriberInfo info) {
   } else if (info.extendedPaths() && info.extendedPaths()->size() > 0) {
     std::vector<ExtendedOperPath> extendedPaths;
     pathUnion.set_extendedPaths(*info.extendedPaths());
+  } else if (info.paths() && info.paths()->size() > 0) {
+    pathUnion.set_rawPaths(*info.paths());
   }
   return pathUnion;
 }
@@ -693,11 +695,12 @@ void ServiceHandler::registerSubscription(const OperSubscriberInfo& info) {
   XLOG(INFO) << "Registering subscription " << *info.subscriberId();
   bool hasRawPath = info.path() && !info.path()->raw()->empty();
   bool hasExtendedPath = info.extendedPaths() && !info.extendedPaths()->empty();
+  bool hasMultiPaths = info.paths() && !info.paths()->empty();
   validateSubscriptionPermissions(
       *info.subscriberId(),
       *info.type(),
       *info.isStats(),
-      hasRawPath,
+      hasRawPath || hasMultiPaths,
       hasExtendedPath);
   auto key = ClientKey(
       *info.subscriberId(),

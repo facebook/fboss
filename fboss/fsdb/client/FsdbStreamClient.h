@@ -83,6 +83,7 @@ class FsdbStreamClient : public ReconnectingThriftClient {
   using PatchPubStreamT = PubStreamT<PublisherMessage>;
   using StateSubStreamT = SubStreamT<OperState>;
   using DeltaSubStreamT = SubStreamT<OperDelta>;
+  using PatchSubStreamT = SubStreamT<SubscriberMessage>;
   using StateExtSubStreamT = SubStreamT<OperSubPathUnit>;
   using DeltaExtSubStreamT = SubStreamT<OperSubDeltaUnit>;
 
@@ -92,6 +93,7 @@ class FsdbStreamClient : public ReconnectingThriftClient {
       PatchPubStreamT,
       StateSubStreamT,
       DeltaSubStreamT,
+      PatchSubStreamT,
       StateExtSubStreamT,
       DeltaExtSubStreamT>;
 

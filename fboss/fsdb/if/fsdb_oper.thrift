@@ -39,6 +39,7 @@ union Path {
   1: OperPath operPath;
   2: RawOperPath rawPath;
   3: list<ExtendedOperPath> extendedPaths;
+  4: map<SubscriptionKey, RawOperPath> rawPaths;
 }
 
 enum OperProtocol {
