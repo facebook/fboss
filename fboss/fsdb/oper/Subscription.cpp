@@ -349,23 +349,59 @@ std::pair<
     std::unique_ptr<ExtendedPatchSubscription>>
 ExtendedPatchSubscription::create(
     SubscriberId subscriber,
-    PathIter begin,
-    PathIter end,
+    std::vector<std::string> path,
     OperProtocol protocol,
     std::optional<std::string> publisherRoot) {
-  auto [generator, pipe] = folly::coro::AsyncPipe<Patch>::create();
-  // TODO: support passing an extended path in
-  std::vector<OperPathElem> path;
-  for (auto it = begin; it != end; ++it) {
-    path.emplace_back();
-    path.back().set_raw(*it);
-  }
-  ExtendedOperPath extendedPath;
-  extendedPath.path() = std::move(path);
+  RawOperPath p;
+  p.path() = std::move(path);
+  return create(
+      std::move(subscriber),
+      std::map<SubscriptionKey, RawOperPath>{{0, std::move(p)}},
+      std::move(protocol),
+      std::move(publisherRoot));
+}
 
+std::pair<
+    folly::coro::AsyncGenerator<Patch&&>,
+    std::unique_ptr<ExtendedPatchSubscription>>
+ExtendedPatchSubscription::create(
+    SubscriberId subscriber,
+    std::map<SubscriptionKey, RawOperPath> paths,
+    OperProtocol protocol,
+    std::optional<std::string> publisherRoot) {
+  std::map<SubscriptionKey, ExtendedOperPath> extendedPaths;
+  for (auto& [key, path] : paths) {
+    std::vector<OperPathElem> extendedPath;
+    extendedPath.reserve(path.path()->size());
+    for (auto& tok : *path.path()) {
+      extendedPath.emplace_back().set_raw(std::move(tok));
+    }
+    extendedPaths[key].path() = std::move(extendedPath);
+  }
+  return create(
+      std::move(subscriber),
+      std::move(extendedPaths),
+      std::move(protocol),
+      std::move(publisherRoot));
+}
+
+std::pair<
+    folly::coro::AsyncGenerator<Patch&&>,
+    std::unique_ptr<ExtendedPatchSubscription>>
+ExtendedPatchSubscription::create(
+    SubscriberId subscriber,
+    std::map<SubscriptionKey, ExtendedOperPath> paths,
+    OperProtocol protocol,
+    std::optional<std::string> publisherRoot) {
+  // TODO: propagate idea of subscription key to ExtendedSubscription
+  std::vector<ExtendedOperPath> pathsList;
+  for (auto& [_, path] : paths) {
+    pathsList.emplace_back(std::move(path));
+  }
+  auto [generator, pipe] = folly::coro::AsyncPipe<Patch>::create();
   auto subscription = std::make_unique<ExtendedPatchSubscription>(
       std::move(subscriber),
-      std::vector<ExtendedOperPath>{std::move(extendedPath)},
+      std::move(pathsList),
       std::move(pipe),
       std::move(protocol),
       std::move(publisherRoot));

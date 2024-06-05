@@ -520,18 +520,37 @@ class PatchSubscription : public Subscription, private boost::noncopyable {
 class ExtendedPatchSubscription : public ExtendedSubscription,
                                   private boost::noncopyable {
  public:
-  using PathIter = std::vector<std::string>::const_iterator;
   using value_type = Patch;
 
   virtual ~ExtendedPatchSubscription() override = default;
 
+  // Single path
   static std::pair<
       folly::coro::AsyncGenerator<value_type&&>,
       std::unique_ptr<ExtendedPatchSubscription>>
   create(
       SubscriberId subscriber,
-      PathIter begin,
-      PathIter end,
+      std::vector<std::string> path,
+      OperProtocol protocol,
+      std::optional<std::string> publisherRoot);
+
+  // Multipath
+  static std::pair<
+      folly::coro::AsyncGenerator<value_type&&>,
+      std::unique_ptr<ExtendedPatchSubscription>>
+  create(
+      SubscriberId subscriber,
+      std::map<SubscriptionKey, RawOperPath> paths,
+      OperProtocol protocol,
+      std::optional<std::string> publisherRoot);
+
+  // Extended paths
+  static std::pair<
+      folly::coro::AsyncGenerator<value_type&&>,
+      std::unique_ptr<ExtendedPatchSubscription>>
+  create(
+      SubscriberId subscriber,
+      std::map<SubscriptionKey, ExtendedOperPath> paths,
       OperProtocol protocol,
       std::optional<std::string> publisherRoot);
 
