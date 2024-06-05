@@ -79,6 +79,7 @@ void PatchNodeBuilder::onPathPop(std::string&& tok, ThriftTCType /* tc */) {
   if (!shouldPrune && incrementallyCompress_) {
     compressPatch(curPath_.back().get());
   }
+  XLOG_IF(DBG5, !shouldPrune) << "Keeping patch at tok " << tok;
   curPath_.pop_back();
   if (shouldPrune) {
     apache::thrift::visit_union(
@@ -156,6 +157,15 @@ void PatchNodeBuilder::insertChild(
             });
         curPath_.push_back(insert(patch));
       });
+}
+
+void PatchBuilderTraverser::onPushImpl(ThriftTCType tc) {
+  const auto& newTok = path().back();
+  nodeBuilder_.onPathPush(newTok, tc);
+}
+
+void PatchBuilderTraverser::onPopImpl(std::string&& popped, ThriftTCType tc) {
+  nodeBuilder_.onPathPop(std::move(popped), tc);
 }
 
 } // namespace facebook::fboss::thrift_cow

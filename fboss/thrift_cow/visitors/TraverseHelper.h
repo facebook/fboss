@@ -3,6 +3,9 @@
 #pragma once
 
 #include <fboss/thrift_cow/visitors/ThriftTCType.h>
+
+#include <folly/String.h>
+#include <folly/logging/xlog.h>
 #include <string>
 #include <vector>
 
@@ -24,12 +27,19 @@ class TraverseHelper {
  public:
   void push(std::string&& tok, ThriftTCType tc) {
     currentPath_.emplace_back(std::move(tok));
+    if (XLOG_IS_ON(DBG6)) {
+      XLOG(DBG6) << "Traversing up to path " << folly::join("/", currentPath_);
+    }
     onPush(tc);
   }
 
   void pop(ThriftTCType tc) {
     std::string tok = std::move(currentPath_.back());
     currentPath_.pop_back();
+    if (XLOG_IS_ON(DBG6)) {
+      XLOG(DBG6) << "Traversing down to path "
+                 << folly::join("/", currentPath_);
+    }
     onPop(std::move(tok), tc);
   }
 

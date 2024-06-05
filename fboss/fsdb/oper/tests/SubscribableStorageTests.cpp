@@ -190,11 +190,6 @@ TEST_P(SubscribableStorageTests, SubscribePatch) {
   using namespace facebook::fboss::fsdb;
   using namespace facebook::fboss::thrift_cow;
 
-  thriftpath::RootThriftPath<TestStruct> root;
-
-  auto testDyn = createTestDynamic();
-  auto testStruct = apache::thrift::from_dynamic<TestStruct>(
-      testDyn, apache::thrift::dynamic_format::JSON_1);
   auto storage = TestSubscribableStorage(testStruct);
   storage.setConvertToIDPaths(true);
 
@@ -239,11 +234,6 @@ TEST_P(SubscribableStorageTests, SubscribePatchUpdate) {
   using namespace facebook::fboss::fsdb;
   using namespace facebook::fboss::thrift_cow;
 
-  thriftpath::RootThriftPath<TestStruct> root;
-
-  auto testDyn = createTestDynamic();
-  auto testStruct = apache::thrift::from_dynamic<TestStruct>(
-      testDyn, apache::thrift::dynamic_format::JSON_1);
   auto storage = TestSubscribableStorage(testStruct);
   storage.setConvertToIDPaths(true);
   storage.start();
@@ -276,6 +266,66 @@ TEST_P(SubscribableStorageTests, SubscribePatchUpdate) {
       deserializeBuf<apache::thrift::type_class::integral, int>(
           OperProtocol::COMPACT, std::move(newVal));
   EXPECT_EQ(deserializedVal, 10);
+}
+
+TEST_P(SubscribableStorageTests, SubscribePatchMulti) {
+  using namespace facebook::fboss::fsdb;
+  using namespace facebook::fboss::thrift_cow;
+
+  auto storage = TestSubscribableStorage(testStruct);
+  storage.setConvertToIDPaths(true);
+  storage.start();
+
+  const auto& path1 = root.stringToStruct()["test1"].max();
+  const auto& path2 = root.stringToStruct()["test2"].max();
+  RawOperPath p1, p2;
+  // validate both tokens and idTokens work
+  p1.path() = path1.tokens();
+  p2.path() = path2.idTokens();
+  auto generator = storage.subscribe_patch(
+      kSubscriber,
+      {
+          {1, std::move(p1)},
+          {2, std::move(p2)},
+      });
+
+  // set and check, should only recv one patch on the path that exists
+  EXPECT_EQ(storage.set(path1, 123), std::nullopt);
+  auto msg = folly::coro::blockingWait(
+      folly::coro::timeout(consumeOne(generator), std::chrono::seconds(1)));
+  auto patches = *msg.get_chunk().patches();
+  EXPECT_EQ(patches.size(), 1);
+  // first key
+  EXPECT_EQ(patches.begin()->first, 1);
+  auto patch = patches.begin()->second;
+  EXPECT_EQ(patch.basePath()[1], "test1");
+  auto rootPatch = patch.patch()->move_val();
+  //   initial sync should just be a whole blob
+  auto deserialized = facebook::fboss::thrift_cow::
+      deserializeBuf<apache::thrift::type_class::integral, int32_t>(
+          *patch.protocol(), std::move(rootPatch));
+  EXPECT_EQ(deserialized, 123);
+
+  std::map<std::string, TestStructSimple> stringToStruct =
+      storage.get(root.stringToStruct()).value();
+  // update both structs now, should recv both patches
+  stringToStruct["test1"].max() = 100;
+  stringToStruct["test2"].max() = 200;
+  EXPECT_EQ(storage.set(root.stringToStruct(), stringToStruct), std::nullopt);
+  msg = folly::coro::blockingWait(
+      folly::coro::timeout(consumeOne(generator), std::chrono::seconds(1)));
+  patches = *msg.get_chunk().patches();
+
+  EXPECT_EQ(patches.size(), 2);
+  for (auto& [key, patch] : patches) {
+    EXPECT_EQ(patch.basePath()[1], fmt::format("test{}", key));
+    auto rootPatch = patch.patch()->move_val();
+    deserialized = facebook::fboss::thrift_cow::
+        deserializeBuf<apache::thrift::type_class::integral, int32_t>(
+            *patch.protocol(), std::move(rootPatch));
+    // above we set values such that it's sub key * 100 for easier testing
+    EXPECT_EQ(deserialized, key * 100);
+  }
 }
 
 TEST_P(SubscribableStorageTests, SubscribeDeltaUpdate) {

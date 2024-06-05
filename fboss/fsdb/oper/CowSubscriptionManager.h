@@ -44,6 +44,7 @@ class OperDeltaUnitCache {
  public:
   OperDeltaUnitCache(
       const std::vector<std::string>& path,
+      // TODO: use serializable
       const NodeT& oldNode,
       const NodeT& newNode)
       : path_(path), oldNode_(oldNode), newNode_(newNode) {}
@@ -151,7 +152,7 @@ class CowSubscriptionManager
               static_cast<BasePathSubscription*>(subscription);
           std::optional<OperState> state;
           state.emplace();
-          state->contents() = std::move(*op.val);
+          state->contents() = *op.val;
           state->protocol() = subscription->operProtocol();
           state->metadata() = subscription->getMetadata(metadataServer);
           auto value = DeltaValue<OperState>(std::nullopt, std::move(state));
@@ -160,7 +161,7 @@ class CowSubscriptionManager
           // Delta subscription
           OperDeltaUnit deltaUnit;
           deltaUnit.path()->raw() = path;
-          deltaUnit.newState() = std::move(*op.val);
+          deltaUnit.newState() = *op.val;
           auto deltaSubscription =
               static_cast<BaseDeltaSubscription*>(subscription);
           deltaSubscription->appendRootDeltaUnit(std::move(deltaUnit));
@@ -297,10 +298,20 @@ class CowSubscriptionManager
                              auto& oldNode,
                              auto& newNode,
                              thrift_cow::DeltaElemTag visitTag) {
+      // We need to serve delta+patch subscriptions if it's a MINIMAL change
+      // OR
+      // if this is a fully added/removed node and there are exact
+      // subscriptions, we serve them. This handles the case
+      // where a change won't be "MINIMAL" relative to the root,
+      // but is relative to the subscription point. This is mainly
+      // for children of a fully added/removed node higher in the tree.
+      auto isMinimalOrAddedOrRemoved =
+          visitTag == thrift_cow::DeltaElemTag::MINIMAL || !oldNode || !newNode;
+
       // build out patch before trying to send to subscribers.
       // Patches are only supported if we're using id paths
-      if (visitTag == thrift_cow::DeltaElemTag::MINIMAL &&
-          traverser.patchBuilder()) {
+      if (isMinimalOrAddedOrRemoved && traverser.patchBuilder()) {
+        XLOG(DBG6) << "Setting leaf patch";
         traverser.patchBuilder()->setLeafPatch(newNode);
       }
 
@@ -333,15 +344,7 @@ class CowSubscriptionManager
                 newStorage,
                 metadataServer);
           } else if (relevant->type() == PubSubType::DELTA) {
-            // serve delta subscriptions if it's a MINIMAL change
-            // OR
-            // if this is a fully added/removed node and there are exact
-            // delta subscriptions, we serve them. This handles the case
-            // where a change won't be "MINIMAL" relative to the root,
-            // but is relative to the subscription point. This is mainly
-            // for children of a fully added/removed node higher in the tree.
-            if (visitTag == thrift_cow::DeltaElemTag::MINIMAL || !oldNode ||
-                !newNode) {
+            if (isMinimalOrAddedOrRemoved) {
               auto* deltaSubscription =
                   static_cast<DeltaSubscription*>(relevant);
               deltaSubscription->appendRootDeltaUnit(

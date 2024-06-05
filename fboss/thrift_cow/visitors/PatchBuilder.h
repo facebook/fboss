@@ -36,6 +36,7 @@ class PatchNodeBuilder {
 
   void onPathPop(std::string&& tok, ThriftTCType /* tc */);
 
+  // TODO: use Serializable
   template <typename Node>
   void setLeafPatch(Node& node) {
     if (node) {
@@ -72,14 +73,8 @@ struct PatchBuilderTraverser : public TraverseHelper<PatchBuilderTraverser> {
     return false;
   }
 
-  void onPushImpl(ThriftTCType tc) {
-    const auto& newTok = path().back();
-    nodeBuilder_.onPathPush(newTok, tc);
-  }
-
-  void onPopImpl(std::string&& popped, ThriftTCType tc) {
-    nodeBuilder_.onPathPop(std::move(popped), tc);
-  }
+  void onPushImpl(ThriftTCType tc);
+  void onPopImpl(std::string&& popped, ThriftTCType tc);
 
   PatchNodeBuilder& nodeBuilder() const {
     return nodeBuilder_;
