@@ -37,7 +37,8 @@ SplitAgentThriftSyncer::SplitAgentThriftSyncer(
           serverPort,
           switchId_,
           retryThread_->getEventBase(),
-          hw)),
+          hw,
+          multiSwitchStatsPrefix)),
       operDeltaClient_(
           std::make_unique<OperDeltaSyncer>(serverPort, switchId_, hw)),
       fdbEventSinkClient_(std::make_unique<FdbEventSyncer>(

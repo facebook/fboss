@@ -29,7 +29,8 @@ TxPktEventSyncer::TxPktEventSyncer(
     uint16_t serverPort,
     SwitchID switchId,
     folly::EventBase* connRetryEvb,
-    HwSwitch* hw)
+    HwSwitch* hw,
+    std::optional<std::string> multiSwitchStatsPrefix)
     : ThriftStreamClient<multiswitch::TxPacket>::ThriftStreamClient(
           "TxPktEventThriftSyncer",
           serverPort,
@@ -41,7 +42,8 @@ TxPktEventSyncer::TxPktEventSyncer(
           hw,
           std::make_shared<folly::ScopedEventBaseThread>(
               "TxPktEventSyncerThread"),
-          connRetryEvb) {
+          connRetryEvb,
+          multiSwitchStatsPrefix) {
 }
 
 #if FOLLY_HAS_COROUTINES

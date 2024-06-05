@@ -26,7 +26,8 @@ class TxPktEventSyncer : public ThriftStreamClient<multiswitch::TxPacket> {
       uint16_t serverPort,
       SwitchID switchId,
       folly::EventBase* connRetryEvb,
-      HwSwitch* hw);
+      HwSwitch* hw,
+      std::optional<std::string> multiSwitchStatsPrefix);
 
 #if FOLLY_HAS_COROUTINES
   static ThriftStreamClient<multiswitch::TxPacket>::EventNotifierStreamClient

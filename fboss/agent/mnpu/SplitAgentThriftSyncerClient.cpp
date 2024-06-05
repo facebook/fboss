@@ -147,6 +147,13 @@ ThriftSinkClient<CallbackObjectT, EventQueueT>::ThriftSinkClient(
               name,
               ".events_dropped"),
           fb303::SUM,
+          fb303::RATE),
+      eventSentCount_(
+          folly::to<std::string>(
+              multiSwitchStatsPrefix ? *multiSwitchStatsPrefix + "." : "",
+              name,
+              ".events_sent"),
+          fb303::SUM,
           fb303::RATE) {
 }
 
@@ -232,7 +239,8 @@ ThriftStreamClient<StreamObjectT>::ThriftStreamClient(
     EventHandlerFn eventHandlerFn,
     HwSwitch* hw,
     std::shared_ptr<folly::ScopedEventBaseThread> eventThread,
-    folly::EventBase* retryEvb)
+    folly::EventBase* retryEvb,
+    std::optional<std::string> multiSwitchStatsPrefix)
     : SplitAgentThriftClient(
           std::string(name),
           eventThread,
@@ -245,7 +253,15 @@ ThriftStreamClient<StreamObjectT>::ThriftStreamClient(
       connectFn_(std::move(connectFn)),
 #endif
       eventHandlerFn_(std::move(eventHandlerFn)),
-      hw_(hw) {
+      hw_(hw),
+      eventReceivedCount_(
+
+          folly::to<std::string>(
+              multiSwitchStatsPrefix ? *multiSwitchStatsPrefix + "." : "",
+              name,
+              ".events_received"),
+          fb303::SUM,
+          fb303::RATE) {
 }
 
 template <typename StreamObjectT>
