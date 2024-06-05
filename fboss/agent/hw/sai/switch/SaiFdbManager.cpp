@@ -393,10 +393,18 @@ L2EntryThrift SaiFdbManager::fdbToL2Entry(
 
 std::vector<L2EntryThrift> SaiFdbManager::getL2Entries() const {
   std::vector<L2EntryThrift> entries;
-  entries.reserve(managedFdbEntries_.size());
   for (const auto& publisherAndFdbEntry : managedFdbEntries_) {
-    entries.emplace_back(
-        fdbToL2Entry(publisherAndFdbEntry.second->makeFdbEntry(managerTable_)));
+    /*
+     * Try to read the fdb entry from the store. If a mac entry
+     * has aged out and state delta for mac entry is not yet
+     * processed, the sdk will return item not found error.
+     */
+    try {
+      entries.emplace_back(fdbToL2Entry(
+          publisherAndFdbEntry.second->makeFdbEntry(managerTable_)));
+    } catch (const std::exception& ex) {
+      XLOG(ERR) << "Failed to get l2 entry: " << ex.what();
+    }
   }
   return entries;
 }
