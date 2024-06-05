@@ -220,6 +220,14 @@ NaivePeriodicSubscribableStorageBase::getPublisherRoot(
       : std::nullopt;
 }
 
+std::optional<std::string>
+NaivePeriodicSubscribableStorageBase::getPublisherRoot(
+    const std::map<SubscriptionKey, RawOperPath>& paths) const {
+  return trackMetadata_
+      ? std::make_optional(OperPathToPublisherRoot().publisherRoot(paths))
+      : std::nullopt;
+}
+
 void NaivePeriodicSubscribableStorageBase::updateMetadata(
     PathIter begin,
     PathIter end,

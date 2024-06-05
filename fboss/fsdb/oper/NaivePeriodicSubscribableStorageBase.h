@@ -108,13 +108,17 @@ class NaivePeriodicSubscribableStorageBase {
       OperProtocol protocol);
 
 #ifdef ENABLE_PATCH_APIS
-  folly::coro::AsyncGenerator<Patch&&>
-  subscribe_patch_impl(SubscriberId subscriber, PathIter begin, PathIter end) {
-    auto path = convertPath(ConcretePath(begin, end));
-    auto root = getPublisherRoot(path.begin(), path.end());
+  folly::coro::AsyncGenerator<Patch&&> subscribe_patch_impl(
+      SubscriberId subscriber,
+      std::map<SubscriptionKey, RawOperPath> rawPaths) {
+    for (auto& [key, path] : rawPaths) {
+      auto convertedPath = convertPath(std::move(*path.path()));
+      path.path() = std::move(convertedPath);
+    }
+    auto root = getPublisherRoot(rawPaths);
     auto [gen, subscription] = ExtendedPatchSubscription::create(
         std::move(subscriber),
-        std::move(path),
+        std::move(rawPaths),
         patchOperProtocol_,
         std::move(root));
     withSubMgrWLocked([subscription = std::move(subscription)](
@@ -176,6 +180,9 @@ class NaivePeriodicSubscribableStorageBase {
   std::optional<std::string> getPublisherRoot(
       ExtPathIter begin,
       ExtPathIter end) const;
+
+  std::optional<std::string> getPublisherRoot(
+      const std::map<SubscriptionKey, RawOperPath>& paths) const;
 
   void updateMetadata(
       PathIter begin,
