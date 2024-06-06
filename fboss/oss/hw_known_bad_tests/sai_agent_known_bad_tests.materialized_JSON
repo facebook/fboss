@@ -68,6 +68,48 @@
           "test_name_regex": "AgentMacSwLearningModeTest.VerifySwAgingForTrunk$"
         },
         {
+          "test_name_regex": "AgentIngressPortSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressPortErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressAclSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressAclErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressPortErspanMirroringTruncateTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressPortSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressPortErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressAclSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressAclErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressPortErspanMirroringTruncateTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwAgingForPort$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwAgingForTrunk$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwLearningForPort$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwLearningForTrunk$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
         },
         {
@@ -144,6 +186,48 @@
         },
         {
           "test_name_regex": "AgentMacSwLearningModeTest.VerifySwAgingForTrunk$"
+        },
+        {
+          "test_name_regex": "AgentIngressPortSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressPortErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressAclSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressAclErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressPortErspanMirroringTruncateTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressPortSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressPortErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressAclSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressAclErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressPortErspanMirroringTruncateTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwAgingForPort$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwAgingForTrunk$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwLearningForPort$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwLearningForTrunk$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -283,6 +367,48 @@
           "test_name_regex": "AgentMacSwLearningModeTest.VerifySwAgingForTrunk$"
         },
         {
+          "test_name_regex": "AgentIngressPortSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressPortErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressAclSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressAclErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressPortErspanMirroringTruncateTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressPortSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressPortErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressAclSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressAclErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressPortErspanMirroringTruncateTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwAgingForPort$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwAgingForTrunk$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwLearningForPort$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwLearningForTrunk$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].DstIpNetworkControlDscpToHighPriQ$"
         },
         {
@@ -347,6 +473,48 @@
         },
         {
           "test_name_regex": "AgentMacSwLearningModeTest.VerifySwAgingForTrunk$"
+        },
+        {
+          "test_name_regex": "AgentIngressPortSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressPortErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressAclSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressAclErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressPortErspanMirroringTruncateTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressPortSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressPortErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressAclSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressAclErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressPortErspanMirroringTruncateTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwAgingForPort$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwAgingForTrunk$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwLearningForPort$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwLearningForTrunk$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -462,6 +630,48 @@
           "test_name_regex": "AgentMacSwLearningModeTest.VerifySwAgingForTrunk$"
         },
         {
+          "test_name_regex": "AgentIngressPortSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressPortErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressAclSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressAclErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressPortErspanMirroringTruncateTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressPortSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressPortErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressAclSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressAclErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressPortErspanMirroringTruncateTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwAgingForPort$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwAgingForTrunk$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwLearningForPort$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwLearningForTrunk$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
         },
         {
@@ -538,6 +748,48 @@
         },
         {
           "test_name_regex": "AgentMacSwLearningModeTest.VerifySwAgingForTrunk$"
+        },
+        {
+          "test_name_regex": "AgentIngressPortSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressPortErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressAclSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressAclErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressPortErspanMirroringTruncateTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressPortSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressPortErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressAclSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressAclErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressPortErspanMirroringTruncateTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwAgingForPort$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwAgingForTrunk$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwLearningForPort$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwLearningForTrunk$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -635,6 +887,48 @@
           "test_name_regex": "AgentMacSwLearningModeTest.VerifySwAgingForTrunk$"
         },
         {
+          "test_name_regex": "AgentIngressPortSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressPortErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressAclSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressAclErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressPortErspanMirroringTruncateTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressPortSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressPortErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressAclSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressAclErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressPortErspanMirroringTruncateTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwAgingForPort$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwAgingForTrunk$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwLearningForPort$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwLearningForTrunk$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].DstIpNetworkControlDscpToHighPriQ$"
         },
         {
@@ -699,6 +993,48 @@
         },
         {
           "test_name_regex": "AgentMacSwLearningModeTest.VerifySwAgingForTrunk$"
+        },
+        {
+          "test_name_regex": "AgentIngressPortSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressPortErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressAclSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressAclErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressPortErspanMirroringTruncateTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressPortSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressPortErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressAclSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressAclErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressPortErspanMirroringTruncateTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwAgingForPort$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwAgingForTrunk$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwLearningForPort$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwLearningForTrunk$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -811,6 +1147,48 @@
           "test_name_regex": "AgentMacSwLearningModeTest.VerifySwAgingForTrunk$"
         },
         {
+          "test_name_regex": "AgentIngressPortSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressPortErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressAclSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressAclErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressPortErspanMirroringTruncateTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressPortSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressPortErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressAclSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressAclErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressPortErspanMirroringTruncateTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwAgingForPort$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwAgingForTrunk$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwLearningForPort$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwLearningForTrunk$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
         },
         {
@@ -887,6 +1265,48 @@
         },
         {
           "test_name_regex": "AgentMacSwLearningModeTest.VerifySwAgingForTrunk$"
+        },
+        {
+          "test_name_regex": "AgentIngressPortSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressPortErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressAclSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressAclErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressPortErspanMirroringTruncateTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressPortSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressPortErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressAclSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressAclErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressPortErspanMirroringTruncateTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwAgingForPort$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwAgingForTrunk$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwLearningForPort$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwLearningForTrunk$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -1017,6 +1437,48 @@
           "test_name_regex": "AgentMacSwLearningModeTest.VerifySwAgingForTrunk$"
         },
         {
+          "test_name_regex": "AgentIngressPortSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressPortErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressAclSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressAclErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressPortErspanMirroringTruncateTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressPortSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressPortErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressAclSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressAclErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressPortErspanMirroringTruncateTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwAgingForPort$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwAgingForTrunk$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwLearningForPort$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwLearningForTrunk$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].DstIpNetworkControlDscpToHighPriQ$"
         },
         {
@@ -1081,6 +1543,48 @@
         },
         {
           "test_name_regex": "AgentMacSwLearningModeTest.VerifySwAgingForTrunk$"
+        },
+        {
+          "test_name_regex": "AgentIngressPortSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressPortErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressAclSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressAclErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressPortErspanMirroringTruncateTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressPortSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressPortErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressAclSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressAclErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressPortErspanMirroringTruncateTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwAgingForPort$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwAgingForTrunk$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwLearningForPort$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwLearningForTrunk$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -1202,6 +1706,48 @@
           "test_name_regex": "AgentMacSwLearningModeTest.VerifySwAgingForTrunk$"
         },
         {
+          "test_name_regex": "AgentIngressPortSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressPortErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressAclSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressAclErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressPortErspanMirroringTruncateTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressPortSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressPortErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressAclSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressAclErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressPortErspanMirroringTruncateTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwAgingForPort$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwAgingForTrunk$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwLearningForPort$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwLearningForTrunk$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
         },
         {
@@ -1278,6 +1824,48 @@
         },
         {
           "test_name_regex": "AgentMacSwLearningModeTest.VerifySwAgingForTrunk$"
+        },
+        {
+          "test_name_regex": "AgentIngressPortSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressPortErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressAclSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressAclErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressPortErspanMirroringTruncateTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressPortSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressPortErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressAclSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressAclErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressPortErspanMirroringTruncateTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwAgingForPort$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwAgingForTrunk$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwLearningForPort$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwLearningForTrunk$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -1378,6 +1966,48 @@
           "test_name_regex": "AgentMacSwLearningModeTest.VerifySwAgingForTrunk$"
         },
         {
+          "test_name_regex": "AgentIngressPortSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressPortErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressAclSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressAclErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressPortErspanMirroringTruncateTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressPortSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressPortErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressAclSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressAclErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressPortErspanMirroringTruncateTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwAgingForPort$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwAgingForTrunk$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwLearningForPort$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwLearningForTrunk$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].DstIpNetworkControlDscpToHighPriQ$"
         },
         {
@@ -1442,6 +2072,48 @@
         },
         {
           "test_name_regex": "AgentMacSwLearningModeTest.VerifySwAgingForTrunk$"
+        },
+        {
+          "test_name_regex": "AgentIngressPortSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressPortErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressAclSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressAclErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressPortErspanMirroringTruncateTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressPortSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressPortErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressAclSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressAclErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressPortErspanMirroringTruncateTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwAgingForPort$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwAgingForTrunk$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwLearningForPort$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwLearningForTrunk$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -1575,6 +2247,48 @@
           "test_name_regex": "AgentMacSwLearningModeTest.VerifySwAgingForTrunk$"
         },
         {
+          "test_name_regex": "AgentIngressPortSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressPortErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressAclSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressAclErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressPortErspanMirroringTruncateTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressPortSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressPortErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressAclSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressAclErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressPortErspanMirroringTruncateTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwAgingForPort$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwAgingForTrunk$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwLearningForPort$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwLearningForTrunk$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
         },
         {
@@ -1651,6 +2365,48 @@
         },
         {
           "test_name_regex": "AgentMacSwLearningModeTest.VerifySwAgingForTrunk$"
+        },
+        {
+          "test_name_regex": "AgentIngressPortSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressPortErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressAclSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressAclErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressPortErspanMirroringTruncateTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressPortSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressPortErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressAclSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressAclErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressPortErspanMirroringTruncateTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwAgingForPort$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwAgingForTrunk$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwLearningForPort$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwLearningForTrunk$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -1784,6 +2540,48 @@
           "test_name_regex": "AgentMacSwLearningModeTest.VerifySwAgingForTrunk$"
         },
         {
+          "test_name_regex": "AgentIngressPortSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressPortErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressAclSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressAclErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressPortErspanMirroringTruncateTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressPortSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressPortErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressAclSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressAclErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressPortErspanMirroringTruncateTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwAgingForPort$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwAgingForTrunk$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwLearningForPort$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwLearningForTrunk$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].DstIpNetworkControlDscpToHighPriQ$"
         },
         {
@@ -1848,6 +2646,48 @@
         },
         {
           "test_name_regex": "AgentMacSwLearningModeTest.VerifySwAgingForTrunk$"
+        },
+        {
+          "test_name_regex": "AgentIngressPortSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressPortErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressAclSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressAclErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressPortErspanMirroringTruncateTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressPortSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressPortErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressAclSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressAclErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressPortErspanMirroringTruncateTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwAgingForPort$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwAgingForTrunk$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwLearningForPort$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwLearningForTrunk$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -1993,6 +2833,48 @@
           "test_name_regex": "AgentMacSwLearningModeTest.VerifySwAgingForTrunk$"
         },
         {
+          "test_name_regex": "AgentIngressPortSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressPortErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressAclSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressAclErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressPortErspanMirroringTruncateTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressPortSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressPortErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressAclSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressAclErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressPortErspanMirroringTruncateTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwAgingForPort$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwAgingForTrunk$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwLearningForPort$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwLearningForTrunk$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
         },
         {
@@ -2069,6 +2951,48 @@
         },
         {
           "test_name_regex": "AgentMacSwLearningModeTest.VerifySwAgingForTrunk$"
+        },
+        {
+          "test_name_regex": "AgentIngressPortSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressPortErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressAclSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressAclErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressPortErspanMirroringTruncateTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressPortSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressPortErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressAclSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressAclErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressPortErspanMirroringTruncateTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwAgingForPort$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwAgingForTrunk$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwLearningForPort$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwLearningForTrunk$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -2214,6 +3138,48 @@
           "test_name_regex": "AgentMacSwLearningModeTest.VerifySwAgingForTrunk$"
         },
         {
+          "test_name_regex": "AgentIngressPortSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressPortErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressAclSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressAclErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressPortErspanMirroringTruncateTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressPortSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressPortErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressAclSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressAclErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressPortErspanMirroringTruncateTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwAgingForPort$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwAgingForTrunk$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwLearningForPort$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwLearningForTrunk$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].DstIpNetworkControlDscpToHighPriQ$"
         },
         {
@@ -2278,6 +3244,48 @@
         },
         {
           "test_name_regex": "AgentMacSwLearningModeTest.VerifySwAgingForTrunk$"
+        },
+        {
+          "test_name_regex": "AgentIngressPortSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressPortErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressAclSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressAclErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressPortErspanMirroringTruncateTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressPortSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressPortErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressAclSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressAclErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressPortErspanMirroringTruncateTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwAgingForPort$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwAgingForTrunk$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwLearningForPort$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwLearningForTrunk$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -2375,6 +3383,48 @@
           "test_name_regex": "AgentMacSwLearningModeTest.VerifySwAgingForTrunk$"
         },
         {
+          "test_name_regex": "AgentIngressPortSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressPortErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressAclSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressAclErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressPortErspanMirroringTruncateTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressPortSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressPortErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressAclSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressAclErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressPortErspanMirroringTruncateTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwAgingForPort$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwAgingForTrunk$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwLearningForPort$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwLearningForTrunk$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
         },
         {
@@ -2451,6 +3501,48 @@
         },
         {
           "test_name_regex": "AgentMacSwLearningModeTest.VerifySwAgingForTrunk$"
+        },
+        {
+          "test_name_regex": "AgentIngressPortSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressPortErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressAclSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressAclErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressPortErspanMirroringTruncateTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressPortSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressPortErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressAclSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressAclErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressPortErspanMirroringTruncateTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwAgingForPort$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwAgingForTrunk$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwLearningForPort$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwLearningForTrunk$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -2548,6 +3640,48 @@
           "test_name_regex": "AgentMacSwLearningModeTest.VerifySwAgingForTrunk$"
         },
         {
+          "test_name_regex": "AgentIngressPortSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressPortErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressAclSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressAclErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressPortErspanMirroringTruncateTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressPortSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressPortErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressAclSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressAclErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressPortErspanMirroringTruncateTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwAgingForPort$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwAgingForTrunk$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwLearningForPort$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwLearningForTrunk$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].DstIpNetworkControlDscpToHighPriQ$"
         },
         {
@@ -2612,6 +3746,48 @@
         },
         {
           "test_name_regex": "AgentMacSwLearningModeTest.VerifySwAgingForTrunk$"
+        },
+        {
+          "test_name_regex": "AgentIngressPortSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressPortErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressAclSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressAclErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressPortErspanMirroringTruncateTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressPortSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressPortErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressAclSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressAclErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressPortErspanMirroringTruncateTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwAgingForPort$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwAgingForTrunk$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwLearningForPort$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwLearningForTrunk$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -2709,6 +3885,48 @@
           "test_name_regex": "AgentMacSwLearningModeTest.VerifySwAgingForTrunk$"
         },
         {
+          "test_name_regex": "AgentIngressPortSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressPortErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressAclSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressAclErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressPortErspanMirroringTruncateTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressPortSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressPortErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressAclSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressAclErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressPortErspanMirroringTruncateTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwAgingForPort$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwAgingForTrunk$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwLearningForPort$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwLearningForTrunk$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
         },
         {
@@ -2785,6 +4003,48 @@
         },
         {
           "test_name_regex": "AgentMacSwLearningModeTest.VerifySwAgingForTrunk$"
+        },
+        {
+          "test_name_regex": "AgentIngressPortSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressPortErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressAclSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressAclErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressPortErspanMirroringTruncateTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressPortSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressPortErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressAclSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressAclErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressPortErspanMirroringTruncateTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwAgingForPort$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwAgingForTrunk$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwLearningForPort$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwLearningForTrunk$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -2900,6 +4160,48 @@
           "test_name_regex": "AgentMacSwLearningModeTest.VerifySwAgingForTrunk$"
         },
         {
+          "test_name_regex": "AgentIngressPortSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressPortErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressAclSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressAclErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressPortErspanMirroringTruncateTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressPortSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressPortErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressAclSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressAclErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressPortErspanMirroringTruncateTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwAgingForPort$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwAgingForTrunk$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwLearningForPort$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwLearningForTrunk$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].DstIpNetworkControlDscpToHighPriQ$"
         },
         {
@@ -2964,6 +4266,48 @@
         },
         {
           "test_name_regex": "AgentMacSwLearningModeTest.VerifySwAgingForTrunk$"
+        },
+        {
+          "test_name_regex": "AgentIngressPortSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressPortErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressAclSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressAclErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressPortErspanMirroringTruncateTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressPortSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressPortErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressAclSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressAclErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressPortErspanMirroringTruncateTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwAgingForPort$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwAgingForTrunk$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwLearningForPort$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwLearningForTrunk$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -3079,6 +4423,48 @@
           "test_name_regex": "AgentMacSwLearningModeTest.VerifySwAgingForTrunk$"
         },
         {
+          "test_name_regex": "AgentIngressPortSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressPortErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressAclSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressAclErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressPortErspanMirroringTruncateTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressPortSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressPortErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressAclSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressAclErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressPortErspanMirroringTruncateTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwAgingForPort$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwAgingForTrunk$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwLearningForPort$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwLearningForTrunk$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
         },
         {
@@ -3155,6 +4541,48 @@
         },
         {
           "test_name_regex": "AgentMacSwLearningModeTest.VerifySwAgingForTrunk$"
+        },
+        {
+          "test_name_regex": "AgentIngressPortSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressPortErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressAclSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressAclErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressPortErspanMirroringTruncateTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressPortSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressPortErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressAclSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressAclErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressPortErspanMirroringTruncateTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwAgingForPort$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwAgingForTrunk$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwLearningForPort$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwLearningForTrunk$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -3252,6 +4680,48 @@
           "test_name_regex": "AgentMacSwLearningModeTest.VerifySwAgingForTrunk$"
         },
         {
+          "test_name_regex": "AgentIngressPortSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressPortErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressAclSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressAclErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressPortErspanMirroringTruncateTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressPortSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressPortErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressAclSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressAclErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressPortErspanMirroringTruncateTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwAgingForPort$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwAgingForTrunk$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwLearningForPort$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwLearningForTrunk$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].DstIpNetworkControlDscpToHighPriQ$"
         },
         {
@@ -3316,6 +4786,48 @@
         },
         {
           "test_name_regex": "AgentMacSwLearningModeTest.VerifySwAgingForTrunk$"
+        },
+        {
+          "test_name_regex": "AgentIngressPortSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressPortErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressAclSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressAclErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressPortErspanMirroringTruncateTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressPortSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressPortErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressAclSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressAclErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressPortErspanMirroringTruncateTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwAgingForPort$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwAgingForTrunk$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwLearningForPort$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwLearningForTrunk$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -3428,6 +4940,48 @@
           "test_name_regex": "AgentMacSwLearningModeTest.VerifySwAgingForTrunk$"
         },
         {
+          "test_name_regex": "AgentIngressPortSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressPortErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressAclSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressAclErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressPortErspanMirroringTruncateTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressPortSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressPortErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressAclSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressAclErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressPortErspanMirroringTruncateTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwAgingForPort$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwAgingForTrunk$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwLearningForPort$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwLearningForTrunk$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
         },
         {
@@ -3504,6 +5058,48 @@
         },
         {
           "test_name_regex": "AgentMacSwLearningModeTest.VerifySwAgingForTrunk$"
+        },
+        {
+          "test_name_regex": "AgentIngressPortSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressPortErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressAclSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressAclErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressPortErspanMirroringTruncateTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressPortSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressPortErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressAclSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressAclErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressPortErspanMirroringTruncateTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwAgingForPort$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwAgingForTrunk$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwLearningForPort$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwLearningForTrunk$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -3634,6 +5230,48 @@
           "test_name_regex": "AgentMacSwLearningModeTest.VerifySwAgingForTrunk$"
         },
         {
+          "test_name_regex": "AgentIngressPortSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressPortErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressAclSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressAclErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressPortErspanMirroringTruncateTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressPortSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressPortErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressAclSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressAclErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressPortErspanMirroringTruncateTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwAgingForPort$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwAgingForTrunk$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwLearningForPort$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwLearningForTrunk$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].DstIpNetworkControlDscpToHighPriQ$"
         },
         {
@@ -3698,6 +5336,48 @@
         },
         {
           "test_name_regex": "AgentMacSwLearningModeTest.VerifySwAgingForTrunk$"
+        },
+        {
+          "test_name_regex": "AgentIngressPortSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressPortErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressAclSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressAclErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressPortErspanMirroringTruncateTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressPortSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressPortErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressAclSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressAclErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressPortErspanMirroringTruncateTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwAgingForPort$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwAgingForTrunk$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwLearningForPort$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwLearningForTrunk$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -3819,6 +5499,48 @@
           "test_name_regex": "AgentMacSwLearningModeTest.VerifySwAgingForTrunk$"
         },
         {
+          "test_name_regex": "AgentIngressPortSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressPortErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressAclSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressAclErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressPortErspanMirroringTruncateTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressPortSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressPortErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressAclSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressAclErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressPortErspanMirroringTruncateTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwAgingForPort$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwAgingForTrunk$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwLearningForPort$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwLearningForTrunk$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
         },
         {
@@ -3895,6 +5617,48 @@
         },
         {
           "test_name_regex": "AgentMacSwLearningModeTest.VerifySwAgingForTrunk$"
+        },
+        {
+          "test_name_regex": "AgentIngressPortSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressPortErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressAclSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressAclErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressPortErspanMirroringTruncateTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressPortSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressPortErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressAclSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressAclErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressPortErspanMirroringTruncateTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwAgingForPort$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwAgingForTrunk$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwLearningForPort$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwLearningForTrunk$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -4104,6 +5868,48 @@
         },
         {
           "test_name_regex": "AgentMacSwLearningModeTest.VerifySwAgingForTrunk$"
+        },
+        {
+          "test_name_regex": "AgentIngressPortSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressPortErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressAclSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressAclErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressPortErspanMirroringTruncateTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressPortSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressPortErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressAclSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressAclErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressPortErspanMirroringTruncateTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwAgingForPort$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwAgingForTrunk$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwLearningForPort$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwLearningForTrunk$"
         }
     ],
     "leaba/1.42.8/1.42.8/gibraltar/multi_switch": [
@@ -4283,6 +6089,48 @@
         },
         {
           "test_name_regex": "AgentMacSwLearningModeTest.VerifySwAgingForTrunk$"
+        },
+        {
+          "test_name_regex": "AgentIngressPortSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressPortErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressAclSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressAclErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressPortErspanMirroringTruncateTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressPortSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressPortErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressAclSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressAclErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressPortErspanMirroringTruncateTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwAgingForPort$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwAgingForTrunk$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwLearningForPort$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwLearningForTrunk$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
@@ -4465,6 +6313,48 @@
         },
         {
           "test_name_regex": "AgentMacSwLearningModeTest.VerifySwAgingForTrunk$"
+        },
+        {
+          "test_name_regex": "AgentIngressPortSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressPortErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressAclSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressAclErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressPortErspanMirroringTruncateTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressPortSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressPortErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressAclSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressAclErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressPortErspanMirroringTruncateTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwAgingForPort$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwAgingForTrunk$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwLearningForPort$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwLearningForTrunk$"
         }
     ],
     "leaba/1.65.1/1.65.1/gibraltar/multi_switch": [
@@ -4635,6 +6525,48 @@
         },
         {
           "test_name_regex": "AgentMacSwLearningModeTest.VerifySwAgingForTrunk$"
+        },
+        {
+          "test_name_regex": "AgentIngressPortSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressPortErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressAclSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressAclErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressPortErspanMirroringTruncateTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressPortSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressPortErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressAclSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressAclErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressPortErspanMirroringTruncateTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwAgingForPort$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwAgingForTrunk$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwLearningForPort$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwLearningForTrunk$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
