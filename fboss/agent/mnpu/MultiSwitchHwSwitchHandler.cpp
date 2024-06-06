@@ -111,8 +111,10 @@ MultiSwitchHwSwitchHandler::stateChanged(
       return {
           delta, HwSwitchStateUpdateStatus::HWSWITCH_STATE_UPDATE_CANCELLED};
     }
+    // block state update till hwswitch resync is complete
     if (checkOperSyncStateLocked(
-            HwSwitchOperDeltaSyncState::INITIAL_SYNC_SENT, lk)) {
+            HwSwitchOperDeltaSyncState::INITIAL_SYNC_SENT, lk) ||
+        pauseStateUpdates_) {
       // Wait for initial sync to complete
       if (!waitForOperSyncAck(lk, FLAGS_oper_delta_ack_timeout)) {
         setOperSyncStateLocked(HwSwitchOperDeltaSyncState::CANCELLED, lk);
@@ -160,16 +162,37 @@ MultiSwitchHwSwitchHandler::stateChanged(
 multiswitch::StateOperDelta MultiSwitchHwSwitchHandler::getNextStateOperDelta(
     std::unique_ptr<multiswitch::StateOperDelta> prevOperResult,
     int64_t lastUpdateSeqNum) {
+  bool serveOperSyncRequest{false};
   SCOPE_EXIT {
     std::unique_lock<std::mutex> lk(stateUpdateMutex_);
-    operRequestInProgress_ = false;
+    // Reset the flag only if we are serving the request.
+    if (serveOperSyncRequest) {
+      operRequestInProgress_ = false;
+      pauseStateUpdates_ = false;
+    }
   };
-  // check whether it is a new connection.
   {
     std::unique_lock<std::mutex> lk(stateUpdateMutex_);
-    CHECK(!operRequestInProgress_);
+    // check if there is a pending oper delta request. This can happen if
+    // client resends request due to thrift shutdown. Ignore the
+    // new request and force full sync by setting state to cancelled.
+    if (operRequestInProgress_) {
+      XLOG(DBG2)
+          << "Ignoring oper delta request as another request is in progress for hwswitch "
+          << getSwitchId();
+      // Reset the last acked seqnum to -1 so that next request results in full
+      // sync
+      lastAckedOperDeltaSeqNum_ = -1;
+      // Indicate that new state updates are blocked till old request times out
+      pauseStateUpdates_ = true;
+      multiswitch::StateOperDelta cancelledResponse;
+      cancelledResponse.seqNum() = 0;
+      return cancelledResponse;
+    }
+    serveOperSyncRequest = true;
     operRequestInProgress_ = true;
-    if (lastUpdateSeqNum == lastAckedOperDeltaSeqNum_) {
+    if (!checkOperSyncStateLocked(HwSwitchOperDeltaSyncState::CANCELLED, lk) &&
+        (lastUpdateSeqNum == lastAckedOperDeltaSeqNum_)) {
       // HwSwitch has resent an ack for the previous delta. This indicates
       // that hwswitch timedout waiting for a new oper delta to be available.
       // Wait for a new delta to be available.

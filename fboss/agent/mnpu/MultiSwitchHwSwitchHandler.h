@@ -103,6 +103,10 @@ class MultiSwitchHwSwitchHandler : public HwSwitchHandler {
   int64_t currOperDeltaSeqNum_{0};
   int64_t lastAckedOperDeltaSeqNum_{-1};
   bool operRequestInProgress_{false};
+  // pause state update till any waiting client request times out. This is
+  // needed in cases where thrift abandons client connections due to high cpu or
+  // memory load
+  bool pauseStateUpdates_{false};
 };
 
 } // namespace facebook::fboss
