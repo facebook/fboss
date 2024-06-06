@@ -146,16 +146,10 @@ class AgentMacLearningTest : public AgentHwTest {
     WITH_RETRIES({
       if (l2LearningMode == cfg::L2LearningMode::SOFTWARE) {
         EXPECT_EVENTUALLY_TRUE(wasMacLearntInSwitchState(shouldExist, mac));
-        EXPECT_EVENTUALLY_TRUE(isInL2Table(portDescr, mac, shouldExist));
-        return true;
       }
-      if (l2LearningMode == cfg::L2LearningMode::HARDWARE) {
-        EXPECT_EVENTUALLY_TRUE(isInL2Table(portDescr, mac, shouldExist));
-        return true;
-      }
+      EXPECT_EVENTUALLY_TRUE(isInL2Table(portDescr, mac, shouldExist));
     });
-
-    return false;
+    return true;
   }
 
   void verifyL2TableCallback(
@@ -268,6 +262,7 @@ class AgentMacLearningTest : public AgentHwTest {
     auto verify = [this, portDescr]() {
       // Disable aging, so entry stays in L2 table when we verify.
       utility::setMacAgeTimerSeconds(getAgentEnsemble(), 0);
+      bringDownPort(masterLogicalPortIds()[1]);
       sendPkt();
       EXPECT_TRUE(wasMacLearnt(portDescr, kSourceMac()));
 
