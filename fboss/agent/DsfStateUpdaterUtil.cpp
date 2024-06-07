@@ -222,7 +222,9 @@ std::shared_ptr<SwitchState> DsfStateUpdaterUtil::getUpdatedState(
     XLOG(DBG2) << "SwitchId: " << static_cast<int64_t>(nodeSwitchId)
                << " updated # of intfs: " << newRifs->size();
 
-    auto origRifs = out->getInterfaces(nodeSwitchId);
+    // For removed interfaces, sys port already removed in switch state.
+    // Hence need to skip the valid sys port check to get all intf.
+    auto origRifs = out->getInterfaces(nodeSwitchId, false /* checkSysPort */);
     InterfaceMapDelta delta(origRifs.get(), newRifs.get());
     auto remoteRifs = out->getRemoteInterfaces()->modify(&out);
     processDelta(delta, remoteRifs, makeRemoteRif);
