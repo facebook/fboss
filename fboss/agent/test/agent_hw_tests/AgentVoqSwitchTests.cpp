@@ -350,7 +350,7 @@ class AgentVoqSwitchWithFabricPortsTest : public AgentVoqSwitchTest {
         expectDrainState == cfg::SwitchDrainState::DRAINED ? true : false;
     for (const auto& switchId : getSw()->getHwAsicTable()->getSwitchIDs()) {
       // reachability should always be there regardless of drain state
-      utility::checkFabricReachability(getAgentEnsemble(), switchId);
+      utility::checkFabricConnectivity(getAgentEnsemble(), switchId);
       HwSwitchMatcher matcher(std::unordered_set<SwitchID>({switchId}));
       const auto& switchSettings =
           getProgrammedState()->getSwitchSettings()->getSwitchSettings(matcher);
@@ -425,10 +425,10 @@ TEST_F(AgentVoqSwitchWithFabricPortsTest, collectStats) {
   verifyAcrossWarmBoots([] {}, verify);
 }
 
-TEST_F(AgentVoqSwitchWithFabricPortsTest, checkFabricReachability) {
+TEST_F(AgentVoqSwitchWithFabricPortsTest, checkFabricConnectivity) {
   auto verify = [this]() {
     for (const auto& switchId : getSw()->getHwAsicTable()->getSwitchIDs()) {
-      utility::checkFabricReachability(getAgentEnsemble(), switchId);
+      utility::checkFabricConnectivity(getAgentEnsemble(), switchId);
     }
   };
   verifyAcrossWarmBoots([] {}, verify);

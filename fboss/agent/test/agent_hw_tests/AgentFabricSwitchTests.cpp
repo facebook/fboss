@@ -82,7 +82,7 @@ TEST_F(AgentFabricSwitchTest, init) {
   verifyAcrossWarmBoots(setup, verify);
 }
 
-TEST_F(AgentFabricSwitchTest, checkFabricReachabilityStats) {
+TEST_F(AgentFabricSwitchTest, checkFabricConnectivityStats) {
   auto setup = [=, this]() {
     auto newCfg = getSw()->getConfig();
     // reset the neighbor reachability information
@@ -97,7 +97,7 @@ TEST_F(AgentFabricSwitchTest, checkFabricReachabilityStats) {
   auto verify = [this]() {
     EXPECT_GT(getProgrammedState()->getPorts()->numNodes(), 0);
     for (const auto& switchId : getFabricSwitchIds()) {
-      utility::checkFabricReachabilityStats(getAgentEnsemble(), switchId);
+      utility::checkFabricConnectivityStats(getAgentEnsemble(), switchId);
     }
   };
   verifyAcrossWarmBoots(setup, verify);
@@ -111,11 +111,11 @@ TEST_F(AgentFabricSwitchTest, collectStats) {
   verifyAcrossWarmBoots([] {}, verify);
 }
 
-TEST_F(AgentFabricSwitchTest, checkFabricReachability) {
+TEST_F(AgentFabricSwitchTest, checkFabricConnectivity) {
   auto verify = [this]() {
     EXPECT_GT(getProgrammedState()->getPorts()->numNodes(), 0);
     for (const auto& switchId : getFabricSwitchIds()) {
-      utility::checkFabricReachability(getAgentEnsemble(), switchId);
+      utility::checkFabricConnectivity(getAgentEnsemble(), switchId);
     }
   };
   verifyAcrossWarmBoots([] {}, verify);
@@ -176,7 +176,7 @@ TEST_F(AgentFabricSwitchTest, fabricSwitchIsolate) {
   auto verify = [=, this]() {
     EXPECT_GT(getProgrammedState()->getPorts()->numNodes(), 0);
     for (const auto& switchId : getFabricSwitchIds()) {
-      utility::checkFabricReachability(getAgentEnsemble(), switchId);
+      utility::checkFabricConnectivity(getAgentEnsemble(), switchId);
     }
     // All ports should go to inactive state when switch is drained and
     // ports are in loopback!

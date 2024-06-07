@@ -17,7 +17,7 @@
 
 namespace facebook::fboss::utility {
 
-void checkFabricReachability(TestEnsembleIf* ensemble, SwitchID switchId) {
+void checkFabricConnectivity(TestEnsembleIf* ensemble, SwitchID switchId) {
   auto expectedSwitchType =
       ensemble->getHwAsicTable()->getHwAsic(switchId)->getSwitchType();
   WITH_RETRIES({
@@ -61,7 +61,7 @@ void checkFabricReachability(TestEnsembleIf* ensemble, SwitchID switchId) {
   });
 }
 
-void checkFabricReachabilityStats(TestEnsembleIf* ensemble, SwitchID switchId) {
+void checkFabricConnectivityStats(TestEnsembleIf* ensemble, SwitchID switchId) {
   WITH_RETRIES({
     ensemble->updateStats();
     auto reachability = ensemble->getFabricConnectivity(switchId);
