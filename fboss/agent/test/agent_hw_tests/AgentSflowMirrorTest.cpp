@@ -11,6 +11,7 @@
 
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/ResourceLibUtil.h"
+#include "fboss/agent/test/TrunkUtils.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/test/utils/MirrorTestUtils.h"
 #include "fboss/agent/test/utils/PacketSnooper.h"
@@ -458,12 +459,41 @@ class AgentSflowMirrorTruncateTest : public AgentSflowMirrorTest<AddrT> {
   }
 };
 
+template <typename AddrT>
+class AgentSflowMirrorOnTrunkTest : public AgentSflowMirrorTruncateTest<AddrT> {
+ public:
+  using AgentSflowMirrorTest<AddrT>::getPortsForSampling;
+
+  cfg::SwitchConfig initialConfig(
+      const AgentEnsemble& ensemble) const override {
+    auto config = AgentSflowMirrorTruncateTest<AddrT>::initialConfig(ensemble);
+    configTrunk(config, ensemble);
+    return config;
+  }
+
+  void configTrunk(cfg::SwitchConfig& config, const AgentEnsemble& ensemble)
+      const {
+    auto port0 = ensemble.masterLogicalPortIds()[0];
+    auto port0Switch =
+        ensemble.getSw()->getScopeResolver()->scope(port0).switchId();
+    auto asic = ensemble.getSw()->getHwAsicTable()->getHwAsic(port0Switch);
+    utility::addAggPort(
+        1,
+        {getPortsForSampling(ensemble.masterLogicalPortIds(), asic)[0]},
+        &config);
+  }
+};
+
 using AgentSflowMirrorTestV4 = AgentSflowMirrorTest<folly::IPAddressV4>;
 using AgentSflowMirrorTestV6 = AgentSflowMirrorTest<folly::IPAddressV6>;
 using AgentSflowMirrorTruncateTestV4 =
     AgentSflowMirrorTruncateTest<folly::IPAddressV4>;
 using AgentSflowMirrorTruncateTestV6 =
     AgentSflowMirrorTruncateTest<folly::IPAddressV6>;
+using AgentSflowMirrorOnTrunkTestV4 =
+    AgentSflowMirrorOnTrunkTest<folly::IPAddressV4>;
+using AgentSflowMirrorOnTrunkTestV6 =
+    AgentSflowMirrorOnTrunkTest<folly::IPAddressV6>;
 
 #define SFLOW_SAMPLING_TEST(fixture, name, code) \
   TEST_F(fixture, name) {                        \
@@ -478,6 +508,10 @@ using AgentSflowMirrorTruncateTestV6 =
   SFLOW_SAMPLING_TEST(AgentSflowMirrorTruncateTestV4, name, code) \
   SFLOW_SAMPLING_TEST(AgentSflowMirrorTruncateTestV6, name, code)
 
+#define SFLOW_SAMPLING_TRUNK_TEST_V4_V6(name, code)              \
+  SFLOW_SAMPLING_TEST(AgentSflowMirrorOnTrunkTestV4, name, code) \
+  SFLOW_SAMPLING_TEST(AgentSflowMirrorOnTrunkTestV6, name, code)
+
 SFLOW_SAMPLING_TEST_V4_V6(VerifySampledPacket, { this->testSampledPacket(); })
 SFLOW_SAMPLING_TEST_V4_V6(VerifySampledPacketRate, {
   this->testSampledPacketRate();
@@ -489,4 +523,12 @@ SFLOW_SAMPLING_TRUNCATE_TEST_V4_V6(VerifyTruncate, {
 SFLOW_SAMPLING_TRUNCATE_TEST_V4_V6(VerifySampledPacketRate, {
   this->testSampledPacketRate(true);
 })
+
+SFLOW_SAMPLING_TRUNK_TEST_V4_V6(VerifySampledPacket, {
+  this->testSampledPacket(true);
+})
+SFLOW_SAMPLING_TRUNK_TEST_V4_V6(VerifySampledPacketRate, {
+  this->testSampledPacketRate(true);
+})
+
 } // namespace facebook::fboss
