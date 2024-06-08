@@ -469,6 +469,21 @@ class AgentSflowMirrorOnTrunkTest : public AgentSflowMirrorTruncateTest<AddrT> {
  public:
   using AgentSflowMirrorTest<AddrT>::getPortsForSampling;
 
+  std::vector<production_features::ProductionFeature>
+  getProductionFeaturesVerified() const override {
+    if constexpr (std::is_same_v<AddrT, folly::IPAddressV4>) {
+      return {
+          production_features::ProductionFeature::SFLOWv4_SAMPLING,
+          production_features::ProductionFeature::LAG,
+          production_features::ProductionFeature::MIRROR_PACKET_TRUNCATION};
+    } else {
+      return {
+          production_features::ProductionFeature::SFLOWv6_SAMPLING,
+          production_features::ProductionFeature::LAG,
+          production_features::ProductionFeature::MIRROR_PACKET_TRUNCATION};
+    }
+  }
+
   cfg::SwitchConfig initialConfig(
       const AgentEnsemble& ensemble) const override {
     auto config = AgentSflowMirrorTruncateTest<AddrT>::initialConfig(ensemble);
