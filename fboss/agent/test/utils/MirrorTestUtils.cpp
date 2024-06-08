@@ -30,7 +30,11 @@ void configureSflowMirror(cfg::SwitchConfig& config, bool truncate, bool isV4) {
   mirror.truncate() = truncate;
 
   config.mirrors()->push_back(mirror);
-  folly::CIDRNetwork cidr{*sflowTunnel.ip(), (isV4 ? 32 : 128)};
+}
+
+void configureTrapAcl(cfg::SwitchConfig& config, bool isV4) {
+  folly::CIDRNetwork cidr{
+      getSflowMirrorDestination(isV4).str(), (isV4 ? 32 : 128)};
   utility::addTrapPacketAcl(&config, cidr);
 }
 

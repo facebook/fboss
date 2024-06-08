@@ -149,6 +149,10 @@ class HwSflowMirrorTest : public HwLinkStateDependentTest {
     utility::configureSflowMirror(*config, truncate, isV4);
   }
 
+  void configureTrapAcl(cfg::SwitchConfig* config, bool isV4 = true) const {
+    utility::configureTrapAcl(*config, isV4);
+  }
+
   void configSampling(cfg::SwitchConfig* config, int sampleRate) const {
     auto ports = getPortsForSampling();
     utility::configureSflowSampling(
@@ -267,6 +271,7 @@ class HwSflowMirrorTest : public HwLinkStateDependentTest {
     auto setup = [=, this]() {
       auto config = initialConfig();
       configMirror(&config, false);
+      configureTrapAcl(&config);
       configSampling(&config, FLAGS_sflow_test_rate);
       applyNewConfig(config);
       setupRoutes();
@@ -355,6 +360,7 @@ TEST_F(HwSflowMirrorTest, StressMirrorSessionConfigUnconfig) {
   auto setup = [=, this]() {
     auto config = initialConfig();
     configMirror(&config, false);
+    configureTrapAcl(&config);
     configSampling(&config, 1);
     applyNewConfig(config);
     for (auto i = 0; i < 500; i++) {
@@ -389,6 +395,7 @@ TEST_F(HwSflowMirrorTest, SetMirrorSession) {
   auto setup = [=, this]() {
     auto config = initialConfig();
     configMirror(&config, true);
+    configureTrapAcl(&config);
     configSampling(&config, 1);
     applyNewConfig(config);
     resolveMirror();
@@ -418,6 +425,7 @@ TEST_F(HwSflowMirrorTest, VerifySampledPacket) {
   auto setup = [=, this]() {
     auto config = initialConfig();
     configMirror(&config, false);
+    configureTrapAcl(&config);
     configSampling(&config, 1);
     applyNewConfig(config);
     resolveMirror();
@@ -438,6 +446,7 @@ TEST_F(HwSflowMirrorTest, VerifySampledPacketWithTruncateV4) {
   auto setup = [=, this]() {
     auto config = initialConfig();
     configMirror(&config, true);
+    configureTrapAcl(&config);
     configSampling(&config, 1);
     applyNewConfig(config);
     resolveMirror();
@@ -488,6 +497,7 @@ TEST_F(HwSflowMirrorTest, VerifySampledPacketWithTruncateV6) {
   auto setup = [=, this]() {
     auto config = initialConfig();
     configMirror(&config, true, false);
+    configureTrapAcl(&config, false);
     configSampling(&config, 1);
     applyNewConfig(config);
     resolveMirror();
@@ -553,6 +563,7 @@ TEST_F(HwSflowMirrorTest, VerifySampledPacketWithLagMemberAsEgressPort) {
     auto config = initialConfig();
     configTrunk(&config);
     configMirror(&config, true /* truncate */, false /* isv6 */);
+    configureTrapAcl(&config, false);
     configSampling(&config, 1);
     auto state = applyNewConfig(config);
     applyNewState(utility::enableTrunkPorts(state));
