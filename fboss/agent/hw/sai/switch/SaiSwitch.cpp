@@ -3554,6 +3554,9 @@ std::string SaiSwitch::listObjects(
         objTypes.push_back(SAI_OBJECT_TYPE_TUNNEL);
         objTypes.push_back(SAI_OBJECT_TYPE_TUNNEL_TERM_TABLE_ENTRY);
         break;
+      case HwObjectType::SYSTEM_PORT:
+        objTypes.push_back(SAI_OBJECT_TYPE_SYSTEM_PORT);
+        break;
     }
   }
   std::lock_guard<std::mutex> lk(saiSwitchMutex_);

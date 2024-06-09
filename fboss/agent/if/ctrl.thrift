@@ -653,6 +653,7 @@ enum HwObjectType {
   MACSEC = 22,
   SAI_MANAGED_OBJECTS = 23,
   IPTUNNEL = 24,
+  SYSTEM_PORT = 25,
 }
 
 exception FbossFibUpdateError {
