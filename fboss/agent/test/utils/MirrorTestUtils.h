@@ -14,11 +14,13 @@ folly::IPAddress getSflowMirrorDestination(bool isV4);
 
 void configureSflowMirror(
     cfg::SwitchConfig& config,
+    const std::string& mirrorName,
     bool truncate,
     bool isV4 = true);
 
 void configureSflowSampling(
     cfg::SwitchConfig& config,
+    const std::string& mirrorName,
     const std::vector<PortID>& ports,
     int sampleRate);
 

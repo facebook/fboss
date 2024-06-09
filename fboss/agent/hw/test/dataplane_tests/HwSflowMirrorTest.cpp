@@ -27,6 +27,8 @@ using namespace ::testing;
 DEFINE_int32(sflow_test_rate, 90000, "sflow sampling rate for hw test");
 DEFINE_int32(sflow_test_time, 5, "sflow test traffic time in seconds");
 
+const std::string kSflowMirror = "sflow_mirror";
+
 namespace facebook::fboss {
 class HwSflowMirrorTest : public HwLinkStateDependentTest {
  protected:
@@ -146,7 +148,7 @@ class HwSflowMirrorTest : public HwLinkStateDependentTest {
 
   void
   configMirror(cfg::SwitchConfig* config, bool truncate, bool isV4 = true) {
-    utility::configureSflowMirror(*config, truncate, isV4);
+    utility::configureSflowMirror(*config, kSflowMirror, truncate, isV4);
   }
 
   void configureTrapAcl(cfg::SwitchConfig* config, bool isV4 = true) const {
@@ -157,6 +159,7 @@ class HwSflowMirrorTest : public HwLinkStateDependentTest {
     auto ports = getPortsForSampling();
     utility::configureSflowSampling(
         *config,
+        kSflowMirror,
         std::vector<PortID>(ports.begin() + 1, ports.end()),
         sampleRate);
   }
@@ -167,7 +170,7 @@ class HwSflowMirrorTest : public HwLinkStateDependentTest {
         : utility::getFirstInterfaceMac(getProgrammedState());
     auto state = getProgrammedState()->clone();
     auto mirrors = state->getMirrors()->modify(&state);
-    auto mirror = mirrors->getNodeIf("sflow_mirror")->clone();
+    auto mirror = mirrors->getNodeIf(kSflowMirror)->clone();
     ASSERT_NE(mirror, nullptr);
 
     auto ip = mirror->getDestinationIp().value();
@@ -405,7 +408,7 @@ TEST_F(HwSflowMirrorTest, SetMirrorSession) {
   };
   auto setupPostWarmboot = [=, this]() {
     // change to resolveMirror() after 2nd warmboot
-    auto mirror = getProgrammedState()->getMirrors()->getNodeIf("sflow_mirror");
+    auto mirror = getProgrammedState()->getMirrors()->getNodeIf(kSflowMirror);
     if (mirror->getEgressPort().value() == getPortsForSampling()[0]) {
       resolveMirror(1, true);
     } else {

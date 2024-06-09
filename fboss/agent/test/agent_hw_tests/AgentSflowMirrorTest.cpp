@@ -22,6 +22,8 @@
 
 DEFINE_int32(sflow_test_rate, 90000, "sflow sampling rate for hw test");
 
+const std::string kSflowMirror = "sflow_mirror";
+
 namespace facebook::fboss {
 
 template <typename AddrT>
@@ -56,7 +58,7 @@ class AgentSflowMirrorTest : public AgentHwTest {
 
   virtual void configureMirror(cfg::SwitchConfig& cfg) const {
     utility::configureSflowMirror(
-        cfg, false, std::is_same_v<AddrT, folly::IPAddressV4>);
+        cfg, kSflowMirror, false, std::is_same_v<AddrT, folly::IPAddressV4>);
   }
 
   void configureTrapAcl(cfg::SwitchConfig& cfg) const {
@@ -89,7 +91,8 @@ class AgentSflowMirrorTest : public AgentHwTest {
       const std::vector<PortID>& ports,
       int sampleRate) const {
     std::vector<PortID> samplePorts(ports.begin() + 1, ports.end());
-    utility::configureSflowSampling(config, samplePorts, sampleRate);
+    utility::configureSflowSampling(
+        config, kSflowMirror, samplePorts, sampleRate);
   }
 
   void configSampling(cfg::SwitchConfig& config, int sampleRate) {
@@ -204,7 +207,7 @@ class AgentSflowMirrorTest : public AgentHwTest {
 
     getSw()->getUpdateEvb()->runInEventBaseThreadAndWait([] {});
 
-    auto mirror = getSw()->getState()->getMirrors()->getNodeIf("sflow_mirror");
+    auto mirror = getSw()->getState()->getMirrors()->getNodeIf(kSflowMirror);
     auto dip = mirror->getDestinationIp();
 
     RoutePrefix<AddrT> prefix(AddrT(dip->str()), dip->bitCount());
@@ -460,7 +463,10 @@ class AgentSflowMirrorTruncateTest : public AgentSflowMirrorTest<AddrT> {
 
   virtual void configureMirror(cfg::SwitchConfig& cfg) const override {
     utility::configureSflowMirror(
-        cfg, true /* truncate */, std::is_same_v<AddrT, folly::IPAddressV4>);
+        cfg,
+        kSflowMirror,
+        true /* truncate */,
+        std::is_same_v<AddrT, folly::IPAddressV4>);
   }
 };
 
