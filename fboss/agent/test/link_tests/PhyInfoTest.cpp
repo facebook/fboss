@@ -40,6 +40,8 @@ void validateInterfaceAndMedium(
                // Seems to only be expected on copper per BcmPortUtils.cpp
                phy::InterfaceType::GMII,
                phy::InterfaceType::SFI, // On fabric ports
+               // Needed for Wedge400C
+               phy::InterfaceType::KR8,
            }},
           {TransmitterTechnology::OPTICAL,
            {
