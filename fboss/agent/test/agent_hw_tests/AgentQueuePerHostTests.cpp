@@ -163,7 +163,6 @@ class AgentQueuePerHostTest : public AgentHwTest {
       bool setClassIDs,
       bool blockNeighbor) {
     auto outState{inState->clone()};
-
     for (const auto& ipToMacAndClassID : getIpToMacAndClassID()) {
       auto ip = ipToMacAndClassID.first;
       auto macAndClassID = ipToMacAndClassID.second;
@@ -245,6 +244,20 @@ class AgentQueuePerHostTest : public AgentHwTest {
       const std::shared_ptr<SwitchState>& inState,
       bool blockNeighbor) {
     return updateNeighbors(inState, true /* setClassIDs */, blockNeighbor);
+  }
+
+  void setMacAddrsToBlock() {
+    auto cfgMacAddrsToBlock = std::make_unique<std::vector<cfg::MacAndVlan>>();
+    for (const auto& ipToMacAndClassID : getIpToMacAndClassID()) {
+      auto macAndClassID = ipToMacAndClassID.second;
+      auto macAddress = macAndClassID.first;
+      cfg::MacAndVlan macAndVlan;
+      macAndVlan.vlanID() = kVlanID;
+      macAndVlan.macAddress() = macAddress.toString();
+      cfgMacAddrsToBlock->emplace_back(macAndVlan);
+    }
+    ThriftHandler handler(getSw());
+    handler.setMacAddrsToBlock(std::move(cfgMacAddrsToBlock));
   }
 
   void _verifyHelper(bool frontPanel, bool blockNeighbor) {
@@ -345,6 +358,9 @@ class AgentQueuePerHostTest : public AgentHwTest {
       return state2;
     });
 
+    if (blockNeighbor) {
+      setMacAddrsToBlock();
+    }
     applyNewState([this, blockNeighbor](std::shared_ptr<SwitchState> /*in*/) {
       auto state =
           this->updateClassID(this->getProgrammedState(), blockNeighbor);
@@ -353,6 +369,9 @@ class AgentQueuePerHostTest : public AgentHwTest {
   }
 
   void classIDWithResolveHelper(bool blockNeighbor) {
+    if (blockNeighbor) {
+      setMacAddrsToBlock();
+    }
     applyNewState([this, blockNeighbor](std::shared_ptr<SwitchState> /*in*/) {
       auto state1 = this->addNeighbors(this->getProgrammedState());
       auto state2 = this->resolveNeighbors(state1);
@@ -494,11 +513,29 @@ TYPED_TEST(
       false /* block neighbor */);
 }
 
+// Verify that traffic arriving on a front panel port to a blocked neighbor gets
+// dropped.
+TYPED_TEST(
+    AgentQueuePerHostTest,
+    VerifyHostToQueueMappingClassIDsAfterResolveBlock) {
+  this->verifyHostToQueueMappingClassIDsAfterResolveHelper(
+      true /* block neighbor */);
+}
+
 // Verify that traffic arriving on a front panel port gets right queue-per-host
 // queue.
 TYPED_TEST(AgentQueuePerHostTest, VerifyHostToQueueMappingClassIDsWithResolve) {
   this->verifyHostToQueueMappingClassIDsWithResolveHelper(
       false /* block neighbor */);
+}
+
+// Verify that traffic arriving on a front panel port to a blocked neighbor gets
+// dropped.
+TYPED_TEST(
+    AgentQueuePerHostTest,
+    VerifyHostToQueueMappingClassIDsWithResolveBlock) {
+  this->verifyHostToQueueMappingClassIDsWithResolveHelper(
+      true /* block neighbor */);
 }
 
 // Verify that TTLd traffic not going to queue-per-host has TTLd counter
