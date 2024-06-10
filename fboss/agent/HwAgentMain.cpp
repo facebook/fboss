@@ -8,8 +8,11 @@
  *
  */
 #include "fboss/agent/HwAgentMain.h"
+#include <fb303/FollyLoggingHandler.h>
+#include <fb303/ServiceData.h>
 #include <folly/logging/Init.h>
 #include <folly/logging/xlog.h>
+#include "common/fb303/cpp/DefaultControl.h"
 #include "fboss/agent/AgentConfig.h"
 #include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/AlpmUtils.h"
@@ -142,6 +145,11 @@ int hwAgentMain(
     char** argv,
     uint32_t hwFeaturesDesired,
     PlatformInitFn initPlatformFn) {
+  fb303::registerFollyLoggingOptionHandlers();
+  // Allow the fb303 setOption() call to update the command line flag
+  // settings.  This allows us to change the log levels on the fly using
+  //  setOption().
+  fb303::fbData->setUseOptionsAsFlags(true);
   auto config = fbossCommonInit(argc, argv);
 
   auto hwAgent = std::make_unique<HwAgent>(
@@ -192,6 +200,8 @@ int hwAgentMain(
       {hwAgent->getPlatform()->createHandler()},
       {FLAGS_hwagent_port_base + FLAGS_switchIndex},
       true /*setupSSL*/);
+  server->setControlInterface(
+      std::make_shared<facebook::fb303::DefaultControl>());
 
   SplitHwAgentSignalHandler signalHandler(
       &eventBase,
