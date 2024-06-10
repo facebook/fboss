@@ -50,22 +50,13 @@
           "test_name_regex": "AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
-          "test_name_regex": "AgentPacketSendReceiveTest.LldpPacketReceiveSrcPort$"
+          "test_name_regex": "AgentSflowMirrorTestV[46].*$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV4.VerifySampledPacket$"
+          "test_name_regex": "AgentSflowMirrorOnTrunkTestV[46].*$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV6.VerifySampledPacket$"
-        },
-        {
-          "test_name_regex": "AgentSflowMirrorTruncateTestV4.VerifyTruncate$"
-        },
-        {
-          "test_name_regex": "AgentSflowMirrorTruncateTestV6.VerifyTruncate$"
-        },
-        {
-          "test_name_regex": "AgentMacSwLearningModeTest.VerifySwAgingForTrunk$"
+          "test_name_regex": "AgentSflowMirrorTruncateTestV[46].*$"
         },
         {
           "test_name_regex": "AgentIngressPortSpanMirroringTest/[01].*$"
@@ -170,22 +161,13 @@
           "test_name_regex": "AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
-          "test_name_regex": "AgentPacketSendReceiveTest.LldpPacketReceiveSrcPort$"
+          "test_name_regex": "AgentSflowMirrorTestV[46].*$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV4.VerifySampledPacket$"
+          "test_name_regex": "AgentSflowMirrorOnTrunkTestV[46].*$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV6.VerifySampledPacket$"
-        },
-        {
-          "test_name_regex": "AgentSflowMirrorTruncateTestV4.VerifyTruncate$"
-        },
-        {
-          "test_name_regex": "AgentSflowMirrorTruncateTestV6.VerifyTruncate$"
-        },
-        {
-          "test_name_regex": "AgentMacSwLearningModeTest.VerifySwAgingForTrunk$"
+          "test_name_regex": "AgentSflowMirrorTruncateTestV[46].*$"
         },
         {
           "test_name_regex": "AgentIngressPortSpanMirroringTest/[01].*$"
@@ -349,22 +331,13 @@
           "test_name_regex": "AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
-          "test_name_regex": "AgentPacketSendReceiveTest.LldpPacketReceiveSrcPort$"
+          "test_name_regex": "AgentSflowMirrorTestV[46].*$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV4.VerifySampledPacket$"
+          "test_name_regex": "AgentSflowMirrorOnTrunkTestV[46].*$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV6.VerifySampledPacket$"
-        },
-        {
-          "test_name_regex": "AgentSflowMirrorTruncateTestV4.VerifyTruncate$"
-        },
-        {
-          "test_name_regex": "AgentSflowMirrorTruncateTestV6.VerifyTruncate$"
-        },
-        {
-          "test_name_regex": "AgentMacSwLearningModeTest.VerifySwAgingForTrunk$"
+          "test_name_regex": "AgentSflowMirrorTruncateTestV[46].*$"
         },
         {
           "test_name_regex": "AgentIngressPortSpanMirroringTest/[01].*$"
@@ -457,22 +430,13 @@
           "test_name_regex": "AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
-          "test_name_regex": "AgentPacketSendReceiveTest.LldpPacketReceiveSrcPort$"
+          "test_name_regex": "AgentSflowMirrorTestV[46].*$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV4.VerifySampledPacket$"
+          "test_name_regex": "AgentSflowMirrorOnTrunkTestV[46].*$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV6.VerifySampledPacket$"
-        },
-        {
-          "test_name_regex": "AgentSflowMirrorTruncateTestV4.VerifyTruncate$"
-        },
-        {
-          "test_name_regex": "AgentSflowMirrorTruncateTestV6.VerifyTruncate$"
-        },
-        {
-          "test_name_regex": "AgentMacSwLearningModeTest.VerifySwAgingForTrunk$"
+          "test_name_regex": "AgentSflowMirrorTruncateTestV[46].*$"
         },
         {
           "test_name_regex": "AgentIngressPortSpanMirroringTest/[01].*$"
@@ -612,22 +576,13 @@
           "test_name_regex": "AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
-          "test_name_regex": "AgentPacketSendReceiveTest.LldpPacketReceiveSrcPort$"
+          "test_name_regex": "AgentSflowMirrorTestV[46].*$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV4.VerifySampledPacket$"
+          "test_name_regex": "AgentSflowMirrorOnTrunkTestV[46].*$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV6.VerifySampledPacket$"
-        },
-        {
-          "test_name_regex": "AgentSflowMirrorTruncateTestV4.VerifyTruncate$"
-        },
-        {
-          "test_name_regex": "AgentSflowMirrorTruncateTestV6.VerifyTruncate$"
-        },
-        {
-          "test_name_regex": "AgentMacSwLearningModeTest.VerifySwAgingForTrunk$"
+          "test_name_regex": "AgentSflowMirrorTruncateTestV[46].*$"
         },
         {
           "test_name_regex": "AgentIngressPortSpanMirroringTest/[01].*$"
@@ -732,22 +687,13 @@
           "test_name_regex": "AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
-          "test_name_regex": "AgentPacketSendReceiveTest.LldpPacketReceiveSrcPort$"
+          "test_name_regex": "AgentSflowMirrorTestV[46].*$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV4.VerifySampledPacket$"
+          "test_name_regex": "AgentSflowMirrorOnTrunkTestV[46].*$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV6.VerifySampledPacket$"
-        },
-        {
-          "test_name_regex": "AgentSflowMirrorTruncateTestV4.VerifyTruncate$"
-        },
-        {
-          "test_name_regex": "AgentSflowMirrorTruncateTestV6.VerifyTruncate$"
-        },
-        {
-          "test_name_regex": "AgentMacSwLearningModeTest.VerifySwAgingForTrunk$"
+          "test_name_regex": "AgentSflowMirrorTruncateTestV[46].*$"
         },
         {
           "test_name_regex": "AgentIngressPortSpanMirroringTest/[01].*$"
@@ -869,22 +815,13 @@
           "test_name_regex": "AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
-          "test_name_regex": "AgentPacketSendReceiveTest.LldpPacketReceiveSrcPort$"
+          "test_name_regex": "AgentSflowMirrorTestV[46].*$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV4.VerifySampledPacket$"
+          "test_name_regex": "AgentSflowMirrorOnTrunkTestV[46].*$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV6.VerifySampledPacket$"
-        },
-        {
-          "test_name_regex": "AgentSflowMirrorTruncateTestV4.VerifyTruncate$"
-        },
-        {
-          "test_name_regex": "AgentSflowMirrorTruncateTestV6.VerifyTruncate$"
-        },
-        {
-          "test_name_regex": "AgentMacSwLearningModeTest.VerifySwAgingForTrunk$"
+          "test_name_regex": "AgentSflowMirrorTruncateTestV[46].*$"
         },
         {
           "test_name_regex": "AgentIngressPortSpanMirroringTest/[01].*$"
@@ -977,22 +914,13 @@
           "test_name_regex": "AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
-          "test_name_regex": "AgentPacketSendReceiveTest.LldpPacketReceiveSrcPort$"
+          "test_name_regex": "AgentSflowMirrorTestV[46].*$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV4.VerifySampledPacket$"
+          "test_name_regex": "AgentSflowMirrorOnTrunkTestV[46].*$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV6.VerifySampledPacket$"
-        },
-        {
-          "test_name_regex": "AgentSflowMirrorTruncateTestV4.VerifyTruncate$"
-        },
-        {
-          "test_name_regex": "AgentSflowMirrorTruncateTestV6.VerifyTruncate$"
-        },
-        {
-          "test_name_regex": "AgentMacSwLearningModeTest.VerifySwAgingForTrunk$"
+          "test_name_regex": "AgentSflowMirrorTruncateTestV[46].*$"
         },
         {
           "test_name_regex": "AgentIngressPortSpanMirroringTest/[01].*$"
@@ -1129,22 +1057,13 @@
           "test_name_regex": "AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
-          "test_name_regex": "AgentPacketSendReceiveTest.LldpPacketReceiveSrcPort$"
+          "test_name_regex": "AgentSflowMirrorTestV[46].*$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV4.VerifySampledPacket$"
+          "test_name_regex": "AgentSflowMirrorOnTrunkTestV[46].*$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV6.VerifySampledPacket$"
-        },
-        {
-          "test_name_regex": "AgentSflowMirrorTruncateTestV4.VerifyTruncate$"
-        },
-        {
-          "test_name_regex": "AgentSflowMirrorTruncateTestV6.VerifyTruncate$"
-        },
-        {
-          "test_name_regex": "AgentMacSwLearningModeTest.VerifySwAgingForTrunk$"
+          "test_name_regex": "AgentSflowMirrorTruncateTestV[46].*$"
         },
         {
           "test_name_regex": "AgentIngressPortSpanMirroringTest/[01].*$"
@@ -1249,22 +1168,13 @@
           "test_name_regex": "AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
-          "test_name_regex": "AgentPacketSendReceiveTest.LldpPacketReceiveSrcPort$"
+          "test_name_regex": "AgentSflowMirrorTestV[46].*$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV4.VerifySampledPacket$"
+          "test_name_regex": "AgentSflowMirrorOnTrunkTestV[46].*$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV6.VerifySampledPacket$"
-        },
-        {
-          "test_name_regex": "AgentSflowMirrorTruncateTestV4.VerifyTruncate$"
-        },
-        {
-          "test_name_regex": "AgentSflowMirrorTruncateTestV6.VerifyTruncate$"
-        },
-        {
-          "test_name_regex": "AgentMacSwLearningModeTest.VerifySwAgingForTrunk$"
+          "test_name_regex": "AgentSflowMirrorTruncateTestV[46].*$"
         },
         {
           "test_name_regex": "AgentIngressPortSpanMirroringTest/[01].*$"
@@ -1419,22 +1329,13 @@
           "test_name_regex": "AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
-          "test_name_regex": "AgentPacketSendReceiveTest.LldpPacketReceiveSrcPort$"
+          "test_name_regex": "AgentSflowMirrorTestV[46].*$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV4.VerifySampledPacket$"
+          "test_name_regex": "AgentSflowMirrorOnTrunkTestV[46].*$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV6.VerifySampledPacket$"
-        },
-        {
-          "test_name_regex": "AgentSflowMirrorTruncateTestV4.VerifyTruncate$"
-        },
-        {
-          "test_name_regex": "AgentSflowMirrorTruncateTestV6.VerifyTruncate$"
-        },
-        {
-          "test_name_regex": "AgentMacSwLearningModeTest.VerifySwAgingForTrunk$"
+          "test_name_regex": "AgentSflowMirrorTruncateTestV[46].*$"
         },
         {
           "test_name_regex": "AgentIngressPortSpanMirroringTest/[01].*$"
@@ -1527,22 +1428,13 @@
           "test_name_regex": "AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
-          "test_name_regex": "AgentPacketSendReceiveTest.LldpPacketReceiveSrcPort$"
+          "test_name_regex": "AgentSflowMirrorTestV[46].*$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV4.VerifySampledPacket$"
+          "test_name_regex": "AgentSflowMirrorOnTrunkTestV[46].*$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV6.VerifySampledPacket$"
-        },
-        {
-          "test_name_regex": "AgentSflowMirrorTruncateTestV4.VerifyTruncate$"
-        },
-        {
-          "test_name_regex": "AgentSflowMirrorTruncateTestV6.VerifyTruncate$"
-        },
-        {
-          "test_name_regex": "AgentMacSwLearningModeTest.VerifySwAgingForTrunk$"
+          "test_name_regex": "AgentSflowMirrorTruncateTestV[46].*$"
         },
         {
           "test_name_regex": "AgentIngressPortSpanMirroringTest/[01].*$"
@@ -1688,22 +1580,13 @@
           "test_name_regex": "AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
-          "test_name_regex": "AgentPacketSendReceiveTest.LldpPacketReceiveSrcPort$"
+          "test_name_regex": "AgentSflowMirrorTestV[46].*$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV4.VerifySampledPacket$"
+          "test_name_regex": "AgentSflowMirrorOnTrunkTestV[46].*$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV6.VerifySampledPacket$"
-        },
-        {
-          "test_name_regex": "AgentSflowMirrorTruncateTestV4.VerifyTruncate$"
-        },
-        {
-          "test_name_regex": "AgentSflowMirrorTruncateTestV6.VerifyTruncate$"
-        },
-        {
-          "test_name_regex": "AgentMacSwLearningModeTest.VerifySwAgingForTrunk$"
+          "test_name_regex": "AgentSflowMirrorTruncateTestV[46].*$"
         },
         {
           "test_name_regex": "AgentIngressPortSpanMirroringTest/[01].*$"
@@ -1808,22 +1691,13 @@
           "test_name_regex": "AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
-          "test_name_regex": "AgentPacketSendReceiveTest.LldpPacketReceiveSrcPort$"
+          "test_name_regex": "AgentSflowMirrorTestV[46].*$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV4.VerifySampledPacket$"
+          "test_name_regex": "AgentSflowMirrorOnTrunkTestV[46].*$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV6.VerifySampledPacket$"
-        },
-        {
-          "test_name_regex": "AgentSflowMirrorTruncateTestV4.VerifyTruncate$"
-        },
-        {
-          "test_name_regex": "AgentSflowMirrorTruncateTestV6.VerifyTruncate$"
-        },
-        {
-          "test_name_regex": "AgentMacSwLearningModeTest.VerifySwAgingForTrunk$"
+          "test_name_regex": "AgentSflowMirrorTruncateTestV[46].*$"
         },
         {
           "test_name_regex": "AgentIngressPortSpanMirroringTest/[01].*$"
@@ -1948,22 +1822,13 @@
           "test_name_regex": "AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
-          "test_name_regex": "AgentPacketSendReceiveTest.LldpPacketReceiveSrcPort$"
+          "test_name_regex": "AgentSflowMirrorTestV[46].*$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV4.VerifySampledPacket$"
+          "test_name_regex": "AgentSflowMirrorOnTrunkTestV[46].*$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV6.VerifySampledPacket$"
-        },
-        {
-          "test_name_regex": "AgentSflowMirrorTruncateTestV4.VerifyTruncate$"
-        },
-        {
-          "test_name_regex": "AgentSflowMirrorTruncateTestV6.VerifyTruncate$"
-        },
-        {
-          "test_name_regex": "AgentMacSwLearningModeTest.VerifySwAgingForTrunk$"
+          "test_name_regex": "AgentSflowMirrorTruncateTestV[46].*$"
         },
         {
           "test_name_regex": "AgentIngressPortSpanMirroringTest/[01].*$"
@@ -2056,22 +1921,13 @@
           "test_name_regex": "AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
-          "test_name_regex": "AgentPacketSendReceiveTest.LldpPacketReceiveSrcPort$"
+          "test_name_regex": "AgentSflowMirrorTestV[46].*$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV4.VerifySampledPacket$"
+          "test_name_regex": "AgentSflowMirrorOnTrunkTestV[46].*$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV6.VerifySampledPacket$"
-        },
-        {
-          "test_name_regex": "AgentSflowMirrorTruncateTestV4.VerifyTruncate$"
-        },
-        {
-          "test_name_regex": "AgentSflowMirrorTruncateTestV6.VerifyTruncate$"
-        },
-        {
-          "test_name_regex": "AgentMacSwLearningModeTest.VerifySwAgingForTrunk$"
+          "test_name_regex": "AgentSflowMirrorTruncateTestV[46].*$"
         },
         {
           "test_name_regex": "AgentIngressPortSpanMirroringTest/[01].*$"
@@ -2229,22 +2085,13 @@
           "test_name_regex": "AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
-          "test_name_regex": "AgentPacketSendReceiveTest.LldpPacketReceiveSrcPort$"
+          "test_name_regex": "AgentSflowMirrorTestV[46].*$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV4.VerifySampledPacket$"
+          "test_name_regex": "AgentSflowMirrorOnTrunkTestV[46].*$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV6.VerifySampledPacket$"
-        },
-        {
-          "test_name_regex": "AgentSflowMirrorTruncateTestV4.VerifyTruncate$"
-        },
-        {
-          "test_name_regex": "AgentSflowMirrorTruncateTestV6.VerifyTruncate$"
-        },
-        {
-          "test_name_regex": "AgentMacSwLearningModeTest.VerifySwAgingForTrunk$"
+          "test_name_regex": "AgentSflowMirrorTruncateTestV[46].*$"
         },
         {
           "test_name_regex": "AgentIngressPortSpanMirroringTest/[01].*$"
@@ -2349,22 +2196,13 @@
           "test_name_regex": "AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
-          "test_name_regex": "AgentPacketSendReceiveTest.LldpPacketReceiveSrcPort$"
+          "test_name_regex": "AgentSflowMirrorTestV[46].*$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV4.VerifySampledPacket$"
+          "test_name_regex": "AgentSflowMirrorOnTrunkTestV[46].*$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV6.VerifySampledPacket$"
-        },
-        {
-          "test_name_regex": "AgentSflowMirrorTruncateTestV4.VerifyTruncate$"
-        },
-        {
-          "test_name_regex": "AgentSflowMirrorTruncateTestV6.VerifyTruncate$"
-        },
-        {
-          "test_name_regex": "AgentMacSwLearningModeTest.VerifySwAgingForTrunk$"
+          "test_name_regex": "AgentSflowMirrorTruncateTestV[46].*$"
         },
         {
           "test_name_regex": "AgentIngressPortSpanMirroringTest/[01].*$"
@@ -2522,22 +2360,13 @@
           "test_name_regex": "AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
-          "test_name_regex": "AgentPacketSendReceiveTest.LldpPacketReceiveSrcPort$"
+          "test_name_regex": "AgentSflowMirrorTestV[46].*$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV4.VerifySampledPacket$"
+          "test_name_regex": "AgentSflowMirrorOnTrunkTestV[46].*$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV6.VerifySampledPacket$"
-        },
-        {
-          "test_name_regex": "AgentSflowMirrorTruncateTestV4.VerifyTruncate$"
-        },
-        {
-          "test_name_regex": "AgentSflowMirrorTruncateTestV6.VerifyTruncate$"
-        },
-        {
-          "test_name_regex": "AgentMacSwLearningModeTest.VerifySwAgingForTrunk$"
+          "test_name_regex": "AgentSflowMirrorTruncateTestV[46].*$"
         },
         {
           "test_name_regex": "AgentIngressPortSpanMirroringTest/[01].*$"
@@ -2630,22 +2459,13 @@
           "test_name_regex": "AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
-          "test_name_regex": "AgentPacketSendReceiveTest.LldpPacketReceiveSrcPort$"
+          "test_name_regex": "AgentSflowMirrorTestV[46].*$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV4.VerifySampledPacket$"
+          "test_name_regex": "AgentSflowMirrorOnTrunkTestV[46].*$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV6.VerifySampledPacket$"
-        },
-        {
-          "test_name_regex": "AgentSflowMirrorTruncateTestV4.VerifyTruncate$"
-        },
-        {
-          "test_name_regex": "AgentSflowMirrorTruncateTestV6.VerifyTruncate$"
-        },
-        {
-          "test_name_regex": "AgentMacSwLearningModeTest.VerifySwAgingForTrunk$"
+          "test_name_regex": "AgentSflowMirrorTruncateTestV[46].*$"
         },
         {
           "test_name_regex": "AgentIngressPortSpanMirroringTest/[01].*$"
@@ -2815,22 +2635,13 @@
           "test_name_regex": "AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
-          "test_name_regex": "AgentPacketSendReceiveTest.LldpPacketReceiveSrcPort$"
+          "test_name_regex": "AgentSflowMirrorTestV[46].*$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV4.VerifySampledPacket$"
+          "test_name_regex": "AgentSflowMirrorOnTrunkTestV[46].*$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV6.VerifySampledPacket$"
-        },
-        {
-          "test_name_regex": "AgentSflowMirrorTruncateTestV4.VerifyTruncate$"
-        },
-        {
-          "test_name_regex": "AgentSflowMirrorTruncateTestV6.VerifyTruncate$"
-        },
-        {
-          "test_name_regex": "AgentMacSwLearningModeTest.VerifySwAgingForTrunk$"
+          "test_name_regex": "AgentSflowMirrorTruncateTestV[46].*$"
         },
         {
           "test_name_regex": "AgentIngressPortSpanMirroringTest/[01].*$"
@@ -2935,22 +2746,13 @@
           "test_name_regex": "AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
-          "test_name_regex": "AgentPacketSendReceiveTest.LldpPacketReceiveSrcPort$"
+          "test_name_regex": "AgentSflowMirrorTestV[46].*$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV4.VerifySampledPacket$"
+          "test_name_regex": "AgentSflowMirrorOnTrunkTestV[46].*$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV6.VerifySampledPacket$"
-        },
-        {
-          "test_name_regex": "AgentSflowMirrorTruncateTestV4.VerifyTruncate$"
-        },
-        {
-          "test_name_regex": "AgentSflowMirrorTruncateTestV6.VerifyTruncate$"
-        },
-        {
-          "test_name_regex": "AgentMacSwLearningModeTest.VerifySwAgingForTrunk$"
+          "test_name_regex": "AgentSflowMirrorTruncateTestV[46].*$"
         },
         {
           "test_name_regex": "AgentIngressPortSpanMirroringTest/[01].*$"
@@ -3120,22 +2922,13 @@
           "test_name_regex": "AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
-          "test_name_regex": "AgentPacketSendReceiveTest.LldpPacketReceiveSrcPort$"
+          "test_name_regex": "AgentSflowMirrorTestV[46].*$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV4.VerifySampledPacket$"
+          "test_name_regex": "AgentSflowMirrorOnTrunkTestV[46].*$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV6.VerifySampledPacket$"
-        },
-        {
-          "test_name_regex": "AgentSflowMirrorTruncateTestV4.VerifyTruncate$"
-        },
-        {
-          "test_name_regex": "AgentSflowMirrorTruncateTestV6.VerifyTruncate$"
-        },
-        {
-          "test_name_regex": "AgentMacSwLearningModeTest.VerifySwAgingForTrunk$"
+          "test_name_regex": "AgentSflowMirrorTruncateTestV[46].*$"
         },
         {
           "test_name_regex": "AgentIngressPortSpanMirroringTest/[01].*$"
@@ -3228,22 +3021,13 @@
           "test_name_regex": "AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
-          "test_name_regex": "AgentPacketSendReceiveTest.LldpPacketReceiveSrcPort$"
+          "test_name_regex": "AgentSflowMirrorTestV[46].*$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV4.VerifySampledPacket$"
+          "test_name_regex": "AgentSflowMirrorOnTrunkTestV[46].*$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV6.VerifySampledPacket$"
-        },
-        {
-          "test_name_regex": "AgentSflowMirrorTruncateTestV4.VerifyTruncate$"
-        },
-        {
-          "test_name_regex": "AgentSflowMirrorTruncateTestV6.VerifyTruncate$"
-        },
-        {
-          "test_name_regex": "AgentMacSwLearningModeTest.VerifySwAgingForTrunk$"
+          "test_name_regex": "AgentSflowMirrorTruncateTestV[46].*$"
         },
         {
           "test_name_regex": "AgentIngressPortSpanMirroringTest/[01].*$"
@@ -3365,22 +3149,13 @@
           "test_name_regex": "AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
-          "test_name_regex": "AgentPacketSendReceiveTest.LldpPacketReceiveSrcPort$"
+          "test_name_regex": "AgentSflowMirrorTestV[46].*$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV4.VerifySampledPacket$"
+          "test_name_regex": "AgentSflowMirrorOnTrunkTestV[46].*$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV6.VerifySampledPacket$"
-        },
-        {
-          "test_name_regex": "AgentSflowMirrorTruncateTestV4.VerifyTruncate$"
-        },
-        {
-          "test_name_regex": "AgentSflowMirrorTruncateTestV6.VerifyTruncate$"
-        },
-        {
-          "test_name_regex": "AgentMacSwLearningModeTest.VerifySwAgingForTrunk$"
+          "test_name_regex": "AgentSflowMirrorTruncateTestV[46].*$"
         },
         {
           "test_name_regex": "AgentIngressPortSpanMirroringTest/[01].*$"
@@ -3485,22 +3260,13 @@
           "test_name_regex": "AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
-          "test_name_regex": "AgentPacketSendReceiveTest.LldpPacketReceiveSrcPort$"
+          "test_name_regex": "AgentSflowMirrorTestV[46].*$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV4.VerifySampledPacket$"
+          "test_name_regex": "AgentSflowMirrorOnTrunkTestV[46].*$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV6.VerifySampledPacket$"
-        },
-        {
-          "test_name_regex": "AgentSflowMirrorTruncateTestV4.VerifyTruncate$"
-        },
-        {
-          "test_name_regex": "AgentSflowMirrorTruncateTestV6.VerifyTruncate$"
-        },
-        {
-          "test_name_regex": "AgentMacSwLearningModeTest.VerifySwAgingForTrunk$"
+          "test_name_regex": "AgentSflowMirrorTruncateTestV[46].*$"
         },
         {
           "test_name_regex": "AgentIngressPortSpanMirroringTest/[01].*$"
@@ -3622,22 +3388,13 @@
           "test_name_regex": "AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
-          "test_name_regex": "AgentPacketSendReceiveTest.LldpPacketReceiveSrcPort$"
+          "test_name_regex": "AgentSflowMirrorTestV[46].*$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV4.VerifySampledPacket$"
+          "test_name_regex": "AgentSflowMirrorOnTrunkTestV[46].*$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV6.VerifySampledPacket$"
-        },
-        {
-          "test_name_regex": "AgentSflowMirrorTruncateTestV4.VerifyTruncate$"
-        },
-        {
-          "test_name_regex": "AgentSflowMirrorTruncateTestV6.VerifyTruncate$"
-        },
-        {
-          "test_name_regex": "AgentMacSwLearningModeTest.VerifySwAgingForTrunk$"
+          "test_name_regex": "AgentSflowMirrorTruncateTestV[46].*$"
         },
         {
           "test_name_regex": "AgentIngressPortSpanMirroringTest/[01].*$"
@@ -3730,22 +3487,13 @@
           "test_name_regex": "AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
-          "test_name_regex": "AgentPacketSendReceiveTest.LldpPacketReceiveSrcPort$"
+          "test_name_regex": "AgentSflowMirrorTestV[46].*$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV4.VerifySampledPacket$"
+          "test_name_regex": "AgentSflowMirrorOnTrunkTestV[46].*$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV6.VerifySampledPacket$"
-        },
-        {
-          "test_name_regex": "AgentSflowMirrorTruncateTestV4.VerifyTruncate$"
-        },
-        {
-          "test_name_regex": "AgentSflowMirrorTruncateTestV6.VerifyTruncate$"
-        },
-        {
-          "test_name_regex": "AgentMacSwLearningModeTest.VerifySwAgingForTrunk$"
+          "test_name_regex": "AgentSflowMirrorTruncateTestV[46].*$"
         },
         {
           "test_name_regex": "AgentIngressPortSpanMirroringTest/[01].*$"
@@ -3867,22 +3615,13 @@
           "test_name_regex": "AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
-          "test_name_regex": "AgentPacketSendReceiveTest.LldpPacketReceiveSrcPort$"
+          "test_name_regex": "AgentSflowMirrorTestV[46].*$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV4.VerifySampledPacket$"
+          "test_name_regex": "AgentSflowMirrorOnTrunkTestV[46].*$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV6.VerifySampledPacket$"
-        },
-        {
-          "test_name_regex": "AgentSflowMirrorTruncateTestV4.VerifyTruncate$"
-        },
-        {
-          "test_name_regex": "AgentSflowMirrorTruncateTestV6.VerifyTruncate$"
-        },
-        {
-          "test_name_regex": "AgentMacSwLearningModeTest.VerifySwAgingForTrunk$"
+          "test_name_regex": "AgentSflowMirrorTruncateTestV[46].*$"
         },
         {
           "test_name_regex": "AgentIngressPortSpanMirroringTest/[01].*$"
@@ -3987,22 +3726,13 @@
           "test_name_regex": "AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
-          "test_name_regex": "AgentPacketSendReceiveTest.LldpPacketReceiveSrcPort$"
+          "test_name_regex": "AgentSflowMirrorTestV[46].*$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV4.VerifySampledPacket$"
+          "test_name_regex": "AgentSflowMirrorOnTrunkTestV[46].*$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV6.VerifySampledPacket$"
-        },
-        {
-          "test_name_regex": "AgentSflowMirrorTruncateTestV4.VerifyTruncate$"
-        },
-        {
-          "test_name_regex": "AgentSflowMirrorTruncateTestV6.VerifyTruncate$"
-        },
-        {
-          "test_name_regex": "AgentMacSwLearningModeTest.VerifySwAgingForTrunk$"
+          "test_name_regex": "AgentSflowMirrorTruncateTestV[46].*$"
         },
         {
           "test_name_regex": "AgentIngressPortSpanMirroringTest/[01].*$"
@@ -4142,22 +3872,13 @@
           "test_name_regex": "AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
-          "test_name_regex": "AgentPacketSendReceiveTest.LldpPacketReceiveSrcPort$"
+          "test_name_regex": "AgentSflowMirrorTestV[46].*$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV4.VerifySampledPacket$"
+          "test_name_regex": "AgentSflowMirrorOnTrunkTestV[46].*$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV6.VerifySampledPacket$"
-        },
-        {
-          "test_name_regex": "AgentSflowMirrorTruncateTestV4.VerifyTruncate$"
-        },
-        {
-          "test_name_regex": "AgentSflowMirrorTruncateTestV6.VerifyTruncate$"
-        },
-        {
-          "test_name_regex": "AgentMacSwLearningModeTest.VerifySwAgingForTrunk$"
+          "test_name_regex": "AgentSflowMirrorTruncateTestV[46].*$"
         },
         {
           "test_name_regex": "AgentIngressPortSpanMirroringTest/[01].*$"
@@ -4250,22 +3971,13 @@
           "test_name_regex": "AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
-          "test_name_regex": "AgentPacketSendReceiveTest.LldpPacketReceiveSrcPort$"
+          "test_name_regex": "AgentSflowMirrorTestV[46].*$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV4.VerifySampledPacket$"
+          "test_name_regex": "AgentSflowMirrorOnTrunkTestV[46].*$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV6.VerifySampledPacket$"
-        },
-        {
-          "test_name_regex": "AgentSflowMirrorTruncateTestV4.VerifyTruncate$"
-        },
-        {
-          "test_name_regex": "AgentSflowMirrorTruncateTestV6.VerifyTruncate$"
-        },
-        {
-          "test_name_regex": "AgentMacSwLearningModeTest.VerifySwAgingForTrunk$"
+          "test_name_regex": "AgentSflowMirrorTruncateTestV[46].*$"
         },
         {
           "test_name_regex": "AgentIngressPortSpanMirroringTest/[01].*$"
@@ -4405,22 +4117,13 @@
           "test_name_regex": "AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
-          "test_name_regex": "AgentPacketSendReceiveTest.LldpPacketReceiveSrcPort$"
+          "test_name_regex": "AgentSflowMirrorTestV[46].*$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV4.VerifySampledPacket$"
+          "test_name_regex": "AgentSflowMirrorOnTrunkTestV[46].*$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV6.VerifySampledPacket$"
-        },
-        {
-          "test_name_regex": "AgentSflowMirrorTruncateTestV4.VerifyTruncate$"
-        },
-        {
-          "test_name_regex": "AgentSflowMirrorTruncateTestV6.VerifyTruncate$"
-        },
-        {
-          "test_name_regex": "AgentMacSwLearningModeTest.VerifySwAgingForTrunk$"
+          "test_name_regex": "AgentSflowMirrorTruncateTestV[46].*$"
         },
         {
           "test_name_regex": "AgentIngressPortSpanMirroringTest/[01].*$"
@@ -4525,22 +4228,13 @@
           "test_name_regex": "AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
-          "test_name_regex": "AgentPacketSendReceiveTest.LldpPacketReceiveSrcPort$"
+          "test_name_regex": "AgentSflowMirrorTestV[46].*$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV4.VerifySampledPacket$"
+          "test_name_regex": "AgentSflowMirrorOnTrunkTestV[46].*$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV6.VerifySampledPacket$"
-        },
-        {
-          "test_name_regex": "AgentSflowMirrorTruncateTestV4.VerifyTruncate$"
-        },
-        {
-          "test_name_regex": "AgentSflowMirrorTruncateTestV6.VerifyTruncate$"
-        },
-        {
-          "test_name_regex": "AgentMacSwLearningModeTest.VerifySwAgingForTrunk$"
+          "test_name_regex": "AgentSflowMirrorTruncateTestV[46].*$"
         },
         {
           "test_name_regex": "AgentIngressPortSpanMirroringTest/[01].*$"
@@ -4662,22 +4356,13 @@
           "test_name_regex": "AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
-          "test_name_regex": "AgentPacketSendReceiveTest.LldpPacketReceiveSrcPort$"
+          "test_name_regex": "AgentSflowMirrorTestV[46].*$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV4.VerifySampledPacket$"
+          "test_name_regex": "AgentSflowMirrorOnTrunkTestV[46].*$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV6.VerifySampledPacket$"
-        },
-        {
-          "test_name_regex": "AgentSflowMirrorTruncateTestV4.VerifyTruncate$"
-        },
-        {
-          "test_name_regex": "AgentSflowMirrorTruncateTestV6.VerifyTruncate$"
-        },
-        {
-          "test_name_regex": "AgentMacSwLearningModeTest.VerifySwAgingForTrunk$"
+          "test_name_regex": "AgentSflowMirrorTruncateTestV[46].*$"
         },
         {
           "test_name_regex": "AgentIngressPortSpanMirroringTest/[01].*$"
@@ -4770,22 +4455,13 @@
           "test_name_regex": "AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
-          "test_name_regex": "AgentPacketSendReceiveTest.LldpPacketReceiveSrcPort$"
+          "test_name_regex": "AgentSflowMirrorTestV[46].*$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV4.VerifySampledPacket$"
+          "test_name_regex": "AgentSflowMirrorOnTrunkTestV[46].*$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV6.VerifySampledPacket$"
-        },
-        {
-          "test_name_regex": "AgentSflowMirrorTruncateTestV4.VerifyTruncate$"
-        },
-        {
-          "test_name_regex": "AgentSflowMirrorTruncateTestV6.VerifyTruncate$"
-        },
-        {
-          "test_name_regex": "AgentMacSwLearningModeTest.VerifySwAgingForTrunk$"
+          "test_name_regex": "AgentSflowMirrorTruncateTestV[46].*$"
         },
         {
           "test_name_regex": "AgentIngressPortSpanMirroringTest/[01].*$"
@@ -4922,22 +4598,13 @@
           "test_name_regex": "AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
-          "test_name_regex": "AgentPacketSendReceiveTest.LldpPacketReceiveSrcPort$"
+          "test_name_regex": "AgentSflowMirrorTestV[46].*$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV4.VerifySampledPacket$"
+          "test_name_regex": "AgentSflowMirrorOnTrunkTestV[46].*$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV6.VerifySampledPacket$"
-        },
-        {
-          "test_name_regex": "AgentSflowMirrorTruncateTestV4.VerifyTruncate$"
-        },
-        {
-          "test_name_regex": "AgentSflowMirrorTruncateTestV6.VerifyTruncate$"
-        },
-        {
-          "test_name_regex": "AgentMacSwLearningModeTest.VerifySwAgingForTrunk$"
+          "test_name_regex": "AgentSflowMirrorTruncateTestV[46].*$"
         },
         {
           "test_name_regex": "AgentIngressPortSpanMirroringTest/[01].*$"
@@ -5042,22 +4709,13 @@
           "test_name_regex": "AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
-          "test_name_regex": "AgentPacketSendReceiveTest.LldpPacketReceiveSrcPort$"
+          "test_name_regex": "AgentSflowMirrorTestV[46].*$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV4.VerifySampledPacket$"
+          "test_name_regex": "AgentSflowMirrorOnTrunkTestV[46].*$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV6.VerifySampledPacket$"
-        },
-        {
-          "test_name_regex": "AgentSflowMirrorTruncateTestV4.VerifyTruncate$"
-        },
-        {
-          "test_name_regex": "AgentSflowMirrorTruncateTestV6.VerifyTruncate$"
-        },
-        {
-          "test_name_regex": "AgentMacSwLearningModeTest.VerifySwAgingForTrunk$"
+          "test_name_regex": "AgentSflowMirrorTruncateTestV[46].*$"
         },
         {
           "test_name_regex": "AgentIngressPortSpanMirroringTest/[01].*$"
@@ -5212,22 +4870,13 @@
           "test_name_regex": "AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
-          "test_name_regex": "AgentPacketSendReceiveTest.LldpPacketReceiveSrcPort$"
+          "test_name_regex": "AgentSflowMirrorTestV[46].*$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV4.VerifySampledPacket$"
+          "test_name_regex": "AgentSflowMirrorOnTrunkTestV[46].*$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV6.VerifySampledPacket$"
-        },
-        {
-          "test_name_regex": "AgentSflowMirrorTruncateTestV4.VerifyTruncate$"
-        },
-        {
-          "test_name_regex": "AgentSflowMirrorTruncateTestV6.VerifyTruncate$"
-        },
-        {
-          "test_name_regex": "AgentMacSwLearningModeTest.VerifySwAgingForTrunk$"
+          "test_name_regex": "AgentSflowMirrorTruncateTestV[46].*$"
         },
         {
           "test_name_regex": "AgentIngressPortSpanMirroringTest/[01].*$"
@@ -5320,22 +4969,13 @@
           "test_name_regex": "AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
-          "test_name_regex": "AgentPacketSendReceiveTest.LldpPacketReceiveSrcPort$"
+          "test_name_regex": "AgentSflowMirrorTestV[46].*$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV4.VerifySampledPacket$"
+          "test_name_regex": "AgentSflowMirrorOnTrunkTestV[46].*$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV6.VerifySampledPacket$"
-        },
-        {
-          "test_name_regex": "AgentSflowMirrorTruncateTestV4.VerifyTruncate$"
-        },
-        {
-          "test_name_regex": "AgentSflowMirrorTruncateTestV6.VerifyTruncate$"
-        },
-        {
-          "test_name_regex": "AgentMacSwLearningModeTest.VerifySwAgingForTrunk$"
+          "test_name_regex": "AgentSflowMirrorTruncateTestV[46].*$"
         },
         {
           "test_name_regex": "AgentIngressPortSpanMirroringTest/[01].*$"
@@ -5481,22 +5121,13 @@
           "test_name_regex": "AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
-          "test_name_regex": "AgentPacketSendReceiveTest.LldpPacketReceiveSrcPort$"
+          "test_name_regex": "AgentSflowMirrorTestV[46].*$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV4.VerifySampledPacket$"
+          "test_name_regex": "AgentSflowMirrorOnTrunkTestV[46].*$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV6.VerifySampledPacket$"
-        },
-        {
-          "test_name_regex": "AgentSflowMirrorTruncateTestV4.VerifyTruncate$"
-        },
-        {
-          "test_name_regex": "AgentSflowMirrorTruncateTestV6.VerifyTruncate$"
-        },
-        {
-          "test_name_regex": "AgentMacSwLearningModeTest.VerifySwAgingForTrunk$"
+          "test_name_regex": "AgentSflowMirrorTruncateTestV[46].*$"
         },
         {
           "test_name_regex": "AgentIngressPortSpanMirroringTest/[01].*$"
@@ -5601,22 +5232,13 @@
           "test_name_regex": "AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
-          "test_name_regex": "AgentPacketSendReceiveTest.LldpPacketReceiveSrcPort$"
+          "test_name_regex": "AgentSflowMirrorTestV[46].*$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV4.VerifySampledPacket$"
+          "test_name_regex": "AgentSflowMirrorOnTrunkTestV[46].*$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV6.VerifySampledPacket$"
-        },
-        {
-          "test_name_regex": "AgentSflowMirrorTruncateTestV4.VerifyTruncate$"
-        },
-        {
-          "test_name_regex": "AgentSflowMirrorTruncateTestV6.VerifyTruncate$"
-        },
-        {
-          "test_name_regex": "AgentMacSwLearningModeTest.VerifySwAgingForTrunk$"
+          "test_name_regex": "AgentSflowMirrorTruncateTestV[46].*$"
         },
         {
           "test_name_regex": "AgentIngressPortSpanMirroringTest/[01].*$"
@@ -5765,30 +5387,6 @@
           "test_name_regex": "AgentPacketSendTest.PortTxEnableTest$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV4.VerifySampledPacket$"
-        },
-        {
-          "test_name_regex": "AgentSflowMirrorTestV6.VerifySampledPacket$"
-        },
-        {
-          "test_name_regex": "AgentSflowMirrorTestV4.VerifySampledPacketRate$"
-        },
-        {
-          "test_name_regex": "AgentSflowMirrorTestV6.VerifySampledPacketRate$"
-        },
-        {
-          "test_name_regex": "AgentSflowMirrorTruncateTestV4.VerifyTruncate$"
-        },
-        {
-          "test_name_regex": "AgentSflowMirrorTruncateTestV6.VerifyTruncate$"
-        },
-        {
-          "test_name_regex": "AgentSflowMirrorTruncateTestV4.VerifySampledPacketRate$"
-        },
-        {
-          "test_name_regex": "AgentSflowMirrorTruncateTestV6.VerifySampledPacketRate$"
-        },
-        {
           "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
@@ -5852,22 +5450,13 @@
           "test_name_regex": "AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
-          "test_name_regex": "AgentPacketSendReceiveTest.LldpPacketReceiveSrcPort$"
+          "test_name_regex": "AgentSflowMirrorTestV[46].*$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV4.VerifySampledPacket$"
+          "test_name_regex": "AgentSflowMirrorOnTrunkTestV[46].*$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV6.VerifySampledPacket$"
-        },
-        {
-          "test_name_regex": "AgentSflowMirrorTruncateTestV4.VerifyTruncate$"
-        },
-        {
-          "test_name_regex": "AgentSflowMirrorTruncateTestV6.VerifyTruncate$"
-        },
-        {
-          "test_name_regex": "AgentMacSwLearningModeTest.VerifySwAgingForTrunk$"
+          "test_name_regex": "AgentSflowMirrorTruncateTestV[46].*$"
         },
         {
           "test_name_regex": "AgentIngressPortSpanMirroringTest/[01].*$"
@@ -5986,30 +5575,6 @@
           "test_name_regex": "AgentPacketSendTest.PortTxEnableTest$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV4.VerifySampledPacket$"
-        },
-        {
-          "test_name_regex": "AgentSflowMirrorTestV6.VerifySampledPacket$"
-        },
-        {
-          "test_name_regex": "AgentSflowMirrorTestV4.VerifySampledPacketRate$"
-        },
-        {
-          "test_name_regex": "AgentSflowMirrorTestV6.VerifySampledPacketRate$"
-        },
-        {
-          "test_name_regex": "AgentSflowMirrorTruncateTestV4.VerifyTruncate$"
-        },
-        {
-          "test_name_regex": "AgentSflowMirrorTruncateTestV6.VerifyTruncate$"
-        },
-        {
-          "test_name_regex": "AgentSflowMirrorTruncateTestV4.VerifySampledPacketRate$"
-        },
-        {
-          "test_name_regex": "AgentSflowMirrorTruncateTestV6.VerifySampledPacketRate$"
-        },
-        {
           "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
@@ -6073,22 +5638,13 @@
           "test_name_regex": "AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
-          "test_name_regex": "AgentPacketSendReceiveTest.LldpPacketReceiveSrcPort$"
+          "test_name_regex": "AgentSflowMirrorTestV[46].*$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV4.VerifySampledPacket$"
+          "test_name_regex": "AgentSflowMirrorOnTrunkTestV[46].*$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV6.VerifySampledPacket$"
-        },
-        {
-          "test_name_regex": "AgentSflowMirrorTruncateTestV4.VerifyTruncate$"
-        },
-        {
-          "test_name_regex": "AgentSflowMirrorTruncateTestV6.VerifyTruncate$"
-        },
-        {
-          "test_name_regex": "AgentMacSwLearningModeTest.VerifySwAgingForTrunk$"
+          "test_name_regex": "AgentSflowMirrorTruncateTestV[46].*$"
         },
         {
           "test_name_regex": "AgentIngressPortSpanMirroringTest/[01].*$"
@@ -6219,30 +5775,6 @@
           "test_name_regex": "AgentPacketSendTest.PortTxEnableTest$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV4.VerifySampledPacket$"
-        },
-        {
-          "test_name_regex": "AgentSflowMirrorTestV6.VerifySampledPacket$"
-        },
-        {
-          "test_name_regex": "AgentSflowMirrorTestV4.VerifySampledPacketRate$"
-        },
-        {
-          "test_name_regex": "AgentSflowMirrorTestV6.VerifySampledPacketRate$"
-        },
-        {
-          "test_name_regex": "AgentSflowMirrorTruncateTestV4.VerifyTruncate$"
-        },
-        {
-          "test_name_regex": "AgentSflowMirrorTruncateTestV6.VerifyTruncate$"
-        },
-        {
-          "test_name_regex": "AgentSflowMirrorTruncateTestV4.VerifySampledPacketRate$"
-        },
-        {
-          "test_name_regex": "AgentSflowMirrorTruncateTestV6.VerifySampledPacketRate$"
-        },
-        {
           "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
@@ -6297,22 +5829,13 @@
           "test_name_regex": "AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
-          "test_name_regex": "AgentPacketSendReceiveTest.LldpPacketReceiveSrcPort$"
+          "test_name_regex": "AgentSflowMirrorTestV[46].*$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV4.VerifySampledPacket$"
+          "test_name_regex": "AgentSflowMirrorOnTrunkTestV[46].*$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV6.VerifySampledPacket$"
-        },
-        {
-          "test_name_regex": "AgentSflowMirrorTruncateTestV4.VerifyTruncate$"
-        },
-        {
-          "test_name_regex": "AgentSflowMirrorTruncateTestV6.VerifyTruncate$"
-        },
-        {
-          "test_name_regex": "AgentMacSwLearningModeTest.VerifySwAgingForTrunk$"
+          "test_name_regex": "AgentSflowMirrorTruncateTestV[46].*$"
         },
         {
           "test_name_regex": "AgentIngressPortSpanMirroringTest/[01].*$"
@@ -6431,30 +5954,6 @@
           "test_name_regex": "AgentPacketSendTest.PortTxEnableTest$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV4.VerifySampledPacket$"
-        },
-        {
-          "test_name_regex": "AgentSflowMirrorTestV6.VerifySampledPacket$"
-        },
-        {
-          "test_name_regex": "AgentSflowMirrorTestV4.VerifySampledPacketRate$"
-        },
-        {
-          "test_name_regex": "AgentSflowMirrorTestV6.VerifySampledPacketRate$"
-        },
-        {
-          "test_name_regex": "AgentSflowMirrorTruncateTestV4.VerifyTruncate$"
-        },
-        {
-          "test_name_regex": "AgentSflowMirrorTruncateTestV6.VerifyTruncate$"
-        },
-        {
-          "test_name_regex": "AgentSflowMirrorTruncateTestV4.VerifySampledPacketRate$"
-        },
-        {
-          "test_name_regex": "AgentSflowMirrorTruncateTestV6.VerifySampledPacketRate$"
-        },
-        {
           "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
@@ -6509,22 +6008,13 @@
           "test_name_regex": "AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
-          "test_name_regex": "AgentPacketSendReceiveTest.LldpPacketReceiveSrcPort$"
+          "test_name_regex": "AgentSflowMirrorTestV[46].*$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV4.VerifySampledPacket$"
+          "test_name_regex": "AgentSflowMirrorOnTrunkTestV[46].*$"
         },
         {
-          "test_name_regex": "AgentSflowMirrorTestV6.VerifySampledPacket$"
-        },
-        {
-          "test_name_regex": "AgentSflowMirrorTruncateTestV4.VerifyTruncate$"
-        },
-        {
-          "test_name_regex": "AgentSflowMirrorTruncateTestV6.VerifyTruncate$"
-        },
-        {
-          "test_name_regex": "AgentMacSwLearningModeTest.VerifySwAgingForTrunk$"
+          "test_name_regex": "AgentSflowMirrorTruncateTestV[46].*$"
         },
         {
           "test_name_regex": "AgentIngressPortSpanMirroringTest/[01].*$"
