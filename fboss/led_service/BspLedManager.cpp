@@ -137,7 +137,8 @@ led::LedState BspLedManager::calculateLedState(
   bool anyPortUp{false}, allPortsUp{true};
   bool anyCablingError{false};
   bool anyForcedOn{false}, anyForcedOff{false};
-  std::optional<bool> anyUndrainedPort{std::nullopt};
+  std::optional<bool> anyActivePort{std::nullopt};
+  bool anyUndrainedPort{false};
 
   for (auto swPort : commonSwPorts) {
     if (portDisplayMap_.find(swPort) == portDisplayMap_.end()) {
@@ -151,13 +152,13 @@ led::LedState BspLedManager::calculateLedState(
     anyCablingError |= portDisplayMap_.at(swPort).cablingError;
     anyForcedOn |= portDisplayMap_.at(swPort).forcedOn;
     anyForcedOff |= portDisplayMap_.at(swPort).forcedOff;
+    anyUndrainedPort |= !portDisplayMap_.at(swPort).drained;
 
     if (portDisplayMap_.at(swPort).activeState.has_value()) {
-      if (!anyUndrainedPort.has_value()) {
-        anyUndrainedPort = *portDisplayMap_.at(swPort).activeState;
+      if (!anyActivePort.has_value()) {
+        anyActivePort = *portDisplayMap_.at(swPort).activeState;
       }
-      anyUndrainedPort =
-          *anyUndrainedPort || *portDisplayMap_.at(swPort).activeState;
+      anyActivePort = *anyActivePort || *portDisplayMap_.at(swPort).activeState;
     }
   }
 
@@ -177,13 +178,13 @@ led::LedState BspLedManager::calculateLedState(
   }
 
   XLOG(DBG2) << fmt::format(
-      "Port {:d}, anyPortUp={:s} allPortsUp={:s} anyCablingError = {:s} anyUndrainedPort={:s}",
+      "Port {:d}, anyPortUp={:s} allPortsUp={:s} anyCablingError = {:s} anyActivePort={:s} anyUndrainedPort={:s}",
       portId,
       (anyPortUp ? "True" : "False"),
       (allPortsUp ? "True" : "False"),
       (anyCablingError ? "True" : "False"),
-      (anyUndrainedPort.has_value() ? (*anyUndrainedPort ? "True" : "False")
-                                    : "N/A"));
+      (anyActivePort.has_value() ? (*anyActivePort ? "True" : "False") : "N/A"),
+      (anyUndrainedPort ? "True" : "False"));
 
   /*
    * BSP LED color scheme:
@@ -201,7 +202,7 @@ led::LedState BspLedManager::calculateLedState(
   led::LedColor currPortColor{led::LedColor::UNKNOWN};
   led::Blink currBlink{led::Blink::OFF};
 
-  if (!anyUndrainedPort.has_value() || *anyUndrainedPort) {
+  if ((!anyActivePort.has_value() || *anyActivePort) && anyUndrainedPort) {
     currBlink = led::Blink::OFF;
     if (allPortsUp && !anyCablingError) {
       currPortColor = led::LedColor::BLUE;
