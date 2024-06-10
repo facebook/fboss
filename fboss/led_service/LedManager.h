@@ -45,6 +45,7 @@ class LedManager {
         led::LedColor::UNKNOWN,
         led::Blink::UNKNOWN)};
     std::optional<bool> activeState{std::nullopt};
+    bool drained{false};
   };
 
  public:
@@ -55,6 +56,7 @@ class LedManager {
     bool operState;
     std::optional<PortLedExternalState> ledExternalState;
     std::optional<bool> activeState{std::nullopt};
+    bool drained;
   };
 
   LedManager();

@@ -72,6 +72,8 @@ void FsdbSwitchStateSubscriber::subscribeToState(
           if (auto activeState = onePortInfo.portActiveState()) {
             ledSwitchStateUpdate[onePortId].activeState = *activeState;
           }
+          ledSwitchStateUpdate[onePortId].drained =
+              onePortInfo.get_drainState() == cfg::PortDrainState::DRAINED;
         }
       }
 
