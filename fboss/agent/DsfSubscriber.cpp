@@ -156,9 +156,11 @@ void DsfSubscriber::scheduleUpdate(
         return std::shared_ptr<SwitchState>{};
       };
 
-  sw_->updateState(
-      folly::sformat("Update state for node: {}", nodeName),
-      std::move(updateDsfStateFn));
+  sw_->getRib()->updateStateInRibThread([this, nodeName, updateDsfStateFn]() {
+    sw_->updateStateWithHwFailureProtection(
+        folly::sformat("Update state for node: {}", nodeName),
+        updateDsfStateFn);
+  });
 }
 
 void DsfSubscriber::stateUpdated(const StateDelta& stateDelta) {
