@@ -137,7 +137,7 @@ class DsfSubscriberTest : public ::testing::Test {
   std::unique_ptr<DsfSubscriber> dsfSubscriber_;
 };
 
-TEST_F(DsfSubscriberTest, scheduleUpdate) {
+TEST_F(DsfSubscriberTest, updateWithRollbackProtection) {
   auto sysPorts = makeSysPorts();
   auto rifs = makeRifs(sysPorts.get());
 
@@ -148,13 +148,13 @@ TEST_F(DsfSubscriberTest, scheduleUpdate) {
 
   // Add remote interfaces
   const auto prevState = sw_->getState();
-  dsfSubscriber_->scheduleUpdate(
+  dsfSubscriber_->updateWithRollbackProtection(
       "switch",
       SwitchID(kRemoteSwitchId),
       switchId2SystemPorts,
       switchId2Intfs);
 
-  const auto addedState = waitForStateUpdates(sw_);
+  const auto addedState = sw_->getState();
   verifyRemoteIntfRouteDelta(StateDelta(prevState, addedState), 4, 0);
 
   // Change remote interface routes
@@ -173,7 +173,7 @@ TEST_F(DsfSubscriberTest, scheduleUpdate) {
       ->find(sysPort1Id)
       ->second->setAddresses(updatedAddresses);
 
-  dsfSubscriber_->scheduleUpdate(
+  dsfSubscriber_->updateWithRollbackProtection(
       "switch",
       SwitchID(kRemoteSwitchId),
       switchId2SystemPorts,
@@ -187,7 +187,7 @@ TEST_F(DsfSubscriberTest, scheduleUpdate) {
       std::make_shared<SystemPortMap>();
   switchId2Intfs[SwitchID(kRemoteSwitchId)] = std::make_shared<InterfaceMap>();
 
-  dsfSubscriber_->scheduleUpdate(
+  dsfSubscriber_->updateWithRollbackProtection(
       "switch",
       SwitchID(kRemoteSwitchId),
       switchId2SystemPorts,
@@ -206,8 +206,8 @@ TEST_F(DsfSubscriberTest, setupNeighbors) {
       rifs->publish();
     }
 
-    // dsfSubscriber_->scheduleUpdate is expected to set isLocal to False,
-    // and rest of the structure should remain the same.
+    // dsfSubscriber_->updateWithRollbackProtection is expected to set isLocal
+    // to False, and rest of the structure should remain the same.
     auto expectedRifs = InterfaceMap(rifs->toThrift());
     for (auto intfIter : expectedRifs) {
       auto& intf = intfIter.second;
@@ -226,7 +226,7 @@ TEST_F(DsfSubscriberTest, setupNeighbors) {
     switchId2SystemPorts[SwitchID(kRemoteSwitchId)] = sysPorts;
     switchId2Intfs[SwitchID(kRemoteSwitchId)] = rifs;
 
-    dsfSubscriber_->scheduleUpdate(
+    dsfSubscriber_->updateWithRollbackProtection(
         "switch",
         SwitchID(kRemoteSwitchId),
         switchId2SystemPorts,

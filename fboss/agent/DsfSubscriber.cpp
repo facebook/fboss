@@ -114,7 +114,7 @@ bool DsfSubscriber::isLocal(SwitchID nodeSwitchId) const {
   return localSwitchIds.find(nodeSwitchId) != localSwitchIds.end();
 }
 
-void DsfSubscriber::scheduleUpdate(
+void DsfSubscriber::updateWithRollbackProtection(
     const std::string& nodeName,
     const SwitchID& nodeSwitchId,
     const std::map<SwitchID, std::shared_ptr<SystemPortMap>>&
@@ -486,7 +486,7 @@ void DsfSubscriber::handleFsdbUpdate(
           remoteNodeName);
     }
   }
-  scheduleUpdate(
+  updateWithRollbackProtection(
       remoteNodeName, remoteSwitchId, switchId2SystemPorts, switchId2Intfs);
 }
 

@@ -57,7 +57,7 @@ class DsfSubscriber : public StateObserver {
       const folly::IPAddress& remoteIP);
 
  private:
-  void scheduleUpdate(
+  void updateWithRollbackProtection(
       const std::string& nodeName,
       const SwitchID& nodeSwitchId,
       const std::map<SwitchID, std::shared_ptr<SystemPortMap>>&
@@ -86,7 +86,7 @@ class DsfSubscriber : public StateObserver {
   std::string localNodeName_;
   folly::Synchronized<std::unordered_map<std::string, DsfSession>> dsfSessions_;
 
-  FRIEND_TEST(DsfSubscriberTest, scheduleUpdate);
+  FRIEND_TEST(DsfSubscriberTest, updateWithRollbackProtection);
   FRIEND_TEST(DsfSubscriberTest, setupNeighbors);
   FRIEND_TEST(DsfSubscriberTest, handleFsdbUpdate);
 };
