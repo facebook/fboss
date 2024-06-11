@@ -7229,42 +7229,26 @@
       {
         "id": 7,
         "streamType": 0,
-        "weight": 4,
-        "scheduling": 0,
+        "scheduling": 1,
         "name": "cpuQueue-high"
       },
       {
         "id": 3,
         "streamType": 0,
-        "weight": 2,
-        "scheduling": 0,
+        "scheduling": 1,
         "name": "cpuQueue-mid"
       },
       {
         "id": 1,
         "streamType": 0,
-        "weight": 1,
-        "scheduling": 0,
-        "name": "cpuQueue-default",
-        "portQueueRate": {
-          "pktsPerSec": {
-            "minimum": 0,
-            "maximum": 1000
-          }
-        }
+        "scheduling": 1,
+        "name": "cpuQueue-default"
       },
       {
         "id": 0,
         "streamType": 0,
-        "weight": 1,
-        "scheduling": 0,
-        "name": "cpuQueue-low",
-        "portQueueRate": {
-          "pktsPerSec": {
-            "minimum": 0,
-            "maximum": 500
-          }
-        }
+        "scheduling": 1,
+        "name": "cpuQueue-low"
       }
     ],
     "cpuTrafficPolicy": {
