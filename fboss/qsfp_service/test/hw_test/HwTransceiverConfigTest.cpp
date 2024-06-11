@@ -35,15 +35,14 @@ TEST_F(HwTransceiverConfigTest, moduleConfigVerification) {
     cfg::TransceiverConfigOverrideFactor moduleFactor;
     auto settings = apache::thrift::can_throw(*tcvrState.settings());
     auto mediaIntefaces = apache::thrift::can_throw(*settings.mediaInterface());
-    if (mgmtInterface == TransceiverManagementInterface::SFF8472) {
+    auto& cable = apache::thrift::can_throw(*tcvrState.cable());
+    if (mgmtInterface == TransceiverManagementInterface::SFF8472 ||
+        cable.transmitterTech() == TransmitterTechnology::COPPER) {
       // TODO: Nothing to verify for sff8472 modules
       continue;
     } else if (mgmtInterface == TransceiverManagementInterface::CMIS) {
-      auto& cable = apache::thrift::can_throw(*tcvrState.cable());
-      if (cable.transmitterTech() != TransmitterTechnology::COPPER) {
-        moduleFactor.applicationCode() =
-            *mediaIntefaces[0].media()->smfCode_ref();
-      }
+      moduleFactor.applicationCode() =
+          *mediaIntefaces[0].media()->smfCode_ref();
     } else {
       EXPECT_TRUE(mgmtInterface == TransceiverManagementInterface::SFF);
     }
