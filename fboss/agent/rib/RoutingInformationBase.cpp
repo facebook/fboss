@@ -267,34 +267,49 @@ void RibRouteTables::reconfigure(
   }
 }
 
-void RibRouteTables::reconfigureRemoteInterfaceRoutes(
+void RibRouteTables::updateRemoteInterfaceRoutes(
     const SwitchIdScopeResolver* resolver,
-    const RouterIDAndNetworkToInterfaceRoutes& routerIDToRemoteInterfaceRoutes,
+    const RouterIDAndNetworkToInterfaceRoutes& toAdd,
+    const boost::container::flat_map<
+        facebook::fboss::RouterID,
+        std::vector<folly::CIDRNetwork>>& toDel,
     const FibUpdateFunction& fibUpdateCallback,
     void* cookie) {
+  auto makeNhop = [](const auto& interfaceIDAndAddr) {
+    auto interfaceID = interfaceIDAndAddr.first;
+    auto address = interfaceIDAndAddr.second;
+    ResolvedNextHop resolvedNextHop(address, interfaceID, UCMP_DEFAULT_WEIGHT);
+    RouteNextHopEntry nextHop(
+        static_cast<NextHop>(resolvedNextHop),
+        AdminDistance::DIRECTLY_CONNECTED);
+    return nextHop;
+  };
+
   for (auto& vrf : getVrfList()) {
-    std::vector<RibRouteUpdater::RouteEntry> interfaceRoutes;
-    const auto& iter = routerIDToRemoteInterfaceRoutes.find(vrf);
-    if (iter != routerIDToRemoteInterfaceRoutes.end()) {
-      for (const auto& [network, interfaceIDAndAddr] : iter->second) {
-        auto interfaceID = interfaceIDAndAddr.first;
-        auto address = interfaceIDAndAddr.second;
-        ResolvedNextHop resolvedNextHop(
-            address, interfaceID, UCMP_DEFAULT_WEIGHT);
-        RouteNextHopEntry nextHop(
-            static_cast<NextHop>(resolvedNextHop),
-            AdminDistance::DIRECTLY_CONNECTED);
-        interfaceRoutes.emplace_back(network, nextHop);
+    std::vector<RibRouteUpdater::RouteEntry> toAddRoutes;
+    std::vector<folly::CIDRNetwork> toDelRoutes;
+    const auto& toAddIter = toAdd.find(vrf);
+    if (toAddIter != toAdd.end()) {
+      for (const auto& [network, interfaceIDAndAddr] : toAddIter->second) {
+        toAddRoutes.emplace_back(network, makeNhop(interfaceIDAndAddr));
       }
+    }
+    const auto& toDelIter = toDel.find(vrf);
+    if (toDelIter != toDel.end()) {
+      for (const auto& network : toDelIter->second) {
+        toDelRoutes.push_back(network);
+      }
+    }
+    if (!toAddRoutes.empty() || !toDelRoutes.empty()) {
       updateRib(vrf, [&](auto& routeTable) {
         RibRouteUpdater updater(
             &(routeTable.v4NetworkToRoute),
             &(routeTable.v6NetworkToRoute),
             &(routeTable.labelToRoute));
         updater.update(
-            {{ClientID::REMOTE_INTERFACE_ROUTE, interfaceRoutes}},
-            {},
-            {ClientID::REMOTE_INTERFACE_ROUTE});
+            {{ClientID::REMOTE_INTERFACE_ROUTE, toAddRoutes}},
+            {{ClientID::REMOTE_INTERFACE_ROUTE, toDelRoutes}},
+            {});
       });
       updateFib(resolver, vrf, fibUpdateCallback, cookie);
     }
@@ -515,17 +530,16 @@ void RoutingInformationBase::reconfigure(
   ribUpdateEventBase_.runInEventBaseThreadAndWait(updateFn);
 }
 
-void RoutingInformationBase::reconfigureRemoteInterfaceRoutes(
+void RoutingInformationBase::updateRemoteInterfaceRoutes(
     const SwitchIdScopeResolver* resolver,
-    const RouterIDAndNetworkToInterfaceRoutes& routerIDToRemoteInterfaceRoutes,
+    const RouterIDAndNetworkToInterfaceRoutes& toAdd,
+    const boost::container::flat_map<
+        facebook::fboss::RouterID,
+        std::vector<folly::CIDRNetwork>>& toDel,
     const FibUpdateFunction& fibUpdateCallback,
     void* cookie) {
-  ensureRunning();
-  auto updateFn = [&] {
-    ribTables_.reconfigureRemoteInterfaceRoutes(
-        resolver, routerIDToRemoteInterfaceRoutes, fibUpdateCallback, cookie);
-  };
-  ribUpdateEventBase_.runInEventBaseThreadAndWait(updateFn);
+  ribTables_.updateRemoteInterfaceRoutes(
+      resolver, toAdd, toDel, fibUpdateCallback, cookie);
 }
 
 template <typename TraitsType>

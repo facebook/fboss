@@ -95,10 +95,12 @@ class RibRouteTables {
       FibUpdateFunction fibUpdateCallback,
       void* cookie);
 
-  void reconfigureRemoteInterfaceRoutes(
+  void updateRemoteInterfaceRoutes(
       const SwitchIdScopeResolver* resolver,
-      const RouterIDAndNetworkToInterfaceRoutes&
-          routerIDToRemoteInterfaceRoutes,
+      const RouterIDAndNetworkToInterfaceRoutes& toAdd,
+      const boost::container::flat_map<
+          facebook::fboss::RouterID,
+          std::vector<folly::CIDRNetwork>>& toDel,
       const FibUpdateFunction& fibUpdateCallback,
       void* cookie);
 
@@ -278,10 +280,12 @@ class RoutingInformationBase {
       FibUpdateFunction fibUpdateCallback,
       void* cookie);
 
-  void reconfigureRemoteInterfaceRoutes(
+  void updateRemoteInterfaceRoutes(
       const SwitchIdScopeResolver* resolver,
-      const RouterIDAndNetworkToInterfaceRoutes&
-          routerIDToRemoteInterfaceRoutes,
+      const RouterIDAndNetworkToInterfaceRoutes& toAdd,
+      const boost::container::flat_map<
+          facebook::fboss::RouterID,
+          std::vector<folly::CIDRNetwork>>& toDel,
       const FibUpdateFunction& fibUpdateCallback,
       void* cookie);
 
