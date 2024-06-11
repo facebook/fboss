@@ -2717,13 +2717,25 @@ void SaiPortManager::changeZeroPreemphasis(
           "Cannot set zero preemphasis on non existent port: ",
           newPort->getID());
     }
-    // TH4 and TH5 not yet supporting setting zero three-tap values
-    if (platform_->getAsic()->getAsicType() ==
+
+    // Check if the platform supports setting zero preemphasis.
+    // TH4 and TH5 starts supporting zero preemphasis starting 11.0
+#if defined(BRCM_SAI_SDK_GTE_11_0)
+    bool supportsZeroPreemphasis =
+        platform_->getAsic()->isSupported(
+            HwAsic::Feature::PORT_SERDES_ZERO_PREEMPHASIS) ||
+        platform_->getAsic()->getAsicType() ==
             cfg::AsicType::ASIC_TYPE_TOMAHAWK4 ||
         platform_->getAsic()->getAsicType() ==
-            cfg::AsicType::ASIC_TYPE_TOMAHAWK5) {
+            cfg::AsicType::ASIC_TYPE_TOMAHAWK5;
+#else
+    bool supportsZeroPreemphasis = platform_->getAsic()->isSupported(
+        HwAsic::Feature::PORT_SERDES_ZERO_PREEMPHASIS);
+#endif
+    if (!supportsZeroPreemphasis) {
       return;
     }
+
     auto gotAttributes = portHandle->port->attributes();
     auto numLanes =
         std::get<SaiPortTraits::Attributes::HwLaneList>(gotAttributes)
