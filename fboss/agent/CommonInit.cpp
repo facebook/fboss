@@ -12,6 +12,7 @@
 #include <folly/logging/xlog.h>
 #include "fboss/agent/AgentConfig.h"
 #include "fboss/agent/FbossInit.h"
+#include "fboss/agent/Platform.h"
 
 #include <gflags/gflags.h>
 #include <cstdio>
@@ -39,7 +40,8 @@ std::unique_ptr<AgentConfig> parseConfig(int argc, char** argv) {
   return AgentConfig::fromDefaultFile();
 }
 
-std::unique_ptr<AgentConfig> fbossCommonInit(int argc, char** argv) {
+std::unique_ptr<AgentConfig>
+fbossCommonInit(int argc, char** argv, bool useBitsflowAclFileSuffix) {
   // Read the config and set default command line arguments
   auto config = parseConfig(argc, argv);
   initFlagDefaults(*config->thrift.defaultCommandLineArgs());
@@ -60,7 +62,11 @@ std::unique_ptr<AgentConfig> fbossCommonInit(int argc, char** argv) {
   }
 
   // Initialize Bitsflow for agent
-  initializeBitsflow();
+  std::optional<std::string> bitsflowAclFileSuffix;
+  if (useBitsflowAclFileSuffix) {
+    bitsflowAclFileSuffix = std::to_string(FLAGS_switchIndex);
+  }
+  initializeBitsflow(bitsflowAclFileSuffix);
 
   return config;
 }

@@ -4,7 +4,8 @@
 
 namespace facebook::fboss {
 
-void initializeBitsflow() {}
+void initializeBitsflow(
+    const std::optional<std::string>& /*bitsflowAclFileSuffix*/) {}
 
 void setVersionInfo(const std::string& /*version*/) {}
 

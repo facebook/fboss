@@ -150,7 +150,7 @@ int hwAgentMain(
   // settings.  This allows us to change the log levels on the fly using
   //  setOption().
   fb303::fbData->setUseOptionsAsFlags(true);
-  auto config = fbossCommonInit(argc, argv);
+  auto config = fbossCommonInit(argc, argv, true /*useBitsflowAclFileSuffix*/);
 
   auto hwAgent = std::make_unique<HwAgent>(
       std::move(config), hwFeaturesDesired, initPlatformFn, FLAGS_switchIndex);

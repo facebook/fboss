@@ -24,8 +24,10 @@ void initFlagDefaults(const std::map<std::string, std::string>& defaults);
 std::unique_ptr<AgentConfig> parseConfig(int argc, char** argv);
 void fbossFinalize();
 void setVersionInfo(const std::string& version);
-void initializeBitsflow();
-std::unique_ptr<AgentConfig> fbossCommonInit(int argc, char** argv);
+void initializeBitsflow(
+    const std::optional<std::string>& bitsflowAclFileSuffix);
+std::unique_ptr<AgentConfig>
+fbossCommonInit(int argc, char** argv, bool useBitsflowAclFileSuffix = false);
 
 class SignalHandler : public folly::AsyncSignalHandler {
  protected:
