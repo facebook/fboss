@@ -27,6 +27,8 @@ using namespace facebook::fboss;
 namespace {
 constexpr auto kRemoteSwitchId = 42;
 constexpr auto kSysPortRangeMin = 1000;
+constexpr auto intfV4AddrPrefix = "42.42.42.";
+constexpr auto intfV6AddrPrefix = "42::";
 std::shared_ptr<SystemPortMap> makeSysPorts() {
   auto sysPorts = std::make_shared<SystemPortMap>();
   for (auto sysPortId = kSysPortRangeMin + 1; sysPortId < kSysPortRangeMin + 3;
@@ -48,6 +50,15 @@ std::shared_ptr<InterfaceMap> makeRifs(const SystemPortMap* sysPorts) {
         false,
         true,
         cfg::InterfaceType::SYSTEM_PORT);
+    Interface::Addresses addresses{
+        {folly::IPAddressV4(
+             folly::to<std::string>(intfV4AddrPrefix, (id % 256))),
+         31},
+        {folly::IPAddressV6(
+             folly::to<std::string>(intfV6AddrPrefix, (id % 256))),
+         127}};
+    rif->setAddresses(addresses);
+    rif->setScope(cfg::Scope::GLOBAL);
     rifs->addNode(rif);
   }
   return rifs;
@@ -87,6 +98,39 @@ class DsfSubscriberTest : public ::testing::Test {
     }
   }
 
+  void verifyRemoteIntfRouteDelta(
+      StateDelta delta,
+      int expectedRouteAdded,
+      int expectedRouteDeleted) {
+    auto routesAdded = 0;
+    auto routesDeleted = 0;
+
+    for (const auto& routeDelta : delta.getFibsDelta()) {
+      DeltaFunctions::forEachChanged(
+          routeDelta.getFibDelta<folly::IPAddressV4>(),
+          [&](const auto& /* oldNode */, const auto& /* newNode */) {},
+          [&](const auto& added) {
+            EXPECT_TRUE(added->isConnected());
+            EXPECT_EQ(added->getID().rfind(intfV4AddrPrefix, 0), 0);
+            routesAdded++;
+          },
+          [&](const auto& /* removed */) { routesDeleted++; });
+
+      DeltaFunctions::forEachChanged(
+          routeDelta.getFibDelta<folly::IPAddressV6>(),
+          [&](const auto& /* oldNode */, const auto& /* newNode */) {},
+          [&](const auto& added) {
+            EXPECT_TRUE(added->isConnected());
+            EXPECT_EQ(added->getID().rfind(intfV6AddrPrefix, 0), 0);
+            routesAdded++;
+          },
+          [&](const auto& /* removed */) { routesDeleted++; });
+    }
+
+    EXPECT_EQ(routesAdded, expectedRouteAdded);
+    EXPECT_EQ(routesDeleted, expectedRouteDeleted);
+  }
+
  protected:
   SwSwitch* sw_;
   std::unique_ptr<HwTestHandle> handle_;
@@ -102,16 +146,56 @@ TEST_F(DsfSubscriberTest, scheduleUpdate) {
   switchId2SystemPorts[SwitchID(kRemoteSwitchId)] = sysPorts;
   switchId2Intfs[SwitchID(kRemoteSwitchId)] = rifs;
 
+  // Add remote interfaces
+  const auto prevState = sw_->getState();
   dsfSubscriber_->scheduleUpdate(
       "switch",
       SwitchID(kRemoteSwitchId),
       switchId2SystemPorts,
       switchId2Intfs);
 
-  // Don't wait for state update to mimic async scheduling of
-  // state updates.
-}
+  const auto addedState = waitForStateUpdates(sw_);
+  verifyRemoteIntfRouteDelta(StateDelta(prevState, addedState), 4, 0);
 
+  // Change remote interface routes
+  switchId2SystemPorts[SwitchID(kRemoteSwitchId)] = makeSysPorts();
+  switchId2Intfs[SwitchID(kRemoteSwitchId)] = makeRifs(sysPorts.get());
+
+  const auto sysPort1Id = kSysPortRangeMin + 1;
+  Interface::Addresses updatedAddresses{
+      {folly::IPAddressV4(
+           folly::to<std::string>(intfV4AddrPrefix, (sysPort1Id % 256 + 10))),
+       31},
+      {folly::IPAddressV6(
+           folly::to<std::string>(intfV6AddrPrefix, (sysPort1Id % 256 + 10))),
+       127}};
+  switchId2Intfs[SwitchID(kRemoteSwitchId)]
+      ->find(sysPort1Id)
+      ->second->setAddresses(updatedAddresses);
+
+  dsfSubscriber_->scheduleUpdate(
+      "switch",
+      SwitchID(kRemoteSwitchId),
+      switchId2SystemPorts,
+      switchId2Intfs);
+
+  auto modifiedState = sw_->getState();
+  verifyRemoteIntfRouteDelta(StateDelta(addedState, modifiedState), 2, 2);
+
+  // Remove remote interface routes
+  switchId2SystemPorts[SwitchID(kRemoteSwitchId)] =
+      std::make_shared<SystemPortMap>();
+  switchId2Intfs[SwitchID(kRemoteSwitchId)] = std::make_shared<InterfaceMap>();
+
+  dsfSubscriber_->scheduleUpdate(
+      "switch",
+      SwitchID(kRemoteSwitchId),
+      switchId2SystemPorts,
+      switchId2Intfs);
+
+  auto deletedState = sw_->getState();
+  verifyRemoteIntfRouteDelta(StateDelta(addedState, deletedState), 0, 4);
+}
 TEST_F(DsfSubscriberTest, setupNeighbors) {
   auto updateAndCompareTables = [this](
                                     const auto& sysPorts,
