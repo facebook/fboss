@@ -135,25 +135,77 @@
           "busName": "INCOMING@1",
           "address": "0x49",
           "kernelDeviceName": "tmp75",
-          "pmUnitScopedName": "SMB_TMP75_FRONT"
+          "pmUnitScopedName": "SMB_TMP75_FRONT",
+          "initRegSettings": [
+            {
+              "regOffset": 3,
+              "ioBuf": [95]
+            }
+          ]
         },
         {
           "busName": "INCOMING@1",
           "address": "0x4a",
           "kernelDeviceName": "tmp75",
-          "pmUnitScopedName": "SMB_TMP75_REAR"
+          "pmUnitScopedName": "SMB_TMP75_REAR",
+          "initRegSettings": [
+            {
+              "regOffset": 3,
+              "ioBuf": [95]
+            }
+          ]
         },
         {
           "busName": "INCOMING@1",
           "address": "0x4d",
           "kernelDeviceName": "max6581",
-          "pmUnitScopedName": "SMB_MAX6581"
+          "pmUnitScopedName": "SMB_MAX6581",
+          "initRegSettings": [
+            {
+              "regOffset": 32,
+              "ioBuf": [110]
+            },
+            {
+              "regOffset": 33,
+              "ioBuf": [-121]
+            },
+            {
+              "regOffset": 34,
+              "ioBuf": [-121]
+            },
+            {
+              "regOffset": 35,
+              "ioBuf": [-121]
+            },
+            {
+              "regOffset": 36,
+              "ioBuf": [-121]
+            },
+            {
+              "regOffset": 37,
+              "ioBuf": [-121]
+            },
+            {
+              "regOffset": 38,
+              "ioBuf": [-121]
+            },
+            {
+              "regOffset": 39,
+              "ioBuf": [-121]
+            }
+          ]
         },
         {
           "busName": "INCOMING@2",
           "address": "0x48",
           "kernelDeviceName": "tmp75",
-          "pmUnitScopedName": "FAN_TMP75"
+          "pmUnitScopedName": "FAN_TMP75",
+          "initRegSettings": [
+            {
+              "regOffset": 3,
+              "ioBuf": [95]
+            }
+          ]
         },
         {
           "busName": "INCOMING@2",
