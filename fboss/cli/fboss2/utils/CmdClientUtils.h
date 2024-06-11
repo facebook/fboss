@@ -14,6 +14,7 @@
 #include "fboss/agent/if/gen-cpp2/FbossCtrl.h"
 #include "fboss/agent/if/gen-cpp2/FbossHwCtrl.h"
 #include "fboss/cli/fboss2/utils/CmdClientUtilsCommon.h"
+#include "fboss/led_service/if/gen-cpp2/LedService.h"
 #include "fboss/qsfp_service/if/gen-cpp2/QsfpService.h"
 
 namespace facebook::fboss::utils {
@@ -30,6 +31,10 @@ std::unique_ptr<apache::thrift::Client<FbossHwCtrl>> createHwAgentClient(
 
 std::unique_ptr<facebook::fboss::QsfpServiceAsyncClient> createQsfpClient(
     const HostInfo& hostInfo);
+
+std::unique_ptr<
+    apache::thrift::Client<facebook::fboss::led_service::LedService>>
+createLedClient(const HostInfo& hostInfo);
 
 int getNumHwSwitches(const HostInfo& hostInfo);
 

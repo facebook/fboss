@@ -30,6 +30,13 @@ std::unique_ptr<facebook::fboss::QsfpServiceAsyncClient> createClient(
   return utils::createQsfpClient(hostInfo);
 }
 
+template <>
+std::unique_ptr<
+    apache::thrift::Client<facebook::fboss::led_service::LedService>>
+createClient(const HostInfo& hostInfo) {
+  return utils::createLedClient(hostInfo);
+}
+
 int getNumHwSwitches(const HostInfo& hostInfo) {
   auto client =
       utils::createClient<apache::thrift::Client<FbossCtrl>>(hostInfo);
