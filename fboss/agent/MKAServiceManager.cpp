@@ -92,7 +92,7 @@ void MKAServiceManager::handlePacket(std::unique_ptr<RxPacket> packet) {
   }
   folly::IOBuf* buf = packet->buf();
   TPacket pktToSend;
-  pktToSend.buf() = buf->moveToFbString().toStdString();
+  pktToSend.buf() = buf->to<std::string>();
   pktToSend.timestamp() = time(nullptr);
   pktToSend.l2Port() = std::move(l2Port);
   size_t len = pktToSend.buf()->size();

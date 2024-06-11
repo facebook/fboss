@@ -139,7 +139,7 @@ class BidirectionalPacketStreamTest : public Test {
     // verify the packets received on other end.
     EXPECT_EQ(acceptor.rxIOBufs_.size(), numPkts);
     for (auto& buf : acceptor.rxIOBufs_) {
-      auto bufStr = buf->moveToFbString().toStdString();
+      auto bufStr = buf->to<std::string>();
       EXPECT_EQ(bufStr, pktString);
     }
 

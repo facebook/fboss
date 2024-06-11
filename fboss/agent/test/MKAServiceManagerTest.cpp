@@ -79,7 +79,7 @@ class MKAServiceManagerTest : public testing::Test {
   TPacket createPacket(PortID activePort) {
     TPacket pkt;
     pkt.l2Port() = folly::to<std::string>(activePort);
-    pkt.buf() = createEapol()->moveToFbString().toStdString();
+    pkt.buf() = createEapol()->to<std::string>();
     return pkt;
   }
 

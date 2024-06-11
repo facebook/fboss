@@ -442,8 +442,7 @@ TEST_F(BcmQcmDataTest, VerifyQcmFirmwareInit) {
   auto verify = [this]() {
     BcmLogBuffer logBuffer;
     getHwSwitch()->printDiagCmd("mcsstatus Quick=true");
-    std::string mcsStatusStr =
-        logBuffer.getBuffer()->moveToFbString().toStdString();
+    std::string mcsStatusStr = logBuffer.getBuffer()->to<std::string>();
     XLOG(DBG2) << "MCStatus:" << mcsStatusStr;
     EXPECT_TRUE(mcsStatusStr.find("uC 0 status: OK") != std::string::npos);
   };

@@ -14,7 +14,7 @@ ssize_t AsyncThriftPacketTransport::send(
   }
   TPacket packet;
   *packet.l2Port() = iface();
-  *packet.buf() = buf->moveToFbString().toStdString();
+  *packet.buf() = buf->to<std::string>();
   if (auto serverSharedPtr = server_.lock()) {
     return serverSharedPtr->send(std::move(packet));
   }

@@ -3881,7 +3881,7 @@ std::string BcmSwitch::gatherSdkState() const {
   printDiagCmd("l3 egress show");
   printDiagCmd("l3 multipath show");
   printDiagCmd("trunk show");
-  return logBuffer.getBuffer()->moveToFbString().toStdString();
+  return logBuffer.getBuffer()->to<std::string>();
 }
 
 bool BcmSwitch::portExists(PortID port) const {
