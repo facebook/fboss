@@ -35,9 +35,14 @@ TEST_F(HwTransceiverConfigTest, moduleConfigVerification) {
     cfg::TransceiverConfigOverrideFactor moduleFactor;
     auto settings = apache::thrift::can_throw(*tcvrState.settings());
     auto mediaIntefaces = apache::thrift::can_throw(*settings.mediaInterface());
-    auto& cable = apache::thrift::can_throw(*tcvrState.cable());
-    if (mgmtInterface == TransceiverManagementInterface::SFF8472 ||
-        cable.transmitterTech() == TransmitterTechnology::COPPER) {
+    bool isCopper =
+        apache::thrift::can_throw(*tcvrState.cable()).transmitterTech() ==
+        TransmitterTechnology::COPPER;
+    if (isCopper) {
+      // No configurations supported on copper modules
+      continue;
+    }
+    if (mgmtInterface == TransceiverManagementInterface::SFF8472) {
       // TODO: Nothing to verify for sff8472 modules
       continue;
     } else if (mgmtInterface == TransceiverManagementInterface::CMIS) {
