@@ -426,6 +426,7 @@ target_link_libraries(fboss2
   hw_ctrl_cpp2
   qsfp_cpp2
   phy_cpp2
+  led_service_types_cpp2
   hardware_stats_cpp2
   mka_structs_cpp2
   fsdb_cpp2
