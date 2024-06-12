@@ -38,4 +38,13 @@ std::unique_ptr<facebook::fboss::QsfpServiceAsyncClient> createQsfpClient(
       hostInfo, qsfpServicePort);
 }
 
+std::unique_ptr<
+    apache::thrift::Client<facebook::fboss::led_service::LedService>>
+createLedClient(const HostInfo& hostInfo) {
+  auto port = CmdGlobalOptions::getInstance()->getQsfpThriftPort();
+  return createPlaintextClient<
+      apache::thrift::Client<facebook::fboss::led_service::LedService>>(
+      hostInfo, port);
+}
+
 } // namespace facebook::fboss::utils
