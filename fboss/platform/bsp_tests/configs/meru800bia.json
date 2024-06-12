@@ -40,7 +40,7 @@
                             "gpioTestData": {
                                 "numLines": 16,
                                 "lines": [
-                                    {"name": "unnamed", "direction": "input"},
+                                    {"name": "unnamed", "direction": "input", "getValue": 1},
                                     {"name": "unnamed", "direction": "input"},
                                     {"name": "unnamed", "direction": "input"},
                                     {"name": "unnamed", "direction": "input"},

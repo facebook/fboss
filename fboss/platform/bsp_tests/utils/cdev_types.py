@@ -170,6 +170,7 @@ class I2CTestData:
 class GpioLineInfo:
     name: str
     direction: str
+    getValue: Optional[int] = None
 
 
 @dataclass_json

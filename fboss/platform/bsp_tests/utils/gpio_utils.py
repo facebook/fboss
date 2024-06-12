@@ -59,3 +59,10 @@ def gpioinfo(name: str) -> List[GpioInfoResult]:
         ret.append(GpioInfoResult(name, lineNum, direction))
 
     return ret
+
+
+def gpioget(name: str, line: int) -> int:
+    ret = run_cmd(["gpioget", name, str(line)])
+    if ret.returncode != 0:
+        raise Exception(f"gpioget {name}-{line}failed with return code {ret}")
+    return int(ret.stdout.decode())

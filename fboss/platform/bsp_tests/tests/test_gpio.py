@@ -5,7 +5,7 @@ import pytest
 from fboss.platform.bsp_tests.test_runner import FpgaSpec, TestBase
 from fboss.platform.bsp_tests.utils.cdev_types import I2CAdapter
 from fboss.platform.bsp_tests.utils.cdev_utils import delete_device
-from fboss.platform.bsp_tests.utils.gpio_utils import gpiodetect, gpioinfo
+from fboss.platform.bsp_tests.utils.gpio_utils import gpiodetect, gpioget, gpioinfo
 from fboss.platform.bsp_tests.utils.i2c_utils import (
     create_i2c_adapter,
     create_i2c_device,
@@ -75,7 +75,34 @@ class TestGpio(TestBase):
         pass
 
     def test_gpio_get(self):
-        pass
+        for fpga in self.fpgas:
+            for adapter in fpga.i2cAdapters:
+                newAdapters, baseBusNum = create_i2c_adapter(fpga, adapter)
+                try:
+                    for device in adapter.i2cDevices:
+                        if not device.gpioTestData:
+                            continue
+                        busNum = baseBusNum + device.channel
+                        create_i2c_device(device, busNum)
+                        expectedLabel = f"{busNum}-{device.address[2:].zfill(4)}"
+                        gpios = gpiodetect(expectedLabel)
+                        assert (
+                            len(gpios) == 1
+                        ), f"Expected GPIO not detected: {expectedLabel}"
+                        gpioName = gpios[0].name
+                        for i, line in enumerate(device.gpioTestData.lines):
+                            if not line.getValue:
+                                continue
+                            try:
+                                val = gpioget(gpioName, i)
+                                expectedValue = line.getValue
+                                assert (
+                                    val == expectedValue
+                                ), f"Expected {expectedValue} for {gpioName} on line {i}, got: {val}"
+                            except Exception:
+                                pytest.fail(f"Failed to get GPIO value for {gpioName}")
+                finally:
+                    delete_device(fpga, adapter.auxDevice)
 
     def test_driver_unload(self):
         adaptersToUnload: List[Tuple(FpgaSpec, I2CAdapter, int)] = []
