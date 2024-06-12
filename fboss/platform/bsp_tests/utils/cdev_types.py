@@ -167,6 +167,12 @@ class I2CTestData:
 
 @dataclass_json
 @dataclass
+class GpioTestData:
+    numLines: int
+
+
+@dataclass_json
+@dataclass
 class HwmonTestData:
     expectedFeatures: List[str] = field(default_factory=list)
 
@@ -179,6 +185,7 @@ class I2CDevice:
     address: str
     testData: Optional[I2CTestData] = None
     hwmonTestData: Optional[HwmonTestData] = None
+    gpioTestData: Optional[GpioTestData] = None
 
 
 @dataclass_json

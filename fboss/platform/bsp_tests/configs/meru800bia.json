@@ -21,7 +21,30 @@
             "vendorId": "0x3475",
             "deviceId": "0x0001",
             "subSystemVendorId": "0x3475",
-            "subSystemDeviceId": "0x0008"
+            "subSystemDeviceId": "0x0008",
+            "i2cAdapters": [
+                {
+                    "auxDevice": {
+                        "type": "I2C",
+                        "deviceName": "i2c_master",
+                        "csrOffset": "0x8080",
+                        "i2cInfo": {
+                            "numChannels": 8
+                        }
+                    },
+                    "i2cDevices": [
+                        {
+                            "channel": 0,
+                            "deviceName": "pca9539",
+                            "address": "0x74",
+                            "gpioTestData": {
+                                "numLines": 16
+
+                            }
+                        }
+                    ]
+                }
+            ]
         }
     ]
 }
