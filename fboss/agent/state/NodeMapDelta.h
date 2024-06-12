@@ -102,6 +102,14 @@ class DeltaValueIteratorT {
   using pointer = VALUE*;
   using reference = VALUE&;
 
+  // default constructor to indicate end when all maps are null
+  DeltaValueIteratorT()
+      : oldIt_{},
+        newIt_{},
+        oldMap_{nullptr},
+        newMap_{nullptr},
+        value_(nullNode_, nullNode_) {}
+
   DeltaValueIteratorT(
       const MapType* oldMap,
       typename MapType::const_iterator oldIt,
@@ -266,6 +274,9 @@ class MapDeltaImpl {
    * Return an iterator pointing just past the last change.
    */
   Iterator end() const {
+    if (!old_ && !new_) {
+      return Iterator();
+    }
     if (!old_) {
       return Iterator(getNew(), new_->end(), getNew(), new_->end());
     }
