@@ -38,8 +38,25 @@
                             "deviceName": "pca9539",
                             "address": "0x74",
                             "gpioTestData": {
-                                "numLines": 16
-
+                                "numLines": 16,
+                                "lines": [
+                                    {"name": "unnamed", "direction": "input"},
+                                    {"name": "unnamed", "direction": "input"},
+                                    {"name": "unnamed", "direction": "input"},
+                                    {"name": "unnamed", "direction": "input"},
+                                    {"name": "unnamed", "direction": "input"},
+                                    {"name": "unnamed", "direction": "input"},
+                                    {"name": "unnamed", "direction": "input"},
+                                    {"name": "unnamed", "direction": "input"},
+                                    {"name": "unnamed", "direction": "input"},
+                                    {"name": "unnamed", "direction": "input"},
+                                    {"name": "unnamed", "direction": "input"},
+                                    {"name": "unnamed", "direction": "input"},
+                                    {"name": "unnamed", "direction": "input"},
+                                    {"name": "unnamed", "direction": "input"},
+                                    {"name": "unnamed", "direction": "input"},
+                                    {"name": "unnamed", "direction": "input"}
+                                ]
                             }
                         }
                     ]

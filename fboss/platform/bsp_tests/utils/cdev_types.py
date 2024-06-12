@@ -167,8 +167,16 @@ class I2CTestData:
 
 @dataclass_json
 @dataclass
+class GpioLineInfo:
+    name: str
+    direction: str
+
+
+@dataclass_json
+@dataclass
 class GpioTestData:
     numLines: int
+    lines: List[GpioLineInfo]
 
 
 @dataclass_json

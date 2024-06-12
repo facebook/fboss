@@ -12,6 +12,13 @@ class GpioDetectResults:
     lines: int
 
 
+@dataclass
+class GpioInfoResult:
+    name: str
+    lineNum: int
+    direction: str
+
+
 def gpiodetect(label: Optional[str] = None) -> List[GpioDetectResults]:
     ret: List[GpioDetectResults] = []
     results = run_cmd(["gpiodetect"]).stdout.decode()
@@ -28,4 +35,27 @@ def gpiodetect(label: Optional[str] = None) -> List[GpioDetectResults]:
         return ret
     else:
         return [x for x in ret if label == x.label]
+    return ret
+
+
+def gpioinfo(name: str) -> List[GpioInfoResult]:
+    """
+    the output format of gpioinfo changes significantly between
+    versions, so instead of strictly parsing it, we only extract
+    the values that we will want to check to avoid needing a
+    lot of logic to deal with the differences.
+    """
+    ret: List[GpioInfoResult] = []
+    results = run_cmd(["gpioinfo", name]).stdout.decode()
+    for line in results.splitlines()[1:]:
+        parts = line.split()
+        lineNum = parts[1][:-1]  # remove ":" from line number
+        name = parts[2]
+        direction = "None"
+        if "input" in parts:
+            direction = "input"
+        elif "output" in parts:
+            direction = "output"
+        ret.append(GpioInfoResult(name, lineNum, direction))
+
     return ret
