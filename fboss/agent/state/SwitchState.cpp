@@ -429,8 +429,7 @@ std::shared_ptr<SystemPortMap> SwitchState::getSystemPorts(
 }
 
 std::shared_ptr<InterfaceMap> SwitchState::getInterfaces(
-    SwitchID switchId,
-    bool checkSysPort) const {
+    SwitchID switchId) const {
   bool isLocal = isLocalSwitchId(switchId);
   auto mSwitchIntfs = isLocal ? getInterfaces() : getRemoteInterfaces();
   auto toRet = std::make_shared<InterfaceMap>();
@@ -438,9 +437,9 @@ std::shared_ptr<InterfaceMap> SwitchState::getInterfaces(
   for (const auto& [_, intfMap] : std::as_const(*mSwitchIntfs)) {
     for (const auto& [interfaceID, interface] : std::as_const(*intfMap)) {
       SystemPortID sysPortId(interfaceID);
-      if (checkSysPort && !isLocal && !sysPorts->getNodeIf(sysPortId)) {
+      if (!isLocal && !sysPorts->getNodeIf(sysPortId)) {
         // Remote intfs must have a remote sys port corresponding to
-        // the same switchId, if checkSysPort is enabled
+        // the same switchId
         continue;
       }
       toRet->addNode(interface);

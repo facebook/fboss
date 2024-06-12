@@ -472,9 +472,7 @@ class SwitchState : public ThriftStructNode<SwitchState, state::SwitchState> {
   /*
    * Get interfaces for a given switch id
    */
-  std::shared_ptr<InterfaceMap> getInterfaces(
-      SwitchID switchId,
-      bool checkSysPort = true) const;
+  std::shared_ptr<InterfaceMap> getInterfaces(SwitchID switchId) const;
 
   InterfaceID getInterfaceIDForPort(PortID portId) const;
   /*
