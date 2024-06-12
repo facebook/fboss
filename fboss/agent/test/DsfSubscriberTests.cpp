@@ -181,6 +181,20 @@ TEST_F(DsfSubscriberTest, updateWithRollbackProtection) {
 
   auto modifiedState = sw_->getState();
   verifyRemoteIntfRouteDelta(StateDelta(addedState, modifiedState), 2, 2);
+
+  // Remove remote interface routes
+  switchId2SystemPorts[SwitchID(kRemoteSwitchId)] =
+      std::make_shared<SystemPortMap>();
+  switchId2Intfs[SwitchID(kRemoteSwitchId)] = std::make_shared<InterfaceMap>();
+
+  dsfSubscriber_->updateWithRollbackProtection(
+      "switch",
+      SwitchID(kRemoteSwitchId),
+      switchId2SystemPorts,
+      switchId2Intfs);
+
+  auto deletedState = sw_->getState();
+  verifyRemoteIntfRouteDelta(StateDelta(addedState, deletedState), 0, 4);
 }
 TEST_F(DsfSubscriberTest, setupNeighbors) {
   auto updateAndCompareTables = [this](
