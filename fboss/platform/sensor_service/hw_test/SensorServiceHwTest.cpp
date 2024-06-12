@@ -16,7 +16,6 @@
 
 #include "fboss/platform/config_lib/ConfigLib.h"
 #include "fboss/platform/helpers/Init.h"
-#include "fboss/platform/sensor_service/SensorStatsPub.h"
 
 using namespace apache::thrift;
 
@@ -42,6 +41,14 @@ SensorReadResponse SensorServiceHwTest::getSensors(
   return response;
 }
 
+bool sensorReadOk(const std::string& sensorName) {
+  if (fb303::fbData->getCounter(
+          fmt::format(SensorServiceImpl::kReadFailure, sensorName)) == 0) {
+    return true;
+  }
+  return false;
+}
+
 TEST_F(SensorServiceHwTest, GetAllSensors) {
   auto res = getSensors(std::vector<std::string>{});
   for (const auto& [fruName, sensorMap] : *sensorConfig_.sensorMapList()) {
@@ -53,7 +60,10 @@ TEST_F(SensorServiceHwTest, GetAllSensors) {
             return *sensorData.name() == sensorNameCopy;
           });
       EXPECT_NE(it, std::end(*res.sensorData()));
-      EXPECT_TRUE(it->value().has_value());
+      // only non-failed sensors will have value
+      if (sensorReadOk(sensorName)) {
+        EXPECT_TRUE(it->value().has_value());
+      }
     }
   }
 }
@@ -73,7 +83,9 @@ TEST_F(SensorServiceHwTest, GetSomeSensors) {
   auto response1 = getSensors(sensorNames);
   EXPECT_EQ(response1.sensorData()->size(), sensorNames.size());
   for (const auto& sensorData : *response1.sensorData()) {
-    EXPECT_TRUE(sensorData.value().has_value());
+    if (sensorReadOk(*sensorData.name())) {
+      EXPECT_TRUE(sensorData.value().has_value());
+    }
   }
 
   // Burn a second
@@ -82,7 +94,9 @@ TEST_F(SensorServiceHwTest, GetSomeSensors) {
   auto response2 = getSensors(sensorNames);
   EXPECT_EQ(response2.sensorData()->size(), sensorNames.size());
   for (const auto& sensorData : *response2.sensorData()) {
-    EXPECT_TRUE(sensorData.value().has_value());
+    if (sensorReadOk(*sensorData.name())) {
+      EXPECT_TRUE(sensorData.value().has_value());
+    }
   }
 
   // Response2 sensor collection time stamp should be later
@@ -92,6 +106,9 @@ TEST_F(SensorServiceHwTest, GetSomeSensors) {
   int total = 0;
   int valid = 0;
   for (const auto& sensorData : *response2.sensorData()) {
+    if (!sensorData.value().has_value()) {
+      continue;
+    }
     auto it = std::find_if(
         response1.sensorData()->begin(),
         response1.sensorData()->end(),
@@ -121,17 +138,47 @@ TEST_F(SensorServiceHwTest, GetSomeSensorsViaThrift) {
   client->sync_getSensorValuesByNames(response, sensorNames);
   EXPECT_EQ(response.sensorData()->size(), sensorNames.size());
   for (const auto& sensorData : *response.sensorData()) {
-    EXPECT_TRUE(sensorData.value().has_value());
+    if (sensorReadOk(*sensorData.name())) {
+      EXPECT_TRUE(sensorData.value().has_value());
+    }
   }
 }
 
 TEST_F(SensorServiceHwTest, SensorFetchODSCheck) {
+  sensorServiceImpl_->fetchSensorData();
+  auto sensorMap = sensorServiceImpl_->getAllSensorData();
+  EXPECT_GT(fb303::fbData->getCounter(SensorServiceImpl::kReadTotal), 0);
+  for (const auto& [sensorName, sensorData] : sensorMap) {
+    if (!sensorData.value().has_value()) {
+      continue;
+    }
+    EXPECT_EQ(
+        fb303::fbData->getCounter(
+            fmt::format(SensorServiceImpl::kReadValue, sensorName)),
+        (int64_t)*sensorData.value());
+    EXPECT_EQ(
+        fb303::fbData->getCounter(
+            fmt::format(SensorServiceImpl::kReadFailure, sensorName)),
+        0);
+  }
+}
+
+// This will test all sensors. If any sensors failed or not responding,
+// this test will fail.
+TEST_F(SensorServiceHwTest, CheckAllSensors) {
   sensorServiceImpl_->fetchSensorData();
   EXPECT_EQ(fb303::fbData->getCounter(SensorServiceImpl::kHasReadFailure), 0);
   EXPECT_EQ(fb303::fbData->getCounter(SensorServiceImpl::kTotalReadFailure), 0);
   auto sensorMap = sensorServiceImpl_->getAllSensorData();
   EXPECT_GT(fb303::fbData->getCounter(SensorServiceImpl::kReadTotal), 0);
   for (const auto& [sensorName, sensorData] : sensorMap) {
+    auto hasValue = sensorData.value().has_value();
+    EXPECT_TRUE(hasValue) << "Sensor " << sensorName << " has no value";
+    if (!hasValue) {
+      // To avoid exception Below, we will not compare the value against
+      // fb303 counter.
+      continue;
+    }
     EXPECT_EQ(
         fb303::fbData->getCounter(
             fmt::format(SensorServiceImpl::kReadValue, sensorName)),
