@@ -279,7 +279,7 @@ std::shared_ptr<SwitchState> DsfStateUpdaterUtil::getUpdatedState(
     XLOG(DBG2) << "SwitchId: " << static_cast<int64_t>(nodeSwitchId)
                << " updated # of sys ports: " << newSysPorts->size();
 
-    auto origSysPorts = out->getSystemPorts(nodeSwitchId);
+    auto origSysPorts = in->getSystemPorts(nodeSwitchId);
     ThriftMapDelta<SystemPortMap> delta(origSysPorts.get(), newSysPorts.get());
     auto remoteSysPorts = out->getRemoteSystemPorts()->modify(&out);
     processDelta(delta, remoteSysPorts, makeRemoteSysPort);
@@ -289,7 +289,7 @@ std::shared_ptr<SwitchState> DsfStateUpdaterUtil::getUpdatedState(
     XLOG(DBG2) << "SwitchId: " << static_cast<int64_t>(nodeSwitchId)
                << " updated # of intfs: " << newRifs->size();
 
-    auto origRifs = out->getInterfaces(nodeSwitchId);
+    auto origRifs = in->getInterfaces(nodeSwitchId);
     InterfaceMapDelta delta(origRifs.get(), newRifs.get());
     auto remoteRifs = out->getRemoteInterfaces()->modify(&out);
     processDelta(delta, remoteRifs, makeRemoteRif);
