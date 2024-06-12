@@ -15,6 +15,9 @@
         },
         {
           "test_name_regex": "HwTest_PROFILE_200G_4_PAM4_RS544X2N_OPTICAL.TestProfile$"
+        },
+        {
+          "test_name_regex": "HwTest_PROFILE_400G_8_PAM4_RS544X2N_OPTICAL.TestProfile$"
         }
     ],
     "darwin_mix/physdk-credo-0.7.2/credo-0.7.2": [
@@ -32,6 +35,9 @@
         },
         {
           "test_name_regex": "HwTest_PROFILE_200G_4_PAM4_RS544X2N_OPTICAL.TestProfile$"
+        },
+        {
+          "test_name_regex": "HwTest_PROFILE_400G_8_PAM4_RS544X2N_OPTICAL.TestProfile$"
         }
     ],
     "darwin_original/physdk-credo-0.7.2/credo-0.7.2": [
