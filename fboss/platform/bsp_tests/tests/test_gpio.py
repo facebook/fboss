@@ -1,6 +1,9 @@
-from typing import List
+from typing import List, Tuple
+
+import pytest
 
 from fboss.platform.bsp_tests.test_runner import FpgaSpec, TestBase
+from fboss.platform.bsp_tests.utils.cdev_types import I2CAdapter
 from fboss.platform.bsp_tests.utils.cdev_utils import delete_device
 from fboss.platform.bsp_tests.utils.gpio_utils import gpiodetect, gpioinfo
 from fboss.platform.bsp_tests.utils.i2c_utils import (
@@ -75,4 +78,25 @@ class TestGpio(TestBase):
         pass
 
     def test_driver_unload(self):
-        pass
+        adaptersToUnload: List[Tuple(FpgaSpec, I2CAdapter, int)] = []
+        id = 1
+        for fpga in self.fpgas:
+            try:
+                for adapter in fpga.i2cAdapters:
+                    newAdapters, baseBusNum = create_i2c_adapter(fpga, adapter, id)
+                    id += 1
+                    adaptersToUnload.append((fpga, adapter, id))
+                    for device in adapter.i2cDevices:
+                        if not device.gpioTestData:
+                            continue
+                        create_i2c_device(device, baseBusNum + device.channel)
+            except Exception:
+                pytest.fail("Failed to create GPIO devices")
+                for fpga, adapter, adapterId in adaptersToUnload:
+                    delete_device(fpga, adapter.auxDevice, adapterId)
+        try:
+            self.unload_kmods()
+        except Exception:
+            pytest.fail("Failed to unload kmods with GPIO devices open")
+            for fpga, adapter, adapterId in adaptersToUnload:
+                delete_device(fpga, adapter.auxDevice, adapterId)
