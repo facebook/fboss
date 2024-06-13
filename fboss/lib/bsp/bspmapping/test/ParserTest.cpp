@@ -1,6 +1,7 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
 #include "fboss/lib/bsp/bspmapping/Parser.h"
+#include <folly/Range.h>
 #include <gtest/gtest.h>
 #include "fboss/lib/if/gen-cpp2/fboss_common_types.h"
 
@@ -125,4 +126,11 @@ TEST(ParserTest, GetTransceiverConfigRowFromCsvLineThrowsOnMalformedLine) {
   EXPECT_THROW(
       facebook::fboss::Parser::getTransceiverConfigRowFromCsvLine(line),
       std::runtime_error);
+}
+
+TEST(ParserTest, GetTransceiverConfigRowsFromCsvTest) {
+  auto transceivers = facebook::fboss::Parser::getTransceiverConfigRowsFromCsv(
+      folly::StringPiece(
+          "fboss/lib/bsp/bspmapping/test/test_data/test_example.csv"));
+  EXPECT_EQ(transceivers.size(), 2);
 }

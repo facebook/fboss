@@ -1,7 +1,8 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
 #include "fboss/lib/bsp/bspmapping/Parser.h"
-
+#include <folly/FileUtil.h>
+#include <folly/Range.h>
 #include <folly/String.h>
 #include "fboss/lib/if/gen-cpp2/fboss_common_types.h"
 #include "fboss/lib/platforms/PlatformMode.h"
@@ -15,7 +16,7 @@ std::string Parser::getNameFor(PlatformType platform) {
 }
 
 TransceiverConfigRow Parser::getTransceiverConfigRowFromCsvLine(
-    const std::string& line) {
+    const std::string_view& line) {
   std::vector<std::string_view> parts;
   folly::split(',', line, parts);
   if (parts.size() != 17 && parts.size() != 18) {
@@ -82,6 +83,27 @@ TransceiverIOType Parser::getTransceiverIOTypeFromString(
   } else {
     return TransceiverIOType::UNKNOWN;
   }
+}
+
+std::vector<TransceiverConfigRow> Parser::getTransceiverConfigRowsFromCsv(
+    folly::StringPiece csv) {
+  std::string data;
+  folly::readFile(csv.data(), data);
+  std::vector<std::string_view> lines;
+  folly::split('\n', data, lines);
+
+  std::vector<TransceiverConfigRow> tlList;
+  int nLine = 0;
+  for (auto& line : lines) {
+    if (nLine++ < HEADER_OFFSET || line.empty()) {
+      continue;
+    }
+
+    auto tl = getTransceiverConfigRowFromCsvLine(line);
+    tlList.push_back(tl);
+  }
+
+  return tlList;
 }
 
 } // namespace facebook::fboss
