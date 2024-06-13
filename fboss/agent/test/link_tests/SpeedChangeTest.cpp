@@ -2,6 +2,7 @@
 
 #include <gtest/gtest.h>
 #include "fboss/agent/AgentConfig.h"
+#include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwTestEcmpUtils.h"
 #include "fboss/agent/test/link_tests/LinkTest.h"
 #include "fboss/agent/test/utils/PortTestUtils.h"
@@ -51,6 +52,41 @@ class SpeedChangeTest : public LinkTest {
       }
     }
     return eligiblePortsAndProfile;
+  }
+
+  cfg::SwitchConfig createSpeedChangeConfig(
+      cfg::PortSpeed fromSpeed,
+      cfg::PortSpeed toSpeed) {
+    cfg::AgentConfig testConfig = platform()->config()->thrift;
+    auto swConfig = *testConfig.sw();
+
+    // Iterate through ports to find eligible ports
+    auto eligilePortsAndProfile =
+        getEligiblePortsAndProfile(swConfig, fromSpeed, toSpeed);
+    CHECK_GT(eligilePortsAndProfile.size(), 0);
+
+    for (auto& port : *swConfig.ports()) {
+      auto iter = eligilePortsAndProfile.find(*port.logicalID());
+      if (iter != eligilePortsAndProfile.end()) {
+        auto desiredProfileId = iter->second;
+        XLOG(INFO) << folly::sformat(
+            "Changing speed and profile on port {:s} from speed={:s},profile={:s} to speed={:s},profile={:s}",
+            port.name().ensure(),
+            apache::thrift::util::enumName(*port.speed()),
+            apache::thrift::util::enumName(*port.profileID()),
+            apache::thrift::util::enumName(utility::getSpeed(desiredProfileId)),
+            apache::thrift::util::enumName(desiredProfileId));
+        PortID portID = PortID(*port.logicalID());
+        utility::configurePortProfile(
+            *platform()->getHwSwitch(),
+            swConfig,
+            desiredProfileId,
+            utility::getAllPortsInGroup(sw()->getPlatformMapping(), portID),
+            portID);
+      }
+    }
+
+    return swConfig;
   }
 
   std::optional<SpeedAndProfile> getSecondarySpeedAndProfile(
