@@ -586,6 +586,13 @@ class CmisModule : public QsfpModule {
   bool fillVdmPerfMonitorLtp(VdmPerfMonitorStats& vdmStats);
   bool fillVdmPerfMonitorPam4Data(VdmPerfMonitorStats& vdmStats);
 
+  void setApplicationSelectCode(
+      uint8_t apSelCode,
+      uint8_t mediaInterfaceCode,
+      uint8_t startHostLane,
+      uint8_t numHostLanes,
+      uint8_t hostLaneMask);
+
   const std::shared_ptr<const TransceiverConfig> tcvrConfig_;
 
   bool supportRemediate_;
