@@ -353,18 +353,22 @@ TYPED_TEST(FsdbSubManagerTest, subMultiPath) {
 TYPED_TEST(FsdbSubManagerTest, restartPublisher) {
   auto data1 = this->data1("foo");
   this->connectPublisherAndPublish(this->path1(), data1);
+  std::optional<SubscriptionState> lastStateSeen;
   auto subscriber = this->createSubscriber("test", this->root().agent());
-  auto boundData = subscriber->subscribeBound();
+  auto boundData = subscriber->subscribeBound(
+      [&](auto, auto newState) { lastStateSeen = newState; });
 
   WITH_RETRIES({
     ASSERT_EVENTUALLY_TRUE(this->isSubscribed("test"));
     // received data
+    ASSERT_EVENTUALLY_EQ(lastStateSeen, SubscriptionState::CONNECTED);
     ASSERT_EVENTUALLY_TRUE(*boundData.rlock());
     ASSERT_EVENTUALLY_EQ(
         this->fetchData1((*boundData.rlock())->toThrift()), data1);
   });
   this->testPublisher().disconnect();
-  // TODO: check subscriber connection state callback
+  WITH_RETRIES(
+      ASSERT_EVENTUALLY_EQ(lastStateSeen, SubscriptionState::DISCONNECTED));
   data1 = this->data1("bar");
   this->connectPublisherAndPublish(this->path1(), data1);
   WITH_RETRIES(ASSERT_EVENTUALLY_EQ(

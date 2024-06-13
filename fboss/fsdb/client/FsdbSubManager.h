@@ -114,7 +114,10 @@ class FsdbSubManager {
    * Initiate subscription. Must be called after all interested paths are added.
    * See DataCallback for callback signature.
    */
-  void subscribe(DataCallback cb) {
+  void subscribe(
+      DataCallback cb,
+      std::optional<SubscriptionStateChangeCb> subscriptionStateChangeCb =
+          std::nullopt) {
     CHECK(!subscriber_) << "Cannot subscribe twice";
     subscriber_ = std::make_unique<FsdbPatchSubscriber>(
         clientId_,
@@ -124,18 +127,21 @@ class FsdbSubManager {
         [this, cb = std::move(cb)](SubscriberChunk chunk) {
           parseChunkAndInvokeCallback(std::move(chunk), std::move(cb));
         },
-        IsStats
-        // TODO: forward state change callback
-    );
+        IsStats,
+        std::move(subscriptionStateChangeCb));
     subscriber_->setServerOptions(
         ReconnectingThriftClient::ServerOptions(serverOptions_));
   }
 
   // Returns a synchronized data object that is always kept up to date
   // with FSDB data
-  folly::Synchronized<Data> subscribeBound() {
+  folly::Synchronized<Data> subscribeBound(
+      std::optional<SubscriptionStateChangeCb> subscriptionStateChangeCb =
+          std::nullopt) {
     folly::Synchronized<Data> boundData;
-    subscribe([&](SubUpdate update) { *boundData.wlock() = update.data; });
+    subscribe(
+        [&](SubUpdate update) { *boundData.wlock() = update.data; },
+        std::move(subscriptionStateChangeCb));
     return boundData;
   }
 
