@@ -85,7 +85,7 @@ std::shared_ptr<SwitchState> addRemoteSysPort(
   auto localPort = localPorts->cbegin()->second;
   auto remoteSystemPorts = newState->getRemoteSystemPorts()->modify(&newState);
   auto remoteSysPort = std::make_shared<SystemPort>(portId);
-  remoteSysPort->setPortName(folly::to<std::string>(
+  remoteSysPort->setName(folly::to<std::string>(
       "hwTestSwitch", remoteSwitchId, ":eth/", portId, "/1"));
   remoteSysPort->setSwitchId(remoteSwitchId);
   remoteSysPort->setNumVoqs(localPort->getNumVoqs());

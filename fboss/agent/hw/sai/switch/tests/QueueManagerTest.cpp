@@ -315,7 +315,7 @@ TEST_F(QueueManagerTest, checkSysPortVoqStats) {
 TEST_F(QueueManagerTest, changeSysPortAndCheckVoqStats) {
   auto sysPort = firstSysPort();
   auto newSysPort = sysPort->clone();
-  newSysPort->setPortName(folly::sformat("new_{}", sysPort->getName()));
+  newSysPort->setName(folly::sformat("new_{}", sysPort->getName()));
   saiManagerTable->systemPortManager().changeSystemPort(sysPort, newSysPort);
   saiManagerTable->systemPortManager().updateStats(newSysPort->getID(), true);
   auto portStat = saiManagerTable->systemPortManager().getLastPortStats(
