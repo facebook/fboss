@@ -272,6 +272,11 @@ std::shared_ptr<SwitchState> DsfStateUpdaterUtil::getUpdatedState(
                        << static_cast<int>(rmNode->getID());
             return;
           }
+          if (rmNode->isStatic()) {
+            XLOG(DBG3) << "Skip removing STATIC: "
+                       << static_cast<int>(rmNode->getID());
+            return;
+          }
 
           if constexpr (std::is_same_v<MapT, MultiSwitchInterfaceMap>) {
             processRemoteIntfRoute(rmNode, false /* add */);
