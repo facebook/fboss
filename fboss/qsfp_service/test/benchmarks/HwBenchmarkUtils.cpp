@@ -1,12 +1,38 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
-#include "fboss/qsfp_service/test/benchmarks/HwBenchmarkUtils.h"
+#include <folly/Benchmark.h>
+
 #include "fboss/lib/CommonFileUtils.h"
 #include "fboss/qsfp_service/QsfpServer.h"
 #include "fboss/qsfp_service/platforms/wedge/WedgeManager.h"
 #include "fboss/qsfp_service/platforms/wedge/WedgeManagerInit.h"
+#include "fboss/qsfp_service/test/benchmarks/HwBenchmarkUtils.h"
 
 namespace facebook::fboss {
+
+std::size_t refreshTcvrs(MediaInterfaceCode mediaType) {
+  folly::BenchmarkSuspender suspender;
+  std::size_t iters = 0;
+  auto wedgeMgr = setupForColdboot();
+  wedgeMgr->init();
+
+  for (int i = 0; i < wedgeMgr->getNumQsfpModules(); i++) {
+    TransceiverID id(i);
+    auto interface =
+        wedgeMgr->getTransceiverInfo(id).tcvrState()->moduleMediaInterface();
+
+    if (interface.has_value() && interface.value() == mediaType) {
+      std::unordered_set<TransceiverID> tcvr{id};
+
+      suspender.dismiss();
+      wedgeMgr->TransceiverManager::refreshTransceivers(tcvr);
+      suspender.rehire();
+      iters++;
+    }
+  }
+
+  return iters;
+}
 
 std::unique_ptr<WedgeManager> setupForColdboot() {
   // First use QsfpConfig to init default command line arguments
