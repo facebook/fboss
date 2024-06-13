@@ -43,9 +43,6 @@ class SystemPort
   void setSwitchId(SwitchID swId) {
     set<ctrl_if_tags::switchId>(static_cast<int64_t>(swId));
   }
-  void setPortName(const std::string& portName) {
-    set<ctrl_if_tags::portName>(portName);
-  }
   std::string getName() const {
     return get<ctrl_if_tags::portName>()->toThrift();
   }
