@@ -34,6 +34,37 @@ std::size_t refreshTcvrs(MediaInterfaceCode mediaType) {
   return iters;
 }
 
+std::size_t readOneByte(MediaInterfaceCode mediaType) {
+  folly::BenchmarkSuspender suspender;
+  std::size_t iters = 0;
+  auto wedgeMgr = setupForColdboot();
+  wedgeMgr->init();
+
+  for (int i = 0; i < wedgeMgr->getNumQsfpModules(); i++) {
+    TransceiverID id(i);
+    auto interface =
+        wedgeMgr->getTransceiverInfo(id).tcvrState()->moduleMediaInterface();
+
+    if (interface.has_value() && interface.value() == mediaType) {
+      std::unordered_set<TransceiverID> tcvr{id};
+      std::map<int32_t, ReadResponse> response;
+      std::unique_ptr<ReadRequest> request(new ReadRequest);
+      TransceiverIOParameters param;
+
+      request->ids() = {i};
+      param.offset() = 0;
+      param.length() = 1;
+      request->parameter() = param;
+      suspender.dismiss();
+      wedgeMgr->readTransceiverRegister(response, std::move(request));
+      suspender.rehire();
+      iters++;
+    }
+  }
+
+  return iters;
+}
+
 std::unique_ptr<WedgeManager> setupForColdboot() {
   // First use QsfpConfig to init default command line arguments
   initFlagDefaultsFromQsfpConfig();

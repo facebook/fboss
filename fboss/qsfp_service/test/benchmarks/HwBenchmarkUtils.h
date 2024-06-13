@@ -11,6 +11,7 @@
 namespace facebook::fboss {
 
 std::size_t refreshTcvrs(MediaInterfaceCode mediaType);
+std::size_t readOneByte(MediaInterfaceCode mediaType);
 
 std::unique_ptr<WedgeManager> setupForColdboot();
 std::unique_ptr<WedgeManager> setupForWarmboot();
