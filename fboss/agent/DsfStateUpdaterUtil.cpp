@@ -268,13 +268,16 @@ std::shared_ptr<SwitchState> DsfStateUpdaterUtil::getUpdatedState(
         },
         [&](const auto& rmNode) {
           if (rmNode->getScope() == cfg::Scope::LOCAL) {
-            XLOG(DBG3) << "Skip removing LOCAL: "
-                       << static_cast<int>(rmNode->getID());
+            XLOG(DBG3) << "Skip removing LOCAL:: "
+                       << static_cast<int>(rmNode->getID()) << " "
+                       << rmNode->getName();
+
             return;
           }
           if (rmNode->isStatic()) {
-            XLOG(DBG3) << "Skip removing STATIC: "
-                       << static_cast<int>(rmNode->getID());
+            XLOG(DBG3) << "Skip removing STATIC:: "
+                       << static_cast<int>(rmNode->getID()) << " "
+                       << rmNode->getName();
             return;
           }
 
