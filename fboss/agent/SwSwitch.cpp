@@ -3254,7 +3254,7 @@ std::map<SystemPortID, HwSysPortStats> SwSwitch::getHwSysPortStats(
     auto hwswitchStats = hwswitchStatsMap->find(switchIndex);
     if (hwswitchStats != hwswitchStatsMap->end()) {
       auto portName =
-          getState()->getSystemPorts()->getNodeIf(portId)->getPortName();
+          getState()->getSystemPorts()->getNodeIf(portId)->getName();
       auto statsMap = hwswitchStats->second.sysPortStats();
       auto entry = statsMap->find(portName);
       if (entry != statsMap->end()) {

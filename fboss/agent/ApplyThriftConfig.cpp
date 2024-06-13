@@ -1018,7 +1018,7 @@ void ThriftConfigApplier::processUpdatedDsfNodes() {
         InterfaceID(recyclePortId),
         RouterID(0),
         std::optional<VlanID>(std::nullopt),
-        folly::StringPiece(sysPort->getPortName()),
+        folly::StringPiece(sysPort->getName()),
         *node->getMac(),
         9000,
         true,

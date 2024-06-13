@@ -31,7 +31,7 @@ std::shared_ptr<SystemPort> SystemPortMap::getSystemPort(
 std::shared_ptr<SystemPort> SystemPortMap::getSystemPortIf(
     const std::string& name) const {
   for (auto [id, sysPort] : *this) {
-    if (name == sysPort->getPortName()) {
+    if (name == sysPort->getName()) {
       return sysPort;
     }
   }
