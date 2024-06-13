@@ -4,8 +4,10 @@
 #include "fboss/agent/AgentConfig.h"
 #include "fboss/agent/hw/test/HwTestEcmpUtils.h"
 #include "fboss/agent/test/link_tests/LinkTest.h"
+#include "fboss/agent/test/utils/PortTestUtils.h"
 #include "fboss/lib/CommonFileUtils.h"
 #include "fboss/lib/CommonUtils.h"
+#include "fboss/lib/thrift_service_client/ThriftServiceClient.h"
 
 using namespace ::testing;
 using namespace facebook::fboss;
@@ -23,6 +25,34 @@ class SpeedChangeTest : public LinkTest {
   void setupConfigFlag() override;
 
  protected:
+  // Query Qsfp service for eligible port profiles. If current port speed is the
+  // same as from_speed and there exists eligible port profiles for to_speed,
+  // return that info to the caller.
+  std::map<int, cfg::PortProfileID> getEligiblePortsAndProfile(
+      cfg::SwitchConfig cfg,
+      cfg::PortSpeed fromSpeed,
+      cfg::PortSpeed toSpeed) {
+    std::map<std::string, std::vector<cfg::PortProfileID>> supportedProfiles;
+    auto qsfpServiceClient = utils::createQsfpServiceClient();
+    qsfpServiceClient->sync_getAllPortSupportedProfiles(
+        supportedProfiles, true /* checkOptics */);
+
+    std::map<int, cfg::PortProfileID> eligiblePortsAndProfile;
+    for (const auto& port : *cfg.ports()) {
+      CHECK(port.name().has_value());
+      if (*port.speed() == fromSpeed &&
+          supportedProfiles.find(*port.name()) != supportedProfiles.end()) {
+        for (const auto& profile : supportedProfiles.at(*port.name())) {
+          if (utility::getSpeed(profile) == toSpeed) {
+            eligiblePortsAndProfile.emplace(*port.logicalID(), profile);
+            break;
+          }
+        }
+      }
+    }
+    return eligiblePortsAndProfile;
+  }
+
   std::optional<SpeedAndProfile> getSecondarySpeedAndProfile(
       cfg::PortProfileID profileID) const;
 
