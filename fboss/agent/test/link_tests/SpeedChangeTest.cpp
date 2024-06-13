@@ -297,3 +297,16 @@ TEST_F(SpeedChangeTest, speedChangeActivatedByWb) {
 
   verifyAcrossWarmBoots(speedChangeSetup, speedChangeVerify);
 }
+
+#define TEST_SPEED_CHANGE(from_speed, to_speed)                               \
+  TEST_F(SpeedChangeTest, from_speed##To##to_speed) {                         \
+    runSpeedChangeTest(cfg::PortSpeed::from_speed, cfg::PortSpeed::to_speed); \
+  }
+
+TEST_SPEED_CHANGE(TWOHUNDREDG, HUNDREDG);
+
+TEST_SPEED_CHANGE(HUNDREDG, TWOHUNDREDG);
+
+TEST_SPEED_CHANGE(TWOHUNDREDG, FOURHUNDREDG);
+
+TEST_SPEED_CHANGE(FOURHUNDREDG, TWOHUNDREDG);
