@@ -209,7 +209,13 @@ int hwAgentMain(
         XLOG(DBG2) << "[Exit] Stopping Thrift Syncer";
         thriftSyncer->stop();
         XLOG(DBG2) << "[Exit] Stopping Thrift Server";
-        server->stop();
+        auto stopController = server->getStopController();
+        if (auto lockedPtr = stopController.lock()) {
+          lockedPtr->stop();
+          XLOG(DBG2) << "[Exit] Stopped Thrift Server";
+        } else {
+          LOG(WARNING) << "Unable to stop Thrift Server";
+        }
         if (fs) {
           XLOG(DBG2) << "[Exit] Stopping Function Scheduler";
           fs->shutdown();
