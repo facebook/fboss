@@ -201,7 +201,7 @@ class CowStorage : public Storage<Root, CowStorage<Root, Node>> {
       using TC = typename NodeT::TC;
       patchResult = thrift_cow::PatchApplier<TC>::apply(
           node, std::move(*patch.patch()), *patch.protocol());
-      XLOG(DBG3) << "Visited base path. patch result "
+      XLOG(DBG5) << "Visited base path. patch result "
                  << apache::thrift::util::enumNameSafe(patchResult);
     });
     auto visitResult = thrift_cow::RootPathVisitor::visit(

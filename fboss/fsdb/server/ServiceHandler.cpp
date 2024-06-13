@@ -307,6 +307,8 @@ OperPublisherInfo ServiceHandler::makePublisherInfo(
 }
 
 void ServiceHandler::registerPublisher(const OperPublisherInfo& info) {
+  XLOG(DBG2) << "Publisher connected " << *info.publisherId() << " : "
+             << folly::join("/", *info.path()->raw());
   if (info.publisherId()->empty()) {
     throw Utils::createFsdbException(
         FsdbErrorCode::EMPTY_PUBLISHER_ID, "Publisher Id must not be empty");
@@ -412,7 +414,7 @@ ServiceHandler::makeSinkConsumer(
         OperPubFinalResponse finalResponse;
         try {
           while (auto chunk = co_await gen.next()) {
-            XLOG(DBG3) << " chunk received";
+            XLOG(DBG5) << " chunk received";
             std::optional<StorageError> patchErr;
             if constexpr (std::is_same_v<PubUnit, OperState>) {
               updateMetadata(chunk->metadata().ensure());
@@ -465,7 +467,7 @@ ServiceHandler::makeSinkConsumer(
                 patchErr = operStorage_.patch(std::move(patchChunk));
               }
             }
-            XLOG(DBG4) << "Chunk patch result "
+            XLOG(DBG5) << "Chunk patch result "
                        << (patchErr
                                ? fmt::format(
                                      "error: {}", fmt::underlying(*patchErr))

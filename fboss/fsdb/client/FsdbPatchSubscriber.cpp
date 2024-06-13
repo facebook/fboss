@@ -1,9 +1,9 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
 #include "fboss/fsdb/client/FsdbPatchSubscriber.h"
+#include "fboss/fsdb/if/gen-cpp2/FsdbService.h"
 
 #include <folly/logging/xlog.h>
-#include "fboss/fsdb/if/gen-cpp2/FsdbService.h"
 
 namespace facebook::fboss::fsdb {
 
