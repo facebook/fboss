@@ -17,6 +17,8 @@
 #include "fboss/lib/CommonUtils.h"
 
 DECLARE_bool(disable_looped_fabric_ports);
+DECLARE_bool(enable_stats_update_thread);
+DECLARE_int32(ecmp_resource_percentage);
 
 namespace {
 constexpr uint8_t kDefaultQueue = 0;
@@ -1232,5 +1234,64 @@ class AgentVoqSwitchWithMultipleDsfNodesTest : public AgentVoqSwitchTest {
 TEST_F(AgentVoqSwitchWithMultipleDsfNodesTest, twoDsfNodes) {
   verifyAcrossWarmBoots([] {}, [] {});
 }
+
+class AgentVoqSwitchFullScaleDsfNodesTest : public AgentVoqSwitchTest {
+ public:
+  cfg::SwitchConfig initialConfig(
+      const AgentEnsemble& ensemble) const override {
+    auto cfg = AgentVoqSwitchTest::initialConfig(ensemble);
+    cfg.dsfNodes() = *overrideDsfNodes(*cfg.dsfNodes());
+    cfg.loadBalancers()->push_back(
+        utility::getEcmpFullHashConfig(ensemble.getL3Asics()));
+    return cfg;
+  }
+
+  std::optional<std::map<int64_t, cfg::DsfNode>> overrideDsfNodes(
+      const std::map<int64_t, cfg::DsfNode>& curDsfNodes) const {
+    return utility::addRemoteDsfNodeCfg(curDsfNodes);
+  }
+
+ protected:
+  int getMaxEcmpWidth(const HwAsic* asic) const {
+    // J2 and J3 only supports variable width
+    return asic->getMaxVariableWidthEcmpSize();
+  }
+
+  int getMaxEcmpGroup() const {
+    return 64;
+  }
+
+  // Resolve and return list of local nhops (excluding recycle port)
+  std::vector<PortDescriptor> resolveLocalNhops(
+      utility::EcmpSetupTargetedPorts6& ecmpHelper) {
+    auto ports = getProgrammedState()->getSystemPorts()->getAllNodes();
+    std::vector<PortDescriptor> portDescs;
+    std::for_each(
+        ports->begin(), ports->end(), [&portDescs](const auto& idAndPort) {
+          if (idAndPort.second->getCorePortIndex() != 1) {
+            portDescs.push_back(
+                PortDescriptor(static_cast<SystemPortID>(idAndPort.first)));
+          }
+        });
+
+    applyNewState([&](const std::shared_ptr<SwitchState>& in) {
+      auto out = in->clone();
+      for (const auto& portDesc : portDescs) {
+        out = ecmpHelper.resolveNextHops(out, {portDesc});
+      }
+      return out;
+    });
+    return portDescs;
+  }
+
+ private:
+  void setCmdLineFlagOverrides() const override {
+    AgentVoqSwitchTest::setCmdLineFlagOverrides();
+    // Disable stats update to improve performance
+    FLAGS_enable_stats_update_thread = false;
+    // Allow 100% ECMP resource usage
+    FLAGS_ecmp_resource_percentage = 100;
+  }
+};
 
 } // namespace facebook::fboss
