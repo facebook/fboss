@@ -1294,4 +1294,17 @@ class AgentVoqSwitchFullScaleDsfNodesTest : public AgentVoqSwitchTest {
   }
 };
 
+TEST_F(AgentVoqSwitchFullScaleDsfNodesTest, systemPortScaleTest) {
+  auto setup = [this]() {
+    applyNewState([&](const std::shared_ptr<SwitchState>& in) {
+      return utility::setupRemoteIntfAndSysPorts(
+          in,
+          scopeResolver(),
+          getSw()->getConfig(),
+          isSupportedOnAllAsics(HwAsic::Feature::RESERVED_ENCAP_INDEX_RANGE));
+    });
+  };
+  verifyAcrossWarmBoots(setup, [] {});
+}
+
 } // namespace facebook::fboss
