@@ -49,6 +49,12 @@ class SystemPort
   void setPortName(const std::string& portName) {
     set<ctrl_if_tags::portName>(portName);
   }
+  std::string getName() const {
+    return get<ctrl_if_tags::portName>()->toThrift();
+  }
+  void setName(const std::string& name) {
+    set<ctrl_if_tags::portName>(name);
+  }
   auto getPortQueues() const {
     return safe_cref<switch_state_tags::queues>();
   }
