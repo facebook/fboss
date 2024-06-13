@@ -122,6 +122,47 @@ class SpeedChangeTest : public LinkTest {
     newCfg.dumpConfig(pathOfNewConfig);
   }
 
+  void runSpeedChangeTest(cfg::PortSpeed fromSpeed, cfg::PortSpeed toSpeed) {
+    auto setup = [this, fromSpeed, toSpeed]() {
+      auto newConfig = createSpeedChangeConfig(fromSpeed, toSpeed);
+
+      // Apply the new config
+      sw()->applyConfig("set secondary speeds", newConfig);
+
+      EXPECT_NO_THROW(waitForAllCabledPorts(true));
+      createL3DataplaneFlood();
+    };
+    auto verify = [this]() {
+      /*
+       * Verify the following on all cabled ports
+       * 1. Link comes up at secondary speeds
+       * 2. LLDP neighbor is discovered
+       * 3. Assert no in discards
+       */
+      EXPECT_NO_THROW(waitForAllCabledPorts(true));
+      checkWithRetry(
+          [this]() { return sendAndCheckReachabilityOnAllCabledPorts(); });
+      // Assert no traffic loss and no ecmp shrink. If ports flap
+      // these conditions will not be true
+      assertNoInDiscards();
+
+      if (platform()->getHwSwitch()->getBootType() == BootType::COLD_BOOT) {
+        auto ecmpSizeInSw = getVlanOwningCabledPorts().size();
+        XLOG(INFO) << "[DBG] ECMP size in sw: " << ecmpSizeInSw;
+        WITH_RETRIES({
+          EXPECT_EVENTUALLY_EQ(
+              utility::getEcmpSizeInHw(
+                  platform()->getHwSwitch(),
+                  {folly::IPAddress("::"), 0},
+                  RouterID(0),
+                  ecmpSizeInSw),
+              ecmpSizeInSw);
+        });
+      }
+    };
+    verifyAcrossWarmBoots(setup, verify);
+  }
+
   std::string originalConfigCopy;
 };
 
