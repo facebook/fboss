@@ -144,6 +144,11 @@ class SystemPort
     return cref<ctrl_if_tags::scope>()->cref();
   }
 
+  bool isStatic() const {
+    return getRemoteSystemPortType().has_value() &&
+        getRemoteSystemPortType().value() == RemoteSystemPortType::STATIC_ENTRY;
+  }
+
  private:
   // Inherit the constructors required for clone()
   using Base::Base;
