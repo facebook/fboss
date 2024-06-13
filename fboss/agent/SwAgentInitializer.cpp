@@ -156,8 +156,13 @@ void SwAgentInitializer::stopServer() {
   // stop Thrift server: stop all worker threads and
   // stop accepting new connections
   XLOG(DBG2) << "Stopping thrift server";
-  server_->stop();
-  XLOG(DBG2) << "Stopped thrift server";
+  auto stopController = server_->getStopController();
+  if (auto lockedPtr = stopController.lock()) {
+    lockedPtr->stop();
+    XLOG(DBG2) << "Stopped thrift server";
+  } else {
+    LOG(WARNING) << "Unable to stop Thrift Server";
+  }
 }
 
 void SwAgentInitializer::stopServices() {
