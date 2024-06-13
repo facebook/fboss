@@ -267,6 +267,12 @@ std::shared_ptr<SwitchState> DsfStateUpdaterUtil::getUpdatedState(
           changed = true;
         },
         [&](const auto& rmNode) {
+          if (rmNode->getScope() == cfg::Scope::LOCAL) {
+            XLOG(DBG3) << "Skip removing LOCAL: "
+                       << static_cast<int>(rmNode->getID());
+            return;
+          }
+
           if constexpr (std::is_same_v<MapT, MultiSwitchInterfaceMap>) {
             processRemoteIntfRoute(rmNode, false /* add */);
           }
