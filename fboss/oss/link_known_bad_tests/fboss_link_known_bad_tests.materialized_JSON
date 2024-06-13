@@ -2641,6 +2641,15 @@
           "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "SpeedChangeTest.FOURHUNDREDGToTWOHUNDREDG$"
+        },
+        {
+          "test_name_regex": "SpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
+        },
+        {
+          "test_name_regex": "SpeedChangeTest.TWOHUNDREDGToHUNDREDG$"
+        },
+        {
           "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
         },
         {
@@ -2701,6 +2710,15 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "SpeedChangeTest.FOURHUNDREDGToTWOHUNDREDG$"
+        },
+        {
+          "test_name_regex": "SpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
+        },
+        {
+          "test_name_regex": "SpeedChangeTest.TWOHUNDREDGToHUNDREDG$"
         },
         {
           "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
@@ -2765,6 +2783,15 @@
           "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "SpeedChangeTest.FOURHUNDREDGToTWOHUNDREDG$"
+        },
+        {
+          "test_name_regex": "SpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
+        },
+        {
+          "test_name_regex": "SpeedChangeTest.TWOHUNDREDGToHUNDREDG$"
+        },
+        {
           "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
         },
         {
@@ -2825,6 +2852,15 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "SpeedChangeTest.FOURHUNDREDGToTWOHUNDREDG$"
+        },
+        {
+          "test_name_regex": "SpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
+        },
+        {
+          "test_name_regex": "SpeedChangeTest.TWOHUNDREDGToHUNDREDG$"
         },
         {
           "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
@@ -2889,6 +2925,15 @@
           "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "SpeedChangeTest.FOURHUNDREDGToTWOHUNDREDG$"
+        },
+        {
+          "test_name_regex": "SpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
+        },
+        {
+          "test_name_regex": "SpeedChangeTest.TWOHUNDREDGToHUNDREDG$"
+        },
+        {
           "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
         },
         {
@@ -2949,6 +2994,15 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "SpeedChangeTest.FOURHUNDREDGToTWOHUNDREDG$"
+        },
+        {
+          "test_name_regex": "SpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
+        },
+        {
+          "test_name_regex": "SpeedChangeTest.TWOHUNDREDGToHUNDREDG$"
         },
         {
           "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
@@ -3013,6 +3067,15 @@
           "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "SpeedChangeTest.FOURHUNDREDGToTWOHUNDREDG$"
+        },
+        {
+          "test_name_regex": "SpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
+        },
+        {
+          "test_name_regex": "SpeedChangeTest.TWOHUNDREDGToHUNDREDG$"
+        },
+        {
           "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
         },
         {
@@ -3073,6 +3136,15 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "SpeedChangeTest.FOURHUNDREDGToTWOHUNDREDG$"
+        },
+        {
+          "test_name_regex": "SpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
+        },
+        {
+          "test_name_regex": "SpeedChangeTest.TWOHUNDREDGToHUNDREDG$"
         },
         {
           "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
@@ -3137,6 +3209,15 @@
           "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "SpeedChangeTest.FOURHUNDREDGToTWOHUNDREDG$"
+        },
+        {
+          "test_name_regex": "SpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
+        },
+        {
+          "test_name_regex": "SpeedChangeTest.TWOHUNDREDGToHUNDREDG$"
+        },
+        {
           "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
         },
         {
@@ -3197,6 +3278,15 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "SpeedChangeTest.FOURHUNDREDGToTWOHUNDREDG$"
+        },
+        {
+          "test_name_regex": "SpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
+        },
+        {
+          "test_name_regex": "SpeedChangeTest.TWOHUNDREDGToHUNDREDG$"
         },
         {
           "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
@@ -3261,6 +3351,15 @@
           "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "SpeedChangeTest.FOURHUNDREDGToTWOHUNDREDG$"
+        },
+        {
+          "test_name_regex": "SpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
+        },
+        {
+          "test_name_regex": "SpeedChangeTest.TWOHUNDREDGToHUNDREDG$"
+        },
+        {
           "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
         },
         {
@@ -3321,6 +3420,15 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "SpeedChangeTest.FOURHUNDREDGToTWOHUNDREDG$"
+        },
+        {
+          "test_name_regex": "SpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
+        },
+        {
+          "test_name_regex": "SpeedChangeTest.TWOHUNDREDGToHUNDREDG$"
         },
         {
           "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
@@ -3385,6 +3493,15 @@
           "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "SpeedChangeTest.FOURHUNDREDGToTWOHUNDREDG$"
+        },
+        {
+          "test_name_regex": "SpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
+        },
+        {
+          "test_name_regex": "SpeedChangeTest.TWOHUNDREDGToHUNDREDG$"
+        },
+        {
           "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
         },
         {
@@ -3445,6 +3562,15 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "SpeedChangeTest.FOURHUNDREDGToTWOHUNDREDG$"
+        },
+        {
+          "test_name_regex": "SpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
+        },
+        {
+          "test_name_regex": "SpeedChangeTest.TWOHUNDREDGToHUNDREDG$"
         },
         {
           "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
@@ -3509,6 +3635,15 @@
           "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "SpeedChangeTest.FOURHUNDREDGToTWOHUNDREDG$"
+        },
+        {
+          "test_name_regex": "SpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
+        },
+        {
+          "test_name_regex": "SpeedChangeTest.TWOHUNDREDGToHUNDREDG$"
+        },
+        {
           "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
         },
         {
@@ -3569,6 +3704,15 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "SpeedChangeTest.FOURHUNDREDGToTWOHUNDREDG$"
+        },
+        {
+          "test_name_regex": "SpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
+        },
+        {
+          "test_name_regex": "SpeedChangeTest.TWOHUNDREDGToHUNDREDG$"
         },
         {
           "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
@@ -3633,6 +3777,15 @@
           "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "SpeedChangeTest.FOURHUNDREDGToTWOHUNDREDG$"
+        },
+        {
+          "test_name_regex": "SpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
+        },
+        {
+          "test_name_regex": "SpeedChangeTest.TWOHUNDREDGToHUNDREDG$"
+        },
+        {
           "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
         },
         {
@@ -3693,6 +3846,15 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "SpeedChangeTest.FOURHUNDREDGToTWOHUNDREDG$"
+        },
+        {
+          "test_name_regex": "SpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
+        },
+        {
+          "test_name_regex": "SpeedChangeTest.TWOHUNDREDGToHUNDREDG$"
         },
         {
           "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
@@ -3757,6 +3919,15 @@
           "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "SpeedChangeTest.FOURHUNDREDGToTWOHUNDREDG$"
+        },
+        {
+          "test_name_regex": "SpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
+        },
+        {
+          "test_name_regex": "SpeedChangeTest.TWOHUNDREDGToHUNDREDG$"
+        },
+        {
           "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
         },
         {
@@ -3817,6 +3988,15 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "SpeedChangeTest.FOURHUNDREDGToTWOHUNDREDG$"
+        },
+        {
+          "test_name_regex": "SpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
+        },
+        {
+          "test_name_regex": "SpeedChangeTest.TWOHUNDREDGToHUNDREDG$"
         },
         {
           "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
@@ -17089,6 +17269,9 @@
           "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "SpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
+        },
+        {
           "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
         },
         {
@@ -17167,6 +17350,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "SpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
         },
         {
           "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
@@ -17249,6 +17435,9 @@
           "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "SpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
+        },
+        {
           "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
         },
         {
@@ -17327,6 +17516,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "SpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
         },
         {
           "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
@@ -17409,6 +17601,9 @@
           "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "SpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
+        },
+        {
           "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
         },
         {
@@ -17487,6 +17682,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "SpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
         },
         {
           "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
@@ -17569,6 +17767,9 @@
           "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "SpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
+        },
+        {
           "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
         },
         {
@@ -17647,6 +17848,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "SpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
         },
         {
           "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
@@ -17729,6 +17933,9 @@
           "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "SpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
+        },
+        {
           "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
         },
         {
@@ -17807,6 +18014,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "SpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
         },
         {
           "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
@@ -17889,6 +18099,9 @@
           "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "SpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
+        },
+        {
           "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
         },
         {
@@ -17967,6 +18180,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "SpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
         },
         {
           "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
@@ -18049,6 +18265,9 @@
           "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "SpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
+        },
+        {
           "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
         },
         {
@@ -18127,6 +18346,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "SpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
         },
         {
           "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
@@ -18209,6 +18431,9 @@
           "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "SpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
+        },
+        {
           "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
         },
         {
@@ -18287,6 +18512,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "SpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
         },
         {
           "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
@@ -18369,6 +18597,9 @@
           "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "SpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
+        },
+        {
           "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
         },
         {
@@ -18447,6 +18678,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "SpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
         },
         {
           "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
@@ -18529,6 +18763,9 @@
           "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "SpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
+        },
+        {
           "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
         },
         {
@@ -18609,6 +18846,9 @@
           "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "SpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
+        },
+        {
           "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
         },
         {
@@ -18675,6 +18915,18 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.HUNDREDGToTWOHUNDREDG$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
+        },
+        {
+          "test_name_regex": "warm_boot.SpeedChangeTest.FOURHUNDREDGToTWOHUNDREDG$"
+        },
+        {
+          "test_name_regex": "warm_boot.SpeedChangeTest.TWOHUNDREDGToHUNDREDG$"
         },
         {
           "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
@@ -18748,6 +19000,18 @@
           "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.HUNDREDGToTWOHUNDREDG$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
+        },
+        {
+          "test_name_regex": "warm_boot.SpeedChangeTest.FOURHUNDREDGToTWOHUNDREDG$"
+        },
+        {
+          "test_name_regex": "warm_boot.SpeedChangeTest.TWOHUNDREDGToHUNDREDG$"
+        },
+        {
           "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
         },
         {
@@ -18817,6 +19081,18 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.HUNDREDGToTWOHUNDREDG$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
+        },
+        {
+          "test_name_regex": "warm_boot.SpeedChangeTest.FOURHUNDREDGToTWOHUNDREDG$"
+        },
+        {
+          "test_name_regex": "warm_boot.SpeedChangeTest.TWOHUNDREDGToHUNDREDG$"
         },
         {
           "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
@@ -18890,6 +19166,18 @@
           "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.HUNDREDGToTWOHUNDREDG$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
+        },
+        {
+          "test_name_regex": "warm_boot.SpeedChangeTest.FOURHUNDREDGToTWOHUNDREDG$"
+        },
+        {
+          "test_name_regex": "warm_boot.SpeedChangeTest.TWOHUNDREDGToHUNDREDG$"
+        },
+        {
           "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
         },
         {
@@ -18959,6 +19247,18 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.HUNDREDGToTWOHUNDREDG$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
+        },
+        {
+          "test_name_regex": "warm_boot.SpeedChangeTest.FOURHUNDREDGToTWOHUNDREDG$"
+        },
+        {
+          "test_name_regex": "warm_boot.SpeedChangeTest.TWOHUNDREDGToHUNDREDG$"
         },
         {
           "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
@@ -19032,6 +19332,18 @@
           "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.HUNDREDGToTWOHUNDREDG$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
+        },
+        {
+          "test_name_regex": "warm_boot.SpeedChangeTest.FOURHUNDREDGToTWOHUNDREDG$"
+        },
+        {
+          "test_name_regex": "warm_boot.SpeedChangeTest.TWOHUNDREDGToHUNDREDG$"
+        },
+        {
           "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
         },
         {
@@ -19101,6 +19413,18 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.HUNDREDGToTWOHUNDREDG$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
+        },
+        {
+          "test_name_regex": "warm_boot.SpeedChangeTest.FOURHUNDREDGToTWOHUNDREDG$"
+        },
+        {
+          "test_name_regex": "warm_boot.SpeedChangeTest.TWOHUNDREDGToHUNDREDG$"
         },
         {
           "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
@@ -19174,6 +19498,18 @@
           "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.HUNDREDGToTWOHUNDREDG$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
+        },
+        {
+          "test_name_regex": "warm_boot.SpeedChangeTest.FOURHUNDREDGToTWOHUNDREDG$"
+        },
+        {
+          "test_name_regex": "warm_boot.SpeedChangeTest.TWOHUNDREDGToHUNDREDG$"
+        },
+        {
           "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
         },
         {
@@ -19243,6 +19579,18 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.HUNDREDGToTWOHUNDREDG$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
+        },
+        {
+          "test_name_regex": "warm_boot.SpeedChangeTest.FOURHUNDREDGToTWOHUNDREDG$"
+        },
+        {
+          "test_name_regex": "warm_boot.SpeedChangeTest.TWOHUNDREDGToHUNDREDG$"
         },
         {
           "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
@@ -19319,6 +19667,18 @@
           "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.HUNDREDGToTWOHUNDREDG$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
+        },
+        {
+          "test_name_regex": "warm_boot.SpeedChangeTest.FOURHUNDREDGToTWOHUNDREDG$"
+        },
+        {
+          "test_name_regex": "warm_boot.SpeedChangeTest.TWOHUNDREDGToHUNDREDG$"
+        },
+        {
           "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
         },
         {
@@ -19393,6 +19753,18 @@
           "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.HUNDREDGToTWOHUNDREDG$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
+        },
+        {
+          "test_name_regex": "warm_boot.SpeedChangeTest.FOURHUNDREDGToTWOHUNDREDG$"
+        },
+        {
+          "test_name_regex": "warm_boot.SpeedChangeTest.TWOHUNDREDGToHUNDREDG$"
+        },
+        {
           "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
         },
         {
@@ -19462,6 +19834,18 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.HUNDREDGToTWOHUNDREDG$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
+        },
+        {
+          "test_name_regex": "warm_boot.SpeedChangeTest.FOURHUNDREDGToTWOHUNDREDG$"
+        },
+        {
+          "test_name_regex": "warm_boot.SpeedChangeTest.TWOHUNDREDGToHUNDREDG$"
         },
         {
           "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
@@ -19535,6 +19919,18 @@
           "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.HUNDREDGToTWOHUNDREDG$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
+        },
+        {
+          "test_name_regex": "warm_boot.SpeedChangeTest.FOURHUNDREDGToTWOHUNDREDG$"
+        },
+        {
+          "test_name_regex": "warm_boot.SpeedChangeTest.TWOHUNDREDGToHUNDREDG$"
+        },
+        {
           "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
         },
         {
@@ -19604,6 +20000,18 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.HUNDREDGToTWOHUNDREDG$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
+        },
+        {
+          "test_name_regex": "warm_boot.SpeedChangeTest.FOURHUNDREDGToTWOHUNDREDG$"
+        },
+        {
+          "test_name_regex": "warm_boot.SpeedChangeTest.TWOHUNDREDGToHUNDREDG$"
         },
         {
           "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
