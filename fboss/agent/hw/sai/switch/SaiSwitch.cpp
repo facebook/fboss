@@ -631,6 +631,20 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChangedImplLocked(
   processRemovedNeighborDeltaForIntfs(delta.getIntfsDelta());
   processRemovedNeighborDeltaForIntfs(delta.getRemoteIntfsDelta());
 
+  // Port RIFs are created based on system port - therefore during removal, both
+  // local and remote RIFs should be removed before system port removal.
+  processRemovedDelta(
+      delta.getRemoteIntfsDelta(),
+      managerTable_->routerInterfaceManager(),
+      lockPolicy,
+      &SaiRouterInterfaceManager::removeRemoteRouterInterface);
+
+  processRemovedDelta(
+      delta.getIntfsDelta(),
+      managerTable_->routerInterfaceManager(),
+      lockPolicy,
+      &SaiRouterInterfaceManager::removeLocalRouterInterface);
+
   // Remove system ports (which may depend on local ports
   // before removing ports)
   processRemovedDelta(
@@ -688,18 +702,6 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChangedImplLocked(
       managerTable_->portManager(),
       lockPolicy,
       &SaiPortManager::loadPortQueuesForAddedPort);
-
-  processRemovedDelta(
-      delta.getRemoteIntfsDelta(),
-      managerTable_->routerInterfaceManager(),
-      lockPolicy,
-      &SaiRouterInterfaceManager::removeRemoteRouterInterface);
-
-  processRemovedDelta(
-      delta.getIntfsDelta(),
-      managerTable_->routerInterfaceManager(),
-      lockPolicy,
-      &SaiRouterInterfaceManager::removeLocalRouterInterface);
 
   // VOQ/Fabric switches require that the packets are not tagged with any
   // VLAN. Thus, no VLAN delta processing is needed for these switches
