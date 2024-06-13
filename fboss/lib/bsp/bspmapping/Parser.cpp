@@ -92,7 +92,7 @@ std::vector<TransceiverConfigRow> Parser::getTransceiverConfigRowsFromCsv(
   std::vector<std::string_view> lines;
   folly::split('\n', data, lines);
 
-  std::vector<TransceiverConfigRow> tlList;
+  std::vector<TransceiverConfigRow> tcrList;
   int nLine = 0;
   for (auto& line : lines) {
     if (nLine++ < HEADER_OFFSET || line.empty()) {
@@ -100,10 +100,100 @@ std::vector<TransceiverConfigRow> Parser::getTransceiverConfigRowsFromCsv(
     }
 
     auto tl = getTransceiverConfigRowFromCsvLine(line);
-    tlList.push_back(tl);
+    tcrList.push_back(tl);
   }
 
-  return tlList;
+  return tcrList;
+}
+
+BspPlatformMappingThrift Parser::getBspPlatformMappingFromCsv(
+    folly::StringPiece csv) {
+  auto tcrList = getTransceiverConfigRowsFromCsv(csv);
+  std::map<int, std::vector<TransceiverConfigRow>> tcrMap;
+  for (auto& tl : tcrList) {
+    tcrMap[tl.get_tcvrId()].push_back(tl);
+  }
+
+  std::map<int, BspTransceiverMapping> tcvrMap;
+  for (auto& [tcvrId, tcrList] : tcrMap) {
+    auto first = tcrList[0];
+    BspResetPinInfo resetPinInfo;
+    resetPinInfo.sysfsPath() = first.get_resetPath();
+    resetPinInfo.mask() = first.get_resetMask();
+    resetPinInfo.gpioOffset() = 0;
+    resetPinInfo.resetHoldHi() = first.get_resetHoldHi();
+
+    BspPresencePinInfo presentInfo;
+    presentInfo.sysfsPath() = first.get_presentPath();
+    presentInfo.mask() = first.get_presentMask();
+    presentInfo.gpioOffset() = 0;
+    presentInfo.presentHoldHi() = first.get_presentHoldHi();
+
+    BspTransceiverAccessControllerInfo accessControllerInfo;
+    accessControllerInfo.controllerId() = first.get_accessCtrlId();
+    accessControllerInfo.type() = first.get_accessCtrlType();
+    accessControllerInfo.reset() = resetPinInfo;
+    accessControllerInfo.presence() = presentInfo;
+    accessControllerInfo.gpioChip() = "";
+
+    BspTransceiverIOControllerInfo ioControlInfo;
+    ioControlInfo.controllerId() = first.get_ioCtrlId();
+    ioControlInfo.type() = first.get_ioCtrlType();
+    ioControlInfo.devicePath() = first.get_ioPath();
+    std::map<int, int> laneToLedMap;
+    for (auto& ledLine : tcrList) {
+      if (ledLine.get_tcvrLaneIdList() == nullptr) {
+        continue;
+      }
+      for (auto iter = (*ledLine.get_tcvrLaneIdList()).begin();
+           iter != (*ledLine.get_tcvrLaneIdList()).end();
+           iter++) {
+        int laneId = *iter;
+        if (laneId < MIN_LANE_ID || laneId > MAX_LANE_ID) {
+          throw std::runtime_error("Invalid lane id");
+        }
+        if (ledLine.get_ledId() != nullptr) {
+          laneToLedMap[laneId] = *ledLine.get_ledId();
+        }
+      }
+    }
+
+    BspTransceiverMapping singleTcvrMap;
+    singleTcvrMap.tcvrId() = first.get_tcvrId();
+    singleTcvrMap.accessControl() = accessControllerInfo;
+    singleTcvrMap.io() = ioControlInfo;
+    singleTcvrMap.tcvrLaneToLedId() = laneToLedMap;
+
+    tcvrMap[first.get_tcvrId()] = singleTcvrMap;
+  }
+
+  std::map<int, LedMapping> ledsMap;
+  for (auto& tl : tcrList) {
+    if (tl.get_ledId() == nullptr) {
+      continue;
+    }
+
+    LedMapping singleLedMap;
+    singleLedMap.id() = *tl.get_ledId();
+    singleLedMap.bluePath() = *tl.get_ledBluePath();
+    singleLedMap.yellowPath() = *tl.get_ledYellowPath();
+    singleLedMap.transceiverId() = tl.get_tcvrId();
+    ledsMap[*tl.get_ledId()] = singleLedMap;
+  }
+
+  BspPimMapping bspPimMapping;
+  bspPimMapping.pimID() = tcrList.back().get_pimId();
+  bspPimMapping.tcvrMapping() = tcvrMap;
+  bspPimMapping.phyMapping() = {};
+  bspPimMapping.phyIOControllers() = {};
+  bspPimMapping.ledMapping() = ledsMap;
+
+  std::map<int, BspPimMapping> bspPlatformMap;
+  bspPlatformMap[tcrList.back().get_pimId()] = bspPimMapping;
+  BspPlatformMappingThrift bspPlatformMapping;
+  bspPlatformMapping.pimMapping() = bspPlatformMap;
+
+  return bspPlatformMapping;
 }
 
 } // namespace facebook::fboss

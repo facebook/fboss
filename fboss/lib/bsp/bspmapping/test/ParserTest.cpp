@@ -134,3 +134,103 @@ TEST(ParserTest, GetTransceiverConfigRowsFromCsvTest) {
           "fboss/lib/bsp/bspmapping/test/test_data/test_example.csv"));
   EXPECT_EQ(transceivers.size(), 2);
 }
+
+TEST(ParserTest, GetBspPlatformMappingFromCsvTest) {
+  auto bspPlatformMapping =
+      facebook::fboss::Parser::getBspPlatformMappingFromCsv(folly::StringPiece(
+          "fboss/lib/bsp/bspmapping/test/test_data/test_example.csv"));
+  EXPECT_EQ(bspPlatformMapping.get_pimMapping().size(), 1);
+  EXPECT_TRUE(
+      bspPlatformMapping.get_pimMapping().find(1) !=
+      bspPlatformMapping.get_pimMapping().end());
+  EXPECT_EQ(bspPlatformMapping.get_pimMapping().at(1).get_pimID(), 1);
+  auto tcvrMapping =
+      bspPlatformMapping.get_pimMapping().at(1).get_tcvrMapping();
+  EXPECT_EQ(tcvrMapping.size(), 1);
+  EXPECT_TRUE(tcvrMapping.find(1) != tcvrMapping.end());
+  EXPECT_EQ(tcvrMapping.at(1).get_tcvrId(), 1);
+  EXPECT_EQ(tcvrMapping.at(1).get_accessControl().get_controllerId(), "1");
+  EXPECT_EQ(
+      tcvrMapping.at(1).get_accessControl().get_type(),
+      facebook::fboss::ResetAndPresenceAccessType::CPLD);
+
+  EXPECT_TRUE(
+      tcvrMapping.at(1).get_accessControl().get_reset().get_sysfsPath() !=
+      nullptr);
+  EXPECT_EQ(
+      *tcvrMapping.at(1).get_accessControl().get_reset().get_sysfsPath(),
+      "/run/devmap/xcvrs/xcvr_1/xcvr_reset_1");
+  EXPECT_TRUE(
+      tcvrMapping.at(1).get_accessControl().get_reset().get_mask() != nullptr);
+  EXPECT_EQ(*tcvrMapping.at(1).get_accessControl().get_reset().get_mask(), 1);
+  EXPECT_TRUE(
+      tcvrMapping.at(1).get_accessControl().get_reset().get_gpioOffset() !=
+      nullptr);
+  EXPECT_EQ(
+      *tcvrMapping.at(1).get_accessControl().get_reset().get_gpioOffset(), 0);
+  EXPECT_TRUE(
+      tcvrMapping.at(1).get_accessControl().get_reset().get_resetHoldHi() !=
+      nullptr);
+  EXPECT_EQ(
+      *tcvrMapping.at(1).get_accessControl().get_reset().get_resetHoldHi(), 1);
+
+  EXPECT_TRUE(
+      tcvrMapping.at(1).get_accessControl().get_presence().get_sysfsPath() !=
+      nullptr);
+  EXPECT_EQ(
+      *tcvrMapping.at(1).get_accessControl().get_presence().get_sysfsPath(),
+      "/run/devmap/cplds/JANGA_SMB_CPLD/xcvr_present_1");
+  EXPECT_TRUE(
+      tcvrMapping.at(1).get_accessControl().get_presence().get_mask() !=
+      nullptr);
+  EXPECT_EQ(
+      *tcvrMapping.at(1).get_accessControl().get_presence().get_mask(), 1);
+  EXPECT_TRUE(
+      tcvrMapping.at(1).get_accessControl().get_presence().get_gpioOffset() !=
+      nullptr);
+  EXPECT_EQ(
+      *tcvrMapping.at(1).get_accessControl().get_presence().get_gpioOffset(),
+      0);
+  EXPECT_TRUE(
+      tcvrMapping.at(1)
+          .get_accessControl()
+          .get_presence()
+          .get_presentHoldHi() != nullptr);
+  EXPECT_EQ(
+      *tcvrMapping.at(1).get_accessControl().get_presence().get_presentHoldHi(),
+      1);
+
+  EXPECT_TRUE(tcvrMapping.at(1).get_accessControl().get_gpioChip() != nullptr);
+  EXPECT_EQ(*tcvrMapping.at(1).get_accessControl().get_gpioChip(), "");
+
+  EXPECT_EQ(tcvrMapping.at(1).get_io().get_controllerId(), "1");
+  EXPECT_EQ(
+      tcvrMapping.at(1).get_io().get_type(),
+      facebook::fboss::TransceiverIOType::I2C);
+  EXPECT_EQ(
+      tcvrMapping.at(1).get_io().get_devicePath(),
+      "/run/devmap/i2c-busses/XCVR_1");
+
+  EXPECT_EQ(tcvrMapping.at(1).get_tcvrLaneToLedId().size(), 4);
+  std::map<int, int> expectedLaneToLedId = {{1, 1}, {2, 1}, {3, 1}, {4, 1}};
+  EXPECT_EQ(tcvrMapping.at(1).get_tcvrLaneToLedId(), expectedLaneToLedId);
+
+  EXPECT_TRUE(
+      bspPlatformMapping.get_pimMapping().at(1).get_phyMapping().empty());
+  EXPECT_TRUE(
+      bspPlatformMapping.get_pimMapping().at(1).get_phyIOControllers().empty());
+
+  EXPECT_EQ(
+      bspPlatformMapping.get_pimMapping().at(1).get_ledMapping().size(), 1);
+  auto ledMapping =
+      bspPlatformMapping.get_pimMapping().at(1).get_ledMapping().at(1);
+
+  EXPECT_EQ(ledMapping.get_id(), 1);
+  EXPECT_TRUE(ledMapping.get_bluePath() != nullptr);
+  EXPECT_EQ(
+      *ledMapping.get_bluePath(), "/sys/class/leds/port1_led1:blue:status");
+  EXPECT_TRUE(ledMapping.get_yellowPath() != nullptr);
+  EXPECT_EQ(
+      *ledMapping.get_yellowPath(), "/sys/class/leds/port1_led1:yellow:status");
+  EXPECT_EQ(ledMapping.get_transceiverId(), 1);
+}

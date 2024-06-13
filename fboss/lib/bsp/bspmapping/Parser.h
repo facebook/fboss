@@ -9,6 +9,8 @@
 namespace facebook::fboss {
 
 inline const int HEADER_OFFSET = 1;
+inline const int MIN_LANE_ID = 1;
+inline const int MAX_LANE_ID = 8;
 inline constexpr folly::StringPiece kPortMappingMontblancCsv{
     "Montblanc_BspMapping.csv"};
 inline constexpr folly::StringPiece kPortMappingMeru400bfuCsv{
@@ -32,6 +34,8 @@ class Parser {
   static TransceiverConfigRow getTransceiverConfigRowFromCsvLine(
       const std::string_view& line);
   static std::vector<TransceiverConfigRow> getTransceiverConfigRowsFromCsv(
+      folly::StringPiece csv);
+  static BspPlatformMappingThrift getBspPlatformMappingFromCsv(
       folly::StringPiece csv);
 
  private:
