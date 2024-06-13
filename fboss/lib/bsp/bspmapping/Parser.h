@@ -3,6 +3,7 @@
 #pragma once
 
 #include <folly/Range.h>
+#include "fboss/lib/bsp/gen-cpp2/bsp_platform_mapping_types.h"
 #include "fboss/lib/if/gen-cpp2/fboss_common_types.h"
 
 namespace facebook::fboss {
@@ -27,8 +28,16 @@ inline constexpr folly::StringPiece kPortMappingMorgan800ccCsv{
 class Parser {
  public:
   static std::string getNameFor(PlatformType platform);
+  static TransceiverConfigRow getTransceiverConfigRowFromCsvLine(
+      const std::string& line);
 
  private:
+  static std::vector<int> getTransceiverLaneIdList(
+      const std::string_view& entry);
+  static ResetAndPresenceAccessType getAccessCtrlTypeFromString(
+      const std::string_view& entry);
+  static TransceiverIOType getTransceiverIOTypeFromString(
+      const std::string_view& entry);
 };
 
 } // namespace facebook::fboss

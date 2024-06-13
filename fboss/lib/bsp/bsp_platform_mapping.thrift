@@ -73,6 +73,26 @@ struct BspPresencePinInfo {
   4: optional i32 presentHoldHi; // Bitmask held high to indicate present
 }
 
+struct TransceiverConfigRow {
+  1: i32 tcvrId;
+  2: optional list<i32> tcvrLaneIdList;
+  3: i32 pimId;
+  4: string accessCtrlId;
+  5: ResetAndPresenceAccessType accessCtrlType;
+  6: string resetPath;
+  7: i32 resetMask;
+  8: i32 resetHoldHi;
+  9: string presentPath;
+  10: i32 presentMask;
+  11: i32 presentHoldHi;
+  12: string ioCtrlId;
+  13: TransceiverIOType ioCtrlType;
+  14: string ioPath;
+  15: optional i32 ledId;
+  16: optional string ledBluePath;
+  17: optional string ledYellowPath;
+}
+
 enum ResetAndPresenceAccessType {
   UNKNOWN = 0,
   CPLD = 1,
