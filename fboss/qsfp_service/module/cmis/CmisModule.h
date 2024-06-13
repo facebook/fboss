@@ -592,6 +592,11 @@ class CmisModule : public QsfpModule {
       uint8_t startHostLane,
       uint8_t numHostLanes,
       uint8_t hostLaneMask);
+  void setApplicationSelectCodeAllPorts(
+      cfg::PortSpeed speed,
+      uint8_t startHostLane,
+      uint8_t numHostLanes,
+      uint8_t hostLaneMask);
 
   const std::shared_ptr<const TransceiverConfig> tcvrConfig_;
 

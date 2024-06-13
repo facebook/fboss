@@ -2235,6 +2235,48 @@ void CmisModule::setApplicationSelectCode(
 }
 
 /*
+ * setApplicationSelectCodeAllPorts
+ *
+ * This function programs the application select code on all the software port
+ * for a given optics. This is required when the optics has to transition to a
+ * valid configuration for all the lanes
+ */
+void CmisModule::setApplicationSelectCodeAllPorts(
+    cfg::PortSpeed speed,
+    uint8_t startHostLane,
+    uint8_t numHostLanes,
+    uint8_t hostLaneMask) {
+  if (auto laneProgramValues =
+          getValidMultiportSpeedConfig(speed, startHostLane, numHostLanes)) {
+    std::array<uint8_t, kMaxOsfpNumLanes> stageSet0Config;
+    for (auto lane = 0; lane < kMaxOsfpNumLanes;) {
+      if (auto laneCapability = getApplicationField(
+              static_cast<uint8_t>(laneProgramValues.value()[lane]), lane)) {
+        uint8_t currApSelCode = laneCapability.value().ApSelCode;
+        for (auto currApLane = lane;
+             currApLane < lane + laneCapability.value().hostLaneCount;
+             currApLane++) {
+          stageSet0Config[currApLane] = currApSelCode << APP_SEL_BITSHIFT |
+              (lane << DATA_PATH_ID_BITSHIFT);
+        }
+        lane += laneCapability.value().hostLaneCount;
+      } else {
+        stageSet0Config[lane++] = 0;
+      }
+    }
+    writeCmisField(CmisField::APP_SEL_ALL_LANES, stageSet0Config.data());
+
+    // Trigger the Set 0 application code setting to be applied on data
+    // path init for all the lanes. The actual data-path init will be
+    // triggered from the caller function
+    uint8_t applySetForSpecificLanes = laneMask(0, kMaxOsfpNumLanes);
+    writeCmisField(CmisField::STAGE_CTRL_SET_0, &applySetForSpecificLanes);
+
+    datapathResetPendingMask_ = applySetForSpecificLanes;
+  }
+}
+
+/*
  * setApplicationCodeLocked
  *
  * This function programs the application select code for a port using the speed
@@ -2339,51 +2381,21 @@ void CmisModule::setApplicationCodeLocked(
       return;
     }
 
-    // Lambda to get the valid lane config combination for the given speed on
-    // start host lane and then apply this config to all the lanes. The data
-    // path setting will be applied to all the lanes
-    auto setApplicationSelectCodeAllLanes = [this,
-                                             speed,
-                                             startHostLane,
-                                             numHostLanes]() {
-      if (auto laneProgramValues = getValidMultiportSpeedConfig(
-              speed, startHostLane, numHostLanes)) {
-        std::array<uint8_t, kMaxOsfpNumLanes> stageSet0Config;
-        for (auto lane = 0; lane < kMaxOsfpNumLanes;) {
-          if (auto laneCapability = getApplicationField(
-                  static_cast<uint8_t>(laneProgramValues.value()[lane]),
-                  lane)) {
-            uint8_t currApSelCode = laneCapability.value().ApSelCode;
-            for (auto currApLane = lane;
-                 currApLane < lane + laneCapability.value().hostLaneCount;
-                 currApLane++) {
-              stageSet0Config[currApLane] = currApSelCode << APP_SEL_BITSHIFT |
-                  (lane << DATA_PATH_ID_BITSHIFT);
-            }
-            lane += laneCapability.value().hostLaneCount;
-          } else {
-            stageSet0Config[lane++] = 0;
-          }
-        }
-        writeCmisField(CmisField::APP_SEL_ALL_LANES, stageSet0Config.data());
-
-        // Trigger the Set 0 application code setting to be applied on data
-        // path init for all the lanes. The actual data-path init will be
-        // triggered from the caller function
-        uint8_t applySetForSpecificLanes = laneMask(0, kMaxOsfpNumLanes);
-        writeCmisField(CmisField::STAGE_CTRL_SET_0, &applySetForSpecificLanes);
-
-        datapathResetPendingMask_ = applySetForSpecificLanes;
-      }
-    };
-
     // In 400G-FR4 case we will have 8 host lanes instead of 4. Further more,
     // we need to deactivate all the lanes when we switch to an application with
     // a different lane count. CMIS4.0-8.8.4
     if (getIdentifier() == TransceiverModuleIdentifier::OSFP &&
         !isRequestValidMultiportSpeedConfig(
             speed, startHostLane, numHostLanes)) {
-      resetDataPathWithFunc(setApplicationSelectCodeAllLanes, hostLaneMask);
+      resetDataPathWithFunc(
+          std::bind(
+              &CmisModule::setApplicationSelectCodeAllPorts,
+              this,
+              speed,
+              startHostLane,
+              numHostLanes,
+              hostLaneMask),
+          hostLaneMask);
     } else {
       resetDataPathWithFunc(
           std::bind(
