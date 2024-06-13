@@ -535,7 +535,7 @@ TEST_F(DsfSubscriberTest, handleFsdbUpdate) {
   auto dsfNode5 = makeDsfNodeCfg(5);
   auto sysPort1 =
       std::make_shared<SystemPort>(SystemPortID(kSysPortRangeMin + 1));
-  sysPort1->setPortName("eth1/1/1");
+  sysPort1->setName("eth1/1/1");
   sysPort1->setScope(cfg::Scope::GLOBAL);
 
   auto intf1 = std::make_shared<Interface>(
@@ -564,7 +564,7 @@ TEST_F(DsfSubscriberTest, handleFsdbUpdate) {
   auto dsfNode6 = makeDsfNodeCfg(6);
   auto sysPort2 =
       std::make_shared<SystemPort>(SystemPortID(kSysPortRangeMin + 2));
-  sysPort2->setPortName("eth1/1/2");
+  sysPort2->setName("eth1/1/2");
   sysPort2->setScope(cfg::Scope::GLOBAL);
 
   auto intf2 = std::make_shared<Interface>(

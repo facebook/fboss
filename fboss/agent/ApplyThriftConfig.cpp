@@ -997,7 +997,7 @@ void ThriftConfigApplier::processUpdatedDsfNodes() {
         SystemPortID(recyclePortId),
         std::make_optional(RemoteSystemPortType::STATIC_ENTRY));
     sysPort->setSwitchId(node->getSwitchId());
-    sysPort->setPortName(getRecyclePortName(node));
+    sysPort->setName(getRecyclePortName(node));
     const auto& recyclePortInfo = dsfNodeAsic->getRecyclePortInfo();
     sysPort->setCoreIndex(recyclePortInfo.coreId);
     sysPort->setCorePortIndex(recyclePortInfo.corePortIndex);
@@ -1398,7 +1398,7 @@ shared_ptr<SystemPortMap> ThriftConfigApplier::updateSystemPorts(
           switchSettings->getSwitchIdToSwitchInfo(),
           switchId));
       sysPort->setSwitchId(SwitchID(switchId));
-      sysPort->setPortName(
+      sysPort->setName(
           folly::sformat("{}:{}", nodeName, port.second->getName()));
       auto platformPort =
           platformMapping_->getPlatformPort(port.second->getID());

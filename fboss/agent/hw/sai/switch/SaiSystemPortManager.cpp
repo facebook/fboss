@@ -335,7 +335,7 @@ std::shared_ptr<SystemPortMap> SaiSystemPortManager::constructSystemPorts(
       auto sysPort = std::make_shared<SystemPort>(getSystemPortID(
           port.second->getID(), switchIdToSwitchInfo, switchId));
       sysPort->setSwitchId(SwitchID(switchId));
-      sysPort->setPortName(
+      sysPort->setName(
           folly::sformat("{}:{}", switchId, port.second->getName()));
       auto platformPort = platform_->getPlatformPort(port.second->getID());
       sysPort->setCoreIndex(*platformPort->getAttachedCoreId());
