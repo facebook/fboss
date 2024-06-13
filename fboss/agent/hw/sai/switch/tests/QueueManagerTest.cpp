@@ -306,7 +306,7 @@ TEST_F(QueueManagerTest, checkSysPortVoqStats) {
   auto portStat =
       saiManagerTable->systemPortManager().getLastPortStats(sysPort->getID());
   checkCounterExportAndValue(
-      sysPort->getPortName(),
+      sysPort->getName(),
       voqIds(sysPort->getID()),
       ExpectExport::EXPORT,
       portStat);
@@ -315,13 +315,13 @@ TEST_F(QueueManagerTest, checkSysPortVoqStats) {
 TEST_F(QueueManagerTest, changeSysPortAndCheckVoqStats) {
   auto sysPort = firstSysPort();
   auto newSysPort = sysPort->clone();
-  newSysPort->setPortName(folly::sformat("new_{}", sysPort->getPortName()));
+  newSysPort->setPortName(folly::sformat("new_{}", sysPort->getName()));
   saiManagerTable->systemPortManager().changeSystemPort(sysPort, newSysPort);
   saiManagerTable->systemPortManager().updateStats(newSysPort->getID(), true);
   auto portStat = saiManagerTable->systemPortManager().getLastPortStats(
       newSysPort->getID());
   checkCounterExportAndValue(
-      newSysPort->getPortName(),
+      newSysPort->getName(),
       voqIds(newSysPort->getID()),
       ExpectExport::EXPORT,
       portStat);
@@ -354,11 +354,11 @@ TEST_F(QueueManagerTest, changeSysPortVoQsAndCheckVoqStats) {
   auto portStat = saiManagerTable->systemPortManager().getLastPortStats(
       newSysPort->getID());
   checkCounterExportAndValue(
-      newSysPort->getPortName(), newVoqs, ExpectExport::EXPORT, portStat);
+      newSysPort->getName(), newVoqs, ExpectExport::EXPORT, portStat);
 
   // Stats for removed voqs should no longer show up
   checkCounterExportAndValue(
-      newSysPort->getPortName(),
+      newSysPort->getName(),
       {oldVoqs.back()},
       ExpectExport::NO_EXPORT,
       portStat);

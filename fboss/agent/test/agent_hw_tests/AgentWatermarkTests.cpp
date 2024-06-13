@@ -119,7 +119,7 @@ class AgentWatermarkTest : public AgentHwTest {
       portName = getProgrammedState()
                      ->getSystemPorts()
                      ->getNodeIf(systemPortId)
-                     ->getPortName();
+                     ->getName();
     }
 
     if (!FLAGS_multi_switch) {
