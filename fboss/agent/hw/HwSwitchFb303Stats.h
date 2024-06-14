@@ -137,6 +137,7 @@ class HwSwitchFb303Stats {
   int64_t getFabricReachabilityMismatchCount() const;
   int64_t getFabricReachabilityMissingCount() const;
   int64_t getVirtualDevicesWithAsymmetricConnectivityCount() const;
+  int64_t getSwitchReachabilityChangeCount() const;
   int64_t getPacketIntegrityDropsCount() const {
     return packetIntegrityDrops_.count();
   }
