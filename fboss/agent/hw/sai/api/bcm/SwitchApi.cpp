@@ -169,4 +169,11 @@ SaiSwitchTraits::Attributes::AttributeSwitchIsolateWrapper::operator()() {
   return std::nullopt;
 }
 
+std::optional<sai_attr_id_t> SaiSwitchTraits::Attributes::
+    AttributeFabricRemoteReachablePortList::operator()() {
+#if defined(BRCM_SAI_SDK_DNX) && defined(BRCM_SAI_SDK_GTE_11_0)
+  return SAI_SWITCH_ATTR_FABRIC_REMOTE_REACHABLE_PORT_LIST;
+#endif
+  return std::nullopt;
+}
 } // namespace facebook::fboss

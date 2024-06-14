@@ -468,6 +468,12 @@ struct SaiSwitchTraits {
         SAI_SWITCH_ATTR_PFC_DLR_PACKET_ACTION,
         sai_int32_t,
         SaiPacketActionDefaultDrop>;
+    struct AttributeFabricRemoteReachablePortList {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    using FabricRemoteReachablePortList = SaiExtensionAttribute<
+        std::vector<sai_object_id_t>,
+        AttributeFabricRemoteReachablePortList>;
   };
   using AdapterKey = SwitchSaiId;
   using AdapterHostKey = std::monostate;
@@ -635,6 +641,7 @@ SAI_ATTRIBUTE_NAME(Switch, CreditWdTimer)
 SAI_ATTRIBUTE_NAME(Switch, MaxCores)
 SAI_ATTRIBUTE_NAME(Switch, PfcDlrPacketAction)
 SAI_ATTRIBUTE_NAME(Switch, SdkBootTime)
+SAI_ATTRIBUTE_NAME(Switch, FabricRemoteReachablePortList)
 
 template <>
 struct SaiObjectHasStats<SaiSwitchTraits> : public std::true_type {};

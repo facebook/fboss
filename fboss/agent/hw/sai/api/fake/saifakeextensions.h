@@ -42,6 +42,7 @@ typedef enum _sai_switch_extensions_attr_t {
   SAI_SWITCH_ATTR_EXT_RESTART_ISSU,
   SAI_SWITCH_ATTR_FORCE_TRAFFIC_OVER_FABRIC,
   SAI_SWITCH_ATTR_EXT_WARM_BOOT_TARGET_VERSION,
+  SAI_SWITCH_ATTR_FABRIC_REMOTE_REACHABLE_PORT_LIST,
 } sai_switch_extensions_attr_t;
 
 typedef enum _sai_tam_event_extensions_attr_t {

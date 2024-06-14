@@ -108,6 +108,7 @@ void handleExtensionAttributes() {
   SAI_EXT_ATTR_MAP(Switch, WarmBootTargetVersion)
   SAI_EXT_ATTR_MAP(Switch, SwitchIsolate)
   SAI_EXT_ATTR_MAP(Switch, SdkBootTime)
+  SAI_EXT_ATTR_MAP(Switch, FabricRemoteReachablePortList)
 }
 
 } // namespace
