@@ -11,6 +11,8 @@ namespace facebook::fboss {
 inline const int HEADER_OFFSET = 1;
 inline const int MIN_LANE_ID = 1;
 inline const int MAX_LANE_ID = 8;
+inline constexpr folly::StringPiece kInputConfigPrefix{
+    "fboss/lib/bsp/bspmapping/input/"};
 inline constexpr folly::StringPiece kPortMappingMontblancCsv{
     "Montblanc_BspMapping.csv"};
 inline constexpr folly::StringPiece kPortMappingMeru400bfuCsv{
