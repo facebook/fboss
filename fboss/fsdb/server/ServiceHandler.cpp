@@ -241,7 +241,7 @@ ServiceHandler::ServiceHandler(
           std::chrono::seconds(FLAGS_stateSubscriptionHeartbeat_s),
           FLAGS_trackMetadata,
           "fsdb",
-          options.serveIdPathSubs,
+          options_.serveIdPathSubs,
           true),
       operStatsStorage_(
           {},
@@ -249,7 +249,7 @@ ServiceHandler::ServiceHandler(
           std::chrono::seconds(FLAGS_statsSubscriptionHeartbeat_s),
           FLAGS_trackMetadata,
           "fsdb",
-          options.serveIdPathSubs) {
+          options_.serveIdPathSubs) {
   num_instances_.incrementValue(1);
 
   initPerStreamCounters();
