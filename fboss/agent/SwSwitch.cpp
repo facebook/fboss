@@ -276,6 +276,8 @@ void accumulateFb303GlobalStats(
       toAdd.fabric_reachability_missing().value();
   *accumulated.fabric_reachability_mismatch() +=
       toAdd.fabric_reachability_mismatch().value();
+  *accumulated.switch_reachability_change() +=
+      toAdd.switch_reachability_change().value();
 }
 
 void accumulateGlobalCpuStats(
