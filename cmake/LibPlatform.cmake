@@ -13,3 +13,11 @@ target_link_libraries(product_info
   Folly::folly
   fboss_error
 )
+
+add_library(platform_mode
+  fboss/lib/platforms/PlatformMode.h
+)
+
+target_link_libraries(platform_mode
+  fboss_common_cpp2
+)
