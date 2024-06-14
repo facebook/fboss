@@ -1687,6 +1687,7 @@ std::vector<phy::PrbsLaneStats> SaiPortManager::getPortAsicPrbsStats(
 }
 
 void SaiPortManager::clearPortAsicPrbsStats(PortID portId) {
+#if SAI_API_VERSION >= SAI_VERSION(1, 8, 1)
   auto portAsicPrbsStatsItr = portAsicPrbsStats_.find(portId);
   if (portAsicPrbsStatsItr == portAsicPrbsStats_.end()) {
     throw FbossError(
@@ -1695,6 +1696,12 @@ void SaiPortManager::clearPortAsicPrbsStats(PortID portId) {
   auto& prbsStatsTable = portAsicPrbsStatsItr->second;
   auto& prbsStatsEntry = prbsStatsTable.front();
   prbsStatsEntry.clearPrbsStats();
+  auto* handle = getPortHandleImpl(PortID(portId));
+  // Read PrbsRxState when PRBS stats are cleared to reset start point for next
+  // read.
+  SaiApiTable::getInstance()->portApi().getAttribute(
+      handle->port->adapterKey(), SaiPortTraits::Attributes::PrbsRxState{});
+#endif
 }
 
 void SaiPortManager::updatePrbsStats(PortID portId) {
