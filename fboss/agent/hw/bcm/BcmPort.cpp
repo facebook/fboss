@@ -1194,7 +1194,7 @@ phy::PhyInfo BcmPort::updateIPhyInfo() {
 #if defined(BCM_SDK_VERSION_GTE_6_5_26)
       if (hw_->getPlatform()->getAsic()->isSupported(
               HwAsic::Feature::FEC_CORRECTED_BITS)) {
-        int64_t correctedBits;
+        int64_t correctedBits = 0;
         fec_stat_accumulate(
             unit_,
             port_,
