@@ -240,6 +240,7 @@ struct FabricReachabilityStats {
   1: i64 mismatchCount;
   2: i64 missingCount;
   3: i64 virtualDevicesWithAsymmetricConnectivity;
+  4: i64 switchReachabilityChangeCount;
 }
 
 struct HwRxReasonStats {
@@ -319,6 +320,7 @@ struct HwSwitchFb303GlobalStats {
   22: optional i64 aligner_errors;
   23: optional i64 forwarding_queue_processor_errors;
   24: i64 virtual_devices_with_asymmetric_connectivity;
+  25: i64 switch_reachability_change;
 }
 
 struct HwFlowletStats {
