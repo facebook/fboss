@@ -220,6 +220,8 @@ std::string errorType(sai_switch_error_type_t type) {
       return "SAI_SWITCH_ERROR_TYPE_RQP_PACKET_REASSEMBLY_RCM_ALL_CONTEXTS_TAKEN_ERR";
     case SAI_SWITCH_ERROR_TYPE_RQP_PACKET_REASSEMBLY_RCM_ALL_CONTEXTS_TAKEN_DISCARD_ERR:
       return "SAI_SWITCH_ERROR_TYPE_RQP_PACKET_REASSEMBLY_RCM_ALL_CONTEXTS_TAKEN_DISCARD_ERR";
+    case SAI_SWITCH_ERROR_TYPE_RTP_TABLE_CHANGE:
+      return "SAI_SWITCH_ERROR_TYPE_RTP_TABLE_CHANGE";
 #endif
     default:
       break;
@@ -351,6 +353,15 @@ bool allReassemblyContextsTakenError(sai_switch_error_type_t type) {
   }
   return false;
 }
+
+bool rtpTableChangedEvent(sai_switch_error_type_t type) {
+  if (type == SAI_SWITCH_ERROR_TYPE_RTP_TABLE_CHANGE) {
+    return true;
+  } else {
+    return false;
+  }
+}
+
 #endif
 
 } // namespace
@@ -400,11 +411,13 @@ void SaiSwitch::switchEventCallback(
       auto fqpError = isFqpError(eventInfo->error_type);
       auto allReassemblyContextsTaken =
           allReassemblyContextsTakenError(eventInfo->error_type);
+      auto rtpTableChanged = rtpTableChangedEvent(eventInfo->error_type);
       XLOG(ERR) << " Got interrupt event, is IRE: " << ireError
                 << " is ITPP: " << itppError << " is EPNI: " << epniError
                 << " is Aligner: " << alignerError << " is FQP: " << fqpError
                 << " all reassembly context taken: "
-                << allReassemblyContextsTaken;
+                << allReassemblyContextsTaken
+                << " rtp table changed: " << rtpTableChanged;
       if (ireError) {
         getSwitchStats()->ireError();
       } else if (itppError) {
@@ -417,6 +430,12 @@ void SaiSwitch::switchEventCallback(
         getSwitchStats()->forwardingQueueProcessorError();
       } else if (allReassemblyContextsTaken) {
         getSwitchStats()->allReassemblyContextsTaken();
+      } else if (rtpTableChanged) {
+        // RTP table change notification is vendor specific, this
+        // means a change in switch reachability over fabric!
+        // TODO: Initiate processing for RTP table change, ie.
+        // invoke the common switchReachabilityChange handling.
+        getSwitchStats()->switchReachabilityChangeCount();
       }
     } break;
 #endif
