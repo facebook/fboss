@@ -12,8 +12,9 @@
 #include <fb303/ServiceData.h>
 #include <folly/logging/Init.h>
 #include <folly/logging/xlog.h>
+#ifndef IS_OSS
 #include "common/fb303/cpp/DefaultControl.h"
-#include "fboss/agent/AgentConfig.h"
+#endif
 #include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/AlpmUtils.h"
 #include "fboss/agent/CommonInit.h"
@@ -200,8 +201,10 @@ int hwAgentMain(
       {hwAgent->getPlatform()->createHandler()},
       {FLAGS_hwagent_port_base + FLAGS_switchIndex},
       true /*setupSSL*/);
+#ifndef IS_OSS
   server->setControlInterface(
       std::make_shared<facebook::fb303::DefaultControl>());
+#endif
 
   SplitHwAgentSignalHandler signalHandler(
       &eventBase,
