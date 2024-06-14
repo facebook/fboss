@@ -2,22 +2,33 @@
 
 #include "fboss/platform/platform_manager/PkgUtils.h"
 
+#include <folly/String.h>
 #include <folly/logging/xlog.h>
 
 #include "fboss/platform/helpers/PlatformUtils.h"
 
-namespace {
-constexpr auto kHostKernelVersion = "`uname --kernel-release`";
-}
-
 namespace facebook::fboss::platform::platform_manager {
 
+namespace {
+std::string getHostKernelVersion() {
+  auto getKernelVersionCmd = "uname --kernel-release";
+  auto [exitStatus, standardOut] =
+      PlatformUtils().execCommand(getKernelVersionCmd);
+  if (exitStatus != 0) {
+    XLOG(ERR) << fmt::format(
+        "Command ({}) failed with exit code {}",
+        getKernelVersionCmd,
+        exitStatus);
+    throw std::runtime_error(fmt::format(
+        "Failed to get kernel version with exit code {}", exitStatus));
+  }
+  standardOut = folly::trimWhitespace(standardOut).str();
+  return standardOut;
+}
+} // namespace
+
 void PkgUtils::processRpms(const PlatformConfig& config) const {
-  auto bspKmodsRpmName = fmt::format(
-      "{}-{}-{}",
-      *config.bspKmodsRpmName(),
-      kHostKernelVersion,
-      *config.bspKmodsRpmVersion());
+  auto bspKmodsRpmName = getKmodsRpmName(config);
   if (!isRpmInstalled(bspKmodsRpmName)) {
     XLOG(INFO) << fmt::format("Installing BSP Kmods {}", bspKmodsRpmName);
     installRpm(bspKmodsRpmName, 3 /* maxAttempts */);
@@ -147,6 +158,14 @@ void PkgUtils::loadKmod(const std::string& moduleName) const {
     throw std::runtime_error(fmt::format(
         "Failed to load kmod ({}) with exit code {}", moduleName, exitStatus));
   }
+}
+
+std::string PkgUtils::getKmodsRpmName(const PlatformConfig& config) const {
+  return fmt::format(
+      "{}-{}-{}",
+      *config.bspKmodsRpmName(),
+      getHostKernelVersion(),
+      *config.bspKmodsRpmVersion());
 }
 
 } // namespace facebook::fboss::platform::platform_manager

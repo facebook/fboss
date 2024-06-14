@@ -4,6 +4,7 @@
 #include <stdexcept>
 
 #include <fb303/FollyLoggingHandler.h>
+#include <fb303/ServiceData.h>
 
 #include "fboss/platform/helpers/Init.h"
 #include "fboss/platform/platform_manager/PkgUtils.h"
@@ -44,6 +45,8 @@ DEFINE_string(
     "",
     "Path to the local rpm file that needs to be installed on the system.");
 
+constexpr auto kBspKmodsRpmName = "fboss_bsp_kmods_rpm";
+
 void sdNotifyReady() {
   auto cmd = "systemd-notify --ready";
   auto [exitStatus, standardOut] = PlatformUtils().execCommand(cmd);
@@ -65,10 +68,17 @@ int main(int argc, char** argv) {
 
   if (FLAGS_enable_pkg_mgmnt) {
     if (FLAGS_local_rpm_path != "") {
+      fb303::fbData->setExportedValue(
+          kBspKmodsRpmName, "local_rpm: " + FLAGS_local_rpm_path);
       PkgUtils().processLocalRpms(FLAGS_local_rpm_path, config);
     } else {
+      fb303::fbData->setExportedValue(
+          kBspKmodsRpmName, PkgUtils().getKmodsRpmName(config));
       PkgUtils().processRpms(config);
     }
+  } else {
+    fb303::fbData->setExportedValue(
+        kBspKmodsRpmName, "Not managing BSP package");
   }
 
   if (FLAGS_reload_kmods) {
