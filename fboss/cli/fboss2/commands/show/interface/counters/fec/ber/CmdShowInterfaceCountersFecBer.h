@@ -175,46 +175,34 @@ class CmdShowInterfaceCountersFecBer
           interfaceName};
       if (model.direction() == phy::Direction::RECEIVE) {
         rowData.push_back({
-            iphyBer.has_value() ? styledBer(*iphyBer)
+            iphyBer.has_value() ? utils::styledBer(*iphyBer)
                                 : Table::StyledCell("-", Table::Style::NONE),
         });
         if (hasXphy) {
           rowData.push_back(
               xphyLineBer.has_value()
-                  ? styledBer(*xphyLineBer)
+                  ? utils::styledBer(*xphyLineBer)
                   : Table::StyledCell("-", Table::Style::NONE));
         }
         rowData.push_back(
             tcvrLineBer.has_value()
-                ? styledBer(*tcvrLineBer)
+                ? utils::styledBer(*tcvrLineBer)
                 : Table::StyledCell("-", Table::Style::NONE));
       } else {
         if (hasXphy) {
           rowData.push_back(
               xphySystemBer.has_value()
-                  ? styledBer(*xphySystemBer)
+                  ? utils::styledBer(*xphySystemBer)
                   : Table::StyledCell("-", Table::Style::NONE));
         }
         rowData.push_back(
             tcvrSystemBer.has_value()
-                ? styledBer(*tcvrSystemBer)
+                ? utils::styledBer(*tcvrSystemBer)
                 : Table::StyledCell("-", Table::Style::NONE));
       }
       table.addRow(rowData);
     }
     out << table << std::endl;
-  }
-
-  Table::StyledCell styledBer(double ber) const {
-    std::ostringstream outStringStream;
-    outStringStream << std::setprecision(3) << ber;
-    if (ber > 1e-5) {
-      return Table::StyledCell(outStringStream.str(), Table::Style::ERROR);
-    }
-    if (ber > 1e-7) {
-      return Table::StyledCell(outStringStream.str(), Table::Style::WARN);
-    }
-    return Table::StyledCell(outStringStream.str(), Table::Style::GOOD);
   }
 };
 

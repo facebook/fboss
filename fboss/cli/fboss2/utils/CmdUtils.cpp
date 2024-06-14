@@ -320,4 +320,16 @@ std::map<int16_t, std::vector<std::string>> getSwitchIndicesForInterfaces(
   return switchIndicesForInterfaces;
 }
 
+Table::StyledCell styledBer(double ber) {
+  std::ostringstream outStringStream;
+  outStringStream << std::setprecision(3) << ber;
+  if (ber > 1e-5) {
+    return Table::StyledCell(outStringStream.str(), Table::Style::ERROR);
+  }
+  if (ber > 1e-7) {
+    return Table::StyledCell(outStringStream.str(), Table::Style::WARN);
+  }
+  return Table::StyledCell(outStringStream.str(), Table::Style::GOOD);
+}
+
 } // namespace facebook::fboss::utils

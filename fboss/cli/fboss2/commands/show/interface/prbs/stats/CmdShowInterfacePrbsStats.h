@@ -103,12 +103,12 @@ class CmdShowInterfacePrbsStats : public CmdHandler<
                component,
                (*laneStat.laneId() == -1) ? "-"
                                           : std::to_string(*laneStat.laneId()),
-               *laneStat.locked() ? "True" : "False",
-               ber.str(),
-               maxBer.str(),
+               styledLocked(*laneStat.locked()),
+               utils::styledBer(*laneStat.ber()),
+               utils::styledBer(*laneStat.maxBer()),
                snr.str(),
                maxSnr.str(),
-               std::to_string(*laneStat.numLossOfLock()),
+               styledNumLossOfLock(*laneStat.numLossOfLock()),
                utils::getPrettyElapsedTime(
                    now.count() - *laneStat.timeSinceLastLocked()),
                lastClear,
@@ -201,6 +201,24 @@ class CmdShowInterfacePrbsStats : public CmdHandler<
           "Could not find interface in PRBS stats: " + interface);
     }
     return componentPrbsStatsItr->second;
+  }
+
+  Table::StyledCell styledLocked(bool locked) {
+    if (locked) {
+      return Table::StyledCell("True", Table::Style::GOOD);
+    } else {
+      return Table::StyledCell("False", Table::Style::ERROR);
+    }
+  }
+
+  Table::StyledCell styledNumLossOfLock(int numLossOfLock) {
+    std::ostringstream outStringStream;
+    outStringStream << numLossOfLock;
+    if (numLossOfLock > 0) {
+      return Table::StyledCell(outStringStream.str(), Table::Style::ERROR);
+    } else {
+      return Table::StyledCell(outStringStream.str(), Table::Style::GOOD);
+    }
   }
 
  private:

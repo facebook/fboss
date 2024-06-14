@@ -26,6 +26,7 @@
 #include "fboss/cli/fboss2/utils/CmdUtilsCommon.h"
 #include "fboss/cli/fboss2/utils/HostInfo.h"
 #include "fboss/cli/fboss2/utils/PrbsUtils.h"
+#include "fboss/cli/fboss2/utils/Table.h"
 #include "fboss/fsdb/if/gen-cpp2/FsdbService.h"
 #include "fboss/lib/phy/gen-cpp2/phy_types.h"
 #include "fboss/lib/phy/gen-cpp2/prbs_types.h"
@@ -464,5 +465,6 @@ bool isFbossFeatureEnabled(
 std::map<int16_t, std::vector<std::string>> getSwitchIndicesForInterfaces(
     const HostInfo& hostInfo,
     const std::vector<std::string>& interfaces);
+Table::StyledCell styledBer(double ber);
 
 } // namespace facebook::fboss::utils
