@@ -265,7 +265,7 @@ PortSaiId SaiPortManager::addPortImpl(const std::shared_ptr<Port>& swPort) {
   platformPort->setHwLogicalPortId(hwLogicalPortId);
   auto asicPrbs = swPort->getAsicPrbs();
   if (asicPrbs.enabled().value()) {
-    initAsicPrbsStats(swPort->getID(), static_cast<int>(swPort->getSpeed()));
+    initAsicPrbsStats(swPort);
   }
   return portSaiId;
 }
@@ -363,8 +363,7 @@ void SaiPortManager::changePortImpl(
   changeQosPolicy(oldPort, newPort);
   if (oldAsicPrbsEnabled != newAsicPrbsEnabled) {
     if (newAsicPrbsEnabled) {
-      initAsicPrbsStats(
-          newPort->getID(), static_cast<int>(newPort->getSpeed()));
+      initAsicPrbsStats(newPort);
     } else {
       auto portAsicPrbsStatsItr = portAsicPrbsStats_.find(newPort->getID());
       if (portAsicPrbsStatsItr == portAsicPrbsStats_.end()) {
@@ -582,8 +581,6 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
     if (asicPrbs.enabled().value()) {
       prbsPolynomial =
           static_cast<sai_uint32_t>(asicPrbs.polynominal().value());
-      XLOG(DBG2) << "ASIC PRBS enabled with polynomial set to "
-                 << asicPrbs.polynominal().value() << " for port " << portID;
     }
   }
   std::optional<SaiPortTraits::Attributes::DisableTtlDecrement> disableTtl{};

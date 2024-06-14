@@ -963,16 +963,28 @@ void SaiPortManager::updatePrbsStatsEntryRate(
   }
 }
 
-void SaiPortManager::initAsicPrbsStats(PortID portId, uint32_t speed) {
+void SaiPortManager::initAsicPrbsStats(const std::shared_ptr<Port>& swPort) {
   if (!platform_->getAsic()->isSupported(HwAsic::Feature::SAI_PRBS)) {
     return;
   }
+  auto portId = swPort->getID();
+  XLOG(DBG2) << "ASIC PRBS enabled with polynomial set to "
+             << swPort->getAsicPrbs().polynominal().value() << " for port "
+             << portId;
+  auto speed = static_cast<int>(swPort->getSpeed());
   auto rate = calculateRate(speed);
   auto prbsStatsTable = PrbsStatsTable();
   // Dump cumulative PRBS stats on first PrbsStatsEntry because there is no
   // per-lane PRBS counter available in SAI.
   prbsStatsTable.push_back(PrbsStatsEntry(portId, rate));
   portAsicPrbsStats_[portId] = std::move(prbsStatsTable);
+#if SAI_API_VERSION >= SAI_VERSION(1, 8, 1) && defined(BRCM_SAI_SDK_XGS_AND_DNX)
+  // Trigger initial read of PrbsRxState to help clear any initial lock
+  // losses
+  auto portHandle = getPortHandle(portId);
+  SaiApiTable::getInstance()->portApi().getAttribute(
+      portHandle->port->adapterKey(), SaiPortTraits::Attributes::PrbsRxState{});
+#endif
 }
 
 PortSaiId SaiPortManager::addPort(const std::shared_ptr<Port>& swPort) {
