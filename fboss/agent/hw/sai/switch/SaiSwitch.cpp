@@ -2074,6 +2074,14 @@ void SaiSwitch::linkConnectivityChanged(
   callback_->linkConnectivityChanged(connectivityDelta);
 }
 
+void SaiSwitch::switchReachabilityChangeTopHalf() {
+  // TODO
+}
+
+void SaiSwitch::switchReachabilityChangeBottomHalf() {
+  // TODO
+}
+
 BootType SaiSwitch::getBootType() const {
   return bootType_;
 }
@@ -2448,6 +2456,11 @@ void SaiSwitch::initTxReadyStatusChangeLocked(
     txReadyStatusChangeCallbackBottomHalf();
   });
 #endif
+}
+
+void SaiSwitch::initSwitchReachabilityChangeLocked(
+    const std::lock_guard<std::mutex>& /* lock */) {
+  // TODO
 }
 
 bool SaiSwitch::isMissingSrcPortAllowed(HostifTrapSaiId hostifTrapSaiId) {
