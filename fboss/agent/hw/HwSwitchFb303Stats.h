@@ -92,6 +92,10 @@ class HwSwitchFb303Stats {
   void warmBoot() {
     warmBoot_.addValue(1);
   }
+  void switchReachabilityChangeCount() {
+    switchReachabilityChangeCount_.addValue(1);
+  }
+
   void fabricReachabilityMissingCount(int64_t value);
   void fabricReachabilityMismatchCount(int64_t value);
   void virtualDevicesWithAsymmetricConnectivity(int64_t value);
@@ -216,6 +220,7 @@ class HwSwitchFb303Stats {
   TLCounter fabricReachabilityMissingCount_;
   TLCounter fabricReachabilityMismatchCount_;
   TLCounter virtualDevicesWithAsymmetricConnectivity_;
+  TLTimeseries switchReachabilityChangeCount_;
   TLTimeseries ireErrors_;
   TLTimeseries itppErrors_;
   TLTimeseries epniErrors_;

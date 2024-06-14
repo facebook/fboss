@@ -147,6 +147,11 @@ HwSwitchFb303Stats::HwSwitchFb303Stats(
       virtualDevicesWithAsymmetricConnectivity_(
           map,
           getCounterPrefix() + "virtual_devices_with_asymmetric_connectivity"),
+      switchReachabilityChangeCount_(
+          map,
+          getCounterPrefix() + "switch_reachability_change",
+          SUM,
+          RATE),
       ireErrors_(map, getCounterPrefix() + vendor + ".ire.errors", SUM, RATE),
       itppErrors_(map, getCounterPrefix() + vendor + ".itpp.errors", SUM, RATE),
       epniErrors_(map, getCounterPrefix() + vendor + ".epni.errors", SUM, RATE),
