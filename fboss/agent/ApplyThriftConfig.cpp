@@ -1004,6 +1004,8 @@ void ThriftConfigApplier::processUpdatedDsfNodes() {
     sysPort->setSpeedMbps(recyclePortInfo.speedMbps); // 10G
     sysPort->setNumVoqs(8);
     sysPort->setScope(cfg::Scope::GLOBAL);
+    sysPort->resetPortQueues(utility::getFirstNodeIf(new_->getSwitchSettings())
+                                 ->getDefaultVoqConfig());
     if (auto cpuTrafficPolicy = cfg_->cpuTrafficPolicy()) {
       if (auto trafficPolicy = cpuTrafficPolicy->trafficPolicy()) {
         if (auto defaultQosPolicy = trafficPolicy->defaultQosPolicy()) {
