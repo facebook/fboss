@@ -10,6 +10,8 @@
 
 #pragma once
 
+#include "fboss/thrift_cow/nodes/Serializer.h"
+
 #include <functional>
 #include <memory>
 #include <optional>

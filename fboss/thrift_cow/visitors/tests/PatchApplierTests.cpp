@@ -31,9 +31,15 @@ TEST(PatchApplierTests, ModifyPrimitive) {
 
   auto nodeA = std::make_shared<ThriftStructNode<TestStruct>>(structA);
   auto ret = PatchApplier<apache::thrift::type_class::string>::apply(
-      *nodeA->template ref<k::inlineString>(), std::move(n));
+      *nodeA->template ref<k::inlineString>(), PatchNode(n));
   EXPECT_EQ(ret, PatchApplyResult::OK);
   EXPECT_EQ(*nodeA->template ref<k::inlineString>(), "new val");
+
+  // patch non cow struct
+  ret = PatchApplier<apache::thrift::type_class::string>::apply(
+      *structA.inlineString(), std::move(n));
+  EXPECT_EQ(ret, PatchApplyResult::OK);
+  EXPECT_EQ(*structA.inlineString(), "new val");
 
   n = PatchNode();
   n.set_val(serializeBuf<apache::thrift::type_class::integral>(

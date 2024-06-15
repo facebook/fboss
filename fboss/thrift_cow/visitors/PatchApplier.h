@@ -22,9 +22,15 @@ struct NodeType;
 struct FieldsType;
 
 namespace pa_detail {
+
+template <typename TC, typename Node>
 inline PatchApplyResult
-patchNode(Serializable& n, ByteBuffer&& buf, fsdb::OperProtocol protocol) {
-  n.fromEncodedBuf(protocol, std::move(buf));
+patchNode(Node& n, ByteBuffer&& buf, fsdb::OperProtocol protocol) {
+  if constexpr (is_cow_type_v<Node>) {
+    n.fromEncodedBuf(protocol, std::move(buf));
+  } else {
+    n = deserializeBuf<TC, Node>(protocol, std::move(buf));
+  }
   return PatchApplyResult::OK;
 }
 } // namespace pa_detail
@@ -62,18 +68,14 @@ struct PatchApplier<
     return apply(node, std::move(patch), protocol, traverser);
   }
 
-  template <
-      typename Node,
-      // only enable for Node types
-      std::enable_if_t<std::is_same_v<typename Node::CowType, NodeType>, bool> =
-          true>
+  template <typename Node>
   static PatchApplyResult apply(
       Node& node,
       PatchNode&& patch,
       fsdb::OperProtocol protocol,
       PatchTraverser& traverser) {
     if (patch.getType() == PatchNode::Type::val) {
-      return pa_detail::patchNode(node, patch.move_val(), protocol);
+      return pa_detail::patchNode<TC>(node, patch.move_val(), protocol);
     }
     if (patch.getType() != PatchNode::Type::map_node) {
       return PatchApplyResult::INVALID_PATCH_TYPE;
@@ -123,18 +125,14 @@ struct PatchApplier<apache::thrift::type_class::list<ValueTypeClass>> {
     return apply(node, std::move(patch), protocol, traverser);
   }
 
-  template <
-      typename Node,
-      // only enable for Node types
-      std::enable_if_t<std::is_same_v<typename Node::CowType, NodeType>, bool> =
-          true>
+  template <typename Node>
   static PatchApplyResult apply(
       Node& node,
       PatchNode&& patch,
       fsdb::OperProtocol protocol,
       PatchTraverser& traverser) {
     if (patch.getType() == PatchNode::Type::val) {
-      return pa_detail::patchNode(node, patch.move_val(), protocol);
+      return pa_detail::patchNode<TC>(node, patch.move_val(), protocol);
     }
     if (patch.getType() != PatchNode::Type::list_node) {
       return PatchApplyResult::INVALID_PATCH_TYPE;
@@ -189,18 +187,14 @@ struct PatchApplier<apache::thrift::type_class::set<ValueTypeClass>> {
     return apply(node, std::move(patch), protocol, traverser);
   }
 
-  template <
-      typename Node,
-      // only enable for Node types
-      std::enable_if_t<std::is_same_v<typename Node::CowType, NodeType>, bool> =
-          true>
+  template <typename Node>
   static PatchApplyResult apply(
       Node& node,
       PatchNode&& patch,
       fsdb::OperProtocol protocol,
       PatchTraverser& traverser) {
     if (patch.getType() == PatchNode::Type::val) {
-      return pa_detail::patchNode(node, patch.move_val(), protocol);
+      return pa_detail::patchNode<TC>(node, patch.move_val(), protocol);
     }
     if (patch.getType() != PatchNode::Type::set_node) {
       return PatchApplyResult::INVALID_PATCH_TYPE;
@@ -251,18 +245,14 @@ struct PatchApplier<apache::thrift::type_class::variant> {
     return apply(node, std::move(patch), protocol, traverser);
   }
 
-  template <
-      typename Node,
-      // only enable for Node types
-      std::enable_if_t<std::is_same_v<typename Node::CowType, NodeType>, bool> =
-          true>
+  template <typename Node>
   static PatchApplyResult apply(
       Node& node,
       PatchNode&& patch,
       fsdb::OperProtocol protocol,
       PatchTraverser& traverser) {
     if (patch.getType() == PatchNode::Type::val) {
-      return pa_detail::patchNode(node, patch.move_val(), protocol);
+      return pa_detail::patchNode<TC>(node, patch.move_val(), protocol);
     }
     if (patch.getType() != PatchNode::Type::variant_node) {
       return PatchApplyResult::INVALID_PATCH_TYPE;
@@ -319,18 +309,14 @@ struct PatchApplier<apache::thrift::type_class::structure> {
     return apply(node, std::move(patch), protocol, traverser);
   }
 
-  template <
-      typename Node,
-      // only enable for Node types
-      std::enable_if_t<std::is_same_v<typename Node::CowType, NodeType>, bool> =
-          true>
+  template <typename Node>
   static PatchApplyResult apply(
       Node& node,
       PatchNode&& patch,
       fsdb::OperProtocol protocol,
       PatchTraverser& traverser) {
     if (patch.getType() == PatchNode::Type::val) {
-      return pa_detail::patchNode(node, patch.move_val(), protocol);
+      return pa_detail::patchNode<TC>(node, patch.move_val(), protocol);
     }
     if (patch.getType() != PatchNode::Type::struct_node) {
       return PatchApplyResult::INVALID_PATCH_TYPE;
@@ -398,16 +384,12 @@ struct PatchApplier {
     if (patch.getType() != PatchNode::Type::val) {
       return PatchApplyResult::INVALID_PATCH_TYPE;
     }
-    // This can only happen if we are trying to apply a patch a set entry
-    // which are immutable. In practice this should never happen because for
-    // sets we always patch at the set level, though it is technically
-    // possible because we allow for patching at a base path, which could
-    // technically be a set entry
-    if constexpr (Fields::immutable) {
-      return PatchApplyResult::PATCHING_IMMUTABLE_NODE;
-    } else {
-      return pa_detail::patchNode(fields, patch.move_val(), protocol);
+    if constexpr (is_cow_type_v<Fields>) {
+      if constexpr (Fields::immutable) {
+        return PatchApplyResult::PATCHING_IMMUTABLE_NODE;
+      }
     }
+    return pa_detail::patchNode<TC>(fields, patch.move_val(), protocol);
   }
 };
 
