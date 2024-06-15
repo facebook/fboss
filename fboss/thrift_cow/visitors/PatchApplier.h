@@ -236,9 +236,9 @@ struct PatchApplier<apache::thrift::type_class::list<ValueTypeClass>> {
 /**
  * Set
  */
-template <typename ValueTypeClass>
-struct PatchApplier<apache::thrift::type_class::set<ValueTypeClass>> {
-  using TC = apache::thrift::type_class::set<ValueTypeClass>;
+template <typename KeyTypeClass>
+struct PatchApplier<apache::thrift::type_class::set<KeyTypeClass>> {
+  using TC = apache::thrift::type_class::set<KeyTypeClass>;
 
   template <typename Node>
   static inline PatchApplyResult apply(
@@ -262,32 +262,40 @@ struct PatchApplier<apache::thrift::type_class::set<ValueTypeClass>> {
       return PatchApplyResult::INVALID_PATCH_TYPE;
     }
 
-    using ValueTType = typename Node::ValueTType;
+    using key_type = typename Node::key_type;
 
     decompressPatch(patch);
     auto setPatch = patch.move_set_node();
     for (auto&& [key, childPatch] : *std::move(setPatch).children()) {
       traverser.push(key);
-      // for sets keys are our values
-      std::optional<ValueTType> value =
-          tryParseKey<ValueTType, ValueTypeClass>(key);
-      if (!value) {
-        traverser.traverseResult(PatchApplyResult::KEY_PARSE_ERROR);
+      if (std::optional<key_type> value =
+              tryParseKey<key_type, KeyTypeClass>(key)) {
+        traverser.traverseResult(
+            applyChildPatch(node, std::move(*value), std::move(childPatch)));
       } else {
-        // We only support sets of primitives
-        // lets not recurse and just handle add/remove here
-        if (childPatch.getType() == PatchNode::Type::del) {
-          node.erase(std::move(*value));
-        } else if (childPatch.getType() == PatchNode::Type::val) {
-          node.emplace(std::move(*value));
-        } else {
-          traverser.traverseResult(PatchApplyResult::INVALID_PATCH_TYPE);
-        }
+        traverser.traverseResult(PatchApplyResult::KEY_PARSE_ERROR);
       }
       traverser.pop();
     }
 
     return traverser.currentResult();
+  }
+
+ private:
+  template <typename Node, typename KeyT>
+  static PatchApplyResult
+  applyChildPatch(Node& node, KeyT key, PatchNode&& childPatch) {
+    // We only support sets of primitives
+    // lets not recurse and just handle add/remove here
+    if (childPatch.getType() == PatchNode::Type::del) {
+      node.erase(std::move(key));
+      return PatchApplyResult::OK;
+    } else if (childPatch.getType() == PatchNode::Type::val) {
+      node.emplace(std::move(key));
+      return PatchApplyResult::OK;
+    } else {
+      return PatchApplyResult::INVALID_PATCH_TYPE;
+    }
   }
 };
 

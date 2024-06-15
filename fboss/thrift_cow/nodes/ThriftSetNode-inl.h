@@ -44,7 +44,7 @@ struct ThriftSetFields {
   using ValueTypeClass =
       typename set_helpers::ExtractTypeClass<TypeClass>::type;
   using ValueTType = typename TType::value_type;
-
+  using key_type = typename TType::key_type;
   using ValueTraits = ConvertToImmutableNodeTraits<ValueTypeClass, ValueTType>;
   using value_type = typename ValueTraits::type;
   using StorageType = std::unordered_set<value_type>;
@@ -237,6 +237,7 @@ class ThriftSetNode : public NodeBaseT<
   using ThriftType = typename Fields::ThriftType;
   using BaseT = NodeBaseT<ThriftSetNode<TypeClass, TType>, Fields>;
   using CowType = NodeType;
+  using key_type = typename Fields::key_type;
   using value_type = typename Fields::value_type;
   using ValueTType = typename Fields::ValueTType;
   using PathIter = typename std::vector<std::string>::const_iterator;

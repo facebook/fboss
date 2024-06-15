@@ -307,11 +307,20 @@ TEST(PatchApplierTests, AddRemoveSetItems) {
 
   auto ret = PatchApplier<
       apache::thrift::type_class::set<apache::thrift::type_class::integral>>::
-      apply(*nodeA->template ref<k::setOfI32>(), std::move(n));
+      apply(*nodeA->template ref<k::setOfI32>(), PatchNode(n));
   EXPECT_EQ(ret, PatchApplyResult::OK);
   EXPECT_EQ(nodeA->template ref<k::setOfI32>()->size(), 2);
   EXPECT_EQ(nodeA->template ref<k::setOfI32>()->count(1), 1);
   EXPECT_EQ(nodeA->template ref<k::setOfI32>()->count(3), 1);
+
+  // patch non cow struct
+  ret = PatchApplier<
+      apache::thrift::type_class::set<apache::thrift::type_class::integral>>::
+      apply(*structA.setOfI32(), std::move(n));
+  EXPECT_EQ(ret, PatchApplyResult::OK);
+  EXPECT_EQ(structA.setOfI32()->size(), 2);
+  EXPECT_EQ(structA.setOfI32()->count(1), 1);
+  EXPECT_EQ(structA.setOfI32()->count(3), 1);
 }
 
 TEST(PatchApplierTests, FailPatchingSetEntry) {
