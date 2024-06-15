@@ -33,6 +33,8 @@ patchNode(Node& n, ByteBuffer&& buf, fsdb::OperProtocol protocol) {
   }
   return PatchApplyResult::OK;
 }
+
+std::vector<int> getSortedIndices(const ListPatch& node);
 } // namespace pa_detail
 
 class PatchTraverser {
@@ -143,31 +145,62 @@ struct PatchApplier<apache::thrift::type_class::list<ValueTypeClass>> {
 
     // In case of removals, we want to make sure we resolve later indices first.
     // So first we need to sort the indices
-    std::vector<int> indices;
-    indices.reserve(listPatch.children()->size());
-    for (const auto& pair : *listPatch.children()) {
-      indices.push_back(pair.first);
-    }
-    std::sort(indices.begin(), indices.end(), std::greater<>());
+    std::vector<int> indices = pa_detail::getSortedIndices(listPatch);
 
     // Iterate through sorted keys and access values in the map
     for (const int index : indices) {
       traverser.push(index);
       auto& childPatch = listPatch.children()->at(index);
-      if (childPatch.getType() == PatchNode::Type::del) {
-        node.remove(index);
-      } else {
-        node.modify(index);
-        traverser.traverseResult(PatchApplier<ValueTypeClass>::apply(
-            *node.ref(index),
-            std::move(std::move(childPatch)),
-            protocol,
-            traverser));
-      }
+      traverser.traverseResult(
+          applyChildPatch(node, index, std::move(childPatch), protocol));
       traverser.pop();
     }
 
     return traverser.currentResult();
+  }
+
+ private:
+  template <typename Node>
+  static PatchApplyResult applyChildPatch(
+      Node& node,
+      int32_t index,
+      PatchNode&& childPatch,
+      fsdb::OperProtocol protocol)
+    requires(is_cow_type_v<Node>)
+  {
+    if (childPatch.getType() == PatchNode::Type::del) {
+      node.remove(index);
+      return PatchApplyResult::OK;
+    } else {
+      node.modify(index);
+      return PatchApplier<ValueTypeClass>::apply(
+          *node.ref(index),
+          std::move(std::move(childPatch)),
+          std::move(protocol));
+    }
+  }
+
+  template <typename Node>
+  static PatchApplyResult applyChildPatch(
+      Node& node,
+      int32_t index,
+      PatchNode&& childPatch,
+      fsdb::OperProtocol protocol)
+    requires(!is_cow_type_v<Node>)
+  {
+    if (childPatch.getType() == PatchNode::Type::del) {
+      node.erase(node.begin() + index);
+      return PatchApplyResult::OK;
+    } else {
+      if (node.size() <= index) {
+        node.resize(index + 1);
+      }
+      return PatchApplier<ValueTypeClass>::apply(
+          node.at(index),
+          std::move(std::move(childPatch)),
+          std::move(protocol));
+    }
+    return PatchApplyResult::OK;
   }
 };
 

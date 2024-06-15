@@ -138,9 +138,16 @@ TEST(PatchApplierTests, ModifyListMember) {
 
   auto ret = PatchApplier<
       apache::thrift::type_class::list<apache::thrift::type_class::integral>>::
-      apply(*nodeA->template ref<k::listOfPrimitives>(), std::move(n));
+      apply(*nodeA->template ref<k::listOfPrimitives>(), PatchNode(n));
   EXPECT_EQ(ret, PatchApplyResult::OK);
   EXPECT_EQ(*nodeA->template ref<k::listOfPrimitives>()->at(1), 42);
+
+  // patch non cow struct
+  ret = PatchApplier<
+      apache::thrift::type_class::list<apache::thrift::type_class::integral>>::
+      apply(*structA.listOfPrimitives(), std::move(n));
+  EXPECT_EQ(ret, PatchApplyResult::OK);
+  EXPECT_EQ(structA.listOfPrimitives()->at(1), 42);
 }
 
 TEST(PatchApplierTests, AddListMembers) {
@@ -163,11 +170,20 @@ TEST(PatchApplierTests, AddListMembers) {
 
   auto ret = PatchApplier<
       apache::thrift::type_class::list<apache::thrift::type_class::integral>>::
-      apply(*nodeA->template ref<k::listOfPrimitives>(), std::move(n));
+      apply(*nodeA->template ref<k::listOfPrimitives>(), PatchNode(n));
   EXPECT_EQ(ret, PatchApplyResult::OK);
   EXPECT_EQ(nodeA->template ref<k::listOfPrimitives>()->size(), 3);
   EXPECT_EQ(*nodeA->template ref<k::listOfPrimitives>()->at(1), 12);
   EXPECT_EQ(*nodeA->template ref<k::listOfPrimitives>()->at(2), 34);
+
+  // patch non cow struct
+  ret = PatchApplier<
+      apache::thrift::type_class::list<apache::thrift::type_class::integral>>::
+      apply(*structA.listOfPrimitives(), std::move(n));
+  EXPECT_EQ(ret, PatchApplyResult::OK);
+  EXPECT_EQ(structA.listOfPrimitives()->size(), 3);
+  EXPECT_EQ(structA.listOfPrimitives()->at(1), 12);
+  EXPECT_EQ(structA.listOfPrimitives()->at(2), 34);
 }
 
 TEST(PatchApplierTests, RemoveListMembers) {

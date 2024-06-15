@@ -29,4 +29,16 @@ void PatchTraverser::pop() {
   curPath_.pop_back();
 }
 
+namespace pa_detail {
+std::vector<int> getSortedIndices(const ListPatch& listPatch) {
+  std::vector<int> indices;
+  indices.reserve(listPatch.children()->size());
+  for (const auto& pair : *listPatch.children()) {
+    indices.push_back(pair.first);
+  }
+  std::sort(indices.begin(), indices.end(), std::greater<>());
+  return indices;
+}
+} // namespace pa_detail
+
 } // namespace facebook::fboss::thrift_cow
