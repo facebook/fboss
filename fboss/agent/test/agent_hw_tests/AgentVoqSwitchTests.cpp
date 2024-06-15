@@ -1307,4 +1307,81 @@ TEST_F(AgentVoqSwitchFullScaleDsfNodesTest, systemPortScaleTest) {
   verifyAcrossWarmBoots(setup, [] {});
 }
 
+TEST_F(AgentVoqSwitchFullScaleDsfNodesTest, remoteNeighborWithEcmpGroup) {
+  const auto kEcmpWidth = getMaxEcmpWidth(
+      utility::checkSameAndGetAsic(getAgentEnsemble()->getL3Asics()));
+  const auto kMaxDeviation = 25;
+  FLAGS_ecmp_width = kEcmpWidth;
+  boost::container::flat_set<PortDescriptor> sysPortDescs;
+  auto setup = [&]() {
+    applyNewState([&](const std::shared_ptr<SwitchState>& in) {
+      return utility::setupRemoteIntfAndSysPorts(
+          in,
+          scopeResolver(),
+          getSw()->getConfig(),
+          isSupportedOnAllAsics(HwAsic::Feature::RESERVED_ENCAP_INDEX_RANGE));
+    });
+    utility::EcmpSetupTargetedPorts6 ecmpHelper(getProgrammedState());
+    // Trigger config apply to add remote interface routes as directly connected
+    // in RIB. This is to resolve ECMP members pointing to remote nexthops.
+    applyNewConfig(getSw()->getConfig());
+
+    // Resolve remote nhops and get a list of remote sysPort descriptors
+    sysPortDescs = utility::resolveRemoteNhops(getAgentEnsemble(), ecmpHelper);
+
+    for (int i = 0; i < getMaxEcmpGroup(); i++) {
+      auto prefix = RoutePrefixV6{
+          folly::IPAddressV6(folly::to<std::string>(i, "::", i)),
+          static_cast<uint8_t>(i == 0 ? 0 : 128)};
+      auto routeUpdater = getSw()->getRouteUpdater();
+      ecmpHelper.programRoutes(
+          &routeUpdater,
+          flat_set<PortDescriptor>(
+              std::make_move_iterator(sysPortDescs.begin() + i),
+              std::make_move_iterator(sysPortDescs.begin() + i + kEcmpWidth)),
+          {prefix});
+    }
+  };
+  auto verify = [&]() {
+    // Send and verify packets across voq drops.
+    auto defaultRouteSysPorts = std::vector<PortDescriptor>(
+        sysPortDescs.begin(), sysPortDescs.begin() + kEcmpWidth);
+    std::function<std::map<SystemPortID, HwSysPortStats>(
+        const std::vector<SystemPortID>&)>
+        getSysPortStatsFn = [&](const std::vector<SystemPortID>& portIds) {
+          getSw()->updateStats();
+          return getLatestSysPortStats(portIds);
+        };
+    utility::pumpTrafficAndVerifyLoadBalanced(
+        [&]() {
+          utility::pumpTraffic(
+              true, /* isV6 */
+              utility::getAllocatePktFn(getAgentEnsemble()),
+              utility::getSendPktFunc(getAgentEnsemble()),
+              utility::kLocalCpuMac(), /* dstMac */
+              std::nullopt, /* vlan */
+              std::nullopt, /* frontPanelPortToLoopTraffic */
+              255, /* hopLimit */
+              1000000 /* numPackets */);
+        },
+        [&]() {
+          auto ports = std::make_unique<std::vector<int32_t>>();
+          for (auto sysPortDecs : defaultRouteSysPorts) {
+            ports->push_back(static_cast<int32_t>(sysPortDecs.sysPortID()));
+          }
+          getSw()->clearPortStats(ports);
+        },
+        [&]() {
+          WITH_RETRIES(EXPECT_EVENTUALLY_TRUE(utility::isLoadBalanced(
+              defaultRouteSysPorts,
+              {},
+              getSysPortStatsFn,
+              kMaxDeviation,
+              false)));
+          return true;
+        });
+  };
+  verifyAcrossWarmBoots(setup, verify);
+}
+
 } // namespace facebook::fboss
