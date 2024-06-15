@@ -83,24 +83,15 @@ struct PatchApplier<
       return PatchApplyResult::INVALID_PATCH_TYPE;
     }
 
-    using Fields = typename Node::Fields;
-    using key_type = typename Fields::key_type;
+    using key_type = typename Node::key_type;
 
     decompressPatch(patch);
     auto mapPatch = patch.move_map_node();
     for (auto&& [key, childPatch] : *std::move(mapPatch).children()) {
       traverser.push(key);
       if (auto parsedKey = tryParseKey<key_type, KeyTypeClass>(key)) {
-        if (childPatch.getType() == PatchNode::Type::del) {
-          node.remove(std::move(*parsedKey));
-        } else {
-          node.modifyTyped(*parsedKey);
-          traverser.traverseResult(PatchApplier<MappedTypeClass>::apply(
-              *node.ref(std::move(*parsedKey)),
-              std::move(childPatch),
-              protocol,
-              traverser));
-        }
+        traverser.traverseResult(applyChildPatch(
+            node, std::move(*parsedKey), std::move(childPatch), protocol));
       } else {
         traverser.traverseResult(PatchApplyResult::KEY_PARSE_ERROR);
       }
@@ -108,6 +99,44 @@ struct PatchApplier<
     }
 
     return traverser.currentResult();
+  }
+
+ private:
+  template <typename Node, typename KeyT>
+  static PatchApplyResult applyChildPatch(
+      Node& node,
+      KeyT key,
+      PatchNode&& childPatch,
+      fsdb::OperProtocol protocol)
+    requires(is_cow_type_v<Node>)
+  {
+    if (childPatch.getType() == PatchNode::Type::del) {
+      node.remove(std::move(key));
+      return PatchApplyResult::OK;
+    } else {
+      node.modifyTyped(key);
+      return PatchApplier<MappedTypeClass>::apply(
+          *node.ref(std::move(key)),
+          std::move(childPatch),
+          std::move(protocol));
+    }
+  }
+
+  template <typename Node, typename KeyT>
+  static PatchApplyResult applyChildPatch(
+      Node& node,
+      KeyT key,
+      PatchNode&& childPatch,
+      fsdb::OperProtocol protocol)
+    requires(!is_cow_type_v<Node>)
+  {
+    if (childPatch.getType() == PatchNode::Type::del) {
+      node.erase(std::move(key));
+      return PatchApplyResult::OK;
+    } else {
+      return PatchApplier<MappedTypeClass>::apply(
+          node[std::move(key)], std::move(childPatch), std::move(protocol));
+    }
   }
 };
 

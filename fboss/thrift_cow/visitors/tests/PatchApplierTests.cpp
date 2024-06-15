@@ -89,9 +89,17 @@ TEST(PatchApplierTests, ModifyMapMember) {
   auto ret = PatchApplier<apache::thrift::type_class::map<
       apache::thrift::type_class::integral,
       apache::thrift::type_class::integral>>::
-      apply(*nodeA->template ref<k::mapOfI32ToI32>(), std::move(n));
+      apply(*nodeA->template ref<k::mapOfI32ToI32>(), PatchNode(n));
   EXPECT_EQ(ret, PatchApplyResult::OK);
   EXPECT_EQ(*nodeA->template ref<k::mapOfI32ToI32>()->at(123), 42);
+
+  // patch non cow struct
+  ret = PatchApplier<apache::thrift::type_class::map<
+      apache::thrift::type_class::integral,
+      apache::thrift::type_class::integral>>::
+      apply(*structA.mapOfI32ToI32(), std::move(n));
+  EXPECT_EQ(ret, PatchApplyResult::OK);
+  EXPECT_EQ(structA.mapOfI32ToI32()->at(123), 42);
 }
 
 TEST(PatchApplierTests, AddRemoveMapMember) {
@@ -114,11 +122,21 @@ TEST(PatchApplierTests, AddRemoveMapMember) {
   auto ret = PatchApplier<apache::thrift::type_class::map<
       apache::thrift::type_class::integral,
       apache::thrift::type_class::integral>>::
-      apply(*nodeA->template ref<k::mapOfI32ToI32>(), std::move(n));
+      apply(*nodeA->template ref<k::mapOfI32ToI32>(), PatchNode(n));
   EXPECT_EQ(ret, PatchApplyResult::OK);
   EXPECT_EQ(*nodeA->template ref<k::mapOfI32ToI32>()->at(3), 42);
   EXPECT_EQ(nodeA->template ref<k::mapOfI32ToI32>()->count(1), 0);
   EXPECT_EQ(nodeA->template ref<k::mapOfI32ToI32>()->size(), 1);
+
+  // patch non cow struct
+  ret = PatchApplier<apache::thrift::type_class::map<
+      apache::thrift::type_class::integral,
+      apache::thrift::type_class::integral>>::
+      apply(*structA.mapOfI32ToI32(), std::move(n));
+  EXPECT_EQ(ret, PatchApplyResult::OK);
+  EXPECT_EQ(structA.mapOfI32ToI32()->size(), 1);
+  EXPECT_EQ(structA.mapOfI32ToI32()->at(3), 42);
+  EXPECT_EQ(structA.mapOfI32ToI32()->count(1), 0);
 }
 
 TEST(PatchApplierTests, ModifyListMember) {
