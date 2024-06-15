@@ -1252,9 +1252,10 @@ class AgentVoqSwitchFullScaleDsfNodesTest : public AgentVoqSwitchTest {
   }
 
  protected:
-  int getMaxEcmpWidth(const HwAsic* asic) const {
+  int getMaxEcmpWidth() const {
     // J2 and J3 only supports variable width
-    return asic->getMaxVariableWidthEcmpSize();
+    return utility::checkSameAndGetAsic(getAgentEnsemble()->getL3Asics())
+        ->getMaxVariableWidthEcmpSize();
   }
 
   int getMaxEcmpGroup() const {
@@ -1311,8 +1312,7 @@ TEST_F(AgentVoqSwitchFullScaleDsfNodesTest, systemPortScaleTest) {
 }
 
 TEST_F(AgentVoqSwitchFullScaleDsfNodesTest, remoteNeighborWithEcmpGroup) {
-  const auto kEcmpWidth = getMaxEcmpWidth(
-      utility::checkSameAndGetAsic(getAgentEnsemble()->getL3Asics()));
+  const auto kEcmpWidth = getMaxEcmpWidth();
   const auto kMaxDeviation = 25;
   FLAGS_ecmp_width = kEcmpWidth;
   boost::container::flat_set<PortDescriptor> sysPortDescs;
@@ -1463,5 +1463,51 @@ TEST_F(AgentVoqSwitchFullScaleDsfNodesTest, remoteAndLocalLoadBalance) {
   };
   verifyAcrossWarmBoots(setup, verify);
 };
+
+TEST_F(AgentVoqSwitchFullScaleDsfNodesTest, stressProgramEcmpRoutes) {
+  auto kEcmpWidth = getMaxEcmpWidth();
+  FLAGS_ecmp_width = kEcmpWidth;
+  // Stress add/delete 40 iterations of 5 routes with ECMP width.
+  // 40 iterations take ~17 mins on j3.
+  const auto routeScale = 5;
+  const auto numIterations = 40;
+  auto setup = [&]() {
+    applyNewState([&](const std::shared_ptr<SwitchState>& in) {
+      return utility::setupRemoteIntfAndSysPorts(
+          in,
+          scopeResolver(),
+          getSw()->getConfig(),
+          isSupportedOnAllAsics(HwAsic::Feature::RESERVED_ENCAP_INDEX_RANGE));
+    });
+    utility::EcmpSetupTargetedPorts6 ecmpHelper(getProgrammedState());
+    // Trigger config apply to add remote interface routes as directly connected
+    // in RIB. This is to resolve ECMP members pointing to remote nexthops.
+    applyNewConfig(getSw()->getConfig());
+
+    // Resolve remote nhops and get a list of remote sysPort descriptors
+    auto sysPortDescs =
+        utility::resolveRemoteNhops(getAgentEnsemble(), ecmpHelper);
+
+    for (int iter = 0; iter < numIterations; iter++) {
+      std::vector<RoutePrefixV6> routes;
+      for (int i = 0; i < routeScale; i++) {
+        auto prefix = RoutePrefixV6{
+            folly::IPAddressV6(folly::to<std::string>(i + 1, "::", i + 1)),
+            128};
+        auto routeUpdater = getSw()->getRouteUpdater();
+        ecmpHelper.programRoutes(
+            &routeUpdater,
+            flat_set<PortDescriptor>(
+                std::make_move_iterator(sysPortDescs.begin() + i),
+                std::make_move_iterator(sysPortDescs.begin() + i + kEcmpWidth)),
+            {prefix});
+        routes.push_back(prefix);
+      }
+      auto routeUpdater = getSw()->getRouteUpdater();
+      ecmpHelper.unprogramRoutes(&routeUpdater, routes);
+    }
+  };
+  verifyAcrossWarmBoots(setup, [] {});
+}
 
 } // namespace facebook::fboss
