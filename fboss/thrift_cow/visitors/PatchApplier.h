@@ -332,7 +332,7 @@ struct PatchApplier<apache::thrift::type_class::variant> {
     auto key = *variantPatch->id();
     traverser.push(key);
     traverser.traverseResult(
-        applyChildPatch(node, std::move(*variantPatch), std::move(protocol)));
+        applyChildPatch(node, std::move(*variantPatch), protocol));
     traverser.pop();
 
     return traverser.currentResult();
@@ -371,13 +371,32 @@ struct PatchApplier<apache::thrift::type_class::variant> {
 
   template <typename Node>
   static PatchApplyResult applyChildPatch(
-      Node& /* node */,
-      VariantPatch&& /* childPatch */,
-      fsdb::OperProtocol /* protocol */)
+      Node& node,
+      VariantPatch&& childPatch,
+      fsdb::OperProtocol protocol)
     requires(!is_cow_type_v<Node>)
   {
     PatchApplyResult result = PatchApplyResult::INVALID_VARIANT_MEMBER;
-    // TODO: implement raw thrift variant patch
+    auto key = *childPatch.id();
+    using descriptors = typename apache::thrift::reflect_variant<
+        folly::remove_cvref_t<Node>>::traits::descriptors;
+    fatal::foreach<descriptors>([&](auto tag) {
+      using descriptor = decltype(fatal::tag_type(tag));
+
+      if (descriptor::id::value != key) {
+        return;
+      }
+
+      // switch union value to point at new path.
+      if (node.getType() != descriptor::metadata::id::value) {
+        descriptor::set(node);
+      }
+
+      result = PatchApplier<typename descriptor::metadata::type_class>::apply(
+          typename descriptor::getter()(node),
+          std::move(*childPatch.child()),
+          std::move(protocol));
+    });
     return result;
   }
 };
