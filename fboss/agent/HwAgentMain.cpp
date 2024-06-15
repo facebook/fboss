@@ -92,6 +92,8 @@ void SplitHwAgentSignalHandler::signalReceived(int /*signum*/) noexcept {
   hwAgent_->getPlatform()->getHwSwitch()->unregisterCallbacks();
   steady_clock::time_point unregisterCallbacks = steady_clock::now();
   syncer_->stopOperDeltaSync();
+  stopServices();
+  steady_clock::time_point servicesStopped = steady_clock::now();
   auto dirUtil = hwAgent_->getPlatform()->getDirectoryUtil();
   auto switchIndex = hwAgent_->getPlatform()->getAsic()->getSwitchIndex();
   auto exitForColdBootFile = dirUtil->exitHwSwitchForColdBootFile(switchIndex);
@@ -123,16 +125,13 @@ void SplitHwAgentSignalHandler::signalReceived(int /*signum*/) noexcept {
     hwAgent_.reset();
   }
   steady_clock::time_point switchGracefulExit = steady_clock::now();
-  stopServices();
-  steady_clock::time_point servicesStopped = steady_clock::now();
   XLOG(DBG2)
       << "[Exit] Switch Graceful Exit time "
-      << duration_cast<duration<float>>(
-             switchGracefulExit - unregisterCallbacks)
+      << duration_cast<duration<float>>(switchGracefulExit - servicesStopped)
              .count()
       << std::endl
       << "[Exit] Services Exit time "
-      << duration_cast<duration<float>>(servicesStopped - switchGracefulExit)
+      << duration_cast<duration<float>>(servicesStopped - unregisterCallbacks)
              .count()
       << std::endl
       << "[Exit] Total graceful Exit time "
