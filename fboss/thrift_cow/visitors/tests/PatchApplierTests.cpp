@@ -391,7 +391,7 @@ TEST(PatchApplierTests, SetMemberFull) {
   PatchNode n;
   n.set_struct_node(std::move(structPatch));
 
-  auto ret = RootPatchApplier::apply(*nodeA, std::move(n));
+  auto ret = RootPatchApplier::apply(*nodeA, PatchNode(n));
   EXPECT_EQ(ret, PatchApplyResult::OK);
 
   EXPECT_EQ(nodeA->ref<k::inlineStruct>()->toThrift(), *structB.inlineStruct());
@@ -403,6 +403,16 @@ TEST(PatchApplierTests, SetMemberFull) {
       nodeA->ref<k::listOfPrimitives>()->toThrift(),
       *structB.listOfPrimitives());
   EXPECT_EQ(nodeA->ref<k::setOfI32>()->toThrift(), *structB.setOfI32());
+
+  // patch non cow struct
+  ret = RootPatchApplier::apply(structA, std::move(n));
+  EXPECT_EQ(ret, PatchApplyResult::OK);
+
+  EXPECT_EQ(*structA.inlineStruct(), *structB.inlineStruct());
+  EXPECT_EQ(*structA.inlineVariant(), *structB.inlineVariant());
+  EXPECT_EQ(*structA.mapOfI32ToI32(), *structB.mapOfI32ToI32());
+  EXPECT_EQ(*structA.listOfPrimitives(), *structB.listOfPrimitives());
+  EXPECT_EQ(*structA.setOfI32(), *structB.setOfI32());
 }
 
 TEST(PatchApplierTests, SetUnsetOptionalMember) {
@@ -430,12 +440,18 @@ TEST(PatchApplierTests, SetUnsetOptionalMember) {
   PatchNode n;
   n.set_struct_node(structPatch);
 
-  auto ret = RootPatchApplier::apply(*nodeA, std::move(n));
+  auto ret = RootPatchApplier::apply(*nodeA, PatchNode(n));
   EXPECT_EQ(ret, PatchApplyResult::OK);
 
   EXPECT_EQ(nodeA->ref<k::optionalInt>()->toThrift(), *structB.optionalInt());
   EXPECT_EQ(
       nodeA->ref<k::optionalStruct>()->toThrift(), *structB.optionalStruct());
+
+  // patch non cow struct
+  ret = RootPatchApplier::apply(structA, PatchNode(n));
+  EXPECT_EQ(ret, PatchApplyResult::OK);
+  EXPECT_EQ(*structA.optionalInt(), *structB.optionalInt());
+  EXPECT_EQ(*structA.optionalStruct(), *structB.optionalStruct());
 
   // unset optionals
   structPatch.children()[TestStructMembers::optionalInt::id()].set_del();
@@ -443,11 +459,17 @@ TEST(PatchApplierTests, SetUnsetOptionalMember) {
   n = PatchNode();
   n.set_struct_node(std::move(structPatch));
 
-  ret = RootPatchApplier::apply(*nodeB, std::move(n));
+  ret = RootPatchApplier::apply(*nodeB, PatchNode(n));
   EXPECT_EQ(ret, PatchApplyResult::OK);
 
   EXPECT_FALSE(nodeB->isSet<k::optionalInt>());
   EXPECT_FALSE(nodeB->isSet<k::optionalStruct>());
+
+  // patch non cow struct
+  ret = RootPatchApplier::apply(structA, std::move(n));
+  EXPECT_EQ(ret, PatchApplyResult::OK);
+  EXPECT_FALSE(structA.optionalInt());
+  EXPECT_FALSE(structA.optionalStruct());
 }
 
 TEST(PatchApplierTests, TestBadPatches) {
