@@ -1261,16 +1261,19 @@ class AgentVoqSwitchFullScaleDsfNodesTest : public AgentVoqSwitchTest {
     return 64;
   }
 
-  // Resolve and return list of local nhops (excluding recycle port)
+  // Resolve and return list of local nhops (only NIF ports)
   std::vector<PortDescriptor> resolveLocalNhops(
       utility::EcmpSetupTargetedPorts6& ecmpHelper) {
-    auto ports = getProgrammedState()->getSystemPorts()->getAllNodes();
+    auto ports = getProgrammedState()->getPorts()->getAllNodes();
     std::vector<PortDescriptor> portDescs;
     std::for_each(
-        ports->begin(), ports->end(), [&portDescs](const auto& idAndPort) {
-          if (idAndPort.second->getCorePortIndex() != 1) {
+        ports->begin(),
+        ports->end(),
+        [this, &portDescs](const auto& idAndPort) {
+          const auto port = idAndPort.second;
+          if (port->getPortType() == cfg::PortType::INTERFACE_PORT) {
             portDescs.push_back(
-                PortDescriptor(static_cast<SystemPortID>(idAndPort.first)));
+                PortDescriptor(getSystemPortID(PortDescriptor(port->getID()))));
           }
         });
 
