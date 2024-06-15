@@ -89,6 +89,7 @@ if (SAI_TAJO_IMPL)
     fboss/agent/hw/sai/api/tajo/TamApi.cpp
     fboss/agent/hw/sai/api/tajo/SwitchApi.cpp
     fboss/agent/hw/sai/api/tajo/DebugCounterApi.cpp
+    fboss/agent/hw/sai/api/tajo/BufferApi.cpp
   )
 
   find_path(SAI_IMPL_DIR NAMES lib/libsai_impl.a)
@@ -100,6 +101,7 @@ elseif (SAI_BRCM_IMPL)
     fboss/agent/hw/sai/api/bcm/TamApi.cpp
     fboss/agent/hw/sai/api/bcm/SwitchApi.cpp
     fboss/agent/hw/sai/api/bcm/DebugCounterApi.cpp
+    fboss/agent/hw/sai/api/bcm/Buffer.cpp
   )
 
   find_path(SAI_IMPL_DIR NAMES lib/libsai_impl.a)

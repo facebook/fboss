@@ -423,7 +423,7 @@ SaiBufferProfileTraits::CreateAttributes SaiBufferManager::profileCreateAttrs(
         queue.getScalingFactor().value());
   }
   return SaiBufferProfileTraits::CreateAttributes{
-      pool, reservedBytes, mode, dynThresh, 0, 0, 0};
+      pool, reservedBytes, mode, dynThresh, 0, 0, 0, std::nullopt};
 }
 
 void SaiBufferManager::setupBufferPool(
@@ -480,7 +480,14 @@ SaiBufferManager::ingressProfileCreateAttrs(
     xonOffsetTh = *config.resumeOffsetBytes();
   }
   return SaiBufferProfileTraits::CreateAttributes{
-      pool, reservedBytes, mode, dynThresh, xoffTh, xonTh, xonOffsetTh};
+      pool,
+      reservedBytes,
+      mode,
+      dynThresh,
+      xoffTh,
+      xonTh,
+      xonOffsetTh,
+      std::nullopt};
 }
 
 std::shared_ptr<SaiBufferProfile> SaiBufferManager::getOrCreateIngressProfile(

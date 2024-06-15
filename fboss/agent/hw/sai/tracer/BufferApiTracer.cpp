@@ -42,6 +42,11 @@ std::map<int32_t, std::pair<std::string, std::size_t>> _IngressPriorityGroupMap{
     SAI_ATTR_MAP(IngressPriorityGroup, Index),
     SAI_ATTR_MAP(IngressPriorityGroup, BufferProfile),
 };
+
+void handleExtensionAttributes() {
+  SAI_EXT_ATTR_MAP(BufferProfile, SharedFadtMaxTh)
+}
+
 } // namespace
 
 namespace facebook::fboss {
@@ -89,6 +94,7 @@ WRAP_CLEAR_STATS_FUNC(
     buffer);
 
 sai_buffer_api_t* wrappedBufferApi() {
+  handleExtensionAttributes();
   static sai_buffer_api_t bufferWrappers;
 
   bufferWrappers.create_buffer_pool = &wrap_create_buffer_pool;

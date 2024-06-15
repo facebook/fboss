@@ -62,7 +62,14 @@ class BufferApiTest : public ::testing::Test {
       xonOffsetTh = SaiBufferProfileTraits::Attributes::XonOffsetTh{4826};
     }
     SaiBufferProfileTraits::CreateAttributes c{
-        pool, reservedBytes, mode, dynamicThresh, xoffTh, xonTh, xonOffsetTh};
+        pool,
+        reservedBytes,
+        mode,
+        dynamicThresh,
+        xoffTh,
+        xonTh,
+        xonOffsetTh,
+        std::nullopt};
     return bufferApi->create<SaiBufferProfileTraits>(c, 0);
   }
   void checkBufferProfile(BufferProfileSaiId id) const {
