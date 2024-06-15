@@ -288,7 +288,6 @@ target_link_libraries(hw_switch_test
   copp_test_utils
   dscp_marking_utils
   ecmp_dataplane_test_util
-  fabric_test_utils
   hw_packet_utils
   hw_switch_ensemble
   voq_test_utils
