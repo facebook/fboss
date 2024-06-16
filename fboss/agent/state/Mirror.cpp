@@ -99,6 +99,14 @@ void Mirror::setMirrorTunnel(const MirrorTunnel& tunnel) {
   markResolved();
 }
 
+void Mirror::setSwitchId(SwitchID switchId) {
+  set<switch_state_tags::switchId>(switchId);
+}
+
+SwitchID Mirror::getSwitchId() const {
+  return static_cast<SwitchID>(cref<ctrl_if_tags::switchId>()->toThrift());
+}
+
 bool Mirror::isResolved() const {
   // either mirror has no destination ip (which means it is span)
   // or its destination ip is resolved.
