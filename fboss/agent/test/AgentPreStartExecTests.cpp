@@ -107,6 +107,8 @@ class AgentPreStartExecTests : public ::testing::Test {
         .WillByDefault(Return(TestAttr::kBrcm && TestAttr::kSai));
     ON_CALL(*netwhoami, isCiscoSaiPlatform())
         .WillByDefault(Return(!TestAttr::kBrcm));
+    ON_CALL(*netwhoami, isCiscoMorgan800ccPlatform())
+        .WillByDefault(Return(!TestAttr::kBrcm));
     ON_CALL(*netwhoami, isBcmPlatform()).WillByDefault(Return(TestAttr::kBrcm));
     ON_CALL(*netwhoami, isCiscoPlatform())
         .WillByDefault(Return(!TestAttr::kBrcm));
