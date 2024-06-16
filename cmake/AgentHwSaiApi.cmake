@@ -101,7 +101,7 @@ elseif (SAI_BRCM_IMPL)
     fboss/agent/hw/sai/api/bcm/TamApi.cpp
     fboss/agent/hw/sai/api/bcm/SwitchApi.cpp
     fboss/agent/hw/sai/api/bcm/DebugCounterApi.cpp
-    fboss/agent/hw/sai/api/bcm/Buffer.cpp
+    fboss/agent/hw/sai/api/bcm/BufferApi.cpp
   )
 
   find_path(SAI_IMPL_DIR NAMES lib/libsai_impl.a)
