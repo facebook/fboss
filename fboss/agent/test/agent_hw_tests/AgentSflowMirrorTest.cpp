@@ -65,6 +65,10 @@ class AgentSflowMirrorTest : public AgentHwTest {
     utility::configureTrapAcl(cfg, std::is_same_v<AddrT, folly::IPAddressV4>);
   }
 
+  PortID getNonSflowSampledInterfacePorts() {
+    return getPortsForSampling()[0];
+  }
+
   std::vector<PortID> getPortsForSampling() const {
     auto portIds = masterLogicalPortIds();
     auto switchID = switchIdForPort(portIds[0]);
@@ -179,49 +183,27 @@ class AgentSflowMirrorTest : public AgentHwTest {
     return outputState;
   }
 
-  void resolveMirror(int portIdx = 0, bool disableTTL = false) {
-    const auto& ports = getPortsForSampling();
-
-    boost::container::flat_set<PortDescriptor> nhopPorts{};
-    for (auto iter = ports.begin(); iter != ports.end(); iter++) {
-      if (*iter == ports[portIdx]) {
-        /* skip next hop over port Idx, as its mirror egress port */
-        continue;
-      }
-      // @lint-ignore CLANGTIDY
-      nhopPorts.insert(PortDescriptor(*iter));
-    }
+  void resolveRouteForMirrorDestination() {
+    const auto mirrorDestinationPort = getNonSflowSampledInterfacePorts();
+    boost::container::flat_set<PortDescriptor> nhopPorts{
+        PortDescriptor(mirrorDestinationPort)};
 
     this->getAgentEnsemble()->applyNewState(
         [&](const std::shared_ptr<SwitchState>& state) {
           utility::EcmpSetupTargetedPorts<AddrT> ecmpHelper(state);
           auto newState = ecmpHelper.resolveNextHops(state, nhopPorts);
-          for (const auto& port : nhopPorts) {
-            auto mac = macGenerator.getNext();
-            auto ip = ecmpHelper.nhop(PortDescriptor(port)).ip;
-            newState = updateMacAddress(newState, ip, port.phyPortID(), mac);
-          }
           return newState;
         },
-        "resolve next hops");
-
-    getSw()->getUpdateEvb()->runInEventBaseThreadAndWait([] {});
+        "resolve mirror nexthop");
 
     auto mirror = getSw()->getState()->getMirrors()->getNodeIf(kSflowMirror);
     auto dip = mirror->getDestinationIp();
 
     RoutePrefix<AddrT> prefix(AddrT(dip->str()), dip->bitCount());
-    RoutePrefix<AddrT> defaultPrefix(AddrT(), 0);
     utility::EcmpSetupTargetedPorts<AddrT> ecmpHelper(getProgrammedState());
-    if (disableTTL) {
-      utility::disableTTLDecrements(
-          getSw(), RouterID(0), ecmpHelper.getNextHops());
-    }
+
     ecmpHelper.programRoutes(
-        getAgentEnsemble()->getRouteUpdaterWrapper(),
-        nhopPorts,
-        {defaultPrefix, prefix});
-    getSw()->getUpdateEvb()->runInEventBaseThreadAndWait([] {});
+        getAgentEnsemble()->getRouteUpdaterWrapper(), nhopPorts, {prefix});
   }
 
   utility::EthFrame genPacket(int portIndex, size_t payloadSize) {
@@ -416,7 +398,7 @@ class AgentSflowMirrorTest : public AgentHwTest {
       auto config = initialConfig(*getAgentEnsemble());
       configSampling(config, 1);
       applyNewConfig(config);
-      resolveMirror();
+      resolveRouteForMirrorDestination();
     };
     auto verify = [=, this]() {
       if (!truncate) {
@@ -433,7 +415,7 @@ class AgentSflowMirrorTest : public AgentHwTest {
       auto config = initialConfig(*getAgentEnsemble());
       configSampling(config, FLAGS_sflow_test_rate);
       applyNewConfig(config);
-      resolveMirror(0, true);
+      resolveRouteForMirrorDestination();
     };
     auto verify = [=, this]() { verifySampledPacketRate(); };
     verifyAcrossWarmBoots(setup, verify);
