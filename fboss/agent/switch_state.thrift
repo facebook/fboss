@@ -309,6 +309,7 @@ struct MirrorFields {
   10: optional i16 udpDstPort;
   11: optional MirrorTunnel tunnel;
   12: bool isResolved;
+  13: i64 switchId;
 }
 
 struct ControlPlaneFields {
