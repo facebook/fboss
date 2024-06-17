@@ -21,9 +21,21 @@ class SwitchIdScopeResolverTest : public ::testing::Test {
       SwitchTypeAndEnableIntfNbrTableT::switchType;
   static auto constexpr intfNbrTable =
       SwitchTypeAndEnableIntfNbrTableT::intfNbrTable;
+
+  void addMirrorConfig(cfg::SwitchConfig* cfg) {
+    cfg::Mirror mirror;
+    mirror.name() = "mirror0";
+    mirror.destination()->ip() = "2401:db00:2110:3000::1";
+    cfg::MirrorEgressPort egressPort;
+    egressPort.logicalID_ref() = 1;
+    mirror.destination()->egressPort() = egressPort;
+    cfg->mirrors()->push_back(mirror);
+  }
+
   void SetUp() override {
     FLAGS_intf_nbr_tables = intfNbrTable;
     auto config = testConfigA(switchType);
+    addMirrorConfig(&config);
     handle_ = createTestHandle(&config);
     sw_ = handle_->getSw();
     sw_->initialConfigApplied(std::chrono::steady_clock::now());
@@ -95,11 +107,12 @@ TYPED_TEST_SUITE(SwitchIdScopeResolverTest, SwitchTypeAndEnableIntfNbrTable);
 
 TYPED_TEST(SwitchIdScopeResolverTest, mirrorScope) {
   if (this->isFabric()) {
-    this->expectThrow(cfg::Mirror{});
-    this->expectThrow(std::shared_ptr<Mirror>{});
+    return;
   } else {
-    this->expectL3(cfg::Mirror{});
-    this->expectL3(std::shared_ptr<Mirror>());
+    auto state = this->sw_->getState();
+    auto allMirrors = state->getMirrors();
+    auto mirror = allMirrors->getAllNodes()->cbegin()->second;
+    this->expectSwitchId(mirror);
   }
 }
 

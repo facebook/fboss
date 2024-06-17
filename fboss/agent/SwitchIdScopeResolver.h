@@ -53,9 +53,6 @@ class SwitchIdScopeResolver {
   const HwSwitchMatcher& scope(const cfg::Mirror& /*m*/) const {
     return l3SwitchMatcher();
   }
-  const HwSwitchMatcher& scope(const std::shared_ptr<Mirror>& /*m*/) const {
-    return l3SwitchMatcher();
-  }
   const HwSwitchMatcher& scope(const cfg::DsfNode& /*m*/) const {
     return allSwitchMatcher();
   }
@@ -79,6 +76,7 @@ class SwitchIdScopeResolver {
   HwSwitchMatcher scope(const std::vector<PortID>& portIds) const;
   HwSwitchMatcher scope(const cfg::AggregatePort& aggPort) const;
   HwSwitchMatcher scope(const std::shared_ptr<AggregatePort>& aggPort) const;
+  HwSwitchMatcher scope(const std::shared_ptr<Mirror>& mirror) const;
   const HwSwitchMatcher& scope(const cfg::IpInIpTunnel& /*m*/) const {
     return l3SwitchMatcher();
   }

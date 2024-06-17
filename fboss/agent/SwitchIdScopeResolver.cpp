@@ -316,4 +316,12 @@ HwSwitchMatcher SwitchIdScopeResolver::scope(cfg::SwitchType type) const {
   }
   return HwSwitchMatcher(switchIds);
 }
+
+HwSwitchMatcher SwitchIdScopeResolver::scope(
+    const std::shared_ptr<Mirror>& mirror) const {
+  std::unordered_set<SwitchID> switchIds;
+  switchIds.insert(SwitchID(mirror->getSwitchId()));
+  return HwSwitchMatcher(switchIds);
+}
+
 } // namespace facebook::fboss
