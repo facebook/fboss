@@ -236,7 +236,7 @@ BaseEcmpSetupHelper<AddrT, NextHopT>::resolvePortRifNextHop(
     nbr.encapIndex() = *encapIdx;
   }
   nbr.isLocal() = isLocal;
-  nbrTable.insert({*nbr.ipaddress(), nbr});
+  nbrTable[*nbr.ipaddress()] = nbr;
   auto origIntf = isLocal
       ? outputState->getInterfaces()->getNode(intf->getID())
       : outputState->getRemoteInterfaces()->getNode(intf->getID());

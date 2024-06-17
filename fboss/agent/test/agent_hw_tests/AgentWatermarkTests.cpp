@@ -17,6 +17,8 @@
 
 #include <fb303/ServiceData.h>
 
+DECLARE_bool(disable_neighbor_updates);
+
 namespace facebook::fboss {
 
 class AgentWatermarkTest : public AgentHwTest {
@@ -35,6 +37,13 @@ class AgentWatermarkTest : public AgentHwTest {
     return {production_features::ProductionFeature::L3_QOS};
   }
 
+  void setCmdLineFlagOverrides() const override {
+    AgentHwTest::setCmdLineFlagOverrides();
+    if (FLAGS_intf_nbr_tables) {
+      FLAGS_disable_neighbor_updates = false;
+    }
+  }
+
   folly::IPAddressV6 kDestIp1() const {
     return folly::IPAddressV6("2620:0:1cfe:face:b00c::4");
   }
@@ -49,10 +58,11 @@ class AgentWatermarkTest : public AgentHwTest {
     };
   }
 
-  void stopTraffic(const PortID& portId) {
+  void stopTraffic(const PortID& portId, bool needTrafficLoop = false) {
     // Toggle the link to break traffic loop
     getAgentEnsemble()->getLinkToggler()->bringDownPorts({portId});
     getAgentEnsemble()->getLinkToggler()->bringUpPorts({portId});
+    resolveNdpNeighbors(PortDescriptor(portId), needTrafficLoop);
   }
 
   void sendUdpPkt(
@@ -241,6 +251,30 @@ class AgentWatermarkTest : public AgentHwTest {
         asic->getSwitchType() == cfg::SwitchType::VOQ));
   }
 
+  // Add NDP neighbors to switch state and populate to neighbor cache
+  void resolveNdpNeighbors(
+      PortDescriptor portDesc,
+      bool needTrafficLoop = false) {
+    auto intfMac = utility::getFirstInterfaceMac(getProgrammedState());
+    std::optional<folly::MacAddress> macAddr{};
+    if (needTrafficLoop) {
+      macAddr = intfMac;
+    }
+    utility::EcmpSetupTargetedPorts6 ecmpHelper6{getProgrammedState(), macAddr};
+    applyNewState([&](const std::shared_ptr<SwitchState>& in) {
+      return ecmpHelper6.resolveNextHops(in, {portDesc});
+    });
+    if (FLAGS_intf_nbr_tables) {
+      auto interfaceId =
+          ecmpHelper6.getInterface(portDesc, getProgrammedState());
+      if (interfaceId) {
+        auto interface = getProgrammedState()->getInterfaces()->getNodeIf(
+            interfaceId.value());
+        populateNdpNeighborsToCache(interface);
+      }
+    }
+  }
+
   void _setup(bool needTrafficLoop = false) {
     auto intfMac = utility::getFirstInterfaceMac(getProgrammedState());
     std::optional<folly::MacAddress> macAddr{};
@@ -250,9 +284,7 @@ class AgentWatermarkTest : public AgentHwTest {
     utility::EcmpSetupTargetedPorts6 ecmpHelper6{getProgrammedState(), macAddr};
     for (const auto& portAndIp : getPort2DstIp()) {
       auto portDesc = PortDescriptor(portAndIp.first);
-      applyNewState([&](const std::shared_ptr<SwitchState>& in) {
-        return ecmpHelper6.resolveNextHops(in, {portDesc});
-      });
+      resolveNdpNeighbors(portDesc, needTrafficLoop);
       auto routeUpdater = getSw()->getRouteUpdater();
       ecmpHelper6.programRoutes(
           &routeUpdater,
@@ -284,7 +316,7 @@ class AgentWatermarkTest : public AgentHwTest {
         // Assert non zero watermark
         assertWatermark(portAndIp.first, asic, queueId, false /*expectZero*/);
         // Stop traffic
-        stopTraffic(portAndIp.first);
+        stopTraffic(portAndIp.first, true);
         // Assert zero watermark
         assertWatermark(portAndIp.first, asic, queueId, true /*expectZero*/);
       }
@@ -319,6 +351,7 @@ TEST_F(AgentWatermarkTest, VerifyDeviceWatermark) {
       // Now, break the loop to make sure traffic goes to zero!
       getAgentEnsemble()->getLinkToggler()->bringDownPorts({portToSendTraffic});
       getAgentEnsemble()->getLinkToggler()->bringUpPorts({portToSendTraffic});
+      resolveNdpNeighbors(PortDescriptor(portToSendTraffic), true);
 
       // Assert zero watermark
       EXPECT_TRUE(gotExpectedDeviceWatermark(true, switchId));

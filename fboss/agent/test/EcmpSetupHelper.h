@@ -147,6 +147,10 @@ class BaseEcmpSetupHelper {
       const PortDescriptor& port,
       const std::shared_ptr<SwitchState>& state) const;
 
+  std::optional<InterfaceID> getInterface(
+      const PortDescriptor& port,
+      const std::shared_ptr<SwitchState>& state) const;
+
  private:
   std::shared_ptr<SwitchState> resolveNextHopsImpl(
       const std::shared_ptr<SwitchState>& inputState,
@@ -178,9 +182,6 @@ class BaseEcmpSetupHelper {
       const NextHopT& nhop,
       const std::shared_ptr<Interface>& intf,
       bool useLinkLocal) const;
-  std::optional<InterfaceID> getInterface(
-      const PortDescriptor& port,
-      const std::shared_ptr<SwitchState>& state) const;
 
  protected:
   boost::container::flat_map<PortDescriptor, InterfaceID>
