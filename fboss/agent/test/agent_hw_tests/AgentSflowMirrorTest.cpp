@@ -70,7 +70,7 @@ class AgentSflowMirrorTest : public AgentHwTest {
   }
 
   std::vector<PortID> getPortsForSampling() const {
-    auto portIds = masterLogicalPortIds();
+    auto portIds = masterLogicalPortIds({cfg::PortType::INTERFACE_PORT});
     auto switchID = switchIdForPort(portIds[0]);
     auto asic = getSw()->getHwAsicTable()->getHwAsic(switchID);
     return getPortsForSampling(portIds, asic);
