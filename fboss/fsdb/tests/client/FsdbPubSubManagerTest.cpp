@@ -602,7 +602,7 @@ TYPED_TEST(FsdbPubSubManagerGRHoldTest, verifyResyncWithinGRHoldTime) {
   this->pubSubManager_->removeStateDeltaPublisher(true);
   WITH_RETRIES({
     EXPECT_EVENTUALLY_EQ(
-        this->getSubscriptionState(), SubscriptionState::CONNECTED_GR_HOLD);
+        this->getSubscriptionState(), SubscriptionState::DISCONNECTED_GR_HOLD);
   });
   // reconnect publisher, and verify publisher reconnect within GR hold time
   this->createPublisher(false, PubSubType::DELTA);

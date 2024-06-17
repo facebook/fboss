@@ -19,21 +19,24 @@ std::string extendedPathsStr(const std::vector<ExtendedOperPath>& path);
 
 enum class SubscriptionState : uint16_t {
   DISCONNECTED,
+  DISCONNECTED_GR_HOLD,
   DISCONNECTED_GR_HOLD_EXPIRED,
   CANCELLED,
   CONNECTED,
-  CONNECTED_GR_HOLD,
 };
 
 inline bool isConnected(const SubscriptionState& state) {
-  return state == SubscriptionState::CONNECTED ||
-      state == SubscriptionState::CONNECTED_GR_HOLD;
+  return state == SubscriptionState::CONNECTED;
 }
 
 inline bool isDisconnected(const SubscriptionState& state) {
   return state == SubscriptionState::DISCONNECTED ||
       state == SubscriptionState::DISCONNECTED_GR_HOLD_EXPIRED ||
       state == SubscriptionState::CANCELLED;
+}
+
+inline bool isGRHold(const SubscriptionState& state) {
+  return state == SubscriptionState::DISCONNECTED_GR_HOLD;
 }
 
 inline bool isGRHoldExpired(const SubscriptionState& state) {
@@ -46,10 +49,10 @@ inline std::string subscriptionStateToString(SubscriptionState state) {
       return "CONNECTED";
     case SubscriptionState::DISCONNECTED:
       return "DISCONNECTED";
+    case SubscriptionState::DISCONNECTED_GR_HOLD:
+      return "DISCONNECTED_GR_HOLD";
     case SubscriptionState::DISCONNECTED_GR_HOLD_EXPIRED:
       return "DISCONNECTED_GR_HOLD_EXPIRED";
-    case SubscriptionState::CONNECTED_GR_HOLD:
-      return "CONNECTED_GR_HOLD";
     case SubscriptionState::CANCELLED:
       return "CANCELLED";
   }
@@ -129,11 +132,19 @@ class FsdbSubscriber : public FsdbStreamClient {
         operSubUnitUpdate_(operSubUnitUpdate),
         subscribePaths_(subscribePaths),
         subscriptionOptions_(std::move(options)),
+        subscriptionState_(
+            subscriptionOptions_.grHoldTimeSec_ > 0
+                ? SubscriptionState::DISCONNECTED_GR_HOLD
+                : SubscriptionState::DISCONNECTED),
         connectionStateChangeCb_(connectionStateChangeCb),
         subscriptionStateChangeCb_(stateChangeCb),
         staleStateTimer_(folly::AsyncTimeout::make(
             *streamEvb,
-            [this]() noexcept { staleStateTimeoutExpired(); })) {}
+            [this]() noexcept { staleStateTimeoutExpired(); })) {
+    if (subscriptionOptions_.grHoldTimeSec_ > 0) {
+      scheduleStaleStateTimeout();
+    }
+  }
 
   virtual ~FsdbSubscriber() override {
     cancelStaleStateTimeout();
@@ -174,23 +185,28 @@ class FsdbSubscriber : public FsdbStreamClient {
     }
   }
   void handleConnectionState(State oldState, State newState) {
-    if (newState == State::DISCONNECTED) {
-      if (isDisconnected(getSubscriptionState())) {
-        return;
-      } else if (subscriptionOptions_.grHoldTimeSec_ == 0) {
-        // no GR hold, so mark subscription as disconnected immediately
-        updateSubscriptionState(SubscriptionState::DISCONNECTED);
-        return;
-      } else if (getSubscriptionState() == SubscriptionState::CONNECTED) {
-        grDisconnectEvents_.add(1);
-        scheduleStaleStateTimeout();
-        updateSubscriptionState(SubscriptionState::CONNECTED_GR_HOLD);
-      }
-    } else if (newState == State::CANCELLED) {
-      updateSubscriptionState(SubscriptionState::CANCELLED);
-    } else {
-      XLOG(DBG2) << "FsdbScubscriber: no-op for ConnectionState: "
-                 << connectionStateToString(newState);
+    switch (newState) {
+      case State::DISCONNECTED:
+        if (getSubscriptionState() == SubscriptionState::CONNECTED) {
+          if (subscriptionOptions_.grHoldTimeSec_ == 0) {
+            // no GR hold, so mark subscription as disconnected immediately
+            updateSubscriptionState(SubscriptionState::DISCONNECTED);
+            return;
+          } else {
+            grDisconnectEvents_.add(1);
+            scheduleStaleStateTimeout();
+            updateSubscriptionState(SubscriptionState::DISCONNECTED_GR_HOLD);
+          }
+        }
+        break;
+      case State::CANCELLED:
+        updateSubscriptionState(SubscriptionState::CANCELLED);
+        break;
+      default:
+        XLOG(DBG2) << "FsdbScubscriber: no-op transition for ConnectionState: "
+                   << connectionStateToString(oldState) << " -> "
+                   << connectionStateToString(newState);
+        break;
     }
     if (connectionStateChangeCb_.has_value()) {
       connectionStateChangeCb_.value()(oldState, newState);
@@ -199,7 +215,7 @@ class FsdbSubscriber : public FsdbStreamClient {
 
   void scheduleStaleStateTimeout() {
     getStreamEventBase()->runInEventBaseThread([this] {
-      if (staleStateTimer_) {
+      if (!staleStateTimer_->isScheduled()) {
         staleStateTimer_->scheduleTimeout(
             std::chrono::seconds(subscriptionOptions_.grHoldTimeSec_));
       }
@@ -227,8 +243,7 @@ class FsdbSubscriber : public FsdbStreamClient {
  private:
   const Paths subscribePaths_;
   SubscriptionOptions subscriptionOptions_;
-  folly::Synchronized<SubscriptionState> subscriptionState_{
-      SubscriptionState::DISCONNECTED};
+  folly::Synchronized<SubscriptionState> subscriptionState_;
   std::optional<FsdbStreamStateChangeCb> connectionStateChangeCb_;
   std::optional<SubscriptionStateChangeCb> subscriptionStateChangeCb_;
   std::unique_ptr<folly::AsyncTimeout> staleStateTimer_;
