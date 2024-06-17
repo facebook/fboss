@@ -19,6 +19,7 @@ DECLARE_bool(disable_neighbor_updates);
 DECLARE_bool(disable_icmp_error_response);
 DECLARE_bool(enable_snapshot_debugs);
 DECLARE_bool(disable_looped_fabric_ports);
+DECLARE_bool(dsf_subscribe);
 
 namespace {
 int kArgc;
@@ -80,6 +81,8 @@ void AgentHwTest::setCmdLineFlagOverrides() const {
   FLAGS_publish_state_to_fsdb = false;
   // Looped ports are the common case in tests
   FLAGS_disable_looped_fabric_ports = false;
+  // Disable DSF subscription on single-box test
+  FLAGS_dsf_subscribe = false;
 }
 void AgentHwTest::TearDown() {
   if (FLAGS_run_forever ||
