@@ -53,10 +53,15 @@ const HwSwitch* MonoAgentEnsemble::getHwSwitch() const {
 std::unique_ptr<AgentEnsemble> createAgentEnsemble(
     AgentEnsembleSwitchConfigFn initialConfigFn,
     AgentEnsemblePlatformConfigFn platformConfigFn,
-    uint32_t featuresDesired) {
+    uint32_t featuresDesired,
+    bool failHwCallsOnWarmboot) {
   std::unique_ptr<AgentEnsemble> ensemble =
       std::make_unique<MonoAgentEnsemble>();
-  ensemble->setupEnsemble(featuresDesired, initialConfigFn, platformConfigFn);
+  ensemble->setupEnsemble(
+      featuresDesired,
+      initialConfigFn,
+      platformConfigFn,
+      failHwCallsOnWarmboot);
   return ensemble;
 }
 

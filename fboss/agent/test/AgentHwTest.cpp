@@ -42,7 +42,13 @@ void AgentHwTest::SetUp() {
 
   AgentEnsembleSwitchConfigFn initialConfigFn =
       [this](const AgentEnsemble& ensemble) { return initialConfig(ensemble); };
-  agentEnsemble_ = createAgentEnsemble(initialConfigFn);
+  agentEnsemble_ = createAgentEnsemble(
+      initialConfigFn,
+      AgentEnsemblePlatformConfigFn(),
+      (HwSwitch::FeaturesDesired::PACKET_RX_DESIRED |
+       HwSwitch::FeaturesDesired::LINKSCAN_DESIRED |
+       HwSwitch::FeaturesDesired::TAM_EVENT_NOTIFY_DESIRED),
+      failHwCallsOnWarmboot());
 
   if (isSupportedOnAllAsics(HwAsic::Feature::ROUTE_METADATA)) {
     // TODO: enable after classid_for_connected_subnet_routes feature is fully

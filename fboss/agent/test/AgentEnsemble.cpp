@@ -42,7 +42,8 @@ AgentEnsemble::AgentEnsemble(const std::string& configFileName) {
 void AgentEnsemble::setupEnsemble(
     uint32_t hwFeaturesDesired,
     AgentEnsembleSwitchConfigFn initialConfigFn,
-    AgentEnsemblePlatformConfigFn platformConfigFn) {
+    AgentEnsemblePlatformConfigFn platformConfigFn,
+    bool failHwCallsOnWarmboot) {
   FLAGS_verify_apply_oper_delta = true;
 
   if (bootType_ == BootType::COLD_BOOT) {
@@ -104,14 +105,14 @@ void AgentEnsemble::setupEnsemble(
   if (hwFeaturesDesired & HwSwitch::FeaturesDesired::LINKSCAN_DESIRED) {
     setupLinkStateToggler();
   }
-  startAgent();
+  startAgent(failHwCallsOnWarmboot);
 
   for (const auto& switchId : getSw()->getSwitchInfoTable().getSwitchIDs()) {
     ensureHwSwitchConnected(switchId);
   }
 }
 
-void AgentEnsemble::startAgent() {
+void AgentEnsemble::startAgent(bool failHwCallsOnWarmboot) {
   // TODO: provide a way to enable tun intf, for now disable it expressedly,
   // this can also be done with CLI option, however netcastle runners can not
   // use that option, because hw tests and hw benchmarks using hwswitch
@@ -124,7 +125,9 @@ void AgentEnsemble::startAgent() {
     hwWriteBehavior = HwWriteBehavior::LOG_FAIL;
     if (getSw()->getHwAsicTable()->isFeatureSupportedOnAllAsic(
             HwAsic::Feature::ZERO_SDK_WRITE_WARMBOOT)) {
-      hwWriteBehavior = HwWriteBehavior::FAIL;
+      if (failHwCallsOnWarmboot) {
+        hwWriteBehavior = HwWriteBehavior::FAIL;
+      }
     }
   }
   asyncInitThread_.reset(new std::thread([this, initializer, hwWriteBehavior] {

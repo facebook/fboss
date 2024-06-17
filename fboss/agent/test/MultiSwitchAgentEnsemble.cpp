@@ -61,12 +61,17 @@ const HwSwitch* MultiSwitchAgentEnsemble::getHwSwitch() const {
 std::unique_ptr<AgentEnsemble> createAgentEnsemble(
     AgentEnsembleSwitchConfigFn initialConfigFn,
     AgentEnsemblePlatformConfigFn platformConfigFn,
-    uint32_t featuresDesired) {
+    uint32_t featuresDesired,
+    bool failHwCallsOnWarmboot) {
   // Set multi switch flag to true for MultiSwitchAgentEnsemble
   FLAGS_multi_switch = true;
   std::unique_ptr<AgentEnsemble> ensemble =
       std::make_unique<MultiSwitchAgentEnsemble>();
-  ensemble->setupEnsemble(featuresDesired, initialConfigFn, platformConfigFn);
+  ensemble->setupEnsemble(
+      featuresDesired,
+      initialConfigFn,
+      platformConfigFn,
+      failHwCallsOnWarmboot);
   return ensemble;
 }
 

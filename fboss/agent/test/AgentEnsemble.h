@@ -46,9 +46,10 @@ class AgentEnsemble : public TestEnsembleIf {
       uint32_t hwFeaturesDesired,
       AgentEnsembleSwitchConfigFn initConfig,
       AgentEnsemblePlatformConfigFn platformConfig =
-          AgentEnsemblePlatformConfigFn());
+          AgentEnsemblePlatformConfigFn(),
+      bool failHwCallsOnWarmboot = false);
 
-  void startAgent();
+  void startAgent(bool failHwCallsOnWarmboot = false);
 
   void applyNewConfig(const cfg::SwitchConfig& config, bool activate);
 
@@ -304,6 +305,7 @@ std::unique_ptr<AgentEnsemble> createAgentEnsemble(
     uint32_t featuresDesired =
         (HwSwitch::FeaturesDesired::PACKET_RX_DESIRED |
          HwSwitch::FeaturesDesired::LINKSCAN_DESIRED |
-         HwSwitch::FeaturesDesired::TAM_EVENT_NOTIFY_DESIRED));
+         HwSwitch::FeaturesDesired::TAM_EVENT_NOTIFY_DESIRED),
+    bool failHwCallsOnWarmboot = false);
 
 } // namespace facebook::fboss
