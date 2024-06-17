@@ -451,6 +451,19 @@ const HwAsic* AgentHwTest::hwAsicForPort(PortID port) const {
   return getSw()->getHwAsicTable()->getHwAsic(switchIdForPort(port));
 }
 
+void AgentHwTest::populateArpNeighborsToCache(
+    const std::shared_ptr<Interface>& interface) {
+  auto arpCache = getAgentEnsemble()
+                      ->getSw()
+                      ->getNeighborUpdater()
+                      ->getArpCacheForIntf(interface->getID())
+                      .get();
+  getAgentEnsemble()->getSw()->getNeighborCacheEvb()->runInEventBaseThread(
+      [interface, arpCache] {
+        arpCache->repopulate(interface->getArpTable());
+      });
+}
+
 void AgentHwTest::populateNdpNeighborsToCache(
     const std::shared_ptr<Interface>& interface) {
   auto ndpCache = getAgentEnsemble()

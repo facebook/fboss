@@ -66,6 +66,7 @@ NEIGHBOR_UPDATER_METHOD_NO_ARGS(public, getArpCacheDataForIntf, std::list<ArpEnt
 NEIGHBOR_UPDATER_METHOD_NO_ARGS(public, getNdpCacheDataForIntf, std::list<NdpEntryThrift>)
 
 // Enable access to neighbor caches from NeighborUpdater to help imitate neighbor learning during testing
+NEIGHBOR_UPDATER_METHOD(private, getArpCacheForIntf, std::shared_ptr<ArpCache>, InterfaceID, intfID)
 NEIGHBOR_UPDATER_METHOD(private, getNdpCacheForIntf, std::shared_ptr<NdpCache>, InterfaceID, intfID)
 
 // State update helpers
