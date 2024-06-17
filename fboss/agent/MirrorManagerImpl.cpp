@@ -14,6 +14,8 @@
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/state/Vlan.h"
 
+#include "fboss/agent/platforms/common/PlatformMappingUtils.h"
+
 DECLARE_bool(intf_nbr_tables);
 
 template <typename AddrT>
@@ -40,6 +42,20 @@ auto getNeighborEntryTableHelper(
 } // namespace
 
 namespace facebook::fboss {
+
+template <typename AddrT>
+PortID MirrorManagerImpl<AddrT>::getEventorPortForSflowMirror(
+    SwitchID switchId) {
+  const auto& portIds =
+      sw_->getPlatformMapping()->getPlatformPorts(cfg::PortType::EVENTOR_PORT);
+  HwSwitchMatcher matcher(std::unordered_set<SwitchID>({switchId}));
+  for (const auto& portId : portIds) {
+    if (sw_->getScopeResolver()->scope(portId) == matcher) {
+      return portId;
+    }
+  }
+  throw FbossError("No eventor port found for sflow mirror");
+}
 
 template <typename AddrT>
 std::shared_ptr<Mirror> MirrorManagerImpl<AddrT>::updateMirror(

@@ -49,6 +49,8 @@ class MirrorManagerImpl {
       const std::shared_ptr<NeighborEntryT>& neighbor,
       const std::optional<TunnelUdpPorts>& udpPorts);
 
+  PortID getEventorPortForSflowMirror(SwitchID switchId);
+
   template <typename ADDRT = AddrT>
   typename std::
       enable_if<std::is_same<ADDRT, folly::IPAddressV4>::value, ADDRT>::type
