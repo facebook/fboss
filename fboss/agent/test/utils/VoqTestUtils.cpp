@@ -21,18 +21,26 @@ constexpr auto kNumPortPerCore = 10;
 // 7: mgm port, 8-43 front panel nif
 constexpr auto kRemoteSysPortOffset = 7;
 constexpr auto kNumRdsw = 128;
+constexpr auto kNumEdsw = 16;
+constexpr auto kNumRdswSysPort = 44;
+constexpr auto kNumEdswSysPort = 26;
+constexpr auto kJ2NumSysPort = 20;
 
-int getPerNodeSysPorts(cfg::AsicType asicType) {
-  return asicType == cfg::AsicType::ASIC_TYPE_JERICHO2 ? 20 : 44;
-}
-int getPerNodeSysPorts(const HwAsic* asic) {
-  return getPerNodeSysPorts(asic->getAsicType());
+int getPerNodeSysPorts(const HwAsic* asic, int remoteSwitchId) {
+  if (asic->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO2) {
+    return kJ2NumSysPort;
+  }
+  if (remoteSwitchId < kNumRdsw * asic->getNumCores()) {
+    return kNumRdswSysPort;
+  }
+  return kNumEdswSysPort;
 }
 } // namespace
 
 int getDsfNodeCount(const HwAsic* asic) {
-  return asic->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO2 ? kNumRdsw
-                                                                  : kNumRdsw;
+  return asic->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO2
+      ? kNumRdsw
+      : kNumRdsw + kNumEdsw;
 }
 
 std::optional<std::map<int64_t, cfg::DsfNode>> addRemoteDsfNodeCfg(
@@ -58,17 +66,20 @@ std::optional<std::map<int64_t, cfg::DsfNode>> addRemoteDsfNodeCfg(
       numRemoteNodes.value() < getDsfNodeCount(asic.get()));
   int totalNodes = numRemoteNodes.has_value() ? numRemoteNodes.value() + 1
                                               : getDsfNodeCount(asic.get());
+  int systemPortMin = getPerNodeSysPorts(asic.get(), 1);
   for (int remoteSwitchId = numCores; remoteSwitchId < totalNodes * numCores;
        remoteSwitchId += numCores) {
-    const auto systemPortMin =
-        (remoteSwitchId / numCores) * getPerNodeSysPorts(asic.get());
     cfg::Range64 systemPortRange;
     systemPortRange.minimum() = systemPortMin;
     systemPortRange.maximum() =
-        systemPortMin + getPerNodeSysPorts(asic.get()) - 1;
-    auto remoteDsfNodeCfg =
-        dsfNodeConfig(*asic, SwitchID(remoteSwitchId), systemPortMin);
+        systemPortMin + getPerNodeSysPorts(asic.get(), remoteSwitchId) - 1;
+    auto remoteDsfNodeCfg = dsfNodeConfig(
+        *asic,
+        SwitchID(remoteSwitchId),
+        systemPortMin,
+        *systemPortRange.maximum());
     dsfNodes.insert({remoteSwitchId, remoteDsfNodeCfg});
+    systemPortMin = *systemPortRange.maximum() + 1;
   }
   return dsfNodes;
 }
@@ -183,13 +194,11 @@ std::shared_ptr<SwitchState> setupRemoteIntfAndSysPorts(
     }
     CHECK(dsfNode.systemPortRange().has_value());
     const auto minPortID = *dsfNode.systemPortRange()->minimum();
+    const auto maxPortID = *dsfNode.systemPortRange()->maximum();
     // 0th port for CPU and 1st port for recycle port
-    for (int i = kRemoteSysPortOffset;
-         i < getPerNodeSysPorts(*dsfNode.asicType());
-         i++) {
-      const auto newSysPortId = minPortID + i;
-      const SystemPortID remoteSysPortId(newSysPortId);
-      const InterfaceID remoteIntfId(newSysPortId);
+    for (int i = minPortID + kRemoteSysPortOffset; i <= maxPortID; i++) {
+      const SystemPortID remoteSysPortId(i);
+      const InterfaceID remoteIntfId(i);
       const PortDescriptor portDesc(remoteSysPortId);
       const std::optional<uint64_t> encapEndx =
           useEncapIndex ? std::optional<uint64_t>(0x200001 + i) : std::nullopt;
@@ -198,26 +207,26 @@ std::shared_ptr<SwitchState> setupRemoteIntfAndSysPorts(
       // and 100+(dsfNodeId/256).(dsfNodeId%256).(localIntfId).1/24
       auto firstOctet = 100 + remoteSwitchId / 256;
       auto secondOctet = remoteSwitchId % 256;
-      folly::IPAddressV6 neighborIp(
-          folly::to<std::string>(firstOctet, ":", secondOctet, ":", i, "::2"));
-
+      auto thirdOctet = i - minPortID;
+      folly::IPAddressV6 neighborIp(folly::to<std::string>(
+          firstOctet, ":", secondOctet, ":", thirdOctet, "::2"));
       newState = addRemoteSysPort(
           newState,
           scopeResolver,
           remoteSysPortId,
           SwitchID(remoteSwitchId),
-          (i - kRemoteSysPortOffset) / kNumPortPerCore,
-          (i - kRemoteSysPortOffset) % kNumPortPerCore + kRemoteSysPortOffset);
+          (i - minPortID - kRemoteSysPortOffset) / kNumPortPerCore,
+          (i - minPortID) % kNumPortPerCore);
       newState = addRemoteInterface(
           newState,
           scopeResolver,
           remoteIntfId,
           {
               {folly::IPAddress(folly::to<std::string>(
-                   firstOctet, ":", secondOctet, ":", i, "::1")),
+                   firstOctet, ":", secondOctet, ":", thirdOctet, "::1")),
                64},
               {folly::IPAddress(folly::to<std::string>(
-                   firstOctet, ".", secondOctet, ".", i, ".1")),
+                   firstOctet, ".", secondOctet, ".", thirdOctet, ".1")),
                24},
           });
       newState = addRemoveRemoteNeighbor(

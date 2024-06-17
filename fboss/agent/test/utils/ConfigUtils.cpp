@@ -365,7 +365,8 @@ void securePortsInConfig(
 cfg::DsfNode dsfNodeConfig(
     const HwAsic& myAsic,
     int64_t otherSwitchId,
-    std::optional<int> systemPortMin) {
+    std::optional<int> systemPortMin,
+    std::optional<int> systemPortMax) {
   auto createAsic = [&](const HwAsic& fromAsic, int64_t switchId)
       -> std::pair<std::shared_ptr<HwAsic>, PlatformType> {
     std::optional<cfg::Range64> systemPortRange;
@@ -377,7 +378,9 @@ cfg::DsfNode dsfNodeConfig(
       range.minimum() = systemPortMin.has_value()
           ? kSysPortOffset + systemPortMin.value()
           : kSysPortOffset + switchId * blockSize;
-      range.maximum() = *range.minimum() + blockSize;
+      range.maximum() = systemPortMax.has_value()
+          ? kSysPortOffset + systemPortMax.value()
+          : *range.minimum() + blockSize;
       systemPortRange = range;
     }
     auto localMac = utility::kLocalCpuMac();

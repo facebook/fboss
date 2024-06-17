@@ -71,7 +71,8 @@ std::vector<std::string> getLoopbackIps(SwitchID switchId);
 cfg::DsfNode dsfNodeConfig(
     const HwAsic& myAsic,
     int64_t otherSwitchId = 4,
-    std::optional<int> systemPortMin = std::nullopt);
+    std::optional<int> systemPortMin = std::nullopt,
+    std::optional<int> systemPortMax = std::nullopt);
 
 std::vector<cfg::Port>::iterator findCfgPort(
     cfg::SwitchConfig& cfg,
