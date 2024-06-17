@@ -618,6 +618,25 @@ TYPED_TEST(FsdbPubSubManagerGRHoldTest, verifyResyncWithinGRHoldTime) {
   this->pubSubManager_.reset();
 }
 
+TYPED_TEST(FsdbPubSubManagerGRHoldTest, verifyRHoldTimeExpiryOnInitialConnect) {
+  folly::Synchronized<std::vector<OperState>> statePaths;
+  // create subscription that will not receive initial sync
+  this->addStatePathSubscriptionWithGrHoldTime(
+      this->makeOperStateCb(statePaths),
+      this->subscriptionStateChangeCb(),
+      kGrHoldTimeInSec);
+  // verify GR hold time expiry
+  WITH_RETRIES({
+    EXPECT_EVENTUALLY_EQ(
+        this->getSubscriptionState(),
+        SubscriptionState::DISCONNECTED_GR_HOLD_EXPIRED);
+  });
+
+  // Reset pubsub manager while local vector objects are in scope,
+  // since we reference them in state change callbacks
+  this->pubSubManager_.reset();
+}
+
 TYPED_TEST(FsdbPubSubManagerTest, pubSubExtDelta) {
   folly::Synchronized<std::vector<OperSubDeltaUnit>> deltas;
   this->createPublishers();
