@@ -82,6 +82,13 @@ class SaiNextHopGroupTest : public SaiLinkStateDependentTests {
   std::unique_ptr<utility::EcmpSetupAnyNPorts6> helper_;
 };
 
+class SaiNextHopGroupTestWithWBWrites : public SaiNextHopGroupTest {
+ public:
+  bool failHwCallsOnWarmboot() const override {
+    return false;
+  }
+};
+
 TEST_F(SaiNextHopGroupTest, addNextHopGroupWithUnresolvedNeighbors) {
   auto setup = [=, this]() { addRoute(4); };
   auto verify = [=, this]() { verifyMemberCount(0); };
@@ -126,7 +133,8 @@ TEST_F(SaiNextHopGroupTest, addNextHopGroupThenUnresolveSome) {
   verifyAcrossWarmBoots(setup, verify);
 }
 
-TEST_F(SaiNextHopGroupTest, addNextHopGroupPortDown) {
+// WB is expected to create next hop/group corresponding to port brought down
+TEST_F(SaiNextHopGroupTestWithWBWrites, addNextHopGroupPortDown) {
   auto setup = [=, this]() {
     resolveNeighbors(4);
     addRoute(4);
