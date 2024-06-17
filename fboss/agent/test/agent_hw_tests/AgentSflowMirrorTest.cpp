@@ -15,7 +15,6 @@
 #include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/test/utils/MirrorTestUtils.h"
 #include "fboss/agent/test/utils/PacketSnooper.h"
-#include "fboss/agent/test/utils/QosTestUtils.h"
 #include "fboss/lib/CommonUtils.h"
 
 #include "fboss/agent/SflowShimUtils.h"
@@ -144,43 +143,6 @@ class AgentSflowMirrorTest : public AgentHwTest {
 
   uint16_t getMirrorTruncateSize() const {
     return getAsic()->getMirrorTruncateSize();
-  }
-
-  std::shared_ptr<SwitchState> updateMacAddress(
-      const std::shared_ptr<SwitchState>& state,
-      AddrT ip,
-      PortID egressPort,
-      const std::optional<folly::MacAddress>& randomMac) {
-    /* add tunnel destination ip as neighbor */
-    auto outputState{state->clone()};
-
-    using NeighborTableT = typename std::conditional_t<
-        std::is_same<AddrT, folly::IPAddressV4>::value,
-        ArpTable,
-        NdpTable>;
-
-    auto mac = randomMac.has_value() ? randomMac.value()
-                                     : utility::getFirstInterfaceMac(state);
-    auto port = outputState->getPorts()->getNodeIf(egressPort);
-    auto vlanID = port->getIngressVlan();
-    auto vlan = outputState->getVlans()->getNodeIf(vlanID);
-    auto intf = outputState->getInterfaces()->getNodeIf(vlan->getInterfaceID());
-
-    NeighborTableT* nbrTable;
-    if (FLAGS_intf_nbr_tables) {
-      nbrTable = intf->template getNeighborEntryTable<AddrT>()->modify(
-          intf->getID(), &outputState);
-    } else {
-      nbrTable = vlan->template getNeighborEntryTable<AddrT>()->modify(
-          vlan->getID(), &outputState);
-    }
-
-    auto entry = nbrTable->getEntryIf(ip);
-    CHECK(entry);
-    entry = entry->clone();
-    entry->setMAC(mac);
-    nbrTable->updateEntry(ip, entry);
-    return outputState;
   }
 
   void resolveRouteForMirrorDestination() {
