@@ -161,7 +161,15 @@ class HwWideEcmpTest : public HwEcmpTest {
   }
 };
 
-TEST_F(HwEcmpTest, L2ResolveOneNhopThenLinkDownThenUp) {
+class HwEcmpTestWithWBWrites : public HwEcmpTest {
+ public:
+  bool failHwCallsOnWarmboot() const override {
+    return false;
+  }
+};
+
+// WB is expected to create next hop/group corresponding to port brought down
+TEST_F(HwEcmpTestWithWBWrites, L2ResolveOneNhopThenLinkDownThenUp) {
   auto setup = [=, this]() {
     programRouteWithUnresolvedNhops();
     resolveNhops(1);
