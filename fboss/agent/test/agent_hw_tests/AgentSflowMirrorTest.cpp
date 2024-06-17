@@ -206,18 +206,32 @@ class AgentSflowMirrorTest : public AgentHwTest {
         getAgentEnsemble()->getRouteUpdaterWrapper(), nhopPorts, {prefix});
   }
 
-  utility::EthFrame genPacket(int portIndex, size_t payloadSize) {
+  std::unique_ptr<facebook::fboss::TxPacket> genPacket(
+      int portIndex,
+      size_t payloadSize) {
     auto portId = masterLogicalPortIds()[portIndex];
     auto vlanId =
         getProgrammedState()->getPorts()->getNodeIf(portId)->getIngressVlan();
-    auto mac = utility::getInterfaceMac(
+    auto intfMac = utility::getInterfaceMac(
         getProgrammedState(), static_cast<VlanID>(vlanId));
     folly::IPAddressV6 sip{"2401:db00:dead:beef::2401"};
     folly::IPAddressV6 dip{folly::to<std::string>(kIpStr, portIndex, "::1")};
     uint16_t sport = 9701;
     uint16_t dport = 9801;
-    return utility::getEthFrame(
-        mac, mac, sip, dip, sport, dport, VlanID(vlanId), payloadSize);
+    std::vector<uint8_t> payload(payloadSize, 0xff);
+    auto pkt = utility::makeUDPTxPacket(
+        getSw(),
+        vlanId,
+        intfMac,
+        intfMac,
+        sip,
+        dip,
+        sport,
+        dport,
+        0,
+        255,
+        payload);
+    return pkt;
   }
 
   int getSflowPacketHeaderLength() {
@@ -241,14 +255,12 @@ class AgentSflowMirrorTest : public AgentHwTest {
     getAgentEnsemble()->bringDownPorts(
         std::vector<PortID>(ports.begin() + 2, ports.end()));
     auto pkt = genPacket(1, 256);
+    auto length = pkt->buf()->length();
 
     utility::SwSwitchPacketSnooper snooper(getSw(), "snooper");
     XLOG(DBG2) << "Sending packet through port " << ports[1];
     getAgentEnsemble()->sendPacketAsync(
-        pkt.getTxPacket(
-            [sw = getSw()](uint32_t size) { return sw->allocatePacket(size); }),
-        PortDescriptor(ports[1]),
-        std::nullopt);
+        std::move(pkt), PortDescriptor(ports[1]), std::nullopt);
 
     std::optional<std::unique_ptr<folly::IOBuf>> capturedPktBuf;
     WITH_RETRIES({
@@ -259,10 +271,10 @@ class AgentSflowMirrorTest : public AgentHwTest {
     auto capturedPkt = utility::EthFrame(capturedPktCursor);
 
     // captured packet has encap header on top
-    ASSERT_GE(capturedPkt.length(), pkt.length());
+    ASSERT_GE(capturedPkt.length(), length);
     EXPECT_GE(capturedPkt.length(), getSflowPacketHeaderLength());
 
-    auto delta = capturedPkt.length() - pkt.length();
+    auto delta = capturedPkt.length() - length;
     EXPECT_LE(delta, getSflowPacketHeaderLength());
     auto payload = std::is_same_v<AddrT, folly::IPAddressV4>
         ? capturedPkt.v4PayLoad()->udpPayload()->payload()
@@ -306,14 +318,12 @@ class AgentSflowMirrorTest : public AgentHwTest {
     getAgentEnsemble()->bringDownPorts(
         std::vector<PortID>(ports.begin() + 2, ports.end()));
     auto pkt = genPacket(1, 8000);
+    auto length = pkt->buf()->length();
 
     utility::SwSwitchPacketSnooper snooper(getSw(), "snooper");
     XLOG(DBG2) << "Sending packet through port " << ports[1];
     getAgentEnsemble()->sendPacketAsync(
-        pkt.getTxPacket(
-            [sw = getSw()](uint32_t size) { return sw->allocatePacket(size); }),
-        PortDescriptor(ports[1]),
-        std::nullopt);
+        std::move(pkt), PortDescriptor(ports[1]), std::nullopt);
 
     std::optional<std::unique_ptr<folly::IOBuf>> capturedPktBuf;
     WITH_RETRIES({
@@ -324,7 +334,7 @@ class AgentSflowMirrorTest : public AgentHwTest {
     auto capturedPkt = utility::EthFrame(capturedPktCursor);
 
     // captured packet has encap header on top
-    EXPECT_LE(capturedPkt.length(), pkt.length());
+    EXPECT_LE(capturedPkt.length(), length);
     auto capturedHdrSize = getSflowPacketHeaderLength(true);
     EXPECT_GE(capturedPkt.length(), capturedHdrSize);
 
@@ -360,11 +370,7 @@ class AgentSflowMirrorTest : public AgentHwTest {
 
     for (auto i = 1; i < ports.size(); i++) {
       getAgentEnsemble()->sendPacketAsync(
-          pkt.getTxPacket([sw = getSw()](uint32_t size) {
-            return sw->allocatePacket(size);
-          }),
-          PortDescriptor(ports[i]),
-          std::nullopt);
+          std::move(pkt), PortDescriptor(ports[i]), std::nullopt);
       getAgentEnsemble()->waitForLineRateOnPort(ports[i]);
     }
 
