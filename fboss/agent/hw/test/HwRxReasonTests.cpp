@@ -43,6 +43,12 @@ class HwRxReasonTests : public HwLinkStateDependentTest {
         rxReasonListWithoutDHCP;
     return cfg;
   }
+
+  // Because number of RX reasons is modified across WB, repopulating priority
+  // is expected.
+  bool failHwCallsOnWarmboot() const override {
+    return false;
+  }
 };
 
 TEST_F(HwRxReasonTests, InsertAndRemoveRxReason) {
