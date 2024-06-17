@@ -195,6 +195,8 @@ class AgentHwTest : public ::testing::Test {
   SwitchID switchIdForPort(PortID port) const;
   const HwAsic* hwAsicForPort(PortID port) const;
 
+  void populateNdpNeighborsToCache(const std::shared_ptr<Interface>& interface);
+
  private:
   void applyNewStateImpl(
       StateUpdateFn fn,

@@ -2,6 +2,7 @@
 
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/HwAsicTable.h"
+#include "fboss/agent/NeighborUpdater.h"
 #include "fboss/agent/hw/gen-cpp2/hardware_stats_constants.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwTestCoppUtils.h"
@@ -448,6 +449,19 @@ SwitchID AgentHwTest::switchIdForPort(PortID port) const {
 
 const HwAsic* AgentHwTest::hwAsicForPort(PortID port) const {
   return getSw()->getHwAsicTable()->getHwAsic(switchIdForPort(port));
+}
+
+void AgentHwTest::populateNdpNeighborsToCache(
+    const std::shared_ptr<Interface>& interface) {
+  auto ndpCache = getAgentEnsemble()
+                      ->getSw()
+                      ->getNeighborUpdater()
+                      ->getNdpCacheForIntf(interface->getID())
+                      .get();
+  getAgentEnsemble()->getSw()->getNeighborCacheEvb()->runInEventBaseThread(
+      [interface, ndpCache] {
+        ndpCache->repopulate(interface->getNdpTable());
+      });
 }
 
 void initAgentHwTest(

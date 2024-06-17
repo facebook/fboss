@@ -49,6 +49,10 @@ using NeighborUpdaterVariant =
  * thread.
  */
 class NeighborUpdater : public StateObserver {
+  // Enable access to caches from NeighborUpdater to help imitate neighbor
+  // learning during Agent HW testing.
+  friend class AgentHwTest;
+
  private:
   std::shared_ptr<NeighborUpdaterVariant> impl_;
   SwSwitch* sw_{nullptr};

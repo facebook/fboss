@@ -95,7 +95,6 @@ class NeighborUpdaterImpl {
 
   std::shared_ptr<ArpCache> getArpCacheForIntf(InterfaceID intfID);
   std::shared_ptr<ArpCache> getArpCacheInternalForIntf(InterfaceID intfID);
-  std::shared_ptr<NdpCache> getNdpCacheForIntf(InterfaceID intfID);
   std::shared_ptr<NdpCache> getNdpCacheInternalForIntf(InterfaceID intfID);
 
   // TODO(skhare) Remove after completely migrating to intfCaches_
