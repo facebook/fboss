@@ -185,6 +185,8 @@ class PlatformMapping {
       phy::FecMode fec,
       std::optional<TransmitterTechnology> medium) const;
 
+  std::vector<PortID> getPlatformPorts(cfg::PortType portType) const;
+
  protected:
   std::map<int32_t, cfg::PlatformPortEntry> platformPorts_;
   std::vector<cfg::PlatformPortProfileConfigEntry> platformSupportedProfiles_;

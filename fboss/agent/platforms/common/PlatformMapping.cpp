@@ -855,4 +855,17 @@ PlatformMapping::getPortProfileFromLinkProperties(
   return profiles;
 }
 
+std::vector<PortID> PlatformMapping::getPlatformPorts(
+    cfg::PortType portType) const {
+  std::vector<PortID> portIds;
+  for (const auto& port : getPlatformPorts()) {
+    auto portID = PortID(port.first);
+    const auto& platformPort = port.second;
+    if (platformPort.mapping()->portType() == portType) {
+      portIds.push_back(portID);
+    }
+  }
+  return portIds;
+}
+
 } // namespace facebook::fboss
