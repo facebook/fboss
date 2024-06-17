@@ -4613,7 +4613,25 @@ std::shared_ptr<MirrorMap> ThriftConfigApplier::updateMirrors() {
     return nullptr;
   }
 
-  return newMirrors;
+  auto newMirrorWithSwitchIds = std::make_shared<MirrorMap>();
+  for (auto& switchIdAndSwitchInfo :
+       *cfg_->switchSettings()->switchIdToSwitchInfo()) {
+    if (switchIdAndSwitchInfo.second.switchType() != cfg::SwitchType::VOQ &&
+        switchIdAndSwitchInfo.second.switchType() != cfg::SwitchType::NPU) {
+      continue;
+    }
+    auto switchId = switchIdAndSwitchInfo.first;
+    for (auto& mirrorMapEntry : std::as_const(*newMirrors)) {
+      auto newMirror = mirrorMapEntry.second->clone();
+      newMirror->setSwitchId(SwitchID(switchId));
+      // TODO: Mirror name is unique per switch, so we need
+      // to append the switchId to the mirror name.
+      newMirrorWithSwitchIds->insert(
+          mirrorMapEntry.first, std::move(newMirror));
+    }
+  }
+
+  return newMirrorWithSwitchIds;
 }
 
 std::shared_ptr<Mirror> ThriftConfigApplier::createMirror(
