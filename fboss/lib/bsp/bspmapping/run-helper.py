@@ -50,14 +50,15 @@ Current run path: {run_path}"""
 
     print("Starting build for fboss-bspmapping-gen")
     subprocess.run(
-        'https_proxy=fwdproxy:8080 http_proxy=fwdproxy:8080 ./opensource/fbcode_builder/getdeps.py build --allow-system-packages --num-jobs 32 --extra-cmake-defines=\'{"CMAKE_BUILD_TYPE": "MinSizeRel", "CMAKE_CXX_STANDARD": "20"}\' --cmake-target fboss-bspmapping-gen fboss',
+        f"""https_proxy=fwdproxy:8080 http_proxy=fwdproxy:8080 {get_deps_path} build """
+        + '--allow-system-packages --num-jobs 32 --extra-cmake-defines=\'{"CMAKE_BUILD_TYPE": "MinSizeRel", "CMAKE_CXX_STANDARD": "20"}\' --cmake-target fboss-bspmapping-gen fboss',
         shell=True,
     )
 
     print("Completed build for fboss-bspmapping-gen")
 
     show_build_dir_proc = subprocess.run(
-        "https_proxy=fwdproxy:8080 http_proxy=fwdproxy:8080 ./opensource/fbcode_builder/getdeps.py show-build-dir fboss",
+        f"""https_proxy=fwdproxy:8080 http_proxy=fwdproxy:8080 {get_deps_path} show-build-dir fboss""",
         shell=True,
         capture_output=True,
         text=True,
