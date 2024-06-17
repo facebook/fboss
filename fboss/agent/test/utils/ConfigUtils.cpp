@@ -24,7 +24,7 @@
 DEFINE_bool(nodeZ, false, "Setup test config as node Z");
 
 namespace {
-constexpr auto kSysPortOffset = 100;
+constexpr auto kSysPortOffset = 10;
 void removePort(
     facebook::fboss::cfg::SwitchConfig& config,
     facebook::fboss::PortID port,
