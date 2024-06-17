@@ -190,7 +190,8 @@ class AgentSflowMirrorTest : public AgentHwTest {
 
     this->getAgentEnsemble()->applyNewState(
         [&](const std::shared_ptr<SwitchState>& state) {
-          utility::EcmpSetupTargetedPorts<AddrT> ecmpHelper(state);
+          auto mac = utility::getFirstInterfaceMac(state);
+          utility::EcmpSetupTargetedPorts<AddrT> ecmpHelper(state, mac);
           auto newState = ecmpHelper.resolveNextHops(state, nhopPorts);
           return newState;
         },
