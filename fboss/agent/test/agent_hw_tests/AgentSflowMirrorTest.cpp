@@ -51,7 +51,6 @@ class AgentSflowMirrorTest : public AgentHwTest {
     auto ports = getPortsForSampling(ensemble.masterLogicalPortIds(), asic);
     this->configureMirror(cfg);
     this->configureTrapAcl(cfg);
-    configSampling(cfg, ports, 1);
     return cfg;
   }
 
