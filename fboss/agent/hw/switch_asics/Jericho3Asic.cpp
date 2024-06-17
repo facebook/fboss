@@ -74,6 +74,7 @@ bool Jericho3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::ACL_METADATA_QUALIFER:
     case HwAsic::Feature::L3_MTU_ERROR_TRAP:
     case HwAsic::Feature::EVENTOR_PORT_FOR_SFLOW:
+    case HwAsic::Feature::SFLOWv6:
       return true;
     // Features not expected to work on SIM
     case HwAsic::Feature::SHARED_INGRESS_EGRESS_BUFFER_POOL:
@@ -161,7 +162,6 @@ bool Jericho3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::SFLOWv4:
     case HwAsic::Feature::MPLS:
     case HwAsic::Feature::MPLS_ECMP:
-    case HwAsic::Feature::SFLOWv6:
     case HwAsic::Feature::RX_SNR:
     case HwAsic::Feature::FEC_CORRECTED_BITS:
     case HwAsic::Feature::ROUTE_COUNTERS:
