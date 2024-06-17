@@ -172,6 +172,7 @@ bool GaronneAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::PQP_ERROR_EGRESS_DROP_COUNTER:
     case HwAsic::Feature::FABRIC_LINK_DOWN_CELL_DROP_COUNTER:
     case HwAsic::Feature::CRC_ERROR_DETECT:
+    case HwAsic::Feature::EVENTOR_PORT_FOR_SFLOW:
       return false;
   }
   return false;
