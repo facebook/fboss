@@ -374,12 +374,16 @@ HwInitResult HwSwitch::init(
 
 HwWriteBehaviorRAII HwSwitch::getWarmBootWriteBehavior(
     bool failHwCallsOnWarmboot) const {
-  if (failHwCallsOnWarmboot &&
-      getPlatform()->getAsic()->isSupported(
+  if (getPlatform()->getAsic()->isSupported(
           HwAsic::Feature::ZERO_SDK_WRITE_WARMBOOT)) {
-    return HwWriteBehaviorRAII(HwWriteBehavior::FAIL);
+    if (failHwCallsOnWarmboot) {
+      return HwWriteBehaviorRAII(HwWriteBehavior::FAIL);
+    } else {
+      return HwWriteBehaviorRAII(HwWriteBehavior::WRITE);
+    }
+  } else {
+    return HwWriteBehaviorRAII(HwWriteBehavior::LOG_FAIL);
   }
-  return HwWriteBehaviorRAII(HwWriteBehavior::LOG_FAIL);
 }
 
 HwInitResult HwSwitch::initLight(

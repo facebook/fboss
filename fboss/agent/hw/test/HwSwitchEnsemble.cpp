@@ -649,7 +649,7 @@ void HwSwitchEnsemble::setupEnsemble(
       ? static_cast<HwSwitchCallback*>(thriftSyncer_.get())
       : this;
   auto hwInitResult =
-      getHwSwitch()->init(callback, initState, true /*failHwCallsOnWarmboot*/);
+      getHwSwitch()->init(callback, initState, initInfo.failHwCallsOnWarmboot);
   if (hwInitResult.bootType != bootType) {
     // this is being done for preprod2trunk migration. further until tooling is
     // updated to affect both warm boot flags, HwSwitch will override SwSwitch

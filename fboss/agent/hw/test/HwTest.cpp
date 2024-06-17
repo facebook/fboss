@@ -122,6 +122,7 @@ void HwTest::SetUp() {
   hwSwitchEnsemble_ = createHwEnsemble(featuresDesired());
   initInfo.overrideDsfNodes =
       overrideDsfNodes(hwSwitchEnsemble_->dsfNodesFromInputConfig());
+  initInfo.failHwCallsOnWarmboot = failHwCallsOnWarmboot();
   hwSwitchEnsemble_->init(initInfo);
   hwSwitchEnsemble_->addHwEventObserver(this);
   if (getHwSwitch()->getBootType() == BootType::WARM_BOOT) {

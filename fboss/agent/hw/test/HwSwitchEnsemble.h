@@ -95,6 +95,7 @@ class HwSwitchEnsemble : public TestEnsembleIf {
   struct HwSwitchEnsembleInitInfo {
     std::optional<TransceiverInfo> overrideTransceiverInfo;
     std::optional<std::map<int64_t, cfg::DsfNode>> overrideDsfNodes;
+    bool failHwCallsOnWarmboot;
   };
   enum Feature : uint32_t {
     PACKET_RX,

@@ -187,6 +187,9 @@ class HwTest : public ::testing::Test,
       const std::map<int64_t, cfg::DsfNode>& /*curDsfNodes*/) const {
     return std::nullopt;
   }
+  virtual bool failHwCallsOnWarmboot() const {
+    return true;
+  }
 
   std::shared_ptr<SwitchState> applyNewStateImpl(
       const std::shared_ptr<SwitchState>& newState,
