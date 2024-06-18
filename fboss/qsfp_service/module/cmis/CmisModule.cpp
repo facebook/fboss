@@ -2756,11 +2756,13 @@ void CmisModule::ensureRxOutputSquelchEnabled(
 }
 
 bool CmisModule::tcvrPortStateSupported(TransceiverPortState& portState) const {
-  if (portState.transmitterTech != getQsfpTransmitterTechnology()) {
+  auto currTransmitterTechnology = getQsfpTransmitterTechnology();
+  if (currTransmitterTechnology == TransmitterTechnology::OPTICAL &&
+      (portState.transmitterTech != TransmitterTechnology::OPTICAL &&
+       portState.transmitterTech != TransmitterTechnology::BACKPLANE)) {
+    // For optics, we allow both BACKPLANE and OPTICAL media in platform mapping
     return false;
-  }
-
-  if (getQsfpTransmitterTechnology() == TransmitterTechnology::COPPER) {
+  } else if (currTransmitterTechnology == TransmitterTechnology::COPPER) {
     // Return true irrespective of speed as the copper cables are mostly
     // flexible with all speeds. We can change this later when we know of any
     // limitations
