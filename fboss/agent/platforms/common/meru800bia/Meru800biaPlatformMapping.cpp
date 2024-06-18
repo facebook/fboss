@@ -201,7 +201,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           ],
           "portType": 5,
           "attachedCoreId": 0,
-          "attachedCorePortIndex": 42,
+          "attachedCorePortIndex": 12,
           "virtualDeviceId": 0,
           "scope": 0
         },
@@ -43364,7 +43364,7 @@ constexpr auto kJsonDsfJ3ScaleTestPlatformMappingStr = R"(
           ],
           "portType": 5,
           "attachedCoreId": 0,
-          "attachedCorePortIndex": 42,
+          "attachedCorePortIndex": 12,
           "virtualDeviceId": 0,
           "scope": 0
         },
@@ -45852,7 +45852,7 @@ constexpr auto kJsonDsfJ3ScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 0,
-          "attachedCorePortIndex": 12,
+          "attachedCorePortIndex": 42,
           "virtualDeviceId": 0,
           "scope": 1
         },
