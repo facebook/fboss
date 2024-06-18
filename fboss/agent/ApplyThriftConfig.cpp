@@ -334,6 +334,10 @@ class ThriftConfigApplier {
   std::pair<folly::MacAddress, uint16_t> getSystemLacpConfig();
   uint8_t computeMinimumLinkCount(const cfg::AggregatePort& cfg);
   std::shared_ptr<VlanMap> updateVlans();
+  std::map<uint32_t, std::set<PortDescriptor>>
+  getMapOfVlanToPortsNeedingMacClear(
+      const std::shared_ptr<MultiSwitchPortMap> newPorts,
+      const std::shared_ptr<MultiSwitchPortMap> origPorts);
   std::shared_ptr<Vlan> createVlan(const cfg::Vlan* config);
   std::shared_ptr<Vlan> updateVlan(
       const std::shared_ptr<Vlan>& orig,
@@ -2447,6 +2451,40 @@ uint8_t ThriftConfigApplier::computeMinimumLinkCount(
   }
 
   return minLinkCount;
+}
+
+// If create only attributes or speed changes for a port, we
+// delete the port and recreate it. In this sequence, before
+// a port is deleted, we need to remove VLAN membership and
+// before that, need to clear any MACs learnt on that port/
+// VLAN. This API identifies VLAN id / ports where all MACs
+// learnt need to be cleared.
+std::map<uint32_t, std::set<PortDescriptor>>
+ThriftConfigApplier::getMapOfVlanToPortsNeedingMacClear(
+    const std::shared_ptr<MultiSwitchPortMap> newPorts,
+    const std::shared_ptr<MultiSwitchPortMap> origPorts) {
+  std::map<uint32_t, std::set<PortDescriptor>> vlanToPortMap;
+
+  for (auto& portMap : std::as_const(*origPorts)) {
+    for (auto& [oldPortId, oldPort] : std::as_const(*portMap.second)) {
+      auto newPort = std::as_const(*newPorts).getNodeIf(oldPortId);
+      if (!newPort || oldPort->getSpeed() != newPort->getSpeed()) {
+        // If oldPort does not exist anymore or if the speed has changed,
+        // we need to clear mac addresses learnt on the port for all vlans
+        // before port removal is attempted.
+        for (auto& [vlanId, _] : oldPort->getVlans()) {
+          auto vlanIter = vlanToPortMap.find(vlanId);
+          if (vlanIter == vlanToPortMap.end()) {
+            vlanToPortMap[vlanId] =
+                std::set<PortDescriptor>{PortDescriptor(oldPort->getID())};
+          } else {
+            vlanIter->second.insert(PortDescriptor(oldPort->getID()));
+          }
+        }
+      }
+    }
+  }
+  return vlanToPortMap;
 }
 
 shared_ptr<VlanMap> ThriftConfigApplier::updateVlans() {
