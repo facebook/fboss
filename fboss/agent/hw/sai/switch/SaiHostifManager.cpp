@@ -358,6 +358,12 @@ void SaiHostifManager::processRxReasonToQueueDelta(
 
   for (auto index = 0; index < oldRxReasonToQueue->size(); index++) {
     const auto& oldRxReasonEntry = oldRxReasonToQueue->cref(index);
+    if (oldRxReasonEntry->cref<switch_config_tags::rxReason>()->toThrift() ==
+        cfg::PacketRxReason::UNMATCHED) {
+      // UNMATCHED was never added in the first place, so ignoring here
+      XLOG(WARN) << "ignoring UNMATCHED packet rx reason";
+      continue;
+    }
     auto newRxReasonEntry = std::find_if(
         newRxReasonToQueue->cbegin(),
         newRxReasonToQueue->cend(),
