@@ -22,6 +22,7 @@
 
 DECLARE_bool(enable_stats_update_thread);
 DECLARE_int32(update_voq_stats_interval_s);
+DECLARE_bool(dsf_subscribe);
 
 namespace facebook::fboss {
 
@@ -63,9 +64,11 @@ BENCHMARK(HwStatsCollection) {
         // Disable stats collection thread.
         FLAGS_enable_stats_update_thread = false;
 
-        // Always collect VOQ stats for VOQ switches
         if (ensemble.getSw()->getSwitchInfoTable().haveVoqSwitches()) {
+          // Always collect VOQ stats for VOQ switches
           FLAGS_update_voq_stats_interval_s = 0;
+          // Disable DSF subscription on single-box test
+          FLAGS_dsf_subscribe = false;
         }
 
         auto ports = ensemble.masterLogicalPortIds();
