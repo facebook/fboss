@@ -38,6 +38,11 @@ DEFINE_int32(
     "Update watermark stats interval in seconds");
 
 DEFINE_int32(
+    update_voq_stats_interval_s,
+    60,
+    "Update voq stats interval in seconds");
+
+DEFINE_int32(
     update_phy_info_interval_s,
     10,
     "Update phy info interval in seconds");

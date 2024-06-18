@@ -582,6 +582,7 @@ class SaiSwitch : public HwSwitch {
   std::atomic<SwitchRunState> runState_{SwitchRunState::UNINITIALIZED};
 
   int64_t watermarkStatsUpdateTime_{0};
+  int64_t voqStatsUpdateTime_{0};
   cfg::AsicType asicType_;
 
   std::map<PortID, phy::PhyInfo> lastPhyInfos_;
