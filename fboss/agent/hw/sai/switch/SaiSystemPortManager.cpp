@@ -296,7 +296,8 @@ SaiSystemPortHandle* SaiSystemPortManager::getSystemPortHandleImpl(
 
 void SaiSystemPortManager::updateStats(
     SystemPortID portId,
-    bool updateWatermarks) {
+    bool updateWatermarks,
+    bool updateVoqStats) {
   auto handlesItr = handles_.find(portId);
   if (handlesItr == handles_.end()) {
     return;
@@ -312,8 +313,13 @@ void SaiSystemPortManager::updateStats(
   auto now = duration_cast<seconds>(system_clock::now().time_since_epoch());
   const auto& prevPortStats = portStatItr->second->portStats();
   HwSysPortStats curPortStats{prevPortStats};
-  managerTable_->queueManager().updateStats(
-      handle->configuredQueues, curPortStats, updateWatermarks);
+  if (updateVoqStats || updateWatermarks) {
+    managerTable_->queueManager().updateStats(
+        handle->configuredQueues,
+        curPortStats,
+        updateWatermarks,
+        updateVoqStats);
+  }
   portStats_[portId]->updateStats(curPortStats, now);
 }
 

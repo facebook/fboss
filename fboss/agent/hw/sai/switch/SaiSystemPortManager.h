@@ -83,7 +83,8 @@ class SaiSystemPortManager {
   Handles::const_iterator end() const {
     return handles_.end();
   }
-  void updateStats(SystemPortID portId, bool updateWatermarks);
+  void
+  updateStats(SystemPortID portId, bool updateWatermarks, bool updateVoqStats);
 
   void setQosPolicy(
       SystemPortID portId,

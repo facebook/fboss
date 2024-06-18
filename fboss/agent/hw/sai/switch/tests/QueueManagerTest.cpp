@@ -302,7 +302,8 @@ TEST_F(QueueManagerTest, addPortQueueAndCheckStats) {
 
 TEST_F(QueueManagerTest, checkSysPortVoqStats) {
   auto sysPort = firstSysPort();
-  saiManagerTable->systemPortManager().updateStats(sysPort->getID(), true);
+  saiManagerTable->systemPortManager().updateStats(
+      sysPort->getID(), true /* updateWatermarks */, true /* updateVoqStats */);
   auto portStat =
       saiManagerTable->systemPortManager().getLastPortStats(sysPort->getID());
   checkCounterExportAndValue(
@@ -317,7 +318,10 @@ TEST_F(QueueManagerTest, changeSysPortAndCheckVoqStats) {
   auto newSysPort = sysPort->clone();
   newSysPort->setName(folly::sformat("new_{}", sysPort->getName()));
   saiManagerTable->systemPortManager().changeSystemPort(sysPort, newSysPort);
-  saiManagerTable->systemPortManager().updateStats(newSysPort->getID(), true);
+  saiManagerTable->systemPortManager().updateStats(
+      newSysPort->getID(),
+      true /* updateWatermarks */,
+      true /* updateVoqStats */);
   auto portStat = saiManagerTable->systemPortManager().getLastPortStats(
       newSysPort->getID());
   checkCounterExportAndValue(
@@ -350,7 +354,10 @@ TEST_F(QueueManagerTest, changeSysPortVoQsAndCheckVoqStats) {
       [](const int queueId) { return static_cast<uint8_t>(queueId); });
   newSysPort->resetPortQueues(makeQueueConfig(queueIds));
   saiManagerTable->systemPortManager().changeSystemPort(sysPort, newSysPort);
-  saiManagerTable->systemPortManager().updateStats(newSysPort->getID(), true);
+  saiManagerTable->systemPortManager().updateStats(
+      newSysPort->getID(),
+      true /* updateWatermarks */,
+      true /* updateVoqStats */);
   auto portStat = saiManagerTable->systemPortManager().getLastPortStats(
       newSysPort->getID());
   checkCounterExportAndValue(

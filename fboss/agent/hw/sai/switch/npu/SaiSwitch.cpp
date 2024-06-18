@@ -75,7 +75,7 @@ void SaiSwitch::updateStatsImpl() {
     {
       std::lock_guard<std::mutex> locked(saiSwitchMutex_);
       managerTable_->systemPortManager().updateStats(
-          sysPortsIter->second, updateWatermarks);
+          sysPortsIter->second, updateWatermarks, true /* updateVoqStats */);
     }
     ++sysPortsIter;
   }
