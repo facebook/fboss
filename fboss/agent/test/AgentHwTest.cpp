@@ -70,8 +70,9 @@ void AgentHwTest::setCmdLineFlagOverrides() const {
   // with tests
   FLAGS_tun_intf = false;
   // Set watermark stats update interval to 0 so we always refresh BST stats
-  // in each updateStats call
+  // in each updateStats call (same for VOQ stats)
   FLAGS_update_watermark_stats_interval_s = 0;
+  FLAGS_update_voq_stats_interval_s = 0;
   // disable neighbor updates
   FLAGS_disable_neighbor_updates = true;
   // disable icmp error response
