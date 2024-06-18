@@ -21,6 +21,7 @@
 #include <folly/logging/xlog.h>
 
 DECLARE_bool(enable_stats_update_thread);
+DECLARE_int32(update_voq_stats_interval_s);
 
 namespace facebook::fboss {
 
@@ -62,11 +63,10 @@ BENCHMARK(HwStatsCollection) {
         // Disable stats collection thread.
         FLAGS_enable_stats_update_thread = false;
 
-        // Before m-mpu agent test, use first Asic for initialization.
-        auto switchIds = ensemble.getSw()->getHwAsicTable()->getSwitchIDs();
-        CHECK_GE(switchIds.size(), 1);
-        auto asic =
-            ensemble.getSw()->getHwAsicTable()->getHwAsic(*switchIds.cbegin());
+        // Always collect VOQ stats for VOQ switches
+        if (ensemble.getSw()->getSwitchInfoTable().haveVoqSwitches()) {
+          FLAGS_update_voq_stats_interval_s = 0;
+        }
 
         auto ports = ensemble.masterLogicalPortIds();
         auto portsNew = ports;
@@ -74,10 +74,11 @@ BENCHMARK(HwStatsCollection) {
 
         auto config =
             utility::onePortPerInterfaceConfig(ensemble.getSw(), portsNew);
-        if (asic->isSupported(HwAsic::Feature::ROUTE_COUNTERS)) {
+        if (ensemble.getSw()->getHwAsicTable()->isFeatureSupportedOnAllAsic(
+                HwAsic::Feature::ROUTE_COUNTERS)) {
           config.switchSettings()->maxRouteCounterIDs() = numRouteCounters;
         }
-        if (asic->getSwitchType() == cfg::SwitchType::VOQ) {
+        if (ensemble.getSw()->getSwitchInfoTable().haveVoqSwitches()) {
           config.dsfNodes() = *utility::addRemoteDsfNodeCfg(*config.dsfNodes());
         }
         return config;
