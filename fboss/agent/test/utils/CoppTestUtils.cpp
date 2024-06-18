@@ -248,20 +248,22 @@ void addCpuQueueConfig(
   setPortQueueSharedBytes(queue0, isSai);
   cpuQueues.push_back(queue0);
 
-  cfg::PortQueue queue1;
-  queue1.id() = kCoppDefaultPriQueueId;
-  queue1.name() = "cpuQueue-default";
-  queue1.streamType() = getCpuDefaultStreamType(hwAsic);
-  queue1.scheduling() = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
-  queue1.weight() = kCoppDefaultPriWeight;
-  if (setQueueRate) {
-    queue1.portQueueRate() = setPortQueueRate(hwAsic, kCoppDefaultPriQueueId);
+  if (!isSai) {
+    cfg::PortQueue queue1;
+    queue1.id() = kCoppDefaultPriQueueId;
+    queue1.name() = "cpuQueue-default";
+    queue1.streamType() = getCpuDefaultStreamType(hwAsic);
+    queue1.scheduling() = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
+    queue1.weight() = kCoppDefaultPriWeight;
+    if (setQueueRate) {
+      queue1.portQueueRate() = setPortQueueRate(hwAsic, kCoppDefaultPriQueueId);
+    }
+    if (!hwAsic->mmuQgroupsEnabled()) {
+      queue1.reservedBytes() = kCoppDefaultPriReservedBytes;
+    }
+    setPortQueueSharedBytes(queue1, isSai);
+    cpuQueues.push_back(queue1);
   }
-  if (!hwAsic->mmuQgroupsEnabled()) {
-    queue1.reservedBytes() = kCoppDefaultPriReservedBytes;
-  }
-  setPortQueueSharedBytes(queue1, isSai);
-  cpuQueues.push_back(queue1);
 
   cfg::PortQueue queue2;
   queue2.id() = getCoppMidPriQueueId({hwAsic});

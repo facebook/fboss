@@ -1523,19 +1523,8 @@ class AgentCoppQosTest : public AgentHwTest {
     }
     cpuQueues.push_back(queue0);
 
-    cfg::PortQueue queue1;
-    queue1.id() = utility::kCoppDefaultPriQueueId;
-    queue1.name() = "cpuQueue-default";
-    queue1.streamType() = utility::getCpuDefaultStreamType(hwAsic);
-    queue1.scheduling() = cfg::QueueScheduling::STRICT_PRIORITY;
-    if (addEcnConfig) {
-      queue1.aqms() = {};
-      queue1.aqms()->push_back(utility::kGetOlympicEcnConfig(hwAsic));
-    }
-    cpuQueues.push_back(queue1);
-
     cfg::PortQueue queue2;
-    queue2.id() = utility::kCoppMidPriQueueId;
+    queue2.id() = utility::getCoppMidPriQueueId({hwAsic});
     queue2.name() = "cpuQueue-mid";
     queue2.streamType() = utility::getCpuDefaultStreamType(hwAsic);
     queue2.scheduling() = cfg::QueueScheduling::STRICT_PRIORITY;
