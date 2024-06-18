@@ -336,6 +336,7 @@ struct PortQueueThrift {
   9: optional i32 bandwidthBurstMinKbits;
   10: optional i32 bandwidthBurstMaxKbits;
   11: optional list<byte> dscps;
+  12: optional i32 maxDynamicSharedBytes;
 }
 
 struct PfcConfig {

@@ -802,6 +802,7 @@ struct PortQueue {
    * pps as well as kbps.
    */
   9: optional i32 packetsPerSec_DEPRECATED;
+  // this specifies the static max threshold in buffer profile
   10: optional i32 sharedBytes;
   // Only Unicast queue supports aqms
   11: optional list<ActiveQueueManagement> aqms;
@@ -809,6 +810,9 @@ struct PortQueue {
 
   13: optional i32 bandwidthBurstMinKbits;
   14: optional i32 bandwidthBurstMaxKbits;
+  // this specifies the dynamic max threshold in buffer profile,
+  // e.g. when scalingFactor/alpha is used
+  15: optional i32 maxDynamicSharedBytes;
 }
 
 struct DscpQosMap {
