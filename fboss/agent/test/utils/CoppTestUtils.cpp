@@ -437,12 +437,22 @@ void setTTLZeroCpuConfig(
     return;
   }
 
+  std::vector<cfg::PacketRxReasonToQueue> rxReasons;
+  CHECK(config.cpuTrafficPolicy().has_value());
+  CHECK(config.cpuTrafficPolicy()->rxReasonToQueueOrderedList().has_value());
+  if (config.cpuTrafficPolicy()->rxReasonToQueueOrderedList()->size()) {
+    for (auto rxReasonAndQueue :
+         *config.cpuTrafficPolicy()->rxReasonToQueueOrderedList()) {
+      rxReasons.push_back(rxReasonAndQueue);
+    }
+  }
   auto ttlRxReasonToQueue = cfg::PacketRxReasonToQueue();
   ttlRxReasonToQueue.rxReason() = cfg::PacketRxReason::TTL_0;
   ttlRxReasonToQueue.queueId() = 0;
 
+  rxReasons.push_back(ttlRxReasonToQueue);
   cfg::CPUTrafficPolicyConfig cpuConfig;
-  cpuConfig.rxReasonToQueueOrderedList() = {std::move(ttlRxReasonToQueue)};
+  cpuConfig.rxReasonToQueueOrderedList() = rxReasons;
   config.cpuTrafficPolicy() = cpuConfig;
 }
 

@@ -980,7 +980,7 @@ cfg::SwitchConfig twoL3IntfConfig(
       return static_cast<int64_t>(vlans[idx]);
     }
     auto mySwitchId =
-        apache::thrift::can_throw(*config.switchSettings()->switchId());
+        config.switchSettings()->switchIdToSwitchInfo()->begin()->first;
     auto sysportRangeBegin =
         *config.dsfNodes()[mySwitchId].systemPortRange()->minimum();
     return sysportRangeBegin + static_cast<int>(ports[idx]);
@@ -1001,6 +1001,11 @@ cfg::SwitchConfig twoL3IntfConfig(
     intf.type() = switchType == cfg::SwitchType::NPU
         ? cfg::InterfaceType::VLAN
         : cfg::InterfaceType::SYSTEM_PORT;
+    if (switchType == cfg::SwitchType::VOQ) {
+      auto portScope =
+          *platformMapping->getPlatformPort(ports[i]).mapping()->scope();
+      intf.scope() = portScope;
+    }
     config.interfaces()->push_back(intf);
   }
   return config;
