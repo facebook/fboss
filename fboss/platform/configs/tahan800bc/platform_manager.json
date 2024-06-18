@@ -1818,7 +1818,7 @@
     "/run/devmap/flashes/SMB_SPI_MASTER_8_DEVICE_1": "/[SMB_SPI_MASTER_8_DEVICE_1]"
   },
   "bspKmodsRpmName": "fboss_bsp_kmods",
-  "bspKmodsRpmVersion": "1.0.5-1",
+  "bspKmodsRpmVersion": "1.5.0-1",
   "bspKmodsToReload": [
     "tahan_smbcpld",
     "mtia_smbcpld",
