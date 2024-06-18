@@ -28,7 +28,7 @@ class NlError : public FbossError {
       : FbossError(std::forward<Args>(args)..., ": ", nl_geterror(nlerr)),
         nlerr_(nlerr) {}
 
-  ~NlError() throw() override {}
+  ~NlError() noexcept override {}
 
   int getNlError() const {
     return nlerr_;
