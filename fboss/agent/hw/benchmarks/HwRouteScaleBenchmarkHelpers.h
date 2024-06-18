@@ -27,6 +27,7 @@
 #include "fboss/agent/test/AgentEnsemble.h"
 
 DECLARE_bool(json);
+DECLARE_bool(dsf_subscribe);
 
 namespace {
 const auto kEcmpWidth = 512;
@@ -182,6 +183,7 @@ inline void voqRouteBenchmark(bool add) {
   AgentEnsembleSwitchConfigFn voqInitialConfig =
       [](const AgentEnsemble& ensemble) {
         FLAGS_hide_fabric_ports = false;
+        FLAGS_dsf_subscribe = false;
         auto config = utility::onePortPerInterfaceConfig(
             ensemble.getSw(),
             ensemble.masterLogicalPortIds(),
