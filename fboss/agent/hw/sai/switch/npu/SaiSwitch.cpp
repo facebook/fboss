@@ -38,6 +38,17 @@ void SaiSwitch::updateStatsImpl() {
     watermarkStatsUpdateTime_ = now;
   }
 
+  // Avoid collecting watermark and VOQ stats in the same iteration - this it to
+  // avoid stats collection blocking updates for too long. However, in test
+  // scenarios we always collect watermark (interval set to zero), and hence
+  // need to collect VOQ stats as well.
+  bool updateVoqStats =
+      now - voqStatsUpdateTime_ >= FLAGS_update_voq_stats_interval_s &&
+      (!updateWatermarks || FLAGS_update_watermark_stats_interval_s == 0);
+  if (updateVoqStats) {
+    voqStatsUpdateTime_ = now;
+  }
+
   int64_t missingCount = 0, mismatchCount = 0;
   auto portsIter = concurrentIndices_->portSaiId2PortInfo.begin();
   std::map<PortID, multiswitch::FabricConnectivityDelta> connectivityDelta;
@@ -75,7 +86,7 @@ void SaiSwitch::updateStatsImpl() {
     {
       std::lock_guard<std::mutex> locked(saiSwitchMutex_);
       managerTable_->systemPortManager().updateStats(
-          sysPortsIter->second, updateWatermarks, true /* updateVoqStats */);
+          sysPortsIter->second, updateWatermarks, updateVoqStats);
     }
     ++sysPortsIter;
   }
