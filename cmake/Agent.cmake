@@ -115,6 +115,14 @@ target_link_libraries(utils
   Folly::folly
 )
 
+add_library(asic_utils
+  fboss/agent/AsicUtils.cpp
+)
+
+target_link_libraries(asic_utils
+  switch_asics
+)
+
 add_library(stats
   fboss/agent/AggregatePortStats.cpp
   fboss/agent/InterfaceStats.cpp
@@ -231,6 +239,7 @@ set(core_libs
   switchinfo_utils
   stats
   utils
+  asic_utils
   fb303::fb303
   capture
   diag_cmd_filter
