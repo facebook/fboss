@@ -440,9 +440,9 @@ void setTTLZeroCpuConfig(
   }
 
   std::vector<cfg::PacketRxReasonToQueue> rxReasons;
-  CHECK(config.cpuTrafficPolicy().has_value());
-  CHECK(config.cpuTrafficPolicy()->rxReasonToQueueOrderedList().has_value());
-  if (config.cpuTrafficPolicy()->rxReasonToQueueOrderedList()->size()) {
+  if (config.cpuTrafficPolicy().has_value() &&
+      config.cpuTrafficPolicy()->rxReasonToQueueOrderedList().has_value() &&
+      config.cpuTrafficPolicy()->rxReasonToQueueOrderedList()->size()) {
     for (auto rxReasonAndQueue :
          *config.cpuTrafficPolicy()->rxReasonToQueueOrderedList()) {
       rxReasons.push_back(rxReasonAndQueue);
