@@ -45,6 +45,11 @@ DEFINE_bool(
     false,
     "Disable sending icmp error response pkts in agent");
 
+DEFINE_bool(
+    disable_neighbor_solicitation,
+    false,
+    "Disable sending neighbor solicitation pkts in agent");
+
 using folly::IPAddressV6;
 using folly::MacAddress;
 using folly::io::Cursor;
@@ -828,6 +833,11 @@ void IPv6Handler::sendUnicastNeighborSolicitation(
   if (FLAGS_disable_neighbor_updates) {
     XLOG(DBG4)
         << "skipping sending neighbor solicitation since neighbor updates are disabled";
+    return;
+  }
+  if (FLAGS_disable_neighbor_solicitation) {
+    XLOG(DBG4)
+        << "skipping sending neighbor solicitation since flag disable_neighbor_solicitation set to true";
     return;
   }
 

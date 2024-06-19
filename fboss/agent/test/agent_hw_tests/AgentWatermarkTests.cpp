@@ -41,6 +41,9 @@ class AgentWatermarkTest : public AgentHwTest {
     AgentHwTest::setCmdLineFlagOverrides();
     if (FLAGS_intf_nbr_tables) {
       FLAGS_disable_neighbor_updates = false;
+      // Disabling because neighbor solicitation packets will cause device
+      // watermarks to be non-zero
+      FLAGS_disable_neighbor_solicitation = true;
     }
   }
 
