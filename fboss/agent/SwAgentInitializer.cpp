@@ -202,7 +202,11 @@ void SwAgentInitializer::waitForServerStopped() {
 int SwAgentInitializer::initAgent() {
   CHECK_NE(sw_.get() != nullptr, (false));
   CHECK_NE((initializer_.get() != nullptr), (false));
-  return initAgent(sw_.get());
+  auto hwWriteBehavior = HwWriteBehavior::WRITE;
+  if (sw_->getBootType() == BootType::WARM_BOOT) {
+    hwWriteBehavior = HwWriteBehavior::LOG_FAIL;
+  }
+  return initAgent(sw_.get(), hwWriteBehavior);
 }
 
 int SwAgentInitializer::initAgent(
