@@ -225,6 +225,12 @@ class HwTrafficPfcTest : public HwLinkStateDependentTest {
     utility::setTTLZeroCpuConfig(getHwSwitchEnsemble()->getL3Asics(), cfg);
     return cfg;
   }
+
+  // Pending on BRCM CSPs CS00012356001, CS00012356002
+  bool failHwCallsOnWarmboot() const override {
+    return false;
+  }
+
   folly::IPAddressV6 kDestIp1() const {
     return folly::IPAddressV6("2620:0:1cfe:face:b00c::4");
   }
