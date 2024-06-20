@@ -674,7 +674,7 @@ void IPv6Handler::sendICMPv6TimeExceeded(
   try {
     srcIp = getSwitchIntfIPv6(
         state, sw_->getState()->getInterfaceIDForPort(srcPort));
-  } catch (const std::exception& ex) {
+  } catch (const std::exception&) {
     srcIp = getAnyIntfIPv6(state);
   }
 

@@ -142,7 +142,7 @@ void DHCPv6Handler::handlePacket(
   DHCPv6Packet dhcp6Pkt;
   try {
     dhcp6Pkt.parse(&cursor);
-  } catch (const FbossError& err) {
+  } catch (const FbossError&) {
     sw->portStats(pkt->getSrcPort())->dhcpV6BadPkt();
     throw; // Rethrow
   }

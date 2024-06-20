@@ -183,7 +183,7 @@ void DHCPv4Handler::handlePacket(
   DHCPv4Packet dhcpPkt;
   try {
     dhcpPkt.parse(&cursor);
-  } catch (const FbossError& err) {
+  } catch (const FbossError&) {
     sw->portStats(pkt->getSrcPort())->dhcpV4BadPkt();
     throw; // Rethrow
   }

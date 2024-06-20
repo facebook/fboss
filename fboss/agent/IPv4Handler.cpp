@@ -113,12 +113,12 @@ void IPv4Handler::sendICMPTimeExceeded(
         getSwitchIntfIP(state, sw_->getState()->getInterfaceIDForPort(port));
     ipObj = std::make_unique<ICMPExtIpSubObjectV4>(ICMPExtIpSubObjectV4(srcIp));
 
-  } catch (const std::exception& ex) {
+  } catch (const std::exception&) {
     // Fall back to using a src IP of any interface on the switch, where if
     // none is available, the preconfigured src address
     try {
       srcIp = getAnyIntfIP(state);
-    } catch (const FbossError& e) {
+    } catch (const FbossError&) {
       srcIp = state->getIcmpV4UnavailableSrcAddress();
     }
   }

@@ -18,7 +18,7 @@ HwAsicTable::HwAsicTable(
     } else {
       try {
         mac = getLocalMacAddress();
-      } catch (const std::exception& e) {
+      } catch (const std::exception&) {
         // Expected when fake bcm tests run without config
       }
     }

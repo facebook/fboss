@@ -141,7 +141,7 @@ void PktCaptureManager::invokeCaptures(const Fn& fn) {
                  << "\"";
       try {
         inactiveCaptures_[capture->name()] = std::move(thisIt->second);
-      } catch (const std::exception& ex) {
+      } catch (const std::exception&) {
         XLOG(ERR) << "error adding capture " << capture->name()
                   << " to the inactive list";
         // Can't do much else here.  Just continue and forget the capture.

@@ -210,7 +210,7 @@ facebook::fboss::PortStatus fillInPortStatus(
 
   try {
     status.transceiverIdx() = sw->getTransceiverIdxThrift(port.getID());
-  } catch (const facebook::fboss::FbossError& err) {
+  } catch (const facebook::fboss::FbossError&) {
     // No problem, we just don't set the other info
   }
   return status;
@@ -2422,7 +2422,7 @@ void SwSwitch::sendPacketOutViaThriftStream(
   try {
     getPacketStreamMap()->getStream(switchId).next(std::move(txPacket));
     stats()->hwAgentTxPktSent(switchIndex);
-  } catch (const std::exception& e) {
+  } catch (const std::exception&) {
     stats()->pktDropped();
     XLOG(DBG2) << "Error sending packet via thrift stream to switch "
                << switchId;
@@ -3147,7 +3147,7 @@ cfg::AgentConfig SwSwitch::getAgentConfig() const {
 std::unique_ptr<AgentConfig> SwSwitch::loadConfig() {
   try {
     return AgentConfig::fromDefaultFile();
-  } catch (const std::exception& ex) {
+  } catch (const std::exception&) {
     XLOG(ERR) << "Couldn't load agent config from default file";
     throw;
   }

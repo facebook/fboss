@@ -498,7 +498,7 @@ void TunManager::addTunAddress(
   SCOPE_FAIL {
     try {
       addRemoveSourceRouteRule(ifID, addr, false);
-    } catch (const std::exception& ex) {
+    } catch (const std::exception&) {
       XLOG(ERR) << "Failed to removed partially added source rule on "
                 << "interface " << ifName;
     }
@@ -516,7 +516,7 @@ void TunManager::removeTunAddress(
   SCOPE_FAIL {
     try {
       addRemoveSourceRouteRule(ifID, addr, true);
-    } catch (const std::exception& ex) {
+    } catch (const std::exception&) {
       XLOG(ERR) << "Failed to add partially added source rule on "
                 << "interface " << ifName;
     }
