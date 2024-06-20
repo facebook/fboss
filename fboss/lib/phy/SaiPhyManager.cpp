@@ -269,7 +269,7 @@ bool SaiPhyManager::setupMacsecState(
     // programmed in HW for Macsec
     try {
       getPlatformInfo(portId);
-    } catch (FbossError& e) {
+    } catch (FbossError&) {
       if (macsecDesired) {
         throw;
       } else {
