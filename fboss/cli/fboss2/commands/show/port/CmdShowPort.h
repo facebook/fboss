@@ -67,7 +67,7 @@ class CmdShowPort : public CmdHandler<CmdShowPort, CmdShowPortTraits> {
 
       qsfpService->sync_getTransceiverInfo(
           transceiverEntries, requiredTransceiverEntries);
-    } catch (apache::thrift::transport::TTransportException& e) {
+    } catch (apache::thrift::transport::TTransportException&) {
       std::cerr << "Cannot connect to qsfp_service\n";
     }
 

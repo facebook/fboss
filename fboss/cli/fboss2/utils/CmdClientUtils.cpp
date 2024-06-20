@@ -52,7 +52,7 @@ void runOnAllHwAgents(const HostInfo& hostInfo, RunForHwAgentFn fn) {
         utils::createClient<apache::thrift::Client<FbossHwCtrl>>(hostInfo, i);
     try {
       fn(*client);
-    } catch (const std::exception& ex) {
+    } catch (const std::exception&) {
       // skip switches that cannot be reached
     }
   }

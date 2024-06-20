@@ -361,7 +361,7 @@ class CmdShowInterfacePhy
               {phy::DataPlanePhyChipType::IPHY, interfacePhyInfo.second});
         }
       }
-    } catch (apache::thrift::transport::TTransportException& e) {
+    } catch (apache::thrift::transport::TTransportException&) {
       std::cerr << "Cannot connect to wedge_agent\n";
     }
     try {
@@ -378,7 +378,7 @@ class CmdShowInterfacePhy
               {phy::DataPlanePhyChipType::XPHY, interfacePhyInfo.second});
         }
       }
-    } catch (apache::thrift::transport::TTransportException& e) {
+    } catch (apache::thrift::transport::TTransportException&) {
       std::cerr << "Cannot connect to qsfp_service\n";
     }
     return model;

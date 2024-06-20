@@ -44,7 +44,7 @@ class CmdShowInterfaceCountersFecBer
       } else {
         agentClient->sync_getInterfacePhyInfo(iPhyInfo, queriedIfs.data());
       }
-    } catch (apache::thrift::transport::TTransportException& e) {
+    } catch (apache::thrift::transport::TTransportException&) {
       std::cerr << "Cannot connect to wedge_agent\n";
     }
 
@@ -58,7 +58,7 @@ class CmdShowInterfaceCountersFecBer
         qsfpClient->sync_getInterfacePhyInfo(xPhyInfo, queriedIfs.data());
       }
       qsfpClient->sync_getTransceiverInfo(transceiverInfo, {});
-    } catch (apache::thrift::transport::TTransportException& e) {
+    } catch (apache::thrift::transport::TTransportException&) {
       std::cerr << "Cannot connect to qsfp_service\n";
     }
     return createModel(

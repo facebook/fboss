@@ -36,7 +36,7 @@ folly::dynamic BmcClient::fetchRaw(const std::string& endpoint) {
     client.allowBadCertificate(true);
     auto result = client.fetchUrl(buildUrl(endpoint));
     return folly::parseJson(result->getString());
-  } catch (http_client::ErrorResponseException& ex) {
+  } catch (http_client::ErrorResponseException&) {
     return folly::dynamic();
   }
 }

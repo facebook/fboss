@@ -300,7 +300,7 @@ OperPublisherInfo ServiceHandler::makePublisherInfo(
   try {
     auto pathConfig = fsdbConfig_->getPathConfig(publisherId, path);
     info.isExpectedPath() = *pathConfig.get().isExpected();
-  } catch (const std::exception& e) {
+  } catch (const std::exception&) {
     // ignore exception if PathConfig is not available
   }
   return info;
@@ -339,7 +339,7 @@ void ServiceHandler::registerPublisher(const OperPublisherInfo& info) {
         counter->second.incrementValue(-1);
       }
     }
-  } catch (const std::exception& e) {
+  } catch (const std::exception&) {
     // ignore exception if PathConfig is not available
   };
 }
@@ -376,7 +376,7 @@ void ServiceHandler::unregisterPublisher(
         counter->second.incrementValue(1);
       }
     }
-  } catch (const std::exception& e) {
+  } catch (const std::exception&) {
     // ignore exception if PathConfig is not available
   };
 }
