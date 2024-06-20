@@ -16,7 +16,7 @@ PacketStreamService::~PacketStreamService() {
       }
       lockedMap.clear();
     });
-  } catch (const std::exception& ex) {
+  } catch (const std::exception&) {
     XLOG(ERR) << "Failed to close the thrift stream;";
   }
 }

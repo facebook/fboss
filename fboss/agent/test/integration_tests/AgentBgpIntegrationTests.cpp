@@ -63,7 +63,7 @@ class BgpIntegrationTest : public AgentIntegrationTest {
                                   "", clientParams);
             aliveSince = client->sync_aliveSince();
             return true;
-          } catch (const std::exception& e) {
+          } catch (const std::exception&) {
             return false;
           }
         },

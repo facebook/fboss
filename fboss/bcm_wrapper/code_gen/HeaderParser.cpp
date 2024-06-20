@@ -44,7 +44,7 @@ void HeaderParser::run(
   if (rd) {
     try {
       file_->addStruct(std::make_unique<ThriftStruct>(*rd));
-    } catch (const std::exception& e) {
+    } catch (const std::exception&) {
       // TODO(borisb): this case should generate thrift comments calling for
       // manual code that needs to be written.
     }
@@ -68,7 +68,7 @@ void HeaderParser::run(
         file_->addStruct(std::move(ts));
       }
       file_->addMethod(std::move(tm));
-    } catch (const std::exception& e) {
+    } catch (const std::exception&) {
       // TODO(borisb): this case should generate thrift comments calling for
       // manual code that needs to be written.
     }

@@ -104,7 +104,7 @@ CmdGlobalOptions::UnionList CmdGlobalOptions::getFilters(
             getFilterOp(filterTermVector[1]),
             filterTermVector[2]);
         intersectList.push_back(filterTerm);
-      } catch (const std::invalid_argument& e) {
+      } catch (const std::invalid_argument&) {
         std::cerr << "invalid operator passed for key " << filterTermVector[0]
                   << std::endl;
         filterParsingEC = cli::CliOptionResult::OP_ERROR;
