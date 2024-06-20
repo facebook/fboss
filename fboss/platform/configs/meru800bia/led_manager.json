@@ -1,5 +1,54 @@
 {
-  "systemLedConfig": {},
-  "fruTypeLedConfigs": {},
-  "fruConfigs": []
+  "systemLedConfig": {
+    "presentLedColor": 1,
+    "presentLedSysfsPath": "/sys/class/leds/status_led1:green:status/brightness",
+    "absentLedColor": 2,
+    "absentLedSysfsPath": "/sys/class/leds/status_led1:red:status/brightness"
+  },
+  "fruTypeLedConfigs": {
+    "FAN": {
+      "presentLedColor": 1,
+      "presentLedSysfsPath": "/sys/class/leds/status_led2:green:status/brightness",
+      "absentLedColor": 2,
+      "absentLedSysfsPath": "/sys/class/leds/status_led2:red:status/brightness"
+    },
+    "PSU": {
+      "presentLedColor": 1,
+      "presentLedSysfsPath": "/sys/class/leds/status_led3:green:status/brightness",
+      "absentLedColor": 2,
+      "absentLedSysfsPath": "/sys/class/leds/status_led3:red:status/brightness"
+    }
+  },
+  "fruConfigs": [
+    {
+      "fruName": "FAN1",
+      "fruType": "FAN",
+      "presenceSysfsPath": "/run/devmap/sensors/FAN_CPLD/fan1_present"
+    },
+    {
+      "fruName": "FAN2",
+      "fruType": "FAN",
+      "presenceSysfsPath": "/run/devmap/sensors/FAN_CPLD/fan2_present"
+    },
+    {
+      "fruName": "FAN3",
+      "fruType": "FAN",
+      "presenceSysfsPath": "/run/devmap/sensors/FAN_CPLD/fan3_present"
+    },
+    {
+      "fruName": "FAN4",
+      "fruType": "FAN",
+      "presenceSysfsPath": "/run/devmap/sensors/FAN_CPLD/fan4_present"
+    },
+    {
+      "fruName": "PSU1",
+      "fruType": "PSU",
+      "presenceSysfsPath": "/run/devmap/fpgas/MERU800BIA_SMB_FPGA/psu1_present"
+    },
+    {
+      "fruName": "PSU2",
+      "fruType": "PSU",
+      "presenceSysfsPath": "/run/devmap/fpgas/MERU800BIA_SMB_FPGA/psu2_present"
+    }
+  ]
 }
