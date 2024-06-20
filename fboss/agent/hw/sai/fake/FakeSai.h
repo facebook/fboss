@@ -104,7 +104,9 @@ struct FakeSai {
   FakeSystemPortManager systemPortManager;
   bool initialized = false;
   sai_object_id_t cpuPortId;
+  sai_object_id_t cpuSystemPortId;
   sai_object_id_t getCpuPort();
+  sai_object_id_t getCpuSystemPort();
 };
 
 } // namespace facebook::fboss

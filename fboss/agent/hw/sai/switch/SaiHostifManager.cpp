@@ -523,6 +523,25 @@ void SaiHostifManager::loadCpuPortQueues() {
       managerTable_->queueManager().loadQueues(queueSaiIds);
 }
 
+void SaiHostifManager::loadCpuSystemPortVoqs() {
+  std::vector<sai_object_id_t> voqList;
+  voqList.resize(8);
+  SaiSystemPortTraits::Attributes::QosVoqList voqListAttribute{voqList};
+  auto voqSaiIdList = SaiApiTable::getInstance()->systemPortApi().getAttribute(
+      cpuPortHandle_->cpuSystemPortId.value(), voqListAttribute);
+  if (voqSaiIdList.size() == 0) {
+    throw FbossError("no voqs exist for cpu port ");
+  }
+  std::vector<QueueSaiId> voqSaiIds;
+  voqSaiIds.reserve(voqSaiIdList.size());
+  std::transform(
+      voqSaiIdList.begin(),
+      voqSaiIdList.end(),
+      std::back_inserter(voqSaiIds),
+      [](sai_object_id_t voqId) -> QueueSaiId { return QueueSaiId(voqId); });
+  cpuPortHandle_->voqs = managerTable_->queueManager().loadQueues(voqSaiIds);
+}
+
 void SaiHostifManager::loadCpuPort() {
   cpuPortHandle_ = std::make_unique<SaiCpuPortHandle>();
   cpuPortHandle_->cpuPortId = managerTable_->switchManager().getCpuPort();
@@ -536,6 +555,9 @@ void SaiHostifManager::loadCpuPort() {
                << cpuPortHandle_->cpuSystemPortId.value();
   }
   loadCpuPortQueues();
+  if (platform_->getAsic()->isSupported(HwAsic::Feature::VOQ)) {
+    loadCpuSystemPortVoqs();
+  }
 }
 
 void SaiHostifManager::updateStats(bool updateWatermarks) {

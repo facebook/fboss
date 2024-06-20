@@ -71,19 +71,34 @@ sai_object_id_t FakeSai::getCpuPort() {
   return cpuPortId;
 }
 
+sai_object_id_t FakeSai::getCpuSystemPort() {
+  return cpuSystemPortId;
+}
+
 void sai_create_cpu_port() {
   // Create the CPU port
   auto fs = FakeSai::getInstance();
   std::vector<uint32_t> cpuPortLanes{};
   uint32_t cpuPortSpeed = 0;
   sai_object_id_t portId = fs->portManager.create(cpuPortLanes, cpuPortSpeed);
+  sai_system_port_config_t config;
+  config.num_voq = 10;
+  sai_object_id_t qosToTcMapId;
+  sai_object_id_t switchId;
+  sai_object_id_t systemPortId =
+      fs->systemPortManager.create(config, switchId, true, qosToTcMapId);
   auto& port = fs->portManager.get(portId);
+  auto& systemPort = fs->systemPortManager.get(systemPortId);
   for (uint8_t queueId = 0; queueId < 10; queueId++) {
     auto saiQueueId = fs->queueManager.create(
         SAI_QUEUE_TYPE_MULTICAST, portId, queueId, portId);
     port.queueIdList.push_back(saiQueueId);
+    auto saiVoqId = fs->queueManager.create(
+        SAI_QUEUE_TYPE_UNICAST_VOQ, portId, queueId, portId);
+    systemPort.queueIdList.push_back(saiVoqId);
   }
   fs->cpuPortId = portId;
+  fs->cpuSystemPortId = systemPortId;
 }
 
 sai_status_t sai_api_initialize(

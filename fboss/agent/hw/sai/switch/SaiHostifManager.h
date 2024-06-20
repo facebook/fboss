@@ -44,6 +44,7 @@ struct SaiCpuPortHandle {
   std::optional<SystemPortSaiId> cpuSystemPortId;
   SaiQueueHandles queues;
   std::vector<SaiQueueHandle*> configuredQueues;
+  SaiQueueHandles voqs;
 };
 
 struct SaiHostifTrapHandle {
@@ -120,6 +121,7 @@ class SaiHostifManager {
 
   void loadCpuPort();
   void loadCpuPortQueues();
+  void loadCpuSystemPortVoqs();
   void changeCpuQueue(
       const ControlPlane::PortQueues& oldQueueConfig,
       const ControlPlane::PortQueues& newQueueConfig);
