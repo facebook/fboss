@@ -500,7 +500,7 @@ struct TcvrState {
   14: optional ModuleStatus status;
   15: optional list<MediaLaneSignals> mediaLaneSignals;
   16: optional list<HostLaneSignals> hostLaneSignals;
-  18: optional bool eepromCsumValid;
+  18: bool eepromCsumValid;
   19: optional MediaInterfaceCode moduleMediaInterface;
   20: optional TransceiverStateMachineState stateMachineState;
   21: map<string, list<i32>> portNameToHostLanes;
@@ -562,7 +562,7 @@ struct TransceiverInfo {
   24: optional VdmDiagsStats vdmDiagsStats (
     deprecated = "Moved to state/stats",
   );
-  25: optional bool eepromCsumValid (deprecated = "Moved to state/stats");
+  25: bool eepromCsumValid (deprecated = "Moved to state/stats");
   26: optional MediaInterfaceCode moduleMediaInterface (
     deprecated = "Moved to state/stats",
   );

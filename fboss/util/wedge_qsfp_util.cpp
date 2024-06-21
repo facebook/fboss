@@ -1852,11 +1852,9 @@ void printSffDetailService(
   if (auto cable = tcvrState.cable()) {
     printCableInfo(*cable);
   }
-  if (tcvrState.eepromCsumValid().has_value()) {
-    printf(
-        "  EEPROM Checksum: %s\n",
-        *tcvrState.eepromCsumValid() ? "Valid" : "Invalid");
-  }
+  printf(
+      "  EEPROM Checksum: %s\n",
+      *tcvrState.eepromCsumValid() ? "Valid" : "Invalid");
   printf("  Module Control:\n");
   printf(
       "    Rate Select: %s\n",
@@ -2167,11 +2165,9 @@ void printCmisDetailService(
   if (verbose) {
     printVerboseInfo(transceiverInfo);
   }
-  if (tcvrState.eepromCsumValid().has_value()) {
-    printf(
-        "  EEPROM Checksum: %s\n",
-        *tcvrState.eepromCsumValid() ? "Valid" : "Invalid");
-  }
+  printf(
+      "  EEPROM Checksum: %s\n",
+      *tcvrState.eepromCsumValid() ? "Valid" : "Invalid");
   printSignalsAndSettings(transceiverInfo);
   printDomMonitors(transceiverInfo);
   printVendorInfo(transceiverInfo);
