@@ -73,6 +73,11 @@ TEST_F(HwTest, i2cStressRead) {
     }
     previousResponse = currentResponse;
   }
+  for (auto tcvrId : transceivers) {
+    auto entries = wedgeManager->dumpTransceiverI2cLog(tcvrId);
+    EXPECT_GT(entries.first, 0);
+    EXPECT_GT(entries.second, 0);
+  }
 }
 
 TEST_F(HwTest, i2cStressWrite) {
@@ -107,6 +112,11 @@ TEST_F(HwTest, i2cStressWrite) {
       auto curr = currentResponse[tcvrId];
       EXPECT_TRUE(*curr.success());
     }
+  }
+  for (auto tcvrId : opticalTransceivers) {
+    auto entries = wedgeManager->dumpTransceiverI2cLog(tcvrId);
+    EXPECT_GT(entries.first, 0);
+    EXPECT_GT(entries.second, 0);
   }
 }
 
