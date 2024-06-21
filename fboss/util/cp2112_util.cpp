@@ -446,7 +446,7 @@ bool scanAddress(CP2112* dev, uint8_t address) {
   uint8_t buf[length];
   try {
     dev->read(address, MutableByteRange(buf, length));
-  } catch (const std::exception& ex) {
+  } catch (const std::exception&) {
     return false;
   }
 

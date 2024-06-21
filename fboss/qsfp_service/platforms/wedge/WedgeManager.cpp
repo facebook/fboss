@@ -180,7 +180,7 @@ void WedgeManager::createQsfpToBmcSyncInterface() {
     try {
       qsfpRestClient_ = std::make_unique<QsfpRestClient>();
       XLOG(INFO) << "Created QSFP to BMC Sync Interface through Rest Client";
-    } catch (const std::exception& ex) {
+    } catch (const std::exception&) {
       XLOG(ERR)
           << "Failed to created QSFP to BMC Sync Interface through Rest Client";
     }
@@ -1043,7 +1043,7 @@ QsfpToBmcSyncData WedgeManager::getQsfpToBmcSyncData() const {
 
     try {
       tcvrInfo = getTransceiverInfo(tcvrID);
-    } catch (const QsfpModuleError& e) {
+    } catch (const QsfpModuleError&) {
       XLOG(ERR) << "Module thermal data not available for " << tcvrID;
       continue;
     }

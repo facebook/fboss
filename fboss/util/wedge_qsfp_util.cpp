@@ -494,7 +494,7 @@ TransceiverManagementInterface getModuleTypeDirect(
     try {
       bus->moduleRead(
           port, {TransceiverAccessParameter::ADDR_QSFP, 0, 1}, &moduleId);
-    } catch (const I2cError& ex) {
+    } catch (const I2cError&) {
       fprintf(
           stderr, "QSFP %d: not present or read error, retrying...\n", port);
     }
@@ -550,7 +550,7 @@ bool flipModuleUpperPage(
         port,
         {TransceiverAccessParameter::ADDR_QSFP, 127, sizeof(page)},
         &page);
-  } catch (const I2cError& ex) {
+  } catch (const I2cError&) {
     fprintf(stderr, "QSFP %d: Fail to flip module upper page\n", port);
     return false;
   }
@@ -631,7 +631,7 @@ bool setCdr(TransceiverI2CApi* bus, unsigned int port, uint8_t value) {
   uint8_t buf[1] = {value};
   try {
     bus->moduleWrite(port, {TransceiverAccessParameter::ADDR_QSFP, 98, 1}, buf);
-  } catch (const I2cError& ex) {
+  } catch (const I2cError&) {
     fprintf(stderr, "QSFP %d: Failed to set CDR\n", port);
     return false;
   }
@@ -684,7 +684,7 @@ bool appSel(TransceiverI2CApi* bus, unsigned int port, uint8_t value) {
          kCMISOffsetStageCtrlSet0,
          sizeof(applySet0)},
         &applySet0);
-  } catch (const I2cError& ex) {
+  } catch (const I2cError&) {
     // This generally means the QSFP module is not present.
     fprintf(stderr, "QSFP %d: fail to change application\n", port);
     return false;
@@ -782,7 +782,7 @@ void doReadRegDirect(
         port,
         {static_cast<uint8_t>(FLAGS_i2c_address), offset, length},
         buf.data());
-  } catch (const I2cError& ex) {
+  } catch (const I2cError&) {
     fprintf(stderr, "QSFP %d: fail to read module\n", port);
     return;
   }
@@ -838,7 +838,7 @@ void doWriteRegDirect(
     }
     bus->moduleWrite(
         port, {static_cast<uint8_t>(FLAGS_i2c_address), offset, 1}, &value);
-  } catch (const I2cError& ex) {
+  } catch (const I2cError&) {
     fprintf(stderr, "QSFP %d: not present or unwritable\n", port);
     return;
   }
@@ -901,7 +901,7 @@ void readRegisterDirect(
 
     bus->moduleRead(
         port, {static_cast<uint8_t>(FLAGS_i2c_address), offset, length}, buf);
-  } catch (const I2cError& ex) {
+  } catch (const I2cError&) {
     fprintf(stderr, "QSFP %d: fail to read module\n", port);
   }
 }
@@ -1181,9 +1181,9 @@ DOMDataUnion fetchDataFromLocalI2CBus(
         cmisSupportRemediate);
     try {
       cmisModule->refresh();
-    } catch (FbossError& e) {
+    } catch (FbossError&) {
       printf("refresh() FbossError for port %d\n", port);
-    } catch (I2cError& e) {
+    } catch (I2cError&) {
       printf("refresh() YampI2cError for port %d\n", port);
     }
     return cmisModule->getDOMDataUnion();
@@ -2433,7 +2433,7 @@ void tryOpenBus(TransceiverI2CApi* bus) {
     try {
       bus->open();
       return;
-    } catch (const std::exception& ex) {
+    } catch (const std::exception&) {
       if (steady_clock::now() > expireTime) {
         throw;
       }
@@ -2535,7 +2535,7 @@ int dumpTransceiverI2cLog(
       auto client = getQsfpClient(evb);
       client->sync_dumpTransceiverI2cLog(port);
       successPorts.push_back(port);
-    } catch (const std::exception& ex) {
+    } catch (const std::exception&) {
       failedPorts.push_back(port);
       ret = EX_SOFTWARE;
     }
@@ -2643,7 +2643,7 @@ bool doMiniphotonLoopbackDirect(
     fprintf(stderr, "loopback value: %x\n", loopback);
     bus->moduleWrite(
         port, {TransceiverAccessParameter::ADDR_QSFP, 245, 1}, &loopback);
-  } catch (const I2cError& ex) {
+  } catch (const I2cError&) {
     fprintf(stderr, "QSFP %d: fail to set loopback\n", port);
     return false;
   }
@@ -2682,7 +2682,7 @@ void cmisHostInputLoopbackDirect(
         port,
         {TransceiverAccessParameter::ADDR_QSFP, 183, sizeof(data)},
         &data);
-  } catch (const I2cError& ex) {
+  } catch (const I2cError&) {
     fprintf(stderr, "QSFP %d: fail to set loopback\n", port);
   }
 }
@@ -2719,7 +2719,7 @@ void cmisMediaInputLoopbackDirect(
         port,
         {TransceiverAccessParameter::ADDR_QSFP, 181, sizeof(data)},
         &data);
-  } catch (const I2cError& ex) {
+  } catch (const I2cError&) {
     fprintf(stderr, "QSFP %d: fail to set loopback\n", port);
   }
 }

@@ -100,7 +100,7 @@ TEST_F(HwTest, CheckDefaultXphyFirmwareVersion) {
     try {
       xphy = getHwQsfpEnsemble()->getPhyManager()->getExternalPhy(
           GlobalXphyID(chip.second.get_physicalID()));
-    } catch (FbossError& e) {
+    } catch (FbossError&) {
       XLOG(ERR) << "XPHY not present in system "
                 << GlobalXphyID(chip.second.get_physicalID());
       continue;

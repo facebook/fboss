@@ -119,7 +119,7 @@ TransceiverManagementInterface QsfpUtil::getModuleTypeDirect(
     try {
       readViaDirectIoFn_(
           port, {TransceiverAccessParameter::ADDR_QSFP, 0, 1}, &moduleId);
-    } catch (const I2cError& ex) {
+    } catch (const I2cError&) {
       fprintf(
           stderr, "QSFP %d: not present or read error, retrying...\n", port);
     }

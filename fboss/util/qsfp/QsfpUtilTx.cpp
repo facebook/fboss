@@ -115,7 +115,7 @@ bool QsfpUtilTx::setSffTxDisableDirect(
           oneIndexedModuleId,
           {TransceiverAccessParameter::ADDR_QSFP, offset, length},
           &buf);
-    } catch (const I2cError& ex) {
+    } catch (const I2cError&) {
       XLOG(ERR) << fmt::format(
           "TxDisableTrace: QSFP {:d}: unwritable or write error",
           oneIndexedModuleId);
@@ -180,7 +180,7 @@ bool QsfpUtilTx::setCmisTxDisableDirect(
           oneIndexedModuleId,
           {TransceiverAccessParameter::ADDR_QSFP, offset, length},
           &savedPage);
-    } catch (const I2cError& ex) {
+    } catch (const I2cError&) {
       XLOG(ERR) << fmt::format(
           "TxDisableTrace: QSFP {:d}: read/write error", oneIndexedModuleId);
       return false;
