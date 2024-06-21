@@ -343,7 +343,7 @@ TxMatchFn checkDHCPV6Request(
       DHCPv6Packet dhcp6RelayMsgPkt;
       dhcp6RelayMsgPkt.parse(&c);
       EXPECT_EQ(true, (dhcp6RelayMsgPkt == dhcp6TxPkt));
-    } catch (const FbossError& err) {
+    } catch (const FbossError&) {
       throw FbossError("DHCPv6 packet parse error");
     }
   };
@@ -389,7 +389,7 @@ TxMatchFn checkDHCPV6RelayReply(
           "DHCP Msg Type");
       // Compare the expected DHCPReplyMsg to what was actually received
       EXPECT_EQ(true, (dhcp6Pkt == dhcp6RelayReplyMsg));
-    } catch (const FbossError& err) {
+    } catch (const FbossError&) {
       throw FbossError("DHCPv6 packet parse error");
     }
   };
@@ -430,7 +430,7 @@ TxMatchFn checkDHCPV6RelayForward(
       EXPECT_EQ(dhcp6Pkt.linkAddr, dhcp6TxPkt.linkAddr);
       EXPECT_EQ(dhcp6Pkt.peerAddr, dhcp6TxPkt.peerAddr);
       EXPECT_EQ(dhcp6Pkt.options, dhcp6TxPkt.options);
-    } catch (const FbossError& err) {
+    } catch (const FbossError&) {
       throw FbossError("DHCPv6 packet parse error");
     }
   };

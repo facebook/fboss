@@ -50,7 +50,7 @@ std::unique_ptr<AgentConfig> AgentConfigSetupTest::getAgentConfigFromFile(
   try {
     agentCustomConfig = AgentConfig::fromFile(configPath);
     XLOG(DBG2) << "Loading agent config from " << configPath;
-  } catch (const FbossError& ex) {
+  } catch (const FbossError&) {
     XLOG(DBG2) << "No pre warmboot agent config provided, using static config";
   }
   return agentCustomConfig;

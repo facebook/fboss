@@ -29,7 +29,7 @@ PlatformType getPlatformType() {
     facebook::fboss::PlatformProductInfo productInfo(FLAGS_fruid_filepath);
     productInfo.initialize();
     return productInfo.getType();
-  } catch (const facebook::fboss::FbossError& ex) {
+  } catch (const facebook::fboss::FbossError&) {
     return PlatformType::PLATFORM_FAKE_WEDGE;
   }
 }

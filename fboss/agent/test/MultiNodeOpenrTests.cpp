@@ -63,7 +63,7 @@ void checkOpenrInitialization() {
           auto client = getOpenrClient();
           initializationConverged = client->sync_initializationConverged();
           return true;
-        } catch (const std::exception& e) {
+        } catch (const std::exception&) {
           return false;
         }
       },
@@ -85,7 +85,7 @@ int checkOpenrNeighbors() {
           if (nbrCount >= 1) {
             return true;
           }
-        } catch (const std::exception& e) {
+        } catch (const std::exception&) {
           return false;
         }
         return false;
@@ -111,7 +111,7 @@ void advertiseOpenrRoutes(std::vector<std::string> toAdd) {
         try {
           auto client = getOpenrClient();
           client->sync_advertisePrefixes(std::move(prefixes));
-        } catch (const std::exception& e) {
+        } catch (const std::exception&) {
           return false;
         }
         return true;

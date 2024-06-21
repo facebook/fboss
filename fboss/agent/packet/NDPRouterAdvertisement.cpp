@@ -22,7 +22,7 @@ NDPRouterAdvertisement::NDPRouterAdvertisement(Cursor& cursor) {
     routerLifetime = cursor.readBE<uint16_t>();
     reachableTime = cursor.readBE<uint32_t>();
     retransTimer = cursor.readBE<uint32_t>();
-  } catch (const std::out_of_range& e) {
+  } catch (const std::out_of_range&) {
     throw HdrParseError("NDP Router Advertisement message too small");
   }
 }

@@ -43,7 +43,7 @@ IPv6Hdr::IPv6Hdr(Cursor& cursor) {
     hopLimit = cursor.read<uint8_t>();
     srcAddr = PktUtil::readIPv6(&cursor);
     dstAddr = PktUtil::readIPv6(&cursor);
-  } catch (const std::out_of_range& e) {
+  } catch (const std::out_of_range&) {
     throw HdrParseError("IPv6 header too small");
   }
 }

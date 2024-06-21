@@ -27,7 +27,7 @@ std::string SaiBcmPlatform::getHwConfig() {
                        ->get_asicConfig()
                        .common()
                        ->get_yamlConfig();
-    } catch (const std::exception& e) {
+    } catch (const std::exception&) {
       /*
        * (TODO): Once asic config v2 is rolled out to the fleet, we
        * should remove this fallback and always use the config v2
@@ -51,7 +51,7 @@ std::string SaiBcmPlatform::getHwConfig() {
   try {
     auto hwConfig = getHwAsicConfig();
     return hwConfig;
-  } catch (const FbossError& e) {
+  } catch (const FbossError&) {
     /*
      * (TODO): Once asic config v2 is rolled out to the fleet, we
      * should remove this fallback and always use the config v2

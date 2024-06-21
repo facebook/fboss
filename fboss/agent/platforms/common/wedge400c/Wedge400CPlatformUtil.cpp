@@ -42,7 +42,7 @@ bool isWedge400CPlatformRackTypeInferenceNetwhoami() {
         return true;
       }
     }
-  } catch (const std::exception& ex) {
+  } catch (const std::exception&) {
     // we won't be able to run netwhoami on netcastle switches causing
     // test failures. Switch to default behavior of no acadia rack when
     // the call fails

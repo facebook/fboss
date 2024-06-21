@@ -125,7 +125,7 @@ void AgentWrapperTest<T>::waitForStart(const std::string& unit) {
         SwitchRunState runState = SwitchRunState::UNINITIALIZED;
         try {
           runState = client->sync_getSwitchRunState(options);
-        } catch (const std::exception& ex) {
+        } catch (const std::exception&) {
           XLOG(INFO) << "Waiting for wedge agent to start";
           continue;
         }
