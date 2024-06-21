@@ -358,7 +358,8 @@ SaiPortSerdesTraits::CreateAttributes
 SaiPortManager::serdesAttributesFromSwPinConfigs(
     PortSaiId portSaiId,
     const std::vector<phy::PinConfig>& pinConfigs,
-    const std::shared_ptr<SaiPortSerdes>& /* serdes */) {
+    const std::shared_ptr<SaiPortSerdes>& /* serdes */,
+    bool /* zeroPreemphasis */) {
   SaiPortSerdesTraits::CreateAttributes attrs;
 
   SaiPortSerdesTraits::Attributes::TxFirPre1::ValueType txPre1;

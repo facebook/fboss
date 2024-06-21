@@ -156,7 +156,8 @@ class SaiPortManager {
   SaiPortSerdesTraits::CreateAttributes serdesAttributesFromSwPinConfigs(
       PortSaiId portSaid,
       const std::vector<phy::PinConfig>& pinConfigs,
-      const std::shared_ptr<SaiPortSerdes>& serdes);
+      const std::shared_ptr<SaiPortSerdes>& serdes,
+      bool zeroPreemphasis = false);
 
   const SaiPortHandle* getPortHandle(PortID swId) const;
   SaiPortHandle* getPortHandle(PortID swId);
