@@ -1603,6 +1603,9 @@ std::shared_ptr<PortQueue> ThriftConfigApplier::createPortQueue(
   if (pfcPriorities) {
     queue->setPfcPrioritySet(pfcPriorities.value());
   }
+  if (auto maxDynamicSharedBytes = cfg->maxDynamicSharedBytes()) {
+    queue->setMaxDynamicSharedBytes(*maxDynamicSharedBytes);
+  }
   return queue;
 }
 

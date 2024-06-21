@@ -105,6 +105,18 @@ class PortQueue : public thrift_cow::ThriftStructNode<PortQueueFields> {
     set<ctrl_if_tags::reserved>(reservedBytes);
   }
 
+  std::optional<int> getMaxDynamicSharedBytes() const {
+    if (const auto& maxDynamicSharedBytes =
+            cref<ctrl_if_tags::maxDynamicSharedBytes>()) {
+      return std::optional<int>(maxDynamicSharedBytes->cref());
+    }
+    return std::nullopt;
+  }
+
+  void setMaxDynamicSharedBytes(int maxDynamicSharedBytes) {
+    set<ctrl_if_tags::maxDynamicSharedBytes>(maxDynamicSharedBytes);
+  }
+
   std::optional<cfg::MMUScalingFactor> getScalingFactor() const {
     if (const auto& scalingFactor = cref<switch_state_tags::scalingFactor>()) {
       return apache::thrift::util::enumValueOrThrow<cfg::MMUScalingFactor>(

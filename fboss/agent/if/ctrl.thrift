@@ -398,6 +398,7 @@ struct PortQueueFields {
   14: optional i32 bandwidthBurstMaxKbits;
   15: optional i16 trafficClass;
   16: optional list<i16> pfcPriorities;
+  17: optional i32 maxDynamicSharedBytes;
 }
 
 struct SystemPortThrift {
