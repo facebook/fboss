@@ -780,7 +780,7 @@ bcm_port_if_t BcmPort::getDesiredInterfaceMode(
                << apache::thrift::util::enumNameSafe(transmitterTech)
                << "). RESULT=" << result;
     return result;
-  } catch (const std::out_of_range& ex) {
+  } catch (const std::out_of_range&) {
     throw FbossError(
         "Unsupported speed (",
         apache::thrift::util::enumNameSafe(speed),

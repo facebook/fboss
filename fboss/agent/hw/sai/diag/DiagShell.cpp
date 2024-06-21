@@ -219,7 +219,7 @@ bool DiagShell::tryConnect() {
       initTerminal();
       return true;
     }
-  } catch (const std::system_error& ex) {
+  } catch (const std::system_error&) {
     LOG(WARNING) << "Another diag shell client already connected";
   }
   throw FbossError(
@@ -236,7 +236,7 @@ void DiagShell::disconnect() {
       ts_.reset();
     }
     diagShellLock_.unlock();
-  } catch (const std::system_error& ex) {
+  } catch (const std::system_error&) {
     XLOG(WARNING) << "Trying to disconnect when it was never connected";
   }
 }

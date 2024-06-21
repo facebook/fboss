@@ -45,7 +45,7 @@ class HwSwitchStateReplayTest : public HwTest {
       try {
         thriftState.read(&reader);
         return SwitchState::fromThrift(*thriftState.swSwitchState());
-      } catch (const std::exception& e) {
+      } catch (const std::exception&) {
         XLOG(FATAL) << "Failed to parse replay switch state file to thrift.";
       }
     }

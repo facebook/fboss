@@ -66,7 +66,7 @@ void DHCPv4Packet::parse(Cursor* cursor) {
       cursor->pullAtMost(optionsRaw, optionsLen);
       copy(optionsRaw, optionsRaw + optionsLen, back_inserter(options));
     }
-  } catch (std::out_of_range& e) {
+  } catch (std::out_of_range&) {
     throw FbossError(
         "Too small packet, "
         "expected minimum ",

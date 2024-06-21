@@ -146,7 +146,7 @@ BcmPortGroup::~BcmPortGroup() {}
 BcmPortGroup::LaneMode BcmPortGroup::numLanesToLaneMode(uint8_t numLanes) {
   try {
     return static_cast<LaneMode>(numLanes);
-  } catch (const std::exception& ex) {
+  } catch (const std::exception&) {
     throw FbossError(
         "Unexpected number of lanes retrieved for bcm port ", numLanes);
   }

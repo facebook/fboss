@@ -63,7 +63,7 @@ IPv4Hdr::IPv4Hdr(Cursor& cursor) {
       cursor.pull(optionBuf, (ihl - 5) * sizeof(uint32_t));
     }
 
-  } catch (const std::out_of_range& e) {
+  } catch (const std::out_of_range&) {
     throw HdrParseError("IPv4 header too small");
   }
 }

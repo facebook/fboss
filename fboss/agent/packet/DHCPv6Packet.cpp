@@ -120,7 +120,7 @@ void DHCPv6Packet::parse(Cursor* cursor) {
       cursor->pullAtMost(optionsRaw, optionsLen);
       copy(optionsRaw, optionsRaw + optionsLen, back_inserter(options));
     }
-  } catch (std::out_of_range& e) {
+  } catch (std::out_of_range&) {
     throw FbossError("DHCPv6 packet parse error: too small packet");
   }
 }

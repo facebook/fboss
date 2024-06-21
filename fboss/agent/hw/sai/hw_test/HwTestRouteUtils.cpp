@@ -105,7 +105,7 @@ bool isHwRouteMultiPath(
     SaiApiTable::getInstance()->nextHopGroupApi().getAttribute(
         static_cast<NextHopGroupSaiId>(nhop),
         SaiNextHopGroupTraits::Attributes::NextHopMemberList{});
-  } catch (const SaiApiError& err) {
+  } catch (const SaiApiError&) {
     // its not next hop group
     return false;
   }
@@ -151,7 +151,7 @@ bool isHwRouteToNextHop(
               static_cast<NextHopGroupMemberSaiId>(member),
               SaiNextHopGroupMemberTraits::Attributes::Weight{});
     }
-  } catch (const SaiApiError& err) {
+  } catch (const SaiApiError&) {
     return isEgressToIp(ip, nhop);
   }
   return false;
@@ -185,7 +185,7 @@ bool isHwRoutePresent(
   try {
     SaiApiTable::getInstance()->routeApi().getAttribute(
         routeAdapterKey, SaiRouteTraits::Attributes::NextHopId());
-  } catch (const SaiApiError& err) {
+  } catch (const SaiApiError&) {
     return false;
   }
 

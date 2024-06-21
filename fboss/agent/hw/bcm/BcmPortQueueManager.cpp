@@ -138,7 +138,7 @@ BcmPortQueueConfig BcmPortQueueManager::getCurrentQueueSettings() const {
     try {
       unicastQueues.push_back(
           getCurrentQueueSettings(cfg::StreamType::UNICAST, i));
-    } catch (const facebook::fboss::FbossError& err) {
+    } catch (const facebook::fboss::FbossError&) {
       XLOG(ERR) << "Error in getCurrentQueueSettings - unicast cosq order: "
                 << i;
     }
@@ -149,7 +149,7 @@ BcmPortQueueConfig BcmPortQueueManager::getCurrentQueueSettings() const {
     try {
       multicastQueues.push_back(
           getCurrentQueueSettings(cfg::StreamType::MULTICAST, i));
-    } catch (const facebook::fboss::FbossError& err) {
+    } catch (const facebook::fboss::FbossError&) {
       XLOG(ERR) << "Error in getCurrentQueueSettings - multicast cosq order: "
                 << i;
     }
