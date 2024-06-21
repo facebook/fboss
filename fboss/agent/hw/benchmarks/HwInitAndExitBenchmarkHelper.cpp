@@ -205,6 +205,8 @@ void initandExitBenchmarkHelper(
   AgentEnsembleSwitchConfigFn voqInitialConfig =
       [](const AgentEnsemble& ensemble) {
         FLAGS_hide_fabric_ports = false;
+        // Diable dsf subcribe for single-box test
+        FLAGS_dsf_subscribe = false;
         auto config = utility::onePortPerInterfaceConfig(
             ensemble.getSw(),
             ensemble.masterLogicalPortIds(),
