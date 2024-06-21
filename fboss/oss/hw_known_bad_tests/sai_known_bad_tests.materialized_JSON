@@ -2077,7 +2077,7 @@
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot.HwTest_PROFILE_10G_1_NRZ_NOFEC_COPPER.TestProfile"
         },
         {
-          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot.SaiNextHopGroupTest.addNextHopGroupPortDown"
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot.SaiNextHopGroupTestWithWBWrites.addNextHopGroupPortDown"
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.HwFlexPortTest"
@@ -4764,7 +4764,7 @@
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot.HwTest_PROFILE_10G_1_NRZ_NOFEC_COPPER.TestProfile"
         },
         {
-          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot.SaiNextHopGroupTest.addNextHopGroupPortDown"
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot.SaiNextHopGroupTestWithWBWrites.addNextHopGroupPortDown"
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.HwFlexPortTest"
@@ -6378,7 +6378,7 @@
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot.HwTest_PROFILE_10G_1_NRZ_NOFEC_COPPER.TestProfile"
         },
         {
-          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot.SaiNextHopGroupTest.addNextHopGroupPortDown"
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot.SaiNextHopGroupTestWithWBWrites.addNextHopGroupPortDown"
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.HwFlexPortTest"
@@ -8594,7 +8594,7 @@
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot.HwTest_PROFILE_10G_1_NRZ_NOFEC_COPPER.TestProfile"
         },
         {
-          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot.SaiNextHopGroupTest.addNextHopGroupPortDown"
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot.SaiNextHopGroupTestWithWBWrites.addNextHopGroupPortDown"
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.HwFlexPortTest"
@@ -10166,6 +10166,9 @@
           "test_name_regex": "HwEcmpTest.*$"
         },
         {
+          "test_name_regex": "HwEcmpTestWithWBWrites.*$"
+        },
+        {
           "test_name_regex": "HwOverflowTest.*$"
         },
         {
@@ -11155,6 +11158,9 @@
         },
         {
           "test_name_regex": "HwEcmpTest.*$"
+        },
+        {
+          "test_name_regex": "HwEcmpTestWithWBWrites.*$"
         },
         {
           "test_name_regex": "HwOverflowTest.*$"
