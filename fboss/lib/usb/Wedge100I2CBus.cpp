@@ -79,7 +79,7 @@ bool Wedge100I2CBus::isPresent(unsigned int module) {
     // For example, bit0 indicates presence of QSFP1, bit1 for QSFP0, bit2 for
     // QSFP3, bit3 for QSFP2 and so on
     return !((buf >> (((module - 1) ^ 1) % 8)) & 1);
-  } catch (const I2cError& ex) {
+  } catch (const I2cError&) {
     XLOG(ERR) << "Error reading QSFP presence bits";
   }
   return false;
@@ -95,14 +95,14 @@ void Wedge100I2CBus::scanPresence(
   try {
     read(ADDR_QSFP_PRSNT_LOWER, 0, 2, buf);
     extractPresenceBits(buf, presences, false);
-  } catch (const I2cError& ex) {
+  } catch (const I2cError&) {
     XLOG(ERR) << "Error reading lower QSFP presence bits";
   }
 
   try {
     read(ADDR_QSFP_PRSNT_UPPER, 0, 2, buf);
     extractPresenceBits(buf, presences, true);
-  } catch (const I2cError& ex) {
+  } catch (const I2cError&) {
     XLOG(ERR) << "Error reading upper QSFP presence bits";
   }
 }

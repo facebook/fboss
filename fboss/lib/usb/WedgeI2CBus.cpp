@@ -36,7 +36,7 @@ void WedgeI2CBus::verifyBus(bool autoReset) {
   uint8_t tmpBuf[8];
   try {
     dev_->read(ADDR_EEPROM, MutableByteRange(tmpBuf, sizeof(tmpBuf)));
-  } catch (const UsbError& ex) {
+  } catch (const UsbError&) {
     // The read failed.
     // Reset the device, and then confirm that we can read this time.
     //
@@ -49,7 +49,7 @@ void WedgeI2CBus::verifyBus(bool autoReset) {
     if (autoReset) {
       try {
         dev_->resetDevice();
-      } catch (const UsbDeviceResetError& ex2) {
+      } catch (const UsbDeviceResetError&) {
       }
     } else {
       VLOG(1) << "initial read from CP2112 failed; I2C bus appears hung";

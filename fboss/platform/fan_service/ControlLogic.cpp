@@ -68,7 +68,7 @@ std::tuple<bool, int, uint64_t> ControlLogic::readFanRpm(const Fan& fan) {
       fanRpm = pBsp_->readSysfs(*fan.rpmSysfsPath());
       rpmTimeStamp = pBsp_->getCurrentTime();
       fanRpmReadSuccess = true;
-    } catch (std::exception& e) {
+    } catch (std::exception&) {
       XLOG(ERR) << fmt::format(
           "{}: Failed to read rpm from {}", fanName, *fan.rpmSysfsPath());
     }
@@ -352,7 +352,7 @@ bool ControlLogic::isFanPresentInDevice(const Fan& fan) {
   try {
     readVal = static_cast<unsigned>(pBsp_->readSysfs(*fan.presenceSysfsPath()));
     readSuccessful = true;
-  } catch (std::exception& e) {
+  } catch (std::exception&) {
     XLOG(ERR) << "Failed to read sysfs " << *fan.presenceSysfsPath();
   }
   auto fanPresent = (readSuccessful && readVal == *fan.fanPresentVal());

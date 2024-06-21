@@ -48,7 +48,7 @@ TEST(TimeSeriesWithMinMax, BasicTest) {
   try {
     buffer.getMax();
     assert(false);
-  } catch (std::runtime_error& e) {
+  } catch (std::runtime_error&) {
   }
 
   buffer.addValue(1);
@@ -66,6 +66,6 @@ TEST(TimeSeriesWithMinMax, BasicTest) {
   try {
     buffer.getMax();
     assert(false);
-  } catch (std::runtime_error& e) {
+  } catch (std::runtime_error&) {
   }
 }

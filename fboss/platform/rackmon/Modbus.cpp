@@ -68,7 +68,7 @@ bool Modbus::openDevice() {
     device_->open();
     deviceValid_ = true;
     return true;
-  } catch (std::exception& ex) {
+  } catch (std::exception&) {
     return false;
   }
 }

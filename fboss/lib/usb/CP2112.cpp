@@ -162,7 +162,7 @@ bool CP2112::resetFromRestEndpoint() {
       VLOG(1) << "Reset CP2112 via REST endpoint failed..returned error ";
       return false;
     }
-  } catch (const std::exception& ex) {
+  } catch (const std::exception&) {
     VLOG(2) << "Reset CP2112 via REST endpoint failed..fall back.";
     return false;
   }
@@ -296,7 +296,7 @@ void CP2112::read(uint8_t address, MutableByteRange buf, milliseconds timeout) {
   // Wait for the response data
   try {
     processReadResponse(buf, timeout);
-  } catch (UsbError& e) {
+  } catch (UsbError&) {
     XLOG(DBG5) << "CP2112 i2c read error";
     // Increment the counter for I2c read failure and throw error
     incrReadFailed();
@@ -339,7 +339,7 @@ void CP2112::write(uint8_t address, ByteRange buf, milliseconds timeout) {
 
   try {
     waitForTransfer("write", end);
-  } catch (UsbError& e) {
+  } catch (UsbError&) {
     XLOG(DBG5) << "cp2112 i2c write error";
     // Increment the counter for I2c write failure and throw error
     incrWriteFailed();
@@ -392,7 +392,7 @@ void CP2112::writeReadUnsafe(
   // Wait for the response data
   try {
     processReadResponse(readBuf, timeout);
-  } catch (UsbError& e) {
+  } catch (UsbError&) {
     LOG(ERROR) << "cp2112 i2c write read error";
     // Increment the counter for I2c write and read failure, then throw error
     incrReadFailed();

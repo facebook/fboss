@@ -89,7 +89,7 @@ bool Rackmon::probe(Modbus& interface, uint8_t addr) {
     logInfo << std::hex << std::setw(2) << std::setfill('0') << "Found "
             << int(addr) << " on " << interface.name() << std::endl;
     return true;
-  } catch (std::exception& e) {
+  } catch (std::exception&) {
     return false;
   }
 }

@@ -169,7 +169,7 @@ bool CdbCommandBlock::cmisRunCdbCommand(TransceiverImpl* bus) {
       bus->readTransceiver(
           {TransceiverAccessParameter::ADDR_QSFP, kCdbCommandStatusReg, 1},
           &status);
-    } catch (const std::exception& e) {
+    } catch (const std::exception&) {
       XLOG(INFO) << folly::sformat(
           "cmisRunCdbCommand Mod{:d}: read status raised exception: Sleep for 100ms and continue",
           bus->getNum());
@@ -222,7 +222,7 @@ bool CdbCommandBlock::cmisRunCdbCommand(TransceiverImpl* bus) {
                               uint8_t* buf) {
     try {
       bus->readTransceiver({i2cAddress, offset, length}, buf);
-    } catch (const std::exception& e) {
+    } catch (const std::exception&) {
       XLOG(INFO) << folly::sformat(
           "cmisRunCdbCommand Mod{:d}: read generic raised exception: Sleep for 100ms and retry",
           bus->getNum());

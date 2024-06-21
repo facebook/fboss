@@ -2784,7 +2784,7 @@ std::map<uint32_t, phy::PhyIDInfo> TransceiverManager::getAllPortPhyInfo() {
     GlobalXphyID xphyId;
     try {
       xphyId = phyManager_->getGlobalXphyIDbyPortID(PortID(portId));
-    } catch (FbossError& ex) {
+    } catch (FbossError&) {
       continue;
     }
     phy::PhyIDInfo phyIdInfo = phyManager_->getPhyIDInfo(xphyId);
