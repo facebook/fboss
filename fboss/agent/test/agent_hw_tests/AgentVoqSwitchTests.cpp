@@ -1246,6 +1246,11 @@ class AgentVoqSwitchFullScaleDsfNodesTest : public AgentVoqSwitchTest {
     return cfg;
   }
 
+  // Pending on BRCM CSPs CS00012356264, CS00012356275
+  bool failHwCallsOnWarmboot() const override {
+    return false;
+  }
+
   std::optional<std::map<int64_t, cfg::DsfNode>> overrideDsfNodes(
       const std::map<int64_t, cfg::DsfNode>& curDsfNodes) const {
     return utility::addRemoteDsfNodeCfg(curDsfNodes);
