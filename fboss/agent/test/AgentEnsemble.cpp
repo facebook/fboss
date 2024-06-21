@@ -127,6 +127,10 @@ void AgentEnsemble::startAgent(bool failHwCallsOnWarmboot) {
             HwAsic::Feature::ZERO_SDK_WRITE_WARMBOOT)) {
       if (failHwCallsOnWarmboot) {
         hwWriteBehavior = HwWriteBehavior::FAIL;
+      } else {
+        // If failHwCallsOnWarmboot = false, skip logging as the write is
+        // expected
+        hwWriteBehavior = HwWriteBehavior::WRITE;
       }
     }
   }
