@@ -25,6 +25,7 @@ using NeighborEntryT =
 namespace {
 
 using facebook::fboss::Interface;
+using facebook::fboss::PortID;
 using facebook::fboss::SwitchState;
 
 template <typename AddrT>
@@ -37,6 +38,14 @@ auto getNeighborEntryTableHelper(
     auto vlan = state->getVlans()->getNodeIf(interface->getVlanID());
     return vlan->template getNeighborEntryTable<AddrT>();
   }
+}
+
+folly::MacAddress getEventorPortInterfaceMac(
+    const std::shared_ptr<SwitchState>& state,
+    PortID portId) {
+  auto intfID = state->getInterfaceIDForPort(portId);
+  auto intf = state->getInterfaces()->getNodeIf(intfID);
+  return intf->getMac();
 }
 
 } // namespace
