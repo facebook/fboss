@@ -100,7 +100,12 @@ class Jericho3Asic : public BroadcomAsic {
     return 32768;
   }
   uint32_t getSflowShimHeaderSize() const override {
-    return 0;
+    /*
+     * J3 supports SflowV5 format (https://sflow.org/sflow_version_5.txt)
+     * SflowV5 will carry flow record which contains the ingress
+     * and egress system port
+     */
+    return 104;
   }
   std::optional<uint32_t> getPortSerdesPreemphasis() const override {
     return std::nullopt;
