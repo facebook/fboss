@@ -158,6 +158,7 @@ class Mirror : public ThriftStructNode<Mirror, state::MirrorFields> {
   void setEgressPort(PortID egressPort);
   void setMirrorTunnel(const MirrorTunnel& tunnel);
   void setSwitchId(SwitchID switchId);
+  void setDestinationMac(const folly::MacAddress& dstMac);
   SwitchID getSwitchId() const;
   void setMirrorName(const std::string& name);
   bool configHasEgressPort() const;

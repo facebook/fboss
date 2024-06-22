@@ -93,6 +93,15 @@ void Mirror::setEgressPort(PortID egressPort) {
   set<switch_state_tags::egressPort>(egressPort);
 }
 
+void Mirror::setDestinationMac(const folly::MacAddress& dstMac) {
+  auto tunnel = get<switch_state_tags::tunnel>();
+  if (tunnel) {
+    auto tunnelThrift = tunnel->toThrift();
+    tunnelThrift.dstMac() = dstMac.toString();
+    set<switch_state_tags::tunnel>(tunnelThrift);
+  }
+}
+
 void Mirror::setMirrorTunnel(const MirrorTunnel& tunnel) {
   set<switch_state_tags::tunnel>(tunnel.toThrift());
   // sflow or erspan mirror is resolved.
