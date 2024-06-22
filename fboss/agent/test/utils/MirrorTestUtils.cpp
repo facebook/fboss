@@ -42,6 +42,10 @@ void configureTrapAcl(cfg::SwitchConfig& config, bool isV4) {
   utility::addTrapPacketAcl(&config, cidr);
 }
 
+void configureTrapAcl(cfg::SwitchConfig& config, PortID portId) {
+  utility::addTrapPacketAcl(&config, portId);
+}
+
 void configureSflowSampling(
     cfg::SwitchConfig& config,
     const std::string& mirrorName,

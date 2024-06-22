@@ -25,5 +25,6 @@ void configureSflowSampling(
     int sampleRate);
 
 void configureTrapAcl(cfg::SwitchConfig& config, bool isV4);
+void configureTrapAcl(cfg::SwitchConfig& config, PortID portId);
 
 } // namespace facebook::fboss::utility
