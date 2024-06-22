@@ -157,6 +157,8 @@ std::shared_ptr<Mirror> MirrorManagerImpl<AddrT>::updateMirror(
     // mirror destination
     auto eventorPort = getEventorPortForSflowMirror(mirror->getSwitchId());
     newMirror->setEgressPort(eventorPort);
+    newMirror->setDestinationMac(
+        getEventorPortInterfaceMac(state, eventorPort));
   }
 
   if (*mirror == *newMirror) {
