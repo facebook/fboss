@@ -76,6 +76,7 @@ bool Jericho3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::EVENTOR_PORT_FOR_SFLOW:
     case HwAsic::Feature::SFLOWv6:
     case HwAsic::Feature::ZERO_SDK_WRITE_WARMBOOT:
+    case HwAsic::Feature::CPU_VOQ_BUFFER_PROFILE:
       return true;
     // Features not expected to work on SIM
     case HwAsic::Feature::SHARED_INGRESS_EGRESS_BUFFER_POOL:

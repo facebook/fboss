@@ -177,6 +177,7 @@ class HwAsic {
     FABRIC_LINK_DOWN_CELL_DROP_COUNTER,
     CRC_ERROR_DETECT,
     EVENTOR_PORT_FOR_SFLOW,
+    CPU_VOQ_BUFFER_PROFILE,
   };
 
   enum class AsicMode {

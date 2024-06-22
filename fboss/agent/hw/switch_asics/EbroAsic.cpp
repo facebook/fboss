@@ -171,6 +171,7 @@ bool EbroAsic::isSupportedNonFabric(Feature feature) const {
     case HwAsic::Feature::FABRIC_LINK_DOWN_CELL_DROP_COUNTER:
     case HwAsic::Feature::CRC_ERROR_DETECT:
     case HwAsic::Feature::EVENTOR_PORT_FOR_SFLOW:
+    case HwAsic::Feature::CPU_VOQ_BUFFER_PROFILE:
       return false;
   }
   return false;
