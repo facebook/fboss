@@ -50,7 +50,6 @@ class AgentSflowMirrorTest : public AgentHwTest {
     auto asic = ensemble.getSw()->getHwAsicTable()->getHwAsic(port0Switch);
     auto ports = getPortsForSampling(ensemble.masterLogicalPortIds(), asic);
     this->configureMirror(cfg);
-    this->configureTrapAcl(cfg);
     return cfg;
   }
 
@@ -60,10 +59,10 @@ class AgentSflowMirrorTest : public AgentHwTest {
   }
 
   void configureTrapAcl(cfg::SwitchConfig& cfg) const {
-    utility::configureTrapAcl(cfg, std::is_same_v<AddrT, folly::IPAddressV4>);
+    utility::configureTrapAcl(cfg, getNonSflowSampledInterfacePorts());
   }
 
-  PortID getNonSflowSampledInterfacePorts() {
+  PortID getNonSflowSampledInterfacePorts() const {
     return getPortsForSampling()[0];
   }
 
@@ -362,6 +361,7 @@ class AgentSflowMirrorTest : public AgentHwTest {
       auto ports = getPortsForSampling();
       auto config = initialConfig(*getAgentEnsemble());
       configSampling(config, 1);
+      configureTrapAcl(config);
       applyNewConfig(config);
       resolveRouteForMirrorDestination();
     };
@@ -379,6 +379,7 @@ class AgentSflowMirrorTest : public AgentHwTest {
     auto setup = [=, this]() {
       auto config = initialConfig(*getAgentEnsemble());
       configSampling(config, FLAGS_sflow_test_rate);
+      configureTrapAcl(config);
       applyNewConfig(config);
       resolveRouteForMirrorDestination();
     };
