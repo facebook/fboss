@@ -15,11 +15,6 @@ DEFINE_bool(
     list_production_feature,
     false,
     "list production feature needed for every single test");
-DECLARE_bool(disable_neighbor_updates);
-DECLARE_bool(disable_icmp_error_response);
-DECLARE_bool(enable_snapshot_debugs);
-DECLARE_bool(disable_looped_fabric_ports);
-DECLARE_bool(dsf_subscribe);
 
 namespace {
 int kArgc;

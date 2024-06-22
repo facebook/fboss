@@ -17,6 +17,11 @@ DECLARE_bool(publish_state_to_fsdb);
 DECLARE_bool(publish_stats_to_fsdb);
 DECLARE_bool(intf_nbr_tables);
 DECLARE_bool(classid_for_unresolved_routes);
+DECLARE_bool(disable_neighbor_updates);
+DECLARE_bool(disable_icmp_error_response);
+DECLARE_bool(enable_snapshot_debugs);
+DECLARE_bool(disable_looped_fabric_ports);
+DECLARE_bool(dsf_subscribe);
 
 namespace facebook::fboss {
 
