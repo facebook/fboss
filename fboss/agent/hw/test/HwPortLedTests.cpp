@@ -16,11 +16,6 @@ class HwPortLedTest : public HwLinkStateDependentTest {
     return utility::onePortPerInterfaceConfig(
         getHwSwitch(), {masterLogicalPortIds()[0]}, lbMode);
   }
-
-  // Pending on D57993788 to land
-  bool failHwCallsOnWarmboot() const override {
-    return false;
-  }
 };
 
 TEST_F(HwPortLedTest, TestLed) {
