@@ -2751,52 +2751,59 @@ void SaiPortManager::changeZeroPreemphasis(
     bool supportsZeroPreemphasis = platform_->getAsic()->isSupported(
         HwAsic::Feature::PORT_SERDES_ZERO_PREEMPHASIS);
 #endif
-
     if (!supportsZeroPreemphasis) {
       return;
     }
 
+    auto gotAttributes = portHandle->port->attributes();
+    auto numLanes =
+        std::get<SaiPortTraits::Attributes::HwLaneList>(gotAttributes)
+            .value()
+            .size();
+
     auto serDesAttributes = serdesAttributesFromSwPinConfigs(
         portHandle->port->adapterKey(),
         newPort->getPinConfigs(),
-        portHandle->serdes,
-        newPort->getZeroPreemphasis());
+        portHandle->serdes);
+
+    auto setTxRxAttr = [](auto& attrs, auto type, const auto& val) {
+      auto& attr = std::get<std::optional<std::decay_t<decltype(type)>>>(attrs);
+      if (!val.empty()) {
+        attr = val;
+      }
+    };
+    auto zeroVal = std::vector<uint32_t>(numLanes, static_cast<uint32_t>(0));
+    if (platform_->getAsic()->isSupported(
+            HwAsic::Feature::PORT_SERDES_ZERO_PREEMPHASIS)) {
+      setTxRxAttr(
+          serDesAttributes,
+          SaiPortSerdesTraits::Attributes::Preemphasis{},
+          zeroVal);
+    } else {
+      // Set three-tap values to zero
+      setTxRxAttr(
+          serDesAttributes,
+          SaiPortSerdesTraits::Attributes::TxFirPre1{},
+          zeroVal);
+      setTxRxAttr(
+          serDesAttributes,
+          SaiPortSerdesTraits::Attributes::TxFirMain{},
+          zeroVal);
+      setTxRxAttr(
+          serDesAttributes,
+          SaiPortSerdesTraits::Attributes::TxFirPost1{},
+          zeroVal);
+    }
     if (platform_->isSerdesApiSupported() &&
         platform_->getAsic()->isSupported(
             HwAsic::Feature::SAI_PORT_SERDES_PROGRAMMING)) {
-#ifdef TAJO_SAI_SDK
-      // TAJO requires recreating serdes object to zero peremphasis.
-      SaiPortSerdesTraits::AdapterHostKey serdesKey{
-          portHandle->port->adapterKey()};
-      auto& store = saiStore_->get<SaiPortSerdesTraits>();
-      auto serdes = store.get(serdesKey);
-      portHandle->serdes.reset();
-      serdes.reset();
-      portHandle->serdes = store.setObject(serdesKey, serDesAttributes);
-#else
-      // Brcm enforces main tap to be greater than all attributes.
-      // Hence set other attributes first, and then set main to zero.
-      auto setTxRxAttr = [](auto& attrs, auto type, const auto& val) {
-        auto& attr =
-            std::get<std::optional<std::decay_t<decltype(type)>>>(attrs);
-        if (!val.empty()) {
-          attr = val;
-        }
-      };
-
-      auto nonZeroMainAttribute = serDesAttributes;
-      auto txMain =
-          std::get<std::optional<SaiPortSerdesTraits::Attributes::TxFirMain>>(
-              serDesAttributes);
-      if (txMain.has_value()) {
-        setTxRxAttr(
-            nonZeroMainAttribute,
-            SaiPortSerdesTraits::Attributes::TxFirMain{},
-            txMain.value().value());
-        portHandle->serdes->setAttributes(nonZeroMainAttribute);
-      }
       portHandle->serdes->setAttributes(serDesAttributes);
-#endif
+
+      // Read from HW to see if six-tap attribute changes after setting
+      // preemphasis. Then update sai store only.
+      reloadSixTapAttributes(portHandle, serDesAttributes);
+      portHandle->serdes->setAttributes(
+          serDesAttributes, /* skipHwWrite */ true);
     }
   }
 }

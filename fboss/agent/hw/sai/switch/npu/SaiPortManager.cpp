@@ -308,9 +308,6 @@ void SaiPortManager::changePortImpl(
       getPortAdapterHostKeyFromAttr(newAttributes)};
   auto& portStore = saiStore_->get<SaiPortTraits>();
   auto saiPort = portStore.setObject(portKey, newAttributes, newPort->getID());
-
-  changeZeroPreemphasis(oldPort, newPort);
-
   programSerdes(saiPort, newPort, existingPort);
   // if vlan changed update it, this is important for rx processing
   if (newPort->getIngressVlan() != oldPort->getIngressVlan()) {
@@ -334,6 +331,7 @@ void SaiPortManager::changePortImpl(
   changeSamplePacket(oldPort, newPort);
   changePfc(oldPort, newPort);
   changeRxLaneSquelch(oldPort, newPort);
+  changeZeroPreemphasis(oldPort, newPort);
   changeTxEnable(oldPort, newPort);
   programPfcBuffers(newPort);
 
@@ -862,26 +860,9 @@ void SaiPortManager::programSerdes(
         << "some lanes are missing for rx-settings";
   }
 
-  // Check if the platform supports setting zero preemphasis.
-  // TH4 and TH5 starts supporting zero preemphasis starting 11.0
-#if defined(BRCM_SAI_SDK_GTE_11_0)
-  bool supportsZeroPreemphasis =
-      platform_->getAsic()->isSupported(
-          HwAsic::Feature::PORT_SERDES_ZERO_PREEMPHASIS) ||
-      platform_->getAsic()->getAsicType() ==
-          cfg::AsicType::ASIC_TYPE_TOMAHAWK4 ||
-      platform_->getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_TOMAHAWK5;
-#else
-  bool supportsZeroPreemphasis = platform_->getAsic()->isSupported(
-      HwAsic::Feature::PORT_SERDES_ZERO_PREEMPHASIS);
-#endif
-
   SaiPortSerdesTraits::CreateAttributes serdesAttributes =
       serdesAttributesFromSwPinConfigs(
-          saiPort->adapterKey(),
-          swPort->getPinConfigs(),
-          serdes,
-          swPort->getZeroPreemphasis() && supportsZeroPreemphasis);
+          saiPort->adapterKey(), swPort->getPinConfigs(), serdes);
   if (serdes &&
       checkPortSerdesAttributes(serdes->attributes(), serdesAttributes)) {
     portHandle->serdes = serdes;
@@ -923,8 +904,7 @@ SaiPortSerdesTraits::CreateAttributes
 SaiPortManager::serdesAttributesFromSwPinConfigs(
     PortSaiId portSaiId,
     const std::vector<phy::PinConfig>& pinConfigs,
-    const std::shared_ptr<SaiPortSerdes>& serdes,
-    bool zeroPreemphasis) {
+    const std::shared_ptr<SaiPortSerdes>& serdes) {
   SaiPortSerdesTraits::CreateAttributes attrs;
 
   SaiPortSerdesTraits::Attributes::TxFirPre1::ValueType txPre1;
@@ -948,28 +928,28 @@ SaiPortManager::serdesAttributesFromSwPinConfigs(
   for (const auto& pinConfig : pinConfigs) {
     if (auto tx = pinConfig.tx()) {
       ++numExpectedTxLanes;
-      txPre1.push_back(zeroPreemphasis ? 0 : *tx->pre());
-      txMain.push_back(zeroPreemphasis ? 0 : *tx->main());
-      txPost1.push_back(zeroPreemphasis ? 0 : *tx->post());
+      txPre1.push_back(*tx->pre());
+      txMain.push_back(*tx->main());
+      txPost1.push_back(*tx->post());
       if (FLAGS_sai_configure_six_tap &&
           platform_->getAsic()->isSupported(
               HwAsic::Feature::SAI_CONFIGURE_SIX_TAP)) {
-        txPost2.push_back(zeroPreemphasis ? 0 : *tx->post2());
-        txPost3.push_back(zeroPreemphasis ? 0 : *tx->post3());
-        txPre2.push_back(zeroPreemphasis ? 0 : *tx->pre2());
+        txPost2.push_back(*tx->post2());
+        txPost3.push_back(*tx->post3());
+        txPre2.push_back(*tx->pre2());
         if (platform_->getAsic()->getAsicVendor() ==
             HwAsic::AsicVendor::ASIC_VENDOR_TAJO) {
           if (auto lutMode = tx->lutMode()) {
-            txLutMode.push_back(zeroPreemphasis ? 0 : *lutMode);
+            txLutMode.push_back(*lutMode);
           }
         }
       }
       if (auto pre3 = tx->pre3()) {
-        txPre3.push_back(zeroPreemphasis ? 0 : *pre3);
+        txPre3.push_back(*pre3);
       }
 
       if (auto driveCurrent = tx->driveCurrent()) {
-        txIDriver.push_back(zeroPreemphasis ? 0 : driveCurrent.value());
+        txIDriver.push_back(driveCurrent.value());
       }
     }
     if (auto rx = pinConfig.rx()) {
@@ -1020,13 +1000,10 @@ SaiPortManager::serdesAttributesFromSwPinConfigs(
     setTxRxAttr(attrs, SaiPortSerdesTraits::Attributes::TxFirPre3{}, txPre3);
   }
 
-  if (platform_->getAsic()->getPortSerdesPreemphasis().has_value() ||
-      zeroPreemphasis) {
+  if (platform_->getAsic()->getPortSerdesPreemphasis().has_value()) {
     SaiPortSerdesTraits::Attributes::Preemphasis::ValueType preempahsis(
         numExpectedTxLanes,
-        zeroPreemphasis
-            ? 0
-            : platform_->getAsic()->getPortSerdesPreemphasis().value());
+        platform_->getAsic()->getPortSerdesPreemphasis().value());
     setTxRxAttr(
         attrs, SaiPortSerdesTraits::Attributes::Preemphasis{}, preempahsis);
   }
