@@ -1291,7 +1291,7 @@ public:
 #if variant_CPP11_OR_GREATER
   virtual const char *what() const variant_noexcept variant_override
 #else
-  virtual const char *what() const throw()
+  virtual const char *what() const noexcept
 #endif
   {
     return "bad variant access";
