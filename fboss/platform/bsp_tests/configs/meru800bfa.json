@@ -108,6 +108,9 @@
                             },
                             "hwmonTestData": {
                                 "expectedFeatures": ["fan1", "fan2", "fan3"]
+                            },
+                            "watchdogTestData": {
+                                "numWatchdogs": 1
                             }
                         },
                         {

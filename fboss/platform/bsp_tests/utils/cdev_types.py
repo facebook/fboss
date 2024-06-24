@@ -188,6 +188,12 @@ class HwmonTestData:
 
 @dataclass_json
 @dataclass
+class WatchdogTestData:
+    numWatchdogs: int
+
+
+@dataclass_json
+@dataclass
 class I2CDevice:
     channel: int
     deviceName: str
@@ -195,6 +201,7 @@ class I2CDevice:
     testData: Optional[I2CTestData] = None
     hwmonTestData: Optional[HwmonTestData] = None
     gpioTestData: Optional[GpioTestData] = None
+    watchdogTestData: Optional[WatchdogTestData] = None
 
 
 @dataclass_json
