@@ -11,6 +11,7 @@ from fboss.platform.bsp_tests.utils.i2c_utils import (
 from fboss.platform.bsp_tests.utils.watchdog_utils import (
     get_watchdog_timeout,
     get_watchdogs,
+    set_watchdog_timeout,
 )
 
 
@@ -56,7 +57,37 @@ class TestWatchdog(TestBase):
         pass
 
     def test_watchdog_set_timeout(self):
-        pass
+        for fpga in self.fpgas:
+            for adapter in fpga.i2cAdapters:
+                newAdapters, baseBusNum = create_i2c_adapter(fpga, adapter)
+                try:
+                    for device in adapter.i2cDevices:
+                        if not device.watchdogTestData:
+                            continue
+                        existingWdts = get_watchdogs()
+                        busNum = baseBusNum + device.channel
+                        create_i2c_device(device, busNum)
+                        newWdts = get_watchdogs() - existingWdts
+                        for watchdog in newWdts:
+                            try:
+                                with open(watchdog, "w") as f:
+                                    set_watchdog_timeout(f.fileno(), 10)
+                                    t = get_watchdog_timeout(f.fileno())
+                                    assert (
+                                        t == 10
+                                    ), f"Timeout expected to be 10, got {t}"
+                                    set_watchdog_timeout(f.fileno(), 100)
+                                    t = get_watchdog_timeout(f.fileno())
+                                    assert (
+                                        t == 100
+                                    ), f"Timeout expected to be 100, got {t}"
+                            except Exception as e:
+                                pytest.fail(
+                                    f"Failed to set timeout for {watchdog}: {e}"
+                                )
+
+                finally:
+                    delete_device(fpga, adapter.auxDevice)
 
     def test_watchdog_magic_close(self):
         pass
