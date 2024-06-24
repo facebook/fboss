@@ -106,7 +106,7 @@ void aclEntryActionSaiObjectIdListAttr(
               attr_list[i].value.aclaction.parameter.objlist.list[j])));
     }
   } else {
-    attrLines.push_back(to<string>(prefix, "list=NULL"));
+    attrLines.push_back(to<string>(prefix, "parameter.objlist.list=NULL"));
   }
 }
 
