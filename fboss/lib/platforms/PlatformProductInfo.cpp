@@ -165,7 +165,8 @@ void PlatformProductInfo::initMode() {
       type_ = PlatformType::PLATFORM_MORGAN800CC;
     } else if (modelName.find("FAKE_SAI") == 0) {
       type_ = PlatformType::PLATFORM_FAKE_SAI;
-    } else if (modelName.find("JANGA800BIC") == 0) {
+    } else if (
+        modelName.find("JANGA800BIC") == 0 || modelName.find("JANGA") == 0) {
       type_ = PlatformType::PLATFORM_JANGA800BIC;
     } else if (
         modelName.find("TAHAN800BC") == 0 ||
