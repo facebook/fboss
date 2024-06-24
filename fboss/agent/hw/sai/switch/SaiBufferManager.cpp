@@ -425,8 +425,12 @@ SaiBufferProfileTraits::CreateAttributes SaiBufferManager::profileCreateAttrs(
   std::optional<SaiBufferProfileTraits::Attributes::SharedFadtMaxTh>
       sharedFadtMaxTh;
 #if defined(SAI_VERSION_11_0_EA_DNX_ODP)
-  // TODO(daiweix): set right value from port queue state, use default 0 for now
-  sharedFadtMaxTh = 0;
+  if (queue.getMaxDynamicSharedBytes()) {
+    sharedFadtMaxTh = queue.getMaxDynamicSharedBytes().value();
+  } else {
+    // use default value 0
+    sharedFadtMaxTh = 0;
+  }
 #endif
   return SaiBufferProfileTraits::CreateAttributes{
       pool, reservedBytes, mode, dynThresh, 0, 0, 0, sharedFadtMaxTh};

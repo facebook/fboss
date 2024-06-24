@@ -94,7 +94,7 @@ void sai_create_cpu_port() {
         SAI_QUEUE_TYPE_MULTICAST, portId, queueId, portId);
     port.queueIdList.push_back(saiQueueId);
     auto saiVoqId = fs->queueManager.create(
-        SAI_QUEUE_TYPE_UNICAST_VOQ, portId, queueId, portId);
+        SAI_QUEUE_TYPE_MULTICAST_VOQ, portId, queueId, portId);
     systemPort.queueIdList.push_back(saiVoqId);
   }
   fs->cpuPortId = portId;

@@ -447,6 +447,28 @@ SaiQueueHandle* SaiHostifManager::getQueueHandle(
   return getQueueHandleImpl(saiQueueConfig);
 }
 
+SaiQueueHandle* FOLLY_NULLABLE
+SaiHostifManager::getVoqHandleImpl(const SaiQueueConfig& saiQueueConfig) const {
+  auto itr = cpuPortHandle_->voqs.find(saiQueueConfig);
+  if (itr == cpuPortHandle_->voqs.end()) {
+    XLOG(FATAL) << "No cpu voq handle configured for " << saiQueueConfig.first;
+  }
+  if (!itr->second.get()) {
+    XLOG(FATAL) << "Invalid null SaiQueueHandle for cpu voq";
+  }
+  return itr->second.get();
+}
+
+const SaiQueueHandle* FOLLY_NULLABLE
+SaiHostifManager::getVoqHandle(const SaiQueueConfig& saiQueueConfig) const {
+  return getVoqHandleImpl(saiQueueConfig);
+}
+
+SaiQueueHandle* FOLLY_NULLABLE
+SaiHostifManager::getVoqHandle(const SaiQueueConfig& saiQueueConfig) {
+  return getVoqHandleImpl(saiQueueConfig);
+}
+
 void SaiHostifManager::changeCpuQueue(
     const ControlPlane::PortQueues& oldQueueConfig,
     const ControlPlane::PortQueues& newQueueConfig) {
@@ -478,6 +500,17 @@ void SaiHostifManager::changeCpuQueue(
             : asic->getDefaultScalingFactor(
                   newPortQueue->getStreamType(), true /*cpu port*/));
     managerTable_->queueManager().changeQueue(queueHandle, *portQueue);
+    if (platform_->getAsic()->isSupported(
+            HwAsic::Feature::CPU_VOQ_BUFFER_PROFILE)) {
+      auto voqHandle = getVoqHandle(saiQueueConfig);
+      if (newPortQueue->getMaxDynamicSharedBytes()) {
+        portQueue->setMaxDynamicSharedBytes(
+            *newPortQueue->getMaxDynamicSharedBytes());
+      }
+      if (voqHandle) {
+        managerTable_->queueManager().changeQueue(voqHandle, *portQueue);
+      }
+    }
     if (newPortQueue->getName().has_value()) {
       auto queueName = *newPortQueue->getName();
       cpuStats_.queueChanged(newPortQueue->getID(), queueName);
