@@ -136,4 +136,20 @@ class TestWatchdog(TestBase):
                     delete_device(fpga, adapter.auxDevice)
 
     def test_watchdog_driver_unload(self):
-        pass
+        existing_wdts = get_watchdogs()
+        expected_wdts = 0
+        id = 1
+        for fpga in self.fpgas:
+            for adapter in fpga.i2cAdapters:
+                newAdapters, baseBusNum = create_i2c_adapter(fpga, adapter, id)
+                id += 1
+                for device in adapter.i2cDevices:
+                    if not device.watchdogTestData:
+                        continue
+                    expected_wdts += device.watchdogTestData.numWatchdogs
+                    busNum = baseBusNum + device.channel
+                    create_i2c_device(device, busNum)
+        new_wdts = get_watchdogs() - existing_wdts
+        assert len(new_wdts) == expected_wdts
+        self.unload_kmods()
+        assert len(get_watchdogs()) == 0
