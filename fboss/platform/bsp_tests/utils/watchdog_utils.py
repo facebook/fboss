@@ -1,6 +1,7 @@
 import ctypes
 import fcntl
 import glob
+import os
 import struct
 from typing import Set
 
@@ -36,3 +37,8 @@ def ping_watchdog(fd: int) -> None:
     result = fcntl.ioctl(fd, WDIOC_KEEPALIVE)
     if not result == 0:
         raise Exception(f"Failed to ping watchdog {result}")
+
+
+def magic_close_watchdog(fd: int) -> None:
+    # write "V" to the fd
+    os.write(fd, b"V")

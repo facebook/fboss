@@ -11,6 +11,7 @@ from fboss.platform.bsp_tests.utils.i2c_utils import (
 from fboss.platform.bsp_tests.utils.watchdog_utils import (
     get_watchdog_timeout,
     get_watchdogs,
+    magic_close_watchdog,
     ping_watchdog,
     set_watchdog_timeout,
 )
@@ -109,8 +110,30 @@ class TestWatchdog(TestBase):
                 finally:
                     delete_device(fpga, adapter.auxDevice)
 
+    # TODO: We need to add a requirement that the option
+    # get_timeleft is enabled in order to reliably
+    # test the magic close feature
     def test_watchdog_magic_close(self):
-        pass
+        for fpga in self.fpgas:
+            for adapter in fpga.i2cAdapters:
+                newAdapters, baseBusNum = create_i2c_adapter(fpga, adapter)
+                try:
+                    for device in adapter.i2cDevices:
+                        if not device.watchdogTestData:
+                            continue
+                        existingWdts = get_watchdogs()
+                        busNum = baseBusNum + device.channel
+                        create_i2c_device(device, busNum)
+                        newWdts = get_watchdogs() - existingWdts
+                        assert len(newWdts) == device.watchdogTestData.numWatchdogs
+                        for watchdog in newWdts:
+                            try:
+                                with open(watchdog, "w") as f:
+                                    magic_close_watchdog(f.fileno())
+                            except Exception as e:
+                                pytest.fail(f"Failed to close {watchdog}: {e}")
+                finally:
+                    delete_device(fpga, adapter.auxDevice)
 
     def test_watchdog_driver_unload(self):
         pass
