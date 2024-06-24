@@ -503,6 +503,7 @@ void AgentHwTest::dumpConfigWithOverriddenGflags(
   *newAgentConfig.sw() = *inputAgentConfig->thrift.sw();
   *newAgentConfig.platform() = *inputAgentConfig->thrift.platform();
   auto agentConfig = AgentConfig(newAgentConfig);
+  utilCreateDir(AgentDirectoryUtil().agentEnsembleConfigDir());
   agentConfig.dumpConfig(
       AgentDirectoryUtil().agentEnsembleConfigDir() +
       kOverriddenAgentConfigFile);
