@@ -63,7 +63,9 @@ class AgentSflowMirrorTest : public AgentHwTest {
   }
 
   PortID getNonSflowSampledInterfacePorts() const {
-    return getPortsForSampling()[0];
+    return getAsic()->isSupported(HwAsic::Feature::MANAGEMENT_PORT)
+        ? masterLogicalPortIds({cfg::PortType::MANAGEMENT_PORT})[0]
+        : getPortsForSampling()[0];
   }
 
   std::vector<PortID> getPortsForSampling() const {
