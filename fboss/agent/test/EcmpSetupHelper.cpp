@@ -103,7 +103,8 @@ BaseEcmpSetupHelper<AddrT, NextHopT>::computePortDesc2Interface(
   std::set<PortID> portIds;
   for (const auto& portMap : std::as_const(*inputState->getPorts())) {
     for (const auto& port : std::as_const(*portMap.second)) {
-      if (port.second->getPortType() == cfg::PortType::INTERFACE_PORT) {
+      if (port.second->getPortType() == cfg::PortType::INTERFACE_PORT ||
+          port.second->getPortType() == cfg::PortType::MANAGEMENT_PORT) {
         portIds.insert(port.second->getID());
       }
     }
