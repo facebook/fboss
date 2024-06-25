@@ -66,15 +66,13 @@ void TxPktEventSyncer::TxPacketEventHandler(
   }
   auto len = (*txPkt.data())->computeChainDataLength();
   auto pkt = hw->allocatePacket(len);
-  folly::io::RWPrivateCursor cursor(pkt->buf());
-  cursor.push((*txPkt.data())->data(), len);
+  folly::io::Cursor inCursor(txPkt.data()->get());
+  folly::io::RWPrivateCursor outCursor(pkt->buf());
+  outCursor.pushAtMost(inCursor, len);
   if (txPkt.port().has_value()) {
     PortID portId(*txPkt.port());
-    std::optional<uint8_t> queue;
-    if (txPkt.queue().has_value()) {
-      queue = *txPkt.queue();
-    }
-    hw->sendPacketOutOfPortAsync(std::move(pkt), portId, queue);
+    hw->sendPacketOutOfPortAsync(
+        std::move(pkt), portId, txPkt.queue().to_optional());
   } else {
     hw->sendPacketSwitchedAsync(std::move(pkt));
   }

@@ -10,7 +10,6 @@ FOLLY_INIT_LOGGING_CONFIG("fboss=DBG4; default:async=true");
 
 int main(int argc, char* argv[]) {
   testing::InitGoogleTest(&argc, argv);
-  THRIFT_FLAG_SET_MOCK(rocket_frame_parser, "legacy");
   std::optional<facebook::fboss::cfg::StreamType> streamType = std::nullopt;
 #if defined(TAJO_SDK_GTE_1_65_0)
   streamType = facebook::fboss::cfg::StreamType::UNICAST;

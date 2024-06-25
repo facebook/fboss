@@ -18,7 +18,6 @@ using namespace facebook::fboss;
 
 int main(int argc, char* argv[]) {
   setSDKVersionInfo();
-  THRIFT_FLAG_SET_MOCK(rocket_frame_parser, "legacy");
   return facebook::fboss::hwAgentMain(
       argc,
       argv,
