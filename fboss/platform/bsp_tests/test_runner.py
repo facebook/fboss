@@ -1,7 +1,7 @@
 import argparse
 import os
 from dataclasses import dataclass
-from typing import Dict, List
+from typing import List
 
 import pytest
 from dataclasses_json import dataclass_json
@@ -32,47 +32,6 @@ def parse_args():
     parser.add_argument("pytest_args", nargs=argparse.REMAINDER)
 
     return parser.parse_args()
-
-
-class TestBase:
-    # Map of fpga to /sys/bus/pci directory
-    fpgaToDir: Dict[FpgaSpec, str] = {}
-
-
-def findFpgaDirs(fpgas: List[FpgaSpec]) -> Dict[str, str]:
-    ret: Dict[str, str] = {}
-    for fpga in fpgas:
-        found = False
-        for subdir in os.listdir("/sys/bus/pci/devices/"):
-            subdir_path = os.path.join("/sys/bus/pci/devices/", subdir)
-            if not os.path.isdir(subdir_path):
-                continue
-            if check_files_for_fpga(fpga, subdir_path):
-                found = True
-                ret[fpga.name] = subdir_path
-                break
-        if not found:
-            raise Exception(f"Could not find dir for fpga {fpga}")
-    return ret
-
-
-def check_files_for_fpga(fpga: FpgaSpec, dirPath: str) -> bool:
-    fileValues = {
-        "vendor": fpga.vendorId,
-        "device": fpga.deviceId,
-        "subsystem_vendor": fpga.subSystemVendorId,
-        "subsystem_device": fpga.subSystemDeviceId,
-    }
-
-    for filename, value in fileValues.items():
-        file_path = os.path.join(dirPath, filename)
-        if not os.path.isfile(file_path):
-            return False
-        with open(file_path, "r") as f:
-            content = f.read().strip()
-            if content != value:
-                return False
-    return True
 
 
 def main():
