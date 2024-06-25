@@ -38,13 +38,13 @@ void SaiSwitch::updateStatsImpl() {
     watermarkStatsUpdateTime_ = now;
   }
 
-  // Avoid collecting watermark and VOQ stats in the same iteration - this it to
-  // avoid stats collection blocking updates for too long. However, in test
-  // scenarios we always collect watermark (interval set to zero), and hence
-  // need to collect VOQ stats as well.
-  bool updateVoqStats =
-      now - voqStatsUpdateTime_ >= FLAGS_update_voq_stats_interval_s &&
-      (!updateWatermarks || FLAGS_update_watermark_stats_interval_s == 0);
+  // Space out VOQ stats update and watermark as much as possible - to avoid
+  // stats collection blocking normal updates.
+  // Allow frequent collection in test scenario, where the interval is set to 0.
+  bool updateVoqStats = FLAGS_update_voq_stats_interval_s == 0 ||
+      (now - voqStatsUpdateTime_ >= FLAGS_update_voq_stats_interval_s &&
+       now - watermarkStatsUpdateTime_ >=
+           (FLAGS_update_voq_stats_interval_s / 2));
   if (updateVoqStats) {
     voqStatsUpdateTime_ = now;
   }
