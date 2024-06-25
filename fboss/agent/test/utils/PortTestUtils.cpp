@@ -46,6 +46,7 @@ cfg::PortSpeed getSpeed(cfg::PortProfileID profile) {
     case cfg::PortProfileID::PROFILE_50G_2_NRZ_NOFEC_OPTICAL:
     case cfg::PortProfileID::PROFILE_50G_2_NRZ_CL74_COPPER:
     case cfg::PortProfileID::PROFILE_50G_2_NRZ_RS528_COPPER:
+    case cfg::PortProfileID::PROFILE_50G_2_NRZ_RS528_OPTICAL:
     case cfg::PortProfileID::PROFILE_50G_1_PAM4_RS544_COPPER:
     case cfg::PortProfileID::PROFILE_50G_1_PAM4_RS544_OPTICAL:
       return cfg::PortSpeed::FIFTYG;
@@ -134,6 +135,7 @@ TransmitterTechnology getMediaType(cfg::PortProfileID profile) {
     case cfg::PortProfileID::PROFILE_106POINT25G_1_PAM4_RS544_OPTICAL:
     case cfg::PortProfileID::PROFILE_100G_1_PAM4_RS544_OPTICAL:
     case cfg::PortProfileID::PROFILE_50G_1_PAM4_RS544_OPTICAL:
+    case cfg::PortProfileID::PROFILE_50G_2_NRZ_RS528_OPTICAL:
       return TransmitterTechnology::OPTICAL;
 
     case cfg::PortProfileID::PROFILE_10G_1_NRZ_NOFEC:

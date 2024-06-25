@@ -198,6 +198,7 @@ phy::FecMode getFecModeFromSaiFecMode(
         case cfg::PortProfileID::PROFILE_100G_4_NRZ_RS528:
         case cfg::PortProfileID::PROFILE_25G_1_NRZ_RS528_COPPER:
         case cfg::PortProfileID::PROFILE_50G_2_NRZ_RS528_COPPER:
+        case cfg::PortProfileID::PROFILE_50G_2_NRZ_RS528_OPTICAL:
         case cfg::PortProfileID::PROFILE_100G_4_NRZ_RS528_COPPER:
         case cfg::PortProfileID::PROFILE_100G_4_NRZ_RS528_OPTICAL:
           mode = phy::FecMode::RS528;
