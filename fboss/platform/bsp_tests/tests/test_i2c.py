@@ -27,52 +27,49 @@ def test_cdev_is_created(platform_fpgas) -> None:
         assert os.path.exists(path)
 
 
-def test_i2c_adapter_names(platform_fpgas) -> None:
-    for fpga in platform_fpgas:
-        for adapter in fpga.i2cAdapters:
-            pattern = r"i2c_master(_.+)?"
-            assert re.search(
-                pattern, adapter.auxDevice.deviceName
-            ), "I2C Adapter name {adapter.auxDevice.deviceName} does not match expected pattern"
+def test_i2c_adapter_names(fpga_with_adapters) -> None:
+    for fpga, adapter in fpga_with_adapters:
+        pattern = r"i2c_master(_.+)?"
+        assert re.search(
+            pattern, adapter.auxDevice.deviceName
+        ), "I2C Adapter name {adapter.auxDevice.deviceName} does not match expected pattern"
 
 
-def test_i2c_adapter_creates_busses(platform_fpgas) -> None:
-    for fpga in platform_fpgas:
-        for adapter in fpga.i2cAdapters:
-            # Creates adapter, checks expected number of busses created
-            newAdapters, _ = create_i2c_adapter(fpga, adapter)
+def test_i2c_adapter_creates_busses(fpga_with_adapters) -> None:
+    for fpga, adapter in fpga_with_adapters:
+        # Creates adapter, checks expected number of busses created
+        newAdapters, _ = create_i2c_adapter(fpga, adapter)
 
-            # Check each bus has a unique name
-            try:
-                names = set()
-                for a in newAdapters:
-                    names.add(a.name)
-                assert len(names) == len(newAdapters)
-            finally:
-                delete_device(fpga, adapter.auxDevice)
+        # Check each bus has a unique name
+        try:
+            names = set()
+            for a in newAdapters:
+                names.add(a.name)
+            assert len(names) == len(newAdapters)
+        finally:
+            delete_device(fpga, adapter.auxDevice)
 
 
-def test_i2c_adapter_devices_exist(platform_fpgas) -> None:
+def test_i2c_adapter_devices_exist(fpga_with_adapters) -> None:
     """
     Tests that each expected device is detectable
     """
 
-    for fpga in platform_fpgas:
-        for adapter in fpga.i2cAdapters:
-            assert adapter.auxDevice.i2cInfo
-            # record the current existing busses
-            newAdapters, adapterBaseBusNum = create_i2c_adapter(fpga, adapter)
+    for fpga, adapter in fpga_with_adapters:
+        assert adapter.auxDevice.i2cInfo
+        # record the current existing busses
+        newAdapters, adapterBaseBusNum = create_i2c_adapter(fpga, adapter)
 
-            try:
-                for device in adapter.i2cDevices:
-                    print(
-                        f"\nChecking for device {device.address} on bus {adapterBaseBusNum + device.channel}"
-                    )
-                    assert detect_i2c_device(
-                        adapterBaseBusNum + device.channel, device.address
-                    )
-            finally:
-                delete_device(fpga, adapter.auxDevice)
+        try:
+            for device in adapter.i2cDevices:
+                print(
+                    f"\nChecking for device {device.address} on bus {adapterBaseBusNum + device.channel}"
+                )
+                assert detect_i2c_device(
+                    adapterBaseBusNum + device.channel, device.address
+                )
+        finally:
+            delete_device(fpga, adapter.auxDevice)
 
 
 def test_i2c_bus_with_devices_can_be_unloaded(platform_fpgas, platform_config) -> None:
@@ -222,31 +219,30 @@ def test_simultaneous_transactions(platform_fpgas) -> None:
 
 
 @pytest.mark.stress
-def test_looped_transactions(platform_fpgas) -> None:
+def test_looped_transactions(fpga_with_adapters) -> None:
     """
     Create bus, create devices on that bus, ensure that the bus
     driver can be unloaded successfully.
     """
-    for fpga in platform_fpgas:
-        for adapter in fpga.i2cAdapters:
-            # if any of the i2cDevices has testData
-            if not any(device.testData for device in adapter.i2cDevices):
-                continue
-            newAdapters, adapterBaseBusNum = create_i2c_adapter(fpga, adapter)
-            dmesg_line_cnt_before = int(
+    for fpga, adapter in fpga_with_adapters:
+        # if any of the i2cDevices has testData
+        if not any(device.testData for device in adapter.i2cDevices):
+            continue
+        newAdapters, adapterBaseBusNum = create_i2c_adapter(fpga, adapter)
+        dmesg_line_cnt_before = int(
+            run_cmd("dmesg | wc -l", shell=True).stdout.decode().strip()
+        )
+        try:
+            # Stress test, only run on one device per adapter
+            for device in adapter.i2cDevices[1:]:
+                run_i2c_test_transactions(
+                    device, adapterBaseBusNum + device.channel, 1000
+                )
+            dmesg_line_cnt_after = int(
                 run_cmd("dmesg | wc -l", shell=True).stdout.decode().strip()
             )
-            try:
-                # Stress test, only run on one device per adapter
-                for device in adapter.i2cDevices[1:]:
-                    run_i2c_test_transactions(
-                        device, adapterBaseBusNum + device.channel, 1000
-                    )
-                dmesg_line_cnt_after = int(
-                    run_cmd("dmesg | wc -l", shell=True).stdout.decode().strip()
-                )
-                assert (
-                    dmesg_line_cnt_after - dmesg_line_cnt_before < 10
-                ), "Too many dmesg log lines. Kernel log spew during i2c transactions."
-            finally:
-                delete_device(fpga, adapter.auxDevice)
+            assert (
+                dmesg_line_cnt_after - dmesg_line_cnt_before < 10
+            ), "Too many dmesg log lines. Kernel log spew during i2c transactions."
+        finally:
+            delete_device(fpga, adapter.auxDevice)
