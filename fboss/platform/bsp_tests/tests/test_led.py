@@ -1,12 +1,11 @@
 import glob
 import os
-from typing import List
 
 import pytest
 
 from fboss.platform.bsp_tests.test_runner import TestBase
 
-from fboss.platform.bsp_tests.utils.cdev_types import FpgaSpec, LedCtrlInfo
+from fboss.platform.bsp_tests.utils.cdev_types import LedCtrlInfo
 from fboss.platform.bsp_tests.utils.cdev_utils import create_new_device, delete_device
 
 
@@ -16,19 +15,8 @@ from fboss.platform.bsp_tests.utils.cdev_utils import create_new_device, delete_
 
 
 class TestLed(TestBase):
-    fpgas: List[FpgaSpec] = []
-
-    @classmethod
-    def setup_class(cls):
-        super().setup_class()
-        cls.fpgas = cls.config.fpgas
-        cls.platform = cls.config.platform
-
-    def setup_method(self):
-        self.load_kmods()
-
-    def test_leds_created(self) -> None:
-        for fpga in self.fpgas:
+    def test_leds_created(self, platform_fpgas) -> None:
+        for fpga in platform_fpgas:
             for led in fpga.ledCtrls:
                 led_dev = led.auxDevice
                 try:

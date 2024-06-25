@@ -20,34 +20,25 @@ from fboss.platform.bsp_tests.utils.i2c_utils import (
     i2cSet,
     parse_i2cdump_data,
 )
+from fboss.platform.bsp_tests.utils.kmod_utils import load_kmods, unload_kmods
 
 
 class TestI2c(TestBase):
-    fpgas: List[FpgaSpec] = []
-
-    @classmethod
-    def setup_class(cls):
-        super().setup_class()
-        cls.fpgas = cls.config.fpgas
-
-    def setup_method(self):
-        self.load_kmods()
-
-    def test_cdev_is_created(self) -> None:
-        for fpga in self.fpgas:
+    def test_cdev_is_created(self, platform_fpgas) -> None:
+        for fpga in platform_fpgas:
             path = make_cdev_path(fpga)
             assert os.path.exists(path)
 
-    def test_i2c_adapter_names(self) -> None:
-        for fpga in self.fpgas:
+    def test_i2c_adapter_names(self, platform_fpgas) -> None:
+        for fpga in platform_fpgas:
             for adapter in fpga.i2cAdapters:
                 pattern = r"i2c_master(_.+)?"
                 assert re.search(
                     pattern, adapter.auxDevice.deviceName
                 ), "I2C Adapter name {adapter.auxDevice.deviceName} does not match expected pattern"
 
-    def test_i2c_adapter_creates_busses(self) -> None:
-        for fpga in self.fpgas:
+    def test_i2c_adapter_creates_busses(self, platform_fpgas) -> None:
+        for fpga in platform_fpgas:
             for adapter in fpga.i2cAdapters:
                 # Creates adapter, checks expected number of busses created
                 newAdapters, _ = create_i2c_adapter(fpga, adapter)
@@ -61,12 +52,12 @@ class TestI2c(TestBase):
                 finally:
                     delete_device(fpga, adapter.auxDevice)
 
-    def test_i2c_adapter_devices_exist(self) -> None:
+    def test_i2c_adapter_devices_exist(self, platform_fpgas) -> None:
         """
         Tests that each expected device is detectable
         """
 
-        for fpga in self.fpgas:
+        for fpga in platform_fpgas:
             for adapter in fpga.i2cAdapters:
                 assert adapter.auxDevice.i2cInfo
                 # record the current existing busses
@@ -83,14 +74,16 @@ class TestI2c(TestBase):
                 finally:
                     delete_device(fpga, adapter.auxDevice)
 
-    def test_i2c_bus_with_devices_can_be_unloaded(self) -> None:
+    def test_i2c_bus_with_devices_can_be_unloaded(
+        self, platform_fpgas, platform_config
+    ) -> None:
         """
         Create bus, create devices on that bus, ensure that the bus
         driver can be unloaded successfully.
         """
-        for fpga in self.fpgas[0:1]:
+        for fpga in platform_fpgas[0:1]:
             for adapter in reversed(fpga.i2cAdapters):
-                self.load_kmods()
+                load_kmods(platform_config.kmods)
                 _, adapterBaseBusNum = create_i2c_adapter(fpga, adapter)
                 try:
                     for device in adapter.i2cDevices:
@@ -104,14 +97,14 @@ class TestI2c(TestBase):
                 except Exception as e:
                     delete_device(fpga, adapter.auxDevice)
                     raise e
-                self.unload_kmods()
+                unload_kmods(platform_config.kmods)
 
-    def test_i2c_transactions(self) -> None:
+    def test_i2c_transactions(self, platform_fpgas) -> None:
         """
         Create bus, create devices on that bus, ensure that the bus
         driver can be unloaded successfully.
         """
-        for fpga in self.fpgas:
+        for fpga in platform_fpgas:
             for adapter in fpga.i2cAdapters:
                 # if any of the i2cDevices has testData
                 if not any(device.testData for device in adapter.i2cDevices):
@@ -193,10 +186,10 @@ class TestI2c(TestBase):
             output = i2cGet(str(busNum), device.address, tc.reg)
             assert output == original, "Did not successfully set value back to original"
 
-    def test_simultaneous_transactions(self) -> None:
+    def test_simultaneous_transactions(self, platform_fpgas) -> None:
         # for each adapter, check if at least 2 internal channels have devices with testData
         # if so, run transaction tests simultaneously on all channels
-        for fpga in self.fpgas:
+        for fpga in platform_fpgas:
             for adapter in fpga.i2cAdapters:
                 devicesByChannel: Dict[int, List[I2CDevice]] = defaultdict(list)
                 for device in adapter.i2cDevices:
@@ -226,12 +219,12 @@ class TestI2c(TestBase):
                     delete_device(fpga, adapter.auxDevice)
 
     @pytest.mark.stress
-    def test_looped_transactions(self) -> None:
+    def test_looped_transactions(self, platform_fpgas) -> None:
         """
         Create bus, create devices on that bus, ensure that the bus
         driver can be unloaded successfully.
         """
-        for fpga in self.fpgas:
+        for fpga in platform_fpgas:
             for adapter in fpga.i2cAdapters:
                 # if any of the i2cDevices has testData
                 if not any(device.testData for device in adapter.i2cDevices):

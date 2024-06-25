@@ -10,21 +10,13 @@ from fboss.platform.bsp_tests.utils.i2c_utils import (
     create_i2c_adapter,
     create_i2c_device,
 )
+from fboss.platform.bsp_tests.utils.kmod_utils import unload_kmods
 
 
 class TestGpio(TestBase):
-    fpgas: List[FpgaSpec] = []
 
-    @classmethod
-    def setup_class(cls):
-        super().setup_class()
-        cls.fpgas = cls.config.fpgas
-
-    def setup_method(self):
-        self.load_kmods()
-
-    def test_gpio_is_detectable(self):
-        for fpga in self.fpgas:
+    def test_gpio_is_detectable(self, platform_fpgas):
+        for fpga in platform_fpgas:
             for adapter in fpga.i2cAdapters:
                 newAdapters, baseBusNum = create_i2c_adapter(fpga, adapter)
                 try:
@@ -44,8 +36,8 @@ class TestGpio(TestBase):
                 finally:
                     delete_device(fpga, adapter.auxDevice)
 
-    def test_gpio_info(self):
-        for fpga in self.fpgas:
+    def test_gpio_info(self, platform_fpgas):
+        for fpga in platform_fpgas:
             for adapter in fpga.i2cAdapters:
                 newAdapters, baseBusNum = create_i2c_adapter(fpga, adapter)
                 try:
@@ -71,11 +63,11 @@ class TestGpio(TestBase):
                 finally:
                     delete_device(fpga, adapter.auxDevice)
 
-    def test_gpio_set(self):
+    def test_gpio_set(self, platform_fpgas):
         pass
 
-    def test_gpio_get(self):
-        for fpga in self.fpgas:
+    def test_gpio_get(self, platform_fpgas):
+        for fpga in platform_fpgas:
             for adapter in fpga.i2cAdapters:
                 newAdapters, baseBusNum = create_i2c_adapter(fpga, adapter)
                 try:
@@ -104,10 +96,10 @@ class TestGpio(TestBase):
                 finally:
                     delete_device(fpga, adapter.auxDevice)
 
-    def test_driver_unload(self):
+    def test_driver_unload(self, platform_fpgas, platform_config):
         adaptersToUnload: List[Tuple(FpgaSpec, I2CAdapter, int)] = []
         id = 1
-        for fpga in self.fpgas:
+        for fpga in platform_fpgas:
             try:
                 for adapter in fpga.i2cAdapters:
                     newAdapters, baseBusNum = create_i2c_adapter(fpga, adapter, id)
@@ -122,7 +114,7 @@ class TestGpio(TestBase):
                 for fpga, adapter, adapterId in adaptersToUnload:
                     delete_device(fpga, adapter.auxDevice, adapterId)
         try:
-            self.unload_kmods()
+            unload_kmods(platform_config.kmods)
         except Exception:
             pytest.fail("Failed to unload kmods with GPIO devices open")
             for fpga, adapter, adapterId in adaptersToUnload:

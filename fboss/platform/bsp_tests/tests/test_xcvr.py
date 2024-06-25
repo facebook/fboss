@@ -1,6 +1,6 @@
 import glob
 import os
-from typing import List, Optional
+from typing import Optional
 
 import pytest
 
@@ -11,27 +11,16 @@ from fboss.platform.bsp_tests.utils.cdev_utils import create_new_device, delete_
 
 
 class TestXcvr(TestBase):
-    fpgas: List[FpgaSpec] = []
-    platform: str = ""
-
-    @classmethod
-    def setup_class(cls):
-        super().setup_class()
-        cls.fpgas = cls.config.fpgas
-        cls.platform = cls.config.platform
-
-    def setup_method(self):
-        self.load_kmods()
-
-    def test_xcvr_names(self) -> None:
-        for fpga in self.fpgas:
+    def test_xcvr_names(self, platform_fpgas) -> None:
+        for fpga in platform_fpgas:
             for xcvr in fpga.xcvrCtrls:
                 assert xcvr.deviceName == "xcvr_ctrl"
 
-    def test_xcvr_creates_sysfs_files(self) -> None:
-        if self.platform == "meru800bfa" or self.platform == "meru800bia":
+    def test_xcvr_creates_sysfs_files(self, platform_fpgas, platform_config) -> None:
+        platform = platform_config.platform
+        if platform == "meru800bfa" or platform == "meru800bia":
             pytest.skip("DSF fails xcvr test currently.")
-        for fpga in self.fpgas:
+        for fpga in platform_fpgas:
             for xcvr in fpga.xcvrCtrls:
                 assert xcvr.xcvrInfo
                 port = xcvr.xcvrInfo.portNumber

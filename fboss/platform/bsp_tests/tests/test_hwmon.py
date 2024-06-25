@@ -13,22 +13,13 @@ from fboss.platform.bsp_tests.utils.i2c_utils import (
 
 
 class TestHwmon(TestBase):
-    fpgas: List[FpgaSpec] = []
-
-    @classmethod
     def setup_class(cls):
-        super().setup_class()
-        cls.fpgas = cls.config.fpgas
-
         # TODO: Remove this once `sensors` is installed on lab
         # devices by default
         check_cmd(["dnf", "install", "lm_sensors", "-y"])
 
-    def setup_method(self):
-        self.load_kmods()
-
-    def test_hwmon_sensors(self) -> None:
-        for fpga in self.fpgas:
+    def test_hwmon_sensors(self, platform_fpgas) -> None:
+        for fpga in platform_fpgas:
             for adapter in fpga.i2cAdapters:
                 for i2cdevice in adapter.i2cDevices:
                     if not i2cdevice.hwmonTestData:

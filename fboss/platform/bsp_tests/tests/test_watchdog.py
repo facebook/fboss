@@ -1,13 +1,12 @@
-from typing import List
-
 import pytest
 
-from fboss.platform.bsp_tests.test_runner import FpgaSpec, TestBase
+from fboss.platform.bsp_tests.test_runner import TestBase
 from fboss.platform.bsp_tests.utils.cdev_utils import delete_device
 from fboss.platform.bsp_tests.utils.i2c_utils import (
     create_i2c_adapter,
     create_i2c_device,
 )
+from fboss.platform.bsp_tests.utils.kmod_utils import unload_kmods
 from fboss.platform.bsp_tests.utils.watchdog_utils import (
     get_watchdog_timeout,
     get_watchdogs,
@@ -18,18 +17,8 @@ from fboss.platform.bsp_tests.utils.watchdog_utils import (
 
 
 class TestWatchdog(TestBase):
-    fpgas: List[FpgaSpec] = []
-
-    @classmethod
-    def setup_class(cls):
-        super().setup_class()
-        cls.fpgas = cls.config.fpgas
-
-    def setup_method(self):
-        self.load_kmods()
-
-    def test_watchdog_start(self):
-        for fpga in self.fpgas:
+    def test_watchdog_start(self, platform_fpgas):
+        for fpga in platform_fpgas:
             for adapter in fpga.i2cAdapters:
                 newAdapters, baseBusNum = create_i2c_adapter(fpga, adapter)
                 try:
@@ -55,8 +44,8 @@ class TestWatchdog(TestBase):
                 finally:
                     delete_device(fpga, adapter.auxDevice)
 
-    def test_watchdog_ping(self):
-        for fpga in self.fpgas:
+    def test_watchdog_ping(self, platform_fpgas):
+        for fpga in platform_fpgas:
             for adapter in fpga.i2cAdapters:
                 newAdapters, baseBusNum = create_i2c_adapter(fpga, adapter)
                 try:
@@ -77,8 +66,8 @@ class TestWatchdog(TestBase):
                 finally:
                     delete_device(fpga, adapter.auxDevice)
 
-    def test_watchdog_set_timeout(self):
-        for fpga in self.fpgas:
+    def test_watchdog_set_timeout(self, platform_fpgas):
+        for fpga in platform_fpgas:
             for adapter in fpga.i2cAdapters:
                 newAdapters, baseBusNum = create_i2c_adapter(fpga, adapter)
                 try:
@@ -113,8 +102,8 @@ class TestWatchdog(TestBase):
     # TODO: We need to add a requirement that the option
     # get_timeleft is enabled in order to reliably
     # test the magic close feature
-    def test_watchdog_magic_close(self):
-        for fpga in self.fpgas:
+    def test_watchdog_magic_close(self, platform_fpgas):
+        for fpga in platform_fpgas:
             for adapter in fpga.i2cAdapters:
                 newAdapters, baseBusNum = create_i2c_adapter(fpga, adapter)
                 try:
@@ -135,11 +124,11 @@ class TestWatchdog(TestBase):
                 finally:
                     delete_device(fpga, adapter.auxDevice)
 
-    def test_watchdog_driver_unload(self):
+    def test_watchdog_driver_unload(self, platform_fpgas, platform_config):
         existing_wdts = get_watchdogs()
         expected_wdts = 0
         id = 1
-        for fpga in self.fpgas:
+        for fpga in platform_fpgas:
             for adapter in fpga.i2cAdapters:
                 newAdapters, baseBusNum = create_i2c_adapter(fpga, adapter, id)
                 id += 1
@@ -151,5 +140,5 @@ class TestWatchdog(TestBase):
                     create_i2c_device(device, busNum)
         new_wdts = get_watchdogs() - existing_wdts
         assert len(new_wdts) == expected_wdts
-        self.unload_kmods()
+        unload_kmods(platform_config.kmods)
         assert len(get_watchdogs()) == 0

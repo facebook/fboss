@@ -4,6 +4,16 @@ from typing import List
 from fboss.platform.bsp_tests.utils.cmd_utils import check_cmd, run_cmd
 
 
+def load_kmods(kmods: List[str]) -> None:
+    for kmod in kmods:
+        check_cmd(["modprobe", kmod])
+
+
+def unload_kmods(kmods: List[str]) -> None:
+    for kmod in reversed(kmods):
+        check_cmd(["modprobe", "-r", kmod])
+
+
 def fbsp_remove() -> bool:
     if shutil.which("fbsp-remove.sh") is None:
         return False
