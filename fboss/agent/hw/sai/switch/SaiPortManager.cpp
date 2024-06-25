@@ -1927,9 +1927,14 @@ std::shared_ptr<MultiSwitchPortMap> SaiPortManager::reconstructPortsFromStore(
 }
 
 void SaiPortManager::setQosMapsOnPort(
-    const SaiPortHandle* portHandle,
+    PortID portID,
     std::vector<std::pair<sai_qos_map_type_t, QosMapSaiId>>& qosMaps) {
+  auto portHandle = getPortHandle(portID);
+  auto portType = getPortType(portID);
   auto& port = portHandle->port;
+  auto isPfcSupported =
+      (portType != cfg::PortType::RECYCLE_PORT &&
+       portType != cfg::PortType::EVENTOR_PORT);
   for (auto qosMapTypeToSaiId : qosMaps) {
     auto mapping = qosMapTypeToSaiId.second;
     switch (qosMapTypeToSaiId.first) {
@@ -1953,12 +1958,16 @@ void SaiPortManager::setQosMapsOnPort(
         }
         break;
       case SAI_QOS_MAP_TYPE_TC_TO_PRIORITY_GROUP:
-        port->setOptionalAttribute(
-            SaiPortTraits::Attributes::QosTcToPriorityGroupMap{mapping});
+        if (isPfcSupported) {
+          port->setOptionalAttribute(
+              SaiPortTraits::Attributes::QosTcToPriorityGroupMap{mapping});
+        }
         break;
       case SAI_QOS_MAP_TYPE_PFC_PRIORITY_TO_QUEUE:
-        port->setOptionalAttribute(
-            SaiPortTraits::Attributes::QosPfcPriorityToQueueMap{mapping});
+        if (isPfcSupported) {
+          port->setOptionalAttribute(
+              SaiPortTraits::Attributes::QosPfcPriorityToQueueMap{mapping});
+        }
         break;
       default:
         throw FbossError("Unhandled qos map ", qosMapTypeToSaiId.first);
@@ -2038,7 +2047,7 @@ void SaiPortManager::setQosPolicy(
     handle->tcToQueueQosMap = qosMapHandle->tcToQueueMap;
     handle->qosPolicy = qosMapHandle->name;
   }
-  setQosMapsOnPort(handle, qosMaps);
+  setQosMapsOnPort(portID, qosMaps);
 }
 
 void SaiPortManager::setQosPolicy(const std::shared_ptr<QosPolicy>& qosPolicy) {
@@ -2059,7 +2068,7 @@ void SaiPortManager::clearQosPolicy(PortID portID) {
              << " for port " << portID;
   if (handle->qosPolicy) {
     auto qosMaps = getNullSaiIdsForQosMaps();
-    setQosMapsOnPort(handle, qosMaps);
+    setQosMapsOnPort(portID, qosMaps);
     handle->dscpToTcQosMap.reset();
     handle->tcToQueueQosMap.reset();
     handle->qosPolicy.reset();

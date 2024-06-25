@@ -302,7 +302,7 @@ class SaiPortManager {
       const SaiQosMapHandle* qosMapHandle);
 
   void setQosMapsOnPort(
-      const SaiPortHandle* portHandle,
+      PortID portID,
       std::vector<std::pair<sai_qos_map_type_t, QosMapSaiId>>& qosMaps);
   const std::vector<sai_stat_id_t>& supportedStats(PortID port);
   void fillInSupportedStats(PortID port);
