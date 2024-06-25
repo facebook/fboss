@@ -159,7 +159,7 @@ DEFINE_int32(
 
 DEFINE_int32(
     fsdbStatsStreamIntervalSeconds,
-    5,
+    60,
     "Interval at which stats subscriptions are served");
 
 DECLARE_bool(intf_nbr_tables);
