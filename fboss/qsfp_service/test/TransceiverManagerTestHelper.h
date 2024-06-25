@@ -11,7 +11,7 @@
 
 #include "fboss/qsfp_service/platforms/wedge/tests/MockWedgeManager.h"
 
-#include <folly/experimental/TestUtil.h>
+#include <folly/testing/TestUtil.h>
 #include <gtest/gtest.h>
 
 namespace facebook::fboss {

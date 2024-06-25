@@ -23,8 +23,8 @@
 
 #include <fb303/ThreadCachedServiceData.h>
 #include <folly/FileUtil.h>
-#include <folly/experimental/TestUtil.h>
 #include <folly/logging/xlog.h>
+#include <folly/testing/TestUtil.h>
 
 #include <re2/re2.h>
 #include <chrono>

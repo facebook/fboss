@@ -3,7 +3,7 @@
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/lib/CommonUtils.h"
 
-#include "folly/experimental/TestUtil.h"
+#include "folly/testing/TestUtil.h"
 
 namespace facebook::fboss {
 class AgentVoqSwitchInterruptTest : public AgentHwTest {

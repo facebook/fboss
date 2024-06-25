@@ -9,7 +9,7 @@
  */
 #pragma once
 
-#include <folly/experimental/TestUtil.h>
+#include <folly/testing/TestUtil.h>
 #include "fboss/agent/Platform.h"
 #include "fboss/agent/ThriftHandler.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"

@@ -2,8 +2,8 @@
 
 #include <folly/FileUtil.h>
 #include <folly/Format.h>
-#include <folly/experimental/TestUtil.h>
 #include <folly/logging/xlog.h>
+#include <folly/testing/TestUtil.h>
 #include <gtest/gtest.h>
 #include "fboss/led_service/LedUtils.h"
 #include "fboss/lib/led/LedIO.h"

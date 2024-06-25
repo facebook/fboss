@@ -11,7 +11,7 @@
 #pragma once
 
 #include <boost/algorithm/string.hpp>
-#include <folly/experimental/TestUtil.h>
+#include <folly/testing/TestUtil.h>
 #include <fstream>
 #include <unordered_set>
 #include "fboss/cli/fboss2/CmdHandler.h"

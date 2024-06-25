@@ -5,7 +5,7 @@
 #include <vector>
 
 #include <folly/FileUtil.h>
-#include <folly/experimental/TestUtil.h>
+#include <folly/testing/TestUtil.h>
 
 #include <gtest/gtest.h>
 

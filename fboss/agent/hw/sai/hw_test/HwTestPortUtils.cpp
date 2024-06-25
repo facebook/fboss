@@ -19,7 +19,7 @@
 #include "fboss/agent/hw/sai/switch/SaiSwitch.h"
 #include "fboss/agent/platforms/sai/SaiPlatformPort.h"
 
-#include "folly/experimental/TestUtil.h"
+#include "folly/testing/TestUtil.h"
 
 #include <algorithm>
 

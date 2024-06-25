@@ -3,7 +3,7 @@
 #include <filesystem>
 #include <stdexcept>
 
-#include <folly/experimental/TestUtil.h>
+#include <folly/testing/TestUtil.h>
 #include <gtest/gtest.h>
 
 #include "fboss/platform/platform_manager/Utils.h"

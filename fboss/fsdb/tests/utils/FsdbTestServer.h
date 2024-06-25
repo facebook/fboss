@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include <folly/experimental/TestUtil.h>
+#include <folly/testing/TestUtil.h>
 #include <memory>
 
 #include "common/init/Init.h"

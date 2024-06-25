@@ -11,7 +11,7 @@
 
 #include "fboss/agent/platforms/wedge/wedge40/Wedge40Platform.h"
 
-#include <folly/experimental/TestUtil.h>
+#include <folly/testing/TestUtil.h>
 
 namespace facebook::fboss {
 

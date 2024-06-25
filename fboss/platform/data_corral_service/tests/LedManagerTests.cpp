@@ -1,7 +1,7 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
 #include <folly/FileUtil.h>
-#include <folly/experimental/TestUtil.h>
+#include <folly/testing/TestUtil.h>
 #include <gtest/gtest.h>
 
 #include "fboss/platform/data_corral_service/LedManager.h"

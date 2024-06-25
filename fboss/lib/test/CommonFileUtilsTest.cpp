@@ -2,8 +2,8 @@
 
 #include "fboss/lib/CommonFileUtils.h"
 #include <boost/filesystem/operations.hpp>
-#include <folly/experimental/TestUtil.h>
 #include <folly/logging/xlog.h>
+#include <folly/testing/TestUtil.h>
 #include <gtest/gtest.h>
 #include "fboss/agent/SysError.h"
 

@@ -3,7 +3,7 @@
 #include <filesystem>
 
 #include <folly/FileUtil.h>
-#include <folly/experimental/TestUtil.h>
+#include <folly/testing/TestUtil.h>
 #include <gtest/gtest.h>
 #include <thrift/lib/cpp2/protocol/Serializer.h>
 

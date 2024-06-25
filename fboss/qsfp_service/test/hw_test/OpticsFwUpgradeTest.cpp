@@ -2,8 +2,8 @@
 
 #include <gtest/gtest.h>
 
-#include <folly/experimental/TestUtil.h>
 #include <folly/logging/xlog.h>
+#include <folly/testing/TestUtil.h>
 #include "common/time/Time.h"
 #include "fboss/lib/CommonUtils.h"
 #include "fboss/qsfp_service/QsfpConfig.h"

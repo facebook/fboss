@@ -1,6 +1,6 @@
 // Copyright 2021-present Facebook. All Rights Reserved.
 
-#include <folly/experimental/TestUtil.h>
+#include <folly/testing/TestUtil.h>
 #include <gtest/gtest.h>
 #include "fboss/lib/CommonFileUtils.h"
 #include "fboss/lib/bsp/meru400bfu/Meru400bfuBspPlatformMapping.h"

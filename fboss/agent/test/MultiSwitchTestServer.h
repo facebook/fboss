@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include <folly/experimental/TestUtil.h>
+#include <folly/testing/TestUtil.h>
 
 #ifndef IS_OSS
 #include "common/services/cpp/ServiceFrameworkLight.h"

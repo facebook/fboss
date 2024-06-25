@@ -8,7 +8,7 @@
 #include <gtest/gtest.h>
 
 #include <folly/Random.h>
-#include <folly/experimental/TestUtil.h>
+#include <folly/testing/TestUtil.h>
 
 #include "fboss/lib/usb/TransceiverAccessParameter.h"
 #include "fboss/qsfp_service/module/I2cLogBuffer.h"

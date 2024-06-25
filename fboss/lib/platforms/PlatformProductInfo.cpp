@@ -13,10 +13,10 @@
 #include <boost/algorithm/string.hpp>
 #include <folly/FileUtil.h>
 #include <folly/MacAddress.h>
-#include <folly/experimental/TestUtil.h>
 #include <folly/json/dynamic.h>
 #include <folly/json/json.h>
 #include <folly/logging/xlog.h>
+#include <folly/testing/TestUtil.h>
 
 namespace {
 constexpr auto kInfo = "Information";

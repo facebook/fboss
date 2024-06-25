@@ -1,8 +1,8 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 
 #include <folly/FileUtil.h>
-#include <folly/experimental/TestUtil.h>
 #include <folly/logging/xlog.h>
+#include <folly/testing/TestUtil.h>
 #include <gtest/gtest.h>
 #include "fboss/lib/i2c/I2cDevImpl.h"
 #include "fboss/lib/i2c/I2cDevIo.h"

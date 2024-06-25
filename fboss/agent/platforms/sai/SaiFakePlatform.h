@@ -9,7 +9,7 @@
  */
 #pragma once
 
-#include <folly/experimental/TestUtil.h>
+#include <folly/testing/TestUtil.h>
 
 #include "fboss/agent/platforms/sai/SaiPlatform.h"
 namespace facebook::fboss {
