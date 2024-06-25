@@ -1172,6 +1172,7 @@
             "phy_tx_polarity_flip_phy97.BCM8889X": "0",
             "phy_tx_polarity_flip_phy98.BCM8889X": "1",
             "phy_tx_polarity_flip_phy99.BCM8889X": "0",
+            "pktio_driver_type": "1",
             "pmf_maps_payload_size.BCM8889X": "30",
             "pmf_nexem2_stage": "IPMF3",
             "polled_irq_delay.BCM8889X_ADAPTER": "200000",
