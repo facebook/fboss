@@ -46,7 +46,7 @@ class Tomahawk3Asic : public BroadcomXgsAsic {
     return 160;
   }
   uint16_t getMirrorTruncateSize() const override {
-    return 254;
+    return 214;
   }
   uint32_t getMaxWideEcmpSize() const override {
     return 512;
