@@ -310,5 +310,7 @@
     "/run/devmap/i2c-busses/SMB_IOB_MASTER_0": "/SMB_SLOT@0/[SMB_IOB_I2C_0]",
     "/run/devmap/i2c-busses/SMB_IOB_MASTER_1": "/SMB_SLOT@0/[SMB_IOB_I2C_1]",
     "/run/devmap/i2c-busses/DOM_MASTER_0": "/SMB_SLOT@0/YOLO_SLOT@0/[YOLO_DOM_I2C_0]"
-  }
+  },
+  "bspKmodsRpmName": "sample_bsp_kmods",
+  "bspKmodsRpmVersion": "0.7.2-1"
 }

@@ -56,6 +56,8 @@ TEST(ConfigValidatorTest, InvalidPlatformName) {
 TEST(ConfigValidatorTest, ValidConfig) {
   auto config = PlatformConfig();
   config.platformName() = "MERU400BIU";
+  config.bspKmodsRpmName() = "sample_bsp_rpm";
+  config.bspKmodsRpmVersion() = "1.0.0-4";
   EXPECT_TRUE(ConfigValidator().isValid(config));
 }
 
@@ -273,4 +275,11 @@ TEST(ConfigValidatorTest, DevicePath) {
   EXPECT_TRUE(ConfigValidator().isValidDevicePath("/SMB_SLOT@0/[MCB_MUX_1]"));
   EXPECT_TRUE(
       ConfigValidator().isValidDevicePath("/SMB_SLOT@0/SCM_SLOT@1/[sensor]"));
+}
+
+TEST(ConfigValidatorTest, BspRpm) {
+  EXPECT_FALSE(ConfigValidator().isValidBspKmodsRpmVersion(""));
+  EXPECT_FALSE(ConfigValidator().isValidBspKmodsRpmVersion("5.4.6"));
+  EXPECT_TRUE(ConfigValidator().isValidBspKmodsRpmVersion("5.4.6-1"));
+  EXPECT_TRUE(ConfigValidator().isValidBspKmodsRpmVersion("11.44.63-14"));
 }

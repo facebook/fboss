@@ -19,6 +19,7 @@ class ConfigValidator {
   bool isValidPresenceDetection(const PresenceDetection& presenceDetection);
   bool isValidSpiDeviceConfigs(
       const std::vector<SpiDeviceConfig>& spiDeviceConfig);
+  bool isValidBspKmodsRpmVersion(const std::string& bspKmodsRpmVersion);
 };
 
 } // namespace facebook::fboss::platform::platform_manager

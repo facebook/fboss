@@ -10,6 +10,7 @@
 #include "fboss/platform/platform_manager/gen-cpp2/platform_manager_config_constants.h"
 
 namespace {
+const re2::RE2 kRpmVersionRegex{"^[0-9]+\\.[0-9]+\\.[0-9]+\\-[0-9]+$"};
 const re2::RE2 kPciDevOffsetRegex{"0x[0-9a-f]+"};
 const re2::RE2 kSymlinkRegex{"^/run/devmap/(?P<SymlinkDirs>[a-z0-9-]+)/.+"};
 const re2::RE2 kDevPathRegex{"/([A-Z]+_SLOT@[0-9]+/)*\\[.+\\]"};
@@ -285,10 +286,15 @@ bool ConfigValidator::isValid(const PlatformConfig& config) {
     }
   }
 
+  // Validate symbolic links
   for (const auto& [symlink, devicePath] : *config.symbolicLinkToDevicePath()) {
     if (!isValidSymlink(symlink) || !isValidDevicePath(devicePath)) {
       return false;
     }
+  }
+
+  if (!isValidBspKmodsRpmVersion(*config.bspKmodsRpmVersion())) {
+    return false;
   }
 
   return true;
@@ -396,6 +402,20 @@ bool ConfigValidator::isValidSpiDeviceConfigs(
           *spiDeviceConfig.pmUnitScopedName());
       return false;
     }
+  }
+  return true;
+}
+
+bool ConfigValidator::isValidBspKmodsRpmVersion(
+    const std::string& bspKmodsRpmVersion) {
+  if (bspKmodsRpmVersion.empty()) {
+    XLOG(ERR) << "BspKmodsRpmVersion cannot be empty";
+    return false;
+  }
+  if (!re2::RE2::FullMatch(bspKmodsRpmVersion, kRpmVersionRegex)) {
+    XLOG(ERR) << fmt::format(
+        "Invalid BspKmodsRpmVersion : {}", bspKmodsRpmVersion);
+    return false;
   }
   return true;
 }
