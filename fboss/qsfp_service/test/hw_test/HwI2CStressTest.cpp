@@ -74,6 +74,10 @@ TEST_F(HwTest, i2cStressRead) {
     previousResponse = currentResponse;
   }
   for (auto tcvrId : transceivers) {
+    if (wedgeManager->getI2cLogBufferCapacity(tcvrId) == 0) {
+      // Logging feature is not supported on this platform / transceiver.
+      continue;
+    }
     auto entries = wedgeManager->dumpTransceiverI2cLog(tcvrId);
     EXPECT_GT(entries.first, 0);
     EXPECT_GT(entries.second, 0);
@@ -114,6 +118,10 @@ TEST_F(HwTest, i2cStressWrite) {
     }
   }
   for (auto tcvrId : opticalTransceivers) {
+    if (wedgeManager->getI2cLogBufferCapacity(tcvrId) == 0) {
+      // Logging feature is not supported on this platform / transceiver.
+      continue;
+    }
     auto entries = wedgeManager->dumpTransceiverI2cLog(tcvrId);
     EXPECT_GT(entries.first, 0);
     EXPECT_GT(entries.second, 0);
