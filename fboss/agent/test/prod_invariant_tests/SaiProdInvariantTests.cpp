@@ -13,7 +13,13 @@ void verifyHwSwitchHandler() {
   std::shared_ptr<folly::ScopedEventBaseThread> evbThread;
   auto client = setupClient<apache::thrift::Client<SaiCtrl>>("sai", evbThread);
   auto state = client->sync_getHwSwitchRunState();
-  EXPECT_GE(state, SwitchRunState::CONFIGURED);
+  if (FLAGS_multi_switch) {
+    // Expect uninitialized HwAgent since config testing is only run in mono
+    // mode
+    EXPECT_GE(state, SwitchRunState::UNINITIALIZED);
+  } else {
+    EXPECT_GE(state, SwitchRunState::CONFIGURED);
+  }
 }
 } // namespace facebook::fboss
 int main(int argc, char* argv[]) {
