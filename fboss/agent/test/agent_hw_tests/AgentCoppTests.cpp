@@ -1521,6 +1521,7 @@ class AgentCoppQosTest : public AgentHwTest {
       queue0.aqms() = {};
       queue0.aqms()->push_back(utility::kGetOlympicEcnConfig(hwAsic));
     }
+    utility::setPortQueueMaxDynamicSharedBytes(queue0, hwAsic);
     cpuQueues.push_back(queue0);
 
     cfg::PortQueue queue2;
@@ -1532,6 +1533,7 @@ class AgentCoppQosTest : public AgentHwTest {
       queue2.aqms() = {};
       queue2.aqms()->push_back(utility::kGetOlympicEcnConfig(hwAsic));
     }
+    utility::setPortQueueMaxDynamicSharedBytes(queue2, hwAsic);
     cpuQueues.push_back(queue2);
 
     cfg::PortQueue queue9;

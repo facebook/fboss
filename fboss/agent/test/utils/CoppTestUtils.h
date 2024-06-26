@@ -156,6 +156,10 @@ std::pair<uint64_t, uint64_t> getCpuQueueOutPacketsAndBytes(
 
 void setPortQueueSharedBytes(cfg::PortQueue& queue, bool isSai);
 
+void setPortQueueMaxDynamicSharedBytes(
+    cfg::PortQueue& queue,
+    const HwAsic* hwAsic);
+
 void setTTLZeroCpuConfig(
     const std::vector<const HwAsic*>& asics,
     cfg::SwitchConfig& config);
