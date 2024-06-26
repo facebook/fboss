@@ -172,9 +172,9 @@ void IPv6Handler::handlePacket(
     return;
   }
 
-  // Additional data (such as FCS) may be appended after the IP payload
-  auto payload = folly::IOBuf::wrapBuffer(cursor.data(), ipv6.payloadLength);
-  cursor.reset(payload.get());
+  // Additional data (such as FCS) may be appended after the IP payload, trim to
+  // expected size of ipv6 payload
+  cursor = Cursor(cursor, ipv6.payloadLength);
 
   // retrieve the current switch state
   auto state = sw_->getState();

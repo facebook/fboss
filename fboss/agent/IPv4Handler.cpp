@@ -250,20 +250,19 @@ void IPv4Handler::handlePacket(
              << static_cast<int>(v4Hdr.protocol);
 
   auto payloadLength = pkt->getLength() - (cursor - Cursor(pkt->buf()));
-  if (v4Hdr.length - v4Hdr.size() > payloadLength) {
+  if (v4Hdr.payloadSize() > payloadLength) {
     sw_->portStats(pkt->getSrcPort())->pktBogus();
     XLOG(DBG3) << "Discarding pkt with invalid length field. length: " << " ("
-               << v4Hdr.length - v4Hdr.size() << ")"
-               << " payload length: " << " (" << payloadLength << ")"
-               << " src: " << v4Hdr.srcAddr.str() << " (" << src << ")"
-               << " dst: " << v4Hdr.dstAddr.str() << " (" << dst << ")";
+               << v4Hdr.payloadSize() << ")" << " payload length: " << " ("
+               << payloadLength << ")" << " src: " << v4Hdr.srcAddr.str()
+               << " (" << src << ")" << " dst: " << v4Hdr.dstAddr.str() << " ("
+               << dst << ")";
     return;
   }
 
-  // Additional data (such as FCS) may be appended after the IP payload
-  auto payload =
-      folly::IOBuf::wrapBuffer(cursor.data(), v4Hdr.length - v4Hdr.size());
-  cursor.reset(payload.get());
+  // Additional data (such as FCS) may be appended after the IP payload, trim to
+  // expected size of ipv4 payload
+  cursor = Cursor(cursor, v4Hdr.payloadSize());
 
   // retrieve the current switch state
   auto state = sw_->getState();
