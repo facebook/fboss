@@ -50,6 +50,32 @@ class OpticsFwUpgradeTest : public HwTest {
                << " :upgradeSince = " << upgradeSinceMs;
   }
 
+  std::vector<int32_t> transceiversToTest() {
+    std::vector<int32_t> tcvrsToTest;
+    auto allTransceivers = utility::legacyTransceiverIds(
+        utility::getCabledPortTranceivers(getHwQsfpEnsemble()));
+    auto& qsfpTestCfg =
+        apache::thrift::can_throw(*getHwQsfpEnsemble()
+                                       ->getWedgeManager()
+                                       ->getQsfpConfig()
+                                       ->thrift.qsfpTestConfig());
+
+    // Gather all transceivers that we need to include as part of this test
+    // The criteria is that the qsfp test config defines a firmware version for
+    // the transceiver part number
+    for (auto tcvrID : allTransceivers) {
+      auto tcvrInfo =
+          getHwQsfpEnsemble()->getWedgeManager()->getTransceiverInfo(
+              TransceiverID(tcvrID));
+      auto& vendorPN = *tcvrInfo.tcvrState()->vendor().ensure().partNumber();
+      if (qsfpTestCfg.firmwareForUpgradeTest()->versionsMap()->find(vendorPN) !=
+          qsfpTestCfg.firmwareForUpgradeTest()->versionsMap()->end()) {
+        tcvrsToTest.push_back(tcvrID);
+      }
+    }
+    return tcvrsToTest;
+  }
+
   // Helper function that verifies if an upgrade was done or not
   // Returns true if upgrade was done and was expected to be done, false
   // otherwise
@@ -61,8 +87,8 @@ class OpticsFwUpgradeTest : public HwTest {
       long upgradeSinceTsSec,
       std::vector<int32_t> tcvrs) {
     if (tcvrs.empty()) {
-      tcvrs = utility::legacyTransceiverIds(
-          utility::getCabledPortTranceivers(getHwQsfpEnsemble()));
+      XLOG(INFO) << "Chassis has no upgradeable transceivers";
+      return true;
     }
     bool result = true;
     for (auto tcvrID : tcvrs) {
@@ -149,12 +175,13 @@ TEST_F(OpticsFwUpgradeTest, noUpgradeForSameVersion) {
   // 3. Force links to go down and verify there are no upgrades done
 
   long initDoneTimestampSec = facebook::WallClockUtil::NowInSecFast();
-  auto verify = [&]() {
+  auto tcvrsToTest = transceiversToTest();
+  auto verify = [&, tcvrsToTest]() {
     if (didWarmBoot()) {
       CHECK(verifyUpgrade(
           false /* upgradeExpected */,
           0 /* upgradeSinceTsSec */,
-          {} /* tcvrs */))
+          tcvrsToTest /* tcvrs */))
           << "No upgrades expected during warm boot";
     }
     // Force link up
@@ -162,14 +189,14 @@ TEST_F(OpticsFwUpgradeTest, noUpgradeForSameVersion) {
     CHECK(verifyUpgrade(
         false /* upgradeExpected */,
         initDoneTimestampSec /* upgradeSinceTsSec */,
-        {} /* tcvrs */))
+        tcvrsToTest /* tcvrs */))
         << "No upgrades expected on port up";
     // Force link down
     setPortStatus(false);
     CHECK(verifyUpgrade(
         false /* upgradeExpected */,
         initDoneTimestampSec /* upgradeSinceTsSec */,
-        {} /* tcvrs */))
+        tcvrsToTest /* tcvrs */))
         << "No upgrades expected on port down";
   };
   verifyAcrossWarmBoots([]() {}, verify);
@@ -197,26 +224,8 @@ TEST_F(OpticsFwUpgradeTest, upgradeOnLinkDown) {
    */
 
   long initDoneTimestampSec = facebook::WallClockUtil::NowInSecFast();
-  std::vector<int32_t> tcvrsToTest;
-  auto allTransceivers = utility::legacyTransceiverIds(
-      utility::getCabledPortTranceivers(getHwQsfpEnsemble()));
-  auto& qsfpTestCfg = *getHwQsfpEnsemble()
-                           ->getWedgeManager()
-                           ->getQsfpConfig()
-                           ->thrift.qsfpTestConfig();
 
-  // Gather all transceivers that we need to include as part of this test
-  // The criteria is that the qsfp test config defines a firmware version for
-  // the transceiver part number
-  for (auto tcvrID : allTransceivers) {
-    auto tcvrInfo = getHwQsfpEnsemble()->getWedgeManager()->getTransceiverInfo(
-        TransceiverID(tcvrID));
-    auto& vendorPN = *tcvrInfo.tcvrState()->vendor().ensure().partNumber();
-    if (qsfpTestCfg.firmwareForUpgradeTest()->versionsMap()->find(vendorPN) !=
-        qsfpTestCfg.firmwareForUpgradeTest()->versionsMap()->end()) {
-      tcvrsToTest.push_back(tcvrID);
-    }
-  }
+  auto tcvrsToTest = transceiversToTest();
 
   // Setup function is only called for cold boot iteration of the test
   // The setup below will create a new qsfp config with the different firmware
@@ -245,7 +254,7 @@ TEST_F(OpticsFwUpgradeTest, upgradeOnLinkDown) {
       CHECK(verifyUpgrade(
           false /* upgradeExpected */,
           0 /* upgradeSinceTsSec */,
-          {} /* tcvrs */))
+          tcvrsToTest /* tcvrs */))
           << "No upgrades expected during warm boot";
       // Cold boot might do an upgrade depending on what the firmware
       // was left on the transceiver at the end of the last test
@@ -253,7 +262,7 @@ TEST_F(OpticsFwUpgradeTest, upgradeOnLinkDown) {
       CHECK(verifyUpgrade(
           false /* upgradeExpected */,
           initDoneTimestampSec /* upgradeSinceTsSec */,
-          {} /* tcvrs */))
+          tcvrsToTest /* tcvrs */))
           << "No upgrades expected during cold boot";
       // Cold boot might do an upgrade depending on what the firmware
       // was left on the transceiver at the end of the last test
@@ -263,7 +272,7 @@ TEST_F(OpticsFwUpgradeTest, upgradeOnLinkDown) {
     CHECK(verifyUpgrade(
         false /* upgradeExpected */,
         initDoneTimestampSec /* upgradeSinceTsSec */,
-        {} /* tcvrs */))
+        tcvrsToTest /* tcvrs */))
         << "No upgrades expected on port up";
     // Force link down
     setPortStatus(false);
@@ -306,26 +315,8 @@ TEST_F(OpticsFwUpgradeTestNoIPhySetup, noUpgradeOnWarmboot) {
    * Step 5: Warmboot
    * Step 6: Verify that no upgrades happened during warmboot
    */
-  std::vector<int32_t> tcvrsToTest;
-  auto allTransceivers = utility::legacyTransceiverIds(
-      utility::getCabledPortTranceivers(getHwQsfpEnsemble()));
-  auto& qsfpTestCfg = *getHwQsfpEnsemble()
-                           ->getWedgeManager()
-                           ->getQsfpConfig()
-                           ->thrift.qsfpTestConfig();
 
-  // Gather all transceivers that we need to include as part of this test
-  // The criteria is that the qsfp test config defines a firmware version for
-  // the transceiver part number
-  for (auto tcvrID : allTransceivers) {
-    auto tcvrInfo = getHwQsfpEnsemble()->getWedgeManager()->getTransceiverInfo(
-        TransceiverID(tcvrID));
-    auto& vendorPN = *tcvrInfo.tcvrState()->vendor().ensure().partNumber();
-    if (qsfpTestCfg.firmwareForUpgradeTest()->versionsMap()->find(vendorPN) !=
-        qsfpTestCfg.firmwareForUpgradeTest()->versionsMap()->end()) {
-      tcvrsToTest.push_back(tcvrID);
-    }
-  }
+  auto tcvrsToTest = transceiversToTest();
 
   // Lambda to refresh state machine and return true if all transceivers are in
   // TRANSCEIVER_PROGRAMMED state
@@ -409,7 +400,7 @@ TEST_F(OpticsFwUpgradeTestNoIPhySetup, noUpgradeOnWarmboot) {
       CHECK(verifyUpgrade(
           false /* upgradeExpected */,
           0 /* upgradeSinceTsSec */,
-          {} /* tcvrs */))
+          tcvrsToTest /* tcvrs */))
           << "No upgrades expected";
     }
   };
