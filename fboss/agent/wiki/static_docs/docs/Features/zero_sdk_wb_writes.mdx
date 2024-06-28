@@ -1,0 +1,91 @@
+---
+id: Features_zero-sdk-wb-writes
+title: Zero SDK WB Writes
+---
+
+## Overview
+
+When we need to perform warm boot, Agent dumps the switch state as well as all adapter keys (object IDs) into separate files in the device at teardown. Then, during warm boot init, Agent will load the switch state (the initial state) and adapter keys (which are used to fetch all objects from the SDK) from the files. When we apply the initial state, objects in the SDK are reclaimed by objects from the switch state based on adapter host keys. During this process, Agent will reconcile any discrepancies between switch state objects and SDK objects, if there are any. Because we should not expect any discrepancies, there should be zero writes to the SDK when Agent applies the initial state during warm boot. If writes do occur, we want to be able to detect and address these instances so that they do not cause bigger issues down the line.
+
+## Agent Integration
+
+In agent HW/HW testing, we offer a `failHwCallsOnWarmboot` handler (default is true) that can be overridden by any specific agent HW testing fixture if the test expects SDK write during warm boot. Based on the return value of this handler, as well as the boot type and whether `ZERO_SDK_WRITE_WARMBOOT` feature is enabled on the current ASIC, we determine the enum value of `HwWriteBehavior` during agent initialization. Agent will log any unexpected warm boot SDK writes if the feature is not enabled on the ASIC. If the feature is enabled, Agent will fail hard if an unexpected warm boot SDK write occurs and `failHwCallsOnWarmboot` is true. If the feature is enabled and `failHwCallsOnWarmboot` is false, Agent will silently perform the SDK write (no failure or logs). In other agent code paths, such as production wedge agent, link tests, and integration tests, the `HwWriteBehavior` enum value is also determined during agent initialization. Agent will log any unexpected SDK writes in warm boot. Any other SDK writes will be silently performed.
+
+In all Agent code paths, we pass this enum value down to the exact call where Agent applies the initial state. Based on this enum, we construct the RAII object for `HwWriteBehavior`, which will directly determine whether Agent will fail hard, ignore, or log when a warm boot SDK write occurs. To support multiswitch mode, we include the `HwWriteBehavior` enum value in the `StateOperDelta` Thrift struct so that SwAgent can pass this enum value to all HwAgents, which can then construct the RAII object.
+
+## Status
+
+The `ZERO_SDK_WRITE_WARMBOOT` feature is currently enabled for DNX ASICs (Jericho3, Ramon3). This means that if any unexpected SDK WB writes occur in any J3/R3 agent HW test or HW test, then the test will fail hard.
+
+## Resolving SDK WB Writes
+
+### Using SAI Replayer
+
+To turn on SAI replayer when running agent HW tests/HW tests, pass in the following flags.
+
+Testing Binary:
+
+```
+--enable-replayer --enable_get_attr_log --enable_packet_log --sai-log [PATH TO LOG]
+```
+
+OSS `run_test.py` Script:
+```
+--sai_replayer_logging [PATH TO LOGS]
+```
+
+Consider the following SAI replayer logs from the same test run.
+
+Cold Boot:
+```
+memset(s_a,0,ATTR_SIZE*1024);
+s_a[0].id=89;
+// EcmpDefaultHashAlgorithm;
+s_a[0].value.s32=5;
+rv=switch_api->set_switch_attribute(9840366427050082304U,s_a);
+// 2024-06-19 17:40:29.154 object_id: 9840366427050082304 (0x8890012100000000) rv: 0;
+rvCheck(rv,0,47388);
+```
+
+Warm Boot:
+```
+memset(s_a,0,ATTR_SIZE*1024);
+s_a[0].id=89;
+// EcmpDefaultHashAlgorithm;
+s_a[0].value.s32=0;
+rv=switch_api->get_switch_attribute(9840366427050082304U,1,s_a);
+memcpy(get_attribute, s_a, ATTR_SIZE*1024);
+memset(s_a,0,ATTR_SIZE*1024);
+s_a[0].id=89;
+// EcmpDefaultHashAlgorithm;
+s_a[0].value.s32=0;
+attrCheck(get_attribute, s_a, 12);
+// 2024-06-19 17:41:50.325 object_id: 9840366427050082304 (0x8890012100000000) rv: 0;
+rvCheck(rv,0,12);
+```
+Note that for the same switch object (same `object_id`) and same attribute (`EcmpDefaultHashAlgorithm`), Agent sets the attribute to value of 5 in cold boot run but fetches value of 0 from SDK in warm boot run. This is a clear indicator that something is up with the SDK, and warrants filing a case with the corresponding vendor.
+
+### Check Agent Code
+
+Consider the following code block.
+
+```
+SaiApiTable::getInstance()->switchApi().setAttribute(
+     switch_->adapterKey(),
+     SaiSwitchTraits::Attributes::ForceTrafficOverFabric{
+         forceTrafficOverFabric});
+```
+`setAttribute` calls like the one above should not be blindly made anywhere in Agent code. Before programming any attributes to SDK, Agent should check the current attribute value in the SDK and only reprogram the attribute if Agent intends to change its value, like below.
+
+```
+auto& switchApi = SaiApiTable::getInstance()->switchApi();
+ auto oldSetForceTrafficOverFabric = switchApi.getAttribute(
+     switch_->adapterKey(),
+     SaiSwitchTraits::Attributes::ForceTrafficOverFabric{});
+ if (oldSetForceTrafficOverFabric != forceTrafficOverFabric) {
+   SaiApiTable::getInstance()->switchApi().setAttribute(
+       switch_->adapterKey(),
+       SaiSwitchTraits::Attributes::ForceTrafficOverFabric{
+           forceTrafficOverFabric});
+ }
+```
