@@ -65805,6 +65805,123 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
           }
         }
+    },
+    "351": {
+        "mapping": {
+          "id": 351,
+          "name": "eth1/65/1",
+          "controllingPort": 351,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH5_NIF-slot1/chip1/core64",
+                "lane": 0
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-QSFP28-slot1/chip65",
+                  "lane": 0
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH5_NIF-slot1/chip1/core64",
+                "lane": 1
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-QSFP28-slot1/chip65",
+                  "lane": 1
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH5_NIF-slot1/chip1/core64",
+                "lane": 2
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-QSFP28-slot1/chip65",
+                  "lane": 2
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH5_NIF-slot1/chip1/core64",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-QSFP28-slot1/chip65",
+                  "lane": 3
+                }
+              }
+            }
+          ],
+          "portType": 4,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "23": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core64",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core64",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core64",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core64",
+                      "lane": 3
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFP28-slot1/chip65",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFP28-slot1/chip65",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFP28-slot1/chip65",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFP28-slot1/chip65",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          }
+        }
     }
   },
   "chips": [
@@ -66129,6 +66246,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
       "physicalID": 63
     },
     {
+      "name": "NPU-TH5_NIF-slot1/chip1/core64",
+      "type": 1,
+      "physicalID": 64
+    },
+    {
       "name": "TRANSCEIVER-OSFP-slot1/chip1",
       "type": 3,
       "physicalID": 0
@@ -66447,6 +66569,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
       "name": "TRANSCEIVER-OSFP-slot1/chip64",
       "type": 3,
       "physicalID": 63
+    },
+    {
+      "name": "TRANSCEIVER-QSFP28-slot1/chip65",
+      "type": 3,
+      "physicalID": 64
     }
   ],
   "platformSupportedProfiles": [
@@ -66505,8 +66632,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "numLanes": 4,
           "modulation": 1,
           "fec": 528,
-          "medium": 3,
-          "interfaceType": 3
+          "medium": 2,
+          "interfaceType": 21
         }
       }
     },

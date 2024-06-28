@@ -193,4 +193,12 @@ int Tomahawk5Asic::getDefaultNumPortQueues(
       apache::thrift::util::enumNameSafe(portType),
       " combination");
 }
+
+const std::map<cfg::PortType, cfg::PortLoopbackMode>&
+Tomahawk5Asic::desiredLoopbackModes() const {
+  static const std::map<cfg::PortType, cfg::PortLoopbackMode> kLoopbackMode = {
+      {cfg::PortType::INTERFACE_PORT, cfg::PortLoopbackMode::MAC},
+      {cfg::PortType::MANAGEMENT_PORT, cfg::PortLoopbackMode::NONE}};
+  return kLoopbackMode;
+}
 } // namespace facebook::fboss
