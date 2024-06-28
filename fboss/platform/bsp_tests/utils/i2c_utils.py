@@ -95,10 +95,10 @@ def create_i2c_device(dev: I2CDevice, bus: int) -> bool:
         return False
 
 
-def i2cGet(bus: str, addr: str, reg: str) -> str:
+def i2cget(bus: str, addr: str, reg: str) -> str:
     cmd = ["i2cget", "-y", bus, addr, reg]
     return run_cmd(cmd).stdout.decode().strip()
 
 
-def i2cSet(bus: str, addr: str, reg: str, data: str) -> None:
+def i2cset(bus: str, addr: str, reg: str, data: str) -> None:
     run_cmd(["i2cset", "-y", bus, addr, reg, data])

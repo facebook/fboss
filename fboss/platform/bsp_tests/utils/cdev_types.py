@@ -255,18 +255,18 @@ def print_fields(obj, indent=0):
             print("  " * indent + field_name + ": " + str(value))
 
 
-def getEmptyAuxData() -> fbiob_aux_data:
+def get_empty_aux_data() -> fbiob_aux_data:
     aux_data = fbiob_aux_data()
     return aux_data
 
 
-def getInvalidAuxData() -> fbiob_aux_data:
+def get_invalid_aux_data() -> fbiob_aux_data:
     aux_data = fbiob_aux_data()
     aux_data.csr_offset = ctypes.c_uint32(-1).value
     return aux_data
 
 
-def getAuxData(fpga: FpgaSpec, device: AuxDevice, id: int) -> fbiob_aux_data:
+def get_aux_data(fpga: FpgaSpec, device: AuxDevice, id: int) -> fbiob_aux_data:
     aux_data = fbiob_aux_data()
     aux_data.id.name = device.deviceName.encode()
     aux_data.id.id = id

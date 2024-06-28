@@ -4,7 +4,10 @@ from time import sleep
 
 import pytest
 
-from fboss.platform.bsp_tests.utils.cdev_types import getEmptyAuxData, getInvalidAuxData
+from fboss.platform.bsp_tests.utils.cdev_types import (
+    get_empty_aux_data,
+    get_invalid_aux_data,
+)
 from fboss.platform.bsp_tests.utils.cdev_utils import (
     create_new_device,
     delete_device,
@@ -26,7 +29,7 @@ def test_empty_aux_data(platform_fpgas) -> None:
     a failure case
     """
     for fpga in platform_fpgas:
-        aux_data = getEmptyAuxData()
+        aux_data = get_empty_aux_data()
         path = make_cdev_path(fpga)
         fd = os.open(path, os.O_RDWR)
         try:
@@ -44,7 +47,7 @@ def test_cdev_rejects_invalid_data(platform_fpgas) -> None:
     a failure case
     """
     for fpga in platform_fpgas:
-        aux_data = getInvalidAuxData()
+        aux_data = get_invalid_aux_data()
         path = make_cdev_path(fpga)
         fd = os.open(path, os.O_RDWR)
         with pytest.raises(OSError):

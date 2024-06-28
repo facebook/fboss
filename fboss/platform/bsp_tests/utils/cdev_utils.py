@@ -6,7 +6,7 @@ from fboss.platform.bsp_tests.utils.cdev_types import (
     AuxDevice,
     fbiob_aux_data,
     FpgaSpec,
-    getAuxData,
+    get_aux_data,
 )
 from ioctl_opt import IOW
 
@@ -17,7 +17,7 @@ FBIOB_IOC_DEL_DEVICE = IOW(FBIOB_IOC_MAGIC, 2, fbiob_aux_data)  # noqa
 
 
 def create_new_device(fpga: FpgaSpec, device: AuxDevice, id: int = 1) -> None:
-    aux_data = getAuxData(fpga, device, id)
+    aux_data = get_aux_data(fpga, device, id)
     path = make_cdev_path(fpga)
     fd = os.open(path, os.O_RDWR)
     try:
@@ -31,7 +31,7 @@ def create_new_device(fpga: FpgaSpec, device: AuxDevice, id: int = 1) -> None:
 
 
 def delete_device(fpga: FpgaSpec, device: AuxDevice, id: int = 1) -> None:
-    aux_data = getAuxData(fpga, device, id)
+    aux_data = get_aux_data(fpga, device, id)
     path = make_cdev_path(fpga)
     fd = os.open(path, os.O_RDWR)
     try:
