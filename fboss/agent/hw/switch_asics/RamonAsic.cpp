@@ -23,6 +23,7 @@ bool RamonAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::WARMBOOT:
     case HwAsic::Feature::TELEMETRY_AND_MONITORING:
     case HwAsic::Feature::SAI_PORT_SERDES_PROGRAMMING:
+    case HwAsic::Feature::SAI_ECMP_HASH_ALGORITHM:
       return true;
     default:
       return false;

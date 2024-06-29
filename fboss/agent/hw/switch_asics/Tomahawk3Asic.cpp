@@ -92,6 +92,7 @@ bool Tomahawk3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::ACL_METADATA_QUALIFER:
     case HwAsic::Feature::PORT_SERDES_ZERO_PREEMPHASIS:
     case HwAsic::Feature::SAI_PRBS:
+    case HwAsic::Feature::SAI_ECMP_HASH_ALGORITHM:
       return true;
     case HwAsic::Feature::QCM:
     case HwAsic::Feature::SMAC_EQUALS_DMAC_CHECK_ENABLED:

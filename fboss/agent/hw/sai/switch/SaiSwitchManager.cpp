@@ -318,8 +318,11 @@ void SaiSwitchManager::programEcmpLoadBalancerParams(
   hashSeed &= mask;
   switch_->setOptionalAttribute(
       SaiSwitchTraits::Attributes::EcmpDefaultHashSeed{hashSeed});
-  switch_->setOptionalAttribute(
-      SaiSwitchTraits::Attributes::EcmpDefaultHashAlgorithm{hashAlgo});
+  if (platform_->getAsic()->isSupported(
+          HwAsic::Feature::SAI_ECMP_HASH_ALGORITHM)) {
+    switch_->setOptionalAttribute(
+        SaiSwitchTraits::Attributes::EcmpDefaultHashAlgorithm{hashAlgo});
+  }
 }
 
 template <typename HashAttrT>

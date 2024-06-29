@@ -174,6 +174,7 @@ bool Jericho3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::PORT_WRED_COUNTER:
     case HwAsic::Feature::DTL_WATERMARK_COUNTER:
     case HwAsic::Feature::MULTIPLE_ACL_TABLES:
+    case HwAsic::Feature::SAI_ECMP_HASH_ALGORITHM:
       return false;
   }
   return false;

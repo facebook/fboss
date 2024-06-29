@@ -178,6 +178,7 @@ class HwAsic {
     CRC_ERROR_DETECT,
     EVENTOR_PORT_FOR_SFLOW,
     CPU_VOQ_BUFFER_PROFILE,
+    SAI_ECMP_HASH_ALGORITHM,
   };
 
   enum class AsicMode {
