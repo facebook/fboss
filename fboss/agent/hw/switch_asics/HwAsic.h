@@ -377,6 +377,10 @@ class HwAsic {
     return 1;
   }
 
+  virtual uint32_t getMaxHashSeedLength() const {
+    return 32;
+  }
+
  protected:
   static cfg::Range64 makeRange(int64_t min, int64_t max);
 

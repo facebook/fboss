@@ -81,5 +81,8 @@ class Ramon3Asic : public BroadcomAsic {
   uint32_t getThresholdGranularity() const override {
     return 1024;
   }
+  uint32_t getMaxHashSeedLength() const override {
+    return 16;
+  }
 };
 } // namespace facebook::fboss

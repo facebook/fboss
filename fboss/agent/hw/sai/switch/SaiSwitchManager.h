@@ -36,6 +36,8 @@ class SaiPlatform;
 class StateDelta;
 
 class SaiSwitchManager {
+  static constexpr auto kBitsPerByte = 8;
+
  public:
   SaiSwitchManager(
       SaiManagerTable* managerTable,
