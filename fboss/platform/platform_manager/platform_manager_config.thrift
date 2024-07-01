@@ -79,8 +79,8 @@ include "fboss/platform/platform_manager/platform_manager_presence.thrift"
 // between slot names is a forward slash (/).
 // For example, in the below platform,
 // - Root PmUnit is plugged in SlotPath /
-// - First XZY PmUnit is plugged in SlotPath /XYZ_SLOT@0
-// - Second XZY PmUnit is plugged in SlotPath /XYZ_SLOT@1
+// - First XYZ PmUnit is plugged in SlotPath /XYZ_SLOT@0
+// - Second XYZ PmUnit is plugged in SlotPath /XYZ_SLOT@1
 // - ABC1 PmUnit is plugged in SlotPath /ABC_SLOT@0
 // - ABC2 PmUnit is plugged in SlotPath /ABC_SLOT@1
 // - DEF PmUnit is plugged in SlotPath /ABC_SLOT@1/DEF_SLOT@0
