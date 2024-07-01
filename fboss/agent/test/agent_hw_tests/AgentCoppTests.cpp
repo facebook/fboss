@@ -1509,7 +1509,8 @@ class AgentCoppQosTest : public AgentHwTest {
   void addCustomCpuQueueConfig(
       cfg::SwitchConfig& config,
       std::vector<const HwAsic*> hwAsics,
-      bool addEcnConfig = false) const {
+      bool addEcnConfig = false,
+      bool addQueueRate = false) const {
     std::vector<cfg::PortQueue> cpuQueues;
     auto hwAsic = utility::checkSameAndGetAsic(hwAsics);
     cfg::PortQueue queue0;
@@ -1520,6 +1521,10 @@ class AgentCoppQosTest : public AgentHwTest {
     if (addEcnConfig) {
       queue0.aqms() = {};
       queue0.aqms()->push_back(utility::kGetOlympicEcnConfig(hwAsic));
+    }
+    if (addQueueRate) {
+      queue0.portQueueRate() =
+          utility::setPortQueueRate(hwAsic, utility::kCoppLowPriQueueId);
     }
     utility::setPortQueueMaxDynamicSharedBytes(queue0, hwAsic);
     cpuQueues.push_back(queue0);
@@ -1559,7 +1564,8 @@ class AgentCoppQueueStuckTest : public AgentCoppQosTest {
     addCustomCpuQueueConfig(
         cfg,
         ensemble.getSw()->getHwAsicTable()->getL3Asics(),
-        true /*addEcnConfig*/);
+        true /*addEcnConfig*/,
+        true /*addQueueRate*/);
     return cfg;
   }
 };
@@ -1572,34 +1578,43 @@ TEST_F(AgentCoppQueueStuckTest, CpuQueueHighRateTraffic) {
     createLineRateTrafficOnPort(
         masterLogicalInterfacePortIds()[0], baseVlan, kIpForLowPriorityQueue);
 
-    uint64_t previousLowPriorityPacketCount{};
-    /*
-     * Running the test for atleast kTestIterations. As we have
-     * traffic at close to line rate being received on CPU low
-     * priority queue, this is enough to validate possible queue
-     * stuck condition.
-     */
-
+    const double kVariance = 0.30; // i.e. + or -30%
+    uint64_t kDurationInSecs = 12;
+    uint64_t pktSize = EthHdr::SIZE + IPv6Hdr::size() + 256;
+    uint64_t expectedRate = utility::kCoppDnxLowPriKbitsPerSec * 1024;
+    auto expectedRateLow = expectedRate * (1 - kVariance);
+    auto expectedRateHigh = expectedRate * (1 + kVariance);
     WITH_RETRIES({
       // Read low priority copp queue counters
-      uint64_t lowPriorityPacketCount = utility::getQueueOutPacketsWithRetry(
-          this->getSw(),
-          this->switchIdForPort(
-              this->masterLogicalPortIds({cfg::PortType::INTERFACE_PORT})[0]),
-          utility::kCoppLowPriQueueId,
-          0 /* retryTimes */,
-          0 /* expectedNumPkts */);
-      XLOG(DBG0) << "Received packet count: " << lowPriorityPacketCount;
-      /*
-       * Make sure that COPP queue keeps moving! As we are sending
-       * close to line rate low priority packets, we dont expect it
-       * to be read without an increment.  Queue not incrementing in
-       * a single iteration is good enough to flag a stuck condition
-       * given each iteration waits long enough.
-       */
-      EXPECT_EVENTUALLY_NE(
-          lowPriorityPacketCount, previousLowPriorityPacketCount);
-      previousLowPriorityPacketCount = lowPriorityPacketCount;
+      uint64_t lowPriorityPacketCountBefore =
+          utility::getQueueOutPacketsWithRetry(
+              this->getSw(),
+              this->switchIdForPort(this->masterLogicalPortIds(
+                  {cfg::PortType::INTERFACE_PORT})[0]),
+              utility::kCoppLowPriQueueId,
+              0 /* retryTimes */,
+              0 /* expectedNumPkts */);
+      /* sleep override */
+      sleep(kDurationInSecs);
+      uint64_t lowPriorityPacketCountAfter =
+          utility::getQueueOutPacketsWithRetry(
+              this->getSw(),
+              this->switchIdForPort(this->masterLogicalPortIds(
+                  {cfg::PortType::INTERFACE_PORT})[0]),
+              utility::kCoppLowPriQueueId,
+              0 /* retryTimes */,
+              0 /* expectedNumPkts */);
+
+      uint64_t actualRate =
+          (lowPriorityPacketCountAfter - lowPriorityPacketCountBefore) *
+          pktSize * 8 / kDurationInSecs;
+      XLOG(DBG0) << "Before packet count: " << lowPriorityPacketCountBefore
+                 << ", After packet count: " << lowPriorityPacketCountAfter
+                 << ", Actual rate in bps: " << actualRate
+                 << ", Expected rate low in bps: " << expectedRateLow
+                 << ", Expected rate high in bps: " << expectedRateHigh;
+      EXPECT_EVENTUALLY_TRUE(
+          expectedRateLow <= actualRate && actualRate <= expectedRateHigh);
     });
   };
 

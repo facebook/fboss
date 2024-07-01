@@ -63,6 +63,7 @@ constexpr uint32_t kCoppTajoDefaultPriPktsPerSec = 20000;
 // DNX supports higher PPS to CPU
 constexpr uint32_t kCoppDnxLowPriPktsPerSec = 12000;
 constexpr uint32_t kCoppDnxDefaultPriPktsPerSec = 24000;
+constexpr uint32_t kCoppDnxLowPriKbitsPerSec = 100 * 1024;
 
 constexpr uint16_t kBgpPort = 179;
 
@@ -264,5 +265,6 @@ void excludeTTL1TrapConfig(cfg::SwitchConfig& config);
 
 CpuPortStats getCpuPortStats(SwSwitch* sw, SwitchID switchId);
 
+cfg::PortQueueRate setPortQueueRate(const HwAsic* hwAsic, uint16_t queueId);
 } // namespace utility
 } // namespace facebook::fboss

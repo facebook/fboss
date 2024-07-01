@@ -220,7 +220,12 @@ cfg::PortQueueRate setPortQueueRate(const HwAsic* hwAsic, uint16_t queueId) {
   if (hwAsic->isSupported(HwAsic::Feature::SCHEDULER_PPS)) {
     portQueueRate.pktsPerSec_ref() = getRange(0, pps);
   } else {
-    uint32_t kbps = getCoppQueueKbpsFromPps(hwAsic, pps);
+    uint32_t kbps;
+    if (hwAsic->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO3) {
+      kbps = kCoppDnxLowPriKbitsPerSec;
+    } else {
+      kbps = getCoppQueueKbpsFromPps(hwAsic, pps);
+    }
     portQueueRate.kbitsPerSec_ref() = getRange(0, kbps);
   }
 
