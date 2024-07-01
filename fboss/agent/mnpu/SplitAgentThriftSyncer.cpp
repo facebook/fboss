@@ -68,6 +68,8 @@ void SplitAgentThriftSyncer::packetReceived(
   if (pkt->getSrcAggregatePort()) {
     rxPkt.aggPort() = pkt->getSrcAggregatePort();
   }
+  // coalesce the IOBuf before copy
+  pkt->buf()->coalesce();
   rxPkt.data() = IOBuf::copyBuffer(pkt->buf()->data(), pkt->buf()->length());
   rxPktEventSinkClient_->enqueue(std::move(rxPkt));
 }
