@@ -117,7 +117,7 @@
             },
             "connectionHandle": "15:00"
         },
-        "1": {
+        "2": {
             "switchType": 3,
             "asicType": 16,
             "switchIndex": 1,
