@@ -200,6 +200,8 @@ MultiSwitchThriftHandler::co_notifyRxPacket(int64_t switchId) {
             if (item->aggPort()) {
               pkt->setSrcAggregatePort(AggregatePortID(*item->aggPort()));
             }
+            // Agent pkt handling code assumes single buffer, so coalesce
+            pkt->buf()->coalesce();
             sw_->packetReceived(std::move(pkt));
           }
         } catch (const std::exception& e) {
