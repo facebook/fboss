@@ -4,7 +4,7 @@
 
 #include <optional>
 
-#include <folly/experimental/exception_tracer/ExceptionTracer.h>
+#include <folly/debugging/exception_tracer/ExceptionTracer.h>
 #include <folly/logging/xlog.h>
 
 #include <fb303/ThreadCachedServiceData.h>
