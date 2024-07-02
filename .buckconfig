@@ -1,0 +1,20 @@
+[repositories]
+root = .
+prelude = prelude
+shim = shim
+
+[repository_aliases]
+config = prelude
+ovr_config = prelude
+toolchains = shim
+fbcode = shim
+fbcode_macros = shim
+fbsource = shim
+buck = shim
+bazel_skylib = shim
+
+[parser]
+target_platform_detector_spec = target:root//...->prelude//platforms:default target:shim//...->prelude//platforms:default
+
+[buildfile]
+name=TARGETS
