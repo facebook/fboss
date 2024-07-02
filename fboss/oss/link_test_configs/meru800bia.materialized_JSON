@@ -7239,12 +7239,6 @@
         "name": "cpuQueue-mid"
       },
       {
-        "id": 1,
-        "streamType": 0,
-        "scheduling": 1,
-        "name": "cpuQueue-default"
-      },
-      {
         "id": 0,
         "streamType": 0,
         "scheduling": 1,
@@ -7381,10 +7375,6 @@
         {
           "rxReason": 14,
           "queueId": 0
-        },
-        {
-          "rxReason": 0,
-          "queueId": 1
         }
       ]
     },
