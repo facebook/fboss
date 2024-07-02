@@ -46,6 +46,7 @@ DEFINE_string(
     "Path to the local rpm file that needs to be installed on the system.");
 
 constexpr auto kBspKmodsRpmName = "fboss_bsp_kmods_rpm";
+constexpr auto kBspKmodsRpmVersionCounter = "bsp_kmods_rpm_version.{}";
 
 void sdNotifyReady() {
   auto cmd = "systemd-notify --ready";
@@ -74,6 +75,9 @@ int main(int argc, char** argv) {
     } else {
       fb303::fbData->setExportedValue(
           kBspKmodsRpmName, PkgUtils().getKmodsRpmName(config));
+      fb303::fbData->setCounter(
+          fmt::format(kBspKmodsRpmVersionCounter, *config.bspKmodsRpmVersion()),
+          1);
       PkgUtils().processRpms(config);
     }
   } else {
