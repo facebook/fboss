@@ -13,6 +13,9 @@ fbsource = shim
 buck = shim
 bazel_skylib = shim
 
+[external_cells]
+prelude = bundled
+
 [parser]
 target_platform_detector_spec = target:root//...->prelude//platforms:default target:shim//...->prelude//platforms:default
 
