@@ -566,6 +566,7 @@ enum AclTableQualifier {
   OUTER_VLAN = 23,
   UDF = 24,
   BTH_OPCODE = 25,
+  IPV6_NEXT_HEADER = 26,
 }
 
 struct AclTable {

@@ -1614,6 +1614,7 @@ bool SaiAclTableManager::isQualifierSupported(
 #else
       return false;
 #endif
+    case cfg::AclTableQualifier::IPV6_NEXT_HEADER:
     case cfg::AclTableQualifier::UDF:
       /* not supported */
       return false;
