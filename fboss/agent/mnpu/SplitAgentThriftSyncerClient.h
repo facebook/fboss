@@ -130,19 +130,39 @@ class ThriftSinkClient : public SplitAgentThriftClient {
   void resetClient() override;
   void onCancellation() override;
   void enqueue(CallbackObjectT callbackObject) {
-    if (!isConnectedToServer()) {
-      eventsDroppedCount_.add(1);
-      return;
-    }
 #if FOLLY_HAS_COROUTINES
-    if constexpr (std::is_same_v<EventQueueT, RxPktEventQueueType>) {
-      folly::coro::blockingWait(
-          eventsQueue_.enqueue(std::move(callbackObject)));
-    } else {
-      eventsQueue_.enqueue(std::move(callbackObject));
-    }
-    eventSentCount_.add(1);
+    folly::coro::blockingWait(enqueueImpl(std::move(callbackObject)));
 #endif
+  }
+
+#if FOLLY_HAS_COROUTINES
+  folly::coro::Task<void> enqueueImpl(CallbackObjectT callbackObject) {
+    if (!isConnectedToServer() || exiting_.load()) {
+      eventsDroppedCount_.add(1);
+    } else {
+      if constexpr (std::is_same_v<EventQueueT, RxPktEventQueueType>) {
+        // RxPacketEvent uses bounded queue which can block on enqueue
+        // if queue is full. Use cancellation so that we can cancel
+        // enqueue if we are shutting down.
+        try {
+          co_await folly::coro::co_withCancellation(
+              cancelSource_.getToken(),
+              eventsQueue_.enqueue(std::move(callbackObject)));
+        } catch (const std::exception& e) {
+          XLOG(ERR) << "Exception while enqueuing event: " << e.what();
+          eventsDroppedCount_.add(1);
+          co_return;
+        }
+      } else {
+        eventsQueue_.enqueue(std::move(callbackObject));
+      }
+      eventSentCount_.add(1);
+    }
+  }
+#endif
+  void cancelPendingEnqueue() {
+    exiting_.store(true);
+    cancelSource_.requestCancellation();
   }
   void startClientService() override;
 
@@ -158,6 +178,8 @@ class ThriftSinkClient : public SplitAgentThriftClient {
   fb303::TimeseriesWrapper eventsDroppedCount_;
   fb303::TimeseriesWrapper eventSentCount_;
   int32_t serverPort_;
+  std::atomic<bool> exiting_{false};
+  folly::CancellationSource cancelSource_;
 };
 
 template <typename StreamObjectT>

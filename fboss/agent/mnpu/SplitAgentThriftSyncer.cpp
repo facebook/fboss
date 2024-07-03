@@ -185,6 +185,10 @@ void SplitAgentThriftSyncer::stop() {
   isRunning_ = false;
 }
 
+void SplitAgentThriftSyncer::cancelPendingRxPktEnqueue() {
+  rxPktEventSinkClient_->cancelPendingEnqueue();
+}
+
 void SplitAgentThriftSyncer::stopOperDeltaSync() {
   operDeltaClient_->stopOperSync();
 }
