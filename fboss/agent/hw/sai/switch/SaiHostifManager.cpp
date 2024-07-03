@@ -558,7 +558,7 @@ void SaiHostifManager::loadCpuPortQueues() {
 
 void SaiHostifManager::loadCpuSystemPortVoqs() {
   std::vector<sai_object_id_t> voqList;
-  voqList.resize(8);
+  voqList.resize(1);
   SaiSystemPortTraits::Attributes::QosVoqList voqListAttribute{voqList};
   auto voqSaiIdList = SaiApiTable::getInstance()->systemPortApi().getAttribute(
       cpuPortHandle_->cpuSystemPortId.value(), voqListAttribute);
