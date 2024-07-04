@@ -27,6 +27,7 @@ parse_wedge_dump: Parses text dump from `sudo wedge_qsfp_util`.
 def parse_wedge_dump(wedge_data: str) -> Dict[str, str]:
     port_re = r"Logical Ports: (.*)"
     media_interface_re = r"Module Media Interface: (.*)"
+    eeprom_checksum_re = r"EEPROM Checksum: (.*)"
 
     port_to_code = {}
     all_port_text = wedge_data.split("Port ")
@@ -37,10 +38,17 @@ def parse_wedge_dump(wedge_data: str) -> Dict[str, str]:
             continue
         all_ports = match.group(1).strip()
         port = all_ports.split(",")[0]
+
         match = re.search(media_interface_re, port_text)
         if not match:
             continue
-        port_to_code[port] = match.group(1).strip()
+        part_num = match.group(1).strip()
+
+        match = re.search(eeprom_checksum_re, port_text)
+        if not match or match.group(1).strip() == "Invalid":
+            continue
+
+        port_to_code[port] = part_num
 
     return port_to_code
 
@@ -70,6 +78,8 @@ def parse_tcvr_dump(tcvr_data: str) -> Dict[str, Dict[str, str]]:
     for line in lines:
         substr = line[:vendor_idx]
         cols = substr.split()
+        if len(cols) < 3:
+            continue
         status = cols[2]
 
         if status == "Absent":
@@ -79,13 +89,13 @@ def parse_tcvr_dump(tcvr_data: str) -> Dict[str, Dict[str, str]]:
         substr = line[vendor_idx:serial_idx]
         vendor = substr.strip()
 
-        if len(vendor) == 0:
+        if len(vendor) == 0 or vendor == "UNKNOWN" or "\x00" in vendor:
             continue
 
         substr = line[part_idx:fw_idx]
         part_num = substr.strip()
 
-        if len(part_num) == 0:
+        if len(part_num) == 0 or part_num == "UNKNOWN" or "\x00" in part_num:
             continue
 
         port_to_tcvr_info[port] = {
