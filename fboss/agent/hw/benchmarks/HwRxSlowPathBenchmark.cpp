@@ -41,11 +41,11 @@ BENCHMARK(RxSlowPathBenchmark) {
   constexpr int kEcmpWidth = 1;
   AgentEnsembleSwitchConfigFn initialConfigFn = [](const AgentEnsemble&
                                                        ensemble) {
+    FLAGS_sai_user_defined_trap = true;
     CHECK_GE(
         ensemble.masterLogicalPortIds({cfg::PortType::INTERFACE_PORT}).size(),
         1);
-    std::vector<PortID> ports = {
-        ensemble.masterLogicalPortIds({cfg::PortType::INTERFACE_PORT})[0]};
+    std::vector<PortID> ports = {ensemble.masterLogicalInterfacePortIds()[0]};
 
     // For J2 and J3, initialize recycle port as well to allow l3 lookup on
     // recycle port
@@ -83,12 +83,17 @@ BENCHMARK(RxSlowPathBenchmark) {
   auto ecmpHelper =
       utility::EcmpSetupAnyNPorts6(ensemble->getProgrammedState(), dstMac);
   ensemble->applyNewState([&](const std::shared_ptr<SwitchState>& in) {
-    return ecmpHelper.resolveNextHops(in, kEcmpWidth);
+    return ecmpHelper.resolveNextHops(
+        in, ensemble->masterLogicalInterfacePortIds()[0]);
   });
+  flat_set<PortDescriptor> firstIntfPort;
+  firstIntfPort.insert(
+      PortDescriptor(ensemble->masterLogicalInterfacePortIds()[0]));
   ecmpHelper.programRoutes(
       std::make_unique<SwSwitchRouteUpdateWrapper>(
           ensemble->getSw(), ensemble->getSw()->getRib()),
-      kEcmpWidth);
+      firstIntfPort,
+      {RoutePrefixV6{folly::IPAddressV6(), 0}});
   // Disable TTL decrements
   utility::ttlDecrementHandlingForLoopbackTraffic(
       ensemble.get(), ecmpHelper.getRouterId(), ecmpHelper.getNextHops()[0]);

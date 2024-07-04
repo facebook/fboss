@@ -463,6 +463,13 @@ void setTTLZeroCpuConfig(
 
   rxReasons.push_back(ttlRxReasonToQueue);
   cfg::CPUTrafficPolicyConfig cpuConfig;
+
+  if (config.cpuTrafficPolicy().has_value()) {
+    auto origCpuTrafficPolicy = *config.cpuTrafficPolicy();
+    if (origCpuTrafficPolicy.trafficPolicy()) {
+      cpuConfig.trafficPolicy() = *origCpuTrafficPolicy.trafficPolicy();
+    }
+  }
   cpuConfig.rxReasonToQueueOrderedList() = rxReasons;
   config.cpuTrafficPolicy() = cpuConfig;
 }
