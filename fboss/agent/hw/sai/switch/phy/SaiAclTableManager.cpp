@@ -105,6 +105,7 @@ std::
       true, // ether type
       std::nullopt, // fieldOuterVlanId
       std::nullopt, // fieldBthOpcode
+      std::nullopt, // fieldIpv6NextHeader
   };
 
   SaiAclTableTraits::AdapterHostKey adapterHostKey{addedAclTable->getID()};

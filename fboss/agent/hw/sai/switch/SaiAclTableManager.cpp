@@ -684,11 +684,26 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
 
   std::optional<SaiAclEntryTraits::Attributes::FieldIpProtocol> fieldIpProtocol{
       std::nullopt};
-  if (addedAclEntry->getProto()) {
+  auto qualifierSet = getSupportedQualifierSet();
+  if (qualifierSet.find(cfg::AclTableQualifier::IP_PROTOCOL) !=
+          qualifierSet.end() &&
+      addedAclEntry->getProto()) {
     fieldIpProtocol = SaiAclEntryTraits::Attributes::FieldIpProtocol{
         AclEntryFieldU8(std::make_pair(
             addedAclEntry->getProto().value(), kIpProtocolMask))};
   }
+
+#if !defined(TAJO_SDK) && !defined(BRCM_SAI_SDK_XGS)
+  std::optional<SaiAclEntryTraits::Attributes::FieldIpv6NextHeader>
+      fieldIpv6NextHeader{std::nullopt};
+  if (qualifierSet.find(cfg::AclTableQualifier::IPV6_NEXT_HEADER) !=
+          qualifierSet.end() &&
+      addedAclEntry->getProto()) {
+    fieldIpv6NextHeader = SaiAclEntryTraits::Attributes::FieldIpv6NextHeader{
+        AclEntryFieldU8(std::make_pair(
+            addedAclEntry->getProto().value(), kIpv6NextHeaderMask))};
+  }
+#endif
 
   std::optional<SaiAclEntryTraits::Attributes::FieldTcpFlags> fieldTcpFlags{
       std::nullopt};
@@ -1059,6 +1074,9 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
 #if !defined(TAJO_SDK)
        fieldBthOpcode.has_value() ||
 #endif
+#if !defined(TAJO_SDK) && !defined(BRCM_SAI_SDK_XGS)
+       fieldIpv6NextHeader.has_value() ||
+#endif
        platform_->getAsic()->isSupported(HwAsic::Feature::EMPTY_ACL_MATCHER));
   if (fieldSrcPort.has_value()) {
     auto srcPortQualifierSupported = platform_->getAsic()->isSupported(
@@ -1116,6 +1134,9 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
       fieldOuterVlanId,
 #if !defined(TAJO_SDK)
       fieldBthOpcode,
+#endif
+#if !defined(TAJO_SDK) && !defined(BRCM_SAI_SDK_XGS)
+      fieldIpv6NextHeader,
 #endif
       aclActionPacketAction,
       aclActionCounter,
@@ -1615,6 +1636,13 @@ bool SaiAclTableManager::isQualifierSupported(
       return false;
 #endif
     case cfg::AclTableQualifier::IPV6_NEXT_HEADER:
+#if !defined(TAJO_SDK) && !defined(BRCM_SAI_SDK_XGS)
+      return hasField(
+          std::get<std::optional<
+              SaiAclTableTraits::Attributes::FieldIpv6NextHeader>>(attributes));
+#else
+      return false;
+#endif
     case cfg::AclTableQualifier::UDF:
       /* not supported */
       return false;

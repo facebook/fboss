@@ -98,6 +98,7 @@ class SaiAclTableManager {
   static auto constexpr kEtherTypeMask = 0xFFFF;
   static auto constexpr kOuterVlanIdMask = 0xFFF;
   static auto constexpr kBthOpcodeMask = 0xFF;
+  static auto constexpr kIpv6NextHeaderMask = 0xFF;
 
   static const folly::MacAddress& kMacMask() {
     static const folly::MacAddress macMask{"FF:FF:FF:FF:FF:FF"};

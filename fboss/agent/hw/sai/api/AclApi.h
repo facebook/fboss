@@ -194,6 +194,10 @@ struct SaiAclTableTraits {
     using FieldBthOpcode =
         SaiAttribute<EnumType, SAI_ACL_TABLE_ATTR_FIELD_BTH_OPCODE, bool>;
 #endif
+#if !defined(TAJO_SDK) && !defined(BRCM_SAI_SDK_XGS)
+    using FieldIpv6NextHeader =
+        SaiAttribute<EnumType, SAI_ACL_TABLE_ATTR_FIELD_IPV6_NEXT_HEADER, bool>;
+#endif
   };
 
   using AdapterKey = AclTableSaiId;
@@ -228,6 +232,10 @@ struct SaiAclTableTraits {
 #if !defined(TAJO_SDK)
       ,
       std::optional<Attributes::FieldBthOpcode>
+#endif
+#if !defined(TAJO_SDK) && !defined(BRCM_SAI_SDK_XGS)
+      ,
+      std::optional<Attributes::FieldIpv6NextHeader>
 #endif
       >;
 
@@ -266,6 +274,9 @@ SAI_ATTRIBUTE_NAME(AclTable, FieldEthertype);
 SAI_ATTRIBUTE_NAME(AclTable, FieldOuterVlanId);
 #if !defined(TAJO_SDK)
 SAI_ATTRIBUTE_NAME(AclTable, FieldBthOpcode);
+#endif
+#if !defined(TAJO_SDK) && !defined(BRCM_SAI_SDK_XGS)
+SAI_ATTRIBUTE_NAME(AclTable, FieldIpv6NextHeader);
 #endif
 
 struct SaiAclEntryTraits {
@@ -388,6 +399,12 @@ struct SaiAclEntryTraits {
         SAI_ACL_ENTRY_ATTR_FIELD_BTH_OPCODE,
         AclEntryFieldU8>;
 #endif
+#if !defined(TAJO_SDK) && !defined(BRCM_SAI_SDK_XGS)
+    using FieldIpv6NextHeader = SaiAttribute<
+        EnumType,
+        SAI_ACL_ENTRY_ATTR_FIELD_IPV6_NEXT_HEADER,
+        AclEntryFieldU8>;
+#endif
     using ActionPacketAction = SaiAttribute<
         EnumType,
         SAI_ACL_ENTRY_ATTR_ACTION_PACKET_ACTION,
@@ -459,6 +476,9 @@ struct SaiAclEntryTraits {
 #if !defined(TAJO_SDK)
       std::optional<Attributes::FieldBthOpcode>,
 #endif
+#if !defined(TAJO_SDK) && !defined(BRCM_SAI_SDK_XGS)
+      std::optional<Attributes::FieldIpv6NextHeader>,
+#endif
       std::optional<Attributes::ActionPacketAction>,
       std::optional<Attributes::ActionCounter>,
       std::optional<Attributes::ActionSetTC>,
@@ -502,6 +522,9 @@ SAI_ATTRIBUTE_NAME(AclEntry, FieldEthertype);
 SAI_ATTRIBUTE_NAME(AclEntry, FieldOuterVlanId);
 #if !defined(TAJO_SDK)
 SAI_ATTRIBUTE_NAME(AclEntry, FieldBthOpcode);
+#endif
+#if !defined(TAJO_SDK) && !defined(BRCM_SAI_SDK_XGS)
+SAI_ATTRIBUTE_NAME(AclEntry, FieldIpv6NextHeader);
 #endif
 SAI_ATTRIBUTE_NAME(AclEntry, ActionPacketAction);
 SAI_ATTRIBUTE_NAME(AclEntry, ActionCounter);

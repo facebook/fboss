@@ -174,6 +174,9 @@ std::
 #if !defined(TAJO_SDK)
       qualifierExistsFn(cfg::AclTableQualifier::BTH_OPCODE),
 #endif
+#if !defined(TAJO_SDK) && !defined(BRCM_SAI_SDK_XGS)
+      qualifierExistsFn(cfg::AclTableQualifier::IPV6_NEXT_HEADER),
+#endif
   };
 
   SaiAclTableTraits::AdapterHostKey adapterHostKey{addedAclTable->getID()};

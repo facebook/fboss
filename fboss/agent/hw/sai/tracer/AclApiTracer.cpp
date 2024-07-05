@@ -53,6 +53,9 @@ std::map<int32_t, std::pair<std::string, std::size_t>> _AclTableMap{
 #if !defined(TAJO_SDK)
     SAI_ATTR_MAP(AclTable, FieldBthOpcode),
 #endif
+#if !defined(TAJO_SDK) && !defined(BRCM_SAI_SDK_XGS)
+    SAI_ATTR_MAP(AclTable, FieldIpv6NextHeader),
+#endif
 };
 
 std::map<int32_t, std::pair<std::string, std::size_t>> _AclCounterMap{
@@ -109,6 +112,9 @@ std::map<int32_t, std::pair<std::string, std::size_t>> _AclEntryMap{
     SAI_ATTR_MAP(AclEntry, FieldOuterVlanId),
 #if !defined(TAJO_SDK)
     SAI_ATTR_MAP(AclEntry, FieldBthOpcode),
+#endif
+#if !defined(TAJO_SDK) && !defined(BRCM_SAI_SDK_XGS)
+    SAI_ATTR_MAP(AclEntry, FieldIpv6NextHeader),
 #endif
     SAI_ATTR_MAP(AclEntry, ActionPacketAction),
     SAI_ATTR_MAP(AclEntry, ActionCounter),

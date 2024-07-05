@@ -73,6 +73,8 @@ bool FakeAclTable::entryFieldSupported(const sai_attribute_t& attr) const {
       return fieldOuterVlanId;
     case SAI_ACL_TABLE_ATTR_FIELD_BTH_OPCODE:
       return fieldBthOpcode;
+    case SAI_ACL_TABLE_ATTR_FIELD_IPV6_NEXT_HEADER:
+      return fieldIpv6NextHeader;
     // Actions
     case SAI_ACL_ENTRY_ATTR_ACTION_PACKET_ACTION:
     case SAI_ACL_ENTRY_ATTR_ACTION_COUNTER:
@@ -125,6 +127,7 @@ sai_status_t create_acl_table_fn(
   bool fieldEthertype = 0;
   bool fieldOuterVlanId = 0;
   bool fieldBthOpcode = 0;
+  bool fieldIpv6NextHeader = 0;
 
   for (int i = 0; i < attr_count; ++i) {
     switch (attr_list[i].id) {
@@ -218,6 +221,9 @@ sai_status_t create_acl_table_fn(
       case SAI_ACL_TABLE_ATTR_FIELD_BTH_OPCODE:
         fieldBthOpcode = attr_list[i].value.booldata;
         break;
+      case SAI_ACL_TABLE_ATTR_FIELD_IPV6_NEXT_HEADER:
+        fieldIpv6NextHeader = attr_list[i].value.booldata;
+        break;
       default:
         return SAI_STATUS_INVALID_PARAMETER;
         break;
@@ -256,7 +262,8 @@ sai_status_t create_acl_table_fn(
       fieldNeighborDstUserMeta,
       fieldEthertype,
       fieldOuterVlanId,
-      fieldBthOpcode);
+      fieldBthOpcode,
+      fieldIpv6NextHeader);
 
   return SAI_STATUS_SUCCESS;
 }
@@ -438,6 +445,10 @@ sai_status_t get_acl_table_attribute_fn(
       case SAI_ACL_TABLE_ATTR_FIELD_BTH_OPCODE: {
         const auto& aclTable = fs->aclTableManager.get(acl_table_id);
         attr[i].value.booldata = aclTable.fieldBthOpcode;
+      } break;
+      case SAI_ACL_TABLE_ATTR_FIELD_IPV6_NEXT_HEADER: {
+        const auto& aclTable = fs->aclTableManager.get(acl_table_id);
+        attr[i].value.booldata = aclTable.fieldIpv6NextHeader;
       } break;
       case SAI_ACL_TABLE_ATTR_AVAILABLE_ACL_ENTRY:
       case SAI_ACL_TABLE_ATTR_AVAILABLE_ACL_COUNTER:
@@ -642,6 +653,12 @@ sai_status_t set_acl_entry_attribute_fn(
       aclEntry.fieldBthOpcodeEnable = attr->value.aclfield.enable;
       aclEntry.fieldBthOpcodeData = attr->value.aclfield.data.u8;
       aclEntry.fieldBthOpcodeMask = attr->value.aclfield.mask.u8;
+      res = SAI_STATUS_SUCCESS;
+      break;
+    case SAI_ACL_TABLE_ATTR_FIELD_IPV6_NEXT_HEADER:
+      aclEntry.fieldIpv6NextHeaderEnable = attr->value.aclfield.enable;
+      aclEntry.fieldIpv6NextHeaderData = attr->value.aclfield.data.u8;
+      aclEntry.fieldIpv6NextHeaderMask = attr->value.aclfield.mask.u8;
       res = SAI_STATUS_SUCCESS;
       break;
 
@@ -871,6 +888,11 @@ sai_status_t get_acl_entry_attribute_fn(
         attr_list[i].value.aclfield.enable = aclEntry.fieldBthOpcodeEnable;
         attr_list[i].value.aclfield.data.u8 = aclEntry.fieldBthOpcodeData;
         attr_list[i].value.aclfield.mask.u8 = aclEntry.fieldBthOpcodeMask;
+        break;
+      case SAI_ACL_TABLE_ATTR_FIELD_IPV6_NEXT_HEADER:
+        attr_list[i].value.aclfield.enable = aclEntry.fieldIpv6NextHeaderEnable;
+        attr_list[i].value.aclfield.data.u8 = aclEntry.fieldIpv6NextHeaderData;
+        attr_list[i].value.aclfield.mask.u8 = aclEntry.fieldIpv6NextHeaderMask;
         break;
 
       case SAI_ACL_ENTRY_ATTR_ACTION_PACKET_ACTION:
