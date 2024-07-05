@@ -23,7 +23,7 @@ auto constexpr kFanFailThresholdInSec = 300;
 auto constexpr kSensorFailThresholdInSec = 300;
 
 using namespace facebook::fboss::platform::fan_service;
-using constants =
+namespace constants =
     facebook::fboss::platform::fan_service::fan_service_config_constants;
 
 std::optional<TempToPwmMap> getConfigOpticTable(

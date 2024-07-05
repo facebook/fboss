@@ -24,7 +24,7 @@ using namespace facebook::fboss;
 
 using mka::Cak;
 using mka::MACSecCapability;
-using mka::mka_config_constants;
+namespace mka_config_constants = mka::mka_config_constants;
 using mka::MKAConfig;
 using mka::MKAServiceConfig;
 using mka::MKASessionInfo;

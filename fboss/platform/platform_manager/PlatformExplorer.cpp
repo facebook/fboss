@@ -53,7 +53,7 @@ bool hasEnding(std::string const& input, std::string const& ending) {
 
 namespace facebook::fboss::platform::platform_manager {
 
-using constants = platform_manager_config_constants;
+namespace constants = platform_manager_config_constants;
 
 PlatformExplorer::PlatformExplorer(const PlatformConfig& config)
     : platformConfig_(config),

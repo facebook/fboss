@@ -16,7 +16,7 @@
 #include "fboss/platform/sensor_service/if/gen-cpp2/sensor_service_types.h"
 
 using namespace folly::literals::shell_literals;
-using constants =
+namespace constants =
     facebook::fboss::platform::fan_service::fan_service_config_constants;
 
 DEFINE_bool(

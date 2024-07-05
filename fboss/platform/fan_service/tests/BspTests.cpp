@@ -16,7 +16,7 @@
 
 using namespace facebook::fboss::platform::fan_service;
 using facebook::fboss::FbossError;
-using constants =
+namespace constants =
     facebook::fboss::platform::fan_service::fan_service_config_constants;
 
 class BspTest : public ::testing::Test {
