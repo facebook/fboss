@@ -7236,13 +7236,21 @@
         "id": 3,
         "streamType": 0,
         "scheduling": 1,
-        "name": "cpuQueue-mid"
+        "name": "cpuQueue-mid",
+        "maxDynamicSharedBytes": 20971520
       },
       {
         "id": 0,
         "streamType": 0,
         "scheduling": 1,
-        "name": "cpuQueue-low"
+        "name": "cpuQueue-low",
+        "portQueueRate": {
+          "kbitsPerSec": {
+            "minimum": 0,
+            "maximum": 102400
+          }
+        },
+        "maxDynamicSharedBytes": 20971520
       }
     ],
     "cpuTrafficPolicy": {
