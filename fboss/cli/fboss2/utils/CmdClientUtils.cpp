@@ -18,6 +18,13 @@ std::unique_ptr<facebook::fboss::FbossCtrlAsyncClient> createClient(
 }
 
 template <>
+std::unique_ptr<apache::thrift::Client<FbossCtrl>> createClient(
+    const HostInfo& hostInfo,
+    int switchIndex) {
+  return utils::createAgentClient(hostInfo, switchIndex);
+}
+
+template <>
 std::unique_ptr<apache::thrift::Client<FbossHwCtrl>> createClient(
     const HostInfo& hostInfo,
     int switchIndex) {
@@ -53,6 +60,19 @@ void runOnAllHwAgents(const HostInfo& hostInfo, RunForHwAgentFn fn) {
     try {
       fn(*client);
     } catch (const std::exception&) {
+      // skip switches that cannot be reached
+    }
+  }
+}
+
+void runOnAllHwAgents(const HostInfo& hostInfo, RunForAgentFn fn) {
+  auto numHwSwitches = getNumHwSwitches(hostInfo);
+  for (int i = 0; i < numHwSwitches; i++) {
+    auto client =
+        utils::createClient<apache::thrift::Client<FbossCtrl>>(hostInfo, i);
+    try {
+      fn(*client);
+    } catch (const std::exception& e) {
       // skip switches that cannot be reached
     }
   }

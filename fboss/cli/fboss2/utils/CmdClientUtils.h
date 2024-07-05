@@ -22,8 +22,15 @@ namespace facebook::fboss::utils {
 using RunForHwAgentFn = std::function<void(
     apache::thrift::Client<facebook::fboss::FbossHwCtrl>& client)>;
 
+using RunForAgentFn =
+    std::function<void(apache::thrift::Client<FbossCtrl>& client)>;
+
 std::unique_ptr<facebook::fboss::FbossCtrlAsyncClient> createAgentClient(
     const HostInfo& hostInfo);
+
+std::unique_ptr<apache::thrift::Client<FbossCtrl>> createAgentClient(
+    const HostInfo& hostInfo,
+    int switchIndex);
 
 std::unique_ptr<apache::thrift::Client<FbossHwCtrl>> createHwAgentClient(
     const HostInfo& hostInfo,
@@ -39,5 +46,6 @@ createLedClient(const HostInfo& hostInfo);
 int getNumHwSwitches(const HostInfo& hostInfo);
 
 void runOnAllHwAgents(const HostInfo& hostInfo, RunForHwAgentFn fn);
+void runOnAllHwAgents(const HostInfo& hostInfo, RunForAgentFn fn);
 
 } // namespace facebook::fboss::utils
