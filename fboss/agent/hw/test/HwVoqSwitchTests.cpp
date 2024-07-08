@@ -169,56 +169,6 @@ class HwVoqSwitchWithMultipleDsfNodesTest : public HwVoqSwitchTest {
   }
 };
 
-TEST_F(HwVoqSwitchWithMultipleDsfNodesTest, addRemoveRemoteNeighbor) {
-  auto setup = [this]() {
-    // in addRemoteDsfNodeCfg, we use numCores to calculate the remoteSwitchId
-    // keeping remote switch id passed below in sync with it
-    int numCores = getAsic()->getNumCores();
-    auto constexpr remotePortId = 401;
-    const SystemPortID kRemoteSysPortId(remotePortId);
-    applyNewState(utility::addRemoteSysPort(
-        getProgrammedState(),
-        scopeResolver(),
-        kRemoteSysPortId,
-        static_cast<SwitchID>(numCores)));
-    const InterfaceID kIntfId(remotePortId);
-    applyNewState(utility::addRemoteInterface(
-        getProgrammedState(),
-        scopeResolver(),
-        kIntfId,
-        // TODO - following assumes we haven't
-        // already used up the subnets below for
-        // local interfaces. In that sense it
-        // has a implicit coupling with how ConfigFactory
-        // generates subnets for local interfaces
-        {
-            {folly::IPAddress("100::1"), 64},
-            {folly::IPAddress("100.0.0.1"), 24},
-        }));
-    folly::IPAddressV6 kNeighborIp("100::2");
-    PortDescriptor kPort(kRemoteSysPortId);
-    // Add neighbor
-    applyNewState(utility::addRemoveRemoteNeighbor(
-        getProgrammedState(),
-        scopeResolver(),
-        kNeighborIp,
-        kIntfId,
-        kPort,
-        true,
-        utility::getDummyEncapIndex(getHwSwitchEnsemble())));
-    // Remove neighbor
-    applyNewState(utility::addRemoveRemoteNeighbor(
-        getProgrammedState(),
-        scopeResolver(),
-        kNeighborIp,
-        kIntfId,
-        kPort,
-        false,
-        utility::getDummyEncapIndex(getHwSwitchEnsemble())));
-  };
-  verifyAcrossWarmBoots(setup, [] {});
-}
-
 TEST_F(HwVoqSwitchWithMultipleDsfNodesTest, voqDelete) {
   auto constexpr remotePortId = 401;
   const SystemPortID kRemoteSysPortId(remotePortId);

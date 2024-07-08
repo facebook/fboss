@@ -1305,6 +1305,67 @@ TEST_F(AgentVoqSwitchWithMultipleDsfNodesTest, remoteRouterInterface) {
   verifyAcrossWarmBoots(setup, [] {});
 }
 
+TEST_F(AgentVoqSwitchWithMultipleDsfNodesTest, addRemoveRemoteNeighbor) {
+  auto setup = [this]() {
+    // in addRemoteDsfNodeCfg, we use numCores to calculate the remoteSwitchId
+    // keeping remote switch id passed below in sync with it
+    int numCores =
+        utility::checkSameAndGetAsic(getAgentEnsemble()->getL3Asics())
+            ->getNumCores();
+    auto constexpr remotePortId = 401;
+    const SystemPortID kRemoteSysPortId(remotePortId);
+    applyNewState([&](const std::shared_ptr<SwitchState>& in) {
+      return utility::addRemoteSysPort(
+          in,
+          scopeResolver(),
+          kRemoteSysPortId,
+          static_cast<SwitchID>(numCores));
+    });
+    const InterfaceID kIntfId(remotePortId);
+    applyNewState([&](const std::shared_ptr<SwitchState>& in) {
+      return utility::addRemoteInterface(
+          in,
+          scopeResolver(),
+          kIntfId,
+          // TODO - following assumes we haven't
+          // already used up the subnets below for
+          // local interfaces. In that sense it
+          // has a implicit coupling with how ConfigFactory
+          // generates subnets for local interfaces
+          {
+              {folly::IPAddress("100::1"), 64},
+              {folly::IPAddress("100.0.0.1"), 24},
+          });
+    });
+    folly::IPAddressV6 kNeighborIp("100::2");
+    PortDescriptor kPort(kRemoteSysPortId);
+    // Add neighbor
+    applyNewState([&](const std::shared_ptr<SwitchState>& in) {
+      return utility::addRemoveRemoteNeighbor(
+          in,
+          scopeResolver(),
+          kNeighborIp,
+          kIntfId,
+          kPort,
+          true,
+          utility::getDummyEncapIndex(getAgentEnsemble()));
+    });
+
+    // Remove neighbor
+    applyNewState([&](const std::shared_ptr<SwitchState>& in) {
+      return utility::addRemoveRemoteNeighbor(
+          in,
+          scopeResolver(),
+          kNeighborIp,
+          kIntfId,
+          kPort,
+          false,
+          utility::getDummyEncapIndex(getAgentEnsemble()));
+    });
+  };
+  verifyAcrossWarmBoots(setup, [] {});
+}
+
 class AgentVoqSwitchFullScaleDsfNodesTest : public AgentVoqSwitchTest {
  public:
   cfg::SwitchConfig initialConfig(
