@@ -169,34 +169,6 @@ class HwVoqSwitchWithMultipleDsfNodesTest : public HwVoqSwitchTest {
   }
 };
 
-TEST_F(HwVoqSwitchWithMultipleDsfNodesTest, remoteRouterInterface) {
-  auto setup = [this]() {
-    // in addRemoteDsfNodeCfg, we use numCores to calculate the remoteSwitchId
-    // keeping remote switch id passed below in sync with it
-    int numCores = getAsic()->getNumCores();
-    auto constexpr remotePortId = 401;
-    applyNewState(utility::addRemoteSysPort(
-        getProgrammedState(),
-        scopeResolver(),
-        SystemPortID(remotePortId),
-        static_cast<SwitchID>(numCores)));
-    applyNewState(utility::addRemoteInterface(
-        getProgrammedState(),
-        scopeResolver(),
-        InterfaceID(remotePortId),
-        // TODO - following assumes we haven't
-        // already used up the subnets below for
-        // local interfaces. In that sense it
-        // has a implicit coupling with how ConfigFactory
-        // generates subnets for local interfaces
-        {
-            {folly::IPAddress("100::1"), 64},
-            {folly::IPAddress("100.0.0.1"), 24},
-        }));
-  };
-  verifyAcrossWarmBoots(setup, [] {});
-}
-
 TEST_F(HwVoqSwitchWithMultipleDsfNodesTest, addRemoveRemoteNeighbor) {
   auto setup = [this]() {
     // in addRemoteDsfNodeCfg, we use numCores to calculate the remoteSwitchId

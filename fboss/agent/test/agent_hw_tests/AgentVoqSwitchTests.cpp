@@ -1270,6 +1270,41 @@ TEST_F(AgentVoqSwitchWithMultipleDsfNodesTest, remoteSystemPort) {
   verifyAcrossWarmBoots(setup, [] {});
 }
 
+TEST_F(AgentVoqSwitchWithMultipleDsfNodesTest, remoteRouterInterface) {
+  auto setup = [this]() {
+    // in addRemoteDsfNodeCfg, we use numCores to calculate the remoteSwitchId
+    // keeping remote switch id passed below in sync with it
+    int numCores =
+        utility::checkSameAndGetAsic(getAgentEnsemble()->getL3Asics())
+            ->getNumCores();
+    auto constexpr remotePortId = 401;
+    applyNewState([&](const std::shared_ptr<SwitchState>& in) {
+      return utility::addRemoteSysPort(
+          in,
+          scopeResolver(),
+          SystemPortID(remotePortId),
+          static_cast<SwitchID>(numCores));
+    });
+
+    applyNewState([&](const std::shared_ptr<SwitchState>& in) {
+      return utility::addRemoteInterface(
+          in,
+          scopeResolver(),
+          InterfaceID(remotePortId),
+          // TODO - following assumes we haven't
+          // already used up the subnets below for
+          // local interfaces. In that sense it
+          // has a implicit coupling with how ConfigFactory
+          // generates subnets for local interfaces
+          {
+              {folly::IPAddress("100::1"), 64},
+              {folly::IPAddress("100.0.0.1"), 24},
+          });
+    });
+  };
+  verifyAcrossWarmBoots(setup, [] {});
+}
+
 class AgentVoqSwitchFullScaleDsfNodesTest : public AgentVoqSwitchTest {
  public:
   cfg::SwitchConfig initialConfig(
