@@ -1,6 +1,7 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
 #include "fboss/agent/TxPacket.h"
+#include "fboss/agent/hw/HwResourceStatsPublisher.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/packet/EthFrame.h"
 #include "fboss/agent/packet/PktFactory.h"
@@ -24,6 +25,7 @@ namespace {
 constexpr uint8_t kDefaultQueue = 0;
 }
 
+using namespace facebook::fb303;
 namespace facebook::fboss {
 class AgentVoqSwitchTest : public AgentHwTest {
  public:
@@ -1233,6 +1235,39 @@ class AgentVoqSwitchWithMultipleDsfNodesTest : public AgentVoqSwitchTest {
 
 TEST_F(AgentVoqSwitchWithMultipleDsfNodesTest, twoDsfNodes) {
   verifyAcrossWarmBoots([] {}, [] {});
+}
+
+TEST_F(AgentVoqSwitchWithMultipleDsfNodesTest, remoteSystemPort) {
+  auto setup = [this]() {
+    // in addRemoteDsfNodeCfg, we use numCores to calculate the remoteSwitchId
+    // keeping remote switch id passed below in sync with it
+    int numCores =
+        utility::checkSameAndGetAsic(getAgentEnsemble()->getL3Asics())
+            ->getNumCores();
+    auto getStats = [] {
+      return std::make_tuple(
+          fbData->getCounter(kSystemPortsFree), fbData->getCounter(kVoqsFree));
+    };
+    auto [beforeSysPortsFree, beforeVoqsFree] = getStats();
+    applyNewState([&](const std::shared_ptr<SwitchState>& in) {
+      return utility::addRemoteSysPort(
+          in,
+          scopeResolver(),
+          SystemPortID(401),
+          static_cast<SwitchID>(numCores));
+    });
+    WITH_RETRIES({
+      auto [afterSysPortsFree, afterVoqsFree] = getStats();
+      XLOG(INFO) << " Before sysPortsFree: " << beforeSysPortsFree
+                 << " voqsFree: " << beforeVoqsFree
+                 << " after sysPortsFree: " << afterSysPortsFree
+                 << " voqsFree: " << afterVoqsFree;
+      EXPECT_EVENTUALLY_EQ(beforeSysPortsFree - 1, afterSysPortsFree);
+      // 8 VOQs allocated per sys port
+      EXPECT_EVENTUALLY_EQ(beforeVoqsFree - 8, afterVoqsFree);
+    });
+  };
+  verifyAcrossWarmBoots(setup, [] {});
 }
 
 class AgentVoqSwitchFullScaleDsfNodesTest : public AgentVoqSwitchTest {

@@ -169,35 +169,6 @@ class HwVoqSwitchWithMultipleDsfNodesTest : public HwVoqSwitchTest {
   }
 };
 
-TEST_F(HwVoqSwitchWithMultipleDsfNodesTest, remoteSystemPort) {
-  auto setup = [this]() {
-    // in addRemoteDsfNodeCfg, we use numCores to calculate the remoteSwitchId
-    // keeping remote switch id passed below in sync with it
-    int numCores = getAsic()->getNumCores();
-    auto getStats = [] {
-      return std::make_tuple(
-          fbData->getCounter(kSystemPortsFree), fbData->getCounter(kVoqsFree));
-    };
-    getHwSwitchEnsemble()->getLatestPortStats(masterLogicalPortIds());
-    auto [beforeSysPortsFree, beforeVoqsFree] = getStats();
-    applyNewState(utility::addRemoteSysPort(
-        getProgrammedState(),
-        scopeResolver(),
-        SystemPortID(401),
-        static_cast<SwitchID>(numCores)));
-    getHwSwitchEnsemble()->getLatestPortStats(masterLogicalPortIds());
-    auto [afterSysPortsFree, afterVoqsFree] = getStats();
-    XLOG(INFO) << " Before sysPortsFree: " << beforeSysPortsFree
-               << " voqsFree: " << beforeVoqsFree
-               << " after sysPortsFree: " << afterSysPortsFree
-               << " voqsFree: " << afterVoqsFree;
-    EXPECT_EQ(beforeSysPortsFree - 1, afterSysPortsFree);
-    // 8 VOQs allocated per sys port
-    EXPECT_EQ(beforeVoqsFree - 8, afterVoqsFree);
-  };
-  verifyAcrossWarmBoots(setup, [] {});
-}
-
 TEST_F(HwVoqSwitchWithMultipleDsfNodesTest, remoteRouterInterface) {
   auto setup = [this]() {
     // in addRemoteDsfNodeCfg, we use numCores to calculate the remoteSwitchId

@@ -59,6 +59,7 @@ target_link_libraries(agent_hw_test_src
   core
   hw_asic_table
   hw_switch_fb303_stats
+  hw_resource_stats_publisher
   config_factory
   agent_hw_test
   ecmp_helper
