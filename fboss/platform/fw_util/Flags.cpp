@@ -14,7 +14,8 @@ DEFINE_string(fw_target_name, "", "The fpd name that needs to be programmed");
 DEFINE_string(
     fw_action,
     "",
-    "The firmware action (program, verify, read, version, list) that must be taken for a specific fpd");
+    "The firmware action (program, verify, read, version, list, audit) that must be "
+    "taken for a specific fpd");
 DEFINE_string(
     fw_binary_file,
     "",

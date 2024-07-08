@@ -1,9 +1,6 @@
 //  Copyright 2021-present Facebook. All Rights Reserved.
 
 #include <sysexits.h>
-#include <cstring>
-#include <iostream>
-#include <memory>
 
 #include <folly/logging/xlog.h>
 
