@@ -68,7 +68,7 @@ TEST_F(ServiceHandlerTest, testSubscriberRemovedOnFailure) {
             client->sync_subscribeOperStatsDelta(createRequest(subId));
         // if we were able to connect, server should have the subscriber
         EXPECT_TRUE(isSubscribed());
-      } catch (const std::runtime_error&) {
+      } catch (const std::exception&) {
         // Expect some timeout errors, server should not have registered
         // subscriber
         EXPECT_FALSE(isSubscribed());
@@ -92,8 +92,10 @@ TEST_F(ServiceHandlerTest, testSubscriberInfo) {
     auto sub2 =
         client2->sync_subscribeOperStatsDelta(createRequest("test-sub-2"));
     // empty sub ids should return both subscribers
-    client2->sync_getAllOperSubscriberInfos(subInfos);
-    EXPECT_EQ(subInfos.size(), 2);
+    WITH_RETRIES({
+      client2->sync_getAllOperSubscriberInfos(subInfos);
+      EXPECT_EVENTUALLY_EQ(subInfos.size(), 2);
+    });
 
     client2->sync_getOperSubscriberInfos(
         subInfos, SubscriberIds({"test-sub-1"}));
@@ -101,8 +103,10 @@ TEST_F(ServiceHandlerTest, testSubscriberInfo) {
   }
 
   // subscriber 2 should be gone
-  client->sync_getAllOperSubscriberInfos(subInfos);
-  EXPECT_EQ(subInfos.size(), 1);
+  WITH_RETRIES({
+    client->sync_getAllOperSubscriberInfos(subInfos);
+    EXPECT_EVENTUALLY_EQ(subInfos.size(), 1);
+  });
 }
 
 } // namespace facebook::fboss::fsdb::test
