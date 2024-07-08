@@ -150,6 +150,11 @@ SaiBufferProfileTraits::Attributes::AttributeSharedFadtMaxTh::operator()() {
   return std::nullopt;
 }
 
+std::optional<sai_attr_id_t> SaiSwitchTraits::Attributes::
+    AttributeRouteNoImplicitMetaDataWrapper::operator()() {
+  return std::nullopt;
+}
+
 const std::vector<sai_stat_id_t>& SaiSwitchTraits::dramStats() {
   static const std::vector<sai_stat_id_t> stats;
   return stats;

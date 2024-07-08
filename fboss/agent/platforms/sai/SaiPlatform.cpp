@@ -597,6 +597,7 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
 #endif
       maxCores, // Max cores
       std::nullopt, // PFC DLR Packet Action
+      std::nullopt, // route no implicit meta data
   };
 }
 
