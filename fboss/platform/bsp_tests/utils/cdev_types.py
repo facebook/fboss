@@ -194,6 +194,14 @@ class WatchdogTestData:
 
 @dataclass_json
 @dataclass
+class LedTestData:
+    expectedColors: List[str]
+    ledType: Optional[str] = None
+    ledId: Optional[int] = None
+
+
+@dataclass_json
+@dataclass
 class I2CDevice:
     channel: int
     deviceName: str
@@ -202,6 +210,7 @@ class I2CDevice:
     hwmonTestData: Optional[HwmonTestData] = None
     gpioTestData: Optional[GpioTestData] = None
     watchdogTestData: Optional[WatchdogTestData] = None
+    ledTestData: Optional[List[LedTestData]] = None
 
 
 @dataclass_json
@@ -213,15 +222,9 @@ class I2CAdapter:
 
 @dataclass_json
 @dataclass
-class LedTestInfo:
-    expectedColors: List[str]
-
-
-@dataclass_json
-@dataclass
 class LedCtrlInfo:
     auxDevice: AuxDevice
-    ledTestInfo: LedTestInfo
+    ledTestData: LedTestData
 
 
 @dataclass_json

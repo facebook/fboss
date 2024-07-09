@@ -111,7 +111,29 @@
                             },
                             "watchdogTestData": {
                                 "numWatchdogs": 1
-                            }
+                            },
+                            "ledTestData": [
+                                {
+                                    "ledType": "fan_led",
+                                    "ledId": 1,
+                                    "expectedColors": []
+                                },
+                                {
+                                    "ledType": "fan_led",
+                                    "ledId": 2,
+                                    "expectedColors": []
+                                },
+                                {
+                                    "ledType": "fan_led",
+                                    "ledId": 3,
+                                    "expectedColors": []
+                                },
+                                {
+                                    "ledType": "fan_led",
+                                    "ledId": 4,
+                                    "expectedColors": []
+                                }
+                            ]
                         },
                         {
                             "channel": 3,
@@ -189,7 +211,7 @@
                             "ledId": 1
                         }
                     },
-                    "ledTestInfo": {
+                    "ledTestData": {
                         "expectedColors": ["blue", "yellow"]
                     }
                 }
@@ -232,7 +254,7 @@
                             "ledId": -1
                         }
                     },
-                    "ledTestInfo": {
+                    "ledTestData": {
                         "expectedColors": ["red", "green", "blue", "yellow"]
                     }
                 },
@@ -246,7 +268,7 @@
                             "ledId": -1
                         }
                     },
-                    "ledTestInfo": {
+                    "ledTestData": {
                         "expectedColors": ["red", "green", "blue", "yellow"]
                     }
                 },
@@ -260,7 +282,7 @@
                             "ledId": -1
                         }
                     },
-                    "ledTestInfo": {
+                    "ledTestData": {
                         "expectedColors": ["red", "green", "blue", "yellow"]
                     }
                 },
@@ -274,7 +296,7 @@
                             "ledId": -1
                         }
                     },
-                    "ledTestInfo": {
+                    "ledTestData": {
                         "expectedColors": ["red", "green", "blue", "yellow"]
                     }
                 }
