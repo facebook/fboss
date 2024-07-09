@@ -86,10 +86,10 @@ def test_i2c_bus_with_devices_can_be_unloaded(platform_fpgas, platform_config) -
                     busNum = adapterBaseBusNum + device.channel
                     assert detect_i2c_device(
                         adapterBaseBusNum + device.channel, device.address
-                    ), f"i2c device {busNum}-00{device.address[2:]} not detected"
+                    ), f"i2c device {busNum}-{device.address[2:].zfill(4)} not detected"
                     assert create_i2c_device(
                         device, busNum
-                    ), f"i2c device {busNum}-00{device.address[2:]} not created"
+                    ), f"i2c device {busNum}-{device.address[2:].zfill(4)} not created"
             except Exception as e:
                 delete_device(fpga, adapter.auxDevice)
                 raise e

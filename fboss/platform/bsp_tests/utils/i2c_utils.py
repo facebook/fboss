@@ -84,7 +84,7 @@ def create_i2c_device(dev: I2CDevice, bus: int) -> bool:
             f"{dev_dir}/i2c-{bus}"
         ), f"Device {dev.address} on bus {bus} not found"
         # read the "name" file and verify it is correct
-        with open(f"{dev_dir}/{bus}-00{dev.address[2:]}/name", "r") as f:
+        with open(f"{dev_dir}/{bus}-{dev.address[2:].zfill(4)}/name", "r") as f:
             name = f.read().strip()
             assert (
                 name == dev.deviceName
