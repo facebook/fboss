@@ -113,6 +113,9 @@
           "test_name_regex": "warm_boot.AgentRouteCounterOverflowTest.overflowRouteCounters$"
         },
         {
+          "test_name_regex": "warm_boot.AgentMacLearningAndNeighborResolutionTest/[01].learnMacProgramNeighborsAndAgeMac$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].DstIpNetworkControlDscpToHighPriQ$"
         },
         {
@@ -639,6 +642,9 @@
           "test_name_regex": "warm_boot.AgentRouteCounterOverflowTest.overflowRouteCounters$"
         },
         {
+          "test_name_regex": "warm_boot.AgentMacLearningAndNeighborResolutionTest/[01].learnMacProgramNeighborsAndAgeMac$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].DstIpNetworkControlDscpToHighPriQ$"
         },
         {
@@ -1118,6 +1124,9 @@
         },
         {
           "test_name_regex": "warm_boot.AgentRouteCounterOverflowTest.overflowRouteCounters$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentMacLearningAndNeighborResolutionTest/[01].learnMacProgramNeighborsAndAgeMac$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].DstIpNetworkControlDscpToHighPriQ$"
@@ -1641,6 +1650,9 @@
         },
         {
           "test_name_regex": "warm_boot.AgentRouteCounterOverflowTest.overflowRouteCounters$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentMacLearningAndNeighborResolutionTest/[01].learnMacProgramNeighborsAndAgeMac$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].DstIpNetworkControlDscpToHighPriQ$"
@@ -2414,6 +2426,9 @@
           "test_name_regex": "warm_boot.AgentRouteCounterOverflowTest.overflowRouteCounters$"
         },
         {
+          "test_name_regex": "warm_boot.AgentMacLearningAndNeighborResolutionTest/[01].learnMacProgramNeighborsAndAgeMac$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].DstIpNetworkControlDscpToHighPriQ$"
         },
         {
@@ -2964,6 +2979,9 @@
           "test_name_regex": "warm_boot.AgentRouteCounterOverflowTest.overflowRouteCounters$"
         },
         {
+          "test_name_regex": "warm_boot.AgentMacLearningAndNeighborResolutionTest/[01].learnMacProgramNeighborsAndAgeMac$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].DstIpNetworkControlDscpToHighPriQ$"
         },
         {
@@ -3478,6 +3496,9 @@
           "test_name_regex": "warm_boot.AgentRouteCounterOverflowTest.overflowRouteCounters$"
         },
         {
+          "test_name_regex": "warm_boot.AgentMacLearningAndNeighborResolutionTest/[01].learnMacProgramNeighborsAndAgeMac$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].DstIpNetworkControlDscpToHighPriQ$"
         },
         {
@@ -3942,6 +3963,9 @@
         },
         {
           "test_name_regex": "warm_boot.AgentRouteCounterOverflowTest.overflowRouteCounters$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentMacLearningAndNeighborResolutionTest/[01].learnMacProgramNeighborsAndAgeMac$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].DstIpNetworkControlDscpToHighPriQ$"
@@ -4446,6 +4470,9 @@
           "test_name_regex": "warm_boot.AgentRouteCounterOverflowTest.overflowRouteCounters$"
         },
         {
+          "test_name_regex": "warm_boot.AgentMacLearningAndNeighborResolutionTest/[01].learnMacProgramNeighborsAndAgeMac$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].DstIpNetworkControlDscpToHighPriQ$"
         },
         {
@@ -4925,6 +4952,9 @@
         },
         {
           "test_name_regex": "warm_boot.AgentRouteCounterOverflowTest.overflowRouteCounters$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentMacLearningAndNeighborResolutionTest/[01].learnMacProgramNeighborsAndAgeMac$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].DstIpNetworkControlDscpToHighPriQ$"
@@ -5450,6 +5480,9 @@
           "test_name_regex": "warm_boot.AgentRouteCounterOverflowTest.overflowRouteCounters$"
         },
         {
+          "test_name_regex": "warm_boot.AgentMacLearningAndNeighborResolutionTest/[01].learnMacProgramNeighborsAndAgeMac$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].DstIpNetworkControlDscpToHighPriQ$"
         },
         {
@@ -5965,6 +5998,9 @@
         },
         {
           "test_name_regex": "warm_boot.AgentRouteCounterOverflowTest.overflowRouteCounters$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentMacLearningAndNeighborResolutionTest/[01].learnMacProgramNeighborsAndAgeMac$"
         }
     ],
     "leaba/1.65.1/1.65.1/gibraltar/mono": [
@@ -6335,6 +6371,9 @@
         },
         {
           "test_name_regex": "warm_boot.AgentRouteCounterOverflowTest.overflowRouteCounters$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentMacLearningAndNeighborResolutionTest/[01].learnMacProgramNeighborsAndAgeMac$"
         }
     ]
   }
