@@ -110,6 +110,7 @@ void handleExtensionAttributes() {
   SAI_EXT_ATTR_MAP(Switch, SdkBootTime)
   SAI_EXT_ATTR_MAP(Switch, FabricRemoteReachablePortList)
   SAI_EXT_ATTR_MAP(Switch, RouteNoImplicitMetaData)
+  SAI_EXT_ATTR_MAP(Switch, RouteAllowImplicitMetaData)
 }
 
 } // namespace

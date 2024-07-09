@@ -479,6 +479,11 @@ struct SaiSwitchTraits {
     };
     using RouteNoImplicitMetaData =
         SaiExtensionAttribute<bool, AttributeRouteNoImplicitMetaDataWrapper>;
+    struct AttributeRouteAllowImplicitMetaDataWrapper {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    using RouteAllowImplicitMetaData =
+        SaiExtensionAttribute<bool, AttributeRouteAllowImplicitMetaDataWrapper>;
   };
   using AdapterKey = SwitchSaiId;
   using AdapterHostKey = std::monostate;
@@ -533,7 +538,8 @@ struct SaiSwitchTraits {
 #endif
       std::optional<Attributes::MaxCores>,
       std::optional<Attributes::PfcDlrPacketAction>,
-      std::optional<Attributes::RouteNoImplicitMetaData>>;
+      std::optional<Attributes::RouteNoImplicitMetaData>,
+      std::optional<Attributes::RouteAllowImplicitMetaData>>;
 
 #if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
   static constexpr std::array<sai_stat_id_t, 3> CounterIdsToRead = {
@@ -649,6 +655,7 @@ SAI_ATTRIBUTE_NAME(Switch, PfcDlrPacketAction)
 SAI_ATTRIBUTE_NAME(Switch, SdkBootTime)
 SAI_ATTRIBUTE_NAME(Switch, FabricRemoteReachablePortList)
 SAI_ATTRIBUTE_NAME(Switch, RouteNoImplicitMetaData)
+SAI_ATTRIBUTE_NAME(Switch, RouteAllowImplicitMetaData)
 
 template <>
 struct SaiObjectHasStats<SaiSwitchTraits> : public std::true_type {};

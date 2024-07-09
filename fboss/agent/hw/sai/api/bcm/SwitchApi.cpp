@@ -186,4 +186,12 @@ std::optional<sai_attr_id_t> SaiSwitchTraits::Attributes::
 #endif
 }
 
+std::optional<sai_attr_id_t> SaiSwitchTraits::Attributes::
+    AttributeRouteAllowImplicitMetaDataWrapper::operator()() {
+#if defined(BRCM_SAI_SDK_GTE_11_0)
+  return SAI_SWITCH_ATTR_ROUTE_ALLOW_IMPLICIT_META_DATA;
+#else
+  return std::nullopt;
+#endif
+}
 } // namespace facebook::fboss
