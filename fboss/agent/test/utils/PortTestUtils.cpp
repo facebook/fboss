@@ -205,6 +205,18 @@ void setCreditWatchdogAndPortTx(
   ensemble->applyNewState(updateCreditWatchdogAndPortTx);
 }
 
+void enableCreditWatchdog(TestEnsembleIf* ensemble, bool enable) {
+  ensemble->applyNewState([&](const std::shared_ptr<SwitchState>& in) {
+    auto switchState = in->clone();
+    for (const auto& [_, switchSetting] :
+         std::as_const(*switchState->getSwitchSettings())) {
+      auto newSwitchSettings = switchSetting->modify(&switchState);
+      newSwitchSettings->setCreditWatchdog(enable);
+    }
+    return switchState;
+  });
+}
+
 void setPortTx(TestEnsembleIf* ensemble, PortID port, bool enable) {
   auto updatePortTx = [&](const std::shared_ptr<SwitchState>& in) {
     auto switchState = in->clone();
