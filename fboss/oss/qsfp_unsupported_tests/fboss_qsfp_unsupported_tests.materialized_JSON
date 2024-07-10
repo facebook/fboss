@@ -60,6 +60,9 @@
         },
         {
           "test_name_regex": "HwTest_PROFILE_800G_8_PAM4_RS544X2N_OPTICAL.TestProfile$"
+        },
+        {
+          "test_name_regex": "HwTest_PROFILE_50G_2_NRZ_RS528_OPTICAL.TestProfile$"
         }
     ],
     "darwin_mix/physdk-credo-0.7.2/credo-0.7.2": [
@@ -122,6 +125,9 @@
         },
         {
           "test_name_regex": "HwTest_PROFILE_800G_8_PAM4_RS544X2N_OPTICAL.TestProfile$"
+        },
+        {
+          "test_name_regex": "HwTest_PROFILE_50G_2_NRZ_RS528_OPTICAL.TestProfile$"
         }
     ],
     "darwin_original/physdk-credo-0.7.2/credo-0.7.2": [
@@ -184,6 +190,9 @@
         },
         {
           "test_name_regex": "HwTest_PROFILE_800G_8_PAM4_RS544X2N_OPTICAL.TestProfile$"
+        },
+        {
+          "test_name_regex": "HwTest_PROFILE_50G_2_NRZ_RS528_OPTICAL.TestProfile$"
         }
     ],
     "elbert_2x16Q_6x8DD/physdk-credo-0.7.2/credo-0.7.2": [
@@ -222,6 +231,9 @@
         },
         {
           "test_name_regex": "HwTest_PROFILE_800G_8_PAM4_RS544X2N_OPTICAL.TestProfile$"
+        },
+        {
+          "test_name_regex": "HwTest_PROFILE_50G_2_NRZ_RS528_OPTICAL.TestProfile$"
         }
     ],
     "elbert_5x16Q_3x8DD/physdk-credo-0.7.2/credo-0.7.2": [
@@ -260,6 +272,9 @@
         },
         {
           "test_name_regex": "HwTest_PROFILE_800G_8_PAM4_RS544X2N_OPTICAL.TestProfile$"
+        },
+        {
+          "test_name_regex": "HwTest_PROFILE_50G_2_NRZ_RS528_OPTICAL.TestProfile$"
         }
     ],
     "elbert_8x16Q/physdk-credo-0.7.2/credo-0.7.2": [
@@ -313,6 +328,9 @@
         },
         {
           "test_name_regex": "HwTest_PROFILE_800G_8_PAM4_RS544X2N_OPTICAL.TestProfile$"
+        },
+        {
+          "test_name_regex": "HwTest_PROFILE_50G_2_NRZ_RS528_OPTICAL.TestProfile$"
         }
     ],
     "fuji_5x16Q/physdk-barchetta2-5.2/barchetta2-5.2": [
@@ -348,6 +366,9 @@
         },
         {
           "test_name_regex": "HwTest_PROFILE_800G_8_PAM4_RS544X2N_OPTICAL.TestProfile$"
+        },
+        {
+          "test_name_regex": "HwTest_PROFILE_50G_2_NRZ_RS528_OPTICAL.TestProfile$"
         }
     ],
     "fuji_8x16Q/physdk-barchetta2-5.2/barchetta2-5.2": [
@@ -383,6 +404,9 @@
         },
         {
           "test_name_regex": "HwTest_PROFILE_800G_8_PAM4_RS544X2N_OPTICAL.TestProfile$"
+        },
+        {
+          "test_name_regex": "HwTest_PROFILE_50G_2_NRZ_RS528_OPTICAL.TestProfile$"
         }
     ],
     "janga800bic/physdk-credo-0.7.2/credo-0.7.2": [
@@ -427,6 +451,9 @@
         },
         {
           "test_name_regex": "HwTest_PROFILE_53POINT125G_1_PAM4_RS545_OPTICAL.TestProfile$"
+        },
+        {
+          "test_name_regex": "HwTest_PROFILE_50G_2_NRZ_RS528_OPTICAL.TestProfile$"
         },
         {
           "test_name_regex": "HwTest.CheckPimPresent$"
@@ -516,6 +543,9 @@
         },
         {
           "test_name_regex": "HwTest_PROFILE_800G_8_PAM4_RS544X2N_OPTICAL.TestProfile$"
+        },
+        {
+          "test_name_regex": "HwTest_PROFILE_50G_2_NRZ_RS528_OPTICAL.TestProfile$"
         }
     ],
     "meru400biu/physdk-credo-0.7.2/credo-0.7.2": [
@@ -581,6 +611,9 @@
         },
         {
           "test_name_regex": "HwTest_PROFILE_800G_8_PAM4_RS544X2N_OPTICAL.TestProfile$"
+        },
+        {
+          "test_name_regex": "HwTest_PROFILE_50G_2_NRZ_RS528_OPTICAL.TestProfile$"
         }
     ],
     "meru800bfa/physdk-credo-0.7.2/credo-0.7.2": [
@@ -618,6 +651,9 @@
           "test_name_regex": "PhyIOTest.phyIOStats$"
         },
         {
+          "test_name_regex": "HwTest_PROFILE_50G_2_NRZ_RS528_OPTICAL.TestProfile$"
+        },
+        {
           "test_name_regex": "HwTest_PROFILE_400G_4_PAM4_RS544X2N_OPTICAL.TestProfile$"
         },
         {
@@ -625,6 +661,9 @@
         },
         {
           "test_name_regex": "HwTest_PROFILE_100G_1_PAM4_RS544_OPTICAL.TestProfile$"
+        },
+        {
+          "test_name_regex": "HwTest_PROFILE_50G_2_NRZ_RS528_OPTICAL.TestProfile$"
         }
     ],
     "meru800bia/physdk-credo-0.7.2/credo-0.7.2": [
@@ -660,6 +699,9 @@
         },
         {
           "test_name_regex": "PhyIOTest.phyIOStats$"
+        },
+        {
+          "test_name_regex": "HwTest_PROFILE_50G_2_NRZ_RS528_OPTICAL.TestProfile$"
         }
     ],
     "minipack_7x16Q_1x16O/physdk-millenio-5.5/millenio-5.5": [
@@ -728,6 +770,9 @@
         },
         {
           "test_name_regex": "HwTest_PROFILE_800G_8_PAM4_RS544X2N_OPTICAL.TestProfile$"
+        },
+        {
+          "test_name_regex": "HwTest_PROFILE_50G_2_NRZ_RS528_OPTICAL.TestProfile$"
         }
     ],
     "montblanc/physdk-credo-0.7.2/credo-0.7.2": [
@@ -790,6 +835,9 @@
         },
         {
           "test_name_regex": "PhyIOTest.phyIOStats$"
+        },
+        {
+          "test_name_regex": "HwTest_PROFILE_50G_2_NRZ_RS528_OPTICAL.TestProfile$"
         }
     ],
     "morgan800cc/physdk-credo-0.7.2/credo-0.7.2": [
@@ -852,6 +900,9 @@
         },
         {
           "test_name_regex": "PhyIOTest.phyIOStats$"
+        },
+        {
+          "test_name_regex": "HwTest_PROFILE_50G_2_NRZ_RS528_OPTICAL.TestProfile$"
         }
     ],
     "tahan800bc/physdk-credo-0.7.2/credo-0.7.2": [
@@ -902,6 +953,9 @@
         },
         {
           "test_name_regex": "HwTest_PROFILE_53POINT125G_1_PAM4_RS545_OPTICAL.TestProfile$"
+        },
+        {
+          "test_name_regex": "HwTest_PROFILE_50G_2_NRZ_RS528_OPTICAL.TestProfile$"
         },
         {
           "test_name_regex": "HwMacsecTest.*$"
@@ -1012,6 +1066,9 @@
         },
         {
           "test_name_regex": "HwTest_PROFILE_800G_8_PAM4_RS544X2N_OPTICAL.TestProfile$"
+        },
+        {
+          "test_name_regex": "HwTest_PROFILE_50G_2_NRZ_RS528_OPTICAL.TestProfile$"
         }
     ],
     "wedge400/physdk-credo-0.7.2/credo-0.7.2": [
@@ -1118,6 +1175,9 @@
         },
         {
           "test_name_regex": "HwTest_PROFILE_800G_8_PAM4_RS544X2N_OPTICAL.TestProfile$"
+        },
+        {
+          "test_name_regex": "HwTest_PROFILE_50G_2_NRZ_RS528_OPTICAL.TestProfile$"
         }
     ],
     "yamp_8x16Q/physdk-credo-0.7.2/credo-0.7.2": [
@@ -1177,6 +1237,9 @@
         },
         {
           "test_name_regex": "HwTest_PROFILE_800G_8_PAM4_RS544X2N_OPTICAL.TestProfile$"
+        },
+        {
+          "test_name_regex": "HwTest_PROFILE_50G_2_NRZ_RS528_OPTICAL.TestProfile$"
         },
         {
           "test_name_regex": "HwPortPrbsTest_SYSTEM_NRZ.*$"
