@@ -36,6 +36,10 @@ SaiHostifManager::SaiHostifManager(
       concurrentIndices_(concurrentIndices),
       cpuStats_(HwCpuFb303Stats(
           {} /*queueId2Name*/,
+          platform->getMultiSwitchStatsPrefix())),
+      cpuSysPortStats_(HwSysPortFb303Stats(
+          "cpu.sysport",
+          {},
           platform->getMultiSwitchStatsPrefix())) {
   if (platform_->getAsic()->isSupported(HwAsic::Feature::CPU_PORT)) {
     loadCpuPort();
@@ -473,6 +477,7 @@ void SaiHostifManager::changeCpuQueue(
     const ControlPlane::PortQueues& oldQueueConfig,
     const ControlPlane::PortQueues& newQueueConfig) {
   cpuPortHandle_->configuredQueues.clear();
+  cpuPortHandle_->configuredVoqs.clear();
 
   const auto asic = platform_->getAsic();
   auto maxCpuQueues = getMaxCpuQueues();
@@ -507,14 +512,20 @@ void SaiHostifManager::changeCpuQueue(
         portQueue->setMaxDynamicSharedBytes(
             *newPortQueue->getMaxDynamicSharedBytes());
       }
-      if (voqHandle) {
-        managerTable_->queueManager().changeQueue(voqHandle, *portQueue);
-      }
+      CHECK_NOTNULL(voqHandle);
+      managerTable_->queueManager().changeQueue(voqHandle, *portQueue);
     }
     if (newPortQueue->getName().has_value()) {
       auto queueName = *newPortQueue->getName();
       cpuStats_.queueChanged(newPortQueue->getID(), queueName);
       cpuPortHandle_->configuredQueues.push_back(queueHandle);
+      if (platform_->getAsic()->isSupported(
+              HwAsic::Feature::CPU_VOQ_BUFFER_PROFILE)) {
+        auto voqHandle = getVoqHandle(saiQueueConfig);
+        cpuSysPortStats_.queueChanged(newPortQueue->getID(), queueName);
+        CHECK_NOTNULL(voqHandle);
+        cpuPortHandle_->configuredVoqs.push_back(voqHandle);
+      }
     }
   }
   for (const auto& oldPortQueue : std::as_const(*oldQueueConfig)) {
@@ -530,6 +541,10 @@ void SaiHostifManager::changeCpuQueue(
           std::make_pair(oldPortQueue->getID(), oldPortQueue->getStreamType());
       cpuPortHandle_->queues.erase(saiQueueConfig);
       cpuStats_.queueRemoved(oldPortQueue->getID());
+      if (platform_->getAsic()->isSupported(
+              HwAsic::Feature::CPU_VOQ_BUFFER_PROFILE)) {
+        cpuSysPortStats_.queueRemoved(oldPortQueue->getID());
+      }
     }
   }
 }
@@ -605,6 +620,14 @@ void SaiHostifManager::updateStats(bool updateWatermarks) {
           queueId2Name.first,
           cpuQueueStats.queueWatermarkBytes_()->at(queueId2Name.first));
     }
+  }
+  if (platform_->getAsic()->isSupported(
+          HwAsic::Feature::CPU_VOQ_BUFFER_PROFILE)) {
+    const auto& prevPortStats = cpuSysPortStats_.portStats();
+    HwSysPortStats curPortStats{prevPortStats};
+    managerTable_->queueManager().updateStats(
+        cpuPortHandle_->configuredVoqs, curPortStats, updateWatermarks, true);
+    cpuSysPortStats_.updateStats(curPortStats, now);
   }
 }
 

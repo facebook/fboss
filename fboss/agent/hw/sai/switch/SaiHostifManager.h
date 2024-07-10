@@ -13,6 +13,7 @@
 #include "fboss/agent/hw/gen-cpp2/hardware_stats_types.h"
 
 #include "fboss/agent/hw/HwCpuFb303Stats.h"
+#include "fboss/agent/hw/HwSysPortFb303Stats.h"
 #include "fboss/agent/hw/sai/api/CounterApi.h"
 #include "fboss/agent/hw/sai/api/HostifApi.h"
 #include "fboss/agent/hw/sai/store/SaiObject.h"
@@ -45,6 +46,7 @@ struct SaiCpuPortHandle {
   SaiQueueHandles queues;
   std::vector<SaiQueueHandle*> configuredQueues;
   SaiQueueHandles voqs;
+  std::vector<SaiQueueHandle*> configuredVoqs;
 };
 
 struct SaiHostifTrapHandle {
@@ -104,6 +106,9 @@ class SaiHostifManager {
   const HwCpuFb303Stats& getCpuFb303Stats() const {
     return cpuStats_;
   }
+  const HwSysPortFb303Stats& getCpuSysPortFb303Stats() const {
+    return cpuSysPortStats_;
+  }
   const SaiHostifTrapHandle* getHostifTrapHandle(
       cfg::PacketRxReason rxReason) const;
   SaiHostifTrapHandle* getHostifTrapHandle(cfg::PacketRxReason rxReason);
@@ -151,6 +156,7 @@ class SaiHostifManager {
   std::optional<std::string> qosPolicy_;
   std::unique_ptr<SaiCpuPortHandle> cpuPortHandle_;
   HwCpuFb303Stats cpuStats_;
+  HwSysPortFb303Stats cpuSysPortStats_;
   HwRxReasonStats rxReasonStats_;
 };
 
