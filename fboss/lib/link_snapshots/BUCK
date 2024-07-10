@@ -1,0 +1,34 @@
+load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
+
+oncall("fboss_agent_push")
+
+cpp_library(
+    name = "ring_buffer",
+    srcs = [
+    ],
+    headers = [
+        "RingBuffer.h",
+        "RingBuffer-defs.h",
+    ],
+    exported_deps = [
+        "//fboss/agent:fboss-error",
+    ],
+)
+
+cpp_library(
+    name = "snapshot_manager",
+    srcs = [
+        "SnapshotManager.cpp",
+    ],
+    headers = [
+        "SnapshotManager.h",
+        "SnapshotManager-defs.h",
+    ],
+    exported_deps = [
+        ":ring_buffer",
+        "//fboss/lib:alert_logger",
+        "//fboss/lib/phy:phy-cpp2-types",
+        "//folly/logging:logging",
+        "//thrift/lib/cpp2/protocol:protocol",
+    ],
+)

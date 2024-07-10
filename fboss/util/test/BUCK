@@ -1,0 +1,30 @@
+load("@fbcode_macros//build_defs:cpp_unittest.bzl", "cpp_unittest")
+
+oncall("fboss_optics_phy")
+
+cpp_unittest(
+    name = "qsfp_util_test",
+    srcs = [
+        "QsfpUtilTest.cpp",
+    ],
+    deps = [
+        "//common/init:init",
+        "//fboss/util:wedge_qsfp_util_module",
+        "//folly:singleton",
+        "//folly/logging:logging",
+    ],
+)
+
+cpp_unittest(
+    name = "credo_macsec_util_test",
+    srcs = [
+        "CredoMacsecUtilTest.cpp",
+    ],
+    deps = [
+        "//common/init:init",
+        "//fboss/util:credo_macsec_util_module",
+        "//folly:file_util",
+        "//folly:singleton",
+        "//folly/testing:test_util",
+    ],
+)

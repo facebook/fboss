@@ -1,0 +1,340 @@
+load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
+
+oncall("fboss_agent_push")
+
+cpp_library(
+    name = "radix_tree",
+    headers = [
+        "RadixTree.h",
+        "RadixTree-inl.h",
+    ],
+    exported_deps = [
+        "//folly:conv",
+        "//folly:memory",
+        "//folly:network_address",
+    ],
+    exported_external_deps = [
+        "glog",
+    ],
+)
+
+cpp_library(
+    name = "time_series_with_min_max",
+    headers = [
+        "TimeSeriesWithMinMax.h",
+        "TimeSeriesWithMinMax-inl.h",
+    ],
+    exported_deps = ["//folly:synchronized"],
+    exported_external_deps = ["boost"],
+)
+
+cpp_library(
+    name = "physical_memory",
+    srcs = [
+        "PhysicalMemory.cpp",
+    ],
+    headers = [
+        "PhysicalMemory.h",
+    ],
+    exported_deps = [
+        "//folly:file",
+        "//folly:format",
+        "//folly/logging:logging",
+    ],
+    exported_external_deps = [
+        "boost",
+        "glog",
+        ("glibc", None, "rt"),
+    ],
+)
+
+cpp_library(
+    name = "pci_device",
+    srcs = [
+        "PciDevice.cpp",
+        "PciSystem.cpp",
+    ],
+    headers = [
+        "PciDevice.h",
+        "PciSystem.h",
+    ],
+    exported_deps = [
+        "//folly:exception",
+        "//folly:format",
+        "//folly:singleton",
+        "//folly:string",
+        "//folly/logging:logging",
+    ],
+    exported_external_deps = [
+        ("libpciaccess", None, "pciaccess"),
+    ],
+)
+
+cpp_library(
+    name = "pci_access",
+    srcs = [
+        "PciAccess.cpp",
+    ],
+    headers = [
+        "PciAccess.h",
+    ],
+)
+
+cpp_library(
+    name = "rest-client",
+    srcs = [
+        "RestClient.cpp",
+    ],
+    exported_deps = [
+        "//fboss/agent:fboss-error",
+        "//folly:file_util",
+        "//folly:network_address",
+        "//folly/logging:logging",
+    ],
+    exported_external_deps = [
+        ("curl", None),
+    ],
+)
+
+cpp_library(
+    name = "bmc-rest-client",
+    srcs = [
+        "BmcRestClient.cpp",
+    ],
+    exported_deps = [
+        ":rest-client",
+        "//folly:network_address",
+    ],
+)
+
+cpp_library(
+    name = "log_thrift_call",
+    srcs = [
+        "LogThriftCall.cpp",
+        "facebook/LogThriftCall.cpp",
+    ],
+    exported_deps = [
+        "//folly:conv",
+        "//folly:range",
+        "//folly/futures:core",
+        "//folly/json:dynamic",
+        "//folly/logging:log_level",
+        "//folly/logging:logging",
+        "//infrasec/authorization:simple_identity_util",
+        "//thrift/lib/cpp2/server:cpp2_conn_context",
+    ],
+)
+
+cpp_library(
+    name = "alert_logger",
+    srcs = [
+        "AlertLogger.cpp",
+    ],
+    exported_deps = [
+        "//folly:format",
+        "//folly/logging:logging",
+    ],
+)
+
+cpp_library(
+    name = "ref_map",
+    srcs = [],
+    headers = [
+        "RefMap.h",
+    ],
+    exported_external_deps = [
+        ("boost", None, "boost_container"),
+    ],
+)
+
+cpp_library(
+    name = "tuple_utils",
+    srcs = [],
+    headers = [
+        "TupleUtils.h",
+    ],
+)
+
+cpp_library(
+    name = "common_utils",
+    srcs = [
+        "CommonUtils.cpp",
+    ],
+    headers = [
+        "CommonUtils.h",
+    ],
+    exported_deps = [
+        ":common_file_utils",
+        "//fb303:thread_cached_service_data",
+        "//fb303:thread_local_stats",
+        "//fboss/agent:fboss-error",
+        "//folly:subprocess",
+        "//folly/debugging/exception_tracer:exception_tracer_base",
+        "//folly/logging:logging",
+        "//folly/system:shell",
+    ],
+)
+
+cpp_library(
+    name = "exponential_back_off",
+    srcs = [
+        "ExponentialBackoff.cpp",
+    ],
+    headers = [
+        "ExponentialBackoff.h",
+    ],
+    exported_external_deps = [
+        "glog",
+    ],
+)
+
+cpp_library(
+    name = "function_call_time_reporter",
+    srcs = [
+        "FunctionCallTimeReporter.cpp",
+    ],
+    headers = [
+        "PhysicalMemory.h",
+    ],
+    exported_deps = [
+        "//folly:file",
+        "//folly:format",
+        "//folly:scope_guard",
+        "//folly:singleton",
+        "//folly/logging:logging",
+        "//folly/system:thread_name",
+    ],
+    exported_external_deps = [
+        "boost",
+        "gflags",
+        "glog",
+    ],
+)
+
+cpp_library(
+    name = "common_file_utils",
+    srcs = [
+        "CommonFileUtils.cpp",
+    ],
+    headers = [
+        "CommonFileUtils.h",
+    ],
+    exported_deps = [
+        "//fboss/agent:fboss-error",
+        "//folly:range",
+        "//folly:string",
+        "//folly/logging:logging",
+    ],
+    exported_external_deps = [("boost", None, "boost_filesystem")],
+)
+
+cpp_library(
+    name = "common_port_utils",
+    srcs = [
+        "CommonPortUtils.cpp",
+    ],
+    headers = [
+        "CommonPortUtils.h",
+    ],
+    exported_deps = [
+        "//folly/logging:logging",
+    ],
+    exported_external_deps = [
+        "re2",
+    ],
+)
+
+cpp_library(
+    name = "common_thrift_utils",
+    srcs = [
+        "CommonThriftUtils.cpp",
+    ],
+    headers = [
+        "CommonThriftUtils.h",
+    ],
+    exported_deps = [
+        "//fb303:thread_cached_service_data",
+        "//folly:network_address",
+        "//folly/experimental/coro:async_scope",
+        "//folly/experimental/coro:blocking_wait",
+        "//folly/io/async:async_base",
+        "//folly/logging:logging",
+    ],
+    exported_external_deps = [
+    ],
+)
+
+cpp_library(
+    name = "gpiod_line",
+    srcs = [
+        "GpiodLine.cpp",
+    ],
+    headers = [
+        "GpiodLine.h",
+    ],
+    exported_deps = [
+        "//folly:format",
+    ],
+    exported_external_deps = [
+        ("libgpiod", None, "gpiod"),
+    ],
+)
+
+cpp_library(
+    name = "thread_heartbeat",
+    srcs = [
+        "ThreadHeartbeat.cpp",
+    ],
+    headers = [
+        "ThreadHeartbeat.h",
+    ],
+    exported_deps = [
+        "//folly/concurrency:concurrent_hash_map",
+        "//folly/io/async:async_base",
+        "//folly/logging:logging",
+    ],
+)
+
+cpp_library(
+    name = "sysfs_utils",
+    headers = [
+        "SysfsUtils.h",
+    ],
+)
+
+cpp_library(
+    name = "devmap",
+    srcs = [
+        "DevMap.cpp",
+    ],
+    exported_deps = [
+        "fbsource//third-party/fmt:fmt",
+        ":sysfs_utils",
+    ],
+)
+
+cpp_library(
+    name = "hw_write_behavior",
+    srcs = [
+        "HwWriteBehavior.cpp",
+    ],
+    headers = [
+        "HwWriteBehavior.h",
+    ],
+    exported_deps = [
+        "//fboss/agent/if:common-cpp2-types",
+    ],
+)
+
+cpp_library(
+    name = "io_stats_recorder",
+    srcs = [
+        "IOStatsRecorder.cpp",
+    ],
+    headers = [
+        "IOStatsRecorder.h",
+    ],
+    exported_deps = [
+        "//fboss/lib/if:fboss_io_stats-cpp2-types",
+    ],
+)

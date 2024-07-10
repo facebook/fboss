@@ -1,0 +1,12 @@
+load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
+load("//fboss/agent/hw/sai/tracer/run:run.bzl", "all_replayer_binaries")
+
+oncall("fboss_agent_push")
+
+all_replayer_binaries()
+
+cpp_library(
+    name = "recursive_glob_headers",
+    headers = ["SaiLog.h"],
+    tags = ["noautodeps"],
+)

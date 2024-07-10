@@ -1,0 +1,43 @@
+load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
+load("//fboss/qsfp_service/platforms/wedge:platform.bzl", "all_platform_libs")
+
+oncall("fboss_optics_phy")
+
+# TODO(ccpowers): using this as a placeholder for now. Eventually all dependents
+# of :wedge-platform-default should link against a particular SAI SDK or link
+# without SAI
+cpp_library(
+    name = "wedge-platform-default",
+    exported_deps = [
+        "//fboss/qsfp_service/platforms/wedge:wedge-platform-credo-0.7.2",
+    ],
+)
+
+cpp_library(
+    name = "wedge-transceiver",
+    srcs = [
+        "WedgeI2CBusLock.cpp",
+        "WedgeQsfp.cpp",
+    ],
+    exported_deps = [
+        "//fboss/lib:io_stats_recorder",
+        "//fboss/lib/usb:base-i2c-dependencies",
+        "//fboss/lib/usb:i2-api",
+        "//fboss/lib/usb:usb-api",
+        "//fboss/qsfp_service:stats",
+        "//fboss/qsfp_service:transceiver-manager",
+        "//fboss/qsfp_service/module:firmware_upgrader",
+        "//fboss/qsfp_service/module:i2c_log_buffer",
+        "//fboss/qsfp_service/module:qsfp-module",
+        "//folly:conv",
+        "//folly:memory",
+        "//folly:random",
+        "//folly:range",
+        "//folly:scope_guard",
+        "//folly/futures:core",
+        "//folly/io/async:async_base",
+        "//folly/logging:logging",
+    ],
+)
+
+all_platform_libs()

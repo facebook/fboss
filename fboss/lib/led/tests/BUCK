@@ -1,0 +1,18 @@
+load("@fbcode_macros//build_defs:cpp_unittest.bzl", "cpp_unittest")
+
+oncall("fboss_agent_push")
+
+cpp_unittest(
+    name = "led_tests",
+    srcs = [
+        "LedTests.cpp",
+    ],
+    deps = [
+        "//fboss/led_service:led_utils",
+        "//fboss/lib/led:led_lib",
+        "//folly:file_util",
+        "//folly:format",
+        "//folly/logging:logging",
+        "//folly/testing:test_util",
+    ],
+)

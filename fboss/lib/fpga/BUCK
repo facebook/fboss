@@ -1,0 +1,187 @@
+load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
+
+oncall("fboss_agent_push")
+
+cpp_library(
+    name = "fpga_device",
+    srcs = ["FpgaDevice.cpp"],
+    headers = [
+        "FpgaDevice.h",
+        "HwMemoryRegion.h",
+        "HwMemoryRegister.h",
+    ],
+    exported_deps = [
+        "//fboss/agent:fboss-types",
+        "//fboss/lib:pci_device",
+        "//fboss/lib:physical_memory",
+        "//folly:format",
+        "//folly:shared_mutex",
+        "//folly/logging:logging",
+    ],
+)
+
+cpp_library(
+    name = "facebook_fpga",
+    srcs = [
+        "FbDomFpga.cpp",
+        "FbFpgaRegisters.cpp",
+    ],
+    headers = [
+        "FbDomFpga.h",
+        "FbFpgaRegisters.h",
+    ],
+    exported_deps = [
+        ":fpga_device",
+        "//fboss/agent:fboss-error",
+        "//folly:format",
+        "//folly/logging:logging",
+    ],
+)
+
+cpp_library(
+    name = "fb_fpga_i2c",
+    srcs = [
+        "FbFpgaI2c.cpp",
+    ],
+    headers = [
+        "FbFpgaI2c.h",
+    ],
+    exported_deps = [
+        ":facebook_fpga",
+        "//fboss/agent:utils",
+        "//fboss/lib/i2c:i2c_ctrl",
+        "//fboss/lib/usb:i2-api",
+        "//folly:cpp_attributes",
+        "//folly:format",
+        "//folly:range",
+        "//folly:synchronized",
+        "//folly/futures:core",
+        "//folly/io/async:async_base",
+        "//folly/logging:logging",
+    ],
+)
+
+cpp_library(
+    name = "fb_fpga_spi",
+    srcs = [
+        "FbFpgaSpi.cpp",
+    ],
+    headers = [
+        "FbFpgaSpi.h",
+    ],
+    exported_deps = [
+        ":facebook_fpga",
+        "//fboss/agent:utils",
+        "//fboss/lib/i2c:i2c_ctrl",
+        "//fboss/lib/usb:i2-api",
+        "//folly:cpp_attributes",
+        "//folly:format",
+        "//folly:range",
+        "//folly:synchronized",
+        "//folly/futures:core",
+        "//folly/io/async:async_base",
+        "//folly/logging:logging",
+    ],
+)
+
+cpp_library(
+    name = "multi_pim_container",
+    srcs = [
+        "MultiPimPlatformPimContainer.cpp",
+        "MultiPimPlatformSystemContainer.cpp",
+    ],
+    headers = [
+        "MultiPimPlatformPimContainer.h",
+        "MultiPimPlatformSystemContainer.h",
+    ],
+    exported_deps = [
+        ":fpga_device",
+        "//fboss/agent:fboss-error",
+    ],
+)
+
+cpp_library(
+    name = "minipack_base_container",
+    srcs = [
+        "FbFpgaPimQsfpController.cpp",
+        "MinipackBasePimContainer.cpp",
+        "MinipackBaseSystemContainer.cpp",
+        "MinipackLed.cpp",
+    ],
+    headers = [
+        "FbFpgaPimQsfpController.h",
+        "MinipackBasePimContainer.h",
+        "MinipackBaseSystemContainer.h",
+        "MinipackLed.h",
+        "MinipackPimController.h",
+    ],
+    exported_deps = [
+        ":fb_fpga_i2c",
+        ":fb_fpga_spi",
+        ":fpga_device",
+        ":multi_pim_container",
+        "//fboss/agent:fboss-error",
+        "//folly:format",
+        "//folly:shared_mutex",
+        "//folly/logging:logging",
+    ],
+)
+
+cpp_library(
+    name = "minipack_container",
+    srcs = [
+        "MinipackPimContainer.cpp",
+        "MinipackSystemContainer.cpp",
+    ],
+    headers = [
+        "MinipackPimContainer.h",
+        "MinipackSystemContainer.h",
+    ],
+    exported_deps = [
+        ":minipack_base_container",
+        "//fboss/agent:fboss-error",
+        "//folly:singleton",
+    ],
+    exported_external_deps = [
+        ("libpciaccess", None, "pciaccess"),
+    ],
+)
+
+cpp_library(
+    name = "wedge400_i2c",
+    srcs = [
+        "Wedge400I2CBus.cpp",
+        "Wedge400TransceiverApi.cpp",
+    ],
+    headers = [
+        "Wedge400I2CBus.h",
+        "Wedge400TransceiverApi.h",
+    ],
+    exported_deps = [
+        ":fb_fpga_i2c",
+        ":wedge400_fpga",
+        "//fboss/agent:utils",
+        "//fboss/lib:pci_access",
+        "//fboss/lib/usb:i2-api",
+        "//folly:format",
+        "//folly/logging:logging",
+    ],
+)
+
+cpp_library(
+    name = "wedge400_fpga",
+    srcs = [
+        "Wedge400Fpga.cpp",
+    ],
+    headers = [
+        "Wedge400Fpga.h",
+    ],
+    exported_deps = [
+        "//fboss/agent:fboss-error",
+        "//fboss/agent:fboss-types",
+        "//fboss/lib:pci_access",
+        "//fboss/lib/fpga:facebook_fpga",
+        "//folly:singleton",
+        "//folly/logging:logging",
+    ],
+)

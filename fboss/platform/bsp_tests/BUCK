@@ -1,0 +1,38 @@
+load("@fbcode_macros//build_defs:python_binary.bzl", "python_binary")
+load("@fbcode_macros//build_defs:python_library.bzl", "python_library")
+load("//antlir/fbpkg:fbpkg.bzl", "fbpkg")
+
+oncall("fboss_platform")
+
+fbpkg.builder(
+    name = "fboss_bsp_tests",
+    path_actions = {
+        "bsp_tests.par": ":bsp_tests",
+        "configs": "configs",
+        "tests": "tests",
+    },
+)
+
+python_binary(
+    name = "bsp_tests",
+    srcs = glob([
+        "configs/*.json",
+        "tests/*.py",
+    ]) + ["test_runner.py"],
+    main_function = ".test_runner.main",
+    deps = [
+        "fbsource//third-party/pypi/dataclasses-json:dataclasses-json",
+        "fbsource//third-party/pypi/pysensors:pysensors",
+        "fbsource//third-party/pypi/pytest:pytest",
+        ":bsp_test_utils",
+    ],
+)
+
+python_library(
+    name = "bsp_test_utils",
+    srcs = glob(["utils/*.py"]),
+    deps = [
+        "fbsource//third-party/pypi/dataclasses-json:dataclasses-json",
+        "fbsource//third-party/pypi/ioctl-opt:ioctl-opt",
+    ],
+)

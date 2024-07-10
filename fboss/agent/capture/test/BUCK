@@ -1,0 +1,42 @@
+load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
+load("@fbcode_macros//build_defs:cpp_unittest.bzl", "cpp_unittest")
+
+oncall("fboss_agent_push")
+
+cpp_library(
+    name = "pcap_util",
+    srcs = [
+        "PcapUtil.cpp",
+    ],
+    exported_deps = [
+        "//fboss/agent:fboss-error",
+        "//folly:scope_guard",
+    ],
+    exported_external_deps = [
+        ("libpcap", None, "pcap"),
+    ],
+)
+
+cpp_unittest(
+    name = "pcap_test",
+    srcs = [
+        "CaptureTest.cpp",
+        "PcapQueueTest.cpp",
+        "PcapWriterTest.cpp",
+    ],
+    deps = [
+        ":pcap_util",
+        "//fboss/agent:apply_thrift_config",
+        "//fboss/agent:core",
+        "//fboss/agent:switch_config-cpp2-types",
+        "//fboss/agent/capture:capture",
+        "//fboss/agent/hw/mock:pkt",
+        "//fboss/agent/packet:pktutil",
+        "//fboss/agent/state:state",
+        "//fboss/agent/test:hw_test_handle",
+        "//fboss/agent/test:utils",
+        "//folly:exception",
+        "//folly:memory",
+        "//folly:scope_guard",
+    ],
+)

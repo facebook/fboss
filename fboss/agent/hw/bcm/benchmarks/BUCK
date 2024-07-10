@@ -1,0 +1,322 @@
+load("@fbcode_macros//build_defs:cpp_binary.bzl", "cpp_binary")
+load("//fboss:THIRD-PARTY-VERSIONS.bzl", "BCM_SDKS", "to_impl_suffix", "to_versions")
+load("//fboss/agent/hw/bcm/benchmarks:bcm_benchmarks.bzl", "bcm_agent_benchmark")
+
+oncall("fboss_agent_push")
+
+bcm_agent_benchmark(
+    name = "bcm_ecmp_shrink_speed",
+    srcs = [],
+    extra_deps = [
+        "//fboss/agent/hw/benchmarks:hw_ecmp_shrink_speed",
+        "//fboss/agent/hw/bcm/tests:bcm_ecmp_utils",
+        "//fboss/agent/hw/bcm/tests:bcm_port_utils",
+    ],
+)
+
+bcm_agent_benchmark(
+    name = "bcm_ecmp_shrink_with_competing_route_updates_speed",
+    srcs = [],
+    extra_deps = [
+        "//fboss/agent/hw/benchmarks:hw_ecmp_shrink_with_competing_route_updates_speed",
+        "//fboss/agent/hw/bcm/tests:bcm_ecmp_utils",
+        "//fboss/agent/hw/bcm/tests:bcm_port_utils",
+    ],
+)
+
+# FSW route scale
+bcm_agent_benchmark(
+    name = "bcm_fsw_scale_route_add_speed",
+    srcs = [],
+    extra_deps = [
+        "//fboss/agent/hw/benchmarks:hw_fsw_scale_route_add_speed",
+        "//fboss/agent/test:route_scale_gen",
+    ],
+)
+
+bcm_agent_benchmark(
+    name = "bcm_fsw_scale_route_del_speed",
+    srcs = [],
+    extra_deps = [
+        "//fboss/agent/hw/benchmarks:hw_fsw_scale_route_del_speed",
+        "//fboss/agent/test:route_scale_gen",
+    ],
+)
+
+# TH Alpm route scale
+bcm_agent_benchmark(
+    name = "bcm_th_alpm_scale_route_add_speed",
+    srcs = [],
+    extra_deps = [
+        "//fboss/agent/hw/benchmarks:hw_th_alpm_scale_route_add_speed",
+        "//fboss/agent/test:route_scale_gen",
+    ],
+)
+
+bcm_agent_benchmark(
+    name = "bcm_th_alpm_scale_route_del_speed",
+    srcs = [],
+    extra_deps = [
+        "//fboss/agent/hw/benchmarks:hw_th_alpm_scale_route_del_speed",
+        "//fboss/agent/test:route_scale_gen",
+    ],
+)
+
+# Hgrid DU route scale
+bcm_agent_benchmark(
+    name = "bcm_hgrid_du_scale_route_add_speed",
+    srcs = [],
+    extra_deps = [
+        "//fboss/agent/hw/benchmarks:hw_hgrid_du_scale_route_add_speed",
+        "//fboss/agent/test:route_scale_gen",
+    ],
+)
+
+bcm_agent_benchmark(
+    name = "bcm_hgrid_du_scale_route_del_speed",
+    srcs = [],
+    extra_deps = [
+        "//fboss/agent/hw/benchmarks:hw_hgrid_du_scale_route_del_speed",
+        "//fboss/agent/test:route_scale_gen",
+    ],
+)
+
+# Hgrid UU route scale
+bcm_agent_benchmark(
+    name = "bcm_hgrid_uu_scale_route_add_speed",
+    srcs = [],
+    extra_deps = [
+        "//fboss/agent/hw/benchmarks:hw_hgrid_uu_scale_route_add_speed",
+        "//fboss/agent/test:route_scale_gen",
+    ],
+)
+
+bcm_agent_benchmark(
+    name = "bcm_hgrid_uu_scale_route_del_speed",
+    srcs = [],
+    extra_deps = [
+        "//fboss/agent/hw/benchmarks:hw_hgrid_uu_scale_route_del_speed",
+        "//fboss/agent/test:route_scale_gen",
+    ],
+)
+
+# Anticipated route scale
+bcm_agent_benchmark(
+    name = "bcm_anticipated_scale_route_add_speed",
+    srcs = [],
+    extra_deps = [
+        "//fboss/agent/hw/benchmarks:hw_anticipated_scale_route_add_speed",
+        "//fboss/agent/test:route_scale_gen",
+    ],
+)
+
+bcm_agent_benchmark(
+    name = "bcm_anticipated_scale_route_del_speed",
+    srcs = [],
+    extra_deps = [
+        "//fboss/agent/hw/benchmarks:hw_anticipated_scale_route_del_speed",
+        "//fboss/agent/test:route_scale_gen",
+    ],
+)
+
+bcm_agent_benchmark(
+    name = "bcm_turbo_fabric_route_add",
+    srcs = [],
+    extra_deps = [
+        "//fboss/agent/hw/benchmarks:hw_turbo_fabric_route_add",
+        "//fboss/agent/test:route_scale_gen",
+    ],
+)
+
+bcm_agent_benchmark(
+    name = "bcm_turbo_fabric_route_del",
+    srcs = [],
+    extra_deps = [
+        "//fboss/agent/hw/benchmarks:hw_turbo_fabric_route_del",
+        "//fboss/agent/test:route_scale_gen",
+    ],
+)
+
+bcm_agent_benchmark(
+    name = "bcm_rib_resolution",
+    srcs = [],
+    extra_deps = [
+        "//fboss/agent/hw/benchmarks:hw_rib_resolution_speed",
+    ],
+)
+
+bcm_agent_benchmark(
+    name = "bcm_rib_sync_fib",
+    srcs = [],
+    extra_deps = [
+        "//fboss/agent/hw/benchmarks:hw_rib_sync_fib_speed",
+    ],
+)
+
+bcm_agent_benchmark(
+    name = "bcm_teflow_scale_add",
+    srcs = [],
+    extra_deps = [
+        "//fboss/agent/hw/benchmarks:hw_teflow_scale_add",
+        "//fboss/agent/hw/bcm/tests:bcm_teflow_utils",
+    ],
+)
+
+bcm_agent_benchmark(
+    name = "bcm_teflow_scale_del",
+    srcs = [],
+    extra_deps = [
+        "//fboss/agent/hw/benchmarks:hw_teflow_scale_del",
+        "//fboss/agent/hw/bcm/tests:bcm_teflow_utils",
+    ],
+)
+
+bcm_agent_benchmark(
+    name = "bcm_teflow_stats_collection_speed",
+    srcs = [],
+    extra_deps = [
+        "//fboss/agent/hw/benchmarks:hw_teflow_stats_collection_speed",
+        "//fboss/agent/hw/bcm/tests:bcm_teflow_utils",
+    ],
+)
+
+bcm_agent_benchmark(
+    name = "bcm_teflow_stats_fsdb_publish_speed",
+    srcs = [],
+    extra_deps = [
+        "//fboss/agent/hw/benchmarks:hw_teflow_stats_fsdb_publish_speed",
+        "//fboss/agent/hw/bcm/tests:bcm_teflow_utils",
+    ],
+)
+
+bcm_agent_benchmark(
+    name = "bcm_flowlet_stats_collection_speed",
+    srcs = [],
+    extra_deps = [
+        "//fboss/agent/hw/benchmarks:hw_flowlet_stats_collection_speed",
+        "//fboss/agent/hw/bcm/tests:bcm_ecmp_utils",
+        "//fboss/agent/hw/bcm/tests:bcm_acl_utils",
+    ],
+)
+
+# Bcm stats collection
+
+[
+    cpp_binary(
+        name = "bcm_stats_collection_speed{}".format(to_impl_suffix(sdk)),
+        versions = to_versions(sdk),
+        deps = [
+            "//fboss/agent/hw/bcm/tests:bcm_switch_ensemble",
+            "//fboss/agent/hw/benchmarks:hw_stats_collection_speed",
+            "//fboss/agent/benchmarks:bcm_agent_benchmarks_main{}".format(to_impl_suffix(sdk)),
+        ],
+        external_deps = [
+            ("broadcom-xgs-robo", None, "xgs_robo"),
+        ],
+    )
+    for sdk in BCM_SDKS
+]
+
+# Bcm rx slow path rate
+[
+    cpp_binary(
+        name = "bcm_rx_slow_path_rate{}".format(to_impl_suffix(sdk)),
+        versions = to_versions(sdk),
+        deps = [
+            "//fboss/agent/hw/bcm/tests:bcm_acl_utils",
+            "//fboss/agent/hw/bcm/tests:bcm_copp_utils",
+            "//fboss/agent/hw/bcm/tests:bcm_packet_trap_helper",
+            "//fboss/agent/hw/bcm/tests:bcm_qos_utils",
+            "//fboss/agent/hw/bcm/tests:bcm_switch_ensemble",
+            "//fboss/agent/hw/benchmarks:hw_rx_slow_path_rate",
+            "//fboss/agent/benchmarks:bcm_agent_benchmarks_main{}".format(to_impl_suffix(sdk)),
+        ],
+        external_deps = [
+            ("broadcom-xgs-robo", None, "xgs_robo"),
+        ],
+    )
+    for sdk in BCM_SDKS
+]
+
+# Bcm tx slow path rate
+[
+    cpp_binary(
+        name = "bcm_tx_slow_path_rate{}".format(to_impl_suffix(sdk)),
+        versions = to_versions(sdk),
+        deps = [
+            "//fboss/agent/hw/bcm/tests:bcm_switch_ensemble",
+            "//fboss/agent/hw/benchmarks:hw_tx_slow_path_rate",
+            "//fboss/agent/benchmarks:bcm_agent_benchmarks_main{}".format(to_impl_suffix(sdk)),
+        ],
+        external_deps = [
+            ("broadcom-xgs-robo", None, "xgs_robo"),
+        ],
+    )
+    for sdk in BCM_SDKS
+]
+
+# Bcm warm boot exit speed
+[
+    cpp_binary(
+        name = "bcm_warm_boot_exit_speed{}".format(to_impl_suffix(sdk)),
+        versions = to_versions(sdk),
+        deps = [
+            "//fboss/agent/hw/benchmarks:hw_warm_boot_exit_speed",
+            "//fboss/agent/benchmarks:bcm_agent_benchmarks_main{}".format(to_impl_suffix(sdk)),
+        ],
+        external_deps = [
+            ("broadcom-xgs-robo", None, "xgs_robo"),
+        ],
+    )
+    for sdk in BCM_SDKS
+]
+
+bcm_agent_benchmark(
+    name = "bcm_init_and_exit_40Gx10G",
+    srcs = [],
+    extra_deps = [
+        "//fboss/agent/hw/benchmarks:hw_init_and_exit_40Gx10G",
+        "//fboss/agent/hw/bcm/tests:bcm_copp_utils",
+        "//fboss/agent/hw/bcm/tests:bcm_acl_utils",
+    ],
+)
+
+bcm_agent_benchmark(
+    name = "bcm_init_and_exit_100Gx10G",
+    srcs = [],
+    extra_deps = [
+        "//fboss/agent/hw/benchmarks:hw_init_and_exit_100Gx10G",
+        "//fboss/agent/hw/bcm/tests:bcm_copp_utils",
+        "//fboss/agent/hw/bcm/tests:bcm_acl_utils",
+    ],
+)
+
+bcm_agent_benchmark(
+    name = "bcm_init_and_exit_100Gx25G",
+    srcs = [],
+    extra_deps = [
+        "//fboss/agent/hw/benchmarks:hw_init_and_exit_100Gx25G",
+        "//fboss/agent/hw/bcm/tests:bcm_copp_utils",
+        "//fboss/agent/hw/bcm/tests:bcm_acl_utils",
+    ],
+)
+
+bcm_agent_benchmark(
+    name = "bcm_init_and_exit_100Gx50G",
+    srcs = [],
+    extra_deps = [
+        "//fboss/agent/hw/benchmarks:hw_init_and_exit_100Gx50G",
+        "//fboss/agent/hw/bcm/tests:bcm_copp_utils",
+        "//fboss/agent/hw/bcm/tests:bcm_acl_utils",
+    ],
+)
+
+bcm_agent_benchmark(
+    name = "bcm_init_and_exit_100Gx100G",
+    srcs = [],
+    extra_deps = [
+        "//fboss/agent/hw/benchmarks:hw_init_and_exit_100Gx100G",
+        "//fboss/agent/hw/bcm/tests:bcm_copp_utils",
+        "//fboss/agent/hw/bcm/tests:bcm_acl_utils",
+    ],
+)

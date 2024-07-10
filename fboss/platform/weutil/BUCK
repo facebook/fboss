@@ -1,0 +1,97 @@
+load("@fbcode_macros//build_defs:cpp_binary.bzl", "cpp_binary")
+load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
+load("@fbcode_macros//build_defs:custom_unittest.bzl", "custom_unittest")
+
+oncall("fboss_platform")
+
+cpp_library(
+    name = "weutil_core",
+    srcs = [
+        "Weutil.cpp",
+        "WeutilDarwin.cpp",
+        "WeutilImpl.cpp",
+        "prefdl/Prefdl.cpp",
+    ],
+    headers = [
+        "WeutilInterface.h",
+    ],
+    exported_deps = [
+        ":fboss_eeprom_lib",
+        ":ioctl_smbus_eeprom_reader",
+        "//fboss/lib/platforms:platform_mode",
+        "//fboss/lib/platforms:product-info",
+        "//fboss/platform/config_lib:config_lib",
+        "//fboss/platform/helpers:platform_utils",
+        "//fboss/platform/weutil/if:weutil_config-cpp2-types",
+        "//folly:conv",
+        "//folly:format",
+        "//folly/json:dynamic",
+        "//folly/logging:logging",
+        "//thrift/lib/cpp2/protocol:protocol",
+    ],
+    exported_external_deps = [
+        "gflags",
+    ],
+)
+
+cpp_library(
+    name = "fboss_eeprom_lib",
+    srcs = [
+        "FbossEepromParser.cpp",
+    ],
+    headers = [
+        "CachedFbossEepromParser.h",
+        "FbossEepromParser.h",
+    ],
+    exported_deps = [
+        ":crc16_ccitt_aug",
+        "//folly/logging:logging",
+    ],
+)
+
+cpp_library(
+    name = "crc16_ccitt_aug",
+    srcs = [
+        "Crc16CcittAug.cpp",
+    ],
+    headers = [
+        "Crc16CcittAug.h",
+    ],
+)
+
+cpp_library(
+    name = "ioctl_smbus_eeprom_reader",
+    srcs = [
+        "IoctlSmbusEepromReader.cpp",
+    ],
+    headers = [
+        "IoctlSmbusEepromReader.h",
+    ],
+    exported_deps = [
+        "fbsource//third-party/fmt:fmt",
+        "//folly:string",
+    ],
+)
+
+cpp_binary(
+    name = "weutil",
+    srcs = [
+        "main.cpp",
+    ],
+    deps = [
+        ":weutil_core",
+        "//fboss/platform/helpers:init_cli",
+        "//folly:string",
+        "//folly/logging:init",
+        "//folly/logging:logging",
+    ],
+)
+
+custom_unittest(
+    name = "test_weutil_version",
+    command = [
+        "fboss/lib/test/test_version.sh",
+        "$(exe :weutil)",
+    ],
+    type = "simple",
+)

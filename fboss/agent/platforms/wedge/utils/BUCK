@@ -1,0 +1,9 @@
+load(
+    "//fboss/agent/platforms/wedge/utils:utils.bzl",
+    "bcm_led_utils",
+)
+
+oncall("fboss_agent_push")
+
+bcm_led_utils(
+)

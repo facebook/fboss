@@ -1,0 +1,57 @@
+load("@fbcode_macros//build_defs:thrift_library.bzl", "thrift_library")
+
+oncall("fboss_agent_push")
+
+thrift_library(
+    name = "fboss_common",
+    go_thrift_namespaces = {
+        "fboss_common.thrift": "neteng.fboss.fboss_common",
+    },
+    languages = [
+        "cpp2",
+        "py",
+        "py3",
+        "py-asyncio",
+        "go",
+        "rust",
+    ],
+    py3_namespace = "neteng.fboss",
+    py_asyncio_base_module = "neteng.fboss.asyncio",
+    py_base_module = "neteng.fboss",
+    py_remote_service_router = True,
+    thrift_cpp2_options = "json,reflection",
+    thrift_py_options = "json",
+    thrift_rust_options = [
+        "deprecated_default_enum_min_i32",
+        "serde",
+    ],
+    thrift_srcs = {"fboss_common.thrift": [
+    ]},
+)
+
+thrift_library(
+    name = "fboss_io_stats",
+    go_thrift_namespaces = {
+        "io_stats.thrift": "neteng.fboss.fboss_io_stats",
+    },
+    languages = [
+        "cpp2",
+        "py",
+        "py3",
+        "py-asyncio",
+        "go",
+        "rust",
+    ],
+    py3_namespace = "neteng.fboss",
+    py_asyncio_base_module = "neteng.fboss.asyncio",
+    py_base_module = "neteng.fboss",
+    py_remote_service_router = True,
+    thrift_cpp2_options = "json,reflection",
+    thrift_py_options = "json",
+    thrift_rust_options = [
+        "deprecated_default_enum_min_i32",
+        "serde",
+    ],
+    thrift_srcs = {"io_stats.thrift": [
+    ]},
+)

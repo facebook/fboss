@@ -1,0 +1,58 @@
+load("@fbcode_macros//build_defs:cpp_unittest.bzl", "cpp_unittest")
+
+oncall("fboss_platform")
+
+cpp_unittest(
+    name = "config_validator_test",
+    srcs = [
+        "ConfigValidatorTest.cpp",
+    ],
+    deps = [
+        "//fboss/platform/platform_manager:config_validator",
+        "//folly/logging:logging",
+        "//thrift/lib/cpp2/protocol:protocol",
+    ],
+)
+
+cpp_unittest(
+    name = "i2c_explorer_test",
+    srcs = [
+        "I2cExplorerTest.cpp",
+    ],
+    deps = [
+        "//fboss/platform/helpers:mock_platform_utils",
+        "//fboss/platform/platform_manager:i2c_explorer",
+    ],
+)
+
+cpp_unittest(
+    name = "utils_test",
+    srcs = [
+        "UtilsTest.cpp",
+    ],
+    deps = [
+        "//fboss/platform/platform_manager:utils",
+        "//folly/testing:test_util",
+    ],
+)
+
+cpp_unittest(
+    name = "data_store_test",
+    srcs = [
+        "DataStoreTest.cpp",
+    ],
+    deps = [
+        "//fboss/platform/platform_manager:data_store",
+    ],
+)
+
+cpp_unittest(
+    name = "device_path_resolver_test",
+    srcs = [
+        "DevicePathResolverTest.cpp",
+    ],
+    deps = [
+        "fbsource//third-party/googletest:gmock",
+        "//fboss/platform/platform_manager:device_path_resolver",
+    ],
+)

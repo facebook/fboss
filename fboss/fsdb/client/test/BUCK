@@ -1,0 +1,41 @@
+load("@fbcode_macros//build_defs:cpp_unittest.bzl", "cpp_unittest")
+
+oncall("fboss_agent_push")
+
+cpp_unittest(
+    name = "fsdb_client_tests",
+    srcs = [
+        "FsdbPubSubManagerTest.cpp",
+        "FsdbPublisherTest.cpp",
+        "FsdbStreamClientTest.cpp",
+    ],
+    deps = [
+        "//fb303:service_data",
+        "//fboss/fsdb/client:fsdb_pub_sub",
+        "//fboss/fsdb/client:fsdb_stream_client",
+        "//fboss/fsdb/common:flags",
+        "//fboss/lib:common_utils",
+        "//folly/experimental/coro:async_generator",
+        "//folly/experimental/coro:async_pipe",
+        "//folly/io/async:scoped_event_base_thread",
+        "//folly/logging:logging",
+    ],
+)
+
+cpp_unittest(
+    name = "fsdb_sub_manager_test",
+    srcs = [
+        "FsdbSubManagerTest.cpp",
+    ],
+    deps = [
+        "//fboss/fsdb/client:fsdb_cow_state_sub_manager",
+        "//fboss/fsdb/client:fsdb_cow_stats_sub_manager",
+        "//fboss/fsdb/client:fsdb_pub_sub",
+        "//fboss/fsdb/if:fsdb_model",
+        "//fboss/fsdb/tests/utils:fsdb_test_server",
+        "//fboss/lib:common_utils",
+        "//folly/logging:init",
+        "//folly/logging:log_level",
+        "//folly/logging:logging",
+    ],
+)

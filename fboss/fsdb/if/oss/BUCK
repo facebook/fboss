@@ -1,0 +1,100 @@
+load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
+load("@fbcode_macros//build_defs:custom_unittest.bzl", "custom_unittest")
+load("@fbcode_macros//build_defs:native_rules.bzl", "buck_sh_binary")
+load("@fbcode_macros//build_defs:thrift_library.bzl", "thrift_library")
+load("@fbcode_macros//build_defs/lib:copy_rule.bzl", "copy_rule")
+load("//fboss/thriftpath_plugin/facebook:thriftpath_plugin.bzl", "thrift_plugin_thriftpath")
+
+oncall("fboss_agent_push")
+
+thrift_library(
+    name = "fsdb_model",
+    cpp2_deps = [],
+    go_thrift_namespaces = {
+        "fsdb_model.thrift": "facebook.fboss.fsdb",
+    },
+    languages = [
+        "cpp2",
+        "go",
+        "py",
+        "py3",
+    ],
+    plugins = [
+        thrift_plugin_thriftpath(),
+    ],
+    py3_namespace = "neteng.fboss",
+    py_asyncio_base_module = "neteng.fboss.asyncio",
+    py_base_module = "neteng.fboss",
+    thrift_cpp2_options = "reflection,json",
+    thrift_srcs = {
+        "fsdb_model.thrift": [],
+    },
+    deps = [
+        "//fboss/agent:agent_config",
+        "//fboss/agent:agent_stats",
+        "//fboss/agent:switch_state",
+        "//fboss/fsdb/if:fsdb_common",
+        "//fboss/platform/sensor_service:sensor_service_stats",
+        "//fboss/qsfp_service/if:state",
+        "//fboss/qsfp_service/if:stats",
+    ],
+)
+
+cpp_library(
+    name = "fsdb_model_thriftpath",
+    headers = ["fsdb_model_thriftpath.h"],
+    exported_deps = [
+        ":fsdb_model-cpp2-reflection",
+        ":fsdb_model-cpp2-types",
+        "//fatal:fatal",
+        "//fboss/agent:agent_config-cpp2-reflection",
+        "//fboss/agent:agent_config-cpp2-types",
+        "//fboss/agent:agent_stats-cpp2-reflection",
+        "//fboss/agent:agent_stats-cpp2-types",
+        "//fboss/agent:switch_state-cpp2-reflection",
+        "//fboss/agent:switch_state-cpp2-types",
+        "//fboss/fsdb/if:fsdb_common-cpp2-reflection",
+        "//fboss/fsdb/if:fsdb_common-cpp2-types",
+        "//fboss/platform/sensor_service:sensor_service_stats-cpp2-reflection",
+        "//fboss/platform/sensor_service:sensor_service_stats-cpp2-types",
+        "//fboss/qsfp_service/if:state-cpp2-reflection",
+        "//fboss/qsfp_service/if:state-cpp2-types",
+        "//fboss/qsfp_service/if:stats-cpp2-reflection",
+        "//fboss/qsfp_service/if:stats-cpp2-types",
+        "//fboss/thriftpath_plugin:path",
+        "//folly:unit",
+    ],
+)
+
+THRIFTPATH_HEADER_TARGET = "//fboss/fsdb/if/oss:fsdb_model-cpp2-thriftpath-fsdb_model.thrift__gen-cpp2-thriftpath/fsdb_model.h"
+
+# copy the generated file to a more sane path
+copy_rule(
+    name = "fsdb_model_thriftpath.h",
+    src = "$(location {})".format(THRIFTPATH_HEADER_TARGET),
+    visibility = ["//fboss/fsdb/if/oss:sync_model_thriftpath"],
+)
+
+buck_sh_binary(
+    name = "sync_model_thriftpath",
+    main = "sync_model_thriftpath.sh",
+    resources = [
+        ":fsdb_model_thriftpath.h",
+    ],
+)
+
+# Unit test to verfiy oss version of thriftpath matches closed source version
+# This is done through sync_model_thriftpath above. If FSDB model changes
+# this test will fail, requiring a resync by running :sync_model_thriftpath
+# and committing generated files
+custom_unittest(
+    name = "verify_oss_thriftpath",
+    command = [
+        "$(exe //fboss/fsdb/if/oss:sync_model_thriftpath)",
+        "verify",
+    ],
+    type = "simple",
+    deps = [
+        "//fboss/fsdb/if/oss:sync_model_thriftpath",
+    ],
+)

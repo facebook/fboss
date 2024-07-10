@@ -1,0 +1,487 @@
+load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
+
+oncall("fboss_agent_push")
+
+cpp_library(
+    name = "acl_test_utils",
+    srcs = ["AclTestUtils.cpp"],
+    headers = ["AclTestUtils.h"],
+    exported_deps = [
+        ":asic_test_utils",
+        "//fboss/agent:core",
+        "//fboss/agent:fboss-error",
+        "//fboss/agent:hw_switch",
+        "//fboss/agent:switch_config-cpp2-types",
+        "//fboss/agent/hw/switch_asics:switch_asics",
+        "//fboss/agent/state:state",
+    ],
+)
+
+cpp_library(
+    name = "copp_test_utils",
+    srcs = ["CoppTestUtils.cpp"],
+    headers = ["CoppTestUtils.h"],
+    exported_deps = [
+        "fbsource//third-party/googletest:gtest",
+        ":acl_test_utils",
+        ":asic_test_utils",
+        ":load_balancer_test_utils",
+        ":pkt_test_utils",
+        "//fboss/agent:core",
+        "//fboss/agent:fboss-error",
+        "//fboss/agent:fboss-types",
+        "//fboss/agent:hw_switch",
+        "//fboss/agent:packet",
+        "//fboss/agent:switch_config-cpp2-types",
+        "//fboss/agent/hw:hardware_stats-cpp2-types",
+        "//fboss/agent/hw/switch_asics:switch_asics",
+        "//fboss/agent/packet:packet_factory",
+        "//fboss/agent/state:state",
+        "//fboss/agent/test:test_ensemble_if",
+        "//fboss/lib:common_utils",
+        "//folly:network_address",
+        "//folly/logging:logging",
+    ],
+)
+
+cpp_library(
+    name = "pkt_test_utils",
+    srcs = [
+        "PacketSendUtils.cpp",
+        "PacketTestUtils.cpp",
+    ],
+    headers = [
+        "PacketSendUtils.h",
+        "PacketTestUtils.h",
+    ],
+    exported_deps = [
+        "//fboss/agent:core",
+        "//fboss/agent:fboss-types",
+        "//fboss/agent:packet",
+        "//fboss/agent/hw:hardware_stats-cpp2-types",
+        "//fboss/agent/packet:packet_factory",
+        "//fboss/agent/test:test_ensemble_if",
+        "//folly:network_address",
+        "//folly/logging:logging",
+    ],
+)
+
+cpp_library(
+    name = "fabric_test_utils",
+    srcs = ["FabricTestUtils.cpp"],
+    headers = ["FabricTestUtils.h"],
+    exported_deps = [
+        "fbsource//third-party/googletest:gtest",
+        "//fboss/agent:fboss-types",
+        "//fboss/agent:stats",
+        "//fboss/agent:switch_config-cpp2-types",
+        "//fboss/agent/hw/test:config_factory",
+        "//fboss/agent/test:test_ensemble_if",
+        "//fboss/lib:common_utils",
+    ],
+)
+
+cpp_library(
+    name = "traffic_policy_utils",
+    srcs = [
+        "TrafficPolicyTestUtils.cpp",
+    ],
+    headers = ["TrafficPolicyTestUtils.h"],
+    exported_deps = [
+        ":acl_test_utils",
+        ":copp_test_utils",
+        "//fboss/agent:switch_config-cpp2-types",
+        "//fboss/agent/hw/test:config_factory",
+        "//fboss/agent/packet:ipproto",
+    ],
+)
+
+cpp_library(
+    name = "olympic_qos_utils",
+    srcs = [
+        "OlympicTestUtils.cpp",
+    ],
+    headers = ["OlympicTestUtils.h"],
+    exported_deps = [
+        ":asic_test_utils",
+        ":traffic_policy_utils",
+        "//fboss/agent:fboss-error",
+        "//fboss/agent:switch_config-cpp2-types",
+        "//fboss/agent/hw/switch_asics:switch_asics",
+    ],
+)
+
+cpp_library(
+    name = "port_test_utils",
+    srcs = [
+        "PortTestUtils.cpp",
+    ],
+    headers = ["PortTestUtils.h"],
+    exported_deps = [
+        "//fboss/agent:fboss-error",
+        "//fboss/agent:switch_config-cpp2-types",
+        "//fboss/agent/state:state",
+        "//fboss/agent/test:test_ensemble_if",
+        "//fboss/qsfp_service/if:transceiver-cpp2-types",
+    ],
+)
+
+cpp_library(
+    name = "mac_test_utils",
+    srcs = [
+        "MacTestUtils.cpp",
+    ],
+    headers = ["MacTestUtils.h"],
+    exported_deps = [
+        "//fboss/agent/state:state",
+        "//fboss/agent/test:test_ensemble_if",
+        "//folly:network_address",
+    ],
+)
+
+cpp_library(
+    name = "config_utils",
+    srcs = [
+        "ConfigUtils.cpp",
+    ],
+    headers = ["ConfigUtils.h"],
+    exported_deps = [
+        ":asic_test_utils",
+        ":port_test_utils",
+        "//fboss/agent:agent_features",
+        "//fboss/agent:core",
+        "//fboss/agent:fboss-error",
+        "//fboss/agent:fboss-types",
+        "//fboss/agent:switch_config-cpp2-types",
+        "//fboss/agent/hw/switch_asics:switch_asics",
+        "//fboss/agent/platforms/common:platform_mapping",
+        "//fboss/agent/state:state",
+        "//fboss/agent/test:test_ensemble_if",
+        "//fboss/lib/config:fboss_config_utils",
+        "//folly:format",
+        "//folly:network_address",
+    ],
+)
+
+cpp_library(
+    name = "asic_test_utils",
+    srcs = [
+        "AsicUtils.cpp",
+    ],
+    headers = ["AsicUtils.h"],
+    exported_deps = [
+        "//fboss/agent:core",
+        "//fboss/agent:fboss-types",
+        "//fboss/agent/hw/switch_asics:switch_asics",
+    ],
+)
+
+cpp_library(
+    name = "qos_test_utils",
+    srcs = [
+        "QosTestUtils.cpp",
+    ],
+    headers = [
+        "QosTestUtils.h",
+    ],
+    exported_deps = [
+        "fbsource//third-party/googletest:gtest",
+        "//fboss/agent:core",
+        "//fboss/agent:fboss-types",
+        "//fboss/agent:hw_asic_table",
+        "//fboss/agent/hw/switch_asics:switch_asics",
+        "//fboss/agent/state:state",
+        "//fboss/agent/test:ecmp_helper",
+        "//fboss/agent/test:resourcelibutil",
+        "//fboss/agent/test:test_ensemble_if",
+        "//fboss/lib:common_utils",
+        "//folly:network_address",
+    ],
+)
+
+cpp_library(
+    name = "load_balancer_test_utils",
+    srcs = [
+        "LoadBalancerTestUtils.cpp",
+    ],
+    exported_deps = [
+        "fbsource//third-party/googletest:gtest",
+        ":acl_test_utils",
+        ":asic_test_utils",
+        ":config_utils",
+        "//fboss/agent:core",
+        "//fboss/agent:loadbalancer_utils",
+        "//fboss/agent:packet",
+        "//fboss/agent:switchid_scope_resolver",
+        "//fboss/agent:utils",
+        "//fboss/agent/hw/switch_asics:switch_asics",
+        "//fboss/agent/packet:packet_factory",
+        "//fboss/agent/state:state",
+        "//fboss/agent/test:resourcelibutil",
+        "//fboss/agent/test:test_ensemble_if",
+        "//fboss/lib:common_utils",
+        "//folly/gen:base",
+    ],
+)
+
+cpp_library(
+    name = "dscp_marking_utils",
+    srcs = [
+        "DscpMarkingUtils.cpp",
+    ],
+    headers = ["DscpMarkingUtils.h"],
+    undefined_symbols = True,
+    exported_deps = [
+        ":acl_test_utils",
+        ":config_utils",
+        ":olympic_qos_utils",
+        ":traffic_policy_utils",
+        "//fboss/agent:fboss-types",
+        "//fboss/agent:switch_config-cpp2-types",
+    ],
+)
+
+cpp_library(
+    name = "trap_packet_utils",
+    srcs = [
+        "TrapPacketUtils.cpp",
+    ],
+    exported_deps = [
+        ":acl_test_utils",
+        "//fboss/agent:fboss-types",
+        "//fboss/agent:switch_config-cpp2-types",
+        "//folly:network_address",
+    ],
+)
+
+cpp_library(
+    name = "stats_test_utils",
+    headers = ["StatsTestUtils.h"],
+    exported_deps = [],
+)
+
+cpp_library(
+    name = "queue_per_host_test_utils",
+    srcs = [
+        "QueuePerHostTestUtils.cpp",
+    ],
+    headers = ["QueuePerHostTestUtils.h"],
+    exported_deps = [
+        ":acl_test_utils",
+        ":config_utils",
+        ":copp_test_utils",
+        ":load_balancer_test_utils",
+        ":traffic_policy_utils",
+        "//fboss/agent:fboss-types",
+        "//fboss/agent:hw_switch",
+        "//fboss/agent:packet",
+        "//fboss/agent:route_update_wrapper",
+        "//fboss/agent:switch_config-cpp2-types",
+        "//fboss/agent/hw:hardware_stats-cpp2-types",
+        "//fboss/agent/hw/test:config_factory",
+        "//fboss/agent/packet:packet_factory",
+        "//fboss/agent/state:state",
+        "//fboss/lib:common_utils",
+        "//folly:network_address",
+    ],
+)
+
+cpp_library(
+    name = "ecmp_dataplane_test_util",
+    srcs = [
+        "EcmpDataPlaneTestUtil.cpp",
+    ],
+    exported_deps = [
+        ":load_balancer_test_utils",
+        "//fboss/agent:fboss-types",
+        "//fboss/agent:route_update_wrapper",
+        "//fboss/agent/packet:packet",
+        "//fboss/agent/state:state",
+        "//fboss/agent/test:ecmp_helper",
+        "//fboss/agent/test:linkstate_toggler",
+        "//fboss/agent/test:test_ensemble_if",
+    ],
+)
+
+cpp_library(
+    name = "port_stats_test_utils",
+    srcs = [
+        "PortStatsTestUtils.cpp",
+    ],
+    exported_deps = [
+        "//fboss/agent:fboss-types",
+        "//fboss/agent:stats",
+        "//fboss/agent/hw:hardware_stats-cpp2-types",
+        "//folly/logging:logging",
+        "//thrift/lib/cpp2/protocol:protocol",
+    ],
+)
+
+cpp_library(
+    name = "packet_snooper",
+    srcs = ["PacketSnooper.cpp"],
+    headers = ["PacketSnooper.h"],
+    exported_deps = [
+        "//fboss/agent:core",
+        "//fboss/agent:fboss-types",
+        "//fboss/agent:packet",
+        "//fboss/agent:packet_observer",
+        "//fboss/agent/packet:packet_factory",
+        "//folly:optional",
+        "//folly/io:iobuf",
+    ],
+)
+
+cpp_library(
+    name = "aqm_test_utils",
+    srcs = [
+        "AqmTestUtils.cpp",
+    ],
+    exported_deps = [
+        "fbsource//third-party/googletest:gtest",
+        ":port_test_utils",
+        "//fboss/agent:fboss-error",
+        "//fboss/agent:switch_config-cpp2-types",
+        "//fboss/agent/hw/switch_asics:switch_asics",
+        "//fboss/agent/test:test_ensemble_if",
+        "//fboss/lib:common_utils",
+    ],
+)
+
+cpp_library(
+    name = "load_balancer_test_runner_h",
+    headers = [
+        "LoadBalancerTestRunner.h",
+    ],
+    exported_deps = [
+        "fbsource//third-party/googletest:gtest",
+        ":config_utils",
+        ":ecmp_dataplane_test_util",
+        ":load_balancer_test_utils",
+    ],
+    exported_external_deps = [
+        ("boost", None, "boost_preprocessor"),
+    ],
+)
+
+cpp_library(
+    name = "agent_hw_test_constants",
+    srcs = [
+        "AgentHwTestConstants.cpp",
+    ],
+    exported_deps = [
+        "//fboss/agent/if:mpls-cpp2-types",
+    ],
+)
+
+cpp_library(
+    name = "scale_test_utils",
+    srcs = [
+        "ScaleTestUtils.cpp",
+    ],
+    headers = ["ScaleTestUtils.h"],
+    exported_deps = [
+        "fbsource//third-party/googletest:gtest",
+        ":asic_test_utils",
+        "//fboss/agent:core",
+        "//fboss/agent:fboss-types",
+        "//fboss/agent/hw/switch_asics:switch_asics",
+    ],
+)
+
+cpp_library(
+    name = "invariant_test_utils",
+    srcs = [
+        "InvariantTestUtils.cpp",
+    ],
+    exported_deps = [
+        ":config_utils",
+        ":copp_test_utils",
+        ":load_balancer_test_utils",
+        ":qos_test_utils",
+        "//fboss/agent:packet",
+        "//fboss/agent:validated_shell_commands-cpp2-types",
+        "//fboss/agent/packet:packet_factory",
+        "//fboss/agent/test:test_ensemble_if",
+    ],
+)
+
+cpp_library(
+    name = "route_test_utils",
+    srcs = [
+        "RouteTestUtils.cpp",
+    ],
+    exported_deps = [
+        "//fboss/agent:route_update_wrapper",
+        "//fboss/agent/if:ctrl-cpp2-types",
+        "//fboss/agent/test:route_distribution_gen",
+    ],
+)
+
+cpp_library(
+    name = "mirror_test_utils",
+    srcs = [
+        "MirrorTestUtils.cpp",
+    ],
+    exported_deps = [
+        ":config_utils",
+        ":trap_packet_utils",
+        "//fboss/agent:fboss-types",
+        "//fboss/agent:switch_config-cpp2-types",
+        "//folly:network_address",
+    ],
+)
+
+cpp_library(
+    name = "queue_test_utils",
+    srcs = [
+        "QueueTestUtils.cpp",
+    ],
+    headers = [
+        "QueueTestUtils.h",
+    ],
+    exported_deps = [
+        ":config_utils",
+        ":olympic_qos_utils",
+        "//fboss/agent:fboss-types",
+        "//fboss/agent:switch_config-cpp2-types",
+        "//fboss/agent/hw/switch_asics:switch_asics",
+    ],
+)
+
+cpp_library(
+    name = "l2learn_observer_util",
+    srcs = [
+        "L2LearningUpdateObserverUtil.cpp",
+    ],
+    headers = [
+        "L2LearningUpdateObserverUtil.h",
+    ],
+    exported_deps = [
+        "//fboss/agent:core",
+        "//fboss/agent:hwswitchcallback",
+        "//fboss/agent:l2learn_event_observer",
+        "//fboss/agent/test:agent_ensemble",
+        "//folly:optional",
+    ],
+)
+
+cpp_library(
+    name = "voq_test_utils",
+    srcs = [
+        "VoqTestUtils.cpp",
+    ],
+    headers = [
+        "VoqTestUtils.h",
+    ],
+    exported_deps = [
+        "//fboss/agent:fboss-types",
+        "//fboss/agent:switch_config-cpp2-types",
+        "//fboss/agent:switchid_scope_resolver",
+        "//fboss/agent/hw/switch_asics:switch_asics",
+        "//fboss/agent/hw/test:config_factory",
+        "//fboss/agent/state:state",
+        "//fboss/agent/test:ecmp_helper",
+        "//fboss/agent/test:test_ensemble_if",
+    ],
+)

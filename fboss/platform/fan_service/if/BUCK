@@ -1,0 +1,17 @@
+load("@fbcode_macros//build_defs:thrift_library.bzl", "thrift_library")
+
+oncall("fboss_platform")
+
+thrift_library(
+    name = "fan_service",
+    languages = [
+        "cpp2",
+        "py3",
+    ],
+    py3_namespace = "neteng.fboss.platform.fan_service",
+    thrift_cpp2_options = ["json"],
+    thrift_srcs = {
+        "fan_service.thrift": "FanService",
+        "fan_service_config.thrift": [],
+    },
+)

@@ -1,0 +1,272 @@
+load("@fbcode_macros//build_defs:cpp_binary.bzl", "cpp_binary")
+load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
+load("@fbcode_macros//build_defs:python_binary.bzl", "python_binary")
+
+oncall("dc_push")
+
+cpp_binary(
+    name = "cp2112_util",
+    srcs = [
+        "cp2112_util.cpp",
+    ],
+    deps = [
+        "//fboss/lib/usb:cp2112",
+        "//folly:conv",
+        "//folly:range",
+    ],
+    external_deps = [
+        "gflags",
+        "glog",
+    ],
+)
+
+cpp_binary(
+    name = "wedge_qsfp_util",
+    srcs = [
+        "qsfp_util_main.cpp",
+    ],
+    headers = [
+        "wedge_qsfp_util.h",
+    ],
+    versions = {
+        "broadcom-plp-barchetta2": "5.2",
+        "broadcom-plp-epdm": "4.1.2",
+        "broadcom-plp-millenio": "5.5",
+    },
+    deps = [
+        ":wedge_qsfp_util_module",
+        "//fboss/agent:fboss-types",
+        "//fboss/lib/firmware_storage:firmware_storage",
+        "//fboss/lib/thrift_service_client:thrift-service-client",
+        "//fboss/lib/usb:i2-api",
+        "//fboss/qsfp_service:transceiver-manager",
+        "//fboss/qsfp_service/lib:qsfp-service-client",
+        "//fboss/qsfp_service/module:firmware_upgrader",
+        "//fboss/qsfp_service/platforms/wedge:wedge-platform-default",
+        "//folly/gen:base",
+        "//folly/init:init",
+    ],
+    external_deps = [
+        "gflags",
+        "glog",
+    ],
+)
+
+cpp_library(
+    name = "wedge_qsfp_util_module",
+    srcs = [
+        "facebook/wedge_qsfp_util.cpp",
+        "qsfp/QsfpServiceDetector.cpp",
+        "qsfp/QsfpUtilContainer.cpp",
+        "qsfp/QsfpUtilTx.cpp",
+        "wedge_qsfp_util.cpp",
+    ],
+    headers = [
+        "qsfp/QsfpServiceDetector.h",
+        "qsfp/QsfpUtilContainer.cpp",
+        "qsfp/QsfpUtilTx.h",
+        "wedge_qsfp_util.h",
+    ],
+    exported_deps = [
+        "//fboss/agent:enum_utils",
+        "//fboss/agent:fboss-types",
+        "//fboss/lib/bsp:bsp_core",
+        "//fboss/lib/bsp/facebook/sandia:sandia_bsp",
+        "//fboss/lib/bsp/janga800bic:janga800bic_bsp",
+        "//fboss/lib/bsp/meru400bfu:meru400bfu_bsp",
+        "//fboss/lib/bsp/meru400biu:meru400biu_bsp",
+        "//fboss/lib/bsp/meru800bfa:meru800bfa_bsp",
+        "//fboss/lib/bsp/meru800bia:meru800bia_bsp",
+        "//fboss/lib/bsp/montblanc:montblanc_bsp",
+        "//fboss/lib/bsp/morgan800cc:morgan800cc_bsp",
+        "//fboss/lib/bsp/tahan800bc:tahan800bc_bsp",
+        "//fboss/lib/firmware_storage:firmware_storage",
+        "//fboss/lib/fpga:wedge400_i2c",
+        "//fboss/lib/fpga/facebook/cloudripper:cloudripper_i2c",
+        "//fboss/lib/fpga/facebook/darwin:darwin_i2c",
+        "//fboss/lib/fpga/facebook/elbert:elbert_i2c",
+        "//fboss/lib/fpga/facebook/fuji:fuji_container",
+        "//fboss/lib/fpga/facebook/sandia:sandia_i2c",
+        "//fboss/lib/fpga/facebook/yamp:yamp_i2c",
+        "//fboss/lib/i2c/facebook/fuji:fuji_i2c",
+        "//fboss/lib/platforms:platform_mode",
+        "//fboss/lib/platforms:product-info",
+        "//fboss/lib/usb:i2-api",
+        "//fboss/lib/usb:wedge_i2c",
+        "//fboss/qsfp_service:transceiver-manager",
+        "//fboss/qsfp_service/lib:qsfp-service-client",
+        "//fboss/qsfp_service/module:firmware_upgrader",
+        "//fboss/qsfp_service/module:qsfp-module",
+        "//fboss/qsfp_service/platforms/wedge:wedge-transceiver",
+        "//folly:conv",
+        "//folly:exception",
+        "//folly:file_util",
+        "//folly:memory",
+        "//folly:singleton",
+        "//folly/gen:base",
+        "//folly/init:init",
+        "//folly/io/async:async_base",
+        "//folly/logging:logging",
+        "//thrift/lib/cpp/util:enum_utils",
+    ],
+    exported_external_deps = [
+        "gflags",
+        "glog",
+    ],
+)
+
+cpp_binary(
+    name = "nic_util",
+    srcs = [
+        "nic_util.cpp",
+    ],
+    deps = [
+        "//folly/init:init",
+    ],
+    external_deps = [
+        "gflags",
+        ("glibc", None, "rt"),
+    ],
+)
+
+cpp_binary(
+    name = "scd_fpga_util",
+    srcs = [
+        "scd_fpga_util.cpp",
+    ],
+    deps = [
+        "//folly:conv",
+        "//folly:string",
+        "//folly/init:init",
+    ],
+    external_deps = [
+        "gflags",
+        ("glibc", None, "rt"),
+    ],
+)
+
+cpp_binary(
+    name = "csc_fpga_util",
+    srcs = [
+        "csc_fpga_util.cpp",
+    ],
+    deps = [
+        "//folly:conv",
+        "//folly:string",
+        "//folly/init:init",
+    ],
+    external_deps = [
+        "gflags",
+        ("glibc", None, "rt"),
+    ],
+)
+
+cpp_binary(
+    name = "credo_macsec_util",
+    srcs = [
+        "credo_macsec_util.cpp",
+    ],
+    deps = [
+        ":credo_macsec_util_module",
+        "//folly/init:init",
+    ],
+)
+
+cpp_library(
+    name = "credo_macsec_util_module",
+    srcs = [
+        "CredoMacsecUtil.cpp",
+    ],
+    headers = [
+        "CredoMacsecUtil.h",
+    ],
+    exported_deps = [
+        "//fboss/agent/hw:hardware_stats-cpp2-types",
+        "//fboss/qsfp_service/lib:qsfp-service-client",
+        "//folly:file_util",
+        "//thrift/lib/cpp2/protocol:protocol",
+    ],
+)
+
+cpp_binary(
+    name = "sai_phy_util",
+    srcs = [
+        "sai_phy_util.cpp",
+    ],
+    deps = [
+        "//fboss/qsfp_service/lib:qsfp-service-client",
+        "//folly/init:init",
+    ],
+)
+
+cpp_binary(
+    # @autodeps-skip
+    name = "fboss_cr_shell",
+    srcs = [
+        "CredoDebugShell.cpp",
+    ],
+    deps = [],
+    external_deps = [
+        ("csdk-owl-source", None, "crclishell"),
+    ],
+)
+
+cpp_binary(
+    name = "thrift_state_updater",
+    srcs = [
+        "ThriftStateUpdater.cpp",
+    ],
+    deps = [
+        "//fboss/agent/if:ctrl-cpp2-services",
+        "//thrift/lib/cpp2/async:header_client_channel",
+    ],
+)
+
+python_binary(
+    name = "stress_route_insertion",
+    srcs = [
+        "stress_route_insertion.py",
+    ],
+    main_function = "fboss.util.stress_route_insertion.main",
+    deps = [
+        "//fboss/agent/if:ctrl-py",
+        "//fboss/py/fboss:thrift_clients",
+        "//fboss/py/fboss/cli:fboss_cli_lib",
+    ],
+)
+
+python_binary(
+    name = "find_files_not_built_in_oss",
+    srcs = [
+        "find_files_not_built_in_oss.py",
+    ],
+    main_function = "fboss.util.find_files_not_built_in_oss.main",
+)
+
+python_binary(
+    name = "run_bcm_cint_audit",
+    srcs = [
+        "run_bcm_cint_audit.py",
+    ],
+    main_function = "fboss.util.run_bcm_cint_audit.main",
+)
+
+python_binary(
+    name = "run_sai_replayer_attribute_audit",
+    srcs = [
+        "run_sai_replayer_attribute_audit.py",
+    ],
+    main_function = "fboss.util.run_sai_replayer_attribute_audit.main",
+)
+
+python_binary(
+    name = "thrift_state",
+    srcs = [
+        "thrift_state.py",
+    ],
+    main_function = "fboss.util.thrift_state.main",
+    deps = [
+        "//fboss/agent:switch_state-py3-types",
+        "//thrift/lib/py3:types",
+    ],
+)

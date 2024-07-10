@@ -1,0 +1,59 @@
+load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
+
+oncall("fboss_agent_push")
+
+cpp_library(
+    name = "packet_stream_client",
+    srcs = [
+        "PacketStreamClient.cpp",
+    ],
+    headers = [
+        "PacketStreamClient.h",
+    ],
+    exported_deps = [
+        "//fboss/agent/if:packet_stream-cpp2-clients",
+        "//folly:cancellation_token",
+        "//folly:synchronized",
+        "//folly/experimental/coro:blocking_wait",
+        "//folly/io/async:async_socket",
+        "//folly/io/async:scoped_event_base_thread",
+        "//folly/logging:logging",
+        "//thrift/lib/cpp2/async:rocket_client_channel",
+    ],
+)
+
+cpp_library(
+    name = "packet_stream_server",
+    srcs = [
+        "PacketStreamService.cpp",
+    ],
+    headers = [
+        "PacketStreamService.h",
+    ],
+    exported_deps = [
+        "//common/fb303/cpp:fb303",
+        "//fboss/agent/if:packet_stream-cpp2-services",
+        "//folly/logging:logging",
+    ],
+)
+
+cpp_library(
+    name = "bidirectional_packet_stream",
+    srcs = [
+        "AsyncThriftPacketTransport.cpp",
+        "BidirectionalPacketStream.cpp",
+    ],
+    headers = [
+        "AsyncThriftPacketTransport.h",
+        "BidirectionalPacketStream.h",
+    ],
+    exported_deps = [
+        ":packet_stream_client",
+        ":packet_stream_server",
+        "//fb303:thread_cached_service_data",
+        "//fboss/agent:async_packet_transport",
+        "//fboss/agent/if:packet_stream-cpp2-services",
+        "//folly:synchronized",
+        "//folly/logging:logging",
+    ],
+)

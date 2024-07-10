@@ -1,0 +1,23 @@
+load("@fbcode_macros//build_defs:cpp_binary.bzl", "cpp_binary")
+
+oncall("fboss_platform")
+
+cpp_binary(
+    name = "data_corral_service_hw_test",
+    srcs = [
+        "DataCorralServiceHwTest.cpp",
+    ],
+    deps = [
+        "fbsource//third-party/fmt:fmt",
+        "fbsource//third-party/googletest:gtest",
+        "//fb303:service_data",
+        "//fboss/platform/config_lib:config_lib",
+        "//fboss/platform/data_corral_service:core",
+        "//fboss/platform/data_corral_service:led_management",
+        "//fboss/platform/data_corral_service/if:data_corral_service-cpp2-services",
+        "//fboss/platform/data_corral_service/if:data_corral_service-cpp2-types",
+        "//fboss/platform/helpers:init",
+        "//folly:file_util",
+        "//thrift/lib/cpp2/util:util",
+    ],
+)

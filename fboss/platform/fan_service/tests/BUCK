@@ -1,0 +1,18 @@
+load("@fbcode_macros//build_defs:cpp_unittest.bzl", "cpp_unittest")
+
+oncall("fboss_platform")
+
+cpp_unittest(
+    name = "fan_service_sw_test",
+    srcs = [
+        "BspTests.cpp",
+        "ControlLogicTests.cpp",
+    ],
+    deps = [
+        "fbsource//third-party/googletest:gmock",
+        "//fboss/platform/fan_service:core",
+        "//fboss/platform/fan_service/if:fan_service-cpp2-types",
+        "//folly:file_util",
+        "//thrift/lib/cpp2/protocol:protocol",
+    ],
+)

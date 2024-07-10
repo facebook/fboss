@@ -1,0 +1,15 @@
+load("@fbcode_macros//build_defs:thrift_library.bzl", "thrift_library")
+
+oncall("fboss_platform")
+
+thrift_library(
+    name = "weutil_config",
+    go_thrift_namespaces = {
+        "weutil_config.thrift": "neteng.fboss.platform.weutil_config",
+    },
+    languages = [
+        "cpp2",
+    ],
+    thrift_cpp2_options = "json",
+    thrift_srcs = {"weutil_config.thrift": []},
+)

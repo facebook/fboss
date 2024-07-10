@@ -1,0 +1,16 @@
+load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
+
+oncall("fboss_agent_push")
+
+cpp_library(
+    name = "morgan800cc_platform_mapping",
+    srcs = [
+        "facebook/Morgan800ccPlatformMapping.cpp",
+    ],
+    headers = [
+        "Morgan800ccPlatformMapping.h",
+    ],
+    exported_deps = [
+        "//fboss/agent/platforms/common:platform_mapping",
+    ],
+)

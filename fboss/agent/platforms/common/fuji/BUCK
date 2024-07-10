@@ -1,0 +1,19 @@
+load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
+
+oncall("fboss_agent_push")
+
+cpp_library(
+    name = "fuji_platform_mapping",
+    srcs = [
+        "Fuji16QPimPlatformMapping.cpp",
+        "facebook/FujiPlatformMapping.cpp",
+    ],
+    headers = [
+        "FujiPlatformMapping.h",
+    ],
+    exported_deps = [
+        "//fboss/agent/platforms/common:platform_mapping",
+        "//fboss/lib/fpga/facebook/fuji:fuji_container",
+        "//folly/logging:logging",
+    ],
+)

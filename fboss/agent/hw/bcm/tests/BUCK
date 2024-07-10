@@ -1,0 +1,603 @@
+load("@fbcode_macros//build_defs:cpp_binary.bzl", "cpp_binary")
+load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
+load("@fbcode_macros//build_defs:cpp_unittest.bzl", "cpp_unittest")
+load("//fboss:THIRD-PARTY-VERSIONS.bzl", "BCM_SDKS", "to_impl_suffix", "to_versions")
+
+oncall("fboss_agent_push")
+
+cpp_library(
+    name = "bcm_unittest_utils",
+    srcs = [
+        "BcmUnitTestUtils.cpp",
+    ],
+)
+
+cpp_library(
+    name = "bcm_test_handler",
+    srcs = [
+        "facebook/BcmTestHandler.cpp",
+    ],
+    headers = [
+        "facebook/BcmTestHandler.h",
+    ],
+    exported_deps = [
+        "//common/fb303/cpp:fb303",
+        "//fboss/agent:fboss-error",
+        "//fboss/agent/hw/bcm:bcm",
+        "//fboss/agent/hw/bcm:bcm_sdk_ver",
+        "//fboss/agent/hw/bcm/tests/facebook:if-cpp2-services",
+        "//folly:string",
+        "//folly/logging:logging",
+        "//thrift/lib/cpp/server:server_event_handler",
+    ],
+)
+
+cpp_library(
+    name = "bcm_phy_capabilities",
+    srcs = [
+        "PhyCapabilities.cpp",
+    ],
+    exported_deps = [
+        "//fboss/agent/hw/test:phy_capabilities",
+    ],
+)
+
+cpp_library(
+    name = "bcm_switch_ensemble",
+    srcs = [
+        "BcmLinkStateToggler.cpp",
+        "BcmSwitchEnsemble.cpp",
+        "HwSwitchEnsembleFactory.cpp",
+        "facebook/BcmSwitchEnsemble.cpp",
+    ],
+    link_whole = True,
+    exported_deps = [
+        ":bcm_test_handler",
+        "//fboss/agent:fboss-error",
+        "//fboss/agent:load_agent_config",
+        "//fboss/agent:setup_thrift",
+        "//fboss/agent:utils",
+        "//fboss/agent/hw:hardware_stats-cpp2-types",
+        "//fboss/agent/hw/bcm:bcm",
+        "//fboss/agent/hw/bcm:config",
+        "//fboss/agent/hw/test:config_factory",
+        "//fboss/agent/hw/test:hw_switch_ensemble_factory",
+        "//fboss/agent/platforms/tests/utils:bcm_test_platforms",
+        "//fboss/agent/state:state",
+        "//fboss/agent/test:linkstate_toggler",
+        "//fboss/agent/test:test_ensemble_if",
+        "//folly/logging:logging",
+    ],
+    exported_external_deps = [
+        ("broadcom-xgs-robo", None, "xgs_robo"),
+    ],
+)
+
+cpp_library(
+    name = "bcm_linkstate_toggler",
+    srcs = [
+        "BcmLinkStateToggler.cpp",
+    ],
+    exported_deps = [
+        ":bcm_switch_ensemble",
+        "//fboss/agent/hw/bcm:bcm",
+        "//fboss/agent/state:state",
+        "//fboss/agent/test:linkstate_toggler",
+        "//fboss/agent/test:test_ensemble_if",
+    ],
+    exported_external_deps = [
+        ("broadcom-xgs-robo", None, "xgs_robo"),
+    ],
+)
+
+cpp_library(
+    name = "bcm_packet_trap_helper",
+    srcs = [
+        "HwTestPacketTrapEntry.cpp",
+    ],
+    exported_deps = [
+        "//fboss/agent/hw/bcm:bcm",
+        "//fboss/agent/hw/bcm:bcm_fieldprocessor_fb_convertors",
+        "//fboss/agent/hw/bcm:bcmaddress_fb_convertors",
+        "//fboss/agent/hw/switch_asics:switch_asics",
+        "//fboss/agent/hw/test:hw_test_packet_trap_entry",
+    ],
+    exported_external_deps = [
+        ("broadcom-xgs-robo", None, "xgs_robo"),
+    ],
+)
+
+cpp_library(
+    name = "bcm_qos_utils",
+    srcs = [
+        "dataplane_tests/BcmQosUtils.cpp",
+    ],
+    exported_deps = [
+        "fbsource//third-party/googletest:gtest",
+        "//fboss/agent/hw/bcm:bcm",
+        "//fboss/agent/hw/test:hw_packet_utils",
+        "//fboss/agent/state:state",
+        "//folly:network_address",
+    ],
+    exported_external_deps = [
+        ("boost", None, "boost_container"),
+        ("broadcom-xgs-robo", None, "xgs_robo"),
+    ],
+)
+
+cpp_library(
+    name = "bcm_trunk_utils",
+    srcs = [
+        "BcmTrunkUtils.cpp",
+        "HwTestTrunkUtils.cpp",
+    ],
+    exported_deps = [
+        "fbsource//third-party/googletest:gtest",
+        ":bcm_switch_ensemble",
+        "//fboss/agent:fboss-types",
+        "//fboss/agent/hw/bcm:bcm",
+        "//fboss/agent/hw/test:config_factory",
+        "//fboss/agent/hw/test:hw_test_trunk_utils",
+    ],
+    exported_external_deps = [("broadcom-xgs-robo", None, "xgs_robo")],
+)
+
+cpp_library(
+    name = "bcm_ecmp_utils",
+    srcs = [
+        "HwTestEcmpUtils.cpp",
+    ],
+    exported_deps = [
+        "//fboss/agent/hw/bcm:bcm",
+        "//fboss/agent/hw/test:hw_test_ecmp_utils",
+    ],
+)
+
+cpp_library(
+    name = "bcm_ptp_tc_utils",
+    srcs = [
+        "HwTestPtpTcUtils.cpp",
+    ],
+    exported_deps = [
+        "//fboss/agent/hw/bcm:bcm",
+        "//fboss/agent/hw/test:hw_test_ptp_tc_utils",
+    ],
+)
+
+cpp_library(
+    name = "bcm_udf_utils",
+    srcs = [
+        "HwTestAclUtils.cpp",
+        "HwTestUdfUtils.cpp",
+    ],
+    exported_deps = [
+        "fbsource//third-party/googletest:gtest",
+        "//fboss/agent/hw/bcm:bcm",
+        "//fboss/agent/hw/switch_asics:switch_asics",
+        "//fboss/agent/hw/test:fake_hw_switch_test",
+        "//fboss/agent/hw/test:hw_test_acl_utils",
+        "//fboss/agent/hw/test:hw_test_udf_utils",
+        "//fboss/agent/packet:ipproto",
+        "//fboss/agent/state:state",
+    ],
+    exported_external_deps = [
+        ("broadcom-xgs-robo", None, "xgs_robo"),
+    ],
+)
+
+cpp_library(
+    name = "bcm_port_utils",
+    srcs = [
+        "HwTestPortUtils.cpp",
+    ],
+    exported_deps = [
+        "//fboss/agent/hw/bcm:bcm",
+        "//fboss/agent/hw/test:hw_test_port_utils",
+    ],
+    exported_external_deps = [
+        ("broadcom-xgs-robo", None, "xgs_robo"),
+    ],
+)
+
+cpp_library(
+    name = "bcm_copp_utils",
+    srcs = [
+        "HwTestCoppUtils.cpp",
+    ],
+    link_whole = True,
+    exported_deps = [
+        "//fboss/agent:fboss-error",
+        "//fboss/agent:lacp_types",
+        "//fboss/agent:switch_config-cpp2-types",
+        "//fboss/agent/hw/bcm:bcm",
+        "//fboss/agent/hw/test:hw_copp_utils",
+    ],
+)
+
+cpp_library(
+    name = "bcm_acl_utils",
+    srcs = [
+        "HwTestAclUtils.cpp",
+    ],
+    exported_deps = [
+        "fbsource//third-party/googletest:gtest",
+        "//fboss/agent/hw/bcm:bcm",
+        "//fboss/agent/hw/test:hw_test_acl_utils",
+        "//fboss/agent/state:state",
+    ],
+    exported_external_deps = [("broadcom-xgs-robo", None, "xgs_robo")],
+)
+
+cpp_library(
+    name = "bcm_teflow_utils",
+    srcs = [
+        "HwTestTeFlowUtils.cpp",
+    ],
+    exported_deps = [
+        "fbsource//third-party/googletest:gtest",
+        "//fboss/agent:switch_config-cpp2-types",
+        "//fboss/agent/hw/bcm:bcm",
+        "//fboss/agent/hw/test:hw_test_te_flow_utils",
+        "//fboss/agent/state:state",
+    ],
+)
+
+cpp_unittest(
+    name = "bcmaddress_fb_convertors_test",
+    srcs = [
+        "BcmAddressFBConvertorsTests.cpp",
+    ],
+    deps = [
+        ":bcm_unittest_utils",
+        "//fboss/agent/hw/bcm:bcmaddress_fb_convertors",
+        "//folly:network_address",
+        "//folly:range",
+    ],
+    external_deps = [
+        ("broadcom-xgs-robo", None, "xgs_robo"),
+    ],
+)
+
+cpp_unittest(
+    name = "bcm_hostkey_tests",
+    srcs = [
+        "BcmHostKeyTests.cpp",
+    ],
+    deps = [
+        "//fboss/agent/hw/bcm:bcm",
+        "//fboss/agent/test:label_forwarding_utils",
+    ],
+)
+
+[
+    cpp_binary(
+        name = "bcm_replay_tests{}".format(to_impl_suffix(sdk)),
+        srcs = [
+            "facebook/BcmReplayTests.cpp",
+        ],
+        versions = to_versions(sdk),
+        deps = [
+            "fbsource//third-party/googletest:gtest",
+            "//fboss/agent:setup_thrift",
+            "//fboss/agent/hw/bcm:bcm",
+            "//fboss/agent/hw/bcm/tests:bcm_test_handler",
+            "//fboss/agent/hw/bcm/tests/facebook:if-cpp2-types",
+            "//fboss/agent/hw/test:hw_test_main",
+            "//fboss/agent/platforms/tests/utils:bcm_test_platforms",
+        ],
+        external_deps = [
+            "gflags",
+            "glog",
+            ("broadcom-xgs-robo", None, "xgs_robo"),
+        ],
+    )
+    for sdk in BCM_SDKS
+]
+
+bcm_test_all_hw_common_srcs = [
+    "BcmTest.cpp",
+    "BcmTestUtils.cpp",
+    "BcmPortUtils.cpp",
+    "BcmColdBootStateTests.cpp",
+    "BcmSwitchEnsemble.cpp",
+    "HwTestAqmUtils.cpp",
+    "HwTestEcmpUtils.cpp",
+    "HwTestFabricUtils.cpp",
+    "HwTestFlowletSwitchingUtils.cpp",
+    "HwTestPortUtils.cpp",
+    "HwTestPtpTcUtils.cpp",
+    "HwTestTeFlowUtils.cpp",
+    "HwTestTrunkUtils.cpp",
+    "HwTestMirrorUtils.cpp",
+    "HwTestMplsUtils.cpp",
+    "HwTestNeighborUtils.cpp",
+    "HwTestUdfUtils.cpp",
+    "HwSwitchEnsembleFactory.cpp",
+    "HwVlanUtils.cpp",
+    "BcmAclCoppTests.cpp",
+    "BcmAclNexthopTests.cpp",
+    "BcmBstStatsMgrTest.cpp",
+    "BcmControlPlaneTests.cpp",
+    "BcmCosQueueManagerTest.cpp",
+    "BcmCosQueueManagerCounterTests.cpp",
+    "BcmEcmpTests.cpp",
+    "BcmFieldProcessorTests.cpp",
+    "BcmHostTests.cpp",
+    "BcmInterfaceTests.cpp",
+    "BcmLabeledEgressTest.cpp",
+    "BcmLabelSwitchActionTests.cpp",
+    "BcmLabelForwardingTests.cpp",
+    "BcmLinkStateDependentTests.cpp",
+    "BcmLinkStateToggler.cpp",
+    "BcmMplsTestUtils.cpp",
+    "BcmMmuTests.cpp",
+    "BcmPortQueueManagerTests.cpp",
+    "BcmPortTests.cpp",
+    "BcmPortStressTests.cpp",
+    "BcmQosPolicyTests.cpp",
+    "BcmQosMapTests.cpp",
+    "BcmRtag7Test.cpp",
+    "BcmUdfTests.cpp",
+    "BcmRouteTests.cpp",
+    "BcmTrunkTests.cpp",
+    "BcmTrunkUtils.cpp",
+    "QsetCmpTests.cpp",
+    "HwTestAclUtils.cpp",
+    "HwTestPfcUtils.cpp",
+    "HwTestTamUtils.cpp",
+    "HwTestRouteUtils.cpp",
+    "HwTestCoppUtils.cpp",
+    "PhyCapabilities.cpp",
+]
+
+#Ideally, we should have the same srcs for both real and fake bcm tests
+bcm_test_all_hw_facebook_srcs = bcm_test_all_hw_common_srcs + [
+    "facebook/BcmSwitchEnsemble.cpp",
+    "facebook/BcmTestHandler.cpp",
+]
+
+bcm_test_real_hw_common_srcs = bcm_test_all_hw_common_srcs + [
+    "BcmQueueStatCollectionTests.cpp",
+    "BcmAddDelEcmpTests.cpp",
+    "BcmEmptyEcmpTests.cpp",  # TODO - support this in FakeSdk
+    "BcmDeathTests.cpp",
+    "dataplane_tests/BcmQosUtils.cpp",
+    "dataplane_tests/BcmQcmDataTests.cpp",
+    "HwTestMplsUtils.cpp",
+    "HwTestPacketTrapEntry.cpp",
+]
+
+bcm_test_real_hw_facebook_srcs = bcm_test_real_hw_common_srcs + [
+    "facebook/BcmSwitchEnsemble.cpp",
+    "facebook/BcmTestHandler.cpp",
+    "facebook/BcmChipInvariantsTest.cpp",
+]
+
+bcm_test_fake_hw_facebook_test_srcs = bcm_test_all_hw_facebook_srcs + [
+    "BcmStateDeltaTests.cpp",
+    "facebook/SflowTests.cpp",
+    "facebook/BcmEgressTest.cpp",
+    "dataplane_tests/BcmQosUtils.cpp",
+    "HwTestPacketTrapEntry.cpp",
+]
+
+[
+    cpp_binary(
+        name = "bcm_test{}".format(to_impl_suffix(sdk)),
+        srcs = bcm_test_real_hw_facebook_srcs,
+        headers = [
+            "facebook/BcmTestHandler.h",
+        ],
+        linker_flags = [
+            "--export-dynamic",
+            "--unresolved-symbols=ignore-all",
+        ],
+        versions = to_versions(sdk),
+        deps = [
+            "fbsource//third-party/googletest:gtest",
+            "//fboss/agent:setup_thrift",
+            "//fboss/agent:switch_config-cpp2-types",
+            "//fboss/agent/hw/bcm:bcm",
+            "//fboss/agent/hw/bcm:bcm_mpls_utils",
+            "//fboss/agent/hw/bcm:config",
+            "//fboss/agent/hw/bcm/tests:bcm_phy_capabilities",
+            "//fboss/agent/hw/bcm/tests/facebook:if-cpp2-services",
+            "//fboss/agent/hw/test:hw_packet_utils",
+            "//fboss/agent/hw/test:hw_pfc_utils",
+            "//fboss/agent/hw/test:hw_switch_test",
+            "//fboss/agent/hw/test:hw_test_main",
+            "//fboss/agent/hw/test:load_balancer_utils",
+            "//fboss/agent/platforms/tests/utils:bcm_test_platforms",
+            "//fboss/agent/test:ecmp_helper",
+            "//fboss/agent/test:label_forwarding_utils",
+            "//fboss/agent/test:route_scale_gen",
+            "//fboss/agent/test:trunk_utils",
+            "//fboss/agent/test:utils",
+            "//fboss/agent/test/utils:traffic_policy_utils",
+            "//folly:memory",
+            "//folly/testing:test_util",
+        ],
+        external_deps = [
+            "boost",
+            "gflags",
+            "glog",
+            ("broadcom-xgs-robo", None, "xgs_robo"),
+        ],
+    )
+    for sdk in BCM_SDKS
+]
+
+[
+    cpp_unittest(
+        name = "fake_bcm_test{}".format(to_impl_suffix(sdk)),
+        srcs = bcm_test_fake_hw_facebook_test_srcs,
+        headers = [
+            "facebook/BcmTestHandler.h",
+        ],
+        supports_static_listing = False,
+        versions = to_versions(sdk),
+        deps = [
+            "fbsource//third-party/googletest:gtest",
+            "//fboss/agent:gtest_defs",
+            "//fboss/agent:handler",
+            "//fboss/agent:setup_thrift",
+            "//fboss/agent:switch_config-cpp2-types",
+            "//fboss/agent/hw/bcm:bcm_mpls_utils",
+            "//fboss/agent/hw/bcm:config",
+            "//fboss/agent/hw/bcm:fake_bcm",
+            "//fboss/agent/hw/bcm/tests:bcm_phy_capabilities",
+            "//fboss/agent/hw/bcm/tests/facebook:if-cpp2-services",
+            "//fboss/agent/hw/test:fake_hw_switch_test",
+            "//fboss/agent/hw/test:hw_pfc_utils",
+            "//fboss/agent/hw/test:hw_qos_utils",
+            "//fboss/agent/hw/test:hw_test_aqm_utils",
+            "//fboss/agent/hw/test:hw_test_main",
+            "//fboss/agent/hw/test:hw_test_packet_trap_entry",
+            "//fboss/agent/hw/test:hw_test_tam_utils",
+            "//fboss/agent/hw/test:load_balancer_utils",
+            "//fboss/agent/platforms/tests/utils:fake_bcm_test_platforms",
+            "//fboss/agent/test:ecmp_helper",
+            "//fboss/agent/test:label_forwarding_utils",
+            "//fboss/agent/test:route_distribution_gen",
+            "//fboss/agent/test:route_scale_gen",
+            "//fboss/agent/test:trunk_utils",
+            "//fboss/agent/test:utils",
+            "//fboss/agent/test/utils:traffic_policy_utils",
+            "//fboss/lib/platforms:product-info",
+            "//folly:memory",
+            "//folly/testing:test_util",
+        ],
+        external_deps = [
+            "boost",
+            "gflags",
+            "glog",
+        ],
+    )
+    for sdk in BCM_SDKS
+]
+
+cpp_unittest(
+    name = "bcm_cosqueue_fbconvertors_tests",
+    srcs = [
+        "BcmCosQueueFBConvertorsTests.cpp",
+    ],
+    deps = [
+        ":bcm_unittest_utils",
+        "//fboss/agent:fboss-error",
+        "//fboss/agent/hw/bcm:bcm_cosqueue_fb_convertors",
+    ],
+    external_deps = [
+        "glog",
+    ],
+)
+
+cpp_unittest(
+    name = "bcm_unittest",
+    srcs = [
+        "BcmAclUnitTests.cpp",
+        "BcmUnitTests.cpp",
+    ],
+    deps = [
+        "//fboss/agent:fboss-types",
+        "//fboss/agent:switch_config-cpp2-types",
+        "//fboss/agent/hw/bcm:bcm",
+        "//fboss/agent/hw/bcm:bcmaddress_fb_convertors",
+        "//fboss/agent/platforms/common/wedge100:wedge100_platform_mapping",
+        "//fboss/agent/state:state",
+        "//folly:network_address",
+        "//thrift/lib/cpp/util:enum_utils",
+    ],
+)
+
+cpp_unittest(
+    name = "bcm_label_switching_utils_tests",
+    srcs = [
+        "BcmLabelSwitchingUtilsTests.cpp",
+    ],
+    deps = [
+        ":bcm_unittest_utils",
+        "//fboss/agent/hw/bcm:bcm_mpls_utils",
+    ],
+)
+
+cpp_unittest(
+    name = "bcm_fieldprocessor_fbconvertors_tests",
+    srcs = [
+        "BcmFieldProcessorFBConvertorsTests.cpp",
+    ],
+    deps = [
+        ":bcm_unittest_utils",
+        "//fboss/agent:fboss-error",
+        "//fboss/agent/hw/bcm:bcm_fieldprocessor_fb_convertors",
+    ],
+    external_deps = [
+        "glog",
+        ("broadcom-xgs-robo", None, "xgs_robo"),
+    ],
+)
+
+cpp_unittest(
+    name = "sdk_test",
+    srcs = [
+        "GPort.cpp",
+    ],
+    deps = [
+        ":bcm_unittest_utils",
+    ],
+    external_deps = [
+        "glog",
+        ("broadcom-xgs-robo", None, "xgs_robo"),
+    ],
+)
+
+[
+    cpp_binary(
+        name = "bcm_multinode_test{}".format(to_impl_suffix(sdk)),
+        srcs = [
+            "BcmMultiNodeTest.cpp",
+        ],
+        versions = to_versions(sdk),
+        deps = [
+            "fbsource//third-party/googletest:gtest",
+            "//fboss/agent:main-bcm",
+            "//fboss/agent/hw/bcm/tests:bcm_acl_utils",
+            "//fboss/agent/hw/bcm/tests:bcm_copp_utils",
+            "//fboss/agent/hw/bcm/tests:bcm_ecmp_utils",
+            "//fboss/agent/hw/bcm/tests:bcm_qos_utils",
+            "//fboss/agent/hw/bcm/tests:bcm_trunk_utils",
+            "//fboss/agent/platforms/wedge:platform",
+            "//fboss/agent/test:multinode_tests",
+        ],
+        external_deps = [
+            "boost",
+            "gflags",
+            "glog",
+        ],
+    )
+    for sdk in BCM_SDKS
+]
+
+[
+    cpp_binary(
+        name = "bcm_macsec_multinode_test{}".format(to_impl_suffix(sdk)),
+        srcs = [
+            "BcmMultiNodeTest.cpp",
+        ],
+        versions = to_versions(sdk),
+        deps = [
+            "fbsource//third-party/googletest:gtest",
+            "//fboss/agent:main-bcm",
+            "//fboss/agent/hw/bcm/tests:bcm_ecmp_utils",
+            "//fboss/agent/hw/bcm/tests:bcm_qos_utils",
+            "//fboss/agent/hw/bcm/tests:bcm_trunk_utils",
+            "//fboss/agent/platforms/wedge:platform",
+            "//fboss/agent/test:macsec_multinode_tests",
+        ],
+        external_deps = [
+            "boost",
+            "gflags",
+            "glog",
+        ],
+    )
+    for sdk in BCM_SDKS
+]

@@ -1,0 +1,38 @@
+load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
+load(
+    "//fboss/agent/platforms/sai:platform.bzl",
+    "all_wedge_agent_bins",
+)
+
+oncall("fboss_agent_push")
+
+cpp_library(
+    name = "bcm-required-symbols",
+    srcs = [
+        "BcmRequiredSymbols.cpp",
+    ],
+    exported_deps = [
+        "//folly/logging:logging",
+    ],
+    exported_external_deps = [
+        # Don't remove this dependency for now until we've figured out why it's
+        # needed (T88111326)
+        ("broadcom-xgs-robo", None, "xgs_robo"),
+    ],
+)
+
+all_wedge_agent_bins()
+
+cpp_library(
+    # @autodeps-skip
+    name = "sai_platform_h",
+    headers = [
+        "SaiBcmPlatform.h",
+        "SaiPlatform.h",
+        "SaiPlatformPort.h",
+    ],
+    exported_deps = [
+        "//fboss/agent:handler",
+        "//fboss/agent/platforms/tests/utils:test_platform_types",
+    ],
+)

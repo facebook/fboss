@@ -1,0 +1,148 @@
+load("@fbcode_macros//build_defs:cpp_binary.bzl", "cpp_binary")
+load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
+
+oncall("fboss_agent_push")
+
+cpp_library(
+    name = "delta_value",
+    headers = [
+        "DeltaValue.h",
+    ],
+)
+
+cpp_library(
+    name = "subscription_manager",
+    srcs = [
+        "CowPublishAndAddTraverseHelper.cpp",
+        "Subscription.cpp",
+        "SubscriptionManager.cpp",
+        "SubscriptionMetadataServer.cpp",
+        "SubscriptionPathStore.cpp",
+    ],
+    headers = [
+        "CowDeletePathTraverseHelper.h",
+        "CowPublishAndAddTraverseHelper.h",
+        "CowSubscriptionManager.h",
+        "CowSubscriptionTraverseHelper.h",
+        "Subscription.h",
+        "SubscriptionManager.h",
+        "SubscriptionMetadataServer.h",
+        "SubscriptionPathStore.h",
+    ],
+    exported_deps = [
+        ":delta_value",
+        "//fboss/fsdb/common:utils",
+        "//fboss/fsdb/if:fsdb-cpp2-types",
+        "//fboss/fsdb/if:fsdb_common-cpp2-types",
+        "//fboss/fsdb/if:fsdb_model",
+        "//fboss/fsdb/if:fsdb_oper-cpp2-reflection",
+        "//fboss/fsdb/if:fsdb_oper-cpp2-types",
+        "//fboss/fsdb/server:fsdb_oper_metadata_tracker",
+        "//fboss/thrift_cow:patch-cpp2-types",
+        "//fboss/thrift_cow/storage:cow_storage",
+        "//fboss/thrift_cow/visitors:visitors",
+        "//folly:cpp_attributes",
+        "//folly:fbstring",
+        "//folly:string",
+        "//folly:traits",
+        "//folly/container:f14_hash",
+        "//folly/experimental/coro:async_pipe",
+        "//folly/json:dynamic",
+        "//folly/logging:logging",
+    ],
+    exported_external_deps = [
+        "boost",
+        "re2",
+        ("boost", None, "boost_uuid"),
+    ],
+)
+
+cpp_library(
+    name = "subscribable_storage",
+    srcs = [
+        "NaivePeriodicSubscribableStorage.cpp",
+        "NaivePeriodicSubscribableStorageBase.cpp",
+    ],
+    headers = [
+        "NaivePeriodicSubscribableStorage.h",
+        "NaivePeriodicSubscribableStorageBase.h",
+        "SubscribableStorage.h",
+    ],
+    exported_deps = [
+        ":delta_value",
+        ":path_helpers",
+        ":subscription_manager",
+        "//common/base:proc",
+        "//fb303:thread_cached_service_data",
+        "//fboss/fsdb/if:fsdb_common-cpp2-types",
+        "//fboss/fsdb/if:fsdb_oper-cpp2-types",
+        "//fboss/fsdb/server:fsdb_oper_metadata_tracker",
+        "//fboss/lib:thread_heartbeat",
+        "//fboss/thrift_cow:patch-cpp2-types",
+        "//fboss/thrift_cow/storage:cow_storage",
+        "//fboss/thrift_cow/storage:storage",
+        "//folly:expected",
+        "//folly:synchronized",
+        "//folly/experimental/coro:async_generator",
+        "//folly/experimental/coro:async_scope",
+        "//folly/experimental/coro:blocking_wait",
+        "//folly/experimental/coro:sleep",
+        "//folly/io/async:async_base",
+        "//folly/json:dynamic",
+        "//folly/logging:logging",
+        "//folly/system:thread_name",
+        "//thrift/lib/cpp2/protocol:protocol",
+    ],
+)
+
+cpp_library(
+    name = "path_helpers",
+    srcs = [
+        "PathConverter.cpp",
+        "PathValidator.cpp",
+    ],
+    headers = [
+        "PathConverter.h",
+        "PathValidator.h",
+    ],
+    exported_deps = [
+        "//fboss/fsdb/common:utils",
+        "//fboss/fsdb/if:fsdb_config-cpp2-types",
+        "//fboss/fsdb/if:fsdb_model",
+        "//fboss/fsdb/if:fsdb_oper-cpp2-types",
+        "//fboss/thrift_visitors:visitors",
+        "//folly/json:dynamic",
+    ],
+    exported_external_deps = [
+        "re2",
+    ],
+)
+
+cpp_library(
+    name = "extended_path_builder",
+    srcs = [
+        "ExtendedPathBuilder.cpp",
+    ],
+    exported_deps = [
+        "//fboss/fsdb/if:fsdb_oper-cpp2-types",
+        "//folly:conv",
+        "//thrift/lib/cpp2/reflection:reflection",
+    ],
+)
+
+cpp_binary(
+    name = "test_client",
+    srcs = ["test_client.cpp"],
+    deps = [
+        "//fboss/fsdb/if:fsdb-cpp2-services",
+        "//fboss/fsdb/if:fsdb_common-cpp2-types",
+        "//fboss/fsdb/if:fsdb_model",
+        "//fboss/thrift_cow/nodes:serializer",
+        "//folly:file_util",
+        "//folly:string",
+        "//folly/experimental/coro:blocking_wait",
+        "//folly/experimental/coro:task",
+        "//folly/init:init",
+        "//servicerouter/client/cpp2:cpp2",
+    ],
+)

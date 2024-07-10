@@ -1,0 +1,34 @@
+load("@fbcode_macros//build_defs:cpp_unittest.bzl", "cpp_unittest")
+
+oncall("fboss_agent_push")
+
+cpp_unittest(
+    name = "path_tests",
+    srcs = ["PathTests.cpp"],
+    deps = [
+        "//fboss/agent:agent_config-cpp2-thriftpath",
+        "//fboss/fsdb/tests:thriftpath_test_thrift-cpp2-thriftpath",  # @manual
+    ],
+)
+
+cpp_unittest(
+    name = "visitor_tests",
+    srcs = [
+        "DeltaVisitorTests.cpp",
+        "NameToPathVisitorTests.cpp",
+        "PathVisitorTests.cpp",
+        "ThriftLeafVisitorTests.cpp",
+    ],
+    deps = [
+        "fbsource//third-party/googletest:gmock",
+        "//fboss/fsdb/tests:thriftpath_test_thrift-cpp2-thriftpath",
+        "//fboss/fsdb/tests:thriftpath_test_thrift-cpp2-types",
+        "//fboss/thrift_visitors:visitors",
+        "//folly:demangle",
+        "//folly:string",
+        "//folly/json:dynamic",
+        "//folly/logging:logging",
+        "//thrift/lib/cpp2/folly_dynamic:folly_dynamic",
+        "//thrift/lib/cpp2/protocol:protocol",
+    ],
+)

@@ -1,0 +1,61 @@
+load("@fbcode_macros//build_defs:auto_headers.bzl", "AutoHeaders")
+load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
+
+oncall("fboss_agent_push")
+
+cpp_library(
+    name = "fake_sai",
+    srcs = [
+        "FakeSai.cpp",
+        "FakeSaiAcl.cpp",
+        "FakeSaiBridge.cpp",
+        "FakeSaiBuffer.cpp",
+        "FakeSaiCounter.cpp",
+        "FakeSaiDebugCounter.cpp",
+        "FakeSaiFdb.cpp",
+        "FakeSaiHash.cpp",
+        "FakeSaiHostif.cpp",
+        "FakeSaiInSegEntry.cpp",
+        "FakeSaiInSegEntryManager.cpp",
+        "FakeSaiLag.cpp",
+        "FakeSaiMacsec.cpp",
+        "FakeSaiMirror.cpp",
+        "FakeSaiNeighbor.cpp",
+        "FakeSaiNextHop.cpp",
+        "FakeSaiNextHopGroup.cpp",
+        "FakeSaiObject.cpp",
+        "FakeSaiPort.cpp",
+        "FakeSaiQosMap.cpp",
+        "FakeSaiQueue.cpp",
+        "FakeSaiRoute.cpp",
+        "FakeSaiRouterInterface.cpp",
+        "FakeSaiSamplePacket.cpp",
+        "FakeSaiScheduler.cpp",
+        "FakeSaiSwitch.cpp",
+        "FakeSaiSystemPort.cpp",
+        "FakeSaiTam.cpp",
+        "FakeSaiTunnel.cpp",
+        "FakeSaiUdf.cpp",
+        "FakeSaiVirtualRouter.cpp",
+        "FakeSaiVlan.cpp",
+        "FakeSaiWred.cpp",
+    ],
+    auto_headers = AutoHeaders.SOURCES,
+    headers = [
+        "FakeManager.h",
+    ],
+    exported_deps = [
+        "//fboss/agent/hw/sai/api:address_util",
+        "//fboss/agent/hw/sai/api:sai_fake_extensions",
+        "//fboss/agent/hw/sai/api:sai_types",
+        "//fboss/agent/hw/sai/api:sai_version",
+        "//folly:file_util",
+        "//folly:network_address",
+        "//folly:singleton",
+        "//folly/logging:logging",
+    ],
+    exported_external_deps = [
+        "boost",
+        "sai",
+    ],
+)

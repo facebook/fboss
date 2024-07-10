@@ -1,0 +1,68 @@
+load("@fbcode_macros//build_defs:python_library.bzl", "python_library")
+
+oncall("fboss_provisioning")
+
+python_library(
+    name = "fboss_cli_lib",
+    srcs = [
+        "cli.py",
+        "commands/acl.py",
+        "commands/agent.py",
+        "commands/aggregate_port.py",
+        "commands/arp.py",
+        "commands/commands.py",
+        "commands/info.py",
+        "commands/interface.py",
+        "commands/ip.py",
+        "commands/l2.py",
+        "commands/list_hw_objects.py",
+        "commands/lldp.py",
+        "commands/ndp.py",
+        "commands/nic.py",
+        "commands/port.py",
+        "commands/route.py",
+        "utils/click_utils.py",
+        "utils/utils.py",
+    ],
+    base_module = "fboss.cli",
+    deps = [
+        "fbsource//third-party/pypi/click:click",
+        "fbsource//third-party/pypi/prettytable:prettytable",
+        ":oui_mapping",
+        "//common/network/if:if-py",
+        "//configerator/distribution/api/py:utils",
+        "//fboss/agent:switch_config-py",
+        "//fboss/agent:switch_config-py3-types",
+        "//fboss/agent/if:common-py",
+        "//fboss/agent/if:ctrl-py",
+        "//fboss/agent/if:fboss-py",
+        "//fboss/agent/if:mpls-py",
+        "//fboss/lib/phy:phy-py",
+        "//fboss/py/fboss:thrift_clients",
+        "//fboss/qsfp_service/if:transceiver-py",
+        "//libfb/py:decorators",
+        "//libfb/py/asyncio:thrift_utils",
+        "//neteng/fboss/py:thrift_clients",
+        "//thrift/lib/py:base",
+        "//thrift/lib/py:server_base",
+    ],
+)
+
+python_library(
+    name = "oui_mapping",
+    srcs = [
+        "data/oui_to_vendor_ieee.py",
+    ],
+    base_module = "fboss.cli",
+)
+
+python_library(
+    name = "click_utils",
+    srcs = [
+        "utils/click_utils.py",
+    ],
+    base_module = "fboss.cli",
+    deps = [
+        "fbsource//third-party/pypi/click:click",
+    ],
+)

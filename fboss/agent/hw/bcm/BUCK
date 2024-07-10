@@ -1,0 +1,461 @@
+load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
+load("@fbcode_macros//build_defs:thrift_library.bzl", "thrift_library")
+load("//fboss/agent/hw/bcm:bcm.bzl", "sdk_tracer_lib")
+
+oncall("fboss_agent_push")
+
+common_srcs = [
+    "BcmAclEntry.cpp",
+    "BcmAclStat.cpp",
+    "BcmAclTable.cpp",
+    "BcmAddressFBConvertors.cpp",
+    "BcmAPI.cpp",
+    "BcmBstStatsMgr.cpp",
+    "BcmFacebookAPI.cpp",
+    "BcmControlPlane.cpp",
+    "BcmControlPlaneQueueManager.cpp",
+    "BcmCosQueueManager.cpp",
+    "BcmCosQueueFBConvertors.cpp",
+    "BcmCosQueueManagerUtils.cpp",
+    "BcmCosManager.cpp",
+    "BcmEcmpUtils.cpp",
+    "BcmHostUtils.cpp",
+    "BcmEgress.cpp",
+    "BcmEgressManager.cpp",
+    "BcmEgressQueueFlexCounter.cpp",
+    "BcmExactMatchUtils.cpp",
+    "BcmFieldProcessorFBConvertors.cpp",
+    "BcmFieldProcessorUtils.cpp",
+    "BcmFlexCounter.cpp",
+    "BcmFwLoader.cpp",
+    "BcmHost.cpp",
+    "BcmHostKey.cpp",
+    "BcmIngressFieldProcessorFlexCounter.cpp",
+    "BcmIntf.cpp",
+    "BcmLabelMap.cpp",
+    "BcmLabelSwitchAction.cpp",
+    "BcmLabelSwitchingUtils.cpp",
+    "BcmLabeledEgress.cpp",
+    "BcmLabeledTunnel.cpp",
+    "BcmLabeledTunnelEgress.cpp",
+    "BcmLogBuffer.cpp",
+    "BcmKmodUtils.cpp",
+    "BcmMirror.cpp",
+    "BcmMirrorTable.cpp",
+    "BcmMirrorUtils.cpp",
+    "BcmMultiPathNextHop.cpp",
+    "BcmNextHop.cpp",
+    "BcmPort.cpp",
+    "BcmPortUtils.cpp",
+    "BcmPortDescriptor.cpp",
+    "BcmPortTable.cpp",
+    "BcmPortGroup.cpp",
+    "BcmPortQueueManager.cpp",
+    "BcmPortIngressBufferManager.cpp",
+    "BcmPortResourceBuilder.cpp",
+    "BcmPlatform.cpp",
+    "BcmPlatformPort.cpp",
+    "BcmPrbs.cpp",
+    "BcmPtpTcMgr.cpp",
+    "BcmQcmCollector.cpp",
+    "BcmQcmManager.cpp",
+    "BcmQosPolicy.cpp",
+    "BcmQosMap.cpp",
+    "BcmQosMapEntry.cpp",
+    "BcmQosPolicyTable.cpp",
+    "BcmRoute.cpp",
+    "BcmRouteCounter.cpp",
+    "BcmRtag7LoadBalancer.cpp",
+    "BcmRtag7Module.cpp",
+    "BcmSflowExporter.cpp",
+    "BcmRxPacket.cpp",
+    "BcmStatUpdater.cpp",
+    "BcmSwitch.cpp",
+    "BcmSwitchEventCallback.cpp",
+    "BcmSwitchEventUtils.cpp",
+    "BcmTableStats.cpp",
+    "BcmTeFlowEntry.cpp",
+    "BcmTeFlowTable.cpp",
+    "BcmTrunk.cpp",
+    "BcmTrunkStats.cpp",
+    "BcmTrunkTable.cpp",
+    "BcmTxPacket.cpp",
+    "BcmQosUtils.cpp",
+    "BcmUdfGroup.cpp",
+    "BcmUdfPacketMatcher.cpp",
+    "BcmUdfManager.cpp",
+    "BcmUnit.cpp",
+    "BcmWarmBootCache.cpp",
+    "BcmWarmBootHelper.cpp",
+    "BcmWarmBootState.cpp",
+    "PortAndEgressIdsMap.cpp",
+    "BcmClassIDUtil.cpp",
+    "BcmSwitchSettings.cpp",
+    "BcmMacTable.cpp",
+    "PacketTraceUtils.cpp",
+    "RxUtils.cpp",
+]
+
+facebook_srcs = [
+    "facebook/BcmAPI.cpp",
+    "facebook/BcmFacebookAPI.cpp",
+    "facebook/BcmSwitch.cpp",
+    "facebook/BcmShellServer.cpp",
+    "facebook/BcmPort.cpp",
+    "facebook/BcmHandler.cpp",
+    "facebook/BcmBstStatsMgr.cpp",
+    "facebook/BcmQcmManager.cpp",
+    "facebook/BcmQcmCollector.cpp",
+    "facebook/BcmUnit.cpp",
+    "facebook/BcmNgbdeHALVector.cpp",
+    "facebook/BcmSimHALVector.cpp",
+    "facebook/BcmHighAvailabilityMemory.cpp",
+    "facebook/BcmTableStats.cpp",
+]
+
+common_deps = [
+    ":config",
+    ":packettrace-cpp2-types",
+    "//fboss/agent/if:ctrl-cpp2-types",
+    "//fboss/agent/if:sflow-cpp2-types",
+    "//fboss/lib:ref_map",
+    "//common/stats:monotonic_counter",
+    "//fboss/agent/hw:hardware_stats-cpp2-types",
+    "//fboss/agent/hw:hw_resource_stats_publisher",
+    "//folly:file",
+    "//folly:json",
+    "//folly/logging:logging",
+    "//fboss/agent:fboss-types",
+    "//fboss/agent/rib:standalone_rib",
+    "//fboss/agent/hw:hw_switch_warmboot_helper",
+    "//fboss/agent/hw:hw_switch_fb303_stats",
+    "//fboss/agent/hw:hw_trunk_counters",
+    "//fboss/agent/platforms/common/utils:bcm_yaml_config",
+]
+
+cpp_library(
+    name = "bcmaddress_fb_convertors",
+    srcs = [
+        "BcmAddressFBConvertors.cpp",
+    ],
+    exported_deps = [
+        "//folly:network_address",
+        "//folly:range",
+    ],
+    exported_external_deps = [
+        ("broadcom-xgs-robo", None, "xgs_robo"),
+    ],
+)
+
+cpp_library(
+    # @autodeps-skip
+    name = "bcm",
+    srcs = (common_srcs + facebook_srcs),
+    headers = [
+        "BcmCosQueueCounterType.h",
+        "BcmError.h",
+        "BcmHALVector.h",
+        "MinimumLinkCountMap.h",
+        "facebook/BcmHandler.h",
+        "facebook/BcmHighAvailabilityMemory.h",
+        "facebook/BcmNgbdeHALVector.h",
+        "facebook/BcmShellServer.h",
+        "facebook/BcmSimHALVector.h",
+    ],
+    exported_deps = common_deps + [
+        ":bcm_types",
+        ":types",
+        "//common/logging:logging",
+        "//common/stats:service_data",
+        "//common/stats:thread_cached_service_data",
+        "//fboss/agent:core",
+        "//fboss/agent:handler",
+        "//fboss/agent/hw:counter_utils",
+        "//fboss/agent/hw:diag_cmd_filter",
+        "//fboss/agent/hw:prbs_stats_entry",
+        "//fboss/agent/hw:unsupported_feature_manager",
+        "//fboss/agent/hw/bcm:if-cpp2-services",
+        "//fboss/agent/hw/bcm:sdk_tracer",
+        "//fboss/agent/hw/facebook:buffer_stats_scuba",
+        "//fboss/lib/phy:phy_utils",
+        "//folly/container:enumerate",
+        "//folly/container:f14_hash",
+        "//folly/io/async:async_base",
+    ],
+    exported_external_deps = [
+        ("boost", None, "boost_assign"),
+        ("boost", None, "boost_container"),
+        ("broadcom-xgs-robo", None, "xgs_robo"),
+        "yaml-cpp",
+    ],
+)
+
+#
+# Similar to the mocked version, but SDK calls are redirected to a stub
+# library that actually emulates ASICs tables
+#
+cpp_library(
+    # @autodeps-skip
+    name = "fake_bcm",
+    srcs = (common_srcs + facebook_srcs),
+    headers = [
+        "BcmCosQueueCounterType.h",
+        "BcmError.h",
+        "BcmHALVector.h",
+        "MinimumLinkCountMap.h",
+        "facebook/BcmHandler.h",
+        "facebook/BcmHighAvailabilityMemory.h",
+        "facebook/BcmNgbdeHALVector.h",
+        "facebook/BcmShellServer.h",
+        "facebook/BcmSimHALVector.h",
+    ],
+    exported_deps = common_deps + [
+        ":bcm_types",
+        ":types",
+        "//common/logging:logging",
+        "//common/stats:service_data",
+        "//common/stats:thread_cached_service_data",
+        "//fboss/agent:core",
+        "//fboss/agent:handler",
+        "//fboss/agent/facebook/test:fake_sdk",
+        "//fboss/agent/hw:counter_utils",
+        "//fboss/agent/hw:diag_cmd_filter",
+        "//fboss/agent/hw:prbs_stats_entry",
+        "//fboss/agent/hw:unsupported_feature_manager",
+        "//fboss/agent/hw/bcm:if-cpp2-services",
+        "//fboss/agent/hw/facebook:buffer_stats_scuba",
+        "//fboss/lib/phy:phy_utils",
+        "//folly/container:f14_hash",
+        "//folly/io/async:async_base",
+    ],
+    exported_external_deps = [
+        ("boost", None, "boost_assign"),
+        ("boost", None, "boost_container"),
+        ("broadcom-xgs-robo", None, "xgs_robo"),
+        "yaml-cpp",
+    ],
+)
+
+cpp_library(
+    name = "config",
+    srcs = [
+        "BcmConfig.cpp",
+    ],
+    exported_deps = [
+        ":bcm_config-cpp2-types",
+        "//fboss/agent:fboss-error",
+        "//fboss/agent:switch_config-cpp2-types",
+        "//folly:file_util",
+        "//folly:range",
+        "//folly/gen:string",
+        "//folly/logging:logging",
+        "//thrift/lib/cpp2/protocol:protocol",
+    ],
+)
+
+thrift_library(
+    name = "bcm_config",
+    go_thrift_namespaces = {
+        "bcm_config.thrift": "neteng.fboss.bcm_config",
+    },
+    languages = [
+        "cpp2",
+        "py",
+        "py3",
+        "go",
+        "py-asyncio",
+        "rust",
+    ],
+    py3_namespace = "neteng.fboss.bcm_config",
+    py_asyncio_base_module = "neteng.fboss.asyncio",
+    py_base_module = "neteng.fboss",
+    thrift_cpp2_options = "json,reflection",
+    thrift_py_options = "json",
+    thrift_rust_options = "serde",
+    thrift_srcs = {"bcm_config.thrift": []},
+)
+
+thrift_library(
+    name = "packettrace",
+    languages = [
+        "cpp2",
+        "py",
+        "py3",
+    ],
+    py3_namespace = "neteng.fboss",
+    py_base_module = "neteng.fboss",
+    thrift_srcs = {"packettrace.thrift": []},
+)
+
+cpp_library(
+    name = "bcm_cosqueue_fb_convertors",
+    srcs = [
+        "BcmCosQueueFBConvertors.cpp",
+    ],
+    exported_deps = [
+        "//fboss/agent:fboss-error",
+        "//fboss/agent:switch_config-cpp2-types",
+        "//thrift/lib/cpp/util:enum_utils",
+    ],
+    exported_external_deps = [
+        ("boost", None, "boost_container"),
+        ("broadcom-xgs-robo", None, "xgs_robo"),
+    ],
+)
+
+cpp_library(
+    name = "bcm_types",
+    srcs = [
+        "BcmTypesImpl.cpp",
+    ],
+    headers = [
+        "BcmTypes.h",
+    ],
+    exported_external_deps = [
+        ("broadcom-xgs-robo", None, "xgs_robo"),
+    ],
+)
+
+cpp_library(
+    name = "bcm_mpls_utils",
+    srcs = [
+        "BcmLabelSwitchingUtils.cpp",
+    ],
+    exported_deps = [
+        "//fboss/agent:fboss-error",
+        "//fboss/agent/state:label_forwarding_action",
+        "//fboss/agent/state:state",
+    ],
+    exported_external_deps = [
+        ("broadcom-xgs-robo", None, "xgs_robo"),
+    ],
+)
+
+cpp_library(
+    name = "bcm_fieldprocessor_fb_convertors",
+    srcs = [
+        "BcmFieldProcessorFBConvertors.cpp",
+    ],
+    exported_deps = [
+        "//fboss/agent:fboss-error",
+        "//fboss/agent:switch_config-cpp2-types",
+    ],
+    exported_external_deps = [
+        ("broadcom-xgs-robo", None, "xgs_robo"),
+    ],
+)
+
+cpp_library(
+    name = "bcm_mirror_fb_utils",
+    srcs = [
+        "BcmMirrorUtils.cpp",
+    ],
+    exported_deps = [
+        "//fboss/agent:fboss-error",
+        "//fboss/agent/state:state",
+    ],
+    exported_external_deps = [
+        ("broadcom-xgs-robo", None, "xgs_robo"),
+    ],
+)
+
+cpp_library(
+    name = "bcm_cinter",
+    srcs = [
+        "BcmCinter.cpp",
+    ],
+    exported_deps = [
+        "fbsource//third-party/fmt:fmt",
+        ":bcm_interface",
+        ":bcm_sdk_interface",
+        ":bcm_sdk_ver",
+        "//fboss/agent:async_logger",
+        "//fboss/agent:fboss-error",
+        "//folly:file",
+        "//folly:file_util",
+        "//folly:map_util",
+        "//folly:singleton",
+        "//folly:string",
+        "//folly:synchronized",
+        "//folly/logging:logging",
+    ],
+    exported_external_deps = [
+        "gflags",
+        ("broadcom-xgs-robo", None, "xgs_robo"),
+    ],
+)
+
+cpp_library(
+    name = "sdk_wrap_settings",
+    srcs = [
+        "SdkWrapSettings.cpp",
+    ],
+    exported_deps = [
+        "//folly:singleton",
+    ],
+)
+
+cpp_library(
+    name = "bcm_sdk_interface",
+    headers = [
+        "BcmSdkInterface.h",
+    ],
+    exported_external_deps = [
+        ("broadcom-xgs-robo", None, "xgs_robo"),
+    ],
+)
+
+cpp_library(
+    name = "bcm_interface",
+    headers = [
+        "BcmInterface.h",
+    ],
+    exported_deps = [
+        ":bcm_sdk_ver",
+    ],
+    exported_external_deps = [
+        ("broadcom-xgs-robo", None, "xgs_robo"),
+    ],
+)
+
+cpp_library(
+    name = "bcm_sdk_ver",
+    headers = [
+        "BcmSdkVer.h",
+    ],
+)
+
+cpp_library(
+    name = "types",
+    headers = [
+        "types.h",
+    ],
+    exported_deps = [
+        "//fboss/agent:fboss-types",
+    ],
+)
+
+thrift_library(
+    name = "if",
+    languages = [
+        "cpp2",
+        "py",
+        "py3",
+    ],
+    py3_namespace = "neteng.fboss",
+    py_base_module = "neteng.fboss",
+    thrift_srcs = {"bcm_ctrl.thrift": [
+        "BcmCtrl",
+    ]},
+    deps = [
+        "//fboss/agent/hw/bcm:packettrace",
+        "//fboss/agent/if:common",
+        "//fboss/agent/if:ctrl",
+        "//fboss/agent/if:fboss",
+        "//fboss/agent/if:hw_ctrl",
+    ],
+)
+
+sdk_tracer_lib(link_whole = False)
+
+sdk_tracer_lib(link_whole = True)

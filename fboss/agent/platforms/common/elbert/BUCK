@@ -1,0 +1,21 @@
+load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
+
+oncall("fboss_agent_push")
+
+cpp_library(
+    name = "elbert_platform_mapping",
+    srcs = [
+        "Elbert16QPimPlatformMapping.cpp",
+        "facebook/Elbert8DDPimPlatformMapping.cpp",
+        "facebook/ElbertPlatformMapping.cpp",
+    ],
+    headers = [
+        "ElbertPlatformMapping.h",
+    ],
+    exported_deps = [
+        "//fboss/agent:fboss-error",
+        "//fboss/agent/platforms/common:platform_mapping",
+        "//fboss/lib/fpga/facebook/elbert:elbert_fpga",
+        "//folly/logging:logging",
+    ],
+)

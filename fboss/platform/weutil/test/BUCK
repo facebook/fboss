@@ -1,0 +1,26 @@
+load("@fbcode_macros//build_defs:cpp_unittest.bzl", "cpp_unittest")
+
+oncall("fboss_platform")
+
+cpp_unittest(
+    name = "crc16_ccitt_test",
+    srcs = [
+        "Crc16ccittTest.cpp",
+    ],
+    deps = [
+        "//fboss/platform/weutil:crc16_ccitt_aug",
+    ],
+)
+
+cpp_unittest(
+    name = "fboss_eeprom_parser_test",
+    srcs = [
+        "FbossEepromParserTest.cpp",
+    ],
+    deps = [
+        "//fboss/platform/weutil:fboss_eeprom_lib",
+        "//fboss/platform/weutil:weutil_core",
+        "//folly:file_util",
+        "//folly/testing:test_util",
+    ],
+)

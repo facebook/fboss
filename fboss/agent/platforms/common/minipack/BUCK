@@ -1,0 +1,21 @@
+load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
+
+oncall("fboss_agent_push")
+
+cpp_library(
+    name = "minipack_platform_mapping",
+    srcs = [
+        "Minipack16QPimPlatformMapping.cpp",
+        "facebook/Minipack16OPimPlatformMapping.cpp",
+        "facebook/MinipackPlatformMapping.cpp",
+    ],
+    headers = [
+        "MinipackPlatformMapping.h",
+    ],
+    exported_deps = [
+        "//fboss/agent/platforms/common:platform_mapping",
+        "//fboss/lib/fpga:minipack_container",
+        "//fboss/lib/platforms:platform_mode",
+        "//folly/logging:logging",
+    ],
+)

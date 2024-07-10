@@ -1,0 +1,1653 @@
+load("@fbcode_macros//build_defs:cpp_binary.bzl", "cpp_binary")
+load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
+load("@fbcode_macros//build_defs:export_files.bzl", "export_file")
+load("@fbcode_macros//build_defs:thrift_library.bzl", "thrift_library")
+load("//fboss/agent:sai.bzl", "sai_main_all")
+load("//fboss/thriftpath_plugin/facebook:thriftpath_plugin.bzl", "thrift_plugin_thriftpath")
+
+oncall("fboss_agent_push")
+
+thrift_library(
+    name = "switch_config",
+    go_thrift_namespaces = {
+        "switch_config.thrift": "neteng.fboss.switch_config",
+    },
+    languages = [
+        "cpp2",
+        "go",
+        "py",
+        "py3",
+        "python",
+        "py-asyncio",
+        "rust",
+    ],
+    no_plugin_deps = ["//thrift/annotation:all"],
+    py3_namespace = "neteng.fboss",
+    py_asyncio_base_module = "neteng.fboss.asyncio",
+    py_base_module = "neteng.fboss",
+    thrift_cpp2_options = "json,reflection",
+    thrift_py_options = "json,sort_keys",
+    thrift_rust_options = [
+        "deprecated_default_enum_min_i32",
+        "serde",
+    ],
+    thrift_srcs = {"switch_config.thrift": []},
+    deps = [
+        "//fboss/agent/if:common",
+        "//fboss/agent/if:mpls",
+        "//fboss/lib/if:fboss_common",
+        "//thrift/annotation:cpp",
+        "//thrift/annotation:python",
+    ],
+)
+
+thrift_library(
+    name = "agent_config",
+    go_thrift_namespaces = {
+        "agent_config.thrift": "neteng.fboss.agent_config",
+    },
+    languages = [
+        "cpp2",
+        "go",
+        "py",
+        "py-asyncio",
+        "py3",
+        "rust",
+    ],
+    plugins = [
+        thrift_plugin_thriftpath(),
+    ],
+    py3_namespace = "neteng.fboss",
+    py_asyncio_base_module = "neteng.fboss.asyncio",
+    py_base_module = "neteng.fboss",
+    thrift_cpp2_options = "json,reflection",
+    thrift_py_options = "json,sort_keys",
+    thrift_rust_options = [
+        "deprecated_default_enum_min_i32",
+        "serde",
+    ],
+    thrift_srcs = {"agent_config.thrift": []},
+    deps = [
+        "//fboss/agent:platform_config",
+        "//fboss/agent:switch_config",
+    ],
+)
+
+thrift_library(
+    name = "platform_config",
+    cpp2_deps = [
+        "//fboss/lib/phy:phy-cpp2-types",
+        "//fboss/qsfp_service/if:transceiver-cpp2-types",
+        ":fboss-types",
+    ],
+    cpp2_headers = ["platforms/common/PlatformMapping.h"],
+    go_thrift_namespaces = {
+        "platform_config.thrift": "neteng.fboss.platform_config",
+    },
+    languages = [
+        "cpp2",
+        "go",
+        "py",
+        "py3",
+        "py-asyncio",
+        "rust",
+    ],
+    py3_namespace = "neteng.fboss.platform_config",
+    py_asyncio_base_module = "neteng.fboss.asyncio",
+    py_base_module = "neteng.fboss",
+    thrift_cpp2_options = "json,reflection",
+    thrift_py_options = "json,sort_keys",
+    thrift_rust_options = [
+        "deprecated_default_enum_min_i32",
+        "serde",
+    ],
+    thrift_srcs = {"platform_config.thrift": []},
+    deps = [
+        ":switch_config",
+        "//fboss/agent/hw/bcm:bcm_config",
+        "//fboss/agent/hw/config:asic_config_v2",
+        "//fboss/agent/hw/sai/config:asic_config",
+        "//fboss/lib/phy:phy",
+        "//fboss/qsfp_service/if:transceiver",
+    ],
+)
+
+thrift_library(
+    name = "switch_state",
+    go_thrift_namespaces = {
+        "switch_state.thrift": "neteng.fboss.switch_state",
+    },
+    languages = [
+        "cpp2",
+        "py",
+        "py3",
+        "py-asyncio",
+        "go",
+        "rust",
+    ],
+    plugins = [
+        thrift_plugin_thriftpath(),
+    ],
+    py3_namespace = "neteng.fboss",
+    py_asyncio_base_module = "neteng.fboss.asyncio",
+    py_base_module = "neteng.fboss",
+    rust_gen_metadata = True,
+    thrift_cpp2_options = "json,reflection",
+    thrift_py_options = "json,sort_keys",
+    thrift_srcs = {"switch_state.thrift": []},
+    deps = [
+        ":switch_config",
+        "//common/network/if:if",
+        "//fboss/agent/if:common",
+        "//fboss/agent/if:ctrl",
+        "//fboss/lib/phy:phy",
+        "//fboss/mka_service/if:mka_structs",
+        "//fboss/qsfp_service/if:transceiver",
+    ],
+)
+
+thrift_library(
+    name = "validated_shell_commands",
+    languages = [
+        "cpp2",
+        "py3",
+    ],
+    py3_namespace = "neteng.fboss",
+    thrift_cpp2_options = "json",
+    thrift_srcs = {"validated_shell_commands.thrift": []},
+)
+
+thrift_library(
+    name = "agent_stats",
+    cpp2_deps = [
+        "//folly/container:f14_hash",
+        "//folly:fbstring",
+    ],
+    go_thrift_namespaces = {
+        "agent_stats.thrift": "neteng.fboss.agent_stats",
+    },
+    languages = [
+        "cpp2",
+        "py",
+        "go",
+        "py3",
+        "py-asyncio",
+        "rust",
+    ],
+    no_plugin_deps = ["//thrift/annotation:all"],
+    py3_namespace = "neteng.fboss",
+    py_asyncio_base_module = "neteng.fboss.asyncio",
+    py_base_module = "neteng.fboss",
+    thrift_cpp2_options = [
+        "json",
+        "reflection",
+    ],
+    thrift_srcs = {"agent_stats.thrift": []},
+    deps = [
+        "//fboss/agent/hw:hardware_stats",
+        "//fboss/lib/phy:phy",
+        "//thrift/annotation:cpp",
+    ],
+)
+
+cpp_library(
+    name = "constants",
+    headers = [
+        "Constants.h",
+    ],
+    exported_deps = [
+        "//folly:range",
+    ],
+)
+
+cpp_library(
+    name = "setup_thrift",
+    srcs = [
+        "SetupThrift.cpp",
+        "facebook/SetupThrift.cpp",
+    ],
+    headers = [
+        "facebook/SetupThrift.h",
+    ],
+    exported_deps = [
+        "//common/services/cpp:thrift_acl_checker_module_config",
+        "//common/services/cpp:thrift_aclchecker_handler_factory",
+        "//common/services/cpp:tls",
+        "//folly:network_address",
+        "//folly/io/async:async_base",
+        "//folly/logging:logging",
+        "//thrift/lib/cpp2:server",
+        "//thrift/lib/cpp2/async:multiplex_async_processor",
+        "//thrift/lib/cpp2/async:pooled_request_channel",
+        "//thrift/lib/cpp2/async:rocket_client_channel",
+    ],
+    exported_external_deps = [
+        "gflags",
+    ],
+)
+
+cpp_library(
+    name = "fboss_init_h",
+    headers = [
+        "FbossInit.h",
+    ],
+    exported_deps = [
+        "//fboss/lib/platforms:platform_mode",
+    ],
+)
+
+cpp_library(
+    name = "fboss_init",
+    srcs = [
+        "facebook/FbossInit.cpp",
+    ],
+    exported_deps = [
+        ":fboss_init_h",
+        "//common/fbwhoami:fb_who_am_i",
+        "//common/init:init",
+        "//common/services/cpp:build_values",
+        "//fb303:logging",
+    ],
+)
+
+cpp_library(
+    name = "dhcpv4_options_of_interest",
+    headers = ["DHCPv4OptionsOfInterest.h"],
+)
+
+cpp_library(
+    name = "fboss_common_init_h",
+    headers = [
+        "CommonInit.h",
+    ],
+    exported_deps = [
+        "//folly/io/async:async_signal_handler",
+    ],
+)
+
+cpp_library(
+    name = "fboss_common_init",
+    srcs = [
+        "CommonInit.cpp",
+        "facebook/CommonInit.cpp",
+    ],
+    headers = [
+        "CommonInit.h",
+    ],
+    exported_deps = [
+        ":fboss_init",  # @manual
+        ":fboss_init_h",
+        ":load_agent_config",
+        ":platform_base",
+        "//common/base:build_info",
+        "//common/config:config",
+        "//fb303:service_data",
+        "//fboss/facebook/bitsflow:bitsflow_helper",
+        "//folly:conv",
+        "//folly/io/async:async_signal_handler",
+        "//folly/logging:logging",
+    ],
+    exported_external_deps = [
+        "gflags",
+    ],
+)
+
+# TODO: deprecate main-common as it leads to a dependency mess
+cpp_library(
+    name = "main-common",
+    srcs = [
+        "Main.cpp",
+    ],
+    headers = [
+        "Main.h",
+    ],
+    undefined_symbols = True,
+    exported_deps = [
+        ":agent_initializer_h",
+        "//folly/logging:init",
+    ],
+)
+
+cpp_library(
+    name = "main-bcm",
+    srcs = [
+        "Main.cpp",
+        "facebook/Main.cpp",
+    ],
+    exported_deps = [
+        ":agent_initializer_h",
+        ":fboss_common_init",
+        "//fboss/agent/facebook:bcm_version",  # @manual
+        "//fboss/agent/facebook:version_h",
+        "//folly/logging:init",
+    ],
+)
+
+cpp_library(
+    name = "fake_main",
+    srcs = [
+        "CommonInit.cpp",
+        "Main.cpp",
+    ],
+    exported_deps = [
+        ":agent_initializer_h",
+        ":fboss_init_h",
+        ":load_agent_config",
+        ":platform_base",
+        "//fb303:service_data",
+        "//folly/io/async:async_signal_handler",
+        "//folly/logging:init",
+        "//folly/logging:logging",
+        "//neteng/fboss/emulation:main",  # @manual
+    ],
+    exported_external_deps = [
+        "gflags",
+    ],
+)
+
+cpp_library(
+    name = "switchinfo_utils",
+    srcs = [
+        "SwitchInfoUtils.cpp",
+    ],
+    headers = [
+        "SwitchInfoUtils.h",
+    ],
+    exported_deps = [
+        ":fboss-error",
+        ":fboss-types",
+        ":load_agent_config",
+        ":switch_config-cpp2-types",
+        ":switch_state-cpp2-types",
+        "//fboss/agent/hw/switch_asics:switch_asics",
+        "//fboss/agent/if:ctrl-cpp2-types",
+        "//folly:range",
+        "//folly/logging:logging",
+    ],
+)
+
+cpp_library(
+    name = "address_utils",
+    headers = [
+        "AddressUtil.h",
+    ],
+    exported_deps = [
+        "//common/network/if:if-cpp2-types",
+        "//folly:network_address",
+    ],
+)
+
+cpp_library(
+    name = "packet_observer",
+    srcs = [
+        "PacketObserver.cpp",
+    ],
+    headers = [
+        "PacketObserver.h",
+    ],
+    exported_deps = [
+        ":fboss-error",
+        "//folly:spin_lock",
+        "//folly:synchronized",
+        "//folly/logging:logging",
+    ],
+    exported_external_deps = [
+        "boost",
+    ],
+)
+
+cpp_library(
+    name = "l2learn_event_observer",
+    srcs = [
+        "L2LearnEventObserver.cpp",
+    ],
+    headers = [
+        "L2LearnEventObserver.h",
+    ],
+    exported_deps = [
+        ":fboss-error",
+        "//folly:spin_lock",
+        "//folly:synchronized",
+        "//folly/logging:logging",
+    ],
+    exported_external_deps = [
+        "boost",
+    ],
+)
+
+cpp_library(
+    name = "enum_utils",
+    headers = ["EnumUtils.h"],
+    exported_deps = [
+        "//folly/logging:logging",
+        "//thrift/lib/cpp/util:enum_utils",
+    ],
+)
+
+cpp_library(
+    name = "asic_utils",
+    srcs = [
+        "AsicUtils.cpp",
+    ],
+    exported_deps = [
+        "//fboss/agent/hw/switch_asics:switch_asics",
+    ],
+)
+
+cpp_library(
+    name = "utils",
+    srcs = [
+        "AlpmUtils.cpp",
+        "LabelFibUtils.cpp",
+        "Utils.cpp",
+        "facebook/Utils.cpp",
+    ],
+    exported_deps = [
+        ":fboss-error",
+        ":fboss-types",
+        ":fsdb_helper",
+        ":hwswitch_matcher",
+        ":switch_config-cpp2-types",
+        ":switch_state-cpp2-types",
+        ":switchid_scope_resolver",
+        "//common/network:util",
+        "//fboss/agent/if:ctrl-cpp2-types",
+        "//fboss/agent/state:state",
+        "//fboss/fsdb/if:fsdb_oper-cpp2-types",
+        "//folly:file_util",
+        "//folly:network_address",
+        "//folly:range",
+        "//folly:subprocess",
+        "//folly/json:dynamic",
+        "//folly/lang:bits",
+        "//folly/logging:logging",
+        "//folly/system:thread_name",
+        "//thrift/lib/cpp/util:enum_utils",
+        "//thrift/lib/cpp2/protocol:protocol",
+    ],
+    exported_external_deps = [
+        "boost",
+        "re2",
+        ("boost", None, "boost_container"),
+        ("boost", None, "boost_filesystem"),
+    ],
+)
+
+cpp_library(
+    name = "lacp_types",
+    srcs = [
+        "LacpTypes.cpp",
+    ],
+    exported_deps = [
+        ":fboss-error",
+        ":switch_state-cpp2-types",
+        "//fboss/agent/if:ctrl-cpp2-types",
+        "//folly:conv",
+        "//folly:network_address",
+        "//folly:range",
+        "//folly/io:iobuf",
+        "//folly/json:dynamic",
+    ],
+)
+
+cpp_library(
+    name = "mka_service_ports",
+    srcs = [
+        "MKAServicePorts.cpp",
+    ],
+    headers = [
+        "MKAServicePorts.h",
+    ],
+    exported_external_deps = [
+        "gflags",
+    ],
+)
+
+cpp_library(
+    name = "stats",
+    srcs = [
+        "AggregatePortStats.cpp",
+        "InterfaceStats.cpp",
+        "PortStats.cpp",
+        "SwitchStats.cpp",
+        "facebook/AggregatePortStats.cpp",
+        "facebook/SwitchStats.cpp",
+    ],
+    exported_deps = [
+        ":agent_stats-cpp2-types",
+        ":fboss-types",
+        "//common/stats:macros",
+        "//fb303:service_data",
+        "//fb303:thread_cached_service_data",
+        "//fb303/detail:quantile_stat_wrappers",
+        "//fboss/agent/state:state",
+        "//fboss/lib:common_utils",
+        "//folly:memory",
+        "//folly:range",
+        "//folly:string",
+        "//folly:utility",
+        "//folly/logging:logging",
+    ],
+    exported_external_deps = [
+        "boost",
+        ("boost", None, "boost_container"),
+    ],
+)
+
+cpp_library(
+    name = "apply_thrift_config",
+    srcs = ["ApplyThriftConfig.cpp"],
+    exported_deps = [
+        ":core",
+        ":fboss-error",
+        ":hw_asic_table",
+        ":lacp_types",
+        ":loadbalancer_utils",
+        ":route_update_wrapper",
+        ":switch_config-cpp2-types",
+        ":switchid_scope_resolver",
+        ":switchinfo_utils",
+        ":utils",
+        "//fboss/agent/hw/switch_asics:switch_asics",
+        "//fboss/agent/if:mpls-cpp2-types",
+        "//fboss/agent/platforms/common:platform_mapping",
+        "//fboss/agent/rib:fib_updater",
+        "//fboss/agent/rib:network_to_route_map",
+        "//fboss/agent/rib:standalone_rib",
+        "//fboss/agent/state:state",
+        "//fboss/agent/state:state_utils",
+        "//fboss/lib/config:fboss_config_utils",
+        "//fboss/thrift_cow/nodes:nodes",
+        "//folly:file_util",
+        "//folly:range",
+        "//folly/gen:base",
+        "//thrift/lib/cpp2/protocol:protocol",
+    ],
+    exported_external_deps = [
+        ("boost", None, "boost_container"),
+    ],
+)
+
+cpp_library(
+    name = "phy_snapshot_lib",
+    headers = [
+        "PhySnapshotManager.h",
+        "PhySnapshotManager-defs.h",
+    ],
+    exported_deps = [
+        "//fboss/agent/state:state",
+        "//fboss/lib/link_snapshots:snapshot_manager",
+        "//fboss/lib/phy:phy-cpp2-types",
+    ],
+)
+
+cpp_library(
+    name = "core",
+    srcs = [
+        "AclNexthopHandler.cpp",
+        "ApplyThriftConfig.cpp",
+        "ArpCache.cpp",
+        "ArpHandler.cpp",
+        "DHCPv4Handler.cpp",
+        "DHCPv6Handler.cpp",
+        "DsfSession.cpp",
+        "DsfStateUpdaterUtil.cpp",
+        "DsfSubscriber.cpp",
+        "EncapIndexAllocator.cpp",
+        "FabricConnectivityManager.cpp",
+        "FibHelpers.cpp",
+        "FsdbSyncer.cpp",
+        "HwAsicTable.cpp",
+        "HwSwitchConnectionStatusTable.cpp",
+        "HwSwitchThriftClientTable.cpp",
+        "IPHeaderV4.cpp",
+        "IPv4Handler.cpp",
+        "IPv6Handler.cpp",
+        "LacpController.cpp",
+        "LacpMachines.cpp",
+        "LacpTypes.cpp",
+        "LinkAggregationManager.cpp",
+        "LinkConnectivityProcessor.cpp",
+        "LldpManager.cpp",
+        "LoadBalancerConfigApplier.cpp",
+        "LookupClassRouteUpdater.cpp",
+        "LookupClassUpdater.cpp",
+        "MKAServiceManager.cpp",
+        "MPLSHandler.cpp",
+        "MacTableManager.cpp",
+        "MacTableUtils.cpp",
+        "MirrorManager.cpp",
+        "MirrorManagerImpl.cpp",
+        "MultiHwSwitchHandler.cpp",
+        "MultiSwitchFb303Stats.cpp",
+        "MultiSwitchPacketStreamMap.cpp",
+        "NdpCache.cpp",
+        "NeighborUpdater.cpp",
+        "NeighborUpdaterImpl.cpp",
+        "NeighborUpdaterNoopImpl.cpp",
+        "PortUpdateHandler.cpp",
+        "ResolvedNexthopMonitor.cpp",
+        "ResolvedNexthopProbe.cpp",
+        "ResolvedNexthopProbeScheduler.cpp",
+        "ResourceAccountant.cpp",
+        "RouteUpdateLogger.cpp",
+        "RouteUpdateLoggingPrefixTracker.cpp",
+        "StaticL2ForNeighborObserver.cpp",
+        "StaticL2ForNeighborSwSwitchUpdater.cpp",
+        "StaticL2ForNeighborUpdater.cpp",
+        "SwSwitch.cpp",
+        "SwSwitchRouteUpdateWrapper.cpp",
+        "SwitchInfoTable.cpp",
+        "SwitchStats.cpp",
+        "SwitchStatsObserver.cpp",
+        "TeFlowNexthopHandler.cpp",
+        "TunIntf.cpp",
+        "TunManager.cpp",
+        "facebook/PacketLogger.cpp",
+        "facebook/RouteUpdateLogger.cpp",
+        "facebook/SwSwitch.cpp",
+        "facebook/SwitchStats.cpp",
+        "ndp/IPv6RouteAdvertiser.cpp",
+    ],
+    headers = [
+        "FsdbSyncer.h",
+        "HwAsicTable.h",
+        "HwSwitchConnectionStatusTable.h",
+        "HwSwitchThriftClientTable.h",
+        "LockPolicy.h",
+        "MultiSwitchFb303Stats.h",
+        "MultiSwitchPacketStreamMap.h",
+        "NeighborCache.h",
+        "NeighborCacheEntry.h",
+        "NeighborCacheImpl.h",
+        "NeighborCacheImpl-defs.h",
+        "NeighborTableDeltaCallbackGenerator.h",
+        "NeighborUpdater-defs.h",
+        "NlError.h",
+        "PacketLogger.h",
+        "SwitchInfoTable.h",
+        "facebook/ScubaRouteLogger.h",
+    ],
+    exported_deps = [
+        "fbsource//third-party/googletest:gtest",
+        ":address_utils",
+        ":agent_dir_util",
+        ":agent_features",
+        ":agent_fsdb_sync_manager",
+        ":agent_stats-cpp2-types",
+        ":asic_utils",
+        ":constants",
+        ":dhcpv4_options_of_interest",
+        ":fboss-error",
+        ":fboss-types",
+        ":hw_switch_handler",
+        ":hwswitch_matcher",
+        ":hwswitchcallback",
+        ":l2learn_event_observer",
+        ":load_agent_config",
+        ":loadbalancer_utils",
+        ":mka_service_ports",
+        ":monolithic_hw_switch_handler",
+        ":packet",
+        ":packet_observer",
+        ":phy_snapshot_lib",
+        ":restart_time_tracker",
+        ":route_update_wrapper",
+        ":state_observer",
+        ":stats",
+        ":sw_switch_warmboot_helper",
+        ":switch_config-cpp2-types",
+        ":switch_state-cpp2-types",
+        ":switchid_scope_resolver",
+        ":switchinfo_utils",
+        ":utils",
+        "//common/fbwhoami:fb_who_am_i",
+        "//common/network:util",
+        "//common/stats:macros",
+        "//common/strings:uuid",
+        "//common/time:time",
+        "//common/time:time_core",
+        "//configerator/distribution/api:api",
+        "//fb303:service_data",
+        "//fb303:thread_cached_service_data",
+        "//fb303/detail:quantile_stat_wrappers",
+        "//fboss/agent/capture:capture",
+        "//fboss/agent/hw:hw_cpu_fb303_stats",
+        "//fboss/agent/hw:hw_switch_fb303_stats",
+        "//fboss/agent/hw:hw_switch_warmboot_helper",
+        "//fboss/agent/hw/switch_asics:switch_asics",
+        "//fboss/agent/if:ctrl-cpp2-services",
+        "//fboss/agent/if:ctrl-cpp2-types",
+        "//fboss/agent/if:hw_ctrl-cpp2-services",
+        "//fboss/agent/if:mpls-cpp2-types",
+        "//fboss/agent/if:multiswitch_ctrl-cpp2-services",
+        "//fboss/agent/lldp:lldp",
+        "//fboss/agent/packet:ether_type",
+        "//fboss/agent/packet:ipproto",
+        "//fboss/agent/packet:packet",
+        "//fboss/agent/packet:packet_factory",
+        "//fboss/agent/packet:pktutil",
+        "//fboss/agent/platforms/common:platform_mapping",
+        "//fboss/agent/platforms/common:platform_mapping_utils",
+        "//fboss/agent/platforms/common/janga800bic:janga800bic_platform_mapping",
+        "//fboss/agent/platforms/common/meru400bfu:meru400bfu_platform_mapping",
+        "//fboss/agent/platforms/common/meru400bia:meru400bia_platform_mapping",
+        "//fboss/agent/platforms/common/meru400biu:meru400biu_platform_mapping",
+        "//fboss/agent/platforms/common/meru800bfa:meru800bfa_platform_mapping",
+        "//fboss/agent/platforms/common/meru800bia:meru800bia_platform_mapping",
+        "//fboss/agent/rib:fib_updater",
+        "//fboss/agent/rib:network_to_route_map",
+        "//fboss/agent/rib:standalone_rib",
+        "//fboss/agent/state:nodebase",
+        "//fboss/agent/state:state",
+        "//fboss/agent/state:state_update",
+        "//fboss/agent/state:state_utils",
+        "//fboss/agent/thrift_packet_stream:bidirectional_packet_stream",
+        "//fboss/facebook/bitsflow:bitsflow_helper",
+        "//fboss/fsdb/client:fsdb_pub_sub",
+        "//fboss/fsdb/client:fsdb_stream_client",
+        "//fboss/fsdb/common:flags",
+        "//fboss/fsdb/if:fsdb_common-cpp2-types",
+        "//fboss/fsdb/if:fsdb_model",
+        "//fboss/fsdb/if:fsdb_oper-cpp2-types",
+        "//fboss/lib:alert_logger",
+        "//fboss/lib:common_file_utils",
+        "//fboss/lib:common_utils",
+        "//fboss/lib:exponential_back_off",
+        "//fboss/lib:hw_write_behavior",
+        "//fboss/lib:radix_tree",
+        "//fboss/lib:thread_heartbeat",
+        "//fboss/lib/config:fboss_config_utils",
+        "//fboss/lib/link_snapshots:snapshot_manager",
+        "//fboss/lib/phy:phy-cpp2-types",
+        "//fboss/lib/phy:prbs-cpp2-types",
+        "//fboss/lib/platforms:product-info",
+        "//fboss/thrift_cow/nodes:nodes",
+        "//fboss/thrift_cow/nodes:serializer",
+        "//folly:conv",
+        "//folly:demangle",
+        "//folly:exception_string",
+        "//folly:file_util",
+        "//folly:format",
+        "//folly:glog",
+        "//folly:intrusive_list",
+        "//folly:map_util",
+        "//folly:memory",
+        "//folly:network_address",
+        "//folly:random",
+        "//folly:range",
+        "//folly:shared_mutex",
+        "//folly:spin_lock",
+        "//folly:string",
+        "//folly:synchronized",
+        "//folly:thread_local",
+        "//folly:utility",
+        "//folly/container:f14_hash",
+        "//folly/futures:core",
+        "//folly/gen:base",
+        "//folly/io:iobuf",
+        "//folly/io/async:async_base",
+        "//folly/io/async:scoped_event_base_thread",
+        "//folly/json:dynamic",
+        "//folly/lang:bits",
+        "//folly/lang:c_string",
+        "//folly/logging:logging",
+        "//folly/system:thread_name",
+        "//scribe/client:scribe_client",
+        "//scribe/client:scribe_client_no_sr",
+        "//servicerouter/client/cpp2:cpp2",
+        "//thrift/lib/cpp/util:enum_utils",
+        "//thrift/lib/cpp2/async:header_client_channel",
+        "//thrift/lib/cpp2/async:pooled_request_channel",
+        "//thrift/lib/cpp2/async:reconnecting_request_channel",
+        "//thrift/lib/cpp2/async:request_channel",
+        "//thrift/lib/cpp2/async:retrying_request_channel",
+        "//thrift/lib/cpp2/async:rocket_client_channel",
+        "//thrift/lib/cpp2/protocol:protocol",
+        "//thrift/lib/cpp2/util:util",
+    ],
+    exported_external_deps = [
+        "boost",
+        "gflags",
+        "glog",
+        "re2",
+        ("boost", None, "boost_container"),
+        ("iproute2", None, "netlink"),
+        ("libnl", None, "nl-route-3"),
+    ],
+)
+
+cpp_library(
+    name = "handler",
+    srcs = [
+        "ThriftHandler.cpp",
+    ],
+    exported_deps = [
+        ":address_utils",
+        ":core",
+        ":fboss-error",
+        ":fboss-types",
+        ":hw_asic_table",
+        ":packet",
+        ":stats",
+        ":switch_config-cpp2-types",
+        ":switchid_scope_resolver",
+        ":thrifthandler_utils_h",
+        ":utils",
+        "//common/fb303/cpp:fb303",
+        "//common/logging:logging",
+        "//fb303:service_data",
+        "//fboss/agent/capture:capture",
+        "//fboss/agent/hw:hardware_stats-cpp2-types",
+        "//fboss/agent/hw/mock:pkt",
+        "//fboss/agent/if:ctrl-cpp2-services",
+        "//fboss/agent/if:ctrl-cpp2-types",
+        "//fboss/agent/platforms/common:platform_mapping",
+        "//fboss/agent/rib:fib_updater",
+        "//fboss/agent/rib:network_to_route_map",
+        "//fboss/agent/state:nodebase",
+        "//fboss/agent/state:state",
+        "//fboss/agent/state:state_utils",
+        "//fboss/lib:log_thrift_call",
+        "//fboss/lib/config:fboss_config_utils",
+        "//fboss/lib/phy:phy-cpp2-types",
+        "//fboss/lib/phy:prbs-cpp2-types",
+        "//folly:json_pointer",
+        "//folly:move_wrapper",
+        "//folly:network_address",
+        "//folly:range",
+        "//folly:string",
+        "//folly:synchronized",
+        "//folly/container:f14_hash",
+        "//folly/functional:partial",
+        "//folly/io:iobuf",
+        "//folly/logging:logging",
+        "//thrift/lib/cpp/server:server_event_handler",
+        "//thrift/lib/cpp/util:enum_utils",
+        "//thrift/lib/cpp2:server",
+        "//thrift/lib/cpp2/async:duplex_channel",
+    ],
+)
+
+cpp_library(
+    name = "fboss-types",
+    srcs = [
+        "PortDescriptorTemplate.cpp",
+        "types.cpp",
+    ],
+    headers = [
+        "PortDescriptorTemplate.h",
+        "types.h",
+    ],
+    exported_deps = [
+        "fbsource//third-party/fmt:fmt",
+        ":switch_config-cpp2-types",
+        "//folly:conv",
+        "//folly/json:dynamic",
+        "//folly/logging:logging",
+    ],
+    exported_external_deps = [
+        "boost",
+        ("boost", None, "boost_serialization"),
+    ],
+)
+
+cpp_library(
+    name = "fboss-error",
+    headers = [
+        "FbossError.h",
+        "FbossHwUpdateError.h",
+        "SysError.h",
+    ],
+    exported_deps = [
+        "//fboss/agent/if:fboss-cpp2-types",
+        "//folly:conv",
+        "//folly/logging:logging",
+    ],
+)
+
+cpp_library(
+    name = "load_agent_config",
+    srcs = [
+        "AgentConfig.cpp",
+    ],
+    headers = [
+        "AgentConfig.h",
+    ],
+    exported_deps = [
+        ":agent_config-cpp2-types",
+        ":fboss-error",
+        ":switch_config-cpp2-types",
+        "//folly:file_util",
+        "//thrift/lib/cpp2/protocol:protocol",
+    ],
+)
+
+cpp_library(
+    name = "platform_base",
+    srcs = [
+        "Platform.cpp",
+        "PlatformPort.cpp",
+    ],
+    headers = [
+        "Platform.h",
+        "PlatformPort.h",
+    ],
+    exported_deps = [
+        ":agent_dir_util",
+        ":agent_features",
+        ":fboss-error",
+        ":fboss-types",
+        ":load_agent_config",
+        ":platform_config-cpp2-types",
+        ":switch_config-cpp2-types",
+        ":switchid_scope_resolver",
+        ":switchinfo_utils",
+        ":utils",
+        "//fboss/agent/if:ctrl-cpp2-types",
+        "//fboss/agent/platforms/common:platform_mapping",
+        "//fboss/agent/state:state",
+        "//fboss/lib/config:fboss_config_utils",
+        "//fboss/lib/phy:phy-cpp2-types",
+        "//fboss/lib/platforms:product-info",
+        "//fboss/qsfp_service/if:transceiver-cpp2-types",
+        "//folly:conv",
+        "//folly:network_address",
+        "//folly/futures:core",
+        "//folly/io/async:async_base",
+        "//folly/logging:logging",
+        "//thrift/lib/cpp/util:enum_utils",
+        "//thrift/lib/cpp2:server",
+    ],
+    exported_external_deps = [
+        "re2",
+    ],
+)
+
+cpp_library(
+    name = "hw_switch",
+    srcs = [
+        "HwSwitch.cpp",
+        "HwSwitchRouteUpdateWrapper.cpp",
+        "facebook/HwSwitch.cpp",
+    ],
+    exported_deps = [
+        ":fboss-error",
+        ":fboss-types",
+        ":hwswitchcallback",
+        ":load_agent_config",
+        ":platform_base",
+        ":route_update_wrapper",
+        ":switch_config-cpp2-types",
+        ":switch_state-cpp2-types",
+        ":utils",
+        "//fb303:thread_cached_service_data",
+        "//fboss/agent/hw:hardware_stats-cpp2-types",
+        "//fboss/agent/hw:hw_switch_fb303_stats",
+        "//fboss/agent/hw:hw_switch_warmboot_helper",
+        "//fboss/agent/hw/switch_asics:switch_asics",
+        "//fboss/agent/if:ctrl-cpp2-services",
+        "//fboss/agent/if:ctrl-cpp2-types",
+        "//fboss/agent/if:multiswitch_ctrl-cpp2-services",
+        "//fboss/agent/rib:fib_updater",
+        "//fboss/agent/rib:standalone_rib",
+        "//fboss/agent/state:nodebase",
+        "//fboss/agent/state:state",
+        "//fboss/lib:common_file_utils",
+        "//fboss/lib:hw_write_behavior",
+        "//folly:file_util",
+        "//folly:network_address",
+        "//folly:thread_local",
+        "//folly/logging:logging",
+        "//folly/testing:test_util",
+    ],
+    exported_external_deps = [
+        "re2",
+    ],
+)
+
+cpp_library(
+    name = "async_logger",
+    srcs = [
+        "AsyncLogger.cpp",
+    ],
+    exported_deps = [
+        ":fboss-error",
+        "//fb303:service_data",
+        "//folly:file",
+        "//folly:file_util",
+        "//folly:synchronized",
+    ],
+    exported_external_deps = [
+        "gflags",
+    ],
+)
+
+cpp_library(
+    name = "async_packet_transport",
+    headers = [
+        "AsyncPacketTransport.h",
+    ],
+    exported_deps = [
+        "//folly/io:iobuf",
+        "//folly/io/async:async_socket_base",
+        "//folly/io/async:async_socket_exception",
+    ],
+)
+
+cpp_library(
+    name = "sflow_shim_utils",
+    srcs = [
+        "SflowShimUtils.cpp",
+    ],
+    exported_deps = [
+        "//folly/io:iobuf",
+    ],
+)
+
+cpp_library(
+    name = "packet",
+    headers = [
+        "Packet.h",
+        "RxPacket.h",
+        "SwRxPacket.h",
+        "TxPacket.h",
+    ],
+    exported_deps = [
+        ":fboss-types",
+        "//folly:network_address",
+        "//folly/io:iobuf",
+    ],
+)
+
+cpp_library(
+    name = "gtest_defs",
+    headers = ["GtestDefs.h"],
+)
+
+cpp_library(
+    name = "fsdb_helper",
+    srcs = [
+        "FsdbHelper.cpp",
+    ],
+    headers = [
+        "FsdbHelper.h",
+    ],
+    exported_deps = [
+        "//fboss/fsdb/if:fsdb_model",
+        "//fboss/fsdb/if:fsdb_oper-cpp2-types",
+        "//folly/logging:logging",
+    ],
+)
+
+cpp_library(
+    name = "hwswitch_matcher",
+    srcs = [
+        "HwSwitchMatcher.cpp",
+    ],
+    headers = [
+        "HwSwitchMatcher.h",
+    ],
+    exported_deps = [
+        ":fboss-error",
+        ":fboss-types",
+    ],
+)
+
+cpp_library(
+    name = "switchid_scope_resolver",
+    srcs = [
+        "SwitchIdScopeResolver.cpp",
+    ],
+    headers = [
+        "SwitchIdScopeResolver.h",
+    ],
+    exported_deps = [
+        ":fboss-error",
+        ":fboss-types",
+        ":hwswitch_matcher",
+        "//fboss/agent/state:state",
+    ],
+    exported_external_deps = [
+        ("boost", None, "boost_container"),
+    ],
+)
+
+cpp_library(
+    name = "hwswitchcallback",
+    srcs = [
+        "L2Entry.cpp",
+    ],
+    headers = [
+        "HwSwitchCallback.h",
+        "L2Entry.h",
+    ],
+    exported_deps = [
+        ":fboss-types",
+        ":packet",
+        "//fboss/agent/if:ctrl-cpp2-types",
+        "//fboss/agent/if:multiswitch_ctrl-cpp2-types",
+        "//fboss/agent/rib:standalone_rib",
+        "//fboss/agent/state:state",
+        "//folly:network_address",
+    ],
+)
+
+cpp_library(
+    name = "hw_switch_handler",
+    srcs = [
+        "HwSwitchHandler.cpp",
+    ],
+    headers = [
+        "HwSwitchHandler.h",
+    ],
+    exported_deps = [
+        ":fboss-types",
+        ":hwswitchcallback",
+        ":load_agent_config",
+        ":switch_config-cpp2-types",
+        ":utils",
+        "//fboss/agent/if:multiswitch_ctrl-cpp2-services",
+        "//fboss/agent/state:state",
+        "//fboss/lib:hw_write_behavior",
+        "//folly/futures:core",
+        "//folly/io/async:async_base",
+    ],
+)
+
+cpp_library(
+    name = "monolithic_hw_switch_handler",
+    srcs = [
+        "single/MonolithicHwSwitchHandler.cpp",
+    ],
+    headers = [
+        "single/MonolithicHwSwitchHandler.h",
+    ],
+    exported_deps = [
+        ":fboss_init_h",
+        ":hw_switch",
+        ":hw_switch_handler",
+        ":packet",
+        ":platform_base",
+        "//fboss/agent/hw:hw_switch_fb303_stats",
+        "//fboss/agent/hw/switch_asics:switch_asics",
+    ],
+)
+
+cpp_library(
+    name = "multi_switch_hw_switch_handler",
+    srcs = [
+        "mnpu/MultiSwitchHwSwitchHandler.cpp",
+    ],
+    headers = [
+        "mnpu/MultiSwitchHwSwitchHandler.h",
+    ],
+    exported_deps = [
+        ":agent_features",
+        ":core",
+        ":hw_switch_handler",
+        ":packet",
+        ":stats",
+        "//fboss/agent/if:multiswitch_ctrl-cpp2-services",
+    ],
+)
+
+cpp_library(
+    name = "agent_dir_util",
+    srcs = [
+        "AgentDirectoryUtil.cpp",
+    ],
+    headers = ["AgentDirectoryUtil.h"],
+    exported_deps = [
+        "//folly/logging:logging",
+    ],
+    exported_external_deps = [
+        "gflags",
+    ],
+)
+
+cpp_library(
+    name = "state_observer",
+    headers = [
+        "StateObserver.h",
+    ],
+    exported_deps = [
+        "//fboss/agent/state:state",
+    ],
+    exported_external_deps = [
+        "boost",
+    ],
+)
+
+cpp_library(
+    name = "restart_time_tracker",
+    srcs = [
+        "RestartTimeTracker.cpp",
+    ],
+    headers = [
+        "RestartTimeTracker.h",
+    ],
+    exported_deps = [
+        ":utils",
+        "//fb303:service_data",
+        "//folly:conv",
+        "//folly:file_util",
+        "//folly:range",
+        "//folly:synchronized",
+        "//folly/logging:logging",
+    ],
+    exported_external_deps = [
+    ],
+)
+
+cpp_library(
+    name = "hwagent",
+    srcs = [
+        "HwAgent.cpp",
+    ],
+    headers = [
+        "HwAgent.h",
+    ],
+    exported_deps = [
+        ":fboss_init_h",
+        ":hw_switch",
+        ":load_agent_config",
+        "//fboss/agent/hw/switch_asics:switch_asics",
+    ],
+    exported_external_deps = [
+        "gflags",
+    ],
+)
+
+cpp_library(
+    name = "hwagent-main",
+    srcs = [
+        "HwAgentMain.cpp",
+        "facebook/Main.cpp",
+    ],
+    headers = [
+        "HwAgentMain.h",
+    ],
+    undefined_symbols = True,
+    exported_deps = [
+        ":agent_features",
+        ":fboss_common_init",
+        ":fboss_init_h",
+        ":hw_switch",
+        ":hwagent",
+        ":restart_time_tracker",
+        ":setup_thrift",
+        ":split_agent_thrift_syncer",
+        ":utils",
+        "//common/fb303/cpp:default_control",
+        "//fb303:logging",
+        "//fb303:service_data",
+        "//fboss/agent/facebook:version_h",
+        "//fboss/agent/hw/switch_asics:switch_asics",
+        "//fboss/agent/state:state",
+        "//fboss/lib:common_file_utils",
+        "//folly/logging:init",
+        "//folly/logging:logging",
+    ],
+    exported_external_deps = [
+        "gflags",
+    ],
+)
+
+cpp_library(
+    name = "multiswitch_service",
+    srcs = [
+        "MultiSwitchThriftHandler.cpp",
+    ],
+    headers = [
+        "MultiSwitchThriftHandler.h",
+    ],
+    exported_deps = [
+        ":core",
+        ":packet",
+        ":stats",
+        "//fboss/agent/if:multiswitch_ctrl-cpp2-services",
+        "//fboss/agent/state:state",
+    ],
+)
+
+cpp_library(
+    name = "route_update_wrapper",
+    srcs = [
+        "RouteUpdateWrapper.cpp",
+    ],
+    exported_deps = [
+        ":address_utils",
+        ":fboss-types",
+        ":switch_config-cpp2-types",
+        ":switchid_scope_resolver",
+        "//fboss/agent/if:ctrl-cpp2-types",
+        "//fboss/agent/rib:fib_updater",
+        "//fboss/agent/rib:standalone_rib",
+        "//fboss/agent/state:nodebase",
+        "//fboss/agent/state:state",
+        "//folly:network_address",
+        "//folly/logging:logging",
+    ],
+)
+
+cpp_library(
+    name = "split_agent_thrift_syncer",
+    srcs = [
+        "mnpu/FdbEventSyncer.cpp",
+        "mnpu/HwSwitchStatsSinkClient.cpp",
+        "mnpu/LinkChangeEventSyncer.cpp",
+        "mnpu/OperDeltaSyncer.cpp",
+        "mnpu/RxPktEventSyncer.cpp",
+        "mnpu/SplitAgentThriftSyncer.cpp",
+        "mnpu/SplitAgentThriftSyncerClient.cpp",
+        "mnpu/TxPktEventSyncer.cpp",
+    ],
+    headers = [
+        "mnpu/FdbEventSyncer.h",
+        "mnpu/HwSwitchStatsSinkClient.h",
+        "mnpu/OperDeltaSyncer.h",
+        "mnpu/RxPktEventSyncer.h",
+        "mnpu/SplitAgentThriftSyncer.h",
+        "mnpu/SplitAgentThriftSyncerClient.h",
+        "mnpu/TxPktEventSyncer.h",
+    ],
+    exported_deps = [
+        ":agent_features",
+        ":hw_switch",
+        ":hwswitchcallback",
+        ":multiswitch_service",
+        ":packet",
+        "//fboss/agent/state:state",
+        "//fboss/lib:common_thrift_utils",
+        "//folly:cancellation_token",
+        "//folly:network_address",
+        "//folly:synchronized",
+        "//folly/experimental/coro:async_scope",
+        "//folly/experimental/coro:blocking_wait",
+        "//folly/experimental/coro:bounded_queue",
+        "//folly/experimental/coro:unbounded_queue",
+        "//folly/io/async:async_base",
+        "//folly/io/async:scoped_event_base_thread",
+        "//thrift/lib/cpp2/async:pooled_request_channel",
+        "//thrift/lib/cpp2/async:reconnecting_request_channel",
+        "//thrift/lib/cpp2/async:retrying_request_channel",
+        "//thrift/lib/cpp2/async:rocket_client_channel",
+    ],
+    exported_external_deps = [
+        "gflags",
+    ],
+)
+
+cpp_library(
+    name = "thrifthandler_utils_h",
+    headers = [
+        "ThriftHandlerUtils.h",
+    ],
+    exported_deps = [
+        ":fboss-error",
+        ":fboss-types",
+        ":switch_config-cpp2-types",
+        "//fb303:service_data",
+        "//fboss/agent/state:state",
+        "//folly:string",
+    ],
+)
+
+cpp_library(
+    name = "agent_initializer_h",
+    headers = [
+        "AgentInitializer.h",
+    ],
+)
+
+cpp_library(
+    name = "monolithic_agent_initializer",
+    srcs = [
+        "single/MonolithicAgentInitializer.cpp",
+    ],
+    headers = [
+        "single/MonolithicAgentInitializer.h",
+    ],
+    exported_deps = [
+        ":apply_thrift_config",
+        ":core",
+        ":fboss_common_init",
+        ":fboss_init_h",
+        ":handler",
+        ":hw_asic_table",
+        ":hw_switch",
+        ":hwagent",
+        ":load_agent_config",
+        ":monolithic_hw_switch_handler",
+        ":platform_base",
+        ":restart_time_tracker",
+        ":setup_thrift",
+        ":stats",
+        ":sw_agent_initializer",
+        ":utils",
+        "//fboss/agent/hw/switch_asics:switch_asics",
+        "//fboss/lib:common_file_utils",
+        "//fboss/lib:common_utils",
+        "//folly:network_address",
+        "//folly:scope_guard",
+        "//folly:string",
+        "//folly/executors:function_scheduler",
+        "//folly/io/async:async_base",
+        "//folly/io/async:async_signal_handler",
+        "//folly/logging:init",
+        "//folly/logging:logging",
+        "//thrift/lib/cpp2:server",
+    ],
+    exported_external_deps = [
+        "gflags",
+    ],
+)
+
+cpp_library(
+    name = "split_agent_initializer",
+    srcs = [
+        "mnpu/SplitSwAgentInitializer.cpp",
+    ],
+    headers = [
+        "mnpu/SplitSwAgentInitializer.h",
+    ],
+    exported_deps = [
+        ":agent_dir_util",
+        ":core",
+        ":multi_switch_hw_switch_handler",
+        ":multiswitch_service",
+        ":sw_agent_initializer",
+        "//fboss/lib:common_file_utils",
+        "//folly/io/async:async_base",
+    ],
+)
+
+cpp_binary(
+    name = "fboss_sw_agent",
+    srcs = [
+        "FbossSwAgent.cpp",
+    ],
+    deps = [
+        ":fboss_common_init",
+        ":load_agent_config",
+        ":main-common",
+        ":split_agent_initializer",
+    ],
+)
+
+cpp_library(
+    name = "sw_switch_warmboot_helper",
+    srcs = [
+        "SwSwitchWarmBootHelper.cpp",
+    ],
+    exported_deps = [
+        ":agent_dir_util",
+        ":async_logger",
+        ":fboss-error",
+        ":hw_asic_table",
+        ":switch_state-cpp2-types",
+        ":utils",
+        "//fboss/agent/rib:standalone_rib",
+        "//fboss/agent/state:state",
+        "//fboss/lib:common_file_utils",
+        "//folly:file_util",
+        "//folly/logging:logging",
+    ],
+)
+
+# fake_wedge_agent, links with fake_main and monolithic_agent_initializer.
+# fake_main also links with emulation's main.  monolithic_agent_initializer
+# links with  sw_agent_initializer. emulation's main redefine methods provided
+# by fboss_common_init. so sw_agent_initializer can not link with
+# fboss_common_init so linking with only header
+cpp_library(
+    name = "sw_agent_initializer",
+    srcs = [
+        "SwAgentInitializer.cpp",
+    ],
+    headers = ["SwAgentInitializer.h"],
+    undefined_symbols = True,
+    exported_deps = [
+        ":agent_dir_util",
+        ":agent_features",
+        ":agent_initializer_h",
+        ":core",
+        ":fboss_common_init_h",  # @manual
+        ":handler",
+        ":hw_asic_table",
+        ":setup_thrift",
+        "//fboss/lib:common_file_utils",
+        "//fboss/lib:common_utils",
+        "//folly/executors:function_scheduler",
+        "//folly/io/async:async_base",
+        "//thrift/lib/cpp2:server",
+    ],
+    exported_external_deps = [
+        "gflags",
+    ],
+)
+
+cpp_library(
+    name = "agent_pre_start_exec",
+    srcs = [
+        "AgentPreStartExec.cpp",
+        "facebook/AgentPreStartConfig.cpp",
+    ],
+    headers = [
+        "facebook/AgentPreStartConfig.h",
+    ],
+    exported_deps = [
+        ":agent_command_executor",
+        ":agent_dir_util",
+        ":agent_netwhoami",
+        ":fboss-error",
+        ":fboss_common_init",
+        ":load_agent_config",
+        ":switch_config-cpp2-types",
+        "//fboss/agent/facebook:agent_pre_exec_drainer",
+        "//fboss/lib:common_file_utils",
+        "//fboss/lib:common_utils",
+        "//folly/logging:logging",
+    ],
+)
+
+cpp_binary(
+    name = "agent_pre_start_exec_runner",
+    srcs = [
+        "AgentPreStartExecRunner.cpp",
+    ],
+    deps = [
+        ":agent_pre_start_exec",
+        ":fboss-error",
+        "//folly/init:init",
+        "//folly/logging:init",
+        "//folly/logging:logging",
+    ],
+    external_deps = [
+        "gflags",
+    ],
+)
+
+cpp_library(
+    name = "agent_netwhoami",
+    srcs = [
+        "facebook/AgentNetWhoAmI.cpp",
+    ],
+    headers = [
+        "AgentNetWhoAmI.h",
+        "facebook/AgentNetWhoAmIImpl.h",
+    ],
+    exported_deps = [
+        "//fboss/lib:common_file_utils",
+        "//neteng/netwhoami/lib/cpp:recover",
+    ],
+)
+
+cpp_library(
+    name = "agent_fsdb_sync_manager",
+    srcs = [
+        "AgentFsdbSyncManager.cpp",
+        "AgentFsdbSyncManager-computeOperDelta.cpp",
+    ],
+    exported_deps = [
+        ":switch_state-cpp2-types",
+        "//configerator/structs/neteng/fboss/bitsflow:bitsflow-cpp2-types",
+        "//fboss/agent/state:state",
+        "//fboss/fsdb/client:fsdb_syncer",
+        "//fboss/fsdb/common:utils",
+        "//fboss/fsdb/if:fsdb_model",
+        "//fboss/lib:tuple_utils",
+    ],
+)
+
+cpp_library(
+    name = "agent_command_executor",
+    srcs = [
+        "AgentCommandExecutor.cpp",
+    ],
+    exported_deps = [
+        "//fboss/lib:common_utils",
+    ],
+)
+
+cpp_library(
+    name = "agent_features",
+    srcs = [
+        "AgentFeatures.cpp",
+    ],
+    exported_external_deps = [
+        "gflags",
+    ],
+)
+
+cpp_library(
+    name = "loadbalancer_utils",
+    srcs = [
+        "LoadBalancerUtils.cpp",
+    ],
+    exported_deps = [
+        ":switch_config-cpp2-types",
+        "//folly:network_address",
+        "//folly/hash:hash",
+    ],
+)
+
+cpp_library(
+    name = "hw_asic_table",
+    srcs = [
+        "HwAsicTable.cpp",
+    ],
+    exported_deps = [
+        ":fboss-error",
+        ":fboss-types",
+        ":utils",
+        "//fboss/agent/hw/switch_asics:switch_asics",
+        "//fboss/agent/platforms/common:platform_mapping_utils",
+        "//fboss/lib/platforms:product-info",
+    ],
+)
+
+export_file(name = "Main.cpp")
+
+sai_main_all()

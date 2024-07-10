@@ -1,0 +1,28 @@
+load("@fbcode_macros//build_defs:cpp_unittest.bzl", "cpp_unittest")
+
+oncall("fboss_agent_push")
+
+cpp_unittest(
+    name = "bitsflow_acl_test",
+    srcs = [
+        "facebook/BitsflowAclTest.cpp",
+        "facebook/BitsflowHelperTest.cpp",
+    ],
+    deps = [
+        "//common/services/cpp:thrift_acl_checker_module_config",
+        "//configerator/structs/neteng/fboss/bitsflow:bitsflow-cpp2-types",
+        "//fboss/agent:apply_thrift_config",
+        "//fboss/agent:core",
+        "//fboss/agent:handler",
+        "//fboss/agent:setup_thrift",
+        "//fboss/agent/test:hw_test_handle",
+        "//fboss/agent/test:utils",
+        "//fboss/facebook/bitsflow:bitsflow_helper",
+        "//infrasec/authorization:identity_util",
+        "//infrasec/authorization/aclchecker:simple_acl_checker",
+        "//nettools/dcc/platform:base_lib",
+    ],
+    external_deps = [
+        ("boost", None, "boost_filesystem"),
+    ],
+)

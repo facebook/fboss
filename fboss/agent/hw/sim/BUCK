@@ -1,0 +1,29 @@
+load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
+
+oncall("fboss_agent_push")
+
+cpp_library(
+    name = "platform",
+    srcs = [
+        "SimPlatform.cpp",
+        "SimPlatformMapping.cpp",
+        "SimPlatformPort.cpp",
+        "SimSwitch.cpp",
+    ],
+    exported_deps = [
+        "//fboss/agent:fboss-error",
+        "//fboss/agent:fboss-types",
+        "//fboss/agent:handler",
+        "//fboss/agent:hw_switch",
+        "//fboss/agent:platform_base",
+        "//fboss/agent:platform_config-cpp2-types",
+        "//fboss/agent:switch_config-cpp2-types",
+        "//fboss/agent/hw/mock:pkt",
+        "//fboss/agent/platforms/common:platform_mapping",
+        "//fboss/agent/state:state",
+        "//fboss/lib/platforms:product-info",
+        "//folly:conv",
+        "//folly:memory",
+        "//folly/json:dynamic",
+    ],
+)

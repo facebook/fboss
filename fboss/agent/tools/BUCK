@@ -1,0 +1,31 @@
+load("@fbcode_macros//build_defs:python_binary.bzl", "python_binary")
+load("@fbcode_macros//build_defs:python_library.bzl", "python_library")
+
+oncall("fboss_agent_push")
+
+python_binary(
+    name = "fboss_route",
+    srcs = [
+        "fboss_route.py",
+    ],
+    base_module = "fboss",
+    main_function = "fboss.fboss_route.main",
+    deps = [
+        "fbsource//third-party/pypi/ipaddr:ipaddr",
+        "//common/network/if:if-py",
+        "//fboss/agent/if:ctrl-py",
+        "//fboss/qsfp_service/if:qsfp-py",
+        "//thrift/lib/py:server_base",
+    ],
+)
+
+python_library(
+    name = "send_pkt_lib",
+    srcs = [
+        "send_pkt.py",
+    ],
+    base_module = "fboss",
+    deps = [
+        "//fboss/py/fboss:thrift_clients",
+    ],
+)

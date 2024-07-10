@@ -1,0 +1,71 @@
+load("@fbcode_macros//build_defs:cpp_unittest.bzl", "cpp_unittest")
+
+oncall("fboss_agent_push")
+
+cpp_unittest(
+    name = "pkt_test",
+    srcs = [
+        "ArpHdrTest.cpp",
+        "DHCPv4PacketTest.cpp",
+        "EthHdrTest.cpp",
+        "ICMPHdrTest.cpp",
+        "ICMPPacketTest.cpp",
+        "IPv4HdrTest.cpp",
+        "IPv6HdrTest.cpp",
+        "LlcHdrTest.cpp",
+        "MPLSHdrTest.cpp",
+        "NDPOptionTest.cpp",
+        "NDPRouterAdvertisementTest.cpp",
+        "PTPHdrTest.cpp",
+        "PktUtilTest.cpp",
+        "TCPHeaderTest.cpp",
+        "UDPHdrTest.cpp",
+    ],
+    deps = [
+        "//fboss/agent:core",
+        "//fboss/agent:dhcpv4_options_of_interest",
+        "//fboss/agent:fboss-error",
+        "//fboss/agent:stats",
+        "//fboss/agent/hw/mock:mock",
+        "//fboss/agent/hw/mock:pkt",
+        "//fboss/agent/packet:ether_type",
+        "//fboss/agent/packet:packet",
+        "//fboss/agent/packet:pktutil",
+        "//fboss/agent/state:state",
+        "//fboss/agent/test:utils",
+        "//folly:conv",
+        "//folly:memory",
+        "//folly:network_address",
+        "//folly:random",
+        "//folly/io:iobuf",
+        "//folly/logging:logging",
+    ],
+)
+
+cpp_unittest(
+    name = "sflow_structs_test",
+    srcs = [
+        "SflowStructsTest.cpp",
+    ],
+    deps = [
+        "//fboss/agent/packet:sflow_structs",
+        "//folly:network_address",
+        "//folly/container:array",
+    ],
+)
+
+cpp_unittest(
+    name = "dhcpv6_packet_test",
+    srcs = [
+        "DHCPv6PacketTest.cpp",
+    ],
+    deps = [
+        "//fboss/agent:core",
+        "//fboss/agent:fboss-error",
+        "//fboss/agent/packet:packet",
+        "//folly:conv",
+        "//folly:memory",
+        "//folly:network_address",
+        "//folly/io:iobuf",
+    ],
+)

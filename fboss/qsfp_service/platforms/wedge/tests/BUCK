@@ -1,0 +1,30 @@
+load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
+load("@fbcode_macros//build_defs:cpp_unittest.bzl", "cpp_unittest")
+
+oncall("fboss_optics_phy")
+
+cpp_unittest(
+    name = "WedgeManagerTest",
+    srcs = [
+        "WedgeManagerTest.cpp",
+    ],
+    deps = [
+        "//fboss/agent:switch_config-cpp2-types",
+        "//fboss/qsfp_service/if:transceiver-cpp2-types",
+        "//fboss/qsfp_service/test:transceiver_manager_test_helper",
+    ],
+)
+
+cpp_library(
+    name = "mock-wedge-manager",
+    headers = [
+        "MockWedgeManager.h",
+    ],
+    exported_deps = [
+        "//fboss/agent:fboss-error",
+        "//fboss/agent/platforms/common/fake_test:fake_test_platform_mapping",
+        "//fboss/lib/usb/tests:mock-transceiver-i2capi",
+        "//fboss/qsfp_service/module/tests:mock-headers",
+        "//fboss/qsfp_service/platforms/wedge:wedge-platform-credo-0.7.2",
+    ],
+)

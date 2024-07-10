@@ -1,0 +1,34 @@
+load("@fbcode_macros//build_defs:cpp_binary.bzl", "cpp_binary")
+load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
+
+cpp_library(
+    name = "libheader_to_thrift",
+    srcs = [
+        "HeaderParser.cpp",
+        "ThriftIDL.cpp",
+    ],
+    exported_deps = [
+        "//folly:format",
+        "//folly:string",
+    ],
+    exported_external_deps = [
+        ("boost", None, "boost_variant"),
+        ("llvm-fb", None, "clangASTMatchers"),
+        ("llvm-fb", None, "clangFrontend"),
+        ("llvm-fb", None, "clangTooling"),
+    ],
+)
+
+cpp_binary(
+    name = "header_to_thrift",
+    srcs = [
+        "HeaderToThrift.cpp",
+    ],
+    deps = [
+        ":libheader_to_thrift",
+    ],
+    external_deps = [
+        ("llvm-fb", None, "LLVMSupport"),
+        ("llvm-fb", None, "clangTooling"),
+    ],
+)

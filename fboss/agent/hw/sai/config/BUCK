@@ -1,0 +1,25 @@
+load("@fbcode_macros//build_defs:thrift_library.bzl", "thrift_library")
+
+oncall("fboss_agent_push")
+
+thrift_library(
+    name = "asic_config",
+    go_thrift_namespaces = {
+        "asic_config.thrift": "neteng.fboss.asic_config",
+    },
+    languages = [
+        "cpp2",
+        "py",
+        "py3",
+        "go",
+        "py-asyncio",
+        "rust",
+    ],
+    py3_namespace = "neteng.fboss.asic_config",
+    py_asyncio_base_module = "neteng.fboss.asyncio",
+    py_base_module = "neteng.fboss",
+    thrift_cpp2_options = "json,reflection",
+    thrift_py_options = "json",
+    thrift_rust_options = "serde",
+    thrift_srcs = {"asic_config.thrift": []},
+)

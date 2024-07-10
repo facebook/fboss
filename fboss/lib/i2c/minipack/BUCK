@@ -1,0 +1,18 @@
+load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
+
+oncall("fboss_agent_push")
+
+cpp_library(
+    name = "minipack_base_i2c",
+    srcs = [
+        "MinipackBaseI2cBus.cpp",
+    ],
+    headers = [
+        "MinipackBaseI2cBus.h",
+    ],
+    exported_deps = [
+        "//fboss/lib/fpga:minipack_base_container",
+        "//fboss/lib/i2c:i2c_controller_stats-cpp2-types",
+        "//fboss/lib/usb:i2-api",
+    ],
+)

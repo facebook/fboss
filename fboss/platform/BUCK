@@ -1,0 +1,34 @@
+load("@fbcode_macros//build_defs:export_files.bzl", "export_file")
+load("//antlir/fbpkg:fbpkg.bzl", "fbpkg")
+
+oncall("fboss_platform")
+
+fbpkg.builder(
+    name = "fboss.platform.stack",
+    buck_opts = fbpkg.buck_opts(version = "v2"),
+    expire_days = 10,
+    override_log_paths = ["fboss/platform"],
+    path_actions = {
+        "data_corral_service": "//fboss/platform/data_corral_service:data_corral_service",
+        "data_corral_service.service": "facebook/data_corral_service.service",
+        "fan_service": "//fboss/platform/fan_service:fan_service",
+        "fan_service.service": "facebook/fan_service.service",
+        "fw_util": "//fboss/platform/fw_util:fw_util",
+        "platform_manager": "//fboss/platform/platform_manager:platform_manager",
+        "platform_manager.service": "facebook/platform_manager.service",
+        "rackmon": "//fboss/platform/rackmon:rackmon",
+        "rackmon.service": "facebook/rackmon.service",
+        "sensor_service": "//fboss/platform/sensor_service:sensor_service",
+        "sensor_service.service": "facebook/sensor_service.service",
+        "weutil": "//fboss/platform/weutil:weutil",
+    },
+    split_debuginfo = True,
+)
+
+export_file(
+    name = "configs",
+    src = "configs",
+    visibility = [
+        "PUBLIC",
+    ],
+)

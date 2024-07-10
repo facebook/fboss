@@ -1,0 +1,106 @@
+load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
+
+oncall("fboss_agent_push")
+
+cpp_library(
+    name = "packet",
+    srcs = [
+        "ArpHdr.cpp",
+        "DHCPv4Packet.cpp",
+        "DHCPv6Packet.cpp",
+        "EthHdr.cpp",
+        "ICMPExtHdr.cpp",
+        "ICMPHdr.cpp",
+        "IPv4Hdr.cpp",
+        "IPv6Hdr.cpp",
+        "LlcHdr.cpp",
+        "MPLSHdr.cpp",
+        "NDP.cpp",
+        "NDPRouterAdvertisement.cpp",
+        "PTPHeader.cpp",
+        "PktUtil.cpp",
+        "TCPHeader.cpp",
+        "UDPHeader.cpp",
+    ],
+    exported_deps = [
+        ":ether_type",
+        ":hdr_parse_error",
+        ":ipproto",
+        "//fboss/agent:dhcpv4_options_of_interest",
+        "//fboss/agent:fboss-error",
+        "//fboss/agent:fboss-types",
+        "//fboss/agent:stats",
+        "//fboss/agent:utils",
+        "//folly:conv",
+        "//folly:format",
+        "//folly:network_address",
+        "//folly:string",
+        "//folly/io:iobuf",
+        "//folly/lang:bits",
+        "//folly/logging:logging",
+    ],
+)
+
+cpp_library(
+    name = "sflow_structs",
+    srcs = [
+        "SflowStructs.cpp",
+    ],
+    exported_deps = [
+        "//folly:exception_string",
+        "//folly:network_address",
+        "//folly/io:iobuf",
+    ],
+)
+
+cpp_library(
+    name = "pktutil",
+    srcs = [
+        "PktUtil.cpp",
+    ],
+    exported_deps = [
+        "//fboss/agent:fboss-error",
+        "//folly:format",
+        "//folly:network_address",
+        "//folly/io:iobuf",
+    ],
+)
+
+cpp_library(
+    name = "packet_factory",
+    srcs = [
+        "EthFrame.cpp",
+        "IPPacket.cpp",
+        "MPLSPacket.cpp",
+        "PktFactory.cpp",
+        "TCPPacket.cpp",
+        "UDPDatagram.cpp",
+    ],
+    exported_deps = [
+        ":ether_type",
+        ":packet",
+        ":pktutil",
+        "//common/logging:logging",
+        "//fboss/agent:fboss-error",
+        "//fboss/agent:fboss-types",
+        "//fboss/agent:hw_switch",
+        "//fboss/agent:packet",
+        "//folly:network_address",
+        "//folly/io:iobuf",
+    ],
+)
+
+cpp_library(
+    name = "ether_type",
+    headers = ["Ethertype.h"],
+)
+
+cpp_library(
+    name = "ipproto",
+    headers = ["IPProto.h"],
+)
+
+cpp_library(
+    name = "hdr_parse_error",
+    headers = ["HdrParseError.h"],
+)

@@ -1,0 +1,29 @@
+load("@fbcode_macros//build_defs:thrift_library.bzl", "thrift_library")
+load("//fboss/agent/hw/sai/switch:switch.bzl", "all_handler_libs", "all_npu_libs", "all_phy_libs")
+
+oncall("fboss_agent_push")
+
+thrift_library(
+    name = "if",
+    languages = [
+        "cpp2",
+        "py",
+        "py3",
+    ],
+    py3_namespace = "neteng.fboss",
+    py_base_module = "neteng.fboss",
+    thrift_srcs = {"sai_ctrl.thrift": [
+        "SaiCtrl",
+    ]},
+    deps = [
+        "//fboss/agent/if:common",
+        "//fboss/agent/if:fboss",
+        "//fboss/agent/if:hw_ctrl",
+    ],
+)
+
+all_handler_libs()
+
+all_npu_libs()
+
+all_phy_libs()

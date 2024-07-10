@@ -1,0 +1,40 @@
+load("@fbcode_macros//build_defs:cpp_binary.bzl", "cpp_binary")
+load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
+
+oncall("fboss_agent_push")
+
+cpp_library(
+    name = "firmware_storage",
+    srcs = [
+        "FbossFirmware.cpp",
+        "FbossFwStorage.cpp",
+    ],
+    headers = [
+        "FbossFirmware.h",
+        "FbossFwStorage.h",
+    ],
+    exported_deps = [
+        "//folly:file",
+        "//folly:file_util",
+        "//folly/init:init",
+        "//folly/io:iobuf",
+        "//folly/logging:logging",
+    ],
+    exported_external_deps = [
+        "gflags",
+        "yaml-cpp",
+        ("boost", None, "boost_filesystem"),
+    ],
+)
+
+cpp_binary(
+    name = "firmware_storage_util",
+    srcs = [
+        "Main.cpp",
+    ],
+    headers = [],
+    deps = [
+        ":firmware_storage",
+    ],
+    external_deps = [],
+)

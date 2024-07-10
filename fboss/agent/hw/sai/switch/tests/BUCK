@@ -1,0 +1,209 @@
+load(
+    "//fboss/agent/hw/sai/switch/tests:switch_test.bzl",
+    "manager_test_libs",
+    "phy_manager_test_libs",
+    "phy_switch_manager_unittest",
+    "switch_manager_unittest",
+)
+
+oncall("fboss_agent_push")
+
+manager_test_libs()
+
+phy_manager_test_libs()
+
+switch_manager_unittest(
+    name = "acltablegroup_manager_test",
+    srcs = [
+        "AclTableGroupManagerTest.cpp",
+    ],
+)
+
+switch_manager_unittest(
+    name = "acltable_manager_test",
+    srcs = [
+        "AclTableManagerTest.cpp",
+    ],
+)
+
+switch_manager_unittest(
+    name = "bridge_manager_test",
+    srcs = [
+        "BridgeManagerTest.cpp",
+    ],
+)
+
+switch_manager_unittest(
+    name = "fdb_manager_test",
+    srcs = [
+        "FdbManagerTest.cpp",
+    ],
+)
+
+switch_manager_unittest(
+    name = "hostif_manager_test",
+    srcs = [
+        "HostifManagerTest.cpp",
+    ],
+)
+
+switch_manager_unittest(
+    name = "in_seg_entry_manager_test",
+    srcs = [
+        "InSegEntryManagerTest.cpp",
+    ],
+)
+
+switch_manager_unittest(
+    name = "lag_manager_test",
+    srcs = [
+        "LagManagerTest.cpp",
+    ],
+)
+
+switch_manager_unittest(
+    name = "mirror_manager_test",
+    srcs = [
+        "MirrorManagerTest.cpp",
+    ],
+)
+
+switch_manager_unittest(
+    name = "neighbor_manager_test",
+    srcs = [
+        "NeighborManagerTest.cpp",
+    ],
+)
+
+switch_manager_unittest(
+    name = "next_hop_manager_test",
+    srcs = [
+        "NextHopManagerTest.cpp",
+    ],
+)
+
+switch_manager_unittest(
+    name = "next_hop_group_manager_test",
+    srcs = [
+        "NextHopGroupManagerTest.cpp",
+    ],
+)
+
+switch_manager_unittest(
+    name = "port_manager_test",
+    srcs = [
+        "PortManagerTest.cpp",
+    ],
+)
+
+switch_manager_unittest(
+    name = "qos_map_manager_test",
+    srcs = [
+        "QosMapManagerTest.cpp",
+    ],
+)
+
+switch_manager_unittest(
+    name = "queue_manager_test",
+    srcs = [
+        "QueueManagerTest.cpp",
+    ],
+)
+
+switch_manager_unittest(
+    name = "route_manager_test",
+    srcs = [
+        "RouteManagerTest.cpp",
+    ],
+)
+
+switch_manager_unittest(
+    name = "router_interface_manager_test",
+    srcs = [
+        "RouterInterfaceManagerTest.cpp",
+    ],
+)
+
+switch_manager_unittest(
+    name = "samplepacket_manager_test",
+    srcs = [
+        "SamplePacketManagerTest.cpp",
+    ],
+)
+
+switch_manager_unittest(
+    name = "scheduler_manager_test",
+    srcs = [
+        "SchedulerManagerTest.cpp",
+    ],
+)
+
+switch_manager_unittest(
+    name = "switch_manager_test",
+    srcs = [
+        "SwitchManagerTest.cpp",
+    ],
+)
+
+switch_manager_unittest(
+    name = "systemport_manager_test",
+    srcs = [
+        "SystemPortManagerTest.cpp",
+    ],
+)
+
+switch_manager_unittest(
+    name = "tunnel_manager_test",
+    srcs = [
+        "TunnelManagerTest.cpp",
+    ],
+)
+
+phy_switch_manager_unittest(
+    name = "phy_switch_manager_test",
+    srcs = [
+        "SwitchManagerTest.cpp",
+    ],
+)
+
+switch_manager_unittest(
+    name = "unsupported_feature_test",
+    srcs = [
+        "UnsupportedFeatureTest.cpp",
+    ],
+)
+
+switch_manager_unittest(
+    name = "udf_manager_test",
+    srcs = [
+        "UdfManagerTest.cpp",
+    ],
+)
+
+switch_manager_unittest(
+    name = "virtual_router_manager_test",
+    srcs = [
+        "VirtualRouterManagerTest.cpp",
+    ],
+)
+
+switch_manager_unittest(
+    name = "vlan_manager_test",
+    srcs = [
+        "VlanManagerTest.cpp",
+    ],
+)
+
+phy_switch_manager_unittest(
+    name = "phy_acltable_manager_test",
+    srcs = [
+        "phy/AclTableManagerTest.cpp",
+    ],
+)
+
+phy_switch_manager_unittest(
+    name = "macsec_manager_test",
+    srcs = [
+        "phy/MacsecManagerTest.cpp",
+    ],
+)

@@ -1,0 +1,112 @@
+load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
+
+oncall("fboss_optics_phy")
+
+cpp_library(
+    name = "qsfp-module",
+    srcs = [
+        "QsfpHelper.cpp",
+        "QsfpModule.cpp",
+        "QsfpUtil.cpp",
+        "cmis/CmisFieldInfo.cpp",
+        "cmis/CmisModule.cpp",
+        "facebook/QsfpModule.cpp",
+        "facebook/SffModule.cpp",
+        "sff/Sff8472FieldInfo.cpp",
+        "sff/Sff8472Module.cpp",
+        "sff/SffFieldInfo.cpp",
+        "sff/SffModule.cpp",
+    ],
+    headers = [
+        "QsfpFieldInfo.h",
+        "QsfpUtil.h",
+        "facebook/SffFr1FieldInfo.h",
+    ],
+    exported_deps = [
+        ":firmware_upgrader",
+        "//common/strings/icu:icu_string",
+        "//common/time:time",
+        "//configerator/distribution/api:api",
+        "//fboss/agent:fboss-error",
+        "//fboss/agent:fboss-types",
+        "//fboss/agent:switch_config-cpp2-types",
+        "//fboss/lib/firmware_storage:firmware_storage",
+        "//fboss/lib/link_snapshots:snapshot_manager",
+        "//fboss/lib/phy:phy-cpp2-types",
+        "//fboss/lib/phy:prbs-cpp2-types",
+        "//fboss/lib/platforms:platform_mode",
+        "//fboss/lib/usb:i2-api",
+        "//fboss/qsfp_service:stats",
+        "//fboss/qsfp_service:transceiver-manager",
+        "//fboss/qsfp_service/if:config-cpp2-types",
+        "//fboss/qsfp_service/if:transceiver-cpp2-types",
+        "//fboss/qsfp_service/lib:qsfp-config-parser-helper",
+        "//fboss/qsfp_service/lib:qsfp-service-client",
+        "//folly:synchronized",
+        "//folly/executors:function_scheduler",
+        "//folly/futures:core",
+        "//folly/io:iobuf",
+        "//folly/io/async:async_base",
+        "//folly/logging:logging",
+        "//thrift/lib/cpp/util:enum_utils",
+    ],
+    exported_external_deps = [
+        ("boost", None, "boost_assign"),
+        ("boost", None, "boost_bimap"),
+    ],
+)
+
+cpp_library(
+    name = "firmware_upgrader",
+    srcs = [
+        "CdbCommandBlock.cpp",
+        "FirmwareUpgrader.cpp",
+    ],
+    headers = [
+        "CdbCommandBlock.h",
+        "FirmwareUpgrader.h",
+        "Transceiver.h",
+        "TransceiverImpl.h",
+    ],
+    exported_deps = [
+        "//fboss/agent:fboss-error",
+        "//fboss/agent:fboss-types",
+        "//fboss/agent:switch_config-cpp2-types",
+        "//fboss/agent/if:ctrl-cpp2-types",
+        "//fboss/lib/firmware_storage:firmware_storage",
+        "//fboss/lib/phy:phy-cpp2-types",
+        "//fboss/lib/phy:prbs-cpp2-types",
+        "//fboss/lib/usb:transceiver_access_parameter",
+        "//fboss/qsfp_service/if:config-cpp2-types",
+        "//fboss/qsfp_service/if:transceiver-cpp2-types",
+        "//folly:conv",
+        "//folly:file",
+        "//folly:file_util",
+        "//folly:format",
+        "//folly:string",
+        "//folly/futures:core",
+        "//folly/init:init",
+        "//folly/io:iobuf",
+        "//folly/io/async:async_base",
+        "//folly/logging:logging",
+    ],
+    exported_external_deps = [
+        "glog",
+    ],
+)
+
+cpp_library(
+    name = "i2c_log_buffer",
+    srcs = [
+        "I2cLogBuffer.cpp",
+    ],
+    headers = [
+        "I2cLogBuffer.h",
+    ],
+    exported_deps = [
+        "//fboss/lib/usb:transceiver_access_parameter",
+        "//fboss/qsfp_service/if:config-cpp2-types",
+        "//folly:file_util",
+        "//folly/logging:logging",
+    ],
+)

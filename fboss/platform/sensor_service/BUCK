@@ -1,0 +1,134 @@
+load("@fbcode_macros//build_defs:cpp_binary.bzl", "cpp_binary")
+load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
+load("@fbcode_macros//build_defs:custom_unittest.bzl", "custom_unittest")
+load("@fbcode_macros//build_defs:thrift_library.bzl", "thrift_library")
+
+oncall("fboss_platform")
+
+cpp_library(
+    name = "service",
+    srcs = [
+        "FsdbSyncer.cpp",
+        "SensorServiceImpl.cpp",
+        "facebook/FsdbSyncer.cpp",
+    ],
+    headers = [
+        "SensorServiceImpl.h",
+    ],
+    exported_deps = [
+        ":sensor_service_stats-cpp2-types",
+        ":utils",
+        "//fb303:service_data",
+        "//fboss/fsdb/client:fsdb_pub_sub",
+        "//fboss/fsdb/client:fsdb_stream_client",
+        "//fboss/fsdb/common:flags",
+        "//fboss/fsdb/if:fsdb_model",
+        "//fboss/fsdb/if:fsdb_oper-cpp2-types",
+        "//fboss/platform/config_lib:config_lib",
+        "//fboss/platform/sensor_service/if:sensor_config-cpp2-types",
+        "//fboss/platform/sensor_service/if:sensor_service-cpp2-types",
+        "//folly:file_util",
+        "//folly:synchronized",
+        "//folly/json:dynamic",
+        "//folly/logging:logging",
+        "//thrift/lib/cpp2/protocol:protocol",
+    ],
+)
+
+cpp_library(
+    name = "core",
+    srcs = [
+        "Flags.cpp",
+        "SensorServiceThriftHandler.cpp",
+    ],
+    exported_deps = [
+        ":service",
+        ":utils",
+        "//fboss/lib:log_thrift_call",
+        "//fboss/platform/sensor_service/if:sensor_service-cpp2-services",
+        "//folly/logging:logging",
+    ],
+    exported_external_deps = [
+        "gflags",
+    ],
+)
+
+cpp_library(
+    name = "utils",
+    srcs = [
+        "Utils.cpp",
+    ],
+    exported_deps = [
+        "fbsource//third-party/exprtk:exprtk",
+    ],
+    exported_external_deps = [
+        "re2",
+    ],
+)
+
+cpp_binary(
+    name = "sensor_service",
+    srcs = [
+        "Main.cpp",
+    ],
+    deps = [
+        ":core",
+        "//fb303:logging",
+        "//fboss/platform/helpers:init",
+        "//folly/executors:function_scheduler",
+        "//folly/logging:init",
+    ],
+)
+
+custom_unittest(
+    name = "test_sensor_service_version",
+    command = [
+        "fboss/lib/test/test_version.sh",
+        "$(exe :sensor_service)",
+    ],
+    type = "simple",
+)
+
+thrift_library(
+    name = "sensor_service_stats",
+    cpp2_deps = [
+    ],
+    go_thrift_namespaces = {
+        "sensor_service_stats.thrift": "neteng.fboss.sensor_service_stats",
+    },
+    languages = [
+        "cpp2",
+        "py",
+        "go",
+        "py3",
+        "py-asyncio",
+        "rust",
+    ],
+    py3_namespace = "neteng.fboss",
+    py_asyncio_base_module = "neteng.fboss.asyncio",
+    py_base_module = "neteng.fboss",
+    thrift_cpp2_options = [
+        "json",
+        "reflection",
+    ],
+    thrift_srcs = {"sensor_service_stats.thrift": []},
+    deps = [
+        "//fboss/platform/sensor_service/if:sensor_service",
+    ],
+)
+
+cpp_binary(
+    name = "sensor_service_client",
+    srcs = [
+        "SensorServicePlainTextClient.cpp",
+    ],
+    deps = [
+        "//fboss/platform/helpers:init",
+        "//fboss/platform/sensor_service/if:sensor_service-cpp2-clients",
+        "//folly/logging:logging",
+        "//thrift/lib/cpp2/async:rocket_client_channel",
+    ],
+    external_deps = [
+        ("glibc", None, "rt"),
+    ],
+)

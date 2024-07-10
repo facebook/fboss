@@ -1,0 +1,40 @@
+load("@fbcode_macros//build_defs:thrift_library.bzl", "thrift_library")
+load(
+    "//fboss/agent/hw/sai/hw_test:hw_test.bzl",
+    "all_phy_capabilities",
+    "all_switch_ensembles",
+    "all_test_binaries",
+    "all_test_handlers",
+    "all_test_libs",
+)
+
+oncall("fboss_agent_push")
+
+thrift_library(
+    name = "if",
+    languages = [
+        "cpp2",
+        "py",
+        "py3",
+    ],
+    py3_namespace = "neteng.fboss",
+    py_base_module = "neteng.fboss",
+    thrift_srcs = {
+        "sai_test_ctrl.thrift": ["SaiTestCtrl"],
+    },
+    deps = [
+        "//fboss/agent/hw:hw_test_ctrl",
+        "//fboss/agent/if:ctrl",
+        "//fboss/agent/if:fboss",
+    ],
+)
+
+all_phy_capabilities()
+
+all_switch_ensembles()
+
+all_test_binaries()
+
+all_test_handlers()
+
+all_test_libs()

@@ -1,0 +1,132 @@
+load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
+load("@fbcode_macros//build_defs:cpp_unittest.bzl", "cpp_unittest")
+
+oncall("fboss_agent_push")
+
+cpp_library(
+    name = "rib_header",
+    headers = glob(["*.h"]),
+    exported_deps = [
+        "//fboss/agent:fboss-types",
+        "//fboss/agent:switch_config-cpp2-types",
+        "//fboss/agent/if:ctrl-cpp2-services",
+        "//fboss/agent/state:state",
+        "//fboss/lib:radix_tree",
+        "//folly:network_address",
+        "//folly:range",
+        "//folly:synchronized",
+        "//folly/json:dynamic",
+    ],
+    exported_external_deps = [
+        ("boost", None, "boost_container"),
+    ],
+)
+
+cpp_library(
+    name = "standalone_rib",
+    srcs = [
+        "ConfigApplier.cpp",
+        "RouteUpdater.cpp",
+        "RoutingInformationBase.cpp",
+    ],
+    exported_deps = [
+        ":network_to_route_map",
+        "//fboss/agent:address_utils",
+        "//fboss/agent:constants",
+        "//fboss/agent:fboss-error",
+        "//fboss/agent:fboss-types",
+        "//fboss/agent:switch_config-cpp2-types",
+        "//fboss/agent:utils",
+        "//fboss/agent/if:ctrl-cpp2-services",
+        "//fboss/agent/if:ctrl-cpp2-types",
+        "//fboss/agent/state:nodebase",
+        "//fboss/agent/state:state",
+        "//folly:network_address",
+        "//folly:range",
+        "//folly:scope_guard",
+        "//folly:synchronized",
+        "//folly/logging:logging",
+    ],
+    exported_external_deps = [
+        "boost",
+        ("boost", None, "boost_container"),
+    ],
+)
+
+cpp_unittest(
+    name = "rib_tests",
+    srcs = [
+        "test/FibInteractionTests.cpp",
+        "test/RibLpmTests.cpp",
+        "test/RibRollbackTests.cpp",
+        "test/RouteTests.cpp",
+        "test/SerDesTests.cpp",
+    ],
+    deps = [
+        ":fib_updater",
+        ":network_to_route_map",
+        ":standalone_rib",
+        "//common/network/if:if-cpp2-types",
+        "//fboss/agent:address_utils",
+        "//fboss/agent:core",
+        "//fboss/agent:fboss-error",
+        "//fboss/agent:fboss-types",
+        "//fboss/agent:switch_config-cpp2-types",
+        "//fboss/agent:switchid_scope_resolver",
+        "//fboss/agent:utils",
+        "//fboss/agent/hw/mock:mock",
+        "//fboss/agent/if:ctrl-cpp2-services",
+        "//fboss/agent/if:ctrl-cpp2-types",
+        "//fboss/agent/state:state",
+        "//fboss/agent/test:hw_test_handle",
+        "//fboss/agent/test:label_forwarding_utils",
+        "//fboss/agent/test:utils",
+        "//folly:network_address",
+        "//folly/functional:partial",
+        "//folly/json:dynamic",
+        "//folly/logging:logging",
+    ],
+)
+
+cpp_unittest(
+    name = "config_application_tests",
+    srcs = [
+        "test/ConfigApplicationTests.cpp",
+    ],
+    deps = [
+        ":standalone_rib",
+        "//fboss/agent:switch_config-cpp2-types",
+        "//fboss/agent/hw/mock:mock",
+        "//fboss/agent/state:state",
+        "//fboss/agent/test:utils",
+    ],
+)
+
+cpp_library(
+    name = "network_to_route_map",
+    headers = ["NetworkToRouteMap.h"],
+    exported_deps = [
+        "//fboss/agent:fboss-types",
+        "//fboss/agent/state:state",
+        "//fboss/lib:radix_tree",
+        "//folly:network_address",
+        "//folly/json:dynamic",
+    ],
+)
+
+cpp_library(
+    name = "fib_updater",
+    srcs = [
+        "FibUpdateHelpers.cpp",
+        "ForwardingInformationBaseUpdater.cpp",
+    ],
+    exported_deps = [
+        ":network_to_route_map",
+        ":standalone_rib",
+        "//fboss/agent:fboss-types",
+        "//fboss/agent:switchid_scope_resolver",
+        "//fboss/agent/state:nodebase",
+        "//fboss/agent/state:state",
+        "//folly/logging:logging",
+    ],
+)

@@ -1,0 +1,34 @@
+load("@fbcode_macros//build_defs:cpp_binary.bzl", "cpp_binary")
+load("@fbcode_macros//build_defs:cpp_unittest.bzl", "cpp_unittest")
+
+oncall("fboss_optics_phy")
+
+cpp_binary(
+    name = "qsfp_cache_exerciser",
+    srcs = ["QsfpCacheExerciser.cpp"],
+    deps = [
+        "//fboss/agent:fboss-types",
+        "//fboss/agent/if:ctrl-cpp2-clients",
+        "//fboss/agent/if:ctrl-cpp2-types",
+        "//fboss/qsfp_service/lib:qsfp-cache",
+        "//folly:random",
+        "//folly/executors:function_scheduler",
+        "//folly/init:init",
+        "//folly/io/async:async_base",
+        "//folly/io/async:async_socket",
+        "//folly/logging:logging",
+        "//thrift/lib/cpp2/async:header_client_channel",
+    ],
+)
+
+cpp_unittest(
+    name = "qsfp-config-parser-test",
+    srcs = [
+        "QsfpConfigParserTest.cpp",
+    ],
+    deps = [
+        "//fboss/qsfp_service/if:config-cpp2-types",
+        "//fboss/qsfp_service/if:transceiver-cpp2-types",
+        "//fboss/qsfp_service/lib:qsfp-config-parser-helper",
+    ],
+)

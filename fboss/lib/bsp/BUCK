@@ -1,0 +1,120 @@
+load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
+load("@fbcode_macros//build_defs:thrift_library.bzl", "thrift_library")
+
+oncall("fboss_optics_phy")
+
+thrift_library(
+    name = "bsp_platform_mapping",
+    languages = [
+        "cpp2",
+        "py",
+    ],
+    py_base_module = "neteng.fboss",
+    thrift_cpp2_options = [
+        "json",
+    ],
+    thrift_srcs = {"bsp_platform_mapping.thrift": []},
+    deps = [
+        "//fboss/lib/led:led_mapping",
+    ],
+)
+
+cpp_library(
+    name = "bsp_platform_mapping_lib",
+    srcs = [
+        "BspPlatformMapping.cpp",
+    ],
+    headers = [
+        "BspPlatformMapping.h",
+    ],
+    exported_deps = [
+        ":bsp_platform_mapping-cpp2-types",
+    ],
+)
+
+cpp_library(
+    name = "bsp_system_container",
+    headers = [
+        "BspSystemContainer.h",
+    ],
+    exported_deps = [
+        ":bsp_core",
+        ":bsp_platform_mapping-cpp2-types",
+        ":bsp_platform_mapping_lib",
+        "//fboss/lib/fpga:fpga_device",
+        "//fboss/lib/phy:phy_management_base",
+    ],
+)
+
+cpp_library(
+    name = "bsp_core",
+    srcs = [
+        "BspGenericSystemContainer.cpp",
+        "BspIOBus.cpp",
+        "BspLedContainer.cpp",
+        "BspPhyContainer.cpp",
+        "BspPhyIO.cpp",
+        "BspPimContainer.cpp",
+        "BspPlatformMapping.cpp",
+        "BspSystemContainer.cpp",
+        "BspTransceiverAccess.cpp",
+        "BspTransceiverAccessImpl.cpp",
+        "BspTransceiverApi.cpp",
+        "BspTransceiverContainer.cpp",
+        "BspTransceiverCpldAccess.cpp",
+        "BspTransceiverGpioAccess.cpp",
+        "BspTransceiverIO.cpp",
+    ],
+    headers = [
+        "BspGenericSystemContainer.h",
+        "BspIOBus.h",
+        "BspLedContainer.h",
+        "BspPhyContainer.h",
+        "BspPhyIO.h",
+        "BspPimContainer.h",
+        "BspPlatformMapping.h",
+        "BspSystemContainer.h",
+        "BspTransceiverAccess.h",
+        "BspTransceiverAccessImpl.h",
+        "BspTransceiverApi.h",
+        "BspTransceiverContainer.h",
+        "BspTransceiverCpldAccess.h",
+        "BspTransceiverGpioAccess.h",
+        "BspTransceiverIO.h",
+    ],
+    exported_deps = [
+        ":bsp_platform_mapping-cpp2-types",
+        "//fboss/agent:fboss-error",
+        "//fboss/lib:common_file_utils",
+        "//fboss/lib:gpiod_line",
+        "//fboss/lib/bsp/janga800bic:janga800bic_bsp",
+        "//fboss/lib/bsp/meru400bfu:meru400bfu_bsp",
+        "//fboss/lib/bsp/meru400bia:meru400bia_bsp",
+        "//fboss/lib/bsp/meru400biu:meru400biu_bsp",
+        "//fboss/lib/bsp/meru800bfa:meru800bfa_bsp",
+        "//fboss/lib/bsp/meru800bia:meru800bia_bsp",
+        "//fboss/lib/bsp/montblanc:montblanc_bsp",
+        "//fboss/lib/bsp/morgan800cc:morgan800cc_bsp",
+        "//fboss/lib/bsp/tahan800bc:tahan800bc_bsp",
+        "//fboss/lib/fpga:fpga_device",
+        "//fboss/lib/fpga:multi_pim_container",
+        "//fboss/lib/i2c:i2c_controller_stats-cpp2-types",
+        "//fboss/lib/i2c:i2c_ctrl",
+        "//fboss/lib/led:led_lib",
+        "//fboss/lib/led:led_mapping-cpp2-types",
+        "//fboss/lib/phy:phy_management_base",
+        "//fboss/lib/usb:i2-api",
+        "//fboss/mdio:device_mdio",
+        "//folly:file_util",
+        "//folly:format",
+        "//folly:range",
+        "//folly:singleton",
+        "//folly/lang:bits",
+        "//folly/logging:logging",
+        "//thrift/lib/cpp/util:enum_utils",
+    ],
+    exported_external_deps = [
+        "gflags",
+        ("libgpiod", None, "gpiod"),
+    ],
+)

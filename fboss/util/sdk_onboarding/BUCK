@@ -1,0 +1,29 @@
+load("@fbcode_macros//build_defs:python_binary.bzl", "python_binary")
+load("@fbcode_macros//build_defs:thrift_library.bzl", "thrift_library")
+
+oncall("fboss_agent_push")
+
+thrift_library(
+    name = "sdk_test_config",
+    languages = [
+        "py3",
+    ],
+    py3_namespace = "neteng.fboss",
+    thrift_srcs = {"sdk_test_config.thrift": []},
+    deps = [
+        "//fboss/agent:switch_config",
+    ],
+)
+
+python_binary(
+    name = "sdk_tests",
+    srcs = [
+        "sdk_tests.py",
+    ],
+    main_function = "fboss.util.sdk_onboarding.sdk_tests.main",
+    deps = [
+        ":sdk_test_config-py3-types",
+        "//fboss/agent:switch_config-py3-types",
+        "//thrift/lib/py3:types",
+    ],
+)

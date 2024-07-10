@@ -1,0 +1,18 @@
+load("@fbcode_macros//build_defs:cpp_unittest.bzl", "cpp_unittest")
+
+oncall("fboss_platform")
+
+cpp_unittest(
+    name = "data_corral_sw_test",
+    srcs = [
+        "FruPresenceExplorerTests.cpp",
+        "LedManagerTests.cpp",
+    ],
+    deps = [
+        "fbsource//third-party/googletest:gmock",
+        "//fboss/lib:common_file_utils",
+        "//fboss/platform/data_corral_service:led_management",
+        "//folly:file_util",
+        "//folly/testing:test_util",
+    ],
+)

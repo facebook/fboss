@@ -1,0 +1,187 @@
+load("@fbcode_macros//build_defs:cpp_binary.bzl", "cpp_binary")
+load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
+load("@fbcode_macros//build_defs:cpp_unittest.bzl", "cpp_unittest")
+load("@fbcode_macros//build_defs:custom_rule.bzl", "custom_rule")
+load("@fbcode_macros//build_defs:custom_unittest.bzl", "custom_unittest")
+load("@fbcode_macros//build_defs:native_rules.bzl", "buck_filegroup", "buck_sh_binary")
+
+oncall("fboss_platform")
+
+cpp_library(
+    name = "handler",
+    srcs = [
+        "RackmonThriftHandler.cpp",
+        "//fboss/platform/rackmon:gen_config[GeneratedRackmonInterfaceConfig.cpp]",
+        "//fboss/platform/rackmon:gen_config[GeneratedRackmonPlsConfig.cpp]",
+        "//fboss/platform/rackmon:gen_config[GeneratedRackmonRegisterMapConfig.cpp]",
+    ],
+    headers = [
+        "RackmonConfig.h",
+        "RackmonThriftHandler.h",
+    ],
+    exported_deps = [
+        ":core",
+        ":rackmon_pls",
+        "//fb303:service_data",
+        "//fboss/platform/rackmon/if:rackmonsvc-cpp2-services",
+    ],
+    exported_external_deps = [
+        "glog",
+    ],
+)
+
+buck_sh_binary(
+    name = "generate_rackmon_config.sh",
+    main = "generate_rackmon_config.sh",
+)
+
+custom_rule(
+    name = "gen_config",
+    srcs = [
+        "configs/interface/rackmon.conf",
+        "configs/interface/rackmon_pls.conf",
+        "configs/register_map/orv2_psu.json",
+    ],
+    add_install_dir = True,
+    build_script_dep = ":generate_rackmon_config.sh",
+    output_gen_files = [
+        "GeneratedRackmonInterfaceConfig.cpp",
+        "GeneratedRackmonPlsConfig.cpp",
+        "GeneratedRackmonRegisterMapConfig.cpp",
+    ],
+    deps = [
+        ":config_files",
+    ],
+)
+
+buck_filegroup(
+    name = "config_files",
+    srcs = [
+        # Can be a file in the source tree
+        "configs/interface/rackmon.conf",
+        "configs/interface/rackmon_pls.conf",
+        "configs/register_map/orv2_psu.json",
+    ],
+)
+
+cpp_library(
+    # @autodeps-skip
+    name = "core",
+    srcs = [
+        "Device.cpp",
+        "Modbus.cpp",
+        "ModbusCmds.cpp",
+        "ModbusDevice.cpp",
+        "Msg.cpp",
+        "Rackmon.cpp",
+        "Register.cpp",
+        "UARTDevice.cpp",
+    ],
+    headers = [
+        "Device.h",
+        "Log.h",
+        "Modbus.h",
+        "ModbusCmds.h",
+        "ModbusDevice.h",
+        "ModbusError.h",
+        "Msg.h",
+        "PollThread.h",
+        "Rackmon.h",
+        "Register.h",
+        "UARTDevice.h",
+    ],
+    external_deps = [
+        "nlohmann_json",
+        "glog",
+    ],
+)
+
+cpp_library(
+    name = "rackmon_pls",
+    srcs = [
+        "RackmonPlsManager.cpp",
+    ],
+    headers = [
+        "RackmonPlsManager.h",
+    ],
+    exported_external_deps = [
+        "glog",
+        "nlohmann_json",
+        ("libgpiod", None, "gpiod"),
+    ],
+)
+
+cpp_binary(
+    name = "rackmon",
+    srcs = [
+        "Main.cpp",
+    ],
+    resources = [
+        "configs/interface/rackmon.conf",
+        "configs/interface/rackmon_pls.conf",
+        "configs/register_map/orv2_psu.json",
+    ],
+    deps = [
+        ":handler",
+        "//fb303:logging",
+        "//fboss/platform/helpers:init",
+        "//folly/logging:init",
+    ],
+)
+
+cpp_unittest(
+    # @autodeps-skip
+    name = "rackmon_test",
+    srcs = [
+        "tests/DeviceTest.cpp",
+        "tests/ModbusCmdsTest.cpp",
+        "tests/ModbusDeviceTest.cpp",
+        "tests/ModbusTest.cpp",
+        "tests/MsgTest.cpp",
+        "tests/PlsConfigTest.cpp",
+        "tests/PlsManagerTest.cpp",
+        "tests/PollThreadTest.cpp",
+        "tests/RackmonConfigTest.cpp",
+        "tests/RackmonTest.cpp",
+        "tests/RegisterDescriptorTest.cpp",
+        "tests/RegisterMapTest.cpp",
+        "tests/RegisterTest.cpp",
+        "tests/RegisterValueTest.cpp",
+    ],
+    headers = [
+        "Device.h",
+        "Modbus.h",
+        "ModbusCmds.h",
+        "ModbusDevice.h",
+        "Msg.h",
+        "PollThread.h",
+        "Rackmon.h",
+        "RackmonConfig.h",
+        "RackmonPlsManager.h",
+        "Register.h",
+        "tests/TempDir.h",
+    ],
+    compiler_flags = [
+        "-D__TEST__",
+    ],
+    include_paths = [
+        ".",
+    ],
+    deps = [
+        "fbsource//third-party/googletest:gtest",
+        "//common/services/cpp:cpp",
+        "//fboss/platform/rackmon:core",
+        "//fboss/platform/rackmon:handler",
+        "//fboss/platform/rackmon:rackmon_pls",
+    ],
+    external_deps = ["nlohmann_json"],
+)
+
+custom_unittest(
+    name = "test_rackmon_version",
+    command = [
+        "fboss/lib/test/test_version.sh",
+        "$(exe :rackmon)",
+    ],
+    type = "simple",
+)

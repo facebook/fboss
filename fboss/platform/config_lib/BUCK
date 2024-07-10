@@ -1,0 +1,75 @@
+load("@fbcode_macros//build_defs:cpp_binary.bzl", "cpp_binary")
+load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
+load("@fbcode_macros//build_defs:cpp_unittest.bzl", "cpp_unittest")
+load("@fbcode_macros//build_defs:custom_rule.bzl", "custom_rule")
+
+oncall("fboss_platform")
+
+cpp_binary(
+    name = "config_generator",
+    srcs = [
+        "facebook/ConfigGenerator.cpp",
+    ],
+    deps = [
+        "//fboss/platform/data_corral_service/if:led_manager-cpp2-types",
+        "//fboss/platform/fan_service/if:fan_service-cpp2-types",
+        "//fboss/platform/fbdevd/if:fbdevd-cpp2-types",
+        "//fboss/platform/fw_util/if:fw_util_config-cpp2-types",
+        "//fboss/platform/platform_manager:config_validator",
+        "//fboss/platform/platform_manager:platform_manager_config-cpp2-types",
+        "//fboss/platform/sensor_service/if:sensor_config-cpp2-types",
+        "//fboss/platform/weutil/if:weutil_config-cpp2-types",
+        "//folly:file_util",
+        "//folly/init:init",
+        "//folly/logging:logging",
+        "//thrift/lib/cpp2/protocol:protocol",
+    ],
+)
+
+custom_rule(
+    name = "config_generator_h",
+    build_args = "--json_config_dir $(location fbcode//fboss/platform:configs)",
+    build_script_dep = ":config_generator",
+    output_gen_files = ["GeneratedConfig.h"],
+)
+
+cpp_library(
+    name = "config_lib",
+    srcs = [
+        "ConfigLib.cpp",
+    ],
+    headers = [
+        ":config_generator_h[GeneratedConfig.h]",
+    ],
+    exported_deps = [
+        "//fboss/lib/platforms:platform_mode",
+        "//fboss/lib/platforms:product-info",
+        "//folly:file_util",
+        "//folly/logging:logging",
+    ],
+    exported_external_deps = [
+        "gflags",
+    ],
+)
+
+cpp_library(
+    name = "mock_config_lib",
+    headers = [
+        "MockConfigLib.h",
+    ],
+    exported_deps = [
+        "fbsource//third-party/googletest:gmock",
+        ":config_lib",
+    ],
+)
+
+cpp_unittest(
+    name = "config_lib_test",
+    srcs = [
+        "facebook/ConfigLibTest.cpp",
+    ],
+    deps = [
+        ":config_lib",
+        "//folly/logging:logging",
+    ],
+)

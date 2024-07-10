@@ -1,0 +1,91 @@
+load("@fbcode_macros//build_defs:cpp_binary.bzl", "cpp_binary")
+load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
+load("@fbcode_macros//build_defs:cpp_unittest.bzl", "cpp_unittest")
+
+oncall("fboss_optics_phy")
+
+cpp_binary(
+    name = "qsfp_service_test",
+    srcs = [
+        "QsfpServiceTest.cpp",
+    ],
+    deps = [
+        "fbsource//third-party/googletest:gtest",
+        "//common/init:init",
+        "//fboss/qsfp_service:handler",
+        "//fboss/qsfp_service/platforms/wedge:wedge-platform-credo-0.7.2",
+        "//folly:singleton",
+        "//folly/executors:function_scheduler",
+        "//folly/logging:logging",
+        "//thrift/lib/cpp2:server",
+    ],
+)
+
+cpp_library(
+    name = "fake-configs-helper",
+    headers = [
+        "FakeConfigsHelper.h",
+    ],
+    exported_deps = [
+        "//fboss/agent:load_agent_config",
+        "//fboss/qsfp_service:qsfp-config",
+    ],
+)
+
+cpp_library(
+    name = "transceiver_manager_test_helper",
+    srcs = [
+        "TransceiverManagerTestHelper.cpp",
+    ],
+    headers = [
+        "TransceiverManagerTestHelper.h",
+    ],
+    exported_deps = [
+        "fbsource//third-party/googletest:gtest",
+        ":fake-configs-helper",
+        "//fboss/qsfp_service/platforms/wedge/tests:mock-wedge-manager",
+        "//folly/testing:test_util",
+    ],
+)
+
+cpp_unittest(
+    name = "transceiver_manager_test",
+    srcs = [
+        "TransceiverManagerTest.cpp",
+    ],
+    deps = [
+        ":transceiver_manager_test_helper",
+        "//fboss/lib:common_file_utils",
+    ],
+)
+
+cpp_unittest(
+    name = "bsp_platform_map_test",
+    srcs = [
+        "BspPlatformMapTest.cpp",
+    ],
+    deps = [
+        "//fboss/lib:common_file_utils",
+        "//fboss/lib/bsp/meru400bfu:meru400bfu_bsp",
+        "//fboss/lib/bsp/meru400bia:meru400bia_bsp",
+        "//fboss/lib/bsp/meru400biu:meru400biu_bsp",
+        "//fboss/lib/bsp/montblanc:montblanc_bsp",
+        "//fboss/qsfp_service/platforms/wedge/tests:mock-wedge-manager",
+        "//folly/testing:test_util",
+    ],
+)
+
+cpp_unittest(
+    name = "transceiver_state_machine_test",
+    srcs = [
+        "TransceiverStateMachineTest.cpp",
+    ],
+    deps = [
+        ":transceiver_manager_test_helper",
+        "//fboss/qsfp_service:transceiver-manager",
+        "//fboss/qsfp_service/module:qsfp-module",
+        "//fboss/qsfp_service/module/tests:fake-transceiver-impl",
+        "//fboss/qsfp_service/module/tests:mock-headers",
+        "//fboss/qsfp_service/test/hw_test:hw_transceiver_utils",
+    ],
+)

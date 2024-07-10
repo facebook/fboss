@@ -1,0 +1,41 @@
+load("@fbcode_macros//build_defs:cpp_binary.bzl", "cpp_binary")
+load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
+
+oncall("fboss_optics_phy")
+
+cpp_binary(
+    name = "fboss-bspmapping-gen",
+    srcs = [
+        "Main.cpp",
+    ],
+    resources = glob([
+        "input/*.csv",
+    ]),
+    deps = [
+        ":parser",
+        "//fboss/lib/if:fboss_common-cpp2-types",
+        "//folly:file_util",
+        "//thrift/lib/cpp2/protocol:protocol",
+    ],
+    external_deps = [
+        "nlohmann_json",
+    ],
+)
+
+cpp_library(
+    name = "parser",
+    srcs = [
+        "Parser.cpp",
+    ],
+    headers = [
+        "Parser.h",
+    ],
+    exported_deps = [
+        "//fboss/lib/bsp:bsp_platform_mapping-cpp2-types",
+        "//fboss/lib/if:fboss_common-cpp2-types",
+        "//fboss/lib/platforms:platform_mode",
+        "//folly:file_util",
+        "//folly:range",
+        "//folly:string",
+    ],
+)
