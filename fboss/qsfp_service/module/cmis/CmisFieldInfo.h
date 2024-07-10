@@ -226,7 +226,16 @@ enum class CmisField {
 enum FieldMasks : uint8_t {
   CABLE_LENGTH_MASK = 0x3f, // Highest two bits are multipliers.
   CDR_IMPL_MASK = 0x01,
-  POWER_CONTROL_MASK = 0x40,
+
+  // Byte 26 (Module Global Controls) bitmask:
+  // Bit 6: LowPwrAllowRequestHW in CMIS 5.0, LowPwr in 4.0
+  // Bit 4: LowPwrRequestSW in CMIS 5.0, ForceLowPwr in 4.0
+  LOW_PWR_BIT = (1 << 6),
+  FORCE_LOW_PWR_BIT = (1 << 4),
+  // When clearing LP mode, we'll clear both bits. When setting LP mode,
+  // we'll only set bit 6
+  POWER_CONTROL_MASK = LOW_PWR_BIT | FORCE_LOW_PWR_BIT,
+
   APP_SEL_BITSHIFT = 4,
   APP_SEL_MASK = 0xf0,
   DATA_PATH_ID_MASK = 0xe,

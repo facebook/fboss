@@ -2875,7 +2875,7 @@ bool CmisModule::ensureTransceiverReadyLocked() {
   // needs some time to converge its state machine
 
   // LowPwr is on the 6 bit of ModuleControl.
-  currentModuleControl = currentModuleControl | POWER_CONTROL_MASK;
+  currentModuleControl = currentModuleControl | LOW_PWR_BIT;
 
   // first set to low power
   writeCmisField(CmisField::MODULE_CONTROL, &currentModuleControl);
