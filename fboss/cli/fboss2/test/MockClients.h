@@ -17,7 +17,6 @@
 #include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
 #include "neteng/fboss/bgp/if/gen-cpp2/TBgpService.h"
 
-using namespace ::testing;
 namespace facebook::fboss {
 
 using namespace facebook::neteng::fboss::bgp::thrift;
