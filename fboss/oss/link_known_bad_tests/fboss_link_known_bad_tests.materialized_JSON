@@ -19043,6 +19043,9 @@
           "test_name_regex": "cold_boot.SpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.FOURHUNDREDGToTWOHUNDREDG$"
+        },
+        {
           "test_name_regex": "warm_boot.SpeedChangeTest.FOURHUNDREDGToTWOHUNDREDG$"
         },
         {
@@ -19124,6 +19127,9 @@
         },
         {
           "test_name_regex": "cold_boot.SpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.FOURHUNDREDGToTWOHUNDREDG$"
         },
         {
           "test_name_regex": "warm_boot.SpeedChangeTest.FOURHUNDREDGToTWOHUNDREDG$"
@@ -19209,6 +19215,9 @@
           "test_name_regex": "cold_boot.SpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.FOURHUNDREDGToTWOHUNDREDG$"
+        },
+        {
           "test_name_regex": "warm_boot.SpeedChangeTest.FOURHUNDREDGToTWOHUNDREDG$"
         },
         {
@@ -19290,6 +19299,9 @@
         },
         {
           "test_name_regex": "cold_boot.SpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.FOURHUNDREDGToTWOHUNDREDG$"
         },
         {
           "test_name_regex": "warm_boot.SpeedChangeTest.FOURHUNDREDGToTWOHUNDREDG$"
@@ -19375,6 +19387,9 @@
           "test_name_regex": "cold_boot.SpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.FOURHUNDREDGToTWOHUNDREDG$"
+        },
+        {
           "test_name_regex": "warm_boot.SpeedChangeTest.FOURHUNDREDGToTWOHUNDREDG$"
         },
         {
@@ -19456,6 +19471,9 @@
         },
         {
           "test_name_regex": "cold_boot.SpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.FOURHUNDREDGToTWOHUNDREDG$"
         },
         {
           "test_name_regex": "warm_boot.SpeedChangeTest.FOURHUNDREDGToTWOHUNDREDG$"
@@ -19541,6 +19559,9 @@
           "test_name_regex": "cold_boot.SpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.FOURHUNDREDGToTWOHUNDREDG$"
+        },
+        {
           "test_name_regex": "warm_boot.SpeedChangeTest.FOURHUNDREDGToTWOHUNDREDG$"
         },
         {
@@ -19624,6 +19645,9 @@
           "test_name_regex": "cold_boot.SpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.FOURHUNDREDGToTWOHUNDREDG$"
+        },
+        {
           "test_name_regex": "warm_boot.SpeedChangeTest.FOURHUNDREDGToTWOHUNDREDG$"
         },
         {
@@ -19705,6 +19729,9 @@
         },
         {
           "test_name_regex": "cold_boot.SpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.FOURHUNDREDGToTWOHUNDREDG$"
         },
         {
           "test_name_regex": "warm_boot.SpeedChangeTest.FOURHUNDREDGToTWOHUNDREDG$"
@@ -19793,6 +19820,9 @@
           "test_name_regex": "cold_boot.SpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.FOURHUNDREDGToTWOHUNDREDG$"
+        },
+        {
           "test_name_regex": "warm_boot.SpeedChangeTest.FOURHUNDREDGToTWOHUNDREDG$"
         },
         {
@@ -19879,6 +19909,9 @@
           "test_name_regex": "cold_boot.SpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.FOURHUNDREDGToTWOHUNDREDG$"
+        },
+        {
           "test_name_regex": "warm_boot.SpeedChangeTest.FOURHUNDREDGToTWOHUNDREDG$"
         },
         {
@@ -19960,6 +19993,9 @@
         },
         {
           "test_name_regex": "cold_boot.SpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.FOURHUNDREDGToTWOHUNDREDG$"
         },
         {
           "test_name_regex": "warm_boot.SpeedChangeTest.FOURHUNDREDGToTWOHUNDREDG$"
@@ -20045,6 +20081,9 @@
           "test_name_regex": "cold_boot.SpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.FOURHUNDREDGToTWOHUNDREDG$"
+        },
+        {
           "test_name_regex": "warm_boot.SpeedChangeTest.FOURHUNDREDGToTWOHUNDREDG$"
         },
         {
@@ -20126,6 +20165,9 @@
         },
         {
           "test_name_regex": "cold_boot.SpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.FOURHUNDREDGToTWOHUNDREDG$"
         },
         {
           "test_name_regex": "warm_boot.SpeedChangeTest.FOURHUNDREDGToTWOHUNDREDG$"
