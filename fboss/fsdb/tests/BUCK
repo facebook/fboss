@@ -1,0 +1,20 @@
+load("@fbcode_macros//build_defs:thrift_library.bzl", "thrift_library")
+load("//fboss/thriftpath_plugin/facebook:thriftpath_plugin.bzl", "thrift_plugin_thriftpath")
+
+oncall("fboss_agent_push")
+
+thrift_library(
+    name = "thriftpath_test_thrift",
+    cpp2_deps = [
+        "//folly/container:f14_hash",
+    ],
+    languages = ["cpp2"],
+    plugins = [
+        thrift_plugin_thriftpath(),
+    ],
+    thrift_cpp2_options = "json,reflection",
+    thrift_srcs = {"thriftpath_test.thrift": []},
+    deps = [
+        "//thrift/annotation:cpp",
+    ],
+)

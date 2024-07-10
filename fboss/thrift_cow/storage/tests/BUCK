@@ -1,0 +1,29 @@
+load("@fbcode_macros//build_defs:cpp_unittest.bzl", "cpp_unittest")
+
+oncall("fboss_agent_push")
+
+cpp_unittest(
+    name = "storage_tests",
+    srcs = [
+        "CowStorageMgrTests.cpp",
+        "CowStorageTests.cpp",
+    ],
+    preprocessor_flags = [
+        "-DENABLE_PATCH_APIS",
+    ],
+    deps = [
+        "//fboss/fsdb/oper:extended_path_builder",
+        "//fboss/fsdb/tests:thriftpath_test_thrift-cpp2-reflection",
+        "//fboss/fsdb/tests:thriftpath_test_thrift-cpp2-thriftpath",
+        "//fboss/fsdb/tests:thriftpath_test_thrift-cpp2-types",
+        "//fboss/thrift_cow/nodes:serializer",
+        "//fboss/thrift_cow/storage:cow_storage",
+        "//fboss/thrift_cow/storage:cow_storage_mgr",
+        "//fboss/thrift_cow/visitors:visitors",
+        "//folly:string",
+        "//folly/json:dynamic",
+        "//folly/logging:logging",
+        "//thrift/lib/cpp2/protocol:protocol",
+        "//thrift/lib/cpp2/reflection:folly_dynamic",
+    ],
+)

@@ -1,0 +1,72 @@
+load("@fbcode_macros//build_defs:thrift_library.bzl", "thrift_library")
+
+oncall("fboss_optics_phy")
+
+thrift_library(
+    name = "led_structs",
+    go_thrift_namespaces = {
+        "led_structs.thrift": "neteng.fboss.led.led_structs",
+    },
+    languages = [
+        "cpp2",
+        "py",
+        "py3",
+        "go",
+        "py-asyncio",
+        "rust",
+    ],
+    py3_namespace = "neteng.fboss.led",
+    py_asyncio_base_module = "neteng.fboss.asyncio",
+    py_base_module = "neteng.fboss.led",
+    thrift_cpp2_options = ["json"],
+    thrift_py_options = "json",
+    thrift_rust_options = ["deprecated_default_enum_min_i32"],
+    thrift_srcs = {"led_structs.thrift": []},
+)
+
+thrift_library(
+    name = "led_service",
+    go_thrift_namespaces = {
+        "led_service.thrift": "neteng.fboss.led.led_service",
+    },
+    languages = [
+        "cpp2",
+        "py",
+        "py3",
+        "go",
+        "py-asyncio",
+        "rust",
+    ],
+    py3_namespace = "neteng.fboss.led",
+    py_asyncio_base_module = "neteng.fboss.asyncio",
+    py_base_module = "neteng.fboss.led",
+    thrift_cpp2_options = "json",
+    thrift_srcs = {"led_service.thrift": ["LedService"]},
+    deps = [
+        ":led_structs",
+        "//fboss/agent/if:ctrl",
+        "//fboss/agent/if:fboss",
+    ],
+)
+
+thrift_library(
+    name = "config",
+    go_thrift_namespaces = {
+        "led_service_config.thrift": "neteng.fboss.led_service_config",
+    },
+    languages = [
+        "cpp2",
+        "go",
+        "py",
+        "py3",
+        "py-asyncio",
+        "rust",
+    ],
+    py3_namespace = "neteng.fboss",
+    py_asyncio_base_module = "neteng.fboss.asyncio",
+    py_base_module = "neteng.fboss",
+    thrift_cpp2_options = "json",
+    thrift_py_options = "json,sort_keys",
+    thrift_rust_options = "serde",
+    thrift_srcs = {"led_service_config.thrift": []},
+)

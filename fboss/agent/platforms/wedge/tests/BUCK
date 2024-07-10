@@ -1,0 +1,28 @@
+load("@fbcode_macros//build_defs:cpp_unittest.bzl", "cpp_unittest")
+
+oncall("fboss_agent_push")
+
+cpp_unittest(
+    name = "platform_mapping_tests",
+    srcs = [
+        "PlatformMappingTest.cpp",
+        "facebook/PlatformMappingTest.cpp",
+    ],
+    deps = [
+        "//fboss/agent:fboss-error",
+        "//fboss/agent/platforms/common:platform_mapping",
+        "//fboss/agent/platforms/common/elbert:elbert_platform_mapping",
+        "//fboss/agent/platforms/common/fuji:fuji_platform_mapping",
+        "//fboss/agent/platforms/common/galaxy:galaxy_platform_mapping",
+        "//fboss/agent/platforms/common/minipack:minipack_platform_mapping",
+        "//fboss/agent/platforms/common/wedge100:wedge100_platform_mapping",
+        "//fboss/agent/platforms/common/wedge40:wedge40_platform_mapping",
+        "//fboss/agent/platforms/common/wedge400:wedge400_platform_mapping",
+        "//fboss/agent/platforms/common/wedge400c:wedge400c_platform_mapping",
+        "//fboss/agent/platforms/common/yamp:yamp_platform_mapping",
+        "//fboss/lib/config:fboss_config_utils",
+        "//fboss/lib/phy:phy-cpp2-types",
+        "//fboss/lib/platforms:platform_mode",
+        "//thrift/lib/cpp/util:enum_utils",
+    ],
+)

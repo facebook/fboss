@@ -1,0 +1,35 @@
+load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
+load("@fbcode_macros//build_defs:cpp_unittest.bzl", "cpp_unittest")
+
+oncall("fboss_agent_push")
+
+cpp_library(
+    name = "mock-transceiver-i2capi",
+    srcs = [
+        "MockTransceiverI2CApi.cpp",
+    ],
+    headers = [
+        "MockTransceiverI2CApi.h",
+    ],
+    exported_deps = [
+        "fbsource//third-party/googletest:gmock",
+        "fbsource//third-party/googletest:gtest",
+        "//fboss/lib/usb:i2-api",
+        "//fboss/qsfp_service/if:transceiver-cpp2-types",
+        "//fboss/qsfp_service/module/tests:fake-transceiver-impl",
+        "//folly/logging:logging",
+    ],
+)
+
+cpp_unittest(
+    name = "fboss_usblib_tests",
+    srcs = [
+        "PCA9548MuxedBusTests.cpp",
+    ],
+    deps = [
+        "fbsource//third-party/googletest:gmock",
+        "//fboss/lib/usb:cp2112",
+        "//fboss/lib/usb:wedge_i2c",
+        "//folly/container:enumerate",
+    ],
+)

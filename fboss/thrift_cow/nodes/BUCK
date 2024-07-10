@@ -1,0 +1,61 @@
+load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
+
+oncall("fboss_agent_push")
+
+cpp_library(
+    name = "serializer",
+    headers = [
+        "Serializer.h",
+    ],
+    deps = [],
+    exported_deps = [
+        "//fboss/fsdb/if:fsdb_oper-cpp2-types",
+        "//folly/io:iobuf",
+        "//thrift/lib/cpp2/protocol:protocol",
+        "//thrift/lib/cpp2/protocol/detail:protocol_methods",
+    ],
+)
+
+cpp_library(
+    name = "node_utils",
+    headers = [
+        "NodeUtils.h",
+    ],
+    exported_deps = [
+        ":serializer",
+        "//fatal:fatal",
+        "//folly:conv",
+        "//thrift/lib/cpp2/reflection:reflection",
+    ],
+)
+
+cpp_library(
+    name = "nodes",
+    headers = [
+        "ThriftListNode-inl.h",
+        "ThriftMapNode-inl.h",
+        "ThriftPrimitiveNode-inl.h",
+        "ThriftSetNode-inl.h",
+        "ThriftStructNode-inl.h",
+        "ThriftUnionNode-inl.h",
+        "Traits.h",
+        "Types.h",
+    ],
+    deps = [
+    ],
+    exported_deps = [
+        ":node_utils",
+        ":serializer",
+        "//fatal:fatal",
+        "//fboss/agent/state:nodebase",
+        "//fboss/fsdb/if:fsdb_oper-cpp2-types",
+        "//fboss/thrift_cow/visitors:visitors",
+        "//folly:conv",
+        "//folly:fbstring",
+        "//folly/json:dynamic",
+        "//thrift/lib/cpp2/protocol:protocol",
+        "//thrift/lib/cpp2/protocol/detail:protocol_methods",
+        "//thrift/lib/cpp2/reflection:folly_dynamic",
+        "//thrift/lib/cpp2/reflection:reflection",
+    ],
+)

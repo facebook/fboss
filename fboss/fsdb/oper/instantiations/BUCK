@@ -1,0 +1,77 @@
+load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
+
+oncall("fboss_agent_push")
+
+cpp_library(
+    name = "fsdb_cow_root_path_visitor",
+    srcs = ["FsdbCowRootPathVisitor.cpp"],
+    headers = [
+        "FsdbCowRootPathVisitor.h",
+    ],
+    exported_deps = [
+        ":fsdb_cow_root",
+        "//fboss/fsdb/if:fsdb_model",
+        "//fboss/thrift_cow/visitors:visitors",
+    ],
+)
+
+cpp_library(
+    name = "fsdb_cow_root",
+    srcs = ["FsdbCowRoot.cpp"],
+    headers = [
+        "FsdbCowRoot.h",
+    ],
+    exported_deps = [
+        "//fboss/fsdb/if:fsdb_model",
+        "//fboss/thrift_cow/nodes:nodes",
+    ],
+)
+
+cpp_library(
+    name = "fsdb_cow_storage",
+    srcs = ["FsdbCowStorage.cpp"],
+    headers = ["FsdbCowStorage.h"],
+    propagated_pp_flags = ["-DENABLE_PATCH_APIS"],
+    exported_deps = [
+        ":fsdb_cow_root",
+        ":fsdb_cow_root_path_visitor",
+        "//fboss/fsdb/if:fsdb_model",
+        "//fboss/thrift_cow/storage:cow_storage",
+    ],
+)
+
+cpp_library(
+    name = "fsdb_cow_subscription_manager",
+    srcs = ["FsdbCowSubscriptionManager.cpp"],
+    headers = ["FsdbCowSubscriptionManager.h"],
+    propagated_pp_flags = ["-DENABLE_PATCH_APIS"],
+    exported_deps = [
+        ":fsdb_cow_storage",
+        "//fboss/fsdb/if:fsdb_model",
+        "//fboss/fsdb/oper:subscription_manager",
+    ],
+)
+
+cpp_library(
+    name = "fsdb_path_converter",
+    srcs = ["FsdbPathConverter.cpp"],
+    headers = ["FsdbPathConverter.h"],
+    exported_deps = [
+        "//fboss/fsdb/if:fsdb_model",
+        "//fboss/fsdb/oper:path_helpers",
+    ],
+)
+
+cpp_library(
+    name = "fsdb_naive_periodic_subscribable_storage",
+    srcs = ["FsdbNaivePeriodicSubscribableStorage.cpp"],
+    headers = ["FsdbNaivePeriodicSubscribableStorage.h"],
+    propagated_pp_flags = ["-DENABLE_PATCH_APIS"],
+    exported_deps = [
+        ":fsdb_cow_storage",
+        ":fsdb_cow_subscription_manager",
+        ":fsdb_path_converter",
+        "//fboss/fsdb/if:fsdb_model",
+        "//fboss/fsdb/oper:subscribable_storage",
+    ],
+)

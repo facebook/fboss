@@ -1,0 +1,286 @@
+load("@fbcode_macros//build_defs:thrift_library.bzl", "thrift_library")
+
+oncall("fboss_agent_push")
+
+thrift_library(
+    name = "ctrl",
+    go_thrift_namespaces = {
+        "ctrl.thrift": "neteng.fboss.ctrl",
+    },
+    languages = [
+        "cpp2",
+        "py",
+        "py3",
+        "py-asyncio",
+        "go",
+        "rust",
+    ],
+    no_plugin_deps = [
+        "//thrift/annotation:all",
+        "//thrift/annotation:cpp",
+        "//thrift/annotation:go",
+        "//thrift/annotation:hack",
+        "//thrift/annotation:java",
+        "//thrift/annotation:python",
+        "//thrift/annotation:thrift",
+        "//thrift/facebook/erlang:annotations",
+    ],
+    py3_namespace = "neteng.fboss",
+    py_asyncio_base_module = "neteng.fboss.asyncio",
+    py_base_module = "neteng.fboss",
+    py_remote_service_router = True,
+    thrift_cpp2_options = "json,reflection",
+    thrift_rust_options = [
+        "deprecated_default_enum_min_i32",
+        "serde",
+    ],
+    thrift_srcs = {"ctrl.thrift": [
+        "FbossCtrl",
+        "NeighborListenerClient",
+    ]},
+    deps = [
+        ":common",
+        ":fboss",
+        ":mpls",
+        ":product_info",
+        "//common/fb303/if:fb303",
+        "//common/network/if:if",
+        "//fboss/agent:agent_stats",
+        "//fboss/agent:platform_config",
+        "//fboss/agent:switch_config",
+        "//fboss/agent/hw:hardware_stats",
+        "//fboss/lib/phy:phy",
+        "//fboss/qsfp_service/if:transceiver",
+    ],
+)
+
+thrift_library(
+    name = "product_info",
+    go_thrift_namespaces = {
+        "product_info.thrift": "neteng.fboss.product_info",
+    },
+    languages = [
+        "cpp2",
+        "py",
+        "py3",
+        "py-asyncio",
+        "go",
+        "rust",
+    ],
+    py3_namespace = "neteng.fboss",
+    py_asyncio_base_module = "neteng.fboss.asyncio",
+    py_base_module = "neteng.fboss",
+    py_remote_service_router = True,
+    thrift_cpp2_options = "json,reflection",
+    thrift_rust_options = "serde",
+    thrift_srcs = {"product_info.thrift": [
+    ]},
+)
+
+thrift_library(
+    name = "common",
+    go_thrift_namespaces = {
+        "common.thrift": "neteng.fboss.common",
+    },
+    languages = [
+        "cpp2",
+        "py",
+        "py3",
+        "py-asyncio",
+        "go",
+        "rust",
+    ],
+    py3_namespace = "neteng.fboss",
+    py_asyncio_base_module = "neteng.fboss.asyncio",
+    py_base_module = "neteng.fboss",
+    py_remote_service_router = True,
+    thrift_cpp2_options = "json,reflection",
+    thrift_py_options = "json",
+    thrift_rust_options = [
+        "deprecated_default_enum_min_i32",
+        "serde",
+    ],
+    thrift_srcs = {"common.thrift": [
+    ]},
+    deps = [
+        ":mpls",
+        "//common/network/if:if",
+        "//thrift/annotation:cpp",
+    ],
+)
+
+thrift_library(
+    name = "optic",
+    go_thrift_namespaces = {
+        "optic.thrift": "neteng.fboss.optic",
+    },
+    languages = [
+        "cpp2",
+        "py",
+        "py3",
+        "py-asyncio",
+        "go",
+        "rust",
+    ],
+    py3_namespace = "neteng.fboss",
+    py_asyncio_base_module = "neteng.fboss.asyncio",
+    py_base_module = "neteng.fboss",
+    thrift_rust_options = "serde",
+    thrift_srcs = {"optic.thrift": []},
+    deps = [
+        "//fboss/qsfp_service/if:transceiver",
+    ],
+)
+
+thrift_library(
+    name = "fboss",
+    go_thrift_namespaces = {
+        "fboss.thrift": "neteng.fboss",
+    },
+    languages = [
+        "cpp2",
+        "py",
+        "py3",
+        "py-asyncio",
+        "go",
+        "rust",
+    ],
+    no_plugin_deps = [
+        "//thrift/annotation:cpp",
+        "//thrift/annotation:go",
+        "//thrift/annotation:hack",
+        "//thrift/annotation:java",
+        "//thrift/annotation:python",
+        "//thrift/annotation:thrift",
+        "//thrift/facebook/erlang:annotations",
+    ],
+    py3_namespace = "neteng.fboss",
+    py_asyncio_base_module = "neteng.asyncio",
+    py_base_module = "neteng",
+    rust_gen_metadata = True,
+    thrift_cpp2_options = "reflection",
+    thrift_rust_options = "serde",
+    thrift_srcs = {"fboss.thrift": []},
+)
+
+thrift_library(
+    name = "sflow",
+    languages = [
+        "cpp2",
+        "py",
+        "py3",
+    ],
+    py3_namespace = "neteng.fboss",
+    py_base_module = "neteng.fboss",
+    thrift_srcs = {"sflow.thrift": []},
+)
+
+thrift_library(
+    name = "mpls",
+    go_thrift_namespaces = {
+        "mpls.thrift": "neteng.fboss.mpls",
+    },
+    languages = [
+        "cpp2",
+        "py",
+        "py3",
+        "py-asyncio",
+        "go",
+        "rust",
+    ],
+    py3_namespace = "neteng.fboss",
+    py_asyncio_base_module = "neteng.fboss.asyncio",
+    py_base_module = "neteng.fboss",
+    thrift_cpp2_options = "json,reflection",
+    thrift_py_options = "json",
+    thrift_rust_options = [
+        "deprecated_default_enum_min_i32",
+        "serde",
+    ],
+    thrift_srcs = {"mpls.thrift": []},
+)
+
+thrift_library(
+    name = "packet_stream",
+    languages = [
+        "cpp2",
+        "py3",
+    ],
+    py3_namespace = "neteng.fboss",
+    thrift_srcs = {"packet_stream.thrift": ["PacketStream"]},
+    deps = [
+        "//common/fb303/if:fb303",
+    ],
+)
+
+thrift_library(
+    name = "hw_ctrl",
+    go_thrift_namespaces = {
+        "hw_ctrl.thrift": "neteng.fboss.hw_ctrl",
+    },
+    languages = [
+        "cpp2",
+        "py",
+        "py3",
+        "py-asyncio",
+        "go",
+        "rust",
+    ],
+    no_plugin_deps = ["//thrift/annotation:all"],
+    py3_namespace = "neteng.fboss",
+    py_asyncio_base_module = "neteng.fboss.asyncio",
+    py_base_module = "neteng.fboss",
+    py_remote_service_router = True,
+    rust_gen_metadata = True,
+    thrift_cpp2_options = "json",
+    thrift_rust_options = "serde",
+    thrift_srcs = {"hw_ctrl.thrift": [
+        "FbossHwCtrl",
+    ]},
+    deps = [
+        ":common",
+        ":ctrl",
+        ":fboss",
+        "//fboss/lib/phy:phy",
+        "//fboss/lib/phy:prbs",
+    ],
+)
+
+thrift_library(
+    name = "multiswitch_ctrl",
+    go_thrift_namespaces = {
+        "multiswitch_ctrl.thrift": "neteng.fboss.multiswitch",
+    },
+    languages = [
+        "cpp2",
+        "py",
+        "py3",
+        "py-asyncio",
+        "go",
+    ],
+    no_plugin_deps = [
+        "//thrift/annotation:all",
+        "//thrift/annotation:cpp",
+        "//thrift/annotation:go",
+        "//thrift/annotation:hack",
+        "//thrift/annotation:java",
+        "//thrift/annotation:python",
+        "//thrift/annotation:thrift",
+        "//thrift/facebook/erlang:annotations",
+    ],
+    py3_namespace = "neteng.fboss.multiswitch",
+    py_asyncio_base_module = "neteng.fboss.asyncio",
+    py_base_module = "neteng.fboss",
+    thrift_cpp2_options = "json",
+    thrift_py_options = "json,sort_keys",
+    thrift_srcs = {"multiswitch_ctrl.thrift": [
+        "MultiSwitchCtrl",
+    ]},
+    deps = [
+        ":common",
+        ":ctrl",
+        "//fboss/agent/hw:hardware_stats",
+        "//fboss/fsdb/if:fsdb_oper",
+        "//fboss/lib/phy:phy",
+    ],
+)

@@ -1,0 +1,38 @@
+load("@fbcode_macros//build_defs:thrift_library.bzl", "thrift_library")
+
+oncall("fboss_platform")
+
+thrift_library(
+    name = "data_corral_service",
+    go_thrift_namespaces = {
+        "data_corral_service.thrift": "neteng.fboss.platform.data_corral_service",
+    },
+    languages = [
+        "cpp2",
+        "py3",
+    ],
+    no_plugin_deps = [
+        "//thrift/annotation:cpp",
+        "//thrift/annotation:go",
+        "//thrift/annotation:hack",
+        "//thrift/annotation:java",
+        "//thrift/annotation:python",
+        "//thrift/annotation:thrift",
+        "//thrift/facebook/erlang:annotations",
+    ],
+    py3_namespace = "neteng.fboss.platform.data_corral_service",
+    thrift_cpp2_options = "json",
+    thrift_srcs = {"data_corral_service.thrift": ["DataCorralServiceThrift"]},
+    deps = [
+        "//fboss/agent/if:fboss",
+    ],
+)
+
+thrift_library(
+    name = "led_manager",
+    languages = [
+        "cpp2",
+    ],
+    thrift_cpp2_options = "json",
+    thrift_srcs = {"led_manager_config.thrift": []},
+)

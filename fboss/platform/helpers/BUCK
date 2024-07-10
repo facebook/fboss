@@ -1,0 +1,68 @@
+load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
+
+oncall("fboss_platform")
+
+cpp_library(
+    name = "platform_utils",
+    srcs = [
+        "PlatformUtils.cpp",
+    ],
+    exported_deps = [
+        "//folly:subprocess",
+        "//folly/logging:logging",
+        "//folly/system:shell",
+    ],
+)
+
+cpp_library(
+    name = "init",
+    srcs = [
+        "facebook/Init.cpp",
+    ],
+    headers = [
+        "Init.h",
+    ],
+    exported_deps = [
+        "//common/base:build_info",
+        "//common/init:init",
+        "//common/services/cpp:acl_checker_module",
+        "//common/services/cpp:build_values",
+        "//common/services/cpp:light",
+        "//common/services/cpp:proc_module",
+        "//common/services/cpp:proc_standalone",
+        "//common/services/cpp:thrift_acl_checker_module_config",
+        "//thrift/lib/cpp2:server",
+        "//thrift/lib/cpp2/async:async_processor",
+    ],
+    exported_external_deps = [
+        "gflags",
+    ],
+)
+
+cpp_library(
+    name = "init_cli",
+    srcs = [
+        "facebook/InitCli.cpp",
+    ],
+    headers = [
+        "InitCli.h",
+    ],
+    exported_deps = [
+        "//common/base:build_info",
+        "//folly/init:init",
+    ],
+    exported_external_deps = [
+        "gflags",
+    ],
+)
+
+cpp_library(
+    name = "mock_platform_utils",
+    headers = [
+        "MockPlatformUtils.h",
+    ],
+    exported_deps = [
+        "fbsource//third-party/googletest:gmock",
+        ":platform_utils",
+    ],
+)

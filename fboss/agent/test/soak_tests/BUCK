@@ -1,0 +1,53 @@
+load("@fbcode_macros//build_defs:cpp_binary.bzl", "cpp_binary")
+load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
+load("//fboss:THIRD-PARTY-VERSIONS.bzl", "BCM_SDKS", "to_impl_suffix", "to_versions")
+
+oncall("fboss_agent_push")
+
+cpp_library(
+    name = "soak_test",
+    srcs = [
+        "InterruptTest.cpp",
+        "SoakTest.cpp",
+    ],
+    link_whole = True,  # Required for gtest to find tests in other files.
+    exported_deps = [
+        "//common/process:process",
+        "//fboss/agent:core",
+        "//fboss/agent:stats",
+        "//fboss/agent/hw/test:config_factory",
+        "//fboss/agent/hw/test:hw_packet_utils",
+        "//fboss/agent/hw/test:load_balancer_utils",
+        "//fboss/agent/state:state",
+        "//fboss/agent/state:state_utils",
+        "//fboss/agent/test:agent_test",
+        "//fboss/agent/test:utils",
+        "//folly:network_address",
+    ],
+    exported_external_deps = [
+        "gflags",
+    ],
+)
+
+[
+    cpp_binary(
+        name = "bcm_soak_test{}".format(to_impl_suffix(sdk)),
+        srcs = [
+            "BcmSoakTests.cpp",
+        ],
+        versions = to_versions(sdk),
+        deps = [
+            "fbsource//third-party/googletest:gtest",
+            "//fboss/agent:main-bcm",
+            "//fboss/agent/platforms/wedge:platform",
+            "//fboss/agent/test:agent_test",
+            "//fboss/agent/test:utils",
+            "//fboss/agent/test/soak_tests:soak_test",
+        ],
+        external_deps = [
+            "gflags",
+            "glog",
+        ],
+    )
+    for sdk in BCM_SDKS
+]

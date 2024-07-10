@@ -1,0 +1,48 @@
+load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
+
+oncall("fboss_optics_phy")
+
+cpp_library(
+    name = "fsdb-syncer",
+    srcs = [
+        "QsfpFsdbSyncManager.cpp",
+        "facebook/QsfpFsdbSyncManager.cpp",
+    ],
+    headers = [
+        "QsfpFsdbSyncManager.h",
+    ],
+    exported_deps = [
+        "//fboss/fsdb/client:fsdb_syncer",
+        "//fboss/fsdb/common:flags",
+        "//fboss/fsdb/if:fsdb_model",
+        "//fboss/lib/phy:phy-cpp2-reflection",
+        "//fboss/lib/phy:phy-cpp2-types",
+        "//fboss/qsfp_service/if:config-cpp2-types",
+        "//fboss/qsfp_service/if:state-cpp2-reflection",
+        "//fboss/qsfp_service/if:state-cpp2-types",
+        "//fboss/qsfp_service/if:stats-cpp2-reflection",
+        "//fboss/qsfp_service/if:stats-cpp2-types",
+    ],
+)
+
+cpp_library(
+    name = "fsdb-subscriber",
+    srcs = [
+        "QsfpFsdbSubscriber.cpp",
+    ],
+    headers = [
+        "QsfpFsdbSubscriber.h",
+    ],
+    exported_deps = [
+        "//fboss/agent:switch_state-cpp2-types",
+        "//fboss/fsdb/client:fsdb_pub_sub",
+        "//fboss/fsdb/client:fsdb_stream_client",
+        "//fboss/fsdb/common:flags",
+        "//fboss/fsdb/if:fsdb_model",
+        "//fboss/fsdb/if:fsdb_oper-cpp2-types",
+        "//fboss/qsfp_service:transceiver-manager",
+        "//fboss/thrift_cow/nodes:serializer",
+        "//folly/logging:logging",
+        "//thrift/lib/cpp2/protocol:protocol",
+    ],
+)

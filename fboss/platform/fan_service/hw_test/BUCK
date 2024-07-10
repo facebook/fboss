@@ -1,0 +1,20 @@
+load("@fbcode_macros//build_defs:cpp_binary.bzl", "cpp_binary")
+
+oncall("fboss_platform")
+
+cpp_binary(
+    name = "fan_service_hw_test",
+    srcs = [
+        "FanServiceHwTest.cpp",
+    ],
+    deps = [
+        "fbsource//third-party/fmt:fmt",
+        "fbsource//third-party/googletest:gtest",
+        "//fboss/platform/config_lib:config_lib",
+        "//fboss/platform/fan_service:core",
+        "//fboss/platform/helpers:init",
+        "//thrift/lib/cpp2/async:rocket_client_channel",
+        "//thrift/lib/cpp2/protocol:protocol",
+        "//thrift/lib/cpp2/util:util",
+    ],
+)

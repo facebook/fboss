@@ -1,0 +1,152 @@
+load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
+
+oncall("fboss_agent_push")
+
+cpp_library(
+    name = "fsdb_stream_client",
+    srcs = [
+        "FsdbStreamClient.cpp",
+    ],
+    exported_deps = [
+        "fbsource//third-party/googletest:gtest_headers",
+        ":client",
+        "//common/time:time",
+        "//fb303:thread_cached_service_data",
+        "//fboss/fsdb/common:utils",
+        "//fboss/fsdb/if:fsdb_oper-cpp2-types",
+        "//fboss/lib:common_thrift_utils",
+        "//folly:network_address",
+        "//folly/experimental/coro:async_scope",
+        "//folly/io/async:async_socket_transport",
+        "//folly/io/async:scoped_event_base_thread",
+        "//folly/logging:logging",
+        "//folly/synchronization:baton",
+        "//thrift/lib/cpp2/async:client_buferred_stream",
+        "//thrift/lib/cpp2/async:rpc_options",
+        "//thrift/lib/cpp2/async:sink",
+    ],
+)
+
+cpp_library(
+    name = "fsdb_pub_sub",
+    srcs = [
+        "FsdbDeltaPublisher.cpp",
+        "FsdbDeltaSubscriber.cpp",
+        "FsdbPatchPublisher.cpp",
+        "FsdbPatchSubscriber.cpp",
+        "FsdbPubSubManager.cpp",
+        "FsdbPublisher.cpp",
+        "FsdbStatePublisher.cpp",
+        "FsdbStateSubscriber.cpp",
+        "FsdbSubscriber.cpp",
+    ],
+    headers = [
+        "FsdbDeltaPublisher.h",
+        "FsdbDeltaSubscriber.h",
+        "FsdbPatchPublisher.h",
+        "FsdbPatchSubscriber.h",
+        "FsdbStatePublisher.h",
+        "FsdbStateSubscriber.h",
+    ],
+    exported_deps = [
+        "fbsource//third-party/googletest:gtest_headers",
+        ":client",
+        ":fsdb_stream_client",
+        "//fboss/fsdb/common:flags",
+        "//fboss/fsdb/if:fsdb-cpp2-services",
+        "//fboss/fsdb/if:fsdb_common-cpp2-types",
+        "//fboss/fsdb/if:fsdb_oper-cpp2-types",
+        "//folly:format",
+        "//folly:string",
+        "//folly:synchronized",
+        "//folly/concurrency:dynamic_bounded_queue",
+        "//folly/experimental/coro:async_generator",
+        "//folly/experimental/coro:async_pipe",
+        "//folly/io/async:scoped_event_base_thread",
+        "//folly/logging:logging",
+    ],
+)
+
+cpp_library(
+    name = "fsdb_syncer",
+    srcs = [
+        "FsdbSyncManager.cpp",
+    ],
+    headers = [
+        "FsdbSyncManager.h",
+    ],
+    exported_deps = [
+        ":fsdb_pub_sub",
+        ":fsdb_stream_client",
+        "//fboss/fsdb/common:utils",
+        "//fboss/fsdb/if:fsdb_oper-cpp2-types",
+        "//fboss/thrift_cow/storage:cow_storage",
+        "//fboss/thrift_cow/storage:cow_storage_mgr",
+        "//fboss/thrift_cow/visitors:visitors",
+        "//folly/io/async:async_base",
+    ],
+)
+
+cpp_library(
+    name = "client",
+    srcs = [
+        "Client.cpp",
+    ],
+    exported_deps = [
+        "//fboss/fsdb/if:fsdb-cpp2-services",
+        "//fboss/lib/thrift_service_client:thrift-service-client",
+        "//folly:network_address",
+        "//folly/io/async:async_base",
+        "//folly/io/async:async_socket",
+        "//folly/logging:logging",
+    ],
+)
+
+# templated FsdbSubManager. Users should use one of the instantiations below
+cpp_library(
+    name = "fsdb_sub_manager",
+    headers = [
+        "FsdbSubManager.h",
+    ],
+    preprocessor_flags = ["-DENABLE_PATCH_APIS"],
+    propagated_pp_flags = ["-DENABLE_PATCH_APIS"],
+    exported_deps = [
+        ":fsdb_pub_sub",
+        "//fboss/fsdb/if:fsdb_model",
+        "//fboss/fsdb/if:fsdb_oper-cpp2-types",
+        "//fboss/thrift_cow/storage:cow_storage",
+        "//folly/io/async:scoped_event_base_thread",
+    ],
+)
+
+# TODO: implement raw thrift version of these
+cpp_library(
+    name = "fsdb_cow_state_sub_manager",
+    srcs = [
+        "instantiations/FsdbCowStateSubManager.cpp",
+    ],
+    headers = [
+        "instantiations/FsdbCowStateSubManager.h",
+    ],
+    exported_deps = [
+        ":fsdb_sub_manager",
+        "//fboss/fsdb/if:fsdb_model",
+        "//fboss/fsdb/oper/instantiations:fsdb_cow_storage",
+    ],
+)
+
+cpp_library(
+    name = "fsdb_cow_stats_sub_manager",
+    srcs = [
+        "instantiations/FsdbCowStatsSubManager.cpp",
+    ],
+    headers = [
+        "instantiations/FsdbCowStatsSubManager.h",
+    ],
+    exported_deps = [
+        ":fsdb_cow_state_sub_manager",
+        ":fsdb_sub_manager",
+        "//fboss/fsdb/if:fsdb_model",
+        "//fboss/fsdb/oper/instantiations:fsdb_cow_storage",
+    ],
+)

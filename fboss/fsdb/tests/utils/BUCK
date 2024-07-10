@@ -1,0 +1,35 @@
+load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
+
+oncall("fboss_agent_push")
+
+cpp_library(
+    name = "fsdb_test_server",
+    srcs = [
+        "FsdbTestServer.cpp",
+    ],
+    headers = [
+        "FsdbTestServer.h",
+    ],
+    exported_deps = [
+        "//common/init:init",
+        "//common/services/cpp:light",
+        "//common/strings:uuid",
+        "//fboss/fsdb/oper:path_helpers",
+        "//fboss/fsdb/server:handler",
+        "//folly/testing:test_util",
+        "//thrift/lib/cpp2:server",
+        "//thrift/lib/cpp2/util:util",
+    ],
+)
+
+cpp_library(
+    name = "fsdb_test_subscriber",
+    headers = [
+        "FsdbTestSubscriber.h",
+    ],
+    exported_deps = [
+        "//fboss/fsdb/client:fsdb_pub_sub",
+        "//fboss/fsdb/if:fsdb_model",
+        "//folly:synchronized",
+    ],
+)

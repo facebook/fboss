@@ -1,0 +1,64 @@
+load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
+load("@fbcode_macros//build_defs:thrift_library.bzl", "thrift_library")
+load(
+    "//fboss/qsfp_service/test/hw_test:hw_test.bzl",
+    "all_hw_qsfp_ensemble_libs",
+    "all_qsfp_test_binaries",
+    "all_qsfp_test_libs",
+)
+
+oncall("fboss_optics_phy")
+
+cpp_library(
+    name = "hw_transceiver_utils",
+    srcs = [
+        "HwTransceiverUtils.cpp",
+    ],
+    headers = [
+        "HwTransceiverUtils.h",
+    ],
+    exported_deps = [
+        "fbsource//third-party/googletest:gtest",
+        "//fboss/agent:fboss-error",
+        "//fboss/agent:switch_config-cpp2-types",
+        "//fboss/agent/platforms/common:platform_mapping",
+        "//fboss/lib/config:fboss_config_utils",
+        "//fboss/qsfp_service/if:transceiver-cpp2-types",
+        "//folly/logging:logging",
+        "//thrift/lib/cpp/util:enum_utils",
+    ],
+)
+
+thrift_library(
+    name = "thresholds",
+    go_thrift_namespaces = {
+        "link_parameter_thresholds.thrift": "neteng.fboss.link_parameter_thresholds",
+    },
+    languages = [
+        "cpp2",
+        "go",
+        "py",
+        "py3",
+        "py-asyncio",
+        "rust",
+    ],
+    py3_namespace = "neteng.fboss",
+    py_asyncio_base_module = "neteng.fboss.asyncio",
+    py_base_module = "neteng.fboss",
+    thrift_cpp2_options = "json",
+    thrift_py_options = "json,sort_keys",
+    thrift_rust_options = [
+        "deprecated_default_enum_min_i32",
+        "serde",
+    ],
+    thrift_srcs = {"link_parameter_thresholds.thrift": []},
+    deps = [
+        "//fboss/qsfp_service/if:transceiver",
+    ],
+)
+
+all_hw_qsfp_ensemble_libs()
+
+all_qsfp_test_libs()
+
+all_qsfp_test_binaries()

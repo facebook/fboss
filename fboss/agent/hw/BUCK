@@ -1,0 +1,247 @@
+load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
+load("@fbcode_macros//build_defs:thrift_library.bzl", "thrift_library")
+
+oncall("fboss_agent_push")
+
+thrift_library(
+    name = "hardware_stats",
+    go_thrift_namespaces = {
+        "hardware_stats.thrift": "neteng.fboss.hardware_stats",
+    },
+    languages = [
+        "cpp2",
+        "py",
+        "go",
+        "py3",
+        "py-asyncio",
+        "rust",
+    ],
+    no_plugin_deps = ["//thrift/annotation:all"],
+    py3_namespace = "neteng.fboss",
+    py_asyncio_base_module = "neteng.fboss.asyncio",
+    py_base_module = "neteng.fboss",
+    thrift_cpp2_options = [
+        "json",
+        "reflection",
+    ],
+    thrift_rust_options = "serde",
+    thrift_srcs = {"hardware_stats.thrift": []},
+    deps = [
+        "//fboss/mka_service/if:mka_structs",
+    ],
+)
+
+thrift_library(
+    name = "hw_test_ctrl",
+    languages = [
+        "cpp2",
+        "py",
+        "py3",
+    ],
+    py3_namespace = "neteng.fboss",
+    py_base_module = "neteng.fboss",
+    thrift_srcs = {
+        "hw_test_ctrl.thrift": ["HwTestCtrl"],
+    },
+    deps = [
+        "//common/fb303/if:fb303",
+        "//fboss/agent/if:ctrl",
+        "//fboss/agent/if:fboss",
+    ],
+)
+
+cpp_library(
+    name = "hw_resource_stats_publisher",
+    srcs = [
+        "HwResourceStatsPublisher.cpp",
+    ],
+    exported_deps = [
+        ":hardware_stats-cpp2-types",
+        "//fb303:service_data",
+        "//folly:range",
+    ],
+)
+
+cpp_library(
+    name = "buffer_stats",
+    srcs = [
+        "BufferStatsLogger.cpp",
+    ],
+    exported_deps = [
+        "//folly:string",
+        "//folly/logging:logging",
+    ],
+)
+
+cpp_library(
+    name = "hw_switch_fb303_stats",
+    srcs = [
+        "HwSwitchFb303Stats.cpp",
+    ],
+    headers = [
+        "HwSwitchFb303Stats.h",
+    ],
+    exported_deps = [
+        ":hardware_stats-cpp2-types",
+        "//fb303:thread_cached_service_data",
+        "//fboss/agent:stats",
+        "//fboss/lib:common_utils",
+        "//folly:thread_local",
+    ],
+)
+
+cpp_library(
+    name = "hw_trunk_counters",
+    srcs = [
+        "HwTrunkCounters.cpp",
+    ],
+    exported_deps = [
+        ":counter_utils",
+        ":hardware_stats-cpp2-types",
+        ":stats_constants",
+        "//common/stats:monotonic_counter",
+        "//fboss/agent:fboss-types",
+    ],
+)
+
+cpp_library(
+    name = "hw_switch_warmboot_helper",
+    srcs = [
+        "HwSwitchWarmBootHelper.cpp",
+    ],
+    exported_deps = [
+        "//fboss/agent:agent_dir_util",
+        "//fboss/agent:async_logger",
+        "//fboss/agent:fboss-error",
+        "//fboss/agent:sw_switch_warmboot_helper",
+        "//fboss/agent:switch_state-cpp2-types",
+        "//fboss/agent:utils",
+        "//fboss/lib:common_file_utils",
+        "//folly:file_util",
+        "//folly/json:dynamic",
+        "//folly/logging:logging",
+    ],
+)
+
+cpp_library(
+    name = "counter_utils",
+    srcs = [
+        "CounterUtils.cpp",
+    ],
+    exported_deps = [
+        ":hardware_stats-cpp2-types",
+        "//fb303:export_type",
+        "//fb303:exported_stat_map_impl",
+        "//fb303:service_data",
+        "//fboss/agent:switch_config-cpp2-types",
+        "//folly:range",
+        "//folly/logging:logging",
+    ],
+)
+
+cpp_library(
+    name = "diag_cmd_filter",
+    srcs = [
+        "DiagCmdFilter.cpp",
+    ],
+    exported_deps = [
+        "//folly:fbstring",
+        "//folly:file_util",
+        "//folly:string",
+        "//folly/logging:logging",
+    ],
+    exported_external_deps = [
+        "re2",
+    ],
+)
+
+cpp_library(
+    name = "hw_fb303_stats",
+    srcs = [
+        "HwFb303Stats.cpp",
+    ],
+    exported_deps = [
+        ":counter_utils",
+        "//common/stats:monotonic_counter",
+        "//fboss/agent:fboss-error",
+        "//folly/container:f14_hash",
+        "//folly/logging:logging",
+    ],
+)
+
+cpp_library(
+    name = "hw_port_fb303_stats",
+    srcs = [
+        "HwBasePortFb303Stats.cpp",
+        "HwPortFb303Stats.cpp",
+        "HwSysPortFb303Stats.cpp",
+        "facebook/HwBasePortFb303Stats.cpp",
+    ],
+    exported_deps = [
+        ":hardware_stats-cpp2-types",
+        ":hw_fb303_stats",
+        ":stats_constants",
+        "//common/stats:macros",
+        "//fboss/agent:fboss-types",
+        "//folly/container:f14_hash",
+        "//folly/logging:logging",
+        "//thrift/lib/cpp2/protocol:protocol",
+    ],
+)
+
+cpp_library(
+    name = "hw_cpu_fb303_stats",
+    srcs = [
+        "HwCpuFb303Stats.cpp",
+    ],
+    exported_deps = [
+        ":counter_utils",
+        ":hardware_stats-cpp2-types",
+        ":hw_fb303_stats",
+        ":stats_constants",
+        "//folly/container:f14_hash",
+        "//folly/logging:logging",
+    ],
+)
+
+cpp_library(
+    name = "hw_stat_printers",
+    srcs = [
+        "HwStatPrinters.cpp",
+    ],
+    exported_deps = [
+        ":hardware_stats-cpp2-types",
+        "//thrift/lib/cpp2/protocol:protocol",
+    ],
+)
+
+cpp_library(
+    name = "stats_constants",
+    headers = [
+        "StatsConstants.h",
+        "common/StatsConstants.h",
+    ],
+    exported_deps = [
+        "//folly:range",
+    ],
+)
+
+cpp_library(
+    name = "prbs_stats_entry",
+    headers = [
+        "common/PrbsStatsEntry.h",
+    ],
+    exported_deps = [
+        "//fboss/agent/if:ctrl-cpp2-types",
+    ],
+)
+
+cpp_library(
+    name = "unsupported_feature_manager",
+    headers = [
+        "UnsupportedFeatureManager.h",
+    ],
+    exported_deps = [
+        "//fboss/agent:fboss-error",
+    ],
+)

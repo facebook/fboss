@@ -1,0 +1,49 @@
+load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
+load("@fbcode_macros//build_defs:thrift_library.bzl", "thrift_library")
+
+oncall("fboss_agent_push")
+
+thrift_library(
+    name = "results",
+    go_thrift_namespaces = {
+        "results.thrift": "facebook.fboss.results",
+    },
+    languages = [
+        "cpp2",
+        "go",
+        "py",
+        "py3",
+        "py-asyncio",
+    ],
+    py3_namespace = "neteng.fboss",
+    py_asyncio_base_module = "neteng.fboss.asyncio",
+    py_base_module = "neteng.fboss",
+    thrift_cpp2_options = "json",
+    thrift_srcs = {
+        "results.thrift": [],
+    },
+)
+
+cpp_library(
+    name = "visitors",
+    headers = [
+        "NameToPathVisitor.h",
+        "ThriftDeltaVisitor.h",
+        "ThriftLeafVisitor.h",
+        "ThriftPathVisitor.h",
+    ],
+    compiler_flags = ["-ftemplate-backtrace-limit=0"],
+    exported_deps = [
+        ":results-cpp2-types",
+        "//fatal:fatal",
+        "//fboss/fsdb/if:fsdb_oper-cpp2-types",
+        "//folly:conv",
+        "//thrift/lib/cpp/util:enum_utils",
+        "//thrift/lib/cpp2:thrift-core",
+        "//thrift/lib/cpp2/op:get",
+        "//thrift/lib/cpp2/reflection:reflection",
+    ],
+    exported_external_deps = [
+        "boost",
+    ],
+)

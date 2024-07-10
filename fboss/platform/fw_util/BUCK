@@ -1,0 +1,39 @@
+load("@fbcode_macros//build_defs:cpp_binary.bzl", "cpp_binary")
+load("@fbcode_macros//build_defs:custom_unittest.bzl", "custom_unittest")
+
+oncall("fboss_platform")
+
+cpp_binary(
+    name = "fw_util",
+    srcs = [
+        "Flags.cpp",
+        "FwUtilImpl.cpp",
+        "fw_util.cpp",
+    ],
+    default_strip_mode = "full",
+    strip_mode = "full",
+    deps = [
+        "fbsource//third-party/fmt:fmt",
+        "//fboss/platform/config_lib:config_lib",
+        "//fboss/platform/fw_util/if:fw_util_config-cpp2-types",
+        "//fboss/platform/helpers:init_cli",
+        "//fboss/platform/helpers:platform_utils",
+        "//folly:string",
+        "//folly:subprocess",
+        "//folly/logging:logging",
+        "//folly/system:shell",
+        "//thrift/lib/cpp2/protocol:protocol",
+    ],
+    external_deps = [
+        "gflags",
+    ],
+)
+
+custom_unittest(
+    name = "test_fw_util_version",
+    command = [
+        "fboss/lib/test/test_version.sh",
+        "$(exe :fw_util)",
+    ],
+    type = "simple",
+)

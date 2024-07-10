@@ -1,0 +1,21 @@
+load("@fbcode_macros//build_defs:cpp_binary.bzl", "cpp_binary")
+
+oncall("fboss_platform")
+
+cpp_binary(
+    name = "sensor_service_hw_test",
+    srcs = [
+        "SensorServiceHwTest.cpp",
+    ],
+    deps = [
+        "fbsource//third-party/googletest:gtest",
+        "//fboss/platform/config_lib:config_lib",
+        "//fboss/platform/helpers:init",
+        "//fboss/platform/sensor_service:core",
+        "//fboss/platform/sensor_service:service",
+        "//fboss/platform/sensor_service/if:sensor_service-cpp2-services",
+        "//folly/init:init",
+        "//thrift/lib/cpp2/protocol:protocol",
+        "//thrift/lib/cpp2/util:util",
+    ],
+)

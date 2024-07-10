@@ -1,0 +1,115 @@
+load("@fbcode_macros//build_defs:cpp_binary.bzl", "cpp_binary")
+load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
+load("@fbcode_macros//build_defs:custom_unittest.bzl", "custom_unittest")
+
+oncall("fboss_agent_push")
+
+cpp_library(
+    name = "fsdb_oper_metadata_tracker",
+    srcs = [
+        "FsdbOperTreeMetadataTracker.cpp",
+        "OperPathToPublisherRoot.cpp",
+    ],
+    headers = [
+        "FsdbOperTreeMetadataTracker.h",
+        "OperPathToPublisherRoot.h",
+    ],
+    exported_deps = [
+        "//fboss/fsdb/if:fsdb_common-cpp2-types",
+        "//fboss/fsdb/if:fsdb_oper-cpp2-types",
+        "//folly/logging:logging",
+    ],
+)
+
+cpp_library(
+    name = "handler",
+    srcs = [
+        "FsdbConfig.cpp",
+        "ServiceHandler.cpp",
+    ],
+    compiler_flags = ["-ftemplate-backtrace-limit=0"],
+    exported_deps = [
+        ":fsdb_oper_metadata_tracker",
+        "//common/fb303/cpp:fb303",
+        "//fb303:thread_cached_service_data",
+        "//fboss/fsdb/common:utils",
+        "//fboss/fsdb/if:fsdb-cpp2-services",
+        "//fboss/fsdb/if:fsdb_common-cpp2-types",
+        "//fboss/fsdb/if:fsdb_config-cpp2-types",
+        "//fboss/fsdb/if:fsdb_model",
+        "//fboss/fsdb/if:fsdb_oper-cpp2-types",
+        "//fboss/fsdb/oper:path_helpers",
+        "//fboss/fsdb/oper/instantiations:fsdb_naive_periodic_subscribable_storage",
+        "//fboss/lib:log_thrift_call",
+        "//fboss/lib:thread_heartbeat",
+        "//folly:cancellation_token",
+        "//folly:file_util",
+        "//folly:synchronized",
+        "//folly/container:f14_hash",
+        "//folly/experimental/coro:blocking_wait",
+        "//folly/experimental/coro:timeout",
+        "//folly/io/async:scoped_event_base_thread",
+        "//folly/logging:logging",
+        "//thrift/lib/cpp/server:server_event_handler",
+        "//thrift/lib/cpp2/protocol:protocol",
+    ],
+    exported_external_deps = ["re2"],
+)
+
+cpp_library(
+    name = "fsdb_server",
+    srcs = [
+        "Server.cpp",
+        "facebook/Server.cpp",
+    ],
+    headers = [
+        "Server.h",
+        "ThriftAcceptor.h",
+    ],
+    compiler_flags = ["-ftemplate-backtrace-limit=0"],
+    exported_deps = [
+        ":handler",
+        "//common/base:build_info",
+        "//common/services/cpp:acl_checker_module",
+        "//common/services/cpp:light",
+        "//common/services/cpp:thrift_acl_checker_module_config",
+        "//fboss/facebook/bitsflow:bitsflow_helper",
+        "//fboss/fsdb/common:flags",
+        "//fboss/fsdb/common:utils",
+        "//folly/init:init",
+        "//folly/io/async:async_signal_handler",
+        "//folly/logging:logging",
+        "//thrift/lib/cpp2:server",
+        "//wangle/acceptor:shared_ssl_context_manager",
+    ],
+    exported_external_deps = [
+        "gflags",
+        "glog",
+        ("boost", None, "boost_algorithm"),
+    ],
+)
+
+cpp_binary(
+    name = "fsdb",
+    srcs = [
+        "FsdbMain.cpp",
+    ],
+    compiler_flags = ["-ftemplate-backtrace-limit=0"],
+    deps = [
+        ":fsdb_server",
+        "//fboss/agent:fboss_init",  # @manual
+        "//fboss/agent:fboss_init_h",
+    ],
+    external_deps = [
+        "gflags",
+    ],
+)
+
+custom_unittest(
+    name = "test_fsdb_version",
+    command = [
+        "fboss/lib/test/test_version.sh",
+        "$(exe :fsdb)",
+    ],
+    type = "simple",
+)

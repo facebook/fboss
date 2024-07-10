@@ -1,0 +1,41 @@
+load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
+
+oncall("fboss_agent_push")
+
+cpp_library(
+    name = "switch_asics",
+    srcs = [
+        "BroadcomXgsAsic.cpp",
+        "CredoPhyAsic.cpp",
+        "EbroAsic.cpp",
+        "GaronneAsic.cpp",
+        "HwAsic.cpp",
+        "Jericho2Asic.cpp",
+        "Jericho3Asic.cpp",
+        "MarvelPhyAsic.cpp",
+        "Ramon3Asic.cpp",
+        "RamonAsic.cpp",
+        "Tomahawk3Asic.cpp",
+        "Tomahawk4Asic.cpp",
+        "Tomahawk5Asic.cpp",
+        "TomahawkAsic.cpp",
+        "Trident2Asic.cpp",
+        "YubaAsic.cpp",
+    ],
+    headers = [
+        "BroadcomAsic.h",
+        "FakeAsic.h",
+        "MockAsic.h",
+        "TajoAsic.h",
+    ],
+    exported_deps = [
+        "//fboss/agent:agent_features",
+        "//fboss/agent:fboss-error",
+        "//fboss/agent:fboss-types",
+        "//fboss/agent:switch_config-cpp2-types",
+        "//fboss/agent/hw/sai/impl:version_util",
+        "//fboss/lib/phy:phy-cpp2-types",
+        "//folly:network_address",
+        "//thrift/lib/cpp/util:enum_utils",
+    ],
+)

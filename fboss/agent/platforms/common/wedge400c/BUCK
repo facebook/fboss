@@ -1,0 +1,23 @@
+load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
+
+oncall("fboss_agent_push")
+
+cpp_library(
+    name = "wedge400c_platform_mapping",
+    srcs = [
+        "Wedge400CPlatformUtil.cpp",
+        "facebook/Wedge400CGrandTetonPlatformMapping.cpp",
+        "facebook/Wedge400CPlatformMapping.cpp",
+    ],
+    headers = [
+        "Wedge400CGrandTetonPlatformMapping.h",
+        "Wedge400CPlatformMapping.h",
+    ],
+    exported_deps = [
+        "//configerator/structs/neteng/netwhoami:netwhoami-cpp2-types",
+        "//fboss/agent:platform_config-cpp2-types",
+        "//fboss/agent/platforms/common:platform_mapping",
+        "//folly/logging:logging",
+        "//neteng/netwhoami/lib/cpp:recover",
+    ],
+)

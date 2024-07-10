@@ -1,0 +1,21 @@
+load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
+load("//fboss/agent/hw/sai/impl:impl.bzl", "sai_impl_libs", "sai_impl_version_libs")
+
+oncall("fboss_agent_push")
+
+sai_impl_libs()
+
+sai_impl_version_libs()
+
+cpp_library(
+    name = "version_util",
+    srcs = [
+        "util.cpp",
+    ],
+    headers = [
+        "util.h",
+    ],
+    exported_external_deps = [
+        "glog",
+    ],
+)

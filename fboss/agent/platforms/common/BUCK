@@ -1,0 +1,65 @@
+load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
+
+oncall("fboss_agent_push")
+
+cpp_library(
+    name = "platform_mapping",
+    srcs = [
+        "MultiPimPlatformMapping.cpp",
+        "PlatformMapping.cpp",
+    ],
+    exported_deps = [
+        "//fboss/agent:fboss-error",
+        "//fboss/agent:fboss-types",
+        "//fboss/agent:platform_config-cpp2-types",
+        "//fboss/lib/config:fboss_config_utils",
+        "//fboss/lib/phy:phy-cpp2-types",
+        "//fboss/qsfp_service/if:transceiver-cpp2-types",
+        "//folly/logging:logging",
+        "//thrift/lib/cpp/util:enum_utils",
+        "//thrift/lib/cpp2/protocol:protocol",
+    ],
+    exported_external_deps = [
+        "re2",
+    ],
+)
+
+cpp_library(
+    name = "platform_mapping_utils",
+    srcs = [
+        "PlatformMappingUtils.cpp",
+    ],
+    headers = [
+        "PlatformMappingUtils.h",
+    ],
+    exported_deps = [
+        ":platform_mapping",
+        "//fboss/agent:fboss-error",
+        "//fboss/agent/platforms/common/cloud_ripper:cloud_ripper_platform_mapping",
+        "//fboss/agent/platforms/common/darwin:darwin_platform_mapping",
+        "//fboss/agent/platforms/common/elbert:elbert_platform_mapping",
+        "//fboss/agent/platforms/common/fake_test:fake_test_platform_mapping",
+        "//fboss/agent/platforms/common/fuji:fuji_platform_mapping",
+        "//fboss/agent/platforms/common/galaxy:galaxy_platform_mapping",
+        "//fboss/agent/platforms/common/janga800bic:janga800bic_platform_mapping",
+        "//fboss/agent/platforms/common/meru400bfu:meru400bfu_platform_mapping",
+        "//fboss/agent/platforms/common/meru400bia:meru400bia_platform_mapping",
+        "//fboss/agent/platforms/common/meru400biu:meru400biu_platform_mapping",
+        "//fboss/agent/platforms/common/meru800bfa:meru800bfa_platform_mapping",
+        "//fboss/agent/platforms/common/meru800bia:meru800bia_platform_mapping",
+        "//fboss/agent/platforms/common/minipack:minipack_platform_mapping",
+        "//fboss/agent/platforms/common/montblanc:montblanc_platform_mapping",
+        "//fboss/agent/platforms/common/morgan800cc:morgan800cc_platform_mapping",
+        "//fboss/agent/platforms/common/sandia:sandia_platform_mapping",
+        "//fboss/agent/platforms/common/tahan800bc:tahan800bc_platform_mapping",
+        "//fboss/agent/platforms/common/wedge100:wedge100_platform_mapping",
+        "//fboss/agent/platforms/common/wedge40:wedge40_platform_mapping",
+        "//fboss/agent/platforms/common/wedge400:wedge400_platform_mapping",
+        "//fboss/agent/platforms/common/wedge400:wedge400_platform_utils",
+        "//fboss/agent/platforms/common/wedge400c:wedge400c_platform_mapping",
+        "//fboss/agent/platforms/common/yamp:yamp_platform_mapping",
+        "//fboss/lib/platforms:platform_mode",
+        "//folly:file_util",
+        "//folly/logging:logging",
+    ],
+)

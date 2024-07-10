@@ -1,0 +1,135 @@
+load("@fbcode_macros//build_defs:cpp_binary.bzl", "cpp_binary")
+load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
+load("//fboss:THIRD-PARTY-VERSIONS.bzl", "BCM_SDKS", "to_impl_suffix", "to_versions")
+load(
+    "//fboss/agent/test/integration_tests:integration_tests.bzl",
+    "all_sai_integration_test_binaries",
+)
+
+oncall("fboss_agent_push")
+
+cpp_library(
+    name = "agent_integration_test",
+    srcs = [
+        "AgentBgpIntegrationTests.cpp",
+        "AgentIntegrationTest.cpp",
+    ],
+    link_whole = True,  # Required for gtest to find tests in other files.
+    exported_deps = [
+        "//configerator/structs/neteng/fboss/bgp/if:bgp_attr-cpp2-types",
+        "//fb303:service_data",
+        "//fboss/agent:core",
+        "//fboss/agent:handler",
+        "//fboss/agent:load_agent_config",
+        "//fboss/agent:main-common",
+        "//fboss/agent:switch_config-cpp2-types",
+        "//fboss/agent:switchid_scope_resolver",
+        "//fboss/agent/hw/switch_asics:switch_asics",
+        "//fboss/agent/hw/test:config_factory",
+        "//fboss/agent/hw/test:hw_packet_utils",
+        "//fboss/agent/hw/test:load_balancer_utils",
+        "//fboss/agent/state:state",
+        "//fboss/agent/test:agent_integration_test_base",
+        "//fboss/agent/test:ecmp_helper",
+        "//fboss/agent/test:route_scale_gen",
+        "//fboss/fsdb/common:flags",
+        "//fboss/lib:common_utils",
+        "//fboss/lib/config:fboss_config_utils",
+        "//folly:subprocess",
+        "//neteng/fboss/bgp/cpp:bgp_service_lib",
+        "//neteng/fboss/bgp/if:bgp_thrift-cpp2-services",
+        "//neteng/fboss/bgp/if:bgp_thrift-cpp2-types",
+        "//servicerouter/client/cpp2:client_factory",
+        "//servicerouter/client/cpp2:cpp2",
+    ],
+    exported_external_deps = [
+        "gflags",
+    ],
+)
+
+cpp_library(
+    name = "te_agent_integration_test",
+    srcs = [
+        "AgentIntegrationTest.cpp",
+        "TeAgentIntegrationTests.cpp",
+    ],
+    link_whole = True,  # Required for gtest to find tests in other files.
+    undefined_symbols = True,
+    exported_deps = [
+        "//common/thrift/thrift:monitor-cpp2-clients",
+        "//fb303:service_data",
+        "//fboss/agent:core",
+        "//fboss/agent:handler",
+        "//fboss/agent:load_agent_config",
+        "//fboss/agent:main-common",
+        "//fboss/agent:switch_config-cpp2-types",
+        "//fboss/agent/hw/switch_asics:switch_asics",
+        "//fboss/agent/hw/test:config_factory",
+        "//fboss/agent/hw/test:hw_packet_utils",
+        "//fboss/agent/hw/test:hw_test_te_flow_utils",
+        "//fboss/agent/hw/test:load_balancer_utils",
+        "//fboss/agent/hw/test:teflow_utils",
+        "//fboss/agent/state:state",
+        "//fboss/agent/test:agent_integration_test_base",
+        "//fboss/agent/test:ecmp_helper",
+        "//fboss/agent/test:utils",
+        "//fboss/lib:common_utils",
+        "//fboss/lib/config:fboss_config_utils",
+        "//folly:subprocess",
+        "//neteng/ai/te_agent/if:TeAgent-cpp2-services",
+        "//neteng/ai/te_agent/if:TeAgent-cpp2-types",
+        "//neteng/ai/te_agent/tests:test_utils",
+        "//servicerouter/client/cpp2:client_factory",
+        "//servicerouter/client/cpp2:cpp2",
+    ],
+    exported_external_deps = [
+        "gflags",
+    ],
+)
+
+[
+    cpp_binary(
+        name = "bcm_agent_integration_test{}".format(to_impl_suffix(sdk)),
+        srcs = [
+            "BcmAgentIntegrationTests.cpp",
+        ],
+        versions = to_versions(sdk),
+        deps = [
+            "fbsource//third-party/googletest:gtest",
+            "//fboss/agent:main-bcm",
+            "//fboss/agent/platforms/wedge:platform",
+            "//fboss/agent/test:agent_integration_test_base",
+            "//fboss/agent/test/integration_tests:agent_integration_test",
+        ],
+        external_deps = [
+            "gflags",
+            "glog",
+        ],
+    )
+    for sdk in BCM_SDKS
+]
+
+[
+    cpp_binary(
+        name = "bcm_te_agent_integration_test{}".format(to_impl_suffix(sdk)),
+        srcs = [
+            "BcmAgentIntegrationTests.cpp",
+        ],
+        versions = to_versions(sdk),
+        deps = [
+            "fbsource//third-party/googletest:gtest",
+            "//fboss/agent:main-bcm",
+            "//fboss/agent/hw/bcm/tests:bcm_teflow_utils",
+            "//fboss/agent/platforms/wedge:platform",
+            "//fboss/agent/test:agent_integration_test_base",
+            "//fboss/agent/test/integration_tests:te_agent_integration_test",
+        ],
+        external_deps = [
+            "gflags",
+            "glog",
+        ],
+    )
+    for sdk in BCM_SDKS
+]
+
+all_sai_integration_test_binaries()

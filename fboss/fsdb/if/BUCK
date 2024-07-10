@@ -1,0 +1,142 @@
+load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
+load("@fbcode_macros//build_defs:thrift_library.bzl", "thrift_library")
+
+oncall("fboss_agent_push")
+
+thrift_library(
+    name = "fsdb_common",
+    cpp2_deps = [
+        "//folly/container:f14_hash",
+    ],
+    go_thrift_namespaces = {
+        "fsdb_common.thrift": "facebook.fboss.fsdb_common",
+    },
+    languages = [
+        "cpp2",
+        "go",
+        "py",
+        "py3",
+        "py-asyncio",
+        "python",
+        "rust",
+    ],
+    py3_namespace = "neteng.fboss",
+    py_asyncio_base_module = "neteng.fboss.asyncio",
+    py_base_module = "neteng.fboss",
+    rust_gen_metadata = True,
+    thrift_cpp2_options = "reflection,json",
+    thrift_py_options = "json,sort_keys",
+    thrift_srcs = {
+        "fsdb_common.thrift": [],
+    },
+    deps = [
+        "//thrift/annotation:cpp",
+    ],
+)
+
+thrift_library(
+    name = "fsdb_oper",
+    go_thrift_namespaces = {
+        "fsdb_oper.thrift": "facebook.fboss.fsdb_oper",
+    },
+    languages = [
+        "cpp2",
+        "go",
+        "py",
+        "py3",
+        "py-asyncio",
+        "rust",
+        "python",
+    ],
+    no_plugin_deps = [
+        "//thrift/annotation:cpp",
+        "//thrift/annotation:hack",
+        "//thrift/annotation:java",
+        "//thrift/annotation:python",
+    ],
+    py3_namespace = "neteng.fboss",
+    py_asyncio_base_module = "neteng.fboss.asyncio",
+    py_base_module = "neteng.fboss",
+    rust_gen_metadata = True,
+    thrift_cpp2_options = "reflection,json",
+    thrift_py_options = "json,sort_keys",
+    thrift_srcs = {
+        "fsdb_oper.thrift": [],
+    },
+    deps = [
+        ":fsdb_common",
+        "//fboss/thrift_cow:patch",
+    ],
+)
+
+thrift_library(
+    name = "fsdb_config",
+    languages = [
+        "cpp2",
+        "py",
+        "py3",
+        "py-asyncio",
+        "python",
+    ],
+    py3_namespace = "neteng.fboss.fsdb",
+    py_asyncio_base_module = "neteng.fboss.asyncio",
+    py_base_module = "neteng.fboss.fsdb",
+    thrift_cpp2_options = "json",
+    thrift_py_options = "json,sort_keys",
+    thrift_srcs = {
+        "fsdb_config.thrift": [],
+    },
+    deps = [
+        ":fsdb_common",
+        ":fsdb_oper",
+        "//thrift/annotation:cpp",
+    ],
+)
+
+thrift_library(
+    name = "fsdb",
+    cpp2_deps = [
+        "//folly/container:f14_hash",
+        "//folly:fbstring",
+    ],
+    go_thrift_namespaces = {
+        "fsdb.thrift": "facebook.fboss.fsdb",
+    },
+    languages = [
+        "cpp2",
+        "go",
+        "py",
+        "py3",
+        "py-asyncio",
+        "python",
+    ],
+    no_plugin_deps = [
+        "//thrift/annotation:cpp",
+        "//thrift/annotation:hack",
+        "//thrift/annotation:java",
+        "//thrift/annotation:python",
+    ],
+    plugins = [],
+    py3_namespace = "neteng.fboss",
+    py_asyncio_base_module = "neteng.fboss.asyncio",
+    py_base_module = "neteng.fboss",
+    thrift_cpp2_options = "json",
+    thrift_srcs = {
+        "fsdb.thrift": ["FsdbService"],
+    },
+    deps = [
+        "//common/fb303/if:fb303",
+        "//fboss/fsdb/if:fsdb_common",
+        "//fboss/fsdb/if:fsdb_oper",
+    ],
+)
+
+cpp_library(
+    name = "fsdb_model",
+    headers = ["FsdbModel.h"],
+    exported_deps = [
+        "//fboss/fsdb/if/facebook:fsdb_model-cpp2-reflection",
+        "//fboss/fsdb/if/facebook:fsdb_model-cpp2-thriftpath",
+        "//fboss/fsdb/if/facebook:fsdb_model-cpp2-types",
+    ],
+)

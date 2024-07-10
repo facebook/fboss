@@ -1,0 +1,15 @@
+load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
+
+oncall("fboss_agent_push")
+
+cpp_library(
+    name = "fake_test_platform_mapping",
+    srcs = [
+        "FakeTestPlatformMapping.cpp",
+    ],
+    exported_deps = [
+        "//fboss/agent/platforms/common:platform_mapping",
+        "//fboss/lib/phy:phy-cpp2-types",
+        "//folly:format",
+    ],
+)

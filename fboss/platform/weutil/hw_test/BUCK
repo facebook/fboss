@@ -1,0 +1,15 @@
+load("@fbcode_macros//build_defs:cpp_binary.bzl", "cpp_binary")
+
+oncall("fboss_platform")
+
+cpp_binary(
+    name = "weutil_test",
+    srcs = [
+        "WeutilTest.cpp",
+    ],
+    deps = [
+        "fbsource//third-party/googletest:gtest",
+        "//fboss/platform/helpers:init",
+        "//fboss/platform/weutil:weutil_core",
+    ],
+)

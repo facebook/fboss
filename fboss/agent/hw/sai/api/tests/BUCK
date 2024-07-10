@@ -1,0 +1,253 @@
+load("//fboss/agent/hw/sai/api/tests:api_test.bzl", "api_unittest")
+
+oncall("fboss_agent_push")
+
+api_unittest(
+    name = "attribute_test",
+    srcs = [
+        "AttributeTest.cpp",
+    ],
+)
+
+api_unittest(
+    name = "attribute_data_types_test",
+    srcs = [
+        "AttributeDataTypesTest.cpp",
+    ],
+)
+
+api_unittest(
+    name = "acl_api_test",
+    srcs = [
+        "AclApiTest.cpp",
+    ],
+)
+
+api_unittest(
+    name = "bridge_api_test",
+    srcs = [
+        "BridgeApiTest.cpp",
+    ],
+)
+
+api_unittest(
+    name = "buffer_api_test",
+    srcs = [
+        "BufferApiTest.cpp",
+    ],
+)
+
+api_unittest(
+    name = "fdb_api_test",
+    srcs = [
+        "FdbApiTest.cpp",
+    ],
+)
+
+api_unittest(
+    name = "counter_api_test",
+    srcs = [
+        "CounterApiTest.cpp",
+    ],
+)
+
+api_unittest(
+    name = "debug_counter_api_test",
+    srcs = [
+        "DebugCounterApiTest.cpp",
+    ],
+)
+
+api_unittest(
+    name = "hash_api_test",
+    srcs = [
+        "HashApiTest.cpp",
+    ],
+)
+
+api_unittest(
+    name = "hostif_api_test",
+    srcs = [
+        "HostifApiTest.cpp",
+    ],
+)
+
+api_unittest(
+    name = "lag_api_test",
+    srcs = [
+        "LagApiTest.cpp",
+    ],
+)
+
+# TODO(borisb): bring back lag_api_test
+
+api_unittest(
+    name = "mirror_api_test",
+    srcs = [
+        "MirrorApiTest.cpp",
+    ],
+)
+
+api_unittest(
+    name = "mpls_api_test",
+    srcs = [
+        "MplsApiTest.cpp",
+    ],
+)
+
+api_unittest(
+    name = "neighbor_api_test",
+    srcs = [
+        "NeighborApiTest.cpp",
+    ],
+)
+
+api_unittest(
+    name = "next_hop_api_test",
+    srcs = [
+        "NextHopApiTest.cpp",
+    ],
+)
+
+api_unittest(
+    name = "next_hop_group_api_test",
+    srcs = [
+        "NextHopGroupApiTest.cpp",
+    ],
+)
+
+api_unittest(
+    name = "port_api_test",
+    srcs = [
+        "PortApiTest.cpp",
+    ],
+)
+
+api_unittest(
+    name = "qos_map_api_test",
+    srcs = [
+        "QosMapApiTest.cpp",
+    ],
+)
+
+api_unittest(
+    name = "queue_api_test",
+    srcs = [
+        "QueueApiTest.cpp",
+    ],
+)
+
+api_unittest(
+    name = "route_api_test",
+    srcs = [
+        "RouteApiTest.cpp",
+    ],
+)
+
+api_unittest(
+    name = "router_interface_api_test",
+    srcs = [
+        "RouterInterfaceApiTest.cpp",
+    ],
+)
+
+api_unittest(
+    name = "samplepacket_api_test",
+    srcs = [
+        "SamplePacketApiTest.cpp",
+    ],
+)
+
+api_unittest(
+    name = "scheduler_api_test",
+    srcs = [
+        "SchedulerApiTest.cpp",
+    ],
+)
+
+api_unittest(
+    name = "switch_api_test",
+    srcs = [
+        "SwitchApiTest.cpp",
+    ],
+)
+
+api_unittest(
+    name = "system_port_api_test",
+    srcs = [
+        "SystemPortApiTest.cpp",
+    ],
+)
+
+api_unittest(
+    name = "tam_api_test",
+    srcs = [
+        "TamApiTest.cpp",
+    ],
+)
+
+api_unittest(
+    name = "tunnel_api_test",
+    srcs = [
+        "TunnelApiTest.cpp",
+    ],
+)
+
+api_unittest(
+    name = "udf_api_test",
+    srcs = [
+        "UdfApiTest.cpp",
+    ],
+)
+
+api_unittest(
+    name = "util_test",
+    srcs = [
+        "AddressUtilTest.cpp",
+    ],
+    deps = [
+        "//fboss/agent/hw/sai/api:address_util",
+    ],
+)
+
+api_unittest(
+    name = "virtual_router_api_test",
+    srcs = [
+        "VirtualRouterApiTest.cpp",
+    ],
+)
+
+api_unittest(
+    name = "vlan_api_test",
+    srcs = [
+        "VlanApiTest.cpp",
+    ],
+)
+
+api_unittest(
+    name = "wred_api_test",
+    srcs = [
+        "WredApiTest.cpp",
+    ],
+)
+
+api_unittest(
+    name = "adapterkey_serializer_test",
+    srcs = [
+        "AdapterKeySerializerTest.cpp",
+    ],
+)
+
+api_unittest(
+    name = "logging_util_test",
+    srcs = [
+        "LoggingUtilTest.cpp",
+    ],
+)
+
+api_unittest(
+    name = "macsec_api_test",
+    srcs = [
+        "MacsecApiTest.cpp",
+    ],
+)

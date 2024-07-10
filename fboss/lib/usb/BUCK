@@ -1,0 +1,123 @@
+load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
+
+oncall("fboss_agent_push")
+
+cpp_library(
+    name = "usb",
+    srcs = [
+        "UsbDevice.cpp",
+        "UsbHandle.cpp",
+    ],
+    exported_deps = [
+        ":usb-api",
+        "//folly:scope_guard",
+    ],
+    exported_external_deps = [
+        "libusb",
+        "glog",
+    ],
+)
+
+cpp_library(
+    name = "cp2112",
+    srcs = [
+        "CP2112.cpp",
+    ],
+    exported_deps = [
+        ":usb",
+        ":usb-api",
+        "//fboss/lib:bmc-rest-client",
+        "//fboss/lib/i2c:i2c_ctrl",
+        "//folly:range",
+        "//folly:scope_guard",
+        "//folly/lang:bits",
+        "//folly/logging:logging",
+    ],
+    exported_external_deps = [
+        "glog",
+        "libusb",
+    ],
+)
+
+cpp_library(
+    name = "transceiver_access_parameter",
+    headers = [
+        "TransceiverAccessParameter.h",
+    ],
+)
+
+cpp_library(
+    name = "i2-api",
+    headers = [
+        "TransceiverI2CApi.h",
+        "TransceiverPlatformApi.h",
+        "TransceiverPlatformI2cApi.h",
+    ],
+    exported_deps = [
+        ":transceiver_access_parameter",
+        "//fboss/lib/i2c:i2c_controller_stats-cpp2-types",
+        "//folly/io/async:async_base",
+    ],
+)
+
+cpp_library(
+    name = "usb-api",
+    headers = [
+        "UsbError.h",
+    ],
+    exported_deps = [
+        ":i2-api",
+        "//folly:conv",
+    ],
+    exported_external_deps = [
+        "libusb",
+    ],
+)
+
+cpp_library(
+    name = "wedge_i2c",
+    srcs = [
+        "GalaxyI2CBus.cpp",
+        "Minipack16QI2CBus.cpp",
+        "Minipack16QTransceiverApi.cpp",
+        "PCA9548.cpp",
+        "PCA9548MultiplexedBus.cpp",
+        "PCA9548MuxedBus.cpp",
+        "Wedge100I2CBus.cpp",
+        "WedgeI2CBus.cpp",
+    ],
+    exported_deps = [
+        ":base-i2c-dependencies",
+        ":cp2112",
+        ":i2-api",
+        ":usb-api",
+        "//fboss/lib/fpga:fb_fpga_i2c",
+        "//fboss/lib/fpga:minipack_container",
+        "//fboss/lib/i2c:i2c_controller_stats-cpp2-types",
+        "//fboss/lib/i2c:platform_i2c_api",
+        "//fboss/lib/i2c/minipack:minipack_base_i2c",
+        "//folly:format",
+        "//folly:string",
+        "//folly/container:enumerate",
+        "//folly/logging:logging",
+    ],
+    exported_external_deps = [
+        "glog",
+    ],
+)
+
+cpp_library(
+    name = "base-i2c-dependencies",
+    srcs = [
+        "BaseWedgeI2CBus.cpp",
+    ],
+    exported_deps = [
+        ":cp2112",
+        ":i2-api",
+        ":usb-api",
+        "//folly:range",
+    ],
+    exported_external_deps = [
+        "glog",
+    ],
+)

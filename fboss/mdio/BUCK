@@ -1,0 +1,77 @@
+load("@fbcode_macros//build_defs:cpp_binary.bzl", "cpp_binary")
+load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
+
+oncall("fboss_agent_push")
+
+cpp_library(
+    name = "mdio",
+    headers = [
+        "Mdio.h",
+        "MdioError.h",
+        "Phy.h",
+    ],
+    exported_deps = [
+        "//fboss/lib:io_stats_recorder",
+        "//folly:conv",
+        "//folly:file",
+        "//folly:scope_guard",
+        "//folly:synchronized",
+        "//folly/io/async:async_base",
+    ],
+)
+
+cpp_binary(
+    name = "mdio_util",
+    srcs = [
+        "facebook/mdio_helper.cpp",
+        "mdio_util.cpp",
+    ],
+    headers = [
+    ],
+    deps = [
+        ":mdio",
+        "//fboss/lib/fpga/facebook/yamp:yamp_fpga",
+        "//folly/init:init",
+        "//folly/logging:init",
+        "//folly/logging:logging",
+    ],
+    external_deps = [
+        "gflags",
+    ],
+)
+
+cpp_library(
+    name = "facebook_fpga_mdio",
+    srcs = [
+        "FbFpgaMdio.cpp",
+    ],
+    headers = [
+        "FbFpgaMdio.h",
+    ],
+    exported_deps = [
+        ":mdio",
+        "//fboss/lib/fpga:facebook_fpga",
+        "//fboss/lib/fpga:fpga_device",
+        "//folly/logging:logging",
+    ],
+)
+
+cpp_library(
+    name = "device_mdio",
+    srcs = [
+        "BspDeviceMdio.cpp",
+    ],
+    headers = [
+        "BspDeviceMdio.h",
+    ],
+    exported_deps = [
+        ":mdio",
+        "//folly:format",
+        "//folly:range",
+        "//folly/lang:bits",
+        "//folly/logging:logging",
+    ],
+    exported_external_deps = [
+        "gflags",
+    ],
+)

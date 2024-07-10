@@ -1,0 +1,34 @@
+load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
+load("@fbcode_macros//build_defs:cpp_unittest.bzl", "cpp_unittest")
+
+oncall("fboss_agent_push")
+
+cpp_library(
+    name = "fboss_config_utils",
+    srcs = [
+        "PlatformConfigUtils.cpp",
+    ],
+    headers = [
+        "PlatformConfigUtils.h",
+    ],
+    exported_deps = [
+        "//fboss/agent:fboss-error",
+        "//fboss/agent:fboss-types",
+        "//fboss/agent:platform_config-cpp2-types",
+        "//fboss/agent:switch_config-cpp2-types",
+        "//fboss/lib/phy:external_phy",
+        "//fboss/lib/phy:phy-cpp2-types",
+        "//thrift/lib/cpp/util:enum_utils",
+    ],
+)
+
+cpp_unittest(
+    name = "fboss_config_utils_tests",
+    srcs = [
+        "tests/PlatformConfigUtilsTests.cpp",
+    ],
+    deps = [
+        ":fboss_config_utils",
+        "//fboss/agent:fboss-error",
+    ],
+)

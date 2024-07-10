@@ -1,0 +1,12 @@
+load("@fbcode_macros//build_defs:thrift_library.bzl", "thrift_library")
+
+oncall("fboss_platform")
+
+thrift_library(
+    name = "fw_util_config",
+    languages = [
+        "cpp2",
+    ],
+    thrift_cpp2_options = "json",
+    thrift_srcs = {"fw_util_config.thrift": []},
+)

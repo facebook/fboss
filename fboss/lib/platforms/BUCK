@@ -1,0 +1,43 @@
+load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
+
+oncall("fboss_agent_push")
+
+cpp_library(
+    name = "platform_mode",
+    srcs = [
+        "PlatformMode.cpp",
+    ],
+    headers = [
+        "PlatformMode.h",
+    ],
+    exported_deps = [
+        "//fboss/lib/if:fboss_common-cpp2-types",
+    ],
+    exported_external_deps = [
+        "gflags",
+    ],
+)
+
+cpp_library(
+    name = "product-info",
+    srcs = [
+        "PlatformProductInfo.cpp",
+        "facebook/PlatformProductInfo.cpp",
+    ],
+    exported_deps = [
+        ":platform_mode",
+        "//common/fbwhoami:fb_who_am_i",
+        "//fboss/agent:fboss-error",
+        "//fboss/agent/if:product_info-cpp2-types",
+        "//folly:file_util",
+        "//folly:network_address",
+        "//folly:range",
+        "//folly/json:dynamic",
+        "//folly/logging:logging",
+        "//folly/testing:test_util",
+    ],
+    exported_external_deps = [
+        "re2",
+        ("boost", None, "boost_algorithm"),
+    ],
+)

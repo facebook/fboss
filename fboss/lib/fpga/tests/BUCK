@@ -1,0 +1,28 @@
+load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
+load("@fbcode_macros//build_defs:cpp_unittest.bzl", "cpp_unittest")
+
+oncall("fboss_agent_push")
+
+cpp_library(
+    name = "base_system_container_tests",
+    headers = [
+        "BaseSystemContainerTests.h",
+    ],
+    exported_deps = [
+        "fbsource//third-party/googletest:gtest",
+        "//fboss/lib/fpga:multi_pim_container",
+        "//fboss/lib/fpga/facebook/tests:facebook_fpga_fake",
+    ],
+)
+
+cpp_unittest(
+    name = "minipack_system_container_tests",
+    srcs = [
+        "MinipackSystemContainerTests.cpp",
+    ],
+    deps = [
+        ":base_system_container_tests",
+        "//fboss/lib/fpga:minipack_container",
+        "//fboss/lib/fpga/facebook/tests:facebook_fpga_fake",
+    ],
+)

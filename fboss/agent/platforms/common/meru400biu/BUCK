@@ -1,0 +1,14 @@
+load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
+
+oncall("fboss_agent_push")
+
+cpp_library(
+    name = "meru400biu_platform_mapping",
+    srcs = [
+        "Meru400biuPlatformMapping.cpp",
+    ],
+    exported_deps = [
+        "//fboss/agent:agent_features",
+        "//fboss/agent/platforms/common:platform_mapping",
+    ],
+)

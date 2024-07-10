@@ -1,0 +1,16 @@
+load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
+
+oncall("fboss_agent_push")
+
+cpp_library(
+    name = "janga800bic_platform_mapping",
+    srcs = [
+        "Janga800bicPlatformMapping.cpp",
+    ],
+    headers = [
+        "Janga800bicPlatformMapping.h",
+    ],
+    exported_deps = [
+        "//fboss/agent/platforms/common:platform_mapping",
+    ],
+)

@@ -1,0 +1,64 @@
+load("@fbcode_macros//build_defs:thrift_library.bzl", "thrift_library")
+
+oncall("fboss_platform")
+
+thrift_library(
+    name = "sensor_service",
+    go_thrift_namespaces = {
+        "sensor_service.thrift": "neteng.fboss.platform.sensor_service",
+    },
+    languages = [
+        "cpp2",
+        "go",
+        "py",
+        "py3",
+        "py-asyncio",
+        "rust",
+    ],
+    no_plugin_deps = [
+        "//thrift/annotation:cpp",
+        "//thrift/annotation:go",
+        "//thrift/annotation:hack",
+        "//thrift/annotation:java",
+        "//thrift/annotation:python",
+        "//thrift/annotation:thrift",
+        "//thrift/facebook/erlang:annotations",
+    ],
+    py3_namespace = "neteng.fboss.platform.sensor_service",
+    py_asyncio_base_module = "neteng.fboss.platform.asyncio",
+    py_base_module = "neteng.fboss.platform",
+    thrift_cpp2_options = [
+        "json",
+        "reflection",
+    ],
+    thrift_rust_options = ["deprecated_default_enum_min_i32"],
+    thrift_srcs = {"sensor_service.thrift": ["SensorServiceThrift"]},
+    deps = [
+        ":sensor_config",
+        "//fboss/agent/if:fboss",
+    ],
+)
+
+thrift_library(
+    name = "sensor_config",
+    go_thrift_namespaces = {
+        "sensor_config.thrift": "neteng.fboss.platform.sensor_config",
+    },
+    languages = [
+        "cpp2",
+        "go",
+        "py",
+        "py3",
+        "py-asyncio",
+        "rust",
+    ],
+    py3_namespace = "neteng.fboss.platform.sensor_config",
+    py_asyncio_base_module = "neteng.fboss.platform.asyncio",
+    py_base_module = "neteng.fboss.platform",
+    thrift_cpp2_options = [
+        "json",
+        "reflection",
+    ],
+    thrift_rust_options = ["deprecated_default_enum_min_i32"],
+    thrift_srcs = {"sensor_config.thrift": []},
+)

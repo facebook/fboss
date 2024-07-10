@@ -1,0 +1,43 @@
+load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
+load(
+    "//fboss/agent/benchmarks:benchmarks.bzl",
+    "agent_benchmark_libs",
+    "bcm_agent_benchmark_libs",
+    "sai_agent_mono_benchmark_libs",
+    "sai_agent_multi_switch_benchmark_lib",
+)
+
+oncall("fboss_agent_push")
+
+agent_benchmark_libs()
+
+bcm_agent_benchmark_libs(
+    srcs = [
+        "AgentBenchmarksMain.cpp",
+        "bcm/AgentBenchmarksMain.cpp",
+    ],
+)
+
+sai_agent_mono_benchmark_libs(
+    srcs = [
+        "AgentBenchmarksMain.cpp",
+        "sai/AgentBenchmarksMain.cpp",
+    ],
+)
+
+sai_agent_multi_switch_benchmark_lib(
+    srcs = [
+        "AgentBenchmarksMain.cpp",
+        "sai/MultiSwitchAgentBenchmarksMain.cpp",
+    ],
+)
+
+cpp_library(
+    name = "agent_benchmarks_h",
+    headers = [
+        "AgentBenchmarks.h",
+    ],
+    exported_deps = [
+        "//fboss/agent/test:agent_ensemble",
+    ],
+)

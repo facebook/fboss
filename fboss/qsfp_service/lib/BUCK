@@ -1,0 +1,65 @@
+load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
+
+oncall("fboss_optics_phy")
+
+cpp_library(
+    name = "qsfp-service-client",
+    srcs = [
+        "QsfpClient.cpp",
+        "facebook/QsfpClient.cpp",
+    ],
+    exported_deps = [
+        "//common/fbwhoami:fb_who_am_i",
+        "//common/services/cpp:facebook_identity_verifier",
+        "//common/services/cpp:tls_constants",
+        "//configerator/structs/infrasec/if:acl-cpp2-types",
+        "//fboss/lib/thrift_service_client:thrift-service-client",
+        "//fboss/qsfp_service/if:qsfp-cpp2-clients",
+        "//folly:network_address",
+        "//folly/futures:core",
+        "//folly/io/async:async_base",
+        "//folly/io/async:async_ssl_socket",
+        "//folly/io/async:ssl_context",
+        "//folly/io/async:ssl_options",
+        "//infrasec/authorization:base_identity_util",
+        "//security/ca/lib:cert_path_picker",
+        "//thrift/lib/cpp2/async:rocket_client_channel",
+    ],
+)
+
+cpp_library(
+    name = "qsfp-cache",
+    srcs = [
+        "QsfpCache.cpp",
+    ],
+    exported_deps = [
+        ":qsfp-service-client",
+        "//fboss/agent:fboss-types",
+        "//fboss/agent/if:ctrl-cpp2-types",
+        "//fboss/lib:alert_logger",
+        "//fboss/qsfp_service/if:transceiver-cpp2-types",
+        "//folly:synchronized",
+        "//folly:unit",
+        "//folly/futures:core",
+        "//folly/futures:shared_promise",
+        "//folly/io/async:async_base",
+        "//folly/logging:logging",
+    ],
+    exported_external_deps = [
+        ("boost", None, "boost_container"),
+    ],
+)
+
+cpp_library(
+    name = "qsfp-config-parser-helper",
+    srcs = [
+        "QsfpConfigParserHelper.cpp",
+    ],
+    headers = [
+        "QsfpConfigParserHelper.h",
+    ],
+    exported_deps = [
+        "//fboss/qsfp_service/if:config-cpp2-types",
+        "//fboss/qsfp_service/if:transceiver-cpp2-types",
+    ],
+)

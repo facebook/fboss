@@ -1,0 +1,43 @@
+load("@fbcode_macros//build_defs:cpp_unittest.bzl", "cpp_unittest")
+
+oncall("fboss_agent_push")
+
+cpp_unittest(
+    name = "PacketStreamTest",
+    srcs = [
+        "PacketStreamTest.cpp",
+    ],
+    deps = [
+        "//fboss/agent/thrift_packet_stream:packet_stream_client",
+        "//fboss/agent/thrift_packet_stream:packet_stream_server",
+        "//folly:memory",
+        "//folly:random",
+        "//folly/io/async:async_base",
+        "//folly/io/async:event_base_manager",
+        "//folly/io/async:scoped_event_base_thread",
+        "//folly/portability:gmock",
+        "//folly/portability:gtest",
+        "//thrift/lib/cpp2/util:util",
+    ],
+)
+
+cpp_unittest(
+    name = "BidirectionalPacketStreamTest",
+    srcs = [
+        "BidirectionalPacketStreamTest.cpp",
+    ],
+    deps = [
+        "//fboss/agent/thrift_packet_stream:bidirectional_packet_stream",
+        "//fboss/lib:common_utils",
+        "//folly:memory",
+        "//folly:random",
+        "//folly/io/async:async_base",
+        "//folly/io/async:event_base_manager",
+        "//folly/io/async:scoped_event_base_thread",
+        "//folly/logging:logging",
+        "//folly/portability:gmock",
+        "//folly/portability:gtest",
+        "//folly/synchronization:baton",
+        "//thrift/lib/cpp2/util:util",
+    ],
+)

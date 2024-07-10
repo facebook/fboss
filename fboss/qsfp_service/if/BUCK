@@ -1,0 +1,156 @@
+load("@fbcode_macros//build_defs:thrift_library.bzl", "thrift_library")
+
+oncall("fboss_optics_phy")
+
+thrift_library(
+    name = "qsfp",
+    go_thrift_namespaces = {
+        "qsfp.thrift": "neteng.fboss.qsfp",
+    },
+    languages = [
+        "cpp2",
+        "go",
+        "py",
+        "py3",
+        "py-asyncio",
+        "rust",
+    ],
+    no_plugin_deps = [
+        "//thrift/annotation:cpp",
+        "//thrift/annotation:go",
+        "//thrift/annotation:hack",
+        "//thrift/annotation:java",
+        "//thrift/annotation:python",
+        "//thrift/annotation:thrift",
+        "//thrift/facebook/erlang:annotations",
+    ],
+    py3_namespace = "neteng.fboss",
+    py_asyncio_base_module = "neteng.fboss.asyncio",
+    py_base_module = "neteng.fboss",
+    thrift_cpp2_options = "json",
+    thrift_srcs = {"qsfp.thrift": ["QsfpService"]},
+    deps = [
+        ":transceiver",
+        "//fboss/agent:switch_config",
+        "//fboss/agent/hw:hardware_stats",
+        "//fboss/agent/if:ctrl",
+        "//fboss/agent/if:fboss",
+        "//fboss/lib/phy:phy",
+        "//fboss/lib/phy:prbs",
+        "//fboss/mka_service/if:mka_structs",
+    ],
+)
+
+thrift_library(
+    name = "transceiver",
+    go_thrift_namespaces = {
+        "transceiver.thrift": "neteng.fboss.transceiver",
+    },
+    languages = [
+        "cpp2",
+        "py",
+        "py3",
+        "py-asyncio",
+        "go",
+        "rust",
+    ],
+    no_plugin_deps = ["//thrift/annotation:all"],
+    py3_namespace = "neteng.fboss",
+    py_asyncio_base_module = "neteng.fboss.asyncio",
+    py_base_module = "neteng.fboss",
+    thrift_cpp2_options = "json,reflection",
+    thrift_py_options = "json,sort_keys",
+    thrift_rust_options = [
+        "deprecated_default_enum_min_i32",
+        "serde",
+    ],
+    thrift_srcs = {"transceiver.thrift": []},
+    deps = [
+        "//fboss/lib/phy:link",
+        "//fboss/lib/phy:prbs",
+        "//thrift/annotation:cpp",
+    ],
+)
+
+thrift_library(
+    name = "config",
+    go_thrift_namespaces = {
+        "qsfp_service_config.thrift": "neteng.fboss.qsfp_service_config",
+    },
+    languages = [
+        "cpp2",
+        "go",
+        "py",
+        "py3",
+        "py-asyncio",
+        "rust",
+    ],
+    py3_namespace = "neteng.fboss",
+    py_asyncio_base_module = "neteng.fboss.asyncio",
+    py_base_module = "neteng.fboss",
+    thrift_cpp2_options = "json,reflection",
+    thrift_py_options = "json,sort_keys",
+    thrift_rust_options = [
+        "deprecated_default_enum_min_i32",
+        "serde",
+    ],
+    thrift_srcs = {"qsfp_service_config.thrift": []},
+    deps = [
+        ":transceiver",
+        "//fboss/agent:switch_config",
+    ],
+)
+
+thrift_library(
+    name = "state",
+    go_thrift_namespaces = {
+        "qsfp_state.thrift": "neteng.fboss.qsfp_state",
+    },
+    languages = [
+        "cpp2",
+        "go",
+        "py",
+        "py3",
+        "py-asyncio",
+        "rust",
+    ],
+    py3_namespace = "neteng.fboss",
+    py_asyncio_base_module = "neteng.fboss.asyncio",
+    py_base_module = "neteng.fboss",
+    thrift_cpp2_options = "json,reflection",
+    thrift_py_options = "json,sort_keys",
+    thrift_rust_options = "serde",
+    thrift_srcs = {"qsfp_state.thrift": []},
+    deps = [
+        ":config",
+        ":transceiver",
+        "//fboss/lib/phy:phy",
+    ],
+)
+
+thrift_library(
+    name = "stats",
+    go_thrift_namespaces = {
+        "qsfp_stats.thrift": "neteng.fboss.qsfp_stats",
+    },
+    languages = [
+        "cpp2",
+        "go",
+        "py",
+        "py3",
+        "py-asyncio",
+        "rust",
+    ],
+    py3_namespace = "neteng.fboss",
+    py_asyncio_base_module = "neteng.fboss.asyncio",
+    py_base_module = "neteng.fboss",
+    thrift_cpp2_options = "json,reflection",
+    thrift_py_options = "json,sort_keys",
+    thrift_rust_options = "serde",
+    thrift_srcs = {"qsfp_stats.thrift": []},
+    deps = [
+        ":transceiver",
+        "//fboss/agent/hw:hardware_stats",
+        "//fboss/lib/phy:phy",
+    ],
+)

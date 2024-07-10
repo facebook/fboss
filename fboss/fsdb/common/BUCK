@@ -1,0 +1,42 @@
+load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
+
+oncall("fboss_agent_push")
+
+cpp_library(
+    name = "flags",
+    srcs = [
+        "Flags.cpp",
+    ],
+    headers = [
+        "Flags.h",
+    ],
+    exported_deps = [
+        "//fboss/fsdb/if:fsdb_common-cpp2-types",
+    ],
+    exported_external_deps = [
+        "gflags",
+    ],
+)
+
+cpp_library(
+    name = "utils",
+    srcs = [
+        "Utils.cpp",
+    ],
+    headers = [
+        "Types.h",
+        "Utils.h",
+    ],
+    exported_deps = [
+        "fbsource//third-party/fmt:fmt",
+        "//fboss/fsdb/if:fsdb_common-cpp2-types",
+        "//fboss/fsdb/if:fsdb_oper-cpp2-types",
+        "//fboss/thrift_cow/storage:cow_storage",
+        "//fboss/thrift_cow/visitors:visitors",
+        "//folly:string",
+        "//folly/container:f14_hash",
+        "//folly/logging:logging",
+        "//folly/system:thread_name",
+        "//thrift/lib/cpp/util:enum_utils",
+    ],
+)

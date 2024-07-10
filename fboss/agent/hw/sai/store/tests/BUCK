@@ -1,0 +1,201 @@
+load("//fboss/agent/hw/sai/store/tests:store_test.bzl", "store_unittest")
+
+oncall("fboss_agent_push")
+
+store_unittest(
+    name = "sai_empty_store_test",
+    srcs = [
+        "SaiEmptyStoreTest.cpp",
+    ],
+)
+
+store_unittest(
+    name = "acltablegroup_store_test",
+    srcs = [
+        "AclTableGroupStoreTest.cpp",
+    ],
+    supports_static_listing = False,
+)
+
+store_unittest(
+    name = "acltable_store_test",
+    srcs = [
+        "AclTableStoreTest.cpp",
+    ],
+    supports_static_listing = False,
+)
+
+store_unittest(
+    name = "bridge_store_test",
+    srcs = [
+        "BridgeStoreTest.cpp",
+    ],
+)
+
+store_unittest(
+    name = "buffer_store_test",
+    srcs = [
+        "BufferStoreTest.cpp",
+    ],
+)
+
+store_unittest(
+    name = "counter_store_test",
+    srcs = [
+        "CounterStoreTest.cpp",
+    ],
+)
+
+store_unittest(
+    name = "debug_counter_store_test",
+    srcs = [
+        "DebugCounterStoreTest.cpp",
+    ],
+)
+
+store_unittest(
+    name = "fdb_store_test",
+    srcs = [
+        "FdbStoreTest.cpp",
+    ],
+)
+
+store_unittest(
+    name = "hash_store_test",
+    srcs = [
+        "HashStoreTest.cpp",
+    ],
+)
+
+store_unittest(
+    name = "hostif_trap_store_test",
+    srcs = [
+        "HostifTrapStoreTest.cpp",
+    ],
+)
+
+store_unittest(
+    name = "in_seg_store_test",
+    srcs = [
+        "InSegStoreTest.cpp",
+    ],
+)
+
+store_unittest(
+    name = "lag_store_test",
+    srcs = [
+        "LagStoreTest.cpp",
+    ],
+)
+
+store_unittest(
+    name = "mirror_store_test",
+    srcs = [
+        "MirrorStoreTest.cpp",
+    ],
+)
+
+store_unittest(
+    name = "neighbor_store_test",
+    srcs = [
+        "NeighborStoreTest.cpp",
+    ],
+)
+
+store_unittest(
+    name = "next_hop_store_test",
+    srcs = [
+        "NextHopStoreTest.cpp",
+    ],
+)
+
+store_unittest(
+    name = "next_hop_group_store_test",
+    srcs = [
+        "NextHopGroupStoreTest.cpp",
+    ],
+)
+
+store_unittest(
+    name = "port_store_test",
+    srcs = [
+        "PortStoreTest.cpp",
+    ],
+)
+
+store_unittest(
+    name = "qos_map_store_test",
+    srcs = [
+        "QosMapStoreTest.cpp",
+    ],
+)
+
+store_unittest(
+    name = "queue_store_test",
+    srcs = [
+        "QueueStoreTest.cpp",
+    ],
+)
+
+store_unittest(
+    name = "route_store_test",
+    srcs = [
+        "RouteStoreTest.cpp",
+    ],
+)
+
+store_unittest(
+    name = "router_interface_store_test",
+    srcs = [
+        "RouterInterfaceStoreTest.cpp",
+    ],
+)
+
+store_unittest(
+    name = "samplepacket_store_test",
+    srcs = [
+        "SamplePacketStoreTest.cpp",
+    ],
+)
+
+store_unittest(
+    name = "scheduler_store_test",
+    srcs = [
+        "SchedulerStoreTest.cpp",
+    ],
+)
+
+store_unittest(
+    name = "tam_store_test",
+    srcs = [
+        "TamStoreTest.cpp",
+    ],
+)
+
+store_unittest(
+    name = "tunnel_store_test",
+    srcs = [
+        "TunnelStoreTest.cpp",
+    ],
+)
+
+store_unittest(
+    name = "vlan_store_test",
+    srcs = [
+        "VlanStoreTest.cpp",
+    ],
+)
+
+store_unittest(
+    name = "wred_store_test",
+    srcs = [
+        "WredStoreTest.cpp",
+    ],
+)
+
+store_unittest(
+    name = "udf_store_test",
+    srcs = [
+        "UdfStoreTest.cpp",
+    ],
+)

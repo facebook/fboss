@@ -1,0 +1,109 @@
+load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
+load("//fboss/agent/hw/sai/api:api.bzl", "sai_api_libs")
+
+oncall("fboss_agent_push")
+
+cpp_library(
+    name = "address_util",
+    srcs = [
+        "AddressUtil.cpp",
+    ],
+    exported_deps = [
+        "//folly:network_address",
+        "//folly:string",
+        "//folly/lang:assume",
+        "//folly/logging:logging",
+    ],
+    exported_external_deps = [
+        ("sai", None),
+    ],
+)
+
+cpp_library(
+    name = "sai_version",
+    headers = [
+        "SaiVersion.h",
+    ],
+)
+
+cpp_library(
+    name = "sai_fake_extensions",
+    headers = [
+        "fake/saifakeextensions.h",
+    ],
+    exported_external_deps = [
+        ("sai", None),
+    ],
+)
+
+cpp_library(
+    name = "sai_types",
+    srcs = [
+        "Types.cpp",
+    ],
+    exported_deps = [
+        "//fboss/agent:fboss-types",
+    ],
+    exported_external_deps = [
+        "boost",
+        "sai",
+    ],
+)
+
+sai_api_libs()
+
+cpp_library(
+    name = "recursive_glob_headers",
+    headers = [
+        "AclApi.h",
+        "AdapterKeySerializers.h",
+        "AddressUtil.h",
+        "BridgeApi.h",
+        "BufferApi.h",
+        "CounterApi.h",
+        "DebugCounterApi.h",
+        "FdbApi.h",
+        "HashApi.h",
+        "HostifApi.h",
+        "LagApi.h",
+        "LoggingUtil.h",
+        "MacsecApi.h",
+        "MirrorApi.h",
+        "MplsApi.h",
+        "NeighborApi.h",
+        "NextHopApi.h",
+        "NextHopGroupApi.h",
+        "PortApi.h",
+        "QosMapApi.h",
+        "QueueApi.h",
+        "RouteApi.h",
+        "RouterInterfaceApi.h",
+        "SaiApi.h",
+        "SaiApiError.h",
+        "SaiApiLock.h",
+        "SaiApiTable.h",
+        "SaiAttribute.h",
+        "SaiAttributeDataTypes.h",
+        "SaiDefaultAttributeValues.h",
+        "SaiObjectApi.h",
+        "SaiVersion.h",
+        "SamplePacketApi.h",
+        "SchedulerApi.h",
+        "SwitchApi.h",
+        "SystemPortApi.h",
+        "TamApi.h",
+        "Traits.h",
+        "TunnelApi.h",
+        "Types.h",
+        "UdfApi.h",
+        "VirtualRouterApi.h",
+        "VlanApi.h",
+        "WredApi.h",
+        "fake/saifakeextensions.h",
+    ],
+    tags = ["noautodeps"],
+    exported_deps = [
+        "//fboss/lib:tuple_utils",
+        "//folly:network_address",
+    ],
+)

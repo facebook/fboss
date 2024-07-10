@@ -1,0 +1,21 @@
+load("@fbcode_macros//build_defs:cpp_binary.bzl", "cpp_binary")
+
+oncall("fboss_agent_push")
+
+cpp_binary(
+    name = "sim_ctrl",
+    srcs = [
+        "sim_ctrl.cpp",
+    ],
+    deps = [
+        "//fboss/agent:hw_switch",
+        "//fboss/agent:load_agent_config",
+        "//fboss/agent:main-bcm",  # @manual
+        "//fboss/agent:monolithic_agent_initializer",
+        "//fboss/agent:platform_base",
+        "//fboss/agent/hw/bcm:bcm",  # @manual
+        "//fboss/agent/hw/sim:platform",
+        "//folly:memory",
+    ],
+    external_deps = ["gflags"],
+)

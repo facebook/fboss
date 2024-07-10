@@ -1,0 +1,53 @@
+load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
+load("@fbcode_macros//build_defs:cpp_unittest.bzl", "cpp_unittest")
+
+oncall("fboss_agent_push")
+
+cpp_library(
+    name = "visitor_test_utils",
+    srcs = [
+        "VisitorTestUtils.cpp",
+    ],
+    headers = [
+        "VisitorTestUtils.h",
+    ],
+    exported_deps = [
+        "//fboss/agent:switch_config-cpp2-reflection",
+        "//fboss/thrift_cow/nodes/tests:test-cpp2-reflection",
+        "//fboss/thrift_cow/visitors:visitors",
+        "//folly/json:dynamic",
+        "//thrift/lib/cpp2/reflection:folly_dynamic",
+    ],
+)
+
+cpp_unittest(
+    name = "visitor_tests",
+    srcs = [
+        "DeltaVisitorTests.cpp",
+        "ExtendedPathVisitorTests.cpp",
+        "PatchApplierTests.cpp",
+        "PatchBuildApplyTests.cpp",
+        "PatchBuilderTests.cpp",
+        "PathVisitorTests.cpp",
+        "RecurseVisitorTests.cpp",
+    ],
+    preprocessor_flags = ["-DENABLE_DYNAMIC_APIS"],
+    deps = [
+        "fbsource//third-party/fmt:fmt",
+        "fbsource//third-party/googletest:gmock",
+        ":visitor_test_utils",
+        "//fboss/agent:switch_config-cpp2-reflection",
+        "//fboss/agent:switch_config-cpp2-types",
+        "//fboss/fsdb/if:fsdb_oper-cpp2-types",
+        "//fboss/fsdb/oper:extended_path_builder",
+        "//fboss/thrift_cow:patch-cpp2-types",
+        "//fboss/thrift_cow/nodes:nodes",
+        "//fboss/thrift_cow/nodes/tests:test-cpp2-reflection",
+        "//fboss/thrift_cow/nodes/tests:test-cpp2-types",
+        "//fboss/thrift_cow/visitors:visitors",
+        "//folly:string",
+        "//folly/json:dynamic",
+        "//folly/logging:logging",
+        "//thrift/lib/cpp2/reflection:folly_dynamic",
+    ],
+)

@@ -1,0 +1,30 @@
+load("@fbcode_macros//build_defs:thrift_library.bzl", "thrift_library")
+
+oncall("fboss_platform")
+
+thrift_library(
+    name = "rackmonsvc",
+    go_thrift_namespaces = {
+        "rackmonsvc.thrift": "rackmonsvc",
+    },
+    languages = [
+        "cpp2",
+        "py3",
+        "py",
+        "go",
+        "rust",
+    ],
+    py3_namespace = "",
+    py_base_module = "rackmonsvc",
+    rust_gen_metadata = True,
+    thrift_cpp2_options = ["json"],
+    thrift_py_options = "json",
+    thrift_rust_options = [
+        "deprecated_default_enum_min_i32",
+        "serde",
+    ],
+    thrift_srcs = {"rackmonsvc.thrift": ["RackmonCtrl"]},
+    deps = [
+        "//fboss/agent/if:fboss",
+    ],
+)
