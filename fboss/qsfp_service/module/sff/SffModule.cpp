@@ -460,7 +460,11 @@ std::vector<uint8_t> SffModule::configuredHostLanes(
   if (hostStartLane != 0) {
     return {};
   }
-  return {0, 1, 2, 3};
+  if (currentConfiguredSpeed_ == cfg::PortSpeed::FIFTYG) {
+    return {0, 1};
+  } else {
+    return {0, 1, 2, 3};
+  }
 }
 
 std::vector<uint8_t> SffModule::configuredMediaLanes(
@@ -474,7 +478,12 @@ std::vector<uint8_t> SffModule::configuredMediaLanes(
   if (ext_comp_code && *ext_comp_code == ExtendedSpecComplianceCode::FR1_100G) {
     return {0};
   }
-  return {0, 1, 2, 3};
+
+  if (currentConfiguredSpeed_ == cfg::PortSpeed::FIFTYG) {
+    return {0, 1};
+  } else {
+    return {0, 1, 2, 3};
+  }
 }
 
 RateSelectSetting SffModule::getRateSelectSettingValue(RateSelectState state) {
@@ -1465,6 +1474,7 @@ void SffModule::customizeTransceiverLocked(TransceiverPortState& portState) {
   } else {
     QSFP_LOG(DBG1, this) << "Customization not supported";
   }
+  currentConfiguredSpeed_ = speed;
 }
 
 /*

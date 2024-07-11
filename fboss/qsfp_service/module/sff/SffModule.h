@@ -508,6 +508,8 @@ class SffModule : public QsfpModule {
   folly::Synchronized<PrbsBitCount> linePrbsSnapshot_;
 
   const std::shared_ptr<const TransceiverConfig> tcvrConfig_;
+
+  cfg::PortSpeed currentConfiguredSpeed_{cfg::PortSpeed::DEFAULT};
 };
 
 } // namespace fboss
