@@ -147,7 +147,7 @@ class AgentAclCounterTestBase : public AgentHwTest {
   // roce write-immediate - udpport=4791 + opcode=11 + reserved=1
   size_t sendRoceTraffic(
       const PortID frontPanelEgrPort,
-      int roceOpcode = utility::kUdfRoceOpcode) {
+      int roceOpcode = utility::kUdfRoceOpcodeAck) {
     auto vlanId = utility::firstVlanID(getProgrammedState());
     auto intfMac = utility::getFirstInterfaceMac(getProgrammedState());
     return utility::pumpRoCETraffic(
@@ -260,7 +260,7 @@ class AgentAclCounterTestBase : public AgentHwTest {
     std::vector<cfg::CounterType> setCounterTypes{
         cfg::CounterType::PACKETS, cfg::CounterType::BYTES};
     acl->udfGroups() = {utility::kUdfAclRoceOpcodeGroupName};
-    acl->roceOpcode() = utility::kUdfRoceOpcode;
+    acl->roceOpcode() = utility::kUdfRoceOpcodeAck;
     utility::addAclStat(
         config, aclName, counterName, std::move(setCounterTypes));
   }

@@ -136,7 +136,7 @@ cfg::SwitchConfig addUdfAclRoceOpcodeConfig(cfg::SwitchConfig& cfg) {
   cfg.udfConfig() = utility::addUdfAclConfig();
   auto acl = utility::addAcl(&cfg, utility::kUdfAclRoceOpcodeName);
   acl->udfGroups() = {utility::kUdfAclRoceOpcodeGroupName};
-  acl->roceOpcode() = utility::kUdfRoceOpcode;
+  acl->roceOpcode() = utility::kUdfRoceOpcodeAck;
 
   // Add AclStat configuration
   utility::addAclStat(

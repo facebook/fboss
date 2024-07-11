@@ -116,7 +116,7 @@ TEST_F(HwUdfTest, deleteUdfAclConfig) {
   // Add ACL configuration
   auto acl = utility::addAcl(&newCfg, "test-udf-acl");
   acl->udfGroups() = {utility::kUdfAclRoceOpcodeGroupName};
-  acl->roceOpcode() = utility::kUdfRoceOpcode;
+  acl->roceOpcode() = utility::kUdfRoceOpcodeAck;
   applyNewConfig(newCfg);
 
   // Get UdfGroup and PacketMatcher Ids for verify

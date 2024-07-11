@@ -251,7 +251,7 @@ class AgentAclCounterTest : public AgentHwTest {
         255,
         std::nullopt,
         1 /* one packet */,
-        utility::kUdfRoceOpcode,
+        utility::kUdfRoceOpcodeAck,
         this->roceReservedByte_);
   }
 
@@ -475,10 +475,10 @@ class AgentAclCounterTest : public AgentHwTest {
         break;
       case AclType::UDF:
         acl->udfGroups() = {utility::kUdfAclRoceOpcodeGroupName};
-        acl->roceOpcode() = utility::kUdfRoceOpcode;
+        acl->roceOpcode() = utility::kUdfRoceOpcodeAck;
         break;
       case AclType::BTH_OPCODE:
-        acl->roceOpcode() = utility::kUdfRoceOpcode;
+        acl->roceOpcode() = utility::kUdfRoceOpcodeAck;
         break;
       case AclType::FLOWLET:
       case AclType::UDF_FLOWLET:

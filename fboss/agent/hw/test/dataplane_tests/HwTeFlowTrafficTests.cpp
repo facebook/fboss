@@ -527,7 +527,7 @@ class HwUdfAclTeFlowTrafficTest : public HwTeFlowTrafficTest {
     cfg.udfConfig() = utility::addUdfAclConfig();
     auto acl = utility::addAcl(&cfg, kUdfAclName);
     acl->udfGroups() = {utility::kUdfAclRoceOpcodeGroupName};
-    acl->roceOpcode() = utility::kUdfRoceOpcode;
+    acl->roceOpcode() = utility::kUdfRoceOpcodeAck;
     utility::addAclStat(&cfg, kUdfAclName, kUdfAclStatName);
     return cfg;
   }

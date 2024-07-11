@@ -64,7 +64,7 @@ size_t pumpRoCETraffic(
     int hopLimit = 255,
     std::optional<folly::MacAddress> srcMacAddr = std::nullopt,
     int packetCount = 200000,
-    uint8_t roceOpcode = kUdfRoceOpcode,
+    uint8_t roceOpcode = kUdfRoceOpcodeAck,
     uint8_t reserved = kRoceReserved);
 
 size_t pumpTrafficWithSourceFile(
