@@ -378,7 +378,6 @@ hw_dataplane_test_srcs = [
     "dataplane_tests/HwLoadBalancerTestsV6Roce.cpp",
     "dataplane_tests/HwMirroringTests.cpp",
     "dataplane_tests/HwMPLSTests.cpp",
-    "dataplane_tests/HwOverflowTest.cpp",
     "dataplane_tests/HwProdInvariantHelper.cpp",
     "dataplane_tests/HwProdInvariantTests.cpp",
     "dataplane_tests/HwPacketSendTests.cpp",
