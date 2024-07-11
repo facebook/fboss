@@ -151,10 +151,6 @@ std::shared_ptr<Mirror> MirrorManagerImpl<AddrT>::updateMirror(
   auto asic = sw_->getHwAsicTable()->getHwAsic(mirror->getSwitchId());
   if (newMirror && newMirror->type() == Mirror::Type::SFLOW &&
       asic->isSupported(HwAsic::Feature::EVENTOR_PORT_FOR_SFLOW)) {
-    // TODO: Destination mac address of the mirror session also
-    // should be overridden to router mac so that the packet can
-    // loop back and hit the eventor port and get routed to the
-    // mirror destination
     auto eventorPort = getEventorPortForSflowMirror(mirror->getSwitchId());
     newMirror->setEgressPort(eventorPort);
     newMirror->setDestinationMac(
