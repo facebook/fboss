@@ -12,11 +12,12 @@
 
 #include <fboss/agent/if/gen-cpp2/ctrl_types.h>
 #include <fboss/cli/fboss2/commands/show/transceiver/gen-cpp2/model_types.h>
-#include "fboss/agent/if/gen-cpp2/FbossCtrlAsyncClient.h"
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 #include "fboss/cli/fboss2/CmdGlobalOptions.h"
 #include "fboss/cli/fboss2/CmdHandler.h"
 #include "fboss/cli/fboss2/commands/show/transceiver/gen-cpp2/model_types.h"
+#include "fboss/cli/fboss2/utils/CmdClientUtils.h"
+#include "fboss/cli/fboss2/utils/CmdUtils.h"
 #include "fboss/cli/fboss2/utils/Table.h"
 #include "thrift/lib/cpp2/protocol/Serializer.h"
 
@@ -43,16 +44,23 @@ class CmdShowTransceiver
   RetType queryClient(
       const HostInfo& hostInfo,
       const ObjectArgType& queriedPorts) {
-    auto qsfpService = utils::createClient<QsfpServiceAsyncClient>(hostInfo);
-    auto agent = utils::createClient<FbossCtrlAsyncClient>(hostInfo);
+    auto qsfpService =
+        utils::createClient<facebook::fboss::QsfpServiceAsyncClient>(hostInfo);
+    auto agent =
+        utils::createClient<facebook::fboss::FbossCtrlAsyncClient>(hostInfo);
 
     // TODO: explore performance improvement if we make all this parallel.
     auto portEntries = queryPortInfo(agent.get(), queriedPorts);
     auto portStatusEntries = queryPortStatus(agent.get(), portEntries);
     auto transceiverEntries =
         queryTransceiverInfo(qsfpService.get(), portStatusEntries);
-
-    return createModel(portStatusEntries, transceiverEntries, portEntries);
+    auto transceiverValidationEntries =
+        queryTransceiverValidationInfo(qsfpService.get(), portStatusEntries);
+    return createModel(
+        portStatusEntries,
+        transceiverEntries,
+        portEntries,
+        transceiverValidationEntries);
   }
 
   void printOutput(const RetType& model, std::ostream& out = std::cout) {
@@ -62,6 +70,8 @@ class CmdShowTransceiver
         {"Interface",
          "Status",
          "Present",
+         "CfgValidated",
+         "Reason",
          "Vendor",
          "Serial",
          "Part Number",
@@ -79,6 +89,8 @@ class CmdShowTransceiver
           details.get_name(),
           statusToString(details.get_isUp()),
           (details.get_isPresent()) ? "Present" : "Absent",
+          details.get_validationStatus(),
+          details.get_notValidatedReason(),
           details.get_vendor(),
           details.get_serial(),
           details.get_partNumber(),
@@ -184,10 +196,38 @@ class CmdShowTransceiver
     return transceiverEntries;
   }
 
+  std::map<int, std::string> queryTransceiverValidationInfo(
+      QsfpServiceAsyncClient* qsfpService,
+      std::map<int, PortStatus> portStatusEntries) const {
+    std::vector<int32_t> requiredTransceiverEntries;
+    for (const auto& portStatusItr : portStatusEntries) {
+      if (auto tidx = portStatusItr.second.transceiverIdx()) {
+        requiredTransceiverEntries.push_back(tidx->get_transceiverId());
+      }
+    }
+
+    std::map<int, std::string> transceiverValidationEntries;
+    qsfpService->sync_getTransceiverConfigValidationInfo(
+        transceiverValidationEntries, requiredTransceiverEntries, false);
+    return transceiverValidationEntries;
+  }
+
+  const std::pair<std::string, std::string> getTransceiverValidationStrings(
+      std::map<int32_t, std::string>& transceiverEntries,
+      int32_t transceiverId) const {
+    if (transceiverEntries.find(transceiverId) == transceiverEntries.end()) {
+      return std::make_pair("--", "--");
+    }
+    return transceiverEntries[transceiverId] == ""
+        ? std::make_pair("Validated", "--")
+        : std::make_pair("Not Validated", transceiverEntries[transceiverId]);
+  }
+
   RetType createModel(
       std::map<int, PortStatus> portStatusEntries,
       std::map<int, TransceiverInfo> transceiverEntries,
-      std::map<int32_t, facebook::fboss::PortInfoThrift> portEntries) const {
+      std::map<int32_t, facebook::fboss::PortInfoThrift> portEntries,
+      std::map<int32_t, std::string> transceiverValidationEntries) const {
     RetType model;
 
     for (const auto& [portId, portEntry] : portStatusEntries) {
@@ -204,6 +244,10 @@ class CmdShowTransceiver
       const auto& tcvrStats = *transceiver.tcvrStats();
       details.isUp() = portEntry.get_up();
       details.isPresent() = tcvrState.get_present();
+      const auto& validationStringPair = getTransceiverValidationStrings(
+          transceiverValidationEntries, transceiverId);
+      details.validationStatus() = validationStringPair.first;
+      details.notValidatedReason() = validationStringPair.second;
       if (const auto& vendor = tcvrState.vendor()) {
         details.vendor() = vendor->get_name();
         details.serial() = vendor->get_serialNumber();

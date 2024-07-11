@@ -20,4 +20,6 @@ struct TransceiverDetail {
   12: list<double> rxSnr;
   13: string appFwVer;
   14: string dspFwVer;
+  15: string validationStatus;
+  16: string notValidatedReason;
 }

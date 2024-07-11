@@ -712,6 +712,8 @@ TEST_F(WedgeManagerTest, validateTransceiverConfigByIdTest) {
   EXPECT_TRUE(transceiverManager_->validateTransceiverById(
       tcvrID, notValidatedReason, true));
   EXPECT_EQ(notValidatedReason, "");
+  EXPECT_EQ(
+      transceiverManager_->getTransceiverValidationConfigString(tcvrID), "");
 
   // Test Invalid Config
   tcvr->overrideVendorNameAndPN("fbossTwo", "TR-FC13H-HF");
@@ -720,6 +722,9 @@ TEST_F(WedgeManagerTest, validateTransceiverConfigByIdTest) {
   EXPECT_FALSE(transceiverManager_->validateTransceiverById(
       tcvrID, notValidatedReason, true));
   EXPECT_EQ(notValidatedReason, "invalidVendorPartNumber");
+  EXPECT_EQ(
+      transceiverManager_->getTransceiverValidationConfigString(tcvrID),
+      "{\n  \"Non-Validated Attribute\": \"invalidVendorPartNumber\",\n  \"Transceiver Application Firmware Version\": \"1\",\n  \"Transceiver DSP Firmware Version\": \"\",\n  \"Transceiver Part Number\": \"TR-FC13H-HF\",\n  \"Transceiver Port Profile Ids\": \"PROFILE_100G_4_NRZ_NOFEC\",\n  \"Transceiver Vendor\": \"fbossTwo\"\n}");
 }
 
 } // namespace facebook::fboss

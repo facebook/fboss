@@ -81,6 +81,15 @@ void QsfpServiceHandler::getTransceiverInfo(
   manager_->getTransceiversInfo(info, std::move(ids));
 }
 
+void QsfpServiceHandler::getTransceiverConfigValidationInfo(
+    std::map<int32_t, std::string>& info,
+    std::unique_ptr<std::vector<int32_t>> ids,
+    bool getConfigString) {
+  auto log = LOG_THRIFT_CALL(INFO);
+  manager_->getAllTransceiversValidationInfo(
+      info, std::move(ids), getConfigString);
+}
+
 void QsfpServiceHandler::getTransceiverRawDOMData(
     std::map<int32_t, RawDOMData>& info,
     std::unique_ptr<std::vector<int32_t>> ids) {

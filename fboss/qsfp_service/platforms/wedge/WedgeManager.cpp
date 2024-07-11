@@ -213,6 +213,48 @@ void WedgeManager::getTransceiversInfo(
   }
 }
 
+void WedgeManager::getAllTransceiversValidationInfo(
+    std::map<int32_t, std::string>& info,
+    std::unique_ptr<std::vector<int32_t>> ids,
+    bool getConfigString) {
+  XLOG(INFO)
+      << "Received request for ggetAllTransceiversValidationInfo, with ids: "
+      << (ids->size() > 0 ? folly::join(",", *ids) : "None");
+  if (ids->empty()) {
+    folly::gen::range(0, getNumQsfpModules()) | folly::gen::appendTo(*ids);
+  }
+
+  if (!FLAGS_enable_tcvr_validation) {
+    return;
+  }
+
+  const auto& presentTransceivers = getPresentTransceivers();
+  for (const auto& i : *ids) {
+    auto tcvrID = TransceiverID(i);
+    if (!isValidTransceiver(i) ||
+        presentTransceivers.find(tcvrID) == presentTransceivers.end()) {
+      // If the transceiver idx is invalid or the transceiver is not present,
+      // skip to the next one.
+      continue;
+    }
+    try {
+      std::string validationInfo;
+      if (getConfigString) {
+        validationInfo = getTransceiverValidationConfigString(tcvrID);
+      } else {
+        // validatePortProfile is always enabled by link test / CLI access
+        validateTransceiverById(tcvrID, validationInfo, true);
+      }
+
+      info.insert({i, validationInfo});
+    } catch (const std::exception& ex) {
+      XLOG(ERR) << "Transceiver " << i
+                << ": Error calling getAllTransceiversValidationInfo(): "
+                << ex.what();
+    }
+  }
+}
+
 void WedgeManager::getTransceiversRawDOMData(
     std::map<int32_t, RawDOMData>& info,
     std::unique_ptr<std::vector<int32_t>> ids) {

@@ -35,6 +35,10 @@ class WedgeManager : public TransceiverManager {
   void getTransceiversInfo(
       TransceiverMap& info,
       std::unique_ptr<std::vector<int32_t>> ids) override;
+  void getAllTransceiversValidationInfo(
+      std::map<int32_t, std::string>& info,
+      std::unique_ptr<std::vector<int32_t>> ids,
+      bool getConfigString) override;
   void getTransceiversRawDOMData(
       std::map<int32_t, RawDOMData>& info,
       std::unique_ptr<std::vector<int32_t>> ids) override;

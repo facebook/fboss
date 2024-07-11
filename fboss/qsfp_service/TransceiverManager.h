@@ -81,6 +81,10 @@ class TransceiverManager {
   virtual void getTransceiversInfo(
       std::map<int32_t, TransceiverInfo>& info,
       std::unique_ptr<std::vector<int32_t>> ids) = 0;
+  virtual void getAllTransceiversValidationInfo(
+      std::map<int32_t, std::string>& info,
+      std::unique_ptr<std::vector<int32_t>> ids,
+      bool getConfigString) = 0;
   virtual void getTransceiversRawDOMData(
       std::map<int32_t, RawDOMData>& info,
       std::unique_ptr<std::vector<int32_t>> ids) = 0;
@@ -326,6 +330,8 @@ class TransceiverManager {
       bool validatePortProfile);
 
   void checkPresentThenValidateTransceiver(TransceiverID id);
+
+  std::string getTransceiverValidationConfigString(TransceiverID id);
 
   // ========== Public functions for TransceiverStateMachine ==========
   // This refresh TransceiverStateMachine functions will handle all state
@@ -682,6 +688,8 @@ class TransceiverManager {
       TransceiverID /* tcvrID */,
       facebook::fboss::TcvrState&& /* newState */) {}
 
+  std::set<TransceiverID> getPresentTransceivers() const;
+
  private:
   // Forbidden copy constructor and assignment operator
   TransceiverManager(TransceiverManager const&) = delete;
@@ -772,8 +780,6 @@ class TransceiverManager {
   // Update the cached PortStatus of TransceiverToPortInfo using wedge_agent
   // getPortStatus() results
   void updateTransceiverPortStatus() noexcept;
-
-  std::set<TransceiverID> getPresentTransceivers() const;
 
   // Check whether the specified stableTcvrs need remediation and then trigger
   // the remediation events to remediate such transceivers.

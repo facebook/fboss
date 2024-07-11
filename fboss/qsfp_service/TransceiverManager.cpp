@@ -1642,6 +1642,36 @@ void TransceiverManager::checkPresentThenValidateTransceiver(TransceiverID id) {
   validateTransceiverById(id, notValidatedReason, true);
 }
 
+std::string TransceiverManager::getTransceiverValidationConfigString(
+    TransceiverID id) {
+  if (tcvrValidator_ == nullptr) {
+    XLOG(DBG5) << "Transceiver Validation not enabled. Skipping.";
+    return "";
+  }
+
+  TransceiverValidationInfo tcvrInfo = getTransceiverValidationInfo(id, true);
+  std::string notValidatedReason;
+  if (validateTransceiverConfiguration(tcvrInfo, notValidatedReason)) {
+    return "";
+  }
+
+  folly::dynamic r = folly::dynamic::object;
+  std::vector<std::string> portProfileIdStrings;
+  for (auto portProfileId : tcvrInfo.portProfileIds) {
+    portProfileIdStrings.push_back(
+        apache::thrift::util::enumNameSafe(portProfileId));
+  }
+
+  r["Transceiver Vendor"] = tcvrInfo.vendorName;
+  r["Transceiver Part Number"] = tcvrInfo.vendorPartNumber;
+  r["Transceiver Application Firmware Version"] = tcvrInfo.firmwareVersion;
+  r["Transceiver DSP Firmware Version"] = tcvrInfo.dspFirmwareVersion;
+  r["Transceiver Port Profile Ids"] = folly::join(",", portProfileIdStrings);
+  r["Non-Validated Attribute"] = notValidatedReason;
+
+  return folly::toPrettyJson(r);
+}
+
 void TransceiverManager::refreshStateMachines() {
   // Clear the map that tracks the firmware upgrades in progress per evb
   evbsRunningFirmwareUpgrade_.wlock()->clear();

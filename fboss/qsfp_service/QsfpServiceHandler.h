@@ -41,6 +41,19 @@ class QsfpServiceHandler
       std::unique_ptr<std::vector<int32_t>> ids) override;
 
   /*
+   * Returns qsfp config validation information for a transceiver.
+   *
+   * When getConfigString is true, the map is populated with stringified JSONs
+   * of non-validated transceiver configurations. Otherwise, when
+   * getConfigString is false, the map is populated with strings representing
+   * the reason validation failed as applicable.
+   */
+  void getTransceiverConfigValidationInfo(
+      std::map<int32_t, std::string>& info,
+      std::unique_ptr<std::vector<int32_t>> ids,
+      bool getConfigString) override;
+
+  /*
    * Returns raw DOM page data for each passed in transceiver.
    */
   void getTransceiverRawDOMData(
