@@ -5,6 +5,7 @@
 #include "fboss/agent/test/AgentHwTest.h"
 
 #include "fboss/agent/TxPacket.h"
+#include "fboss/agent/Utils.h"
 #include "fboss/agent/packet/EthFrame.h"
 #include "fboss/agent/packet/PktFactory.h"
 #include "fboss/agent/packet/PktUtil.h"
@@ -12,6 +13,7 @@
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/ResourceLibUtil.h"
 #include "fboss/agent/test/TrunkUtils.h"
+#include "fboss/agent/test/utils/AsicUtils.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/test/utils/MirrorTestUtils.h"
 #include "fboss/agent/test/utils/PacketSnooper.h"
@@ -104,8 +106,7 @@ class AgentSflowMirrorTest : public AgentHwTest {
   }
 
   const HwAsic* getAsic() const {
-    return getAgentEnsemble()->getSw()->getHwAsicTable()->getHwAsic(
-        switchIdForPort(masterLogicalPortIds()[0]));
+    return utility::checkSameAndGetAsic(getAgentEnsemble()->getL3Asics());
   }
 
   std::optional<uint32_t> getHwLogicalPortId(PortID port) const {
@@ -132,6 +133,18 @@ class AgentSflowMirrorTest : public AgentHwTest {
     if (asic->getAsicType() == cfg::AsicType::ASIC_TYPE_EBRO) {
       auto systemPortId = sflowPayload[0] << 8 | sflowPayload[1];
       return static_cast<PortID>(systemPortId - asic->getSystemPortIDOffset());
+    } else if (asic->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO3) {
+      /*
+       * Bytes 68 through 71 carry the ingress ifindex in sflow v5 header
+       * which is a 32 bit field
+       */
+      auto constexpr offsetBytesStart = 68;
+      auto systemPortId = 0;
+      for (int i = 0, j = 24; i < 4; i++, j -= 8) {
+        systemPortId |=
+            static_cast<uint32_t>((sflowPayload[offsetBytesStart + i]) << j);
+      }
+      return getPortID(SystemPortID(systemPortId), getProgrammedState());
     } else {
       auto sourcePortOffset = 0;
       if (asic->isSupported(HwAsic::Feature::SFLOW_SHIM_VERSION_FIELD)) {
@@ -247,7 +260,8 @@ class AgentSflowMirrorTest : public AgentHwTest {
       EXPECT_EQ(getSflowPacketSrcPort(payload), PortID(*hwLogicalPortId));
     }
 
-    if (getAsic()->getAsicType() != cfg::AsicType::ASIC_TYPE_EBRO) {
+    if (getAsic()->getAsicType() != cfg::AsicType::ASIC_TYPE_EBRO &&
+        getAsic()->getAsicType() != cfg::AsicType::ASIC_TYPE_JERICHO3) {
       // Call parseSflowShim here. And verify
       // 1. Src port is correct
       // 2. Parser correctly identified whether the pkt is from TH3 or TH4.
