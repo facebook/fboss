@@ -1578,6 +1578,7 @@ TransceiverValidationInfo TransceiverManager::getTransceiverValidationInfo(
     bool validatePortProfile) {
   TransceiverValidationInfo tcvrInfo;
   tcvrInfo.id = id;
+  tcvrInfo.validEepromChecksums = verifyEepromChecksums(id);
 
   const auto& cachedTcvrInfo = getTransceiverInfo(id);
 

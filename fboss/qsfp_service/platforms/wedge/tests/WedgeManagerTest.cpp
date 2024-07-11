@@ -685,7 +685,8 @@ TEST_F(WedgeManagerTest, validateTransceiverConfigByIdTest) {
   EXPECT_CALL(*transImpl_, detectTransceiver())
       .WillRepeatedly(::testing::Return(true));
   qsfpImpls_.push_back(std::move(transceiverImpl));
-
+  EXPECT_CALL(*transceiverManager_, verifyEepromChecksums(tcvrID))
+      .WillRepeatedly(::testing::Return(true));
   auto tcvr = static_cast<MockSffModule*>(
       transceiverManager_->overrideTransceiverForTesting(
           tcvrID,
@@ -702,21 +703,11 @@ TEST_F(WedgeManagerTest, validateTransceiverConfigByIdTest) {
        }}};
   transceiverManager_->setOverrideTcvrToPortAndProfileForTesting(
       oneTcvrTo4X100G);
-  tcvr->overrideVendorNameAndPN("fbossTwo", "TR-FC13H-HFZ");
+  tcvr->overrideVendorNameAndPN("fbossTwo", "TR-FC13H-HF");
   tcvr->setAppFwVersion("1");
 
-  // Test Valid Config
-  std::string notValidatedReason;
-  transceiverManager_->refreshStateMachines();
-  tcvr->useActualGetTransceiverInfo();
-  EXPECT_TRUE(transceiverManager_->validateTransceiverById(
-      tcvrID, notValidatedReason, true));
-  EXPECT_EQ(notValidatedReason, "");
-  EXPECT_EQ(
-      transceiverManager_->getTransceiverValidationConfigString(tcvrID), "");
-
   // Test Invalid Config
-  tcvr->overrideVendorNameAndPN("fbossTwo", "TR-FC13H-HF");
+  std::string notValidatedReason;
   transceiverManager_->refreshStateMachines();
   tcvr->useActualGetTransceiverInfo();
   EXPECT_FALSE(transceiverManager_->validateTransceiverById(
@@ -725,6 +716,29 @@ TEST_F(WedgeManagerTest, validateTransceiverConfigByIdTest) {
   EXPECT_EQ(
       transceiverManager_->getTransceiverValidationConfigString(tcvrID),
       "{\n  \"Non-Validated Attribute\": \"invalidVendorPartNumber\",\n  \"Transceiver Application Firmware Version\": \"1\",\n  \"Transceiver DSP Firmware Version\": \"\",\n  \"Transceiver Part Number\": \"TR-FC13H-HF\",\n  \"Transceiver Port Profile Ids\": \"PROFILE_100G_4_NRZ_NOFEC\",\n  \"Transceiver Vendor\": \"fbossTwo\"\n}");
+
+  // Test Valid Config
+  notValidatedReason = "";
+  tcvr->overrideVendorNameAndPN("fbossTwo", "TR-FC13H-HFZ");
+  transceiverManager_->refreshStateMachines();
+  tcvr->useActualGetTransceiverInfo();
+  EXPECT_TRUE(transceiverManager_->validateTransceiverById(
+      tcvrID, notValidatedReason, true));
+  EXPECT_EQ(notValidatedReason, "");
+  EXPECT_EQ(
+      transceiverManager_->getTransceiverValidationConfigString(tcvrID), "");
+
+  // Test Invalid Eeprom Checksums
+  EXPECT_CALL(*transceiverManager_, verifyEepromChecksums(tcvrID))
+      .WillRepeatedly(::testing::Return(false));
+  transceiverManager_->refreshStateMachines();
+  tcvr->useActualGetTransceiverInfo();
+  EXPECT_FALSE(transceiverManager_->validateTransceiverById(
+      tcvrID, notValidatedReason, true));
+  EXPECT_EQ(notValidatedReason, "invalidEepromChecksums");
+  EXPECT_EQ(
+      transceiverManager_->getTransceiverValidationConfigString(tcvrID),
+      "{\n  \"Non-Validated Attribute\": \"invalidEepromChecksums\",\n  \"Transceiver Application Firmware Version\": \"1\",\n  \"Transceiver DSP Firmware Version\": \"\",\n  \"Transceiver Part Number\": \"TR-FC13H-HFZ\",\n  \"Transceiver Port Profile Ids\": \"PROFILE_100G_4_NRZ_NOFEC\",\n  \"Transceiver Vendor\": \"fbossTwo\"\n}");
 }
 
 } // namespace facebook::fboss
