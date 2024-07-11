@@ -309,6 +309,17 @@ add_fbthrift_cpp_library(
     prbs_cpp2
 )
 add_fbthrift_cpp_library(
+  transceiver_validation_cpp2
+  fboss/qsfp_service/if/transceiver_validation.thrift
+  OPTIONS
+    json
+    reflection
+  DEPENDS
+    transceiver_cpp2
+    switch_config_cpp2
+    fboss_common_cpp2
+)
+add_fbthrift_cpp_library(
   qsfp_config_cpp2
   fboss/qsfp_service/if/qsfp_service_config.thrift
   OPTIONS
@@ -316,6 +327,7 @@ add_fbthrift_cpp_library(
     reflection
   DEPENDS
     transceiver_cpp2
+    transceiver_validation_cpp2
     switch_config_cpp2
 )
 add_fbthrift_cpp_library(

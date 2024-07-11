@@ -97,6 +97,7 @@ thrift_library(
     thrift_srcs = {"qsfp_service_config.thrift": []},
     deps = [
         ":transceiver",
+        ":transceiver_validation",
         "//fboss/agent:switch_config",
     ],
 )

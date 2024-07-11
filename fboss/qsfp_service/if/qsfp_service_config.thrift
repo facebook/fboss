@@ -7,6 +7,7 @@ namespace py neteng.fboss.qsfp_service_config
 namespace py3 neteng.fboss
 namespace py.asyncio neteng.fboss.asyncio.qsfp_service_config
 
+include "fboss/qsfp_service/if/transceiver_validation.thrift"
 include "fboss/qsfp_service/if/transceiver.thrift"
 include "fboss/agent/switch_config.thrift"
 
@@ -99,4 +100,8 @@ struct QsfpServiceConfig {
   5: optional TransceiverFirmware transceiverFirmwareVersions;
 
   6: optional TransceiverI2cLogging transceiverI2cLogging;
+
+  7: optional list<
+    transceiver_validation.VendorConfig
+  > transceiverValidationConfig;
 }
