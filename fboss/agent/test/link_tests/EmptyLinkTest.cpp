@@ -9,5 +9,5 @@ using namespace facebook::fboss;
 class EmptyLinkTest : public LinkTest {};
 
 TEST_F(EmptyLinkTest, CheckInit) {
-  verifyAcrossWarmBoots([]() {}, []() {});
+  verifyAcrossWarmBoots([]() {}, [this]() { getAllTransceiverStatuses(); });
 }

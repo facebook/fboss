@@ -49,6 +49,7 @@ class LinkTest : public AgentTest {
       uint32_t retries = 60,
       std::chrono::duration<uint32_t, std::milli> msBetweenRetry =
           std::chrono::milliseconds(1000)) const;
+  void getAllTransceiverStatuses();
   std::map<int32_t, TransceiverInfo> waitForTransceiverInfo(
       std::vector<int32_t> transceiverIds,
       uint32_t retries = 2,

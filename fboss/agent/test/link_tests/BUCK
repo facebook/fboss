@@ -67,6 +67,7 @@ cpp_library(
         "//fboss/agent/test:trunk_utils",
         "//fboss/agent/test:utils",
         "//fboss/agent/test/utils:packet_snooper",
+        "//fboss/agent/test/utils:port_test_utils",
         "//fboss/agent/test/utils:qos_test_utils",
         "//fboss/agent/test/utils:trap_packet_utils",
         "//fboss/facebook/mka_service/fsdb/tests:MKAFsdbTestUtils",

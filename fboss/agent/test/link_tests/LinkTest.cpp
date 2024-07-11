@@ -126,6 +126,46 @@ void LinkTest::waitForAllTransceiverStates(
       msBetweenRetry);
 }
 
+void LinkTest::getAllTransceiverStatuses() {
+  std::vector<int32_t> expectedTransceivers(
+      cabledTransceivers_.begin(), cabledTransceivers_.end());
+  std::map<int32_t, std::string> responses;
+
+  try {
+    auto qsfpServiceClient = utils::createQsfpServiceClient();
+    qsfpServiceClient->sync_getTransceiverConfigValidationInfo(
+        responses, expectedTransceivers, true);
+  } catch (const std::exception& ex) {
+    XLOG(WARN)
+        << "Failed to call qsfp_service getTransceiverConfigValidationInfo(). "
+        << folly::exceptionStr(ex);
+  }
+
+  std::vector<int32_t> missingTransceivers, invalidTransceivers;
+  for (auto transceiverID : expectedTransceivers) {
+    if (auto transceiverStatusIt = responses.find(transceiverID);
+        transceiverStatusIt != responses.end()) {
+      if (transceiverStatusIt->second != "") {
+        invalidTransceivers.push_back(transceiverID);
+      }
+      continue;
+    }
+    missingTransceivers.push_back(transceiverID);
+  }
+  if (!missingTransceivers.empty()) {
+    XLOG(DBG2) << "Transceivers [" << folly::join(",", missingTransceivers)
+               << "] are missing config validation status.";
+  }
+  if (!invalidTransceivers.empty()) {
+    XLOG(DBG2) << "Transceivers [" << folly::join(",", invalidTransceivers)
+               << "] have invalid configs.";
+  }
+  if (missingTransceivers.empty() && invalidTransceivers.empty()) {
+    XLOG(DBG2) << "Transceivers [" << folly::join(",", expectedTransceivers)
+               << "] all have valid configurations.";
+  }
+}
+
 // Wait until we have successfully fetched transceiver info (and thus know
 // which transceivers are available for testing)
 std::map<int32_t, TransceiverInfo> LinkTest::waitForTransceiverInfo(
