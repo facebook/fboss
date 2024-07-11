@@ -126,7 +126,11 @@ void LinkTest::waitForAllTransceiverStates(
       msBetweenRetry);
 }
 
-void LinkTest::getAllTransceiverStatuses() {
+// Retrieves the config validation status for all active transceivers. Strings
+// are retrieved instead of booleans because these contain the stringified JSONs
+// of each non-validated transceiver config, which will be printed to stdout and
+// ingested by Netcastle.
+void LinkTest::getAllTransceiverConfigValidationStatuses() {
   std::vector<int32_t> expectedTransceivers(
       cabledTransceivers_.begin(), cabledTransceivers_.end());
   std::map<int32_t, std::string> responses;
@@ -147,6 +151,7 @@ void LinkTest::getAllTransceiverStatuses() {
         transceiverStatusIt != responses.end()) {
       if (transceiverStatusIt->second != "") {
         invalidTransceivers.push_back(transceiverID);
+        printf("%s\n", transceiverStatusIt->second.c_str());
       }
       continue;
     }
@@ -158,11 +163,11 @@ void LinkTest::getAllTransceiverStatuses() {
   }
   if (!invalidTransceivers.empty()) {
     XLOG(DBG2) << "Transceivers [" << folly::join(",", invalidTransceivers)
-               << "] have invalid configs.";
+               << "] have non-validated configurations.";
   }
   if (missingTransceivers.empty() && invalidTransceivers.empty()) {
     XLOG(DBG2) << "Transceivers [" << folly::join(",", expectedTransceivers)
-               << "] all have valid configurations.";
+               << "] all have validated configurations.";
   }
 }
 
