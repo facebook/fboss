@@ -8,8 +8,10 @@
  *
  */
 
+#include "fboss/qsfp_service/module/tests/MockTransceiverImpl.h"
 #include "fboss/qsfp_service/test/TransceiverManagerTestHelper.h"
 
+#include <gmock/gmock.h>
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
 
@@ -557,13 +559,13 @@ TEST_F(WedgeManagerTest, validateTransceiverConfigTest) {
   auto verifyTransceiverValidationAndReturnValue =
       [&](TransceiverValidationInfo& tcvrInfo,
           bool isValid,
-          std::string nonValidatedReason) {
+          std::string notValidatedReason) {
         std::string reason;
         EXPECT_EQ(
             transceiverManager_->validateTransceiverConfiguration(
                 tcvrInfo, reason),
             isValid);
-        EXPECT_EQ(reason, nonValidatedReason);
+        EXPECT_EQ(reason, notValidatedReason);
       };
 
   TransceiverValidationInfo tcvrInfo;
@@ -673,6 +675,51 @@ TEST_F(WedgeManagerTest, validateTransceiverConfigTest) {
   tcvrInfo = makeTcvrInfo(
       0, "", "", "", "", {}, true, std::make_pair(false, "missingVendor"));
   verifyTransceiverValidationAndReturnValue(tcvrInfo, false, "missingVendor");
+}
+
+TEST_F(WedgeManagerTest, validateTransceiverConfigByIdTest) {
+  auto tcvrID = TransceiverID(0);
+  auto transceiverImpl =
+      std::make_unique<::testing::NiceMock<MockTransceiverImpl>>();
+  auto transImpl_ = transceiverImpl.get();
+  EXPECT_CALL(*transImpl_, detectTransceiver())
+      .WillRepeatedly(::testing::Return(true));
+  qsfpImpls_.push_back(std::move(transceiverImpl));
+
+  auto tcvr = static_cast<MockSffModule*>(
+      transceiverManager_->overrideTransceiverForTesting(
+          tcvrID,
+          std::make_unique<MockSffModule>(
+              transceiverManager_->getPortNames(tcvrID),
+              qsfpImpls_.back().get(),
+              tcvrConfig_)));
+  tcvr->detectPresence();
+
+  TransceiverManager::OverrideTcvrToPortAndProfile oneTcvrTo4X100G = {
+      {tcvrID,
+       {
+           {PortID(1), cfg::PortProfileID::PROFILE_100G_4_NRZ_NOFEC},
+       }}};
+  transceiverManager_->setOverrideTcvrToPortAndProfileForTesting(
+      oneTcvrTo4X100G);
+  tcvr->overrideVendorNameAndPN("fbossTwo", "TR-FC13H-HFZ");
+  tcvr->setAppFwVersion("1");
+
+  // Test Valid Config
+  std::string notValidatedReason;
+  transceiverManager_->refreshStateMachines();
+  tcvr->useActualGetTransceiverInfo();
+  EXPECT_TRUE(transceiverManager_->validateTransceiverById(
+      tcvrID, notValidatedReason, true));
+  EXPECT_EQ(notValidatedReason, "");
+
+  // Test Invalid Config
+  tcvr->overrideVendorNameAndPN("fbossTwo", "TR-FC13H-HF");
+  transceiverManager_->refreshStateMachines();
+  tcvr->useActualGetTransceiverInfo();
+  EXPECT_FALSE(transceiverManager_->validateTransceiverById(
+      tcvrID, notValidatedReason, true));
+  EXPECT_EQ(notValidatedReason, "invalidVendorPartNumber");
 }
 
 } // namespace facebook::fboss

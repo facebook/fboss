@@ -1573,6 +1573,75 @@ void TransceiverManager::resetUpgradedTransceiversToDiscovered() {
   }
 }
 
+TransceiverValidationInfo TransceiverManager::getTransceiverValidationInfo(
+    TransceiverID id,
+    bool validatePortProfile) {
+  TransceiverValidationInfo tcvrInfo;
+  tcvrInfo.id = id;
+
+  const auto& cachedTcvrInfo = getTransceiverInfo(id);
+
+  auto vendor = cachedTcvrInfo.tcvrState()->vendor();
+  if (!vendor.has_value() || vendor->name().value().empty()) {
+    tcvrInfo.requiredFields = std::make_pair(false, "missingVendor");
+    return tcvrInfo;
+  }
+  tcvrInfo.vendorName = vendor->name().value();
+
+  if (vendor->partNumber().value().empty()) {
+    tcvrInfo.requiredFields = std::make_pair(false, "missingVendorPartNumber");
+    return tcvrInfo;
+  }
+  tcvrInfo.vendorPartNumber = vendor->partNumber().value();
+
+  // Until firmware sync is enabled, we don't need to report missing firmware
+  // data.
+  auto moduleStatus = cachedTcvrInfo.tcvrState()->status();
+  if (moduleStatus.has_value() && moduleStatus->fwStatus().has_value()) {
+    tcvrInfo.firmwareVersion = moduleStatus->fwStatus()->version().value_or("");
+    tcvrInfo.dspFirmwareVersion =
+        moduleStatus->fwStatus()->dspFwVer().value_or("");
+  }
+
+  if (validatePortProfile) {
+    const auto& programmedPortToPortInfo = getProgrammedIphyPortToPortInfo(id);
+    for (const auto& [portID, portInfo] : programmedPortToPortInfo) {
+      tcvrInfo.portProfileIds.push_back(portInfo.profile);
+    }
+    if (!tcvrInfo.portProfileIds.size()) {
+      tcvrInfo.requiredFields = std::make_pair(false, "missingPortProfileIds");
+    }
+  }
+
+  return tcvrInfo;
+}
+
+bool TransceiverManager::validateTransceiverById(
+    TransceiverID id,
+    std::string& notValidatedReason,
+    bool validatePortProfile) {
+  if (tcvrValidator_ == nullptr) {
+    XLOG(DBG5) << "Transceiver Validation not enabled. Skipping.";
+    return false;
+  }
+
+  TransceiverValidationInfo tcvrInfo =
+      getTransceiverValidationInfo(id, validatePortProfile);
+
+  return validateTransceiverConfiguration(tcvrInfo, notValidatedReason);
+}
+
+void TransceiverManager::checkPresentThenValidateTransceiver(TransceiverID id) {
+  {
+    auto lockedTransceivers = transceivers_.rlock();
+    if (lockedTransceivers->find(id) == lockedTransceivers->end()) {
+      return;
+    }
+  }
+  std::string notValidatedReason;
+  validateTransceiverById(id, notValidatedReason, true);
+}
+
 void TransceiverManager::refreshStateMachines() {
   // Clear the map that tracks the firmware upgrades in progress per evb
   evbsRunningFirmwareUpgrade_.wlock()->clear();

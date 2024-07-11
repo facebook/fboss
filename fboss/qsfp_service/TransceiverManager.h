@@ -316,6 +316,17 @@ class TransceiverManager {
 
   bool getNeedResetDataPath(TransceiverID id) const;
 
+  TransceiverValidationInfo getTransceiverValidationInfo(
+      TransceiverID id,
+      bool validatePortProfile);
+
+  bool validateTransceiverById(
+      TransceiverID id,
+      std::string& notValidatedReason,
+      bool validatePortProfile);
+
+  void checkPresentThenValidateTransceiver(TransceiverID id);
+
   // ========== Public functions for TransceiverStateMachine ==========
   // This refresh TransceiverStateMachine functions will handle all state
   // machine updates.

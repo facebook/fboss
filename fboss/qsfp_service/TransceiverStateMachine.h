@@ -331,6 +331,7 @@ bool operator()(
     } else {
       XLOG(INFO) << "[Transceiver:" << tcvrID
                  << "] readyTransceiver returned True";
+      fsm.get_attribute(transceiverMgrPtr)->checkPresentThenValidateTransceiver(tcvrID);
     }
     return ready;
   } catch (const std::exception& ex) {

@@ -168,6 +168,13 @@ class MockSffModule : public SffModule {
     ON_CALL(*this, getVendorInfo()).WillByDefault(testing::Return(vendor));
   }
 
+  void overrideVendorNameAndPN(std::string name, std::string partNumber) {
+    Vendor vendor;
+    vendor.name() = name;
+    vendor.partNumber() = partNumber;
+    ON_CALL(*this, getVendorInfo()).WillByDefault(testing::Return(vendor));
+  }
+
   TransceiverInfo fakeInfo_;
 
  private:

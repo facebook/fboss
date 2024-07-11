@@ -38,8 +38,8 @@ struct TransceiverValidationInfo {
   std::string firmwareVersion;
   std::string dspFirmwareVersion;
   std::vector<cfg::PortProfileID> portProfileIds;
-  bool validEepromChecksums;
-  std::pair<bool, std::string> requiredFields;
+  bool validEepromChecksums{true};
+  std::pair<bool, std::string> requiredFields{true, ""};
 };
 
 class TransceiverValidator {

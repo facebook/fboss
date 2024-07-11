@@ -9,8 +9,10 @@ cpp_unittest(
         "WedgeManagerTest.cpp",
     ],
     deps = [
+        "fbsource//third-party/googletest:gmock",
         "//fboss/agent:switch_config-cpp2-types",
         "//fboss/qsfp_service/if:transceiver-cpp2-types",
+        "//fboss/qsfp_service/module/tests:mock-headers",
         "//fboss/qsfp_service/test:transceiver_manager_test_helper",
     ],
 )
