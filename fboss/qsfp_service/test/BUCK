@@ -43,6 +43,7 @@ cpp_library(
     exported_deps = [
         "fbsource//third-party/googletest:gtest",
         ":fake-configs-helper",
+        "//fboss/qsfp_service/if:transceiver_validation-cpp2-types",
         "//fboss/qsfp_service/platforms/wedge/tests:mock-wedge-manager",
         "//folly/testing:test_util",
     ],
