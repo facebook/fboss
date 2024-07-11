@@ -712,9 +712,6 @@ AgentStats SwSwitch::fillFsdbStats() {
   {
     auto lockedStats = hwSwitchStats_.wlock();
     // fill stats using hwswitch exported data if available
-    if (lockedStats->empty()) {
-      return agentStats;
-    }
     for (auto& [switchIdx, hwSwitchStats] : *lockedStats) {
       // accumulate error stats from all switches in global values
       accumulateHwAsicErrorStats(
