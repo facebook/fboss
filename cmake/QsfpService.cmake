@@ -174,6 +174,15 @@ target_link_libraries(qsfp_bsp_core
   led_mapping_cpp2
 )
 
+add_library(transceiver_validator
+  fboss/qsfp_service/TransceiverValidator.cpp
+)
+
+target_link_libraries(transceiver_validator
+  transceiver_validation_cpp2
+  Folly::folly
+)
+
 add_library(transceiver_manager STATIC
     fboss/qsfp_service/TransceiverManager.cpp
     fboss/qsfp_service/TransceiverStateMachine.cpp
@@ -193,6 +202,7 @@ target_link_libraries(transceiver_manager
   product_info
   fsdb_flags
   firmware_upgrader
+  transceiver_validator
 )
 
 add_library(qsfp_handler

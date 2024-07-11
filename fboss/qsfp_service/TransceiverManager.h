@@ -27,6 +27,7 @@
 #include "fboss/lib/usb/TransceiverPlatformApi.h"
 #include "fboss/qsfp_service/QsfpConfig.h"
 #include "fboss/qsfp_service/TransceiverStateMachineUpdate.h"
+#include "fboss/qsfp_service/TransceiverValidator.h"
 #include "fboss/qsfp_service/module/Transceiver.h"
 
 #include <folly/IntrusiveList.h>
@@ -642,6 +643,13 @@ class TransceiverManager {
   std::unique_ptr<QsfpConfig> qsfpConfig_;
   std::shared_ptr<const TransceiverConfig> tcvrConfig_;
 
+  /* This variable stores the TransceiverValidator object which maintains
+   * data structures for all transceiver configurations currently deployed
+   * in the fleet. This is left as a nullptr if either the feature flag
+   * is not enabled or the relevant structs are not included in the config file.
+   */
+  std::unique_ptr<TransceiverValidator> tcvrValidator_;
+
   // For platforms that needs to program xphy
   std::unique_ptr<PhyManager> phyManager_;
 
@@ -906,6 +914,8 @@ class TransceiverManager {
       resetFunctionMap_;
 
   void initPortToModuleMap();
+
+  void initTcvrValidator();
 
   std::atomic<int> successfulOpticsFwUpgradeCount_{0};
   std::atomic<int> failedOpticsFwUpgradeCount_{0};

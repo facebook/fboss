@@ -124,6 +124,7 @@ cpp_library(
     exported_deps = [
         "fbsource//third-party/fmt:fmt",
         ":qsfp-config",
+        ":transceiver-validator",
         "//fb303:thread_cached_service_data",
         "//fboss/agent:fboss-error",
         "//fboss/agent:fboss-types",
@@ -179,6 +180,20 @@ cpp_library(
         "//folly:file_util",
         "//folly/logging:logging",
         "//thrift/lib/cpp2/protocol:protocol",
+    ],
+)
+
+cpp_library(
+    name = "transceiver-validator",
+    srcs = [
+        "TransceiverValidator.cpp",
+    ],
+    headers = [
+        "TransceiverValidator.h",
+    ],
+    exported_deps = [
+        "//fboss/qsfp_service/if:transceiver_validation-cpp2-types",
+        "//folly/logging:logging",
     ],
 )
 

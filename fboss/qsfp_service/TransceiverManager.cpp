@@ -160,6 +160,18 @@ void TransceiverManager::initPortToModuleMap() {
   }
 }
 
+void TransceiverManager::initTcvrValidator() {
+  auto tcvrValConfig = qsfpConfig_->thrift.transceiverValidationConfig();
+
+  if (FLAGS_enable_tcvr_validation && tcvrValConfig.has_value()) {
+    tcvrValidator_ =
+        std::make_unique<TransceiverValidator>(tcvrValConfig.value());
+    XLOG(INFO) << "Enabling transceiver config validation.";
+  } else {
+    XLOG(INFO) << "Not enabling transceiver config validation.";
+  }
+}
+
 void TransceiverManager::readWarmBootStateFile() {
   CHECK(canWarmBoot_);
 
@@ -191,6 +203,9 @@ void TransceiverManager::init() {
   initExternalPhyMap();
   // Initialize the I2c bus
   initTransceiverMap();
+
+  // Create data structures for validating transceiver configs
+  initTcvrValidator();
 
   if (!isSystemInitialized_) {
     isSystemInitialized_ = true;
