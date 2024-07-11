@@ -19,8 +19,8 @@ TransceiverValidator::TransceiverValidator(
   }
 };
 
-// TODO(smenta): Once firmware sync is enabled, allow invalid firmware matches
-// to invalidate config.
+// TODO(smenta): Once firmware sync is enabled, allow non-validated firmware
+// matches to return false.
 ValidationResult TransceiverValidator::validateTcvrAndReason(
     const TransceiverValidationInfo& tcvrInfo) {
   // Making vendor name capitalized since we pass in a config that assumes
@@ -30,12 +30,12 @@ ValidationResult TransceiverValidator::validateTcvrAndReason(
 
   auto vendorItr = tcvrValMap_.find(vendorName);
   if (vendorItr == tcvrValMap_.end()) {
-    return ValidationResult(false, "invalidVendorName");
+    return ValidationResult(false, "nonValidatedVendorName");
   }
 
   auto partNumItr = vendorItr->second.find(tcvrInfo.vendorPartNumber);
   if (partNumItr == tcvrValMap_[tcvrInfo.vendorName].end()) {
-    return ValidationResult(false, "invalidVendorPartNumber");
+    return ValidationResult(false, "nonValidatedVendorPartNumber");
   }
 
   auto& firmwareVersions =
@@ -46,14 +46,14 @@ ValidationResult TransceiverValidator::validateTcvrAndReason(
   if (std::find(firmwareVersions.begin(), firmwareVersions.end(), fwPair) ==
       firmwareVersions.end()) {
     XLOG(INFO)
-        << "[Transceiver Validation] Combination of firmware version and dsp firmware version is not valid. This will not affect overall config validity.";
+        << "[Transceiver Validation] Combination of firmware version and dsp firmware version is not validated. This will not affect overall config validity.";
   }
 
   auto& portProfiles = partNumItr->second.supportedPortProfiles().value();
   for (auto portProfileId : tcvrInfo.portProfileIds) {
     if (std::find(portProfiles.begin(), portProfiles.end(), portProfileId) ==
         portProfiles.end()) {
-      return ValidationResult(false, "invalidPortProfileId");
+      return ValidationResult(false, "nonValidatedPortProfileId");
     }
   }
 
@@ -93,13 +93,13 @@ bool TransceiverValidator::validateTcvr(
   if (validPair.first) {
     XLOGF(
         INFO,
-        "[Transceiver Validation] Transceiver {} has a valid configuration {}.",
+        "[Transceiver Validation] Transceiver {} has a validated configuration {}.",
         tcvrInfo.id,
         tcvrConfigStr);
   } else {
     XLOGF(
         WARN,
-        "{}[Transceiver Validation] Transceiver {} has an invalid configuration {} due to {}.",
+        "{}[Transceiver Validation] Transceiver {} has a non-validated configuration {} due to {}.",
         logPrefix,
         tcvrInfo.id,
         tcvrConfigStr,

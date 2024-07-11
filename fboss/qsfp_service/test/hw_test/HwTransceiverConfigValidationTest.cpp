@@ -42,11 +42,11 @@ TEST_F(HwTransceiverConfigValidationTest, validateAllActiveTransceivers) {
 
   if (!invalidTransceivers.empty()) {
     XLOG(INFO) << "Transceivers [" << folly::join(",", invalidTransceivers)
-               << "] have invalid configs.";
+               << "] have non-validated configs.";
   }
   if (!validTransceivers.empty()) {
     XLOG(INFO) << "Transceivers [" << folly::join(",", validTransceivers)
-               << "] all have valid configurations.";
+               << "] all have validated configurations.";
   }
 
   EXPECT_TRUE(invalidTransceivers.empty());

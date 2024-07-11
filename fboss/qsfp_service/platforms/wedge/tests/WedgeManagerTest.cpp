@@ -570,7 +570,7 @@ TEST_F(WedgeManagerTest, validateTransceiverConfigTest) {
 
   TransceiverValidationInfo tcvrInfo;
 
-  // Invalid Vendor, PartNumber, Firmware, PortProfileID
+  // Non-Validated Vendor, PartNumber, Firmware, PortProfileID
   tcvrInfo = makeTcvrInfo(
       0,
       "fakeVendor",
@@ -581,9 +581,9 @@ TEST_F(WedgeManagerTest, validateTransceiverConfigTest) {
       true,
       std::make_pair(true, ""));
   verifyTransceiverValidationAndReturnValue(
-      tcvrInfo, false, "invalidVendorName");
+      tcvrInfo, false, "nonValidatedVendorName");
 
-  // Valid Vendor, Firmware, PortProfileID / Invalid Part Number
+  // Valid Vendor, Firmware, PortProfileID / Non-Validated Part Number
   tcvrInfo = makeTcvrInfo(
       0,
       "FBOSSONE",
@@ -594,7 +594,7 @@ TEST_F(WedgeManagerTest, validateTransceiverConfigTest) {
       true,
       std::make_pair(true, ""));
   verifyTransceiverValidationAndReturnValue(
-      tcvrInfo, false, "invalidVendorPartNumber");
+      tcvrInfo, false, "nonValidatedVendorPartNumber");
 
   // Valid Vendor, Firmware, PortProfileID
   tcvrInfo = makeTcvrInfo(
@@ -608,7 +608,7 @@ TEST_F(WedgeManagerTest, validateTransceiverConfigTest) {
       std::make_pair(true, ""));
   verifyTransceiverValidationAndReturnValue(tcvrInfo, true, "");
 
-  // Valid Vendor, Firmware, PortProfileID / Invalid Firmware
+  // Valid Vendor, Firmware, PortProfileID / Non-Validated Firmware
   tcvrInfo = makeTcvrInfo(
       0,
       "FBOSSTWO",
@@ -620,7 +620,7 @@ TEST_F(WedgeManagerTest, validateTransceiverConfigTest) {
       std::make_pair(true, ""));
   verifyTransceiverValidationAndReturnValue(tcvrInfo, true, "");
 
-  // Valid Vendor, Firmware / Invalid PortProfileID
+  // Valid Vendor, Firmware / Non-Validated PortProfileID
   tcvrInfo = makeTcvrInfo(
       0,
       "FBOSSONE",
@@ -631,7 +631,7 @@ TEST_F(WedgeManagerTest, validateTransceiverConfigTest) {
       true,
       std::make_pair(true, ""));
   verifyTransceiverValidationAndReturnValue(
-      tcvrInfo, false, "invalidPortProfileId");
+      tcvrInfo, false, "nonValidatedPortProfileId");
 
   // Valid Vendor (lowercase), Firmware, PortProfileID
   tcvrInfo = makeTcvrInfo(
@@ -658,7 +658,7 @@ TEST_F(WedgeManagerTest, validateTransceiverConfigTest) {
   verifyTransceiverValidationAndReturnValue(
       tcvrInfo, false, "invalidEepromChecksums");
 
-  // Invalid Configuration, Eeprom Checksums
+  // Non-Validated Configuration, Eeprom Checksums
   tcvrInfo = makeTcvrInfo(
       0,
       "fbossTwo",
@@ -706,16 +706,16 @@ TEST_F(WedgeManagerTest, validateTransceiverConfigByIdTest) {
   tcvr->overrideVendorNameAndPN("fbossTwo", "TR-FC13H-HF");
   tcvr->setAppFwVersion("1");
 
-  // Test Invalid Config
+  // Test Non-Validated Config
   std::string notValidatedReason;
   transceiverManager_->refreshStateMachines();
   tcvr->useActualGetTransceiverInfo();
   EXPECT_FALSE(transceiverManager_->validateTransceiverById(
       tcvrID, notValidatedReason, true));
-  EXPECT_EQ(notValidatedReason, "invalidVendorPartNumber");
+  EXPECT_EQ(notValidatedReason, "nonValidatedVendorPartNumber");
   EXPECT_EQ(
       transceiverManager_->getTransceiverValidationConfigString(tcvrID),
-      "{\n  \"Non-Validated Attribute\": \"invalidVendorPartNumber\",\n  \"Transceiver Application Firmware Version\": \"1\",\n  \"Transceiver DSP Firmware Version\": \"\",\n  \"Transceiver Part Number\": \"TR-FC13H-HF\",\n  \"Transceiver Port Profile Ids\": \"PROFILE_100G_4_NRZ_NOFEC\",\n  \"Transceiver Vendor\": \"fbossTwo\"\n}");
+      "{\n  \"Non-Validated Attribute\": \"nonValidatedVendorPartNumber\",\n  \"Transceiver Application Firmware Version\": \"1\",\n  \"Transceiver DSP Firmware Version\": \"\",\n  \"Transceiver Part Number\": \"TR-FC13H-HF\",\n  \"Transceiver Port Profile Ids\": \"PROFILE_100G_4_NRZ_NOFEC\",\n  \"Transceiver Vendor\": \"fbossTwo\"\n}");
 
   // Test Valid Config
   notValidatedReason = "";
@@ -728,7 +728,7 @@ TEST_F(WedgeManagerTest, validateTransceiverConfigByIdTest) {
   EXPECT_EQ(
       transceiverManager_->getTransceiverValidationConfigString(tcvrID), "");
 
-  // Test Invalid Eeprom Checksums
+  // Test Non-Validated Eeprom Checksums
   EXPECT_CALL(*transceiverManager_, verifyEepromChecksums(tcvrID))
       .WillRepeatedly(::testing::Return(false));
   transceiverManager_->refreshStateMachines();
