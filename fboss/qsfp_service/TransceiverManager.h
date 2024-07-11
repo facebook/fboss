@@ -38,6 +38,7 @@
 
 DECLARE_string(qsfp_service_volatile_dir);
 DECLARE_bool(can_qsfp_service_warm_boot);
+DECLARE_bool(enable_tcvr_validation);
 
 namespace facebook::fboss {
 

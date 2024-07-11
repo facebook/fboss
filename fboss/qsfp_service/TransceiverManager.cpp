@@ -49,6 +49,11 @@ DEFINE_int32(
     1,
     "How many transceivers sharing the same evb to schedule a firmware upgrade on at a time");
 
+DEFINE_bool(
+    enable_tcvr_validation,
+    false,
+    "Enable transceiver validation feature in qsfp_service");
+
 namespace {
 constexpr auto kForceColdBootFileName = "cold_boot_once_qsfp_service";
 constexpr auto kWarmBootFlag = "can_warm_boot";
