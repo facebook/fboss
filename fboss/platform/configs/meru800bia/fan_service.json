@@ -6,7 +6,29 @@
   "pwmTransitionValue": 50,
   "pwmLowerThreshold": 50,
   "pwmUpperThreshold": 100,
-  "optics": [],
+  "optics" : [
+    {
+      "opticName" : "osfp_group_1",
+      "access" : {
+        "accessType" : "ACCESS_TYPE_QSFP"
+      },
+      "portList" : [],
+      "aggregationType" : "OPTIC_AGGREGATION_TYPE_MAX",
+      "tempToPwmMaps" : {
+        "OPTIC_TYPE_800_GENERIC" : {
+          "5": 34,
+          "68": 35,
+          "69": 37,
+          "70": 40,
+          "71": 44,
+          "72": 57,
+          "73": 70,
+          "74": 83,
+          "75": 100
+        }
+      }
+    }
+  ],
   "sensors": [
     {
       "sensorName": "SMB_BOARD_FRONT_TEMP",
@@ -92,7 +114,8 @@
       "zoneType": "ZONE_TYPE_MAX",
       "zoneName": "zone1",
       "sensorNames": [
-        "SMB_BOARD_FRONT_TEMP"
+        "SMB_BOARD_FRONT_TEMP",
+        "osfp_group_1"
       ],
       "fanNames": [
         "fan_1",
