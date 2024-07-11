@@ -87,6 +87,9 @@ bool TransceiverValidator::validateTcvr(
       tcvrInfo.dspFirmwareVersion,
       folly::join(",", portProfileIdStrings));
 
+  std::string logPrefix = FLAGS_enable_tcvr_validation_scuba_logging
+      ? TransceiverValidationAlert().str()
+      : "";
   if (validPair.first) {
     XLOGF(
         INFO,
@@ -96,7 +99,8 @@ bool TransceiverValidator::validateTcvr(
   } else {
     XLOGF(
         WARN,
-        "Transceiver {} has an invalid configuration {} due to {}.",
+        "{}Transceiver {} has an invalid configuration {} due to {}.",
+        logPrefix,
         tcvrInfo.id,
         tcvrConfigStr,
         validPair.second);

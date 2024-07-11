@@ -192,6 +192,7 @@ cpp_library(
         "TransceiverValidator.h",
     ],
     exported_deps = [
+        "//fboss/lib:alert_logger",
         "//fboss/qsfp_service/if:transceiver_validation-cpp2-types",
         "//folly:string",
         "//folly/logging:logging",

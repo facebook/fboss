@@ -29,6 +29,7 @@ constexpr auto kFbossKernelAlert("KERNEL");
 constexpr auto kFbossPortAlert("PORT");
 constexpr auto kFbossRouteAlert("ROUTE");
 constexpr auto kFbossLinkSnapshotAlert("LINK_SNAPSHOT");
+constexpr auto kFbossQsfpTransceiverValidationAlert("TRANSCEIVER_VALIDATION");
 
 // Alert tag by type
 AlertTag::AlertTag(std::string prefix, std::string sub_type)
@@ -48,6 +49,8 @@ BGPAlert::BGPAlert() : AlertTag(kBgpAlertPrefix) {}
 MKAAlert::MKAAlert() : AlertTag(kMkaAlertPrefix) {}
 LinkSnapshotAlert::LinkSnapshotAlert()
     : AlertTag(kLinkSnapshotAlertPrefix, kFbossLinkSnapshotAlert) {}
+TransceiverValidationAlert::TransceiverValidationAlert()
+    : AlertTag(kFbossAlertPrefix, kFbossQsfpTransceiverValidationAlert) {}
 
 // Alert param types
 constexpr auto kFbossPort("port");

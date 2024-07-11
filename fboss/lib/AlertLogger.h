@@ -104,6 +104,10 @@ class LinkSnapshotAlert : public AlertTag {
  public:
   LinkSnapshotAlert();
 };
+class TransceiverValidationAlert : public AlertTag {
+ public:
+  TransceiverValidationAlert();
+};
 
 // Alert parameter types
 struct AlertParam {

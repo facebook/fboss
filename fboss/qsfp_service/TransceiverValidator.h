@@ -4,6 +4,7 @@
 
 #include <folly/String.h>
 #include <folly/logging/xlog.h>
+#include "fboss/lib/AlertLogger.h"
 #include "fboss/qsfp_service/if/gen-cpp2/transceiver_validation_types.h"
 #include "thrift/lib/cpp/util/EnumUtils.h"
 
