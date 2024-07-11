@@ -49,6 +49,7 @@ def _qsfp_hw_test_lib(sai_impl):
             "HwStateMachineTest.cpp",
             "HwTransceiverTest.cpp",
             "OpticsFwUpgradeTest.cpp",
+            "HwTransceiverConfigValidationTest.cpp",
         ],
         headers = [
             "HwPortUtils.h",
