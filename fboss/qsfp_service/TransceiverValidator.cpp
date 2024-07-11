@@ -93,13 +93,13 @@ bool TransceiverValidator::validateTcvr(
   if (validPair.first) {
     XLOGF(
         INFO,
-        "Transceiver {} has a valid configuration {}.",
+        "[Transceiver Validation] Transceiver {} has a valid configuration {}.",
         tcvrInfo.id,
         tcvrConfigStr);
   } else {
     XLOGF(
         WARN,
-        "{}Transceiver {} has an invalid configuration {} due to {}.",
+        "{}[Transceiver Validation] Transceiver {} has an invalid configuration {} due to {}.",
         logPrefix,
         tcvrInfo.id,
         tcvrConfigStr,

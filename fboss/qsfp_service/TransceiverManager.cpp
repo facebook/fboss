@@ -1594,8 +1594,8 @@ TransceiverValidationInfo TransceiverManager::getTransceiverValidationInfo(
   }
   tcvrInfo.vendorPartNumber = vendor->partNumber().value();
 
-  // Until firmware sync is enabled, we don't need to report missing firmware
-  // data.
+  // TODO(smenta): Once firmware sync is enabled, consider firmware versions to
+  // be required.
   auto moduleStatus = cachedTcvrInfo.tcvrState()->status();
   if (moduleStatus.has_value() && moduleStatus->fwStatus().has_value()) {
     tcvrInfo.firmwareVersion = moduleStatus->fwStatus()->version().value_or("");
