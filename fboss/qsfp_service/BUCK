@@ -193,7 +193,9 @@ cpp_library(
     ],
     exported_deps = [
         "//fboss/qsfp_service/if:transceiver_validation-cpp2-types",
+        "//folly:string",
         "//folly/logging:logging",
+        "//thrift/lib/cpp/util:enum_utils",
     ],
 )
 

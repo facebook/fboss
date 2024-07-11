@@ -534,4 +534,145 @@ TEST_F(WedgeManagerTest, pauseRemediationTimerTest) {
       attemptAndCheckRemediate(TransceiverID(portNameMap.at("eth1/4/1"))));
 }
 
+TEST_F(WedgeManagerTest, validateTransceiverConfigTest) {
+  auto makeTcvrInfo = [](int id,
+                         std::string vendorName,
+                         std::string vendorPartNumber,
+                         std::string firmwareVersion,
+                         std::string dspFirmwareVersion,
+                         std::vector<cfg::PortProfileID> portProfileIds,
+                         bool validEepromChecksum,
+                         std::pair<bool, std::string> requiredFields) {
+    TransceiverValidationInfo tcvrInfo;
+    tcvrInfo.id = id;
+    tcvrInfo.vendorName = vendorName;
+    tcvrInfo.vendorPartNumber = vendorPartNumber;
+    tcvrInfo.firmwareVersion = firmwareVersion;
+    tcvrInfo.dspFirmwareVersion = dspFirmwareVersion;
+    tcvrInfo.portProfileIds = portProfileIds;
+    tcvrInfo.validEepromChecksums = validEepromChecksum;
+    tcvrInfo.requiredFields = requiredFields;
+    return tcvrInfo;
+  };
+  auto verifyTransceiverValidationAndReturnValue =
+      [&](TransceiverValidationInfo& tcvrInfo,
+          bool isValid,
+          std::string nonValidatedReason) {
+        std::string reason;
+        EXPECT_EQ(
+            transceiverManager_->validateTransceiverConfiguration(
+                tcvrInfo, reason),
+            isValid);
+        EXPECT_EQ(reason, nonValidatedReason);
+      };
+
+  TransceiverValidationInfo tcvrInfo;
+
+  // Invalid Vendor, PartNumber, Firmware, PortProfileID
+  tcvrInfo = makeTcvrInfo(
+      0,
+      "fakeVendor",
+      "0",
+      "0",
+      "0",
+      {cfg::PortProfileID::PROFILE_DEFAULT},
+      true,
+      std::make_pair(true, ""));
+  verifyTransceiverValidationAndReturnValue(
+      tcvrInfo, false, "invalidVendorName");
+
+  // Valid Vendor, Firmware, PortProfileID / Invalid Part Number
+  tcvrInfo = makeTcvrInfo(
+      0,
+      "FBOSSONE",
+      "TR-FC13H-HF",
+      "1",
+      "2",
+      {cfg::PortProfileID::PROFILE_100G_4_NRZ_NOFEC},
+      true,
+      std::make_pair(true, ""));
+  verifyTransceiverValidationAndReturnValue(
+      tcvrInfo, false, "invalidVendorPartNumber");
+
+  // Valid Vendor, Firmware, PortProfileID
+  tcvrInfo = makeTcvrInfo(
+      0,
+      "FBOSSONE",
+      "LUX426C4AD",
+      "1",
+      "2",
+      {cfg::PortProfileID::PROFILE_100G_4_NRZ_NOFEC},
+      true,
+      std::make_pair(true, ""));
+  verifyTransceiverValidationAndReturnValue(tcvrInfo, true, "");
+
+  // Valid Vendor, Firmware, PortProfileID / Invalid Firmware
+  tcvrInfo = makeTcvrInfo(
+      0,
+      "FBOSSTWO",
+      "TR-FC13H-HFZ",
+      "0",
+      "0",
+      {cfg::PortProfileID::PROFILE_100G_4_NRZ_NOFEC},
+      true,
+      std::make_pair(true, ""));
+  verifyTransceiverValidationAndReturnValue(tcvrInfo, true, "");
+
+  // Valid Vendor, Firmware / Invalid PortProfileID
+  tcvrInfo = makeTcvrInfo(
+      0,
+      "FBOSSONE",
+      "SPTSMP3CLCK10",
+      "1",
+      "2",
+      {cfg::PortProfileID::PROFILE_100G_4_NRZ_CL91},
+      true,
+      std::make_pair(true, ""));
+  verifyTransceiverValidationAndReturnValue(
+      tcvrInfo, false, "invalidPortProfileId");
+
+  // Valid Vendor (lowercase), Firmware, PortProfileID
+  tcvrInfo = makeTcvrInfo(
+      0,
+      "fbossONE",
+      "LUX426C4AD",
+      "1",
+      "2",
+      {cfg::PortProfileID::PROFILE_100G_4_NRZ_NOFEC},
+      true,
+      std::make_pair(true, ""));
+  verifyTransceiverValidationAndReturnValue(tcvrInfo, true, "");
+
+  // Valid Configuration / Invalid Eeprom Checksums
+  tcvrInfo = makeTcvrInfo(
+      0,
+      "fbossONE",
+      "LUX426C4AD",
+      "1",
+      "2",
+      {cfg::PortProfileID::PROFILE_100G_4_NRZ_NOFEC},
+      false,
+      std::make_pair(true, ""));
+  verifyTransceiverValidationAndReturnValue(
+      tcvrInfo, false, "invalidEepromChecksums");
+
+  // Invalid Configuration, Eeprom Checksums
+  tcvrInfo = makeTcvrInfo(
+      0,
+      "fbossTwo",
+      "LUX426C4AD",
+      "1",
+      "2",
+      {cfg::PortProfileID::PROFILE_100G_4_NRZ_NOFEC},
+      false,
+      std::make_pair(true, ""));
+  verifyTransceiverValidationAndReturnValue(
+      tcvrInfo, false, "invalidEepromChecksums");
+
+  // Missing Information
+  tcvrInfo = makeTcvrInfo(
+      0, "", "", "", "", {}, true, std::make_pair(false, "missingVendor"));
+  verifyTransceiverValidationAndReturnValue(tcvrInfo, false, "missingVendor");
+}
+
 } // namespace facebook::fboss

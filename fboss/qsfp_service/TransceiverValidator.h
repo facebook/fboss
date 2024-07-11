@@ -2,8 +2,10 @@
 
 #pragma once
 
+#include <folly/String.h>
 #include <folly/logging/xlog.h>
 #include "fboss/qsfp_service/if/gen-cpp2/transceiver_validation_types.h"
+#include "thrift/lib/cpp/util/EnumUtils.h"
 
 DECLARE_bool(enable_tcvr_validation_scuba_logging);
 
@@ -25,12 +27,31 @@ namespace facebook::fboss {
  * from vendorPartNumber to TransceiverSpec. We use this TransceiverSpec thrift
  * struct directly to increase readibility.
  *
+ * Note that this class also consumes the result of verifying EEPROM checksums.
+ *
  */
+
+struct TransceiverValidationInfo {
+  int id;
+  std::string vendorName;
+  std::string vendorPartNumber;
+  std::string firmwareVersion;
+  std::string dspFirmwareVersion;
+  std::vector<cfg::PortProfileID> portProfileIds;
+  bool validEepromChecksums;
+  std::pair<bool, std::string> requiredFields;
+};
+
 class TransceiverValidator {
  public:
   explicit TransceiverValidator(const std::vector<VendorConfig>& tcvrConfigs);
+  bool validateTcvr(
+      const TransceiverValidationInfo& tcvrInfo,
+      std::string& notValidatedReason);
 
  private:
+  std::pair<bool, std::string> validateTcvrAndReason(
+      const TransceiverValidationInfo& tcvrInfo);
   /*
    * This data structure maps vendorName (string) to an inner map of
    * vendorPartNumber (string) to TransceiverSpec, which is a struct based on a

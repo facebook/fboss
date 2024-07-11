@@ -2835,4 +2835,13 @@ std::string TransceiverManager::getPortInfo(std::string portName) {
   return getPhyManager()->getPortInfoStr(PortID(swPort.value()));
 }
 
+bool TransceiverManager::validateTransceiverConfiguration(
+    TransceiverValidationInfo& tcvrInfo,
+    std::string& notValidatedReason) {
+  if (tcvrValidator_ == nullptr) {
+    return false;
+  }
+  return tcvrValidator_->validateTcvr(tcvrInfo, notValidatedReason);
+}
+
 } // namespace facebook::fboss

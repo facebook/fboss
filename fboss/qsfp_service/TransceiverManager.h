@@ -562,6 +562,10 @@ class TransceiverManager {
   // has to be different from whats already running in HW.
   bool requiresFirmwareUpgrade(Transceiver& tcvr) const;
 
+  bool validateTransceiverConfiguration(
+      TransceiverValidationInfo& tcvrInfo,
+      std::string& notValidatedReason);
+
  protected:
   /*
    * Check to see if we can attempt a warm boot.
