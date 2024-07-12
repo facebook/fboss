@@ -207,8 +207,14 @@ class CmdShowTransceiver
     }
 
     std::map<int, std::string> transceiverValidationEntries;
-    qsfpService->sync_getTransceiverConfigValidationInfo(
-        transceiverValidationEntries, requiredTransceiverEntries, false);
+    try {
+      qsfpService->sync_getTransceiverConfigValidationInfo(
+          transceiverValidationEntries, requiredTransceiverEntries, false);
+    } catch (apache::thrift::TException&) {
+      std::cerr
+          << "Exception while calling getTransceiverConfigValidationInfo()."
+          << std::endl;
+    }
     return transceiverValidationEntries;
   }
 
