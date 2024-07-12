@@ -12,18 +12,18 @@ class TamStoreTest : public SaiStoreTest {
     SaiStoreTest::SetUp();
   }
 
-  SaiTamReportTraits::CreateAttributes tamReportTraits() {
+  facebook::fboss::SaiTamReportTraits::CreateAttributes tamReportTraits() {
     return SaiTamReportTraits::CreateAttributes{
         SAI_TAM_REPORT_TYPE_VENDOR_EXTN};
   }
 
-  SaiTamEventActionTraits::CreateAttributes tamEventActionTraits(
-      TamReportSaiId id) {
+  facebook::fboss::SaiTamEventActionTraits::CreateAttributes
+  tamEventActionTraits(facebook::fboss::TamReportSaiId id) {
     return SaiTamEventActionTraits::CreateAttributes{id};
   }
 
-  SaiTamEventTraits::CreateAttributes tamEventTraits(
-      TamEventActionSaiId eventActionId) {
+  facebook::fboss::SaiTamEventTraits::CreateAttributes tamEventTraits(
+      facebook::fboss::TamEventActionSaiId eventActionId) {
     std::vector<sai_object_id_t> actions{eventActionId};
     std::vector<sai_object_id_t> collectors{SAI_NULL_OBJECT_ID};
     std::vector<sai_int32_t> eventTypes{1, 2, 3, 4};
@@ -39,18 +39,20 @@ class TamStoreTest : public SaiStoreTest {
     return result;
   }
 
-  SaiTamTraits::CreateAttributes tamTraits(TamEventSaiId event) {
+  facebook::fboss::SaiTamTraits::CreateAttributes tamTraits(
+      facebook::fboss::TamEventSaiId event) {
     std::vector<sai_object_id_t> events = {event};
     std::vector<sai_int32_t> bindpoints = {SAI_TAM_BIND_POINT_TYPE_SWITCH};
     return SaiTamTraits::CreateAttributes{events, bindpoints};
   }
 
-  TamReportSaiId createReport() {
+  facebook::fboss::TamReportSaiId createReport() {
     return saiApiTable->tamApi().create<SaiTamReportTraits>(
         tamReportTraits(), 0);
   }
 
-  TamEventActionSaiId createEventAction(TamReportSaiId reportId) {
+  facebook::fboss::TamEventActionSaiId createEventAction(
+      facebook::fboss::TamReportSaiId reportId) {
     return saiApiTable->tamApi().create<SaiTamEventActionTraits>(
         tamEventActionTraits(reportId), 0);
   }
