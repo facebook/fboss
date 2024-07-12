@@ -536,6 +536,7 @@ TEST_F(WedgeManagerTest, pauseRemediationTimerTest) {
       attemptAndCheckRemediate(TransceiverID(portNameMap.at("eth1/4/1"))));
 }
 
+// This test suite focuses solely on validation logic.
 TEST_F(WedgeManagerTest, validateTransceiverConfigTest) {
   auto makeTcvrInfo = [](int id,
                          std::string vendorName,
@@ -583,7 +584,7 @@ TEST_F(WedgeManagerTest, validateTransceiverConfigTest) {
   verifyTransceiverValidationAndReturnValue(
       tcvrInfo, false, "nonValidatedVendorName");
 
-  // Valid Vendor, Firmware, PortProfileID / Non-Validated Part Number
+  // Validated Vendor, Firmware, PortProfileID / Non-Validated Part Number
   tcvrInfo = makeTcvrInfo(
       0,
       "FBOSSONE",
@@ -596,7 +597,7 @@ TEST_F(WedgeManagerTest, validateTransceiverConfigTest) {
   verifyTransceiverValidationAndReturnValue(
       tcvrInfo, false, "nonValidatedVendorPartNumber");
 
-  // Valid Vendor, Firmware, PortProfileID
+  // Validated Vendor, Firmware, PortProfileID
   tcvrInfo = makeTcvrInfo(
       0,
       "FBOSSONE",
@@ -608,7 +609,7 @@ TEST_F(WedgeManagerTest, validateTransceiverConfigTest) {
       std::make_pair(true, ""));
   verifyTransceiverValidationAndReturnValue(tcvrInfo, true, "");
 
-  // Valid Vendor, Firmware, PortProfileID / Non-Validated Firmware
+  // Validated Vendor, Firmware, PortProfileID / Non-Validated Firmware
   tcvrInfo = makeTcvrInfo(
       0,
       "FBOSSTWO",
@@ -620,7 +621,7 @@ TEST_F(WedgeManagerTest, validateTransceiverConfigTest) {
       std::make_pair(true, ""));
   verifyTransceiverValidationAndReturnValue(tcvrInfo, true, "");
 
-  // Valid Vendor, Firmware / Non-Validated PortProfileID
+  // Validated Vendor, Firmware / Non-Validated PortProfileID
   tcvrInfo = makeTcvrInfo(
       0,
       "FBOSSONE",
@@ -633,7 +634,52 @@ TEST_F(WedgeManagerTest, validateTransceiverConfigTest) {
   verifyTransceiverValidationAndReturnValue(
       tcvrInfo, false, "nonValidatedPortProfileId");
 
-  // Valid Vendor (lowercase), Firmware, PortProfileID
+  // Validated Vendor, Firmware, Multiple PortProfileIDs
+  tcvrInfo = makeTcvrInfo(
+      0,
+      "FBOSSONE",
+      "SPTSMP3CLCK10",
+      "1",
+      "2",
+      {cfg::PortProfileID::PROFILE_100G_4_NRZ_NOFEC,
+       cfg::PortProfileID::PROFILE_100G_4_NRZ_CL91_OPTICAL},
+      true,
+      std::make_pair(true, ""));
+  verifyTransceiverValidationAndReturnValue(tcvrInfo, true, "");
+
+  // Validated Configuration / Validated and Not-Validated PortProfileIDs
+  tcvrInfo = makeTcvrInfo(
+      0,
+      "FBOSSONE",
+      "SPTSMP3CLCK10",
+      "1",
+      "2",
+      {
+          cfg::PortProfileID::PROFILE_100G_4_NRZ_NOFEC,
+          cfg::PortProfileID::PROFILE_100G_4_NRZ_CL91_OPTICAL,
+          cfg::PortProfileID::PROFILE_50G_2_NRZ_NOFEC_COPPER,
+          cfg::PortProfileID::PROFILE_400G_8_PAM4_RS544X2N,
+      },
+      true,
+      std::make_pair(true, ""));
+  verifyTransceiverValidationAndReturnValue(
+      tcvrInfo, false, "nonValidatedPortProfileId");
+
+  // Validated Configuration / Multiple Non-Validated PortProfileIDs
+  tcvrInfo = makeTcvrInfo(
+      0,
+      "FBOSSONE",
+      "SPTSMP3CLCK10",
+      "1",
+      "2",
+      {cfg::PortProfileID::PROFILE_50G_2_NRZ_NOFEC_COPPER,
+       cfg::PortProfileID::PROFILE_400G_8_PAM4_RS544X2N},
+      true,
+      std::make_pair(true, ""));
+  verifyTransceiverValidationAndReturnValue(
+      tcvrInfo, false, "nonValidatedPortProfileId");
+
+  // Validated Vendor (lowercase), Firmware, PortProfileID
   tcvrInfo = makeTcvrInfo(
       0,
       "fbossONE",
@@ -645,7 +691,7 @@ TEST_F(WedgeManagerTest, validateTransceiverConfigTest) {
       std::make_pair(true, ""));
   verifyTransceiverValidationAndReturnValue(tcvrInfo, true, "");
 
-  // Valid Configuration / Invalid Eeprom Checksums
+  // Validated Configuration / Non-Validated Eeprom Checksums
   tcvrInfo = makeTcvrInfo(
       0,
       "fbossONE",
@@ -677,68 +723,200 @@ TEST_F(WedgeManagerTest, validateTransceiverConfigTest) {
   verifyTransceiverValidationAndReturnValue(tcvrInfo, false, "missingVendor");
 }
 
+// This suite focuses on information retrieval and validation logic.
 TEST_F(WedgeManagerTest, validateTransceiverConfigByIdTest) {
-  auto tcvrID = TransceiverID(0);
+  // Initialize Transceiver and Return Values
+  auto tcvrOneID = TransceiverID(1);
+  auto tcvrTwoID = TransceiverID(2);
+  auto tcvrThreeID = TransceiverID(3);
+
   auto transceiverImpl =
       std::make_unique<::testing::NiceMock<MockTransceiverImpl>>();
   auto transImpl_ = transceiverImpl.get();
   EXPECT_CALL(*transImpl_, detectTransceiver())
       .WillRepeatedly(::testing::Return(true));
   qsfpImpls_.push_back(std::move(transceiverImpl));
-  EXPECT_CALL(*transceiverManager_, verifyEepromChecksums(tcvrID))
+  EXPECT_CALL(*transceiverManager_, verifyEepromChecksums(testing::_))
       .WillRepeatedly(::testing::Return(true));
-  auto tcvr = static_cast<MockSffModule*>(
-      transceiverManager_->overrideTransceiverForTesting(
-          tcvrID,
-          std::make_unique<MockSffModule>(
-              transceiverManager_->getPortNames(tcvrID),
-              qsfpImpls_.back().get(),
-              tcvrConfig_)));
-  tcvr->detectPresence();
+  auto makeDefaultTcvr = [&](TransceiverID tcvrID) {
+    auto tcvr = static_cast<MockSffModule*>(
+        transceiverManager_->overrideTransceiverForTesting(
+            tcvrID,
+            std::make_unique<MockSffModule>(
+                transceiverManager_->getPortNames(tcvrID),
+                qsfpImpls_.back().get(),
+                tcvrConfig_)));
+    tcvr->detectPresence();
+    tcvr->overrideVendorNameAndPN("fbossTwo", "TR-FC13H-HFZ");
+    tcvr->setFwVersion("1", "2");
+    return tcvr;
+  };
 
-  TransceiverManager::OverrideTcvrToPortAndProfile oneTcvrTo4X100G = {
-      {tcvrID,
+  // Initialize Transceiver Default Settings (validated / nonValidated /
+  // missing)
+  TransceiverManager::OverrideTcvrToPortAndProfile portProfiles = {
+      {tcvrOneID,
        {
            {PortID(1), cfg::PortProfileID::PROFILE_100G_4_NRZ_NOFEC},
+           {PortID(2), cfg::PortProfileID::PROFILE_100G_4_NRZ_NOFEC},
+       }},
+      {tcvrTwoID,
+       {
+           {PortID(1), cfg::PortProfileID::PROFILE_25G_1_NRZ_CL74_COPPER},
+           {PortID(2), cfg::PortProfileID::PROFILE_100G_4_NRZ_CL91_COPPER},
+           {PortID(4), cfg::PortProfileID::PROFILE_100G_4_NRZ_NOFEC},
        }}};
-  transceiverManager_->setOverrideTcvrToPortAndProfileForTesting(
-      oneTcvrTo4X100G);
-  tcvr->overrideVendorNameAndPN("fbossTwo", "TR-FC13H-HF");
-  tcvr->setAppFwVersion("1");
+  transceiverManager_->setOverrideTcvrToPortAndProfileForTesting(portProfiles);
 
-  // Test Non-Validated Config
-  std::string notValidatedReason;
-  transceiverManager_->refreshStateMachines();
-  tcvr->useActualGetTransceiverInfo();
-  EXPECT_FALSE(transceiverManager_->validateTransceiverById(
-      tcvrID, notValidatedReason, true));
-  EXPECT_EQ(notValidatedReason, "nonValidatedVendorPartNumber");
-  EXPECT_EQ(
-      transceiverManager_->getTransceiverValidationConfigString(tcvrID),
-      "{\n  \"Non-Validated Attribute\": \"nonValidatedVendorPartNumber\",\n  \"Transceiver Application Firmware Version\": \"1\",\n  \"Transceiver DSP Firmware Version\": \"\",\n  \"Transceiver Part Number\": \"TR-FC13H-HF\",\n  \"Transceiver Port Profile Ids\": \"PROFILE_100G_4_NRZ_NOFEC\",\n  \"Transceiver Vendor\": \"fbossTwo\"\n}");
+  // Validation Checker Helper Function (checks validity and config string)
+  auto validateBasic = [&](MockSffModule* tcvr,
+                           TransceiverID tcvrID,
+                           bool isValid,
+                           bool validatePortProfile,
+                           std::string configString) {
+    std::string reason;
+    transceiverManager_->refreshStateMachines();
+    tcvr->useActualGetTransceiverInfo();
+    EXPECT_EQ(
+        transceiverManager_->validateTransceiverById(
+            tcvrID, reason, validatePortProfile),
+        isValid);
+    if (validatePortProfile) {
+      EXPECT_EQ(
+          transceiverManager_->getTransceiverValidationConfigString(tcvrID),
+          configString);
+    }
+  };
+  auto validateWithReason = [&](MockSffModule* tcvr,
+                                TransceiverID tcvrID,
+                                bool isValid,
+                                std::string configString) {
+    validateBasic(tcvr, tcvrID, isValid, true, configString);
+  };
+  // Verifies the QSFP Test version of validation – where portProfileIds are not
+  // used in validation.
+  auto validateQsfpTestWithReason = [&](MockSffModule* tcvr,
+                                        TransceiverID tcvrID,
+                                        bool isValid,
+                                        std::string configString) {
+    validateBasic(tcvr, tcvrID, isValid, false, configString);
+  };
+  auto configString = [](std::string vendorName,
+                         std::string vendorPartNumber,
+                         std::string appFwVer,
+                         std::string dspFwVer,
+                         std::vector<std::string> portProfileIds,
+                         std::string nonValidatedAttribute) {
+    return folly::sformat(
+        "{{\n  \"Non-Validated Attribute\": \"{}\",\n  \"Transceiver Application Firmware Version\": \"{}\""
+        ",\n  \"Transceiver DSP Firmware Version\": \"{}\",\n  \"Transceiver Part Number\": \"{}\","
+        "\n  \"Transceiver Port Profile Ids\": \"{}\",\n  \"Transceiver Vendor\": \"{}\"\n}}",
+        nonValidatedAttribute,
+        appFwVer,
+        dspFwVer,
+        vendorPartNumber,
+        folly::join(",", portProfileIds),
+        vendorName);
+  };
 
-  // Test Valid Config
-  notValidatedReason = "";
-  tcvr->overrideVendorNameAndPN("fbossTwo", "TR-FC13H-HFZ");
-  transceiverManager_->refreshStateMachines();
-  tcvr->useActualGetTransceiverInfo();
-  EXPECT_TRUE(transceiverManager_->validateTransceiverById(
-      tcvrID, notValidatedReason, true));
-  EXPECT_EQ(notValidatedReason, "");
-  EXPECT_EQ(
-      transceiverManager_->getTransceiverValidationConfigString(tcvrID), "");
+  auto tcvrOne = makeDefaultTcvr(tcvrOneID);
+  auto tcvrTwo = makeDefaultTcvr(tcvrTwoID);
+  auto tcvrThree = makeDefaultTcvr(tcvrThreeID);
+
+  // Test Validated Config
+  validateWithReason(tcvrOne, tcvrOneID, true, "");
+  // Test Validated Config w/o Validating PortProfiles
+  validateQsfpTestWithReason(tcvrOne, tcvrOneID, true, "");
+
+  // Test Missing Vendor
+  tcvrOne->overrideVendorNameAndPN("", "");
+  validateWithReason(
+      tcvrOne,
+      tcvrOneID,
+      false,
+      configString("", "", "", "", {}, "missingVendor"));
+
+  // Test Missing Vendor Part Number
+  tcvrOne->overrideVendorNameAndPN("fbossOne", "");
+  validateWithReason(
+      tcvrOne,
+      tcvrOneID,
+      false,
+      configString("fbossOne", "", "", "", {}, "missingVendorPartNumber"));
+
+  // Test Missing Firmware (should yield a Validated result)
+  tcvrOne->overrideVendorNameAndPN("fbossTwo", "TR-FC13H-HFZ");
+  tcvrOne->setFwVersion("", "");
+  validateWithReason(tcvrOne, tcvrOneID, true, "");
+
+  // Test Missing PortProfileIDs
+  validateWithReason(
+      tcvrThree,
+      tcvrThreeID,
+      false,
+      configString(
+          "fbossTwo", "TR-FC13H-HFZ", "1", "2", {}, "missingPortProfileIds"));
+  // Test Missing PortProfileIDs w/o Validating PortProfiles
+  validateQsfpTestWithReason(tcvrThree, tcvrThreeID, true, "");
+
+  // Test Non-Validated Config –– Incorrect Vendor
+  tcvrOne->overrideVendorNameAndPN("fbossThree", "TR-FC13H-HFZ");
+  tcvrOne->setFwVersion("1", "2");
+  validateWithReason(
+      tcvrOne,
+      tcvrOneID,
+      false,
+      configString(
+          "fbossThree",
+          "TR-FC13H-HFZ",
+          "1",
+          "2",
+          {"PROFILE_100G_4_NRZ_NOFEC", "PROFILE_100G_4_NRZ_NOFEC"},
+          "nonValidatedVendorName"));
+
+  // Test Non-Validated Config –– Incorrect Vendor Part Number
+  tcvrOne->overrideVendorNameAndPN("fbossTwo", "TR-FC13H-HF");
+  validateWithReason(
+      tcvrOne,
+      tcvrOneID,
+      false,
+      configString(
+          "fbossTwo",
+          "TR-FC13H-HF",
+          "1",
+          "2",
+          {"PROFILE_100G_4_NRZ_NOFEC", "PROFILE_100G_4_NRZ_NOFEC"},
+          "nonValidatedVendorPartNumber"));
+
+  // Test Non-Validated Config –– Incorrect Port Profile ID
+  validateWithReason(
+      tcvrTwo,
+      tcvrTwoID,
+      false,
+      configString(
+          "fbossTwo",
+          "TR-FC13H-HFZ",
+          "1",
+          "2",
+          {"PROFILE_100G_4_NRZ_NOFEC",
+           "PROFILE_100G_4_NRZ_CL91_COPPER",
+           "PROFILE_25G_1_NRZ_CL74_COPPER"},
+          "nonValidatedPortProfileId"));
 
   // Test Non-Validated Eeprom Checksums
-  EXPECT_CALL(*transceiverManager_, verifyEepromChecksums(tcvrID))
+  EXPECT_CALL(*transceiverManager_, verifyEepromChecksums(testing::_))
       .WillRepeatedly(::testing::Return(false));
-  transceiverManager_->refreshStateMachines();
-  tcvr->useActualGetTransceiverInfo();
-  EXPECT_FALSE(transceiverManager_->validateTransceiverById(
-      tcvrID, notValidatedReason, true));
-  EXPECT_EQ(notValidatedReason, "invalidEepromChecksums");
-  EXPECT_EQ(
-      transceiverManager_->getTransceiverValidationConfigString(tcvrID),
-      "{\n  \"Non-Validated Attribute\": \"invalidEepromChecksums\",\n  \"Transceiver Application Firmware Version\": \"1\",\n  \"Transceiver DSP Firmware Version\": \"\",\n  \"Transceiver Part Number\": \"TR-FC13H-HFZ\",\n  \"Transceiver Port Profile Ids\": \"PROFILE_100G_4_NRZ_NOFEC\",\n  \"Transceiver Vendor\": \"fbossTwo\"\n}");
+  validateWithReason(
+      tcvrOne,
+      tcvrOneID,
+      false,
+      configString(
+          "fbossTwo",
+          "TR-FC13H-HF",
+          "1",
+          "2",
+          {"PROFILE_100G_4_NRZ_NOFEC", "PROFILE_100G_4_NRZ_NOFEC"},
+          "invalidEepromChecksums"));
 }
 
 } // namespace facebook::fboss

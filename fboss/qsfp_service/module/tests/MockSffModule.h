@@ -144,6 +144,16 @@ class MockSffModule : public SffModule {
     return SffModule::writeTransceiver(param, data);
   }
 
+  void setFwVersion(std::string appFwVersion, std::string dspFwVersion) {
+    ModuleStatus moduleStatus;
+    FirmwareStatus fw;
+    fw.version() = appFwVersion;
+    fw.dspFwVer() = dspFwVersion;
+    moduleStatus.fwStatus() = fw;
+    ON_CALL(*this, getModuleStatus())
+        .WillByDefault(testing::Return(moduleStatus));
+  }
+
   void setAppFwVersion(std::string fwVersion) {
     ModuleStatus moduleStatus;
     FirmwareStatus fw;
