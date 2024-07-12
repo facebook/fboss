@@ -105,6 +105,12 @@ class MockFbossQsfpService : public QsfpServiceSvIf {
   MOCK_METHOD2(
       getTransceiverInfo,
       void(transceiverEntries, std::unique_ptr<std::vector<int32_t>>));
+  MOCK_METHOD3(
+      getTransceiverConfigValidationInfo,
+      void(
+          std::map<int32_t, std::string>&,
+          std::unique_ptr<std::vector<int32_t>>,
+          bool));
 };
 
 class MockFbossBgpService : public TBgpServiceSvIf {
