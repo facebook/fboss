@@ -11,9 +11,11 @@ class LagStoreTest : public SaiStoreTest {
   void SetUp() override {
     SaiStoreTest::SetUp();
   }
-  bool hasMember(LagSaiId lag, LagMemberSaiId member) {
+  bool hasMember(
+      facebook::fboss::LagSaiId lag,
+      facebook::fboss::LagMemberSaiId member) {
     auto members = saiApiTable->lagApi().getAttribute(
-        lag, SaiLagTraits::Attributes::PortList{});
+        lag, facebook::fboss::SaiLagTraits::Attributes::PortList{});
     for (auto entry : members) {
       if (member == entry) {
         return true;
@@ -22,21 +24,24 @@ class LagStoreTest : public SaiStoreTest {
     return false;
   }
 
-  LagSaiId createLag(std::string label, uint16_t vlan) {
+  facebook::fboss::LagSaiId createLag(std::string label, uint16_t vlan) {
     std::array<char, 32> labelValue{"lag0"};
     std::copy(label.begin(), label.end(), labelValue.data());
-    SaiLagTraits::CreateAttributes c{labelValue, vlan};
-    auto lagId = saiApiTable->lagApi().create<SaiLagTraits>(c, 0);
+    facebook::fboss::SaiLagTraits::CreateAttributes c{labelValue, vlan};
+    auto lagId =
+        saiApiTable->lagApi().create<facebook::fboss::SaiLagTraits>(c, 0);
 
     std::array<char, 32> data{};
     std::copy(std::begin(label), std::end(label), std::begin(data));
     saiApiTable->lagApi().setAttribute(
-        lagId, SaiLagTraits::Attributes::Label(data));
+        lagId, facebook::fboss::SaiLagTraits::Attributes::Label(data));
     return lagId;
   }
 
-  LagMemberSaiId createLagMember(LagSaiId lagId, sai_object_id_t port) {
-    return saiApiTable->lagApi().create<SaiLagMemberTraits>(
+  facebook::fboss::LagMemberSaiId createLagMember(
+      facebook::fboss::LagSaiId lagId,
+      sai_object_id_t port) {
+    return saiApiTable->lagApi().create<facebook::fboss::SaiLagMemberTraits>(
         {static_cast<sai_object_id_t>(lagId), port, true}, 0);
   }
 };
