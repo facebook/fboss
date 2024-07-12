@@ -605,6 +605,59 @@ TEST_F(AgentUdfAclCounterTest, VerifyUdfWithOtherAcls) {
        AclType::SRC_PORT});
 }
 
+TEST_F(AgentUdfAclCounterTest, VerifyAddRemoveUdfAcls) {
+  auto setup = [this]() {
+    applyNewState([&](const std::shared_ptr<SwitchState>& in) {
+      return helper_->resolveNextHops(in, 2);
+    });
+    auto wrapper = getSw()->getRouteUpdater();
+    helper_->programRoutes(&wrapper, kEcmpWidth);
+    auto newCfg{initialConfig(*getAgentEnsemble())};
+    addAclAndStat(&newCfg, AclType::UDF_OPCODE_ACK);
+    applyNewConfig(newCfg);
+  };
+
+  auto verify = [this]() {
+    XLOG(DBG2) << "verify roce ack packets are matched";
+    verifyAclType(true, true, AclType::UDF_OPCODE_ACK);
+    XLOG(DBG2) << "verify roce write immediate packets are not matched";
+    verifyAclType(false, true, AclType::UDF_OPCODE_WRITE_IMMEDIATE);
+    auto newCfg{initialConfig(*getAgentEnsemble())};
+    addAclAndStat(&newCfg, AclType::UDF_OPCODE_WRITE_IMMEDIATE);
+    applyNewConfig(newCfg);
+    XLOG(DBG2) << "verify roce ack packets are not matched";
+    verifyAclType(false, true, AclType::UDF_OPCODE_ACK);
+    XLOG(DBG2) << "verify roce write immediate packets are matched";
+    verifyAclType(true, true, AclType::UDF_OPCODE_WRITE_IMMEDIATE);
+    newCfg = initialConfig(*getAgentEnsemble());
+    addAclAndStat(&newCfg, AclType::UDF_OPCODE_ACK);
+    applyNewConfig(newCfg);
+  };
+
+  auto setupPostWarmboot = [this]() {
+    auto newCfg{initialConfig(*getAgentEnsemble())};
+    addAclAndStat(&newCfg, AclType::UDF_OPCODE_ACK);
+    addAclAndStat(&newCfg, AclType::UDF_OPCODE_WRITE_IMMEDIATE);
+    applyNewConfig(newCfg);
+  };
+
+  auto verifyPostWarmboot = [this]() {
+    XLOG(DBG2) << "verify roce ack packets are matched";
+    verifyAclType(true, true, AclType::UDF_OPCODE_ACK);
+    XLOG(DBG2) << "verify roce write immediate packets are matched";
+    verifyAclType(true, true, AclType::UDF_OPCODE_WRITE_IMMEDIATE);
+    auto newCfg{initialConfig(*getAgentEnsemble())};
+    addAclAndStat(&newCfg, AclType::UDF_OPCODE_ACK);
+    applyNewConfig(newCfg);
+    XLOG(DBG2) << "verify roce ack packets are matched";
+    verifyAclType(true, true, AclType::UDF_OPCODE_ACK);
+    XLOG(DBG2) << "verify roce write immediate packets are not matched";
+    verifyAclType(false, true, AclType::UDF_OPCODE_WRITE_IMMEDIATE);
+  };
+
+  verifyAcrossWarmBoots(setup, verify, setupPostWarmboot, verifyPostWarmboot);
+}
+
 // Add UDF for hash config after warmboot
 TEST_F(AgentUdfAclCounterTest, VerifyUdfPlusUdfHash) {
   auto setup = [this]() {
