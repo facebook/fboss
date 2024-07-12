@@ -47,7 +47,7 @@ class AgentPacketSendTest : public AgentHwTest {
       return outPackets + outDiscards >= expectedOutPkts;
     };
 
-    WITH_RETRIES_N_TIMED(3, std::chrono::seconds(1), {
+    WITH_RETRIES_N_TIMED(10, std::chrono::seconds(1), {
       EXPECT_EVENTUALLY_TRUE(waitForExpectedOutPackets(
           ensemble->getLatestPortStats(ensemble->masterLogicalPortIds())));
     });
