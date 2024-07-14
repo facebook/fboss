@@ -67,13 +67,41 @@ TEST_F(OpticsTest, verifyTxRxLatches) {
   EXPECT_FALSE(opticalPortPairs.empty())
       << "Did not detect any optical transceivers";
 
+  std::set<int32_t> allTcvrIds;
+  // Gather list of all transceiverIDs so that we get their corresponding
+  // transceiverInfo in one shot
+  for (auto [portID1, portID2] : opticalPortPairs) {
+    allTcvrIds.insert(int32_t(
+        platform()->getPlatformPort(portID1)->getTransceiverID().value()));
+    allTcvrIds.insert(int32_t(
+        platform()->getPlatformPort(portID2)->getTransceiverID().value()));
+  }
+
+  auto allTcvrInfos = waitForTransceiverInfo(
+      std::vector<int32_t>(allTcvrIds.begin(), allTcvrIds.end()));
+
+  // Cache the host and media lanes for each port because once the ports are
+  // disabled, transceiver state machine moves to discovered state and we would
+  // lose this information in transceiverInfo
+  std::map<std::string, std::vector<int>> cachedHostLanes;
+  std::map<std::string, std::vector<int>> cachedMediaLanes;
+  for (auto& tcvrInfo : allTcvrInfos) {
+    auto& tcvrState = *tcvrInfo.second.tcvrState();
+    cachedHostLanes.insert(
+        tcvrState.get_portNameToHostLanes().begin(),
+        tcvrState.get_portNameToHostLanes().end());
+    cachedMediaLanes.insert(
+        tcvrState.get_portNameToMediaLanes().begin(),
+        tcvrState.get_portNameToMediaLanes().end());
+  }
+
   // Pause remediation because we don't want transceivers to remediate while
   // they are down and then interfere with latches
   auto qsfpServiceClient = utils::createQsfpServiceClient();
   qsfpServiceClient->sync_pauseRemediation(24 * 60 * 60 /* 24hrs */, {});
 
   auto verifyLatches =
-      [this](
+      [this, cachedHostLanes, cachedMediaLanes](
           std::unordered_map<TransceiverID, std::string>& transceiverIds,
           bool txLatch,
           bool rxLatch) {
@@ -90,8 +118,8 @@ TEST_F(OpticsTest, verifyTxRxLatches) {
 
             auto& tcvrState = *tcvrInfoInfoItr->second.tcvrState();
             auto mediaInterface = tcvrState.moduleMediaInterface().value_or({});
-            auto& hostLanes = tcvrState.portNameToHostLanes()->at(portName);
-            auto& mediaLanes = tcvrState.portNameToMediaLanes()->at(portName);
+            auto& hostLanes = cachedHostLanes.at(portName);
+            auto& mediaLanes = cachedMediaLanes.at(portName);
             auto& hostLaneSignals = *tcvrState.hostLaneSignals();
             auto& mediaLaneSignals = *tcvrState.mediaLaneSignals();
 
