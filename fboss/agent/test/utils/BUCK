@@ -281,6 +281,7 @@ cpp_library(
         "//fboss/agent/hw/test:config_factory",
         "//fboss/agent/packet:packet_factory",
         "//fboss/agent/state:state",
+        "//fboss/agent/test:agent_ensemble",
         "//fboss/lib:common_utils",
         "//folly:network_address",
     ],

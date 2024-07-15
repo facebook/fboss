@@ -27,6 +27,7 @@ add_library(agent_hw_test_src
   fboss/agent/test/agent_hw_tests/AgentOlympicQosSchedulerTests.cpp
   fboss/agent/test/agent_hw_tests/AgentQueuePerHostL2Tests.cpp
   fboss/agent/test/agent_hw_tests/AgentQueuePerHostTests.cpp
+  fboss/agent/test/agent_hw_tests/AgentQueuePerHostRouteTests.cpp
   fboss/agent/test/agent_hw_tests/AgentVoqSwitchTests.cpp
   fboss/agent/test/agent_hw_tests/AgentVoqSwitchInterruptsTests.cpp
   fboss/agent/test/agent_hw_tests/AgentFabricSwitchTests.cpp
@@ -46,6 +47,7 @@ add_library(agent_hw_test_src
 
 target_link_libraries(agent_hw_test_src
   acl_test_utils
+  address_utils
   agent_test_utils
   aqm_test_utils
   copp_test_utils

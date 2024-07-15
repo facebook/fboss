@@ -27,6 +27,7 @@ namespace facebook::fboss {
 class HwSwitch;
 class HwSwitchEnsemble;
 class SwitchState;
+class AgentEnsemble;
 } // namespace facebook::fboss
 
 namespace folly {
@@ -117,6 +118,19 @@ void verifyQueuePerHostMapping(
 
 void verifyQueuePerHostMapping(
     HwSwitchEnsemble* ensemble,
+    std::optional<VlanID> vlanId,
+    folly::MacAddress srcMac,
+    folly::MacAddress dstMac,
+    const folly::IPAddress& srcIp,
+    const folly::IPAddress& dstIp,
+    bool useFrontPanel,
+    bool blockNeighbor,
+    std::optional<uint16_t> l4SrcPort = std::nullopt,
+    std::optional<uint16_t> l4DstPort = std::nullopt,
+    std::optional<uint8_t> dscp = std::nullopt);
+
+void verifyQueuePerHostMapping(
+    AgentEnsemble* ensemble,
     std::optional<VlanID> vlanId,
     folly::MacAddress srcMac,
     folly::MacAddress dstMac,

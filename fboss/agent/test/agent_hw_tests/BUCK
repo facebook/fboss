@@ -43,6 +43,7 @@ cpp_library(
         "AgentPortBandWidthTests.cpp",
         "AgentPrbsTests.cpp",
         "AgentQueuePerHostL2Tests.cpp",
+        "AgentQueuePerHostRouteTests.cpp",
         "AgentQueuePerHostTests.cpp",
         "AgentRouteOverDifferentAddressFamilyNhopTests.cpp",
         "AgentRouteOverflowTests.cpp",
@@ -57,6 +58,7 @@ cpp_library(
     exported_deps = [
         "fbsource//third-party/googletest:gtest",
         "//fb303:service_data",
+        "//fboss/agent:address_utils",
         "//fboss/agent:apply_thrift_config",
         "//fboss/agent:core",
         "//fboss/agent:fboss-types",

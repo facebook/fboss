@@ -14,6 +14,7 @@
 #include "fboss/agent/hw/test/HwSwitchEnsemble.h"
 #include "fboss/agent/packet/PktFactory.h"
 #include "fboss/agent/state/SwitchState.h"
+#include "fboss/agent/test/AgentEnsemble.h"
 #include "fboss/agent/test/utils/AclTestUtils.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/test/utils/CoppTestUtils.h"
@@ -49,6 +50,21 @@ SendPacketFunc getSendPacketFunc(HwSwitch* hwSwitch) {
   };
 }
 
+SendPacketFunc getSendPacketFunc(AgentEnsemble* ensemble) {
+  return [ensemble](
+             std::unique_ptr<TxPacket> pkt,
+             std::vector<PortID> portIds,
+             GetPortStatsFunc /*portStatsFn*/,
+             bool useFrontPanel) {
+    if (useFrontPanel) {
+      return ensemble->getSw()->sendPacketOutOfPortAsync(
+          std::move(pkt), portIds[1]);
+    } else {
+      return ensemble->getSw()->sendPacketSwitchedAsync(std::move(pkt));
+    }
+  };
+}
+
 namespace {
 
 void verifyQueuePerHostMappingImpl(
@@ -72,19 +88,25 @@ void verifyQueuePerHostMappingImpl(
   auto ttlAclName = utility::getQueuePerHostTtlAclName();
   auto ttlCounterName = utility::getQueuePerHostTtlCounterName();
 
+  std::map<int, int64_t> beforeQueueOutPkts;
+  WITH_RETRIES({
+    beforeQueueOutPkts.clear();
+    for (const auto& queueId : utility::kQueuePerhostQueueIds()) {
+      auto hwPortStatsMap = getHwPortStatsFn({portIds[0]});
+      auto queueStats = hwPortStatsMap[portIds[0]].get_queueOutPackets_();
+      EXPECT_EVENTUALLY_NE(queueStats.find(queueId), queueStats.end());
+      if (queueStats.find(queueId) != queueStats.end()) {
+        beforeQueueOutPkts[queueId] = queueStats.find(queueId)->second;
+      }
+    }
+  });
+
   auto statBefore = getAclStatFn(
       swState,
       ttlAclName,
       ttlCounterName,
       cfg::AclStage::INGRESS,
       std::nullopt);
-
-  std::map<int, int64_t> beforeQueueOutPkts;
-  for (const auto& queueId : utility::kQueuePerhostQueueIds()) {
-    auto hwPortStatsMap = getHwPortStatsFn({portIds[0]});
-    beforeQueueOutPkts[queueId] =
-        hwPortStatsMap[portIds[0]].get_queueOutPackets_().at(queueId);
-  }
 
   auto txPacket = utility::makeUDPTxPacket(
       allocatePktFn,
@@ -113,50 +135,58 @@ void verifyQueuePerHostMappingImpl(
   sendPktFn(std::move(txPacket), portIds, getHwPortStatsFn, useFrontPanel);
   sendPktFn(std::move(txPacket2), portIds, getHwPortStatsFn, useFrontPanel);
 
-  std::map<int, int64_t> afterQueueOutPkts;
-  for (const auto& queueId : utility::kQueuePerhostQueueIds()) {
-    auto hwPortStatsMap = getHwPortStatsFn({portIds[0]});
-    afterQueueOutPkts[queueId] =
-        hwPortStatsMap[portIds[0]].get_queueOutPackets_().at(queueId);
-  }
-
-  /*
-   *  Consider ACL with action to egress pkts through queue 2.
-   *
-   *  CPU originated packets:
-   *     - Hits ACL (queue2Cnt = 1), egress through queue 2 of port0.
-   *     - port0 is in loopback mode, so the packet gets looped back.
-   *     - When packet is routed, its dstMAC gets overwritten. Thus, the
-   *       looped back packet is not routed, and thus does not hit the ACL.
-   *     - On some platforms, looped back packets for unknown MACs are
-   *       flooded and counted on queue *before* the split horizon check
-   *       (drop when srcPort == dstPort). This flooding always happens on
-   *       queue 0, so expect one or more packets on queue 0.
-   *
-   *  Front panel packets (injected with pipeline bypass):
-   *     - Egress out of port1 queue0 (pipeline bypass).
-   *     - port1 is in loopback mode, so the packet gets looped back.
-   *     - Rest of the workflow is same as above when CPU originated packet
-   *       gets injected for switching.
-   */
-  for (auto [qid, beforePkts] : beforeQueueOutPkts) {
-    auto pktsOnQueue = afterQueueOutPkts[qid] - beforePkts;
-
-    XLOG(DBG2) << "queueId: " << qid << " pktsOnQueue: " << pktsOnQueue;
-
-    if (blockNeighbor) {
-      // if the neighbor is blocked, all pkts are dropped
-      EXPECT_EQ(pktsOnQueue, 0);
-    } else {
-      if (qid == kQueueId) {
-        EXPECT_EQ(pktsOnQueue, 2);
-      } else if (qid == 0) {
-        EXPECT_GE(pktsOnQueue, 0);
-      } else {
-        EXPECT_EQ(pktsOnQueue, 0);
+  WITH_RETRIES({
+    std::map<int, int64_t> afterQueueOutPkts;
+    for (const auto& queueId : utility::kQueuePerhostQueueIds()) {
+      auto hwPortStatsMap = getHwPortStatsFn({portIds[0]});
+      auto queueStats = hwPortStatsMap[portIds[0]].get_queueOutPackets_();
+      EXPECT_EVENTUALLY_NE(queueStats.find(queueId), queueStats.end());
+      if (queueStats.find(queueId) != queueStats.end()) {
+        afterQueueOutPkts[queueId] = hwPortStatsMap[portIds[0]]
+                                         .get_queueOutPackets_()
+                                         .find(queueId)
+                                         ->second;
       }
     }
-  }
+
+    /*
+     *  Consider ACL with action to egress pkts through queue 2.
+     *
+     *  CPU originated packets:
+     *     - Hits ACL (queue2Cnt = 1), egress through queue 2 of port0.
+     *     - port0 is in loopback mode, so the packet gets looped back.
+     *     - When packet is routed, its dstMAC gets overwritten. Thus, the
+     *       looped back packet is not routed, and thus does not hit the ACL.
+     *     - On some platforms, looped back packets for unknown MACs are
+     *       flooded and counted on queue *before* the split horizon check
+     *       (drop when srcPort == dstPort). This flooding always happens on
+     *       queue 0, so expect one or more packets on queue 0.
+     *
+     *  Front panel packets (injected with pipeline bypass):
+     *     - Egress out of port1 queue0 (pipeline bypass).
+     *     - port1 is in loopback mode, so the packet gets looped back.
+     *     - Rest of the workflow is same as above when CPU originated packet
+     *       gets injected for switching.
+     */
+    for (auto [qid, beforePkts] : beforeQueueOutPkts) {
+      auto pktsOnQueue = afterQueueOutPkts[qid] - beforePkts;
+
+      XLOG(DBG2) << "queueId: " << qid << " pktsOnQueue: " << pktsOnQueue;
+
+      if (blockNeighbor) {
+        // if the neighbor is blocked, all pkts are dropped
+        EXPECT_EVENTUALLY_EQ(pktsOnQueue, 0);
+      } else {
+        if (qid == kQueueId) {
+          EXPECT_EVENTUALLY_EQ(pktsOnQueue, 2);
+        } else if (qid == 0) {
+          EXPECT_EVENTUALLY_GE(pktsOnQueue, 0);
+        } else {
+          EXPECT_EVENTUALLY_EQ(pktsOnQueue, 0);
+        }
+      }
+    }
+  });
 
   auto aclStatsMatch = [&]() {
     auto statAfter = getAclStatFn(
@@ -166,6 +196,8 @@ void verifyQueuePerHostMappingImpl(
         cfg::AclStage::INGRESS,
         std::nullopt);
 
+    XLOG(DBG2) << " Acl stats : StatsAfter " << statAfter << " StatsBefore "
+               << statBefore;
     if (blockNeighbor) {
       // if the neighbor is blocked, all pkts are dropped
       return statAfter - statBefore == 0;
@@ -591,4 +623,43 @@ void verifyQueuePerHostMapping(
       l4DstPort,
       dscp);
 }
+
+void verifyQueuePerHostMapping(
+    AgentEnsemble* ensemble,
+    std::optional<VlanID> vlanId,
+    folly::MacAddress srcMac,
+    folly::MacAddress dstMac,
+    const folly::IPAddress& srcIp,
+    const folly::IPAddress& dstIp,
+    bool useFrontPanel,
+    bool blockNeighbor,
+    std::optional<uint16_t> l4SrcPort,
+    std::optional<uint16_t> l4DstPort,
+    std::optional<uint8_t> dscp) {
+  // lambda that returns HwPortStats for the given port
+  auto getPortStats =
+      [&](const std::vector<PortID>& portIds) -> std::map<PortID, HwPortStats> {
+    return ensemble->getLatestPortStats(portIds);
+  };
+
+  verifyQueuePerHostMappingImpl(
+      utility::getAllocatePktFn(ensemble),
+      getSendPacketFunc(ensemble),
+      getAclStatGetFn(ensemble->getSw()),
+      []() {},
+      ensemble->getProgrammedState(),
+      ensemble->masterLogicalPortIds(),
+      vlanId,
+      std::move(srcMac),
+      std::move(dstMac),
+      srcIp,
+      dstIp,
+      useFrontPanel,
+      blockNeighbor,
+      getPortStats,
+      l4SrcPort,
+      l4DstPort,
+      dscp);
+}
+
 } // namespace facebook::fboss::utility

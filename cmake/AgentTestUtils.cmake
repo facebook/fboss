@@ -153,6 +153,7 @@ add_library(queue_per_host_test_utils
 
 target_link_libraries(queue_per_host_test_utils
   asic_test_utils
+  agent_ensemble
   acl_test_utils
   common_utils
   config_utils
