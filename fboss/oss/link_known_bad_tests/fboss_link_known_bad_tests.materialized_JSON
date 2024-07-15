@@ -10483,7 +10483,10 @@
           "test_name_regex": "MacLearningTest.l2EntryFlap.*$"
         },
         {
-          "test_name_regex": "warm_boot.*PtpTests.*$"
+          "test_name_regex": "warm_boot.*$"
+        },
+        {
+          "test_name_regex": "PtpTests.*$"
         },
         {
           "test_name_regex": "LinkTest.ptpEnableIsHitless$"
@@ -10581,7 +10584,10 @@
           "test_name_regex": "MacLearningTest.l2EntryFlap.*$"
         },
         {
-          "test_name_regex": "warm_boot.*PtpTests.*$"
+          "test_name_regex": "warm_boot.*$"
+        },
+        {
+          "test_name_regex": "PtpTests.*$"
         },
         {
           "test_name_regex": "LinkTest.ptpEnableIsHitless$"
@@ -10679,7 +10685,10 @@
           "test_name_regex": "MacLearningTest.l2EntryFlap.*$"
         },
         {
-          "test_name_regex": "warm_boot.*PtpTests.*$"
+          "test_name_regex": "warm_boot.*$"
+        },
+        {
+          "test_name_regex": "PtpTests.*$"
         },
         {
           "test_name_regex": "LinkTest.ptpEnableIsHitless$"
@@ -10774,7 +10783,10 @@
           "test_name_regex": "MacLearningTest.l2EntryFlap.*$"
         },
         {
-          "test_name_regex": "warm_boot.*PtpTests.*$"
+          "test_name_regex": "warm_boot.*$"
+        },
+        {
+          "test_name_regex": "PtpTests.*$"
         },
         {
           "test_name_regex": "LinkTest.ptpEnableIsHitless$"
@@ -10869,7 +10881,10 @@
           "test_name_regex": "MacLearningTest.l2EntryFlap.*$"
         },
         {
-          "test_name_regex": "warm_boot.*PtpTests.*$"
+          "test_name_regex": "warm_boot.*$"
+        },
+        {
+          "test_name_regex": "PtpTests.*$"
         },
         {
           "test_name_regex": "LinkTest.ptpEnableIsHitless$"
@@ -10964,7 +10979,10 @@
           "test_name_regex": "MacLearningTest.l2EntryFlap.*$"
         },
         {
-          "test_name_regex": "warm_boot.*PtpTests.*$"
+          "test_name_regex": "warm_boot.*$"
+        },
+        {
+          "test_name_regex": "PtpTests.*$"
         },
         {
           "test_name_regex": "LinkTest.ptpEnableIsHitless$"
@@ -11059,7 +11077,10 @@
           "test_name_regex": "MacLearningTest.l2EntryFlap.*$"
         },
         {
-          "test_name_regex": "warm_boot.*PtpTests.*$"
+          "test_name_regex": "warm_boot.*$"
+        },
+        {
+          "test_name_regex": "PtpTests.*$"
         },
         {
           "test_name_regex": "LinkTest.ptpEnableIsHitless$"
@@ -11151,7 +11172,10 @@
           "test_name_regex": "MacLearningTest.l2EntryFlap.*$"
         },
         {
-          "test_name_regex": "warm_boot.*PtpTests.*$"
+          "test_name_regex": "warm_boot.*$"
+        },
+        {
+          "test_name_regex": "PtpTests.*$"
         },
         {
           "test_name_regex": "LinkTest.ptpEnableIsHitless$"
