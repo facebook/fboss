@@ -494,6 +494,7 @@ class AgentAclCounterTest : public AgentHwTest {
         acl->roceOpcode() = utility::kUdfRoceOpcodeWriteImmediate;
         break;
       case AclType::BTH_OPCODE:
+        acl->etherType() = cfg::EtherType::IPv6;
         acl->roceOpcode() = utility::kUdfRoceOpcodeAck;
         break;
       case AclType::FLOWLET:

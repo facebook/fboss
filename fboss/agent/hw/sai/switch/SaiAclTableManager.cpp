@@ -1419,6 +1419,7 @@ std::set<cfg::AclTableQualifier> SaiAclTableManager::getSupportedQualifierSet()
     return jericho2Qualifiers;
   } else if (isJericho3) {
     std::set<cfg::AclTableQualifier> jericho3Qualifiers = {
+        cfg::AclTableQualifier::ETHER_TYPE,
         cfg::AclTableQualifier::SRC_IPV6,
         cfg::AclTableQualifier::DST_IPV6,
         cfg::AclTableQualifier::SRC_IPV4,
