@@ -29,6 +29,11 @@ DECLARE_bool(enable_macsec);
 
 DECLARE_bool(skip_drain_check_for_prbs);
 
+DEFINE_bool(
+    link_stress_test,
+    false,
+    "enable to run stress tests (longer duration + more iterations)");
+
 namespace {
 const std::vector<std::string> kRestartQsfpService = {
     "/bin/systemctl",

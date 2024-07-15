@@ -19,6 +19,7 @@ DECLARE_string(volatile_state_dir);
 DECLARE_bool(setup_for_warmboot);
 DECLARE_string(config);
 DECLARE_bool(disable_neighbor_updates);
+DECLARE_bool(link_stress_test);
 
 namespace facebook::fboss {
 

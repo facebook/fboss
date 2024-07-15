@@ -50,20 +50,25 @@ bool isEqual(
 TEST_F(LinkTest, asicLinkFlap) {
   auto verify = [this]() {
     auto ports = getCabledPorts();
-    // Set the port status on all cabled ports to false. The link should go down
-    for (const auto& port : ports) {
-      setPortStatus(port, false);
-    }
-    EXPECT_NO_THROW(waitForAllCabledPorts(false));
-    EXPECT_NO_THROW(waitForAllTransceiverStates(false, 60, 5s));
+    int numIterations = FLAGS_link_stress_test ? 25 : 1;
+    for (int iteration = 1; iteration <= numIterations; iteration++) {
+      XLOG(INFO) << "Starting iteration# " << iteration;
+      // Set the port status on all cabled ports to false. The link should go
+      // down
+      for (const auto& port : ports) {
+        setPortStatus(port, false);
+      }
+      ASSERT_NO_THROW(waitForAllCabledPorts(false));
+      ASSERT_NO_THROW(waitForAllTransceiverStates(false, 60, 5s));
 
-    // Set the port status on all cabled ports to true. The link should come
-    // back up
-    for (const auto& port : ports) {
-      setPortStatus(port, true);
+      // Set the port status on all cabled ports to true. The link should come
+      // back up
+      for (const auto& port : ports) {
+        setPortStatus(port, true);
+      }
+      ASSERT_NO_THROW(waitForAllCabledPorts(true));
+      ASSERT_NO_THROW(waitForAllTransceiverStates(true, 60, 5s));
     }
-    EXPECT_NO_THROW(waitForAllCabledPorts(true));
-    EXPECT_NO_THROW(waitForAllTransceiverStates(true, 60, 5s));
   };
 
   verifyAcrossWarmBoots([]() {}, verify);

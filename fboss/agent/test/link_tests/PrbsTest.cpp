@@ -128,8 +128,13 @@ class PrbsTest : public LinkTest {
     XLOG(DBG2) << "Clearing PRBS stats before monitoring stats";
     clearPrbsStatsOnAllInterfaces();
 
-    // 6. Let PRBS run for 10 seconds so that we can check the BER later
-    /* sleep override */ std::this_thread::sleep_for(10s);
+    // 6. Let PRBS run for 10 seconds for regular link test or 10 mins for a
+    // stress test so that we can check the BER later
+    if (FLAGS_link_stress_test) {
+      /* sleep override */ std::this_thread::sleep_for(600s);
+    } else {
+      /* sleep override */ std::this_thread::sleep_for(10s);
+    }
 
     // 7. Check PRBS stats, expect no loss of lock
     XLOG(DBG2) << "Verifying PRBS stats";
