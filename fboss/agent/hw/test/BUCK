@@ -382,7 +382,6 @@ hw_dataplane_test_srcs = [
     "dataplane_tests/HwProdInvariantTests.cpp",
     "dataplane_tests/HwPacketSendTests.cpp",
     "dataplane_tests/HwQueuePerHostL2Tests.cpp",
-    "dataplane_tests/HwQueuePerHostRouteTests.cpp",
     "dataplane_tests/HwL3Tests.cpp",
     "dataplane_tests/HwSflowTests.cpp",
     "dataplane_tests/HwSflowMirrorTest.cpp",
