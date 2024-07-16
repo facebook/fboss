@@ -80,9 +80,10 @@ bool TransceiverValidator::validateTcvr(
   }
 
   auto tcvrConfigStr = fmt::format(
-      "(vendorName: {}, vendorPartNumber: {}, firmwareVersion: {}, dspFirmwareVersion: {}, portProfileIds: {})",
+      "(vendorName: {}, vendorPartNumber: {}, mediaInterfaceCode: {}, firmwareVersion: {}, dspFirmwareVersion: {}, portProfileIds: {})",
       tcvrInfo.vendorName,
       tcvrInfo.vendorPartNumber,
+      tcvrInfo.mediaInterfaceCode,
       tcvrInfo.firmwareVersion,
       tcvrInfo.dspFirmwareVersion,
       folly::join(",", portProfileIdStrings));

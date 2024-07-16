@@ -1597,6 +1597,11 @@ TransceiverValidationInfo TransceiverManager::getTransceiverValidationInfo(
   }
   tcvrInfo.vendorPartNumber = vendor->partNumber().value();
 
+  auto mediaInterface = cachedTcvrState->moduleMediaInterface();
+  tcvrInfo.mediaInterfaceCode = mediaInterface.has_value()
+      ? apache::thrift::util::enumNameSafe(mediaInterface.value())
+      : "NOVALUE";
+
   // TODO(smenta): Once firmware sync is enabled, consider firmware versions to
   // be required.
   auto moduleStatus = cachedTcvrState->status();
@@ -1670,6 +1675,7 @@ std::string TransceiverManager::getTransceiverValidationConfigString(
   r["Transceiver Vendor"] = tcvrInfo.vendorName;
   r["Transceiver Serial Number"] = tcvrInfo.vendorSerialNumber;
   r["Transceiver Part Number"] = tcvrInfo.vendorPartNumber;
+  r["Transceiver Media Interface Code"] = tcvrInfo.mediaInterfaceCode;
   r["Transceiver Application Firmware Version"] = tcvrInfo.firmwareVersion;
   r["Transceiver DSP Firmware Version"] = tcvrInfo.dspFirmwareVersion;
   r["Transceiver Port Profile Ids"] = folly::join(",", portProfileIdStrings);

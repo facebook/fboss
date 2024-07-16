@@ -70,6 +70,7 @@ class MockSffModule : public SffModule {
   MOCK_METHOD0(getModuleStatus, ModuleStatus());
   MOCK_METHOD0(getVendorInfo, Vendor());
   MOCK_METHOD0(verifyEepromChecksums, bool());
+  MOCK_CONST_METHOD0(getModuleMediaInterface, MediaInterfaceCode());
 
   // Provide way to call parent
   void actualSetCdrIfSupported(
@@ -193,6 +194,10 @@ class MockSffModule : public SffModule {
   void overrideValidChecksums(bool isValid) {
     ON_CALL(*this, verifyEepromChecksums())
         .WillByDefault(testing::Return(isValid));
+  }
+  void overrideMediaInterfaceCode(MediaInterfaceCode mediaInterfaceCode) {
+    ON_CALL(*this, getModuleMediaInterface())
+        .WillByDefault(testing::Return(mediaInterfaceCode));
   }
 
   TransceiverInfo fakeInfo_;

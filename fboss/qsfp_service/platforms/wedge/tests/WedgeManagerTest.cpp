@@ -738,6 +738,8 @@ TEST_F(WedgeManagerTest, validateTransceiverConfigByIdTest) {
       .WillRepeatedly(::testing::Return(true));
   qsfpImpls_.push_back(std::move(transceiverImpl));
   std::string defaultSerialNumber = "123456";
+  MediaInterfaceCode defaultMediaInterfaceCode = MediaInterfaceCode::FR4_200G;
+  std::string defaultMediaInterfaceCodeString = "FR4_200G";
   auto makeDefaultTcvr = [&](TransceiverID tcvrID) {
     auto tcvr = static_cast<MockSffModule*>(
         transceiverManager_->overrideTransceiverForTesting(
@@ -750,6 +752,7 @@ TEST_F(WedgeManagerTest, validateTransceiverConfigByIdTest) {
     tcvr->overrideVendorInfo("fbossTwo", "TR-FC13H-HFZ", defaultSerialNumber);
     tcvr->setFwVersion("1", "2");
     tcvr->overrideValidChecksums(true);
+    tcvr->overrideMediaInterfaceCode(defaultMediaInterfaceCode);
     return tcvr;
   };
 
@@ -806,19 +809,21 @@ TEST_F(WedgeManagerTest, validateTransceiverConfigByIdTest) {
                           std::string vendorName,
                           std::string vendorSerialNumber,
                           std::string vendorPartNumber,
+                          std::string mediaInterfaceCode,
                           std::string appFwVer,
                           std::string dspFwVer,
                           std::vector<std::string> portProfileIds,
                           std::string nonValidatedAttribute) {
     return folly::sformat(
         "{{\n  \"Non-Validated Attribute\": \"{}\",\n  \"Transceiver Application Firmware Version\": \"{}\""
-        ",\n  \"Transceiver DSP Firmware Version\": \"{}\",\n  \"Transceiver ID\": {},\n  \"Transceiver Part Number\": \"{}\","
-        "\n  \"Transceiver Port Profile Ids\": \"{}\",\n  \"Transceiver Serial Number\": \"{}\",\n  "
+        ",\n  \"Transceiver DSP Firmware Version\": \"{}\",\n  \"Transceiver ID\": {},\n  \"Transceiver Media Interface Code\": \"{}\",\n  "
+        "\"Transceiver Part Number\": \"{}\",\n  \"Transceiver Port Profile Ids\": \"{}\",\n  \"Transceiver Serial Number\": \"{}\",\n  "
         "\"Transceiver Vendor\": \"{}\"\n}}",
         nonValidatedAttribute,
         appFwVer,
         dspFwVer,
         static_cast<int>(tcvrID),
+        mediaInterfaceCode,
         vendorPartNumber,
         folly::join(",", portProfileIds),
         vendorSerialNumber,
@@ -841,7 +846,7 @@ TEST_F(WedgeManagerTest, validateTransceiverConfigByIdTest) {
       tcvrOne,
       tcvrOneID,
       false,
-      configString(tcvrOneID, "", "", "", "", "", {}, "missingVendor"));
+      configString(tcvrOneID, "", "", "", "", "", "", {}, "missingVendor"));
 
   // Test Missing Vendor Part Number
   tcvrOne->overrideVendorInfo("fbossOne", "", defaultSerialNumber);
@@ -853,6 +858,7 @@ TEST_F(WedgeManagerTest, validateTransceiverConfigByIdTest) {
           tcvrOneID,
           "fbossOne",
           defaultSerialNumber,
+          "",
           "",
           "",
           "",
@@ -874,6 +880,7 @@ TEST_F(WedgeManagerTest, validateTransceiverConfigByIdTest) {
           "fbossTwo",
           defaultSerialNumber,
           "TR-FC13H-HFZ",
+          defaultMediaInterfaceCodeString,
           "1",
           "2",
           {},
@@ -894,6 +901,7 @@ TEST_F(WedgeManagerTest, validateTransceiverConfigByIdTest) {
           "fbossThree",
           defaultSerialNumber,
           "TR-FC13H-HFZ",
+          defaultMediaInterfaceCodeString,
           "1",
           "2",
           {"PROFILE_100G_4_NRZ_NOFEC", "PROFILE_100G_4_NRZ_NOFEC"},
@@ -910,6 +918,7 @@ TEST_F(WedgeManagerTest, validateTransceiverConfigByIdTest) {
           "fbossTwo",
           defaultSerialNumber,
           "TR-FC13H-HF",
+          defaultMediaInterfaceCodeString,
           "1",
           "2",
           {"PROFILE_100G_4_NRZ_NOFEC", "PROFILE_100G_4_NRZ_NOFEC"},
@@ -925,6 +934,7 @@ TEST_F(WedgeManagerTest, validateTransceiverConfigByIdTest) {
           "fbossTwo",
           defaultSerialNumber,
           "TR-FC13H-HFZ",
+          defaultMediaInterfaceCodeString,
           "1",
           "2",
           {"PROFILE_100G_4_NRZ_NOFEC",
@@ -943,6 +953,7 @@ TEST_F(WedgeManagerTest, validateTransceiverConfigByIdTest) {
           "fbossTwo",
           defaultSerialNumber,
           "TR-FC13H-HFZ",
+          defaultMediaInterfaceCodeString,
           "1",
           "2",
           {},

@@ -218,7 +218,7 @@ void WedgeManager::getAllTransceiversValidationInfo(
     std::unique_ptr<std::vector<int32_t>> ids,
     bool getConfigString) {
   XLOG(INFO)
-      << "Received request for ggetAllTransceiversValidationInfo, with ids: "
+      << "Received request for getAllTransceiversValidationInfo, with ids: "
       << (ids->size() > 0 ? folly::join(",", *ids) : "None");
   if (ids->empty()) {
     folly::gen::range(0, getNumQsfpModules()) | folly::gen::appendTo(*ids);
