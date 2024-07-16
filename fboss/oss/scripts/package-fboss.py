@@ -33,22 +33,27 @@ def parse_args():
 class PackageFboss:
     FBOSS_BINS = "fboss_bins-1"
     FBOSS_BIN_TAR = "fboss_bins.tar.gz"
+    FBOSS = "fboss"
 
     BIN = "bin"
     LIB = "lib"
     DATA = "share"
+
+    # Suffix for getdeps output location
+    INSTALLED = "installed"
+    BUILD = "build"
 
     GETDEPS = "build/fbcode_builder/getdeps.py"
 
     DEVTOOLS_LIBRARY_PATH = "/opt/rh/devtoolset-8/root/usr/lib64"
 
     NAME_TO_EXECUTABLES = {
-        "fboss": (BIN, []),
-        "gflags": (LIB, []),
-        "glog": (LIB, []),
-        "libevent": (LIB, []),
-        "libsodium": (LIB, []),
-        "python": (LIB, []),
+        FBOSS: (BIN, [], BUILD),
+        "gflags": (LIB, [], INSTALLED),
+        "glog": (LIB, [], INSTALLED),
+        "libevent": (LIB, [], INSTALLED),
+        "libsodium": (LIB, [], INSTALLED),
+        "python": (LIB, [], INSTALLED),
     }
 
     def __init__(self):
@@ -64,17 +69,19 @@ class PackageFboss:
         os.makedirs(os.path.join(self.tmp_dir_name, PackageFboss.LIB))
         os.makedirs(os.path.join(self.tmp_dir_name, PackageFboss.DATA))
 
-    def _get_install_dir_for(self, name):
+    def _get_dir_for(self, name, location):
         # TODO: Getdeps' show-inst-dir has issues. This needs to be
         # investigated and fixed. Until then, use a workaround using
         # regex matching for the directory name.
         if self.scratch_path is not None:
             scratch_path = self.scratch_path
-            scratch_path_installed_dir = os.path.join(scratch_path, "installed", name)
+            scratch_path_installed_dir = os.path.join(scratch_path, location, name)
             target_installed_dirs = glob.glob(scratch_path_installed_dir + "*")
             return target_installed_dirs
 
         get_install_dir_cmd = [PackageFboss.GETDEPS, "show-inst-dir", name]
+        if location == PackageFboss.BUILD:
+            get_install_dir_cmd = [PackageFboss.GETDEPS, "show-build-dir", name]
         return (
             subprocess.check_output(get_install_dir_cmd)
             .decode("utf-8")
@@ -172,15 +179,20 @@ class PackageFboss:
     def _copy_binaries(self, tmp_dir_name):
         print("Copying binaries...")
 
-        for name, exec_type_and_execs in list(PackageFboss.NAME_TO_EXECUTABLES.items()):
-            installed_dirs = self._get_install_dir_for(name)
+        for name, metadata in list(PackageFboss.NAME_TO_EXECUTABLES.items()):
+            executable_type, executables, location = metadata
+            installed_dirs = self._get_dir_for(name, location)
             for installed_dir in installed_dirs:
-                executable_type, executables = exec_type_and_execs
                 bin_pkg_path = os.path.join(tmp_dir_name, executable_type)
                 # Get the matching executable_type dir in the installed dir
-                executable_path = glob.glob(
-                    os.path.join(installed_dir, executable_type) + "*"
-                )[0]
+                if name == PackageFboss.FBOSS:
+                    # FBOSS binaries are specifically located under {scratch}/build/fboss/...
+                    executable_path = glob.glob(installed_dir + "*")[0]
+                else:
+                    # Shared libraries are located under {scratch}/installed/...
+                    executable_path = glob.glob(
+                        os.path.join(installed_dir, executable_type) + "*"
+                    )[0]
                 # If module does not have executables listed, then copy all
                 if not executables:
                     executables = os.listdir(executable_path)
