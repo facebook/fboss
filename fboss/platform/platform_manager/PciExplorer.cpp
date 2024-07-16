@@ -11,23 +11,17 @@
 #include <folly/logging/xlog.h>
 
 #include "fboss/platform/platform_manager/I2cExplorer.h"
+#include "fboss/platform/platform_manager/Utils.h"
 
 namespace fs = std::filesystem;
 using namespace facebook::fboss::platform::platform_manager;
 
 namespace {
-const std::string kGpioChip = "gpiochip";
-const re2::RE2 kGpioChipNameRe{"gpiochip\\d+"};
 const re2::RE2 kSpiBusRe{"spi\\d+"};
 const re2::RE2 kSpiDevIdRe{"spi(?P<BusNum>\\d+).(?P<ChipSelect>\\d+)"};
 const re2::RE2 kWatchdogRe{"watchdog(?P<WatchdogNum>\\d+)"};
 // TODO (T181346009) for more granular interval retries.
 constexpr auto kPciWaitSecs = 5;
-
-bool isSamePciId(const std::string& id1, const std::string& id2) {
-  return RE2::FullMatch(id1, PciExplorer().kPciIdRegex) &&
-      RE2::FullMatch(id2, PciExplorer().kPciIdRegex) && id1 == id2;
-}
 
 bool hasEnding(std::string const& input, std::string const& ending) {
   if (input.length() >= ending.length()) {
@@ -111,12 +105,10 @@ PciDevice::PciDevice(
       XLOG(ERR) << "Failed to read subsystem_device file from "
                 << dirEntry.path();
     }
-    if (isSamePciId(folly::trimWhitespace(vendor).str(), vendorId) &&
-        isSamePciId(folly::trimWhitespace(device).str(), deviceId) &&
-        isSamePciId(
-            folly::trimWhitespace(subSystemVendor).str(), subSystemVendorId) &&
-        isSamePciId(
-            folly::trimWhitespace(subSystemDevice).str(), subSystemDeviceId)) {
+    if (folly::trimWhitespace(vendor).str() == vendorId &&
+        folly::trimWhitespace(device).str() == deviceId &&
+        folly::trimWhitespace(subSystemVendor).str() == subSystemVendorId &&
+        folly::trimWhitespace(subSystemDevice).str() == subSystemDeviceId) {
       sysfsPath_ = dirEntry.path().string();
       XLOG(INFO) << fmt::format(
           "Found sysfs path {} for device {}", sysfsPath_, name);
@@ -178,13 +170,13 @@ std::map<std::string, std::string> PciExplorer::createSpiMaster(
   return getSpiDeviceCharDevPaths(pciDevice, spiMasterConfig, instanceId);
 }
 
-uint16_t PciExplorer::createGpioChip(
+std::string PciExplorer::createGpioChip(
     const PciDevice& pciDevice,
     const FpgaIpBlockConfig& fpgaIpBlockConfig,
     uint32_t instanceId) {
   auto auxData = getAuxData(fpgaIpBlockConfig, instanceId);
   create(pciDevice, fpgaIpBlockConfig, auxData);
-  return getGpioChipNum(pciDevice, fpgaIpBlockConfig, instanceId);
+  return getGpioChipCharDevPath(pciDevice, fpgaIpBlockConfig, instanceId);
 }
 
 void PciExplorer::createLedCtrl(
@@ -197,13 +189,15 @@ void PciExplorer::createLedCtrl(
   create(pciDevice, *ledCtrlConfig.fpgaIpBlockConfig(), auxData);
 }
 
-void PciExplorer::createXcvrCtrl(
+std::string PciExplorer::createXcvrCtrl(
     const PciDevice& pciDevice,
     const XcvrCtrlConfig& xcvrCtrlConfig,
     uint32_t instanceId) {
   auto auxData = getAuxData(*xcvrCtrlConfig.fpgaIpBlockConfig(), instanceId);
   auxData.xcvr_data.port_num = *xcvrCtrlConfig.portNumber();
   create(pciDevice, *xcvrCtrlConfig.fpgaIpBlockConfig(), auxData);
+  return getXcvrCtrlSysfsPath(
+      pciDevice, *xcvrCtrlConfig.fpgaIpBlockConfig(), instanceId);
 }
 
 std::string PciExplorer::createInfoRom(
@@ -451,30 +445,22 @@ std::map<std::string, std::string> PciExplorer::getSpiDeviceCharDevPaths(
   return spiCharDevPaths;
 }
 
-uint16_t PciExplorer::getGpioChipNum(
+std::string PciExplorer::getGpioChipCharDevPath(
     const PciDevice& pciDevice,
     const FpgaIpBlockConfig& fpgaIpBlockConfig,
     uint32_t instanceId) {
   std::string expectedEnding =
       fmt::format(".{}.{}", *fpgaIpBlockConfig.deviceName(), instanceId);
+  std::string gpio;
   for (const auto& dirEntry : fs::directory_iterator(pciDevice.sysfsPath())) {
     if (hasEnding(dirEntry.path().string(), expectedEnding)) {
-      for (const auto& childDirEntry :
-           std::filesystem::directory_iterator(dirEntry)) {
-        if (re2::RE2::FullMatch(
-                childDirEntry.path().filename().string(), kGpioChipNameRe)) {
-          return folly::to<uint16_t>(
-              childDirEntry.path().filename().string().substr(
-                  kGpioChip.length()));
-        }
-      }
+      return Utils().resolveGpioChipCharDevPath(dirEntry.path().string());
     }
   }
   throw std::runtime_error(fmt::format(
-      "Couldn't find GpioChip with instId {} under {} for {}",
-      instanceId,
-      pciDevice.sysfsPath(),
-      *fpgaIpBlockConfig.pmUnitScopedName()));
+      "Couldn't derive GpioChip char device path in ",
+      *fpgaIpBlockConfig.pmUnitScopedName(),
+      pciDevice.sysfsPath()));
 }
 
 std::string PciExplorer::getInfoRomSysfsPath(
@@ -563,6 +549,23 @@ std::string PciExplorer::getFanPwmCtrlSysfsPath(
   throw std::runtime_error(fmt::format(
       "Could not find any directory ending with {} in {}",
       expectedEnding,
+      pciDevice.sysfsPath()));
+}
+
+std::string PciExplorer::getXcvrCtrlSysfsPath(
+    const PciDevice& pciDevice,
+    const FpgaIpBlockConfig& fpgaIpBlockConfig,
+    uint32_t instanceId) {
+  auto expectedEnding =
+      fmt::format(".{}.{}", *fpgaIpBlockConfig.deviceName(), instanceId);
+  for (const auto& dirEntry : fs::directory_iterator(pciDevice.sysfsPath())) {
+    if (hasEnding(dirEntry.path().string(), expectedEnding)) {
+      return dirEntry.path().string();
+    }
+  }
+  throw std::runtime_error(fmt::format(
+      "Couldn't find XcvrCtrl {} under {}",
+      *fpgaIpBlockConfig.deviceName(),
       pciDevice.sysfsPath()));
 }
 

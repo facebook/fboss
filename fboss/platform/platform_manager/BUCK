@@ -45,7 +45,6 @@ cpp_library(
     ],
     exported_deps = [
         ":i2c_explorer",
-        ":pci_explorer",
         ":platform_manager_config-cpp2-types",
         "//folly/logging:logging",
     ],
@@ -82,6 +81,7 @@ cpp_library(
         ":fbiob_ioctl_h",
         ":i2c_explorer",
         ":platform_manager_config-cpp2-types",
+        ":utils",
         "//folly:file_util",
         "//folly:string",
         "//folly/logging:logging",

@@ -6,11 +6,11 @@
 #include <re2/re2.h>
 
 #include "fboss/platform/platform_manager/I2cExplorer.h"
-#include "fboss/platform/platform_manager/PciExplorer.h"
 #include "fboss/platform/platform_manager/gen-cpp2/platform_manager_config_constants.h"
 
 namespace {
 const re2::RE2 kRpmVersionRegex{"^[0-9]+\\.[0-9]+\\.[0-9]+\\-[0-9]+$"};
+const re2::RE2 kPciIdRegex{"0x[0-9a-f]{4}"};
 const re2::RE2 kPciDevOffsetRegex{"0x[0-9a-f]+"};
 const re2::RE2 kSymlinkRegex{"^/run/devmap/(?P<SymlinkDirs>[a-z0-9-]+)/.+"};
 const re2::RE2 kDevPathRegex{"/([A-Z]+_SLOT@[0-9]+/)*\\[.+\\]"};
@@ -117,26 +117,22 @@ bool ConfigValidator::isValidPciDeviceConfig(
         *pciDeviceConfig.pmUnitScopedName());
     return false;
   }
-  if (!re2::RE2::FullMatch(
-          *pciDeviceConfig.vendorId(), PciExplorer().kPciIdRegex)) {
+  if (!re2::RE2::FullMatch(*pciDeviceConfig.vendorId(), kPciIdRegex)) {
     XLOG(ERR) << "Invalid PCI vendor id : " << *pciDeviceConfig.vendorId();
     return false;
   }
-  if (!re2::RE2::FullMatch(
-          *pciDeviceConfig.deviceId(), PciExplorer().kPciIdRegex)) {
+  if (!re2::RE2::FullMatch(*pciDeviceConfig.deviceId(), kPciIdRegex)) {
     XLOG(ERR) << "Invalid PCI device id : " << *pciDeviceConfig.deviceId();
     return false;
   }
   if (!pciDeviceConfig.subSystemDeviceId()->empty() &&
-      !re2::RE2::FullMatch(
-          *pciDeviceConfig.subSystemVendorId(), PciExplorer().kPciIdRegex)) {
+      !re2::RE2::FullMatch(*pciDeviceConfig.subSystemVendorId(), kPciIdRegex)) {
     XLOG(ERR) << "Invalid PCI subsystem vendor id : "
               << *pciDeviceConfig.subSystemVendorId();
     return false;
   }
   if (!pciDeviceConfig.subSystemVendorId()->empty() &&
-      !re2::RE2::FullMatch(
-          *pciDeviceConfig.subSystemDeviceId(), PciExplorer().kPciIdRegex)) {
+      !re2::RE2::FullMatch(*pciDeviceConfig.subSystemDeviceId(), kPciIdRegex)) {
     XLOG(ERR) << "Invalid PCI subsystem device id : "
               << *pciDeviceConfig.subSystemDeviceId();
     return false;

@@ -31,8 +31,6 @@ struct PciDevice {
 
 class PciExplorer {
  public:
-  const re2::RE2 kPciIdRegex{"0x[0-9a-f]{4}"};
-
   // Create the I2C Adapter based on the given i2cAdapterConfig residing
   // at the given PciDevice path. It returns the the kernel assigned i2c bus
   // number(s) for the created adapter(s). Throw std::runtime_error on failure.
@@ -53,8 +51,9 @@ class PciExplorer {
       uint32_t instanceId);
 
   // Create GPIO chip based on the given gpio's FpgaIpblockConfig residing
-  // at the given PciDevice. Throw std::runtime_error on failure.
-  uint16_t createGpioChip(
+  // at the given PciDevice.
+  // Return CharDevPath. Throw std::runtime_error on failure.
+  std::string createGpioChip(
       const PciDevice& pciDevice,
       const FpgaIpBlockConfig& fpgaIpBlockConfig,
       uint32_t instanceId);
@@ -67,9 +66,10 @@ class PciExplorer {
       uint32_t instanceId);
 
   // Create the Transceiver block based on the given xcvrCtrlConfig residing
-  // at the given PciDevice. Throw std::runtime_error on failure.
-  void createXcvrCtrl(
-      const PciDevice& pciDevice,
+  // at the given PciDevice.
+  // Return the SysfsPath. Throw std::runtime_error on failure.
+  std::string createXcvrCtrl(
+      const PciDevice& pciDevPath,
       const XcvrCtrlConfig& xcvrCtrlConfig,
       uint32_t instanceId);
 
@@ -113,6 +113,11 @@ class PciExplorer {
       const FpgaIpBlockConfig& fpgaIpBlockConfig,
       const struct fbiob_aux_data& auxData);
 
+  std::string getGpioChipCharDevPath(
+      const PciDevice& pciDevice,
+      const FpgaIpBlockConfig& fpgaIpBlockConfig,
+      uint32_t instanceId);
+
  private:
   std::vector<uint16_t> getI2cAdapterBusNums(
       const PciDevice& pciDevice,
@@ -125,10 +130,6 @@ class PciExplorer {
       const PciDevice& pciDevice,
       const SpiMasterConfig& spiMasterConfig,
       uint32_t instanceId);
-  uint16_t getGpioChipNum(
-      const PciDevice& pciDevice,
-      const FpgaIpBlockConfig& fpgaIpBlockConfig,
-      uint32_t instanceId);
   std::string getInfoRomSysfsPath(
       const FpgaIpBlockConfig& infoRomConfig,
       uint32_t instanceId);
@@ -137,6 +138,10 @@ class PciExplorer {
       const FpgaIpBlockConfig& fpgaIpBlockConfig,
       uint32_t instanceId);
   std::string getFanPwmCtrlSysfsPath(
+      const PciDevice& pciDevice,
+      const FpgaIpBlockConfig& fpgaIpBlockConfig,
+      uint32_t instanceId);
+  std::string getXcvrCtrlSysfsPath(
       const PciDevice& pciDevice,
       const FpgaIpBlockConfig& fpgaIpBlockConfig,
       uint32_t instanceId);

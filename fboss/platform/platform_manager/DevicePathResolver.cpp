@@ -73,6 +73,30 @@ std::string DevicePathResolver::resolveI2cBusPath(
       "/dev/i2c-{}", dataStore_.getI2cBusNum(slotPath, deviceName));
 }
 
+std::string DevicePathResolver::resolvePciSubDevSysfsPath(
+    const std::string& devicePath) {
+  auto sysfsPath = dataStore_.getSysfsPath(devicePath);
+  if (!fs::exists(sysfsPath)) {
+    throw std::runtime_error(fmt::format(
+        "Fail to resolve PciSubDevice's SysfsPath for {} - {} no longer exists",
+        devicePath,
+        sysfsPath));
+  }
+  return sysfsPath;
+}
+
+std::string DevicePathResolver::resolvePciSubDevCharDevPath(
+    const std::string& devicePath) {
+  auto charDevPath = dataStore_.getCharDevPath(devicePath);
+  if (!fs::exists(charDevPath)) {
+    throw std::runtime_error(fmt::format(
+        "Fail to resolve PciSubDevice's CharDevPath for {} - {} no longer exists",
+        devicePath,
+        charDevPath));
+  }
+  return charDevPath;
+}
+
 std::string DevicePathResolver::resolveI2cDevicePath(
     const std::string& devicePath) {
   const auto [slotPath, deviceName] = Utils().parseDevicePath(devicePath);

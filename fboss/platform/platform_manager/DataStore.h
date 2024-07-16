@@ -27,17 +27,6 @@ class DataStore {
       const std::string& pmUnitScopeBusName,
       uint16_t busNum);
 
-  // Get Gpio chip number of the given chip name at the given SlotPath
-  uint16_t getGpioChipNum(
-      const std::string& slotPath,
-      const std::string& gpioChipDeviceName) const;
-
-  // Update Gpio chip number of the given chip name at the given SlotPath
-  void updateGpioChipNum(
-      const std::string& slotPath,
-      const std::string& gpioChipDeviceName,
-      uint16_t gpioChipNum);
-
   // Get PmUnitName at the given SlotPath
   std::string getPmUnitName(const std::string& slotPath) const;
 
@@ -59,11 +48,11 @@ class DataStore {
 
   bool hasSysfsPath(const std::string& devicePath) const;
 
-  // Get InstanceId for a given PciSubDevicePath
-  uint32_t getInstanceId(const std::string& devicePath);
-
-  // Update InstanceId for a given PciSubDevicePath
-  void updateInstanceId(const std::string& devicePath, uint32_t instanceId);
+  // Update SysfsPath for a given PciSubDevicePath
+  void updateSysfsPath(
+      const std::string& slotPath,
+      const std::string& pmUnitScopedName,
+      const std::string& sysfsPath);
 
   // Get CharDevPath for a given PciSubDevicePath
   std::string getCharDevPath(const std::string& devicePath) const;
@@ -84,17 +73,11 @@ class DataStore {
   std::map<std::pair<std::optional<std::string>, std::string>, uint16_t>
       i2cBusNums_{};
 
-  // Map from <SlotPath, GpioChipDeviceName> to gpio chip number.
-  std::map<std::pair<std::string, std::string>, uint16_t> gpioChipNums_{};
-
   // Stores the PmUnitName which has been discovered at each SlotPath.
   std::map<std::string, std::string> slotPathToPmUnitName_{};
 
   // Map from PciSubDevicePath to SysfsPath.
   std::map<std::string, std::string> pciSubDevicePathToSysfsPath_{};
-
-  // Map from PciSubDevicePath to instanceId.
-  std::map<std::string, uint32_t> pciSubDevicePathToInstanceId_{};
 
   // Map from PciSubDevicePath to CharDevPath
   std::map<std::string, std::string> pciSubDevicePathToCharDevPath_{};

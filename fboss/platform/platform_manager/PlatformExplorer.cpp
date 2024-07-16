@@ -20,8 +20,6 @@
 namespace {
 auto constexpr kTotalFailures = "total_failures";
 constexpr auto kRootSlotPath = "/";
-const re2::RE2 kGpioChipNameRe{"gpiochip\\d+"};
-const std::string kGpioChip = "gpiochip";
 
 std::string getSlotPath(
     const std::string& parentSlotPath,
@@ -39,15 +37,6 @@ std::optional<std::string> getPresenceFileContent(const std::string& path) {
     return std::nullopt;
   }
   return folly::trimWhitespace(value).str();
-}
-
-bool hasEnding(std::string const& input, std::string const& ending) {
-  if (input.length() >= ending.length()) {
-    return input.compare(
-               input.length() - ending.length(), ending.length(), ending) == 0;
-  } else {
-    return false;
-  }
 }
 } // namespace
 
@@ -331,24 +320,10 @@ void PlatformExplorer::exploreI2cDevices(
     }
     if (*i2cDeviceConfig.isGpioChip()) {
       auto i2cDevicePath = i2cExplorer_.getDeviceI2cPath(busNum, devAddr);
-      std::optional<uint16_t> gpioNum{std::nullopt};
-      for (const auto& childDirEntry :
-           std::filesystem::directory_iterator(i2cDevicePath)) {
-        if (re2::RE2::FullMatch(
-                childDirEntry.path().filename().string(), kGpioChipNameRe)) {
-          gpioNum = folly::to<uint16_t>(
-              childDirEntry.path().filename().string().substr(
-                  kGpioChip.length()));
-        }
-      }
-      if (!gpioNum) {
-        throw std::runtime_error(fmt::format(
-            "No GPIO chip found in {} for {}",
-            i2cDevicePath,
-            *i2cDeviceConfig.pmUnitScopedName()));
-      }
-      dataStore_.updateGpioChipNum(
-          slotPath, *i2cDeviceConfig.pmUnitScopedName(), *gpioNum);
+      dataStore_.updateCharDevPath(
+          Utils().createDevicePath(
+              slotPath, *i2cDeviceConfig.pmUnitScopedName()),
+          Utils().resolveGpioChipCharDevPath(i2cDevicePath));
     }
   }
 }
@@ -398,10 +373,12 @@ void PlatformExplorer::explorePciDevices(
       }
     }
     for (const auto& fpgaIpBlockConfig : *pciDeviceConfig.gpioChipConfigs()) {
-      auto gpioNum =
+      auto charDevPath =
           pciExplorer_.createGpioChip(pciDevice, fpgaIpBlockConfig, instId++);
-      dataStore_.updateGpioChipNum(
-          slotPath, *fpgaIpBlockConfig.pmUnitScopedName(), gpioNum);
+      dataStore_.updateCharDevPath(
+          Utils().createDevicePath(
+              slotPath, *fpgaIpBlockConfig.pmUnitScopedName()),
+          charDevPath);
     }
     for (const auto& fpgaIpBlockConfig : *pciDeviceConfig.watchdogConfigs()) {
       auto watchdogCharDevPath =
@@ -426,9 +403,9 @@ void PlatformExplorer::explorePciDevices(
     for (const auto& xcvrCtrlConfig : *pciDeviceConfig.xcvrCtrlConfigs()) {
       auto devicePath = Utils().createDevicePath(
           slotPath, *xcvrCtrlConfig.fpgaIpBlockConfig()->pmUnitScopedName());
-      dataStore_.updateSysfsPath(devicePath, pciDevice.sysfsPath());
-      dataStore_.updateInstanceId(devicePath, instId);
-      pciExplorer_.createXcvrCtrl(pciDevice, xcvrCtrlConfig, instId++);
+      auto xcvrCtrlSysfsPath =
+          pciExplorer_.createXcvrCtrl(pciDevice, xcvrCtrlConfig, instId++);
+      dataStore_.updateSysfsPath(devicePath, xcvrCtrlSysfsPath);
     }
     for (const auto& infoRomConfig : *pciDeviceConfig.infoRomConfigs()) {
       auto infoRomSysfsPath =
@@ -464,13 +441,7 @@ void PlatformExplorer::createDeviceSymLink(
     return;
   }
 
-  const auto [slotPath, deviceName] = Utils().parseDevicePath(devicePath);
-  if (!dataStore_.hasPmUnit(slotPath)) {
-    XLOG(ERR) << fmt::format("No PmUnit exists at {}", slotPath);
-    return;
-  }
-
-  std::optional<std::filesystem::path> targetPath = std::nullopt;
+  std::string targetPath;
   try {
     if (linkParentPath.string() == "/run/devmap/eeproms") {
       targetPath = devicePathResolver_.resolveEepromPath(devicePath);
@@ -487,30 +458,12 @@ void PlatformExplorer::createDeviceSymLink(
       targetPath = devicePathResolver_.resolvePciDevicePath(devicePath);
     } else if (linkParentPath.string() == "/run/devmap/i2c-busses") {
       targetPath = devicePathResolver_.resolveI2cBusPath(devicePath);
-    } else if (linkParentPath.string() == "/run/devmap/gpiochips") {
-      targetPath = std::filesystem::path(fmt::format(
-          "/dev/gpiochip{}", dataStore_.getGpioChipNum(slotPath, deviceName)));
+    } else if (
+        linkParentPath.string() == "/run/devmap/gpiochips" ||
+        linkParentPath.string() == "/run/devmap/flashes") {
+      targetPath = devicePathResolver_.resolvePciSubDevCharDevPath(devicePath);
     } else if (linkParentPath.string() == "/run/devmap/xcvrs") {
-      auto pciDevPath = dataStore_.getSysfsPath(devicePath);
-      auto expectedEnding =
-          fmt::format(".xcvr_ctrl.{}", dataStore_.getInstanceId(devicePath));
-      for (const auto& dirEntry :
-           std::filesystem::directory_iterator(pciDevPath)) {
-        if (hasEnding(dirEntry.path().string(), expectedEnding)) {
-          targetPath = dirEntry.path().string();
-        }
-      }
-      if (!targetPath) {
-        XLOG(ERR) << fmt::format(
-            "Couldn't find xcvr_ctrl directory under {}. DevicePath: {}",
-            pciDevPath,
-            devicePath);
-        return;
-      }
-    } else if (linkParentPath.string() == "/run/devmap/flashes") {
-      targetPath = dataStore_.getCharDevPath(devicePath);
-    } else if (linkParentPath.string() == "/run/devmap/watchdogs") {
-      targetPath = dataStore_.getCharDevPath(devicePath);
+      targetPath = devicePathResolver_.resolvePciSubDevSysfsPath(devicePath);
     } else {
       throw std::runtime_error(
           fmt::format("Symbolic link {} is not supported.", linkPath));
@@ -525,13 +478,12 @@ void PlatformExplorer::createDeviceSymLink(
     errorMessages_[devicePath].push_back(errMsg);
     return;
   }
-
   XLOG(INFO) << fmt::format(
       "Creating symlink from {} to {}. DevicePath: {}",
       linkPath,
-      targetPath->string(),
+      targetPath,
       devicePath);
-  auto cmd = fmt::format("ln -sfnv {} {}", targetPath->string(), linkPath);
+  auto cmd = fmt::format("ln -sfnv {} {}", targetPath, linkPath);
   auto [exitStatus, standardOut] = PlatformUtils().execCommand(cmd);
   if (exitStatus != 0) {
     XLOG(ERR) << fmt::format("Failed to run command ({})", cmd);

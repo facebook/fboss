@@ -27,6 +27,10 @@ class Utils {
   std::string createDevicePath(
       const std::string& slotPath,
       const std::string& deviceName);
+
+  // Explore and resolve GpioChip's CharDevicePath for given SysfsPath.
+  // Throws an exception when it fails to resolve CharDevicePath
+  std::string resolveGpioChipCharDevPath(const std::string& sysfsPath);
 };
 
 } // namespace facebook::fboss::platform::platform_manager

@@ -36,32 +36,6 @@ void DataStore::updateI2cBusNum(
   i2cBusNums_[std::make_pair(slotPath, pmUnitScopeBusName)] = busNum;
 }
 
-uint16_t DataStore::getGpioChipNum(
-    const std::string& slotPath,
-    const std::string& gpioChipDeviceName) const {
-  auto it = gpioChipNums_.find(std::make_pair(slotPath, gpioChipDeviceName));
-  if (it != gpioChipNums_.end()) {
-    return it->second;
-  }
-  throw std::runtime_error(fmt::format(
-      "Could not find gpio chip number for {} at {}",
-      gpioChipDeviceName,
-      slotPath));
-}
-
-void DataStore::updateGpioChipNum(
-    const std::string& slotPath,
-    const std::string& gpioChipDeviceName,
-    uint16_t gpioChipNum) {
-  XLOG(INFO) << fmt::format(
-      "Updating gpio chip {} in {} to gpio chip number {} (gpiochip{})",
-      gpioChipDeviceName,
-      slotPath,
-      gpioChipNum,
-      gpioChipNum);
-  gpioChipNums_[std::make_pair(slotPath, gpioChipDeviceName)] = gpioChipNum;
-}
-
 std::string DataStore::getPmUnitName(const std::string& slotPath) const {
   if (slotPathToPmUnitName_.find(slotPath) != slotPathToPmUnitName_.end()) {
     return slotPathToPmUnitName_.at(slotPath);
@@ -102,23 +76,6 @@ void DataStore::updateSysfsPath(
 bool DataStore::hasSysfsPath(const std::string& devicePath) const {
   return pciSubDevicePathToSysfsPath_.find(devicePath) !=
       pciSubDevicePathToSysfsPath_.end();
-}
-
-uint32_t DataStore::getInstanceId(const std::string& devicePath) {
-  auto itr = pciSubDevicePathToInstanceId_.find(devicePath);
-  if (itr != pciSubDevicePathToInstanceId_.end()) {
-    return itr->second;
-  }
-  throw std::runtime_error(
-      fmt::format("Could not find instanceId for {}", devicePath));
-}
-
-void DataStore::updateInstanceId(
-    const std::string& devicePath,
-    uint32_t instanceId) {
-  XLOG(INFO) << fmt::format(
-      "Updating instanceId for {} to {}", devicePath, instanceId);
-  pciSubDevicePathToInstanceId_[devicePath] = instanceId;
 }
 
 std::string DataStore::getCharDevPath(const std::string& devicePath) const {

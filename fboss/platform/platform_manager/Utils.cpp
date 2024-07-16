@@ -19,6 +19,8 @@ using namespace facebook::fboss::platform;
 
 namespace {
 const re2::RE2 kPmDeviceParseRe{"(?P<SlotPath>.*)\\[(?P<DeviceName>.*)\\]"};
+const re2::RE2 kGpioChipNameRe{"gpiochip\\d+"};
+const std::string kGpioChip = "gpiochip";
 
 std::string getPlatformNameFromBios() {
   XLOG(INFO) << "Getting platform name from bios using dmedicode ...";
@@ -151,4 +153,29 @@ std::string Utils::createDevicePath(
   return fmt::format("{}/[{}]", slotPath == "/" ? "" : slotPath, deviceName);
 }
 
+std::string Utils::resolveGpioChipCharDevPath(const std::string& sysfsPath) {
+  auto failMsg = "Fail to resolve GpioChip CharDevPath";
+  if (!fs::exists(sysfsPath)) {
+    throw std::runtime_error(
+        fmt::format("{}. Reason: {} doesn't exist", failMsg, sysfsPath));
+  }
+  std::optional<uint16_t> gpioChipNum{std::nullopt};
+  for (const auto& dirEntry : fs::directory_iterator(sysfsPath)) {
+    if (re2::RE2::FullMatch(
+            dirEntry.path().filename().string(), kGpioChipNameRe)) {
+      gpioChipNum = folly::to<uint16_t>(
+          dirEntry.path().filename().string().substr(kGpioChip.length()));
+    }
+  }
+  if (!gpioChipNum) {
+    throw std::runtime_error(fmt::format(
+        "{}. Reason: Couldn't find gpio chip under {}", failMsg, sysfsPath));
+  }
+  auto charDevPath = fmt::format("/dev/gpiochip{}", *gpioChipNum);
+  if (!fs::exists(charDevPath)) {
+    throw std::runtime_error(fmt::format(
+        "{}. Reason: {} does not exist in the system", failMsg, charDevPath));
+  }
+  return charDevPath;
+}
 } // namespace facebook::fboss::platform::platform_manager
