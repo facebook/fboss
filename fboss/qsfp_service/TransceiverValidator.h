@@ -36,6 +36,7 @@ struct TransceiverValidationInfo {
   int id;
   std::string vendorName;
   std::string vendorPartNumber;
+  std::string vendorSerialNumber;
   std::string firmwareVersion;
   std::string dspFirmwareVersion;
   std::vector<cfg::PortProfileID> portProfileIds;

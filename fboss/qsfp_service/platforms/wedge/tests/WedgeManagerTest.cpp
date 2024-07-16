@@ -737,6 +737,7 @@ TEST_F(WedgeManagerTest, validateTransceiverConfigByIdTest) {
   EXPECT_CALL(*transImpl_, detectTransceiver())
       .WillRepeatedly(::testing::Return(true));
   qsfpImpls_.push_back(std::move(transceiverImpl));
+  std::string defaultSerialNumber = "123456";
   auto makeDefaultTcvr = [&](TransceiverID tcvrID) {
     auto tcvr = static_cast<MockSffModule*>(
         transceiverManager_->overrideTransceiverForTesting(
@@ -746,7 +747,7 @@ TEST_F(WedgeManagerTest, validateTransceiverConfigByIdTest) {
                 qsfpImpls_.back().get(),
                 tcvrConfig_)));
     tcvr->detectPresence();
-    tcvr->overrideVendorNameAndPN("fbossTwo", "TR-FC13H-HFZ");
+    tcvr->overrideVendorInfo("fbossTwo", "TR-FC13H-HFZ", defaultSerialNumber);
     tcvr->setFwVersion("1", "2");
     tcvr->overrideValidChecksums(true);
     return tcvr;
@@ -801,21 +802,26 @@ TEST_F(WedgeManagerTest, validateTransceiverConfigByIdTest) {
                                         std::string configString) {
     validateBasic(tcvr, tcvrID, isValid, false, configString);
   };
-  auto configString = [](std::string vendorName,
-                         std::string vendorPartNumber,
-                         std::string appFwVer,
-                         std::string dspFwVer,
-                         std::vector<std::string> portProfileIds,
-                         std::string nonValidatedAttribute) {
+  auto configString = [&](TransceiverID tcvrID,
+                          std::string vendorName,
+                          std::string vendorSerialNumber,
+                          std::string vendorPartNumber,
+                          std::string appFwVer,
+                          std::string dspFwVer,
+                          std::vector<std::string> portProfileIds,
+                          std::string nonValidatedAttribute) {
     return folly::sformat(
         "{{\n  \"Non-Validated Attribute\": \"{}\",\n  \"Transceiver Application Firmware Version\": \"{}\""
-        ",\n  \"Transceiver DSP Firmware Version\": \"{}\",\n  \"Transceiver Part Number\": \"{}\","
-        "\n  \"Transceiver Port Profile Ids\": \"{}\",\n  \"Transceiver Vendor\": \"{}\"\n}}",
+        ",\n  \"Transceiver DSP Firmware Version\": \"{}\",\n  \"Transceiver ID\": {},\n  \"Transceiver Part Number\": \"{}\","
+        "\n  \"Transceiver Port Profile Ids\": \"{}\",\n  \"Transceiver Serial Number\": \"{}\",\n  "
+        "\"Transceiver Vendor\": \"{}\"\n}}",
         nonValidatedAttribute,
         appFwVer,
         dspFwVer,
+        static_cast<int>(tcvrID),
         vendorPartNumber,
         folly::join(",", portProfileIds),
+        vendorSerialNumber,
         vendorName);
   };
 
@@ -830,23 +836,31 @@ TEST_F(WedgeManagerTest, validateTransceiverConfigByIdTest) {
   validateQsfpTestWithReason(tcvrOne, tcvrOneID, true, "");
 
   // Test Missing Vendor
-  tcvrOne->overrideVendorNameAndPN("", "");
+  tcvrOne->overrideVendorInfo("", "", "");
   validateWithReason(
       tcvrOne,
       tcvrOneID,
       false,
-      configString("", "", "", "", {}, "missingVendor"));
+      configString(tcvrOneID, "", "", "", "", "", {}, "missingVendor"));
 
   // Test Missing Vendor Part Number
-  tcvrOne->overrideVendorNameAndPN("fbossOne", "");
+  tcvrOne->overrideVendorInfo("fbossOne", "", defaultSerialNumber);
   validateWithReason(
       tcvrOne,
       tcvrOneID,
       false,
-      configString("fbossOne", "", "", "", {}, "missingVendorPartNumber"));
+      configString(
+          tcvrOneID,
+          "fbossOne",
+          defaultSerialNumber,
+          "",
+          "",
+          "",
+          {},
+          "missingVendorPartNumber"));
 
   // Test Missing Firmware (should yield a Validated result)
-  tcvrOne->overrideVendorNameAndPN("fbossTwo", "TR-FC13H-HFZ");
+  tcvrOne->overrideVendorInfo("fbossTwo", "TR-FC13H-HFZ", defaultSerialNumber);
   tcvrOne->setFwVersion("", "");
   validateWithReason(tcvrOne, tcvrOneID, true, "");
 
@@ -856,19 +870,29 @@ TEST_F(WedgeManagerTest, validateTransceiverConfigByIdTest) {
       tcvrThreeID,
       false,
       configString(
-          "fbossTwo", "TR-FC13H-HFZ", "1", "2", {}, "missingPortProfileIds"));
+          tcvrThreeID,
+          "fbossTwo",
+          defaultSerialNumber,
+          "TR-FC13H-HFZ",
+          "1",
+          "2",
+          {},
+          "missingPortProfileIds"));
   // Test Missing PortProfileIDs w/o Validating PortProfiles
   validateQsfpTestWithReason(tcvrThree, tcvrThreeID, true, "");
 
   // Test Non-Validated Config –– Incorrect Vendor
-  tcvrOne->overrideVendorNameAndPN("fbossThree", "TR-FC13H-HFZ");
+  tcvrOne->overrideVendorInfo(
+      "fbossThree", "TR-FC13H-HFZ", defaultSerialNumber);
   tcvrOne->setFwVersion("1", "2");
   validateWithReason(
       tcvrOne,
       tcvrOneID,
       false,
       configString(
+          tcvrOneID,
           "fbossThree",
+          defaultSerialNumber,
           "TR-FC13H-HFZ",
           "1",
           "2",
@@ -876,13 +900,15 @@ TEST_F(WedgeManagerTest, validateTransceiverConfigByIdTest) {
           "nonValidatedVendorName"));
 
   // Test Non-Validated Config –– Incorrect Vendor Part Number
-  tcvrOne->overrideVendorNameAndPN("fbossTwo", "TR-FC13H-HF");
+  tcvrOne->overrideVendorInfo("fbossTwo", "TR-FC13H-HF", defaultSerialNumber);
   validateWithReason(
       tcvrOne,
       tcvrOneID,
       false,
       configString(
+          tcvrOneID,
           "fbossTwo",
+          defaultSerialNumber,
           "TR-FC13H-HF",
           "1",
           "2",
@@ -895,7 +921,9 @@ TEST_F(WedgeManagerTest, validateTransceiverConfigByIdTest) {
       tcvrTwoID,
       false,
       configString(
+          tcvrTwoID,
           "fbossTwo",
+          defaultSerialNumber,
           "TR-FC13H-HFZ",
           "1",
           "2",
@@ -911,7 +939,14 @@ TEST_F(WedgeManagerTest, validateTransceiverConfigByIdTest) {
       tcvrFourID,
       false,
       configString(
-          "fbossTwo", "TR-FC13H-HFZ", "1", "2", {}, "invalidEepromChecksums"));
+          tcvrFourID,
+          "fbossTwo",
+          defaultSerialNumber,
+          "TR-FC13H-HFZ",
+          "1",
+          "2",
+          {},
+          "invalidEepromChecksums"));
 }
 
 } // namespace facebook::fboss

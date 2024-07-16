@@ -1590,6 +1590,7 @@ TransceiverValidationInfo TransceiverManager::getTransceiverValidationInfo(
   }
   tcvrInfo.vendorName = vendor->name().value();
 
+  tcvrInfo.vendorSerialNumber = vendor->serialNumber().value();
   if (vendor->partNumber().value().empty()) {
     tcvrInfo.requiredFields = std::make_pair(false, "missingVendorPartNumber");
     return tcvrInfo;
@@ -1665,7 +1666,9 @@ std::string TransceiverManager::getTransceiverValidationConfigString(
         apache::thrift::util::enumNameSafe(portProfileId));
   }
 
+  r["Transceiver ID"] = static_cast<int>(tcvrInfo.id);
   r["Transceiver Vendor"] = tcvrInfo.vendorName;
+  r["Transceiver Serial Number"] = tcvrInfo.vendorSerialNumber;
   r["Transceiver Part Number"] = tcvrInfo.vendorPartNumber;
   r["Transceiver Application Firmware Version"] = tcvrInfo.firmwareVersion;
   r["Transceiver DSP Firmware Version"] = tcvrInfo.dspFirmwareVersion;
