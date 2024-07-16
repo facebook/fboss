@@ -337,6 +337,16 @@ void SaiSwitch::unregisterCallbacks() noexcept {
     linkConnectivityChangeBottomHalfThread_->join();
     // link connectivity change processing is completely shut-off
   }
+  if (runState_ >= SwitchRunState::CONFIGURED &&
+      platform_->getAsic()->isSupported(
+          HwAsic::Feature::SWITCH_REACHABILITY_CHANGE_NOTIFY)) {
+    switchReachabilityChangeBottomHalfEventBase_.runInEventBaseThreadAndWait(
+        [this]() {
+          switchReachabilityChangeBottomHalfEventBase_.terminateLoopSoon();
+        });
+    switchReachabilityChangeBottomHalfThread_->join();
+    // switch reachability change processing is completely shut-off
+  }
 
   if (runState_ >= SwitchRunState::INITIALIZED) {
     fdbEventBottomHalfEventBase_.runInEventBaseThreadAndWait(
@@ -2461,7 +2471,23 @@ void SaiSwitch::initTxReadyStatusChangeLocked(
 
 void SaiSwitch::initSwitchReachabilityChangeLocked(
     const std::lock_guard<std::mutex>& /* lock */) {
-  // TODO
+  switchReachabilityChangeBottomHalfThread_ =
+      std::make_unique<std::thread>([this]() {
+        initThread("fbossSaiSwitchReachabilityChangeBH");
+        switchReachabilityChangeBottomHalfEventBase_.loopForever();
+      });
+  switchReachabilityChangeBottomHalfEventBase_.runInEventBaseThread(
+      [=, this]() {
+        /*
+         * Query the initial state after registering the callbacks to avoid a
+         * potentially missed callback and update.
+         *
+         * Moreover, query/process in the same context that registers/processes
+         * callback to guarantee that we don't miss any callbacks and those are
+         * always ordered.
+         */
+        switchReachabilityChangeBottomHalf();
+      });
 }
 
 bool SaiSwitch::isMissingSrcPortAllowed(HostifTrapSaiId hostifTrapSaiId) {
@@ -3142,6 +3168,11 @@ void SaiSwitch::switchRunStateChangedImplLocked(
 
       if (platform_->getAsic()->isSupported(HwAsic::Feature::FABRIC_PORTS)) {
         initLinkConnectivityChangeLocked(lock);
+      }
+
+      if (platform_->getAsic()->isSupported(
+              HwAsic::Feature::SWITCH_REACHABILITY_CHANGE_NOTIFY)) {
+        initSwitchReachabilityChangeLocked(lock);
       }
     } break;
     default:
