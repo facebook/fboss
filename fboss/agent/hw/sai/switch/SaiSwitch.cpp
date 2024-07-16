@@ -2075,7 +2075,8 @@ void SaiSwitch::linkConnectivityChanged(
 }
 
 void SaiSwitch::switchReachabilityChangeTopHalf() {
-  // TODO
+  switchReachabilityChangeBottomHalfEventBase_.runInEventBaseThread(
+      [this]() mutable { switchReachabilityChangeBottomHalf(); });
 }
 
 void SaiSwitch::switchReachabilityChangeBottomHalf() {
