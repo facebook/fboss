@@ -167,6 +167,7 @@ bool Tomahawk5Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::CRC_ERROR_DETECT:
     case HwAsic::Feature::EVENTOR_PORT_FOR_SFLOW:
     case HwAsic::Feature::CPU_VOQ_BUFFER_PROFILE:
+    case HwAsic::Feature::SWITCH_REACHABILITY_CHANGE_NOTIFY:
       return false;
   }
   return false;
