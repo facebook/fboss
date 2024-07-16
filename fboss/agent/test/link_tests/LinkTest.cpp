@@ -42,6 +42,15 @@ const std::vector<std::string> kRestartQsfpService = {
 
 const std::string kForceColdbootQsfpSvcFileName =
     "/dev/shm/fboss/qsfp_service/cold_boot_once_qsfp_service";
+
+// This file stores all non-validated transceiver configurations found while
+// running getAllTransceiverConfigValidationStatuses() in EmptyLinkTest. Each
+// configuration will be in JSON format. This file is then downloaded by the
+// Netcastle test runner to parse it and log these configurations to Scuba.
+// Matching file definition is located in
+// fbcode/neteng/netcastle/teams/fboss/constants.py.
+const std::string kTransceiverConfigJsonsForScuba =
+    "/tmp/transceiver_config_jsons_for_scuba.log";
 } // namespace
 
 namespace facebook::fboss {
@@ -150,17 +159,25 @@ void LinkTest::getAllTransceiverConfigValidationStatuses() {
         << folly::exceptionStr(ex);
   }
 
+  createFile(kTransceiverConfigJsonsForScuba);
+
   std::vector<int32_t> missingTransceivers, invalidTransceivers;
+  std::vector<std::string> nonValidatedConfigs;
   for (auto transceiverID : expectedTransceivers) {
     if (auto transceiverStatusIt = responses.find(transceiverID);
         transceiverStatusIt != responses.end()) {
       if (transceiverStatusIt->second != "") {
         invalidTransceivers.push_back(transceiverID);
-        printf("%s\n", transceiverStatusIt->second.c_str());
+        nonValidatedConfigs.push_back(transceiverStatusIt->second);
       }
       continue;
     }
     missingTransceivers.push_back(transceiverID);
+  }
+  if (nonValidatedConfigs.size()) {
+    writeSysfs(
+        kTransceiverConfigJsonsForScuba,
+        folly::join("\n", nonValidatedConfigs));
   }
   if (!missingTransceivers.empty()) {
     XLOG(DBG2) << "Transceivers [" << folly::join(",", missingTransceivers)
