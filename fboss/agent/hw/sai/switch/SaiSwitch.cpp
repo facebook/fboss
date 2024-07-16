@@ -2089,6 +2089,32 @@ void SaiSwitch::switchReachabilityChangeTopHalf() {
       [this]() mutable { switchReachabilityChangeBottomHalf(); });
 }
 
+std::set<PortID> SaiSwitch::getFabricReachabilityPortIds(
+    const std::vector<sai_object_id_t>& switchIdAndFabricPortSaiIds) const {
+  int64_t switchId = switchIdAndFabricPortSaiIds.at(0);
+  if (switchIdAndFabricPortSaiIds.size() > 1) {
+    XLOG(DBG2) << "SwitchID " << switchId << " reachable over "
+               << switchIdAndFabricPortSaiIds.size() - 1 << " ports!";
+  } else if (switchIdAndFabricPortSaiIds.size() == 1) {
+    XLOG(DBG2) << "SwitchID " << switchId << " unreachable over fabric!";
+  }
+  // Index 0 has switchId and indices 1 onwards has fabric port SAI id,
+  // need to find the PortID associated with these fabric port SAI ids.
+  std::set<PortID> portIds{};
+  for (auto idx = 1; idx < switchIdAndFabricPortSaiIds.size(); idx++) {
+    const auto portItr = concurrentIndices_->portSaiId2PortInfo.find(
+        static_cast<PortSaiId>(switchIdAndFabricPortSaiIds.at(idx)));
+    if (portItr == concurrentIndices_->portSaiId2PortInfo.cend()) {
+      XLOG(WARNING)
+          << "Received port notification for port with unknown sai id: "
+          << switchIdAndFabricPortSaiIds.at(idx);
+      continue;
+    }
+    portIds.insert(portItr->second.portID);
+  }
+  return portIds;
+}
+
 void SaiSwitch::switchReachabilityChangeBottomHalf() {
   // TODO
 }

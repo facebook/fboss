@@ -381,6 +381,8 @@ class SaiSwitch : public HwSwitch {
       std::vector<sai_port_oper_status_notification_t> data);
   void txReadyStatusChangeCallbackBottomHalf();
   void switchReachabilityChangeBottomHalf();
+  std::set<PortID> getFabricReachabilityPortIds(
+      const std::vector<sai_object_id_t>& switchIdAndFabricPortSaiIds) const;
 
   uint64_t getDeviceWatermarkBytesLocked(
       const std::lock_guard<std::mutex>& lock) const;
