@@ -364,6 +364,8 @@ TEST_F(AgentPacketSendReceiveLagTest, LacpPacketReceiveSrcPort) {
         "enable trunk ports");
   };
   auto verify = [=, this]() {
+    getAgentEnsemble()->getSw()->getPacketObservers()->registerPacketObserver(
+        this, "LacpPacketReceiveSrcPort");
     auto vlanId = utility::firstVlanID(getProgrammedState());
     auto intfMac = utility::getFirstInterfaceMac(getProgrammedState());
     auto payLoadSize = 256;
@@ -400,9 +402,10 @@ TEST_F(AgentPacketSendReceiveLagTest, LacpPacketReceiveSrcPort) {
       EXPECT_EQ(port, PortID(getLastPktSrcPort()));
       EXPECT_EQ(kAggId, getLastPktSrcAggregatePort());
     }
+    getAgentEnsemble()->getSw()->getPacketObservers()->unregisterPacketObserver(
+        this, "LacpPacketReceiveSrcPort");
   };
-  setup();
-  verify();
+  verifyAcrossWarmBoots(setup, verify);
 }
 
 class AgentPacketFloodTest : public AgentHwTest {
