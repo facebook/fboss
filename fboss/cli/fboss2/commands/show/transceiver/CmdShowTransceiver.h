@@ -96,8 +96,12 @@ class CmdShowTransceiver
           details.get_partNumber(),
           details.get_appFwVer(),
           details.get_dspFwVer(),
-          fmt::format("{:.2f}", details.get_temperature()),
-          fmt::format("{:.2f}", details.get_voltage()),
+          coloredSensorValue(
+              fmt::format("{:.2f}", details.get_temperature()),
+              details.get_tempFlags()),
+          coloredSensorValue(
+              fmt::format("{:.2f}", details.get_voltage()),
+              details.get_vccFlags()),
           listToString(
               details.get_currentMA(), LOW_CURRENT_WARN, LOW_CURRENT_ERR),
           listToString(details.get_txPower(), LOW_POWER_WARN, LOW_POWER_ERR),
@@ -165,6 +169,16 @@ class CmdShowTransceiver
       }
     }
     return Table::StyledCell(result, cellStyle);
+  }
+
+  Table::StyledCell coloredSensorValue(std::string value, FlagLevels flags) {
+    if (flags.get_alarm().get_high() || flags.get_alarm().get_low()) {
+      return Table::StyledCell(value, Table::Style::ERROR);
+    } else if (flags.get_warn().get_high() || flags.get_warn().get_low()) {
+      return Table::StyledCell(value, Table::Style::WARN);
+    } else {
+      return Table::StyledCell(value, Table::Style::GOOD);
+    }
   }
 
   std::map<int, PortStatus> queryPortStatus(
@@ -260,6 +274,10 @@ class CmdShowTransceiver
         details.partNumber() = vendor->get_partNumber();
         details.temperature() = tcvrStats.get_sensor()->get_temp().get_value();
         details.voltage() = tcvrStats.get_sensor()->get_vcc().get_value();
+        details.tempFlags() =
+            tcvrStats.get_sensor()->get_temp().flags().value_or({});
+        details.vccFlags() =
+            tcvrStats.get_sensor()->get_vcc().flags().value_or({});
 
         if (const auto& moduleStatus = tcvrState.status()) {
           if (const auto& fwStatus = moduleStatus->fwStatus()) {

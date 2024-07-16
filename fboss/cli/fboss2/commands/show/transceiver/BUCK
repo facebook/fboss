@@ -9,4 +9,7 @@ thrift_library(
     ],
     thrift_cpp2_options = "json",
     thrift_srcs = {"model.thrift": []},
+    deps = [
+        "//fboss/qsfp_service/if:transceiver",
+    ],
 )
