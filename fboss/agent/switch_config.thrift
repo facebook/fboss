@@ -1741,6 +1741,11 @@ struct DsfNode {
   6: optional string nodeMac;
   7: AsicType asicType;
   8: fboss_common.PlatformType platformType;
+  // used by two stage ramon test setup to figure out
+  // switches inside the same local capsule.
+  // In prod, this info could be figured out from name
+  // like rdsw001.c085.n001.snc1, where 85 is cluster id.
+  9: optional i32 clusterId;
 }
 
 /**
