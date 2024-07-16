@@ -48,11 +48,11 @@ class TransceiverValidator {
   explicit TransceiverValidator(const std::vector<VendorConfig>& tcvrConfigs);
   bool validateTcvr(
       const TransceiverValidationInfo& tcvrInfo,
-      std::string& notValidatedReason);
+      std::string& notValidatedReason) const;
 
  private:
   std::pair<bool, std::string> validateTcvrAndReason(
-      const TransceiverValidationInfo& tcvrInfo);
+      const TransceiverValidationInfo& tcvrInfo) const;
   /*
    * This data structure maps vendorName (string) to an inner map of
    * vendorPartNumber (string) to TransceiverSpec, which is a struct based on a

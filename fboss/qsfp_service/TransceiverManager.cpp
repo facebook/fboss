@@ -1575,14 +1575,15 @@ void TransceiverManager::resetUpgradedTransceiversToDiscovered() {
 
 TransceiverValidationInfo TransceiverManager::getTransceiverValidationInfo(
     TransceiverID id,
-    bool validatePortProfile) {
+    bool validatePortProfile) const {
   TransceiverValidationInfo tcvrInfo;
   tcvrInfo.id = id;
-  tcvrInfo.validEepromChecksums = verifyEepromChecksums(id);
 
   const auto& cachedTcvrInfo = getTransceiverInfo(id);
+  const auto& cachedTcvrState = cachedTcvrInfo.tcvrState();
+  tcvrInfo.validEepromChecksums = cachedTcvrState->eepromCsumValid().value();
 
-  auto vendor = cachedTcvrInfo.tcvrState()->vendor();
+  auto vendor = cachedTcvrState->vendor();
   if (!vendor.has_value() || vendor->name().value().empty()) {
     tcvrInfo.requiredFields = std::make_pair(false, "missingVendor");
     return tcvrInfo;
@@ -1597,7 +1598,7 @@ TransceiverValidationInfo TransceiverManager::getTransceiverValidationInfo(
 
   // TODO(smenta): Once firmware sync is enabled, consider firmware versions to
   // be required.
-  auto moduleStatus = cachedTcvrInfo.tcvrState()->status();
+  auto moduleStatus = cachedTcvrState->status();
   if (moduleStatus.has_value() && moduleStatus->fwStatus().has_value()) {
     tcvrInfo.firmwareVersion = moduleStatus->fwStatus()->version().value_or("");
     tcvrInfo.dspFirmwareVersion =
@@ -1620,7 +1621,7 @@ TransceiverValidationInfo TransceiverManager::getTransceiverValidationInfo(
 bool TransceiverManager::validateTransceiverById(
     TransceiverID id,
     std::string& notValidatedReason,
-    bool validatePortProfile) {
+    bool validatePortProfile) const {
   if (tcvrValidator_ == nullptr) {
     XLOG(DBG5) << "Transceiver Validation not enabled. Skipping.";
     return false;
@@ -1632,7 +1633,8 @@ bool TransceiverManager::validateTransceiverById(
   return validateTransceiverConfiguration(tcvrInfo, notValidatedReason);
 }
 
-void TransceiverManager::checkPresentThenValidateTransceiver(TransceiverID id) {
+void TransceiverManager::checkPresentThenValidateTransceiver(
+    TransceiverID id) const {
   {
     auto lockedTransceivers = transceivers_.rlock();
     if (lockedTransceivers->find(id) == lockedTransceivers->end()) {
@@ -1644,7 +1646,7 @@ void TransceiverManager::checkPresentThenValidateTransceiver(TransceiverID id) {
 }
 
 std::string TransceiverManager::getTransceiverValidationConfigString(
-    TransceiverID id) {
+    TransceiverID id) const {
   if (tcvrValidator_ == nullptr) {
     XLOG(DBG5) << "Transceiver Validation not enabled. Skipping.";
     return "";
@@ -2937,7 +2939,7 @@ std::string TransceiverManager::getPortInfo(std::string portName) {
 
 bool TransceiverManager::validateTransceiverConfiguration(
     TransceiverValidationInfo& tcvrInfo,
-    std::string& notValidatedReason) {
+    std::string& notValidatedReason) const {
   if (tcvrValidator_ == nullptr) {
     return false;
   }

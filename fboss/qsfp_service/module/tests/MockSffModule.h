@@ -69,6 +69,7 @@ class MockSffModule : public SffModule {
   MOCK_CONST_METHOD0(customizationSupported, bool());
   MOCK_METHOD0(getModuleStatus, ModuleStatus());
   MOCK_METHOD0(getVendorInfo, Vendor());
+  MOCK_METHOD0(verifyEepromChecksums, bool());
 
   // Provide way to call parent
   void actualSetCdrIfSupported(
@@ -183,6 +184,11 @@ class MockSffModule : public SffModule {
     vendor.name() = name;
     vendor.partNumber() = partNumber;
     ON_CALL(*this, getVendorInfo()).WillByDefault(testing::Return(vendor));
+  }
+
+  void overrideValidChecksums(bool isValid) {
+    ON_CALL(*this, verifyEepromChecksums())
+        .WillByDefault(testing::Return(isValid));
   }
 
   TransceiverInfo fakeInfo_;

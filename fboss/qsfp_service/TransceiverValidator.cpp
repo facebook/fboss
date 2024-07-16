@@ -22,7 +22,7 @@ TransceiverValidator::TransceiverValidator(
 // TODO(smenta): Once firmware sync is enabled, allow non-validated firmware
 // matches to return false.
 ValidationResult TransceiverValidator::validateTcvrAndReason(
-    const TransceiverValidationInfo& tcvrInfo) {
+    const TransceiverValidationInfo& tcvrInfo) const {
   // Making vendor name capitalized since we pass in a config that assumes
   // capitalization.
   std::string vendorName = tcvrInfo.vendorName;
@@ -34,7 +34,7 @@ ValidationResult TransceiverValidator::validateTcvrAndReason(
   }
 
   auto partNumItr = vendorItr->second.find(tcvrInfo.vendorPartNumber);
-  if (partNumItr == tcvrValMap_[tcvrInfo.vendorName].end()) {
+  if (partNumItr == vendorItr->second.end()) {
     return ValidationResult(false, "nonValidatedVendorPartNumber");
   }
 
@@ -62,7 +62,7 @@ ValidationResult TransceiverValidator::validateTcvrAndReason(
 
 bool TransceiverValidator::validateTcvr(
     const TransceiverValidationInfo& tcvrInfo,
-    std::string& notValidatedReason) {
+    std::string& notValidatedReason) const {
   ValidationResult validPair;
 
   if (!tcvrInfo.validEepromChecksums) {
@@ -80,7 +80,7 @@ bool TransceiverValidator::validateTcvr(
   }
 
   auto tcvrConfigStr = fmt::format(
-      "(vendorName: {}, vendorPartNumber: {}, firmwareVersion: {}, dspFirmwareVersion: {}, portProfile: {})",
+      "(vendorName: {}, vendorPartNumber: {}, firmwareVersion: {}, dspFirmwareVersion: {}, portProfileIds: {})",
       tcvrInfo.vendorName,
       tcvrInfo.vendorPartNumber,
       tcvrInfo.firmwareVersion,

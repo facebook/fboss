@@ -729,6 +729,7 @@ TEST_F(WedgeManagerTest, validateTransceiverConfigByIdTest) {
   auto tcvrOneID = TransceiverID(1);
   auto tcvrTwoID = TransceiverID(2);
   auto tcvrThreeID = TransceiverID(3);
+  auto tcvrFourID = TransceiverID(4);
 
   auto transceiverImpl =
       std::make_unique<::testing::NiceMock<MockTransceiverImpl>>();
@@ -736,8 +737,6 @@ TEST_F(WedgeManagerTest, validateTransceiverConfigByIdTest) {
   EXPECT_CALL(*transImpl_, detectTransceiver())
       .WillRepeatedly(::testing::Return(true));
   qsfpImpls_.push_back(std::move(transceiverImpl));
-  EXPECT_CALL(*transceiverManager_, verifyEepromChecksums(testing::_))
-      .WillRepeatedly(::testing::Return(true));
   auto makeDefaultTcvr = [&](TransceiverID tcvrID) {
     auto tcvr = static_cast<MockSffModule*>(
         transceiverManager_->overrideTransceiverForTesting(
@@ -749,6 +748,7 @@ TEST_F(WedgeManagerTest, validateTransceiverConfigByIdTest) {
     tcvr->detectPresence();
     tcvr->overrideVendorNameAndPN("fbossTwo", "TR-FC13H-HFZ");
     tcvr->setFwVersion("1", "2");
+    tcvr->overrideValidChecksums(true);
     return tcvr;
   };
 
@@ -822,6 +822,7 @@ TEST_F(WedgeManagerTest, validateTransceiverConfigByIdTest) {
   auto tcvrOne = makeDefaultTcvr(tcvrOneID);
   auto tcvrTwo = makeDefaultTcvr(tcvrTwoID);
   auto tcvrThree = makeDefaultTcvr(tcvrThreeID);
+  auto tcvrFour = makeDefaultTcvr(tcvrFourID);
 
   // Test Validated Config
   validateWithReason(tcvrOne, tcvrOneID, true, "");
@@ -904,19 +905,13 @@ TEST_F(WedgeManagerTest, validateTransceiverConfigByIdTest) {
           "nonValidatedPortProfileId"));
 
   // Test Non-Validated Eeprom Checksums
-  EXPECT_CALL(*transceiverManager_, verifyEepromChecksums(testing::_))
-      .WillRepeatedly(::testing::Return(false));
+  tcvrFour->overrideValidChecksums(false);
   validateWithReason(
-      tcvrOne,
-      tcvrOneID,
+      tcvrFour,
+      tcvrFourID,
       false,
       configString(
-          "fbossTwo",
-          "TR-FC13H-HF",
-          "1",
-          "2",
-          {"PROFILE_100G_4_NRZ_NOFEC", "PROFILE_100G_4_NRZ_NOFEC"},
-          "invalidEepromChecksums"));
+          "fbossTwo", "TR-FC13H-HFZ", "1", "2", {}, "invalidEepromChecksums"));
 }
 
 } // namespace facebook::fboss

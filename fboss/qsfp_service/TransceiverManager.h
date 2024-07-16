@@ -322,16 +322,20 @@ class TransceiverManager {
 
   TransceiverValidationInfo getTransceiverValidationInfo(
       TransceiverID id,
-      bool validatePortProfile);
+      bool validatePortProfile) const;
 
   bool validateTransceiverById(
       TransceiverID id,
       std::string& notValidatedReason,
-      bool validatePortProfile);
+      bool validatePortProfile) const;
 
-  void checkPresentThenValidateTransceiver(TransceiverID id);
+  void checkPresentThenValidateTransceiver(TransceiverID id) const;
 
-  std::string getTransceiverValidationConfigString(TransceiverID id);
+  std::string getTransceiverValidationConfigString(TransceiverID id) const;
+
+  bool validateTransceiverConfiguration(
+      TransceiverValidationInfo& tcvrInfo,
+      std::string& notValidatedReason) const;
 
   // ========== Public functions for TransceiverStateMachine ==========
   // This refresh TransceiverStateMachine functions will handle all state
@@ -578,10 +582,6 @@ class TransceiverManager {
   // Transceiver has to be present, and the version in the QsfpConfig
   // has to be different from whats already running in HW.
   bool requiresFirmwareUpgrade(Transceiver& tcvr) const;
-
-  bool validateTransceiverConfiguration(
-      TransceiverValidationInfo& tcvrInfo,
-      std::string& notValidatedReason);
 
  protected:
   /*
