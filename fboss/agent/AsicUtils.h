@@ -17,4 +17,5 @@
 namespace facebook::fboss {
 const HwAsic& getHwAsicForAsicType(const cfg::AsicType& asicType);
 uint32_t getFabricPortsPerVirtualDevice(const cfg::AsicType asicType);
+int getMaxNumberOfFabricPorts(const cfg::AsicType asicType);
 } // namespace facebook::fboss

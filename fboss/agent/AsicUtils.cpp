@@ -116,4 +116,9 @@ uint32_t getFabricPortsPerVirtualDevice(const cfg::AsicType asicType) {
   throw FbossError(
       "Invalid Asic Type: ", apache::thrift::util::enumNameSafe(asicType));
 }
+
+int getMaxNumberOfFabricPorts(const cfg::AsicType asicType) {
+  return getFabricPortsPerVirtualDevice(asicType) *
+      getHwAsicForAsicType(asicType).getVirtualDevices();
+}
 } // namespace facebook::fboss
