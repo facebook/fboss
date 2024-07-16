@@ -433,8 +433,9 @@ void SaiSwitch::switchEventCallback(
       } else if (rtpTableChanged) {
         // RTP table change notification is vendor specific, this
         // means a change in switch reachability over fabric!
-        // TODO: Initiate processing for RTP table change, ie.
-        // invoke the common switchReachabilityChange handling.
+        // Initiate processing for RTP table change, ie. invoke
+        // the common switchReachabilityChange handling.
+        switchReachabilityChangeTopHalf();
         getSwitchStats()->switchReachabilityChangeCount();
       }
     } break;
