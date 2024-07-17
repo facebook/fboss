@@ -3337,23 +3337,26 @@
     "/run/devmap/flashes/MCB_SPI_MASTER_7_DEVICE_1": "/[MCB_SPI_MASTER_7_DEVICE_1]"
   },
   "bspKmodsRpmName": "fboss_bsp_kmods",
-  "bspKmodsRpmVersion": "1.5.0-1",
+  "bspKmodsRpmVersion": "2.0.0-1",
   "bspKmodsToReload": [
+    "bp4f_lm25066",
+    "bp4f_tda38640",
+    "bp4f_xdpe12284",
+    "bp4f_xdpe152c4",
+    "fboss_iob_gpio",
+    "fboss_iob_i2c",
+    "fboss_iob_info",
+    "fboss_iob_led",
+    "fboss_iob_pci",
+    "fboss_iob_spi",
+    "fboss_iob_xcvr",
     "mp3_fancpld",
-    "fbiob_pci",
-    "fpga_info",
-    "gpio_fbiob",
-    "i2c_fbiob",
-    "mcbcpld",
-    "port_led",
+    "mp3_mcbcpld",
     "mp3_scmcpld",
     "mp3_smbcpld",
-    "spi_fbiob",
-    "xcvr_ctrl"
+    "tps25990"
   ],
   "sharedKmodsToReload": [
-    "i2c_dev_sysfs",
-    "regbit_sysfs"
   ],
   "upstreamKmodsToLoad": [
     "i2c_i801",
