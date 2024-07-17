@@ -111,6 +111,10 @@ SaiPortTraits::Attributes::AttributeRxLaneSquelchEnable::operator()() {
 }
 
 std::optional<sai_attr_id_t>
+SaiPortTraits::Attributes::AttributeCablePropogationDelayNS::operator()() {
+  return std::nullopt;
+}
+std::optional<sai_attr_id_t>
 SaiSwitchTraits::Attributes::AttributeRestartIssuWrapper::operator()() {
   return SAI_SWITCH_ATTR_EXT_RESTART_ISSU;
 }

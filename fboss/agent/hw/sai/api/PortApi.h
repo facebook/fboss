@@ -624,6 +624,7 @@ SAI_ATTRIBUTE_NAME(Port, SystemPort);
 #if SAI_API_VERSION >= SAI_VERSION(1, 13, 0)
 SAI_ATTRIBUTE_NAME(Port, TxReadyStatus)
 #endif
+SAI_ATTRIBUTE_NAME(Port, CablePropogationDelayNS)
 
 template <>
 struct SaiObjectHasStats<SaiPortTraits> : public std::true_type {};
