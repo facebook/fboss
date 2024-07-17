@@ -310,10 +310,14 @@ std::map<SystemPortID, HwSysPortStats> AgentHwTest::getLatestSysPortStats(
           auto portName =
               portStatName.substr(0, portStatName.find_last_of("_"));
           try {
-            portId = getProgrammedState()
-                         ->getSystemPorts()
-                         ->getSystemPort(portName)
-                         ->getID();
+            if (portName.find("cpu") != std::string::npos) {
+              portId = 0;
+            } else {
+              portId = getProgrammedState()
+                           ->getSystemPorts()
+                           ->getSystemPort(portName)
+                           ->getID();
+            }
           } catch (const FbossError&) {
             // Look in remote sys ports if we couldn't find in local sys ports
             portId = getProgrammedState()
@@ -338,6 +342,29 @@ HwSysPortStats AgentHwTest::getLatestSysPortStats(const SystemPortID& port) {
   return getLatestSysPortStats(std::vector<SystemPortID>({port}))
       .begin()
       ->second;
+}
+
+std::optional<HwSysPortStats> AgentHwTest::getLatestCpuSysPortStats() {
+  std::map<std::string, HwSysPortStats> systemPortStats;
+  std::optional<HwSysPortStats> portStats;
+  checkWithRetry(
+      [&systemPortStats, &portStats, this]() {
+        bool found = false;
+        getSw()->getAllHwSysPortStats(systemPortStats);
+        for (auto [portStatName, stats] : systemPortStats) {
+          if (portStatName.find("cpu") != std::string::npos) {
+            XLOG(DBG2) << "found cpu port stats for " << portStatName;
+            portStats = stats;
+            found = true;
+          }
+        }
+        return found;
+      },
+      120,
+      std::chrono::milliseconds(1000),
+      " fetch cpu system port stats");
+
+  return portStats;
 }
 
 HwSwitchDropStats AgentHwTest::getAggregatedSwitchDropStats() {

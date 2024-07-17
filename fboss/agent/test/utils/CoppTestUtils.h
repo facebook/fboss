@@ -266,5 +266,8 @@ void excludeTTL1TrapConfig(cfg::SwitchConfig& config);
 CpuPortStats getCpuPortStats(SwSwitch* sw, SwitchID switchId);
 
 cfg::PortQueueRate setPortQueueRate(const HwAsic* hwAsic, uint16_t queueId);
+
+uint32_t getDnxCoppMaxDynamicSharedBytes(uint16_t queueId);
+
 } // namespace utility
 } // namespace facebook::fboss

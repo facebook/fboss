@@ -1679,6 +1679,34 @@ TEST_F(AgentCoppQosTest, HighVsLowerPriorityCpuQueueTrafficPrioritization) {
     EXPECT_EQ(
         kHighPriorityPacketCount,
         highPriorityCoppQueueStatsAfter - highPriorityCoppQueueStatsBefore);
+
+    if (asic->isSupported(HwAsic::Feature::CPU_VOQ_BUFFER_PROFILE)) {
+      // check watermark of low priority voq should reach max shared buffer size
+      const double kVariance = 0.01;
+      auto watermarkBytesLow = utility::getDnxCoppMaxDynamicSharedBytes(
+                                   utility::kCoppLowPriQueueId) *
+          (1 - kVariance);
+      auto watermarkBytesHigh = utility::getDnxCoppMaxDynamicSharedBytes(
+                                    utility::kCoppLowPriQueueId) *
+          (1 + kVariance);
+      WITH_RETRIES({
+        auto voqWaterMarkBytes =
+            getLatestCpuSysPortStats().value().get_queueWatermarkBytes_();
+        auto lowPriorityWaterMarkBytes =
+            voqWaterMarkBytes.at(utility::kCoppLowPriQueueId);
+        XLOG(DBG2) << "low priority cpu voq watermark counter "
+                   << lowPriorityWaterMarkBytes;
+        for (auto iter = voqWaterMarkBytes.begin();
+             iter != voqWaterMarkBytes.end();
+             iter++) {
+          XLOG(DBG2) << "cpu voq " << iter->first << " has watermarker counter "
+                     << iter->second;
+        }
+        EXPECT_EVENTUALLY_TRUE(
+            lowPriorityWaterMarkBytes < watermarkBytesHigh &&
+            lowPriorityWaterMarkBytes > watermarkBytesLow);
+      });
+    }
   };
 
   this->verifyAcrossWarmBoots(setup, verify);

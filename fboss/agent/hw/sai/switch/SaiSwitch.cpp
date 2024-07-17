@@ -1340,6 +1340,9 @@ std::map<std::string, HwSysPortStats> SaiSwitch::getSysPortStatsLocked(
   for (auto& entry : portIdStatsMap) {
     portStatsMap.emplace(entry.second->portName(), entry.second->portStats());
   }
+  auto& cpuSysPortStats =
+      managerTable_->hostifManager().getCpuSysPortFb303Stats();
+  portStatsMap.emplace(cpuSysPortStats.portName(), cpuSysPortStats.portStats());
   return portStatsMap;
 }
 

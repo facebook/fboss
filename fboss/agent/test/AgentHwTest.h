@@ -150,6 +150,7 @@ class AgentHwTest : public ::testing::Test {
       const std::vector<SystemPortID>& ports);
 
   HwSysPortStats getLatestSysPortStats(const SystemPortID& port);
+  std::optional<HwSysPortStats> getLatestCpuSysPortStats();
 
   HwSwitchDropStats getAggregatedSwitchDropStats();
 

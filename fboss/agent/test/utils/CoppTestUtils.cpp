@@ -1225,6 +1225,18 @@ std::map<int, std::vector<uint8_t>> getOlympicQosMaps(
   return queueToDscp;
 }
 
+uint32_t getDnxCoppMaxDynamicSharedBytes(uint16_t queueId) {
+  if (queueId == kCoppLowPriQueueId) {
+    return kDnxCoppLowMaxDynamicSharedBytes;
+  }
+  if (queueId == kJ3CoppMidPriQueueId) {
+    return kDnxCoppMidMaxDynamicSharedBytes;
+  }
+  // should not reach here
+  XLOG(FATAL) << "no max dynamic shared bytes set for queue " << queueId;
+  return 0;
+}
+
 template void sendAndVerifyPkts<SwSwitch>(
     SwSwitch* switchPtr,
     SwitchID switchId,
