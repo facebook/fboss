@@ -1757,7 +1757,7 @@
         {
           "busName": "SCM_MUX_A@0",
           "address": "0x44",
-          "kernelDeviceName": "lm25066",
+          "kernelDeviceName": "bp4f_lm25066",
           "pmUnitScopedName": "SCM_SENSOR"
         },
         {
@@ -2933,13 +2933,13 @@
         {
           "busName": "INCOMING@4",
           "address": "0x6a",
-          "kernelDeviceName": "xdpe12284",
+          "kernelDeviceName": "bp4f_xdpe12284",
           "pmUnitScopedName": "SMB_VRM2"
         },
         {
           "busName": "INCOMING@5",
           "address": "0x70",
-          "kernelDeviceName": "xdpe12284",
+          "kernelDeviceName": "bp4f_xdpe12284",
           "pmUnitScopedName": "SMB_VRM3"
         },
         {
@@ -3067,31 +3067,31 @@
         {
           "busName": "INCOMING@0",
           "address": "0x11",
-          "kernelDeviceName": "tda38640",
+          "kernelDeviceName": "bp4f_tda38640",
           "pmUnitScopedName": "COME_VOLTAGE_MONITOR1"
         },
         {
           "busName": "INCOMING@0",
           "address": "0x22",
-          "kernelDeviceName": "tda38640",
+          "kernelDeviceName": "bp4f_tda38640",
           "pmUnitScopedName": "COME_VOLTAGE_MONITOR2"
         },
         {
           "busName": "INCOMING@0",
           "address": "0x45",
-          "kernelDeviceName": "tda38640",
+          "kernelDeviceName": "bp4f_tda38640",
           "pmUnitScopedName": "COME_VOLTAGE_MONITOR3"
         },
         {
           "busName": "INCOMING@0",
           "address": "0x66",
-          "kernelDeviceName": "tda38640",
+          "kernelDeviceName": "bp4f_tda38640",
           "pmUnitScopedName": "COME_VOLTAGE_MONITOR4"
         },
         {
           "busName": "INCOMING@0",
           "address": "0x76",
-          "kernelDeviceName": "xdpe15284",
+          "kernelDeviceName": "bp4f_xdpe15284",
           "pmUnitScopedName": "COME_VOLTAGE_MONITOR5"
         }
       ]
