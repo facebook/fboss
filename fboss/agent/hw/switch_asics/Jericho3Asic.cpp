@@ -77,6 +77,7 @@ bool Jericho3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::ZERO_SDK_WRITE_WARMBOOT:
     case HwAsic::Feature::CPU_VOQ_BUFFER_PROFILE:
     case HwAsic::Feature::SWITCH_REACHABILITY_CHANGE_NOTIFY:
+    case HwAsic::Feature::CABLE_PROPOGATION_DELAY:
       return true;
     // Features not expected to work on SIM
     case HwAsic::Feature::SHARED_INGRESS_EGRESS_BUFFER_POOL:
