@@ -57,6 +57,11 @@ DEFINE_bool(
     false,
     "Skip reading stats from ASIC to allow diag shell debugging!");
 
+DEFINE_int32(
+    update_cable_length_stats_s,
+    600,
+    "Update cable length stats interval in seconds");
+
 namespace {
 constexpr auto kBuildSdkVersion = "SDK Version";
 
