@@ -22,6 +22,8 @@
 #include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
 #include "fboss/agent/hw/sai/switch/SaiSystemPortManager.h"
 
+DECLARE_int32(update_cable_length_stats_s);
+
 namespace facebook::fboss {
 
 void SaiSwitch::updateStatsImpl() {
@@ -49,6 +51,12 @@ void SaiSwitch::updateStatsImpl() {
     voqStatsUpdateTime_ = now;
   }
 
+  bool updateCableLengths =
+      now - cableLengthStatsUpdateTime_ >= FLAGS_update_cable_length_stats_s;
+
+  if (updateCableLengths) {
+    cableLengthStatsUpdateTime_ = now;
+  }
   int64_t missingCount = 0, mismatchCount = 0;
   auto portsIter = concurrentIndices_->portSaiId2PortInfo.begin();
   std::map<PortID, multiswitch::FabricConnectivityDelta> connectivityDelta;
@@ -73,7 +81,7 @@ void SaiSwitch::updateStatsImpl() {
         }
       }
       managerTable_->portManager().updateStats(
-          portsIter->second.portID, updateWatermarks);
+          portsIter->second.portID, updateWatermarks, updateCableLengths);
     }
     ++portsIter;
   }

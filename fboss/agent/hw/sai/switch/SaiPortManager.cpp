@@ -1742,7 +1742,10 @@ void SaiPortManager::updatePrbsStats(PortID portId) {
 #endif
 }
 
-void SaiPortManager::updateStats(PortID portId, bool updateWatermarks) {
+void SaiPortManager::updateStats(
+    PortID portId,
+    bool updateWatermarks,
+    bool updateCableLengths) {
   auto handlesItr = handles_.find(portId);
   if (handlesItr == handles_.end()) {
     return;
@@ -1842,6 +1845,11 @@ void SaiPortManager::updateStats(PortID portId, bool updateWatermarks) {
   auto logicalPortId = platform_->getPlatformPort(portId)->getHwLogicalPortId();
   if (logicalPortId) {
     curPortStats.logicalPortId() = *logicalPortId;
+  }
+  if (updateCableLengths && portType == cfg::PortType::FABRIC_PORT &&
+      platform_->getAsic()->isSupported(
+          HwAsic::Feature::CABLE_PROPOGATION_DELAY)) {
+    // TODO
   }
   portStats_[portId]->updateStats(curPortStats, now);
   auto lastPrbsRxStateReadTimeIt = lastPrbsRxStateReadTime_.find(portId);

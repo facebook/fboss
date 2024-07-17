@@ -213,7 +213,10 @@ class SaiPortManager {
   void clearPortAsicPrbsStats(PortID portId);
   prbs::InterfacePrbsState getPortPrbsState(PortID portId);
   void updatePrbsStats(PortID portId);
-  void updateStats(PortID portID, bool updateWatermarks = false);
+  void updateStats(
+      PortID portID,
+      bool updateWatermarks = false,
+      bool updateCableLengths = false);
 
   void updateConnectivityStats(PortID portID);
 
