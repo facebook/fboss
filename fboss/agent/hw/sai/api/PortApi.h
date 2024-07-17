@@ -17,6 +17,7 @@
 
 #include <folly/logging/xlog.h>
 
+#include <limits>
 #include <optional>
 #include <tuple>
 
@@ -375,6 +376,13 @@ struct SaiPortTraits {
     using TxReadyStatus =
         SaiAttribute<EnumType, SAI_PORT_ATTR_HOST_TX_READY_STATUS, sai_int32_t>;
 #endif
+    struct AttributeCablePropogationDelayNS {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    using CablePropogationDelayNS = SaiExtensionAttribute<
+        sai_uint32_t,
+        AttributeCablePropogationDelayNS,
+        SaiIntValueDefault<uint32_t, std::numeric_limits<uint32_t>::max()>>;
   };
   using AdapterKey = PortSaiId;
 
