@@ -22,8 +22,8 @@ namespace facebook::fboss {
 std::shared_ptr<Interface> InterfaceMap::getInterfaceIf(
     RouterID router,
     const IPAddress& ip) const {
-  for (auto itr = begin(); itr != end(); ++itr) {
-    auto intf = itr->second;
+  for (const auto& itr : std::as_const(*this)) {
+    const auto& intf = itr.second;
     if (intf->getRouterID() == router && intf->hasAddress(ip)) {
       return intf;
     }
@@ -43,8 +43,8 @@ const std::shared_ptr<Interface> InterfaceMap::getInterface(
 
 std::shared_ptr<Interface> InterfaceMap::getInterfaceInVlanIf(
     VlanID vlan) const {
-  for (auto itr = begin(); itr != end(); ++itr) {
-    auto intf = itr->second;
+  for (const auto& itr : std::as_const(*this)) {
+    const auto& intf = itr.second;
     if (intf->getVlanID() == vlan) {
       return intf;
     }
