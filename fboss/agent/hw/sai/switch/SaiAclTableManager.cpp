@@ -1428,6 +1428,7 @@ std::set<cfg::AclTableQualifier> SaiAclTableManager::getSupportedQualifierSet()
         cfg::AclTableQualifier::DSCP,
         cfg::AclTableQualifier::TTL,
         cfg::AclTableQualifier::IPV6_NEXT_HEADER,
+        cfg::AclTableQualifier::IP_TYPE,
         cfg::AclTableQualifier::LOOKUP_CLASS_NEIGHBOR,
         cfg::AclTableQualifier::LOOKUP_CLASS_ROUTE,
         cfg::AclTableQualifier::BTH_OPCODE};
