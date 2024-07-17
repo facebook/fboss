@@ -1,6 +1,6 @@
 {
   "platformName": "montblanc",
-  "rootPmUnitName": "MCB",
+  "rootPmUnitName": "MINIPACK3_MCB",
   "slotTypeConfigs": {
     "MCB_SLOT": {
       "numOutgoingI2cBuses": 0,
@@ -9,7 +9,7 @@
         "address": "0x53",
         "kernelDeviceName": "24c02"
       },
-      "pmUnitName": "MCB"
+      "pmUnitName": "MINIPACK3_MCB"
     },
     "SCM_SLOT": {
       "numOutgoingI2cBuses": 4,
@@ -18,7 +18,7 @@
         "address": "0x54",
         "kernelDeviceName": "24c64"
       },
-      "pmUnitName": "SCM"
+      "pmUnitName": "MINIPACK3_SCM"
     },
     "RUNBMC_SLOT": {
       "numOutgoingI2cBuses": 1,
@@ -27,7 +27,7 @@
         "address": "0x51",
         "kernelDeviceName": "24c64"
       },
-      "pmUnitName": "RUNBMC"
+      "pmUnitName": "MINIPACK3_BMC"
     },
     "PDBLEFT_SLOT": {
       "numOutgoingI2cBuses": 1,
@@ -36,7 +36,7 @@
         "address": "0x55",
         "kernelDeviceName": "24c02"
       },
-      "pmUnitName": "PDBLEFT"
+      "pmUnitName": "MINIPACK3_PDB_L"
     },
     "PDBRIGHT_SLOT": {
       "numOutgoingI2cBuses": 1,
@@ -45,7 +45,7 @@
         "address": "0x55",
         "kernelDeviceName": "24c02"
       },
-      "pmUnitName": "PDBRIGHT"
+      "pmUnitName": "MINIPACK3_PDB_R"
     },
     "SMB_SLOT": {
       "numOutgoingI2cBuses": 6,
@@ -54,7 +54,7 @@
         "address": "0x50",
         "kernelDeviceName": "24c64"
       },
-      "pmUnitName": "SMB"
+      "pmUnitName": "MINIPACK3_SMB"
     },
     "FCBBOTTOM_SLOT": {
       "numOutgoingI2cBuses": 1,
@@ -63,7 +63,7 @@
         "address": "0x51",
         "kernelDeviceName": "24c64"
       },
-      "pmUnitName": "FCBBOTTOM"
+      "pmUnitName": "MINIPACK3_FCB_B"
     },
     "FCBTOP_SLOT": {
       "numOutgoingI2cBuses": 2,
@@ -72,7 +72,7 @@
         "address": "0x51",
         "kernelDeviceName": "24c64"
       },
-      "pmUnitName": "FCBTOP"
+      "pmUnitName": "MINIPACK3_FCB_T"
     },
     "COMESE_SLOT": {
       "numOutgoingI2cBuses": 1,
@@ -81,7 +81,7 @@
         "address": "0x56",
         "kernelDeviceName": "24c128"
       },
-      "pmUnitName": "COMESE"
+      "pmUnitName": "NETLAKE"
     },
     "COMEVR_SLOT": {
       "numOutgoingI2cBuses": 1,
@@ -93,7 +93,7 @@
     "SMBus iSMT adapter at 20fffa7b000"
   ],
   "pmUnitConfigs": {
-    "MCB": {
+    "MINIPACK3_MCB": {
       "pluggedInSlotType": "MCB_SLOT",
       "embeddedSensorConfigs": [
         {
@@ -413,22 +413,6 @@
               "spiDeviceConfigs": [
                 {
                   "pmUnitScopedName": "MCB_SPI_MASTER_7_DEVICE_1",
-                  "modalias": "spidev",
-                  "chipSelect": 0,
-                  "maxSpeedHz": 25000000
-                }
-              ]
-            },
-            {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "MCB_SPI_MASTER_8",
-                "deviceName": "spi_master",
-                "csrOffset": "0x10380",
-                "iobufOffset": "0x13c00"
-              },
-              "spiDeviceConfigs": [
-                {
-                  "pmUnitScopedName": "MCB_SPI_MASTER_8_DEVICE_1",
                   "modalias": "spidev",
                   "chipSelect": 0,
                   "maxSpeedHz": 25000000
@@ -1741,7 +1725,7 @@
         }
       }
     },
-    "SCM": {
+    "MINIPACK3_SCM": {
       "pluggedInSlotType": "SCM_SLOT",
       "i2cDeviceConfigs": [
         {
@@ -1805,12 +1789,6 @@
           "address": "0x4c",
           "kernelDeviceName": "tps25990",
           "pmUnitScopedName": "SCM_VOLTAGE_MONITOR2"
-        },
-        {
-          "busName": "SCM_MUX_A@4",
-          "address": "0x50",
-          "kernelDeviceName": "24c02",
-          "pmUnitScopedName": "88E6321_EEPROM"
         }
       ],
       "outgoingSlotConfigs": {
@@ -1828,7 +1806,7 @@
         }
       }
     },
-    "RUNBMC": {
+    "MINIPACK3_BMC": {
       "pluggedInSlotType": "RUNBMC_SLOT",
       "i2cDeviceConfigs": [
         {
@@ -1839,7 +1817,7 @@
         }
       ]
     },
-    "PDBLEFT": {
+    "MINIPACK3_PDB_L": {
       "pluggedInSlotType": "PDBLEFT_SLOT",
       "i2cDeviceConfigs": [
         {
@@ -1862,7 +1840,7 @@
         }
       ]
     },
-    "PDBRIGHT": {
+    "MINIPACK3_PDB_R": {
       "pluggedInSlotType": "PDBRIGHT_SLOT",
       "i2cDeviceConfigs": [
         {
@@ -1885,7 +1863,7 @@
         }
       ]
     },
-    "SMB": {
+    "MINIPACK3_SMB": {
       "pluggedInSlotType": "SMB_SLOT",
       "pciDeviceConfigs": [
         {
@@ -2375,7 +2353,7 @@
               "fpgaIpBlockConfig": {
                 "pmUnitScopedName": "SMB_DOM2_I2C_MASTER_35",
                 "deviceName": "dom2_i2c_master",
-                "csrOffset": "0x4c200"
+                "csrOffset": "0x4cc00"
               }
             }
           ],
@@ -3026,7 +3004,7 @@
         }
       ]
     },
-    "FCBTOP": {
+    "MINIPACK3_FCB_T": {
       "pluggedInSlotType": "FCBTOP_SLOT",
       "i2cDeviceConfigs": [
         {
@@ -3049,7 +3027,7 @@
         }
       ]
     },
-    "FCBBOTTOM": {
+    "MINIPACK3_FCB_B": {
       "pluggedInSlotType": "FCBBOTTOM_SLOT",
       "i2cDeviceConfigs": [
         {
@@ -3066,7 +3044,7 @@
         }
       ]
     },
-    "COMESE": {
+    "NETLAKE": {
       "pluggedInSlotType": "COMESE_SLOT",
       "i2cDeviceConfigs": [
         {
@@ -3131,7 +3109,6 @@
     "/run/devmap/eeproms/SMB_EEPROM": "/SMB_SLOT@0/[IDPROM]",
     "/run/devmap/eeproms/FCB_B_EEPROM": "/FCBBOTTOM_SLOT@0/[IDPROM]",
     "/run/devmap/eeproms/FCB_T_EEPROM": "/FCBTOP_SLOT@0/[IDPROM]",
-    "/run/devmap/eeproms/88E6321_EEPROM": "/SCM_SLOT@0/[88E6321_EEPROM]",
     "/run/devmap/eeproms/CHASSISS_EEPROM": "/FCBTOP_SLOT@0/[FCB_T_IDPROM]",
     "/run/devmap/eeproms/3V3_L_EEPROM": "/SMB_SLOT@0/[3V3_L_IDPROM]",
     "/run/devmap/eeproms/3V3_R_EEPROM": "/SMB_SLOT@0/[3V3_R_IDPROM]",
@@ -3282,7 +3259,7 @@
     "/run/devmap/i2c-busses/xcvr_62": "/SMB_SLOT@0/[SMB_DOM2_I2C_MASTER_30]",
     "/run/devmap/i2c-busses/xcvr_63": "/SMB_SLOT@0/[SMB_DOM2_I2C_MASTER_31]",
     "/run/devmap/i2c-busses/xcvr_64": "/SMB_SLOT@0/[SMB_DOM2_I2C_MASTER_32]",
-    "/run/devmap/i2c-busses/xcvr_65": "/SMB_SLOT@0/[SMB_DOM2_I2C_MASTER_33]",
+    "/run/devmap/i2c-busses/xcvr_65": "/SMB_SLOT@0/[SMB_DOM2_I2C_MASTER_35]",
     "/run/devmap/i2c-busses/SMB_DOM2_I2C_MASTER_33": "/SMB_SLOT@0/[SMB_DOM2_I2C_MASTER_33]",
     "/run/devmap/i2c-busses/SMB_DOM2_I2C_MASTER_34": "/SMB_SLOT@0/[SMB_DOM2_I2C_MASTER_34]",
     "/run/devmap/gpiochips/MCB_GPIO_CHIP_1": "/[MCB_GPIO_CHIP_1]",
@@ -3357,8 +3334,7 @@
     "/run/devmap/flashes/MCB_SPI_MASTER_4_DEVICE_1": "/[MCB_SPI_MASTER_4_DEVICE_1]",
     "/run/devmap/flashes/MCB_SPI_MASTER_5_DEVICE_1": "/[MCB_SPI_MASTER_5_DEVICE_1]",
     "/run/devmap/flashes/MCB_SPI_MASTER_6_DEVICE_1": "/[MCB_SPI_MASTER_6_DEVICE_1]",
-    "/run/devmap/flashes/MCB_SPI_MASTER_7_DEVICE_1": "/[MCB_SPI_MASTER_7_DEVICE_1]",
-    "/run/devmap/flashes/MCB_SPI_MASTER_8_DEVICE_1": "/[MCB_SPI_MASTER_8_DEVICE_1]"
+    "/run/devmap/flashes/MCB_SPI_MASTER_7_DEVICE_1": "/[MCB_SPI_MASTER_7_DEVICE_1]"
   },
   "bspKmodsRpmName": "fboss_bsp_kmods",
   "bspKmodsRpmVersion": "1.5.0-1",
