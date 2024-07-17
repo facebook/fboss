@@ -149,6 +149,7 @@ HwPortStats getInitedStats() {
       0, // fabricConnectivityMismatch
       1, // logicalPortId
       2, // leakyBucketFlapCount_
+      100, // cableLengthMeters
   };
 }
 
