@@ -100,16 +100,19 @@ BENCHMARK(RxSlowPathBenchmark) {
   const auto kSrcMac = folly::MacAddress{"fa:ce:b0:00:00:0c"};
   // Send packet
   auto vlanId = utility::firstVlanID(ensemble->getProgrammedState());
-  auto txPacket = utility::makeUDPTxPacket(
-      ensemble->getSw(),
-      vlanId,
-      kSrcMac,
-      dstMac,
-      folly::IPAddressV6("2620:0:1cfe:face:b00c::3"),
-      folly::IPAddressV6(kDstIp),
-      8000,
-      8001);
-  ensemble->getSw()->sendPacketSwitchedAsync(std::move(txPacket));
+  auto constexpr kPacketToSend = 10;
+  for (int i = 0; i < kPacketToSend; i++) {
+    auto txPacket = utility::makeUDPTxPacket(
+        ensemble->getSw(),
+        vlanId,
+        kSrcMac,
+        dstMac,
+        folly::IPAddressV6("2620:0:1cfe:face:b00c::3"),
+        folly::IPAddressV6(kDstIp),
+        8000,
+        8001);
+    ensemble->getSw()->sendPacketSwitchedAsync(std::move(txPacket));
+  }
 
   constexpr auto kBurnIntevalInSeconds = 5;
   // Let the packet flood warm up
