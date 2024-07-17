@@ -85,4 +85,13 @@ SaiPortTraits::Attributes::AttributeCrcErrorDetect::operator()() {
   return std::nullopt;
 #endif
 }
+
+std::optional<sai_attr_id_t>
+SaiPortTraits::Attributes::AttributeCablePropogationDelayNS::operator()() {
+#if defined(BRCM_SAI_SDK_GTE_11_0) && defined(BRCM_SAI_SDK_DNX)
+  return SAI_PORT_ATTR_CABLE_PROPAGATION_DELAY;
+#else
+  return std::nullopt;
+#endif
+}
 } // namespace facebook::fboss

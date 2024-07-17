@@ -59,4 +59,8 @@ SaiPortTraits::Attributes::AttributeCrcErrorDetect::operator()() {
   return std::nullopt;
 }
 #endif
+std::optional<sai_attr_id_t>
+SaiPortTraits::Attributes::AttributeCablePropogationDelayNS::operator()() {
+  return std::nullopt;
+}
 } // namespace facebook::fboss
