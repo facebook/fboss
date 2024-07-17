@@ -38,7 +38,6 @@ namespace facebook::fboss {
 const std::string kDstIp = "2620:0:1cfe:face:b00c::4";
 
 BENCHMARK(RxSlowPathBenchmark) {
-  constexpr int kEcmpWidth = 1;
   AgentEnsembleSwitchConfigFn initialConfigFn = [](const AgentEnsemble&
                                                        ensemble) {
     FLAGS_sai_user_defined_trap = true;
