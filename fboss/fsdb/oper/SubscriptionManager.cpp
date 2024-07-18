@@ -14,7 +14,7 @@ void SubscriptionManagerBase::registerExtendedSubscription(
     throw std::runtime_error(
         "Cannot support patch type subscriptions without id paths");
   }
-  store_.wlock()->registerExtendedSubscription(std::move(subscription));
+  pendingExtendedSubscriptions_.wlock()->push_back(std::move(subscription));
 }
 
 void SubscriptionManagerBase::registerSubscription(
@@ -23,7 +23,7 @@ void SubscriptionManagerBase::registerSubscription(
     throw std::runtime_error(
         "Cannot support patch type subscriptions without id paths");
   }
-  store_.wlock()->registerSubscription(std::move(subscription));
+  pendingSubscriptions_.wlock()->push_back(std::move(subscription));
 }
 
 void SubscriptionManagerBase::pruneCancelledSubscriptions() {
@@ -56,6 +56,17 @@ std::vector<OperSubscriberInfo> SubscriptionManagerBase::getSubscriptions()
 
 void SubscriptionManagerBase::serveHeartbeat() {
   store_.wlock()->serveHeartbeat();
+}
+
+void SubscriptionManagerBase::registerPendingSubscriptions(
+    SubscriptionStore& store) {
+  auto pendingSubscriptions = pendingSubscriptions_.wlock();
+  auto pendingExtendedSubscriptions = pendingExtendedSubscriptions_.wlock();
+  store.registerPendingSubscriptions(
+      std::move(*pendingSubscriptions),
+      std::move(*pendingExtendedSubscriptions));
+  *pendingSubscriptions = PendingSubscriptions();
+  *pendingExtendedSubscriptions = PendingExtendedSubscriptions();
 }
 
 } // namespace facebook::fboss::fsdb

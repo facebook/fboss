@@ -71,9 +71,7 @@ class SubscriptionManagerBase {
       std::shared_ptr<ExtendedSubscription> subscription);
 
  protected:
-  void processAddedPath(
-      std::vector<std::string>::const_iterator begin,
-      std::vector<std::string>::const_iterator end);
+  void registerPendingSubscriptions(SubscriptionStore& store);
 
   folly::Synchronized<SubscriptionStore> store_;
 
@@ -81,6 +79,14 @@ class SubscriptionManagerBase {
 
   const OperProtocol patchOperProtocol_{OperProtocol::COMPACT};
   bool requireResponseOnInitialSync_{false};
+
+ private:
+  using PendingSubscriptions = std::vector<std::unique_ptr<Subscription>>;
+  using PendingExtendedSubscriptions =
+      std::vector<std::shared_ptr<ExtendedSubscription>>;
+  folly::Synchronized<PendingSubscriptions> pendingSubscriptions_;
+  folly::Synchronized<PendingExtendedSubscriptions>
+      pendingExtendedSubscriptions_;
 };
 
 template <typename _Root, typename Impl>
@@ -101,9 +107,10 @@ class SubscriptionManager : public SubscriptionManagerBase {
       const SubscriptionMetadataServer& metadataServer) {
     auto impl = static_cast<Impl*>(this);
     auto store = store_.wlock();
-    store->pruneCancelledSubscriptions();
 
-    // TODO: handle pending subscriptions
+    registerPendingSubscriptions(*store);
+
+    store->pruneCancelledSubscriptions();
 
     if (oldRoot != newRoot) {
       try {

@@ -101,7 +101,7 @@ TEST_P(SubscribableStorageTests, SubscribeUnsubscribe) {
   storage.start();
   {
     auto generator = storage.subscribe(kSubscriber, std::move(txPath));
-    EXPECT_EQ(storage.numSubscriptions(), 1);
+    WITH_RETRIES(EXPECT_EVENTUALLY_EQ(storage.numSubscriptions(), 1));
   }
   WITH_RETRIES(EXPECT_EVENTUALLY_EQ(storage.numSubscriptions(), 0));
 }

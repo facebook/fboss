@@ -77,6 +77,18 @@ void SubscriptionStore::registerSubscription(
   registerSubscription(std::move(candidateName), std::move(subscription));
 }
 
+void SubscriptionStore::registerPendingSubscriptions(
+    std::vector<std::unique_ptr<Subscription>>&& subscriptions,
+    std::vector<std::shared_ptr<ExtendedSubscription>>&&
+        extendedSubscriptions) {
+  for (auto& subscription : subscriptions) {
+    registerSubscription(std::move(subscription));
+  }
+  for (auto& extendedSubscription : extendedSubscriptions) {
+    registerExtendedSubscription(std::move(extendedSubscription));
+  }
+}
+
 void SubscriptionStore::unregisterSubscription(const std::string& name) {
   XLOG(DBG1) << "Unregistering subscription " << name;
   if (auto it = subscriptions_.find(name); it != subscriptions_.end()) {

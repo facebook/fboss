@@ -18,6 +18,11 @@ class SubscriptionStore {
   void registerExtendedSubscription(
       std::shared_ptr<ExtendedSubscription> subscription);
 
+  void registerPendingSubscriptions(
+      std::vector<std::unique_ptr<Subscription>>&& subscriptions,
+      std::vector<std::shared_ptr<ExtendedSubscription>>&&
+          extendedSubscriptions);
+
   void unregisterSubscription(const std::string& name);
 
   void unregisterExtendedSubscription(const std::string& name);
