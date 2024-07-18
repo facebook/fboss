@@ -10,8 +10,10 @@
 
 #include "fboss/agent/hw/HwBasePortFb303Stats.h"
 
+#include "fboss/agent/hw/CounterUtils.h"
 #include "fboss/agent/hw/StatsConstants.h"
 
+#include <fb303/ServiceData.h>
 #include <folly/logging/xlog.h>
 
 namespace facebook::fboss {
@@ -49,6 +51,11 @@ void HwBasePortFb303Stats::reinitStats(std::optional<std::string> oldPortName) {
 
   for (auto statKey : kPortMonotonicCounterStatKeys()) {
     reinitStat(statKey, portName_, oldPortName);
+  }
+  for (auto statKey : kPortFb303CounterStatKeys()) {
+    // For fb303 - init will happen on the next set. So here we
+    // just delete the counter
+    utility::deleteCounter(statName(statKey, oldPortName.value_or("")));
   }
   for (auto queueIdAndName : queueId2Name_) {
     for (auto statKey : kQueueMonotonicCounterStatKeys()) {
