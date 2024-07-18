@@ -12,6 +12,7 @@
 
 #include "fboss/agent/hw/StatsConstants.h"
 
+#include <fb303/ServiceData.h>
 #include <folly/logging/xlog.h>
 #include <thrift/lib/cpp2/protocol/Serializer.h>
 
@@ -203,6 +204,12 @@ void HwPortFb303Stats::updateStats(
         timeRetrieved_,
         kFabricLinkDownDroppedCells(),
         *curPortStats.fabricLinkDownDroppedCells_());
+  }
+  // Set fb303 counter stats
+  if (curPortStats.cableLengthMeters().has_value()) {
+    fb303::fbData->setCounter(
+        statName(kCableLengthMeters(), portName()),
+        *curPortStats.cableLengthMeters());
   }
 
   // Update queue stats
