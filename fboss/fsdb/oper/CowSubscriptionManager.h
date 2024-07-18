@@ -100,6 +100,10 @@ class CowSubscriptionManager
   using Base::Base;
   using Base::patchOperProtocol;
 
+  using Base::pruneDeletedPaths;
+  using Base::publishAndAddPaths;
+  using Base::serveSubscriptions;
+
  private:
   template <typename NodeT>
   void servePathEncoded(
@@ -127,10 +131,11 @@ class CowSubscriptionManager
   }
 
   void doInitialSyncSimple(
+      SubscriptionStore& store,
       const std::shared_ptr<Root>& newRoot,
       const SubscriptionMetadataServer& metadataServer) {
-    auto it = this->store_.initialSyncNeeded().begin();
-    while (it != this->store_.initialSyncNeeded().end()) {
+    auto it = store.initialSyncNeeded().begin();
+    while (it != store.initialSyncNeeded().end()) {
       auto& subscription = *it;
 
       if (!metadataServer.ready(subscription->publisherTreeRoot())) {
@@ -181,21 +186,22 @@ class CowSubscriptionManager
         subscription->serveHeartbeat();
       }
 
-      this->store_.lookup().add(subscription);
-      it = this->store_.initialSyncNeeded().erase(it);
+      store.lookup().add(subscription);
+      it = store.initialSyncNeeded().erase(it);
     }
   }
 
   void doInitialSyncExtended(
+      SubscriptionStore& store,
       const std::shared_ptr<Root>& newRoot,
       const SubscriptionMetadataServer& metadataServer) {
     const auto& root = *newRoot;
     auto process = [&](const auto& path, auto& node) {
-      this->store_.processAddedPath(path.begin(), path.end());
+      store.processAddedPath(path.begin(), path.end());
     };
 
-    auto it = this->store_.initialSyncNeededExtended().begin();
-    while (it != this->store_.initialSyncNeededExtended().end()) {
+    auto it = store.initialSyncNeededExtended().begin();
+    while (it != store.initialSyncNeededExtended().end()) {
       auto& subscription = *it;
 
       if (!metadataServer.ready(subscription->publisherTreeRoot())) {
@@ -207,19 +213,21 @@ class CowSubscriptionManager
       for (const auto& [key, path] : paths) {
         // seed beginnings of the path in to lookup tree
         std::vector<std::string> emptyPathSoFar;
-        this->store_.lookup().incrementallyResolve(
-            this->store_, subscription, key, emptyPathSoFar);
+        store.lookup().incrementallyResolve(
+            store, subscription, key, emptyPathSoFar);
 
         thrift_cow::ExtPathVisitorOptions options(this->useIdPaths_);
         thrift_cow::RootExtendedPathVisitor::visit(
             root, path.path()->begin(), path.path()->end(), options, process);
       }
-      it = this->store_.initialSyncNeededExtended().erase(it);
+      it = store.initialSyncNeededExtended().erase(it);
     }
   }
 
  public:
-  void publishAndAddPaths(std::shared_ptr<Root>& root) {
+  void publishAndAddPaths(
+      SubscriptionStore& store,
+      std::shared_ptr<Root>& root) {
     // this helper recurses through all unpublished paths and ensures
     // that we tell SubscriptionPathStore of any new paths.
     auto processPath = [&](const std::vector<std::string>& /*path*/,
@@ -232,8 +240,7 @@ class CowSubscriptionManager
       }
     };
 
-    CowPublishAndAddTraverseHelper traverser(
-        &this->store_.lookup(), &this->store_);
+    CowPublishAndAddTraverseHelper traverser(&store.lookup(), &store);
     thrift_cow::RootRecurseVisitor::visit(
         traverser,
         root,
@@ -245,6 +252,7 @@ class CowSubscriptionManager
   }
 
   void pruneDeletedPaths(
+      SubscriptionPathStore* lookup,
       const std::shared_ptr<Root>& oldRoot,
       const std::shared_ptr<Root>& newRoot) {
     // This helper uses DeltaVisitor to visit all deleted nodes in
@@ -274,7 +282,7 @@ class CowSubscriptionManager
       }
     };
 
-    CowDeletePathTraverseHelper traverser(&this->store_.lookup());
+    CowDeletePathTraverseHelper traverser(lookup);
 
     thrift_cow::RootDeltaVisitor::visit(
         traverser,
@@ -288,6 +296,7 @@ class CowSubscriptionManager
   }
 
   void serveSubscriptions(
+      SubscriptionStore& store,
       const std::shared_ptr<Root>& oldRoot,
       const std::shared_ptr<Root>& newRoot,
       const SubscriptionMetadataServer& metadataServer) {
@@ -388,8 +397,7 @@ class CowSubscriptionManager
       patchBuilder.emplace(
           patchOperProtocol(), true /* incrementallyCompress */);
     }
-    CowSubscriptionTraverseHelper traverser(
-        &this->store_.lookup(), patchBuilder);
+    CowSubscriptionTraverseHelper traverser(&store.lookup(), patchBuilder);
     if (oldRoot && newRoot) {
       thrift_cow::RootDeltaVisitor::visit(
           traverser,
@@ -405,10 +413,11 @@ class CowSubscriptionManager
           traverser, oldRoot, newRoot, thrift_cow::DeltaElemTag::MINIMAL);
     }
 
-    this->store_.flush(metadataServer);
+    store.flush(metadataServer);
   }
 
   void doInitialSync(
+      SubscriptionStore& store,
       const std::shared_ptr<Root>& newRoot,
       const SubscriptionMetadataServer& metadataServer) {
     /*
@@ -417,9 +426,9 @@ class CowSubscriptionManager
      * the initial sync needed set based on the initial matching paths.
      */
 
-    doInitialSyncExtended(newRoot, metadataServer);
-    doInitialSyncSimple(newRoot, metadataServer);
-    this->store_.flush(metadataServer);
+    doInitialSyncExtended(store, newRoot, metadataServer);
+    doInitialSyncSimple(store, newRoot, metadataServer);
+    store.flush(metadataServer);
   }
 
 }; // namespace facebook::fboss::fsdb

@@ -93,10 +93,8 @@ class SubscriptionManager : public SubscriptionManagerBase {
 
   using SubscriptionManagerBase::SubscriptionManagerBase;
 
-  void initialSyncForNewSubscriptions(
-      const std::shared_ptr<Root>& newData,
-      const SubscriptionMetadataServer& metadataServer) {
-    static_cast<Impl*>(this)->doInitialSync(newData, metadataServer);
+  void publishAndAddPaths(std::shared_ptr<Root>& root) {
+    static_cast<Impl*>(this)->publishAndAddPaths(store_, root);
   }
 
   // TODO: hinting at changed paths for improved efficiency
@@ -106,11 +104,29 @@ class SubscriptionManager : public SubscriptionManagerBase {
       const SubscriptionMetadataServer& metadataServer) {
     try {
       static_cast<Impl*>(this)->serveSubscriptions(
-          oldData, newData, metadataServer);
+          store_, oldData, newData, metadataServer);
     } catch (const std::exception&) {
       XLOG(ERR) << "Exception serving subscriptions...";
     }
   }
+
+  void pruneDeletedPaths(
+      const std::shared_ptr<Root>& oldRoot,
+      const std::shared_ptr<Root>& newRoot) {
+    static_cast<Impl*>(this)->pruneDeletedPaths(
+        &store_.lookup(), oldRoot, newRoot);
+  }
+
+  void initialSyncForNewSubscriptions(
+      const std::shared_ptr<Root>& newData,
+      const SubscriptionMetadataServer& metadataServer) {
+    static_cast<Impl*>(this)->doInitialSync(store_, newData, metadataServer);
+  }
+
+ private:
+  // don't let the subclass direct access to the store to simplify locking
+  // policy. Instead we'll handle all the locking of the store here
+  using SubscriptionManagerBase::store_;
 };
 
 } // namespace facebook::fboss::fsdb
