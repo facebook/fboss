@@ -1896,16 +1896,23 @@ void SwSwitch::handlePacketImpl(
       ? folly::to<std::string>(static_cast<int>(vlanID.value()))
       : "None";
 
-  std::stringstream ss;
-  ss << "trapped packet: src_port=" << pkt->getSrcPort() << " srcAggPort="
-     << (pkt->isFromAggregatePort()
-             ? folly::to<string>(pkt->getSrcAggregatePort())
-             : "None")
-     << " vlan=" << vlanIDStr << " length=" << len << " src=" << srcMac
-     << " dst=" << dstMac << " ethertype=0x" << std::hex << ethertype
-     << " :: " << pkt->describeDetails();
-  XLOG(DBG5) << ss.str();
-  XLOG_EVERY_N(DBG2, 10000) << "sampled " << ss.str();
+  XLOG(DBG5) << "trapped packet: src_port=" << pkt->getSrcPort()
+             << " srcAggPort="
+             << (pkt->isFromAggregatePort()
+                     ? folly::to<string>(pkt->getSrcAggregatePort())
+                     : "None")
+             << " vlan=" << vlanIDStr << " length=" << len << " src=" << srcMac
+             << " dst=" << dstMac << " ethertype=0x" << std::hex << ethertype
+             << " :: " << pkt->describeDetails();
+  XLOG_EVERY_N(DBG2, 10000)
+      << "sampled " << "trapped packet: src_port=" << pkt->getSrcPort()
+      << " srcAggPort="
+      << (pkt->isFromAggregatePort()
+              ? folly::to<string>(pkt->getSrcAggregatePort())
+              : "None")
+      << " vlan=" << vlanIDStr << " length=" << len << " src=" << srcMac
+      << " dst=" << dstMac << " ethertype=0x" << std::hex << ethertype
+      << " :: " << pkt->describeDetails();
 
   switch (ethertype) {
     case ArpHandler::ETHERTYPE_ARP:
