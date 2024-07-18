@@ -33,6 +33,8 @@
 #include <iostream>
 #include <thread>
 
+DECLARE_bool(send_icmp_time_exceeded);
+
 namespace facebook::fboss {
 
 const std::string kDstIp = "2620:0:1cfe:face:b00c::4";
@@ -67,9 +69,11 @@ BENCHMARK(RxSlowPathBenchmark) {
     utility::addTrapPacketAcl(&config, trapDstIp);
 
     // Since J2 and J3 does not support disabling TLL on port, create TRAP to
-    // forward TTL=0 packet.
+    // forward TTL=0 packet. Also not send icmp time exceeded packet, since CPU
+    // will trap TTL=0 packet.
     if (ensemble.getSw()->getHwAsicTable()->isFeatureSupportedOnAllAsic(
             HwAsic::Feature::CPU_TX_VIA_RECYCLE_PORT)) {
+      FLAGS_send_icmp_time_exceeded = false;
       utility::setTTLZeroCpuConfig(ensemble.getL3Asics(), config);
     }
     return config;

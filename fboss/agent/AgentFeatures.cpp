@@ -83,3 +83,8 @@ DEFINE_bool(
     dlbResourceCheckEnable,
     true,
     "Flag to enable resource checks on DLB ecmp groups");
+
+DEFINE_bool(
+    send_icmp_time_exceeded,
+    true,
+    "Flag to indicate whether to send ICMP time exceeded for hop limit exceeded");

@@ -255,7 +255,7 @@ void IPv6Handler::handlePacket(
   // with a hop limit of 1. Else we need to forward
   // this packet so the hop limit should be at least 1
   auto minHopLimit = intf ? 0 : 1;
-  if (ipv6.hopLimit <= minHopLimit) {
+  if (FLAGS_send_icmp_time_exceeded && ipv6.hopLimit <= minHopLimit) {
     XLOG(DBG4) << "Rx IPv6 Packet with hop limit exceeded";
     sw_->portStats(port)->pktDropped();
     sw_->portStats(port)->ipv6HopExceeded();

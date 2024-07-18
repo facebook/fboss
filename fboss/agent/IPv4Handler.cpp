@@ -351,7 +351,7 @@ void IPv4Handler::handlePacket(
   }
 
   // if packet is not for us, check the ttl exceed
-  if (v4Hdr.ttl <= 1) {
+  if (FLAGS_send_icmp_time_exceeded && v4Hdr.ttl <= 1) {
     XLOG(DBG4) << "Rx IPv4 Packet with TTL expired";
     stats->port(port)->pktDropped();
     stats->port(port)->ipv4TtlExceeded();

@@ -19,6 +19,9 @@
 #include <folly/IPAddressV6.h>
 #include <folly/MacAddress.h>
 #include <memory>
+
+DECLARE_bool(send_icmp_time_exceeded);
+
 namespace folly {
 namespace io {
 class Cursor;
