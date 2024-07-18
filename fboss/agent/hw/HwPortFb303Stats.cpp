@@ -17,7 +17,8 @@
 
 namespace facebook::fboss {
 
-const std::vector<folly::StringPiece>& HwPortFb303Stats::kPortStatKeys() const {
+const std::vector<folly::StringPiece>&
+HwPortFb303Stats::kPortMonotonicCounterStatKeys() const {
   static std::vector<folly::StringPiece> kPortKeys{
       kInBytes(),
       kInUnicastPkts(),
@@ -53,8 +54,8 @@ const std::vector<folly::StringPiece>& HwPortFb303Stats::kPortStatKeys() const {
   return kPortKeys;
 }
 
-const std::vector<folly::StringPiece>& HwPortFb303Stats::kQueueStatKeys()
-    const {
+const std::vector<folly::StringPiece>&
+HwPortFb303Stats::kQueueMonotonicCounterStatKeys() const {
   static std::vector<folly::StringPiece> kQueueKeys{
       kOutCongestionDiscardsBytes(),
       kOutCongestionDiscards(),
@@ -66,8 +67,8 @@ const std::vector<folly::StringPiece>& HwPortFb303Stats::kQueueStatKeys()
   return kQueueKeys;
 }
 
-const std::vector<folly::StringPiece>& HwPortFb303Stats::kInMacsecPortStatKeys()
-    const {
+const std::vector<folly::StringPiece>&
+HwPortFb303Stats::kInMacsecPortMonotonicCounterStatKeys() const {
   static std::vector<folly::StringPiece> kMacsecInKeys{
       kInPreMacsecDropPkts(),
       kInMacsecControlPkts(),
@@ -90,7 +91,7 @@ const std::vector<folly::StringPiece>& HwPortFb303Stats::kInMacsecPortStatKeys()
 }
 
 const std::vector<folly::StringPiece>&
-HwPortFb303Stats::kOutMacsecPortStatKeys() const {
+HwPortFb303Stats::kOutMacsecPortMonotonicCounterStatKeys() const {
   static std::vector<folly::StringPiece> kMacsecOutKeys{
       kOutPreMacsecDropPkts(),
       kOutMacsecControlPkts(),
@@ -103,7 +104,8 @@ HwPortFb303Stats::kOutMacsecPortStatKeys() const {
   return kMacsecOutKeys;
 }
 
-const std::vector<folly::StringPiece>& HwPortFb303Stats::kPfcStatKeys() const {
+const std::vector<folly::StringPiece>&
+HwPortFb303Stats::kPfcMonotonicCounterStatKeys() const {
   static std::vector<folly::StringPiece> kPfcKeys{
       kInPfc(),
       kInPfcXon(),

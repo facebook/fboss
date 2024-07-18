@@ -20,7 +20,7 @@ using namespace facebook::fboss;
 using namespace facebook::fb303;
 
 namespace {
-constexpr std::array<folly::StringPiece, 44> kAllStatKeys = {
+constexpr std::array<folly::StringPiece, 44> kAllMonotonicCounterStatKeys = {
     kL3HostMax,
     kL3HostUsed,
     kL3HostFree,
@@ -68,7 +68,7 @@ constexpr std::array<folly::StringPiece, 44> kAllStatKeys = {
 }
 
 void checkMissing(const std::set<folly::StringPiece>& present) {
-  for (auto name : kAllStatKeys) {
+  for (auto name : kAllMonotonicCounterStatKeys) {
     if (present.find(name) == present.end()) {
       EXPECT_THROW(fbData->getCounter(name), std::invalid_argument);
     } else {

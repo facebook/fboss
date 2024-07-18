@@ -78,13 +78,16 @@ class HwBasePortFb303Stats {
       folly::StringPiece statKey,
       std::optional<int64_t> defaultVal = std::nullopt) const;
 
-  virtual const std::vector<folly::StringPiece>& kPortStatKeys() const = 0;
-  virtual const std::vector<folly::StringPiece>& kQueueStatKeys() const = 0;
-  virtual const std::vector<folly::StringPiece>& kInMacsecPortStatKeys()
+  virtual const std::vector<folly::StringPiece>& kPortMonotonicCounterStatKeys()
       const = 0;
-  virtual const std::vector<folly::StringPiece>& kOutMacsecPortStatKeys()
+  virtual const std::vector<folly::StringPiece>&
+  kQueueMonotonicCounterStatKeys() const = 0;
+  virtual const std::vector<folly::StringPiece>&
+  kInMacsecPortMonotonicCounterStatKeys() const = 0;
+  virtual const std::vector<folly::StringPiece>&
+  kOutMacsecPortMonotonicCounterStatKeys() const = 0;
+  virtual const std::vector<folly::StringPiece>& kPfcMonotonicCounterStatKeys()
       const = 0;
-  virtual const std::vector<folly::StringPiece>& kPfcStatKeys() const = 0;
 
  protected:
   void reinitStats(std::optional<std::string> oldPortName);

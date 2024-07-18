@@ -49,7 +49,7 @@ class HwCpuFb303Stats {
       int queueuId,
       folly::StringPiece queueName);
 
-  static std::array<folly::StringPiece, 2> kQueueStatKeys();
+  static std::array<folly::StringPiece, 2> kQueueMonotonicCounterStatKeys();
   int64_t getCounterLastIncrement(folly::StringPiece statKey) const;
   int64_t getCounter(const folly::StringPiece statKey) const;
   CpuPortStats getCpuPortStats() const;

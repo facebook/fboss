@@ -98,7 +98,7 @@ void updateStats(HwCpuFb303Stats& cpuStats) {
 void verifyUpdatedStats(const HwCpuFb303Stats& cpuStats) {
   auto curValue{1};
   curValue = 1;
-  for (auto counterName : HwCpuFb303Stats::kQueueStatKeys()) {
+  for (auto counterName : HwCpuFb303Stats::kQueueMonotonicCounterStatKeys()) {
     for (const auto& queueIdAndName : kQueue2Name) {
       EXPECT_EQ(
           cpuStats.getCounterLastIncrement(HwCpuFb303Stats::statName(
@@ -115,7 +115,7 @@ void verifyUpdatedStats(const HwCpuFb303Stats& cpuStats) {
 } // namespace
 
 TEST(HwCpuFb303StatsTest, StatName) {
-  for (auto statKey : HwCpuFb303Stats::kQueueStatKeys()) {
+  for (auto statKey : HwCpuFb303Stats::kQueueMonotonicCounterStatKeys()) {
     EXPECT_EQ(
         HwCpuFb303Stats::statName(statKey, 1, "high"),
         folly::to<std::string>("cpu.queue1.cpuQueue-high.", statKey));
@@ -123,7 +123,7 @@ TEST(HwCpuFb303StatsTest, StatName) {
 }
 TEST(HwCpuFb303StatsTest, StatsInit) {
   HwCpuFb303Stats stats(kQueue2Name);
-  for (auto statKey : HwCpuFb303Stats::kQueueStatKeys()) {
+  for (auto statKey : HwCpuFb303Stats::kQueueMonotonicCounterStatKeys()) {
     for (const auto& queueIdAndName : kQueue2Name) {
       EXPECT_TRUE(fbData->getStatMap()->contains(HwCpuFb303Stats::statName(
           statKey, queueIdAndName.first, queueIdAndName.second)));
@@ -133,7 +133,7 @@ TEST(HwCpuFb303StatsTest, StatsInit) {
 
 TEST(HwCpuFb303StatsTest, StatsDeInit) {
   { HwCpuFb303Stats stats(kQueue2Name); }
-  for (auto statKey : HwCpuFb303Stats::kQueueStatKeys()) {
+  for (auto statKey : HwCpuFb303Stats::kQueueMonotonicCounterStatKeys()) {
     for (const auto& queueIdAndName : kQueue2Name) {
       EXPECT_FALSE(fbData->getStatMap()->contains(HwCpuFb303Stats::statName(
           statKey, queueIdAndName.first, queueIdAndName.second)));
@@ -168,7 +168,7 @@ TEST(HwCpuFb303Stats, UpdateCpuFb303Stats) {
   cpuStats.updateStats(empty);
   cpuStats.updateStats(initedStats);
   verifyUpdatedStats(cpuStats);
-  for (auto statKey : HwCpuFb303Stats::kQueueStatKeys()) {
+  for (auto statKey : HwCpuFb303Stats::kQueueMonotonicCounterStatKeys()) {
     EXPECT_FALSE(fbData->getStatMap()->contains(
         HwCpuFb303Stats::statName(statKey, 3, "mid")));
   }
@@ -178,7 +178,7 @@ TEST(HwCpuFb303StatsTest, RenameQueue) {
   HwCpuFb303Stats stats(kQueue2Name);
   stats.queueChanged(1, "very_high");
   auto newQueueMapping = kQueue2Name;
-  for (auto statKey : HwCpuFb303Stats::kQueueStatKeys()) {
+  for (auto statKey : HwCpuFb303Stats::kQueueMonotonicCounterStatKeys()) {
     EXPECT_TRUE(fbData->getStatMap()->contains(
         HwCpuFb303Stats::statName(statKey, 1, "very_high")));
     EXPECT_FALSE(fbData->getStatMap()->contains(
@@ -193,7 +193,7 @@ TEST(HwCpuFb303StatsTest, AddQueue) {
   HwCpuFb303Stats stats(kQueue2Name);
   stats.queueChanged(3, "very_high");
   auto newQueueMapping = kQueue2Name;
-  for (auto statKey : HwCpuFb303Stats::kQueueStatKeys()) {
+  for (auto statKey : HwCpuFb303Stats::kQueueMonotonicCounterStatKeys()) {
     EXPECT_TRUE(fbData->getStatMap()->contains(
         HwCpuFb303Stats::statName(statKey, 1, "high")));
     EXPECT_TRUE(fbData->getStatMap()->contains(
@@ -206,7 +206,7 @@ TEST(HwCpuFb303StatsTest, RemoveQueue) {
   HwCpuFb303Stats stats(kQueue2Name);
   stats.queueRemoved(1);
   auto newQueueMapping = kQueue2Name;
-  for (auto statKey : HwCpuFb303Stats::kQueueStatKeys()) {
+  for (auto statKey : HwCpuFb303Stats::kQueueMonotonicCounterStatKeys()) {
     EXPECT_FALSE(fbData->getStatMap()->contains(
         HwCpuFb303Stats::statName(statKey, 1, "high")));
     EXPECT_TRUE(fbData->getStatMap()->contains(
@@ -220,7 +220,7 @@ TEST(HwCpuFb303Stats, queueNameChangeResetsValue) {
   cpuStats.queueChanged(1, "very_high");
   cpuStats.queueChanged(2, "very_low");
   HwCpuFb303Stats::QueueId2Name newQueues = {{1, "very_high"}, {2, "very_low"}};
-  for (auto counterName : HwCpuFb303Stats::kQueueStatKeys()) {
+  for (auto counterName : HwCpuFb303Stats::kQueueMonotonicCounterStatKeys()) {
     for (const auto& queueIdAndName : newQueues) {
       EXPECT_TRUE(fbData->getStatMap()->contains(HwCpuFb303Stats::statName(
           counterName, queueIdAndName.first, queueIdAndName.second)));
@@ -230,7 +230,7 @@ TEST(HwCpuFb303Stats, queueNameChangeResetsValue) {
           0);
     }
   }
-  for (auto counterName : HwCpuFb303Stats::kQueueStatKeys()) {
+  for (auto counterName : HwCpuFb303Stats::kQueueMonotonicCounterStatKeys()) {
     for (const auto& queueIdAndName : kQueue2Name) {
       EXPECT_FALSE(fbData->getStatMap()->contains(HwCpuFb303Stats::statName(
           counterName, queueIdAndName.first, queueIdAndName.second)));
@@ -242,7 +242,7 @@ TEST(HwCpuFb303Stats, queueNameWithSwitchId) {
   std::string switchIdPrefix("switch.0.");
   HwCpuFb303Stats cpuStats(kQueue2Name, switchIdPrefix);
   updateStats(cpuStats);
-  for (auto counterName : HwCpuFb303Stats::kQueueStatKeys()) {
+  for (auto counterName : HwCpuFb303Stats::kQueueMonotonicCounterStatKeys()) {
     for (const auto& queueIdAndName : kQueue2Name) {
       EXPECT_TRUE(fbData->getStatMap()->contains(
           switchIdPrefix +

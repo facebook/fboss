@@ -16,7 +16,8 @@
 
 namespace facebook::fboss {
 
-std::array<folly::StringPiece, 2> HwCpuFb303Stats::kQueueStatKeys() {
+std::array<folly::StringPiece, 2>
+HwCpuFb303Stats::kQueueMonotonicCounterStatKeys() {
   return {kInPkts(), kInDroppedPkts()};
 }
 
@@ -41,7 +42,7 @@ void HwCpuFb303Stats::setupStats() {
   XLOG(DBG2) << "Initializing CPU stats";
 
   for (auto queueIdAndName : queueId2Name_) {
-    for (auto statKey : kQueueStatKeys()) {
+    for (auto statKey : kQueueMonotonicCounterStatKeys()) {
       auto newStatName =
           statName(statKey, queueIdAndName.first, queueIdAndName.second);
       queueCounters_.reinitStat(newStatName, std::nullopt);
@@ -55,7 +56,7 @@ void HwCpuFb303Stats::queueChanged(int queueId, const std::string& queueName) {
       ? std::nullopt
       : std::optional<std::string>(qitr->second);
   queueId2Name_[queueId] = queueName;
-  for (auto statKey : kQueueStatKeys()) {
+  for (auto statKey : kQueueMonotonicCounterStatKeys()) {
     queueCounters_.reinitStat(
         statName(statKey, queueId, queueName),
         oldQueueName ? std::optional<std::string>(
@@ -66,7 +67,7 @@ void HwCpuFb303Stats::queueChanged(int queueId, const std::string& queueName) {
 
 void HwCpuFb303Stats::queueRemoved(int queueId) {
   auto qitr = queueId2Name_.find(queueId);
-  for (auto statKey : kQueueStatKeys()) {
+  for (auto statKey : kQueueMonotonicCounterStatKeys()) {
     queueCounters_.removeStat(
         statName(statKey, queueId, queueId2Name_[queueId]));
   }

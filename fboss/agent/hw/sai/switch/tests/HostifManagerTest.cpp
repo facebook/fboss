@@ -165,7 +165,7 @@ TEST_F(HostifManagerTest, addCpuQueueAndCheckStats) {
 
   const auto& cpuStat = saiManagerTable->hostifManager().getCpuFb303Stats();
   for (const auto& portQueue : queueConfig) {
-    for (auto statKey : HwCpuFb303Stats::kQueueStatKeys()) {
+    for (auto statKey : HwCpuFb303Stats::kQueueMonotonicCounterStatKeys()) {
       EXPECT_TRUE(
           facebook::fbData->getStatMap()->contains(HwCpuFb303Stats::statName(
               statKey, portQueue->getID(), *portQueue->getName())));
@@ -209,7 +209,7 @@ TEST_F(HostifManagerTest, removeCpuQueueAndCheckStats) {
   const auto& cpuStat = saiManagerTable->hostifManager().getCpuFb303Stats();
   for (auto queueId : {1, 2}) {
     auto queueName = folly::to<std::string>("queue", queueId);
-    for (auto statKey : HwCpuFb303Stats::kQueueStatKeys()) {
+    for (auto statKey : HwCpuFb303Stats::kQueueMonotonicCounterStatKeys()) {
       EXPECT_TRUE(facebook::fbData->getStatMap()->contains(
           HwCpuFb303Stats::statName(statKey, queueId, queueName)));
       EXPECT_EQ(
@@ -219,7 +219,7 @@ TEST_F(HostifManagerTest, removeCpuQueueAndCheckStats) {
     }
   }
   for (auto queueId : {3, 4}) {
-    for (auto statKey : HwCpuFb303Stats::kQueueStatKeys()) {
+    for (auto statKey : HwCpuFb303Stats::kQueueMonotonicCounterStatKeys()) {
       EXPECT_FALSE(
           facebook::fbData->getStatMap()->contains(HwCpuFb303Stats::statName(
               statKey, queueId, folly::to<std::string>("queue", queueId))));
@@ -256,7 +256,7 @@ TEST_F(HostifManagerTest, changeCpuQueueAndCheckStats) {
 
   auto oldQueueName = folly::to<std::string>("queue", 1);
   const auto& cpuStat = saiManagerTable->hostifManager().getCpuFb303Stats();
-  for (auto statKey : HwCpuFb303Stats::kQueueStatKeys()) {
+  for (auto statKey : HwCpuFb303Stats::kQueueMonotonicCounterStatKeys()) {
     EXPECT_TRUE(facebook::fbData->getStatMap()->contains(
         HwCpuFb303Stats::statName(statKey, 1, "high")));
     EXPECT_FALSE(facebook::fbData->getStatMap()->contains(

@@ -235,7 +235,7 @@ void checkCounterExportAndValue(
     const std::string& queueName,
     ExpectExport expectExport,
     const PortStats* portStat) {
-  for (auto statKey : PortStats("dummy").kQueueStatKeys()) {
+  for (auto statKey : PortStats("dummy").kQueueMonotonicCounterStatKeys()) {
     switch (expectExport) {
       case ExpectExport::EXPORT:
         EXPECT_TRUE(facebook::fbData->getStatMap()->contains(

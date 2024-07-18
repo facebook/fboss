@@ -54,12 +54,16 @@ class HwSysPortFb303Stats : public HwBasePortFb303Stats {
     return timeRetrieved_;
   }
 
-  const std::vector<folly::StringPiece>& kPortStatKeys() const override;
-  const std::vector<folly::StringPiece>& kQueueStatKeys() const override;
-  const std::vector<folly::StringPiece>& kInMacsecPortStatKeys() const override;
-  const std::vector<folly::StringPiece>& kOutMacsecPortStatKeys()
+  const std::vector<folly::StringPiece>& kPortMonotonicCounterStatKeys()
       const override;
-  const std::vector<folly::StringPiece>& kPfcStatKeys() const override;
+  const std::vector<folly::StringPiece>& kQueueMonotonicCounterStatKeys()
+      const override;
+  const std::vector<folly::StringPiece>& kInMacsecPortMonotonicCounterStatKeys()
+      const override;
+  const std::vector<folly::StringPiece>&
+  kOutMacsecPortMonotonicCounterStatKeys() const override;
+  const std::vector<folly::StringPiece>& kPfcMonotonicCounterStatKeys()
+      const override;
 
  private:
   std::chrono::seconds timeRetrieved_{0};
