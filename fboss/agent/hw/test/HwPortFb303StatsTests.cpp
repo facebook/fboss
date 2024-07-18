@@ -149,7 +149,7 @@ HwPortStats getInitedStats() {
       0, // fabricConnectivityMismatch
       1, // logicalPortId
       2, // leakyBucketFlapCount_
-      100, // cableLengthMeters
+      1, // cableLengthMeters
   };
 }
 
@@ -266,6 +266,13 @@ void verifyUpdatedStats(const HwPortFb303Stats& portStats) {
     EXPECT_EQ(actualVal, expectedVal) << "failed for " << counterName;
     XLOG(DBG2) << counterName << ": " << actualVal << " " << expectedVal;
   }
+  curValue = 1;
+  for (auto counterName : portStats.kPortFb303CounterStatKeys()) {
+    auto value = facebook::fb303::fbData->getCounter(
+        HwPortFb303Stats::statName(counterName, kPortName));
+    EXPECT_EQ(value, curValue++);
+  }
+
   curValue = 1;
   for (auto counterName : portStats.kQueueMonotonicCounterStatKeys()) {
     for (const auto& queueIdAndName : kQueue2Name) {
