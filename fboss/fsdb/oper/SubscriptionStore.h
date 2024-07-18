@@ -9,7 +9,7 @@ namespace facebook::fboss::fsdb {
 
 class SubscriptionStore {
  public:
-  virtual ~SubscriptionStore() = default;
+  virtual ~SubscriptionStore();
 
   void pruneCancelledSubscriptions();
 

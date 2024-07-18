@@ -11,6 +11,17 @@
 
 namespace facebook::fboss::fsdb {
 
+SubscriptionStore::~SubscriptionStore() {
+  initialSyncNeeded_.clear();
+  initialSyncNeededExtended_.clear();
+
+  lookup_.clear();
+  // fully resolved extended subs have a ref to the extended sub
+  // make sure to destroy those before destroy the extended sub
+  subscriptions_.clear();
+  extendedSubscriptions_.clear();
+}
+
 std::string getPublisherDroppedMessage(
     FsdbErrorCode disconnectReason,
     std::string pubRoot) {

@@ -262,6 +262,12 @@ bool SubscriptionPathStore::remove(
   return false;
 }
 
+void SubscriptionPathStore::clear() {
+  children_.clear();
+  partiallyResolvedSubs_.clear();
+  subscriptions_.clear();
+}
+
 void SubscriptionPathStore::incrementCounts(
     Subscription* subscription,
     bool isChild) {

@@ -61,6 +61,8 @@ class SubscriptionPathStore {
 
   void removeChild(const std::string& key);
 
+  void clear();
+
   void debugPrint() const;
 
   uint32_t numSubs() const {
