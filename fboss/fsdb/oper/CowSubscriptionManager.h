@@ -42,53 +42,83 @@ constexpr bool is_shared_ptr_v = is_shared_ptr<T>::value;
 
 namespace csm_detail {
 template <typename NodeT>
-class OperDeltaUnitCache {
+class OperUnitCache {
  public:
-  OperDeltaUnitCache(
+  OperUnitCache(
       const std::vector<std::string>& path,
       // TODO: use serializable
       const NodeT& oldNode,
       const NodeT& newNode)
       : path_(path), oldNode_(oldNode), newNode_(newNode) {}
 
-  const OperDeltaUnit& binaryUnit() {
-    return getOrBuild(binaryUnit_, fsdb::OperProtocol::BINARY);
-  }
-
-  const OperDeltaUnit& compactUnit() {
-    return getOrBuild(compactUnit_, fsdb::OperProtocol::COMPACT);
-  }
-
-  const OperDeltaUnit& jsonUnit() {
-    return getOrBuild(jsonUnit_, fsdb::OperProtocol::SIMPLE_JSON);
-  }
-
-  const OperDeltaUnit& getEncoded(fsdb::OperProtocol protocol) {
+  const OperDeltaUnit& getEncodedDelta(const fsdb::OperProtocol& protocol) {
     switch (protocol) {
       case fsdb::OperProtocol::BINARY:
-        return binaryUnit();
+        return getOrBuildDelta(binaryUnit_, fsdb::OperProtocol::BINARY);
       case fsdb::OperProtocol::COMPACT:
-        return compactUnit();
+        return getOrBuildDelta(compactUnit_, fsdb::OperProtocol::COMPACT);
       case fsdb::OperProtocol::SIMPLE_JSON:
-        return jsonUnit();
+        return getOrBuildDelta(jsonUnit_, fsdb::OperProtocol::SIMPLE_JSON);
+    }
+    throw std::runtime_error("Unsupported protocol");
+  }
+
+  const std::optional<folly::fbstring>& getEncodedState(
+      const fsdb::OperProtocol& protocol,
+      bool newState = true) {
+    switch (protocol) {
+      case fsdb::OperProtocol::BINARY:
+        return getOrBuildState(
+            newState ? newStateBinary_ : oldStateBinary_,
+            fsdb::OperProtocol::BINARY,
+            newState);
+      case fsdb::OperProtocol::COMPACT:
+        return getOrBuildState(
+            newState ? newStateCompact_ : oldStateCompact_,
+            fsdb::OperProtocol::COMPACT,
+            newState);
+      case fsdb::OperProtocol::SIMPLE_JSON:
+        return getOrBuildState(
+            newState ? newStateJson_ : oldStateJson_,
+            fsdb::OperProtocol::SIMPLE_JSON,
+            newState);
     }
     throw std::runtime_error("Unsupported protocol");
   }
 
  private:
-  const OperDeltaUnit& getOrBuild(
+  const OperDeltaUnit& getOrBuildDelta(
       std::optional<OperDeltaUnit>& unit,
-      fsdb::OperProtocol protocol) {
+      const fsdb::OperProtocol& protocol) {
     if (!unit.has_value()) {
-      unit = buildOperDeltaUnit(path_, oldNode_, newNode_, protocol);
+      unit.emplace();
+      unit->path()->raw() = path_;
+      unit->oldState().from_optional(
+          getEncodedState(protocol, false /* newState */));
+      unit->newState().from_optional(
+          getEncodedState(protocol, true /* newState */));
     }
     return *unit;
+  }
+  const std::optional<folly::fbstring>& getOrBuildState(
+      std::optional<folly::fbstring>& state,
+      const fsdb::OperProtocol& protocol,
+      bool newState = true) {
+    const auto& node = newState ? newNode_ : oldNode_;
+    if (!state.has_value() && node) {
+      state = node->encode(protocol);
+    }
+    return state;
   }
 
   const std::vector<std::string>& path_;
   const NodeT& oldNode_;
   const NodeT& newNode_;
   std::optional<OperDeltaUnit> binaryUnit_, compactUnit_, jsonUnit_;
+  std::optional<folly::fbstring> newStateBinary_, newStateCompact_,
+      newStateJson_;
+  std::optional<folly::fbstring> oldStateBinary_, oldStateCompact_,
+      oldStateJson_;
 };
 } // namespace csm_detail
 
@@ -135,7 +165,7 @@ class CowSubscriptionManager
       const std::shared_ptr<Root>& newRoot,
       const SubscriptionMetadataServer& metadataServer) {
     auto processPath = [&](CowInitialSyncTraverseHelper& traverser,
-                           auto&& node) {
+                           const auto& node) {
       SubscriptionPathStore* lookup = traverser.currentStore();
       if (!lookup) {
         // no subscriptions here
@@ -144,6 +174,9 @@ class CowSubscriptionManager
       // we should only get a visit if we have a subscription needing initial
       // sync, in which case we should have a lookup
       CHECK(lookup);
+      CHECK(node);
+      auto oldNode = std::remove_cvref_t<decltype(node)>();
+      csm_detail::OperUnitCache operUnitCache(traverser.path(), oldNode, node);
 
       // TODO: maybe switch to reverse iter to erase is cheaper
       auto& subscriptions = lookup->subscriptions();
@@ -155,37 +188,33 @@ class CowSubscriptionManager
           ++it;
           continue;
         }
-        if (node) {
-          if (subscription->type() == PubSubType::PATH) {
-            auto pathSubscription =
-                static_cast<BasePathSubscription*>(subscription);
-            std::optional<OperState> state;
-            state.emplace();
-            state->contents() = node->encode(subscription->operProtocol());
-            // TODO: cache state
-            state->protocol() = subscription->operProtocol();
-            state->metadata() = subscription->getMetadata(metadataServer);
-            auto value = DeltaValue<OperState>(std::nullopt, std::move(state));
-            pathSubscription->offer(std::move(value));
-          } else if (subscription->type() == PubSubType::DELTA) {
-            // Delta subscription
-            OperDeltaUnit deltaUnit;
-            deltaUnit.path()->raw() = traverser.path();
-            // TODO: cache state
-            deltaUnit.newState() = node->encode(subscription->operProtocol());
-            auto deltaSubscription =
-                static_cast<BaseDeltaSubscription*>(subscription);
-            deltaSubscription->appendRootDeltaUnit(std::move(deltaUnit));
-          } else if (subscription->type() == PubSubType::PATCH) {
-            auto patchSubscription =
-                static_cast<PatchSubscription*>(subscription);
-            thrift_cow::PatchNode patchNode;
-            // TODO: try to change to a shared holding a IOBuf instead of
-            // copying from an fbstring
-            // TODO: cache state
-            patchNode.set_val(node->encodeBuf(subscription->operProtocol()));
-            patchSubscription->offer(std::move(patchNode));
-          }
+        if (subscription->type() == PubSubType::PATH) {
+          auto pathSubscription =
+              static_cast<BasePathSubscription*>(subscription);
+          std::optional<OperState> state;
+          state.emplace();
+          state->contents().from_optional(
+              operUnitCache.getEncodedState(subscription->operProtocol()));
+          state->protocol() = subscription->operProtocol();
+          state->metadata() = subscription->getMetadata(metadataServer);
+          auto value = DeltaValue<OperState>(std::nullopt, std::move(state));
+          pathSubscription->offer(std::move(value));
+        } else if (subscription->type() == PubSubType::DELTA) {
+          auto deltaSubscription =
+              static_cast<BaseDeltaSubscription*>(subscription);
+          deltaSubscription->appendRootDeltaUnit(
+              operUnitCache.getEncodedDelta(subscription->operProtocol()));
+        } else if (subscription->type() == PubSubType::PATCH) {
+          auto patchSubscription =
+              static_cast<PatchSubscription*>(subscription);
+          thrift_cow::PatchNode patchNode;
+          // TODO: try to change to a shared holding a IOBuf instead of
+          // copying from an fbstring
+          auto& state =
+              operUnitCache.getEncodedState(subscription->operProtocol());
+          auto buf = folly::IOBuf::copyBuffer(state->data(), state->length());
+          patchNode.set_val(*buf);
+          patchSubscription->offer(std::move(patchNode));
         }
         store.lookup().add(subscription);
         subscription->firstChunkSent();
@@ -357,7 +386,7 @@ class CowSubscriptionManager
 
       auto& path = traverser.path();
 
-      csm_detail::OperDeltaUnitCache deltaUnitCache(path, oldNode, newNode);
+      csm_detail::OperUnitCache operUnitCache(path, oldNode, newNode);
 
       if (lookup) {
         const auto& exactSubscriptions = lookup->subscriptions();
@@ -365,7 +394,7 @@ class CowSubscriptionManager
           if (relevant->type() == PubSubType::PATH) {
             auto* pathSubscription =
                 static_cast<BasePathSubscription*>(relevant);
-
+            // TODO: cache encoded state
             servePathEncoded(
                 pathSubscription,
                 oldNode,
@@ -377,7 +406,7 @@ class CowSubscriptionManager
               auto* deltaSubscription =
                   static_cast<DeltaSubscription*>(relevant);
               deltaSubscription->appendRootDeltaUnit(
-                  deltaUnitCache.getEncoded(relevant->operProtocol()));
+                  operUnitCache.getEncodedDelta(relevant->operProtocol()));
             }
           } else if (
               relevant->type() == PubSubType::PATCH &&
@@ -410,7 +439,7 @@ class CowSubscriptionManager
           }
           auto* deltaSubscription = static_cast<DeltaSubscription*>(relevant);
           deltaSubscription->appendRootDeltaUnit(
-              deltaUnitCache.getEncoded(relevant->operProtocol()));
+              operUnitCache.getEncodedDelta(relevant->operProtocol()));
         }
       }
     };
