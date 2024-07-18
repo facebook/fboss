@@ -68,12 +68,9 @@ class NaivePeriodicSubscribableStorage
             convertToIDPaths),
         currentState_(std::in_place, initialState),
         lastPublishedState_(*currentState_.rlock()),
-        subscriptions_(
-            std::in_place,
-            patchOperProtocol_,
-            requireResponseOnInitialSync) {
+        subscriptions_(patchOperProtocol_, requireResponseOnInitialSync) {
 #ifdef ENABLE_PATCH_APIS
-    subscriptions_.wlock()->useIdPaths(convertToIDPaths);
+    subscriptions_.useIdPaths(convertToIDPaths);
 #endif
     auto currentState = currentState_.wlock();
     currentState->publish();
@@ -244,7 +241,7 @@ class NaivePeriodicSubscribableStorage
 
     if (oldRoot != newRoot) {
       // make sure newRoot is fully published before swapping
-      subscriptions_.wlock()->publishAndAddPaths(newRoot);
+      subscriptions_.publishAndAddPaths(newRoot);
     }
 
     *lastState = Storage(*currentState);
@@ -259,16 +256,12 @@ class NaivePeriodicSubscribableStorage
         break;
       }
 
-      {
-        auto [oldRoot, newRoot, metadataServer] = publishCurrentState();
-        auto subscriptions = subscriptions_.wlock();
-
-        subscriptions->serveSubscriptions(oldRoot, newRoot, metadataServer);
-      }
+      auto [oldRoot, newRoot, metadataServer] = publishCurrentState();
+      subscriptions_.serveSubscriptions(oldRoot, newRoot, metadataServer);
 
       if (FLAGS_serveHeartbeats &&
           start - lastHeartbeatTime_ >= subscriptionHeartbeatInterval_) {
-        subscriptions_.wlock()->serveHeartbeat();
+        subscriptions_.serveHeartbeat();
         lastHeartbeatTime_ = start;
       }
 
@@ -298,15 +291,12 @@ class NaivePeriodicSubscribableStorage
   }
 
  protected:
-  void withSubMgrRLockedImpl(
-      folly::FunctionRef<void(const SubscriptionManagerBase&)> f)
-      const override {
-    f(*subscriptions_.rlock());
+  const SubscriptionManagerBase& subMgr() const override {
+    return subscriptions_;
   }
 
-  void withSubMgrWLockedImpl(
-      folly::FunctionRef<void(SubscriptionManagerBase&)> f) override {
-    f(*subscriptions_.wlock());
+  SubscriptionManagerBase& subMgr() override {
+    return subscriptions_;
   }
 
   ConcretePath convertPath(ConcretePath&& path) const override;
@@ -316,7 +306,7 @@ class NaivePeriodicSubscribableStorage
   folly::Synchronized<Storage> currentState_;
   folly::Synchronized<Storage> lastPublishedState_;
 
-  folly::Synchronized<SubscribeManager> subscriptions_;
+  SubscribeManager subscriptions_;
 };
 
 // To avoid compiler inlining these heavy functions and allow for caching

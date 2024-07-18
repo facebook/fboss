@@ -121,52 +121,32 @@ class NaivePeriodicSubscribableStorageBase {
         std::move(rawPaths),
         patchOperProtocol_,
         std::move(root));
-    withSubMgrWLocked([subscription = std::move(subscription)](
-                          SubscriptionManagerBase& mgr) mutable {
-      mgr.registerExtendedSubscription(std::move(subscription));
-    });
+    subMgr().registerExtendedSubscription(std::move(subscription));
     return std::move(gen);
   }
 #endif
 
   size_t numSubscriptions() const {
-    return withSubMgrRLocked([](const SubscriptionManagerBase& mgr) {
-      return mgr.numSubscriptions();
-    });
+    return subMgr().numSubscriptions();
   }
   std::vector<OperSubscriberInfo> getSubscriptions() const {
-    return withSubMgrRLocked([](const SubscriptionManagerBase& mgr) {
-      return mgr.getSubscriptions();
-    });
+    return subMgr().getSubscriptions();
   }
   size_t numPathStores() const {
-    return withSubMgrRLocked(
-        [](const SubscriptionManagerBase& mgr) { return mgr.numPathStores(); });
+    return subMgr().numPathStores();
   }
 
   void setConvertToIDPaths(bool convertToIDPaths) {
     convertSubsToIDPaths_ = convertToIDPaths;
-    withSubMgrWLocked([&](SubscriptionManagerBase& mgr) {
-      mgr.useIdPaths(convertToIDPaths);
-    });
+    subMgr().useIdPaths(convertToIDPaths);
   }
 
  protected:
   virtual folly::coro::Task<void> serveSubscriptions() = 0;
   virtual ConcretePath convertPath(ConcretePath&& path) const = 0;
   virtual ExtPath convertPath(const ExtPath& path) const = 0;
-
-  /*
-    We want to get access to subscription manager from
-    NaivePeriodicSubscribableStorage in the form of SubscriptionManagerBase.
-    Since we use a folly::Synchronized object to hold the mgr, having a getter
-    to get the base class locked is not trivial. Using a little trick with a
-    lambda to achieve this
-  */
-  virtual void withSubMgrRLockedImpl(
-      folly::FunctionRef<void(const SubscriptionManagerBase&)> data) const = 0;
-  virtual void withSubMgrWLockedImpl(
-      folly::FunctionRef<void(SubscriptionManagerBase&)> data) = 0;
+  virtual const SubscriptionManagerBase& subMgr() const = 0;
+  virtual SubscriptionManagerBase& subMgr() = 0;
 
   SubscriptionMetadataServer getCurrentMetadataServer();
   void exportServeMetrics(
@@ -209,37 +189,6 @@ class NaivePeriodicSubscribableStorageBase {
   const OperProtocol patchOperProtocol_{OperProtocol::COMPACT};
 
  private:
-  //  Helper methods to get sub mgr that support lambdas with return values
-  template <
-      typename F,
-      typename R = std::invoke_result_t<F, SubscriptionManagerBase&>>
-  R withSubMgrRLocked(F&& f) const {
-    if constexpr (std::is_void_v<R>) {
-      withSubMgrRLockedImpl(std::forward<F>(f));
-    } else {
-      std::optional<R> r;
-      withSubMgrRLockedImpl([&](const SubscriptionManagerBase& data) mutable {
-        r.emplace(std::forward<F>(f)(data));
-      });
-      return std::move(r).value();
-    }
-  }
-
-  template <
-      typename F,
-      typename R = std::invoke_result_t<F, SubscriptionManagerBase&>>
-  R withSubMgrWLocked(F&& f) {
-    if constexpr (std::is_void_v<R>) {
-      withSubMgrWLockedImpl(std::forward<F>(f));
-    } else {
-      std::optional<R> r;
-      withSubMgrWLockedImpl([&](SubscriptionManagerBase& data) mutable {
-        r.emplace(std::forward<F>(f)(data));
-      });
-      return std::move(r).value();
-    }
-  }
-
   folly::coro::CancellableAsyncScope backgroundScope_;
   std::unique_ptr<std::thread> subscriptionServingThread_;
   folly::EventBase evb_;
