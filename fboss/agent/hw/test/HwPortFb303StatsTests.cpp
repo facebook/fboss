@@ -369,6 +369,31 @@ TEST(HwPortFb303StatsTest, ReInit) {
     EXPECT_FALSE(fbData->getStatMap()->contains(
         HwPortFb303Stats::statName(sName, kPortName)));
   }
+  for (auto statKey : stats.kPortFb303CounterStatKeys()) {
+    EXPECT_FALSE(
+        fbData
+            ->getCounterIfExists(HwPortFb303Stats::statName(statKey, kPortName))
+            .has_value());
+    // For fb303 stats - the new counter will be updated on the next
+    // update a not on name change
+    EXPECT_FALSE(fbData
+                     ->getCounterIfExists(
+                         HwPortFb303Stats::statName(statKey, kNewPortName))
+                     .has_value());
+  }
+  updateStats(stats);
+  for (auto statKey : stats.kPortFb303CounterStatKeys()) {
+    EXPECT_FALSE(
+        fbData
+            ->getCounterIfExists(HwPortFb303Stats::statName(statKey, kPortName))
+            .has_value());
+    // New stat counters show up after update
+    EXPECT_TRUE(fbData
+                    ->getCounterIfExists(
+                        HwPortFb303Stats::statName(statKey, kNewPortName))
+                    .has_value());
+  }
+
   for (auto statKey : stats.kQueueMonotonicCounterStatKeys()) {
     for (const auto& queueIdAndName : kQueue2Name) {
       EXPECT_TRUE(fbData->getStatMap()->contains(HwPortFb303Stats::statName(
@@ -468,6 +493,20 @@ TEST(HwPortFb303Stats, portNameChangeResetsValue) {
         HwPortFb303Stats::statName(counterName, kNewPortName)));
     EXPECT_FALSE(fbData->getStatMap()->contains(
         HwPortFb303Stats::statName(counterName, kPortName)));
+  }
+  // fb303 counters simply get deleted on name change. Only to be added
+  // back on next update
+  for (auto statKey : portStats.kPortFb303CounterStatKeys()) {
+    EXPECT_FALSE(
+        fbData
+            ->getCounterIfExists(HwPortFb303Stats::statName(statKey, kPortName))
+            .has_value());
+    // For fb303 stats - the new counter will be updated on the next
+    // update a not on name change
+    EXPECT_FALSE(fbData
+                     ->getCounterIfExists(
+                         HwPortFb303Stats::statName(statKey, kNewPortName))
+                     .has_value());
   }
   for (auto counterName : portStats.kQueueMonotonicCounterStatKeys()) {
     for (const auto& queueIdAndName : kQueue2Name) {
