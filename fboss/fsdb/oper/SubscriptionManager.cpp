@@ -54,10 +54,6 @@ std::vector<OperSubscriberInfo> SubscriptionManagerBase::getSubscriptions()
   return toRet;
 }
 
-void SubscriptionManagerBase::serveHeartbeat() {
-  store_.wlock()->serveHeartbeat();
-}
-
 void SubscriptionManagerBase::registerPendingSubscriptions(
     SubscriptionStore& store) {
   auto pendingSubscriptions = pendingSubscriptions_.wlock();

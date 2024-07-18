@@ -31,8 +31,6 @@ class SubscriptionStore {
       std::vector<std::string>::const_iterator begin,
       std::vector<std::string>::const_iterator end);
 
-  void serveHeartbeat();
-
   void closeNoPublisherActiveSubscriptions(
       const SubscriptionMetadataServer& metadataServer,
       FsdbErrorCode disconnectReason);

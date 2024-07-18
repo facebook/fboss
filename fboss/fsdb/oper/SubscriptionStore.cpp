@@ -189,15 +189,6 @@ void SubscriptionStore::flush(
   }
 }
 
-void SubscriptionStore::serveHeartbeat() {
-  for (auto& [_, subscription] : subscriptions_) {
-    subscription->serveHeartbeat();
-  }
-  for (auto& [_, subscription] : extendedSubscriptions_) {
-    subscription->serveHeartbeat();
-  }
-}
-
 void SubscriptionStore::processAddedPath(
     std::vector<std::string>::const_iterator begin,
     std::vector<std::string>::const_iterator end) {

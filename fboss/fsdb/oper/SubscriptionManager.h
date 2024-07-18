@@ -45,8 +45,6 @@ class SubscriptionManagerBase {
 
   std::vector<OperSubscriberInfo> getSubscriptions() const;
 
-  void serveHeartbeat();
-
   void useIdPaths(bool idPaths) {
     useIdPaths_ = idPaths;
   }
