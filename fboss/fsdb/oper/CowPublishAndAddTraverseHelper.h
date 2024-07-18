@@ -10,8 +10,8 @@
 
 #pragma once
 
-#include "fboss/fsdb/oper/SubscriptionManager.h"
 #include "fboss/fsdb/oper/SubscriptionPathStore.h"
+#include "fboss/fsdb/oper/SubscriptionStore.h"
 #include "fboss/thrift_cow/visitors/TraverseHelper.h"
 
 namespace facebook::fboss::fsdb {
@@ -25,7 +25,7 @@ struct CowPublishAndAddTraverseHelper
 
   CowPublishAndAddTraverseHelper(
       SubscriptionPathStore* root,
-      SubscriptionManagerBase* manager);
+      SubscriptionStore* store);
 
   bool shouldShortCircuitImpl(thrift_cow::VisitorType visitorType) const;
 
@@ -35,7 +35,7 @@ struct CowPublishAndAddTraverseHelper
 
  private:
   std::vector<SubscriptionPathStore*> pathStores_;
-  SubscriptionManagerBase* manager_{nullptr};
+  SubscriptionStore* store_{nullptr};
 };
 
 } // namespace facebook::fboss::fsdb

@@ -18,6 +18,7 @@ cpp_library(
         "SubscriptionManager.cpp",
         "SubscriptionMetadataServer.cpp",
         "SubscriptionPathStore.cpp",
+        "SubscriptionStore.cpp",
     ],
     headers = [
         "CowDeletePathTraverseHelper.h",
@@ -28,6 +29,7 @@ cpp_library(
         "SubscriptionManager.h",
         "SubscriptionMetadataServer.h",
         "SubscriptionPathStore.h",
+        "SubscriptionStore.h",
     ],
     exported_deps = [
         ":delta_value",

@@ -1,7 +1,7 @@
 // (c) Facebook, Inc. and its affiliates. Confidential and proprietary.
 
 #include "fboss/fsdb/oper/SubscriptionPathStore.h"
-#include "fboss/fsdb/oper/SubscriptionManager.h"
+#include "fboss/fsdb/oper/SubscriptionStore.h"
 
 namespace facebook::fboss::fsdb {
 
@@ -18,7 +18,7 @@ void SubscriptionPathStore::remove(Subscription* subscription) {
 }
 
 void SubscriptionPathStore::incrementallyResolve(
-    SubscriptionManagerBase& manager,
+    SubscriptionStore& store,
     std::shared_ptr<ExtendedSubscription> subscription,
     SubscriptionKey subKey,
     std::vector<std::string>& pathSoFar) {
@@ -34,7 +34,7 @@ void SubscriptionPathStore::incrementallyResolve(
     XLOG(DBG2) << this << ": Saving fully resolved extended subscription at "
                << folly::join('/', pathSoFar);
     auto resolvedSub = subscription->resolve(subKey, pathSoFar);
-    manager.registerSubscription(std::move(resolvedSub));
+    store.registerSubscription(std::move(resolvedSub));
     return;
   } else if (path.at(idx).getType() != OperPathElem::Type::raw) {
     // we hit another wildcard element. Add a partially resolved subscription
@@ -56,12 +56,12 @@ void SubscriptionPathStore::incrementallyResolve(
   }
   pathSoFar.emplace_back(key);
   children_.at(key)->incrementallyResolve(
-      manager, std::move(subscription), subKey, pathSoFar);
+      store, std::move(subscription), subKey, pathSoFar);
   pathSoFar.pop_back();
 }
 
 void SubscriptionPathStore::processAddedPath(
-    SubscriptionManagerBase& manager,
+    SubscriptionStore& store,
     PathIter begin,
     PathIter curr,
     PathIter end) {
@@ -122,7 +122,7 @@ void SubscriptionPathStore::processAddedPath(
         childStorePresent = true;
       }
       children_.at(key)->incrementallyResolve(
-          manager, std::move(subscription), partial.subKey, pathSoFar);
+          store, std::move(subscription), partial.subKey, pathSoFar);
     }
 
     ++it;
@@ -132,7 +132,7 @@ void SubscriptionPathStore::processAddedPath(
   // to resolve under this key. So process further only if child PathStore
   // is present.
   if (childStorePresent) {
-    children_.at(key)->processAddedPath(manager, begin, curr, end);
+    children_.at(key)->processAddedPath(store, begin, curr, end);
   }
 }
 

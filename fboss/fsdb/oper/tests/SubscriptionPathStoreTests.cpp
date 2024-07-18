@@ -104,7 +104,7 @@ std::unique_ptr<TestDeltaSubscription> makeDeltaSubscription(
   return std::make_unique<TestDeltaSubscription>(std::move(path));
 }
 
-struct StubSubscriptionManager : public SubscriptionManagerBase {
+struct StubSubscriptionStore : public SubscriptionStore {
   void registerSubscription(std::unique_ptr<Subscription> sub) override {
     subs.emplace(subs.size(), std::move(sub));
   }
@@ -209,32 +209,32 @@ TEST(SubscriptionPathStoreTests, IncrementalResolveExtended) {
   auto extSub4 = std::make_shared<TestExtendedSubscription>(
       ExtSubPathMap{{0, std::move(path5)}});
 
-  SubscriptionPathStore store;
-  StubSubscriptionManager manager;
+  SubscriptionPathStore pathStore;
+  StubSubscriptionStore store;
 
   // seed incremental resolutions of all the subscriptions
   std::vector<std::string> emptyPathSoFar;
-  store.incrementallyResolve(manager, extSub1, 0, emptyPathSoFar);
-  store.incrementallyResolve(manager, extSub2, 0, emptyPathSoFar);
-  store.incrementallyResolve(manager, extSub3, 0, emptyPathSoFar);
-  store.incrementallyResolve(manager, extSub3, 1, emptyPathSoFar);
+  pathStore.incrementallyResolve(store, extSub1, 0, emptyPathSoFar);
+  pathStore.incrementallyResolve(store, extSub2, 0, emptyPathSoFar);
+  pathStore.incrementallyResolve(store, extSub3, 0, emptyPathSoFar);
+  pathStore.incrementallyResolve(store, extSub3, 1, emptyPathSoFar);
 
-  // First subs should only store partially resolved subpaths, no fully resolved
-  // paths yet
-  EXPECT_EQ(manager.subs.size(), 0);
+  // First subs should only pathStore partially resolved subpaths, no fully
+  // resolved paths yet
+  EXPECT_EQ(store.subs.size(), 0);
 
-  store.incrementallyResolve(manager, extSub4, 0, emptyPathSoFar);
+  pathStore.incrementallyResolve(store, extSub4, 0, emptyPathSoFar);
 
   // Since extSub4 only has raw tokens, we should get a fully resolved
-  // subscription added to the manager.
-  EXPECT_EQ(manager.subs.size(), 1);
+  // subscription added to the store.
+  EXPECT_EQ(store.subs.size(), 1);
 
   // incremental resolve with non-existent pathNum will throw
   EXPECT_THROW(
-      store.incrementallyResolve(manager, extSub3, 2, emptyPathSoFar),
+      pathStore.incrementallyResolve(store, extSub3, 2, emptyPathSoFar),
       std::out_of_range);
 
-  store.debugPrint();
+  pathStore.debugPrint();
 
   // vector of pairs of paths to add and the number of resolved paths
   // we expect afterwards. Note we already have 1 resolved
@@ -253,10 +253,10 @@ TEST(SubscriptionPathStoreTests, IncrementalResolveExtended) {
 
   for (int i = 0; i < pathsToAddAndTest.size(); ++i) {
     const auto& [path, numResolvedAfter] = pathsToAddAndTest[i];
-    store.processAddedPath(manager, path.begin(), path.begin(), path.end());
+    pathStore.processAddedPath(store, path.begin(), path.begin(), path.end());
     XLOG(INFO) << "SubscriptionPathStore state after adding path " << i;
-    store.debugPrint();
-    ASSERT_EQ(manager.subs.size(), numResolvedAfter)
+    pathStore.debugPrint();
+    ASSERT_EQ(store.subs.size(), numResolvedAfter)
         << "Unexpected # of resolved subs after adding path " << i;
   }
 }

@@ -6,8 +6,8 @@ namespace facebook::fboss::fsdb {
 
 CowPublishAndAddTraverseHelper::CowPublishAndAddTraverseHelper(
     SubscriptionPathStore* root,
-    SubscriptionManagerBase* manager)
-    : manager_(manager) {
+    SubscriptionStore* store)
+    : store_(store) {
   pathStores_.emplace_back(root);
 }
 
@@ -32,7 +32,7 @@ void CowPublishAndAddTraverseHelper::onPushImpl(
     // this assumes currPath has size > 0, which we know because we
     // would have added at least one elem in TraverseHelper::push().
     lastPathStore->processAddedPath(
-        *manager_, currPath.begin(), currPath.end() - 1, currPath.end());
+        *store_, currPath.begin(), currPath.end() - 1, currPath.end());
   }
   // on push, always add the child to the pathStores_ even if lastPathStore
   // is null, so that pathStores_.size() is always equal to pathlen()

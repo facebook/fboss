@@ -129,8 +129,8 @@ class CowSubscriptionManager
   void doInitialSyncSimple(
       const std::shared_ptr<Root>& newRoot,
       const SubscriptionMetadataServer& metadataServer) {
-    auto it = this->initialSyncNeeded_.begin();
-    while (it != this->initialSyncNeeded_.end()) {
+    auto it = this->store_.initialSyncNeeded().begin();
+    while (it != this->store_.initialSyncNeeded().end()) {
       auto& subscription = *it;
 
       if (!metadataServer.ready(subscription->publisherTreeRoot())) {
@@ -181,8 +181,8 @@ class CowSubscriptionManager
         subscription->serveHeartbeat();
       }
 
-      this->lookup_.add(subscription);
-      it = this->initialSyncNeeded_.erase(it);
+      this->store_.lookup().add(subscription);
+      it = this->store_.initialSyncNeeded().erase(it);
     }
   }
 
@@ -191,11 +191,11 @@ class CowSubscriptionManager
       const SubscriptionMetadataServer& metadataServer) {
     const auto& root = *newRoot;
     auto process = [&](const auto& path, auto& node) {
-      this->processAddedPath(path.begin(), path.end());
+      this->store_.processAddedPath(path.begin(), path.end());
     };
 
-    auto it = this->initialSyncNeededExtended_.begin();
-    while (it != this->initialSyncNeededExtended_.end()) {
+    auto it = this->store_.initialSyncNeededExtended().begin();
+    while (it != this->store_.initialSyncNeededExtended().end()) {
       auto& subscription = *it;
 
       if (!metadataServer.ready(subscription->publisherTreeRoot())) {
@@ -207,14 +207,14 @@ class CowSubscriptionManager
       for (const auto& [key, path] : paths) {
         // seed beginnings of the path in to lookup tree
         std::vector<std::string> emptyPathSoFar;
-        this->lookup_.incrementallyResolve(
-            *this, subscription, key, emptyPathSoFar);
+        this->store_.lookup().incrementallyResolve(
+            this->store_, subscription, key, emptyPathSoFar);
 
         thrift_cow::ExtPathVisitorOptions options(this->useIdPaths_);
         thrift_cow::RootExtendedPathVisitor::visit(
             root, path.path()->begin(), path.path()->end(), options, process);
       }
-      it = this->initialSyncNeededExtended_.erase(it);
+      it = this->store_.initialSyncNeededExtended().erase(it);
     }
   }
 
@@ -232,7 +232,8 @@ class CowSubscriptionManager
       }
     };
 
-    CowPublishAndAddTraverseHelper traverser(&this->lookup_, this);
+    CowPublishAndAddTraverseHelper traverser(
+        &this->store_.lookup(), &this->store_);
     thrift_cow::RootRecurseVisitor::visit(
         traverser,
         root,
@@ -273,7 +274,7 @@ class CowSubscriptionManager
       }
     };
 
-    CowDeletePathTraverseHelper traverser(&this->lookup_);
+    CowDeletePathTraverseHelper traverser(&this->store_.lookup());
 
     thrift_cow::RootDeltaVisitor::visit(
         traverser,
@@ -387,7 +388,8 @@ class CowSubscriptionManager
       patchBuilder.emplace(
           patchOperProtocol(), true /* incrementallyCompress */);
     }
-    CowSubscriptionTraverseHelper traverser(&this->lookup_, patchBuilder);
+    CowSubscriptionTraverseHelper traverser(
+        &this->store_.lookup(), patchBuilder);
     if (oldRoot && newRoot) {
       thrift_cow::RootDeltaVisitor::visit(
           traverser,
@@ -403,7 +405,7 @@ class CowSubscriptionManager
           traverser, oldRoot, newRoot, thrift_cow::DeltaElemTag::MINIMAL);
     }
 
-    this->flush(metadataServer);
+    this->store_.flush(metadataServer);
   }
 
   void doInitialSync(
@@ -417,7 +419,7 @@ class CowSubscriptionManager
 
     doInitialSyncExtended(newRoot, metadataServer);
     doInitialSyncSimple(newRoot, metadataServer);
-    this->flush(metadataServer);
+    this->store_.flush(metadataServer);
   }
 
 }; // namespace facebook::fboss::fsdb

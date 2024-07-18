@@ -6,7 +6,7 @@
 #include "fboss/fsdb/if/gen-cpp2/fsdb_oper_types.h"
 #include "fboss/fsdb/if/gen-cpp2/fsdb_types.h"
 #include "fboss/fsdb/oper/Subscription.h"
-#include "fboss/fsdb/oper/SubscriptionPathStore.h"
+#include "fboss/fsdb/oper/SubscriptionStore.h"
 
 #include <folly/logging/xlog.h>
 #include <string>
@@ -24,14 +24,6 @@ class SubscriptionManagerBase {
       : patchOperProtocol_(patchOperProtocol),
         requireResponseOnInitialSync_(requireResponseOnInitialSync) {}
 
-  virtual ~SubscriptionManagerBase() = default;
-
-  void pruneSimpleSubscriptions();
-
-  std::vector<std::string> markExtendedSubscriptionsThatNeedPruning();
-
-  void pruneExtendedSubscriptions(const std::vector<std::string>& toDelete);
-
   void pruneCancelledSubscriptions();
 
   void closeNoPublisherActiveSubscriptions(
@@ -41,23 +33,17 @@ class SubscriptionManagerBase {
   void registerExtendedSubscription(
       std::shared_ptr<ExtendedSubscription> subscription);
 
-  virtual void registerSubscription(std::unique_ptr<Subscription> subscription);
-
-  void unregisterSubscription(const std::string& name);
-
-  void unregisterExtendedSubscription(const std::string& name);
+  void registerSubscription(std::unique_ptr<Subscription> subscription);
 
   size_t numSubscriptions() const {
-    return subscriptions_.size();
+    return store_.subscriptions().size();
   }
 
   size_t numPathStores() const {
-    return lookup_.numPathStores();
+    return store_.lookup().numPathStores();
   }
 
   std::vector<OperSubscriberInfo> getSubscriptions() const;
-
-  void flush(const SubscriptionMetadataServer& metadataServer);
 
   void serveHeartbeat();
 
@@ -89,13 +75,7 @@ class SubscriptionManagerBase {
       std::vector<std::string>::const_iterator begin,
       std::vector<std::string>::const_iterator end);
 
-  // owned subscriptions, keyed on name they were registered with
-  std::unordered_map<std::string, std::unique_ptr<Subscription>> subscriptions_;
-  std::unordered_map<std::string, std::shared_ptr<ExtendedSubscription>>
-      extendedSubscriptions_;
-  std::unordered_set<Subscription*> initialSyncNeeded_;
-  std::unordered_set<std::shared_ptr<ExtendedSubscription>>
-      initialSyncNeededExtended_;
+  SubscriptionStore store_;
 
   // lookup for the subscriptions, keyed on path
   SubscriptionPathStore lookup_;

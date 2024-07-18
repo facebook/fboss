@@ -26,7 +26,6 @@ cpp_unittest(
         "//folly/experimental/coro:task",
         "//folly/experimental/coro:timeout",
         "//folly/json:dynamic",
-        "//folly/logging:init",
         "//thrift/lib/cpp2/folly_dynamic:folly_dynamic",
     ],
 )
