@@ -46,6 +46,15 @@ bool isEqual(
 }
 } // namespace
 
+class LinkSanityTestDataPlaneFlood : public LinkTest {
+ private:
+  void setupConfigFlag() override {
+    XLOG(DBG2)
+        << "setup up initial config for sw ttl0 to create dataplane flood";
+    setupTtl0ForwardingEnable();
+  }
+};
+
 // Tests that the link comes up after a flap on the ASIC
 TEST_F(LinkTest, asicLinkFlap) {
   auto verify = [this]() {
