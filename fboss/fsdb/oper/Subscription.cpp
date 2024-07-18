@@ -1,11 +1,11 @@
 // (c) Facebook, Inc. and its affiliates. Confidential and proprietary.
 
-#include <any>
-#include <optional>
+#include "fboss/fsdb/oper/Subscription.h"
 
 #include <boost/core/noncopyable.hpp>
-
-#include "fboss/fsdb/oper/Subscription.h"
+#include <folly/experimental/coro/BlockingWait.h>
+#include <folly/experimental/coro/Sleep.h>
+#include <optional>
 
 namespace facebook::fboss::fsdb {
 
@@ -37,7 +37,23 @@ BaseSubscription::BaseSubscription(
       protocol_(protocol),
       publisherTreeRoot_(std::move(publisherRoot)),
       heartbeatEvb_(heartbeatEvb),
-      heartbeatInterval_(heartbeatInterval) {}
+      heartbeatInterval_(heartbeatInterval) {
+  if (heartbeatEvb_) {
+    backgroundScope_.add(heartbeatLoop().scheduleOn(heartbeatEvb_));
+  }
+}
+
+BaseSubscription::~BaseSubscription() {
+  folly::coro::blockingWait(backgroundScope_.cancelAndJoinAsync());
+}
+
+folly::coro::Task<void> BaseSubscription::heartbeatLoop() {
+  while (true) {
+    co_await folly::coro::sleep(heartbeatInterval_);
+    serveHeartbeat();
+  }
+  co_return;
+}
 
 void BaseDeltaSubscription::appendRootDeltaUnit(const OperDeltaUnit& unit) {
   // this is a helper to add a delta unit in to the currentDelta

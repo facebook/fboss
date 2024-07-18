@@ -12,8 +12,10 @@
 #include <folly/Synchronized.h>
 #include <folly/experimental/coro/AsyncScope.h>
 #include <folly/io/async/EventBase.h>
+#include <folly/io/async/ScopedEventBaseThread.h>
 
 DECLARE_int32(storage_thread_heartbeat_ms);
+DECLARE_bool(serveHeartbeats);
 
 namespace facebook::fboss::fsdb {
 
@@ -121,7 +123,7 @@ class NaivePeriodicSubscribableStorageBase {
         std::move(rawPaths),
         patchOperProtocol_,
         std::move(root),
-        nullptr,
+        heartbeatThread_ ? heartbeatThread_->getEventBase() : nullptr,
         subscriptionHeartbeatInterval_);
     subMgr().registerExtendedSubscription(std::move(subscription));
     return std::move(gen);
@@ -184,8 +186,6 @@ class NaivePeriodicSubscribableStorageBase {
 
   bool convertSubsToIDPaths_{false};
 
-  std::chrono::steady_clock::time_point lastHeartbeatTime_;
-
   // as an optimization, for now we decide what protocol is used in patches
   // instead of letting the client choose
   const OperProtocol patchOperProtocol_{OperProtocol::COMPACT};
@@ -194,6 +194,7 @@ class NaivePeriodicSubscribableStorageBase {
   folly::coro::CancellableAsyncScope backgroundScope_;
   std::unique_ptr<std::thread> subscriptionServingThread_;
   folly::EventBase evb_;
+  std::unique_ptr<folly::ScopedEventBaseThread> heartbeatThread_;
 
   std::shared_ptr<ThreadHeartbeat> threadHeartbeat_;
 

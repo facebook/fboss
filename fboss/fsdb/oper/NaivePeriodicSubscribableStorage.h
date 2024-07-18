@@ -27,8 +27,6 @@
 
 namespace facebook::fboss::fsdb {
 
-DECLARE_bool(serveHeartbeats);
-
 template <typename Storage, typename SubscribeManager>
 class NaivePeriodicSubscribableStorage
     : public NaivePeriodicSubscribableStorageBase,
@@ -258,12 +256,6 @@ class NaivePeriodicSubscribableStorage
 
       auto [oldRoot, newRoot, metadataServer] = publishCurrentState();
       subscriptions_.serveSubscriptions(oldRoot, newRoot, metadataServer);
-
-      if (FLAGS_serveHeartbeats &&
-          start - lastHeartbeatTime_ >= subscriptionHeartbeatInterval_) {
-        subscriptions_.serveHeartbeat();
-        lastHeartbeatTime_ = start;
-      }
 
       exportServeMetrics(start);
 

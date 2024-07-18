@@ -57,7 +57,6 @@ add_library(subscribable_storage
   fboss/fsdb/oper/NaivePeriodicSubscribableStorageBase.h
   fboss/fsdb/oper/NaivePeriodicSubscribableStorageBase.cpp
   fboss/fsdb/oper/NaivePeriodicSubscribableStorage.h
-  fboss/fsdb/oper/NaivePeriodicSubscribableStorage.cpp
   fboss/fsdb/oper/SubscribableStorage.h
 )
 

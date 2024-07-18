@@ -3,6 +3,20 @@ load("@fbcode_macros//build_defs:cpp_unittest.bzl", "cpp_unittest")
 oncall("fboss_agent_push")
 
 cpp_unittest(
+    name = "subscription_tests",
+    srcs = ["SubscriptionTests.cpp"],
+    preprocessor_flags = [
+        "-DENABLE_PATCH_APIS",
+    ],
+    deps = [
+        "//fboss/fsdb/oper:subscription_manager",
+        "//folly/experimental/coro:blocking_wait",
+        "//folly/experimental/coro:timeout",
+        "//folly/io/async:scoped_event_base_thread",
+    ],
+)
+
+cpp_unittest(
     name = "subscribable_storage_tests",
     srcs = ["SubscribableStorageTests.cpp"],
     compiler_flags = ["-ftemplate-backtrace-limit=0"],

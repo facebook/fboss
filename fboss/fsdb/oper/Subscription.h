@@ -12,6 +12,7 @@
 
 #include <boost/core/noncopyable.hpp>
 #include <folly/experimental/coro/AsyncPipe.h>
+#include <folly/experimental/coro/AsyncScope.h>
 #include <folly/io/async/EventBase.h>
 #include <folly/json/dynamic.h>
 
@@ -25,7 +26,7 @@ class BaseSubscription {
     return subscriber_;
   }
 
-  virtual ~BaseSubscription() = default;
+  virtual ~BaseSubscription();
 
   virtual bool shouldConvertToDynamic() const {
     return false;
@@ -81,10 +82,13 @@ class BaseSubscription {
       std::chrono::milliseconds heartbeatInterval);
 
  private:
+  folly::coro::Task<void> heartbeatLoop();
+
   const SubscriberId subscriber_;
   const OperProtocol protocol_;
   const std::optional<std::string> publisherTreeRoot_;
   folly::EventBase* heartbeatEvb_;
+  folly::coro::CancellableAsyncScope backgroundScope_;
   std::chrono::milliseconds heartbeatInterval_;
 };
 
@@ -212,8 +216,8 @@ class PathSubscription : public BasePathSubscription,
       SubscriberId subscriber,
       PathIter begin,
       PathIter end,
-      std::optional<std::string> publisherRoot,
       OperProtocol protocol,
+      std::optional<std::string> publisherRoot,
       folly::EventBase* heartbeatEvb,
       std::chrono::milliseconds heartbeatInterval) {
     auto [generator, pipe] = folly::coro::AsyncPipe<value_type>::create();

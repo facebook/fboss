@@ -50,6 +50,9 @@ cpp_library(
         "//folly:traits",
         "//folly/container:f14_hash",
         "//folly/experimental/coro:async_pipe",
+        "//folly/experimental/coro:async_scope",
+        "//folly/experimental/coro:blocking_wait",
+        "//folly/experimental/coro:sleep",
         "//folly/io/async:async_base",
         "//folly/json:dynamic",
         "//folly/logging:logging",
@@ -64,7 +67,6 @@ cpp_library(
 cpp_library(
     name = "subscribable_storage",
     srcs = [
-        "NaivePeriodicSubscribableStorage.cpp",
         "NaivePeriodicSubscribableStorageBase.cpp",
     ],
     headers = [
@@ -92,6 +94,7 @@ cpp_library(
         "//folly/experimental/coro:blocking_wait",
         "//folly/experimental/coro:sleep",
         "//folly/io/async:async_base",
+        "//folly/io/async:scoped_event_base_thread",
         "//folly/json:dynamic",
         "//folly/logging:logging",
         "//folly/system:thread_name",
