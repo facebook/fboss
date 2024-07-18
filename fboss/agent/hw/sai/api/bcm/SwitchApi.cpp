@@ -84,7 +84,7 @@ const std::vector<sai_stat_id_t>& SaiSwitchTraits::dramStats() {
 }
 
 const std::vector<sai_stat_id_t>& SaiSwitchTraits::rciWatermarkStats() {
-#if defined(SAI_VERSION_11_0_EA_DNX_ODP)
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
   static const std::vector<sai_stat_id_t> stats{
       SAI_SWITCH_STAT_DEVICE_RCI_WATERMARK_BYTES,
       SAI_SWITCH_STAT_DEVICE_CORE_RCI_WATERMARK_BYTES};
@@ -95,7 +95,7 @@ const std::vector<sai_stat_id_t>& SaiSwitchTraits::rciWatermarkStats() {
 }
 
 const std::vector<sai_stat_id_t>& SaiSwitchTraits::dtlWatermarkStats() {
-#if defined(SAI_VERSION_11_0_EA_DNX_ODP)
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
   static const std::vector<sai_stat_id_t> stats{
       SAI_SWITCH_STAT_HIGHEST_QUEUE_CONGESTION_LEVEL};
 #else

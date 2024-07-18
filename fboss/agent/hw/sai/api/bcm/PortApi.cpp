@@ -33,7 +33,7 @@ SaiPortTraits::Attributes::AttributeDiagModeEnable::operator()() {
 
 std::optional<sai_attr_id_t>
 SaiPortTraits::Attributes::AttributeFdrEnable::operator()() {
-#if defined(BRCM_SAI_SDK_GTE_10_0) || defined(SAI_VERSION_11_0_EA_DNX_ODP)
+#if defined(BRCM_SAI_SDK_GTE_10_0) || defined(BRCM_SAI_SDK_DNX_GTE_11_0)
   return SAI_PORT_ATTR_FDR_ENABLE;
 #else
   return std::nullopt;

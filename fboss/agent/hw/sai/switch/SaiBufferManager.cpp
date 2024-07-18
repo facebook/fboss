@@ -424,7 +424,7 @@ SaiBufferProfileTraits::CreateAttributes SaiBufferManager::profileCreateAttrs(
   }
   std::optional<SaiBufferProfileTraits::Attributes::SharedFadtMaxTh>
       sharedFadtMaxTh;
-#if defined(SAI_VERSION_11_0_EA_DNX_ODP)
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
   if (queue.getMaxDynamicSharedBytes()) {
     sharedFadtMaxTh = queue.getMaxDynamicSharedBytes().value();
   } else {
@@ -491,7 +491,7 @@ SaiBufferManager::ingressProfileCreateAttrs(
   }
   std::optional<SaiBufferProfileTraits::Attributes::SharedFadtMaxTh>
       sharedFadtMaxTh;
-#if defined(SAI_VERSION_11_0_EA_DNX_ODP)
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
   // use default 0 since this attribute currently only used by profile for
   // cpu/eventor/rcy port queues
   sharedFadtMaxTh = 0;

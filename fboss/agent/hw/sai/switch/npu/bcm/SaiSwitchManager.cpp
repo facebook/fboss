@@ -41,7 +41,7 @@ void fillHwSwitchWatermarkStats(
   for (auto counterIdAndValue : counterId2Value) {
     auto [counterId, value] = counterIdAndValue;
     switch (counterId) {
-#if defined(SAI_VERSION_11_0_EA_DNX_ODP)
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
       case SAI_SWITCH_STAT_DEVICE_RCI_WATERMARK_BYTES:
         hwSwitchWatermarkStats.fdrRciWatermarkBytes() = value;
         break;

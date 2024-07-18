@@ -303,7 +303,7 @@ void fillHwPortStats(
       case SAI_PORT_STAT_OUT_CONFIGURED_DROP_REASONS_0_DROPPED_PKTS:
         hwPortStats.pqpErrorEgressDroppedPackets_() = value;
         break;
-#if defined(SAI_VERSION_11_0_EA_DNX_ODP)
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
       case SAI_PORT_STAT_IF_IN_LINK_DOWN_CELL_DROP:
         hwPortStats.fabricLinkDownDroppedCells_() = value;
         break;
@@ -1404,12 +1404,12 @@ std::shared_ptr<Port> SaiPortManager::swPortFromAttributes(
     case SAI_PORT_TYPE_LOGICAL:
       port->setPortType(derivePortTypeOfLogicalPort(portSaiId));
       break;
-#if defined(SAI_VERSION_11_0_EA_DNX_ODP)
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
     case SAI_PORT_TYPE_MGMT:
       port->setPortType(cfg::PortType::MANAGEMENT_PORT);
       break;
 #endif
-#if defined(SAI_VERSION_11_0_EA_DNX_ODP)
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
     case SAI_PORT_TYPE_EVENTOR:
       port->setPortType(cfg::PortType::EVENTOR_PORT);
       break;
@@ -1582,7 +1582,7 @@ bool SaiPortManager::rxSNRSupported() const {
 }
 
 bool SaiPortManager::fecCodewordsStatsSupported(PortID portId) const {
-#if defined(BRCM_SAI_SDK_GTE_10_0) || defined(SAI_VERSION_11_0_EA_DNX_ODP) || \
+#if defined(BRCM_SAI_SDK_GTE_10_0) || defined(BRCM_SAI_SDK_DNX_GTE_11_0) || \
     defined(TAJO_SDK_MORGAN)
   return platform_->getAsic()->isSupported(
              HwAsic::Feature::SAI_FEC_CODEWORDS_STATS) &&

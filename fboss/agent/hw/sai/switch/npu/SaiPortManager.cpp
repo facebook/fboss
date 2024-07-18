@@ -47,11 +47,11 @@ std::optional<SaiPortTraits::Attributes::SystemPortId> getSystemPortId(
 sai_int32_t getPortTypeFromCfg(const cfg::PortType& cfgPortType) {
   switch (cfgPortType) {
     case cfg::PortType::MANAGEMENT_PORT:
-#if defined(SAI_VERSION_11_0_EA_DNX_ODP)
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
       return SAI_PORT_TYPE_MGMT;
 #endif
     case cfg::PortType::EVENTOR_PORT:
-#if defined(SAI_VERSION_11_0_EA_DNX_ODP)
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
       return SAI_PORT_TYPE_EVENTOR;
 #endif
     case cfg::PortType::INTERFACE_PORT:
@@ -95,7 +95,7 @@ void SaiPortManager::fillInSupportedStats(PortID port) {
           SAI_PORT_STAT_IF_IN_ERRORS,
           SAI_PORT_STAT_IF_OUT_OCTETS,
       };
-#if defined(SAI_VERSION_11_0_EA_DNX_ODP)
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
       if (platform_->getAsic()->isSupported(
               HwAsic::Feature::FABRIC_LINK_DOWN_CELL_DROP_COUNTER)) {
         counterIds.emplace_back(SAI_PORT_STAT_IF_IN_LINK_DOWN_CELL_DROP);
@@ -554,7 +554,7 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
   }
 
   std::optional<bool> fdrEnable;
-#if defined(BRCM_SAI_SDK_GTE_10_0) || defined(SAI_VERSION_11_0_EA_DNX_ODP)
+#if defined(BRCM_SAI_SDK_GTE_10_0) || defined(BRCM_SAI_SDK_DNX_GTE_11_0)
   if (swPort->getPortType() == cfg::PortType::INTERFACE_PORT && adminState &&
       platform_->getAsic()->isSupported(
           HwAsic::Feature::SAI_FEC_CODEWORDS_STATS)) {
