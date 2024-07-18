@@ -40,6 +40,7 @@ class LinkTest : public AgentTest {
  protected:
   void SetUp() override;
   void overrideL2LearningConfig(bool swLearning = false, int ageTimer = 300);
+  void setupTtl0ForwardingEnable();
   void waitForAllCabledPorts(
       bool up,
       uint32_t retries = 60,

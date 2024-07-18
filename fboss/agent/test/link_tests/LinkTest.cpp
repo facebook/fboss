@@ -17,6 +17,7 @@
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/link_tests/LinkTest.h"
+#include "fboss/agent/test/utils/CoppTestUtils.h"
 #include "fboss/agent/test/utils/QosTestUtils.h"
 #include "fboss/lib/CommonFileUtils.h"
 #include "fboss/lib/CommonUtils.h"
@@ -114,6 +115,20 @@ void LinkTest::overrideL2LearningConfig(bool swLearning, int ageTimer) {
   auto newAgentConfig = AgentConfig(
       testConfig,
       apache::thrift::SimpleJSONSerializer::serialize<std::string>(testConfig));
+  newAgentConfig.dumpConfig(getTestConfigPath());
+  FLAGS_config = getTestConfigPath();
+  platform()->reloadConfig();
+}
+
+void LinkTest::setupTtl0ForwardingEnable() {
+  if (!sw()->getHwAsicTable()->isFeatureSupportedOnAnyAsic(
+          HwAsic::Feature::SAI_TTL0_PACKET_FORWARD_ENABLE)) {
+    // don't configure if not supported
+    return;
+  }
+  auto agentConfig = AgentConfig::fromFile(FLAGS_config);
+  auto newAgentConfig =
+      utility::setTTL0PacketForwardingEnableConfig(sw(), *agentConfig);
   newAgentConfig.dumpConfig(getTestConfigPath());
   FLAGS_config = getTestConfigPath();
   platform()->reloadConfig();

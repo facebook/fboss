@@ -22,6 +22,7 @@ target_link_libraries(link_tests
   load_balancer_utils
   olympic_qos_utils
   port_test_utils
+  copp_test_utils
   packet_snooper
   hw_packet_utils
   packet
