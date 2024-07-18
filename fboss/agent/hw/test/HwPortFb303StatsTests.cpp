@@ -344,6 +344,12 @@ TEST(HwPortFb303StatsTest, StatsDeInit) {
     EXPECT_FALSE(fbData->getStatMap()->contains(
         HwPortFb303Stats::statName(statKey, kPortName)));
   }
+  for (auto statKey : dummy.kPortFb303CounterStatKeys()) {
+    EXPECT_FALSE(
+        fbData
+            ->getCounterIfExists(HwPortFb303Stats::statName(statKey, kPortName))
+            .has_value());
+  }
   for (auto statKey : dummy.kQueueMonotonicCounterStatKeys()) {
     for (const auto& queueIdAndName : kQueue2Name) {
       EXPECT_FALSE(fbData->getStatMap()->contains(HwPortFb303Stats::statName(
