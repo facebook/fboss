@@ -64,7 +64,10 @@ cpp_library(
 
 cpp_library(
     name = "fsdb_naive_periodic_subscribable_storage",
-    srcs = ["FsdbNaivePeriodicSubscribableStorage.cpp"],
+    srcs = [
+        "FsdbNaivePeriodicSubscribableStateStorage.cpp",
+        "FsdbNaivePeriodicSubscribableStatsStorage.cpp",
+    ],
     headers = ["FsdbNaivePeriodicSubscribableStorage.h"],
     propagated_pp_flags = ["-DENABLE_PATCH_APIS"],
     exported_deps = [
