@@ -42,6 +42,7 @@ class NaivePeriodicSubscribableStorage
   using PathIter = typename Storage::PathIter;
   using ExtPath = typename Storage::ExtPath;
   using ExtPathIter = typename Storage::ExtPathIter;
+  using RootNode = typename Storage::StorageImpl;
 
   template <typename T>
   using Result = typename Storage::template Result<T>;
@@ -224,6 +225,32 @@ class NaivePeriodicSubscribableStorage
   using NaivePeriodicSubscribableStorageBase::subscribe_encoded_impl;
   using NaivePeriodicSubscribableStorageBase::subscribe_impl;
 
+  std::tuple<
+      std::shared_ptr<RootNode>,
+      std::shared_ptr<RootNode>,
+      SubscriptionMetadataServer>
+  publishCurrentState() {
+    auto lastState = lastPublishedState_.wlock();
+    auto currentState = currentState_.rlock();
+
+    auto oldRoot = lastState->root();
+    auto newRoot = currentState->root();
+    /*
+     * Grab a copy of metadata while holding current state
+     * lock. This way we are guaranteed to get metadata
+     * corresponding to currentState
+     */
+    SubscriptionMetadataServer metadataServer = getCurrentMetadataServer();
+
+    if (oldRoot != newRoot) {
+      // make sure newRoot is fully published before swapping
+      subscriptions_.wlock()->publishAndAddPaths(newRoot);
+    }
+
+    *lastState = Storage(*currentState);
+    return std::make_tuple(oldRoot, newRoot, metadataServer);
+  }
+
   folly::coro::Task<void> serveSubscriptions() override {
     while (true) {
       auto start = std::chrono::steady_clock::now();
@@ -233,26 +260,14 @@ class NaivePeriodicSubscribableStorage
       }
 
       {
-        auto currentState = currentState_.rlock();
-        auto lastState = lastPublishedState_.wlock();
+        auto [oldRoot, newRoot, metadataServer] = publishCurrentState();
         auto subscriptions = subscriptions_.wlock();
 
-        /*
-         * Grab a copy of metadata while holding current state
-         * lock. This way we are guaranteed to get metadata
-         * corresponding to currentState
-         */
-        SubscriptionMetadataServer metadataServer = getCurrentMetadataServer();
-
         subscriptions->pruneCancelledSubscriptions();
-        auto oldRoot = lastState->root();
-        auto newRoot = currentState->root();
-        if (*lastState != *currentState) {
-          auto newState = *currentState;
-          subscriptions->publishAndAddPaths(newRoot);
+
+        if (oldRoot != newRoot) {
           subscriptions->serveSubscriptions(oldRoot, newRoot, metadataServer);
           subscriptions->pruneDeletedPaths(oldRoot, newRoot);
-          *lastState = std::move(newState);
         }
         // Serve new subscriptions after serving existing subscriptions.
         // New subscriptions will get a full object dump on first sync.
