@@ -295,4 +295,8 @@ inline folly::StringPiece constexpr kPqpErrorEgressDroppedPackets() {
 inline folly::StringPiece constexpr kFabricLinkDownDroppedCells() {
   return "fabric_link_down_dropped_cells";
 }
+
+inline folly::StringPiece constexpr kCableLengthMeters() {
+  return "cable_length_meters";
+}
 } // namespace facebook::fboss
