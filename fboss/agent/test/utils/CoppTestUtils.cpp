@@ -1237,6 +1237,19 @@ uint32_t getDnxCoppMaxDynamicSharedBytes(uint16_t queueId) {
   return 0;
 }
 
+AgentConfig setTTL0PacketForwardingEnableConfig(
+    SwSwitch* sw,
+    AgentConfig& agentConfig) {
+  cfg::AgentConfig testConfig = agentConfig.thrift;
+  cfg::SwitchConfig swConfig = testConfig.sw().value();
+  // Setup TTL0 CPU queue
+  utility::setTTLZeroCpuConfig(sw->getHwAsicTable()->getL3Asics(), swConfig);
+  auto newAgentConfig = AgentConfig(
+      testConfig,
+      apache::thrift::SimpleJSONSerializer::serialize<std::string>(testConfig));
+  return newAgentConfig;
+}
+
 template void sendAndVerifyPkts<SwSwitch>(
     SwSwitch* switchPtr,
     SwitchID switchId,
