@@ -11,6 +11,7 @@
 #pragma once
 
 #include <fboss/fsdb/oper/NaivePeriodicSubscribableStorage.h>
+#include <fboss/fsdb/oper/instantiations/FsdbCowRoot.h>
 #include <fboss/fsdb/oper/instantiations/FsdbCowStorage.h>
 #include <fboss/fsdb/oper/instantiations/FsdbCowSubscriptionManager.h>
 #include <fboss/fsdb/oper/instantiations/FsdbPathConverter.h>
@@ -20,18 +21,18 @@ namespace facebook::fboss::fsdb {
 
 extern template class NaivePeriodicSubscribableStorage<
     CowStorage<FsdbOperStateRoot>,
-    CowSubscriptionManager<CowStorage<FsdbOperStateRoot>>>;
+    CowSubscriptionManager<thrift_cow::FsdbCowStateRoot>>;
 
 using FsdbNaivePeriodicSubscribableStorage = NaivePeriodicSubscribableStorage<
     CowStorage<FsdbOperStateRoot>,
-    CowSubscriptionManager<CowStorage<FsdbOperStateRoot>>>;
+    CowSubscriptionManager<thrift_cow::FsdbCowStateRoot>>;
 
 extern template class NaivePeriodicSubscribableStorage<
     CowStorage<FsdbOperStatsRoot>,
-    CowSubscriptionManager<CowStorage<FsdbOperStatsRoot>>>;
+    CowSubscriptionManager<thrift_cow::FsdbCowStatsRoot>>;
 
 using FsdbNaivePeriodicSubscribableStatsStorage =
     NaivePeriodicSubscribableStorage<
         CowStorage<FsdbOperStatsRoot>,
-        CowSubscriptionManager<CowStorage<FsdbOperStatsRoot>>>;
+        CowSubscriptionManager<thrift_cow::FsdbCowStatsRoot>>;
 } // namespace facebook::fboss::fsdb

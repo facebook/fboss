@@ -14,10 +14,10 @@ namespace facebook::fboss::fsdb {
 
 template class NaivePeriodicSubscribableStorage<
     CowStorage<FsdbOperStateRoot>,
-    CowSubscriptionManager<CowStorage<FsdbOperStateRoot>>>;
+    CowSubscriptionManager<thrift_cow::FsdbCowStateRoot>>;
 
 template class NaivePeriodicSubscribableStorage<
     CowStorage<FsdbOperStatsRoot>,
-    CowSubscriptionManager<CowStorage<FsdbOperStatsRoot>>>;
+    CowSubscriptionManager<thrift_cow::FsdbCowStatsRoot>>;
 
 } // namespace facebook::fboss::fsdb

@@ -107,7 +107,6 @@ class CowSubscriptionManager
       NodeT&& oldNode,
       NodeT&& newNode,
       OperProtocol protocol,
-      const Root& newStorage,
       const SubscriptionMetadataServer& metadataServer) {
     std::optional<OperState> oldState, newState;
     if (oldNode) {
@@ -128,7 +127,7 @@ class CowSubscriptionManager
   }
 
   void doInitialSyncSimple(
-      const Root& newRoot,
+      const std::shared_ptr<Root>& newRoot,
       const SubscriptionMetadataServer& metadataServer) {
     auto it = this->initialSyncNeeded_.begin();
     while (it != this->initialSyncNeeded_.end()) {
@@ -143,7 +142,7 @@ class CowSubscriptionManager
 
       thrift_cow::GetEncodedPathVisitorOperator op(
           subscription->operProtocol());
-      const auto& root = *newRoot.root();
+      const auto& root = *newRoot;
       thrift_cow::RootPathVisitor::visit(
           root, path.begin(), path.end(), thrift_cow::PathVisitMode::LEAF, op);
       if (op.val) {
@@ -188,9 +187,9 @@ class CowSubscriptionManager
   }
 
   void doInitialSyncExtended(
-      const Root& newRoot,
+      const std::shared_ptr<Root>& newRoot,
       const SubscriptionMetadataServer& metadataServer) {
-    const auto& root = *newRoot.root();
+    const auto& root = *newRoot;
     auto process = [&](const auto& path, auto& node) {
       this->processAddedPath(path.begin(), path.end());
     };
@@ -220,7 +219,7 @@ class CowSubscriptionManager
   }
 
  public:
-  void publishAndAddPaths(Root& storage) {
+  void publishAndAddPaths(std::shared_ptr<Root>& root) {
     // this helper recurses through all unpublished paths and ensures
     // that we tell SubscriptionPathStore of any new paths.
     auto processPath = [&](const std::vector<std::string>& /*path*/,
@@ -233,7 +232,6 @@ class CowSubscriptionManager
       }
     };
 
-    auto root = storage.root();
     CowPublishAndAddTraverseHelper traverser(&this->lookup_, this);
     thrift_cow::RootRecurseVisitor::visit(
         traverser,
@@ -245,14 +243,12 @@ class CowSubscriptionManager
         std::move(processPath));
   }
 
-  void pruneDeletedPaths(const Root& oldStorage, const Root& newStorage) {
+  void pruneDeletedPaths(
+      const std::shared_ptr<Root>& oldRoot,
+      const std::shared_ptr<Root>& newRoot) {
     // This helper uses DeltaVisitor to visit all deleted nodes in
     // CHILDREN_FIRST order, and remove SubscriptionPathStores created
     // for corresponding paths.
-
-    const auto oldRoot = oldStorage.root();
-    const auto newRoot = newStorage.root();
-
     if (!oldRoot) {
       return;
     }
@@ -291,8 +287,8 @@ class CowSubscriptionManager
   }
 
   void serveSubscriptions(
-      const Root& oldStorage,
-      const Root& newStorage,
+      const std::shared_ptr<Root>& oldRoot,
+      const std::shared_ptr<Root>& newRoot,
       const SubscriptionMetadataServer& metadataServer) {
     auto processChange = [&](CowSubscriptionTraverseHelper& traverser,
                              auto& oldNode,
@@ -341,7 +337,6 @@ class CowSubscriptionManager
                 oldNode,
                 newNode,
                 pathSubscription->operProtocol(),
-                newStorage,
                 metadataServer);
           } else if (relevant->type() == PubSubType::DELTA) {
             if (isMinimalOrAddedOrRemoved) {
@@ -386,9 +381,6 @@ class CowSubscriptionManager
       }
     };
 
-    const auto& [oldRoot, newRoot] =
-        std::tie(oldStorage.root(), newStorage.root());
-
     // can only build patches with id paths
     std::optional<thrift_cow::PatchNodeBuilder> patchBuilder;
     if (this->useIdPaths_) {
@@ -415,7 +407,7 @@ class CowSubscriptionManager
   }
 
   void doInitialSync(
-      const Root& newRoot,
+      const std::shared_ptr<Root>& newRoot,
       const SubscriptionMetadataServer& metadataServer) {
     /*
      * It is important we do the extended subscriptions before the

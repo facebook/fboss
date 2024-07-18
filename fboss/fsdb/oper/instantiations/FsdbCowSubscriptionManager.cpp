@@ -12,8 +12,8 @@
 
 namespace facebook::fboss::fsdb {
 
-template class CowSubscriptionManager<CowStorage<FsdbOperStateRoot>>;
+template class CowSubscriptionManager<thrift_cow::FsdbCowStateRoot>;
 
-template class CowSubscriptionManager<CowStorage<FsdbOperStatsRoot>>;
+template class CowSubscriptionManager<thrift_cow::FsdbCowStatsRoot>;
 
 } // namespace facebook::fboss::fsdb

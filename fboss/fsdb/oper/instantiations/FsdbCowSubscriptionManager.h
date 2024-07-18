@@ -11,13 +11,13 @@
 #pragma once
 
 #include <fboss/fsdb/oper/CowSubscriptionManager.h>
-#include <fboss/fsdb/oper/instantiations/FsdbCowStorage.h>
+#include <fboss/fsdb/oper/instantiations/FsdbCowRoot.h>
 #include "fboss/fsdb/if/FsdbModel.h"
 
 namespace facebook::fboss::fsdb {
 
-extern template class CowSubscriptionManager<CowStorage<FsdbOperStateRoot>>;
+extern template class CowSubscriptionManager<thrift_cow::FsdbCowStateRoot>;
 
-extern template class CowSubscriptionManager<CowStorage<FsdbOperStatsRoot>>;
+extern template class CowSubscriptionManager<thrift_cow::FsdbCowStatsRoot>;
 
 } // namespace facebook::fboss::fsdb

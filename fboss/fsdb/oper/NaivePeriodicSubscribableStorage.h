@@ -245,13 +245,13 @@ class NaivePeriodicSubscribableStorage
         SubscriptionMetadataServer metadataServer = getCurrentMetadataServer();
 
         subscriptions->pruneCancelledSubscriptions();
-
+        auto oldRoot = lastState->root();
+        auto newRoot = currentState->root();
         if (*lastState != *currentState) {
           auto newState = *currentState;
-          subscriptions->publishAndAddPaths(newState);
-          subscriptions->serveSubscriptions(
-              *lastState, newState, metadataServer);
-          subscriptions->pruneDeletedPaths(*lastState, newState);
+          subscriptions->publishAndAddPaths(newRoot);
+          subscriptions->serveSubscriptions(oldRoot, newRoot, metadataServer);
+          subscriptions->pruneDeletedPaths(oldRoot, newRoot);
           *lastState = std::move(newState);
         }
         // Serve new subscriptions after serving existing subscriptions.
@@ -261,8 +261,7 @@ class NaivePeriodicSubscribableStorage
         // after. Post the initial sync, these new subscriptions will be
         // pruned from initialSyncNeeded list and will get served on
         // changes only
-        subscriptions->initialSyncForNewSubscriptions(
-            *currentState, metadataServer);
+        subscriptions->initialSyncForNewSubscriptions(newRoot, metadataServer);
       }
 
       if (FLAGS_serveHeartbeats &&
@@ -349,5 +348,5 @@ NaivePeriodicSubscribableStorage<Storage, SubscribeManager>::convertPath(
 template <typename Root>
 using NaivePeriodicSubscribableCowStorage = NaivePeriodicSubscribableStorage<
     CowStorage<Root>,
-    CowSubscriptionManager<CowStorage<Root>>>;
+    CowSubscriptionManager<thrift_cow::ThriftStructNode<Root>>>;
 } // namespace facebook::fboss::fsdb

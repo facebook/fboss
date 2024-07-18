@@ -114,15 +114,15 @@ class SubscriptionManager : public SubscriptionManagerBase {
   using SubscriptionManagerBase::SubscriptionManagerBase;
 
   void initialSyncForNewSubscriptions(
-      const Root& newData,
+      const std::shared_ptr<Root>& newData,
       const SubscriptionMetadataServer& metadataServer) {
     static_cast<Impl*>(this)->doInitialSync(newData, metadataServer);
   }
 
   // TODO: hinting at changed paths for improved efficiency
   void serveSubscriptions(
-      const Root& oldData,
-      const Root& newData,
+      const std::shared_ptr<Root>& oldData,
+      const std::shared_ptr<Root>& newData,
       const SubscriptionMetadataServer& metadataServer) {
     try {
       static_cast<Impl*>(this)->serveSubscriptions(
