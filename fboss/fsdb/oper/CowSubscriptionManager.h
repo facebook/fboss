@@ -167,7 +167,6 @@ class CowSubscriptionManager
           auto deltaSubscription =
               static_cast<BaseDeltaSubscription*>(subscription);
           deltaSubscription->appendRootDeltaUnit(std::move(deltaUnit));
-          deltaSubscription->flush(metadataServer);
         } else if (subscription->type() == PubSubType::PATCH) {
           auto patchSubscription =
               static_cast<PatchSubscription*>(subscription);
@@ -177,7 +176,6 @@ class CowSubscriptionManager
           auto buf = folly::IOBuf::copyBuffer(op.val->data(), op.val->length());
           patchNode.set_val(*buf);
           patchSubscription->offer(std::move(patchNode));
-          patchSubscription->flush(metadataServer);
         }
       } else if (this->requireResponseOnInitialSync_) {
         // on initialSync, offer even an empty value
@@ -410,8 +408,6 @@ class CowSubscriptionManager
       processChange(
           traverser, oldRoot, newRoot, thrift_cow::DeltaElemTag::MINIMAL);
     }
-
-    store.flush(metadataServer);
   }
 
   void doInitialSync(
@@ -426,7 +422,6 @@ class CowSubscriptionManager
 
     doInitialSyncExtended(store, newRoot, metadataServer);
     doInitialSyncSimple(store, newRoot, metadataServer);
-    store.flush(metadataServer);
   }
 
 }; // namespace facebook::fboss::fsdb

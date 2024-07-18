@@ -128,6 +128,8 @@ class SubscriptionManager : public SubscriptionManagerBase {
     // pruned from initialSyncNeeded list and will get served on
     // changes only
     impl->doInitialSync(*store, newRoot, metadataServer);
+    // Flush all subscription queues from serve and initial sync steps
+    store->flush(metadataServer);
   }
 
  private:
