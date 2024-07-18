@@ -27,6 +27,18 @@ ExtSubPathMap makeSimplePathMap(std::vector<ExtendedOperPath> paths) {
 
 } // namespace
 
+BaseSubscription::BaseSubscription(
+    SubscriberId subscriber,
+    OperProtocol protocol,
+    std::optional<std::string> publisherRoot,
+    folly::EventBase* heartbeatEvb,
+    std::chrono::milliseconds heartbeatInterval)
+    : subscriber_(std::move(subscriber)),
+      protocol_(protocol),
+      publisherTreeRoot_(std::move(publisherRoot)),
+      heartbeatEvb_(heartbeatEvb),
+      heartbeatInterval_(heartbeatInterval) {}
+
 void BaseDeltaSubscription::appendRootDeltaUnit(const OperDeltaUnit& unit) {
   // this is a helper to add a delta unit in to the currentDelta
   // variable. It assumes the delta is relative to the root of the
@@ -68,7 +80,9 @@ DeltaSubscription::create(
     typename DeltaSubscription::PathIter begin,
     typename DeltaSubscription::PathIter end,
     OperProtocol protocol,
-    std::optional<std::string> publisherRoot) {
+    std::optional<std::string> publisherRoot,
+    folly::EventBase* heartbeatEvb,
+    std::chrono::milliseconds heartbeatInterval) {
   auto [generator, pipe] = folly::coro::AsyncPipe<OperDelta>::create();
   std::vector<std::string> path(begin, end);
   auto subscription = std::make_unique<DeltaSubscription>(
@@ -76,7 +90,9 @@ DeltaSubscription::create(
       std::move(path),
       std::move(pipe),
       std::move(protocol),
-      std::move(publisherRoot));
+      std::move(publisherRoot),
+      std::move(heartbeatEvb),
+      std::move(heartbeatInterval));
   return std::make_pair(std::move(generator), std::move(subscription));
 }
 
@@ -109,7 +125,9 @@ FullyResolvedExtendedPathSubscription::FullyResolvedExtendedPathSubscription(
           subscription.subscriberId(),
           path,
           subscription.operProtocol(),
-          subscription.publisherTreeRoot()),
+          subscription.publisherTreeRoot(),
+          subscription.heartbeatEvb(),
+          subscription.heartbeatInterval()),
       subscription_(subscription) {}
 
 bool FullyResolvedExtendedPathSubscription::isActive() const {
@@ -171,7 +189,9 @@ FullyResolvedExtendedDeltaSubscription::FullyResolvedExtendedDeltaSubscription(
           subscription.subscriberId(),
           path,
           subscription.operProtocol(),
-          subscription.publisherTreeRoot()),
+          subscription.publisherTreeRoot(),
+          subscription.heartbeatEvb(),
+          subscription.heartbeatInterval()),
       subscription_(subscription) {}
 
 void FullyResolvedExtendedDeltaSubscription::flush(
@@ -217,14 +237,18 @@ ExtendedPathSubscription::create(
     SubscriberId subscriber,
     std::vector<ExtendedOperPath> paths,
     std::optional<std::string> publisherRoot,
-    OperProtocol protocol) {
+    OperProtocol protocol,
+    folly::EventBase* heartbeatEvb,
+    std::chrono::milliseconds heartbeatInterval) {
   auto [generator, pipe] = folly::coro::AsyncPipe<gen_type>::create();
   auto subscription = std::make_shared<ExtendedPathSubscription>(
       std::move(subscriber),
       makeSimplePathMap(paths),
       std::move(pipe),
       std::move(protocol),
-      std::move(publisherRoot));
+      std::move(publisherRoot),
+      std::move(heartbeatEvb),
+      std::move(heartbeatInterval));
   return std::make_pair(std::move(generator), std::move(subscription));
 }
 
@@ -270,14 +294,18 @@ ExtendedDeltaSubscription::create(
     SubscriberId subscriber,
     std::vector<ExtendedOperPath> paths,
     std::optional<std::string> publisherRoot,
-    OperProtocol protocol) {
+    OperProtocol protocol,
+    folly::EventBase* heartbeatEvb,
+    std::chrono::milliseconds heartbeatInterval) {
   auto [generator, pipe] = folly::coro::AsyncPipe<gen_type>::create();
   auto subscription = std::make_shared<ExtendedDeltaSubscription>(
       std::move(subscriber),
       makeSimplePathMap(paths),
       std::move(pipe),
       std::move(protocol),
-      std::move(publisherRoot));
+      std::move(publisherRoot),
+      std::move(heartbeatEvb),
+      std::move(heartbeatInterval));
   return std::make_pair(std::move(generator), std::move(subscription));
 }
 
@@ -326,7 +354,9 @@ PatchSubscription::PatchSubscription(
           subscription.subscriberId(),
           std::move(path),
           subscription.operProtocol(),
-          subscription.publisherTreeRoot()),
+          subscription.publisherTreeRoot(),
+          subscription.heartbeatEvb(),
+          subscription.heartbeatInterval()),
       key_(key),
       subscription_(subscription) {}
 
@@ -363,14 +393,18 @@ ExtendedPatchSubscription::create(
     SubscriberId subscriber,
     std::vector<std::string> path,
     OperProtocol protocol,
-    std::optional<std::string> publisherRoot) {
+    std::optional<std::string> publisherRoot,
+    folly::EventBase* heartbeatEvb,
+    std::chrono::milliseconds heartbeatInterval) {
   RawOperPath p;
   p.path() = std::move(path);
   return create(
       std::move(subscriber),
       std::map<SubscriptionKey, RawOperPath>{{0, std::move(p)}},
       std::move(protocol),
-      std::move(publisherRoot));
+      std::move(publisherRoot),
+      std::move(heartbeatEvb),
+      std::move(heartbeatInterval));
 }
 
 std::pair<
@@ -380,7 +414,9 @@ ExtendedPatchSubscription::create(
     SubscriberId subscriber,
     std::map<SubscriptionKey, RawOperPath> paths,
     OperProtocol protocol,
-    std::optional<std::string> publisherRoot) {
+    std::optional<std::string> publisherRoot,
+    folly::EventBase* heartbeatEvb,
+    std::chrono::milliseconds heartbeatInterval) {
   std::map<SubscriptionKey, ExtendedOperPath> extendedPaths;
   for (auto& [key, path] : paths) {
     std::vector<OperPathElem> extendedPath;
@@ -394,7 +430,9 @@ ExtendedPatchSubscription::create(
       std::move(subscriber),
       std::move(extendedPaths),
       std::move(protocol),
-      std::move(publisherRoot));
+      std::move(publisherRoot),
+      std::move(heartbeatEvb),
+      std::move(heartbeatInterval));
 }
 
 std::pair<
@@ -404,14 +442,18 @@ ExtendedPatchSubscription::create(
     SubscriberId subscriber,
     std::map<SubscriptionKey, ExtendedOperPath> paths,
     OperProtocol protocol,
-    std::optional<std::string> publisherRoot) {
+    std::optional<std::string> publisherRoot,
+    folly::EventBase* heartbeatEvb,
+    std::chrono::milliseconds heartbeatInterval) {
   auto [generator, pipe] = folly::coro::AsyncPipe<gen_type>::create();
   auto subscription = std::make_unique<ExtendedPatchSubscription>(
       std::move(subscriber),
       std::move(paths),
       std::move(pipe),
       std::move(protocol),
-      std::move(publisherRoot));
+      std::move(publisherRoot),
+      std::move(heartbeatEvb),
+      std::move(heartbeatInterval));
   return std::make_pair(std::move(generator), std::move(subscription));
 }
 

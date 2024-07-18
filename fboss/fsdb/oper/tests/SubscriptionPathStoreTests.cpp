@@ -36,7 +36,9 @@ class TestSubscription : public Subscription {
             "testSubcriber",
             std::move(path),
             OperProtocol::BINARY,
-            std::nullopt) {}
+            std::nullopt,
+            nullptr,
+            std::chrono::milliseconds(0)) {}
 };
 
 class TestDeltaSubscription : public Subscription {
@@ -61,7 +63,9 @@ class TestDeltaSubscription : public Subscription {
             "testSubcriber",
             std::move(path),
             OperProtocol::BINARY,
-            std::nullopt) {}
+            std::nullopt,
+            nullptr,
+            std::chrono::milliseconds(0)) {}
 };
 
 class TestExtendedSubscription : public ExtendedSubscription {
@@ -71,7 +75,9 @@ class TestExtendedSubscription : public ExtendedSubscription {
             "testSubcriber",
             std::move(paths),
             OperProtocol::BINARY,
-            std::nullopt) {}
+            std::nullopt,
+            nullptr,
+            std::chrono::milliseconds(0)) {}
 
   PubSubType type() const override {
     return PubSubType::PATH;

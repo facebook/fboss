@@ -266,7 +266,9 @@ NaivePeriodicSubscribableStorageBase::subscribe_encoded_impl(
       path.begin(),
       path.end(),
       getPublisherRoot(path.begin(), path.end()),
-      protocol);
+      protocol,
+      nullptr,
+      subscriptionHeartbeatInterval_);
   subMgr().registerSubscription(std::move(subscription));
   return std::move(gen);
 }
@@ -283,7 +285,9 @@ NaivePeriodicSubscribableStorageBase::subscribe_delta_impl(
       path.begin(),
       path.end(),
       protocol,
-      getPublisherRoot(path.begin(), path.end()));
+      getPublisherRoot(path.begin(), path.end()),
+      nullptr,
+      subscriptionHeartbeatInterval_);
   subMgr().registerSubscription(std::move(subscription));
   return std::move(gen);
 }
@@ -299,7 +303,9 @@ NaivePeriodicSubscribableStorageBase::subscribe_encoded_extended_impl(
       std::move(subscriber),
       std::move(paths),
       std::move(publisherRoot),
-      protocol);
+      protocol,
+      nullptr,
+      subscriptionHeartbeatInterval_);
   subMgr().registerExtendedSubscription(std::move(subscription));
   return std::move(gen);
 }
@@ -315,7 +321,9 @@ NaivePeriodicSubscribableStorageBase::subscribe_delta_extended_impl(
       std::move(subscriber),
       std::move(paths),
       std::move(publisherRoot),
-      protocol);
+      protocol,
+      nullptr,
+      subscriptionHeartbeatInterval_);
   subMgr().registerExtendedSubscription(std::move(subscription));
   return std::move(gen);
 }

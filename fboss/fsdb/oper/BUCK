@@ -50,6 +50,7 @@ cpp_library(
         "//folly:traits",
         "//folly/container:f14_hash",
         "//folly/experimental/coro:async_pipe",
+        "//folly/io/async:async_base",
         "//folly/json:dynamic",
         "//folly/logging:logging",
     ],

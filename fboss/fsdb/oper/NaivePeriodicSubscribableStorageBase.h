@@ -120,7 +120,9 @@ class NaivePeriodicSubscribableStorageBase {
         std::move(subscriber),
         std::move(rawPaths),
         patchOperProtocol_,
-        std::move(root));
+        std::move(root),
+        nullptr,
+        subscriptionHeartbeatInterval_);
     subMgr().registerExtendedSubscription(std::move(subscription));
     return std::move(gen);
   }
