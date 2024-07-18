@@ -135,24 +135,24 @@ class CowSubscriptionManager
   using Base::serveSubscriptions;
 
  private:
-  template <typename NodeT>
+  template <typename OperCache>
   void servePathEncoded(
       BasePathSubscription* subscription,
-      NodeT&& oldNode,
-      NodeT&& newNode,
+      OperCache& cache,
       OperProtocol protocol,
       const SubscriptionMetadataServer& metadataServer) {
     std::optional<OperState> oldState, newState;
-    if (oldNode) {
+    if (cache.getEncodedState(protocol, false)) {
       oldState.emplace();
-      oldState->contents() = oldNode->encode(protocol);
+      oldState->contents().from_optional(
+          cache.getEncodedState(protocol, false));
       oldState->protocol() = protocol;
       // No metadata for oldState, we don't maintain metadata
       // history
     }
-    if (newNode) {
+    if (cache.getEncodedState(protocol, true)) {
       newState.emplace();
-      newState->contents() = newNode->encode(protocol);
+      newState->contents().from_optional(cache.getEncodedState(protocol, true));
       newState->protocol() = protocol;
       newState->metadata() = subscription->getMetadata(metadataServer);
     }
@@ -397,8 +397,7 @@ class CowSubscriptionManager
             // TODO: cache encoded state
             servePathEncoded(
                 pathSubscription,
-                oldNode,
-                newNode,
+                operUnitCache,
                 pathSubscription->operProtocol(),
                 metadataServer);
           } else if (relevant->type() == PubSubType::DELTA) {
