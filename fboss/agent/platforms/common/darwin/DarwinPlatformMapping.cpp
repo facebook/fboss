@@ -117,7 +117,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             }
           ],
-          "portType": 0
+          "portType": 0,
+          "scope": 0
         },
         "supportedProfiles": {
           "11": {
@@ -160,7 +161,58 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
+          "21": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC0",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": -14,
+                      "pre2": 0,
+                      "main": 109,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC0",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": -14,
+                      "pre2": 0,
+                      "main": 109,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/1",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/1",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          },
           "22": {
+              "subsumedPorts": [
+                3
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -249,6 +301,9 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
           },
           "23": {
+              "subsumedPorts": [
+                3
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -337,6 +392,9 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
           },
           "24": {
+              "subsumedPorts": [
+                3
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -425,6 +483,9 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
           },
           "25": {
+              "subsumedPorts": [
+                3
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -513,6 +574,9 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
           },
           "26": {
+              "subsumedPorts": [
+                3
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -682,6 +746,91 @@ constexpr auto kJsonPlatformMappingStr = R"(
           }
         }
     },
+    "3": {
+        "mapping": {
+          "id": 3,
+          "name": "eth1/1/3",
+          "controllingPort": 1,
+          "pins": [
+            {
+              "a": {
+                "chip": "BC0",
+                "lane": 2
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/1",
+                  "lane": 2
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "BC0",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/1",
+                  "lane": 3
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "21": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC0",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": -14,
+                      "pre2": 0,
+                      "main": 109,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC0",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": -14,
+                      "pre2": 0,
+                      "main": 109,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/1",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/1",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
     "5": {
         "mapping": {
           "id": 5,
@@ -785,7 +934,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             }
           ],
-          "portType": 0
+          "portType": 0,
+          "scope": 0
         },
         "supportedProfiles": {
           "11": {
@@ -1444,7 +1594,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             }
           ],
-          "portType": 0
+          "portType": 0,
+          "scope": 0
         },
         "supportedProfiles": {
           "21": {
@@ -1600,7 +1751,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             }
           ],
-          "portType": 0
+          "portType": 0,
+          "scope": 0
         },
         "supportedProfiles": {
           "11": {
@@ -2259,7 +2411,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             }
           ],
-          "portType": 0
+          "portType": 0,
+          "scope": 0
         },
         "supportedProfiles": {
           "21": {
@@ -2415,7 +2568,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             }
           ],
-          "portType": 0
+          "portType": 0,
+          "scope": 0
         },
         "supportedProfiles": {
           "11": {
@@ -3074,7 +3228,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             }
           ],
-          "portType": 0
+          "portType": 0,
+          "scope": 0
         },
         "supportedProfiles": {
           "21": {
@@ -3230,7 +3385,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             }
           ],
-          "portType": 0
+          "portType": 0,
+          "scope": 0
         },
         "supportedProfiles": {
           "11": {
@@ -3273,7 +3429,58 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
+          "21": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC4",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": -14,
+                      "pre2": 0,
+                      "main": 109,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC4",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": -14,
+                      "pre2": 0,
+                      "main": 109,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/5",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/5",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          },
           "22": {
+              "subsumedPorts": [
+                22
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -3362,6 +3569,9 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
           },
           "23": {
+              "subsumedPorts": [
+                22
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -3450,6 +3660,9 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
           },
           "24": {
+              "subsumedPorts": [
+                22
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -3538,6 +3751,9 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
           },
           "25": {
+              "subsumedPorts": [
+                22
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -3626,6 +3842,9 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
           },
           "26": {
+              "subsumedPorts": [
+                22
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -3795,6 +4014,91 @@ constexpr auto kJsonPlatformMappingStr = R"(
           }
         }
     },
+    "22": {
+        "mapping": {
+          "id": 22,
+          "name": "eth1/5/3",
+          "controllingPort": 20,
+          "pins": [
+            {
+              "a": {
+                "chip": "BC4",
+                "lane": 2
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/5",
+                  "lane": 2
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "BC4",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/5",
+                  "lane": 3
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "21": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC4",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": -14,
+                      "pre2": 0,
+                      "main": 109,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC4",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": -14,
+                      "pre2": 0,
+                      "main": 109,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/5",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/5",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
     "24": {
         "mapping": {
           "id": 24,
@@ -3898,7 +4202,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             }
           ],
-          "portType": 0
+          "portType": 0,
+          "scope": 0
         },
         "supportedProfiles": {
           "11": {
@@ -4557,7 +4862,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             }
           ],
-          "portType": 0
+          "portType": 0,
+          "scope": 0
         },
         "supportedProfiles": {
           "21": {
@@ -4713,7 +5019,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             }
           ],
-          "portType": 0
+          "portType": 0,
+          "scope": 0
         },
         "supportedProfiles": {
           "11": {
@@ -5372,7 +5679,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             }
           ],
-          "portType": 0
+          "portType": 0,
+          "scope": 0
         },
         "supportedProfiles": {
           "21": {
@@ -5528,7 +5836,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             }
           ],
-          "portType": 0
+          "portType": 0,
+          "scope": 0
         },
         "supportedProfiles": {
           "11": {
@@ -6187,7 +6496,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             }
           ],
-          "portType": 0
+          "portType": 0,
+          "scope": 0
         },
         "supportedProfiles": {
           "21": {
@@ -6343,7 +6653,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             }
           ],
-          "portType": 0
+          "portType": 0,
+          "scope": 0
         },
         "supportedProfiles": {
           "11": {
@@ -6386,7 +6697,58 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
+          "21": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC8",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": -14,
+                      "pre2": 0,
+                      "main": 109,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC8",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": -14,
+                      "pre2": 0,
+                      "main": 109,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/9",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/9",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          },
           "22": {
+              "subsumedPorts": [
+                42
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -6475,6 +6837,9 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
           },
           "23": {
+              "subsumedPorts": [
+                42
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -6563,6 +6928,9 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
           },
           "24": {
+              "subsumedPorts": [
+                42
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -6651,6 +7019,9 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
           },
           "25": {
+              "subsumedPorts": [
+                42
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -6739,6 +7110,9 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
           },
           "26": {
+              "subsumedPorts": [
+                42
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -6908,6 +7282,91 @@ constexpr auto kJsonPlatformMappingStr = R"(
           }
         }
     },
+    "42": {
+        "mapping": {
+          "id": 42,
+          "name": "eth1/9/3",
+          "controllingPort": 40,
+          "pins": [
+            {
+              "a": {
+                "chip": "BC8",
+                "lane": 2
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/9",
+                  "lane": 2
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "BC8",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/9",
+                  "lane": 3
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "21": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC8",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": -14,
+                      "pre2": 0,
+                      "main": 109,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC8",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": -14,
+                      "pre2": 0,
+                      "main": 109,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/9",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/9",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
     "44": {
         "mapping": {
           "id": 44,
@@ -7011,7 +7470,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             }
           ],
-          "portType": 0
+          "portType": 0,
+          "scope": 0
         },
         "supportedProfiles": {
           "11": {
@@ -7670,7 +8130,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             }
           ],
-          "portType": 0
+          "portType": 0,
+          "scope": 0
         },
         "supportedProfiles": {
           "21": {
@@ -7826,7 +8287,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             }
           ],
-          "portType": 0
+          "portType": 0,
+          "scope": 0
         },
         "supportedProfiles": {
           "11": {
@@ -8485,7 +8947,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             }
           ],
-          "portType": 0
+          "portType": 0,
+          "scope": 0
         },
         "supportedProfiles": {
           "21": {
@@ -8641,7 +9104,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             }
           ],
-          "portType": 0
+          "portType": 0,
+          "scope": 0
         },
         "supportedProfiles": {
           "11": {
@@ -9300,7 +9764,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             }
           ],
-          "portType": 0
+          "portType": 0,
+          "scope": 0
         },
         "supportedProfiles": {
           "21": {
@@ -9456,7 +9921,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             }
           ],
-          "portType": 0
+          "portType": 0,
+          "scope": 0
         },
         "supportedProfiles": {
           "11": {
@@ -9499,7 +9965,58 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
+          "21": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC12",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": -14,
+                      "pre2": 0,
+                      "main": 109,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC12",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": -14,
+                      "pre2": 0,
+                      "main": 109,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/13",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/13",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          },
           "22": {
+              "subsumedPorts": [
+                62
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -9588,6 +10105,9 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
           },
           "23": {
+              "subsumedPorts": [
+                62
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -9676,6 +10196,9 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
           },
           "24": {
+              "subsumedPorts": [
+                62
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -9764,6 +10287,9 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
           },
           "25": {
+              "subsumedPorts": [
+                62
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -9852,6 +10378,9 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
           },
           "26": {
+              "subsumedPorts": [
+                62
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -10021,6 +10550,91 @@ constexpr auto kJsonPlatformMappingStr = R"(
           }
         }
     },
+    "62": {
+        "mapping": {
+          "id": 62,
+          "name": "eth1/13/3",
+          "controllingPort": 60,
+          "pins": [
+            {
+              "a": {
+                "chip": "BC12",
+                "lane": 2
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/13",
+                  "lane": 2
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "BC12",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/13",
+                  "lane": 3
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "21": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC12",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": -14,
+                      "pre2": 0,
+                      "main": 109,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC12",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": -14,
+                      "pre2": 0,
+                      "main": 109,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/13",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/13",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
     "64": {
         "mapping": {
           "id": 64,
@@ -10124,7 +10738,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             }
           ],
-          "portType": 0
+          "portType": 0,
+          "scope": 0
         },
         "supportedProfiles": {
           "11": {
@@ -10783,7 +11398,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             }
           ],
-          "portType": 0
+          "portType": 0,
+          "scope": 0
         },
         "supportedProfiles": {
           "21": {
@@ -10939,7 +11555,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             }
           ],
-          "portType": 0
+          "portType": 0,
+          "scope": 0
         },
         "supportedProfiles": {
           "11": {
@@ -11598,7 +12215,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             }
           ],
-          "portType": 0
+          "portType": 0,
+          "scope": 0
         },
         "supportedProfiles": {
           "21": {
@@ -11754,7 +12372,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             }
           ],
-          "portType": 0
+          "portType": 0,
+          "scope": 0
         },
         "supportedProfiles": {
           "11": {
@@ -12413,7 +13032,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             }
           ],
-          "portType": 0
+          "portType": 0,
+          "scope": 0
         },
         "supportedProfiles": {
           "21": {
@@ -12569,7 +13189,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             }
           ],
-          "portType": 0
+          "portType": 0,
+          "scope": 0
         },
         "supportedProfiles": {
           "11": {
@@ -12612,7 +13233,58 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
+          "21": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC16",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": -14,
+                      "pre2": 0,
+                      "main": 109,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC16",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": -14,
+                      "pre2": 0,
+                      "main": 109,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/17",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/17",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          },
           "22": {
+              "subsumedPorts": [
+                82
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -12701,6 +13373,9 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
           },
           "23": {
+              "subsumedPorts": [
+                82
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -12789,6 +13464,9 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
           },
           "24": {
+              "subsumedPorts": [
+                82
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -12877,6 +13555,9 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
           },
           "25": {
+              "subsumedPorts": [
+                82
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -12965,6 +13646,9 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
           },
           "26": {
+              "subsumedPorts": [
+                82
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -13134,6 +13818,91 @@ constexpr auto kJsonPlatformMappingStr = R"(
           }
         }
     },
+    "82": {
+        "mapping": {
+          "id": 82,
+          "name": "eth1/17/3",
+          "controllingPort": 80,
+          "pins": [
+            {
+              "a": {
+                "chip": "BC16",
+                "lane": 2
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/17",
+                  "lane": 2
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "BC16",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/17",
+                  "lane": 3
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "21": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC16",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": -14,
+                      "pre2": 0,
+                      "main": 109,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC16",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": -14,
+                      "pre2": 0,
+                      "main": 109,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/17",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/17",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
     "84": {
         "mapping": {
           "id": 84,
@@ -13237,7 +14006,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             }
           ],
-          "portType": 0
+          "portType": 0,
+          "scope": 0
         },
         "supportedProfiles": {
           "11": {
@@ -13896,7 +14666,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             }
           ],
-          "portType": 0
+          "portType": 0,
+          "scope": 0
         },
         "supportedProfiles": {
           "21": {
@@ -14052,7 +14823,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             }
           ],
-          "portType": 0
+          "portType": 0,
+          "scope": 0
         },
         "supportedProfiles": {
           "11": {
@@ -14711,7 +15483,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             }
           ],
-          "portType": 0
+          "portType": 0,
+          "scope": 0
         },
         "supportedProfiles": {
           "21": {
@@ -14867,7 +15640,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             }
           ],
-          "portType": 0
+          "portType": 0,
+          "scope": 0
         },
         "supportedProfiles": {
           "11": {
@@ -15526,7 +16300,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             }
           ],
-          "portType": 0
+          "portType": 0,
+          "scope": 0
         },
         "supportedProfiles": {
           "21": {
@@ -15682,7 +16457,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             }
           ],
-          "portType": 0
+          "portType": 0,
+          "scope": 0
         },
         "supportedProfiles": {
           "11": {
@@ -15725,7 +16501,58 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
+          "21": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC20",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": -14,
+                      "pre2": 0,
+                      "main": 109,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC20",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": -14,
+                      "pre2": 0,
+                      "main": 109,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/21",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/21",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          },
           "22": {
+              "subsumedPorts": [
+                102
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -15814,6 +16641,9 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
           },
           "23": {
+              "subsumedPorts": [
+                102
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -15902,6 +16732,9 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
           },
           "24": {
+              "subsumedPorts": [
+                102
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -15990,6 +16823,9 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
           },
           "25": {
+              "subsumedPorts": [
+                102
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -16078,6 +16914,9 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
           },
           "26": {
+              "subsumedPorts": [
+                102
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -16247,6 +17086,91 @@ constexpr auto kJsonPlatformMappingStr = R"(
           }
         }
     },
+    "102": {
+        "mapping": {
+          "id": 102,
+          "name": "eth1/21/3",
+          "controllingPort": 100,
+          "pins": [
+            {
+              "a": {
+                "chip": "BC20",
+                "lane": 2
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/21",
+                  "lane": 2
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "BC20",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/21",
+                  "lane": 3
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "21": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC20",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": -14,
+                      "pre2": 0,
+                      "main": 109,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC20",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": -14,
+                      "pre2": 0,
+                      "main": 109,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/21",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/21",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
     "104": {
         "mapping": {
           "id": 104,
@@ -16350,7 +17274,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             }
           ],
-          "portType": 0
+          "portType": 0,
+          "scope": 0
         },
         "supportedProfiles": {
           "11": {
@@ -17009,7 +17934,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             }
           ],
-          "portType": 0
+          "portType": 0,
+          "scope": 0
         },
         "supportedProfiles": {
           "21": {
@@ -17165,7 +18091,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             }
           ],
-          "portType": 0
+          "portType": 0,
+          "scope": 0
         },
         "supportedProfiles": {
           "11": {
@@ -17824,7 +18751,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             }
           ],
-          "portType": 0
+          "portType": 0,
+          "scope": 0
         },
         "supportedProfiles": {
           "21": {
@@ -17980,7 +18908,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             }
           ],
-          "portType": 0
+          "portType": 0,
+          "scope": 0
         },
         "supportedProfiles": {
           "11": {
@@ -18639,7 +19568,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             }
           ],
-          "portType": 0
+          "portType": 0,
+          "scope": 0
         },
         "supportedProfiles": {
           "21": {
@@ -18795,7 +19725,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             }
           ],
-          "portType": 0
+          "portType": 0,
+          "scope": 0
         },
         "supportedProfiles": {
           "11": {
@@ -18838,7 +19769,58 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
+          "21": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC24",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": -14,
+                      "pre2": 0,
+                      "main": 109,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC24",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": -14,
+                      "pre2": 0,
+                      "main": 109,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/25",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/25",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          },
           "22": {
+              "subsumedPorts": [
+                122
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -18927,6 +19909,9 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
           },
           "23": {
+              "subsumedPorts": [
+                122
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -19015,6 +20000,9 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
           },
           "24": {
+              "subsumedPorts": [
+                122
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -19103,6 +20091,9 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
           },
           "25": {
+              "subsumedPorts": [
+                122
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -19191,6 +20182,9 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
           },
           "26": {
+              "subsumedPorts": [
+                122
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -19360,6 +20354,91 @@ constexpr auto kJsonPlatformMappingStr = R"(
           }
         }
     },
+    "122": {
+        "mapping": {
+          "id": 122,
+          "name": "eth1/25/3",
+          "controllingPort": 120,
+          "pins": [
+            {
+              "a": {
+                "chip": "BC24",
+                "lane": 2
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/25",
+                  "lane": 2
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "BC24",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/25",
+                  "lane": 3
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "21": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC24",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": -14,
+                      "pre2": 0,
+                      "main": 109,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC24",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": -14,
+                      "pre2": 0,
+                      "main": 109,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/25",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/25",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
     "124": {
         "mapping": {
           "id": 124,
@@ -19463,7 +20542,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             }
           ],
-          "portType": 0
+          "portType": 0,
+          "scope": 0
         },
         "supportedProfiles": {
           "11": {
@@ -20122,7 +21202,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             }
           ],
-          "portType": 0
+          "portType": 0,
+          "scope": 0
         },
         "supportedProfiles": {
           "21": {
@@ -20278,7 +21359,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             }
           ],
-          "portType": 0
+          "portType": 0,
+          "scope": 0
         },
         "supportedProfiles": {
           "11": {
@@ -20937,7 +22019,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             }
           ],
-          "portType": 0
+          "portType": 0,
+          "scope": 0
         },
         "supportedProfiles": {
           "21": {
@@ -21093,7 +22176,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             }
           ],
-          "portType": 0
+          "portType": 0,
+          "scope": 0
         },
         "supportedProfiles": {
           "11": {
@@ -21752,7 +22836,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             }
           ],
-          "portType": 0
+          "portType": 0,
+          "scope": 0
         },
         "supportedProfiles": {
           "21": {
@@ -21908,7 +22993,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             }
           ],
-          "portType": 0
+          "portType": 0,
+          "scope": 0
         },
         "supportedProfiles": {
           "11": {
@@ -21951,7 +23037,58 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
+          "21": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC28",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": -14,
+                      "pre2": 0,
+                      "main": 109,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC28",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": -14,
+                      "pre2": 0,
+                      "main": 109,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/29",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/29",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          },
           "22": {
+              "subsumedPorts": [
+                142
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -22040,6 +23177,9 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
           },
           "23": {
+              "subsumedPorts": [
+                142
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -22128,6 +23268,9 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
           },
           "24": {
+              "subsumedPorts": [
+                142
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -22216,6 +23359,9 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
           },
           "25": {
+              "subsumedPorts": [
+                142
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -22304,6 +23450,9 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
           },
           "26": {
+              "subsumedPorts": [
+                142
+              ],
               "pins": {
                 "iphy": [
                   {
@@ -22473,6 +23622,91 @@ constexpr auto kJsonPlatformMappingStr = R"(
           }
         }
     },
+    "142": {
+        "mapping": {
+          "id": 142,
+          "name": "eth1/29/3",
+          "controllingPort": 140,
+          "pins": [
+            {
+              "a": {
+                "chip": "BC28",
+                "lane": 2
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/29",
+                  "lane": 2
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "BC28",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/29",
+                  "lane": 3
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "21": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC28",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": -14,
+                      "pre2": 0,
+                      "main": 109,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC28",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": -14,
+                      "pre2": 0,
+                      "main": 109,
+                      "post": -4,
+                      "post2": 0,
+                      "post3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/29",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/29",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
     "144": {
         "mapping": {
           "id": 144,
@@ -22576,7 +23810,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             }
           ],
-          "portType": 0
+          "portType": 0,
+          "scope": 0
         },
         "supportedProfiles": {
           "11": {
@@ -23235,7 +24470,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             }
           ],
-          "portType": 0
+          "portType": 0,
+          "scope": 0
         },
         "supportedProfiles": {
           "21": {
@@ -23391,7 +24627,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             }
           ],
-          "portType": 0
+          "portType": 0,
+          "scope": 0
         },
         "supportedProfiles": {
           "11": {
@@ -24050,7 +25287,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             }
           ],
-          "portType": 0
+          "portType": 0,
+          "scope": 0
         },
         "supportedProfiles": {
           "21": {
@@ -24206,7 +25444,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             }
           ],
-          "portType": 0
+          "portType": 0,
+          "scope": 0
         },
         "supportedProfiles": {
           "11": {
@@ -24865,7 +26104,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             }
           ],
-          "portType": 0
+          "portType": 0,
+          "scope": 0
         },
         "supportedProfiles": {
           "21": {
