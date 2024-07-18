@@ -52,6 +52,7 @@ def to_impl_external_deps(sai_impl):
         ("brcm-sai", "10.2.0.0_odp"): [("brcm-sai", None, "sai")],
         ("brcm-sai", "11.0_ea_odp"): [("brcm-sai", None, "sai")],
         ("brcm-sai", "11.0_ea_dnx_odp"): [("brcm-sai", None, "sai")],
+        ("brcm-sai", "12.0_ea_dnx_odp"): [("brcm-sai", None, "sai")],
         ("CredoB52SAI", "0.7.2"): [("CredoB52SAI", None, "saiowl")],
         ("fake", "1.14.0"): [("sai", None)],
         ("leaba-sdk", "1.42.8"): [("leaba-sdk", None, "sai-sdk")],

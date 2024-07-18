@@ -179,6 +179,13 @@ ALL_SDKS = [
         fw_path = "../third-party/tp2/broadcom-xgs-robo/6.5.30_dnx/hsdk-all-6.5.30/tools/sand/db/",
         native_bcm_sdk_version = "6.5.30_dnx",
     ),
+    SaiBrcmDsfSdk(
+        version = "12.0_ea_dnx_odp",
+        sai_version = "1.14.0",
+        stage = SdkStage.TEST,
+        fw_path = "../third-party/tp2/broadcom-xgs-robo/6.5.31_dnx/hsdk-all-6.5.31/tools/sand/db/",
+        native_bcm_sdk_version = "6.5.31_dnx",
+    ),
     SaiLeabaSdk(
         version = "1.42.8",
         sai_version = "1.7.4",
