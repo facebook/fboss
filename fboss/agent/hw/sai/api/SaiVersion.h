@@ -70,11 +70,19 @@
 #define BRCM_SAI_SDK_GTE_12_0
 #endif
 
+#if defined(SAI_VERSION_12_0_EA_DNX_ODP)
+#define BRCM_SAI_SDK_DNX_GTE_12_0
+#endif
+
 #if defined BRCM_SAI_SDK_GTE_12_0 || defined(SAI_VERSION_11_0_EA_ODP) || \
     defined(SAI_VERSION_11_0_EA_SIM_ODP) ||                              \
     defined(SAI_VERSION_11_0_EA_DNX_ODP) ||                              \
     defined(SAI_VERSION_11_0_EA_DNX_SIM_ODP)
 #define BRCM_SAI_SDK_GTE_11_0
+#endif
+
+#if defined BRCM_SAI_SDK_DNX_GTE_12_0 || defined(SAI_VERSION_11_0_EA_DNX_ODP)
+#define BRCM_SAI_SDK_DNX_GTE_11_0
 #endif
 
 #if defined BRCM_SAI_SDK_GTE_11_0 || defined(SAI_VERSION_10_0_EA_ODP) || \
