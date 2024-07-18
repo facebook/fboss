@@ -14,7 +14,7 @@ void SubscriptionManagerBase::registerExtendedSubscription(
     throw std::runtime_error(
         "Cannot support patch type subscriptions without id paths");
   }
-  store_.registerExtendedSubscription(std::move(subscription));
+  store_.wlock()->registerExtendedSubscription(std::move(subscription));
 }
 
 void SubscriptionManagerBase::registerSubscription(
@@ -23,18 +23,26 @@ void SubscriptionManagerBase::registerSubscription(
     throw std::runtime_error(
         "Cannot support patch type subscriptions without id paths");
   }
-  store_.registerSubscription(std::move(subscription));
+  store_.wlock()->registerSubscription(std::move(subscription));
 }
 
 void SubscriptionManagerBase::pruneCancelledSubscriptions() {
-  store_.pruneCancelledSubscriptions();
+  store_.wlock()->pruneCancelledSubscriptions();
+}
+
+void SubscriptionManagerBase::closeNoPublisherActiveSubscriptions(
+    const SubscriptionMetadataServer& metadataServer,
+    FsdbErrorCode disconnectReason) {
+  store_.wlock()->closeNoPublisherActiveSubscriptions(
+      metadataServer, disconnectReason);
 }
 
 std::vector<OperSubscriberInfo> SubscriptionManagerBase::getSubscriptions()
     const {
   std::vector<OperSubscriberInfo> toRet;
-  toRet.reserve(store_.subscriptions().size());
-  for (auto& [id, subscription] : store_.subscriptions()) {
+  auto store = store_.rlock();
+  toRet.reserve(store->subscriptions().size());
+  for (auto& [id, subscription] : store->subscriptions()) {
     OperSubscriberInfo info;
     info.subscriberId() = subscription->subscriberId();
     info.type() = subscription->type();
@@ -46,14 +54,8 @@ std::vector<OperSubscriberInfo> SubscriptionManagerBase::getSubscriptions()
   return toRet;
 }
 
-void SubscriptionManagerBase::closeNoPublisherActiveSubscriptions(
-    const SubscriptionMetadataServer& metadataServer,
-    FsdbErrorCode disconnectReason) {
-  store_.closeNoPublisherActiveSubscriptions(metadataServer, disconnectReason);
-}
-
 void SubscriptionManagerBase::serveHeartbeat() {
-  store_.serveHeartbeat();
+  store_.wlock()->serveHeartbeat();
 }
 
 } // namespace facebook::fboss::fsdb

@@ -36,11 +36,11 @@ class SubscriptionManagerBase {
   void registerSubscription(std::unique_ptr<Subscription> subscription);
 
   size_t numSubscriptions() const {
-    return store_.subscriptions().size();
+    return store_.rlock()->subscriptions().size();
   }
 
   size_t numPathStores() const {
-    return store_.lookup().numPathStores();
+    return store_.rlock()->lookup().numPathStores();
   }
 
   std::vector<OperSubscriberInfo> getSubscriptions() const;
@@ -75,10 +75,7 @@ class SubscriptionManagerBase {
       std::vector<std::string>::const_iterator begin,
       std::vector<std::string>::const_iterator end);
 
-  SubscriptionStore store_;
-
-  // lookup for the subscriptions, keyed on path
-  SubscriptionPathStore lookup_;
+  folly::Synchronized<SubscriptionStore> store_;
 
   bool useIdPaths_{false};
 
@@ -94,7 +91,8 @@ class SubscriptionManager : public SubscriptionManagerBase {
   using SubscriptionManagerBase::SubscriptionManagerBase;
 
   void publishAndAddPaths(std::shared_ptr<Root>& root) {
-    static_cast<Impl*>(this)->publishAndAddPaths(store_, root);
+    auto store = store_.wlock();
+    static_cast<Impl*>(this)->publishAndAddPaths(*store, root);
   }
 
   // TODO: hinting at changed paths for improved efficiency
@@ -102,9 +100,10 @@ class SubscriptionManager : public SubscriptionManagerBase {
       const std::shared_ptr<Root>& oldData,
       const std::shared_ptr<Root>& newData,
       const SubscriptionMetadataServer& metadataServer) {
+    auto store = store_.wlock();
     try {
       static_cast<Impl*>(this)->serveSubscriptions(
-          store_, oldData, newData, metadataServer);
+          *store, oldData, newData, metadataServer);
     } catch (const std::exception&) {
       XLOG(ERR) << "Exception serving subscriptions...";
     }
@@ -113,14 +112,16 @@ class SubscriptionManager : public SubscriptionManagerBase {
   void pruneDeletedPaths(
       const std::shared_ptr<Root>& oldRoot,
       const std::shared_ptr<Root>& newRoot) {
+    auto store = store_.wlock();
     static_cast<Impl*>(this)->pruneDeletedPaths(
-        &store_.lookup(), oldRoot, newRoot);
+        &store->lookup(), oldRoot, newRoot);
   }
 
   void initialSyncForNewSubscriptions(
       const std::shared_ptr<Root>& newData,
       const SubscriptionMetadataServer& metadataServer) {
-    static_cast<Impl*>(this)->doInitialSync(store_, newData, metadataServer);
+    auto store = store_.wlock();
+    static_cast<Impl*>(this)->doInitialSync(*store, newData, metadataServer);
   }
 
  private:
