@@ -147,6 +147,12 @@ class AgentEnsemble : public TestEnsembleIf {
     getSw()->linkConnectivityChanged(port2OldAndNewConnectivity);
   }
 
+  void switchReachabilityChanged(
+      const std::map<int64_t, std::set<PortID>>& /*switchReachabilityInfo*/)
+      override {
+    // TODO
+  }
+
   void l2LearningUpdateReceived(
       L2Entry l2Entry,
       L2EntryUpdateType l2EntryUpdateType) override {

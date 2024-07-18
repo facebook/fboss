@@ -102,6 +102,11 @@ void SplitAgentThriftSyncer::linkActiveStateChanged(
   linkChangeEventSinkClient_->enqueue(std::move(changeEvent));
 }
 
+void SplitAgentThriftSyncer::switchReachabilityChanged(
+    const std::map<int64_t, std::set<PortID>>& /*switchReachabilityInfo*/) {
+  // TODO
+}
+
 void SplitAgentThriftSyncer::linkConnectivityChanged(
     const std::map<PortID, multiswitch::FabricConnectivityDelta>&
         port2ConnectivityDelta) {

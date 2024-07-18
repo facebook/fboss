@@ -435,6 +435,11 @@ void HwSwitchEnsemble::linkActiveStateChanged(
   // TODO
 }
 
+void HwSwitchEnsemble::switchReachabilityChanged(
+    const std::map<int64_t, std::set<PortID>>& /*switchReachabilityInfo*/) {
+  // TODO
+}
+
 void HwSwitchEnsemble::packetReceived(std::unique_ptr<RxPacket> pkt) noexcept {
   auto hwEventObservers = hwEventObservers_.rlock();
   std::for_each(

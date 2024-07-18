@@ -67,6 +67,9 @@ class HwTest : public ::testing::Test,
   void linkStateChanged(PortID /*port*/, bool /*up*/) override {}
   void linkActiveStateChanged(
       const std::map<PortID, bool>& /*port2IsActive */) override {}
+  void switchReachabilityChanged(
+      const std::map<int64_t, std::set<PortID>>& /*switchReachabilityInfo*/)
+      override {}
   void l2LearningUpdateReceived(
       L2Entry /*l2Entry*/,
       L2EntryUpdateType /*l2EntryUpdateType*/) override {}

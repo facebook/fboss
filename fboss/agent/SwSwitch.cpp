@@ -2104,6 +2104,11 @@ void SwSwitch::linkActiveStateChanged(
       std::move(updateActiveStateFn));
 }
 
+void SwSwitch::switchReachabilityChanged(
+    const std::map<int64_t, std::set<PortID>>& /*switchReachabilityInfo*/) {
+  // TODO
+}
+
 void SwSwitch::startThreads() {
   backgroundThread_.reset(new std::thread(
       [this] { this->threadLoop("fbossBgThread", &backgroundEventBase_); }));

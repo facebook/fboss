@@ -52,6 +52,9 @@ class HwSwitchCallback {
       const std::map<PortID, multiswitch::FabricConnectivityDelta>&
           port2OldAndNewConnectivity) = 0;
 
+  virtual void switchReachabilityChanged(
+      const std::map<int64_t, std::set<PortID>>& switchReachabilityInfo) = 0;
+
   /*
    * l2LearningUpdateReceived() is invoked by the HwSwitch when there is
    * changes l2 table.
