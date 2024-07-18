@@ -1,6 +1,7 @@
 {
   "platformName": "MORGAN800CC",
   "rootPmUnitName": "MCB",
+  "rootSlotType": "MCB_SLOT",
   "slotTypeConfigs": {
     "MCB_SLOT": {
       "numOutgoingI2cBuses": 5,

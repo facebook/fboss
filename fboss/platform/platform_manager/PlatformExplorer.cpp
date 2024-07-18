@@ -54,10 +54,8 @@ void PlatformExplorer::explore() {
        i2cExplorer_.getBusNums(*platformConfig_.i2cAdaptersFromCpu())) {
     dataStore_.updateI2cBusNum(std::nullopt, busName, busNum);
   }
-  const PmUnitConfig& rootPmUnitConfig =
-      platformConfig_.pmUnitConfigs()->at(*platformConfig_.rootPmUnitName());
-  auto pmUnitName = getPmUnitNameFromSlot(
-      *rootPmUnitConfig.pluggedInSlotType(), kRootSlotPath);
+  auto pmUnitName =
+      getPmUnitNameFromSlot(*platformConfig_.rootSlotType(), kRootSlotPath);
   CHECK(pmUnitName == *platformConfig_.rootPmUnitName());
   explorePmUnit(kRootSlotPath, *platformConfig_.rootPmUnitName());
   XLOG(INFO) << "Creating symbolic links ...";

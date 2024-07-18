@@ -1,6 +1,7 @@
 {
   "platformName": "meru800bia",
   "rootPmUnitName": "SCM",
+  "rootSlotType": "SCM_SLOT",
   "slotTypeConfigs": {
     "SCM_SLOT": {
       "numOutgoingI2cBuses": 0,

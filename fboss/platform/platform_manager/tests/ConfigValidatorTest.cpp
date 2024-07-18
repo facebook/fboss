@@ -53,9 +53,20 @@ TEST(ConfigValidatorTest, InvalidPlatformName) {
   EXPECT_FALSE(ConfigValidator().isValid(config));
 }
 
+TEST(ConfigValidatorTest, InvalidRootSlotType) {
+  auto config = PlatformConfig();
+  config.platformName() = "MERU400BIU";
+  config.rootSlotType() = "SCM_SLOT";
+  config.bspKmodsRpmName() = "sample_bsp_rpm";
+  config.bspKmodsRpmVersion() = "1.0.0-4";
+  EXPECT_FALSE(ConfigValidator().isValid(config));
+}
+
 TEST(ConfigValidatorTest, ValidConfig) {
   auto config = PlatformConfig();
   config.platformName() = "MERU400BIU";
+  config.rootSlotType() = "SCM_SLOT";
+  config.slotTypeConfigs() = {{"SCM_SLOT", getValidSlotTypeConfig()}};
   config.bspKmodsRpmName() = "sample_bsp_rpm";
   config.bspKmodsRpmVersion() = "1.0.0-4";
   EXPECT_TRUE(ConfigValidator().isValid(config));

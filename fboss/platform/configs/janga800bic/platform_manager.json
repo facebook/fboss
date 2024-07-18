@@ -1,6 +1,7 @@
 {
   "platformName": "janga800bic",
   "rootPmUnitName": "JANGA",
+  "rootSlotType": "SMB_SLOT",
   "slotTypeConfigs": {
     "SMB_SLOT": {
       "numOutgoingI2cBuses": 0,

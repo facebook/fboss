@@ -1,6 +1,7 @@
 {
   "platformName": "tahan800bc",
   "rootPmUnitName": "TAHAN",
+  "rootSlotType": "SMB_SLOT",
   "slotTypeConfigs": {
     "SMB_SLOT": {
       "numOutgoingI2cBuses": 0,

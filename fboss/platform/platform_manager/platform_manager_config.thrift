@@ -469,6 +469,9 @@ struct PlatformConfig {
   // this PmUnit should be directly connected to the CPU SMBus.
   2: string rootPmUnitName;
 
+  // This is the SlotType of the rootPmUnit.
+  3: string rootSlotType;
+
   // Map from SlotType name to the global properties of the SlotType.
   11: map<SlotType, SlotTypeConfig> slotTypeConfigs;
 

@@ -252,6 +252,19 @@ bool ConfigValidator::isValid(const PlatformConfig& config) {
     return false;
   }
 
+  if (config.rootSlotType()->empty()) {
+    XLOG(ERR) << "Platform rootSlotType cannot be empty";
+    return false;
+  }
+
+  if (config.slotTypeConfigs()->find(*config.rootSlotType()) ==
+      config.slotTypeConfigs()->end()) {
+    XLOG(ERR) << fmt::format(
+        "Invalid rootSlotType {}. Not found in slotTypeConfigs",
+        *config.rootSlotType());
+    return false;
+  }
+
   // Validate SlotTypeConfigs.
   for (const auto& [slotName, slotTypeConfig] : *config.slotTypeConfigs()) {
     if (!isValidSlotTypeConfig(slotTypeConfig)) {
