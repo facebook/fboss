@@ -194,4 +194,13 @@ std::optional<sai_attr_id_t> SaiSwitchTraits::Attributes::
   return std::nullopt;
 #endif
 }
+
+std::optional<sai_attr_id_t> SaiSwitchTraits::Attributes::
+    AttributeMultiStageLocalSwitchIdsWrapper::operator()() {
+#if defined(BRCM_SAI_SDK_GTE_11_0)
+  return SAI_SWITCH_ATTR_MULTI_STAGE_LOCAL_SWITCH_IDS;
+#else
+  return std::nullopt;
+#endif
+}
 } // namespace facebook::fboss

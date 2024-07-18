@@ -599,6 +599,7 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
       std::nullopt, // PFC DLR Packet Action
       std::nullopt, // route no implicit meta data
       std::nullopt, // route allow implicit meta data
+      std::nullopt, // multi-stage local switch ids
   };
 }
 
