@@ -25,6 +25,13 @@ HwSysPortFb303Stats::kPortMonotonicCounterStatKeys() const {
 }
 
 const std::vector<folly::StringPiece>&
+HwSysPortFb303Stats::kPortFb303CounterStatKeys() const {
+  // No port level stats on sys ports
+  static std::vector<folly::StringPiece> kPortKeys{};
+  return kPortKeys;
+}
+
+const std::vector<folly::StringPiece>&
 HwSysPortFb303Stats::kQueueMonotonicCounterStatKeys() const {
   static std::vector<folly::StringPiece> kQueueKeys{
       kOutDiscards(),

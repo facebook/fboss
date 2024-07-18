@@ -80,6 +80,8 @@ class HwBasePortFb303Stats {
 
   virtual const std::vector<folly::StringPiece>& kPortMonotonicCounterStatKeys()
       const = 0;
+  virtual const std::vector<folly::StringPiece>& kPortFb303CounterStatKeys()
+      const = 0;
   virtual const std::vector<folly::StringPiece>&
   kQueueMonotonicCounterStatKeys() const = 0;
   virtual const std::vector<folly::StringPiece>&

@@ -55,6 +55,14 @@ HwPortFb303Stats::kPortMonotonicCounterStatKeys() const {
 }
 
 const std::vector<folly::StringPiece>&
+HwPortFb303Stats::kPortFb303CounterStatKeys() const {
+  static std::vector<folly::StringPiece> kPortKeys{
+      kCableLengthMeters(),
+  };
+  return kPortKeys;
+}
+
+const std::vector<folly::StringPiece>&
 HwPortFb303Stats::kQueueMonotonicCounterStatKeys() const {
   static std::vector<folly::StringPiece> kQueueKeys{
       kOutCongestionDiscardsBytes(),
