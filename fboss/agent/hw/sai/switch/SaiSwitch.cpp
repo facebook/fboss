@@ -58,6 +58,7 @@
 #include "fboss/agent/platforms/sai/SaiPlatform.h"
 #include "fboss/lib/HwWriteBehavior.h"
 
+#include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/rib/RoutingInformationBase.h"
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/StateDelta.h"
@@ -2118,8 +2119,35 @@ std::set<PortID> SaiSwitch::getFabricReachabilityPortIds(
   return portIds;
 }
 
-void SaiSwitch::switchReachabilityChangeBottomHalf() {
-  // TODO
+void SaiSwitch::switchReachabilityChangeBottomHalf() const {
+  auto& switchApi = SaiApiTable::getInstance()->switchApi();
+
+  for (const auto& [_, dsfNodes] :
+       std::as_const(*getProgrammedState()->getDsfNodes())) {
+    std::map<int64_t, std::set<PortID>> reachabilityInfo{};
+    for (const auto& [switchId, node] : std::as_const(*dsfNodes)) {
+      if (getHwAsicForAsicType(*node->toThrift().asicType()).getSwitchType() !=
+          cfg::SwitchType::VOQ) {
+        // Dont expect reachability information for fabric devices!
+        continue;
+      }
+      auto maxFabricPorts =
+          getMaxNumberOfFabricPorts(*node->toThrift().asicType());
+      std::vector<sai_object_id_t> output(maxFabricPorts + 1);
+      // Requirement to have the switchId as first entry in the list,
+      // the get() will return fabric ports over which the switchId is
+      // reachable in indices 1 onwards.
+      output.at(0) = switchId;
+      // TODO: Use bulkGetAttribute instead of multiple getAttributes()
+      auto switchIdAndFabricPortSaiIds = switchApi.getAttribute(
+          saiSwitchId_,
+          SaiSwitchTraits::Attributes::FabricRemoteReachablePortList{output});
+      CHECK_EQ(switchIdAndFabricPortSaiIds.at(0), switchId);
+      reachabilityInfo[switchId] =
+          getFabricReachabilityPortIds(switchIdAndFabricPortSaiIds);
+    }
+    // TODO: Callback to populate this information in SwSwitch
+  }
 }
 
 BootType SaiSwitch::getBootType() const {

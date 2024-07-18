@@ -380,7 +380,7 @@ class SaiSwitch : public HwSwitch {
   void linkStateChangedCallbackBottomHalf(
       std::vector<sai_port_oper_status_notification_t> data);
   void txReadyStatusChangeCallbackBottomHalf();
-  void switchReachabilityChangeBottomHalf();
+  void switchReachabilityChangeBottomHalf() const;
   std::set<PortID> getFabricReachabilityPortIds(
       const std::vector<sai_object_id_t>& switchIdAndFabricPortSaiIds) const;
 
