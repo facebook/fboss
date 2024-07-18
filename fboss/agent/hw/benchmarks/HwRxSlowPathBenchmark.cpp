@@ -117,7 +117,7 @@ BENCHMARK(RxSlowPathBenchmark) {
     ensemble->getSw()->sendPacketSwitchedAsync(std::move(txPacket));
   }
 
-  constexpr auto kBurnIntevalInSeconds = 5;
+  constexpr auto kBurnIntevalInSeconds = 10;
   // Let the packet flood warm up
   std::this_thread::sleep_for(std::chrono::seconds(kBurnIntevalInSeconds));
   constexpr uint8_t kCpuQueue = 0;
