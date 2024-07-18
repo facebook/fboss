@@ -12,6 +12,7 @@
 
 #include <fboss/fsdb/common/Utils.h>
 #include <fboss/fsdb/oper/CowDeletePathTraverseHelper.h>
+#include <fboss/fsdb/oper/CowInitialSyncTraverseHelper.h>
 #include <fboss/fsdb/oper/CowPublishAndAddTraverseHelper.h>
 #include <fboss/fsdb/oper/CowSubscriptionTraverseHelper.h>
 #include <fboss/fsdb/oper/SubscriptionManager.h>
@@ -21,9 +22,10 @@
 #include <fboss/thrift_cow/visitors/PatchBuilder.h>
 #include <fboss/thrift_cow/visitors/PathVisitor.h>
 #include <fboss/thrift_cow/visitors/RecurseVisitor.h>
-#include <folly/Traits.h>
 #include "fboss/fsdb/if/gen-cpp2/fsdb_oper_fatal_types.h"
 #include "fboss/fsdb/if/gen-cpp2/fsdb_oper_types.h"
+
+#include <folly/Traits.h>
 
 namespace facebook::fboss::fsdb {
 
@@ -132,58 +134,84 @@ class CowSubscriptionManager
       SubscriptionStore& store,
       const std::shared_ptr<Root>& newRoot,
       const SubscriptionMetadataServer& metadataServer) {
-    auto it = store.initialSyncNeeded().begin();
-    while (it != store.initialSyncNeeded().end()) {
-      auto& subscription = *it;
-
-      if (!metadataServer.ready(subscription->publisherTreeRoot())) {
-        ++it;
-        continue;
+    auto processPath = [&](CowInitialSyncTraverseHelper& traverser,
+                           auto&& node) {
+      SubscriptionPathStore* lookup = traverser.currentStore();
+      if (!lookup) {
+        // no subscriptions here
+        return;
       }
+      // we should only get a visit if we have a subscription needing initial
+      // sync, in which case we should have a lookup
+      CHECK(lookup);
 
-      const auto& path = subscription->path();
-
-      thrift_cow::GetEncodedPathVisitorOperator op(
-          subscription->operProtocol());
-      const auto& root = *newRoot;
-      thrift_cow::RootPathVisitor::visit(
-          root, path.begin(), path.end(), thrift_cow::PathVisitMode::LEAF, op);
-      if (op.val) {
-        if (subscription->type() == PubSubType::PATH) {
-          auto pathSubscription =
-              static_cast<BasePathSubscription*>(subscription);
-          std::optional<OperState> state;
-          state.emplace();
-          state->contents() = *op.val;
-          state->protocol() = subscription->operProtocol();
-          state->metadata() = subscription->getMetadata(metadataServer);
-          auto value = DeltaValue<OperState>(std::nullopt, std::move(state));
-          pathSubscription->offer(std::move(value));
-        } else if (subscription->type() == PubSubType::DELTA) {
-          // Delta subscription
-          OperDeltaUnit deltaUnit;
-          deltaUnit.path()->raw() = path;
-          deltaUnit.newState() = *op.val;
-          auto deltaSubscription =
-              static_cast<BaseDeltaSubscription*>(subscription);
-          deltaSubscription->appendRootDeltaUnit(std::move(deltaUnit));
-        } else if (subscription->type() == PubSubType::PATCH) {
-          auto patchSubscription =
-              static_cast<PatchSubscription*>(subscription);
-          thrift_cow::PatchNode patchNode;
-          // TODO: try to change to a shared holding a IOBuf instead of copying
-          // from an fbstring
-          auto buf = folly::IOBuf::copyBuffer(op.val->data(), op.val->length());
-          patchNode.set_val(*buf);
-          patchSubscription->offer(std::move(patchNode));
+      // TODO: maybe switch to reverse iter to erase is cheaper
+      auto& subscriptions = lookup->subscriptions();
+      auto it = subscriptions.begin();
+      while (it != subscriptions.end()) {
+        auto& subscription = *it;
+        CHECK(subscription);
+        if (!metadataServer.ready(subscription->publisherTreeRoot())) {
+          ++it;
+          continue;
         }
-      } else if (this->requireResponseOnInitialSync_) {
-        // on initialSync, offer even an empty value
-        subscription->serveHeartbeat();
+        if (node) {
+          if (subscription->type() == PubSubType::PATH) {
+            auto pathSubscription =
+                static_cast<BasePathSubscription*>(subscription);
+            std::optional<OperState> state;
+            state.emplace();
+            state->contents() = node->encode(subscription->operProtocol());
+            // TODO: cache state
+            state->protocol() = subscription->operProtocol();
+            state->metadata() = subscription->getMetadata(metadataServer);
+            auto value = DeltaValue<OperState>(std::nullopt, std::move(state));
+            pathSubscription->offer(std::move(value));
+          } else if (subscription->type() == PubSubType::DELTA) {
+            // Delta subscription
+            OperDeltaUnit deltaUnit;
+            deltaUnit.path()->raw() = traverser.path();
+            // TODO: cache state
+            deltaUnit.newState() = node->encode(subscription->operProtocol());
+            auto deltaSubscription =
+                static_cast<BaseDeltaSubscription*>(subscription);
+            deltaSubscription->appendRootDeltaUnit(std::move(deltaUnit));
+          } else if (subscription->type() == PubSubType::PATCH) {
+            auto patchSubscription =
+                static_cast<PatchSubscription*>(subscription);
+            thrift_cow::PatchNode patchNode;
+            // TODO: try to change to a shared holding a IOBuf instead of
+            // copying from an fbstring
+            // TODO: cache state
+            patchNode.set_val(node->encodeBuf(subscription->operProtocol()));
+            patchSubscription->offer(std::move(patchNode));
+          }
+        }
+        store.lookup().add(subscription);
+        subscription->firstChunkSent();
+        // TODO: trim empty path store nodes
+        it = subscriptions.erase(it);
       }
+    };
 
-      store.lookup().add(subscription);
-      it = store.initialSyncNeeded().erase(it);
+    auto traverser = CowInitialSyncTraverseHelper(&store.initialSyncNeeded());
+    thrift_cow::RootRecurseVisitor::visit(
+        traverser,
+        newRoot,
+        thrift_cow::RecurseVisitOptions(
+            thrift_cow::RecurseVisitMode::FULL,
+            thrift_cow::RecurseVisitOrder::CHILDREN_FIRST,
+            this->useIdPaths_),
+        std::move(processPath));
+    if (this->requireResponseOnInitialSync_) {
+      for (auto& [_, subscription] : store.subscriptions()) {
+        if (metadataServer.ready(subscription->publisherTreeRoot()) &&
+            subscription->needsFirstChunk()) {
+          subscription->serveHeartbeat();
+          subscription->firstChunkSent();
+        }
+      }
+      // on initialSync, offer even an empty value
     }
   }
 

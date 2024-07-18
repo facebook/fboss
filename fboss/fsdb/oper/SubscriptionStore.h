@@ -89,7 +89,7 @@ class SubscriptionStore {
   std::unordered_map<std::string, std::unique_ptr<Subscription>> subscriptions_;
   std::unordered_map<std::string, std::shared_ptr<ExtendedSubscription>>
       extendedSubscriptions_;
-  std::unordered_set<Subscription*> initialSyncNeeded_;
+  SubscriptionPathStore initialSyncNeeded_;
   std::unordered_set<std::shared_ptr<ExtendedSubscription>>
       initialSyncNeededExtended_;
 

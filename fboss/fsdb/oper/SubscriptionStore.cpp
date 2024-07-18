@@ -93,7 +93,8 @@ void SubscriptionStore::unregisterSubscription(const std::string& name) {
   XLOG(DBG1) << "Unregistering subscription " << name;
   if (auto it = subscriptions_.find(name); it != subscriptions_.end()) {
     auto rawPtr = it->second.get();
-    initialSyncNeeded_.erase(rawPtr);
+    // TODO: trim empty path stores
+    initialSyncNeeded_.remove(rawPtr);
     lookup_.remove(rawPtr);
     subscriptions_.erase(it);
   }
@@ -119,7 +120,7 @@ void SubscriptionStore::registerSubscription(
     throw Utils::createFsdbException(
         FsdbErrorCode::ID_ALREADY_EXISTS, name + " already exixts");
   }
-  initialSyncNeeded_.insert(rawPtr);
+  initialSyncNeeded_.add(rawPtr);
 }
 
 void SubscriptionStore::registerExtendedSubscription(

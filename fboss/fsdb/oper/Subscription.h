@@ -89,6 +89,14 @@ class Subscription : public BaseSubscription {
     return path_;
   }
 
+  bool needsFirstChunk() const {
+    return needsFirstChunk_;
+  }
+
+  void firstChunkSent() {
+    needsFirstChunk_ = false;
+  }
+
  protected:
   Subscription(
       SubscriberId subscriber,
@@ -103,6 +111,7 @@ class Subscription : public BaseSubscription {
 
  private:
   const std::vector<std::string> path_;
+  bool needsFirstChunk_{true};
 };
 
 using ExtSubPathMap = std::map<SubscriptionKey, ExtendedOperPath>;

@@ -22,6 +22,7 @@ cpp_library(
     ],
     headers = [
         "CowDeletePathTraverseHelper.h",
+        "CowInitialSyncTraverseHelper.h",
         "CowPublishAndAddTraverseHelper.h",
         "CowSubscriptionManager.h",
         "CowSubscriptionTraverseHelper.h",

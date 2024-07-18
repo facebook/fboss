@@ -87,6 +87,10 @@ class SubscriptionPathStore {
     return subscriptions_;
   }
 
+  std::vector<Subscription*>& subscriptions() {
+    return subscriptions_;
+  }
+
  private:
   void debugPrint(std::vector<std::string>& pathSoFar) const;
 
