@@ -95,33 +95,32 @@ class SubscriptionManager : public SubscriptionManagerBase {
     static_cast<Impl*>(this)->publishAndAddPaths(*store, root);
   }
 
-  // TODO: hinting at changed paths for improved efficiency
   void serveSubscriptions(
-      const std::shared_ptr<Root>& oldData,
-      const std::shared_ptr<Root>& newData,
-      const SubscriptionMetadataServer& metadataServer) {
-    auto store = store_.wlock();
-    try {
-      static_cast<Impl*>(this)->serveSubscriptions(
-          *store, oldData, newData, metadataServer);
-    } catch (const std::exception&) {
-      XLOG(ERR) << "Exception serving subscriptions...";
-    }
-  }
-
-  void pruneDeletedPaths(
       const std::shared_ptr<Root>& oldRoot,
-      const std::shared_ptr<Root>& newRoot) {
-    auto store = store_.wlock();
-    static_cast<Impl*>(this)->pruneDeletedPaths(
-        &store->lookup(), oldRoot, newRoot);
-  }
-
-  void initialSyncForNewSubscriptions(
-      const std::shared_ptr<Root>& newData,
+      const std::shared_ptr<Root>& newRoot,
       const SubscriptionMetadataServer& metadataServer) {
+    auto impl = static_cast<Impl*>(this);
     auto store = store_.wlock();
-    static_cast<Impl*>(this)->doInitialSync(*store, newData, metadataServer);
+    store->pruneCancelledSubscriptions();
+
+    // TODO: handle pending subscriptions
+
+    if (oldRoot != newRoot) {
+      try {
+        impl->serveSubscriptions(*store, oldRoot, newRoot, metadataServer);
+      } catch (const std::exception&) {
+        XLOG(ERR) << "Exception serving subscriptions...";
+      }
+      impl->pruneDeletedPaths(&store->lookup(), oldRoot, newRoot);
+    }
+    // Serve new subscriptions after serving existing subscriptions.
+    // New subscriptions will get a full object dump on first sync.
+    // If we serve them before the loop above, we have to be careful
+    // to not serve them again in the loop above. So just move to serve
+    // after. Post the initial sync, these new subscriptions will be
+    // pruned from initialSyncNeeded list and will get served on
+    // changes only
+    impl->doInitialSync(*store, newRoot, metadataServer);
   }
 
  private:

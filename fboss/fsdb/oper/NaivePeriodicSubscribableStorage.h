@@ -263,20 +263,7 @@ class NaivePeriodicSubscribableStorage
         auto [oldRoot, newRoot, metadataServer] = publishCurrentState();
         auto subscriptions = subscriptions_.wlock();
 
-        subscriptions->pruneCancelledSubscriptions();
-
-        if (oldRoot != newRoot) {
-          subscriptions->serveSubscriptions(oldRoot, newRoot, metadataServer);
-          subscriptions->pruneDeletedPaths(oldRoot, newRoot);
-        }
-        // Serve new subscriptions after serving existing subscriptions.
-        // New subscriptions will get a full object dump on first sync.
-        // If we serve them before the loop above, we have to be careful
-        // to not serve them again in the loop above. So just move to serve
-        // after. Post the initial sync, these new subscriptions will be
-        // pruned from initialSyncNeeded list and will get served on
-        // changes only
-        subscriptions->initialSyncForNewSubscriptions(newRoot, metadataServer);
+        subscriptions->serveSubscriptions(oldRoot, newRoot, metadataServer);
       }
 
       if (FLAGS_serveHeartbeats &&

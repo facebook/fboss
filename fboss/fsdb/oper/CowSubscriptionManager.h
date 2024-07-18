@@ -99,8 +99,6 @@ class CowSubscriptionManager
 
   using Base::Base;
   using Base::patchOperProtocol;
-
-  using Base::pruneDeletedPaths;
   using Base::publishAndAddPaths;
   using Base::serveSubscriptions;
 
