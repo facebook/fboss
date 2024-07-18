@@ -441,13 +441,23 @@ struct SlotConfig {
 //
 // `outgoingSlotConfigs`: Details about the slots present on the PmUnit. Slot
 // Name is the key.
-//
 struct PmUnitConfig {
   1: SlotType pluggedInSlotType;
   2: list<I2cDeviceConfig> i2cDeviceConfigs;
   3: map<string, SlotConfig> outgoingSlotConfigs;
   4: list<PciDeviceConfig> pciDeviceConfigs;
   5: list<EmbeddedSensorConfig> embeddedSensorConfigs;
+}
+
+// `VersionedPmUnitConfig` defined a configuration of PmUnit in re-spinned platforms.
+//
+// `PmUnitConfig`: PmUnit configuration. Refer to PmUnitConfig definition above.
+//
+// `platformVersion`: The platformVersion of the switch which this PmUnit belongs to.
+// This refers to field Type 8 in EEPROM.
+struct VersionedPmUnitConfig {
+  1: PmUnitConfig pmUnitConfig;
+  2: i16 platformVersion;
 }
 
 // Defines the whole Platform. The top level struct.
@@ -474,6 +484,10 @@ struct PlatformConfig {
   // Global mapping from an application friendly path (symbolic link) to
   // DevicePath. DevicePath documentation can be found earlier in the file
   14: map<string, string> symbolicLinkToDevicePath;
+
+  // Map from PmUnit name to a list of PmUnitConfigs which apply to specific versions of the platform.
+  // This typically applies to re-spins and second-source boards/PmUnits.
+  15: map<string, list<VersionedPmUnitConfig>> versionedPmUnitConfigs;
 
   // Name and version of the rpm containing the BSP kmods for this platform
   21: string bspKmodsRpmName;
