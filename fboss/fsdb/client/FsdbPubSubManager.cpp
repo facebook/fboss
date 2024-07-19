@@ -422,7 +422,7 @@ void FsdbPubSubManager::addStatePathSubscription(
 }
 
 void FsdbPubSubManager::addStatePathSubscription(
-    FsdbStateSubscriber::SubscriptionOptions&& subscriptionOptions,
+    SubscriptionOptions&& subscriptionOptions,
     const Path& subscribePath,
     SubscriptionStateChangeCb stateChangeCb,
     FsdbStateSubscriber::FsdbOperStateUpdateCb operStateCb,
@@ -436,7 +436,7 @@ void FsdbPubSubManager::addStatePathSubscription(
 }
 
 void FsdbPubSubManager::addStatePathSubscription(
-    FsdbExtStateSubscriber::SubscriptionOptions&& subscriptionOptions,
+    SubscriptionOptions&& subscriptionOptions,
     const MultiPath& subscribePaths,
     SubscriptionStateChangeCb stateChangeCb,
     FsdbExtStateSubscriber::FsdbOperStateUpdateCb operStateCb,
@@ -546,7 +546,7 @@ void FsdbPubSubManager::addSubscriptionImpl(
 
 template <typename SubscriberT, typename PathElement>
 void FsdbPubSubManager::addSubscriptionImpl(
-    typename SubscriberT::SubscriptionOptions&& subscriptionOptions,
+    SubscriptionOptions&& subscriptionOptions,
     const std::vector<PathElement>& subscribePath,
     SubscriptionStateChangeCb stateChangeCb,
     typename SubscriberT::FsdbSubUnitUpdateCb subUnitAvailableCb,

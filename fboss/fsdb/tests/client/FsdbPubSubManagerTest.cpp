@@ -307,7 +307,7 @@ class FsdbPubSubManagerTest : public ::testing::Test {
     auto subscribeStats = false;
     ReconnectingThriftClient::ServerOptions serverOpts{
         "::1", fsdbTestServer_->getFsdbPort()};
-    FsdbStateSubscriber::SubscriptionOptions opts{
+    SubscriptionOptions opts{
         pubSubManager_->getClientId(), subscribeStats, grHoldTimeSec};
     pubSubManager_->addStatePathSubscription(
         std::move(opts),

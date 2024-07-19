@@ -64,29 +64,30 @@ inline std::string subscriptionStateToString(SubscriptionState state) {
 using SubscriptionStateChangeCb =
     std::function<void(SubscriptionState, SubscriptionState)>;
 
+struct SubscriptionOptions {
+  SubscriptionOptions() = default;
+  explicit SubscriptionOptions(
+      const std::string& clientId,
+      bool subscribeStats = false,
+      uint32_t grHoldTimeSec = 0)
+      : clientId_(clientId),
+        subscribeStats_(subscribeStats),
+        grHoldTimeSec_(grHoldTimeSec) {}
+
+  const std::string clientId_;
+  bool subscribeStats_{false};
+  uint32_t grHoldTimeSec_{0};
+};
+
 template <typename SubUnit, typename Paths>
 class FsdbSubscriber : public FsdbStreamClient {
   std::string typeStr() const;
   std::string pathsStr(const Paths& path) const;
 
  public:
-  struct SubscriptionOptions {
-    SubscriptionOptions() = default;
-    explicit SubscriptionOptions(
-        const std::string& clientId,
-        bool subscribeStats = false,
-        uint32_t grHoldTimeSec = 0)
-        : clientId_(clientId),
-          subscribeStats_(subscribeStats),
-          grHoldTimeSec_(grHoldTimeSec) {}
-
-    const std::string clientId_;
-    bool subscribeStats_{false};
-    uint32_t grHoldTimeSec_{0};
-  };
-
   using FsdbSubUnitUpdateCb = std::function<void(SubUnit&&)>;
   using SubUnitT = SubUnit;
+
   FsdbSubscriber(
       const std::string& clientId,
       const Paths& subscribePaths,

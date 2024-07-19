@@ -136,13 +136,13 @@ class FsdbPubSubManager {
       FsdbStreamClient::ServerOptions&& serverOptions =
           kDefaultServerOptions());
   void addStatePathSubscription(
-      FsdbStateSubscriber::SubscriptionOptions&& subscriptionOptions,
+      SubscriptionOptions&& subscriptionOptions,
       const Path& subscribePath,
       SubscriptionStateChangeCb stateChangeCb,
       FsdbStateSubscriber::FsdbOperStateUpdateCb operStateCb,
       FsdbStreamClient::ServerOptions&& serverOptions);
   void addStatePathSubscription(
-      FsdbExtStateSubscriber::SubscriptionOptions&& subscriptionOptions,
+      SubscriptionOptions&& subscriptionOptions,
       const MultiPath& subscribePaths,
       SubscriptionStateChangeCb stateChangeCb,
       FsdbExtStateSubscriber::FsdbOperStateUpdateCb operStateCb,
@@ -268,7 +268,7 @@ class FsdbPubSubManager {
       const std::optional<std::string>& clientIdSuffix = std::nullopt);
   template <typename SubscriberT, typename PathElement>
   void addSubscriptionImpl(
-      typename SubscriberT::SubscriptionOptions&& subscriptionOptions,
+      SubscriptionOptions&& subscriptionOptions,
       const std::vector<PathElement>& subscribePath,
       SubscriptionStateChangeCb stateChangeCb,
       typename SubscriberT::FsdbSubUnitUpdateCb subUnitAvailableCb,

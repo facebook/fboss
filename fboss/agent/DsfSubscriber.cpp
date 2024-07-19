@@ -226,7 +226,7 @@ void DsfSubscriber::stateUpdated(const StateDelta& stateDelta) {
       dsfSessions_.wlock()->emplace(remoteEndpoint, DsfSession(remoteEndpoint));
 
       auto subscriberId = folly::sformat("{}_{}:agent", localNodeName_, dstIP);
-      fsdb::FsdbExtStateSubscriber::SubscriptionOptions opts{
+      fsdb::SubscriptionOptions opts{
           subscriberId, false /* subscribeStats */, FLAGS_dsf_gr_hold_time};
       fsdbPubSubMgr_->addStatePathSubscription(
           std::move(opts),
