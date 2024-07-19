@@ -1585,6 +1585,59 @@ TEST_F(AgentVoqSwitchWithMultipleDsfNodesTest, stressAddRemoveObjects) {
   verifyAcrossWarmBoots(setup, verify);
 }
 
+TEST_F(AgentVoqSwitchWithMultipleDsfNodesTest, voqTailDropCounter) {
+  folly::IPAddressV6 kNeighborIp("100::2");
+  auto constexpr remotePortId = 401;
+  const SystemPortID kRemoteSysPortId(remotePortId);
+  auto setup = [=, this]() {
+    // in addRemoteDsfNodeCfg, we use numCores to calculate the remoteSwitchId
+    // keeping remote switch id passed below in sync with it
+    int numCores =
+        utility::checkSameAndGetAsic(getAgentEnsemble()->getL3Asics())
+            ->getNumCores();
+    applyNewState([&](const std::shared_ptr<SwitchState>& in) {
+      return utility::addRemoteSysPort(
+          in,
+          scopeResolver(),
+          kRemoteSysPortId,
+          static_cast<SwitchID>(numCores));
+    });
+    const InterfaceID kIntfId(remotePortId);
+    applyNewState([&](const std::shared_ptr<SwitchState>& in) {
+      return utility::addRemoteInterface(
+          in,
+          scopeResolver(),
+          kIntfId,
+          // TODO - following assumes we haven't
+          // already used up the subnets below for
+          // local interfaces. In that sense it
+          // has a implicit coupling with how ConfigFactory
+          // generates subnets for local interfaces
+          {
+              {folly::IPAddress("100::1"), 64},
+              {folly::IPAddress("100.0.0.1"), 24},
+          });
+    });
+    PortDescriptor kPort(kRemoteSysPortId);
+    // Add neighbor
+    applyNewState([&](const std::shared_ptr<SwitchState>& in) {
+      return utility::addRemoveRemoteNeighbor(
+          in,
+          scopeResolver(),
+          kNeighborIp,
+          kIntfId,
+          kPort,
+          true,
+          utility::getDummyEncapIndex(getAgentEnsemble()));
+    });
+  };
+
+  auto verify = [=, this]() {
+    assertVoqTailDrops(kNeighborIp, kRemoteSysPortId);
+  };
+  verifyAcrossWarmBoots(setup, verify);
+};
+
 class AgentVoqSwitchFullScaleDsfNodesTest : public AgentVoqSwitchTest {
  public:
   cfg::SwitchConfig initialConfig(

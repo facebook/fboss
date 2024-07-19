@@ -169,48 +169,6 @@ class HwVoqSwitchWithMultipleDsfNodesTest : public HwVoqSwitchTest {
   }
 };
 
-TEST_F(HwVoqSwitchWithMultipleDsfNodesTest, voqTailDropCounter) {
-  folly::IPAddressV6 kNeighborIp("100::2");
-  auto constexpr remotePortId = 401;
-  const SystemPortID kRemoteSysPortId(remotePortId);
-  auto setup = [=, this]() {
-    // in addRemoteDsfNodeCfg, we use numCores to calculate the remoteSwitchId
-    // keeping remote switch id passed below in sync with it
-    int numCores = getAsic()->getNumCores();
-    // Disable credit watchdog
-    utility::enableCreditWatchdog(getHwSwitch(), false);
-    applyNewState(utility::addRemoteSysPort(
-        getProgrammedState(),
-        scopeResolver(),
-        kRemoteSysPortId,
-        static_cast<SwitchID>(numCores)));
-    const InterfaceID kIntfId(remotePortId);
-    applyNewState(utility::addRemoteInterface(
-        getProgrammedState(),
-        scopeResolver(),
-        kIntfId,
-        {
-            {folly::IPAddress("100::1"), 64},
-            {folly::IPAddress("100.0.0.1"), 24},
-        }));
-    PortDescriptor kPort(kRemoteSysPortId);
-    // Add neighbor
-    applyNewState(utility::addRemoveRemoteNeighbor(
-        getProgrammedState(),
-        scopeResolver(),
-        kNeighborIp,
-        kIntfId,
-        kPort,
-        true,
-        utility::getDummyEncapIndex(getHwSwitchEnsemble())));
-  };
-
-  auto verify = [=, this]() {
-    assertVoqTailDrops(kNeighborIp, kRemoteSysPortId);
-  };
-  verifyAcrossWarmBoots(setup, verify);
-};
-
 TEST_F(HwVoqSwitchWithMultipleDsfNodesTest, verifyDscpToVoqMapping) {
   folly::IPAddressV6 kNeighborIp("100::2");
   auto constexpr remotePortId = 401;
