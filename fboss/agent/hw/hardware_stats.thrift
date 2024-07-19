@@ -288,6 +288,7 @@ struct HwSwitchDropStats {
   10: optional i64 queueResolutionDrops;
   11: optional i64 ingressPacketPipelineRejectDrops;
   12: optional i64 corruptedCellPacketIntegrityDrops;
+  13: optional i64 missingCellPacketIntegrityDrops;
 }
 
 struct HwSwitchDramStats {

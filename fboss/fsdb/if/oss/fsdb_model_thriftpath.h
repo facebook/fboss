@@ -19671,7 +19671,8 @@ std::pair<strings::vsqResourceExhaustionDrops, Child<::std::int64_t, ::apache::t
 std::pair<strings::dropPrecedenceDrops, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
 std::pair<strings::queueResolutionDrops, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
 std::pair<strings::ingressPacketPipelineRejectDrops, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
-std::pair<strings::corruptedCellPacketIntegrityDrops, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>>;
+std::pair<strings::corruptedCellPacketIntegrityDrops, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
+std::pair<strings::missingCellPacketIntegrityDrops, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>>;
   using ChildrenById = fatal::tuple<   std::pair<std::integral_constant<apache::thrift::field_id_t, 1>, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 2>, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 3>, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
@@ -19683,7 +19684,8 @@ std::pair<strings::corruptedCellPacketIntegrityDrops, Child<::std::int64_t, ::ap
    std::pair<std::integral_constant<apache::thrift::field_id_t, 9>, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 10>, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 11>, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
-   std::pair<std::integral_constant<apache::thrift::field_id_t, 12>, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>>;
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 12>, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 13>, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>>;
   template <typename Name>
   using NameToId = fatal::tuple<std::pair<strings::globalDrops, std::integral_constant<apache::thrift::field_id_t, 1>>,
 std::pair<strings::globalReachabilityDrops, std::integral_constant<apache::thrift::field_id_t, 2>>,
@@ -19696,7 +19698,8 @@ std::pair<strings::vsqResourceExhaustionDrops, std::integral_constant<apache::th
 std::pair<strings::dropPrecedenceDrops, std::integral_constant<apache::thrift::field_id_t, 9>>,
 std::pair<strings::queueResolutionDrops, std::integral_constant<apache::thrift::field_id_t, 10>>,
 std::pair<strings::ingressPacketPipelineRejectDrops, std::integral_constant<apache::thrift::field_id_t, 11>>,
-std::pair<strings::corruptedCellPacketIntegrityDrops, std::integral_constant<apache::thrift::field_id_t, 12>>>::template type_of<Name>;
+std::pair<strings::corruptedCellPacketIntegrityDrops, std::integral_constant<apache::thrift::field_id_t, 12>>,
+std::pair<strings::missingCellPacketIntegrityDrops, std::integral_constant<apache::thrift::field_id_t, 13>>>::template type_of<Name>;
 
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
@@ -19714,6 +19717,7 @@ std::pair<strings::corruptedCellPacketIntegrityDrops, std::integral_constant<apa
     STRUCT_CHILD_GETTERS(queueResolutionDrops, 10);
     STRUCT_CHILD_GETTERS(ingressPacketPipelineRejectDrops, 11);
     STRUCT_CHILD_GETTERS(corruptedCellPacketIntegrityDrops, 12);
+    STRUCT_CHILD_GETTERS(missingCellPacketIntegrityDrops, 13);
 
   template <apache::thrift::field_id_t __id>
   auto operator()(const std::integral_constant<apache::thrift::field_id_t, __id>&) {
@@ -19729,6 +19733,7 @@ std::pair<strings::corruptedCellPacketIntegrityDrops, std::integral_constant<apa
     else if constexpr (__id == 10) { return queueResolutionDrops(); }
     else if constexpr (__id == 11) { return ingressPacketPipelineRejectDrops(); }
     else if constexpr (__id == 12) { return corruptedCellPacketIntegrityDrops(); }
+    else if constexpr (__id == 13) { return missingCellPacketIntegrityDrops(); }
   }
 
   template <typename T, T... Values>
