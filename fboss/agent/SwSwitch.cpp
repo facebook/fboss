@@ -1374,6 +1374,10 @@ void SwSwitch::notifyStateObservers(const StateDelta& delta) {
     // Make sure the SwSwitch is not already being destroyed
     return;
   }
+  // Update AddrToLocalIntf map maintained in sw switch, for fast interface
+  // lookup in rx path.
+  updateAddrToLocalIntf(delta);
+
   for (auto observerName : stateObservers_) {
     try {
       auto observer = observerName.first;
@@ -3282,6 +3286,38 @@ void SwSwitch::stopHwSwitchHandler() {
     getMonolithicHwSwitchHandler()->gracefulExit();
   }
   multiHwSwitchHandler_->stop();
+}
+
+void SwSwitch::updateAddrToLocalIntf(const StateDelta& delta) {
+  DeltaFunctions::forEachChanged(
+      delta.getIntfsDelta(),
+      [&](const auto& oldNode, const auto& newNode) {
+        const auto oldRouterId = oldNode->getRouterID();
+        for (const auto& [addr, _] : std::as_const(*oldNode->getAddresses())) {
+          addrToLocalIntf_.erase(
+              std::make_pair(oldRouterId, folly::IPAddress(addr)));
+        }
+        const auto newRouterId = newNode->getRouterID();
+        for (const auto& [addr, _] : std::as_const(*newNode->getAddresses())) {
+          addrToLocalIntf_.insert(
+              std::make_pair(newRouterId, folly::IPAddress(addr)),
+              newNode->getID());
+        }
+      },
+      [&](const auto& added) {
+        const auto routerId = added->getRouterID();
+        for (const auto& [addr, _] : std::as_const(*added->getAddresses())) {
+          addrToLocalIntf_.insert(
+              std::make_pair(routerId, folly::IPAddress(addr)), added->getID());
+        }
+      },
+      [&](const auto& removed) {
+        const auto routerId = removed->getRouterID();
+        for (const auto& [addr, _] : std::as_const(*removed->getAddresses())) {
+          addrToLocalIntf_.erase(
+              std::make_pair(routerId, folly::IPAddress(addr)));
+        }
+      });
 }
 
 } // namespace facebook::fboss

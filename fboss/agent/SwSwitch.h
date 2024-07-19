@@ -1076,6 +1076,8 @@ class SwSwitch : public HwSwitchCallback {
   // TODO: To be removed once switchWatermarkStats is available in prod
   HwBufferPoolStats getBufferPoolStatsFromSwitchWatermarkStats();
 
+  void updateAddrToLocalIntf(const StateDelta& delta);
+
   std::optional<cfg::SdkVersion> sdkVersion_;
   std::unique_ptr<MultiHwSwitchHandler> multiHwSwitchHandler_;
   const AgentDirectoryUtil* agentDirUtil_;
