@@ -9,6 +9,7 @@ oncall("fboss_agent_push")
 cpp_unittest(
     name = "ctrl_test",
     srcs = [
+        "AddrToLocalIntfTest.cpp",
         "AddressUtilTests.cpp",
         "AgentConfigTests.cpp",
         "AgentDirectoryUtilTests.cpp",

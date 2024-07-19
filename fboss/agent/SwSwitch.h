@@ -956,6 +956,11 @@ class SwSwitch : public HwSwitchCallback {
   }
   MonolithicHwSwitchHandler* getMonolithicHwSwitchHandler() const;
   int16_t getSwitchIndexForInterface(const std::string& interface) const;
+  const folly::
+      ConcurrentHashMap<std::pair<RouterID, folly::IPAddress>, InterfaceID>&
+      getAddrToLocalIntfMap() const {
+    return addrToLocalIntf_;
+  }
 
  private:
   std::optional<folly::MacAddress> getSourceMac(
