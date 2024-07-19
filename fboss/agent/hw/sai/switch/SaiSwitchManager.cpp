@@ -87,12 +87,17 @@ void fillHwSwitchDropStats(
        * FDR cell drops
        * SAI_SWITCH_STAT_OUT_CONFIGURED_DROP_REASONS_1_DROPPED_PKTS -
        * Reassembly drops due to corrupted cells
+       * SAI_SWITCH_STAT_OUT_CONFIGURED_DROP_REASONS_2_DROPPED_PKTS -
+       * Reassembly drops due to missing cells
        */
       case SAI_SWITCH_STAT_OUT_CONFIGURED_DROP_REASONS_0_DROPPED_PKTS:
         dropStats.fdrCellDrops() = val;
         break;
       case SAI_SWITCH_STAT_OUT_CONFIGURED_DROP_REASONS_1_DROPPED_PKTS:
         dropStats.corruptedCellPacketIntegrityDrops() = val;
+        break;
+      case SAI_SWITCH_STAT_OUT_CONFIGURED_DROP_REASONS_2_DROPPED_PKTS:
+        dropStats.missingCellPacketIntegrityDrops() = val;
         break;
       /*
        * From CS00012306170
@@ -159,6 +164,7 @@ void fillHwSwitchDropStats(
       case SAI_SWITCH_STAT_IN_CONFIGURED_DROP_REASONS_6_DROPPED_PKTS:
       case SAI_SWITCH_STAT_OUT_CONFIGURED_DROP_REASONS_0_DROPPED_PKTS:
       case SAI_SWITCH_STAT_OUT_CONFIGURED_DROP_REASONS_1_DROPPED_PKTS:
+      case SAI_SWITCH_STAT_OUT_CONFIGURED_DROP_REASONS_2_DROPPED_PKTS:
         fillAsicSpecificCounter(counterId, value, asicType, hwSwitchDropStats);
         break;
       default:
@@ -708,6 +714,7 @@ const std::vector<sai_stat_id_t>& SaiSwitchManager::supportedDropStats() const {
       static const std::vector<sai_stat_id_t> kJerichoConfigDropStats{
           SAI_SWITCH_STAT_OUT_CONFIGURED_DROP_REASONS_0_DROPPED_PKTS,
           SAI_SWITCH_STAT_OUT_CONFIGURED_DROP_REASONS_1_DROPPED_PKTS,
+          SAI_SWITCH_STAT_OUT_CONFIGURED_DROP_REASONS_2_DROPPED_PKTS,
       };
       stats.insert(
           stats.end(),
