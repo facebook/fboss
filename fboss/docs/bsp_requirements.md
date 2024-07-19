@@ -1,5 +1,7 @@
 # FBOSS BSP Kernel Module Requirements
 
+### Version: 1.0.0
+
 The Meta Kernel team doesn't take local kernel patches, so the BSP kernel
 patches (modules, drivers, etc.) must be upstreamed to the Linux kernel
 community.

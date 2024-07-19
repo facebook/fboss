@@ -1,0 +1,12 @@
+Document Versioning
+
+We will use semantic versioning for all documents, as described below.
+
+Major version:  Significant changes to a document which affect most if not all
+                sections in the document.
+Minor version:  Adding or removing entire sections, changes which significantly
+                affect the interpretation of sections.
+Patch version:  Minor corrections or fixes which affect the interpretation of
+                the document in any way.
+No change:      Typos or formatting fixes which do not affect the interpretation
+                of any part of the document.
