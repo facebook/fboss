@@ -327,7 +327,11 @@ void IPv4Handler::handlePacket(
     intf = interfaceMap->getInterfaceIf(RouterID(0), v4Hdr.dstAddr);
   } else {
     // Else loopup host interface based on destAddr
-    intf = interfaceMap->getInterfaceIf(RouterID(0), v4Hdr.dstAddr);
+    const auto iter = sw_->getAddrToLocalIntfMap().find(
+        std::make_pair(RouterID(0), v4Hdr.dstAddr));
+    if (iter != sw_->getAddrToLocalIntfMap().end()) {
+      intf = interfaceMap->getNodeIf(iter->second);
+    }
   }
 
   if (intf) {
