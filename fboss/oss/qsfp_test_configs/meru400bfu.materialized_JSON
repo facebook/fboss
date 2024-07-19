@@ -173,6 +173,6 @@
     "writeLog": true,
     "readLog": true,
     "disableOnFail": false,
-    "bufferSlots": 8192
+    "bufferSlots": 40960
   }
 }
