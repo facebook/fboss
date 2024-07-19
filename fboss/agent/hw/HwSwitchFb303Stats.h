@@ -162,6 +162,7 @@ class HwSwitchFb303Stats {
   int64_t getQueueResolutionDrops() const;
   int64_t getIngresPacketPipelineRejectDrops() const;
   int64_t getCorruptedCellPacketIntegrityDrops() const;
+  int64_t getMissingCellPacketIntegrityDrops() const;
 
   HwAsicErrors getHwAsicErrors() const;
   FabricReachabilityStats getFabricReachabilityStats();
@@ -213,6 +214,7 @@ class HwSwitchFb303Stats {
   TLTimeseries queueResolutionDrops_;
   TLTimeseries ingressPacketPipelineRejectDrops_;
   TLTimeseries corruptedCellPacketIntegrityDrops_;
+  TLTimeseries missingCellPacketIntegrityDrops_;
   HwSwitchDropStats currentDropStats_;
   // Dram enqueue, dequeue bytes
   TLTimeseries dramEnqueuedBytes_;

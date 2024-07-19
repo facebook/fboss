@@ -128,6 +128,11 @@ HwSwitchFb303Stats::HwSwitchFb303Stats(
           getCounterPrefix() + "corrupted_cell_packet_integrity_drops",
           SUM,
           RATE),
+      missingCellPacketIntegrityDrops_(
+          map,
+          getCounterPrefix() + "missing_cell_packet_integrity_drops",
+          SUM,
+          RATE),
       dramEnqueuedBytes_(
           map,
           getCounterPrefix() + "dram_enqueued_bytes",
