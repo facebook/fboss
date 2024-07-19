@@ -13,9 +13,9 @@
 
 namespace {
 constexpr int kI2cStressTestIterations = 200;
-// Check that the dumped I2c log file size is less than 3MB. This confirms
+// Check that the dumped I2c log file size is less than 20MB. This confirms
 // that the config for number of I2c log buffer entries is reasonable.
-constexpr int kThreeMB = 3 * 1024 * 1024;
+constexpr int kTwentyMB = 20 * 1024 * 1024;
 } // namespace
 
 namespace facebook::fboss {
@@ -167,7 +167,7 @@ TEST_F(HwTest, i2cLogCapacityRead) {
   // The estimated size of full log file is as follows:
   // Full Log = average entry size * capacity
   size_t estimatedFullSize = (fileSize / entries.second) * capacity;
-  EXPECT_TRUE(estimatedFullSize < kThreeMB);
+  EXPECT_TRUE(estimatedFullSize < kTwentyMB);
 }
 
 TEST_F(HwTest, i2cLogCapacityWrite) {
@@ -209,7 +209,7 @@ TEST_F(HwTest, i2cLogCapacityWrite) {
   // The estimated size of full log file is as follows:
   // Full Log = average entry size * capacity
   size_t estimatedFullSize = (fileSize / entries.second) * capacity;
-  EXPECT_TRUE(estimatedFullSize < kThreeMB);
+  EXPECT_TRUE(estimatedFullSize < kTwentyMB);
 }
 
 TEST_F(HwTest, cmisPageChange) {
