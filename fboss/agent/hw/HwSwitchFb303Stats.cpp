@@ -251,6 +251,11 @@ void HwSwitchFb303Stats::update(const HwSwitchDropStats& dropStats) {
         *dropStats.corruptedCellPacketIntegrityDrops() -
         currentDropStats_.corruptedCellPacketIntegrityDrops().value_or(0));
   }
+  if (dropStats.missingCellPacketIntegrityDrops().has_value()) {
+    missingCellPacketIntegrityDrops_.addValue(
+        *dropStats.missingCellPacketIntegrityDrops() -
+        currentDropStats_.missingCellPacketIntegrityDrops().value_or(0));
+  }
   currentDropStats_ = dropStats;
 }
 
