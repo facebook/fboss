@@ -35,6 +35,7 @@
 #include <folly/Range.h>
 #include <folly/SpinLock.h>
 #include <folly/ThreadLocal.h>
+#include <folly/concurrency/ConcurrentHashMap.h>
 #include <folly/io/async/EventBase.h>
 #include <optional>
 
@@ -1232,5 +1233,9 @@ class SwSwitch : public HwSwitchCallback {
   folly::Synchronized<std::unique_ptr<AgentConfig>> agentConfig_;
   folly::Synchronized<std::map<uint16_t, multiswitch::HwSwitchStats>>
       hwSwitchStats_;
+  // Map to lookup local interface address to interface id, for fask look up in
+  // rx handling path.
+  folly::ConcurrentHashMap<std::pair<RouterID, folly::IPAddress>, InterfaceID>
+      addrToLocalIntf_;
 };
 } // namespace facebook::fboss
