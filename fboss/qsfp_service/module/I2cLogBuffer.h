@@ -55,10 +55,10 @@ class I2cLogBuffer {
     I2cLogEntry() : param(TransceiverAccessParameter(0, 0, 0)) {}
   };
 
-  // NOTE: The maximum number of entries in config is 8196. see qsfp_config.cinc
+  // NOTE: The maximum number of entries is defined in config (qsfp_config.cinc)
   static_assert(
       sizeof(I2cLogEntry) < 200,
-      "I2cLogEntry must be < 200B to accommodate 8196 log entries in < 2MB of DRAM per transceiver.");
+      "I2cLogEntry must be < 200B to not exceed system memory limits.");
 
   struct I2cReplayEntry {
     TransceiverAccessParameter param;
