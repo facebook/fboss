@@ -118,12 +118,85 @@ std::string DsfSubscription::makeRemoteEndpoint(
 }
 
 void DsfSubscription::handleFsdbSubscriptionStateUpdate(
-    fsdb::SubscriptionState,
-    fsdb::SubscriptionState) {
-  // TODO: handle update and forward to caller
+    fsdb::SubscriptionState oldState,
+    fsdb::SubscriptionState newState) {
+  auto remoteEndpoint = makeRemoteEndpoint(remoteNodeName_, remoteIp_);
+  XLOG(DBG2) << "DsfSubscriber: " << remoteEndpoint
+             << " SwitchID: " << static_cast<int>(remoteNodeSwitchId_)
+             << ": subscription state changed "
+             << fsdb::subscriptionStateToString(oldState) << " -> "
+             << fsdb::subscriptionStateToString(newState);
+
+  auto oldThriftState = fsdb::isConnected(oldState)
+      ? fsdb::FsdbSubscriptionState::CONNECTED
+      : fsdb::FsdbSubscriptionState::DISCONNECTED;
+  auto newThriftState = fsdb::isConnected(newState)
+      ? fsdb::FsdbSubscriptionState::CONNECTED
+      : fsdb::FsdbSubscriptionState::DISCONNECTED;
+
+  if (oldThriftState != newThriftState) {
+    if (newThriftState == fsdb::FsdbSubscriptionState::CONNECTED) {
+      stats_->failedDsfSubscription(remoteNodeSwitchId_, remoteNodeName_, -1);
+    } else {
+      stats_->failedDsfSubscription(remoteNodeSwitchId_, remoteNodeName_, 1);
+    }
+
+    dsfSubscriberStateCb_(oldThriftState, newThriftState);
+    session_.localSubStateChanged(newThriftState);
+  }
+
+  if (fsdb::isGRHoldExpired(newState)) {
+    grHoldExpiredCb_();
+  }
 }
 
-void DsfSubscription::handleFsdbUpdate(fsdb::OperSubPathUnit&&) {
-  // TODO: handle update and forward to caller
+void DsfSubscription::handleFsdbUpdate(fsdb::OperSubPathUnit&& operStateUnit) {
+  std::map<SwitchID, std::shared_ptr<SystemPortMap>> switchId2SystemPorts;
+  std::map<SwitchID, std::shared_ptr<InterfaceMap>> switchId2Intfs;
+
+  for (const auto& change : *operStateUnit.changes()) {
+    if (getSystemPortsPath().matchesPath(*change.path()->path())) {
+      XLOG(DBG2) << "Got sys port update from : " << remoteNodeName_;
+      MultiSwitchSystemPortMap mswitchSysPorts;
+      mswitchSysPorts.fromThrift(thrift_cow::deserialize<
+                                 MultiSwitchSystemPortMapTypeClass,
+                                 MultiSwitchSystemPortMapThriftType>(
+          fsdb::OperProtocol::BINARY, *change.state()->contents()));
+      for (const auto& [id, sysPortMap] : mswitchSysPorts) {
+        auto matcher = HwSwitchMatcher(id);
+        switchId2SystemPorts[matcher.switchId()] = sysPortMap;
+      }
+    } else if (getInterfacesPath().matchesPath(*change.path()->path())) {
+      XLOG(DBG2) << "Got rif update from : " << remoteNodeName_;
+      MultiSwitchInterfaceMap mswitchIntfs;
+      mswitchIntfs.fromThrift(thrift_cow::deserialize<
+                              MultiSwitchInterfaceMapTypeClass,
+                              MultiSwitchInterfaceMapThriftType>(
+          fsdb::OperProtocol::BINARY, *change.state()->contents()));
+      for (const auto& [id, intfMap] : mswitchIntfs) {
+        auto matcher = HwSwitchMatcher(id);
+        switchId2Intfs[matcher.switchId()] = intfMap;
+      }
+    } else if (getDsfSubscriptionsPath(
+                   makeRemoteEndpoint(localNodeName_, localIp_))
+                   .matchesPath(*change.path()->path())) {
+      XLOG(DBG2) << "Got dsf sub update from : " << remoteNodeName_;
+
+      using targetType = fsdb::FsdbSubscriptionState;
+      using targetTypeClass = apache::thrift::type_class::enumeration;
+
+      auto newRemoteState =
+          thrift_cow::deserialize<targetTypeClass, targetType>(
+              fsdb::OperProtocol::BINARY, *change.state()->contents());
+      session_.remoteSubStateChanged(newRemoteState);
+    } else {
+      throw FbossError(
+          "Got unexpected state update for : ",
+          folly::join("/", *change.path()->path()),
+          " from node: ",
+          remoteNodeName_);
+    }
+  }
+  stateUpdateCb_(switchId2SystemPorts, switchId2Intfs);
 }
 } // namespace facebook::fboss

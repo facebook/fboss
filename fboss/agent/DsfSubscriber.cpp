@@ -23,20 +23,6 @@
 
 using namespace facebook::fboss;
 namespace {
-const thriftpath::RootThriftPath<facebook::fboss::fsdb::FsdbOperStateRoot>
-    stateRoot;
-
-fsdb::FsdbStreamClient::ServerOptions getServerOptions(
-    const std::string& srcIP,
-    const std::string& dstIP) {
-  // Subscribe to FSDB of DSF node in the cluster with:
-  //  dstIP = inband IP of that DSF node
-  //  dstPort = FSDB port
-  //  srcIP = self inband IP
-  //  priority = CRITICAL
-  return fsdb::FsdbStreamClient::ServerOptions(
-      dstIP, FLAGS_fsdbPort, srcIP, fsdb::FsdbStreamClient::Priority::CRITICAL);
-}
 
 std::map<folly::IPAddress, folly::IPAddress> getDsfSessionIps(
     const std::set<folly::CIDRNetwork>& localIpsSorted,
@@ -58,33 +44,6 @@ std::map<folly::IPAddress, folly::IPAddress> getDsfSessionIps(
   return dsfSessionIps;
 }
 
-const auto& getSystemPortsPath() {
-  static auto path = stateRoot.agent().switchState().systemPortMaps();
-  return path;
-}
-
-const auto& getInterfacesPath() {
-  static auto path = stateRoot.agent().switchState().interfaceMaps();
-  return path;
-}
-
-auto getDsfSubscriptionsPath(const std::string& localNodeName) {
-  static auto path = stateRoot.agent().fsdbSubscriptions();
-  return path[localNodeName];
-}
-
-std::vector<std::vector<std::string>> getAllSubscribePaths(
-    const std::string& localNodeName,
-    const folly::IPAddress& localIP) {
-  return {
-      getSystemPortsPath().tokens(),
-      getInterfacesPath().tokens(),
-      // When subscribing to remote node - localNodeName, localIP is remote
-      getDsfSubscriptionsPath(
-          DsfSubscriber::makeRemoteEndpoint(localNodeName, localIP))
-          .tokens()};
-}
-
 } // anonymous namespace
 
 namespace facebook::fboss {
@@ -101,12 +60,6 @@ DsfSubscriber::DsfSubscriber(SwSwitch* sw)
 
 DsfSubscriber::~DsfSubscriber() {
   stop();
-}
-
-std::string DsfSubscriber::makeRemoteEndpoint(
-    const std::string& remoteNode,
-    const folly::IPAddress& remoteIP) {
-  return folly::sformat("{}::{}", remoteNode, remoteIP.str());
 }
 
 bool DsfSubscriber::isLocal(SwitchID nodeSwitchId) const {
@@ -220,36 +173,46 @@ void DsfSubscriber::stateUpdated(const StateDelta& stateDelta) {
                  << " dstIP: " << dstIP << " from: " << localNodeName_
                  << " srcIP: " << srcIP;
 
-      // Subscription is not established until state becomes CONNECTED
-      this->sw_->stats()->failedDsfSubscription(nodeSwitchId, nodeName, 1);
       auto remoteEndpoint = makeRemoteEndpoint(nodeName, dstIPAddr);
-      dsfSessions_.wlock()->emplace(remoteEndpoint, DsfSession(remoteEndpoint));
-
-      auto subscriberId = folly::sformat("{}_{}:agent", localNodeName_, dstIP);
-      fsdb::SubscriptionOptions opts{
-          subscriberId, false /* subscribeStats */, FLAGS_dsf_gr_hold_time};
-      fsdbPubSubMgr_->addStatePathSubscription(
-          std::move(opts),
-          getAllSubscribePaths(localNodeName_, srcIPAddr),
-          [this, nodeName, dstIPAddr = dstIPAddr, nodeSwitchId](
-              fsdb::SubscriptionState oldState,
-              fsdb::SubscriptionState newState) {
-            handleFsdbSubscriptionStateUpdate(
-                nodeName, dstIPAddr, nodeSwitchId, oldState, newState);
-          },
-          [this,
-           nodeName,
-           nodeSwitchId,
-           srcIPAddr = srcIPAddr,
-           dstIPAddr = dstIPAddr](fsdb::OperSubPathUnit&& operStateUnit) {
-            handleFsdbUpdate(
-                srcIPAddr,
-                nodeSwitchId,
-                nodeName,
-                dstIPAddr,
-                std::move(operStateUnit));
-          },
-          getServerOptions(srcIP, dstIP));
+      subscriptions_.wlock()->emplace(
+          remoteEndpoint,
+          std::make_unique<DsfSubscription>(
+              fsdbPubSubMgr_.get(),
+              localNodeName_,
+              nodeName,
+              nodeSwitchId,
+              srcIPAddr,
+              dstIPAddr,
+              sw_->stats(),
+              [this, remoteEndpoint]( // DsfSubscriberStateCb
+                  fsdb::FsdbSubscriptionState oldState,
+                  fsdb::FsdbSubscriptionState newState) {
+                this->sw_->updateDsfSubscriberState(
+                    remoteEndpoint, oldState, newState);
+              },
+              [this, nodeName, nodeSwitchId]() { // GrHoldExpiredCb
+                // There is a single DSF subscription to every remote Interface
+                // Node even
+                // if the remote Interface Node is a multi ASIC system.
+                // Thus, when GR hold timer expires for a specific switchID,
+                // process every switchID (every ASIC) on that remote Interface
+                // Node.
+                processGRHoldTimerExpired(
+                    nodeName,
+                    getAllSwitchIDsForSwitch(
+                        this->sw_->getState()->getDsfNodes(), nodeSwitchId));
+              },
+              [this, nodeName, nodeSwitchId]( // StateUpdateCb
+                  const std::map<SwitchID, std::shared_ptr<SystemPortMap>>&
+                      switchId2SystemPorts,
+                  const std::map<SwitchID, std::shared_ptr<InterfaceMap>>&
+                      switchId2Intfs) {
+                updateWithRollbackProtection(
+                    nodeName,
+                    nodeSwitchId,
+                    switchId2SystemPorts,
+                    switchId2Intfs);
+              }));
     }
   };
   auto rmDsfNode = [&](const std::shared_ptr<DsfNode>& node) {
@@ -259,7 +222,6 @@ void DsfSubscriber::stateUpdated(const StateDelta& stateDelta) {
       return;
     }
     auto nodeName = node->getName();
-    auto nodeSwitchId = node->getSwitchId();
 
     auto localIps = getLocalIps(stateDelta.oldState());
     for (const auto& [srcIPAddr, dstIPAddr] :
@@ -267,18 +229,8 @@ void DsfSubscriber::stateUpdated(const StateDelta& stateDelta) {
       auto dstIP = dstIPAddr.str();
       XLOG(DBG2) << "Removing DSF subscriptions to:: " << nodeName
                  << " dstIP: " << dstIP;
-      auto remoteEndpoint = makeRemoteEndpoint(nodeName, dstIPAddr);
-      dsfSessions_.wlock()->erase(remoteEndpoint);
 
-      if (fsdbPubSubMgr_->getStatePathSubsriptionState(
-              getAllSubscribePaths(localNodeName_, srcIPAddr), dstIP) !=
-          fsdb::FsdbStreamClient::State::CONNECTED) {
-        // Subscription was not established - decrement failedDSF counter.
-        this->sw_->stats()->failedDsfSubscription(nodeSwitchId, nodeName, -1);
-      }
-
-      fsdbPubSubMgr_->removeStatePathSubscription(
-          getAllSubscribePaths(localNodeName_, srcIPAddr), dstIP);
+      subscriptions_.wlock()->erase(makeRemoteEndpoint(nodeName, dstIPAddr));
     }
   };
   DeltaFunctions::forEachChanged(
@@ -372,134 +324,25 @@ void DsfSubscriber::processGRHoldTimerExpired(
     return std::shared_ptr<SwitchState>{};
   };
 
-  sw_->updateState(
-      folly::sformat(
-          "Update state on GR Hold Timer expired for node: {}", nodeName),
-      std::move(updateDsfStateFn));
-}
-
-void DsfSubscriber::handleFsdbSubscriptionStateUpdate(
-    const std::string& remoteNodeName,
-    const folly::IPAddress& remoteIP,
-    const SwitchID& remoteSwitchId,
-    fsdb::SubscriptionState oldState,
-    fsdb::SubscriptionState newState) {
-  auto remoteEndpoint = makeRemoteEndpoint(remoteNodeName, remoteIP);
-  XLOG(DBG2) << "DsfSubscriber: " << remoteEndpoint
-             << " SwitchID: " << static_cast<int>(remoteSwitchId)
-             << ": subscription state changed "
-             << fsdb::subscriptionStateToString(oldState) << " -> "
-             << fsdb::subscriptionStateToString(newState);
-
-  auto oldThriftState = fsdb::isConnected(oldState)
-      ? fsdb::FsdbSubscriptionState::CONNECTED
-      : fsdb::FsdbSubscriptionState::DISCONNECTED;
-  auto newThriftState = fsdb::isConnected(newState)
-      ? fsdb::FsdbSubscriptionState::CONNECTED
-      : fsdb::FsdbSubscriptionState::DISCONNECTED;
-
-  if (oldThriftState != newThriftState) {
-    if (newThriftState == fsdb::FsdbSubscriptionState::CONNECTED) {
-      this->sw_->stats()->failedDsfSubscription(
-          remoteSwitchId, remoteNodeName, -1);
-    } else {
-      this->sw_->stats()->failedDsfSubscription(
-          remoteSwitchId, remoteNodeName, 1);
-    }
-
-    this->sw_->updateDsfSubscriberState(
-        remoteEndpoint, oldThriftState, newThriftState);
-    auto lockedDsfSessions = this->dsfSessions_.wlock();
-    if (auto it = lockedDsfSessions->find(remoteEndpoint);
-        it != lockedDsfSessions->end()) {
-      it->second.localSubStateChanged(newThriftState);
-    }
-  }
-
-  if (fsdb::isGRHoldExpired(newState)) {
-    // There is a single DSF subscription to every remote Interface Node even
-    // if the remote Interface Node is a multi ASIC system.
-    // Thus, when GR hold timer expires for a specific switchID, process every
-    // switchID (every ASIC) on that remote Interface Node.
-    processGRHoldTimerExpired(
-        remoteNodeName,
-        getAllSwitchIDsForSwitch(
-            this->sw_->getState()->getDsfNodes(), remoteSwitchId));
-  }
-}
-
-void DsfSubscriber::handleFsdbUpdate(
-    const folly::IPAddress& localIP,
-    SwitchID remoteSwitchId,
-    const std::string& remoteNodeName,
-    const folly::IPAddress& remoteIP,
-    fsdb::OperSubPathUnit&& operStateUnit) {
-  std::map<SwitchID, std::shared_ptr<SystemPortMap>> switchId2SystemPorts;
-  std::map<SwitchID, std::shared_ptr<InterfaceMap>> switchId2Intfs;
-
-  for (const auto& change : *operStateUnit.changes()) {
-    if (getSystemPortsPath().matchesPath(*change.path()->path())) {
-      XLOG(DBG2) << "Got sys port update from : " << remoteNodeName;
-      MultiSwitchSystemPortMap mswitchSysPorts;
-      mswitchSysPorts.fromThrift(thrift_cow::deserialize<
-                                 MultiSwitchSystemPortMapTypeClass,
-                                 MultiSwitchSystemPortMapThriftType>(
-          fsdb::OperProtocol::BINARY, *change.state()->contents()));
-      for (const auto& [id, sysPortMap] : mswitchSysPorts) {
-        auto matcher = HwSwitchMatcher(id);
-        switchId2SystemPorts[matcher.switchId()] = sysPortMap;
-      }
-    } else if (getInterfacesPath().matchesPath(*change.path()->path())) {
-      XLOG(DBG2) << "Got rif update from : " << remoteNodeName;
-      MultiSwitchInterfaceMap mswitchIntfs;
-      mswitchIntfs.fromThrift(thrift_cow::deserialize<
-                              MultiSwitchInterfaceMapTypeClass,
-                              MultiSwitchInterfaceMapThriftType>(
-          fsdb::OperProtocol::BINARY, *change.state()->contents()));
-      for (const auto& [id, intfMap] : mswitchIntfs) {
-        auto matcher = HwSwitchMatcher(id);
-        switchId2Intfs[matcher.switchId()] = intfMap;
-      }
-    } else if (getDsfSubscriptionsPath(
-                   makeRemoteEndpoint(localNodeName_, localIP))
-                   .matchesPath(*change.path()->path())) {
-      XLOG(DBG2) << "Got dsf sub update from : " << remoteNodeName;
-
-      using targetType = fsdb::FsdbSubscriptionState;
-      using targetTypeClass = apache::thrift::type_class::enumeration;
-
-      auto newRemoteState =
-          thrift_cow::deserialize<targetTypeClass, targetType>(
-              fsdb::OperProtocol::BINARY, *change.state()->contents());
-
-      auto lockedDsfSessions = this->dsfSessions_.wlock();
-      if (auto it = lockedDsfSessions->find(
-              makeRemoteEndpoint(remoteNodeName, remoteIP));
-          it != lockedDsfSessions->end()) {
-        it->second.remoteSubStateChanged(newRemoteState);
-      }
-    } else {
-      throw FbossError(
-          "Got unexpected state update for : ",
-          folly::join("/", *change.path()->path()),
-          " from node: ",
-          remoteNodeName);
-    }
-  }
-  updateWithRollbackProtection(
-      remoteNodeName, remoteSwitchId, switchId2SystemPorts, switchId2Intfs);
+  sw_->getRib()->updateStateInRibThread([this, nodeName, updateDsfStateFn]() {
+    sw_->updateStateWithHwFailureProtection(
+        folly::sformat("Update state for node: {}", nodeName),
+        updateDsfStateFn);
+  });
 }
 
 void DsfSubscriber::stop() {
   sw_->unregisterStateObserver(this);
+  subscriptions_.wlock()->clear();
   fsdbPubSubMgr_.reset();
 }
 
 std::vector<DsfSessionThrift> DsfSubscriber::getDsfSessionsThrift() const {
-  auto lockedSessions = dsfSessions_.rlock();
+  auto lockedSubscriptions = subscriptions_.rlock();
   std::vector<DsfSessionThrift> thriftSessions;
-  for (const auto& [key, value] : *lockedSessions) {
-    thriftSessions.emplace_back(value.toThrift());
+  thriftSessions.resize(lockedSubscriptions->size());
+  for (const auto& [_, subscription] : *lockedSubscriptions) {
+    thriftSessions.emplace_back(subscription->dsfSessionThrift());
   }
   return thriftSessions;
 }

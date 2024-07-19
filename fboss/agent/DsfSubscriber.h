@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "fboss/agent/DsfSession.h"
+#include "fboss/agent/DsfSubscription.h"
 #include "fboss/agent/StateObserver.h"
 #include "fboss/fsdb/client/FsdbPubSubManager.h"
 #include "folly/Synchronized.h"
@@ -54,7 +54,9 @@ class DsfSubscriber : public StateObserver {
   std::vector<DsfSessionThrift> getDsfSessionsThrift() const;
   static std::string makeRemoteEndpoint(
       const std::string& remoteNode,
-      const folly::IPAddress& remoteIP);
+      const folly::IPAddress& remoteIP) {
+    return DsfSubscription::makeRemoteEndpoint(remoteNode, remoteIP);
+  }
 
  private:
   void updateWithRollbackProtection(
@@ -63,18 +65,6 @@ class DsfSubscriber : public StateObserver {
       const std::map<SwitchID, std::shared_ptr<SystemPortMap>>&
           switchId2SystemPorts,
       const std::map<SwitchID, std::shared_ptr<InterfaceMap>>& switchId2Intfs);
-  void handleFsdbSubscriptionStateUpdate(
-      const std::string& remoteNodeName,
-      const folly::IPAddress& remoteIP,
-      const SwitchID& remoteSwitchId,
-      fsdb::SubscriptionState oldState,
-      fsdb::SubscriptionState newState);
-  void handleFsdbUpdate(
-      const folly::IPAddress& localIP,
-      SwitchID remoteSwitchId,
-      const std::string& remoteNodeName,
-      const folly::IPAddress& remoteIP,
-      fsdb::OperSubPathUnit&& operStateUnit);
   bool isLocal(SwitchID nodeSwitchId) const;
   void processGRHoldTimerExpired(
       const std::string& nodeName,
@@ -84,11 +74,12 @@ class DsfSubscriber : public StateObserver {
   std::unique_ptr<fsdb::FsdbPubSubManager> fsdbPubSubMgr_;
   std::shared_ptr<SwitchState> cachedState_;
   std::string localNodeName_;
-  folly::Synchronized<std::unordered_map<std::string, DsfSession>> dsfSessions_;
+  folly::Synchronized<
+      folly::F14FastMap<std::string, std::unique_ptr<DsfSubscription>>>
+      subscriptions_;
 
   FRIEND_TEST(DsfSubscriberTest, updateWithRollbackProtection);
   FRIEND_TEST(DsfSubscriberTest, setupNeighbors);
-  FRIEND_TEST(DsfSubscriberTest, handleFsdbUpdate);
 };
 
 } // namespace facebook::fboss
