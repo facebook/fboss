@@ -63,12 +63,11 @@ class FsdbSubManager {
   using DataCallback = std::function<void(SubUpdate)>;
 
   FsdbSubManager(
-      // TODO: take a enum clientId
-      std::string clientId,
+      fsdb::SubscriptionOptions opts,
       ReconnectingThriftClient::ServerOptions serverOptions,
       folly::EventBase* reconnectEvb = nullptr,
       folly::EventBase* subscriberEvb = nullptr)
-      : clientId_(std::move(clientId)),
+      : opts_(std::move(opts)),
         serverOptions_(std::move(serverOptions)),
         reconnectEvbThread_(
             reconnectEvb ? nullptr
@@ -84,7 +83,9 @@ class FsdbSubManager {
                                 : reconnectEvb),
         subscriberEvb_(
             subscriberEvbThread_ ? subscriberEvbThread_->getEventBase()
-                                 : subscriberEvb) {}
+                                 : subscriberEvb) {
+    CHECK_EQ(IsStats, opts_.subscribeStats_);
+  }
 
   ~FsdbSubManager() {
     stop();
@@ -120,14 +121,13 @@ class FsdbSubManager {
           std::nullopt) {
     CHECK(!subscriber_) << "Cannot subscribe twice";
     subscriber_ = std::make_unique<FsdbPatchSubscriber>(
-        clientId_,
+        SubscriptionOptions(opts_),
         subscribePaths_,
         subscriberEvb_,
         reconnectEvb_,
         [this, cb = std::move(cb)](SubscriberChunk chunk) {
           parseChunkAndInvokeCallback(std::move(chunk), std::move(cb));
         },
-        IsStats,
         std::move(subscriptionStateChangeCb));
     subscriber_->setServerOptions(
         ReconnectingThriftClient::ServerOptions(serverOptions_));
@@ -150,7 +150,7 @@ class FsdbSubManager {
   }
 
   const std::string& clientId() const {
-    return clientId_;
+    return opts_.clientId_;
   }
 
  private:
@@ -170,7 +170,7 @@ class FsdbSubManager {
     cb(std::move(update));
   }
 
-  std::string clientId_;
+  fsdb::SubscriptionOptions opts_;
   ReconnectingThriftClient::ServerOptions serverOptions_;
 
   // local threads are only needed when there are no external eventbases

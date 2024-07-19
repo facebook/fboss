@@ -205,16 +205,18 @@ class FsdbSubManagerTest : public ::testing::Test,
     return *testPublisher_;
   }
 
-  std::unique_ptr<Subscriber> createSubscriber(std::string clientId) {
+  std::unique_ptr<Subscriber> createSubscriber(
+      std::string clientId,
+      int grHoldTimer = 0) {
     CHECK(serverOptions_);
-    return std::make_unique<Subscriber>(std::move(clientId), *serverOptions_);
+    SubscriptionOptions options(clientId, IsStats, grHoldTimer);
+    return std::make_unique<Subscriber>(std::move(options), *serverOptions_);
   }
 
   template <typename PathT>
-  std::unique_ptr<Subscriber> createSubscriber(
-      std::string clientId,
-      PathT path) {
-    auto subscriber = createSubscriber(std::move(clientId));
+  std::unique_ptr<Subscriber>
+  createSubscriber(std::string clientId, PathT path, int grHoldTimer = 0) {
+    auto subscriber = createSubscriber(std::move(clientId), grHoldTimer);
     subscriber->addPath(std::move(path));
     return subscriber;
   }
@@ -373,6 +375,41 @@ TYPED_TEST(FsdbSubManagerTest, restartPublisher) {
   this->connectPublisherAndPublish(this->path1(), data1);
   WITH_RETRIES(ASSERT_EVENTUALLY_EQ(
                    this->fetchData1((*boundData.rlock())->toThrift()), data1););
+}
+
+TYPED_TEST(FsdbSubManagerTest, verifyGR) {
+  auto data1 = this->data1("foo");
+  this->connectPublisherAndPublish(this->path1(), data1);
+
+  std::optional<SubscriptionState> lastStateSeen;
+  int numUpdates = 0;
+  auto subscriber =
+      this->createSubscriber("test", this->root().agent(), 3 /* grHoldTimer */);
+  subscriber->subscribe(
+      [&](auto update) { numUpdates++; },
+      [&](auto, auto newState) { lastStateSeen = newState; });
+  WITH_RETRIES({
+    ASSERT_EVENTUALLY_EQ(lastStateSeen, SubscriptionState::CONNECTED);
+    ASSERT_EVENTUALLY_EQ(numUpdates, 1);
+  });
+
+  this->testPublisher().disconnect();
+  WITH_RETRIES(ASSERT_EVENTUALLY_EQ(
+      lastStateSeen, SubscriptionState::DISCONNECTED_GR_HOLD));
+  this->connectPublisherAndPublish(this->path1(), data1);
+
+  this->testPublisher().disconnect();
+  WITH_RETRIES({
+    ASSERT_EVENTUALLY_EQ(
+        lastStateSeen, SubscriptionState::DISCONNECTED_GR_HOLD_EXPIRED);
+    ASSERT_EVENTUALLY_EQ(numUpdates, 1);
+  });
+
+  this->connectPublisherAndPublish(this->path1(), data1);
+  WITH_RETRIES({
+    ASSERT_EVENTUALLY_EQ(lastStateSeen, SubscriptionState::CONNECTED);
+    ASSERT_EVENTUALLY_EQ(numUpdates, 2);
+  });
 }
 
 } // namespace facebook::fboss::fsdb::test
