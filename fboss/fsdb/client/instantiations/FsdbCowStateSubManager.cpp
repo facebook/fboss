@@ -5,6 +5,6 @@
 
 namespace facebook::fboss::fsdb {
 
-template class FsdbSubManager<FsdbOperStateRoot, true /* IsCow */>;
+template class FsdbSubManager<CowStorage<FsdbOperStateRoot>, true /* IsCow */>;
 
 } // namespace facebook::fboss::fsdb

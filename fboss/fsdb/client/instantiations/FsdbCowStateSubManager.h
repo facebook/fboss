@@ -4,11 +4,14 @@
 
 #include "fboss/fsdb/client/FsdbSubManager.h"
 #include "fboss/fsdb/if/FsdbModel.h"
+#include "fboss/fsdb/oper/instantiations/FsdbCowStorage.h"
 
 namespace facebook::fboss::fsdb {
 
-extern template class FsdbSubManager<FsdbOperStateRoot, true /* IsCow */>;
+extern template class FsdbSubManager<
+    CowStorage<FsdbOperStateRoot>,
+    true /* IsCow */>;
 using FsdbCowStateSubManager =
-    FsdbSubManager<FsdbOperStateRoot, true /* IsCow */>;
+    FsdbSubManager<CowStorage<FsdbOperStateRoot>, true /* IsCow */>;
 
 } // namespace facebook::fboss::fsdb

@@ -50,6 +50,7 @@ template <typename Root, typename Node = thrift_cow::ThriftStructNode<Root>>
 class CowStorage : public Storage<Root, CowStorage<Root, Node>> {
  public:
   using Base = Storage<Root, CowStorage<Root, Node>>;
+  using RootT = Root;
   using StorageImpl = Node;
   using Self = CowStorage<Root>;
   using PathIter = typename Base::PathIter;

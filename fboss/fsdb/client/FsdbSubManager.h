@@ -5,7 +5,6 @@
 #include "fboss/fsdb/client/FsdbPatchSubscriber.h"
 #include "fboss/fsdb/if/FsdbModel.h"
 #include "fboss/fsdb/if/gen-cpp2/fsdb_oper_types.h"
-#include "fboss/thrift_cow/storage/CowStorage.h"
 
 #include <folly/io/async/ScopedEventBaseThread.h>
 
@@ -26,21 +25,20 @@ auto constexpr kSubscriberThread = "FsdbSubscriberThread";
  * NOTE: This class should not be included directly, instead use one of the
  * instantiations, depending on which data type you want
  */
-template <typename RootT, bool _IsCow>
+template <typename _Storage, bool _IsCow>
 class FsdbSubManager {
-  static_assert(
-      std::is_same_v<RootT, FsdbOperStateRoot> ||
-      std::is_same_v<RootT, FsdbOperStatsRoot>);
-
  public:
-  static constexpr bool IsStats = std::is_same_v<RootT, FsdbOperStatsRoot>;
+  using Storage = _Storage;
+  using Root = typename Storage::RootT;
+  using Data = std::shared_ptr<typename Storage::StorageImpl>;
+
+  static_assert(
+      std::is_same_v<Root, FsdbOperStateRoot> ||
+      std::is_same_v<Root, FsdbOperStatsRoot>);
+  static constexpr bool IsStats = std::is_same_v<Root, FsdbOperStatsRoot>;
   static constexpr bool IsCow = _IsCow;
   static_assert(IsCow, "Do not support raw thrift yet");
 
-  using Root = RootT;
-  // TODO: support raw thrift
-  using Storage = CowStorage<Root>;
-  using Data = std::shared_ptr<typename Storage::StorageImpl>;
   /*
    * Callback for state updates.
    * Callback will always received the FSDB root in the form of raw thrift or
