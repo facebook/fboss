@@ -13,7 +13,6 @@
 #include "fboss/agent/state/StateDelta.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/state/SystemPortMap.h"
-#include "fboss/fsdb/client/FsdbPubSubManager.h"
 #include "fboss/fsdb/common/Flags.h"
 #include "fboss/fsdb/if/FsdbModel.h"
 #include "fboss/fsdb/if/gen-cpp2/fsdb_common_types.h"
@@ -53,7 +52,16 @@ using ThriftMapTypeClass = apache::thrift::type_class::map<
     apache::thrift::type_class::structure>;
 
 DsfSubscriber::DsfSubscriber(SwSwitch* sw)
-    : sw_(sw), localNodeName_(getLocalHostnameUqdn()) {
+    : sw_(sw),
+      localNodeName_(getLocalHostnameUqdn()),
+      streamConnectPool_(std::make_unique<folly::IOThreadPoolExecutor>(
+          1,
+          std::make_shared<folly::NamedThreadFactory>(
+              "DsfSubscriberStreamConnect"))),
+      streamServePool_(std::make_unique<folly::IOThreadPoolExecutor>(
+          1,
+          std::make_shared<folly::NamedThreadFactory>(
+              "DsfSubscriberStreamServe"))) {
   // TODO(aeckert): add dedicated config field for localNodeName
   sw_->registerStateObserver(this, "DsfSubscriber");
 }
@@ -124,18 +132,7 @@ void DsfSubscriber::stateUpdated(const StateDelta& stateDelta) {
   // Setup Fsdb subscriber if we have switch ids of type VOQ
   auto voqSwitchIds =
       sw_->getSwitchInfoTable().getSwitchIdsOfType(cfg::SwitchType::VOQ);
-  if (voqSwitchIds.size()) {
-    if (!fsdbPubSubMgr_) {
-      fsdbPubSubMgr_ = std::make_unique<fsdb::FsdbPubSubManager>(
-          folly::sformat("{}:agent", localNodeName_));
-    }
-  } else {
-    if (fsdbPubSubMgr_) {
-      // If we had a fsdbManager, it implies that we went from having VOQ
-      // switches to no VOQ switches. This is not supported.
-      XLOG(FATAL)
-          << "Transition from VOQ to non-VOQ swtich type is not supported";
-    }
+  if (!voqSwitchIds.size()) {
     // No processing needed on non VOQ switches
     return;
   }
@@ -174,10 +171,17 @@ void DsfSubscriber::stateUpdated(const StateDelta& stateDelta) {
                  << " srcIP: " << srcIP;
 
       auto remoteEndpoint = makeRemoteEndpoint(nodeName, dstIPAddr);
+
+      fsdb::SubscriptionOptions opts{
+          folly::sformat("{}_{}:agent", localNodeName_, dstIPAddr.str()),
+          false /* subscribeStats */,
+          FLAGS_dsf_gr_hold_time};
       subscriptions_.wlock()->emplace(
           remoteEndpoint,
           std::make_unique<DsfSubscription>(
-              fsdbPubSubMgr_.get(),
+              std::move(opts),
+              streamConnectPool_->getEventBase(),
+              streamServePool_->getEventBase(),
               localNodeName_,
               nodeName,
               nodeSwitchId,
@@ -333,14 +337,14 @@ void DsfSubscriber::processGRHoldTimerExpired(
 
 void DsfSubscriber::stop() {
   sw_->unregisterStateObserver(this);
+  // make sure all subscribers are stopped before thread cleanup
   subscriptions_.wlock()->clear();
-  fsdbPubSubMgr_.reset();
 }
 
 std::vector<DsfSessionThrift> DsfSubscriber::getDsfSessionsThrift() const {
   auto lockedSubscriptions = subscriptions_.rlock();
   std::vector<DsfSessionThrift> thriftSessions;
-  thriftSessions.resize(lockedSubscriptions->size());
+  thriftSessions.reserve(lockedSubscriptions->size());
   for (const auto& [_, subscription] : *lockedSubscriptions) {
     thriftSessions.emplace_back(subscription->dsfSessionThrift());
   }

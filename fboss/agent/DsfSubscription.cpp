@@ -56,7 +56,9 @@ std::vector<std::vector<std::string>> getAllSubscribePaths(
 namespace facebook::fboss {
 
 DsfSubscription::DsfSubscription(
-    fsdb::FsdbPubSubManager* pubSubManager,
+    fsdb::SubscriptionOptions options,
+    folly::EventBase* reconnectEvb,
+    folly::EventBase* subscriberEvb,
     std::string localNodeName,
     std::string remoteNodeName,
     SwitchID remoteNodeSwitchId,
@@ -66,7 +68,11 @@ DsfSubscription::DsfSubscription(
     DsfSubscriberStateCb dsfSubscriberStateCb,
     GrHoldExpiredCb grHoldExpiredCb,
     StateUpdateCb stateUpdateCb)
-    : fsdbPubSubMgr_(std::move(pubSubManager)),
+    : opts_(std::move(options)),
+      fsdbPubSubMgr_(new fsdb::FsdbPubSubManager(
+          opts_.clientId_,
+          reconnectEvb,
+          subscriberEvb)),
       localNodeName_(std::move(localNodeName)),
       remoteNodeName_(std::move(remoteNodeName)),
       remoteNodeSwitchId_(std::move(remoteNodeSwitchId)),
@@ -79,13 +85,8 @@ DsfSubscription::DsfSubscription(
       session_(makeRemoteEndpoint(remoteNodeName_, remoteIp_)) {
   // Subscription is not established until state becomes CONNECTED
   stats_->failedDsfSubscription(remoteNodeSwitchId_, remoteNodeName_, 1);
-  auto remoteIpStr = remoteIp_.str();
-  auto subscriberId =
-      folly::sformat("{}_{}:agent", localNodeName_, remoteIpStr);
-  fsdb::SubscriptionOptions opts{
-      subscriberId, false /* subscribeStats */, FLAGS_dsf_gr_hold_time};
   fsdbPubSubMgr_->addStatePathSubscription(
-      std::move(opts),
+      fsdb::SubscriptionOptions(opts_),
       getAllSubscribePaths(localNodeName_, localIp_),
       [this](
           fsdb::SubscriptionState oldState, fsdb::SubscriptionState newState) {
@@ -94,7 +95,7 @@ DsfSubscription::DsfSubscription(
       [this](fsdb::OperSubPathUnit&& operStateUnit) {
         handleFsdbUpdate(std::move(operStateUnit));
       },
-      getServerOptions(localIp_.str(), remoteIpStr));
+      getServerOptions(localIp_.str(), remoteIp_.str()));
 }
 
 DsfSubscription::~DsfSubscription() {
@@ -109,6 +110,13 @@ DsfSubscription::~DsfSubscription() {
 fsdb::FsdbStreamClient::State DsfSubscription::getStreamState() const {
   return fsdbPubSubMgr_->getStatePathSubsriptionState(
       getAllSubscribePaths(localNodeName_, localIp_), remoteIp_.str());
+}
+
+const fsdb::FsdbPubSubManager::SubscriptionInfo
+DsfSubscription::getSubscriptionInfo() const {
+  // Since we own our own pub sub mgr, there should always be exactly one
+  // subscription
+  return fsdbPubSubMgr_->getSubscriptionInfo()[0];
 }
 
 std::string DsfSubscription::makeRemoteEndpoint(

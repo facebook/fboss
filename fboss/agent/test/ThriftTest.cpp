@@ -742,7 +742,7 @@ TYPED_TEST(ThriftTestAllSwitchTypes, getDsfSubscriptions) {
 TYPED_TEST(ThriftTestAllSwitchTypes, getDsfSubscriptionClientId) {
   ThriftHandler handler(this->sw_);
   std::string ret;
-  if (this->isNpu() || this->isFabric()) {
+  if (this->isNpu()) {
     EXPECT_THROW(handler.getDsfSubscriptionClientId(ret), FbossError);
   } else {
     handler.getDsfSubscriptionClientId(ret);

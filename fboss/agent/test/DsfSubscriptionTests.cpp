@@ -7,6 +7,8 @@
 #include "fboss/fsdb/tests/utils/FsdbTestServer.h"
 #include "fboss/lib/CommonUtils.h"
 
+#include <folly/executors/IOThreadPoolExecutor.h>
+#include <folly/executors/thread_factory/NamedThreadFactory.h>
 #include <gtest/gtest.h>
 
 namespace facebook::fboss {
@@ -20,6 +22,14 @@ class DsfSubscriptionTest : public ::testing::Test {
     switchStats_ = std::make_unique<SwitchStats>(1);
     FLAGS_publish_state_to_fsdb = true;
     FLAGS_fsdb_sync_full_state = true;
+    streamConnectPool_ = std::make_unique<folly::IOThreadPoolExecutor>(
+        1,
+        std::make_shared<folly::NamedThreadFactory>(
+            "DsfSubscriberStreamConnect"));
+    streamServePool_ = std::make_unique<folly::IOThreadPoolExecutor>(
+        1,
+        std::make_shared<folly::NamedThreadFactory>(
+            "DsfSubscriberStreamServe"));
   }
 
   void TearDown() override {
@@ -57,8 +67,12 @@ class DsfSubscriptionTest : public ::testing::Test {
       typename DsfSubscription::DsfSubscriberStateCb dsfSubscriberStateCb,
       typename DsfSubscription::GrHoldExpiredCb grHoldExpiredCb,
       typename DsfSubscription::StateUpdateCb stateUpdateCb) {
+    fsdb::SubscriptionOptions opts{
+        "test-sub", false /* subscribeStats */, FLAGS_dsf_gr_hold_time};
     return std::make_unique<DsfSubscription>(
-        pubSub_.get(),
+        std::move(opts),
+        streamConnectPool_->getEventBase(),
+        streamServePool_->getEventBase(),
         "local",
         "remote",
         SwitchID(0),
@@ -79,6 +93,8 @@ class DsfSubscriptionTest : public ::testing::Test {
   std::unique_ptr<AgentFsdbSyncManager> publisher_;
   std::unique_ptr<fsdb::FsdbPubSubManager> pubSub_;
   std::unique_ptr<SwitchStats> switchStats_;
+  std::unique_ptr<folly::IOThreadPoolExecutor> streamConnectPool_;
+  std::unique_ptr<folly::IOThreadPoolExecutor> streamServePool_;
   std::optional<ReconnectingThriftClient::ServerOptions> serverOptions_;
 };
 

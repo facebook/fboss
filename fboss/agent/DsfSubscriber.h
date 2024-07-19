@@ -5,8 +5,10 @@
 #include "fboss/agent/DsfSubscription.h"
 #include "fboss/agent/StateObserver.h"
 #include "fboss/fsdb/client/FsdbPubSubManager.h"
-#include "folly/Synchronized.h"
 
+#include <folly/Synchronized.h>
+#include <folly/executors/IOThreadPoolExecutor.h>
+#include <folly/executors/thread_factory/NamedThreadFactory.h>
 #include <gtest/gtest.h>
 #include <memory>
 
@@ -18,9 +20,6 @@ class SwSwitch;
 class SwitchState;
 class InterfaceMap;
 class SystemPortMap;
-namespace fsdb {
-class FsdbPubSubManager;
-}
 
 class DsfSubscriber : public StateObserver {
  public:
@@ -38,17 +37,17 @@ class DsfSubscriber : public StateObserver {
 
   const std::vector<fsdb::FsdbPubSubManager::SubscriptionInfo>
   getSubscriptionInfo() const {
-    if (fsdbPubSubMgr_) {
-      return fsdbPubSubMgr_->getSubscriptionInfo();
+    std::vector<fsdb::FsdbPubSubManager::SubscriptionInfo> infos;
+    auto subscriptionsLocked = subscriptions_.rlock();
+    infos.reserve(subscriptionsLocked->size());
+    for (const auto& [_, subscription] : *subscriptionsLocked) {
+      infos.push_back(subscription->getSubscriptionInfo());
     }
-    return {};
+    return infos;
   }
 
   std::string getClientId() const {
-    if (fsdbPubSubMgr_) {
-      return fsdbPubSubMgr_->getClientId();
-    }
-    throw FbossError("DsfSubscriber: fsdbPubSubMgr_ is null");
+    return folly::sformat("{}:agent", localNodeName_);
   }
 
   std::vector<DsfSessionThrift> getDsfSessionsThrift() const;
@@ -71,12 +70,13 @@ class DsfSubscriber : public StateObserver {
       const std::set<SwitchID>& allNodeSwitchIDs);
 
   SwSwitch* sw_;
-  std::unique_ptr<fsdb::FsdbPubSubManager> fsdbPubSubMgr_;
   std::shared_ptr<SwitchState> cachedState_;
   std::string localNodeName_;
   folly::Synchronized<
       folly::F14FastMap<std::string, std::unique_ptr<DsfSubscription>>>
       subscriptions_;
+  std::unique_ptr<folly::IOThreadPoolExecutor> streamConnectPool_;
+  std::unique_ptr<folly::IOThreadPoolExecutor> streamServePool_;
 
   FRIEND_TEST(DsfSubscriberTest, updateWithRollbackProtection);
   FRIEND_TEST(DsfSubscriberTest, setupNeighbors);

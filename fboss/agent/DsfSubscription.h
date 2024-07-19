@@ -23,7 +23,9 @@ class DsfSubscription {
       const std::map<SwitchID, std::shared_ptr<InterfaceMap>>&)>;
 
   DsfSubscription(
-      fsdb::FsdbPubSubManager* pubSubManager,
+      fsdb::SubscriptionOptions options,
+      folly::EventBase* reconnectEvb,
+      folly::EventBase* subscriberEvb,
       std::string localNodeName,
       std::string remoteNodeName,
       SwitchID remoteNodeSwitchId,
@@ -44,6 +46,8 @@ class DsfSubscription {
     return session_.toThrift();
   }
 
+  const fsdb::FsdbPubSubManager::SubscriptionInfo getSubscriptionInfo() const;
+
  private:
   void handleFsdbSubscriptionStateUpdate(
       fsdb::SubscriptionState oldState,
@@ -51,7 +55,8 @@ class DsfSubscription {
   void handleFsdbUpdate(fsdb::OperSubPathUnit&& operStateUnit);
   fsdb::FsdbStreamClient::State getStreamState() const;
 
-  fsdb::FsdbPubSubManager* fsdbPubSubMgr_;
+  fsdb::SubscriptionOptions opts_;
+  std::unique_ptr<fsdb::FsdbPubSubManager> fsdbPubSubMgr_;
   std::string localNodeName_;
   std::string remoteNodeName_;
   SwitchID remoteNodeSwitchId_;
