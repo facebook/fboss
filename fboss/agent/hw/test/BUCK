@@ -363,7 +363,6 @@ hw_test_common_srcs = [
 
 hw_test_asic_only_srcs = hw_test_common_srcs + [
     "HwParityErrorTest.cpp",
-    "HwVoqSwitchTests.cpp",
     "dataplane_tests/facebook/HwAlpmStressTests.cpp",
 ]
 
@@ -467,7 +466,6 @@ cpp_library(
         "//fboss/agent/test:resourcelibutil",
         "//fboss/agent/test:route_scale_gen",
         "//fboss/agent/test:trunk_utils",
-        "//fboss/agent/test/utils:acl_test_utils",
         "//fboss/agent/test/utils:agent_hw_test_constants",
         "//fboss/agent/test/utils:aqm_test_utils",
         "//fboss/agent/test/utils:config_utils",
@@ -483,7 +481,6 @@ cpp_library(
         "//fboss/agent/test/utils:stats_test_utils",
         "//fboss/agent/test/utils:traffic_policy_utils",
         "//fboss/agent/test/utils:trap_packet_utils",
-        "//fboss/agent/test/utils:voq_test_utils",
         "//fboss/lib:common_utils",
         "//fboss/lib/phy:phy_utils",
         "//folly:file_util",

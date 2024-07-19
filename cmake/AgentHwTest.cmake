@@ -211,7 +211,6 @@ set(hw_switch_test_srcs
   fboss/agent/hw/test/HwRouteTests.cpp
   fboss/agent/hw/test/HwTrunkTests.cpp
   fboss/agent/hw/test/HwVlanTests.cpp
-  fboss/agent/hw/test/HwVoqSwitchTests.cpp
   fboss/agent/hw/test/HwL2ClassIDTests.cpp
   fboss/agent/hw/test/HwAclMatchActionsTests.cpp
   fboss/agent/hw/test/HwAclQualifierTests.cpp
