@@ -328,6 +328,10 @@ int64_t HwSwitchFb303Stats::getCorruptedCellPacketIntegrityDrops() const {
   return currentDropStats_.corruptedCellPacketIntegrityDrops().value_or(0);
 }
 
+int64_t HwSwitchFb303Stats::getMissingCellPacketIntegrityDrops() const {
+  return currentDropStats_.missingCellPacketIntegrityDrops().value_or(0);
+}
+
 int64_t HwSwitchFb303Stats::getSwitchReachabilityChangeCount() const {
   return getCumulativeValue(switchReachabilityChangeCount_);
 }
