@@ -95,6 +95,12 @@ void HwTransceiverUtils::verifyPortNameToLaneMap(
     // multi-port transceivers
     switch (moduleMediaInterface) {
       case MediaInterfaceCode::CWDM4_100G:
+        if (profile == cfg::PortProfileID::PROFILE_50G_2_NRZ_RS528_OPTICAL) {
+          expectedMediaLanes = {0, 1};
+        } else {
+          expectedMediaLanes = {0, 1, 2, 3};
+        }
+        break;
       case MediaInterfaceCode::FR4_200G:
       case MediaInterfaceCode::FR4_400G:
       case MediaInterfaceCode::DR4_400G:
@@ -286,6 +292,10 @@ void HwTransceiverUtils::verifyMediaInterfaceCompliance(
       verify10gProfile(tcvrState, mgmtInterface, mediaInterfaces);
       break;
 
+    case cfg::PortProfileID::PROFILE_50G_2_NRZ_RS528_OPTICAL:
+      verify50gProfile(mgmtInterface, mediaInterfaces);
+      break;
+
     case cfg::PortProfileID::PROFILE_100G_4_NRZ_RS528:
     case cfg::PortProfileID::PROFILE_100G_4_NRZ_RS528_OPTICAL:
     case cfg::PortProfileID::PROFILE_100G_4_NRZ_CL91_OPTICAL:
@@ -348,6 +358,17 @@ void HwTransceiverUtils::verify10gProfile(
         Ethernet10GComplianceCode::LR_10G);
 
     EXPECT_EQ(*mediaId.code(), MediaInterfaceCode::LR_10G);
+  }
+}
+
+void HwTransceiverUtils::verify50gProfile(
+    const TransceiverManagementInterface mgmtInterface,
+    const std::vector<MediaInterfaceId>& mediaInterfaces) {
+  for (const auto& mediaId : mediaInterfaces) {
+    EXPECT_EQ(mgmtInterface, TransceiverManagementInterface::SFF);
+    auto specComplianceCode =
+        *mediaId.media()->extendedSpecificationComplianceCode_ref();
+    EXPECT_EQ(specComplianceCode, ExtendedSpecComplianceCode::CWDM4_100G);
   }
 }
 

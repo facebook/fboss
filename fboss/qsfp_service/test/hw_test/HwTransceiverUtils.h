@@ -52,6 +52,9 @@ class HwTransceiverUtils {
       const TcvrState& tcvrState,
       const TransceiverManagementInterface mgmtInterface,
       const std::vector<MediaInterfaceId>& mediaInterfaces);
+  static void verify50gProfile(
+      const TransceiverManagementInterface mgmtInterface,
+      const std::vector<MediaInterfaceId>& mediaInterfaces);
   static void verify100gProfile(
       const TransceiverManagementInterface mgmtInterface,
       const std::vector<MediaInterfaceId>& mediaInterfaces);
