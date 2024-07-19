@@ -206,7 +206,7 @@ class FsdbPubSubManager {
 
   FsdbStreamClient::State getStatePathSubsriptionState(
       const MultiPath& subscribePath,
-      const std::string& fsdbHost = "::1");
+      const std::string& fsdbHost = "::1") const;
 
   const std::vector<SubscriptionInfo> getSubscriptionInfo() const;
 

@@ -712,7 +712,7 @@ void FsdbPubSubManager::removeSubscriptionImpl(
 
 FsdbStreamClient::State FsdbPubSubManager::getStatePathSubsriptionState(
     const MultiPath& subscribePath,
-    const std::string& fsdbHost) {
+    const std::string& fsdbHost) const {
   auto subsStr = toSubscriptionStr(
       fsdbHost, toExtendedOperPath(subscribePath), false, false);
   auto path2SubscriberR = statePath2Subscriber_.rlock();
