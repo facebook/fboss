@@ -1231,6 +1231,44 @@ class AgentVoqSwitchWithMultipleDsfNodesTest : public AgentVoqSwitchTest {
     CHECK(*remoteNode.type() == cfg::DsfNodeType::INTERFACE_NODE);
     return SwitchID(switchId);
   }
+
+ protected:
+  void assertVoqTailDrops(
+      const folly::IPAddressV6& nbrIp,
+      const SystemPortID& sysPortId) {
+    auto sendPkts = [=, this]() {
+      for (auto i = 0; i < 1000; ++i) {
+        sendPacket(nbrIp, std::nullopt);
+      }
+    };
+    auto voqDiscardBytes = 0;
+    WITH_RETRIES_N(100, {
+      sendPkts();
+      voqDiscardBytes =
+          getLatestSysPortStats(sysPortId).get_queueOutDiscardBytes_().at(
+              kDefaultQueue);
+      XLOG(INFO) << " VOQ discard bytes: " << voqDiscardBytes;
+      EXPECT_EVENTUALLY_GT(voqDiscardBytes, 0);
+    });
+    WITH_RETRIES({
+      if (utility::checkSameAndGetAsic(getAgentEnsemble()->getL3Asics())
+              ->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO3) {
+        auto switchIndices = getSw()->getSwitchInfoTable().getSwitchIndices();
+        int totalVoqResourceExhaustionDrops = 0;
+        for (const auto& switchIndex : switchIndices) {
+          auto switchStats = getSw()->getHwSwitchStatsExpensive()[switchIndex];
+          const auto& voqExhaustionDrop =
+              switchStats.switchDropStats()->voqResourceExhaustionDrops();
+          CHECK(voqExhaustionDrop.has_value());
+          XLOG(INFO) << " Voq resource exhaustion drops for switchIndex "
+                     << switchIndex << " : " << *voqExhaustionDrop;
+          totalVoqResourceExhaustionDrops += *voqExhaustionDrop;
+        }
+        EXPECT_EVENTUALLY_GT(totalVoqResourceExhaustionDrops, 0);
+      }
+    });
+    checkNoStatsChange();
+  }
 };
 
 TEST_F(AgentVoqSwitchWithMultipleDsfNodesTest, twoDsfNodes) {
@@ -1435,6 +1473,114 @@ TEST_F(AgentVoqSwitchWithMultipleDsfNodesTest, voqDelete) {
                  << " after: " << voqDeletedPktsAfter;
       EXPECT_EVENTUALLY_EQ(voqDeletedPktsBefore + 100, voqDeletedPktsAfter);
     });
+  };
+  verifyAcrossWarmBoots(setup, verify);
+}
+
+TEST_F(AgentVoqSwitchWithMultipleDsfNodesTest, stressAddRemoveObjects) {
+  auto setup = [=, this]() {
+    // Disable credit watchdog
+    utility::enableCreditWatchdog(getAgentEnsemble(), false);
+  };
+  auto verify = [this]() {
+    auto numIterations = 500;
+    auto constexpr remotePortId = 401;
+    const SystemPortID kRemoteSysPortId(remotePortId);
+    folly::IPAddressV6 kNeighborIp("100::2");
+    utility::EcmpSetupAnyNPorts6 ecmpHelper(getProgrammedState());
+    // in addRemoteDsfNodeCfg, we use numCores to calculate the remoteSwitchId
+    // keeping remote switch id passed below in sync with it
+    int numCores =
+        utility::checkSameAndGetAsic(getAgentEnsemble()->getL3Asics())
+            ->getNumCores();
+    const auto kPort = ecmpHelper.ecmpPortDescriptorAt(0);
+    const InterfaceID kIntfId(remotePortId);
+    PortDescriptor kRemotePort(kRemoteSysPortId);
+    auto addObjects = [&]() {
+      // add local neighbor
+      addRemoveNeighbor(kPort, true /* add neighbor*/);
+      // Remote objs
+      applyNewState([&](const std::shared_ptr<SwitchState>& in) {
+        return utility::addRemoteSysPort(
+            in,
+            scopeResolver(),
+            kRemoteSysPortId,
+            static_cast<SwitchID>(numCores));
+      });
+      const InterfaceID kIntfId(remotePortId);
+      applyNewState([&](const std::shared_ptr<SwitchState>& in) {
+        return utility::addRemoteInterface(
+            in,
+            scopeResolver(),
+            kIntfId,
+            // TODO - following assumes we haven't
+            // already used up the subnets below for
+            // local interfaces. In that sense it
+            // has a implicit coupling with how ConfigFactory
+            // generates subnets for local interfaces
+            {
+                {folly::IPAddress("100::1"), 64},
+                {folly::IPAddress("100.0.0.1"), 24},
+            });
+      });
+      PortDescriptor kPort(kRemoteSysPortId);
+      // Add neighbor
+      applyNewState([&](const std::shared_ptr<SwitchState>& in) {
+        return utility::addRemoveRemoteNeighbor(
+            in,
+            scopeResolver(),
+            kNeighborIp,
+            kIntfId,
+            kPort,
+            true,
+            utility::getDummyEncapIndex(getAgentEnsemble()));
+      });
+    };
+    auto removeObjects = [&]() {
+      addRemoveNeighbor(kPort, false /* remove neighbor*/);
+      // Remove neighbor
+      applyNewState([&](const std::shared_ptr<SwitchState>& in) {
+        return utility::addRemoveRemoteNeighbor(
+            in,
+            scopeResolver(),
+            kNeighborIp,
+            kIntfId,
+            kPort,
+            false,
+            utility::getDummyEncapIndex(getAgentEnsemble()));
+      });
+      // Remove rif
+      applyNewState([&](const std::shared_ptr<SwitchState>& in) {
+        return utility::removeRemoteInterface(in, kIntfId);
+      });
+      // Remove sys port
+      applyNewState([&](const std::shared_ptr<SwitchState>& in) {
+        return utility::removeRemoteSysPort(in, kRemoteSysPortId);
+      });
+    };
+    for (auto i = 0; i < numIterations; ++i) {
+      addObjects();
+      // Delete on all but the last iteration. In the last iteration
+      // we will leave the entries intact and then forward pkts
+      // to this VOQ
+      if (i < numIterations - 1) {
+        removeObjects();
+      }
+    }
+    assertVoqTailDrops(kNeighborIp, kRemoteSysPortId);
+    auto beforePkts =
+        getLatestPortStats(kPort.phyPortID()).get_outUnicastPkts_();
+    // CPU send
+    sendPacket(ecmpHelper.ip(kPort), std::nullopt);
+    auto frontPanelPort = ecmpHelper.ecmpPortDescriptorAt(1).phyPortID();
+    sendPacket(ecmpHelper.ip(kPort), frontPanelPort);
+    WITH_RETRIES({
+      auto afterPkts =
+          getLatestPortStats(kPort.phyPortID()).get_outUnicastPkts_();
+      EXPECT_EVENTUALLY_EQ(afterPkts, beforePkts + 2);
+    });
+    // removeObjects before exiting for WB
+    removeObjects();
   };
   verifyAcrossWarmBoots(setup, verify);
 }
