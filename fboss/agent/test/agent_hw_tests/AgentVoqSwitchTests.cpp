@@ -11,6 +11,7 @@
 #include "fboss/agent/test/utils/CoppTestUtils.h"
 #include "fboss/agent/test/utils/FabricTestUtils.h"
 #include "fboss/agent/test/utils/LoadBalancerTestUtils.h"
+#include "fboss/agent/test/utils/OlympicTestUtils.h"
 #include "fboss/agent/test/utils/PacketSnooper.h"
 #include "fboss/agent/test/utils/PortTestUtils.h"
 #include "fboss/agent/test/utils/TrapPacketUtils.h"
@@ -1242,7 +1243,7 @@ class AgentVoqSwitchWithMultipleDsfNodesTest : public AgentVoqSwitchTest {
       }
     };
     auto voqDiscardBytes = 0;
-    WITH_RETRIES_N(100, {
+    WITH_RETRIES({
       sendPkts();
       voqDiscardBytes =
           getLatestSysPortStats(sysPortId).get_queueOutDiscardBytes_().at(
@@ -1595,6 +1596,60 @@ TEST_F(AgentVoqSwitchWithMultipleDsfNodesTest, voqTailDropCounter) {
     int numCores =
         utility::checkSameAndGetAsic(getAgentEnsemble()->getL3Asics())
             ->getNumCores();
+    // Disable credit watchdog
+    utility::enableCreditWatchdog(getAgentEnsemble(), false);
+    applyNewState([&](const std::shared_ptr<SwitchState>& in) {
+      return utility::addRemoteSysPort(
+          in,
+          scopeResolver(),
+          kRemoteSysPortId,
+          static_cast<SwitchID>(numCores));
+    });
+    const InterfaceID kIntfId(remotePortId);
+    applyNewState([&](const std::shared_ptr<SwitchState>& in) {
+      return utility::addRemoteInterface(
+          in,
+          scopeResolver(),
+          kIntfId,
+          {
+              {folly::IPAddress("100::1"), 64},
+              {folly::IPAddress("100.0.0.1"), 24},
+          });
+    });
+    PortDescriptor kPort(kRemoteSysPortId);
+    // Add neighbor
+    applyNewState([&](const std::shared_ptr<SwitchState>& in) {
+      return utility::addRemoveRemoteNeighbor(
+          in,
+          scopeResolver(),
+          kNeighborIp,
+          kIntfId,
+          kPort,
+          true,
+          utility::getDummyEncapIndex(getAgentEnsemble()));
+    });
+  };
+
+  auto verify = [=, this]() {
+    assertVoqTailDrops(kNeighborIp, kRemoteSysPortId);
+  };
+  verifyAcrossWarmBoots(setup, verify);
+};
+
+TEST_F(AgentVoqSwitchWithMultipleDsfNodesTest, verifyDscpToVoqMapping) {
+  folly::IPAddressV6 kNeighborIp("100::2");
+  auto constexpr remotePortId = 401;
+  const SystemPortID kRemoteSysPortId(remotePortId);
+  auto setup = [=, this]() {
+    auto newCfg{initialConfig(*getAgentEnsemble())};
+    utility::addOlympicQosMaps(newCfg, getAgentEnsemble()->getL3Asics());
+    applyNewConfig(newCfg);
+
+    // in addRemoteDsfNodeCfg, we use numCores to calculate the remoteSwitchId
+    // keeping remote switch id passed below in sync with it
+    int numCores =
+        utility::checkSameAndGetAsic(getAgentEnsemble()->getL3Asics())
+            ->getNumCores();
     applyNewState([&](const std::shared_ptr<SwitchState>& in) {
       return utility::addRemoteSysPort(
           in,
@@ -1633,7 +1688,30 @@ TEST_F(AgentVoqSwitchWithMultipleDsfNodesTest, voqTailDropCounter) {
   };
 
   auto verify = [=, this]() {
-    assertVoqTailDrops(kNeighborIp, kRemoteSysPortId);
+    for (const auto& q2dscps : utility::kOlympicQueueToDscp()) {
+      auto queueId = q2dscps.first;
+      for (auto dscp : q2dscps.second) {
+        XLOG(DBG2) << "verify packet with dscp " << dscp << " goes to queue "
+                   << queueId;
+        auto statsBefore = getLatestSysPortStats(kRemoteSysPortId);
+        auto queueBytesBefore = statsBefore.queueOutBytes_()->at(queueId) +
+            statsBefore.queueOutDiscardBytes_()->at(queueId);
+        sendPacket(
+            kNeighborIp,
+            std::nullopt,
+            std::optional<std::vector<uint8_t>>(),
+            dscp);
+        WITH_RETRIES({
+          auto statsAfter = getLatestSysPortStats(kRemoteSysPortId);
+          auto queueBytesAfter = statsAfter.queueOutBytes_()->at(queueId) +
+              statsAfter.queueOutDiscardBytes_()->at(queueId);
+          XLOG(DBG2) << "queue " << queueId
+                     << " stats before: " << queueBytesBefore
+                     << " stats after: " << queueBytesAfter;
+          EXPECT_EVENTUALLY_GT(queueBytesAfter, queueBytesBefore);
+        });
+      }
+    }
   };
   verifyAcrossWarmBoots(setup, verify);
 };
