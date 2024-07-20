@@ -755,6 +755,12 @@ const std::vector<sai_stat_id_t>& SaiSwitchManager::supportedDramStats() const {
         SaiSwitchTraits::dramStats().begin(),
         SaiSwitchTraits::dramStats().end());
   }
+  if (platform_->getAsic()->isSupported(HwAsic::Feature::DRAM_BLOCK_TIME)) {
+    stats.insert(
+        stats.end(),
+        SaiSwitchTraits::dramBlockTime().begin(),
+        SaiSwitchTraits::dramBlockTime().end());
+  }
   return stats;
 }
 
