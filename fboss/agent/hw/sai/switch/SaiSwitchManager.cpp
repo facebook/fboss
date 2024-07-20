@@ -532,6 +532,7 @@ void SaiSwitchManager::addOrUpdateLagLoadBalancer(
 
 void SaiSwitchManager::addOrUpdateLoadBalancer(
     const std::shared_ptr<LoadBalancer>& newLb) {
+  XLOG(DBG2) << "Add load balancer : " << newLb->getID();
   if (newLb->getID() == cfg::LoadBalancerID::AGGREGATE_PORT) {
     return addOrUpdateLagLoadBalancer(newLb);
   }
@@ -541,11 +542,13 @@ void SaiSwitchManager::addOrUpdateLoadBalancer(
 void SaiSwitchManager::changeLoadBalancer(
     const std::shared_ptr<LoadBalancer>& /*oldLb*/,
     const std::shared_ptr<LoadBalancer>& newLb) {
+  XLOG(DBG2) << "Change load balancer : " << newLb->getID();
   return addOrUpdateLoadBalancer(newLb);
 }
 
 void SaiSwitchManager::removeLoadBalancer(
     const std::shared_ptr<LoadBalancer>& oldLb) {
+  XLOG(DBG2) << "Remove load balancer : " << oldLb->getID();
   if (oldLb->getID() == cfg::LoadBalancerID::AGGREGATE_PORT) {
     programLagLoadBalancerParams(std::nullopt, std::nullopt);
     resetLoadBalancer<SaiSwitchTraits::Attributes::LagHashV4>();

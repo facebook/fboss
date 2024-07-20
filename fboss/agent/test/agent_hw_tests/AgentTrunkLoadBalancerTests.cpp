@@ -309,13 +309,9 @@ class AgentTrunkLoadBalancerTest : public AgentHwTest {
       int deviation) {
     auto setup = [=, this]() {
       auto config = configureAggregatePorts(aggInfo);
+      config.loadBalancers() = loadBalancers;
       applyConfigAndEnableTrunks(config);
       setupIPECMP(aggInfo);
-
-      applyNewState([&](const std::shared_ptr<SwitchState>& inputState) {
-        return utility::addLoadBalancers(
-            getAgentEnsemble(), inputState, loadBalancers, scopeResolver());
-      });
     };
     auto verify = [=, this]() {
       pumpIPTrafficAndVerifyLoadBalanced(
@@ -332,13 +328,9 @@ class AgentTrunkLoadBalancerTest : public AgentHwTest {
       int deviation) {
     auto setup = [=, this]() {
       auto config = configureAggregatePorts(aggInfo);
+      config.loadBalancers() = loadBalancers;
       applyConfigAndEnableTrunks(config);
       setupIP2MPLSECMP(aggInfo);
-
-      applyNewState([&](const std::shared_ptr<SwitchState>& inputState) {
-        return utility::addLoadBalancers(
-            getAgentEnsemble(), inputState, loadBalancers, scopeResolver());
-      });
     };
     auto verify = [=, this]() {
       pumpIPTrafficAndVerifyLoadBalanced(
@@ -362,13 +354,9 @@ class AgentTrunkLoadBalancerTest : public AgentHwTest {
                                                                   : kV6TopPhp);
     auto setup = [=, this]() {
       auto config = configureAggregatePorts(aggInfo);
+      config.loadBalancers() = loadBalancers;
       applyConfigAndEnableTrunks(config);
       setupMPLSECMP(aggInfo);
-
-      applyNewState([&](const std::shared_ptr<SwitchState>& inputState) {
-        return utility::addLoadBalancers(
-            getAgentEnsemble(), inputState, loadBalancers, scopeResolver());
-      });
     };
     auto verify = [=, this]() {
       pumpMPLSTrafficAndVerifyLoadBalanced(
@@ -391,12 +379,9 @@ class AgentTrunkLoadBalancerTest : public AgentHwTest {
                                                                   : kV6TopPhp);
     auto setup = [=, this]() {
       auto config = configureAggregatePorts(aggInfo);
+      config.loadBalancers() = loadBalancers;
       applyNewConfig(config);
       setupMPLSECMP(aggInfo);
-      applyNewState([&](const std::shared_ptr<SwitchState>& inputState) {
-        return utility::addLoadBalancers(
-            getAgentEnsemble(), inputState, loadBalancers, scopeResolver());
-      });
     };
     auto verify = [=, this]() {
       pumpMPLSTrafficAndVerifyLoadBalanced(
