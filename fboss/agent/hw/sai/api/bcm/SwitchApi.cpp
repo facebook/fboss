@@ -104,6 +104,16 @@ const std::vector<sai_stat_id_t>& SaiSwitchTraits::dtlWatermarkStats() {
   return stats;
 }
 
+const std::vector<sai_stat_id_t>& SaiSwitchTraits::dramBlockTime() {
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
+  static const std::vector<sai_stat_id_t> stats{
+      SAI_SWITCH_STAT_DEVICE_DRAM_BLOCK_TOTAL_TIME};
+#else
+  static const std::vector<sai_stat_id_t> stats;
+#endif
+  return stats;
+}
+
 void SwitchApi::registerSwitchEventCallback(
     SwitchSaiId id,
     void* switch_event_cb) const {
