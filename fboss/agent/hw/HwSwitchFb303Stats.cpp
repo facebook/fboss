@@ -143,6 +143,11 @@ HwSwitchFb303Stats::HwSwitchFb303Stats(
           getCounterPrefix() + "dram_dequeued_bytes",
           SUM,
           RATE),
+      dramBlockedTimeNsec_(
+          map,
+          getCounterPrefix() + "dram_blocked_time_ns",
+          SUM,
+          RATE),
       fabricReachabilityMissingCount_(
           map,
           getCounterPrefix() + "fabric_reachability_missing"),
@@ -265,6 +270,9 @@ void HwSwitchFb303Stats::update(const HwSwitchDramStats& dramStats) {
   }
   if (dramStats.dramDequeuedBytes().has_value()) {
     dramDequeuedBytes_.addValue(*dramStats.dramDequeuedBytes());
+  }
+  if (dramStats.dramBlockedTimeNsec().has_value()) {
+    dramBlockedTimeNsec_.addValue(*dramStats.dramBlockedTimeNsec());
   }
 }
 
