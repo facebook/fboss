@@ -294,6 +294,7 @@ struct HwSwitchDropStats {
 struct HwSwitchDramStats {
   1: optional i64 dramEnqueuedBytes;
   2: optional i64 dramDequeuedBytes;
+  3: optional i64 dramBlockedTimeNsec;
 }
 
 struct HwSwitchFb303GlobalStats {
