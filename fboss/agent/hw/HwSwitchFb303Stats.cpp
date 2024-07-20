@@ -284,6 +284,10 @@ int64_t HwSwitchFb303Stats::getDramDequeuedBytes() const {
   return getCumulativeValue(dramDequeuedBytes_);
 }
 
+int64_t HwSwitchFb303Stats::getDramBlockedTimeNsec() const {
+  return getCumulativeValue(dramBlockedTimeNsec_);
+}
+
 int64_t HwSwitchFb303Stats::getIreErrors() const {
   return getCumulativeValue(ireErrors_);
 }

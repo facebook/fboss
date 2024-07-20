@@ -143,6 +143,7 @@ class HwSwitchFb303Stats {
   }
   int64_t getDramEnqueuedBytes() const;
   int64_t getDramDequeuedBytes() const;
+  int64_t getDramBlockedTimeNsec() const;
   // Asic errors
   int64_t getIreErrors() const;
   int64_t getItppErrors() const;
