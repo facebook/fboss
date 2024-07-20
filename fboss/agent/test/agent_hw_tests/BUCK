@@ -47,6 +47,7 @@ cpp_library(
         "AgentQueuePerHostTests.cpp",
         "AgentRouteOverDifferentAddressFamilyNhopTests.cpp",
         "AgentRouteOverflowTests.cpp",
+        "AgentRxReasonTests.cpp",
         "AgentSendPacketToQueueTests.cpp",
         "AgentSflowMirrorTest.cpp",
         "AgentSwitchStatsTxCounterTests.cpp",

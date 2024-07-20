@@ -8,30 +8,29 @@
  *
  */
 
-#include "fboss/agent/hw/test/ConfigFactory.h"
-#include "fboss/agent/hw/test/HwLinkStateDependentTest.h"
-#include "fboss/agent/hw/test/HwTestCoppUtils.h"
+#include "fboss/agent/test/AgentHwTest.h"
+#include "fboss/agent/test/utils/ConfigUtils.h"
+#include "fboss/agent/test/utils/CoppTestUtils.h"
 
 namespace facebook::fboss {
 
-class HwRxReasonTests : public HwLinkStateDependentTest {
+class AgentRxReasonTests : public AgentHwTest {
  protected:
-  cfg::SwitchConfig initialConfig() const override {
-    auto cfg = utility::onePortPerInterfaceConfig(
-        getHwSwitch(),
-        masterLogicalPortIds(),
-        getAsic()->desiredLoopbackModes(),
+  cfg::SwitchConfig initialConfig(
+      const AgentEnsemble& ensemble) const override {
+    auto config = utility::onePortPerInterfaceConfig(
+        ensemble.getSw(),
+        ensemble.masterLogicalPortIds(),
         true /*interfaceHasSubnet*/);
 
     utility::setDefaultCpuTrafficPolicyConfig(
-        cfg,
-        getHwSwitchEnsemble()->getL3Asics(),
-        getHwSwitchEnsemble()->isSai());
+        config, ensemble.getL3Asics(), ensemble.isSai());
     // Remove DHCP from rxReason list
     auto rxReasonListWithoutDHCP = utility::getCoppRxReasonToQueues(
-        getAsic(), getHwSwitchEnsemble()->isSai());
+        ensemble.getL3Asics(), ensemble.isSai());
     auto dhcpRxReason = ControlPlane::makeRxReasonToQueueEntry(
-        cfg::PacketRxReason::DHCP, utility::getCoppMidPriQueueId({getAsic()}));
+        cfg::PacketRxReason::DHCP,
+        utility::getCoppMidPriQueueId(ensemble.getL3Asics()));
     auto dhcpRxReasonIter = std::find(
         rxReasonListWithoutDHCP.begin(),
         rxReasonListWithoutDHCP.end(),
@@ -39,9 +38,14 @@ class HwRxReasonTests : public HwLinkStateDependentTest {
     if (dhcpRxReasonIter != rxReasonListWithoutDHCP.end()) {
       rxReasonListWithoutDHCP.erase(dhcpRxReasonIter);
     }
-    cfg.cpuTrafficPolicy()->rxReasonToQueueOrderedList() =
+    config.cpuTrafficPolicy()->rxReasonToQueueOrderedList() =
         rxReasonListWithoutDHCP;
-    return cfg;
+    return config;
+  }
+
+  std::vector<production_features::ProductionFeature>
+  getProductionFeaturesVerified() const override {
+    return {production_features::ProductionFeature::COPP};
   }
 
   // Because number of RX reasons is modified across WB, repopulating priority
@@ -51,15 +55,15 @@ class HwRxReasonTests : public HwLinkStateDependentTest {
   }
 };
 
-TEST_F(HwRxReasonTests, InsertAndRemoveRxReason) {
+TEST_F(AgentRxReasonTests, InsertAndRemoveRxReason) {
   auto setup = [=]() {};
   auto verify = [=, this]() {
-    auto cfg = initialConfig();
-    applyNewConfig(cfg);
-    cfg.cpuTrafficPolicy()->rxReasonToQueueOrderedList() =
+    auto config = initialConfig(*getAgentEnsemble());
+    applyNewConfig(config);
+    config.cpuTrafficPolicy()->rxReasonToQueueOrderedList() =
         utility::getCoppRxReasonToQueues(
-            getAsic(), getHwSwitchEnsemble()->isSai());
-    applyNewConfig(cfg);
+            getAgentEnsemble()->getL3Asics(), getAgentEnsemble()->isSai());
+    applyNewConfig(config);
   };
   verifyAcrossWarmBoots(setup, verify);
 }

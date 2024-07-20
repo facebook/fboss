@@ -320,7 +320,7 @@ void setDefaultCpuTrafficPolicyConfig(
   }
 
   cpuConfig.trafficPolicy() = trafficConfig;
-  auto rxReasonToQueues = getCoppRxReasonToQueues(hwAsic, isSai);
+  auto rxReasonToQueues = getCoppRxReasonToQueues(asics, isSai);
   if (rxReasonToQueues.size()) {
     cpuConfig.rxReasonToQueueOrderedList() = rxReasonToQueues;
   }
@@ -866,8 +866,9 @@ std::vector<cfg::PacketRxReasonToQueue> getCoppRxReasonToQueuesForBcm(
 }
 
 std::vector<cfg::PacketRxReasonToQueue> getCoppRxReasonToQueues(
-    const HwAsic* hwAsic,
+    const std::vector<const HwAsic*>& hwAsics,
     bool isSai) {
+  auto hwAsic = checkSameAndGetAsic(hwAsics);
   return isSai ? getCoppRxReasonToQueuesForSai(hwAsic)
                : getCoppRxReasonToQueuesForBcm(hwAsic);
 }

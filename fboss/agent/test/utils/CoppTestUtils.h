@@ -140,7 +140,7 @@ cfg::ToCpuAction getCpuActionType(const HwAsic* hwAsic);
 
 uint64_t getCpuQueueWatermarkBytes(HwPortStats& stats, int queueId);
 std::vector<cfg::PacketRxReasonToQueue> getCoppRxReasonToQueues(
-    const HwAsic* hwAsic,
+    const std::vector<const HwAsic*>& hwAsics,
     bool isSai);
 
 std::pair<uint64_t, uint64_t> getCpuQueueOutPacketsAndBytes(

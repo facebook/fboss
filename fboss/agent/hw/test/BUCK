@@ -342,7 +342,6 @@ hw_test_common_srcs = [
     "HwTrunkTests.cpp",
     "HwRouteScaleTest.cpp",
     "HwRouteTests.cpp",
-    "HwRxReasonTests.cpp",
     "HwTest.cpp",
     "HwVlanTests.cpp",
     "HwEcmpTests.cpp",
