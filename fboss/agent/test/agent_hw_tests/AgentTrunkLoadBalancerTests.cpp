@@ -12,9 +12,8 @@
 
 #include <fboss/agent/RouteUpdateWrapper.h>
 
-#include "fboss/agent/FbossError.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
-#include "fboss/agent/hw/test/ConfigFactory.h"
+
 #include "fboss/agent/state/StateUtils.h"
 
 #include "fboss/agent/state/LabelForwardingAction.h"
@@ -43,6 +42,8 @@ struct AggPortInfo {
   uint numAggPorts{4};
   uint aggPortWidth{3};
 };
+const AggPortInfo k4X3WideAggs{4, 3};
+const AggPortInfo k4X2WideAggs{4, 2};
 
 enum TrafficType {
   IPv4,
@@ -64,7 +65,7 @@ static constexpr uint32_t kV6TopPhp = 20011;
 
 namespace facebook::fboss {
 class AgentTrunkLoadBalancerTest : public AgentHwTest {
- private:
+ protected:
   std::vector<production_features::ProductionFeature>
   getProductionFeaturesVerified() const override {
     return {
@@ -459,4 +460,65 @@ class AgentTrunkLoadBalancerTest : public AgentHwTest {
     }
   }
 };
+
+/*
+ * We test for 2 combinations -
+ * i) 4X3Wide Four 3 wide trunks in ECMP group
+ * ii) 4X2Wide Four 2 wide trunks in ECMP group.
+ * The reason for this is that is to isolate polarization bugs. We have had
+ * cases - T39279972, where we ended up mis programming trunk hashing in a way
+ * that both ECMP and trunks were using the same 16 bits (out of 83) of hash
+ * function output. This then would result in polarization in **some** MXN
+ * combinations of trunk members of ECMP And width of trunks. For example
+ * consider that the 16 bits selected result sequence of numbers
+ * {X1, X2, ... XN}  for a set of flows. Further consider that these are the
+ * set of flows that are sent of 0th member of the ECMP group. Implying that
+ * each of {X1%M, X2%M ...} would be 0. Since we picked the same 16 bits of
+ * hash for trunks. We would now be doing {X1%N, X2%N ...} for selecting the
+ * trunk member link. So to expose polarization bugs, we need to pick a
+ * combination of MXN where {X1%N, X2%N ...} would result in subset of links to
+ * be used. 2 way ECMP over 2 wide trunks presents such a combination (4X4, 4X2
+ * etc would be others). Consider the case of 4X2, on the 0th ECMP member link.
+ * Assume that the bits selected here lead to numbers
+ * {0, 4, 8, 12, 16 ..}. The actual numbers are not important, the only thing
+ * important is that they all yield 0 when doing %4 on them. Now when we apply
+ * %2 for selecting the trunk member, we would always end up selecting the
+ * first link.
+ */
+// ECMP full hash, Trunk half hash tests
+TEST_F(
+    AgentTrunkLoadBalancerTest,
+    ECMPFullTrunkHalfHash4X3WideTrunksV6CpuTraffic) {
+  runLoadBalanceTest(
+      TrafficType::IPv6,
+      getEcmpFullTrunkHalfHashConfig(getAgentEnsemble()->getL3Asics()),
+      k4X3WideAggs);
+}
+
+TEST_F(
+    AgentTrunkLoadBalancerTest,
+    ECMPFullTrunkHalfHash4X3WideTrunksV4CpuTraffic) {
+  runLoadBalanceTest(
+      TrafficType::IPv4,
+      getEcmpFullTrunkHalfHashConfig(getAgentEnsemble()->getL3Asics()),
+      k4X3WideAggs);
+}
+
+TEST_F(
+    AgentTrunkLoadBalancerTest,
+    ECMPFullTrunkHalfHash4X2WideTrunksV6CpuTraffic) {
+  runLoadBalanceTest(
+      TrafficType::IPv6,
+      getEcmpFullTrunkHalfHashConfig(getAgentEnsemble()->getL3Asics()),
+      k4X2WideAggs);
+}
+TEST_F(
+    AgentTrunkLoadBalancerTest,
+    ECMPFullTrunkHalfHash4X2WideTrunksV4CpuTraffic) {
+  runLoadBalanceTest(
+      TrafficType::IPv4,
+      getEcmpFullTrunkHalfHashConfig(getAgentEnsemble()->getL3Asics()),
+      k4X2WideAggs);
+}
+
 } // namespace facebook::fboss
