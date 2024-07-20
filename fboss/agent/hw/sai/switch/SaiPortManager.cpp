@@ -1849,7 +1849,18 @@ void SaiPortManager::updateStats(
   if (updateCableLengths && portType == cfg::PortType::FABRIC_PORT &&
       platform_->getAsic()->isSupported(
           HwAsic::Feature::CABLE_PROPOGATION_DELAY)) {
-    // TODO
+    std::optional<SaiPortTraits::Attributes::CablePropogationDelayNS> attrT =
+        SaiPortTraits::Attributes::CablePropogationDelayNS{};
+
+    auto cablePropogationDelayNS =
+        SaiApiTable::getInstance()->portApi().getAttribute(
+            handle->port->adapterKey(), attrT);
+    CHECK(cablePropogationDelayNS.has_value());
+    if (*cablePropogationDelayNS != std::numeric_limits<uint32_t>::max()) {
+      // In fiber it takes about 5ns for light to travel 1 meter
+      curPortStats.cableLengthMeters() =
+          std::ceil(*cablePropogationDelayNS / 5.0);
+    }
   }
   portStats_[portId]->updateStats(curPortStats, now);
   auto lastPrbsRxStateReadTimeIt = lastPrbsRxStateReadTime_.find(portId);
