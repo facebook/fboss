@@ -560,4 +560,44 @@ TEST_F(
       true /* loopThroughFrontPanelPort*/);
 }
 
+TEST_F(
+    AgentTrunkLoadBalancerTest,
+    ECMPFullTrunkHalf4X3WideTrunksV6MplsFrontPanelTraffic) {
+  runLoadBalanceTest(
+      TrafficType::IPv6MPLS,
+      getEcmpFullTrunkHalfHashConfig(getAgentEnsemble()->getL3Asics()),
+      k4X3WideAggs,
+      true /* loopThroughFrontPanelPort */);
+}
+
+TEST_F(
+    AgentTrunkLoadBalancerTest,
+    ECMPFullTrunkHalf4X3WideTrunksV4MplsFrontPanelTraffic) {
+  runLoadBalanceTest(
+      TrafficType::IPv4MPLS,
+      getEcmpFullTrunkHalfHashConfig(getAgentEnsemble()->getL3Asics()),
+      k4X3WideAggs,
+      true /* loopThroughFrontPanelPort*/);
+}
+
+TEST_F(
+    AgentTrunkLoadBalancerTest,
+    ECMPFullTrunkHalf4X2WideTrunksV6MplsFrontPanelTraffic) {
+  runLoadBalanceTest(
+      TrafficType::IPv6MPLS,
+      getEcmpFullTrunkHalfHashConfig(getAgentEnsemble()->getL3Asics()),
+      k4X2WideAggs,
+      true /* loopThroughFrontPanelPort */);
+}
+
+TEST_F(
+    AgentTrunkLoadBalancerTest,
+    ECMPFullTrunkHalf4X2WideTrunksV4MplsFrontPanelTraffic) {
+  runLoadBalanceTest(
+      TrafficType::IPv4MPLS,
+      getEcmpFullTrunkHalfHashConfig(getAgentEnsemble()->getL3Asics()),
+      k4X2WideAggs,
+      true /* loopThroughFrontPanelPort*/);
+}
+
 } // namespace facebook::fboss
