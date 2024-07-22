@@ -94,6 +94,14 @@ struct SaiQueueTraits {
       VoqWatchDogDeleteCounterIdsToRead = {};
 #endif
 
+#if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
+  static constexpr std::array<sai_stat_id_t, 1>
+      VoqLatencyWatermarkCounterIdsToRead = {SAI_QUEUE_STAT_DELAY_WATERMARK_NS};
+#else
+  static constexpr std::array<sai_stat_id_t, 0>
+      VoqLatencyWatermarkCounterIdsToRead = {};
+#endif
+
   static constexpr std::array<sai_stat_id_t, 1> WredCounterIdsToRead = {
       SAI_QUEUE_STAT_WRED_DROPPED_PACKETS,
   };
