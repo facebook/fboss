@@ -490,6 +490,16 @@ struct SaiSwitchTraits {
     using MultiStageLocalSwitchIds = SaiExtensionAttribute<
         std::vector<sai_uint32_t>,
         AttributeMultiStageLocalSwitchIdsWrapper>;
+    struct AttributeVoqLatencyMinLocalNs {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    using VoqLatencyMinLocalNs =
+        SaiExtensionAttribute<sai_int32_t, AttributeVoqLatencyMinLocalNs>;
+    struct AttributeVoqLatencyMaxLocalNs {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    using VoqLatencyMaxLocalNs =
+        SaiExtensionAttribute<sai_int32_t, AttributeVoqLatencyMaxLocalNs>;
   };
   using AdapterKey = SwitchSaiId;
   using AdapterHostKey = std::monostate;
@@ -665,6 +675,8 @@ SAI_ATTRIBUTE_NAME(Switch, FabricRemoteReachablePortList)
 SAI_ATTRIBUTE_NAME(Switch, RouteNoImplicitMetaData)
 SAI_ATTRIBUTE_NAME(Switch, RouteAllowImplicitMetaData)
 SAI_ATTRIBUTE_NAME(Switch, MultiStageLocalSwitchIds)
+SAI_ATTRIBUTE_NAME(Switch, VoqLatencyMinLocalNs);
+SAI_ATTRIBUTE_NAME(Switch, VoqLatencyMaxLocalNs);
 
 template <>
 struct SaiObjectHasStats<SaiSwitchTraits> : public std::true_type {};

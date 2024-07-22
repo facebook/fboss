@@ -125,4 +125,14 @@ void SwitchApi::registerSwitchEventCallback(
     SwitchSaiId /*id*/,
     void* /*switch_event_cb*/) const {}
 
+std::optional<sai_attr_id_t>
+SaiSwitchTraits::Attributes::AttributeVoqLatencyMinLocalNs::operator()() {
+  return std::nullopt;
+}
+
+std::optional<sai_attr_id_t>
+SaiSwitchTraits::Attributes::AttributeVoqLatencyMaxLocalNs::operator()() {
+  return std::nullopt;
+}
+
 } // namespace facebook::fboss
