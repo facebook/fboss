@@ -47,9 +47,6 @@
           "test_name_regex": "AgentFlowletSwitchingTest.*$"
         },
         {
-          "test_name_regex": "AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
-        },
-        {
           "test_name_regex": "AgentSflowMirrorTestV[46].*$"
         },
         {
@@ -159,9 +156,6 @@
         },
         {
           "test_name_regex": "AgentFlowletSwitchingTest.*$"
-        },
-        {
-          "test_name_regex": "AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
           "test_name_regex": "AgentSflowMirrorTestV[46].*$"
@@ -367,9 +361,6 @@
           "test_name_regex": "AgentFlowletSwitchingTest.*$"
         },
         {
-          "test_name_regex": "AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
-        },
-        {
           "test_name_regex": "AgentSflowMirrorTestV[46].*$"
         },
         {
@@ -464,9 +455,6 @@
         },
         {
           "test_name_regex": "AgentFlowletSwitchingTest.*$"
-        },
-        {
-          "test_name_regex": "AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
           "test_name_regex": "AgentSflowMirrorTestV[46].*$"
@@ -648,9 +636,6 @@
           "test_name_regex": "AgentFlowletSwitchingTest.*$"
         },
         {
-          "test_name_regex": "AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
-        },
-        {
           "test_name_regex": "AgentSflowMirrorTestV[46].*$"
         },
         {
@@ -760,9 +745,6 @@
         },
         {
           "test_name_regex": "AgentFlowletSwitchingTest.*$"
-        },
-        {
-          "test_name_regex": "AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
           "test_name_regex": "AgentSflowMirrorTestV[46].*$"
@@ -893,9 +875,6 @@
           "test_name_regex": "AgentFlowletSwitchingTest.*$"
         },
         {
-          "test_name_regex": "AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
-        },
-        {
           "test_name_regex": "AgentSflowMirrorTestV[46].*$"
         },
         {
@@ -990,9 +969,6 @@
         },
         {
           "test_name_regex": "AgentFlowletSwitchingTest.*$"
-        },
-        {
-          "test_name_regex": "AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
           "test_name_regex": "AgentSflowMirrorTestV[46].*$"
@@ -1171,9 +1147,6 @@
           "test_name_regex": "AgentFlowletSwitchingTest.*$"
         },
         {
-          "test_name_regex": "AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
-        },
-        {
           "test_name_regex": "AgentSflowMirrorTestV[46].*$"
         },
         {
@@ -1283,9 +1256,6 @@
         },
         {
           "test_name_regex": "AgentFlowletSwitchingTest.*$"
-        },
-        {
-          "test_name_regex": "AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
           "test_name_regex": "AgentSflowMirrorTestV[46].*$"
@@ -1518,9 +1488,6 @@
           "test_name_regex": "AgentFlowletSwitchingTest.*$"
         },
         {
-          "test_name_regex": "AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
-        },
-        {
           "test_name_regex": "AgentSflowMirrorTestV[46].*$"
         },
         {
@@ -1615,9 +1582,6 @@
         },
         {
           "test_name_regex": "AgentFlowletSwitchingTest.*$"
-        },
-        {
-          "test_name_regex": "AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
           "test_name_regex": "AgentSflowMirrorTestV[46].*$"
@@ -1805,9 +1769,6 @@
           "test_name_regex": "AgentFlowletSwitchingTest.*$"
         },
         {
-          "test_name_regex": "AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
-        },
-        {
           "test_name_regex": "AgentSflowMirrorTestV[46].*$"
         },
         {
@@ -1917,9 +1878,6 @@
         },
         {
           "test_name_regex": "AgentFlowletSwitchingTest.*$"
-        },
-        {
-          "test_name_regex": "AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
           "test_name_regex": "AgentSflowMirrorTestV[46].*$"
@@ -2104,9 +2062,6 @@
           "test_name_regex": "AgentFlowletSwitchingTest.*$"
         },
         {
-          "test_name_regex": "AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
-        },
-        {
           "test_name_regex": "AgentSflowMirrorTestV[46].*$"
         },
         {
@@ -2201,9 +2156,6 @@
         },
         {
           "test_name_regex": "AgentFlowletSwitchingTest.*$"
-        },
-        {
-          "test_name_regex": "AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
           "test_name_regex": "AgentSflowMirrorTestV[46].*$"
@@ -2352,9 +2304,6 @@
           "test_name_regex": "AgentFlowletSwitchingTest.*$"
         },
         {
-          "test_name_regex": "AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
-        },
-        {
           "test_name_regex": "AgentSflowMirrorTestV[46].*$"
         },
         {
@@ -2449,9 +2398,6 @@
         },
         {
           "test_name_regex": "AgentFlowletSwitchingTest.*$"
-        },
-        {
-          "test_name_regex": "AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
           "test_name_regex": "AgentSflowMirrorTestV[46].*$"
@@ -2651,9 +2597,6 @@
           "test_name_regex": "AgentFlowletSwitchingTest.*$"
         },
         {
-          "test_name_regex": "AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
-        },
-        {
           "test_name_regex": "AgentSflowMirrorTestV[46].*$"
         },
         {
@@ -2763,9 +2706,6 @@
         },
         {
           "test_name_regex": "AgentFlowletSwitchingTest.*$"
-        },
-        {
-          "test_name_regex": "AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
           "test_name_regex": "AgentSflowMirrorTestV[46].*$"
@@ -2965,9 +2905,6 @@
           "test_name_regex": "AgentFlowletSwitchingTest.*$"
         },
         {
-          "test_name_regex": "AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
-        },
-        {
           "test_name_regex": "AgentSflowMirrorTestV[46].*$"
         },
         {
@@ -3062,9 +2999,6 @@
         },
         {
           "test_name_regex": "AgentFlowletSwitchingTest.*$"
-        },
-        {
-          "test_name_regex": "AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
           "test_name_regex": "AgentSflowMirrorTestV[46].*$"
@@ -3276,9 +3210,6 @@
           "test_name_regex": "AgentFlowletSwitchingTest.*$"
         },
         {
-          "test_name_regex": "AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
-        },
-        {
           "test_name_regex": "AgentSflowMirrorTestV[46].*$"
         },
         {
@@ -3388,9 +3319,6 @@
         },
         {
           "test_name_regex": "AgentFlowletSwitchingTest.*$"
-        },
-        {
-          "test_name_regex": "AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
           "test_name_regex": "AgentSflowMirrorTestV[46].*$"
@@ -3602,9 +3530,6 @@
           "test_name_regex": "AgentFlowletSwitchingTest.*$"
         },
         {
-          "test_name_regex": "AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
-        },
-        {
           "test_name_regex": "AgentSflowMirrorTestV[46].*$"
         },
         {
@@ -3699,9 +3624,6 @@
         },
         {
           "test_name_regex": "AgentFlowletSwitchingTest.*$"
-        },
-        {
-          "test_name_regex": "AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
           "test_name_regex": "AgentSflowMirrorTestV[46].*$"
@@ -3829,9 +3751,6 @@
           "test_name_regex": "AgentFlowletSwitchingTest.*$"
         },
         {
-          "test_name_regex": "AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
-        },
-        {
           "test_name_regex": "AgentSflowMirrorTestV[46].*$"
         },
         {
@@ -3941,9 +3860,6 @@
         },
         {
           "test_name_regex": "AgentFlowletSwitchingTest.*$"
-        },
-        {
-          "test_name_regex": "AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
           "test_name_regex": "AgentSflowMirrorTestV[46].*$"
@@ -4071,9 +3987,6 @@
           "test_name_regex": "AgentFlowletSwitchingTest.*$"
         },
         {
-          "test_name_regex": "AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
-        },
-        {
           "test_name_regex": "AgentSflowMirrorTestV[46].*$"
         },
         {
@@ -4168,9 +4081,6 @@
         },
         {
           "test_name_regex": "AgentFlowletSwitchingTest.*$"
-        },
-        {
-          "test_name_regex": "AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
           "test_name_regex": "AgentSflowMirrorTestV[46].*$"
@@ -4298,9 +4208,6 @@
           "test_name_regex": "AgentFlowletSwitchingTest.*$"
         },
         {
-          "test_name_regex": "AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
-        },
-        {
           "test_name_regex": "AgentSflowMirrorTestV[46].*$"
         },
         {
@@ -4410,9 +4317,6 @@
         },
         {
           "test_name_regex": "AgentFlowletSwitchingTest.*$"
-        },
-        {
-          "test_name_regex": "AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
           "test_name_regex": "AgentSflowMirrorTestV[46].*$"
@@ -4594,9 +4498,6 @@
           "test_name_regex": "AgentFlowletSwitchingTest.*$"
         },
         {
-          "test_name_regex": "AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
-        },
-        {
           "test_name_regex": "AgentSflowMirrorTestV[46].*$"
         },
         {
@@ -4691,9 +4592,6 @@
         },
         {
           "test_name_regex": "AgentFlowletSwitchingTest.*$"
-        },
-        {
-          "test_name_regex": "AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
           "test_name_regex": "AgentSflowMirrorTestV[46].*$"
@@ -4875,9 +4773,6 @@
           "test_name_regex": "AgentFlowletSwitchingTest.*$"
         },
         {
-          "test_name_regex": "AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
-        },
-        {
           "test_name_regex": "AgentSflowMirrorTestV[46].*$"
         },
         {
@@ -4987,9 +4882,6 @@
         },
         {
           "test_name_regex": "AgentFlowletSwitchingTest.*$"
-        },
-        {
-          "test_name_regex": "AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
           "test_name_regex": "AgentSflowMirrorTestV[46].*$"
@@ -5120,9 +5012,6 @@
           "test_name_regex": "AgentFlowletSwitchingTest.*$"
         },
         {
-          "test_name_regex": "AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
-        },
-        {
           "test_name_regex": "AgentSflowMirrorTestV[46].*$"
         },
         {
@@ -5217,9 +5106,6 @@
         },
         {
           "test_name_regex": "AgentFlowletSwitchingTest.*$"
-        },
-        {
-          "test_name_regex": "AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
           "test_name_regex": "AgentSflowMirrorTestV[46].*$"
@@ -5398,9 +5284,6 @@
           "test_name_regex": "AgentFlowletSwitchingTest.*$"
         },
         {
-          "test_name_regex": "AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
-        },
-        {
           "test_name_regex": "AgentSflowMirrorTestV[46].*$"
         },
         {
@@ -5510,9 +5393,6 @@
         },
         {
           "test_name_regex": "AgentFlowletSwitchingTest.*$"
-        },
-        {
-          "test_name_regex": "AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
           "test_name_regex": "AgentSflowMirrorTestV[46].*$"
@@ -5745,9 +5625,6 @@
           "test_name_regex": "AgentFlowletSwitchingTest.*$"
         },
         {
-          "test_name_regex": "AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
-        },
-        {
           "test_name_regex": "AgentSflowMirrorTestV[46].*$"
         },
         {
@@ -5842,9 +5719,6 @@
         },
         {
           "test_name_regex": "AgentFlowletSwitchingTest.*$"
-        },
-        {
-          "test_name_regex": "AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
           "test_name_regex": "AgentSflowMirrorTestV[46].*$"
@@ -6032,9 +5906,6 @@
           "test_name_regex": "AgentFlowletSwitchingTest.*$"
         },
         {
-          "test_name_regex": "AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
-        },
-        {
           "test_name_regex": "AgentSflowMirrorTestV[46].*$"
         },
         {
@@ -6144,9 +6015,6 @@
         },
         {
           "test_name_regex": "AgentFlowletSwitchingTest.*$"
-        },
-        {
-          "test_name_regex": "AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
           "test_name_regex": "AgentSflowMirrorTestV[46].*$"
@@ -6364,9 +6232,6 @@
           "test_name_regex": "AgentFlowletSwitchingTest.*$"
         },
         {
-          "test_name_regex": "AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
-        },
-        {
           "test_name_regex": "AgentSflowMirrorTestV[46].*$"
         },
         {
@@ -6550,9 +6415,6 @@
         },
         {
           "test_name_regex": "AgentFlowletSwitchingTest.*$"
-        },
-        {
-          "test_name_regex": "AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
           "test_name_regex": "AgentSflowMirrorTestV[46].*$"
@@ -6746,9 +6608,6 @@
           "test_name_regex": "AgentFlowletSwitchingTest.*$"
         },
         {
-          "test_name_regex": "AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
-        },
-        {
           "test_name_regex": "AgentSflowMirrorTestV[46].*$"
         },
         {
@@ -6923,9 +6782,6 @@
         },
         {
           "test_name_regex": "AgentFlowletSwitchingTest.*$"
-        },
-        {
-          "test_name_regex": "AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
           "test_name_regex": "AgentSflowMirrorTestV[46].*$"
