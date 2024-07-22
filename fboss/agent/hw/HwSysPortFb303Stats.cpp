@@ -37,7 +37,8 @@ HwSysPortFb303Stats::kQueueMonotonicCounterStatKeys() const {
       kOutDiscards(),
       kOutBytes(),
       kWredDroppedPackets(),
-      kCreditWatchdogDeletedPackets()};
+      kCreditWatchdogDeletedPackets(),
+      kLatencyWatermarkNsec()};
   return kQueueKeys;
 }
 
@@ -93,6 +94,12 @@ void HwSysPortFb303Stats::updateStats(
           kCreditWatchdogDeletedPackets(),
           queueIdAndName.first,
           *curPortStats.queueCreditWatchdogDeletedPackets_());
+    }
+    if (curPortStats.queueLatencyWatermarkNsec_()->size()) {
+      updateQueueStat(
+          kLatencyWatermarkNsec(),
+          queueIdAndName.first,
+          *curPortStats.queueLatencyWatermarkNsec_());
     }
   }
   if (curPortStats.queueWatermarkBytes_()->size()) {

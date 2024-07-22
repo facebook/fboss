@@ -21364,6 +21364,7 @@ std::pair<strings::queueOutBytes_, ChildThriftPath<::std::map<::std::int16_t, ::
 std::pair<strings::queueWatermarkBytes_, ChildThriftPath<::std::map<::std::int16_t, ::std::int64_t>, ::facebook::fboss::fsdb::FsdbOperStatsRoot, Self>>,
 std::pair<strings::queueWredDroppedPackets_, ChildThriftPath<::std::map<::std::int16_t, ::std::int64_t>, ::facebook::fboss::fsdb::FsdbOperStatsRoot, Self>>,
 std::pair<strings::queueCreditWatchdogDeletedPackets_, ChildThriftPath<::std::map<::std::int16_t, ::std::int64_t>, ::facebook::fboss::fsdb::FsdbOperStatsRoot, Self>>,
+std::pair<strings::queueLatencyWatermarkNsec_, ChildThriftPath<::std::map<::std::int16_t, ::std::int64_t>, ::facebook::fboss::fsdb::FsdbOperStatsRoot, Self>>,
 std::pair<strings::timestamp_, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
 std::pair<strings::portName_, Child<::std::string, ::apache::thrift::type_class::string, ::apache::thrift::type::string_t>>>;
   using ChildrenById = fatal::tuple<   std::pair<std::integral_constant<apache::thrift::field_id_t, 1>, ChildThriftPath<::std::map<::std::int16_t, ::std::int64_t>, ::facebook::fboss::fsdb::FsdbOperStatsRoot, Self>>,
@@ -21371,6 +21372,7 @@ std::pair<strings::portName_, Child<::std::string, ::apache::thrift::type_class:
    std::pair<std::integral_constant<apache::thrift::field_id_t, 3>, ChildThriftPath<::std::map<::std::int16_t, ::std::int64_t>, ::facebook::fboss::fsdb::FsdbOperStatsRoot, Self>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 4>, ChildThriftPath<::std::map<::std::int16_t, ::std::int64_t>, ::facebook::fboss::fsdb::FsdbOperStatsRoot, Self>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 5>, ChildThriftPath<::std::map<::std::int16_t, ::std::int64_t>, ::facebook::fboss::fsdb::FsdbOperStatsRoot, Self>>,
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 6>, ChildThriftPath<::std::map<::std::int16_t, ::std::int64_t>, ::facebook::fboss::fsdb::FsdbOperStatsRoot, Self>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 100>, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 101>, Child<::std::string, ::apache::thrift::type_class::string, ::apache::thrift::type::string_t>>>;
   template <typename Name>
@@ -21379,6 +21381,7 @@ std::pair<strings::queueOutBytes_, std::integral_constant<apache::thrift::field_
 std::pair<strings::queueWatermarkBytes_, std::integral_constant<apache::thrift::field_id_t, 3>>,
 std::pair<strings::queueWredDroppedPackets_, std::integral_constant<apache::thrift::field_id_t, 4>>,
 std::pair<strings::queueCreditWatchdogDeletedPackets_, std::integral_constant<apache::thrift::field_id_t, 5>>,
+std::pair<strings::queueLatencyWatermarkNsec_, std::integral_constant<apache::thrift::field_id_t, 6>>,
 std::pair<strings::timestamp_, std::integral_constant<apache::thrift::field_id_t, 100>>,
 std::pair<strings::portName_, std::integral_constant<apache::thrift::field_id_t, 101>>>::template type_of<Name>;
 
@@ -21391,6 +21394,7 @@ std::pair<strings::portName_, std::integral_constant<apache::thrift::field_id_t,
     STRUCT_CHILD_GETTERS(queueWatermarkBytes_, 3);
     STRUCT_CHILD_GETTERS(queueWredDroppedPackets_, 4);
     STRUCT_CHILD_GETTERS(queueCreditWatchdogDeletedPackets_, 5);
+    STRUCT_CHILD_GETTERS(queueLatencyWatermarkNsec_, 6);
     STRUCT_CHILD_GETTERS(timestamp_, 100);
     STRUCT_CHILD_GETTERS(portName_, 101);
 
@@ -21401,6 +21405,7 @@ std::pair<strings::portName_, std::integral_constant<apache::thrift::field_id_t,
     else if constexpr (__id == 3) { return queueWatermarkBytes_(); }
     else if constexpr (__id == 4) { return queueWredDroppedPackets_(); }
     else if constexpr (__id == 5) { return queueCreditWatchdogDeletedPackets_(); }
+    else if constexpr (__id == 6) { return queueLatencyWatermarkNsec_(); }
     else if constexpr (__id == 100) { return timestamp_(); }
     else if constexpr (__id == 101) { return portName_(); }
   }

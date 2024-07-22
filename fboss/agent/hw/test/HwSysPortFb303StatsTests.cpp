@@ -34,6 +34,7 @@ HwSysPortStats getInitedStats() {
       {{1, 0}, {2, 10}}, // queueWatermarkBytes
       {{1, 3}, {2, 3}}, // queueWredDroppedPackets
       {{1, 4}, {2, 4}}, // queueCreditWatchdogDeletedPackets
+      {{1, 5}, {2, 5}}, // queueLatencyWatermarkNsec
       0, // timestamp
       "test", // portName
   };
@@ -47,7 +48,8 @@ void updateStats(HwSysPortFb303Stats& portStats) {
   // maps are empty
   *empty.queueOutDiscardBytes_() = *empty.queueOutBytes_() =
       *empty.queueWatermarkBytes_() = *empty.queueWredDroppedPackets_() =
-          *empty.queueCreditWatchdogDeletedPackets_() = {{1, 0}, {2, 0}};
+          *empty.queueCreditWatchdogDeletedPackets_() =
+              *empty.queueLatencyWatermarkNsec_() = {{1, 0}, {2, 0}};
   portStats.updateStats(empty, now);
   portStats.updateStats(getInitedStats(), now);
 }

@@ -101,6 +101,7 @@ struct HwSysPortStats {
   3: map<i16, i64> queueWatermarkBytes_ = {};
   4: map<i16, i64> queueWredDroppedPackets_ = {};
   5: map<i16, i64> queueCreditWatchdogDeletedPackets_ = {};
+  6: map<i16, i64> queueLatencyWatermarkNsec_ = {};
 
   // seconds from epoch
   // Field index at a distance to allow for other stat additions

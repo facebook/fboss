@@ -181,6 +181,10 @@ inline folly::StringPiece constexpr kErrorsPerCodeword() {
   return "errors_per_codeword";
 }
 
+inline folly::StringPiece constexpr kLatencyWatermarkNsec() {
+  return "latency_watermark_nsec";
+}
+
 /**
  * Maximum FEC errors we can ever see under any config
  */
