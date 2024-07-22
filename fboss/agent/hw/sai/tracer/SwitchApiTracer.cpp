@@ -116,6 +116,8 @@ void handleExtensionAttributes() {
   SAI_EXT_ATTR_MAP(Switch, VoqLatencyMaxLocalNs);
   SAI_EXT_ATTR_MAP(Switch, VoqLatencyMinLevel1Ns);
   SAI_EXT_ATTR_MAP(Switch, VoqLatencyMaxLevel1Ns);
+  SAI_EXT_ATTR_MAP(Switch, VoqLatencyMinLevel2Ns);
+  SAI_EXT_ATTR_MAP(Switch, VoqLatencyMaxLevel2Ns);
 }
 
 } // namespace

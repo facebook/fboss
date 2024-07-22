@@ -127,4 +127,13 @@ SaiSwitchTraits::Attributes::AttributeVoqLatencyMaxLevel1Ns::operator()() {
   return std::nullopt;
 }
 
+std::optional<sai_attr_id_t>
+SaiSwitchTraits::Attributes::AttributeVoqLatencyMinLevel2Ns::operator()() {
+  return std::nullopt;
+}
+
+std::optional<sai_attr_id_t>
+SaiSwitchTraits::Attributes::AttributeVoqLatencyMaxLevel2Ns::operator()() {
+  return std::nullopt;
+}
 } // namespace facebook::fboss
