@@ -1,0 +1,9 @@
+load("//antlir/rpmbuilder/fb:rpm.bzl", "rpm")
+
+oncall("fboss_platform")
+
+rpm.publish_from_yaml(
+    name = "fboss-flashrom",
+    repo = "fb-runtime",
+    yaml = "packman.yml",
+)
