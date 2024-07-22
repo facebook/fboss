@@ -31,7 +31,8 @@ BENCHMARK(RibSyncFibBenchmark) {
             ensemble.getSw(), ensemble.masterLogicalPortIds());
       };
 
-  auto ensemble = createAgentEnsemble(initialConfigFn);
+  auto ensemble =
+      createAgentEnsemble(initialConfigFn, false /*disableLinkStateToggler*/);
   auto state = ensemble->getSw()->getState();
   utility::THAlpmRouteScaleGenerator gen(state, 50000);
   const auto& routeChunks = gen.getThriftRoutes();

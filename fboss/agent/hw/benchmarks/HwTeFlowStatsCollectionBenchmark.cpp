@@ -59,7 +59,8 @@ BENCHMARK(HwTeFlowStatsCollection) {
         AgentEnsemble::enableExactMatch(bcm);
       };
 
-  ensemble = createAgentEnsemble(initialConfigFn, platformConfigFn);
+  ensemble = createAgentEnsemble(
+      initialConfigFn, false /*disableLinkStateToggler*/, platformConfigFn);
   const auto& ports = ensemble->masterLogicalPortIds();
   // TODO(zecheng): Deprecate agent access to HwSwitch
   auto hwSwitch = ensemble->getHwSwitch();

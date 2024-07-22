@@ -56,7 +56,8 @@ void teFlowAddDelEntriesBenchmarkHelper(bool measureAdd) {
         // enable exact match in platform config
         AgentEnsemble::enableExactMatch(bcm);
       };
-  auto ensemble = createAgentEnsemble(initialConfigFn, platformConfigFn);
+  auto ensemble = createAgentEnsemble(
+      initialConfigFn, false /*disableLinkStateToggler*/, platformConfigFn);
   auto ports = ensemble->masterLogicalPortIds();
   // TODO(zecheng): Deprecate agent access to HwSwitch
   auto hwSwitch = ensemble->getHwSwitch();

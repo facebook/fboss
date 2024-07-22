@@ -60,6 +60,7 @@ const HwSwitch* MultiSwitchAgentEnsemble::getHwSwitch() const {
 
 std::unique_ptr<AgentEnsemble> createAgentEnsemble(
     AgentEnsembleSwitchConfigFn initialConfigFn,
+    bool disableLinkStateToggler,
     AgentEnsemblePlatformConfigFn platformConfigFn,
     uint32_t featuresDesired,
     bool failHwCallsOnWarmboot) {
@@ -68,9 +69,10 @@ std::unique_ptr<AgentEnsemble> createAgentEnsemble(
   std::unique_ptr<AgentEnsemble> ensemble =
       std::make_unique<MultiSwitchAgentEnsemble>();
   ensemble->setupEnsemble(
-      featuresDesired,
       initialConfigFn,
+      disableLinkStateToggler,
       platformConfigFn,
+      featuresDesired,
       failHwCallsOnWarmboot);
   return ensemble;
 }

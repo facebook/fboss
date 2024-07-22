@@ -37,7 +37,8 @@ BENCHMARK(HwEcmpGroupShrink) {
         return utility::onePortPerInterfaceConfig(
             ensemble.getSw(), ensemble.masterLogicalPortIds());
       };
-  auto ensemble = createAgentEnsemble(initialConfigFn);
+  auto ensemble =
+      createAgentEnsemble(initialConfigFn, false /*disableLinkStateToggler*/);
   // TODO(zecheng): Deprecate agent access to HwSwitch
   auto hwSwitch = ensemble->getHwSwitch();
   auto ecmpHelper = utility::EcmpSetupAnyNPorts6(ensemble->getSw()->getState());

@@ -48,7 +48,8 @@ BENCHMARK(HwFlowletStatsCollection) {
         return config;
       };
 
-  ensemble = createAgentEnsemble(initialConfigFn);
+  ensemble =
+      createAgentEnsemble(initialConfigFn, false /*disableLinkStateToggler*/);
   auto hwSwitch = ensemble->getHwSwitch();
   // Resolve nextHops
   auto ecmpHelper = utility::EcmpSetupAnyNPorts6(ensemble->getSw()->getState());

@@ -33,7 +33,8 @@ BENCHMARK(RibResolutionBenchmark) {
         CHECK_GT(ports.size(), 0);
         return utility::onePortPerInterfaceConfig(ensemble.getSw(), ports);
       };
-  ensemble = createAgentEnsemble(initialConfigFn);
+  ensemble =
+      createAgentEnsemble(initialConfigFn, false /*disableLinkStateToggler*/);
   auto ports = ensemble->masterLogicalPortIds();
 
   utility::THAlpmRouteScaleGenerator gen(ensemble->getSw()->getState());

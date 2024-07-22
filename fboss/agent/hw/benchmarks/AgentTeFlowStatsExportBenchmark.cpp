@@ -57,7 +57,8 @@ BENCHMARK(AgentTeFlowStatsPublishToFsdb) {
         AgentEnsemble::enableExactMatch(bcm);
       };
 
-  ensemble = createAgentEnsemble(initialConfigFn, platformConfigFn);
+  ensemble = createAgentEnsemble(
+      initialConfigFn, false /*disableLinkStateToggler*/, platformConfigFn);
   const auto& ports = ensemble->masterLogicalPortIds();
   auto ecmpHelper =
       utility::EcmpSetupAnyNPorts6(ensemble->getSw()->getState(), RouterID(0));

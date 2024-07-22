@@ -43,7 +43,8 @@ BENCHMARK(HwEcmpGroupShrinkWithCompetingRouteUpdates) {
             ensemble.getSw(), ensemble.masterLogicalPortIds());
         ;
       };
-  ensemble = createAgentEnsemble(initialConfigFn);
+  ensemble =
+      createAgentEnsemble(initialConfigFn, false /*disableLinkStateToggler*/);
   // TODO(zecheng): Deprecate agent access to HwSwitch
   auto hwSwitch = ensemble->getHwSwitch();
   auto state = ensemble->getSw()->getState();

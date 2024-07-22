@@ -40,9 +40,10 @@ AgentEnsemble::AgentEnsemble(const std::string& configFileName) {
 }
 
 void AgentEnsemble::setupEnsemble(
-    uint32_t hwFeaturesDesired,
     AgentEnsembleSwitchConfigFn initialConfigFn,
+    bool disableLinkStateToggler,
     AgentEnsemblePlatformConfigFn platformConfigFn,
+    uint32_t hwFeaturesDesired,
     bool failHwCallsOnWarmboot) {
   FLAGS_verify_apply_oper_delta = true;
 
@@ -102,7 +103,8 @@ void AgentEnsemble::setupEnsemble(
   }
 
   // Setup LinkStateToggler and start agent
-  if (hwFeaturesDesired & HwSwitch::FeaturesDesired::LINKSCAN_DESIRED) {
+  if (hwFeaturesDesired & HwSwitch::FeaturesDesired::LINKSCAN_DESIRED &&
+      disableLinkStateToggler == false) {
     setupLinkStateToggler();
   }
   startAgent(failHwCallsOnWarmboot);

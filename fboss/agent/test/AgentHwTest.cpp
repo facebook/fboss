@@ -44,6 +44,7 @@ void AgentHwTest::SetUp() {
       [this](const AgentEnsemble& ensemble) { return initialConfig(ensemble); };
   agentEnsemble_ = createAgentEnsemble(
       initialConfigFn,
+      false /*disableLinkStateToggler*/,
       AgentEnsemblePlatformConfigFn(),
       (HwSwitch::FeaturesDesired::PACKET_RX_DESIRED |
        HwSwitch::FeaturesDesired::LINKSCAN_DESIRED |

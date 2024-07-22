@@ -87,7 +87,8 @@ BENCHMARK(HwStatsCollection) {
         return config;
       };
 
-  ensemble = createAgentEnsemble(initialConfigFn);
+  ensemble =
+      createAgentEnsemble(initialConfigFn, false /*disableLinkStateToggler*/);
   int iterations = 10'000;
 
   // Setup Remote Intf and System Ports

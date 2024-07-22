@@ -38,7 +38,8 @@ void runBenchmark() {
             ensemble.getSw(), ensemble.masterLogicalPortIds());
         ;
       };
-  auto ensemble = createAgentEnsemble(initialConfigFn);
+  auto ensemble =
+      createAgentEnsemble(initialConfigFn, false /*disableLinkStateToggler*/);
 
   utility::RouteDistributionGenerator::ThriftRouteChunks routeChunks;
   auto platformType = ensemble->getSw()->getPlatformType();

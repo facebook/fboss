@@ -43,10 +43,14 @@ class AgentEnsemble : public TestEnsembleIf {
   using TestEnsembleIf::getLatestSysPortStats;
 
   void setupEnsemble(
-      uint32_t hwFeaturesDesired,
       AgentEnsembleSwitchConfigFn initConfig,
+      bool disableLinkStateToggler,
       AgentEnsemblePlatformConfigFn platformConfig =
           AgentEnsemblePlatformConfigFn(),
+      uint32_t featuresDesired =
+          (HwSwitch::FeaturesDesired::PACKET_RX_DESIRED |
+           HwSwitch::FeaturesDesired::LINKSCAN_DESIRED |
+           HwSwitch::FeaturesDesired::TAM_EVENT_NOTIFY_DESIRED),
       bool failHwCallsOnWarmboot = false);
 
   void startAgent(bool failHwCallsOnWarmboot = false);
@@ -306,6 +310,7 @@ void initEnsemble(
 
 std::unique_ptr<AgentEnsemble> createAgentEnsemble(
     AgentEnsembleSwitchConfigFn initialConfigFn,
+    bool disableLinkStateToggler,
     AgentEnsemblePlatformConfigFn platformConfigFn =
         AgentEnsemblePlatformConfigFn(),
     uint32_t featuresDesired =

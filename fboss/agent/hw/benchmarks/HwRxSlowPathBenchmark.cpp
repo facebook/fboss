@@ -79,7 +79,8 @@ BENCHMARK(RxSlowPathBenchmark) {
     return config;
   };
 
-  auto ensemble = createAgentEnsemble(initialConfigFn);
+  auto ensemble =
+      createAgentEnsemble(initialConfigFn, false /*disableLinkStateToggler*/);
 
   // capture packet exiting port 0 (entering due to loopback)
   auto dstMac = utility::getFirstInterfaceMac(ensemble->getProgrammedState());

@@ -50,7 +50,8 @@ void routeAddDelBenchmarker(bool measureAdd) {
         return utility::onePortPerInterfaceConfig(
             ensemble.getSw(), ensemble.masterLogicalPortIds());
       };
-  auto ensemble = createAgentEnsemble(initialConfigFn);
+  auto ensemble =
+      createAgentEnsemble(initialConfigFn, false /*disableLinkStateToggler*/);
   auto* sw = ensemble->getSw();
 
   auto routeGenerator = RouteScaleGeneratorT(sw->getState());
@@ -196,7 +197,8 @@ inline void voqRouteBenchmark(bool add) {
         config.dsfNodes() = *utility::addRemoteDsfNodeCfg(*config.dsfNodes());
         return config;
       };
-  auto ensemble = createAgentEnsemble(voqInitialConfig);
+  auto ensemble =
+      createAgentEnsemble(voqInitialConfig, false /*disableLinkStateToggler*/);
   ScopedCallTimer timeIt;
 
   ensemble->applyNewState([&](const std::shared_ptr<SwitchState>& in) {

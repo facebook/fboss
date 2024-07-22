@@ -49,7 +49,8 @@ BENCHMARK(runTxSlowPathBenchmark) {
         CHECK_GT(ports.size(), 0);
         return utility::onePortPerInterfaceConfig(ensemble.getSw(), ports);
       };
-  ensemble = createAgentEnsemble(initialConfigFn);
+  ensemble =
+      createAgentEnsemble(initialConfigFn, false /*disableLinkStateToggler*/);
 
   auto swSwitch = ensemble->getSw();
   auto ecmpHelper = utility::EcmpSetupAnyNPorts6(ensemble->getSw()->getState());

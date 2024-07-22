@@ -251,7 +251,8 @@ void initandExitBenchmarkHelper(
     ScopedCallTimer timeIt;
     switch (switchType) {
       case cfg::SwitchType::VOQ:
-        ensemble = createAgentEnsemble(voqInitialConfig);
+        ensemble = createAgentEnsemble(
+            voqInitialConfig, false /*disableLinkStateToggler*/);
         if (ensemble->getSw()->getBootType() == BootType::COLD_BOOT) {
           ensemble->applyNewState([&](const std::shared_ptr<SwitchState>& in) {
             return utility::setupRemoteIntfAndSysPorts(
@@ -266,10 +267,12 @@ void initandExitBenchmarkHelper(
         }
         break;
       case cfg::SwitchType::NPU:
-        ensemble = createAgentEnsemble(npuInitialConfig);
+        ensemble = createAgentEnsemble(
+            npuInitialConfig, false /*disableLinkStateToggler*/);
         break;
       case cfg::SwitchType::FABRIC:
-        ensemble = createAgentEnsemble(fabricInitialConfig);
+        ensemble = createAgentEnsemble(
+            fabricInitialConfig, false /*disableLinkStateToggler*/);
         break;
       default:
         throw FbossError("Unsupported switch type");
