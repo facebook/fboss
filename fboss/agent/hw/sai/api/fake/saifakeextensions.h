@@ -45,6 +45,8 @@ typedef enum _sai_switch_extensions_attr_t {
   SAI_SWITCH_ATTR_FABRIC_REMOTE_REACHABLE_PORT_LIST,
   SAI_SWITCH_ATTR_VOQ_LATENCY_MIN_LOCAL,
   SAI_SWITCH_ATTR_VOQ_LATENCY_MAX_LOCAL,
+  SAI_SWITCH_ATTR_VOQ_LATENCY_MIN_LEVEL_1,
+  SAI_SWITCH_ATTR_VOQ_LATENCY_MAX_LEVEL_1,
 } sai_switch_extensions_attr_t;
 
 typedef enum _sai_tam_event_extensions_attr_t {

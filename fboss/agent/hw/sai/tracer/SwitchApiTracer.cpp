@@ -114,6 +114,8 @@ void handleExtensionAttributes() {
   SAI_EXT_ATTR_MAP(Switch, MultiStageLocalSwitchIds)
   SAI_EXT_ATTR_MAP(Switch, VoqLatencyMinLocalNs);
   SAI_EXT_ATTR_MAP(Switch, VoqLatencyMaxLocalNs);
+  SAI_EXT_ATTR_MAP(Switch, VoqLatencyMinLevel1Ns);
+  SAI_EXT_ATTR_MAP(Switch, VoqLatencyMaxLevel1Ns);
 }
 
 } // namespace

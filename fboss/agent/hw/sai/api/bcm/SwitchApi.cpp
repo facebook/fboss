@@ -230,4 +230,20 @@ SaiSwitchTraits::Attributes::AttributeVoqLatencyMaxLocalNs::operator()() {
   return std::nullopt;
 }
 
+std::optional<sai_attr_id_t>
+SaiSwitchTraits::Attributes::AttributeVoqLatencyMinLevel1Ns::operator()() {
+#if defined(BRCM_SAI_SDK_DNX) && defined(BRCM_SAI_SDK_GTE_11_0)
+  return SAI_SWITCH_ATTR_VOQ_LATENCY_MIN_LEVEL_1;
+#endif
+  return std::nullopt;
+}
+
+std::optional<sai_attr_id_t>
+SaiSwitchTraits::Attributes::AttributeVoqLatencyMaxLevel1Ns::operator()() {
+#if defined(BRCM_SAI_SDK_DNX) && defined(BRCM_SAI_SDK_GTE_11_0)
+  return SAI_SWITCH_ATTR_VOQ_LATENCY_MAX_LEVEL_1;
+#endif
+  return std::nullopt;
+}
+
 } // namespace facebook::fboss
