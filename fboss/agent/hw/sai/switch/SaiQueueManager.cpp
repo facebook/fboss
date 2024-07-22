@@ -91,6 +91,11 @@ void fillHwQueueStats(
         hwSysPortStats.queueCreditWatchdogDeletedPackets_()[queueId] += value;
         break;
 #endif
+#if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
+      case SAI_QUEUE_STAT_DELAY_WATERMARK_NS:
+        hwSysPortStats.queueLatencyWatermarkNsec_()[queueId] = value;
+        break;
+#endif
       default:
         throw FbossError("Got unexpected queue counter id: ", counterId);
     }
@@ -391,6 +396,13 @@ SaiQueueManager::voqNonWatermarkCounterIdsRead(
           baseCounterIds.end(),
           SaiQueueTraits::VoqWatchDogDeleteCounterIdsToRead.begin(),
           SaiQueueTraits::VoqWatchDogDeleteCounterIdsToRead.end());
+    }
+    if (platform_->getAsic()->isSupported(
+            HwAsic::Feature::VOQ_LATENCY_WATERMARK_BIN)) {
+      baseCounterIds.insert(
+          baseCounterIds.end(),
+          SaiQueueTraits::VoqLatencyWatermarkCounterIdsToRead.begin(),
+          SaiQueueTraits::VoqLatencyWatermarkCounterIdsToRead.end());
     }
     basePlusWredCounterIds.resize(
         baseCounterIds.size() + SaiQueueTraits::WredCounterIdsToRead.size());
