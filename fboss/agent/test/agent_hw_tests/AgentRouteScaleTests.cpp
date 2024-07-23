@@ -129,18 +129,18 @@ TEST_F(AgentHgridUuRouteScaleTest, hgridUuScaleTest) {
   runTest<utility::HgridUuRouteScaleGenerator>();
 }
 
-class AgentAnticipatedRouteScaleTest : public AgentRouteScaleTest {
+class AgentHundredThousandRouteScaleTest : public AgentRouteScaleTest {
  protected:
   std::vector<production_features::ProductionFeature>
   getProductionFeaturesVerified() const override {
     auto features = AgentRouteScaleTest::getProductionFeaturesVerified();
     features.push_back(
-        production_features::ProductionFeature::ANTICIPATED_ROUTE_SCALE);
+        production_features::ProductionFeature::HUNDRED_THOUSAND_ROUTE_SCALE);
     return features;
   }
 };
 
-TEST_F(AgentAnticipatedRouteScaleTest, anticipatedRouteScaleGenerator) {
+TEST_F(AgentHundredThousandRouteScaleTest, hundredThousandRouteScaleTest) {
   runTest<utility::AnticipatedRouteScaleGenerator>();
 }
 } // namespace facebook::fboss
