@@ -28,6 +28,8 @@ namespace facebook::fboss {
 class Interface;
 class SwitchState;
 class RouteUpdateWrapper;
+class HwAsic;
+class SwSwitch;
 } // namespace facebook::fboss
 
 namespace facebook::fboss::utility {
@@ -85,8 +87,8 @@ struct EcmpMplsNextHop {
  * VLAN. Useful in setting up ECMP paths with loopbacks, without the risk of
  * creating dataplane floods
  */
-boost::container::flat_set<PortDescriptor> getPortsWithExclusiveVlanMembership(
-    const std::shared_ptr<SwitchState>& state);
+boost::container::flat_set<PortDescriptor> getSingleVlanOrRoutedCabledPorts(
+    const SwSwitch* sw);
 
 template <typename AddrT, typename NextHopT>
 class BaseEcmpSetupHelper {

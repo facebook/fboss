@@ -9,11 +9,13 @@
  */
 
 #include "fboss/agent/test/EcmpSetupHelper.h"
+#include "fboss/agent/hw/switch_asics/HwAsic.h"
 
 #include <iterator>
 
 #include "fboss/agent/ApplyThriftConfig.h"
 #include "fboss/agent/RouteUpdateWrapper.h"
+#include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/state/AggregatePort.h"
 #include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/Port.h"
@@ -78,10 +80,10 @@ flat_map<InterfaceID, folly::CIDRNetwork> computeInterface2Subnet(
 
 namespace facebook::fboss::utility {
 
-boost::container::flat_set<PortDescriptor> getPortsWithExclusiveVlanMembership(
-    const std::shared_ptr<SwitchState>& state) {
+boost::container::flat_set<PortDescriptor> getSingleVlanOrRoutedCabledPorts(
+    const SwSwitch* sw) {
   boost::container::flat_set<PortDescriptor> ports;
-  for (const auto& vlanTable : std::as_const(*state->getVlans())) {
+  for (const auto& vlanTable : std::as_const(*sw->getState()->getVlans())) {
     for (auto [id, vlan] : std::as_const(*vlanTable.second)) {
       auto memberPorts = vlan->getPorts();
       if (memberPorts.size() == 1) {

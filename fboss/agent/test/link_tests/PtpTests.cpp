@@ -204,7 +204,7 @@ class PtpTests : public LinkTest {
 //    else EXPECT_GT(CF_field, 0)
 // }
 TEST_F(PtpTests, verifyPtpTcDelayRequest) {
-  auto ecmpPorts = getVlanOwningCabledPorts();
+  auto ecmpPorts = getSingleVlanOrRoutedCabledPorts();
   // create ACL to trap any packets to CPU coming with given dst IP
   // Ideally we should have used the l4port (PTP_UDP_EVENT_PORT), but
   // SAI doesn't support this qualifier yet
@@ -218,7 +218,7 @@ TEST_F(PtpTests, verifyPtpTcDelayRequest) {
 TEST_F(PtpTests, verifyPtpTcAfterLinkFlap) {
   folly::CIDRNetwork dstPrefix = folly::CIDRNetwork{kIPv6Dst, 128};
   this->trapPackets(dstPrefix);
-  auto ecmpPorts = getVlanOwningCabledPorts();
+  auto ecmpPorts = getSingleVlanOrRoutedCabledPorts();
   std::vector<PortID> portVec;
   boost::container::flat_set<PortDescriptor> portDescriptorSet;
   // For the sake of time, use the first 5 ports.
@@ -261,7 +261,7 @@ TEST_F(PtpTests, verifyPtpTcAfterLinkFlap) {
 TEST_F(PtpTests, enablePtpPortDown) {
   folly::CIDRNetwork dstPrefix = folly::CIDRNetwork{kIPv6Dst, 128};
   this->trapPackets(dstPrefix);
-  auto ecmpPorts = getVlanOwningCabledPorts();
+  auto ecmpPorts = getSingleVlanOrRoutedCabledPorts();
   std::vector<PortID> portVec;
   boost::container::flat_set<PortDescriptor> portDescriptorSet;
   // For the sake of time, use the first 5 ports.

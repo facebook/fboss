@@ -79,7 +79,8 @@ class LinkTest : public AgentTest {
   const std::set<TransceiverID>& getCabledTranceivers() const {
     return cabledTransceivers_;
   }
-  boost::container::flat_set<PortDescriptor> getVlanOwningCabledPorts() const;
+  boost::container::flat_set<PortDescriptor> getSingleVlanOrRoutedCabledPorts()
+      const;
   const std::vector<PortID>& getCabledFabricPorts() const {
     return cabledFabricPorts_;
   }
@@ -101,7 +102,7 @@ class LinkTest : public AgentTest {
   void createL3DataplaneFlood(
       const boost::container::flat_set<PortDescriptor>& inPorts);
   void createL3DataplaneFlood() {
-    createL3DataplaneFlood(getVlanOwningCabledPorts());
+    createL3DataplaneFlood(getSingleVlanOrRoutedCabledPorts());
   }
   std::string getPortName(PortID port) const;
   std::vector<std::string> getPortName(

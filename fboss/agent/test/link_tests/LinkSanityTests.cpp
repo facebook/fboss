@@ -133,7 +133,7 @@ TEST_F(LinkTest, warmbootIsHitLess) {
         // Assert no traffic loss and no ecmp shrink. If ports flap
         // these conditions will not be true
         assertNoInDiscards();
-        auto ecmpSizeInSw = getVlanOwningCabledPorts().size();
+        auto ecmpSizeInSw = getSingleVlanOrRoutedCabledPorts().size();
         EXPECT_EQ(
             utility::getEcmpSizeInHw(
                 platform()->getHwSwitch(),
@@ -162,7 +162,7 @@ TEST_F(LinkTest, qsfpWarmbootIsHitLess) {
         // Assert no traffic loss and no ecmp shrink. If ports flap
         // these conditions will not be true
         assertNoInDiscards();
-        auto ecmpSizeInSw = getVlanOwningCabledPorts().size();
+        auto ecmpSizeInSw = getSingleVlanOrRoutedCabledPorts().size();
         EXPECT_EQ(
             utility::getEcmpSizeInHw(
                 platform()->getHwSwitch(),
@@ -201,7 +201,7 @@ TEST_F(LinkTest, ptpEnableIsHitless) {
   // Assert no traffic loss and no ecmp shrink. If ports flap
   // these conditions will not be true
   assertNoInDiscards();
-  auto ecmpSizeInSw = getVlanOwningCabledPorts().size();
+  auto ecmpSizeInSw = getSingleVlanOrRoutedCabledPorts().size();
   EXPECT_EQ(
       utility::getEcmpSizeInHw(
           platform()->getHwSwitch(),

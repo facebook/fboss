@@ -71,7 +71,7 @@ class MacLearningTest : public LinkTest {
   void verifyL2EntryValidated(PortID txPort, MacAddress srcMac) {
     // send packets whose src mac matches L2 entry and verify no drops,
     // if L2 entry is in pending state, these packets would be dropped
-    auto ecmpPorts = getVlanOwningCabledPorts();
+    auto ecmpPorts = getSingleVlanOrRoutedCabledPorts();
     auto switchId = scope(ecmpPorts);
     programDefaultRoute(ecmpPorts, sw()->getLocalMac(switchId));
     disableTTLDecrements(ecmpPorts);

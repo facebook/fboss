@@ -314,13 +314,14 @@ const std::vector<PortID>& LinkTest::getCabledPorts() const {
   return cabledPorts_;
 }
 
-boost::container::flat_set<PortDescriptor> LinkTest::getVlanOwningCabledPorts()
-    const {
+boost::container::flat_set<PortDescriptor>
+LinkTest::getSingleVlanOrRoutedCabledPorts() const {
   boost::container::flat_set<PortDescriptor> ecmpPorts;
-  auto vlanOwningPorts =
-      utility::getPortsWithExclusiveVlanMembership(sw()->getState());
+  auto singleVlanOrRoutedPorts =
+      utility::getSingleVlanOrRoutedCabledPorts(sw());
   for (auto port : getCabledPorts()) {
-    if (vlanOwningPorts.find(PortDescriptor(port)) != vlanOwningPorts.end()) {
+    if (singleVlanOrRoutedPorts.find(PortDescriptor(port)) !=
+        singleVlanOrRoutedPorts.end()) {
       ecmpPorts.insert(PortDescriptor(port));
     }
   }

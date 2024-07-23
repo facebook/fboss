@@ -169,7 +169,7 @@ class SpeedChangeTest : public LinkTest {
       assertNoInDiscards();
 
       if (platform()->getHwSwitch()->getBootType() == BootType::COLD_BOOT) {
-        auto ecmpSizeInSw = getVlanOwningCabledPorts().size();
+        auto ecmpSizeInSw = getSingleVlanOrRoutedCabledPorts().size();
         XLOG(INFO) << "[DBG] ECMP size in sw: " << ecmpSizeInSw;
         WITH_RETRIES({
           EXPECT_EVENTUALLY_EQ(
@@ -269,7 +269,7 @@ TEST_F(SpeedChangeTest, secondarySpeed) {
     // Assert no traffic loss and no ecmp shrink. If ports flap
     // these conditions will not be true
     assertNoInDiscards();
-    auto ecmpSizeInSw = getVlanOwningCabledPorts().size();
+    auto ecmpSizeInSw = getSingleVlanOrRoutedCabledPorts().size();
     EXPECT_EQ(
         utility::getEcmpSizeInHw(
             platform()->getHwSwitch(),

@@ -120,7 +120,7 @@ TEST_F(OpenBmcUpgradeTest, openBmcHitlessUpgrade) {
   // Assert no traffic loss and no ecmp shrink. If ports flap
   // these conditions will not be true
   assertNoInDiscards();
-  auto ecmpSizeInSw = getVlanOwningCabledPorts().size();
+  auto ecmpSizeInSw = getSingleVlanOrRoutedCabledPorts().size();
   EXPECT_EQ(
       utility::getEcmpSizeInHw(
           platform()->getHwSwitch(),
