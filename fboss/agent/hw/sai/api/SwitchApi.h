@@ -489,7 +489,8 @@ struct SaiSwitchTraits {
     };
     using MultiStageLocalSwitchIds = SaiExtensionAttribute<
         std::vector<sai_uint32_t>,
-        AttributeMultiStageLocalSwitchIdsWrapper>;
+        AttributeMultiStageLocalSwitchIdsWrapper,
+        SaiU32ListDefault>;
     struct AttributeVoqLatencyMinLocalNs {
       std::optional<sai_attr_id_t> operator()();
     };
