@@ -12306,6 +12306,12 @@
           "test_name_regex": "LinkTest.warmbootIsHitLess$"
         },
         {
+          "test_name_regex": "LinkTest.ecmpShrink$"
+        },
+        {
+          "test_name_regex": "LinkTest.qsfpWarmbootIsHitLess$"
+        },
+        {
           "test_name_regex": "LinkTest.fabricLinkHealth$"
         },
         {
@@ -12408,6 +12414,12 @@
         },
         {
           "test_name_regex": "LinkTest.warmbootIsHitLess$"
+        },
+        {
+          "test_name_regex": "LinkTest.ecmpShrink$"
+        },
+        {
+          "test_name_regex": "LinkTest.qsfpWarmbootIsHitLess$"
         },
         {
           "test_name_regex": "LinkTest.fabricLinkHealth$"
@@ -12514,6 +12526,12 @@
           "test_name_regex": "LinkTest.warmbootIsHitLess$"
         },
         {
+          "test_name_regex": "LinkTest.ecmpShrink$"
+        },
+        {
+          "test_name_regex": "LinkTest.qsfpWarmbootIsHitLess$"
+        },
+        {
           "test_name_regex": "LinkTest.fabricLinkHealth$"
         },
         {
@@ -12616,6 +12634,12 @@
         },
         {
           "test_name_regex": "LinkTest.warmbootIsHitLess$"
+        },
+        {
+          "test_name_regex": "LinkTest.ecmpShrink$"
+        },
+        {
+          "test_name_regex": "LinkTest.qsfpWarmbootIsHitLess$"
         },
         {
           "test_name_regex": "LinkTest.fabricLinkHealth$"
@@ -12722,6 +12746,12 @@
           "test_name_regex": "LinkTest.warmbootIsHitLess$"
         },
         {
+          "test_name_regex": "LinkTest.ecmpShrink$"
+        },
+        {
+          "test_name_regex": "LinkTest.qsfpWarmbootIsHitLess$"
+        },
+        {
           "test_name_regex": "LinkTest.fabricLinkHealth$"
         },
         {
@@ -12824,6 +12854,12 @@
         },
         {
           "test_name_regex": "LinkTest.warmbootIsHitLess$"
+        },
+        {
+          "test_name_regex": "LinkTest.ecmpShrink$"
+        },
+        {
+          "test_name_regex": "LinkTest.qsfpWarmbootIsHitLess$"
         },
         {
           "test_name_regex": "LinkTest.fabricLinkHealth$"
@@ -12930,6 +12966,12 @@
           "test_name_regex": "LinkTest.warmbootIsHitLess$"
         },
         {
+          "test_name_regex": "LinkTest.ecmpShrink$"
+        },
+        {
+          "test_name_regex": "LinkTest.qsfpWarmbootIsHitLess$"
+        },
+        {
           "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
         },
         {
@@ -13029,6 +13071,12 @@
         },
         {
           "test_name_regex": "LinkTest.warmbootIsHitLess$"
+        },
+        {
+          "test_name_regex": "LinkTest.ecmpShrink$"
+        },
+        {
+          "test_name_regex": "LinkTest.qsfpWarmbootIsHitLess$"
         },
         {
           "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
@@ -13132,6 +13180,12 @@
           "test_name_regex": "LinkTest.warmbootIsHitLess$"
         },
         {
+          "test_name_regex": "LinkTest.ecmpShrink$"
+        },
+        {
+          "test_name_regex": "LinkTest.qsfpWarmbootIsHitLess$"
+        },
+        {
           "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
         },
         {
@@ -13231,6 +13285,12 @@
         },
         {
           "test_name_regex": "LinkTest.warmbootIsHitLess$"
+        },
+        {
+          "test_name_regex": "LinkTest.ecmpShrink$"
+        },
+        {
+          "test_name_regex": "LinkTest.qsfpWarmbootIsHitLess$"
         },
         {
           "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
@@ -13334,6 +13394,12 @@
           "test_name_regex": "LinkTest.warmbootIsHitLess$"
         },
         {
+          "test_name_regex": "LinkTest.ecmpShrink$"
+        },
+        {
+          "test_name_regex": "LinkTest.qsfpWarmbootIsHitLess$"
+        },
+        {
           "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
         },
         {
@@ -13433,6 +13499,12 @@
         },
         {
           "test_name_regex": "LinkTest.warmbootIsHitLess$"
+        },
+        {
+          "test_name_regex": "LinkTest.ecmpShrink$"
+        },
+        {
+          "test_name_regex": "LinkTest.qsfpWarmbootIsHitLess$"
         },
         {
           "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
@@ -13536,6 +13608,12 @@
           "test_name_regex": "LinkTest.warmbootIsHitLess$"
         },
         {
+          "test_name_regex": "LinkTest.ecmpShrink$"
+        },
+        {
+          "test_name_regex": "LinkTest.qsfpWarmbootIsHitLess$"
+        },
+        {
           "test_name_regex": "LinkTest.fabricLinkHealth$"
         },
         {
@@ -13635,6 +13713,12 @@
         },
         {
           "test_name_regex": "LinkTest.warmbootIsHitLess$"
+        },
+        {
+          "test_name_regex": "LinkTest.ecmpShrink$"
+        },
+        {
+          "test_name_regex": "LinkTest.qsfpWarmbootIsHitLess$"
         },
         {
           "test_name_regex": "LinkTest.fabricLinkHealth$"
@@ -13738,6 +13822,12 @@
           "test_name_regex": "LinkTest.warmbootIsHitLess$"
         },
         {
+          "test_name_regex": "LinkTest.ecmpShrink$"
+        },
+        {
+          "test_name_regex": "LinkTest.qsfpWarmbootIsHitLess$"
+        },
+        {
           "test_name_regex": "LinkTest.fabricLinkHealth$"
         },
         {
@@ -13837,6 +13927,12 @@
         },
         {
           "test_name_regex": "LinkTest.warmbootIsHitLess$"
+        },
+        {
+          "test_name_regex": "LinkTest.ecmpShrink$"
+        },
+        {
+          "test_name_regex": "LinkTest.qsfpWarmbootIsHitLess$"
         },
         {
           "test_name_regex": "LinkTest.fabricLinkHealth$"
@@ -13940,6 +14036,12 @@
           "test_name_regex": "LinkTest.warmbootIsHitLess$"
         },
         {
+          "test_name_regex": "LinkTest.ecmpShrink$"
+        },
+        {
+          "test_name_regex": "LinkTest.qsfpWarmbootIsHitLess$"
+        },
+        {
           "test_name_regex": "LinkTest.fabricLinkHealth$"
         },
         {
@@ -14039,6 +14141,12 @@
         },
         {
           "test_name_regex": "LinkTest.warmbootIsHitLess$"
+        },
+        {
+          "test_name_regex": "LinkTest.ecmpShrink$"
+        },
+        {
+          "test_name_regex": "LinkTest.qsfpWarmbootIsHitLess$"
         },
         {
           "test_name_regex": "LinkTest.fabricLinkHealth$"
@@ -14142,6 +14250,12 @@
           "test_name_regex": "LinkTest.warmbootIsHitLess$"
         },
         {
+          "test_name_regex": "LinkTest.ecmpShrink$"
+        },
+        {
+          "test_name_regex": "LinkTest.qsfpWarmbootIsHitLess$"
+        },
+        {
           "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
         },
         {
@@ -14235,6 +14349,12 @@
         },
         {
           "test_name_regex": "LinkTest.warmbootIsHitLess$"
+        },
+        {
+          "test_name_regex": "LinkTest.ecmpShrink$"
+        },
+        {
+          "test_name_regex": "LinkTest.qsfpWarmbootIsHitLess$"
         },
         {
           "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
@@ -14332,6 +14452,12 @@
           "test_name_regex": "LinkTest.warmbootIsHitLess$"
         },
         {
+          "test_name_regex": "LinkTest.ecmpShrink$"
+        },
+        {
+          "test_name_regex": "LinkTest.qsfpWarmbootIsHitLess$"
+        },
+        {
           "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
         },
         {
@@ -14425,6 +14551,12 @@
         },
         {
           "test_name_regex": "LinkTest.warmbootIsHitLess$"
+        },
+        {
+          "test_name_regex": "LinkTest.ecmpShrink$"
+        },
+        {
+          "test_name_regex": "LinkTest.qsfpWarmbootIsHitLess$"
         },
         {
           "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
@@ -14522,6 +14654,12 @@
           "test_name_regex": "LinkTest.warmbootIsHitLess$"
         },
         {
+          "test_name_regex": "LinkTest.ecmpShrink$"
+        },
+        {
+          "test_name_regex": "LinkTest.qsfpWarmbootIsHitLess$"
+        },
+        {
           "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
         },
         {
@@ -14615,6 +14753,12 @@
         },
         {
           "test_name_regex": "LinkTest.warmbootIsHitLess$"
+        },
+        {
+          "test_name_regex": "LinkTest.ecmpShrink$"
+        },
+        {
+          "test_name_regex": "LinkTest.qsfpWarmbootIsHitLess$"
         },
         {
           "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
