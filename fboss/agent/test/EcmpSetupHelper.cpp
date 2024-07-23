@@ -83,11 +83,30 @@ namespace facebook::fboss::utility {
 boost::container::flat_set<PortDescriptor> getSingleVlanOrRoutedCabledPorts(
     const SwSwitch* sw) {
   boost::container::flat_set<PortDescriptor> ports;
-  for (const auto& vlanTable : std::as_const(*sw->getState()->getVlans())) {
-    for (auto [id, vlan] : std::as_const(*vlanTable.second)) {
-      auto memberPorts = vlan->getPorts();
-      if (memberPorts.size() == 1) {
-        ports.insert(PortDescriptor{PortID(memberPorts.begin()->first)});
+
+  if (!sw->getSwitchInfoTable().haveL3Switches()) {
+    XLOG(INFO) << "No L3 switches found, skipping single vlan/routed ports";
+    return {};
+  }
+  /*
+   * VOQ switches do not have any vlan ports. They have only routed ports.
+   * So, we need to get the routed ports which are of type INTERFACE_PORT.
+   */
+  if (sw->getSwitchInfoTable().l3SwitchType() == cfg::SwitchType::VOQ) {
+    for (const auto& portMap : std::as_const(*sw->getState()->getPorts())) {
+      for (const auto& port : std::as_const(*portMap.second)) {
+        if (port.second->getPortType() == cfg::PortType::INTERFACE_PORT) {
+          ports.insert(PortDescriptor{PortID(port.second->getID())});
+        }
+      }
+    }
+  } else {
+    for (const auto& vlanTable : std::as_const(*sw->getState()->getVlans())) {
+      for (auto [id, vlan] : std::as_const(*vlanTable.second)) {
+        auto memberPorts = vlan->getPorts();
+        if (memberPorts.size() == 1) {
+          ports.insert(PortDescriptor{PortID(memberPorts.begin()->first)});
+        }
       }
     }
   }
