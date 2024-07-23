@@ -123,7 +123,7 @@ TEST_F(LinkTest, trafficRxTx) {
   verifyAcrossWarmBoots([]() {}, verify);
 }
 
-TEST_F(LinkTest, warmbootIsHitLess) {
+TEST_F(LinkSanityTestDataPlaneFlood, warmbootIsHitLess) {
   // Create a L3 data plane flood and then assert that none of the
   // traffic bearing ports loss traffic.
   // TODO: Assert that all (non downlink) cabled ports get traffic.
@@ -147,7 +147,7 @@ TEST_F(LinkTest, warmbootIsHitLess) {
       });
 }
 
-TEST_F(LinkTest, qsfpWarmbootIsHitLess) {
+TEST_F(LinkSanityTestDataPlaneFlood, qsfpWarmbootIsHitLess) {
   // Create a L3 data plane flood and then warmboot qsfp_service. Then assert
   // that none of the traffic bearing ports loss traffic.
   verifyAcrossWarmBoots(
@@ -176,7 +176,7 @@ TEST_F(LinkTest, qsfpWarmbootIsHitLess) {
       });
 }
 
-TEST_F(LinkTest, ptpEnableIsHitless) {
+TEST_F(LinkSanityTestDataPlaneFlood, ptpEnableIsHitless) {
   // disable PTP as by default we'll  have it enabled now
   sw()->updateStateBlocking("ptp disable", [](auto state) {
     auto newState = state->clone();
