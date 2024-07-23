@@ -375,9 +375,7 @@ void LinkTest::createL3DataplaneFlood(
       sw()->getState(), sw()->getLocalMac(switchId));
   programDefaultRoute(ecmpPorts, ecmp6);
   disableTTLDecrements(ecmpPorts);
-  auto vlanID = utility::getFirstMap(sw()->getState()->getVlans())
-                    ->cbegin()
-                    ->second->getID();
+  auto vlanID = utility::firstVlanID(sw()->getState());
   utility::pumpTraffic(
       true,
       utility::getAllocatePktFn(sw()),
