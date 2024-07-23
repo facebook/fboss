@@ -838,7 +838,13 @@ class SaiExtensionAttribute {
 
   static ValueType defaultValue() {
     static_assert(HasDefaultGetter, "No default getter provided for attribute");
-    return DefaultGetterT{}();
+    if constexpr (IsSaiTypeWrapper<T>::value) {
+      static ValueType v;
+      _fill(DefaultGetterT{}(), v);
+      return v;
+    } else {
+      return DefaultGetterT{}();
+    }
   }
 
   void realloc() {
