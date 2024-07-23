@@ -61,7 +61,11 @@ class AgentSflowMirrorTest : public AgentHwTest {
   }
 
   void configureTrapAcl(cfg::SwitchConfig& cfg) const {
-    utility::configureTrapAcl(cfg, getNonSflowSampledInterfacePorts());
+    bool isV4 = std::is_same_v<AddrT, folly::IPAddressV4>;
+    return getAsic()->isSupported(
+               HwAsic::Feature::SAI_ACL_ENTRY_SRC_PORT_QUALIFIER)
+        ? utility::configureTrapAcl(cfg, getNonSflowSampledInterfacePorts())
+        : utility::configureTrapAcl(cfg, isV4);
   }
 
   PortID getNonSflowSampledInterfacePorts() const {
