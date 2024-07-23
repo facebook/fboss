@@ -106,16 +106,18 @@
  *   - TAJO_SDK_GTE_1_65_0: Flags for SDK >= 1.65.0
  *   - TAJO_SDK: Flags for all TAJO SDK
  */
-#if defined(TAJO_SDK_VERSION_1_65_1) || defined(TAJO_SDK_VERSION_24_4_90)
+#if defined(TAJO_SDK_VERSION_1_65_1) || defined(TAJO_SDK_VERSION_24_4_90) || \
+    defined(TAJO_SDK_VERSION_24_6_1)
 #define TAJO_P4_WB_SDK
 #endif
 
 #if defined(TAJO_SDK_VERSION_1_42_8) || defined(TAJO_SDK_VERSION_1_65_1) || \
-    defined(TAJO_SDK_VERSION_24_4_90)
+    defined(TAJO_SDK_VERSION_24_4_90) || defined(TAJO_SDK_VERSION_24_6_1)
 #define TAJO_SDK_EBRO
 #endif
 
-#if defined(TAJO_SDK_VERSION_1_65_1) || defined(TAJO_SDK_VERSION_24_4_90)
+#if defined(TAJO_SDK_VERSION_1_65_1) || defined(TAJO_SDK_VERSION_24_4_90) || \
+    defined(TAJO_SDK_VERSION_24_6_1)
 #define TAJO_SDK_GTE_1_65_0
 #endif
 

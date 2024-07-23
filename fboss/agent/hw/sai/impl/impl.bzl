@@ -59,6 +59,7 @@ def to_impl_external_deps(sai_impl):
         ("leaba-sdk", "1.65.1"): [("leaba-sdk", None, "sai-sdk")],
         ("leaba-sdk", "24.4.90"): [("leaba-sdk", None, "sai-sdk")],
         ("leaba-sdk", "24.4.90_yuba"): [("leaba-sdk", None, "sai-sdk")],
+        ("leaba-sdk", "24.6.1_yuba"): [("leaba-sdk", None, "sai-sdk")],
         ("mrvl_phy_sai", "1.4.0"): [("mrvl_phy_sai", None, "sai")],
     }
     return _external_deps_map[(sai_impl.sdk_name, sai_impl.version)]
