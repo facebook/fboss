@@ -806,6 +806,7 @@ cpp_library(
         "//folly:synchronized",
         "//folly:thread_local",
         "//folly:utility",
+        "//folly/concurrency:concurrent_hash_map",
         "//folly/container:f14_hash",
         "//folly/executors:io_thread_pool_executor",
         "//folly/executors/thread_factory:named_thread_factory",
