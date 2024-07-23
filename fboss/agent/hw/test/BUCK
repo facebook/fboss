@@ -380,7 +380,6 @@ hw_dataplane_test_srcs = [
     "dataplane_tests/HwPacketSendTests.cpp",
     "dataplane_tests/HwL3Tests.cpp",
     "dataplane_tests/HwSflowTests.cpp",
-    "dataplane_tests/HwSflowMirrorTest.cpp",
     "dataplane_tests/HwTrunkLoadBalancerTests.cpp",
     "dataplane_tests/HwTeFlowTrafficTests.cpp",
     "dataplane_tests/HwTrafficPfcTests.cpp",

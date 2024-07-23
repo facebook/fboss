@@ -239,7 +239,6 @@ set(hw_switch_test_srcs
   fboss/agent/hw/test/dataplane_tests/HwProdInvariantTests.cpp
   fboss/agent/hw/test/dataplane_tests/HwPacketSendTests.cpp
   fboss/agent/hw/test/dataplane_tests/HwSflowTests.cpp
-  fboss/agent/hw/test/dataplane_tests/HwSflowMirrorTest.cpp
   fboss/agent/hw/test/dataplane_tests/HwTestAqmUtils.cpp
   fboss/agent/hw/test/dataplane_tests/HwTestQosUtils.cpp
   fboss/agent/hw/test/dataplane_tests/HwTestPfcUtils.cpp
