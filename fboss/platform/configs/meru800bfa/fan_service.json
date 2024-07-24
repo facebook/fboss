@@ -1,13 +1,33 @@
 {
-  "pwmBoostOnNumDeadFan": 1,
-  "pwmBoostOnNumDeadSensor": 0,
-  "pwmBoostOnNoQsfpAfterInSec": 0,
-  "pwmBoostValue": 60,
-  "pwmTransitionValue": 50,
-  "pwmLowerThreshold": 24,
-  "pwmUpperThreshold": 100,
-  "optics": [],
-  "sensors": [
+  "pwmBoostOnNumDeadFan" : 1,
+  "pwmBoostOnNumDeadSensor" : 0,
+  "pwmBoostOnNoQsfpAfterInSec" : 0,
+  "pwmBoostValue" : 60,
+  "pwmTransitionValue" : 50,
+  "pwmLowerThreshold" : 7,
+  "pwmUpperThreshold" : 100,
+  "shutdownCmd" : "echo 0xdead > /run/devmap/fpgas/MERU_SCM_CPLD/chassis_power_cycle",
+  "optics" : [
+    {
+      "opticName" : "osfp_group_1",
+      "access" : {
+        "accessType" : "ACCESS_TYPE_QSFP"
+      },
+      "portList" : [],
+      "aggregationType" : "OPTIC_AGGREGATION_TYPE_MAX",
+      "tempToPwmMaps" : {
+        "OPTIC_TYPE_800_GENERIC" : {
+          "5" : 35,
+          "67": 41,
+          "68": 50,
+          "69": 67,
+          "70": 80,
+          "71": 100
+        }
+      }
+    }
+  ],
+  "sensors" : [
     {
       "sensorName": "SMB_INLET_TEMP",
       "access": {
@@ -16,20 +36,76 @@
       "pwmCalcType": "SENSOR_PWM_CALC_TYPE_FOUR_LINEAR_TABLE",
       "scale": 1,
       "normalUpTable": {
-        "15": 30,
-        "110": 100
+        "15": 28,
+        "110": 80
       },
       "normalDownTable": {
-        "15": 30,
-        "110": 100
+        "15": 28,
+        "110": 80
       },
       "failUpTable": {
-        "15": 30,
-        "110": 100
+        "15": 28,
+        "110": 80
       },
       "failDownTable": {
-        "15": 30,
-        "110": 100
+        "15": 28,
+        "110": 80
+      }
+    },
+    {
+      "sensorName": "R3_0_TEMP",
+      "access": {
+        "accessType": "ACCESS_TYPE_THRIFT"
+      },
+      "pwmCalcType": "SENSOR_PWM_CALC_TYPE_FOUR_LINEAR_TABLE",
+      "scale": 1,
+      "normalUpTable": {
+        "15": 7,
+        "70": 10,
+        "80": 100
+      },
+      "normalDownTable": {
+        "15": 7,
+        "70": 10,
+        "80": 100
+      },
+      "failUpTable": {
+        "15": 7,
+        "70": 10,
+        "80": 100
+      },
+      "failDownTable": {
+        "15": 7,
+        "70": 10,
+        "80": 100
+      }
+    },
+    {
+      "sensorName": "R3_1_TEMP",
+      "access": {
+        "accessType": "ACCESS_TYPE_THRIFT"
+      },
+      "pwmCalcType": "SENSOR_PWM_CALC_TYPE_FOUR_LINEAR_TABLE",
+      "scale": 1,
+      "normalUpTable": {
+        "15": 7,
+        "70": 10,
+        "80": 100
+      },
+      "normalDownTable": {
+        "15": 7,
+        "70": 10,
+        "80": 100
+      },
+      "failUpTable": {
+        "15": 7,
+        "70": 10,
+        "80": 100
+      },
+      "failDownTable": {
+        "15": 7,
+        "70": 10,
+        "80": 100
       }
     }
   ],
@@ -194,15 +270,27 @@
   "zones": [
     {
       "zoneType": "ZONE_TYPE_MAX",
-      "zoneName": "zone1",
+      "zoneName": "asic_zone",
       "sensorNames": [
-        "SMB_INLET_TEMP"
+        "R3_0_TEMP",
+        "R3_1_TEMP"
       ],
-      "fanNames": [
+      "fanNames":[
         "fan_1",
         "fan_2",
         "fan_3",
-        "fan_4",
+        "fan_4"
+      ],
+      "slope": 3
+    },
+    {
+      "zoneType": "ZONE_TYPE_MAX",
+      "zoneName": "system_zone",
+      "sensorNames": [
+        "SMB_INLET_TEMP",
+        "osfp_group_1"
+      ],
+      "fanNames": [
         "fan_5",
         "fan_6",
         "fan_7",

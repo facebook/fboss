@@ -745,6 +745,24 @@
         },
         "compute": "@/1000.0",
         "type": 3
+      },
+      "R3_0_TEMP": {
+        "path": "/run/devmap/sensors/SMB_MAX6581/temp2_input",
+        "thresholds": {
+          "upperCriticalVal": 125.0,
+          "maxAlarmVal": 110.0
+        },
+        "compute": "@/1000.0",
+        "type": 3
+      },
+      "R3_1_TEMP": {
+        "path": "/run/devmap/sensors/SMB_MAX6581/temp3_input",
+        "thresholds": {
+          "upperCriticalVal": 125.0,
+          "maxAlarmVal": 110.0
+        },
+        "compute": "@/1000.0",
+        "type": 3
       }
     },
     "FAN1": {
