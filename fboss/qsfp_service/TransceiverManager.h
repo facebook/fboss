@@ -327,15 +327,17 @@ class TransceiverManager {
   bool validateTransceiverById(
       TransceiverID id,
       std::string& notValidatedReason,
-      bool validatePortProfile) const;
+      bool validatePortProfile);
 
-  void checkPresentThenValidateTransceiver(TransceiverID id) const;
+  void checkPresentThenValidateTransceiver(TransceiverID id);
 
   std::string getTransceiverValidationConfigString(TransceiverID id) const;
 
   bool validateTransceiverConfiguration(
       TransceiverValidationInfo& tcvrInfo,
       std::string& notValidatedReason) const;
+
+  void updateValidationCache(TransceiverID id, bool isValid);
 
   // ========== Public functions for TransceiverStateMachine ==========
   // This refresh TransceiverStateMachine functions will handle all state
@@ -933,6 +935,13 @@ class TransceiverManager {
       std::pair<ResetType, ResetAction>,
       std::function<void(TransceiverManager* const, int)>>
       resetFunctionMap_;
+
+  /*
+   * This cache stores the most recent result of validation for each
+   * transceiver.
+   */
+  folly::Synchronized<std::unordered_set<TransceiverID>>
+      nonValidTransceiversCache_;
 
   void initPortToModuleMap();
 

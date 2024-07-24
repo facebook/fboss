@@ -1627,7 +1627,7 @@ TransceiverValidationInfo TransceiverManager::getTransceiverValidationInfo(
 bool TransceiverManager::validateTransceiverById(
     TransceiverID id,
     std::string& notValidatedReason,
-    bool validatePortProfile) const {
+    bool validatePortProfile) {
   if (tcvrValidator_ == nullptr) {
     XLOG(DBG5) << "Transceiver Validation not enabled. Skipping.";
     return false;
@@ -1636,11 +1636,13 @@ bool TransceiverManager::validateTransceiverById(
   TransceiverValidationInfo tcvrInfo =
       getTransceiverValidationInfo(id, validatePortProfile);
 
-  return validateTransceiverConfiguration(tcvrInfo, notValidatedReason);
+  bool isValidated =
+      validateTransceiverConfiguration(tcvrInfo, notValidatedReason);
+  updateValidationCache(id, isValidated);
+  return isValidated;
 }
 
-void TransceiverManager::checkPresentThenValidateTransceiver(
-    TransceiverID id) const {
+void TransceiverManager::checkPresentThenValidateTransceiver(TransceiverID id) {
   {
     auto lockedTransceivers = transceivers_.rlock();
     if (lockedTransceivers->find(id) == lockedTransceivers->end()) {
@@ -1682,6 +1684,15 @@ std::string TransceiverManager::getTransceiverValidationConfigString(
   r["Non-Validated Attribute"] = notValidatedReason;
 
   return folly::toPrettyJson(r);
+}
+
+void TransceiverManager::updateValidationCache(TransceiverID id, bool isValid) {
+  auto nonValidatedSet = nonValidTransceiversCache_.wlock();
+  if (!isValid) {
+    nonValidatedSet->insert(id);
+  } else {
+    nonValidatedSet->erase(id);
+  }
 }
 
 void TransceiverManager::refreshStateMachines() {
