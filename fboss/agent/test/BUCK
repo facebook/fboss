@@ -376,6 +376,7 @@ cpp_library(
     ],
     exported_deps = [
         "//fboss/agent:apply_thrift_config",
+        "//fboss/agent:core",
         "//fboss/agent:fboss-types",
         "//fboss/agent:route_update_wrapper",
         "//fboss/agent:switch_config-cpp2-types",

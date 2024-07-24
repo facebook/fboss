@@ -58,10 +58,12 @@ void ProdInvariantTest::setupAgentTestEcmp(
 
 void ProdInvariantTest::SetUp() {
   AgentTest::SetUp();
-  auto ecmpUplinlinkPorts =
-      utility::getAllUplinkDownlinkPorts(
-          platform()->getHwSwitch(), initialConfig(), kEcmpWidth, false)
-          .first;
+  auto ecmpUplinlinkPorts = utility::getAllUplinkDownlinkPorts(
+                                platform()->getHwSwitch(),
+                                initialConfig(),
+                                kEcmpWidth,
+                                is_mmu_lossless_mode())
+                                .first;
   for (auto& uplinkPort : ecmpUplinlinkPorts) {
     ecmpPorts_.push_back(PortDescriptor(uplinkPort));
   }
@@ -154,10 +156,12 @@ void ProdInvariantTest::sendTraffic() {
 
 PortID ProdInvariantTest::getDownlinkPort() {
   // pick the first downlink in the list
-  auto downlinkPort =
-      utility::getAllUplinkDownlinkPorts(
-          platform()->getHwSwitch(), initialConfig(), kEcmpWidth, false)
-          .second[0];
+  auto downlinkPort = utility::getAllUplinkDownlinkPorts(
+                          platform()->getHwSwitch(),
+                          initialConfig(),
+                          kEcmpWidth,
+                          is_mmu_lossless_mode())
+                          .second[0];
   return downlinkPort;
 }
 
@@ -234,7 +238,10 @@ void ProdInvariantTest::verifyDscpToQueueMapping() {
   }
 
   auto uplinkDownlinkPorts = utility::getAllUplinkDownlinkPorts(
-      platform()->getHwSwitch(), initialConfig(), kEcmpWidth, false);
+      platform()->getHwSwitch(),
+      initialConfig(),
+      kEcmpWidth,
+      is_mmu_lossless_mode());
 
   // gather all uplink + downlink ports
   std::vector<PortID> portIds = uplinkDownlinkPorts.first;
@@ -470,6 +477,26 @@ TEST_F(ProdInvariantRswMhnicTest, verifyInvariants) {
     verifyQueuePerHostMapping(true /*dscpMarkingTest*/);
     verifyQueuePerHostMapping(false /*dscpMarkingTest*/);
     verifySafeDiagCommands();
+  };
+  verifyAcrossWarmBoots(setup, verify);
+}
+
+class ProdInvariantRtswTest : public ProdInvariantTest {
+ public:
+  ProdInvariantRtswTest() {
+    set_mmu_lossless(true);
+  }
+};
+
+TEST_F(ProdInvariantRtswTest, verifyInvariants) {
+  auto setup = [&]() {};
+  auto verify = [&]() {
+    verifyAcl();
+    verifyCopp();
+    verifyLoadBalancing();
+    verifyDscpToQueueMapping();
+    verifySafeDiagCommands();
+    verifyThriftHandler();
   };
   verifyAcrossWarmBoots(setup, verify);
 }

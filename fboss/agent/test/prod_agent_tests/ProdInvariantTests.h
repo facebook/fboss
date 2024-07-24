@@ -27,6 +27,12 @@ class ProdInvariantTest : public ProdAgentTests {
   cfg::SwitchConfig getConfigFromFlag();
   void verifyThriftHandler();
   void verifySwSwitchHandler();
+  void set_mmu_lossless(bool mmu_lossless) {
+    _mmu_lossless_mode = mmu_lossless;
+  }
+  bool is_mmu_lossless_mode() {
+    return _mmu_lossless_mode;
+  }
 
  protected:
   std::optional<bool> useProdConfig_ = std::nullopt;
@@ -38,6 +44,7 @@ class ProdInvariantTest : public ProdAgentTests {
   void setupAgentTestEcmp(const std::vector<PortDescriptor>& ecmpPorts);
   std::map<PortID, HwPortStats> getLatestPortStats(
       const std::vector<PortID>& ports);
+  bool _mmu_lossless_mode = false;
 };
 
 int ProdInvariantTestMain(int argc, char** argv, PlatformInitFn initPlatformFn);
