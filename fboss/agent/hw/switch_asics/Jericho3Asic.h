@@ -140,6 +140,8 @@ class Jericho3Asic : public BroadcomAsic {
   uint32_t getMaxHashSeedLength() const override {
     return 16;
   }
+  std::optional<uint32_t> computePortGroupSkew(
+      const std::map<PortID, uint32_t>& portId2cableLen) const override;
 };
 
 } // namespace facebook::fboss

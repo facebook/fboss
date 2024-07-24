@@ -3948,6 +3948,24 @@ void SaiSwitch::reportAsymmetricTopology() const {
  * here to corroborate that cabling was as desired
  */
 void SaiSwitch::reportInterPortGroupCableSkew() const {
-  // TODO
+  std::lock_guard<std::mutex> lock(saiSwitchMutex_);
+  if (getPlatform()->getAsic()->getAsicType() !=
+      cfg::AsicType::ASIC_TYPE_JERICHO3) {
+    // Port group skew relevant only for J3
+    return;
+  }
+  std::map<PortID, uint32_t> portId2CableLen;
+  auto& portIdStatsMap = managerTable_->portManager().getLastPortStats();
+  for (auto& entry : portIdStatsMap) {
+    if (entry.second->portStats().cableLengthMeters().has_value()) {
+      portId2CableLen.insert(
+          {entry.first, entry.second->portStats().cableLengthMeters().value()});
+    }
+  }
+  auto portGroupSkew =
+      getPlatform()->getAsic()->computePortGroupSkew(portId2CableLen);
+  if (portGroupSkew) {
+    XLOG(DBG2) << " Port group skew: " << *portGroupSkew;
+  }
 }
 } // namespace facebook::fboss

@@ -293,4 +293,10 @@ HwAsic::AsicMode Jericho3Asic::getAsicMode() const {
   }
   return AsicMode::ASIC_MODE_HW;
 }
+
+std::optional<uint32_t> Jericho3Asic::computePortGroupSkew(
+    const std::map<PortID, uint32_t>& portId2cableLen) const {
+  // TODO
+  return std::nullopt;
+}
 } // namespace facebook::fboss
