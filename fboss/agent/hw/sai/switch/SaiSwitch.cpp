@@ -3934,4 +3934,20 @@ void SaiSwitch::reportAsymmetricTopology() const {
       FabricConnectivityManager::virtualDevicesWithAsymmetricConnectivity(
           virtualDevice2RemoteConnectionGroups));
 }
+
+/*
+ * Until later versions of the chip (B0), cable lengths seen by
+ * each port group has a bearing on how efficiently FDR-in buffers on J3 are
+ * utilized.
+ * If all port groups see roughly the same cable length then they all dequeue
+ * cells for a pkt to FDR-out buffers around the same time. If OTOH a port
+ * groups sees substantially lower cable lengths, FDR-in corresponding
+ * to that port group dequeues to FDR-out faster. This causes cells to
+ * sit for longer in FDR-out buffers, leading to more stress on the
+ * latter. Our cabling plans try to minimize this. Report the skew seen
+ * here to corroborate that cabling was as desired
+ */
+void SaiSwitch::reportInterPortGroupCableSkew() const {
+  // TODO
+}
 } // namespace facebook::fboss

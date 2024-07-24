@@ -133,6 +133,7 @@ void SaiSwitch::updateStatsImpl() {
     managerTable_->switchManager().updateStats(updateWatermarks);
   }
   reportAsymmetricTopology();
+  reportInterPortGroupCableSkew();
   if (!connectivityDelta.empty()) {
     linkConnectivityChangeBottomHalfEventBase_.runInEventBaseThread(
         [this, connectivityDelta = std::move(connectivityDelta)] {

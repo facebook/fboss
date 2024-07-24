@@ -257,6 +257,7 @@ class SaiSwitch : public HwSwitch {
 
   void updateStatsImpl() override;
   void reportAsymmetricTopology() const;
+  void reportInterPortGroupCableSkew() const;
   template <typename LockPolicyT>
   void updateResourceUsage(const LockPolicyT& lockPolicy);
   /*
