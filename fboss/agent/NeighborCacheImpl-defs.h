@@ -187,15 +187,15 @@ SwSwitch::StateUpdateFn NeighborCacheImpl<NTable>::getUpdateFnToProgramEntry(
       return nullptr;
     }
 
+    auto switchId =
+        sw_->getScopeResolver()->scope(fields.port.phyPortID()).switchId();
+    auto asic = sw_->getHwAsicTable()->getHwAsicIf(switchId);
+    if (asic->isSupported(HwAsic::Feature::RESERVED_ENCAP_INDEX_RANGE)) {
+      fields.encapIndex =
+          EncapIndexAllocator::getNextAvailableEncapIdx(state, *asic);
+    }
+
     if (switchType == cfg::SwitchType::VOQ) {
-      auto switchIds =
-          sw_->getScopeResolver()->scope(fields.port.phyPortID()).switchIds();
-      CHECK_EQ(switchIds.size(), 1);
-      auto asic = sw_->getHwAsicTable()->getHwAsicIf(*switchIds.begin());
-      if (asic->isSupported(HwAsic::Feature::RESERVED_ENCAP_INDEX_RANGE)) {
-        fields.encapIndex =
-            EncapIndexAllocator::getNextAvailableEncapIdx(state, *asic);
-      }
       interfaceID =
           sw_->getState()->getInterfaceIDForPort(fields.port.phyPortID());
       // SystemPortID is always same as the InterfaceID
@@ -215,6 +215,9 @@ SwSwitch::StateUpdateFn NeighborCacheImpl<NTable>::getUpdateFnToProgramEntry(
     nbrEntry.mac() = fields.mac.toString();
     nbrEntry.interfaceId() = static_cast<uint32_t>(interfaceID);
     nbrEntry.state() = static_cast<state::NeighborState>(fields.state);
+    if (fields.encapIndex.has_value()) {
+      nbrEntry.encapIndex() = fields.encapIndex.value();
+    }
 
     if (switchType == cfg::SwitchType::VOQ) {
       // TODO: Support aggregate ports for VOQ switches
@@ -222,9 +225,6 @@ SwSwitch::StateUpdateFn NeighborCacheImpl<NTable>::getUpdateFnToProgramEntry(
       CHECK(systemPortID.has_value());
       nbrEntry.portId() =
           PortDescriptor(SystemPortID(systemPortID.value())).toThrift();
-      if (fields.encapIndex.has_value()) {
-        nbrEntry.encapIndex() = fields.encapIndex.value();
-      }
       nbrEntry.isLocal() = fields.isLocal;
     } else {
       nbrEntry.portId() = ncachehelpers::getNeighborPortDescriptor(fields.port);
@@ -371,16 +371,14 @@ NeighborCacheImpl<NTable>::getUpdateFnToProgramPendingEntry(
     std::optional<SystemPortID> systemPortID;
     std::optional<int64_t> encapIndex;
 
-    if (switchType == cfg::SwitchType::VOQ) {
-      auto switchIds =
-          sw_->getScopeResolver()->scope(fields.port.phyPortID()).switchIds();
-      CHECK_EQ(switchIds.size(), 1);
-      auto asic = sw_->getHwAsicTable()->getHwAsicIf(*switchIds.begin());
-      if (asic->isSupported(HwAsic::Feature::RESERVED_ENCAP_INDEX_RANGE)) {
-        encapIndex =
-            EncapIndexAllocator::getNextAvailableEncapIdx(state, *asic);
-      }
+    auto switchId =
+        sw_->getScopeResolver()->scope(fields.port.phyPortID()).switchId();
+    auto asic = sw_->getHwAsicTable()->getHwAsicIf(switchId);
+    if (asic->isSupported(HwAsic::Feature::RESERVED_ENCAP_INDEX_RANGE)) {
+      encapIndex = EncapIndexAllocator::getNextAvailableEncapIdx(state, *asic);
+    }
 
+    if (switchType == cfg::SwitchType::VOQ) {
       interfaceID = sw_->getState()->getInterfaceIDForPort(port.phyPortID());
       // SystemPortID is always same as the InterfaceID
       systemPortID = SystemPortID(interfaceID);
@@ -413,6 +411,9 @@ NeighborCacheImpl<NTable>::getUpdateFnToProgramPendingEntry(
     nbrEntry.interfaceId() = static_cast<uint32_t>(interfaceID);
     nbrEntry.state() =
         static_cast<state::NeighborState>(state::NeighborState::Pending);
+    if (encapIndex.has_value()) {
+      nbrEntry.encapIndex() = encapIndex.value();
+    }
 
     if (switchType == cfg::SwitchType::VOQ) {
       // TODO: Support aggregate ports for VOQ switches
@@ -420,9 +421,6 @@ NeighborCacheImpl<NTable>::getUpdateFnToProgramPendingEntry(
       CHECK(systemPortID.has_value());
       nbrEntry.portId() =
           PortDescriptor(SystemPortID(systemPortID.value())).toThrift();
-      if (encapIndex.has_value()) {
-        nbrEntry.encapIndex() = encapIndex.value();
-      }
       nbrEntry.isLocal() = fields.isLocal;
     } else {
       nbrEntry.portId() = ncachehelpers::getNeighborPortDescriptor(fields.port);
