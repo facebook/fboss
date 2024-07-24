@@ -1704,15 +1704,6 @@ TYPED_TEST(NdpTest, NdpExpiration) {
 }
 
 TYPED_TEST(NdpTest, FlushEntryWithConcurrentUpdate) {
-  /*
-   * TODO(skhare) Fix this test for Interface neighbor tables, and then enable.
-   */
-  if (this->isIntfNbrTable()) {
-#if defined(GTEST_SKIP)
-    GTEST_SKIP();
-#endif
-  }
-
   auto handle = this->setupTestHandle();
   auto sw = handle->getSw();
   ThriftHandler thriftHandler(sw);
@@ -1727,23 +1718,45 @@ TYPED_TEST(NdpTest, FlushEntryWithConcurrentUpdate) {
     targetIPs.push_back(
         IPAddressV6("2401:db00:2110:3004::" + std::to_string(i)));
   }
-
-  // populate ndp entries first before flush
-  {
-    std::array<std::unique_ptr<WaitForNdpEntryReachable>, 255> ndpReachables;
-    std::transform(
-        targetIPs.begin(),
-        targetIPs.end(),
-        ndpReachables.begin(),
-        [&](const IPAddressV6& ip) {
-          return make_unique<WaitForNdpEntryReachable>(sw, ip, vlanID);
-        });
-    for (auto& ip : targetIPs) {
-      sendNeighborAdvertisement(
-          handle.get(), ip.str(), "02:05:73:f9:46:fb", portID, vlanID, false);
+  if (this->isIntfNbrTable()) {
+    // populate ndp entries first before flush
+    {
+      auto intfID = sw->getState()->getInterfaceIDForPort(portID);
+      std::array<std::unique_ptr<WaitForNdpEntryReachable>, 255> ndpReachables;
+      std::transform(
+          targetIPs.begin(),
+          targetIPs.end(),
+          ndpReachables.begin(),
+          [&](const IPAddressV6& ip) {
+            return make_unique<WaitForNdpEntryReachable>(sw, ip, intfID);
+          });
+      for (auto& ip : targetIPs) {
+        sendNeighborAdvertisement(
+            handle.get(), ip.str(), "02:05:73:f9:46:fb", portID, vlanID, false);
+        waitForStateUpdates(sw);
+      }
+      for (auto& ndpReachable : ndpReachables) {
+        EXPECT_TRUE(ndpReachable->wait());
+      }
     }
-    for (auto& ndpReachable : ndpReachables) {
-      EXPECT_TRUE(ndpReachable->wait());
+  } else {
+    // populate ndp entries first before flush
+    {
+      std::array<std::unique_ptr<WaitForNdpEntryReachable>, 255> ndpReachables;
+      std::transform(
+          targetIPs.begin(),
+          targetIPs.end(),
+          ndpReachables.begin(),
+          [&](const IPAddressV6& ip) {
+            return make_unique<WaitForNdpEntryReachable>(sw, ip, vlanID);
+          });
+      for (auto& ip : targetIPs) {
+        sendNeighborAdvertisement(
+            handle.get(), ip.str(), "02:05:73:f9:46:fb", portID, vlanID, false);
+      }
+      for (auto& ndpReachable : ndpReachables) {
+        EXPECT_TRUE(ndpReachable->wait());
+      }
     }
   }
 
