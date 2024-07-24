@@ -273,23 +273,25 @@ bool ConfigValidator::isValid(const PlatformConfig& config) {
   }
 
   for (const auto& [name, pmUnitConfig] : *config.pmUnitConfigs()) {
-    // Validate PciDeviceConfigs
-    for (const auto& pciDeviceConfig : *pmUnitConfig.pciDeviceConfigs_ref()) {
-      if (!isValidPciDeviceConfig(pciDeviceConfig)) {
+    if (!isValidPmUnitConfig(pmUnitConfig)) {
+      return false;
+    }
+  }
+
+  for (const auto& [pmUnitName, versionedPmUnitConfigs] :
+       *config.versionedPmUnitConfigs()) {
+    if (versionedPmUnitConfigs.empty()) {
+      XLOG(ERR) << fmt::format(
+          "VersionedPmUnitConfigs for {} must not be empty", pmUnitName);
+      return false;
+    }
+    for (const auto& versionedPmUnitConfig : versionedPmUnitConfigs) {
+      if (*versionedPmUnitConfig.platformVersion() < 0) {
+        XLOG(ERR)
+            << "VersionedPmUnitConfig must not have a negative PlatformVersion";
         return false;
       }
-    }
-
-    // Validate I2cDeviceConfigs
-    for (const auto& i2cDeviceConfig : *pmUnitConfig.i2cDeviceConfigs_ref()) {
-      if (!isValidI2cDeviceConfig(i2cDeviceConfig)) {
-        return false;
-      }
-    }
-
-    // Validate SlotConfigs
-    for (const auto& [_, slotConfig] : *pmUnitConfig.outgoingSlotConfigs()) {
-      if (!isValidSlotConfig(slotConfig)) {
+      if (!isValidPmUnitConfig(*versionedPmUnitConfig.pmUnitConfig())) {
         return false;
       }
     }
@@ -306,6 +308,30 @@ bool ConfigValidator::isValid(const PlatformConfig& config) {
     return false;
   }
 
+  return true;
+}
+
+bool ConfigValidator::isValidPmUnitConfig(const PmUnitConfig& pmUnitConfig) {
+  // Validate PciDeviceConfigs
+  for (const auto& pciDeviceConfig : *pmUnitConfig.pciDeviceConfigs_ref()) {
+    if (!isValidPciDeviceConfig(pciDeviceConfig)) {
+      return false;
+    }
+  }
+
+  // Validate I2cDeviceConfigs
+  for (const auto& i2cDeviceConfig : *pmUnitConfig.i2cDeviceConfigs_ref()) {
+    if (!isValidI2cDeviceConfig(i2cDeviceConfig)) {
+      return false;
+    }
+  }
+
+  // Validate SlotConfigs
+  for (const auto& [_, slotConfig] : *pmUnitConfig.outgoingSlotConfigs()) {
+    if (!isValidSlotConfig(slotConfig)) {
+      return false;
+    }
+  }
   return true;
 }
 
