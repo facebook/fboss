@@ -1453,9 +1453,9 @@ TYPED_TEST(NdpTest, PendingNdpCleanup) {
 };
 
 TYPED_TEST(NdpTest, NdpExpiration) {
-  /*
-   * TODO(skhare) Fix this test for Interface neighbor tables, and then enable.
-   */
+  // Keep test disabled for intf nbr tables because pending neighbor entries are
+  // currently not stored in intfs.
+  // TODO(jeffkim8482) Remove test once intf nbr migration is complete
   if (this->isIntfNbrTable()) {
 #if defined(GTEST_SKIP)
     GTEST_SKIP();
