@@ -914,26 +914,35 @@ TYPED_TEST(NdpTest, RouterAdvConfigWithRouterAddress) {
 }
 
 TYPED_TEST(NdpTest, receiveNeighborAdvertisementUnsolicited) {
-  /*
-   * TODO(skhare) Fix this test for Interface neighbor tables, and then enable.
-   */
-  if (this->isIntfNbrTable()) {
-#if defined(GTEST_SKIP)
-    GTEST_SKIP();
-#endif
-  }
-
   auto handle = this->setupTestHandle();
   auto sw = handle->getSw();
 
   // Send two unsolicited neighbor advertisements, state should update at
   // least once
-  WaitForNdpEntryCreation neighbor1Create(
-      sw, IPAddressV6("2401:db00:2110:3004::b"), VlanID(5), false);
-
-  sendNeighborAdvertisement(
-      handle.get(), "2401:db00:2110:3004::b", "02:05:73:f9:46:fb", 1, 5, false);
-  EXPECT_TRUE(neighbor1Create.wait());
+  if (this->isIntfNbrTable()) {
+    auto intfID = sw->getState()->getInterfaceIDForPort(PortID(1));
+    WaitForNdpEntryCreation neighbor1Create(
+        sw, IPAddressV6("2401:db00:2110:3004::b"), intfID, false);
+    sendNeighborAdvertisement(
+        handle.get(),
+        "2401:db00:2110:3004::b",
+        "02:05:73:f9:46:fb",
+        1,
+        5,
+        false);
+    EXPECT_TRUE(neighbor1Create.wait());
+  } else {
+    WaitForNdpEntryCreation neighbor1Create(
+        sw, IPAddressV6("2401:db00:2110:3004::b"), VlanID(5), false);
+    sendNeighborAdvertisement(
+        handle.get(),
+        "2401:db00:2110:3004::b",
+        "02:05:73:f9:46:fb",
+        1,
+        5,
+        false);
+    EXPECT_TRUE(neighbor1Create.wait());
+  }
   ThriftHandler thriftHandler(sw);
   auto binAddr = toBinaryAddress(IPAddressV6("2401:db00:2110:3004::b"));
   auto numFlushed =
