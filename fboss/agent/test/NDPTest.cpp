@@ -951,82 +951,134 @@ TYPED_TEST(NdpTest, receiveNeighborAdvertisementUnsolicited) {
 }
 
 TYPED_TEST(NdpTest, FlushEntry) {
-  /*
-   * TODO(skhare) Fix this test for Interface neighbor tables, and then enable.
-   */
-  if (this->isIntfNbrTable()) {
-#if defined(GTEST_SKIP)
-    GTEST_SKIP();
-#endif
-  }
-
   auto handle = this->setupTestHandle();
   auto sw = handle->getSw();
 
   ThriftHandler thriftHandler(sw);
 
-  // Helper for checking entries in NDP table
-  auto getNDPTableEntry = [&](IPAddressV6 ip, VlanID vlan) {
-    return sw->getState()
-        ->getVlans()
-        ->getNodeIf(vlan)
-        ->getNdpTable()
-        ->getEntryIf(ip);
-  };
-
   // Send two unsolicited neighbor advertisements, state should update at
   // least once
-  WaitForNdpEntryCreation neighbor1Create(
-      sw, IPAddressV6("2401:db00:2110:3004::b"), VlanID(5), false);
-  WaitForNdpEntryCreation neighbor2Create(
-      sw, IPAddressV6("2401:db00:2110:3004::c"), VlanID(5), false);
+  if (this->isIntfNbrTable()) {
+    // Helper for checking entries in NDP table
+    auto getNDPTableEntry = [&](IPAddressV6 ip, InterfaceID intf) {
+      return sw->getState()
+          ->getInterfaces()
+          ->getNodeIf(intf)
+          ->getNdpTable()
+          ->getEntryIf(ip);
+    };
+    auto intfID = sw->getState()->getInterfaceIDForPort(PortID(1));
+    WaitForNdpEntryCreation neighbor1Create(
+        sw, IPAddressV6("2401:db00:2110:3004::b"), intfID, false);
+    WaitForNdpEntryCreation neighbor2Create(
+        sw, IPAddressV6("2401:db00:2110:3004::c"), intfID, false);
+    sendNeighborAdvertisement(
+        handle.get(), "2401:db00:2110:3004::b", "02:05:73:f9:46:fb", 1, 5);
+    sendNeighborAdvertisement(
+        handle.get(), "2401:db00:2110:3004::c", "02:05:73:f9:46:fc", 1, 5);
 
-  sendNeighborAdvertisement(
-      handle.get(), "2401:db00:2110:3004::b", "02:05:73:f9:46:fb", 1, 5);
-  sendNeighborAdvertisement(
-      handle.get(), "2401:db00:2110:3004::c", "02:05:73:f9:46:fc", 1, 5);
+    EXPECT_TRUE(neighbor1Create.wait());
+    EXPECT_TRUE(neighbor2Create.wait());
 
-  EXPECT_TRUE(neighbor1Create.wait());
-  EXPECT_TRUE(neighbor2Create.wait());
+    // Flush 2401:db00:2110:3004::b
+    WaitForNdpEntryExpiration neighbor1Expire(
+        sw, IPAddressV6("2401:db00:2110:3004::b"), intfID);
+    auto binAddr = toBinaryAddress(IPAddressV6("2401:db00:2110:3004::b"));
+    auto numFlushed = thriftHandler.flushNeighborEntry(
+        make_unique<BinaryAddress>(binAddr), 5);
+    EXPECT_EQ(numFlushed, 1);
+    EXPECT_TRUE(neighbor1Expire.wait());
 
-  // Flush 2401:db00:2110:3004::b
-  WaitForNdpEntryExpiration neighbor1Expire(
-      sw, IPAddressV6("2401:db00:2110:3004::b"), VlanID(5));
-  auto binAddr = toBinaryAddress(IPAddressV6("2401:db00:2110:3004::b"));
-  auto numFlushed =
-      thriftHandler.flushNeighborEntry(make_unique<BinaryAddress>(binAddr), 5);
-  EXPECT_EQ(numFlushed, 1);
-  EXPECT_TRUE(neighbor1Expire.wait());
+    // Still one entry
+    // Only one entry now
+    auto entry0 =
+        getNDPTableEntry(IPAddressV6("2401:db00:2110:3004::b"), intfID);
+    EXPECT_EQ(entry0, nullptr);
 
-  // Still one entry
-  // Only one entry now
-  auto entry0 =
-      getNDPTableEntry(IPAddressV6("2401:db00:2110:3004::b"), VlanID(5));
-  EXPECT_EQ(entry0, nullptr);
+    auto entry1 =
+        getNDPTableEntry(IPAddressV6("2401:db00:2110:3004::c"), intfID);
+    EXPECT_NE(entry1, nullptr);
+    EXPECT_EQ(entry1->getMac(), MacAddress("02:05:73:f9:46:fc"));
 
-  auto entry1 =
-      getNDPTableEntry(IPAddressV6("2401:db00:2110:3004::c"), VlanID(5));
-  EXPECT_NE(entry1, nullptr);
-  EXPECT_EQ(entry1->getMac(), MacAddress("02:05:73:f9:46:fc"));
+    // Now flush 2401:db00:2110:3004::c, but using special Vlan0
+    WaitForNdpEntryExpiration neighbor2Expire(
+        sw, IPAddressV6("2401:db00:2110:3004::c"), intfID);
+    binAddr = toBinaryAddress(IPAddressV6("2401:db00:2110:3004::c"));
+    // NDP removal should trigger a static MAC entry removal
+    EXPECT_STATE_UPDATE_TIMES(sw, 2);
+    numFlushed = thriftHandler.flushNeighborEntry(
+        make_unique<BinaryAddress>(binAddr), 0);
+    EXPECT_EQ(numFlushed, 1);
+    EXPECT_TRUE(neighbor2Expire.wait());
+    waitForStateUpdates(sw);
 
-  // Now flush 2401:db00:2110:3004::c, but using special Vlan0
-  WaitForNdpEntryExpiration neighbor2Expire(
-      sw, IPAddressV6("2401:db00:2110:3004::c"), VlanID(5));
-  binAddr = toBinaryAddress(IPAddressV6("2401:db00:2110:3004::c"));
-  // NDP removal should trigger a static MAC entry removal
-  EXPECT_STATE_UPDATE_TIMES(sw, 2);
-  numFlushed =
-      thriftHandler.flushNeighborEntry(make_unique<BinaryAddress>(binAddr), 0);
-  EXPECT_EQ(numFlushed, 1);
-  EXPECT_TRUE(neighbor2Expire.wait());
-  waitForStateUpdates(sw);
+    // Try flushing 2401:db00:2110:3004::c again (should be a no-op)
+    EXPECT_STATE_UPDATE_TIMES(sw, 0);
+    binAddr = toBinaryAddress(IPAddressV6("2401:db00:2110:3004::c"));
+    numFlushed = thriftHandler.flushNeighborEntry(
+        make_unique<BinaryAddress>(binAddr), 5);
+    EXPECT_EQ(numFlushed, 0);
+  } else {
+    // Helper for checking entries in NDP table
+    auto getNDPTableEntry = [&](IPAddressV6 ip, VlanID vlan) {
+      return sw->getState()
+          ->getVlans()
+          ->getNodeIf(vlan)
+          ->getNdpTable()
+          ->getEntryIf(ip);
+    };
+    WaitForNdpEntryCreation neighbor1Create(
+        sw, IPAddressV6("2401:db00:2110:3004::b"), VlanID(5), false);
+    WaitForNdpEntryCreation neighbor2Create(
+        sw, IPAddressV6("2401:db00:2110:3004::c"), VlanID(5), false);
 
-  // Try flushing 2401:db00:2110:3004::c again (should be a no-op)
-  EXPECT_STATE_UPDATE_TIMES(sw, 0);
-  binAddr = toBinaryAddress(IPAddressV6("2401:db00:2110:3004::c"));
-  numFlushed =
-      thriftHandler.flushNeighborEntry(make_unique<BinaryAddress>(binAddr), 5);
-  EXPECT_EQ(numFlushed, 0);
+    sendNeighborAdvertisement(
+        handle.get(), "2401:db00:2110:3004::b", "02:05:73:f9:46:fb", 1, 5);
+    sendNeighborAdvertisement(
+        handle.get(), "2401:db00:2110:3004::c", "02:05:73:f9:46:fc", 1, 5);
+
+    EXPECT_TRUE(neighbor1Create.wait());
+    EXPECT_TRUE(neighbor2Create.wait());
+
+    // Flush 2401:db00:2110:3004::b
+    WaitForNdpEntryExpiration neighbor1Expire(
+        sw, IPAddressV6("2401:db00:2110:3004::b"), VlanID(5));
+    auto binAddr = toBinaryAddress(IPAddressV6("2401:db00:2110:3004::b"));
+    auto numFlushed = thriftHandler.flushNeighborEntry(
+        make_unique<BinaryAddress>(binAddr), 5);
+    EXPECT_EQ(numFlushed, 1);
+    EXPECT_TRUE(neighbor1Expire.wait());
+
+    // Still one entry
+    // Only one entry now
+    auto entry0 =
+        getNDPTableEntry(IPAddressV6("2401:db00:2110:3004::b"), VlanID(5));
+    EXPECT_EQ(entry0, nullptr);
+
+    auto entry1 =
+        getNDPTableEntry(IPAddressV6("2401:db00:2110:3004::c"), VlanID(5));
+    EXPECT_NE(entry1, nullptr);
+    EXPECT_EQ(entry1->getMac(), MacAddress("02:05:73:f9:46:fc"));
+
+    // Now flush 2401:db00:2110:3004::c, but using special Vlan0
+    WaitForNdpEntryExpiration neighbor2Expire(
+        sw, IPAddressV6("2401:db00:2110:3004::c"), VlanID(5));
+    binAddr = toBinaryAddress(IPAddressV6("2401:db00:2110:3004::c"));
+    // NDP removal should trigger a static MAC entry removal
+    EXPECT_STATE_UPDATE_TIMES(sw, 2);
+    numFlushed = thriftHandler.flushNeighborEntry(
+        make_unique<BinaryAddress>(binAddr), 0);
+    EXPECT_EQ(numFlushed, 1);
+    EXPECT_TRUE(neighbor2Expire.wait());
+    waitForStateUpdates(sw);
+
+    // Try flushing 2401:db00:2110:3004::c again (should be a no-op)
+    EXPECT_STATE_UPDATE_TIMES(sw, 0);
+    binAddr = toBinaryAddress(IPAddressV6("2401:db00:2110:3004::c"));
+    numFlushed = thriftHandler.flushNeighborEntry(
+        make_unique<BinaryAddress>(binAddr), 5);
+    EXPECT_EQ(numFlushed, 0);
+  }
 }
 
 // Ensure that NDP entries learned against a port are
