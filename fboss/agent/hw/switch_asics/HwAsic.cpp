@@ -203,4 +203,9 @@ uint32_t HwAsic::getVirtualDevices() const {
   return 1;
 }
 
+std::optional<uint32_t> HwAsic::computePortGroupSkew(
+    const std::map<PortID, uint32_t>& portId2cableLen) const {
+  throw FbossError(
+      "Derived class must override getPortGroupSkew, where applicable");
+}
 } // namespace facebook::fboss

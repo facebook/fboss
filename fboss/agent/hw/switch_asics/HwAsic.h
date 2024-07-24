@@ -349,6 +349,8 @@ class HwAsic {
   const folly::MacAddress& getAsicMac() const {
     return asicMac_;
   }
+  virtual std::optional<uint32_t> computePortGroupSkew(
+      const std::map<PortID, uint32_t>& portId2cableLen) const;
 
   struct RecyclePortInfo {
     uint32_t coreId;
