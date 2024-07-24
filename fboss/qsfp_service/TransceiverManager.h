@@ -337,6 +337,9 @@ class TransceiverManager {
       TransceiverValidationInfo& tcvrInfo,
       std::string& notValidatedReason) const;
 
+  int getNumNonValidatedTransceiverConfigs(
+      const std::map<int32_t, TransceiverInfo>& infoMap) const;
+
   void updateValidationCache(TransceiverID id, bool isValid);
 
   // ========== Public functions for TransceiverStateMachine ==========

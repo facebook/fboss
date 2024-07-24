@@ -1686,6 +1686,25 @@ std::string TransceiverManager::getTransceiverValidationConfigString(
   return folly::toPrettyJson(r);
 }
 
+int TransceiverManager::getNumNonValidatedTransceiverConfigs(
+    const std::map<int32_t, TransceiverInfo>& infoMap) const {
+  auto nonValidatedSet = nonValidTransceiversCache_.rlock();
+  int numConfigs = 0;
+
+  for (auto& [tcvrId, tcvrInfo] : infoMap) {
+    auto isPresent = tcvrInfo.tcvrState()->present().value();
+    auto isNonValid =
+        nonValidatedSet->find(static_cast<TransceiverID>(tcvrId)) !=
+        nonValidatedSet->end();
+
+    if (isPresent && isNonValid) {
+      numConfigs++;
+    }
+  }
+
+  return numConfigs;
+}
+
 void TransceiverManager::updateValidationCache(TransceiverID id, bool isValid) {
   auto nonValidatedSet = nonValidTransceiversCache_.wlock();
   if (!isValid) {

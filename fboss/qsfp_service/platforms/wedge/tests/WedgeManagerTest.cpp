@@ -960,4 +960,74 @@ TEST_F(WedgeManagerTest, validateTransceiverConfigByIdTest) {
           "invalidEepromChecksums"));
 }
 
+// These test cases validate the logic used to calculate Transceiver Validator's
+// exported fb303 counter.
+TEST_F(WedgeManagerTest, testGetNumNonValidatedTransceiverConfigs) {
+  int numTransceivers = 5;
+  auto genTcvrInfoMap = [&](std::unordered_set<int> upTransceivers) {
+    std::map<int32_t, TransceiverInfo> infoMap;
+    for (int i = 0; i < numTransceivers; i++) {
+      TransceiverInfo info;
+      info.tcvrState()->present() =
+          upTransceivers.find(i) != upTransceivers.end();
+
+      infoMap[TransceiverID(i)] = std::move(info);
+    }
+
+    return infoMap;
+  };
+  auto setNonValidatedCache = [&](std::unordered_set<int> nonValidTcvrIds) {
+    for (int i = 0; i < numTransceivers; i++) {
+      transceiverManager_->updateValidationCache(
+          TransceiverID(i), nonValidTcvrIds.find(i) == nonValidTcvrIds.end());
+    }
+  };
+  auto expectNumNonValidatedConfigs =
+      [&](std::map<int32_t, TransceiverInfo>& infoMap, int expectedVal) {
+        EXPECT_EQ(
+            transceiverManager_->getNumNonValidatedTransceiverConfigs(infoMap),
+            expectedVal);
+      };
+
+  std::map<int32_t, TransceiverInfo> infoMap;
+  // Empty nonValidTransceiversCache
+  setNonValidatedCache({});
+
+  infoMap = genTcvrInfoMap({});
+  expectNumNonValidatedConfigs(infoMap, 0);
+
+  infoMap = genTcvrInfoMap({2, 3});
+  expectNumNonValidatedConfigs(infoMap, 0);
+
+  infoMap = genTcvrInfoMap({0, 1, 2, 3, 4});
+  expectNumNonValidatedConfigs(infoMap, 0);
+
+  // Full nonValidTransceiversCache
+  setNonValidatedCache({0, 1, 2, 3, 4});
+
+  infoMap = genTcvrInfoMap({});
+  expectNumNonValidatedConfigs(infoMap, 0);
+
+  infoMap = genTcvrInfoMap({2, 3});
+  expectNumNonValidatedConfigs(infoMap, 2);
+
+  infoMap = genTcvrInfoMap({0, 1, 2, 3, 4});
+  expectNumNonValidatedConfigs(infoMap, 5);
+
+  // Partially full nonValidTransceiversCache
+  setNonValidatedCache({2, 3});
+
+  infoMap = genTcvrInfoMap({});
+  expectNumNonValidatedConfigs(infoMap, 0);
+
+  infoMap = genTcvrInfoMap({0, 1});
+  expectNumNonValidatedConfigs(infoMap, 0);
+
+  infoMap = genTcvrInfoMap({2, 3, 4});
+  expectNumNonValidatedConfigs(infoMap, 2);
+
+  infoMap = genTcvrInfoMap({0, 1, 2, 3, 4});
+  expectNumNonValidatedConfigs(infoMap, 2);
+}
+
 } // namespace facebook::fboss
