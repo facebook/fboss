@@ -1118,10 +1118,10 @@ UplinkDownlinkPair getRtswUplinkDownlinkPorts(
     if (port.pfc().has_value()) {
       auto pfc = port.pfc().value();
       auto pgName = pfc.portPgConfigName().value();
-      if (pgName.find("downlinks") != std::string::npos) {
+      if (pgName.find("downlink") != std::string::npos) {
         downlinks.push_back(portId);
       } else if (
-          (pgName.find("uplinks") != std::string::npos) &&
+          (pgName.find("uplink") != std::string::npos) &&
           uplinks.size() < ecmpWidth) {
         uplinks.push_back(portId);
       }
