@@ -55,9 +55,9 @@ DEFINE_uint32(
     "1 for Prod. > 1 for scale tests");
 
 DEFINE_bool(
-    classid_for_connected_subnet_routes,
+    set_classid_for_my_subnet_and_ip_routes,
     false,
-    "Flag to set the class ID for connected subnet routes that point to RIF");
+    "Flag to disable implicit route classid set by sai/sdk, and always explicitly set class ID for my subnet routes and my ip routes from fboss");
 
 DEFINE_int32(
     stat_publish_interval_ms,

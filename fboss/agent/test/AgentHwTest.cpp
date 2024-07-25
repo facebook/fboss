@@ -52,9 +52,9 @@ void AgentHwTest::SetUp() {
       failHwCallsOnWarmboot());
 
   if (isSupportedOnAllAsics(HwAsic::Feature::ROUTE_METADATA)) {
-    // TODO: enable after classid_for_connected_subnet_routes feature is fully
-    // verified
-    FLAGS_classid_for_connected_subnet_routes = false;
+    // TODO: enable after set_classid_for_my_subnet_and_ip_routes feature is
+    // fully verified
+    FLAGS_set_classid_for_my_subnet_and_ip_routes = false;
   }
 }
 

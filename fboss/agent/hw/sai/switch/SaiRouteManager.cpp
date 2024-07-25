@@ -234,10 +234,10 @@ void SaiRouteManager::addOrUpdateRoute(
          * route is unsupported. Also not supported on BRCM-SAI, which does not
          * fuly support route classID programming yet.
          *
-         * So, classid_for_connected_subnet_routes is currently disabled
+         * So, set_classid_for_my_subnet_and_ip_routes is currently disabled
          * everywhere
          */
-        if (FLAGS_classid_for_connected_subnet_routes &&
+        if (FLAGS_set_classid_for_my_subnet_and_ip_routes &&
             platform_->getAsic()->isSupported(
                 HwAsic::Feature::ROUTE_METADATA)) {
           metadata =

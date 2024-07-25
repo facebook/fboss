@@ -231,7 +231,7 @@ TYPED_TEST(HwRouteTest, VerifyClassIDForConnectedRoute) {
         this->getHwSwitch(), this->kRouterID(), ipAddr.toCidrNetwork());
     if (this->getPlatform()->getAsic()->getAsicVendor() !=
         HwAsic::AsicVendor::ASIC_VENDOR_TAJO) {
-      if (FLAGS_classid_for_connected_subnet_routes) {
+      if (FLAGS_set_classid_for_my_subnet_and_ip_routes) {
         this->verifyClassIDHelper(
             ipAddr, cfg::AclLookupClass::DST_CLASS_L3_LOCAL_2);
       }

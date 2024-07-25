@@ -42,7 +42,7 @@ DECLARE_uint32(dsf_gr_hold_time);
 DECLARE_bool(dsf_flush_remote_sysports_and_rifs_on_gr);
 DECLARE_uint32(dsf_num_parallel_sessions_per_remote_interface_node);
 
-DECLARE_bool(classid_for_connected_subnet_routes);
+DECLARE_bool(set_classid_for_my_subnet_and_ip_routes);
 DECLARE_int32(stat_publish_interval_ms);
 DECLARE_int32(hwagent_port_base);
 DECLARE_bool(force_init_fp);
