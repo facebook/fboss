@@ -58,7 +58,6 @@ bool EbroAsic::isSupportedNonFabric(Feature feature) const {
     case HwAsic::Feature::ROUTE_METADATA:
     case HwAsic::Feature::P4_WARMBOOT:
     case HwAsic::Feature::IN_PAUSE_INCREMENTS_DISCARDS:
-    case HwAsic::Feature::SAI_ACL_ENTRY_SRC_PORT_QUALIFIER:
     case HwAsic::Feature::PMD_RX_LOCK_STATUS:
     case HwAsic::Feature::PMD_RX_SIGNAL_DETECT:
     case HwAsic::Feature::FEC_AM_LOCK_STATUS:
@@ -178,6 +177,15 @@ bool EbroAsic::isSupportedNonFabric(Feature feature) const {
     case HwAsic::Feature::DRAM_BLOCK_TIME:
     case HwAsic::Feature::VOQ_LATENCY_WATERMARK_BIN:
       return false;
+    case HwAsic::Feature::SAI_ACL_ENTRY_SRC_PORT_QUALIFIER:
+      /*
+       * Source port ACL qualifier is used in certain HW tests
+       * to trap packets to CPU. This feature is supported only
+       * with P4 warmboot supported SDKs.
+       * 1.42.* SDK uses DIP based ACL qualifier in HW tests
+       * whereas P4 WB capable SDKs use Source Port qualifier
+       */
+      return isP4WarmbootEnabled();
   }
   return false;
 }
