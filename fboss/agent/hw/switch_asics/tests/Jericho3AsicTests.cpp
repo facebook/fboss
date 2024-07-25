@@ -33,6 +33,8 @@ class Jericho3AsicTest : public ::testing::Test {
 };
 
 TEST_F(Jericho3AsicTest, checkPortGroups) {
+  const std::vector<std::pair<int, int>> kExpectedPortGroups{
+      {1024, 1063}, {1064, 1103}, {1104, 1143}, {1144, 1183}};
   auto portGroups = asic_->getPortGroups();
-  EXPECT_EQ(portGroups.size(), 4);
+  EXPECT_EQ(portGroups, kExpectedPortGroups);
 }
