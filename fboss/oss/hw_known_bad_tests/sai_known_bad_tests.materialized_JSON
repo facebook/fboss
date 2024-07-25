@@ -652,6 +652,9 @@
           "test_name_regex": "SaiPortAdminStateTest.assertAdminState"
         },
         {
+          "test_name_regex": "PROFILE_100G_4_NRZ_RS528_COPPER"
+        },
+        {
           "test_name_regex": "HwDscpQueueMappingTest.VerifyAclAndQosMap"
         },
         {
@@ -2716,6 +2719,9 @@
         },
         {
           "test_name_regex": "SaiPortAdminStateTest.assertAdminState"
+        },
+        {
+          "test_name_regex": "PROFILE_100G_4_NRZ_RS528_COPPER"
         }
     ],
     "brcm/10.2.0.0_odp/10.2.0.0_odp/tomahawk5": [
@@ -5400,6 +5406,9 @@
         },
         {
           "test_name_regex": "SaiPortAdminStateTest.assertAdminState"
+        },
+        {
+          "test_name_regex": "PROFILE_100G_4_NRZ_RS528_COPPER"
         }
     ],
     "brcm/8.2.0.0_odp/9.2.0.0_odp/tomahawk": [
@@ -7043,6 +7052,9 @@
           "test_name_regex": "SaiPortAdminStateTest.assertAdminState"
         },
         {
+          "test_name_regex": "PROFILE_100G_4_NRZ_RS528_COPPER"
+        },
+        {
           "test_name_regex": "HwTrafficPfcTest.*"
         },
         {
@@ -7577,6 +7589,9 @@
         },
         {
           "test_name_regex": "SaiPortAdminStateTest.assertAdminState"
+        },
+        {
+          "test_name_regex": "PROFILE_100G_4_NRZ_RS528_COPPER"
         },
         {
           "test_name_regex": "HwDscpQueueMappingTest.VerifyAclAndQosMap"
@@ -9233,6 +9248,9 @@
         },
         {
           "test_name_regex": "SaiPortAdminStateTest.assertAdminState"
+        },
+        {
+          "test_name_regex": "PROFILE_100G_4_NRZ_RS528_COPPER"
         }
     ],
     "leaba/1.42.8/1.42.8/gibraltar": [
