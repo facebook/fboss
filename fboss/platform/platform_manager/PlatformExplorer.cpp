@@ -523,7 +523,8 @@ void PlatformExplorer::reportExplorationSummary() {
   for (const auto& [slotPath, errMsgs] : errorMessagesBySlotPath) {
     XLOG(INFO) << fmt::format(
         "Failures in PmUnit {} at {}",
-        dataStore_.getPmUnitName(slotPath),
+        dataStore_.hasPmUnit(slotPath) ? dataStore_.getPmUnitName(slotPath)
+                                       : "<ABSENT>",
         slotPath);
     int i = 1;
     for (const auto& errMsg : errMsgs) {
