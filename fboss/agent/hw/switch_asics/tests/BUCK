@@ -1,0 +1,14 @@
+load("@fbcode_macros//build_defs:cpp_unittest.bzl", "cpp_unittest")
+
+oncall("fboss_agent_push")
+
+cpp_unittest(
+    name = "switch_asic_tests",
+    srcs = [
+        "Jericho3AsicTests.cpp",
+    ],
+    deps = [
+        "//fboss/agent:switch_config-cpp2-types",
+        "//fboss/agent/hw/switch_asics:switch_asics",
+    ],
+)
