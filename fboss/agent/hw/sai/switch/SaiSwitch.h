@@ -233,6 +233,8 @@ class SaiSwitch : public HwSwitch {
 
   AclStats getAclStats() const override;
 
+  std::shared_ptr<SwitchState> reconstructSwitchState() const override;
+
  private:
   void gracefulExitImpl() override;
 

@@ -168,6 +168,8 @@ class SimSwitch : public HwSwitch {
   void syncLinkActiveStates() override {}
   void syncLinkConnectivity() override {}
 
+  std::shared_ptr<SwitchState> reconstructSwitchState() const override;
+
   // Forbidden copy constructor and assignment operator
   SimSwitch(SimSwitch const&) = delete;
   SimSwitch& operator=(SimSwitch const&) = delete;

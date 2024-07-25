@@ -105,4 +105,8 @@ folly::dynamic SimSwitch::toFollyDynamic() const {
   return folly::dynamic::object;
 }
 
+std::shared_ptr<SwitchState> SimSwitch::reconstructSwitchState() const {
+  throw FbossError("reconstructSwitchState not implemented for SimSwitch");
+}
+
 } // namespace facebook::fboss

@@ -3968,4 +3968,8 @@ void SaiSwitch::reportInterPortGroupCableSkew() const {
     getSwitchStats()->portGroupSkew(*portGroupSkew);
   }
 }
+
+std::shared_ptr<SwitchState> SaiSwitch::reconstructSwitchState() const {
+  throw FbossError("reconstructSwitchState not implemented for SAI");
+}
 } // namespace facebook::fboss

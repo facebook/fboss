@@ -644,6 +644,8 @@ class BcmSwitch : public BcmSwitchIf {
 
   AclStats getAclStats() const override;
 
+  std::shared_ptr<SwitchState> reconstructSwitchState() const override;
+
  private:
   enum Flags : uint32_t {
     RX_REGISTERED = 0x01,

@@ -4241,4 +4241,8 @@ AclStats BcmSwitch::getAclStats() const {
   return bcmStatUpdater_->getAclStats();
 }
 
+std::shared_ptr<SwitchState> BcmSwitch::reconstructSwitchState() const {
+  throw FbossError("reconstructSwitchState not implemented for BCM");
+}
+
 } // namespace facebook::fboss
