@@ -13613,9 +13613,10 @@
             "ucode_port_0.BCM8889X": "CPU.0:core_0.0",
             "ucode_port_0.BCM8889X_ADAPTER": "CPU.0:core_0.0",
             "ucode_port_1.BCM8889X": "RCY.25:core_2.2",
-            "ucode_port_10.BCM8889X": "D3CE0:core_0.4",
+            "ucode_port_10.BCM8889X": "CDGE4_0:core_0.4",
             "ucode_port_107.BCM8889X": "RCY_MIRROR.7:core_2.107",
             "ucode_port_108.BCM8889X": "RCY_MIRROR.8:core_3.108",
+            "ucode_port_11.BCM8889X": "CDGE4_1:core_0.5",
             "ucode_port_110.BCM8889X": "RCY_MIRROR.10:core_0.110",
             "ucode_port_112.BCM8889X": "RCY_MIRROR.12:core_0.112",
             "ucode_port_113.BCM8889X": "RCY_MIRROR.13:core_0.113",
@@ -13666,7 +13667,8 @@
             "ucode_port_5.BCM8889X": "RCY.24:core_3.1",
             "ucode_port_6.BCM8889X": "EVENTOR:core_0.12",
             "ucode_port_7.BCM8889X": "CGE36:core_2.11",
-            "ucode_port_8.BCM8889X": "D3CE13:core_3.2",
+            "ucode_port_8.BCM8889X": "CDGE4_26:core_3.2",
+            "ucode_port_9.BCM8889X": "CDGE4_27:core_3.3",
             "warmboot_support.BCM8889X": "on",
             "warmboot_support.BCM8889X_ADAPTER": "on"
           }
