@@ -10,6 +10,7 @@ include "fboss/agent/if/fboss.thrift"
 include "fboss/agent/if/ctrl.thrift"
 include "fboss/lib/phy/phy.thrift"
 include "fboss/lib/phy/prbs.thrift"
+include "fboss/agent/switch_state.thrift"
 
 const i32 DEFAULT_HW_CTRL_BASE_PORT = 5931;
 
@@ -116,4 +117,11 @@ service FbossHwCtrl {
     1: list<string> interfaces,
     2: phy.PortComponent component,
   ) throws (1: fboss.FbossBaseError error);
+
+  /*
+   * Reconstruct switch state.
+   */
+  switch_state.SwitchState reconstructSwitchState() throws (
+    1: fboss.FbossBaseError error,
+  );
 }

@@ -61,6 +61,8 @@ class MultiSwitchHwSwitchHandler : public HwSwitchHandler {
 
   SwitchRunState getHwSwitchRunState() override;
 
+  state::SwitchState reconstructSwitchState() override;
+
  private:
   bool checkOperSyncStateLocked(
       HwSwitchOperDeltaSyncState state,

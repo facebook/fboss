@@ -103,6 +103,8 @@ class MultiHwSwitchHandler {
 
   void fillHwAgentConnectionStatus(AgentStats& agentStats);
 
+  state::SwitchState reconstructSwitchState(SwitchID id);
+
  private:
   bool transactionsSupported(std::optional<cfg::SdkVersion> sdkVersion) const;
 

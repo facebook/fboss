@@ -241,6 +241,7 @@ thrift_library(
         ":common",
         ":ctrl",
         ":fboss",
+        "//fboss/agent:switch_state",
         "//fboss/lib/phy:phy",
         "//fboss/lib/phy:prbs",
     ],

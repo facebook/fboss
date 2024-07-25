@@ -374,4 +374,9 @@ void MultiSwitchHwSwitchHandler::operDeltaAckTimeout() {
   sw_->stats()->hwAgentUpdateTimeout(switchIndex);
 }
 
+state::SwitchState MultiSwitchHwSwitchHandler::reconstructSwitchState() {
+  throw FbossError(
+      "reconstructSwitchState Not implemented in MultiSwitchHwSwitchHandler");
+}
+
 } // namespace facebook::fboss

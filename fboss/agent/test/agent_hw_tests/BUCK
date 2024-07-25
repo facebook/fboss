@@ -51,6 +51,7 @@ cpp_library(
         "AgentRxReasonTests.cpp",
         "AgentSendPacketToQueueTests.cpp",
         "AgentSflowMirrorTest.cpp",
+        "AgentStateReconstructionTests.cpp",
         "AgentSwitchStatsTxCounterTests.cpp",
         "AgentTrunkLoadBalancerTests.cpp",
         "AgentVoqSwitchInterruptsTests.cpp",

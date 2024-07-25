@@ -336,4 +336,9 @@ void MultiHwSwitchHandler::fillHwAgentConnectionStatus(AgentStats& agentStats) {
   }
 }
 
+state::SwitchState MultiHwSwitchHandler::reconstructSwitchState(SwitchID id) {
+  throw FbossError(
+      "reconstructSwitchState Not implemented in MultiHwSwitchHandler");
+}
+
 } // namespace facebook::fboss

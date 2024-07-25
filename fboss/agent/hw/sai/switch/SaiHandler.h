@@ -90,6 +90,11 @@ class SaiHandler : public apache::thrift::ServiceHandler<SaiCtrl> {
       std::unique_ptr<std::vector<std::string>> interfaces,
       phy::PortComponent component) override;
 
+  void reconstructSwitchState(state::SwitchState& /* state */) override {
+    throw FbossError(
+        "reconstructSwitchState Not implemented in MultiSwitchHwSwitchHandler");
+  }
+
  private:
   SaiSwitch* hw_;
   StreamingDiagShellServer diagShell_;
