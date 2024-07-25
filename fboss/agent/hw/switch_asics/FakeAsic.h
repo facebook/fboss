@@ -17,7 +17,7 @@ class FakeAsic : public HwAsic {
       std::optional<int64_t> switchId,
       int16_t index,
       std::optional<cfg::Range64> systemPortRange,
-      folly::MacAddress& mac,
+      const folly::MacAddress& mac,
       std::optional<cfg::SdkVersion> sdkVersion = std::nullopt)
       : HwAsic(
             switchType,

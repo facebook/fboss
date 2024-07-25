@@ -15,7 +15,7 @@ class HwAsic {
       std::optional<int64_t> switchId,
       int16_t switchIndex,
       std::optional<cfg::Range64> systemPortRange,
-      folly::MacAddress& mac,
+      const folly::MacAddress& mac,
       std::optional<cfg::SdkVersion> sdkVersion = std::nullopt,
       std::unordered_set<cfg::SwitchType> supportedModes = {
           cfg::SwitchType::NPU});
@@ -205,7 +205,7 @@ class HwAsic {
       std::optional<int64_t> switchID,
       int16_t switchIndex,
       std::optional<cfg::Range64> systemPortRange,
-      folly::MacAddress& mac,
+      const folly::MacAddress& mac,
       std::optional<cfg::SdkVersion> sdkVersion);
   virtual bool isSupported(Feature) const = 0;
   virtual cfg::AsicType getAsicType() const = 0;

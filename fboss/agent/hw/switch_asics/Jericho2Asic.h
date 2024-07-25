@@ -13,7 +13,7 @@ class Jericho2Asic : public BroadcomAsic {
       std::optional<int64_t> id,
       int16_t switchIndex,
       std::optional<cfg::Range64> systemPortRange,
-      folly::MacAddress& mac,
+      const folly::MacAddress& mac,
       std::optional<cfg::SdkVersion> sdkVersion = std::nullopt)
       : BroadcomAsic(
             type,

@@ -15,7 +15,7 @@ class EbroAsic : public TajoAsic {
       std::optional<int64_t> id,
       int16_t index,
       std::optional<cfg::Range64> systemPortRange,
-      folly::MacAddress& mac,
+      const folly::MacAddress& mac,
       std::optional<cfg::SdkVersion> sdkVersion = std::nullopt)
       : TajoAsic(
             type,

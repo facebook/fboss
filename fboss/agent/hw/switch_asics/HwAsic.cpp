@@ -43,7 +43,7 @@ HwAsic::HwAsic(
     std::optional<int64_t> switchId,
     int16_t switchIndex,
     std::optional<cfg::Range64> systemPortRange,
-    folly::MacAddress& mac,
+    const folly::MacAddress& mac,
     std::optional<cfg::SdkVersion> sdkVersion,
     std::unordered_set<cfg::SwitchType> supportedModes)
     : switchType_(switchType),
@@ -75,7 +75,7 @@ std::unique_ptr<HwAsic> HwAsic::makeAsic(
     std::optional<int64_t> switchId,
     int16_t switchIndex,
     std::optional<cfg::Range64> systemPortRange,
-    folly::MacAddress& mac,
+    const folly::MacAddress& mac,
     std::optional<cfg::SdkVersion> sdkVersion) {
   switch (asicType) {
     case cfg::AsicType::ASIC_TYPE_FAKE:
