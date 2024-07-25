@@ -38,3 +38,15 @@ TEST_F(Jericho3AsicTest, checkPortGroups) {
   auto portGroups = asic_->getPortGroups();
   EXPECT_EQ(portGroups, kExpectedPortGroups);
 }
+
+TEST_F(Jericho3AsicTest, noCableLens) {
+  EXPECT_FALSE(asic_->computePortGroupSkew({}).has_value());
+}
+
+TEST_F(Jericho3AsicTest, singlePortGroupCables) {
+  std::map<PortID, uint32_t> singlePortGroup{
+      {PortID(1024), 100},
+      {PortID(1034), 200},
+  };
+  EXPECT_EQ(asic_->computePortGroupSkew(singlePortGroup), 0);
+}
