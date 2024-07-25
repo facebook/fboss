@@ -30,6 +30,7 @@ cpp_library(
         "//fboss/agent/state:state",
         "//fboss/agent/test:agent_test",
         "//fboss/agent/test:ecmp_helper",
+        "//fboss/agent/test/utils:acl_test_utils",
         "//fboss/agent/test/utils:dscp_marking_utils",
         "//fboss/agent/test/utils:queue_per_host_test_utils",
         "//fboss/lib/config:fboss_config_utils",

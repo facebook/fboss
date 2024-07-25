@@ -28,23 +28,23 @@ class ProdInvariantTest : public ProdAgentTests {
   void verifyThriftHandler();
   void verifySwSwitchHandler();
   void set_mmu_lossless(bool mmu_lossless) {
-    _mmu_lossless_mode = mmu_lossless;
+    mmuLosslessMode_ = mmu_lossless;
   }
   bool is_mmu_lossless_mode() {
-    return _mmu_lossless_mode;
+    return mmuLosslessMode_;
   }
 
  protected:
   std::optional<bool> useProdConfig_ = std::nullopt;
+  PortID getDownlinkPort();
 
  private:
   std::vector<PortID> getEcmpPortIds();
   void sendTraffic();
-  PortID getDownlinkPort();
   void setupAgentTestEcmp(const std::vector<PortDescriptor>& ecmpPorts);
   std::map<PortID, HwPortStats> getLatestPortStats(
       const std::vector<PortID>& ports);
-  bool _mmu_lossless_mode = false;
+  bool mmuLosslessMode_ = false;
 };
 
 int ProdInvariantTestMain(int argc, char** argv, PlatformInitFn initPlatformFn);

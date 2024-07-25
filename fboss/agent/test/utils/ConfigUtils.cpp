@@ -1237,4 +1237,17 @@ void removeSubsumedPorts(
     }
   }
 }
+
+bool checkConfigHasAclEntry(
+    const cfg::SwitchConfig& config,
+    std::string aclName) {
+  auto acls = *config.acls();
+  for (const auto& acl : acls) {
+    if (acl.name().value() == aclName) {
+      return true;
+    }
+  }
+  return false;
+}
+
 } // namespace facebook::fboss::utility

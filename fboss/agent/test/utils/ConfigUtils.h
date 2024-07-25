@@ -258,4 +258,8 @@ void removeSubsumedPorts(
 std::map<int, std::vector<uint8_t>> getOlympicQosMaps(
     const cfg::SwitchConfig& config);
 
+bool checkConfigHasAclEntry(
+    const cfg::SwitchConfig& config,
+    std::string aclName);
+
 } // namespace facebook::fboss::utility
