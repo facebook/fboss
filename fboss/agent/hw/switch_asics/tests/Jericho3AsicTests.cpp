@@ -50,3 +50,63 @@ TEST_F(Jericho3AsicTest, singlePortGroupCables) {
   };
   EXPECT_EQ(asic_->computePortGroupSkew(singlePortGroup), 0);
 }
+
+TEST_F(Jericho3AsicTest, fourPortGroupCables) {
+  {
+    // Skew b/w PG1 and PG2
+    std::map<PortID, uint32_t> portGroups{
+        // PG1
+        {PortID(1024), 100},
+        {PortID(1034), 200},
+        // PG2
+        {PortID(1065), 100},
+        {PortID(1075), 50},
+        // PG3
+        {PortID(1104), 100},
+        {PortID(1114), 150},
+        // PG4
+        {PortID(1144), 100},
+        {PortID(1154), 100},
+
+    };
+    EXPECT_EQ(asic_->computePortGroupSkew(portGroups), 100);
+  }
+  {
+    // Skew b/w PG1 and PG3
+    std::map<PortID, uint32_t> portGroups{
+        // PG1
+        {PortID(1024), 100},
+        {PortID(1034), 200},
+        // PG2
+        {PortID(1065), 100},
+        {PortID(1075), 150},
+        // PG3
+        {PortID(1104), 100},
+        {PortID(1114), 50},
+        // PG4
+        {PortID(1144), 100},
+        {PortID(1154), 100},
+
+    };
+    EXPECT_EQ(asic_->computePortGroupSkew(portGroups), 100);
+  }
+  {
+    // Skew b/w PG1 and PG4
+    std::map<PortID, uint32_t> portGroups{
+        // PG1
+        {PortID(1024), 100},
+        {PortID(1034), 200},
+        // PG2
+        {PortID(1065), 100},
+        {PortID(1075), 150},
+        // PG3
+        {PortID(1104), 100},
+        {PortID(1114), 150},
+        // PG4
+        {PortID(1144), 100},
+        {PortID(1154), 50},
+
+    };
+    EXPECT_EQ(asic_->computePortGroupSkew(portGroups), 100);
+  }
+}
