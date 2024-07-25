@@ -303,16 +303,11 @@ std::optional<uint32_t> Jericho3Asic::computePortGroupSkew(
     auto currentMax = pgItr != portGroup2MaxCableLen.end() ? pgItr->second : 0;
     portGroup2MaxCableLen[groupId] = std::max(currentMax, cableLen);
   };
-  // J3 has fabric ports organized in 4 groups of
-  // 40 ports each starting at port id 1024
-  constexpr auto kPortGroupStart = 1024;
-  constexpr auto kPortGroupSize = 40;
-  constexpr auto kNumPortGroups = 4;
+  static auto const kPortGroups = getPortGroups();
   for (auto [portId, cableLen] : portId2cableLen) {
     auto portIdInt = static_cast<int>(portId);
-    for (auto g = 0; g < kNumPortGroups; ++g) {
-      auto portGroupStart = kPortGroupStart + g * kPortGroupSize;
-      auto portGroupEnd = portGroupStart + kPortGroupSize - 1;
+    for (auto g = 0; g < kPortGroups.size(); ++g) {
+      auto [portGroupStart, portGroupEnd] = kPortGroups.at(g);
       if (portIdInt >= portGroupStart && portIdInt <= portGroupEnd) {
         updatePortGroupMax(g, cableLen);
         continue;
@@ -330,5 +325,20 @@ std::optional<uint32_t> Jericho3Asic::computePortGroupSkew(
     return std::nullopt;
   }
   return *portGroupMaxLensSorted.rbegin() - *portGroupMaxLensSorted.begin();
+}
+
+std::vector<std::pair<int, int>> Jericho3Asic::getPortGroups() const {
+  // J3 has fabric ports organized in 4 groups of
+  // 40 ports each starting at port id 1024
+  constexpr auto kPortGroupStart = 1024;
+  constexpr auto kPortGroupSize = 40;
+  constexpr auto kNumPortGroups = 4;
+  std::vector<std::pair<int, int>> portGroups;
+  for (auto g = 0; g < kNumPortGroups; ++g) {
+    auto portGroupStart = kPortGroupStart + g * kPortGroupSize;
+    auto portGroupEnd = portGroupStart + kPortGroupSize - 1;
+    portGroups.push_back(std::make_pair(portGroupStart, portGroupEnd));
+  }
+  return portGroups;
 }
 } // namespace facebook::fboss
