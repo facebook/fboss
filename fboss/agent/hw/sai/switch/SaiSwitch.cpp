@@ -3965,7 +3965,7 @@ void SaiSwitch::reportInterPortGroupCableSkew() const {
   auto portGroupSkew =
       getPlatform()->getAsic()->computePortGroupSkew(portId2CableLen);
   if (portGroupSkew) {
-    XLOG(DBG2) << " Port group skew: " << *portGroupSkew;
+    getSwitchStats()->portGroupSkew(*portGroupSkew);
   }
 }
 } // namespace facebook::fboss
