@@ -62,14 +62,14 @@ class AgentSflowMirrorTest : public AgentHwTest {
 
   void configureTrapAcl(cfg::SwitchConfig& cfg) const {
     bool isV4 = std::is_same_v<AddrT, folly::IPAddressV4>;
-    return getAsic()->isSupported(
+    return checkSameAndGetAsic()->isSupported(
                HwAsic::Feature::SAI_ACL_ENTRY_SRC_PORT_QUALIFIER)
         ? utility::configureTrapAcl(cfg, getNonSflowSampledInterfacePorts())
         : utility::configureTrapAcl(cfg, isV4);
   }
 
   PortID getNonSflowSampledInterfacePorts() const {
-    return getAsic()->isSupported(HwAsic::Feature::MANAGEMENT_PORT)
+    return checkSameAndGetAsic()->isSupported(HwAsic::Feature::MANAGEMENT_PORT)
         ? masterLogicalPortIds({cfg::PortType::MANAGEMENT_PORT})[0]
         : getPortsForSampling()[0];
   }
@@ -109,7 +109,7 @@ class AgentSflowMirrorTest : public AgentHwTest {
     configSampling(config, ports, sampleRate);
   }
 
-  const HwAsic* getAsic() const {
+  const HwAsic* checkSameAndGetAsic() const {
     return utility::checkSameAndGetAsic(getAgentEnsemble()->getL3Asics());
   }
 
@@ -133,7 +133,7 @@ class AgentSflowMirrorTest : public AgentHwTest {
      * multicast : 1, discarded : 1, truncated : 1,
      * dest_port_encoding : 3, reserved : 23
      */
-    auto asic = getAsic();
+    auto asic = checkSameAndGetAsic();
     if (asic->getAsicType() == cfg::AsicType::ASIC_TYPE_EBRO) {
       auto systemPortId = sflowPayload[0] << 8 | sflowPayload[1];
       return static_cast<PortID>(systemPortId - asic->getSystemPortIDOffset());
@@ -159,7 +159,7 @@ class AgentSflowMirrorTest : public AgentHwTest {
   }
 
   uint16_t getMirrorTruncateSize() const {
-    return getAsic()->getMirrorTruncateSize();
+    return checkSameAndGetAsic()->getMirrorTruncateSize();
   }
 
   void resolveRouteForMirrorDestination() {
@@ -217,13 +217,14 @@ class AgentSflowMirrorTest : public AgentHwTest {
 
   int getSflowPacketHeaderLength(bool isV6) {
     auto ipHeader = isV6 ? 40 : 20;
-    auto asic = getAsic();
+    auto asic = checkSameAndGetAsic();
     int slfowShimHeaderLength = asic->getSflowShimHeaderSize();
     if (asic->isSupported(HwAsic::Feature::SFLOW_SHIM_VERSION_FIELD)) {
       slfowShimHeaderLength += 4;
     }
-    return 18 /* ethernet header */ + ipHeader + 8 /* udp header */ +
-        slfowShimHeaderLength;
+    auto vlanHeader = asic->getSwitchType() == cfg::SwitchType::VOQ ? 0 : 4;
+    return 14 /* ethernet header */ + vlanHeader + ipHeader +
+        8 /* udp header */ + slfowShimHeaderLength;
   }
 
   void verifySampledPacket() {
@@ -250,7 +251,16 @@ class AgentSflowMirrorTest : public AgentHwTest {
     ASSERT_GE(capturedPkt.length(), length);
     EXPECT_GE(capturedPkt.length(), getSflowPacketHeaderLength());
 
-    auto delta = capturedPkt.length() - length;
+    auto payloadLength = length;
+    if (checkSameAndGetAsic()->getAsicType() ==
+        cfg::AsicType::ASIC_TYPE_JERICHO3) {
+      /*
+       * J3 pads upto 512 bytes if the packet size is < 512 bytes.
+       * J3 trimes upto 512 bytes if the packet size is > 512 bytes.
+       */
+      payloadLength = 512;
+    }
+    auto delta = capturedPkt.length() - payloadLength;
     EXPECT_LE(delta, getSflowPacketHeaderLength());
     auto payload = std::is_same_v<AddrT, folly::IPAddressV4>
         ? capturedPkt.v4PayLoad()->udpPayload()->payload()
@@ -264,8 +274,9 @@ class AgentSflowMirrorTest : public AgentHwTest {
       EXPECT_EQ(getSflowPacketSrcPort(payload), PortID(*hwLogicalPortId));
     }
 
-    if (getAsic()->getAsicType() != cfg::AsicType::ASIC_TYPE_EBRO &&
-        getAsic()->getAsicType() != cfg::AsicType::ASIC_TYPE_JERICHO3) {
+    if (checkSameAndGetAsic()->getAsicType() != cfg::AsicType::ASIC_TYPE_EBRO &&
+        checkSameAndGetAsic()->getAsicType() !=
+            cfg::AsicType::ASIC_TYPE_JERICHO3) {
       // Call parseSflowShim here. And verify
       // 1. Src port is correct
       // 2. Parser correctly identified whether the pkt is from TH3 or TH4.
@@ -282,7 +293,8 @@ class AgentSflowMirrorTest : public AgentHwTest {
       } else {
         EXPECT_EQ(shim.srcPort, static_cast<uint32_t>(*hwLogicalPortId));
       }
-      if (getAsic()->isSupported(HwAsic::Feature::SFLOW_SHIM_VERSION_FIELD)) {
+      if (checkSameAndGetAsic()->isSupported(
+              HwAsic::Feature::SFLOW_SHIM_VERSION_FIELD)) {
         EXPECT_EQ(shim.asic, utility::SflowShimAsic::SFLOW_SHIM_ASIC_TH4);
       } else {
         EXPECT_EQ(shim.asic, utility::SflowShimAsic::SFLOW_SHIM_ASIC_TH3);
