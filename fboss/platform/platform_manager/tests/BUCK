@@ -26,6 +26,20 @@ cpp_unittest(
 )
 
 cpp_unittest(
+    name = "platform_explorer_test",
+    srcs = [
+        "PlatformExplorerTest.cpp",
+    ],
+    deps = [
+        "//fb303:service_data",
+        "//fboss/platform/platform_manager:platform_explorer",
+        "//fboss/platform/platform_manager:utils",
+        "//folly:file_util",
+        "//folly/testing:test_util",
+    ],
+)
+
+cpp_unittest(
     name = "utils_test",
     srcs = [
         "UtilsTest.cpp",

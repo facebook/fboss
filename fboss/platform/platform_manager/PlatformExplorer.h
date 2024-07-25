@@ -15,6 +15,9 @@
 namespace facebook::fboss::platform::platform_manager {
 class PlatformExplorer {
  public:
+  auto static constexpr kFirmwareVersion = "{}.firmware_version";
+  auto static constexpr kGroupedFirmwareVersion = "{}.firmware_version.{}";
+
   explicit PlatformExplorer(const PlatformConfig& config);
 
   // Explore the platform.
@@ -54,6 +57,12 @@ class PlatformExplorer {
   uint32_t getFpgaInstanceId(
       const std::string& slotPath,
       const std::string& pm);
+
+  // Publish firmware versions read from /run/devmap files to ODS. Additionally,
+  // paths will be prefixed with rootPrefix, which is intended for testing
+  // purposes.
+  void publishFirmwareVersions(
+      const std::optional<std::string>& rootPrefix = std::nullopt);
 
  private:
   void createDeviceSymLink(

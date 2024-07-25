@@ -63,6 +63,7 @@ void PlatformExplorer::explore() {
        *platformConfig_.symbolicLinkToDevicePath()) {
     createDeviceSymLink(linkPath, devicePath);
   }
+  publishFirmwareVersions();
   reportExplorationSummary();
 }
 
@@ -530,6 +531,41 @@ void PlatformExplorer::reportExplorationSummary() {
     }
   }
   fb303::fbData->setCounter(kTotalFailures, errorMessages_.size());
+}
+
+void PlatformExplorer::publishFirmwareVersions(
+    const std::optional<std::string>& rootPrefix) {
+  for (const auto& [linkPath, _] :
+       *platformConfig_.symbolicLinkToDevicePath()) {
+    if (!linkPath.starts_with(rootPrefix.value_or("") + "/run/devmap/cplds") &&
+        !linkPath.starts_with(rootPrefix.value_or("") + "/run/devmap/fpgas")) {
+      continue;
+    }
+    std::vector<folly::StringPiece> linkPathParts;
+    folly::split("/", linkPath, linkPathParts, true);
+    // Note: The vector is guaranteed to be non-empty due to the prefix check.
+    const auto deviceName = linkPathParts.back();
+    const auto version = getPresenceFileContent(linkPath + "/fpga_ver");
+    const auto subversion = getPresenceFileContent(linkPath + "/fpga_sub_ver");
+
+    int versionDecimal = version ? stoi(version.value(), nullptr, 0) : 0;
+    int subversionDecimal =
+        subversion ? stoi(subversion.value(), nullptr, 0) : 0;
+    std::string fullVersionString =
+        fmt::format("{}.{}", versionDecimal, subversionDecimal);
+    int odsValue = versionDecimal * 1000 + subversionDecimal;
+
+    XLOGF(
+        INFO,
+        "Reporting firmware version for {} - version string:{} ODS value:{}",
+        deviceName,
+        fullVersionString,
+        odsValue);
+    fb303::fbData->setCounter(
+        fmt::format(kFirmwareVersion, deviceName), odsValue);
+    fb303::fbData->setCounter(
+        fmt::format(kGroupedFirmwareVersion, deviceName, fullVersionString), 1);
+  }
 }
 
 void PlatformExplorer::setupI2cDevice(
