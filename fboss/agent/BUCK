@@ -147,6 +147,32 @@ thrift_library(
 )
 
 thrift_library(
+    name = "switch_reachability",
+    go_thrift_namespaces = {
+        "switch_reachability.thrift": "neteng.fboss.switch_reachability",
+    },
+    languages = [
+        "cpp2",
+        "py",
+        "py3",
+        "py-asyncio",
+        "go",
+        "rust",
+    ],
+    plugins = [
+        thrift_plugin_thriftpath(),
+    ],
+    py3_namespace = "neteng.fboss",
+    py_asyncio_base_module = "neteng.fboss.asyncio",
+    py_base_module = "neteng.fboss",
+    rust_gen_metadata = True,
+    thrift_cpp2_options = "json,reflection",
+    thrift_py_options = "json,sort_keys",
+    thrift_srcs = {"switch_reachability.thrift": []},
+    deps = [],
+)
+
+thrift_library(
     name = "validated_shell_commands",
     languages = [
         "cpp2",
