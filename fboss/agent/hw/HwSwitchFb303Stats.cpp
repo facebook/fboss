@@ -157,6 +157,7 @@ HwSwitchFb303Stats::HwSwitchFb303Stats(
       virtualDevicesWithAsymmetricConnectivity_(
           map,
           getCounterPrefix() + "virtual_devices_with_asymmetric_connectivity"),
+      portGroupSkew_(map, getCounterPrefix() + "port_group_skew"),
       switchReachabilityChangeCount_(
           map,
           getCounterPrefix() + "switch_reachability_change",
@@ -395,6 +396,10 @@ void HwSwitchFb303Stats::virtualDevicesWithAsymmetricConnectivity(
       virtualDevicesWithAsymmetricConnectivity_.name(), value);
 }
 
+void HwSwitchFb303Stats::portGroupSkew(int64_t value) {
+  fb303::fbData->setCounter(portGroupSkew_.name(), value);
+}
+
 void HwSwitchFb303Stats::bcmSdkVer(int64_t ver) {
   fb303::fbData->setCounter(bcmSdkVer_.name(), ver);
 }
@@ -422,6 +427,11 @@ int64_t HwSwitchFb303Stats::getVirtualDevicesWithAsymmetricConnectivityCount()
     const {
   auto counterVal = fb303::fbData->getCounterIfExists(
       virtualDevicesWithAsymmetricConnectivity_.name());
+  return counterVal ? *counterVal : 0;
+}
+
+int64_t HwSwitchFb303Stats::getPortGroupSkewCount() const {
+  auto counterVal = fb303::fbData->getCounterIfExists(portGroupSkew_.name());
   return counterVal ? *counterVal : 0;
 }
 
