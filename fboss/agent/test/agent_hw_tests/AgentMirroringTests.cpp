@@ -274,18 +274,19 @@ class AgentMirroringTest : public AgentHwTest {
         {cfg::PortType::INTERFACE_PORT})[kTrafficPortIndex];
     auto mirrorToPort = getAgentEnsemble()->masterLogicalPortIds(
         {cfg::PortType::INTERFACE_PORT})[kMirrorToPortIndex];
-    auto ingressMirror = this->getProgrammedState()->getMirrors()->getNodeIf(
-        ingressMirrorName.value());
-    ASSERT_NE(ingressMirror, nullptr);
-    EXPECT_EQ(ingressMirror->isResolved(), true);
+    WITH_RETRIES({
+      auto ingressMirror = this->getProgrammedState()->getMirrors()->getNodeIf(
+          ingressMirrorName.value());
+      ASSERT_NE(ingressMirror, nullptr);
+      EXPECT_EVENTUALLY_EQ(ingressMirror->isResolved(), true);
 
-    if (egressMirrorName.has_value()) {
-      auto egressMirror = this->getProgrammedState()->getMirrors()->getNodeIf(
-          egressMirrorName.value());
-      ASSERT_NE(egressMirror, nullptr);
-      EXPECT_EQ(egressMirror->isResolved(), true);
-    }
-
+      if (egressMirrorName.has_value()) {
+        auto egressMirror = this->getProgrammedState()->getMirrors()->getNodeIf(
+            egressMirrorName.value());
+        ASSERT_NE(egressMirror, nullptr);
+        EXPECT_EVENTUALLY_EQ(egressMirror->isResolved(), true);
+      }
+    });
     auto trafficPortPktStatsBefore = getLatestPortStats(trafficPort);
     auto mirrorPortPktStatsBefore = getLatestPortStats(mirrorToPort);
 
