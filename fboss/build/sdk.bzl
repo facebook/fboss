@@ -4,125 +4,125 @@ load("//fboss/build:sdk.thrift.bzl", "FbossSdk", "ProductLine", "SdkStage")
 
 def FakeSdk(version, sai_version):
     return FbossSdk(
-        product_name = "fake",
-        product_line = ProductLine.FAKE_SDK,
         name = "fake",
-        version = version,
+        product_line = ProductLine.FAKE_SDK,
+        product_name = "fake",
         sai_version = sai_version,
         stage = SdkStage.DEV,
+        version = version,
     )
 
 def NativeBcmSdk(version, stage):
     return FbossSdk(
-        product_name = "native_bcm",
-        product_line = ProductLine.BCM_NATIVE_SDK,
         name = "broadcom-xgs-robo",
-        version = version,
+        is_sai = False,
+        product_line = ProductLine.BCM_NATIVE_SDK,
+        product_name = "native_bcm",
         sai_version = None,
         stage = stage,
-        is_sai = False,
+        version = version,
     )
 
 def SaiBrcmSdk(version, sai_version, stage, native_bcm_sdk_version):
     return FbossSdk(
-        product_name = "brcm",
-        product_line = ProductLine.SAI_SDK_BCM,
         name = "brcm-sai",
-        version = version,
+        native_bcm_sdk_version = native_bcm_sdk_version,
+        product_line = ProductLine.SAI_SDK_BCM,
+        product_name = "brcm",
         sai_version = sai_version,
         stage = stage,
-        native_bcm_sdk_version = native_bcm_sdk_version,
+        version = version,
     )
 
 def SaiBrcmSimSdk(version, sai_version):
     return FbossSdk(
-        product_name = "brcm",
-        product_line = ProductLine.SAI_SDK_BCM,
         name = "brcm-sai",
-        version = version,
+        is_sim = True,
+        product_line = ProductLine.SAI_SDK_BCM,
+        product_name = "brcm",
         sai_version = sai_version,
         stage = SdkStage.TEST,
-        is_sim = True,
+        version = version,
     )
 
 def SaiBrcmDsfSdk(version, sai_version, stage, fw_path, native_bcm_sdk_version):
     return FbossSdk(
-        product_name = "brcm",
-        product_line = ProductLine.BCM_DSF_SDK,
         name = "brcm-sai",
-        version = version,
-        sai_version = sai_version,
-        stage = stage,
         fw_path = fw_path,
         native_bcm_sdk_version = native_bcm_sdk_version,
+        product_line = ProductLine.BCM_DSF_SDK,
+        product_name = "brcm",
+        sai_version = sai_version,
+        stage = stage,
+        version = version,
     )
 
 def SaiBrcmDsfSimSdk(version, sai_version):
     return FbossSdk(
-        product_name = "brcm",
-        product_line = ProductLine.BCM_DSF_SDK,
         name = "brcm-sai",
-        version = version,
+        is_sim = True,
+        product_line = ProductLine.BCM_DSF_SDK,
+        product_name = "brcm",
         sai_version = sai_version,
         stage = SdkStage.TEST,
-        is_sim = True,
+        version = version,
     )
 
 def SaiLeabaSdk(version, sai_version, stage, fw_path):
     return FbossSdk(
-        product_name = "leaba",
-        product_line = ProductLine.LEABA,
         name = "leaba-sdk",
-        version = version,
+        fw_path = fw_path,
+        product_line = ProductLine.LEABA,
+        product_name = "leaba",
         sai_version = sai_version,
         stage = stage,
-        fw_path = fw_path,
+        version = version,
     )
 
 def SaiCredoSdk(version, sai_version, stage):
     return FbossSdk(
-        product_name = "credo",
-        product_line = ProductLine.CREDO_SAI_SDK,
         name = "CredoB52SAI",
-        version = version,
+        is_npu = False,
+        product_line = ProductLine.CREDO_SAI_SDK,
+        product_name = "credo",
         sai_version = sai_version,
         stage = stage,
-        is_npu = False,
+        version = version,
     )
 
 def SaiMrvlSdk(version, sai_version, stage):
     return FbossSdk(
-        product_name = "mrvl",
-        product_line = ProductLine.MRVL_SAI_SDK,
         name = "mrvl_phy_sai",
-        version = version,
+        is_npu = False,
+        product_line = ProductLine.MRVL_SAI_SDK,
+        product_name = "mrvl",
         sai_version = sai_version,
         stage = stage,
-        is_npu = False,
+        version = version,
     )
 
 def NativeMillenioSdk(version, stage):
     return FbossSdk(
-        product_name = "millenio",
-        product_line = ProductLine.MILLENIO_SDK,
         name = "broadcom-plp-millenio",
-        version = version,
+        is_npu = False,
+        is_sai = False,
+        product_line = ProductLine.MILLENIO_SDK,
+        product_name = "millenio",
         sai_version = None,
         stage = stage,
-        is_sai = False,
-        is_npu = False,
+        version = version,
     )
 
 def NativeBarchettaSdk(version, stage):
     return FbossSdk(
-        product_name = "barchetta2",
-        product_line = ProductLine.BARCHETTA2_SDK,
         name = "broadcom-plp-barchetta2",
-        version = version,
+        is_npu = False,
+        is_sai = False,
+        product_line = ProductLine.BARCHETTA2_SDK,
+        product_name = "barchetta2",
         sai_version = None,
         stage = stage,
-        is_sai = False,
-        is_npu = False,
+        version = version,
     )
 
 def filter_sdks_by_name(sdks: list, names: list[str]) -> list:
@@ -156,68 +156,136 @@ def filter_sdks(
 
 def get_fbpkg_sdks(product_lines):
     FBPKG_STAGES = [SdkStage.TEST, SdkStage.CANARY, SdkStage.PRODUCTION, SdkStage.PRODUCTION_END]
-    return filter_sdks(product_lines = product_lines, stages = FBPKG_STAGES, is_sim = False)
+    return filter_sdks(is_sim = False, product_lines = product_lines, stages = FBPKG_STAGES)
 
 ALL_SDKS = [
-    NativeBcmSdk(version = "6.5.26-1", stage = SdkStage.PRODUCTION),
-    NativeBcmSdk(version = "6.5.28-1", stage = SdkStage.TEST),
-    NativeBcmSdk(version = "6.5.29-1", stage = SdkStage.DEV),
-    FakeSdk(version = "1.14.0", sai_version = "1.14.0"),
-    SaiBrcmSdk(version = "8.2.0.0_odp", sai_version = "1.11.0", native_bcm_sdk_version = "6.5.26", stage = SdkStage.PRODUCTION),
-    SaiBrcmSdk(version = "9.2.0.0_odp", sai_version = "1.12.0", native_bcm_sdk_version = "6.5.28", stage = SdkStage.CANARY),
-    SaiBrcmSdk(version = "10.0_ea_odp", sai_version = "1.12.0", native_bcm_sdk_version = "6.5.29", stage = SdkStage.DEV),
-    SaiBrcmSdk(version = "10.2.0.0_odp", sai_version = "1.13.2", native_bcm_sdk_version = "6.5.29", stage = SdkStage.DEV),
-    SaiBrcmSdk(version = "11.0_ea_odp", sai_version = "1.14.0", native_bcm_sdk_version = "6.5.30", stage = SdkStage.DEV),
-    SaiBrcmSimSdk(version = "8.2.0.0_sim_odp", sai_version = "1.11.0"),
-    SaiBrcmSimSdk(version = "9.0_ea_sim_odp", sai_version = "1.12.0"),
-    SaiBrcmSimSdk(version = "10.0_ea_sim_odp", sai_version = "1.12.0"),
-    SaiBrcmDsfSimSdk(version = "10.0_ea_dnx_sim_odp", sai_version = "1.12.0"),
-    SaiBrcmDsfSdk(
-        version = "11.0_ea_dnx_odp",
-        sai_version = "1.13.1",
+    NativeBcmSdk(
+        stage = SdkStage.PRODUCTION,
+        version = "6.5.26-1",
+    ),
+    NativeBcmSdk(
         stage = SdkStage.TEST,
+        version = "6.5.28-1",
+    ),
+    NativeBcmSdk(
+        stage = SdkStage.DEV,
+        version = "6.5.29-1",
+    ),
+    FakeSdk(
+        sai_version = "1.14.0",
+        version = "1.14.0",
+    ),
+    SaiBrcmSdk(
+        native_bcm_sdk_version = "6.5.26",
+        sai_version = "1.11.0",
+        stage = SdkStage.PRODUCTION,
+        version = "8.2.0.0_odp",
+    ),
+    SaiBrcmSdk(
+        native_bcm_sdk_version = "6.5.28",
+        sai_version = "1.12.0",
+        stage = SdkStage.CANARY,
+        version = "9.2.0.0_odp",
+    ),
+    SaiBrcmSdk(
+        native_bcm_sdk_version = "6.5.29",
+        sai_version = "1.12.0",
+        stage = SdkStage.DEV,
+        version = "10.0_ea_odp",
+    ),
+    SaiBrcmSdk(
+        native_bcm_sdk_version = "6.5.29",
+        sai_version = "1.13.2",
+        stage = SdkStage.DEV,
+        version = "10.2.0.0_odp",
+    ),
+    SaiBrcmSdk(
+        native_bcm_sdk_version = "6.5.30",
+        sai_version = "1.14.0",
+        stage = SdkStage.DEV,
+        version = "11.0_ea_odp",
+    ),
+    SaiBrcmSimSdk(
+        sai_version = "1.11.0",
+        version = "8.2.0.0_sim_odp",
+    ),
+    SaiBrcmSimSdk(
+        sai_version = "1.12.0",
+        version = "9.0_ea_sim_odp",
+    ),
+    SaiBrcmSimSdk(
+        sai_version = "1.12.0",
+        version = "10.0_ea_sim_odp",
+    ),
+    SaiBrcmDsfSimSdk(
+        sai_version = "1.12.0",
+        version = "10.0_ea_dnx_sim_odp",
+    ),
+    SaiBrcmDsfSdk(
         fw_path = "../third-party/tp2/broadcom-xgs-robo/6.5.30_dnx/hsdk-all-6.5.30/tools/sand/db/",
         native_bcm_sdk_version = "6.5.30_dnx",
+        sai_version = "1.13.1",
+        stage = SdkStage.TEST,
+        version = "11.0_ea_dnx_odp",
     ),
     SaiBrcmDsfSdk(
-        version = "12.0_ea_dnx_odp",
-        sai_version = "1.14.0",
-        stage = SdkStage.TEST,
         fw_path = "../third-party/tp2/broadcom-xgs-robo/6.5.31_dnx/hsdk-all-6.5.31/tools/sand/db/",
         native_bcm_sdk_version = "6.5.31_dnx",
+        sai_version = "1.14.0",
+        stage = SdkStage.TEST,
+        version = "12.0_ea_dnx_odp",
     ),
     SaiLeabaSdk(
-        version = "1.42.8",
+        fw_path = "third-party-buck/platform010-compat/build/leaba-sdk/1.42.8/res",
         sai_version = "1.7.4",
         stage = SdkStage.PRODUCTION,
-        fw_path = "third-party-buck/platform010-compat/build/leaba-sdk/1.42.8/res",
+        version = "1.42.8",
     ),
     SaiLeabaSdk(
-        version = "1.65.1",
+        fw_path = "third-party-buck/platform010-compat/build/leaba-sdk/1.65.1/res",
         sai_version = "1.13.0",
         stage = SdkStage.CANARY,
-        fw_path = "third-party-buck/platform010-compat/build/leaba-sdk/1.65.1/res",
+        version = "1.65.1",
     ),
     SaiLeabaSdk(
-        version = "24.4.90",
-        sai_version = "1.13.0",
-        stage = SdkStage.DEV,
         fw_path = "third-party-buck/platform010-compat/build/leaba-sdk/24.4.90/res",
-    ),
-    SaiLeabaSdk(
-        version = "24.4.90_yuba",
         sai_version = "1.13.0",
         stage = SdkStage.DEV,
+        version = "24.4.90",
+    ),
+    SaiLeabaSdk(
         fw_path = "third-party-buck/platform010-compat/build/leaba-sdk/24.4.90_yuba/res",
-    ),
-    SaiLeabaSdk(
-        version = "24.6.1_yuba",
         sai_version = "1.13.0",
         stage = SdkStage.DEV,
-        fw_path = "third-party-buck/platform010-compat/build/leaba-sdk/24.6.1_yuba/res",
+        version = "24.4.90_yuba",
     ),
-    SaiCredoSdk(version = "0.7.2", sai_version = "1.8.1", stage = SdkStage.PRODUCTION),
-    SaiMrvlSdk(version = "1.4.0", sai_version = "1.11.0", stage = SdkStage.DEV),
-    NativeMillenioSdk(version = "5.5", stage = SdkStage.PRODUCTION),
-    NativeBarchettaSdk(version = "5.2", stage = SdkStage.PRODUCTION),
+    SaiLeabaSdk(
+        fw_path = "third-party-buck/platform010-compat/build/leaba-sdk/24.6.1_yuba/res",
+        sai_version = "1.13.0",
+        stage = SdkStage.DEV,
+        version = "24.6.1_yuba",
+    ),
+    SaiCredoSdk(
+        sai_version = "1.8.1",
+        stage = SdkStage.PRODUCTION,
+        version = "0.7.2",
+    ),
+    SaiCredoSdk(
+        sai_version = "1.11.0",
+        stage = SdkStage.TEST,
+        version = "0.8.4",
+    ),
+    SaiMrvlSdk(
+        sai_version = "1.11.0",
+        stage = SdkStage.DEV,
+        version = "1.4.0",
+    ),
+    NativeMillenioSdk(
+        stage = SdkStage.PRODUCTION,
+        version = "5.5",
+    ),
+    NativeBarchettaSdk(
+        stage = SdkStage.PRODUCTION,
+        version = "5.2",
+    ),
 ]

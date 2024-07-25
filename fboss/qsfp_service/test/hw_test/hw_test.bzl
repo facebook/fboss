@@ -16,6 +16,7 @@ def _hw_qsfp_ensemble_lib(sai_impl):
         headers = [
             "HwQsfpEnsemble.h",
         ],
+        versions = to_versions(sai_impl),
         exported_deps = [
             "//fboss/agent/platforms/common:platform_mapping",
             "//fboss/agent/test:resourcelibutil",
@@ -56,6 +57,7 @@ def _qsfp_hw_test_lib(sai_impl):
         ],
         link_whole = True,
         undefined_symbols = True,
+        versions = to_versions(sai_impl),
         exported_deps = [
             "fbsource//third-party/googletest:gtest",
             ":hw_qsfp_ensemble{}".format(impl_suffix),

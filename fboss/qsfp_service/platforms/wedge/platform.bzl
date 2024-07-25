@@ -1,5 +1,5 @@
 load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
-load("//fboss/agent/hw/sai/impl:impl.bzl", "SAI_PHY_IMPLS", "to_sdk_suffix")
+load("//fboss/agent/hw/sai/impl:impl.bzl", "SAI_PHY_IMPLS", "to_sdk_suffix", "to_versions")
 
 COMMON_SRCS = [
     "GalaxyManager.cpp",
@@ -85,6 +85,7 @@ def _sai_platform_lib(sai_impl):
             "Wedge400CManager.h",
             "facebook/credo_stub.h",
         ],
+        versions = to_versions(sai_impl),
         exported_deps = CLOSED_DEPS + [
             ":wedge-transceiver",
             "//fboss/agent:core",

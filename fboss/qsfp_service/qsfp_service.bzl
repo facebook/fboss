@@ -32,6 +32,7 @@ def _qsfp_core_lib(impl):
             "QsfpServer.h",
         ],
         undefined_symbols = True,  # TODO(T23121628): fix deps and remove
+        versions = to_versions(impl),
         exported_deps = deps,
     )
 
