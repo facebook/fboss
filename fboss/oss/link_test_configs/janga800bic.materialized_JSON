@@ -46,13 +46,13 @@
       },
       {
         "logicalID": 2,
-        "state": 2,
+        "state": 1,
         "minFrameSize": 64,
         "maxFrameSize": 9412,
         "parserType": 1,
         "routable": true,
         "ingressVlan": 0,
-        "speed": 400000,
+        "speed": 10000,
         "name": "rcy1/1/442",
         "description": "",
         "queues_DEPRECATED": [
@@ -71,7 +71,7 @@
         "lookupClasses": [
           
         ],
-        "profileID": 38,
+        "profileID": 11,
         "portType": 3,
         "expectedNeighborReachability": [
           
@@ -81,13 +81,13 @@
       },
       {
         "logicalID": 3,
-        "state": 2,
+        "state": 1,
         "minFrameSize": 64,
         "maxFrameSize": 9412,
         "parserType": 1,
         "routable": true,
         "ingressVlan": 0,
-        "speed": 400000,
+        "speed": 10000,
         "name": "rcy1/1/443",
         "description": "",
         "queues_DEPRECATED": [
@@ -106,7 +106,7 @@
         "lookupClasses": [
           
         ],
-        "profileID": 38,
+        "profileID": 11,
         "portType": 3,
         "expectedNeighborReachability": [
           
@@ -116,13 +116,13 @@
       },
       {
         "logicalID": 4,
-        "state": 2,
+        "state": 1,
         "minFrameSize": 64,
         "maxFrameSize": 9412,
         "parserType": 1,
         "routable": true,
         "ingressVlan": 0,
-        "speed": 400000,
+        "speed": 10000,
         "name": "rcy1/1/444",
         "description": "",
         "queues_DEPRECATED": [
@@ -141,7 +141,7 @@
         "lookupClasses": [
           
         ],
-        "profileID": 38,
+        "profileID": 11,
         "portType": 3,
         "expectedNeighborReachability": [
           
@@ -151,13 +151,13 @@
       },
       {
         "logicalID": 5,
-        "state": 2,
+        "state": 1,
         "minFrameSize": 64,
         "maxFrameSize": 9412,
         "parserType": 1,
         "routable": true,
         "ingressVlan": 0,
-        "speed": 400000,
+        "speed": 10000,
         "name": "rcy1/1/445",
         "description": "",
         "queues_DEPRECATED": [
@@ -176,7 +176,7 @@
         "lookupClasses": [
           
         ],
-        "profileID": 38,
+        "profileID": 11,
         "portType": 3,
         "expectedNeighborReachability": [
           
@@ -186,13 +186,13 @@
       },
       {
         "logicalID": 6,
-        "state": 2,
+        "state": 1,
         "minFrameSize": 64,
         "maxFrameSize": 9412,
         "parserType": 1,
         "routable": true,
         "ingressVlan": 0,
-        "speed": 100000,
+        "speed": 10000,
         "name": "evt1/1/506",
         "description": "",
         "queues_DEPRECATED": [
@@ -211,7 +211,7 @@
         "lookupClasses": [
           
         ],
-        "profileID": 22,
+        "profileID": 11,
         "portType": 5,
         "expectedNeighborReachability": [
           
@@ -221,13 +221,13 @@
       },
       {
         "logicalID": 7,
-        "state": 2,
+        "state": 1,
         "minFrameSize": 64,
         "maxFrameSize": 9412,
         "parserType": 1,
         "routable": true,
         "ingressVlan": 0,
-        "speed": 800000,
+        "speed": 100000,
         "name": "eth1/41/1",
         "description": "",
         "queues_DEPRECATED": [
@@ -246,7 +246,7 @@
         "lookupClasses": [
           
         ],
-        "profileID": 39,
+        "profileID": 22,
         "portType": 4,
         "expectedNeighborReachability": [
           
@@ -262,7 +262,7 @@
         "parserType": 1,
         "routable": true,
         "ingressVlan": 0,
-        "speed": 800000,
+        "speed": 400000,
         "name": "eth1/1/1",
         "description": "",
         "queues_DEPRECATED": [
@@ -281,7 +281,42 @@
         "lookupClasses": [
           
         ],
-        "profileID": 39,
+        "profileID": 38,
+        "portType": 0,
+        "expectedNeighborReachability": [
+          
+        ],
+        "drainState": 0,
+        "scope": 1
+      },
+      {
+        "logicalID": 9,
+        "state": 1,
+        "minFrameSize": 64,
+        "maxFrameSize": 9412,
+        "parserType": 1,
+        "routable": true,
+        "ingressVlan": 0,
+        "speed": 400000,
+        "name": "eth1/1/5",
+        "description": "",
+        "queues_DEPRECATED": [
+          
+        ],
+        "pause": {
+          "tx": false,
+          "rx": false
+        },
+        "sFlowIngressRate": 0,
+        "sFlowEgressRate": 0,
+        "loopbackMode": 0,
+        "expectedLLDPValues": {
+          
+        },
+        "lookupClasses": [
+          
+        ],
+        "profileID": 38,
         "portType": 0,
         "expectedNeighborReachability": [
           
@@ -297,7 +332,7 @@
         "parserType": 1,
         "routable": true,
         "ingressVlan": 0,
-        "speed": 800000,
+        "speed": 400000,
         "name": "eth1/2/1",
         "description": "",
         "queues_DEPRECATED": [
@@ -316,7 +351,42 @@
         "lookupClasses": [
           
         ],
-        "profileID": 39,
+        "profileID": 38,
+        "portType": 0,
+        "expectedNeighborReachability": [
+          
+        ],
+        "drainState": 0,
+        "scope": 1
+      },
+      {
+        "logicalID": 11,
+        "state": 1,
+        "minFrameSize": 64,
+        "maxFrameSize": 9412,
+        "parserType": 1,
+        "routable": true,
+        "ingressVlan": 0,
+        "speed": 400000,
+        "name": "eth1/2/5",
+        "description": "",
+        "queues_DEPRECATED": [
+          
+        ],
+        "pause": {
+          "tx": false,
+          "rx": false
+        },
+        "sFlowIngressRate": 0,
+        "sFlowEgressRate": 0,
+        "loopbackMode": 0,
+        "expectedLLDPValues": {
+          
+        },
+        "lookupClasses": [
+          
+        ],
+        "profileID": 38,
         "portType": 0,
         "expectedNeighborReachability": [
           
@@ -676,13 +746,13 @@
       },
       {
         "logicalID": 22,
-        "state": 2,
+        "state": 1,
         "minFrameSize": 64,
         "maxFrameSize": 9412,
         "parserType": 1,
         "routable": true,
         "ingressVlan": 0,
-        "speed": 400000,
+        "speed": 800000,
         "name": "eth1/57/1",
         "description": "",
         "queues_DEPRECATED": [
@@ -701,7 +771,7 @@
         "lookupClasses": [
           
         ],
-        "profileID": 38,
+        "profileID": 39,
         "portType": 0,
         "expectedNeighborReachability": [
           
@@ -711,13 +781,13 @@
       },
       {
         "logicalID": 23,
-        "state": 2,
+        "state": 1,
         "minFrameSize": 64,
         "maxFrameSize": 9412,
         "parserType": 1,
         "routable": true,
         "ingressVlan": 0,
-        "speed": 400000,
+        "speed": 800000,
         "name": "eth1/58/1",
         "description": "",
         "queues_DEPRECATED": [
@@ -736,7 +806,7 @@
         "lookupClasses": [
           
         ],
-        "profileID": 38,
+        "profileID": 39,
         "portType": 0,
         "expectedNeighborReachability": [
           
@@ -746,13 +816,13 @@
       },
       {
         "logicalID": 24,
-        "state": 2,
+        "state": 1,
         "minFrameSize": 64,
         "maxFrameSize": 9412,
         "parserType": 1,
         "routable": true,
         "ingressVlan": 0,
-        "speed": 400000,
+        "speed": 800000,
         "name": "eth1/59/1",
         "description": "",
         "queues_DEPRECATED": [
@@ -771,7 +841,7 @@
         "lookupClasses": [
           
         ],
-        "profileID": 38,
+        "profileID": 39,
         "portType": 0,
         "expectedNeighborReachability": [
           
@@ -781,13 +851,13 @@
       },
       {
         "logicalID": 25,
-        "state": 2,
+        "state": 1,
         "minFrameSize": 64,
         "maxFrameSize": 9412,
         "parserType": 1,
         "routable": true,
         "ingressVlan": 0,
-        "speed": 400000,
+        "speed": 800000,
         "name": "eth1/60/1",
         "description": "",
         "queues_DEPRECATED": [
@@ -806,7 +876,7 @@
         "lookupClasses": [
           
         ],
-        "profileID": 38,
+        "profileID": 39,
         "portType": 0,
         "expectedNeighborReachability": [
           
@@ -816,13 +886,13 @@
       },
       {
         "logicalID": 26,
-        "state": 2,
+        "state": 1,
         "minFrameSize": 64,
         "maxFrameSize": 9412,
         "parserType": 1,
         "routable": true,
         "ingressVlan": 0,
-        "speed": 400000,
+        "speed": 800000,
         "name": "eth1/61/1",
         "description": "",
         "queues_DEPRECATED": [
@@ -841,7 +911,7 @@
         "lookupClasses": [
           
         ],
-        "profileID": 38,
+        "profileID": 39,
         "portType": 0,
         "expectedNeighborReachability": [
           
@@ -851,13 +921,13 @@
       },
       {
         "logicalID": 27,
-        "state": 2,
+        "state": 1,
         "minFrameSize": 64,
         "maxFrameSize": 9412,
         "parserType": 1,
         "routable": true,
         "ingressVlan": 0,
-        "speed": 400000,
+        "speed": 800000,
         "name": "eth1/62/1",
         "description": "",
         "queues_DEPRECATED": [
@@ -876,7 +946,7 @@
         "lookupClasses": [
           
         ],
-        "profileID": 38,
+        "profileID": 39,
         "portType": 0,
         "expectedNeighborReachability": [
           
@@ -6521,13 +6591,13 @@
       },
       {
         "logicalID": 2050,
-        "state": 2,
+        "state": 1,
         "minFrameSize": 64,
         "maxFrameSize": 9412,
         "parserType": 1,
         "routable": true,
         "ingressVlan": 0,
-        "speed": 100000,
+        "speed": 10000,
         "name": "rcy1/2/442",
         "description": "",
         "queues_DEPRECATED": [
@@ -6546,7 +6616,7 @@
         "lookupClasses": [
           
         ],
-        "profileID": 22,
+        "profileID": 11,
         "portType": 3,
         "expectedNeighborReachability": [
           
@@ -6556,13 +6626,13 @@
       },
       {
         "logicalID": 2051,
-        "state": 2,
+        "state": 1,
         "minFrameSize": 64,
         "maxFrameSize": 9412,
         "parserType": 1,
         "routable": true,
         "ingressVlan": 0,
-        "speed": 400000,
+        "speed": 10000,
         "name": "rcy1/2/443",
         "description": "",
         "queues_DEPRECATED": [
@@ -6581,7 +6651,7 @@
         "lookupClasses": [
           
         ],
-        "profileID": 38,
+        "profileID": 11,
         "portType": 3,
         "expectedNeighborReachability": [
           
@@ -6591,13 +6661,13 @@
       },
       {
         "logicalID": 2052,
-        "state": 2,
+        "state": 1,
         "minFrameSize": 64,
         "maxFrameSize": 9412,
         "parserType": 1,
         "routable": true,
         "ingressVlan": 0,
-        "speed": 400000,
+        "speed": 10000,
         "name": "rcy1/2/444",
         "description": "",
         "queues_DEPRECATED": [
@@ -6616,7 +6686,7 @@
         "lookupClasses": [
           
         ],
-        "profileID": 38,
+        "profileID": 11,
         "portType": 3,
         "expectedNeighborReachability": [
           
@@ -6626,13 +6696,13 @@
       },
       {
         "logicalID": 2053,
-        "state": 2,
+        "state": 1,
         "minFrameSize": 64,
         "maxFrameSize": 9412,
         "parserType": 1,
         "routable": true,
         "ingressVlan": 0,
-        "speed": 400000,
+        "speed": 10000,
         "name": "rcy1/2/445",
         "description": "",
         "queues_DEPRECATED": [
@@ -6651,7 +6721,7 @@
         "lookupClasses": [
           
         ],
-        "profileID": 38,
+        "profileID": 11,
         "portType": 3,
         "expectedNeighborReachability": [
           
@@ -6661,13 +6731,13 @@
       },
       {
         "logicalID": 2054,
-        "state": 2,
+        "state": 1,
         "minFrameSize": 64,
         "maxFrameSize": 9412,
         "parserType": 1,
         "routable": true,
         "ingressVlan": 0,
-        "speed": 400000,
+        "speed": 10000,
         "name": "evt1/2/506",
         "description": "",
         "queues_DEPRECATED": [
@@ -6686,7 +6756,7 @@
         "lookupClasses": [
           
         ],
-        "profileID": 38,
+        "profileID": 11,
         "portType": 5,
         "expectedNeighborReachability": [
           
@@ -6696,13 +6766,13 @@
       },
       {
         "logicalID": 2055,
-        "state": 2,
+        "state": 1,
         "minFrameSize": 64,
         "maxFrameSize": 9412,
         "parserType": 1,
         "routable": true,
         "ingressVlan": 0,
-        "speed": 800000,
+        "speed": 100000,
         "name": "eth1/44/1",
         "description": "",
         "queues_DEPRECATED": [
@@ -6721,7 +6791,7 @@
         "lookupClasses": [
           
         ],
-        "profileID": 39,
+        "profileID": 22,
         "portType": 4,
         "expectedNeighborReachability": [
           
@@ -6766,13 +6836,13 @@
       },
       {
         "logicalID": 2057,
-        "state": 2,
+        "state": 1,
         "minFrameSize": 64,
         "maxFrameSize": 9412,
         "parserType": 1,
         "routable": true,
         "ingressVlan": 0,
-        "speed": 800000,
+        "speed": 400000,
         "name": "eth1/45/5",
         "description": "",
         "queues_DEPRECATED": [
@@ -6791,7 +6861,7 @@
         "lookupClasses": [
           
         ],
-        "profileID": 39,
+        "profileID": 38,
         "portType": 0,
         "expectedNeighborReachability": [
           
@@ -6836,13 +6906,13 @@
       },
       {
         "logicalID": 2059,
-        "state": 2,
+        "state": 1,
         "minFrameSize": 64,
         "maxFrameSize": 9412,
         "parserType": 1,
         "routable": true,
         "ingressVlan": 0,
-        "speed": 800000,
+        "speed": 400000,
         "name": "eth1/46/5",
         "description": "",
         "queues_DEPRECATED": [
@@ -6861,7 +6931,7 @@
         "lookupClasses": [
           
         ],
-        "profileID": 39,
+        "profileID": 38,
         "portType": 0,
         "expectedNeighborReachability": [
           
@@ -7221,13 +7291,13 @@
       },
       {
         "logicalID": 2070,
-        "state": 2,
+        "state": 1,
         "minFrameSize": 64,
         "maxFrameSize": 9412,
         "parserType": 1,
         "routable": true,
         "ingressVlan": 0,
-        "speed": 400000,
+        "speed": 800000,
         "name": "eth1/73/1",
         "description": "",
         "queues_DEPRECATED": [
@@ -7246,7 +7316,7 @@
         "lookupClasses": [
           
         ],
-        "profileID": 38,
+        "profileID": 39,
         "portType": 0,
         "expectedNeighborReachability": [
           
@@ -7256,13 +7326,13 @@
       },
       {
         "logicalID": 2071,
-        "state": 2,
+        "state": 1,
         "minFrameSize": 64,
         "maxFrameSize": 9412,
         "parserType": 1,
         "routable": true,
         "ingressVlan": 0,
-        "speed": 400000,
+        "speed": 800000,
         "name": "eth1/74/1",
         "description": "",
         "queues_DEPRECATED": [
@@ -7281,7 +7351,7 @@
         "lookupClasses": [
           
         ],
-        "profileID": 38,
+        "profileID": 39,
         "portType": 0,
         "expectedNeighborReachability": [
           
@@ -7291,13 +7361,13 @@
       },
       {
         "logicalID": 2072,
-        "state": 2,
+        "state": 1,
         "minFrameSize": 64,
         "maxFrameSize": 9412,
         "parserType": 1,
         "routable": true,
         "ingressVlan": 0,
-        "speed": 400000,
+        "speed": 800000,
         "name": "eth1/75/1",
         "description": "",
         "queues_DEPRECATED": [
@@ -7316,7 +7386,7 @@
         "lookupClasses": [
           
         ],
-        "profileID": 38,
+        "profileID": 39,
         "portType": 0,
         "expectedNeighborReachability": [
           
@@ -7326,13 +7396,13 @@
       },
       {
         "logicalID": 2073,
-        "state": 2,
+        "state": 1,
         "minFrameSize": 64,
         "maxFrameSize": 9412,
         "parserType": 1,
         "routable": true,
         "ingressVlan": 0,
-        "speed": 400000,
+        "speed": 800000,
         "name": "eth1/76/1",
         "description": "",
         "queues_DEPRECATED": [
@@ -7351,7 +7421,7 @@
         "lookupClasses": [
           
         ],
-        "profileID": 38,
+        "profileID": 39,
         "portType": 0,
         "expectedNeighborReachability": [
           
@@ -7361,13 +7431,13 @@
       },
       {
         "logicalID": 2074,
-        "state": 2,
+        "state": 1,
         "minFrameSize": 64,
         "maxFrameSize": 9412,
         "parserType": 1,
         "routable": true,
         "ingressVlan": 0,
-        "speed": 400000,
+        "speed": 800000,
         "name": "eth1/77/1",
         "description": "",
         "queues_DEPRECATED": [
@@ -7386,7 +7456,7 @@
         "lookupClasses": [
           
         ],
-        "profileID": 38,
+        "profileID": 39,
         "portType": 0,
         "expectedNeighborReachability": [
           
@@ -7396,13 +7466,13 @@
       },
       {
         "logicalID": 2075,
-        "state": 2,
+        "state": 1,
         "minFrameSize": 64,
         "maxFrameSize": 9412,
         "parserType": 1,
         "routable": true,
         "ingressVlan": 0,
-        "speed": 400000,
+        "speed": 800000,
         "name": "eth1/78/1",
         "description": "",
         "queues_DEPRECATED": [
@@ -7421,7 +7491,7 @@
         "lookupClasses": [
           
         ],
-        "profileID": 38,
+        "profileID": 39,
         "portType": 0,
         "expectedNeighborReachability": [
           
