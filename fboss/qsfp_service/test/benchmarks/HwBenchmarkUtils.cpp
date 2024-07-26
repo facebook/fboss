@@ -11,27 +11,50 @@
 namespace facebook::fboss {
 
 std::size_t refreshTcvrs(MediaInterfaceCode mediaType) {
+  // Initialization
+  gflags::SetCommandLineOptionWithMode(
+      "qsfp_data_refresh_interval", "0", gflags::SET_FLAGS_DEFAULT);
   folly::BenchmarkSuspender suspender;
   std::size_t iters = 0;
   auto wedgeMgr = setupForColdboot();
   wedgeMgr->init();
 
-  for (int i = 0; i < wedgeMgr->getNumQsfpModules(); i++) {
-    TransceiverID id(i);
-    auto interface =
-        wedgeMgr->getTransceiverInfo(id).tcvrState()->moduleMediaInterface();
+  // Get Relevant Transceivers
+  std::vector<TransceiverID> tcvrIds;
+  auto qsfpConfig = wedgeMgr->getQsfpConfig();
+  if (qsfpConfig == nullptr) {
+    throw FbossError("Qsfp Config is not set.");
+  }
+  auto qsfpTestConfig = qsfpConfig->thrift.qsfpTestConfig();
+  CHECK(qsfpTestConfig.has_value());
 
-    if (interface.has_value() && interface.value() == mediaType) {
-      std::unordered_set<TransceiverID> tcvr{id};
+  for (const auto& portPairs : *qsfpTestConfig->cabledPortPairs()) {
+    for (auto portName : {portPairs.aPortName(), portPairs.zPortName()}) {
+      auto portID = wedgeMgr->getPortIDByPortName(*portName);
+      CHECK(portID.has_value());
+      auto tcvrID = wedgeMgr->getTransceiverID(PortID(*portID));
+      if (!tcvrID) {
+        continue;
+      }
 
-      suspender.dismiss();
-      wedgeMgr->TransceiverManager::refreshTransceivers(tcvr);
-      suspender.rehire();
-      iters++;
+      auto interface = wedgeMgr->getTransceiverInfo(*tcvrID)
+                           .tcvrState()
+                           ->moduleMediaInterface();
+
+      if (interface.has_value() && interface.value() == mediaType) {
+        tcvrIds.push_back(*tcvrID);
+      }
     }
   }
 
-  return iters;
+  // Refresh Transceivers
+  for (auto tcvrId : tcvrIds) {
+    suspender.dismiss();
+    wedgeMgr->TransceiverManager::refreshTransceivers({tcvrId});
+    suspender.rehire();
+  }
+
+  return tcvrIds.size();
 }
 
 std::size_t readOneByte(MediaInterfaceCode mediaType) {
