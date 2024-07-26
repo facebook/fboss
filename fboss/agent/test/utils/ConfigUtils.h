@@ -72,7 +72,8 @@ cfg::DsfNode dsfNodeConfig(
     const HwAsic& myAsic,
     int64_t otherSwitchId = 4,
     std::optional<int> systemPortMin = std::nullopt,
-    std::optional<int> systemPortMax = std::nullopt);
+    std::optional<int> systemPortMax = std::nullopt,
+    const std::optional<PlatformType> platformType = std::nullopt);
 
 std::vector<cfg::Port>::iterator findCfgPort(
     cfg::SwitchConfig& cfg,
@@ -110,7 +111,8 @@ cfg::SwitchConfig onePortPerInterfaceConfig(
     const std::optional<std::map<SwitchID, cfg::SwitchInfo>>&
         switchIdToSwitchInfo = std::nullopt,
     const std::optional<std::map<SwitchID, const HwAsic*>>& hwAsicTable =
-        std::nullopt);
+        std::nullopt,
+    const std::optional<PlatformType> platformType = std::nullopt);
 
 cfg::SwitchConfig onePortPerInterfaceConfig(
     const TestEnsembleIf* ensemble,
@@ -159,7 +161,8 @@ cfg::SwitchConfig multiplePortsPerIntfConfig(
     const std::optional<std::map<SwitchID, cfg::SwitchInfo>>&
         switchIdToSwitchInfo = std::nullopt,
     const std::optional<std::map<SwitchID, const HwAsic*>>& hwAsicTable =
-        std::nullopt);
+        std::nullopt,
+    const std::optional<PlatformType> platformType = std::nullopt);
 
 cfg::SwitchConfig genPortVlanCfg(
     const PlatformMapping* platformMapping,
@@ -174,12 +177,14 @@ cfg::SwitchConfig genPortVlanCfg(
     const std::optional<std::map<SwitchID, cfg::SwitchInfo>>&
         switchIdToSwitchInfo = std::nullopt,
     const std::optional<std::map<SwitchID, const HwAsic*>>& hwAsicTable =
-        std::nullopt);
+        std::nullopt,
+    const std::optional<PlatformType> platformType = std::nullopt);
 
 void populateSwitchInfo(
     cfg::SwitchConfig& config,
     const std::map<SwitchID, cfg::SwitchInfo>& switchIdToSwitchInfo,
-    const std::map<SwitchID, const HwAsic*>& hwAsicTable);
+    const std::map<SwitchID, const HwAsic*>& hwAsicTable,
+    const std::optional<PlatformType> platformType = std::nullopt);
 
 cfg::SwitchConfig twoL3IntfConfig(
     SwSwitch* swSwitch,

@@ -366,7 +366,8 @@ cfg::DsfNode dsfNodeConfig(
     const HwAsic& myAsic,
     int64_t otherSwitchId,
     std::optional<int> systemPortMin,
-    std::optional<int> systemPortMax) {
+    std::optional<int> systemPortMax,
+    const std::optional<PlatformType> platformType) {
   auto createAsic = [&](const HwAsic& fromAsic, int64_t switchId)
       -> std::pair<std::shared_ptr<HwAsic>, PlatformType> {
     std::optional<cfg::Range64> systemPortRange;
@@ -394,7 +395,10 @@ cfg::DsfNode dsfNodeConfig(
                 systemPortRange,
                 localMac),
             PlatformType::PLATFORM_MERU400BIU);
-      case cfg::AsicType::ASIC_TYPE_JERICHO3:
+      case cfg::AsicType::ASIC_TYPE_JERICHO3: {
+        auto fromPlatformType = platformType.has_value()
+            ? platformType.value()
+            : PlatformType::PLATFORM_MERU800BIA;
         return std::pair(
             std::make_unique<Jericho3Asic>(
                 fromAsic.getSwitchType(),
@@ -402,7 +406,8 @@ cfg::DsfNode dsfNodeConfig(
                 fromAsic.getSwitchIndex(),
                 systemPortRange,
                 localMac),
-            PlatformType::PLATFORM_MERU800BIA);
+            fromPlatformType);
+      }
       case cfg::AsicType::ASIC_TYPE_RAMON:
         return std::pair(
             std::make_unique<RamonAsic>(
@@ -474,7 +479,8 @@ cfg::SwitchConfig onePortPerInterfaceConfig(
       enableFabricPorts,
       // Use SwitchInfo from --config if SwSwitch is provided
       swSwitch->getSwitchInfoTable().getSwitchIdToSwitchInfo(),
-      swSwitch->getHwAsicTable()->getHwAsics());
+      swSwitch->getHwAsicTable()->getHwAsics(),
+      swSwitch->getPlatformType());
 }
 
 cfg::SwitchConfig onePortPerInterfaceConfig(
@@ -489,7 +495,8 @@ cfg::SwitchConfig onePortPerInterfaceConfig(
     bool enableFabricPorts,
     const std::optional<std::map<SwitchID, cfg::SwitchInfo>>&
         switchIdToSwitchInfo,
-    const std::optional<std::map<SwitchID, const HwAsic*>>& hwAsicTable) {
+    const std::optional<std::map<SwitchID, const HwAsic*>>& hwAsicTable,
+    const std::optional<PlatformType> platformType) {
   return multiplePortsPerIntfConfig(
       platformMapping,
       asic,
@@ -502,7 +509,8 @@ cfg::SwitchConfig onePortPerInterfaceConfig(
       1, /* portPerIntf*/
       enableFabricPorts,
       switchIdToSwitchInfo,
-      hwAsicTable);
+      hwAsicTable,
+      platformType);
 }
 
 cfg::SwitchConfig onePortPerInterfaceConfig(
@@ -543,7 +551,8 @@ cfg::SwitchConfig multiplePortsPerIntfConfig(
     bool enableFabricPorts,
     const std::optional<std::map<SwitchID, cfg::SwitchInfo>>&
         switchIdToSwitchInfo,
-    const std::optional<std::map<SwitchID, const HwAsic*>>& hwAsicTable) {
+    const std::optional<std::map<SwitchID, const HwAsic*>>& hwAsicTable,
+    const std::optional<PlatformType> platformType) {
   std::map<PortID, VlanID> port2vlan;
   std::vector<VlanID> vlans;
   std::vector<PortID> vlanPorts;
@@ -583,7 +592,8 @@ cfg::SwitchConfig multiplePortsPerIntfConfig(
       true /*optimizePortProfile*/,
       enableFabricPorts,
       switchIdToSwitchInfo,
-      hwAsicTable);
+      hwAsicTable,
+      platformType);
   auto addInterface = [&config](
                           int32_t intfId,
                           int32_t vlanId,
@@ -682,11 +692,15 @@ cfg::SwitchConfig genPortVlanCfg(
     bool enableFabricPorts,
     const std::optional<std::map<SwitchID, cfg::SwitchInfo>>&
         switchIdToSwitchInfo,
-    const std::optional<std::map<SwitchID, const HwAsic*>>& hwAsicTable) {
+    const std::optional<std::map<SwitchID, const HwAsic*>>& hwAsicTable,
+    const std::optional<PlatformType> platformType) {
   cfg::SwitchConfig config;
   if (switchIdToSwitchInfo.has_value() && hwAsicTable.has_value()) {
     populateSwitchInfo(
-        config, switchIdToSwitchInfo.value(), hwAsicTable.value());
+        config,
+        switchIdToSwitchInfo.value(),
+        hwAsicTable.value(),
+        platformType);
   } else {
     std::map<SwitchID, cfg::SwitchInfo> defaultSwitchIdToSwitchInfo;
     std::map<SwitchID, const HwAsic*> defaultHwAsicTable;
@@ -728,7 +742,8 @@ cfg::SwitchConfig genPortVlanCfg(
       switchInfo.systemPortRange() = *asic->getSystemPortRange();
     }
     defaultSwitchIdToSwitchInfo.insert({SwitchID(switchId), switchInfo});
-    populateSwitchInfo(config, defaultSwitchIdToSwitchInfo, defaultHwAsicTable);
+    populateSwitchInfo(
+        config, defaultSwitchIdToSwitchInfo, defaultHwAsicTable, platformType);
   }
   auto switchType = asic->getSwitchType();
   // VOQ config
@@ -828,7 +843,8 @@ cfg::SwitchConfig genPortVlanCfg(
 void populateSwitchInfo(
     cfg::SwitchConfig& config,
     const std::map<SwitchID, cfg::SwitchInfo>& switchIdToSwitchInfo,
-    const std::map<SwitchID, const HwAsic*>& hwAsicTable) {
+    const std::map<SwitchID, const HwAsic*>& hwAsicTable,
+    const std::optional<PlatformType> platformType) {
   std::map<long, cfg::SwitchInfo> newSwitchIdToSwitchInfo;
   std::map<long, cfg::DsfNode> newDsfNodes;
   for (const auto& [switchId, switchInfo] : switchIdToSwitchInfo) {
@@ -840,7 +856,14 @@ void populateSwitchInfo(
     const auto& hwAsic = hwAsicTableItr->second;
     if (hwAsic->getSwitchType() == cfg::SwitchType::VOQ ||
         hwAsic->getSwitchType() == cfg::SwitchType::FABRIC) {
-      newDsfNodes.insert({switchId, dsfNodeConfig(*hwAsic, switchId)});
+      newDsfNodes.insert(
+          {switchId,
+           dsfNodeConfig(
+               *hwAsic,
+               switchId,
+               std::nullopt /*systemPortMin*/,
+               std::nullopt /*systemPortMax*/,
+               platformType)});
     }
   }
   config.switchSettings()->switchIdToSwitchInfo() = newSwitchIdToSwitchInfo;

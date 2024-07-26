@@ -61,7 +61,8 @@ getPlatformMappingForDsfNode(const PlatformType platformType) {
       return &meru800bia;
     }
     case PlatformType::PLATFORM_JANGA800BIC: {
-      static Janga800bicPlatformMapping janga800bic;
+      static Janga800bicPlatformMapping janga800bic{
+          true /*multiNpuPlatformMapping*/};
       return &janga800bic;
     }
     default:
