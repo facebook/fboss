@@ -134,7 +134,8 @@ class AgentSflowMirrorTest : public AgentHwTest {
      * dest_port_encoding : 3, reserved : 23
      */
     auto asic = checkSameAndGetAsic();
-    if (asic->getAsicType() == cfg::AsicType::ASIC_TYPE_EBRO) {
+    if (asic->getAsicType() == cfg::AsicType::ASIC_TYPE_EBRO ||
+        asic->getAsicType() == cfg::AsicType::ASIC_TYPE_YUBA) {
       auto systemPortId = sflowPayload[0] << 8 | sflowPayload[1];
       return static_cast<PortID>(systemPortId - asic->getSystemPortIDOffset());
     } else if (asic->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO3) {
@@ -275,6 +276,7 @@ class AgentSflowMirrorTest : public AgentHwTest {
     }
 
     if (checkSameAndGetAsic()->getAsicType() != cfg::AsicType::ASIC_TYPE_EBRO &&
+        checkSameAndGetAsic()->getAsicType() != cfg::AsicType::ASIC_TYPE_YUBA &&
         checkSameAndGetAsic()->getAsicType() !=
             cfg::AsicType::ASIC_TYPE_JERICHO3) {
       // Call parseSflowShim here. And verify
