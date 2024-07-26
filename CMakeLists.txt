@@ -567,6 +567,7 @@ add_fbthrift_cpp_library(
     FbossHwCtrl
   DEPENDS
     ctrl_cpp2
+    switch_state_cpp2
 )
 
 add_fbthrift_cpp_library(
