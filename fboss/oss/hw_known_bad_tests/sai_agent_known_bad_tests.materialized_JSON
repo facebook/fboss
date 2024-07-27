@@ -412,6 +412,9 @@
           "test_name_regex": "AgentMacLearningTest.VerifyHwLearningForTrunk$"
         },
         {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].DstIpNetworkControlDscpToHighPriQ$"
         },
         {
@@ -532,7 +535,49 @@
           "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot.AgentQueuePerHostTest/[0123].VerifyHostToQueueMappingClassIDsAfterResolveBlock$"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot.AgentQueuePerHostTest/[0123].VerifyHostToQueueMappingClassIDsWithResolveBlock$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].EapolToHighPriQ$"
+        },
+        {
+          "test_name_regex": "AgentIngressPortErspanMirroringTest/1.ErspanPortMirror$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTestV6.*$"
+        },
+        {
+          "test_name_regex": "AgentIngressPortErspanMirroringTruncateTest/[01].TrucatePortErspanMirror$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressPortErspanMirroringTruncateTest/[01].TrucatePortErspanMirror$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTruncateTestV[46].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressAclErspanMirroringTest/[01].ErspanAclMirror$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentIngressEgressPortSpanMirroringTest/[01].SpanPortMirror$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentIngressEgressPortErspanMirroringTest/[01].ErspanPortMirror$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressAclSpanMirroringTest/[01].*AgentIngressEgressAclErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTestV[46].VerifySampledPacketRate$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorOnTrunkTestV[46].*$"
         }
     ],
     "brcm/10.2.0.0_odp/10.2.0.0_odp/tomahawk/multi_switch": [
@@ -926,6 +971,9 @@
           "test_name_regex": "AgentMacLearningTest.VerifyHwLearningForTrunk$"
         },
         {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].DstIpNetworkControlDscpToHighPriQ$"
         },
         {
@@ -1046,6 +1094,15 @@
           "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot.AgentQueuePerHostTest/[0123].VerifyHostToQueueMappingClassIDsAfterResolveBlock$"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot.AgentQueuePerHostTest/[0123].VerifyHostToQueueMappingClassIDsWithResolveBlock$"
+        },
+        {
           "test_name_regex": "AgentLoadBalancerTestV4InMplsPhp.*$"
         },
         {
@@ -1098,6 +1155,30 @@
         },
         {
           "test_name_regex": "AgentTrunkLoadBalancerTest.ECMPFullTrunkHalf4X3WideTrunksV6MplsFrontPanelTraffic$"
+        },
+        {
+          "test_name_regex": "AgentIngressAclSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressAclErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressAclSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressAclErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentIngressEgressPortErspanMirroringTruncateTest/[01].TrucatePortErspanMirror$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTestV[46].VerifySampledPacketRate$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTruncateTestV[46].VerifySampledPacketRate$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorOnTrunkTestV[46].*$"
         }
     ],
     "brcm/10.2.0.0_odp/10.2.0.0_odp/tomahawk3/multi_switch": [
@@ -1539,6 +1620,9 @@
           "test_name_regex": "AgentMacLearningTest.VerifyHwLearningForTrunk$"
         },
         {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].DstIpNetworkControlDscpToHighPriQ$"
         },
         {
@@ -1659,6 +1743,15 @@
           "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot.AgentQueuePerHostTest/[0123].VerifyHostToQueueMappingClassIDsAfterResolveBlock$"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot.AgentQueuePerHostTest/[0123].VerifyHostToQueueMappingClassIDsWithResolveBlock$"
+        },
+        {
           "test_name_regex": "AgentAqmTest.verifyEcnWithoutWredConfig$"
         },
         {
@@ -1666,6 +1759,36 @@
         },
         {
           "test_name_regex": "AgentDiagShellStressTest.*$"
+        },
+        {
+          "test_name_regex": "AgentIngressAclSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressAclErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressAclSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressAclErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressPortSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentIngressEgressPortErspanMirroringTruncateTest/[01].TrucatePortErspanMirror$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentIngressEgressPortErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTestV4[46].VerifySampledPacketRate$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTruncateTestV[46].VerifySampledPacketRate$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorOnTrunkTestV[46].*$"
         },
         {
           "test_name_regex": "warm_boot.AgentTrunkLoadBalancerTest.ECMPFullTrunkHalfHash4X2WideTrunksV4CpuTraffic$"
@@ -2125,6 +2248,9 @@
           "test_name_regex": "AgentMacLearningTest.VerifyHwLearningForTrunk$"
         },
         {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].DstIpNetworkControlDscpToHighPriQ$"
         },
         {
@@ -2243,6 +2369,15 @@
         },
         {
           "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot.AgentQueuePerHostTest/[0123].VerifyHostToQueueMappingClassIDsAfterResolveBlock$"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot.AgentQueuePerHostTest/[0123].VerifyHostToQueueMappingClassIDsWithResolveBlock$"
         },
         {
           "test_name_regex": "AgentBthOpcodeAclCounterTest.VerifyCounterBumpOnBthOpcodeHitFrontPanel$"
@@ -2367,6 +2502,9 @@
           "test_name_regex": "AgentMacLearningTest.VerifyHwLearningForTrunk$"
         },
         {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].DstIpNetworkControlDscpToHighPriQ$"
         },
         {
@@ -2485,6 +2623,15 @@
         },
         {
           "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot.AgentQueuePerHostTest/[0123].VerifyHostToQueueMappingClassIDsAfterResolveBlock$"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot.AgentQueuePerHostTest/[0123].VerifyHostToQueueMappingClassIDsWithResolveBlock$"
         },
         {
           "test_name_regex": "AgentLoadBalancerTestV4InMplsPhp.*$"
@@ -2968,6 +3115,9 @@
           "test_name_regex": "AgentMacLearningTest.VerifyHwLearningForTrunk$"
         },
         {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].DstIpNetworkControlDscpToHighPriQ$"
         },
         {
@@ -3088,6 +3238,15 @@
           "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot.AgentQueuePerHostTest/[0123].VerifyHostToQueueMappingClassIDsAfterResolveBlock$"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot.AgentQueuePerHostTest/[0123].VerifyHostToQueueMappingClassIDsWithResolveBlock$"
+        },
+        {
           "test_name_regex": "AgentLoadBalancerTestV4InMplsPhp.*$"
         },
         {
@@ -3173,6 +3332,27 @@
         },
         {
           "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
+        },
+        {
+          "test_name_regex": "AgentIngressAclSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressAclErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentIngressEgressPortSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentIngressEgressPortErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressAclSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressAclErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentIngressEgressPortErspanMirroringTruncateTest/[01].*$"
         }
     ],
     "brcm/11.0_ea_dnx_odp/11.0_ea_dnx_odp/jericho3/multi_switch": [
@@ -3493,6 +3673,27 @@
         },
         {
           "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
+        },
+        {
+          "test_name_regex": "AgentIngressAclSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressAclErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentIngressEgressPortSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentIngressEgressPortErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressAclSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressAclErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentIngressEgressPortErspanMirroringTruncateTest/[01].*$"
         }
     ],
     "brcm/11.0_ea_dnx_odp/11.0_ea_dnx_odp/ramon/mono": [
@@ -3591,6 +3792,9 @@
         },
         {
           "test_name_regex": "AgentMacLearningTest.VerifyHwLearningForTrunk$"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].DstIpNetworkControlDscpToHighPriQ$"
@@ -3711,6 +3915,15 @@
         },
         {
           "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot.AgentQueuePerHostTest/[0123].VerifyHostToQueueMappingClassIDsAfterResolveBlock$"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot.AgentQueuePerHostTest/[0123].VerifyHostToQueueMappingClassIDsWithResolveBlock$"
         },
         {
           "test_name_regex": "AgentPrbsTest.*$"
@@ -4050,6 +4263,9 @@
           "test_name_regex": "AgentMacLearningTest.VerifyHwLearningForTrunk$"
         },
         {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].DstIpNetworkControlDscpToHighPriQ$"
         },
         {
@@ -4168,6 +4384,15 @@
         },
         {
           "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot.AgentQueuePerHostTest/[0123].VerifyHostToQueueMappingClassIDsAfterResolveBlock$"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot.AgentQueuePerHostTest/[0123].VerifyHostToQueueMappingClassIDsWithResolveBlock$"
         },
         {
           "test_name_regex": "AgentPrbsTest.*$"
@@ -4561,6 +4786,9 @@
           "test_name_regex": "AgentMacLearningTest.VerifyHwLearningForTrunk$"
         },
         {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].DstIpNetworkControlDscpToHighPriQ$"
         },
         {
@@ -4681,7 +4909,49 @@
           "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot.AgentQueuePerHostTest/[0123].VerifyHostToQueueMappingClassIDsAfterResolveBlock$"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot.AgentQueuePerHostTest/[0123].VerifyHostToQueueMappingClassIDsWithResolveBlock$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].EapolToHighPriQ$"
+        },
+        {
+          "test_name_regex": "AgentIngressPortErspanMirroringTest/1.ErspanPortMirror$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTestV6.*$"
+        },
+        {
+          "test_name_regex": "AgentIngressPortErspanMirroringTruncateTest/[01].TrucatePortErspanMirror$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressPortErspanMirroringTruncateTest/[01].TrucatePortErspanMirror$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTruncateTestV[46].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressAclErspanMirroringTest/[01].ErspanAclMirror$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentIngressEgressPortSpanMirroringTest/[01].SpanPortMirror$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentIngressEgressPortErspanMirroringTest/[01].ErspanPortMirror$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressAclSpanMirroringTest/[01].*AgentIngressEgressAclErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTestV[46].VerifySampledPacketRate$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorOnTrunkTestV[46].*$"
         }
     ],
     "brcm/8.2.0.0_odp/8.2.0.0_odp/tomahawk/multi_switch": [
@@ -5075,6 +5345,9 @@
           "test_name_regex": "AgentMacLearningTest.VerifyHwLearningForTrunk$"
         },
         {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].DstIpNetworkControlDscpToHighPriQ$"
         },
         {
@@ -5195,6 +5468,15 @@
           "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot.AgentQueuePerHostTest/[0123].VerifyHostToQueueMappingClassIDsAfterResolveBlock$"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot.AgentQueuePerHostTest/[0123].VerifyHostToQueueMappingClassIDsWithResolveBlock$"
+        },
+        {
           "test_name_regex": "AgentLoadBalancerTestV4InMplsPhp.*$"
         },
         {
@@ -5247,6 +5529,30 @@
         },
         {
           "test_name_regex": "AgentTrunkLoadBalancerTest.ECMPFullTrunkHalf4X3WideTrunksV6MplsFrontPanelTraffic$"
+        },
+        {
+          "test_name_regex": "AgentIngressAclSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressAclErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressAclSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressAclErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentIngressEgressPortErspanMirroringTruncateTest/[01].TrucatePortErspanMirror$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTestV[46].VerifySampledPacketRate$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTruncateTestV[46].VerifySampledPacketRate$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorOnTrunkTestV[46].*$"
         }
     ],
     "brcm/8.2.0.0_odp/8.2.0.0_odp/tomahawk3/multi_switch": [
@@ -5688,6 +5994,9 @@
           "test_name_regex": "AgentMacLearningTest.VerifyHwLearningForTrunk$"
         },
         {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].DstIpNetworkControlDscpToHighPriQ$"
         },
         {
@@ -5808,6 +6117,15 @@
           "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot.AgentQueuePerHostTest/[0123].VerifyHostToQueueMappingClassIDsAfterResolveBlock$"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot.AgentQueuePerHostTest/[0123].VerifyHostToQueueMappingClassIDsWithResolveBlock$"
+        },
+        {
           "test_name_regex": "AgentAqmTest.verifyEcnWithoutWredConfig$"
         },
         {
@@ -5815,6 +6133,36 @@
         },
         {
           "test_name_regex": "AgentDiagShellStressTest.*$"
+        },
+        {
+          "test_name_regex": "AgentIngressAclSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressAclErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressAclSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressAclErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressPortSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentIngressEgressPortErspanMirroringTruncateTest/[01].TrucatePortErspanMirror$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentIngressEgressPortErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTestV4[46].VerifySampledPacketRate$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTruncateTestV[46].VerifySampledPacketRate$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorOnTrunkTestV[46].*$"
         },
         {
           "test_name_regex": "warm_boot.AgentTrunkLoadBalancerTest.ECMPFullTrunkHalfHash4X2WideTrunksV4CpuTraffic$"
@@ -6211,6 +6559,27 @@
           "test_name_regex": "AgentDiagShellStressTest.stressDiagCmds$"
         },
         {
+          "test_name_regex": "AgentIngressAclSpanMirroringTest/[01].SpanAclMirror$"
+        },
+        {
+          "test_name_regex": "AgentIngressAclErspanMirroringTest/[01].ErspanAclMirror$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressPortSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressPortErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressAclSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressAclErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressPortErspanMirroringTruncateTest/[01].*$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].DstIpNetworkControlDscpToHighPriQ$"
         },
         {
@@ -6305,6 +6674,9 @@
         },
         {
           "test_name_regex": "AgentMacLearningTest.VerifyHwLearningForTrunk$"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         }
     ],
     "leaba/1.42.8/1.42.8/gibraltar/multi_switch": [
@@ -6394,6 +6766,27 @@
         },
         {
           "test_name_regex": "AgentDiagShellStressTest.stressDiagCmds$"
+        },
+        {
+          "test_name_regex": "AgentIngressAclSpanMirroringTest/[01].SpanAclMirror$"
+        },
+        {
+          "test_name_regex": "AgentIngressAclErspanMirroringTest/[01].ErspanAclMirror$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressPortSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressPortErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressAclSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressAclErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgressPortErspanMirroringTruncateTest/[01].*$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].DstIpNetworkControlDscpToHighPriQ$"
@@ -6681,6 +7074,9 @@
         },
         {
           "test_name_regex": "AgentMacLearningTest.VerifyHwLearningForTrunk$"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         }
     ],
     "leaba/1.65.1/1.65.1/gibraltar/multi_switch": [
