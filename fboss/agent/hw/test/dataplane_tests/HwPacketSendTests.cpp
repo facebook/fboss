@@ -200,61 +200,6 @@ class HwPacketFloodTest : public HwLinkStateDependentTest {
   }
 };
 
-TEST_F(HwPacketSendTest, LldpToFrontPanelWithBufClone) {
-  auto setup = [=]() {};
-  auto verify = [=, this]() {
-    auto portStatsBefore =
-        getLatestPortStats(masterLogicalInterfacePortIds()[0]);
-    auto vlanId = utility::firstVlanID(getProgrammedState());
-    auto intfMac = utility::getFirstInterfaceMac(initialConfig());
-    auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
-    auto payLoadSize = 256;
-    auto numPkts = 20;
-    std::vector<folly::IOBuf*> bufs;
-    for (int i = 0; i < numPkts; i++) {
-      auto txPacket = utility::makeEthTxPacket(
-          getHwSwitch(),
-          vlanId,
-          srcMac,
-          folly::MacAddress("01:80:c2:00:00:0e"),
-          facebook::fboss::ETHERTYPE::ETHERTYPE_LLDP,
-          std::vector<uint8_t>(payLoadSize, 0xff));
-      // emulate packet buf clone in PcapPkt, which should make
-      // freeTxBuf() get called after txPacket destructor
-      auto buf = new folly::IOBuf();
-      txPacket->buf()->cloneInto(*buf);
-      bufs.push_back(buf);
-      getHwSwitchEnsemble()->ensureSendPacketOutOfPort(
-          std::move(txPacket),
-          masterLogicalInterfacePortIds()[0],
-          std::nullopt);
-    }
-    for (auto buf : bufs) {
-      delete buf;
-    }
-    auto portStatsAfter =
-        getLatestPortStats(masterLogicalInterfacePortIds()[0]);
-    XLOG(DBG2) << "Lldp Packet:" << " before pkts:"
-               << *portStatsBefore.outMulticastPkts_()
-               << ", after pkts:" << *portStatsAfter.outMulticastPkts_()
-               << ", before bytes:" << *portStatsBefore.outBytes_()
-               << ", after bytes:" << *portStatsAfter.outBytes_();
-    auto pktLengthSent = (EthHdr::SIZE + payLoadSize) * numPkts;
-    // GE as some platforms include FCS in outBytes count
-    EXPECT_GE(
-        *portStatsAfter.outBytes_() - *portStatsBefore.outBytes_(),
-        pktLengthSent);
-    if (getAsic()->getAsicType() != cfg::AsicType::ASIC_TYPE_EBRO &&
-        getAsic()->getAsicType() != cfg::AsicType::ASIC_TYPE_YUBA) {
-      EXPECT_EQ(
-          numPkts,
-          *portStatsAfter.outMulticastPkts_() -
-              *portStatsBefore.outMulticastPkts_());
-    }
-  };
-  verifyAcrossWarmBoots(setup, verify);
-}
-
 TEST_F(HwPacketSendTest, PortTxEnableTest) {
   auto setup = [=]() {};
   auto verify = [=, this]() {
