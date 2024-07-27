@@ -249,24 +249,28 @@ QueueConfig getDefaultVoqConfig() {
   defaultQueue->setStreamType(cfg::StreamType::UNICAST);
   defaultQueue->setScheduling(cfg::QueueScheduling::INTERNAL);
   defaultQueue->setName("default");
+  defaultQueue->setScalingFactor(cfg::MMUScalingFactor::ONE_32768TH);
   queueCfg.push_back(defaultQueue);
 
   auto rdmaQueue = std::make_shared<PortQueue>(static_cast<uint8_t>(2));
   rdmaQueue->setStreamType(cfg::StreamType::UNICAST);
   rdmaQueue->setScheduling(cfg::QueueScheduling::INTERNAL);
   rdmaQueue->setName("rdma");
+  defaultQueue->setScalingFactor(cfg::MMUScalingFactor::ONE_32768TH);
   queueCfg.push_back(rdmaQueue);
 
   auto monitoringQueue = std::make_shared<PortQueue>(static_cast<uint8_t>(6));
   monitoringQueue->setStreamType(cfg::StreamType::UNICAST);
   monitoringQueue->setScheduling(cfg::QueueScheduling::INTERNAL);
   monitoringQueue->setName("monitoring");
+  defaultQueue->setScalingFactor(cfg::MMUScalingFactor::ONE_32768TH);
   queueCfg.push_back(monitoringQueue);
 
   auto ncQueue = std::make_shared<PortQueue>(static_cast<uint8_t>(7));
   ncQueue->setStreamType(cfg::StreamType::UNICAST);
   ncQueue->setScheduling(cfg::QueueScheduling::INTERNAL);
   ncQueue->setName("nc");
+  defaultQueue->setScalingFactor(cfg::MMUScalingFactor::ONE_32768TH);
   queueCfg.push_back(ncQueue);
 
   return queueCfg;
