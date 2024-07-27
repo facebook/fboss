@@ -1268,7 +1268,7 @@ class AgentVoqSwitchWithMultipleDsfNodesTest : public AgentVoqSwitchTest {
         EXPECT_EVENTUALLY_GT(totalVoqResourceExhaustionDrops, 0);
       }
     });
-    checkNoStatsChange();
+    checkNoStatsChange(10);
   }
 };
 
