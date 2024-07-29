@@ -52,8 +52,11 @@ class AgentFabricSwitchTest : public AgentHwTest {
   std::map<SwitchID, std::vector<PortID>> switch2PortIds() const {
     std::map<SwitchID, std::vector<PortID>> switch2PortIds;
     for (auto switchId : getFabricSwitchIds()) {
-      switch2PortIds[switchId] =
+      auto fabricPortIds =
           getAgentEnsemble()->masterLogicalFabricPortIds(switchId);
+      if (fabricPortIds.size()) {
+        switch2PortIds[switchId] = std::move(fabricPortIds);
+      }
     }
     return switch2PortIds;
   }
