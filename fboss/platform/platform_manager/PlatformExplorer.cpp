@@ -297,6 +297,13 @@ std::optional<std::string> PlatformExplorer::getPmUnitNameFromSlot(
         slotPath);
     pmUnitName = *slotTypeConfig.pmUnitName();
   }
+  if (!pmUnitName) {
+    throw std::runtime_error(fmt::format(
+        "PmUnitName must be configured in SlotTypeConfig::pmUnitName "
+        "or SlotTypeConfig::idpromConfig at {}",
+        slotPath));
+  }
+  dataStore_.updatePmUnitInfo(slotPath, *pmUnitName, productVersionInEeprom);
   return pmUnitName;
 }
 

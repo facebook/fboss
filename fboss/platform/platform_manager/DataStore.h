@@ -62,6 +62,13 @@ class DataStore {
       const std::string& devicePath,
       const std::string& charDevPath);
 
+  // Update PmUnitInfo(pmUnitName, productVersion) for a given slotPath.
+  // Expect productVersion is for slots without IDPROM.
+  void updatePmUnitInfo(
+      const std::string& slotPath,
+      const std::string& pmUnitName,
+      std::optional<int> productVersion);
+
  private:
   // Map from <pmUnitPath, pmUnitScopeBusName> to kernel i2c bus name.
   // - The pmUnitPath to the rootPmUnit is /. So a bus at root PmUnit will
@@ -81,5 +88,9 @@ class DataStore {
 
   // Map from PciSubDevicePath to CharDevPath
   std::map<std::string, std::string> pciSubDevicePathToCharDevPath_{};
+
+  // Map from PmUnitName to its PmUnitInfo(PmUnitName, ProductVersion)
+  std::map<std::string, std::pair<std::string, std::optional<int>>>
+      slotPathToPmUnitInfo{};
 };
 } // namespace facebook::fboss::platform::platform_manager

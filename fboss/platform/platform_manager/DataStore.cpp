@@ -95,4 +95,16 @@ void DataStore::updateCharDevPath(
   pciSubDevicePathToCharDevPath_[devicePath] = charDevPath;
 }
 
+void DataStore::updatePmUnitInfo(
+    const std::string& slotPath,
+    const std::string& pmUnitName,
+    std::optional<int> productVersion) {
+  XLOG(INFO) << fmt::format(
+      "At SlotPath {}, updating {} to {}",
+      slotPath,
+      productVersion ? fmt::format("ProductVersion {}", *productVersion)
+                     : "Unknown ProductVersion",
+      pmUnitName);
+  slotPathToPmUnitInfo[slotPath] = {pmUnitName, productVersion};
+}
 } // namespace facebook::fboss::platform::platform_manager
