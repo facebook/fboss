@@ -13181,35 +13181,41 @@
         "dstIp": "ff02::/16",
         "srcPort": 0,
         "name": "cpuPolicing-CPU-Port-Mcast-v6",
-        "actionType": 1
+        "actionType": 1,
+        "etherType": 34525
       },
       {
         "dstIp": "fe80::/10",
         "dscp": 48,
         "name": "cpuPolicing-high-NetworkControl-linkLocal-v6",
-        "actionType": 1
+        "actionType": 1,
+        "etherType": 34525
       },
       {
         "dstIp": "ff02::/16",
         "dscp": 48,
         "name": "cpuPolicing-high-NetworkControl-ff02::/16",
-        "actionType": 1
+        "actionType": 1,
+        "etherType": 34525
       },
       {
         "dscp": 48,
         "name": "cpuPolicing-high-NetworkControl-dstLocal",
         "actionType": 1,
-        "lookupClassRoute": 1
+        "lookupClassRoute": 1,
+        "etherType": 2048
       },
       {
         "dstIp": "fe80::/10",
         "name": "cpuPolicing-mid-linkLocal-v6",
-        "actionType": 1
+        "actionType": 1,
+        "etherType": 34525
       },
       {
         "dstIp": "ff02::/16",
         "name": "cpuPolicing-mid-ff02::/16",
-        "actionType": 1
+        "actionType": 1,
+        "etherType": 34525
       }
     ],
     "maxNeighborProbes": 300,
