@@ -31,9 +31,13 @@ TEST_F(SaiAclTableRecreateTests, AclEntryCount) {
     auto* acl1 =
         utility::addAcl(&config, "aclEntry1", cfg::AclActionType::DENY);
     acl1->dscp() = 0x20;
+    utility::addEtherTypeToAcl(getAsic(), acl1, cfg::EtherType::IPv6);
+
     auto* acl2 =
         utility::addAcl(&config, "aclEntry2", cfg::AclActionType::DENY);
     acl2->dscp() = 0x21;
+    utility::addEtherTypeToAcl(getAsic(), acl2, cfg::EtherType::IPv6);
+
     applyNewConfig(config);
     const auto* saiSwitch = static_cast<const SaiSwitch*>(getHwSwitch());
     const auto& aclTableManager = saiSwitch->managerTable()->aclTableManager();

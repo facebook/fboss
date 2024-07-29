@@ -342,6 +342,7 @@ createQueueMatchAction(int queueId, bool isSai, cfg::ToCpuAction toCpuAction) {
 }
 
 void addNoActionAclForNw(
+    const HwAsic* hwAsic,
     const folly::CIDRNetwork& nw,
     std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>>& acls) {
   cfg::AclEntry acl;
@@ -349,11 +350,13 @@ void addNoActionAclForNw(
   acl.name() = folly::to<std::string>("cpuPolicing-CPU-Port-Mcast-v6-", dstIp);
 
   acl.dstIp() = dstIp;
+  utility::addEtherTypeToAcl(hwAsic, &acl, cfg::EtherType::IPv6);
   acl.srcPort() = kCPUPort;
   acls.push_back(std::make_pair(acl, cfg::MatchAction{}));
 }
 
 void addHighPriAclForNwAndNetworkControlDscp(
+    const HwAsic* hwAsic,
     const folly::CIDRNetwork& dstNetwork,
     int highPriQueueId,
     cfg::ToCpuAction toCpuAction,
@@ -365,12 +368,14 @@ void addHighPriAclForNwAndNetworkControlDscp(
   acl.name() = folly::to<std::string>(
       "cpuPolicing-high-", dstNetworkStr, "-network-control");
   acl.dstIp() = dstNetworkStr;
+  utility::addEtherTypeToAcl(hwAsic, &acl, cfg::EtherType::IPv6);
   acl.dscp() = 48;
   acls.push_back(std::make_pair(
       acl, createQueueMatchAction(highPriQueueId, isSai, toCpuAction)));
 }
 
 void addMidPriAclForNw(
+    const HwAsic* hwAsic,
     const folly::CIDRNetwork& dstNetwork,
     cfg::ToCpuAction toCpuAction,
     std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>>& acls,
@@ -380,12 +385,14 @@ void addMidPriAclForNw(
   auto dstIp = folly::to<std::string>(dstNetwork.first, "/", dstNetwork.second);
   acl.name() = folly::to<std::string>("cpuPolicing-mid-", dstIp);
   acl.dstIp() = dstIp;
+  utility::addEtherTypeToAcl(hwAsic, &acl, cfg::EtherType::IPv6);
 
   acls.push_back(std::make_pair(
       acl, createQueueMatchAction(midPriQueueId, isSai, toCpuAction)));
 }
 
 void addHighPriAclForMyIPNetworkControl(
+    const HwAsic* hwAsic,
     cfg::ToCpuAction toCpuAction,
     int highPriQueueId,
     std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>>& acls,
@@ -395,6 +402,7 @@ void addHighPriAclForMyIPNetworkControl(
       folly::to<std::string>("cpuPolicing-high-myip-network-control-acl");
   acl.lookupClassRoute() = cfg::AclLookupClass::DST_CLASS_L3_LOCAL_1;
   acl.dscp() = 48;
+  utility::addEtherTypeToAcl(hwAsic, &acl, cfg::EtherType::IPv6);
   acls.push_back(std::make_pair(
       acl, createQueueMatchAction(highPriQueueId, isSai, toCpuAction)));
 }
@@ -516,6 +524,7 @@ void setPortQueueMaxDynamicSharedBytes(
 }
 
 void addNoActionAclForUnicastLinkLocal(
+    const HwAsic* hwAsic,
     const folly::CIDRNetwork& nw,
     std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>>& acls) {
   cfg::AclEntry acl;
@@ -524,6 +533,7 @@ void addNoActionAclForUnicastLinkLocal(
       folly::to<std::string>("cpuPolicing-CPU-Port-linkLocal-v6-", dstIp);
 
   acl.dstIp() = dstIp;
+  utility::addEtherTypeToAcl(hwAsic, &acl, cfg::EtherType::IPv6);
   acl.srcPort() = kCPUPort;
   acls.push_back(std::make_pair(acl, cfg::MatchAction{}));
 }
@@ -534,19 +544,21 @@ std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>> defaultCpuAclsForSai(
   std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>> acls;
 
   // Unicast link local from cpu
-  addNoActionAclForUnicastLinkLocal(kIPv6LinkLocalUcastNetwork(), acls);
+  addNoActionAclForUnicastLinkLocal(hwAsic, kIPv6LinkLocalUcastNetwork(), acls);
 
   // multicast link local dst ip
-  addNoActionAclForNw(kIPv6LinkLocalMcastNetwork(), acls);
+  addNoActionAclForNw(hwAsic, kIPv6LinkLocalMcastNetwork(), acls);
 
   // Link local IPv6 + DSCP 48 to high pri queue
   addHighPriAclForNwAndNetworkControlDscp(
+      hwAsic,
       kIPv6LinkLocalMcastNetwork(),
       getCoppHighPriQueueId(hwAsic),
       getCpuActionType(hwAsic),
       acls,
       true /* isSai */);
   addHighPriAclForNwAndNetworkControlDscp(
+      hwAsic,
       kIPv6LinkLocalUcastNetwork(),
       getCoppHighPriQueueId(hwAsic),
       getCpuActionType(hwAsic),
@@ -555,6 +567,7 @@ std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>> defaultCpuAclsForSai(
 
   // unicast and multicast link local dst ip
   addMidPriAclForNw(
+      hwAsic,
       kIPv6LinkLocalMcastNetwork(),
       getCpuActionType(hwAsic),
       acls,
@@ -562,6 +575,7 @@ std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>> defaultCpuAclsForSai(
       getCoppMidPriQueueId({hwAsic}));
   // All fe80::/10 to mid pri queue
   addMidPriAclForNw(
+      hwAsic,
       kIPv6LinkLocalUcastNetwork(),
       getCpuActionType(hwAsic),
       acls,
@@ -570,6 +584,7 @@ std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>> defaultCpuAclsForSai(
 
   if (hwAsic->isSupported(HwAsic::Feature::ACL_METADATA_QUALIFER)) {
     addHighPriAclForMyIPNetworkControl(
+        hwAsic,
         cfg::ToCpuAction::TRAP,
         getCoppHighPriQueueId(hwAsic),
         acls,
@@ -595,10 +610,10 @@ std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>> defaultCpuAclsForBcm(
   std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>> acls;
 
   // Unicast link local from cpu
-  addNoActionAclForUnicastLinkLocal(kIPv6LinkLocalUcastNetwork(), acls);
+  addNoActionAclForUnicastLinkLocal(hwAsic, kIPv6LinkLocalUcastNetwork(), acls);
 
   // multicast link local dst ip
-  addNoActionAclForNw(kIPv6LinkLocalMcastNetwork(), acls);
+  addNoActionAclForNw(hwAsic, kIPv6LinkLocalMcastNetwork(), acls);
 
   bool isSai = false;
   // slow-protocols dst mac
@@ -734,6 +749,7 @@ std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>> defaultCpuAclsForBcm(
 
   // unicast and multicast link local dst ip
   addMidPriAclForNw(
+      hwAsic,
       kIPv6LinkLocalMcastNetwork(),
       getCpuActionType(hwAsic),
       acls,
@@ -741,6 +757,7 @@ std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>> defaultCpuAclsForBcm(
       getCoppMidPriQueueId({hwAsic}));
   // All fe80::/10 to mid pri queue
   addMidPriAclForNw(
+      hwAsic,
       kIPv6LinkLocalUcastNetwork(),
       getCpuActionType(hwAsic),
       acls,

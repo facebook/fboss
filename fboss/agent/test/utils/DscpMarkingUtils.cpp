@@ -93,9 +93,10 @@ void addDscpMarkingAcls(cfg::SwitchConfig* config, bool isSai) {
   addDscpMarkingAclsHelper(config, IP_PROTO::IP_PROTO_TCP, kTcpPorts(), isSai);
 }
 
-void addDscpCounterAcl(cfg::SwitchConfig* config) {
+void addDscpCounterAcl(const HwAsic* hwAsic, cfg::SwitchConfig* config) {
   // Create ACL to count the number of packets with DSCP == ICP
-  utility::addDscpAclToCfg(config, kDscpCounterAclName(), utility::kIcpDscp());
+  utility::addDscpAclToCfg(
+      hwAsic, config, kDscpCounterAclName(), utility::kIcpDscp());
   std::vector<cfg::CounterType> counterTypes{cfg::CounterType::PACKETS};
   utility::addTrafficCounter(config, kCounterName(), counterTypes);
   cfg::MatchAction matchAction = cfg::MatchAction();

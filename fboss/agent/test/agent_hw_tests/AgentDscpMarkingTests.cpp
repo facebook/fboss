@@ -43,8 +43,10 @@ class AgentDscpMarkingTest : public AgentHwTest {
         ensemble.getSw(),
         ensemble.masterLogicalPortIds(),
         true /*interfaceHasSubnet*/);
-    utility::addOlympicQosMaps(cfg, ensemble.getL3Asics());
-    utility::addDscpCounterAcl(&cfg);
+    auto l3Asics = ensemble.getL3Asics();
+    auto asic = utility::checkSameAndGetAsic(l3Asics);
+    utility::addOlympicQosMaps(cfg, l3Asics);
+    utility::addDscpCounterAcl(asic, &cfg);
     utility::addDscpMarkingAcls(&cfg, ensemble.isSai());
     return cfg;
   }

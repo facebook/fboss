@@ -16,12 +16,14 @@ DECLARE_bool(enable_acl_table_group);
 
 namespace facebook::fboss::utility {
 void addDscpAclToCfg(
+    const HwAsic* hwAsic,
     cfg::SwitchConfig* config,
     const std::string& aclName,
     uint32_t dscp) {
   auto acl = cfg::AclEntry();
   *acl.name() = aclName;
   acl.dscp() = dscp;
+  utility::addEtherTypeToAcl(hwAsic, &acl, cfg::EtherType::IPv6);
 
   utility::addAclEntry(config, acl, utility::kDefaultAclTable());
 }

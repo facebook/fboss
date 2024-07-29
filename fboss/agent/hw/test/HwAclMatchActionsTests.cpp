@@ -103,7 +103,8 @@ TYPED_TEST(HwAclMatchActionsTest, AddTrafficPolicy) {
 
   auto setup = [this]() {
     auto newCfg = this->initialConfig();
-    utility::addDscpAclToCfg(&newCfg, "acl1", kDscp);
+    auto asic = this->getPlatform()->getAsic();
+    utility::addDscpAclToCfg(asic, &newCfg, "acl1", kDscp);
     utility::addQueueMatcher(
         &newCfg, "acl1", kQueueId, this->getHwSwitchEnsemble()->isSai());
     this->applyNewConfig(newCfg);
@@ -124,7 +125,8 @@ TYPED_TEST(HwAclMatchActionsTest, SetDscpMatchAction) {
 
   auto setup = [this]() {
     auto newCfg = this->initialConfig();
-    utility::addDscpAclToCfg(&newCfg, "acl1", kDscp);
+    auto asic = this->getPlatform()->getAsic();
+    utility::addDscpAclToCfg(asic, &newCfg, "acl1", kDscp);
     addSetDscpAction(&newCfg, "acl1", kDscp2);
     this->applyNewConfig(newCfg);
   };
@@ -140,12 +142,13 @@ TYPED_TEST(HwAclMatchActionsTest, SetDscpMatchAction) {
 TYPED_TEST(HwAclMatchActionsTest, AddSameMatcherTwice) {
   auto setup = [this]() {
     auto newCfg = this->initialConfig();
-    utility::addDscpAclToCfg(&newCfg, "acl1", 0);
+    auto asic = this->getPlatform()->getAsic();
+    utility::addDscpAclToCfg(asic, &newCfg, "acl1", 0);
     utility::addQueueMatcher(
         &newCfg, "acl1", 0, this->getHwSwitchEnsemble()->isSai());
     utility::addQueueMatcher(
         &newCfg, "acl1", 0, this->getHwSwitchEnsemble()->isSai());
-    utility::addDscpAclToCfg(&newCfg, "acl2", 0);
+    utility::addDscpAclToCfg(asic, &newCfg, "acl2", 0);
     addSetDscpAction(&newCfg, "acl2", 8);
     addSetDscpAction(&newCfg, "acl2", 8);
     this->applyNewConfig(newCfg);
@@ -166,9 +169,10 @@ TYPED_TEST(HwAclMatchActionsTest, AddSameMatcherTwice) {
 TYPED_TEST(HwAclMatchActionsTest, AddMultipleActions) {
   auto setup = [this]() {
     auto newCfg = this->initialConfig();
-    utility::addDscpAclToCfg(&newCfg, "acl1", 0);
-    utility::addDscpAclToCfg(&newCfg, "acl2", 0);
-    utility::addDscpAclToCfg(&newCfg, "acl3", 0);
+    auto asic = this->getPlatform()->getAsic();
+    utility::addDscpAclToCfg(asic, &newCfg, "acl1", 0);
+    utility::addDscpAclToCfg(asic, &newCfg, "acl2", 0);
+    utility::addDscpAclToCfg(asic, &newCfg, "acl3", 0);
     utility::addQueueMatcher(
         &newCfg, "acl1", 0, this->getHwSwitchEnsemble()->isSai());
     utility::addQueueMatcher(
@@ -194,10 +198,11 @@ TYPED_TEST(HwAclMatchActionsTest, AddMultipleActions) {
 TYPED_TEST(HwAclMatchActionsTest, AddRemoveActions) {
   auto setup = [this]() {
     auto newCfg = this->initialConfig();
-    utility::addDscpAclToCfg(&newCfg, "acl1", 0);
+    auto asic = this->getPlatform()->getAsic();
+    utility::addDscpAclToCfg(asic, &newCfg, "acl1", 0);
     utility::addQueueMatcher(
         &newCfg, "acl1", 0, this->getHwSwitchEnsemble()->isSai());
-    utility::addDscpAclToCfg(&newCfg, "acl2", 0);
+    utility::addDscpAclToCfg(asic, &newCfg, "acl2", 0);
     addSetDscpAction(&newCfg, "acl2", 8);
     this->applyNewConfig(newCfg);
 
@@ -219,10 +224,11 @@ TYPED_TEST(HwAclMatchActionsTest, AddRemoveActions) {
 TYPED_TEST(HwAclMatchActionsTest, AddTrafficPolicyMultipleRemoveOne) {
   auto setup = [this]() {
     auto newCfg = this->initialConfig();
-    utility::addDscpAclToCfg(&newCfg, "acl1", 0);
+    auto asic = this->getPlatform()->getAsic();
+    utility::addDscpAclToCfg(asic, &newCfg, "acl1", 0);
     utility::addQueueMatcher(
         &newCfg, "acl1", 0, this->getHwSwitchEnsemble()->isSai());
-    utility::addDscpAclToCfg(&newCfg, "acl2", 0);
+    utility::addDscpAclToCfg(asic, &newCfg, "acl2", 0);
     utility::addQueueMatcher(
         &newCfg, "acl2", 0, this->getHwSwitchEnsemble()->isSai());
     this->applyNewConfig(newCfg);

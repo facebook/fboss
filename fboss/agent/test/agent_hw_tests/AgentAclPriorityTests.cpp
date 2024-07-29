@@ -35,26 +35,6 @@ void addAclEntry(cfg::SwitchConfig& cfg, cfg::AclEntry* acl) {
   }
 }
 
-void addDenyPortAcl(cfg::SwitchConfig& cfg, const std::string& aclName) {
-  auto acl = cfg::AclEntry();
-  *acl.name() = aclName;
-  *acl.actionType() = cfg::AclActionType::DENY;
-  acl.dscp() = 0x24;
-  addAclEntry(cfg, &acl);
-}
-
-void addPermitIpAcl(
-    cfg::SwitchConfig& cfg,
-    const std::string& aclName,
-    folly::IPAddress ip) {
-  auto acl = cfg::AclEntry();
-  acl.name() = aclName;
-  acl.actionType() = cfg::AclActionType::PERMIT;
-  acl.dstIp() = ip.str();
-  acl.dscp() = 0x24;
-  addAclEntry(cfg, &acl);
-}
-
 } // unnamed namespace
 
 namespace facebook::fboss {
@@ -103,6 +83,32 @@ class AgentAclPriorityTest : public AgentHwTest {
     }
     return cfg;
   }
+
+  void addDenyPortAcl(cfg::SwitchConfig& cfg, const std::string& aclName) {
+    auto acl = cfg::AclEntry();
+    auto asic =
+        utility::checkSameAndGetAsic(this->getAgentEnsemble()->getL3Asics());
+    *acl.name() = aclName;
+    *acl.actionType() = cfg::AclActionType::DENY;
+    acl.dscp() = 0x24;
+    utility::addEtherTypeToAcl(asic, &acl, cfg::EtherType::IPv6);
+    addAclEntry(cfg, &acl);
+  }
+
+  void addPermitIpAcl(
+      cfg::SwitchConfig& cfg,
+      const std::string& aclName,
+      folly::IPAddress ip) {
+    auto acl = cfg::AclEntry();
+    auto asic =
+        utility::checkSameAndGetAsic(this->getAgentEnsemble()->getL3Asics());
+    acl.name() = aclName;
+    acl.actionType() = cfg::AclActionType::PERMIT;
+    acl.dstIp() = ip.str();
+    acl.dscp() = 0x24;
+    utility::addEtherTypeToAcl(asic, &acl, cfg::EtherType::IPv6);
+    addAclEntry(cfg, &acl);
+  }
 };
 
 TYPED_TEST_SUITE(AgentAclPriorityTest, TestTypes);
@@ -113,10 +119,10 @@ TYPED_TEST(AgentAclPriorityTest, CheckAclPriorityOrder) {
   const folly::IPAddress kIp("2400::1");
   auto setup = [this, kIp]() {
     auto newCfg = this->getSw()->getConfig();
-    addDenyPortAcl(newCfg, "A");
-    addPermitIpAcl(newCfg, "B", kIp);
-    addDenyPortAcl(newCfg, "C");
-    addPermitIpAcl(newCfg, "D", kIp);
+    this->addDenyPortAcl(newCfg, "A");
+    this->addPermitIpAcl(newCfg, "B", kIp);
+    this->addDenyPortAcl(newCfg, "C");
+    this->addPermitIpAcl(newCfg, "D", kIp);
 
     cfg::TrafficPolicyConfig trafficConfig;
     trafficConfig.matchToAction()->resize(4);
@@ -148,12 +154,12 @@ TYPED_TEST(AgentAclPriorityTest, CheckAclPriorityOrder) {
 TYPED_TEST(AgentAclPriorityTest, CheckAclPriortyOrderInsertMiddle) {
   auto setup = [this]() {
     auto newCfg = this->getSw()->getConfig();
-    addDenyPortAcl(newCfg, "A");
-    addDenyPortAcl(newCfg, "B");
+    this->addDenyPortAcl(newCfg, "A");
+    this->addDenyPortAcl(newCfg, "B");
     this->applyNewConfig(newCfg);
     utility::delLastAddedAcl(&newCfg);
-    addDenyPortAcl(newCfg, "C");
-    addDenyPortAcl(newCfg, "B");
+    this->addDenyPortAcl(newCfg, "C");
+    this->addDenyPortAcl(newCfg, "B");
     this->applyNewConfig(newCfg);
   };
 
@@ -178,7 +184,7 @@ TYPED_TEST(AgentAclPriorityTest, CheckAclPriortyOrderInsertMiddle) {
 TYPED_TEST(AgentAclPriorityTest, AclNameChange) {
   auto setup = [this]() {
     auto newCfg = this->getSw()->getConfig();
-    addDenyPortAcl(newCfg, "A");
+    this->addDenyPortAcl(newCfg, "A");
     this->applyNewConfig(newCfg);
     if (FLAGS_enable_acl_table_group) {
       *newCfg.aclTableGroup()
@@ -207,20 +213,20 @@ TYPED_TEST(AgentAclPriorityTest, AclsChanged) {
   const folly::IPAddress kIp("2400::1");
   auto setup = [this, kIp]() {
     auto config = this->getSw()->getConfig();
-    addDenyPortAcl(config, "acl0");
+    this->addDenyPortAcl(config, "acl0");
     auto l3Asics = this->getAgentEnsemble()->getL3Asics();
     // Get Acls from COPP policy
     utility::setDefaultCpuTrafficPolicyConfig(
         config, l3Asics, this->getAgentEnsemble()->isSai());
-    addPermitIpAcl(config, "acl1", kIp);
+    this->addPermitIpAcl(config, "acl1", kIp);
     this->applyNewConfig(config);
   };
 
   auto setupPostWb = [this, kIp]() {
     auto config = this->getSw()->getConfig();
     // Drop COPP acls
-    addDenyPortAcl(config, "acl0");
-    addPermitIpAcl(config, "acl1", kIp);
+    this->addDenyPortAcl(config, "acl0");
+    this->addPermitIpAcl(config, "acl1", kIp);
     this->applyNewConfig(config);
   };
 
@@ -230,8 +236,8 @@ TYPED_TEST(AgentAclPriorityTest, AclsChanged) {
 TYPED_TEST(AgentAclPriorityTest, Reprioritize) {
   auto setup = [=, this]() {
     auto config = this->getSw()->getConfig();
-    addPermitIpAcl(config, "B", folly::IPAddress("1::2"));
-    addPermitIpAcl(config, "A", folly::IPAddress("1::3"));
+    this->addPermitIpAcl(config, "B", folly::IPAddress("1::2"));
+    this->addPermitIpAcl(config, "A", folly::IPAddress("1::3"));
 
     cfg::CPUTrafficPolicyConfig cpuConfig;
     cfg::TrafficPolicyConfig trafficConfig;
@@ -250,8 +256,8 @@ TYPED_TEST(AgentAclPriorityTest, Reprioritize) {
 
   auto setupPostWb = [=, this]() {
     auto config = this->getSw()->getConfig();
-    addPermitIpAcl(config, "A", folly::IPAddress("1::3"));
-    addPermitIpAcl(config, "B", folly::IPAddress("1::2"));
+    this->addPermitIpAcl(config, "A", folly::IPAddress("1::3"));
+    this->addPermitIpAcl(config, "B", folly::IPAddress("1::2"));
 
     cfg::CPUTrafficPolicyConfig cpuConfig;
     cfg::TrafficPolicyConfig trafficConfig;

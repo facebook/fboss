@@ -11,6 +11,7 @@
 #pragma once
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 
+#include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/packet/IPProto.h"
 
 #include <string>
@@ -21,6 +22,7 @@
 
 namespace facebook::fboss::utility {
 void addDscpAclToCfg(
+    const HwAsic* hwAsic,
     cfg::SwitchConfig* config,
     const std::string& aclName,
     uint32_t dscp);

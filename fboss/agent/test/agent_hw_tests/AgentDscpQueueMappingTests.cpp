@@ -109,11 +109,11 @@ class AgentDscpQueueMappingTest : public AgentDscpQueueMappingTestBase {
         ensemble.masterLogicalPortIds(),
         true /*interfaceHasSubnet*/);
     auto kAclName = "acl1";
-    utility::addDscpAclToCfg(&cfg, kAclName, kDscp());
+    auto l3Asics = ensemble.getL3Asics();
+    auto asic = utility::checkSameAndGetAsic(l3Asics);
+    utility::addDscpAclToCfg(asic, &cfg, kAclName, kDscp());
     utility::addTrafficCounter(
-        &cfg,
-        kCounterName(),
-        utility::getAclCounterTypes(ensemble.getL3Asics()));
+        &cfg, kCounterName(), utility::getAclCounterTypes(l3Asics));
     utility::addQueueMatcher(
         &cfg, kAclName, kQueueId(), ensemble.isSai(), kCounterName());
     return cfg;
@@ -233,17 +233,17 @@ class AgentAclConflictAndDscpQueueMappingTest
         ensemble.masterLogicalPortIds(),
         true /*interfaceHasSubnet*/);
 
+    auto l3Asics = ensemble.getL3Asics();
+    auto asic = utility::checkSameAndGetAsic(l3Asics);
     // The QoS map sends packets to queue kQueueIdQosMap() i.e. 7,
     // The ACL sends them to queue kQueueIdAcl() i.e. 2.
     // QosMap
-    utility::addOlympicQosMaps(cfg, ensemble.getL3Asics());
+    utility::addOlympicQosMaps(cfg, l3Asics);
 
     // ACL
-    utility::addDscpAclToCfg(&cfg, "acl0", kDscp());
+    utility::addDscpAclToCfg(asic, &cfg, "acl0", kDscp());
     utility::addTrafficCounter(
-        &cfg,
-        kCounterName(),
-        utility::getAclCounterTypes(ensemble.getL3Asics()));
+        &cfg, kCounterName(), utility::getAclCounterTypes(l3Asics));
     utility::addQueueMatcher(
         &cfg, "acl0", kQueueIdAcl(), ensemble.isSai(), kCounterName());
     return cfg;

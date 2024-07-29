@@ -40,6 +40,11 @@ cfg::AclEntry* addAcl(
     const cfg::AclActionType& aclActionType = cfg::AclActionType::PERMIT,
     const std::optional<std::string>& tableName = std::nullopt);
 
+void addEtherTypeToAcl(
+    const HwAsic* asic,
+    cfg::AclEntry* acl,
+    const cfg::EtherType& etherType = cfg::EtherType::IPv6);
+
 int getAclTableIndex(
     cfg::SwitchConfig* cfg,
     const std::optional<std::string>& tableName);

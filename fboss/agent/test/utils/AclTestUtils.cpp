@@ -79,6 +79,15 @@ cfg::AclEntry* addAcl(
   return addAclEntry(cfg, acl, tableName);
 }
 
+void addEtherTypeToAcl(
+    const HwAsic* asic,
+    cfg::AclEntry* acl,
+    const cfg::EtherType& etherType) {
+  if (asic->isSupported(HwAsic::Feature::ACL_ENTRY_ETHER_TYPE)) {
+    acl->etherType() = etherType;
+  }
+}
+
 std::shared_ptr<AclEntry> getAclEntryByName(
     const std::shared_ptr<SwitchState> state,
     const std::string& aclName) {
