@@ -49,16 +49,16 @@ class AgentFabricSwitchTest : public AgentHwTest {
   }
 
  protected:
-  std::map<SwitchID, std::vector<PortID>> switch2PortIds() const {
-    std::map<SwitchID, std::vector<PortID>> switch2PortIds;
+  std::map<SwitchID, std::vector<PortID>> switch2FabricPortIds() const {
+    std::map<SwitchID, std::vector<PortID>> switch2FabricPortIds;
     for (auto switchId : getFabricSwitchIds()) {
       auto fabricPortIds =
           getAgentEnsemble()->masterLogicalFabricPortIds(switchId);
       if (fabricPortIds.size()) {
-        switch2PortIds[switchId] = std::move(fabricPortIds);
+        switch2FabricPortIds[switchId] = std::move(fabricPortIds);
       }
     }
-    return switch2PortIds;
+    return switch2FabricPortIds;
   }
   void setCmdLineFlagOverrides() const override {
     AgentHwTest::setCmdLineFlagOverrides();
@@ -127,7 +127,7 @@ TEST_F(AgentFabricSwitchTest, checkFabricConnectivity) {
 TEST_F(AgentFabricSwitchTest, fabricPortIsolate) {
   std::map<SwitchID, PortID> switchId2FabricPortId;
   std::set<PortID> fabricPortIds;
-  for (const auto& [switchId, portIds] : switch2PortIds()) {
+  for (const auto& [switchId, portIds] : switch2FabricPortIds()) {
     fabricPortIds.insert(portIds[0]);
     switchId2FabricPortId.insert({switchId, portIds[0]});
   }
@@ -271,7 +271,7 @@ TEST_F(AgentFabricSwitchSelfLoopTest, selfLoopDetection) {
 
 TEST_F(AgentFabricSwitchSelfLoopTest, portDrained) {
   std::vector<PortID> drainedPorts;
-  for (const auto& [_, ports] : switch2PortIds()) {
+  for (const auto& [_, ports] : switch2FabricPortIds()) {
     drainedPorts.push_back(ports[0]);
   }
   auto setup = [this, drainedPorts]() {
