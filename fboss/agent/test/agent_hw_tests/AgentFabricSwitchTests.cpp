@@ -41,9 +41,16 @@ class AgentFabricSwitchTest : public AgentHwTest {
   getProductionFeaturesVerified() const override {
     return {production_features::ProductionFeature::FABRIC};
   }
-  std::unordered_set<SwitchID> getFabricSwitchIds() const {
+  /*
+   * Get switchIds of type fabric which have non zero fabric ports
+   */
+  std::unordered_set<SwitchID> getFabricSwitchIdsWithPorts() const {
     auto fabSwitchIds = getSw()->getSwitchInfoTable().getSwitchIdsOfType(
         cfg::SwitchType::FABRIC);
+    // Return fabric switches with ports
+    std::erase_if(fabSwitchIds, [this](auto switchId) {
+      return getAgentEnsemble()->masterLogicalFabricPortIds(switchId).empty();
+    });
     CHECK_GT(fabSwitchIds.size(), 0) << " No fab switch ids found";
     return fabSwitchIds;
   }
@@ -51,12 +58,11 @@ class AgentFabricSwitchTest : public AgentHwTest {
  protected:
   std::map<SwitchID, std::vector<PortID>> switch2FabricPortIds() const {
     std::map<SwitchID, std::vector<PortID>> switch2FabricPortIds;
-    for (auto switchId : getFabricSwitchIds()) {
+    for (auto switchId : getFabricSwitchIdsWithPorts()) {
       auto fabricPortIds =
           getAgentEnsemble()->masterLogicalFabricPortIds(switchId);
-      if (fabricPortIds.size()) {
-        switch2FabricPortIds[switchId] = std::move(fabricPortIds);
-      }
+      CHECK(!fabricPortIds.empty());
+      switch2FabricPortIds[switchId] = std::move(fabricPortIds);
     }
     return switch2FabricPortIds;
   }
@@ -99,7 +105,7 @@ TEST_F(AgentFabricSwitchTest, checkFabricConnectivityStats) {
   };
   auto verify = [this]() {
     EXPECT_GT(getProgrammedState()->getPorts()->numNodes(), 0);
-    for (const auto& switchId : getFabricSwitchIds()) {
+    for (const auto& switchId : getFabricSwitchIdsWithPorts()) {
       utility::checkFabricConnectivityStats(getAgentEnsemble(), switchId);
     }
   };
@@ -117,7 +123,7 @@ TEST_F(AgentFabricSwitchTest, collectStats) {
 TEST_F(AgentFabricSwitchTest, checkFabricConnectivity) {
   auto verify = [this]() {
     EXPECT_GT(getProgrammedState()->getPorts()->numNodes(), 0);
-    for (const auto& switchId : getFabricSwitchIds()) {
+    for (const auto& switchId : getFabricSwitchIdsWithPorts()) {
       utility::checkFabricConnectivity(getAgentEnsemble(), switchId);
     }
   };
@@ -178,7 +184,7 @@ TEST_F(AgentFabricSwitchTest, fabricSwitchIsolate) {
 
   auto verify = [=, this]() {
     EXPECT_GT(getProgrammedState()->getPorts()->numNodes(), 0);
-    for (const auto& switchId : getFabricSwitchIds()) {
+    for (const auto& switchId : getFabricSwitchIdsWithPorts()) {
       utility::checkFabricConnectivity(getAgentEnsemble(), switchId);
     }
     // All ports should go to inactive state when switch is drained and
@@ -303,7 +309,7 @@ TEST_F(AgentFabricSwitchSelfLoopTest, portDrained) {
 
 TEST_F(AgentFabricSwitchTest, reachDiscard) {
   auto verify = [this]() {
-    for (auto switchId : getFabricSwitchIds()) {
+    for (auto switchId : getFabricSwitchIdsWithPorts()) {
       auto beforeSwitchDrops =
           *getSw()->getHwSwitchStatsExpensive(switchId).switchDropStats();
       std::string out;
@@ -338,7 +344,7 @@ TEST_F(AgentFabricSwitchTest, reachDiscard) {
 TEST_F(AgentFabricSwitchTest, dtlQueueWatermarks) {
   auto verify = [this]() {
     std::string out;
-    for (auto switchId : getFabricSwitchIds()) {
+    for (auto switchId : getFabricSwitchIdsWithPorts()) {
       WITH_RETRIES({
         auto beforeWatermarks = getAllSwitchWatermarkStats()[switchId];
         EXPECT_EVENTUALLY_TRUE(
