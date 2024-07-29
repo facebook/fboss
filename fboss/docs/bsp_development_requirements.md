@@ -1,4 +1,4 @@
-# FBOSS BSP Kernel Module Requirements
+# FBOSS BSP Kernel Module Development Requirements
 
 ### Version: 1.0.0
 
@@ -17,7 +17,7 @@ by upstream Linux. The major purposes are:
 consistent ABIs for user space software.
 
 ## Table of Contents
-- [FBOSS BSP Kernel Module Requirements](#fboss-bsp-kernel-module-requirements)
+- [FBOSS BSP Kernel Module Development Requirements](#fboss-bsp-kernel-module-development-requirements)
   - [Table of Contents](#table-of-contents)
 - [1. Levels of Requirements](#1-levels-of-requirements)
 - [2. Terms and Abbreviations](#2-terms-and-abbreviations)
