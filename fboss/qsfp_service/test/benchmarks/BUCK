@@ -1,5 +1,11 @@
 load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
 load("//fboss/lib/test/benchmarks:hw_benchmarks.bzl", "hw_benchmark_binary")
+load(
+    "//fboss/qsfp_service/test/benchmarks:bench_test.bzl",
+    "all_hw_bench_utils_libs",
+    "all_hw_qsfp_bench_test_binaries",
+    "all_qsfp_bench_test_libs",
+)
 
 oncall("fboss_optics_phy")
 
@@ -157,3 +163,9 @@ hw_benchmark_binary(
         "//fboss/qsfp_service/platforms/wedge:wedge-platform-default",
     ],
 )
+
+all_hw_bench_utils_libs()
+
+all_qsfp_bench_test_libs()
+
+all_hw_qsfp_bench_test_binaries()
