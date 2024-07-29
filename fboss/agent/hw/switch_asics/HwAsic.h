@@ -183,6 +183,7 @@ class HwAsic {
     CABLE_PROPOGATION_DELAY,
     DRAM_BLOCK_TIME,
     VOQ_LATENCY_WATERMARK_BIN,
+    ACL_ENTRY_ETHER_TYPE,
   };
 
   enum class AsicMode {
