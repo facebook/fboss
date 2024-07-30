@@ -73,6 +73,9 @@ void AgentHwTest::setCmdLineFlagOverrides() const {
   // in each updateStats call (same for VOQ stats)
   FLAGS_update_watermark_stats_interval_s = 0;
   FLAGS_update_voq_stats_interval_s = 0;
+  // Always collect cable lengthhs in each iteration of
+  // stats collection loop.
+  FLAGS_update_cable_length_stats_s = 0;
   // disable neighbor updates
   FLAGS_disable_neighbor_updates = true;
   // disable icmp error response

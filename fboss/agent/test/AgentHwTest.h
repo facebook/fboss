@@ -13,6 +13,7 @@
 
 DECLARE_int32(update_watermark_stats_interval_s);
 DECLARE_int32(update_voq_stats_interval_s);
+DECLARE_int32(update_cable_length_stats_s);
 DECLARE_bool(publish_state_to_fsdb);
 DECLARE_bool(publish_stats_to_fsdb);
 DECLARE_bool(intf_nbr_tables);
