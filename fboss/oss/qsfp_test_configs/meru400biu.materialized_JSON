@@ -60,6 +60,22 @@
             }
           ]
       },
+      "FTCD4313E2PCLFBC": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "3.5"
+            }
+          ]
+      },
+      "FTCD4313E2PCLFBE": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "3.5"
+            }
+          ]
+      },
       "FTCE4717E1PCB-FB": {
           "versions": [
             {
