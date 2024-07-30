@@ -66,6 +66,7 @@ bool GaronneAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::PORT_SERDES_ZERO_PREEMPHASIS:
     case HwAsic::Feature::SAI_ECMP_HASH_ALGORITHM:
       return true;
+    case HwAsic::Feature::ACL_BYTE_COUNTER:
     case HwAsic::Feature::HOSTTABLE:
     case HwAsic::Feature::HASH_FIELDS_CUSTOMIZATION:
     case HwAsic::Feature::QCM:

@@ -184,6 +184,7 @@ class HwAsic {
     DRAM_BLOCK_TIME,
     VOQ_LATENCY_WATERMARK_BIN,
     ACL_ENTRY_ETHER_TYPE,
+    ACL_BYTE_COUNTER,
   };
 
   enum class AsicMode {
