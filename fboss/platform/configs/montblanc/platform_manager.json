@@ -87,6 +87,24 @@
     "COMEVR_SLOT": {
       "numOutgoingI2cBuses": 1,
       "pmUnitName": "COMEVR"
+    },
+    "OPTICL_SLOT": {
+      "numOutgoingI2cBuses": 1,
+      "idpromConfig": {
+        "busName": "INCOMING@0",
+        "address": "0x51",
+        "kernelDeviceName": "24c02"
+      },
+      "pmUnitName": "3_V_3_L_CARD"
+    },
+    "OPTICR_SLOT": {
+      "numOutgoingI2cBuses": 1,
+      "idpromConfig": {
+        "busName": "INCOMING@0",
+        "address": "0x51",
+        "kernelDeviceName": "24c02"
+      },
+      "pmUnitName": "3_V_3_R_CARD"
     }
   },
   "i2cAdaptersFromCpu": [
@@ -2944,24 +2962,6 @@
           "pmUnitScopedName": "SMB_VRM3"
         },
         {
-          "busName": "SMB_DOM1_I2C_MASTER_33",
-          "address": "0x51",
-          "kernelDeviceName": "24c02",
-          "pmUnitScopedName": "3V3_L_IDPROM"
-        },
-        {
-          "busName": "SMB_DOM1_I2C_MASTER_33",
-          "address": "0x70",
-          "kernelDeviceName": "pmbus",
-          "pmUnitScopedName": "3V3_L_MONITOR"
-        },
-        {
-          "busName": "SMB_DOM1_I2C_MASTER_33",
-          "address": "0x48",
-          "kernelDeviceName": "tmp1075",
-          "pmUnitScopedName": "SMB_TSENSOR1"
-        },
-        {
           "busName": "SMB_DOM1_I2C_MASTER_34",
           "address": "0x48",
           "kernelDeviceName": "tmp1075",
@@ -2974,24 +2974,6 @@
           "pmUnitScopedName": "SMB_TSENSOR3"
         },
         {
-          "busName": "SMB_DOM2_I2C_MASTER_33",
-          "address": "0x51",
-          "kernelDeviceName": "24c02",
-          "pmUnitScopedName": "3V3_R_IDPROM"
-        },
-        {
-          "busName": "SMB_DOM2_I2C_MASTER_33",
-          "address": "0x70",
-          "kernelDeviceName": "pmbus",
-          "pmUnitScopedName": "3V3_R_MONITOR"
-        },
-        {
-          "busName": "SMB_DOM2_I2C_MASTER_33",
-          "address": "0x48",
-          "kernelDeviceName": "tmp1075",
-          "pmUnitScopedName": "SMB_TSENSOR4"
-         },
-        {
           "busName": "SMB_DOM2_I2C_MASTER_34",
           "address": "0x4a",
           "kernelDeviceName": "tmp1075",
@@ -3003,7 +2985,21 @@
           "kernelDeviceName": "tmp1075",
           "pmUnitScopedName": "SMB_TSENSOR6"
         }
-      ]
+      ],
+      "outgoingSlotConfigs": {
+        "OPTICL_SLOT@0": {
+          "slotType": "OPTICL_SLOT",
+          "outgoingI2cBusNames": [
+            "SMB_DOM1_I2C_MASTER_33"
+          ]
+        },
+        "OPTICR_SLOT@0": {
+          "slotType": "OPTICR_SLOT",
+          "outgoingI2cBusNames": [
+            "SMB_DOM2_I2C_MASTER_33"
+          ]
+        }
+      }
     },
     "MINIPACK3_FCB_T": {
       "pluggedInSlotType": "FCBTOP_SLOT",
@@ -3096,6 +3092,40 @@
           "pmUnitScopedName": "COME_VOLTAGE_MONITOR5"
         }
       ]
+    },
+    "3_V_3_L_CARD": {
+      "pluggedInSlotType": "OPTICL_SLOT",
+      "i2cDeviceConfigs": [
+        {
+          "busName": "INCOMING@0",
+          "address": "0x70",
+          "kernelDeviceName": "pmbus",
+          "pmUnitScopedName": "3V3_L_MONITOR"
+        },
+        {
+          "busName": "INCOMING@0",
+          "address": "0x48",
+          "kernelDeviceName": "tmp1075",
+          "pmUnitScopedName": "SMB_TSENSOR1"
+        }
+      ]
+    },
+    "3_V_3_R_CARD": {
+      "pluggedInSlotType": "OPTICR_SLOT",
+      "i2cDeviceConfigs": [
+        {
+          "busName": "INCOMING@0",
+          "address": "0x70",
+          "kernelDeviceName": "pmbus",
+          "pmUnitScopedName": "3V3_R_MONITOR"
+        },
+        {
+          "busName": "INCOMING@0",
+          "address": "0x48",
+          "kernelDeviceName": "tmp1075",
+          "pmUnitScopedName": "SMB_TSENSOR4"
+         }
+      ]
     }
   },
   "symbolicLinkToDevicePath": {
@@ -3110,9 +3140,9 @@
     "/run/devmap/eeproms/SMB_EEPROM": "/SMB_SLOT@0/[IDPROM]",
     "/run/devmap/eeproms/FCB_B_EEPROM": "/FCBBOTTOM_SLOT@0/[IDPROM]",
     "/run/devmap/eeproms/FCB_T_EEPROM": "/FCBTOP_SLOT@0/[IDPROM]",
-    "/run/devmap/eeproms/CHASSISS_EEPROM": "/FCBTOP_SLOT@0/[FCB_T_IDPROM]",
-    "/run/devmap/eeproms/3V3_L_EEPROM": "/SMB_SLOT@0/[3V3_L_IDPROM]",
-    "/run/devmap/eeproms/3V3_R_EEPROM": "/SMB_SLOT@0/[3V3_R_IDPROM]",
+    "/run/devmap/eeproms/CHASSIS_EEPROM": "/FCBTOP_SLOT@0/[FCB_T_IDPROM]",
+    "/run/devmap/eeproms/3V3_L_EEPROM": "/SMB_SLOT@0/OPTICL_SLOT@0/[IDPROM]",
+    "/run/devmap/eeproms/3V3_R_EEPROM": "/SMB_SLOT@0/OPTICR_SLOT@0/[IDPROM]",
     "/run/devmap/sensors/CPU_CORE_TEMP": "/[CPU_CORE_TEMP]",
     "/run/devmap/sensors/MCB_TSENSOR": "/[MCB_TSENSOR]",
     "/run/devmap/sensors/MCB_FAN_CPLD": "/[MCB_FAN_CPLD]",
@@ -3141,12 +3171,12 @@
     "/run/devmap/sensors/SMB_CPLD": "/SMB_SLOT@0/[SMB_CPLD]",
     "/run/devmap/sensors/SMB_VRM2": "/SMB_SLOT@0/[SMB_VRM2]",
     "/run/devmap/sensors/SMB_VRM3": "/SMB_SLOT@0/[SMB_VRM3]",
-    "/run/devmap/sensors/3V3_L_MONITOR": "/SMB_SLOT@0/[3V3_L_MONITOR]",
-    "/run/devmap/sensors/SMB_TSENSOR1": "/SMB_SLOT@0/[SMB_TSENSOR1]",
+    "/run/devmap/sensors/3V3_L_MONITOR": "/SMB_SLOT@0/OPTICL_SLOT@0/[3V3_L_MONITOR]",
+    "/run/devmap/sensors/SMB_TSENSOR1": "/SMB_SLOT@0/OPTICL_SLOT@0/[SMB_TSENSOR1]",
     "/run/devmap/sensors/SMB_TSENSOR2": "/SMB_SLOT@0/[SMB_TSENSOR2]",
     "/run/devmap/sensors/SMB_TSENSOR3": "/SMB_SLOT@0/[SMB_TSENSOR3]",
-    "/run/devmap/sensors/3V3_R_MONITOR": "/SMB_SLOT@0/[3V3_R_MONITOR]",
-    "/run/devmap/sensors/SMB_TSENSOR4": "/SMB_SLOT@0/[SMB_TSENSOR4]",
+    "/run/devmap/sensors/3V3_R_MONITOR": "/SMB_SLOT@0/OPTICR_SLOT@0/[3V3_R_MONITOR]",
+    "/run/devmap/sensors/SMB_TSENSOR4": "/SMB_SLOT@0/OPTICR_SLOT@0/[SMB_TSENSOR4]",
     "/run/devmap/sensors/SMB_TSENSOR5": "/SMB_SLOT@0/[SMB_TSENSOR5]",
     "/run/devmap/sensors/SMB_TSENSOR6": "/SMB_SLOT@0/[SMB_TSENSOR6]",
     "/run/devmap/sensors/FCB_T_TSENSOR1": "/FCBTOP_SLOT@0/[FCB_T_TSENSOR1]",
