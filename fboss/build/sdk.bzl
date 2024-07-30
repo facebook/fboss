@@ -68,10 +68,11 @@ def SaiBrcmDsfSimSdk(version, sai_version):
         version = version,
     )
 
-def SaiLeabaSdk(version, sai_version, stage, fw_path):
+def SaiLeabaSdk(version, sai_version, stage, fw_path, is_dyn = False):
     return FbossSdk(
         name = "leaba-sdk",
         fw_path = fw_path,
+        is_dyn = is_dyn,
         product_line = ProductLine.LEABA,
         product_name = "leaba",
         sai_version = sai_version,

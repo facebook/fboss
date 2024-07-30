@@ -34,6 +34,7 @@ def FbossSdk(
         is_npu = True,
         is_sai = True,
         is_sim = False,
+        is_dyn = False,
         fw_path = None,
         native_bcm_sdk_version = None):
     return struct(
@@ -46,6 +47,7 @@ def FbossSdk(
         is_npu = is_npu,
         stage = stage,
         is_sim = is_sim,
+        is_dyn = is_dyn,
         product_line = product_line,
         fw_path = fw_path,
         native_bcm_sdk_version = native_bcm_sdk_version,
