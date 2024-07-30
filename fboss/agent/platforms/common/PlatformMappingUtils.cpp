@@ -43,6 +43,16 @@
 #include "fboss/agent/platforms/common/wedge400c/Wedge400CPlatformUtil.h"
 #include "fboss/agent/platforms/common/yamp/YampPlatformMapping.h"
 
+namespace {
+std::vector<int> getFakeSaiControllingPortIDs() {
+  std::vector<int> controllingPorts;
+  for (int i = 0; i < 128; i += 4) {
+    controllingPorts.push_back(i);
+  }
+  return controllingPorts;
+}
+} // namespace
+
 namespace facebook::fboss::utility {
 
 std::unique_ptr<PlatformMapping> initPlatformMapping(PlatformType type) {
@@ -164,8 +174,10 @@ std::unique_ptr<PlatformMapping> initPlatformMapping(PlatformType type) {
       return platformMappingStr.empty()
           ? std::make_unique<Morgan800ccPlatformMapping>()
           : std::make_unique<Morgan800ccPlatformMapping>(platformMappingStr);
-    case PlatformType::PLATFORM_FAKE_SAI:
-      return std::make_unique<FakeTestPlatformMapping>(std::vector<int>{});
+    case PlatformType::PLATFORM_FAKE_SAI: {
+      std::vector<int> controllingPorts = getFakeSaiControllingPortIDs();
+      return std::make_unique<FakeTestPlatformMapping>(controllingPorts);
+    }
     case PlatformType::PLATFORM_LASSEN_DEPRECATED:
     case PlatformType::PLATFORM_CLOUDRIPPER_FABRIC:
     case PlatformType::PLATFORM_CLOUDRIPPER_VOQ:
