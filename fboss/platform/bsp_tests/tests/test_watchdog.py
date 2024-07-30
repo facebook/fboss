@@ -129,4 +129,4 @@ def test_watchdog_driver_unload(fpga_with_adapters, platform_config):
     new_wdts = get_watchdogs() - existing_wdts
     assert len(new_wdts) == expected_wdts
     unload_kmods(platform_config.kmods)
-    assert len(get_watchdogs()) == 0
+    assert len(get_watchdogs()) == len(existing_wdts)
