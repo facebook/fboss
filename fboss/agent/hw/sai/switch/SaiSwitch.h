@@ -537,6 +537,11 @@ class SaiSwitch : public HwSwitch {
       std::optional<cfg::PfcWatchdogRecoveryAction> recoveryAction);
   void setFabricPortOwnershipToAdapter();
 
+  /* reconstruction state apis */
+  std::shared_ptr<MultiSwitchAclTableGroupMap>
+  reconstructMultiSwitchAclTableGroupMap() const;
+  std::shared_ptr<MultiSwitchAclMap> reconstructMultiSwitchAclMap() const;
+
   /*
    * SaiSwitch must support a few varieties of concurrent access:
    * 1. state updates on the SwSwitch update thread calling stateChanged

@@ -3970,6 +3970,48 @@ void SaiSwitch::reportInterPortGroupCableSkew() const {
 }
 
 std::shared_ptr<SwitchState> SaiSwitch::reconstructSwitchState() const {
-  throw FbossError("reconstructSwitchState not implemented for SAI");
+  auto state = std::make_shared<SwitchState>();
+  state->resetAclTableGroups(reconstructMultiSwitchAclTableGroupMap());
+  state->resetAcls(reconstructMultiSwitchAclMap());
+  return state;
+}
+
+std::shared_ptr<MultiSwitchAclTableGroupMap>
+SaiSwitch::reconstructMultiSwitchAclTableGroupMap() const {
+  auto programmedState = getProgrammedState();
+  auto multiSwitchAclTableGroupMap =
+      std::make_shared<MultiSwitchAclTableGroupMap>();
+  for (const auto& [matcher, aclTableGroupMap] :
+       std::as_const(*programmedState->getAclTableGroups())) {
+    auto reconstructedAclTableGroupMap = std::make_shared<AclTableGroupMap>();
+    for (const auto& [stage, aclTableGroup] :
+         std::as_const(*aclTableGroupMap)) {
+      auto name = aclTableGroup->getName();
+      auto reconstructedAclTableGroup =
+          managerTable_->aclTableGroupManager().reconstructAclTableGroup(
+              stage, name);
+      reconstructedAclTableGroupMap->addNode(reconstructedAclTableGroup);
+    }
+    multiSwitchAclTableGroupMap->addMapNode(
+        reconstructedAclTableGroupMap, HwSwitchMatcher(matcher));
+  }
+  return multiSwitchAclTableGroupMap;
+}
+
+std::shared_ptr<MultiSwitchAclMap> SaiSwitch::reconstructMultiSwitchAclMap()
+    const {
+  auto reconstructedMultiSwitchAclMap = std::make_shared<MultiSwitchAclMap>();
+  auto programmedState = getProgrammedState();
+  for (const auto& [matcher, aclMap] :
+       std::as_const(*programmedState->getAcls())) {
+    for (const auto& [name, aclEntry] : std::as_const(*aclMap)) {
+      auto reconstructedAclEntry =
+          managerTable_->aclTableManager().reconstructAclEntry(
+              kAclTable1, name, aclEntry->getPriority());
+      reconstructedMultiSwitchAclMap->addNode(
+          reconstructedAclEntry, HwSwitchMatcher(matcher));
+    }
+  }
+  return reconstructedMultiSwitchAclMap;
 }
 } // namespace facebook::fboss

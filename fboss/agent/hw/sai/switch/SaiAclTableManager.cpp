@@ -1767,4 +1767,16 @@ AclStats SaiAclTableManager::getAclStats() const {
   return aclStats;
 }
 
+std::shared_ptr<AclTable> SaiAclTableManager::reconstructAclTable(
+    int /*priority*/,
+    const std::string& /*name*/) const {
+  throw FbossError("reconstructAclTable not implemented in SaiAclTableManager");
+}
+
+std::shared_ptr<AclEntry> SaiAclTableManager::reconstructAclEntry(
+    const std::string& /*tableName*/,
+    const std::string& /*aclEntryName*/,
+    int /*priority*/) const {
+  throw FbossError("reconstructAclEntry not implemented in SaiAclTableManager");
+}
 } // namespace facebook::fboss

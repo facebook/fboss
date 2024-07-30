@@ -206,4 +206,11 @@ SaiAclTableGroupManager::getAclTableGroupMemberHandle(
   return itr->second.get();
 }
 
+std::shared_ptr<AclTableGroup>
+SaiAclTableGroupManager::reconstructAclTableGroup(
+    cfg::AclStage /*stage*/,
+    const std::string& /*name*/) const {
+  throw FbossError(
+      "reconstructAclTableGroup not implemented in SaiAclTableGroupManager");
+}
 } // namespace facebook::fboss
