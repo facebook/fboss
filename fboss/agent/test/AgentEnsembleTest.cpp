@@ -131,6 +131,11 @@ const std::shared_ptr<SwitchState> AgentEnsembleTest::getProgrammedState()
   return getAgentEnsemble()->getProgrammedState();
 }
 
+std::map<PortID, FabricEndpoint> AgentEnsembleTest::getFabricConnectivity(
+    SwitchID switchId) const {
+  return getAgentEnsemble()->getFabricConnectivity(switchId);
+}
+
 void AgentEnsembleTest::resolveNeighbor(
     PortDescriptor portDesc,
     const folly::IPAddress& ip,
@@ -333,6 +338,10 @@ void AgentEnsembleTest::setupConfigFile(
 void AgentEnsembleTest::reloadConfig(std::string reason) const {
   // reload config so that test config is loaded
   getSw()->applyConfig(reason, true);
+}
+
+void AgentEnsembleTest::reloadPlatformConfig() {
+  getAgentEnsemble()->reloadPlatformConfig();
 }
 
 SwitchID AgentEnsembleTest::scope(

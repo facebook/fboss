@@ -52,6 +52,10 @@ class AgentEnsembleTest : public ::testing::Test {
    */
   void assertNoInDiscards(int maxNumDiscards = 0);
 
+  void reloadPlatformConfig();
+  std::map<PortID, FabricEndpoint> getFabricConnectivity(
+      SwitchID switchId) const;
+
   template <
       typename SETUP_FN,
       typename VERIFY_FN,
