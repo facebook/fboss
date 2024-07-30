@@ -136,6 +136,7 @@ function(BUILD_SAI_AGENT_HW_TEST SAI_IMPL_NAME SAI_IMPL_ARG)
     hw_packet_utils
     olympic_qos_utils
     traffic_policy_utils
+    sai_traced_api
     -Wl,--no-whole-archive
   )
 
