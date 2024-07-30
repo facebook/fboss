@@ -7,8 +7,7 @@ namespace facebook::fboss {
 class AgentStateReconstructionTests : public AgentHwTest {
   std::vector<production_features::ProductionFeature>
   getProductionFeaturesVerified() const override {
-    // TODO: add a production feature that applies on platforms
-    return {};
+    return {production_features::ProductionFeature::HW_SWITCH};
   };
 };
 
