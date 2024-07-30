@@ -133,6 +133,11 @@ class AgentEnsembleTest : public ::testing::Test {
     platformConfigFn_ = std::move(platformConfigFn);
   }
   cfg::SwitchConfig initialConfig(const AgentEnsemble& ensemble) const;
+  bool isSupportedOnAllAsics(HwAsic::Feature feature) const;
+  AgentEnsemble* getAgentEnsemble() const;
+  const std::shared_ptr<SwitchState> getProgrammedState() const;
+  std::map<std::string, HwPortStats> getNextUpdatedHwPortStats(
+      int64_t timestamp);
 
   AgentEnsemblePlatformConfigFn platformConfigFn_ = nullptr;
 
@@ -150,11 +155,6 @@ class AgentEnsembleTest : public ::testing::Test {
   virtual bool runVerification() const {
     return true;
   }
-  bool isSupportedOnAllAsics(HwAsic::Feature feature) const;
-  AgentEnsemble* getAgentEnsemble() const;
-  const std::shared_ptr<SwitchState> getProgrammedState() const;
-  std::map<std::string, HwPortStats> getNextUpdatedHwPortStats(
-      int64_t timestamp);
   std::unique_ptr<AgentEnsemble> agentEnsemble_;
 };
 
