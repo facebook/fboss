@@ -8,6 +8,7 @@
 #include "fboss/agent/HwAsicTable.h"
 #include "fboss/agent/Main.h"
 #include "fboss/agent/SwitchIdScopeResolver.h"
+#include "fboss/agent/hw/gen-cpp2/hardware_stats_constants.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/SwitchState.h"
@@ -85,7 +86,7 @@ void AgentEnsembleTest::tearDownAgentEnsemble(bool doWarmboot) {
 cfg::SwitchConfig AgentEnsembleTest::initialConfig(
     const AgentEnsemble& ensemble) const {
   auto agentConf = AgentConfig::fromDefaultFile();
-  return agentConf->thrift.sw();
+  return agentConf->thrift.sw().value();
 }
 
 // We are now returning a map of portId to port stats. Need to modify callers
@@ -113,6 +114,12 @@ std::map<PortID, HwPortStats> AgentEnsembleTest::getPortStats(
 
 SwSwitch* AgentEnsembleTest::getSw() const {
   return agentEnsemble_->getSw();
+}
+
+bool AgentEnsembleTest::isSupportedOnAllAsics(HwAsic::Feature feature) const {
+  // All Asics supporting the feature
+  return agentEnsemble_->getSw()->getHwAsicTable()->isFeatureSupportedOnAllAsic(
+      feature);
 }
 
 AgentEnsemble* AgentEnsembleTest::getAgentEnsemble() const {
@@ -174,7 +181,7 @@ bool AgentEnsembleTest::waitForSwitchStateCondition(
     std::function<bool(const std::shared_ptr<SwitchState>&)> conditionFn,
     uint32_t retries,
     std::chrono::duration<uint32_t, std::milli> msBetweenRetry) const {
-  auto newState = sw()->getState();
+  auto newState = getSw()->getState();
   while (retries--) {
     if (conditionFn(newState)) {
       return true;
@@ -193,7 +200,7 @@ void AgentEnsembleTest::setPortStatus(PortID portId, bool up) {
     auto port = ports->getNodeIf(portId)->clone();
     port->setAdminState(
         up ? cfg::PortState::ENABLED : cfg::PortState::DISABLED);
-    ports->updateNode(port, sw()->getScopeResolver()->scope(port));
+    ports->updateNode(port, getSw()->getScopeResolver()->scope(port));
     return newState;
   };
   getSw()->updateStateBlocking("set port state", configFnLinkDown);
@@ -263,10 +270,10 @@ void AgentEnsembleTest::assertNoInDiscards(int maxNumDiscards) {
   // TODO(Elangovan) Verify if the default retries are enough
   WITH_RETRIES({
     bool retry = false;
-    auto portStats = getSw()->getHwPortStats(ports);
-    for (auto [portID, stats] : portStats) {
+    std::map<std::string, HwPortStats> portStats;
+    getSw()->getAllHwPortStats(portStats);
+    for (auto [port, stats] : portStats) {
       auto inDiscards = *stats.inDiscards_();
-      auto port = getProgrammedState()->getPorts()->getNodeIf(port)->getName();
       XLOG(DBG2) << "Port: " << port << " in discards: " << inDiscards
                  << " in bytes: " << *stats.inBytes_()
                  << " out bytes: " << *stats.outBytes_() << " at timestamp "

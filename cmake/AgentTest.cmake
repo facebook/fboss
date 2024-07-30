@@ -100,6 +100,21 @@ target_link_libraries(agent_test_lib
   ${LIBGMOCK_LIBRARIES}
 )
 
+add_library(agent_ensemble_test_lib
+  fboss/agent/test/AgentEnsembleTest.cpp
+)
+
+target_link_libraries(agent_ensemble_test_lib
+  main
+  qsfp_cpp2
+  qsfp_service_client
+  fboss_config_utils
+  mono_agent_ensemble
+  qos_test_utils
+  ${GTEST}
+  ${LIBGMOCK_LIBRARIES}
+)
+
 add_library(agent_integration_test_base
   fboss/agent/test/AgentIntegrationTestBase.cpp
 )

@@ -15,11 +15,11 @@ class SwitchState;
 
 class AgentEnsembleTest : public ::testing::Test {
  public:
-  virtual ~AgentEnsembleTest();
   void SetUp() override {
     setupAgentEnsemble();
   }
   void TearDown() override;
+  void tearDownAgentEnsemble(bool doWarmboot = false);
 
  protected:
   void setupAgentEnsemble();
@@ -101,7 +101,7 @@ class AgentEnsembleTest : public ::testing::Test {
   }
 
   std::string getAgentTestDir() const {
-    return AgentDirectoryUtil()->getPersistentStateDir() + "/agent_test/";
+    return AgentDirectoryUtil().getPersistentStateDir() + "/agent_test/";
   }
 
   std::string getTestConfigPath() const {
@@ -132,6 +132,7 @@ class AgentEnsembleTest : public ::testing::Test {
   void setupPlatformConfig(AgentEnsemblePlatformConfigFn platformConfigFn) {
     platformConfigFn_ = std::move(platformConfigFn);
   }
+  cfg::SwitchConfig initialConfig(const AgentEnsemble& ensemble) const;
 
   AgentEnsemblePlatformConfigFn platformConfigFn_ = nullptr;
 
@@ -149,6 +150,10 @@ class AgentEnsembleTest : public ::testing::Test {
   virtual bool runVerification() const {
     return true;
   }
+  bool isSupportedOnAllAsics(HwAsic::Feature feature) const;
+  AgentEnsemble* getAgentEnsemble() const;
+  const std::shared_ptr<SwitchState> getProgrammedState() const;
+
   std::unique_ptr<AgentEnsemble> agentEnsemble_;
 };
 

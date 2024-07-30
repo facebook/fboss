@@ -451,6 +451,34 @@ cpp_library(
 )
 
 cpp_library(
+    name = "agent_ensemble_test",
+    srcs = [
+        "AgentEnsembleTest.cpp",
+    ],
+    headers = [
+        "AgentEnsembleTest.h",
+    ],
+    undefined_symbols = True,
+    exported_deps = [
+        "fbsource//third-party/googletest:gtest",
+        ":agent_ensemble",
+        "//fboss/agent:fboss_common_init",
+        "//fboss/agent:hw_asic_table",
+        "//fboss/agent:hw_switch",
+        "//fboss/agent:load_agent_config",
+        "//fboss/agent:main-common",
+        "//fboss/agent:platform_base",
+        "//fboss/agent:switchid_scope_resolver",
+        "//fboss/agent/hw:hardware_stats-cpp2-types",
+        "//fboss/agent/hw/switch_asics:switch_asics",
+        "//fboss/agent/state:state",
+        "//fboss/agent/test/utils:qos_test_utils",
+        "//fboss/qsfp_service/lib:qsfp-service-client",
+        "//folly/gen:base",
+    ],
+)
+
+cpp_library(
     name = "agent_integration_test_base",
     srcs = [
         "AgentIntegrationTestBase.cpp",
