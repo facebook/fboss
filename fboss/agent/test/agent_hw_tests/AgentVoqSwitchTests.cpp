@@ -428,6 +428,14 @@ TEST_F(AgentVoqSwitchWithFabricPortsTest, collectStats) {
   auto verify = [this]() {
     EXPECT_GT(getProgrammedState()->getPorts()->numNodes(), 0);
     getSw()->updateStats();
+    WITH_RETRIES({
+      auto port2Stats = getSw()->getHwPortStats(masterLogicalFabricPortIds());
+      for (auto portId : masterLogicalFabricPortIds()) {
+        auto pitr = port2Stats.find(portId);
+        EXPECT_EVENTUALLY_TRUE(pitr != port2Stats.end());
+        EXPECT_EVENTUALLY_TRUE(pitr->second.cableLengthMeters().has_value());
+      }
+    });
   };
   verifyAcrossWarmBoots([] {}, verify);
 }
