@@ -1,8 +1,8 @@
 ---
 slug: /
 sidebar_position: -1
-sidebar_label: Intro to Static Docs/Docusaurus
-title: Intro to Static Docs/Docusaurus
+sidebar_label: Home
+title: Home
 ---
 
 export const Highlight = ({children, color}) => (
@@ -19,6 +19,12 @@ export const Highlight = ({children, color}) => (
   </span>
 );
 
+
+# Static Docs
+
+This website is built using [Docusaurus 2](https://docusaurus.io/), a modern static website generator.
+
+
 ## Why static docs?
 
 With the deprecation of `fb-sphinx`, it is becoming challenging to build and edit wikis. Particularly, any wiki pages stored in source code are going stale since the sphinx jobs must be run manually.
@@ -27,96 +33,94 @@ Docusaurus, this solution, is a pain to set up, but is pretty self sustaining on
 
 Also, now that this is set up with some magic fb internal plugins, there is no need to revisit the IDE to make page edits. You can edit the wiki (which will commit to source code) directly from the UI, making adding new pages much easier.
 
+
+# Static Docs: Contributing
+
 ## Contributing through the UI
 
-You should be able to contribute directly from this page by clicking **Edit this page** or **Add new page** in the bottom
+You should be able to contribute directly from this page by clicking **Edit this page** or **Add new page** in the bottom.
 
 Trying to edit in the IDE is fine, but its complicated to set up on the devserver side. Only edit in the actual source if you need to reorganize or the actual configuration needs to change.
 
 :::tip
-
 Staticdocs supports MDX, which is an extension to standard Markdown that has tons of useful features. Please check out the ["Markdown Features Page"](https://www.internalfb.com/intern/staticdocs/staticdocs/docs/documenting/markdown-features/) for everything that is available.
-
 :::
+
 
 ## I want to edit in the IDE / I need to change something in the `staticdocs` environment!
 
 Here is the process then:
 
-### Prerequisite: Add `npm` to the path
+### Step 0: Preview MarkdownX files
 
-:::note
+To preview mdx files in Visual Studio Code, you can enable the built-in Markdown Preview to be used on `.mdx` file extensions: https://stackoverflow.com/a/75035795
 
-Please ensure that you are not installing any new packages when running this. If your diff installs something new to `xplat` or another repo, its likely you messed something up. Everything you need is already stored in repo and you should just be pointing your path to the correct place here.
+To open the Markdown Preview pane for an mdx file, press `⌘ + k`, then `v`.
 
-:::
 
-At the bare minimum, you will need to ensure that `npm` is in your path. You just need to add this to your `$HOME/.bashrc` <Highlight>**on your devserver**</Highlight>
+### Step 1: Forward Port to Devserver
 
+You will need to port forward your local port to the devserver to be able to view the compiled page in your browser. <Highlight>**From your laptop**</Highlight>, initiate the ssh connection to your devserver using the following ssh command:
 ```bash
-export PATH=$HOME/fbsource/xplat/third-party/node/bin:$PATH
+ssh -L 3000:localhost:3000 YOUR_DEVSERVER_URI
 ```
 
-### Prerequisite: Add `yarn` to the path
+Run this command and leave it running, this will tunnel the session out. Otherwise, you will not be able to connect to the webpage.
 
-`yarn` is a much more easy way to administrate node libaries. I highly recommend it over `npm`.
-Once `npm` is installed, its very easy. You just need to add this to your `$HOME/.bashrc` <Highlight>**on your devserver**</Highlight>
-
-```bash
-export PATH=$HOME/fbsource/xplat/third-party/yarn/:$PATH
-```
-
-### Step 1: Ensure you have the proper proxy settings
-
-
-Start by running this:
-
-```bash
-sudo feature install ttls_fwdproxy && sudo chefctl -i
-```
-
-Then from the root directory of the project `FBSOURCE:fbcode/fboss/agent/wiki/static_docs/`:
-```bash
-yarn config set proxy http://fwdproxy:8080
-yarn config set https-proxy http://fwdproxy:8080
-```
-
-### Step 2: Create a Sandbox link to your devserver
-
-You will need to run this command <Highlight>**from your laptop**</Highlight>. Just run this command and leave it running, this will tunnel the session out. Otherwise, you will not be able to connect to any sessions.
-```
-ssh -L 3000:localhost:3000 $USER.sb
-```
 :::tip
-If you have support for `et` on your devserver, it is recommended to use that instead, as it will be a much more stable connection than the typical ssh forwarding
-
+If you have support for `et` on your devserver, it is recommended to use that instead, as it will be a much more stable connection than the typical ssh forwarding:
 ```bash
 et $USER.sb:8080 -t 3000:3000
 ```
 :::
 
 
-### Step 3: Build with `yarn`
+### Step 2: Clone the FBSOURCE Repository
 
-From the root directory of the project `FBSOURCE:fbcode/fboss/agent/wiki/static_docs/`
+If you have not already cloned the `fbsource` repository, do so in your devserver:
+```bash
+fbclone fbsource
+```
+
+Navigate to this directory (the root directory of the project):
+```bash
+cd fbsource/fbcode/fboss/agent/wiki/static_docs
+```
+
+### Step 2: Build with `yarn`
+
+Set up the libraries:
 ```bash
 yarn
-yarn build-fb
 ```
 
-### Step 4: Deploy and Serve your content
+### Step 3: Deploy and Serve your content
 
+Compile the documentation and start a local development server:
 ```bash
-yarn serve
+yarn start
 ```
 
-If you want to use npm to deploy and serve your content, use the below command.
+If you want to use `npm` to deploy and serve your content instead of `yarn`, run:
 ```bash
 npm run serve
 ```
 
+You can preview the pages at http://localhost:3000.
 
-If you followed these steps correctly, you will have everything at `localhost:3000`, or whatever link `yarn` reports.
+Most changes will be reflected live without having to restart this server.
+
+
+### Step 4: Build Changes
+
+Before committing your changes, run:
+```bash
+yarn build
+```
+
+This command generates static content into the `build` directory and can be served using any static contents hosting service.
+
+
 
 ## I want to add an Image
 
@@ -124,10 +128,10 @@ Regular Markdown images are supported. Add the image file to the folder `static/
 
 When you're on the local terminal, use the below command to copy the image from your local machine to the devserver.
 
-```python
-$ scp <path on local machine to file> <your_devserver_hostname>:<path on devserver>
+```bash
+scp <path on local machine to file> <your_devserver_hostname>:<path on devserver>
 ```
 
 ## I want to look at the syntax of mdx
 
-For examples and syntax on using mdx, refer to [Markdown Features](https://staticdocs.internalfb.com/staticdocs/docs/documenting/markdown-features/) page
+For examples and syntax on using mdx, refer to [Markdown Features](https://staticdocs.internalfb.com/staticdocs/docs/documenting/markdown-features/) page.
