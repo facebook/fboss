@@ -261,36 +261,58 @@ void AgentEnsembleTest::waitForLinkStatus(
   throw FbossError(msg);
 }
 
+// Provided the timestamp of the last port stats collection, get another unique
+// set of valid port stats
+std::map<std::string, HwPortStats> AgentEnsembleTest::getNextUpdatedHwPortStats(
+    int64_t timestamp) {
+  std::map<std::string, HwPortStats> portStats;
+  // TODO(Elangovan) do we need 120 retries?
+  checkWithRetry(
+      [&portStats, timestamp, this]() {
+        getSw()->getAllHwPortStats(portStats);
+        // Since each port can have a unique timestamp, compare with the first
+        // port
+        auto firstPortStat = &portStats.begin()->second;
+        if (firstPortStat->timestamp__ref() == timestamp) {
+          return false;
+        }
+        // Make sure that the other ports have valid stats
+        for (const auto& [port, portStats] : portStats) {
+          if (*portStats.timestamp__ref() ==
+              hardware_stats_constants::STAT_UNINITIALIZED()) {
+            return false;
+          }
+        }
+        return !portStats.empty();
+      },
+      120,
+      std::chrono::milliseconds(1000),
+      " fetch port stats");
+
+  return portStats;
+}
+
 void AgentEnsembleTest::assertNoInDiscards(int maxNumDiscards) {
   // When port stat is not updated yet post warmboot (collect timestamp will be
   // -1), retry another round on all ports.
   int numRounds = 0;
   auto lastStatRefTime = hardware_stats_constants::STAT_UNINITIALIZED();
 
-  // TODO(Elangovan) Verify if the default retries are enough
-  WITH_RETRIES({
-    bool retry = false;
-    std::map<std::string, HwPortStats> portStats;
-    getSw()->getAllHwPortStats(portStats);
+  // Gather 2 round of valid port stats and ensure the discards are within
+  // maxNumDiscards
+  for (numRounds = 0; numRounds < 2; numRounds++) {
+    auto portStats = getNextUpdatedHwPortStats(lastStatRefTime);
+    lastStatRefTime = *portStats.begin()->second.timestamp__ref();
+
     for (auto [port, stats] : portStats) {
       auto inDiscards = *stats.inDiscards_();
       XLOG(DBG2) << "Port: " << port << " in discards: " << inDiscards
                  << " in bytes: " << *stats.inBytes_()
                  << " out bytes: " << *stats.outBytes_() << " at timestamp "
                  << *stats.timestamp_();
-      // Ensure that we collect 2 rounds of stats with unique timestamps
-      if (*stats.timestamp_() == lastStatRefTime) {
-        retry = true;
-        break;
-      } else {
-        EXPECT_EVENTUALLY_LE(inDiscards, maxNumDiscards);
-        lastStatRefTime = *stats.timestamp_();
-      }
+      EXPECT_LE(inDiscards, maxNumDiscards);
     }
-    numRounds = retry ? numRounds : numRounds + 1;
-    // Need at least two rounds of stats collection.
-    EXPECT_EVENTUALLY_EQ(numRounds, 2);
-  });
+  }
 }
 
 void AgentEnsembleTest::dumpRunningConfig(const std::string& targetDir) {

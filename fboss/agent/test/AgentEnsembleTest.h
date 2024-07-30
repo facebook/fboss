@@ -153,7 +153,8 @@ class AgentEnsembleTest : public ::testing::Test {
   bool isSupportedOnAllAsics(HwAsic::Feature feature) const;
   AgentEnsemble* getAgentEnsemble() const;
   const std::shared_ptr<SwitchState> getProgrammedState() const;
-
+  std::map<std::string, HwPortStats> getNextUpdatedHwPortStats(
+      int64_t timestamp);
   std::unique_ptr<AgentEnsemble> agentEnsemble_;
 };
 
