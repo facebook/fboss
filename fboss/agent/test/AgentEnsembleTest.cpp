@@ -66,7 +66,6 @@ void AgentEnsembleTest::TearDown() {
     runForever();
   }
   tearDownAgentEnsemble();
-  bool gracefulExit = !::testing::Test::HasFailure();
 }
 
 void AgentEnsembleTest::tearDownAgentEnsemble(bool doWarmboot) {
