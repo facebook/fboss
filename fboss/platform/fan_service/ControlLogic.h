@@ -46,6 +46,12 @@ class ControlLogic {
 
   void setFanHold(std::optional<int> pwm);
   std::optional<int> getFanHold();
+  int calculatePid(
+      const std::string& name,
+      float value,
+      PwmCalcCache& pwmCalcCache,
+      const PidSetting& pidSetting,
+      uint64_t dt);
 
  private:
   // Private Attributess :
@@ -69,12 +75,7 @@ class ControlLogic {
       const Fan& fan,
       int16_t currentFanPwm,
       int16_t zonePwm);
-  float calculatePid(
-      const std::string& name,
-      float value,
-      PwmCalcCache& pwmCalcCache,
-      const PidSetting& pidSetting,
-      uint64_t dt);
+
   float calculateIncrementalPid(
       const std::string& name,
       float value,

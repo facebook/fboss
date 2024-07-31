@@ -82,42 +82,36 @@ std::tuple<bool, int, uint64_t> ControlLogic::readFanRpm(const Fan& fan) {
   return std::make_tuple(!fanRpmReadSuccess, fanRpm, rpmTimeStamp);
 }
 
-float ControlLogic::calculatePid(
+int ControlLogic::calculatePid(
     const std::string& name,
     float value,
     PwmCalcCache& pwmCalcCache,
     const PidSetting& pidSetting,
     uint64_t dT) {
-  float lastPwm, previousRead1, error, pwm;
-  lastPwm = pwmCalcCache.previousTargetPwm;
-  pwm = lastPwm;
-  previousRead1 = pwmCalcCache.previousRead1;
+  float error;
+  int newPwm = pwmCalcCache.previousTargetPwm;
   float minVal = *pidSetting.setPoint() - *pidSetting.negHysteresis();
   float maxVal = *pidSetting.setPoint() + *pidSetting.posHysteresis();
 
-  if (value < minVal) {
-    pwmCalcCache.integral = 0;
-    pwmCalcCache.previousTargetPwm = 0;
-  }
   if (value > maxVal) {
     error = maxVal - value;
     pwmCalcCache.integral = pwmCalcCache.integral + error * dT;
     auto derivative = (error - pwmCalcCache.last_error) / dT;
-    pwm = (*pidSetting.kp() * error) +
+    newPwm = (*pidSetting.kp() * error) +
         (*pidSetting.ki() * pwmCalcCache.integral) +
         (*pidSetting.kd() * derivative);
-    pwmCalcCache.previousTargetPwm = pwm;
+    pwmCalcCache.previousTargetPwm = newPwm;
     pwmCalcCache.last_error = error;
   }
-  pwmCalcCache.previousRead2 = previousRead1;
+  pwmCalcCache.previousRead2 = pwmCalcCache.previousRead1;
   pwmCalcCache.previousRead1 = value;
   XLOG(DBG1) << fmt::format(
-      "{}: Sensor Value: {}, PWM [PID]: {}", name, value, pwm);
+      "{}: Sensor Value: {}, PWM [PID]: {}", name, value, newPwm);
   XLOG(DBG1) << "               dT : " << dT
              << " Time : " << pBsp_->getCurrentTime()
              << " LUD : " << lastControlUpdateSec_ << " Min : " << minVal
              << " Max : " << maxVal;
-  return pwm;
+  return newPwm;
 }
 
 float ControlLogic::calculateIncrementalPid(
