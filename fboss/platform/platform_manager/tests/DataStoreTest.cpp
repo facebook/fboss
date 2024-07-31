@@ -24,7 +24,7 @@ TEST(DataStoreTest, I2CBusNum) {
 TEST(DataStoreTest, PmUnitAtSlotPath) {
   PlatformConfig config;
   DataStore dataStore(config);
-  dataStore.updatePmUnitName("/", "MCB_FAN_CPLD");
+  dataStore.updatePmUnitInfo("/", "MCB_FAN_CPLD", 1);
   EXPECT_TRUE(dataStore.hasPmUnit("/"));
   EXPECT_FALSE(dataStore.hasPmUnit("/SMB_SLOT@1"));
   EXPECT_EQ(dataStore.getPmUnitName("/"), "MCB_FAN_CPLD");

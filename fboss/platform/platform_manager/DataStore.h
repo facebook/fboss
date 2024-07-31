@@ -32,11 +32,6 @@ class DataStore {
   // Get PmUnitName at the given SlotPath
   std::string getPmUnitName(const std::string& slotPath) const;
 
-  // Update PmUnitName at the given SlotPath
-  void updatePmUnitName(
-      const std::string& slotPath,
-      const std::string& pmUnitName);
-
   // Checks if a PmUnit exists at the given SlotPath
   bool hasPmUnit(const std::string& slotPath) const;
 
@@ -85,9 +80,6 @@ class DataStore {
   // entry <"/MCB_SLOT@0/PIM_SLOT@1", "INCOMING@1"> -> i2c-52
   std::map<std::pair<std::optional<std::string>, std::string>, uint16_t>
       i2cBusNums_{};
-
-  // Stores the PmUnitName which has been discovered at each SlotPath.
-  std::map<std::string, std::string> slotPathToPmUnitName_{};
 
   // Map from PciSubDevicePath to SysfsPath.
   std::map<std::string, std::string> pciSubDevicePathToSysfsPath_{};

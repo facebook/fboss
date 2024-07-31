@@ -66,8 +66,6 @@ TEST_F(DevicePathResolverTest, ResolveI2cDevicePath) {
 
   dataStore_.updatePmUnitInfo("/MCB_SLOT@0", "MCB", std::nullopt);
   dataStore_.updatePmUnitInfo("/MCB_SLOT@0/SMB_SLOT@1", "SMB", std::nullopt);
-  dataStore_.updatePmUnitName("/MCB_SLOT@0", "MCB");
-  dataStore_.updatePmUnitName("/MCB_SLOT@0/SMB_SLOT@1", "SMB");
   dataStore_.updateI2cBusNum("/MCB_SLOT@0/SMB_SLOT@1", "INCOMING@2", 0);
   dataStore_.updateI2cBusNum("/MCB_SLOT@0/SMB_SLOT@1", "SMB_IOB_I2C_0", 1);
   dataStore_.updateI2cBusNum("/MCB_SLOT@0/SMB_SLOT@1", "SMB_MUX_A@4", 2);

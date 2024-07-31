@@ -74,8 +74,6 @@ void PlatformExplorer::explorePmUnit(
   auto pmUnitConfig = dataStore_.resolvePmUnitConfig(slotPath);
   XLOG(INFO) << fmt::format("Exploring PmUnit {} at {}", pmUnitName, slotPath);
 
-  dataStore_.updatePmUnitName(slotPath, pmUnitName);
-
   XLOG(INFO) << fmt::format(
       "Exploring PCI Devices for PmUnit {} at SlotPath {}. Count {}",
       pmUnitName,

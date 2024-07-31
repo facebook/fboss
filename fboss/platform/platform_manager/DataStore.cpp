@@ -40,23 +40,15 @@ void DataStore::updateI2cBusNum(
 }
 
 std::string DataStore::getPmUnitName(const std::string& slotPath) const {
-  if (slotPathToPmUnitName_.find(slotPath) != slotPathToPmUnitName_.end()) {
-    return slotPathToPmUnitName_.at(slotPath);
+  if (slotPathToPmUnitInfo.find(slotPath) != slotPathToPmUnitInfo.end()) {
+    return slotPathToPmUnitInfo.at(slotPath).first;
   }
   throw std::runtime_error(
       fmt::format("Could not find PmUnit at {}", slotPath));
 }
 
-void DataStore::updatePmUnitName(
-    const std::string& slotPath,
-    const std::string& pmUnitName) {
-  XLOG(INFO) << fmt::format(
-      "Updating SlotPath {} to have PmUnit {}", slotPath, pmUnitName);
-  slotPathToPmUnitName_[slotPath] = pmUnitName;
-}
-
 bool DataStore::hasPmUnit(const std::string& slotPath) const {
-  return slotPathToPmUnitName_.find(slotPath) != slotPathToPmUnitName_.end();
+  return slotPathToPmUnitInfo.find(slotPath) != slotPathToPmUnitInfo.end();
 }
 
 std::string DataStore::getSysfsPath(const std::string& devicePath) const {
