@@ -998,6 +998,8 @@ class SwSwitch : public HwSwitchCallback {
   void setSwitchRunState(SwitchRunState desiredState);
   SwitchStats* createSwitchStats();
 
+  PortDescriptor getPortFromPkt(const RxPacket* pkt) const;
+
   void handlePacket(std::unique_ptr<RxPacket> pkt);
   template <typename VlanOrIntfT>
   void handlePacketImpl(

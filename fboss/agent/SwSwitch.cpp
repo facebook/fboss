@@ -1838,6 +1838,14 @@ void SwSwitch::packetReceivedThrowExceptionOnError(
   handlePacket(std::move(pkt));
 }
 
+PortDescriptor SwSwitch::getPortFromPkt(const RxPacket* pkt) const {
+  if (pkt->isFromAggregatePort()) {
+    return PortDescriptor(AggregatePortID(pkt->getSrcAggregatePort()));
+  } else {
+    return PortDescriptor(PortID(pkt->getSrcPort()));
+  }
+}
+
 void SwSwitch::handlePacket(std::unique_ptr<RxPacket> pkt) {
   if (FLAGS_intf_nbr_tables) {
     auto intf = getState()->getInterfaces()->getNodeIf(
