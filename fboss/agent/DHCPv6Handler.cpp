@@ -247,7 +247,9 @@ void DHCPv6Handler::processDHCPv6Packet(
   auto switchIp = state->getDhcpV6RelaySrc();
   if (switchIp.isZero()) {
     switchIp = getSwitchIntfIPv6(
-        state, sw->getState()->getInterfaceIDForPort(pkt->getSrcPort()));
+        state,
+        sw->getState()->getInterfaceIDForPort(
+            PortDescriptor(pkt->getSrcPort())));
   }
 
   // link address set to unspecified

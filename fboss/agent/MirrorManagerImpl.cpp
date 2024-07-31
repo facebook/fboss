@@ -43,7 +43,8 @@ auto getNeighborEntryTableHelper(
 folly::MacAddress getEventorPortInterfaceMac(
     const std::shared_ptr<SwitchState>& state,
     PortID portId) {
-  auto intfID = state->getInterfaceIDForPort(portId);
+  auto intfID =
+      state->getInterfaceIDForPort(facebook::fboss::PortDescriptor(portId));
   auto intf = state->getInterfaces()->getNodeIf(intfID);
   return intf->getMac();
 }

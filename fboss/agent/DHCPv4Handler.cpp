@@ -288,7 +288,8 @@ void DHCPv4Handler::processRequest(
 
   auto switchIp = state->getDhcpV4RelaySrc();
   if (switchIp.isZero()) {
-    auto interfaceID = sw->getState()->getInterfaceIDForPort(pkt->getSrcPort());
+    auto interfaceID = sw->getState()->getInterfaceIDForPort(
+        PortDescriptor(pkt->getSrcPort()));
     auto interface = state->getInterfaces()->getNodeIf(interfaceID);
 
     for (auto iter : std::as_const(*interface->getAddresses())) {

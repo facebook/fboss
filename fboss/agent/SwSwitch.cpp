@@ -1849,7 +1849,7 @@ PortDescriptor SwSwitch::getPortFromPkt(const RxPacket* pkt) const {
 void SwSwitch::handlePacket(std::unique_ptr<RxPacket> pkt) {
   if (FLAGS_intf_nbr_tables) {
     auto intf = getState()->getInterfaces()->getNodeIf(
-        getState()->getInterfaceIDForPort(pkt->getSrcPort()));
+        getState()->getInterfaceIDForPort(getPortFromPkt(pkt.get())));
     handlePacketImpl(std::move(pkt), intf);
   } else {
     auto vlan =

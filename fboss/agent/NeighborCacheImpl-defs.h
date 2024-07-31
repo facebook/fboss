@@ -196,8 +196,8 @@ SwSwitch::StateUpdateFn NeighborCacheImpl<NTable>::getUpdateFnToProgramEntry(
     }
 
     if (switchType == cfg::SwitchType::VOQ) {
-      interfaceID =
-          sw_->getState()->getInterfaceIDForPort(fields.port.phyPortID());
+      CHECK(!fields.port.isSystemPort());
+      interfaceID = sw_->getState()->getInterfaceIDForPort(fields.port);
       // SystemPortID is always same as the InterfaceID
       systemPortID = SystemPortID(interfaceID);
     } else {
@@ -379,7 +379,8 @@ NeighborCacheImpl<NTable>::getUpdateFnToProgramPendingEntry(
     }
 
     if (switchType == cfg::SwitchType::VOQ) {
-      interfaceID = sw_->getState()->getInterfaceIDForPort(port.phyPortID());
+      CHECK(!fields.port.isSystemPort());
+      interfaceID = sw_->getState()->getInterfaceIDForPort(port);
       // SystemPortID is always same as the InterfaceID
       systemPortID = SystemPortID(interfaceID);
     } else {

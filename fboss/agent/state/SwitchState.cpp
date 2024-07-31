@@ -666,12 +666,27 @@ std::optional<cfg::Range64> SwitchState::getAssociatedSystemPortRangeIf(
   return getAssociatedSystemPortRangeIf(port->getInterfaceID());
 }
 
-InterfaceID SwitchState::getInterfaceIDForPort(PortID portID) const {
-  auto port = getPorts()->getNode(portID);
-  // On VOQ/Fabric switches, port and interface have 1:1 relation.
-  // For non VOQ/Fabric switches, in practice, a port is always part of a
-  // single VLAN (and thus single interface).
-  return port->getInterfaceID();
+InterfaceID SwitchState::getInterfaceIDForPort(
+    const PortDescriptor& port) const {
+  switch (port.type()) {
+    case PortDescriptor::PortType::PHYSICAL: {
+      auto physicalPort = getPorts()->getNode(port.phyPortID());
+      // On VOQ/Fabric switches, port and interface have 1:1 relation.
+      // For non VOQ/Fabric switches, in practice, a port is always part of a
+      // single VLAN (and thus single interface).
+      return physicalPort->getInterfaceID();
+    }
+    case PortDescriptor::PortType::AGGREGATE: {
+      auto aggregatePort = getAggregatePorts()->getNode(port.aggPortID());
+      // All aggregate member ports always belong to the same interface(s).
+      // Thus, pick the interface for any member port.
+      return InterfaceID(aggregatePort->getInterfaceIDs()->at(0)->cref());
+    }
+    case PortDescriptor::PortType::SYSTEM_PORT:
+      XLOG(FATAL) << "Cannot get interface ID for system port: "
+                  << port.sysPortID();
+  }
+  return InterfaceID(0);
 }
 
 std::shared_ptr<SwitchState> SwitchState::fromThrift(

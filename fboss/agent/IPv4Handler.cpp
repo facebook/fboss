@@ -109,8 +109,8 @@ void IPv4Handler::sendICMPTimeExceeded(
   std::unique_ptr<ICMPExtIPSubObject> ipObj = nullptr;
   IPAddressV4 srcIp;
   try {
-    srcIp =
-        getSwitchIntfIP(state, sw_->getState()->getInterfaceIDForPort(port));
+    srcIp = getSwitchIntfIP(
+        state, sw_->getState()->getInterfaceIDForPort(PortDescriptor(port)));
     ipObj = std::make_unique<ICMPExtIpSubObjectV4>(ICMPExtIpSubObjectV4(srcIp));
 
   } catch (const std::exception&) {
@@ -310,7 +310,7 @@ void IPv4Handler::handlePacket(
       return;
     }
     // Forward multicast packet directly to corresponding host interface
-    auto intfID = sw_->getState()->getInterfaceIDForPort(port);
+    auto intfID = sw_->getState()->getInterfaceIDForPort(PortDescriptor(port));
     intf = state->getInterfaces()->getNodeIf(intfID);
   } else if (v4Hdr.dstAddr.isLinkLocal()) {
     // XXX: Ideally we should scope the limit to Link only. However we are
@@ -319,9 +319,10 @@ void IPv4Handler::handlePacket(
     //
     // Forward link-local packet directly to corresponding host interface
     // provided desAddr is assigned to that interface.
-    // auto intfID = sw_->getState()->getInterfaceIDForPort(port);
-    // intf = state->getInterfaces()->getNodeIf(intfID);
-    // if (not intf->hasAddress(v4Hdr.dstAddr)) {
+    // auto intfID =
+    // sw_->getState()->getInterfaceIDForPort(PortDescriptor(port)); intf =
+    // state->getInterfaces()->getNodeIf(intfID); if (not
+    // intf->hasAddress(v4Hdr.dstAddr)) {
     //   intf = nullptr;
     // }
     intf = interfaceMap->getInterfaceIf(RouterID(0), v4Hdr.dstAddr);

@@ -225,7 +225,7 @@ void IPv6Handler::handlePacket(
     // Forward multicast packet directly to corresponding host interface
     // and let Linux handle it. In software we consume ICMPv6 Multicast
     // packets for function of NDP protocol, rest all are forwarded to host.
-    auto intfID = sw_->getState()->getInterfaceIDForPort(port);
+    auto intfID = sw_->getState()->getInterfaceIDForPort(PortDescriptor(port));
     intf = state->getInterfaces()->getNodeIf(intfID);
   } else if (ipv6.dstAddr.isLinkLocal()) {
     // If srcPort == CPU port, this packet was injected by self, and then
@@ -240,7 +240,8 @@ void IPv6Handler::handlePacket(
     } else {
       // Forward link-local packet directly to corresponding host interface
       // provided desAddr is assigned to that interface.
-      auto intfID = sw_->getState()->getInterfaceIDForPort(port);
+      auto intfID =
+          sw_->getState()->getInterfaceIDForPort(PortDescriptor(port));
       intf = state->getInterfaces()->getNodeIf(intfID);
       if (intf && !(intf->hasAddress(ipv6.dstAddr))) {
         intf = nullptr;
@@ -383,7 +384,8 @@ void IPv6Handler::handleRouterSolicitation(
 
   cursor.skip(4); // 4 reserved bytes
 
-  auto intfID = sw_->getState()->getInterfaceIDForPort(pkt->getSrcPort());
+  auto intfID =
+      sw_->getState()->getInterfaceIDForPort(PortDescriptor(pkt->getSrcPort()));
   auto intf = sw_->getState()->getInterfaces()->getNodeIf(intfID);
   if (!intf) {
     sw_->portStats(pkt)->pktDropped();
@@ -677,7 +679,7 @@ void IPv6Handler::sendICMPv6TimeExceeded(
   IPAddressV6 srcIp;
   try {
     srcIp = getSwitchIntfIPv6(
-        state, sw_->getState()->getInterfaceIDForPort(srcPort));
+        state, sw_->getState()->getInterfaceIDForPort(PortDescriptor(srcPort)));
   } catch (const std::exception&) {
     srcIp = getAnyIntfIPv6(state);
   }
@@ -736,8 +738,8 @@ void IPv6Handler::sendICMPv6PacketTooBig(
     sendCursor->push(cursor, remainingLength);
   };
 
-  IPAddressV6 srcIp =
-      getSwitchIntfIPv6(state, sw_->getState()->getInterfaceIDForPort(srcPort));
+  IPAddressV6 srcIp = getSwitchIntfIPv6(
+      state, sw_->getState()->getInterfaceIDForPort(PortDescriptor(srcPort)));
   auto icmpPkt = createICMPv6Pkt(
       sw_,
       dst,
@@ -850,16 +852,15 @@ void IPv6Handler::sendUnicastNeighborSolicitation(
   InterfaceID intfID;
   switch (portDescriptor.type()) {
     case PortDescriptor::PortType::PHYSICAL:
-      intfID =
-          sw->getState()->getInterfaceIDForPort(portDescriptor.phyPortID());
+      intfID = sw->getState()->getInterfaceIDForPort(portDescriptor);
       break;
     case PortDescriptor::PortType::AGGREGATE:
-      intfID = sw->getInterfaceIDForAggregatePort(portDescriptor.aggPortID());
+      intfID = sw->getState()->getInterfaceIDForPort(portDescriptor);
       break;
     case PortDescriptor::PortType::SYSTEM_PORT:
       auto physPortID = getPortID(portDescriptor.sysPortID(), sw->getState());
       portToSend = PortDescriptor(physPortID);
-      intfID = sw->getState()->getInterfaceIDForPort(physPortID);
+      intfID = sw->getState()->getInterfaceIDForPort(portToSend);
   }
 
   if (!Interface::isIpAttached(targetIP, intfID, state)) {

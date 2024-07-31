@@ -1079,7 +1079,7 @@ TYPED_TEST(BcmRouteNeighborTest, UnresolveResolveNextHop) {
       if (this->isIntfNbrTable()) {
         EXPECT_EQ(port.type(), PortDescriptor::PortType::PHYSICAL);
         auto interfaceID =
-            this->getProgrammedState()->getInterfaceIDForPort(port.phyPortID());
+            this->getProgrammedState()->getInterfaceIDForPort(port);
         ntable = state0->getInterfaces()
                      ->getNode(interfaceID)
                      ->getNdpTable()
@@ -1105,7 +1105,7 @@ TYPED_TEST(BcmRouteNeighborTest, UnresolveResolveNextHop) {
       if (this->isIntfNbrTable()) {
         EXPECT_EQ(port.type(), PortDescriptor::PortType::PHYSICAL);
         auto interfaceID =
-            this->getProgrammedState()->getInterfaceIDForPort(port.phyPortID());
+            this->getProgrammedState()->getInterfaceIDForPort(port);
         ntable = state1->getInterfaces()
                      ->getNode(interfaceID)
                      ->getNdpTable()

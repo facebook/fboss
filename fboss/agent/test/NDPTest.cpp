@@ -920,7 +920,8 @@ TYPED_TEST(NdpTest, receiveNeighborAdvertisementUnsolicited) {
   // Send two unsolicited neighbor advertisements, state should update at
   // least once
   if (this->isIntfNbrTable()) {
-    auto intfID = sw->getState()->getInterfaceIDForPort(PortID(1));
+    auto intfID =
+        sw->getState()->getInterfaceIDForPort(PortDescriptor(PortID(1)));
     WaitForNdpEntryCreation neighbor1Create(
         sw, IPAddressV6("2401:db00:2110:3004::b"), intfID, false);
     sendNeighborAdvertisement(
@@ -967,7 +968,8 @@ TYPED_TEST(NdpTest, FlushEntry) {
           ->getNdpTable()
           ->getEntryIf(ip);
     };
-    auto intfID = sw->getState()->getInterfaceIDForPort(PortID(1));
+    auto intfID =
+        sw->getState()->getInterfaceIDForPort(PortDescriptor(PortID(1)));
     WaitForNdpEntryCreation neighbor1Create(
         sw, IPAddressV6("2401:db00:2110:3004::b"), intfID, false);
     WaitForNdpEntryCreation neighbor2Create(
@@ -1721,7 +1723,8 @@ TYPED_TEST(NdpTest, FlushEntryWithConcurrentUpdate) {
   if (this->isIntfNbrTable()) {
     // populate ndp entries first before flush
     {
-      auto intfID = sw->getState()->getInterfaceIDForPort(portID);
+      auto intfID =
+          sw->getState()->getInterfaceIDForPort(PortDescriptor(portID));
       std::array<std::unique_ptr<WaitForNdpEntryReachable>, 255> ndpReachables;
       std::transform(
           targetIPs.begin(),
