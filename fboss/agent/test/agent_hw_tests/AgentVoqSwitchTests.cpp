@@ -1222,6 +1222,46 @@ TEST_F(AgentVoqSwitchTest, dramEnqueueDequeueBytes) {
   verifyAcrossWarmBoots(setup, verify);
 }
 
+TEST_F(AgentVoqSwitchTest, verifyQueueLatencyWatermark) {
+  utility::EcmpSetupAnyNPorts6 ecmpHelper(getProgrammedState());
+  const auto kPort = ecmpHelper.ecmpPortDescriptorAt(0);
+  auto setup = [this, kPort]() {
+    addRemoveNeighbor(kPort, true /* add neighbor*/);
+  };
+
+  auto verify = [this, kPort, &ecmpHelper]() {
+    // Disable both port TX and credit watchdog
+    utility::setCreditWatchdogAndPortTx(
+        getAgentEnsemble(), kPort.phyPortID(), false);
+    auto queueId{0};
+    auto dscpForQueue =
+        utility::kOlympicQueueToDscp().find(queueId)->second.at(0);
+    auto sendPkts = [this, kPort, &ecmpHelper, dscpForQueue]() {
+      for (auto i = 0; i < 10000; ++i) {
+        sendPacket(
+            ecmpHelper.ip(kPort),
+            std::nullopt,
+            std::vector<uint8_t>(4000),
+            dscpForQueue);
+      }
+    };
+    sendPkts();
+    sleep(1);
+    // Enable port TX
+    utility::setPortTx(getAgentEnsemble(), kPort.phyPortID(), true);
+    WITH_RETRIES({
+      auto queueLatencyWatermarkNsec =
+          *getLatestSysPortStats(getSystemPortID(kPort))
+               .queueLatencyWatermarkNsec_();
+      XLOG(DBG2) << "Port: " << kPort.phyPortID() << " voq queueId: " << queueId
+                 << " latency watermark: " << queueLatencyWatermarkNsec[queueId]
+                 << " nsec";
+      EXPECT_EVENTUALLY_GT(queueLatencyWatermarkNsec[queueId], 5000);
+    });
+  };
+  verifyAcrossWarmBoots(setup, verify);
+}
+
 class AgentVoqSwitchWithMultipleDsfNodesTest : public AgentVoqSwitchTest {
  public:
   cfg::SwitchConfig initialConfig(
