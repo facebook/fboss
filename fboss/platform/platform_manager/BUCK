@@ -157,6 +157,7 @@ cpp_library(
     srcs = ["DataStore.cpp"],
     exported_deps = [
         "fbsource//third-party/fmt:fmt",
+        ":platform_manager_config-cpp2-types",
         "//folly/logging:logging",
     ],
 )

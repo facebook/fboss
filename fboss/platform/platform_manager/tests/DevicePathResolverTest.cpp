@@ -43,14 +43,14 @@ class DevicePathResolverTest : public testing::Test {
     mcbUnitConfig.pluggedInSlotType() = "MCB_SLOT";
 
     platformConfig_ = PlatformConfig();
-    platformConfig_.pmUnitConfigs()["SMB"] = smbUnitConfig;
-    platformConfig_.pmUnitConfigs()["MCB"] = mcbUnitConfig;
+    platformConfig_.pmUnitConfigs()["SMB"] = {smbUnitConfig};
+    platformConfig_.pmUnitConfigs()["MCB"] = {mcbUnitConfig};
     platformConfig_.slotTypeConfigs()["SMB_SLOT"] = smbSlotTypeConfig;
     platformConfig_.slotTypeConfigs()["MCB_SLOT"] = SlotTypeConfig();
   }
 
   PlatformConfig platformConfig_;
-  DataStore dataStore_;
+  DataStore dataStore_{platformConfig_};
   MockI2cExplorer i2cExplorer_;
 };
 
@@ -64,6 +64,8 @@ TEST_F(DevicePathResolverTest, ResolveI2cDevicePath) {
       resolver.resolveI2cDevicePath("SMB_SLOT@1/[inlet_sensor]"),
       std::runtime_error);
 
+  dataStore_.updatePmUnitInfo("/MCB_SLOT@0", "MCB", std::nullopt);
+  dataStore_.updatePmUnitInfo("/MCB_SLOT@0/SMB_SLOT@1", "SMB", std::nullopt);
   dataStore_.updatePmUnitName("/MCB_SLOT@0", "MCB");
   dataStore_.updatePmUnitName("/MCB_SLOT@0/SMB_SLOT@1", "SMB");
   dataStore_.updateI2cBusNum("/MCB_SLOT@0/SMB_SLOT@1", "INCOMING@2", 0);

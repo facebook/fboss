@@ -162,8 +162,7 @@ std::optional<std::string> DevicePathResolver::resolvePresencePath(
     XLOG(ERR) << fmt::format("No PmUnit exists at {}", slotPath);
     return std::nullopt;
   }
-  auto pmUnitName = dataStore_.getPmUnitName(slotPath);
-  auto pmUnitConfig = platformConfig_.pmUnitConfigs()->at(pmUnitName);
+  auto pmUnitConfig = dataStore_.resolvePmUnitConfig(slotPath);
   auto i2cDeviceConfig = std::find_if(
       pmUnitConfig.i2cDeviceConfigs()->begin(),
       pmUnitConfig.i2cDeviceConfigs()->end(),
@@ -220,8 +219,7 @@ std::optional<std::string> DevicePathResolver::resolvePresencePath(
 I2cDeviceConfig DevicePathResolver::getI2cDeviceConfig(
     const std::string& slotPath,
     const std::string& deviceName) {
-  auto pmUnitName = dataStore_.getPmUnitName(slotPath);
-  auto pmUnitConfig = platformConfig_.pmUnitConfigs()->at(pmUnitName);
+  auto pmUnitConfig = dataStore_.resolvePmUnitConfig(slotPath);
   auto i2cDeviceConfig = std::find_if(
       pmUnitConfig.i2cDeviceConfigs()->begin(),
       pmUnitConfig.i2cDeviceConfigs()->end(),
@@ -236,8 +234,7 @@ I2cDeviceConfig DevicePathResolver::getI2cDeviceConfig(
 }
 
 IdpromConfig DevicePathResolver::getIdpromConfig(const std::string& slotPath) {
-  auto pmUnitName = dataStore_.getPmUnitName(slotPath);
-  auto pmUnitConfig = platformConfig_.pmUnitConfigs()->at(pmUnitName);
+  auto pmUnitConfig = dataStore_.resolvePmUnitConfig(slotPath);
   auto idpromConfig = platformConfig_.slotTypeConfigs()
                           ->at(*pmUnitConfig.pluggedInSlotType())
                           .idpromConfig();
@@ -251,8 +248,7 @@ IdpromConfig DevicePathResolver::getIdpromConfig(const std::string& slotPath) {
 PciDeviceConfig DevicePathResolver::getPciDeviceConfig(
     const std::string& slotPath,
     const std::string& deviceName) {
-  auto pmUnitName = dataStore_.getPmUnitName(slotPath);
-  auto pmUnitConfig = platformConfig_.pmUnitConfigs()->at(pmUnitName);
+  auto pmUnitConfig = dataStore_.resolvePmUnitConfig(slotPath);
   auto pciDeviceConfig = std::find_if(
       pmUnitConfig.pciDeviceConfigs()->begin(),
       pmUnitConfig.pciDeviceConfigs()->end(),

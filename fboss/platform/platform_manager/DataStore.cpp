@@ -6,6 +6,9 @@
 #include <folly/logging/xlog.h>
 
 namespace facebook::fboss::platform::platform_manager {
+
+DataStore::DataStore(const PlatformConfig& config) : platformConfig_(config) {}
+
 uint16_t DataStore::getI2cBusNum(
     const std::optional<std::string>& slotPath,
     const std::string& pmUnitScopeBusName) const {
@@ -106,5 +109,40 @@ void DataStore::updatePmUnitInfo(
                      : "Unknown ProductVersion",
       pmUnitName);
   slotPathToPmUnitInfo[slotPath] = {pmUnitName, productVersion};
+}
+
+PmUnitConfig DataStore::resolvePmUnitConfig(const std::string& slotPath) const {
+  if (slotPathToPmUnitInfo.find(slotPath) == slotPathToPmUnitInfo.end()) {
+    throw std::runtime_error(
+        fmt::format("Unable to resolve PmUnitInfo for {}", slotPath));
+  }
+  const auto [pmUnitName, productVersion] = slotPathToPmUnitInfo.at(slotPath);
+  if (!productVersion) {
+    XLOG(INFO) << fmt::format(
+        "Resolved Unknown ProductVersion to the main PmUnitConfig for {} at {}. "
+        "Slot probably doesn't have an IDPROM to read the ProductVersion",
+        pmUnitName,
+        slotPath);
+    return platformConfig_.pmUnitConfigs()->at(pmUnitName);
+  }
+  if (platformConfig_.versionedPmUnitConfigs()->contains(pmUnitName)) {
+    for (const auto& versionedPmUnitConfig :
+         platformConfig_.versionedPmUnitConfigs()->at(pmUnitName)) {
+      if (*versionedPmUnitConfig.platformVersion() == *productVersion) {
+        XLOG(INFO) << fmt::format(
+            "Resolved to a PmUnitConfig of version {} for {} at {}",
+            *productVersion,
+            pmUnitName,
+            slotPath);
+        return *versionedPmUnitConfig.pmUnitConfig();
+      }
+    }
+  }
+  XLOG(INFO) << fmt::format(
+      "Resolved ProductVersion {} to the main PmUnitConfig for {} at {}",
+      *productVersion,
+      pmUnitName,
+      slotPath);
+  return platformConfig_.pmUnitConfigs()->at(pmUnitName);
 }
 } // namespace facebook::fboss::platform::platform_manager

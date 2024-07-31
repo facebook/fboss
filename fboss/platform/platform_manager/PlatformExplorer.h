@@ -83,9 +83,9 @@ class PlatformExplorer {
   PlatformConfig platformConfig_{};
   I2cExplorer i2cExplorer_{};
   PciExplorer pciExplorer_{};
-  DataStore dataStore_{};
-  DevicePathResolver devicePathResolver_;
   CachedFbossEepromParser eepromParser_{};
+  DataStore dataStore_;
+  DevicePathResolver devicePathResolver_;
 
   // Map from <pmUnitPath, pmUnitScopeBusName> to kernel i2c bus name.
   // - The pmUnitPath to the rootPmUnit is /. So a bus at root PmUnit will have

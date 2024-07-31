@@ -46,6 +46,7 @@ namespace constants = platform_manager_config_constants;
 
 PlatformExplorer::PlatformExplorer(const PlatformConfig& config)
     : platformConfig_(config),
+      dataStore_(platformConfig_),
       devicePathResolver_(platformConfig_, dataStore_, i2cExplorer_) {}
 
 void PlatformExplorer::explore() {
@@ -70,7 +71,7 @@ void PlatformExplorer::explore() {
 void PlatformExplorer::explorePmUnit(
     const std::string& slotPath,
     const std::string& pmUnitName) {
-  auto pmUnitConfig = platformConfig_.pmUnitConfigs()->at(pmUnitName);
+  auto pmUnitConfig = dataStore_.resolvePmUnitConfig(slotPath);
   XLOG(INFO) << fmt::format("Exploring PmUnit {} at {}", pmUnitName, slotPath);
 
   dataStore_.updatePmUnitName(slotPath, pmUnitName);

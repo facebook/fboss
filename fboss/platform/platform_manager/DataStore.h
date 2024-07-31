@@ -6,10 +6,12 @@
 #include <optional>
 #include <string>
 
+#include "fboss/platform/platform_manager/gen-cpp2/platform_manager_config_types.h"
+
 namespace facebook::fboss::platform::platform_manager {
 class DataStore {
  public:
-  DataStore() = default;
+  explicit DataStore(const PlatformConfig& config);
   virtual ~DataStore() = default;
 
   // Get the kernel assigned I2C bus number for the given busName.
@@ -69,6 +71,10 @@ class DataStore {
       const std::string& pmUnitName,
       std::optional<int> productVersion);
 
+  // Resolve PmUnitConfig based on the platformVersion from eeprom.
+  // Throws if none of the VersionedPmUnitConfig matches the version.
+  PmUnitConfig resolvePmUnitConfig(const std::string& slotPath) const;
+
  private:
   // Map from <pmUnitPath, pmUnitScopeBusName> to kernel i2c bus name.
   // - The pmUnitPath to the rootPmUnit is /. So a bus at root PmUnit will
@@ -92,5 +98,7 @@ class DataStore {
   // Map from PmUnitName to its PmUnitInfo(PmUnitName, ProductVersion)
   std::map<std::string, std::pair<std::string, std::optional<int>>>
       slotPathToPmUnitInfo{};
+
+  const PlatformConfig& platformConfig_;
 };
 } // namespace facebook::fboss::platform::platform_manager
