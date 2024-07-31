@@ -1865,6 +1865,21 @@ void SaiPortManager::updateStats(
   if (updateCableLengths && portType == cfg::PortType::FABRIC_PORT &&
       platform_->getAsic()->isSupported(
           HwAsic::Feature::CABLE_PROPOGATION_DELAY)) {
+    /*
+    ** Cable length collection is expensive, taking upto 50ms per
+    ** port. Cable length can really only change in face of recabling. So
+    ** we optimize as follows
+    ** - Reset cable len on port down event
+    ** - Collect cable len only for up ports that don't have cable len set.
+
+    ** The reason for resetting on port down event and not on stats collection
+    ** round is that stats collection is periodic. So consider a port getting
+    ** recabled, if it got recabled and came up within our stats collection
+    ** interval, we would not recollect cable len until next warm/cold boot.
+    ** Reason for not collecting cable len stat on port Up and doing it
+    ** in periodic stat collection is that we may need to try multiple times
+    ** since when port comes up, not everything  is synchronized immediately
+    */
     if (isUp(portId) && !curPortStats.cableLengthMeters().has_value()) {
       std::optional<SaiPortTraits::Attributes::CablePropogationDelayNS> attrT =
           SaiPortTraits::Attributes::CablePropogationDelayNS{};
