@@ -7,6 +7,7 @@ if(BUILD_SAI_FAKE)
 add_library(fake_sai
     fboss/agent/hw/sai/fake/FakeSai.cpp
     fboss/agent/hw/sai/fake/FakeSaiAcl.cpp
+    fboss/agent/hw/sai/fake/FakeSaiArs.cpp
     fboss/agent/hw/sai/fake/FakeSaiBridge.cpp
     fboss/agent/hw/sai/fake/FakeSaiBuffer.cpp
     fboss/agent/hw/sai/fake/FakeSaiCounter.cpp

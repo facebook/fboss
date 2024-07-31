@@ -134,6 +134,9 @@ sai_status_t sai_get_object_count(
     case SAI_OBJECT_TYPE_ACL_COUNTER:
       *count = fs->aclCounterManager.map().size();
       break;
+    case SAI_OBJECT_TYPE_ARS:
+      *count = fs->arsManager.map().size();
+      break;
     case SAI_OBJECT_TYPE_COUNTER:
       *count = fs->counterManager.map().size();
       break;
@@ -441,6 +444,12 @@ sai_status_t sai_get_object_key(
     case SAI_OBJECT_TYPE_ACL_COUNTER: {
       for (const auto& aclCounter : fs->aclCounterManager.map()) {
         object_list[i++].key.object_id = aclCounter.second.id;
+      }
+      break;
+    }
+    case SAI_OBJECT_TYPE_ARS: {
+      for (const auto& ars : fs->arsManager.map()) {
+        object_list[i++].key.object_id = ars.second.id;
       }
       break;
     }

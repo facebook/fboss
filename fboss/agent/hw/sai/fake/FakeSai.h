@@ -10,6 +10,7 @@
 #pragma once
 
 #include "fboss/agent/hw/sai/fake/FakeSaiAcl.h"
+#include "fboss/agent/hw/sai/fake/FakeSaiArs.h"
 #include "fboss/agent/hw/sai/fake/FakeSaiBridge.h"
 #include "fboss/agent/hw/sai/fake/FakeSaiBuffer.h"
 #include "fboss/agent/hw/sai/fake/FakeSaiCounter.h"
@@ -57,6 +58,7 @@ struct FakeSai {
   FakeAclEntryManager aclEntryManager;
   FakeAclCounterManager aclCounterManager;
   FakeAclTableManager aclTableManager;
+  FakeArsManager arsManager;
   FakeBridgeManager bridgeManager;
   FakeBufferPoolManager bufferPoolManager;
   FakeBufferProfileManager bufferProfileManager;
