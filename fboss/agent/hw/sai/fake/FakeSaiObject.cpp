@@ -137,6 +137,9 @@ sai_status_t sai_get_object_count(
     case SAI_OBJECT_TYPE_ARS:
       *count = fs->arsManager.map().size();
       break;
+    case SAI_OBJECT_TYPE_ARS_PROFILE:
+      *count = fs->arsProfileManager.map().size();
+      break;
     case SAI_OBJECT_TYPE_COUNTER:
       *count = fs->counterManager.map().size();
       break;
@@ -450,6 +453,12 @@ sai_status_t sai_get_object_key(
     case SAI_OBJECT_TYPE_ARS: {
       for (const auto& ars : fs->arsManager.map()) {
         object_list[i++].key.object_id = ars.second.id;
+      }
+      break;
+    }
+    case SAI_OBJECT_TYPE_ARS_PROFILE: {
+      for (const auto& arsProfile : fs->arsProfileManager.map()) {
+        object_list[i++].key.object_id = arsProfile.second.id;
       }
       break;
     }
