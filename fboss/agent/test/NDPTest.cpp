@@ -1108,88 +1108,147 @@ TYPED_TEST(NdpTest, FlushEntry) {
 // Ensure that NDP entries learned against a port are
 // flushed when the port become part of Aggregate
 TYPED_TEST(NdpTest, FlushOnAggPortTransition) {
-  /*
-   * TODO(skhare) Fix this test for Interface neighbor tables, and then enable.
-   */
-  if (this->isIntfNbrTable()) {
-#if defined(GTEST_SKIP)
-    GTEST_SKIP();
-#endif
-  }
-
   auto handle = this->setupTestHandle();
   auto sw = handle->getSw();
 
   ThriftHandler thriftHandler(sw);
+  if (this->isIntfNbrTable()) {
+    // Helper for checking entries in NDP table
+    auto getNDPTableEntry = [&](IPAddressV6 ip, InterfaceID intf) {
+      return sw->getState()
+          ->getInterfaces()
+          ->getNodeIf(intf)
+          ->getNdpTable()
+          ->getEntryIf(ip);
+    };
+    auto neighborAddr = IPAddressV6("2401:db00:2110:3004::b");
+    auto intfID =
+        sw->getState()->getInterfaceIDForPort(PortDescriptor(PortID(1)));
 
-  // Helper for checking entries in NDP table
-  auto getNDPTableEntry = [&](IPAddressV6 ip, VlanID vlan) {
-    return sw->getState()
-        ->getVlans()
-        ->getNodeIf(vlan)
-        ->getNdpTable()
-        ->getEntryIf(ip);
-  };
+    // Create NDP entry against a port
+    WaitForNdpEntryCreation neighbor1Create(sw, neighborAddr, intfID, false);
 
-  auto neighborAddr = IPAddressV6("2401:db00:2110:3004::b");
+    sendNeighborAdvertisement(
+        handle.get(),
+        neighborAddr.str(),
+        "02:05:73:f9:46:fb",
+        PortDescriptor(PortID(1)),
+        5);
 
-  // Create NDP entry against a port
-  WaitForNdpEntryCreation neighbor1Create(sw, neighborAddr, VlanID(5), false);
+    EXPECT_TRUE(neighbor1Create.wait());
+    auto entry = getNDPTableEntry(neighborAddr, intfID);
+    EXPECT_NE(entry, nullptr);
 
-  sendNeighborAdvertisement(
-      handle.get(),
-      neighborAddr.str(),
-      "02:05:73:f9:46:fb",
-      PortDescriptor(PortID(1)),
-      5);
+    // Create an Aggregate port with a subport that has
+    // NDP entries already present
+    seconds raInterval = seconds(0);
+    seconds ndpInterval = seconds(0);
+    auto config = createSwitchConfig(raInterval, ndpInterval, true);
+    sw->applyConfig("Add aggports", config);
 
-  EXPECT_TRUE(neighbor1Create.wait());
-  auto entry = getNDPTableEntry(neighborAddr, VlanID(5));
-  EXPECT_NE(entry, nullptr);
+    // Enable the subPorts
+    AggregatePort::PartnerState pState{};
+    for (int i = 0; i < kSubportCount; i++) {
+      ProgramForwardingAndPartnerState addPort1ToAggregatePort(
+          PortID(i + 1),
+          kAggregatePortID,
+          AggregatePort::Forwarding::ENABLED,
+          pState);
+      sw->updateStateNoCoalescing(
+          "Adding member port to AggregatePort", addPort1ToAggregatePort);
+    }
 
-  // Create an Aggregate port with a subport that has
-  // NDP entries already present
-  seconds raInterval = seconds(0);
-  seconds ndpInterval = seconds(0);
-  auto config = createSwitchConfig(raInterval, ndpInterval, true);
-  sw->applyConfig("Add aggports", config);
+    WITH_RETRIES_N_TIMED(5, std::chrono::milliseconds(1000), {
+      // Old entry should be flushed
+      auto entry = getNDPTableEntry(neighborAddr, intfID);
+      EXPECT_EVENTUALLY_EQ(entry, nullptr);
+    });
 
-  // Enable the subPorts
-  AggregatePort::PartnerState pState{};
-  for (int i = 0; i < kSubportCount; i++) {
-    ProgramForwardingAndPartnerState addPort1ToAggregatePort(
-        PortID(i + 1),
-        kAggregatePortID,
-        AggregatePort::Forwarding::ENABLED,
-        pState);
-    sw->updateStateNoCoalescing(
-        "Adding member port to AggregatePort", addPort1ToAggregatePort);
+    // Send neighbor advertisement on Aggregate
+    WaitForNdpEntryCreation neighbor2Create(sw, neighborAddr, intfID, false);
+
+    sendNeighborAdvertisement(
+        handle.get(),
+        neighborAddr.str(),
+        "02:05:73:f9:46:fb",
+        PortDescriptor(AggregatePortID(kAggregatePortID)),
+        5,
+        true);
+
+    EXPECT_TRUE(neighbor2Create.wait());
+    entry = getNDPTableEntry(neighborAddr, intfID);
+    EXPECT_NE(entry, nullptr);
+    EXPECT_EQ(
+        entry->getPort(), PortDescriptor(AggregatePortID(kAggregatePortID)));
+  } else {
+    // Helper for checking entries in NDP table
+    auto getNDPTableEntry = [&](IPAddressV6 ip, VlanID vlan) {
+      return sw->getState()
+          ->getVlans()
+          ->getNodeIf(vlan)
+          ->getNdpTable()
+          ->getEntryIf(ip);
+    };
+
+    auto neighborAddr = IPAddressV6("2401:db00:2110:3004::b");
+
+    // Create NDP entry against a port
+    WaitForNdpEntryCreation neighbor1Create(sw, neighborAddr, VlanID(5), false);
+
+    sendNeighborAdvertisement(
+        handle.get(),
+        neighborAddr.str(),
+        "02:05:73:f9:46:fb",
+        PortDescriptor(PortID(1)),
+        5);
+
+    EXPECT_TRUE(neighbor1Create.wait());
+    auto entry = getNDPTableEntry(neighborAddr, VlanID(5));
+    EXPECT_NE(entry, nullptr);
+
+    // Create an Aggregate port with a subport that has
+    // NDP entries already present
+    seconds raInterval = seconds(0);
+    seconds ndpInterval = seconds(0);
+    auto config = createSwitchConfig(raInterval, ndpInterval, true);
+    sw->applyConfig("Add aggports", config);
+
+    // Enable the subPorts
+    AggregatePort::PartnerState pState{};
+    for (int i = 0; i < kSubportCount; i++) {
+      ProgramForwardingAndPartnerState addPort1ToAggregatePort(
+          PortID(i + 1),
+          kAggregatePortID,
+          AggregatePort::Forwarding::ENABLED,
+          pState);
+      sw->updateStateNoCoalescing(
+          "Adding member port to AggregatePort", addPort1ToAggregatePort);
+    }
+
+    WITH_RETRIES_N_TIMED(5, std::chrono::milliseconds(1000), {
+      // Old entry should be flushed
+      auto entry = getNDPTableEntry(neighborAddr, VlanID(5));
+      EXPECT_EVENTUALLY_EQ(entry, nullptr);
+    });
+
+    // Send neighbor advertisement on Aggregate
+    WaitForNdpEntryCreation neighbor2Create(sw, neighborAddr, VlanID(5), false);
+
+    sendNeighborAdvertisement(
+        handle.get(),
+        neighborAddr.str(),
+        "02:05:73:f9:46:fb",
+        PortDescriptor(AggregatePortID(kAggregatePortID)),
+        5);
+
+    EXPECT_TRUE(neighbor2Create.wait());
+    entry = getNDPTableEntry(neighborAddr, VlanID(5));
+    EXPECT_NE(entry, nullptr);
+    EXPECT_EQ(
+        entry->getPort(),
+        PortDescriptor(
+            AggregatePortID(static_cast<uint16_t>(kAggregatePortID))));
   }
-
-  auto* evb = sw->getBackgroundEvb();
-  evb->runInEventBaseThreadAndWait(
-      [&]() { std::this_thread::sleep_for(std::chrono::milliseconds(1000)); });
-
-  // Old entry should be flushed
-  entry = getNDPTableEntry(neighborAddr, VlanID(5));
-  EXPECT_EQ(entry, nullptr);
-
-  // Send neighbor advertisement on Aggregate
-  WaitForNdpEntryCreation neighbor2Create(sw, neighborAddr, VlanID(5), false);
-
-  sendNeighborAdvertisement(
-      handle.get(),
-      neighborAddr.str(),
-      "02:05:73:f9:46:fb",
-      PortDescriptor(AggregatePortID(kAggregatePortID)),
-      5);
-
-  EXPECT_TRUE(neighbor2Create.wait());
-  entry = getNDPTableEntry(neighborAddr, VlanID(5));
-  EXPECT_NE(entry, nullptr);
-  EXPECT_EQ(
-      entry->getPort(),
-      PortDescriptor(AggregatePortID(static_cast<uint16_t>(kAggregatePortID))));
 }
 
 TYPED_TEST(NdpTest, PendingNdp) {
