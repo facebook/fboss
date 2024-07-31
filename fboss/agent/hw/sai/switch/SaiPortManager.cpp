@@ -1025,6 +1025,22 @@ void SaiPortManager::changePort(
   changePortImpl(oldPort, newPort);
 }
 
+void SaiPortManager::resetCableLength(PortID portId) {
+  auto portStatItr = portStats_.find(portId);
+  if (portStatItr == portStats_.end()) {
+    // No stats exist, nothing to do
+    return;
+  }
+  auto curPortStats = portStatItr->second->portStats();
+  if (!curPortStats.cableLengthMeters().has_value()) {
+    // Value not set, return
+    return;
+  }
+  curPortStats.cableLengthMeters().reset();
+  auto now = duration_cast<seconds>(system_clock::now().time_since_epoch());
+  portStatItr->second->updateStats(curPortStats, now);
+}
+
 void SaiPortManager::addSamplePacket(const std::shared_ptr<Port>& swPort) {
   if (swPort->getSflowIngressRate()) {
     programSampling(

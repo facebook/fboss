@@ -423,6 +423,7 @@ class SaiPortManager {
       const std::shared_ptr<Port>& swPort);
   double calculateRate(uint32_t speed);
   void updatePrbsStatsEntryRate(const std::shared_ptr<Port>& swPort);
+  void resetCableLength(PortID portId);
 
   SaiStore* saiStore_;
   SaiManagerTable* managerTable_;

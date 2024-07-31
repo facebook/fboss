@@ -374,6 +374,9 @@ void SaiPortManager::changePortImpl(
       portAsicPrbsStats_.erase(newPort->getID());
     }
   }
+  if (newPort->isUp() != oldPort->isUp() && !newPort->isUp()) {
+    resetCableLength(newPort->getID());
+  }
 }
 
 void SaiPortManager::attributesFromSaiStore(
