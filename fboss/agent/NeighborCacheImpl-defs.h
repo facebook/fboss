@@ -185,8 +185,12 @@ SwSwitch::StateUpdateFn NeighborCacheImpl<NTable>::getUpdateFnToProgramEntry(
       return nullptr;
     }
 
-    auto switchId =
-        sw_->getScopeResolver()->scope(fields.port.phyPortID()).switchId();
+    auto isAggregatePort = fields.port.isAggregatePort();
+    auto switchId = isAggregatePort
+        ? sw_->getScopeResolver()
+              ->scope(sw_->getState(), fields.port)
+              .switchId()
+        : sw_->getScopeResolver()->scope(fields.port.phyPortID()).switchId();
     auto asic = sw_->getHwAsicTable()->getHwAsicIf(switchId);
     if (asic->isSupported(HwAsic::Feature::RESERVED_ENCAP_INDEX_RANGE)) {
       fields.encapIndex =
@@ -369,8 +373,12 @@ NeighborCacheImpl<NTable>::getUpdateFnToProgramPendingEntry(
     std::optional<SystemPortID> systemPortID;
     std::optional<int64_t> encapIndex;
 
-    auto switchId =
-        sw_->getScopeResolver()->scope(fields.port.phyPortID()).switchId();
+    auto isAggregatePort = fields.port.isAggregatePort();
+    auto switchId = isAggregatePort
+        ? sw_->getScopeResolver()
+              ->scope(sw_->getState(), fields.port)
+              .switchId()
+        : sw_->getScopeResolver()->scope(fields.port.phyPortID()).switchId();
     auto asic = sw_->getHwAsicTable()->getHwAsicIf(switchId);
     if (asic->isSupported(HwAsic::Feature::RESERVED_ENCAP_INDEX_RANGE)) {
       encapIndex = EncapIndexAllocator::getNextAvailableEncapIdx(state, *asic);
