@@ -152,7 +152,8 @@ TEST(IPv4Test, Parse) {
 
   EXPECT_HW_CALL(sw, stateChangedImpl(_)).Times(0);
   EXPECT_HW_CALL(sw, sendPacketSwitchedAsync_(_)).Times(0);
-  handle->rxPacket(make_unique<folly::IOBuf>(buf), portID, vlanID);
+  handle->rxPacket(
+      make_unique<folly::IOBuf>(buf), PortDescriptor(portID), vlanID);
   counters.update();
   counters.checkDelta(SwitchStats::kCounterPrefix + "trapped.pkts.sum", 1);
   counters.checkDelta(SwitchStats::kCounterPrefix + "trapped.drops.sum", 1);
@@ -184,7 +185,8 @@ TEST(IPv4Test, Parse) {
 
   EXPECT_HW_CALL(sw, stateChangedImpl(_)).Times(0);
   EXPECT_HW_CALL(sw, sendPacketSwitchedAsync_(_)).Times(0);
-  handle->rxPacket(make_unique<folly::IOBuf>(buf), portID, vlanID);
+  handle->rxPacket(
+      make_unique<folly::IOBuf>(buf), PortDescriptor(portID), vlanID);
   counters.update();
   counters.checkDelta(SwitchStats::kCounterPrefix + "trapped.pkts.sum", 1);
   counters.checkDelta(SwitchStats::kCounterPrefix + "trapped.drops.sum", 1);
@@ -219,7 +221,8 @@ TEST(IPv4Test, Parse) {
 
   EXPECT_HW_CALL(sw, stateChangedImpl(_)).Times(0);
   EXPECT_HW_CALL(sw, sendPacketSwitchedAsync_(_)).Times(0);
-  handle->rxPacket(make_unique<folly::IOBuf>(buf), portID, vlanID);
+  handle->rxPacket(
+      make_unique<folly::IOBuf>(buf), PortDescriptor(portID), vlanID);
   counters.update();
   counters.checkDelta(SwitchStats::kCounterPrefix + "trapped.pkts.sum", 1);
   counters.checkDelta(SwitchStats::kCounterPrefix + "trapped.drops.sum", 1);

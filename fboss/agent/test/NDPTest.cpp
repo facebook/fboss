@@ -384,7 +384,7 @@ void sendNeighborAdvertisement(
     HwTestHandle* handle,
     StringPiece ipStr,
     StringPiece macStr,
-    int port,
+    const PortDescriptor& port,
     int vlanID,
     bool solicited = true) {
   IPAddressV6 srcIP(ipStr);
@@ -421,7 +421,7 @@ void sendNeighborAdvertisement(
 
   // Send the packet to the switch
   PktUtil::padToLength(buf.get(), totalLen);
-  handle->rxPacket(std::move(buf), PortID(port), vlan);
+  handle->rxPacket(std::move(buf), port, vlan);
 }
 
 } // unnamed namespace
@@ -545,7 +545,8 @@ TYPED_TEST(NdpTest, UnsolicitedRequest) {
       std::optional<uint8_t>(kNCStrictPriorityQueue));
 
   // Send the packet to the SwSwitch
-  handle->rxPacket(make_unique<IOBuf>(pkt), PortID(1), VlanID(5));
+  handle->rxPacket(
+      make_unique<IOBuf>(pkt), PortDescriptor(PortID(1)), VlanID(5));
 
   // Check the new stats
   counters.update();
@@ -596,7 +597,8 @@ TYPED_TEST(NdpTest, NeighborSoliciationNotMine) {
   CounterCache counters(sw);
 
   // Send the packet to the SwSwitch
-  handle->rxPacket(make_unique<IOBuf>(pkt), PortID(1), VlanID(5));
+  handle->rxPacket(
+      make_unique<IOBuf>(pkt), PortDescriptor(PortID(1)), VlanID(5));
 
   // Check the new stats
   counters.update();
@@ -666,7 +668,8 @@ TYPED_TEST(NdpTest, TriggerSolicitation) {
   WaitForNdpEntryCreation neighborEntryCreate(
       sw, IPAddressV6("2401:db00:2110:3004::1:0"), VlanID(5));
   // Send the packet to the SwSwitch
-  handle->rxPacket(make_unique<IOBuf>(pkt), PortID(1), VlanID(5));
+  handle->rxPacket(
+      make_unique<IOBuf>(pkt), PortDescriptor(PortID(1)), VlanID(5));
 
   // expect neighbor solicitation to neighbor in the subnet & entry in NDP table
   EXPECT_TRUE(neighborEntryCreate.wait());
@@ -732,7 +735,8 @@ TYPED_TEST(NdpTest, TriggerSolicitation) {
       sw, IPAddressV6("2401:db00:2110:3004::2"), VlanID(5));
 
   // Send the packet to the SwSwitch
-  handle->rxPacket(make_unique<IOBuf>(pkt), PortID(1), VlanID(5));
+  handle->rxPacket(
+      make_unique<IOBuf>(pkt), PortDescriptor(PortID(1)), VlanID(5));
 
   EXPECT_TRUE(nextHop1Create.wait());
   EXPECT_TRUE(nextHop2Create.wait());
@@ -817,7 +821,8 @@ void NdpTest<EnableIntfNbrTableT>::validateRouterAdv(
       "49 71"
       // reserved
       "00 00 00 00");
-  handle->rxPacket(make_unique<IOBuf>(pkt), PortID(1), VlanID(5));
+  handle->rxPacket(
+      make_unique<IOBuf>(pkt), PortDescriptor(PortID(1)), VlanID(5));
 
   // Now send the packet with specified source MAC address as ICMPv6 option
   // which differs from MAC address in ethernet header. The switch should use
@@ -867,7 +872,8 @@ void NdpTest<EnableIntfNbrTableT>::validateRouterAdv(
       "01 01"
       // source mac
       "02 ab 73 f9 46 fc");
-  handle->rxPacket(make_unique<IOBuf>(pkt2), PortID(1), VlanID(5));
+  handle->rxPacket(
+      make_unique<IOBuf>(pkt2), PortDescriptor(PortID(1)), VlanID(5));
 
   // The RA packet will be sent in the background even thread after the RA
   // interval.  Schedule a timeout to wake us up after the interval has
@@ -928,7 +934,7 @@ TYPED_TEST(NdpTest, receiveNeighborAdvertisementUnsolicited) {
         handle.get(),
         "2401:db00:2110:3004::b",
         "02:05:73:f9:46:fb",
-        1,
+        PortDescriptor(PortID(1)),
         5,
         false);
     EXPECT_TRUE(neighbor1Create.wait());
@@ -939,7 +945,7 @@ TYPED_TEST(NdpTest, receiveNeighborAdvertisementUnsolicited) {
         handle.get(),
         "2401:db00:2110:3004::b",
         "02:05:73:f9:46:fb",
-        1,
+        PortDescriptor(PortID(1)),
         5,
         false);
     EXPECT_TRUE(neighbor1Create.wait());
@@ -975,9 +981,17 @@ TYPED_TEST(NdpTest, FlushEntry) {
     WaitForNdpEntryCreation neighbor2Create(
         sw, IPAddressV6("2401:db00:2110:3004::c"), intfID, false);
     sendNeighborAdvertisement(
-        handle.get(), "2401:db00:2110:3004::b", "02:05:73:f9:46:fb", 1, 5);
+        handle.get(),
+        "2401:db00:2110:3004::b",
+        "02:05:73:f9:46:fb",
+        PortDescriptor(PortID(1)),
+        5);
     sendNeighborAdvertisement(
-        handle.get(), "2401:db00:2110:3004::c", "02:05:73:f9:46:fc", 1, 5);
+        handle.get(),
+        "2401:db00:2110:3004::c",
+        "02:05:73:f9:46:fc",
+        PortDescriptor(PortID(1)),
+        5);
 
     EXPECT_TRUE(neighbor1Create.wait());
     EXPECT_TRUE(neighbor2Create.wait());
@@ -1035,9 +1049,17 @@ TYPED_TEST(NdpTest, FlushEntry) {
         sw, IPAddressV6("2401:db00:2110:3004::c"), VlanID(5), false);
 
     sendNeighborAdvertisement(
-        handle.get(), "2401:db00:2110:3004::b", "02:05:73:f9:46:fb", 1, 5);
+        handle.get(),
+        "2401:db00:2110:3004::b",
+        "02:05:73:f9:46:fb",
+        PortDescriptor(PortID(1)),
+        5);
     sendNeighborAdvertisement(
-        handle.get(), "2401:db00:2110:3004::c", "02:05:73:f9:46:fc", 1, 5);
+        handle.get(),
+        "2401:db00:2110:3004::c",
+        "02:05:73:f9:46:fc",
+        PortDescriptor(PortID(1)),
+        5);
 
     EXPECT_TRUE(neighbor1Create.wait());
     EXPECT_TRUE(neighbor2Create.wait());
@@ -1115,7 +1137,11 @@ TYPED_TEST(NdpTest, FlushOnAggPortTransition) {
   WaitForNdpEntryCreation neighbor1Create(sw, neighborAddr, VlanID(5), false);
 
   sendNeighborAdvertisement(
-      handle.get(), neighborAddr.str(), "02:05:73:f9:46:fb", 1, 5);
+      handle.get(),
+      neighborAddr.str(),
+      "02:05:73:f9:46:fb",
+      PortDescriptor(PortID(1)),
+      5);
 
   EXPECT_TRUE(neighbor1Create.wait());
   auto entry = getNDPTableEntry(neighborAddr, VlanID(5));
@@ -1155,7 +1181,7 @@ TYPED_TEST(NdpTest, FlushOnAggPortTransition) {
       handle.get(),
       neighborAddr.str(),
       "02:05:73:f9:46:fb",
-      static_cast<uint16_t>(kAggregatePortID),
+      PortDescriptor(AggregatePortID(kAggregatePortID)),
       5);
 
   EXPECT_TRUE(neighbor2Create.wait());
@@ -1163,7 +1189,7 @@ TYPED_TEST(NdpTest, FlushOnAggPortTransition) {
   EXPECT_NE(entry, nullptr);
   EXPECT_EQ(
       entry->getPort(),
-      PortDescriptor(PortID(static_cast<uint16_t>(kAggregatePortID))));
+      PortDescriptor(AggregatePortID(static_cast<uint16_t>(kAggregatePortID))));
 }
 
 TYPED_TEST(NdpTest, PendingNdp) {
@@ -1227,7 +1253,8 @@ TYPED_TEST(NdpTest, PendingNdp) {
           vlanID));
 
   // Send the packet to the SwSwitch
-  handle->rxPacket(make_unique<IOBuf>(pkt), PortID(1), vlanID);
+  handle->rxPacket(
+      make_unique<IOBuf>(pkt), PortDescriptor(PortID(1)), VlanID(5));
   EXPECT_TRUE(neighborEntryCreate.wait());
 
   // Should see a pending entry now
@@ -1246,7 +1273,11 @@ TYPED_TEST(NdpTest, PendingNdp) {
 
   // Receive an ndp advertisement for our pending entry
   sendNeighborAdvertisement(
-      handle.get(), "2401:db00:2110:3004::1:0", "02:10:20:30:40:22", 1, vlanID);
+      handle.get(),
+      "2401:db00:2110:3004::1:0",
+      "02:10:20:30:40:22",
+      PortDescriptor(PortID(1)),
+      vlanID);
 
   // The entry should now be valid instead of pending
   EXPECT_TRUE(neighborEntryReachable.wait());
@@ -1262,7 +1293,8 @@ TYPED_TEST(NdpTest, PendingNdp) {
   EXPECT_STATE_UPDATE_TIMES(sw, 0);
 
   // Send the packet to the SwSwitch
-  handle->rxPacket(make_unique<IOBuf>(pkt), PortID(1), vlanID);
+  handle->rxPacket(
+      make_unique<IOBuf>(pkt), PortDescriptor(PortID(1)), VlanID(5));
   waitForStateUpdates(sw);
   entry =
       sw->getState()->getVlans()->getNodeIf(vlanID)->getNdpTable()->getEntryIf(
@@ -1335,7 +1367,8 @@ TYPED_TEST(NdpTest, PendingNdpCleanup) {
           vlanID));
 
   // Send the packet to the SwSwitch
-  handle->rxPacket(make_unique<IOBuf>(pkt), PortID(1), vlanID);
+  handle->rxPacket(
+      make_unique<IOBuf>(pkt), PortDescriptor(PortID(1)), VlanID(5));
   // waitForStateUpdates(sw);
   // Should see a pending entry now
   EXPECT_TRUE(neighborEntryCreate.wait());
@@ -1405,7 +1438,8 @@ TYPED_TEST(NdpTest, PendingNdpCleanup) {
           VlanID(5)));
 
   // Send the packet to the SwSwitch
-  handle->rxPacket(make_unique<IOBuf>(pkt), PortID(1), VlanID(5));
+  handle->rxPacket(
+      make_unique<IOBuf>(pkt), PortDescriptor(PortID(1)), VlanID(5));
 
   EXPECT_TRUE(nexthop1Create.wait());
   EXPECT_TRUE(nexthop2Create.wait());
@@ -1520,7 +1554,8 @@ TYPED_TEST(NdpTest, NdpExpiration) {
           targetIP,
           vlanID));
   // Send the packet to the SwSwitch
-  handle->rxPacket(make_unique<IOBuf>(pkt), PortID(1), vlanID);
+  handle->rxPacket(
+      make_unique<IOBuf>(pkt), PortDescriptor(PortID(1)), VlanID(5));
 
   // Should see a pending entry now
   EXPECT_TRUE(neighbor0Create.wait());
@@ -1588,7 +1623,8 @@ TYPED_TEST(NdpTest, NdpExpiration) {
           VlanID(5)));
 
   // Send the packet to the SwSwitch
-  handle->rxPacket(make_unique<IOBuf>(pkt), PortID(1), VlanID(5));
+  handle->rxPacket(
+      make_unique<IOBuf>(pkt), PortDescriptor(PortID(1)), VlanID(5));
 
   // Check the new stats
   counters.update();
@@ -1612,11 +1648,23 @@ TYPED_TEST(NdpTest, NdpExpiration) {
 
   // Receive ndp advertisements for our pending entries
   sendNeighborAdvertisement(
-      handle.get(), targetIP.str(), "02:10:20:30:40:22", 1, vlanID);
+      handle.get(),
+      targetIP.str(),
+      "02:10:20:30:40:22",
+      PortDescriptor(PortID(1)),
+      vlanID);
   sendNeighborAdvertisement(
-      handle.get(), targetIP2.str(), "02:10:20:30:40:23", 1, vlanID);
+      handle.get(),
+      targetIP2.str(),
+      "02:10:20:30:40:23",
+      PortDescriptor(PortID(1)),
+      vlanID);
   sendNeighborAdvertisement(
-      handle.get(), targetIP3.str(), "02:10:20:30:40:24", 1, vlanID);
+      handle.get(),
+      targetIP3.str(),
+      "02:10:20:30:40:24",
+      PortDescriptor(PortID(1)),
+      vlanID);
 
   // The entries should now be valid instead of pending
   EXPECT_TRUE(neighbor0Reachable.wait());
@@ -1735,7 +1783,12 @@ TYPED_TEST(NdpTest, FlushEntryWithConcurrentUpdate) {
           });
       for (auto& ip : targetIPs) {
         sendNeighborAdvertisement(
-            handle.get(), ip.str(), "02:05:73:f9:46:fb", portID, vlanID, false);
+            handle.get(),
+            ip.str(),
+            "02:05:73:f9:46:fb",
+            PortDescriptor(PortID(portID)),
+            vlanID,
+            false);
         waitForStateUpdates(sw);
       }
       for (auto& ndpReachable : ndpReachables) {
@@ -1755,7 +1808,12 @@ TYPED_TEST(NdpTest, FlushEntryWithConcurrentUpdate) {
           });
       for (auto& ip : targetIPs) {
         sendNeighborAdvertisement(
-            handle.get(), ip.str(), "02:05:73:f9:46:fb", portID, vlanID, false);
+            handle.get(),
+            ip.str(),
+            "02:05:73:f9:46:fb",
+            PortDescriptor(PortID(portID)),
+            vlanID,
+            false);
       }
       for (auto& ndpReachable : ndpReachables) {
         EXPECT_TRUE(ndpReachable->wait());
@@ -1771,7 +1829,7 @@ TYPED_TEST(NdpTest, FlushEntryWithConcurrentUpdate) {
           handle.get(),
           targetIPs[index].str(),
           "02:05:73:f9:46:fb",
-          portID,
+          PortDescriptor(PortID(portID)),
           vlanID,
           false);
       index = (index + 1) % targetIPs.size();
@@ -1862,7 +1920,8 @@ TYPED_TEST(NdpTest, PortFlapRecover) {
           vlanID));
 
   // Send the packet to the SwSwitch
-  handle->rxPacket(make_unique<IOBuf>(pkt), PortID(1), vlanID);
+  handle->rxPacket(
+      make_unique<IOBuf>(pkt), PortDescriptor(PortID(1)), VlanID(5));
 
   // Should see a pending entry now
   EXPECT_TRUE(neighbor0Create.wait());
@@ -1929,7 +1988,8 @@ TYPED_TEST(NdpTest, PortFlapRecover) {
           VlanID(5)));
 
   // Send the packet to the SwSwitch
-  handle->rxPacket(make_unique<IOBuf>(pkt), PortID(1), VlanID(5));
+  handle->rxPacket(
+      make_unique<IOBuf>(pkt), PortDescriptor(PortID(1)), VlanID(5));
 
   EXPECT_TRUE(neighbor1Create.wait());
   EXPECT_TRUE(neighbor2Create.wait());
@@ -1952,11 +2012,23 @@ TYPED_TEST(NdpTest, PortFlapRecover) {
   WaitForNdpEntryReachable neighbor2Reachable(sw, targetIP3, vlanID);
 
   sendNeighborAdvertisement(
-      handle.get(), targetIP.str(), "02:10:20:30:40:22", 1, vlanID);
+      handle.get(),
+      targetIP.str(),
+      "02:10:20:30:40:22",
+      PortDescriptor(PortID(1)),
+      vlanID);
   sendNeighborAdvertisement(
-      handle.get(), targetIP2.str(), "02:10:20:30:40:22", 1, vlanID);
+      handle.get(),
+      targetIP2.str(),
+      "02:10:20:30:40:22",
+      PortDescriptor(PortID(1)),
+      vlanID);
   sendNeighborAdvertisement(
-      handle.get(), targetIP3.str(), "02:10:20:30:40:23", 2, vlanID);
+      handle.get(),
+      targetIP3.str(),
+      "02:10:20:30:40:23",
+      PortDescriptor(PortID(2)),
+      vlanID);
 
   EXPECT_TRUE(neighbor0Reachable.wait());
   EXPECT_TRUE(neighbor1Reachable.wait());
@@ -2007,9 +2079,17 @@ TYPED_TEST(NdpTest, PortFlapRecover) {
   sw->linkStateChanged(PortID(1), true);
 
   sendNeighborAdvertisement(
-      handle.get(), targetIP.str(), "02:10:20:30:40:22", 1, vlanID);
+      handle.get(),
+      targetIP.str(),
+      "02:10:20:30:40:22",
+      PortDescriptor(PortID(1)),
+      vlanID);
   sendNeighborAdvertisement(
-      handle.get(), targetIP2.str(), "02:10:20:30:40:22", 1, vlanID);
+      handle.get(),
+      targetIP2.str(),
+      "02:10:20:30:40:22",
+      PortDescriptor(PortID(1)),
+      vlanID);
 
   EXPECT_TRUE(neighbor0Reachable.wait());
   EXPECT_TRUE(neighbor1Reachable.wait());

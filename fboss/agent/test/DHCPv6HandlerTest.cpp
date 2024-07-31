@@ -208,7 +208,7 @@ void sendDHCPV6Packet(
   ASSERT_EQ(payloadSize + udpHdrSize + ipV6HdrSize + ethHdrSize, buf->length())
       << "Don't forget to adjust the headers' length";
   // Inject the packet to the receive handler
-  handle->rxPacket(std::move(buf), PortID(1), VlanID(1));
+  handle->rxPacket(std::move(buf), PortDescriptor(PortID(1)), VlanID(1));
 }
 
 typedef std::function<void(Cursor* cursor, uint32_t length)>

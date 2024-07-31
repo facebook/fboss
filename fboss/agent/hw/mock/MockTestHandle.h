@@ -29,7 +29,7 @@ class MockTestHandle : public HwTestHandle {
 
   void rxPacket(
       std::unique_ptr<folly::IOBuf> buf,
-      PortID srcPort,
+      const PortDescriptor& srcPort,
       std::optional<VlanID> srcVlan) override;
   void forcePortDown(PortID port) override;
   void forcePortUp(PortID port) override;

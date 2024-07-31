@@ -267,7 +267,7 @@ void sendDHCPPacket(
       payloadSize + udpHdrSize + ipHdrSize + ethHdrSize + /*'\0\0'*/ 2,
       buf->length())
       << "Don't forget to adjust the headers' length";
-  handle->rxPacket(std::move(buf), PortID(1), VlanID(1));
+  handle->rxPacket(std::move(buf), PortDescriptor(PortID(1)), VlanID(1));
 }
 
 struct Option {

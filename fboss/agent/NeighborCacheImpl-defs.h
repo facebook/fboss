@@ -129,18 +129,16 @@ NeighborCacheImpl<NTable>::getUpdateFnToProgramEntryForVlan(Entry* entry) {
     auto* table = vlan->template getNeighborTable<NTable>().get();
     auto node = table->getNodeIf(fields.ip.str());
 
-    auto port = fields.port;
-    // No support for encap index for agg ports. On NPU switches encap index
-    // is used only by mock asic for verification.
-    if (port.isPhysicalPort()) {
-      auto switchIds =
-          sw_->getScopeResolver()->scope(fields.port.phyPortID()).switchIds();
-      CHECK_EQ(switchIds.size(), 1);
-      auto asic = sw_->getHwAsicTable()->getHwAsicIf(*switchIds.begin());
-      if (asic->isSupported(HwAsic::Feature::RESERVED_ENCAP_INDEX_RANGE)) {
-        fields.encapIndex =
-            EncapIndexAllocator::getNextAvailableEncapIdx(state, *asic);
-      }
+    auto isAggregatePort = fields.port.isAggregatePort();
+    auto switchId = isAggregatePort
+        ? sw_->getScopeResolver()
+              ->scope(sw_->getState(), fields.port)
+              .switchId()
+        : sw_->getScopeResolver()->scope(fields.port.phyPortID()).switchId();
+    auto asic = sw_->getHwAsicTable()->getHwAsicIf(switchId);
+    if (asic->isSupported(HwAsic::Feature::RESERVED_ENCAP_INDEX_RANGE)) {
+      fields.encapIndex =
+          EncapIndexAllocator::getNextAvailableEncapIdx(state, *asic);
     }
 
     if (!node) {

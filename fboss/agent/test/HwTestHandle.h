@@ -57,7 +57,7 @@ class HwTestHandle {
   // Useful helpers for testing low level events
   virtual void rxPacket(
       std::unique_ptr<folly::IOBuf> buf,
-      const PortID srcPort,
+      const PortDescriptor& srcPort,
       const std::optional<VlanID> srcVlan) = 0;
   virtual void forcePortDown(const PortID port) = 0;
   virtual void forcePortUp(const PortID port) = 0;

@@ -387,7 +387,8 @@ TYPED_TEST(RoutingFixture, SwitchToHostUnicast) {
     EXPECT_TUN_PKT(this->tunMgr, "V4 UcastPkt", this->ifID1, matchRxPacket(pkt))
         .Times(1);
 
-    this->handle->rxPacket(std::make_unique<IOBuf>(pkt), PortID(2), VlanID(2));
+    this->handle->rxPacket(
+        std::make_unique<IOBuf>(pkt), PortDescriptor(PortID(2)), VlanID(2));
 
     counters.update();
     counters.checkDelta(SwitchStats::kCounterPrefix + "host.rx.sum", 1);
@@ -402,7 +403,8 @@ TYPED_TEST(RoutingFixture, SwitchToHostUnicast) {
     EXPECT_TUN_PKT(this->tunMgr, "V4 UcastPkt", this->ifID1, matchRxPacket(pkt))
         .Times(0);
 
-    this->handle->rxPacket(std::make_unique<IOBuf>(pkt), PortID(1), VlanID(1));
+    this->handle->rxPacket(
+        std::make_unique<IOBuf>(pkt), PortDescriptor(PortID(1)), VlanID(1));
 
     counters.update();
     counters.checkDelta(SwitchStats::kCounterPrefix + "host.rx.sum", 0);
@@ -417,7 +419,8 @@ TYPED_TEST(RoutingFixture, SwitchToHostUnicast) {
     EXPECT_TUN_PKT(this->tunMgr, "V6 UcastPkt", this->ifID1, matchRxPacket(pkt))
         .Times(1);
 
-    this->handle->rxPacket(std::make_unique<IOBuf>(pkt), PortID(1), VlanID(1));
+    this->handle->rxPacket(
+        std::make_unique<IOBuf>(pkt), PortDescriptor(PortID(1)), VlanID(1));
 
     counters.update();
     counters.checkDelta(SwitchStats::kCounterPrefix + "host.rx.sum", 1);
@@ -432,7 +435,8 @@ TYPED_TEST(RoutingFixture, SwitchToHostUnicast) {
     EXPECT_TUN_PKT(this->tunMgr, "V6 UcastPkt", this->ifID2, matchRxPacket(pkt))
         .Times(0);
 
-    this->handle->rxPacket(std::make_unique<IOBuf>(pkt), PortID(2), VlanID(2));
+    this->handle->rxPacket(
+        std::make_unique<IOBuf>(pkt), PortDescriptor(PortID(2)), VlanID(2));
 
     counters.update();
     counters.checkDelta(SwitchStats::kCounterPrefix + "host.rx.sum", 0);
@@ -461,7 +465,8 @@ TYPED_TEST(RoutingFixture, SwitchToHostLinkLocalUnicast) {
         this->tunMgr, "V4 llUcastPkt", this->ifID2, matchRxPacket(pkt))
         .Times(1);
 
-    this->handle->rxPacket(std::make_unique<IOBuf>(pkt), portID, VlanID(2));
+    this->handle->rxPacket(
+        std::make_unique<IOBuf>(pkt), PortDescriptor(portID), VlanID(2));
 
     counters.update();
     counters.checkDelta(SwitchStats::kCounterPrefix + "host.rx.sum", 1);
@@ -494,7 +499,8 @@ TYPED_TEST(RoutingFixture, SwitchToHostLinkLocalUnicast) {
         this->tunMgr, "V4 llUcastPkt", this->ifID1, matchRxPacket(pkt))
         .Times(0);
 
-    this->handle->rxPacket(std::make_unique<IOBuf>(pkt), PortID(1), VlanID(1));
+    this->handle->rxPacket(
+        std::make_unique<IOBuf>(pkt), PortDescriptor(PortID(1)), VlanID(1));
 
     counters.update();
     counters.checkDelta(SwitchStats::kCounterPrefix + "host.rx.sum", 0);
@@ -511,7 +517,8 @@ TYPED_TEST(RoutingFixture, SwitchToHostLinkLocalUnicast) {
     EXPECT_TUN_PKT(
         this->tunMgr, "V4 llUcastPkt", this->ifID1, matchRxPacket(pkt))
         .Times(1);
-    this->handle->rxPacket(std::make_unique<IOBuf>(pkt), PortID(2), VlanID(2));
+    this->handle->rxPacket(
+        std::make_unique<IOBuf>(pkt), PortDescriptor(PortID(2)), VlanID(2));
     counters.update();
     counters.checkDelta(SwitchStats::kCounterPrefix + "host.rx.sum", 1);
     counters.checkDelta(SwitchStats::kCounterPrefix + "trapped.drops.sum", 0);
@@ -527,7 +534,8 @@ TYPED_TEST(RoutingFixture, SwitchToHostLinkLocalUnicast) {
         this->tunMgr, "V6 llUcastPkt", this->ifID1, matchRxPacket(pkt))
         .Times(1);
 
-    this->handle->rxPacket(std::make_unique<IOBuf>(pkt), PortID(1), VlanID(1));
+    this->handle->rxPacket(
+        std::make_unique<IOBuf>(pkt), PortDescriptor(PortID(1)), VlanID(1));
 
     counters.update();
     counters.checkDelta(SwitchStats::kCounterPrefix + "host.rx.sum", 1);
@@ -543,7 +551,8 @@ TYPED_TEST(RoutingFixture, SwitchToHostLinkLocalUnicast) {
         this->tunMgr, "V6 llUcastPkt", this->ifID2, matchRxPacket(pkt))
         .Times(0);
 
-    this->handle->rxPacket(std::make_unique<IOBuf>(pkt), PortID(2), VlanID(2));
+    this->handle->rxPacket(
+        std::make_unique<IOBuf>(pkt), PortDescriptor(PortID(2)), VlanID(2));
 
     counters.update();
     counters.checkDelta(SwitchStats::kCounterPrefix + "host.rx.sum", 0);
@@ -559,7 +568,8 @@ TYPED_TEST(RoutingFixture, SwitchToHostLinkLocalUnicast) {
         this->tunMgr, "V6 llUcastPkt", this->ifID2, matchRxPacket(pkt))
         .Times(0);
 
-    this->handle->rxPacket(std::make_unique<IOBuf>(pkt), PortID(2), VlanID(2));
+    this->handle->rxPacket(
+        std::make_unique<IOBuf>(pkt), PortDescriptor(PortID(2)), VlanID(2));
 
     counters.update();
     counters.checkDelta(SwitchStats::kCounterPrefix + "host.rx.sum", 0);
@@ -583,7 +593,8 @@ TYPED_TEST(RoutingFixture, SwitchToHostMulticast) {
     EXPECT_TUN_PKT(
         this->tunMgr, "V4 llMcastPkt", this->ifID1, matchRxPacket(pkt))
         .Times(1);
-    this->handle->rxPacket(std::make_unique<IOBuf>(pkt), PortID(1), VlanID(1));
+    this->handle->rxPacket(
+        std::make_unique<IOBuf>(pkt), PortDescriptor(PortID(1)), VlanID(1));
 
     counters.update();
     counters.checkDelta(SwitchStats::kCounterPrefix + "host.rx.sum", 1);
@@ -599,7 +610,8 @@ TYPED_TEST(RoutingFixture, SwitchToHostMulticast) {
         this->tunMgr, "V6 llMcastPkt", this->ifID1, matchRxPacket(pkt))
         .Times(1);
 
-    this->handle->rxPacket(std::make_unique<IOBuf>(pkt), PortID(1), VlanID(1));
+    this->handle->rxPacket(
+        std::make_unique<IOBuf>(pkt), PortDescriptor(PortID(1)), VlanID(1));
 
     counters.update();
     counters.checkDelta(SwitchStats::kCounterPrefix + "host.rx.sum", 1);

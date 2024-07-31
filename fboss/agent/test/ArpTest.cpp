@@ -410,7 +410,7 @@ TYPED_TEST(ArpTest, TableUpdates) {
       std::optional<uint8_t>(kNCStrictPriorityQueue));
 
   // Inform the SwSwitch of the ARP request
-  handle->rxPacket(std::move(buf), PortID(1), vlanID);
+  handle->rxPacket(std::move(buf), PortDescriptor(PortID(1)), vlanID);
   sw->getNeighborUpdater()->waitForPendingUpdates();
 
   // Check the new ArpTable does not have any entry
@@ -455,7 +455,7 @@ TYPED_TEST(ArpTest, TableUpdates) {
       std::optional<uint8_t>(kNCStrictPriorityQueue));
 
   // Inform the SwSwitch of the ARP request
-  handle->rxPacket(make_unique<IOBuf>(hex), PortID(1), vlanID);
+  handle->rxPacket(make_unique<IOBuf>(hex), PortDescriptor(PortID(1)), vlanID);
   sw->getNeighborUpdater()->waitForPendingUpdates();
 
   // Wait for any updates triggered by the packet to complete.
@@ -494,7 +494,7 @@ TYPED_TEST(ArpTest, TableUpdates) {
           vlanID),
       PortID(1),
       std::optional<uint8_t>(kNCStrictPriorityQueue));
-  handle->rxPacket(make_unique<IOBuf>(hex), PortID(1), vlanID);
+  handle->rxPacket(make_unique<IOBuf>(hex), PortDescriptor(PortID(1)), vlanID);
   sw->getNeighborUpdater()->waitForPendingUpdates();
 
   // Check the counters again
@@ -530,7 +530,7 @@ TYPED_TEST(ArpTest, TableUpdates) {
 
   EXPECT_STATE_UPDATE_TIMES(sw, 0);
   EXPECT_HW_CALL(sw, sendPacketSwitchedAsync_(_)).Times(0);
-  handle->rxPacket(std::move(buf), PortID(1), vlanID);
+  handle->rxPacket(std::move(buf), PortDescriptor(PortID(1)), vlanID);
   sw->getNeighborUpdater()->waitForPendingUpdates();
 
   counters.update();
@@ -569,7 +569,7 @@ TYPED_TEST(ArpTest, TableUpdates) {
   // And then 1 (or 2 depends on coalescing) for Static mac updates
   EXPECT_STATE_UPDATE_TIMES_ATLEAST(sw, 2);
   EXPECT_HW_CALL(sw, sendPacketSwitchedAsync_(_)).Times(0);
-  handle->rxPacket(std::move(buf), PortID(2), vlanID);
+  handle->rxPacket(std::move(buf), PortDescriptor(PortID(2)), vlanID);
   sw->getNeighborUpdater()->waitForPendingUpdates();
   waitForStateUpdates(sw);
 
@@ -625,7 +625,7 @@ TYPED_TEST(ArpTest, TableUpdates) {
           vlanID),
       PortID(1),
       std::optional<uint8_t>(kNCStrictPriorityQueue));
-  handle->rxPacket(std::move(buf), PortID(1), vlanID);
+  handle->rxPacket(std::move(buf), PortDescriptor(PortID(1)), vlanID);
   sw->getNeighborUpdater()->waitForPendingUpdates();
   waitForStateUpdates(sw);
 
@@ -684,7 +684,7 @@ TYPED_TEST(ArpTest, TableUpdates) {
           vlanID),
       PortID(5),
       std::optional<uint8_t>(kNCStrictPriorityQueue));
-  handle->rxPacket(std::move(buf), PortID(5), vlanID);
+  handle->rxPacket(std::move(buf), PortDescriptor(PortID(5)), vlanID);
   sw->getNeighborUpdater()->waitForPendingUpdates();
   waitForStateUpdates(sw);
 
@@ -741,7 +741,7 @@ TYPED_TEST(ArpTest, NotMine) {
   CounterCache counters(sw);
 
   // Inform the SwSwitch of the ARP request
-  handle->rxPacket(std::move(buf), PortID(1), VlanID(1));
+  handle->rxPacket(std::move(buf), PortDescriptor(PortID(1)), VlanID(1));
   sw->getNeighborUpdater()->waitForPendingUpdates();
 
   // Check the new stats
@@ -780,7 +780,7 @@ TYPED_TEST(ArpTest, BadHlen) {
   CounterCache counters(sw);
 
   // Inform the SwSwitch of the ARP request
-  handle->rxPacket(std::move(buf), PortID(1), VlanID(1));
+  handle->rxPacket(std::move(buf), PortDescriptor(PortID(1)), VlanID(1));
   sw->getNeighborUpdater()->waitForPendingUpdates();
 
   // Check the new stats
@@ -825,7 +825,7 @@ void sendArpReply(
   cursor.write<uint32_t>(dstIP.toLong()); // target IP
 
   // Inform the SwSwitch of the ARP request
-  handle->rxPacket(std::move(buf), PortID(port), VlanID(1));
+  handle->rxPacket(std::move(buf), PortDescriptor(PortID(port)), VlanID(1));
   handle->getSw()->getNeighborUpdater()->waitForPendingUpdates();
 }
 
@@ -962,7 +962,7 @@ TYPED_TEST(ArpTest, PendingArp) {
           IPAddressV4("10.0.0.10"),
           vlanID));
 
-  handle->rxPacket(make_unique<IOBuf>(hex), PortID(1), vlanID);
+  handle->rxPacket(make_unique<IOBuf>(hex), PortDescriptor(PortID(1)), vlanID);
   sw->getNeighborUpdater()->waitForPendingUpdates();
 
   // Should see a pending entry now
@@ -986,7 +986,7 @@ TYPED_TEST(ArpTest, PendingArp) {
 
   // Receiving this duplicate packet should NOT trigger an ARP request out,
 
-  handle->rxPacket(make_unique<IOBuf>(hex), PortID(1), vlanID);
+  handle->rxPacket(make_unique<IOBuf>(hex), PortDescriptor(PortID(1)), vlanID);
   sw->getNeighborUpdater()->waitForPendingUpdates();
 
   // Should still see a pending entry now
@@ -1020,7 +1020,7 @@ TYPED_TEST(ArpTest, PendingArp) {
   // Verify that we don't ever overwrite a valid entry with a pending one.
   // Receive the same packet again, entry should still be valid
 
-  handle->rxPacket(make_unique<IOBuf>(hex), PortID(1), vlanID);
+  handle->rxPacket(make_unique<IOBuf>(hex), PortDescriptor(PortID(1)), vlanID);
   sw->getNeighborUpdater()->waitForPendingUpdates();
   waitForStateUpdates(sw);
   entry = getArpEntry(sw, IPAddressV4("10.0.0.10"), vlanID);
@@ -1393,7 +1393,7 @@ TYPED_TEST(ArpTest, receivedPacketWithDirectlyConnectedDestination) {
   // once to expire the ARP entry
   EXPECT_STATE_UPDATE_TIMES(sw, 2);
 
-  handle->rxPacket(std::move(buf), PortID(1), vlanID);
+  handle->rxPacket(std::move(buf), PortDescriptor(PortID(1)), vlanID);
   sw->getNeighborUpdater()->waitForPendingUpdates();
 
   waitForStateUpdates(sw);
@@ -1454,7 +1454,7 @@ TYPED_TEST(ArpTest, receivedPacketWithNoRouteToDestination) {
   EXPECT_STATE_UPDATE_TIMES(sw, 0);
   EXPECT_HW_CALL(sw, sendPacketSwitchedAsync_(_)).Times(0);
 
-  handle->rxPacket(std::move(buf), PortID(1), vlanID);
+  handle->rxPacket(std::move(buf), PortDescriptor(PortID(1)), vlanID);
   sw->getNeighborUpdater()->waitForPendingUpdates();
 
   waitForStateUpdates(sw);
@@ -1533,7 +1533,7 @@ TYPED_TEST(ArpTest, receivedPacketWithRouteToDestination) {
             senderIP, MacAddress("00:02:00:00:00:01"), nexthop, vlanID));
   }
 
-  handle->rxPacket(std::move(buf), PortID(1), vlanID);
+  handle->rxPacket(std::move(buf), PortDescriptor(PortID(1)), vlanID);
   sw->getNeighborUpdater()->waitForPendingUpdates();
 
   waitForStateUpdates(sw);

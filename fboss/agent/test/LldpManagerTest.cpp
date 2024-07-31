@@ -222,7 +222,8 @@ TEST(LldpManagerTest, NotEnabledTest) {
       "00 00 00 00 00 94 94 94 94 00 00 3b"
       "3b de 00 00");
 
-  handle->rxPacket(std::make_unique<folly::IOBuf>(pkt), portID, vlanID);
+  handle->rxPacket(
+      std::make_unique<folly::IOBuf>(pkt), PortDescriptor(portID), vlanID);
 
   counters.update();
   counters.checkDelta(SwitchStats::kCounterPrefix + "trapped.unhandled.sum", 1);
@@ -252,7 +253,9 @@ TEST(LldpManagerTest, LldpParse) {
         LldpManager::SYSTEM_CAPABILITY_ROUTER);
 
     handle->rxPacket(
-        std::make_unique<folly::IOBuf>(*pkt->buf()), PortID(1), vlanID);
+        std::make_unique<folly::IOBuf>(*pkt->buf()),
+        PortDescriptor(PortID(1)),
+        vlanID);
 
     counters.update();
     counters.checkDelta(
@@ -296,7 +299,9 @@ TEST(LldpManagerTest, LldpValidationPass) {
         LldpManager::SYSTEM_CAPABILITY_ROUTER);
 
     handle->rxPacket(
-        std::make_unique<folly::IOBuf>(*pkt->buf()), PortID(1), vlanID);
+        std::make_unique<folly::IOBuf>(*pkt->buf()),
+        PortDescriptor(PortID(1)),
+        vlanID);
 
     sw->updateStats();
     counters.update();
@@ -355,7 +360,9 @@ TEST(LldpManagerTest, LldpValidationFail) {
         LldpManager::SYSTEM_CAPABILITY_ROUTER);
 
     handle->rxPacket(
-        std::make_unique<folly::IOBuf>(*pkt->buf()), portID, vlanID);
+        std::make_unique<folly::IOBuf>(*pkt->buf()),
+        PortDescriptor(portID),
+        vlanID);
 
     counters.update();
     counters.checkDelta(
@@ -379,7 +386,9 @@ TEST(LldpManagerTest, LldpValidationFail) {
         1,
         LldpManager::SYSTEM_CAPABILITY_ROUTER);
     handle->rxPacket(
-        std::make_unique<folly::IOBuf>(*validPkt->buf()), portID, vlanID);
+        std::make_unique<folly::IOBuf>(*validPkt->buf()),
+        PortDescriptor(portID),
+        vlanID);
     waitForStateUpdates(sw);
     port = sw->getState()->getPorts()->getNodeIf(portID);
     EXPECT_EQ(port->getLedPortExternalState(), PortLedExternalState::NONE);

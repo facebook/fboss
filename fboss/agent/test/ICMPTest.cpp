@@ -459,7 +459,8 @@ TEST(ICMPTest, TTLExceededV4) {
           icmpPayload.data(),
           168));
 
-  handle->rxPacket(std::make_unique<folly::IOBuf>(pkt), portID, vlanID);
+  handle->rxPacket(
+      std::make_unique<folly::IOBuf>(pkt), PortDescriptor(portID), vlanID);
 
   counters.update();
   counters.checkDelta(SwitchStats::kCounterPrefix + "trapped.pkts.sum", 1);
@@ -565,7 +566,8 @@ TEST(ICMPTest, TTLExceededV4IPExtraOptions) {
           icmpPayload.data(),
           168));
 
-  handle->rxPacket(std::make_unique<folly::IOBuf>(pkt), portID, vlanID);
+  handle->rxPacket(
+      std::make_unique<folly::IOBuf>(pkt), PortDescriptor(portID), vlanID);
 }
 
 TEST(ICMPTest, ExtraFrameCheckSequenceAtEnd) {
@@ -717,7 +719,8 @@ TEST(ICMPTest, TTLExceededV4WithoutV4Interface) {
           icmpPayload.data(),
           160));
 
-  handle->rxPacket(std::make_unique<folly::IOBuf>(pkt), portID, vlanID);
+  handle->rxPacket(
+      std::make_unique<folly::IOBuf>(pkt), PortDescriptor(portID), vlanID);
 
   counters.update();
   counters.checkDelta(SwitchStats::kCounterPrefix + "trapped.pkts.sum", 1);
@@ -826,7 +829,8 @@ TEST(ICMPTest, TTLExceededV4WithoutAnyV4Interface) {
           icmpPayload.data(),
           164));
 
-  handle->rxPacket(std::make_unique<folly::IOBuf>(pkt), portID, vlanID);
+  handle->rxPacket(
+      std::make_unique<folly::IOBuf>(pkt), PortDescriptor(portID), vlanID);
 
   counters.update();
   counters.checkDelta(SwitchStats::kCounterPrefix + "trapped.pkts.sum", 1);
@@ -878,7 +882,8 @@ void runTTLExceededV6Test(size_t requestedPayloadSize) {
           expectedPayload.data(),
           expectedPayload.length()));
 
-  handle->rxPacket(std::make_unique<folly::IOBuf>(pkt), portID, vlanID);
+  handle->rxPacket(
+      std::make_unique<folly::IOBuf>(pkt), PortDescriptor(portID), vlanID);
 
   counters.update();
   counters.checkDelta(SwitchStats::kCounterPrefix + "trapped.pkts.sum", 1);
@@ -912,7 +917,8 @@ TEST(ICMPTest, TTL1Ping6) {
 
   EXPECT_HW_CALL(sw, stateChangedImpl(_)).Times(0);
 
-  handle->rxPacket(std::make_unique<folly::IOBuf>(pkt), portID, vlanID);
+  handle->rxPacket(
+      std::make_unique<folly::IOBuf>(pkt), PortDescriptor(portID), vlanID);
 
   counters.update();
   counters.checkDelta(SwitchStats::kCounterPrefix + "trapped.pkts.sum", 1);
@@ -1043,7 +1049,8 @@ TEST(ICMPTest, PacketTooBigV6) {
           1218)); /* 1222 - 4 bytes of ICMPv6 header (Type/Code/Cksum ) */
 
   /* receive a big packet */
-  handle->rxPacket(std::make_unique<folly::IOBuf>(pkt), portID, vlanID);
+  handle->rxPacket(
+      std::make_unique<folly::IOBuf>(pkt), PortDescriptor(portID), vlanID);
 
   counters.update();
   counters.checkDelta(SwitchStats::kCounterPrefix + "trapped.pkts.sum", 1);
