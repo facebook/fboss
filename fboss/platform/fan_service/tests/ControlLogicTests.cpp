@@ -15,6 +15,8 @@
 
 using namespace ::testing;
 using namespace facebook::fboss::platform::fan_service;
+namespace constants =
+    facebook::fboss::platform::fan_service::fan_service_config_constants;
 
 namespace {
 
@@ -301,5 +303,37 @@ TEST_F(ControlLogicTests, UpdateControlSensorReadFailure) {
             fmt::format("{}.sensor_read.failure", sensorName)),
         1);
   }
+}
+
+TEST_F(ControlLogicTests, CalculatePid) {
+  PidSetting pidSetting;
+  pidSetting.setPoint() = 60;
+  pidSetting.negHysteresis() = 2;
+  pidSetting.posHysteresis() = 0;
+  pidSetting.kp() = 4;
+  pidSetting.ki() = 0.06;
+  pidSetting.kd() = 0;
+
+  PwmCalcCache cache;
+  cache.previousTargetPwm = 30;
+  cache.previousRead1 = 52;
+
+  // CASE 1: The read value is lower than setPoint. No action.
+  auto newPwm =
+      controlLogic_->calculatePid("qsfp_group_1", 50, cache, pidSetting, 30);
+  EXPECT_EQ(newPwm, 30);
+  EXPECT_EQ(cache.previousTargetPwm, 30);
+  EXPECT_EQ(cache.previousRead1, 50);
+  EXPECT_EQ(cache.previousRead2, 52);
+  EXPECT_EQ(cache.last_error, 0);
+
+  // CASE 2: The read value is higher than setPoint. Increase pwm.
+  newPwm =
+      controlLogic_->calculatePid("qsfp_group_1", 65, cache, pidSetting, 30);
+  EXPECT_EQ(newPwm, -29);
+  EXPECT_EQ(cache.previousTargetPwm, -29);
+  EXPECT_EQ(cache.previousRead1, 65);
+  EXPECT_EQ(cache.previousRead2, 50);
+  EXPECT_EQ(cache.last_error, -5);
 }
 } // namespace facebook::fboss::platform
