@@ -123,6 +123,12 @@ void SaiPhyManager::updateAllXphyPortsStats() {
             auto& xphyToPlatform = saiPlatforms_.find(pimId)->second;
             for (auto& [xphy, platformInfo] : xphyToPlatform) {
               try {
+                if (!platformInfo->getHwSwitch() ||
+                    !platformInfo->getHwSwitch()->isFullyConfigured()) {
+                  XLOG(WARN) << "Skipping xphy stats collection for xphy "
+                             << xphy << " as it's not fully configured";
+                  continue;
+                }
                 platformInfo->getHwSwitch()->updateStats();
                 platformInfo->getHwSwitch()->updateAllPhyInfo();
                 auto phyInfos = platformInfo->getHwSwitch()->getAllPhyInfo();
