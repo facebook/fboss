@@ -41,6 +41,7 @@ class DsfNode : public ThriftStructNode<DsfNode, cfg::DsfNode> {
   std::optional<cfg::Range64> getSystemPortRange() const;
   std::optional<folly::MacAddress> getMac() const;
   PlatformType getPlatformType() const;
+  std::optional<int> getClusterId() const;
 
  private:
   // Inherit the constructors required for clone()

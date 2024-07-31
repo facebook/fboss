@@ -403,6 +403,11 @@ class SaiSwitch : public HwSwitch {
   void syncLinkConnectivityLocked(const std::lock_guard<std::mutex>& lock);
 
   template <typename LockPolicyT>
+  void processLocalCapsuleSwitchIdsDelta(
+      const StateDelta& delta,
+      const LockPolicyT& lockPolicy);
+
+  template <typename LockPolicyT>
   void processDefaultDataPlanePolicyDelta(
       const StateDelta& delta,
       const LockPolicyT& lk);

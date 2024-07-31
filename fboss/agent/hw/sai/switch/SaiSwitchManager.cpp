@@ -21,6 +21,7 @@
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
 #include "fboss/agent/hw/sai/switch/SaiUdfManager.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
+#include "fboss/agent/hw/switch_asics/Jericho3Asic.h"
 #include "fboss/agent/platforms/sai/SaiPlatform.h"
 #include "fboss/agent/state/DeltaFunctions.h"
 #include "fboss/agent/state/LoadBalancer.h"
@@ -912,5 +913,21 @@ void SaiSwitchManager::setCreditWatchdog(bool creditWatchdog) {
   switch_->setOptionalAttribute(
       SaiSwitchTraits::Attributes::CreditWd{creditWatchdog});
 #endif
+}
+
+void SaiSwitchManager::setLocalCapsuleSwitchIds(
+    const std::map<SwitchID, int>& switchIdToNumCores) {
+  std::vector<sai_uint32_t> values;
+  for (const auto& it : switchIdToNumCores) {
+    sai_uint32_t switchId = it.first;
+    int numCores = it.second;
+    for (auto idx = 0; idx < numCores; idx++) {
+      values.push_back(switchId + idx);
+    }
+  }
+  XLOG(DBG2) << "set local capsule switch ids "
+             << std::string(values.begin(), values.end());
+  switch_->setOptionalAttribute(
+      SaiSwitchTraits::Attributes::MultiStageLocalSwitchIds{values});
 }
 } // namespace facebook::fboss

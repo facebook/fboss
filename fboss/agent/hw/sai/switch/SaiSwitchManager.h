@@ -96,6 +96,8 @@ class SaiSwitchManager {
   HwSwitchWatermarkStats getSwitchWatermarkStats() const {
     return switchWatermarkStats_;
   }
+  void setLocalCapsuleSwitchIds(
+      const std::map<SwitchID, int>& switchIdToNumCores);
 
  private:
   void programEcmpLoadBalancerParams(

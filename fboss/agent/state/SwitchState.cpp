@@ -666,6 +666,34 @@ std::optional<cfg::Range64> SwitchState::getAssociatedSystemPortRangeIf(
   return getAssociatedSystemPortRangeIf(port->getInterfaceID());
 }
 
+std::optional<int> SwitchState::getClusterId(SwitchID switchId) const {
+  auto dsfNode = getDsfNodes()->getNodeIf(switchId);
+  CHECK(dsfNode) << "invalid switch ID " << switchId;
+  // TODO(daiweix): get clusterId from switch name
+  return dsfNode->getClusterId();
+  ;
+}
+
+std::vector<SwitchID> SwitchState::getIntraClusterSwitchIds(
+    SwitchID switchId) const {
+  std::map<int, std::vector<SwitchID>> clusterIdToSwitchIds;
+  for (const auto& matcherAndNodes : std::as_const(*getDsfNodes())) {
+    for (const auto& idAndNode : std::as_const(*matcherAndNodes.second)) {
+      auto sid = static_cast<SwitchID>(idAndNode.first);
+      auto cid = getClusterId(sid);
+      if (cid &&
+          idAndNode.second->getType() == cfg::DsfNodeType::INTERFACE_NODE) {
+        clusterIdToSwitchIds[cid.value()].push_back(sid);
+      }
+    }
+  }
+  auto clusterId = getClusterId(switchId);
+  if (!clusterId || clusterIdToSwitchIds.size() == 1) {
+    return {};
+  }
+  return clusterIdToSwitchIds[clusterId.value()];
+}
+
 InterfaceID SwitchState::getInterfaceIDForPort(
     const PortDescriptor& port) const {
   switch (port.type()) {

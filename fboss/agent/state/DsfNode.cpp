@@ -77,5 +77,13 @@ std::set<folly::CIDRNetwork> DsfNode::getLoopbackIpsSorted() const {
   return subnets;
 }
 
+std::optional<int> DsfNode::getClusterId() const {
+  std::optional<int> clusterId;
+  if (get<switch_config_tags::clusterId>().has_value()) {
+    clusterId = get<switch_config_tags::clusterId>()->cref();
+  }
+  return clusterId;
+}
+
 template class ThriftStructNode<DsfNode, cfg::DsfNode>;
 } // namespace facebook::fboss

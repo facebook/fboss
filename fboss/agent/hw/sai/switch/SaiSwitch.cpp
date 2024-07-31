@@ -357,6 +357,33 @@ void SaiSwitch::unregisterCallbacks() noexcept {
 }
 
 template <typename LockPolicyT>
+void SaiSwitch::processLocalCapsuleSwitchIdsDelta(
+    const StateDelta& delta,
+    const LockPolicyT& lockPolicy) {
+  SwitchID mySwitchId =
+      static_cast<SwitchID>(platform_->getAsic()->getSwitchId().value());
+  auto dsfNodesDelta = delta.getDsfNodesDelta();
+  if (dsfNodesDelta.begin() == dsfNodesDelta.end() ||
+      !delta.newState()->getClusterId(mySwitchId)) {
+    return;
+  }
+  std::vector<SwitchID> newVal;
+  CHECK(platform_->getAsic()->getSwitchId());
+  if (dsfNodesDelta.getNew() &&
+      dsfNodesDelta.getNew()->begin() != dsfNodesDelta.getNew()->end()) {
+    newVal = delta.newState()->getIntraClusterSwitchIds(mySwitchId);
+  }
+  std::map<SwitchID, int> switchIdToNumCores;
+  for (auto switchId : newVal) {
+    auto dsfNode = delta.newState()->getDsfNodes()->getNodeIf(switchId);
+    CHECK(dsfNode);
+    const auto& hwAsic = getHwAsicForAsicType(dsfNode->getAsicType());
+    switchIdToNumCores[switchId] = hwAsic.getNumCores();
+  }
+  managerTable_->switchManager().setLocalCapsuleSwitchIds(switchIdToNumCores);
+}
+
+template <typename LockPolicyT>
 void SaiSwitch::processDefaultDataPlanePolicyDelta(
     const StateDelta& delta,
     const LockPolicyT& lockPolicy) {
@@ -573,6 +600,7 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChangedImplLocked(
       delta.getTeFlowEntriesDelta(), managerTable_->teFlowEntryManager());
   // update switch settings first
   processSwitchSettingsChanged(delta, lockPolicy);
+  processLocalCapsuleSwitchIdsDelta(delta, lockPolicy);
 
   // process non-default qos policies, which are stored in
   // SwitchStatae::qosPolicyMaps
