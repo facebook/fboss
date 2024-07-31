@@ -77,6 +77,10 @@ sai_status_t create_port_fn(
   std::vector<sai_map_t> pfcTcDldInterval;
   std::vector<sai_map_t> pfcTcDlrInterval;
   std::optional<sai_latch_status_t> portCrcErrDetect;
+  std::optional<bool> ars_enable;
+  std::optional<sai_uint32_t> ars_port_load_scaling_factor;
+  std::optional<sai_uint32_t> ars_port_load_past_weight;
+  std::optional<sai_uint32_t> ars_port_load_future_weight;
 
   for (int i = 0; i < attr_count; ++i) {
     switch (attr_list[i].id) {
@@ -256,6 +260,18 @@ sai_status_t create_port_fn(
         }
         break;
 #endif
+      case SAI_PORT_ATTR_ARS_ENABLE:
+        ars_enable = attr_list[i].value.booldata;
+        break;
+      case SAI_PORT_ATTR_ARS_PORT_LOAD_SCALING_FACTOR:
+        ars_port_load_scaling_factor = attr_list[i].value.u32;
+        break;
+      case SAI_PORT_ATTR_ARS_PORT_LOAD_PAST_WEIGHT:
+        ars_port_load_past_weight = attr_list[i].value.u32;
+        break;
+      case SAI_PORT_ATTR_ARS_PORT_LOAD_FUTURE_WEIGHT:
+        ars_port_load_future_weight = attr_list[i].value.u32;
+        break;
       default:
         return SAI_STATUS_INVALID_PARAMETER;
     }
@@ -386,6 +402,18 @@ sai_status_t create_port_fn(
   }
   if (portCrcErrDetect.has_value()) {
     port.portCrcErrDetect = portCrcErrDetect.value();
+  }
+  if (ars_enable.has_value()) {
+    port.ars_enable = ars_enable.value();
+  }
+  if (ars_port_load_scaling_factor.has_value()) {
+    port.ars_port_load_scaling_factor = ars_port_load_scaling_factor.value();
+  }
+  if (ars_port_load_past_weight.has_value()) {
+    port.ars_port_load_past_weight = ars_port_load_past_weight.value();
+  }
+  if (ars_port_load_future_weight.has_value()) {
+    port.ars_port_load_future_weight = ars_port_load_future_weight.value();
   }
 
   return SAI_STATUS_SUCCESS;
@@ -718,6 +746,18 @@ sai_status_t set_port_attribute_fn(
       }
     } break;
 #endif
+    case SAI_PORT_ATTR_ARS_ENABLE:
+      port.ars_enable = attr->value.booldata;
+      break;
+    case SAI_PORT_ATTR_ARS_PORT_LOAD_SCALING_FACTOR:
+      port.ars_port_load_scaling_factor = attr->value.u32;
+      break;
+    case SAI_PORT_ATTR_ARS_PORT_LOAD_PAST_WEIGHT:
+      port.ars_port_load_past_weight = attr->value.u32;
+      break;
+    case SAI_PORT_ATTR_ARS_PORT_LOAD_FUTURE_WEIGHT:
+      port.ars_port_load_future_weight = attr->value.u32;
+      break;
     default:
       res = SAI_STATUS_INVALID_PARAMETER;
       break;
@@ -1034,6 +1074,18 @@ sai_status_t get_port_attribute_fn(
 #endif
       case SAI_PORT_ATTR_SYSTEM_PORT:
         attr[i].value.u16 = port.systemPortId;
+        break;
+      case SAI_PORT_ATTR_ARS_ENABLE:
+        attr[i].value.booldata = port.ars_enable;
+        break;
+      case SAI_PORT_ATTR_ARS_PORT_LOAD_SCALING_FACTOR:
+        attr[i].value.u32 = port.ars_port_load_scaling_factor;
+        break;
+      case SAI_PORT_ATTR_ARS_PORT_LOAD_PAST_WEIGHT:
+        attr[i].value.u32 = port.ars_port_load_past_weight;
+        break;
+      case SAI_PORT_ATTR_ARS_PORT_LOAD_FUTURE_WEIGHT:
+        attr[i].value.u32 = port.ars_port_load_future_weight;
         break;
       default:
         return SAI_STATUS_INVALID_PARAMETER;

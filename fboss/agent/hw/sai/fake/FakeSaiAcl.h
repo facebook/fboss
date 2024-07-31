@@ -207,6 +207,8 @@ class FakeAclEntry {
   bool actionSetUserTrapEnable{false};
   sai_object_id_t actionSetUserTrapData;
 
+  bool actionDisableArsForwarding{false};
+
   sai_object_id_t id;
 };
 

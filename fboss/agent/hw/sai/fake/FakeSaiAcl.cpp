@@ -84,6 +84,7 @@ bool FakeAclTable::entryFieldSupported(const sai_attribute_t& attr) const {
     case SAI_ACL_ENTRY_ATTR_ACTION_MIRROR_EGRESS:
     case SAI_ACL_ENTRY_ATTR_ACTION_MACSEC_FLOW:
     case SAI_ACL_ENTRY_ATTR_ACTION_SET_USER_TRAP_ID:
+    case SAI_ACL_ENTRY_ATTR_ACTION_DISABLE_ARS_FORWARDING:
       return true;
     default:
       return false;
@@ -714,6 +715,11 @@ sai_status_t set_acl_entry_attribute_fn(
       aclEntry.actionSetUserTrapData = attr->value.aclaction.parameter.oid;
       res = SAI_STATUS_SUCCESS;
       break;
+    case SAI_ACL_ENTRY_ATTR_ACTION_DISABLE_ARS_FORWARDING:
+      aclEntry.actionDisableArsForwarding =
+          attr->value.aclaction.parameter.booldata;
+      res = SAI_STATUS_SUCCESS;
+      break;
     default:
       res = SAI_STATUS_NOT_SUPPORTED;
       break;
@@ -936,6 +942,10 @@ sai_status_t get_acl_entry_attribute_fn(
         attr_list[i].value.aclaction.enable = aclEntry.actionSetUserTrapEnable;
         attr_list[i].value.aclaction.parameter.oid =
             aclEntry.actionSetUserTrapData;
+        break;
+      case SAI_ACL_ENTRY_ATTR_ACTION_DISABLE_ARS_FORWARDING:
+        attr_list[i].value.aclaction.parameter.booldata =
+            aclEntry.actionDisableArsForwarding;
         break;
       default:
         return SAI_STATUS_NOT_SUPPORTED;

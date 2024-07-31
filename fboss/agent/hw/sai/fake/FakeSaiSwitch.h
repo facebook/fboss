@@ -227,6 +227,12 @@ class FakeSwitch {
   void setIngressAcl(sai_object_id_t oid) {
     ingressAcl_ = oid;
   }
+  sai_object_id_t getArsProfile() {
+    return arsProfile_;
+  }
+  void setArsProfile(sai_object_id_t oid) {
+    arsProfile_ = oid;
+  }
   sai_uint32_t getCounterRefreshInterval() {
     return counterRefreshInterval_;
   }
@@ -302,6 +308,7 @@ class FakeSwitch {
   sai_uint32_t macAgingTime_{0};
   bool UseEcnThresholds_{false};
   sai_object_id_t ingressAcl_{SAI_NULL_OBJECT_ID};
+  sai_object_id_t arsProfile_{SAI_NULL_OBJECT_ID};
   struct FakeSwitchLedState {
     bool reset{};
     std::array<uint8_t, 256> program{};

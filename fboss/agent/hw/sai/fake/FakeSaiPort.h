@@ -98,6 +98,10 @@ struct FakePort {
   bool rxLaneSquelchEnable{false};
   std::optional<std::vector<sai_map_t>> pfcTcDldInterval{};
   std::optional<std::vector<sai_map_t>> pfcTcDlrInterval{};
+  bool ars_enable{false};
+  sai_uint32_t ars_port_load_scaling_factor{400};
+  sai_uint32_t ars_port_load_past_weight{60};
+  sai_uint32_t ars_port_load_future_weight{20};
 };
 
 struct FakePortSerdes {

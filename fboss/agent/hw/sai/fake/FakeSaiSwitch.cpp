@@ -199,6 +199,9 @@ sai_status_t set_switch_attribute_fn(
     case SAI_SWITCH_ATTR_INGRESS_ACL:
       sw.setIngressAcl(attr->value.oid);
       break;
+    case SAI_SWITCH_ATTR_ARS_PROFILE:
+      sw.setArsProfile(attr->value.oid);
+      break;
     case SAI_SWITCH_ATTR_EXT_FAKE_LED:
     case SAI_SWITCH_ATTR_EXT_FAKE_LED_RESET:
       return sw.setLed(attr);
@@ -448,6 +451,9 @@ sai_status_t get_switch_attribute_fn(
         break;
       case SAI_SWITCH_ATTR_INGRESS_ACL:
         attr[i].value.oid = sw.getIngressAcl();
+        break;
+      case SAI_SWITCH_ATTR_ARS_PROFILE:
+        attr[i].value.oid = sw.getArsProfile();
         break;
       case SAI_SWITCH_ATTR_COUNTER_REFRESH_INTERVAL:
         attr[i].value.u32 = sw.getCounterRefreshInterval();

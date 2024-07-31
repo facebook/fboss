@@ -35,7 +35,10 @@ class FakeNextHopGroupMember {
 class FakeNextHopGroup {
  public:
   FakeNextHopGroup(int32_t type) : type(type) {}
+  FakeNextHopGroup(int32_t type, sai_object_id_t ars_id)
+      : type(type), ars_id(ars_id) {}
   int32_t type;
+  sai_object_id_t ars_id;
   sai_object_id_t id;
   FakeManager<sai_object_id_t, FakeNextHopGroupMember>& fm() {
     return fm_;
