@@ -577,7 +577,13 @@ struct SaiSwitchTraits {
       std::optional<Attributes::PfcDlrPacketAction>,
       std::optional<Attributes::RouteNoImplicitMetaData>,
       std::optional<Attributes::RouteAllowImplicitMetaData>,
-      std::optional<Attributes::MultiStageLocalSwitchIds>>;
+      std::optional<Attributes::MultiStageLocalSwitchIds>,
+      std::optional<Attributes::VoqLatencyMinLocalNs>,
+      std::optional<Attributes::VoqLatencyMaxLocalNs>,
+      std::optional<Attributes::VoqLatencyMinLevel1Ns>,
+      std::optional<Attributes::VoqLatencyMaxLevel1Ns>,
+      std::optional<Attributes::VoqLatencyMinLevel2Ns>,
+      std::optional<Attributes::VoqLatencyMaxLevel2Ns>>;
 
 #if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
   static constexpr std::array<sai_stat_id_t, 3> CounterIdsToRead = {

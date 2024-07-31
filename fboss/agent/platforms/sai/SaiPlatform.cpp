@@ -548,6 +548,22 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
     switchIsolate = true;
   }
 
+  std::optional<int32_t> voqLatencyMinLocalNs;
+  std::optional<int32_t> voqLatencyMaxLocalNs;
+  std::optional<int32_t> voqLatencyMinLevel1Ns;
+  std::optional<int32_t> voqLatencyMaxLevel1Ns;
+  std::optional<int32_t> voqLatencyMinLevel2Ns;
+  std::optional<int32_t> voqLatencyMaxLevel2Ns;
+  // TODO: Look at making this part of config instead of hardcoding
+#if defined(BRCM_SAI_SDK_GTE_11_0)
+  voqLatencyMinLocalNs = 5000;
+  voqLatencyMaxLocalNs = 4294967295;
+  voqLatencyMinLevel1Ns = 500000;
+  voqLatencyMaxLevel1Ns = 4294967295;
+  voqLatencyMinLevel2Ns = 800000;
+  voqLatencyMaxLevel2Ns = 4294967295;
+#endif
+
   return {
       initSwitch,
       hwInfo, // hardware info
@@ -600,6 +616,12 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
       std::nullopt, // route no implicit meta data
       std::nullopt, // route allow implicit meta data
       std::nullopt, // multi-stage local switch ids
+      voqLatencyMinLocalNs, // Local VoQ latency bin min
+      voqLatencyMaxLocalNs, // Local VoQ latency bin max
+      voqLatencyMinLevel1Ns, // Level1 VoQ latency bin min
+      voqLatencyMaxLevel1Ns, // Level1 VoQ latency bin max
+      voqLatencyMinLevel2Ns, // Level2 VoQ latency bin min
+      voqLatencyMaxLevel2Ns, // Level2 VoQ latency bin max
   };
 }
 
