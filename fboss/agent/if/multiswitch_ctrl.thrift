@@ -41,6 +41,10 @@ struct LinkChangeEvent {
   3: LinkConnectivityEvent linkConnectivityEvents;
 }
 
+struct SwitchReachabilityChangeEvent {
+  1: map<i64, set<i32>> switchId2FabricPorts;
+}
+
 struct FdbEvent {
   1: ctrl.L2EntryThrift entry;
   2: ctrl.L2EntryUpdateType updateType;
@@ -101,6 +105,11 @@ service MultiSwitchCtrl {
   /* notify link change event*/
   @thrift.Priority{level = thrift.RpcPriority.IMPORTANT}
   sink<LinkChangeEvent, bool> notifyLinkChangeEvent(1: i64 switchId);
+
+  /* switch reachability change event*/
+  sink<SwitchReachabilityChangeEvent, bool> notifySwitchReachabilityChangeEvent(
+    1: i64 switchId,
+  );
 
   /* get next oper delta from SwSwitch */
   @thrift.Priority{level = thrift.RpcPriority.HIGH}
