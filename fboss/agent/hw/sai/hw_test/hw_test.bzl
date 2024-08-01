@@ -1,7 +1,7 @@
 load("@fbcode_macros//build_defs:auto_headers.bzl", "AutoHeaders")
 load("@fbcode_macros//build_defs:cpp_binary.bzl", "cpp_binary")
 load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
-load("//fboss/agent/hw/sai/impl:impl.bzl", "get_all_impls_for", "get_all_npu_impls", "impl_category_suffix", "to_impl_lib_name", "to_impl_suffix", "to_versions")
+load("//fboss/agent/hw/sai/impl:impl.bzl", "get_all_impls_for", "get_all_npu_impls", "get_link_group_map", "impl_category_suffix", "to_impl_lib_name", "to_impl_suffix", "to_versions")
 load("//fboss/agent/hw/sai/switch:switch.bzl", "sai_switch_dependent_name", "sai_switch_lib_name")
 
 def _sai_switch_ensemble(sai_impl, is_npu):
@@ -272,8 +272,9 @@ def _sai_test_binary(sai_impl, is_npu):
         "//fboss/agent/hw/sai/impl:{}".format(to_impl_lib_name(sai_impl)),
         "//fboss/agent/hw/sai/hw_test:{}".format(get_switch_phy_capabilities_name(sai_impl, is_npu)),
     ]
+    binary_name = "sai_test{}-{}-{}".format(impl_category_suffix(is_npu), sai_impl.name, sai_impl.version)
     return cpp_binary(
-        name = "sai_test{}-{}-{}".format(impl_category_suffix(is_npu), sai_impl.name, sai_impl.version),
+        name = binary_name,
         srcs = [
             "dataplane_tests/SaiAclTableGroupTrafficTests.cpp",
             "HwTestEcmpUtils.cpp",
@@ -311,6 +312,7 @@ def _sai_test_binary(sai_impl, is_npu):
             "--unresolved-symbols=ignore-all",
         ],
         deps = test_deps,
+        link_group_map = get_link_group_map(binary_name, sai_impl),
         headers = [
             "SaiLinkStateDependentTests.h",
         ],
