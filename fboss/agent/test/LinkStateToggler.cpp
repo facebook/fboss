@@ -21,10 +21,32 @@
 #include <gtest/gtest.h>
 
 namespace {
+
+using namespace facebook::fboss;
+
 // Instead of bringing up ports 1-by-1, bring them up in batches such that
 // 1) Similar to prod environment where links could come up in batches, and
 // 2) More efficient during testing.
 constexpr auto kBatchSize = 32;
+
+bool skipTogglingPort(const cfg::Port& port) {
+  switch (*port.portType()) {
+    case cfg::PortType::INTERFACE_PORT:
+    case cfg::PortType::FABRIC_PORT:
+      return false;
+    case cfg::PortType::CPU_PORT:
+    case cfg::PortType::RECYCLE_PORT:
+    case cfg::PortType::EVENTOR_PORT:
+      return true;
+    case cfg::PortType::MANAGEMENT_PORT:
+      return false;
+  }
+
+  throw FbossError(
+      "invalid port type: ",
+      apache::thrift::util::enumNameSafe(*port.portType()));
+}
+
 } // namespace
 
 namespace facebook::fboss {
@@ -178,8 +200,7 @@ std::shared_ptr<SwitchState> LinkStateToggler::applyInitialConfigWithPortsDown(
   auto cfg = initCfg;
   boost::container::flat_map<int, cfg::PortState> portId2DesiredState;
   for (auto& port : *cfg.ports()) {
-    if (port.portType() == cfg::PortType::RECYCLE_PORT ||
-        port.portType() == cfg::PortType::EVENTOR_PORT) {
+    if (skipTogglingPort(port)) {
       continue;
     }
     portId2DesiredState[*port.logicalID()] = *port.state();
@@ -198,8 +219,7 @@ std::shared_ptr<SwitchState> LinkStateToggler::applyInitialConfigWithPortsDown(
 
   // Wait for port state to be disabled in switch state
   for (auto& port : *cfg.ports()) {
-    if (port.portType() == cfg::PortType::RECYCLE_PORT ||
-        port.portType() == cfg::PortType::EVENTOR_PORT) {
+    if (skipTogglingPort(port)) {
       continue;
     }
     waitForPortDown(PortID(*port.logicalID()));
@@ -251,9 +271,7 @@ std::shared_ptr<SwitchState> LinkStateToggler::applyInitialConfigWithPortsDown(
 void LinkStateToggler::bringUpPorts(const cfg::SwitchConfig& initCfg) {
   std::vector<PortID> portsToBringUp;
   folly::gen::from(*initCfg.ports()) | folly::gen::filter([](const auto& port) {
-    return *port.state() == cfg::PortState::ENABLED &&
-        (*port.portType() != cfg::PortType::RECYCLE_PORT &&
-         *port.portType() != cfg::PortType::EVENTOR_PORT);
+    return *port.state() == cfg::PortState::ENABLED && !skipTogglingPort(port);
   }) | folly::gen::map([](const auto& port) {
     return PortID(*port.logicalID());
   }) | folly::gen::appendTo(portsToBringUp);
