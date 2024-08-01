@@ -31,6 +31,10 @@ class MultiSwitchThriftHandler
       apache::thrift::SinkConsumer<multiswitch::HwSwitchStats, bool>>
   co_syncHwStats(int16_t switchIndex) override;
 
+  folly::coro::Task<apache::thrift::SinkConsumer<
+      multiswitch::SwitchReachabilityChangeEvent,
+      bool>>
+  co_notifySwitchReachabilityChangeEvent(int64_t switchIndex) override;
 #endif
   void getNextStateOperDelta(
       multiswitch::StateOperDelta& operDelta,
@@ -52,11 +56,16 @@ class MultiSwitchThriftHandler
   void processLinkConnectivity(
       SwitchID switchId,
       const multiswitch::LinkChangeEvent& linkChangeEvent);
+  void processSwitchReachabilityChangeEvent(
+      SwitchID switchId,
+      const multiswitch::SwitchReachabilityChangeEvent&
+          switchReachabilityChangeEvent);
   void ensureConfigured(folly::StringPiece function) const;
   SwSwitch* sw_;
   folly::CancellationSource rxPktCancellationSource_;
   folly::CancellationSource linkCancellationSource_;
   folly::CancellationSource fdbCancellationSource_;
   folly::CancellationSource statsCancellationSource_;
+  folly::CancellationSource switchReachabilityCancellationSource_;
 };
 } // namespace facebook::fboss

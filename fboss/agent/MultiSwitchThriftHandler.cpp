@@ -14,6 +14,10 @@ DEFINE_uint64(link_event_buffer_size, 1000, "Link eßvent buffer size");
 DEFINE_uint64(stats_event_buffer_size, 10, "Stats event buffer size");
 DEFINE_uint64(fdb_event_buffer_size, 100, "Fdb event buffer size");
 DEFINE_uint64(rx_pkt_buffer_size, 1000, "Rx pkt buffer size");
+DEFINE_uint64(
+    switch_reachability_change_event_buffer_size,
+    2,
+    "Switch reachability change event buffer size");
 
 void MultiSwitchThriftHandler::ensureConfigured(
     folly::StringPiece function) const {
@@ -107,6 +111,25 @@ void MultiSwitchThriftHandler::processLinkConnectivity(
   }
   sw_->linkConnectivityChanged(port2ConnectivityDelta);
 }
+
+void MultiSwitchThriftHandler::processSwitchReachabilityChangeEvent(
+    SwitchID switchId,
+    const multiswitch::SwitchReachabilityChangeEvent&
+        switchReachabilityChangeEvent) {
+  if (switchReachabilityChangeEvent.switchId2FabricPorts()->size() == 0) {
+    return;
+  }
+  XLOG(DBG3) << "Got switch reachability change event from switch " << switchId;
+
+  std::map<int64_t, std::set<PortID>> switchId2FabricPortIds;
+  for (const auto& [switchId, fabricPortIds] :
+       *switchReachabilityChangeEvent.switchId2FabricPorts()) {
+    switchId2FabricPortIds[switchId] =
+        std::set<PortID>(fabricPortIds.begin(), fabricPortIds.end());
+  }
+  sw_->switchReachabilityChanged(switchId, switchId2FabricPortIds);
+}
+
 #if FOLLY_HAS_COROUTINES
 folly::coro::Task<
     apache::thrift::SinkConsumer<multiswitch::LinkChangeEvent, bool>>
@@ -138,6 +161,45 @@ MultiSwitchThriftHandler::co_notifyLinkChangeEvent(int64_t switchId) {
         co_return true;
       },
       FLAGS_link_event_buffer_size}
+      .setChunkTimeout(std::chrono::milliseconds(0));
+}
+
+folly::coro::Task<apache::thrift::SinkConsumer<
+    multiswitch::SwitchReachabilityChangeEvent,
+    bool>>
+MultiSwitchThriftHandler::co_notifySwitchReachabilityChangeEvent(
+    int64_t switchId) {
+  ensureConfigured(__func__);
+  co_return apache::thrift::SinkConsumer<
+      multiswitch::SwitchReachabilityChangeEvent,
+      bool>{
+      [this, switchId](folly::coro::AsyncGenerator<
+                       multiswitch::SwitchReachabilityChangeEvent&&> gen)
+          -> folly::coro::Task<bool> {
+        auto switchIndex = sw_->getSwitchInfoTable().getSwitchIndexFromSwitchId(
+            SwitchID(switchId));
+        sw_->stats()->hwAgentSwitchReachabilityChangeEventSinkConnectionStatus(
+            switchIndex, true);
+        try {
+          while (auto item = co_await folly::coro::co_withCancellation(
+                     switchReachabilityCancellationSource_.getToken(),
+                     gen.next())) {
+            XLOG(DBG2) << "Got switch reachability change event from switch "
+                       << switchId;
+            processSwitchReachabilityChangeEvent(SwitchID(switchId), *item);
+          }
+        } catch (const std::exception& e) {
+          XLOG(DBG2)
+              << "Switch reachability change event sink cancelled for switch "
+              << switchId << " with exception " << e.what();
+          sw_->stats()
+              ->hwAgentSwitchReachabilityChangeEventSinkConnectionStatus(
+                  switchIndex, false);
+          co_return false;
+        }
+        co_return true;
+      },
+      FLAGS_switch_reachability_change_event_buffer_size}
       .setChunkTimeout(std::chrono::milliseconds(0));
 }
 
@@ -289,6 +351,7 @@ void MultiSwitchThriftHandler::cancelEventSyncers() {
   fdbCancellationSource_.requestCancellation();
   rxPktCancellationSource_.requestCancellation();
   statsCancellationSource_.requestCancellation();
+  switchReachabilityCancellationSource_.requestCancellation();
 }
 
 } // namespace facebook::fboss
