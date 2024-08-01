@@ -181,6 +181,7 @@ bool Jericho3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::MULTIPLE_ACL_TABLES:
     case HwAsic::Feature::SAI_ECMP_HASH_ALGORITHM:
     case HwAsic::Feature::SCHEDULER_PPS:
+    case HwAsic::Feature::DATA_CELL_FILTER:
       return false;
   }
   return false;

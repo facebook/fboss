@@ -187,6 +187,7 @@ bool Tomahawk4Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::CPU_VOQ_BUFFER_PROFILE:
     case HwAsic::Feature::SWITCH_REACHABILITY_CHANGE_NOTIFY:
     case HwAsic::Feature::CABLE_PROPOGATION_DELAY:
+    case HwAsic::Feature::DATA_CELL_FILTER:
     case HwAsic::Feature::DRAM_BLOCK_TIME:
     case HwAsic::Feature::VOQ_LATENCY_WATERMARK_BIN:
     case HwAsic::Feature::ACL_ENTRY_ETHER_TYPE:

@@ -185,6 +185,7 @@ class HwAsic {
     VOQ_LATENCY_WATERMARK_BIN,
     ACL_ENTRY_ETHER_TYPE,
     ACL_BYTE_COUNTER,
+    DATA_CELL_FILTER,
   };
 
   enum class AsicMode {
