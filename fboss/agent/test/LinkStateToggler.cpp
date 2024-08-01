@@ -33,6 +33,11 @@ constexpr auto kBatchSize = 32;
 bool skipTogglingPort(const cfg::Port& port) {
   switch (*port.portType()) {
     case cfg::PortType::INTERFACE_PORT: {
+      // TODO: Migrate LLDP neighbor implementation from using
+      // expecetedLLDPValues to more generic expectedNeighborReachability.
+      // At that time, case FABRIC_PORT implementation will work for
+      // INTERFACE_PORT as well.
+
       // Toggle ports that have empty LLDP neighbor
       if (port.expectedLLDPValues()->size() == 0) {
         return false;
