@@ -198,6 +198,8 @@ void PortUpdateHandler::stateUpdated(const StateDelta& delta) {
         }
       },
       [&](const std::shared_ptr<Port>& oldPort) {
+        sw_->portStats(oldPort->getID())->clearPortStatusCounter();
+        sw_->portStats(oldPort->getID())->clearPortActiveStatusCounter();
         for (SwitchStats& switchStats : sw_->getAllThreadsSwitchStats()) {
           switchStats.deletePortStats(oldPort->getID());
         }

@@ -35,11 +35,7 @@ PortStats::PortStats(
   }
 }
 
-PortStats::~PortStats() {
-  // clear counter
-  clearPortStatusCounter();
-  clearPortActiveStatusCounter();
-}
+PortStats::~PortStats() {}
 
 void PortStats::setPortName(const std::string& portName) {
   // clear counter
