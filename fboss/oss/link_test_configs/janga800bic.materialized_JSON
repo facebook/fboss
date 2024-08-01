@@ -13659,6 +13659,7 @@
             "sai_pkt_rx_pkt_size": "16512",
             "sai_recycle_port_lane_base": "440",
             "sai_trigger_linkscan_remote_local_faults": "0",
+            "sai_voq_wm_latency_enable": "1",
             "sat_enable.BCM8889X_ADAPTER": "1",
             "soc_family.BCM8889X": "BCM8889X",
             "stable_location.BCM8889X": "3",
