@@ -32,8 +32,32 @@ constexpr auto kBatchSize = 32;
 
 bool skipTogglingPort(const cfg::Port& port) {
   switch (*port.portType()) {
-    case cfg::PortType::INTERFACE_PORT:
-      return false;
+    case cfg::PortType::INTERFACE_PORT: {
+      // Toggle ports that have empty LLDP neighbor
+      if (port.expectedLLDPValues()->size() == 0) {
+        return false;
+      }
+
+      auto lldpTagToValue = port.expectedLLDPValues();
+
+      auto sysIter = lldpTagToValue->find(cfg::LLDPTag::SYSTEM_NAME);
+      if (sysIter == lldpTagToValue->end()) {
+        return false;
+      }
+      auto remoteSystem = sysIter->second;
+
+      auto portIter = lldpTagToValue->find(cfg::LLDPTag::PORT);
+      if (portIter == lldpTagToValue->end()) {
+        return false;
+      }
+      auto remotePort = portIter->second;
+
+      auto myHostName = getLocalHostnameUqdn();
+
+      // Toggle, if expected neighbor is same as self.
+      return !(
+          myHostName == remoteSystem && port.name().value_or("") == remotePort);
+    }
     case cfg::PortType::FABRIC_PORT: {
       // Toggle ports that have empty neighbor
       if (port.expectedNeighborReachability()->size() == 0) {
