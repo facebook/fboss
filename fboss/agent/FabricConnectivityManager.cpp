@@ -231,8 +231,10 @@ void FabricConnectivityManager::addOrUpdatePort(
     const auto& neighbor = expectedNeighbors.front();
     expectedEndpoint.expectedSwitchName() = *neighbor.remoteSystem();
     expectedEndpoint.expectedPortName() = *neighbor.remotePort();
+  } else {
+    expectedEndpoint.expectedSwitchName().reset();
+    expectedEndpoint.expectedPortName().reset();
   }
-
   updateExpectedSwitchIdAndPortIdForPort(swPort->getID());
 }
 
