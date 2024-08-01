@@ -28,7 +28,7 @@
           "versions": [
             {
               "fwType": 1,
-              "version": "3.7"
+              "version": "15.6"
             }
           ]
       },
@@ -36,7 +36,7 @@
           "versions": [
             {
               "fwType": 1,
-              "version": "3.7"
+              "version": "15.6"
             }
           ]
       },
@@ -157,6 +157,22 @@
             {
               "fwType": 1,
               "version": "106.1"
+            }
+          ]
+      },
+      "T-OH8CNH-NFL": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "36.240"
+            }
+          ]
+      },
+      "T-OH8CNH-NFM": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "36.240"
             }
           ]
       },
