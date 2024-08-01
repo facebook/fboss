@@ -11,6 +11,7 @@
 #include "fboss/agent/test/LinkStateToggler.h"
 
 #include "fboss/agent/ApplyThriftConfig.h"
+#include "fboss/agent/Utils.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/test/TestEnsembleIf.h"
@@ -32,8 +33,23 @@ constexpr auto kBatchSize = 32;
 bool skipTogglingPort(const cfg::Port& port) {
   switch (*port.portType()) {
     case cfg::PortType::INTERFACE_PORT:
-    case cfg::PortType::FABRIC_PORT:
       return false;
+    case cfg::PortType::FABRIC_PORT: {
+      // Toggle ports that have empty neighbor
+      if (port.expectedNeighborReachability()->size() == 0) {
+        return false;
+      }
+
+      CHECK_EQ(port.expectedNeighborReachability()->size(), 1);
+      auto expectedNeighbor = port.expectedNeighborReachability()->front();
+      auto remoteSystem = *expectedNeighbor.remoteSystem();
+      auto remotePort = *expectedNeighbor.remotePort();
+      auto myHostName = getLocalHostnameUqdn();
+
+      // Toggle, if expected neighbor is same as self.
+      return !(
+          myHostName == remoteSystem && port.name().value_or("") == remotePort);
+    }
     case cfg::PortType::CPU_PORT:
     case cfg::PortType::RECYCLE_PORT:
     case cfg::PortType::EVENTOR_PORT:

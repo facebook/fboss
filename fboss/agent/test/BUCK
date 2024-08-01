@@ -907,6 +907,7 @@ cpp_library(
         ":test_ensemble_if",
         "//fboss/agent:apply_thrift_config",
         "//fboss/agent:switch_config-cpp2-types",
+        "//fboss/agent:utils",
         "//fboss/agent/hw/switch_asics:switch_asics",
         "//fboss/agent/state:state",
         "//fboss/lib:common_utils",
