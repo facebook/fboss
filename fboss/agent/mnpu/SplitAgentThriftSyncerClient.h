@@ -98,6 +98,16 @@ using LinkChangeEventQueueType = std::queue<multiswitch::LinkChangeEvent>;
 #endif
 
 #if FOLLY_HAS_COROUTINES
+using SwitchReachabilityChangeEventQueueType = folly::coro::BoundedQueue<
+    multiswitch::SwitchReachabilityChangeEvent,
+    true /*SingleProducer*/,
+    true /* SingleConsumer*/>;
+#else
+using SwitchReachabilityChangeEventQueueType =
+    std::queue<multiswitch::SwitchReachabilityChangeEvent>;
+#endif
+
+#if FOLLY_HAS_COROUTINES
 using RxPktEventQueueType = folly::coro::BoundedQueue<
     multiswitch::RxPacket,
     true /*SingleProducer*/,

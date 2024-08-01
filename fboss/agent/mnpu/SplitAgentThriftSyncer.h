@@ -29,6 +29,7 @@ class RxPktEventSyncer;
 class TxPktEventSyncer;
 class OperDeltaSyncer;
 class HwSwitchStatsSinkClient;
+class SwitchReachabilityChangeEventSyncer;
 
 class SplitAgentThriftSyncer : public HwSwitchCallback {
  public:
@@ -80,6 +81,8 @@ class SplitAgentThriftSyncer : public HwSwitchCallback {
   std::unique_ptr<FdbEventSyncer> fdbEventSinkClient_;
   std::unique_ptr<RxPktEventSyncer> rxPktEventSinkClient_;
   std::unique_ptr<HwSwitchStatsSinkClient> hwSwitchStatsSinkClient_;
+  std::unique_ptr<SwitchReachabilityChangeEventSyncer>
+      switchReachabilityChangeEventSinkClient_;
   bool isRunning_{false};
   folly::Synchronized<uint64_t> rxPktEventsDropped_{0};
 };

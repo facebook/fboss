@@ -317,5 +317,8 @@ template class ThriftStreamClient<multiswitch::TxPacket>;
 template class ThriftSinkClient<
     multiswitch::HwSwitchStats,
     StatsEventQueueType>;
+template class ThriftSinkClient<
+    multiswitch::SwitchReachabilityChangeEvent,
+    SwitchReachabilityChangeEventQueueType>;
 
 } // namespace facebook::fboss

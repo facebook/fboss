@@ -1395,6 +1395,7 @@ cpp_library(
         "mnpu/RxPktEventSyncer.cpp",
         "mnpu/SplitAgentThriftSyncer.cpp",
         "mnpu/SplitAgentThriftSyncerClient.cpp",
+        "mnpu/SwitchReachabilityChangeEventSyncer.cpp",
         "mnpu/TxPktEventSyncer.cpp",
     ],
     headers = [
@@ -1404,6 +1405,7 @@ cpp_library(
         "mnpu/RxPktEventSyncer.h",
         "mnpu/SplitAgentThriftSyncer.h",
         "mnpu/SplitAgentThriftSyncerClient.h",
+        "mnpu/SwitchReachabilityChangeEventSyncer.h",
         "mnpu/TxPktEventSyncer.h",
     ],
     exported_deps = [

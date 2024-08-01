@@ -14,6 +14,7 @@
 #include "fboss/agent/mnpu/LinkChangeEventSyncer.h"
 #include "fboss/agent/mnpu/OperDeltaSyncer.h"
 #include "fboss/agent/mnpu/RxPktEventSyncer.h"
+#include "fboss/agent/mnpu/SwitchReachabilityChangeEventSyncer.h"
 #include "fboss/agent/mnpu/TxPktEventSyncer.h"
 
 namespace facebook::fboss {
@@ -56,7 +57,14 @@ SplitAgentThriftSyncer::SplitAgentThriftSyncer(
           switchId_,
           switchIndex,
           retryThread_->getEventBase(),
-          multiSwitchStatsPrefix)) {}
+          multiSwitchStatsPrefix)),
+      switchReachabilityChangeEventSinkClient_(
+          std::make_unique<SwitchReachabilityChangeEventSyncer>(
+              serverPort,
+              switchId_,
+              retryThread_->getEventBase(),
+              hw,
+              multiSwitchStatsPrefix)) {}
 
 void SplitAgentThriftSyncer::packetReceived(
     std::unique_ptr<RxPacket> pkt) noexcept {
@@ -104,8 +112,14 @@ void SplitAgentThriftSyncer::linkActiveStateChanged(
 
 void SplitAgentThriftSyncer::switchReachabilityChanged(
     const int64_t /*switchId*/,
-    const std::map<int64_t, std::set<PortID>>& /*switchReachabilityInfo*/) {
-  // TODO
+    const std::map<int64_t, std::set<PortID>>& switchReachabilityInfo) {
+  multiswitch::SwitchReachabilityChangeEvent event;
+
+  for (const auto& [switchId, portIds] : switchReachabilityInfo) {
+    event.switchId2FabricPorts()[switchId] =
+        std::set<int32_t>(portIds.begin(), portIds.end());
+  }
+  switchReachabilityChangeEventSinkClient_->enqueue(std::move(event));
 }
 
 void SplitAgentThriftSyncer::linkConnectivityChanged(
@@ -188,6 +202,8 @@ void SplitAgentThriftSyncer::stop() {
   fdbEventSinkClient_->cancel();
   rxPktEventSinkClient_->cancel();
   hwSwitchStatsSinkClient_->cancel();
+  switchReachabilityChangeEventSinkClient_->cancel();
+
   isRunning_ = false;
 }
 
