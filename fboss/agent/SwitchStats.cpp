@@ -452,6 +452,14 @@ SwitchStats::HwAgentStreamConnectionStatus::HwAgentStreamConnectionStatus(
               switchIndex,
               ".",
               "tx_pkt_event_sync_active"))),
+      switchReachabilityChangeEventSinkStatus_(TLCounter(
+          map,
+          folly::to<std::string>(
+              kCounterPrefix,
+              "switch.",
+              switchIndex,
+              ".",
+              "switch_reachability_change_event_sync_active"))),
       statsEventSinkDisconnects_(TLTimeseries(
           map,
           folly::to<std::string>(
@@ -502,6 +510,16 @@ SwitchStats::HwAgentStreamConnectionStatus::HwAgentStreamConnectionStatus(
               "tx_pkt_event_sync_disconnects"),
           SUM,
           RATE)),
+      switchReachabilityChangeEventSinkDisconnects_(TLTimeseries(
+          map,
+          folly::to<std::string>(
+              kCounterPrefix,
+              "switch.",
+              switchIndex,
+              ".",
+              "switch_reachability_change_event_sync_disconnects"),
+          SUM,
+          RATE)),
       statsEventsReceived_(TLTimeseries(
           map,
           folly::to<std::string>(
@@ -550,6 +568,16 @@ SwitchStats::HwAgentStreamConnectionStatus::HwAgentStreamConnectionStatus(
               switchIndex,
               ".",
               "tx_pkt_event_sent"),
+          SUM,
+          RATE)),
+      switchReachabilityChangeEventsReceived_(TLTimeseries(
+          map,
+          folly::to<std::string>(
+              kCounterPrefix,
+              "switch.",
+              switchIndex,
+              ".",
+              "switch_reachability_change_event_received"),
           SUM,
           RATE)) {}
 

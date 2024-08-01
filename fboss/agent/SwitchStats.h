@@ -505,6 +505,18 @@ class SwitchStats : public boost::noncopyable {
         connected);
   }
 
+  void hwAgentSwitchReachabilityChangeEventSinkConnectionStatus(
+      int switchIndex,
+      bool connected) {
+    CHECK_LT(switchIndex, thriftStreamConnectionStatus_.size());
+    if (!connected) {
+      thriftStreamConnectionStatus_[switchIndex]
+          .switchReachabilityChangeEventSinkDisconnected();
+    }
+    thriftStreamConnectionStatus_[switchIndex]
+        .setSwitchReachabilityChangeEventSinkStatus(connected);
+  }
+
   void hwAgentStatsReceived(int switchIndex) {
     thriftStreamConnectionStatus_[switchIndex].statsEventReceived();
   }
@@ -564,6 +576,10 @@ class SwitchStats : public boost::noncopyable {
     void setTxPktEventStreamStatus(bool connected) {
       txPktEventStreamStatus_.incrementValue(connected ? 1 : -1);
     }
+    void setSwitchReachabilityChangeEventSinkStatus(bool connected) {
+      switchReachabilityChangeEventSinkStatus_.incrementValue(
+          connected ? 1 : -1);
+    }
     void statsEventSinkDisconnected() {
       statsEventSinkDisconnects_.addValue(1);
     }
@@ -578,6 +594,9 @@ class SwitchStats : public boost::noncopyable {
     }
     void txPktEventStreamDisconnected() {
       txPktEventStreamDisconnects_.addValue(1);
+    }
+    void switchReachabilityChangeEventSinkDisconnected() {
+      switchReachabilityChangeEventSinkDisconnects_.addValue(1);
     }
     int64_t getStatsEventSinkStatus() const {
       return getCumulativeValue(statsEventSinkStatus_, false /*hasSumSuffix*/);
@@ -595,6 +614,10 @@ class SwitchStats : public boost::noncopyable {
       return getCumulativeValue(
           txPktEventStreamStatus_, false /*hasSumSuffix*/);
     }
+    int64_t getSwitchReachabilityChangeEventSinkStatus() const {
+      return getCumulativeValue(
+          switchReachabilityChangeEventSinkStatus_, false /*hasSumSuffix*/);
+    }
     void statsEventReceived() {
       statsEventsReceived_.addValue(1);
     }
@@ -609,6 +632,9 @@ class SwitchStats : public boost::noncopyable {
     }
     void txPktEventSent() {
       txPktEventsSent_.addValue(1);
+    }
+    void switchReachabilityChangeEventReceived() {
+      switchReachabilityChangeEventsReceived_.addValue(1);
     }
     int64_t getStatsEventSinkDisconnectCount() const {
       return getCumulativeValue(statsEventSinkDisconnects_);
@@ -625,6 +651,9 @@ class SwitchStats : public boost::noncopyable {
     int64_t getTxPktEventStreamDisconnectCount() const {
       return getCumulativeValue(txPktEventStreamDisconnects_);
     }
+    int64_t getSwitchReachabilityChangeEventSinkDisconnectCount() const {
+      return getCumulativeValue(switchReachabilityChangeEventSinkDisconnects_);
+    }
     int64_t getStatsEventReceivedCount() const {
       return getCumulativeValue(statsEventsReceived_);
     }
@@ -640,6 +669,9 @@ class SwitchStats : public boost::noncopyable {
     int64_t getTxPktEventSentCount() const {
       return getCumulativeValue(txPktEventsSent_);
     }
+    int64_t getSwitchReachabilityChangeEventReceivedCount() const {
+      return getCumulativeValue(switchReachabilityChangeEventsReceived_);
+    }
 
    private:
     TLCounter statsEventSinkStatus_;
@@ -647,18 +679,21 @@ class SwitchStats : public boost::noncopyable {
     TLCounter fdbEventSinkStatus_;
     TLCounter rxPktEventSinkStatus_;
     TLCounter txPktEventStreamStatus_;
+    TLCounter switchReachabilityChangeEventSinkStatus_;
 
     TLTimeseries statsEventSinkDisconnects_;
     TLTimeseries linkEventSinkDisconnects_;
     TLTimeseries fdbEventSinkDisconnects_;
     TLTimeseries rxPktEventSinkDisconnects_;
     TLTimeseries txPktEventStreamDisconnects_;
+    TLTimeseries switchReachabilityChangeEventSinkDisconnects_;
 
     TLTimeseries statsEventsReceived_;
     TLTimeseries linkEventsReceived_;
     TLTimeseries fdbEventsReceived_;
     TLTimeseries rxPktEventsReceived_;
     TLTimeseries txPktEventsSent_;
+    TLTimeseries switchReachabilityChangeEventsReceived_;
   };
 
   const int numSwitches_;
