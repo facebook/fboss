@@ -2117,6 +2117,7 @@ void SwSwitch::linkActiveStateChanged(
 }
 
 void SwSwitch::switchReachabilityChanged(
+    const int64_t /*switchId*/,
     const std::map<int64_t, std::set<PortID>>& /*switchReachabilityInfo*/) {
   // TODO
 }

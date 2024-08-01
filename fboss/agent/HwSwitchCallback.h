@@ -53,6 +53,7 @@ class HwSwitchCallback {
           port2OldAndNewConnectivity) = 0;
 
   virtual void switchReachabilityChanged(
+      const int64_t switchId,
       const std::map<int64_t, std::set<PortID>>& switchReachabilityInfo) = 0;
 
   /*

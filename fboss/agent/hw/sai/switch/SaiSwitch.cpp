@@ -2174,7 +2174,8 @@ void SaiSwitch::switchReachabilityChangeBottomHalf() const {
       reachabilityInfo[switchId] =
           getFabricReachabilityPortIds(switchIdAndFabricPortSaiIds);
     }
-    callback_->switchReachabilityChanged(reachabilityInfo);
+    callback_->switchReachabilityChanged(
+        platform_->getAsic()->getSwitchId().value_or(0), reachabilityInfo);
   }
 }
 

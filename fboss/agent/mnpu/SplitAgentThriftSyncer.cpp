@@ -103,6 +103,7 @@ void SplitAgentThriftSyncer::linkActiveStateChanged(
 }
 
 void SplitAgentThriftSyncer::switchReachabilityChanged(
+    const int64_t /*switchId*/,
     const std::map<int64_t, std::set<PortID>>& /*switchReachabilityInfo*/) {
   // TODO
 }

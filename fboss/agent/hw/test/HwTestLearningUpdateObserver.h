@@ -37,6 +37,7 @@ class HwTestLearningUpdateObserver
   void linkActiveStateChanged(
       const std::map<PortID, bool>& /*port2IsActive */) override {}
   void switchReachabilityChanged(
+      const int64_t /*switchId*/,
       const std::map<int64_t, std::set<PortID>>& /*switchReachabilityInfo*/)
       override {}
   void linkConnectivityChanged(

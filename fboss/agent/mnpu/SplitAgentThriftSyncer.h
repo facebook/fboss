@@ -51,8 +51,10 @@ class SplitAgentThriftSyncer : public HwSwitchCallback {
   void linkConnectivityChanged(
       const std::map<PortID, multiswitch::FabricConnectivityDelta>&
           port2OldAndNewConnectivity) override;
-  void switchReachabilityChanged(const std::map<int64_t, std::set<PortID>>&
-                                     switchReachabilityInfo) override;
+  void switchReachabilityChanged(
+      const int64_t switchId,
+      const std::map<int64_t, std::set<PortID>>& switchReachabilityInfo)
+      override;
   void l2LearningUpdateReceived(
       L2Entry l2Entry,
       L2EntryUpdateType l2EntryUpdateType) override;

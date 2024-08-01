@@ -556,8 +556,10 @@ class SwSwitch : public HwSwitchCallback {
   void linkConnectivityChanged(
       const std::map<PortID, multiswitch::FabricConnectivityDelta>&
           port2OldAndNewConnectivity) override;
-  void switchReachabilityChanged(const std::map<int64_t, std::set<PortID>>&
-                                     switchReachabilityInfo) override;
+  void switchReachabilityChanged(
+      const int64_t switchId,
+      const std::map<int64_t, std::set<PortID>>& switchReachabilityInfo)
+      override;
   void pfcWatchdogStateChanged(
       const PortID& portId,
       const bool deadlockDetected) override;
