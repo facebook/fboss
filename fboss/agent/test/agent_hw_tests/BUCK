@@ -57,6 +57,7 @@ cpp_library(
         "AgentVoqSwitchInterruptsTests.cpp",
         "AgentVoqSwitchTests.cpp",
         "AgentWatermarkTests.cpp",
+        "MultiNodeAgentVoqSwitchTests.cpp",
     ],
     link_whole = True,
     exported_deps = [
