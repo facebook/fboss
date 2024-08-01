@@ -153,10 +153,10 @@ class AgentEnsemble : public TestEnsembleIf {
   }
 
   void switchReachabilityChanged(
-      const int64_t /*switchId*/,
-      const std::map<int64_t, std::set<PortID>>& /*switchReachabilityInfo*/)
+      const int64_t switchId,
+      const std::map<int64_t, std::set<PortID>>& switchReachabilityInfo)
       override {
-    // TODO
+    getSw()->switchReachabilityChanged(switchId, switchReachabilityInfo);
   }
 
   void l2LearningUpdateReceived(
