@@ -818,6 +818,7 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
             addedAclEntry->getVlanID().value(), kOuterVlanIdMask))};
   }
 
+#if !defined(TAJO_SDK)
   std::optional<SaiAclEntryTraits::Attributes::FieldBthOpcode> fieldBthOpcode{
       std::nullopt};
   if (addedAclEntry->getRoceOpcode()) {
@@ -825,6 +826,7 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
         AclEntryFieldU8(std::make_pair(
             addedAclEntry->getRoceOpcode().value(), kBthOpcodeMask))};
   }
+#endif
 
   std::optional<SaiAclEntryTraits::Attributes::FieldFdbDstUserMeta>
       fieldFdbDstUserMeta{std::nullopt};
@@ -1069,7 +1071,9 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
        fieldTtl.has_value() || fieldFdbDstUserMeta.has_value() ||
        fieldRouteDstUserMeta.has_value() || fieldEtherType.has_value() ||
        fieldNeighborDstUserMeta.has_value() || fieldOuterVlanId.has_value() ||
+#if !defined(TAJO_SDK)
        fieldBthOpcode.has_value() ||
+#endif
 #if !defined(TAJO_SDK) && !defined(BRCM_SAI_SDK_XGS)
        fieldIpv6NextHeader.has_value() ||
 #endif
@@ -1128,7 +1132,9 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
       fieldNeighborDstUserMeta,
       fieldEtherType,
       fieldOuterVlanId,
+#if !defined(TAJO_SDK)
       fieldBthOpcode,
+#endif
 #if !defined(TAJO_SDK) && !defined(BRCM_SAI_SDK_XGS)
       fieldIpv6NextHeader,
 #endif
@@ -1368,8 +1374,6 @@ std::set<cfg::AclTableQualifier> SaiAclTableManager::getSupportedQualifierSet()
 
   if (isTajo) {
     std::set<cfg::AclTableQualifier> tajoQualifiers = {
-        cfg::AclTableQualifier::BTH_OPCODE,
-        cfg::AclTableQualifier::ETHER_TYPE,
         cfg::AclTableQualifier::SRC_IPV6,
         cfg::AclTableQualifier::DST_IPV6,
         cfg::AclTableQualifier::SRC_IPV4,
@@ -1625,10 +1629,14 @@ bool SaiAclTableManager::isQualifierSupported(
               std::optional<SaiAclTableTraits::Attributes::FieldOuterVlanId>>(
               attributes));
     case cfg::AclTableQualifier::BTH_OPCODE:
+#if !defined(TAJO_SDK)
       return hasField(
           std::get<
               std::optional<SaiAclTableTraits::Attributes::FieldBthOpcode>>(
               attributes));
+#else
+      return false;
+#endif
     case cfg::AclTableQualifier::IPV6_NEXT_HEADER:
 #if !defined(TAJO_SDK) && !defined(BRCM_SAI_SDK_XGS)
       return hasField(
