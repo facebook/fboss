@@ -2525,6 +2525,15 @@ void SaiSwitch::syncLinkActiveStates() {
   }
 }
 
+void SaiSwitch::syncSwitchReachability() {
+  if (platform_->getAsic()->isSupported(
+          HwAsic::Feature::SWITCH_REACHABILITY_CHANGE_NOTIFY)) {
+    std::lock_guard<std::mutex> lock(saiSwitchMutex_);
+    switchReachabilityChangeBottomHalfEventBase_.runInEventBaseThread(
+        [=, this]() { switchReachabilityChangeBottomHalf(); });
+  }
+}
+
 void SaiSwitch::initTxReadyStatusChangeLocked(
     const std::lock_guard<std::mutex>& /* lock */) {
 #if SAI_API_VERSION >= SAI_VERSION(1, 13, 0)

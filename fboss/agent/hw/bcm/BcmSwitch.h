@@ -641,6 +641,8 @@ class BcmSwitch : public BcmSwitchIf {
   void syncLinkActiveStates() override {}
   // no (fabric) link connectivity concept in BcmSwitch
   void syncLinkConnectivity() override {}
+  // no switch reachability in BcmSwitch
+  void syncSwitchReachability() override {}
 
   AclStats getAclStats() const override;
 
