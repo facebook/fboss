@@ -2152,7 +2152,7 @@ void SaiSwitch::switchReachabilityChangeBottomHalf() const {
 
   for (const auto& [_, dsfNodes] :
        std::as_const(*getProgrammedState()->getDsfNodes())) {
-    std::map<int64_t, std::set<PortID>> reachabilityInfo{};
+    std::map<SwitchID, std::set<PortID>> reachabilityInfo{};
     for (const auto& [switchId, node] : std::as_const(*dsfNodes)) {
       if (getHwAsicForAsicType(*node->toThrift().asicType()).getSwitchType() !=
           cfg::SwitchType::VOQ) {
@@ -2171,11 +2171,12 @@ void SaiSwitch::switchReachabilityChangeBottomHalf() const {
           saiSwitchId_,
           SaiSwitchTraits::Attributes::FabricRemoteReachablePortList{output});
       CHECK_EQ(switchIdAndFabricPortSaiIds.at(0), switchId);
-      reachabilityInfo[switchId] =
+      reachabilityInfo[SwitchID(switchId)] =
           getFabricReachabilityPortIds(switchIdAndFabricPortSaiIds);
     }
     callback_->switchReachabilityChanged(
-        platform_->getAsic()->getSwitchId().value_or(0), reachabilityInfo);
+        SwitchID(platform_->getAsic()->getSwitchId().value()),
+        reachabilityInfo);
   }
 }
 

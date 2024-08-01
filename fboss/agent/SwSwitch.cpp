@@ -2132,8 +2132,8 @@ void SwSwitch::linkActiveStateChanged(
 }
 
 void SwSwitch::switchReachabilityChanged(
-    const int64_t switchId,
-    const std::map<int64_t, std::set<PortID>>& switchReachabilityInfo) {
+    const SwitchID switchId,
+    const std::map<SwitchID, std::set<PortID>>& switchReachabilityInfo) {
   switch_reachability::SwitchReachability newReachability;
   int64_t currentIdx = 1;
   std::unordered_map<std::set<PortID>, int64_t> portGrp2Id;
@@ -2145,13 +2145,13 @@ void SwSwitch::switchReachabilityChanged(
         portSet.insert(getState()->getPorts()->getNode(portId)->getName());
       }
       newReachability.fabricPortGroupMap()[currentIdx] = std::move(portSet);
-      newReachability.switchIdToFabricPortGroupMap()[destinationSwitchId] =
-          currentIdx;
+      newReachability.switchIdToFabricPortGroupMap()[static_cast<int64_t>(
+          destinationSwitchId)] = currentIdx;
       currentIdx++;
     }
   }
   // Update switch reachability info with the latest data
-  (*hwSwitchReachability_.wlock())[SwitchID(switchId)] = newReachability;
+  (*hwSwitchReachability_.wlock())[switchId] = newReachability;
   // TODO: Update FSDB with this info
 }
 

@@ -111,8 +111,8 @@ void SplitAgentThriftSyncer::linkActiveStateChanged(
 }
 
 void SplitAgentThriftSyncer::switchReachabilityChanged(
-    const int64_t /*switchId*/,
-    const std::map<int64_t, std::set<PortID>>& switchReachabilityInfo) {
+    const SwitchID /*switchId*/,
+    const std::map<SwitchID, std::set<PortID>>& switchReachabilityInfo) {
   multiswitch::SwitchReachabilityChangeEvent event;
 
   for (const auto& [switchId, portIds] : switchReachabilityInfo) {

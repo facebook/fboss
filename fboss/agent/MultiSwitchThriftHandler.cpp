@@ -121,10 +121,10 @@ void MultiSwitchThriftHandler::processSwitchReachabilityChangeEvent(
   }
   XLOG(DBG3) << "Got switch reachability change event from switch " << switchId;
 
-  std::map<int64_t, std::set<PortID>> switchId2FabricPortIds;
+  std::map<SwitchID, std::set<PortID>> switchId2FabricPortIds;
   for (const auto& [switchId, fabricPortIds] :
        *switchReachabilityChangeEvent.switchId2FabricPorts()) {
-    switchId2FabricPortIds[switchId] =
+    switchId2FabricPortIds[SwitchID(switchId)] =
         std::set<PortID>(fabricPortIds.begin(), fabricPortIds.end());
   }
   sw_->switchReachabilityChanged(switchId, switchId2FabricPortIds);

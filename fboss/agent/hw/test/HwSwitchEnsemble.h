@@ -87,8 +87,8 @@ class HwSwitchEnsemble : public TestEnsembleIf {
         const std::map<PortID, multiswitch::FabricConnectivityDelta>&
             port2OldAndNewConnectivity) = 0;
     virtual void switchReachabilityChanged(
-        const int64_t switchId,
-        const std::map<int64_t, std::set<PortID>>& switchReachabilityInfo) = 0;
+        const SwitchID switchId,
+        const std::map<SwitchID, std::set<PortID>>& switchReachabilityInfo) = 0;
     virtual void l2LearningUpdateReceived(
         L2Entry l2Entry,
         L2EntryUpdateType l2EntryUpdateType) = 0;
@@ -191,8 +191,8 @@ class HwSwitchEnsemble : public TestEnsembleIf {
     // TODO
   }
   void switchReachabilityChanged(
-      const int64_t switchId,
-      const std::map<int64_t, std::set<PortID>>& /*switchReachabilityInfo*/)
+      const SwitchID switchId,
+      const std::map<SwitchID, std::set<PortID>>& /*switchReachabilityInfo*/)
       override;
   void l2LearningUpdateReceived(
       L2Entry l2Entry,
