@@ -63,4 +63,8 @@ std::optional<sai_attr_id_t>
 SaiPortTraits::Attributes::AttributeCablePropogationDelayNS::operator()() {
   return std::nullopt;
 }
+std::optional<sai_attr_id_t>
+SaiPortTraits::Attributes::AttributeFabricDataCellsFilterStatus::operator()() {
+  return std::nullopt;
+}
 } // namespace facebook::fboss

@@ -383,6 +383,11 @@ struct SaiPortTraits {
         sai_uint32_t,
         AttributeCablePropogationDelayNS,
         SaiIntValueDefault<uint32_t, std::numeric_limits<uint32_t>::max()>>;
+    struct AttributeFabricDataCellsFilterStatus {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    using FabricDataCellsFilterStatus =
+        SaiExtensionAttribute<bool, AttributeFabricDataCellsFilterStatus>;
   };
   using AdapterKey = PortSaiId;
 
@@ -625,6 +630,7 @@ SAI_ATTRIBUTE_NAME(Port, SystemPort);
 SAI_ATTRIBUTE_NAME(Port, TxReadyStatus)
 #endif
 SAI_ATTRIBUTE_NAME(Port, CablePropogationDelayNS)
+SAI_ATTRIBUTE_NAME(Port, FabricDataCellsFilterStatus)
 
 template <>
 struct SaiObjectHasStats<SaiPortTraits> : public std::true_type {};

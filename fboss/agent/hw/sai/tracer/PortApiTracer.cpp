@@ -137,6 +137,7 @@ void handleExtensionAttributes() {
   SAI_EXT_ATTR_MAP(PortSerdes, RxAfeAdaptiveEnable)
   SAI_EXT_ATTR_MAP(PortSerdes, TxLutMode)
   SAI_EXT_ATTR_MAP(Port, CablePropogationDelayNS)
+  SAI_EXT_ATTR_MAP(Port, FabricDataCellsFilterStatus)
 }
 
 } // namespace
