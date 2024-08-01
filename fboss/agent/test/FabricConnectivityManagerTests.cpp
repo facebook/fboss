@@ -213,6 +213,49 @@ TEST_F(FabricConnectivityManagerTest, validateProcessConnectivityInfo) {
       fabricConnectivityManager_->isConnectivityInfoMismatch(PortID(1)));
 }
 
+TEST_F(FabricConnectivityManagerTest, validateNoExpectedConnectivity) {
+  auto oldState = std::make_shared<SwitchState>();
+  auto newState = std::make_shared<SwitchState>();
+
+  // create port with neighbor connectivity
+  std::shared_ptr<Port> swPort = makePort(1);
+  swPort->setExpectedNeighborReachability({});
+  newState->getPorts()->addNode(swPort, getScope(swPort));
+
+  std::map<PortID, FabricEndpoint> hwConnectivityMap;
+  FabricEndpoint endpoint;
+  endpoint.portId() = 79; // known from platforom mapping for ramon
+  endpoint.switchId() = 10;
+  endpoint.isAttached() = true;
+
+  hwConnectivityMap.emplace(swPort->getID(), endpoint);
+
+  auto dsfNode = makeDsfNode(10, "fdswA", cfg::AsicType::ASIC_TYPE_RAMON);
+  auto dsfNodeMap = std::make_shared<MultiSwitchDsfNodeMap>();
+  dsfNodeMap->addNode(dsfNode, getScope(dsfNode));
+  newState->resetDsfNodes(dsfNodeMap);
+
+  StateDelta delta(oldState, newState);
+  fabricConnectivityManager_->stateUpdated(delta);
+
+  const auto expectedConnectivityMap =
+      processConnectivityInfo(hwConnectivityMap);
+  EXPECT_EQ(expectedConnectivityMap.size(), 1);
+
+  for (const auto& expectedConnectivity : expectedConnectivityMap) {
+    const auto& neighbor = expectedConnectivity.second;
+    EXPECT_FALSE(neighbor.expectedPortId().has_value());
+    EXPECT_FALSE(neighbor.expectedSwitchId().has_value());
+    EXPECT_EQ(neighbor.switchId(), 10);
+    EXPECT_FALSE(neighbor.expectedSwitchName().has_value());
+    EXPECT_FALSE(neighbor.expectedPortName().has_value());
+    EXPECT_TRUE(*neighbor.isAttached());
+  }
+
+  EXPECT_TRUE(fabricConnectivityManager_->isConnectivityInfoMissing(PortID(1)));
+  EXPECT_FALSE(
+      fabricConnectivityManager_->isConnectivityInfoMismatch(PortID(1)));
+}
 TEST_F(FabricConnectivityManagerTest, connectivityRetainedOnPortUpdates) {
   auto oldState = std::make_shared<SwitchState>();
   auto newState = std::make_shared<SwitchState>();
