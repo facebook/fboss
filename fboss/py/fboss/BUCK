@@ -5,7 +5,6 @@ python_library(
     srcs = [
         "thrift_clients.py",
     ],
-    base_module = "fboss",
     deps = [
         "//fboss/agent/if:ctrl-py",
         "//fboss/qsfp_service/if:qsfp-py",

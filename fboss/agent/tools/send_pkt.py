@@ -6,7 +6,7 @@ import binascii
 import re
 import sys
 
-from fboss.thrift_clients import (
+from fboss.py.fboss.thrift_clients import (
     PlainTextFbossAgentClientDontUseInFb as PlainTextFbossAgentClient,
 )
 

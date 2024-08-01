@@ -6,7 +6,7 @@ import random
 import time
 
 from fboss.cli.utils import utils
-from fboss.thrift_clients import (
+from fboss.py.fboss.thrift_clients import (
     PlainTextFbossAgentClientDontUseInFb as PlainTextFbossAgentClient,
 )
 from neteng.fboss.ctrl.ttypes import IpPrefix, UnicastRoute
