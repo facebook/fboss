@@ -66,6 +66,7 @@ mrvl_srcs = common_srcs + [
 common_headers = [
     "AclApi.h",
     "AdapterKeySerializers.h",
+    "ArsApi.h",
     "BridgeApi.h",
     "BufferApi.h",
     "CounterApi.h",

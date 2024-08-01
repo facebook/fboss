@@ -209,6 +209,9 @@ class SaiTracer {
       std::optional<std::string> varName = std::nullopt);
 
   sai_acl_api_t* aclApi_;
+#if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
+  sai_ars_api_t* arsApi_;
+#endif
   sai_bridge_api_t* bridgeApi_;
   sai_buffer_api_t* bufferApi_;
   sai_counter_api_t* counterApi_;
@@ -358,12 +361,16 @@ class SaiTracer {
   // variables_ map from object id to its variable name
   std::map<sai_object_id_t, std::string> variables_;
 
+  // clang-format off
   std::map<sai_object_type_t, std::string> varNames_{
       {SAI_OBJECT_TYPE_ACL_COUNTER, "aclCounter_"},
       {SAI_OBJECT_TYPE_ACL_ENTRY, "aclEntry_"},
       {SAI_OBJECT_TYPE_ACL_TABLE, "aclTable_"},
       {SAI_OBJECT_TYPE_ACL_TABLE_GROUP, "aclTableGroup_"},
       {SAI_OBJECT_TYPE_ACL_TABLE_GROUP_MEMBER, "aclTableGroupMember_"},
+#if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
+      {SAI_OBJECT_TYPE_ARS, "ars_"},
+#endif
       {SAI_OBJECT_TYPE_BRIDGE, "bridge_"},
       {SAI_OBJECT_TYPE_BRIDGE_PORT, "bridgePort_"},
       {SAI_OBJECT_TYPE_BUFFER_POOL, "bufferPool_"},
@@ -420,6 +427,9 @@ class SaiTracer {
       {SAI_OBJECT_TYPE_ACL_TABLE, "acl_api->"},
       {SAI_OBJECT_TYPE_ACL_TABLE_GROUP, "acl_api->"},
       {SAI_OBJECT_TYPE_ACL_TABLE_GROUP_MEMBER, "acl_api->"},
+#if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
+      {SAI_OBJECT_TYPE_ARS, "ars_api->"},
+#endif
       {SAI_OBJECT_TYPE_BRIDGE, "bridge_api->"},
       {SAI_OBJECT_TYPE_BRIDGE_PORT, "bridge_api->"},
       {SAI_OBJECT_TYPE_BUFFER_POOL, "buffer_api->"},
@@ -471,6 +481,7 @@ class SaiTracer {
       {SAI_OBJECT_TYPE_VLAN, "vlan_api->"},
       {SAI_OBJECT_TYPE_VLAN_MEMBER, "vlan_api->"},
       {SAI_OBJECT_TYPE_WRED, "wred_api->"}};
+  // clang-format on
 
   const char* cpp_header_ =
       "/*\n"

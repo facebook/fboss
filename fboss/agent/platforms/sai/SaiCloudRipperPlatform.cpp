@@ -10,6 +10,7 @@
 
 #include "fboss/agent/platforms/sai/SaiCloudRipperPlatform.h"
 
+#include "fboss/agent/hw/sai/api/ArsApi.h"
 #include "fboss/agent/hw/sai/api/UdfApi.h"
 #include "fboss/agent/hw/switch_asics/EbroAsic.h"
 #include "fboss/agent/platforms/common/cloud_ripper/CloudRipperPlatformMapping.h"
@@ -87,6 +88,9 @@ SaiCloudRipperPlatform::getInternalSystemPortConfig() const {
 const std::set<sai_api_t>& SaiCloudRipperPlatform::getSupportedApiList() const {
   static auto apis = getDefaultSwitchAsicSupportedApis();
   apis.erase(facebook::fboss::UdfApi::ApiType);
+#if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
+  apis.erase(facebook::fboss::ArsApi::ApiType);
+#endif
   return apis;
 }
 

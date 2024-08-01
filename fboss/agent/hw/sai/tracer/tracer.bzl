@@ -13,6 +13,7 @@ def _sai_api_tracer_impl(sai_impl):
         name = "sai_tracer{}".format(to_impl_suffix(sai_impl)),
         srcs = [
             "AclApiTracer.cpp",
+            "ArsApiTracer.cpp",
             "BridgeApiTracer.cpp",
             "BufferApiTracer.cpp",
             "CounterApiTracer.cpp",
