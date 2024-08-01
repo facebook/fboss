@@ -326,8 +326,23 @@ void updatePhyFb303Stats(
     }
   }
 }
-
 } // anonymous namespace
+
+namespace std {
+template <>
+struct hash<std::set<facebook::fboss::PortID>> {
+  size_t operator()(const std::set<facebook::fboss::PortID>& portIds) const;
+};
+
+size_t hash<std::set<facebook::fboss::PortID>>::operator()(
+    const std::set<facebook::fboss::PortID>& portIds) const {
+  size_t seed = 0;
+  for (const auto& portId : portIds) {
+    boost::hash_combine(seed, static_cast<int32_t>(portId));
+  }
+  return seed;
+}
+} // namespace std
 
 namespace facebook::fboss {
 
@@ -2117,9 +2132,27 @@ void SwSwitch::linkActiveStateChanged(
 }
 
 void SwSwitch::switchReachabilityChanged(
-    const int64_t /*switchId*/,
-    const std::map<int64_t, std::set<PortID>>& /*switchReachabilityInfo*/) {
-  // TODO
+    const int64_t switchId,
+    const std::map<int64_t, std::set<PortID>>& switchReachabilityInfo) {
+  switch_reachability::SwitchReachability newReachability;
+  int64_t currentIdx = 1;
+  std::unordered_map<std::set<PortID>, int64_t> portGrp2Id;
+  for (const auto& [destinationSwitchId, portIdSet] : switchReachabilityInfo) {
+    auto [_, inserted] = portGrp2Id.insert({portIdSet, currentIdx});
+    if (inserted) {
+      std::set<std::string> portSet;
+      for (auto portId : portIdSet) {
+        portSet.insert(getState()->getPorts()->getNode(portId)->getName());
+      }
+      newReachability.fabricPortGroupMap()[currentIdx] = std::move(portSet);
+      newReachability.switchIdToFabricPortGroupMap()[destinationSwitchId] =
+          currentIdx;
+      currentIdx++;
+    }
+  }
+  // Update switch reachability info with the latest data
+  (*hwSwitchReachability_.wlock())[SwitchID(switchId)] = newReachability;
+  // TODO: Update FSDB with this info
 }
 
 void SwSwitch::startThreads() {
