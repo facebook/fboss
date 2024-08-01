@@ -125,6 +125,20 @@ def sai_leaba_impl_lib():
         ],
     ) for sai_impl in SAI_LEABA_IMPLS]
 
+def get_link_group_map(binary_name, sai_impl):
+    if sai_impl.is_dyn:
+        shared_libs = []
+        for (_, _, libname) in to_impl_external_deps(sai_impl):
+            shared_libs.append(("fbcode//third-party-buck/platform010-compat/build/{}/{}:{}".format(sai_impl.name, sai_impl.version, libname), "node", None, "shared"))
+        return [
+            (
+                binary_name,
+                shared_libs,
+            ),
+        ]
+    else:
+        return []
+
 def sai_brcm_impl_lib():
     return [cpp_library(
         name = to_impl_lib_name(sai_impl),
