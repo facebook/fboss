@@ -1,6 +1,7 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
 #include "fboss/agent/test/AgentHwTest.h"
+#include "fboss/agent/test/utils/AsicUtils.h"
 
 DECLARE_bool(disable_neighbor_updates);
 DECLARE_bool(disable_looped_fabric_ports);
@@ -14,12 +15,19 @@ class MultiNodeAgentVoqSwitchTest : public AgentHwTest {
       const AgentEnsemble& ensemble) const override {
     XLOG(DBG0) << "initialConfig() loaded config from file " << FLAGS_config;
 
+    auto hwAsics = ensemble.getSw()->getHwAsicTable()->getL3Asics();
+    auto asic = utility::checkSameAndGetAsic(hwAsics);
+
+    auto it = asic->desiredLoopbackModes().find(cfg::PortType::INTERFACE_PORT);
+    CHECK(it != asic->desiredLoopbackModes().end());
+    auto desiredLoopbackModeForInterfacePort = it->second;
+
     auto agentConfig = AgentConfig::fromFile(FLAGS_config);
     auto config = *agentConfig->thrift.sw();
     for (auto& port : *config.ports()) {
       if (port.portType() == cfg::PortType::INTERFACE_PORT) {
         // TODO determine loopback mode based on ASIC type
-        port.loopbackMode() = cfg::PortLoopbackMode::PHY;
+        port.loopbackMode() = desiredLoopbackModeForInterfacePort;
       }
     }
 
