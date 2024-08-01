@@ -321,17 +321,17 @@ TEST_F(ControlLogicTests, CalculatePid) {
   // CASE 1: The read value is lower than setPoint. No action.
   auto newPwm =
       controlLogic_->calculatePid("qsfp_group_1", 50, cache, pidSetting, 30);
-  EXPECT_EQ(newPwm, 30);
-  EXPECT_EQ(cache.previousTargetPwm, 30);
+  EXPECT_EQ(newPwm, 46);
+  EXPECT_EQ(cache.previousTargetPwm, 46);
   EXPECT_EQ(cache.previousRead1, 50);
   EXPECT_EQ(cache.previousRead2, 52);
-  EXPECT_EQ(cache.last_error, 0);
+  EXPECT_EQ(cache.last_error, 8);
 
   // CASE 2: The read value is higher than setPoint. Increase pwm.
   newPwm =
       controlLogic_->calculatePid("qsfp_group_1", 65, cache, pidSetting, 30);
-  EXPECT_EQ(newPwm, -29);
-  EXPECT_EQ(cache.previousTargetPwm, -29);
+  EXPECT_EQ(newPwm, 1);
+  EXPECT_EQ(cache.previousTargetPwm, 1);
   EXPECT_EQ(cache.previousRead1, 65);
   EXPECT_EQ(cache.previousRead2, 50);
   EXPECT_EQ(cache.last_error, -5);

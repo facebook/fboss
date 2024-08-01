@@ -88,30 +88,45 @@ int ControlLogic::calculatePid(
     PwmCalcCache& pwmCalcCache,
     const PidSetting& pidSetting,
     uint64_t dT) {
-  float error;
-  int newPwm = pwmCalcCache.previousTargetPwm;
+  float lastPwm, previousRead1, error, pwm;
+  lastPwm = pwmCalcCache.previousTargetPwm;
+  pwm = lastPwm;
+  previousRead1 = pwmCalcCache.previousRead1;
   float minVal = *pidSetting.setPoint() - *pidSetting.negHysteresis();
   float maxVal = *pidSetting.setPoint() + *pidSetting.posHysteresis();
 
-  if (value > maxVal) {
-    error = maxVal - value;
+  if ((value < minVal) || (value > maxVal)) {
+    if (value < minVal) {
+      error = minVal - value;
+    } else {
+      error = maxVal - value;
+    }
     pwmCalcCache.integral = pwmCalcCache.integral + error * dT;
     auto derivative = (error - pwmCalcCache.last_error) / dT;
-    newPwm = (*pidSetting.kp() * error) +
+    pwm = (*pidSetting.kp() * error) +
         (*pidSetting.ki() * pwmCalcCache.integral) +
         (*pidSetting.kd() * derivative);
-    pwmCalcCache.previousTargetPwm = newPwm;
+    if (pwm < 0) {
+      pwm = 0;
+    }
+    pwmCalcCache.previousTargetPwm = pwm;
     pwmCalcCache.last_error = error;
   }
-  pwmCalcCache.previousRead2 = pwmCalcCache.previousRead1;
+  // In the case of val <= maxVal, we use the previous pwm of the Zone
+  // to calculate the new integral, to compensate for too fast / too slow
+  // integral build up.
+  if (value <= maxVal) {
+    pwmCalcCache.integral = lastPwm / *pidSetting.ki();
+  }
+  pwmCalcCache.previousRead2 = previousRead1;
   pwmCalcCache.previousRead1 = value;
   XLOG(DBG1) << fmt::format(
-      "{}: Sensor Value: {}, PWM [PID]: {}", name, value, newPwm);
+      "{}: Sensor Value: {}, PWM [PID]: {}", name, value, pwm);
   XLOG(DBG1) << "               dT : " << dT
              << " Time : " << pBsp_->getCurrentTime()
              << " LUD : " << lastControlUpdateSec_ << " Min : " << minVal
              << " Max : " << maxVal;
-  return newPwm;
+  return pwm;
 }
 
 float ControlLogic::calculateIncrementalPid(
@@ -290,6 +305,7 @@ void ControlLogic::getOpticsUpdate() {
       // pwm using PID method
       // Step 1. Get the max temperature per optic type
       std::unordered_map<std::string, float> maxValue;
+      std::string cacheKey;
       for (const auto& [opticType, value] : opticEntry->data) {
         if (maxValue.find(opticType) == maxValue.end()) {
           maxValue[opticType] = value;
@@ -308,8 +324,12 @@ void ControlLogic::getOpticsUpdate() {
               "Optic {} does not have PID setting", opticType);
           continue;
         }
-        // Cache values are stored per optic type
-        auto& pwmCalcCache = pwmCalcCaches_[opticType];
+        // Cache key is unique as long as opticName is unique
+        cacheKey = opticName + opticType;
+        auto& pwmCalcCache = pwmCalcCaches_[cacheKey];
+        pwmCalcCache.previousTargetPwm =
+            pwmCalcCaches_[opticName].previousTargetPwm;
+
         uint64_t dT = pBsp_->getCurrentTime() - lastControlUpdateSec_;
         float pwm =
             calculatePid(opticType, value, pwmCalcCache, *pidSetting, dT);
@@ -334,6 +354,11 @@ void ControlLogic::getOpticsUpdate() {
 bool ControlLogic::isSensorPresentInConfig(const std::string& sensorName) {
   for (auto& sensor : *config_.sensors()) {
     if (*sensor.sensorName() == sensorName) {
+      return true;
+    }
+  }
+  for (auto& optic : *config_.optics()) {
+    if (*optic.opticName() == sensorName) {
       return true;
     }
   }
