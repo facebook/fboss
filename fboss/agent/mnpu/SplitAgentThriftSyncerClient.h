@@ -140,10 +140,13 @@ class ThriftSinkClient : public SplitAgentThriftClient {
     if (!isConnectedToServer() || exiting_.load()) {
       eventsDroppedCount_.add(1);
     } else {
-      if constexpr (std::is_same_v<EventQueueT, RxPktEventQueueType>) {
-        // RxPacketEvent uses bounded queue which can block on enqueue
-        // if queue is full. Use cancellation so that we can cancel
-        // enqueue if we are shutting down.
+      if constexpr (std::is_same_v<
+                        EventQueueT,
+                        folly::coro::
+                            BoundedQueue<CallbackObjectT, true, true>>) {
+        // Bounded queue can block on enqueue if queue is full.
+        // Use cancellation so that we can cancel enqueue if we
+        // are shutting down.
         try {
           co_await folly::coro::co_withCancellation(
               cancelSource_.getToken(),

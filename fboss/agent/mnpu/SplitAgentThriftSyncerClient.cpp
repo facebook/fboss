@@ -222,7 +222,9 @@ ThriftSinkClient<CallbackObjectT, EventQueueT>::~ThriftSinkClient() {
 template <typename CallbackObjectT, typename EventQueueT>
 void ThriftSinkClient<CallbackObjectT, EventQueueT>::onCancellation() {
   auto dummyEvent = CallbackObjectT();
-  if constexpr (std::is_same_v<EventQueueT, RxPktEventQueueType>) {
+  if constexpr (std::is_same_v<
+                    EventQueueT,
+                    folly::coro::BoundedQueue<CallbackObjectT, true, true>>) {
     eventsQueue_.try_enqueue(std::move(dummyEvent));
   } else {
     eventsQueue_.enqueue(std::move(dummyEvent));
