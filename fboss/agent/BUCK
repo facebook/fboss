@@ -747,6 +747,7 @@ cpp_library(
         ":stats",
         ":sw_switch_warmboot_helper",
         ":switch_config-cpp2-types",
+        ":switch_reachability-cpp2-types",
         ":switch_state-cpp2-types",
         ":switchid_scope_resolver",
         ":switchinfo_utils",

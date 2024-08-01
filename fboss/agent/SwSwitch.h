@@ -20,6 +20,7 @@
 #include "fboss/agent/Utils.h"
 #include "fboss/agent/gen-cpp2/agent_stats_types.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
+#include "fboss/agent/gen-cpp2/switch_reachability_types.h"
 #include "fboss/agent/gen-cpp2/switch_state_types.h"
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 #include "fboss/agent/rib/RoutingInformationBase.h"
@@ -1248,5 +1249,8 @@ class SwSwitch : public HwSwitchCallback {
   // rx handling path.
   folly::ConcurrentHashMap<std::pair<RouterID, folly::IPAddress>, InterfaceID>
       addrToLocalIntf_;
+  folly::Synchronized<
+      std::map<SwitchID, switch_reachability::SwitchReachability>>
+      hwSwitchReachability_;
 };
 } // namespace facebook::fboss

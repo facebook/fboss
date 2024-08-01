@@ -274,6 +274,13 @@ add_fbthrift_cpp_library(
     phy_cpp2
 )
 add_fbthrift_cpp_library(
+  switch_reachability_cpp2
+  fboss/agent/switch_reachability.thrift
+  OPTIONS
+    json
+    reflection
+)
+add_fbthrift_cpp_library(
   switch_state_cpp2
   fboss/agent/switch_state.thrift
   OPTIONS

@@ -232,6 +232,7 @@ target_link_libraries(
   state
   fsdb_model
   tuple_utils
+  switch_reachability_cpp2
   switch_state_cpp2
 )
 
