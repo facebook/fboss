@@ -43,6 +43,7 @@
 #include "fboss/agent/hw/sai/switch/SaiNeighborManager.h"
 #include "fboss/agent/hw/sai/switch/SaiNextHopGroupManager.h"
 #include "fboss/agent/hw/sai/switch/SaiPortManager.h"
+#include "fboss/agent/hw/sai/switch/SaiPortUtils.h"
 #include "fboss/agent/hw/sai/switch/SaiRouteManager.h"
 #include "fboss/agent/hw/sai/switch/SaiRouterInterfaceManager.h"
 #include "fboss/agent/hw/sai/switch/SaiRxPacket.h"
@@ -1940,7 +1941,7 @@ void SaiSwitch::linkStateChangedCallbackBottomHalf(
     std::vector<sai_port_oper_status_notification_t> operStatus) {
   std::map<PortID, bool> swPortId2Status;
   for (auto i = 0; i < operStatus.size(); i++) {
-    bool up = operStatus[i].port_state == SAI_PORT_OPER_STATUS_UP;
+    bool up = utility::isPortOperUp(operStatus[i].port_state);
 
     // Look up SwitchState PortID by port sai id in ConcurrentIndices
     const auto portItr = concurrentIndices_->portSaiId2PortInfo.find(
