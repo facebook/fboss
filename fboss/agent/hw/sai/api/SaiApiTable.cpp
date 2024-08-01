@@ -85,6 +85,10 @@ const AclApi& SaiApiTable::aclApi() const {
 const ArsApi& SaiApiTable::arsApi() const {
   return getApi<ArsApi>();
 }
+
+const ArsProfileApi& SaiApiTable::arsProfileApi() const {
+  return getApi<ArsProfileApi>();
+}
 #endif
 
 const BridgeApi& SaiApiTable::bridgeApi() const {

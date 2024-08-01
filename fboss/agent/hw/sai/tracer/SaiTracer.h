@@ -211,6 +211,7 @@ class SaiTracer {
   sai_acl_api_t* aclApi_;
 #if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
   sai_ars_api_t* arsApi_;
+  sai_ars_profile_api_t* arsProfileApi_;
 #endif
   sai_bridge_api_t* bridgeApi_;
   sai_buffer_api_t* bufferApi_;
@@ -370,6 +371,7 @@ class SaiTracer {
       {SAI_OBJECT_TYPE_ACL_TABLE_GROUP_MEMBER, "aclTableGroupMember_"},
 #if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
       {SAI_OBJECT_TYPE_ARS, "ars_"},
+      {SAI_OBJECT_TYPE_ARS_PROFILE, "arsProfile_"},
 #endif
       {SAI_OBJECT_TYPE_BRIDGE, "bridge_"},
       {SAI_OBJECT_TYPE_BRIDGE_PORT, "bridgePort_"},
@@ -429,6 +431,7 @@ class SaiTracer {
       {SAI_OBJECT_TYPE_ACL_TABLE_GROUP_MEMBER, "acl_api->"},
 #if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
       {SAI_OBJECT_TYPE_ARS, "ars_api->"},
+      {SAI_OBJECT_TYPE_ARS_PROFILE, "ars_profile_api->"},
 #endif
       {SAI_OBJECT_TYPE_BRIDGE, "bridge_api->"},
       {SAI_OBJECT_TYPE_BRIDGE_PORT, "bridge_api->"},

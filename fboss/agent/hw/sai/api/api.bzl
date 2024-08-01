@@ -67,6 +67,7 @@ common_headers = [
     "AclApi.h",
     "AdapterKeySerializers.h",
     "ArsApi.h",
+    "ArsProfileApi.h",
     "BridgeApi.h",
     "BufferApi.h",
     "CounterApi.h",

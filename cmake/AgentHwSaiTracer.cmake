@@ -6,6 +6,7 @@
 add_library(sai_tracer
   fboss/agent/hw/sai/tracer/AclApiTracer.cpp
   fboss/agent/hw/sai/tracer/ArsApiTracer.cpp
+  fboss/agent/hw/sai/tracer/ArsProfileApiTracer.cpp
   fboss/agent/hw/sai/tracer/BridgeApiTracer.cpp
   fboss/agent/hw/sai/tracer/BufferApiTracer.cpp
   fboss/agent/hw/sai/tracer/CounterApiTracer.cpp

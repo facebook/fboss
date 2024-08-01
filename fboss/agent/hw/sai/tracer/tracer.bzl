@@ -14,6 +14,7 @@ def _sai_api_tracer_impl(sai_impl):
         srcs = [
             "AclApiTracer.cpp",
             "ArsApiTracer.cpp",
+            "ArsProfileApiTracer.cpp",
             "BridgeApiTracer.cpp",
             "BufferApiTracer.cpp",
             "CounterApiTracer.cpp",

@@ -115,6 +115,8 @@ folly::StringPiece saiApiTypeToString(sai_api_t apiType) {
 #if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
     case SAI_API_ARS:
       return "ars";
+    case SAI_API_ARS_PROFILE:
+      return "ars_profile";
 #endif
     default:
       if (apiType >= SAI_API_MAX) {
@@ -243,6 +245,8 @@ folly::StringPiece saiObjectTypeToString(sai_object_type_t objectType) {
 #if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
     case SAI_OBJECT_TYPE_ARS:
       return "ars";
+    case SAI_OBJECT_TYPE_ARS_PROFILE:
+      return "ars_profile";
 #endif
     default:
       throw FbossError("object type invalid: ", objectType);

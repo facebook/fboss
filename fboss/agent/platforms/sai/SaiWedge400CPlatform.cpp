@@ -10,6 +10,7 @@
 
 #include "fboss/agent/platforms/sai/SaiWedge400CPlatform.h"
 #include "fboss/agent/hw/sai/api/ArsApi.h"
+#include "fboss/agent/hw/sai/api/ArsProfileApi.h"
 #include "fboss/agent/hw/sai/api/UdfApi.h"
 #include "fboss/agent/hw/switch_asics/EbroAsic.h"
 #include "fboss/agent/platforms/common/wedge400c/Wedge400CGrandTetonPlatformMapping.h"
@@ -105,6 +106,7 @@ const std::set<sai_api_t>& SaiWedge400CPlatform::getSupportedApiList() const {
   apis.erase(facebook::fboss::UdfApi::ApiType);
 #if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
   apis.erase(facebook::fboss::ArsApi::ApiType);
+  apis.erase(facebook::fboss::ArsProfileApi::ApiType);
 #endif
   return apis;
 }

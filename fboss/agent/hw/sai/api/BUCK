@@ -59,6 +59,7 @@ cpp_library(
         "AdapterKeySerializers.h",
         "AddressUtil.h",
         "ArsApi.h",
+        "ArsProfileApi.h",
         "BridgeApi.h",
         "BufferApi.h",
         "CounterApi.h",
