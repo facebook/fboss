@@ -494,33 +494,45 @@ struct SaiSwitchTraits {
     struct AttributeVoqLatencyMinLocalNs {
       std::optional<sai_attr_id_t> operator()();
     };
-    using VoqLatencyMinLocalNs =
-        SaiExtensionAttribute<sai_int32_t, AttributeVoqLatencyMinLocalNs>;
+    using VoqLatencyMinLocalNs = SaiExtensionAttribute<
+        sai_int32_t,
+        AttributeVoqLatencyMinLocalNs,
+        SaiIntDefault<sai_int32_t>>;
     struct AttributeVoqLatencyMaxLocalNs {
       std::optional<sai_attr_id_t> operator()();
     };
-    using VoqLatencyMaxLocalNs =
-        SaiExtensionAttribute<sai_int32_t, AttributeVoqLatencyMaxLocalNs>;
+    using VoqLatencyMaxLocalNs = SaiExtensionAttribute<
+        sai_int32_t,
+        AttributeVoqLatencyMaxLocalNs,
+        SaiIntDefault<sai_int32_t>>;
     struct AttributeVoqLatencyMinLevel1Ns {
       std::optional<sai_attr_id_t> operator()();
     };
-    using VoqLatencyMinLevel1Ns =
-        SaiExtensionAttribute<sai_int32_t, AttributeVoqLatencyMinLevel1Ns>;
+    using VoqLatencyMinLevel1Ns = SaiExtensionAttribute<
+        sai_int32_t,
+        AttributeVoqLatencyMinLevel1Ns,
+        SaiIntDefault<sai_int32_t>>;
     struct AttributeVoqLatencyMaxLevel1Ns {
       std::optional<sai_attr_id_t> operator()();
     };
-    using VoqLatencyMaxLevel1Ns =
-        SaiExtensionAttribute<sai_int32_t, AttributeVoqLatencyMaxLevel1Ns>;
+    using VoqLatencyMaxLevel1Ns = SaiExtensionAttribute<
+        sai_int32_t,
+        AttributeVoqLatencyMaxLevel1Ns,
+        SaiIntDefault<sai_int32_t>>;
     struct AttributeVoqLatencyMinLevel2Ns {
       std::optional<sai_attr_id_t> operator()();
     };
-    using VoqLatencyMinLevel2Ns =
-        SaiExtensionAttribute<sai_int32_t, AttributeVoqLatencyMinLevel2Ns>;
+    using VoqLatencyMinLevel2Ns = SaiExtensionAttribute<
+        sai_int32_t,
+        AttributeVoqLatencyMinLevel2Ns,
+        SaiIntDefault<sai_int32_t>>;
     struct AttributeVoqLatencyMaxLevel2Ns {
       std::optional<sai_attr_id_t> operator()();
     };
-    using VoqLatencyMaxLevel2Ns =
-        SaiExtensionAttribute<sai_int32_t, AttributeVoqLatencyMaxLevel2Ns>;
+    using VoqLatencyMaxLevel2Ns = SaiExtensionAttribute<
+        sai_int32_t,
+        AttributeVoqLatencyMaxLevel2Ns,
+        SaiIntDefault<sai_int32_t>>;
   };
   using AdapterKey = SwitchSaiId;
   using AdapterHostKey = std::monostate;
