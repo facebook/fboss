@@ -19,7 +19,6 @@
 
 #include <gtest/gtest.h>
 
-DECLARE_bool(tun_intf);
 DEFINE_bool(
     setup_for_warmboot,
     false,
@@ -115,12 +114,6 @@ void AgentEnsemble::setupEnsemble(
 }
 
 void AgentEnsemble::startAgent(bool failHwCallsOnWarmboot) {
-  // TODO: provide a way to enable tun intf, for now disable it expressedly,
-  // this can also be done with CLI option, however netcastle runners can not
-  // use that option, because hw tests and hw benchmarks using hwswitch
-  // ensemble doesn't have CLI option to disable tun intf. Also get rid of
-  // explicit setting this flag and emply CLI option to disable tun manager.
-  FLAGS_tun_intf = false;
   auto* initializer = agentInitializer();
   auto hwWriteBehavior = HwWriteBehavior::WRITE;
   if (getSw()->getWarmBootHelper()->canWarmBoot()) {
