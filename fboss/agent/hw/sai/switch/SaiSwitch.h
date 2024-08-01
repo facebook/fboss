@@ -384,7 +384,7 @@ class SaiSwitch : public HwSwitch {
   void linkStateChangedCallbackBottomHalf(
       std::vector<sai_port_oper_status_notification_t> data);
   void txReadyStatusChangeCallbackBottomHalf();
-  void switchReachabilityChangeBottomHalf() const;
+  void switchReachabilityChangeBottomHalf();
   std::set<PortID> getFabricReachabilityPortIds(
       const std::vector<sai_object_id_t>& switchIdAndFabricPortSaiIds) const;
 
@@ -606,6 +606,7 @@ class SaiSwitch : public HwSwitch {
   std::map<PortID, phy::PhyInfo> lastPhyInfos_;
   std::unique_ptr<FabricConnectivityManager> fabricConnectivityManager_;
   bool pfcDeadlockEnabled_{false};
+  folly::Synchronized<bool> switchReachabilityChangePending_{false};
 };
 
 } // namespace facebook::fboss

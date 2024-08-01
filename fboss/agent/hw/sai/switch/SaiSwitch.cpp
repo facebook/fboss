@@ -2117,8 +2117,12 @@ void SaiSwitch::linkConnectivityChanged(
 }
 
 void SaiSwitch::switchReachabilityChangeTopHalf() {
-  switchReachabilityChangeBottomHalfEventBase_.runInEventBaseThread(
-      [this]() mutable { switchReachabilityChangeBottomHalf(); });
+  auto changePending = switchReachabilityChangePending_.wlock();
+  if (!*changePending) {
+    *changePending = true;
+    switchReachabilityChangeBottomHalfEventBase_.runInEventBaseThread(
+        [this]() mutable { switchReachabilityChangeBottomHalf(); });
+  }
 }
 
 std::set<PortID> SaiSwitch::getFabricReachabilityPortIds(
@@ -2147,7 +2151,8 @@ std::set<PortID> SaiSwitch::getFabricReachabilityPortIds(
   return portIds;
 }
 
-void SaiSwitch::switchReachabilityChangeBottomHalf() const {
+void SaiSwitch::switchReachabilityChangeBottomHalf() {
+  *switchReachabilityChangePending_.wlock() = false;
   auto& switchApi = SaiApiTable::getInstance()->switchApi();
 
   for (const auto& [_, dsfNodes] :
