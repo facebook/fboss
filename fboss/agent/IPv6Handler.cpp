@@ -1073,6 +1073,11 @@ void IPv6Handler::sendNeighborAdvertisement(
     MacAddress dstMac,
     IPAddressV6 dstIP,
     const std::optional<PortDescriptor>& portDescriptor) {
+  if (FLAGS_disable_neighbor_updates) {
+    XLOG(DBG4)
+        << "skipping sending neighbor advertisement since neighbor updates are disabled";
+    return;
+  }
   XLOG(DBG4) << "sending neighbor advertisement to " << dstIP.str() << " ("
              << dstMac << "): for " << srcIP << " (" << srcMac << ")";
 

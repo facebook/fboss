@@ -196,6 +196,11 @@ static void sendArp(
     MacAddress targetMac,
     IPAddressV4 targetIP,
     const std::optional<PortDescriptor>& portDesc = std::nullopt) {
+  if (FLAGS_disable_neighbor_updates) {
+    XLOG(DBG4)
+        << "skipping sending ARP packet since neighbor updates are disabled";
+    return;
+  }
   auto vlanStr = vlan.has_value()
       ? folly::to<std::string>(static_cast<int>(vlan.value()))
       : "None";
