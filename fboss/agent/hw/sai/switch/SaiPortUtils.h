@@ -55,4 +55,6 @@ phy::FecMode getFecModeFromSaiExtendedFecMode(
     sai_port_fec_mode_extended_t fec,
     cfg::PortProfileID profileID);
 #endif
+
+bool isPortOperUp(sai_port_oper_status_t operStatus);
 } // namespace facebook::fboss::utility

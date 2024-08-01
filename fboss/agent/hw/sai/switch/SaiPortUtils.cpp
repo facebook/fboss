@@ -293,4 +293,16 @@ sai_port_ptp_mode_t getSaiPortPtpMode(bool enable) {
                 : SAI_PORT_PTP_MODE_NONE;
 }
 
+bool isPortOperUp(sai_port_oper_status_t operStatus) {
+#if defined(BRCM_SAI_SDK_GTE_11_0) && defined(BRCM_SAI_SDK_DNX)
+  auto operStatusExt =
+      static_cast<sai_port_oper_status_extensions_t>(operStatus);
+  return (
+      operStatus == SAI_PORT_OPER_STATUS_UP ||
+      operStatusExt == SAI_PORT_OPER_STATUS_FAILED ||
+      operStatusExt == SAI_PORT_OPER_STATUS_WRONG_CONNECTIVITY);
+#else
+  return operStatus == SAI_PORT_OPER_STATUS_UP;
+#endif
+}
 } // namespace facebook::fboss::utility
