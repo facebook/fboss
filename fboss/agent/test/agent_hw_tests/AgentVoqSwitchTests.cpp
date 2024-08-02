@@ -877,6 +877,7 @@ TEST_F(AgentVoqSwitchTest, sendPacketCpuAndFrontPanel) {
       int64_t beforeQueueOutPkts = 0, beforeQueueOutBytes = 0;
       int64_t afterQueueOutPkts = 0, afterQueueOutBytes = 0;
       int64_t beforeVoQOutBytes = 0, afterVoQOutBytes = 0;
+      int64_t egressCoreWatermarkBytes = 0;
 
       if (isSupportedOnAllAsics(HwAsic::Feature::L3_QOS)) {
         auto beforeAllQueueOut = getAllQueueOutPktsBytes();
@@ -931,6 +932,15 @@ TEST_F(AgentVoqSwitchTest, sendPacketCpuAndFrontPanel) {
                   getPortOutPktsBytes(*frontPanelPort);
             }
             auto afterRecyclePkts = getRecyclePortPkts();
+            for (const auto& switchWatermarksIter :
+                 getAllSwitchWatermarkStats()) {
+              if (switchWatermarksIter.second.egressCoreBufferWatermarkBytes()
+                      .has_value()) {
+                egressCoreWatermarkBytes +=
+                    switchWatermarksIter.second.egressCoreBufferWatermarkBytes()
+                        .value();
+              }
+            }
             XLOG(DBG2) << "Verifying: "
                        << (isFrontPanel ? "Send Packet from Front Panel Port"
                                         : "Send Packet from CPU Port")
@@ -951,7 +961,9 @@ TEST_F(AgentVoqSwitchTest, sendPacketCpuAndFrontPanel) {
                        << " afterAclPkts: " << afterAclPkts
                        << " afterFrontPanelPkts: " << afterFrontPanelOutPkts
                        << " afterFrontPanelBytes: " << afterFrontPanelOutBytes
-                       << " afterRecyclePkts: " << afterRecyclePkts;
+                       << " afterRecyclePkts: " << afterRecyclePkts
+                       << " egressCoreWatermarkBytes: "
+                       << egressCoreWatermarkBytes;
 
             EXPECT_EVENTUALLY_EQ(afterOutPkts - 1, beforeOutPkts);
             int extraByteOffset = 0;
@@ -996,6 +1008,10 @@ TEST_F(AgentVoqSwitchTest, sendPacketCpuAndFrontPanel) {
               EXPECT_EVENTUALLY_EQ(
                   *afterSwitchDropStats.queueResolutionDrops(),
                   *beforeSwitchDropStats.queueResolutionDrops() + 1);
+            }
+            if (isSupportedOnAllAsics(
+                    HwAsic::Feature::EGRESS_CORE_BUFFER_WATERMARK)) {
+              EXPECT_EVENTUALLY_GT(egressCoreWatermarkBytes, 0);
             }
           });
     };
