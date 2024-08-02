@@ -13,6 +13,7 @@
 #include "fboss/agent/hw/sai/api/SaiApi.h"
 #include "fboss/agent/hw/sai/api/SaiAttribute.h"
 #include "fboss/agent/hw/sai/api/SaiAttributeDataTypes.h"
+#include "fboss/agent/hw/sai/api/SaiVersion.h"
 #include "fboss/agent/hw/sai/api/Types.h"
 
 #include <folly/logging/xlog.h>
@@ -40,17 +41,32 @@ struct SaiNextHopGroupTraits {
         std::vector<sai_object_id_t>>;
     using Type =
         SaiAttribute<EnumType, SAI_NEXT_HOP_GROUP_ATTR_TYPE, sai_int32_t>;
+#if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
+    using ArsObjectId = SaiAttribute<
+        EnumType,
+        SAI_NEXT_HOP_GROUP_ATTR_ARS_OBJECT_ID,
+        sai_object_id_t>;
+#endif
   };
 
   using AdapterKey = NextHopGroupSaiId;
   using NextHopMemberKey =
       std::pair<SaiNextHopTraits::AdapterHostKey, sai_uint32_t>; // weight
   using AdapterHostKey = std::set<NextHopMemberKey>;
-  using CreateAttributes = std::tuple<Attributes::Type>;
+  using CreateAttributes = std::tuple<
+      Attributes::Type
+#if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
+      ,
+      std::optional<Attributes::ArsObjectId>
+#endif
+      >;
 };
 
 SAI_ATTRIBUTE_NAME(NextHopGroup, NextHopMemberList)
 SAI_ATTRIBUTE_NAME(NextHopGroup, Type)
+#if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
+SAI_ATTRIBUTE_NAME(NextHopGroup, ArsObjectId)
+#endif
 
 struct SaiNextHopGroupMemberTraits {
   static constexpr sai_object_type_t ObjectType =

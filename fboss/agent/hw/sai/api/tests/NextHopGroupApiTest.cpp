@@ -25,10 +25,14 @@ class NextHopGroupApiTest : public ::testing::Test {
     nextHopGroupApi = std::make_unique<NextHopGroupApi>();
   }
 
+  sai_object_id_t kArsObjectId() const {
+    return 50;
+  }
+
   NextHopGroupSaiId createNextHopGroup(
       const sai_next_hop_group_type_t nextHopGroupType) const {
     return nextHopGroupApi->create<SaiNextHopGroupTraits>(
-        {nextHopGroupType}, 0);
+        {nextHopGroupType, kArsObjectId()}, 0);
   }
 
   NextHopGroupMemberSaiId createNextHopGroupMember(
@@ -83,9 +87,12 @@ TEST_F(NextHopGroupApiTest, getNextHopGroupAttributes) {
       nextHopGroupId, SaiNextHopGroupTraits::Attributes::NextHopMemberList());
   auto nextHopTypeGot = nextHopGroupApi->getAttribute(
       nextHopGroupId, SaiNextHopGroupTraits::Attributes::Type());
+  auto nextHopArsObjectIdGot = nextHopGroupApi->getAttribute(
+      nextHopGroupId, SaiNextHopGroupTraits::Attributes::ArsObjectId());
 
   EXPECT_EQ(nextHopMemberListGot.size(), 1);
   EXPECT_EQ(nextHopTypeGot, SAI_NEXT_HOP_GROUP_TYPE_ECMP);
+  EXPECT_EQ(nextHopArsObjectIdGot, kArsObjectId());
 }
 
 // SAI spec does not support setting any attribute for next hop group post
@@ -97,6 +104,7 @@ TEST_F(NextHopGroupApiTest, setNextHopGroupAttributes) {
   SaiNextHopGroupTraits::Attributes::Type nextHopGroupType{
       SAI_NEXT_HOP_GROUP_TYPE_PROTECTION};
   SaiNextHopGroupTraits::Attributes::NextHopMemberList NextHopMemberList{};
+  SaiNextHopGroupTraits::Attributes::ArsObjectId ArsObjectId{60};
 
   EXPECT_THROW(
       nextHopGroupApi->setAttribute(nextHopGroupId, nextHopGroupType),
@@ -104,6 +112,10 @@ TEST_F(NextHopGroupApiTest, setNextHopGroupAttributes) {
   EXPECT_THROW(
       nextHopGroupApi->setAttribute(nextHopGroupId, NextHopMemberList),
       SaiApiError);
+  nextHopGroupApi->setAttribute(nextHopGroupId, ArsObjectId);
+  auto nextHopArsObjectIdGot = nextHopGroupApi->getAttribute(
+      nextHopGroupId, SaiNextHopGroupTraits::Attributes::ArsObjectId());
+  EXPECT_EQ(nextHopArsObjectIdGot, 60);
 }
 
 TEST_F(NextHopGroupApiTest, createNextHopGroupMember) {
@@ -212,6 +224,8 @@ TEST_F(NextHopGroupApiTest, formatNextHopGroupAttributes) {
   EXPECT_EQ("Type: 0", fmt::format("{}", t));
   SaiNextHopGroupTraits::Attributes::NextHopMemberList nhml{{42, 100, 3}};
   EXPECT_EQ("NextHopMemberList: [42, 100, 3]", fmt::format("{}", nhml));
+  SaiNextHopGroupTraits::Attributes::ArsObjectId a{60};
+  EXPECT_EQ("ArsObjectId: 60", fmt::format("{}", a));
 }
 
 TEST_F(NextHopGroupApiTest, formatNextHopGroupMemberAttributes) {

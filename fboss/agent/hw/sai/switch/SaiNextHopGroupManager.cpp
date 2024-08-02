@@ -64,7 +64,12 @@ SaiNextHopGroupManager::incRefOrAddNextHopGroup(
   // Create the NextHopGroup and NextHopGroupMembers
   auto& store = saiStore_->get<SaiNextHopGroupTraits>();
   SaiNextHopGroupTraits::CreateAttributes nextHopGroupAttributes{
-      SAI_NEXT_HOP_GROUP_TYPE_ECMP};
+      SAI_NEXT_HOP_GROUP_TYPE_ECMP
+#if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
+      ,
+      std::nullopt
+#endif
+  };
   nextHopGroupHandle->nextHopGroup =
       store.setObject(nextHopGroupAdapterHostKey, nextHopGroupAttributes);
   NextHopGroupSaiId nextHopGroupId =
