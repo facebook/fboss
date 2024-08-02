@@ -91,6 +91,7 @@ cpp_library(
         ":acl_test_utils",
         ":copp_test_utils",
         "//fboss/agent:switch_config-cpp2-types",
+        "//fboss/agent/hw/switch_asics:switch_asics",
         "//fboss/agent/hw/test:config_factory",
         "//fboss/agent/packet:ipproto",
     ],

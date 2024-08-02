@@ -34,7 +34,7 @@ enum class OlympicQueueType {
 
 enum class OlympicV2QueueType { NCNF, BRONZE, SILVER, GOLD, ICP, NC };
 
-enum class NetworkAIQueueType { MONITORING, RDMA, NC };
+enum class NetworkAIQueueType { DEFAULT, MONITORING, RDMA, NC };
 
 /* Olympic QoS queues */
 constexpr int kOlympicSilverQueueId = 0;
@@ -110,12 +110,17 @@ constexpr int kQueueConfigAqmsWredDropProbability = 100;
 constexpr int kNetworkAIMonitoringQueueId = 6;
 constexpr int kNetworkAIRdmaQueueId = 2;
 constexpr int kNetworkAINCQueueId = 7;
+constexpr int kNetworkAIDefaultQueueId = 0;
 
 constexpr int kNetworkAIHighestQueueId = kNetworkAINCQueueId;
 
 void addNetworkAIQueueConfig(
     cfg::SwitchConfig* config,
     cfg::StreamType streamType);
+
+void addNetworkAIQosMaps(
+    cfg::SwitchConfig& cfg,
+    const std::vector<const HwAsic*>& asics);
 
 void addOlympicQueueConfig(
     cfg::SwitchConfig* config,
@@ -154,6 +159,7 @@ void addOlympicV2QosMaps(
 std::string getOlympicCounterNameForDscp(uint8_t dscp);
 
 const std::map<int, std::vector<uint8_t>> kOlympicQueueToDscp();
+const std::map<int, std::vector<uint8_t>> kNetworkAIV2QueueToDscp();
 const std::map<int, uint8_t> kOlympicWRRQueueToWeight();
 const std::map<int, uint8_t> kOlympicV2WRRQueueToWeight();
 

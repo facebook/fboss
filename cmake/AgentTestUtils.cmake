@@ -68,6 +68,7 @@ add_library(traffic_policy_utils
 target_link_libraries(traffic_policy_utils
   switch_config_cpp2
   config_factory
+  switch_asics
   state
   Folly::folly
 )

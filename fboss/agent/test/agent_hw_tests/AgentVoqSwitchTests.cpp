@@ -55,6 +55,7 @@ class AgentVoqSwitchTest : public AgentHwTest {
         break;
       }
     }
+    utility::addNetworkAIQosMaps(config, ensemble.getL3Asics());
     return config;
   }
 
@@ -1707,10 +1708,6 @@ TEST_F(AgentVoqSwitchWithMultipleDsfNodesTest, verifyDscpToVoqMapping) {
   auto constexpr remotePortId = 401;
   const SystemPortID kRemoteSysPortId(remotePortId);
   auto setup = [=, this]() {
-    auto newCfg{initialConfig(*getAgentEnsemble())};
-    utility::addOlympicQosMaps(newCfg, getAgentEnsemble()->getL3Asics());
-    applyNewConfig(newCfg);
-
     // in addRemoteDsfNodeCfg, we use numCores to calculate the remoteSwitchId
     // keeping remote switch id passed below in sync with it
     int numCores =
@@ -1754,11 +1751,11 @@ TEST_F(AgentVoqSwitchWithMultipleDsfNodesTest, verifyDscpToVoqMapping) {
   };
 
   auto verify = [=, this]() {
-    for (const auto& q2dscps : utility::kOlympicQueueToDscp()) {
+    for (const auto& q2dscps : utility::kNetworkAIV2QueueToDscp()) {
       auto queueId = q2dscps.first;
       for (auto dscp : q2dscps.second) {
-        XLOG(DBG2) << "verify packet with dscp " << dscp << " goes to queue "
-                   << queueId;
+        XLOG(DBG2) << "verify packet with dscp " << static_cast<int>(dscp)
+                   << " goes to queue " << queueId;
         auto statsBefore = getLatestSysPortStats(kRemoteSysPortId);
         auto queueBytesBefore = statsBefore.queueOutBytes_()->at(queueId) +
             statsBefore.queueOutDiscardBytes_()->at(queueId);

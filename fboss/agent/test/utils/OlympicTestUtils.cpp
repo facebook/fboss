@@ -212,6 +212,8 @@ int getNetworkAIQueueId(NetworkAIQueueType queueType) {
       return kNetworkAIRdmaQueueId;
     case NetworkAIQueueType::NC:
       return kNetworkAINCQueueId;
+    case NetworkAIQueueType::DEFAULT:
+      return kNetworkAIDefaultQueueId;
   }
   throw FbossError("Invalid all network AI queue type ", queueType);
 }
@@ -348,6 +350,13 @@ void addNetworkAIQueueConfig(
   queue2.streamType() = streamType;
   queue2.scheduling() = cfg::QueueScheduling::STRICT_PRIORITY;
   portQueues.push_back(queue2);
+
+  cfg::PortQueue queue3;
+  queue3.id() = getNetworkAIQueueId(NetworkAIQueueType::DEFAULT);
+  queue3.name() = "queue0.default";
+  queue3.streamType() = streamType;
+  queue3.scheduling() = cfg::QueueScheduling::STRICT_PRIORITY;
+  portQueues.push_back(queue3);
 
   config->portQueueConfigs()["queue_config"] = portQueues;
   for (auto& port : *config->ports()) {
@@ -599,6 +608,20 @@ const std::map<int, std::vector<uint8_t>> kOlympicV2QueueToDscp() {
   return queueToDscp;
 }
 
+const std::map<int, std::vector<uint8_t>> kNetworkAIV2QueueToDscp() {
+  const std::map<int, std::vector<uint8_t>> queueToDscp = {
+      {getNetworkAIQueueId(NetworkAIQueueType::DEFAULT),
+       {0,  1,  2,  3,  4,  5,  6,  7,  8,  9,  10, 11, 12, 13, 14, 15,
+        16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 31, 33, 34, 36, 37, 38,
+        39, 40, 41, 42, 43, 44, 45, 46, 47, 49, 60, 61, 62, 63}},
+      {getNetworkAIQueueId(NetworkAIQueueType::RDMA),
+       {50, 51, 52, 53, 54, 55, 56, 57, 58, 59}},
+      {getNetworkAIQueueId(NetworkAIQueueType::MONITORING),
+       {32, 35, 26, 27, 28, 29, 30}},
+      {getNetworkAIQueueId(NetworkAIQueueType::NC), {48}}};
+  return queueToDscp;
+}
+
 const std::map<int, uint8_t> kOlympicWRRQueueToWeight() {
   const std::map<int, uint8_t> wrrQueueToWeight = {
       {getOlympicQueueId(OlympicQueueType::SILVER), kOlympicSilverWeight},
@@ -756,6 +779,12 @@ void addOlympicV2QosMaps(
     cfg::SwitchConfig& cfg,
     const std::vector<const HwAsic*>& asics) {
   addQosMapsHelper(cfg, kOlympicV2QueueToDscp(), "olympic_v2", asics);
+}
+
+void addNetworkAIQosMaps(
+    cfg::SwitchConfig& cfg,
+    const std::vector<const HwAsic*>& asics) {
+  addQosMapsHelper(cfg, kNetworkAIV2QueueToDscp(), "network_ai_v2", asics);
 }
 
 int getMaxWeightWRRQueue(const std::map<int, uint8_t>& queueToWeight) {
