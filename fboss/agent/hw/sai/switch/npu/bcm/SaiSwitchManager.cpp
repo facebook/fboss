@@ -56,6 +56,9 @@ void fillHwSwitchWatermarkStats(
       case SAI_SWITCH_STAT_HIGHEST_QUEUE_CONGESTION_LEVEL:
         hwSwitchWatermarkStats.dtlQueueWatermarkBytes() = value;
         break;
+      case SAI_SWITCH_STAT_DEVICE_EGRESS_DB_WM:
+        hwSwitchWatermarkStats.egressCoreBufferWatermarkBytes() = value;
+        break;
 #endif
       default:
         throw FbossError("Got unexpected switch counter id: ", counterId);
