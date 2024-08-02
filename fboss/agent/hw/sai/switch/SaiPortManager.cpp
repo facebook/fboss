@@ -1894,6 +1894,13 @@ void SaiPortManager::updateStats(
       }
     }
   }
+  if (portType == cfg::PortType::FABRIC_PORT &&
+      platform_->getAsic()->isSupported(HwAsic::Feature::DATA_CELL_FILTER)) {
+    std::optional<SaiPortTraits::Attributes::FabricDataCellsFilterStatus>
+        attrT = SaiPortTraits::Attributes::FabricDataCellsFilterStatus{};
+    std::ignore = SaiApiTable::getInstance()->portApi().getAttribute(
+        handle->port->adapterKey(), attrT);
+  }
   portStats_[portId]->updateStats(curPortStats, now);
   auto lastPrbsRxStateReadTimeIt = lastPrbsRxStateReadTime_.find(portId);
   if (lastPrbsRxStateReadTimeIt == lastPrbsRxStateReadTime_.end() ||
