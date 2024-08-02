@@ -66,7 +66,7 @@ bool checkVlanAndIntf(
   return true;
 }
 
-static cfg::PortDescriptor getNeighborPortDescriptor(
+inline cfg::PortDescriptor getNeighborPortDescriptor(
     const PortDescriptor& port) {
   switch (port.type()) {
     case PortDescriptor::PortType::PHYSICAL:
