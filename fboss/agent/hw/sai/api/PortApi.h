@@ -386,8 +386,10 @@ struct SaiPortTraits {
     struct AttributeFabricDataCellsFilterStatus {
       std::optional<sai_attr_id_t> operator()();
     };
-    using FabricDataCellsFilterStatus =
-        SaiExtensionAttribute<bool, AttributeFabricDataCellsFilterStatus>;
+    using FabricDataCellsFilterStatus = SaiExtensionAttribute<
+        bool,
+        AttributeFabricDataCellsFilterStatus,
+        SaiBoolDefaultFalse>;
   };
   using AdapterKey = PortSaiId;
 
