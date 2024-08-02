@@ -233,6 +233,27 @@ TEST_F(FabricConnectivityManagerTest, validateProcessConnectivityInfo) {
   EXPECT_TRUE(fabricConnectivityManager_->isConnectivityInfoMissing(PortID(1)));
   EXPECT_FALSE(
       fabricConnectivityManager_->isConnectivityInfoMismatch(PortID(1)));
+  // Update port to have expected neighbors again
+  fabricConnectivityManager_->stateUpdated(StateDelta(newerState, newState));
+  expectedConnectivityMap = processConnectivityInfo(hwConnectivityMap);
+  EXPECT_EQ(expectedConnectivityMap.size(), 1);
+
+  for (const auto& expectedConnectivity : expectedConnectivityMap) {
+    const auto& neighbor = expectedConnectivity.second;
+    EXPECT_EQ(neighbor.expectedPortId(), 79);
+    EXPECT_EQ(neighbor.expectedSwitchId(), 10);
+    EXPECT_EQ(neighbor.switchId(), 10);
+    EXPECT_EQ(neighbor.expectedSwitchName(), "fdswA");
+    EXPECT_EQ(neighbor.expectedPortName(), "fab1/2/4");
+    EXPECT_TRUE(*neighbor.isAttached());
+    EXPECT_EQ(*neighbor.expectedPortId(), *neighbor.portId());
+    EXPECT_EQ(neighbor.expectedPortName(), neighbor.portName());
+  }
+
+  EXPECT_FALSE(
+      fabricConnectivityManager_->isConnectivityInfoMissing(PortID(1)));
+  EXPECT_FALSE(
+      fabricConnectivityManager_->isConnectivityInfoMismatch(PortID(1)));
 }
 
 TEST_F(FabricConnectivityManagerTest, validateNoExpectedConnectivity) {
