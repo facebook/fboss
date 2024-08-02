@@ -469,6 +469,16 @@ TEST_F(SwitchApiTest, setCounterRefreshInterval) {
       20);
 }
 
+TEST_F(SwitchApiTest, setArsProfile) {
+  switchApi->setAttribute(
+      switchId, SaiSwitchTraits::Attributes::ArsProfile{50});
+
+  EXPECT_EQ(
+      switchApi->getAttribute(
+          switchId, SaiSwitchTraits::Attributes::ArsProfile()),
+      50);
+}
+
 TEST_F(SwitchApiTest, testSetFirmwareFile) {
   SaiSwitchTraits::Attributes::FirmwarePathName fwPath =
       std::vector<int8_t>{'f', 'i', 'l', 'e'};

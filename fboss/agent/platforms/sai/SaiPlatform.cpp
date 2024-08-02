@@ -629,6 +629,9 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
       voqLatencyMaxLevel1Ns, // Level1 VoQ latency bin max
       voqLatencyMinLevel2Ns, // Level2 VoQ latency bin min
       voqLatencyMaxLevel2Ns, // Level2 VoQ latency bin max
+#if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
+      std::nullopt, // ARS profile
+#endif
   };
 }
 

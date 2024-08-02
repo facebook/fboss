@@ -533,6 +533,13 @@ struct SaiSwitchTraits {
         sai_int32_t,
         AttributeVoqLatencyMaxLevel2Ns,
         SaiIntDefault<sai_int32_t>>;
+#if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
+    using ArsProfile = SaiAttribute<
+        EnumType,
+        SAI_SWITCH_ATTR_ARS_PROFILE,
+        SaiObjectIdT,
+        SaiObjectIdDefault>;
+#endif
   };
   using AdapterKey = SwitchSaiId;
   using AdapterHostKey = std::monostate;
@@ -595,7 +602,12 @@ struct SaiSwitchTraits {
       std::optional<Attributes::VoqLatencyMinLevel1Ns>,
       std::optional<Attributes::VoqLatencyMaxLevel1Ns>,
       std::optional<Attributes::VoqLatencyMinLevel2Ns>,
-      std::optional<Attributes::VoqLatencyMaxLevel2Ns>>;
+      std::optional<Attributes::VoqLatencyMaxLevel2Ns>
+#if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
+      ,
+      std::optional<Attributes::ArsProfile>
+#endif
+      >;
 
 #if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
   static constexpr std::array<sai_stat_id_t, 3> CounterIdsToRead = {
@@ -721,6 +733,9 @@ SAI_ATTRIBUTE_NAME(Switch, VoqLatencyMinLevel1Ns);
 SAI_ATTRIBUTE_NAME(Switch, VoqLatencyMaxLevel1Ns);
 SAI_ATTRIBUTE_NAME(Switch, VoqLatencyMinLevel2Ns);
 SAI_ATTRIBUTE_NAME(Switch, VoqLatencyMaxLevel2Ns);
+#if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
+SAI_ATTRIBUTE_NAME(Switch, ArsProfile)
+#endif
 
 template <>
 struct SaiObjectHasStats<SaiSwitchTraits> : public std::true_type {};
