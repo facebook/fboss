@@ -8,7 +8,7 @@
             "postUpgradeCmd": "echo -e '\\x16' | dd of=/dev/port bs=1 seek=$((0xb2)) count=1"
         },
         "iob_fpga": {
-            "getVersionCmd": "iob_fpga_ver=$((10#`cat /run/devmap/fpgas/MCB_IOB_INFO_ROM/fpga_ver`));echo 0.$iob_fpga_ver",
+            "getVersionCmd": "iob_fpga_ver=$((`cat /run/devmap/fpgas/MCB_IOB_INFO_ROM/fpga_ver`));echo 0.$iob_fpga_ver",
             "priority": 2,
             "upgradeCmd": "iob_fpga_filename=$(head -n 1 /home/iob_fpga_filename.txt);flashrom -p linux_spi:dev=/run/devmap/flashes/MCB_SPI_MASTER_1_DEVICE_1;flashrom -p linux_spi:dev=/run/devmap/flashes/MCB_SPI_MASTER_1_DEVICE_1 -w $iob_fpga_filename -c N25Q128..3E",
             "verifyFwCmd": "iob_fpga_filename=$(head -n 1 /home/iob_fpga_filename.txt);flashrom -p linux_spi:dev=/run/devmap/flashes/MCB_SPI_MASTER_1_DEVICE_1;flashrom -p linux_spi:dev=/run/devmap/flashes/MCB_SPI_MASTER_1_DEVICE_1 -v $iob_fpga_filename -c N25Q128..3E",
@@ -16,7 +16,7 @@
         },
         "dom1_fpga": {
             "preUpgradeCmd": "gpioset $(gpiodetect | grep -E 'fboss_iob_pci.gpiochip.*' | awk '{print $1}') 9=1",
-            "getVersionCmd": "dom1_fpga_ver=$((10#`cat /run/devmap/fpgas/SMB_DOM1_INFO_ROM/fpga_ver`));echo 0.$dom1_fpga_ver",
+            "getVersionCmd": "dom1_fpga_ver=$((`cat /run/devmap/fpgas/SMB_DOM1_INFO_ROM/fpga_ver`));echo 0.$dom1_fpga_ver",
             "priority": 3,
             "upgradeCmd": "dom1_fpga_filename=$(head -n 1 /home/dom1_fpga_filename.txt);flashrom -p linux_spi:dev=/run/devmap/flashes/MCB_SPI_MASTER_2_DEVICE_1 -w $dom1_fpga_filename -c N25Q128..3E",
             "verifyFwCmd": "dom1_fpga_filename=$(head -n 1 /home/dom1_fpga_filename.txt);flashrom -p linux_spi:dev=/run/devmap/flashes/MCB_SPI_MASTER_2_DEVICE_1 -v $dom1_fpga_filename -c N25Q128..3E",
@@ -25,7 +25,7 @@
         },
         "dom2_fpga": {
             "preUpgradeCmd": "gpioset $(gpiodetect | grep -E 'fboss_iob_pci.gpiochip.*' | awk '{print $1}') 10=1",
-            "getVersionCmd": "dom2_fpga_ver=$((10#`cat /run/devmap/fpgas/SMB_DOM2_INFO_ROM/fpga_ver`));echo 0.$dom2_fpga_ver",
+            "getVersionCmd": "dom2_fpga_ver=$((`cat /run/devmap/fpgas/SMB_DOM2_INFO_ROM/fpga_ver`));echo 0.$dom2_fpga_ver",
             "priority": 4,
             "upgradeCmd": "dom2_fpga_filename=$(head -n 1 /home/dom2_fpga_filename.txt);flashrom -p linux_spi:dev=/run/devmap/flashes/MCB_SPI_MASTER_3_DEVICE_1 -w $dom2_fpga_filename -c N25Q128..3E",
             "verifyFwCmd": "dom2_fpga_filename=$(head -n 1 /home/dom2_fpga_filename.txt);flashrom -p linux_spi:dev=/run/devmap/flashes/MCB_SPI_MASTER_3_DEVICE_1 -v $dom2_fpga_filename -c N25Q128..3E",
