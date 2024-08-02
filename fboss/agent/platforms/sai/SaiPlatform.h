@@ -137,7 +137,8 @@ class SaiPlatform : public Platform, public StateObserver {
   virtual std::vector<sai_system_port_config_t> getInternalSystemPortConfig()
       const;
 
-  std::string getHwAsicConfig();
+  std::string getHwAsicConfig(
+      const std::unordered_map<std::string, std::string>& overrides = {});
 
   void stateChanged(const StateDelta& delta) override;
 

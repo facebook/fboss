@@ -54,6 +54,7 @@ DEFINE_string(
     firmware_path,
     "/etc/packages/neteng-fboss-wedge_agent/current",
     "Path to load the firmware");
+
 namespace {
 
 std::unordered_map<std::string, std::string> kSaiProfileValues;
@@ -204,7 +205,8 @@ void SaiPlatform::generateHwConfigFile() {
   }
 }
 
-std::string SaiPlatform::getHwAsicConfig() {
+std::string SaiPlatform::getHwAsicConfig(
+    const std::unordered_map<std::string, std::string>& overrides) {
   /*
    * This function is used to dump the HW config into a file based
    * on new asic config format. Newer platforms will begin using
@@ -243,9 +245,15 @@ std::string SaiPlatform::getHwAsicConfig() {
   auto asicConfig = config()->thrift.platform()->chip()->get_asicConfig();
   auto& commonConfigs = asicConfig.common()->get_config();
   std::vector<std::string> nameValStrs;
+  auto addNameValue = [&nameValStrs, &overrides](const auto& keyAndVal) {
+    auto oitr = overrides.find(keyAndVal.first);
+    nameValStrs.emplace_back(folly::to<std::string>(
+        keyAndVal.first,
+        '=',
+        oitr == overrides.end() ? keyAndVal.second : oitr->second));
+  };
   for (const auto& entry : commonConfigs) {
-    nameValStrs.emplace_back(
-        folly::to<std::string>(entry.first, '=', entry.second));
+    addNameValue(entry);
   }
   /*
    * Single NPU platfroms will not have any npu entries. In such cases,
@@ -260,8 +268,7 @@ std::string SaiPlatform::getHwAsicConfig() {
     const auto& npuEntry = npuEntries.find(FLAGS_switchIndex);
     if (npuEntry != npuEntries.end()) {
       for (const auto& entry : npuEntry->second.get_config()) {
-        nameValStrs.emplace_back(
-            folly::to<std::string>(entry.first, '=', entry.second));
+        addNameValue(entry);
       }
     }
   }
