@@ -101,6 +101,12 @@ std::map<int32_t, std::pair<std::string, std::size_t>> _PortMap{
 #if SAI_API_VERSION >= SAI_VERSION(1, 13, 0)
     SAI_ATTR_MAP(Port, TxReadyStatus),
 #endif
+#if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
+    SAI_ATTR_MAP(Port, ArsEnable),
+    SAI_ATTR_MAP(Port, ArsPortLoadScalingFactor),
+    SAI_ATTR_MAP(Port, ArsPortLoadPastWeight),
+    SAI_ATTR_MAP(Port, ArsPortLoadFutureWeight),
+#endif
 };
 
 std::map<int32_t, std::pair<std::string, std::size_t>> _PortSerdesMap{

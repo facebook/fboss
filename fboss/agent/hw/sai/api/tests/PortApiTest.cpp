@@ -71,6 +71,12 @@ class PortApiTest : public ::testing::Test {
         std::nullopt, // PFC Deadlock Detection Interval
         std::nullopt, // PFC Deadlock Recovery Interval
 #endif
+#if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
+        std::nullopt, // ARS enable
+        std::nullopt, // ARS scaling factor
+        std::nullopt, // ARS port load past weight
+        std::nullopt, // ARS port load future weight
+#endif
     };
     return portApi->create<SaiPortTraits>(a, 0);
   }
@@ -349,6 +355,28 @@ TEST_F(PortApiTest, setGetOptionalAttributes) {
   SaiPortTraits::Attributes::FabricIsolate fabricIsolate_attr(true);
   portApi->setAttribute(portId, fabricIsolate_attr);
   EXPECT_EQ(portApi->getAttribute(portId, fabricIsolate_attr), true);
+#endif
+#if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
+  // ARS related attributes
+  // Ars enable
+  SaiPortTraits::Attributes::ArsEnable arsEnable_attr(true);
+  portApi->setAttribute(portId, arsEnable_attr);
+  EXPECT_EQ(portApi->getAttribute(portId, arsEnable_attr), true);
+  // Ars scaling factor
+  SaiPortTraits::Attributes::ArsPortLoadScalingFactor
+      arsPortLoadScalingFactor_attr(16);
+  portApi->setAttribute(portId, arsPortLoadScalingFactor_attr);
+  EXPECT_EQ(portApi->getAttribute(portId, arsPortLoadScalingFactor_attr), 16);
+  // Ars port load past weight
+  SaiPortTraits::Attributes::ArsPortLoadPastWeight arsPortLoadPastWeight_attr(
+      60);
+  portApi->setAttribute(portId, arsPortLoadPastWeight_attr);
+  EXPECT_EQ(portApi->getAttribute(portId, arsPortLoadPastWeight_attr), 60);
+  // Ars port load future weight
+  SaiPortTraits::Attributes::ArsPortLoadFutureWeight
+      arsPortLoadFutureWeight_attr(20);
+  portApi->setAttribute(portId, arsPortLoadFutureWeight_attr);
+  EXPECT_EQ(portApi->getAttribute(portId, arsPortLoadFutureWeight_attr), 20);
 #endif
 }
 

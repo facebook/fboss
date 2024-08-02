@@ -376,6 +376,26 @@ struct SaiPortTraits {
     using TxReadyStatus =
         SaiAttribute<EnumType, SAI_PORT_ATTR_HOST_TX_READY_STATUS, sai_int32_t>;
 #endif
+#if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
+    using ArsEnable = SaiAttribute<
+        EnumType,
+        SAI_PORT_ATTR_ARS_ENABLE,
+        bool,
+        SaiBoolDefaultFalse>;
+    using ArsPortLoadScalingFactor = SaiAttribute<
+        EnumType,
+        SAI_PORT_ATTR_ARS_PORT_LOAD_SCALING_FACTOR,
+        sai_uint32_t,
+        SaiIntDefault<sai_uint32_t>>;
+    using ArsPortLoadPastWeight = SaiAttribute<
+        EnumType,
+        SAI_PORT_ATTR_ARS_PORT_LOAD_PAST_WEIGHT,
+        sai_uint32_t>;
+    using ArsPortLoadFutureWeight = SaiAttribute<
+        EnumType,
+        SAI_PORT_ATTR_ARS_PORT_LOAD_FUTURE_WEIGHT,
+        sai_uint32_t>;
+#endif
     struct AttributeCablePropogationDelayNS {
       std::optional<sai_attr_id_t> operator()();
     };
@@ -488,6 +508,13 @@ struct SaiPortTraits {
       ,
       std::optional<Attributes::PfcTcDldInterval>,
       std::optional<Attributes::PfcTcDlrInterval>
+#endif
+#if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
+      ,
+      std::optional<Attributes::ArsEnable>,
+      std::optional<Attributes::ArsPortLoadScalingFactor>,
+      std::optional<Attributes::ArsPortLoadPastWeight>,
+      std::optional<Attributes::ArsPortLoadFutureWeight>
 #endif
       >;
   static constexpr std::array<sai_stat_id_t, 16> CounterIdsToRead = {
@@ -633,6 +660,12 @@ SAI_ATTRIBUTE_NAME(Port, TxReadyStatus)
 #endif
 SAI_ATTRIBUTE_NAME(Port, CablePropogationDelayNS)
 SAI_ATTRIBUTE_NAME(Port, FabricDataCellsFilterStatus)
+#if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
+SAI_ATTRIBUTE_NAME(Port, ArsEnable)
+SAI_ATTRIBUTE_NAME(Port, ArsPortLoadScalingFactor)
+SAI_ATTRIBUTE_NAME(Port, ArsPortLoadPastWeight)
+SAI_ATTRIBUTE_NAME(Port, ArsPortLoadFutureWeight)
+#endif
 
 template <>
 struct SaiObjectHasStats<SaiPortTraits> : public std::true_type {};

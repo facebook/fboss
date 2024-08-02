@@ -161,6 +161,12 @@ class PortManagerTest : public ManagerTestBase {
         std::nullopt, // PFC Deadlock Detection Interval
         std::nullopt, // PFC Deadlock Recovery Interval
 #endif
+#if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
+        std::nullopt, // ARS enable
+        std::nullopt, // ARS scaling factor
+        std::nullopt, // ARS port load past weight
+        std::nullopt, // ARS port load future weight
+#endif
     };
     return portApi.create<SaiPortTraits>(a, 0);
   }

@@ -654,6 +654,12 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
         std::nullopt, // PFC Deadlock Detection Interval
         std::nullopt, // PFC Deadlock Recovery Interval
 #endif
+#if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
+        std::nullopt, // ARS enable
+        std::nullopt, // ARS scaling factor
+        std::nullopt, // ARS port load past weight
+        std::nullopt, // ARS port load future weight
+#endif
     };
   }
   return SaiPortTraits::CreateAttributes{
@@ -714,6 +720,12 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 2)
       std::nullopt, // PFC Deadlock Detection Interval
       std::nullopt, // PFC Deadlock Recovery Interval
+#endif
+#if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
+      std::nullopt, // ARS enable
+      std::nullopt, // ARS scaling factor
+      std::nullopt, // ARS port load past weight
+      std::nullopt, // ARS port load future weight
 #endif
   };
 }
