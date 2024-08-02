@@ -15,6 +15,9 @@
 
 #include <cstdio>
 #include <cstring>
+
+DECLARE_bool(disable_looped_fabric_ports);
+
 namespace facebook::fboss {
 
 std::string SaiBcmPlatform::getHwConfig() {
@@ -49,7 +52,11 @@ std::string SaiBcmPlatform::getHwConfig() {
     throw FbossError("Failed to get bcm yaml config from agent config");
   }
   try {
-    auto hwConfig = getHwAsicConfig();
+    std::unordered_map<std::string, std::string> overrides;
+    if (!FLAGS_disable_looped_fabric_ports) {
+      overrides.insert({"fabric_wrong_connectivity_protection_en", "0"});
+    }
+    auto hwConfig = getHwAsicConfig(overrides);
     return hwConfig;
   } catch (const FbossError&) {
     /*
