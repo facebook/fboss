@@ -124,6 +124,7 @@ TYPED_TEST(AgentAclPriorityTest, CheckAclPriorityOrder) {
     this->addDenyPortAcl(newCfg, "C");
     this->addPermitIpAcl(newCfg, "D", kIp);
 
+    auto l3Asics = this->getAgentEnsemble()->getL3Asics();
     cfg::TrafficPolicyConfig trafficConfig;
     trafficConfig.matchToAction()->resize(4);
     newCfg.trafficCounters()->resize(4);
@@ -133,6 +134,8 @@ TYPED_TEST(AgentAclPriorityTest, CheckAclPriorityOrder) {
       trafficConfig.matchToAction()[i].matcher() = *acls[i].name();
       trafficConfig.matchToAction()[i].action()->counter() = *acls[i].name();
       *newCfg.trafficCounters()[i].name() = *acls[i].name();
+      *newCfg.trafficCounters()[i].types() =
+          utility::getAclCounterTypes(l3Asics);
     }
     newCfg.dataPlaneTrafficPolicy() = trafficConfig;
     this->applyNewConfig(newCfg);
