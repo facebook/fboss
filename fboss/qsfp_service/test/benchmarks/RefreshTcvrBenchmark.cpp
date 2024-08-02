@@ -15,8 +15,24 @@
 
 namespace facebook::fboss {
 
-BENCHMARK_MULTI(ReadRegister_CR4_100G) {
-  return readOneByte(MediaInterfaceCode::CR4_100G);
+BENCHMARK_MULTI(RefreshTransceiver_CR4_100G) {
+  return refreshTcvrs(MediaInterfaceCode::CR4_100G);
+}
+
+BENCHMARK_MULTI(RefreshTransceiver_CWDM4_100G) {
+  return refreshTcvrs(MediaInterfaceCode::CWDM4_100G);
+}
+
+BENCHMARK_MULTI(RefreshTransceiver_FR4_200G) {
+  return refreshTcvrs(MediaInterfaceCode::FR4_200G);
+}
+
+BENCHMARK_MULTI(RefreshTransceiver_FR4_400G) {
+  return refreshTcvrs(MediaInterfaceCode::FR4_400G);
+}
+
+BENCHMARK_MULTI(RefreshTransceiver_LR4_400G_10KM) {
+  return refreshTcvrs(MediaInterfaceCode::LR4_400G_10KM);
 }
 
 } // namespace facebook::fboss
