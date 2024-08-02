@@ -789,6 +789,13 @@ const std::vector<sai_stat_id_t>& SaiSwitchManager::supportedWatermarkStats()
         SaiSwitchTraits::dtlWatermarkStats().begin(),
         SaiSwitchTraits::dtlWatermarkStats().end());
   }
+  if (platform_->getAsic()->isSupported(
+          HwAsic::Feature::EGRESS_CORE_BUFFER_WATERMARK)) {
+    stats.insert(
+        stats.end(),
+        SaiSwitchTraits::egressCoreBufferWatermarkBytes().begin(),
+        SaiSwitchTraits::egressCoreBufferWatermarkBytes().end());
+  }
   return stats;
 }
 
