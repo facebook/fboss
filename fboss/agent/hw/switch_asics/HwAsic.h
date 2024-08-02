@@ -186,6 +186,7 @@ class HwAsic {
     ACL_ENTRY_ETHER_TYPE,
     ACL_BYTE_COUNTER,
     DATA_CELL_FILTER,
+    EGRESS_CORE_BUFFER_WATERMARK,
   };
 
   enum class AsicMode {
