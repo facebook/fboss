@@ -191,8 +191,7 @@ TEST_F(FabricConnectivityManagerTest, validateProcessConnectivityInfo) {
   StateDelta delta(oldState, newState);
   fabricConnectivityManager_->stateUpdated(delta);
 
-  const auto expectedConnectivityMap =
-      processConnectivityInfo(hwConnectivityMap);
+  auto expectedConnectivityMap = processConnectivityInfo(hwConnectivityMap);
   EXPECT_EQ(expectedConnectivityMap.size(), 1);
 
   for (const auto& expectedConnectivity : expectedConnectivityMap) {
@@ -209,6 +208,29 @@ TEST_F(FabricConnectivityManagerTest, validateProcessConnectivityInfo) {
 
   EXPECT_FALSE(
       fabricConnectivityManager_->isConnectivityInfoMissing(PortID(1)));
+  EXPECT_FALSE(
+      fabricConnectivityManager_->isConnectivityInfoMismatch(PortID(1)));
+  // Update port to have no expected neighbors
+  newState->publish();
+  auto newerState = newState->clone();
+  auto newPort = swPort->modify(&newerState);
+  newPort->setExpectedNeighborReachability({});
+  fabricConnectivityManager_->stateUpdated(StateDelta(newState, newerState));
+
+  expectedConnectivityMap = processConnectivityInfo(hwConnectivityMap);
+  EXPECT_EQ(expectedConnectivityMap.size(), 1);
+
+  for (const auto& expectedConnectivity : expectedConnectivityMap) {
+    const auto& neighbor = expectedConnectivity.second;
+    EXPECT_FALSE(neighbor.expectedPortId().has_value());
+    EXPECT_FALSE(neighbor.expectedSwitchId().has_value());
+    EXPECT_EQ(neighbor.switchId(), 10);
+    EXPECT_FALSE(neighbor.expectedSwitchName().has_value());
+    EXPECT_FALSE(neighbor.expectedPortName().has_value());
+    EXPECT_TRUE(*neighbor.isAttached());
+  }
+
+  EXPECT_TRUE(fabricConnectivityManager_->isConnectivityInfoMissing(PortID(1)));
   EXPECT_FALSE(
       fabricConnectivityManager_->isConnectivityInfoMismatch(PortID(1)));
 }
@@ -256,6 +278,7 @@ TEST_F(FabricConnectivityManagerTest, validateNoExpectedConnectivity) {
   EXPECT_FALSE(
       fabricConnectivityManager_->isConnectivityInfoMismatch(PortID(1)));
 }
+
 TEST_F(FabricConnectivityManagerTest, connectivityRetainedOnPortUpdates) {
   auto oldState = std::make_shared<SwitchState>();
   auto newState = std::make_shared<SwitchState>();
