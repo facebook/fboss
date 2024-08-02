@@ -156,6 +156,12 @@ void FabricConnectivityManager::updateExpectedSwitchIdAndPortIdForPort(
   auto& fabricEndpoint = currentNeighborConnectivity_[portID];
   if (!fabricEndpoint.expectedSwitchName().has_value() ||
       !fabricEndpoint.expectedPortName().has_value()) {
+    // Incomplete or missing expected neighbor info. Clear out
+    // any previously derived expectedSwitchId/expectedPortId
+    fabricEndpoint.expectedSwitchId().reset();
+    fabricEndpoint.expectedPortId().reset();
+    fabricEndpoint.switchName().reset();
+    fabricEndpoint.portName().reset();
     return;
   }
 
