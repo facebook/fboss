@@ -38,6 +38,37 @@ std::optional<std::string> getPresenceFileContent(const std::string& path) {
   }
   return folly::trimWhitespace(value).str();
 }
+
+// Read a singular version number from the file at given path. If there is any
+// error reading the file, log and return a default of 0. The version number
+// must be the first non-whitespace substring, but the file may contain
+// additional non-numeric data after the version (e.g. human-readable comments).
+// TODO: Handle hwmon/info_rom cases (by standardizing them away, if possible).
+int readVersionNumber(const std::string& path) {
+  const auto versionFileContent = getPresenceFileContent(path);
+  if (!versionFileContent) {
+    // This log is necessary to distinguish read error vs reading "0".
+    XLOGF(
+        ERR,
+        "Failed to open firmware version file {}: {}",
+        path,
+        folly::errnoStr(errno));
+    return 0;
+  }
+  // Note: stoi infers base (e.g. 0xF) when 0 is passed as the base argument as
+  // below. It also discards leading whitespace, and stops at non-digits.
+  try {
+    int version = stoi(versionFileContent.value(), nullptr, 0);
+    return version;
+  } catch (const std::exception& ex) {
+    XLOGF(
+        ERR,
+        "Failed to parse firmware version from file {}: {}",
+        path,
+        folly::exceptionStr(ex));
+    return 0;
+  }
+}
 } // namespace
 
 namespace facebook::fboss::platform::platform_manager {
@@ -542,25 +573,29 @@ void PlatformExplorer::reportExplorationSummary() {
 
 void PlatformExplorer::publishFirmwareVersions(
     const std::optional<std::string>& rootPrefix) {
+  const auto& root = rootPrefix.value_or("");
   for (const auto& [linkPath, _] :
        *platformConfig_.symbolicLinkToDevicePath()) {
-    if (!linkPath.starts_with(rootPrefix.value_or("") + "/run/devmap/cplds") &&
-        !linkPath.starts_with(rootPrefix.value_or("") + "/run/devmap/fpgas")) {
+    auto deviceType = "";
+    if (linkPath.starts_with(root + "/run/devmap/cplds")) {
+      deviceType = "cpld";
+    } else if (linkPath.starts_with(root + "/run/devmap/fpgas")) {
+      deviceType = "fpga";
+    } else {
       continue;
     }
     std::vector<folly::StringPiece> linkPathParts;
-    folly::split("/", linkPath, linkPathParts, true);
+    folly::split('/', linkPath, linkPathParts, true);
     // Note: The vector is guaranteed to be non-empty due to the prefix check.
+    CHECK(!linkPathParts.empty());
     const auto deviceName = linkPathParts.back();
-    const auto version = getPresenceFileContent(linkPath + "/fpga_ver");
-    const auto subversion = getPresenceFileContent(linkPath + "/fpga_sub_ver");
+    const auto version =
+        readVersionNumber(fmt::format("{}/{}_ver", linkPath, deviceType));
+    const auto subversion =
+        readVersionNumber(fmt::format("{}/{}_sub_ver", linkPath, deviceType));
 
-    int versionDecimal = version ? stoi(version.value(), nullptr, 0) : 0;
-    int subversionDecimal =
-        subversion ? stoi(subversion.value(), nullptr, 0) : 0;
-    std::string fullVersionString =
-        fmt::format("{}.{}", versionDecimal, subversionDecimal);
-    int odsValue = versionDecimal * 1000 + subversionDecimal;
+    std::string fullVersionString = fmt::format("{}.{}", version, subversion);
+    int odsValue = version * 1000 + subversion;
 
     XLOGF(
         INFO,

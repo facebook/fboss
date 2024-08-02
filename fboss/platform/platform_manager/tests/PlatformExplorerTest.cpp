@@ -15,13 +15,16 @@ using namespace facebook::fboss::platform::platform_manager;
 namespace {
 void writeVersions(
     std::string path,
+    std::string deviceType,
     const char* version,
     const char* subversion) {
   Utils().createDirectories(path);
-  EXPECT_TRUE(
-      folly::writeFile(std::string(version), (path + "/fpga_ver").c_str()));
   EXPECT_TRUE(folly::writeFile(
-      std::string(subversion), (path + "/fpga_sub_ver").c_str()));
+      std::string(version),
+      fmt::format("{}/{}_ver", path, deviceType).c_str()));
+  EXPECT_TRUE(folly::writeFile(
+      std::string(subversion),
+      fmt::format("{}/{}_sub_ver", path, deviceType).c_str()));
 }
 
 void expectVersions(
@@ -47,18 +50,22 @@ TEST(PlatformExplorerTest, PublishFirmwareVersions) {
   auto tmpDir = folly::test::TemporaryDirectory();
   std::string fpgaPath =
       tmpDir.path().string() + "/run/devmap/fpgas/TEST_IOB_FPGA";
-  writeVersions(fpgaPath, "1", "0");
+  writeVersions(fpgaPath, "fpga", "1", "0");
   std::string cpldPath =
       tmpDir.path().string() + "/run/devmap/cplds/TEST_MCB_CPLD";
-  writeVersions(cpldPath, "0x4", "0xf");
+  writeVersions(cpldPath, "cpld", "0x4", "0xf");
   std::string cpldPath2 =
       tmpDir.path().string() + "/run/devmap/cplds/TEST_CPLD_MIXED";
-  writeVersions(cpldPath2, "0xf", "9");
+  writeVersions(cpldPath2, "cpld", "0xf", "9");
+  std::string fpgaPathBadInt =
+      tmpDir.path().string() + "/run/devmap/fpgas/TEST_FPGA_BAD_INT";
+  writeVersions(fpgaPathBadInt, "fpga", "a", " ");
 
   PlatformConfig platformConfig;
   platformConfig.symbolicLinkToDevicePath()[fpgaPath] = "";
   platformConfig.symbolicLinkToDevicePath()[cpldPath] = "";
   platformConfig.symbolicLinkToDevicePath()[cpldPath2] = "";
+  platformConfig.symbolicLinkToDevicePath()[fpgaPathBadInt] = "";
 
   PlatformExplorer explorer(platformConfig);
   explorer.publishFirmwareVersions(tmpDir.path().string());
@@ -66,6 +73,7 @@ TEST(PlatformExplorerTest, PublishFirmwareVersions) {
   expectVersions("TEST_IOB_FPGA", "1.0", 1000);
   expectVersions("TEST_MCB_CPLD", "4.15", 4015);
   expectVersions("TEST_CPLD_MIXED", "15.9", 15009);
+  expectVersions("TEST_FPGA_BAD_INT", "0.0", 0);
 }
 
 } // namespace facebook::fboss::platform::platform_manager
