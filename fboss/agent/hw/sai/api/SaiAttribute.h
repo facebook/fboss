@@ -185,6 +185,7 @@ DEFINE_extract(facebook::fboss::AclEntryFieldIpV6, aclfield);
 DEFINE_extract(facebook::fboss::AclEntryFieldIpV4, aclfield);
 DEFINE_extract(facebook::fboss::AclEntryFieldMac, aclfield);
 DEFINE_extract(facebook::fboss::AclEntryFieldSaiObjectIdT, aclfield);
+DEFINE_extract(facebook::fboss::AclEntryActionBool, aclaction);
 DEFINE_extract(facebook::fboss::AclEntryActionU8, aclaction);
 DEFINE_extract(facebook::fboss::AclEntryActionU32, aclaction);
 DEFINE_extract(facebook::fboss::AclEntryActionSaiObjectIdT, aclaction);
@@ -423,6 +424,19 @@ inline void _fill(
    */
   dst.enable = true;
   std::tie(dst.data.oid, dst.mask.u32) = src.getDataAndMask();
+}
+
+inline void _fill(
+    const sai_acl_action_data_t& src,
+    facebook::fboss::AclEntryActionBool& dst) {
+  dst.setData(src.parameter.booldata);
+}
+
+inline void _fill(
+    const facebook::fboss::AclEntryActionBool& src,
+    sai_acl_action_data_t& dst) {
+  dst.enable = true;
+  dst.parameter.booldata = src.getData();
 }
 
 inline void _fill(

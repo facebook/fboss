@@ -12,6 +12,7 @@
 #include "fboss/agent/hw/sai/api/SaiApi.h"
 #include "fboss/agent/hw/sai/api/SaiAttribute.h"
 #include "fboss/agent/hw/sai/api/SaiAttributeDataTypes.h"
+#include "fboss/agent/hw/sai/api/SaiVersion.h"
 #include "fboss/agent/hw/sai/api/Types.h"
 
 #include <folly/logging/xlog.h>
@@ -440,6 +441,12 @@ struct SaiAclEntryTraits {
         SAI_ACL_ENTRY_ATTR_ACTION_SET_USER_TRAP_ID,
         AclEntryActionSaiObjectIdT>;
 #endif
+#if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
+    using ActionDisableArsForwarding = SaiAttribute<
+        EnumType,
+        SAI_ACL_ENTRY_ATTR_ACTION_DISABLE_ARS_FORWARDING,
+        AclEntryActionBool>;
+#endif
   };
 
   using AdapterKey = AclEntrySaiId;
@@ -490,6 +497,10 @@ struct SaiAclEntryTraits {
       ,
       std::optional<Attributes::ActionSetUserTrap>
 #endif
+#if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
+      ,
+      std::optional<Attributes::ActionDisableArsForwarding>
+#endif
       >;
 };
 
@@ -535,6 +546,9 @@ SAI_ATTRIBUTE_NAME(AclEntry, ActionMirrorEgress);
 SAI_ATTRIBUTE_NAME(AclEntry, ActionMacsecFlow);
 #if !defined(TAJO_SDK)
 SAI_ATTRIBUTE_NAME(AclEntry, ActionSetUserTrap);
+#endif
+#if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
+SAI_ATTRIBUTE_NAME(AclEntry, ActionDisableArsForwarding);
 #endif
 
 struct SaiAclCounterTraits {

@@ -294,6 +294,10 @@ class AclApiTest : public ::testing::Test {
     return 50;
   }
 
+  bool kDisableArsForwarding() const {
+    return false;
+  }
+
   const std::vector<sai_object_id_t>& kMirrorIngress() const {
     static const std::vector<sai_object_id_t> mirrorIngress{10, 11};
 
@@ -469,6 +473,9 @@ class AclApiTest : public ::testing::Test {
         AclEntryActionSaiObjectIdT(kMacsecFlow())};
     SaiAclEntryTraits::Attributes::ActionSetUserTrap aclActionSetUserTrap{
         AclEntryActionSaiObjectIdT(kSetUserTrap())};
+    SaiAclEntryTraits::Attributes::ActionDisableArsForwarding
+        aclActionDisableArsForwarding{
+            AclEntryActionBool(kDisableArsForwarding())};
 
     return aclApi->create<SaiAclEntryTraits>(
         {aclTableIdAttribute,
@@ -507,7 +514,8 @@ class AclApiTest : public ::testing::Test {
          aclActionMirrorIngress,
          aclActionMirrorEgress,
          aclActionMacsecFlow,
-         aclActionSetUserTrap},
+         aclActionSetUserTrap,
+         aclActionDisableArsForwarding},
         kSwitchID());
   }
 
@@ -639,6 +647,7 @@ class AclApiTest : public ::testing::Test {
       const std::vector<sai_object_id_t>& mirrorEgress,
       sai_object_id_t macsecFlow,
       sai_object_id_t setUserTrap,
+      bool disableArsForwarding,
       bool enabled = true) const {
     auto aclPriorityGot = aclApi->getAttribute(
         aclEntryId, SaiAclEntryTraits::Attributes::Priority());
@@ -714,6 +723,9 @@ class AclApiTest : public ::testing::Test {
         aclEntryId, SaiAclEntryTraits::Attributes::ActionMacsecFlow());
     auto aclActionSetUserTrapGot = aclApi->getAttribute(
         aclEntryId, SaiAclEntryTraits::Attributes::ActionSetUserTrap());
+    auto aclActionDisableArsForwardingGot = aclApi->getAttribute(
+        aclEntryId,
+        SaiAclEntryTraits::Attributes::ActionDisableArsForwarding());
 
     EXPECT_EQ(aclPriorityGot, priority);
     EXPECT_EQ(aclEnabledGot, enabled);
@@ -754,6 +766,7 @@ class AclApiTest : public ::testing::Test {
     EXPECT_EQ(aclActionMirrorEgress.getData(), mirrorEgress);
     EXPECT_EQ(aclActionMacsecFlowGot.getData(), macsecFlow);
     EXPECT_EQ(aclActionSetUserTrapGot.getData(), setUserTrap);
+    EXPECT_EQ(aclActionDisableArsForwardingGot.getData(), disableArsForwarding);
   }
 
   std::shared_ptr<FakeSai> fs;
@@ -976,7 +989,8 @@ TEST_F(AclApiTest, getAclEntryAttribute) {
       kMirrorIngress(),
       kMirrorEgress(),
       kMacsecFlow(),
-      kSetUserTrap());
+      kSetUserTrap(),
+      kDisableArsForwarding());
 }
 
 TEST_F(AclApiTest, getAclCounterAttribute) {
@@ -1171,6 +1185,9 @@ TEST_F(AclApiTest, setAclEntryAttribute) {
       AclEntryActionSaiObjectIdT(kMacsecFlow2())};
   SaiAclEntryTraits::Attributes::ActionSetUserTrap aclActionSetUserTrap{
       AclEntryActionSaiObjectIdT(kSetUserTrap())};
+  SaiAclEntryTraits::Attributes::ActionDisableArsForwarding
+      aclActionDisableArsForwarding{
+          AclEntryActionBool(kDisableArsForwarding())};
 
   aclApi->setAttribute(aclEntryId, aclPriorityAttribute2);
 
@@ -1208,6 +1225,7 @@ TEST_F(AclApiTest, setAclEntryAttribute) {
   aclApi->setAttribute(aclEntryId, aclActionMirrorEgress2);
   aclApi->setAttribute(aclEntryId, aclActionMacsecFlow2);
   aclApi->setAttribute(aclEntryId, aclActionSetUserTrap);
+  aclApi->setAttribute(aclEntryId, aclActionDisableArsForwarding);
 
   getAndVerifyAclEntryAttribute(
       aclEntryId,
@@ -1245,7 +1263,8 @@ TEST_F(AclApiTest, setAclEntryAttribute) {
       kMirrorIngress2(),
       kMirrorEgress2(),
       kMacsecFlow2(),
-      kSetUserTrap());
+      kSetUserTrap(),
+      kDisableArsForwarding());
 
   SaiAclEntryTraits::Attributes::ActionPacketAction aclActionPacketAction3{
       AclEntryActionU32(kPacketAction3())};

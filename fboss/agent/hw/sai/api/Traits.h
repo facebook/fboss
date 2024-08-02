@@ -295,6 +295,7 @@ std::size_t hash_value(const AclEntryAction<T>& key) {
   return seed;
 }
 
+using AclEntryActionBool = AclEntryAction<bool>;
 using AclEntryActionU8 = AclEntryAction<sai_uint8_t>;
 using AclEntryActionU32 = AclEntryAction<sai_uint32_t>;
 using AclEntryActionSaiObjectIdT = AclEntryAction<sai_object_id_t>;

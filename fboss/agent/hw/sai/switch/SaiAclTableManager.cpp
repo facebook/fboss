@@ -877,6 +877,11 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
       aclActionSetUserTrap{std::nullopt};
 #endif
 
+#if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
+  std::optional<SaiAclEntryTraits::Attributes::ActionDisableArsForwarding>
+      aclActionDisableArsForwarding{std::nullopt};
+#endif
+
   auto action = addedAclEntry->getAclAction();
   if (action) {
     // THRIFT_COPY
@@ -1094,6 +1099,9 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
 #if !defined(TAJO_SDK)
        || aclActionSetUserTrap.has_value()
 #endif
+#if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
+       || aclActionDisableArsForwarding.has_value()
+#endif
       );
 
   if (!(matcherIsValid && actionIsValid)) {
@@ -1150,6 +1158,9 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
 // Tajo already supports this behavior
 #if !defined(TAJO_SDK)
       aclActionSetUserTrap,
+#endif
+#if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
+      aclActionDisableArsForwarding,
 #endif
   };
 
