@@ -111,6 +111,14 @@ class TransceiverManager {
     return failedOpticsFwUpgradeCount_;
   }
 
+  int getExceededTimeLimitFwUpgradeCount() const {
+    return exceededTimeLimitFwUpgradeCount_;
+  }
+
+  int getMaxTimeTakenForFwUpgrade() const {
+    return maxTimeTakenForFwUpgrade_;
+  }
+
   bool isValidTransceiver(int32_t id) {
     return id < getNumQsfpModules() && id >= 0;
   }
@@ -952,6 +960,8 @@ class TransceiverManager {
 
   std::atomic<int> successfulOpticsFwUpgradeCount_{0};
   std::atomic<int> failedOpticsFwUpgradeCount_{0};
+  std::atomic<int> exceededTimeLimitFwUpgradeCount_{0};
+  std::atomic<int> maxTimeTakenForFwUpgrade_{0};
 
   friend class TransceiverStateMachineTest;
 };

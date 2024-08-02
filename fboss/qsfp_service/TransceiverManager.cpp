@@ -49,6 +49,11 @@ DEFINE_int32(
     1,
     "How many transceivers sharing the same evb to schedule a firmware upgrade on at a time");
 
+DEFINE_int32(
+    firmware_upgrade_time_limit,
+    1080,
+    "Maximum time limit (in seconds) for a firmware upgrade test. Exceeding this limit will increment an fb303 counter that keeps track of slow firmware upgrade tests.");
+
 DEFINE_bool(
     enable_tcvr_validation,
     false,
@@ -556,11 +561,27 @@ bool TransceiverManager::upgradeFirmware(Transceiver& tcvr) {
                << " Version=" << *fw.version();
   }
 
-  if (tcvr.upgradeFirmware(fwList)) {
-    return true;
+  auto start = std::chrono::steady_clock::now();
+  bool upgradeResult = tcvr.upgradeFirmware(fwList);
+  auto end = std::chrono::steady_clock::now();
+  auto upgradeTime = static_cast<int>(
+      std::chrono::duration_cast<std::chrono::seconds>(end - start).count());
+
+  if (upgradeTime > FLAGS_firmware_upgrade_time_limit) {
+    exceededTimeLimitFwUpgradeCount_++;
+    int prevMaxTime = maxTimeTakenForFwUpgrade_.load();
+    while (prevMaxTime < upgradeTime &&
+           !maxTimeTakenForFwUpgrade_.compare_exchange_weak(
+               prevMaxTime, upgradeTime)) {
+      prevMaxTime = maxTimeTakenForFwUpgrade_.load();
+    }
   }
 
-  return false;
+  XLOG(INFO) << "[FWUPG] tcvrID: " << tcvr.getID()
+             << " Firmware upgrade time was " << upgradeTime
+             << " seconds. Expected time was "
+             << FLAGS_firmware_upgrade_time_limit << " seconds.";
+  return upgradeResult;
 }
 
 void TransceiverManager::doTransceiverFirmwareUpgrade(TransceiverID tcvrID) {
