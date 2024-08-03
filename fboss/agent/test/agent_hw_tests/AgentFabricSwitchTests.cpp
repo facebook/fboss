@@ -56,6 +56,18 @@ class AgentFabricSwitchTest : public AgentHwTest {
   }
 
  protected:
+  void checkDataCellFilter() {
+    WITH_RETRIES({
+      for (const auto& [_, portIds] : switch2FabricPortIds()) {
+        for (const auto& [_, portStats] : getNextUpdatedPortStats(portIds)) {
+          EXPECT_TRUE(portStats.dataCellsFilterOn().has_value());
+          EXPECT_EVENTUALLY_EQ(
+              *portStats.dataCellsFilterOn(),
+              !FLAGS_disable_looped_fabric_ports);
+        }
+      }
+    });
+  }
   std::map<SwitchID, std::vector<PortID>> switch2FabricPortIds() const {
     std::map<SwitchID, std::vector<PortID>> switch2FabricPortIds;
     for (auto switchId : getFabricSwitchIdsWithPorts()) {
@@ -116,6 +128,7 @@ TEST_F(AgentFabricSwitchTest, collectStats) {
   auto verify = [this]() {
     EXPECT_GT(getProgrammedState()->getPorts()->numNodes(), 0);
     getSw()->updateStats();
+    checkDataCellFilter();
   };
   verifyAcrossWarmBoots([] {}, verify);
 }
