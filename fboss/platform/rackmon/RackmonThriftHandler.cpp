@@ -76,6 +76,10 @@ ModbusRegisterValue ThriftHandler::transformRegisterValue(
       target.type() = RegisterValueType::INTEGER;
       target.value()->intValue_ref() = std::get<int32_t>(value.value);
       break;
+    case rackmon::RegisterValueType::LONG:
+      target.type() = RegisterValueType::LONG;
+      target.value()->longValue_ref() = std::get<int64_t>(value.value);
+      break;
     case rackmon::RegisterValueType::STRING:
       target.type() = RegisterValueType::STRING;
       target.value()->strValue_ref() = std::get<std::string>(value.value);

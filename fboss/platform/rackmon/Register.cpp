@@ -46,41 +46,71 @@ void RegisterValue::makeHex(const std::vector<uint16_t>& reg) {
   }
 }
 
-void RegisterValue::makeInteger(
+template <class T>
+T combineRegister(
     const std::vector<uint16_t>& reg,
     RegisterEndian end,
     bool sign) {
-  // TODO We currently do not need more than 32bit values as per
-  // our current/planned regmaps. If such a value should show up in the
-  // future, then we might need to return std::variant<int32_t,int64_t>.
-  if (reg.size() > 2) {
-    throw std::out_of_range("Register does not fit as an integer");
-  }
   // Everything in modbus is Big-endian. So when we have a list
   // of registers forming a larger value; For example,
   // a 32bit value would be 2 16bit regs.
   // Then the first register would be the upper nibble of the
   // resulting 32bit value.
-  int32_t workValue = 0;
+  T workValue = 0;
   if (end == BIG) {
     workValue =
-        std::accumulate(reg.begin(), reg.end(), 0, [](int32_t ac, uint16_t v) {
+        std::accumulate(reg.begin(), reg.end(), 0, [](T ac, uint16_t v) {
           return (ac << 16) + v;
         });
 
   } else {
-    workValue = std::accumulate(
-        reg.rbegin(), reg.rend(), 0, [](int32_t ac, uint16_t v) {
+    workValue =
+        std::accumulate(reg.rbegin(), reg.rend(), 0, [](T ac, uint16_t v) {
           // Swap the bytes
           return (ac << 16) + (((v & 0xff) << 8) | ((v >> 8) & 0xff));
         });
   }
-  if (sign && reg.size() == 1) {
+  if (sign) {
     // Ensure we truncate or sign-extend the 16bit value
     // appropriately if our value is 16bits.
-    workValue = int16_t(workValue);
+    if (reg.size() == 1) {
+      workValue = int16_t(workValue);
+    } else if (reg.size() == 2) {
+      workValue = int32_t(workValue);
+    }
+  } else {
+    // Ensure we correctly interpret unsigned numbers.
+    if (reg.size() == 2) {
+      workValue = uint32_t(workValue);
+    }
   }
-  value = workValue;
+  return workValue;
+}
+
+void RegisterValue::makeInteger(
+    const std::vector<uint16_t>& reg,
+    RegisterEndian end,
+    bool sign) {
+  // There are no practical ways to represent registers larger
+  // than 64bits.
+  if (reg.size() > 4) {
+    throw std::out_of_range("Register does not fit as an integer");
+  }
+  bool isLong = false;
+  if (type == RegisterValueType::LONG || (!sign && reg.size() > 1) ||
+      reg.size() > 2) {
+    isLong = true;
+    // promote an integer to long if we know the value cannot fit
+    // in a int32_t.
+    if (type == RegisterValueType::INTEGER) {
+      type = RegisterValueType::LONG;
+    }
+  }
+  if (isLong) {
+    value = combineRegister<int64_t>(reg, end, sign);
+  } else {
+    value = combineRegister<int32_t>(reg, end, sign);
+  }
 }
 
 void RegisterValue::makeFloat(
@@ -90,9 +120,14 @@ void RegisterValue::makeFloat(
     float shift,
     bool sign) {
   makeInteger(reg, RegisterEndian::BIG, sign);
-  int32_t intValue = std::get<int32_t>(value);
+  float intValue;
+  if (std::holds_alternative<int64_t>(value)) {
+    intValue = (float)std::get<int64_t>(value);
+  } else {
+    intValue = (float)std::get<int32_t>(value);
+  }
   // Y = shift + scale * (X / 2^N)
-  value = shift + (scale * (float(intValue) / float(1 << precision)));
+  value = shift + (scale * (intValue / float(1 << precision)));
 }
 
 void RegisterValue::makeFlags(
@@ -121,6 +156,8 @@ RegisterValue::RegisterValue(
     case RegisterValueType::STRING:
       makeString(reg);
       break;
+    case RegisterValueType::LONG:
+      [[fallthrough]];
     case RegisterValueType::INTEGER:
       makeInteger(reg, desc.endian, desc.sign);
       break;
@@ -312,6 +349,7 @@ NLOHMANN_JSON_SERIALIZE_ENUM(
         {RegisterValueType::INTEGER, "INTEGER"},
         {RegisterValueType::FLOAT, "FLOAT"},
         {RegisterValueType::FLAGS, "FLAGS"},
+        {RegisterValueType::LONG, "LONG"},
     })
 
 NLOHMANN_JSON_SERIALIZE_ENUM(
@@ -372,6 +410,7 @@ void to_json(json& j, const FlagType& m) {
 void to_json(json& j, const RegisterValue& m) {
   static const std::unordered_map<RegisterValueType, std::string> keyMap = {
       {RegisterValueType::INTEGER, "intValue"},
+      {RegisterValueType::LONG, "longValue"},
       {RegisterValueType::STRING, "strValue"},
       {RegisterValueType::FLOAT, "floatValue"},
       {RegisterValueType::FLAGS, "flagsValue"},

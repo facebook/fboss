@@ -20,6 +20,7 @@ enum class RegisterValueType {
   FLOAT = 2,
   FLAGS = 3,
   HEX = 4,
+  LONG = 5,
 };
 
 enum RegisterEndian { BIG, LITTLE };
@@ -81,8 +82,13 @@ struct FlagType {
 
 struct RegisterValue {
   using FlagsType = std::vector<FlagType>;
-  using ValueType = std::
-      variant<int32_t, float, std::string, std::vector<uint8_t>, FlagsType>;
+  using ValueType = std::variant<
+      int32_t,
+      int64_t,
+      float,
+      std::string,
+      std::vector<uint8_t>,
+      FlagsType>;
 
   // Dictates which of the variants in value to expect
   RegisterValueType type = RegisterValueType::INTEGER;
