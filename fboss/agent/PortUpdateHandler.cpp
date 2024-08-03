@@ -44,6 +44,7 @@ void PortUpdateHandler::disableIfLooped(
     const std::shared_ptr<Port>& newPort,
     const std::shared_ptr<SwitchState>& newState) {
   if (!FLAGS_disable_looped_fabric_ports) {
+    XLOG(DBG2) << " Port loop detection disabled";
     return;
   }
   if (newPort->getPortType() != cfg::PortType::FABRIC_PORT) {
@@ -57,9 +58,8 @@ void PortUpdateHandler::disableIfLooped(
     return;
   }
 
-  if (newPort->isDrained() ||
-      (newPort->getActiveState().has_value() && !newPort->isActive().value())) {
-    // Port is drained or inactive, nothing to do
+  if (newPort->isDrained()) {
+    // Port is drained nothing to do
     return;
   }
 
