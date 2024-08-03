@@ -68,6 +68,18 @@ TEST(RegisterValueTest, INTEGER) {
   EXPECT_EQ(j["value"]["intValue"], 0x12345678);
 }
 
+TEST(RegisterValueTest, NEGATIVE_INTEGER) {
+  RegisterDescriptor d;
+  d.format = RegisterValueType::INTEGER;
+  RegisterValue val({0xFFFE}, d, 0x12345678);
+  EXPECT_EQ(val.type, RegisterValueType::INTEGER);
+  EXPECT_EQ(std::get<int32_t>(val.value), -2);
+
+  RegisterValue val2({0xFFFF, 0xFFFE}, d, 0x12345678);
+  EXPECT_EQ(val2.type, RegisterValueType::INTEGER);
+  EXPECT_EQ(std::get<int32_t>(val2.value), -2);
+}
+
 TEST(RegisterValueTest, LITTLE_INTEGER) {
   RegisterDescriptor d;
   d.format = RegisterValueType::INTEGER;
@@ -75,6 +87,19 @@ TEST(RegisterValueTest, LITTLE_INTEGER) {
   RegisterValue val({0x1234, 0x5678}, d, 0x12345678);
   EXPECT_EQ(val.type, RegisterValueType::INTEGER);
   EXPECT_EQ(std::get<int32_t>(val.value), 0x78563412);
+}
+
+TEST(RegisterValueTest, NEGATIVE_LITTLE_INTEGER) {
+  RegisterDescriptor d;
+  d.format = RegisterValueType::INTEGER;
+  d.endian = RegisterEndian::LITTLE;
+  RegisterValue val({0xFEFF}, d, 0x12345678);
+  EXPECT_EQ(val.type, RegisterValueType::INTEGER);
+  EXPECT_EQ(std::get<int32_t>(val.value), -2);
+
+  RegisterValue val2({0xFEFF, 0xFFFF}, d, 0x12345678);
+  EXPECT_EQ(val2.type, RegisterValueType::INTEGER);
+  EXPECT_EQ(std::get<int32_t>(val2.value), -2);
 }
 
 TEST(RegisterValueTest, FLOAT) {
@@ -103,6 +128,15 @@ TEST(RegisterValueTest, FLOAT) {
   EXPECT_NEAR(std::get<float>(val2.value), 11.2623, 0.001);
   j = val2;
   EXPECT_NEAR(j["value"]["floatValue"], 11.2623, 0.001);
+}
+
+TEST(RegisterValueTest, NEGATIVE_FLOAT) {
+  RegisterDescriptor d;
+  d.format = RegisterValueType::FLOAT;
+  d.precision = 11;
+  RegisterValue val({0xE4fc}, d, 0x12345678);
+  EXPECT_EQ(val.type, RegisterValueType::FLOAT);
+  EXPECT_NEAR(std::get<float>(val.value), -3.375, 0.002);
 }
 
 TEST(RegisterValueTest, FLAGS) {

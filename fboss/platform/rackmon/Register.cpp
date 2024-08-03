@@ -60,20 +60,26 @@ void RegisterValue::makeInteger(
   // a 32bit value would be 2 16bit regs.
   // Then the first register would be the upper nibble of the
   // resulting 32bit value.
-  value = int32_t(0);
+  int32_t workValue = 0;
   if (end == BIG) {
-    value =
+    workValue =
         std::accumulate(reg.begin(), reg.end(), 0, [](int32_t ac, uint16_t v) {
           return (ac << 16) + v;
         });
 
   } else {
-    value = std::accumulate(
+    workValue = std::accumulate(
         reg.rbegin(), reg.rend(), 0, [](int32_t ac, uint16_t v) {
           // Swap the bytes
           return (ac << 16) + (((v & 0xff) << 8) | ((v >> 8) & 0xff));
         });
   }
+  if (reg.size() == 1) {
+    // Ensure we truncate or sign-extend the 16bit value
+    // appropriately if our value is 16bits.
+    workValue = int16_t(workValue);
+  }
+  value = workValue;
 }
 
 void RegisterValue::makeFloat(
