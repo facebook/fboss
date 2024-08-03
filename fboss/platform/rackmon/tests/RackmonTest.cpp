@@ -293,7 +293,7 @@ TEST_F(RackmonTest, BasicScanFoundOneMon) {
       .Times(1)
       .WillOnce(Return(ByMove(make_modbus(161, 4))));
   mon.load(r_conf, r_test_dir);
-  mon.start(1s);
+  mon.start();
 
   // Fake that a tick has elapsed on scan's pollthread.
   mon.scanTick();
@@ -405,7 +405,7 @@ TEST_F(RackmonTest, DormantRecovery) {
   })"_json;
   mon.loadInterface(ifaceConfig);
   mon.loadRegisterMap(regmapConfig);
-  mon.start(1s);
+  mon.start();
 
   // Fake that a tick has elapsed on scan's pollthread.
   mon.scanTick();
