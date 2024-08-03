@@ -888,6 +888,8 @@ void SaiSwitchManager::setSwitchIsolate(bool isolate) {
   CHECK(
       platform_->getAsic()->getSwitchType() == cfg::SwitchType::FABRIC ||
       platform_->getAsic()->getSwitchType() == cfg::SwitchType::VOQ);
+  XLOG(DBG2) << " Setting switch state to : "
+             << (isolate ? "DRAINED" : "UNDRAINED");
   switch_->setOptionalAttribute(
       SaiSwitchTraits::Attributes::SwitchIsolate{isolate});
 }
