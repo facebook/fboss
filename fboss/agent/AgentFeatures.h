@@ -50,3 +50,4 @@ DECLARE_bool(flowletSwitchingEnable);
 DECLARE_bool(dlbResourceCheckEnable);
 DECLARE_bool(disable_neighbor_solicitation);
 DECLARE_bool(disable_looped_fabric_ports);
+DECLARE_bool(detect_wrong_fabric_connections);

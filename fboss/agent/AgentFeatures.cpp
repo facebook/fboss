@@ -93,3 +93,10 @@ DEFINE_bool(
     disable_looped_fabric_ports,
     true,
     "Disable fabric ports where loop is detected to stop traffic blackholing");
+
+// Wrong fabric connection detection. Flag to enable/disable this mechanism in
+// SDK
+DEFINE_bool(
+    detect_wrong_fabric_connections,
+    true,
+    "Enable wrong fabric connection. Done via SDK");
