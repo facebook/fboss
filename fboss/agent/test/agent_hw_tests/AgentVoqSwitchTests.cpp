@@ -406,6 +406,17 @@ class AgentVoqSwitchLineRateTest : public AgentVoqSwitchTest {
     auto routeUpdater = getSw()->getRouteUpdater();
     ecmpHelper.programRoutes(&routeUpdater, portDescSets, routePrefixes);
   }
+
+  auto createTrafficOnMultiplePorts(int numberOfPorts) {
+    auto minPktsForLineRate = getAgentEnsemble()->getMinPktsForLineRate(
+        masterLogicalInterfacePortIds()[0]);
+    auto hostIps = getOneRemoteHostIpPerInterfacePort();
+    for (int idx = 0; idx < numberOfPorts; idx++) {
+      for (int count = 0; count < minPktsForLineRate; count++) {
+        sendPacket(hostIps[idx], std::vector<uint8_t>(1024, 0xff));
+      }
+    }
+  }
 };
 
 class AgentVoqSwitchWithFabricPortsTest : public AgentVoqSwitchTest {
