@@ -390,11 +390,13 @@ struct SaiPortTraits {
     using ArsPortLoadPastWeight = SaiAttribute<
         EnumType,
         SAI_PORT_ATTR_ARS_PORT_LOAD_PAST_WEIGHT,
-        sai_uint32_t>;
+        sai_uint32_t,
+        SaiIntDefault<sai_uint32_t>>;
     using ArsPortLoadFutureWeight = SaiAttribute<
         EnumType,
         SAI_PORT_ATTR_ARS_PORT_LOAD_FUTURE_WEIGHT,
-        sai_uint32_t>;
+        sai_uint32_t,
+        SaiIntDefault<sai_uint32_t>>;
 #endif
     struct AttributeCablePropogationDelayNS {
       std::optional<sai_attr_id_t> operator()();
