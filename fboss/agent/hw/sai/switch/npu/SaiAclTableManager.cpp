@@ -171,7 +171,7 @@ std::
       qualifierExistsFn(cfg::AclTableQualifier::LOOKUP_CLASS_ROUTE),
       qualifierExistsFn(cfg::AclTableQualifier::ETHER_TYPE),
       qualifierExistsFn(cfg::AclTableQualifier::OUTER_VLAN),
-#if !defined(TAJO_SDK)
+#if !defined(TAJO_SDK) || defined(TAJO_SDK_GTE_1_65_0)
       qualifierExistsFn(cfg::AclTableQualifier::BTH_OPCODE),
 #endif
 #if !defined(TAJO_SDK) && !defined(BRCM_SAI_SDK_XGS)

@@ -818,7 +818,7 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
             addedAclEntry->getVlanID().value(), kOuterVlanIdMask))};
   }
 
-#if !defined(TAJO_SDK)
+#if !defined(TAJO_SDK) || defined(TAJO_SDK_GTE_1_65_0)
   std::optional<SaiAclEntryTraits::Attributes::FieldBthOpcode> fieldBthOpcode{
       std::nullopt};
   if (addedAclEntry->getRoceOpcode()) {
@@ -1076,7 +1076,7 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
        fieldTtl.has_value() || fieldFdbDstUserMeta.has_value() ||
        fieldRouteDstUserMeta.has_value() || fieldEtherType.has_value() ||
        fieldNeighborDstUserMeta.has_value() || fieldOuterVlanId.has_value() ||
-#if !defined(TAJO_SDK)
+#if !defined(TAJO_SDK) || defined(TAJO_SDK_GTE_1_65_0)
        fieldBthOpcode.has_value() ||
 #endif
 #if !defined(TAJO_SDK) && !defined(BRCM_SAI_SDK_XGS)
@@ -1140,7 +1140,7 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
       fieldNeighborDstUserMeta,
       fieldEtherType,
       fieldOuterVlanId,
-#if !defined(TAJO_SDK)
+#if !defined(TAJO_SDK) || defined(TAJO_SDK_GTE_1_65_0)
       fieldBthOpcode,
 #endif
 #if !defined(TAJO_SDK) && !defined(BRCM_SAI_SDK_XGS)
@@ -1385,6 +1385,7 @@ std::set<cfg::AclTableQualifier> SaiAclTableManager::getSupportedQualifierSet()
 
   if (isTajo) {
     std::set<cfg::AclTableQualifier> tajoQualifiers = {
+        cfg::AclTableQualifier::ETHER_TYPE,
         cfg::AclTableQualifier::SRC_IPV6,
         cfg::AclTableQualifier::DST_IPV6,
         cfg::AclTableQualifier::SRC_IPV4,
@@ -1399,6 +1400,7 @@ std::set<cfg::AclTableQualifier> SaiAclTableManager::getSupportedQualifierSet()
 
 #if defined(TAJO_SDK_GTE_1_65_0)
     std::vector<cfg::AclTableQualifier> tajoExtraQualifierList = {
+        cfg::AclTableQualifier::BTH_OPCODE,
         cfg::AclTableQualifier::SRC_PORT,
         cfg::AclTableQualifier::L4_SRC_PORT,
         cfg::AclTableQualifier::L4_DST_PORT,
@@ -1639,8 +1641,9 @@ bool SaiAclTableManager::isQualifierSupported(
           std::get<
               std::optional<SaiAclTableTraits::Attributes::FieldOuterVlanId>>(
               attributes));
+
     case cfg::AclTableQualifier::BTH_OPCODE:
-#if !defined(TAJO_SDK)
+#if !defined(TAJO_SDK) || defined(TAJO_SDK_GTE_1_65_0)
       return hasField(
           std::get<
               std::optional<SaiAclTableTraits::Attributes::FieldBthOpcode>>(
