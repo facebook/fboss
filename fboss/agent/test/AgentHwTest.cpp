@@ -85,9 +85,13 @@ void AgentHwTest::setCmdLineFlagOverrides() const {
   FLAGS_publish_state_to_fsdb = false;
   // Looped ports are the common case in tests
   FLAGS_disable_looped_fabric_ports = false;
+  // Looped fabric ports show up as wrong fabric connection.
+  // disable this detection
+  FLAGS_detect_wrong_fabric_connections = false;
   // Disable DSF subscription on single-box test
   FLAGS_dsf_subscribe = false;
 }
+
 void AgentHwTest::TearDown() {
   if (FLAGS_run_forever ||
       (::testing::Test::HasFailure() && FLAGS_run_forever_on_failure)) {
