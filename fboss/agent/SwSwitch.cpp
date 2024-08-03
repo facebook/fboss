@@ -272,6 +272,11 @@ void accumulateFb303GlobalStats(
       toAdd.packet_integrity_drops().value();
   *accumulated.dram_enqueued_bytes() += toAdd.dram_enqueued_bytes().value();
   *accumulated.dram_dequeued_bytes() += toAdd.dram_dequeued_bytes().value();
+  if (toAdd.dram_blocked_time_ns().has_value()) {
+    uint64_t dramBlockedTime = accumulated.dram_blocked_time_ns().value_or(0);
+    dramBlockedTime += toAdd.dram_blocked_time_ns().value();
+    accumulated.dram_blocked_time_ns() = dramBlockedTime;
+  }
   *accumulated.fabric_reachability_missing() +=
       toAdd.fabric_reachability_missing().value();
   *accumulated.fabric_reachability_mismatch() +=

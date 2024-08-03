@@ -450,6 +450,8 @@ HwSwitchFb303GlobalStats HwSwitchFb303Stats::getAllFb303Stats() const {
   hwFb303Stats.asic_error() = getCumulativeValue(asicErrors_);
   hwFb303Stats.dram_enqueued_bytes() = getCumulativeValue(dramEnqueuedBytes_);
   hwFb303Stats.dram_dequeued_bytes() = getCumulativeValue(dramDequeuedBytes_);
+  hwFb303Stats.dram_blocked_time_ns() =
+      getCumulativeValue(dramBlockedTimeNsec_);
   hwFb303Stats.fabric_reachability_missing() =
       getFabricReachabilityMismatchCount();
   hwFb303Stats.fabric_reachability_mismatch() =
@@ -490,6 +492,9 @@ void HwSwitchFb303Stats::updateStats(HwSwitchFb303GlobalStats& globalStats) {
   updateValue(packetIntegrityDrops_, *globalStats.packet_integrity_drops());
   updateValue(dramEnqueuedBytes_, *globalStats.dram_enqueued_bytes());
   updateValue(dramDequeuedBytes_, *globalStats.dram_dequeued_bytes());
+  if (globalStats.dram_blocked_time_ns().has_value()) {
+    updateValue(dramBlockedTimeNsec_, *globalStats.dram_blocked_time_ns());
+  }
   updateValue(
       switchReachabilityChangeCount_,
       *globalStats.switch_reachability_change());
