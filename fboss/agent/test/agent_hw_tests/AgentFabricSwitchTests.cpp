@@ -276,16 +276,19 @@ class AgentFabricSwitchSelfLoopTest : public AgentFabricSwitchTest {
 };
 
 TEST_F(AgentFabricSwitchSelfLoopTest, selfLoopDetection) {
-  auto verify = [this]() {
+  auto setup = [this]() {
     auto allPorts = getProgrammedState()->getPorts()->getAllNodes();
     // Since switch is drained, ports should stay enabled
     verifyState(cfg::PortState::ENABLED, *allPorts);
     // Undrain
-    applySwitchDrainState(cfg::SwitchDrainState::UNDRAINED);
+    setSwitchDrainState(getSw()->getConfig(), cfg::SwitchDrainState::UNDRAINED);
+  };
+  auto verify = [this]() {
+    auto allPorts = getProgrammedState()->getPorts()->getAllNodes();
     // Ports should now get disabled
     verifyState(cfg::PortState::DISABLED, *allPorts);
   };
-  verifyAcrossWarmBoots([]() {}, verify);
+  verifyAcrossWarmBoots(setup, verify);
 }
 
 TEST_F(AgentFabricSwitchSelfLoopTest, portDrained) {
