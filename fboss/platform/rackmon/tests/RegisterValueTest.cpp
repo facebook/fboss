@@ -71,6 +71,7 @@ TEST(RegisterValueTest, INTEGER) {
 TEST(RegisterValueTest, NEGATIVE_INTEGER) {
   RegisterDescriptor d;
   d.format = RegisterValueType::INTEGER;
+  d.sign = true;
   RegisterValue val({0xFFFE}, d, 0x12345678);
   EXPECT_EQ(val.type, RegisterValueType::INTEGER);
   EXPECT_EQ(std::get<int32_t>(val.value), -2);
@@ -78,6 +79,14 @@ TEST(RegisterValueTest, NEGATIVE_INTEGER) {
   RegisterValue val2({0xFFFF, 0xFFFE}, d, 0x12345678);
   EXPECT_EQ(val2.type, RegisterValueType::INTEGER);
   EXPECT_EQ(std::get<int32_t>(val2.value), -2);
+}
+
+TEST(RegisterValueTest, UNSIGNED_INTEGER) {
+  RegisterDescriptor d;
+  d.format = RegisterValueType::INTEGER;
+  RegisterValue val({0xFFFE}, d, 0x12345678);
+  EXPECT_EQ(val.type, RegisterValueType::INTEGER);
+  EXPECT_EQ(std::get<int32_t>(val.value), 0xFFFE);
 }
 
 TEST(RegisterValueTest, LITTLE_INTEGER) {
@@ -93,6 +102,7 @@ TEST(RegisterValueTest, NEGATIVE_LITTLE_INTEGER) {
   RegisterDescriptor d;
   d.format = RegisterValueType::INTEGER;
   d.endian = RegisterEndian::LITTLE;
+  d.sign = true;
   RegisterValue val({0xFEFF}, d, 0x12345678);
   EXPECT_EQ(val.type, RegisterValueType::INTEGER);
   EXPECT_EQ(std::get<int32_t>(val.value), -2);
@@ -100,6 +110,15 @@ TEST(RegisterValueTest, NEGATIVE_LITTLE_INTEGER) {
   RegisterValue val2({0xFEFF, 0xFFFF}, d, 0x12345678);
   EXPECT_EQ(val2.type, RegisterValueType::INTEGER);
   EXPECT_EQ(std::get<int32_t>(val2.value), -2);
+}
+
+TEST(RegisterValueTest, UNSIGNED_LITTLE_INTEGER) {
+  RegisterDescriptor d;
+  d.format = RegisterValueType::INTEGER;
+  d.endian = RegisterEndian::LITTLE;
+  RegisterValue val({0xFEFF}, d, 0x12345678);
+  EXPECT_EQ(val.type, RegisterValueType::INTEGER);
+  EXPECT_EQ(std::get<int32_t>(val.value), 0xFFFE);
 }
 
 TEST(RegisterValueTest, FLOAT) {
@@ -134,6 +153,7 @@ TEST(RegisterValueTest, NEGATIVE_FLOAT) {
   RegisterDescriptor d;
   d.format = RegisterValueType::FLOAT;
   d.precision = 11;
+  d.sign = true;
   RegisterValue val({0xE4fc}, d, 0x12345678);
   EXPECT_EQ(val.type, RegisterValueType::FLOAT);
   EXPECT_NEAR(std::get<float>(val.value), -3.375, 0.002);

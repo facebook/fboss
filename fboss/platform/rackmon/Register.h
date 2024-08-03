@@ -59,6 +59,9 @@ struct RegisterDescriptor {
   // Shift floating point value.
   float shift = 0.0;
 
+  // true if we expect sign bit (signed)
+  bool sign = false;
+
   // If the register stores flags, this provides the desc.
   FlagsDescType flags{};
 
@@ -99,12 +102,14 @@ struct RegisterValue {
  private:
   void makeString(const std::vector<uint16_t>& reg);
   void makeHex(const std::vector<uint16_t>& reg);
-  void makeInteger(const std::vector<uint16_t>& reg, RegisterEndian end);
+  void
+  makeInteger(const std::vector<uint16_t>& reg, RegisterEndian end, bool sign);
   void makeFloat(
       const std::vector<uint16_t>& reg,
       uint16_t precision,
       float scale,
-      float shift);
+      float shift,
+      bool sign);
   void makeFlags(
       const std::vector<uint16_t>& reg,
       const RegisterDescriptor::FlagsDescType& flagsDesc);

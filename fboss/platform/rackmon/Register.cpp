@@ -48,7 +48,8 @@ void RegisterValue::makeHex(const std::vector<uint16_t>& reg) {
 
 void RegisterValue::makeInteger(
     const std::vector<uint16_t>& reg,
-    RegisterEndian end) {
+    RegisterEndian end,
+    bool sign) {
   // TODO We currently do not need more than 32bit values as per
   // our current/planned regmaps. If such a value should show up in the
   // future, then we might need to return std::variant<int32_t,int64_t>.
@@ -74,7 +75,7 @@ void RegisterValue::makeInteger(
           return (ac << 16) + (((v & 0xff) << 8) | ((v >> 8) & 0xff));
         });
   }
-  if (reg.size() == 1) {
+  if (sign && reg.size() == 1) {
     // Ensure we truncate or sign-extend the 16bit value
     // appropriately if our value is 16bits.
     workValue = int16_t(workValue);
@@ -86,8 +87,9 @@ void RegisterValue::makeFloat(
     const std::vector<uint16_t>& reg,
     uint16_t precision,
     float scale,
-    float shift) {
-  makeInteger(reg, RegisterEndian::BIG);
+    float shift,
+    bool sign) {
+  makeInteger(reg, RegisterEndian::BIG, sign);
   int32_t intValue = std::get<int32_t>(value);
   // Y = shift + scale * (X / 2^N)
   value = shift + (scale * (float(intValue) / float(1 << precision)));
@@ -120,10 +122,10 @@ RegisterValue::RegisterValue(
       makeString(reg);
       break;
     case RegisterValueType::INTEGER:
-      makeInteger(reg, desc.endian);
+      makeInteger(reg, desc.endian, desc.sign);
       break;
     case RegisterValueType::FLOAT:
-      makeFloat(reg, desc.precision, desc.scale, desc.shift);
+      makeFloat(reg, desc.precision, desc.scale, desc.shift, desc.sign);
       break;
     case RegisterValueType::FLAGS:
       makeFlags(reg, desc.flags);
@@ -324,6 +326,7 @@ void from_json(const json& j, RegisterDescriptor& i) {
   i.storeChangesOnly = j.value("changes_only", false);
   i.endian = j.value("endian", RegisterEndian::BIG);
   i.format = j.value("format", RegisterValueType::HEX);
+  i.sign = j.value("sign", false);
   if (j.contains("interval")) {
     j.at("interval").get_to(i.interval);
   }
