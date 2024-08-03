@@ -11,6 +11,7 @@
 #include "fboss/agent/LldpManager.h"
 
 #include <thrift/lib/cpp/util/EnumUtils.h>
+#include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/PortStats.h"
 #include "fboss/agent/SwSwitch.h"
@@ -23,10 +24,6 @@
 #include "fboss/agent/state/StateDelta.h"
 #include "fboss/agent/state/SwitchSettings.h"
 
-DEFINE_bool(
-    disable_looped_fabric_ports,
-    true,
-    "Disable fabric ports where loop is detected to stop traffic blackholing");
 namespace facebook::fboss {
 namespace {
 struct BwInfo {

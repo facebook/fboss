@@ -88,3 +88,8 @@ DEFINE_bool(
     send_icmp_time_exceeded,
     true,
     "Flag to indicate whether to send ICMP time exceeded for hop limit exceeded");
+
+DEFINE_bool(
+    disable_looped_fabric_ports,
+    true,
+    "Disable fabric ports where loop is detected to stop traffic blackholing");
