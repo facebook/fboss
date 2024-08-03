@@ -6,6 +6,8 @@
 #include "fboss/agent/hw/sai/store/SaiStore.h"
 #include "fboss/agent/hw/sai/store/tests/SaiStoreTest.h"
 
+using namespace facebook::fboss;
+
 class LagStoreTest : public SaiStoreTest {
  public:
   void SetUp() override {

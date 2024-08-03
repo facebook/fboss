@@ -10,6 +10,8 @@
 
 #include "fboss/agent/hw/sai/store/tests/SaiStoreTest.h"
 
+using namespace facebook::fboss;
+
 TEST_F(SaiStoreTest, ctor) {
   SaiStore s(0);
 }

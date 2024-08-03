@@ -10,6 +10,8 @@ using namespace ::testing;
 #include "fboss/agent/hw/sai/store/SaiStore.h"
 #include "fboss/agent/hw/sai/store/tests/SaiStoreTest.h"
 
+using namespace facebook::fboss;
+
 TEST_F(SaiStoreTest, createInSegEntry) {
   auto& mplsApi = saiApiTable->mplsApi();
   typename facebook::fboss::SaiInSegTraits::InSegEntry entry{0, 100};

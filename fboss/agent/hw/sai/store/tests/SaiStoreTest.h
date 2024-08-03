@@ -16,7 +16,7 @@
 
 #include <gtest/gtest.h>
 
-using namespace facebook::fboss;
+namespace facebook::fboss {
 
 class SaiStoreTest : public ::testing::Test {
  public:
@@ -58,3 +58,5 @@ void verifyToStr() {
   auto str = fmt::format("{}", store);
   EXPECT_EQ(std::count(str.begin(), str.end(), '\n'), store.size() + 1);
 }
+
+} // namespace facebook::fboss

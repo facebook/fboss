@@ -20,12 +20,11 @@
 
 #include <variant>
 
-class SaiStoreTest;
-
 namespace facebook::fboss {
 
 template <typename SaiObjectTraits>
 class SaiObjectStore;
+class SaiStoreTest;
 
 namespace detail {
 
@@ -201,7 +200,7 @@ template <typename SaiObjectTraits>
 class SaiObject {
  protected:
   friend class SaiObjectStore<SaiObjectTraits>;
-  friend class ::SaiStoreTest;
+  friend class SaiStoreTest;
 
   // Load from adapter key
   explicit SaiObject(const typename SaiObjectTraits::AdapterKey& adapterKey)
