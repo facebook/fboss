@@ -334,7 +334,10 @@ std::map<SystemPortID, HwSysPortStats> AgentHwTest::getLatestSysPortStats(
                          ->getID();
           }
           if (std::find(ports.begin(), ports.end(), portId) != ports.end()) {
-            portIdStatsMap.emplace(portId, stats);
+            if (*stats.timestamp_() !=
+                hardware_stats_constants::STAT_UNINITIALIZED()) {
+              portIdStatsMap.emplace(portId, stats);
+            }
           }
         }
         return ports.size() == portIdStatsMap.size();
