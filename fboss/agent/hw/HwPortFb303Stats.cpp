@@ -59,6 +59,7 @@ const std::vector<folly::StringPiece>&
 HwPortFb303Stats::kPortFb303CounterStatKeys() const {
   static std::vector<folly::StringPiece> kPortKeys{
       kCableLengthMeters(),
+      kDataCellsFilterOn(),
   };
   return kPortKeys;
 }
@@ -210,6 +211,11 @@ void HwPortFb303Stats::updateStats(
     fb303::fbData->setCounter(
         statName(kCableLengthMeters(), portName()),
         *curPortStats.cableLengthMeters());
+  }
+  if (curPortStats.dataCellsFilterOn().has_value()) {
+    fb303::fbData->setCounter(
+        statName(kDataCellsFilterOn(), portName()),
+        *curPortStats.dataCellsFilterOn() ? 1 : 0);
   }
 
   // Update queue stats
