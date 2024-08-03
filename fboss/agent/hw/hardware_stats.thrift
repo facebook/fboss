@@ -339,6 +339,7 @@ struct HwSwitchFb303GlobalStats {
    * here to corroborate that cabling was as desired
   */
   26: optional i64 inter_port_group_cable_skew_meters;
+  27: optional i64 dram_blocked_time_ns;
 }
 
 struct HwFlowletStats {
