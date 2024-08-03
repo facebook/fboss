@@ -334,6 +334,44 @@ class AgentVoqSwitchTest : public AgentHwTest {
   }
 };
 
+class AgentVoqSwitchLineRateTest : public AgentVoqSwitchTest {
+ public:
+  cfg::SwitchConfig initialConfig(
+      const AgentEnsemble& ensemble) const override {
+    auto config = AgentVoqSwitchTest::initialConfig(ensemble);
+    utility::setTTLZeroCpuConfig(ensemble.getL3Asics(), config);
+    return config;
+  }
+
+  folly::MacAddress getIntfMac() const {
+    return utility::getFirstInterfaceMac(getProgrammedState());
+  }
+
+  void sendPacket(
+      const folly::IPAddressV6& dstIp,
+      std::optional<std::vector<uint8_t>> payload =
+          std::optional<std::vector<uint8_t>>()) {
+    folly::IPAddressV6 kSrcIp("2402::1");
+    const auto dstMac = getIntfMac();
+    const auto srcMac = utility::MacAddressGenerator().get(dstMac.u64NBO() + 1);
+
+    auto txPacket = utility::makeUDPTxPacket(
+        getSw(),
+        std::nullopt, // vlanID
+        srcMac,
+        dstMac,
+        kSrcIp,
+        dstIp,
+        8000, // l4 src port
+        8001, // l4 dst port
+        0x24 << 2, // dscp
+        255, // hopLimit
+        std::move(payload));
+    // Forward the packet in the pipeline
+    getSw()->sendPacketSwitchedAsync(std::move(txPacket));
+  }
+};
+
 class AgentVoqSwitchWithFabricPortsTest : public AgentVoqSwitchTest {
  public:
   cfg::SwitchConfig initialConfig(
