@@ -11,7 +11,7 @@
 #include <thrift/lib/cpp2/protocol/Serializer.h>
 
 #include "fboss/platform/config_lib/ConfigLib.h"
-#include "fboss/platform/helpers/PlatformUtils.h"
+#include "fboss/platform/helpers/PlatformNameLib.h"
 #include "fboss/platform/platform_manager/ConfigValidator.h"
 
 namespace fs = std::filesystem;
@@ -22,48 +22,9 @@ const re2::RE2 kPmDeviceParseRe{"(?P<SlotPath>.*)\\[(?P<DeviceName>.*)\\]"};
 const re2::RE2 kGpioChipNameRe{"gpiochip\\d+"};
 const std::string kGpioChip = "gpiochip";
 
-std::string getPlatformNameFromBios() {
-  XLOG(INFO) << "Getting platform name from bios using dmedicode ...";
-  auto [exitStatus, standardOut] =
-      PlatformUtils().execCommand("dmidecode -s system-product-name");
-  if (exitStatus != 0) {
-    XLOG(ERR) << "Failed to get platform name from bios: " << stdout;
-    throw std::runtime_error("Failed to get platform name from bios");
-  }
-  standardOut = folly::trimWhitespace(standardOut).str();
-  XLOG(INFO) << "Platform name inferred from bios: " << standardOut;
-  return standardOut;
-}
 } // namespace
 
 namespace facebook::fboss::platform::platform_manager {
-
-// Some platforms do not have the standardized platform-names in dmidecode yet.
-// For such platforms, we use a translation function to get the standardized
-// platform-names.
-std::string sanitizePlatformName(const std::string& platformNameFromBios) {
-  std::string platformNameUpper(platformNameFromBios);
-  std::transform(
-      platformNameUpper.begin(),
-      platformNameUpper.end(),
-      platformNameUpper.begin(),
-      ::toupper);
-
-  if (platformNameUpper == "MINIPACK3" ||
-      platformNameUpper == "MINIPACK3_MCB") {
-    return "MONTBLANC";
-  }
-
-  if (platformNameUpper == "JANGA") {
-    return "JANGA800BIC";
-  }
-
-  if (platformNameUpper == "TAHAN") {
-    return "TAHAN800BC";
-  }
-
-  return platformNameUpper;
-}
 
 // Verify that the platform name from the config and dmidecode match.  This
 // is necessary to prevent an incorrect config from being used on any platform.
@@ -99,7 +60,7 @@ void verifyPlatformNameMatches(
 
 PlatformConfig Utils::getConfig() {
   std::string platformNameFromBios =
-      sanitizePlatformName(getPlatformNameFromBios());
+      helpers::PlatformNameLib().getPlatformNameFromBios();
   std::string configJson =
       ConfigLib().getPlatformManagerConfig(platformNameFromBios);
   PlatformConfig config;

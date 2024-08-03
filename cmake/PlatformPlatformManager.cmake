@@ -57,6 +57,7 @@ add_executable(platform_manager
 target_link_libraries(platform_manager
   fb303::fb303
   platform_config_lib
+  platform_name_lib
   platform_utils
   platform_manager_config_cpp2
   platform_manager_presence_cpp2

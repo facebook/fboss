@@ -3,6 +3,18 @@ load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
 oncall("fboss_platform")
 
 cpp_library(
+    name = "platform_name_lib",
+    srcs = [
+        "PlatformNameLib.cpp",
+    ],
+    exported_deps = [
+        ":platform_utils",
+        "//folly:string",
+        "//folly/logging:logging",
+    ],
+)
+
+cpp_library(
     name = "platform_utils",
     srcs = [
         "PlatformUtils.cpp",
