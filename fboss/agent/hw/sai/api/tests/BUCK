@@ -31,6 +31,13 @@ api_unittest(
 )
 
 api_unittest(
+    name = "ars_profile_api_test",
+    srcs = [
+        "ArsProfileApiTest.cpp",
+    ],
+)
+
+api_unittest(
     name = "bridge_api_test",
     srcs = [
         "BridgeApiTest.cpp",
