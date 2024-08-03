@@ -28,7 +28,7 @@ struct ModbusDeviceFilter {
 class Rackmon {
   static constexpr int kScanNumRetry = 3;
   static constexpr time_t kDormantMinInactiveTime = 300;
-  static constexpr ModbusTime kProbeTimeout = std::chrono::milliseconds(50);
+  static constexpr ModbusTime kProbeTimeout = std::chrono::milliseconds(70);
   std::shared_mutex threadMutex_{};
   std::shared_ptr<PollThread<Rackmon>> monitorThread_;
   std::shared_ptr<PollThread<Rackmon>> scanThread_;
