@@ -569,6 +569,10 @@ class SaiStore {
       SaiObjectStore<SaiAclTableTraits>,
       SaiObjectStore<SaiAclEntryTraits>,
       SaiObjectStore<SaiAclCounterTraits>,
+#if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
+      SaiObjectStore<SaiArsTraits>,
+      SaiObjectStore<SaiArsProfileTraits>,
+#endif
       SaiObjectStore<SaiBridgeTraits>,
       SaiObjectStore<SaiBridgePortTraits>,
       SaiObjectStore<SaiBufferPoolTraits>,
