@@ -43,7 +43,7 @@ class AgentPortBandwidthTest : public AgentHwTest {
   }
 
   PortID getPort0(const AgentEnsemble& ensemble, SwitchID switchID) const {
-    return ensemble.masterLogicalPortIds(switchID).at(0);
+    return ensemble.masterLogicalInterfacePortIds(switchID).at(0);
   }
 
   PortID getPort0(SwitchID switchID = SwitchID(0)) const {
