@@ -122,7 +122,7 @@ class AgentRouteOverDifferentAddressFamilyNhopTest : public AgentHwTest {
           {PortDescriptor(masterLogicalInterfacePortIds()[0]),
            PortDescriptor(masterLogicalInterfacePortIds()[1])});
       boost::container::flat_set<PortDescriptor> nonEcmpNhopPorts(
-          {PortDescriptor(masterLogicalPortIds()[2])});
+          {PortDescriptor(masterLogicalInterfacePortIds()[2])});
       for (auto ecmp : {true, false}) {
         auto nhopPorts = ecmp ? ecmpNhopPorts : nonEcmpNhopPorts;
         applyNewState([&](const std::shared_ptr<SwitchState>& in) {
