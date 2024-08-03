@@ -2127,7 +2127,7 @@ void SwSwitch::linkActiveStateChanged(
     XLOG(DBG2) << "SwitchIDs: " << matcher.matcherString()
                << " numActiveFabricPorts: " << numActiveFabricPorts
                << " Switch Drain state: "
-               << getDrainStateChangedStr(getState(), newState, matcher);
+               << getDrainStateChangedStr(state, newState, matcher);
 
     return newState;
   };
