@@ -282,8 +282,9 @@ ModbusDeviceValueData ModbusDevice::getValueData(
 static std::string commandOutput(const std::string& shell) {
   std::array<char, 128> buffer;
   std::string result;
-  std::unique_ptr<FILE, decltype(&pclose)> pipe(
-      popen(shell.c_str(), "r"), pclose);
+  auto pipe_close = [](auto fd) { (void)pclose(fd); };
+  std::unique_ptr<FILE, decltype(pipe_close)> pipe(
+      popen(shell.c_str(), "r"), pipe_close);
   if (!pipe) {
     throw std::runtime_error("popen() failed!");
   }
