@@ -92,6 +92,7 @@ struct HwPortStats {
   60: optional i32 logicalPortId;
   61: optional i64 leakyBucketFlapCount_;
   62: optional i64 cableLengthMeters;
+  63: optional bool dataCellsFilterOn;
 }
 
 struct HwSysPortStats {

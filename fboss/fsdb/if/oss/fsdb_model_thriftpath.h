@@ -20353,7 +20353,8 @@ std::pair<strings::outForwardingDiscards_, Child<::std::int64_t, ::apache::thrif
 std::pair<strings::fabricConnectivityMismatch_DEPRECATED, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
 std::pair<strings::logicalPortId, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
 std::pair<strings::leakyBucketFlapCount_, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
-std::pair<strings::cableLengthMeters, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>>;
+std::pair<strings::cableLengthMeters, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
+std::pair<strings::dataCellsFilterOn, Child<bool, ::apache::thrift::type_class::integral, ::apache::thrift::type::bool_t>>>;
   using ChildrenById = fatal::tuple<   std::pair<std::integral_constant<apache::thrift::field_id_t, 1>, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 2>, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 3>, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
@@ -20405,7 +20406,8 @@ std::pair<strings::cableLengthMeters, Child<::std::int64_t, ::apache::thrift::ty
    std::pair<std::integral_constant<apache::thrift::field_id_t, 59>, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 60>, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 61>, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
-   std::pair<std::integral_constant<apache::thrift::field_id_t, 62>, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>>;
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 62>, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 63>, Child<bool, ::apache::thrift::type_class::integral, ::apache::thrift::type::bool_t>>>;
   template <typename Name>
   using NameToId = fatal::tuple<std::pair<strings::inBytes_, std::integral_constant<apache::thrift::field_id_t, 1>>,
 std::pair<strings::inUnicastPkts_, std::integral_constant<apache::thrift::field_id_t, 2>>,
@@ -20458,7 +20460,8 @@ std::pair<strings::outForwardingDiscards_, std::integral_constant<apache::thrift
 std::pair<strings::fabricConnectivityMismatch_DEPRECATED, std::integral_constant<apache::thrift::field_id_t, 59>>,
 std::pair<strings::logicalPortId, std::integral_constant<apache::thrift::field_id_t, 60>>,
 std::pair<strings::leakyBucketFlapCount_, std::integral_constant<apache::thrift::field_id_t, 61>>,
-std::pair<strings::cableLengthMeters, std::integral_constant<apache::thrift::field_id_t, 62>>>::template type_of<Name>;
+std::pair<strings::cableLengthMeters, std::integral_constant<apache::thrift::field_id_t, 62>>,
+std::pair<strings::dataCellsFilterOn, std::integral_constant<apache::thrift::field_id_t, 63>>>::template type_of<Name>;
 
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
@@ -20516,6 +20519,7 @@ std::pair<strings::cableLengthMeters, std::integral_constant<apache::thrift::fie
     STRUCT_CHILD_GETTERS(logicalPortId, 60);
     STRUCT_CHILD_GETTERS(leakyBucketFlapCount_, 61);
     STRUCT_CHILD_GETTERS(cableLengthMeters, 62);
+    STRUCT_CHILD_GETTERS(dataCellsFilterOn, 63);
 
   template <apache::thrift::field_id_t __id>
   auto operator()(const std::integral_constant<apache::thrift::field_id_t, __id>&) {
@@ -20571,6 +20575,7 @@ std::pair<strings::cableLengthMeters, std::integral_constant<apache::thrift::fie
     else if constexpr (__id == 60) { return logicalPortId(); }
     else if constexpr (__id == 61) { return leakyBucketFlapCount_(); }
     else if constexpr (__id == 62) { return cableLengthMeters(); }
+    else if constexpr (__id == 63) { return dataCellsFilterOn(); }
   }
 
   template <typename T, T... Values>

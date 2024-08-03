@@ -80,6 +80,7 @@ HwPortStats getInitedStats() {
       1, // logicalPortId
       2, // leakyBucketFlapCount_
       100, // cableLengthMeters
+      true, // dataCellsFilterIsOn
   };
 }
 

@@ -150,6 +150,7 @@ HwPortStats getInitedStats() {
       1, // logicalPortId
       2, // leakyBucketFlapCount_
       1, // cableLengthMeters
+      true, // dataCellsFilterIsOn
   };
 }
 
@@ -270,7 +271,7 @@ void verifyUpdatedStats(const HwPortFb303Stats& portStats) {
   for (auto counterName : portStats.kPortFb303CounterStatKeys()) {
     auto value = facebook::fb303::fbData->getCounter(
         HwPortFb303Stats::statName(counterName, kPortName));
-    EXPECT_EQ(value, curValue++);
+    EXPECT_EQ(value, curValue);
   }
 
   curValue = 1;
