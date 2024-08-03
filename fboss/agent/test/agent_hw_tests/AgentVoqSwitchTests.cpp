@@ -370,6 +370,42 @@ class AgentVoqSwitchLineRateTest : public AgentVoqSwitchTest {
     // Forward the packet in the pipeline
     getSw()->sendPacketSwitchedAsync(std::move(txPacket));
   }
+
+  std::vector<folly::IPAddressV6> getOneRemoteHostIpPerInterfacePort() {
+    std::vector<folly::IPAddressV6> ips{};
+    auto portIds = masterLogicalInterfacePortIds();
+    for (int idx = 1; idx <= portIds.size(); idx++) {
+      ips.push_back(
+          folly::IPAddressV6(folly::to<std::string>(2401, "::", idx)));
+    }
+    return ips;
+  }
+
+  void setupEcmpDataplaneLoopOnAllPorts() {
+    utility::EcmpSetupTargetedPorts6 ecmpHelper(
+        getProgrammedState(), getIntfMac());
+    std::vector<PortDescriptor> portDescriptors;
+    std::vector<flat_set<PortDescriptor>> portDescSets;
+    for (auto& portId : masterLogicalInterfacePortIds()) {
+      portDescriptors.push_back(PortDescriptor(portId));
+      portDescSets.push_back(flat_set<PortDescriptor>{PortDescriptor(portId)});
+    }
+    applyNewState([&portDescriptors,
+                   &ecmpHelper](const std::shared_ptr<SwitchState>& in) {
+      return ecmpHelper.resolveNextHops(
+          in,
+          flat_set<PortDescriptor>(
+              std::make_move_iterator(portDescriptors.begin()),
+              std::make_move_iterator(portDescriptors.end())));
+    });
+
+    std::vector<RoutePrefixV6> routePrefixes;
+    for (auto prefix : getOneRemoteHostIpPerInterfacePort()) {
+      routePrefixes.push_back(RoutePrefixV6{prefix, 128});
+    }
+    auto routeUpdater = getSw()->getRouteUpdater();
+    ecmpHelper.programRoutes(&routeUpdater, portDescSets, routePrefixes);
+  }
 };
 
 class AgentVoqSwitchWithFabricPortsTest : public AgentVoqSwitchTest {
