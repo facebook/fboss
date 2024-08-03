@@ -270,8 +270,8 @@ class AgentFabricSwitchSelfLoopTest : public AgentFabricSwitchTest {
  private:
   void setCmdLineFlagOverrides() const override {
     AgentFabricSwitchTest::setCmdLineFlagOverrides();
-    FLAGS_hide_fabric_ports = false;
     FLAGS_disable_looped_fabric_ports = true;
+    FLAGS_detect_wrong_fabric_connections = true;
   }
 };
 
