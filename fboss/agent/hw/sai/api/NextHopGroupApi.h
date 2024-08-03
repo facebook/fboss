@@ -45,7 +45,8 @@ struct SaiNextHopGroupTraits {
     using ArsObjectId = SaiAttribute<
         EnumType,
         SAI_NEXT_HOP_GROUP_ATTR_ARS_OBJECT_ID,
-        sai_object_id_t>;
+        sai_object_id_t,
+        SaiObjectIdDefault>;
 #endif
   };
 

@@ -445,7 +445,8 @@ struct SaiAclEntryTraits {
     using ActionDisableArsForwarding = SaiAttribute<
         EnumType,
         SAI_ACL_ENTRY_ATTR_ACTION_DISABLE_ARS_FORWARDING,
-        AclEntryActionBool>;
+        AclEntryActionBool,
+        SaiAclEntryActionBoolFalse>;
 #endif
   };
 
