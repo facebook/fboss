@@ -37048,7 +37048,7 @@
             "schan_timeout_usec.BCM8892X": "300000",
             "serdes_fabric_clk_freq_out.BCM8892X": "bypass",
             "soc_family.BCM8892X": "BCM8892X",
-            "stable_location.BCM8892X": "3",
+            "stable_location.BCM8892X": "4",
             "stable_size.BCM8892X": "1600000",
             "sw_state_max_size.BCM8892X": "1500000",
             "system_contains_multiple_pipe_device.BCM8892X": "0",
