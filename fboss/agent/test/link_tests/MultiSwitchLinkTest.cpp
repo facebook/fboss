@@ -58,6 +58,10 @@ namespace facebook::fboss {
 
 void MultiSwitchLinkTest::SetUp() {
   AgentEnsembleTest::SetUp();
+  initializeCabledPorts();
+  // Wait for all the cabled ports to link up before finishing the setup
+  waitForAllCabledPorts(true, 60, 5s);
+  waitForAllTransceiverStates(true, 60, 5s);
   XLOG(DBG2) << "Multi Switch Link Test setup ready";
 }
 
@@ -90,6 +94,112 @@ void MultiSwitchLinkTest::setCmdLineFlagOverrides() const {
   FLAGS_enable_macsec = true;
   FLAGS_skip_drain_check_for_prbs = true;
   AgentEnsembleTest::setCmdLineFlagOverrides();
+}
+
+void MultiSwitchLinkTest::overrideL2LearningConfig(
+    bool swLearning,
+    int ageTimer) {
+  auto agentConfig = AgentConfig::fromFile(FLAGS_config);
+  cfg::AgentConfig testConfig = agentConfig->thrift;
+  if (swLearning) {
+    testConfig.sw()->switchSettings()->l2LearningMode() =
+        cfg::L2LearningMode::SOFTWARE;
+  } else {
+    testConfig.sw()->switchSettings()->l2LearningMode() =
+        cfg::L2LearningMode::HARDWARE;
+  }
+  testConfig.sw()->switchSettings()->l2AgeTimerSeconds() = ageTimer;
+  auto newAgentConfig = AgentConfig(
+      testConfig,
+      apache::thrift::SimpleJSONSerializer::serialize<std::string>(testConfig));
+  newAgentConfig.dumpConfig(getTestConfigPath());
+  FLAGS_config = getTestConfigPath();
+  reloadPlatformConfig();
+}
+
+// Waits till the link status of the ports in cabledPorts vector reaches
+// the expected state
+void MultiSwitchLinkTest::waitForAllCabledPorts(
+    bool up,
+    uint32_t retries,
+    std::chrono::duration<uint32_t, std::milli> msBetweenRetry) const {
+  waitForLinkStatus(getCabledPorts(), up, retries, msBetweenRetry);
+}
+
+void MultiSwitchLinkTest::waitForAllTransceiverStates(
+    bool up,
+    uint32_t retries,
+    std::chrono::duration<uint32_t, std::milli> msBetweenRetry) const {
+  waitForStateMachineState(
+      cabledTransceivers_,
+      up ? TransceiverStateMachineState::ACTIVE
+         : TransceiverStateMachineState::INACTIVE,
+      retries,
+      msBetweenRetry);
+}
+
+// Initializes the vector that holds the ports that are expected to be cabled.
+// If the expectedLLDPValues in the switch config has an entry, we expect
+// that port to take part in the test
+void MultiSwitchLinkTest::initializeCabledPorts() {
+  const auto& platformPorts = getSw()->getPlatformMapping()->getPlatformPorts();
+
+  auto swConfig = getSw()->getConfig();
+  const auto& chips = getSw()->getPlatformMapping()->getChips();
+  for (const auto& port : *swConfig.ports()) {
+    if (!(*port.expectedLLDPValues()).empty()) {
+      auto portID = *port.logicalID();
+      cabledPorts_.push_back(PortID(portID));
+      if (*port.portType() == cfg::PortType::FABRIC_PORT) {
+        cabledFabricPorts_.push_back(PortID(portID));
+      }
+      const auto platformPortEntry = platformPorts.find(portID);
+      EXPECT_TRUE(platformPortEntry != platformPorts.end())
+          << "Can't find port:" << portID << " in PlatformMapping";
+      auto transceiverID =
+          utility::getTransceiverId(platformPortEntry->second, chips);
+      if (transceiverID.has_value()) {
+        cabledTransceivers_.insert(*transceiverID);
+      }
+    }
+  }
+}
+
+const std::vector<PortID>& MultiSwitchLinkTest::getCabledPorts() const {
+  return cabledPorts_;
+}
+
+boost::container::flat_set<PortDescriptor>
+MultiSwitchLinkTest::getVlanOwningCabledPorts() const {
+  boost::container::flat_set<PortDescriptor> ecmpPorts;
+  auto vlanOwningPorts =
+      utility::getPortsWithExclusiveVlanMembership(getSw()->getState());
+  for (auto port : getCabledPorts()) {
+    if (vlanOwningPorts.find(PortDescriptor(port)) != vlanOwningPorts.end()) {
+      ecmpPorts.insert(PortDescriptor(port));
+    }
+  }
+  return ecmpPorts;
+}
+
+std::string MultiSwitchLinkTest::getPortName(PortID portId) const {
+  for (auto portMap : std::as_const(*getSw()->getState()->getPorts())) {
+    for (auto port : std::as_const(*portMap.second)) {
+      if (port.second->getID() == portId) {
+        return port.second->getName();
+      }
+    }
+  }
+  throw FbossError("No port with ID: ", portId);
+}
+
+std::vector<std::string> MultiSwitchLinkTest::getPortName(
+    const std::vector<PortID>& portIDs) const {
+  std::vector<std::string> portNames;
+  for (auto port : portIDs) {
+    portNames.push_back(getPortName(port));
+  }
+  return portNames;
 }
 
 int multiSwitchLinkTestMain(
