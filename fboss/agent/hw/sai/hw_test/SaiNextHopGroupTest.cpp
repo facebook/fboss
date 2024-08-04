@@ -35,9 +35,19 @@ class SaiNextHopGroupTest : public SaiLinkStateDependentTests {
         helper_->resolveNextHops(getProgrammedState(), neighborCount));
   }
 
+  void resolveNeighbor(PortID port) {
+    applyNewState(
+        helper_->resolveNextHops(getProgrammedState(), {PortDescriptor(port)}));
+  }
+
   void unresolveNeighbors(int neighborCount) {
     applyNewState(
         helper_->unresolveNextHops(getProgrammedState(), neighborCount));
+  }
+
+  void unresolveNeighbor(PortID port) {
+    applyNewState(helper_->unresolveNextHops(
+        getProgrammedState(), {PortDescriptor(port)}));
   }
 
   SaiRouteTraits::RouteEntry routeEntry() const {
@@ -149,9 +159,9 @@ TEST_F(SaiNextHopGroupTest, addNextHopGroupInterfacePortDownInterfacePortUp) {
     resolveNeighbors(4);
     addRoute(4);
     bringDownPort(masterLogicalInterfacePortIds()[0]);
-    unresolveNeighbors(1);
+    unresolveNeighbor(masterLogicalInterfacePortIds()[0]);
     bringUpPort(masterLogicalInterfacePortIds()[0]);
-    resolveNeighbors(1);
+    resolveNeighbor(masterLogicalInterfacePortIds()[0]);
   };
   auto verify = [=, this]() { verifyMemberCount(4); };
   verifyAcrossWarmBoots(setup, verify);
