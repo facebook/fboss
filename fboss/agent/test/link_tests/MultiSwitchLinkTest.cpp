@@ -117,6 +117,20 @@ void MultiSwitchLinkTest::overrideL2LearningConfig(
   reloadPlatformConfig();
 }
 
+void MultiSwitchLinkTest::setupTtl0ForwardingEnable() {
+  if (!getSw()->getHwAsicTable()->isFeatureSupportedOnAnyAsic(
+          HwAsic::Feature::SAI_TTL0_PACKET_FORWARD_ENABLE)) {
+    // don't configure if not supported
+    return;
+  }
+  auto agentConfig = AgentConfig::fromFile(FLAGS_config);
+  auto newAgentConfig =
+      utility::setTTL0PacketForwardingEnableConfig(getSw(), *agentConfig);
+  newAgentConfig.dumpConfig(getTestConfigPath());
+  FLAGS_config = getTestConfigPath();
+  reloadPlatformConfig();
+}
+
 // Waits till the link status of the ports in cabledPorts vector reaches
 // the expected state
 void MultiSwitchLinkTest::waitForAllCabledPorts(
@@ -136,6 +150,90 @@ void MultiSwitchLinkTest::waitForAllTransceiverStates(
          : TransceiverStateMachineState::INACTIVE,
       retries,
       msBetweenRetry);
+}
+
+// Retrieves the config validation status for all active transceivers. Strings
+// are retrieved instead of booleans because these contain the stringified JSONs
+// of each non-validated transceiver config, which will be printed to stdout and
+// ingested by Netcastle.
+void MultiSwitchLinkTest::getAllTransceiverConfigValidationStatuses() {
+  std::vector<int32_t> expectedTransceivers(
+      cabledTransceivers_.begin(), cabledTransceivers_.end());
+  std::map<int32_t, std::string> responses;
+
+  try {
+    auto qsfpServiceClient = utils::createQsfpServiceClient();
+    qsfpServiceClient->sync_getTransceiverConfigValidationInfo(
+        responses, expectedTransceivers, true);
+  } catch (const std::exception& ex) {
+    XLOG(WARN)
+        << "Failed to call qsfp_service getTransceiverConfigValidationInfo(). "
+        << folly::exceptionStr(ex);
+  }
+
+  createFile(kTransceiverConfigJsonsForScuba);
+
+  std::vector<int32_t> missingTransceivers, invalidTransceivers;
+  std::vector<std::string> nonValidatedConfigs;
+  for (auto transceiverID : expectedTransceivers) {
+    if (auto transceiverStatusIt = responses.find(transceiverID);
+        transceiverStatusIt != responses.end()) {
+      if (transceiverStatusIt->second != "") {
+        invalidTransceivers.push_back(transceiverID);
+        nonValidatedConfigs.push_back(transceiverStatusIt->second);
+      }
+      continue;
+    }
+    missingTransceivers.push_back(transceiverID);
+  }
+  if (nonValidatedConfigs.size()) {
+    writeSysfs(
+        kTransceiverConfigJsonsForScuba,
+        folly::join("\n", nonValidatedConfigs));
+  }
+  if (!missingTransceivers.empty()) {
+    XLOG(DBG2) << "Transceivers [" << folly::join(",", missingTransceivers)
+               << "] are missing config validation status.";
+  }
+  if (!invalidTransceivers.empty()) {
+    XLOG(DBG2) << "Transceivers [" << folly::join(",", invalidTransceivers)
+               << "] have non-validated configurations.";
+  }
+  if (missingTransceivers.empty() && invalidTransceivers.empty()) {
+    XLOG(DBG2) << "Transceivers [" << folly::join(",", expectedTransceivers)
+               << "] all have validated configurations.";
+  }
+}
+
+// Wait until we have successfully fetched transceiver info (and thus know
+// which transceivers are available for testing)
+std::map<int32_t, TransceiverInfo> MultiSwitchLinkTest::waitForTransceiverInfo(
+    std::vector<int32_t> transceiverIds,
+    uint32_t retries,
+    std::chrono::duration<uint32_t, std::milli> msBetweenRetry) const {
+  std::map<int32_t, TransceiverInfo> info;
+  while (retries--) {
+    try {
+      auto qsfpServiceClient = utils::createQsfpServiceClient();
+      qsfpServiceClient->sync_getTransceiverInfo(info, transceiverIds);
+    } catch (const std::exception& ex) {
+      XLOG(WARN) << "Failed to call qsfp_service getTransceiverInfo(). "
+                 << folly::exceptionStr(ex);
+    }
+    // Make sure we have at least one present transceiver
+    for (const auto& it : info) {
+      if (*it.second.tcvrState()->present()) {
+        return info;
+      }
+    }
+    XLOG(DBG2) << "TransceiverInfo was empty";
+    if (retries) {
+      /* sleep override */
+      std::this_thread::sleep_for(msBetweenRetry);
+    }
+  }
+
+  throw FbossError("TransceiverInfo was never populated.");
 }
 
 // Initializes the vector that holds the ports that are expected to be cabled.
@@ -163,6 +261,53 @@ void MultiSwitchLinkTest::initializeCabledPorts() {
       }
     }
   }
+}
+
+std::tuple<std::vector<PortID>, std::string>
+MultiSwitchLinkTest::getOpticalCabledPortsAndNames(bool pluggableOnly) const {
+  std::string opticalPortNames;
+  std::vector<PortID> opticalPorts;
+  std::vector<int32_t> transceiverIds;
+  for (const auto& port : getCabledPorts()) {
+    auto portName = getPortName(port);
+    // TODO to find equivalent to getPlatformPort
+    auto tcvrId =
+        getSw()->getPlatformMapping()->getTransceiverIdFromSwPort(port);
+    transceiverIds.push_back(tcvrId);
+  }
+
+  auto transceiverInfos = waitForTransceiverInfo(transceiverIds);
+  for (const auto& port : getCabledPorts()) {
+    auto portName = getPortName(port);
+    auto tcvrId =
+        getSw()->getPlatformMapping()->getTransceiverIdFromSwPort(port);
+    auto tcvrInfo = transceiverInfos.find(tcvrId);
+
+    if (tcvrInfo != transceiverInfos.end()) {
+      auto tcvrState = *tcvrInfo->second.tcvrState();
+      if (TransmitterTechnology::OPTICAL ==
+          tcvrState.cable().value_or({}).transmitterTech()) {
+        if (!pluggableOnly ||
+            (pluggableOnly &&
+             (tcvrState.identifier().value_or({}) !=
+              TransceiverModuleIdentifier::MINIPHOTON_OBO))) {
+          opticalPorts.push_back(port);
+          opticalPortNames += portName + " ";
+        } else {
+          XLOG(DBG2) << "Transceiver: " << tcvrId + 1 << ", " << portName
+                     << ", is on-board optics, skip it";
+        }
+      } else {
+        XLOG(DBG2) << "Transceiver: " << tcvrId + 1 << ", " << portName
+                   << ", is not optics, skip it";
+      }
+    } else {
+      XLOG(DBG2) << "TransceiverInfo of transceiver: " << tcvrId + 1 << ", "
+                 << portName << ", is not present, skip it";
+    }
+  }
+
+  return {opticalPorts, opticalPortNames};
 }
 
 const std::vector<PortID>& MultiSwitchLinkTest::getCabledPorts() const {
