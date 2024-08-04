@@ -31,12 +31,121 @@ constexpr auto kSecondsBetweenXphyInfoCollectionCheck = 5s;
 constexpr auto kMaxNumXphyInfoCollectionCheck = 24;
 
 class MultiSwitchLinkTest : public AgentEnsembleTest {
+ public:
+  bool sendAndCheckReachabilityOnAllCabledPorts() {
+    getSw()->getLldpMgr()->sendLldpOnAllPorts();
+    return checkReachabilityOnAllCabledPorts();
+  }
+
  protected:
   void SetUp() override;
+  void overrideL2LearningConfig(bool swLearning = false, int ageTimer = 300);
+  void setupTtl0ForwardingEnable();
+  void waitForAllCabledPorts(
+      bool up,
+      uint32_t retries = 60,
+      std::chrono::duration<uint32_t, std::milli> msBetweenRetry =
+          std::chrono::milliseconds(1000)) const;
+  void waitForAllTransceiverStates(
+      bool up,
+      uint32_t retries = 60,
+      std::chrono::duration<uint32_t, std::milli> msBetweenRetry =
+          std::chrono::milliseconds(1000)) const;
+  void getAllTransceiverConfigValidationStatuses();
+  std::map<int32_t, TransceiverInfo> waitForTransceiverInfo(
+      std::vector<int32_t> transceiverIds,
+      uint32_t retries = 2,
+      std::chrono::duration<uint32_t, std::milli> msBetweenRetry =
+          std::chrono::duration_cast<std::chrono::milliseconds>(
+              std::chrono::seconds(10))) const;
+  bool checkReachabilityOnAllCabledPorts() const;
+  /*
+   * Get pairs of ports connected to each other
+   */
+  std::set<std::pair<PortID, PortID>> getConnectedPairs() const;
+
+  /*
+   * Return plugged in optical transceivers and their names.
+   */
+  std::tuple<std::vector<PortID>, std::string> getOpticalCabledPortsAndNames(
+      bool pluggableOnly = false) const;
+
+  /*
+   * Ports where we expect optics to be plugged in.
+   * In link tests this information is conveyed in config via non
+   * null LLDP neighbors. We pick that up here to extract cabled ports
+   */
+  const std::vector<PortID>& getCabledPorts() const;
+  const std::set<TransceiverID>& getCabledTranceivers() const {
+    return cabledTransceivers_;
+  }
+  boost::container::flat_set<PortDescriptor> getVlanOwningCabledPorts() const;
+  const std::vector<PortID>& getCabledFabricPorts() const {
+    return cabledFabricPorts_;
+  }
+  /*
+   * Program default (v6) route over ports
+   */
+
+  void programDefaultRoute(
+      const boost::container::flat_set<PortDescriptor>& ecmpPorts,
+      std::optional<folly::MacAddress> dstMac = std::nullopt);
+  /*
+   * Disable TTL decrement on a set of ports
+   */
+  void disableTTLDecrements(
+      const boost::container::flat_set<PortDescriptor>& ecmpPorts);
+  /*
+   * Create a L3 data plane loop and seed it with traffic
+   */
+  void createL3DataplaneFlood(
+      const boost::container::flat_set<PortDescriptor>& inPorts);
+  void createL3DataplaneFlood() {
+    createL3DataplaneFlood(getVlanOwningCabledPorts());
+  }
+  std::string getPortName(PortID port) const;
+  std::vector<std::string> getPortName(
+      const std::vector<PortID>& portIDs) const;
+
+  std::optional<PortID> getPeerPortID(PortID portId) const;
+
+  std::set<std::pair<PortID, PortID>> getConnectedOpticalPortPairWithFeature(
+      TransceiverFeature feature,
+      phy::Side side) const;
+
+  void waitForStateMachineState(
+      const std::set<TransceiverID>& transceiversToCheck,
+      TransceiverStateMachineState stateMachineState,
+      uint32_t retries,
+      std::chrono::duration<uint32_t, std::milli> msBetweenRetry) const;
+
+  void waitForLldpOnCabledPorts(
+      uint32_t retries = 60,
+      std::chrono::duration<uint32_t, std::milli> msBetweenRetry =
+          std::chrono::milliseconds(1000)) const;
+
+  void setCmdLineFlagOverrides() const override;
+
+  void restartQsfpService(bool coldboot) const;
 
   void TearDown() override;
 
+  void setLinkState(bool enable, std::vector<PortID>& portIds);
+
+  phy::FecMode getPortFECMode(PortID portId) const;
+
+  std::vector<std::pair<PortID, PortID>> getPortPairsForFecErrInj() const;
+
  private:
+  void programDefaultRoute(
+      const boost::container::flat_set<PortDescriptor>& ecmpPorts,
+      utility::EcmpSetupTargetedPorts6& ecmp6);
+  void initializeCabledPorts();
+  void logLinkDbgMessage(std::vector<PortID>& portIDs) const override;
+
+  std::vector<PortID> cabledPorts_;
+  std::vector<PortID> cabledFabricPorts_;
+  std::set<TransceiverID> cabledTransceivers_;
 };
 int multiSwitchLinkTestMain(
     int argc,
