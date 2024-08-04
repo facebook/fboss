@@ -316,12 +316,13 @@ const std::vector<PortID>& AgentEnsembleLinkTest::getCabledPorts() const {
 }
 
 boost::container::flat_set<PortDescriptor>
-AgentEnsembleLinkTest::getVlanOwningCabledPorts() const {
+AgentEnsembleLinkTest::getSingleVlanOrRoutedCabledPorts() const {
   boost::container::flat_set<PortDescriptor> ecmpPorts;
-  auto vlanOwningPorts =
-      utility::getPortsWithExclusiveVlanMembership(getSw()->getState());
+  auto singleVlanOrRoutedPorts =
+      utility::getSingleVlanOrRoutedCabledPorts(getSw());
   for (auto port : getCabledPorts()) {
-    if (vlanOwningPorts.find(PortDescriptor(port)) != vlanOwningPorts.end()) {
+    if (singleVlanOrRoutedPorts.find(PortDescriptor(port)) !=
+        singleVlanOrRoutedPorts.end()) {
       ecmpPorts.insert(PortDescriptor(port));
     }
   }

@@ -178,6 +178,44 @@ cpp_library(
     ],
 )
 
+cpp_library(
+    name = "agent_ensemble_link_tests",
+    srcs = [
+        "AgentEnsembleLinkTest.cpp",
+    ],
+    link_whole = True,
+    undefined_symbols = True,
+    exported_deps = [
+        "//fboss/agent:core",
+        "//fboss/agent:fboss-types",
+        "//fboss/agent:load_agent_config",
+        "//fboss/agent:main-common",
+        "//fboss/agent/hw:hardware_stats-cpp2-types",
+        "//fboss/agent/hw/test:hw_qos_utils",
+        "//fboss/agent/hw/test:load_balancer_utils",
+        "//fboss/agent/state:state",
+        "//fboss/agent/state:state_utils",
+        "//fboss/agent/test:agent_ensemble_test",
+        "//fboss/agent/test:ecmp_helper",
+        "//fboss/agent/test/utils:copp_test_utils",
+        "//fboss/agent/test/utils:qos_test_utils",
+        "//fboss/lib:common_file_utils",
+        "//fboss/lib:common_utils",
+        "//fboss/lib/config:fboss_config_utils",
+        "//fboss/lib/phy:phy-cpp2-types",
+        "//fboss/lib/thrift_service_client:thrift-service-client",
+        "//fboss/qsfp_service/if:transceiver-cpp2-types",
+        "//folly:string",
+        "//folly:subprocess",
+        "//folly/debugging/exception_tracer:exception_tracer",
+        "//thrift/lib/cpp2/protocol:protocol",
+    ],
+    exported_external_deps = [
+        "gflags",
+        ("boost", None, "boost_container"),
+    ],
+)
+
 [
     cpp_binary(
         name = "bcm_link_test{}".format(to_impl_suffix(sdk)),
