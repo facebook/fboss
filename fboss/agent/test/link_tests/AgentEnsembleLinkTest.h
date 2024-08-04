@@ -30,7 +30,7 @@ using namespace std::chrono_literals;
 constexpr auto kSecondsBetweenXphyInfoCollectionCheck = 5s;
 constexpr auto kMaxNumXphyInfoCollectionCheck = 24;
 
-class MultiSwitchLinkTest : public AgentEnsembleTest {
+class AgentEnsembleLinkTest : public AgentEnsembleTest {
  public:
   bool sendAndCheckReachabilityOnAllCabledPorts() {
     getSw()->getLldpMgr()->sendLldpOnAllPorts();
@@ -147,7 +147,7 @@ class MultiSwitchLinkTest : public AgentEnsembleTest {
   std::vector<PortID> cabledFabricPorts_;
   std::set<TransceiverID> cabledTransceivers_;
 };
-int multiSwitchLinkTestMain(
+int agentEnsembleLinkTestMain(
     int argc,
     char** argv,
     PlatformInitFn initPlatformFn,

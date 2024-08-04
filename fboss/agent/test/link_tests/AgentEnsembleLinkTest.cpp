@@ -16,7 +16,7 @@
 #include "fboss/agent/state/StateUtils.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
-#include "fboss/agent/test/link_tests/MultiSwitchLinkTest.h"
+#include "fboss/agent/test/link_tests/AgentEnsembleLinkTest.h"
 #include "fboss/agent/test/utils/CoppTestUtils.h"
 #include "fboss/agent/test/utils/QosTestUtils.h"
 #include "fboss/lib/CommonFileUtils.h"
@@ -56,7 +56,7 @@ const std::string kTransceiverConfigJsonsForScuba =
 
 namespace facebook::fboss {
 
-void MultiSwitchLinkTest::SetUp() {
+void AgentEnsembleLinkTest::SetUp() {
   AgentEnsembleTest::SetUp();
   initializeCabledPorts();
   // Wait for all the cabled ports to link up before finishing the setup
@@ -65,7 +65,7 @@ void MultiSwitchLinkTest::SetUp() {
   XLOG(DBG2) << "Multi Switch Link Test setup ready";
 }
 
-void MultiSwitchLinkTest::restartQsfpService(bool coldboot) const {
+void AgentEnsembleLinkTest::restartQsfpService(bool coldboot) const {
   if (coldboot) {
     createFile(kForceColdbootQsfpSvcFileName);
     XLOG(DBG2) << "Restarting QSFP Service in coldboot mode";
@@ -76,7 +76,7 @@ void MultiSwitchLinkTest::restartQsfpService(bool coldboot) const {
   folly::Subprocess(kRestartQsfpService).waitChecked();
 }
 
-void MultiSwitchLinkTest::TearDown() {
+void AgentEnsembleLinkTest::TearDown() {
   // Expect the qsfp service to be running at the end of the tests
   auto qsfpServiceClient = utils::createQsfpServiceClient();
   EXPECT_EQ(
@@ -90,13 +90,13 @@ void MultiSwitchLinkTest::TearDown() {
   AgentEnsembleTest::TearDown();
 }
 
-void MultiSwitchLinkTest::setCmdLineFlagOverrides() const {
+void AgentEnsembleLinkTest::setCmdLineFlagOverrides() const {
   FLAGS_enable_macsec = true;
   FLAGS_skip_drain_check_for_prbs = true;
   AgentEnsembleTest::setCmdLineFlagOverrides();
 }
 
-void MultiSwitchLinkTest::overrideL2LearningConfig(
+void AgentEnsembleLinkTest::overrideL2LearningConfig(
     bool swLearning,
     int ageTimer) {
   auto agentConfig = AgentConfig::fromFile(FLAGS_config);
@@ -117,7 +117,7 @@ void MultiSwitchLinkTest::overrideL2LearningConfig(
   reloadPlatformConfig();
 }
 
-void MultiSwitchLinkTest::setupTtl0ForwardingEnable() {
+void AgentEnsembleLinkTest::setupTtl0ForwardingEnable() {
   if (!getSw()->getHwAsicTable()->isFeatureSupportedOnAnyAsic(
           HwAsic::Feature::SAI_TTL0_PACKET_FORWARD_ENABLE)) {
     // don't configure if not supported
@@ -133,14 +133,14 @@ void MultiSwitchLinkTest::setupTtl0ForwardingEnable() {
 
 // Waits till the link status of the ports in cabledPorts vector reaches
 // the expected state
-void MultiSwitchLinkTest::waitForAllCabledPorts(
+void AgentEnsembleLinkTest::waitForAllCabledPorts(
     bool up,
     uint32_t retries,
     std::chrono::duration<uint32_t, std::milli> msBetweenRetry) const {
   waitForLinkStatus(getCabledPorts(), up, retries, msBetweenRetry);
 }
 
-void MultiSwitchLinkTest::waitForAllTransceiverStates(
+void AgentEnsembleLinkTest::waitForAllTransceiverStates(
     bool up,
     uint32_t retries,
     std::chrono::duration<uint32_t, std::milli> msBetweenRetry) const {
@@ -156,7 +156,7 @@ void MultiSwitchLinkTest::waitForAllTransceiverStates(
 // are retrieved instead of booleans because these contain the stringified JSONs
 // of each non-validated transceiver config, which will be printed to stdout and
 // ingested by Netcastle.
-void MultiSwitchLinkTest::getAllTransceiverConfigValidationStatuses() {
+void AgentEnsembleLinkTest::getAllTransceiverConfigValidationStatuses() {
   std::vector<int32_t> expectedTransceivers(
       cabledTransceivers_.begin(), cabledTransceivers_.end());
   std::map<int32_t, std::string> responses;
@@ -207,7 +207,8 @@ void MultiSwitchLinkTest::getAllTransceiverConfigValidationStatuses() {
 
 // Wait until we have successfully fetched transceiver info (and thus know
 // which transceivers are available for testing)
-std::map<int32_t, TransceiverInfo> MultiSwitchLinkTest::waitForTransceiverInfo(
+std::map<int32_t, TransceiverInfo>
+AgentEnsembleLinkTest::waitForTransceiverInfo(
     std::vector<int32_t> transceiverIds,
     uint32_t retries,
     std::chrono::duration<uint32_t, std::milli> msBetweenRetry) const {
@@ -239,7 +240,7 @@ std::map<int32_t, TransceiverInfo> MultiSwitchLinkTest::waitForTransceiverInfo(
 // Initializes the vector that holds the ports that are expected to be cabled.
 // If the expectedLLDPValues in the switch config has an entry, we expect
 // that port to take part in the test
-void MultiSwitchLinkTest::initializeCabledPorts() {
+void AgentEnsembleLinkTest::initializeCabledPorts() {
   const auto& platformPorts = getSw()->getPlatformMapping()->getPlatformPorts();
 
   auto swConfig = getSw()->getConfig();
@@ -264,7 +265,7 @@ void MultiSwitchLinkTest::initializeCabledPorts() {
 }
 
 std::tuple<std::vector<PortID>, std::string>
-MultiSwitchLinkTest::getOpticalCabledPortsAndNames(bool pluggableOnly) const {
+AgentEnsembleLinkTest::getOpticalCabledPortsAndNames(bool pluggableOnly) const {
   std::string opticalPortNames;
   std::vector<PortID> opticalPorts;
   std::vector<int32_t> transceiverIds;
@@ -310,12 +311,12 @@ MultiSwitchLinkTest::getOpticalCabledPortsAndNames(bool pluggableOnly) const {
   return {opticalPorts, opticalPortNames};
 }
 
-const std::vector<PortID>& MultiSwitchLinkTest::getCabledPorts() const {
+const std::vector<PortID>& AgentEnsembleLinkTest::getCabledPorts() const {
   return cabledPorts_;
 }
 
 boost::container::flat_set<PortDescriptor>
-MultiSwitchLinkTest::getVlanOwningCabledPorts() const {
+AgentEnsembleLinkTest::getVlanOwningCabledPorts() const {
   boost::container::flat_set<PortDescriptor> ecmpPorts;
   auto vlanOwningPorts =
       utility::getPortsWithExclusiveVlanMembership(getSw()->getState());
@@ -327,7 +328,7 @@ MultiSwitchLinkTest::getVlanOwningCabledPorts() const {
   return ecmpPorts;
 }
 
-void MultiSwitchLinkTest::programDefaultRoute(
+void AgentEnsembleLinkTest::programDefaultRoute(
     const boost::container::flat_set<PortDescriptor>& ecmpPorts,
     utility::EcmpSetupTargetedPorts6& ecmp6) {
   ASSERT_GT(ecmpPorts.size(), 0);
@@ -340,14 +341,14 @@ void MultiSwitchLinkTest::programDefaultRoute(
       ecmpPorts);
 }
 
-void MultiSwitchLinkTest::programDefaultRoute(
+void AgentEnsembleLinkTest::programDefaultRoute(
     const boost::container::flat_set<PortDescriptor>& ecmpPorts,
     std::optional<folly::MacAddress> dstMac) {
   utility::EcmpSetupTargetedPorts6 ecmp6(getSw()->getState(), dstMac);
   programDefaultRoute(ecmpPorts, ecmp6);
 }
 
-void MultiSwitchLinkTest::disableTTLDecrements(
+void AgentEnsembleLinkTest::disableTTLDecrements(
     const boost::container::flat_set<PortDescriptor>& ecmpPorts) {
   if (getSw()->getHwAsicTable()->isFeatureSupportedOnAnyAsic(
           HwAsic::Feature::PORT_TTL_DECREMENT_DISABLE)) {
@@ -359,7 +360,7 @@ void MultiSwitchLinkTest::disableTTLDecrements(
   }
 }
 
-void MultiSwitchLinkTest::createL3DataplaneFlood(
+void AgentEnsembleLinkTest::createL3DataplaneFlood(
     const boost::container::flat_set<PortDescriptor>& ecmpPorts) {
   auto switchId = scope(ecmpPorts);
   utility::EcmpSetupTargetedPorts6 ecmp6(
@@ -379,7 +380,7 @@ void MultiSwitchLinkTest::createL3DataplaneFlood(
   XLOG(DBG2) << "Created L3 Data Plane Flood";
 }
 
-bool MultiSwitchLinkTest::checkReachabilityOnAllCabledPorts() const {
+bool AgentEnsembleLinkTest::checkReachabilityOnAllCabledPorts() const {
   auto lldpDb = getSw()->getLldpMgr()->getDB();
   for (const auto& port : getCabledPorts()) {
     auto portType =
@@ -404,7 +405,7 @@ bool MultiSwitchLinkTest::checkReachabilityOnAllCabledPorts() const {
   return true;
 }
 
-std::string MultiSwitchLinkTest::getPortName(PortID portId) const {
+std::string AgentEnsembleLinkTest::getPortName(PortID portId) const {
   for (auto portMap : std::as_const(*getSw()->getState()->getPorts())) {
     for (auto port : std::as_const(*portMap.second)) {
       if (port.second->getID() == portId) {
@@ -415,7 +416,7 @@ std::string MultiSwitchLinkTest::getPortName(PortID portId) const {
   throw FbossError("No port with ID: ", portId);
 }
 
-std::vector<std::string> MultiSwitchLinkTest::getPortName(
+std::vector<std::string> AgentEnsembleLinkTest::getPortName(
     const std::vector<PortID>& portIDs) const {
   std::vector<std::string> portNames;
   for (auto port : portIDs) {
@@ -424,7 +425,8 @@ std::vector<std::string> MultiSwitchLinkTest::getPortName(
   return portNames;
 }
 
-std::optional<PortID> MultiSwitchLinkTest::getPeerPortID(PortID portId) const {
+std::optional<PortID> AgentEnsembleLinkTest::getPeerPortID(
+    PortID portId) const {
   for (auto portPair : getConnectedPairs()) {
     if (portPair.first == portId) {
       return portPair.second;
@@ -435,7 +437,7 @@ std::optional<PortID> MultiSwitchLinkTest::getPeerPortID(PortID portId) const {
   return std::nullopt;
 }
 
-std::set<std::pair<PortID, PortID>> MultiSwitchLinkTest::getConnectedPairs()
+std::set<std::pair<PortID, PortID>> AgentEnsembleLinkTest::getConnectedPairs()
     const {
   waitForLldpOnCabledPorts();
   std::set<std::pair<PortID, PortID>> connectedPairs;
@@ -483,7 +485,7 @@ std::set<std::pair<PortID, PortID>> MultiSwitchLinkTest::getConnectedPairs()
  * connected port pairs using optical links
  */
 std::set<std::pair<PortID, PortID>>
-MultiSwitchLinkTest::getConnectedOpticalPortPairWithFeature(
+AgentEnsembleLinkTest::getConnectedOpticalPortPairWithFeature(
     TransceiverFeature feature,
     phy::Side side) const {
   auto connectedPairs = getConnectedPairs();
@@ -567,7 +569,7 @@ MultiSwitchLinkTest::getConnectedOpticalPortPairWithFeature(
   return connectedOpticalFeaturedPorts;
 }
 
-void MultiSwitchLinkTest::waitForStateMachineState(
+void AgentEnsembleLinkTest::waitForStateMachineState(
     const std::set<TransceiverID>& transceiversToCheck,
     TransceiverStateMachineState stateMachineState,
     uint32_t retries,
@@ -625,7 +627,7 @@ void MultiSwitchLinkTest::waitForStateMachineState(
       apache::thrift::util::enumNameSafe(stateMachineState));
 }
 
-void MultiSwitchLinkTest::waitForLldpOnCabledPorts(
+void AgentEnsembleLinkTest::waitForLldpOnCabledPorts(
     uint32_t retries,
     std::chrono::duration<uint32_t, std::milli> msBetweenRetry) const {
   WITH_RETRIES_N_TIMED(retries, msBetweenRetry, {
@@ -634,7 +636,7 @@ void MultiSwitchLinkTest::waitForLldpOnCabledPorts(
 }
 
 // Log debug information from IPHY, XPHY and optics
-void MultiSwitchLinkTest::logLinkDbgMessage(
+void AgentEnsembleLinkTest::logLinkDbgMessage(
     std::vector<PortID>& portIDs) const {
   auto iPhyInfos = getSw()->getIPhyInfo(portIDs);
   auto qsfpServiceClient = utils::createQsfpServiceClient();
@@ -690,7 +692,7 @@ void MultiSwitchLinkTest::logLinkDbgMessage(
   }
 }
 
-void MultiSwitchLinkTest::setLinkState(
+void AgentEnsembleLinkTest::setLinkState(
     bool enable,
     std::vector<PortID>& portIds) {
   for (const auto& port : portIds) {
@@ -700,7 +702,7 @@ void MultiSwitchLinkTest::setLinkState(
       waitForLinkStatus(portIds, enable, 60, std::chrono::milliseconds(1000)););
 }
 
-phy::FecMode MultiSwitchLinkTest::getPortFECMode(PortID portId) const {
+phy::FecMode AgentEnsembleLinkTest::getPortFECMode(PortID portId) const {
   auto port = getSw()->getState()->getPorts()->getNodeIf(portId);
   auto matcher =
       PlatformPortProfileConfigMatcher(port->getProfileID(), port->getID());
@@ -714,7 +716,7 @@ phy::FecMode MultiSwitchLinkTest::getPortFECMode(PortID portId) const {
 }
 
 std::vector<std::pair<PortID, PortID>>
-MultiSwitchLinkTest::getPortPairsForFecErrInj() const {
+AgentEnsembleLinkTest::getPortPairsForFecErrInj() const {
   auto connectedPairs = getConnectedPairs();
   std::unordered_set<phy::FecMode> supportedFecs = {
       phy::FecMode::RS528, phy::FecMode::RS544, phy::FecMode::RS544_2N};
@@ -733,7 +735,7 @@ MultiSwitchLinkTest::getPortPairsForFecErrInj() const {
   return supportedPorts;
 }
 
-int multiSwitchLinkTestMain(
+int agentEnsembleLinkTestMain(
     int argc,
     char** argv,
     PlatformInitFn initPlatformFn,
