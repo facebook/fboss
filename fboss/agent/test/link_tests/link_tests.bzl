@@ -3,11 +3,12 @@ load("@fbcode_macros//build_defs:cpp_binary.bzl", "cpp_binary")
 load("//fboss/agent/hw/sai/impl:impl.bzl", "get_all_impls_for", "to_impl_lib_name", "to_impl_suffix", "to_versions")
 load("//fboss/agent/hw/sai/switch:switch.bzl", "sai_switch_dependent_name")
 
-def _sai_link_test_binary(sai_impl):
+TEST_BINARY_MODES = ["legacy", "mono"]
+
+def _sai_link_test_binary(sai_impl, mode):
     impl_suffix = to_impl_suffix(sai_impl)
     test_deps = [
         "//folly/logging:init",
-        "//fboss/agent/test/link_tests:link_tests",
         "//fboss/agent/platforms/sai:{}".format(
             sai_switch_dependent_name("sai_platform", sai_impl, True),
         ),
@@ -19,11 +20,25 @@ def _sai_link_test_binary(sai_impl):
     ]
     if sai_impl.name == "fake" or sai_impl.name == "leaba":
         test_deps.append("//fboss/agent/platforms/sai:bcm-required-symbols")
-    return cpp_binary(
-        name = "sai_link_test-{}-{}".format(sai_impl.name, sai_impl.version),
+
+    if mode == "mono":
+        test_deps.append("//fboss/agent/test/link_tests:agent_ensemble_link_tests")
+        test_deps.append("//fboss/agent/test:mono_agent_ensemble")
+        name = "sai_mono_link_test-{}-{}".format(sai_impl.name, sai_impl.version)
+        srcs = [
+            "SaiMonoLinkTest.cpp",
+        ]
+    else:
+        # default case from before
+        test_deps.append("//fboss/agent/test/link_tests:link_tests")
+        name = "sai_link_test-{}-{}".format(sai_impl.name, sai_impl.version)
         srcs = [
             "SaiLinkTest.cpp",
-        ],
+        ]
+
+    return cpp_binary(
+        name = name,
+        srcs = srcs,
         linker_flags = [
             "--export-dynamic",
             "--unresolved-symbols=ignore-all",
@@ -34,5 +49,6 @@ def _sai_link_test_binary(sai_impl):
     )
 
 def all_sai_link_test_binaries():
-    for sai_impl in get_all_impls_for(True):
-        _sai_link_test_binary(sai_impl)
+    for mode in TEST_BINARY_MODES:
+        for sai_impl in get_all_impls_for(True):
+            _sai_link_test_binary(sai_impl, mode)
