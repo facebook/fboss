@@ -1,14 +1,13 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
 #include <algorithm>
+#include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/HwAsicTable.h"
 #include "fboss/agent/hw/HwSwitchFb303Stats.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/test/utils/FabricTestUtils.h"
 #include "fboss/lib/CommonUtils.h"
-
-DECLARE_bool(disable_looped_fabric_ports);
 
 namespace facebook::fboss {
 class AgentFabricSwitchTest : public AgentHwTest {
@@ -56,14 +55,12 @@ class AgentFabricSwitchTest : public AgentHwTest {
   }
 
  protected:
-  void checkDataCellFilter() {
+  void checkDataCellFilter(bool expectFilterOn) {
     WITH_RETRIES({
       for (const auto& [_, portIds] : switch2FabricPortIds()) {
         for (const auto& [_, portStats] : getNextUpdatedPortStats(portIds)) {
-          EXPECT_TRUE(portStats.dataCellsFilterOn().has_value());
-          EXPECT_EVENTUALLY_EQ(
-              *portStats.dataCellsFilterOn(),
-              !FLAGS_disable_looped_fabric_ports);
+          EXPECT_EVENTUALLY_TRUE(portStats.dataCellsFilterOn().has_value());
+          EXPECT_EVENTUALLY_EQ(*portStats.dataCellsFilterOn(), expectFilterOn);
         }
       }
     });
@@ -128,7 +125,6 @@ TEST_F(AgentFabricSwitchTest, collectStats) {
   auto verify = [this]() {
     EXPECT_GT(getProgrammedState()->getPorts()->numNodes(), 0);
     getSw()->updateStats();
-    checkDataCellFilter();
   };
   verifyAcrossWarmBoots([] {}, verify);
 }
@@ -280,6 +276,9 @@ TEST_F(AgentFabricSwitchSelfLoopTest, selfLoopDetection) {
     auto allPorts = getProgrammedState()->getPorts()->getAllNodes();
     // Since switch is drained, ports should stay enabled
     verifyState(cfg::PortState::ENABLED, *allPorts);
+    // Regardless of drain state, data filter should be turned on
+    // upon detecting a loop
+    checkDataCellFilter(true /*expectFilterOn*/);
     // Undrain
     setSwitchDrainState(getSw()->getConfig(), cfg::SwitchDrainState::UNDRAINED);
   };
