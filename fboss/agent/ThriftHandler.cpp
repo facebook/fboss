@@ -3263,7 +3263,33 @@ void ThriftHandler::getSwitchIdToSwitchInfo(
     std::map<int64_t, cfg::SwitchInfo>& switchIdToSwitchInfo) {
   ensureConfigured(__func__);
 
-  // TODO
+  // SwitchSettings are per switchId(s), and should hold switchInfo for
+  // corresponding SwitchId(s).
+  // However, today SwitchSettingsFields carries
+  //  - switchIdToSwitchInfo: switchInfo for every SwitchId,
+  //  - switchInfo i.e. switchInfo for corresponding SwitchId(s):
+  //
+  //  However, switchInfo is not always popualted correctly.
+  //
+  // TODO:
+  //   - Populate switchInfo correctly.
+  //   - Change every switchIdToSwitchInfo callsite to consume switchInfo
+  //   - At that time, switch to below implementation:
+  // for (const auto& [matcherString, switchSettings] :
+  //      std::as_const(*sw_->getState()->getSwitchSettings())) {
+  //      auto matcher = HwSwitchMatcher(matcherString);
+  //      switchIdToSwitchInfo[matcher.switchId()] =
+  //      switchSettings->getSwitchInfo();
+  // }
+  //
+  //   - Remove switchIdToSwitchInfo from SwitchSettingsFields.
+
+  const auto& switchSettings =
+      utility::getFirstNodeIf(sw_->getState()->getSwitchSettings());
+  for (const auto& [switchId, switchInfo] :
+       switchSettings->getSwitchIdToSwitchInfo()) {
+    switchIdToSwitchInfo[switchId] = switchInfo;
+  }
 }
 
 } // namespace facebook::fboss
