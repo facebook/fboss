@@ -3259,4 +3259,11 @@ void ThriftHandler::getSwitchIndicesForInterfaces(
   }
 }
 
+void ThriftHandler::getSwitchIdToSwitchInfo(
+    std::map<int64_t, cfg::SwitchInfo>& switchIdToSwitchInfo) {
+  ensureConfigured(__func__);
+
+  // TODO
+}
+
 } // namespace facebook::fboss

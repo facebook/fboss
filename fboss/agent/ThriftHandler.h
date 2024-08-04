@@ -480,6 +480,9 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
 
   std::string getCurrentStateJSONForPath(const std::string& path) const;
 
+  void getSwitchIdToSwitchInfo(
+      std::map<int64_t, cfg::SwitchInfo>& switchIdToSwitchInfo) override;
+
   /*
    * A pointer to the SwSwitch.  We don't own this.
    * It's the main program's responsibility to ensure that the SwSwitch exists
