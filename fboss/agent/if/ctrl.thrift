@@ -1450,6 +1450,11 @@ service FbossCtrl extends phy.FbossCommonPhyCtrl {
   map<i16, list<string>> getSwitchIndicesForInterfaces(
     1: list<string> interfaces,
   ) throws (1: fboss.FbossBaseError error);
+
+  /*
+   * Get SwitchID to SwitchInfo for all SwitchIDs.
+   */
+  map<i64, switch_config.SwitchInfo> getSwitchIdToSwitchInfo();
 }
 
 service NeighborListenerClient extends fb303.FacebookService {
