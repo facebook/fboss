@@ -3,7 +3,7 @@ load("@fbcode_macros//build_defs:cpp_binary.bzl", "cpp_binary")
 load("//fboss/agent/hw/sai/impl:impl.bzl", "get_all_impls_for", "to_impl_lib_name", "to_impl_suffix", "to_versions")
 load("//fboss/agent/hw/sai/switch:switch.bzl", "sai_switch_dependent_name")
 
-TEST_BINARY_MODES = ["legacy", "mono"]
+TEST_BINARY_MODES = ["legacy", "mono", "multi"]
 
 def _sai_link_test_binary(sai_impl, mode):
     impl_suffix = to_impl_suffix(sai_impl)
@@ -28,6 +28,11 @@ def _sai_link_test_binary(sai_impl, mode):
         srcs = [
             "SaiMonoLinkTest.cpp",
         ]
+    elif mode == "multi":
+        test_deps.append("//fboss/agent/test/link_tests:agent_ensemble_link_tests")
+        test_deps.append("//fboss/agent/test:multi_switch_agent_ensemble")
+        name = "sai_multi_switch_link_test-{}-{}".format(sai_impl.name, sai_impl.version)
+        srcs = ["SaiMultiSwitchLinkTest.cpp"]
     else:
         # default case from before
         test_deps.append("//fboss/agent/test/link_tests:link_tests")
