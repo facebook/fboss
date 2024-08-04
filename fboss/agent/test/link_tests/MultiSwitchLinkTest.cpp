@@ -424,6 +424,149 @@ std::vector<std::string> MultiSwitchLinkTest::getPortName(
   return portNames;
 }
 
+std::optional<PortID> MultiSwitchLinkTest::getPeerPortID(PortID portId) const {
+  for (auto portPair : getConnectedPairs()) {
+    if (portPair.first == portId) {
+      return portPair.second;
+    } else if (portPair.second == portId) {
+      return portPair.first;
+    }
+  }
+  return std::nullopt;
+}
+
+std::set<std::pair<PortID, PortID>> MultiSwitchLinkTest::getConnectedPairs()
+    const {
+  waitForLldpOnCabledPorts();
+  std::set<std::pair<PortID, PortID>> connectedPairs;
+  for (auto cabledPort : cabledPorts_) {
+    PortID neighborPort;
+    auto portType =
+        getProgrammedState()->getPorts()->getNodeIf(cabledPort)->getPortType();
+    if (portType == cfg::PortType::FABRIC_PORT) {
+      auto switchId = getSw()->getScopeResolver()->scope(cabledPort).switchId();
+      auto fabricReachabilityEntries = getFabricConnectivity(switchId);
+      auto fabricPortEndpoint = fabricReachabilityEntries.find(cabledPort);
+      if (fabricPortEndpoint == fabricReachabilityEntries.end() ||
+          !*fabricPortEndpoint->second.isAttached()) {
+        XLOG(DBG2) << " No fabric end points on : " << getPortName(cabledPort);
+        continue;
+      }
+      neighborPort = PortID(fabricPortEndpoint->second.get_portId()) +
+          getRemotePortOffset(getSw()->getPlatformType());
+    } else {
+      auto lldpNeighbors =
+          getSw()->getLldpMgr()->getDB()->getNeighbors(cabledPort);
+      if (lldpNeighbors.size() != 1) {
+        XLOG(WARN) << "Wrong lldp neighbor size for port "
+                   << getPortName(cabledPort) << ", should be 1 but got "
+                   << lldpNeighbors.size();
+        continue;
+      }
+      neighborPort = getPortID((*lldpNeighbors.begin())->getPortId());
+    }
+    // Insert sorted pairs, so that the same pair does not show up twice in
+    // the set
+    auto connectedPair = cabledPort < neighborPort
+        ? std::make_pair(cabledPort, neighborPort)
+        : std::make_pair(neighborPort, cabledPort);
+    connectedPairs.insert(connectedPair);
+  }
+  return connectedPairs;
+}
+
+/*
+ * getConnectedOpticalPortPairWithFeature
+ *
+ * Returns the set of connected port pairs with optical link and the optics
+ * supporting the given feature. For feature==None, this will return set of
+ * connected port pairs using optical links
+ */
+std::set<std::pair<PortID, PortID>>
+MultiSwitchLinkTest::getConnectedOpticalPortPairWithFeature(
+    TransceiverFeature feature,
+    phy::Side side) const {
+  auto connectedPairs = getConnectedPairs();
+  auto opticalPorts = std::get<0>(getOpticalCabledPortsAndNames(false));
+
+  std::set<std::pair<PortID, PortID>> connectedOpticalPortPairs;
+  for (auto connectedPair : connectedPairs) {
+    if (std::find(
+            opticalPorts.begin(), opticalPorts.end(), connectedPair.first) !=
+        opticalPorts.end()) {
+      connectedOpticalPortPairs.insert(connectedPair);
+    }
+  }
+
+  if (feature == TransceiverFeature::NONE) {
+    return connectedOpticalPortPairs;
+  }
+
+  std::vector<int32_t> transceiverIds;
+  for (auto portPair : connectedOpticalPortPairs) {
+    auto tcvrId = getSw()->getPlatformMapping()->getTransceiverIdFromSwPort(
+        portPair.first);
+
+    transceiverIds.push_back(tcvrId);
+    tcvrId = getSw()->getPlatformMapping()->getTransceiverIdFromSwPort(
+        portPair.second);
+    transceiverIds.push_back(tcvrId);
+  }
+
+  auto transceiverInfos = waitForTransceiverInfo(transceiverIds);
+  std::set<std::pair<PortID, PortID>> connectedOpticalFeaturedPorts;
+  for (auto portPair : connectedOpticalPortPairs) {
+    auto tcvrId = getSw()->getPlatformMapping()->getTransceiverIdFromSwPort(
+        portPair.first);
+
+    auto tcvrInfo = transceiverInfos.find(tcvrId);
+    if (tcvrInfo != transceiverInfos.end()) {
+      auto tcvrState = *tcvrInfo->second.tcvrState();
+      if (tcvrState.diagCapability().value().diagnostics().value()) {
+        if (feature == TransceiverFeature::TX_DISABLE &&
+            side == phy::Side::LINE) {
+          bool txDisCapable =
+              tcvrState.diagCapability().value().txOutputControl().value();
+          if (txDisCapable) {
+            connectedOpticalFeaturedPorts.insert(portPair);
+          }
+        } else if (
+            feature == TransceiverFeature::TX_DISABLE &&
+            side == phy::Side::SYSTEM) {
+          bool rxDisCapable =
+              tcvrState.diagCapability().value().rxOutputControl().value();
+          if (rxDisCapable) {
+            connectedOpticalFeaturedPorts.insert(portPair);
+          }
+        } else if (
+            feature == TransceiverFeature::LOOPBACK &&
+            side == phy::Side::LINE) {
+          bool lineLoopCapable =
+              tcvrState.diagCapability().value().loopbackLine().value();
+          if (lineLoopCapable) {
+            connectedOpticalFeaturedPorts.insert(portPair);
+          }
+        } else if (
+            feature == TransceiverFeature::LOOPBACK &&
+            side == phy::Side::SYSTEM) {
+          bool sysLoopCapable =
+              tcvrState.diagCapability().value().loopbackSystem().value();
+          if (sysLoopCapable) {
+            connectedOpticalFeaturedPorts.insert(portPair);
+          }
+        } else if (feature == TransceiverFeature::VDM) {
+          bool vdmCapable = tcvrState.diagCapability().value().vdm().value();
+          if (vdmCapable) {
+            connectedOpticalFeaturedPorts.insert(portPair);
+          }
+        }
+      }
+    }
+  }
+
+  return connectedOpticalFeaturedPorts;
+}
+
 int multiSwitchLinkTestMain(
     int argc,
     char** argv,
