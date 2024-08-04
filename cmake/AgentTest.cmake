@@ -109,7 +109,7 @@ target_link_libraries(agent_ensemble_test_lib
   qsfp_cpp2
   qsfp_service_client
   fboss_config_utils
-  mono_agent_ensemble
+  agent_ensemble
   qos_test_utils
   ${GTEST}
   ${LIBGMOCK_LIBRARIES}
@@ -181,6 +181,7 @@ target_link_libraries(agent_ensemble
   config_factory
   fboss_config_utils
   test_ensemble_if
+  pkt_test_utils
   ${GTEST}
 )
 
