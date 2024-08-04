@@ -327,6 +327,83 @@ MultiSwitchLinkTest::getVlanOwningCabledPorts() const {
   return ecmpPorts;
 }
 
+void MultiSwitchLinkTest::programDefaultRoute(
+    const boost::container::flat_set<PortDescriptor>& ecmpPorts,
+    utility::EcmpSetupTargetedPorts6& ecmp6) {
+  ASSERT_GT(ecmpPorts.size(), 0);
+  getSw()->updateStateBlocking(
+      "Resolve nhops", [ecmpPorts, &ecmp6](auto state) {
+        return ecmp6.resolveNextHops(state, ecmpPorts);
+      });
+  ecmp6.programRoutes(
+      std::make_unique<SwSwitchRouteUpdateWrapper>(getSw()->getRouteUpdater()),
+      ecmpPorts);
+}
+
+void MultiSwitchLinkTest::programDefaultRoute(
+    const boost::container::flat_set<PortDescriptor>& ecmpPorts,
+    std::optional<folly::MacAddress> dstMac) {
+  utility::EcmpSetupTargetedPorts6 ecmp6(getSw()->getState(), dstMac);
+  programDefaultRoute(ecmpPorts, ecmp6);
+}
+
+void MultiSwitchLinkTest::disableTTLDecrements(
+    const boost::container::flat_set<PortDescriptor>& ecmpPorts) {
+  if (getSw()->getHwAsicTable()->isFeatureSupportedOnAnyAsic(
+          HwAsic::Feature::PORT_TTL_DECREMENT_DISABLE)) {
+    disableTTLDecrementOnPorts(ecmpPorts);
+  } else {
+    utility::EcmpSetupTargetedPorts6 ecmp6(getSw()->getState());
+    utility::disableTTLDecrements(
+        getSw(), ecmp6.getRouterId(), ecmp6.getNextHops());
+  }
+}
+
+void MultiSwitchLinkTest::createL3DataplaneFlood(
+    const boost::container::flat_set<PortDescriptor>& ecmpPorts) {
+  auto switchId = scope(ecmpPorts);
+  utility::EcmpSetupTargetedPorts6 ecmp6(
+      getSw()->getState(), getSw()->getLocalMac(switchId));
+  programDefaultRoute(ecmpPorts, ecmp6);
+  disableTTLDecrements(ecmpPorts);
+  auto vlanID = utility::getFirstMap(getSw()->getState()->getVlans())
+                    ->cbegin()
+                    ->second->getID();
+  utility::pumpTraffic(
+      true,
+      utility::getAllocatePktFn(getSw()),
+      utility::getSendPktFunc(getSw()),
+      getSw()->getLocalMac(switchId),
+      vlanID);
+  // TODO: Assert that traffic reached a certain rate
+  XLOG(DBG2) << "Created L3 Data Plane Flood";
+}
+
+bool MultiSwitchLinkTest::checkReachabilityOnAllCabledPorts() const {
+  auto lldpDb = getSw()->getLldpMgr()->getDB();
+  for (const auto& port : getCabledPorts()) {
+    auto portType =
+        getProgrammedState()->getPorts()->getNodeIf(port)->getPortType();
+    if (portType == cfg::PortType::INTERFACE_PORT &&
+        !lldpDb->getNeighbors(port).size()) {
+      XLOG(DBG2) << " No lldp neighbors on : " << getPortName(port);
+      return false;
+    }
+    if (portType == cfg::PortType::FABRIC_PORT) {
+      auto switchId = getSw()->getScopeResolver()->scope(port).switchId();
+      // TODO(Elangovan) does the reachability have to be retried?
+      auto fabricReachabilityEntries = getFabricConnectivity(switchId);
+      auto fabricPortEndPoint = fabricReachabilityEntries.find(port);
+      if (fabricPortEndPoint == fabricReachabilityEntries.end() ||
+          !*fabricPortEndPoint->second.isAttached()) {
+        XLOG(DBG2) << " No fabric end points on : " << getPortName(port);
+        return false;
+      }
+    }
+  }
+  return true;
+}
+
 std::string MultiSwitchLinkTest::getPortName(PortID portId) const {
   for (auto portMap : std::as_const(*getSw()->getState()->getPorts())) {
     for (auto port : std::as_const(*portMap.second)) {
