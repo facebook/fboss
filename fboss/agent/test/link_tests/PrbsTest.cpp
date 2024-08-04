@@ -24,7 +24,7 @@ struct TestPort {
 class PrbsTest : public LinkTest {
  public:
   bool checkValidMedia(PortID port, MediaInterfaceCode media) {
-    auto tcvrSpec = utility::getTransceiverSpec(sw(), port);
+    auto tcvrSpec = getTransceiverSpec(sw(), port);
     this->platform()->getPlatformPort(port)->getTransceiverSpec();
     if (tcvrSpec) {
       if (auto mediaInterface = tcvrSpec->getMediaInterface()) {

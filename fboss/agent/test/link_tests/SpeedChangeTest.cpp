@@ -5,6 +5,7 @@
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwTestEcmpUtils.h"
 #include "fboss/agent/test/link_tests/LinkTest.h"
+#include "fboss/agent/test/link_tests/LinkTestUtils.h"
 #include "fboss/agent/test/utils/PortTestUtils.h"
 #include "fboss/lib/CommonFileUtils.h"
 #include "fboss/lib/CommonUtils.h"
@@ -47,7 +48,7 @@ class SpeedChangeTest : public LinkTest {
       transceiverIds.push_back(tcvrId);
     }
 
-    auto transceiverInfos = waitForTransceiverInfo(transceiverIds);
+    auto transceiverInfos = utility::waitForTransceiverInfo(transceiverIds);
     std::map<int, cfg::PortProfileID> eligiblePortsAndProfile;
     for (const auto& port : *cfg.ports()) {
       CHECK(port.name().has_value());
@@ -194,8 +195,8 @@ void SpeedChangeTest::setupConfigFlag() {
   //      1. Make a copy of the original config. Existing copy is overridden
   //      2. The speeds and profiles are modified by this test in the original
   //      config.
-  //    TearDown - Do nothing. Keep the modified config in the FLAGS_config
-  //    path.
+  //    TearDown - Do nothing. Keep the modified config in the
+  //    FLAGS_config path.
   // Warmboot iteration -
   //    SetUp - Do nothing. Agent loads up with the modified config (setup by
   //      coldboot iteration)

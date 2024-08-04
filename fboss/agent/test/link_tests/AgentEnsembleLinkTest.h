@@ -10,16 +10,8 @@
 
 #include <boost/container/flat_set.hpp>
 
-DECLARE_string(oob_asset);
-DECLARE_string(oob_flash_device_name);
-DECLARE_string(openbmc_password);
-DECLARE_bool(enable_lldp);
-DECLARE_bool(tun_intf);
-DECLARE_string(volatile_state_dir);
-DECLARE_bool(setup_for_warmboot);
 DECLARE_string(config);
-DECLARE_bool(disable_neighbor_updates);
-DECLARE_bool(link_stress_test);
+DECLARE_bool(skip_drain_check_for_prbs);
 
 namespace facebook::fboss {
 
@@ -46,18 +38,6 @@ class AgentEnsembleLinkTest : public AgentEnsembleTest {
       uint32_t retries = 60,
       std::chrono::duration<uint32_t, std::milli> msBetweenRetry =
           std::chrono::milliseconds(1000)) const;
-  void waitForAllTransceiverStates(
-      bool up,
-      uint32_t retries = 60,
-      std::chrono::duration<uint32_t, std::milli> msBetweenRetry =
-          std::chrono::milliseconds(1000)) const;
-  void getAllTransceiverConfigValidationStatuses();
-  std::map<int32_t, TransceiverInfo> waitForTransceiverInfo(
-      std::vector<int32_t> transceiverIds,
-      uint32_t retries = 2,
-      std::chrono::duration<uint32_t, std::milli> msBetweenRetry =
-          std::chrono::duration_cast<std::chrono::milliseconds>(
-              std::chrono::seconds(10))) const;
   bool checkReachabilityOnAllCabledPorts() const;
   /*
    * Get pairs of ports connected to each other
@@ -114,20 +94,12 @@ class AgentEnsembleLinkTest : public AgentEnsembleTest {
       TransceiverFeature feature,
       phy::Side side) const;
 
-  void waitForStateMachineState(
-      const std::set<TransceiverID>& transceiversToCheck,
-      TransceiverStateMachineState stateMachineState,
-      uint32_t retries,
-      std::chrono::duration<uint32_t, std::milli> msBetweenRetry) const;
-
   void waitForLldpOnCabledPorts(
       uint32_t retries = 60,
       std::chrono::duration<uint32_t, std::milli> msBetweenRetry =
           std::chrono::milliseconds(1000)) const;
 
   void setCmdLineFlagOverrides() const override;
-
-  void restartQsfpService(bool coldboot) const;
 
   void TearDown() override;
 

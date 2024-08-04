@@ -68,7 +68,8 @@ TEST_F(LinkTest, asicLinkFlap) {
         setPortStatus(port, false);
       }
       ASSERT_NO_THROW(waitForAllCabledPorts(false));
-      ASSERT_NO_THROW(waitForAllTransceiverStates(false, 60, 5s));
+      ASSERT_NO_THROW(utility::waitForAllTransceiverStates(
+          false, getCabledTranceivers(), 60, 5s));
 
       // Set the port status on all cabled ports to true. The link should come
       // back up
@@ -76,7 +77,8 @@ TEST_F(LinkTest, asicLinkFlap) {
         setPortStatus(port, true);
       }
       ASSERT_NO_THROW(waitForAllCabledPorts(true));
-      ASSERT_NO_THROW(waitForAllTransceiverStates(true, 60, 5s));
+      ASSERT_NO_THROW(utility::waitForAllTransceiverStates(
+          true, getCabledTranceivers(), 60, 5s));
     }
   };
 
@@ -92,7 +94,7 @@ TEST_F(LinkTest, getTransceivers) {
       for (const auto& port : ports) {
         auto transceiverId =
             platform()->getPlatformPort(port)->getTransceiverID().value();
-        auto transceiverSpec = utility::getTransceiverSpec(sw(), port);
+        auto transceiverSpec = getTransceiverSpec(sw(), port);
         EXPECT_EVENTUALLY_TRUE(transceiverSpec) << "TcvrId " << transceiverId;
       }
     })
@@ -143,7 +145,8 @@ TEST_F(LinkSanityTestDataPlaneFlood, warmbootIsHitLess) {
             ecmpSizeInSw);
         // Assert all cabled transceivers have ACTIVE state
         EXPECT_NO_THROW(waitForAllCabledPorts(true));
-        EXPECT_NO_THROW(waitForAllTransceiverStates(true));
+        EXPECT_NO_THROW(
+            utility::waitForAllTransceiverStates(true, getCabledTranceivers()));
       });
 }
 
@@ -153,10 +156,13 @@ TEST_F(LinkSanityTestDataPlaneFlood, qsfpWarmbootIsHitLess) {
   verifyAcrossWarmBoots(
       [this]() {
         createL3DataplaneFlood();
-        restartQsfpService(false /* coldboot */);
+        utility::restartQsfpService(false /* coldboot */);
         // Wait for all transceivers to converge to Active state
-        EXPECT_NO_THROW(waitForAllTransceiverStates(
-            true, 60 /* retries */, 5s /* retry interval */));
+        EXPECT_NO_THROW(utility::waitForAllTransceiverStates(
+            true,
+            getCabledTranceivers(),
+            60 /* retries */,
+            5s /* retry interval */));
       },
       [this]() {
         // Assert no traffic loss and no ecmp shrink. If ports flap
@@ -172,7 +178,8 @@ TEST_F(LinkSanityTestDataPlaneFlood, qsfpWarmbootIsHitLess) {
             ecmpSizeInSw);
         // Assert all cabled transceivers have ACTIVE state
         EXPECT_NO_THROW(waitForAllCabledPorts(true));
-        EXPECT_NO_THROW(waitForAllTransceiverStates(true));
+        EXPECT_NO_THROW(
+            utility::waitForAllTransceiverStates(true, getCabledTranceivers()));
       });
 }
 
@@ -393,7 +400,7 @@ TEST_F(LinkTest, testOpticsRemediation) {
     // If the remediation counter has incremented for at least one of the
     // disabled ports then pass the test
     WITH_RETRIES_N_TIMED(5, std::chrono::seconds(60), {
-      auto transceiverInfos = waitForTransceiverInfo(transceiverIds);
+      auto transceiverInfos = utility::waitForTransceiverInfo(transceiverIds);
       int numPortsRemediated = 0;
       for (const auto& port : disabledPorts) {
         auto tcvrId =
@@ -430,12 +437,13 @@ TEST_F(LinkTest, qsfpColdbootAfterAgentUp) {
   verifyAcrossWarmBoots(
       []() {},
       [this]() {
-        restartQsfpService(true /* coldboot */);
+        utility::restartQsfpService(true /* coldboot */);
         /* sleep override */
         sleep(5);
         // Assert all cabled ports are up and transceivers have ACTIVE state
         EXPECT_NO_THROW(waitForAllCabledPorts(true));
-        EXPECT_NO_THROW(waitForAllTransceiverStates(true, 60, 5s));
+        EXPECT_NO_THROW(utility::waitForAllTransceiverStates(
+            true, getCabledTranceivers(), 60, 5s));
       });
 }
 

@@ -77,7 +77,7 @@ TEST_F(OpticsTest, verifyTxRxLatches) {
         platform()->getPlatformPort(portID2)->getTransceiverID().value()));
   }
 
-  auto allTcvrInfos = waitForTransceiverInfo(
+  auto allTcvrInfos = utility::waitForTransceiverInfo(
       std::vector<int32_t>(allTcvrIds.begin(), allTcvrIds.end()));
 
   // Cache the host and media lanes for each port because once the ports are
@@ -110,7 +110,7 @@ TEST_F(OpticsTest, verifyTxRxLatches) {
           onlyTcvrIds.push_back(int32_t(tcvrId.first));
         }
         WITH_RETRIES_N_TIMED(10, std::chrono::seconds(10), {
-          auto transceiverInfos = waitForTransceiverInfo(onlyTcvrIds);
+          auto transceiverInfos = utility::waitForTransceiverInfo(onlyTcvrIds);
           for (const auto& tcvrId : onlyTcvrIds) {
             auto& portName = transceiverIds[TransceiverID(tcvrId)];
             auto tcvrInfoInfoItr = transceiverInfos.find(tcvrId);
@@ -255,14 +255,14 @@ TEST_F(LinkTest, opticsVdmPerformanceMonitoring) {
     auto tcvrId = platform()->getPlatformPort(port)->getTransceiverID().value();
     transceiverIds.push_back(tcvrId);
   }
-  auto transceiverInfos = waitForTransceiverInfo(transceiverIds);
+  auto transceiverInfos = utility::waitForTransceiverInfo(transceiverIds);
   auto startTime =
       transceiverInfos.begin()->second.tcvrStats()->timeCollected().value();
 
-  transceiverInfos = waitForTransceiverInfo(transceiverIds);
+  transceiverInfos = utility::waitForTransceiverInfo(transceiverIds);
 
   WITH_RETRIES_N_TIMED(10, std::chrono::seconds(5), {
-    transceiverInfos = waitForTransceiverInfo(transceiverIds);
+    transceiverInfos = utility::waitForTransceiverInfo(transceiverIds);
     auto endTime =
         transceiverInfos.begin()->second.tcvrStats()->timeCollected().value();
     ASSERT_EVENTUALLY_GT(endTime, startTime + 20);
