@@ -306,13 +306,14 @@ TEST_F(AgentFabricSwitchSelfLoopTest, portDrained) {
       }
       return out;
     });
-  };
-  auto verify = [this, drainedPorts]() {
     auto portsToCheck = getProgrammedState()->getPorts()->getAllNodes();
     // Since switch is drained, ports should stay enabled
     verifyState(cfg::PortState::ENABLED, *portsToCheck);
     // Undrain
-    applySwitchDrainState(cfg::SwitchDrainState::UNDRAINED);
+    setSwitchDrainState(getSw()->getConfig(), cfg::SwitchDrainState::UNDRAINED);
+  };
+  auto verify = [this, drainedPorts]() {
+    auto portsToCheck = getProgrammedState()->getPorts()->getAllNodes();
     // All but the drained ports should now get disabled
     for (auto port : drainedPorts) {
       portsToCheck->removeNode(port);
