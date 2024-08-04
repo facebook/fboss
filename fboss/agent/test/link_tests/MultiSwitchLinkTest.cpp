@@ -567,6 +567,172 @@ MultiSwitchLinkTest::getConnectedOpticalPortPairWithFeature(
   return connectedOpticalFeaturedPorts;
 }
 
+void MultiSwitchLinkTest::waitForStateMachineState(
+    const std::set<TransceiverID>& transceiversToCheck,
+    TransceiverStateMachineState stateMachineState,
+    uint32_t retries,
+    std::chrono::duration<uint32_t, std::milli> msBetweenRetry) const {
+  XLOG(DBG2) << "Checking qsfp TransceiverStateMachineState on "
+             << folly::join(",", transceiversToCheck);
+
+  std::vector<int32_t> expectedTransceiver;
+  for (auto transceiverID : transceiversToCheck) {
+    expectedTransceiver.push_back(transceiverID);
+  }
+
+  std::vector<int32_t> badTransceivers;
+  while (retries--) {
+    badTransceivers.clear();
+    std::map<int32_t, TransceiverInfo> info;
+    try {
+      auto qsfpServiceClient = utils::createQsfpServiceClient();
+      qsfpServiceClient->sync_getTransceiverInfo(info, expectedTransceiver);
+    } catch (const std::exception& ex) {
+      // We have retry mechanism to handle failure. No crash here
+      XLOG(WARN) << "Failed to call qsfp_service getTransceiverInfo(). "
+                 << folly::exceptionStr(ex);
+    }
+    // Check whether all expected transceivers have expected state
+    for (auto transceiverID : expectedTransceiver) {
+      // Only continue if the transceiver state machine matches
+      if (auto transceiverInfoIt = info.find(transceiverID);
+          transceiverInfoIt != info.end()) {
+        if (auto state =
+                transceiverInfoIt->second.tcvrState()->stateMachineState();
+            state.has_value() && *state == stateMachineState) {
+          continue;
+        }
+      }
+      // Otherwise such transceiver is considered to be in a bad state
+      badTransceivers.push_back(transceiverID);
+    }
+
+    if (badTransceivers.empty()) {
+      XLOG(DBG2) << "All qsfp TransceiverStateMachineState on "
+                 << folly::join(",", expectedTransceiver) << " match "
+                 << apache::thrift::util::enumNameSafe(stateMachineState);
+      return;
+    } else {
+      /* sleep override */
+      std::this_thread::sleep_for(msBetweenRetry);
+    }
+  }
+
+  throw FbossError(
+      "Transceivers:[",
+      folly::join(",", badTransceivers),
+      "] don't have expected TransceiverStateMachineState:",
+      apache::thrift::util::enumNameSafe(stateMachineState));
+}
+
+void MultiSwitchLinkTest::waitForLldpOnCabledPorts(
+    uint32_t retries,
+    std::chrono::duration<uint32_t, std::milli> msBetweenRetry) const {
+  WITH_RETRIES_N_TIMED(retries, msBetweenRetry, {
+    ASSERT_EVENTUALLY_TRUE(checkReachabilityOnAllCabledPorts());
+  });
+}
+
+// Log debug information from IPHY, XPHY and optics
+void MultiSwitchLinkTest::logLinkDbgMessage(
+    std::vector<PortID>& portIDs) const {
+  auto iPhyInfos = getSw()->getIPhyInfo(portIDs);
+  auto qsfpServiceClient = utils::createQsfpServiceClient();
+  auto portNames = getPortNames(portIDs);
+  std::map<std::string, phy::PhyInfo> xPhyInfos;
+  std::map<int32_t, TransceiverInfo> tcvrInfos;
+
+  try {
+    qsfpServiceClient->sync_getInterfacePhyInfo(xPhyInfos, portNames);
+  } catch (const std::exception& ex) {
+    XLOG(WARN) << "Failed to call qsfp_service getInterfacePhyInfo(). "
+               << folly::exceptionStr(ex);
+  }
+
+  std::vector<int32_t> tcvrIds;
+  for (auto portID : portIDs) {
+    tcvrIds.push_back(
+        getSw()->getPlatformMapping()->getTransceiverIdFromSwPort(portID));
+  }
+
+  try {
+    qsfpServiceClient->sync_getTransceiverInfo(tcvrInfos, tcvrIds);
+  } catch (const std::exception& ex) {
+    XLOG(WARN) << "Failed to call qsfp_service getTransceiverInfo(). "
+               << folly::exceptionStr(ex);
+  }
+
+  for (auto portID : portIDs) {
+    auto portName = getPortName(portID);
+    XLOG(ERR) << "Debug information for " << portName;
+    if (iPhyInfos.find(portID) != iPhyInfos.end()) {
+      XLOG(ERR) << "IPHY INFO: "
+                << apache::thrift::debugString(iPhyInfos[portID]);
+    } else {
+      XLOG(ERR) << "IPHY info missing for " << portName;
+    }
+
+    if (xPhyInfos.find(portName) != xPhyInfos.end()) {
+      XLOG(ERR) << "XPHY INFO: "
+                << apache::thrift::debugString(xPhyInfos[portName]);
+    } else {
+      XLOG(ERR) << "XPHY info missing for " << portName;
+    }
+
+    auto tcvrId =
+        getSw()->getPlatformMapping()->getTransceiverIdFromSwPort(portID);
+    if (tcvrInfos.find(tcvrId) != tcvrInfos.end()) {
+      XLOG(ERR) << "Transceiver INFO: "
+                << apache::thrift::debugString(tcvrInfos[tcvrId]);
+    } else {
+      XLOG(ERR) << "Transceiver info missing for " << portName;
+    }
+  }
+}
+
+void MultiSwitchLinkTest::setLinkState(
+    bool enable,
+    std::vector<PortID>& portIds) {
+  for (const auto& port : portIds) {
+    setPortStatus(port, enable);
+  }
+  EXPECT_NO_THROW(
+      waitForLinkStatus(portIds, enable, 60, std::chrono::milliseconds(1000)););
+}
+
+phy::FecMode MultiSwitchLinkTest::getPortFECMode(PortID portId) const {
+  auto port = getSw()->getState()->getPorts()->getNodeIf(portId);
+  auto matcher =
+      PlatformPortProfileConfigMatcher(port->getProfileID(), port->getID());
+  auto profile = getSw()->getPlatformMapping()->getPortProfileConfig(matcher);
+
+  if (profile.has_value()) {
+    return profile->iphy()->fec().value();
+  } else {
+    throw FbossError("No profile found for port: ", portId);
+  }
+}
+
+std::vector<std::pair<PortID, PortID>>
+MultiSwitchLinkTest::getPortPairsForFecErrInj() const {
+  auto connectedPairs = getConnectedPairs();
+  std::unordered_set<phy::FecMode> supportedFecs = {
+      phy::FecMode::RS528, phy::FecMode::RS544, phy::FecMode::RS544_2N};
+  std::vector<std::pair<PortID, PortID>> supportedPorts;
+  for (const auto& [port1, port2] : connectedPairs) {
+    auto fecPort1 = getPortFECMode(port1);
+    auto fecPort2 = getPortFECMode(port2);
+    if (fecPort1 != fecPort2) {
+      throw FbossError(
+          "FEC different on both ends of the link: ", fecPort1, fecPort2);
+    }
+    if (supportedFecs.find(fecPort1) != supportedFecs.end()) {
+      supportedPorts.push_back({port1, port2});
+    }
+  }
+  return supportedPorts;
+}
+
 int multiSwitchLinkTestMain(
     int argc,
     char** argv,
