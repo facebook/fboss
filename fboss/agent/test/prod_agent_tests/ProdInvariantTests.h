@@ -16,6 +16,7 @@ class ProdInvariantTest : public ProdAgentTests {
   virtual void SetUp() override;
   virtual void setupConfigFlag() override;
   virtual cfg::SwitchConfig initialConfig();
+  virtual cfg::SwitchConfig getConfigFromFlag();
   void verifyAcl();
   void verifyCopp();
   void verifySafeDiagCommands();
@@ -24,7 +25,6 @@ class ProdInvariantTest : public ProdAgentTests {
   void verifyQueuePerHostMapping(bool dscpMarkingTest);
   std::vector<PortDescriptor> ecmpPorts_{};
   bool checkBaseConfigPortsEmpty();
-  cfg::SwitchConfig getConfigFromFlag();
   void verifyThriftHandler();
   void verifySwSwitchHandler();
   void set_mmu_lossless(bool mmu_lossless) {

@@ -489,6 +489,21 @@ class ProdInvariantRtswTest : public ProdInvariantTest {
   }
 
  protected:
+  cfg::SwitchConfig getConfigFromFlag() override {
+    auto config = ProdInvariantTest::getConfigFromFlag();
+
+    // alter the flowlet-* dstIP (present only when dlb_crosszone enabled) to
+    // match IP of the test RoCE packet.
+    for (auto& acl : *config.acls()) {
+      if (acl.dstIp().has_value() &&
+          (acl.name().value().find("flowlet") != std::string::npos)) {
+        acl.dstIp() = "2001::/50";
+      }
+    }
+
+    return config;
+  }
+
   void verifyFlowletAcls() {
     // verify udf roce opcode ACL
     sendAndVerifyRoCETraffic(
