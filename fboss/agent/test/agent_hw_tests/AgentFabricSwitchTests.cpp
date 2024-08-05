@@ -55,16 +55,6 @@ class AgentFabricSwitchTest : public AgentHwTest {
   }
 
  protected:
-  void checkDataCellFilter(bool expectFilterOn) {
-    WITH_RETRIES({
-      for (const auto& [_, portIds] : switch2FabricPortIds()) {
-        for (const auto& [_, portStats] : getNextUpdatedPortStats(portIds)) {
-          EXPECT_EVENTUALLY_TRUE(portStats.dataCellsFilterOn().has_value());
-          EXPECT_EVENTUALLY_EQ(*portStats.dataCellsFilterOn(), expectFilterOn);
-        }
-      }
-    });
-  }
   std::map<SwitchID, std::vector<PortID>> switch2FabricPortIds() const {
     std::map<SwitchID, std::vector<PortID>> switch2FabricPortIds;
     for (auto switchId : getFabricSwitchIdsWithPorts()) {
@@ -259,6 +249,18 @@ class AgentFabricSwitchSelfLoopTest : public AgentFabricSwitchTest {
                  : PortLedExternalState::CABLING_ERROR_LOOP_DETECTED);
         EXPECT_EVENTUALLY_EQ(*ledExternalState, desiredLedState)
             << " LED State mismatch for port: " << port->getName();
+      }
+    });
+  }
+
+ protected:
+  void checkDataCellFilter(bool expectFilterOn) {
+    WITH_RETRIES({
+      for (const auto& [_, portIds] : switch2FabricPortIds()) {
+        for (const auto& [_, portStats] : getNextUpdatedPortStats(portIds)) {
+          EXPECT_EVENTUALLY_TRUE(portStats.dataCellsFilterOn().has_value());
+          EXPECT_EVENTUALLY_EQ(*portStats.dataCellsFilterOn(), expectFilterOn);
+        }
       }
     });
   }
