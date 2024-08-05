@@ -121,6 +121,11 @@ const std::vector<sai_stat_id_t>& SaiSwitchTraits::dramBlockTime() {
   return stats;
 }
 
+const std::vector<sai_stat_id_t>& SaiSwitchTraits::deletedCredits() {
+  static const std::vector<sai_stat_id_t> stats;
+  return stats;
+}
+
 const std::vector<sai_stat_id_t>&
 SaiSwitchTraits::egressCoreBufferWatermarkBytes() {
   static const std::vector<sai_stat_id_t> stats;

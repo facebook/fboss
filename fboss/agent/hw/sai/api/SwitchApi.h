@@ -627,6 +627,7 @@ struct SaiSwitchTraits {
   static const std::vector<sai_stat_id_t>& dtlWatermarkStats();
   static const std::vector<sai_stat_id_t>& dramBlockTime();
   static const std::vector<sai_stat_id_t>& egressCoreBufferWatermarkBytes();
+  static const std::vector<sai_stat_id_t>& deletedCredits();
 };
 
 SAI_ATTRIBUTE_NAME(Switch, InitSwitch)

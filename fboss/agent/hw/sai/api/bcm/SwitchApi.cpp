@@ -125,6 +125,16 @@ SaiSwitchTraits::egressCoreBufferWatermarkBytes() {
   return stats;
 }
 
+const std::vector<sai_stat_id_t>& SaiSwitchTraits::deletedCredits() {
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
+  static const std::vector<sai_stat_id_t> stats{
+      SAI_SWITCH_STAT_DEVICE_DELETED_CREDIT_COUNTER};
+#else
+  static const std::vector<sai_stat_id_t> stats;
+#endif
+  return stats;
+}
+
 void SwitchApi::registerSwitchEventCallback(
     SwitchSaiId id,
     void* switch_event_cb) const {
