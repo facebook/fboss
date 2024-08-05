@@ -187,6 +187,7 @@ class HwAsic {
     ACL_BYTE_COUNTER,
     DATA_CELL_FILTER,
     EGRESS_CORE_BUFFER_WATERMARK,
+    DELETED_CREDITS_STAT,
   };
 
   enum class AsicMode {
