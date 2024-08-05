@@ -314,6 +314,9 @@ TEST_F(AgentFabricSwitchSelfLoopTest, portDrained) {
     auto portsToCheck = getProgrammedState()->getPorts()->getAllNodes();
     // Since switch is drained, ports should stay enabled
     verifyState(cfg::PortState::ENABLED, *portsToCheck);
+    // Regardless of drain state, data filter should be turned on
+    // upon detecting a loop
+    checkDataCellFilter(true /*expectFilterOn*/);
     // Undrain
     setSwitchDrainState(newCfg, cfg::SwitchDrainState::UNDRAINED);
   };
@@ -324,6 +327,11 @@ TEST_F(AgentFabricSwitchSelfLoopTest, portDrained) {
       portsToCheck->removeNode(port);
     }
     verifyState(cfg::PortState::DISABLED, *portsToCheck);
+    // ENABLED, but drained ports should still detect wrong connection
+    // and have filter on. For disabled ports, we stop collecting stats,
+    // so filter status is not updated.
+    checkDataCellFilter(
+        true, std::vector<PortID>(drainedPorts.begin(), drainedPorts.end()));
   };
   verifyAcrossWarmBoots(setup, verify);
 }
