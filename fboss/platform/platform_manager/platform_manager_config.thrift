@@ -76,8 +76,8 @@ include "fboss/platform/platform_manager/platform_manager_presence.thrift"
 // SlotPaths are constructs used to reference slots in the platform. The
 // virtual root slot is a forward slash (/).  The SlotPaths are constructed in
 // the sequence of the slot names in which they are plugged in.  The separator
-// between slot names is a forward slash (/).
-// For example, in the below platform,
+// between slot names is a forward slash (/).  For example, in the below
+// platform,
 // - Root PmUnit is plugged in SlotPath /
 // - First XYZ PmUnit is plugged in SlotPath /XYZ_SLOT@0
 // - Second XYZ PmUnit is plugged in SlotPath /XYZ_SLOT@1
@@ -227,8 +227,8 @@ struct EmbeddedSensorConfig {
   2: string sysfsPath;
 }
 
-// The IDPROM which contains information about the PmUnit.  The PmUnitScopedName
-// of the IDPROM device is always just "IDPROM".
+// The IDPROM which contains information about the PmUnit.  The
+// PmUnitScopedName of the IDPROM device is always just "IDPROM".
 //
 // `busName`: This bus should be directly from the CPU, or an incoming bus into
 // the PmUnit (i.e., there should not be any mux or fpga in between).  In the
@@ -280,10 +280,11 @@ struct I2cAdapterConfig {
 
 // Defines a Spi Device in FPGAs.
 //
-// `pmUnitScopedName`: The name used to refer to this device. It should be
-// be unique among other SpiSlaves and in associated pmUnit. SpiDeviceConfig.pmUnitScopedName
-// is the name of the SpiSlave device, whereas SpiMasterConfig.fpgaIpBlockConfig.pmUnitScopedName
-// is the name of the SpiMaster device.
+// `pmUnitScopedName`: The name used to refer to this device. It should be be
+// unique among other SpiSlaves and in associated pmUnit.
+// SpiDeviceConfig.pmUnitScopedName is the name of the SpiSlave device, whereas
+// SpiMasterConfig.fpgaIpBlockConfig.pmUnitScopedName is the name of the
+// SpiMaster device.
 //
 // `modalias`: Type of SpiSlave Device. spi_dev or any id in
 // https://github.com/torvalds/linux/blob/master/drivers/spi/spidev.c#L702
@@ -449,12 +450,13 @@ struct PmUnitConfig {
   5: list<EmbeddedSensorConfig> embeddedSensorConfigs;
 }
 
-// `VersionedPmUnitConfig` defined a configuration of PmUnit in re-spinned platforms.
+// `VersionedPmUnitConfig` defined a configuration of PmUnit in re-spinned
+// platforms.
 //
 // `PmUnitConfig`: PmUnit configuration. Refer to PmUnitConfig definition above.
 //
-// `platformVersion`: The platformVersion of the switch which this PmUnit belongs to.
-// This refers to field Type 9 in EEPROM.
+// `platformVersion`: The platformVersion of the switch which this PmUnit
+// belongs to. This refers to field Type 9 in EEPROM.
 struct VersionedPmUnitConfig {
   1: PmUnitConfig pmUnitConfig;
   2: i16 platformVersion;
@@ -488,24 +490,26 @@ struct PlatformConfig {
   // DevicePath. DevicePath documentation can be found earlier in the file
   14: map<string, string> symbolicLinkToDevicePath;
 
-  // Map from PmUnit name to a list of PmUnitConfigs which apply to specific versions of the platform.
-  // This typically applies to re-spins and second-source boards/PmUnits.
+  // Map from PmUnit name to a list of PmUnitConfigs which apply to specific
+  // versions of the platform.  This typically applies to re-spins and
+  // second-source boards/PmUnits.
   15: map<string, list<VersionedPmUnitConfig>> versionedPmUnitConfigs;
 
   // Name and version of the rpm containing the BSP kmods for this platform
   21: string bspKmodsRpmName;
   22: string bspKmodsRpmVersion;
 
-  // Specify the list of names of bsp kmods to be reloaded on new rpm installation.
-  // On every invocation of the program, they will be unloaded and reloaded
+  // Specify the list of names of bsp kmods to be reloaded on new rpm
+  // installation.  On every invocation of the program, they will be unloaded
+  // and reloaded
   23: list<string> bspKmodsToReload;
 
-  // Specify the list of names of shared kmods to be reloaded on new rpm installation.
-  // These shared kmods must be loaded before all other bsp kmods and unloaded after
-  // all other bsp kmods.
+  // Specify the list of names of shared kmods to be reloaded on new rpm
+  // installation.  These shared kmods must be loaded before all other bsp
+  // kmods and unloaded after all other bsp kmods.
   24: list<string> sharedKmodsToReload;
 
-  // Specify the list of non-bsp kmods which are used by the system. They are only loaded
-  // and never unloaded.
+  // Specify the list of non-bsp kmods which are used by the system. They are
+  // only loaded and never unloaded.
   25: list<string> upstreamKmodsToLoad;
 }
