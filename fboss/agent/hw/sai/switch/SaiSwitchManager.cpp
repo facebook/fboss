@@ -799,6 +799,23 @@ const std::vector<sai_stat_id_t>& SaiSwitchManager::supportedWatermarkStats()
   return stats;
 }
 
+const std::vector<sai_stat_id_t>& SaiSwitchManager::supportedCreditStats()
+    const {
+  static std::vector<sai_stat_id_t> stats;
+  if (stats.size()) {
+    // initialized
+    return stats;
+  }
+  if (platform_->getAsic()->isSupported(
+          HwAsic::Feature::DELETED_CREDITS_STAT)) {
+    stats.insert(
+        stats.end(),
+        SaiSwitchTraits::deletedCredits().begin(),
+        SaiSwitchTraits::deletedCredits().end());
+  }
+  return stats;
+}
+
 const HwSwitchWatermarkStats SaiSwitchManager::getHwSwitchWatermarkStats()
     const {
   HwSwitchWatermarkStats switchWatermarkStats;
