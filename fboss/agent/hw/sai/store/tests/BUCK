@@ -26,6 +26,13 @@ store_unittest(
 )
 
 store_unittest(
+    name = "ars_store_test",
+    srcs = [
+        "ArsStoreTest.cpp",
+    ],
+)
+
+store_unittest(
     name = "bridge_store_test",
     srcs = [
         "BridgeStoreTest.cpp",
