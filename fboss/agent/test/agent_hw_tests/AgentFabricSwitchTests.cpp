@@ -374,6 +374,10 @@ TEST_F(AgentFabricSwitchTest, dtlQueueWatermarks) {
   auto verify = [this]() {
     std::string out;
     for (auto switchId : getFabricSwitchIdsWithPorts()) {
+      utility::checkFabricPortsActiveState(
+          getAgentEnsemble(),
+          masterLogicalFabricPortIds(),
+          true /*expectActive*/);
       WITH_RETRIES({
         auto beforeWatermarks = getAllSwitchWatermarkStats()[switchId];
         EXPECT_EVENTUALLY_TRUE(
@@ -381,7 +385,7 @@ TEST_F(AgentFabricSwitchTest, dtlQueueWatermarks) {
         EXPECT_EVENTUALLY_EQ(*beforeWatermarks.dtlQueueWatermarkBytes(), 0);
       });
       getAgentEnsemble()->runDiagCommand(
-          "modify RTP_RMHMT 5 1 LINK_BIT_MAP=1\ntx 100 DeSTination=13 DeSTinationModid=5 flags=0x8000\n",
+          "modify RTP_RMHMT 5 1 LINK_BIT_MAP=1\ntx 1000 DeSTination=13 DeSTinationModid=5 flags=0x8000\n",
           out,
           switchId);
       WITH_RETRIES({
