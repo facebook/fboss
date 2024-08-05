@@ -24,13 +24,26 @@ inline int64_t timevalToUsec(const timeval& tv) {
   return (int64_t(tv.tv_sec) * kUsecPerSecond) + tv.tv_usec;
 }
 
+inline bool listBenchmarks(int* argc, char** argv) {
+  for (int i = 0; i < *argc; i++) {
+    if (strcmp(argv[i], "--bm_list") == 0) {
+      return true;
+    }
+  }
+  return false;
+}
+
 int main(int argc, char* argv[]) {
   FLAGS_bm_max_iters = 2;
   struct rusage startUsage, endUsage;
   getrusage(RUSAGE_SELF, &startUsage);
-  testing::InitGoogleTest(&argc, argv);
-  facebook::fboss::fbossCommonInit(argc, argv);
-  facebook::fboss::initBenchmarks();
+  if (!listBenchmarks(&argc, argv)) {
+    testing::InitGoogleTest(&argc, argv);
+    facebook::fboss::fbossCommonInit(argc, argv);
+    facebook::fboss::initBenchmarks();
+  } else {
+    folly::Init init(&argc, &argv, false);
+  }
   folly::runBenchmarks();
 
   getrusage(RUSAGE_SELF, &endUsage);
