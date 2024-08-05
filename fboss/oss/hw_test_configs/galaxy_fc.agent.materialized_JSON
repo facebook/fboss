@@ -273,6 +273,7 @@
           "l2xmsg_mode": "0x1",
           "l3_alpm_enable": "0x2",
           "l3_intf_vlan_split_egress": "0x1",
+          "l3_max_ecmp_mode": "1",
           "l3_mem_entries": "0x4000",
           "macro_flow_hash_shuffle_random_seed": "34345645",
           "mdio_output_delay": "0xb",
