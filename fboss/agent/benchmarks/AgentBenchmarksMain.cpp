@@ -33,6 +33,13 @@ inline bool listBenchmarks(int* argc, char** argv) {
   return false;
 }
 
+void setCmdLineFlagOverrides() {
+  FLAGS_tun_intf = false;
+  FLAGS_dsf_subscribe = false;
+  FLAGS_hide_fabric_ports = false;
+  FLAGS_detect_wrong_fabric_connections = false;
+}
+
 int main(int argc, char* argv[]) {
   FLAGS_bm_max_iters = 2;
   struct rusage startUsage, endUsage;
@@ -41,6 +48,7 @@ int main(int argc, char* argv[]) {
     testing::InitGoogleTest(&argc, argv);
     facebook::fboss::fbossCommonInit(argc, argv);
     facebook::fboss::initBenchmarks();
+    setCmdLineFlagOverrides();
   } else {
     folly::Init init(&argc, &argv, false);
   }

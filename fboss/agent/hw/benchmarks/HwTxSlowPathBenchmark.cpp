@@ -40,7 +40,6 @@ std::pair<uint64_t, uint64_t> getOutPktsAndBytes(
 
 BENCHMARK(runTxSlowPathBenchmark) {
   constexpr int kEcmpWidth = 1;
-  FLAGS_tun_intf = false;
 
   std::unique_ptr<AgentEnsemble> ensemble{};
 
