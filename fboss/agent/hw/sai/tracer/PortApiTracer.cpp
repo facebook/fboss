@@ -144,6 +144,7 @@ void handleExtensionAttributes() {
   SAI_EXT_ATTR_MAP(PortSerdes, TxLutMode)
   SAI_EXT_ATTR_MAP(Port, CablePropogationDelayNS)
   SAI_EXT_ATTR_MAP(Port, FabricDataCellsFilterStatus)
+  SAI_EXT_ATTR_MAP(Port, ReachabilityGroup)
 }
 
 } // namespace

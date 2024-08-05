@@ -412,6 +412,11 @@ struct SaiPortTraits {
         bool,
         AttributeFabricDataCellsFilterStatus,
         SaiBoolDefaultFalse>;
+    struct AttributeReachabilityGroup {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    using ReachabilityGroup =
+        SaiExtensionAttribute<bool, AttributeReachabilityGroup>;
   };
   using AdapterKey = PortSaiId;
 
@@ -668,6 +673,7 @@ SAI_ATTRIBUTE_NAME(Port, ArsPortLoadScalingFactor)
 SAI_ATTRIBUTE_NAME(Port, ArsPortLoadPastWeight)
 SAI_ATTRIBUTE_NAME(Port, ArsPortLoadFutureWeight)
 #endif
+SAI_ATTRIBUTE_NAME(Port, ReachabilityGroup)
 
 template <>
 struct SaiObjectHasStats<SaiPortTraits> : public std::true_type {};

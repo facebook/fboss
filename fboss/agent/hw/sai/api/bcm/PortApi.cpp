@@ -103,4 +103,13 @@ SaiPortTraits::Attributes::AttributeFabricDataCellsFilterStatus::operator()() {
   return std::nullopt;
 #endif
 }
+
+std::optional<sai_attr_id_t>
+SaiPortTraits::Attributes::AttributeReachabilityGroup::operator()() {
+#if defined(BRCM_SAI_SDK_GTE_12_0) && defined(BRCM_SAI_SDK_DNX)
+  return SAI_PORT_ATTR_REACHABILITY_GROUP;
+#else
+  return std::nullopt;
+#endif
+}
 } // namespace facebook::fboss
