@@ -2118,6 +2118,11 @@ void SaiSwitch::linkConnectivityChanged(
 }
 
 void SaiSwitch::switchReachabilityChangeTopHalf() {
+  if (!platform_->getAsic()->isSupported(
+          HwAsic::Feature::SWITCH_REACHABILITY_CHANGE_NOTIFY)) {
+    // Callback handling and rest of the flow is unsupported!
+    return;
+  }
   auto changePending = switchReachabilityChangePending_.wlock();
   if (!*changePending) {
     *changePending = true;
