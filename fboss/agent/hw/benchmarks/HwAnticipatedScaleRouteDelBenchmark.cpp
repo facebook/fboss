@@ -15,6 +15,6 @@
 namespace facebook::fboss {
 
 ROUTE_DEL_BENCHMARK(
-    HwHgridUUScaleRouteDelBenchmark,
+    HwHgridUUAnticipatedScaleRouteDelBenchmark,
     utility::AnticipatedRouteScaleGenerator);
 } // namespace facebook::fboss

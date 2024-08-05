@@ -2,6 +2,7 @@ load(
     "//fboss/agent/hw/sai/benchmarks:benchmarks.bzl",
     "sai_agent_benchmark",
     "sai_mono_agent_benchmark",
+    "sai_multi_switch_agent_benchmark",
 )
 
 oncall("fboss_agent_push")
@@ -226,6 +227,30 @@ sai_agent_benchmark(
     name = "sai_voq_scale_route_del_speed",
     srcs = [],
     deps = [
+        "//fboss/agent/hw/benchmarks:hw_voq_scale_route_del_speed",
+        "//fboss/agent/test:route_scale_gen",
+    ],
+)
+
+sai_multi_switch_agent_benchmark(
+    name = "sai_bench_test_multi",
+    srcs = [],
+    deps = [
+        "//fboss/agent/hw/benchmarks:hw_anticipated_scale_route_add_speed",
+        "//fboss/agent/hw/benchmarks:hw_anticipated_scale_route_del_speed",
+        "//fboss/agent/hw/benchmarks:hw_fsw_scale_route_add_speed",
+        "//fboss/agent/hw/benchmarks:hw_fsw_scale_route_del_speed",
+        "//fboss/agent/hw/benchmarks:hw_hgrid_du_scale_route_add_speed",
+        "//fboss/agent/hw/benchmarks:hw_hgrid_du_scale_route_del_speed",
+        "//fboss/agent/hw/benchmarks:hw_hgrid_uu_scale_route_add_speed",
+        "//fboss/agent/hw/benchmarks:hw_hgrid_uu_scale_route_del_speed",
+        "//fboss/agent/hw/benchmarks:hw_rib_resolution_speed",
+        "//fboss/agent/hw/benchmarks:hw_rib_sync_fib_speed",
+        "//fboss/agent/hw/benchmarks:hw_rx_slow_path_rate",
+        "//fboss/agent/hw/benchmarks:hw_th_alpm_scale_route_add_speed",
+        "//fboss/agent/hw/benchmarks:hw_th_alpm_scale_route_del_speed",
+        "//fboss/agent/hw/benchmarks:hw_tx_slow_path_rate",
+        "//fboss/agent/hw/benchmarks:hw_voq_scale_route_add_speed",
         "//fboss/agent/hw/benchmarks:hw_voq_scale_route_del_speed",
         "//fboss/agent/test:route_scale_gen",
     ],
