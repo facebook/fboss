@@ -300,6 +300,10 @@ struct HwSwitchDramStats {
   3: optional i64 dramBlockedTimeNsec;
 }
 
+struct HwSwitchCreditStats {
+  1: optional i64 deletedCreditBytes;
+}
+
 struct HwSwitchFb303GlobalStats {
   1: i64 tx_pkt_allocated;
   2: i64 tx_pkt_freed;
@@ -341,6 +345,7 @@ struct HwSwitchFb303GlobalStats {
   */
   26: optional i64 inter_port_group_cable_skew_meters;
   27: optional i64 dram_blocked_time_ns;
+  28: optional i64 deleted_credit_bytes;
 }
 
 struct HwFlowletStats {
