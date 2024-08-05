@@ -286,9 +286,9 @@ bool ConfigValidator::isValid(const PlatformConfig& config) {
       return false;
     }
     for (const auto& versionedPmUnitConfig : versionedPmUnitConfigs) {
-      if (*versionedPmUnitConfig.platformVersion() < 0) {
-        XLOG(ERR)
-            << "VersionedPmUnitConfig must not have a negative PlatformVersion";
+      if (*versionedPmUnitConfig.productSubVersion() < 0) {
+        XLOG(ERR) << "VersionedPmUnitConfig must not have a negative "
+                     "ProductSubVersion";
         return false;
       }
       if (!isValidPmUnitConfig(*versionedPmUnitConfig.pmUnitConfig())) {

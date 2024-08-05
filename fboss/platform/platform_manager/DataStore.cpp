@@ -93,14 +93,15 @@ void DataStore::updateCharDevPath(
 void DataStore::updatePmUnitInfo(
     const std::string& slotPath,
     const std::string& pmUnitName,
-    std::optional<int> productVersion) {
+    std::optional<int> productSubVersion) {
   XLOG(INFO) << fmt::format(
-      "At SlotPath {}, updating {} to {}",
+      "At SlotPath {}, updating to PmUnit {} {}",
       slotPath,
-      productVersion ? fmt::format("ProductVersion {}", *productVersion)
-                     : "Unknown ProductVersion",
-      pmUnitName);
-  slotPathToPmUnitInfo[slotPath] = {pmUnitName, productVersion};
+      pmUnitName,
+      productSubVersion
+          ? fmt::format("ProductSubVersion {}", *productSubVersion)
+          : "");
+  slotPathToPmUnitInfo[slotPath] = {pmUnitName, productSubVersion};
 }
 
 PmUnitConfig DataStore::resolvePmUnitConfig(const std::string& slotPath) const {
@@ -108,33 +109,35 @@ PmUnitConfig DataStore::resolvePmUnitConfig(const std::string& slotPath) const {
     throw std::runtime_error(
         fmt::format("Unable to resolve PmUnitInfo for {}", slotPath));
   }
-  const auto [pmUnitName, productVersion] = slotPathToPmUnitInfo.at(slotPath);
-  if (!productVersion) {
+  const auto [pmUnitName, productSubVersion] =
+      slotPathToPmUnitInfo.at(slotPath);
+  if (!productSubVersion) {
     XLOG(INFO) << fmt::format(
-        "Resolved Unknown ProductVersion to the main PmUnitConfig for {} at {}. "
-        "Slot probably doesn't have an IDPROM to read the ProductVersion",
-        pmUnitName,
-        slotPath);
+        "Resolved {} to default PmUnitConfig of {}. No ProductSubversion was "
+        "read from IDPROM at the slotPath.",
+        slotPath,
+        pmUnitName);
     return platformConfig_.pmUnitConfigs()->at(pmUnitName);
   }
   if (platformConfig_.versionedPmUnitConfigs()->contains(pmUnitName)) {
     for (const auto& versionedPmUnitConfig :
          platformConfig_.versionedPmUnitConfigs()->at(pmUnitName)) {
-      if (*versionedPmUnitConfig.platformVersion() == *productVersion) {
+      if (*versionedPmUnitConfig.productSubVersion() == *productSubVersion) {
         XLOG(INFO) << fmt::format(
-            "Resolved to a PmUnitConfig of version {} for {} at {}",
-            *productVersion,
+            "Resolved {} to PmUnitConfig of {} with ProductSubVersion {}",
+            slotPath,
             pmUnitName,
-            slotPath);
+            *productSubVersion);
         return *versionedPmUnitConfig.pmUnitConfig();
       }
     }
   }
   XLOG(INFO) << fmt::format(
-      "Resolved ProductVersion {} to the main PmUnitConfig for {} at {}",
-      *productVersion,
+      "Resolved {} to default PmUnitConfig of {}. No versioned config for "
+      "ProductSubVersion {}",
+      slotPath,
       pmUnitName,
-      slotPath);
+      *productSubVersion);
   return platformConfig_.pmUnitConfigs()->at(pmUnitName);
 }
 } // namespace facebook::fboss::platform::platform_manager

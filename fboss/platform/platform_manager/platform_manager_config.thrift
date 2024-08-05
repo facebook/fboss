@@ -455,11 +455,11 @@ struct PmUnitConfig {
 //
 // `PmUnitConfig`: PmUnit configuration. Refer to PmUnitConfig definition above.
 //
-// `platformVersion`: The platformVersion of the switch which this PmUnit
-// belongs to. This refers to field Type 9 in EEPROM.
+// `productSubVersion`: The platformVersion of the switch which this PmUnit
+// belongs to. This refers to field Type 10 in Meta EEPROM V5
 struct VersionedPmUnitConfig {
   1: PmUnitConfig pmUnitConfig;
-  2: i16 platformVersion;
+  3: i16 productSubVersion;
 }
 
 // Defines the whole Platform. The top level struct.

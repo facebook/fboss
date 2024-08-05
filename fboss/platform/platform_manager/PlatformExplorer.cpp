@@ -230,7 +230,7 @@ std::optional<std::string> PlatformExplorer::getPmUnitNameFromSlot(
   auto slotTypeConfig = platformConfig_.slotTypeConfigs_ref()->at(slotType);
   CHECK(slotTypeConfig.idpromConfig() || slotTypeConfig.pmUnitName());
   std::optional<std::string> pmUnitNameInEeprom{std::nullopt};
-  std::optional<int> productVersionInEeprom{std::nullopt};
+  std::optional<int> productSubVersionInEeprom{std::nullopt};
   if (slotTypeConfig.idpromConfig_ref()) {
     auto idpromConfig = *slotTypeConfig.idpromConfig_ref();
     auto eepromI2cBusNum =
@@ -283,8 +283,8 @@ std::optional<std::string> PlatformExplorer::getPmUnitNameFromSlot(
       // I think we can refactor this simpler once I2CDevicePaths are also
       // stored in DataStore. 1/ Create IDPROMs 2/ Read contents from eepromPath
       // stored in DataStore.
-      productVersionInEeprom =
-          eepromParser_.getProductVersion(eepromPath, *idpromConfig.offset());
+      productSubVersionInEeprom = eepromParser_.getProductSubVersion(
+          eepromPath, *idpromConfig.offset());
     } catch (const std::exception& e) {
       auto errMsg = fmt::format(
           "Could not fetch contents of IDPROM {} in {}. {}",
@@ -302,10 +302,10 @@ std::optional<std::string> PlatformExplorer::getPmUnitNameFromSlot(
           eepromPath,
           slotPath);
     }
-    if (productVersionInEeprom) {
+    if (productSubVersionInEeprom) {
       XLOG(INFO) << fmt::format(
-          "Found PlatformVersion `{}` in IDPROM {} at {}",
-          *productVersionInEeprom,
+          "Found PlatformSubVersion `{}` in IDPROM {} at {}",
+          *productSubVersionInEeprom,
           eepromPath,
           slotPath);
     }
@@ -333,7 +333,7 @@ std::optional<std::string> PlatformExplorer::getPmUnitNameFromSlot(
         "or SlotTypeConfig::idpromConfig at {}",
         slotPath));
   }
-  dataStore_.updatePmUnitInfo(slotPath, *pmUnitName, productVersionInEeprom);
+  dataStore_.updatePmUnitInfo(slotPath, *pmUnitName, productSubVersionInEeprom);
   return pmUnitName;
 }
 

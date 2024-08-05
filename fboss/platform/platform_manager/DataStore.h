@@ -59,14 +59,13 @@ class DataStore {
       const std::string& devicePath,
       const std::string& charDevPath);
 
-  // Update PmUnitInfo(pmUnitName, productVersion) for a given slotPath.
-  // Expect productVersion is for slots without IDPROM.
+  // Update PmUnitInfo(pmUnitName, productSubVersion) for a given slotPath.
   void updatePmUnitInfo(
       const std::string& slotPath,
       const std::string& pmUnitName,
-      std::optional<int> productVersion);
+      std::optional<int> productSubVersion);
 
-  // Resolve PmUnitConfig based on the platformVersion from eeprom.
+  // Resolve PmUnitConfig based on the platformSubVersion from eeprom.
   // Throws if none of the VersionedPmUnitConfig matches the version.
   PmUnitConfig resolvePmUnitConfig(const std::string& slotPath) const;
 
@@ -87,7 +86,7 @@ class DataStore {
   // Map from PciSubDevicePath to CharDevPath
   std::map<std::string, std::string> pciSubDevicePathToCharDevPath_{};
 
-  // Map from PmUnitName to its PmUnitInfo(PmUnitName, ProductVersion)
+  // Map from PmUnitName to its PmUnitInfo(PmUnitName, ProductSubVersion)
   std::map<std::string, std::pair<std::string, std::optional<int>>>
       slotPathToPmUnitInfo{};
 

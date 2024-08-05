@@ -82,7 +82,7 @@ TEST(ConfigValidatorTest, InvalidVersionedPmUnitConfigs) {
   config.versionedPmUnitConfigs() = {{"SCM", {}}};
   EXPECT_FALSE(ConfigValidator().isValid(config));
   auto versionedPmUnitConfig = VersionedPmUnitConfig();
-  versionedPmUnitConfig.platformVersion() = -1;
+  versionedPmUnitConfig.productSubVersion() = -1;
   config.versionedPmUnitConfigs() = {{"SCM", {versionedPmUnitConfig}}};
   EXPECT_FALSE(ConfigValidator().isValid(config));
 }

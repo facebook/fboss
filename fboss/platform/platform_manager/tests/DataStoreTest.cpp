@@ -58,7 +58,7 @@ TEST(DataStoreTest, ResolvePmUnitConfig) {
   // Case 2 -- Resolve to versionedPmUnitConfigs
   dataStore.updatePmUnitInfo(slotPath, pmUnitName, 2);
   VersionedPmUnitConfig versionedPmUnitConfig;
-  versionedPmUnitConfig.platformVersion() = 2;
+  versionedPmUnitConfig.productSubVersion() = 2;
   versionedPmUnitConfig.pmUnitConfig()->i2cDeviceConfigs() = {
       I2cDeviceConfig()};
   config.versionedPmUnitConfigs() = {{"SCM", {versionedPmUnitConfig}}};
