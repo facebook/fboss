@@ -76,12 +76,11 @@ void AgentEnsembleLinkTest::overrideL2LearningConfig(
       apache::thrift::SimpleJSONSerializer::serialize<std::string>(testConfig));
   newAgentConfig.dumpConfig(getTestConfigPath());
   FLAGS_config = getTestConfigPath();
-  reloadPlatformConfig();
+  getSw()->applyConfig("applying new config", testConfig.sw().value());
 }
 
 void AgentEnsembleLinkTest::setupTtl0ForwardingEnable() {
-  if (!getSw()->getHwAsicTable()->isFeatureSupportedOnAnyAsic(
-          HwAsic::Feature::SAI_TTL0_PACKET_FORWARD_ENABLE)) {
+  if (!isSupportedOnAllAsics(HwAsic::Feature::SAI_TTL0_PACKET_FORWARD_ENABLE)) {
     // don't configure if not supported
     return;
   }
@@ -90,7 +89,10 @@ void AgentEnsembleLinkTest::setupTtl0ForwardingEnable() {
       utility::setTTL0PacketForwardingEnableConfig(getSw(), *agentConfig);
   newAgentConfig.dumpConfig(getTestConfigPath());
   FLAGS_config = getTestConfigPath();
-  reloadPlatformConfig();
+  // TODO once LinkTest is deprecated. have setTTL0PacketForwardingEnableConfig
+  // just return cfg::AgentConfig
+  getSw()->applyConfig(
+      "applying new config", newAgentConfig.thrift.sw().value());
 }
 
 // Waits till the link status of the ports in cabledPorts vector reaches
