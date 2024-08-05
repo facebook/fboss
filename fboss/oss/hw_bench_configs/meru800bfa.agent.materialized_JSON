@@ -158,6 +158,7 @@
             "fabric_distributed_system_enable": "1",
             "fabric_num_pipes.BCM8892X": "1",
             "fabric_pipe_map.BCM8892X": "0",
+            "fabric_wrong_connectivity_protection_en": "1",
             "fe_mc_id_range.BCM8892X": "128K",
             "load_firmware.BCM8892X": "0x102",
             "mdio_output_delay_ext.BCM8892X": "14",
