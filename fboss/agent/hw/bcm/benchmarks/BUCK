@@ -255,22 +255,6 @@ bcm_agent_benchmark(
     for sdk in BCM_SDKS
 ]
 
-# Bcm warm boot exit speed
-[
-    cpp_binary(
-        name = "bcm_warm_boot_exit_speed{}".format(to_impl_suffix(sdk)),
-        versions = to_versions(sdk),
-        deps = [
-            "//fboss/agent/hw/benchmarks:hw_warm_boot_exit_speed",
-            "//fboss/agent/benchmarks:bcm_agent_benchmarks_main{}".format(to_impl_suffix(sdk)),
-        ],
-        external_deps = [
-            ("broadcom-xgs-robo", None, "xgs_robo"),
-        ],
-    )
-    for sdk in BCM_SDKS
-]
-
 bcm_agent_benchmark(
     name = "bcm_init_and_exit_40Gx10G",
     srcs = [],

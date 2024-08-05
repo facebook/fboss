@@ -29,28 +29,6 @@ agent_benchmark_lib(
 )
 
 cpp_library(
-    name = "hw_warm_boot_exit_speed",
-    srcs = ["HwWarmbootExitBenchmark.cpp"],
-    undefined_symbols = True,
-    exported_deps = [
-        "//fboss/agent:hw_asic_table",
-        "//fboss/agent:platform_base",
-        "//fboss/agent:utils",
-        "//fboss/agent/benchmarks:mono_agent_benchmarks",
-        "//fboss/agent/hw/test:config_factory",
-        "//fboss/agent/hw/test:hw_packet_utils",
-        "//fboss/agent/test:agent_ensemble",
-        "//fboss/agent/test:ecmp_helper",
-        "//fboss/agent/test:route_scale_gen",
-        "//fboss/lib/platforms:product-info",
-        "//folly:benchmark",
-        "//folly:network_address",
-        "//folly/init:init",
-        "//folly/json:dynamic",
-    ],
-)
-
-cpp_library(
     name = "hw_route_scale_benchmark_helpers",
     headers = [
         "HwRouteScaleBenchmarkHelpers.h",

@@ -222,23 +222,6 @@ function(BUILD_SAI_BENCHMARKS SAI_IMPL_NAME SAI_IMPL_ARG)
     -DSAI_VER_RELEASE=${SAI_VER_RELEASE}"
   )
 
-  add_executable(sai_warm_boot_exit_speed-${SAI_IMPL_NAME} /dev/null)
-
-  target_link_libraries(sai_warm_boot_exit_speed-${SAI_IMPL_NAME}
-    -Wl,--whole-archive
-    mono_sai_agent_benchmarks_main
-    hw_warm_boot_exit_speed
-    ${SAI_IMPL_ARG}
-    -Wl,--no-whole-archive
-  )
-
-  set_target_properties(sai_warm_boot_exit_speed-${SAI_IMPL_NAME}
-    PROPERTIES COMPILE_FLAGS
-    "-DSAI_VER_MAJOR=${SAI_VER_MAJOR} \
-    -DSAI_VER_MINOR=${SAI_VER_MINOR}  \
-    -DSAI_VER_RELEASE=${SAI_VER_RELEASE}"
-  )
-
   add_executable(sai_ecmp_shrink_speed-${SAI_IMPL_NAME} /dev/null)
 
   target_link_libraries(sai_ecmp_shrink_speed-${SAI_IMPL_NAME}
@@ -539,9 +522,6 @@ if(SAI_IMPL AND BENCHMARK_INSTALL)
   install(
     TARGETS
     sai_stats_collection_speed-sai_impl)
-  install(
-    TARGETS
-    sai_warm_boot_exit_speed-sai_impl)
   install(
     TARGETS
     sai_tx_slow_path_rate-sai_impl)

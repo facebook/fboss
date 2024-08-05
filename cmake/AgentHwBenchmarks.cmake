@@ -17,19 +17,6 @@ target_link_libraries(hw_tx_slow_path_rate
   Folly::follybenchmark
 )
 
-add_library(hw_warm_boot_exit_speed
-  fboss/agent/hw/benchmarks/HwWarmbootExitBenchmark.cpp
-)
-
-target_link_libraries(hw_warm_boot_exit_speed
-  config_factory
-  mono_agent_ensemble
-  mono_agent_benchmarks
-  route_scale_gen
-  Folly::folly
-  Folly::follybenchmark
-)
-
 add_library(hw_stats_collection_speed
   fboss/agent/hw/benchmarks/HwStatsCollectionBenchmark.cpp
 )

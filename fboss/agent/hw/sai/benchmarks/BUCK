@@ -142,14 +142,6 @@ sai_agent_benchmark(
 )
 
 sai_mono_agent_benchmark(
-    name = "sai_warm_boot_exit_speed",
-    srcs = [],
-    deps = [
-        "//fboss/agent/hw/benchmarks:hw_warm_boot_exit_speed",
-    ],
-)
-
-sai_mono_agent_benchmark(
     name = "sai_ecmp_shrink_speed",
     srcs = [],
     deps = [
