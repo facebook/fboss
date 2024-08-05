@@ -38,6 +38,7 @@ class AgentEnsembleTest : public ::testing::Test {
           std::chrono::milliseconds(1000)) const;
   void setPortStatus(PortID port, bool up);
   void setPortLoopbackMode(PortID port, cfg::PortLoopbackMode mode);
+  std::string getPortName(PortID portId) const;
   std::vector<std::string> getPortNames(const std::vector<PortID>& ports) const;
   void waitForLinkStatus(
       const std::vector<PortID>& portsToCheck,

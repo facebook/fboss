@@ -223,13 +223,25 @@ void AgentEnsembleTest::setPortLoopbackMode(
   getSw()->updateStateBlocking("set port loopback mode", setLbMode);
 }
 
+std::string AgentEnsembleTest::getPortName(PortID portId) const {
+  for (auto portMap : std::as_const(*getSw()->getState()->getPorts())) {
+    for (auto port : std::as_const(*portMap.second)) {
+      if (port.second->getID() == portId) {
+        return port.second->getName();
+      }
+    }
+  }
+  throw FbossError("No port with ID: ", portId);
+}
+
 // Returns the port names for a given list of portIDs
 std::vector<std::string> AgentEnsembleTest::getPortNames(
     const std::vector<PortID>& ports) const {
-  return folly::gen::from(ports) | folly::gen::map([&](PortID port) {
-           return getProgrammedState()->getPorts()->getNodeIf(port)->getName();
-         }) |
-      folly::gen::as<std::vector<std::string>>();
+  std::vector<std::string> portNames;
+  for (auto port : ports) {
+    portNames.push_back(getPortName(port));
+  }
+  return portNames;
 }
 
 // Waits till the link status of the passed in ports reaches

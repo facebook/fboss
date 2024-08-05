@@ -261,26 +261,6 @@ bool AgentEnsembleLinkTest::checkReachabilityOnAllCabledPorts() const {
   return true;
 }
 
-std::string AgentEnsembleLinkTest::getPortName(PortID portId) const {
-  for (auto portMap : std::as_const(*getSw()->getState()->getPorts())) {
-    for (auto port : std::as_const(*portMap.second)) {
-      if (port.second->getID() == portId) {
-        return port.second->getName();
-      }
-    }
-  }
-  throw FbossError("No port with ID: ", portId);
-}
-
-std::vector<std::string> AgentEnsembleLinkTest::getPortName(
-    const std::vector<PortID>& portIDs) const {
-  std::vector<std::string> portNames;
-  for (auto port : portIDs) {
-    portNames.push_back(getPortName(port));
-  }
-  return portNames;
-}
-
 std::optional<PortID> AgentEnsembleLinkTest::getPeerPortID(
     PortID portId) const {
   for (auto portPair : getConnectedPairs()) {
