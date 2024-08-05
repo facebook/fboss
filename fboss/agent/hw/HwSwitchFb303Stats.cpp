@@ -300,6 +300,10 @@ int64_t HwSwitchFb303Stats::getDramBlockedTimeNsec() const {
   return getCumulativeValue(dramBlockedTimeNsec_);
 }
 
+int64_t HwSwitchFb303Stats::getDeletedCreditBytes() const {
+  return getCumulativeValue(deletedCreditBytes_);
+}
+
 int64_t HwSwitchFb303Stats::getIreErrors() const {
   return getCumulativeValue(ireErrors_);
 }
