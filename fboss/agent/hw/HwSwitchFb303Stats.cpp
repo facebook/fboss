@@ -282,6 +282,12 @@ void HwSwitchFb303Stats::update(const HwSwitchDramStats& dramStats) {
   }
 }
 
+void HwSwitchFb303Stats::update(const HwSwitchCreditStats& creditStats) {
+  if (creditStats.deletedCreditBytes().has_value()) {
+    deletedCreditBytes_.addValue(*creditStats.deletedCreditBytes());
+  }
+}
+
 int64_t HwSwitchFb303Stats::getDramEnqueuedBytes() const {
   return getCumulativeValue(dramEnqueuedBytes_);
 }

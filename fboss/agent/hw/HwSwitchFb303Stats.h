@@ -107,6 +107,7 @@ class HwSwitchFb303Stats {
 
   void update(const HwSwitchDramStats& dramStats);
   void update(const HwSwitchDropStats& dropStats);
+  void update(const HwSwitchCreditStats& creditStats);
 
   int64_t getTxPktAllocCount() const {
     return txPktAlloc_.count();
