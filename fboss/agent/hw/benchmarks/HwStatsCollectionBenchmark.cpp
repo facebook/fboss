@@ -23,6 +23,7 @@
 DECLARE_bool(enable_stats_update_thread);
 DECLARE_int32(update_voq_stats_interval_s);
 DECLARE_bool(dsf_subscribe);
+DECLARE_bool(disable_looped_fabric_ports);
 
 namespace facebook::fboss {
 
@@ -63,20 +64,34 @@ BENCHMARK(HwStatsCollection) {
        numRouteCounters](const AgentEnsemble& ensemble) {
         // Disable stats collection thread.
         FLAGS_enable_stats_update_thread = false;
-
-        if (ensemble.getSw()->getSwitchInfoTable().haveVoqSwitches()) {
-          // Always collect VOQ stats for VOQ switches
-          FLAGS_update_voq_stats_interval_s = 0;
-          // Disable DSF subscription on single-box test
-          FLAGS_dsf_subscribe = false;
-        }
+        // Always collect VOQ stats for VOQ switches
+        FLAGS_update_voq_stats_interval_s = 0;
+        // Disable DSF subscription on single-box test
+        FLAGS_dsf_subscribe = false;
+        // Enable fabric ports
+        FLAGS_hide_fabric_ports = false;
+        // Don't disable looped fabric ports
+        FLAGS_disable_looped_fabric_ports = false;
 
         auto ports = ensemble.masterLogicalPortIds();
         auto portsNew = ports;
-        portsNew.resize(std::min((int)ports.size(), numPortsToCollectStats));
 
-        auto config =
-            utility::onePortPerInterfaceConfig(ensemble.getSw(), portsNew);
+        bool hasFabric =
+            ensemble.getSw()->getSwitchInfoTable().haveFabricSwitches();
+        bool hasVoq = ensemble.getSw()->getSwitchInfoTable().haveVoqSwitches();
+
+        if (!hasVoq && !hasFabric) {
+          // Limit ports for non-VOQ and non-fabric switches
+          portsNew.resize(std::min((int)ports.size(), numPortsToCollectStats));
+        }
+
+        auto config = utility::onePortPerInterfaceConfig(
+            ensemble.getSw(),
+            portsNew,
+            !hasFabric /* interfaceHasSubnet */,
+            !hasFabric /* setInterfaceMac */,
+            utility::kBaseVlanId,
+            hasFabric || hasVoq /*enable fabric ports*/);
         if (ensemble.getSw()->getHwAsicTable()->isFeatureSupportedOnAllAsic(
                 HwAsic::Feature::ROUTE_COUNTERS)) {
           config.switchSettings()->maxRouteCounterIDs() = numRouteCounters;
