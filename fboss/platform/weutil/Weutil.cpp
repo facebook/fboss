@@ -48,7 +48,7 @@ weutil_config::FruEepromConfig getFruEepromConfig(
     throw std::runtime_error(fmt::format(
         "Invalid EEPROM name {}. Valid EEPROM names are: {}",
         eepromName,
-        fmt::join(getEepromNames(thriftConfig), ", ")));
+        folly::join(", ", getEepromNames(thriftConfig))));
   }
   return itr->second;
 }
