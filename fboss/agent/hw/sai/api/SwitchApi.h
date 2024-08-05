@@ -540,6 +540,13 @@ struct SaiSwitchTraits {
         SaiObjectIdT,
         SaiObjectIdDefault>;
 #endif
+    struct AttributeReachabilityGroupList {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    using ReachabilityGroupList = SaiExtensionAttribute<
+        sai_u32_list_t,
+        AttributeReachabilityGroupList,
+        SaiU32ListDefault>;
   };
   using AdapterKey = SwitchSaiId;
   using AdapterHostKey = std::monostate;
@@ -737,6 +744,7 @@ SAI_ATTRIBUTE_NAME(Switch, VoqLatencyMaxLevel2Ns);
 #if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
 SAI_ATTRIBUTE_NAME(Switch, ArsProfile)
 #endif
+SAI_ATTRIBUTE_NAME(Switch, ReachabilityGroupList);
 
 template <>
 struct SaiObjectHasStats<SaiSwitchTraits> : public std::true_type {};

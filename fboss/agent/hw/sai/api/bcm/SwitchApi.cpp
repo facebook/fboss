@@ -282,4 +282,12 @@ SaiSwitchTraits::Attributes::AttributeVoqLatencyMaxLevel2Ns::operator()() {
 #endif
   return std::nullopt;
 }
+
+std::optional<sai_attr_id_t>
+SaiSwitchTraits::Attributes::AttributeReachabilityGroupList::operator()() {
+#if defined(BRCM_SAI_SDK_DNX) && defined(BRCM_SAI_SDK_GTE_12_0)
+  return SAI_SWITCH_ATTR_REACHABILITY_GROUP_LIST;
+#endif
+  return std::nullopt;
+}
 } // namespace facebook::fboss
