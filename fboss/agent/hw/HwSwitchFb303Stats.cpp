@@ -488,6 +488,7 @@ HwSwitchFb303GlobalStats HwSwitchFb303Stats::getAllFb303Stats() const {
   if (currentDropStats_.fdrCellDrops().has_value()) {
     hwFb303Stats.fdr_cell_drops() = *currentDropStats_.fdrCellDrops();
   }
+  hwFb303Stats.deleted_credit_bytes() = getDeletedCreditBytes();
   return hwFb303Stats;
 }
 
