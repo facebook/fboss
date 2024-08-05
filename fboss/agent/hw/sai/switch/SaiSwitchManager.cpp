@@ -893,6 +893,12 @@ void SaiSwitchManager::updateStats(bool updateWatermarks) {
     fillHwSwitchDramStats(switch_->getStats(switchDramStats), dramStats);
     platform_->getHwSwitch()->getSwitchStats()->update(dramStats);
   }
+  auto switchCreditStats = supportedCreditStats();
+  if (switchCreditStats.size()) {
+    switch_->updateStats(switchCreditStats, SAI_STATS_MODE_READ_AND_CLEAR);
+    HwSwitchCreditStats creditStats;
+    fillHwSwitchCreditStats(switch_->getStats(switchCreditStats), creditStats);
+  }
   if (updateWatermarks) {
     switchWatermarkStats_ = getHwSwitchWatermarkStats();
     publishSwitchWatermarks(switchWatermarkStats_);
