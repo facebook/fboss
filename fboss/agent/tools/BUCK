@@ -8,8 +8,7 @@ python_binary(
     srcs = [
         "fboss_route.py",
     ],
-    base_module = "fboss",
-    main_function = "fboss.fboss_route.main",
+    main_function = "fboss.agent.tools.fboss_route.main",
     deps = [
         "fbsource//third-party/pypi/ipaddr:ipaddr",
         "//common/network/if:if-py",
@@ -24,7 +23,6 @@ python_library(
     srcs = [
         "send_pkt.py",
     ],
-    base_module = "fboss",
     deps = [
         "//fboss/py/fboss:thrift_clients",
     ],
