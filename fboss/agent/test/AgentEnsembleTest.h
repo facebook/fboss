@@ -128,9 +128,6 @@ class AgentEnsembleTest : public ::testing::Test {
 
   PortID getPortID(const std::string& portName) const;
 
-  void disableTTLDecrementOnPorts(
-      const boost::container::flat_set<PortDescriptor>& ecmpPorts);
-
   virtual void setCmdLineFlagOverrides() const;
 
   void setupPlatformConfig(AgentEnsemblePlatformConfigFn platformConfigFn) {

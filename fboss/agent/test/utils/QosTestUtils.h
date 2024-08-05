@@ -108,6 +108,17 @@ void disableTTLDecrements(
   }
 }
 
+void disableTTLDecrementOnPorts(
+    SwSwitch* sw,
+    const boost::container::flat_set<PortDescriptor>& ecmpPorts);
+
+/*
+ * Disable TTL decrement on a set of ports
+ */
+void disableTTLDecrements(
+    SwSwitch* sw,
+    const boost::container::flat_set<PortDescriptor>& ecmpPorts);
+
 template <typename EcmpNhopT>
 void ttlDecrementHandlingForLoopbackTraffic(
     TestEnsembleIf* hw,

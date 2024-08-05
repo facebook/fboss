@@ -114,6 +114,45 @@ void disableTTLDecrements(
       "Disable TTL decrements on next hop: " + nhop.str());
 }
 
+void disableTTLDecrementOnPorts(
+    SwSwitch* sw,
+    const boost::container::flat_set<PortDescriptor>& ecmpPorts) {
+  auto asicTable = sw->getHwAsicTable();
+  sw->updateStateBlocking(
+      "Disable TTL Decrement On Ports",
+      [ecmpPorts, asicTable](const std::shared_ptr<SwitchState>& state) {
+        auto newState = state->clone();
+        for (auto port : ecmpPorts) {
+          newState = disableTTLDecrement(asicTable, newState, port);
+        }
+        return newState;
+      });
+}
+
+/*
+ * Disable TTL decrement on a set of ports
+ */
+void disableTTLDecrements(
+    SwSwitch* sw,
+    const boost::container::flat_set<PortDescriptor>& ecmpPorts) {
+  std::set<SwitchID> switchIds;
+  for (auto port : ecmpPorts) {
+    auto switchId = sw->getScopeResolver()->scope(port.phyPortID()).switchId();
+    if (sw->getHwAsicTable()->isFeatureSupported(
+            switchId, HwAsic::Feature::SAI_TTL0_PACKET_FORWARD_ENABLE)) {
+    } else if (sw->getHwAsicTable()->isFeatureSupported(
+                   switchId, HwAsic::Feature::PORT_TTL_DECREMENT_DISABLE)) {
+      disableTTLDecrementOnPorts(sw, {port});
+    } else if (sw->getHwAsicTable()->isFeatureSupported(
+                   switchId, HwAsic::Feature::NEXTHOP_TTL_DECREMENT_DISABLE)) {
+      utility::EcmpSetupTargetedPorts6 ecmp6(sw->getState());
+      disableTTLDecrements(sw, ecmp6.getRouterId(), ecmp6.nhop(port));
+    } else {
+      throw FbossError("Failed to configure TTL decrement");
+    }
+  }
+}
+
 void verifyQueueHit(
     const HwPortStats& portStatsBefore,
     int queueId,

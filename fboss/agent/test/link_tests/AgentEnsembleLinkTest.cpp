@@ -216,25 +216,13 @@ void AgentEnsembleLinkTest::programDefaultRoute(
   programDefaultRoute(ecmpPorts, ecmp6);
 }
 
-void AgentEnsembleLinkTest::disableTTLDecrements(
-    const boost::container::flat_set<PortDescriptor>& ecmpPorts) {
-  if (getSw()->getHwAsicTable()->isFeatureSupportedOnAnyAsic(
-          HwAsic::Feature::PORT_TTL_DECREMENT_DISABLE)) {
-    disableTTLDecrementOnPorts(ecmpPorts);
-  } else {
-    utility::EcmpSetupTargetedPorts6 ecmp6(getSw()->getState());
-    utility::disableTTLDecrements(
-        getSw(), ecmp6.getRouterId(), ecmp6.getNextHops());
-  }
-}
-
 void AgentEnsembleLinkTest::createL3DataplaneFlood(
     const boost::container::flat_set<PortDescriptor>& ecmpPorts) {
   auto switchId = scope(ecmpPorts);
   utility::EcmpSetupTargetedPorts6 ecmp6(
       getSw()->getState(), getSw()->getLocalMac(switchId));
   programDefaultRoute(ecmpPorts, ecmp6);
-  disableTTLDecrements(ecmpPorts);
+  utility::disableTTLDecrements(getSw(), ecmpPorts);
   auto vlanID = utility::getFirstMap(getSw()->getState()->getVlans())
                     ->cbegin()
                     ->second->getID();

@@ -213,35 +213,13 @@ void LinkTest::programDefaultRoute(
   programDefaultRoute(ecmpPorts, ecmp6);
 }
 
-void LinkTest::disableTTLDecrements(
-    const boost::container::flat_set<PortDescriptor>& ecmpPorts) {
-  std::set<SwitchID> switchIds;
-  for (auto port : ecmpPorts) {
-    auto switchId =
-        sw()->getScopeResolver()->scope(port.phyPortID()).switchId();
-    if (sw()->getHwAsicTable()->isFeatureSupported(
-            switchId, HwAsic::Feature::SAI_TTL0_PACKET_FORWARD_ENABLE)) {
-    } else if (sw()->getHwAsicTable()->isFeatureSupported(
-                   switchId, HwAsic::Feature::PORT_TTL_DECREMENT_DISABLE)) {
-      disableTTLDecrementOnPorts({port});
-    } else if (sw()->getHwAsicTable()->isFeatureSupported(
-                   switchId, HwAsic::Feature::NEXTHOP_TTL_DECREMENT_DISABLE)) {
-      utility::EcmpSetupTargetedPorts6 ecmp6(sw()->getState());
-      utility::disableTTLDecrements(
-          sw(), ecmp6.getRouterId(), ecmp6.nhop(port));
-    } else {
-      throw FbossError("Failed to configure TTL decrement");
-    }
-  }
-}
-
 void LinkTest::createL3DataplaneFlood(
     const boost::container::flat_set<PortDescriptor>& ecmpPorts) {
   auto switchId = scope(ecmpPorts);
   utility::EcmpSetupTargetedPorts6 ecmp6(
       sw()->getState(), sw()->getLocalMac(switchId));
   programDefaultRoute(ecmpPorts, ecmp6);
-  disableTTLDecrements(ecmpPorts);
+  utility::disableTTLDecrements(sw(), ecmpPorts);
   auto vlanID = utility::firstVlanID(sw()->getState());
   utility::pumpTraffic(
       true,

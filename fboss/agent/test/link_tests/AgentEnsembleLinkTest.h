@@ -71,11 +71,7 @@ class AgentEnsembleLinkTest : public AgentEnsembleTest {
   void programDefaultRoute(
       const boost::container::flat_set<PortDescriptor>& ecmpPorts,
       std::optional<folly::MacAddress> dstMac = std::nullopt);
-  /*
-   * Disable TTL decrement on a set of ports
-   */
-  void disableTTLDecrements(
-      const boost::container::flat_set<PortDescriptor>& ecmpPorts);
+
   /*
    * Create a L3 data plane loop and seed it with traffic
    */

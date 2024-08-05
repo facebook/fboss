@@ -11,6 +11,7 @@
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/test/link_tests/LinkTest.h"
+#include "fboss/agent/test/utils/QosTestUtils.h"
 
 #include "fboss/lib/CommonFileUtils.h"
 
@@ -74,7 +75,7 @@ class MacLearningTest : public LinkTest {
     auto ecmpPorts = getSingleVlanOrRoutedCabledPorts();
     auto switchId = scope(ecmpPorts);
     programDefaultRoute(ecmpPorts, sw()->getLocalMac(switchId));
-    disableTTLDecrements(ecmpPorts);
+    utility::disableTTLDecrements(sw(), ecmpPorts);
     // wait long enough for all L2 entries learned/validated, port stats updated
     // sleep override
     sleep(5);
