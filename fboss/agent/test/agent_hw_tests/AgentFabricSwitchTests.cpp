@@ -255,12 +255,17 @@ class AgentFabricSwitchSelfLoopTest : public AgentFabricSwitchTest {
 
  protected:
   void checkDataCellFilter(bool expectFilterOn) {
+    for (const auto& [_, portIds] : switch2FabricPortIds()) {
+      checkDataCellFilter(expectFilterOn, portIds);
+    }
+  }
+  void checkDataCellFilter(
+      bool expectFilterOn,
+      const std::vector<PortID>& portIds) {
     WITH_RETRIES({
-      for (const auto& [_, portIds] : switch2FabricPortIds()) {
-        for (const auto& [_, portStats] : getNextUpdatedPortStats(portIds)) {
-          EXPECT_EVENTUALLY_TRUE(portStats.dataCellsFilterOn().has_value());
-          EXPECT_EVENTUALLY_EQ(*portStats.dataCellsFilterOn(), expectFilterOn);
-        }
+      for (const auto& [_, portStats] : getNextUpdatedPortStats(portIds)) {
+        EXPECT_EVENTUALLY_TRUE(portStats.dataCellsFilterOn().has_value());
+        EXPECT_EVENTUALLY_EQ(*portStats.dataCellsFilterOn(), expectFilterOn);
       }
     });
   }
