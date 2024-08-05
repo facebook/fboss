@@ -135,24 +135,6 @@
         },
         "compute": "@/1000",
         "type": 1
-      },
-      "P12V_2": {
-        "path": "/run/devmap/sensors/MCB_ADM1278_0X10/in1_input",
-        "thresholds": {
-          "upperCriticalVal": 2000000000000,
-          "lowerCriticalVal": -2000000000000
-        },
-        "compute": "@/1000",
-        "type": 1
-      },
-      "P12V_SMB": {
-        "path": "/run/devmap/sensors/MCB_ADM1278_0X10/in2_input",
-        "thresholds": {
-          "upperCriticalVal": 2000000000000,
-          "lowerCriticalVal": -2000000000000
-        },
-        "compute": "@/1000",
-        "type": 1
       }
     },
     "SCM": {

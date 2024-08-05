@@ -31,8 +31,8 @@
     "SCM": {
       "path": "/run/devmap/eeproms/SCM_EEPROM"
     },
-    "BMC": {
-      "path": "/run/devmap/eeproms/BMC_EEPROM"
+    "RUNBMC": {
+      "path": "/run/devmap/eeproms/RUNBMC_EEPROM"
     },
     "FCB": {
       "path": "/run/devmap/eeproms/FCB_EEPROM"
