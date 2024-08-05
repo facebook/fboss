@@ -66,4 +66,20 @@ void fillHwSwitchWatermarkStats(
   }
 }
 
+void fillHwSwitchCreditStats(
+    const folly::F14FastMap<sai_stat_id_t, uint64_t>& counterId2Value,
+    HwSwitchCreditStats& hwSwitchCreditStats) {
+  for (auto counterIdAndValue : counterId2Value) {
+    auto [counterId, value] = counterIdAndValue;
+    switch (counterId) {
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
+      case SAI_SWITCH_STAT_DEVICE_DELETED_CREDIT_COUNTER:
+        hwSwitchCreditStats.deletedCreditBytes() = value;
+        break;
+#endif
+      default:
+        throw FbossError("Got unexpected switch counter id: ", counterId);
+    }
+  }
+}
 } // namespace facebook::fboss
