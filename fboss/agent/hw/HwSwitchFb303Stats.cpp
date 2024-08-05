@@ -148,6 +148,11 @@ HwSwitchFb303Stats::HwSwitchFb303Stats(
           getCounterPrefix() + "dram_blocked_time_ns",
           SUM,
           RATE),
+      deletedCreditBytes_(
+          map,
+          getCounterPrefix() + "deleted_credit_bytes",
+          SUM,
+          RATE),
       fabricReachabilityMissingCount_(
           map,
           getCounterPrefix() + "fabric_reachability_missing"),

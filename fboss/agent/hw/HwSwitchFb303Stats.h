@@ -223,6 +223,8 @@ class HwSwitchFb303Stats {
   TLTimeseries dramEnqueuedBytes_;
   TLTimeseries dramDequeuedBytes_;
   TLTimeseries dramBlockedTimeNsec_;
+  // Credit stats
+  TLTimeseries deletedCreditBytes_;
   // fabric reachability errors
   TLCounter fabricReachabilityMissingCount_;
   TLCounter fabricReachabilityMismatchCount_;
