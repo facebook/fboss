@@ -557,6 +557,22 @@ class SwitchSettings
     }
   }
 
+  std::optional<int32_t> getReachabilityGroupSize() const {
+    if (auto reachabilityGroupSize =
+            cref<switch_state_tags::reachabilityGroupSize>()) {
+      return reachabilityGroupSize->toThrift();
+    }
+    return std::nullopt;
+  }
+
+  void setReachabilityGroupSize(std::optional<int32_t> reachabilityGroupSize) {
+    if (!reachabilityGroupSize) {
+      ref<switch_state_tags::reachabilityGroupSize>().reset();
+    } else {
+      set<switch_state_tags::reachabilityGroupSize>(*reachabilityGroupSize);
+    }
+  }
+
   SwitchSettings* modify(std::shared_ptr<SwitchState>* state);
 
  private:
