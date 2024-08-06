@@ -722,6 +722,22 @@ class Port : public ThriftStructNode<Port, state::PortFields> {
     return cref<ctrl_if_tags::scope>()->cref();
   }
 
+  std::optional<int32_t> getReachabilityGroupId() const {
+    if (auto reachabilityGroupId =
+            cref<switch_state_tags::reachabilityGroupId>()) {
+      return reachabilityGroupId->toThrift();
+    }
+    return std::nullopt;
+  }
+
+  void setReachabilityGroupId(std::optional<int32_t> reachabilityGroupId) {
+    if (!reachabilityGroupId) {
+      ref<switch_state_tags::reachabilityGroupId>().reset();
+    } else {
+      set<switch_state_tags::reachabilityGroupId>(*reachabilityGroupId);
+    }
+  }
+
  private:
   auto getRxSaks() const {
     return safe_cref<switch_state_tags::rxSecureAssociationKeys>();

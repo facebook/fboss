@@ -134,6 +134,7 @@ struct PortFields {
   // Current active errors seen on port
   52: list<ctrl.PortError> activeErrors;
   53: switch_config.Scope scope = switch_config.Scope.LOCAL;
+  54: optional i32 reachabilityGroupId;
 }
 
 typedef ctrl.SystemPortThrift SystemPortFields
