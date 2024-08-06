@@ -30,11 +30,9 @@ struct PwmCalcCache {
 //        Currently supports PID, Incremental PID and Four Tables method
 class ControlLogic {
  public:
-  // Constructor / Destructor
-  ControlLogic(const FanServiceConfig& config, std::shared_ptr<Bsp> pB);
+  ControlLogic(FanServiceConfig config, std::shared_ptr<Bsp> bsp);
   ~ControlLogic() = default;
-  // updateControl : Main entry for the control logic to process sensor
-  //                 readings and set PWM value accordingly
+
   void updateControl(std::shared_ptr<SensorData> pS);
   void setTransitionValue();
   const std::map<std::string, FanStatus> getFanStatuses() {
@@ -44,6 +42,18 @@ class ControlLogic {
     return sensorReadCaches_;
   }
 
+  void controlFan();
+  void getSensorDataThrift(std::shared_ptr<SensorData> pSensorData) const {
+    return pBsp_->getSensorDataThrift(pSensorData);
+  }
+  const SensorData& sensorData() const {
+    return *(pSensorData_.get());
+  }
+  uint64_t lastSensorFetchTimeSec() const {
+    return lastSensorFetchTimeSec_;
+  }
+  unsigned int getControlFrequency() const;
+  unsigned int getSensorFetchFrequency() const;
   void setFanHold(std::optional<int> pwm);
   std::optional<int> getFanHold();
   int calculatePid(
@@ -54,16 +64,16 @@ class ControlLogic {
       uint64_t dt);
 
  private:
-  // Private Attributess :
-  // Pointer to other classes used by Control Logic
   const FanServiceConfig config_;
   std::shared_ptr<Bsp> pBsp_;
   std::shared_ptr<SensorData> pSensor_;
   // Internal variable storing the number of failed sensors and fans
   int numFanFailed_ = 0;
   int numSensorFailed_ = 0;
-  // Last control update time. Used for dT calculation
-  uint64_t lastControlUpdateSec_;
+  // The timestamp of the last PWM control logic execution
+  uint64_t lastControlExecutionTimeSec_{0};
+  // The timestamp of the last sensor data fetch
+  uint64_t lastSensorFetchTimeSec_{0};
 
   // Private Methods
   void getSensorUpdate();
@@ -93,5 +103,6 @@ class ControlLogic {
   std::map<std::string /* sensorName */, SensorReadCache> sensorReadCaches_;
   std::map<std::string /* sensorName */, int16_t /* pwm */> opticReadCaches_;
   std::map<std::string /* sensorName */, PwmCalcCache> pwmCalcCaches_;
+  std::shared_ptr<SensorData> pSensorData_{nullptr};
 };
 } // namespace facebook::fboss::platform::fan_service

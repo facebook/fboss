@@ -8,10 +8,15 @@
 #include <folly/logging/xlog.h>
 
 #include "common/time/Time.h"
+#include "fboss/platform/fan_service/SensorData.h"
 #include "fboss/platform/fan_service/if/gen-cpp2/fan_service_config_constants.h"
 #include "fboss/platform/fan_service/if/gen-cpp2/fan_service_config_types.h"
 
 namespace {
+
+auto constexpr kDefaultSensorReadFrequencyInSec = 30;
+auto constexpr kDefaultFanControlFrequencyInSec = 30;
+
 auto constexpr kFanWriteFailure = "{}.{}.pwm_write.failure";
 auto constexpr kFanWriteValue = "{}.{}.pwm_write.value";
 auto constexpr kFanAbsent = "{}.absent";
@@ -51,12 +56,72 @@ std::optional<PidSetting> getConfigOpticPid(
 } // namespace
 
 namespace facebook::fboss::platform::fan_service {
-ControlLogic::ControlLogic(
-    const FanServiceConfig& config,
-    std::shared_ptr<Bsp> pB)
-    : config_(config),
-      pBsp_(std::move(pB)),
-      lastControlUpdateSec_(pBsp_->getCurrentTime()) {}
+
+ControlLogic::ControlLogic(FanServiceConfig config, std::shared_ptr<Bsp> bsp)
+    : config_(config), pBsp_(bsp) {
+  pSensorData_ = std::make_shared<SensorData>();
+
+  XLOG(INFO)
+      << "Upon fan_service start up, program all fan pwm with transitional value of "
+      << *config_.pwmTransitionValue();
+  setTransitionValue();
+}
+
+unsigned int ControlLogic::getControlFrequency() const {
+  if (config_.controlInterval()) {
+    return *config_.controlInterval()->pwmUpdateInterval();
+  }
+  return kDefaultFanControlFrequencyInSec;
+}
+
+unsigned int ControlLogic::getSensorFetchFrequency() const {
+  if (config_.controlInterval()) {
+    return *config_.controlInterval()->sensorReadInterval();
+  }
+  return kDefaultSensorReadFrequencyInSec;
+}
+
+void ControlLogic::controlFan() {
+  uint64_t currentTimeSec = pBsp_->getCurrentTime();
+  // Update Sensor Value based according to fetch frequency
+  if ((currentTimeSec - lastSensorFetchTimeSec_) >= getSensorFetchFrequency()) {
+    bool sensorReadOK = false;
+    bool opticsReadOK = false;
+
+    // Get the updated sensor data
+    try {
+      pBsp_->getSensorData(pSensorData_);
+      sensorReadOK = true;
+      XLOG(INFO) << "Successfully fetched sensor data.";
+    } catch (std::exception& e) {
+      XLOG(ERR) << "Failed to get sensor data with error : " << e.what();
+    }
+
+    // Also get the updated optics data
+    try {
+      // Get the updated optics data
+      pBsp_->getOpticsData(pSensorData_);
+      opticsReadOK = true;
+      XLOG(INFO) << "Successfully fetched optics data.";
+    } catch (std::exception& e) {
+      XLOG(ERR) << "Failed to get optics data with error : " << e.what();
+    }
+    // If BOTH of the two data read above pass, then we consider
+    // that the sensor reading is successful. Otherwise, we will
+    // keep retrying.
+    if (sensorReadOK && opticsReadOK) {
+      lastSensorFetchTimeSec_ = currentTimeSec;
+    }
+  }
+  // Change Fan PWM as needed according to control execution frequency
+  if ((currentTimeSec - lastControlExecutionTimeSec_) >=
+      getControlFrequency()) {
+    updateControl(pSensorData_);
+    lastControlExecutionTimeSec_ = currentTimeSec;
+  }
+
+  pBsp_->kickWatchdog();
+}
 
 std::tuple<bool, int, uint64_t> ControlLogic::readFanRpm(const Fan& fan) {
   std::string fanName = *fan.fanName();
@@ -124,7 +189,7 @@ int ControlLogic::calculatePid(
       "{}: Sensor Value: {}, PWM [PID]: {}", name, value, pwm);
   XLOG(DBG1) << "               dT : " << dT
              << " Time : " << pBsp_->getCurrentTime()
-             << " LUD : " << lastControlUpdateSec_ << " Min : " << minVal
+             << " LUD : " << lastControlExecutionTimeSec_ << " Min : " << minVal
              << " Max : " << maxVal;
   return pwm;
 }
@@ -205,7 +270,7 @@ void ControlLogic::updateTargetPwm(const Sensor& sensor) {
   }
 
   if (pwmCalcType == constants::SENSOR_PWM_CALC_TYPE_PID()) {
-    uint64_t dT = pBsp_->getCurrentTime() - lastControlUpdateSec_;
+    uint64_t dT = pBsp_->getCurrentTime() - lastControlExecutionTimeSec_;
     targetPwm = calculatePid(
         *sensor.sensorName(),
         readCache.lastReadValue,
@@ -330,7 +395,7 @@ void ControlLogic::getOpticsUpdate() {
         pwmCalcCache.previousTargetPwm =
             pwmCalcCaches_[opticName].previousTargetPwm;
 
-        uint64_t dT = pBsp_->getCurrentTime() - lastControlUpdateSec_;
+        uint64_t dT = pBsp_->getCurrentTime() - lastControlExecutionTimeSec_;
         float pwm =
             calculatePid(opticType, value, pwmCalcCache, *pidSetting, dT);
         if (pwm > aggOpticPwm) {
@@ -639,9 +704,6 @@ void ControlLogic::updateControl(std::shared_ptr<SensorData> pS) {
       programLed(fan, *fanStatuses[*fan.fanName()].fanFailed());
     }
   });
-
-  // Update the timestamp
-  lastControlUpdateSec_ = pBsp_->getCurrentTime();
 }
 
 void ControlLogic::setFanHold(std::optional<int> pwm) {

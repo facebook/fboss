@@ -6,12 +6,16 @@
 
 #include <fb303/FollyLoggingHandler.h>
 #include <folly/executors/FunctionScheduler.h>
+#include <thrift/lib/cpp2/protocol/Serializer.h>
+
 #include <folly/logging/Init.h>
 #include <folly/logging/xlog.h>
 #include <gflags/gflags.h>
 
+#include "fboss/platform/config_lib/ConfigLib.h"
+#include "fboss/platform/fan_service/ControlLogic.h"
 #include "fboss/platform/fan_service/FanServiceHandler.h"
-#include "fboss/platform/fan_service/FanServiceImpl.h"
+#include "fboss/platform/fan_service/Utils.h"
 #include "fboss/platform/helpers/Init.h"
 
 using namespace facebook;
@@ -28,13 +32,25 @@ int main(int argc, char** argv) {
   fb303::registerFollyLoggingOptionHandlers();
   helpers::init(&argc, &argv);
 
+  std::string fanServiceConfJson = ConfigLib().getFanServiceConfig();
+  auto config =
+      apache::thrift::SimpleJSONSerializer::deserialize<FanServiceConfig>(
+          fanServiceConfJson);
+  XLOG(INFO) << apache::thrift::SimpleJSONSerializer::serialize<std::string>(
+      config);
+  if (!Utils().isValidConfig(config)) {
+    XLOG(ERR) << "Invalid config! Aborting...";
+    throw std::runtime_error("Invalid Config.  Aborting...");
+  }
+
+  auto pBsp = std::make_shared<Bsp>(config);
   auto server = std::make_shared<apache::thrift::ThriftServer>();
-  auto fanServiceImpl = std::make_unique<FanServiceImpl>();
-  auto handler = std::make_shared<FanServiceHandler>(std::move(fanServiceImpl));
+  auto controlLogic = std::make_shared<ControlLogic>(config, pBsp);
+  auto handler = std::make_shared<FanServiceHandler>(controlLogic);
 
   folly::FunctionScheduler scheduler;
   scheduler.addFunction(
-      [handler]() { handler->getFanServiceImpl()->controlFan(); },
+      [controlLogic]() { controlLogic->controlFan(); },
       std::chrono::seconds(FLAGS_control_interval),
       "FanControl");
   scheduler.start();

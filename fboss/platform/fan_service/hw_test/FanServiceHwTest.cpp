@@ -18,8 +18,6 @@
 #include "fboss/platform/config_lib/ConfigLib.h"
 #include "fboss/platform/fan_service/Bsp.h"
 #include "fboss/platform/fan_service/FanServiceHandler.h"
-#include "fboss/platform/fan_service/FanServiceImpl.h"
-#include "fboss/platform/fan_service/SensorData.h"
 #include "fboss/platform/helpers/Init.h"
 
 using namespace facebook::fboss::platform;
@@ -29,19 +27,23 @@ namespace facebook::fboss::platform::fan_service {
 class FanServiceHwTest : public ::testing::Test {
  public:
   void SetUp() override {
-    EXPECT_NO_THROW(fanServiceImpl_ = std::make_unique<FanServiceImpl>());
-    auto fanServiceConfJson = ConfigLib().getFanServiceConfig();
-    EXPECT_NO_THROW(
+    std::string fanServiceConfJson = ConfigLib().getFanServiceConfig();
+    auto config =
         apache::thrift::SimpleJSONSerializer::deserialize<FanServiceConfig>(
-            fanServiceConfJson, fanServiceConfig_));
+            fanServiceConfJson);
+    XLOG(INFO) << apache::thrift::SimpleJSONSerializer::serialize<std::string>(
+        config);
+    auto pBsp = std::make_shared<Bsp>(config);
+    EXPECT_NO_THROW(
+        controlLogic_ = std::make_unique<ControlLogic>(config, pBsp));
   }
 
-  std::unique_ptr<FanServiceImpl> fanServiceImpl_;
+  std::unique_ptr<ControlLogic> controlLogic_;
   FanServiceConfig fanServiceConfig_;
 };
 
 TEST_F(FanServiceHwTest, TransitionalPWM) {
-  auto fanStatuses = fanServiceImpl_->getFanStatuses();
+  auto fanStatuses = controlLogic_->getFanStatuses();
 
   for (const auto& fan : *fanServiceConfig_.fans()) {
     auto fanName = *fan.fanName();
@@ -57,9 +59,9 @@ TEST_F(FanServiceHwTest, TransitionalPWM) {
 TEST_F(FanServiceHwTest, FanControl) {
   int run = 1;
   do {
-    EXPECT_NO_THROW(fanServiceImpl_->controlFan());
+    EXPECT_NO_THROW(controlLogic_->controlFan());
 
-    auto fanStatuses = fanServiceImpl_->getFanStatuses();
+    auto fanStatuses = controlLogic_->getFanStatuses();
     for (const auto& fan : *fanServiceConfig_.fans()) {
       auto fanName = *fan.fanName();
       FanStatus fanStatus;
@@ -72,10 +74,10 @@ TEST_F(FanServiceHwTest, FanControl) {
 }
 
 TEST_F(FanServiceHwTest, FanStatusesThrift) {
-  fanServiceImpl_->controlFan();
+  controlLogic_->controlFan();
 
   auto fanServiceHandler =
-      std::make_shared<FanServiceHandler>(std::move(fanServiceImpl_));
+      std::make_shared<FanServiceHandler>(std::move(controlLogic_));
   apache::thrift::ScopedServerInterfaceThread server(fanServiceHandler);
   auto client = server.newClient<apache::thrift::Client<FanService>>();
 
@@ -94,7 +96,7 @@ TEST_F(FanServiceHwTest, FanStatusesThrift) {
 }
 
 TEST_F(FanServiceHwTest, ODSCounters) {
-  fanServiceImpl_->controlFan();
+  controlLogic_->controlFan();
 
   for (const auto& zone : *fanServiceConfig_.zones()) {
     for (const auto& fan : *fanServiceConfig_.fans()) {

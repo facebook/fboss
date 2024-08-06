@@ -14,13 +14,16 @@ cpp_binary(
     ],
     deps = [
         ":core",
+        ":utils",
         "//fb303:logging",
+        "//fboss/platform/config_lib:config_lib",
         "//fboss/platform/helpers:init",
         "//fboss/platform/sensor_service/if:sensor_service-cpp2-types",
         "//fboss/qsfp_service/lib:qsfp-service-client",
         "//folly/executors:function_scheduler",
         "//folly/logging:init",
         "//folly/logging:logging",
+        "//thrift/lib/cpp2/protocol:protocol",
     ],
     external_deps = [
         "gflags",
@@ -44,7 +47,6 @@ cpp_library(
         "Bsp.cpp",
         "ControlLogic.cpp",
         "FanServiceHandler.cpp",
-        "FanServiceImpl.cpp",
         "FsdbSensorSubscriber.cpp",
         "SensorData.cpp",
         "facebook/DataFetcher.cpp",
@@ -55,11 +57,9 @@ cpp_library(
         "ControlLogic.h",
         "DataFetcher.h",
         "FanServiceHandler.h",
-        "FanServiceImpl.h",
         "FsdbSensorSubscriber.h",
     ],
     exported_deps = [
-        ":utils",
         "//common/fbwhoami:fb_who_am_i",
         "//common/services/cpp:facebook_identity_verifier",
         "//common/services/cpp:tls_constants",
@@ -72,7 +72,6 @@ cpp_library(
         "//fboss/fsdb/if:fsdb_model",
         "//fboss/fsdb/if:fsdb_oper-cpp2-types",
         "//fboss/lib:common_file_utils",
-        "//fboss/platform/config_lib:config_lib",
         "//fboss/platform/fan_service/if:fan_service-cpp2-services",
         "//fboss/platform/fan_service/if:fan_service-cpp2-types",
         "//fboss/platform/helpers:platform_utils",
@@ -91,9 +90,6 @@ cpp_library(
         "//infrasec/authorization:base_identity_util",
         "//security/ca/lib:cert_path_picker",
         "//thrift/lib/cpp2/protocol:protocol",
-    ],
-    exported_external_deps = [
-        "gflags",
     ],
 )
 

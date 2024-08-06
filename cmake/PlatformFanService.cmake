@@ -24,7 +24,6 @@ add_fbthrift_cpp_library(
 add_library(fan_service_lib
   fboss/platform/fan_service/Bsp.cpp
   fboss/platform/fan_service/ControlLogic.cpp
-  fboss/platform/fan_service/FanServiceImpl.cpp
   fboss/platform/fan_service/FanServiceHandler.cpp
   fboss/platform/fan_service/FsdbSensorSubscriber.cpp
   fboss/platform/fan_service/SensorData.cpp
