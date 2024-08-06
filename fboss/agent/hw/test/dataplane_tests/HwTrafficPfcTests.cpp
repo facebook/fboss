@@ -494,9 +494,9 @@ class HwTrafficPfcTest : public HwLinkStateDependentTest {
           {masterLogicalInterfacePortIds()[0],
            masterLogicalInterfacePortIds()[1]},
           pfcPriority);
-      pumpTraffic(trafficClass);
     };
     auto verifyCommon = [&](bool postWb) {
+      pumpTraffic(trafficClass);
       // check counters are as expected
       validateCounterFn(
           getHwSwitchEnsemble(),
