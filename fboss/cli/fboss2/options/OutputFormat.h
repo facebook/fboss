@@ -35,7 +35,7 @@ class OutputFormat {
   }
 
   static const std::string getDescription() {
-    return fmt::format("Output format ({})", fmt::join(getOptions(), ", "));
+    return fmt::format("Output format ({})", folly::join(", ", getOptions()));
   }
 
  private:

@@ -30,7 +30,7 @@ class SSLPolicy {
   }
 
   static const std::string getDescription() {
-    return fmt::format("SSL Policy ({})", fmt::join(getOptions(), ", "));
+    return fmt::format("SSL Policy ({})", folly::join(", ", getOptions()));
   }
 
  private:

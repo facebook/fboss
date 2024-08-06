@@ -237,6 +237,20 @@ struct formatter<sai_port_lane_eye_values_t> {
 };
 
 #if SAI_API_VERSION >= SAI_VERSION(1, 8, 1)
+// Formatting for sai_port_prbs_rx_status_t
+template <>
+struct formatter<sai_port_prbs_rx_status_t> {
+  template <typename ParseContext>
+  constexpr auto parse(ParseContext& ctx) const {
+    return ctx.begin();
+  }
+
+  template <typename FormatContext>
+  auto format(const sai_port_prbs_rx_status_t& status, FormatContext& ctx)
+      const {
+    return format_to(ctx.out(), "{}", static_cast<int>(status));
+  }
+};
 // Formatting for sai_prbs_rx_state_t
 template <>
 struct formatter<sai_prbs_rx_state_t> {

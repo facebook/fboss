@@ -91,18 +91,20 @@ class CmdBounceInterface
   }
 
   void printActionText(int32_t actionCode) {
-    std::string strToPrint;
     switch (actionCode) {
       case 0:
-        strToPrint = "Shutting Down...Sleeping " +
-            std::to_string(SECONDS_TO_SLEEP) + " Seconds\n";
+        fmt::print(
+            fg(fmt::color::light_slate_gray),
+            "Shutting Down...Sleeping {} Seconds",
+            std::to_string(SECONDS_TO_SLEEP));
         break;
       case 1:
-        strToPrint = "Bringing Up...Sleeping " +
-            std::to_string(SECONDS_TO_SLEEP) + " Seconds\n";
+        fmt::print(
+            fg(fmt::color::light_slate_gray),
+            "Bringing Up...Sleeping {} Seconds",
+            std::to_string(SECONDS_TO_SLEEP));
         break;
     }
-    fmt::print(fg(fmt::color::light_slate_gray), strToPrint);
   }
 
   std::string getPortStatus(

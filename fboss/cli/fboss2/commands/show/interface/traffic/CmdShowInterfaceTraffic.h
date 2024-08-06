@@ -348,14 +348,17 @@ class CmdShowInterfaceTraffic : public CmdHandler<
     }
 
     if (model.get_error_counters().size() != 0) {
-      std::string errorsString = "ERRORS " +
-          std::to_string(model.get_error_counters().size()) +
-          " interfaces, watch for any incrementing counters:\n";
+      constexpr std::string_view errorsString =
+          "ERRORS {} interfaces, watch for any incrementing counters:\n";
 
       if (printColor) {
-        fmt::print(fg(fmt::color::red), errorsString);
+        fmt::print(
+            fg(fmt::color::red),
+            errorsString,
+            std::to_string(model.get_error_counters().size()));
       } else {
-        out << errorsString;
+        out << fmt::format(
+            errorsString, std::to_string(model.get_error_counters().size()));
       }
 
       errorTable.setHeader({
@@ -387,7 +390,7 @@ class CmdShowInterfaceTraffic : public CmdHandler<
       }
 
     } else {
-      std::string noErrorString =
+      constexpr std::string_view noErrorString =
           "No interfaces with In/Out errors - all-clear!\n";
       if (printColor) {
         fmt::print(fg(fmt::color::green), noErrorString);
