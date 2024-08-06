@@ -685,11 +685,42 @@ add_dependencies(fboss_other_services
 )
 
 if (BUILD_SAI_FAKE)
+add_custom_target(fboss_agent_thrift_libs)
+add_dependencies(fboss_agent_thrift_libs
+  mpls_cpp2
+  switch_config_cpp2
+  agent_config_cpp2
+  platform_config_cpp2
+  switch_reachability_cpp2
+  switch_state_cpp2
+  optic_cpp2
+  fboss_cpp2
+  sflow_cpp2
+  common_cpp2
+  product_info_cpp2
+  hardware_stats_cpp2
+  ctrl_cpp2
+  packet_stream_cpp2
+  bcm_config_cpp2
+  asic_config_cpp2
+  asic_config_v2_cpp2
+  agent_stats_cpp2
+  production_features_cpp2
+  hw_ctrl_cpp2
+  sai_ctrl_cpp2
+  hw_test_ctrl_cpp2
+  sai_test_ctrl_cpp2
+  multiswitch_ctrl_cpp2
+  lldp_structs_cpp2
+  validated_shell_commands_cpp2
+)
+
 add_custom_target(fboss_fake_agent_targets)
 add_dependencies(fboss_fake_agent_targets
   sai_test-fake
   sai_agent_hw_test-fake
   multi_switch_agent_hw_test
+  fboss_agent_thrift_libs
 )
 if (BUILD_SAI_FAKE_LINK_TEST)
 add_dependencies(fboss_fake_agent_targets
