@@ -416,6 +416,11 @@ class AgentVoqSwitchLineRateTest : public AgentVoqSwitchTest {
         sendPacket(hostIps[idx], std::vector<uint8_t>(1024, 0xff));
       }
     }
+    // Now, make sure that we have line rate traffic on these ports!
+    for (int idx = 0; idx < numberOfPorts; idx++) {
+      getAgentEnsemble()->waitForLineRateOnPort(
+          masterLogicalInterfacePortIds()[idx]);
+    }
   }
 };
 
