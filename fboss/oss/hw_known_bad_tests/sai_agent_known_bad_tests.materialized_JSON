@@ -56,36 +56,6 @@
           "test_name_regex": "AgentSflowMirrorTruncateTestV[46].*$"
         },
         {
-          "test_name_regex": "AgentIngressPortSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressPortErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressAclSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressAclErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressPortErspanMirroringTruncateTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressPortSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressPortErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressAclSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressAclErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressPortErspanMirroringTruncateTest/[01].*$"
-        },
-        {
           "test_name_regex": "AgentMacLearningTest.VerifyHwAgingForPort$"
         },
         {
@@ -165,36 +135,6 @@
         },
         {
           "test_name_regex": "AgentSflowMirrorTruncateTestV[46].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressPortSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressPortErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressAclSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressAclErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressPortErspanMirroringTruncateTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressPortSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressPortErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressAclSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressAclErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressPortErspanMirroringTruncateTest/[01].*$"
         },
         {
           "test_name_regex": "AgentMacLearningTest.VerifyHwAgingForPort$"
@@ -370,36 +310,6 @@
           "test_name_regex": "AgentSflowMirrorTruncateTestV[46].*$"
         },
         {
-          "test_name_regex": "AgentIngressPortSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressPortErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressAclSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressAclErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressPortErspanMirroringTruncateTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressPortSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressPortErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressAclSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressAclErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressPortErspanMirroringTruncateTest/[01].*$"
-        },
-        {
           "test_name_regex": "AgentMacLearningTest.VerifyHwAgingForPort$"
         },
         {
@@ -469,36 +379,6 @@
           "test_name_regex": "AgentSflowMirrorTruncateTestV[46].*$"
         },
         {
-          "test_name_regex": "AgentIngressPortSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressPortErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressAclSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressAclErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressPortErspanMirroringTruncateTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressPortSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressPortErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressAclSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressAclErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressPortErspanMirroringTruncateTest/[01].*$"
-        },
-        {
           "test_name_regex": "AgentMacLearningTest.VerifyHwAgingForPort$"
         },
         {
@@ -550,13 +430,16 @@
           "test_name_regex": "AgentIngressPortErspanMirroringTest/1.ErspanPortMirror$"
         },
         {
+          "test_name_regex": "AgentEgressPortErspanMirroringTest/1.ErspanPortMirror$"
+        },
+        {
           "test_name_regex": "AgentSflowMirrorTestV6.*$"
         },
         {
           "test_name_regex": "AgentIngressPortErspanMirroringTruncateTest/[01].TrucatePortErspanMirror$"
         },
         {
-          "test_name_regex": "AgentIngressEgressPortErspanMirroringTruncateTest/[01].TrucatePortErspanMirror$"
+          "test_name_regex": "AgentEgressPortErspanMirroringTruncateTest/[01].TrucatePortErspanMirror$"
         },
         {
           "test_name_regex": "AgentSflowMirrorTruncateTestV[46].*$"
@@ -565,13 +448,7 @@
           "test_name_regex": "AgentIngressAclErspanMirroringTest/[01].ErspanAclMirror$"
         },
         {
-          "test_name_regex": "warm_boot.AgentIngressEgressPortSpanMirroringTest/[01].SpanPortMirror$"
-        },
-        {
-          "test_name_regex": "warm_boot.AgentIngressEgressPortErspanMirroringTest/[01].ErspanPortMirror$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressAclSpanMirroringTest/[01].*AgentIngressEgressAclErspanMirroringTest/[01].*$"
+          "test_name_regex": "AgentEgressAclErspanMirroringTest/[01].ErspanAclMirror$"
         },
         {
           "test_name_regex": "AgentSflowMirrorTestV[46].VerifySampledPacketRate$"
@@ -690,36 +567,6 @@
           "test_name_regex": "AgentSflowMirrorTruncateTestV[46].*$"
         },
         {
-          "test_name_regex": "AgentIngressPortSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressPortErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressAclSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressAclErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressPortErspanMirroringTruncateTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressPortSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressPortErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressAclSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressAclErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressPortErspanMirroringTruncateTest/[01].*$"
-        },
-        {
           "test_name_regex": "AgentMacLearningTest.VerifyHwAgingForPort$"
         },
         {
@@ -799,36 +646,6 @@
         },
         {
           "test_name_regex": "AgentSflowMirrorTruncateTestV[46].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressPortSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressPortErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressAclSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressAclErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressPortErspanMirroringTruncateTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressPortSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressPortErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressAclSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressAclErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressPortErspanMirroringTruncateTest/[01].*$"
         },
         {
           "test_name_regex": "AgentMacLearningTest.VerifyHwAgingForPort$"
@@ -929,36 +746,6 @@
           "test_name_regex": "AgentSflowMirrorTruncateTestV[46].*$"
         },
         {
-          "test_name_regex": "AgentIngressPortSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressPortErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressAclSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressAclErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressPortErspanMirroringTruncateTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressPortSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressPortErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressAclSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressAclErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressPortErspanMirroringTruncateTest/[01].*$"
-        },
-        {
           "test_name_regex": "AgentMacLearningTest.VerifyHwAgingForPort$"
         },
         {
@@ -1026,36 +813,6 @@
         },
         {
           "test_name_regex": "AgentSflowMirrorTruncateTestV[46].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressPortSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressPortErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressAclSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressAclErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressPortErspanMirroringTruncateTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressPortSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressPortErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressAclSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressAclErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressPortErspanMirroringTruncateTest/[01].*$"
         },
         {
           "test_name_regex": "AgentMacLearningTest.VerifyHwAgingForPort$"
@@ -1163,13 +920,10 @@
           "test_name_regex": "AgentIngressAclErspanMirroringTest/[01].*$"
         },
         {
-          "test_name_regex": "AgentIngressEgressAclSpanMirroringTest/[01].*$"
+          "test_name_regex": "AgentEgressAclSpanMirroringTest/[01].*$"
         },
         {
-          "test_name_regex": "AgentIngressEgressAclErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "warm_boot.AgentIngressEgressPortErspanMirroringTruncateTest/[01].TrucatePortErspanMirror$"
+          "test_name_regex": "AgentEgressAclErspanMirroringTest/[01].*$"
         },
         {
           "test_name_regex": "AgentSflowMirrorTestV[46].VerifySampledPacketRate$"
@@ -1235,36 +989,6 @@
         },
         {
           "test_name_regex": "AgentSflowMirrorTruncateTestV[46].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressPortSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressPortErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressAclSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressAclErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressPortErspanMirroringTruncateTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressPortSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressPortErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressAclSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressAclErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressPortErspanMirroringTruncateTest/[01].*$"
         },
         {
           "test_name_regex": "AgentMacLearningTest.VerifyHwAgingForPort$"
@@ -1346,36 +1070,6 @@
         },
         {
           "test_name_regex": "AgentSflowMirrorTruncateTestV[46].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressPortSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressPortErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressAclSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressAclErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressPortErspanMirroringTruncateTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressPortSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressPortErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressAclSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressAclErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressPortErspanMirroringTruncateTest/[01].*$"
         },
         {
           "test_name_regex": "AgentMacLearningTest.VerifyHwAgingForPort$"
@@ -1578,36 +1272,6 @@
           "test_name_regex": "AgentSflowMirrorTruncateTestV[46].*$"
         },
         {
-          "test_name_regex": "AgentIngressPortSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressPortErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressAclSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressAclErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressPortErspanMirroringTruncateTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressPortSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressPortErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressAclSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressAclErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressPortErspanMirroringTruncateTest/[01].*$"
-        },
-        {
           "test_name_regex": "AgentMacLearningTest.VerifyHwAgingForPort$"
         },
         {
@@ -1677,36 +1341,6 @@
           "test_name_regex": "AgentSflowMirrorTruncateTestV[46].*$"
         },
         {
-          "test_name_regex": "AgentIngressPortSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressPortErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressAclSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressAclErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressPortErspanMirroringTruncateTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressPortSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressPortErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressAclSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressAclErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressPortErspanMirroringTruncateTest/[01].*$"
-        },
-        {
           "test_name_regex": "AgentMacLearningTest.VerifyHwAgingForPort$"
         },
         {
@@ -1767,19 +1401,13 @@
           "test_name_regex": "AgentIngressAclErspanMirroringTest/[01].*$"
         },
         {
-          "test_name_regex": "AgentIngressEgressAclSpanMirroringTest/[01].*$"
+          "test_name_regex": "AgentEgressAclSpanMirroringTest/[01].*$"
         },
         {
-          "test_name_regex": "AgentIngressEgressAclErspanMirroringTest/[01].*$"
+          "test_name_regex": "AgentEgressAclErspanMirroringTest/[01].*$"
         },
         {
-          "test_name_regex": "AgentIngressEgressPortSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "warm_boot.AgentIngressEgressPortErspanMirroringTruncateTest/[01].TrucatePortErspanMirror$"
-        },
-        {
-          "test_name_regex": "warm_boot.AgentIngressEgressPortErspanMirroringTest/[01].*$"
+          "test_name_regex": "AgentEgressPortSpanMirroringTest/[01].*$"
         },
         {
           "test_name_regex": "AgentSflowMirrorTestV4[46].VerifySampledPacketRate$"
@@ -1913,36 +1541,6 @@
           "test_name_regex": "AgentSflowMirrorTruncateTestV[46].*$"
         },
         {
-          "test_name_regex": "AgentIngressPortSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressPortErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressAclSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressAclErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressPortErspanMirroringTruncateTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressPortSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressPortErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressAclSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressAclErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressPortErspanMirroringTruncateTest/[01].*$"
-        },
-        {
           "test_name_regex": "AgentMacLearningTest.VerifyHwAgingForPort$"
         },
         {
@@ -2022,36 +1620,6 @@
         },
         {
           "test_name_regex": "AgentSflowMirrorTruncateTestV[46].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressPortSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressPortErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressAclSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressAclErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressPortErspanMirroringTruncateTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressPortSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressPortErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressAclSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressAclErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressPortErspanMirroringTruncateTest/[01].*$"
         },
         {
           "test_name_regex": "AgentMacLearningTest.VerifyHwAgingForPort$"
@@ -2206,36 +1774,6 @@
           "test_name_regex": "AgentSflowMirrorTruncateTestV[46].*$"
         },
         {
-          "test_name_regex": "AgentIngressPortSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressPortErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressAclSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressAclErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressPortErspanMirroringTruncateTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressPortSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressPortErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressAclSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressAclErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressPortErspanMirroringTruncateTest/[01].*$"
-        },
-        {
           "test_name_regex": "AgentMacLearningTest.VerifyHwAgingForPort$"
         },
         {
@@ -2303,36 +1841,6 @@
         },
         {
           "test_name_regex": "AgentSflowMirrorTruncateTestV[46].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressPortSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressPortErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressAclSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressAclErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressPortErspanMirroringTruncateTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressPortSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressPortErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressAclSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressAclErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressPortErspanMirroringTruncateTest/[01].*$"
         },
         {
           "test_name_regex": "AgentMacLearningTest.VerifyHwAgingForPort$"
@@ -2460,36 +1968,6 @@
           "test_name_regex": "AgentSflowMirrorTruncateTestV[46].*$"
         },
         {
-          "test_name_regex": "AgentIngressPortSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressPortErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressAclSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressAclErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressPortErspanMirroringTruncateTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressPortSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressPortErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressAclSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressAclErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressPortErspanMirroringTruncateTest/[01].*$"
-        },
-        {
           "test_name_regex": "AgentMacLearningTest.VerifyHwAgingForPort$"
         },
         {
@@ -2557,36 +2035,6 @@
         },
         {
           "test_name_regex": "AgentSflowMirrorTruncateTestV[46].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressPortSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressPortErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressAclSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressAclErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressPortErspanMirroringTruncateTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressPortSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressPortErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressAclSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressAclErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressPortErspanMirroringTruncateTest/[01].*$"
         },
         {
           "test_name_regex": "AgentMacLearningTest.VerifyHwAgingForPort$"
@@ -2765,36 +2213,6 @@
           "test_name_regex": "AgentSflowMirrorTruncateTestV[46].*$"
         },
         {
-          "test_name_regex": "AgentIngressPortSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressPortErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressAclSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressAclErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressPortErspanMirroringTruncateTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressPortSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressPortErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressAclSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressAclErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressPortErspanMirroringTruncateTest/[01].*$"
-        },
-        {
           "test_name_regex": "AgentMacLearningTest.VerifyHwAgingForPort$"
         },
         {
@@ -2874,36 +2292,6 @@
         },
         {
           "test_name_regex": "AgentSflowMirrorTruncateTestV[46].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressPortSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressPortErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressAclSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressAclErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressPortErspanMirroringTruncateTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressPortSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressPortErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressAclSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressAclErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressPortErspanMirroringTruncateTest/[01].*$"
         },
         {
           "test_name_regex": "AgentMacLearningTest.VerifyHwAgingForPort$"
@@ -3073,36 +2461,6 @@
           "test_name_regex": "AgentSflowMirrorTruncateTestV[46].*$"
         },
         {
-          "test_name_regex": "AgentIngressPortSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressPortErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressAclSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressAclErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressPortErspanMirroringTruncateTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressPortSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressPortErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressAclSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressAclErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressPortErspanMirroringTruncateTest/[01].*$"
-        },
-        {
           "test_name_regex": "AgentMacLearningTest.VerifyHwAgingForPort$"
         },
         {
@@ -3170,36 +2528,6 @@
         },
         {
           "test_name_regex": "AgentSflowMirrorTruncateTestV[46].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressPortSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressPortErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressAclSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressAclErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressPortErspanMirroringTruncateTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressPortSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressPortErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressAclSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressAclErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressPortErspanMirroringTruncateTest/[01].*$"
         },
         {
           "test_name_regex": "AgentMacLearningTest.VerifyHwAgingForPort$"
@@ -3340,19 +2668,10 @@
           "test_name_regex": "AgentIngressAclErspanMirroringTest/[01].*$"
         },
         {
-          "test_name_regex": "warm_boot.AgentIngressEgressPortSpanMirroringTest/[01].*$"
+          "test_name_regex": "AgentEgressAclSpanMirroringTest/[01].*$"
         },
         {
-          "test_name_regex": "warm_boot.AgentIngressEgressPortErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressAclSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressAclErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "warm_boot.AgentIngressEgressPortErspanMirroringTruncateTest/[01].*$"
+          "test_name_regex": "AgentEgressAclErspanMirroringTest/[01].*$"
         }
     ],
     "brcm/11.0_ea_dnx_odp/11.0_ea_dnx_odp/jericho3/multi_switch": [
@@ -3409,36 +2728,6 @@
         },
         {
           "test_name_regex": "AgentSflowMirrorTruncateTestV[46].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressPortSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressPortErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressAclSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressAclErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressPortErspanMirroringTruncateTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressPortSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressPortErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressAclSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressAclErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressPortErspanMirroringTruncateTest/[01].*$"
         },
         {
           "test_name_regex": "AgentMacLearningTest.VerifyHwAgingForPort$"
@@ -3520,36 +2809,6 @@
         },
         {
           "test_name_regex": "AgentSflowMirrorTruncateTestV[46].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressPortSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressPortErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressAclSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressAclErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressPortErspanMirroringTruncateTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressPortSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressPortErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressAclSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressAclErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressPortErspanMirroringTruncateTest/[01].*$"
         },
         {
           "test_name_regex": "AgentMacLearningTest.VerifyHwAgingForPort$"
@@ -3681,19 +2940,10 @@
           "test_name_regex": "AgentIngressAclErspanMirroringTest/[01].*$"
         },
         {
-          "test_name_regex": "warm_boot.AgentIngressEgressPortSpanMirroringTest/[01].*$"
+          "test_name_regex": "AgentEgressAclSpanMirroringTest/[01].*$"
         },
         {
-          "test_name_regex": "warm_boot.AgentIngressEgressPortErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressAclSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressAclErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "warm_boot.AgentIngressEgressPortErspanMirroringTruncateTest/[01].*$"
+          "test_name_regex": "AgentEgressAclErspanMirroringTest/[01].*$"
         }
     ],
     "brcm/11.0_ea_dnx_odp/11.0_ea_dnx_odp/ramon/mono": [
@@ -3750,36 +3000,6 @@
         },
         {
           "test_name_regex": "AgentSflowMirrorTruncateTestV[46].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressPortSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressPortErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressAclSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressAclErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressPortErspanMirroringTruncateTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressPortSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressPortErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressAclSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressAclErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressPortErspanMirroringTruncateTest/[01].*$"
         },
         {
           "test_name_regex": "AgentMacLearningTest.VerifyHwAgingForPort$"
@@ -3849,36 +3069,6 @@
         },
         {
           "test_name_regex": "AgentSflowMirrorTruncateTestV[46].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressPortSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressPortErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressAclSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressAclErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressPortErspanMirroringTruncateTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressPortSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressPortErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressAclSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressAclErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressPortErspanMirroringTruncateTest/[01].*$"
         },
         {
           "test_name_regex": "AgentMacLearningTest.VerifyHwAgingForPort$"
@@ -3985,36 +3175,6 @@
           "test_name_regex": "AgentSflowMirrorTruncateTestV[46].*$"
         },
         {
-          "test_name_regex": "AgentIngressPortSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressPortErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressAclSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressAclErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressPortErspanMirroringTruncateTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressPortSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressPortErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressAclSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressAclErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressPortErspanMirroringTruncateTest/[01].*$"
-        },
-        {
           "test_name_regex": "AgentMacLearningTest.VerifyHwAgingForPort$"
         },
         {
@@ -4094,36 +3254,6 @@
         },
         {
           "test_name_regex": "AgentSflowMirrorTruncateTestV[46].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressPortSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressPortErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressAclSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressAclErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressPortErspanMirroringTruncateTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressPortSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressPortErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressAclSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressAclErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressPortErspanMirroringTruncateTest/[01].*$"
         },
         {
           "test_name_regex": "AgentMacLearningTest.VerifyHwAgingForPort$"
@@ -4221,36 +3351,6 @@
           "test_name_regex": "AgentSflowMirrorTruncateTestV[46].*$"
         },
         {
-          "test_name_regex": "AgentIngressPortSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressPortErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressAclSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressAclErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressPortErspanMirroringTruncateTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressPortSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressPortErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressAclSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressAclErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressPortErspanMirroringTruncateTest/[01].*$"
-        },
-        {
           "test_name_regex": "AgentMacLearningTest.VerifyHwAgingForPort$"
         },
         {
@@ -4318,36 +3418,6 @@
         },
         {
           "test_name_regex": "AgentSflowMirrorTruncateTestV[46].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressPortSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressPortErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressAclSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressAclErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressPortErspanMirroringTruncateTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressPortSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressPortErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressAclSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressAclErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressPortErspanMirroringTruncateTest/[01].*$"
         },
         {
           "test_name_regex": "AgentMacLearningTest.VerifyHwAgingForPort$"
@@ -4454,36 +3524,6 @@
           "test_name_regex": "AgentSflowMirrorTruncateTestV[46].*$"
         },
         {
-          "test_name_regex": "AgentIngressPortSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressPortErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressAclSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressAclErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressPortErspanMirroringTruncateTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressPortSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressPortErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressAclSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressAclErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressPortErspanMirroringTruncateTest/[01].*$"
-        },
-        {
           "test_name_regex": "AgentMacLearningTest.VerifyHwAgingForPort$"
         },
         {
@@ -4563,36 +3603,6 @@
         },
         {
           "test_name_regex": "AgentSflowMirrorTruncateTestV[46].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressPortSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressPortErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressAclSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressAclErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressPortErspanMirroringTruncateTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressPortSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressPortErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressAclSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressAclErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressPortErspanMirroringTruncateTest/[01].*$"
         },
         {
           "test_name_regex": "AgentMacLearningTest.VerifyHwAgingForPort$"
@@ -4744,36 +3754,6 @@
           "test_name_regex": "AgentSflowMirrorTruncateTestV[46].*$"
         },
         {
-          "test_name_regex": "AgentIngressPortSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressPortErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressAclSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressAclErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressPortErspanMirroringTruncateTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressPortSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressPortErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressAclSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressAclErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressPortErspanMirroringTruncateTest/[01].*$"
-        },
-        {
           "test_name_regex": "AgentMacLearningTest.VerifyHwAgingForPort$"
         },
         {
@@ -4843,36 +3823,6 @@
           "test_name_regex": "AgentSflowMirrorTruncateTestV[46].*$"
         },
         {
-          "test_name_regex": "AgentIngressPortSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressPortErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressAclSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressAclErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressPortErspanMirroringTruncateTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressPortSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressPortErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressAclSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressAclErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressPortErspanMirroringTruncateTest/[01].*$"
-        },
-        {
           "test_name_regex": "AgentMacLearningTest.VerifyHwAgingForPort$"
         },
         {
@@ -4924,13 +3874,16 @@
           "test_name_regex": "AgentIngressPortErspanMirroringTest/1.ErspanPortMirror$"
         },
         {
+          "test_name_regex": "AgentEgressPortErspanMirroringTest/1.ErspanPortMirror$"
+        },
+        {
           "test_name_regex": "AgentSflowMirrorTestV6.*$"
         },
         {
           "test_name_regex": "AgentIngressPortErspanMirroringTruncateTest/[01].TrucatePortErspanMirror$"
         },
         {
-          "test_name_regex": "AgentIngressEgressPortErspanMirroringTruncateTest/[01].TrucatePortErspanMirror$"
+          "test_name_regex": "AgentEgressPortErspanMirroringTruncateTest/[01].TrucatePortErspanMirror$"
         },
         {
           "test_name_regex": "AgentSflowMirrorTruncateTestV[46].*$"
@@ -4939,13 +3892,7 @@
           "test_name_regex": "AgentIngressAclErspanMirroringTest/[01].ErspanAclMirror$"
         },
         {
-          "test_name_regex": "warm_boot.AgentIngressEgressPortSpanMirroringTest/[01].SpanPortMirror$"
-        },
-        {
-          "test_name_regex": "warm_boot.AgentIngressEgressPortErspanMirroringTest/[01].ErspanPortMirror$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressAclSpanMirroringTest/[01].*AgentIngressEgressAclErspanMirroringTest/[01].*$"
+          "test_name_regex": "AgentEgressAclErspanMirroringTest/[01].ErspanAclMirror$"
         },
         {
           "test_name_regex": "AgentSflowMirrorTestV[46].VerifySampledPacketRate$"
@@ -5064,36 +4011,6 @@
           "test_name_regex": "AgentSflowMirrorTruncateTestV[46].*$"
         },
         {
-          "test_name_regex": "AgentIngressPortSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressPortErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressAclSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressAclErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressPortErspanMirroringTruncateTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressPortSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressPortErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressAclSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressAclErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressPortErspanMirroringTruncateTest/[01].*$"
-        },
-        {
           "test_name_regex": "AgentMacLearningTest.VerifyHwAgingForPort$"
         },
         {
@@ -5173,36 +4090,6 @@
         },
         {
           "test_name_regex": "AgentSflowMirrorTruncateTestV[46].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressPortSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressPortErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressAclSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressAclErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressPortErspanMirroringTruncateTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressPortSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressPortErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressAclSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressAclErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressPortErspanMirroringTruncateTest/[01].*$"
         },
         {
           "test_name_regex": "AgentMacLearningTest.VerifyHwAgingForPort$"
@@ -5303,36 +4190,6 @@
           "test_name_regex": "AgentSflowMirrorTruncateTestV[46].*$"
         },
         {
-          "test_name_regex": "AgentIngressPortSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressPortErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressAclSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressAclErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressPortErspanMirroringTruncateTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressPortSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressPortErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressAclSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressAclErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressPortErspanMirroringTruncateTest/[01].*$"
-        },
-        {
           "test_name_regex": "AgentMacLearningTest.VerifyHwAgingForPort$"
         },
         {
@@ -5400,36 +4257,6 @@
         },
         {
           "test_name_regex": "AgentSflowMirrorTruncateTestV[46].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressPortSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressPortErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressAclSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressAclErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressPortErspanMirroringTruncateTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressPortSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressPortErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressAclSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressAclErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressPortErspanMirroringTruncateTest/[01].*$"
         },
         {
           "test_name_regex": "AgentMacLearningTest.VerifyHwAgingForPort$"
@@ -5537,13 +4364,10 @@
           "test_name_regex": "AgentIngressAclErspanMirroringTest/[01].*$"
         },
         {
-          "test_name_regex": "AgentIngressEgressAclSpanMirroringTest/[01].*$"
+          "test_name_regex": "AgentEgressAclSpanMirroringTest/[01].*$"
         },
         {
-          "test_name_regex": "AgentIngressEgressAclErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "warm_boot.AgentIngressEgressPortErspanMirroringTruncateTest/[01].TrucatePortErspanMirror$"
+          "test_name_regex": "AgentEgressAclErspanMirroringTest/[01].*$"
         },
         {
           "test_name_regex": "AgentSflowMirrorTestV[46].VerifySampledPacketRate$"
@@ -5609,36 +4433,6 @@
         },
         {
           "test_name_regex": "AgentSflowMirrorTruncateTestV[46].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressPortSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressPortErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressAclSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressAclErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressPortErspanMirroringTruncateTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressPortSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressPortErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressAclSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressAclErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressPortErspanMirroringTruncateTest/[01].*$"
         },
         {
           "test_name_regex": "AgentMacLearningTest.VerifyHwAgingForPort$"
@@ -5720,36 +4514,6 @@
         },
         {
           "test_name_regex": "AgentSflowMirrorTruncateTestV[46].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressPortSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressPortErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressAclSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressAclErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressPortErspanMirroringTruncateTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressPortSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressPortErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressAclSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressAclErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressPortErspanMirroringTruncateTest/[01].*$"
         },
         {
           "test_name_regex": "AgentMacLearningTest.VerifyHwAgingForPort$"
@@ -5952,36 +4716,6 @@
           "test_name_regex": "AgentSflowMirrorTruncateTestV[46].*$"
         },
         {
-          "test_name_regex": "AgentIngressPortSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressPortErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressAclSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressAclErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressPortErspanMirroringTruncateTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressPortSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressPortErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressAclSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressAclErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressPortErspanMirroringTruncateTest/[01].*$"
-        },
-        {
           "test_name_regex": "AgentMacLearningTest.VerifyHwAgingForPort$"
         },
         {
@@ -6051,36 +4785,6 @@
           "test_name_regex": "AgentSflowMirrorTruncateTestV[46].*$"
         },
         {
-          "test_name_regex": "AgentIngressPortSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressPortErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressAclSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressAclErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressPortErspanMirroringTruncateTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressPortSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressPortErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressAclSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressAclErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressPortErspanMirroringTruncateTest/[01].*$"
-        },
-        {
           "test_name_regex": "AgentMacLearningTest.VerifyHwAgingForPort$"
         },
         {
@@ -6141,19 +4845,13 @@
           "test_name_regex": "AgentIngressAclErspanMirroringTest/[01].*$"
         },
         {
-          "test_name_regex": "AgentIngressEgressAclSpanMirroringTest/[01].*$"
+          "test_name_regex": "AgentEgressAclSpanMirroringTest/[01].*$"
         },
         {
-          "test_name_regex": "AgentIngressEgressAclErspanMirroringTest/[01].*$"
+          "test_name_regex": "AgentEgressAclErspanMirroringTest/[01].*$"
         },
         {
-          "test_name_regex": "AgentIngressEgressPortSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "warm_boot.AgentIngressEgressPortErspanMirroringTruncateTest/[01].TrucatePortErspanMirror$"
-        },
-        {
-          "test_name_regex": "warm_boot.AgentIngressEgressPortErspanMirroringTest/[01].*$"
+          "test_name_regex": "AgentEgressPortSpanMirroringTest/[01].*$"
         },
         {
           "test_name_regex": "AgentSflowMirrorTestV4[46].VerifySampledPacketRate$"
@@ -6287,36 +4985,6 @@
           "test_name_regex": "AgentSflowMirrorTruncateTestV[46].*$"
         },
         {
-          "test_name_regex": "AgentIngressPortSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressPortErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressAclSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressAclErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressPortErspanMirroringTruncateTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressPortSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressPortErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressAclSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressAclErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressPortErspanMirroringTruncateTest/[01].*$"
-        },
-        {
           "test_name_regex": "AgentMacLearningTest.VerifyHwAgingForPort$"
         },
         {
@@ -6396,36 +5064,6 @@
         },
         {
           "test_name_regex": "AgentSflowMirrorTruncateTestV[46].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressPortSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressPortErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressAclSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressAclErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressPortErspanMirroringTruncateTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressPortSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressPortErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressAclSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressAclErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressPortErspanMirroringTruncateTest/[01].*$"
         },
         {
           "test_name_regex": "AgentMacLearningTest.VerifyHwAgingForPort$"
@@ -6565,19 +5203,19 @@
           "test_name_regex": "AgentIngressAclErspanMirroringTest/[01].ErspanAclMirror$"
         },
         {
-          "test_name_regex": "AgentIngressEgressPortSpanMirroringTest/[01].*$"
+          "test_name_regex": "AgentEgressPortSpanMirroringTest/[01].*$"
         },
         {
-          "test_name_regex": "AgentIngressEgressPortErspanMirroringTest/[01].*$"
+          "test_name_regex": "AgentEgressPortErspanMirroringTest/[01].*$"
         },
         {
-          "test_name_regex": "AgentIngressEgressAclSpanMirroringTest/[01].*$"
+          "test_name_regex": "AgentEgressAclSpanMirroringTest/[01].*$"
         },
         {
-          "test_name_regex": "AgentIngressEgressAclErspanMirroringTest/[01].*$"
+          "test_name_regex": "AgentEgressAclErspanMirroringTest/[01].*$"
         },
         {
-          "test_name_regex": "AgentIngressEgressPortErspanMirroringTruncateTest/[01].*$"
+          "test_name_regex": "AgentEgressPortErspanMirroringTruncateTest/[01].*$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].DstIpNetworkControlDscpToHighPriQ$"
@@ -6632,36 +5270,6 @@
         },
         {
           "test_name_regex": "AgentSflowMirrorTruncateTestV[46].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressPortSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressPortErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressAclSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressAclErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressPortErspanMirroringTruncateTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressPortSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressPortErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressAclSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressAclErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressPortErspanMirroringTruncateTest/[01].*$"
         },
         {
           "test_name_regex": "AgentMacLearningTest.VerifyHwAgingForPort$"
@@ -6774,19 +5382,19 @@
           "test_name_regex": "AgentIngressAclErspanMirroringTest/[01].ErspanAclMirror$"
         },
         {
-          "test_name_regex": "AgentIngressEgressPortSpanMirroringTest/[01].*$"
+          "test_name_regex": "AgentEgressPortSpanMirroringTest/[01].*$"
         },
         {
-          "test_name_regex": "AgentIngressEgressPortErspanMirroringTest/[01].*$"
+          "test_name_regex": "AgentEgressPortErspanMirroringTest/[01].*$"
         },
         {
-          "test_name_regex": "AgentIngressEgressAclSpanMirroringTest/[01].*$"
+          "test_name_regex": "AgentEgressAclSpanMirroringTest/[01].*$"
         },
         {
-          "test_name_regex": "AgentIngressEgressAclErspanMirroringTest/[01].*$"
+          "test_name_regex": "AgentEgressAclErspanMirroringTest/[01].*$"
         },
         {
-          "test_name_regex": "AgentIngressEgressPortErspanMirroringTruncateTest/[01].*$"
+          "test_name_regex": "AgentEgressPortErspanMirroringTruncateTest/[01].*$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].DstIpNetworkControlDscpToHighPriQ$"
@@ -6841,36 +5449,6 @@
         },
         {
           "test_name_regex": "AgentSflowMirrorTruncateTestV[46].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressPortSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressPortErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressAclSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressAclErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressPortErspanMirroringTruncateTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressPortSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressPortErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressAclSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressAclErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressPortErspanMirroringTruncateTest/[01].*$"
         },
         {
           "test_name_regex": "AgentMacLearningTest.VerifyHwAgingForPort$"
@@ -7034,36 +5612,6 @@
           "test_name_regex": "AgentSflowMirrorTruncateTestV[46].*$"
         },
         {
-          "test_name_regex": "AgentIngressPortSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressPortErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressAclSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressAclErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressPortErspanMirroringTruncateTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressPortSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressPortErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressAclSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressAclErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressPortErspanMirroringTruncateTest/[01].*$"
-        },
-        {
           "test_name_regex": "AgentMacLearningTest.VerifyHwAgingForPort$"
         },
         {
@@ -7211,36 +5759,6 @@
         },
         {
           "test_name_regex": "AgentSflowMirrorTruncateTestV[46].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressPortSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressPortErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressAclSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressAclErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressPortErspanMirroringTruncateTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressPortSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressPortErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressAclSpanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressAclErspanMirroringTest/[01].*$"
-        },
-        {
-          "test_name_regex": "AgentIngressEgressPortErspanMirroringTruncateTest/[01].*$"
         },
         {
           "test_name_regex": "AgentMacLearningTest.VerifyHwAgingForPort$"
