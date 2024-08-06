@@ -167,7 +167,6 @@ class AgentPortBandwidthTest : public AgentHwTest {
     const double kVariance = 0.20; // i.e. + or -20%
     const int kRunDuration = 10;
 
-    getAgentEnsemble()->waitForLineRateOnPort(getPort0());
     auto statsBefore = getLatestPortStats(getPort0());
     auto statsAfter = statsBefore;
     auto beforeQueueOutCnt = getQueueOutCntFunc(statsBefore);
@@ -310,7 +309,6 @@ void AgentPortBandwidthTest::verifyRateDynamicChanges(
 
   auto verify = [=, this]() {
     sendUdpPkts(dscpVal);
-    getAgentEnsemble()->waitForLineRateOnPort(getPort0());
 
     // Rate before any bandwidth limit was configured
     auto beforeCntPerSec = getCurCntPerSec(getQueueOutCntFunc);
