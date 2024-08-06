@@ -59,7 +59,7 @@ static const std::
              "0x40000000000000000"},
             {std::make_tuple(
                  facebook::fboss::cfg::AsicType::ASIC_TYPE_JERICHO3,
-                 2,
+                 8,
                  2),
              "4"},
 };
@@ -667,6 +667,8 @@ class HwTrafficPfcTest : public HwLinkStateDependentTest {
         (getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO3)) {
       // As traffic cannot trigger deadlock for DNX, force back
       // to back PFC frame generation which causes a deadlock!
+      XLOG(DBG0) << "Triggering PFC deadlock detection on port ID : "
+                 << static_cast<int>(port);
       auto iter = kRegValToForcePfcTxForPriorityOnPortDnx.find(std::make_tuple(
           getAsic()->getAsicType(), static_cast<int>(port), kLosslessPriority));
       EXPECT_FALSE(iter == kRegValToForcePfcTxForPriorityOnPortDnx.end());
