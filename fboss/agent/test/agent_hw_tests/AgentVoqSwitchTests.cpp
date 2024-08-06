@@ -2144,4 +2144,40 @@ TEST_F(AgentVoqSwitchFullScaleDsfNodesTest, stressProgramEcmpRoutes) {
   verifyAcrossWarmBoots(setup, [] {});
 }
 
+TEST_F(AgentVoqSwitchLineRateTest, dramBlockedTime) {
+  auto setup = [=, this]() {
+    constexpr int kNumberOfPortsForDramBlock{6};
+    setupEcmpDataplaneLoopOnAllPorts();
+    createTrafficOnMultiplePorts(kNumberOfPortsForDramBlock);
+  };
+  auto verify = [=, this]() {
+    // Force traffic to use DRAM to increase DRAM enqueue/dequeue!
+    for (const auto& switchId : getSw()->getHwAsicTable()->getSwitchIDs()) {
+      int64_t dramBlockedTimeNs = 0;
+      auto switchIndex =
+          getSw()->getSwitchInfoTable().getSwitchIndexFromSwitchId(switchId);
+      WITH_RETRIES({
+        std::string out;
+        getAgentEnsemble()->runDiagCommand(
+            "m IPS_DRAM_ONLY_PROFILE  DRAM_ONLY_PROFILE=-1\nmod CGM_VOQ_SRAM_DRAM_MODE 0 127 VOQ_SRAM_DRAM_MODE_DATA=0x2\ns CGM_DRAM_BOUND_STATE_TH 0\nmodreg TDU_DRAM_BLOCKED_CONFIG DRAM_BLOCKED_WRITE_LEAKY_BUCKET_ASSERT_THRESHOLD=2 DRAM_BLOCKED_WRITE_LEAKY_BUCKET_DEASSERT_THRESHOLD=1 DRAM_BLOCKED_WRITE_PLUS_READ_LEAKY_BUCKET_ASSERT_THRESHOLD=2 DRAM_BLOCKED_WRITE_PLUS_READ_LEAKY_BUCKET_DEASSERT_THRESHOLD=1 DRAM_BLOCKED_AVERAGE_READ_INFLIGHTS_LEAKY_BUCKET_ASSERT_THRESHOLD=3 DRAM_BLOCKED_AVERAGE_READ_INFLIGHTS_LEAKY_BUCKET_DEASSERT_THRESHOLD=1\n",
+            out,
+            switchId);
+        getAgentEnsemble()->runDiagCommand("quit\n", out, switchId);
+
+        auto switchStats = getSw()->getHwSwitchStatsExpensive()[switchIndex];
+        if (switchStats.fb303GlobalStats()
+                ->dram_blocked_time_ns()
+                .has_value()) {
+          dramBlockedTimeNs =
+              *switchStats.fb303GlobalStats()->dram_blocked_time_ns();
+        }
+        XLOG(DBG2) << "Switch ID: " << switchId
+                   << ", Dram blocked time nsec: " << dramBlockedTimeNs;
+        EXPECT_EVENTUALLY_GT(dramBlockedTimeNs, 0);
+      });
+    }
+  };
+  this->verifyAcrossWarmBoots(setup, verify);
+}
+
 } // namespace facebook::fboss
