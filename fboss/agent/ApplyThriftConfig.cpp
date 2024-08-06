@@ -493,6 +493,7 @@ class ThriftConfigApplier {
   SwitchID getSwitchId(const cfg::Interface& intfConfig) const;
   void addRemoteIntfRoute();
   std::optional<SwitchID> getAnyVoqSwitchId();
+  std::vector<SwitchID> getFabricSwitchIds() const;
   std::optional<QueueConfig> getDefaultVoqConfigIfChanged(
       std::shared_ptr<SwitchSettings> switchSettings);
 
@@ -810,6 +811,18 @@ std::optional<SwitchID> ThriftConfigApplier::getAnyVoqSwitchId() {
   }
   // Returns a switchId only if we have a VoQ switch in config!
   return switchId;
+}
+
+std::vector<SwitchID> ThriftConfigApplier::getFabricSwitchIds() const {
+  std::vector<SwitchID> fabricSwitchIds;
+  for (const auto& switchIdAndSwitchInfo :
+       *cfg_->switchSettings()->switchIdToSwitchInfo()) {
+    if (switchIdAndSwitchInfo.second.switchType() == cfg::SwitchType::FABRIC) {
+      fabricSwitchIds.push_back(
+          static_cast<SwitchID>(switchIdAndSwitchInfo.first));
+    }
+  }
+  return fabricSwitchIds;
 }
 
 // Return the new defaultVoqConfig if it is different from the
