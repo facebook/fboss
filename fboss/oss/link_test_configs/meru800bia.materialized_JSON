@@ -7080,6 +7080,19 @@
         "scope": 1
       },
       {
+        "intfID": 16,
+        "routerID": 0,
+        "vlanID": 0,
+        "ipAddresses": [
+          
+        ],
+        "mtu": 9000,
+        "isVirtual": false,
+        "isStateSyncDisabled": true,
+        "type": 2,
+        "scope": 1
+      },
+      {
         "intfID": 34,
         "routerID": 0,
         "vlanID": 0,
