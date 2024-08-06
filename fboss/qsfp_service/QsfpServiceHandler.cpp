@@ -81,6 +81,12 @@ void QsfpServiceHandler::getTransceiverInfo(
   manager_->getTransceiversInfo(info, std::move(ids));
 }
 
+void QsfpServiceHandler::getPortsRequiringOpticsFwUpgrade(
+    std::vector<std::string>& ports) {
+  auto log = LOG_THRIFT_CALL(INFO);
+  ports = manager_->getPortsRequiringOpticsFwUpgrade();
+}
+
 void QsfpServiceHandler::getTransceiverConfigValidationInfo(
     std::map<int32_t, std::string>& info,
     std::unique_ptr<std::vector<int32_t>> ids,

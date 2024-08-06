@@ -408,6 +408,21 @@ const std::string TransceiverManager::getPortName(TransceiverID tcvrId) const {
   return portNames.empty() ? "" : *portNames.begin();
 }
 
+std::vector<std::string> TransceiverManager::getPortsRequiringOpticsFwUpgrade()
+    const {
+  std::vector<std::string> ports;
+  if (!isFullyInitialized()) {
+    throw FbossError("Service is still initializing...");
+  }
+  auto lockedTransceivers = transceivers_.rlock();
+  for (const auto& tcvrIt : *lockedTransceivers) {
+    if (requiresFirmwareUpgrade(*tcvrIt.second)) {
+      ports.push_back(getPortName(tcvrIt.first));
+    }
+  }
+  return ports;
+}
+
 bool TransceiverManager::firmwareUpgradeRequired(TransceiverID id) {
   auto lockedTransceivers = transceivers_.rlock();
   auto tcvrIt = lockedTransceivers->find(id);

@@ -294,4 +294,8 @@ service QsfpService extends phy.FbossCommonPhyCtrl {
   void dumpTransceiverI2cLog(1: string portName) throws (
     1: fboss.FbossBaseError error,
   );
+
+  list<string> getPortsRequiringOpticsFwUpgrade() throws (
+    1: fboss.FbossBaseError error,
+  );
 }

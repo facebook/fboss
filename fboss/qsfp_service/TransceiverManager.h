@@ -601,6 +601,8 @@ class TransceiverManager {
   // has to be different from whats already running in HW.
   bool requiresFirmwareUpgrade(Transceiver& tcvr) const;
 
+  std::vector<std::string> getPortsRequiringOpticsFwUpgrade() const;
+
  protected:
   /*
    * Check to see if we can attempt a warm boot.

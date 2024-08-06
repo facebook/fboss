@@ -231,6 +231,17 @@ TEST_F(OpticsFwUpgradeTest, upgradeOnLinkDown) {
   // The setup below will create a new qsfp config with the different firmware
   // version and then load the new config
   auto setup = [&]() {
+    // At the end of init, there should not be any modules that require firmware
+    // upgrade. All of them should have already been upgraded by now. Trigger a
+    // refresh to update current firmware version
+    getHwQsfpEnsemble()->getWedgeManager()->refreshStateMachines();
+    auto portsForFwUpgrade = getHwQsfpEnsemble()
+                                 ->getWedgeManager()
+                                 ->getPortsRequiringOpticsFwUpgrade();
+    EXPECT_TRUE(portsForFwUpgrade.empty())
+        << "Some modules still require firmware upgrade: " +
+            folly::join(",", portsForFwUpgrade);
+
     // During cold boot setup, update the firmware versions in the config
     auto qsfpCfg =
         getHwQsfpEnsemble()->getWedgeManager()->getQsfpConfig()->thrift;
@@ -245,6 +256,16 @@ TEST_F(OpticsFwUpgradeTest, upgradeOnLinkDown) {
     newQsfpCfg->dumpConfig(newCfgPath);
     FLAGS_qsfp_config = newCfgPath;
     getHwQsfpEnsemble()->getWedgeManager()->loadConfig();
+
+    // At this point, we have overwritten the config and changed the desired
+    // firmware vesions. We should expect to see some modules requiring firmware
+    // upgrade now. Trigger a refresh to update current firmware version
+    getHwQsfpEnsemble()->getWedgeManager()->refreshStateMachines();
+    portsForFwUpgrade = getHwQsfpEnsemble()
+                            ->getWedgeManager()
+                            ->getPortsRequiringOpticsFwUpgrade();
+    EXPECT_FALSE(portsForFwUpgrade.empty())
+        << "No modules requiring firmware upgrade";
   };
 
   // Verify function is called for both cold boot and warm boot iterations of
