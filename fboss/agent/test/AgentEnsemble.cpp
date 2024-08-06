@@ -394,7 +394,7 @@ uint64_t AgentEnsemble::getTrafficRate(
   auto curPortBytes = *curPortStats.outBytes_() + packetPaddingBytes;
   auto rate = static_cast<uint64_t>((curPortBytes - prevPortBytes) * 8) /
       secondsBetweenStatsCollection;
-  XLOG(DBG2) << ": Current rate " << rate << " bps" << ", curPortBytes "
+  XLOG(DBG2) << "Current rate " << rate << " bps" << ", curPortBytes "
              << curPortBytes << " prevPortBytes " << prevPortBytes
              << " curPortPackets " << curPortPackets << " prevPortPackets "
              << prevPortPackets;
@@ -429,7 +429,8 @@ bool AgentEnsemble::waitForRateOnPort(
   // The first iteration in the below loop will not be successful
   // given the prev/curr stats collections are back to back!
   auto prevPortStats = getLatestPortStats(port);
-  XLOG(DBG0) << "Desired rate " << desiredBps;
+  XLOG(DBG0) << "PortID: " << port << ", Desired rate " << desiredBps;
+  bool metDesiredRate = false;
   WITH_RETRIES_N_TIMED(
       10, std::chrono::milliseconds(1000 * secondsToWaitPerIteration), {
         auto curPortStats = getLatestPortStats(port);
@@ -438,13 +439,13 @@ bool AgentEnsemble::waitForRateOnPort(
         // Update prev stats for the next iteration if needed!
         prevPortStats = curPortStats;
         if (desiredBps == 0) {
-          EXPECT_EVENTUALLY_EQ(rate, desiredBps);
+          metDesiredRate = rate == desiredBps;
         } else {
-          EXPECT_EVENTUALLY_TRUE(rate >= desiredBps);
+          metDesiredRate = rate >= desiredBps;
         }
-        return true;
+        EXPECT_EVENTUALLY_TRUE(metDesiredRate);
       });
-  return false;
+  return metDesiredRate;
 }
 
 void AgentEnsemble::waitForLineRateOnPort(PortID port) {
