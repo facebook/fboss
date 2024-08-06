@@ -285,3 +285,18 @@ thrift_library(
         "//fboss/lib/phy:phy",
     ],
 )
+
+thrift_library(
+    name = "hw_test_ctrl",
+    languages = [
+        "cpp2",
+    ],
+    thrift_cpp2_options = "json",
+    thrift_srcs = {"hw_test_ctrl.thrift": [
+        "FbossHwTestCtrl",
+    ]},
+    deps = [
+        "//fboss/agent:switch_config",
+        "//fboss/agent:switch_state",
+    ],
+)
