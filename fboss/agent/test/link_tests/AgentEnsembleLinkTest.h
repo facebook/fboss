@@ -80,9 +80,6 @@ class AgentEnsembleLinkTest : public AgentEnsembleTest {
   void createL3DataplaneFlood() {
     createL3DataplaneFlood(getSingleVlanOrRoutedCabledPorts());
   }
-  std::string getPortName(PortID port) const;
-  std::vector<std::string> getPortName(
-      const std::vector<PortID>& portIDs) const;
 
   std::optional<PortID> getPeerPortID(PortID portId) const;
 
