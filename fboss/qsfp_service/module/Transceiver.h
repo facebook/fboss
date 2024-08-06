@@ -125,6 +125,11 @@ class Transceiver {
   virtual TransceiverInfo getTransceiverInfo() const = 0;
 
   /*
+   * Get the Transceiver Part Number
+   */
+  virtual std::string getPartNumber() const = 0;
+
+  /*
    * Return raw page data from the qsfp DOM
    */
   virtual RawDOMData getRawDOMData() = 0;

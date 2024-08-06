@@ -37,6 +37,11 @@
 #include <map>
 #include <vector>
 
+#define MODULE_LOG(level, Module, tcvrID) \
+  XLOG(level) << Module << " tcvrID:" << tcvrID << ": "
+
+#define FW_LOG(level, tcvrID) MODULE_LOG(level, "[FWUPG]", tcvrID)
+
 DECLARE_string(qsfp_service_volatile_dir);
 DECLARE_bool(can_qsfp_service_warm_boot);
 DECLARE_bool(enable_tcvr_validation);
