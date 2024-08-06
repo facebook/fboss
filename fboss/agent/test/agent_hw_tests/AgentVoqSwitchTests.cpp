@@ -540,6 +540,61 @@ TEST_F(AgentVoqSwitchWithFabricPortsTest, checkFabricConnectivity) {
   verifyAcrossWarmBoots([] {}, verify);
 }
 
+TEST_F(AgentVoqSwitchWithFabricPortsTest, switchReachability) {
+  auto verify = [=, this]() {
+    EXPECT_GT(getProgrammedState()->getPorts()->numNodes(), 0);
+    auto fabricPortId =
+        PortID(masterLogicalPortIds({cfg::PortType::FABRIC_PORT})[0]);
+    auto drainPort = [&](bool drain, PortID fabPortId) {
+      applyNewState([&](const std::shared_ptr<SwitchState>& in) {
+        auto out = in->clone();
+        auto port = out->getPorts()->getNodeIf(fabPortId);
+        auto newPort = port->modify(&out);
+        newPort->setPortDrainState(
+            drain ? cfg::PortDrainState::DRAINED
+                  : cfg::PortDrainState::UNDRAINED);
+        return out;
+      });
+    };
+    auto switchReachableOverPort = [&](bool reachable,
+                                       PortID portId,
+                                       int expectedGroupSize) {
+      auto switchId = *getSw()->getHwAsicTable()->getSwitchIDs().begin();
+      WITH_RETRIES({
+        const auto& reachability = getSw()->getSwitchReachability();
+        const auto switchIter = reachability.find(switchId);
+        EXPECT_EVENTUALLY_TRUE(switchIter != reachability.end());
+        auto switchReachability = switchIter->second;
+        const auto switchToPortGroupIter =
+            switchReachability.switchIdToFabricPortGroupMap()->find(switchId);
+        EXPECT_EVENTUALLY_TRUE(
+            switchToPortGroupIter !=
+            switchReachability.switchIdToFabricPortGroupMap()->end());
+
+        const auto portSetIter = switchReachability.fabricPortGroupMap()->find(
+            switchToPortGroupIter->second);
+        EXPECT_EVENTUALLY_TRUE(
+            portSetIter != switchIter->second.fabricPortGroupMap()->end());
+        EXPECT_EVENTUALLY_EQ(portSetIter->second.size(), expectedGroupSize);
+        // If the size matches, then check for port membership
+        EXPECT_EVENTUALLY_EQ(
+            portSetIter->second.contains(
+                getProgrammedState()->getPorts()->getNodeIf(portId)->getName()),
+            reachable);
+      });
+    };
+    drainPort(true /*drain*/, fabricPortId);
+    switchReachableOverPort(
+        false /*reachable*/,
+        fabricPortId,
+        masterLogicalFabricPortIds().size() - 1);
+    drainPort(false /*drain*/, fabricPortId);
+    switchReachableOverPort(
+        true /*reachable*/, fabricPortId, masterLogicalFabricPortIds().size());
+  };
+  verifyAcrossWarmBoots([] {}, verify);
+}
+
 TEST_F(AgentVoqSwitchWithFabricPortsTest, fabricIsolate) {
   auto verify = [=, this]() {
     EXPECT_GT(getProgrammedState()->getPorts()->numNodes(), 0);
