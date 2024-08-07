@@ -184,7 +184,6 @@ void DsfSubscriber::stateUpdated(const StateDelta& stateDelta) {
               streamServePool_->getEventBase(),
               localNodeName_,
               nodeName,
-              nodeSwitchId,
               srcIPAddr,
               dstIPAddr,
               sw_->stats(),

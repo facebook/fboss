@@ -75,7 +75,6 @@ class DsfSubscriptionTest : public ::testing::Test {
         streamServePool_->getEventBase(),
         "local",
         "remote",
-        SwitchID(0),
         folly::IPAddress("::1"),
         folly::IPAddress("::1"),
         switchStats_.get(),

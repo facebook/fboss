@@ -61,7 +61,6 @@ DsfSubscription::DsfSubscription(
     folly::EventBase* subscriberEvb,
     std::string localNodeName,
     std::string remoteNodeName,
-    SwitchID /*remoteNodeSwitchId*/,
     folly::IPAddress localIp,
     folly::IPAddress remoteIp,
     SwitchStats* stats,
