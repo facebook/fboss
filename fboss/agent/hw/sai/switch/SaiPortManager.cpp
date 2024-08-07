@@ -2169,6 +2169,14 @@ void SaiPortManager::programSampling(
     SamplePacketAction action,
     uint64_t sampleRate,
     std::optional<cfg::SampleDestination> sampleDestination) {
+  auto portType = getPortType(portId);
+  if (portType != cfg::PortType::INTERFACE_PORT) {
+    throw FbossError(
+        "Programming Sampling is only supported for Interface Ports; PortID: ",
+        portId,
+        " has type",
+        apache::thrift::util::enumNameSafe(portType));
+  }
   auto destination = sampleDestination.has_value()
       ? sampleDestination.value()
       : cfg::SampleDestination::CPU;
@@ -2212,6 +2220,15 @@ void SaiPortManager::programMirror(
     MirrorDirection direction,
     MirrorAction action,
     std::optional<std::string> mirrorId) {
+  auto portType = getPortType(portId);
+  if (portType != cfg::PortType::INTERFACE_PORT) {
+    throw FbossError(
+        "Programming mirroring is only supported for Interface Ports; PortID: ",
+        portId,
+        " has type",
+        apache::thrift::util::enumNameSafe(portType));
+  }
+
   auto portHandle = getPortHandle(portId);
   std::vector<sai_object_id_t> mirrorOidList{};
   if (action == MirrorAction::START) {
@@ -2244,6 +2261,14 @@ void SaiPortManager::programSamplingMirror(
     MirrorDirection direction,
     MirrorAction action,
     std::optional<std::string> mirrorId) {
+  auto portType = getPortType(portId);
+  if (portType != cfg::PortType::INTERFACE_PORT) {
+    throw FbossError(
+        "Programming sampling mirror is only supported for Interface Ports; PortID: ",
+        portId,
+        " has type",
+        apache::thrift::util::enumNameSafe(portType));
+  }
   auto portHandle = getPortHandle(portId);
   std::vector<sai_object_id_t> mirrorOidList{};
   if (action == MirrorAction::START) {
