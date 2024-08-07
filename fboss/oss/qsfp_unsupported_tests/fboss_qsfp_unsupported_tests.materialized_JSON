@@ -5,7 +5,13 @@
           "test_name_regex": "HwTest.CheckDefaultXphyFirmwareVersion$"
         },
         {
+          "test_name_regex": "HwXphyFirmwareTest.CheckDefaultXphyFirmwareVersion$"
+        },
+        {
           "test_name_regex": "HwTest.CheckPimPresent$"
+        },
+        {
+          "test_name_regex": "HwPimTest.CheckPimPresent$"
         },
         {
           "test_name_regex": "HwPortPrbsTest.*$"
@@ -172,7 +178,13 @@
           "test_name_regex": "HwTest.CheckDefaultXphyFirmwareVersion$"
         },
         {
+          "test_name_regex": "HwXphyFirmwareTest.CheckDefaultXphyFirmwareVersion$"
+        },
+        {
           "test_name_regex": "HwTest.CheckPimPresent$"
+        },
+        {
+          "test_name_regex": "HwPimTest.CheckPimPresent$"
         },
         {
           "test_name_regex": "HwPortPrbsTest.*$"
@@ -339,7 +351,13 @@
           "test_name_regex": "HwTest.CheckDefaultXphyFirmwareVersion$"
         },
         {
+          "test_name_regex": "HwXphyFirmwareTest.CheckDefaultXphyFirmwareVersion$"
+        },
+        {
           "test_name_regex": "HwTest.CheckPimPresent$"
+        },
+        {
+          "test_name_regex": "HwPimTest.CheckPimPresent$"
         },
         {
           "test_name_regex": "HwPortPrbsTest.*$"
@@ -506,7 +524,13 @@
           "test_name_regex": "HwTest.CheckDefaultXphyFirmwareVersion$"
         },
         {
+          "test_name_regex": "HwXphyFirmwareTest.CheckDefaultXphyFirmwareVersion$"
+        },
+        {
           "test_name_regex": "HwTest.CheckPimPresent$"
+        },
+        {
+          "test_name_regex": "HwPimTest.CheckPimPresent$"
         },
         {
           "test_name_regex": "HwPortPrbsTest.*$"
@@ -673,7 +697,13 @@
           "test_name_regex": "HwTest.CheckDefaultXphyFirmwareVersion$"
         },
         {
+          "test_name_regex": "HwXphyFirmwareTest.CheckDefaultXphyFirmwareVersion$"
+        },
+        {
           "test_name_regex": "HwTest.CheckPimPresent$"
+        },
+        {
+          "test_name_regex": "HwPimTest.CheckPimPresent$"
         },
         {
           "test_name_regex": "HwPortPrbsTest.*$"
@@ -834,7 +864,13 @@
           "test_name_regex": "HwTest.CheckDefaultXphyFirmwareVersion$"
         },
         {
+          "test_name_regex": "HwXphyFirmwareTest.CheckDefaultXphyFirmwareVersion$"
+        },
+        {
           "test_name_regex": "HwTest.CheckPimPresent$"
+        },
+        {
+          "test_name_regex": "HwPimTest.CheckPimPresent$"
         },
         {
           "test_name_regex": "HwPortPrbsTest.*$"
@@ -2151,10 +2187,16 @@
           "test_name_regex": "HwTest.CheckPimPresent$"
         },
         {
+          "test_name_regex": "HwPimTest.CheckPimPresent$"
+        },
+        {
           "test_name_regex": "HwMacsecTest.*$"
         },
         {
           "test_name_regex": "HwTest.CheckDefaultXphyFirmwareVersion$"
+        },
+        {
+          "test_name_regex": "HwXphyFirmwareTest.CheckDefaultXphyFirmwareVersion$"
         },
         {
           "test_name_regex": "HwPortPrbsTest.*$"
@@ -2318,10 +2360,16 @@
           "test_name_regex": "HwTest.CheckPimPresent$"
         },
         {
+          "test_name_regex": "HwPimTest.CheckPimPresent$"
+        },
+        {
           "test_name_regex": "HwMacsecTest.*$"
         },
         {
           "test_name_regex": "HwTest.CheckDefaultXphyFirmwareVersion$"
+        },
+        {
+          "test_name_regex": "HwXphyFirmwareTest.CheckDefaultXphyFirmwareVersion$"
         },
         {
           "test_name_regex": "HwPortPrbsTest.*$"
@@ -2485,7 +2533,13 @@
           "test_name_regex": "HwTest.CheckDefaultXphyFirmwareVersion$"
         },
         {
+          "test_name_regex": "HwXphyFirmwareTest.CheckDefaultXphyFirmwareVersion$"
+        },
+        {
           "test_name_regex": "HwTest.CheckPimPresent$"
+        },
+        {
+          "test_name_regex": "HwPimTest.CheckPimPresent$"
         },
         {
           "test_name_regex": "HwPortPrbsTest.*$"
@@ -2652,7 +2706,13 @@
           "test_name_regex": "HwTest.CheckDefaultXphyFirmwareVersion$"
         },
         {
+          "test_name_regex": "HwXphyFirmwareTest.CheckDefaultXphyFirmwareVersion$"
+        },
+        {
           "test_name_regex": "HwTest.CheckPimPresent$"
+        },
+        {
+          "test_name_regex": "HwPimTest.CheckPimPresent$"
         },
         {
           "test_name_regex": "HwPortPrbsTest.*$"
@@ -2819,7 +2879,13 @@
           "test_name_regex": "HwTest.CheckDefaultXphyFirmwareVersion$"
         },
         {
+          "test_name_regex": "HwXphyFirmwareTest.CheckDefaultXphyFirmwareVersion$"
+        },
+        {
           "test_name_regex": "HwTest.CheckPimPresent$"
+        },
+        {
+          "test_name_regex": "HwPimTest.CheckPimPresent$"
         },
         {
           "test_name_regex": "HwPortPrbsTest.*$"
@@ -2983,7 +3049,13 @@
           "test_name_regex": "HwTest.CheckDefaultXphyFirmwareVersion$"
         },
         {
+          "test_name_regex": "HwXphyFirmwareTest.CheckDefaultXphyFirmwareVersion$"
+        },
+        {
           "test_name_regex": "HwTest.CheckPimPresent$"
+        },
+        {
+          "test_name_regex": "HwPimTest.CheckPimPresent$"
         },
         {
           "test_name_regex": "HwPortPrbsTest.*$"
@@ -3147,7 +3219,13 @@
           "test_name_regex": "HwTest.CheckDefaultXphyFirmwareVersion$"
         },
         {
+          "test_name_regex": "HwXphyFirmwareTest.CheckDefaultXphyFirmwareVersion$"
+        },
+        {
           "test_name_regex": "HwTest.CheckPimPresent$"
+        },
+        {
+          "test_name_regex": "HwPimTest.CheckPimPresent$"
         },
         {
           "test_name_regex": "HwPortPrbsTest.*$"
@@ -3317,7 +3395,13 @@
           "test_name_regex": "HwTest.CheckDefaultXphyFirmwareVersion$"
         },
         {
+          "test_name_regex": "HwXphyFirmwareTest.CheckDefaultXphyFirmwareVersion$"
+        },
+        {
           "test_name_regex": "HwTest.CheckPimPresent$"
+        },
+        {
+          "test_name_regex": "HwPimTest.CheckPimPresent$"
         },
         {
           "test_name_regex": "HwPortPrbsTest.*$"
@@ -3487,7 +3571,13 @@
           "test_name_regex": "HwTest.CheckDefaultXphyFirmwareVersion$"
         },
         {
+          "test_name_regex": "HwXphyFirmwareTest.CheckDefaultXphyFirmwareVersion$"
+        },
+        {
           "test_name_regex": "HwTest.CheckPimPresent$"
+        },
+        {
+          "test_name_regex": "HwPimTest.CheckPimPresent$"
         },
         {
           "test_name_regex": "HwPortPrbsTest.*$"
@@ -3648,7 +3738,13 @@
           "test_name_regex": "HwTest.CheckDefaultXphyFirmwareVersion$"
         },
         {
+          "test_name_regex": "HwXphyFirmwareTest.CheckDefaultXphyFirmwareVersion$"
+        },
+        {
           "test_name_regex": "HwTest.CheckPimPresent$"
+        },
+        {
+          "test_name_regex": "HwPimTest.CheckPimPresent$"
         },
         {
           "test_name_regex": "HwPortPrbsTest.*$"
@@ -3964,6 +4060,9 @@
           "test_name_regex": "HwTest.CheckDefaultXphyFirmwareVersion$"
         },
         {
+          "test_name_regex": "HwXphyFirmwareTest.CheckDefaultXphyFirmwareVersion$"
+        },
+        {
           "test_name_regex": "HwPortPrbsTest.*$"
         },
         {
@@ -4128,6 +4227,9 @@
           "test_name_regex": "HwTest.CheckDefaultXphyFirmwareVersion$"
         },
         {
+          "test_name_regex": "HwXphyFirmwareTest.CheckDefaultXphyFirmwareVersion$"
+        },
+        {
           "test_name_regex": "HwPortPrbsTest.*$"
         },
         {
@@ -4290,6 +4392,9 @@
     "morgan800cc/physdk-credo-0.7.2/credo-0.7.2": [
         {
           "test_name_regex": "HwTest.CheckDefaultXphyFirmwareVersion$"
+        },
+        {
+          "test_name_regex": "HwXphyFirmwareTest.CheckDefaultXphyFirmwareVersion$"
         },
         {
           "test_name_regex": "HwPortPrbsTest.*$"
@@ -4457,6 +4562,9 @@
     "morgan800cc/physdk-credo-0.8.4/credo-0.8.4": [
         {
           "test_name_regex": "HwTest.CheckDefaultXphyFirmwareVersion$"
+        },
+        {
+          "test_name_regex": "HwXphyFirmwareTest.CheckDefaultXphyFirmwareVersion$"
         },
         {
           "test_name_regex": "HwPortPrbsTest.*$"
@@ -4629,6 +4737,9 @@
           "test_name_regex": "HwTest.CheckDefaultXphyFirmwareVersion$"
         },
         {
+          "test_name_regex": "HwXphyFirmwareTest.CheckDefaultXphyFirmwareVersion$"
+        },
+        {
           "test_name_regex": "HwPortPrbsTest.*$"
         },
         {
@@ -4796,6 +4907,9 @@
           "test_name_regex": "HwTest.CheckDefaultXphyFirmwareVersion$"
         },
         {
+          "test_name_regex": "HwXphyFirmwareTest.CheckDefaultXphyFirmwareVersion$"
+        },
+        {
           "test_name_regex": "HwPortPrbsTest.*$"
         },
         {
@@ -4960,10 +5074,16 @@
           "test_name_regex": "HwTest.CheckDefaultXphyFirmwareVersion$"
         },
         {
+          "test_name_regex": "HwXphyFirmwareTest.CheckDefaultXphyFirmwareVersion$"
+        },
+        {
           "test_name_regex": "HwMacsecTest.*$"
         },
         {
           "test_name_regex": "HwTest.CheckPimPresent$"
+        },
+        {
+          "test_name_regex": "HwPimTest.CheckPimPresent$"
         },
         {
           "test_name_regex": "HwPortPrbsTest.*$"
@@ -5130,10 +5250,16 @@
           "test_name_regex": "HwTest.CheckDefaultXphyFirmwareVersion$"
         },
         {
+          "test_name_regex": "HwXphyFirmwareTest.CheckDefaultXphyFirmwareVersion$"
+        },
+        {
           "test_name_regex": "HwMacsecTest.*$"
         },
         {
           "test_name_regex": "HwTest.CheckPimPresent$"
+        },
+        {
+          "test_name_regex": "HwPimTest.CheckPimPresent$"
         },
         {
           "test_name_regex": "HwPortPrbsTest.*$"
@@ -5300,7 +5426,13 @@
           "test_name_regex": "HwTest.CheckDefaultXphyFirmwareVersion$"
         },
         {
+          "test_name_regex": "HwXphyFirmwareTest.CheckDefaultXphyFirmwareVersion$"
+        },
+        {
           "test_name_regex": "HwTest.CheckPimPresent$"
+        },
+        {
+          "test_name_regex": "HwPimTest.CheckPimPresent$"
         },
         {
           "test_name_regex": "HwPortPrbsTest.*$"
@@ -5449,7 +5581,13 @@
           "test_name_regex": "HwTest.CheckDefaultXphyFirmwareVersion$"
         },
         {
+          "test_name_regex": "HwXphyFirmwareTest.CheckDefaultXphyFirmwareVersion$"
+        },
+        {
           "test_name_regex": "HwTest.CheckPimPresent$"
+        },
+        {
+          "test_name_regex": "HwPimTest.CheckPimPresent$"
         },
         {
           "test_name_regex": "HwPortPrbsTest.*$"
@@ -5598,7 +5736,13 @@
           "test_name_regex": "HwTest.CheckDefaultXphyFirmwareVersion$"
         },
         {
+          "test_name_regex": "HwXphyFirmwareTest.CheckDefaultXphyFirmwareVersion$"
+        },
+        {
           "test_name_regex": "HwTest.CheckPimPresent$"
+        },
+        {
+          "test_name_regex": "HwPimTest.CheckPimPresent$"
         },
         {
           "test_name_regex": "HwPortPrbsTest.*$"
@@ -5759,7 +5903,13 @@
           "test_name_regex": "HwTest.CheckDefaultXphyFirmwareVersion$"
         },
         {
+          "test_name_regex": "HwXphyFirmwareTest.CheckDefaultXphyFirmwareVersion$"
+        },
+        {
           "test_name_regex": "HwTest.CheckPimPresent$"
+        },
+        {
+          "test_name_regex": "HwPimTest.CheckPimPresent$"
         },
         {
           "test_name_regex": "HwPortPrbsTest.*$"
