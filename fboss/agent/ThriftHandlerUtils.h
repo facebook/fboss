@@ -23,6 +23,10 @@
 #include <folly/String.h>
 
 namespace facebook::fboss::utility {
+void clearSwPortStats(
+    std::vector<int32_t>& ports,
+    std::shared_ptr<SwitchState> state);
+
 template <typename SwitchT>
 void clearPortStats(
     SwitchT* sw,
@@ -85,20 +89,6 @@ void clearPortStats(
         folly::to<std::string>(portNameExt, "out_pfc_frames"));
   };
 
-  auto getPortLinkStateCounterKey = [&](std::vector<std::string>& portKeys,
-                                        const std::shared_ptr<Port> port) {
-    auto portId = port->getID();
-    auto portName = port->getName().empty()
-        ? folly::to<std::string>("port", portId)
-        : port->getName();
-    portKeys.emplace_back(
-        folly::to<std::string>(portName, ".", "link_state.flap"));
-  };
-
-  auto getLinkStateCounterKey = [&](std::vector<std::string>& globalKeys) {
-    globalKeys.emplace_back("link_state.flap");
-  };
-
   auto statsMap = facebook::fb303::fbData->getStatMap();
   for (const auto& portId : *ports) {
     const auto port = state->getPorts()->getNodeIf(PortID(portId));
@@ -106,7 +96,6 @@ void clearPortStats(
     getPortCounterKeys(portKeys, "out_", port);
     getPortCounterKeys(portKeys, "in_", port);
     getQueueCounterKeys(portKeys, port);
-    getPortLinkStateCounterKey(portKeys, port);
     if (port->getPfc().has_value()) {
       getPortPfcCounterKeys(portKeys, port);
     }
@@ -116,15 +105,6 @@ void clearPortStats(
       // in different thread
       statsMap->clearValue(key);
     }
-  }
-
-  std::vector<std::string> globalKeys;
-  getLinkStateCounterKey(globalKeys);
-  for (const auto& key : globalKeys) {
-    // this API locks statistics for the key
-    // ensuring no race condition with update/delete
-    // in different thread
-    statsMap->clearValue(key);
   }
 }
 } // namespace facebook::fboss::utility

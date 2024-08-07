@@ -303,6 +303,15 @@ target_link_libraries(error
   Folly::folly
 )
 
+add_library(thrifthandler_utils
+  fboss/agent/ThriftHandlerUtils.cpp
+)
+
+target_link_libraries(thrifthandler_utils
+  fboss_types
+  state
+)
+
 add_library(handler
   fboss/agent/ThriftHandler.cpp
 )
@@ -314,6 +323,7 @@ target_link_libraries(handler
   ctrl_cpp2
   log_thrift_call
   Folly::folly
+  thrifthandler_utils
 )
 
 target_link_libraries(fboss_types

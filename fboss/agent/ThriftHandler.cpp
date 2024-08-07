@@ -1235,6 +1235,7 @@ void ThriftHandler::getAllPortInfo(map<int32_t, PortInfoThrift>& portInfoMap) {
 void ThriftHandler::clearPortStats(unique_ptr<vector<int32_t>> ports) {
   auto log = LOG_THRIFT_CALL(DBG1, *ports);
   ensureConfigured(__func__);
+  utility::clearSwPortStats(*ports, sw_->getState());
   if (sw_->isRunModeMultiSwitch()) {
     for (const auto& switchId : sw_->getSwitchInfoTable().getSwitchIDs()) {
       std::vector<int32_t> portList;

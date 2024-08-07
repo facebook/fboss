@@ -886,7 +886,7 @@ cpp_library(
         ":stats",
         ":switch_config-cpp2-types",
         ":switchid_scope_resolver",
-        ":thrifthandler_utils_h",
+        ":thrifthandler_utils",
         ":utils",
         "//common/fb303/cpp:fb303",
         "//common/logging:logging",
@@ -1436,7 +1436,10 @@ cpp_library(
 )
 
 cpp_library(
-    name = "thrifthandler_utils_h",
+    name = "thrifthandler_utils",
+    srcs = [
+        "ThriftHandlerUtils.cpp",
+    ],
     headers = [
         "ThriftHandlerUtils.h",
     ],

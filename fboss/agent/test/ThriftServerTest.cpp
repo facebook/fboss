@@ -301,6 +301,18 @@ CO_TEST_F(ThriftServerTest, setPortStateSink) {
         }
       }());
   EXPECT_TRUE(ret);
+  // flap counter should be 2
+  counters.update();
+  EXPECT_EQ(counters.value("port5.link_state.flap.sum"), 2);
+  ThriftHandler handler(sw_);
+  std::unique_ptr<std::vector<int32_t>> ports =
+      std::make_unique<std::vector<int32_t>>();
+  ports->push_back(5);
+  handler.clearPortStats(std::move(ports));
+  WITH_RETRIES({
+    counters.update();
+    EXPECT_EVENTUALLY_EQ(counters.value("port5.link_state.flap.sum"), 0);
+  });
 }
 
 CO_TEST_F(ThriftServerTest, setPortActiveStateSink) {
