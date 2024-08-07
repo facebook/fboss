@@ -74,6 +74,12 @@ class AgentSflowMirrorTest : public AgentHwTest {
         : getPortsForSampling()[0];
   }
 
+  cfg::PortType getNonSflowSampledInterfacePortType() const {
+    return checkSameAndGetAsic()->isSupported(HwAsic::Feature::MANAGEMENT_PORT)
+        ? cfg::PortType::MANAGEMENT_PORT
+        : cfg::PortType::INTERFACE_PORT;
+  }
+
   std::vector<PortID> getPortsForSampling() const {
     auto portIds = masterLogicalPortIds({cfg::PortType::INTERFACE_PORT});
     auto switchID = switchIdForPort(portIds[0]);
@@ -170,7 +176,8 @@ class AgentSflowMirrorTest : public AgentHwTest {
 
     this->getAgentEnsemble()->applyNewState(
         [&](const std::shared_ptr<SwitchState>& state) {
-          utility::EcmpSetupTargetedPorts<AddrT> ecmpHelper(state);
+          utility::EcmpSetupTargetedPorts<AddrT> ecmpHelper(
+              state, RouterID(0), {getNonSflowSampledInterfacePortType()});
           auto newState = ecmpHelper.resolveNextHops(state, nhopPorts);
           return newState;
         },
@@ -180,7 +187,10 @@ class AgentSflowMirrorTest : public AgentHwTest {
     auto dip = mirror->getDestinationIp();
 
     RoutePrefix<AddrT> prefix(AddrT(dip->str()), dip->bitCount());
-    utility::EcmpSetupTargetedPorts<AddrT> ecmpHelper(getProgrammedState());
+    utility::EcmpSetupTargetedPorts<AddrT> ecmpHelper(
+        getProgrammedState(),
+        RouterID(0),
+        {getNonSflowSampledInterfacePortType()});
 
     ecmpHelper.programRoutes(
         getAgentEnsemble()->getRouteUpdaterWrapper(), nhopPorts, {prefix});

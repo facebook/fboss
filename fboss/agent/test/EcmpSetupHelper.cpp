@@ -119,13 +119,13 @@ BaseEcmpSetupHelper<AddrT, NextHopT>::BaseEcmpSetupHelper() {}
 template <typename AddrT, typename NextHopT>
 flat_map<PortDescriptor, InterfaceID>
 BaseEcmpSetupHelper<AddrT, NextHopT>::computePortDesc2Interface(
-    const std::shared_ptr<SwitchState>& inputState) const {
+    const std::shared_ptr<SwitchState>& inputState,
+    const std::set<cfg::PortType>& portTypes) const {
   boost::container::flat_map<PortDescriptor, InterfaceID> portDesc2Interface;
   std::set<PortID> portIds;
   for (const auto& portMap : std::as_const(*inputState->getPorts())) {
     for (const auto& port : std::as_const(*portMap.second)) {
-      if (port.second->getPortType() == cfg::PortType::INTERFACE_PORT ||
-          port.second->getPortType() == cfg::PortType::MANAGEMENT_PORT) {
+      if (portTypes.find(port.second->getPortType()) != portTypes.end()) {
         portIds.insert(port.second->getID());
       }
     }
@@ -442,18 +442,20 @@ EcmpSetupTargetedPorts<IPAddrT>::EcmpSetupTargetedPorts(
     const std::shared_ptr<SwitchState>& inputState,
     std::optional<folly::MacAddress> nextHopMac,
     RouterID routerId,
-    bool forProdConfig)
+    bool forProdConfig,
+    const std::set<cfg::PortType>& portTypes)
     : BaseEcmpSetupHelper<IPAddrT, EcmpNextHopT>(), routerId_(routerId) {
-  computeNextHops(inputState, nextHopMac, forProdConfig);
+  computeNextHops(inputState, nextHopMac, forProdConfig, portTypes);
 }
 
 template <typename IPAddrT>
 void EcmpSetupTargetedPorts<IPAddrT>::computeNextHops(
     const std::shared_ptr<SwitchState>& inputState,
     std::optional<folly::MacAddress> nextHopMac,
-    bool forProdConfig) {
+    bool forProdConfig,
+    const std::set<cfg::PortType>& portTypes) {
   BaseEcmpSetupHelperT::portDesc2Interface_ =
-      BaseEcmpSetupHelperT::computePortDesc2Interface(inputState);
+      BaseEcmpSetupHelperT::computePortDesc2Interface(inputState, portTypes);
   auto intf2Subnet =
       computeInterface2Subnet(inputState, BaseEcmpSetupHelperT::kIsV6);
   int offset = 0;
@@ -831,9 +833,10 @@ template <typename IPAddrT>
 void MplsEcmpSetupTargetedPorts<IPAddrT>::computeNextHops(
     const std::shared_ptr<SwitchState>& inputState,
     std::optional<folly::MacAddress> nextHopMac,
-    bool forProdConfig) {
+    bool forProdConfig,
+    const std::set<cfg::PortType>& portTypes) {
   BaseEcmpSetupHelperT::portDesc2Interface_ =
-      BaseEcmpSetupHelperT::computePortDesc2Interface(inputState);
+      BaseEcmpSetupHelperT::computePortDesc2Interface(inputState, portTypes);
   auto intf2Subnet =
       computeInterface2Subnet(inputState, BaseEcmpSetupHelperT::kIsV6);
   int offset = 0;

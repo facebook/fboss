@@ -46,7 +46,8 @@ void ProdInvariantTest::setupAgentTestEcmp(
   // the next hop IP.
   auto forProdConfig =
       useProdConfig_.has_value() ? useProdConfig_.value() : false;
-  utility::EcmpSetupTargetedPorts6 ecmp6(sw()->getState(), forProdConfig);
+  utility::EcmpSetupTargetedPorts6 ecmp6(
+      sw()->getState(), forProdConfig, {cfg::PortType::INTERFACE_PORT});
 
   sw()->updateStateBlocking("Resolve nhops", [&](auto state) {
     return ecmp6.resolveNextHops(state, ports);

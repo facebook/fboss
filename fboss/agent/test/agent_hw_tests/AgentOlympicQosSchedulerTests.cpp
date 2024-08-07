@@ -33,7 +33,7 @@ class AgentOlympicQosSchedulerTest : public AgentHwTest {
     return utility::getFirstInterfaceMac(getProgrammedState());
   }
   PortID outPort() const {
-    utility::EcmpSetupAnyNPorts6 ecmpHelper6{getProgrammedState()};
+    utility::EcmpSetupAnyNPorts6 ecmpHelper6(getProgrammedState());
     return ecmpHelper6.nhop(0).portDesc.phyPortID();
   }
 
@@ -59,7 +59,7 @@ class AgentOlympicQosSchedulerTest : public AgentHwTest {
   }
 
   void sendUdpPkt(uint8_t dscpVal, bool frontPanel = true) {
-    utility::EcmpSetupAnyNPorts6 ecmpHelper6{getProgrammedState()};
+    utility::EcmpSetupAnyNPorts6 ecmpHelper6(getProgrammedState());
     if (frontPanel) {
       getSw()->sendPacketOutOfPortAsync(
           createUdpPkt(dscpVal),
@@ -144,12 +144,14 @@ class AgentOlympicQosSchedulerTest : public AgentHwTest {
     auto pktsToSend = getAgentEnsemble()->getMinPktsForLineRate(outPort());
     // send traffic to wrr queues first
     for (auto queue : wrrQueues) {
-      XLOG(DBG2) << "send traffic to wrr queue " << queue;
+      XLOG(DBG2) << "send traffic to wrr queue " << queue << " with "
+                 << pktsToSend << " packets";
       sendUdpPkts(queueToDscp.at(queue).front(), pktsToSend, frontPanel);
     }
     // send traffic to sp queues from low priority to high priority
     for (auto queue : spQueues) {
-      XLOG(DBG2) << "send traffic to sp queue " << queue;
+      XLOG(DBG2) << "send traffic to sp queue " << queue << " with "
+                 << pktsToSend << " packets";
       sendUdpPkts(queueToDscp.at(queue).front(), pktsToSend, frontPanel);
     }
   }
@@ -181,7 +183,7 @@ class AgentOlympicQosSchedulerTest : public AgentHwTest {
   void verifySingleWRRAndSP(
       const std::vector<int>& queueIds,
       int trafficQueueId) {
-    utility::EcmpSetupAnyNPorts6 ecmpHelper6{getProgrammedState(), dstMac()};
+    utility::EcmpSetupAnyNPorts6 ecmpHelper6(getProgrammedState(), dstMac());
     auto setup = [=, this]() { _setup(ecmpHelper6); };
 
     auto verify = [=, this]() {
@@ -285,13 +287,13 @@ bool AgentOlympicQosSchedulerTest::verifyWRRHelper(
     const double kVariance = 0.10; // i.e. + or -10%
     auto portId = outPort();
     auto startTrafficFun = [this, portId, queueIds, queueToDscp]() {
-      utility::EcmpSetupAnyNPorts6 ecmpHelper6{getProgrammedState(), dstMac()};
+      utility::EcmpSetupAnyNPorts6 ecmpHelper6(getProgrammedState(), dstMac());
       _setup(ecmpHelper6);
       sendUdpPktsForAllQueues(queueIds, queueToDscp);
       getAgentEnsemble()->waitForLineRateOnPort(portId);
     };
     auto stopTrafficFun = [this]() {
-      utility::EcmpSetupAnyNPorts6 ecmpHelper6{getProgrammedState(), dstMac()};
+      utility::EcmpSetupAnyNPorts6 ecmpHelper6(getProgrammedState(), dstMac());
       unprogramRoutes(ecmpHelper6);
     };
     WITH_RETRIES_N(
@@ -362,8 +364,8 @@ bool AgentOlympicQosSchedulerTest::verifySPHelper(
   auto portId = outPort();
   auto startTrafficFun =
       [this, portId, queueIds, queueToDscp, fromFrontPanel]() {
-        utility::EcmpSetupAnyNPorts6 ecmpHelper6{
-            getProgrammedState(), dstMac()};
+        utility::EcmpSetupAnyNPorts6 ecmpHelper6(
+            getProgrammedState(), dstMac());
         _setup(ecmpHelper6);
         sendUdpPktsForAllQueues(queueIds, queueToDscp, fromFrontPanel);
         getAgentEnsemble()->waitForLineRateOnPort(portId);
@@ -404,7 +406,7 @@ void AgentOlympicQosSchedulerTest::verifyWRR() {
 }
 
 void AgentOlympicQosSchedulerTest::verifySP(bool frontPanelTraffic) {
-  utility::EcmpSetupAnyNPorts6 ecmpHelper6{getProgrammedState(), dstMac()};
+  utility::EcmpSetupAnyNPorts6 ecmpHelper6(getProgrammedState(), dstMac());
 
   auto setup = [=, this]() { _setup(ecmpHelper6); };
 
@@ -452,7 +454,7 @@ void AgentOlympicQosSchedulerTest::verifySingleWRRAndNC() {
  * over warmboot
  */
 void AgentOlympicQosSchedulerTest::verifyWRRToAllSPDscpToQueue() {
-  utility::EcmpSetupAnyNPorts6 ecmpHelper6{getProgrammedState(), dstMac()};
+  utility::EcmpSetupAnyNPorts6 ecmpHelper6(getProgrammedState(), dstMac());
 
   auto setup = [=, this]() {
     resolveNeigborAndProgramRoutes(ecmpHelper6, kEcmpWidthForTest);
@@ -487,7 +489,7 @@ void AgentOlympicQosSchedulerTest::verifyWRRToAllSPDscpToQueue() {
  * over warmboot.
  */
 void AgentOlympicQosSchedulerTest::verifyWRRToAllSPTraffic() {
-  utility::EcmpSetupAnyNPorts6 ecmpHelper6{getProgrammedState(), dstMac()};
+  utility::EcmpSetupAnyNPorts6 ecmpHelper6(getProgrammedState(), dstMac());
 
   auto setup = [=, this]() { _setup(ecmpHelper6); };
 
@@ -524,7 +526,7 @@ void AgentOlympicQosSchedulerTest::verifyWRRToAllSPTraffic() {
  * queue ids with WRR+SP over warmboot.
  */
 void AgentOlympicQosSchedulerTest::verifyDscpToQueueOlympicToOlympicV2() {
-  utility::EcmpSetupAnyNPorts6 ecmpHelper6{getProgrammedState(), dstMac()};
+  utility::EcmpSetupAnyNPorts6 ecmpHelper6(getProgrammedState(), dstMac());
 
   auto setup = [=, this]() {
     resolveNeigborAndProgramRoutes(ecmpHelper6, kEcmpWidthForTest);
@@ -573,7 +575,7 @@ void AgentOlympicQosSchedulerTest::verifyWRRForOlympicToOlympicV2() {
  * WRR+SP over warmboot.
  */
 void AgentOlympicQosSchedulerTest::verifyDscpToQueueOlympicV2ToOlympic() {
-  utility::EcmpSetupAnyNPorts6 ecmpHelper6{getProgrammedState(), dstMac()};
+  utility::EcmpSetupAnyNPorts6 ecmpHelper6(getProgrammedState(), dstMac());
 
   auto setup = [=, this]() {
     resolveNeigborAndProgramRoutes(ecmpHelper6, kEcmpWidthForTest);
@@ -604,7 +606,7 @@ void AgentOlympicQosSchedulerTest::verifyDscpToQueueOlympicV2ToOlympic() {
  * over warmboot.
  */
 void AgentOlympicQosSchedulerTest::verifyOlympicV2WRRToAllSPTraffic() {
-  utility::EcmpSetupAnyNPorts6 ecmpHelper6{getProgrammedState(), dstMac()};
+  utility::EcmpSetupAnyNPorts6 ecmpHelper6(getProgrammedState(), dstMac());
 
   auto setup = [=, this]() {
     _setup(ecmpHelper6);
@@ -644,7 +646,7 @@ void AgentOlympicQosSchedulerTest::verifyOlympicV2WRRToAllSPTraffic() {
  * over warmboot.
  */
 void AgentOlympicQosSchedulerTest::verifyOlympicV2AllSPTrafficToWRR() {
-  utility::EcmpSetupAnyNPorts6 ecmpHelper6{getProgrammedState(), dstMac()};
+  utility::EcmpSetupAnyNPorts6 ecmpHelper6(getProgrammedState(), dstMac());
 
   auto setup = [=, this]() {
     _setup(ecmpHelper6);

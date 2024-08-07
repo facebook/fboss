@@ -143,7 +143,8 @@ class BaseEcmpSetupHelper {
   virtual void computeNextHops(
       const std::shared_ptr<SwitchState>& inputState,
       std::optional<folly::MacAddress> mac,
-      bool forProdConfig) = 0;
+      bool forProdConfig,
+      const std::set<cfg::PortType>& portTypes) = 0;
 
   std::optional<VlanID> getVlan(
       const PortDescriptor& port,
@@ -188,7 +189,8 @@ class BaseEcmpSetupHelper {
  protected:
   boost::container::flat_map<PortDescriptor, InterfaceID>
   computePortDesc2Interface(
-      const std::shared_ptr<SwitchState>& inputState) const;
+      const std::shared_ptr<SwitchState>& inputState,
+      const std::set<cfg::PortType>& portTypes) const;
 
   std::vector<NextHopT> nhops_;
   boost::container::flat_map<PortDescriptor, InterfaceID> portDesc2Interface_;
@@ -205,22 +207,31 @@ class EcmpSetupTargetedPorts
   explicit EcmpSetupTargetedPorts(
       const std::shared_ptr<SwitchState>& inputState,
       RouterID routerId = RouterID(0))
-      : EcmpSetupTargetedPorts(inputState, std::nullopt, routerId, false) {}
+      : EcmpSetupTargetedPorts(
+            inputState,
+            std::nullopt,
+            routerId,
+            false,
+            {cfg::PortType::INTERFACE_PORT}) {}
 
   EcmpSetupTargetedPorts(
       const std::shared_ptr<SwitchState>& inputState,
-      bool forProdConfig)
+      bool forProdConfig,
+      const std::set<cfg::PortType>& portTypes)
       : EcmpSetupTargetedPorts(
             inputState,
             std::nullopt,
             RouterID(0),
-            forProdConfig) {}
+            forProdConfig,
+            portTypes) {}
 
   EcmpSetupTargetedPorts(
       const std::shared_ptr<SwitchState>& inputState,
       std::optional<folly::MacAddress> nextHopMac,
       RouterID routerId = RouterID(0),
-      bool forProdConfig = false);
+      bool forProdConfig = false,
+      const std::set<cfg::PortType>& portTypes = {
+          cfg::PortType::INTERFACE_PORT});
 
   virtual ~EcmpSetupTargetedPorts() override {}
   EcmpNextHopT nhop(PortDescriptor portDesc) const override;
@@ -291,7 +302,9 @@ class EcmpSetupTargetedPorts
   virtual void computeNextHops(
       const std::shared_ptr<SwitchState>& inputState,
       std::optional<folly::MacAddress> mac = std::nullopt,
-      bool forProdConfig = false) override;
+      bool forProdConfig = false,
+      const std::set<cfg::PortType>& portTypes = {
+          cfg::PortType::INTERFACE_PORT}) override;
   RouteNextHopSet setupMplsNexthops(
       const boost::container::flat_set<PortDescriptor>& portDescriptors,
       std::map<PortDescriptor, LabelForwardingAction::LabelStack>& stacks,
@@ -326,9 +339,11 @@ class MplsEcmpSetupTargetedPorts
       const std::shared_ptr<SwitchState>& inputState,
       Label topLabel,
       LabelForwardingAction::LabelForwardingType actionType,
-      bool forProdConfig = false)
+      bool forProdConfig = false,
+      const std::set<cfg::PortType>& portTypes =
+          {cfg::PortType::INTERFACE_PORT})
       : topLabel_(topLabel), actionType_(actionType) {
-    computeNextHops(inputState, std::nullopt, forProdConfig);
+    computeNextHops(inputState, std::nullopt, forProdConfig, portTypes);
   }
 
   virtual EcmpMplsNextHop<IPAddrT> nhop(PortDescriptor portDesc) const override;
@@ -346,7 +361,9 @@ class MplsEcmpSetupTargetedPorts
   virtual void computeNextHops(
       const std::shared_ptr<SwitchState>& inputState,
       std::optional<folly::MacAddress> mac = std::nullopt,
-      bool forProdConfig = false) override;
+      bool forProdConfig = false,
+      const std::set<cfg::PortType>& portTypes = {
+          cfg::PortType::INTERFACE_PORT}) override;
 
   Label topLabel_;
   LabelForwardingAction::LabelForwardingType actionType_;
@@ -359,14 +376,29 @@ class EcmpSetupAnyNPorts {
   using EcmpNextHopT = EcmpNextHop<IPAddrT>;
   explicit EcmpSetupAnyNPorts(
       const std::shared_ptr<SwitchState>& inputState,
-      RouterID routerId = RouterID(0))
-      : EcmpSetupAnyNPorts(inputState, std::nullopt, routerId) {}
+      RouterID routerId = RouterID(0),
+      const std::set<cfg::PortType>& portTypes =
+          {cfg::PortType::INTERFACE_PORT})
+      : EcmpSetupAnyNPorts(
+            inputState,
+            std::nullopt,
+            routerId,
+            false,
+            portTypes) {}
 
   EcmpSetupAnyNPorts(
       const std::shared_ptr<SwitchState>& inputState,
       const std::optional<folly::MacAddress>& nextHopMac,
-      RouterID routerId = RouterID(0))
-      : ecmpSetupTargetedPorts_(inputState, nextHopMac, routerId) {}
+      RouterID routerId = RouterID(0),
+      bool forProdConfig = false,
+      const std::set<cfg::PortType>& portTypes =
+          {cfg::PortType::INTERFACE_PORT})
+      : ecmpSetupTargetedPorts_(
+            inputState,
+            nextHopMac,
+            routerId,
+            forProdConfig,
+            portTypes) {}
 
   EcmpNextHopT nhop(size_t id) const {
     return getNextHops()[id];

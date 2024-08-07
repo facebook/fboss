@@ -108,8 +108,10 @@ class AgentDscpQueueMappingTest : public AgentDscpQueueMappingTestBase {
         ensemble.getSw(),
         ensemble.masterLogicalPortIds(),
         true /*interfaceHasSubnet*/);
-    auto kAclName = "acl1";
+    // QosMap
     auto l3Asics = ensemble.getL3Asics();
+    utility::addOlympicQosMaps(cfg, l3Asics);
+    auto kAclName = "acl1";
     auto asic = utility::checkSameAndGetAsic(l3Asics);
     utility::addDscpAclToCfg(asic, &cfg, kAclName, kDscp());
     utility::addTrafficCounter(
@@ -175,6 +177,9 @@ class AgentAclAndDscpQueueMappingTest : public AgentDscpQueueMappingTestBase {
     cfg::Ttl ttl; // Match packets with hop limit > 127
     std::tie(*ttl.value(), *ttl.mask()) = std::make_tuple(0x80, 0x80);
     acl->ttl() = ttl;
+    auto l3Asics = ensemble.getL3Asics();
+    auto asic = utility::checkSameAndGetAsic(l3Asics);
+    utility::addEtherTypeToAcl(asic, acl, cfg::EtherType::IPv6);
     utility::addAclStat(
         &cfg,
         "acl0",
