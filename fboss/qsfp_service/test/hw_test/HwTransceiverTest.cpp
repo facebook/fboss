@@ -15,24 +15,25 @@
 namespace facebook::fboss {
 void HwTransceiverTest::SetUp() {
   HwTest::SetUp();
+  if (!IsSkipped()) {
+    auto wedgeManager = getHwQsfpEnsemble()->getWedgeManager();
 
-  auto wedgeManager = getHwQsfpEnsemble()->getWedgeManager();
+    // Set override agent port status so that we can update the active state
+    // via refreshStateMachines()
+    wedgeManager->setOverrideAgentPortStatusForTesting(
+        isPortUp_ /* up */, true /* enabled */);
+    // Pause remediation if isPortUp_ == false to avoid unnecessary remediation
+    if (!isPortUp_) {
+      wedgeManager->setPauseRemediation(600, nullptr);
+    }
+    wedgeManager->refreshStateMachines();
+    wedgeManager->setOverrideAgentPortStatusForTesting(
+        isPortUp_ /* up */, true /* enabled */, true /* clearOnly */);
 
-  // Set override agent port status so that we can update the active state
-  // via refreshStateMachines()
-  wedgeManager->setOverrideAgentPortStatusForTesting(
-      isPortUp_ /* up */, true /* enabled */);
-  // Pause remediation if isPortUp_ == false to avoid unnecessary remediation
-  if (!isPortUp_) {
-    wedgeManager->setPauseRemediation(600, nullptr);
+    expectedTcvrs_ = utility::getCabledPortTranceivers(getHwQsfpEnsemble());
+    auto transceiverIds = refreshTransceiversWithRetry();
+    EXPECT_TRUE(utility::containsSubset(transceiverIds, expectedTcvrs_));
   }
-  wedgeManager->refreshStateMachines();
-  wedgeManager->setOverrideAgentPortStatusForTesting(
-      isPortUp_ /* up */, true /* enabled */, true /* clearOnly */);
-
-  expectedTcvrs_ = utility::getCabledPortTranceivers(getHwQsfpEnsemble());
-  auto transceiverIds = refreshTransceiversWithRetry();
-  EXPECT_TRUE(utility::containsSubset(transceiverIds, expectedTcvrs_));
 }
 
 std::unique_ptr<std::vector<int32_t>>

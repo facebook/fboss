@@ -27,6 +27,11 @@ DEFINE_bool(
     "Set up test for QSFP warmboot. Useful for testing individual "
     "tests doing a full process warmboot and verifying expectations");
 
+DEFINE_bool(
+    list_production_feature,
+    false,
+    "List production feature needed for every single test.");
+
 namespace facebook::fboss {
 
 using namespace std::chrono_literals;
@@ -35,9 +40,13 @@ HwTest::HwTest(bool setupOverrideTcvrToPortAndProfile)
     : setupOverrideTcvrToPortAndProfile_(setupOverrideTcvrToPortAndProfile) {}
 
 void HwTest::SetUp() {
+  if (FLAGS_list_production_feature) {
+    printProductionFeatures();
+    return;
+  }
+
   // First use QsfpConfig to init default command line arguments
   initFlagDefaultsFromQsfpConfig();
-
   // Change the default remediation interval to 0 to avoid waiting
   gflags::SetCommandLineOptionWithMode(
       "remediate_interval", "0", gflags::SET_FLAGS_DEFAULT);
@@ -75,10 +84,17 @@ void HwTest::SetUp() {
 void HwTest::TearDown() {
   // At the end of the test, expect the watchdog fired count to be 0 because we
   // don't expect any deadlocked threads
-  EXPECT_EQ(
-      ensemble_->getWedgeManager()->getStateMachineThreadHeartbeatMissedCount(),
-      0);
-  ensemble_.reset();
+
+  // ensemble_ is nullptr when --list_production_feature feature is enabled,
+  // because SetUp() code returns early after printing production features –
+  // skipping over ensemble initialization.
+  if (ensemble_ != nullptr) {
+    EXPECT_EQ(
+        ensemble_->getWedgeManager()
+            ->getStateMachineThreadHeartbeatMissedCount(),
+        0);
+    ensemble_.reset();
+  }
   // We expect that any coldboot flag set during the test should be cleared
   EXPECT_FALSE(checkFileExists(TransceiverManager::forceColdBootFileName()));
 }
@@ -204,5 +220,19 @@ std::vector<int> HwTest::getCabledOpticalTransceiverIDs() {
            return transmitterTech == TransmitterTechnology::OPTICAL;
          }) |
       folly::gen::as<std::vector>();
+}
+
+std::vector<qsfp_production_features::QsfpProductionFeature>
+HwTest::getProductionFeatures() const {
+  return {};
+}
+
+void HwTest::printProductionFeatures() const {
+  std::vector<std::string> supportedFeatures;
+  for (const auto& feature : getProductionFeatures()) {
+    supportedFeatures.push_back(apache::thrift::util::enumNameSafe(feature));
+  }
+  std::cout << "Feature List: " << folly::join(",", supportedFeatures) << "\n";
+  GTEST_SKIP();
 }
 } // namespace facebook::fboss

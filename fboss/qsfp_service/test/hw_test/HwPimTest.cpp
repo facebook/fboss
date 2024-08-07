@@ -16,7 +16,14 @@
 
 namespace facebook::fboss {
 
-TEST_F(HwTest, CheckPimPresent) {
+class HwPimTest : public HwTest {
+  std::vector<qsfp_production_features::QsfpProductionFeature>
+  getProductionFeatures() const override {
+    return {qsfp_production_features::QsfpProductionFeature::PIM};
+  }
+};
+
+TEST_F(HwPimTest, CheckPimPresent) {
   auto phyManager = getHwQsfpEnsemble()->getPhyManager();
   EXPECT_EQ(phyManager->getNumOfSlot(), phyManager->getNumOfSlot());
 }

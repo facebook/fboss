@@ -19,7 +19,14 @@
 
 namespace facebook::fboss {
 
-TEST_F(HwTest, CheckDefaultXphyFirmwareVersion) {
+class HwXphyFirmwareTest : public HwTest {
+  std::vector<qsfp_production_features::QsfpProductionFeature>
+  getProductionFeatures() const override {
+    return {qsfp_production_features::QsfpProductionFeature::EXTERNAL_PHY};
+  }
+};
+
+TEST_F(HwXphyFirmwareTest, CheckDefaultXphyFirmwareVersion) {
   auto platformType = getHwQsfpEnsemble()->getWedgeManager()->getPlatformType();
 
   phy::PhyFwVersion desiredFw;

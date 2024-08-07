@@ -54,4 +54,9 @@ HwExternalPhyPortTest::findAvailableXphyPorts() {
       << "Can't find xphy ports to support features:" << neededFeatureNames();
   return xphyPortAndProfiles;
 }
+
+std::vector<qsfp_production_features::QsfpProductionFeature>
+HwExternalPhyPortTest::getProductionFeatures() const {
+  return {qsfp_production_features::QsfpProductionFeature::EXTERNAL_PHY};
+}
 } // namespace facebook::fboss

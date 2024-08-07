@@ -64,6 +64,34 @@ class HwPortPrbsTest : public HwExternalPhyPortTest {
     return filteredPorts;
   }
 
+  std::vector<qsfp_production_features::QsfpProductionFeature>
+  getProductionFeatures() const override {
+    std::vector<qsfp_production_features::QsfpProductionFeature> featureVector =
+        HwExternalPhyPortTest::getProductionFeatures();
+    if (Side == phy::Side::SYSTEM && Modulation == phy::IpModulation::NRZ) {
+      featureVector.push_back(qsfp_production_features::QsfpProductionFeature::
+                                  XPHY_SYSTEM_NRZ_PROFILE);
+    } else if (
+        Side == phy::Side::SYSTEM && Modulation == phy::IpModulation::PAM4) {
+      featureVector.push_back(qsfp_production_features::QsfpProductionFeature::
+                                  XPHY_SYSTEM_PAM4_PROFILE);
+    } else if (
+        Side == phy::Side::LINE && Modulation == phy::IpModulation::NRZ) {
+      featureVector.push_back(qsfp_production_features::QsfpProductionFeature::
+                                  XPHY_LINE_NRZ_PROFILE);
+    } else if (
+        Side == phy::Side::LINE && Modulation == phy::IpModulation::PAM4) {
+      featureVector.push_back(qsfp_production_features::QsfpProductionFeature::
+                                  XPHY_LINE_PAM4_PROFILE);
+    } else {
+      CHECK(false) << "Side and Modulation not specified correctly ("
+                   << apache::thrift::util::enumNameSafe(Side) << ","
+                   << apache::thrift::util::enumNameSafe(Modulation) << ")";
+    }
+
+    return featureVector;
+  }
+
  protected:
   void runTest(bool enable) {
     // Find any available xphy port

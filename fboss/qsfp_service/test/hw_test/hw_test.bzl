@@ -33,7 +33,7 @@ def _qsfp_hw_test_lib(sai_impl):
         name = "hw_qsfp_test_lib-{}-{}".format(sai_impl.name, sai_impl.version),
         srcs = [
             "EmptyHwTest.cpp",
-            "HwFirmwareTest.cpp",
+            "HwXphyFirmwareTest.cpp",
             "HwMacsecTest.cpp",
             "HwPimTest.cpp",
             "HwPortProfileTest.cpp",
@@ -62,6 +62,7 @@ def _qsfp_hw_test_lib(sai_impl):
             "fbsource//third-party/googletest:gtest",
             ":hw_qsfp_ensemble{}".format(impl_suffix),
             ":hw_transceiver_utils",
+            ":qsfp_production_features-cpp2-types",
             "//fboss/agent/platforms/common:platform_mapping",
             "//fboss/lib:common_utils",
             "//fboss/lib/fpga:multi_pim_container",

@@ -327,6 +327,14 @@ class HwMacsecTest : public HwExternalPhyPortTest {
     }
   }
 
+  std::vector<qsfp_production_features::QsfpProductionFeature>
+  getProductionFeatures() const override {
+    auto featureVector = HwExternalPhyPortTest::getProductionFeatures();
+    featureVector.push_back(
+        qsfp_production_features::QsfpProductionFeature::MACSEC);
+    return featureVector;
+  }
+
   SaiPhyManager* phyManager;
 };
 

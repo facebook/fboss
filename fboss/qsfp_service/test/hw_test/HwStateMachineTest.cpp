@@ -26,37 +26,38 @@ class HwStateMachineTest : public HwTest {
 
   void SetUp() override {
     HwTest::SetUp();
+    if (!IsSkipped()) {
+      std::map<int32_t, TransceiverInfo> presentTcvrs;
+      getHwQsfpEnsemble()->getWedgeManager()->getTransceiversInfo(
+          presentTcvrs, std::make_unique<std::vector<int32_t>>());
 
-    std::map<int32_t, TransceiverInfo> presentTcvrs;
-    getHwQsfpEnsemble()->getWedgeManager()->getTransceiversInfo(
-        presentTcvrs, std::make_unique<std::vector<int32_t>>());
+      auto cabledTransceivers = utility::legacyTransceiverIds(
+          utility::getCabledPortTranceivers(getHwQsfpEnsemble()));
 
-    auto cabledTransceivers = utility::legacyTransceiverIds(
-        utility::getCabledPortTranceivers(getHwQsfpEnsemble()));
-
-    // Get all transceivers from platform mapping
-    const auto& chips = getHwQsfpEnsemble()->getPlatformMapping()->getChips();
-    for (const auto& chip : chips) {
-      if (*chip.second.type() != phy::DataPlanePhyChipType::TRANSCEIVER) {
-        continue;
-      }
-      auto id = *chip.second.physicalID();
-      if (auto tcvrIt = presentTcvrs.find(id); tcvrIt != presentTcvrs.end() &&
-          *tcvrIt->second.tcvrState()->present()) {
-        if (std::find(
-                cabledTransceivers.begin(), cabledTransceivers.end(), id) !=
-            cabledTransceivers.end()) {
-          presentTransceivers_.push_back(TransceiverID(id));
+      // Get all transceivers from platform mapping
+      const auto& chips = getHwQsfpEnsemble()->getPlatformMapping()->getChips();
+      for (const auto& chip : chips) {
+        if (*chip.second.type() != phy::DataPlanePhyChipType::TRANSCEIVER) {
+          continue;
         }
-      } else {
-        absentTransceivers_.push_back(TransceiverID(id));
+        auto id = *chip.second.physicalID();
+        if (auto tcvrIt = presentTcvrs.find(id); tcvrIt != presentTcvrs.end() &&
+            *tcvrIt->second.tcvrState()->present()) {
+          if (std::find(
+                  cabledTransceivers.begin(), cabledTransceivers.end(), id) !=
+              cabledTransceivers.end()) {
+            presentTransceivers_.push_back(TransceiverID(id));
+          }
+        } else {
+          absentTransceivers_.push_back(TransceiverID(id));
+        }
       }
-    }
-    XLOG(DBG2) << "Transceivers num: [present:" << presentTransceivers_.size()
-               << ", absent:" << absentTransceivers_.size() << "]";
+      XLOG(DBG2) << "Transceivers num: [present:" << presentTransceivers_.size()
+                 << ", absent:" << absentTransceivers_.size() << "]";
 
-    // Set pause remdiation so it won't trigger remediation
-    setPauseRemediation(true);
+      // Set pause remdiation so it won't trigger remediation
+      setPauseRemediation(true);
+    }
   }
 
   const std::vector<TransceiverID>& getPresentTransceivers() const {

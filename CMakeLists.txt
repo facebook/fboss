@@ -511,6 +511,13 @@ add_fbthrift_cpp_library(
     reflection
 )
 add_fbthrift_cpp_library(
+  qsfp_production_features_cpp2
+  fboss/qsfp_service/test/hw_test/qsfp_production_features.thrift
+  OPTIONS
+    json
+    reflection
+)
+add_fbthrift_cpp_library(
   i2c_controller_stats_cpp2
   fboss/lib/i2c/i2c_controller_stats.thrift
 )
