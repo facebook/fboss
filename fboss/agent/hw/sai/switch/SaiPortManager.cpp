@@ -854,7 +854,7 @@ cfg::PortType SaiPortManager::getPortType(PortID portId) const {
 }
 
 void SaiPortManager::setPortType(PortID port, cfg::PortType type) {
-  port2PortType_.insert({port, type});
+  port2PortType_[port] = type;
   // If Port type changed, supported stats need to be updated
   port2SupportedStats_.clear();
   XLOG(DBG2) << " Port : " << port << " type set to : "
