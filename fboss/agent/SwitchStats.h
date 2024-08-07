@@ -415,20 +415,20 @@ class SwitchStats : public boost::noncopyable {
     remoteResolvedArp_.incrementValue(value);
   }
   void failedDsfSubscription(
-      const SwitchID& peer,
+      const SwitchID& /*peer*/,
       const std::string& peerName,
       int value) {
     failedDsfSubscription_.incrementValue(value);
-    if (failedDsfSubscriptionByPeerSwitchId_.find(peer) ==
-        failedDsfSubscriptionByPeerSwitchId_.end()) {
-      failedDsfSubscriptionByPeerSwitchId_.emplace(
-          peer,
+    if (failedDsfSubscriptionByPeerSwitchName_.find(peerName) ==
+        failedDsfSubscriptionByPeerSwitchName_.end()) {
+      failedDsfSubscriptionByPeerSwitchName_.emplace(
+          peerName,
           TLCounter(
               fb303::ThreadCachedServiceData::get()->getThreadStats(),
               folly::to<std::string>(
                   kCounterPrefix, "failedDsfSubscriptionTo.", peerName)));
     }
-    auto counter = failedDsfSubscriptionByPeerSwitchId_.find(peer);
+    auto counter = failedDsfSubscriptionByPeerSwitchName_.find(peerName);
     counter->second.incrementValue(value);
   }
 
@@ -938,7 +938,7 @@ class SwitchStats : public boost::noncopyable {
   // Failed Dsf subscriptions
   TLCounter failedDsfSubscription_;
   // Failed Dsf subscriptions by peer SwitchID
-  std::map<SwitchID, TLCounter> failedDsfSubscriptionByPeerSwitchId_;
+  std::map<std::string, TLCounter> failedDsfSubscriptionByPeerSwitchName_;
 
   TLTimeseries coldBoot_;
   TLTimeseries warmBoot_;
