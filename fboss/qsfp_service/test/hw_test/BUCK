@@ -57,6 +57,33 @@ thrift_library(
     ],
 )
 
+thrift_library(
+    name = "qsfp_production_features",
+    go_thrift_namespaces = {
+        "qsfp_production_features.thrift": "neteng.fboss.qsfp_production_features",
+    },
+    languages = [
+        "cpp2",
+        "go",
+        "py",
+        "py3",
+        "py-asyncio",
+        "rust",
+    ],
+    py3_namespace = "neteng.fboss",
+    py_asyncio_base_module = "neteng.fboss.asyncio",
+    py_base_module = "neteng.fboss",
+    thrift_cpp2_options = "json",
+    thrift_py_options = "json,sort_keys",
+    thrift_rust_options = [
+        "deprecated_default_enum_min_i32",
+        "serde",
+    ],
+    thrift_srcs = {"qsfp_production_features.thrift": []},
+    deps = [
+    ],
+)
+
 all_hw_qsfp_ensemble_libs()
 
 all_qsfp_test_libs()
