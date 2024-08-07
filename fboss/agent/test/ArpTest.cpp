@@ -1166,15 +1166,6 @@ TYPED_TEST(ArpTest, ArpExpiration) {
 }
 
 TYPED_TEST(ArpTest, FlushEntryWithConcurrentUpdate) {
-  /*
-   * TODO(skhare) Fix this test for Interface neighbor tables, and then enable.
-   */
-  if (this->isIntfNbrTable()) {
-#if defined(GTEST_SKIP)
-    GTEST_SKIP();
-#endif
-  }
-
   auto handle = setupTestHandle();
   auto sw = handle->getSw();
   ThriftHandler thriftHandler(sw);
@@ -1192,13 +1183,24 @@ TYPED_TEST(ArpTest, FlushEntryWithConcurrentUpdate) {
   // populate arp entries first before flush
   {
     std::array<std::unique_ptr<WaitForArpEntryReachable>, 255> arpReachables;
-    std::transform(
-        targetIPs.begin(),
-        targetIPs.end(),
-        arpReachables.begin(),
-        [&](const IPAddressV4& ip) {
-          return make_unique<WaitForArpEntryReachable>(sw, ip);
-        });
+    if (this->isIntfNbrTable()) {
+      auto intf = sw->getState()->getInterfaceIDForPort(PortDescriptor(portID));
+      std::transform(
+          targetIPs.begin(),
+          targetIPs.end(),
+          arpReachables.begin(),
+          [&](const IPAddressV4& ip) {
+            return make_unique<WaitForArpEntryReachable>(sw, ip, intf);
+          });
+    } else {
+      std::transform(
+          targetIPs.begin(),
+          targetIPs.end(),
+          arpReachables.begin(),
+          [&](const IPAddressV4& ip) {
+            return make_unique<WaitForArpEntryReachable>(sw, ip);
+          });
+    }
     for (auto& ip : targetIPs) {
       sendArpReply(handle.get(), ip.str(), "02:10:20:30:40:22", portID);
     }
@@ -1214,7 +1216,7 @@ TYPED_TEST(ArpTest, FlushEntryWithConcurrentUpdate) {
       sendArpReply(
           handle.get(), targetIPs[index].str(), "02:10:20:30:40:22", portID);
       index = (index + 1) % targetIPs.size();
-      usleep(1000);
+      waitForStateUpdates(handle->getSw());
     }
   });
 
