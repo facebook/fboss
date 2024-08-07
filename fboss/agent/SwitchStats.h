@@ -417,20 +417,7 @@ class SwitchStats : public boost::noncopyable {
   void failedDsfSubscription(
       const SwitchID& /*peer*/,
       const std::string& peerName,
-      int value) {
-    failedDsfSubscription_.incrementValue(value);
-    if (failedDsfSubscriptionByPeerSwitchName_.find(peerName) ==
-        failedDsfSubscriptionByPeerSwitchName_.end()) {
-      failedDsfSubscriptionByPeerSwitchName_.emplace(
-          peerName,
-          TLCounter(
-              fb303::ThreadCachedServiceData::get()->getThreadStats(),
-              folly::to<std::string>(
-                  kCounterPrefix, "failedDsfSubscriptionTo.", peerName)));
-    }
-    auto counter = failedDsfSubscriptionByPeerSwitchName_.find(peerName);
-    counter->second.incrementValue(value);
-  }
+      int value);
 
   void fillAgentStats(AgentStats& agentStats) const;
   void fillFabricReachabilityStats(
