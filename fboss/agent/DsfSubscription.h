@@ -59,7 +59,6 @@ class DsfSubscription {
   std::unique_ptr<fsdb::FsdbPubSubManager> fsdbPubSubMgr_;
   std::string localNodeName_;
   std::string remoteNodeName_;
-  SwitchID remoteNodeSwitchId_;
   folly::IPAddress localIp_;
   folly::IPAddress remoteIp_;
   SwitchStats* stats_;

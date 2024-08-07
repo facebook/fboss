@@ -414,10 +414,7 @@ class SwitchStats : public boost::noncopyable {
   void remoteResolvedArp(int value) {
     remoteResolvedArp_.incrementValue(value);
   }
-  void failedDsfSubscription(
-      const SwitchID& /*peer*/,
-      const std::string& peerName,
-      int value);
+  void failedDsfSubscription(const std::string& peerName, int value);
 
   void fillAgentStats(AgentStats& agentStats) const;
   void fillFabricReachabilityStats(

@@ -61,7 +61,7 @@ DsfSubscription::DsfSubscription(
     folly::EventBase* subscriberEvb,
     std::string localNodeName,
     std::string remoteNodeName,
-    SwitchID remoteNodeSwitchId,
+    SwitchID /*remoteNodeSwitchId*/,
     folly::IPAddress localIp,
     folly::IPAddress remoteIp,
     SwitchStats* stats,
@@ -75,7 +75,6 @@ DsfSubscription::DsfSubscription(
           subscriberEvb)),
       localNodeName_(std::move(localNodeName)),
       remoteNodeName_(std::move(remoteNodeName)),
-      remoteNodeSwitchId_(std::move(remoteNodeSwitchId)),
       localIp_(std::move(localIp)),
       remoteIp_(std::move(remoteIp)),
       stats_(stats),
@@ -84,7 +83,7 @@ DsfSubscription::DsfSubscription(
       stateUpdateCb_(std::move(stateUpdateCb)),
       session_(makeRemoteEndpoint(remoteNodeName_, remoteIp_)) {
   // Subscription is not established until state becomes CONNECTED
-  stats_->failedDsfSubscription(remoteNodeSwitchId_, remoteNodeName_, 1);
+  stats_->failedDsfSubscription(remoteNodeName_, 1);
   fsdbPubSubMgr_->addStatePathSubscription(
       fsdb::SubscriptionOptions(opts_),
       getAllSubscribePaths(localNodeName_, localIp_),
@@ -101,7 +100,7 @@ DsfSubscription::DsfSubscription(
 DsfSubscription::~DsfSubscription() {
   if (getStreamState() != fsdb::FsdbStreamClient::State::CONNECTED) {
     // Subscription was not established - decrement failedDSF counter.
-    stats_->failedDsfSubscription(remoteNodeSwitchId_, remoteNodeName_, -1);
+    stats_->failedDsfSubscription(remoteNodeName_, -1);
   }
   fsdbPubSubMgr_->removeStatePathSubscription(
       getAllSubscribePaths(localNodeName_, localIp_), remoteIp_.str());
@@ -130,7 +129,6 @@ void DsfSubscription::handleFsdbSubscriptionStateUpdate(
     fsdb::SubscriptionState newState) {
   auto remoteEndpoint = makeRemoteEndpoint(remoteNodeName_, remoteIp_);
   XLOG(DBG2) << "DsfSubscriber: " << remoteEndpoint
-             << " SwitchID: " << static_cast<int>(remoteNodeSwitchId_)
              << ": subscription state changed "
              << fsdb::subscriptionStateToString(oldState) << " -> "
              << fsdb::subscriptionStateToString(newState);
@@ -144,9 +142,9 @@ void DsfSubscription::handleFsdbSubscriptionStateUpdate(
 
   if (oldThriftState != newThriftState) {
     if (newThriftState == fsdb::FsdbSubscriptionState::CONNECTED) {
-      stats_->failedDsfSubscription(remoteNodeSwitchId_, remoteNodeName_, -1);
+      stats_->failedDsfSubscription(remoteNodeName_, -1);
     } else {
-      stats_->failedDsfSubscription(remoteNodeSwitchId_, remoteNodeName_, 1);
+      stats_->failedDsfSubscription(remoteNodeName_, 1);
     }
 
     dsfSubscriberStateCb_(oldThriftState, newThriftState);

@@ -597,7 +597,6 @@ void SwitchStats::setFabricOverdrainPct(
 }
 
 void SwitchStats::failedDsfSubscription(
-    const SwitchID& /*peer*/,
     const std::string& peerName,
     int value) {
   failedDsfSubscription_.incrementValue(value);
