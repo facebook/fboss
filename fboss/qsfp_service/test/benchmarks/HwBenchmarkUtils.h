@@ -10,6 +10,9 @@
 
 namespace facebook::fboss {
 
+std::vector<TransceiverID> getMatchingTcvrIds(
+    std::shared_ptr<WedgeManager> const& wedgeMgr,
+    MediaInterfaceCode mediaType);
 std::size_t refreshTcvrs(MediaInterfaceCode mediaType);
 std::size_t readOneByte(MediaInterfaceCode mediaType);
 

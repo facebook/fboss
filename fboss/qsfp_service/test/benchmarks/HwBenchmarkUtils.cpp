@@ -10,16 +10,9 @@
 
 namespace facebook::fboss {
 
-std::size_t refreshTcvrs(MediaInterfaceCode mediaType) {
-  // Initialization
-  gflags::SetCommandLineOptionWithMode(
-      "qsfp_data_refresh_interval", "0", gflags::SET_FLAGS_DEFAULT);
-  folly::BenchmarkSuspender suspender;
-  std::size_t iters = 0;
-  auto wedgeMgr = setupForColdboot();
-  wedgeMgr->init();
-
-  // Get Relevant Transceivers
+std::vector<TransceiverID> getMatchingTcvrIds(
+    const std::shared_ptr<WedgeManager>& wedgeMgr,
+    MediaInterfaceCode mediaType) {
   std::vector<TransceiverID> tcvrIds;
   auto qsfpConfig = wedgeMgr->getQsfpConfig();
   if (qsfpConfig == nullptr) {
@@ -47,7 +40,20 @@ std::size_t refreshTcvrs(MediaInterfaceCode mediaType) {
     }
   }
 
+  return tcvrIds;
+}
+
+std::size_t refreshTcvrs(MediaInterfaceCode mediaType) {
+  // Initialization
+  gflags::SetCommandLineOptionWithMode(
+      "qsfp_data_refresh_interval", "0", gflags::SET_FLAGS_DEFAULT);
+  folly::BenchmarkSuspender suspender;
+  // Making shared ptr so that we can use common helper function.
+  std::shared_ptr<WedgeManager> wedgeMgr = setupForColdboot();
+  wedgeMgr->init();
+
   // Refresh Transceivers
+  auto tcvrIds = getMatchingTcvrIds(wedgeMgr, mediaType);
   for (auto tcvrId : tcvrIds) {
     suspender.dismiss();
     wedgeMgr->TransceiverManager::refreshTransceivers({tcvrId});
