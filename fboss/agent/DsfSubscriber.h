@@ -77,6 +77,7 @@ class DsfSubscriber : public StateObserver {
       subscriptions_;
   std::unique_ptr<folly::IOThreadPoolExecutor> streamConnectPool_;
   std::unique_ptr<folly::IOThreadPoolExecutor> streamServePool_;
+  std::unique_ptr<folly::IOThreadPoolExecutor> hwUpdatePool_;
 
   FRIEND_TEST(DsfSubscriberTest, updateWithRollbackProtection);
   FRIEND_TEST(DsfSubscriberTest, setupNeighbors);

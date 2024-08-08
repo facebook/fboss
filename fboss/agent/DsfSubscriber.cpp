@@ -61,7 +61,10 @@ DsfSubscriber::DsfSubscriber(SwSwitch* sw)
       streamServePool_(std::make_unique<folly::IOThreadPoolExecutor>(
           1,
           std::make_shared<folly::NamedThreadFactory>(
-              "DsfSubscriberStreamServe"))) {
+              "DsfSubscriberStreamServe"))),
+      hwUpdatePool_(std::make_unique<folly::IOThreadPoolExecutor>(
+          1,
+          std::make_shared<folly::NamedThreadFactory>("DsfHwUpdate"))) {
   // TODO(aeckert): add dedicated config field for localNodeName
   sw_->registerStateObserver(this, "DsfSubscriber");
 }
