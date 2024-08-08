@@ -241,6 +241,10 @@ std::optional<std::string> getMyHostname(const std::string& hostname) {
   return utils::removeFbDomains(std::string(actualHostname));
 }
 
+std::string escapeDoubleQuotes(const std::string& cmd) {
+  return std::regex_replace(cmd, std::regex("\""), "\\\"");
+}
+
 std::string getCmdToRun(const std::string& hostname, const std::string& cmd) {
   // For running on localhost
   //    return cmd as is.
@@ -253,7 +257,7 @@ std::string getCmdToRun(const std::string& hostname, const std::string& cmd) {
                                        hostname,
                                        " ",
                                        "\"",
-                                       cmd,
+                                       escapeDoubleQuotes(cmd),
                                        "\"");
 }
 
