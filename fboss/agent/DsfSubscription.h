@@ -11,6 +11,7 @@ namespace facebook::fboss {
 class SwitchStats;
 class InterfaceMap;
 class SystemPortMap;
+class SwSwitch;
 
 class DsfSubscription {
  public:
@@ -31,6 +32,7 @@ class DsfSubscription {
       std::string remoteNodeName,
       folly::IPAddress localIp,
       folly::IPAddress remoteIp,
+      SwSwitch* sw,
       SwitchStats* stats,
       DsfSubscriberStateCb dsfSubscriberStateCb,
       GrHoldExpiredCb grHoldExpiredCb,
@@ -62,6 +64,7 @@ class DsfSubscription {
   std::string remoteNodeName_;
   folly::IPAddress localIp_;
   folly::IPAddress remoteIp_;
+  SwSwitch* sw_;
   SwitchStats* stats_;
   DsfSubscriberStateCb dsfSubscriberStateCb_;
   GrHoldExpiredCb grHoldExpiredCb_;

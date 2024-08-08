@@ -190,6 +190,7 @@ void DsfSubscriber::stateUpdated(const StateDelta& stateDelta) {
               nodeName,
               srcIPAddr,
               dstIPAddr,
+              sw_,
               sw_->stats(),
               [this, remoteEndpoint]( // DsfSubscriberStateCb
                   fsdb::FsdbSubscriptionState oldState,

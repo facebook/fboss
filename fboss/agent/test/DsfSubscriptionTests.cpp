@@ -84,6 +84,7 @@ class DsfSubscriptionTest : public ::testing::Test {
         "remote",
         folly::IPAddress("::1"),
         folly::IPAddress("::1"),
+        sw_,
         sw_->stats(),
         std::move(dsfSubscriberStateCb),
         std::move(grHoldExpiredCb),
