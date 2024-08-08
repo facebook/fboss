@@ -26,6 +26,7 @@ class DsfSubscription {
       fsdb::SubscriptionOptions options,
       folly::EventBase* reconnectEvb,
       folly::EventBase* subscriberEvb,
+      folly::EventBase* hwUpdateEvb,
       std::string localNodeName,
       std::string remoteNodeName,
       folly::IPAddress localIp,
@@ -55,6 +56,7 @@ class DsfSubscription {
   fsdb::FsdbStreamClient::State getStreamState() const;
 
   fsdb::SubscriptionOptions opts_;
+  folly::EventBase* hwUpdateEvb_;
   std::unique_ptr<fsdb::FsdbPubSubManager> fsdbPubSubMgr_;
   std::string localNodeName_;
   std::string remoteNodeName_;

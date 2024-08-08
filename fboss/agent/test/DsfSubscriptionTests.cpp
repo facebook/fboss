@@ -30,6 +30,8 @@ class DsfSubscriptionTest : public ::testing::Test {
         1,
         std::make_shared<folly::NamedThreadFactory>(
             "DsfSubscriberStreamServe"));
+    hwUpdatePool_ = std::make_unique<folly::IOThreadPoolExecutor>(
+        1, std::make_shared<folly::NamedThreadFactory>("DsfHwUpdate"));
   }
 
   void TearDown() override {
@@ -73,6 +75,7 @@ class DsfSubscriptionTest : public ::testing::Test {
         std::move(opts),
         streamConnectPool_->getEventBase(),
         streamServePool_->getEventBase(),
+        hwUpdatePool_->getEventBase(),
         "local",
         "remote",
         folly::IPAddress("::1"),
@@ -94,6 +97,7 @@ class DsfSubscriptionTest : public ::testing::Test {
   std::unique_ptr<SwitchStats> switchStats_;
   std::unique_ptr<folly::IOThreadPoolExecutor> streamConnectPool_;
   std::unique_ptr<folly::IOThreadPoolExecutor> streamServePool_;
+  std::unique_ptr<folly::IOThreadPoolExecutor> hwUpdatePool_;
   std::optional<ReconnectingThriftClient::ServerOptions> serverOptions_;
 };
 

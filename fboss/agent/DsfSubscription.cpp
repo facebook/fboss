@@ -59,6 +59,7 @@ DsfSubscription::DsfSubscription(
     fsdb::SubscriptionOptions options,
     folly::EventBase* reconnectEvb,
     folly::EventBase* subscriberEvb,
+    folly::EventBase* hwUpdateEvb,
     std::string localNodeName,
     std::string remoteNodeName,
     folly::IPAddress localIp,
@@ -68,6 +69,7 @@ DsfSubscription::DsfSubscription(
     GrHoldExpiredCb grHoldExpiredCb,
     StateUpdateCb stateUpdateCb)
     : opts_(std::move(options)),
+      hwUpdateEvb_(hwUpdateEvb),
       fsdbPubSubMgr_(new fsdb::FsdbPubSubManager(
           opts_.clientId_,
           reconnectEvb,

@@ -185,6 +185,7 @@ void DsfSubscriber::stateUpdated(const StateDelta& stateDelta) {
               std::move(opts),
               streamConnectPool_->getEventBase(),
               streamServePool_->getEventBase(),
+              hwUpdatePool_->getEventBase(),
               localNodeName_,
               nodeName,
               srcIPAddr,
