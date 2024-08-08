@@ -63,13 +63,15 @@ getDscpAclName(IP_PROTO proto, std::string direction, uint32_t port) {
 }
 
 void addDscpMarkingAclsHelper(
+    const HwAsic* hwAsic,
     cfg::SwitchConfig* config,
     IP_PROTO proto,
     const std::vector<uint32_t>& ports,
     bool isSai) {
   for (auto port : ports) {
     auto l4SrcPortAclName = getDscpAclName(proto, "src", port);
-    utility::addL4SrcPortAclToCfg(config, l4SrcPortAclName, proto, port);
+    utility::addL4SrcPortAclToCfg(
+        hwAsic, config, l4SrcPortAclName, proto, port);
     utility::addSetDscpAndEgressQueueActionToCfg(
         config,
         l4SrcPortAclName,
@@ -78,7 +80,8 @@ void addDscpMarkingAclsHelper(
         isSai);
 
     auto l4DstPortAclName = getDscpAclName(proto, "dst", port);
-    utility::addL4DstPortAclToCfg(config, l4DstPortAclName, proto, port);
+    utility::addL4DstPortAclToCfg(
+        hwAsic, config, l4DstPortAclName, proto, port);
     utility::addSetDscpAndEgressQueueActionToCfg(
         config,
         l4DstPortAclName,
@@ -88,9 +91,14 @@ void addDscpMarkingAclsHelper(
   }
 }
 
-void addDscpMarkingAcls(cfg::SwitchConfig* config, bool isSai) {
-  addDscpMarkingAclsHelper(config, IP_PROTO::IP_PROTO_UDP, kUdpPorts(), isSai);
-  addDscpMarkingAclsHelper(config, IP_PROTO::IP_PROTO_TCP, kTcpPorts(), isSai);
+void addDscpMarkingAcls(
+    const HwAsic* hwAsic,
+    cfg::SwitchConfig* config,
+    bool isSai) {
+  addDscpMarkingAclsHelper(
+      hwAsic, config, IP_PROTO::IP_PROTO_UDP, kUdpPorts(), isSai);
+  addDscpMarkingAclsHelper(
+      hwAsic, config, IP_PROTO::IP_PROTO_TCP, kTcpPorts(), isSai);
 }
 
 void addDscpCounterAcl(const HwAsic* hwAsic, cfg::SwitchConfig* config) {

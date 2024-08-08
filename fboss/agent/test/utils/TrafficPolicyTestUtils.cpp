@@ -29,27 +29,33 @@ void addDscpAclToCfg(
 }
 
 void addL4SrcPortAclToCfg(
+    const HwAsic* hwAsic,
     cfg::SwitchConfig* config,
     const std::string& aclName,
     IP_PROTO proto,
     uint32_t l4SrcPort) {
-  auto numCfgAcls = config->acls()->size();
-  config->acls()->resize(numCfgAcls + 1);
-  config->acls()[numCfgAcls].name() = aclName;
-  config->acls()[numCfgAcls].proto() = static_cast<int>(proto);
-  config->acls()[numCfgAcls].l4SrcPort() = l4SrcPort;
+  auto acl = cfg::AclEntry();
+  *acl.name() = aclName;
+  acl.proto() = static_cast<int>(proto);
+  acl.l4SrcPort() = l4SrcPort;
+  utility::addEtherTypeToAcl(hwAsic, &acl, cfg::EtherType::IPv6);
+
+  utility::addAclEntry(config, acl, utility::kDefaultAclTable());
 }
 
 void addL4DstPortAclToCfg(
+    const HwAsic* hwAsic,
     cfg::SwitchConfig* config,
     const std::string& aclName,
     IP_PROTO proto,
     uint32_t l4DstPort) {
-  auto numCfgAcls = config->acls()->size();
-  config->acls()->resize(numCfgAcls + 1);
-  config->acls()[numCfgAcls].name() = aclName;
-  config->acls()[numCfgAcls].proto() = static_cast<int>(proto);
-  config->acls()[numCfgAcls].l4DstPort() = l4DstPort;
+  auto acl = cfg::AclEntry();
+  *acl.name() = aclName;
+  acl.proto() = static_cast<int>(proto);
+  acl.l4DstPort() = l4DstPort;
+  utility::addEtherTypeToAcl(hwAsic, &acl, cfg::EtherType::IPv6);
+
+  utility::addAclEntry(config, acl, utility::kDefaultAclTable());
 }
 
 void addSetDscpAndEgressQueueActionToCfg(

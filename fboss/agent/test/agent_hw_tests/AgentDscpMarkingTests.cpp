@@ -47,7 +47,7 @@ class AgentDscpMarkingTest : public AgentHwTest {
     auto asic = utility::checkSameAndGetAsic(l3Asics);
     utility::addOlympicQosMaps(cfg, l3Asics);
     utility::addDscpCounterAcl(asic, &cfg);
-    utility::addDscpMarkingAcls(&cfg, ensemble.isSai());
+    utility::addDscpMarkingAcls(asic, &cfg, ensemble.isSai());
     return cfg;
   }
 
@@ -74,12 +74,14 @@ class AgentDscpMarkingTest : public AgentHwTest {
      */
 
     auto setup = [=, this]() {
-      utility::EcmpSetupAnyNPorts6 ecmpHelper(getProgrammedState());
+      utility::EcmpSetupAnyNPorts6 ecmpHelper(
+          getProgrammedState(), RouterID(0), {cfg::PortType::INTERFACE_PORT});
       resolveNeigborAndProgramRoutes(ecmpHelper, kEcmpWidth);
     };
 
     auto verify = [=, this]() {
-      utility::EcmpSetupAnyNPorts6 ecmpHelper(getProgrammedState());
+      utility::EcmpSetupAnyNPorts6 ecmpHelper(
+          getProgrammedState(), RouterID(0), {cfg::PortType::INTERFACE_PORT});
       auto portId = ecmpHelper.ecmpPortDescriptorAt(0).phyPortID();
       auto portStatsBefore = getLatestPortStats(portId);
 
@@ -173,9 +175,8 @@ class AgentDscpMarkingTest : public AgentHwTest {
       IP_PROTO proto,
       std::optional<uint16_t> l4SrcPort,
       std::optional<uint16_t> l4DstPort) {
-    auto vlanId =
-        VlanID(*initialConfig(*getAgentEnsemble()).vlanPorts()[0].vlanID());
-    auto intfMac = utility::getInterfaceMac(getProgrammedState(), vlanId);
+    auto vlanId = utility::firstVlanID(getProgrammedState());
+    auto intfMac = utility::getFirstInterfaceMac(getProgrammedState());
     auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
 
     std::unique_ptr<facebook::fboss::TxPacket> txPacket;
@@ -213,7 +214,8 @@ class AgentDscpMarkingTest : public AgentHwTest {
     // Since it is not re-written, it should hit the pipeline as if it
     // ingressed on the port, and be properly queued.
     if (frontPanel) {
-      utility::EcmpSetupAnyNPorts6 ecmpHelper(getProgrammedState());
+      utility::EcmpSetupAnyNPorts6 ecmpHelper(
+          getProgrammedState(), RouterID(0), {cfg::PortType::INTERFACE_PORT});
       auto outPort = ecmpHelper.ecmpPortDescriptorAt(kEcmpWidth).phyPortID();
       getSw()->sendPacketOutOfPortAsync(std::move(txPacket), outPort);
     } else {

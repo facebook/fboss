@@ -28,12 +28,14 @@ void addDscpAclToCfg(
     uint32_t dscp);
 
 void addL4SrcPortAclToCfg(
+    const HwAsic* hwAsic,
     cfg::SwitchConfig* config,
     const std::string& aclName,
     IP_PROTO proto,
     uint32_t l4SrcPort);
 
 void addL4DstPortAclToCfg(
+    const HwAsic* hwAsic,
     cfg::SwitchConfig* config,
     const std::string& aclName,
     IP_PROTO proto,
