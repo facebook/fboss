@@ -83,6 +83,7 @@ std::shared_ptr<Mirror> MirrorManagerImpl<AddrT>::updateMirror(
       mirror->getTunnelUdpPorts(),
       mirror->getDscp(),
       mirror->getTruncate());
+  newMirror->setSwitchId(mirror->getSwitchId());
 
   for (const auto& nexthop : nexthops) {
     const auto entry =
