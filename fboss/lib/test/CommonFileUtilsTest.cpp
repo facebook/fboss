@@ -37,4 +37,16 @@ TEST(CommonFileUtils, WriteReadFile) {
   CHECK(!checkFileExists(testfile2));
 }
 
+TEST(CommonFileUtils, CreateSymLink) {
+  auto tmpDir = folly::test::TemporaryDirectory();
+  auto testfile1 = tmpDir.path().string() + "testfile_1";
+  auto testfile2 = tmpDir.path().string() + "testfile_2";
+  createFile(testfile1);
+  createFile(testfile2);
+
+  createSymLink(testfile1, testfile2);
+  ASSERT_TRUE(std::filesystem::exists(testfile1));
+  ASSERT_TRUE(std::filesystem::is_symlink(testfile1));
+  ASSERT_EQ(std::filesystem::read_symlink(testfile1), testfile2);
+}
 } // namespace facebook::fboss

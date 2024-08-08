@@ -98,10 +98,7 @@ void createSymLink(const std::string& link, const std::string& target) {
   if (!targetPath.is_absolute()) {
     throw FbossError("Target path must be absolute");
   }
-  std::string tmpLinkName =
-      std::filesystem::path(std::string(std::tmpnam(nullptr)))
-          .filename()
-          .string();
+  std::string tmpLinkName = boost::filesystem::unique_path().string();
   std::filesystem::path tmpLinkPath = linkPath.parent_path() / tmpLinkName;
   std::filesystem::create_symlink(targetPath, tmpLinkPath);
   std::filesystem::rename(tmpLinkPath, std::filesystem::path(link));
