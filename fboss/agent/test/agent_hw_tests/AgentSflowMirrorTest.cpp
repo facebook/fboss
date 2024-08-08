@@ -55,17 +55,24 @@ class AgentSflowMirrorTest : public AgentHwTest {
     return cfg;
   }
 
-  virtual void configureMirror(cfg::SwitchConfig& cfg) const {
-    utility::configureSflowMirror(
-        cfg, kSflowMirror, false, std::is_same_v<AddrT, folly::IPAddressV4>);
+  void configureMirror(cfg::SwitchConfig& cfg, bool v4) const {
+    utility::configureSflowMirror(cfg, kSflowMirror, false, v4);
   }
 
-  void configureTrapAcl(cfg::SwitchConfig& cfg) const {
-    bool isV4 = std::is_same_v<AddrT, folly::IPAddressV4>;
+  virtual void configureMirror(cfg::SwitchConfig& cfg) const {
+    configureMirror(cfg, std::is_same_v<AddrT, folly::IPAddressV4>);
+  }
+
+  void configureTrapAcl(cfg::SwitchConfig& cfg, bool isV4) const {
     return checkSameAndGetAsic()->isSupported(
                HwAsic::Feature::SAI_ACL_ENTRY_SRC_PORT_QUALIFIER)
         ? utility::configureTrapAcl(cfg, getNonSflowSampledInterfacePorts())
         : utility::configureTrapAcl(cfg, isV4);
+  }
+
+  void configureTrapAcl(cfg::SwitchConfig& cfg) const {
+    bool isV4 = std::is_same_v<AddrT, folly::IPAddressV4>;
+    configureTrapAcl(cfg, isV4);
   }
 
   PortID getNonSflowSampledInterfacePorts() const {
@@ -169,14 +176,15 @@ class AgentSflowMirrorTest : public AgentHwTest {
     return checkSameAndGetAsic()->getMirrorTruncateSize();
   }
 
-  void resolveRouteForMirrorDestination() {
+  template <typename T = AddrT>
+  void resolveRouteForMirrorDestinationImpl() {
     const auto mirrorDestinationPort = getNonSflowSampledInterfacePorts();
     boost::container::flat_set<PortDescriptor> nhopPorts{
         PortDescriptor(mirrorDestinationPort)};
 
     this->getAgentEnsemble()->applyNewState(
         [&](const std::shared_ptr<SwitchState>& state) {
-          utility::EcmpSetupTargetedPorts<AddrT> ecmpHelper(
+          utility::EcmpSetupTargetedPorts<T> ecmpHelper(
               state, RouterID(0), {getNonSflowSampledInterfacePortType()});
           auto newState = ecmpHelper.resolveNextHops(state, nhopPorts);
           return newState;
@@ -186,14 +194,23 @@ class AgentSflowMirrorTest : public AgentHwTest {
     auto mirror = getSw()->getState()->getMirrors()->getNodeIf(kSflowMirror);
     auto dip = mirror->getDestinationIp();
 
-    RoutePrefix<AddrT> prefix(AddrT(dip->str()), dip->bitCount());
-    utility::EcmpSetupTargetedPorts<AddrT> ecmpHelper(
+    RoutePrefix<T> prefix(T(dip->str()), dip->bitCount());
+    utility::EcmpSetupTargetedPorts<T> ecmpHelper(
         getProgrammedState(),
         RouterID(0),
         {getNonSflowSampledInterfacePortType()});
 
     ecmpHelper.programRoutes(
         getAgentEnsemble()->getRouteUpdaterWrapper(), nhopPorts, {prefix});
+  }
+
+  void resolveRouteForMirrorDestination(
+      bool isV4 = std::is_same_v<AddrT, folly::IPAddressV4>) {
+    if (isV4) {
+      resolveRouteForMirrorDestinationImpl<folly::IPAddressV4>();
+    } else {
+      resolveRouteForMirrorDestinationImpl<folly::IPAddressV6>();
+    }
   }
 
   std::unique_ptr<facebook::fboss::TxPacket> genPacket(
@@ -238,7 +255,8 @@ class AgentSflowMirrorTest : public AgentHwTest {
         8 /* udp header */ + slfowShimHeaderLength;
   }
 
-  void verifySampledPacket() {
+  void verifySampledPacket(
+      bool isV4 = std::is_same_v<AddrT, folly::IPAddressV4>) {
     auto ports = getPortsForSampling();
     getAgentEnsemble()->bringDownPorts(
         std::vector<PortID>(ports.begin() + 2, ports.end()));
@@ -260,7 +278,7 @@ class AgentSflowMirrorTest : public AgentHwTest {
 
     // captured packet has encap header on top
     ASSERT_GE(capturedPkt.length(), length);
-    EXPECT_GE(capturedPkt.length(), getSflowPacketHeaderLength());
+    EXPECT_GE(capturedPkt.length(), getSflowPacketHeaderLength(!isV4));
 
     auto payloadLength = length;
     if (checkSameAndGetAsic()->getAsicType() ==
@@ -272,15 +290,13 @@ class AgentSflowMirrorTest : public AgentHwTest {
       payloadLength = 512;
     }
     auto delta = capturedPkt.length() - payloadLength;
-    EXPECT_LE(delta, getSflowPacketHeaderLength());
-    auto payload = std::is_same_v<AddrT, folly::IPAddressV4>
-        ? capturedPkt.v4PayLoad()->udpPayload()->payload()
-        : capturedPkt.v6PayLoad()->udpPayload()->payload();
+    EXPECT_LE(delta, getSflowPacketHeaderLength(!isV4));
+    auto payload = isV4 ? capturedPkt.v4PayLoad()->udpPayload()->payload()
+                        : capturedPkt.v6PayLoad()->udpPayload()->payload();
 
     auto hwLogicalPortId = getHwLogicalPortId(ports[1]);
     if (!hwLogicalPortId) {
       EXPECT_EQ(getSflowPacketSrcPort(payload), ports[1]);
-
     } else {
       EXPECT_EQ(getSflowPacketSrcPort(payload), PortID(*hwLogicalPortId));
     }
@@ -452,12 +468,12 @@ class AgentSflowMirrorTruncateTest : public AgentSflowMirrorTest<AddrT> {
     }
   }
 
+  void configureMirror(cfg::SwitchConfig& cfg, bool v4) const {
+    utility::configureSflowMirror(cfg, kSflowMirror, true /* truncate */, v4);
+  }
+
   virtual void configureMirror(cfg::SwitchConfig& cfg) const override {
-    utility::configureSflowMirror(
-        cfg,
-        kSflowMirror,
-        true /* truncate */,
-        std::is_same_v<AddrT, folly::IPAddressV4>);
+    configureMirror(cfg, std::is_same_v<AddrT, folly::IPAddressV4>);
   }
 };
 
@@ -547,5 +563,29 @@ SFLOW_SAMPLING_TRUNK_TEST_V4_V6(VerifySampledPacket, {
 SFLOW_SAMPLING_TRUNK_TEST_V4_V6(VerifySampledPacketRate, {
   this->testSampledPacketRate(true);
 })
+
+TEST_F(AgentSflowMirrorTestV4, MoveToV6) {
+  // Test to migrate v4 mirror to v6
+  auto setup = [=, this]() {
+    auto config = initialConfig(*getAgentEnsemble());
+    configSampling(config, 1);
+    configureTrapAcl(config);
+    applyNewConfig(config);
+    resolveRouteForMirrorDestination();
+  };
+  auto verify = [=, this]() { verifySampledPacket(); };
+  auto setupPostWb = [=, this]() {
+    auto config = initialConfig(*getAgentEnsemble());
+    config.mirrors()->clear();
+    /* move to v6 */
+    configureMirror(config, false /* v4 */);
+    configSampling(config, 1);
+    configureTrapAcl(config, false /* v4 */);
+    applyNewConfig(config);
+    resolveRouteForMirrorDestination(false /* v4 */);
+  };
+  verifyAcrossWarmBoots(
+      setup, verify, setupPostWb, [=, this]() { verifySampledPacket(false); });
+}
 
 } // namespace facebook::fboss
