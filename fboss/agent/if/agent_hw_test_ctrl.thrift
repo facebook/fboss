@@ -1,14 +1,14 @@
 namespace cpp2 facebook.fboss.utility
-namespace go neteng.fboss.hw_test_ctrl
+namespace go neteng.fboss.agent_hw_test_ctrl
 namespace php fboss
-namespace py neteng.fboss.hw_test_ctrl
+namespace py neteng.fboss.agent_hw_test_ctrl
 namespace py3 neteng.fboss
-namespace py.asyncio neteng.fboss.asyncio.hw_test_ctrl
+namespace py.asyncio neteng.fboss.asyncio.agent_hw_test_ctrl
 
 include "fboss/agent/switch_state.thrift"
 include "fboss/agent/switch_config.thrift"
 
-service FbossHwTestCtrl {
+service AgentHwTestCtrl {
   // acl utils begin
   i32 getDefaultAclTableNumAclEntries();
 

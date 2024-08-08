@@ -626,6 +626,25 @@ add_fbthrift_cpp_library(
     phy_cpp2
 )
 
+add_fbthrift_cpp_library(
+  agent_hw_test_ctrl_cpp2
+  fboss/agent/if/agent_hw_test_ctrl.thrift
+  SERVICES
+    AgentHwTestCtrl
+  OPTIONS
+    json
+    reflection
+  DEPENDS
+    common_cpp2
+    ctrl_cpp2
+    fboss_cpp2
+    switch_state_cpp2
+    phy_cpp2
+    prbs_cpp2
+  OPTIONS
+    json
+)
+
 find_library(USB usb-1.0)
 find_path(USB_INCLUDE_DIR NAMES libusb-1.0/libusb.h)
 include_directories(${USB_INCLUDE_DIR})

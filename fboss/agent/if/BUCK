@@ -287,13 +287,13 @@ thrift_library(
 )
 
 thrift_library(
-    name = "hw_test_ctrl",
+    name = "agent_hw_test_ctrl",
     languages = [
         "cpp2",
     ],
     thrift_cpp2_options = "json",
-    thrift_srcs = {"hw_test_ctrl.thrift": [
-        "FbossHwTestCtrl",
+    thrift_srcs = {"agent_hw_test_ctrl.thrift": [
+        "AgentHwTestCtrl",
     ]},
     deps = [
         "//fboss/agent:switch_config",
