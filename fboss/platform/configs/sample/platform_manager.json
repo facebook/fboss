@@ -284,6 +284,25 @@
       "outgoingSlotConfigs": {}
     }
   },
+  "versionedPmUnitConfigs": {
+    "PSU_2GH": [
+      {
+        "pmUnitConfig": {
+          "pluggedInSlotType": "PSU_SLOT",
+          "i2cDeviceConfigs": [
+            {
+              "busName": "INCOMING@0",
+              "address": "0x12",
+              "kernelDeviceName": "lm75",
+              "pmUnitScopedName": "PSU_2GH_SENSOR"
+            }
+          ],
+          "outgoingSlotConfigs": {}
+        },
+        "productSubVersion": 4
+      }
+    ]
+  },
   "i2cAdaptersFromCpu": [
     "CPU@0",
     "CPU@1"
