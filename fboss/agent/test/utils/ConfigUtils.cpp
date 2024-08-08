@@ -641,6 +641,9 @@ cfg::SwitchConfig multiplePortsPerIntfConfig(
   }
   // Create interfaces for local sys ports on VOQ switches
   if (switchType == cfg::SwitchType::VOQ) {
+    CHECK(config.switchSettings()->switchIdToSwitchInfo()->size());
+    auto scopeResolver =
+        SwitchIdScopeResolver(*config.switchSettings()->switchIdToSwitchInfo());
     CHECK_EQ(portsPerIntf, 1) << " For VOQ switches sys port to interface "
                                  "mapping must by 1:1";
     const std::set<cfg::PortType> kCreateIntfsFor = {
@@ -652,13 +655,15 @@ cfg::SwitchConfig multiplePortsPerIntfConfig(
       if (kCreateIntfsFor.find(*port.portType()) == kCreateIntfsFor.end()) {
         continue;
       }
-      CHECK(config.switchSettings()->switchIdToSwitchInfo()->size());
-      auto mySwitchId =
-          config.switchSettings()->switchIdToSwitchInfo()->begin()->first;
+      auto mySwitchId = scopeResolver.scope(port).switchId();
       CHECK(config.dsfNodes()[mySwitchId].systemPortRange().has_value());
       auto sysportRangeBegin =
           *config.dsfNodes()[mySwitchId].systemPortRange()->minimum();
-      auto intfId = sysportRangeBegin + *port.logicalID();
+      auto switchInfoItr =
+          config.switchSettings()->switchIdToSwitchInfo()->find(mySwitchId);
+      auto portIdRange = switchInfoItr->second.portIdRange();
+      auto intfId =
+          sysportRangeBegin + *port.logicalID() - *portIdRange->minimum();
       std::optional<std::vector<std::string>> subnets;
       auto portScope = *platformMapping->getPlatformPort(*port.logicalID())
                             .mapping()
