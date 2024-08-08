@@ -2874,24 +2874,24 @@ bool CmisModule::ensureTransceiverReadyLocked() {
   // mode, wait, reset the LP mode and then return false since the module
   // needs some time to converge its state machine
 
-  // LowPwr is on the 6 bit of ModuleControl.
-  currentModuleControl = currentModuleControl | LOW_PWR_BIT;
+  // Set to 0x60 = (SquelchControl=Reduce Pave | LowPwr)
+  uint8_t newModuleControl = SQUELCH_CONTROL | LOW_PWR_BIT;
 
   // first set to low power
-  writeCmisField(CmisField::MODULE_CONTROL, &currentModuleControl);
+  writeCmisField(CmisField::MODULE_CONTROL, &newModuleControl);
 
   // Wait for 100ms before resetting the LP mode
   /* sleep override */
   usleep(kUsecBetweenPowerModeFlap);
 
-  // now enable target power class
-  currentModuleControl = currentModuleControl & ~POWER_CONTROL_MASK;
+  // Clear low power bit (set to 0x20)
+  newModuleControl = SQUELCH_CONTROL;
 
-  writeCmisField(CmisField::MODULE_CONTROL, &currentModuleControl);
+  writeCmisField(CmisField::MODULE_CONTROL, &newModuleControl);
 
   QSFP_LOG(INFO, this) << folly::sformat(
       "ensureTransceiverReadyLocked: QSFP module control set to {:#x}",
-      currentModuleControl);
+      newModuleControl);
 
   return false;
 }

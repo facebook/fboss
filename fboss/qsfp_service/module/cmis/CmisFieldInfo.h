@@ -229,8 +229,10 @@ enum FieldMasks : uint8_t {
 
   // Byte 26 (Module Global Controls) bitmask:
   // Bit 6: LowPwrAllowRequestHW in CMIS 5.0, LowPwr in 4.0
+  // Bit 5: Squelch control: 0 = Squelch reduces OMA, 1 = Squelch reduces Pave
   // Bit 4: LowPwrRequestSW in CMIS 5.0, ForceLowPwr in 4.0
   LOW_PWR_BIT = (1 << 6),
+  SQUELCH_CONTROL = (1 << 5),
   FORCE_LOW_PWR_BIT = (1 << 4),
   // When clearing LP mode, we'll clear both bits. When setting LP mode,
   // we'll only set bit 6
