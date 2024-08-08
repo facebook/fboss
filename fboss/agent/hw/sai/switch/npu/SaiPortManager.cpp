@@ -122,6 +122,13 @@ void SaiPortManager::fillInSupportedStats(PortID port) {
             HwAsic::Feature::PORT_WRED_COUNTER)) {
       countersToFilter.insert(SAI_PORT_STAT_WRED_DROPPED_PACKETS);
     }
+    if (getPortType(port) == cfg::PortType::MANAGEMENT_PORT &&
+        platform_->getAsic()->getAsicType() ==
+            cfg::AsicType::ASIC_TYPE_TOMAHAWK5) {
+      // TODO(daiweix): follow-up with brcm why this basic stats
+      // does not work for TH5 management port
+      countersToFilter.insert(SAI_PORT_STAT_IF_IN_OCTETS);
+    }
     counterIds.reserve(SaiPortTraits::CounterIdsToRead.size() + 1);
     std::copy_if(
         SaiPortTraits::CounterIdsToRead.begin(),
