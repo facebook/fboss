@@ -179,7 +179,14 @@ void DsfSubscriber::stateUpdated(const StateDelta& stateDelta) {
           folly::sformat("{}_{}:agent", localNodeName_, dstIPAddr.str()),
           false /* subscribeStats */,
           FLAGS_dsf_gr_hold_time};
-      subscriptions_.wlock()->emplace(
+      auto subscriptionsWlock = subscriptions_.wlock();
+      if (subscriptionsWlock->find(remoteEndpoint) !=
+          subscriptionsWlock->end()) {
+        // Session already exists. This maybe a node with multiple
+        // VOQ switch ASICs (e.g. MTIA)
+        continue;
+      }
+      subscriptionsWlock->emplace(
           remoteEndpoint,
           std::make_unique<DsfSubscription>(
               std::move(opts),
