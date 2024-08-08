@@ -74,11 +74,8 @@ cpp_library(
         "//common/network:util",
         "//common/time:time",
         "//fb303:thread_cached_service_data",
-        "//fboss/agent:switch_config-cpp2-types",
         "//fboss/qsfp_service/if:transceiver-cpp2-types",
         "//folly/logging:logging",
-        "//maestro/if/OdsRouter:ods_router-cpp2-services",
-        "//monitoring/common:ods_category_id",
         "//servicerouter/client/cpp2:cpp2",
     ],
 )
@@ -101,8 +98,6 @@ cpp_library(
         "//folly:memory",
         "//folly/io/async:async_base",
         "//folly/logging:logging",
-        "//maestro/if/OdsRouter:ods_router-cpp2-services",
-        "//monitoring/common:ods_category_id",
         "//servicerouter/client/cpp2:cpp2",
     ],
 )
