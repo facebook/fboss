@@ -93,7 +93,11 @@ QsfpModule::QsfpModule(
     TransceiverImpl* qsfpImpl)
     : Transceiver(),
       qsfpImpl_(qsfpImpl),
-      snapshots_(TransceiverSnapshotCache(std::move(portNames))) {
+      snapshots_(TransceiverSnapshotCache(portNames)) {
+  CHECK(!portNames.empty())
+      << "No portNames attached to this transceiver in platform mapping";
+  StatsPublisher::initPerPortFb303Stats(portNames);
+  primaryPortName_ = *portNames.begin();
   markLastDownTime();
 }
 
@@ -383,11 +387,13 @@ void QsfpModule::updateCachedTransceiverInfoLocked(ModuleStatus moduleStatus) {
     if (auto tempFlags = sensorInfo.temp()->flags()) {
       if (*tempFlags->alarm()->high() || *tempFlags->warn()->high()) {
         StatsPublisher::bumpHighTemp();
+        StatsPublisher::bumpHighTempPort(primaryPortName_);
       }
     }
     if (auto vccFlags = sensorInfo.vcc()->flags()) {
       if (*vccFlags->alarm()->high() || *vccFlags->warn()->high()) {
         StatsPublisher::bumpHighVcc();
+        StatsPublisher::bumpHighVccPort(primaryPortName_);
       }
     }
     tcvrStats.sensor() = sensorInfo;

@@ -34,6 +34,9 @@ class StatsPublisher {
   static void bumpAOIOverride();
   static void bumpHighTemp();
   static void bumpHighVcc();
+  static void bumpHighTempPort(std::string& portName);
+  static void bumpHighVccPort(std::string& portName);
+  static void initPerPortFb303Stats(std::set<std::string>& portNames);
 
  private:
   TransceiverManager* transceiverManager_{nullptr};

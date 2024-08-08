@@ -781,6 +781,8 @@ class QsfpModule : public Transceiver {
   // transceiverInfo.tcvrState and return the new transceiverInfo
   TransceiverInfo updateFwUpgradeStatusInTcvrInfoLocked(
       bool upgradeInProgress) override;
+
+  std::string primaryPortName_;
 };
 } // namespace fboss
 } // namespace facebook

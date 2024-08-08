@@ -30,5 +30,12 @@ void StatsPublisher::bumpAOIOverride() {}
 void StatsPublisher::bumpHighTemp() {}
 // static
 void StatsPublisher::bumpHighVcc() {}
+// static
+void StatsPublisher::bumpHighTempPort(std::string& /* portName */) {}
+// static
+void StatsPublisher::bumpHighVccPort(std::string& /* portName */) {}
+// static
+void StatsPublisher::initPerPortFb303Stats(
+    std::set<std::string>& /* portNames */) {}
 } // namespace fboss
 } // namespace facebook
