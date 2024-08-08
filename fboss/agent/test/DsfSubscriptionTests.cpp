@@ -4,6 +4,8 @@
 #include "fboss/agent/AgentFsdbSyncManager.h"
 #include "fboss/agent/DsfSubscription.h"
 #include "fboss/agent/SwitchStats.h"
+#include "fboss/agent/test/HwTestHandle.h"
+#include "fboss/agent/test/TestUtils.h"
 #include "fboss/fsdb/tests/utils/FsdbTestServer.h"
 #include "fboss/lib/CommonUtils.h"
 
@@ -16,10 +18,12 @@ namespace facebook::fboss {
 class DsfSubscriptionTest : public ::testing::Test {
  public:
   void SetUp() override {
+    auto config = testConfigA(cfg::SwitchType::VOQ);
+    handle_ = createTestHandle(&config);
+    sw_ = handle_->getSw();
     fsdbTestServer_ = std::make_unique<fsdb::test::FsdbTestServer>();
     FLAGS_fsdbPort = fsdbTestServer_->getFsdbPort();
     pubSub_ = std::make_unique<fsdb::FsdbPubSubManager>("test-client");
-    switchStats_ = std::make_unique<SwitchStats>(1);
     FLAGS_publish_state_to_fsdb = true;
     FLAGS_fsdb_sync_full_state = true;
     streamConnectPool_ = std::make_unique<folly::IOThreadPoolExecutor>(
@@ -80,7 +84,7 @@ class DsfSubscriptionTest : public ::testing::Test {
         "remote",
         folly::IPAddress("::1"),
         folly::IPAddress("::1"),
-        switchStats_.get(),
+        sw_->stats(),
         std::move(dsfSubscriberStateCb),
         std::move(grHoldExpiredCb),
         std::move(stateUpdateCb));
@@ -94,11 +98,12 @@ class DsfSubscriptionTest : public ::testing::Test {
   std::unique_ptr<fsdb::test::FsdbTestServer> fsdbTestServer_;
   std::unique_ptr<AgentFsdbSyncManager> publisher_;
   std::unique_ptr<fsdb::FsdbPubSubManager> pubSub_;
-  std::unique_ptr<SwitchStats> switchStats_;
   std::unique_ptr<folly::IOThreadPoolExecutor> streamConnectPool_;
   std::unique_ptr<folly::IOThreadPoolExecutor> streamServePool_;
   std::unique_ptr<folly::IOThreadPoolExecutor> hwUpdatePool_;
   std::optional<ReconnectingThriftClient::ServerOptions> serverOptions_;
+  SwSwitch* sw_;
+  std::unique_ptr<HwTestHandle> handle_;
 };
 
 TEST_F(DsfSubscriptionTest, Connect) {
