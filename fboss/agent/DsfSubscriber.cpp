@@ -191,12 +191,6 @@ void DsfSubscriber::stateUpdated(const StateDelta& stateDelta) {
               srcIPAddr,
               dstIPAddr,
               sw_,
-              [this, remoteEndpoint]( // DsfSubscriberStateCb
-                  fsdb::FsdbSubscriptionState oldState,
-                  fsdb::FsdbSubscriptionState newState) {
-                this->sw_->updateDsfSubscriberState(
-                    remoteEndpoint, oldState, newState);
-              },
               [this, nodeName, nodeSwitchId]() { // GrHoldExpiredCb
                 // There is a single DSF subscription to every remote Interface
                 // Node even

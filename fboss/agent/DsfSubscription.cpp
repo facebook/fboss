@@ -66,7 +66,6 @@ DsfSubscription::DsfSubscription(
     folly::IPAddress localIp,
     folly::IPAddress remoteIp,
     SwSwitch* sw,
-    DsfSubscriberStateCb dsfSubscriberStateCb,
     GrHoldExpiredCb grHoldExpiredCb,
     StateUpdateCb stateUpdateCb)
     : opts_(std::move(options)),
@@ -80,7 +79,6 @@ DsfSubscription::DsfSubscription(
       localIp_(std::move(localIp)),
       remoteIp_(std::move(remoteIp)),
       sw_(sw),
-      dsfSubscriberStateCb_(std::move(dsfSubscriberStateCb)),
       grHoldExpiredCb_(std::move(grHoldExpiredCb)),
       stateUpdateCb_(std::move(stateUpdateCb)),
       session_(makeRemoteEndpoint(remoteNodeName_, remoteIp_)) {

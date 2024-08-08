@@ -70,7 +70,6 @@ class DsfSubscriptionTest : public ::testing::Test {
   }
 
   std::unique_ptr<DsfSubscription> createSubscription(
-      typename DsfSubscription::DsfSubscriberStateCb dsfSubscriberStateCb,
       typename DsfSubscription::GrHoldExpiredCb grHoldExpiredCb,
       typename DsfSubscription::StateUpdateCb stateUpdateCb) {
     fsdb::SubscriptionOptions opts{
@@ -85,7 +84,6 @@ class DsfSubscriptionTest : public ::testing::Test {
         folly::IPAddress("::1"),
         folly::IPAddress("::1"),
         sw_,
-        std::move(dsfSubscriberStateCb),
         std::move(grHoldExpiredCb),
         std::move(stateUpdateCb));
   }
@@ -115,11 +113,6 @@ TEST_F(DsfSubscriptionTest, Connect) {
       recvSysPorts;
   std::optional<std::map<SwitchID, std::shared_ptr<InterfaceMap>>> recvIntfs;
   auto subscription = createSubscription(
-      // DsfSubscriberStateCb
-      [&lastState](
-          fsdb::FsdbSubscriptionState, fsdb::FsdbSubscriptionState newState) {
-        lastState = newState;
-      },
       // GrHoldExpiredCb
       []() {},
       // StateUpdateCb
@@ -155,11 +148,6 @@ TEST_F(DsfSubscriptionTest, ConnectDisconnect) {
       recvSysPorts;
   std::optional<std::map<SwitchID, std::shared_ptr<InterfaceMap>>> recvIntfs;
   auto subscription = createSubscription(
-      // DsfSubscriberStateCb
-      [&lastState](
-          fsdb::FsdbSubscriptionState, fsdb::FsdbSubscriptionState newState) {
-        lastState = newState;
-      },
       // GrHoldExpiredCb
       []() {},
       // StateUpdateCb
@@ -204,11 +192,6 @@ TEST_F(DsfSubscriptionTest, GR) {
   int subStateUpdates = 0;
   int updates = 0;
   auto subscription = createSubscription(
-      // DsfSubscriberStateCb
-      [&](fsdb::FsdbSubscriptionState, fsdb::FsdbSubscriptionState newState) {
-        lastState = newState;
-        subStateUpdates++;
-      },
       // GrHoldExpiredCb
       [&]() { grExpired = true; },
       // StateUpdateCb
@@ -267,8 +250,6 @@ TEST_F(DsfSubscriptionTest, DataUpdate) {
       recvSysPorts;
   std::optional<std::map<SwitchID, std::shared_ptr<InterfaceMap>>> recvIntfs;
   auto subscription = createSubscription(
-      // DsfSubscriberStateCb
-      [](fsdb::FsdbSubscriptionState, fsdb::FsdbSubscriptionState) {},
       // GrHoldExpiredCb
       []() {},
       // StateUpdateCb
