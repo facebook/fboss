@@ -608,30 +608,6 @@ cpp_library(
 )
 
 cpp_library(
-    name = "dsf_subscription",
-    srcs = [
-        "DsfSession.cpp",
-        "DsfSubscription.cpp",
-    ],
-    headers = [
-        "DsfSession.h",
-        "DsfSubscription.h",
-    ],
-    exported_deps = [
-        ":agent_features",
-        ":stats",
-        "//fboss/agent/if:ctrl-cpp2-types",
-        "//fboss/agent/state:state",
-        "//fboss/fsdb/client:fsdb_pub_sub",
-        "//fboss/fsdb/if:fsdb_common-cpp2-types",
-        "//fboss/fsdb/if:fsdb_model",
-        "//fboss/thrift_cow/nodes:serializer",
-        "//folly/logging:logging",
-        "//thrift/lib/cpp/util:enum_utils",
-    ],
-)
-
-cpp_library(
     name = "core",
     srcs = [
         "AclNexthopHandler.cpp",
@@ -640,8 +616,10 @@ cpp_library(
         "ArpHandler.cpp",
         "DHCPv4Handler.cpp",
         "DHCPv6Handler.cpp",
+        "DsfSession.cpp",
         "DsfStateUpdaterUtil.cpp",
         "DsfSubscriber.cpp",
+        "DsfSubscription.cpp",
         "EncapIndexAllocator.cpp",
         "FabricConnectivityManager.cpp",
         "FibHelpers.cpp",
@@ -727,7 +705,6 @@ cpp_library(
         ":asic_utils",
         ":constants",
         ":dhcpv4_options_of_interest",
-        ":dsf_subscription",
         ":fboss-error",
         ":fboss-types",
         ":hw_switch_handler",

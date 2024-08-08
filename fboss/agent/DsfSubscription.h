@@ -33,7 +33,6 @@ class DsfSubscription {
       folly::IPAddress localIp,
       folly::IPAddress remoteIp,
       SwSwitch* sw,
-      SwitchStats* stats,
       DsfSubscriberStateCb dsfSubscriberStateCb,
       GrHoldExpiredCb grHoldExpiredCb,
       StateUpdateCb stateUpdateCb);
@@ -65,7 +64,6 @@ class DsfSubscription {
   folly::IPAddress localIp_;
   folly::IPAddress remoteIp_;
   SwSwitch* sw_;
-  SwitchStats* stats_;
   DsfSubscriberStateCb dsfSubscriberStateCb_;
   GrHoldExpiredCb grHoldExpiredCb_;
   StateUpdateCb stateUpdateCb_;

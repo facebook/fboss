@@ -2,6 +2,7 @@
 
 #include "fboss/agent/DsfSubscription.h"
 #include "fboss/agent/AgentFeatures.h"
+#include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/SwitchStats.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/fsdb/if/FsdbModel.h"
@@ -65,7 +66,6 @@ DsfSubscription::DsfSubscription(
     folly::IPAddress localIp,
     folly::IPAddress remoteIp,
     SwSwitch* sw,
-    SwitchStats* stats,
     DsfSubscriberStateCb dsfSubscriberStateCb,
     GrHoldExpiredCb grHoldExpiredCb,
     StateUpdateCb stateUpdateCb)
@@ -80,13 +80,12 @@ DsfSubscription::DsfSubscription(
       localIp_(std::move(localIp)),
       remoteIp_(std::move(remoteIp)),
       sw_(sw),
-      stats_(stats),
       dsfSubscriberStateCb_(std::move(dsfSubscriberStateCb)),
       grHoldExpiredCb_(std::move(grHoldExpiredCb)),
       stateUpdateCb_(std::move(stateUpdateCb)),
       session_(makeRemoteEndpoint(remoteNodeName_, remoteIp_)) {
   // Subscription is not established until state becomes CONNECTED
-  stats_->failedDsfSubscription(remoteNodeName_, 1);
+  sw->stats()->failedDsfSubscription(remoteNodeName_, 1);
   fsdbPubSubMgr_->addStatePathSubscription(
       fsdb::SubscriptionOptions(opts_),
       getAllSubscribePaths(localNodeName_, localIp_),
@@ -103,7 +102,7 @@ DsfSubscription::DsfSubscription(
 DsfSubscription::~DsfSubscription() {
   if (getStreamState() != fsdb::FsdbStreamClient::State::CONNECTED) {
     // Subscription was not established - decrement failedDSF counter.
-    stats_->failedDsfSubscription(remoteNodeName_, -1);
+    sw_->stats()->failedDsfSubscription(remoteNodeName_, -1);
   }
   fsdbPubSubMgr_->removeStatePathSubscription(
       getAllSubscribePaths(localNodeName_, localIp_), remoteIp_.str());
@@ -145,9 +144,9 @@ void DsfSubscription::handleFsdbSubscriptionStateUpdate(
 
   if (oldThriftState != newThriftState) {
     if (newThriftState == fsdb::FsdbSubscriptionState::CONNECTED) {
-      stats_->failedDsfSubscription(remoteNodeName_, -1);
+      sw_->stats()->failedDsfSubscription(remoteNodeName_, -1);
     } else {
-      stats_->failedDsfSubscription(remoteNodeName_, 1);
+      sw_->stats()->failedDsfSubscription(remoteNodeName_, 1);
     }
 
     dsfSubscriberStateCb_(oldThriftState, newThriftState);
