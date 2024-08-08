@@ -571,16 +571,19 @@ TEST_F(AgentVoqSwitchWithFabricPortsTest, switchReachability) {
             switchToPortGroupIter !=
             switchReachability.switchIdToFabricPortGroupMap()->end());
 
-        const auto portSetIter = switchReachability.fabricPortGroupMap()->find(
-            switchToPortGroupIter->second);
+        const auto portGroupIter =
+            switchReachability.fabricPortGroupMap()->find(
+                switchToPortGroupIter->second);
         EXPECT_EVENTUALLY_TRUE(
-            portSetIter != switchIter->second.fabricPortGroupMap()->end());
-        EXPECT_EVENTUALLY_EQ(portSetIter->second.size(), expectedGroupSize);
+            portGroupIter != switchIter->second.fabricPortGroupMap()->end());
+        EXPECT_EVENTUALLY_EQ(portGroupIter->second.size(), expectedGroupSize);
         // If the size matches, then check for port membership
+        auto portNameIter = std::find(
+            portGroupIter->second.begin(),
+            portGroupIter->second.end(),
+            getProgrammedState()->getPorts()->getNodeIf(portId)->getName());
         EXPECT_EVENTUALLY_EQ(
-            portSetIter->second.contains(
-                getProgrammedState()->getPorts()->getNodeIf(portId)->getName()),
-            reachable);
+            (portNameIter != portGroupIter->second.end()), reachable);
       });
     };
     drainPort(true /*drain*/, fabricPortId);

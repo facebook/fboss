@@ -2140,16 +2140,20 @@ void SwSwitch::switchReachabilityChanged(
     const SwitchID switchId,
     const std::map<SwitchID, std::set<PortID>>& switchReachabilityInfo) {
   switch_reachability::SwitchReachability newReachability;
-  int64_t currentIdx = 1;
-  std::unordered_map<std::set<PortID>, int64_t> portGrp2Id;
+  int currentIdx = 1;
+  std::unordered_map<std::set<PortID>, int> portGrp2Id;
   for (const auto& [destinationSwitchId, portIdSet] : switchReachabilityInfo) {
     auto [_, inserted] = portGrp2Id.insert({portIdSet, currentIdx});
     if (inserted) {
-      std::set<std::string> portSet;
-      for (auto portId : portIdSet) {
-        portSet.insert(getState()->getPorts()->getNode(portId)->getName());
-      }
-      newReachability.fabricPortGroupMap()[currentIdx] = std::move(portSet);
+      std::vector<std::string> portGroup(portIdSet.size());
+      std::transform(
+          portIdSet.begin(),
+          portIdSet.end(),
+          portGroup.begin(),
+          [this](PortID portId) {
+            return getState()->getPorts()->getNode(portId)->getName();
+          });
+      newReachability.fabricPortGroupMap()[currentIdx] = std::move(portGroup);
       newReachability.switchIdToFabricPortGroupMap()[static_cast<int64_t>(
           destinationSwitchId)] = currentIdx;
       currentIdx++;
