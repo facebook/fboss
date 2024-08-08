@@ -34,7 +34,7 @@
     },
     "mcb_cpld": {
       "preUpgradeCmd": "gpioset $(gpiodetect | grep -E 'fboss_iob_pci.gpiochip.*' | awk '{print $1}') 3=1",
-      "getVersionCmd": "mcb_cpld_ver=$((`cat /run/devmap/cplds/MCB_CPLD/cpld_ver`));mcb_cpld_subver=$((`cat /run/devmap/cplds/MCB_CPLD/cpld_minor_ver`));mcb_cpld_auxver=$((`cat /run/devmap/cplds/MCB_CPLD/cpld_sub_ver`));echo $mcb_cpld_ver'.'$mcb_cpld_subver'.'$mcb_cpld_auxver",
+      "getVersionCmd": "mcb_cpld_ver=$((`cat /run/devmap/cplds/MCB_CPLD/cpld_ver`));mcb_cpld_subver=$((`cat /run/devmap/cplds/MCB_CPLD/cpld_minor_ver`));echo $mcb_cpld_ver'.'$mcb_cpld_subver",
       "priority": 5,
       "upgradeCmd": "mcb_cpld_filename=$(head -n 1 /home/mcb_cpld_filename.txt);flashrom -p linux_spi:dev=/run/devmap/flashes/MCB_SPI_MASTER_4_DEVICE_1 -w $mcb_cpld_filename -c W25X20",
       "verifyFwCmd": "mcb_cpld_filename=$(head -n 1 /home/mcb_cpld_filename.txt);flashrom -p linux_spi:dev=/run/devmap/flashes/MCB_SPI_MASTER_4_DEVICE_1 -v $mcb_cpld_filename -c W25X20",
@@ -43,7 +43,7 @@
     },
     "smb_cpld": {
       "preUpgradeCmd": "gpioset $(gpiodetect | grep -E 'fboss_iob_pci.gpiochip.*' | awk '{print $1}') 7=1",
-      "getVersionCmd": "smb_cpld_ver=$((`cat /run/devmap/cplds/SMB_CPLD/cpld_ver`));smb_cpld_subver=$((`cat /run/devmap/cplds/SMB_CPLD/cpld_minor_ver`));smb_cpld_auxver=$((`cat /run/devmap/cplds/SMB_CPLD/cpld_sub_ver`));echo $smb_cpld_ver'.'$smb_cpld_subver'.'$smb_cpld_auxver",
+      "getVersionCmd": "smb_cpld_ver=$((`cat /run/devmap/cplds/SMB_CPLD/cpld_ver`));smb_cpld_subver=$((`cat /run/devmap/cplds/SMB_CPLD/cpld_minor_ver`));echo $smb_cpld_ver'.'$smb_cpld_subver",
       "priority": 6,
       "upgradeCmd": "smb_cpld_filename=$(head -n 1 /home/smb_cpld_filename.txt);flashrom -p linux_spi:dev=/run/devmap/flashes/MCB_SPI_MASTER_5_DEVICE_1 -w $smb_cpld_filename -c W25X20",
       "verifyFwCmd": "smb_cpld_filename=$(head -n 1 /home/smb_cpld_filename.txt);flashrom -p linux_spi:dev=/run/devmap/flashes/MCB_SPI_MASTER_5_DEVICE_1 -v $smb_cpld_filename -c W25X20",
@@ -52,7 +52,7 @@
     },
     "scm_cpld": {
       "preUpgradeCmd": "gpioset $(gpiodetect | grep -E 'fboss_iob_pci.gpiochip.*' | awk '{print $1}') 1=1",
-      "getVersionCmd": "scm_cpld_ver=$((`cat /run/devmap/cplds/SCM_CPLD/cpld_ver`));scm_cpld_subver=$((`cat /run/devmap/cplds/SCM_CPLD/cpld_minor_ver`));scm_cpld_auxver=$((`cat /run/devmap/cplds/SCM_CPLD/cpld_sub_ver`));echo $scm_cpld_ver'.'$scm_cpld_subver'.'$scm_cpld_auxver",
+      "getVersionCmd": "scm_cpld_ver=$((`cat /run/devmap/cplds/SCM_CPLD/cpld_ver`));scm_cpld_subver=$((`cat /run/devmap/cplds/SCM_CPLD/cpld_minor_ver`));echo $scm_cpld_ver'.'$scm_cpld_subver",
       "priority": 7,
       "upgradeCmd": "scm_cpld_filename=$(head -n 1 /home/scm_cpld_filename.txt);flashrom -p linux_spi:dev=/run/devmap/flashes/MCB_SPI_MASTER_7_DEVICE_1 -w $scm_cpld_filename -c W25X20",
       "verifyFwCmd": "scm_cpld_filename=$(head -n 1 /home/scm_cpld_filename.txt);flashrom -p linux_spi:dev=/run/devmap/flashes/MCB_SPI_MASTER_7_DEVICE_1 -v $scm_cpld_filename -c W25X20",
