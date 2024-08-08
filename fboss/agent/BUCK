@@ -924,6 +924,17 @@ cpp_library(
 )
 
 cpp_library(
+    name = "fboss-event-base",
+    headers = [
+        "FbossEventBase.h",
+    ],
+    exported_deps = [
+        "//folly/io/async:async_base",
+        "//folly/logging:logging",
+    ],
+)
+
+cpp_library(
     name = "fboss-error",
     headers = [
         "FbossError.h",

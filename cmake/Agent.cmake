@@ -290,6 +290,7 @@ set(core_libs
   monolithic_switch_handler
   l2learn_event_observer
   agent_fsdb_sync_manager
+  fboss_event_base
 )
 
 target_link_libraries(core ${core_libs})
@@ -328,6 +329,14 @@ target_link_libraries(handler
 
 target_link_libraries(fboss_types
   switch_config_cpp2
+  Folly::folly
+)
+
+add_library(fboss_event_base
+  fboss/agent/FbossEventBase.h
+)
+
+target_link_libraries(fboss_event_base
   Folly::folly
 )
 
