@@ -215,12 +215,14 @@ void FwUtilImpl::doFirmwareAction(
   const std::string verifyFwCmd = *fwConfig.verifyFwCmd();
 
   if (action == "program" && !upgradeCmd.empty()) {
-    // Verify sha1sum of the firmware matches the one in the config json
-    // This is needed only if we are going to program a new firmware image
-    // in a respective fpd. During EVT, we will leave the config without sha1sum
-    // since the binary will change a lot. We will add the sha1sum during DVT
-    // since firmware binary is expected to start being stable at that stage.
-    if (!fwConfig.sha1sum()->empty()) {
+    // Fw_util is build as part of ramdisk once every 24 hours
+    // assuming no test failure. if we force sha1sum check in the fw_util,
+    // we will end up blocking provisioning until a new ramdisk is built
+    // by their conveyor which can take more than 24 hours if there are test
+    // failures. Hence, we are adding a flag to make sha1sum check optional. We
+    // will enforce sha1sum check in the run_script of the FIS packages.
+
+    if (FLAGS_verify_sha1sum && !fwConfig.sha1sum()->empty()) {
       verifySha1sum(fpd, *fwConfig.sha1sum());
     }
     if (fwConfig.preUpgradeCmd().has_value()) {
