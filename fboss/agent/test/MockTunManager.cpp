@@ -13,7 +13,7 @@
 
 namespace facebook::fboss {
 
-MockTunManager::MockTunManager(SwSwitch* sw, folly::EventBase* evb)
+MockTunManager::MockTunManager(SwSwitch* sw, FbossEventBase* evb)
     : TunManager(sw, evb) {}
 
 bool MockTunManager::sendPacketToHost(

@@ -118,7 +118,7 @@ class ResolvedNexthopMonitorTest : public ::testing::Test {
 
   void runInUpdateEventBaseAndWait(Func func) {
     auto* evb = sw_->getUpdateEvb();
-    evb->runInEventBaseThreadAndWait(std::move(func));
+    evb->runInFbossEventBaseThreadAndWait(std::move(func));
   }
 
   void schedulePendingStateUpdates() {

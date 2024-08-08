@@ -10,7 +10,6 @@
 #pragma once
 
 #include <folly/futures/Future.h>
-#include <folly/io/async/EventBase.h>
 
 #include "fboss/agent/gen-cpp2/platform_config_types.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"

@@ -9,6 +9,7 @@
  */
 #pragma once
 
+#include "fboss/agent/FbossEventBase.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/if/gen-cpp2/FbossCtrl.h"
 #include "fboss/agent/rib/NetworkToRouteMap.h"
@@ -338,7 +339,7 @@ class RoutingInformationBase {
   }
   void waitForRibUpdates() {
     ensureRunning();
-    ribUpdateEventBase_.runInEventBaseThreadAndWait([] { return; });
+    ribUpdateEventBase_.runInFbossEventBaseThreadAndWait([] { return; });
   }
 
   void stop();
@@ -380,7 +381,7 @@ class RoutingInformationBase {
       void* cookie);
 
   std::unique_ptr<std::thread> ribUpdateThread_;
-  folly::EventBase ribUpdateEventBase_;
+  FbossEventBase ribUpdateEventBase_;
   RibRouteTables ribTables_;
 };
 

@@ -197,7 +197,7 @@ int hwAgentMain(
     XLOG(DBG2) << "Started background thread: UpdateStatsThread";
   }
 
-  folly::EventBase eventBase;
+  FbossEventBase eventBase;
   auto server = setupThriftServer(
       eventBase,
       {hwAgent->getPlatform()->createHandler()},

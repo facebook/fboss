@@ -54,7 +54,7 @@ class HwTestLearningUpdateObserver
   std::vector<std::pair<L2Entry, L2EntryUpdateType>> data_;
 
   std::unique_ptr<std::thread> applyStateUpdateThread_;
-  folly::EventBase applyStateUpdateEventBase_;
+  FbossEventBase applyStateUpdateEventBase_;
 };
 
 class HwTestLearningUpdateAutoObserver : public HwTestLearningUpdateObserver {

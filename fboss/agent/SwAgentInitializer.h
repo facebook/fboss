@@ -100,7 +100,7 @@ class SwAgentInitializer : public AgentInitializer {
 
  private:
   std::unique_ptr<apache::thrift::ThriftServer> server_;
-  folly::EventBase* eventBase_;
+  FbossEventBase* eventBase_;
 
   std::atomic<bool> serverStarted_{false};
   std::mutex serverStopMutex_;

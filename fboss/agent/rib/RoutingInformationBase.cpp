@@ -485,7 +485,7 @@ RoutingInformationBase::~RoutingInformationBase() {
 
 void RoutingInformationBase::stop() {
   if (ribUpdateThread_) {
-    ribUpdateEventBase_.runInEventBaseThread(
+    ribUpdateEventBase_.runInFbossEventBaseThread(
         [this] { ribUpdateEventBase_.terminateLoopSoon(); });
     ribUpdateThread_->join();
     ribUpdateThread_.reset();
@@ -527,7 +527,7 @@ void RoutingInformationBase::reconfigure(
         updateFibCallback,
         cookie);
   };
-  ribUpdateEventBase_.runInEventBaseThreadAndWait(updateFn);
+  ribUpdateEventBase_.runInFbossEventBaseThreadAndWait(updateFn);
 }
 
 void RoutingInformationBase::updateRemoteInterfaceRoutes(
@@ -596,7 +596,7 @@ RoutingInformationBase::UpdateStatistics RoutingInformationBase::updateImpl(
       updateException = std::current_exception();
     }
   };
-  ribUpdateEventBase_.runInEventBaseThreadAndWait(updateFn);
+  ribUpdateEventBase_.runInFbossEventBaseThreadAndWait(updateFn);
   if (updateException) {
     std::rethrow_exception(updateException);
   }
@@ -618,9 +618,9 @@ void RoutingInformationBase::setClassIDImpl(
         resolver, rid, prefixes, fibUpdateCallback, classId, cookie);
   };
   if (async) {
-    ribUpdateEventBase_.runInEventBaseThread(updateFn);
+    ribUpdateEventBase_.runInFbossEventBaseThread(updateFn);
   } else {
-    ribUpdateEventBase_.runInEventBaseThreadAndWait(updateFn);
+    ribUpdateEventBase_.runInFbossEventBaseThreadAndWait(updateFn);
   }
 }
 

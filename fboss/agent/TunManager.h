@@ -9,7 +9,7 @@
  */
 #pragma once
 
-#include <folly/io/async/EventBase.h>
+#include "fboss/agent/FbossEventBase.h"
 #include "fboss/agent/StateObserver.h"
 #include "fboss/agent/state/Interface.h"
 #include "fboss/agent/types.h"
@@ -30,7 +30,7 @@ class TunIntf;
 
 class TunManager : public StateObserver {
  public:
-  TunManager(SwSwitch* sw, folly::EventBase* evb);
+  TunManager(SwSwitch* sw, FbossEventBase* evb);
   ~TunManager() override;
 
   /**
@@ -221,7 +221,7 @@ class TunManager : public StateObserver {
       REMOVEFN removeFn);
 
   SwSwitch* sw_{nullptr};
-  folly::EventBase* evb_{nullptr};
+  FbossEventBase* evb_{nullptr};
 
   // Netlink socket for managing interface/addresses in Host/Linux
   nl_sock* sock_{nullptr};

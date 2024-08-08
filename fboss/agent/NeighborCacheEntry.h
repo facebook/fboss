@@ -86,7 +86,7 @@ class NeighborCacheEntry : private folly::AsyncTimeout {
   typedef NeighborEntryFields<AddressType> EntryFields;
   NeighborCacheEntry(
       EntryFields fields,
-      folly::EventBase* evb,
+      FbossEventBase* evb,
       Cache* cache,
       NeighborEntryState state,
       state::NeighborEntryType type)
@@ -105,7 +105,7 @@ class NeighborCacheEntry : private folly::AsyncTimeout {
       folly::MacAddress mac,
       PortDescriptor port,
       InterfaceID intf,
-      folly::EventBase* evb,
+      FbossEventBase* evb,
       Cache* cache,
       NeighborEntryState state)
       : NeighborCacheEntry(
@@ -118,7 +118,7 @@ class NeighborCacheEntry : private folly::AsyncTimeout {
       AddressType ip,
       InterfaceID intf,
       NeighborState ignored,
-      folly::EventBase* evb,
+      FbossEventBase* evb,
       Cache* cache)
       : NeighborCacheEntry(
             EntryFields(ip, intf, ignored),
@@ -414,7 +414,7 @@ class NeighborCacheEntry : private folly::AsyncTimeout {
 
   // Additional state kept per cache entry.
   Cache* cache_;
-  folly::EventBase* evb_;
+  FbossEventBase* evb_;
   NeighborEntryState state_{NeighborEntryState::UNINITIALIZED};
   uint32_t probesLeft_{0};
   state::NeighborEntryType type_{state::NeighborEntryType::DYNAMIC_ENTRY};

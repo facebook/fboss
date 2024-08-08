@@ -505,7 +505,7 @@ void AgentHwTest::populateArpNeighborsToCache(
                       ->getNeighborUpdater()
                       ->getArpCacheForIntf(interface->getID())
                       .get();
-  getAgentEnsemble()->getSw()->getNeighborCacheEvb()->runInEventBaseThread(
+  getAgentEnsemble()->getSw()->getNeighborCacheEvb()->runInFbossEventBaseThread(
       [interface, arpCache] {
         arpCache->repopulate(interface->getArpTable());
       });
@@ -518,7 +518,7 @@ void AgentHwTest::populateNdpNeighborsToCache(
                       ->getNeighborUpdater()
                       ->getNdpCacheForIntf(interface->getID())
                       .get();
-  getAgentEnsemble()->getSw()->getNeighborCacheEvb()->runInEventBaseThread(
+  getAgentEnsemble()->getSw()->getNeighborCacheEvb()->runInFbossEventBaseThread(
       [interface, ndpCache] {
         ndpCache->repopulate(interface->getNdpTable());
       });

@@ -19,7 +19,6 @@ extern "C" {
 }
 
 #include <folly/MapUtil.h>
-#include <folly/io/async/EventBase.h>
 #include <folly/lang/CString.h>
 #include <folly/logging/xlog.h>
 #include "fboss/agent/NlError.h"
@@ -40,10 +39,9 @@ const int kDefaultMtu = 1500;
 
 namespace facebook::fboss {
 
-using folly::EventBase;
 using folly::IPAddress;
 
-TunManager::TunManager(SwSwitch* sw, EventBase* evb) : sw_(sw), evb_(evb) {
+TunManager::TunManager(SwSwitch* sw, FbossEventBase* evb) : sw_(sw), evb_(evb) {
   DCHECK(sw) << "NULL pointer to SwSwitch.";
   DCHECK(evb) << "NULL pointer to EventBase";
 
@@ -85,7 +83,7 @@ void TunManager::stateUpdated(const StateDelta& delta) {
   // with that.
 
   auto state = delta.newState();
-  evb_->runInEventBaseThread([this, state]() { this->sync(state); });
+  evb_->runInFbossEventBaseThread([this, state]() { this->sync(state); });
 }
 
 bool TunManager::sendPacketToHost(
@@ -670,7 +668,7 @@ boost::container::flat_map<InterfaceID, bool> TunManager::getInterfaceStatus(
 }
 
 void TunManager::forceInitialSync() {
-  evb_->runInEventBaseThread([this]() {
+  evb_->runInFbossEventBaseThread([this]() {
     if (numSyncs_ == 0) {
       // no syncs occurred yet. Force initial sync. The initial sync is done
       // with applied state, and subsequent sync's will also be done with the

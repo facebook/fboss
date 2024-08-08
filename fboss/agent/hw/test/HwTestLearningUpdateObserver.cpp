@@ -25,7 +25,7 @@ void HwTestLearningUpdateObserver::stopObserving() {
   HwSwitchEnsemble::HwSwitchEventObserverIf::stopObserving();
 
   if (applyStateUpdateThread_) {
-    applyStateUpdateEventBase_.runInEventBaseThreadAndWait(
+    applyStateUpdateEventBase_.runInFbossEventBaseThreadAndWait(
         [this] { applyStateUpdateEventBase_.terminateLoopSoon(); });
     applyStateUpdateThread_->join();
     applyStateUpdateThread_.reset();
@@ -50,7 +50,7 @@ void HwTestLearningUpdateObserver::l2LearningUpdateReceived(
    * another state update or else we will try to acquire same lock and hang.
    * To avoid, schedule state delta processing in a different context.
    */
-  applyStateUpdateEventBase_.runInEventBaseThread(
+  applyStateUpdateEventBase_.runInFbossEventBaseThread(
       [this, l2Entry, l2EntryUpdateType]() {
         this->applyStateUpdateHelper(l2Entry, l2EntryUpdateType);
       });
@@ -91,7 +91,7 @@ HwTestLearningUpdateObserver::waitForLearningUpdates(
 }
 
 void HwTestLearningUpdateObserver::waitForStateUpdate() {
-  applyStateUpdateEventBase_.runInEventBaseThreadAndWait([]() { return; });
+  applyStateUpdateEventBase_.runInFbossEventBaseThreadAndWait([]() { return; });
 }
 
 HwTestLearningUpdateAutoObserver::HwTestLearningUpdateAutoObserver(

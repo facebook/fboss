@@ -76,12 +76,12 @@ LldpManager::LldpManager(SwSwitch* sw)
 LldpManager::~LldpManager() {}
 
 void LldpManager::start() {
-  sw_->getBackgroundEvb()->runInEventBaseThread(
+  sw_->getBackgroundEvb()->runInFbossEventBaseThread(
       [this] { this->timeoutExpired(); });
 }
 
 void LldpManager::stop() {
-  sw_->getBackgroundEvb()->runInEventBaseThreadAndWait(
+  sw_->getBackgroundEvb()->runInFbossEventBaseThreadAndWait(
       [this] { this->cancelTimeout(); });
 }
 

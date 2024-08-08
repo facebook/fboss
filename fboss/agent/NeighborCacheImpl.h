@@ -178,7 +178,7 @@ class NeighborCacheImpl {
   VlanID vlanID_;
   std::string vlanName_;
   InterfaceID intfID_;
-  folly::EventBase* evb_;
+  FbossEventBase* evb_;
 
   // Map of all entries
   std::unordered_map<AddressType, std::shared_ptr<Entry>> entries_;

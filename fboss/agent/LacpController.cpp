@@ -11,8 +11,6 @@
 #include "fboss/agent/LacpTypes-defs.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 
-#include <folly/io/async/EventBase.h>
-
 #include <cstring>
 
 namespace facebook::fboss {
@@ -23,7 +21,7 @@ using std::string;
 
 LacpController::LacpController(
     PortID portID,
-    folly::EventBase* evb,
+    FbossEventBase* evb,
     LacpServicerIf* servicer)
     : portID_(portID),
       tx_(*this, evb, servicer),
@@ -41,7 +39,7 @@ LacpController::LacpController(
 
 LacpController::LacpController(
     PortID portID,
-    folly::EventBase* evb,
+    FbossEventBase* evb,
     uint16_t portPriority,
     cfg::LacpPortRate rate,
     cfg::LacpPortActivity activity,
@@ -74,7 +72,7 @@ LacpController::LacpController(
 }
 
 void LacpController::startMachines() {
-  evb()->runInEventBaseThread([self = shared_from_this()]() {
+  evb()->runInFbossEventBaseThread([self = shared_from_this()]() {
     self->mux_.start();
     self->tx_.start();
     self->periodicTx_.start();
@@ -86,7 +84,7 @@ void LacpController::startMachines() {
 
 void LacpController::restoreMachines(
     const AggregatePort::PartnerState& partnerState) {
-  evb()->runInEventBaseThread([self = shared_from_this(), partnerState]() {
+  evb()->runInFbossEventBaseThread([self = shared_from_this(), partnerState]() {
     self->mux_.start();
     self->selector_.start();
     self->rx_.restoreState(partnerState);
@@ -101,7 +99,7 @@ void LacpController::restoreMachines(
 }
 
 void LacpController::stopMachines() {
-  evb()->runInEventBaseThreadAndWait([self = shared_from_this()]() {
+  evb()->runInFbossEventBaseThreadAndWait([self = shared_from_this()]() {
     self->mux_.stop();
     self->tx_.stop();
     self->periodicTx_.stop();
@@ -112,19 +110,19 @@ void LacpController::stopMachines() {
 
 LacpController::~LacpController() {}
 
-folly::EventBase* LacpController::evb() const {
+FbossEventBase* LacpController::evb() const {
   return evb_;
 }
 
 void LacpController::portUp() {
-  evb()->runInEventBaseThread([self = shared_from_this()]() {
+  evb()->runInFbossEventBaseThread([self = shared_from_this()]() {
     self->rx_.portUp();
     self->periodicTx_.portUp();
   });
 }
 
 void LacpController::portDown() {
-  evb()->runInEventBaseThread([self = shared_from_this()]() {
+  evb()->runInFbossEventBaseThread([self = shared_from_this()]() {
     self->rx_.portDown();
     self->periodicTx_.portDown();
     self->selector_.portDown();
@@ -132,14 +130,14 @@ void LacpController::portDown() {
 }
 
 void LacpController::received(const LACPDU& lacpdu) {
-  evb()->runInEventBaseThread(
+  evb()->runInFbossEventBaseThread(
       [self = shared_from_this(), lacpdu]() { self->rx_.rx(lacpdu); });
 }
 
 ParticipantInfo LacpController::actorInfo() const {
   ParticipantInfo info;
 
-  evb()->runImmediatelyOrRunInEventBaseThreadAndWait(
+  evb()->runImmediatelyOrRunInFbossEventBaseThreadAndWait(
       [self = shared_from_this(), &info]() {
         info.systemID = self->systemID_;
         info.systemPriority = self->systemPriority_;
@@ -163,7 +161,7 @@ LacpState LacpController::actorState() const {
 ParticipantInfo LacpController::partnerInfo() const {
   ParticipantInfo info;
 
-  evb()->runImmediatelyOrRunInEventBaseThreadAndWait(
+  evb()->runImmediatelyOrRunInFbossEventBaseThreadAndWait(
       [self = shared_from_this(), &info]() { info = self->rx_.partnerInfo(); });
 
   return info;

@@ -135,7 +135,7 @@ void SaiSwitch::updateStatsImpl() {
   reportAsymmetricTopology();
   reportInterPortGroupCableSkew();
   if (!connectivityDelta.empty()) {
-    linkConnectivityChangeBottomHalfEventBase_.runInEventBaseThread(
+    linkConnectivityChangeBottomHalfEventBase_.runInFbossEventBaseThread(
         [this, connectivityDelta = std::move(connectivityDelta)] {
           linkConnectivityChanged(connectivityDelta);
         });

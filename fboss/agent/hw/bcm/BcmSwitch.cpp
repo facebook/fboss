@@ -2984,7 +2984,7 @@ void BcmSwitch::linkscanCallback(
     linkFault.localFault() = info->fault & BCM_PORT_FAULT_LOCAL;
     linkFault.remoteFault() = info->fault & BCM_PORT_FAULT_REMOTE;
 
-    hw->linkScanBottomHalfEventBase_.runInEventBaseThread(
+    hw->linkScanBottomHalfEventBase_.runInFbossEventBaseThread(
         [hw, bcmPort, up, linkFault]() {
           hw->linkStateChangedHwNotLocked(bcmPort, up, linkFault);
         });
@@ -3621,7 +3621,7 @@ void BcmSwitch::stopLinkscanThread() {
   CHECK(BCM_SUCCESS(rv)) << "failed to stop BcmSwitch linkscan thread "
                          << bcm_errmsg(rv);
   if (linkScanBottomHalfThread_) {
-    linkScanBottomHalfEventBase_.runInEventBaseThreadAndWait(
+    linkScanBottomHalfEventBase_.runInFbossEventBaseThreadAndWait(
         [this] { linkScanBottomHalfEventBase_.terminateLoopSoon(); });
     linkScanBottomHalfThread_->join();
   }
@@ -4217,7 +4217,7 @@ void BcmSwitch::initialStateApplied() {
 }
 
 void BcmSwitch::syncLinkStates() {
-  linkScanBottomHalfEventBase_.runInEventBaseThread([this]() {
+  linkScanBottomHalfEventBase_.runInFbossEventBaseThread([this]() {
     for (auto& port : std::as_const(*portTable_)) {
       callback_->linkStateChanged(port.first, port.second->isUp());
     }

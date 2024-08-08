@@ -10,6 +10,7 @@
 #pragma once
 
 #include "fboss/agent/FabricConnectivityManager.h"
+#include "fboss/agent/FbossEventBase.h"
 #include "fboss/agent/HwSwitch.h"
 #include "fboss/agent/L2Entry.h"
 #include "fboss/agent/hw/HwSwitchFb303Stats.h"
@@ -21,7 +22,6 @@
 #include "fboss/agent/platforms/sai/SaiPlatform.h"
 #include "folly/MacAddress.h"
 
-#include <folly/io/async/EventBase.h>
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 
 #include <memory>
@@ -585,15 +585,15 @@ class SaiSwitch : public HwSwitch {
   SwitchSaiId saiSwitchId_;
 
   std::unique_ptr<std::thread> linkStateBottomHalfThread_;
-  folly::EventBase linkStateBottomHalfEventBase_;
+  FbossEventBase linkStateBottomHalfEventBase_;
   std::unique_ptr<std::thread> fdbEventBottomHalfThread_;
-  folly::EventBase fdbEventBottomHalfEventBase_;
+  FbossEventBase fdbEventBottomHalfEventBase_;
   std::unique_ptr<std::thread> txReadyStatusChangeBottomHalfThread_;
-  folly::EventBase txReadyStatusChangeBottomHalfEventBase_;
+  FbossEventBase txReadyStatusChangeBottomHalfEventBase_;
   std::unique_ptr<std::thread> linkConnectivityChangeBottomHalfThread_;
-  folly::EventBase linkConnectivityChangeBottomHalfEventBase_;
+  FbossEventBase linkConnectivityChangeBottomHalfEventBase_;
   std::unique_ptr<std::thread> switchReachabilityChangeBottomHalfThread_;
-  folly::EventBase switchReachabilityChangeBottomHalfEventBase_;
+  FbossEventBase switchReachabilityChangeBottomHalfEventBase_;
 
   HwResourceStats hwResourceStats_;
   std::atomic<SwitchRunState> runState_{SwitchRunState::UNINITIALIZED};

@@ -3,6 +3,7 @@
 #pragma once
 
 #include "fboss/agent/AgentConfig.h"
+#include "fboss/agent/FbossEventBase.h"
 #include "fboss/agent/HwSwitchCallback.h"
 #include "fboss/agent/Utils.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
@@ -11,7 +12,6 @@
 #include "fboss/lib/HwWriteBehavior.h"
 
 #include <folly/futures/Future.h>
-#include <folly/io/async/EventBase.h>
 #include "fboss/agent/if/gen-cpp2/MultiSwitchCtrl.h"
 
 namespace facebook::fboss {
@@ -131,7 +131,7 @@ class HwSwitchHandler {
 
   const SwitchID switchId_;
   const cfg::SwitchInfo info_;
-  folly::EventBase hwSwitchManagerEvb_;
+  FbossEventBase hwSwitchManagerEvb_;
   std::unique_ptr<std::thread> hwSwitchManagerThread_;
   const OperDeltaFilter operDeltaFilter_;
 };

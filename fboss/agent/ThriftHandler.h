@@ -16,6 +16,7 @@
 
 #include "common/fb303/cpp/FacebookBase2.h"
 #include "fboss/agent/FbossError.h"
+#include "fboss/agent/FbossEventBase.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/if/gen-cpp2/FbossCtrl.h"
 #include "fboss/agent/types.h"
@@ -47,7 +48,7 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
 
   typedef network::thrift::Address Address;
   typedef network::thrift::BinaryAddress BinaryAddress;
-  typedef folly::EventBase EventBase;
+  typedef FbossEventBase EventBase;
   typedef std::vector<Address> Addresses;
   typedef std::vector<BinaryAddress> BinaryAddresses;
 

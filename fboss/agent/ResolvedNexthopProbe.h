@@ -2,11 +2,11 @@
 
 #pragma once
 
+#include "fboss/agent/FbossEventBase.h"
 #include "fboss/agent/state/RouteNextHop.h"
 #include "fboss/lib/ExponentialBackoff.h"
 
 #include <folly/io/async/AsyncTimeout.h>
-#include <folly/io/async/EventBase.h>
 
 namespace facebook::fboss {
 
@@ -16,7 +16,7 @@ class ResolvedNextHopProbe : public folly::AsyncTimeout {
  public:
   ResolvedNextHopProbe(
       SwSwitch* sw,
-      folly::EventBase* evb,
+      FbossEventBase* evb,
       ResolvedNextHop nexthop);
 
   ~ResolvedNextHopProbe() override {
@@ -24,11 +24,13 @@ class ResolvedNextHopProbe : public folly::AsyncTimeout {
   }
 
   void start() {
-    evb_->runImmediatelyOrRunInEventBaseThreadAndWait([this]() { _start(); });
+    evb_->runImmediatelyOrRunInFbossEventBaseThreadAndWait(
+        [this]() { _start(); });
   }
 
   void stop() {
-    evb_->runImmediatelyOrRunInEventBaseThreadAndWait([this]() { _stop(); });
+    evb_->runImmediatelyOrRunInFbossEventBaseThreadAndWait(
+        [this]() { _stop(); });
   }
 
  private:
@@ -43,7 +45,7 @@ class ResolvedNextHopProbe : public folly::AsyncTimeout {
   void timeoutExpired() noexcept override;
 
   SwSwitch* sw_;
-  folly::EventBase* evb_;
+  FbossEventBase* evb_;
   ResolvedNextHop nexthop_;
   ExponentialBackoff<std::chrono::milliseconds> backoff_;
 };

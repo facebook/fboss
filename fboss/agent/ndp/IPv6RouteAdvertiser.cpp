@@ -184,7 +184,7 @@ IPv6RouteAdvertiser::IPv6RouteAdvertiser(
     const SwitchState* state,
     const Interface* intf) {
   adv_ = new IPv6RAImpl(sw, state, intf);
-  sw->getBackgroundEvb()->runInEventBaseThread(IPv6RAImpl::start, adv_);
+  sw->getBackgroundEvb()->runInFbossEventBaseThread(IPv6RAImpl::start, adv_);
 }
 
 IPv6RouteAdvertiser::IPv6RouteAdvertiser(IPv6RouteAdvertiser&& other) noexcept
@@ -196,7 +196,7 @@ IPv6RouteAdvertiser::~IPv6RouteAdvertiser() {
   if (!adv_) {
     return;
   }
-  adv_->getSw()->getBackgroundEvb()->runInEventBaseThread(
+  adv_->getSw()->getBackgroundEvb()->runInFbossEventBaseThread(
       IPv6RAImpl::stop, adv_);
 }
 

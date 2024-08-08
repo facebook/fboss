@@ -821,7 +821,7 @@ MockPlatform* getMockPlatform(std::unique_ptr<SwSwitch>& sw) {
 
 std::shared_ptr<SwitchState> waitForStateUpdates(SwSwitch* sw) {
   // empty the updates queue
-  sw->getUpdateEvb()->runInEventBaseThreadAndWait([]() {});
+  sw->getUpdateEvb()->runInFbossEventBaseThreadAndWait([]() {});
   // All StateUpdates scheduled from this thread will be applied in order,
   // so we can simply perform a blocking no-op update.  When it is done
   // we can be sure that all previously scheduled updates have also been
@@ -839,12 +839,12 @@ std::shared_ptr<SwitchState> waitForStateUpdates(SwSwitch* sw) {
 
 void waitForBackgroundThread(SwSwitch* sw) {
   auto* evb = sw->getBackgroundEvb();
-  evb->runInEventBaseThreadAndWait([]() { return; });
+  evb->runInFbossEventBaseThreadAndWait([]() { return; });
 }
 
 void waitForNeighborCacheThread(SwSwitch* sw) {
   auto* evb = sw->getNeighborCacheEvb();
-  evb->runInEventBaseThreadAndWait([]() { return; });
+  evb->runInFbossEventBaseThreadAndWait([]() { return; });
 }
 
 void waitForRibUpdates(SwSwitch* sw) {

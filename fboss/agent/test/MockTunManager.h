@@ -20,7 +20,7 @@ class RxPacket;
 
 class MockTunManager : public TunManager {
  public:
-  MockTunManager(SwSwitch* sw, folly::EventBase* evb);
+  MockTunManager(SwSwitch* sw, FbossEventBase* evb);
   ~MockTunManager() override {}
 
   MOCK_METHOD0(startObservingUpdates, void());

@@ -1063,7 +1063,7 @@ TYPED_TEST(ArpTest, PendingArpCleanup) {
 
   std::promise<bool> done;
   auto* evb = sw->getBackgroundEvb();
-  evb->runInEventBaseThread(
+  evb->runInFbossEventBaseThread(
       [&]() { evb->tryRunAfterDelay([&]() { done.set_value(true); }, 1010); });
   done.get_future().wait(); // Entries should be removed
 
@@ -1158,7 +1158,7 @@ TYPED_TEST(ArpTest, ArpExpiration) {
   std::promise<bool> done;
 
   auto* evb = sw->getBackgroundEvb();
-  evb->runInEventBaseThread(
+  evb->runInFbossEventBaseThread(
       [&]() { evb->tryRunAfterDelay([&]() { done.set_value(true); }, 2550); });
   done.get_future().wait();
 

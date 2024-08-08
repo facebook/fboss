@@ -122,7 +122,7 @@ TEST_F(MacLearningTest, l2EntryFlap) {
     txPacket(macAddr, vlan, txPort);
     verifyL2EntryLearned(macAddr, vlan);
 
-    sw()->getUpdateEvb()->runInEventBaseThread([]() {
+    sw()->getUpdateEvb()->runInFbossEventBaseThread([]() {
       XLOG(DBG2) << "Pause state update evb thread";
       // sleep override
       sleep(kL2AgeTimer + kL2LearnDelay);

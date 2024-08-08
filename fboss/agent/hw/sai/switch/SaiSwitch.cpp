@@ -312,7 +312,7 @@ void SaiSwitch::unregisterCallbacks() noexcept {
   // just need to block until the last event is processed
   if (runState_ >= SwitchRunState::CONFIGURED &&
       getFeaturesDesired() & FeaturesDesired::LINKSCAN_DESIRED) {
-    linkStateBottomHalfEventBase_.runInEventBaseThreadAndWait(
+    linkStateBottomHalfEventBase_.runInFbossEventBaseThreadAndWait(
         [this]() { linkStateBottomHalfEventBase_.terminateLoopSoon(); });
     linkStateBottomHalfThread_->join();
     // link scan is completely shut-off
@@ -323,7 +323,7 @@ void SaiSwitch::unregisterCallbacks() noexcept {
   if (runState_ >= SwitchRunState::CONFIGURED &&
       platform_->getAsic()->isSupported(
           HwAsic::Feature::LINK_ACTIVE_INACTIVE_NOTIFY)) {
-    txReadyStatusChangeBottomHalfEventBase_.runInEventBaseThreadAndWait(
+    txReadyStatusChangeBottomHalfEventBase_.runInFbossEventBaseThreadAndWait(
         [this]() {
           txReadyStatusChangeBottomHalfEventBase_.terminateLoopSoon();
         });
@@ -332,7 +332,7 @@ void SaiSwitch::unregisterCallbacks() noexcept {
   }
   if (runState_ >= SwitchRunState::CONFIGURED &&
       platform_->getAsic()->isSupported(HwAsic::Feature::FABRIC_PORTS)) {
-    linkConnectivityChangeBottomHalfEventBase_.runInEventBaseThreadAndWait(
+    linkConnectivityChangeBottomHalfEventBase_.runInFbossEventBaseThreadAndWait(
         [this]() {
           linkConnectivityChangeBottomHalfEventBase_.terminateLoopSoon();
         });
@@ -342,8 +342,8 @@ void SaiSwitch::unregisterCallbacks() noexcept {
   if (runState_ >= SwitchRunState::CONFIGURED &&
       platform_->getAsic()->isSupported(
           HwAsic::Feature::SWITCH_REACHABILITY_CHANGE_NOTIFY)) {
-    switchReachabilityChangeBottomHalfEventBase_.runInEventBaseThreadAndWait(
-        [this]() {
+    switchReachabilityChangeBottomHalfEventBase_
+        .runInFbossEventBaseThreadAndWait([this]() {
           switchReachabilityChangeBottomHalfEventBase_.terminateLoopSoon();
         });
     switchReachabilityChangeBottomHalfThread_->join();
@@ -351,7 +351,7 @@ void SaiSwitch::unregisterCallbacks() noexcept {
   }
 
   if (runState_ >= SwitchRunState::INITIALIZED) {
-    fdbEventBottomHalfEventBase_.runInEventBaseThreadAndWait(
+    fdbEventBottomHalfEventBase_.runInFbossEventBaseThreadAndWait(
         [this]() { fdbEventBottomHalfEventBase_.terminateLoopSoon(); });
     fdbEventBottomHalfThread_->join();
   }
@@ -1931,7 +1931,7 @@ void SaiSwitch::linkStateChangedCallbackTopHalf(
   std::vector<sai_port_oper_status_notification_t> operStatusTmp;
   operStatusTmp.resize(count);
   std::copy(operStatus, operStatus + count, operStatusTmp.data());
-  linkStateBottomHalfEventBase_.runInEventBaseThread(
+  linkStateBottomHalfEventBase_.runInFbossEventBaseThread(
       [this, operStatus = std::move(operStatusTmp)]() mutable {
         linkStateChangedCallbackBottomHalf(std::move(operStatus));
       });
@@ -2046,7 +2046,7 @@ void SaiSwitch::txReadyStatusChangeCallbackTopHalf(SwitchSaiId switchId) {
     return;
   }
 
-  txReadyStatusChangeBottomHalfEventBase_.runInEventBaseThread(
+  txReadyStatusChangeBottomHalfEventBase_.runInFbossEventBaseThread(
       [this]() mutable { txReadyStatusChangeCallbackBottomHalf(); });
 }
 
@@ -2126,7 +2126,7 @@ void SaiSwitch::switchReachabilityChangeTopHalf() {
   auto changePending = switchReachabilityChangePending_.wlock();
   if (!*changePending) {
     *changePending = true;
-    switchReachabilityChangeBottomHalfEventBase_.runInEventBaseThread(
+    switchReachabilityChangeBottomHalfEventBase_.runInFbossEventBaseThread(
         [this]() mutable { switchReachabilityChangeBottomHalf(); });
   }
 }
@@ -2460,7 +2460,7 @@ void SaiSwitch::initLinkScanLocked(const std::lock_guard<std::mutex>& lock) {
     initThread("fbossSaiLnkScnBH");
     linkStateBottomHalfEventBase_.loopForever();
   });
-  linkStateBottomHalfEventBase_.runInEventBaseThread([=, this, &lock]() {
+  linkStateBottomHalfEventBase_.runInFbossEventBaseThread([=, this, &lock]() {
     auto& switchApi = SaiApiTable::getInstance()->switchApi();
     switchApi.registerPortStateChangeCallback(
         saiSwitchId_, __glinkStateChangedNotification);
@@ -2492,7 +2492,7 @@ void SaiSwitch::syncLinkStatesLocked(
 
 void SaiSwitch::syncLinkStates() {
   std::lock_guard<std::mutex> lock(saiSwitchMutex_);
-  linkStateBottomHalfEventBase_.runInEventBaseThread(
+  linkStateBottomHalfEventBase_.runInFbossEventBaseThread(
       [=, this, &lock]() { syncLinkStatesLocked(lock); });
 }
 
@@ -2503,14 +2503,14 @@ void SaiSwitch::initLinkConnectivityChangeLocked(
         initThread("fbossLnkCnctBH");
         linkConnectivityChangeBottomHalfEventBase_.loopForever();
       });
-  linkConnectivityChangeBottomHalfEventBase_.runInEventBaseThread(
+  linkConnectivityChangeBottomHalfEventBase_.runInFbossEventBaseThread(
       [this, &lock] { syncLinkConnectivityLocked(lock); });
 }
 
 void SaiSwitch::syncLinkConnectivity() {
   std::lock_guard<std::mutex> lock(saiSwitchMutex_);
   if (linkConnectivityChangeBottomHalfThread_) {
-    linkConnectivityChangeBottomHalfEventBase_.runInEventBaseThread(
+    linkConnectivityChangeBottomHalfEventBase_.runInFbossEventBaseThread(
         [this, &lock] { syncLinkConnectivityLocked(lock); });
   }
 }
@@ -2532,7 +2532,7 @@ void SaiSwitch::syncLinkActiveStates() {
   // Link active state is valid only for fabric ports
   if (platform_->getAsic()->isSupported(HwAsic::Feature::FABRIC_PORTS)) {
     std::lock_guard<std::mutex> lock(saiSwitchMutex_);
-    txReadyStatusChangeBottomHalfEventBase_.runInEventBaseThread(
+    txReadyStatusChangeBottomHalfEventBase_.runInFbossEventBaseThread(
         [=, this]() { txReadyStatusChangeCallbackBottomHalf(); });
   }
 }
@@ -2541,7 +2541,7 @@ void SaiSwitch::syncSwitchReachability() {
   if (platform_->getAsic()->isSupported(
           HwAsic::Feature::SWITCH_REACHABILITY_CHANGE_NOTIFY)) {
     std::lock_guard<std::mutex> lock(saiSwitchMutex_);
-    switchReachabilityChangeBottomHalfEventBase_.runInEventBaseThread(
+    switchReachabilityChangeBottomHalfEventBase_.runInFbossEventBaseThread(
         [=, this]() { switchReachabilityChangeBottomHalf(); });
   }
 }
@@ -2554,25 +2554,26 @@ void SaiSwitch::initTxReadyStatusChangeLocked(
         initThread("fbossSaiTxReadyStatusChangeStatusBH");
         txReadyStatusChangeBottomHalfEventBase_.loopForever();
       });
-  txReadyStatusChangeBottomHalfEventBase_.runInEventBaseThread([=, this]() {
-    auto& switchApi = SaiApiTable::getInstance()->switchApi();
-    switchApi.registerTxReadyStatusChangeCallback(
-        saiSwitchId_, __gTxReadyStatusChangeNotification);
+  txReadyStatusChangeBottomHalfEventBase_.runInFbossEventBaseThread(
+      [=, this]() {
+        auto& switchApi = SaiApiTable::getInstance()->switchApi();
+        switchApi.registerTxReadyStatusChangeCallback(
+            saiSwitchId_, __gTxReadyStatusChangeNotification);
 
-    /*
-     * If we query/process before registering the callback, then callbacks
-     * after we query/process but before we register the callback could get
-     * lost.
-     *
-     * Thus, query the initial state and process after registering the
-     * callback.
-     *
-     * Moreover, query/process in the same context that registers/processes
-     * callback to guarantee that we don't miss any callbacks and those are
-     * always ordered.
-     */
-    txReadyStatusChangeCallbackBottomHalf();
-  });
+        /*
+         * If we query/process before registering the callback, then callbacks
+         * after we query/process but before we register the callback could get
+         * lost.
+         *
+         * Thus, query the initial state and process after registering the
+         * callback.
+         *
+         * Moreover, query/process in the same context that registers/processes
+         * callback to guarantee that we don't miss any callbacks and those are
+         * always ordered.
+         */
+        txReadyStatusChangeCallbackBottomHalf();
+      });
 #endif
 }
 
@@ -2583,7 +2584,7 @@ void SaiSwitch::initSwitchReachabilityChangeLocked(
         initThread("fbossSaiSwitchReachabilityChangeBH");
         switchReachabilityChangeBottomHalfEventBase_.loopForever();
       });
-  switchReachabilityChangeBottomHalfEventBase_.runInEventBaseThread(
+  switchReachabilityChangeBottomHalfEventBase_.runInFbossEventBaseThread(
       [=, this]() {
         /*
          * Query the initial state after registering the callbacks to avoid a
@@ -3359,7 +3360,7 @@ void SaiSwitch::fdbEventCallback(
     fdbEventNotificationDataTmp.push_back(FdbEventNotificationData(
         data[i].event_type, data[i].fdb_entry, bridgePortSaiId, fdbMetaData));
   }
-  fdbEventBottomHalfEventBase_.runInEventBaseThread(
+  fdbEventBottomHalfEventBase_.runInFbossEventBaseThread(
       [this,
        fdbNotifications = std::move(fdbEventNotificationDataTmp)]() mutable {
         auto lock = std::lock_guard<std::mutex>(saiSwitchMutex_);

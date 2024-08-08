@@ -94,6 +94,7 @@ def _diag_shell_client_bins():
         ],
         auto_headers = AutoHeaders.SOURCES,
         deps = [
+            "//fboss/agent:fboss-event-base",
             "//fboss/agent/hw/sai/switch:if-cpp2-clients",
             "//folly/init:init",
             "//folly/io/async:async_base",

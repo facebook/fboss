@@ -34,7 +34,7 @@ void HwSwitchHandler::stop() {
     return;
   }
   cancelOperDeltaSync();
-  hwSwitchManagerEvb_.runInEventBaseThreadAndWait(
+  hwSwitchManagerEvb_.runInFbossEventBaseThreadAndWait(
       [this]() { hwSwitchManagerEvb_.terminateLoopSoon(); });
   hwSwitchManagerThread_->join();
   hwSwitchManagerThread_.reset();
@@ -50,14 +50,15 @@ folly::Future<HwSwitchStateUpdateResult> HwSwitchHandler::stateChanged(
   auto [promise, semiFuture] =
       folly::makePromiseContract<HwSwitchStateUpdateResult>();
 
-  hwSwitchManagerEvb_.runInEventBaseThread([promise = std::move(promise),
-                                            update = std::move(update),
-                                            hwWriteBehavior = hwWriteBehavior,
-                                            this]() mutable {
-    promise.setWith([update, hwWriteBehavior, this]() {
-      return stateChangedImpl(update, hwWriteBehavior);
-    });
-  });
+  hwSwitchManagerEvb_.runInFbossEventBaseThread(
+      [promise = std::move(promise),
+       update = std::move(update),
+       hwWriteBehavior = hwWriteBehavior,
+       this]() mutable {
+        promise.setWith([update, hwWriteBehavior, this]() {
+          return stateChangedImpl(update, hwWriteBehavior);
+        });
+      });
 
   auto future = std::move(semiFuture).via(&hwSwitchManagerEvb_);
   return future;

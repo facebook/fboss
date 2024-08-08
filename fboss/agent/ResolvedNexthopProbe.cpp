@@ -22,7 +22,7 @@ namespace facebook::fboss {
 
 ResolvedNextHopProbe::ResolvedNextHopProbe(
     SwSwitch* sw,
-    folly::EventBase* evb,
+    FbossEventBase* evb,
     ResolvedNextHop nexthop)
     : folly::AsyncTimeout(evb),
       sw_(sw),

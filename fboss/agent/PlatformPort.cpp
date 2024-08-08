@@ -11,6 +11,7 @@
 #include "fboss/agent/PlatformPort.h"
 
 #include "fboss/agent/FbossError.h"
+#include "fboss/agent/FbossEventBase.h"
 #include "fboss/agent/Platform.h"
 #include "fboss/lib/config/PlatformConfigUtils.h"
 
@@ -114,7 +115,7 @@ PlatformPort::getTransceiverPinConfigs(cfg::PortProfileID profileID) const {
 phy::PortPinConfig PlatformPort::getPortXphyPinConfig(
     cfg::PortProfileID profileID) const {
   if (platform_->needTransceiverInfo()) {
-    folly::EventBase evb;
+    FbossEventBase evb;
     auto transceiverSpec = getTransceiverInfo();
     if (transceiverSpec) {
       return platform_->getPlatformMapping()->getPortXphyPinConfig(
@@ -248,7 +249,7 @@ const phy::PortProfileConfig PlatformPort::getPortProfileConfig(
 const std::optional<phy::PortProfileConfig>
 PlatformPort::getPortProfileConfigIf(cfg::PortProfileID profileID) const {
   if (platform_->needTransceiverInfo()) {
-    folly::EventBase evb;
+    FbossEventBase evb;
     auto transceiverSpec = getTransceiverInfo();
     if (transceiverSpec) {
       return platform_->getPortProfileConfig(PlatformPortProfileConfigMatcher(

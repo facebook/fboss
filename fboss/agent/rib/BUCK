@@ -7,6 +7,7 @@ cpp_library(
     name = "rib_header",
     headers = glob(["*.h"]),
     exported_deps = [
+        "//fboss/agent:fboss-event-base",
         "//fboss/agent:fboss-types",
         "//fboss/agent:switch_config-cpp2-types",
         "//fboss/agent/if:ctrl-cpp2-services",
@@ -34,6 +35,7 @@ cpp_library(
         "//fboss/agent:address_utils",
         "//fboss/agent:constants",
         "//fboss/agent:fboss-error",
+        "//fboss/agent:fboss-event-base",
         "//fboss/agent:fboss-types",
         "//fboss/agent:switch_config-cpp2-types",
         "//fboss/agent:utils",

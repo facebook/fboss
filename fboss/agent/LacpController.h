@@ -12,14 +12,11 @@
 #include <folly/MacAddress.h>
 #include <folly/io/Cursor.h>
 
+#include "fboss/agent/FbossEventBase.h"
 #include "fboss/agent/LacpMachines.h"
 #include "fboss/agent/LacpTypes.h"
 #include "fboss/agent/LinkAggregationManager.h"
 #include "fboss/agent/types.h"
-
-namespace folly {
-class EventBase;
-}
 
 namespace facebook::fboss {
 
@@ -28,13 +25,10 @@ struct LacpServicerIf;
 
 class LacpController : public std::enable_shared_from_this<LacpController> {
  public:
+  LacpController(PortID portID, FbossEventBase* evb, LacpServicerIf* servicer);
   LacpController(
       PortID portID,
-      folly::EventBase* evb,
-      LacpServicerIf* servicer);
-  LacpController(
-      PortID portID,
-      folly::EventBase* evb,
+      FbossEventBase* evb,
       uint16_t portPriority,
       cfg::LacpPortRate rate,
       cfg::LacpPortActivity activity,
@@ -51,8 +45,9 @@ class LacpController : public std::enable_shared_from_this<LacpController> {
   void restoreMachines(const AggregatePort::PartnerState& partnerState);
   void stopMachines();
 
-  // All of machines.cpp should execute in the context of the EventBase *evb()
-  folly::EventBase* evb() const;
+  // All of machines.cpp should execute in the context of the FbossEventBase
+  // *evb()
+  FbossEventBase* evb() const;
 
   // Invoked from LinkAggregationManager
   void portUp();
@@ -99,7 +94,7 @@ class LacpController : public std::enable_shared_from_this<LacpController> {
   MuxMachine mux_;
   Selector selector_;
 
-  folly::EventBase* evb_{nullptr};
+  FbossEventBase* evb_{nullptr};
   LacpServicerIf* servicer_{nullptr};
 
   // Forbidden copy constructor and assignment operator

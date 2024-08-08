@@ -9,6 +9,7 @@
  */
 #pragma once
 
+#include "fboss/agent/FbossEventBase.h"
 #include "fboss/agent/HwSwitchHandler.h"
 #include "fboss/agent/L2LearnEventObserver.h"
 #include "fboss/agent/MultiHwSwitchHandler.h"
@@ -37,7 +38,6 @@
 #include <folly/SpinLock.h>
 #include <folly/ThreadLocal.h>
 #include <folly/concurrency/ConcurrentHashMap.h>
-#include <folly/io/async/EventBase.h>
 #include <optional>
 
 #include <atomic>
@@ -511,28 +511,28 @@ class SwSwitch : public HwSwitchCallback {
   /*
    * Get the EventBase for the background thread
    */
-  folly::EventBase* getBackgroundEvb() {
+  FbossEventBase* getBackgroundEvb() {
     return &backgroundEventBase_;
   }
 
   /*
    * Get the EventBase over which LacpController and LacpMachines should execute
    */
-  folly::EventBase* getLacpEvb() {
+  FbossEventBase* getLacpEvb() {
     return &lacpEventBase_;
   }
 
   /*
    * Get the EventBase for the update thread
    */
-  folly::EventBase* getUpdateEvb() {
+  FbossEventBase* getUpdateEvb() {
     return &updateEventBase_;
   }
 
   /*
    * Get the EventBase for Arp/Ndp Cache
    */
-  folly::EventBase* getNeighborCacheEvb() {
+  FbossEventBase* getNeighborCacheEvb() {
     return &neighborCacheEventBase_;
   }
 
@@ -1133,7 +1133,7 @@ class SwSwitch : public HwSwitchCallback {
    * A thread for performing various background tasks.
    */
   std::unique_ptr<std::thread> backgroundThread_;
-  folly::EventBase backgroundEventBase_;
+  FbossEventBase backgroundEventBase_;
   std::shared_ptr<ThreadHeartbeat> bgThreadHeartbeat_;
 
   /*
@@ -1142,34 +1142,34 @@ class SwSwitch : public HwSwitchCallback {
    * ASIC front panel ports
    */
   std::unique_ptr<std::thread> packetTxThread_;
-  folly::EventBase packetTxEventBase_;
+  FbossEventBase packetTxEventBase_;
   std::shared_ptr<ThreadHeartbeat> packetTxThreadHeartbeat_;
 
   /*
    * A thread for sending packets to the distribution process
    */
   std::shared_ptr<std::thread> pcapDistributionThread_;
-  folly::EventBase pcapDistributionEventBase_;
+  FbossEventBase pcapDistributionEventBase_;
 
   /*
    * A thread for processing SwitchState updates.
    */
   std::unique_ptr<std::thread> updateThread_;
-  folly::EventBase updateEventBase_;
+  FbossEventBase updateEventBase_;
   std::shared_ptr<ThreadHeartbeat> updThreadHeartbeat_;
 
   /*
    * A thread dedicated to LACP processing.
    */
   std::unique_ptr<std::thread> lacpThread_;
-  folly::EventBase lacpEventBase_;
+  FbossEventBase lacpEventBase_;
   std::shared_ptr<ThreadHeartbeat> lacpThreadHeartbeat_;
 
   /*
    * A thread dedicated to Arp and Ndp cache entry processing.
    */
   std::unique_ptr<std::thread> neighborCacheThread_;
-  folly::EventBase neighborCacheEventBase_;
+  FbossEventBase neighborCacheEventBase_;
   std::shared_ptr<ThreadHeartbeat> neighborCacheThreadHeartbeat_;
 
   /*

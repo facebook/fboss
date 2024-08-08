@@ -897,7 +897,7 @@ void NdpTest<EnableIntfNbrTableT>::validateRouterAdv(
           expectedPrefixes));
   std::promise<bool> done;
   auto* evb = sw->getBackgroundEvb();
-  evb->runInEventBaseThread([&]() {
+  evb->runInFbossEventBaseThread([&]() {
     evb->tryRunAfterDelay([&]() { done.set_value(true); }, 1010 /*ms*/);
   });
   done.get_future().wait();
@@ -1529,7 +1529,7 @@ TYPED_TEST(NdpTest, PendingNdpCleanup) {
 
   std::promise<bool> done;
   auto* evb = sw->getBackgroundEvb();
-  evb->runInEventBaseThread(
+  evb->runInFbossEventBaseThread(
       [&]() { evb->tryRunAfterDelay([&]() { done.set_value(true); }, 1050); });
   done.get_future().wait();
 
@@ -1795,7 +1795,7 @@ TYPED_TEST(NdpTest, NdpExpiration) {
   WaitForNdpEntryExpiration expire2(sw, targetIP3, vlanID);
   std::promise<bool> done;
   auto* evb = sw->getBackgroundEvb();
-  evb->runInEventBaseThread(
+  evb->runInFbossEventBaseThread(
       [&]() { evb->tryRunAfterDelay([&]() { done.set_value(true); }, 2550); });
   done.get_future().wait();
   EXPECT_TRUE(expire0.wait());

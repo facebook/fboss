@@ -74,7 +74,7 @@ NeighborUpdater::~NeighborUpdater() {
   // cache thread to avoid racing between background entry processing
   // and destruction.
 
-  sw_->getNeighborCacheEvb()->runImmediatelyOrRunInEventBaseThreadAndWait(
+  sw_->getNeighborCacheEvb()->runImmediatelyOrRunInFbossEventBaseThreadAndWait(
       [this]() mutable { return this->impl_.reset(); });
 }
 

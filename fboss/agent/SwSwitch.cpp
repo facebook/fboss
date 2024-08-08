@@ -1198,7 +1198,7 @@ void SwSwitch::init(
   }
 
   // Notify the state observers of the initial state
-  updateEventBase_.runInEventBaseThread([initialState, this]() {
+  updateEventBase_.runInFbossEventBaseThread([initialState, this]() {
     notifyStateObservers(
         StateDelta(std::make_shared<SwitchState>(), initialState));
   });
@@ -1275,9 +1275,10 @@ void SwSwitch::init(const HwWriteBehavior& hwWriteBehavior, SwitchFlags flags) {
   setStateInternal(initialState);
   if (bootType_ == BootType::WARM_BOOT) {
     // Notify the state observers of the initial state
-    updateEventBase_.runInEventBaseThread([emptyState, initialState, this]() {
-      notifyStateObservers(StateDelta(emptyState, initialState));
-    });
+    updateEventBase_.runInFbossEventBaseThread(
+        [emptyState, initialState, this]() {
+          notifyStateObservers(StateDelta(emptyState, initialState));
+        });
   }
   if (FLAGS_log_all_fib_updates) {
     constexpr auto kAllFibUpdates = "all_fib_updates";
@@ -1358,12 +1359,12 @@ void SwSwitch::registerStateObserver(
     StateObserver* observer,
     const string& name) {
   XLOG(DBG2) << "Registering state observer: " << name;
-  updateEventBase_.runImmediatelyOrRunInEventBaseThreadAndWait(
+  updateEventBase_.runImmediatelyOrRunInFbossEventBaseThreadAndWait(
       [=, this]() { addStateObserver(observer, name); });
 }
 
 void SwSwitch::unregisterStateObserver(StateObserver* observer) {
-  updateEventBase_.runImmediatelyOrRunInEventBaseThreadAndWait(
+  updateEventBase_.runImmediatelyOrRunInFbossEventBaseThreadAndWait(
       [=, this]() { removeStateObserver(observer); });
 }
 
@@ -1432,9 +1433,9 @@ bool SwSwitch::updateState(unique_ptr<StateUpdate> update) {
   }
 
   // Signal the update thread that updates are pending.
-  // We call runInEventBaseThread() with a static function pointer since this
-  // is more efficient than having to allocate a new bound function object.
-  updateEventBase_.runInEventBaseThread(handlePendingUpdatesHelper, this);
+  // We call runInFbossEventBaseThread() with a static function pointer since
+  // this is more efficient than having to allocate a new bound function object.
+  updateEventBase_.runInFbossEventBaseThread(handlePendingUpdatesHelper, this);
   return true;
 }
 
@@ -2264,34 +2265,34 @@ void SwSwitch::postInit() {
 }
 
 void SwSwitch::stopThreads() {
-  // We use runInEventBaseThread() to terminateLoopSoon() rather than calling
-  // it directly here.  This ensures that any events already scheduled via
-  // runInEventBaseThread() will have a chance to run.
+  // We use runInFbossEventBaseThread() to terminateLoopSoon() rather than
+  // calling it directly here.  This ensures that any events already scheduled
+  // via runInFbossEventBaseThread() will have a chance to run.
   //
   // Alternatively, it would be nicer to update EventBase so it can notify
   // callbacks when the event loop is being stopped.
   if (backgroundThread_) {
-    backgroundEventBase_.runInEventBaseThread(
+    backgroundEventBase_.runInFbossEventBaseThread(
         [this] { backgroundEventBase_.terminateLoopSoon(); });
   }
   if (updateThread_) {
-    updateEventBase_.runInEventBaseThread(
+    updateEventBase_.runInFbossEventBaseThread(
         [this] { updateEventBase_.terminateLoopSoon(); });
   }
   if (packetTxThread_) {
-    packetTxEventBase_.runInEventBaseThread(
+    packetTxEventBase_.runInFbossEventBaseThread(
         [this] { packetTxEventBase_.terminateLoopSoon(); });
   }
   if (pcapDistributionThread_) {
-    pcapDistributionEventBase_.runInEventBaseThread(
+    pcapDistributionEventBase_.runInFbossEventBaseThread(
         [this] { pcapDistributionEventBase_.terminateLoopSoon(); });
   }
   if (lacpThread_) {
-    lacpEventBase_.runInEventBaseThread(
+    lacpEventBase_.runInFbossEventBaseThread(
         [this] { lacpEventBase_.terminateLoopSoon(); });
   }
   if (neighborCacheThread_) {
-    neighborCacheEventBase_.runInEventBaseThread(
+    neighborCacheEventBase_.runInFbossEventBaseThread(
         [this] { neighborCacheEventBase_.terminateLoopSoon(); });
   }
   if (backgroundThread_) {
@@ -2325,7 +2326,7 @@ void SwSwitch::stopThreads() {
   } while (!updatesDrained);
 }
 
-void SwSwitch::threadLoop(StringPiece name, EventBase* eventBase) {
+void SwSwitch::threadLoop(StringPiece name, folly::EventBase* eventBase) {
   initThread(name);
   eventBase->loopForever();
 }

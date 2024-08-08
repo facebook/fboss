@@ -43,7 +43,7 @@ namespace {
 
 class LacpTest : public ::testing::Test {
  protected:
-  LacpTest() : lacpEvb_(false) {}
+  LacpTest() : lacpEvb_() {}
 
   void SetUp() override {
     lacpThread_.reset(new std::thread([this] {
@@ -54,7 +54,7 @@ class LacpTest : public ::testing::Test {
     }));
   }
 
-  folly::EventBase* lacpEvb() {
+  FbossEventBase* lacpEvb() {
     lacpEvb_.waitUntilRunning();
     return &lacpEvb_;
   }
@@ -65,15 +65,15 @@ class LacpTest : public ::testing::Test {
   }
 
  private:
-  folly::EventBase lacpEvb_;
+  FbossEventBase lacpEvb_;
   std::unique_ptr<std::thread> lacpThread_{nullptr};
 };
 
 class LacpServiceInterceptor : public LacpServicerIf {
  public:
-  explicit LacpServiceInterceptor(folly::EventBase* lacpEvb)
+  explicit LacpServiceInterceptor(FbossEventBase* lacpEvb)
       : lacpEvb_(lacpEvb), sw_(nullptr) {}
-  LacpServiceInterceptor(folly::EventBase* lacpEvb, SwSwitch* sw)
+  LacpServiceInterceptor(FbossEventBase* lacpEvb, SwSwitch* sw)
       : lacpEvb_(lacpEvb), sw_(sw) {}
 
   // The following methods implement the LacpServicerIf interface
@@ -144,7 +144,7 @@ class LacpServiceInterceptor : public LacpServicerIf {
   LacpState lastActorStateTransmitted(PortID portID) {
     LacpState actorStateTransmitted = LacpState::NONE;
 
-    lacpEvb_->runInEventBaseThreadAndWait(
+    lacpEvb_->runInFbossEventBaseThreadAndWait(
         [this, portID, &actorStateTransmitted]() {
           auto lastTransmission = portToLastTransmission_.rlock()->at(portID);
           actorStateTransmitted = lastTransmission.actorInfo.state;
@@ -155,7 +155,7 @@ class LacpServiceInterceptor : public LacpServicerIf {
   LacpState lastPartnerStateTransmitted(PortID portID) {
     LacpState partnerStateTransmitted = LacpState::NONE;
 
-    lacpEvb_->runInEventBaseThreadAndWait(
+    lacpEvb_->runInFbossEventBaseThreadAndWait(
         [this, portID, &partnerStateTransmitted]() {
           auto lastTransmission = portToLastTransmission_.rlock()->at(portID);
           partnerStateTransmitted = lastTransmission.partnerInfo.state;
@@ -166,16 +166,17 @@ class LacpServiceInterceptor : public LacpServicerIf {
   LACPDU lastLacpduTransmitted(PortID portID) {
     LACPDU lacpduTransmitted;
 
-    lacpEvb_->runInEventBaseThreadAndWait([this, portID, &lacpduTransmitted]() {
-      lacpduTransmitted = portToLastTransmission_.rlock()->at(portID);
-    });
+    lacpEvb_->runInFbossEventBaseThreadAndWait(
+        [this, portID, &lacpduTransmitted]() {
+          lacpduTransmitted = portToLastTransmission_.rlock()->at(portID);
+        });
 
     return lacpduTransmitted;
   }
   bool isForwarding(PortID portID) {
     bool forwarding = false;
 
-    lacpEvb_->runInEventBaseThreadAndWait([this, portID, &forwarding]() {
+    lacpEvb_->runInFbossEventBaseThreadAndWait([this, portID, &forwarding]() {
       forwarding = portToIsForwarding_.rlock()->at(portID);
     });
 
@@ -183,7 +184,7 @@ class LacpServiceInterceptor : public LacpServicerIf {
   }
 
   ~LacpServiceInterceptor() override {
-    lacpEvb_->runInEventBaseThreadAndWait([this]() {
+    lacpEvb_->runInFbossEventBaseThreadAndWait([this]() {
       for (auto& controller : controllers_) {
         controller.reset();
       }
@@ -199,7 +200,7 @@ class LacpServiceInterceptor : public LacpServicerIf {
   using PortIDToLacpduMap = boost::container::flat_map<PortID, LACPDU>;
   folly::Synchronized<PortIDToLacpduMap> portToLastTransmission_;
 
-  folly::EventBase* lacpEvb_{nullptr};
+  FbossEventBase* lacpEvb_{nullptr};
   SwSwitch* sw_{nullptr};
 };
 
@@ -235,7 +236,7 @@ class MockLacpServicer : public LacpServicerIf {
 TEST_F(LacpTest, nonAggregatablePortTransmitsIndividualBit) {
   // The LacpController constructor reserved for non-AGGREGATABLE ports takes 3
   // parameters. In what follows, we construct those three parameters:
-  // PortID, LacpServiceIf*, and folly::EventBase*.
+  // PortID, LacpServiceIf*, and FbossEventBase*.
 
   // A LacpServiceInterceptor takes the place of a LinkAggregationManager by
   // implementing the LacpServicerIf interface.
@@ -321,7 +322,7 @@ TEST_F(LacpTest, frameReceivedOnDownPort) {
 }
 
 void DUColdBootReconvergenceWithESWHelper(
-    folly::EventBase* lacpEvb,
+    FbossEventBase* lacpEvb,
     cfg::LacpPortRate rate) {
   LacpServiceInterceptor duEventInterceptor(lacpEvb);
 
@@ -523,7 +524,7 @@ TEST_F(LacpTest, DUColdBootReconvergenceWithESWLacpFast) {
 }
 
 void UUColdBootReconvergenceWithDRHelper(
-    folly::EventBase* lacpEvb,
+    FbossEventBase* lacpEvb,
     cfg::LacpPortRate rate) {
   LacpServiceInterceptor uuEventInterceptor(lacpEvb);
 
@@ -798,7 +799,7 @@ TEST_F(LacpTest, UUColdBootReconvergenceWithDRLacpFast) {
 }
 
 void selfInteroperabilityHelper(
-    folly::EventBase* lacpEvb,
+    FbossEventBase* lacpEvb,
     cfg::LacpPortRate rate,
     uint16_t holdTimer) {
   LacpServiceInterceptor uuEventInterceptor(lacpEvb);
@@ -993,7 +994,7 @@ TEST_F(LacpTest, selfInteroperabilityLacpFastCustomTimer) {
  * Rx/Tx continues with saved state
  */
 void selfInteroperabilityAfterWarmbootHelper(
-    folly::EventBase* lacpEvb,
+    FbossEventBase* lacpEvb,
     cfg::LacpPortRate rate) {
   LacpServiceInterceptor uuEventInterceptor(lacpEvb);
   LacpServiceInterceptor duEventInterceptor(lacpEvb);
@@ -1095,7 +1096,7 @@ TEST_F(LacpTest, selfInteroperabilityAfterWarmbootFast) {
  */
 TEST_F(LacpTest, lacpPortFlapAfterSync) {
   auto rate = cfg::LacpPortRate::SLOW;
-  folly::EventBase* lacpEvbase = lacpEvb();
+  FbossEventBase* lacpEvbase = lacpEvb();
   LacpServiceInterceptor uuEventInterceptor(lacpEvbase);
   LacpServiceInterceptor duEventInterceptor(lacpEvbase);
 

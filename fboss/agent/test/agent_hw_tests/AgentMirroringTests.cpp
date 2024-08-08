@@ -183,7 +183,7 @@ class AgentMirroringTest : public AgentHwTest {
       return utility::EcmpSetupAnyNPorts<AddrT>(in).resolveNextHops(
           in, nhopPorts);
     });
-    getSw()->getUpdateEvb()->runInEventBaseThreadAndWait([] {});
+    getSw()->getUpdateEvb()->runInFbossEventBaseThreadAndWait([] {});
     auto mirror = getSw()->getState()->getMirrors()->getNodeIf(mirrorName);
     auto dip = mirror->getDestinationIp();
     if (dip.has_value()) {
