@@ -1857,7 +1857,7 @@ void SaiPortManager::updateStats(
       handle->configuredQueues, curPortStats, updateWatermarks);
   managerTable_->macsecManager().updateStats(portId, curPortStats);
   managerTable_->bufferManager().updateIngressPriorityGroupStats(
-      portId, *curPortStats.portName_(), updateWatermarks);
+      portId, curPortStats, updateWatermarks);
   auto logicalPortId = platform_->getPlatformPort(portId)->getHwLogicalPortId();
   if (logicalPortId) {
     curPortStats.logicalPortId() = *logicalPortId;

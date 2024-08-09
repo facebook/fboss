@@ -340,7 +340,7 @@ void SaiBufferManager::updateStats() {
 }
 
 const std::vector<sai_stat_id_t>&
-SaiBufferManager::supportedIngressPriorityGroupStats() const {
+SaiBufferManager::supportedIngressPriorityGroupWatermarkStats() const {
   static std::vector<sai_stat_id_t> stats;
   if (stats.size()) {
     // initialized
@@ -366,38 +366,38 @@ SaiBufferManager::supportedIngressPriorityGroupStats() const {
   return stats;
 }
 
+void SaiBufferManager::updateIngressPriorityGroupWatermarkStats(
+    const std::shared_ptr<SaiIngressPriorityGroup> ingressPriorityGroup,
+    const IngressPriorityGroupID& pgId,
+    const HwPortStats& hwPortStats) {
+  const auto& ingressPriorityGroupWatermarkStats =
+      supportedIngressPriorityGroupWatermarkStats();
+  const std::string& portName = *hwPortStats.portName_();
+  ingressPriorityGroup->updateStats(
+      ingressPriorityGroupWatermarkStats, SAI_STATS_MODE_READ_AND_CLEAR);
+  auto counters = ingressPriorityGroup->getStats();
+  auto iter =
+      counters.find(SAI_INGRESS_PRIORITY_GROUP_STAT_SHARED_WATERMARK_BYTES);
+  auto maxPgSharedBytes = iter != counters.end() ? iter->second : 0;
+  iter =
+      counters.find(SAI_INGRESS_PRIORITY_GROUP_STAT_XOFF_ROOM_WATERMARK_BYTES);
+  auto maxPgHeadroomBytes = iter != counters.end() ? iter->second : 0;
+  publishPgWatermarks(portName, pgId, maxPgHeadroomBytes, maxPgSharedBytes);
+}
+
 void SaiBufferManager::updateIngressPriorityGroupStats(
     const PortID& portId,
-    const std::string& portName,
+    HwPortStats& hwPortStats,
     bool updateWatermarks) {
-  /*
-   * As of now, only watermark stats are supported for IngressPriorityGroup.
-   * Hence returning here if watermark stats collection is not needed. Will
-   * need modifications to this code if we enable non-watermark stats as well,
-   * to poll watermark and non-watermark stats differently based on the
-   * updateWatermarks option.
-   */
-  if (!updateWatermarks) {
-    return;
-  }
   SaiPortHandle* portHandle =
       managerTable_->portManager().getPortHandle(portId);
-  const auto& ingressPriorityGroupWatermarkStats =
-      supportedIngressPriorityGroupStats();
   for (const auto& ipgInfo : portHandle->configuredIngressPriorityGroups) {
     const auto& ingressPriorityGroup =
         ipgInfo.second.pgHandle->ingressPriorityGroup;
-    ingressPriorityGroup->updateStats(
-        ingressPriorityGroupWatermarkStats, SAI_STATS_MODE_READ_AND_CLEAR);
-    auto counters = ingressPriorityGroup->getStats();
-    auto iter =
-        counters.find(SAI_INGRESS_PRIORITY_GROUP_STAT_SHARED_WATERMARK_BYTES);
-    auto maxPgSharedBytes = iter != counters.end() ? iter->second : 0;
-    iter = counters.find(
-        SAI_INGRESS_PRIORITY_GROUP_STAT_XOFF_ROOM_WATERMARK_BYTES);
-    auto maxPgHeadroomBytes = iter != counters.end() ? iter->second : 0;
-    publishPgWatermarks(
-        portName, ipgInfo.first, maxPgHeadroomBytes, maxPgSharedBytes);
+    if (updateWatermarks) {
+      updateIngressPriorityGroupWatermarkStats(
+          ingressPriorityGroup, ipgInfo.first, hwPortStats);
+    }
   }
 }
 
