@@ -180,6 +180,7 @@ bool YubaAsic::isSupportedNonFabric(Feature feature) const {
     case HwAsic::Feature::ACL_ENTRY_ETHER_TYPE:
     case HwAsic::Feature::EGRESS_CORE_BUFFER_WATERMARK:
     case HwAsic::Feature::DELETED_CREDITS_STAT:
+    case HwAsic::Feature::INGRESS_PRIORITY_GROUP_DROPPED_PACKETS:
       return false;
   }
   return false;
