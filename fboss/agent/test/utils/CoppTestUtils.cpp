@@ -408,12 +408,14 @@ void addHighPriAclForMyIPNetworkControl(
 }
 
 void addLowPriAclForUnresolvedRoutes(
+    const HwAsic* hwAsic,
     cfg::ToCpuAction toCpuAction,
     std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>>& acls,
     bool isSai) {
   cfg::AclEntry acl;
   acl.name() = folly::to<std::string>("cpu-unresolved-route-acl");
   acl.lookupClassRoute() = cfg::AclLookupClass::DST_CLASS_L3_LOCAL_2;
+  utility::addEtherTypeToAcl(hwAsic, &acl, cfg::EtherType::IPv6);
   acls.push_back(std::make_pair(
       acl,
       createQueueMatchAction(utility::kCoppLowPriQueueId, isSai, toCpuAction)));
@@ -598,7 +600,7 @@ std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>> defaultCpuAclsForSai(
      * and also goes to low pri queue
      */
     addLowPriAclForUnresolvedRoutes(
-        cfg::ToCpuAction::TRAP, acls, true /*isSai*/);
+        hwAsic, cfg::ToCpuAction::TRAP, acls, true /*isSai*/);
   }
 
   return acls;

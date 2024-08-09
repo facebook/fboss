@@ -1118,6 +1118,15 @@ TYPED_TEST(AgentCoppTest, UnresolvedRoutesToLowPriQueue) {
         utility::kNonSpecialPort1,
         utility::kNonSpecialPort2,
         std::nullopt);
+    // unresolved route packet with network control dscp 48 should
+    // stil go to low priority cpu queue
+    this->sendTcpPktAndVerifyCpuQueue(
+        utility::kCoppLowPriQueueId,
+        randomIP,
+        utility::kNonSpecialPort1,
+        utility::kNonSpecialPort2,
+        std::nullopt,
+        kNetworkControlDscp);
   };
   this->verifyAcrossWarmBoots(setup, verify);
 }
