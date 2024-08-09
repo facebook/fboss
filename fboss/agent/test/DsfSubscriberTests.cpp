@@ -20,6 +20,7 @@
 #include <gtest/gtest.h>
 #include <optional>
 
+#include <thrift/lib/cpp2/protocol/Serializer.h>
 #include "fboss/agent/HwSwitchMatcher.h"
 
 using namespace facebook::fboss;
@@ -59,6 +60,8 @@ std::shared_ptr<InterfaceMap> makeRifs(const SystemPortMap* sysPorts) {
          127}};
     rif->setAddresses(addresses);
     rif->setScope(cfg::Scope::GLOBAL);
+    rif->setRemoteInterfaceType(RemoteInterfaceType::DYNAMIC_ENTRY);
+    rif->setRemoteLivenessStatus(LivenessStatus::LIVE);
     rifs->addNode(rif);
   }
   return rifs;
@@ -262,8 +265,10 @@ TEST_F(DsfSubscriberTest, setupNeighbors) {
       }
     }
     EXPECT_EQ(
-        expectedRifs.toThrift(),
-        sw_->getState()->getRemoteInterfaces()->getAllNodes()->toThrift());
+        apache::thrift::SimpleJSONSerializer::serialize<std::string>(
+            expectedRifs.toThrift()),
+        apache::thrift::SimpleJSONSerializer::serialize<std::string>(
+            sw_->getState()->getRemoteInterfaces()->getAllNodes()->toThrift()));
 
     // neighbor entries are modified to set isLocal=false
     // Thus, if neighbor table is non-empty, programmed vs. actually
