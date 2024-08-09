@@ -25,18 +25,14 @@
       "numOutgoingI2cBuses": 1,
       "pmUnitName": "PDB"
     },
-    "COMESE_SLOT": {
-      "numOutgoingI2cBuses": 1,
+    "COME_SLOT": {
+      "numOutgoingI2cBuses": 2,
       "idpromConfig": {
         "busName": "INCOMING@0",
         "address": "0x56",
         "kernelDeviceName": "24c128"
       },
-      "pmUnitName": "COMESE"
-    },
-    "COMEVR_SLOT": {
-      "numOutgoingI2cBuses": 1,
-      "pmUnitName": "COMEVR"
+      "pmUnitName": "NETLAKE"
     },
     "BCB_SLOT": {
       "numOutgoingI2cBuses": 2,
@@ -46,6 +42,60 @@
   "i2cAdaptersFromCpu": [
     "SMBus I801 adapter at 5000"
   ],
+  "versionedPmUnitConfigs": {
+    "NETLAKE": [
+      {
+        "pmUnitConfig": {
+          "pluggedInSlotType": "COME_SLOT",
+          "i2cDeviceConfigs": [
+            {
+              "busName": "INCOMING@0",
+              "address": "0x48",
+              "kernelDeviceName": "tmp75",
+              "pmUnitScopedName": "COME_U18_INLET_TSENSOR"
+            },
+            {
+              "busName": "INCOMING@0",
+              "address": "0x4a",
+              "kernelDeviceName": "tmp75",
+              "pmUnitScopedName": "COME_U39_OUTLET_TSENSOR"
+            },
+            {
+              "busName": "INCOMING@1",
+              "address": "0x11",
+              "kernelDeviceName": "bp4f_mp9941",
+              "pmUnitScopedName": "COME_PU31_TDA38640"
+            },
+            {
+              "busName": "INCOMING@1",
+              "address": "0x22",
+              "kernelDeviceName": "bp4f_mp9941",
+              "pmUnitScopedName": "COME_PU32_TDA38640"
+            },
+            {
+              "busName": "INCOMING@1",
+              "address": "0x45",
+              "kernelDeviceName": "bp4f_mp9941",
+              "pmUnitScopedName": "COME_PU41_TDA38640"
+            },
+            {
+              "busName": "INCOMING@1",
+              "address": "0x66",
+              "kernelDeviceName": "bp4f_mp9941",
+              "pmUnitScopedName": "COME_PU42_TDA38640"
+            },
+            {
+              "busName": "INCOMING@1",
+              "address": "0x76",
+              "kernelDeviceName": "bp4f_mp2993",
+              "pmUnitScopedName": "COME_PU4_XDPE15284"
+            }
+          ]
+        },
+        "productSubVersion": 2
+      }
+    ]
+  },
   "pmUnitConfigs": {
     "JANGA": {
       "pluggedInSlotType": "SMB_SLOT",
@@ -2167,23 +2217,18 @@
             "SMB_IOB_I2C_MASTER_22"
           ]
         },
-        "COMESE_SLOT@0": {
-          "slotType": "COMESE_SLOT",
+        "COME_SLOT@0": {
+          "slotType": "COME_SLOT",
           "outgoingI2cBusNames": [
-            "SMB_IOB_I2C_MASTER_15"
-          ]
-        },
-	"COMEVR_SLOT@0": {
-          "slotType": "COMEVR_SLOT",
-          "outgoingI2cBusNames": [
+            "SMB_IOB_I2C_MASTER_15",
             "SMB_IOB_I2C_MASTER_24"
           ]
         },
-	"BCB_SLOT@0": {
+	      "BCB_SLOT@0": {
           "slotType": "BCB_SLOT",
           "outgoingI2cBusNames": [
-	    "SMB_IOB_I2C_MASTER_1",
-	    "SMB_IOB_I2C_MASTER_19"
+	          "SMB_IOB_I2C_MASTER_1",
+	          "SMB_IOB_I2C_MASTER_19"
           ]
         }
       }
@@ -2222,8 +2267,8 @@
         }
       ]
     },
-    "COMESE": {
-      "pluggedInSlotType": "COMESE_SLOT",
+    "NETLAKE": {
+      "pluggedInSlotType": "COME_SLOT",
       "i2cDeviceConfigs": [
         {
           "busName": "INCOMING@0",
@@ -2236,38 +2281,33 @@
           "address": "0x4a",
           "kernelDeviceName": "tmp75",
           "pmUnitScopedName": "COME_U39_OUTLET_TSENSOR"
-        }
-      ]
-    },
-    "COMEVR": {
-      "pluggedInSlotType": "COMEVR_SLOT",
-      "i2cDeviceConfigs": [
+        },
         {
-          "busName": "INCOMING@0",
+          "busName": "INCOMING@1",
           "address": "0x11",
           "kernelDeviceName": "bp4f_tda38640",
           "pmUnitScopedName": "COME_PU31_TDA38640"
         },
         {
-          "busName": "INCOMING@0",
+          "busName": "INCOMING@1",
           "address": "0x22",
           "kernelDeviceName": "bp4f_tda38640",
           "pmUnitScopedName": "COME_PU32_TDA38640"
         },
         {
-          "busName": "INCOMING@0",
+          "busName": "INCOMING@1",
           "address": "0x45",
           "kernelDeviceName": "bp4f_tda38640",
           "pmUnitScopedName": "COME_PU41_TDA38640"
         },
         {
-          "busName": "INCOMING@0",
+          "busName": "INCOMING@1",
           "address": "0x66",
           "kernelDeviceName": "bp4f_tda38640",
           "pmUnitScopedName": "COME_PU42_TDA38640"
         },
         {
-          "busName": "INCOMING@0",
+          "busName": "INCOMING@1",
           "address": "0x76",
           "kernelDeviceName": "bp4f_xdpe15284",
           "pmUnitScopedName": "COME_PU4_XDPE15284"
@@ -2296,7 +2336,7 @@
     "/run/devmap/eeproms/COME_EEPROM": "/[IDPROM]",
     "/run/devmap/eeproms/SMB_EEPROM": "/[SMB_EEPROM]",
     "/run/devmap/eeproms/RUNBMC_EEPROM": "/RUNBMC_SLOT@0/[IDPROM]",
-    "/run/devmap/eeproms/COME_FRU": "/COMESE_SLOT@0/[IDPROM]",
+    "/run/devmap/eeproms/COME_FRU": "/COME_SLOT@0/[IDPROM]",
     "/run/devmap/sensors/CPU_CORE_TEMP": "/[CPU_CORE_TEMP]",
     "/run/devmap/sensors/BCB_FAN_CPLD": "/BCB_SLOT@0/[BCB_FAN_CPLD]",
     "/run/devmap/sensors/BCB_FAN_CPLD_2": "/BCB_SLOT@0/[BCB_FAN_CPLD_2]",
@@ -2330,17 +2370,16 @@
     "/run/devmap/sensors/PDB_PMBUS_BRICK_1": "/PDB_SLOT@0/[PDB_PMBUS_BRICK_1]",
     "/run/devmap/sensors/PDB_PMBUS_BRICK_2": "/PDB_SLOT@0/[PDB_PMBUS_BRICK_2]",
     "/run/devmap/sensors/PDB_U1_LM75B": "/PDB_SLOT@0/[PDB_U1_LM75B]",
-    "/run/devmap/sensors/COME_U18_INLET_TSENSOR": "/COMESE_SLOT@0/[COME_U18_INLET_TSENSOR]",
-    "/run/devmap/sensors/COME_U39_OUTLET_TSENSOR": "/COMESE_SLOT@0/[COME_U39_OUTLET_TSENSOR]",
-    "/run/devmap/sensors/COME_PU4_XDPE15284": "/COMEVR_SLOT@0/[COME_PU4_XDPE15284]",
-    "/run/devmap/sensors/COME_PU41_TDA38640": "/COMEVR_SLOT@0/[COME_PU41_TDA38640]",
-    "/run/devmap/sensors/COME_PU31_TDA38640": "/COMEVR_SLOT@0/[COME_PU31_TDA38640]",
-    "/run/devmap/sensors/COME_PU42_TDA38640": "/COMEVR_SLOT@0/[COME_PU42_TDA38640]",
-    "/run/devmap/sensors/COME_PU32_TDA38640": "/COMEVR_SLOT@0/[COME_PU32_TDA38640]",
+    "/run/devmap/sensors/COME_U18_INLET_TSENSOR": "/COME_SLOT@0/[COME_U18_INLET_TSENSOR]",
+    "/run/devmap/sensors/COME_U39_OUTLET_TSENSOR": "/COME_SLOT@0/[COME_U39_OUTLET_TSENSOR]",
+    "/run/devmap/sensors/COME_PU4_XDPE15284": "/COME_SLOT@0/[COME_PU4_XDPE15284]",
+    "/run/devmap/sensors/COME_PU41_TDA38640": "/COME_SLOT@0/[COME_PU41_TDA38640]",
+    "/run/devmap/sensors/COME_PU31_TDA38640": "/COME_SLOT@0/[COME_PU31_TDA38640]",
+    "/run/devmap/sensors/COME_PU42_TDA38640": "/COME_SLOT@0/[COME_PU42_TDA38640]",
+    "/run/devmap/sensors/COME_PU32_TDA38640": "/COME_SLOT@0/[COME_PU32_TDA38640]",
     "/run/devmap/cplds/SMB_CPLD_1": "/[SMB_CPLD_1]",
     "/run/devmap/cplds/JANGA_SMB_CPLD": "/[JANGA_SMB_CPLD]",
     "/run/devmap/cplds/PWR_CPLD": "/[PWR_CPLD]",
-    "/run/devmap/fpgas/IOB_FPGA": "/[SMB_IOB]",
     "/run/devmap/fpgas/SMB_IOB_INFO_ROM": "/[SMB_IOB_INFO_ROM]",
     "/run/devmap/fpgas/SMB_DOM_INFO_ROM": "/[SMB_DOM_INFO_ROM]",
     "/run/devmap/i2c-busses/SMB_IOB_I2C_MASTER_1": "/[SMB_IOB_I2C_MASTER_1]",
