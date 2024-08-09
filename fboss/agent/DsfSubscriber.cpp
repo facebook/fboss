@@ -80,7 +80,6 @@ bool DsfSubscriber::isLocal(SwitchID nodeSwitchId) const {
 
 void DsfSubscriber::updateWithRollbackProtection(
     const std::string& nodeName,
-    const SwitchID& nodeSwitchId,
     const std::map<SwitchID, std::shared_ptr<SystemPortMap>>&
         switchId2SystemPorts,
     const std::map<SwitchID, std::shared_ptr<InterfaceMap>>& switchId2Intfs) {
@@ -100,7 +99,7 @@ void DsfSubscriber::updateWithRollbackProtection(
   hasNoLocalSwitchId(switchId2Intfs);
 
   auto updateDsfStateFn =
-      [this, nodeName, nodeSwitchId, switchId2SystemPorts, switchId2Intfs](
+      [this, nodeName, switchId2SystemPorts, switchId2Intfs](
           const std::shared_ptr<SwitchState>& in) {
         auto out = DsfStateUpdaterUtil::getUpdatedState(
             in,
@@ -216,10 +215,7 @@ void DsfSubscriber::stateUpdated(const StateDelta& stateDelta) {
                   const std::map<SwitchID, std::shared_ptr<InterfaceMap>>&
                       switchId2Intfs) {
                 updateWithRollbackProtection(
-                    nodeName,
-                    nodeSwitchId,
-                    switchId2SystemPorts,
-                    switchId2Intfs);
+                    nodeName, switchId2SystemPorts, switchId2Intfs);
               }));
     }
   };

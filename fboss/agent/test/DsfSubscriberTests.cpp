@@ -152,10 +152,7 @@ TEST_F(DsfSubscriberTest, updateWithRollbackProtection) {
   // Add remote interfaces
   const auto prevState = sw_->getState();
   dsfSubscriber_->updateWithRollbackProtection(
-      "switch",
-      SwitchID(kRemoteSwitchId),
-      switchId2SystemPorts,
-      switchId2Intfs);
+      "switch", switchId2SystemPorts, switchId2Intfs);
 
   const auto addedState = sw_->getState();
   verifyRemoteIntfRouteDelta(StateDelta(prevState, addedState), 4, 0);
@@ -177,10 +174,7 @@ TEST_F(DsfSubscriberTest, updateWithRollbackProtection) {
       ->second->setAddresses(updatedAddresses);
 
   dsfSubscriber_->updateWithRollbackProtection(
-      "switch",
-      SwitchID(kRemoteSwitchId),
-      switchId2SystemPorts,
-      switchId2Intfs);
+      "switch", switchId2SystemPorts, switchId2Intfs);
 
   auto modifiedState = sw_->getState();
   verifyRemoteIntfRouteDelta(StateDelta(addedState, modifiedState), 2, 2);
@@ -191,10 +185,7 @@ TEST_F(DsfSubscriberTest, updateWithRollbackProtection) {
   switchId2Intfs[SwitchID(kRemoteSwitchId)] = std::make_shared<InterfaceMap>();
 
   dsfSubscriber_->updateWithRollbackProtection(
-      "switch",
-      SwitchID(kRemoteSwitchId),
-      switchId2SystemPorts,
-      switchId2Intfs);
+      "switch", switchId2SystemPorts, switchId2Intfs);
 
   auto deletedState = sw_->getState();
   verifyRemoteIntfRouteDelta(StateDelta(addedState, deletedState), 0, 4);
@@ -230,10 +221,7 @@ TEST_F(DsfSubscriberTest, setupNeighbors) {
     switchId2Intfs[SwitchID(kRemoteSwitchId)] = rifs;
 
     dsfSubscriber_->updateWithRollbackProtection(
-        "switch",
-        SwitchID(kRemoteSwitchId),
-        switchId2SystemPorts,
-        switchId2Intfs);
+        "switch", switchId2SystemPorts, switchId2Intfs);
 
     waitForStateUpdates(sw_);
     EXPECT_EQ(
