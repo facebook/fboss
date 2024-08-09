@@ -38,6 +38,60 @@
   "i2cAdaptersFromCpu": [
     "SMBus I801 adapter at 5000"
   ],
+  "versionedPmUnitConfigs": {
+    "NETLAKE": [
+      {
+        "pmUnitConfig": {
+          "pluggedInSlotType": "COME_SLOT",
+          "i2cDeviceConfigs": [
+            {
+              "busName": "INCOMING@0",
+              "address": "0x48",
+              "kernelDeviceName": "tmp75",
+              "pmUnitScopedName": "COME_U18_INLET_TSENSOR"
+            },
+            {
+              "busName": "INCOMING@0",
+              "address": "0x4a",
+              "kernelDeviceName": "tmp75",
+              "pmUnitScopedName": "COME_U39_OUTLET_TSENSOR"
+            },
+            {
+              "busName": "INCOMING@1",
+              "address": "0x11",
+              "kernelDeviceName": "bp4f_mp9941",
+              "pmUnitScopedName": "COME_PU31_TDA38640"
+            },
+            {
+              "busName": "INCOMING@1",
+              "address": "0x22",
+              "kernelDeviceName": "bp4f_mp9941",
+              "pmUnitScopedName": "COME_PU32_TDA38640"
+            },
+            {
+              "busName": "INCOMING@1",
+              "address": "0x45",
+              "kernelDeviceName": "bp4f_mp9941",
+              "pmUnitScopedName": "COME_PU41_TDA38640"
+            },
+            {
+              "busName": "INCOMING@1",
+              "address": "0x66",
+              "kernelDeviceName": "bp4f_mp9941",
+              "pmUnitScopedName": "COME_PU42_TDA38640"
+            },
+            {
+              "busName": "INCOMING@1",
+              "address": "0x76",
+              "kernelDeviceName": "bp4f_mp2993",
+              "pmUnitScopedName": "COME_PU4_XDPE15284"
+            }
+          ]
+        },
+        "productSubVersion": 2
+      }
+    ]
+  },
   "pmUnitConfigs": {
     "TAHAN": {
       "pluggedInSlotType": "SMB_SLOT",
@@ -1527,7 +1581,7 @@
           "address": "0x4c",
           "kernelDeviceName": "tps25990",
           "pmUnitScopedName": "SMB_U327_TPS25990_COME"
-        },	
+        },
         {
           "busName": "SMB_IOB_I2C_MASTER_17",
           "address": "0x48",
@@ -1582,10 +1636,10 @@
           "kernelDeviceName": "adc128d818",
           "pmUnitScopedName": "SMB_U206_ADC128D818_2",
           "initRegSettings": [
-           {
+            {
               "regOffset": 11,
               "ioBuf": [2]
-           }
+            }
           ]
         },
         {
@@ -1594,10 +1648,10 @@
           "kernelDeviceName": "adc128d818",
           "pmUnitScopedName": "SMB_U207_ADC128D818_3",
           "initRegSettings": [
-           {
+            {
               "regOffset": 11,
               "ioBuf": [2]
-           }
+            }
           ]
         },
         {
@@ -1718,7 +1772,7 @@
         {
           "busName": "INCOMING@1",
           "address": "0x76",
-          "kernelDeviceName": "xdpe15284",
+          "kernelDeviceName": "bp4f_xdpe15284",
           "pmUnitScopedName": "COME_PU4_XDPE15284"
         }
       ]
@@ -1789,7 +1843,6 @@
     "/run/devmap/cplds/SMB_CPLD_1": "/[SMB_CPLD_1]",
     "/run/devmap/cplds/TAHAN_SMB_CPLD": "/[TAHAN_SMB_CPLD]",
     "/run/devmap/cplds/PWR_CPLD": "/[PWR_CPLD]",
-    "/run/devmap/fpgas/IOB_FPGA": "/[SMB_IOB]",
     "/run/devmap/fpgas/SMB_IOB_INFO_ROM": "/[SMB_IOB_INFO_ROM]",
     "/run/devmap/fpgas/SMB_DOM_INFO_ROM": "/[SMB_DOM_INFO_ROM]",
     "/run/devmap/i2c-busses/SMB_IOB_I2C_MASTER_1": "/[SMB_IOB_I2C_MASTER_1]",
