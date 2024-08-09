@@ -108,7 +108,6 @@ TEST_F(DsfSubscriptionTest, Connect) {
   createPublisher();
   auto state = std::make_shared<SwitchState>();
   publishSwitchState(state);
-  std::optional<fsdb::FsdbSubscriptionState> lastState;
   std::optional<std::map<SwitchID, std::shared_ptr<SystemPortMap>>>
       recvSysPorts;
   std::optional<std::map<SwitchID, std::shared_ptr<InterfaceMap>>> recvIntfs;
@@ -124,9 +123,6 @@ TEST_F(DsfSubscriptionTest, Connect) {
         recvIntfs = switchId2Intfs;
       });
   WITH_RETRIES({
-    ASSERT_EVENTUALLY_TRUE(lastState.has_value());
-    ASSERT_EVENTUALLY_EQ(
-        lastState.value(), fsdb::FsdbSubscriptionState::CONNECTED);
     ASSERT_EVENTUALLY_TRUE(recvSysPorts.has_value());
     ASSERT_EVENTUALLY_TRUE(recvIntfs.has_value());
     ASSERT_EVENTUALLY_EQ(recvSysPorts->size(), 0);
@@ -143,7 +139,6 @@ TEST_F(DsfSubscriptionTest, Connect) {
 
 TEST_F(DsfSubscriptionTest, ConnectDisconnect) {
   createPublisher();
-  std::optional<fsdb::FsdbSubscriptionState> lastState;
   std::optional<std::map<SwitchID, std::shared_ptr<SystemPortMap>>>
       recvSysPorts;
   std::optional<std::map<SwitchID, std::shared_ptr<InterfaceMap>>> recvIntfs;
@@ -160,9 +155,6 @@ TEST_F(DsfSubscriptionTest, ConnectDisconnect) {
       });
 
   WITH_RETRIES({
-    ASSERT_EVENTUALLY_TRUE(lastState.has_value());
-    ASSERT_EVENTUALLY_EQ(
-        lastState.value(), fsdb::FsdbSubscriptionState::CONNECTED);
     ASSERT_EVENTUALLY_TRUE(recvSysPorts.has_value());
     ASSERT_EVENTUALLY_TRUE(recvIntfs.has_value());
     ASSERT_EVENTUALLY_EQ(recvSysPorts->size(), 0);
@@ -173,13 +165,6 @@ TEST_F(DsfSubscriptionTest, ConnectDisconnect) {
   });
 
   stopPublisher();
-  WITH_RETRIES_N_TIMED(
-      10,
-      std::chrono::milliseconds(
-          100), // check aggressively in case we try to reconnect
-      ASSERT_EVENTUALLY_EQ(
-          lastState.value(), fsdb::FsdbSubscriptionState::DISCONNECTED));
-
   EXPECT_EQ(
       *subscription->dsfSessionThrift().state(), DsfSessionState::CONNECT);
 }
@@ -187,7 +172,6 @@ TEST_F(DsfSubscriptionTest, ConnectDisconnect) {
 TEST_F(DsfSubscriptionTest, GR) {
   createPublisher();
   FLAGS_dsf_gr_hold_time = 5;
-  std::optional<fsdb::FsdbSubscriptionState> lastState;
   bool grExpired = false;
   int subStateUpdates = 0;
   int updates = 0;
@@ -201,10 +185,10 @@ TEST_F(DsfSubscriptionTest, GR) {
       });
 
   WITH_RETRIES({
-    ASSERT_EVENTUALLY_TRUE(lastState.has_value());
-    ASSERT_EVENTUALLY_EQ(
-        lastState.value(), fsdb::FsdbSubscriptionState::CONNECTED);
     ASSERT_EVENTUALLY_EQ(updates, 1);
+    ASSERT_EVENTUALLY_EQ(
+        *subscription->dsfSessionThrift().state(),
+        DsfSessionState::WAIT_FOR_REMOTE);
   });
 
   int subStateUpdatesBefore = subStateUpdates;
@@ -213,8 +197,9 @@ TEST_F(DsfSubscriptionTest, GR) {
 
   WITH_RETRIES({
     ASSERT_EVENTUALLY_EQ(updates, 2);
-    ASSERT_EVENTUALLY_EQ(
-        lastState.value(), fsdb::FsdbSubscriptionState::CONNECTED);
+    EXPECT_EQ(
+        *subscription->dsfSessionThrift().state(),
+        DsfSessionState::WAIT_FOR_REMOTE);
   });
   // should not have gotten callback from the gr
   EXPECT_EQ(grExpired, false);
@@ -222,7 +207,7 @@ TEST_F(DsfSubscriptionTest, GR) {
   stopPublisher(true);
   WITH_RETRIES({
     ASSERT_EVENTUALLY_EQ(
-        lastState.value(), fsdb::FsdbSubscriptionState::DISCONNECTED);
+        *subscription->dsfSessionThrift().state(), DsfSessionState::CONNECT);
     EXPECT_EVENTUALLY_EQ(grExpired, true);
   });
 }

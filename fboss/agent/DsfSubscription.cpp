@@ -147,7 +147,8 @@ void DsfSubscription::handleFsdbSubscriptionStateUpdate(
       sw_->stats()->failedDsfSubscription(remoteNodeName_, 1);
     }
 
-    dsfSubscriberStateCb_(oldThriftState, newThriftState);
+    sw_->updateDsfSubscriberState(
+        remoteEndpoint, oldThriftState, newThriftState);
     session_.localSubStateChanged(newThriftState);
   }
 
