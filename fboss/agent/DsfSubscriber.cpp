@@ -209,7 +209,7 @@ void DsfSubscriber::stateUpdated(const StateDelta& stateDelta) {
                     getAllSwitchIDsForSwitch(
                         this->sw_->getState()->getDsfNodes(), nodeSwitchId));
               },
-              [this, nodeName, nodeSwitchId]( // StateUpdateCb
+              [this, nodeName]( // StateUpdateCb
                   const std::map<SwitchID, std::shared_ptr<SystemPortMap>>&
                       switchId2SystemPorts,
                   const std::map<SwitchID, std::shared_ptr<InterfaceMap>>&
