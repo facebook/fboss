@@ -76,17 +76,13 @@
       "pmUnitName": "MINIPACK3_FCB_T"
     },
     "COMESE_SLOT": {
-      "numOutgoingI2cBuses": 1,
+      "numOutgoingI2cBuses": 2,
       "idpromConfig": {
-        "busName": "INCOMING@0",
+        "busName": "INCOMING@1",
         "address": "0x56",
         "kernelDeviceName": "24c128"
       },
       "pmUnitName": "NETLAKE"
-    },
-    "COMEVR_SLOT": {
-      "numOutgoingI2cBuses": 1,
-      "pmUnitName": "COMEVR"
     },
     "OPTICL_SLOT": {
       "numOutgoingI2cBuses": 1,
@@ -111,6 +107,48 @@
     "SMBus I801 adapter at 5000",
     "SMBus iSMT adapter at 20fffa7b000"
   ],
+  "versionedPmUnitConfigs": {
+    "NETLAKE": [
+      {
+        "pmUnitConfig": {
+          "pluggedInSlotType": "COMESE_SLOT",
+          "i2cDeviceConfigs": [
+            {
+              "busName": "INCOMING@0",
+              "address": "0x11",
+              "kernelDeviceName": "bp4f_mp9941",
+              "pmUnitScopedName": "COME_VOLTAGE_MONITOR1"
+            },
+            {
+              "busName": "INCOMING@0",
+              "address": "0x22",
+              "kernelDeviceName": "bp4f_mp9941",
+              "pmUnitScopedName": "COME_VOLTAGE_MONITOR2"
+            },
+            {
+              "busName": "INCOMING@0",
+              "address": "0x45",
+              "kernelDeviceName": "bp4f_mp9941",
+              "pmUnitScopedName": "COME_VOLTAGE_MONITOR3"
+            },
+            {
+              "busName": "INCOMING@0",
+              "address": "0x66",
+              "kernelDeviceName": "bp4f_mp9941",
+              "pmUnitScopedName": "COME_VOLTAGE_MONITOR4"
+            },
+            {
+              "busName": "INCOMING@0",
+              "address": "0x76",
+              "kernelDeviceName": "bp4f_mp2993",
+              "pmUnitScopedName": "COME_VOLTAGE_MONITOR5"
+            }
+          ]
+        },
+        "productSubVersion": 2
+      }
+    ]
+  },
   "pmUnitConfigs": {
     "MINIPACK3_MCB": {
       "pluggedInSlotType": "MCB_SLOT",
@@ -1697,7 +1735,8 @@
           "outgoingI2cBusNames": [
             "MCB_IOB_I2C_MASTER_1",
             "MCB_IOB_I2C_MASTER_2",
-            "MCB_IOB_I2C_MASTER_3"
+            "MCB_IOB_I2C_MASTER_3",
+            "MCB_IOB_I2C_MASTER_18"
           ]
         },
         "PDBLEFT_SLOT@0": {
@@ -1734,12 +1773,6 @@
           "outgoingI2cBusNames": [
             "MCB_IOB_I2C_MASTER_15",
             "MCB_IOB_I2C_MASTER_16"
-          ]
-        },
-        "COMESE_SLOT@0": {
-          "slotType": "COMESE_SLOT",
-          "outgoingI2cBusNames": [
-            "MCB_IOB_I2C_MASTER_18"
           ]
         }
       }
@@ -1808,6 +1841,18 @@
           "address": "0x4c",
           "kernelDeviceName": "tps25990",
           "pmUnitScopedName": "SCM_VOLTAGE_MONITOR2"
+        },
+        {
+          "busName": "INCOMING@3",
+          "address": "0x48",
+          "kernelDeviceName": "tmp75",
+          "pmUnitScopedName": "COME_TSENSOR1"
+        },
+        {
+          "busName": "INCOMING@3",
+          "address": "0x4a",
+          "kernelDeviceName": "tmp75",
+          "pmUnitScopedName": "COME_TSENSOR2"
         }
       ],
       "outgoingSlotConfigs": {
@@ -1817,10 +1862,11 @@
             "SCM_MUX_A@7"
           ]
         },
-	"COMEVR_SLOT@0": {
-          "slotType": "COMEVR_SLOT",
+	      "COMESE_SLOT@0": {
+          "slotType": "COMESE_SLOT",
           "outgoingI2cBusNames": [
-            "SCM_MUX_B@1"
+            "SCM_MUX_B@1",
+            "INCOMING@3"
           ]
         }
       }
@@ -2929,7 +2975,7 @@
               "regOffset": 11,
               "ioBuf": [2]
             }
-	  ]
+	        ]
         },
         {
           "busName": "INCOMING@2",
@@ -2941,7 +2987,7 @@
               "regOffset": 11,
               "ioBuf": [2]
             }
-	  ]
+	        ]
         },
         {
           "busName": "INCOMING@3",
@@ -3046,23 +3092,6 @@
       "i2cDeviceConfigs": [
         {
           "busName": "INCOMING@0",
-          "address": "0x48",
-          "kernelDeviceName": "tmp75",
-          "pmUnitScopedName": "COME_TSENSOR1"
-        },
-        {
-          "busName": "INCOMING@0",
-          "address": "0x4a",
-          "kernelDeviceName": "tmp75",
-          "pmUnitScopedName": "COME_TSENSOR2"
-        }
-      ]
-    },
-    "COMEVR": {
-      "pluggedInSlotType": "COMEVR_SLOT",
-      "i2cDeviceConfigs": [
-        {
-          "busName": "INCOMING@0",
           "address": "0x11",
           "kernelDeviceName": "bp4f_tda38640",
           "pmUnitScopedName": "COME_VOLTAGE_MONITOR1"
@@ -3130,7 +3159,7 @@
   },
   "symbolicLinkToDevicePath": {
     "/run/devmap/eeproms/MCB_EEPROM": "/[IDPROM]",
-    "/run/devmap/eeproms/COME_EEPROM": "/COMESE_SLOT@0/[IDPROM]",
+    "/run/devmap/eeproms/COME_EEPROM": "/SCM_SLOT@0/COMESE_SLOT@0/[IDPROM]",
     "/run/devmap/eeproms/SCM_EEPROM": "/SCM_SLOT@0/[IDPROM]",
     "/run/devmap/eeproms/RUNBMC_EEPROM": "/SCM_SLOT@0/RUNBMC_SLOT@0/[IDPROM]",
     "/run/devmap/eeproms/PSU1_EEPROM": "/PDBLEFT_SLOT@0/[PSU1_EEPROM]",
@@ -3183,17 +3212,16 @@
     "/run/devmap/sensors/FCB_T_TSENSOR2": "/FCBTOP_SLOT@0/[FCB_T_TSENSOR2]",
     "/run/devmap/sensors/FCB_B_TSENSOR1": "/FCBBOTTOM_SLOT@0/[FCB_B_TSENSOR1]",
     "/run/devmap/sensors/FCB_B_TSENSOR2": "/FCBBOTTOM_SLOT@0/[FCB_B_TSENSOR2]",
-    "/run/devmap/sensors/COME_TSENSOR1": "/COMESE_SLOT@0/[COME_TSENSOR1]",
-    "/run/devmap/sensors/COME_TSENSOR2": "/COMESE_SLOT@0/[COME_TSENSOR2]",
-    "/run/devmap/sensors/COME_VOLTAGE_MONITOR1": "/SCM_SLOT@0/COMEVR_SLOT@0/[COME_VOLTAGE_MONITOR1]",
-    "/run/devmap/sensors/COME_VOLTAGE_MONITOR2": "/SCM_SLOT@0/COMEVR_SLOT@0/[COME_VOLTAGE_MONITOR2]",
-    "/run/devmap/sensors/COME_VOLTAGE_MONITOR3": "/SCM_SLOT@0/COMEVR_SLOT@0/[COME_VOLTAGE_MONITOR3]",
-    "/run/devmap/sensors/COME_VOLTAGE_MONITOR4": "/SCM_SLOT@0/COMEVR_SLOT@0/[COME_VOLTAGE_MONITOR4]",
-    "/run/devmap/sensors/COME_VOLTAGE_MONITOR5": "/SCM_SLOT@0/COMEVR_SLOT@0/[COME_VOLTAGE_MONITOR5]",
+    "/run/devmap/sensors/COME_TSENSOR1": "/SCM_SLOT@0/[COME_TSENSOR1]",
+    "/run/devmap/sensors/COME_TSENSOR2": "/SCM_SLOT@0/[COME_TSENSOR2]",
+    "/run/devmap/sensors/COME_VOLTAGE_MONITOR1": "/SCM_SLOT@0/COMESE_SLOT@0/[COME_VOLTAGE_MONITOR1]",
+    "/run/devmap/sensors/COME_VOLTAGE_MONITOR2": "/SCM_SLOT@0/COMESE_SLOT@0/[COME_VOLTAGE_MONITOR2]",
+    "/run/devmap/sensors/COME_VOLTAGE_MONITOR3": "/SCM_SLOT@0/COMESE_SLOT@0/[COME_VOLTAGE_MONITOR3]",
+    "/run/devmap/sensors/COME_VOLTAGE_MONITOR4": "/SCM_SLOT@0/COMESE_SLOT@0/[COME_VOLTAGE_MONITOR4]",
+    "/run/devmap/sensors/COME_VOLTAGE_MONITOR5": "/SCM_SLOT@0/COMESE_SLOT@0/[COME_VOLTAGE_MONITOR5]",
     "/run/devmap/cplds/MCB_CPLD": "/[MCB_CPLD]",
     "/run/devmap/cplds/SCM_CPLD": "/SCM_SLOT@0/[SCM_CPLD]",
     "/run/devmap/cplds/SMB_CPLD": "/SMB_SLOT@0/[SMB_CPLD]",
-    "/run/devmap/fpgas/MCB_IOB": "/[MCB_IOB]",
     "/run/devmap/fpgas/MCB_IOB_INFO_ROM": "/[MCB_IOB_INFO_ROM]",
     "/run/devmap/fpgas/SMB_DOM1_INFO_ROM": "/SMB_SLOT@0/[SMB_DOM1_INFO_ROM]",
     "/run/devmap/fpgas/SMB_DOM2_INFO_ROM": "/SMB_SLOT@0/[SMB_DOM2_INFO_ROM]",
