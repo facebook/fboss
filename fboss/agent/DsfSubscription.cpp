@@ -2,6 +2,7 @@
 
 #include "fboss/agent/DsfSubscription.h"
 #include "fboss/agent/AgentFeatures.h"
+#include "fboss/agent/DsfStateUpdaterUtil.h"
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/SwitchStats.h"
 #include "fboss/agent/state/SwitchState.h"
@@ -206,4 +207,52 @@ void DsfSubscription::handleFsdbUpdate(fsdb::OperSubPathUnit&& operStateUnit) {
   }
   stateUpdateCb_(switchId2SystemPorts, switchId2Intfs);
 }
+
+bool DsfSubscription::isLocal(SwitchID nodeSwitchId) const {
+  auto localSwitchIds = sw_->getSwitchInfoTable().getSwitchIDs();
+  return localSwitchIds.find(nodeSwitchId) != localSwitchIds.end();
+}
+
+void DsfSubscription::updateWithRollbackProtection(
+    const std::map<SwitchID, std::shared_ptr<SystemPortMap>>&
+        switchId2SystemPorts,
+    const std::map<SwitchID, std::shared_ptr<InterfaceMap>>& switchId2Intfs) {
+  auto hasNoLocalSwitchId = [this](const auto& switchId2Objects) {
+    for (const auto& [switchId, _] : switchId2Objects) {
+      if (this->isLocal(switchId)) {
+        throw FbossError(
+            "Got updates for a local switch ID, from: ",
+            localNodeName_,
+            " id: ",
+            switchId);
+      }
+    }
+  };
+
+  hasNoLocalSwitchId(switchId2SystemPorts);
+  hasNoLocalSwitchId(switchId2Intfs);
+
+  auto updateDsfStateFn = [this, switchId2SystemPorts, switchId2Intfs](
+                              const std::shared_ptr<SwitchState>& in) {
+    auto out = DsfStateUpdaterUtil::getUpdatedState(
+        in,
+        sw_->getScopeResolver(),
+        sw_->getRib(),
+        switchId2SystemPorts,
+        switchId2Intfs);
+
+    if (!FLAGS_dsf_subscriber_skip_hw_writes) {
+      return out;
+    }
+
+    return std::shared_ptr<SwitchState>{};
+  };
+
+  sw_->getRib()->updateStateInRibThread([this, updateDsfStateFn]() {
+    sw_->updateStateWithHwFailureProtection(
+        folly::sformat("Update state for node: {}", localNodeName_),
+        updateDsfStateFn);
+  });
+}
+
 } // namespace facebook::fboss

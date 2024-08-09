@@ -46,6 +46,11 @@ class DsfSubscription {
   const fsdb::FsdbPubSubManager::SubscriptionInfo getSubscriptionInfo() const;
 
  private:
+  void updateWithRollbackProtection(
+      const std::map<SwitchID, std::shared_ptr<SystemPortMap>>&
+          switchId2SystemPorts,
+      const std::map<SwitchID, std::shared_ptr<InterfaceMap>>& switchId2Intfs);
+  bool isLocal(SwitchID nodeSwitchId) const;
   void handleFsdbSubscriptionStateUpdate(
       fsdb::SubscriptionState oldState,
       fsdb::SubscriptionState newState);
