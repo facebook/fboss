@@ -32328,7 +32328,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
           "portType": 3,
           "attachedCoreId": 2,
           "attachedCorePortIndex": 2,
-          "virtualDeviceId": 0,
+          "virtualDeviceId": 4,
           "scope": 1
         },
         "supportedProfiles": {
@@ -32362,7 +32362,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
           "portType": 3,
           "attachedCoreId": 0,
           "attachedCorePortIndex": 1,
-          "virtualDeviceId": 0,
+          "virtualDeviceId": 4,
           "scope": 0
         },
         "supportedProfiles": {
@@ -32396,7 +32396,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
           "portType": 3,
           "attachedCoreId": 1,
           "attachedCorePortIndex": 1,
-          "virtualDeviceId": 0,
+          "virtualDeviceId": 4,
           "scope": 0
         },
         "supportedProfiles": {
@@ -32430,7 +32430,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
           "portType": 3,
           "attachedCoreId": 2,
           "attachedCorePortIndex": 1,
-          "virtualDeviceId": 0,
+          "virtualDeviceId": 4,
           "scope": 0
         },
         "supportedProfiles": {
@@ -32464,7 +32464,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
           "portType": 3,
           "attachedCoreId": 3,
           "attachedCorePortIndex": 1,
-          "virtualDeviceId": 0,
+          "virtualDeviceId": 4,
           "scope": 0
         },
         "supportedProfiles": {
@@ -32498,7 +32498,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
           "portType": 5,
           "attachedCoreId": 0,
           "attachedCorePortIndex": 12,
-          "virtualDeviceId": 0,
+          "virtualDeviceId": 4,
           "scope": 0
         },
         "supportedProfiles": {
@@ -32574,7 +32574,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
           "portType": 4,
           "attachedCoreId": 2,
           "attachedCorePortIndex": 11,
-          "virtualDeviceId": 0,
+          "virtualDeviceId": 4,
           "scope": 1
         },
         "supportedProfiles": {
@@ -32862,7 +32862,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
           "portType": 0,
           "attachedCoreId": 0,
           "attachedCorePortIndex": 4,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 1
         },
         "supportedProfiles": {
@@ -33472,7 +33472,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
           "portType": 0,
           "attachedCoreId": 0,
           "attachedCorePortIndex": 5,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 1
         },
         "supportedProfiles": {
@@ -33844,7 +33844,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
           "portType": 0,
           "attachedCoreId": 3,
           "attachedCorePortIndex": 2,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 1
         },
         "supportedProfiles": {
@@ -34454,7 +34454,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
           "portType": 0,
           "attachedCoreId": 3,
           "attachedCorePortIndex": 3,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 1
         },
         "supportedProfiles": {
@@ -34826,7 +34826,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
           "portType": 0,
           "attachedCoreId": 0,
           "attachedCorePortIndex": 7,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 1
         },
         "supportedProfiles": {
@@ -35114,7 +35114,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
           "portType": 0,
           "attachedCoreId": 0,
           "attachedCorePortIndex": 8,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 1
         },
         "supportedProfiles": {
@@ -35402,7 +35402,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
           "portType": 0,
           "attachedCoreId": 0,
           "attachedCorePortIndex": 9,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 1
         },
         "supportedProfiles": {
@@ -35690,7 +35690,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
           "portType": 0,
           "attachedCoreId": 0,
           "attachedCorePortIndex": 10,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 1
         },
         "supportedProfiles": {
@@ -35978,7 +35978,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
           "portType": 0,
           "attachedCoreId": 1,
           "attachedCorePortIndex": 11,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 1
         },
         "supportedProfiles": {
@@ -36266,7 +36266,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
           "portType": 0,
           "attachedCoreId": 1,
           "attachedCorePortIndex": 12,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 1
         },
         "supportedProfiles": {
@@ -36554,7 +36554,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
           "portType": 0,
           "attachedCoreId": 1,
           "attachedCorePortIndex": 13,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 1
         },
         "supportedProfiles": {
@@ -36842,7 +36842,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
           "portType": 0,
           "attachedCoreId": 1,
           "attachedCorePortIndex": 14,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 1
         },
         "supportedProfiles": {
@@ -37130,7 +37130,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
           "portType": 0,
           "attachedCoreId": 2,
           "attachedCorePortIndex": 15,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 1
         },
         "supportedProfiles": {
@@ -37418,7 +37418,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
           "portType": 0,
           "attachedCoreId": 2,
           "attachedCorePortIndex": 16,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 1
         },
         "supportedProfiles": {
@@ -37706,7 +37706,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
           "portType": 0,
           "attachedCoreId": 2,
           "attachedCorePortIndex": 17,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 1
         },
         "supportedProfiles": {
@@ -37994,7 +37994,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
           "portType": 0,
           "attachedCoreId": 2,
           "attachedCorePortIndex": 18,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 1
         },
         "supportedProfiles": {
@@ -38282,7 +38282,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
           "portType": 0,
           "attachedCoreId": 3,
           "attachedCorePortIndex": 19,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 1
         },
         "supportedProfiles": {
@@ -38570,7 +38570,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
           "portType": 0,
           "attachedCoreId": 3,
           "attachedCorePortIndex": 20,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 1
         },
         "supportedProfiles": {
@@ -38858,7 +38858,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
           "portType": 0,
           "attachedCoreId": 3,
           "attachedCorePortIndex": 21,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 1
         },
         "supportedProfiles": {
@@ -39146,7 +39146,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
           "portType": 0,
           "attachedCoreId": 3,
           "attachedCorePortIndex": 22,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 1
         },
         "supportedProfiles": {
@@ -39348,7 +39348,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
             }
           ],
           "portType": 1,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 0
         },
         "supportedProfiles": {
@@ -39402,7 +39402,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
             }
           ],
           "portType": 1,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 0
         },
         "supportedProfiles": {
@@ -39456,7 +39456,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
             }
           ],
           "portType": 1,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 0
         },
         "supportedProfiles": {
@@ -39510,7 +39510,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
             }
           ],
           "portType": 1,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 0
         },
         "supportedProfiles": {
@@ -39564,7 +39564,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
             }
           ],
           "portType": 1,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 0
         },
         "supportedProfiles": {
@@ -39618,7 +39618,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
             }
           ],
           "portType": 1,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 0
         },
         "supportedProfiles": {
@@ -39672,7 +39672,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
             }
           ],
           "portType": 1,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 0
         },
         "supportedProfiles": {
@@ -39726,7 +39726,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
             }
           ],
           "portType": 1,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 0
         },
         "supportedProfiles": {
@@ -39780,7 +39780,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
             }
           ],
           "portType": 1,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 0
         },
         "supportedProfiles": {
@@ -39834,7 +39834,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
             }
           ],
           "portType": 1,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 0
         },
         "supportedProfiles": {
@@ -39888,7 +39888,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
             }
           ],
           "portType": 1,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 0
         },
         "supportedProfiles": {
@@ -39942,7 +39942,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
             }
           ],
           "portType": 1,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 0
         },
         "supportedProfiles": {
@@ -39996,7 +39996,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
             }
           ],
           "portType": 1,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 0
         },
         "supportedProfiles": {
@@ -40050,7 +40050,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
             }
           ],
           "portType": 1,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 0
         },
         "supportedProfiles": {
@@ -40104,7 +40104,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
             }
           ],
           "portType": 1,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 0
         },
         "supportedProfiles": {
@@ -40158,7 +40158,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
             }
           ],
           "portType": 1,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 0
         },
         "supportedProfiles": {
@@ -40212,7 +40212,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
             }
           ],
           "portType": 1,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 0
         },
         "supportedProfiles": {
@@ -40266,7 +40266,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
             }
           ],
           "portType": 1,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 0
         },
         "supportedProfiles": {
@@ -40320,7 +40320,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
             }
           ],
           "portType": 1,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 0
         },
         "supportedProfiles": {
@@ -40374,7 +40374,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
             }
           ],
           "portType": 1,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 0
         },
         "supportedProfiles": {
@@ -40428,7 +40428,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
             }
           ],
           "portType": 1,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 0
         },
         "supportedProfiles": {
@@ -40482,7 +40482,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
             }
           ],
           "portType": 1,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 0
         },
         "supportedProfiles": {
@@ -40536,7 +40536,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
             }
           ],
           "portType": 1,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 0
         },
         "supportedProfiles": {
@@ -40590,7 +40590,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
             }
           ],
           "portType": 1,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 0
         },
         "supportedProfiles": {
@@ -40644,7 +40644,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
             }
           ],
           "portType": 1,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 0
         },
         "supportedProfiles": {
@@ -40698,7 +40698,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
             }
           ],
           "portType": 1,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 0
         },
         "supportedProfiles": {
@@ -40752,7 +40752,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
             }
           ],
           "portType": 1,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 0
         },
         "supportedProfiles": {
@@ -40806,7 +40806,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
             }
           ],
           "portType": 1,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 0
         },
         "supportedProfiles": {
@@ -40860,7 +40860,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
             }
           ],
           "portType": 1,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 0
         },
         "supportedProfiles": {
@@ -40914,7 +40914,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
             }
           ],
           "portType": 1,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 0
         },
         "supportedProfiles": {
@@ -40968,7 +40968,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
             }
           ],
           "portType": 1,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 0
         },
         "supportedProfiles": {
@@ -41022,7 +41022,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
             }
           ],
           "portType": 1,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 0
         },
         "supportedProfiles": {
@@ -41076,7 +41076,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
             }
           ],
           "portType": 1,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 0
         },
         "supportedProfiles": {
@@ -41130,7 +41130,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
             }
           ],
           "portType": 1,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 0
         },
         "supportedProfiles": {
@@ -41184,7 +41184,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
             }
           ],
           "portType": 1,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 0
         },
         "supportedProfiles": {
@@ -41238,7 +41238,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
             }
           ],
           "portType": 1,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 0
         },
         "supportedProfiles": {
@@ -41292,7 +41292,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
             }
           ],
           "portType": 1,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 0
         },
         "supportedProfiles": {
@@ -41346,7 +41346,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
             }
           ],
           "portType": 1,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 0
         },
         "supportedProfiles": {
@@ -41400,7 +41400,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
             }
           ],
           "portType": 1,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 0
         },
         "supportedProfiles": {
@@ -41454,7 +41454,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
             }
           ],
           "portType": 1,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 0
         },
         "supportedProfiles": {
@@ -41508,7 +41508,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
             }
           ],
           "portType": 1,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 0
         },
         "supportedProfiles": {
@@ -41562,7 +41562,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
             }
           ],
           "portType": 1,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 0
         },
         "supportedProfiles": {
@@ -41616,7 +41616,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
             }
           ],
           "portType": 1,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 0
         },
         "supportedProfiles": {
@@ -41670,7 +41670,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
             }
           ],
           "portType": 1,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 0
         },
         "supportedProfiles": {
@@ -41724,7 +41724,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
             }
           ],
           "portType": 1,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 0
         },
         "supportedProfiles": {
@@ -41778,7 +41778,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
             }
           ],
           "portType": 1,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 0
         },
         "supportedProfiles": {
@@ -41832,7 +41832,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
             }
           ],
           "portType": 1,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 0
         },
         "supportedProfiles": {
@@ -41886,7 +41886,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
             }
           ],
           "portType": 1,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 0
         },
         "supportedProfiles": {
@@ -41940,7 +41940,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
             }
           ],
           "portType": 1,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 0
         },
         "supportedProfiles": {
@@ -41994,7 +41994,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
             }
           ],
           "portType": 1,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 0
         },
         "supportedProfiles": {
@@ -42048,7 +42048,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
             }
           ],
           "portType": 1,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 0
         },
         "supportedProfiles": {
@@ -42102,7 +42102,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
             }
           ],
           "portType": 1,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 0
         },
         "supportedProfiles": {
@@ -42156,7 +42156,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
             }
           ],
           "portType": 1,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 0
         },
         "supportedProfiles": {
@@ -42210,7 +42210,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
             }
           ],
           "portType": 1,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 0
         },
         "supportedProfiles": {
@@ -42264,7 +42264,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
             }
           ],
           "portType": 1,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 0
         },
         "supportedProfiles": {
@@ -42318,7 +42318,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
             }
           ],
           "portType": 1,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 0
         },
         "supportedProfiles": {
@@ -42372,7 +42372,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
             }
           ],
           "portType": 1,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 0
         },
         "supportedProfiles": {
@@ -42426,7 +42426,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
             }
           ],
           "portType": 1,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 0
         },
         "supportedProfiles": {
@@ -42480,7 +42480,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
             }
           ],
           "portType": 1,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 0
         },
         "supportedProfiles": {
@@ -42534,7 +42534,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
             }
           ],
           "portType": 1,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 0
         },
         "supportedProfiles": {
@@ -42588,7 +42588,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
             }
           ],
           "portType": 1,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 0
         },
         "supportedProfiles": {
@@ -42642,7 +42642,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
             }
           ],
           "portType": 1,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 0
         },
         "supportedProfiles": {
@@ -42696,7 +42696,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
             }
           ],
           "portType": 1,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 0
         },
         "supportedProfiles": {
@@ -42750,7 +42750,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
             }
           ],
           "portType": 1,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 0
         },
         "supportedProfiles": {
@@ -42804,7 +42804,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
             }
           ],
           "portType": 1,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 0
         },
         "supportedProfiles": {
@@ -42858,7 +42858,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
             }
           ],
           "portType": 1,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 0
         },
         "supportedProfiles": {
@@ -42912,7 +42912,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
             }
           ],
           "portType": 1,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 0
         },
         "supportedProfiles": {
@@ -42966,7 +42966,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
             }
           ],
           "portType": 1,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 0
         },
         "supportedProfiles": {
@@ -43020,7 +43020,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
             }
           ],
           "portType": 1,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 0
         },
         "supportedProfiles": {
@@ -43074,7 +43074,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
             }
           ],
           "portType": 1,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 0
         },
         "supportedProfiles": {
@@ -43128,7 +43128,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
             }
           ],
           "portType": 1,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 0
         },
         "supportedProfiles": {
@@ -43182,7 +43182,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
             }
           ],
           "portType": 1,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 0
         },
         "supportedProfiles": {
@@ -43236,7 +43236,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
             }
           ],
           "portType": 1,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 0
         },
         "supportedProfiles": {
@@ -43290,7 +43290,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
             }
           ],
           "portType": 1,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 0
         },
         "supportedProfiles": {
@@ -43344,7 +43344,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
             }
           ],
           "portType": 1,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 0
         },
         "supportedProfiles": {
@@ -43398,7 +43398,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
             }
           ],
           "portType": 1,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 0
         },
         "supportedProfiles": {
@@ -43452,7 +43452,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
             }
           ],
           "portType": 1,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 0
         },
         "supportedProfiles": {
@@ -43506,7 +43506,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
             }
           ],
           "portType": 1,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 0
         },
         "supportedProfiles": {
@@ -43560,7 +43560,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
             }
           ],
           "portType": 1,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 0
         },
         "supportedProfiles": {
@@ -43614,7 +43614,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
             }
           ],
           "portType": 1,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 0
         },
         "supportedProfiles": {
@@ -43668,7 +43668,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
             }
           ],
           "portType": 1,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 0
         },
         "supportedProfiles": {
@@ -43722,7 +43722,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
             }
           ],
           "portType": 1,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 0
         },
         "supportedProfiles": {
@@ -43776,7 +43776,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
             }
           ],
           "portType": 1,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 0
         },
         "supportedProfiles": {
@@ -43830,7 +43830,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
             }
           ],
           "portType": 1,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 0
         },
         "supportedProfiles": {
@@ -43884,7 +43884,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
             }
           ],
           "portType": 1,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 0
         },
         "supportedProfiles": {
@@ -43938,7 +43938,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
             }
           ],
           "portType": 1,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 0
         },
         "supportedProfiles": {
@@ -43992,7 +43992,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
             }
           ],
           "portType": 1,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 0
         },
         "supportedProfiles": {
@@ -44046,7 +44046,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
             }
           ],
           "portType": 1,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 0
         },
         "supportedProfiles": {
@@ -44100,7 +44100,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
             }
           ],
           "portType": 1,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 0
         },
         "supportedProfiles": {
@@ -44154,7 +44154,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
             }
           ],
           "portType": 1,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 0
         },
         "supportedProfiles": {
@@ -44208,7 +44208,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
             }
           ],
           "portType": 1,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 0
         },
         "supportedProfiles": {
@@ -44262,7 +44262,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
             }
           ],
           "portType": 1,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 0
         },
         "supportedProfiles": {
@@ -44316,7 +44316,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
             }
           ],
           "portType": 1,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 0
         },
         "supportedProfiles": {
@@ -44370,7 +44370,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
             }
           ],
           "portType": 1,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 0
         },
         "supportedProfiles": {
@@ -44424,7 +44424,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
             }
           ],
           "portType": 1,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 0
         },
         "supportedProfiles": {
@@ -44478,7 +44478,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
             }
           ],
           "portType": 1,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 0
         },
         "supportedProfiles": {
@@ -44532,7 +44532,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
             }
           ],
           "portType": 1,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 0
         },
         "supportedProfiles": {
@@ -44586,7 +44586,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
             }
           ],
           "portType": 1,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 0
         },
         "supportedProfiles": {
@@ -44640,7 +44640,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
             }
           ],
           "portType": 1,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 0
         },
         "supportedProfiles": {
@@ -44694,7 +44694,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
             }
           ],
           "portType": 1,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 0
         },
         "supportedProfiles": {
@@ -44748,7 +44748,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
             }
           ],
           "portType": 1,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 0
         },
         "supportedProfiles": {
@@ -44802,7 +44802,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
             }
           ],
           "portType": 1,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 0
         },
         "supportedProfiles": {
@@ -44856,7 +44856,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
             }
           ],
           "portType": 1,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 0
         },
         "supportedProfiles": {
@@ -44910,7 +44910,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
             }
           ],
           "portType": 1,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 0
         },
         "supportedProfiles": {
@@ -44964,7 +44964,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
             }
           ],
           "portType": 1,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 0
         },
         "supportedProfiles": {
@@ -45018,7 +45018,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
             }
           ],
           "portType": 1,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 0
         },
         "supportedProfiles": {
@@ -45072,7 +45072,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
             }
           ],
           "portType": 1,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 0
         },
         "supportedProfiles": {
@@ -45126,7 +45126,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
             }
           ],
           "portType": 1,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 0
         },
         "supportedProfiles": {
@@ -45180,7 +45180,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
             }
           ],
           "portType": 1,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 0
         },
         "supportedProfiles": {
@@ -45234,7 +45234,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
             }
           ],
           "portType": 1,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 0
         },
         "supportedProfiles": {
@@ -45288,7 +45288,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
             }
           ],
           "portType": 1,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 0
         },
         "supportedProfiles": {
@@ -45342,7 +45342,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
             }
           ],
           "portType": 1,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 0
         },
         "supportedProfiles": {
@@ -45396,7 +45396,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
             }
           ],
           "portType": 1,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 0
         },
         "supportedProfiles": {
@@ -45450,7 +45450,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
             }
           ],
           "portType": 1,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 0
         },
         "supportedProfiles": {
@@ -45504,7 +45504,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
             }
           ],
           "portType": 1,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 0
         },
         "supportedProfiles": {
@@ -45558,7 +45558,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
             }
           ],
           "portType": 1,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 0
         },
         "supportedProfiles": {
@@ -45612,7 +45612,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
             }
           ],
           "portType": 1,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 0
         },
         "supportedProfiles": {
@@ -45666,7 +45666,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
             }
           ],
           "portType": 1,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 0
         },
         "supportedProfiles": {
@@ -45720,7 +45720,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
             }
           ],
           "portType": 1,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 0
         },
         "supportedProfiles": {
@@ -45774,7 +45774,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
             }
           ],
           "portType": 1,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 0
         },
         "supportedProfiles": {
@@ -45828,7 +45828,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
             }
           ],
           "portType": 1,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 0
         },
         "supportedProfiles": {
@@ -45882,7 +45882,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
             }
           ],
           "portType": 1,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 0
         },
         "supportedProfiles": {
@@ -45936,7 +45936,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
             }
           ],
           "portType": 1,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 0
         },
         "supportedProfiles": {
@@ -45990,7 +45990,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
             }
           ],
           "portType": 1,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 0
         },
         "supportedProfiles": {
@@ -46044,7 +46044,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
             }
           ],
           "portType": 1,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 0
         },
         "supportedProfiles": {
@@ -46098,7 +46098,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
             }
           ],
           "portType": 1,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 0
         },
         "supportedProfiles": {
@@ -46152,7 +46152,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
             }
           ],
           "portType": 1,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 0
         },
         "supportedProfiles": {
@@ -46206,7 +46206,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
             }
           ],
           "portType": 1,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 0
         },
         "supportedProfiles": {
@@ -46260,7 +46260,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
             }
           ],
           "portType": 1,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 0
         },
         "supportedProfiles": {
@@ -46314,7 +46314,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
             }
           ],
           "portType": 1,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 0
         },
         "supportedProfiles": {
@@ -46368,7 +46368,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
             }
           ],
           "portType": 1,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 0
         },
         "supportedProfiles": {
@@ -46422,7 +46422,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
             }
           ],
           "portType": 1,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 0
         },
         "supportedProfiles": {
@@ -46476,7 +46476,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
             }
           ],
           "portType": 1,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 0
         },
         "supportedProfiles": {
@@ -46530,7 +46530,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
             }
           ],
           "portType": 1,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 0
         },
         "supportedProfiles": {
@@ -46584,7 +46584,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
             }
           ],
           "portType": 1,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 0
         },
         "supportedProfiles": {
@@ -46638,7 +46638,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
             }
           ],
           "portType": 1,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 0
         },
         "supportedProfiles": {
@@ -46692,7 +46692,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
             }
           ],
           "portType": 1,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 0
         },
         "supportedProfiles": {
@@ -46746,7 +46746,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
             }
           ],
           "portType": 1,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 0
         },
         "supportedProfiles": {
@@ -46800,7 +46800,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
             }
           ],
           "portType": 1,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 0
         },
         "supportedProfiles": {
@@ -46854,7 +46854,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
             }
           ],
           "portType": 1,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 0
         },
         "supportedProfiles": {
@@ -46908,7 +46908,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
             }
           ],
           "portType": 1,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 0
         },
         "supportedProfiles": {
@@ -46962,7 +46962,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
             }
           ],
           "portType": 1,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 0
         },
         "supportedProfiles": {
@@ -47016,7 +47016,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
             }
           ],
           "portType": 1,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 0
         },
         "supportedProfiles": {
@@ -47070,7 +47070,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
             }
           ],
           "portType": 1,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 0
         },
         "supportedProfiles": {
@@ -47124,7 +47124,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
             }
           ],
           "portType": 1,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 0
         },
         "supportedProfiles": {
@@ -47178,7 +47178,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
             }
           ],
           "portType": 1,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 0
         },
         "supportedProfiles": {
@@ -47232,7 +47232,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
             }
           ],
           "portType": 1,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 0
         },
         "supportedProfiles": {
@@ -47286,7 +47286,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
             }
           ],
           "portType": 1,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 0
         },
         "supportedProfiles": {
@@ -47340,7 +47340,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
             }
           ],
           "portType": 1,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 0
         },
         "supportedProfiles": {
@@ -47394,7 +47394,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
             }
           ],
           "portType": 1,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 0
         },
         "supportedProfiles": {
@@ -47448,7 +47448,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
             }
           ],
           "portType": 1,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 0
         },
         "supportedProfiles": {
@@ -47502,7 +47502,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
             }
           ],
           "portType": 1,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 0
         },
         "supportedProfiles": {
@@ -47556,7 +47556,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
             }
           ],
           "portType": 1,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 0
         },
         "supportedProfiles": {
@@ -47610,7 +47610,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
             }
           ],
           "portType": 1,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 0
         },
         "supportedProfiles": {
@@ -47664,7 +47664,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
             }
           ],
           "portType": 1,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 0
         },
         "supportedProfiles": {
@@ -47718,7 +47718,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
             }
           ],
           "portType": 1,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 0
         },
         "supportedProfiles": {
@@ -47772,7 +47772,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
             }
           ],
           "portType": 1,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 0
         },
         "supportedProfiles": {
@@ -47826,7 +47826,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
             }
           ],
           "portType": 1,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 0
         },
         "supportedProfiles": {
@@ -47880,7 +47880,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
             }
           ],
           "portType": 1,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 0
         },
         "supportedProfiles": {
@@ -47934,7 +47934,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
             }
           ],
           "portType": 1,
-          "virtualDeviceId": 1,
+          "virtualDeviceId": 4,
           "scope": 0
         },
         "supportedProfiles": {
@@ -48948,7 +48948,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
       }
     }
   ]
-}
+}  
 )";
 } // namespace
 
