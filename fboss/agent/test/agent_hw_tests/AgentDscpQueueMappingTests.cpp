@@ -219,7 +219,11 @@ class AgentAclAndDscpQueueMappingTest : public AgentDscpQueueMappingTestBase {
                      << " afterAclInOutPkts = " << afterAclInOutPkts;
 
           EXPECT_EVENTUALLY_EQ(1, afterQueueOutPkts - beforeQueueOutPkts);
-          EXPECT_EVENTUALLY_EQ(2, afterAclInOutPkts - beforeAclInOutPkts);
+          // On some ASICs looped back pkt hits the ACL before being
+          // dropped in the ingress pipeline, hence GE
+          EXPECT_EVENTUALLY_GE(afterAclInOutPkts, beforeAclInOutPkts + 1);
+          // At most we should get a pkt bump of 2
+          EXPECT_EVENTUALLY_LE(afterAclInOutPkts, beforeAclInOutPkts + 2);
         });
       }
     };
@@ -309,7 +313,11 @@ class AgentAclConflictAndDscpQueueMappingTest
            */
           EXPECT_EVENTUALLY_GE(afterQueueOutPktsAcl - beforeQueueOutPktsAcl, 1);
 
-          EXPECT_EVENTUALLY_EQ(2, afterAclInOutPkts - beforeAclInOutPkts);
+          // On some ASICs looped back pkt hits the ACL before being
+          // dropped in the ingress pipeline, hence GE
+          EXPECT_EVENTUALLY_GE(afterAclInOutPkts, beforeAclInOutPkts + 1);
+          // At most we should get a pkt bump of 2
+          EXPECT_EVENTUALLY_LE(afterAclInOutPkts, beforeAclInOutPkts + 2);
         });
       }
     };
