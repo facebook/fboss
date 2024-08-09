@@ -17,7 +17,7 @@ using namespace facebook::fboss;
 
 DEFINE_int32(
     stats_publish_interval,
-    300,
+    60,
     "Interval (in seconds) for publishing stats");
 DEFINE_int32(
     loop_interval,
