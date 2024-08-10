@@ -266,6 +266,12 @@ ALL_SDKS = [
         stage = SdkStage.DEV,
         version = "24.6.1_yuba",
     ),
+    SaiLeabaSdk(
+        fw_path = "third-party-buck/platform010-compat/build/leaba-sdk/24.7.0_yuba/res",
+        sai_version = "1.13.0",
+        stage = SdkStage.DEV,
+        version = "24.7.0_yuba",
+    ),
     SaiCredoSdk(
         sai_version = "1.8.1",
         stage = SdkStage.PRODUCTION,
