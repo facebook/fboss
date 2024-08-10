@@ -2144,6 +2144,7 @@ void SwSwitch::switchReachabilityChanged(
   int currentIdx = 1;
   std::unordered_map<std::set<PortID>, int> portGrp2Id;
   for (const auto& [destinationSwitchId, portIdSet] : switchReachabilityInfo) {
+    int portGroupId;
     auto [_, inserted] = portGrp2Id.insert({portIdSet, currentIdx});
     if (inserted) {
       std::vector<std::string> portGroup(portIdSet.size());
@@ -2155,10 +2156,13 @@ void SwSwitch::switchReachabilityChanged(
             return getState()->getPorts()->getNode(portId)->getName();
           });
       newReachability.fabricPortGroupMap()[currentIdx] = std::move(portGroup);
-      newReachability.switchIdToFabricPortGroupMap()[static_cast<int64_t>(
-          destinationSwitchId)] = currentIdx;
-      currentIdx++;
+      portGroupId = currentIdx++;
+    } else {
+      // Need to find the ID for the portIdSet that was already added
+      portGroupId = portGrp2Id.find(portIdSet)->second;
     }
+    newReachability.switchIdToFabricPortGroupMap()[static_cast<int64_t>(
+        destinationSwitchId)] = portGroupId;
   }
   // Update switch reachability info with the latest data
   (*hwSwitchReachability_.wlock())[switchId] = newReachability;
