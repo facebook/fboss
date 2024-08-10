@@ -208,14 +208,6 @@ void DsfSubscriber::stateUpdated(const StateDelta& stateDelta) {
                     nodeName,
                     getAllSwitchIDsForSwitch(
                         this->sw_->getState()->getDsfNodes(), nodeSwitchId));
-              },
-              [this, nodeName]( // StateUpdateCb
-                  const std::map<SwitchID, std::shared_ptr<SystemPortMap>>&
-                      switchId2SystemPorts,
-                  const std::map<SwitchID, std::shared_ptr<InterfaceMap>>&
-                      switchId2Intfs) {
-                updateWithRollbackProtection(
-                    nodeName, switchId2SystemPorts, switchId2Intfs);
               }));
     }
   };

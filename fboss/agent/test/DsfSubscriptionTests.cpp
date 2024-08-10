@@ -97,8 +97,7 @@ class DsfSubscriptionTest : public ::testing::Test {
   }
 
   std::unique_ptr<DsfSubscription> createSubscription(
-      typename DsfSubscription::GrHoldExpiredCb grHoldExpiredCb,
-      typename DsfSubscription::StateUpdateCb stateUpdateCb) {
+      typename DsfSubscription::GrHoldExpiredCb grHoldExpiredCb) {
     fsdb::SubscriptionOptions opts{
         "test-sub", false /* subscribeStats */, FLAGS_dsf_gr_hold_time};
     return std::make_unique<DsfSubscription>(
@@ -111,8 +110,7 @@ class DsfSubscriptionTest : public ::testing::Test {
         folly::IPAddress("::1"),
         folly::IPAddress("::1"),
         sw_,
-        std::move(grHoldExpiredCb),
-        std::move(stateUpdateCb));
+        std::move(grHoldExpiredCb));
   }
 
   HwSwitchMatcher matcher(uint32_t switchID = kRemoteSwitchId) const {
@@ -154,15 +152,7 @@ TEST_F(DsfSubscriptionTest, Connect) {
   std::optional<std::map<SwitchID, std::shared_ptr<InterfaceMap>>> recvIntfs;
   subscription_ = createSubscription(
       // GrHoldExpiredCb
-      []() {},
-      // StateUpdateCb
-      [&](const std::map<SwitchID, std::shared_ptr<SystemPortMap>>&
-              switchId2SystemPorts,
-          const std::map<SwitchID, std::shared_ptr<InterfaceMap>>&
-              switchId2Intfs) {
-        recvSysPorts = switchId2SystemPorts;
-        recvIntfs = switchId2Intfs;
-      });
+      []() {});
   WITH_RETRIES({
     ASSERT_EVENTUALLY_TRUE(cachedState());
     ASSERT_EVENTUALLY_EQ(getRemoteSystemPorts()->size(), 1);
@@ -184,15 +174,7 @@ TEST_F(DsfSubscriptionTest, ConnectDisconnect) {
   std::optional<std::map<SwitchID, std::shared_ptr<InterfaceMap>>> recvIntfs;
   subscription_ = createSubscription(
       // GrHoldExpiredCb
-      []() {},
-      // StateUpdateCb
-      [&](const std::map<SwitchID, std::shared_ptr<SystemPortMap>>&
-              switchId2SystemPorts,
-          const std::map<SwitchID, std::shared_ptr<InterfaceMap>>&
-              switchId2Intfs) {
-        recvSysPorts = switchId2SystemPorts;
-        recvIntfs = switchId2Intfs;
-      });
+      []() {});
 
   WITH_RETRIES({
     ASSERT_EVENTUALLY_TRUE(cachedState());
@@ -215,12 +197,7 @@ TEST_F(DsfSubscriptionTest, GR) {
   int updates = 0;
   subscription_ = createSubscription(
       // GrHoldExpiredCb
-      [&]() { grExpired = true; },
-      // StateUpdateCb
-      [&](const std::map<SwitchID, std::shared_ptr<SystemPortMap>>&,
-          const std::map<SwitchID, std::shared_ptr<InterfaceMap>>&) {
-        updates++;
-      });
+      [&]() { grExpired = true; });
 
   WITH_RETRIES({
     ASSERT_EVENTUALLY_TRUE(cachedState());
@@ -260,15 +237,7 @@ TEST_F(DsfSubscriptionTest, DataUpdate) {
   std::optional<std::map<SwitchID, std::shared_ptr<InterfaceMap>>> recvIntfs;
   subscription_ = createSubscription(
       // GrHoldExpiredCb
-      []() {},
-      // StateUpdateCb
-      [&](const std::map<SwitchID, std::shared_ptr<SystemPortMap>>&
-              switchId2SystemPorts,
-          const std::map<SwitchID, std::shared_ptr<InterfaceMap>>&
-              switchId2Intfs) {
-        recvSysPorts = switchId2SystemPorts;
-        recvIntfs = switchId2Intfs;
-      });
+      []() {});
 
   WITH_RETRIES({
     ASSERT_EVENTUALLY_TRUE(cachedState());

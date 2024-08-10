@@ -17,9 +17,6 @@ class SwitchState;
 class DsfSubscription {
  public:
   using GrHoldExpiredCb = std::function<void()>;
-  using StateUpdateCb = std::function<void(
-      const std::map<SwitchID, std::shared_ptr<SystemPortMap>>&,
-      const std::map<SwitchID, std::shared_ptr<InterfaceMap>>&)>;
 
   DsfSubscription(
       fsdb::SubscriptionOptions options,
@@ -31,8 +28,7 @@ class DsfSubscription {
       folly::IPAddress localIp,
       folly::IPAddress remoteIp,
       SwSwitch* sw,
-      GrHoldExpiredCb grHoldExpiredCb,
-      StateUpdateCb stateUpdateCb);
+      GrHoldExpiredCb grHoldExpiredCb);
 
   ~DsfSubscription();
 
@@ -71,7 +67,6 @@ class DsfSubscription {
   folly::IPAddress remoteIp_;
   SwSwitch* sw_;
   GrHoldExpiredCb grHoldExpiredCb_;
-  StateUpdateCb stateUpdateCb_;
   DsfSession session_;
   // Used for tests only
   std::shared_ptr<SwitchState> cachedState_;
