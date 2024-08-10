@@ -478,13 +478,10 @@ class AgentPacketFloodTest : public AgentHwTest {
   cfg::SwitchConfig initialConfig(
       const AgentEnsemble& ensemble) const override {
     auto l3Asics = ensemble.getSw()->getHwAsicTable()->getL3Asics();
-    auto asic = utility::checkSameAndGetAsic(l3Asics);
-    auto cfg = utility::oneL3IntfNPortConfig(
-        ensemble.getSw()->getPlatformMapping(),
-        asic,
-        getLogicalPortIDs(),
-        ensemble.getSw()->getPlatformSupportsAddRemovePort(),
-        asic->desiredLoopbackModes());
+    auto cfg = utility::onePortPerInterfaceConfig(
+        ensemble.getSw(),
+        ensemble.masterLogicalPortIds(),
+        true /*interfaceHasSubnet*/);
     utility::setDefaultCpuTrafficPolicyConfig(cfg, l3Asics, ensemble.isSai());
     utility::addCpuQueueConfig(cfg, l3Asics, ensemble.isSai());
     return cfg;
