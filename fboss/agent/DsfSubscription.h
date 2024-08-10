@@ -12,6 +12,7 @@ class SwitchStats;
 class InterfaceMap;
 class SystemPortMap;
 class SwSwitch;
+class SwitchState;
 
 class DsfSubscription {
  public:
@@ -44,6 +45,10 @@ class DsfSubscription {
   }
 
   const fsdb::FsdbPubSubManager::SubscriptionInfo getSubscriptionInfo() const;
+  // Used for tests only
+  const std::shared_ptr<SwitchState> cachedState() const {
+    return cachedState_;
+  }
 
  private:
   void updateWithRollbackProtection(
@@ -68,6 +73,8 @@ class DsfSubscription {
   GrHoldExpiredCb grHoldExpiredCb_;
   StateUpdateCb stateUpdateCb_;
   DsfSession session_;
+  // Used for tests only
+  std::shared_ptr<SwitchState> cachedState_;
 };
 
 } // namespace facebook::fboss

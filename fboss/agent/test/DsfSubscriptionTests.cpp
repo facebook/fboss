@@ -20,6 +20,7 @@ class DsfSubscriptionTest : public ::testing::Test {
   void SetUp() override {
     FLAGS_publish_state_to_fsdb = true;
     FLAGS_fsdb_sync_full_state = true;
+    FLAGS_dsf_subscriber_cache_updated_state = true;
     auto config = testConfigA(cfg::SwitchType::VOQ);
     handle_ = createTestHandle(&config);
     sw_ = handle_->getSw();
@@ -117,6 +118,16 @@ class DsfSubscriptionTest : public ::testing::Test {
     return HwSwitchMatcher(std::unordered_set<SwitchID>({SwitchID(switchID)}));
   }
 
+  const std::shared_ptr<MultiSwitchSystemPortMap>& getRemoteSystemPorts()
+      const {
+    return subscription_->cachedState()->getRemoteSystemPorts();
+  }
+  const std::shared_ptr<MultiSwitchInterfaceMap>& getRemoteInterfaces() const {
+    return subscription_->cachedState()->getRemoteInterfaces();
+  }
+  const std::shared_ptr<SwitchState> cachedState() const {
+    return subscription_->cachedState();
+  }
   DsfSessionState dsfSessionState() const {
     return *subscription_->dsfSessionThrift().state();
   }

@@ -241,6 +241,9 @@ void DsfSubscription::updateWithRollbackProtection(
         switchId2SystemPorts,
         switchId2Intfs);
 
+    if (FLAGS_dsf_subscriber_cache_updated_state) {
+      cachedState_ = out;
+    }
     if (!FLAGS_dsf_subscriber_skip_hw_writes) {
       return out;
     }
