@@ -194,6 +194,8 @@ void DsfSubscriber::stateUpdated(const StateDelta& stateDelta) {
               hwUpdatePool_->getEventBase(),
               localNodeName_,
               nodeName,
+              getAllSwitchIDsForSwitch(
+                  sw_->getState()->getDsfNodes(), nodeSwitchId),
               srcIPAddr,
               dstIPAddr,
               sw_,

@@ -107,6 +107,7 @@ class DsfSubscriptionTest : public ::testing::Test {
         hwUpdatePool_->getEventBase(),
         "local",
         "remote",
+        std::set<SwitchID>({SwitchID(kRemoteSwitchId)}),
         folly::IPAddress("::1"),
         folly::IPAddress("::1"),
         sw_,

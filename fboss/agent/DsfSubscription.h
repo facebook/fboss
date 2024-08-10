@@ -25,6 +25,7 @@ class DsfSubscription {
       folly::EventBase* hwUpdateEvb,
       std::string localNodeName,
       std::string remoteNodeName,
+      std::set<SwitchID> remoteNodeSwitchIds,
       folly::IPAddress localIp,
       folly::IPAddress remoteIp,
       SwSwitch* sw,
@@ -63,6 +64,7 @@ class DsfSubscription {
   std::unique_ptr<fsdb::FsdbPubSubManager> fsdbPubSubMgr_;
   std::string localNodeName_;
   std::string remoteNodeName_;
+  std::set<SwitchID> remoteNodeSwitchIds_;
   folly::IPAddress localIp_;
   folly::IPAddress remoteIp_;
   SwSwitch* sw_;
