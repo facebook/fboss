@@ -14,6 +14,9 @@
 #include <gtest/gtest.h>
 
 namespace facebook::fboss {
+namespace {
+auto constexpr kRemoteSwitchId = 5;
+}
 
 class DsfSubscriptionTest : public ::testing::Test {
  public:
@@ -51,13 +54,10 @@ class DsfSubscriptionTest : public ::testing::Test {
 
   std::shared_ptr<SwitchState> makeSwitchState() const {
     auto constexpr kSysPort = 1000;
-    auto constexpr kRemoteSwitchId = 5;
     auto state = std::make_shared<SwitchState>();
     auto sysPorts = std::make_shared<MultiSwitchSystemPortMap>();
     auto sysPort = makeSysPort(std::nullopt, kSysPort, kRemoteSwitchId);
-    HwSwitchMatcher myMatcher(
-        std::unordered_set<SwitchID>{SwitchID(kRemoteSwitchId)});
-    sysPorts->addNode(sysPort, myMatcher);
+    sysPorts->addNode(sysPort, matcher());
     state->resetSystemPorts(sysPorts);
     auto intfs = std::make_shared<MultiSwitchInterfaceMap>();
     auto intf = std::make_shared<Interface>(
@@ -70,7 +70,8 @@ class DsfSubscriptionTest : public ::testing::Test {
         false,
         false,
         cfg::InterfaceType::SYSTEM_PORT);
-    intfs->addNode(intf, myMatcher);
+    intf->setScope(cfg::Scope::GLOBAL);
+    intfs->addNode(intf, matcher());
     state->resetIntfs(intfs);
     return state;
   }
@@ -114,18 +115,17 @@ class DsfSubscriptionTest : public ::testing::Test {
         std::move(stateUpdateCb));
   }
 
-  HwSwitchMatcher matcher(uint32_t switchID = 0) const {
+  HwSwitchMatcher matcher(uint32_t switchID = kRemoteSwitchId) const {
     return HwSwitchMatcher(std::unordered_set<SwitchID>({SwitchID(switchID)}));
   }
 
-  const std::shared_ptr<MultiSwitchSystemPortMap>& getRemoteSystemPorts()
-      const {
-    return subscription_->cachedState()->getRemoteSystemPorts();
+  std::shared_ptr<SystemPortMap> getRemoteSystemPorts() const {
+    return cachedState()->getRemoteSystemPorts()->getAllNodes();
   }
-  const std::shared_ptr<MultiSwitchInterfaceMap>& getRemoteInterfaces() const {
-    return subscription_->cachedState()->getRemoteInterfaces();
+  std::shared_ptr<InterfaceMap> getRemoteInterfaces() const {
+    return cachedState()->getRemoteInterfaces()->getAllNodes();
   }
-  const std::shared_ptr<SwitchState> cachedState() const {
+  std::shared_ptr<SwitchState> cachedState() const {
     return subscription_->cachedState();
   }
   DsfSessionState dsfSessionState() const {
@@ -164,10 +164,9 @@ TEST_F(DsfSubscriptionTest, Connect) {
         recvIntfs = switchId2Intfs;
       });
   WITH_RETRIES({
-    ASSERT_EVENTUALLY_TRUE(recvSysPorts.has_value());
-    ASSERT_EVENTUALLY_TRUE(recvIntfs.has_value());
-    ASSERT_EVENTUALLY_EQ(recvSysPorts->size(), 1);
-    ASSERT_EVENTUALLY_EQ(recvIntfs->size(), 1);
+    ASSERT_EVENTUALLY_TRUE(cachedState());
+    ASSERT_EVENTUALLY_EQ(getRemoteSystemPorts()->size(), 1);
+    ASSERT_EVENTUALLY_EQ(getRemoteInterfaces()->size(), 1);
     EXPECT_EQ(dsfSessionState(), DsfSessionState::WAIT_FOR_REMOTE);
   });
 
@@ -178,10 +177,12 @@ TEST_F(DsfSubscriptionTest, Connect) {
 
 TEST_F(DsfSubscriptionTest, ConnectDisconnect) {
   createPublisher();
+  auto state = makeSwitchState();
+  publishSwitchState(state);
   std::optional<std::map<SwitchID, std::shared_ptr<SystemPortMap>>>
       recvSysPorts;
   std::optional<std::map<SwitchID, std::shared_ptr<InterfaceMap>>> recvIntfs;
-  auto subscription = createSubscription(
+  subscription_ = createSubscription(
       // GrHoldExpiredCb
       []() {},
       // StateUpdateCb
@@ -194,27 +195,25 @@ TEST_F(DsfSubscriptionTest, ConnectDisconnect) {
       });
 
   WITH_RETRIES({
-    ASSERT_EVENTUALLY_TRUE(recvSysPorts.has_value());
-    ASSERT_EVENTUALLY_TRUE(recvIntfs.has_value());
-    ASSERT_EVENTUALLY_EQ(recvSysPorts->size(), 0);
-    ASSERT_EVENTUALLY_EQ(recvIntfs->size(), 0);
-    EXPECT_EQ(
-        *subscription->dsfSessionThrift().state(),
-        DsfSessionState::WAIT_FOR_REMOTE);
+    ASSERT_EVENTUALLY_TRUE(cachedState());
+    ASSERT_EVENTUALLY_EQ(getRemoteSystemPorts()->size(), 1);
+    ASSERT_EVENTUALLY_EQ(getRemoteInterfaces()->size(), 1);
+    EXPECT_EQ(dsfSessionState(), DsfSessionState::WAIT_FOR_REMOTE);
   });
 
   stopPublisher();
-  EXPECT_EQ(
-      *subscription->dsfSessionThrift().state(), DsfSessionState::CONNECT);
+  EXPECT_EQ(dsfSessionState(), DsfSessionState::CONNECT);
 }
 
 TEST_F(DsfSubscriptionTest, GR) {
   createPublisher();
+  auto state = makeSwitchState();
+  publishSwitchState(state);
   FLAGS_dsf_gr_hold_time = 5;
   bool grExpired = false;
   int subStateUpdates = 0;
   int updates = 0;
-  auto subscription = createSubscription(
+  subscription_ = createSubscription(
       // GrHoldExpiredCb
       [&]() { grExpired = true; },
       // StateUpdateCb
@@ -224,56 +223,42 @@ TEST_F(DsfSubscriptionTest, GR) {
       });
 
   WITH_RETRIES({
-    ASSERT_EVENTUALLY_EQ(updates, 1);
-    ASSERT_EVENTUALLY_EQ(
-        *subscription->dsfSessionThrift().state(),
-        DsfSessionState::WAIT_FOR_REMOTE);
+    ASSERT_EVENTUALLY_TRUE(cachedState());
+    ASSERT_EVENTUALLY_EQ(getRemoteSystemPorts()->size(), 1);
+    ASSERT_EVENTUALLY_EQ(getRemoteInterfaces()->size(), 1);
+    EXPECT_EQ(dsfSessionState(), DsfSessionState::WAIT_FOR_REMOTE);
   });
 
   int subStateUpdatesBefore = subStateUpdates;
   stopPublisher(true);
   createPublisher();
+  publishSwitchState(state);
 
   WITH_RETRIES({
-    ASSERT_EVENTUALLY_EQ(updates, 2);
-    EXPECT_EQ(
-        *subscription->dsfSessionThrift().state(),
-        DsfSessionState::WAIT_FOR_REMOTE);
+    ASSERT_EVENTUALLY_TRUE(cachedState());
+    ASSERT_EVENTUALLY_EQ(getRemoteSystemPorts()->size(), 1);
+    ASSERT_EVENTUALLY_EQ(getRemoteInterfaces()->size(), 1);
+    ASSERT_EVENTUALLY_EQ(dsfSessionState(), DsfSessionState::WAIT_FOR_REMOTE);
   });
   // should not have gotten callback from the gr
   EXPECT_EQ(grExpired, false);
 
   stopPublisher(true);
   WITH_RETRIES({
-    ASSERT_EVENTUALLY_EQ(
-        *subscription->dsfSessionThrift().state(), DsfSessionState::CONNECT);
+    ASSERT_EVENTUALLY_EQ(dsfSessionState(), DsfSessionState::CONNECT);
     EXPECT_EVENTUALLY_EQ(grExpired, true);
   });
 }
 
 TEST_F(DsfSubscriptionTest, DataUpdate) {
   createPublisher();
-  auto state = std::make_shared<SwitchState>();
-
-  auto sysPort1 = std::make_shared<SystemPort>(SystemPortID(1001));
-  auto intf1 = std::make_shared<Interface>(
-      InterfaceID(1001),
-      RouterID(0),
-      std::optional<VlanID>(std::nullopt),
-      folly::StringPiece("1001"),
-      folly::MacAddress{},
-      9000,
-      false,
-      false,
-      cfg::InterfaceType::SYSTEM_PORT);
-  state->getInterfaces()->addNode(intf1, matcher());
-  state->getSystemPorts()->addNode(sysPort1, matcher());
+  auto state = makeSwitchState();
   publishSwitchState(state);
 
   std::optional<std::map<SwitchID, std::shared_ptr<SystemPortMap>>>
       recvSysPorts;
   std::optional<std::map<SwitchID, std::shared_ptr<InterfaceMap>>> recvIntfs;
-  auto subscription = createSubscription(
+  subscription_ = createSubscription(
       // GrHoldExpiredCb
       []() {},
       // StateUpdateCb
@@ -286,19 +271,19 @@ TEST_F(DsfSubscriptionTest, DataUpdate) {
       });
 
   WITH_RETRIES({
-    ASSERT_EVENTUALLY_TRUE(recvSysPorts.has_value());
-    ASSERT_EVENTUALLY_TRUE(recvIntfs.has_value());
-    ASSERT_EVENTUALLY_EQ(recvSysPorts->size(), 1);
-    ASSERT_EVENTUALLY_EQ(recvIntfs->size(), 1);
-    ASSERT_EVENTUALLY_EQ(recvSysPorts->at(SwitchID(0))->size(), 1);
+    ASSERT_EVENTUALLY_TRUE(cachedState());
+    ASSERT_EVENTUALLY_EQ(getRemoteSystemPorts()->size(), 1);
+    ASSERT_EVENTUALLY_EQ(getRemoteInterfaces()->size(), 1);
+    EXPECT_EQ(dsfSessionState(), DsfSessionState::WAIT_FOR_REMOTE);
   });
 
-  auto sysPort2 = std::make_shared<SystemPort>(SystemPortID(1002));
+  auto sysPort2 =
+      makeSysPort(std::nullopt, SystemPortID(1002), kRemoteSwitchId);
   auto portMap = state->getSystemPorts()->modify(&state);
   portMap->addNode(sysPort2, matcher());
   publishSwitchState(state);
 
-  WITH_RETRIES(ASSERT_EVENTUALLY_EQ(recvSysPorts->at(SwitchID(0))->size(), 2));
+  WITH_RETRIES(ASSERT_EVENTUALLY_EQ(getRemoteSystemPorts()->size(), 2));
 }
 
 } // namespace facebook::fboss

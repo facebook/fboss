@@ -205,7 +205,7 @@ void DsfSubscription::handleFsdbUpdate(fsdb::OperSubPathUnit&& operStateUnit) {
           remoteNodeName_);
     }
   }
-  stateUpdateCb_(switchId2SystemPorts, switchId2Intfs);
+  updateWithRollbackProtection(switchId2SystemPorts, switchId2Intfs);
 }
 
 bool DsfSubscription::isLocal(SwitchID nodeSwitchId) const {
