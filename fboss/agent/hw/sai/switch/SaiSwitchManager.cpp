@@ -663,6 +663,27 @@ void SaiSwitchManager::resetTamObject() {
       std::vector<sai_object_id_t>{SAI_NULL_OBJECT_ID}});
 }
 
+void SaiSwitchManager::setArsProfile(
+    [[maybe_unused]] ArsProfileSaiId arsProfileSaiId) {
+#if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
+  if (FLAGS_flowletSwitchingEnable &&
+      platform_->getAsic()->isSupported(HwAsic::Feature::FLOWLET)) {
+    switch_->setOptionalAttribute(
+        SaiSwitchTraits::Attributes::ArsProfile{arsProfileSaiId});
+  }
+#endif
+}
+
+void SaiSwitchManager::resetArsProfile() {
+#if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
+  if (FLAGS_flowletSwitchingEnable &&
+      platform_->getAsic()->isSupported(HwAsic::Feature::FLOWLET)) {
+    switch_->setOptionalAttribute(
+        SaiSwitchTraits::Attributes::ArsProfile{SAI_NULL_OBJECT_ID});
+  }
+#endif
+}
+
 void SaiSwitchManager::setupCounterRefreshInterval() {
   switch_->setOptionalAttribute(
       SaiSwitchTraits::Attributes::CounterRefreshInterval{

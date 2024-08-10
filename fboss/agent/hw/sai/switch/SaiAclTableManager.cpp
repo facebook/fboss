@@ -1058,6 +1058,21 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
             apache::thrift::util::enumNameSafe(*macsecFlowAction.action()));
       }
     }
+#if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
+    if (FLAGS_flowletSwitchingEnable &&
+        platform_->getAsic()->isSupported(HwAsic::Feature::FLOWLET)) {
+      if (matchAction.getFlowletAction().has_value()) {
+        auto flowletAction = matchAction.getFlowletAction().value();
+        switch (flowletAction) {
+          case cfg::FlowletAction::FORWARD:
+            aclActionDisableArsForwarding =
+                SaiAclEntryTraits::Attributes::ActionDisableArsForwarding{
+                    false};
+            break;
+        }
+      }
+    }
+#endif
   }
 
   // TODO(skhare) At least one field and one action must be specified.

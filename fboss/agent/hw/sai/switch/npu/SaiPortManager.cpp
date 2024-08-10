@@ -605,6 +605,29 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
     pktTxEnable = SaiPortTraits::Attributes::PktTxEnable{txEnable.value()};
   }
   auto portPfcInfo = getPortPfcAttributes(swPort);
+
+#if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
+  std::optional<SaiPortTraits::Attributes::ArsEnable> arsEnable = std::nullopt;
+  std::optional<SaiPortTraits::Attributes::ArsPortLoadScalingFactor>
+      arsPortLoadScalingFactor = std::nullopt;
+  std::optional<SaiPortTraits::Attributes::ArsPortLoadPastWeight>
+      arsPortLoadPastWeight = std::nullopt;
+  std::optional<SaiPortTraits::Attributes::ArsPortLoadFutureWeight>
+      arsPortLoadFutureWeight = std::nullopt;
+  if (FLAGS_flowletSwitchingEnable &&
+      platform_->getAsic()->isSupported(HwAsic::Feature::FLOWLET)) {
+    auto flowletCfg = swPort->getPortFlowletConfig();
+    if (swPort->getFlowletConfigName().has_value() &&
+        swPort->getPortFlowletConfig().has_value()) {
+      auto flowletCfgPtr = swPort->getPortFlowletConfig().value();
+      arsEnable = true;
+      arsPortLoadScalingFactor = flowletCfgPtr->getScalingFactor();
+      arsPortLoadPastWeight = flowletCfgPtr->getLoadWeight();
+      arsPortLoadFutureWeight = flowletCfgPtr->getQueueWeight();
+    }
+  }
+#endif
+
   if (basicAttributeOnly) {
     return SaiPortTraits::CreateAttributes{
 #if defined(BRCM_SAI_SDK_DNX)
@@ -729,10 +752,10 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
       std::nullopt, // PFC Deadlock Recovery Interval
 #endif
 #if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
-      std::nullopt, // ARS enable
-      std::nullopt, // ARS scaling factor
-      std::nullopt, // ARS port load past weight
-      std::nullopt, // ARS port load future weight
+      arsEnable, // ARS enable
+      arsPortLoadScalingFactor, // ARS scaling factor
+      arsPortLoadPastWeight, // ARS port load past weight
+      arsPortLoadFutureWeight, // ARS port load future weight
 #endif
   };
 }

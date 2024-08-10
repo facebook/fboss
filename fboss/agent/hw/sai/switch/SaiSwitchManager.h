@@ -11,6 +11,7 @@
 #pragma once
 
 #include "fboss/agent/hw/sai/api/SaiApiTable.h"
+#include "fboss/agent/hw/sai/api/Types.h"
 #include "fboss/agent/hw/sai/api/VirtualRouterApi.h"
 #include "fboss/agent/hw/sai/store/SaiObject.h"
 #include "fboss/agent/hw/sai/store/SaiStore.h"
@@ -65,6 +66,9 @@ class SaiSwitchManager {
 
   void setTamObject(std::vector<sai_object_id_t> tamObject);
   void resetTamObject();
+
+  void setArsProfile(ArsProfileSaiId arsProfileSaiId);
+  void resetArsProfile();
 
   void setMacAgingSeconds(sai_uint32_t agingSeconds);
   sai_uint32_t getMacAgingSeconds() const;
