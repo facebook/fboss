@@ -18,14 +18,14 @@ namespace facebook::fboss {
 class DsfSubscriptionTest : public ::testing::Test {
  public:
   void SetUp() override {
+    FLAGS_publish_state_to_fsdb = true;
+    FLAGS_fsdb_sync_full_state = true;
     auto config = testConfigA(cfg::SwitchType::VOQ);
     handle_ = createTestHandle(&config);
     sw_ = handle_->getSw();
     fsdbTestServer_ = std::make_unique<fsdb::test::FsdbTestServer>();
     FLAGS_fsdbPort = fsdbTestServer_->getFsdbPort();
     pubSub_ = std::make_unique<fsdb::FsdbPubSubManager>("test-client");
-    FLAGS_publish_state_to_fsdb = true;
-    FLAGS_fsdb_sync_full_state = true;
     streamConnectPool_ = std::make_unique<folly::IOThreadPoolExecutor>(
         1,
         std::make_shared<folly::NamedThreadFactory>(
@@ -48,6 +48,31 @@ class DsfSubscriptionTest : public ::testing::Test {
     publisher_->start();
   }
 
+  std::shared_ptr<SwitchState> makeSwitchState() const {
+    auto constexpr kSysPort = 1000;
+    auto constexpr kRemoteSwitchId = 5;
+    auto state = std::make_shared<SwitchState>();
+    auto sysPorts = std::make_shared<MultiSwitchSystemPortMap>();
+    auto sysPort = makeSysPort(std::nullopt, kSysPort, kRemoteSwitchId);
+    HwSwitchMatcher myMatcher(
+        std::unordered_set<SwitchID>{SwitchID(kRemoteSwitchId)});
+    sysPorts->addNode(sysPort, myMatcher);
+    state->resetSystemPorts(sysPorts);
+    auto intfs = std::make_shared<MultiSwitchInterfaceMap>();
+    auto intf = std::make_shared<Interface>(
+        InterfaceID(kSysPort),
+        RouterID(0),
+        std::optional<VlanID>(std::nullopt),
+        folly::StringPiece("1001"),
+        folly::MacAddress{},
+        9000,
+        false,
+        false,
+        cfg::InterfaceType::SYSTEM_PORT);
+    intfs->addNode(intf, myMatcher);
+    state->resetIntfs(intfs);
+    return state;
+  }
   void publishSwitchState(std::shared_ptr<SwitchState> state) {
     CHECK(publisher_);
     publisher_->stateUpdated(StateDelta(std::shared_ptr<SwitchState>(), state));
@@ -92,7 +117,11 @@ class DsfSubscriptionTest : public ::testing::Test {
     return HwSwitchMatcher(std::unordered_set<SwitchID>({SwitchID(switchID)}));
   }
 
- private:
+  DsfSessionState dsfSessionState() const {
+    return *subscription_->dsfSessionThrift().state();
+  }
+
+ protected:
   std::unique_ptr<fsdb::test::FsdbTestServer> fsdbTestServer_;
   std::unique_ptr<AgentFsdbSyncManager> publisher_;
   std::unique_ptr<fsdb::FsdbPubSubManager> pubSub_;
@@ -100,18 +129,19 @@ class DsfSubscriptionTest : public ::testing::Test {
   std::unique_ptr<folly::IOThreadPoolExecutor> streamServePool_;
   std::unique_ptr<folly::IOThreadPoolExecutor> hwUpdatePool_;
   std::optional<ReconnectingThriftClient::ServerOptions> serverOptions_;
-  SwSwitch* sw_;
   std::unique_ptr<HwTestHandle> handle_;
+  std::shared_ptr<DsfSubscription> subscription_;
+  SwSwitch* sw_;
 };
 
 TEST_F(DsfSubscriptionTest, Connect) {
   createPublisher();
-  auto state = std::make_shared<SwitchState>();
+  auto state = makeSwitchState();
   publishSwitchState(state);
   std::optional<std::map<SwitchID, std::shared_ptr<SystemPortMap>>>
       recvSysPorts;
   std::optional<std::map<SwitchID, std::shared_ptr<InterfaceMap>>> recvIntfs;
-  auto subscription = createSubscription(
+  subscription_ = createSubscription(
       // GrHoldExpiredCb
       []() {},
       // StateUpdateCb
@@ -125,16 +155,14 @@ TEST_F(DsfSubscriptionTest, Connect) {
   WITH_RETRIES({
     ASSERT_EVENTUALLY_TRUE(recvSysPorts.has_value());
     ASSERT_EVENTUALLY_TRUE(recvIntfs.has_value());
-    ASSERT_EVENTUALLY_EQ(recvSysPorts->size(), 0);
-    ASSERT_EVENTUALLY_EQ(recvIntfs->size(), 0);
-    EXPECT_EQ(
-        *subscription->dsfSessionThrift().state(),
-        DsfSessionState::WAIT_FOR_REMOTE);
+    ASSERT_EVENTUALLY_EQ(recvSysPorts->size(), 1);
+    ASSERT_EVENTUALLY_EQ(recvIntfs->size(), 1);
+    EXPECT_EQ(dsfSessionState(), DsfSessionState::WAIT_FOR_REMOTE);
   });
 
   updateDsfSubscriberState("local", fsdb::FsdbSubscriptionState::CONNECTED);
-  WITH_RETRIES(ASSERT_EVENTUALLY_EQ(
-      *subscription->dsfSessionThrift().state(), DsfSessionState::ESTABLISHED));
+  WITH_RETRIES(
+      ASSERT_EVENTUALLY_EQ(dsfSessionState(), DsfSessionState::ESTABLISHED));
 }
 
 TEST_F(DsfSubscriptionTest, ConnectDisconnect) {
