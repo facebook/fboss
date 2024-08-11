@@ -1273,6 +1273,15 @@ void SaiSwitch::processSwitchSettingsChangedEntryLocked(
           newVal.has_value() ? newVal.value() : false);
     }
   }
+
+  {
+    const auto oldVal = oldSwitchSettings->getReachabilityGroupSize();
+    const auto newVal = newSwitchSettings->getReachabilityGroupSize();
+    if (oldVal != newVal) {
+      managerTable_->switchManager().setReachabilityGroupSize(
+          newVal.has_value() ? newVal.value() : 0);
+    }
+  }
 }
 
 template <typename LockPolicyT>

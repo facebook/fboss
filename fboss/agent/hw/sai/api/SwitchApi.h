@@ -544,7 +544,7 @@ struct SaiSwitchTraits {
       std::optional<sai_attr_id_t> operator()();
     };
     using ReachabilityGroupList = SaiExtensionAttribute<
-        sai_u32_list_t,
+        std::vector<sai_uint32_t>,
         AttributeReachabilityGroupList,
         SaiU32ListDefault>;
   };
@@ -609,12 +609,11 @@ struct SaiSwitchTraits {
       std::optional<Attributes::VoqLatencyMinLevel1Ns>,
       std::optional<Attributes::VoqLatencyMaxLevel1Ns>,
       std::optional<Attributes::VoqLatencyMinLevel2Ns>,
-      std::optional<Attributes::VoqLatencyMaxLevel2Ns>
+      std::optional<Attributes::VoqLatencyMaxLevel2Ns>,
 #if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
-      ,
-      std::optional<Attributes::ArsProfile>
+      std::optional<Attributes::ArsProfile>,
 #endif
-      >;
+      std::optional<Attributes::ReachabilityGroupList>>;
 
 #if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
   static constexpr std::array<sai_stat_id_t, 3> CounterIdsToRead = {
