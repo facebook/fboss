@@ -91,7 +91,7 @@ TEST_F(DsfSubscriberTest, addSubscription) {
           auto loopbackIp = folly::IPAddress::createNetwork(
                                 loopbackSubnet, -1 /*defaultCidr*/, false)
                                 .first;
-          remoteEndpoints.insert(DsfSubscriber::makeRemoteEndpoint(
+          remoteEndpoints.insert(DsfSubscription::makeRemoteEndpoint(
               *nodeConfig.name(), loopbackIp));
         });
     for (const auto& dsfSession : dsfSessionsThrift) {

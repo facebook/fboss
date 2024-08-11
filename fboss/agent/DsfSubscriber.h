@@ -51,11 +51,6 @@ class DsfSubscriber : public StateObserver {
   }
 
   std::vector<DsfSessionThrift> getDsfSessionsThrift() const;
-  static std::string makeRemoteEndpoint(
-      const std::string& remoteNode,
-      const folly::IPAddress& remoteIP) {
-    return DsfSubscription::makeRemoteEndpoint(remoteNode, remoteIP);
-  }
 
  private:
   bool isLocal(SwitchID nodeSwitchId) const;

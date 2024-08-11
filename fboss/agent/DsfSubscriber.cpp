@@ -43,6 +43,11 @@ std::map<folly::IPAddress, folly::IPAddress> getDsfSessionIps(
   return dsfSessionIps;
 }
 
+std::string makeRemoteEndpoint(
+    const std::string& remoteNode,
+    const folly::IPAddress& remoteIP) {
+  return DsfSubscription::makeRemoteEndpoint(remoteNode, remoteIP);
+}
 } // anonymous namespace
 
 namespace facebook::fboss {
