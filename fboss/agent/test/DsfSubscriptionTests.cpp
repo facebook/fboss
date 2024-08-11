@@ -16,7 +16,46 @@
 namespace facebook::fboss {
 namespace {
 auto constexpr kRemoteSwitchId = 5;
+constexpr auto kSysPortRangeMin = 1000;
+constexpr auto intfV4AddrPrefix = "42.42.42.";
+constexpr auto intfV6AddrPrefix = "42::";
+std::shared_ptr<SystemPortMap> makeSysPorts() {
+  auto sysPorts = std::make_shared<SystemPortMap>();
+  for (auto sysPortId = kSysPortRangeMin + 1; sysPortId < kSysPortRangeMin + 3;
+       ++sysPortId) {
+    sysPorts->addNode(makeSysPort(std::nullopt, sysPortId, kRemoteSwitchId));
+  }
+  return sysPorts;
 }
+std::shared_ptr<InterfaceMap> makeRifs(const SystemPortMap* sysPorts) {
+  auto rifs = std::make_shared<InterfaceMap>();
+  for (const auto& [id, sysPort] : *sysPorts) {
+    auto rif = std::make_shared<Interface>(
+        InterfaceID(id),
+        RouterID(0),
+        std::optional<VlanID>(std::nullopt),
+        folly::StringPiece("rif"),
+        folly::MacAddress("01:02:03:04:05:06"),
+        9000,
+        false,
+        true,
+        cfg::InterfaceType::SYSTEM_PORT);
+    Interface::Addresses addresses{
+        {folly::IPAddressV4(
+             folly::to<std::string>(intfV4AddrPrefix, (id % 256))),
+         31},
+        {folly::IPAddressV6(
+             folly::to<std::string>(intfV6AddrPrefix, (id % 256))),
+         127}};
+    rif->setAddresses(addresses);
+    rif->setScope(cfg::Scope::GLOBAL);
+    rif->setRemoteInterfaceType(RemoteInterfaceType::DYNAMIC_ENTRY);
+    rif->setRemoteLivenessStatus(LivenessStatus::LIVE);
+    rifs->addNode(rif);
+  }
+  return rifs;
+}
+} // namespace
 
 class DsfSubscriptionTest : public ::testing::Test {
  public:
@@ -132,6 +171,39 @@ class DsfSubscriptionTest : public ::testing::Test {
   }
 
  protected:
+  void verifyRemoteIntfRouteDelta(
+      StateDelta delta,
+      int expectedRouteAdded,
+      int expectedRouteDeleted) {
+    auto routesAdded = 0;
+    auto routesDeleted = 0;
+
+    for (const auto& routeDelta : delta.getFibsDelta()) {
+      DeltaFunctions::forEachChanged(
+          routeDelta.getFibDelta<folly::IPAddressV4>(),
+          [&](const auto& /* oldNode */, const auto& /* newNode */) {},
+          [&](const auto& added) {
+            EXPECT_TRUE(added->isConnected());
+            EXPECT_EQ(added->getID().rfind(intfV4AddrPrefix, 0), 0);
+            routesAdded++;
+          },
+          [&](const auto& /* removed */) { routesDeleted++; });
+
+      DeltaFunctions::forEachChanged(
+          routeDelta.getFibDelta<folly::IPAddressV6>(),
+          [&](const auto& /* oldNode */, const auto& /* newNode */) {},
+          [&](const auto& added) {
+            EXPECT_TRUE(added->isConnected());
+            EXPECT_EQ(added->getID().rfind(intfV6AddrPrefix, 0), 0);
+            routesAdded++;
+          },
+          [&](const auto& /* removed */) { routesDeleted++; });
+    }
+
+    EXPECT_EQ(routesAdded, expectedRouteAdded);
+    EXPECT_EQ(routesDeleted, expectedRouteDeleted);
+  }
+
   std::unique_ptr<fsdb::test::FsdbTestServer> fsdbTestServer_;
   std::unique_ptr<AgentFsdbSyncManager> publisher_;
   std::unique_ptr<fsdb::FsdbPubSubManager> pubSub_;
@@ -256,4 +328,57 @@ TEST_F(DsfSubscriptionTest, DataUpdate) {
   WITH_RETRIES(ASSERT_EVENTUALLY_EQ(getRemoteSystemPorts()->size(), 2));
 }
 
+TEST_F(DsfSubscriptionTest, updateWithRollbackProtection) {
+  auto sysPorts = makeSysPorts();
+  auto rifs = makeRifs(sysPorts.get());
+
+  std::map<SwitchID, std::shared_ptr<SystemPortMap>> switchId2SystemPorts;
+  std::map<SwitchID, std::shared_ptr<InterfaceMap>> switchId2Intfs;
+  switchId2SystemPorts[SwitchID(kRemoteSwitchId)] = sysPorts;
+  switchId2Intfs[SwitchID(kRemoteSwitchId)] = rifs;
+
+  // Add remote interfaces
+  const auto prevState = sw_->getState();
+  subscription_ = createSubscription(
+      // GrHoldExpiredCb
+      []() {});
+  subscription_->updateWithRollbackProtection(
+      switchId2SystemPorts, switchId2Intfs);
+
+  const auto addedState = sw_->getState();
+  verifyRemoteIntfRouteDelta(StateDelta(prevState, addedState), 4, 0);
+
+  // Change remote interface routes
+  switchId2SystemPorts[SwitchID(kRemoteSwitchId)] = makeSysPorts();
+  switchId2Intfs[SwitchID(kRemoteSwitchId)] = makeRifs(sysPorts.get());
+
+  const auto sysPort1Id = kSysPortRangeMin + 1;
+  Interface::Addresses updatedAddresses{
+      {folly::IPAddressV4(
+           folly::to<std::string>(intfV4AddrPrefix, (sysPort1Id % 256 + 10))),
+       31},
+      {folly::IPAddressV6(
+           folly::to<std::string>(intfV6AddrPrefix, (sysPort1Id % 256 + 10))),
+       127}};
+  switchId2Intfs[SwitchID(kRemoteSwitchId)]
+      ->find(sysPort1Id)
+      ->second->setAddresses(updatedAddresses);
+
+  subscription_->updateWithRollbackProtection(
+      switchId2SystemPorts, switchId2Intfs);
+
+  auto modifiedState = sw_->getState();
+  verifyRemoteIntfRouteDelta(StateDelta(addedState, modifiedState), 2, 2);
+
+  // Remove remote interface routes
+  switchId2SystemPorts[SwitchID(kRemoteSwitchId)] =
+      std::make_shared<SystemPortMap>();
+  switchId2Intfs[SwitchID(kRemoteSwitchId)] = std::make_shared<InterfaceMap>();
+
+  subscription_->updateWithRollbackProtection(
+      switchId2SystemPorts, switchId2Intfs);
+
+  auto deletedState = sw_->getState();
+  verifyRemoteIntfRouteDelta(StateDelta(addedState, deletedState), 0, 4);
+}
 } // namespace facebook::fboss

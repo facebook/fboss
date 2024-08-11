@@ -101,95 +101,12 @@ class DsfSubscriberTest : public ::testing::Test {
     }
   }
 
-  void verifyRemoteIntfRouteDelta(
-      StateDelta delta,
-      int expectedRouteAdded,
-      int expectedRouteDeleted) {
-    auto routesAdded = 0;
-    auto routesDeleted = 0;
-
-    for (const auto& routeDelta : delta.getFibsDelta()) {
-      DeltaFunctions::forEachChanged(
-          routeDelta.getFibDelta<folly::IPAddressV4>(),
-          [&](const auto& /* oldNode */, const auto& /* newNode */) {},
-          [&](const auto& added) {
-            EXPECT_TRUE(added->isConnected());
-            EXPECT_EQ(added->getID().rfind(intfV4AddrPrefix, 0), 0);
-            routesAdded++;
-          },
-          [&](const auto& /* removed */) { routesDeleted++; });
-
-      DeltaFunctions::forEachChanged(
-          routeDelta.getFibDelta<folly::IPAddressV6>(),
-          [&](const auto& /* oldNode */, const auto& /* newNode */) {},
-          [&](const auto& added) {
-            EXPECT_TRUE(added->isConnected());
-            EXPECT_EQ(added->getID().rfind(intfV6AddrPrefix, 0), 0);
-            routesAdded++;
-          },
-          [&](const auto& /* removed */) { routesDeleted++; });
-    }
-
-    EXPECT_EQ(routesAdded, expectedRouteAdded);
-    EXPECT_EQ(routesDeleted, expectedRouteDeleted);
-  }
-
  protected:
   SwSwitch* sw_;
   std::unique_ptr<HwTestHandle> handle_;
   std::unique_ptr<DsfSubscriber> dsfSubscriber_;
 };
 
-TEST_F(DsfSubscriberTest, updateWithRollbackProtection) {
-  auto sysPorts = makeSysPorts();
-  auto rifs = makeRifs(sysPorts.get());
-
-  std::map<SwitchID, std::shared_ptr<SystemPortMap>> switchId2SystemPorts;
-  std::map<SwitchID, std::shared_ptr<InterfaceMap>> switchId2Intfs;
-  switchId2SystemPorts[SwitchID(kRemoteSwitchId)] = sysPorts;
-  switchId2Intfs[SwitchID(kRemoteSwitchId)] = rifs;
-
-  // Add remote interfaces
-  const auto prevState = sw_->getState();
-  dsfSubscriber_->updateWithRollbackProtection(
-      "switch", switchId2SystemPorts, switchId2Intfs);
-
-  const auto addedState = sw_->getState();
-  verifyRemoteIntfRouteDelta(StateDelta(prevState, addedState), 4, 0);
-
-  // Change remote interface routes
-  switchId2SystemPorts[SwitchID(kRemoteSwitchId)] = makeSysPorts();
-  switchId2Intfs[SwitchID(kRemoteSwitchId)] = makeRifs(sysPorts.get());
-
-  const auto sysPort1Id = kSysPortRangeMin + 1;
-  Interface::Addresses updatedAddresses{
-      {folly::IPAddressV4(
-           folly::to<std::string>(intfV4AddrPrefix, (sysPort1Id % 256 + 10))),
-       31},
-      {folly::IPAddressV6(
-           folly::to<std::string>(intfV6AddrPrefix, (sysPort1Id % 256 + 10))),
-       127}};
-  switchId2Intfs[SwitchID(kRemoteSwitchId)]
-      ->find(sysPort1Id)
-      ->second->setAddresses(updatedAddresses);
-
-  dsfSubscriber_->updateWithRollbackProtection(
-      "switch", switchId2SystemPorts, switchId2Intfs);
-
-  auto modifiedState = sw_->getState();
-  verifyRemoteIntfRouteDelta(StateDelta(addedState, modifiedState), 2, 2);
-
-  // Remove remote interface routes
-  switchId2SystemPorts[SwitchID(kRemoteSwitchId)] =
-      std::make_shared<SystemPortMap>();
-  switchId2Intfs[SwitchID(kRemoteSwitchId)] = std::make_shared<InterfaceMap>();
-
-  dsfSubscriber_->updateWithRollbackProtection(
-      "switch", switchId2SystemPorts, switchId2Intfs);
-
-  auto deletedState = sw_->getState();
-  verifyRemoteIntfRouteDelta(StateDelta(addedState, deletedState), 0, 4);
-}
 TEST_F(DsfSubscriberTest, setupNeighbors) {
   auto updateAndCompareTables = [this](
                                     const auto& sysPorts,
