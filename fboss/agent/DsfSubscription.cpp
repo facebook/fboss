@@ -67,8 +67,7 @@ DsfSubscription::DsfSubscription(
     std::set<SwitchID> remoteNodeSwitchIds,
     folly::IPAddress localIp,
     folly::IPAddress remoteIp,
-    SwSwitch* sw,
-    GrHoldExpiredCb grHoldExpiredCb)
+    SwSwitch* sw)
     : opts_(std::move(options)),
       hwUpdateEvb_(hwUpdateEvb),
       fsdbPubSubMgr_(new fsdb::FsdbPubSubManager(
@@ -81,7 +80,6 @@ DsfSubscription::DsfSubscription(
       localIp_(std::move(localIp)),
       remoteIp_(std::move(remoteIp)),
       sw_(sw),
-      grHoldExpiredCb_(std::move(grHoldExpiredCb)),
       session_(makeRemoteEndpoint(remoteNodeName_, remoteIp_)) {
   // Subscription is not established until state becomes CONNECTED
   sw->stats()->failedDsfSubscription(remoteNodeName_, 1);

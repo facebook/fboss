@@ -136,8 +136,7 @@ class DsfSubscriptionTest : public ::testing::Test {
     }
   }
 
-  std::unique_ptr<DsfSubscription> createSubscription(
-      typename DsfSubscription::GrHoldExpiredCb grHoldExpiredCb) {
+  std::unique_ptr<DsfSubscription> createSubscription() {
     fsdb::SubscriptionOptions opts{
         "test-sub", false /* subscribeStats */, FLAGS_dsf_gr_hold_time};
     return std::make_unique<DsfSubscription>(
@@ -150,8 +149,7 @@ class DsfSubscriptionTest : public ::testing::Test {
         std::set<SwitchID>({SwitchID(kRemoteSwitchId)}),
         folly::IPAddress("::1"),
         folly::IPAddress("::1"),
-        sw_,
-        std::move(grHoldExpiredCb));
+        sw_);
   }
 
   HwSwitchMatcher matcher(uint32_t switchID = kRemoteSwitchId) const {
@@ -224,9 +222,7 @@ TEST_F(DsfSubscriptionTest, Connect) {
   std::optional<std::map<SwitchID, std::shared_ptr<SystemPortMap>>>
       recvSysPorts;
   std::optional<std::map<SwitchID, std::shared_ptr<InterfaceMap>>> recvIntfs;
-  subscription_ = createSubscription(
-      // GrHoldExpiredCb
-      []() {});
+  subscription_ = createSubscription();
   WITH_RETRIES({
     ASSERT_EVENTUALLY_TRUE(cachedState());
     ASSERT_EVENTUALLY_EQ(getRemoteSystemPorts()->size(), 1);
@@ -246,9 +242,7 @@ TEST_F(DsfSubscriptionTest, ConnectDisconnect) {
   std::optional<std::map<SwitchID, std::shared_ptr<SystemPortMap>>>
       recvSysPorts;
   std::optional<std::map<SwitchID, std::shared_ptr<InterfaceMap>>> recvIntfs;
-  subscription_ = createSubscription(
-      // GrHoldExpiredCb
-      []() {});
+  subscription_ = createSubscription();
 
   WITH_RETRIES({
     ASSERT_EVENTUALLY_TRUE(cachedState());
@@ -266,12 +260,7 @@ TEST_F(DsfSubscriptionTest, GR) {
   auto state = makeSwitchState();
   publishSwitchState(state);
   FLAGS_dsf_gr_hold_time = 5;
-  bool grExpired = false;
-  int subStateUpdates = 0;
-  int updates = 0;
-  subscription_ = createSubscription(
-      // GrHoldExpiredCb
-      [&]() { grExpired = true; });
+  subscription_ = createSubscription();
 
   WITH_RETRIES({
     ASSERT_EVENTUALLY_TRUE(cachedState());
@@ -280,7 +269,6 @@ TEST_F(DsfSubscriptionTest, GR) {
     EXPECT_EQ(dsfSessionState(), DsfSessionState::WAIT_FOR_REMOTE);
   });
 
-  int subStateUpdatesBefore = subStateUpdates;
   stopPublisher(true);
   createPublisher();
   publishSwitchState(state);
@@ -291,10 +279,7 @@ TEST_F(DsfSubscriptionTest, GR) {
     ASSERT_EVENTUALLY_EQ(getRemoteInterfaces()->size(), 1);
     ASSERT_EVENTUALLY_EQ(dsfSessionState(), DsfSessionState::WAIT_FOR_REMOTE);
   });
-  // should not have gotten callback from the gr
-  EXPECT_EQ(grExpired, false);
   CounterCache counters(sw_);
-
   stopPublisher(true);
   auto grExpiredCounter =
       SwitchStats::kCounterPrefix + "dsfsession_gr_expired.sum.60";
@@ -314,9 +299,7 @@ TEST_F(DsfSubscriptionTest, DataUpdate) {
   std::optional<std::map<SwitchID, std::shared_ptr<SystemPortMap>>>
       recvSysPorts;
   std::optional<std::map<SwitchID, std::shared_ptr<InterfaceMap>>> recvIntfs;
-  subscription_ = createSubscription(
-      // GrHoldExpiredCb
-      []() {});
+  subscription_ = createSubscription();
 
   WITH_RETRIES({
     ASSERT_EVENTUALLY_TRUE(cachedState());
@@ -345,9 +328,7 @@ TEST_F(DsfSubscriptionTest, updateWithRollbackProtection) {
 
   // Add remote interfaces
   const auto prevState = sw_->getState();
-  subscription_ = createSubscription(
-      // GrHoldExpiredCb
-      []() {});
+  subscription_ = createSubscription();
   subscription_->updateWithRollbackProtection(
       switchId2SystemPorts, switchId2Intfs);
 
@@ -389,9 +370,7 @@ TEST_F(DsfSubscriptionTest, updateWithRollbackProtection) {
 }
 
 TEST_F(DsfSubscriptionTest, setupNeighbors) {
-  subscription_ = createSubscription(
-      // GrHoldExpiredCb
-      []() {});
+  subscription_ = createSubscription();
   auto updateAndCompareTables = [this](
                                     const auto& sysPorts,
                                     const auto& rifs,

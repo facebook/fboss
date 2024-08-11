@@ -16,8 +16,6 @@ class SwitchState;
 
 class DsfSubscription {
  public:
-  using GrHoldExpiredCb = std::function<void()>;
-
   DsfSubscription(
       fsdb::SubscriptionOptions options,
       folly::EventBase* reconnectEvb,
@@ -28,8 +26,7 @@ class DsfSubscription {
       std::set<SwitchID> remoteNodeSwitchIds,
       folly::IPAddress localIp,
       folly::IPAddress remoteIp,
-      SwSwitch* sw,
-      GrHoldExpiredCb grHoldExpiredCb);
+      SwSwitch* sw);
 
   ~DsfSubscription();
 
@@ -70,7 +67,6 @@ class DsfSubscription {
   folly::IPAddress localIp_;
   folly::IPAddress remoteIp_;
   SwSwitch* sw_;
-  GrHoldExpiredCb grHoldExpiredCb_;
   DsfSession session_;
   // Used for tests only
   std::shared_ptr<SwitchState> cachedState_;

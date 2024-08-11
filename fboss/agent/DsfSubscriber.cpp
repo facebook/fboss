@@ -155,19 +155,7 @@ void DsfSubscriber::stateUpdated(const StateDelta& stateDelta) {
                   sw_->getState()->getDsfNodes(), nodeSwitchId),
               srcIPAddr,
               dstIPAddr,
-              sw_,
-              [this, nodeName, nodeSwitchId]() { // GrHoldExpiredCb
-                // There is a single DSF subscription to every remote Interface
-                // Node even
-                // if the remote Interface Node is a multi ASIC system.
-                // Thus, when GR hold timer expires for a specific switchID,
-                // process every switchID (every ASIC) on that remote Interface
-                // Node.
-                processGRHoldTimerExpired(
-                    nodeName,
-                    getAllSwitchIDsForSwitch(
-                        this->sw_->getState()->getDsfNodes(), nodeSwitchId));
-              }));
+              sw_));
     }
   };
   auto rmDsfNode = [&](const std::shared_ptr<DsfNode>& node) {
