@@ -381,4 +381,141 @@ TEST_F(DsfSubscriptionTest, updateWithRollbackProtection) {
   auto deletedState = sw_->getState();
   verifyRemoteIntfRouteDelta(StateDelta(addedState, deletedState), 0, 4);
 }
+
+TEST_F(DsfSubscriptionTest, setupNeighbors) {
+  subscription_ = createSubscription(
+      // GrHoldExpiredCb
+      []() {});
+  auto updateAndCompareTables = [this](
+                                    const auto& sysPorts,
+                                    const auto& rifs,
+                                    bool publishState,
+                                    bool noNeighbors = false) {
+    if (publishState) {
+      rifs->publish();
+    }
+
+    // subscription_->updateWithRollbackProtection is expected to set isLocal
+    // to False, and rest of the structure should remain the same.
+    auto expectedRifs = InterfaceMap(rifs->toThrift());
+    for (auto intfIter : expectedRifs) {
+      auto& intf = intfIter.second;
+      for (auto& ndpEntry : *intf->getNdpTable()) {
+        ndpEntry.second->setIsLocal(false);
+        ndpEntry.second->setNoHostRoute(false);
+      }
+      for (auto& arpEntry : *intf->getArpTable()) {
+        arpEntry.second->setIsLocal(false);
+        arpEntry.second->setNoHostRoute(false);
+      }
+    }
+
+    std::map<SwitchID, std::shared_ptr<SystemPortMap>> switchId2SystemPorts;
+    std::map<SwitchID, std::shared_ptr<InterfaceMap>> switchId2Intfs;
+    switchId2SystemPorts[SwitchID(kRemoteSwitchId)] = sysPorts;
+    switchId2Intfs[SwitchID(kRemoteSwitchId)] = rifs;
+
+    subscription_->updateWithRollbackProtection(
+        switchId2SystemPorts, switchId2Intfs);
+
+    waitForStateUpdates(sw_);
+    EXPECT_EQ(
+        sysPorts->toThrift(),
+        sw_->getState()->getRemoteSystemPorts()->getAllNodes()->toThrift());
+
+    for (const auto& [_, intfMap] :
+         std::as_const(*sw_->getState()->getRemoteInterfaces())) {
+      for (const auto& [_, localRif] : std::as_const(*intfMap)) {
+        const auto& expectedRif = expectedRifs.at(localRif->getID());
+        // Since resolved timestamp is only set locally, update expectedRifs to
+        // the same timestamp such that they're the same, for both arp and ndp.
+        for (const auto& [_, arp] : std::as_const(*localRif->getArpTable())) {
+          EXPECT_TRUE(arp->getResolvedSince().has_value());
+          if (arp->getResolvedSince().has_value()) {
+            expectedRif->getArpTable()
+                ->at(arp->getID())
+                ->setResolvedSince(*arp->getResolvedSince());
+          }
+        }
+        for (const auto& [_, ndp] : std::as_const(*localRif->getNdpTable())) {
+          EXPECT_TRUE(ndp->getResolvedSince().has_value());
+          if (ndp->getResolvedSince().has_value()) {
+            expectedRif->getNdpTable()
+                ->at(ndp->getID())
+                ->setResolvedSince(*ndp->getResolvedSince());
+          }
+        }
+      }
+    }
+    EXPECT_EQ(
+        apache::thrift::SimpleJSONSerializer::serialize<std::string>(
+            expectedRifs.toThrift()),
+        apache::thrift::SimpleJSONSerializer::serialize<std::string>(
+            sw_->getState()->getRemoteInterfaces()->getAllNodes()->toThrift()));
+
+    // neighbor entries are modified to set isLocal=false
+    // Thus, if neighbor table is non-empty, programmed vs. actually
+    // programmed would be unequal for published state.
+    // for unpublished state, the passed state would be modified, and thus,
+    // programmed vs actually programmed state would be equal.
+    EXPECT_TRUE(
+        rifs->toThrift() !=
+            sw_->getState()->getRemoteInterfaces()->getAllNodes()->toThrift() ||
+        noNeighbors || !publishState);
+  };
+
+  auto verifySetupNeighbors = [&](bool publishState) {
+    {
+      // No neighbors
+      auto sysPorts = makeSysPorts();
+      auto rifs = makeRifs(sysPorts.get());
+      updateAndCompareTables(
+          sysPorts, rifs, publishState, true /* noNeighbors */);
+    }
+    {
+      // add neighbors
+      auto sysPorts = makeSysPorts();
+      auto rifs = makeRifs(sysPorts.get());
+      auto firstRif = kSysPortRangeMin + 1;
+      auto [ndpTable, arpTable] = makeNbrs();
+      rifs->ref(firstRif)->setNdpTable(ndpTable);
+      rifs->ref(firstRif)->setArpTable(arpTable);
+      updateAndCompareTables(sysPorts, rifs, publishState);
+    }
+    {
+      // update neighbors
+      auto sysPorts = makeSysPorts();
+      auto rifs = makeRifs(sysPorts.get());
+      auto firstRif = kSysPortRangeMin + 1;
+      auto [ndpTable, arpTable] = makeNbrs();
+      ndpTable.begin()->second.mac() = "06:05:04:03:02:01";
+      arpTable.begin()->second.mac() = "06:05:04:03:02:01";
+      rifs->ref(firstRif)->setNdpTable(ndpTable);
+      rifs->ref(firstRif)->setArpTable(arpTable);
+      updateAndCompareTables(sysPorts, rifs, publishState);
+    }
+    {
+      // delete neighbors
+      auto sysPorts = makeSysPorts();
+      auto rifs = makeRifs(sysPorts.get());
+      auto firstRif = kSysPortRangeMin + 1;
+      auto [ndpTable, arpTable] = makeNbrs();
+      ndpTable.erase(ndpTable.begin());
+      arpTable.erase(arpTable.begin());
+      rifs->ref(firstRif)->setNdpTable(ndpTable);
+      rifs->ref(firstRif)->setArpTable(arpTable);
+      updateAndCompareTables(sysPorts, rifs, publishState);
+    }
+    {
+      // clear neighbors
+      auto sysPorts = makeSysPorts();
+      auto rifs = makeRifs(sysPorts.get());
+      updateAndCompareTables(
+          sysPorts, rifs, publishState, true /* noNeighbors */);
+    }
+  };
+
+  verifySetupNeighbors(false /* publishState */);
+  verifySetupNeighbors(true /* publishState */);
+}
 } // namespace facebook::fboss

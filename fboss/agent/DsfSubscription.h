@@ -73,6 +73,7 @@ class DsfSubscription {
   // Used for tests only
   std::shared_ptr<SwitchState> cachedState_;
   FRIEND_TEST(DsfSubscriptionTest, updateWithRollbackProtection);
+  FRIEND_TEST(DsfSubscriptionTest, setupNeighbors);
 };
 
 } // namespace facebook::fboss
