@@ -54,10 +54,6 @@ class DsfSubscriber : public StateObserver {
 
  private:
   bool isLocal(SwitchID nodeSwitchId) const;
-  void processGRHoldTimerExpired(
-      const std::string& nodeName,
-      const std::set<SwitchID>& allNodeSwitchIDs);
-
   SwSwitch* sw_;
   std::shared_ptr<SwitchState> cachedState_;
   std::string localNodeName_;
