@@ -78,54 +78,6 @@ bool DsfSubscriber::isLocal(SwitchID nodeSwitchId) const {
   return localSwitchIds.find(nodeSwitchId) != localSwitchIds.end();
 }
 
-void DsfSubscriber::updateWithRollbackProtection(
-    const std::string& nodeName,
-    const std::map<SwitchID, std::shared_ptr<SystemPortMap>>&
-        switchId2SystemPorts,
-    const std::map<SwitchID, std::shared_ptr<InterfaceMap>>& switchId2Intfs) {
-  auto hasNoLocalSwitchId = [this, nodeName](const auto& switchId2Objects) {
-    for (const auto& [switchId, _] : switchId2Objects) {
-      if (this->isLocal(switchId)) {
-        throw FbossError(
-            "Got updates for a local switch ID, from: ",
-            nodeName,
-            " id: ",
-            switchId);
-      }
-    }
-  };
-
-  hasNoLocalSwitchId(switchId2SystemPorts);
-  hasNoLocalSwitchId(switchId2Intfs);
-
-  auto updateDsfStateFn =
-      [this, nodeName, switchId2SystemPorts, switchId2Intfs](
-          const std::shared_ptr<SwitchState>& in) {
-        auto out = DsfStateUpdaterUtil::getUpdatedState(
-            in,
-            sw_->getScopeResolver(),
-            sw_->getRib(),
-            switchId2SystemPorts,
-            switchId2Intfs);
-
-        if (FLAGS_dsf_subscriber_cache_updated_state) {
-          cachedState_ = out;
-        }
-
-        if (!FLAGS_dsf_subscriber_skip_hw_writes) {
-          return out;
-        }
-
-        return std::shared_ptr<SwitchState>{};
-      };
-
-  sw_->getRib()->updateStateInRibThread([this, nodeName, updateDsfStateFn]() {
-    sw_->updateStateWithHwFailureProtection(
-        folly::sformat("Update state for node: {}", nodeName),
-        updateDsfStateFn);
-  });
-}
-
 void DsfSubscriber::stateUpdated(const StateDelta& stateDelta) {
   if (!FLAGS_dsf_subscribe) {
     return;

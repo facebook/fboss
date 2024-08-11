@@ -58,11 +58,6 @@ class DsfSubscriber : public StateObserver {
   }
 
  private:
-  void updateWithRollbackProtection(
-      const std::string& nodeName,
-      const std::map<SwitchID, std::shared_ptr<SystemPortMap>>&
-          switchId2SystemPorts,
-      const std::map<SwitchID, std::shared_ptr<InterfaceMap>>& switchId2Intfs);
   bool isLocal(SwitchID nodeSwitchId) const;
   void processGRHoldTimerExpired(
       const std::string& nodeName,
