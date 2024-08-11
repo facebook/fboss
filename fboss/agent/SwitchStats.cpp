@@ -292,7 +292,10 @@ SwitchStats::SwitchStats(ThreadLocalStatsMap* map, int numSwitches)
           map,
           kCounterPrefix + "switch_configured_ms",
           SUM,
-          RATE) {
+          RATE),
+      dsfGrExpired_(map, kCounterPrefix + "dsfsession_gr_expired", SUM, RATE)
+
+{
   for (auto switchIndex = 0; switchIndex < numSwitches; switchIndex++) {
     hwAgentConnectionStatus_.emplace_back(TLCounter(
         map,

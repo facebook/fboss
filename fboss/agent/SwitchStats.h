@@ -521,6 +521,13 @@ class SwitchStats : public boost::noncopyable {
     thriftStreamConnectionStatus_[switchIndex].txPktEventSent();
   }
 
+  void dsfSessionGrExpired() {
+    dsfGrExpired_.addValue(1);
+  }
+  int64_t getDsfSessionGrExpired() const {
+    return getCumulativeValue(dsfGrExpired_);
+  }
+
   void getHwAgentStatus(
       std::map<int16_t, HwAgentEventSyncStatus>& statusMap) const;
 
@@ -927,6 +934,7 @@ class SwitchStats : public boost::noncopyable {
   TLTimeseries coldBoot_;
   TLTimeseries warmBoot_;
   TLTimeseries switchConfiguredMs_;
+  TLTimeseries dsfGrExpired_;
 
   std::vector<TLCounter> hwAgentConnectionStatus_;
   std::vector<TLTimeseries> hwAgentUpdateTimeouts_;
