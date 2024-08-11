@@ -259,6 +259,7 @@ void DsfSubscription::updateWithRollbackProtection(
 }
 
 void DsfSubscription::processGRHoldTimerExpired() {
+  sw_->stats()->dsfSessionGrExpired();
   auto updateDsfStateFn = [this](const std::shared_ptr<SwitchState>& in) {
     bool changed{false};
     auto out = in->clone();
