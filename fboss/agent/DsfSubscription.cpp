@@ -154,7 +154,7 @@ void DsfSubscription::handleFsdbSubscriptionStateUpdate(
   }
 
   if (fsdb::isGRHoldExpired(newState)) {
-    grHoldExpiredCb_();
+    processGRHoldTimerExpired();
   }
 }
 

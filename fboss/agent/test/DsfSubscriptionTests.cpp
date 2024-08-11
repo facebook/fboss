@@ -4,6 +4,7 @@
 #include "fboss/agent/AgentFsdbSyncManager.h"
 #include "fboss/agent/DsfSubscription.h"
 #include "fboss/agent/SwitchStats.h"
+#include "fboss/agent/test/CounterCache.h"
 #include "fboss/agent/test/HwTestHandle.h"
 #include "fboss/agent/test/TestUtils.h"
 #include "fboss/fsdb/tests/utils/FsdbTestServer.h"
@@ -292,11 +293,16 @@ TEST_F(DsfSubscriptionTest, GR) {
   });
   // should not have gotten callback from the gr
   EXPECT_EQ(grExpired, false);
+  CounterCache counters(sw_);
 
   stopPublisher(true);
+  auto grExpiredCounter =
+      SwitchStats::kCounterPrefix + "dsfsession_gr_expired.sum.60";
   WITH_RETRIES({
+    counters.update();
     ASSERT_EVENTUALLY_EQ(dsfSessionState(), DsfSessionState::CONNECT);
-    EXPECT_EVENTUALLY_EQ(grExpired, true);
+    ASSERT_EVENTUALLY_TRUE(counters.checkExist(grExpiredCounter));
+    ASSERT_EVENTUALLY_EQ(counters.value(grExpiredCounter), 1);
   });
 }
 
