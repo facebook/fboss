@@ -271,7 +271,21 @@ TEST_F(DsfSubscriptionTest, GR) {
     ASSERT_EVENTUALLY_EQ(getRemoteInterfaces()->size(), 1);
     ASSERT_EVENTUALLY_EQ(dsfSessionState(), DsfSessionState::WAIT_FOR_REMOTE);
   });
+
+  auto assertStatus = [this](LivenessStatus expectedStatus) {
+    auto assertObjStatus = [expectedStatus](const auto& objs) {
+      std::for_each(
+          objs->begin(), objs->end(), [expectedStatus](const auto& idAndObj) {
+            EXPECT_EQ(
+                idAndObj.second->getRemoteLivenessStatus(), expectedStatus);
+          });
+    };
+    assertObjStatus(getRemoteSystemPorts());
+    assertObjStatus(getRemoteInterfaces());
+  };
   CounterCache counters(sw_);
+  // Should be LIVE before GR expire
+  assertStatus(LivenessStatus::LIVE);
   stopPublisher(true);
   auto grExpiredCounter =
       SwitchStats::kCounterPrefix + "dsfsession_gr_expired.sum.60";
@@ -281,6 +295,8 @@ TEST_F(DsfSubscriptionTest, GR) {
     ASSERT_EVENTUALLY_TRUE(counters.checkExist(grExpiredCounter));
     ASSERT_EVENTUALLY_EQ(counters.value(grExpiredCounter), 1);
   });
+  // Should be STATLE after GR expire
+  assertStatus(LivenessStatus::STALE);
 }
 
 TEST_F(DsfSubscriptionTest, DataUpdate) {
