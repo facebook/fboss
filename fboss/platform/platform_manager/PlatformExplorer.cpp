@@ -511,7 +511,8 @@ void PlatformExplorer::createDeviceSymLink(
       targetPath = devicePathResolver_.resolveI2cBusPath(devicePath);
     } else if (
         linkParentPath.string() == "/run/devmap/gpiochips" ||
-        linkParentPath.string() == "/run/devmap/flashes") {
+        linkParentPath.string() == "/run/devmap/flashes" ||
+        linkParentPath.string() == "/run/devmap/watchdogs") {
       targetPath = devicePathResolver_.resolvePciSubDevCharDevPath(devicePath);
     } else if (linkParentPath.string() == "/run/devmap/xcvrs") {
       targetPath = devicePathResolver_.resolvePciSubDevSysfsPath(devicePath);
