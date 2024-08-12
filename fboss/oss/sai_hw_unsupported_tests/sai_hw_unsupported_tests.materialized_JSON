@@ -140,6 +140,9 @@
           "test_name_regex": "HwAclQualifierTest/[01].*VlanID*"
         },
         {
+          "test_name_regex": "HwAclQualifierTest.*VlanID*"
+        },
+        {
           "test_name_regex": "HwPtpTcTest.*"
         },
         {
@@ -168,6 +171,9 @@
         },
         {
           "test_name_regex": "HwAclQualifierTest/[01].*LookupClass*"
+        },
+        {
+          "test_name_regex": "HwAclQualifierTest.*LookupClass*"
         },
         {
           "test_name_regex": "HwFabricSwitchTest.*"
@@ -781,6 +787,9 @@
           "test_name_regex": "HwAclQualifierTest/[01].*VlanID*"
         },
         {
+          "test_name_regex": "HwAclQualifierTest.*VlanID*"
+        },
+        {
           "test_name_regex": "HwPtpTcTest.*"
         },
         {
@@ -809,6 +818,9 @@
         },
         {
           "test_name_regex": "HwAclQualifierTest/[01].*LookupClass*"
+        },
+        {
+          "test_name_regex": "HwAclQualifierTest.*LookupClass*"
         },
         {
           "test_name_regex": "HwFabricSwitchTest.*"
@@ -1005,6 +1017,9 @@
           "test_name_regex": "HwAclQualifierTest/[01].*VlanID*"
         },
         {
+          "test_name_regex": "HwAclQualifierTest.*VlanID*"
+        },
+        {
           "test_name_regex": "HwPtpTcTest.*"
         },
         {
@@ -1033,6 +1048,9 @@
         },
         {
           "test_name_regex": "HwAclQualifierTest/[01].*LookupClass*"
+        },
+        {
+          "test_name_regex": "HwAclQualifierTest.*LookupClass*"
         },
         {
           "test_name_regex": "HwFabricSwitchTest.*"
@@ -1683,16 +1701,28 @@
           "test_name_regex": "HwAclMatchActionsTest/1.*$"
         },
         {
+          "test_name_regex": "HwAclMatchActionsTest.*$"
+        },
+        {
           "test_name_regex": "HwAclStatTest/1.*$"
         },
         {
+          "test_name_regex": "HwAclStatTest.*$"
+        },
+        {
           "test_name_regex": "HwResourceStatsTest/1.*$"
+        },
+        {
+          "test_name_regex": "HwResourceStatsTest.*$"
         },
         {
           "test_name_regex": "HwAclPriorityTest/1.*$"
         },
         {
           "test_name_regex": "HwAclQualifierTest/1.*$"
+        },
+        {
+          "test_name_regex": "HwAclQualifierTest.*$"
         },
         {
           "test_name_regex": "HwDeepPacketInspectionTest.*$"
