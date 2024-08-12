@@ -2174,11 +2174,6 @@ void SaiSwitch::switchReachabilityChangeBottomHalf() {
        std::as_const(*getProgrammedState()->getDsfNodes())) {
     std::map<SwitchID, std::set<PortID>> reachabilityInfo{};
     for (const auto& [switchId, node] : std::as_const(*dsfNodes)) {
-      if (getHwAsicForAsicType(*node->toThrift().asicType()).getSwitchType() !=
-          cfg::SwitchType::VOQ) {
-        // Dont expect reachability information for fabric devices!
-        continue;
-      }
       auto maxFabricPorts =
           getMaxNumberOfFabricPorts(*node->toThrift().asicType());
       std::vector<sai_object_id_t> output(maxFabricPorts + 1);
