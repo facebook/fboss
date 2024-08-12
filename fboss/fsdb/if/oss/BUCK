@@ -32,6 +32,7 @@ thrift_library(
     deps = [
         "//fboss/agent:agent_config",
         "//fboss/agent:agent_stats",
+        "//fboss/agent:switch_reachability",
         "//fboss/agent:switch_state",
         "//fboss/fsdb/if:fsdb_common",
         "//fboss/platform/sensor_service:sensor_service_stats",
@@ -51,6 +52,8 @@ cpp_library(
         "//fboss/agent:agent_config-cpp2-types",
         "//fboss/agent:agent_stats-cpp2-reflection",
         "//fboss/agent:agent_stats-cpp2-types",
+        "//fboss/agent:switch_reachability-cpp2-reflection",
+        "//fboss/agent:switch_reachability-cpp2-types",
         "//fboss/agent:switch_state-cpp2-reflection",
         "//fboss/agent:switch_state-cpp2-types",
         "//fboss/fsdb/if:fsdb_common-cpp2-reflection",

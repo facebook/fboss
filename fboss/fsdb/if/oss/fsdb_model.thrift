@@ -6,6 +6,7 @@ namespace go facebook.fboss.fsdb
 include "fboss/agent/agent_config.thrift"
 include "fboss/agent/agent_stats.thrift"
 include "fboss/agent/switch_state.thrift"
+include "fboss/agent/switch_reachability.thrift"
 include "fboss/qsfp_service/if/qsfp_state.thrift"
 include "fboss/qsfp_service/if/qsfp_stats.thrift"
 include "fboss/fsdb/if/fsdb_common.thrift"
@@ -16,6 +17,10 @@ struct AgentData {
   1: agent_config.AgentConfig config;
   2: switch_state.SwitchState switchState;
   4: map<string, fsdb_common.FsdbSubscriptionState> fsdbSubscriptions = {};
+  5: map<
+    i64,
+    switch_reachability.SwitchReachability
+  > dsfSwitchReachability = {};
 }
 
 struct FsdbOperStateRoot {
