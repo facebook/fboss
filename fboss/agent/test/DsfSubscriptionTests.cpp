@@ -63,7 +63,6 @@ class DsfSubscriptionTest : public ::testing::Test {
   void SetUp() override {
     FLAGS_publish_state_to_fsdb = true;
     FLAGS_fsdb_sync_full_state = true;
-    FLAGS_dsf_subscriber_cache_updated_state = true;
     auto config = testConfigA(cfg::SwitchType::VOQ);
     handle_ = createTestHandle(&config);
     sw_ = handle_->getSw();
@@ -157,13 +156,10 @@ class DsfSubscriptionTest : public ::testing::Test {
   }
 
   std::shared_ptr<SystemPortMap> getRemoteSystemPorts() const {
-    return cachedState()->getRemoteSystemPorts()->getAllNodes();
+    return sw_->getState()->getRemoteSystemPorts()->getAllNodes();
   }
   std::shared_ptr<InterfaceMap> getRemoteInterfaces() const {
-    return cachedState()->getRemoteInterfaces()->getAllNodes();
-  }
-  std::shared_ptr<SwitchState> cachedState() const {
-    return subscription_->cachedState();
+    return sw_->getState()->getRemoteInterfaces()->getAllNodes();
   }
   DsfSessionState dsfSessionState() const {
     return *subscription_->dsfSessionThrift().state();
@@ -224,7 +220,6 @@ TEST_F(DsfSubscriptionTest, Connect) {
   std::optional<std::map<SwitchID, std::shared_ptr<InterfaceMap>>> recvIntfs;
   subscription_ = createSubscription();
   WITH_RETRIES({
-    ASSERT_EVENTUALLY_TRUE(cachedState());
     ASSERT_EVENTUALLY_EQ(getRemoteSystemPorts()->size(), 1);
     ASSERT_EVENTUALLY_EQ(getRemoteInterfaces()->size(), 1);
     EXPECT_EQ(dsfSessionState(), DsfSessionState::WAIT_FOR_REMOTE);
@@ -245,7 +240,6 @@ TEST_F(DsfSubscriptionTest, ConnectDisconnect) {
   subscription_ = createSubscription();
 
   WITH_RETRIES({
-    ASSERT_EVENTUALLY_TRUE(cachedState());
     ASSERT_EVENTUALLY_EQ(getRemoteSystemPorts()->size(), 1);
     ASSERT_EVENTUALLY_EQ(getRemoteInterfaces()->size(), 1);
     EXPECT_EQ(dsfSessionState(), DsfSessionState::WAIT_FOR_REMOTE);
@@ -263,7 +257,6 @@ TEST_F(DsfSubscriptionTest, GR) {
   subscription_ = createSubscription();
 
   WITH_RETRIES({
-    ASSERT_EVENTUALLY_TRUE(cachedState());
     ASSERT_EVENTUALLY_EQ(getRemoteSystemPorts()->size(), 1);
     ASSERT_EVENTUALLY_EQ(getRemoteInterfaces()->size(), 1);
     EXPECT_EQ(dsfSessionState(), DsfSessionState::WAIT_FOR_REMOTE);
@@ -274,7 +267,6 @@ TEST_F(DsfSubscriptionTest, GR) {
   publishSwitchState(state);
 
   WITH_RETRIES({
-    ASSERT_EVENTUALLY_TRUE(cachedState());
     ASSERT_EVENTUALLY_EQ(getRemoteSystemPorts()->size(), 1);
     ASSERT_EVENTUALLY_EQ(getRemoteInterfaces()->size(), 1);
     ASSERT_EVENTUALLY_EQ(dsfSessionState(), DsfSessionState::WAIT_FOR_REMOTE);
@@ -302,7 +294,6 @@ TEST_F(DsfSubscriptionTest, DataUpdate) {
   subscription_ = createSubscription();
 
   WITH_RETRIES({
-    ASSERT_EVENTUALLY_TRUE(cachedState());
     ASSERT_EVENTUALLY_EQ(getRemoteSystemPorts()->size(), 1);
     ASSERT_EVENTUALLY_EQ(getRemoteInterfaces()->size(), 1);
     EXPECT_EQ(dsfSessionState(), DsfSessionState::WAIT_FOR_REMOTE);
