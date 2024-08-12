@@ -31,6 +31,7 @@ bool Ramon3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::CRC_ERROR_DETECT:
     case HwAsic::Feature::SAI_ECMP_HASH_ALGORITHM:
     case HwAsic::Feature::DATA_CELL_FILTER:
+    case HwAsic::Feature::SWITCH_REACHABILITY_CHANGE_NOTIFY:
       return true;
     case HwAsic::Feature::SAI_PORT_SERDES_FIELDS_RESET:
     case HwAsic::Feature::FABRIC_TX_QUEUES:
