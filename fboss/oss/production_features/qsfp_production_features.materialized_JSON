@@ -1,0 +1,190 @@
+{
+  "platformConfigToFeatures": {
+    "darwin": [
+        
+    ],
+    "darwin_mix": [
+        
+    ],
+    "darwin_original": [
+        
+    ],
+    "elbert_2x16Q_6x8DD": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+    ],
+    "elbert_5x16Q_3x8DD": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+    ],
+    "elbert_8x16Q": [
+        2
+    ],
+    "fuji_5x16Q": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+    ],
+    "fuji_8x16Q": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+    ],
+    "janga800bic": [
+        
+    ],
+    "meru400bfu": [
+        
+    ],
+    "meru400biu": [
+        
+    ],
+    "meru800bfa": [
+        
+    ],
+    "meru800bia": [
+        
+    ],
+    "minipack_7x16Q_1x16O": [
+        1,
+        2,
+        4,
+        5
+    ],
+    "montblanc": [
+        2
+    ],
+    "morgan800cc": [
+        2
+    ],
+    "tahan800bc": [
+        2
+    ],
+    "wedge100s": [
+        
+    ],
+    "wedge400": [
+        
+    ],
+    "wedge400c": [
+        
+    ],
+    "yamp_8x16Q": [
+        1,
+        2,
+        4,
+        5,
+        6
+    ]
+  },
+  "platformConfigToFeatureNames": {
+    "darwin": [
+        
+    ],
+    "darwin_mix": [
+        
+    ],
+    "darwin_original": [
+        
+    ],
+    "elbert_2x16Q_6x8DD": [
+        "MACSEC",
+        "EXTERNAL_PHY",
+        "PIM",
+        "XPHY_SYSTEM_NRZ_PROFILE",
+        "XPHY_SYSTEM_PAM4_PROFILE",
+        "XPHY_LINE_NRZ_PROFILE",
+        "XPHY_LINE_PAM4_PROFILE"
+    ],
+    "elbert_5x16Q_3x8DD": [
+        "MACSEC",
+        "EXTERNAL_PHY",
+        "PIM",
+        "XPHY_SYSTEM_NRZ_PROFILE",
+        "XPHY_SYSTEM_PAM4_PROFILE",
+        "XPHY_LINE_NRZ_PROFILE",
+        "XPHY_LINE_PAM4_PROFILE"
+    ],
+    "elbert_8x16Q": [
+        "PIM"
+    ],
+    "fuji_5x16Q": [
+        "EXTERNAL_PHY",
+        "PIM",
+        "XPHY_SYSTEM_NRZ_PROFILE",
+        "XPHY_SYSTEM_PAM4_PROFILE",
+        "XPHY_LINE_NRZ_PROFILE",
+        "XPHY_LINE_PAM4_PROFILE"
+    ],
+    "fuji_8x16Q": [
+        "EXTERNAL_PHY",
+        "PIM",
+        "XPHY_SYSTEM_NRZ_PROFILE",
+        "XPHY_SYSTEM_PAM4_PROFILE",
+        "XPHY_LINE_NRZ_PROFILE",
+        "XPHY_LINE_PAM4_PROFILE"
+    ],
+    "janga800bic": [
+        
+    ],
+    "meru400bfu": [
+        
+    ],
+    "meru400biu": [
+        
+    ],
+    "meru800bfa": [
+        
+    ],
+    "meru800bia": [
+        
+    ],
+    "minipack_7x16Q_1x16O": [
+        "EXTERNAL_PHY",
+        "PIM",
+        "XPHY_SYSTEM_PAM4_PROFILE",
+        "XPHY_LINE_NRZ_PROFILE"
+    ],
+    "montblanc": [
+        "PIM"
+    ],
+    "morgan800cc": [
+        "PIM"
+    ],
+    "tahan800bc": [
+        "PIM"
+    ],
+    "wedge100s": [
+        
+    ],
+    "wedge400": [
+        
+    ],
+    "wedge400c": [
+        
+    ],
+    "yamp_8x16Q": [
+        "EXTERNAL_PHY",
+        "PIM",
+        "XPHY_SYSTEM_PAM4_PROFILE",
+        "XPHY_LINE_NRZ_PROFILE",
+        "XPHY_LINE_PAM4_PROFILE"
+    ]
+  }
+}
