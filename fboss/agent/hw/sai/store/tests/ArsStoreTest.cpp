@@ -26,18 +26,13 @@ class ArsStoreTest : public SaiStoreTest {
 
 TEST_F(ArsStoreTest, loadArs) {
   auto arsSaiId1 = createArs(20000, 2000);
-  auto arsSaiId2 = createArs(40000, 4000);
 
   SaiStore s(0);
   s.reload();
   auto& store = s.get<SaiArsTraits>();
 
-  SaiArsTraits::AdapterHostKey k1{SAI_ARS_MODE_FLOWLET_QUALITY, 20000, 2000};
-  SaiArsTraits::AdapterHostKey k2{SAI_ARS_MODE_FLOWLET_QUALITY, 40000, 4000};
-  auto got = store.get(k1);
+  auto got = store.get(std::monostate{});
   EXPECT_EQ(got->adapterKey(), arsSaiId1);
-  got = store.get(k2);
-  EXPECT_EQ(got->adapterKey(), arsSaiId2);
 }
 
 TEST_F(ArsStoreTest, arsLoadCtor) {
@@ -50,8 +45,7 @@ TEST_F(ArsStoreTest, arsLoadCtor) {
 
 TEST_F(ArsStoreTest, arsCreateCtor) {
   SaiArsTraits::CreateAttributes c{SAI_ARS_MODE_FLOWLET_QUALITY, 40000, 4000};
-  SaiArsTraits::AdapterHostKey k{SAI_ARS_MODE_FLOWLET_QUALITY, 40000, 4000};
-  auto obj = createObj<SaiArsTraits>(k, c, 0);
+  auto obj = createObj<SaiArsTraits>(std::monostate{}, c, 0);
   EXPECT_EQ(GET_ATTR(Ars, IdleTime, obj.attributes()), 40000);
   EXPECT_EQ(GET_ATTR(Ars, MaxFlows, obj.attributes()), 4000);
 }
