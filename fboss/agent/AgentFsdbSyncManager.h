@@ -8,6 +8,7 @@
 #endif
 #include "fboss/fsdb/if/FsdbModel.h"
 
+#include "fboss/agent/gen-cpp2/switch_reachability_types.h"
 #include "fboss/agent/state/StateDelta.h"
 #include "fboss/agent/state/SwitchState.h"
 
@@ -71,6 +72,9 @@ class AgentFsdbSyncManager
       const std::string& nodeName,
       fsdb::FsdbSubscriptionState oldState,
       fsdb::FsdbSubscriptionState newState);
+  void switchReachabilityChanged(
+      int64_t switchId,
+      switch_reachability::SwitchReachability newReachability);
 
  private:
   void stateUpdatedDelta(const StateDelta& delta);

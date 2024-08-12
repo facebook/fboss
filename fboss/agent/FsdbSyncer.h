@@ -3,6 +3,7 @@
 #pragma once
 
 #include "fboss/agent/gen-cpp2/agent_stats_types.h"
+#include "fboss/agent/gen-cpp2/switch_reachability_types.h"
 #include "fboss/fsdb/client/FsdbPubSubManager.h"
 #include "fboss/fsdb/client/FsdbStreamClient.h"
 
@@ -36,6 +37,10 @@ class FsdbSyncer {
       const std::string& nodeName,
       fsdb::FsdbSubscriptionState oldState,
       fsdb::FsdbSubscriptionState newState);
+
+  void switchReachabilityChanged(
+      int64_t switchId,
+      switch_reachability::SwitchReachability newReachability);
 
   void start();
   void stop(bool gracefulStop = false);

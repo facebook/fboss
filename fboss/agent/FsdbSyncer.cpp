@@ -111,6 +111,13 @@ void FsdbSyncer::updateDsfSubscriberState(
   agentFsdbSyncManager_->updateDsfSubscriberState(nodeName, oldState, newState);
 }
 
+void FsdbSyncer::switchReachabilityChanged(
+    int64_t switchId,
+    switch_reachability::SwitchReachability newReachability) {
+  agentFsdbSyncManager_->switchReachabilityChanged(
+      switchId, std::move(newReachability));
+}
+
 void FsdbSyncer::statsUpdated(const AgentStats& stats) {
   if (!readyForStatPublishing_.load()) {
     return;

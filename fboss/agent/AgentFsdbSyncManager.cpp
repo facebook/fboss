@@ -196,4 +196,37 @@ void AgentFsdbSyncManager::updateDsfSubscriberState(
   });
 }
 
+void AgentFsdbSyncManager::switchReachabilityChanged(
+    int64_t switchId,
+    switch_reachability::SwitchReachability newReachability) {
+  if (!FLAGS_agent_fsdb_sync) {
+    return;
+  }
+  updateState([switchId, newReachability = std::move(newReachability)](
+                  const auto& agentState) mutable {
+    using reachabilityKey = fsdb_model_tags::dsfSwitchReachability;
+    const auto& oldReachability =
+        agentState->template safe_cref<reachabilityKey>();
+    auto it = oldReachability->find(switchId);
+    if (it != oldReachability->end() &&
+        it->second->toThrift() == newReachability) {
+      // no change
+      return agentState;
+    }
+
+    auto newAgentState = agentState->clone();
+    auto& newSwitchReachabilityState =
+        newAgentState->template modify<reachabilityKey>(&newAgentState);
+    if (it == oldReachability->end()) {
+      newSwitchReachabilityState->emplace(switchId, std::move(newReachability));
+    } else {
+      newSwitchReachabilityState->modify(folly::to<std::string>(switchId));
+      newSwitchReachabilityState->ref(switchId)->fromThrift(
+          std::move(newReachability));
+    }
+
+    return newAgentState;
+  });
+}
+
 } // namespace facebook::fboss
