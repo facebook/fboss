@@ -2166,7 +2166,9 @@ void SwSwitch::switchReachabilityChanged(
   }
   // Update switch reachability info with the latest data
   (*hwSwitchReachability_.wlock())[switchId] = newReachability;
-  // TODO: Update FSDB with this info
+  runFsdbSyncFunction([switchId, &newReachability](auto& syncer) {
+    syncer->switchReachabilityChanged(switchId, std::move(newReachability));
+  });
 }
 
 void SwSwitch::startThreads() {
