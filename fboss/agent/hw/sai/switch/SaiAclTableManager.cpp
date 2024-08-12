@@ -1400,7 +1400,6 @@ std::set<cfg::AclTableQualifier> SaiAclTableManager::getSupportedQualifierSet()
 
   if (isTajo) {
     std::set<cfg::AclTableQualifier> tajoQualifiers = {
-        cfg::AclTableQualifier::ETHER_TYPE,
         cfg::AclTableQualifier::SRC_IPV6,
         cfg::AclTableQualifier::DST_IPV6,
         cfg::AclTableQualifier::SRC_IPV4,
@@ -1415,6 +1414,7 @@ std::set<cfg::AclTableQualifier> SaiAclTableManager::getSupportedQualifierSet()
 
 #if defined(TAJO_SDK_GTE_1_65_0)
     std::vector<cfg::AclTableQualifier> tajoExtraQualifierList = {
+        cfg::AclTableQualifier::ETHER_TYPE,
         cfg::AclTableQualifier::BTH_OPCODE,
         cfg::AclTableQualifier::SRC_PORT,
         cfg::AclTableQualifier::L4_SRC_PORT,
