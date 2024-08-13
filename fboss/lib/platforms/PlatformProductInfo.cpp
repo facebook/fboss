@@ -173,7 +173,7 @@ void PlatformProductInfo::initMode() {
         modelName.find("R4063-F9001-01") == 0) {
       type_ = PlatformType::PLATFORM_TAHAN800BC;
     } else {
-      throw std::runtime_error("invalid model name " + modelName);
+      throw FbossError("invalid model name " + modelName);
     }
   } else {
     if (FLAGS_mode == "wedge") {
