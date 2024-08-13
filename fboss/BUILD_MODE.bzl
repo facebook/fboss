@@ -51,7 +51,6 @@ _lsan_suppressions = [
     "bcm_th2_l3_egress_dlb_attr_set",
     # Tracked via MT-727
     "setup_network_device_defaults",
-    "lsai_runtime_dev_flags",
     "place_udk_for_key_type",
 ]
 
