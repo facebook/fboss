@@ -41,6 +41,6 @@ Use this workflow if you want to query all lab devices of a set of platforms. We
 - Parse and write JSONs for one specific file: use `parse_platform_dump()` directly.
 - Parse and write JSONS for a directory containing files for one platform: use `parse_platform_dump()` with `is_multiple_files` as `True` and `raw_data_file_path` pointing to a directory.
 
-`fetch_platform_lab_devices.py` – This file contains a small Python script for using a basset query to list all lab devices in the fboss.qsfp.autotest pool that are of a certain platform type. Each of these platforms is then printed out on its own line, to be consumed by `lab_device_scrape.sh`.
+`fetch_platform_lab_devices.py` – This file contains a small Python script for using a basset query to list all lab devices in the fboss.qsfp.autotest pool that are of a certain platform type. Each of these lab devices is then printed out on its own line, to be consumed by `lab_device_scrape.sh`. Each line contains the host name followed by hw_config as `platform,hw_config` (e.g. fboss32323232.snc1,5x16Q).
 
 `lab_device_scrape.sh` – This file calls `sudo wedge_qsfp_util --direct-i2c` on all fboss.qsfp.autotest devices of all platforms listed in this file, and writes the output of each to a separate file to be parsed for later.

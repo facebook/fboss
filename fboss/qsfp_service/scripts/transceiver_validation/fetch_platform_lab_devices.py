@@ -3,7 +3,7 @@ import subprocess
 import sys
 
 """
-print_basset_devices: Takes in a command line argument for the platform whose fboss.qsfp.autotest lab devices you want to retrieve. Print a new-line delimited list of all switch names.
+print_basset_devices: Takes in a command line argument for the platform whose fboss.qsfp.autotest lab devices you want to retrieve. Print a new-line delimited list of all switch hostnames and hardware configurations (e.g. fboss32323232.snc1,5x16Q).
 """
 
 
@@ -21,7 +21,13 @@ def print_basset_devices():
         if metadata["status"] == 6:
             # Skipping over dead devices.
             continue
-        all_devices.append(metadata["name"])
+        device = metadata["name"]
+        hw_config = ""
+        for attr in metadata["attributes"]:
+            if attr["name"] == "hardware_configuration":
+                hw_config = attr["value"]
+
+        all_devices.append(f"{device},{hw_config}")
 
     print("\n".join(all_devices))
 
