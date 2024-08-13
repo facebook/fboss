@@ -22,7 +22,7 @@ Use this workflow if you want to query all switches of a specific platform and s
 Use this workflow if you want to query all lab devices of a set of platforms. We use this right now to determine all of the transceiver part numbers we currently test on.
 
 1. Specify the platforms you want to query in `lab_device_scrape.sh`. Run the executable to run `sudo wedge_qsfp_util --direct-i2c` on all of a platform's alive switches in `fboss.qsfp.autotest`.
-2. Parse Data.
+2. Run `ASAN_OPTIONS=detect_leaks=0 buck2 run fbcode//fboss/qsfp_service/scripts/transceiver_validation:generate_lab_configs` to parse the `wedge_qsfp_util` dumps and generate unique transceiver config files. We include the asan environment variable due to some special asan config for the fboss repository.
 
 ## Default Directories
 `~/tcvr_configs/` – Home directory for raw command output (.out files).
@@ -44,3 +44,5 @@ Use this workflow if you want to query all lab devices of a set of platforms. We
 `fetch_platform_lab_devices.py` – This file contains a small Python script for using a basset query to list all lab devices in the fboss.qsfp.autotest pool that are of a certain platform type. Each of these lab devices is then printed out on its own line, to be consumed by `lab_device_scrape.sh`. Each line contains the host name followed by hw_config as `platform,hw_config` (e.g. fboss32323232.snc1,5x16Q).
 
 `lab_device_scrape.sh` – This file calls `sudo wedge_qsfp_util --direct-i2c` on all fboss.qsfp.autotest devices of all platforms listed in this file, and writes the output of each to a separate file to be parsed for later.
+
+`generate_lab_configs.py` – This file processes all of the text dumps generated from `lab_device_scrape.sh` and generates files containing all unique transceiver configurations.

@@ -1,0 +1,28 @@
+load("@fbcode_macros//build_defs:python_binary.bzl", "python_binary")
+load("@fbcode_macros//build_defs:python_library.bzl", "python_library")
+
+oncall("fboss_optics_phy")
+
+python_library(
+    name = "generate_lab_configs_lib",
+    srcs = [
+        "generate_lab_configs.py",
+    ],
+    base_module = "fboss",
+    deps = [
+        "//configerator/distribution/api/py:configerator_client",
+        "//fboss/agent:switch_config-py",
+        "//fboss/qsfp_service/if:config-py",
+        "//libfb/py/pyre:pyre",
+        "//neteng/netcastle/teams/fboss:qsfp_service_utils",
+    ],
+)
+
+python_binary(
+    name = "generate_lab_configs",
+    main_function = "fboss.generate_lab_configs.main",
+    par_style = "xar",
+    deps = [
+        ":generate_lab_configs_lib",
+    ],
+)
