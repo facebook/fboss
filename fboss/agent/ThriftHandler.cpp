@@ -332,6 +332,8 @@ void getPortInfoHelper(
       std::vector<signed char> dscps;
       auto& tcToDscp = qosPolicy->getDscpMap()->cref<switch_state_tags::from>();
       auto& tcToQueueId = qosPolicy->getTrafficClassToQueueId();
+      FOLLY_PUSH_WARNING
+      FOLLY_GCC_DISABLE_WARNING("-Wdangling-pointer")
       for (const auto& entry : std::as_const(*tcToDscp)) {
         auto& tc = entry->get<switch_state_tags::trafficClass>()->cref();
         auto& dscp = entry->get<switch_state_tags::attr>()->cref();
@@ -339,6 +341,7 @@ void getPortInfoHelper(
           dscps.push_back(dscp);
         }
       }
+      FOLLY_POP_WARNING
       pq.dscps() = dscps;
     }
 
