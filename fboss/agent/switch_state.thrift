@@ -49,8 +49,8 @@ struct RxSak {
 // Port configuration and oper state fields
 // TODO: separate config and operational state
 struct PortFields {
-  1: required i32 portId;
-  2: required string portName;
+  1: i32 portId;
+  2: string portName;
   3: string portDescription;
   // TODO: use switch_config.PortState?
   4: string portState = "DISABLED";
@@ -140,7 +140,7 @@ struct PortFields {
 typedef ctrl.SystemPortThrift SystemPortFields
 
 struct TransceiverSpecFields {
-  1: required i16 id;
+  1: i16 id;
   2: optional double cableLength;
   3: optional transceiver.MediaInterfaceCode mediaInterface;
   4: optional transceiver.TransceiverManagementInterface managementInterface;

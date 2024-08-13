@@ -45,8 +45,8 @@ struct NextHopThrift {
 * if any next hop has MPLS pop action, then all next hops must have MPLS pop action, address of nexthop is ignored.
 */
 struct NamedNextHopGroup {
-  1: required string name;
-  2: required list<NextHopThrift> nexthops;
+  1: string name;
+  2: list<NextHopThrift> nexthops;
 }
 
 /*

@@ -60,8 +60,8 @@ enum PortError {
 }
 
 struct IpPrefix {
-  1: required Address.BinaryAddress ip;
-  2: required i16 prefixLength;
+  1: Address.BinaryAddress ip;
+  2: i16 prefixLength;
 }
 
 enum RouteForwardAction {
@@ -73,7 +73,7 @@ enum RouteForwardAction {
 typedef string RouteCounterID
 
 struct UnicastRoute {
-  1: required IpPrefix dest;
+  1: IpPrefix dest;
   // NOTE: nextHopAddrs was once required. While we work on
   // fully deprecating it, we need to be extra careful and
   // ensure we don't crash clients/servers that still see it as required.
@@ -90,7 +90,7 @@ struct UnicastRoute {
 }
 
 struct MplsRoute {
-  1: required mpls.MplsLabel topLabel;
+  1: mpls.MplsLabel topLabel;
   3: optional AdminDistance adminDistance;
   4: list<common.NextHopThrift> nextHops;
   // use this instead of next hops for using policy based routing or named next hop group
@@ -98,26 +98,26 @@ struct MplsRoute {
 }
 
 struct ClientAndNextHops {
-  1: required i32 clientId;
+  1: i32 clientId;
   // Deprecated in favor of '3: nextHops'
-  2: required list<Address.BinaryAddress> nextHopAddrs;
-  3: required list<common.NextHopThrift> nextHops;
+  2: list<Address.BinaryAddress> nextHopAddrs;
+  3: list<common.NextHopThrift> nextHops;
   // will be populated if policy based route or named next hop group is used
   4: optional common.NamedRouteDestination namedRouteDestination;
 }
 
 struct IfAndIP {
-  1: required i32 interfaceID;
-  2: required Address.BinaryAddress ip;
+  1: i32 interfaceID;
+  2: Address.BinaryAddress ip;
 }
 
 struct RouteDetails {
-  1: required IpPrefix dest;
-  2: required string action;
+  1: IpPrefix dest;
+  2: string action;
   // Deprecated in favor of '7: nextHops'
-  3: required list<IfAndIP> fwdInfo;
-  4: required list<ClientAndNextHops> nextHopMulti;
-  5: required bool isConnected;
+  3: list<IfAndIP> fwdInfo;
+  4: list<ClientAndNextHops> nextHopMulti;
+  5: bool isConnected;
   6: optional AdminDistance adminDistance;
   7: list<common.NextHopThrift> nextHops;
   // use this for policy based route or with named next hop groups
