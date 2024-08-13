@@ -67,6 +67,9 @@ TEST(ConfigValidatorTest, ValidConfig) {
   config.platformName() = "MERU400BIU";
   config.rootSlotType() = "SCM_SLOT";
   config.slotTypeConfigs() = {{"SCM_SLOT", getValidSlotTypeConfig()}};
+  auto pmUnitConfig = PmUnitConfig();
+  pmUnitConfig.pluggedInSlotType() = "SCM_SLOT";
+  config.pmUnitConfigs() = {{"FAN_TRAY", pmUnitConfig}};
   config.bspKmodsRpmName() = "sample_bsp_rpm";
   config.bspKmodsRpmVersion() = "1.0.0-4";
   EXPECT_TRUE(ConfigValidator().isValid(config));
@@ -79,11 +82,11 @@ TEST(ConfigValidatorTest, InvalidVersionedPmUnitConfigs) {
   config.slotTypeConfigs() = {{"SCM_SLOT", getValidSlotTypeConfig()}};
   config.bspKmodsRpmName() = "sample_bsp_rpm";
   config.bspKmodsRpmVersion() = "1.0.0-4";
-  config.versionedPmUnitConfigs() = {{"SCM", {}}};
+  config.versionedPmUnitConfigs() = {{"FAN_TRAY", {}}};
   EXPECT_FALSE(ConfigValidator().isValid(config));
   auto versionedPmUnitConfig = VersionedPmUnitConfig();
   versionedPmUnitConfig.productSubVersion() = -1;
-  config.versionedPmUnitConfigs() = {{"SCM", {versionedPmUnitConfig}}};
+  config.versionedPmUnitConfigs() = {{"FAN_TRAY", {versionedPmUnitConfig}}};
   EXPECT_FALSE(ConfigValidator().isValid(config));
 }
 
@@ -94,7 +97,9 @@ TEST(ConfigValidatorTest, ValidVersionedPmUnitConfigs) {
   config.slotTypeConfigs() = {{"SCM_SLOT", getValidSlotTypeConfig()}};
   config.bspKmodsRpmName() = "sample_bsp_rpm";
   config.bspKmodsRpmVersion() = "1.0.0-4";
-  config.versionedPmUnitConfigs() = {{"SCM", {VersionedPmUnitConfig()}}};
+  auto versionedPmUnitConfig = VersionedPmUnitConfig();
+  versionedPmUnitConfig.pmUnitConfig()->pluggedInSlotType() = "SCM_SLOT";
+  config.versionedPmUnitConfigs() = {{"FAN_TRAY", {versionedPmUnitConfig}}};
   EXPECT_TRUE(ConfigValidator().isValid(config));
 }
 

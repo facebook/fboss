@@ -267,19 +267,27 @@ bool ConfigValidator::isValid(const PlatformConfig& config) {
 
   // Validate SlotTypeConfigs.
   for (const auto& [slotName, slotTypeConfig] : *config.slotTypeConfigs()) {
+    XLOG(INFO) << fmt::format(
+        "Validating SlotTypeConfig for Slot {}...", slotName);
     if (!isValidSlotTypeConfig(slotTypeConfig)) {
       return false;
     }
   }
 
-  for (const auto& [name, pmUnitConfig] : *config.pmUnitConfigs()) {
-    if (!isValidPmUnitConfig(pmUnitConfig)) {
+  for (const auto& [pmUnitName, pmUnitConfig] : *config.pmUnitConfigs()) {
+    XLOG(INFO) << fmt::format(
+        "Validating PmUnitConfig for PmUnit {} in Slot {}...",
+        pmUnitName,
+        *pmUnitConfig.pluggedInSlotType());
+    if (!isValidPmUnitConfig(*config.slotTypeConfigs(), pmUnitConfig)) {
       return false;
     }
   }
 
   for (const auto& [pmUnitName, versionedPmUnitConfigs] :
        *config.versionedPmUnitConfigs()) {
+    XLOG(INFO) << fmt::format(
+        "Validating VersionedPmUnitConfigs for PmUnit {}...", pmUnitName);
     if (versionedPmUnitConfigs.empty()) {
       XLOG(ERR) << fmt::format(
           "VersionedPmUnitConfigs for {} must not be empty", pmUnitName);
@@ -287,11 +295,14 @@ bool ConfigValidator::isValid(const PlatformConfig& config) {
     }
     for (const auto& versionedPmUnitConfig : versionedPmUnitConfigs) {
       if (*versionedPmUnitConfig.productSubVersion() < 0) {
-        XLOG(ERR) << "VersionedPmUnitConfig must not have a negative "
-                     "ProductSubVersion";
+        XLOG(ERR) << fmt::format(
+            "One of PmUnit {}'s VersionedPmUnitConfig has a negative ProductSubVersion",
+            pmUnitName);
         return false;
       }
-      if (!isValidPmUnitConfig(*versionedPmUnitConfig.pmUnitConfig())) {
+      if (!isValidPmUnitConfig(
+              *config.slotTypeConfigs(),
+              *versionedPmUnitConfig.pmUnitConfig())) {
         return false;
       }
     }
@@ -311,7 +322,16 @@ bool ConfigValidator::isValid(const PlatformConfig& config) {
   return true;
 }
 
-bool ConfigValidator::isValidPmUnitConfig(const PmUnitConfig& pmUnitConfig) {
+bool ConfigValidator::isValidPmUnitConfig(
+    const std::map<std::string, SlotTypeConfig>& slotTypeConfigs,
+    const PmUnitConfig& pmUnitConfig) {
+  if (!slotTypeConfigs.contains(*pmUnitConfig.pluggedInSlotType())) {
+    XLOG(ERR) << fmt::format(
+        "Plugged-into Slot {} which has a missing SlotTypeConfig definition",
+        *pmUnitConfig.pluggedInSlotType());
+    return false;
+  }
+
   // Validate PciDeviceConfigs
   for (const auto& pciDeviceConfig : *pmUnitConfig.pciDeviceConfigs_ref()) {
     if (!isValidPciDeviceConfig(pciDeviceConfig)) {

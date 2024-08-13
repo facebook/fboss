@@ -9,7 +9,9 @@ namespace facebook::fboss::platform::platform_manager {
 class ConfigValidator {
  public:
   bool isValid(const PlatformConfig& platformConfig);
-  bool isValidPmUnitConfig(const PmUnitConfig& pmUnitConfig);
+  bool isValidPmUnitConfig(
+      const std::map<std::string, SlotTypeConfig>& slotTypeConfigs,
+      const PmUnitConfig& pmUnitConfig);
   bool isValidSlotTypeConfig(const SlotTypeConfig& slotTypeConfig);
   bool isValidSlotConfig(const SlotConfig& slotConfig);
   bool isValidFpgaIpBlockConfig(const FpgaIpBlockConfig& fpgaIpBlockConfig);
