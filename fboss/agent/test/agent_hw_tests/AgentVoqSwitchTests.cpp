@@ -2238,4 +2238,27 @@ TEST_F(AgentVoqSwitchLineRateTest, dramBlockedTime) {
   this->verifyAcrossWarmBoots(setup, verify);
 }
 
+TEST_F(AgentVoqSwitchLineRateTest, creditsDeleted) {
+  auto setup = [=, this]() { setupEcmpDataplaneLoopOnAllPorts(); };
+  auto verify = [=, this]() {
+    const auto kPort = masterLogicalInterfacePortIds()[0];
+    auto switchId = scopeResolver().scope(kPort).switchId();
+    auto switchIndex =
+        getSw()->getSwitchInfoTable().getSwitchIndexFromSwitchId(switchId);
+    createTrafficOnMultiplePorts(1);
+    WITH_RETRIES({
+      auto switchStats = getSw()->getHwSwitchStatsExpensive()[switchIndex];
+      auto deletedCreditBytes =
+          switchStats.fb303GlobalStats()->deleted_credit_bytes().value_or(0);
+      XLOG(DBG2) << "Switch ID: " << switchId
+                 << ", deleted credit bytes: " << deletedCreditBytes;
+      EXPECT_EVENTUALLY_GT(deletedCreditBytes, 0);
+    });
+    // Stop traffic loop, so that it gets restarted after warmboot
+    addRemoveNeighbor(PortDescriptor(kPort), false);
+    addRemoveNeighbor(PortDescriptor(kPort), true);
+  };
+  this->verifyAcrossWarmBoots(setup, verify);
+}
+
 } // namespace facebook::fboss
