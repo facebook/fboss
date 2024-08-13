@@ -122,6 +122,17 @@ class YubaAsic : public TajoAsic {
   }
   cfg::Range64 getReservedEncapIndexRange() const override;
 
+  std::vector<prbs::PrbsPolynomial> getSupportedPrbsPolynomials()
+      const override {
+    return {
+        prbs::PrbsPolynomial::PRBS9,
+        prbs::PrbsPolynomial::PRBS11,
+        prbs::PrbsPolynomial::PRBS13,
+        prbs::PrbsPolynomial::PRBS15,
+        prbs::PrbsPolynomial::PRBS31,
+    };
+  }
+
  private:
   bool isSupportedFabric(Feature feature) const;
   bool isSupportedNonFabric(Feature feature) const;
