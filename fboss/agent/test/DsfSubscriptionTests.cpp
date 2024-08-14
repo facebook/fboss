@@ -74,7 +74,7 @@ using TestTypes = ::testing::Types<NumRemoteAsics<1>>;
 template <typename NumRemoteSwitchAsics>
 class DsfSubscriptionTest : public ::testing::Test {
  public:
-  static auto constexpr kNumRemoteSwitchAsic =
+  static auto constexpr kNumRemoteSwitchAsics =
       NumRemoteSwitchAsics::kNumRemoteAsics;
   void SetUp() override {
     FLAGS_publish_state_to_fsdb = true;
@@ -107,7 +107,11 @@ class DsfSubscriptionTest : public ::testing::Test {
     publisher_->start();
   }
   std::set<SwitchID> remoteSwitchIds() const {
-    return std::set<SwitchID>({SwitchID(kRemoteSwitchIdBegin)});
+    std::set<SwitchID> remoteSwitchIds;
+    for (auto i = 0; i < kNumRemoteSwitchAsics; ++i) {
+      remoteSwitchIds.insert(SwitchID(kRemoteSwitchIdBegin + i));
+    }
+    return remoteSwitchIds;
   }
   std::shared_ptr<SystemPortMap> makeSysPorts(int numSysPorts = 1) const {
     return makeSysPortsForSwitchIds(remoteSwitchIds(), numSysPorts);
@@ -116,12 +120,14 @@ class DsfSubscriptionTest : public ::testing::Test {
   std::shared_ptr<SwitchState> makeSwitchState() const {
     auto state = std::make_shared<SwitchState>();
     auto sysPorts = std::make_shared<MultiSwitchSystemPortMap>();
-    auto sysPortMap = makeSysPorts();
-    sysPorts->addMapNode(sysPortMap, matcher());
-    state->resetSystemPorts(sysPorts);
     auto intfs = std::make_shared<MultiSwitchInterfaceMap>();
-    auto intfMap = makeRifs(sysPortMap.get());
-    intfs->addMapNode(intfMap, matcher());
+    for (auto remoteSwitchId : remoteSwitchIds()) {
+      auto sysPortMap = makeSysPortsForSwitchIds({remoteSwitchId});
+      sysPorts->addMapNode(sysPortMap, matcher(remoteSwitchId));
+      auto intfMap = makeRifs(sysPortMap.get());
+      intfs->addMapNode(intfMap, matcher(remoteSwitchId));
+    }
+    state->resetSystemPorts(sysPorts);
     state->resetIntfs(intfs);
     return state;
   }
