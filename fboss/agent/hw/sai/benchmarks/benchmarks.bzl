@@ -52,7 +52,3 @@ def sai_mono_agent_benchmark(name, srcs, **kwargs):
 
 def sai_multi_switch_agent_benchmark(name, srcs, **kwargs):
     _multi_switch_agent_benchmark_binary(name, srcs, **kwargs)
-
-def sai_agent_benchmark(name, srcs, **kwargs):
-    sai_mono_agent_benchmark(name, srcs, **kwargs)
-    sai_multi_switch_agent_benchmark(name, srcs, **kwargs)
