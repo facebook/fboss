@@ -167,9 +167,7 @@ void DsfSubscription::handleFsdbSubscriptionStateUpdate(
 }
 
 void DsfSubscription::handleFsdbUpdate(fsdb::OperSubPathUnit&& operStateUnit) {
-  std::map<SwitchID, std::shared_ptr<SystemPortMap>> switchId2SystemPorts;
-  std::map<SwitchID, std::shared_ptr<InterfaceMap>> switchId2Intfs;
-
+  DsfUpdate dsfUpdate;
   for (const auto& change : *operStateUnit.changes()) {
     if (getSystemPortsPath().matchesPath(*change.path()->path())) {
       XLOG(DBG2) << "Got sys port update from : " << remoteNodeName_;
@@ -180,7 +178,7 @@ void DsfSubscription::handleFsdbUpdate(fsdb::OperSubPathUnit&& operStateUnit) {
           fsdb::OperProtocol::BINARY, *change.state()->contents()));
       for (const auto& [id, sysPortMap] : mswitchSysPorts) {
         auto matcher = HwSwitchMatcher(id);
-        switchId2SystemPorts[matcher.switchId()] = sysPortMap;
+        dsfUpdate.switchId2SystemPorts[matcher.switchId()] = sysPortMap;
       }
     } else if (getInterfacesPath().matchesPath(*change.path()->path())) {
       XLOG(DBG2) << "Got rif update from : " << remoteNodeName_;
@@ -191,7 +189,7 @@ void DsfSubscription::handleFsdbUpdate(fsdb::OperSubPathUnit&& operStateUnit) {
           fsdb::OperProtocol::BINARY, *change.state()->contents()));
       for (const auto& [id, intfMap] : mswitchIntfs) {
         auto matcher = HwSwitchMatcher(id);
-        switchId2Intfs[matcher.switchId()] = intfMap;
+        dsfUpdate.switchId2Intfs[matcher.switchId()] = intfMap;
       }
     } else if (getDsfSubscriptionsPath(
                    makeRemoteEndpoint(localNodeName_, localIp_))
@@ -213,7 +211,8 @@ void DsfSubscription::handleFsdbUpdate(fsdb::OperSubPathUnit&& operStateUnit) {
           remoteNodeName_);
     }
   }
-  updateWithRollbackProtection(switchId2SystemPorts, switchId2Intfs);
+  updateWithRollbackProtection(
+      dsfUpdate.switchId2SystemPorts, dsfUpdate.switchId2Intfs);
 }
 
 bool DsfSubscription::isLocal(SwitchID nodeSwitchId) const {
