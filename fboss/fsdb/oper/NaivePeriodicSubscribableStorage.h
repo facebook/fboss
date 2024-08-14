@@ -94,6 +94,9 @@ class NaivePeriodicSubscribableStorage
   using Base::subscribe_delta_extended;
   using Base::subscribe_encoded;
   using Base::subscribe_encoded_extended;
+#ifdef ENABLE_PATCH_APIS
+  using Base::subscribe_patch;
+#endif
 
   template <typename T>
   Result<T> get_impl(PathIter begin, PathIter end) const {
