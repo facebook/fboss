@@ -70,7 +70,9 @@ class DsfSubscription {
   DsfSession session_;
   // Used for tests only
   std::shared_ptr<SwitchState> cachedState_;
+  template <typename T>
   FRIEND_TEST(DsfSubscriptionTest, updateWithRollbackProtection);
+  template <typename T>
   FRIEND_TEST(DsfSubscriptionTest, setupNeighbors);
 };
 
