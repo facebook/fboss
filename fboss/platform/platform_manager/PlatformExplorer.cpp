@@ -31,21 +31,15 @@ std::string getSlotPath(
   }
 }
 
-std::optional<std::string> getPresenceFileContent(const std::string& path) {
-  std::string value{};
-  if (!folly::readFile(path.c_str(), value)) {
-    return std::nullopt;
-  }
-  return folly::trimWhitespace(value).str();
-}
-
 // Read a singular version number from the file at given path. If there is any
 // error reading the file, log and return a default of 0. The version number
 // must be the first non-whitespace substring, but the file may contain
 // additional non-numeric data after the version (e.g. human-readable comments).
 // TODO: Handle hwmon/info_rom cases (by standardizing them away, if possible).
 int readVersionNumber(const std::string& path) {
-  const auto versionFileContent = getPresenceFileContent(path);
+  const auto versionFileContent =
+      facebook::fboss::platform ::platform_manager::Utils()
+          .getStringFileContent(path);
   if (!versionFileContent) {
     // This log is necessary to distinguish read error vs reading "0".
     XLOGF(
@@ -78,7 +72,8 @@ namespace constants = platform_manager_config_constants;
 PlatformExplorer::PlatformExplorer(const PlatformConfig& config)
     : platformConfig_(config),
       dataStore_(platformConfig_),
-      devicePathResolver_(platformConfig_, dataStore_, i2cExplorer_) {}
+      devicePathResolver_(platformConfig_, dataStore_, i2cExplorer_),
+      presenceChecker_(devicePathResolver_) {}
 
 void PlatformExplorer::explore() {
   XLOG(INFO) << "Exploring the platform";
@@ -155,51 +150,16 @@ void PlatformExplorer::exploreSlot(
   // If PresenceDetection is specified, proceed further only if the presence
   // condition is satisfied
   if (const auto presenceDetection = slotConfig.presenceDetection()) {
-    if (const auto sysfsFileHandle = presenceDetection->sysfsFileHandle()) {
-      auto presencePath = devicePathResolver_.resolvePresencePath(
-          *sysfsFileHandle->devicePath(), *sysfsFileHandle->presenceFileName());
-      if (!presencePath) {
-        XLOG(ERR) << fmt::format(
-            "No sysfs file could be found at DevicePath: {} and presenceFileName: {}",
-            *sysfsFileHandle->devicePath(),
-            *sysfsFileHandle->presenceFileName());
+    try {
+      if (!presenceChecker_.isPresent(
+              presenceDetection.value(), childSlotPath)) {
         return;
       }
-      XLOG(INFO) << fmt::format(
-          "The file {} at DevicePath {} resolves to {}",
-          *sysfsFileHandle->presenceFileName(),
-          *sysfsFileHandle->devicePath(),
-          *presencePath);
-      auto presenceFileContent = getPresenceFileContent(*presencePath);
-      if (!presenceFileContent) {
-        XLOG(ERR) << fmt::format("Could not read file {}", *presencePath);
-        return;
-      }
-      int16_t presenceValue{0};
-      try {
-        presenceValue = std::stoi(*presenceFileContent, nullptr, 0);
-      } catch (const std::exception& ex) {
-        XLOG(ERR) << fmt::format(
-            "Failed to process file content {}: {}",
-            *presenceFileContent,
-            folly::exceptionStr(ex));
-        return;
-      }
-      bool isPresent = (presenceValue == *sysfsFileHandle->desiredValue());
-      XLOG(INFO) << fmt::format(
-          "Value at {} is {}. desiredValue is {}. "
-          "Assuming {} of PmUnit at {}",
-          *presencePath,
-          *presenceFileContent,
-          *sysfsFileHandle->desiredValue(),
-          isPresent ? "presence" : "absence",
-          childSlotPath);
-      if (!isPresent) {
-        return;
-      }
-    } else {
-      XLOG(INFO) << fmt::format(
-          "Invalid PresenceDetection for {}", childSlotPath);
+    } catch (const std::exception& ex) {
+      XLOG(ERR) << fmt::format(
+          "Error checking for presence in slotPath {}: {}",
+          slotName,
+          ex.what());
       return;
     }
   }

@@ -104,6 +104,15 @@ cpp_library(
 )
 
 cpp_library(
+    name = "presence_checker",
+    srcs = ["PresenceChecker.cpp"],
+    exported_deps = [
+        ":device_path_resolver",
+        ":utils",
+    ],
+)
+
+cpp_library(
     name = "pkg_utils",
     srcs = [
         "PkgUtils.cpp",
@@ -127,6 +136,7 @@ cpp_library(
         ":i2c_explorer",
         ":pci_explorer",
         ":platform_manager_config-cpp2-types",
+        ":presence_checker",
         ":utils",
         "//fb303:service_data",
         "//fboss/platform/weutil:fboss_eeprom_lib",
@@ -144,6 +154,7 @@ cpp_library(
         ":platform_manager_config-cpp2-types",
         "//fboss/platform/config_lib:config_lib",
         "//fboss/platform/helpers:platform_name_lib",
+        "//folly:file_util",
         "//folly/logging:logging",
         "//thrift/lib/cpp2/protocol:protocol",
     ],

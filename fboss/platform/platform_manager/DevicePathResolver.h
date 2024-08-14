@@ -52,7 +52,7 @@ class DevicePathResolver {
   // Resolves the presenceFileName present at the given devicePath.
   std::optional<std::string> resolvePresencePath(
       const std::string& devicePath,
-      const std::string& presenceFileName);
+      const std::string& presenceFileName) const;
 
  private:
   // Get I2cDeviceConfig for a given SlotPath and DeviceName.

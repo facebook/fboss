@@ -6,6 +6,7 @@
 #include <filesystem>
 #include <stdexcept>
 
+#include <folly/FileUtil.h>
 #include <folly/logging/xlog.h>
 #include <re2/re2.h>
 #include <thrift/lib/cpp2/protocol/Serializer.h>
@@ -138,5 +139,14 @@ std::string Utils::resolveGpioChipCharDevPath(const std::string& sysfsPath) {
         "{}. Reason: {} does not exist in the system", failMsg, charDevPath));
   }
   return charDevPath;
+}
+
+std::optional<std::string> Utils::getStringFileContent(
+    const std::string& path) {
+  std::string value{};
+  if (!folly::readFile(path.c_str(), value)) {
+    return std::nullopt;
+  }
+  return folly::trimWhitespace(value).str();
 }
 } // namespace facebook::fboss::platform::platform_manager

@@ -156,7 +156,7 @@ std::string DevicePathResolver::resolvePciDevicePath(
 
 std::optional<std::string> DevicePathResolver::resolvePresencePath(
     const std::string& devicePath,
-    const std::string& presenceFileName) {
+    const std::string& presenceFileName) const {
   const auto [slotPath, deviceName] = Utils().parseDevicePath(devicePath);
   if (!dataStore_.hasPmUnit(slotPath)) {
     XLOG(ERR) << fmt::format("No PmUnit exists at {}", slotPath);
