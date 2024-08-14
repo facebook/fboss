@@ -103,6 +103,10 @@
         {
           "pmUnitScopedName": "CPU_CORE_TEMP",
           "sysfsPath": "/sys/bus/platform/devices/coretemp.0"
+        },
+        {
+          "pmUnitScopedName": "SMB_E1S_SSD_TEMP",
+          "sysfsPath": "/sys/class/nvme/nvme0"
         }
       ],
       "pciDeviceConfigs": [
@@ -2224,11 +2228,11 @@
             "SMB_IOB_I2C_MASTER_24"
           ]
         },
-	      "BCB_SLOT@0": {
+	    "BCB_SLOT@0": {
           "slotType": "BCB_SLOT",
           "outgoingI2cBusNames": [
-	          "SMB_IOB_I2C_MASTER_1",
-	          "SMB_IOB_I2C_MASTER_19"
+            "SMB_IOB_I2C_MASTER_1",
+	        "SMB_IOB_I2C_MASTER_19"
           ]
         }
       }
@@ -2324,6 +2328,12 @@
           "pmUnitScopedName": "BCB_FAN_CPLD"
         },
         {
+          "busName": "INCOMING@0",
+          "address": "0x16",
+          "kernelDeviceName": "mtia_fan_watchdog",
+          "pmUnitScopedName": "BCB_FAN_WATCHDOG"
+        },
+        {
           "busName": "INCOMING@1",
           "address": "0x5e",
           "kernelDeviceName": "bp4f_max31790",
@@ -2338,6 +2348,7 @@
     "/run/devmap/eeproms/RUNBMC_EEPROM": "/RUNBMC_SLOT@0/[IDPROM]",
     "/run/devmap/eeproms/COME_FRU": "/COME_SLOT@0/[IDPROM]",
     "/run/devmap/sensors/CPU_CORE_TEMP": "/[CPU_CORE_TEMP]",
+    "/run/devmap/sensors/SMB_E1S_SSD_TEMP": "/[SMB_E1S_SSD_TEMP]",
     "/run/devmap/sensors/BCB_FAN_CPLD": "/BCB_SLOT@0/[BCB_FAN_CPLD]",
     "/run/devmap/sensors/BCB_FAN_CPLD_2": "/BCB_SLOT@0/[BCB_FAN_CPLD_2]",
     "/run/devmap/sensors/BMC_U9_THERMAL_SENSOR": "/RUNBMC_SLOT@0/[BMC_U9_THERMAL_SENSOR]",
@@ -2517,6 +2528,7 @@
   "bspKmodsToReload": [
     "bp4f_tda38640",
     "bp4f_xdpe12284",
+    "bp4f_max31790",
     "janga_smbcpld",
     "mtia_smbcpld",
     "fboss_iob_pci",
@@ -2527,6 +2539,7 @@
     "fboss_iob_led",
     "fboss_iob_spi",
     "fboss_iob_xcvr",
+    "mtia_fan_watchdog",
     "tps25990"
   ],
   "upstreamKmodsToLoad": [
