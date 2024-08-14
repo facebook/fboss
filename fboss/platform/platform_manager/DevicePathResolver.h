@@ -10,6 +10,7 @@ namespace facebook::fboss::platform::platform_manager {
 
 class DevicePathResolver {
  public:
+  virtual ~DevicePathResolver() = default;
   explicit DevicePathResolver(
       const PlatformConfig& config,
       const DataStore& dataStore,
@@ -35,7 +36,8 @@ class DevicePathResolver {
 
   // Resolves a given PciSubDevicePath to CharDevPath in the system.
   // Throws a runtime exception if the DevicePath cannot be resolved.
-  std::string resolvePciSubDevCharDevPath(const std::string& devicePath) const;
+  virtual std::string resolvePciSubDevCharDevPath(
+      const std::string& devicePath) const;
 
   // Resolves a given DevicePath to i2c sysfs path in the system.
   // Throws a runtime exception if the DevicePath cannot be resolved.
@@ -50,7 +52,7 @@ class DevicePathResolver {
   std::string resolvePciDevicePath(const std::string& devicePath);
 
   // Resolves the presenceFileName present at the given devicePath.
-  std::optional<std::string> resolvePresencePath(
+  virtual std::optional<std::string> resolvePresencePath(
       const std::string& devicePath,
       const std::string& presenceFileName) const;
 

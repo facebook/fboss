@@ -8,6 +8,7 @@ namespace facebook::fboss::platform::platform_manager {
 
 class Utils {
  public:
+  virtual ~Utils() = default;
   PlatformConfig getConfig();
   // Recursively create directories for the given path.
   // - for given /x/y/z, directory y/z if x already exists.
@@ -32,9 +33,11 @@ class Utils {
   // Throws an exception when it fails to resolve CharDevicePath
   std::string resolveGpioChipCharDevPath(const std::string& sysfsPath);
 
-  std::optional<std::string> getStringFileContent(const std::string& path);
+  virtual std::optional<std::string> getStringFileContent(
+      const std::string& path) const;
 
-  int getGpioLineValue(const std::string& charDevPath, int lineIndex);
+  virtual int getGpioLineValue(const std::string& charDevPath, int lineIndex)
+      const;
 };
 
 } // namespace facebook::fboss::platform::platform_manager

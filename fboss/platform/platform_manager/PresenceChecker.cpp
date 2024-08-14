@@ -5,8 +5,10 @@
 
 using namespace facebook::fboss::platform::platform_manager;
 
-PresenceChecker::PresenceChecker(const DevicePathResolver& devicePathResolver)
-    : devicePathResolver_(devicePathResolver) {}
+PresenceChecker::PresenceChecker(
+    const DevicePathResolver& devicePathResolver,
+    const std::shared_ptr<Utils> utils)
+    : devicePathResolver_(devicePathResolver), utils_(utils) {}
 
 bool PresenceChecker::isPresent(
     const PresenceDetection& presenceDetection,
@@ -37,7 +39,7 @@ bool PresenceChecker::sysfsPresent(
       *handle.presenceFileName(),
       *handle.devicePath(),
       *presencePath);
-  auto presenceFileContent = Utils().getStringFileContent(*presencePath);
+  auto presenceFileContent = utils_->getStringFileContent(*presencePath);
   if (!presenceFileContent) {
     throw std::runtime_error(
         fmt::format("Could not read file {}", *presencePath));
@@ -74,7 +76,7 @@ bool PresenceChecker::gpioPresent(
       *handle.devicePath(),
       presencePath);
   auto presenceValue =
-      Utils().getGpioLineValue(presencePath, *handle.lineIndex());
+      utils_->getGpioLineValue(presencePath, *handle.lineIndex());
   bool isPresent = (presenceValue == *handle.desiredValue());
   XLOG(INFO) << fmt::format(
       "Value at {} is {}. desiredValue is {}. "

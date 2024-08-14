@@ -144,7 +144,7 @@ std::string Utils::resolveGpioChipCharDevPath(const std::string& sysfsPath) {
 }
 
 std::optional<std::string> Utils::getStringFileContent(
-    const std::string& path) {
+    const std::string& path) const {
   std::string value{};
   if (!folly::readFile(path.c_str(), value)) {
     return std::nullopt;
@@ -152,7 +152,8 @@ std::optional<std::string> Utils::getStringFileContent(
   return folly::trimWhitespace(value).str();
 }
 
-int Utils::getGpioLineValue(const std::string& charDevPath, int lineIndex) {
+int Utils::getGpioLineValue(const std::string& charDevPath, int lineIndex)
+    const {
   struct gpiod_chip* chip = gpiod_chip_open(charDevPath.c_str());
   GpiodLine line(chip, lineIndex, "gpioline");
   int value = line.getValue();

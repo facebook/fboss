@@ -70,3 +70,15 @@ cpp_unittest(
         "//fboss/platform/platform_manager:device_path_resolver",
     ],
 )
+
+cpp_unittest(
+    name = "presence_checker_test",
+    srcs = [
+        "PresenceCheckerTest.cpp",
+    ],
+    deps = [
+        "fbsource//third-party/googletest:gmock",
+        "//fboss/platform/platform_manager:presence_checker",
+        "//fboss/platform/platform_manager:utils",
+    ],
+)
