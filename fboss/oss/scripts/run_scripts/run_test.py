@@ -164,6 +164,7 @@ OPT_ARG_FRUID_PATH = "--fruid-path"
 OPT_ARG_SIMULATOR = "--simulator"
 OPT_ARG_SAI_LOGGING = "--sai_logging"
 OPT_ARG_FBOSS_LOGGING = "--fboss_logging"
+OPT_ARG_PRODUCTION_FEATURES = "--production-features"
 SUB_CMD_BCM = "bcm"
 SUB_CMD_SAI = "sai"
 SUB_CMD_QSFP = "qsfp"
@@ -271,6 +272,10 @@ class TestRunner(abc.ABC):
 
     @abc.abstractmethod
     def _end_run(self):
+        pass
+
+    @abc.abstractmethod
+    def add_subcommand_arguments(self, sub_parser: ArgumentParser):
         pass
 
     def setup_qsfp_service(self, is_warm_boot):
@@ -716,6 +721,9 @@ class TestRunner(abc.ABC):
 
 
 class BcmTestRunner(TestRunner):
+    def add_subcommand_arguments(self, sub_parser: ArgumentParser):
+        pass
+
     def _get_config_path(self):
         return "/etc/coop/bcm.conf"
 
@@ -755,6 +763,9 @@ class BcmTestRunner(TestRunner):
 
 
 class SaiTestRunner(TestRunner):
+    def add_subcommand_arguments(self, sub_parser: ArgumentParser):
+        pass
+
     def _get_config_path(self):
         # TOOO Not available in OSS
         return ""
@@ -802,6 +813,11 @@ class SaiTestRunner(TestRunner):
 
 
 class QsfpTestRunner(TestRunner):
+    def add_subcommand_arguments(self, sub_parser: ArgumentParser):
+        sub_parser.add_argument(
+            OPT_ARG_PRODUCTION_FEATURES, type=str, help="", default=None
+        )
+
     def _get_config_path(self):
         return ""
 
@@ -843,6 +859,9 @@ class QsfpTestRunner(TestRunner):
 
 
 class LinkTestRunner(TestRunner):
+    def add_subcommand_arguments(self, sub_parser: ArgumentParser):
+        pass
+
     def _get_config_path(self):
         return ""
 
@@ -1015,7 +1034,9 @@ if __name__ == "__main__":
 
     # Add subparser for QSFP tests
     qsfp_test_parser = subparsers.add_parser(SUB_CMD_QSFP, help="run qsfp tests")
-    qsfp_test_parser.set_defaults(func=QsfpTestRunner().run_test)
+    qsfp_test_runner = QsfpTestRunner()
+    qsfp_test_parser.set_defaults(func=qsfp_test_runner.run_test)
+    qsfp_test_runner.add_subcommand_arguments(qsfp_test_parser)
 
     # Add subparser for Link tests
     link_test_parser = subparsers.add_parser(SUB_CMD_LINK, help="run link tests")
