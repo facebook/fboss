@@ -211,8 +211,16 @@ void DsfSubscription::handleFsdbUpdate(fsdb::OperSubPathUnit&& operStateUnit) {
           remoteNodeName_);
     }
   }
-  updateWithRollbackProtection(
-      dsfUpdate.switchId2SystemPorts, dsfUpdate.switchId2Intfs);
+  {
+    auto nextDsfUpdateWlock = nextDsfUpdate_.wlock();
+    SCOPE_EXIT {
+      nextDsfUpdateWlock->clear();
+    };
+    *nextDsfUpdateWlock = std::move(dsfUpdate);
+    updateWithRollbackProtection(
+        nextDsfUpdateWlock->switchId2SystemPorts,
+        nextDsfUpdateWlock->switchId2Intfs);
+  }
 }
 
 bool DsfSubscription::isLocal(SwitchID nodeSwitchId) const {

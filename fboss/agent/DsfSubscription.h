@@ -80,6 +80,7 @@ class DsfSubscription {
   folly::IPAddress remoteIp_;
   SwSwitch* sw_;
   DsfSession session_;
+  folly::Synchronized<DsfUpdate> nextDsfUpdate_;
   // Used for tests only
   std::shared_ptr<SwitchState> cachedState_;
   template <typename T>
