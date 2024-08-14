@@ -45,6 +45,17 @@ class DsfSubscription {
   }
 
  private:
+  struct DsfUpdate {
+    bool isEmpty() const {
+      return switchId2SystemPorts.empty() && switchId2Intfs.empty();
+    }
+    void clear() {
+      switchId2SystemPorts.clear();
+      switchId2Intfs.clear();
+    }
+    std::map<SwitchID, std::shared_ptr<SystemPortMap>> switchId2SystemPorts;
+    std::map<SwitchID, std::shared_ptr<InterfaceMap>> switchId2Intfs;
+  };
   std::string remoteEndpointStr() const;
   void updateWithRollbackProtection(
       const std::map<SwitchID, std::shared_ptr<SystemPortMap>>&
