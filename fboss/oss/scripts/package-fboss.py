@@ -140,6 +140,16 @@ class PackageFboss:
             os.path.join(tmp_dir_name, PackageFboss.DATA, "hw_sanity_tests"),
         )
 
+    def _copy_production_features(self, tmp_dir_name):
+        production_features_path = os.path.join(
+            self.git_path, "fboss/oss/production_features"
+        )
+        print(f"Copying {production_features_path} to {tmp_dir_name}")
+        shutil.copytree(
+            "fboss/oss/production_features",
+            os.path.join(tmp_dir_name, PackageFboss.DATA, "production_features"),
+        )
+
     def _copy_known_bad_tests(self, tmp_dir_name):
         hw_known_bad_tests_path = os.path.join(
             self.git_path, "fboss/oss/hw_known_bad_tests"
@@ -210,6 +220,7 @@ class PackageFboss:
         self._copy_configs(tmp_dir_name)
         self._copy_known_bad_tests(tmp_dir_name)
         self._copy_unsupported_tests(tmp_dir_name)
+        self._copy_production_features(tmp_dir_name)
 
     def _compress_binaries(self):
         print("Compressing FBOSS Binaries...")
