@@ -8,6 +8,7 @@ add_executable(switch_test
     fboss/agent/test/oss/Main.cpp
     fboss/agent/hw/sai/switch/tests/AclTableGroupManagerTest.cpp
     fboss/agent/hw/sai/switch/tests/AclTableManagerTest.cpp
+    fboss/agent/hw/sai/switch/tests/ArsManagerTest.cpp
     fboss/agent/hw/sai/switch/tests/BridgeManagerTest.cpp
     fboss/agent/hw/sai/switch/tests/FdbManagerTest.cpp
     fboss/agent/hw/sai/switch/tests/InSegEntryManagerTest.cpp
