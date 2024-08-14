@@ -1647,7 +1647,7 @@
               "csrOffset": "0x0000"
             }
           ]
-	}
+        }
       ],
       "i2cDeviceConfigs": [
         {
@@ -1665,7 +1665,7 @@
         {
           "busName": "MCB_IOB_I2C_MASTER_14",
           "address": "0x60",
-          "kernelDeviceName": "mcbcpld",
+          "kernelDeviceName": "mp3_mcbcpld",
           "pmUnitScopedName": "MCB_CPLD"
         },
         {
@@ -1726,7 +1726,7 @@
               "regOffset": 11,
               "ioBuf": [2]
             }
-	  ]
+          ]
         }
       ],
       "outgoingSlotConfigs": {
@@ -1779,6 +1779,12 @@
     },
     "MINIPACK3_SCM": {
       "pluggedInSlotType": "SCM_SLOT",
+      "embeddedSensorConfigs": [
+        {
+          "pmUnitScopedName": "SCM_M2_SSD_TEMP",
+          "sysfsPath": "/sys/class/nvme/nvme0"
+        }
+      ],
       "i2cDeviceConfigs": [
         {
           "busName": "INCOMING@0",
@@ -1804,7 +1810,7 @@
               "regOffset": 177,
               "ioBuf": [2]
             }
-	  ]
+          ]
         },
         {
           "busName": "SCM_MUX_A@0",
@@ -1834,7 +1840,7 @@
               "regOffset": 11,
               "ioBuf": [2]
             }
-	  ]
+          ]
         },
         {
           "busName": "SCM_MUX_A@3",
@@ -1862,7 +1868,7 @@
             "SCM_MUX_A@7"
           ]
         },
-	      "COMESE_SLOT@0": {
+        "COMESE_SLOT@0": {
           "slotType": "COMESE_SLOT",
           "outgoingI2cBusNames": [
             "SCM_MUX_B@1",
@@ -2975,7 +2981,7 @@
               "regOffset": 11,
               "ioBuf": [2]
             }
-	        ]
+          ]
         },
         {
           "busName": "INCOMING@2",
@@ -2987,7 +2993,7 @@
               "regOffset": 11,
               "ioBuf": [2]
             }
-	        ]
+          ]
         },
         {
           "busName": "INCOMING@3",
@@ -3153,7 +3159,7 @@
           "address": "0x48",
           "kernelDeviceName": "tmp1075",
           "pmUnitScopedName": "SMB_TSENSOR4"
-         }
+        }
       ]
     }
   },
@@ -3173,6 +3179,7 @@
     "/run/devmap/eeproms/3V3_L_EEPROM": "/SMB_SLOT@0/OPTICL_SLOT@0/[IDPROM]",
     "/run/devmap/eeproms/3V3_R_EEPROM": "/SMB_SLOT@0/OPTICR_SLOT@0/[IDPROM]",
     "/run/devmap/sensors/CPU_CORE_TEMP": "/[CPU_CORE_TEMP]",
+    "/run/devmap/sensors/SCM_M2_SSD_TEMP": "/SCM_SLOT@0/[SCM_M2_SSD_TEMP]",
     "/run/devmap/sensors/MCB_TSENSOR": "/[MCB_TSENSOR]",
     "/run/devmap/sensors/MCB_FAN_CPLD": "/[MCB_FAN_CPLD]",
     "/run/devmap/sensors/MCB_VOLTAGE_MONITOR1": "/[MCB_VOLTAGE_MONITOR1]",
@@ -3415,8 +3422,7 @@
     "mp3_smbcpld",
     "tps25990"
   ],
-  "sharedKmodsToReload": [
-  ],
+  "sharedKmodsToReload": [],
   "upstreamKmodsToLoad": [
     "i2c_i801",
     "spidev"
