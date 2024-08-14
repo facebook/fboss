@@ -15,6 +15,7 @@
 #include "fboss/agent/hw/sai/switch/ConcurrentIndices.h"
 #include "fboss/agent/hw/sai/switch/SaiAclTableGroupManager.h"
 #include "fboss/agent/hw/sai/switch/SaiAclTableManager.h"
+#include "fboss/agent/hw/sai/switch/SaiArsManager.h"
 #include "fboss/agent/hw/sai/switch/SaiBridgeManager.h"
 #include "fboss/agent/hw/sai/switch/SaiBufferManager.h"
 #include "fboss/agent/hw/sai/switch/SaiCounterManager.h"
@@ -66,6 +67,7 @@ void SaiManagerTable::createSaiTableManagers(
       std::make_unique<SaiAclTableGroupManager>(saiStore, this, platform);
   aclTableManager_ =
       std::make_unique<SaiAclTableManager>(saiStore, this, platform);
+  arsManager_ = std::make_unique<SaiArsManager>(saiStore, this, platform);
   bridgeManager_ = std::make_unique<SaiBridgeManager>(saiStore, this, platform);
   bufferManager_ = std::make_unique<SaiBufferManager>(saiStore, this, platform);
   counterManager_ =
@@ -173,6 +175,8 @@ void SaiManagerTable::reset(bool skipSwitchManager) {
   switchManager_->resetQosMaps();
   samplePacketManager_.reset();
 
+  arsManager_.reset();
+
   // ACL Table Group is going away, reset ingressACL pointing to it
   if (!skipSwitchManager) {
     switchManager_->resetIngressAcl();
@@ -229,6 +233,13 @@ SaiAclTableManager& SaiManagerTable::aclTableManager() {
 }
 const SaiAclTableManager& SaiManagerTable::aclTableManager() const {
   return *aclTableManager_;
+}
+
+SaiArsManager& SaiManagerTable::arsManager() {
+  return *arsManager_;
+}
+const SaiArsManager& SaiManagerTable::arsManager() const {
+  return *arsManager_;
 }
 
 SaiBridgeManager& SaiManagerTable::bridgeManager() {

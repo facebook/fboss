@@ -7,6 +7,7 @@ set(SAI_SWITCH_SRC
   fboss/agent/hw/sai/switch/ConcurrentIndices.cpp
   fboss/agent/hw/sai/switch/SaiAclTableGroupManager.cpp
   fboss/agent/hw/sai/switch/SaiAclTableManager.cpp
+  fboss/agent/hw/sai/switch/SaiArsManager.cpp
   fboss/agent/hw/sai/switch/SaiBridgeManager.cpp
   fboss/agent/hw/sai/switch/SaiBufferManager.cpp
   fboss/agent/hw/sai/switch/SaiCounterManager.cpp

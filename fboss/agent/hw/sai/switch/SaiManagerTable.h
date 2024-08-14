@@ -9,6 +9,7 @@
  */
 #pragma once
 
+#include "fboss/agent/hw/sai/api/SaiVersion.h"
 #include "fboss/agent/hw/sai/api/Types.h"
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 
@@ -24,6 +25,7 @@ namespace facebook::fboss {
 struct ConcurrentIndices;
 class SaiAclTableGroupManager;
 class SaiAclTableManager;
+class SaiArsManager;
 class SaiBridgeManager;
 class SaiBufferManager;
 class SaiCounterManager;
@@ -72,6 +74,9 @@ class SaiManagerTable {
 
   SaiAclTableManager& aclTableManager();
   const SaiAclTableManager& aclTableManager() const;
+
+  SaiArsManager& arsManager();
+  const SaiArsManager& arsManager() const;
 
   SaiAclTableGroupManager& aclTableGroupManager();
   const SaiAclTableGroupManager& aclTableGroupManager() const;
@@ -171,6 +176,7 @@ class SaiManagerTable {
  private:
   std::unique_ptr<SaiAclTableGroupManager> aclTableGroupManager_;
   std::unique_ptr<SaiAclTableManager> aclTableManager_;
+  std::unique_ptr<SaiArsManager> arsManager_;
   std::unique_ptr<SaiBridgeManager> bridgeManager_;
   std::unique_ptr<SaiBufferManager> bufferManager_;
   std::unique_ptr<SaiCounterManager> counterManager_;

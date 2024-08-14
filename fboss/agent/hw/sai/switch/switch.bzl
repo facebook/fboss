@@ -6,6 +6,7 @@ _COMMON_SRCS = [
     "ConcurrentIndices.cpp",
     "SaiAclTableGroupManager.cpp",
     "SaiAclTableManager.cpp",
+    "SaiArsManager.cpp",
     "SaiBridgeManager.cpp",
     "SaiBufferManager.cpp",
     "SaiCounterManager.cpp",
