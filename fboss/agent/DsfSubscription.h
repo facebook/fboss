@@ -45,6 +45,7 @@ class DsfSubscription {
   }
 
  private:
+  std::string remoteEndpointStr() const;
   void updateWithRollbackProtection(
       const std::map<SwitchID, std::shared_ptr<SystemPortMap>>&
           switchId2SystemPorts,

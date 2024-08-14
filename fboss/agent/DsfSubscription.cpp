@@ -53,6 +53,7 @@ std::vector<std::vector<std::string>> getAllSubscribePaths(
           DsfSubscription::makeRemoteEndpoint(localNodeName, localIP))
           .tokens()};
 }
+auto constexpr kDsfCtrlLogPrefix = "DSF_CTRL_EVENT: ";
 } // namespace
 
 namespace facebook::fboss {
@@ -94,6 +95,8 @@ DsfSubscription::DsfSubscription(
         handleFsdbUpdate(std::move(operStateUnit));
       },
       getServerOptions(localIp_.str(), remoteIp_.str()));
+  XLOG(DBG2) << kDsfCtrlLogPrefix
+             << "added subscription for : " << remoteEndpointStr();
 }
 
 DsfSubscription::~DsfSubscription() {
@@ -103,8 +106,15 @@ DsfSubscription::~DsfSubscription() {
   }
   fsdbPubSubMgr_->removeStatePathSubscription(
       getAllSubscribePaths(localNodeName_, localIp_), remoteIp_.str());
+  XLOG(DBG2) << kDsfCtrlLogPrefix
+             << "removed subscription for : " << remoteEndpointStr();
 }
 
+std::string DsfSubscription::remoteEndpointStr() const {
+  static const std::string kRemoteEndpoint =
+      remoteNodeName_ + "_" + remoteIp_.str();
+  return kRemoteEndpoint;
+}
 fsdb::FsdbStreamClient::State DsfSubscription::getStreamState() const {
   return fsdbPubSubMgr_->getStatePathSubsriptionState(
       getAllSubscribePaths(localNodeName_, localIp_), remoteIp_.str());
@@ -258,6 +268,7 @@ void DsfSubscription::updateWithRollbackProtection(
 
 void DsfSubscription::processGRHoldTimerExpired() {
   sw_->stats()->dsfSessionGrExpired();
+  XLOG(DBG2) << kDsfCtrlLogPrefix << "GR expired for : " << remoteEndpointStr();
   auto updateDsfStateFn = [this](const std::shared_ptr<SwitchState>& in) {
     bool changed{false};
     auto out = in->clone();
