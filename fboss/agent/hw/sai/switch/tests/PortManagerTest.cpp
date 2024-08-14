@@ -167,6 +167,7 @@ class PortManagerTest : public ManagerTestBase {
         std::nullopt, // ARS port load past weight
         std::nullopt, // ARS port load future weight
 #endif
+        std::nullopt, // Reachability Group
     };
     return portApi.create<SaiPortTraits>(a, 0);
   }
