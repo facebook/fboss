@@ -41,6 +41,13 @@ switch_manager_unittest(
 )
 
 switch_manager_unittest(
+    name = "ars_profile_manager_test",
+    srcs = [
+        "ArsProfileManagerTest.cpp",
+    ],
+)
+
+switch_manager_unittest(
     name = "fdb_manager_test",
     srcs = [
         "FdbManagerTest.cpp",
