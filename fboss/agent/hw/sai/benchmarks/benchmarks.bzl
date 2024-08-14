@@ -27,7 +27,7 @@ def _mono_sai_agent_benchmark_binary(name, srcs, sai_impl, **kwargs):
         **kwargs
     )
 
-def _mullti_switch_agent_benchmark_binary(name, srcs, **kwargs):
+def _multi_switch_agent_benchmark_binary(name, srcs, **kwargs):
     name = "multi_switch-{}".format(name)
     main_name = "multi_switch_sai_agent_benchmarks_main"
     sai_agent_benchmarks_main = main_name
@@ -51,7 +51,7 @@ def sai_mono_agent_benchmark(name, srcs, **kwargs):
         _mono_sai_agent_benchmark_binary(name, srcs, sai_impl, **kwargs)
 
 def sai_multi_switch_agent_benchmark(name, srcs, **kwargs):
-    _mullti_switch_agent_benchmark_binary(name, srcs, **kwargs)
+    _multi_switch_agent_benchmark_binary(name, srcs, **kwargs)
 
 def sai_agent_benchmark(name, srcs, **kwargs):
     sai_mono_agent_benchmark(name, srcs, **kwargs)
