@@ -175,6 +175,29 @@ def run_fboss_build(scratch_path: str, target: Optional[str]):
     subprocess.run(cmd_args)
 
 
+def cleanup_fboss_build_container():
+    stop_docker_cp = subprocess.run(
+        ["sudo", "docker", "container", "stop", FBOSS_CONTAINER_NAME],
+        capture_output=True,
+    )
+    if stop_docker_cp.returncode != 0:
+        print(
+            f"There was an error stopping the docker container used to build FBOSS: {stop_docker_cp.stderr}. You can try manually stopping the container via `sudo docker container stop {FBOSS_CONTAINER_NAME}`.",
+            file=sys.stderr,
+        )
+        sys.exit(stop_docker_cp.returncode)
+    rm_docker_cp = subprocess.run(
+        ["sudo", "docker", "container", "rm", FBOSS_CONTAINER_NAME],
+        capture_output=True,
+    )
+    if rm_docker_cp.returncode != 0:
+        print(
+            f"There was an error stopping the docker container used to build FBOSS: {rm_docker_cp.stderr}. You can try manually removing the container via `sudo docker container rm {FBOSS_CONTAINER_NAME}`.",
+            file=sys.stderr,
+        )
+        sys.exit(stop_docker_cp.returncode)
+
+
 def main():
     args = parse_args()
     create_scratch_path(args.scratch_path)
@@ -187,6 +210,8 @@ def main():
     build_docker_image(docker_dir_path)
 
     run_fboss_build(args.scratch_path, args.target)
+
+    cleanup_fboss_build_container()
 
     return 0
 
