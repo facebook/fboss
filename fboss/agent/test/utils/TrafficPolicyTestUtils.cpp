@@ -15,7 +15,7 @@
 DECLARE_bool(enable_acl_table_group);
 
 namespace facebook::fboss::utility {
-void addDscpAclToCfg(
+cfg::AclEntry* addDscpAclToCfg(
     const HwAsic* hwAsic,
     cfg::SwitchConfig* config,
     const std::string& aclName,
@@ -25,7 +25,7 @@ void addDscpAclToCfg(
   acl.dscp() = dscp;
   utility::addEtherTypeToAcl(hwAsic, &acl, cfg::EtherType::IPv6);
 
-  utility::addAclEntry(config, acl, utility::kDefaultAclTable());
+  return utility::addAclEntry(config, acl, utility::kDefaultAclTable());
 }
 
 void addL4SrcPortAclToCfg(

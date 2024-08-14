@@ -21,7 +21,7 @@
  */
 
 namespace facebook::fboss::utility {
-void addDscpAclToCfg(
+cfg::AclEntry* addDscpAclToCfg(
     const HwAsic* hwAsic,
     cfg::SwitchConfig* config,
     const std::string& aclName,

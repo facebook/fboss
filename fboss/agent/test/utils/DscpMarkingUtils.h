@@ -34,7 +34,10 @@ void addDscpMarkingAcls(
     const HwAsic* hwAsic,
     cfg::SwitchConfig* config,
     bool isSai);
-void addDscpCounterAcl(const HwAsic* hwAsic, cfg::SwitchConfig* config);
+void addDscpCounterAcl(
+    const HwAsic* hwAsic,
+    cfg::SwitchConfig* config,
+    cfg::AclActionType actionType);
 void addDscpMarkingAclTable(cfg::SwitchConfig* config, bool isSai);
 void addDscpAclEntryWithCounter(
     cfg::SwitchConfig* config,

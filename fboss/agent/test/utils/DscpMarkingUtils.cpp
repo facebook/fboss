@@ -101,10 +101,14 @@ void addDscpMarkingAcls(
       hwAsic, config, IP_PROTO::IP_PROTO_TCP, kTcpPorts(), isSai);
 }
 
-void addDscpCounterAcl(const HwAsic* hwAsic, cfg::SwitchConfig* config) {
+void addDscpCounterAcl(
+    const HwAsic* hwAsic,
+    cfg::SwitchConfig* config,
+    cfg::AclActionType actionType) {
   // Create ACL to count the number of packets with DSCP == ICP
-  utility::addDscpAclToCfg(
+  auto acl = utility::addDscpAclToCfg(
       hwAsic, config, kDscpCounterAclName(), utility::kIcpDscp());
+  acl->actionType() = actionType;
   std::vector<cfg::CounterType> counterTypes{cfg::CounterType::PACKETS};
   utility::addTrafficCounter(config, kCounterName(), counterTypes);
   cfg::MatchAction matchAction = cfg::MatchAction();
