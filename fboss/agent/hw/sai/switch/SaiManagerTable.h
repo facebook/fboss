@@ -26,6 +26,7 @@ struct ConcurrentIndices;
 class SaiAclTableGroupManager;
 class SaiAclTableManager;
 class SaiArsManager;
+class SaiArsProfileManager;
 class SaiBridgeManager;
 class SaiBufferManager;
 class SaiCounterManager;
@@ -77,6 +78,9 @@ class SaiManagerTable {
 
   SaiArsManager& arsManager();
   const SaiArsManager& arsManager() const;
+
+  SaiArsProfileManager& arsProfileManager();
+  const SaiArsProfileManager& arsProfileManager() const;
 
   SaiAclTableGroupManager& aclTableGroupManager();
   const SaiAclTableGroupManager& aclTableGroupManager() const;
@@ -177,6 +181,7 @@ class SaiManagerTable {
   std::unique_ptr<SaiAclTableGroupManager> aclTableGroupManager_;
   std::unique_ptr<SaiAclTableManager> aclTableManager_;
   std::unique_ptr<SaiArsManager> arsManager_;
+  std::unique_ptr<SaiArsProfileManager> arsProfileManager_;
   std::unique_ptr<SaiBridgeManager> bridgeManager_;
   std::unique_ptr<SaiBufferManager> bufferManager_;
   std::unique_ptr<SaiCounterManager> counterManager_;

@@ -52,7 +52,7 @@ struct SaiArsProfileTraits {
     using PortLoadPastWeight = SaiAttribute<
         EnumType,
         SAI_ARS_PROFILE_ATTR_PORT_LOAD_PAST_WEIGHT,
-        sai_uint32_t>;
+        sai_uint8_t>;
     using LoadPastMinVal = SaiAttribute<
         EnumType,
         SAI_ARS_PROFILE_ATTR_LOAD_PAST_MIN_VAL,
@@ -67,7 +67,7 @@ struct SaiArsProfileTraits {
     using PortLoadFutureWeight = SaiAttribute<
         EnumType,
         SAI_ARS_PROFILE_ATTR_PORT_LOAD_FUTURE_WEIGHT,
-        sai_uint32_t>;
+        sai_uint8_t>;
     using LoadFutureMinVal = SaiAttribute<
         EnumType,
         SAI_ARS_PROFILE_ATTR_LOAD_FUTURE_MIN_VAL,

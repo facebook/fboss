@@ -7,6 +7,7 @@ _COMMON_SRCS = [
     "SaiAclTableGroupManager.cpp",
     "SaiAclTableManager.cpp",
     "SaiArsManager.cpp",
+    "SaiArsProfileManager.cpp",
     "SaiBridgeManager.cpp",
     "SaiBufferManager.cpp",
     "SaiCounterManager.cpp",
