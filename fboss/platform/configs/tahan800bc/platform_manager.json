@@ -99,6 +99,10 @@
         {
           "pmUnitScopedName": "CPU_CORE_TEMP",
           "sysfsPath": "/sys/bus/platform/devices/coretemp.0"
+        },
+        {
+          "pmUnitScopedName": "SMB_E1S_SSD_TEMP",
+          "sysfsPath": "/sys/class/nvme/nvme0"
         }
       ],
       "pciDeviceConfigs": [
@@ -1535,6 +1539,12 @@
           "pmUnitScopedName": "SMB_BCB_FAN_CPLD"
         },
         {
+          "busName": "SMB_IOB_I2C_MASTER_1",
+          "address": "0x16",
+          "kernelDeviceName": "mtia_fan_watchdog",
+          "pmUnitScopedName": "BCB_FAN_WATCHDOG"
+        },
+        {
           "busName": "SMB_IOB_I2C_MASTER_4",
           "address": "0x76",
           "kernelDeviceName": "pmbus",
@@ -1807,6 +1817,7 @@
     "/run/devmap/eeproms/SMB_EEPROM": "/[SMB_EEPROM]",
     "/run/devmap/eeproms/RUNBMC_EEPROM": "/RUNBMC_SLOT@0/[IDPROM]",
     "/run/devmap/sensors/CPU_CORE_TEMP": "/[CPU_CORE_TEMP]",
+    "/run/devmap/sensors/SMB_E1S_SSD_TEMP": "/[SMB_E1S_SSD_TEMP]",
     "/run/devmap/sensors/SMB_BCB_FAN_CPLD": "/[SMB_BCB_FAN_CPLD]",
     "/run/devmap/sensors/SMB_BCB_FAN_CPLD_2": "/[SMB_BCB_FAN_CPLD_2]",
     "/run/devmap/sensors/BMC_U9_THERMAL_SENSOR": "/RUNBMC_SLOT@0/[BMC_U9_THERMAL_SENSOR]",
@@ -1962,10 +1973,10 @@
     "fboss_iob_led",
     "fboss_iob_spi",
     "fboss_iob_xcvr",
+    "mtia_fan_watchdog",
     "tps25990"
   ],
-  "sharedKmodsToReload": [
-  ],
+  "sharedKmodsToReload": [],
   "upstreamKmodsToLoad": [
     "i2c_i801",
     "spidev"
