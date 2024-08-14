@@ -7203,7 +7203,7 @@
         "name": "cpuPolicing-high-NetworkControl-dstLocal",
         "actionType": 1,
         "lookupClassRoute": 1,
-        "etherType": 2048
+        "etherType": 34525
       },
       {
         "dstIp": "fe80::/10",
