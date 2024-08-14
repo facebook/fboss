@@ -366,8 +366,24 @@ SaiBufferManager::supportedIngressPriorityGroupWatermarkStats() const {
   return stats;
 }
 
+const std::vector<sai_stat_id_t>&
+SaiBufferManager::supportedIngressPriorityGroupNonWatermarkStats() const {
+  static std::vector<sai_stat_id_t> stats;
+  if (!stats.size()) {
+    stats.insert(
+        stats.end(),
+        SaiIngressPriorityGroupTraits::CounterIdsToRead.begin(),
+        SaiIngressPriorityGroupTraits::CounterIdsToRead.end());
+    if (platform_->getAsic()->isSupported(
+            HwAsic::Feature::INGRESS_PRIORITY_GROUP_DROPPED_PACKETS)) {
+      stats.push_back(SAI_INGRESS_PRIORITY_GROUP_STAT_DROPPED_PACKETS);
+    }
+  }
+  return stats;
+}
+
 void SaiBufferManager::updateIngressPriorityGroupWatermarkStats(
-    const std::shared_ptr<SaiIngressPriorityGroup> ingressPriorityGroup,
+    const std::shared_ptr<SaiIngressPriorityGroup>& ingressPriorityGroup,
     const IngressPriorityGroupID& pgId,
     const HwPortStats& hwPortStats) {
   const auto& ingressPriorityGroupWatermarkStats =
@@ -385,6 +401,22 @@ void SaiBufferManager::updateIngressPriorityGroupWatermarkStats(
   publishPgWatermarks(portName, pgId, maxPgHeadroomBytes, maxPgSharedBytes);
 }
 
+void SaiBufferManager::updateIngressPriorityGroupNonWatermarkStats(
+    const std::shared_ptr<SaiIngressPriorityGroup>& ingressPriorityGroup,
+    const IngressPriorityGroupID& /*pgId*/,
+    HwPortStats& hwPortStats) {
+  const auto& ingressPriorityGroupStats =
+      supportedIngressPriorityGroupNonWatermarkStats();
+  ingressPriorityGroup->updateStats(
+      ingressPriorityGroupStats, SAI_STATS_MODE_READ);
+  auto counters = ingressPriorityGroup->getStats();
+  auto iter = counters.find(SAI_INGRESS_PRIORITY_GROUP_STAT_DROPPED_PACKETS);
+  if (iter != counters.end()) {
+    // In Congestion Discards are exposed at port level
+    *hwPortStats.inCongestionDiscards_() += iter->second;
+  }
+}
+
 void SaiBufferManager::updateIngressPriorityGroupStats(
     const PortID& portId,
     HwPortStats& hwPortStats,
@@ -398,6 +430,8 @@ void SaiBufferManager::updateIngressPriorityGroupStats(
       updateIngressPriorityGroupWatermarkStats(
           ingressPriorityGroup, ipgInfo.first, hwPortStats);
     }
+    updateIngressPriorityGroupNonWatermarkStats(
+        ingressPriorityGroup, ipgInfo.first, hwPortStats);
   }
 }
 

@@ -75,9 +75,13 @@ class SaiBufferManager {
       HwPortStats& hwPortStats,
       bool updateWatermarks);
   void updateIngressPriorityGroupWatermarkStats(
-      const std::shared_ptr<SaiIngressPriorityGroup> ingressPriorityGroup,
+      const std::shared_ptr<SaiIngressPriorityGroup>& ingressPriorityGroup,
       const IngressPriorityGroupID& pgId,
       const HwPortStats& hwPortStats);
+  void updateIngressPriorityGroupNonWatermarkStats(
+      const std::shared_ptr<SaiIngressPriorityGroup>& ingressPriorityGroup,
+      const IngressPriorityGroupID& pgId,
+      HwPortStats& hwPortStats);
   void createIngressBufferPool(const std::shared_ptr<Port> port);
   uint64_t getDeviceWatermarkBytes() const {
     return deviceWatermarkBytes_;
@@ -126,6 +130,8 @@ class SaiBufferManager {
   SaiBufferPoolHandle* getEgressBufferPoolHandle() const;
   const std::vector<sai_stat_id_t>&
   supportedIngressPriorityGroupWatermarkStats() const;
+  const std::vector<sai_stat_id_t>&
+  supportedIngressPriorityGroupNonWatermarkStats() const;
 
   SaiStore* saiStore_;
   SaiManagerTable* managerTable_;
