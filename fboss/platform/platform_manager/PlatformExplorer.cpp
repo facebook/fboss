@@ -157,7 +157,7 @@ void PlatformExplorer::exploreSlot(
       }
     } catch (const std::exception& ex) {
       XLOG(ERR) << fmt::format(
-          "Error checking for presence in slotPath {}: {}",
+          "Error checking for presence in slotpath {}: {}",
           slotName,
           ex.what());
       return;

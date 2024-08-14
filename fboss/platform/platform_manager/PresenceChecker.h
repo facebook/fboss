@@ -16,6 +16,9 @@ class PresenceChecker {
 
  private:
   const DevicePathResolver& devicePathResolver_;
+
+  bool sysfsPresent(const SysfsFileHandle& handle, const std::string& slotPath);
+  bool gpioPresent(const GpioLineHandle& handle, const std::string& slotPath);
 };
 
 } // namespace facebook::fboss::platform::platform_manager

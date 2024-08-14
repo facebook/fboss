@@ -2,6 +2,7 @@
 
 #include "fboss/platform/platform_manager/Utils.h"
 
+#include <gpiod.h>
 #include <cctype>
 #include <filesystem>
 #include <stdexcept>
@@ -11,6 +12,7 @@
 #include <re2/re2.h>
 #include <thrift/lib/cpp2/protocol/Serializer.h>
 
+#include "fboss/lib/GpiodLine.h"
 #include "fboss/platform/config_lib/ConfigLib.h"
 #include "fboss/platform/helpers/PlatformNameLib.h"
 #include "fboss/platform/platform_manager/ConfigValidator.h"
@@ -149,4 +151,12 @@ std::optional<std::string> Utils::getStringFileContent(
   }
   return folly::trimWhitespace(value).str();
 }
+
+int Utils::getGpioLineValue(const std::string& charDevPath, int lineIndex) {
+  struct gpiod_chip* chip = gpiod_chip_open(charDevPath.c_str());
+  GpiodLine line(chip, lineIndex, "gpioline");
+  int value = line.getValue();
+  gpiod_chip_close(chip);
+  return value;
+};
 } // namespace facebook::fboss::platform::platform_manager

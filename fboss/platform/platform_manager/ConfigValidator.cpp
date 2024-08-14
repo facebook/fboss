@@ -374,8 +374,9 @@ bool ConfigValidator::isValidPresenceDetection(
       XLOG(ERR) << "devicePath for GpioLineHandle cannot be empty";
       return false;
     }
-    if (presenceDetection.gpioLineHandle()->desiredValue()->empty()) {
-      XLOG(ERR) << "desiredValue for GpioLineHandle cannot be empty";
+    if (presenceDetection.gpioLineHandle()->desiredValue() < 0) {
+      XLOG(ERR)
+          << "desiredValue for GpioLineHandle cannot be < 0. Typically 0 or 1";
       return false;
     }
   }

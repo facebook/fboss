@@ -183,3 +183,12 @@ target_link_libraries(common_thrift_utils
   Folly::folly
   fb303::fb303
 )
+
+add_library(gpiod_line
+  fboss/lib/GpiodLine.cpp
+)
+
+target_link_libraries(gpiod_line
+  Folly::folly
+  ${LIBGPIOD}
+)

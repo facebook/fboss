@@ -8,7 +8,6 @@
 #include "fboss/platform/platform_manager/PciExplorer.h"
 #include "fboss/platform/platform_manager/Utils.h"
 
-using namespace facebook::fboss::platform::platform_manager;
 namespace fs = std::filesystem;
 
 namespace {
@@ -16,6 +15,8 @@ constexpr auto kIdprom = "IDPROM";
 const re2::RE2 kHwmonRe{"hwmon\\d+"};
 const re2::RE2 kIioDeviceRe{"iio:device\\d+"};
 } // namespace
+
+namespace facebook::fboss::platform::platform_manager {
 
 DevicePathResolver::DevicePathResolver(
     const PlatformConfig& config,
@@ -86,7 +87,7 @@ std::string DevicePathResolver::resolvePciSubDevSysfsPath(
 }
 
 std::string DevicePathResolver::resolvePciSubDevCharDevPath(
-    const std::string& devicePath) {
+    const std::string& devicePath) const {
   auto charDevPath = dataStore_.getCharDevPath(devicePath);
   if (!fs::exists(charDevPath)) {
     throw std::runtime_error(fmt::format(
@@ -261,3 +262,4 @@ PciDeviceConfig DevicePathResolver::getPciDeviceConfig(
   }
   return *pciDeviceConfig;
 }
+} // namespace facebook::fboss::platform::platform_manager

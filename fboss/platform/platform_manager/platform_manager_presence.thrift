@@ -26,8 +26,7 @@ struct SysfsFileHandle {
 struct GpioLineHandle {
   1: string devicePath;
   2: i32 lineIndex;
-  // TODO: Figure out appropriate type for desiredValue
-  3: string desiredValue;
+  3: i16 desiredValue;
 }
 
 // The presence detection can be based on GPIO registers or sysfs paths.  Only

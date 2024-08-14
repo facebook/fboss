@@ -33,6 +33,8 @@ class Utils {
   std::string resolveGpioChipCharDevPath(const std::string& sysfsPath);
 
   std::optional<std::string> getStringFileContent(const std::string& path);
+
+  int getGpioLineValue(const std::string& charDevPath, int lineIndex);
 };
 
 } // namespace facebook::fboss::platform::platform_manager

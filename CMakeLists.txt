@@ -667,6 +667,10 @@ find_library(EXPRTK exprtk)
 find_path(EXPRTK_INCLUDE_DIR NAMES exprtk.hpp)
 include_directories(${EXPRTK_INCLUDE_DIR})
 
+find_library(LIBGPIOD gpiod)
+find_path(LIBGPIOD_INCLUDE_DIR NAMES gpiod.h)
+include_directories(${LIBGPIOD_INCLUDE_DIR})
+
 # Unit Testing
 add_definitions (-DIS_OSS=true)
 find_package(Threads REQUIRED)

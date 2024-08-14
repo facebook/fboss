@@ -67,6 +67,8 @@ target_link_libraries(platform_manager
   weutil_fboss_eeprom_parser
   ioctl_smbus_eeprom_reader
   i2c_ctrl
+  ${LIBGPIOD}
+  gpiod_line
 )
 
 install(TARGETS platform_manager)

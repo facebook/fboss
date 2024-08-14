@@ -35,7 +35,7 @@ class DevicePathResolver {
 
   // Resolves a given PciSubDevicePath to CharDevPath in the system.
   // Throws a runtime exception if the DevicePath cannot be resolved.
-  std::string resolvePciSubDevCharDevPath(const std::string& devicePath);
+  std::string resolvePciSubDevCharDevPath(const std::string& devicePath) const;
 
   // Resolves a given DevicePath to i2c sysfs path in the system.
   // Throws a runtime exception if the DevicePath cannot be resolved.

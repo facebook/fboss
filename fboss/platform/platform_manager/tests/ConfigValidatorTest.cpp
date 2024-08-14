@@ -23,7 +23,7 @@ SlotTypeConfig getValidSlotTypeConfig() {
 GpioLineHandle getValidGpioLineHandle() {
   auto gpioLineHandle = GpioLineHandle();
   gpioLineHandle.devicePath() = "/SMB_SLOT@0/[SMB_PCA]";
-  gpioLineHandle.desiredValue() = "1";
+  gpioLineHandle.desiredValue() = 1;
   gpioLineHandle.lineIndex() = 4;
   return gpioLineHandle;
 }
@@ -136,7 +136,7 @@ TEST(ConfigValidatorTest, PresenceDetection) {
   presenceDetection.gpioLineHandle()->devicePath() = "";
   EXPECT_FALSE(ConfigValidator().isValidPresenceDetection(presenceDetection));
   presenceDetection.gpioLineHandle() = getValidGpioLineHandle();
-  presenceDetection.gpioLineHandle()->desiredValue() = "";
+  presenceDetection.gpioLineHandle()->desiredValue() = -1;
   EXPECT_FALSE(ConfigValidator().isValidPresenceDetection(presenceDetection));
   presenceDetection.gpioLineHandle() = getValidGpioLineHandle();
   presenceDetection.sysfsFileHandle() = getValidSysfsFileHandle();
