@@ -37,6 +37,7 @@ class DsfSubscription {
   DsfSessionThrift dsfSessionThrift() {
     return session_.toThrift();
   }
+  void stop();
 
   const fsdb::SubscriptionInfo getSubscriptionInfo() const;
   // Used for tests only
@@ -83,6 +84,7 @@ class DsfSubscription {
   SwSwitch* sw_;
   DsfSession session_;
   folly::Synchronized<std::unique_ptr<DsfUpdate>> nextDsfUpdate_;
+  bool stopped_{false};
   // Used for tests only
   std::shared_ptr<SwitchState> cachedState_;
   template <typename T>

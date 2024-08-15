@@ -88,6 +88,16 @@ DsfSubscription::DsfSubscription(
 }
 
 DsfSubscription::~DsfSubscription() {
+  stop();
+  // Schedule and wait on hwUpdateEvb_ to ensure that any
+  // lambdas already queued don't make access nextDsfUpdate
+  // which will now be destroyed
+  hwUpdateEvb_->runInEventBaseThreadAndWait([this]() {
+    XLOG(DBG3) << "Emptied out updates for : " << remoteEndpointStr();
+  });
+}
+
+void DsfSubscription::stop() {
   if (getStreamState() != fsdb::FsdbStreamClient::State::CONNECTED) {
     // Subscription was not established - decrement failedDSF counter.
     sw_->stats()->failedDsfSubscription(remoteNodeName_, -1);
@@ -97,14 +107,8 @@ DsfSubscription::~DsfSubscription() {
   // hwUpdateEvb_
   auto nextDsfUpdateWlock = nextDsfUpdate_.wlock();
   nextDsfUpdateWlock->reset();
-  // Schedule and wait on hwUpdateEvb_ to ensure that any
-  // lambdas already queued don't make access nextDsfUpdate
-  // which will now be destroyed
-  hwUpdateEvb_->runInEventBaseThreadAndWait([this]() {
-    XLOG(DBG3) << "Emptied out updates for : " << remoteEndpointStr();
-  });
+  stopped_ = true;
 }
-
 void DsfSubscription::setupSubscription() {
   fsdbPubSubMgr_->addStatePathSubscription(
       fsdb::SubscriptionOptions(opts_),
