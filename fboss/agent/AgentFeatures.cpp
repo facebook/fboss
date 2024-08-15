@@ -54,6 +54,16 @@ DEFINE_uint32(
     "Number of parallel DSF sessions per remote Interface Node. "
     "1 for Prod. > 1 for scale tests");
 
+DEFINE_int32(
+    dsf_num_fsdb_connect_threads,
+    1,
+    "Number of threads to use for DSF remote connection pool");
+
+DEFINE_int32(
+    dsf_num_fsdb_stream_threads,
+    1,
+    "Number of threads to use for DSF remote stream pool");
+
 DEFINE_bool(
     set_classid_for_my_subnet_and_ip_routes,
     false,

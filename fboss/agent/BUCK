@@ -709,7 +709,6 @@ cpp_library(
         ":fboss-event-base",
         ":fboss-types",
         ":hw_switch_handler",
-        ":hwswitch_matcher",
         ":hwswitchcallback",
         ":l2learn_event_observer",
         ":load_agent_config",

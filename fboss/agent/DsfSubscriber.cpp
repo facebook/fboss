@@ -2,23 +2,14 @@
 
 #include "fboss/agent/DsfSubscriber.h"
 #include "fboss/agent/AgentFeatures.h"
-#include "fboss/agent/DsfStateUpdaterUtil.h"
-#include "fboss/agent/HwSwitchMatcher.h"
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/SwitchIdScopeResolver.h"
-#include "fboss/agent/SwitchStats.h"
 #include "fboss/agent/Utils.h"
 #include "fboss/agent/state/DsfNode.h"
 #include "fboss/agent/state/InterfaceMap.h"
 #include "fboss/agent/state/StateDelta.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/state/SystemPortMap.h"
-#include "fboss/fsdb/common/Flags.h"
-#include "fboss/fsdb/if/FsdbModel.h"
-#include "fboss/fsdb/if/gen-cpp2/fsdb_common_types.h"
-#include "fboss/thrift_cow/nodes/Serializer.h"
-
-#include <memory>
 
 using namespace facebook::fboss;
 namespace {
@@ -60,11 +51,11 @@ DsfSubscriber::DsfSubscriber(SwSwitch* sw)
     : sw_(sw),
       localNodeName_(getLocalHostnameUqdn()),
       streamConnectPool_(std::make_unique<folly::IOThreadPoolExecutor>(
-          1,
+          FLAGS_dsf_num_fsdb_connect_threads,
           std::make_shared<folly::NamedThreadFactory>(
               "DsfSubscriberStreamConnect"))),
       streamServePool_(std::make_unique<folly::IOThreadPoolExecutor>(
-          1,
+          FLAGS_dsf_num_fsdb_stream_threads,
           std::make_shared<folly::NamedThreadFactory>(
               "DsfSubscriberStreamServe"))),
       hwUpdatePool_(std::make_unique<folly::IOThreadPoolExecutor>(
