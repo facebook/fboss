@@ -268,8 +268,16 @@ void DsfSubscription::handleFsdbUpdate(fsdb::OperSubPathUnit&& operStateUnit) {
             update.switchId2SystemPorts, update.switchId2Intfs);
 
       } catch (std::exception& e) {
-        // TODO handle failures
-        XLOG(FATAL) << " update failed: " << e.what();
+        XLOG(DBG2) << kDsfCtrlLogPrefix
+                   << " update failed for : " << remoteEndpointStr();
+        // Tear down subscription so no more updates come for this
+        // subscription
+        tearDownSubscription();
+        // Clear any queued updates
+        auto nextDsfUpdateWlock = nextDsfUpdate_.wlock();
+        nextDsfUpdateWlock->reset();
+        // Setup subscription again to trigger a full resync
+        setupSubscription();
       }
     });
   }
