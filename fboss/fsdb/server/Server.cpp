@@ -56,6 +56,11 @@ DEFINE_bool(
     false,
     "Convert subscriber paths to id paths and serve only ids");
 
+DEFINE_int32(
+    fsdb_queue_timeout_ms,
+    100,
+    "Queue timeout for fsdb thrift server");
+
 namespace facebook::fboss::fsdb {
 
 static apache::thrift::SSLPolicy getThriftServerSSLPolicy() {
@@ -134,6 +139,8 @@ std::shared_ptr<apache::thrift::ThriftServer> createThriftServer(
   server->setQuickExitOnShutdownTimeout(true);
   server->setTosReflect(FLAGS_enable_tos_reflect);
   server->setSSLPolicy(getThriftServerSSLPolicy());
+  server->setQueueTimeout(
+      std::chrono::milliseconds(FLAGS_fsdb_queue_timeout_ms));
   if (FLAGS_enable_thrift_acceptor) {
     auto trustedSubnets =
         getTrustedSubnets(fsdbConfig->getThrift().get_trustedSubnets());
