@@ -111,7 +111,7 @@ DsfSubscription::~DsfSubscription() {
   // Nullify any pending update lambdas already scheduled on
   // hwUpdateEvb_
   auto nextDsfUpdateWlock = nextDsfUpdate_.wlock();
-  nextDsfUpdateWlock->clear();
+  nextDsfUpdateWlock->reset();
   // Schedule and wait on hwUpdateEvb_ to ensure that any
   // lambdas already queued don't make access nextDsfUpdate
   // which will now be destroyed
@@ -223,15 +223,15 @@ void DsfSubscription::handleFsdbUpdate(fsdb::OperSubPathUnit&& operStateUnit) {
   bool needsScheduling = false;
   {
     auto nextDsfUpdateWlock = nextDsfUpdate_.wlock();
-    // If nextDsfUpdate is not empty, then just overwrite
+    // If nextDsfUpdate is not null, then just overwrite
     // nextDsfUpdate with latest info but don't schedule
     // another lambda on the hwUpdateThread. The idea here
     // is that since nextDsfUpdate_ was not empty it implies
     // we have already scheduled a update on the hwUpdateEvb
     // and that update will now simply consume the latest
     // contents.
-    needsScheduling = nextDsfUpdateWlock->isEmpty();
-    *nextDsfUpdateWlock = std::move(dsfUpdate);
+    needsScheduling = (*nextDsfUpdateWlock == nullptr);
+    *nextDsfUpdateWlock = std::make_unique<DsfUpdate>(std::move(dsfUpdate));
   }
   /*
    * Schedule updates async on hwUpdateEvb, so we don't
@@ -247,13 +247,15 @@ void DsfSubscription::handleFsdbUpdate(fsdb::OperSubPathUnit&& operStateUnit) {
       DsfUpdate update;
       {
         auto nextDsfUpdateWlock = nextDsfUpdate_.wlock();
-        if (nextDsfUpdateWlock->isEmpty()) {
+        if (*nextDsfUpdateWlock == nullptr) {
           // Update was already done or cancelled
           return;
         }
-        update = std::move(*nextDsfUpdateWlock);
-        // At this point nextDsfUpdate should be empty
-        CHECK(nextDsfUpdateWlock->isEmpty());
+        update = std::move(**nextDsfUpdateWlock);
+        nextDsfUpdateWlock->reset();
+
+        // At this point nextDsfUpdate should be null
+        CHECK_EQ(*nextDsfUpdateWlock, nullptr);
       }
       try {
         updateWithRollbackProtection(
