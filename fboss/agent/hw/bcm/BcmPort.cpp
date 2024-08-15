@@ -397,11 +397,13 @@ void BcmPort::reinitPortStatsLocked(
       statName("out_queue_length", portName), &expType);
   // (re) init histograms
   auto histMap = fb303::fbData->getHistogramMap();
-  fb303::ExportedHistogram pktLenHist(1, 0, kInPktLengthStats.size());
+  auto makeLenHist = [] {
+    return fb303::ExportedHistogram(1, 0, kInPktLengthStats.size());
+  };
   inPktLengths_ = histMap->getOrCreateLockableHistogram(
-      statName("in_pkt_lengths", portName), &pktLenHist);
+      statName("in_pkt_lengths", portName), makeLenHist);
   outPktLengths_ = histMap->getOrCreateLockableHistogram(
-      statName("out_pkt_lengths", portName), &pktLenHist);
+      statName("out_pkt_lengths", portName), makeLenHist);
 
   *lockedPortStatsPtr =
       BcmPortStats(queueManager_->getNumQueues(cfg::StreamType::UNICAST));
