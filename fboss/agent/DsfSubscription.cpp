@@ -210,8 +210,17 @@ void DsfSubscription::handleFsdbUpdate(fsdb::OperSubPathUnit&& operStateUnit) {
           remoteNodeName_);
     }
   }
+  bool needsScheduling = false;
   {
     auto nextDsfUpdateWlock = nextDsfUpdate_.wlock();
+    // If nextDsfUpdate is not empty, then just overwrite
+    // nextDsfUpdate with latest info but don't schedule
+    // another lambda on the hwUpdateThread. The idea here
+    // is that since nextDsfUpdate_ was not empty it implies
+    // we have already scheduled a update on the hwUpdateEvb
+    // and that update will now simply consume the latest
+    // contents.
+    needsScheduling = nextDsfUpdateWlock->isEmpty();
     *nextDsfUpdateWlock = std::move(dsfUpdate);
   }
   /*
@@ -223,27 +232,29 @@ void DsfSubscription::handleFsdbUpdate(fsdb::OperSubPathUnit&& operStateUnit) {
    * hundred sessions come up close together and wait on
    * each other for initial sync to complete.
    */
-  hwUpdateEvb_->runInEventBaseThread([this]() {
-    DsfUpdate update;
-    {
-      auto nextDsfUpdateWlock = nextDsfUpdate_.wlock();
-      if (nextDsfUpdateWlock->isEmpty()) {
-        // Update was already done or cancelled
-        return;
+  if (needsScheduling) {
+    hwUpdateEvb_->runInEventBaseThread([this]() {
+      DsfUpdate update;
+      {
+        auto nextDsfUpdateWlock = nextDsfUpdate_.wlock();
+        if (nextDsfUpdateWlock->isEmpty()) {
+          // Update was already done or cancelled
+          return;
+        }
+        update = std::move(*nextDsfUpdateWlock);
+        // At this point nextDsfUpdate should be empty
+        CHECK(nextDsfUpdateWlock->isEmpty());
       }
-      update = std::move(*nextDsfUpdateWlock);
-      // At this point nextDsfUpdate should be empty
-      CHECK(nextDsfUpdateWlock->isEmpty());
-    }
-    try {
-      updateWithRollbackProtection(
-          update.switchId2SystemPorts, update.switchId2Intfs);
+      try {
+        updateWithRollbackProtection(
+            update.switchId2SystemPorts, update.switchId2Intfs);
 
-    } catch (std::exception& e) {
-      // TODO handle failures
-      XLOG(FATAL) << " update failed: " << e.what();
-    }
-  });
+      } catch (std::exception& e) {
+        // TODO handle failures
+        XLOG(FATAL) << " update failed: " << e.what();
+      }
+    });
+  }
 }
 
 bool DsfSubscription::isLocal(SwitchID nodeSwitchId) const {
