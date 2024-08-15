@@ -60,6 +60,10 @@ enum VdmConfigType {
   PAM4_LEVEL2_STANDARD_DEVIATION_LINE = 102,
   PAM4_LEVEL3_STANDARD_DEVIATION_LINE = 103,
   PAM4_MPI_LINE = 104,
+  FEC_TAIL_MEDIA_IN_MAX = 106,
+  FEC_TAIL_MEDIA_IN_CURR = 107,
+  FEC_TAIL_HOST_IN_MAX = 108,
+  FEC_TAIL_HOST_IN_CURR = 109,
 };
 
 class CmisModule : public QsfpModule {
@@ -583,6 +587,7 @@ class CmisModule : public QsfpModule {
   bool fillVdmPerfMonitorSnr(VdmPerfMonitorStats& vdmStats);
   bool fillVdmPerfMonitorBer(VdmPerfMonitorStats& vdmStats);
   bool fillVdmPerfMonitorFecErr(VdmPerfMonitorStats& vdmStats);
+  bool fillVdmPerfMonitorFecTail(VdmPerfMonitorStats& vdmStats);
   bool fillVdmPerfMonitorLtp(VdmPerfMonitorStats& vdmStats);
   bool fillVdmPerfMonitorPam4Data(VdmPerfMonitorStats& vdmStats);
 

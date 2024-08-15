@@ -530,7 +530,11 @@ bool isValidVdmConfigType(int vdmConf) {
       vdmConf == static_cast<int>(PAM4_LEVEL1_STANDARD_DEVIATION_LINE) ||
       vdmConf == static_cast<int>(PAM4_LEVEL2_STANDARD_DEVIATION_LINE) ||
       vdmConf == static_cast<int>(PAM4_LEVEL3_STANDARD_DEVIATION_LINE) ||
-      vdmConf == static_cast<int>(PAM4_MPI_LINE)) {
+      vdmConf == static_cast<int>(PAM4_MPI_LINE) ||
+      vdmConf == static_cast<int>(FEC_TAIL_MEDIA_IN_MAX) ||
+      vdmConf == static_cast<int>(FEC_TAIL_MEDIA_IN_CURR) ||
+      vdmConf == static_cast<int>(FEC_TAIL_HOST_IN_MAX) ||
+      vdmConf == static_cast<int>(FEC_TAIL_HOST_IN_CURR)) {
     return true;
   }
   return false;
@@ -1660,6 +1664,15 @@ std::optional<VdmDiagsStats> CmisModule::getVdmDiagsStatsInfo() {
     vdmStats.preFecBerMediaCur() = berVal.value();
   }
 
+  if (auto fecTailMax = captureVdmBerFrameErrorValues(FEC_TAIL_MEDIA_IN_MAX)) {
+    vdmStats.fecTailMediaMax() = fecTailMax.value();
+  }
+
+  if (auto fecTailCurr =
+          captureVdmBerFrameErrorValues(FEC_TAIL_MEDIA_IN_CURR)) {
+    vdmStats.fecTailMediaCurr() = fecTailCurr.value();
+  }
+
   // Fill in Host Pre FEC BER values
   if (auto berVal = captureVdmBerFrameErrorValues(PRE_FEC_BER_HOST_IN_MIN)) {
     vdmStats.preFecBerHostMin() = berVal.value();
@@ -1709,6 +1722,14 @@ std::optional<VdmDiagsStats> CmisModule::getVdmDiagsStatsInfo() {
 
   if (auto errFrames = captureVdmBerFrameErrorValues(ERR_FRAME_HOST_IN_CUR)) {
     vdmStats.errFrameHostCur() = errFrames.value();
+  }
+
+  if (auto fecTailMax = captureVdmBerFrameErrorValues(FEC_TAIL_HOST_IN_MAX)) {
+    vdmStats.fecTailHostMax() = fecTailMax.value();
+  }
+
+  if (auto fecTailCurr = captureVdmBerFrameErrorValues(FEC_TAIL_HOST_IN_CURR)) {
+    vdmStats.fecTailHostCurr() = fecTailCurr.value();
   }
 
   // Fill in VDM Advance group3 performance monitoring info
@@ -1804,6 +1825,9 @@ std::optional<VdmPerfMonitorStats> CmisModule::getVdmPerfMonitorStats() {
   if (!fillVdmPerfMonitorFecErr(vdmStats)) {
     QSFP_LOG(ERR, this) << "Failed to get VDM Perf Monitor FEC Error Rate";
   }
+  if (!fillVdmPerfMonitorFecTail(vdmStats)) {
+    QSFP_LOG(ERR, this) << "Failed to get VDM Perf Monitor FEC Tail";
+  }
   if (!fillVdmPerfMonitorLtp(vdmStats)) {
     QSFP_LOG(ERR, this) << "Failed to get VDM Perf Monitor LTP";
   }
@@ -1867,6 +1891,11 @@ VdmPerfMonitorStatsForOds CmisModule::getVdmPerfMonitorStatsForOds(
         .datapathErroredFramesMax() =
         portMediaVdmStats.datapathErroredFrames()->max().value();
 
+    if (auto fecTailMax = portMediaVdmStats.fecTailMax()) {
+      vdmPerfMonOdsStats.mediaPortVdmStats()[portName].fecTailMax() =
+          fecTailMax.value();
+    }
+
     // For SNR, report Min value among all lanes
     vdmPerfMonOdsStats.mediaPortVdmStats()[portName].laneSNRMin() =
         findMinMax(portMediaVdmStats.laneSNR().value()).first;
@@ -1894,6 +1923,11 @@ VdmPerfMonitorStatsForOds CmisModule::getVdmPerfMonitorStatsForOds(
         portHostVdmStats.datapathBER()->max().value();
     vdmPerfMonOdsStats.hostPortVdmStats()[portName].datapathErroredFramesMax() =
         portHostVdmStats.datapathErroredFrames()->max().value();
+
+    if (auto fecTailMax = portHostVdmStats.fecTailMax()) {
+      vdmPerfMonOdsStats.hostPortVdmStats()[portName].fecTailMax() =
+          *fecTailMax;
+    }
   }
 
   return vdmPerfMonOdsStats;
@@ -4222,6 +4256,65 @@ bool CmisModule::fillVdmPerfMonitorFecErr(VdmPerfMonitorStats& vdmStats) {
             captureVdmBerFrameErrorValues(ERR_FRAME_HOST_IN_CUR, startLane)) {
       vdmStats.hostPortVdmStats()[portName].datapathErroredFrames()->cur() =
           errFrames.value();
+    }
+  }
+  return true;
+}
+
+/*
+ * fillVdmPerfMonitorFecTail
+ *
+ * Private function to fill in the VDM performance monitor stats for FEC Tail
+ * on both Media and Host side
+ */
+bool CmisModule::fillVdmPerfMonitorFecTail(VdmPerfMonitorStats& vdmStats) {
+  if (!isVdmSupported() || !cacheIsValid()) {
+    return false;
+  }
+
+  // Get the SW Ports and the Channels for each port
+  auto& portNameToMediaLanes = getPortNameToMediaLanes();
+  auto& portNameToHostLanes = getPortNameToHostLanes();
+
+  // Lambda to extract FEC tail for a given VDM config type on a SW Port
+  auto captureVdmFecTailValues = [&](VdmConfigType vdmConfType,
+                                     int startLane) -> std::optional<double> {
+    auto [data, length] = getVdmDataValPtr(vdmConfType);
+    if (data) {
+      return data.value()[startLane * kVdmDescriptorLength] +
+          data.value()[startLane * kVdmDescriptorLength + 1];
+    }
+    return std::nullopt;
+  };
+
+  // Fill in Media side per port values
+  for (auto& [portName, mediaLanes] : portNameToMediaLanes) {
+    auto startLane = *mediaLanes.begin();
+
+    // Fill in Media FEC tail values
+    if (auto fecTailMax =
+            captureVdmFecTailValues(FEC_TAIL_MEDIA_IN_MAX, startLane)) {
+      vdmStats.mediaPortVdmStats()[portName].fecTailMax() = fecTailMax.value();
+    }
+    if (auto fecTailCurr =
+            captureVdmFecTailValues(FEC_TAIL_MEDIA_IN_CURR, startLane)) {
+      vdmStats.mediaPortVdmStats()[portName].fecTailCurr() =
+          fecTailCurr.value();
+    }
+  }
+
+  // Fill in Host side per port values
+  for (auto& [portName, hostLanes] : portNameToHostLanes) {
+    auto startLane = *hostLanes.begin();
+
+    // Fill in Host FEC tail values
+    if (auto fecTailMax =
+            captureVdmFecTailValues(FEC_TAIL_HOST_IN_MAX, startLane)) {
+      vdmStats.hostPortVdmStats()[portName].fecTailMax() = fecTailMax.value();
+    }
+    if (auto fecTailCurr =
+            captureVdmFecTailValues(FEC_TAIL_HOST_IN_CURR, startLane)) {
+      vdmStats.hostPortVdmStats()[portName].fecTailCurr() = fecTailCurr.value();
     }
   }
   return true;

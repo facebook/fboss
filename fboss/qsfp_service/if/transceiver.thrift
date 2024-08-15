@@ -381,6 +381,8 @@ struct VdmPerfMonitorPortSideStats {
   7: map<i32, double> lanePam4Level3SD;
   8: map<i32, double> lanePam4MPI;
   9: map<i32, double> lanePam4LTP;
+  10: optional i16 fecTailMax;
+  11: optional i16 fecTailCurr;
 }
 
 struct VdmPerfMonitorStats {
@@ -401,6 +403,7 @@ struct VdmPerfMonitorPortSideStatsForOds {
   7: double lanePam4Level3SDMax;
   8: double lanePam4MPIMax;
   9: double lanePam4LTPMax;
+  10: optional i16 fecTailMax;
 }
 
 struct VdmPerfMonitorStatsForOds {
@@ -436,6 +439,10 @@ struct VdmDiagsStats {
   22: map<i32, double> pam4Level3SDLine;
   23: map<i32, double> pam4MPILine;
   24: map<i32, double> pam4LtpMediaChannel;
+  25: optional i16 fecTailMediaMax;
+  26: optional i16 fecTailMediaCurr;
+  27: optional i16 fecTailHostMax;
+  28: optional i16 fecTailHostCurr;
 }
 
 struct SymErrHistogramBin {
