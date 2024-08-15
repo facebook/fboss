@@ -212,14 +212,38 @@ void DsfSubscription::handleFsdbUpdate(fsdb::OperSubPathUnit&& operStateUnit) {
   }
   {
     auto nextDsfUpdateWlock = nextDsfUpdate_.wlock();
-    SCOPE_EXIT {
-      nextDsfUpdateWlock->clear();
-    };
     *nextDsfUpdateWlock = std::move(dsfUpdate);
-    updateWithRollbackProtection(
-        nextDsfUpdateWlock->switchId2SystemPorts,
-        nextDsfUpdateWlock->switchId2Intfs);
   }
+  /*
+   * Schedule updates async on hwUpdateEvb, so we don't
+   * keep the streamEventEvb blocked waiting on HW updates.
+   * Doing everything on streamEvb slows down convergence
+   * when multiple session have simultaneous updates.
+   * This is most acutely felt during bootup, where several
+   * hundred sessions come up close together and wait on
+   * each other for initial sync to complete.
+   */
+  hwUpdateEvb_->runInEventBaseThread([this]() {
+    DsfUpdate update;
+    {
+      auto nextDsfUpdateWlock = nextDsfUpdate_.wlock();
+      if (nextDsfUpdateWlock->isEmpty()) {
+        // Update was already done or cancelled
+        return;
+      }
+      update = std::move(*nextDsfUpdateWlock);
+      // At this point nextDsfUpdate should be empty
+      CHECK(nextDsfUpdateWlock->isEmpty());
+    }
+    try {
+      updateWithRollbackProtection(
+          update.switchId2SystemPorts, update.switchId2Intfs);
+
+    } catch (std::exception& e) {
+      // TODO handle failures
+      XLOG(FATAL) << " update failed: " << e.what();
+    }
+  });
 }
 
 bool DsfSubscription::isLocal(SwitchID nodeSwitchId) const {
