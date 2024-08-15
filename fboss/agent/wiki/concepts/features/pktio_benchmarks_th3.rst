@@ -12,14 +12,14 @@ Steps
 Native SDK tx slow path and rx slow path:
 .. code-block:: sh
 
-  netcastle --team bcm_bench --basset-query fboss:wedge400/asic=tomahawk3 --regex tx_slow_path_rate
-  netcastle --team bcm_bench --basset-query fboss:wedge400/asic=tomahawk3 --regex rx_slow_path_rate
+  netcastle --team bcm_bench --basset-query fboss:wedge400/asic=tomahawk3 --regex runTxSlowPathBenchmark
+  netcastle --team bcm_bench --basset-query fboss:wedge400/asic=tomahawk3 --regex RxSlowPathBenchmark
 
 Sai tx slow path and rx slow path:
 .. code-block:: sh
 
-  netcastle --team sai_bench --basset-query fboss:wedge400/asic=tomahawk3 --regex tx_slow_path_rate
-  netcastle --team sai_bench --basset-query fboss:wedge400/asic=tomahawk3 --regex rx_slow_path_rate
+  netcastle --team sai_bench --basset-query fboss:wedge400/asic=tomahawk3 --regex runTxSlowPathBenchmark
+  netcastle --team sai_bench --basset-query fboss:wedge400/asic=tomahawk3 --regex RxSlowPathBenchmark
 
 For native SDK, use command line argument `--use_pktio=false` to disable pktio. For sai, modify the config file to set 'pktio_driver_type: 0'.
 
