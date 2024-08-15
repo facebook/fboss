@@ -1,13 +1,1 @@
-load("@fbcode_macros//build_defs:python_library.bzl", "python_library")
-
 oncall("fboss_provisioning")
-
-python_library(
-    name = "click_utils",
-    srcs = [
-        "click_utils.py",
-    ],
-    deps = [
-        "fbsource//third-party/pypi/click:click",
-    ],
-)
