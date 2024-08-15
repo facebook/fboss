@@ -108,6 +108,16 @@ DsfSubscription::~DsfSubscription() {
       getAllSubscribePaths(localNodeName_, localIp_), remoteIp_.str());
   XLOG(DBG2) << kDsfCtrlLogPrefix
              << "removed subscription for : " << remoteEndpointStr();
+  // Nullify any pending update lambdas already scheduled on
+  // hwUpdateEvb_
+  auto nextDsfUpdateWlock = nextDsfUpdate_.wlock();
+  nextDsfUpdateWlock->clear();
+  // Schedule and wait on hwUpdateEvb_ to ensure that any
+  // lambdas already queued don't make access nextDsfUpdate
+  // which will now be destroyed
+  hwUpdateEvb_->runInEventBaseThreadAndWait([this]() {
+    XLOG(DBG3) << "Emptied out updates for : " << remoteEndpointStr();
+  });
 }
 
 std::string DsfSubscription::remoteEndpointStr() const {
