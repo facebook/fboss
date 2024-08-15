@@ -224,7 +224,8 @@
         38,
         39,
         41,
-        40
+        40,
+        7
     ]
   },
   "asicToFeatureNames": {
@@ -452,7 +453,8 @@
         "HGRID_DU_ROUTE_SCALE",
         "HGRID_UU_ROUTE_SCALE",
         "TH_ALPM_ROUTE_SCALE",
-        "HUNDRED_THOUSAND_ROUTE_SCALE"
+        "HUNDRED_THOUSAND_ROUTE_SCALE",
+        "PRBS"
     ]
   }
 }
