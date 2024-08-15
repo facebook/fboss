@@ -1,6 +1,8 @@
 name: Build QSFP Service - Hourly
 run-name: Build QSFP Service - Hourly
 on:
+  # Allow on pull request - for testing TODO: paulcruz74 - remove this after the build starts passing
+  pull_request:
   # Allow manually triggering the workflow
   workflow_dispatch:
   # Also schedule the workflow to run hourly automatically
@@ -14,4 +16,5 @@ jobs:
       - run: echo "Confirming hardware specications:"; sudo lscpu
       - name: Check out repository code
         uses: actions/checkout@v4
-      - run: sudo ./fboss/oss/scripts/docker-build.py --scratch-path ${{ github.workspace }}/build-output --target qsfp_service
+      - name: Run Docker-based build for FBOSS
+        run: sudo ./fboss/oss/scripts/docker-build.py --scratch-path ${{ github.workspace }}/build-output --target qsfp_service --no-docker-output
