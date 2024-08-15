@@ -311,6 +311,7 @@ struct MirrorFields {
   11: optional MirrorTunnel tunnel;
   12: bool isResolved;
   13: i64 switchId;
+  14: optional switch_config.PortDescriptor egressPortDesc;
 }
 
 struct ControlPlaneFields {
