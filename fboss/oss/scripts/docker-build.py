@@ -14,6 +14,7 @@ from typing import Optional, Tuple
 
 OPT_ARG_SCRATCH_PATH = "--scratch-path"
 OPT_ARG_CMAKE_TARGET = "--target"
+OPT_ARG_NO_DOCKER_OUTPUT = "--no-docker-output"
 
 FBOSS_IMAGE_NAME = "fboss_image"
 FBOSS_CONTAINER_NAME = "FBOSS_BUILD_CONTAINER"
@@ -110,6 +111,13 @@ def parse_args():
         default=None,
         help="CMake Target to be built (default: build all FBOSS targets)",
     )
+    parser.add_argument(
+        OPT_ARG_NO_DOCKER_OUTPUT,
+        dest="docker_output",
+        default=True,
+        action="store_false",
+        help="Skips step to attach TTY outputs to the docker container.",
+    )
 
     return parser.parse_args()
 
@@ -145,7 +153,7 @@ def build_docker_image(docker_dir_path: str):
         sys.exit(1)
 
 
-def run_fboss_build(scratch_path: str, target: Optional[str]):
+def run_fboss_build(scratch_path: str, target: Optional[str], docker_output: bool):
     cmd_args = ["sudo", "docker", "run"]
     # Add args for directory mount for build output.
     cmd_args.append("-v")
@@ -153,7 +161,8 @@ def run_fboss_build(scratch_path: str, target: Optional[str]):
     # Add required capability for sudo permissions
     cmd_args.append("--cap-add=CAP_AUDIT_WRITE")
     # Add TTY flags
-    cmd_args.append("-it")
+    if docker_output:
+        cmd_args.append("-it")
     # Add args for docker container name
     cmd_args.append(f"--name={FBOSS_CONTAINER_NAME}")
     # Add args for image name
@@ -209,7 +218,7 @@ def main():
     docker_dir_path = get_docker_path()
     build_docker_image(docker_dir_path)
 
-    run_fboss_build(args.scratch_path, args.target)
+    run_fboss_build(args.scratch_path, args.target, args.docker_output)
 
     cleanup_fboss_build_container()
 
