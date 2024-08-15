@@ -52,6 +52,7 @@ class DsfSubscriber : public StateObserver {
   std::vector<DsfSessionThrift> getDsfSessionsThrift() const;
 
  private:
+  void destroySubscription(std::unique_ptr<DsfSubscription> subscription);
   bool isLocal(SwitchID nodeSwitchId) const;
   SwSwitch* sw_;
   std::shared_ptr<SwitchState> cachedState_;

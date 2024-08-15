@@ -88,16 +88,18 @@ DsfSubscription::DsfSubscription(
 }
 
 DsfSubscription::~DsfSubscription() {
+  // In wedge_agent use case, where subcritptions are managed
+  // by DSFSubscriber, DsfSubscription should always have been stopped
+  // before we call the destructor. However for UTs which directly
+  // create DSFSubscription this is not the case. So call stop here.
+  // TODO: Change UTs to also use DSFSubscriber
   stop();
-  // Schedule and wait on hwUpdateEvb_ to ensure that any
-  // lambdas already queued don't make access nextDsfUpdate
-  // which will now be destroyed
-  hwUpdateEvb_->runInEventBaseThreadAndWait([this]() {
-    XLOG(DBG3) << "Emptied out updates for : " << remoteEndpointStr();
-  });
 }
 
 void DsfSubscription::stop() {
+  if (stopped_) {
+    return;
+  }
   if (getStreamState() != fsdb::FsdbStreamClient::State::CONNECTED) {
     // Subscription was not established - decrement failedDSF counter.
     sw_->stats()->failedDsfSubscription(remoteNodeName_, -1);

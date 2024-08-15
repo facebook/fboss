@@ -164,7 +164,13 @@ void DsfSubscriber::stateUpdated(const StateDelta& stateDelta) {
       XLOG(DBG2) << "Removing DSF subscriptions to:: " << nodeName
                  << " dstIP: " << dstIP;
 
-      subscriptions_.wlock()->erase(makeRemoteEndpoint(nodeName, dstIPAddr));
+      auto subscriptionsWlock = subscriptions_.wlock();
+      auto itr =
+          subscriptionsWlock->find(makeRemoteEndpoint(nodeName, dstIPAddr));
+      if (itr != subscriptionsWlock->end()) {
+        destroySubscription(std::move(itr->second));
+        subscriptionsWlock->erase(itr);
+      }
     }
   };
   DeltaFunctions::forEachChanged(
@@ -177,10 +183,34 @@ void DsfSubscriber::stateUpdated(const StateDelta& stateDelta) {
       rmDsfNode);
 }
 
+void DsfSubscriber::destroySubscription(
+    std::unique_ptr<DsfSubscription> subscription) {
+  subscription->stop();
+  // Since DSFSubscription schedules updates on hwUpdateEvb
+  // ensure that we always destroy it on that thread. Otherwise
+  // any already scheduled updates could have dangling references.
+  // Note that we don't make this synchronous (runInEventBaseThreadAndWaitWait)
+  // as that can lead to a deadlock.
+  // DsfSubscription schedules update on hwUpdateEvb, which in turn waits
+  // on SwSwitch::updateThread (for transactional updates).
+  // SwSwitch::updateThread gets a state update (say due to config change)
+  // where we remove a subscription. A synchronous wait here would then cause
+  // SwSwitch::updataThread to wait on hwUpdateEvb. Which would result in
+  // a deadlock.
+  hwUpdatePool_->getEventBase()->runInEventBaseThread(
+      [subscription = std::move(subscription)]() mutable {
+        subscription.reset();
+      });
+}
+
 void DsfSubscriber::stop() {
   sw_->unregisterStateObserver(this);
   // make sure all subscribers are stopped before thread cleanup
-  subscriptions_.wlock()->clear();
+  auto subscriptionsWlock = subscriptions_.wlock();
+  for (auto& [_, subscription] : *subscriptionsWlock) {
+    destroySubscription(std::move(subscription));
+  }
+  subscriptionsWlock->clear();
 }
 
 std::vector<DsfSessionThrift> DsfSubscriber::getDsfSessionsThrift() const {
