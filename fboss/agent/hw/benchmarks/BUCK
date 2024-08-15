@@ -339,6 +339,7 @@ agent_benchmark_lib(
     extra_deps = [
         "//fboss/agent/hw/test:teflow_utils",
         "//fboss/agent/hw/test:hw_test_te_flow_utils",
+        "//fboss/agent/hw/benchmarks:hw_teflow_scale_benchmark_helper",
     ],
 )
 
