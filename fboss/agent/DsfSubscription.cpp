@@ -270,6 +270,7 @@ void DsfSubscription::handleFsdbUpdate(fsdb::OperSubPathUnit&& operStateUnit) {
       } catch (std::exception& e) {
         XLOG(DBG2) << kDsfCtrlLogPrefix
                    << " update failed for : " << remoteEndpointStr();
+        sw_->stats()->dsfUpdateFailed();
         // Tear down subscription so no more updates come for this
         // subscription
         tearDownSubscription();
