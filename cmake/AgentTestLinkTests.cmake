@@ -33,6 +33,7 @@ target_link_libraries(link_tests
 
 add_library(agent_ensemble_link_tests
   fboss/agent/test/link_tests/AgentEnsembleLinkTest.cpp
+  fboss/agent/test/link_tests/LinkTestUtils.cpp
 )
 
 target_link_libraries(agent_ensemble_link_tests
