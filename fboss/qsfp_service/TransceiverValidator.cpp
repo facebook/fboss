@@ -19,7 +19,7 @@ TransceiverValidator::TransceiverValidator(
   }
 };
 
-// TODO(smenta): Once firmware sync is enabled, allow non-validated firmware
+// TODO: Once firmware sync is enabled, allow non-validated firmware
 // matches to return false.
 ValidationResult TransceiverValidator::validateTcvrAndReason(
     const TransceiverValidationInfo& tcvrInfo) const {

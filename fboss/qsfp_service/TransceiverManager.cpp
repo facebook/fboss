@@ -1674,7 +1674,7 @@ TransceiverValidationInfo TransceiverManager::getTransceiverValidationInfo(
       ? apache::thrift::util::enumNameSafe(mediaInterface.value())
       : "NOVALUE";
 
-  // TODO(smenta): Once firmware sync is enabled, consider firmware versions to
+  // TODO: Once firmware sync is enabled, consider firmware versions to
   // be required.
   auto moduleStatus = cachedTcvrState->status();
   if (moduleStatus.has_value() && moduleStatus->fwStatus().has_value()) {
