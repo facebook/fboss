@@ -38,7 +38,7 @@ class DsfSubscription {
     return session_.toThrift();
   }
 
-  const fsdb::FsdbPubSubManager::SubscriptionInfo getSubscriptionInfo() const;
+  const fsdb::SubscriptionInfo getSubscriptionInfo() const;
   // Used for tests only
   const std::shared_ptr<SwitchState> cachedState() const {
     return cachedState_;

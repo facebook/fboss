@@ -151,6 +151,13 @@ class FsdbSubManager {
     return opts_.clientId_;
   }
 
+  std::optional<SubscriptionInfo> getInfo() {
+    if (subscriber_) {
+      return subscriber_->getInfo();
+    }
+    return std::nullopt;
+  }
+
  private:
   void parseChunkAndInvokeCallback(SubscriberChunk chunk, DataCallback cb) {
     std::vector<SubscriptionKey> changedKeys;

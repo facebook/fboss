@@ -120,8 +120,7 @@ fsdb::FsdbStreamClient::State DsfSubscription::getStreamState() const {
       getAllSubscribePaths(localNodeName_, localIp_), remoteIp_.str());
 }
 
-const fsdb::FsdbPubSubManager::SubscriptionInfo
-DsfSubscription::getSubscriptionInfo() const {
+const fsdb::SubscriptionInfo DsfSubscription::getSubscriptionInfo() const {
   // Since we own our own pub sub mgr, there should always be exactly one
   // subscription
   return fsdbPubSubMgr_->getSubscriptionInfo()[0];

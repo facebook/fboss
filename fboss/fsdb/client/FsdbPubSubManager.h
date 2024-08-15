@@ -31,15 +31,6 @@ class FsdbPubSubManager {
   using Path = std::vector<std::string>;
   using MultiPath = std::vector<Path>;
 
-  struct SubscriptionInfo {
-    std::string server;
-    bool isDelta;
-    bool isStats;
-    std::vector<std::string> paths;
-    FsdbStreamClient::State state;
-    FsdbErrorCode disconnectReason;
-  };
-
   /* Publisher create APIs */
   void createStateDeltaPublisher(
       const Path& publishPath,
@@ -301,10 +292,10 @@ class FsdbPubSubManager {
   std::unique_ptr<FsdbPatchPublisher> statPatchPublisher_;
   // Subscribers
   folly::Synchronized<
-      std::unordered_map<std::string, std::unique_ptr<FsdbStreamClient>>>
+      std::unordered_map<std::string, std::unique_ptr<FsdbSubscriberBase>>>
       statePath2Subscriber_;
   folly::Synchronized<
-      std::unordered_map<std::string, std::unique_ptr<FsdbStreamClient>>>
+      std::unordered_map<std::string, std::unique_ptr<FsdbSubscriberBase>>>
       statPath2Subscriber_;
 
 // per class placeholder for test code injection

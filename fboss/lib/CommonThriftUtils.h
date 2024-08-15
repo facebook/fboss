@@ -112,6 +112,14 @@ class ReconnectingThriftClient {
   void setServerOptions(
       ServerOptions&& options,
       bool allowReset = false /* allow reset for use in tests*/);
+
+  std::string getServer() const {
+    if (auto serverOptions = serverOptions_.rlock();
+        serverOptions->has_value()) {
+      return (*serverOptions)->dstAddr.getAddressStr();
+    }
+    return "";
+  }
   void cancel();
   void timeoutExpired() noexcept;
   virtual void resetClient() = 0;

@@ -1,7 +1,6 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 
 #include "fboss/fsdb/client/FsdbDeltaSubscriber.h"
-#include "fboss/fsdb/common/PathHelpers.h"
 
 namespace facebook::fboss::fsdb {
 

@@ -51,21 +51,6 @@ std::string toSubscriptionStr(
       ":/",
       PathHelpers::toString(paths));
 }
-
-std::tuple<std::string, std::string, std::string, std::vector<std::string>>
-parseSubscriptionStr(const std::string& subStr) {
-  std::vector<std::string> elements;
-  std::vector<std::string> paths;
-  folly::split(":/", subStr, elements);
-  // Server, Delta/Path, State/Stat, Paths
-  CHECK_EQ(elements.size(), 4);
-  const auto& pathStr = elements[elements.size() - 1];
-  if (!pathStr.empty()) {
-    folly::split('_', pathStr, paths);
-  }
-  return std::make_tuple(elements[0], elements[1], elements[2], paths);
-}
-
 } // namespace
 namespace facebook::fboss::fsdb {
 
@@ -566,30 +551,16 @@ void FsdbPubSubManager::addSubscriptionImpl(
   itr->second->setServerOptions(std::move(serverOptions));
 }
 
-const std::vector<FsdbPubSubManager::SubscriptionInfo>
-FsdbPubSubManager::getSubscriptionInfo() const {
+const std::vector<SubscriptionInfo> FsdbPubSubManager::getSubscriptionInfo()
+    const {
   std::vector<SubscriptionInfo> subscriptionInfo;
   auto statePath2SubscriberR = statePath2Subscriber_.rlock();
-  for (const auto& [subStr, streamClient] : *statePath2SubscriberR) {
-    const auto& [server, delta, stats, paths] = parseSubscriptionStr(subStr);
-    subscriptionInfo.push_back(
-        {server,
-         delta == kDelta,
-         stats == kStats,
-         paths,
-         streamClient->getState(),
-         streamClient->getDisconnectReason()});
+  for (const auto& [_, subscriber] : *statePath2SubscriberR) {
+    subscriptionInfo.push_back(subscriber->getInfo());
   }
   auto statPath2SubscriberR = statPath2Subscriber_.rlock();
-  for (const auto& [subStr, streamClient] : *statPath2SubscriberR) {
-    const auto& [server, delta, stats, paths] = parseSubscriptionStr(subStr);
-    subscriptionInfo.push_back(
-        {server,
-         delta == kDelta,
-         stats == kStats,
-         paths,
-         streamClient->getState(),
-         streamClient->getDisconnectReason()});
+  for (const auto& [_, subscriber] : *statPath2SubscriberR) {
+    subscriptionInfo.push_back(subscriber->getInfo());
   }
   return subscriptionInfo;
 }

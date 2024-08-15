@@ -35,9 +35,8 @@ class DsfSubscriber : public StateObserver {
     return cachedState_;
   }
 
-  const std::vector<fsdb::FsdbPubSubManager::SubscriptionInfo>
-  getSubscriptionInfo() const {
-    std::vector<fsdb::FsdbPubSubManager::SubscriptionInfo> infos;
+  const std::vector<fsdb::SubscriptionInfo> getSubscriptionInfo() const {
+    std::vector<fsdb::SubscriptionInfo> infos;
     auto subscriptionsLocked = subscriptions_.rlock();
     infos.reserve(subscriptionsLocked->size());
     for (const auto& [_, subscription] : *subscriptionsLocked) {
