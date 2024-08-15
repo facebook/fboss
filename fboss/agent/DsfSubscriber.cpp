@@ -63,6 +63,15 @@ DsfSubscriber::DsfSubscriber(SwSwitch* sw)
           std::make_shared<folly::NamedThreadFactory>("DsfHwUpdate"))) {
   // TODO(aeckert): add dedicated config field for localNodeName
   sw_->registerStateObserver(this, "DsfSubscriber");
+  // Since we want to schedule destruction of DSFSubscription
+  // on the same hwUpdateThreadEvb as was passed to it, kepp
+  // this hwUpdatePool_ size as 1. This should be fine as
+  // hwUpdates are anyways scheduled on a single SwSwitch::update
+  // thread. If we ever need to increase this, then we must take
+  // care to schedule DsfSubscription destruction on the same
+  // evb as was passed to that DSFSubscription object on
+  // construction
+  CHECK_EQ(hwUpdatePool_->numThreads(), 1);
 }
 
 DsfSubscriber::~DsfSubscriber() {
