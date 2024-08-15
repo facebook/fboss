@@ -84,6 +84,28 @@ DsfSubscription::DsfSubscription(
       session_(makeRemoteEndpoint(remoteNodeName_, remoteIp_)) {
   // Subscription is not established until state becomes CONNECTED
   sw->stats()->failedDsfSubscription(remoteNodeName_, 1);
+  setupSubscription();
+}
+
+DsfSubscription::~DsfSubscription() {
+  if (getStreamState() != fsdb::FsdbStreamClient::State::CONNECTED) {
+    // Subscription was not established - decrement failedDSF counter.
+    sw_->stats()->failedDsfSubscription(remoteNodeName_, -1);
+  }
+  tearDownSubscription();
+  // Nullify any pending update lambdas already scheduled on
+  // hwUpdateEvb_
+  auto nextDsfUpdateWlock = nextDsfUpdate_.wlock();
+  nextDsfUpdateWlock->reset();
+  // Schedule and wait on hwUpdateEvb_ to ensure that any
+  // lambdas already queued don't make access nextDsfUpdate
+  // which will now be destroyed
+  hwUpdateEvb_->runInEventBaseThreadAndWait([this]() {
+    XLOG(DBG3) << "Emptied out updates for : " << remoteEndpointStr();
+  });
+}
+
+void DsfSubscription::setupSubscription() {
   fsdbPubSubMgr_->addStatePathSubscription(
       fsdb::SubscriptionOptions(opts_),
       getAllSubscribePaths(localNodeName_, localIp_),
@@ -98,28 +120,12 @@ DsfSubscription::DsfSubscription(
   XLOG(DBG2) << kDsfCtrlLogPrefix
              << "added subscription for : " << remoteEndpointStr();
 }
-
-DsfSubscription::~DsfSubscription() {
-  if (getStreamState() != fsdb::FsdbStreamClient::State::CONNECTED) {
-    // Subscription was not established - decrement failedDSF counter.
-    sw_->stats()->failedDsfSubscription(remoteNodeName_, -1);
-  }
+void DsfSubscription::tearDownSubscription() {
   fsdbPubSubMgr_->removeStatePathSubscription(
       getAllSubscribePaths(localNodeName_, localIp_), remoteIp_.str());
   XLOG(DBG2) << kDsfCtrlLogPrefix
              << "removed subscription for : " << remoteEndpointStr();
-  // Nullify any pending update lambdas already scheduled on
-  // hwUpdateEvb_
-  auto nextDsfUpdateWlock = nextDsfUpdate_.wlock();
-  nextDsfUpdateWlock->reset();
-  // Schedule and wait on hwUpdateEvb_ to ensure that any
-  // lambdas already queued don't make access nextDsfUpdate
-  // which will now be destroyed
-  hwUpdateEvb_->runInEventBaseThreadAndWait([this]() {
-    XLOG(DBG3) << "Emptied out updates for : " << remoteEndpointStr();
-  });
 }
-
 std::string DsfSubscription::remoteEndpointStr() const {
   static const std::string kRemoteEndpoint =
       remoteNodeName_ + "_" + remoteIp_.str();

@@ -62,6 +62,8 @@ class DsfSubscription {
           switchId2SystemPorts,
       const std::map<SwitchID, std::shared_ptr<InterfaceMap>>& switchId2Intfs);
   void processGRHoldTimerExpired();
+  void setupSubscription();
+  void tearDownSubscription();
 
   bool isLocal(SwitchID nodeSwitchId) const;
   void handleFsdbSubscriptionStateUpdate(
