@@ -110,3 +110,5 @@ DEFINE_bool(
     detect_wrong_fabric_connections,
     true,
     "Enable wrong fabric connection. Done via SDK");
+
+DEFINE_bool(dsf_edsw_platform_mapping, false, "Use EDSW platform mapping");
