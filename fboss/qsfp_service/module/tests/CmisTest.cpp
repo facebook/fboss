@@ -802,6 +802,16 @@ TEST_F(CmisTest, cmis2x400GFr4TransceiverVdmTest) {
   EXPECT_EQ(vdmLocationInfo.vdmValPage, static_cast<CmisPages>(0x24));
   EXPECT_EQ(vdmLocationInfo.vdmValOffset, 208);
   EXPECT_EQ(vdmLocationInfo.vdmValLength, 16);
+  vdmLocationInfo = xcvr->getVdmDiagsValLocation(FEC_TAIL_MEDIA_IN_MAX);
+  EXPECT_TRUE(vdmLocationInfo.vdmConfImplementedByModule);
+  EXPECT_EQ(vdmLocationInfo.vdmValPage, static_cast<CmisPages>(0x24));
+  EXPECT_EQ(vdmLocationInfo.vdmValOffset, 224);
+  EXPECT_EQ(vdmLocationInfo.vdmValLength, 16);
+  vdmLocationInfo = xcvr->getVdmDiagsValLocation(FEC_TAIL_MEDIA_IN_CURR);
+  EXPECT_TRUE(vdmLocationInfo.vdmConfImplementedByModule);
+  EXPECT_EQ(vdmLocationInfo.vdmValPage, static_cast<CmisPages>(0x24));
+  EXPECT_EQ(vdmLocationInfo.vdmValOffset, 240);
+  EXPECT_EQ(vdmLocationInfo.vdmValLength, 16);
   vdmLocationInfo = xcvr->getVdmDiagsValLocation(SNR_HOST_IN);
   EXPECT_TRUE(vdmLocationInfo.vdmConfImplementedByModule);
   EXPECT_EQ(vdmLocationInfo.vdmValPage, static_cast<CmisPages>(0x25));
@@ -826,6 +836,16 @@ TEST_F(CmisTest, cmis2x400GFr4TransceiverVdmTest) {
   EXPECT_TRUE(vdmLocationInfo.vdmConfImplementedByModule);
   EXPECT_EQ(vdmLocationInfo.vdmValPage, static_cast<CmisPages>(0x25));
   EXPECT_EQ(vdmLocationInfo.vdmValOffset, 208);
+  EXPECT_EQ(vdmLocationInfo.vdmValLength, 16);
+  vdmLocationInfo = xcvr->getVdmDiagsValLocation(FEC_TAIL_HOST_IN_MAX);
+  EXPECT_TRUE(vdmLocationInfo.vdmConfImplementedByModule);
+  EXPECT_EQ(vdmLocationInfo.vdmValPage, static_cast<CmisPages>(0x25));
+  EXPECT_EQ(vdmLocationInfo.vdmValOffset, 224);
+  EXPECT_EQ(vdmLocationInfo.vdmValLength, 16);
+  vdmLocationInfo = xcvr->getVdmDiagsValLocation(FEC_TAIL_HOST_IN_CURR);
+  EXPECT_TRUE(vdmLocationInfo.vdmConfImplementedByModule);
+  EXPECT_EQ(vdmLocationInfo.vdmValPage, static_cast<CmisPages>(0x25));
+  EXPECT_EQ(vdmLocationInfo.vdmValOffset, 240);
   EXPECT_EQ(vdmLocationInfo.vdmValLength, 16);
   vdmLocationInfo =
       xcvr->getVdmDiagsValLocation(PAM4_LEVEL0_STANDARD_DEVIATION_LINE);
@@ -967,6 +987,24 @@ TEST_F(CmisTest, cmis2x400GFr4TransceiverVdmTest) {
               .value() *
           100),
       132);
+  EXPECT_EQ(
+      newInfo.tcvrStats()
+          ->vdmPerfMonitorStatsForOds()
+          ->mediaPortVdmStats()
+          .value()
+          .begin()
+          ->second.fecTailMax()
+          .value(),
+      2);
+  EXPECT_EQ(
+      newInfo.tcvrStats()
+          ->vdmPerfMonitorStatsForOds()
+          ->hostPortVdmStats()
+          .value()
+          .begin()
+          ->second.fecTailMax()
+          .value(),
+      3);
 
   EXPECT_EQ(
       newInfo.tcvrStats()
