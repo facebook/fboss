@@ -60,6 +60,10 @@ DEFINE_bool(
     enforcePublisherConfig,
     false,
     "whether to enforce PublisherConfig for publish stream requests");
+DEFINE_bool(
+    forceRegisterSubscriptions,
+    false,
+    "Whether to bypass unique subscriber check. Should only be used during debugging");
 
 static constexpr auto kWatchdogThreadHeartbeatMissed =
     "watchdog_thread_heartbeat_missed";
@@ -690,12 +694,16 @@ void ServiceHandler::registerSubscription(const OperSubscriberInfo& info) {
       buildPathUnion(info),
       *info.type(),
       *info.isStats());
-  auto resp = activeSubscriptions_.wlock()->insert({std::move(key), info});
-  if (!resp.second) {
-    throw Utils::createFsdbException(
-        FsdbErrorCode::ID_ALREADY_EXISTS,
-        "Dup subscriber id: ",
-        *info.subscriberId());
+  if (FLAGS_forceRegisterSubscriptions) {
+    (*activeSubscriptions_.wlock())[std::move(key)] = info;
+  } else {
+    auto resp = activeSubscriptions_.wlock()->insert({std::move(key), info});
+    if (!resp.second) {
+      throw Utils::createFsdbException(
+          FsdbErrorCode::ID_ALREADY_EXISTS,
+          "Dup subscriber id: ",
+          *info.subscriberId());
+    }
   }
   updateSubscriptionCounters(info, true);
 }
