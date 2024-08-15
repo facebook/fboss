@@ -52,7 +52,7 @@ add_library(fsdb_path_converter
 
 target_link_libraries(fsdb_path_converter
   fsdb_model
-  path_helpers
+  oper_path_helpers
 )
 
 add_library(fsdb_naive_periodic_subscribable_storage

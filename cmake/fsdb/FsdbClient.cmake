@@ -58,6 +58,7 @@ set(fsdb_pub_sub_libs
   FBThrift::thriftcpp2
   fb303::fb303
   fsdb_cpp2
+  fsdb_utils
 )
 
 target_link_libraries(fsdb_pub_sub ${fsdb_pub_sub_libs})

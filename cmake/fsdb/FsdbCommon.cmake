@@ -12,6 +12,7 @@ target_link_libraries(fsdb_flags
 )
 
 add_library(fsdb_utils
+  fboss/fsdb/common/PathHelpers.cpp
   fboss/fsdb/common/Utils.cpp
 )
 

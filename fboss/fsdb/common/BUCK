@@ -21,9 +21,11 @@ cpp_library(
 cpp_library(
     name = "utils",
     srcs = [
+        "PathHelpers.cpp",
         "Utils.cpp",
     ],
     headers = [
+        "PathHelpers.h",
         "Types.h",
         "Utils.h",
     ],

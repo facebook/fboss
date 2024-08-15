@@ -27,6 +27,7 @@ target_link_libraries(fsdb_handler
   fsdb_oper_metadata_tracker
   fsdb_naive_periodic_subscribable_storage
   log_thrift_call
+  oper_path_helpers
   Folly::folly
   FBThrift::thriftcpp2
   fb303::fb303

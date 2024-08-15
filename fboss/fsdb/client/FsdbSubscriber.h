@@ -15,8 +15,6 @@
 
 namespace facebook::fboss::fsdb {
 
-std::string extendedPathsStr(const std::vector<ExtendedOperPath>& path);
-
 enum class SubscriptionState : uint16_t {
   DISCONNECTED,
   DISCONNECTED_GR_HOLD,
