@@ -5,4 +5,6 @@
 
 namespace facebook::fboss::platform::platform_manager {
 void PlatformManagerHandler::getPlatformSnapshot(PlatformSnapshot&) {}
+
+void PlatformManagerHandler::getLastPMStatus(PlatformManagerStatus&) {}
 } // namespace facebook::fboss::platform::platform_manager

@@ -10,6 +10,7 @@ class PlatformManagerHandler
     : public apache::thrift::ServiceHandler<PlatformManagerService> {
  public:
   void getPlatformSnapshot(PlatformSnapshot& response) override;
+  void getLastPMStatus(PlatformManagerStatus& response) override;
 };
 
 } // namespace facebook::fboss::platform::platform_manager
