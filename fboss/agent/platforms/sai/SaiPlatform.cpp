@@ -562,7 +562,7 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
   std::optional<int32_t> voqLatencyMinLevel2Ns;
   std::optional<int32_t> voqLatencyMaxLevel2Ns;
   // TODO: Look at making this part of config instead of hardcoding
-#if defined(BRCM_SAI_SDK_GTE_11_0)
+#if defined(BRCM_SAI_SDK_DNX) && defined(BRCM_SAI_SDK_GTE_11_0)
   voqLatencyMinLocalNs = 5000;
   voqLatencyMaxLocalNs = 4294967295;
   voqLatencyMinLevel1Ns = 500000;
