@@ -15,6 +15,7 @@
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/test/TestEnsembleIf.h"
+#include "fboss/agent/test/utils/AclTestUtils.h"
 #include "fboss/agent/test/utils/AsicUtils.h"
 #include "fboss/agent/test/utils/PortTestUtils.h"
 #include "fboss/lib/config/PlatformConfigUtils.h"
@@ -701,6 +702,11 @@ cfg::SwitchConfig genPortVlanCfg(
     const std::optional<std::map<SwitchID, const HwAsic*>>& hwAsicTable,
     const std::optional<PlatformType> platformType) {
   cfg::SwitchConfig config;
+  if (FLAGS_enable_acl_table_group) {
+    utility::addAclTableGroup(
+        &config, cfg::AclStage::INGRESS, utility::getAclTableGroupName());
+    utility::addDefaultAclTable(config);
+  }
   if (switchIdToSwitchInfo.has_value() && hwAsicTable.has_value()) {
     populateSwitchInfo(
         config,

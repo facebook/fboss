@@ -147,6 +147,7 @@ cpp_library(
     ],
     headers = ["ConfigUtils.h"],
     exported_deps = [
+        ":acl_test_utils",
         ":asic_test_utils",
         ":port_test_utils",
         "//fboss/agent:agent_features",
