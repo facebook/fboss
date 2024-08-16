@@ -313,6 +313,8 @@ void SaiSystemPortManager::updateStats(
   auto now = duration_cast<seconds>(system_clock::now().time_since_epoch());
   const auto& prevPortStats = portStatItr->second->portStats();
   HwSysPortStats curPortStats{prevPortStats};
+  curPortStats.timestamp_() =
+      duration_cast<seconds>(system_clock::now().time_since_epoch()).count();
   if (updateVoqStats || updateWatermarks) {
     managerTable_->queueManager().updateStats(
         handle->configuredQueues,
