@@ -3394,19 +3394,28 @@ bool printVdmInfoViaService(unsigned int port) {
   for (auto& [portName, mediaPortStats] :
        vdmStatsOpt.value().mediaPortVdmStats().value()) {
     printf("\n\nPort %s Media stats:\n", portName.c_str());
-    printf("           Min        Max        Avg        Cur\n");
+    printf("            Min        Max        Avg        Cur\n");
     printf(
-        "  BER    : %.2e   %.2e   %.2e   %.2e\n",
+        "  BER     : %.2e   %.2e   %.2e   %.2e\n",
         mediaPortStats.datapathBER().value().min().value(),
         mediaPortStats.datapathBER().value().max().value(),
         mediaPortStats.datapathBER().value().avg().value(),
         mediaPortStats.datapathBER().value().cur().value());
     printf(
-        "  FEC Err: %.2e   %.2e   %.2e   %.2e\n",
+        "  FEC Err : %.2e   %.2e   %.2e   %.2e\n",
         mediaPortStats.datapathErroredFrames().value().min().value(),
         mediaPortStats.datapathErroredFrames().value().max().value(),
         mediaPortStats.datapathErroredFrames().value().avg().value(),
         mediaPortStats.datapathErroredFrames().value().cur().value());
+    if (mediaPortStats.fecTailCurr().has_value() &&
+        mediaPortStats.fecTailMax().has_value()) {
+      printf(
+          "  FEC Tail: %-8s   %-8d   %-8s   %-8d\n",
+          "N/A",
+          mediaPortStats.fecTailMax().value(),
+          "N/A",
+          mediaPortStats.fecTailCurr().value());
+    }
 
     if (!mediaPortStats.laneSNR().value().empty()) {
       printf("\n  Channels ->    ");
@@ -3461,19 +3470,28 @@ bool printVdmInfoViaService(unsigned int port) {
   for (auto& [portName, hostPortStats] :
        vdmStatsOpt.value().hostPortVdmStats().value()) {
     printf("\nPort %s Host stats:\n", portName.c_str());
-    printf("           Min        Max        Avg        Cur\n");
+    printf("            Min        Max        Avg        Cur\n");
     printf(
-        "  BER    : %.2e   %.2e   %.2e   %.2e\n",
+        "  BER     : %.2e   %.2e   %.2e   %.2e\n",
         hostPortStats.datapathBER().value().min().value(),
         hostPortStats.datapathBER().value().max().value(),
         hostPortStats.datapathBER().value().avg().value(),
         hostPortStats.datapathBER().value().cur().value());
     printf(
-        "  FEC Err: %.2e   %.2e   %.2e   %.2e\n",
+        "  FEC Err : %.2e   %.2e   %.2e   %.2e\n",
         hostPortStats.datapathErroredFrames().value().min().value(),
         hostPortStats.datapathErroredFrames().value().max().value(),
         hostPortStats.datapathErroredFrames().value().avg().value(),
         hostPortStats.datapathErroredFrames().value().cur().value());
+    if (hostPortStats.fecTailCurr().has_value() &&
+        hostPortStats.fecTailMax().has_value()) {
+      printf(
+          "  FEC Tail: %-8s   %-8d   %-8s   %-8d\n",
+          "N/A",
+          hostPortStats.fecTailMax().value(),
+          "N/A",
+          hostPortStats.fecTailCurr().value());
+    }
 
     if (!hostPortStats.laneSNR().value().empty()) {
       printf("\n  Channel ->    ");
