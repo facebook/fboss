@@ -225,7 +225,8 @@
         39,
         41,
         40,
-        7
+        7,
+        25
     ]
   },
   "asicToFeatureNames": {
@@ -454,7 +455,8 @@
         "HGRID_UU_ROUTE_SCALE",
         "TH_ALPM_ROUTE_SCALE",
         "HUNDRED_THOUSAND_ROUTE_SCALE",
-        "PRBS"
+        "PRBS",
+        "MAC_LEARNING"
     ]
   }
 }
