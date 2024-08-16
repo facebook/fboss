@@ -13,6 +13,7 @@
 #include "fboss/agent/gen-cpp2/switch_state_types.h"
 #include "fboss/agent/state/AclEntry.h"
 #include "fboss/agent/state/NodeBase.h"
+#include "fboss/agent/state/PortDescriptor.h"
 #include "fboss/agent/state/RouteNextHop.h"
 #include "fboss/agent/types.h"
 #include "folly/MacAddress.h"
@@ -163,6 +164,8 @@ class Mirror : public ThriftStructNode<Mirror, state::MirrorFields> {
   void setMirrorName(const std::string& name);
   bool configHasEgressPort() const;
   bool isResolved() const;
+  void setEgressPortDesc(const PortDescriptor& egressPortDesc);
+  std::optional<PortDescriptor> getEgressPortDesc() const;
 
   Type type() const;
 

@@ -60,6 +60,13 @@ std::optional<PortID> Mirror::getEgressPort() const {
   return std::nullopt;
 }
 
+std::optional<PortDescriptor> Mirror::getEgressPortDesc() const {
+  if (auto portDesc = get<switch_state_tags::egressPortDesc>()) {
+    return PortDescriptor::fromThrift(portDesc->toThrift());
+  }
+  return std::nullopt;
+}
+
 std::optional<TunnelUdpPorts> Mirror::getTunnelUdpPorts() const {
   auto srcPort = get<switch_state_tags::udpSrcPort>();
   auto dstPort = get<switch_state_tags::udpDstPort>();
@@ -91,6 +98,10 @@ void Mirror::setTruncate(bool truncate) {
 
 void Mirror::setEgressPort(PortID egressPort) {
   set<switch_state_tags::egressPort>(egressPort);
+}
+
+void Mirror::setEgressPortDesc(const PortDescriptor& egressPortDesc) {
+  set<switch_state_tags::egressPortDesc>(egressPortDesc.toThrift());
 }
 
 void Mirror::setDestinationMac(const folly::MacAddress& dstMac) {
