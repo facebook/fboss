@@ -478,13 +478,13 @@
           "spiMasterConfigs": [
             {
               "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "SMB_SPI_MASTER0",
+                "pmUnitScopedName": "SMB_SPI0_MASTER0",
                 "deviceName": "spi_master",
                 "csrOffset": "0x7900"
               },
               "spiDeviceConfigs": [
                 {
-                  "pmUnitScopedName": "SMB_SPI_MASTER0_DEVICE1",
+                  "pmUnitScopedName": "SMB_SPI0_MASTER0_DEVICE1",
                   "chipSelect": 0,
                   "modalias": "spidev",
                   "maxSpeedHz": 25000000
@@ -1380,13 +1380,13 @@
           "spiMasterConfigs": [
             {
               "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "SMB_SPI_MASTER0",
+                "pmUnitScopedName": "SMB_SPI1_MASTER0",
                 "deviceName": "spi_master",
                 "csrOffset": "0x7900"
               },
               "spiDeviceConfigs": [
                 {
-                  "pmUnitScopedName": "SMB_SPI_MASTER0_DEVICE1",
+                  "pmUnitScopedName": "SMB_SPI1_MASTER0_DEVICE1",
                   "chipSelect": 0,
                   "modalias": "spidev",
                   "maxSpeedHz": 25000000
@@ -2282,13 +2282,13 @@
           "spiMasterConfigs": [
             {
               "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "SMB_SPI_MASTER0",
+                "pmUnitScopedName": "SMB_SPI2_MASTER0",
                 "deviceName": "spi_master",
                 "csrOffset": "0x7900"
               },
               "spiDeviceConfigs": [
                 {
-                  "pmUnitScopedName": "SMB_SPI_MASTER0_DEVICE1",
+                  "pmUnitScopedName": "SMB_SPI2_MASTER0_DEVICE1",
                   "chipSelect": 0,
                   "modalias": "spidev",
                   "maxSpeedHz": 25000000
@@ -3220,13 +3220,13 @@
           "spiMasterConfigs": [
             {
               "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "SMB_SPI_MASTER0",
+                "pmUnitScopedName": "SMB_SPI3_MASTER0",
                 "deviceName": "spi_master",
                 "csrOffset": "0x7900"
               },
               "spiDeviceConfigs": [
                 {
-                  "pmUnitScopedName": "SMB_SPI_MASTER0_DEVICE1",
+                  "pmUnitScopedName": "SMB_SPI3_MASTER0_DEVICE1",
                   "chipSelect": 0,
                   "modalias": "spidev",
                   "maxSpeedHz": 25000000
@@ -4436,7 +4436,10 @@
     "/run/devmap/xcvrs/xcvr_126": "/SMB_SLOT@0/[OSFP_PORT126_XCVR]",
     "/run/devmap/xcvrs/xcvr_127": "/SMB_SLOT@0/[OSFP_PORT127_XCVR]",
     "/run/devmap/xcvrs/xcvr_128": "/SMB_SLOT@0/[OSFP_PORT128_XCVR]",
-    "/run/devmap/flashes/SMB_SPI_MASTER0_DEVICE1": "/SMB_SLOT@0/[SMB_SPI_MASTER0_DEVICE1]",
+    "/run/devmap/flashes/SMB_SPI0_MASTER0_DEVICE1": "/SMB_SLOT@0/[SMB_SPI0_MASTER0_DEVICE1]",
+    "/run/devmap/flashes/SMB_SPI1_MASTER0_DEVICE1": "/SMB_SLOT@0/[SMB_SPI1_MASTER0_DEVICE1]",
+    "/run/devmap/flashes/SMB_SPI2_MASTER0_DEVICE1": "/SMB_SLOT@0/[SMB_SPI2_MASTER0_DEVICE1]",
+    "/run/devmap/flashes/SMB_SPI3_MASTER0_DEVICE1": "/SMB_SLOT@0/[SMB_SPI3_MASTER0_DEVICE1]",
     "/run/devmap/sensors/PSU1_PMBUS": "/SMB_SLOT@0/PSU_SLOT@0/[PSU_PMBUS]",
     "/run/devmap/sensors/PSU2_PMBUS": "/SMB_SLOT@0/PSU_SLOT@1/[PSU_PMBUS]",
     "/run/devmap/sensors/PSU3_PMBUS": "/SMB_SLOT@0/PSU_SLOT@2/[PSU_PMBUS]",
