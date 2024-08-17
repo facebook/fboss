@@ -128,7 +128,7 @@
         {
           "busName": "INCOMING@1",
           "address": "0x49",
-          "kernelDeviceName": "tmp75",
+          "kernelDeviceName": "lm75",
           "pmUnitScopedName": "SMB_TMP75_FRONT",
           "initRegSettings": [
             {
@@ -140,7 +140,7 @@
         {
           "busName": "INCOMING@1",
           "address": "0x4a",
-          "kernelDeviceName": "tmp75",
+          "kernelDeviceName": "lm75",
           "pmUnitScopedName": "SMB_TMP75_REAR",
           "initRegSettings": [
             {
@@ -192,7 +192,7 @@
         {
           "busName": "INCOMING@2",
           "address": "0x48",
-          "kernelDeviceName": "tmp75",
+          "kernelDeviceName": "lm75",
           "pmUnitScopedName": "FAN_TMP75",
           "initRegSettings": [
             {
@@ -228,7 +228,7 @@
         {
           "busName": "SMB_I2C_MASTER0@2",
           "address": "0x48",
-          "kernelDeviceName": "tmp75",
+          "kernelDeviceName": "lm75",
           "pmUnitScopedName": "SMB_MGMT_TMP75"
         }
       ],
