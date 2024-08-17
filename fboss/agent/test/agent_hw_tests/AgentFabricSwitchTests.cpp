@@ -104,9 +104,13 @@ TEST_F(AgentFabricSwitchTest, checkFabricConnectivityStats) {
   };
   auto verify = [this]() {
     EXPECT_GT(getProgrammedState()->getPorts()->numNodes(), 0);
-    for (const auto& switchId : getFabricSwitchIdsWithPorts()) {
-      utility::checkFabricConnectivityStats(getAgentEnsemble(), switchId);
-    }
+    WITH_RETRIES({
+      auto reachabilityStats = getAgentEnsemble()->getFabricReachabilityStats();
+      EXPECT_EVENTUALLY_EQ(
+          reachabilityStats.missingCount(),
+          masterLogicalFabricPortIds().size());
+      EXPECT_EVENTUALLY_EQ(reachabilityStats.mismatchCount(), 0);
+    });
   };
   verifyAcrossWarmBoots(setup, verify);
 }
