@@ -1,6 +1,6 @@
 load("@fbcode_macros//build_defs:cpp_binary.bzl", "cpp_binary")
 load("//fboss:THIRD-PARTY-VERSIONS.bzl", "BCM_SDKS", "to_impl_suffix", "to_versions")
-load("//fboss/agent/hw/sai/impl:impl.bzl", "SAI_BRCM_IMPLS", "SAI_LEABA_IMPLS", "to_impl_lib_name")
+load("//fboss/agent/hw/sai/impl:impl.bzl", "SAI_BRCM_IMPLS", "SAI_LEABA_IMPLS", "get_link_group_map", "to_impl_bin_name", "to_impl_lib_name")
 load("//fboss/agent/hw/sai/switch:switch.bzl", "sai_switch_dependent_name")
 
 oncall("fboss_agent_push")
@@ -29,15 +29,18 @@ oncall("fboss_agent_push")
     for sdk in BCM_SDKS
 ]
 
+_sai_invariant_agent_test_prefix = "sai_invariant_agent_test"
+
 [
     cpp_binary(
-        name = "sai_invariant_agent_test-{}-{}".format(
-            sai_impl.name,
-            sai_impl.version,
-        ),
+        name = to_impl_bin_name(sai_impl, _sai_invariant_agent_test_prefix),
         srcs = [
             "SaiProdInvariantTests.cpp",
         ],
+        link_group_map = get_link_group_map(
+            to_impl_bin_name(sai_impl, _sai_invariant_agent_test_prefix),
+            sai_impl,
+        ),
         linker_flags = [
             "--export-dynamic",
             "--unresolved-symbols=ignore-all",

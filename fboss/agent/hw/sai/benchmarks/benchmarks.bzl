@@ -1,5 +1,5 @@
 load("@fbcode_macros//build_defs:cpp_binary.bzl", "cpp_binary")
-load("//fboss/agent/hw/sai/impl:impl.bzl", "get_all_npu_impls", "to_impl_lib_name", "to_impl_suffix", "to_versions")
+load("//fboss/agent/hw/sai/impl:impl.bzl", "get_all_npu_impls", "get_link_group_map", "to_impl_lib_name", "to_impl_suffix", "to_versions")
 load("//fboss/agent/hw/sai/switch:switch.bzl", "sai_switch_dependent_name")
 
 def _mono_sai_agent_benchmark_binary(name, srcs, sai_impl, **kwargs):
@@ -7,6 +7,7 @@ def _mono_sai_agent_benchmark_binary(name, srcs, sai_impl, **kwargs):
     name = "{}-{}-{}".format(name, sai_impl.name, sai_impl.version)
     main_name = "mono_sai_agent_benchmarks_main"
     sai_agent_benchmarks_main = sai_switch_dependent_name(main_name, sai_impl, True)
+    link_group_map = get_link_group_map(main_name, sai_impl),
     deps = list(kwargs.get("deps", []))
     deps += [
         "//fboss/agent/hw/sai/impl:{}".format(to_impl_lib_name(sai_impl)),

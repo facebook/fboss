@@ -341,11 +341,13 @@ def _sai_multinode_test_binary(sai_impl):
     ]
     if sai_impl.name == "fake" or sai_impl.name == "leaba":
         test_deps.append("//fboss/agent/platforms/sai:bcm-required-symbols")
+    binary_name = "sai_multinode_test-{}-{}".format(sai_impl.name, sai_impl.version)
     return cpp_binary(
-        name = "sai_multinode_test-{}-{}".format(sai_impl.name, sai_impl.version),
+        name = binary_name,
         srcs = [
             "SaiMultiNodeTest.cpp",
         ],
+        link_group_map = get_link_group_map(binary_name, sai_impl),
         deps = test_deps,
         auto_headers = AutoHeaders.SOURCES,
         versions = to_versions(sai_impl),
@@ -373,11 +375,13 @@ def _sai_macsec_multinode_test_binary(sai_impl):
     ]
     if sai_impl.name == "fake" or sai_impl.name == "leaba":
         test_deps.append("//fboss/agent/platforms/sai:bcm-required-symbols")
+    binary_name = "sai_macsec_multinode_test-{}-{}".format(sai_impl.name, sai_impl.version)
     return cpp_binary(
-        name = "sai_macsec_multinode_test-{}-{}".format(sai_impl.name, sai_impl.version),
+        name = binary_name,
         srcs = [
             "SaiMultiNodeTest.cpp",
         ],
+        link_group_map = get_link_group_map(binary_name, sai_impl),
         deps = test_deps,
         auto_headers = AutoHeaders.SOURCES,
         versions = to_versions(sai_impl),

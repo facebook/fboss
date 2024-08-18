@@ -2,7 +2,7 @@ load("@fbcode_macros//build_defs:auto_headers.bzl", "AutoHeaders")
 load("@fbcode_macros//build_defs:cpp_binary.bzl", "cpp_binary")
 load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
 load("@fbcode_macros//build_defs:custom_unittest.bzl", "custom_unittest")
-load("//fboss/agent/hw/sai/impl:impl.bzl", "get_all_npu_impls", "get_all_phy_impls", "to_impl_lib_name", "to_impl_suffix", "to_versions")
+load("//fboss/agent/hw/sai/impl:impl.bzl", "get_all_npu_impls", "get_all_phy_impls", "get_link_group_map", "to_impl_lib_name", "to_impl_suffix", "to_versions")
 load("//fboss/agent/hw/sai/switch:switch.bzl", "sai_switch_dependent_name", "sai_switch_lib_name")
 
 headers = [
@@ -246,6 +246,7 @@ def _wedge_agent_bin(sai_impl, is_npu):
             "--export-dynamic",
             "--unresolved-symbols=ignore-all",
         ],
+        link_group_map = get_link_group_map(wedge_agent_name, sai_impl),
         auto_headers = AutoHeaders.SOURCES,
         versions = _versions(sai_impl),
         deps = [
@@ -295,6 +296,7 @@ def _wedge_hwagent_bin(sai_impl, hwagent_prefix):
             "--export-dynamic",
             "--unresolved-symbols=ignore-all",
         ],
+        link_group_map = get_link_group_map(wedge_agent_name, sai_impl),
         auto_headers = AutoHeaders.SOURCES,
         versions = _versions(sai_impl),
         deps = hw_bin_deps,

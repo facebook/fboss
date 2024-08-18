@@ -37,6 +37,13 @@ def to_impl_lib_name(sai_impl):
         sai_impl.version,
     )
 
+def to_impl_bin_name(sai_impl, prefix):
+    return "{}-{}-{}".format(
+        prefix,
+        sai_impl.name,
+        sai_impl.version,
+    )
+
 def impl_category_suffix(is_npu):
     return "" if is_npu else "-phy"
 

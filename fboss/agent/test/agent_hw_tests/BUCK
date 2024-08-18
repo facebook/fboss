@@ -1,7 +1,7 @@
 load("@fbcode_macros//build_defs:cpp_binary.bzl", "cpp_binary")
 load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
 load("//fboss:THIRD-PARTY-VERSIONS.bzl", "BCM_SDKS", "to_impl_suffix", "to_versions")
-load("//fboss/agent/hw/sai/impl:impl.bzl", "SAI_BRCM_IMPLS", "SAI_LEABA_IMPLS", "to_impl_lib_name")
+load("//fboss/agent/hw/sai/impl:impl.bzl", "SAI_BRCM_IMPLS", "SAI_LEABA_IMPLS", "get_link_group_map", "to_impl_bin_name", "to_impl_lib_name")
 load("//fboss/agent/hw/sai/switch:switch.bzl", "sai_switch_dependent_name")
 
 oncall("fboss_agent_push")
@@ -200,15 +200,18 @@ cpp_binary(
     for sdk in BCM_SDKS
 ]
 
+_sai_agent_hw_test_prefix = "sai_agent_hw_test"
+
 [
     cpp_binary(
-        name = "sai_agent_hw_test-{}-{}".format(
-            sai_impl.name,
-            sai_impl.version,
-        ),
+        name = to_impl_bin_name(sai_impl, _sai_agent_hw_test_prefix),
         srcs = [
             "SaiAgentHwTest.cpp",
         ],
+        link_group_map = get_link_group_map(
+            to_impl_bin_name(sai_impl, _sai_agent_hw_test_prefix),
+            sai_impl,
+        ),
         versions = {
             sai_impl.sdk_name: sai_impl.version,
         },
@@ -226,15 +229,18 @@ cpp_binary(
     for sai_impl in SAI_BRCM_IMPLS + SAI_LEABA_IMPLS
 ]
 
+_sai_agent_scale_test_prefix = "sai_agent_scale_test"
+
 [
     cpp_binary(
-        name = "sai_agent_scale_test-{}-{}".format(
-            sai_impl.name,
-            sai_impl.version,
-        ),
+        name = to_impl_bin_name(sai_impl, _sai_agent_scale_test_prefix),
         srcs = [
             "SaiAgentHwTest.cpp",
         ],
+        link_group_map = get_link_group_map(
+            to_impl_bin_name(sai_impl, _sai_agent_scale_test_prefix),
+            sai_impl,
+        ),
         versions = {
             sai_impl.sdk_name: sai_impl.version,
         },
