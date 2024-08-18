@@ -16,6 +16,11 @@ DEFINE_bool(
     false,
     "list production feature needed for every single test");
 
+DEFINE_bool(
+    disable_link_toggler,
+    false,
+    "Used by certain tests where we don't want to bring up ports by toggler");
+
 namespace {
 int kArgc;
 char** kArgv;
@@ -44,7 +49,7 @@ void AgentHwTest::SetUp() {
       [this](const AgentEnsemble& ensemble) { return initialConfig(ensemble); };
   agentEnsemble_ = createAgentEnsemble(
       initialConfigFn,
-      false /*disableLinkStateToggler*/,
+      FLAGS_disable_link_toggler /*disableLinkStateToggler*/,
       platformConfigFn_,
       (HwSwitch::FeaturesDesired::PACKET_RX_DESIRED |
        HwSwitch::FeaturesDesired::LINKSCAN_DESIRED |

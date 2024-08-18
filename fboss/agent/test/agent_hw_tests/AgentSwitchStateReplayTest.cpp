@@ -23,6 +23,8 @@ DEFINE_string(
     replay_switch_state_file,
     "",
     "File for dumping switch state JSON in on exit");
+DECLARE_bool(disable_link_toggler);
+
 using std::string;
 
 namespace facebook::fboss {
@@ -97,6 +99,15 @@ class AgentSwitchStateReplayTest : public AgentHwTest {
     };
     auto verify = [=]() {};
     verifyAcrossWarmBoots(setup, verify);
+  }
+
+ private:
+  void setCmdLineFlagOverrides() const override {
+    AgentHwTest::setCmdLineFlagOverrides();
+    // All ports should be visible like in prod
+    FLAGS_hide_fabric_ports = false;
+    // Don't start with bringing up all ports via toggler
+    FLAGS_disable_link_toggler = true;
   }
 };
 
