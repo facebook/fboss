@@ -31,6 +31,12 @@ class AgentSwitchStateReplayTest : public AgentHwTest {
  public:
   cfg::SwitchConfig initialConfig(
       const AgentEnsemble& ensemble) const override {
+    if (FLAGS_replay_switch_state_file.size()) {
+      // Config must be from the same switch that switch
+      // state was pulled from.
+      return *AgentConfig::fromDefaultFile()->thrift.sw();
+      ;
+    }
     return utility::onePortPerInterfaceConfig(
         ensemble.getSw(), ensemble.masterLogicalPortIds());
   }
