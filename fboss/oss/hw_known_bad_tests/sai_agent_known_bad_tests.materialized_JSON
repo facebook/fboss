@@ -5440,28 +5440,7 @@
           "test_name_regex": "AgentCoppTest/[01].NdpSolicitationToHighPriQ$"
         },
         {
-          "test_name_regex": "AgentCoppTest/[01].NdpAdvertisementToHighPriQ$"
-        },
-        {
-          "test_name_regex": "AgentCoppTest/[01].Ttl1PacketToLowPriQ$"
-        },
-        {
-          "test_name_regex": "AgentCoppTest/[01].JumboFramesToQueues$"
-        },
-        {
-          "test_name_regex": "AgentCoppTest/[01].UnresolvedRoutesToLowPriQueue$"
-        },
-        {
           "test_name_regex": "AgentCoppTest/[01].CpuPortIpv6LinkLocalUcastIp$"
-        },
-        {
-          "test_name_regex": "AgentCoppTest/[01].Ipv6LinkLocalMcastNetworkControlDscpToHighPriQ$"
-        },
-        {
-          "test_name_regex": "AgentDscpMarkingTest.VerifyDscpMarking$"
-        },
-        {
-          "test_name_regex": "AgentAclConflictAndDscpQueueMappingTest.VerifyAclAndQosMapConflict$"
         },
         {
           "test_name_regex": "AgentQueuePerHostTest.*$"
@@ -5500,13 +5479,31 @@
           "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
+          "test_name_regex": "AgentCoppTest/[01].NdpAdvertisementToHighPriQ$"
+        },
+        {
+          "test_name_regex": "AgentCoppTest/[01].Ttl1PacketToLowPriQ$"
+        },
+        {
+          "test_name_regex": "AgentCoppTest/[01].JumboFramesToQueues$"
+        },
+        {
+          "test_name_regex": "AgentCoppTest/[01].UnresolvedRoutesToLowPriQueue$"
+        },
+        {
+          "test_name_regex": "AgentCoppTest/[01].Ipv6LinkLocalMcastNetworkControlDscpToHighPriQ$"
+        },
+        {
+          "test_name_regex": "AgentDscpMarkingTest.VerifyDscpMarking$"
+        },
+        {
+          "test_name_regex": "AgentAclConflictAndDscpQueueMappingTest.VerifyAclAndQosMapConflict$"
+        },
+        {
           "test_name_regex": "AgentDeepPacketInspectionTest.*$"
         },
         {
           "test_name_regex": "AgentRouteCounterOverflowTest.*$"
-        },
-        {
-          "test_name_regex": "AgentCoppTest/[01].Ipv6LinkLocalMcastToMidPriQ$"
         },
         {
           "test_name_regex": "AgentDiagShellStressTest.stressDiagCmds$"
@@ -5530,10 +5527,13 @@
           "test_name_regex": "AgentEgressAclErspanMirroringTest/[01].*$"
         },
         {
-          "test_name_regex": "AgentEgressPortErspanMirroringTruncateTest/[01].*$"
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot.AgentQueuePerHostRouteTest/[01].VerifyHostToQueueMappingClassIDBlock$"
         },
         {
-          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot.AgentQueuePerHostRouteTest/[01].VerifyHostToQueueMappingClassIDBlock$"
+          "test_name_regex": "AgentCoppTest/[01].Ipv6LinkLocalMcastToMidPriQ$"
+        },
+        {
+          "test_name_regex": "AgentEgressPortErspanMirroringTruncateTest/[01].*$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].DstIpNetworkControlDscpToHighPriQ$"
@@ -5625,28 +5625,7 @@
           "test_name_regex": "AgentCoppTest/[01].NdpSolicitationToHighPriQ$"
         },
         {
-          "test_name_regex": "AgentCoppTest/[01].NdpAdvertisementToHighPriQ$"
-        },
-        {
-          "test_name_regex": "AgentCoppTest/[01].Ttl1PacketToLowPriQ$"
-        },
-        {
-          "test_name_regex": "AgentCoppTest/[01].JumboFramesToQueues$"
-        },
-        {
-          "test_name_regex": "AgentCoppTest/[01].UnresolvedRoutesToLowPriQueue$"
-        },
-        {
           "test_name_regex": "AgentCoppTest/[01].CpuPortIpv6LinkLocalUcastIp$"
-        },
-        {
-          "test_name_regex": "AgentCoppTest/[01].Ipv6LinkLocalMcastNetworkControlDscpToHighPriQ$"
-        },
-        {
-          "test_name_regex": "AgentDscpMarkingTest.VerifyDscpMarking$"
-        },
-        {
-          "test_name_regex": "AgentAclConflictAndDscpQueueMappingTest.VerifyAclAndQosMapConflict$"
         },
         {
           "test_name_regex": "AgentQueuePerHostTest.*$"
@@ -5685,13 +5664,31 @@
           "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
+          "test_name_regex": "AgentCoppTest/[01].NdpAdvertisementToHighPriQ$"
+        },
+        {
+          "test_name_regex": "AgentCoppTest/[01].Ttl1PacketToLowPriQ$"
+        },
+        {
+          "test_name_regex": "AgentCoppTest/[01].JumboFramesToQueues$"
+        },
+        {
+          "test_name_regex": "AgentCoppTest/[01].UnresolvedRoutesToLowPriQueue$"
+        },
+        {
+          "test_name_regex": "AgentCoppTest/[01].Ipv6LinkLocalMcastNetworkControlDscpToHighPriQ$"
+        },
+        {
+          "test_name_regex": "AgentDscpMarkingTest.VerifyDscpMarking$"
+        },
+        {
+          "test_name_regex": "AgentAclConflictAndDscpQueueMappingTest.VerifyAclAndQosMapConflict$"
+        },
+        {
           "test_name_regex": "AgentDeepPacketInspectionTest.*$"
         },
         {
           "test_name_regex": "AgentRouteCounterOverflowTest.*$"
-        },
-        {
-          "test_name_regex": "AgentCoppTest/[01].Ipv6LinkLocalMcastToMidPriQ$"
         },
         {
           "test_name_regex": "AgentDiagShellStressTest.stressDiagCmds$"
@@ -5715,10 +5712,13 @@
           "test_name_regex": "AgentEgressAclErspanMirroringTest/[01].*$"
         },
         {
-          "test_name_regex": "AgentEgressPortErspanMirroringTruncateTest/[01].*$"
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot.AgentQueuePerHostRouteTest/[01].VerifyHostToQueueMappingClassIDBlock$"
         },
         {
-          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot.AgentQueuePerHostRouteTest/[01].VerifyHostToQueueMappingClassIDBlock$"
+          "test_name_regex": "AgentCoppTest/[01].Ipv6LinkLocalMcastToMidPriQ$"
+        },
+        {
+          "test_name_regex": "AgentEgressPortErspanMirroringTruncateTest/[01].*$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].DstIpNetworkControlDscpToHighPriQ$"
@@ -5822,28 +5822,7 @@
           "test_name_regex": "AgentCoppTest/[01].NdpSolicitationToHighPriQ$"
         },
         {
-          "test_name_regex": "AgentCoppTest/[01].NdpAdvertisementToHighPriQ$"
-        },
-        {
-          "test_name_regex": "AgentCoppTest/[01].Ttl1PacketToLowPriQ$"
-        },
-        {
-          "test_name_regex": "AgentCoppTest/[01].JumboFramesToQueues$"
-        },
-        {
-          "test_name_regex": "AgentCoppTest/[01].UnresolvedRoutesToLowPriQueue$"
-        },
-        {
           "test_name_regex": "AgentCoppTest/[01].CpuPortIpv6LinkLocalUcastIp$"
-        },
-        {
-          "test_name_regex": "AgentCoppTest/[01].Ipv6LinkLocalMcastNetworkControlDscpToHighPriQ$"
-        },
-        {
-          "test_name_regex": "AgentDscpMarkingTest.VerifyDscpMarking$"
-        },
-        {
-          "test_name_regex": "AgentAclConflictAndDscpQueueMappingTest.VerifyAclAndQosMapConflict$"
         },
         {
           "test_name_regex": "AgentQueuePerHostTest.*$"
@@ -5880,6 +5859,27 @@
         },
         {
           "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
+        },
+        {
+          "test_name_regex": "AgentCoppTest/[01].NdpAdvertisementToHighPriQ$"
+        },
+        {
+          "test_name_regex": "AgentCoppTest/[01].Ttl1PacketToLowPriQ$"
+        },
+        {
+          "test_name_regex": "AgentCoppTest/[01].JumboFramesToQueues$"
+        },
+        {
+          "test_name_regex": "AgentCoppTest/[01].UnresolvedRoutesToLowPriQueue$"
+        },
+        {
+          "test_name_regex": "AgentCoppTest/[01].Ipv6LinkLocalMcastNetworkControlDscpToHighPriQ$"
+        },
+        {
+          "test_name_regex": "AgentDscpMarkingTest.VerifyDscpMarking$"
+        },
+        {
+          "test_name_regex": "AgentAclConflictAndDscpQueueMappingTest.VerifyAclAndQosMapConflict$"
         },
         {
           "test_name_regex": "AgentPortBandwidthTest.VerifyQueueShaper$"
@@ -5974,28 +5974,7 @@
           "test_name_regex": "AgentCoppTest/[01].NdpSolicitationToHighPriQ$"
         },
         {
-          "test_name_regex": "AgentCoppTest/[01].NdpAdvertisementToHighPriQ$"
-        },
-        {
-          "test_name_regex": "AgentCoppTest/[01].Ttl1PacketToLowPriQ$"
-        },
-        {
-          "test_name_regex": "AgentCoppTest/[01].JumboFramesToQueues$"
-        },
-        {
-          "test_name_regex": "AgentCoppTest/[01].UnresolvedRoutesToLowPriQueue$"
-        },
-        {
           "test_name_regex": "AgentCoppTest/[01].CpuPortIpv6LinkLocalUcastIp$"
-        },
-        {
-          "test_name_regex": "AgentCoppTest/[01].Ipv6LinkLocalMcastNetworkControlDscpToHighPriQ$"
-        },
-        {
-          "test_name_regex": "AgentDscpMarkingTest.VerifyDscpMarking$"
-        },
-        {
-          "test_name_regex": "AgentAclConflictAndDscpQueueMappingTest.VerifyAclAndQosMapConflict$"
         },
         {
           "test_name_regex": "AgentQueuePerHostTest.*$"
@@ -6032,6 +6011,27 @@
         },
         {
           "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
+        },
+        {
+          "test_name_regex": "AgentCoppTest/[01].NdpAdvertisementToHighPriQ$"
+        },
+        {
+          "test_name_regex": "AgentCoppTest/[01].Ttl1PacketToLowPriQ$"
+        },
+        {
+          "test_name_regex": "AgentCoppTest/[01].JumboFramesToQueues$"
+        },
+        {
+          "test_name_regex": "AgentCoppTest/[01].UnresolvedRoutesToLowPriQueue$"
+        },
+        {
+          "test_name_regex": "AgentCoppTest/[01].Ipv6LinkLocalMcastNetworkControlDscpToHighPriQ$"
+        },
+        {
+          "test_name_regex": "AgentDscpMarkingTest.VerifyDscpMarking$"
+        },
+        {
+          "test_name_regex": "AgentAclConflictAndDscpQueueMappingTest.VerifyAclAndQosMapConflict$"
         },
         {
           "test_name_regex": "AgentPortBandwidthTest.VerifyQueueShaper$"
@@ -6122,6 +6122,105 @@
         }
     ],
     "leaba/24.6.1._yuba/24.6.1_yuba/graphene200/mono": [
+        {
+          "test_name_regex": "AgentTrunkLoadBalancerTest.ECMPFullTrunkHalf4X2WideTrunksV4MplsFrontPanelTraffic$"
+        },
+        {
+          "test_name_regex": "AgentTrunkLoadBalancerTest.ECMPFullTrunkHalf4X2WideTrunksV4MplsPhpFrontPanelTraffic$"
+        },
+        {
+          "test_name_regex": "AgentTrunkLoadBalancerTest.ECMPFullTrunkHalf4X2WideTrunksV4MplsSwapFrontPanelTraffic$"
+        },
+        {
+          "test_name_regex": "AgentTrunkLoadBalancerTest.ECMPFullTrunkHalf4X2WideTrunksV6MplsFrontPanelTraffic$"
+        },
+        {
+          "test_name_regex": "AgentTrunkLoadBalancerTest.ECMPFullTrunkHalf4X2WideTrunksV6MplsPhpFrontPanelTraffic$"
+        },
+        {
+          "test_name_regex": "AgentTrunkLoadBalancerTest.ECMPFullTrunkHalf4X2WideTrunksV6MplsSwapFrontPanelTraffic$"
+        },
+        {
+          "test_name_regex": "AgentTrunkLoadBalancerTest.ECMPFullTrunkHalf4X3WideTrunksV4MplsFrontPanelTraffic$"
+        },
+        {
+          "test_name_regex": "AgentTrunkLoadBalancerTest.ECMPFullTrunkHalf4X3WideTrunksV4MplsPhpFrontPanelTraffic$"
+        },
+        {
+          "test_name_regex": "AgentTrunkLoadBalancerTest.ECMPFullTrunkHalf4X3WideTrunksV4MplsSwapFrontPanelTraffic$"
+        },
+        {
+          "test_name_regex": "AgentTrunkLoadBalancerTest.ECMPFullTrunkHalf4X3WideTrunksV6MplsFrontPanelTraffic$"
+        },
+        {
+          "test_name_regex": "AgentTrunkLoadBalancerTest.ECMPFullTrunkHalf4X3WideTrunksV6MplsPhpFrontPanelTraffic$"
+        },
+        {
+          "test_name_regex": "AgentTrunkLoadBalancerTest.ECMPFullTrunkHalf4X3WideTrunksV6MplsSwapFrontPanelTraffic$"
+        },
+        {
+          "test_name_regex": "AgentCoppTest/[01].Ipv6LinkLocalUcastToMidPriQ$"
+        },
+        {
+          "test_name_regex": "AgentCoppTest/[01].EapolToHighPriQ$"
+        },
+        {
+          "test_name_regex": "AgentCoppTest/[01].NdpSolicitationToHighPriQ$"
+        },
+        {
+          "test_name_regex": "AgentCoppTest/[01].NdpSolicitationToHighPriQ$"
+        },
+        {
+          "test_name_regex": "AgentCoppTest/1.UnresolvedRoutesToLowPriQueue$"
+        },
+        {
+          "test_name_regex": "AgentCoppTest/[01].CpuPortIpv6LinkLocalUcastIp$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentMacLearningTest.VerifyHwAgingForTrunk$"
+        },
+        {
+          "test_name_regex": "cold_boot.AgentMacSwLearningModeTest.VerifyCallbacksOnMacEntryChange$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifySwToHw.*$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwToSw.*$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentMacLearningTest.VerifyHwAgingForTrunk$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentMacSwLearningModeTest.VerifySwAgingForPort$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyMacLearningScale$"
+        },
+        {
+          "test_name_regex": "AgentIngressAclSpanMirroringTest/[01].SpanAclMirror$"
+        },
+        {
+          "test_name_regex": "AgentIngressAclErspanMirroringTest/[01].ErspanAclMirror$"
+        },
+        {
+          "test_name_regex": "AgentEgressAclSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentEgressAclErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentInNullRouteDiscardsCounterTest.nullRouteHit$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentPacketSendTest.PortTxEnableTest$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentPortBandwidthTest.VerifyQueueShaper$"
+        },
+        {
+          "test_name_regex": "AgentDeepPacketInspectionTest.l3ForwardedPkt$"
+        },
         {
           "test_name_regex": "AgentCoppTest/[01].DstIpNetworkControlDscpToHighPriQ$"
         },
