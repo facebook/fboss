@@ -3459,6 +3459,9 @@
           "test_name_regex": "HwAclQualifierTest/[01].*AclModifyQualifier"
         },
         {
+          "test_name_regex": "HwAclQualifierTest/[01].*AclIp4Qualifiers"
+        },
+        {
           "test_name_regex": "HwAclQualifierTest.*Tcp*"
         },
         {
@@ -3556,6 +3559,15 @@
         },
         {
           "test_name_regex": "HwTrafficPfcTest/HwTrafficPfcGenTest.verifyPfc/WithZeroGlobalHeadRoomCfg"
+        },
+        {
+          "test_name_regex": "warm_boot.HwTrafficPfcTest.PfcWatchdog"
+        },
+        {
+          "test_name_regex": "warm_boot.HwVerifyPfcConfigInHwTest.PfcWatchdogProgrammingSequence"
+        },
+        {
+          "test_name_regex": "HwAqmTest.verifyEcnTrafficNoDrop"
         }
     ],
     "brcm/11.0_ea_dnx_odp/11.0_ea_dnx_odp/jericho3/simulator": [
