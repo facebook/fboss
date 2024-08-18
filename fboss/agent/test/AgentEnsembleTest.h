@@ -106,11 +106,11 @@ class AgentEnsembleTest : public ::testing::Test {
   }
 
   std::string getAgentTestDir() const {
-    return AgentDirectoryUtil().getPersistentStateDir() + "/agent_test/";
+    return AgentDirectoryUtil().agentEnsembleConfigDir();
   }
 
   std::string getTestConfigPath() const {
-    return getAgentTestDir() + "/agent_test.conf";
+    return getAgentTestDir() + "/agent.conf";
   }
 
   void dumpRunningConfig(const std::string& targetDir);
