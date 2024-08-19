@@ -11,6 +11,7 @@
 #include "fboss/platform/platform_manager/PciExplorer.h"
 #include "fboss/platform/platform_manager/PresenceChecker.h"
 #include "fboss/platform/platform_manager/gen-cpp2/platform_manager_config_types.h"
+#include "fboss/platform/platform_manager/gen-cpp2/platform_manager_service_types.h"
 #include "fboss/platform/weutil/CachedFbossEepromParser.h"
 
 namespace facebook::fboss::platform::platform_manager {
@@ -65,6 +66,9 @@ class PlatformExplorer {
   void publishFirmwareVersions(
       const std::optional<std::string>& rootPrefix = std::nullopt);
 
+  // Get the last PlatformManagerStatus.
+  PlatformManagerStatus getPMStatus();
+
  private:
   void createDeviceSymLink(
       const std::string& linkPath,
@@ -108,6 +112,11 @@ class PlatformExplorer {
   // A collection of error messages to report at the end of an exploration.
   // Map from DevicePath to errorMessages.
   std::map<std::string, std::vector<std::string>> errorMessages_{};
+
+  // A thrift struct which contains the status of PM exploration.
+  // This member is thread safe since callers could be on different threads
+  // E.g thrift API call on `getLastPmStatus`.
+  folly::Synchronized<PlatformManagerStatus> platformManagerStatus_{};
 };
 
 } // namespace facebook::fboss::platform::platform_manager

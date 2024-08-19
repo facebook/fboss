@@ -77,6 +77,9 @@ PlatformExplorer::PlatformExplorer(const PlatformConfig& config)
 
 void PlatformExplorer::explore() {
   XLOG(INFO) << "Exploring the platform";
+  platformManagerStatus_.withWLock([](PlatformManagerStatus& status) {
+    status.explorationStatus() = ExplorationStatus::IN_PROGRESS;
+  });
   for (const auto& [busName, busNum] :
        i2cExplorer_.getBusNums(*platformConfig_.i2cAdaptersFromCpu())) {
     dataStore_.updateI2cBusNum(std::nullopt, busName, busNum);
@@ -92,6 +95,16 @@ void PlatformExplorer::explore() {
   }
   publishFirmwareVersions();
   reportExplorationSummary();
+  platformManagerStatus_.withWLock([&](PlatformManagerStatus& status) {
+    // TODO: T198759367
+    status.explorationStatus() = errorMessages_.empty()
+        ? ExplorationStatus::SUCCEEDED
+        : ExplorationStatus::FAILED;
+    status.lastExplorationTime() =
+        std::chrono::duration_cast<std::chrono::seconds>(
+            std::chrono::system_clock::now().time_since_epoch())
+            .count();
+  });
 }
 
 void PlatformExplorer::explorePmUnit(
@@ -569,6 +582,10 @@ void PlatformExplorer::publishFirmwareVersions(
     fb303::fbData->setCounter(
         fmt::format(kGroupedFirmwareVersion, deviceName, fullVersionString), 1);
   }
+}
+
+PlatformManagerStatus PlatformExplorer::getPMStatus() {
+  return platformManagerStatus_.copy();
 }
 
 void PlatformExplorer::setupI2cDevice(

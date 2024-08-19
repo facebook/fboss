@@ -136,6 +136,7 @@ cpp_library(
         ":i2c_explorer",
         ":pci_explorer",
         ":platform_manager_config-cpp2-types",
+        ":platform_manager_service-cpp2-types",
         ":presence_checker",
         ":utils",
         "//fb303:service_data",
