@@ -466,5 +466,5 @@ std::map<int16_t, std::vector<std::string>> getSwitchIndicesForInterfaces(
     const HostInfo& hostInfo,
     const std::vector<std::string>& interfaces);
 Table::StyledCell styledBer(double ber);
-
+Table::StyledCell styledFecTail(int tail);
 } // namespace facebook::fboss::utils

@@ -347,4 +347,14 @@ Table::StyledCell styledBer(double ber) {
   return Table::StyledCell(outStringStream.str(), Table::Style::GOOD);
 }
 
+Table::StyledCell styledFecTail(int tail) {
+  if (tail > 12) {
+    return Table::StyledCell(folly::to<std::string>(tail), Table::Style::ERROR);
+  }
+  if (tail > 8) {
+    return Table::StyledCell(folly::to<std::string>(tail), Table::Style::WARN);
+  }
+  return Table::StyledCell(folly::to<std::string>(tail), Table::Style::GOOD);
+}
+
 } // namespace facebook::fboss::utils
