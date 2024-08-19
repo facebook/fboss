@@ -75,52 +75,26 @@ std::map<std::string, SensorData> SensorServiceImpl::getAllSensorData() {
 
 void SensorServiceImpl::fetchSensorData() {
   std::map<std::string, SensorData> polledData;
-  auto nowTs = Utils::nowInSecs();
-  auto readFailures{0};
-  for (const auto& [fruName, sensorMap] : *sensorConfig_.sensorMapList()) {
-    for (const auto& [sensorName, sensor] : sensorMap) {
-      SensorData sensorData{};
-      sensorData.name() = sensorName;
-      std::string sensorValue;
-      bool sysfsFileExists =
-          std::filesystem::exists(std::filesystem::path(*sensor.path()));
-      if (sysfsFileExists &&
-          folly::readFile(sensor.path()->c_str(), sensorValue)) {
-        sensorData.value() = folly::to<float>(sensorValue);
-        sensorData.timeStamp() = nowTs;
-        if (sensor.compute()) {
-          sensorData.value() =
-              Utils::computeExpression(*sensor.compute(), *sensorData.value());
-        }
-        XLOG(DBG1) << fmt::format(
-            "{} ({}) : {}", sensorName, *sensor.path(), *sensorData.value());
-        fb303::fbData->setCounter(fmt::format(kReadFailure, sensorName), 0);
-      } else {
-        XLOG(ERR) << fmt::format(
-            "Could not read data for {} from path:{}, error:{}",
-            sensorName,
-            *sensor.path(),
-            sysfsFileExists ? folly::errnoStr(errno) : "File does not exist");
-        fb303::fbData->setCounter(fmt::format(kReadFailure, sensorName), 1);
-        readFailures++;
+  uint readFailures{0};
+  // Not all platforms have new sensor thrift structs.
+  // If it's defined, we will use new sensor structs
+  // Otherwise fall back to the existing sensors structs.
+  if (!sensorConfig_.pmUnitSensorsList()->empty()) {
+    for (const auto& pmUnitSensors : *sensorConfig_.pmUnitSensorsList()) {
+      for (const auto& sensor : *pmUnitSensors.sensors()) {
+        fetchSensorDataImpl(sensor, readFailures, polledData);
       }
-      // We log 0 if there is a read failure.  If we dont log 0 on failure,
-      // fb303 will pick up the last reported (on read success) value and
-      // keep reporting that as the value. For 0 values, it is accurate to
-      // read the value along with the kReadFailure counter. Alternative is
-      // to delete this counter if there is a failure.
-      fb303::fbData->setCounter(
-          fmt::format(kReadValue, sensorName), sensorData.value().value_or(0));
-
-      // Add thresholds and sensorType to FSDB
-      sensorData.thresholds() =
-          sensor.thresholds() ? *sensor.thresholds() : Thresholds();
-      sensorData.sensorType() = *sensor.type();
-      polledData[sensorName] = sensorData;
+    }
+  } else {
+    for (const auto& [fruName, sensorMap] : *sensorConfig_.sensorMapList()) {
+      for (const auto& [sensorName, sensor] : sensorMap) {
+        fetchSensorDataImpl(
+            std::make_pair(sensorName, sensor), readFailures, polledData);
+      }
     }
   }
-  fb303::fbData->setCounter(kTotalReadFailure, readFailures);
   fb303::fbData->setCounter(kReadTotal, polledData.size());
+  fb303::fbData->setCounter(kTotalReadFailure, readFailures);
   fb303::fbData->setCounter(kHasReadFailure, readFailures > 0 ? 1 : 0);
   XLOG(INFO) << fmt::format(
       "Processed {} Sensors. {} Failures.", polledData.size(), readFailures);
@@ -138,6 +112,78 @@ void SensorServiceImpl::fetchSensorData() {
       publishedStatsToFsdbAt_ = now;
     }
   }
+}
+
+template <typename T, typename>
+void SensorServiceImpl::fetchSensorDataImpl(
+    const T& sensor,
+    uint& readFailures,
+    std::map<std::string, SensorData>& polledData) {
+  SensorData sensorData;
+  std::string sensorName;
+  if constexpr (std::is_same_v<T, std::pair<std::string, Sensor>>) {
+    sensorName = sensor.first;
+    sensorData = createSensorData(
+        sensorName,
+        *sensor.second.path(),
+        *sensor.second.type(),
+        sensor.second.thresholds().to_optional(),
+        sensor.second.compute().to_optional());
+  } else {
+    sensorName = *sensor.name();
+    sensorData = createSensorData(
+        sensorName,
+        *sensor.sysfsPath(),
+        *sensor.type(),
+        sensor.thresholds().to_optional(),
+        sensor.compute().to_optional());
+  }
+  polledData[sensorName] = sensorData;
+  // We log 0 if there is a read failure.  If we dont log 0 on failure,
+  // fb303 will pick up the last reported (on read success) value and
+  // keep reporting that as the value. For 0 values, it is accurate to
+  // read the value along with the kReadFailure counter. Alternative is
+  // to delete this counter if there is a failure.
+  fb303::fbData->setCounter(
+      fmt::format(kReadValue, sensorName), sensorData.value().value_or(0));
+  if (!sensorData.value()) {
+    fb303::fbData->setCounter(fmt::format(kReadFailure, sensorName), 1);
+    readFailures++;
+  } else {
+    fb303::fbData->setCounter(fmt::format(kReadFailure, sensorName), 0);
+  }
+}
+
+SensorData SensorServiceImpl::createSensorData(
+    const std::string& sensorName,
+    const std::string& sysfsPath,
+    SensorType sensorType,
+    const std::optional<Thresholds>& thresholds,
+    const std::optional<std::string>& compute) {
+  SensorData sensorData{};
+  sensorData.name() = sensorName;
+  std::string sensorValue;
+  bool sysfsFileExists =
+      std::filesystem::exists(std::filesystem::path(sysfsPath));
+  if (sysfsFileExists && folly::readFile(sysfsPath.c_str(), sensorValue)) {
+    sensorData.value() = folly::to<float>(sensorValue);
+    sensorData.timeStamp() = Utils::nowInSecs();
+    if (compute) {
+      sensorData.value() =
+          Utils::computeExpression(*compute, *sensorData.value());
+    }
+    XLOG(DBG1) << fmt::format(
+        "{} ({}) : {}", sensorName, sysfsPath, *sensorData.value());
+  } else {
+    XLOG(ERR) << fmt::format(
+        "Could not read data for {} from path:{}, error:{}",
+        sensorName,
+        sysfsPath,
+        sysfsFileExists ? folly::errnoStr(errno) : "File does not exist");
+  }
+  sensorData.thresholds() = thresholds ? *thresholds : Thresholds();
+  sensorData.sensorType() = sensorType;
+  return sensorData;
 }
 
 } // namespace facebook::fboss::platform::sensor_service

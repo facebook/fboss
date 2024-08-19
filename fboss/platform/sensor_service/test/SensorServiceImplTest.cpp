@@ -28,7 +28,7 @@ class SensorServiceImplTest : public ::testing::Test {
     EXPECT_EQ(sensorData.size(), expectedSensors.size());
     for (const auto& it : expectedSensors) {
       EXPECT_TRUE(sensorData.find(it.first) != sensorData.end());
-      EXPECT_EQ(sensorData[it.first].name(), it.first);
+      EXPECT_EQ(*sensorData[it.first].name(), it.first);
       if (expectedSensorReadSuccess) {
         EXPECT_EQ(*sensorData[it.first].value(), it.second);
         EXPECT_GE(*sensorData[it.first].timeStamp(), now);

@@ -11,7 +11,7 @@
 #pragma once
 
 #include <string>
-#include <unordered_map>
+#include <type_traits>
 #include <vector>
 
 #include <folly/Synchronized.h>
@@ -46,6 +46,24 @@ class SensorServiceImpl {
   }
 
  private:
+  // Interim function while migrating to PmSensor.
+  // This will be removed once migration is done for all platforms.
+  template <
+      typename T,
+      typename = std::enable_if_t<
+          std::is_same_v<T, std::pair<std::string, Sensor>> ||
+          std::is_same_v<T, PmSensor>>>
+  void fetchSensorDataImpl(
+      const T& sensor,
+      uint& readFailures,
+      std::map<std::string, SensorData>& polledData);
+  SensorData createSensorData(
+      const std::string& name,
+      const std::string& sysfsPath,
+      SensorType sensorType,
+      const std::optional<Thresholds>& thresholds,
+      const std::optional<std::string>& compute);
+
   folly::Synchronized<std::map<std::string, SensorData>> polledData_{};
   std::unique_ptr<FsdbSyncer> fsdbSyncer_;
   std::optional<std::chrono::time_point<std::chrono::steady_clock>>
