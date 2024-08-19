@@ -7090,7 +7090,7 @@
         "isVirtual": false,
         "isStateSyncDisabled": true,
         "type": 2,
-        "scope": 1
+        "scope": 0
       },
       {
         "intfID": 34,
