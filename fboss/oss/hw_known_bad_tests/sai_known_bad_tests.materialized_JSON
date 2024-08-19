@@ -3432,9 +3432,6 @@
           "test_name_regex": "HwIngressBufferTest.validatePGQueueChanges"
         },
         {
-          "test_name_regex": "HwInDiscardsCounterTest.*"
-        },
-        {
           "test_name_regex": "HwAclStatTest/[01].AclStatChangeCounterType"
         },
         {
@@ -3471,12 +3468,6 @@
           "test_name_regex": "HwAclQualifierTest.*AclModifyQualifier"
         },
         {
-          "test_name_regex": "HwAclCounterTest/[01].*"
-        },
-        {
-          "test_name_regex": "HwSflowMirrorTest.*"
-        },
-        {
           "test_name_regex": "HwSflowTest.*"
         },
         {
@@ -3508,30 +3499,6 @@
         },
         {
           "test_name_regex": "HwLoadBalancerNegativeProtocolMatchTestV6RoCE.*"
-        },
-        {
-          "test_name_regex": "HwCoppQueueStuckTest.*"
-        },
-        {
-          "test_name_regex": "HwCoppQosTest.*"
-        },
-        {
-          "test_name_regex": "HwCoppTest/1.*"
-        },
-        {
-          "test_name_regex": "HwCoppTest/0.VerifyCoppPpsLowPri"
-        },
-        {
-          "test_name_regex": "HwCoppTest/0.EapolToHighPriQ"
-        },
-        {
-          "test_name_regex": "HwCoppTest/0.DstIpNetworkControlDscpToHighPriQ"
-        },
-        {
-          "test_name_regex": "HwCoppTest/0.L3MTUErrorToLowPriQ"
-        },
-        {
-          "test_name_regex": "HwWatermarkTest.VerifyQueueWatermarkAccuracy"
         },
         {
           "test_name_regex": "HwWideEcmpTest.*"
@@ -4081,9 +4048,6 @@
           "test_name_regex": "HwIngressBufferTest.validatePGQueueChanges"
         },
         {
-          "test_name_regex": "HwInDiscardsCounterTest.*"
-        },
-        {
           "test_name_regex": "HwAclStatTest/[01].AclStatChangeCounterType"
         },
         {
@@ -4120,12 +4084,6 @@
           "test_name_regex": "HwAclQualifierTest.*AclModifyQualifier"
         },
         {
-          "test_name_regex": "HwAclCounterTest/[01].*"
-        },
-        {
-          "test_name_regex": "HwSflowMirrorTest.*"
-        },
-        {
           "test_name_regex": "HwSflowTest.*"
         },
         {
@@ -4157,30 +4115,6 @@
         },
         {
           "test_name_regex": "HwLoadBalancerNegativeProtocolMatchTestV6RoCE.*"
-        },
-        {
-          "test_name_regex": "HwCoppQueueStuckTest.*"
-        },
-        {
-          "test_name_regex": "HwCoppQosTest.*"
-        },
-        {
-          "test_name_regex": "HwCoppTest/1.*"
-        },
-        {
-          "test_name_regex": "HwCoppTest/0.VerifyCoppPpsLowPri"
-        },
-        {
-          "test_name_regex": "HwCoppTest/0.EapolToHighPriQ"
-        },
-        {
-          "test_name_regex": "HwCoppTest/0.DstIpNetworkControlDscpToHighPriQ"
-        },
-        {
-          "test_name_regex": "HwCoppTest/0.L3MTUErrorToLowPriQ"
-        },
-        {
-          "test_name_regex": "HwWatermarkTest.VerifyQueueWatermarkAccuracy"
         },
         {
           "test_name_regex": "HwWideEcmpTest.*"
