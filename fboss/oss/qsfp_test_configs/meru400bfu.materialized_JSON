@@ -43,7 +43,7 @@
           "versions": [
             {
               "fwType": 1,
-              "version": "15.6"
+              "version": "3.8"
             }
           ]
       },
@@ -51,7 +51,7 @@
           "versions": [
             {
               "fwType": 1,
-              "version": "15.6"
+              "version": "3.8"
             }
           ]
       },
