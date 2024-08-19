@@ -43,6 +43,12 @@ folly::coro::Task<void> FsdbPatchPublisher::serveStream(StreamT&& stream) {
             XLOG(DBG2) << " Detected cancellation";
             break;
           }
+          if (isGracefulServiceLoopCompletionRequested()) {
+            XLOG(ERR) << "Detected GR cancellation";
+            throw FsdbClientGRDisconnectException(
+                "DeltaPublisher disconnectReason: GR");
+            break;
+          }
           PublisherMessage message;
           message.set_patch(std::move(*patch));
           co_yield std::move(message);
