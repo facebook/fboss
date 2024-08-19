@@ -4,7 +4,13 @@
 #include "fboss/platform/platform_manager/PlatformManagerHandler.h"
 
 namespace facebook::fboss::platform::platform_manager {
+PlatformManagerHandler::PlatformManagerHandler(
+    const PlatformExplorer& platformExplorer)
+    : platformExplorer_(platformExplorer) {}
+
 void PlatformManagerHandler::getPlatformSnapshot(PlatformSnapshot&) {}
 
-void PlatformManagerHandler::getLastPMStatus(PlatformManagerStatus&) {}
+void PlatformManagerHandler::getLastPMStatus(PlatformManagerStatus& pmStatus) {
+  pmStatus = platformExplorer_.getPMStatus();
+}
 } // namespace facebook::fboss::platform::platform_manager

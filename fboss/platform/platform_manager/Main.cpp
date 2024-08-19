@@ -8,7 +8,6 @@
 
 #include "fboss/platform/helpers/Init.h"
 #include "fboss/platform/platform_manager/PkgUtils.h"
-#include "fboss/platform/platform_manager/PlatformExplorer.h"
 #include "fboss/platform/platform_manager/PlatformManagerHandler.h"
 #include "fboss/platform/platform_manager/Utils.h"
 
@@ -102,7 +101,7 @@ int main(int argc, char** argv) {
   XLOG(INFO) << "Running PlatformManager thrift service...";
 
   auto server = std::make_shared<apache::thrift::ThriftServer>();
-  auto handler = std::make_shared<PlatformManagerHandler>();
+  auto handler = std::make_shared<PlatformManagerHandler>(platformExplorer);
   server->setPort(FLAGS_thrift_port);
   server->setInterface(handler);
   server->setAllowPlaintextOnLoopback(true);

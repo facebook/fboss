@@ -67,7 +67,7 @@ class PlatformExplorer {
       const std::optional<std::string>& rootPrefix = std::nullopt);
 
   // Get the last PlatformManagerStatus.
-  PlatformManagerStatus getPMStatus();
+  PlatformManagerStatus getPMStatus() const;
 
  private:
   void createDeviceSymLink(

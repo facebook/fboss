@@ -584,7 +584,7 @@ void PlatformExplorer::publishFirmwareVersions(
   }
 }
 
-PlatformManagerStatus PlatformExplorer::getPMStatus() {
+PlatformManagerStatus PlatformExplorer::getPMStatus() const {
   return platformManagerStatus_.copy();
 }
 
