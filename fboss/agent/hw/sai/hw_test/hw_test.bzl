@@ -419,6 +419,31 @@ def _test_handler(sai_impl, is_npu):
         versions = to_versions(sai_impl),
     )
 
+def _test_thrift_handlers(is_npu):
+    all_impls = get_all_impls_for(is_npu)
+    for sai_impl in all_impls:
+        _test_thrift_handler(sai_impl, is_npu)
+
+def all_test_thrift_handlers():
+    _test_thrift_handlers(is_npu = True)
+    _test_thrift_handlers(is_npu = False)
+
+def _test_thrift_handler(sai_impl, is_npu):
+    switch_lib_name = sai_switch_lib_name(sai_impl, is_npu)
+    return cpp_library(
+        name = "{}".format(sai_switch_dependent_name("agent_hw_test_thrift_handler", sai_impl, is_npu)),
+        srcs = [
+            "HwTestAclUtilsThriftHandler.cpp",
+        ],
+        auto_headers = AutoHeaders.SOURCES,
+        exported_deps = [
+            "//fboss/agent/hw/test:hw_test_thrift_handler_h",
+            "//fboss/agent/if:agent_hw_test_ctrl-cpp2-services",
+            "//fboss/agent/hw/sai/switch:{}".format(switch_lib_name),
+        ],
+        versions = to_versions(sai_impl),
+    )
+
 def all_test_libs():
     all_acl_utils()
     all_ecmp_utils()
@@ -430,3 +455,4 @@ def all_test_libs():
     all_trunk_utils()
     all_udf_utils()
     all_teflow_utils()
+    all_test_thrift_handlers()

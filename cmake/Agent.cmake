@@ -94,6 +94,7 @@ target_link_libraries(switchinfo_utils
   switch_asics
   ctrl_cpp2
   fboss_types
+  agent_config_cpp2
 )
 
 target_link_libraries(address_utils

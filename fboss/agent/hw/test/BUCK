@@ -820,3 +820,16 @@ cpp_library(
         "//fboss/lib:common_utils",
     ],
 )
+
+cpp_library(
+    name = "hw_test_thrift_handler_h",
+    headers = [
+        "HwTestThriftHandler.h",
+    ],
+    exported_deps = [
+        "//fboss/agent:fboss-error",
+        "//fboss/agent:hw_switch",
+        "//fboss/agent:switch_state-cpp2-types",
+        "//fboss/agent/if:agent_hw_test_ctrl-cpp2-services",
+    ],
+)

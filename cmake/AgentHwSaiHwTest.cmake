@@ -156,6 +156,16 @@ set_target_properties(sai_packet_trap_helper PROPERTIES COMPILE_FLAGS
   -DSAI_VER_RELEASE=${SAI_VER_RELEASE}"
 )
 
+add_library(agent_hw_test_thrift_handler
+  fboss/agent/hw/sai/hw_test/HwTestAclUtilsThriftHandler.cpp
+)
+
+target_link_libraries(agent_hw_test_thrift_handler
+  sai_switch # //fboss/agent/hw/sai/switch:sai_switch
+  agent_hw_test_ctrl_cpp2
+)
+
+
 
 function(BUILD_SAI_TEST SAI_IMPL_NAME SAI_IMPL_ARG)
 

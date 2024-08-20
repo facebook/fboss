@@ -601,3 +601,17 @@ cpp_unittest(
     )
     for sdk in BCM_SDKS
 ]
+
+cpp_library(
+    name = "agent_hw_test_thrift_handler",
+    srcs = [
+        "HwTestAclUtilsThriftHandler.cpp",
+    ],
+    headers = [
+    ],
+    exported_deps = [
+        "//fboss/agent/hw/bcm:bcm",
+        "//fboss/agent/hw/switch_asics:switch_asics",
+        "//fboss/agent/hw/test:hw_test_thrift_handler_h",
+    ],
+)

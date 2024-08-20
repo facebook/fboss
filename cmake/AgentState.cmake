@@ -140,6 +140,7 @@ target_link_libraries(state_utils
   error
   fboss_types
   switch_state_cpp2
+  thrift_cow_serializer
 )
 
 add_library(label_forwarding_action
