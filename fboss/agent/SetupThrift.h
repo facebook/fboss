@@ -21,6 +21,8 @@
 DECLARE_int32(thrift_idle_timeout);
 DECLARE_int32(thrift_task_expire_timeout);
 
+DECLARE_bool(thrift_test_utils_thrift_handler);
+
 namespace facebook::fboss {
 
 void serverSSLSetup(apache::thrift::ThriftServer& server);
