@@ -1,5 +1,6 @@
 {
   "defaultCommandLineArgs": {
+    "firmware_upgrade_supported": "true",
     "mode": "janga800bic",
     "multi_npu_platform_mapping": "true"
   },

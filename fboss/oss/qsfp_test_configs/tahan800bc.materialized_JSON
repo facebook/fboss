@@ -1,5 +1,6 @@
 {
   "defaultCommandLineArgs": {
+    "firmware_upgrade_supported": "true",
     "mode": "tahan800bc"
   },
   "transceiverConfigOverrides": [
