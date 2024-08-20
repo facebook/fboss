@@ -104,10 +104,10 @@ std::shared_ptr<Mirror> MirrorManagerImpl<AddrT>::updateMirror(
       }
     }
 
-    std::optional<PortID> egressPort{};
+    std::optional<PortDescriptor> egressPortDesc{};
     switch (neighborPort.type()) {
       case PortDescriptor::PortType::PHYSICAL:
-        egressPort = entry->getPort().phyPortID();
+        egressPortDesc = entry->getPort();
         break;
       case PortDescriptor::PortType::AGGREGATE: {
         // pick first forwarding member port
@@ -124,7 +124,7 @@ std::shared_ptr<Mirror> MirrorManagerImpl<AddrT>::updateMirror(
         }
         for (auto subPortAndFwdState : subportAndFwdStates) {
           if (subPortAndFwdState.second == AggregatePort::Forwarding::ENABLED) {
-            egressPort = subPortAndFwdState.first;
+            egressPortDesc = PortDescriptor(subPortAndFwdState.first);
             break;
           }
         }
@@ -134,7 +134,7 @@ std::shared_ptr<Mirror> MirrorManagerImpl<AddrT>::updateMirror(
         break;
     }
 
-    if (!egressPort) {
+    if (!egressPortDesc) {
       continue;
     }
 
@@ -148,8 +148,8 @@ std::shared_ptr<Mirror> MirrorManagerImpl<AddrT>::updateMirror(
         nexthop,
         entry,
         newMirror->getTunnelUdpPorts()));
-    newMirror->setEgressPort(egressPort.value());
-    newMirror->setEgressPortDesc(PortDescriptor(egressPort.value()));
+    newMirror->setEgressPort(egressPortDesc.value().phyPortID());
+    newMirror->setEgressPortDesc(egressPortDesc.value());
     break;
   }
 
