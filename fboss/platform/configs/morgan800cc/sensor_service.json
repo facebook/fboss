@@ -10,7 +10,7 @@
         "compute": "@/1000",
         "type": 1
       },
-      "U1_ADC0_A_DIE": {
+      "MCB_U1_ADC0_A_DIE": {
         "path": "/run/devmap/sensors/MCB_LTC2979_0X60/temp1_input",
         "thresholds": {
           "upperCriticalVal": 2000000000000,
@@ -19,7 +19,7 @@
         "compute": "@/1000",
         "type": 3
       },
-      "A1V": {
+      "MCB_A1V": {
         "path": "/run/devmap/sensors/MCB_LTC2979_0X60/in2_input",
         "thresholds": {
           "upperCriticalVal": 1.1,
@@ -64,7 +64,7 @@
         "compute": "@/1000",
         "type": 1
       },
-      "U1_ADC0_B_DIE": {
+      "MCB_U1_ADC0_B_DIE": {
         "path": "/run/devmap/sensors/MCB_LTC2979_0X60/temp1_input",
         "thresholds": {
           "upperCriticalVal": 2000000000000,
@@ -82,7 +82,7 @@
         "compute": "@/1000",
         "type": 1
       },
-      "P3_3V": {
+      "MCB_P3_3V": {
         "path": "/run/devmap/sensors/MCB_LTC2979_0X61/in3_input",
         "thresholds": {
           "upperCriticalVal": 3.63,
@@ -100,7 +100,7 @@
         "compute": "@/1000",
         "type": 1
       },
-      "P1_8V": {
+      "MCB_P1_8V": {
         "path": "/run/devmap/sensors/MCB_LTC2979_0X61/in5_input",
         "thresholds": {
           "upperCriticalVal": 1.9800000000000002,
@@ -255,7 +255,7 @@
         "compute": "@/1000*0.015716793",
         "type": 1
       },
-      "P5V": {
+      "SCM_P5V": {
         "path": "/run/devmap/sensors/SCM_LTC2497_0X14/in_voltage13_raw",
         "thresholds": {
           "upperCriticalVal": 5.75,
@@ -599,7 +599,7 @@
         "compute": "@/1000",
         "type": 1
       },
-      "U1_ADC0_A_DIE": {
+      "SMB_U1_ADC0_A_DIE": {
         "path": "/run/devmap/sensors/SMB_LTC2979_0X5C/temp1_input",
         "thresholds": {
           "upperCriticalVal": 2000000000000,
@@ -671,7 +671,7 @@
         "compute": "@/1000",
         "type": 1
       },
-      "U1_ADC0_B_DIE": {
+      "SMB_U1_ADC0_B_DIE": {
         "path": "/run/devmap/sensors/SMB_LTC2979_0X5D/temp1_input",
         "thresholds": {
           "upperCriticalVal": 2000000000000,
@@ -752,7 +752,7 @@
         "compute": "@/1000",
         "type": 1
       },
-      "A1V": {
+      "SMB_A1V": {
         "path": "/run/devmap/sensors/SMB_LTC2979_0X5E/in5_input",
         "thresholds": {
           "upperCriticalVal": 1.12,
@@ -797,7 +797,7 @@
         "compute": "@/1000",
         "type": 3
       },
-      "P5V": {
+      "SMB_P5V": {
         "path": "/run/devmap/sensors/SMB_LTC2979_0X5F/in2_input",
         "thresholds": {
           "upperCriticalVal": 5.6,
@@ -806,7 +806,7 @@
         "compute": "@/1000",
         "type": 1
       },
-      "P3_3V": {
+      "SMB_P3_3V": {
         "path": "/run/devmap/sensors/SMB_LTC2979_0X5F/in3_input",
         "thresholds": {
           "upperCriticalVal": 3.696,
@@ -815,7 +815,7 @@
         "compute": "@/1000",
         "type": 1
       },
-      "P1_8V": {
+      "SMB_P1_8V": {
         "path": "/run/devmap/sensors/SMB_LTC2979_0X5F/in4_input",
         "thresholds": {
           "upperCriticalVal": 2.016,
