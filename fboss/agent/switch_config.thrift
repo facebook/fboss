@@ -1746,6 +1746,10 @@ struct DsfNode {
   // In prod, this info could be figured out from name
   // like rdsw001.c085.n001.snc1, where 85 is cluster id.
   9: optional i32 clusterId;
+  // Applicable only for FABRIC_NODES
+  // Denotes the level for fabric switch in
+  // the DSF n/w topology. Value is either 1 or 2
+  10: optional i32 fabricLevel;
 }
 
 /**
