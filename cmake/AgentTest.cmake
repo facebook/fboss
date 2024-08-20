@@ -190,8 +190,11 @@ add_library(mono_agent_ensemble
 )
 
 target_link_libraries(mono_agent_ensemble
+  -Wl,--whole-archive
   agent_ensemble
   monolithic_agent_initializer
+  agent_hw_test_thrift_handler
+  -Wl,--no-whole-archive
   ${GTEST}
 )
 

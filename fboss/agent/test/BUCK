@@ -671,6 +671,7 @@ cpp_library(
         ":agent_ensemble",
         "//fboss/agent:main-common",
         "//fboss/agent:monolithic_agent_initializer",
+        "//fboss/agent/hw/test:hw_test_thrift_handler_h",
     ],
 )
 

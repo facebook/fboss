@@ -185,6 +185,7 @@ cpp_binary(
             "fbsource//third-party/googletest:gtest",
             ":agent_hw_test_src",
             "//fboss/agent:main-bcm",
+            "//fboss/agent/hw/bcm/tests:agent_hw_test_thrift_handler",
             "//fboss/agent/hw/bcm/tests:bcm_acl_utils",
             "//fboss/agent/hw/bcm/tests:bcm_copp_utils",
             "//fboss/agent/hw/bcm/tests:bcm_linkstate_toggler",
@@ -224,6 +225,7 @@ _sai_agent_hw_test_prefix = "sai_agent_hw_test"
             "//fboss/agent/test:agent_hw_test",
             "//fboss/agent/test:linkstate_toggler",
             "//fboss/agent/test:mono_agent_ensemble",
+            "//fboss/agent/hw/sai/hw_test:{}".format(sai_switch_dependent_name("agent_hw_test_thrift_handler", sai_impl, True)),
         ] + (["//fboss/agent/platforms/sai:bcm-required-symbols"] if sai_impl.name == "fake" or sai_impl.name == "leaba" else []),
     )
     for sai_impl in SAI_BRCM_IMPLS + SAI_LEABA_IMPLS

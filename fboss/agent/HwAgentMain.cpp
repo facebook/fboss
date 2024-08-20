@@ -27,6 +27,8 @@
 #include "fboss/agent/state/StateDelta.h"
 #include "fboss/lib/CommonFileUtils.h"
 
+#include "fboss/agent/hw/test/HwTestThriftHandler.h"
+
 #include <chrono>
 
 #ifdef IS_OSS
@@ -197,10 +199,20 @@ int hwAgentMain(
     XLOG(DBG2) << "Started background thread: UpdateStatsThread";
   }
 
-  FbossEventBase eventBase;
+  std::vector<std::shared_ptr<apache::thrift::AsyncProcessorFactory>>
+      handlers{};
+  handlers.push_back(hwAgent->getPlatform()->createHandler());
+  if (true) {
+    // Add HwTestThriftHandler to the thrift server
+    auto testUtilsHandler = utility::createHwTestThriftHandler(
+        hwAgent->getPlatform()->getHwSwitch());
+    handlers.push_back(std::move(testUtilsHandler));
+  }
+
+  folly::EventBase eventBase;
   auto server = setupThriftServer(
       eventBase,
-      {hwAgent->getPlatform()->createHandler()},
+      handlers,
       {FLAGS_hwagent_port_base + FLAGS_switchIndex},
       true /*setupSSL*/);
 #ifndef IS_OSS

@@ -464,6 +464,7 @@ target_link_libraries(hwagent-main
   setup_thrift
   split_agent_thrift_syncer
   Folly::folly
+  agent_hw_test_thrift_handler
 )
 
 add_library(restart_time_tracker

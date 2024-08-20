@@ -1328,6 +1328,7 @@ cpp_library(
         "//fb303:service_data",
         "//fboss/agent/facebook:version_h",
         "//fboss/agent/hw/switch_asics:switch_asics",
+        "//fboss/agent/hw/test:hw_test_thrift_handler_h",
         "//fboss/agent/state:state",
         "//fboss/lib:common_file_utils",
         "//folly/logging:init",

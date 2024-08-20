@@ -57,4 +57,6 @@ class HwTestThriftHandler : public AgentHwTestCtrlSvIf {
  private:
   HwSwitch* hwSwitch_;
 };
+
+std::shared_ptr<HwTestThriftHandler> createHwTestThriftHandler(HwSwitch* hw);
 } // namespace facebook::fboss::utility

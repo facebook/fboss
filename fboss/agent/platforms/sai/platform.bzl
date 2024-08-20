@@ -283,6 +283,7 @@ def _wedge_hwagent_bin(sai_impl, hwagent_prefix):
         "//fboss/agent/facebook:sai_version_{}".format(to_impl_lib_name(sai_impl)),
         ":{}".format(sai_platform_name),
         "//fboss/agent/hw/sai/impl:{}".format(to_impl_lib_name(sai_impl)),
+        "//fboss/agent/hw/sai/hw_test:{}".format(sai_switch_dependent_name("agent_hw_test_thrift_handler", sai_impl, True)),
     ]
     if sai_impl.name == "fake" or sai_impl.name == "leaba":
         hw_bin_deps.append("//fboss/agent/platforms/sai:bcm-required-symbols")

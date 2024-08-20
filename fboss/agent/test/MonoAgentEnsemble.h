@@ -7,6 +7,12 @@
 
 namespace facebook::fboss {
 
+class MonolithicTestAgentInitializer : public MonolithicAgentInitializer {
+ public:
+  std::vector<std::shared_ptr<apache::thrift::AsyncProcessorFactory>>
+  getThrifthandlers() override;
+};
+
 class MonoAgentEnsemble : public AgentEnsemble {
  public:
   ~MonoAgentEnsemble() override;
@@ -26,6 +32,6 @@ class MonoAgentEnsemble : public AgentEnsemble {
   }
 
  private:
-  MonolithicAgentInitializer agentInitializer_{};
+  MonolithicTestAgentInitializer agentInitializer_{};
 };
 } // namespace facebook::fboss
