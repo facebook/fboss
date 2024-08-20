@@ -1542,7 +1542,8 @@
           "busName": "SMB_IOB_I2C_MASTER_1",
           "address": "0x16",
           "kernelDeviceName": "mtia_fan_watchdog",
-          "pmUnitScopedName": "BCB_FAN_WATCHDOG"
+          "pmUnitScopedName": "BCB_FAN_WATCHDOG",
+          "isWatchdog": true
         },
         {
           "busName": "SMB_IOB_I2C_MASTER_4",
@@ -1820,6 +1821,7 @@
     "/run/devmap/sensors/SMB_E1S_SSD_TEMP": "/[SMB_E1S_SSD_TEMP]",
     "/run/devmap/sensors/SMB_BCB_FAN_CPLD": "/[SMB_BCB_FAN_CPLD]",
     "/run/devmap/sensors/SMB_BCB_FAN_CPLD_2": "/[SMB_BCB_FAN_CPLD_2]",
+    "/run/devmap/watchdogs/BCB_FAN_WATCHDOG": "/[BCB_FAN_WATCHDOG]",
     "/run/devmap/sensors/BMC_U9_THERMAL_SENSOR": "/RUNBMC_SLOT@0/[BMC_U9_THERMAL_SENSOR]",
     "/run/devmap/sensors/SMB_U122_PMBUS_1": "/[SMB_U122_PMBUS_1]",
     "/run/devmap/sensors/SMB_U20_XDPE12284_1": "/[SMB_U20_XDPE12284_1]",

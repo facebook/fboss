@@ -2331,7 +2331,8 @@
           "busName": "INCOMING@0",
           "address": "0x16",
           "kernelDeviceName": "mtia_fan_watchdog",
-          "pmUnitScopedName": "BCB_FAN_WATCHDOG"
+          "pmUnitScopedName": "BCB_FAN_WATCHDOG",
+          "isWatchdog": true
         },
         {
           "busName": "INCOMING@1",
@@ -2351,6 +2352,7 @@
     "/run/devmap/sensors/SMB_E1S_SSD_TEMP": "/[SMB_E1S_SSD_TEMP]",
     "/run/devmap/sensors/BCB_FAN_CPLD": "/BCB_SLOT@0/[BCB_FAN_CPLD]",
     "/run/devmap/sensors/BCB_FAN_CPLD_2": "/BCB_SLOT@0/[BCB_FAN_CPLD_2]",
+    "/run/devmap/watchdogs/BCB_FAN_WATCHDOG": "/BCB_SLOT@0/[BCB_FAN_WATCHDOG]",
     "/run/devmap/sensors/BMC_U9_THERMAL_SENSOR": "/RUNBMC_SLOT@0/[BMC_U9_THERMAL_SENSOR]",
     "/run/devmap/sensors/SMB_U72_LM75B_1": "/[SMB_U72_LM75B_1]",
     "/run/devmap/sensors/SMB_U229_XDPE12284_1": "/[SMB_U229_XDPE12284_1]",
