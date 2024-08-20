@@ -25,6 +25,8 @@ const re2::RE2 kPmDeviceParseRe{"(?P<SlotPath>.*)\\[(?P<DeviceName>.*)\\]"};
 const re2::RE2 kGpioChipNameRe{"gpiochip\\d+"};
 const std::string kGpioChip = "gpiochip";
 
+const re2::RE2 kWatchdogNameRe{"watchdog(\\d+)"};
+const std::string kWatchdog = "watchdog";
 } // namespace
 
 namespace facebook::fboss::platform::platform_manager {
@@ -136,6 +138,41 @@ std::string Utils::resolveGpioChipCharDevPath(const std::string& sysfsPath) {
         "{}. Reason: Couldn't find gpio chip under {}", failMsg, sysfsPath));
   }
   auto charDevPath = fmt::format("/dev/gpiochip{}", *gpioChipNum);
+  if (!fs::exists(charDevPath)) {
+    throw std::runtime_error(fmt::format(
+        "{}. Reason: {} does not exist in the system", failMsg, charDevPath));
+  }
+  return charDevPath;
+}
+
+std::string Utils::resolveWatchdogCharDevPath(const std::string& sysfsPath) {
+  auto failMsg = "Failed to resolve Watchdog CharDevPath";
+  if (!fs::exists(sysfsPath)) {
+    throw std::runtime_error(
+        fmt::format("{}. Reason: {} doesn't exist", failMsg, sysfsPath));
+  }
+
+  fs::path watchdogDir = fs::path(sysfsPath) / "watchdog";
+  if (!fs::exists(watchdogDir)) {
+    throw std::runtime_error(fmt::format(
+        "{}. Reason: Couldn't find watchdog directory under {}",
+        failMsg,
+        sysfsPath));
+  }
+
+  std::optional<uint16_t> watchdogNum{std::nullopt};
+  for (const auto& dirEntry : fs::directory_iterator(watchdogDir)) {
+    if (re2::RE2::FullMatch(
+            dirEntry.path().filename().string(), kWatchdogNameRe)) {
+      watchdogNum = folly::to<uint16_t>(
+          dirEntry.path().filename().string().substr(kWatchdog.length()));
+    }
+  }
+  if (!watchdogNum) {
+    throw std::runtime_error(fmt::format(
+        "{}. Reason: Couldn't find watchdog under {}", failMsg, sysfsPath));
+  }
+  auto charDevPath = fmt::format("/dev/watchdog{}", *watchdogNum);
   if (!fs::exists(charDevPath)) {
     throw std::runtime_error(fmt::format(
         "{}. Reason: {} does not exist in the system", failMsg, charDevPath));

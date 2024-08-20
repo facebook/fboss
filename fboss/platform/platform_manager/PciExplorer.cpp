@@ -19,7 +19,6 @@ using namespace facebook::fboss::platform::platform_manager;
 namespace {
 const re2::RE2 kSpiBusRe{"spi\\d+"};
 const re2::RE2 kSpiDevIdRe{"spi(?P<BusNum>\\d+).(?P<ChipSelect>\\d+)"};
-const re2::RE2 kWatchdogRe{"watchdog(?P<WatchdogNum>\\d+)"};
 // TODO (T181346009) for more granular interval retries.
 constexpr auto kPciWaitSecs = 5;
 
@@ -500,39 +499,15 @@ std::string PciExplorer::getWatchDogCharDevPath(
   // |       |   ├── ...
   std::string expectedEnding =
       fmt::format(".{}.{}", *fpgaIpBlockConfig.deviceName(), instanceId);
-  std::string watchdogPath;
   for (const auto& dirEntry : fs::directory_iterator(pciDevice.sysfsPath())) {
     if (hasEnding(dirEntry.path().filename().string(), expectedEnding)) {
-      watchdogPath = dirEntry.path() / "watchdog";
-      break;
-    }
-  }
-  if (watchdogPath.empty()) {
-    throw std::runtime_error(fmt::format(
-        "Could not find any directory ending with {} in {}",
-        expectedEnding,
-        pciDevice.sysfsPath()));
-  }
-  if (!fs::exists(watchdogPath)) {
-    throw std::runtime_error(fmt::format(
-        "Could not find matching Watchdog in {}. InstanceId: {}",
-        watchdogPath,
-        instanceId));
-  }
-  for (const auto& dirEntry : fs::directory_iterator(watchdogPath)) {
-    if (re2::RE2::FullMatch(dirEntry.path().filename().string(), kWatchdogRe)) {
-      auto watchdogCharDevPath =
-          fmt::format("/dev/{}", dirEntry.path().filename().string());
-      if (!fs::exists(watchdogCharDevPath)) {
-        throw std::runtime_error(fmt::format(
-            "Watchdog char device isn't created. {} doesn't exist",
-            watchdogCharDevPath));
-      }
-      return watchdogCharDevPath;
+      return Utils().resolveWatchdogCharDevPath(dirEntry.path().string());
     }
   }
   throw std::runtime_error(fmt::format(
-      "Couldn't derive watchdog char device path in {}", watchdogPath));
+      "Could not find any directory ending with {} in {}",
+      expectedEnding,
+      pciDevice.sysfsPath()));
 }
 
 std::string PciExplorer::getFanPwmCtrlSysfsPath(

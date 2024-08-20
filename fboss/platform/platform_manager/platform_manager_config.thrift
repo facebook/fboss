@@ -175,6 +175,8 @@ struct I2cRegData {
 //
 // `initRegSettings`: initial I2c register values before device creation.
 //
+// `isWatchdog`: Whether this I2C Device is a Watchdog device
+//
 // For example, the three i2c devices in the below Sample PmUnit will be modeled
 // as follows
 //
@@ -212,6 +214,7 @@ struct I2cDeviceConfig {
   9: bool hasSwitchAsicMac;
   10: bool hasReservedMac;
   11: optional list<I2cRegData> initRegSettings;
+  12: bool isWatchdog;
 }
 
 // Configs for sensors which are embedded (eg within CPU).

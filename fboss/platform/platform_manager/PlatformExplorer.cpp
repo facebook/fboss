@@ -351,6 +351,13 @@ void PlatformExplorer::exploreI2cDevices(
                 slotPath, *i2cDeviceConfig.pmUnitScopedName()),
             Utils().resolveGpioChipCharDevPath(i2cDevicePath));
       }
+      if (*i2cDeviceConfig.isWatchdog()) {
+        auto i2cDevicePath = i2cExplorer_.getDeviceI2cPath(busNum, devAddr);
+        dataStore_.updateCharDevPath(
+            Utils().createDevicePath(
+                slotPath, *i2cDeviceConfig.pmUnitScopedName()),
+            Utils().resolveWatchdogCharDevPath(i2cDevicePath));
+      }
     } catch (const std::exception& ex) {
       auto errMsg = fmt::format(
           "Failed to explore I2C device {} at {}. {}",

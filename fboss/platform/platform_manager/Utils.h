@@ -33,6 +33,10 @@ class Utils {
   // Throws an exception when it fails to resolve CharDevicePath
   std::string resolveGpioChipCharDevPath(const std::string& sysfsPath);
 
+  // Explore and resolve Watchdogs's CharDevicePath for given SysfsPath.
+  // Throws an exception when it fails to resolve CharDevicePath
+  std::string resolveWatchdogCharDevPath(const std::string& sysfsPath);
+
   virtual std::optional<std::string> getStringFileContent(
       const std::string& path) const;
 
