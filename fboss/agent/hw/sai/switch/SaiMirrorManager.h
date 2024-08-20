@@ -64,13 +64,14 @@ class SaiMirrorManager {
  private:
   SaiMirrorHandle* FOLLY_NULLABLE
   getMirrorHandleImpl(const std::string& mirrorId) const;
-  SaiMirrorHandle::SaiMirror addNodeSpan(PortSaiId monitorPort);
+  SaiMirrorHandle::SaiMirror addNodeSpan(sai_object_id_t monitorPort);
   SaiMirrorHandle::SaiMirror addNodeErSpan(
       const std::shared_ptr<Mirror>& mirror,
-      PortSaiId monitorPort);
+      sai_object_id_t monitorPort);
   SaiMirrorHandle::SaiMirror addNodeSflow(
       const std::shared_ptr<Mirror>& mirror,
-      PortSaiId monitorPort);
+      sai_object_id_t monitorPort);
+  sai_object_id_t getMonitorPort(const PortDescriptor& portDesc);
 
   SaiStore* saiStore_;
   SaiManagerTable* managerTable_;
