@@ -80,12 +80,14 @@ void SensorServiceImpl::fetchSensorData() {
   // If it's defined, we will use new sensor structs
   // Otherwise fall back to the existing sensors structs.
   if (!sensorConfig_.pmUnitSensorsList()->empty()) {
+    XLOG(INFO) << "Fetching using PM based sensor structs...";
     for (const auto& pmUnitSensors : *sensorConfig_.pmUnitSensorsList()) {
       for (const auto& sensor : *pmUnitSensors.sensors()) {
         fetchSensorDataImpl(sensor, readFailures, polledData);
       }
     }
   } else {
+    XLOG(INFO) << "Fetching using legacy sensor structs...";
     for (const auto& [fruName, sensorMap] : *sensorConfig_.sensorMapList()) {
       for (const auto& [sensorName, sensor] : sensorMap) {
         fetchSensorDataImpl(
