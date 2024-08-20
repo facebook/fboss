@@ -572,7 +572,7 @@ TEST_F(MirrorTest, ToAndFromThrift) {
   auto unresolved = state_->getMirrors()->getNodeIf("unresolved");
   auto with_dscp = state_->getMirrors()->getNodeIf("with_dscp");
   auto resolved = state_->getMirrors()->getNodeIf("resolved");
-  resolved->setEgressPort(MirrorTest::egressPort);
+  resolved->setEgressPortDesc(PortDescriptor(MirrorTest::egressPort));
   resolved->setMirrorTunnel(MirrorTunnel(
       folly::IPAddress("1.1.1.1"),
       folly::IPAddress("2.2.2.2"),

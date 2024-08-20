@@ -148,7 +148,6 @@ class Mirror : public ThriftStructNode<Mirror, state::MirrorFields> {
       bool truncate = false);
   enum Type { SPAN = 1, ERSPAN = 2, SFLOW = 3 };
   std::string getID() const;
-  std::optional<PortID> getEgressPort() const;
   std::optional<folly::IPAddress> getDestinationIp() const;
   std::optional<folly::IPAddress> getSrcIp() const;
   std::optional<TunnelUdpPorts> getTunnelUdpPorts() const;
@@ -156,7 +155,6 @@ class Mirror : public ThriftStructNode<Mirror, state::MirrorFields> {
   uint8_t getDscp() const;
   bool getTruncate() const;
   void setTruncate(bool truncate);
-  void setEgressPort(PortID egressPort);
   void setMirrorTunnel(const MirrorTunnel& tunnel);
   void setSwitchId(SwitchID switchId);
   void setDestinationMac(const folly::MacAddress& dstMac);

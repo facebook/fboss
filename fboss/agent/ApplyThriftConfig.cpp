@@ -4841,14 +4841,13 @@ std::shared_ptr<Mirror> ThriftConfigApplier::updateMirror(
       newMirror->getTunnelUdpPorts() == orig->getTunnelUdpPorts() &&
       newMirror->getTruncate() == orig->getTruncate() &&
       (!newMirror->configHasEgressPort() ||
-       newMirror->getEgressPort() == orig->getEgressPort())) {
+       newMirror->getEgressPortDesc() == orig->getEgressPortDesc())) {
     if (orig->getMirrorTunnel()) {
       newMirror->setMirrorTunnel(orig->getMirrorTunnel().value());
     }
-    if (orig->getEgressPort()) {
-      newMirror->setEgressPort(orig->getEgressPort().value());
+    if (orig->getEgressPortDesc()) {
       newMirror->setEgressPortDesc(
-          PortDescriptor(orig->getEgressPort().value()));
+          PortDescriptor(orig->getEgressPortDesc().value()));
     }
   }
   if (*newMirror == *orig) {

@@ -53,13 +53,6 @@ std::string Mirror::getID() const {
   return get<switch_state_tags::name>()->cref();
 }
 
-std::optional<PortID> Mirror::getEgressPort() const {
-  if (auto port = get<switch_state_tags::egressPort>()) {
-    return PortID(port->cref());
-  }
-  return std::nullopt;
-}
-
 std::optional<PortDescriptor> Mirror::getEgressPortDesc() const {
   if (auto portDesc = get<switch_state_tags::egressPortDesc>()) {
     return PortDescriptor::fromThrift(portDesc->toThrift());
@@ -94,10 +87,6 @@ bool Mirror::getTruncate() const {
 
 void Mirror::setTruncate(bool truncate) {
   set<switch_state_tags::truncate>(truncate);
-}
-
-void Mirror::setEgressPort(PortID egressPort) {
-  set<switch_state_tags::egressPort>(egressPort);
 }
 
 void Mirror::setEgressPortDesc(const PortDescriptor& egressPortDesc) {

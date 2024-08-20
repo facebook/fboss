@@ -148,7 +148,6 @@ std::shared_ptr<Mirror> MirrorManagerImpl<AddrT>::updateMirror(
         nexthop,
         entry,
         newMirror->getTunnelUdpPorts()));
-    newMirror->setEgressPort(egressPortDesc.value().phyPortID());
     newMirror->setEgressPortDesc(egressPortDesc.value());
     break;
   }
@@ -157,7 +156,6 @@ std::shared_ptr<Mirror> MirrorManagerImpl<AddrT>::updateMirror(
   if (newMirror && newMirror->type() == Mirror::Type::SFLOW &&
       asic->isSupported(HwAsic::Feature::EVENTOR_PORT_FOR_SFLOW)) {
     auto eventorPort = getEventorPortForSflowMirror(mirror->getSwitchId());
-    newMirror->setEgressPort(eventorPort);
     newMirror->setEgressPortDesc(PortDescriptor(eventorPort));
     newMirror->setDestinationMac(
         getEventorPortInterfaceMac(state, eventorPort));

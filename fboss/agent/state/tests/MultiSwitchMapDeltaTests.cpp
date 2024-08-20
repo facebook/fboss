@@ -102,12 +102,12 @@ TEST_F(MultiSwitchMapDeltaTest, ChangeMirror) {
   auto mirrors = state2->getMirrors()->modify(&state2);
   auto mirrorA = mirrors->getNodeIf("mirror012_a");
   mirrorA = mirrorA->clone();
-  mirrorA->setEgressPort(PortID(2));
+  mirrorA->setEgressPortDesc(PortDescriptor(PortID(2)));
   mirrors->updateNode(mirrorA, getMatcher012());
 
   auto mirrorB = mirrors->getNodeIf("mirror023_c");
   mirrorB = mirrorB->clone();
-  mirrorB->setEgressPort(PortID(2));
+  mirrorB->setEgressPortDesc(PortDescriptor(PortID(2)));
   mirrors->updateNode(mirrorB, getMatcher023());
 
   auto mirrors0 = state1->getMirrors();
@@ -190,7 +190,7 @@ TEST_F(MultiSwitchMapDeltaTest, AddRemoveUpdate) {
   auto addedMirror = mirrors->getNodeIf("mirror012_d");
   auto changedOld = mirrors->getNodeIf("mirror023_c");
   auto mirror23c = mirrors->getNodeIf("mirror023_c")->clone();
-  mirror23c->setEgressPort(PortID(2));
+  mirror23c->setEgressPortDesc(PortDescriptor(PortID(2)));
   mirrors->updateNode(mirror23c, getMatcher023());
   auto changedNew = mirrors->getNodeIf("mirror023_c");
   state2->publish();
