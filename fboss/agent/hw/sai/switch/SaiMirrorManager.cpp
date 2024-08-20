@@ -107,15 +107,15 @@ void SaiMirrorManager::addNode(const std::shared_ptr<Mirror>& mirror) {
     throw FbossError(
         "Attempted to add mirror which already exists: ", mirror->getID());
   }
-
   auto mirrorHandle =
       std::make_unique<SaiMirrorHandle>(mirror->getID(), managerTable_);
-  auto monitorPortHandle = managerTable_->portManager().getPortHandle(
-      mirror->getEgressPort().value());
+  auto egressPortDesc = mirror->getEgressPortDesc().value();
+  auto monitorPortHandle =
+      managerTable_->portManager().getPortHandle(egressPortDesc.phyPortID());
   if (!monitorPortHandle) {
     throw FbossError(
         "Failed to find sai port for egress port for mirroring: ",
-        mirror->getEgressPort().value());
+        mirror->getEgressPortDesc().value().phyPortID());
   }
   if (mirror->getMirrorTunnel().has_value()) {
     auto mirrorTunnel = mirror->getMirrorTunnel().value();

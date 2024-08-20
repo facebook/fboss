@@ -41,7 +41,7 @@ class MultiSwitchMapDeltaTest : public ::testing::Test {
   std::shared_ptr<Mirror> createMirror(std::string name) {
     return std::make_shared<Mirror>(
         name,
-        std::optional<PortID>(PortID(1)),
+        std::optional<PortDescriptor>(PortDescriptor(PortID(1))),
         std::optional<folly::IPAddress>());
   }
 

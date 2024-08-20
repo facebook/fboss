@@ -4816,9 +4816,14 @@ std::shared_ptr<Mirror> ThriftConfigApplier::createMirror(
   uint8_t dscpMark = mirrorConfig->get_dscp();
   bool truncate = mirrorConfig->get_truncate();
 
+  std::optional<PortDescriptor> egressPortDesc;
+  if (mirrorEgressPort.has_value()) {
+    egressPortDesc = PortDescriptor(mirrorEgressPort.value());
+  }
+
   auto mirror = make_shared<Mirror>(
       *mirrorConfig->name(),
-      mirrorEgressPort,
+      egressPortDesc,
       destinationIp,
       srcIp,
       udpPorts,

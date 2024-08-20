@@ -102,7 +102,7 @@ class ResolvedNexthopMonitorTest : public ::testing::Test {
     if (!mirror) {
       mirror = std::make_shared<Mirror>(
           std::string("mirror"),
-          std::make_optional<PortID>(PortID(5)),
+          std::make_optional<PortDescriptor>(PortID(5)),
           std::optional<folly::IPAddress>());
       mnpuMirrors->addNode(
           mirror, HwSwitchMatcher(mnpuMirrors->cbegin()->first));

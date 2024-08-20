@@ -16,7 +16,7 @@ namespace facebook::fboss {
 
 Mirror::Mirror(
     std::string name,
-    std::optional<PortID> egressPort,
+    std::optional<PortDescriptor> egressPortDesc,
     std::optional<folly::IPAddress> destinationIp,
     std::optional<folly::IPAddress> srcIp,
     std::optional<TunnelUdpPorts> udpPorts,
@@ -31,8 +31,8 @@ Mirror::Mirror(
   set<switch_state_tags::configHasEgressPort>(false);
   set<switch_state_tags::isResolved>(false);
 
-  if (egressPort) {
-    set<switch_state_tags::egressPort>(*egressPort);
+  if (egressPortDesc.has_value()) {
+    set<switch_state_tags::egressPortDesc>(egressPortDesc.value().toThrift());
     set<switch_state_tags::configHasEgressPort>(true);
   }
   if (destinationIp) {

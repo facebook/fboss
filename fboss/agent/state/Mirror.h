@@ -140,7 +140,7 @@ class Mirror : public ThriftStructNode<Mirror, state::MirrorFields> {
   using BaseT = ThriftStructNode<Mirror, state::MirrorFields>;
   Mirror(
       std::string name,
-      std::optional<PortID> egressPort,
+      std::optional<PortDescriptor> egressPortDesc,
       std::optional<folly::IPAddress> destinationIp,
       std::optional<folly::IPAddress> srcIp = std::nullopt,
       std::optional<TunnelUdpPorts> udpPorts = std::nullopt,

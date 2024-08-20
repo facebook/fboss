@@ -268,7 +268,7 @@ class MirrorManagerTest : public ::testing::Test {
       PortID egressPort) {
     auto mirror = std::make_shared<Mirror>(
         name,
-        std::make_optional<PortID>(egressPort),
+        std::make_optional<PortDescriptor>(egressPort),
         std::optional<IPAddress>());
     return addNewMirror(state, mirror);
   }
@@ -278,7 +278,9 @@ class MirrorManagerTest : public ::testing::Test {
       const std::string& name,
       AddrT remoteIp) {
     auto mirror = std::make_shared<Mirror>(
-        name, std::optional<PortID>(), std::make_optional<IPAddress>(remoteIp));
+        name,
+        std::optional<PortDescriptor>(),
+        std::make_optional<IPAddress>(remoteIp));
     return addNewMirror(state, mirror);
   }
 
@@ -289,7 +291,7 @@ class MirrorManagerTest : public ::testing::Test {
       PortID egressPort) {
     auto mirror = std::make_shared<Mirror>(
         name,
-        std::make_optional<PortID>(PortID(egressPort)),
+        std::make_optional<PortDescriptor>(PortID(egressPort)),
         std::make_optional<IPAddress>(remoteIp));
     return addNewMirror(state, mirror);
   }
@@ -302,7 +304,7 @@ class MirrorManagerTest : public ::testing::Test {
       uint16_t dstPort) {
     auto mirror = std::make_shared<Mirror>(
         name,
-        std::optional<PortID>(),
+        std::optional<PortDescriptor>(),
         std::make_optional<IPAddress>(remoteIp),
         std::optional<IPAddress>(),
         std::make_optional<TunnelUdpPorts>(srcPort, dstPort));
@@ -422,8 +424,8 @@ TYPED_TEST(MirrorManagerTest, ResolveMirrorWithoutEgressPort) {
     auto mirror = state->getMirrors()->getNodeIf(kMirrorName);
     EXPECT_NE(mirror, nullptr);
     EXPECT_TRUE(mirror->isResolved());
-    ASSERT_TRUE(mirror->getEgressPort().has_value());
-    auto egressPort = mirror->getEgressPort().value();
+    ASSERT_TRUE(mirror->getEgressPortDesc().has_value());
+    auto egressPort = mirror->getEgressPortDesc().value().phyPortID();
     EXPECT_EQ(egressPort, params.neighborPorts[0]);
     ASSERT_TRUE(mirror->getMirrorTunnel().has_value());
     auto tunnel = mirror->getMirrorTunnel().value();
@@ -472,9 +474,9 @@ TYPED_TEST(MirrorManagerTest, ResolveMirrorWithEgressPort) {
     auto mirror = state->getMirrors()->getNodeIf(kMirrorName);
     EXPECT_NE(mirror, nullptr);
     EXPECT_TRUE(mirror->isResolved());
-    ASSERT_TRUE(mirror->getEgressPort().has_value());
-    auto egressPort = mirror->getEgressPort();
-    EXPECT_EQ(egressPort.value(), params.neighborPorts[1]);
+    ASSERT_TRUE(mirror->getEgressPortDesc().has_value());
+    auto egressPort = mirror->getEgressPortDesc().value().phyPortID();
+    EXPECT_EQ(egressPort, params.neighborPorts[1]);
     ASSERT_TRUE(mirror->getMirrorTunnel().has_value());
     auto tunnel = mirror->getMirrorTunnel().value();
     EXPECT_EQ(tunnel.dstIp, IPAddress(params.mirrorDestination));
@@ -522,8 +524,8 @@ TYPED_TEST(MirrorManagerTest, ResolveNoMirrorWithEgressPort) {
     auto mirror = state->getMirrors()->getNodeIf(kMirrorName);
     EXPECT_NE(mirror, nullptr);
     EXPECT_FALSE(mirror->isResolved());
-    EXPECT_TRUE(mirror->getEgressPort().has_value());
-    EXPECT_EQ(mirror->getEgressPort().value(), PortID(9));
+    EXPECT_TRUE(mirror->getEgressPortDesc().has_value());
+    EXPECT_EQ(mirror->getEgressPortDesc().value().phyPortID(), PortID(9));
     EXPECT_FALSE(mirror->getMirrorTunnel().has_value());
   });
 }
@@ -548,8 +550,8 @@ TYPED_TEST(MirrorManagerTest, ResolveMirrorWithDirectlyConnectedRoute) {
     auto mirror = state->getMirrors()->getNodeIf(kMirrorName);
     EXPECT_NE(mirror, nullptr);
     EXPECT_TRUE(mirror->isResolved());
-    EXPECT_TRUE(mirror->getEgressPort().has_value());
-    auto egressPort = mirror->getEgressPort().value();
+    EXPECT_TRUE(mirror->getEgressPortDesc().has_value());
+    auto egressPort = mirror->getEgressPortDesc().value().phyPortID();
     EXPECT_EQ(egressPort, params.neighborPorts[0]);
     ASSERT_TRUE(mirror->getMirrorTunnel().has_value());
     auto tunnel = mirror->getMirrorTunnel().value();
@@ -581,7 +583,7 @@ TYPED_TEST(MirrorManagerTest, ResolveNoMirrorWithDirectlyConnectedRoute) {
     auto mirror = state->getMirrors()->getNodeIf(kMirrorName);
     EXPECT_NE(mirror, nullptr);
     EXPECT_FALSE(mirror->isResolved());
-    EXPECT_FALSE(mirror->getEgressPort().has_value());
+    EXPECT_FALSE(mirror->getEgressPortDesc().has_value());
     ASSERT_FALSE(mirror->getMirrorTunnel().has_value());
   });
 }
@@ -618,8 +620,8 @@ TYPED_TEST(MirrorManagerTest, UpdateMirrorOnRouteDelete) {
     auto mirror = state->getMirrors()->getNodeIf(kMirrorName);
     EXPECT_NE(mirror, nullptr);
     EXPECT_TRUE(mirror->isResolved());
-    EXPECT_TRUE(mirror->getEgressPort().has_value());
-    auto egressPort = mirror->getEgressPort().value();
+    EXPECT_TRUE(mirror->getEgressPortDesc().has_value());
+    auto egressPort = mirror->getEgressPortDesc().value().phyPortID();
     EXPECT_EQ(egressPort, params.neighborPorts[0]);
     ASSERT_TRUE(mirror->getMirrorTunnel().has_value());
     auto tunnel = mirror->getMirrorTunnel().value();
@@ -643,8 +645,8 @@ TYPED_TEST(MirrorManagerTest, UpdateMirrorOnRouteDelete) {
     auto mirror = state->getMirrors()->getNodeIf(kMirrorName);
     EXPECT_NE(mirror, nullptr);
     EXPECT_TRUE(mirror->isResolved());
-    EXPECT_TRUE(mirror->getEgressPort().has_value());
-    auto egressPort = mirror->getEgressPort().value();
+    EXPECT_TRUE(mirror->getEgressPortDesc().has_value());
+    auto egressPort = mirror->getEgressPortDesc().value().phyPortID();
     EXPECT_EQ(egressPort, params.neighborPorts[1]);
     ASSERT_TRUE(mirror->getMirrorTunnel().has_value());
     auto tunnel = mirror->getMirrorTunnel().value();
@@ -685,8 +687,8 @@ TYPED_TEST(MirrorManagerTest, UpdateMirrorOnRouteAdd) {
     auto mirror = state->getMirrors()->getNodeIf(kMirrorName);
     EXPECT_NE(mirror, nullptr);
     EXPECT_TRUE(mirror->isResolved());
-    EXPECT_TRUE(mirror->getEgressPort().has_value());
-    auto egressPort = mirror->getEgressPort().value();
+    EXPECT_TRUE(mirror->getEgressPortDesc().has_value());
+    auto egressPort = mirror->getEgressPortDesc().value().phyPortID();
     EXPECT_EQ(egressPort, params.neighborPorts[1]);
     ASSERT_TRUE(mirror->getMirrorTunnel().has_value());
     auto tunnel = mirror->getMirrorTunnel().value();
@@ -722,8 +724,8 @@ TYPED_TEST(MirrorManagerTest, UpdateMirrorOnRouteAdd) {
     auto mirror = state->getMirrors()->getNodeIf(kMirrorName);
     EXPECT_NE(mirror, nullptr);
     EXPECT_TRUE(mirror->isResolved());
-    EXPECT_TRUE(mirror->getEgressPort().has_value());
-    auto egressPort = mirror->getEgressPort().value();
+    EXPECT_TRUE(mirror->getEgressPortDesc().has_value());
+    auto egressPort = mirror->getEgressPortDesc().value().phyPortID();
     EXPECT_EQ(egressPort, params.neighborPorts[0]);
     ASSERT_TRUE(mirror->getMirrorTunnel().has_value());
     auto tunnel = mirror->getMirrorTunnel().value();
@@ -775,8 +777,8 @@ TYPED_TEST(MirrorManagerTest, UpdateNoMirrorWithEgressPortOnRouteDel) {
     auto mirror = state->getMirrors()->getNodeIf(kMirrorName);
     EXPECT_NE(mirror, nullptr);
     EXPECT_TRUE(mirror->isResolved());
-    EXPECT_TRUE(mirror->getEgressPort().has_value());
-    auto egressPort = mirror->getEgressPort().value();
+    EXPECT_TRUE(mirror->getEgressPortDesc().has_value());
+    auto egressPort = mirror->getEgressPortDesc().value().phyPortID();
     EXPECT_EQ(egressPort, params.neighborPorts[0]);
     ASSERT_TRUE(mirror->getMirrorTunnel().has_value());
     auto tunnel = mirror->getMirrorTunnel().value();
@@ -800,8 +802,10 @@ TYPED_TEST(MirrorManagerTest, UpdateNoMirrorWithEgressPortOnRouteDel) {
     auto mirror = state->getMirrors()->getNodeIf(kMirrorName);
     EXPECT_NE(mirror, nullptr);
     EXPECT_FALSE(mirror->isResolved());
-    EXPECT_TRUE(mirror->getEgressPort().has_value());
-    EXPECT_EQ(mirror->getEgressPort().value(), params.neighborPorts[0]);
+    EXPECT_TRUE(mirror->getEgressPortDesc().has_value());
+    EXPECT_EQ(
+        mirror->getEgressPortDesc().value().phyPortID(),
+        params.neighborPorts[0]);
     EXPECT_FALSE(mirror->getMirrorTunnel().has_value());
   });
 }
@@ -840,8 +844,8 @@ TYPED_TEST(MirrorManagerTest, UpdateNoMirrorWithEgressPortOnRouteAdd) {
     auto mirror = state->getMirrors()->getNodeIf(kMirrorName);
     EXPECT_NE(mirror, nullptr);
     EXPECT_FALSE(mirror->isResolved());
-    EXPECT_TRUE(mirror->getEgressPort().has_value());
-    auto egressPort = mirror->getEgressPort().value();
+    EXPECT_TRUE(mirror->getEgressPortDesc().has_value());
+    auto egressPort = mirror->getEgressPortDesc().value().phyPortID();
     EXPECT_EQ(egressPort, params.neighborPorts[0]);
     EXPECT_FALSE(mirror->getMirrorTunnel().has_value());
   });
@@ -878,8 +882,8 @@ TYPED_TEST(MirrorManagerTest, UpdateMirrorOnNeighborChange) {
     auto mirror = state->getMirrors()->getNodeIf(kMirrorName);
     EXPECT_NE(mirror, nullptr);
     EXPECT_TRUE(mirror->isResolved());
-    EXPECT_TRUE(mirror->getEgressPort().has_value());
-    auto egressPort = mirror->getEgressPort().value();
+    EXPECT_TRUE(mirror->getEgressPortDesc().has_value());
+    auto egressPort = mirror->getEgressPortDesc().value().phyPortID();
     EXPECT_EQ(egressPort, params.neighborPorts[0]);
     ASSERT_TRUE(mirror->getMirrorTunnel().has_value());
     auto tunnel = mirror->getMirrorTunnel().value();
@@ -923,8 +927,8 @@ TYPED_TEST(MirrorManagerTest, UpdateMirrorOnNeighborChange) {
     auto mirror = state->getMirrors()->getNodeIf(kMirrorName);
     EXPECT_NE(mirror, nullptr);
     EXPECT_TRUE(mirror->isResolved());
-    EXPECT_TRUE(mirror->getEgressPort().has_value());
-    auto egressPort = mirror->getEgressPort().value();
+    EXPECT_TRUE(mirror->getEgressPortDesc().has_value());
+    auto egressPort = mirror->getEgressPortDesc().value().phyPortID();
     EXPECT_EQ(egressPort, params.neighborPorts[1]);
     ASSERT_TRUE(mirror->getMirrorTunnel().has_value());
     auto tunnel = mirror->getMirrorTunnel().value();
@@ -988,7 +992,7 @@ TYPED_TEST(MirrorManagerTest, GreMirrorWithSrcIp) {
         auto oldMirror = updatedState->getMirrors()->getNodeIf(kMirrorName);
         auto mirror = std::make_shared<Mirror>(
             kMirrorName,
-            oldMirror->getEgressPort(),
+            oldMirror->getEgressPortDesc(),
             oldMirror->getDestinationIp(),
             std::make_optional<folly::IPAddress>(params.mirrorSource));
         return this->updateMirror(updatedState, mirror);
@@ -1031,7 +1035,7 @@ TYPED_TEST(MirrorManagerTest, SflowMirrorWithSrcIp) {
         auto oldMirror = updatedState->getMirrors()->getNodeIf(kMirrorName);
         auto mirror = std::make_shared<Mirror>(
             kMirrorName,
-            oldMirror->getEgressPort(),
+            oldMirror->getEgressPortDesc(),
             oldMirror->getDestinationIp(),
             std::make_optional<folly::IPAddress>(params.mirrorSource),
             oldMirror->getTunnelUdpPorts());
@@ -1095,7 +1099,7 @@ TYPED_TEST(MirrorManagerTest, ResolveMirrorOnMirrorUpdate) {
         // mirror so mirror manager resolves it again.
         auto mirror = std::make_shared<Mirror>(
             oldMirror->getID(),
-            std::optional<PortID>(),
+            std::optional<PortDescriptor>(),
             oldMirror->getDestinationIp(),
             std::optional<IPAddress>(),
             oldMirror->getTunnelUdpPorts());
@@ -1220,8 +1224,8 @@ TYPED_TEST(MirrorManagerTest, NeighborUpdates) {
     auto mirror = state->getMirrors()->getNodeIf(kMirrorName);
     EXPECT_NE(mirror, nullptr);
     EXPECT_TRUE(mirror->isResolved());
-    ASSERT_TRUE(mirror->getEgressPort().has_value());
-    auto egressPort = mirror->getEgressPort().value();
+    ASSERT_TRUE(mirror->getEgressPortDesc().has_value());
+    auto egressPort = mirror->getEgressPortDesc().value().phyPortID();
     EXPECT_EQ(egressPort, params.neighborPorts[0]);
   });
 
@@ -1237,8 +1241,8 @@ TYPED_TEST(MirrorManagerTest, NeighborUpdates) {
     auto mirror = state->getMirrors()->getNodeIf(kMirrorName);
     EXPECT_NE(mirror, nullptr);
     EXPECT_TRUE(mirror->isResolved());
-    ASSERT_TRUE(mirror->getEgressPort().has_value());
-    auto egressPort = mirror->getEgressPort().value();
+    ASSERT_TRUE(mirror->getEgressPortDesc().has_value());
+    auto egressPort = mirror->getEgressPortDesc().value();
     EXPECT_EQ(egressPort, params.neighborPorts[1]);
   });
 
@@ -1260,8 +1264,8 @@ TYPED_TEST(MirrorManagerTest, NeighborUpdates) {
     auto mirror = state->getMirrors()->getNodeIf(kMirrorName);
     EXPECT_NE(mirror, nullptr);
     EXPECT_TRUE(mirror->isResolved());
-    ASSERT_TRUE(mirror->getEgressPort().has_value());
-    auto egressPort = mirror->getEgressPort().value();
+    ASSERT_TRUE(mirror->getEgressPortDesc().has_value());
+    auto egressPort = mirror->getEgressPortDesc().value().phyPortID();
     EXPECT_EQ(egressPort, params.neighborPorts[0]);
   });
 }
@@ -1309,8 +1313,8 @@ TYPED_TEST(MirrorManagerTest, UpdateRoute) {
     EXPECT_NE(mirror, nullptr);
     EXPECT_TRUE(mirror->isResolved());
     EXPECT_FALSE(mirror->configHasEgressPort());
-    ASSERT_TRUE(mirror->getEgressPort().has_value());
-    auto egressPort = mirror->getEgressPort().value();
+    ASSERT_TRUE(mirror->getEgressPortDesc().has_value());
+    auto egressPort = mirror->getEgressPortDesc().value().phyPortID();
     EXPECT_EQ(egressPort, params.neighborPorts[0]);
   });
 
@@ -1324,8 +1328,8 @@ TYPED_TEST(MirrorManagerTest, UpdateRoute) {
     EXPECT_NE(mirror, nullptr);
     EXPECT_FALSE(mirror->configHasEgressPort());
     EXPECT_TRUE(mirror->isResolved());
-    ASSERT_TRUE(mirror->getEgressPort().has_value());
-    auto egressPort = mirror->getEgressPort().value();
+    ASSERT_TRUE(mirror->getEgressPortDesc().has_value());
+    auto egressPort = mirror->getEgressPortDesc().value().phyPortID();
     EXPECT_EQ(egressPort, params.neighborPorts[1]);
   });
 
@@ -1339,8 +1343,8 @@ TYPED_TEST(MirrorManagerTest, UpdateRoute) {
     EXPECT_NE(mirror, nullptr);
     EXPECT_FALSE(mirror->configHasEgressPort());
     EXPECT_TRUE(mirror->isResolved());
-    ASSERT_TRUE(mirror->getEgressPort().has_value());
-    auto egressPort = mirror->getEgressPort().value();
+    ASSERT_TRUE(mirror->getEgressPortDesc().has_value());
+    auto egressPort = mirror->getEgressPortDesc().value().phyPortID();
     EXPECT_EQ(egressPort, params.neighborPorts[0]);
   });
 }

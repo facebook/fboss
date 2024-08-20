@@ -77,7 +77,8 @@ std::shared_ptr<Mirror> MirrorManagerImpl<AddrT>::updateMirror(
 
   auto newMirror = std::make_shared<Mirror>(
       mirror->getID(),
-      mirror->configHasEgressPort() ? mirror->getEgressPort() : std::nullopt,
+      mirror->configHasEgressPort() ? mirror->getEgressPortDesc()
+                                    : std::nullopt,
       mirror->getDestinationIp(),
       mirror->getSrcIp(),
       mirror->getTunnelUdpPorts(),
@@ -95,8 +96,9 @@ std::shared_ptr<Mirror> MirrorManagerImpl<AddrT>::updateMirror(
     }
     auto neighborPort = entry->getPort();
     if (mirror->configHasEgressPort()) {
+      auto egressPortDesc = mirror->getEgressPortDesc().value();
       if (!neighborPort.isPhysicalPort() ||
-          neighborPort.phyPortID() != mirror->getEgressPort().value()) {
+          neighborPort.phyPortID() != egressPortDesc.phyPortID()) {
         // TODO: support configuring LAG egress for mirror
         continue;
       }
