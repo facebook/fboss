@@ -984,17 +984,4 @@ void SaiSwitchManager::setLocalCapsuleSwitchIds(
   switch_->setOptionalAttribute(
       SaiSwitchTraits::Attributes::MultiStageLocalSwitchIds{values});
 }
-
-void SaiSwitchManager::setReachabilityGroupSize(int reachabilityGroupSize) {
-#if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
-  if (reachabilityGroupSize > 0) {
-    std::vector<uint32_t> list;
-    for (int i = 0; i < reachabilityGroupSize; i++) {
-      list.push_back(i + 1);
-    }
-    switch_->setOptionalAttribute(
-        SaiSwitchTraits::Attributes::ReachabilityGroupList{list});
-  }
-#endif
-}
 } // namespace facebook::fboss
