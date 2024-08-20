@@ -628,15 +628,6 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
   }
 #endif
 
-  std::optional<SaiPortTraits::Attributes::ReachabilityGroup>
-      reachabilityGroup{};
-#if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
-  if (auto reachabilityGroupId = swPort->getReachabilityGroupId()) {
-    reachabilityGroup = SaiPortTraits::Attributes::ReachabilityGroup{
-        reachabilityGroupId.value()};
-  }
-#endif
-
   if (basicAttributeOnly) {
     return SaiPortTraits::CreateAttributes{
 #if defined(BRCM_SAI_SDK_DNX)
@@ -699,7 +690,6 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
         std::nullopt, // ARS port load past weight
         std::nullopt, // ARS port load future weight
 #endif
-        std::nullopt, // Reachability Group
     };
   }
   return SaiPortTraits::CreateAttributes{
@@ -767,7 +757,6 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
       arsPortLoadPastWeight, // ARS port load past weight
       arsPortLoadFutureWeight, // ARS port load future weight
 #endif
-      reachabilityGroup,
   };
 }
 
