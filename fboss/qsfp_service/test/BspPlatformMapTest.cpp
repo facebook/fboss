@@ -19,7 +19,7 @@ TEST_F(BspPlatformMapTest, checkNumPimTransceivers) {
   // Check Montblanc
   auto mbBspPlatformMap = MontblancBspPlatformMapping();
   EXPECT_EQ(mbBspPlatformMap.numPims(), 1);
-  EXPECT_EQ(mbBspPlatformMap.numTransceivers(), 64);
+  EXPECT_EQ(mbBspPlatformMap.numTransceivers(), 65);
   // Check Kamet
   auto m400bfuBspPlatformMap = Meru400bfuBspPlatformMapping();
   EXPECT_EQ(m400bfuBspPlatformMap.numPims(), 1);

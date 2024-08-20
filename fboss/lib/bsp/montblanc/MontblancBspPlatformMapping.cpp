@@ -2254,6 +2254,37 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
             "7": 128,
             "8": 128
           }
+        },
+        "65": {
+          "tcvrId": 65,
+          "accessControl": {
+            "controllerId": "65",
+            "type": 1,
+            "reset": {
+              "sysfsPath": "/run/devmap/xcvrs/xcvr_65/xcvr_reset_65",
+              "mask": 1,
+              "gpioOffset": 0,
+              "resetHoldHi": 1
+            },
+            "presence": {
+              "sysfsPath": "/run/devmap/xcvrs/xcvr_65/xcvr_present_65",
+              "mask": 1,
+              "gpioOffset": 0,
+              "presentHoldHi": 0
+            },
+            "gpioChip": ""
+          },
+          "io": {
+            "controllerId": "65",
+            "type": 1,
+            "devicePath": "/run/devmap/i2c-busses/XCVR_65"
+          },
+          "tcvrLaneToLedId": {
+            "1": 129,
+            "2": 129,
+            "3": 129,
+            "4": 129
+          }
         }
       },
       "phyMapping": {},
@@ -3026,6 +3057,12 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
           "bluePath": "/sys/class/leds/port64_led2:blue:status",
           "yellowPath": "/sys/class/leds/port64_led2:yellow:status",
           "transceiverId": 64
+        },
+        "129": {
+          "id": 129,
+          "bluePath": "/sys/class/leds/port65_led1:blue:status",
+          "yellowPath": "/sys/class/leds/port65_led1:yellow:status",
+          "transceiverId": 65
         }
       }
     }
