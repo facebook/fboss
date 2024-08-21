@@ -24,6 +24,14 @@ add_fbthrift_cpp_library(
     reflection
 )
 
+add_library(sensor_service_utils
+  fboss/platform/sensor_service/Utils.cpp
+)
+
+target_link_libraries(sensor_service_utils
+  ${RE2}
+)
+
 add_library(sensor_service_lib
   fboss/platform/sensor_service/FsdbSyncer.cpp
   fboss/platform/sensor_service/Flags.cpp
@@ -69,6 +77,7 @@ target_link_libraries(sensor_service_client
 
 install(TARGETS sensor_service)
 
+# TODO: paulcruz74 for the sake for consistency, this should technically live in `PlatformSensorServiceHwTest.cmake`
 add_executable(sensor_service_hw_test
   fboss/platform/sensor_service/hw_test/SensorServiceHwTest.cpp
 )
@@ -80,18 +89,3 @@ target_link_libraries(sensor_service_hw_test
 )
 
 install(TARGETS sensor_service_hw_test)
-
-add_executable(sensor_service_sw_test
-  fboss/platform/sensor_service/test/SensorServiceImplTest.cpp
-  fboss/platform/sensor_service/test/SensorServiceThriftHandlerTest.cpp
-  fboss/platform/sensor_service/test/TestUtils.cpp
-)
-
-target_link_libraries(sensor_service_sw_test
-  platform_utils
-  sensor_service_lib
-  ${GTEST}
-  ${LIBGMOCK_LIBRARIES}
-)
-
-install(TARGETS sensor_service_sw_test)
