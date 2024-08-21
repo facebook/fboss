@@ -89,6 +89,11 @@ std::vector<std::shared_ptr<SaiRoute>> SaiRouteManager::makeInterfaceToMeRoutes(
 
   toMeRoutes.reserve(swInterface->getAddresses()->size());
   // Compute per-address information
+  std::optional<SaiRouteTraits::Attributes::Metadata> metadata;
+  if (FLAGS_set_classid_for_my_subnet_and_ip_routes &&
+      platform_->getAsic()->isSupported(HwAsic::Feature::ROUTE_METADATA)) {
+    metadata = static_cast<uint32_t>(cfg::AclLookupClass::DST_CLASS_L3_LOCAL_1);
+  }
   for (auto iter : std::as_const(*swInterface->getAddresses())) {
     folly::IPAddress ipAddress(iter.first);
     // empty next hop group -- this route will not manage the
@@ -97,12 +102,17 @@ std::vector<std::shared_ptr<SaiRoute>> SaiRouteManager::makeInterfaceToMeRoutes(
     // destination
     folly::CIDRNetwork destination{ipAddress, ipAddress.bitCount()};
     SaiRouteTraits::RouteEntry entry{switchId, virtualRouterId, destination};
+    XLOG(DBG2) << "set my interface ip route " << ipAddress.str()
+               << " class id to "
+               << (metadata.has_value()
+                       ? std::to_string(metadata.value().value())
+                       : "none");
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
     SaiRouteTraits::CreateAttributes attributes{
-        packetAction, cpuPortId, std::nullopt, std::nullopt};
+        packetAction, cpuPortId, metadata, std::nullopt};
 #else
     SaiRouteTraits::CreateAttributes attributes{
-        packetAction, cpuPortId, std::nullopt};
+        packetAction, cpuPortId, metadata};
 #endif
     auto& store = saiStore_->get<SaiRouteTraits>();
     auto route = store.setObject(entry, attributes);
@@ -240,6 +250,8 @@ void SaiRouteManager::addOrUpdateRoute(
         if (FLAGS_set_classid_for_my_subnet_and_ip_routes &&
             platform_->getAsic()->isSupported(
                 HwAsic::Feature::ROUTE_METADATA)) {
+          XLOG(DBG2) << "set my subnet route " << newRoute->str()
+                     << " class id to 2";
           metadata =
               static_cast<uint32_t>(cfg::AclLookupClass::DST_CLASS_L3_LOCAL_2);
         }
@@ -370,6 +382,12 @@ void SaiRouteManager::addOrUpdateRoute(
   } else if (fwd.getAction() == RouteForwardAction::TO_CPU) {
     packetAction = SAI_PACKET_ACTION_FORWARD;
     PortSaiId cpuPortId = managerTable_->switchManager().getCpuPort();
+    if (FLAGS_set_classid_for_my_subnet_and_ip_routes &&
+        platform_->getAsic()->isSupported(HwAsic::Feature::ROUTE_METADATA)) {
+      XLOG(DBG2) << "set my ip route " << newRoute->str() << " class id to 1";
+      metadata =
+          static_cast<uint32_t>(cfg::AclLookupClass::DST_CLASS_L3_LOCAL_1);
+    }
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
     attributes = SaiRouteTraits::CreateAttributes{
         packetAction, cpuPortId, metadata, std::nullopt};

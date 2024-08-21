@@ -85,6 +85,7 @@ bool Jericho3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::EGRESS_CORE_BUFFER_WATERMARK:
     case HwAsic::Feature::DELETED_CREDITS_STAT:
     case HwAsic::Feature::INGRESS_PRIORITY_GROUP_DROPPED_PACKETS:
+    case HwAsic::Feature::ROUTE_METADATA:
       return true;
     // Features not expected to work on SIM
     case HwAsic::Feature::SHARED_INGRESS_EGRESS_BUFFER_POOL:
@@ -149,7 +150,6 @@ bool Jericho3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::XPHY_PORT_STATE_TOGGLE:
     case HwAsic::Feature::SAI_PORT_GET_PMD_LANES:
     case HwAsic::Feature::SAI_PORT_VCO_CHANGE:
-    case HwAsic::Feature::ROUTE_METADATA:
     case HwAsic::Feature::FLOWLET:
     case HwAsic::Feature::P4_WARMBOOT:
     case HwAsic::Feature::FEC_AM_LOCK_STATUS:

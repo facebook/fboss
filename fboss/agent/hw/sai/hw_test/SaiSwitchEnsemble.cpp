@@ -150,8 +150,12 @@ void SaiSwitchEnsemble::init(
   auto platform =
       initSaiPlatform(std::move(agentConfig), getHwSwitchFeatures(), 0);
   if (platform->getAsic()->getAsicVendor() ==
-      HwAsic::AsicVendor::ASIC_VENDOR_TAJO) {
+          HwAsic::AsicVendor::ASIC_VENDOR_TAJO ||
+      platform->getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO3) {
     FLAGS_classid_for_unresolved_routes = true;
+  }
+  if (platform->getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO3) {
+    FLAGS_set_classid_for_my_subnet_and_ip_routes = true;
   }
   if (auto tcvr = info.overrideTransceiverInfo) {
     platform->setOverrideTransceiverInfo(*tcvr);
@@ -178,11 +182,6 @@ void SaiSwitchEnsemble::init(
   hwAsicTableEntry->setDefaultStreamType(
       getPlatform()->getAsic()->getDefaultStreamType());
   getPlatform()->initLEDs();
-  if (getPlatform()->getAsic()->isSupported(HwAsic::Feature::ROUTE_METADATA)) {
-    // TODO: enable after explicit_route_classid feature is fully
-    // verified
-    FLAGS_set_classid_for_my_subnet_and_ip_routes = false;
-  }
   auto hw = static_cast<SaiSwitch*>(getHwSwitch());
   diagShell_ = std::make_unique<DiagShell>(hw);
   diagCmdServer_ = std::make_unique<DiagCmdServer>(hw, diagShell_.get());

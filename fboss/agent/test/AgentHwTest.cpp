@@ -55,12 +55,6 @@ void AgentHwTest::SetUp() {
        HwSwitch::FeaturesDesired::LINKSCAN_DESIRED |
        HwSwitch::FeaturesDesired::TAM_EVENT_NOTIFY_DESIRED),
       failHwCallsOnWarmboot());
-
-  if (isSupportedOnAllAsics(HwAsic::Feature::ROUTE_METADATA)) {
-    // TODO: enable after set_classid_for_my_subnet_and_ip_routes feature is
-    // fully verified
-    FLAGS_set_classid_for_my_subnet_and_ip_routes = false;
-  }
 }
 
 void AgentHwTest::setCmdLineFlagOverrides() const {
