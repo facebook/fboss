@@ -58,4 +58,13 @@ target_link_libraries(platform_manager_data_store_test
   ${LIBGMOCK_LIBRARIES}
 )
 
+add_executable(platform_manager_device_path_resolver_test
+  fboss/platform/platform_manager/tests/DevicePathResolverTest.cpp
+)
+
+target_link_libraries(platform_manager_device_path_resolver_test
+  platform_manager_device_path_resolver
+  ${GTEST}
+  ${LIBGMOCK_LIBRARIES}
+)
 
