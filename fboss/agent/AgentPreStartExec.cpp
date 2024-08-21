@@ -12,6 +12,9 @@
 
 #include "fboss/agent/facebook/AgentPreStartConfig.h"
 
+DEFINE_bool(netos, false, "Execute netos native environment");
+DEFINE_int32(switch_index, 0, "Applicable for hardware agent, switch index");
+
 namespace facebook::fboss {
 
 void AgentPreStartExec::run() {
@@ -24,7 +27,9 @@ void AgentPreStartExec::run() {
       std::make_unique<AgentNetWhoAmI>(),
       dirUtil,
       std::move(config),
-      cppWedgeAgentWrapper);
+      cppWedgeAgentWrapper,
+      FLAGS_netos,
+      FLAGS_switch_index);
 }
 
 void AgentPreStartExec::run(
@@ -32,14 +37,21 @@ void AgentPreStartExec::run(
     std::unique_ptr<AgentNetWhoAmI> whoami,
     const AgentDirectoryUtil& dirUtil,
     std::unique_ptr<AgentConfig> config,
-    bool cppWedgeAgentWrapper) {
+    bool cppWedgeAgentWrapper,
+    bool isNetOS,
+    int switchIndex) {
   auto mode = config->getRunMode();
 
   if (cppWedgeAgentWrapper) {
     runAndRemoveScript(dirUtil.getPreStartShellScript());
     AgentPreStartConfig preStartConfig(
         std::move(whoami), config.get(), dirUtil);
-    preStartConfig.run(executor);
+    if (isNetOS && switchIndex == 0) {
+      // Only First Agent will execute Pre_Start
+      preStartConfig.runNetOs(executor);
+    } else if (!isNetOS) {
+      preStartConfig.run(executor);
+    }
   }
 
   if (mode != cfg::AgentRunMode::MULTI_SWITCH) {

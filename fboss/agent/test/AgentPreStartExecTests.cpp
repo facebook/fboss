@@ -21,32 +21,49 @@ using ::testing::_;
 namespace facebook::fboss {
 
 namespace {
-template <bool multiSwitch, bool cppRefactor, bool sai, bool brcm>
+template <bool multiSwitch, bool cppRefactor, bool sai, bool brcm, bool netOS>
 struct TestAttr {
   static constexpr bool kMultiSwitch = multiSwitch;
   static constexpr bool kCppRefactor = cppRefactor;
   static constexpr bool kSai = sai;
   static constexpr bool kBrcm = brcm;
+  static constexpr bool kNetOS = netOS;
 };
 
-#define TEST_ATTR(NAME, a, b, c, d) \
-  struct TestAttr##NAME : public TestAttr<a, b, c, d> {};
+#define TEST_ATTR(NAME, a, b, c, d, e) \
+  struct TestAttr##NAME : public TestAttr<a, b, c, d, e> {};
 
-TEST_ATTR(NoMultiSwitchNoCppRefactorNoSaiBrcm, false, false, false, true);
-TEST_ATTR(NoMultiSwitchNoCppRefactorSaiBrcm, false, false, true, true);
-TEST_ATTR(NoMultiSwitchNoCppRefactorSaiNoBrcm, false, false, true, false);
+TEST_ATTR(
+    NoMultiSwitchNoCppRefactorNoSaiBrcm,
+    false,
+    false,
+    false,
+    true,
+    false);
+TEST_ATTR(NoMultiSwitchNoCppRefactorSaiBrcm, false, false, true, true, false);
+TEST_ATTR(
+    NoMultiSwitchNoCppRefactorSaiNoBrcm,
+    false,
+    false,
+    true,
+    false,
+    false);
 
-TEST_ATTR(NoMultiSwitchCppRefactorNoSaiBrcm, false, true, false, true);
-TEST_ATTR(NoMultiSwitchCppRefactorSaiBrcm, false, true, true, true);
-TEST_ATTR(NoMultiSwitchCppRefactorSaiNoBrcm, false, true, true, false);
+TEST_ATTR(NoMultiSwitchCppRefactorNoSaiBrcm, false, true, false, true, false);
+TEST_ATTR(NoMultiSwitchCppRefactorSaiBrcm, false, true, true, true, false);
+TEST_ATTR(NoMultiSwitchCppRefactorSaiNoBrcm, false, true, true, false, false);
 
-TEST_ATTR(MultiSwitchNoCppRefactorNoSaiBrcm, true, false, false, true);
-TEST_ATTR(MultiSwitchNoCppRefactorSaiBrcm, true, false, true, true);
-TEST_ATTR(MultiSwitchNoCppRefactorSaiNoBrcm, true, false, true, false);
+TEST_ATTR(MultiSwitchNoCppRefactorNoSaiBrcm, true, false, false, true, false);
+TEST_ATTR(MultiSwitchNoCppRefactorSaiBrcm, true, false, true, true, false);
+TEST_ATTR(MultiSwitchNoCppRefactorSaiNoBrcm, true, false, true, false, false);
 
-TEST_ATTR(MultiSwitchCppRefactorNoSaiBrcm, true, true, false, true);
-TEST_ATTR(MultiSwitchCppRefactorSaiBrcm, true, true, true, true);
-TEST_ATTR(MultiSwitchCppRefactorSaiNoBrcm, true, true, true, false);
+TEST_ATTR(MultiSwitchCppRefactorNoSaiBrcm, true, true, false, true, false);
+TEST_ATTR(MultiSwitchCppRefactorSaiBrcm, true, true, true, true, false);
+TEST_ATTR(MultiSwitchCppRefactorSaiNoBrcm, true, true, true, false, false);
+
+TEST_ATTR(MultiSwitchCppRefactorNetOsNoSaiBrcm, true, true, false, true, true);
+TEST_ATTR(MultiSwitchCppRefactorNetOsSaiBrcm, true, true, true, true, true);
+TEST_ATTR(MultiSwitchCppRefactorNetOsSaiNoBrcm, true, true, true, false, true);
 } // namespace
 
 template <typename TestAttr>
@@ -150,72 +167,82 @@ class AgentPreStartExecTests : public ::testing::Test {
       std::vector<std::string> installKmod{
           kmodsInstaller, "install", "--sdk-upgrade", kmodVersion};
       EXPECT_CALL(executor, runCommand(installKmod, true)).Times(1);
-      EXPECT_CALL(*netwhoami, isBcmSaiPlatform())
-          .WillOnce(Return(TestAttr::kSai && TestAttr::kBrcm));
+      if (!TestAttr::kNetOS) {
+        // wedge agent binaries not included in netOS
+        EXPECT_CALL(*netwhoami, isBcmSaiPlatform())
+            .WillOnce(Return(TestAttr::kSai && TestAttr::kBrcm));
+      }
       if (TestAttr::kMultiSwitch) {
         // once again for hw agent
         EXPECT_CALL(*netwhoami, isBcmSaiPlatform())
             .WillOnce(Return(TestAttr::kSai && TestAttr::kBrcm));
       }
       EXPECT_CALL(*netwhoami, isBcmVoqPlatform()).WillOnce(Return(voq));
-      if (TestAttr::kMultiSwitch) {
-        EXPECT_CALL(
-            executor,
-            runCommand(
-                std::vector<std::string>{
-                    "/usr/bin/systemctl",
-                    "enable",
-                    util_->getSwAgentServicePath()},
-                true));
-        EXPECT_CALL(
-            executor,
-            runCommand(
-                std::vector<std::string>{
-                    "/usr/bin/systemctl",
-                    "enable",
-                    util_->getHwAgentServiceInstance(0)},
-                true));
-
-        EXPECT_CALL(
-            executor,
-            runCommand(
-                std::vector<std::string>{
-                    "/usr/bin/systemctl",
-                    "enable",
-                    util_->getHwAgentServiceInstance(1)},
-                true));
-      } else {
-        EXPECT_CALL(
-            executor,
-            runCommand(
-                std::vector<std::string>{
-                    "/usr/bin/systemctl", "disable", "fboss_sw_agent"},
-                false));
-
-        EXPECT_CALL(
-            executor,
-            runCommand(
-                std::vector<std::string>{
-                    "/usr/bin/systemctl",
-                    "disable",
-                    "fboss_hw_agent@0.service"},
-                false));
-
+      if (voq) {
+        EXPECT_CALL(*netwhoami, isBcmSaiPlatform())
+            .WillOnce(Return(TestAttr::kSai && TestAttr::kBrcm));
+      }
+      if (!TestAttr::kNetOS) {
         if (TestAttr::kMultiSwitch) {
           EXPECT_CALL(
               executor,
               runCommand(
                   std::vector<std::string>{
                       "/usr/bin/systemctl",
-                      "disable",
-                      "fboss_hw_agent@1.service"},
+                      "enable",
+                      util_->getSwAgentServicePath()},
+                  true));
+          EXPECT_CALL(
+              executor,
+              runCommand(
+                  std::vector<std::string>{
+                      "/usr/bin/systemctl",
+                      "enable",
+                      util_->getHwAgentServiceInstance(0)},
+                  true));
+
+          EXPECT_CALL(
+              executor,
+              runCommand(
+                  std::vector<std::string>{
+                      "/usr/bin/systemctl",
+                      "enable",
+                      util_->getHwAgentServiceInstance(1)},
+                  true));
+        } else {
+          EXPECT_CALL(
+              executor,
+              runCommand(
+                  std::vector<std::string>{
+                      "/usr/bin/systemctl", "disable", "fboss_sw_agent"},
                   false));
+
+          EXPECT_CALL(
+              executor,
+              runCommand(
+                  std::vector<std::string>{
+                      "/usr/bin/systemctl",
+                      "disable",
+                      "fboss_hw_agent@0.service"},
+                  false));
+
+          if (TestAttr::kMultiSwitch) {
+            EXPECT_CALL(
+                executor,
+                runCommand(
+                    std::vector<std::string>{
+                        "/usr/bin/systemctl",
+                        "disable",
+                        "fboss_hw_agent@1.service"},
+                    false));
+          }
         }
+
+        // update-buildinfo
+        EXPECT_CALL(
+            executor, runShellCommand("/usr/local/bin/fboss-build-info", false))
+            .Times(1);
       }
-      // update-buildinfo
-      EXPECT_CALL(
-          executor, runShellCommand("/usr/local/bin/fboss-build-info", false))
-          .Times(1);
     }
 
     exec.run(
@@ -223,7 +250,9 @@ class AgentPreStartExecTests : public ::testing::Test {
         std::move(netwhoami),
         *util_,
         std::make_unique<AgentConfig>(getConfig()),
-        TestAttr::kCppRefactor);
+        TestAttr::kCppRefactor,
+        TestAttr::kNetOS,
+        0);
 
     if (TestAttr::kCppRefactor) {
       auto verifySymLink = [&](const std::string& name,
@@ -234,14 +263,24 @@ class AgentPreStartExecTests : public ::testing::Test {
             util_->getPackageDirectory() + "/" + sdk + "/" + name;
         EXPECT_EQ(actualTarget.string(), expectedTarget);
       };
-      verifySymLink(
-          "wedge_agent",
-          // sai + brcm has directories with sai sdk version
-          // non-sai + brcm and non-brcm has directories with asic sdk version
-          TestAttr::kSai && TestAttr::kBrcm
-              ? getSaiSdkVersion(getSdkVersion())
-              : getAsicSdkVersion(getSdkVersion()));
-
+      if (!TestAttr::kNetOS) {
+        verifySymLink(
+            "wedge_agent",
+            // sai + brcm has directories with sai sdk version
+            // non-sai + brcm and non-brcm has directories with asic sdk version
+            TestAttr::kSai && TestAttr::kBrcm
+                ? getSaiSdkVersion(getSdkVersion())
+                : getAsicSdkVersion(getSdkVersion()));
+      }
+      if (TestAttr::kMultiSwitch) {
+        verifySymLink(
+            "fboss_hw_agent",
+            // sai + brcm has directories with sai sdk version
+            // non-sai + brcm and non-brcm has directories with asic sdk version
+            TestAttr::kSai && TestAttr::kBrcm
+                ? getSaiSdkVersion(getSdkVersion())
+                : getAsicSdkVersion(getSdkVersion()));
+      }
       if (coldBoot) {
         EXPECT_TRUE(checkFileExists(util_->getSwColdBootOnceFile()));
         auto cfg = getConfig();
@@ -289,7 +328,9 @@ class AgentPreStartExecTests : public ::testing::Test {
               std::move(netwhoami),
               *util_,
               std::make_unique<AgentConfig>(getConfig()),
-              TestAttr::kCppRefactor),
+              TestAttr::kCppRefactor,
+              TestAttr::kNetOS,
+              0),
           FbossError);
     } else {
       exec.run(
@@ -297,7 +338,9 @@ class AgentPreStartExecTests : public ::testing::Test {
           std::move(netwhoami),
           *util_,
           std::make_unique<AgentConfig>(getConfig()),
-          TestAttr::kCppRefactor);
+          TestAttr::kCppRefactor,
+          TestAttr::kNetOS,
+          0);
     }
   }
 
@@ -442,6 +485,10 @@ TestFixtureName(MultiSwitchNoCppRefactorSaiNoBrcm);
 TestFixtureName(MultiSwitchCppRefactorNoSaiBrcm);
 TestFixtureName(MultiSwitchCppRefactorSaiBrcm);
 TestFixtureName(MultiSwitchCppRefactorSaiNoBrcm);
+
+TestFixtureName(MultiSwitchCppRefactorNetOsNoSaiBrcm);
+TestFixtureName(MultiSwitchCppRefactorNetOsSaiBrcm);
+TestFixtureName(MultiSwitchCppRefactorNetOsSaiNoBrcm);
 
 TestFixtureNameFdsw(NoMultiSwitchCppRefactorSaiBrcm);
 TestFixtureNameFdsw(NoMultiSwitchCppRefactorNoSaiBrcm);
