@@ -266,6 +266,7 @@
           "dport_map_port_97": "14",
           "dport_map_port_98": "15",
           "dport_map_port_99": "16",
+          "host_as_route_disable": "1",
           "ipv6_lpm_128b_enable": "0x1",
           "l2_mem_entries": "0x8000",
           "l2xmsg_mode": "0x1",
