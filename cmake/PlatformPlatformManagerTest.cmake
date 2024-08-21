@@ -47,3 +47,15 @@ target_link_libraries(platform_manager_utils_test
   ${GTEST}
   ${LIBGMOCK_LIBRARIES}
 )
+
+add_executable(platform_manager_data_store_test
+  fboss/platform/platform_manager/tests/DataStoreTest.cpp
+)
+
+target_link_libraries(platform_manager_data_store_test
+  platform_manager_data_store
+  ${GTEST}
+  ${LIBGMOCK_LIBRARIES}
+)
+
+
