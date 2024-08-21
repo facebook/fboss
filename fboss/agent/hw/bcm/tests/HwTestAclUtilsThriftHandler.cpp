@@ -136,6 +136,11 @@ bool HwTestThriftHandler::isAclEntrySame(
   }
   return true;
 }
+
+bool HwTestThriftHandler::areAllAclEntriesEnabled() {
+  return isDefaultAclTableEnabled();
+}
+
 } // namespace utility
 } // namespace fboss
 } // namespace facebook

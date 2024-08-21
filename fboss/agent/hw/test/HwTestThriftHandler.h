@@ -27,9 +27,7 @@ class HwTestThriftHandler : public AgentHwTestCtrlSvIf {
       std::unique_ptr<state::AclEntryFields> aclEntry,
       std::unique_ptr<std::string> aclTableName) override;
 
-  bool areAllAclEntriesEnabled() override {
-    throw FbossError("Not implemented");
-  }
+  bool areAllAclEntriesEnabled() override;
 
   bool isStatProgrammedInDefaultAclTable(
       std::unique_ptr<std::vector<::std::string>> aclEntryNames,

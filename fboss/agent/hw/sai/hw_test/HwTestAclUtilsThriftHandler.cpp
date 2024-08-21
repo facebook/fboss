@@ -562,6 +562,27 @@ bool HwTestThriftHandler::isAclEntrySame(
   return true;
 }
 
+bool HwTestThriftHandler::areAllAclEntriesEnabled() {
+  auto saiSwitch = static_cast<SaiSwitch*>(hwSwitch_);
+  const auto& aclTableManager = saiSwitch->managerTable()->aclTableManager();
+
+  auto aclTableNames = aclTableManager.getAllHandleNames();
+  for (const auto& aclTableName : aclTableNames) {
+    if (!isAclTableEnabled(std::make_unique<std::string>(aclTableName))) {
+      return false;
+    }
+    auto aclTableHandle = aclTableManager.getAclTableHandle(aclTableName);
+    for (const auto& [prio, aclEntryHandle] : aclTableHandle->aclTableMembers) {
+      auto attributes = aclEntryHandle->aclEntry->attributes();
+      auto enabled = GET_ATTR(AclEntry, Enabled, attributes);
+      if (!enabled) {
+        return false;
+      }
+    }
+  }
+  return true;
+}
+
 } // namespace utility
 } // namespace fboss
 } // namespace facebook
