@@ -41,6 +41,29 @@ add_fbthrift_cpp_library(
    platform_manager_snapshot_cpp2
 )
 
+add_library(platform_manager_i2c_explorer
+  fboss/platform/platform_manager/I2cExplorer.cpp
+)
+
+target_link_libraries(platform_manager_i2c_explorer
+  fmt::fmt
+  platform_manager_config_cpp2
+  i2c_ctrl
+  platform_utils
+  Folly::folly
+  ${RE2}
+)
+
+add_library(platform_manager_config_validator
+  fboss/platform/platform_manager/ConfigValidator.cpp
+)
+
+target_link_libraries(platform_manager_config_validator
+  platform_manager_i2c_explorer
+  platform_manager_config_cpp2
+  Folly::folly
+)
+
 add_executable(platform_manager
   fboss/platform/platform_manager/ConfigValidator.cpp
   fboss/platform/platform_manager/DataStore.cpp
