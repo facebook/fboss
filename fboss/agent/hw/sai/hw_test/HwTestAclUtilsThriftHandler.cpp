@@ -21,6 +21,40 @@ namespace facebook {
 namespace fboss {
 namespace utility {
 
+int32_t HwTestThriftHandler::getAclTableNumAclEntries(
+    std::unique_ptr<std::string> name) {
+  const auto& aclTableManager = static_cast<const SaiSwitch*>(hwSwitch_)
+                                    ->managerTable()
+                                    ->aclTableManager();
+  auto aclTableId =
+      aclTableManager.getAclTableHandle(getActualAclTableName(*name))
+          ->aclTable->adapterKey();
+
+  auto aclTableEntryListGot = SaiApiTable::getInstance()->aclApi().getAttribute(
+      aclTableId, SaiAclTableTraits::Attributes::EntryList());
+
+  return aclTableEntryListGot.size();
+}
+
+bool HwTestThriftHandler::isDefaultAclTableEnabled() {
+  return isAclTableEnabled(
+      std::make_unique<std::string>(facebook::fboss::kAclTable1));
+}
+
+bool HwTestThriftHandler::isAclTableEnabled(std::unique_ptr<std::string> name) {
+  if (!name) {
+    return isDefaultAclTableEnabled();
+  }
+  const auto& aclTableName = *name;
+  const auto& aclTableManager = static_cast<const SaiSwitch*>(hwSwitch_)
+                                    ->managerTable()
+                                    ->aclTableManager();
+  auto aclTableHandle =
+      aclTableManager.getAclTableHandle(getActualAclTableName(aclTableName));
+
+  return aclTableHandle != nullptr;
+}
+
 int32_t HwTestThriftHandler::getDefaultAclTableNumAclEntries() {
   const auto& aclTableManager = static_cast<const SaiSwitch*>(hwSwitch_)
                                     ->managerTable()

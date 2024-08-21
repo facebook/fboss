@@ -17,18 +17,11 @@ class HwTestThriftHandler : public AgentHwTestCtrlSvIf {
 
   int32_t getDefaultAclTableNumAclEntries() override;
 
-  int32_t getAclTableNumAclEntries(
-      std::unique_ptr<std::string> /* name */) override {
-    throw FbossError("Not implemented");
-  }
+  int32_t getAclTableNumAclEntries(std::unique_ptr<std::string> name) override;
 
-  bool isDefaultAclTableEnabled() override {
-    throw FbossError("Not implemented");
-  }
+  bool isDefaultAclTableEnabled() override;
 
-  bool isAclTableEnabled(std::unique_ptr<std::string> /* name */) override {
-    throw FbossError("Not implemented");
-  }
+  bool isAclTableEnabled(std::unique_ptr<std::string> name) override;
 
   bool isAclEntrySame(
       std::unique_ptr<state::AclEntryFields> /* aclEntry */) override {
