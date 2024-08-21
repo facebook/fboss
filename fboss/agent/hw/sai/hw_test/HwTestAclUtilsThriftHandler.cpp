@@ -5,6 +5,8 @@
 #include "fboss/agent/hw/sai/switch/SaiAclTableManager.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitch.h"
 
+#include "fboss/agent/test/utils/AclTestUtils.h"
+
 namespace {
 std::string getActualAclTableName(
     const std::optional<std::string>& aclTableName) {
@@ -73,6 +75,127 @@ int32_t HwTestThriftHandler::getDefaultAclTableNumAclEntries() {
       aclTableId, SaiAclTableTraits::Attributes::EntryList());
 
   return aclTableEntryListGot.size();
+}
+
+bool HwTestThriftHandler::isStatProgrammedInDefaultAclTable(
+    std::unique_ptr<std::vector<::std::string>> aclEntryNames,
+    std::unique_ptr<std::string> counterName,
+    std::unique_ptr<std::vector<cfg::CounterType>> types) {
+  return isStatProgrammedInAclTable(
+      std::move(aclEntryNames),
+      std::move(counterName),
+      std::move(types),
+      std::make_unique<std::string>(facebook::fboss::kAclTable1));
+}
+
+bool HwTestThriftHandler::isStatProgrammedInAclTable(
+    std::unique_ptr<std::vector<::std::string>> aclEntryNames,
+    std::unique_ptr<std::string> counterName,
+    std::unique_ptr<std::vector<cfg::CounterType>> types,
+    std::unique_ptr<std::string> tableName) {
+  auto state = hwSwitch_->getProgrammedState();
+
+  for (const auto& aclName : *aclEntryNames) {
+    auto swAcl = getAclEntryByName(state, aclName);
+    auto swTrafficCounter = getAclTrafficCounter(state, aclName);
+    if (!swTrafficCounter || *swTrafficCounter->name() != *counterName) {
+      return false;
+    }
+
+    const auto& aclTableManager = static_cast<const SaiSwitch*>(hwSwitch_)
+                                      ->managerTable()
+                                      ->aclTableManager();
+    auto aclTableHandle =
+        aclTableManager.getAclTableHandle(getActualAclTableName(*tableName));
+    auto aclEntryHandle =
+        aclTableManager.getAclEntryHandle(aclTableHandle, swAcl->getPriority());
+    auto aclEntryId = aclEntryHandle->aclEntry->adapterKey();
+
+    // Get counter corresponding to the ACL entry
+    auto aclCounterIdGot =
+        SaiApiTable::getInstance()
+            ->aclApi()
+            .getAttribute(
+                AclEntrySaiId(aclEntryId),
+                SaiAclEntryTraits::Attributes::ActionCounter())
+            .getData();
+    if (aclCounterIdGot == SAI_NULL_OBJECT_ID) {
+      return false;
+    }
+
+    bool packetCountEnabledExpected = false;
+    bool byteCountEnabledExpected = false;
+
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 2)
+    // Counter name must match what was previously configured
+    auto aclCounterNameGot = SaiApiTable::getInstance()->aclApi().getAttribute(
+        AclCounterSaiId(aclCounterIdGot),
+        SaiAclCounterTraits::Attributes::Label());
+    std::string aclCounterNameGotStr(aclCounterNameGot.data());
+    if (*counterName != aclCounterNameGotStr) {
+      return false;
+    }
+
+    // Verify that only the configured 'types' (byte/packet) of counters are
+    // configured.
+    for (auto counterType : *types) {
+      switch (counterType) {
+        case cfg::CounterType::PACKETS:
+          packetCountEnabledExpected = true;
+          break;
+        case cfg::CounterType::BYTES:
+          byteCountEnabledExpected = true;
+          break;
+        default:
+          return false;
+      }
+    }
+
+    bool packetCountEnabledGot =
+        SaiApiTable::getInstance()->aclApi().getAttribute(
+            AclCounterSaiId(aclCounterIdGot),
+            SaiAclCounterTraits::Attributes::EnablePacketCount());
+    bool byteCountEnabledGot =
+        SaiApiTable::getInstance()->aclApi().getAttribute(
+            AclCounterSaiId(aclCounterIdGot),
+            SaiAclCounterTraits::Attributes::EnableByteCount());
+
+    if (packetCountEnabledExpected != packetCountEnabledGot ||
+        byteCountEnabledExpected != byteCountEnabledGot) {
+      return false;
+    }
+#else
+    bool packetCountEnabledGot = false;
+    bool byteCountEnabledGot = false;
+
+    if (aclCounterIdGot != SAI_NULL_OBJECT_ID) {
+      packetCountEnabledGot = SaiApiTable::getInstance()->aclApi().getAttribute(
+          AclCounterSaiId(aclCounterIdGot),
+          SaiAclCounterTraits::Attributes::EnablePacketCount());
+      byteCountEnabledGot = SaiApiTable::getInstance()->aclApi().getAttribute(
+          AclCounterSaiId(aclCounterIdGot),
+          SaiAclCounterTraits::Attributes::EnableByteCount());
+    }
+
+    for (auto counterType : *types) {
+      switch (counterType) {
+        case cfg::CounterType::PACKETS:
+          if (packetCountEnabledGot != packetCountEnabledExpected) {
+            return false;
+          }
+          break;
+        case cfg::CounterType::BYTES:
+          if (byteCountEnabledGot != byteCountEnabledExpected) {
+            return false;
+          }
+          break;
+        default:
+          return false;
+      }
+    }
+#endif
+  }
+  return true;
 }
 
 } // namespace utility

@@ -5,7 +5,10 @@
 #include "fboss/agent/hw/bcm/BcmError.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 
+#include "fboss/agent/hw/bcm/BcmAclTable.h"
+#include "fboss/agent/hw/bcm/BcmStatUpdater.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
+#include "fboss/agent/test/utils/AclTestUtils.h"
 
 namespace facebook {
 namespace fboss {
@@ -62,6 +65,56 @@ int32_t HwTestThriftHandler::getDefaultAclTableNumAclEntries() {
   return size;
 }
 
+bool HwTestThriftHandler::isStatProgrammedInDefaultAclTable(
+    std::unique_ptr<std::vector<::std::string>> aclEntryNames,
+    std::unique_ptr<std::string> counterName,
+    std::unique_ptr<std::vector<cfg::CounterType>> types) {
+  auto bcmSwitch = static_cast<const BcmSwitch*>(hwSwitch_);
+  auto aclTable = bcmSwitch->getAclTable();
+
+  // Check if the stat has been programmed
+  auto hwStat = aclTable->getAclStat(*counterName);
+  if (!hwStat) {
+    return false;
+  }
+
+  // Check the ACL table refcount
+  if (aclEntryNames->size() != aclTable->getAclStatRefCount(*counterName)) {
+    return false;
+  }
+
+  auto state = hwSwitch_->getProgrammedState();
+  // Check that the SW and HW configs are the same
+  for (const auto& aclName : *aclEntryNames) {
+    auto swTrafficCounter = getAclTrafficCounter(state, aclName);
+    if (!swTrafficCounter || *swTrafficCounter->name() != *counterName) {
+      return false;
+    }
+    if (*types != *swTrafficCounter->types()) {
+      return false;
+    }
+    BcmAclStat::isStateSame(
+        bcmSwitch, hwStat->getHandle(), swTrafficCounter.value());
+  }
+
+  // Check the Stat Updater
+  for (auto type : *types) {
+    if (!bcmSwitch->getStatUpdater()->getAclStatCounterIf(
+            hwStat->getHandle(), type, hwStat->getActionIndex())) {
+      return false;
+    }
+  }
+  return true;
+}
+
+bool HwTestThriftHandler::isStatProgrammedInAclTable(
+    std::unique_ptr<std::vector<::std::string>> aclEntryNames,
+    std::unique_ptr<std::string> counterName,
+    std::unique_ptr<std::vector<cfg::CounterType>> types,
+    std::unique_ptr<std::string> /*tableName*/) {
+  return isStatProgrammedInDefaultAclTable(
+      std::move(aclEntryNames), std::move(counterName), std::move(types));
+}
 } // namespace utility
 } // namespace fboss
 } // namespace facebook

@@ -438,6 +438,7 @@ def _test_thrift_handler(sai_impl, is_npu):
         ],
         auto_headers = AutoHeaders.SOURCES,
         exported_deps = [
+            "//fboss/agent/test/utils:acl_test_utils",
             "//fboss/agent/hw/test:hw_test_thrift_handler_h",
             "//fboss/agent/if:agent_hw_test_ctrl-cpp2-services",
             "//fboss/agent/hw/sai/switch:{}".format(switch_lib_name),

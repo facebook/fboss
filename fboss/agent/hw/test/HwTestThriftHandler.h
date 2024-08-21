@@ -33,19 +33,15 @@ class HwTestThriftHandler : public AgentHwTestCtrlSvIf {
   }
 
   bool isStatProgrammedInDefaultAclTable(
-      std::unique_ptr<std::vector<::std::string>> /*aclEntryNames*/,
-      std::unique_ptr<std::string> /*counterName*/,
-      std::unique_ptr<std::vector<cfg::CounterType>> /*types*/) override {
-    throw FbossError("Not implemented");
-  }
+      std::unique_ptr<std::vector<::std::string>> aclEntryNames,
+      std::unique_ptr<std::string> counterName,
+      std::unique_ptr<std::vector<cfg::CounterType>> types) override;
 
   bool isStatProgrammedInAclTable(
-      std::unique_ptr<std::vector<::std::string>> /*aclEntryNames*/,
-      std::unique_ptr<std::string> /*counterName*/,
-      std::unique_ptr<std::vector<cfg::CounterType>> /*types*/,
-      std::unique_ptr<std::string> /*tableName*/) override {
-    throw FbossError("Not implemented");
-  }
+      std::unique_ptr<std::vector<::std::string>> aclEntryNames,
+      std::unique_ptr<std::string> counterName,
+      std::unique_ptr<std::vector<cfg::CounterType>> types,
+      std::unique_ptr<std::string> tableName) override;
 
  private:
   HwSwitch* hwSwitch_;
