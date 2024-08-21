@@ -18,7 +18,10 @@ service AgentHwTestCtrl {
 
   bool isAclTableEnabled(1: string name);
 
-  bool isAclEntrySame(1: switch_state.AclEntryFields aclEntry);
+  bool isAclEntrySame(
+    1: switch_state.AclEntryFields aclEntry,
+    2: string aclTableName,
+  );
 
   bool areAllAclEntriesEnabled();
 

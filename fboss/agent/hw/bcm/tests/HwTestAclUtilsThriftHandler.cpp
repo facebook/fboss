@@ -115,6 +115,27 @@ bool HwTestThriftHandler::isStatProgrammedInAclTable(
   return isStatProgrammedInDefaultAclTable(
       std::move(aclEntryNames), std::move(counterName), std::move(types));
 }
+
+bool HwTestThriftHandler::isAclEntrySame(
+    std::unique_ptr<state::AclEntryFields> aclEntry,
+    std::unique_ptr<std::string> /* aclTableName */) {
+  auto state = hwSwitch_->getProgrammedState();
+  auto bcmSwitch = static_cast<const BcmSwitch*>(hwSwitch_);
+
+  auto swAcl = std::make_shared<AclEntry>(*aclEntry);
+  auto hwAcl = bcmSwitch->getAclTable()->getAclIf(aclEntry->priority().value());
+  if (nullptr == hwAcl) {
+    return false;
+  }
+  if (!BcmAclEntry::isStateSame(
+          bcmSwitch,
+          bcmSwitch->getPlatform()->getAsic()->getDefaultACLGroupID(),
+          hwAcl->getHandle(),
+          swAcl)) {
+    return false;
+  }
+  return true;
+}
 } // namespace utility
 } // namespace fboss
 } // namespace facebook
