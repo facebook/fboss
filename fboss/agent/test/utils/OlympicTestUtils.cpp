@@ -753,6 +753,9 @@ void addQosMapsHelper(
   dataPlaneTrafficPolicy.defaultQosPolicy() = qosPolicyName;
   cfg.dataPlaneTrafficPolicy() = dataPlaneTrafficPolicy;
   cfg::CPUTrafficPolicyConfig cpuConfig;
+  if (cfg.cpuTrafficPolicy()) {
+    cpuConfig = *cfg.cpuTrafficPolicy();
+  }
   cfg::TrafficPolicyConfig cpuTrafficPolicy;
   cpuTrafficPolicy.defaultQosPolicy() = cpuQosPolicyName;
   cpuConfig.trafficPolicy() = cpuTrafficPolicy;
