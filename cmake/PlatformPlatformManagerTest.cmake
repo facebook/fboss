@@ -68,3 +68,13 @@ target_link_libraries(platform_manager_device_path_resolver_test
   ${LIBGMOCK_LIBRARIES}
 )
 
+add_executable(platform_manager_presence_checker_test
+  fboss/platform/platform_manager/tests/PresenceCheckerTest.cpp
+)
+
+target_link_libraries(platform_manager_presence_checker_test
+  platform_manager_presence_checker
+  platform_manager_utils
+  ${GTEST}
+  ${LIBGMOCK_LIBRARIES}
+)
