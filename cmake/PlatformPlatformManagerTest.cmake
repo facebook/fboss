@@ -23,3 +23,16 @@ target_link_libraries(platform_manager_i2c_explorer_test
   ${GTEST}
   ${LIBGMOCK_LIBRARIES}
 )
+
+add_executable(platform_manager_platform_explorer_test
+  fboss/platform/platform_manager/tests/PlatformExplorerTest.cpp
+)
+
+target_link_libraries(platform_manager_platform_explorer_test
+  fb303::fb303
+  platform_manager_platform_explorer
+  platform_manager_utils
+  Folly::folly
+  ${GTEST}
+  ${LIBGMOCK_LIBRARIES}
+)

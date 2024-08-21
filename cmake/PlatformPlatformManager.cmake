@@ -54,6 +54,80 @@ target_link_libraries(platform_manager_i2c_explorer
   ${RE2}
 )
 
+add_library(platform_manager_data_store
+  fboss/platform/platform_manager/DataStore.cpp
+)
+
+target_link_libraries(platform_manager_data_store
+  fmt::fmt
+  platform_manager_config_cpp2
+  Folly::folly
+)
+
+add_library(platform_manager_utils
+  fboss/platform/platform_manager/Utils.cpp
+)
+
+target_link_libraries(platform_manager_utils
+  platform_manager_config_validator
+  platform_manager_config_cpp2
+  gpiod_line
+  platform_config_lib
+  platform_name_lib
+  Folly::folly
+)
+
+add_library(platform_manager_presence_checker
+  fboss/platform/platform_manager/PresenceChecker.cpp
+)
+
+target_link_libraries(platform_manager_presence_checker
+  platform_manager_device_path_resolver
+  platform_manager_utils
+)
+
+add_library(platform_manager_pci_explorer
+  fboss/platform/platform_manager/PciExplorer.cpp
+)
+
+target_link_libraries(platform_manager_pci_explorer
+  platform_manager_i2c_explorer
+  platform_manager_config_cpp2
+  platform_manager_utils
+  Folly::folly
+)
+
+add_library(platform_manager_device_path_resolver
+  fboss/platform/platform_manager/DevicePathResolver.cpp
+)
+
+target_link_libraries(platform_manager_device_path_resolver
+  platform_manager_data_store
+  platform_manager_i2c_explorer
+  platform_manager_pci_explorer
+  platform_manager_config_cpp2
+  platform_manager_utils
+)
+
+add_library(platform_manager_platform_explorer
+  fboss/platform/platform_manager/PlatformExplorer.cpp
+)
+
+target_link_libraries(platform_manager_platform_explorer
+  platform_manager_data_store
+  platform_manager_device_path_resolver
+  platform_manager_i2c_explorer
+  platform_manager_pci_explorer
+  platform_manager_config_cpp2
+  platform_manager_service_cpp2
+  platform_manager_presence_checker
+  platform_manager_utils
+  fb303::fb303
+  weutil_fboss_eeprom_parser
+  ioctl_smbus_eeprom_reader
+  Folly::folly
+)
+
 add_library(platform_manager_config_validator
   fboss/platform/platform_manager/ConfigValidator.cpp
 )
