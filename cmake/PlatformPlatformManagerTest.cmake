@@ -13,3 +13,13 @@ target_link_libraries(platform_manager_config_validator_test
   ${GTEST}
   ${LIBGMOCK_LIBRARIES}
 )
+
+add_executable(platform_manager_i2c_explorer_test
+  fboss/platform/platform_manager/tests/I2cExplorerTest.cpp
+)
+
+target_link_libraries(platform_manager_i2c_explorer_test
+  platform_manager_i2c_explorer
+  ${GTEST}
+  ${LIBGMOCK_LIBRARIES}
+)
