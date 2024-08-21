@@ -341,6 +341,28 @@ createQueueMatchAction(int queueId, bool isSai, cfg::ToCpuAction toCpuAction) {
   return utility::getToQueueAction(queueId, isSai, toCpuAction);
 }
 
+void addEtherTypeToAcl(
+    const HwAsic* hwAsic,
+    const cfg::AclEntry& acl,
+    std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>>& acls,
+    const cfg::MatchAction& action,
+    const std::vector<cfg::EtherType>& etherTypes) {
+  if (hwAsic->isSupported(HwAsic::Feature::ACL_ENTRY_ETHER_TYPE)) {
+    for (auto etherType : etherTypes) {
+      cfg::AclEntry newAcl = folly::copy(acl);
+      if (etherType == cfg::EtherType::IPv4) {
+        newAcl.name() = folly::to<std::string>(acl.name().value(), "-v4");
+      } else {
+        newAcl.name() = folly::to<std::string>(acl.name().value(), "-v6");
+      }
+      addEtherTypeToAcl(hwAsic, &newAcl, etherType);
+      acls.push_back(std::make_pair(newAcl, action));
+    }
+  } else {
+    acls.push_back(std::make_pair(acl, action));
+  }
+}
+
 void addNoActionAclForNw(
     const HwAsic* hwAsic,
     const folly::CIDRNetwork& nw,
@@ -350,9 +372,13 @@ void addNoActionAclForNw(
   acl.name() = folly::to<std::string>("cpuPolicing-CPU-Port-Mcast-v6-", dstIp);
 
   acl.dstIp() = dstIp;
-  utility::addEtherTypeToAcl(hwAsic, &acl, cfg::EtherType::IPv6);
   acl.srcPort() = kCPUPort;
-  acls.push_back(std::make_pair(acl, cfg::MatchAction{}));
+  utility::addEtherTypeToAcl(
+      hwAsic,
+      acl,
+      acls,
+      cfg::MatchAction{},
+      {nw.first.isV6() ? cfg::EtherType::IPv6 : cfg::EtherType::IPv4});
 }
 
 void addHighPriAclForNwAndNetworkControlDscp(
@@ -368,10 +394,13 @@ void addHighPriAclForNwAndNetworkControlDscp(
   acl.name() = folly::to<std::string>(
       "cpuPolicing-high-", dstNetworkStr, "-network-control");
   acl.dstIp() = dstNetworkStr;
-  utility::addEtherTypeToAcl(hwAsic, &acl, cfg::EtherType::IPv6);
   acl.dscp() = 48;
-  acls.push_back(std::make_pair(
-      acl, createQueueMatchAction(highPriQueueId, isSai, toCpuAction)));
+  utility::addEtherTypeToAcl(
+      hwAsic,
+      acl,
+      acls,
+      createQueueMatchAction(highPriQueueId, isSai, toCpuAction),
+      {dstNetwork.first.isV6() ? cfg::EtherType::IPv6 : cfg::EtherType::IPv4});
 }
 
 void addMidPriAclForNw(
@@ -385,10 +414,12 @@ void addMidPriAclForNw(
   auto dstIp = folly::to<std::string>(dstNetwork.first, "/", dstNetwork.second);
   acl.name() = folly::to<std::string>("cpuPolicing-mid-", dstIp);
   acl.dstIp() = dstIp;
-  utility::addEtherTypeToAcl(hwAsic, &acl, cfg::EtherType::IPv6);
-
-  acls.push_back(std::make_pair(
-      acl, createQueueMatchAction(midPriQueueId, isSai, toCpuAction)));
+  utility::addEtherTypeToAcl(
+      hwAsic,
+      acl,
+      acls,
+      createQueueMatchAction(midPriQueueId, isSai, toCpuAction),
+      {dstNetwork.first.isV6() ? cfg::EtherType::IPv6 : cfg::EtherType::IPv4});
 }
 
 void addHighPriAclForMyIPNetworkControl(
@@ -402,9 +433,12 @@ void addHighPriAclForMyIPNetworkControl(
       folly::to<std::string>("cpuPolicing-high-myip-network-control-acl");
   acl.lookupClassRoute() = cfg::AclLookupClass::DST_CLASS_L3_LOCAL_1;
   acl.dscp() = 48;
-  utility::addEtherTypeToAcl(hwAsic, &acl, cfg::EtherType::IPv6);
-  acls.push_back(std::make_pair(
-      acl, createQueueMatchAction(highPriQueueId, isSai, toCpuAction)));
+  addEtherTypeToAcl(
+      hwAsic,
+      acl,
+      acls,
+      createQueueMatchAction(highPriQueueId, isSai, toCpuAction),
+      {cfg::EtherType::IPv4, cfg::EtherType::IPv6});
 }
 
 void addLowPriAclForUnresolvedRoutes(
@@ -415,10 +449,12 @@ void addLowPriAclForUnresolvedRoutes(
   cfg::AclEntry acl;
   acl.name() = folly::to<std::string>("cpu-unresolved-route-acl");
   acl.lookupClassRoute() = cfg::AclLookupClass::DST_CLASS_L3_LOCAL_2;
-  utility::addEtherTypeToAcl(hwAsic, &acl, cfg::EtherType::IPv6);
-  acls.push_back(std::make_pair(
+  addEtherTypeToAcl(
+      hwAsic,
       acl,
-      createQueueMatchAction(utility::kCoppLowPriQueueId, isSai, toCpuAction)));
+      acls,
+      createQueueMatchAction(utility::kCoppLowPriQueueId, isSai, toCpuAction),
+      {cfg::EtherType::IPv4, cfg::EtherType::IPv6});
 }
 
 /*
@@ -535,9 +571,13 @@ void addNoActionAclForUnicastLinkLocal(
       folly::to<std::string>("cpuPolicing-CPU-Port-linkLocal-v6-", dstIp);
 
   acl.dstIp() = dstIp;
-  utility::addEtherTypeToAcl(hwAsic, &acl, cfg::EtherType::IPv6);
   acl.srcPort() = kCPUPort;
-  acls.push_back(std::make_pair(acl, cfg::MatchAction{}));
+  utility::addEtherTypeToAcl(
+      hwAsic,
+      acl,
+      acls,
+      cfg::MatchAction{},
+      {nw.first.isV6() ? cfg::EtherType::IPv6 : cfg::EtherType::IPv4});
 }
 
 std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>> defaultCpuAclsForSai(
