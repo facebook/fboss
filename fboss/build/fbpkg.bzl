@@ -1,5 +1,5 @@
 load("//antlir/bzl:structs.bzl", "structs")
-load("//antlir/fbpkg:fbpkg.bzl", "fbpkg")
+load("//fbpkg:fbpkg.bzl", "fbpkg")
 
 # Helpers to standardize our fbpkg structures
 

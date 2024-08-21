@@ -1,8 +1,8 @@
 load("@fbcode_macros//build_defs:cpp_binary.bzl", "cpp_binary")
 load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
 load("@fbcode_macros//build_defs:custom_unittest.bzl", "custom_unittest")
-load("//antlir/fbpkg:fbpkg.bzl", "fbpkg")
 load("//fboss:THIRD-PARTY-VERSIONS.bzl", "BCM_SDKS", "to_versions")
+load("//fbpkg:fbpkg.bzl", "fbpkg")
 
 oncall("fboss_agent_push")
 
