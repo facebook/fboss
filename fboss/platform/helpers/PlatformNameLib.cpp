@@ -2,6 +2,7 @@
 
 #include "fboss/platform/helpers/PlatformNameLib.h"
 
+#include <fb303/ServiceData.h>
 #include <folly/String.h>
 #include <folly/logging/xlog.h>
 
@@ -49,6 +50,18 @@ std::string PlatformNameLib::getPlatformNameFromBios(
   standardOut = folly::trimWhitespace(standardOut).str();
   XLOG(INFO) << "Platform name inferred from bios: " << standardOut;
   return sanitizePlatformName(standardOut);
+}
+
+std::optional<std::string> PlatformNameLib::getPlatformName(
+    const PlatformUtils& platformUtils) const {
+  try {
+    auto nameFromBios = getPlatformNameFromBios(platformUtils);
+    fb303::fbData->incrementCounter(kPlatformNameBiosReads, 1);
+    return nameFromBios;
+  } catch (const std::exception& e) {
+    fb303::fbData->incrementCounter(kPlatformNameBiosReadFailures, 1);
+    return std::nullopt;
+  }
 }
 
 } // namespace facebook::fboss::platform::helpers

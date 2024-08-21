@@ -8,6 +8,7 @@ cpp_unittest(
         "PlatformNameLibTest.cpp",
     ],
     deps = [
+        "//fb303:service_data",
         "//fboss/platform/helpers:mock_platform_utils",
         "//fboss/platform/helpers:platform_name_lib",
     ],

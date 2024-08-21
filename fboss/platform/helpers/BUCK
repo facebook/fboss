@@ -9,6 +9,7 @@ cpp_library(
     ],
     exported_deps = [
         ":platform_utils",
+        "//fb303:service_data",
         "//folly:string",
         "//folly/logging:logging",
     ],
