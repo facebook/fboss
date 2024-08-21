@@ -36,3 +36,14 @@ target_link_libraries(platform_manager_platform_explorer_test
   ${GTEST}
   ${LIBGMOCK_LIBRARIES}
 )
+
+add_executable(platform_manager_utils_test
+  fboss/platform/platform_manager/tests/UtilsTest.cpp
+)
+
+target_link_libraries(platform_manager_utils_test
+  platform_manager_utils
+  Folly::folly
+  ${GTEST}
+  ${LIBGMOCK_LIBRARIES}
+)
