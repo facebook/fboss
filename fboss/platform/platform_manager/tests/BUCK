@@ -32,8 +32,8 @@ cpp_unittest(
     ],
     deps = [
         "//fb303:service_data",
+        "//fboss/platform/helpers:platform_utils",
         "//fboss/platform/platform_manager:platform_explorer",
-        "//fboss/platform/platform_manager:utils",
         "//folly:file_util",
         "//folly/testing:test_util",
     ],
@@ -46,7 +46,6 @@ cpp_unittest(
     ],
     deps = [
         "//fboss/platform/platform_manager:utils",
-        "//folly/testing:test_util",
     ],
 )
 
@@ -78,6 +77,7 @@ cpp_unittest(
     ],
     deps = [
         "fbsource//third-party/googletest:gmock",
+        "//fboss/platform/helpers:mock_platform_utils",
         "//fboss/platform/platform_manager:presence_checker",
         "//fboss/platform/platform_manager:utils",
     ],

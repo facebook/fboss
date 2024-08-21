@@ -14,6 +14,7 @@
 #include <folly/FileUtil.h>
 #include <folly/logging/xlog.h>
 
+#include "fboss/platform/helpers/PlatformUtils.h"
 #include "fboss/platform/platform_manager/Utils.h"
 #include "fboss/platform/platform_manager/gen-cpp2/platform_manager_config_constants.h"
 
@@ -38,8 +39,7 @@ std::string getSlotPath(
 // TODO: Handle hwmon/info_rom cases (by standardizing them away, if possible).
 int readVersionNumber(const std::string& path) {
   const auto versionFileContent =
-      facebook::fboss::platform ::platform_manager::Utils()
-          .getStringFileContent(path);
+      facebook::fboss::platform::PlatformUtils().getStringFileContent(path);
   if (!versionFileContent) {
     // This log is necessary to distinguish read error vs reading "0".
     XLOGF(
@@ -494,7 +494,7 @@ void PlatformExplorer::createDeviceSymLink(
     const std::string& linkPath,
     const std::string& devicePath) {
   auto linkParentPath = std::filesystem::path(linkPath).parent_path();
-  if (!Utils().createDirectories(linkParentPath.string())) {
+  if (!PlatformUtils().createDirectories(linkParentPath.string())) {
     XLOG(ERR) << fmt::format(
         "Failed to create the parent path ({})", linkParentPath.string());
     return;

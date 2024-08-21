@@ -14,5 +14,10 @@ class MockPlatformUtils : public PlatformUtils {
       execCommand,
       (const std::string&),
       (const));
+  MOCK_METHOD(
+      (std::optional<std::string>),
+      getStringFileContent,
+      (const std::string&),
+      (const));
 };
 } // namespace facebook::fboss::platform

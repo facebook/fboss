@@ -5,8 +5,8 @@
 #include <folly/testing/TestUtil.h>
 #include <gtest/gtest.h>
 
+#include "fboss/platform/helpers/PlatformUtils.h"
 #include "fboss/platform/platform_manager/PlatformExplorer.h"
-#include "fboss/platform/platform_manager/Utils.h"
 
 using namespace ::testing;
 using namespace facebook::fboss::platform;
@@ -18,7 +18,7 @@ void writeVersions(
     std::string deviceType,
     const char* version,
     const char* subversion) {
-  Utils().createDirectories(path);
+  PlatformUtils().createDirectories(path);
   EXPECT_TRUE(folly::writeFile(
       std::string(version),
       fmt::format("{}/{}_ver", path, deviceType).c_str()));
