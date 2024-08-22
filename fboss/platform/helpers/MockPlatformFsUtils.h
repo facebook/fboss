@@ -2,6 +2,8 @@
 
 #pragma once
 
+#include <filesystem>
+
 #include <gmock/gmock.h>
 
 #include "fboss/platform/helpers/PlatformFsUtils.h"
@@ -12,7 +14,7 @@ class MockPlatformFsUtils : public PlatformFsUtils {
   MOCK_METHOD(
       (std::optional<std::string>),
       getStringFileContent,
-      (const std::string&),
+      (const std::filesystem::path&),
       (const));
 };
 } // namespace facebook::fboss::platform

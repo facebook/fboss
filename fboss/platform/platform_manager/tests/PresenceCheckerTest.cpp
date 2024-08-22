@@ -95,11 +95,11 @@ TEST_F(PresenceCheckerTest, sysfsPresent) {
       devicePathResolver_, resolvePresencePath("device/path", "presenceName"))
       .WillRepeatedly(Return("/file/path"));
 
-  EXPECT_CALL(*platformFsUtils, getStringFileContent("/file/path"))
+  EXPECT_CALL(*platformFsUtils, getStringFileContent({"/file/path"}))
       .WillOnce(Return(std::make_optional("1")));
   EXPECT_TRUE(presenceChecker.isPresent(presenceDetection, "/slot/path"));
 
-  EXPECT_CALL(*platformFsUtils, getStringFileContent("/file/path"))
+  EXPECT_CALL(*platformFsUtils, getStringFileContent({"/file/path"}))
       .WillOnce(Return(std::make_optional("0")));
   EXPECT_FALSE(presenceChecker.isPresent(presenceDetection, "/slot/path"));
 
