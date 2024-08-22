@@ -65,20 +65,26 @@ std::shared_ptr<InterfaceMap> makeRifs(const SystemPortMap* sysPorts) {
 }
 } // namespace
 
-template <uint16_t N>
-struct NumRemoteAsics {
-  static auto constexpr kNumRemoteAsics = N;
+template <uint16_t NumRemoteAsics, bool SubscribePatch>
+struct TestParams {
+  static auto constexpr kNumRemoteAsics = NumRemoteAsics;
+  static auto constexpr kSubscribePatch = SubscribePatch;
 };
-using TestTypes = ::testing::Types<NumRemoteAsics<1>, NumRemoteAsics<2>>;
+using TestTypes = ::testing::Types<
+    TestParams<1, true>,
+    TestParams<1, false>,
+    TestParams<2, true>,
+    TestParams<2, false>>;
 
-template <typename NumRemoteSwitchAsics>
+template <typename TestParam>
 class DsfSubscriptionTest : public ::testing::Test {
  public:
-  static auto constexpr kNumRemoteSwitchAsics =
-      NumRemoteSwitchAsics::kNumRemoteAsics;
+  static auto constexpr kNumRemoteSwitchAsics = TestParam::kNumRemoteAsics;
+  static auto constexpr kSubscribePatch = TestParam::kSubscribePatch;
   void SetUp() override {
     FLAGS_publish_state_to_fsdb = true;
     FLAGS_fsdb_sync_full_state = true;
+    FLAGS_dsf_subscribe_patch = kSubscribePatch;
     auto config = testConfigA(cfg::SwitchType::VOQ);
     handle_ = createTestHandle(&config);
     sw_ = handle_->getSw();

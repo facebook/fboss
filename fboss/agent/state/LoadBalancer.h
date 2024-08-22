@@ -69,7 +69,7 @@ class LoadBalancer
     : public ThriftStructNode<LoadBalancer, state::LoadBalancerFields> {
  public:
   template <typename T>
-  struct Fields {
+  struct FieldsT {
     using ElementType = T;
     using ElemnentTC = apache::thrift::type_class::enumeration;
     using FieldsTC = apache::thrift::type_class::set<ElemnentTC>;
@@ -79,7 +79,7 @@ class LoadBalancer
   };
 
   template <typename T>
-  using FieldsConstIter = typename Fields<T>::const_iterator;
+  using FieldsConstIter = typename FieldsT<T>::const_iterator;
 
   using BaseT = ThriftStructNode<LoadBalancer, state::LoadBalancerFields>;
   using IPv4Field = LoadBalancerFields::IPv4Field;

@@ -2,8 +2,13 @@
 
 #pragma once
 
+#include <fboss/thrift_cow/storage/CowStorage.h>
 #include "fboss/agent/DsfSession.h"
+#include "fboss/agent/FsdbAdaptedSubManager.h"
+#include "fboss/agent/state/SwitchState.h"
 #include "fboss/fsdb/client/FsdbPubSubManager.h"
+#include "fboss/fsdb/client/FsdbSubManager.h"
+#include "fboss/fsdb/if/FsdbModel.h"
 
 #include <string>
 
@@ -71,11 +76,16 @@ class DsfSubscription {
       fsdb::SubscriptionState oldState,
       fsdb::SubscriptionState newState);
   void handleFsdbUpdate(fsdb::OperSubPathUnit&& operStateUnit);
+  void queueRemoteStateChanged(
+      MultiSwitchSystemPortMap& newPortMap,
+      MultiSwitchInterfaceMap& newInterfaceMap);
+  void queueDsfUpdate(DsfUpdate&& dsfUpdate);
   fsdb::FsdbStreamClient::State getStreamState() const;
 
   fsdb::SubscriptionOptions opts_;
   folly::EventBase* hwUpdateEvb_;
   std::unique_ptr<fsdb::FsdbPubSubManager> fsdbPubSubMgr_;
+  std::unique_ptr<FsdbAdaptedSubManager> subMgr_;
   std::string localNodeName_;
   std::string remoteNodeName_;
   std::set<SwitchID> remoteNodeSwitchIds_;
