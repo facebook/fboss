@@ -243,8 +243,8 @@ std::optional<std::string> getMyHostname(const std::string& hostname) {
 
 std::string escapeDoubleQuotes(const std::string& cmd) {
   std::string cmdCopy = cmd;
-  const re2::RE2 doubleQuotes("\"");
-  re2::RE2::Replace(&cmdCopy, doubleQuotes, "\\\"");
+  const re2::RE2 doubleQuotes(R"(")");
+  re2::RE2::GlobalReplace(&cmdCopy, doubleQuotes, R"(\\")");
   return cmdCopy;
 }
 
