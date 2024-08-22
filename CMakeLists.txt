@@ -26,6 +26,14 @@ if ($ENV{BUILD_SAI_FAKE})
   set (BUILD_SAI_FAKE ON)
 endif()
 
+option(GITHUB_ACTIONS_BUILD
+  "Enables custom targets specific to GitHub Actions automation"
+  OFF)
+if ($ENV{GITHUB_ACTIONS_BUILD})
+  message(STATUS "ENV GITHUB_ACTIONS_BUILD is set")
+  set (GITHUB_ACTIONS_BUILD ON)
+endif()
+
 option(BUILD_SAI_FAKE_BENCHMARKS "Build benchmarks binaries for fake_sai" OFF)
 if ($ENV{BUILD_SAI_FAKE_BENCHMARKS})
   message(STATUS "ENV BUILD_SAI_FAKE_BENCHMARKS is set")
@@ -757,4 +765,35 @@ add_dependencies(fboss_fake_agent_targets
   sai_link_test-fake
 )
 endif()
+endif()
+
+if (GITHUB_ACTIONS_BUILD)
+  add_custom_target(github_actions_fboss_platform_services)
+  add_dependencies(github_actions_fboss_platform_services
+    # Services
+    sensor_service
+    fan_service
+    rackmon
+    platform_manager
+    fw_util
+    weutil
+    led_service
+    data_corral_service
+    # Unit Tests
+    platform_manager_device_path_resolver_test
+    platform_manager_platform_explorer_test
+    platform_data_corral_sw_test
+    platform_manager_utils_test
+    platform_helpers_platform_name_lib_test
+    platform_manager_data_store_test
+    platform_manager_config_validator_test
+    platform_manager_presence_checker_test
+    platform_manager_i2c_explorer_test
+    weutil_crc16_ccitt_test
+    weutil_fboss_eeprom_parser_test
+    sensor_service_sw_test
+    sensor_service_utils_tests
+    rackmon_test
+    fan_service_sw_test
+  )
 endif()
