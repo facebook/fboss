@@ -213,6 +213,7 @@ struct AclEntryFields {
   29: optional byte roceOpcode;
   30: optional list<byte> roceBytes;
   31: optional list<byte> roceMask;
+  32: optional list<switch_config.AclUdfEntry> udfTable;
 }
 
 enum NeighborState {

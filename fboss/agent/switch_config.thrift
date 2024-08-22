@@ -417,6 +417,14 @@ enum PacketLookupResultType {
   PACKET_LOOKUP_RESULT_MPLS_NO_MATCH = 1,
 }
 
+struct AclUdfEntry {
+  1: string udfGroup;
+
+  2: list<byte> roceBytes;
+
+  3: list<byte> roceMask;
+}
+
 /**
  * An access control entry
  */
@@ -527,6 +535,8 @@ struct AclEntry {
   33: optional list<byte> roceBytes;
 
   34: optional list<byte> roceMask;
+
+  35: optional list<AclUdfEntry> udfTable;
 }
 
 enum AclTableActionType {
