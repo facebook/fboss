@@ -1116,7 +1116,19 @@
           "test_name_regex": "HwIngressBufferTest.validatePGQueueChanges"
         },
         {
+          "test_name_regex": "HwInPauseDiscardsCounterTest"
+        },
+        {
+          "test_name_regex": "HwInPauseFloodTest"
+        },
+        {
           "test_name_regex": "HwIpInIpTunnelTest"
+        },
+        {
+          "test_name_regex": "HwLoadBalancerNegativeTestV6RoCE"
+        },
+        {
+          "test_name_regex": "HwTrafficPfcTest"
         },
         {
           "test_name_regex": "HwProdInvariantsRswTest"
@@ -3233,7 +3245,19 @@
           "test_name_regex": "HwIngressBufferTest.validatePGQueueChanges"
         },
         {
+          "test_name_regex": "HwInPauseDiscardsCounterTest"
+        },
+        {
+          "test_name_regex": "HwInPauseFloodTest"
+        },
+        {
           "test_name_regex": "HwIpInIpTunnelTest"
+        },
+        {
+          "test_name_regex": "HwLoadBalancerNegativeTestV6RoCE"
+        },
+        {
+          "test_name_regex": "HwTrafficPfcTest"
         },
         {
           "test_name_regex": "HwProdInvariantsRswTest"
