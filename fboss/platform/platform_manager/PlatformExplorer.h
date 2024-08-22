@@ -3,8 +3,10 @@
 
 #pragma once
 
+#include <memory>
 #include <string>
 
+#include "fboss/platform/helpers/PlatformFsUtils.h"
 #include "fboss/platform/platform_manager/DataStore.h"
 #include "fboss/platform/platform_manager/DevicePathResolver.h"
 #include "fboss/platform/platform_manager/I2cExplorer.h"
@@ -20,7 +22,10 @@ class PlatformExplorer {
   auto static constexpr kFirmwareVersion = "{}.firmware_version";
   auto static constexpr kGroupedFirmwareVersion = "{}.firmware_version.{}";
 
-  explicit PlatformExplorer(const PlatformConfig& config);
+  explicit PlatformExplorer(
+      const PlatformConfig& config,
+      const std::shared_ptr<PlatformFsUtils> platformFsUtils =
+          std::make_shared<PlatformFsUtils>());
 
   // Explore the platform.
   void explore();
@@ -63,8 +68,7 @@ class PlatformExplorer {
   // Publish firmware versions read from /run/devmap files to ODS. Additionally,
   // paths will be prefixed with rootPrefix, which is intended for testing
   // purposes.
-  void publishFirmwareVersions(
-      const std::optional<std::string>& rootPrefix = std::nullopt);
+  void publishFirmwareVersions();
 
   // Get the last PlatformManagerStatus.
   PlatformManagerStatus getPMStatus() const;
@@ -92,6 +96,7 @@ class PlatformExplorer {
   DataStore dataStore_;
   DevicePathResolver devicePathResolver_;
   PresenceChecker presenceChecker_;
+  std::shared_ptr<PlatformFsUtils> platformFsUtils_;
 
   // Map from <pmUnitPath, pmUnitScopeBusName> to kernel i2c bus name.
   // - The pmUnitPath to the rootPmUnit is /. So a bus at root PmUnit will have

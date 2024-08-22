@@ -38,9 +38,10 @@ std::string getSlotPath(
 // must be the first non-whitespace substring, but the file may contain
 // additional non-numeric data after the version (e.g. human-readable comments).
 // TODO: Handle hwmon/info_rom cases (by standardizing them away, if possible).
-int readVersionNumber(const std::string& path) {
-  const auto versionFileContent =
-      facebook::fboss::platform::PlatformFsUtils().getStringFileContent(path);
+int readVersionNumber(
+    const std::string& path,
+    const facebook::fboss::platform::PlatformFsUtils* platformFsUtils) {
+  const auto versionFileContent = platformFsUtils->getStringFileContent(path);
   if (!versionFileContent) {
     // This log is necessary to distinguish read error vs reading "0".
     XLOGF(
@@ -70,11 +71,14 @@ namespace facebook::fboss::platform::platform_manager {
 
 namespace constants = platform_manager_config_constants;
 
-PlatformExplorer::PlatformExplorer(const PlatformConfig& config)
+PlatformExplorer::PlatformExplorer(
+    const PlatformConfig& config,
+    const std::shared_ptr<PlatformFsUtils> platformFsUtils)
     : platformConfig_(config),
       dataStore_(platformConfig_),
       devicePathResolver_(platformConfig_, dataStore_, i2cExplorer_),
-      presenceChecker_(devicePathResolver_) {}
+      presenceChecker_(devicePathResolver_),
+      platformFsUtils_(platformFsUtils) {}
 
 void PlatformExplorer::explore() {
   XLOG(INFO) << "Exploring the platform";
@@ -495,7 +499,7 @@ void PlatformExplorer::createDeviceSymLink(
     const std::string& linkPath,
     const std::string& devicePath) {
   auto linkParentPath = std::filesystem::path(linkPath).parent_path();
-  if (!PlatformFsUtils().createDirectories(linkParentPath.string())) {
+  if (!platformFsUtils_->createDirectories(linkParentPath.string())) {
     XLOG(ERR) << fmt::format(
         "Failed to create the parent path ({})", linkParentPath.string());
     return;
@@ -581,15 +585,13 @@ void PlatformExplorer::reportExplorationSummary() {
   fb303::fbData->setCounter(kTotalFailures, errorMessages_.size());
 }
 
-void PlatformExplorer::publishFirmwareVersions(
-    const std::optional<std::string>& rootPrefix) {
-  const auto& root = rootPrefix.value_or("");
+void PlatformExplorer::publishFirmwareVersions() {
   for (const auto& [linkPath, _] :
        *platformConfig_.symbolicLinkToDevicePath()) {
     auto deviceType = "";
-    if (linkPath.starts_with(root + "/run/devmap/cplds")) {
+    if (linkPath.starts_with("/run/devmap/cplds")) {
       deviceType = "cpld";
-    } else if (linkPath.starts_with(root + "/run/devmap/fpgas")) {
+    } else if (linkPath.starts_with("/run/devmap/fpgas")) {
       deviceType = "fpga";
     } else {
       continue;
@@ -599,10 +601,11 @@ void PlatformExplorer::publishFirmwareVersions(
     // Note: The vector is guaranteed to be non-empty due to the prefix check.
     CHECK(!linkPathParts.empty());
     const auto deviceName = linkPathParts.back();
-    const auto version =
-        readVersionNumber(fmt::format("{}/{}_ver", linkPath, deviceType));
-    const auto subversion =
-        readVersionNumber(fmt::format("{}/{}_sub_ver", linkPath, deviceType));
+    const auto version = readVersionNumber(
+        fmt::format("{}/{}_ver", linkPath, deviceType), platformFsUtils_.get());
+    const auto subversion = readVersionNumber(
+        fmt::format("{}/{}_sub_ver", linkPath, deviceType),
+        platformFsUtils_.get());
 
     std::string fullVersionString = fmt::format("{}.{}", version, subversion);
     int odsValue = version * 1000 + subversion;

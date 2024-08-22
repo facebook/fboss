@@ -17,14 +17,12 @@ void writeVersions(
     std::string path,
     std::string deviceType,
     const char* version,
-    const char* subversion) {
-  PlatformFsUtils().createDirectories(path);
-  EXPECT_TRUE(folly::writeFile(
-      std::string(version),
-      fmt::format("{}/{}_ver", path, deviceType).c_str()));
-  EXPECT_TRUE(folly::writeFile(
-      std::string(subversion),
-      fmt::format("{}/{}_sub_ver", path, deviceType).c_str()));
+    const char* subversion,
+    const std::shared_ptr<PlatformFsUtils> platformFsUtils) {
+  EXPECT_TRUE(platformFsUtils->writeStringToFile(
+      std::string(version), fmt::format("{}/{}_ver", path, deviceType)));
+  EXPECT_TRUE(platformFsUtils->writeStringToFile(
+      std::string(subversion), fmt::format("{}/{}_sub_ver", path, deviceType)));
 }
 
 void expectVersions(
@@ -48,18 +46,16 @@ namespace facebook::fboss::platform::platform_manager {
 
 TEST(PlatformExplorerTest, PublishFirmwareVersions) {
   auto tmpDir = folly::test::TemporaryDirectory();
-  std::string fpgaPath =
-      tmpDir.path().string() + "/run/devmap/fpgas/TEST_IOB_FPGA";
-  writeVersions(fpgaPath, "fpga", "1", "0");
-  std::string cpldPath =
-      tmpDir.path().string() + "/run/devmap/cplds/TEST_MCB_CPLD";
-  writeVersions(cpldPath, "cpld", "0x4", "0xf");
-  std::string cpldPath2 =
-      tmpDir.path().string() + "/run/devmap/cplds/TEST_CPLD_MIXED";
-  writeVersions(cpldPath2, "cpld", "0xf", "9");
-  std::string fpgaPathBadInt =
-      tmpDir.path().string() + "/run/devmap/fpgas/TEST_FPGA_BAD_INT";
-  writeVersions(fpgaPathBadInt, "fpga", "a", " ");
+  auto platformFsUtils =
+      std::make_shared<PlatformFsUtils>(tmpDir.path().string());
+  std::string fpgaPath = "/run/devmap/fpgas/TEST_IOB_FPGA";
+  writeVersions(fpgaPath, "fpga", "1", "0", platformFsUtils);
+  std::string cpldPath = "/run/devmap/cplds/TEST_MCB_CPLD";
+  writeVersions(cpldPath, "cpld", "0x4", "0xf", platformFsUtils);
+  std::string cpldPath2 = "/run/devmap/cplds/TEST_CPLD_MIXED";
+  writeVersions(cpldPath2, "cpld", "0xf", "9", platformFsUtils);
+  std::string fpgaPathBadInt = "/run/devmap/fpgas/TEST_FPGA_BAD_INT";
+  writeVersions(fpgaPathBadInt, "fpga", "a", " ", platformFsUtils);
 
   PlatformConfig platformConfig;
   platformConfig.symbolicLinkToDevicePath()[fpgaPath] = "";
@@ -67,8 +63,8 @@ TEST(PlatformExplorerTest, PublishFirmwareVersions) {
   platformConfig.symbolicLinkToDevicePath()[cpldPath2] = "";
   platformConfig.symbolicLinkToDevicePath()[fpgaPathBadInt] = "";
 
-  PlatformExplorer explorer(platformConfig);
-  explorer.publishFirmwareVersions(tmpDir.path().string());
+  PlatformExplorer explorer(platformConfig, platformFsUtils);
+  explorer.publishFirmwareVersions();
 
   expectVersions("TEST_IOB_FPGA", "1.0", 1000);
   expectVersions("TEST_MCB_CPLD", "4.15", 4015);
