@@ -21,6 +21,7 @@
 #include "fboss/mka_service/if/facebook/gen-cpp2/mka_config_types.h"
 
 using namespace facebook::fboss;
+using namespace std::chrono;
 
 using mka::Cak;
 using mka::MACSecCapability;

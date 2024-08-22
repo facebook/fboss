@@ -28,6 +28,7 @@
 #include "fboss/agent/RouteUpdateWrapper.h"
 
 using namespace facebook::fboss;
+using namespace std::chrono;
 
 static constexpr int kOpenrThriftPort{2018};
 

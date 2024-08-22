@@ -115,7 +115,7 @@ void SwSwitchInitializer::initThread(
 void SwSwitchInitializer::init(
     HwSwitchCallback* hwSwitchCallback,
     const HwWriteBehavior& hwWriteBehavior) {
-  auto startTime = steady_clock::now();
+  auto startTime = std::chrono::steady_clock::now();
   std::lock_guard<std::mutex> g(initLock_);
   initImpl(hwSwitchCallback, hwWriteBehavior);
   sw_->applyConfig("apply initial config");

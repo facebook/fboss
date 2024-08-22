@@ -26,6 +26,7 @@
 using ::testing::_;
 using ::testing::AtLeast;
 using namespace facebook::fboss;
+using namespace std::chrono;
 
 namespace {
 #if FOLLY_HAS_COROUTINES

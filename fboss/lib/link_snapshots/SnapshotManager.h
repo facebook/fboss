@@ -37,29 +37,27 @@ class SnapshotWrapper {
  * We will store timespan//interval + 1 snapshots in memory
  *
  */
-// TODO(ccpowers): We may want to move from std::array to std:vector so we
-// can use FLAGS_refresh_interval/FLAGS_gearbox_stats_interval instead of
-// needing to define separate constants for the intervals.
-template <
-    size_t intervalSeconds,
-    size_t timespanSeconds = kDefaultTimespanSeconds>
 class SnapshotManager {
  public:
-  static constexpr size_t length = timespanSeconds / intervalSeconds + 1;
-
-  explicit SnapshotManager(std::set<std::string> portNames);
-  void addSnapshot(phy::LinkSnapshot val);
+  explicit SnapshotManager(
+      const std::set<std::string>& portNames,
+      size_t intervalSeconds);
+  explicit SnapshotManager(
+      const std::set<std::string>& portNames,
+      size_t intervalSeconds,
+      size_t timespanSeconds);
+  void addSnapshot(const phy::LinkSnapshot& val);
   void publishAllSnapshots();
-  const RingBuffer<SnapshotWrapper, length>& getSnapshots() const;
+  const RingBuffer<SnapshotWrapper>& getSnapshots() const;
   void publishFutureSnapshots(int numToPublish);
   void publishFutureSnapshots() {
-    publishFutureSnapshots(length);
+    publishFutureSnapshots(buf_.maxSize());
   }
 
  private:
   void publishIfNecessary();
 
-  RingBuffer<SnapshotWrapper, length> buf_;
+  RingBuffer<SnapshotWrapper> buf_;
   int numSnapshotsToPublish_{0};
   std::set<std::string> portNames_;
 };

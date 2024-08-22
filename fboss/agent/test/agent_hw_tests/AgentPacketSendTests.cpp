@@ -13,6 +13,8 @@
 
 #include <chrono>
 
+using namespace std::chrono;
+
 namespace {
 constexpr int kAggId{500};
 } // unnamed namespace

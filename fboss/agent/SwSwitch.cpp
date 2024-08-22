@@ -53,7 +53,7 @@
 #include "fboss/agent/NeighborUpdater.h"
 #include "fboss/agent/PacketLogger.h"
 #include "fboss/agent/PacketObserver.h"
-#include "fboss/agent/PhySnapshotManager-defs.h"
+#include "fboss/agent/PhySnapshotManager.h"
 #include "fboss/agent/PortStats.h"
 #include "fboss/agent/PortUpdateHandler.h"
 #include "fboss/agent/ResolvedNexthopMonitor.h"
@@ -387,8 +387,7 @@ SwSwitch::SwSwitch(
       lookupClassRouteUpdater_(new LookupClassRouteUpdater(this)),
       staticL2ForNeighborObserver_(new StaticL2ForNeighborObserver(this)),
       macTableManager_(new MacTableManager(this)),
-      phySnapshotManager_(
-          new PhySnapshotManager<kIphySnapshotIntervalSeconds>()),
+      phySnapshotManager_(new PhySnapshotManager(kIphySnapshotIntervalSeconds)),
       aclNexthopHandler_(new AclNexthopHandler(this)),
       teFlowNextHopHandler_(new TeFlowNexthopHandler(this)),
       dsfSubscriber_(new DsfSubscriber(this)),

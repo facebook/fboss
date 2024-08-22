@@ -28,6 +28,43 @@ constexpr auto kMaxLogLineLength = 12000;
 } // namespace
 
 namespace facebook::fboss {
+SnapshotManager::SnapshotManager(
+    const std::set<std::string>& portNames,
+    size_t intervalSeconds,
+    size_t timespanSeconds)
+    // Round up the number of snapshots stored (always store at least 1)
+    : buf_(timespanSeconds / intervalSeconds + 1), portNames_(portNames) {}
+
+SnapshotManager::SnapshotManager(
+    const std::set<std::string>& portNames,
+    size_t intervalSeconds)
+    : SnapshotManager(portNames, intervalSeconds, kDefaultTimespanSeconds) {}
+
+void SnapshotManager::addSnapshot(const phy::LinkSnapshot& val) {
+  auto snapshot = SnapshotWrapper(val);
+  buf_.write(snapshot);
+
+  if (numSnapshotsToPublish_ > 0) {
+    snapshot.publish(portNames_);
+  }
+  if (numSnapshotsToPublish_ > 0) {
+    numSnapshotsToPublish_--;
+  }
+}
+
+const RingBuffer<SnapshotWrapper>& SnapshotManager::getSnapshots() const {
+  return buf_;
+}
+
+void SnapshotManager::publishAllSnapshots() {
+  for (auto& snapshot : buf_) {
+    snapshot.publish(portNames_);
+  }
+}
+
+void SnapshotManager::publishFutureSnapshots(int numToPublish) {
+  numSnapshotsToPublish_ = numToPublish;
+}
 
 void SnapshotWrapper::publish(const std::set<std::string>& portNames) {
   if (!FLAGS_enable_snapshot_debugs) {
@@ -50,5 +87,4 @@ void SnapshotWrapper::publish(const std::set<std::string>& portNames) {
     published_ = true;
   }
 }
-
 } // namespace facebook::fboss

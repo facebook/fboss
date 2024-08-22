@@ -93,7 +93,7 @@ QsfpModule::QsfpModule(
     TransceiverImpl* qsfpImpl)
     : Transceiver(),
       qsfpImpl_(qsfpImpl),
-      snapshots_(TransceiverSnapshotCache(portNames)) {
+      snapshots_(SnapshotManager(portNames, kSnapshotIntervalSeconds)) {
   CHECK(!portNames.empty())
       << "No portNames attached to this transceiver in platform mapping";
   StatsPublisher::initPerPortFb303Stats(portNames);

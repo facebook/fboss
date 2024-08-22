@@ -28,7 +28,6 @@ class MultiPimPlatformSystemContainer;
 class MultiPimPlatformPimContainer;
 class PlatformMapping;
 class TransceiverInfo;
-template <size_t intervalSeconds>
 class PhySnapshotManager;
 
 class PhyManager {
@@ -421,8 +420,7 @@ class PhyManager {
   const PortToStatsInfo portToStatsInfo_;
 
   static constexpr auto kXphySnapshotIntervalSeconds = 60;
-  std::unique_ptr<PhySnapshotManager<kXphySnapshotIntervalSeconds>>
-      xphySnapshotManager_;
+  std::unique_ptr<PhySnapshotManager> xphySnapshotManager_;
 
   PublishPhyCb publishPhyCb_;
 };

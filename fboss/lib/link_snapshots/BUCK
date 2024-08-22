@@ -22,7 +22,6 @@ cpp_library(
     ],
     headers = [
         "SnapshotManager.h",
-        "SnapshotManager-defs.h",
     ],
     exported_deps = [
         ":ring_buffer",

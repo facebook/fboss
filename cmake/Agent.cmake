@@ -293,6 +293,7 @@ set(core_libs
   l2learn_event_observer
   agent_fsdb_sync_manager
   fboss_event_base
+  phy_snapshot_manager
 )
 
 target_link_libraries(core ${core_libs})

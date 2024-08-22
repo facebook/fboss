@@ -30,7 +30,6 @@
 #include "fboss/agent/types.h"
 #include "fboss/lib/HwWriteBehavior.h"
 #include "fboss/lib/ThreadHeartbeat.h"
-#include "fboss/lib/link_snapshots/SnapshotManager-defs.h"
 #include "fboss/lib/phy/gen-cpp2/phy_types.h"
 
 #include <folly/IntrusiveList.h>
@@ -75,7 +74,6 @@ class RouteUpdateLogger;
 class StateObserver;
 class TunManager;
 class MirrorManager;
-template <size_t interval>
 class PhySnapshotManager;
 class AclNexthopHandler;
 class LookupClassUpdater;
@@ -1224,8 +1222,7 @@ class SwSwitch : public HwSwitchCallback {
 
   static constexpr auto kIphySnapshotIntervalSeconds = 1;
 
-  std::unique_ptr<PhySnapshotManager<kIphySnapshotIntervalSeconds>>
-      phySnapshotManager_;
+  std::unique_ptr<PhySnapshotManager> phySnapshotManager_;
   std::unique_ptr<AclNexthopHandler> aclNexthopHandler_;
   folly::Synchronized<std::unique_ptr<FsdbSyncer>> fsdbSyncer_;
   std::unique_ptr<TeFlowNexthopHandler> teFlowNextHopHandler_;

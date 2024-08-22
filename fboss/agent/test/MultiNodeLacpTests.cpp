@@ -36,6 +36,7 @@
 #include "folly/MacAddress.h"
 
 using namespace facebook::fboss;
+using namespace std::chrono;
 
 DECLARE_bool(enable_lacp);
 
