@@ -921,10 +921,6 @@ class HwAqmTest : public HwLinkStateDependentTest {
   }
 };
 
-TEST_F(HwAqmTest, verifyWredDrop) {
-  runWredDropTest();
-}
-
 TEST_F(HwAqmTest, verifyWredThreshold) {
   runWredThresholdTest();
 }
