@@ -176,6 +176,12 @@ class SubscribableStorage {
     return static_cast<Impl*>(this)->subscribe_patch_impl(
         std::move(subscriber), std::move(rawPaths));
   }
+  folly::coro::AsyncGenerator<SubscriberMessage&&> subscribe_patch_extended(
+      SubscriberId subscriber,
+      std::map<SubscriptionKey, ExtendedOperPath> rawPaths) {
+    return static_cast<Impl*>(this)->subscribe_patch_extended_impl(
+        std::move(subscriber), std::move(rawPaths));
+  }
 #endif
 
   // wrapper calls to underlying storage

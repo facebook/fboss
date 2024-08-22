@@ -1034,3 +1034,99 @@ TEST_P(SubscribableStorageTests, PatchInvalidDeltaPath) {
   unit.path()->raw() = {"inlineStruct", "invalid", "path"};
   delta.changes() = {unit};
 }
+
+CO_TEST_P(SubscribableStorageTests, SubscribeExtendedPatchSimple) {
+  // add subscription for a path that doesn't exist yet, then add parent
+  auto storage = TestSubscribableStorage(testStruct);
+  storage.setConvertToIDPaths(true);
+  auto path = ext_path_builder::raw("mapOfStringToI32").regex("test1.*").get();
+  int key = 0;
+  auto generator = storage.subscribe_patch_extended(kSubscriber, {{key, path}});
+  storage.start();
+
+  EXPECT_EQ(storage.set(root.mapOfStringToI32()["test1"], 998), std::nullopt);
+  auto msg = co_await folly::coro::timeout(
+      consumeOne(generator), std::chrono::seconds(5));
+  auto chunk = msg.get_chunk();
+
+  EXPECT_EQ(chunk.patchGroups()->size(), 1); // single path -> single patchGroup
+  EXPECT_EQ(chunk.patchGroups()->at(key).size(), 1);
+  EXPECT_THAT(
+      *chunk.patchGroups()->at(key).front().basePath(),
+      ::testing::ElementsAre(
+          "13", "test1")); // 13 is the id of mapOfStringToI32
+
+  auto testStorage = CowStorage<TestStruct>(testStruct);
+  EXPECT_EQ(
+      testStorage.patch(std::move(chunk.patchGroups()->at(key).front())),
+      std::nullopt);
+  EXPECT_EQ(testStorage.root()->toThrift().mapOfStringToI32()["test1"], 998);
+}
+
+CO_TEST_P(SubscribableStorageTests, SubscribeExtendedPatchUpdate) {
+  auto storage = TestSubscribableStorage(testStruct);
+  storage.setConvertToIDPaths(true);
+  storage.start();
+
+  const auto& path =
+      ext_path_builder::raw("stringToStruct").regex("test1.*").raw("max").get();
+  auto generator = storage.subscribe_patch_extended(kSubscriber, {{0, path}});
+
+  const auto& setPath = root.stringToStruct()["test1"].max();
+  EXPECT_EQ(storage.set(setPath, 1), std::nullopt);
+  auto ret = co_await co_awaitTry(
+      folly::coro::timeout(consumeOne(generator), std::chrono::seconds(1)));
+  EXPECT_FALSE(ret.hasException());
+
+  // update value
+  EXPECT_EQ(storage.set(setPath, 10), std::nullopt);
+  ret = co_await co_awaitTry(
+      folly::coro::timeout(consumeOne(generator), std::chrono::seconds(1)));
+  EXPECT_FALSE(ret.hasException());
+}
+
+CO_TEST_P(SubscribableStorageTests, SubscribeExtendedPatchMultipleChanges) {
+  // add subscription for a path that doesn't exist yet, then add parent
+  auto storage = TestSubscribableStorage(testStruct);
+  storage.setConvertToIDPaths(true);
+  auto path = ext_path_builder::raw("mapOfStringToI32").regex("test1.*").get();
+  int key = 0;
+  auto generator = storage.subscribe_patch_extended(kSubscriber, {{key, path}});
+  storage.start();
+
+  EXPECT_EQ(
+      storage.set(root, createTestStructForExtendedTests()), std::nullopt);
+  auto msg = co_await folly::coro::timeout(
+      consumeOne(generator), std::chrono::seconds(5));
+  auto chunk = msg.get_chunk();
+
+  EXPECT_EQ(chunk.patchGroups()->size(), 1); // single path -> single patchGroup
+  EXPECT_EQ(
+      chunk.patchGroups()->at(key).size(),
+      11); // 11 changes from createTestStructForExtendedTests
+
+  std::map<std::string, int> expected = {
+      {"test1", 1},
+      {"test10", 10},
+      {"test11", 11},
+      {"test12", 12},
+      {"test13", 13},
+      {"test14", 14},
+      {"test15", 15},
+      {"test16", 16},
+      {"test17", 17},
+      {"test18", 18},
+      {"test19", 19},
+  };
+
+  auto testStorage = CowStorage<TestStruct>(testStruct);
+
+  for (auto& patch : chunk.patchGroups()->at(key)) {
+    // this will be testXY
+    auto lastPathElem = patch.basePath()->at(patch.basePath()->size() - 1);
+    EXPECT_EQ(testStorage.patch(std::move(patch)), std::nullopt);
+    EXPECT_EQ(
+        testStorage.root()->toThrift().mapOfStringToI32()->at(lastPathElem),
+        expected.at(lastPathElem));
+  }
+}

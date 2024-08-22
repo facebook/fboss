@@ -128,6 +128,26 @@ class NaivePeriodicSubscribableStorageBase {
     subMgr().registerExtendedSubscription(std::move(subscription));
     return std::move(gen);
   }
+
+  folly::coro::AsyncGenerator<SubscriberMessage&&>
+  subscribe_patch_extended_impl(
+      SubscriberId subscriber,
+      std::map<SubscriptionKey, ExtendedOperPath> paths) {
+    for (auto& [key, path] : paths) {
+      auto convertedPath = convertPath(std::move(*path.path()));
+      path.path() = std::move(convertedPath);
+    }
+    auto root = getPublisherRoot(paths);
+    auto [gen, subscription] = ExtendedPatchSubscription::create(
+        std::move(subscriber),
+        std::move(paths),
+        patchOperProtocol_,
+        std::move(root),
+        heartbeatThread_ ? heartbeatThread_->getEventBase() : nullptr,
+        subscriptionHeartbeatInterval_);
+    subMgr().registerExtendedSubscription(std::move(subscription));
+    return std::move(gen);
+  }
 #endif
 
   size_t numSubscriptions() const {
@@ -167,6 +187,9 @@ class NaivePeriodicSubscribableStorageBase {
 
   std::optional<std::string> getPublisherRoot(
       const std::map<SubscriptionKey, RawOperPath>& paths) const;
+
+  std::optional<std::string> getPublisherRoot(
+      const std::map<SubscriptionKey, ExtendedOperPath>& paths) const;
 
   void updateMetadata(
       PathIter begin,

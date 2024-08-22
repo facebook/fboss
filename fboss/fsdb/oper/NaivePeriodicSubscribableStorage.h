@@ -189,6 +189,7 @@ class NaivePeriodicSubscribableStorage
     updateMetadata(path.begin(), path.end(), *patch.metadata());
     return state->patch(std::move(patch));
   }
+  using NaivePeriodicSubscribableStorageBase::subscribe_patch_extended_impl;
   using NaivePeriodicSubscribableStorageBase::subscribe_patch_impl;
 #endif
 
