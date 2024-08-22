@@ -7,10 +7,10 @@ using namespace facebook::fboss::platform::platform_manager;
 PresenceChecker::PresenceChecker(
     const DevicePathResolver& devicePathResolver,
     const std::shared_ptr<Utils> utils,
-    const std::shared_ptr<PlatformUtils> platformUtils)
+    const std::shared_ptr<PlatformFsUtils> platformFsUtils)
     : devicePathResolver_(devicePathResolver),
       utils_(utils),
-      platformUtils_(platformUtils) {}
+      platformFsUtils_(platformFsUtils) {}
 
 bool PresenceChecker::isPresent(
     const PresenceDetection& presenceDetection,
@@ -42,7 +42,7 @@ bool PresenceChecker::sysfsPresent(
       *handle.devicePath(),
       *presencePath);
   auto presenceFileContent =
-      platformUtils_->getStringFileContent(*presencePath);
+      platformFsUtils_->getStringFileContent(*presencePath);
   if (!presenceFileContent) {
     throw std::runtime_error(
         fmt::format("Could not read file {}", *presencePath));

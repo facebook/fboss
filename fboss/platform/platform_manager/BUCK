@@ -109,7 +109,7 @@ cpp_library(
     exported_deps = [
         ":device_path_resolver",
         ":utils",
-        "//fboss/platform/helpers:platform_utils",
+        "//fboss/platform/helpers:platform_fs_utils",
     ],
 )
 
@@ -141,6 +141,7 @@ cpp_library(
         ":presence_checker",
         ":utils",
         "//fb303:service_data",
+        "//fboss/platform/helpers:platform_fs_utils",
         "//fboss/platform/helpers:platform_utils",
         "//fboss/platform/weutil:fboss_eeprom_lib",
         "//fboss/platform/weutil:ioctl_smbus_eeprom_reader",

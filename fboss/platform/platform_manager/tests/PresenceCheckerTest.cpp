@@ -3,7 +3,7 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
-#include "fboss/platform/helpers/MockPlatformUtils.h"
+#include "fboss/platform/helpers/MockPlatformFsUtils.h"
 #include "fboss/platform/platform_manager/PresenceChecker.h"
 #include "fboss/platform/platform_manager/Utils.h"
 
@@ -53,8 +53,8 @@ class PresenceCheckerTest : public testing::Test {
 
 TEST_F(PresenceCheckerTest, gpioPresent) {
   auto utils = std::make_shared<MockUtils>();
-  auto platformUtils = std::make_shared<MockPlatformUtils>();
-  PresenceChecker presenceChecker(devicePathResolver_, utils, platformUtils);
+  auto platformFsUtils = std::make_shared<MockPlatformFsUtils>();
+  PresenceChecker presenceChecker(devicePathResolver_, utils, platformFsUtils);
 
   PresenceDetection presenceDetection = PresenceDetection();
   presenceDetection.gpioLineHandle() = GpioLineHandle();
@@ -82,8 +82,8 @@ TEST_F(PresenceCheckerTest, gpioPresent) {
 
 TEST_F(PresenceCheckerTest, sysfsPresent) {
   auto utils = std::make_shared<MockUtils>();
-  auto platformUtils = std::make_shared<MockPlatformUtils>();
-  PresenceChecker presenceChecker(devicePathResolver_, utils, platformUtils);
+  auto platformFsUtils = std::make_shared<MockPlatformFsUtils>();
+  PresenceChecker presenceChecker(devicePathResolver_, utils, platformFsUtils);
 
   PresenceDetection presenceDetection = PresenceDetection();
   presenceDetection.sysfsFileHandle() = SysfsFileHandle();
@@ -95,11 +95,11 @@ TEST_F(PresenceCheckerTest, sysfsPresent) {
       devicePathResolver_, resolvePresencePath("device/path", "presenceName"))
       .WillRepeatedly(Return("/file/path"));
 
-  EXPECT_CALL(*platformUtils, getStringFileContent("/file/path"))
+  EXPECT_CALL(*platformFsUtils, getStringFileContent("/file/path"))
       .WillOnce(Return(std::make_optional("1")));
   EXPECT_TRUE(presenceChecker.isPresent(presenceDetection, "/slot/path"));
 
-  EXPECT_CALL(*platformUtils, getStringFileContent("/file/path"))
+  EXPECT_CALL(*platformFsUtils, getStringFileContent("/file/path"))
       .WillOnce(Return(std::make_optional("0")));
   EXPECT_FALSE(presenceChecker.isPresent(presenceDetection, "/slot/path"));
 

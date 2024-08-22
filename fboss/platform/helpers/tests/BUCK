@@ -15,12 +15,12 @@ cpp_unittest(
 )
 
 cpp_unittest(
-    name = "platform_utils_test",
+    name = "platform_fs_utils_test",
     srcs = [
-        "PlatformUtilsTest.cpp",
+        "PlatformFsUtilsTest.cpp",
     ],
     deps = [
-        "//fboss/platform/helpers:platform_utils",
+        "//fboss/platform/helpers:platform_fs_utils",
         "//folly/testing:test_util",
     ],
 )

@@ -28,6 +28,18 @@ cpp_library(
 )
 
 cpp_library(
+    name = "platform_fs_utils",
+    srcs = [
+        "PlatformFsUtils.cpp",
+    ],
+    exported_deps = [
+        "//folly:file_util",
+        "//folly:string",
+        "//folly/logging:logging",
+    ],
+)
+
+cpp_library(
     name = "init",
     srcs = [
         "facebook/Init.cpp",
@@ -77,5 +89,16 @@ cpp_library(
     exported_deps = [
         "fbsource//third-party/googletest:gmock",
         ":platform_utils",
+    ],
+)
+
+cpp_library(
+    name = "mock_platform_fs_utils",
+    headers = [
+        "MockPlatformFsUtils.h",
+    ],
+    exported_deps = [
+        "fbsource//third-party/googletest:gmock",
+        ":platform_fs_utils",
     ],
 )

@@ -5,7 +5,7 @@
 #include <folly/testing/TestUtil.h>
 #include <gtest/gtest.h>
 
-#include "fboss/platform/helpers/PlatformUtils.h"
+#include "fboss/platform/helpers/PlatformFsUtils.h"
 #include "fboss/platform/platform_manager/PlatformExplorer.h"
 
 using namespace ::testing;
@@ -18,7 +18,7 @@ void writeVersions(
     std::string deviceType,
     const char* version,
     const char* subversion) {
-  PlatformUtils().createDirectories(path);
+  PlatformFsUtils().createDirectories(path);
   EXPECT_TRUE(folly::writeFile(
       std::string(version),
       fmt::format("{}/{}_ver", path, deviceType).c_str()));

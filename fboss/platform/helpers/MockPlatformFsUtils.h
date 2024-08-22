@@ -4,14 +4,14 @@
 
 #include <gmock/gmock.h>
 
-#include "fboss/platform/helpers/PlatformUtils.h"
+#include "fboss/platform/helpers/PlatformFsUtils.h"
 
 namespace facebook::fboss::platform {
-class MockPlatformUtils : public PlatformUtils {
+class MockPlatformFsUtils : public PlatformFsUtils {
  public:
   MOCK_METHOD(
-      (std::pair<int, std::string>),
-      execCommand,
+      (std::optional<std::string>),
+      getStringFileContent,
       (const std::string&),
       (const));
 };

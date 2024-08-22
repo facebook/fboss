@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "fboss/platform/helpers/PlatformUtils.h"
+#include "fboss/platform/helpers/PlatformFsUtils.h"
 #include "fboss/platform/platform_manager/DevicePathResolver.h"
 #include "fboss/platform/platform_manager/Utils.h"
 
@@ -13,8 +13,8 @@ class PresenceChecker {
   explicit PresenceChecker(
       const DevicePathResolver& devicePathResolver,
       const std::shared_ptr<Utils> utils = std::make_shared<Utils>(),
-      const std::shared_ptr<PlatformUtils> platformUtils =
-          std::make_shared<PlatformUtils>());
+      const std::shared_ptr<PlatformFsUtils> platformFsUtils =
+          std::make_shared<PlatformFsUtils>());
 
   bool isPresent(
       const PresenceDetection& presenceDetection,
@@ -23,7 +23,7 @@ class PresenceChecker {
  private:
   const DevicePathResolver& devicePathResolver_;
   const std::shared_ptr<Utils> utils_;
-  const std::shared_ptr<PlatformUtils> platformUtils_;
+  const std::shared_ptr<PlatformFsUtils> platformFsUtils_;
 
   bool sysfsPresent(const SysfsFileHandle& handle, const std::string& slotPath);
   bool gpioPresent(const GpioLineHandle& handle, const std::string& slotPath);
