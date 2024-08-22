@@ -663,7 +663,7 @@ class ExtendedPatchSubscription : public ExtendedSubscription,
   std::optional<SubscriberChunk> moveCurChunk(
       const SubscriptionMetadataServer& metadataServer);
 
-  std::map<SubscriptionKey, Patch> buffered_;
+  std::map<SubscriptionKey, std::vector<Patch>> buffered_;
   folly::coro::AsyncPipe<gen_type> pipe_;
 };
 

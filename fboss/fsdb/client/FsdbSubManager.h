@@ -161,10 +161,14 @@ class FsdbSubManager {
  private:
   void parseChunkAndInvokeCallback(SubscriberChunk chunk, DataCallback cb) {
     std::vector<SubscriptionKey> changedKeys;
-    changedKeys.reserve(chunk.patches()->size());
+    changedKeys.reserve(chunk.patchGroups()->size());
     std::vector<std::vector<std::string>> changedPaths;
-    changedPaths.reserve(chunk.patches()->size());
-    for (auto& [key, patch] : *chunk.patches()) {
+    changedPaths.reserve(chunk.patchGroups()->size());
+    for (auto& [key, patchGroup] : *chunk.patchGroups()) {
+      // FsdbSubManager only supports non-wildcard subs, which will always have
+      // a single patch per path
+      CHECK_EQ(patchGroup.size(), 1);
+      auto& patch = patchGroup.front();
       changedKeys.push_back(key);
       changedPaths.emplace_back(*patch.basePath());
       // TODO: support patching a raw thrift object

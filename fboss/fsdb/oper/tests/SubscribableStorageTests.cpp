@@ -199,9 +199,11 @@ TEST_P(SubscribableStorageTests, SubscribePatch) {
   // Initial sync post subscription setup
   auto msg = folly::coro::blockingWait(
       folly::coro::timeout(consumeOne(generator), std::chrono::seconds(5)));
-  auto patches = *msg.get_chunk().patches();
+  auto patchGroups = *msg.get_chunk().patchGroups();
+  EXPECT_EQ(patchGroups.size(), 1);
+  auto patches = patchGroups.begin()->second;
   EXPECT_EQ(patches.size(), 1);
-  auto patch = patches.begin()->second;
+  auto patch = patches.front();
   auto rootPatch = patch.patch()->val_ref();
   EXPECT_TRUE(rootPatch);
   //   initial sync should just be a whole blob
@@ -214,10 +216,11 @@ TEST_P(SubscribableStorageTests, SubscribePatch) {
   EXPECT_EQ(storage.set(root.tx(), false), std::nullopt);
   msg = folly::coro::blockingWait(
       folly::coro::timeout(consumeOne(generator), std::chrono::seconds(5)));
-  patches = *msg.get_chunk().patches();
+  patchGroups = *msg.get_chunk().patchGroups();
+  EXPECT_EQ(patchGroups.size(), 1);
+  patches = patchGroups.begin()->second;
   EXPECT_EQ(patches.size(), 1);
-  patch = patches.begin()->second;
-
+  patch = patches.front();
   using TestStructMembers = apache::thrift::reflect_struct<TestStruct>::member;
   auto newVal = patch.patch()
                     ->struct_node_ref()
@@ -245,9 +248,11 @@ TEST_P(SubscribableStorageTests, SubscribePatchUpdate) {
   EXPECT_EQ(storage.set(path, 1), std::nullopt);
   auto msg = folly::coro::blockingWait(
       folly::coro::timeout(consumeOne(generator), std::chrono::seconds(1)));
-  auto patches = *msg.get_chunk().patches();
+  auto patchGroups = *msg.get_chunk().patchGroups();
+  EXPECT_EQ(patchGroups.size(), 1);
+  auto patches = patchGroups.begin()->second;
   EXPECT_EQ(patches.size(), 1);
-  auto patch = patches.begin()->second;
+  auto patch = patches.front();
   auto newVal = *patch.patch()->val_ref();
   auto deserializedVal = facebook::fboss::thrift_cow::
       deserializeBuf<apache::thrift::type_class::integral, int>(
@@ -258,9 +263,11 @@ TEST_P(SubscribableStorageTests, SubscribePatchUpdate) {
   EXPECT_EQ(storage.set(path, 10), std::nullopt);
   msg = folly::coro::blockingWait(
       folly::coro::timeout(consumeOne(generator), std::chrono::seconds(1)));
-  patches = *msg.get_chunk().patches();
+  patchGroups = *msg.get_chunk().patchGroups();
+  EXPECT_EQ(patchGroups.size(), 1);
+  patches = patchGroups.begin()->second;
   EXPECT_EQ(patches.size(), 1);
-  patch = patches.begin()->second;
+  patch = patches.front();
   newVal = *patch.patch()->val_ref();
   deserializedVal = facebook::fboss::thrift_cow::
       deserializeBuf<apache::thrift::type_class::integral, int>(
@@ -293,11 +300,12 @@ TEST_P(SubscribableStorageTests, SubscribePatchMulti) {
   EXPECT_EQ(storage.set(path1, 123), std::nullopt);
   auto msg = folly::coro::blockingWait(
       folly::coro::timeout(consumeOne(generator), std::chrono::seconds(1)));
-  auto patches = *msg.get_chunk().patches();
+  auto patchGroups = *msg.get_chunk().patchGroups();
+  EXPECT_EQ(patchGroups.size(), 1);
+  EXPECT_EQ(patchGroups.begin()->first, 1);
+  auto patches = patchGroups.begin()->second;
   EXPECT_EQ(patches.size(), 1);
-  // first key
-  EXPECT_EQ(patches.begin()->first, 1);
-  auto patch = patches.begin()->second;
+  auto patch = patches.front();
   EXPECT_EQ(patch.basePath()[1], "test1");
   auto rootPatch = patch.patch()->move_val();
   //   initial sync should just be a whole blob
@@ -314,10 +322,12 @@ TEST_P(SubscribableStorageTests, SubscribePatchMulti) {
   EXPECT_EQ(storage.set(root.stringToStruct(), stringToStruct), std::nullopt);
   msg = folly::coro::blockingWait(
       folly::coro::timeout(consumeOne(generator), std::chrono::seconds(1)));
-  patches = *msg.get_chunk().patches();
+  patchGroups = *msg.get_chunk().patchGroups();
 
-  EXPECT_EQ(patches.size(), 2);
-  for (auto& [key, patch] : patches) {
+  EXPECT_EQ(patchGroups.size(), 2);
+  for (auto& [key, patchGroup] : patchGroups) {
+    EXPECT_EQ(patchGroup.size(), 1); // only one patch per raw path
+    auto& patch = patchGroup.front();
     EXPECT_EQ(patch.basePath()[1], fmt::format("test{}", key));
     auto rootPatch = patch.patch()->move_val();
     deserialized = facebook::fboss::thrift_cow::

@@ -107,8 +107,10 @@ class TestFsdbSubscriber : public PubSubT::SubscriberT {
       ASSERT_EVENTUALLY_EQ(queueSize(), expectedSize);
       for (const auto& unit : queuedUnits()) {
         if constexpr (std::is_same_v<SubUnitT, SubscriberChunk>) {
-          for (const auto& [_, patch] : *unit.patches()) {
-            ASSERT_GT(*patch.metadata()->lastConfirmedAt(), 0);
+          for (const auto& [_, patchGroup] : *unit.patchGroups()) {
+            for (const auto& patch : patchGroup) {
+              ASSERT_GT(*patch.metadata()->lastConfirmedAt(), 0);
+            }
           }
         } else {
           ASSERT_GT(*unit.metadata()->lastConfirmedAt(), 0);

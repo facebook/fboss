@@ -482,7 +482,7 @@ std::unique_ptr<Subscription> ExtendedPatchSubscription::resolve(
 void ExtendedPatchSubscription::buffer(
     const SubscriptionKey& key,
     Patch&& newVal) {
-  buffered_[key] = std::move(newVal);
+  buffered_[key].emplace_back(std::move(newVal));
 }
 
 std::optional<SubscriberChunk> ExtendedPatchSubscription::moveCurChunk(
@@ -490,12 +490,14 @@ std::optional<SubscriberChunk> ExtendedPatchSubscription::moveCurChunk(
   if (buffered_.empty()) {
     return std::nullopt;
   }
-  for (auto& [_, patch] : buffered_) {
-    patch.metadata() = getMetadata(metadataServer);
-    patch.protocol() = operProtocol();
+  for (auto& [_, patchGroups] : buffered_) {
+    for (auto& patch : patchGroups) {
+      patch.metadata() = getMetadata(metadataServer);
+      patch.protocol() = operProtocol();
+    }
   }
   SubscriberChunk chunk;
-  chunk.patches() = std::move(buffered_);
+  chunk.patchGroups() = std::move(buffered_);
   buffered_ = {};
   return chunk;
 }

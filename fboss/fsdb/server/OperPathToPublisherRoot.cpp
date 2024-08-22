@@ -103,6 +103,23 @@ std::string OperPathToPublisherRoot::publisherRoot(
   return root.value();
 }
 
+std::string OperPathToPublisherRoot::publisherRoot(
+    const ExtSubPathMap& operPathMap) const {
+  checkNonEmpty(operPathMap);
+
+  std::optional<std::string> root;
+  for (const auto& [_, path] : operPathMap) {
+    auto currRoot = publisherRoot(path);
+    if (root) {
+      checkCrossRoot(*root, currRoot);
+    } else {
+      root = currRoot;
+    }
+  }
+
+  return root.value();
+}
+
 void OperPathToPublisherRoot::checkPath(PathIter begin, PathIter end) const {
   checkNonEmpty(begin, end);
 }
