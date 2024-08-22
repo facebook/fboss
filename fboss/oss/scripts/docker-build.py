@@ -15,6 +15,7 @@ from typing import Optional, Tuple
 OPT_ARG_SCRATCH_PATH = "--scratch-path"
 OPT_ARG_CMAKE_TARGET = "--target"
 OPT_ARG_NO_DOCKER_OUTPUT = "--no-docker-output"
+OPT_ARG_NO_SYSTEM_DEPS = "--no-system-deps"
 
 FBOSS_IMAGE_NAME = "fboss_image"
 FBOSS_CONTAINER_NAME = "FBOSS_BUILD_CONTAINER"
@@ -118,6 +119,13 @@ def parse_args():
         action="store_false",
         help="Skips step to attach TTY outputs to the docker container.",
     )
+    parser.add_argument(
+        OPT_ARG_NO_SYSTEM_DEPS,
+        dest="use_system_deps",
+        default=True,
+        action="store_false",
+        help="Prevents usage of system libraries to satisfy dependency requirements. If this flag is used, all dependencies will be built from source.",
+    )
 
     return parser.parse_args()
 
@@ -153,7 +161,9 @@ def build_docker_image(docker_dir_path: str):
         sys.exit(1)
 
 
-def run_fboss_build(scratch_path: str, target: Optional[str], docker_output: bool):
+def run_fboss_build(
+    scratch_path: str, target: Optional[str], docker_output: bool, use_system_deps: bool
+):
     cmd_args = ["sudo", "docker", "run"]
     # Add args for directory mount for build output.
     cmd_args.append("-v")
@@ -171,11 +181,12 @@ def run_fboss_build(scratch_path: str, target: Optional[str], docker_output: boo
     build_cmd = [
         "./build/fbcode_builder/getdeps.py",
         "build",
-        "--allow-system-packages",
         '--extra-cmake-defines={"CMAKE_BUILD_TYPE": "MinSizeRel", "CMAKE_CXX_STANDARD": "20"}',
         "--scratch-path",
         f"{CONTAINER_SCRATCH_PATH}",
     ]
+    if use_system_deps:
+        build_cmd.append("--allow-system-packages")
     if target is not None:
         build_cmd.append("--cmake-target")
         build_cmd.append(target)
@@ -218,7 +229,9 @@ def main():
     docker_dir_path = get_docker_path()
     build_docker_image(docker_dir_path)
 
-    run_fboss_build(args.scratch_path, args.target, args.docker_output)
+    run_fboss_build(
+        args.scratch_path, args.target, args.docker_output, args.use_system_deps
+    )
 
     cleanup_fboss_build_container()
 
