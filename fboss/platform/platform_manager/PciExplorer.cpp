@@ -250,7 +250,7 @@ void PciExplorer::create(
       auxData.id.id,
       auxData.csr_offset,
       auxData.iobuf_offset);
-  if (isPciSubDevicePresent(pciDevice, fpgaIpBlockConfig, auxData.id.id)) {
+  if (isPciSubDeviceReady(pciDevice, fpgaIpBlockConfig, auxData.id.id)) {
     XLOG(INFO) << fmt::format(
         "Skipped creating device {} already exists at {}. "
         "Args - deviceName: {} instanceId: {}, "
@@ -273,18 +273,18 @@ void PciExplorer::create(
     return;
   }
   auto ret = ioctl(fd, FBIOB_IOC_NEW_DEVICE, &auxData);
+  auto savedErrno = errno;
   close(fd);
   // PciSubDevice creation failure cases.
   // 1. ioctl() failures (ret < 0).
   // More details: https://man7.org/linux/man-pages/man2/ioctl.2.html#ERRORS
-  // 2. PciSubDevice creation failure (isPciSubDeviceCreated = false).
-  if (ret < 0 ||
-      !isPciSubDeviceCreated(pciDevice, fpgaIpBlockConfig, auxData.id.id)) {
+  // 2. PciSubDevice driver binding failure (checkPciSubDeviceReadiness =
+  // false).
+  if (ret < 0) {
     throw std::runtime_error(fmt::format(
         "Failed to create new device {} in {} using {}. "
         "Args - deviceName: {} instanceId: {}, "
-        "csrOffset: {:#04x}, iobufOffset: {:#04x}, error: {}, "
-        "ioctl return code: {} ",
+        "csrOffset: {:#04x}, iobufOffset: {:#04x}, error: {}",
         *fpgaIpBlockConfig.pmUnitScopedName(),
         pciDevice.sysfsPath(),
         pciDevice.charDevPath(),
@@ -292,9 +292,22 @@ void PciExplorer::create(
         auxData.id.id,
         auxData.csr_offset,
         auxData.iobuf_offset,
-        folly::errnoStr(errno),
-        ret));
+        folly::errnoStr(savedErrno)));
+  } else if (!checkPciSubDeviceReadiness(
+                 pciDevice, fpgaIpBlockConfig, auxData.id.id)) {
+    throw std::runtime_error(fmt::format(
+        "Failed to initialize device {} in {} using {}. "
+        "Args - deviceName: {} instanceId: {}, "
+        "csrOffset: {:#04x}, iobufOffset: {:#04x}",
+        *fpgaIpBlockConfig.pmUnitScopedName(),
+        pciDevice.sysfsPath(),
+        pciDevice.charDevPath(),
+        *fpgaIpBlockConfig.deviceName(),
+        auxData.id.id,
+        auxData.csr_offset,
+        auxData.iobuf_offset));
   }
+
   XLOG(INFO) << fmt::format(
       "Successfully created device {} at {} using {}. Args - deviceName: {} instanceId: {}, "
       "csrOffset: {:#x}, iobufOffset: {:#x}",
@@ -544,11 +557,11 @@ std::string PciExplorer::getXcvrCtrlSysfsPath(
       pciDevice.sysfsPath()));
 }
 
-bool PciExplorer::isPciSubDeviceCreated(
+bool PciExplorer::checkPciSubDeviceReadiness(
     const PciDevice& pciDevice,
     const FpgaIpBlockConfig& fpgaIpBlockConfig,
     uint32_t instanceId) {
-  if (isPciSubDevicePresent(pciDevice, fpgaIpBlockConfig, instanceId)) {
+  if (isPciSubDeviceReady(pciDevice, fpgaIpBlockConfig, instanceId)) {
     return true;
   }
   XLOG(INFO) << fmt::format(
@@ -560,18 +573,27 @@ bool PciExplorer::isPciSubDeviceCreated(
       pciDevice.sysfsPath(),
       kPciWaitSecs);
   sleep(kPciWaitSecs);
-  if (isPciSubDevicePresent(pciDevice, fpgaIpBlockConfig, instanceId)) {
+  if (isPciSubDeviceReady(pciDevice, fpgaIpBlockConfig, instanceId)) {
     return true;
   }
   return false;
 }
 
-bool PciExplorer::isPciSubDevicePresent(
+bool PciExplorer::isPciSubDeviceReady(
     const PciDevice& pciDevice,
     const FpgaIpBlockConfig& fpgaIpBlockConfig,
     uint32_t instanceId) {
-  return getPciSubDeviceIOBlockPath(pciDevice, fpgaIpBlockConfig, instanceId)
-      .has_value();
+  auto devPath =
+      getPciSubDeviceIOBlockPath(pciDevice, fpgaIpBlockConfig, instanceId);
+
+  // Device being ready means: 1) device is created 2) driver is attached
+  return devPath && isPciSubDeviceDriverReady(devPath.value());
+}
+
+bool PciExplorer::isPciSubDeviceDriverReady(const std::string& devPath) {
+  auto driverPath = fs::path(devPath) / "driver";
+
+  return fs::exists(driverPath) && fs::is_symlink(driverPath);
 }
 
 std::optional<std::string> PciExplorer::getPciSubDeviceIOBlockPath(
@@ -582,11 +604,7 @@ std::optional<std::string> PciExplorer::getPciSubDeviceIOBlockPath(
       fmt::format(".{}.{}", *fpgaIpBlockConfig.deviceName(), instanceId);
   for (const auto& dirEntry : fs::directory_iterator(pciDevice.sysfsPath())) {
     if (hasEnding(dirEntry.path().filename().string(), expectedEnding)) {
-      auto driverPath = dirEntry.path() / "driver";
-      if (fs::exists(driverPath) &&
-          fs::directory_entry(driverPath).is_symlink()) {
-        return dirEntry.path();
-      }
+      return dirEntry.path();
     }
   }
   return std::nullopt;
