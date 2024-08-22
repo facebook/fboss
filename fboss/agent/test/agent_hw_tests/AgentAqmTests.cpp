@@ -318,6 +318,28 @@ class AgentAqmTest : public AgentHwTest {
   }
 };
 
+class AgentAqmWredDropTest : public AgentAqmTest {
+ public:
+  cfg::SwitchConfig initialConfig(
+      const AgentEnsemble& ensemble) const override {
+    auto cfg = utility::onePortPerInterfaceConfig(
+        ensemble.getSw(),
+        ensemble.masterLogicalPortIds(),
+        true /*interfaceHasSubnet*/);
+    if (ensemble.getHwAsicTable()->isFeatureSupportedOnAllAsic(
+            HwAsic::Feature::L3_QOS)) {
+      auto streamType =
+          *utility::checkSameAndGetAsic(ensemble.getL3Asics())
+               ->getQueueStreamTypes(cfg::PortType::INTERFACE_PORT)
+               .begin();
+      utility::addQueueWredDropConfig(&cfg, streamType, ensemble.getL3Asics());
+      utility::addOlympicQosMaps(cfg, ensemble.getL3Asics());
+    }
+    utility::setTTLZeroCpuConfig(ensemble.getL3Asics(), cfg);
+    return cfg;
+  }
+};
+
 TEST_F(AgentAqmTest, verifyEct0) {
   runTest(kECT0, true /* enableWred */, true /* enableEcn */);
 }
