@@ -184,6 +184,7 @@ cpp_library(
 cpp_library(
     name = "agent_ensemble_link_tests",
     srcs = [
+        "AgentEnsembleEmptyLinkTest.cpp",
         "AgentEnsembleLinkTest.cpp",
         "AgentEnsembleOpticsTest.cpp",
         "LinkTestUtils.cpp",
@@ -191,6 +192,7 @@ cpp_library(
     link_whole = True,
     undefined_symbols = True,
     exported_deps = [
+        "fbsource//third-party/googletest:gtest",
         "//fboss/agent:core",
         "//fboss/agent:fboss-error",
         "//fboss/agent:fboss-types",

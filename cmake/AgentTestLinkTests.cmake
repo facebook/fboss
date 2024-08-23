@@ -35,6 +35,7 @@ add_library(agent_ensemble_link_tests
   fboss/agent/test/link_tests/AgentEnsembleLinkTest.cpp
   fboss/agent/test/link_tests/LinkTestUtils.cpp
   fboss/agent/test/link_tests/AgentEnsembleOpticsTest.cpp
+  fboss/agent/test/link_tests/AgentEnsembleEmptyLinkTest.cpp
 )
 
 target_link_libraries(agent_ensemble_link_tests
