@@ -40,7 +40,7 @@ void AgentEnsembleTest::setupAgentEnsemble() {
   folly::SingletonVault::singleton()->reenableInstances();
 
   setCmdLineFlagOverrides();
-
+  utilCreateDir(getAgentTestDir());
   AgentEnsembleSwitchConfigFn initialConfigFn =
       [this](const AgentEnsemble& ensemble) { return initialConfig(ensemble); };
 
