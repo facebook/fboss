@@ -41,6 +41,7 @@ cpp_unittest(
         "UtilsTest.cpp",
     ],
     deps = [
+        "fbsource//third-party/googletest:gmock",
         "//fboss/platform/sensor_service:utils",
     ],
 )

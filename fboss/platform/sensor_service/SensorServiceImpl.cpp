@@ -82,7 +82,26 @@ void SensorServiceImpl::fetchSensorData() {
   if (!sensorConfig_.pmUnitSensorsList()->empty()) {
     XLOG(INFO) << "Fetching using PM based sensor structs...";
     for (const auto& pmUnitSensors : *sensorConfig_.pmUnitSensorsList()) {
-      for (const auto& sensor : *pmUnitSensors.sensors()) {
+      auto pmSensors = *pmUnitSensors.sensors();
+      if (auto versionedPmSensors = Utils().resolveVersionedSensors(
+              pmUnitInfoFetcher_,
+              *pmUnitSensors.slotPath(),
+              *pmUnitSensors.pmUnitName(),
+              *pmUnitSensors.versionedSensors())) {
+        XLOG(INFO) << fmt::format(
+            "Resolved to versionedPmSensors of productProductionState({}) "
+            "prductVersion({}) productSubVersion({}) for pmUnit {} at {}",
+            *versionedPmSensors->productProductionState(),
+            *versionedPmSensors->productVersion(),
+            *versionedPmSensors->productSubVersion(),
+            *pmUnitSensors.slotPath(),
+            *pmUnitSensors.pmUnitName());
+        pmSensors.insert(
+            pmSensors.end(),
+            versionedPmSensors->sensors()->begin(),
+            versionedPmSensors->sensors()->end());
+      }
+      for (const auto& sensor : pmSensors) {
         fetchSensorDataImpl(sensor, readFailures, polledData);
       }
     }

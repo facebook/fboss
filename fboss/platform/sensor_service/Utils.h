@@ -3,8 +3,13 @@
 #pragma once
 
 #include <string>
+#include <vector>
+
+#include "fboss/platform/sensor_service/PmUnitInfoFetcher.h"
+#include "fboss/platform/sensor_service/if/gen-cpp2/sensor_config_types.h"
 
 namespace facebook::fboss::platform::sensor_service {
+using namespace facebook::fboss::platform::sensor_config;
 
 class Utils {
  public:
@@ -21,5 +26,11 @@ class Utils {
       const std::string& expression,
       float input,
       const std::string& symbol = "x");
+
+  std::optional<VersionedPmSensor> resolveVersionedSensors(
+      const PmUnitInfoFetcher& fetcher,
+      const std::string& slotPath,
+      const std::string& pmUnitName,
+      const std::vector<VersionedPmSensor>& versionedSensors);
 };
 } // namespace facebook::fboss::platform::sensor_service

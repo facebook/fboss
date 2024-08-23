@@ -17,6 +17,7 @@
 #include <folly/Synchronized.h>
 
 #include "fboss/platform/sensor_service/FsdbSyncer.h"
+#include "fboss/platform/sensor_service/PmUnitInfoFetcher.h"
 #include "fboss/platform/sensor_service/if/gen-cpp2/sensor_config_types.h"
 #include "fboss/platform/sensor_service/if/gen-cpp2/sensor_service_types.h"
 
@@ -69,6 +70,7 @@ class SensorServiceImpl {
   std::optional<std::chrono::time_point<std::chrono::steady_clock>>
       publishedStatsToFsdbAt_;
   SensorConfig sensorConfig_{};
+  PmUnitInfoFetcher pmUnitInfoFetcher_{};
 };
 
 } // namespace facebook::fboss::platform::sensor_service

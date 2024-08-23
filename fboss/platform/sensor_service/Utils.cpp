@@ -2,12 +2,33 @@
 
 #include "fboss/platform/sensor_service/Utils.h"
 
-#include <re2/re2.h>
+#include <array>
 #include <chrono>
-#include <unordered_set>
+#include <iostream>
 
 #include <exprtk.hpp>
+#include <re2/re2.h>
 
+namespace {
+// Compare the two array reprsentation of
+// productionState,productVersion,productSubVersion.
+// Return true if l1 >= l2, false otherwise.
+bool greaterEqual(
+    std::array<int16_t, 3> l1,
+    std::array<int16_t, 3> l2,
+    uint8_t i = 0) {
+  if (i == 3) {
+    return true;
+  }
+  if (l1[i] > l2[i]) {
+    return true;
+  }
+  if (l1[i] < l2[i]) {
+    return false;
+  }
+  return greaterEqual(l1, l2, ++i);
+}
+} // namespace
 namespace facebook::fboss::platform::sensor_service {
 
 uint64_t Utils::nowInSecs() {
@@ -38,6 +59,28 @@ float Utils::computeExpression(
   parser.compile(temp_equation, expr);
 
   return expr.value();
+}
+
+std::optional<VersionedPmSensor> Utils::resolveVersionedSensors(
+    const PmUnitInfoFetcher& fetcher,
+    const std::string& slotPath,
+    const std::string& pmUnitName,
+    const std::vector<VersionedPmSensor>& versionedSensors) {
+  const auto pmUnitInfo = fetcher.fetch(slotPath, pmUnitName);
+  if (!pmUnitInfo) {
+    return std::nullopt;
+  }
+  std::optional<VersionedPmSensor> resolvedVersionedSensor{std::nullopt};
+  for (const auto& versionedSensor : versionedSensors) {
+    if (greaterEqual(
+            *pmUnitInfo,
+            {*versionedSensor.productProductionState(),
+             *versionedSensor.productVersion(),
+             *versionedSensor.productSubVersion()})) {
+      resolvedVersionedSensor = versionedSensor;
+    }
+  }
+  return resolvedVersionedSensor;
 }
 
 } // namespace facebook::fboss::platform::sensor_service

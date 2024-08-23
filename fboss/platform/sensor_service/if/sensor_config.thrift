@@ -72,17 +72,39 @@ struct PmSensor {
   5: SensorType type;
 }
 
+// `VersionedPmSensor`: Describes a set of sensors which would exist in Platforms with
+// minimum productProductionState, productVersion and productSubVersion.
+//
+// `sensors`: A set of sensors belong to this version. They're mutually exclusive from other versions.
+// If there're any carry-over sensors in the other versions, they must be redefined in that version.
+//
+// `productProductionState`: Minimum productProductionState (EEPROM V5 Type 8).
+//
+// `productVersion`: Minimum productVersion (EEPROM V5 Type 9).
+//
+// `productSubVersion`: Minimum productSubVersion (EEPROM V5 Type 10).
+struct VersionedPmSensor {
+  1: list<PmSensor> sensors;
+  2: i16 productProductionState;
+  3: i16 productVersion;
+  4: i16 productSubVersion;
+}
+
 // `PmUnitSensors`: Describes every sensor in PmUnit.
 //
 // `slotPath`: Refers to the location of slot in the platform.
 //
 // `pmUnitName`: Name of the PmUnit.
 //
-// `sensors`: List of pmSensor. See above PmSensor definition.
+// `sensors`: List of common pmSensor across respins. See above PmSensor definition.
+//
+// `versionedSensors`: List of versionedPmSensors for specific respin.
+// See above VersionedPmSensor definition.
 struct PmUnitSensors {
   1: string slotPath;
   2: string pmUnitName;
   3: list<PmSensor> sensors;
+  4: list<VersionedPmSensor> versionedSensors;
 }
 
 typedef string SensorName
