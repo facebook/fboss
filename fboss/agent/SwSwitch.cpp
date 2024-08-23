@@ -465,17 +465,19 @@ bool SwSwitch::fsdbStatePublishReady() const {
 }
 
 void SwSwitch::stop(bool isGracefulStop, bool revertToMinAlpmState) {
-  // Clean up connections to FSDB before stopping
-  // packet flow.
+  // Clean up connections to FSDB before stopping packet flow.
   runFsdbSyncFunction([isGracefulStop](auto& syncer) {
     syncer->stop(isGracefulStop);
     syncer.reset();
   });
+  // Stop DSF subscriber to let us unsubscribe gracefully before stoppping
+  // packet TX/RX functionality
+  dsfSubscriber_->stop();
+
   setSwitchRunState(SwitchRunState::EXITING);
 
   XLOG(DBG2) << "Stopping SwSwitch...";
-  // Stop DSF subscriber to let us unsubscribe gracefully before stoppping
-  // packet TX/RX functionality
+
   dsfSubscriber_.reset();
 
   // First tell the hw to stop sending us events by unregistering the callback
