@@ -35,6 +35,7 @@ add_library(agent_ensemble_link_tests
   fboss/agent/test/link_tests/AgentEnsembleLinkTest.cpp
   fboss/agent/test/link_tests/LinkTestUtils.cpp
   fboss/agent/test/link_tests/AgentEnsembleOpticsTest.cpp
+  fboss/agent/test/link_tests/AgentEnsembleLacpSanityTests.cpp
   fboss/agent/test/link_tests/AgentEnsembleEmptyLinkTest.cpp
 )
 
@@ -53,6 +54,7 @@ target_link_libraries(agent_ensemble_link_tests
   hw_packet_utils
   packet
   packet_snooper
+  trunk_utils
   ${GTEST}
   ${LIBGMOCK_LIBRARIES}
 )
