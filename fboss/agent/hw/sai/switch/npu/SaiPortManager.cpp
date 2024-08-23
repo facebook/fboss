@@ -927,9 +927,11 @@ void SaiPortManager::programSerdes(
   // create if serdes doesn't exist or update existing serdes
   portHandle->serdes = store.setObject(serdesKey, serdesAttributes);
 
-  if (platform_->getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_GARONNE ||
-      platform_->getAsic()->getAsicType() ==
-          cfg::AsicType::ASIC_TYPE_TOMAHAWK5) {
+  if ((platform_->getAsic()->getAsicType() ==
+           cfg::AsicType::ASIC_TYPE_GARONNE ||
+       platform_->getAsic()->getAsicType() ==
+           cfg::AsicType::ASIC_TYPE_TOMAHAWK5) &&
+      swPort->getAdminState() == cfg::PortState::ENABLED) {
     /*
      * SI settings are not programmed to the hardware when the port is
      * created with admin UP. We need to explicitly toggle the admin
