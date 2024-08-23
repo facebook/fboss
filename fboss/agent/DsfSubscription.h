@@ -77,8 +77,8 @@ class DsfSubscription {
       fsdb::SubscriptionState newState);
   void handleFsdbUpdate(fsdb::OperSubPathUnit&& operStateUnit);
   void queueRemoteStateChanged(
-      MultiSwitchSystemPortMap& newPortMap,
-      MultiSwitchInterfaceMap& newInterfaceMap);
+      const MultiSwitchSystemPortMap& newPortMap,
+      const MultiSwitchInterfaceMap& newInterfaceMap);
   void queueDsfUpdate(DsfUpdate&& dsfUpdate);
   fsdb::FsdbStreamClient::State getStreamState() const;
 
@@ -94,6 +94,17 @@ class DsfSubscription {
   SwSwitch* sw_;
   DsfSession session_;
   folly::Synchronized<std::unique_ptr<DsfUpdate>> nextDsfUpdate_;
+  // Cache current state of sysports and intfs received from remote
+  // node. Since after the initial update we are not guaranteed to
+  // receive the entire set of sysports and rifs in any update. For
+  // instance on a nbr change, we will get the entire set of RIFs
+  // but not sys ports. However when applying the update, we
+  // apply RIFs and sys ports together. To that end we need to
+  // cache the current sysports and rifs and then patch the
+  // receieved update on top of it.
+  // TODO: kill this code after we cutover to patch subscriptions.
+  MultiSwitchSystemPortMap curMswitchSysPorts_;
+  MultiSwitchInterfaceMap curMswitchIntfs_;
   bool stopped_{false};
   // Used for tests only
   std::shared_ptr<SwitchState> cachedState_;

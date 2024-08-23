@@ -243,22 +243,22 @@ void DsfSubscription::handleFsdbSubscriptionStateUpdate(
 }
 
 void DsfSubscription::handleFsdbUpdate(fsdb::OperSubPathUnit&& operStateUnit) {
-  DsfUpdate dsfUpdate;
-  MultiSwitchSystemPortMap mswitchSysPorts;
-  MultiSwitchInterfaceMap mswitchIntfs;
+  bool portsOrIntfsChanged{false};
   for (const auto& change : *operStateUnit.changes()) {
     if (getSystemPortsPath().matchesPath(*change.path()->path())) {
       XLOG(DBG2) << "Got sys port update from : " << remoteNodeName_;
-      mswitchSysPorts.fromThrift(thrift_cow::deserialize<
-                                 MultiSwitchSystemPortMapTypeClass,
-                                 MultiSwitchSystemPortMapThriftType>(
+      curMswitchSysPorts_.fromThrift(thrift_cow::deserialize<
+                                     MultiSwitchSystemPortMapTypeClass,
+                                     MultiSwitchSystemPortMapThriftType>(
           fsdb::OperProtocol::BINARY, *change.state()->contents()));
+      portsOrIntfsChanged = true;
     } else if (getInterfacesPath().matchesPath(*change.path()->path())) {
       XLOG(DBG2) << "Got rif update from : " << remoteNodeName_;
-      mswitchIntfs.fromThrift(thrift_cow::deserialize<
-                              MultiSwitchInterfaceMapTypeClass,
-                              MultiSwitchInterfaceMapThriftType>(
+      curMswitchIntfs_.fromThrift(thrift_cow::deserialize<
+                                  MultiSwitchInterfaceMapTypeClass,
+                                  MultiSwitchInterfaceMapThriftType>(
           fsdb::OperProtocol::BINARY, *change.state()->contents()));
+      portsOrIntfsChanged = true;
     } else if (getDsfSubscriptionsPath(
                    makeRemoteEndpoint(localNodeName_, localIp_))
                    .matchesPath(*change.path()->path())) {
@@ -279,12 +279,14 @@ void DsfSubscription::handleFsdbUpdate(fsdb::OperSubPathUnit&& operStateUnit) {
           remoteNodeName_);
     }
   }
-  queueRemoteStateChanged(mswitchSysPorts, mswitchIntfs);
+  if (portsOrIntfsChanged) {
+    queueRemoteStateChanged(curMswitchSysPorts_, curMswitchIntfs_);
+  }
 }
 
 void DsfSubscription::queueRemoteStateChanged(
-    MultiSwitchSystemPortMap& newPortMap,
-    MultiSwitchInterfaceMap& newInterfaceMap) {
+    const MultiSwitchSystemPortMap& newPortMap,
+    const MultiSwitchInterfaceMap& newInterfaceMap) {
   DsfUpdate dsfUpdate;
   for (const auto& [id, sysPortMap] : newPortMap) {
     auto matcher = HwSwitchMatcher(id);
@@ -299,6 +301,7 @@ void DsfSubscription::queueRemoteStateChanged(
 
 void DsfSubscription::queueDsfUpdate(DsfUpdate&& dsfUpdate) {
   bool needsScheduling = false;
+
   {
     auto nextDsfUpdateWlock = nextDsfUpdate_.wlock();
     // If nextDsfUpdate is not null, then just overwrite
