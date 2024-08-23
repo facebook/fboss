@@ -16,6 +16,7 @@ OPT_ARG_SCRATCH_PATH = "--scratch-path"
 OPT_ARG_CMAKE_TARGET = "--target"
 OPT_ARG_NO_DOCKER_OUTPUT = "--no-docker-output"
 OPT_ARG_NO_SYSTEM_DEPS = "--no-system-deps"
+OPT_ARG_ADD_BUILD_ENV_VAR = "--env-var"
 
 FBOSS_IMAGE_NAME = "fboss_image"
 FBOSS_CONTAINER_NAME = "FBOSS_BUILD_CONTAINER"
@@ -126,6 +127,17 @@ def parse_args():
         action="store_false",
         help="Prevents usage of system libraries to satisfy dependency requirements. If this flag is used, all dependencies will be built from source.",
     )
+    parser.add_argument(
+        OPT_ARG_ADD_BUILD_ENV_VAR,
+        dest="env_vars",
+        default=[],
+        action="append",
+        help=(
+            "Usage: --env-var <VAR>:<VAL>. "
+            "Adds a new environment variable to be set before performing the build. "
+            "This is particularly useful as some CMake targets are hidden behind flags, e.g. BUILD_SAI_FAKE=1"
+        ),
+    )
 
     return parser.parse_args()
 
@@ -162,9 +174,23 @@ def build_docker_image(docker_dir_path: str):
 
 
 def run_fboss_build(
-    scratch_path: str, target: Optional[str], docker_output: bool, use_system_deps: bool
+    scratch_path: str,
+    target: Optional[str],
+    docker_output: bool,
+    use_system_deps: bool,
+    env_vars: list[str],
 ):
     cmd_args = ["sudo", "docker", "run"]
+    # Add build environment variables, if any.
+    for ev in env_vars:
+        if not ":" in ev:
+            cmd_args.extend(["-e", f"{ev}=1"])
+        elif ev.count(":") == 1:
+            cmd_args.extend(["-e", ev])
+        else:
+            errMsg = f"Ignoring environment variable string {ev} as it does not match a supported pattern."
+            print(errMsg, file=sys.stderr)
+
     # Add args for directory mount for build output.
     cmd_args.append("-v")
     cmd_args.append(f"{scratch_path}:{CONTAINER_SCRATCH_PATH}:z")
@@ -230,7 +256,11 @@ def main():
     build_docker_image(docker_dir_path)
 
     run_fboss_build(
-        args.scratch_path, args.target, args.docker_output, args.use_system_deps
+        args.scratch_path,
+        args.target,
+        args.docker_output,
+        args.use_system_deps,
+        args.env_vars,
     )
 
     cleanup_fboss_build_container()
