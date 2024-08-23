@@ -642,6 +642,7 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
 #if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
       std::nullopt, // ARS profile
 #endif
+      std::nullopt, // Delay Drop Cong Threshold
   };
 }
 

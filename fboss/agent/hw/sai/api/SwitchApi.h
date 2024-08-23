@@ -420,6 +420,11 @@ struct SaiSwitchTraits {
     };
     using RestartIssu =
         SaiExtensionAttribute<bool, AttributeRestartIssuWrapper>;
+    struct AttributeDelayDropCongThreshold {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    using DelayDropCongThreshold =
+        SaiExtensionAttribute<sai_uint8_t, AttributeDelayDropCongThreshold>;
     struct AttributeForceTrafficOverFabricWrapper {
       std::optional<sai_attr_id_t> operator()();
     };
@@ -614,7 +619,8 @@ struct SaiSwitchTraits {
       ,
       std::optional<Attributes::ArsProfile>
 #endif
-      >;
+      ,
+      std::optional<Attributes::DelayDropCongThreshold>>;
 
 #if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
   static constexpr std::array<sai_stat_id_t, 3> CounterIdsToRead = {
@@ -721,6 +727,7 @@ SAI_ATTRIBUTE_NAME(Switch, EcmpMemberCount)
 #endif
 SAI_ATTRIBUTE_NAME(Switch, DllPath)
 SAI_ATTRIBUTE_NAME(Switch, RestartIssu)
+SAI_ATTRIBUTE_NAME(Switch, DelayDropCongThreshold)
 SAI_ATTRIBUTE_NAME(Switch, ForceTrafficOverFabric)
 SAI_ATTRIBUTE_NAME(Switch, WarmBootTargetVersion)
 SAI_ATTRIBUTE_NAME(Switch, SwitchIsolate)
