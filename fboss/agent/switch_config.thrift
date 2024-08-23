@@ -1137,6 +1137,7 @@ struct Port {
   30: optional PortFlowletConfigName flowletConfigName;
 
   31: Scope scope = Scope.LOCAL;
+  32: optional PortQueueConfigName portVoqConfigName;
 }
 
 enum LacpPortRate {
