@@ -122,6 +122,7 @@ target_link_libraries(platform_manager_platform_explorer
   platform_manager_service_cpp2
   platform_manager_presence_checker
   platform_manager_utils
+  platform_fs_utils
   fb303::fb303
   weutil_fboss_eeprom_parser
   ioctl_smbus_eeprom_reader

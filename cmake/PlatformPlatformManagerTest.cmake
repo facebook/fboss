@@ -75,6 +75,7 @@ add_executable(platform_manager_presence_checker_test
 target_link_libraries(platform_manager_presence_checker_test
   platform_manager_presence_checker
   platform_manager_utils
+  platform_fs_utils
   ${GTEST}
   ${LIBGMOCK_LIBRARIES}
 )
