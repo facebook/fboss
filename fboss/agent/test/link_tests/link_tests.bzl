@@ -22,7 +22,9 @@ def _sai_link_test_binary(sai_impl, mode):
         test_deps.append("//fboss/agent/platforms/sai:bcm-required-symbols")
 
     if mode == "mono":
+        agent_hw_test_thrift_handler = sai_switch_dependent_name("agent_hw_test_thrift_handler", sai_impl, True)
         test_deps.append("//fboss/agent/test/link_tests:agent_ensemble_link_tests")
+        test_deps.append("//fboss/agent/hw/sai/hw_test:{}".format(agent_hw_test_thrift_handler))
         test_deps.append("//fboss/agent/test:mono_agent_ensemble")
         name = "sai_mono_link_test-{}-{}".format(sai_impl.name, sai_impl.version)
         srcs = [
