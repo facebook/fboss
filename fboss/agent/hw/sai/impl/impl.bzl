@@ -64,7 +64,6 @@ def to_impl_external_deps(sai_impl):
         ("CredoB52SAI", "0.8.4"): [("CredoB52SAI", None, "saiowl")],
         ("fake", "1.14.0"): [("sai", None)],
         ("leaba-sdk", "1.42.8"): [("leaba-sdk", None, "sai-sdk")],
-        ("leaba-sdk", "1.65.1"): [("leaba-sdk", None, "sai-sdk")],
         ("leaba-sdk", "24.4.90"): [("leaba-sdk", None, "sai-sdk")],
         ("leaba-sdk", "24.4.90_yuba"): [("leaba-sdk", None, "sai-sdk")],
         ("leaba-sdk", "24.6.1_yuba"): [("leaba-sdk", None, "sai-sdk")],

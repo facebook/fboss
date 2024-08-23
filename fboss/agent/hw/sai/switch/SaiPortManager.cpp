@@ -1336,7 +1336,7 @@ bool SaiPortManager::createOnlyAttributeChanged(
   // is possible only when the number of lanes are not changing, so the current
   // use case of 100G <-> 200G would work, but not potential future use cases
   // like 200G <-> 400G and 400G <-> 100G.  The SAI_PORT_SPEED_CHANGE will be
-  // supported in future releases like TAJO SDK 1.65.0 and should be enabled
+  // supported in future releases like TAJO SDK 24.4.90 and should be enabled
   // once validated.
   return (std::get<SaiPortTraits::Attributes::HwLaneList>(oldAttributes) !=
           std::get<SaiPortTraits::Attributes::HwLaneList>(newAttributes)) ||

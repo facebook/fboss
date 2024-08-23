@@ -37,7 +37,7 @@ void SaiCloudRipperPlatform::setupAsic(
     std::optional<cfg::Range64> systemPortRange,
     folly::MacAddress& mac) {
   std::optional<cfg::SdkVersion> sdkVersion;
-#if defined(TAJO_SDK_GTE_1_65_0)
+#if defined(TAJO_SDK_GTE_24_4_90)
   /*
    * HwAsic table instance in the sw switch reads the SDK version
    * from the agent config for prod and from sai switch ensemble
@@ -49,7 +49,7 @@ void SaiCloudRipperPlatform::setupAsic(
     sdkVersion = agentConfig->thrift.sw()->sdkVersion().value();
   } else {
     sdkVersion = cfg::SdkVersion{};
-    sdkVersion->asicSdk() = "1.65.1";
+    sdkVersion->asicSdk() = "24.4.90";
   }
 #endif
   asic_ = std::make_unique<EbroAsic>(

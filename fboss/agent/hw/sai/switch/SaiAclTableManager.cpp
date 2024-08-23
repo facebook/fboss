@@ -818,7 +818,7 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
             addedAclEntry->getVlanID().value(), kOuterVlanIdMask))};
   }
 
-#if !defined(TAJO_SDK) || defined(TAJO_SDK_GTE_1_65_0)
+#if !defined(TAJO_SDK) || defined(TAJO_SDK_GTE_24_4_90)
   std::optional<SaiAclEntryTraits::Attributes::FieldBthOpcode> fieldBthOpcode{
       std::nullopt};
   if (addedAclEntry->getRoceOpcode()) {
@@ -1091,7 +1091,7 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
        fieldTtl.has_value() || fieldFdbDstUserMeta.has_value() ||
        fieldRouteDstUserMeta.has_value() || fieldEtherType.has_value() ||
        fieldNeighborDstUserMeta.has_value() || fieldOuterVlanId.has_value() ||
-#if !defined(TAJO_SDK) || defined(TAJO_SDK_GTE_1_65_0)
+#if !defined(TAJO_SDK) || defined(TAJO_SDK_GTE_24_4_90)
        fieldBthOpcode.has_value() ||
 #endif
 #if !defined(TAJO_SDK) && !defined(BRCM_SAI_SDK_XGS)
@@ -1155,7 +1155,7 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
       fieldNeighborDstUserMeta,
       fieldEtherType,
       fieldOuterVlanId,
-#if !defined(TAJO_SDK) || defined(TAJO_SDK_GTE_1_65_0)
+#if !defined(TAJO_SDK) || defined(TAJO_SDK_GTE_24_4_90)
       fieldBthOpcode,
 #endif
 #if !defined(TAJO_SDK) && !defined(BRCM_SAI_SDK_XGS)
@@ -1412,7 +1412,7 @@ std::set<cfg::AclTableQualifier> SaiAclTableManager::getSupportedQualifierSet()
         cfg::AclTableQualifier::LOOKUP_CLASS_NEIGHBOR,
         cfg::AclTableQualifier::LOOKUP_CLASS_ROUTE};
 
-#if defined(TAJO_SDK_GTE_1_65_0)
+#if defined(TAJO_SDK_GTE_24_4_90)
     std::vector<cfg::AclTableQualifier> tajoExtraQualifierList = {
         cfg::AclTableQualifier::ETHER_TYPE,
         cfg::AclTableQualifier::BTH_OPCODE,
@@ -1658,7 +1658,7 @@ bool SaiAclTableManager::isQualifierSupported(
               attributes));
 
     case cfg::AclTableQualifier::BTH_OPCODE:
-#if !defined(TAJO_SDK) || defined(TAJO_SDK_GTE_1_65_0)
+#if !defined(TAJO_SDK) || defined(TAJO_SDK_GTE_24_4_90)
       return hasField(
           std::get<
               std::optional<SaiAclTableTraits::Attributes::FieldBthOpcode>>(

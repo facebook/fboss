@@ -243,12 +243,6 @@ ALL_SDKS = [
         version = "1.42.8",
     ),
     SaiLeabaSdk(
-        fw_path = "third-party-buck/platform010-compat/build/leaba-sdk/1.65.1/res",
-        sai_version = "1.13.0",
-        stage = SdkStage.CANARY,
-        version = "1.65.1",
-    ),
-    SaiLeabaSdk(
         fw_path = "third-party-buck/platform010-compat/build/leaba-sdk/24.4.90/res",
         sai_version = "1.13.0",
         stage = SdkStage.DEV,
