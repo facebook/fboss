@@ -113,6 +113,8 @@ class AgentEnsembleTest : public ::testing::Test {
     return getAgentTestDir() + "/agent.conf";
   }
 
+  std::shared_ptr<SwitchState> applyNewConfig(const cfg::SwitchConfig& config);
+
   void dumpRunningConfig(const std::string& targetDir);
   SwSwitch* getSw() const;
   void setupConfigFile(

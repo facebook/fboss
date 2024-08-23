@@ -352,6 +352,11 @@ void AgentEnsembleTest::setupConfigFile(
   // TODO(Elangovan) evaluate if this is needed with the move to Agent ensemble
 }
 
+std::shared_ptr<SwitchState> AgentEnsembleTest::applyNewConfig(
+    const cfg::SwitchConfig& config) {
+  return agentEnsemble_->applyNewConfig(config);
+}
+
 void AgentEnsembleTest::reloadConfig(std::string reason) const {
   // reload config so that test config is loaded
   getSw()->applyConfig(reason, true);
