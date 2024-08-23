@@ -1,0 +1,42 @@
+name: Build & Test Platform Services
+run-name: Build & Test Platform Services
+on:
+  # Allow on pull request
+  pull_request:
+  # Allow manually triggering the workflow
+  workflow_dispatch:
+  # Also schedule the workflow to run hourly automatically
+  # ShipIt job will sync hourly around HH:21, so schedule the run with 15 minute offset
+  schedule:
+    - cron: '36 * * * *'
+jobs:
+  Platform-Services-Service-Build:
+    runs-on: 32-core-ubuntu
+    steps:
+      - run: echo "Confirming hardware specications:"; sudo lscpu
+      - name: Check out repository code
+        uses: actions/checkout@v4
+      - name: Run Docker-based build for FBOSS
+        run: >
+          sudo
+          ./fboss/oss/scripts/docker-build.py
+          --scratch-path
+          ${{ github.workspace }}/build-output
+          --target
+          github_actions_fboss_platform_services
+          --no-docker-output
+          --no-system-deps
+          --env-var
+          GITHUB_ACTIONS_BUILD
+      - name: Package FBOSS binaries and library dependencies
+        run: >
+          sudo
+          ./fboss/oss/scripts/package-fboss.py
+          --scratch-path
+          ${{ github.workspace }}/build-output
+          --compress
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: fboss.tar.gz
+          path: ${{ github.workspace }}/build-output/fboss_bins.tar.gz
