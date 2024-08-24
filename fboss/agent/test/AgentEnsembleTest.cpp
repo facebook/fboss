@@ -89,7 +89,7 @@ void AgentEnsembleTest::tearDownAgentEnsemble(bool doWarmboot) {
 }
 
 cfg::SwitchConfig AgentEnsembleTest::initialConfig(
-    const AgentEnsemble& ensemble) const {
+    [[maybe_unused]] const AgentEnsemble& ensemble) {
   auto agentConf = AgentConfig::fromDefaultFile();
   return agentConf->thrift.sw().value();
 }

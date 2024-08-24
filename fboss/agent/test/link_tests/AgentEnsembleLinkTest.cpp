@@ -74,7 +74,6 @@ void AgentEnsembleLinkTest::overrideL2LearningConfig(
       apache::thrift::SimpleJSONSerializer::serialize<std::string>(testConfig));
   newAgentConfig.dumpConfig(getTestConfigPath());
   FLAGS_config = getTestConfigPath();
-  getSw()->applyConfig("applying new config", testConfig.sw().value());
 }
 
 void AgentEnsembleLinkTest::setupTtl0ForwardingEnable() {
