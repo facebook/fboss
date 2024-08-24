@@ -2,6 +2,8 @@
 
 #pragma once
 
+#include "fboss/agent/SwSwitch.h"
+#include "fboss/agent/state/Transceiver.h"
 #include "fboss/agent/types.h"
 #include "fboss/qsfp_service/if/gen-cpp2/transceiver_types_custom_protocol.h"
 
@@ -34,4 +36,5 @@ std::map<int32_t, TransceiverInfo> waitForTransceiverInfo(
     std::chrono::duration<uint32_t, std::milli> msBetweenRetry =
         std::chrono::duration_cast<std::chrono::milliseconds>(
             std::chrono::seconds(10)));
+const TransceiverSpec* getTransceiverSpec(const SwSwitch* sw, PortID portId);
 } // namespace facebook::fboss::utility

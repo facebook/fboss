@@ -110,8 +110,6 @@ class LinkTest : public AgentTest {
 
   std::vector<std::pair<PortID, PortID>> getPortPairsForFecErrInj() const;
 
-  const TransceiverSpec* getTransceiverSpec(const SwSwitch* sw, PortID portId);
-
  private:
   void programDefaultRoute(
       const boost::container::flat_set<PortDescriptor>& ecmpPorts,

@@ -94,7 +94,7 @@ TEST_F(LinkTest, getTransceivers) {
       for (const auto& port : ports) {
         auto transceiverId =
             platform()->getPlatformPort(port)->getTransceiverID().value();
-        auto transceiverSpec = getTransceiverSpec(sw(), port);
+        auto transceiverSpec = utility::getTransceiverSpec(sw(), port);
         EXPECT_EVENTUALLY_TRUE(transceiverSpec) << "TcvrId " << transceiverId;
       }
     })

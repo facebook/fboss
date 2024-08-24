@@ -480,18 +480,6 @@ void LinkTest::logLinkDbgMessage(std::vector<PortID>& portIDs) const {
   }
 }
 
-const TransceiverSpec* LinkTest::getTransceiverSpec(
-    const SwSwitch* sw,
-    PortID portId) {
-  auto platformPort = sw->getPlatformMapping()->getPlatformPort(portId);
-  const auto& chips = sw->getPlatformMapping()->getChips();
-  if (auto tcvrID = utility::getTransceiverId(platformPort, chips)) {
-    auto transceiver = sw->getState()->getTransceivers()->getNodeIf(*tcvrID);
-    return transceiver.get();
-  }
-  return nullptr;
-}
-
 void LinkTest::setLinkState(bool enable, std::vector<PortID>& portIds) {
   for (const auto& port : portIds) {
     setPortStatus(port, enable);
