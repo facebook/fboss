@@ -271,10 +271,10 @@ TEST_F(AgentPacketSendTest, PortTxEnableTest) {
     auto portStatsT0 = getLatestPortStats(masterLogicalInterfacePortIds()[0]);
     sendTcpPkts(kNumPacketsToSend);
     auto newStats = portStatsT0;
-    WITH_RETRIES_N_TIMED(5, std::chrono::milliseconds(2000), {
+    WITH_RETRIES({
       auto oldStats = newStats;
       sendTcpPkts(1);
-      newStats = getLatestPortStats(masterLogicalInterfacePortIds()[0]);
+      newStats = getNextUpdatedPortStats(masterLogicalInterfacePortIds()[0]);
       EXPECT_EVENTUALLY_GT(*newStats.timestamp_(), *oldStats.timestamp_());
       EXPECT_EVENTUALLY_EQ(
           *newStats.outUnicastPkts_(), *oldStats.outUnicastPkts_());
