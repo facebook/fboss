@@ -336,6 +336,12 @@ TEST_F(AgentFabricSwitchSelfLoopTest, portDrained) {
     // so filter status is not updated.
     checkDataCellFilter(
         true, std::vector<PortID>(drainedPorts.begin(), drainedPorts.end()));
+    // Verify that global drops are zero
+    auto switch2SwitchStats = getSw()->getHwSwitchStatsExpensive();
+    for (const auto& [_, switchStats] : switch2SwitchStats) {
+      const auto& dropStats = *switchStats.switchDropStats();
+      EXPECT_EQ(*dropStats.globalDrops(), 0);
+    }
   };
   verifyAcrossWarmBoots(setup, verify);
 }
