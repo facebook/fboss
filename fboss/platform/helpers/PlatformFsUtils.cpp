@@ -52,6 +52,14 @@ bool PlatformFsUtils::createDirectories(const fs::path& path) const {
   return errCode.value() == 0;
 }
 
+bool PlatformFsUtils::exists(const fs::path& path) const {
+  return fs::exists(concat(rootDir_, path));
+}
+
+fs::directory_iterator PlatformFsUtils::ls(const fs::path& path) const {
+  return fs::directory_iterator(concat(rootDir_, path));
+}
+
 bool PlatformFsUtils::writeStringToFile(
     const std::string& content,
     const fs::path& path,

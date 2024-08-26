@@ -10,6 +10,12 @@
 
 namespace facebook::fboss::platform {
 
+// This class provides a set of file system utility functions used by platform
+// services. It supports testing on the actual filesystem via rootDir field,
+// which can be set to a temporary directory, allowing tests to run even when
+// the tested code path uses absolute file paths. Users of this class should
+// rely on it for all file operations which read/write to/from the filesystem to
+// ensure consistent behavior.
 class PlatformFsUtils {
  public:
   // If rootDir is provided, ALL file operations will be relative to it. In
@@ -26,6 +32,11 @@ class PlatformFsUtils {
   // No-op if parent directories already exist.
   // Returns true if created or already exist, otherwise false.
   bool createDirectories(const std::filesystem::path& path) const;
+
+  bool exists(const std::filesystem::path& path) const;
+
+  std::filesystem::directory_iterator ls(
+      const std::filesystem::path& path) const;
 
   // Write string to file. Returns true if successful, otherwise false. File and
   // directories will be created (recursively) if they don't exist. By default,

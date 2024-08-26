@@ -56,12 +56,16 @@ TEST(PlatformExplorerTest, PublishFirmwareVersions) {
   writeVersions(cpldPath2, "cpld", "0xf", "9", platformFsUtils);
   std::string fpgaPathBadInt = "/run/devmap/fpgas/TEST_FPGA_BAD_INT";
   writeVersions(fpgaPathBadInt, "fpga", "a", " ", platformFsUtils);
+  std::string cpldHwmonPath = "/run/devmap/cplds/FAN0_CPLD";
+  writeVersions(
+      cpldHwmonPath + "/hwmon/hwmon20", "cpld", "99", "99", platformFsUtils);
 
   PlatformConfig platformConfig;
   platformConfig.symbolicLinkToDevicePath()[fpgaPath] = "";
   platformConfig.symbolicLinkToDevicePath()[cpldPath] = "";
   platformConfig.symbolicLinkToDevicePath()[cpldPath2] = "";
   platformConfig.symbolicLinkToDevicePath()[fpgaPathBadInt] = "";
+  platformConfig.symbolicLinkToDevicePath()[cpldHwmonPath] = "";
 
   PlatformExplorer explorer(platformConfig, platformFsUtils);
   explorer.publishFirmwareVersions();
@@ -70,6 +74,7 @@ TEST(PlatformExplorerTest, PublishFirmwareVersions) {
   expectVersions("TEST_MCB_CPLD", "4.15", 4015);
   expectVersions("TEST_CPLD_MIXED", "15.9", 15009);
   expectVersions("TEST_FPGA_BAD_INT", "0.0", 0);
+  expectVersions("FAN0_CPLD", "99.99", 99099);
 }
 
 } // namespace facebook::fboss::platform::platform_manager

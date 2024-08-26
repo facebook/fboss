@@ -65,9 +65,7 @@ class PlatformExplorer {
       const std::string& slotPath,
       const std::string& pm);
 
-  // Publish firmware versions read from /run/devmap files to ODS. Additionally,
-  // paths will be prefixed with rootPrefix, which is intended for testing
-  // purposes.
+  // Publish firmware versions read from /run/devmap files to ODS.
   void publishFirmwareVersions();
 
   // Get the last PlatformManagerStatus.
