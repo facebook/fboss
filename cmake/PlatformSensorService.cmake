@@ -26,9 +26,11 @@ add_fbthrift_cpp_library(
 
 add_library(sensor_service_utils
   fboss/platform/sensor_service/Utils.cpp
+  fboss/platform/sensor_service/PmUnitInfoFetcher.cpp
 )
 
 target_link_libraries(sensor_service_utils
+  sensor_config_cpp2
   ${RE2}
 )
 
