@@ -32,7 +32,7 @@ def parse_args():
 
 class PackageFboss:
     FBOSS_BINS = "fboss_bins-1"
-    FBOSS_BIN_TAR = "fboss_bins.tar.gz"
+    FBOSS_BIN_TAR_BASE_NAME = "fboss_bins"
     FBOSS = "fboss"
 
     BIN = "bin"
@@ -224,9 +224,9 @@ class PackageFboss:
 
     def _compress_binaries(self):
         print("Compressing FBOSS Binaries...")
-        tar_path = os.path.join(args.scratch_path, PackageFboss.FBOSS_BIN_TAR)
-        subprocess.run(["tar", "-cvzf", tar_path, self.tmp_dir_name])
-        print(f"Compressed to {tar_path}")
+        tar_path = os.path.join(args.scratch_path, PackageFboss.FBOSS_BIN_TAR_BASE_NAME)
+        compressed_file = shutil.make_archive(tar_path, "gztar", self.tmp_dir_name)
+        print(f"Compressed to {tar_path}: {compressed_file}")
 
     def run(self, args):
         self._copy_binaries(self.tmp_dir_name)
