@@ -548,6 +548,55 @@ TEST_F(
   verifyAcrossWarmBoots(setup, verify);
 }
 
+// verify if all 16 ECMP groups are in DLB mode
+TEST_F(HwFlowletSwitchingFlowsetMultipleEcmpTests, ValidateFlowsetTableFull) {
+  if (this->skipTest()) {
+#if defined(GTEST_SKIP)
+    GTEST_SKIP();
+#endif
+    return;
+  }
+
+  auto setup = [&]() {
+    // create 16 different ECMP objects
+    // 32768 / 2048 = 16
+    int numEcmp = int(utility::KMaxFlowsetTableSize / kFlowletTableSize2);
+    int totalEcmp = 0;
+    for (int i = 1; i < 8 && totalEcmp < numEcmp; i++) {
+      for (int j = i + 1; j < 8 && totalEcmp < numEcmp; j++) {
+        std::vector<PortID> portIds;
+        portIds.push_back(masterLogicalPortIds()[0]);
+        portIds.push_back(masterLogicalPortIds()[i]);
+        portIds.push_back(masterLogicalPortIds()[j]);
+        resolveNextHopsAddRoute(
+            portIds,
+            folly::IPAddressV6(
+                folly::sformat("{}:{:x}::", kAddr3, totalEcmp++)));
+      }
+    }
+  };
+
+  auto verify = [&]() {
+    auto cfg = initialConfig();
+    auto portFlowletConfig =
+        getPortFlowletConfig(kScalingFactor1, kLoadWeight1, kQueueWeight1);
+    int numEcmp = int(utility::KMaxFlowsetTableSize / kFlowletTableSize2);
+
+    for (int i = 0; i < numEcmp; i++) {
+      auto currentIp = folly::IPAddress(folly::sformat("{}:{:x}::", kAddr3, i));
+      folly::CIDRNetwork currentPrefix{currentIp, 64};
+      utility::verifyEcmpForFlowletSwitching(
+          getHwSwitch(),
+          currentPrefix, // second route
+          *cfg.flowletSwitchingConfig(),
+          portFlowletConfig,
+          true /* flowletEnable */,
+          true /* expectFlowsetSizeZero */);
+    }
+  };
+  verifyAcrossWarmBoots(setup, verify);
+}
+
 // This test creates more than 128 ECMP groups and
 // try to update the ECMP group id 200128 to be flowlet enabled and
 // verify it fails.
