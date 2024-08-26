@@ -52,6 +52,7 @@ class PackageFboss:
         "gflags": (LIB, [], INSTALLED),
         "glog": (LIB, [], INSTALLED),
         "libevent": (LIB, [], INSTALLED),
+        "libgpiod": (LIB, [], INSTALLED),
         "libsodium": (LIB, [], INSTALLED),
         "python": (LIB, [], INSTALLED),
     }
