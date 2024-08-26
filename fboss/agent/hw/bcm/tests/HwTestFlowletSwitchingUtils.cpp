@@ -92,13 +92,11 @@ bool validateFlowletSwitchingEnabled(
 
 bool validateFlowSetTable(
     const facebook::fboss::HwSwitch* hw,
-    const bool expectFlowsetSizeZero,
-    const int flowletTableSize) {
+    const bool expectFlowsetSizeZero) {
   bool isVerified = true;
 
-  XLOG(DBG2) << "validateFlowSetTable with flowletTableSize: "
-             << flowletTableSize
-             << ", expectFlowsetSizeZero:" << expectFlowsetSizeZero;
+  XLOG(DBG2) << "validateFlowSetTable with "
+             << "expectFlowsetSizeZero: " << expectFlowsetSizeZero;
 #if (                                      \
     defined(BCM_SDK_VERSION_GTE_6_5_26) && \
     !defined(BCM_SDK_VERSION_GTE_6_5_28))
@@ -122,16 +120,12 @@ bool validateFlowSetTable(
       bcmSwitchObjectEcmpDynamicFlowSetFree,
       &freeEntries);
   bcmCheckError(rv, "Failed to get bcmSwitchObjectEcmpDynamicFlowSetFree");
+  if (expectFlowsetSizeZero) {
+    CHECK_EQ(freeEntries, 0);
+  }
 
   if (maxEntries != KMaxFlowsetTableSize) {
     XLOG(ERR) << "Max Entries are not as expected: " << maxEntries;
-    isVerified = false;
-  }
-  if (usedEntries < flowletTableSize) {
-    // expected flowset table size zero or not, flowsetTable Size should match
-    // the used entries
-    XLOG(ERR) << "ECMP flowset table : " << flowletTableSize
-              << ",  is more than usedEntries: " << usedEntries;
     isVerified = false;
   }
 
@@ -150,8 +144,7 @@ bool verifyEcmpForFlowletSwitching(
     const folly::CIDRNetwork& prefix,
     const cfg::FlowletSwitchingConfig& flowletCfg,
     const cfg::PortFlowletConfig& cfg,
-    const bool flowletEnable,
-    const bool expectFlowsetSizeZero) {
+    const bool flowletEnable) {
   const auto bcmSwitch = static_cast<const BcmSwitch*>(hw);
   auto ecmp = getEgressIdForRoute(bcmSwitch, prefix.first, prefix.second, kRid);
   bcm_l3_egress_ecmp_t existing;
@@ -161,27 +154,25 @@ bool verifyEcmpForFlowletSwitching(
   int pathsInHwCount;
   bool isVerified = true;
   bcm_l3_ecmp_get(bcmSwitch->getUnit(), &existing, 0, nullptr, &pathsInHwCount);
-  const int flowletTableSize = getFlowletSizeWithScalingFactor(
-      bcmSwitch,
-      *flowletCfg.flowletTableSize(),
-      pathsInHwCount,
-      *flowletCfg.maxLinks());
 
-  isVerified =
-      validateFlowSetTable(hw, expectFlowsetSizeZero, flowletTableSize);
-
-  if (flowletEnable && flowletTableSize > 0) {
+  uint32 flowletTableSize = static_cast<uint16>(*flowletCfg.flowletTableSize());
+  if (flowletEnable) {
     auto dynamicMode = getFlowletDynamicMode(*flowletCfg.switchingMode());
     if ((existing.dynamic_mode != dynamicMode) ||
         (existing.dynamic_age != *flowletCfg.inactivityIntervalUsecs()) ||
-        (existing.dynamic_size != flowletTableSize) ||
-        (expectFlowsetSizeZero != 0)) {
+        (existing.dynamic_size != flowletTableSize)) {
+      XLOG(DBG2) << "Existing mode: " << existing.dynamic_mode
+                 << ", Configured mode: " << dynamicMode
+                 << ", Existing age: " << existing.dynamic_age
+                 << ", Configured age: "
+                 << *flowletCfg.inactivityIntervalUsecs()
+                 << ", Existing size: " << existing.dynamic_size
+                 << ", Configured size: " << flowletTableSize;
       isVerified = false;
     }
   } else {
     if ((existing.dynamic_mode != BCM_L3_ECMP_DYNAMIC_MODE_DISABLED) ||
-        (expectFlowsetSizeZero != 1) ||
-        (existing.dynamic_size != flowletTableSize)) {
+        (existing.dynamic_size != 0)) {
       isVerified = false;
     }
   }
