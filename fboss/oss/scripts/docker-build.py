@@ -218,7 +218,13 @@ def run_fboss_build(
         build_cmd.append(target)
     build_cmd.append("fboss")
     cmd_args.extend(build_cmd)
-    subprocess.run(cmd_args)
+    build_cp = subprocess.run(cmd_args)
+    if build_cp.returncode != 0:
+        print(
+            "[ERROR] Encountered a failure while attempting to build. Check the logs to root cause.",
+            file=sys.stderr,
+        )
+    return build_cp.returncode
 
 
 def cleanup_fboss_build_container():
@@ -255,7 +261,7 @@ def main():
     docker_dir_path = get_docker_path()
     build_docker_image(docker_dir_path)
 
-    run_fboss_build(
+    status_code = run_fboss_build(
         args.scratch_path,
         args.target,
         args.docker_output,
@@ -265,7 +271,7 @@ def main():
 
     cleanup_fboss_build_container()
 
-    return 0
+    return status_code
 
 
 if __name__ == "__main__":
