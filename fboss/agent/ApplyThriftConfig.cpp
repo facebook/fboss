@@ -3419,6 +3419,9 @@ shared_ptr<AclEntry> ThriftConfigApplier::createAcl(
   if (auto roceMask = config->roceMask()) {
     newAcl->setRoceMask(*roceMask);
   }
+  if (auto udfTable = config->udfTable()) {
+    newAcl->setUdfTable(*udfTable);
+  }
   newAcl->setEnabled(enable);
   return newAcl;
 }

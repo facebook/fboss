@@ -59,6 +59,18 @@ cfg::UdfConfig makeUdfConfig(const std::vector<std::string>& udfNameList) {
   return udf;
 }
 
+std::vector<cfg::AclUdfEntry> makeAclUdfEntry() {
+  std::vector<cfg::AclUdfEntry> aclUdfEntryList;
+  for (const auto& udfGroup : kUdfList) {
+    cfg::AclUdfEntry aclUdfEntry;
+    aclUdfEntry.udfGroup() = udfGroup;
+    aclUdfEntry.roceBytes() = kRoceBytes;
+    aclUdfEntry.roceMask() = kRoceMask;
+    aclUdfEntryList.push_back(aclUdfEntry);
+  }
+  return aclUdfEntryList;
+}
+
 TEST(Acl, applyConfig) {
   FLAGS_enable_acl_table_group = false;
   auto platform = createMockPlatform();
@@ -331,11 +343,15 @@ TEST(Acl, Udf) {
   std::vector<std::string> udfList = {"foo1", "foo2"};
 
   cfg::SwitchConfig config;
-  config.acls()->resize(1);
+  config.acls()->resize(2);
   *config.acls()[0].name() = "aclUdf";
   *config.acls()[0].actionType() = cfg::AclActionType::DENY;
   config.acls()[0].udfGroups() = {};
   config.acls()[0].roceOpcode() = utility::kUdfRoceOpcodeAck;
+
+  *config.acls()[1].name() = "aclUdfTable";
+  *config.acls()[1].actionType() = cfg::AclActionType::DENY;
+  config.acls()[1].udfTable() = makeAclUdfEntry();
 
   // empty groups section is not valid
   EXPECT_THROW(
@@ -356,6 +372,16 @@ TEST(Acl, Udf) {
   EXPECT_EQ(cfg::AclActionType::DENY, aclV1->getActionType());
   EXPECT_EQ(aclV1->getUdfGroups().value(), kUdfList);
   EXPECT_EQ(aclV1->getRoceOpcode().value(), utility::kUdfRoceOpcodeAck);
+
+  auto aclV11 = stateV1->getAcl("aclUdfTable");
+  auto aclUdfEntryList = aclV11->getUdfTable().value();
+
+  EXPECT_EQ(aclUdfEntryList[0].udfGroup(), kUdfList[0]);
+  EXPECT_EQ(aclUdfEntryList[0].roceBytes(), kRoceBytes);
+  EXPECT_EQ(aclUdfEntryList[0].roceMask(), kRoceMask);
+  EXPECT_EQ(aclUdfEntryList[1].udfGroup(), kUdfList[1]);
+  EXPECT_EQ(aclUdfEntryList[1].roceBytes(), kRoceBytes);
+  EXPECT_EQ(aclUdfEntryList[1].roceMask(), kRoceMask);
 
   // update udf list, ensure it gets reflected
   std::vector<std::string> newUdfList = {"foo3"};
