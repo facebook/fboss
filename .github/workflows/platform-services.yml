@@ -10,7 +10,7 @@ on:
   schedule:
     - cron: '36 * * * *'
 jobs:
-  Platform-Services-Service-Build:
+  Platform-Services-Build:
     runs-on: 32-core-ubuntu
     steps:
       - run: echo "Confirming hardware specications:"; sudo lscpu
@@ -40,3 +40,12 @@ jobs:
         with:
           name: fboss.tar.gz
           path: ${{ github.workspace }}/build-output/fboss_bins.tar.gz
+  Platform-Services-Test:
+    runs-on: ubuntu-latest
+    needs: Platform-Services-Build
+    steps:
+      - name: Download artifact with test binaries
+        uses: actions/download-artifact@v4
+        with:
+          name: fboss.tar.gz
+      - run: ls ${{ github.workspace }}

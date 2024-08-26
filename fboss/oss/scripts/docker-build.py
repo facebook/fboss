@@ -183,7 +183,7 @@ def run_fboss_build(
     cmd_args = ["sudo", "docker", "run"]
     # Add build environment variables, if any.
     for ev in env_vars:
-        if not ":" in ev:
+        if ":" not in ev:
             cmd_args.extend(["-e", f"{ev}=1"])
         elif ev.count(":") == 1:
             cmd_args.extend(["-e", ev])
