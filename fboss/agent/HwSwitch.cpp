@@ -159,7 +159,13 @@ void HwSwitch::switchRunStateChanged(SwitchRunState newState) {
 }
 
 void HwSwitch::updateStats() {
-  updateStatsImpl();
+  try {
+    updateStatsImpl();
+  } catch (const std::exception& ex) {
+    XLOG(ERR) << "Error collecting hw stats " << folly::exceptionStr(ex);
+    getSwitchStats()->statsCollectionFailed();
+    throw;
+  }
 }
 
 multiswitch::HwSwitchStats HwSwitch::getHwSwitchStats() {
@@ -190,6 +196,7 @@ void HwSwitch::updateAllPhyInfo() {
     try {
       *lastPhyInfo_.wlock() = updateAllPhyInfoImpl();
     } catch (const std::exception& ex) {
+      getSwitchStats()->phyInfoCollectionFailed();
       XLOG(ERR) << "Error running updateAllPhyInfo: "
                 << folly::exceptionStr(ex);
     }
