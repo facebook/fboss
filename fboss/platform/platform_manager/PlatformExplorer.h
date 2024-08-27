@@ -71,6 +71,10 @@ class PlatformExplorer {
   // Get the last PlatformManagerStatus.
   PlatformManagerStatus getPMStatus() const;
 
+  // Get the PmUnitInfo of the given SlotPath and PmUnitName.
+  // throws if no PmUnit found at the SlotPath.
+  PmUnitInfo getPmUnitInfo(const std::string& slotPath) const;
+
  private:
   void createDeviceSymLink(
       const std::string& linkPath,

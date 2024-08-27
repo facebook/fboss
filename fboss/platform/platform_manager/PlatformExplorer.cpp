@@ -574,8 +574,9 @@ void PlatformExplorer::reportExplorationSummary() {
   for (const auto& [slotPath, errMsgs] : errorMessagesBySlotPath) {
     XLOG(INFO) << fmt::format(
         "Failures in PmUnit {} at {}",
-        dataStore_.hasPmUnit(slotPath) ? dataStore_.getPmUnitName(slotPath)
-                                       : "<ABSENT>",
+        dataStore_.hasPmUnit(slotPath)
+            ? *dataStore_.getPmUnitInfo(slotPath).name()
+            : "<ABSENT>",
         slotPath);
     int i = 1;
     for (const auto& errMsg : errMsgs) {
@@ -639,6 +640,10 @@ void PlatformExplorer::publishFirmwareVersions() {
 
 PlatformManagerStatus PlatformExplorer::getPMStatus() const {
   return platformManagerStatus_.copy();
+}
+
+PmUnitInfo PlatformExplorer::getPmUnitInfo(const std::string& slotPath) const {
+  return dataStore_.getPmUnitInfo(slotPath);
 }
 
 void PlatformExplorer::setupI2cDevice(

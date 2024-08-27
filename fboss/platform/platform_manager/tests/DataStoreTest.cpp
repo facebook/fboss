@@ -27,8 +27,9 @@ TEST(DataStoreTest, PmUnitAtSlotPath) {
   dataStore.updatePmUnitInfo("/", "MCB_FAN_CPLD", 1);
   EXPECT_TRUE(dataStore.hasPmUnit("/"));
   EXPECT_FALSE(dataStore.hasPmUnit("/SMB_SLOT@1"));
-  EXPECT_EQ(dataStore.getPmUnitName("/"), "MCB_FAN_CPLD");
-  EXPECT_THROW(dataStore.getPmUnitName("/SMB_SLOT@1"), std::runtime_error);
+  EXPECT_EQ(*dataStore.getPmUnitInfo("/").name(), "MCB_FAN_CPLD");
+  EXPECT_EQ(*dataStore.getPmUnitInfo("/").version()->productSubVersion(), 1);
+  EXPECT_THROW(dataStore.getPmUnitInfo("/SMB_SLOT@1"), std::runtime_error);
 }
 
 TEST(DataStoreTest, FpgaIpBlockPciDevicePath) {

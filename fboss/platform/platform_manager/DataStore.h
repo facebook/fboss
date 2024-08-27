@@ -29,8 +29,8 @@ class DataStore {
       const std::string& pmUnitScopeBusName,
       uint16_t busNum);
 
-  // Get PmUnitName at the given SlotPath
-  std::string getPmUnitName(const std::string& slotPath) const;
+  // Get PmUnitInfo at the given SlotPath
+  PmUnitInfo getPmUnitInfo(const std::string& slotPath) const;
 
   // Checks if a PmUnit exists at the given SlotPath
   bool hasPmUnit(const std::string& slotPath) const;
@@ -86,7 +86,7 @@ class DataStore {
   // Map from PciSubDevicePath to CharDevPath
   std::map<std::string, std::string> pciSubDevicePathToCharDevPath_{};
 
-  // Map from PmUnitName to its PmUnitInfo
+  // Map from SlotPath to its PmUnitInfo
   std::map<std::string, PmUnitInfo> slotPathToPmUnitInfo{};
 
   const PlatformConfig& platformConfig_;

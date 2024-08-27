@@ -39,9 +39,9 @@ void DataStore::updateI2cBusNum(
   i2cBusNums_[std::make_pair(slotPath, pmUnitScopeBusName)] = busNum;
 }
 
-std::string DataStore::getPmUnitName(const std::string& slotPath) const {
+PmUnitInfo DataStore::getPmUnitInfo(const std::string& slotPath) const {
   if (slotPathToPmUnitInfo.find(slotPath) != slotPathToPmUnitInfo.end()) {
-    return *slotPathToPmUnitInfo.at(slotPath).name();
+    return slotPathToPmUnitInfo.at(slotPath);
   }
   throw std::runtime_error(
       fmt::format("Could not find PmUnit at {}", slotPath));
