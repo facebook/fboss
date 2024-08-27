@@ -3,6 +3,13 @@ load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
 oncall("fboss_agent_push")
 
 cpp_library(
+    name = "fruid_fields",
+    headers = [
+        "FruIdFields.h",
+    ],
+)
+
+cpp_library(
     name = "platform_mode",
     srcs = [
         "PlatformMode.cpp",
@@ -25,10 +32,11 @@ cpp_library(
         "facebook/PlatformProductInfo.cpp",
     ],
     exported_deps = [
-        ":platform_mode",
+        ":fruid_fields",
         "//common/fbwhoami:fb_who_am_i",
         "//fboss/agent:fboss-error",
         "//fboss/agent/if:product_info-cpp2-types",
+        "//fboss/lib/if:fboss_common-cpp2-types",
         "//folly:file_util",
         "//folly:network_address",
         "//folly:range",

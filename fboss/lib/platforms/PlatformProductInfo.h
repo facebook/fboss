@@ -10,10 +10,9 @@
 #pragma once
 
 #include <folly/Range.h>
-#include <optional>
 
 #include "fboss/agent/if/gen-cpp2/product_info_types.h"
-#include "fboss/lib/platforms/PlatformMode.h"
+#include "fboss/lib/if/gen-cpp2/fboss_common_types.h"
 
 DECLARE_string(fruid_filepath);
 
