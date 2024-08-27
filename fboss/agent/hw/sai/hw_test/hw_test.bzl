@@ -426,7 +426,6 @@ def _test_thrift_handlers(is_npu):
 
 def all_test_thrift_handlers():
     _test_thrift_handlers(is_npu = True)
-    _test_thrift_handlers(is_npu = False)
 
 def _test_thrift_handler(sai_impl, is_npu):
     switch_lib_name = sai_switch_lib_name(sai_impl, is_npu)
