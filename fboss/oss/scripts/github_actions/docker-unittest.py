@@ -88,7 +88,6 @@ def run_test(test: str, output_dir: str) -> bool:
     cmd_args.extend(["-v", f"{output_dir}:{output_dir}:z"])
     # Add required capability for sudo permissions
     cmd_args.append("--cap-add=CAP_AUDIT_WRITE")
-    cmd_args.append("-it")
     cmd_args.append(f"{FBOSS_IMAGE_NAME}:latest")
     test_path = os.path.join(output_dir, "bin", test)
     cmd_args.append(test_path)
