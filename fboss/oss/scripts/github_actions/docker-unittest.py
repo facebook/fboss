@@ -114,10 +114,15 @@ def main():
 
     failed_test_string = ", ".join(failed_tests)
 
-    print(f"The following tests failed: {failed_test_string}")
+    exit_code = 0
+    if len(failed_tests) == 0:
+        print("All tests passed!")
+    else:
+        print(f"The following tests failed: {failed_test_string}")
+        exit_code = 1
 
     cleanup(output_dir)
-    return 0
+    return exit_code
 
 
 if __name__ == "__main__":
