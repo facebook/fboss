@@ -46,6 +46,8 @@ jobs:
     runs-on: ubuntu-latest
     needs: Platform-Services-Build
     steps:
+      - name: Check out repository code
+        uses: actions/checkout@v4
       - name: Download artifact with test binaries
         uses: actions/download-artifact@v4
         with:
