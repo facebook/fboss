@@ -466,7 +466,7 @@ TEST_F(AgentWatermarkTest, VerifyQueueWatermarkAccuracy) {
       auto kQueueId =
           utility::getOlympicQueueId(utility::OlympicQueueType::SILVER);
       constexpr auto kTxPacketPayloadLen{200};
-      constexpr auto kNumberOfPacketsToSend{100};
+      constexpr auto kNumberOfPacketsToSend{450};
       const bool isVoq = asic->getSwitchType() == cfg::SwitchType::VOQ;
       auto txPacketLen = kTxPacketPayloadLen + EthHdr::SIZE + IPv6Hdr::size() +
           UDPHeader::size();

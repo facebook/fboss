@@ -224,7 +224,7 @@ TEST_F(AgentPacketSendTest, ArpRequestToFrontPanelPortSwitched) {
 TEST_F(AgentPacketSendTest, PortTxEnableTest) {
   auto setup = [=]() {};
   auto verify = [=, this]() {
-    constexpr auto kNumPacketsToSend{100};
+    constexpr auto kNumPacketsToSend{450};
     auto vlanId = utility::firstVlanID(getProgrammedState());
     auto intfMac = utility::getFirstInterfaceMac(getProgrammedState());
     auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
