@@ -70,7 +70,7 @@
           "versions": [
             {
               "fwType": 1,
-              "version": "3.8"
+              "version": "3.9"
             }
           ]
       },
@@ -78,7 +78,7 @@
           "versions": [
             {
               "fwType": 1,
-              "version": "3.8"
+              "version": "3.9"
             }
           ]
       },
@@ -102,7 +102,7 @@
           "versions": [
             {
               "fwType": 1,
-              "version": "1.12"
+              "version": "1.13"
             }
           ]
       },
@@ -222,7 +222,7 @@
           "versions": [
             {
               "fwType": 1,
-              "version": "103.130"
+              "version": "103.243"
             }
           ]
       }
