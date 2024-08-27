@@ -38,11 +38,6 @@ SaiSwitchTraits::Attributes::AttributeRestartIssuWrapper::operator()() {
   return std::nullopt;
 }
 
-std::optional<sai_attr_id_t>
-SaiSwitchTraits::Attributes::AttributeDelayDropCongThreshold::operator()() {
-  return std::nullopt;
-}
-
 std::optional<sai_attr_id_t> SaiSwitchTraits::Attributes::
     AttributeForceTrafficOverFabricWrapper::operator()() {
   return std::nullopt;

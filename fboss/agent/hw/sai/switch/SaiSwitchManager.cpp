@@ -45,11 +45,6 @@ DEFINE_bool(
     false,
     "Flag to indicate whether to skip setting source mac in Sai switch during wb");
 
-DEFINE_uint32(
-    delay_drop_congestion_threshold,
-    0,
-    "Delay drop congestion threshold");
-
 namespace {
 using namespace facebook::fboss;
 sai_hash_algorithm_t toSaiHashAlgo(cfg::HashingAlgorithm algo) {

@@ -184,11 +184,6 @@ void SwitchApi::registerSwitchEventCallback(
 #endif
 }
 
-std::optional<sai_attr_id_t>
-SaiSwitchTraits::Attributes::AttributeDelayDropCongThreshold::operator()() {
-  return std::nullopt;
-}
-
 std::optional<sai_attr_id_t> SaiSwitchTraits::Attributes::
     AttributeForceTrafficOverFabricWrapper::operator()() {
 #if defined(BRCM_SAI_SDK_DNX)
