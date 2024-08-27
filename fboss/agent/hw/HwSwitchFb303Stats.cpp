@@ -204,7 +204,17 @@ HwSwitchFb303Stats::HwSwitchFb303Stats(
        */
       bcmSdkVer_(map, getCounterPrefix() + "bcm_sdk_version"),
       bcmSaiSdkVer_(map, getCounterPrefix() + "bcm_sai_sdk_version"),
-      leabaSdkVer_(map, getCounterPrefix() + "leaba_sai_sdk_version") {}
+      leabaSdkVer_(map, getCounterPrefix() + "leaba_sai_sdk_version"),
+      hwStatsCollectionFailed_(
+          map,
+          getCounterPrefix() + "hw_stats_collection_failed",
+          SUM,
+          RATE),
+      phyInfoCollectionFailed_(
+          map,
+          getCounterPrefix() + "phy_info_collection_failed",
+          SUM,
+          RATE) {}
 
 void HwSwitchFb303Stats::update(const HwSwitchDropStats& dropStats) {
   if (dropStats.globalDrops().has_value()) {

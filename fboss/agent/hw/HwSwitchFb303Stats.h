@@ -248,6 +248,10 @@ class HwSwitchFb303Stats {
   TLCounter bcmSdkVer_;
   TLCounter bcmSaiSdkVer_;
   TLCounter leabaSdkVer_;
+  // Meta stats to capture stat and phy
+  // info collection failures
+  TLTimeseries hwStatsCollectionFailed_;
+  TLTimeseries phyInfoCollectionFailed_;
 };
 
 } // namespace facebook::fboss
