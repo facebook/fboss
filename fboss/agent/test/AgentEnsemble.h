@@ -20,6 +20,8 @@
 #include "fboss/agent/test/RouteDistributionGenerator.h"
 #include "fboss/agent/test/TestEnsembleIf.h"
 
+#include "fboss/agent/if/gen-cpp2/AgentHwTestCtrl.h"
+
 DECLARE_string(config);
 DECLARE_bool(setup_for_warmboot);
 
@@ -273,6 +275,9 @@ class AgentEnsemble : public TestEnsembleIf {
       const HwPortStats& prevPortStats,
       const HwPortStats& curPortStats,
       const int secondsBetweenStatsCollection);
+
+  std::unique_ptr<apache::thrift::Client<utility::AgentHwTestCtrl>>
+  getHwAgentTestClient(SwitchID switchId);
 
  protected:
   void joinAsyncInitThread() {

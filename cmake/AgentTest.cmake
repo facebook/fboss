@@ -182,6 +182,8 @@ target_link_libraries(agent_ensemble
   fboss_config_utils
   test_ensemble_if
   pkt_test_utils
+  agent_hw_test_ctrl_cpp2
+  FBThrift::thriftcpp2
   ${GTEST}
 )
 
