@@ -2,11 +2,10 @@
 
 #include <fboss/platform/weutil/FbossEepromParser.h>
 
-#include <cctype>
-#include <filesystem>
 #include <fstream>
 #include <ios>
 #include <iostream>
+#include <sstream>
 #include <string>
 #include <unordered_map>
 #include <utility>
@@ -41,7 +40,7 @@ typedef struct {
   std::optional<int> offset;
 } EepromFieldEntry;
 
-std::vector<EepromFieldEntry> kFieldDictionaryV3 = {
+const std::vector<EepromFieldEntry> kFieldDictionaryV3 = {
     {0, "Version", FIELD_LE_UINT, 1, 2}, // TypeCode 0 is reserved
     {1, "Product Name", FIELD_STRING, 20, 3},
     {2, "Product Part Number", FIELD_STRING, 8, 23},
@@ -65,7 +64,7 @@ std::vector<EepromFieldEntry> kFieldDictionaryV3 = {
     {19, "Location on Fabric", FIELD_STRING, 20, 175},
     {250, "CRC8", FIELD_LE_HEX, 1, 195}};
 
-std::vector<EepromFieldEntry> kFieldDictionaryV4 = {
+const std::vector<EepromFieldEntry> kFieldDictionaryV4 = {
     {0, "NA", FIELD_LE_UINT, -1, -1}, // TypeCode 0 is reserved
     {1, "Product Name", FIELD_STRING, VARIABLE, VARIABLE},
     {2, "Product Part Number", FIELD_STRING, VARIABLE, VARIABLE},
@@ -89,7 +88,7 @@ std::vector<EepromFieldEntry> kFieldDictionaryV4 = {
     {250, "CRC16", FIELD_LE_HEX, 2, VARIABLE},
 };
 
-std::vector<EepromFieldEntry> kFieldDictionaryV5 = {
+const std::vector<EepromFieldEntry> kFieldDictionaryV5 = {
     {0, "NA", FIELD_LE_UINT, -1, -1}, // TypeCode 0 is reserved
     {1, "Product Name", FIELD_STRING, VARIABLE, VARIABLE},
     {2, "Product Part Number", FIELD_STRING, VARIABLE, VARIABLE},
@@ -113,6 +112,14 @@ std::vector<EepromFieldEntry> kFieldDictionaryV5 = {
     {20, "META Reserved MAC", FIELD_V5_MAC, 8, VARIABLE},
     {250, "CRC16", FIELD_BE_HEX, 2, VARIABLE},
 };
+
+// Header size in EEPROM. First two bytes are 0xFBFB followed
+// by a byte specifying the EEPROM version and one byte of 0xFF
+constexpr int kHeaderSize = 4;
+// Field Type and Length are 1 byte each.
+constexpr int kEepromTypeLengthSize = 2;
+// CRC size (16 bits)
+constexpr int kCrcSize = 2;
 
 std::vector<EepromFieldEntry> getEepromFieldDict(int version) {
   switch (version) {
@@ -152,15 +159,6 @@ std::string parseMacHelper(int len, unsigned char* ptr, bool useBigEndian) {
   }
   return retVal;
 }
-
-// Header size in EEPROM. First two bytes are 0xFBFB followed
-// by a byte specifying the EEPROM version and one byte of 0xFF
-constexpr int kHeaderSize = 4;
-// Field Type and Length are 1 byte each.
-constexpr int kEepromTypeLengthSize = 2;
-// CRC size (16 bits)
-constexpr int kCrcSize = 2;
-
 } // namespace
 
 namespace facebook::fboss::platform {

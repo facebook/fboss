@@ -1,19 +1,13 @@
 // (c) Facebook, Inc. and its affiliates. Confidential and proprietary.
 
 #include "fboss/platform/weutil/WeutilImpl.h"
-#include "fboss/platform/helpers/PlatformUtils.h"
 
 #include <folly/Conv.h>
 #include <folly/Format.h>
 #include <folly/json/json.h>
 #include <folly/logging/xlog.h>
-#include <cctype>
-#include <filesystem>
-#include <fstream>
-#include <ios>
 #include <iostream>
 #include <string>
-#include <unordered_map>
 #include <utility>
 #include <vector>
 
@@ -27,14 +21,14 @@ std::vector<std::pair<std::string, std::string>> WeutilImpl::getContents() {
 }
 
 void WeutilImpl::printInfo() {
-  for (const auto& item : parser_.getContents()) {
+  for (const auto& item : getContents()) {
     std::cout << item.first << ": " << item.second << std::endl;
   }
   return;
 }
 
 void WeutilImpl::printInfoJson() {
-  auto info = parser_.getContents();
+  auto info = getContents();
   int vectorSize = info.size();
   int cursor = 0;
   // Manually create JSON object without using folly, so that this code
