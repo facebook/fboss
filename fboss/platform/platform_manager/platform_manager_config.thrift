@@ -460,8 +460,32 @@ struct PmUnitConfig {
 //
 // `productSubVersion`: The platformVersion of the switch which this PmUnit
 // belongs to. This refers to field Type 10 in Meta EEPROM V5
+// TODO: Replace it with PmUnitVersion struct below.
 struct VersionedPmUnitConfig {
   1: PmUnitConfig pmUnitConfig;
+  3: i16 productSubVersion;
+}
+
+// `PmUnitInfo`: Details of a PmUnit.
+//
+// `name`: Name of the PmUnit.
+//
+// `version`: Version of the pmUnit.
+struct PmUnitInfo {
+  1: string name;
+  2: optional PmUnitVersion version;
+}
+
+// `PmUnitVersion`: Version of a PmUnit.
+//
+// `productProductionState`: Minimum productProductionState (EEPROM V5 Type 8).
+//
+// `productVersion`: Minimum productVersion (EEPROM V5 Type 9).
+//
+// `productSubVersion`: Minimum productSubVersion (EEPROM V5 Type 10).
+struct PmUnitVersion {
+  1: i16 productProductionState;
+  2: i16 productVersion;
   3: i16 productSubVersion;
 }
 
