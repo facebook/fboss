@@ -6,6 +6,7 @@
 #include "fboss/agent/packet/PktFactory.h"
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
+#include "fboss/agent/test/utils/AsicUtils.h"
 #include "fboss/lib/CommonUtils.h"
 
 #include "fboss/agent/test/gen-cpp2/production_features_types.h"
@@ -37,11 +38,17 @@ TEST_F(AgentInNullRouteDiscardsCounterTest, nullRouteHit) {
   auto setup = [=]() {};
   PortID portId = masterLogicalInterfacePortIds()[0];
   auto verify = [=, this]() {
+    auto isVoqSwitch =
+        utility::checkSameAndGetAsic(getAgentEnsemble()->getL3Asics())
+            ->getSwitchType() == cfg::SwitchType::VOQ;
     auto portStatsBefore = getLatestPortStats(portId);
+    auto switchDropStatsBefore = getAggregatedSwitchDropStats();
     pumpTraffic(true);
     pumpTraffic(false);
     WITH_RETRIES({
       auto portStatsAfter = getLatestPortStats(portId);
+      auto switchDropStatsAfter = getAggregatedSwitchDropStats();
+
       EXPECT_EVENTUALLY_EQ(
           2,
           *portStatsAfter.inDiscardsRaw_() - *portStatsBefore.inDiscardsRaw_());
@@ -52,11 +59,25 @@ TEST_F(AgentInNullRouteDiscardsCounterTest, nullRouteHit) {
       EXPECT_EVENTUALLY_EQ(
           *portStatsAfter.inDiscardsRaw_(),
           *portStatsAfter.inDstNullDiscards_());
+      if (isVoqSwitch) {
+        EXPECT_EVENTUALLY_EQ(
+            *switchDropStatsAfter.ingressPacketPipelineRejectDrops() -
+                *switchDropStatsBefore.ingressPacketPipelineRejectDrops(),
+            2);
+        // Pipeline reject drop, not a queue resolution drop,
+        // which happens say when a pkt comes in with a non router
+        // MAC
+        EXPECT_EQ(
+            *switchDropStatsAfter.queueResolutionDrops() -
+                *switchDropStatsBefore.queueResolutionDrops(),
+            0);
+      }
     });
     // Collect once more and assert that counter remains same.
     // We expect this to be a cumulative counter and not a read
     // on clear counter. Assert that.
-    auto portStatsAfter = getLatestPortStats(portId);
+    auto portStatsAfter = getNextUpdatedPortStats(portId);
+    auto switchDropStatsAfter = getAggregatedSwitchDropStats();
     EXPECT_EQ(
         2,
         *portStatsAfter.inDiscardsRaw_() - *portStatsBefore.inDiscardsRaw_());
@@ -64,6 +85,19 @@ TEST_F(AgentInNullRouteDiscardsCounterTest, nullRouteHit) {
         2,
         *portStatsAfter.inDstNullDiscards_() -
             *portStatsBefore.inDstNullDiscards_());
+    if (isVoqSwitch) {
+      EXPECT_EQ(
+          *switchDropStatsAfter.ingressPacketPipelineRejectDrops() -
+              *switchDropStatsBefore.ingressPacketPipelineRejectDrops(),
+          2);
+      // Pipeline reject drop, not a queue resolution drop,
+      // which happens say when a pkt comes in with a non router
+      // MAC
+      EXPECT_EQ(
+          *switchDropStatsAfter.queueResolutionDrops() -
+              *switchDropStatsBefore.queueResolutionDrops(),
+          0);
+    }
     // Assert that other ports did not see any in discard
     // counter increment
     auto allPortStats = getLatestPortStats(masterLogicalInterfacePortIds());
