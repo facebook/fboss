@@ -64,9 +64,8 @@ float Utils::computeExpression(
 std::optional<VersionedPmSensor> Utils::resolveVersionedSensors(
     const PmUnitInfoFetcher& fetcher,
     const std::string& slotPath,
-    const std::string& pmUnitName,
     const std::vector<VersionedPmSensor>& versionedSensors) {
-  const auto pmUnitInfo = fetcher.fetch(slotPath, pmUnitName);
+  const auto pmUnitInfo = fetcher.fetch(slotPath);
   if (!pmUnitInfo) {
     return std::nullopt;
   }

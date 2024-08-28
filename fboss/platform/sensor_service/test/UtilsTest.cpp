@@ -13,7 +13,7 @@ class MockPmUnitInfoFetcher : public PmUnitInfoFetcher {
   MOCK_METHOD(
       (std::optional<std::array<int16_t, 3>>),
       fetch,
-      (const std::string&, const std::string&),
+      (const std::string&),
       (const));
 };
 
@@ -36,7 +36,6 @@ class UtilsTests : public testing::Test {
   }
   MockPmUnitInfoFetcher fetcher_;
   std::string slotPath_;
-  std::string pmUnitName_;
 };
 
 TEST_F(UtilsTests, Equal) {
@@ -58,32 +57,35 @@ TEST_F(UtilsTests, Equal) {
 
 TEST_F(UtilsTests, PmUnitInfoFetcherTest) {
   std::optional<VersionedPmSensor> resolvedVersionedSensor;
-  // Case-1: Non existence PmUnitInfo (e.g no IDPROM)
-  EXPECT_CALL(fetcher_, fetch(_, _)).WillOnce(Return(std::nullopt));
+  // Case-0: Empty version config
   EXPECT_EQ(
-      Utils().resolveVersionedSensors(fetcher_, slotPath_, pmUnitName_, {}),
+      Utils().resolveVersionedSensors(fetcher_, slotPath_, {}), std::nullopt);
+  // Case-1: Non existence PmUnitInfo (e.g no IDPROM)
+  EXPECT_CALL(fetcher_, fetch(_)).WillOnce(Return(std::nullopt));
+  EXPECT_EQ(
+      Utils().resolveVersionedSensors(
+          fetcher_, slotPath_, {createVersionedPmSensor(1, 1, 2)}),
       std::nullopt);
   // Case-2: Non-matching VersionedPmSensor
-  EXPECT_CALL(fetcher_, fetch(_, _))
+  EXPECT_CALL(fetcher_, fetch(_))
       .WillOnce(Return(std::array<int16_t, 3>{1, 0, 20}));
   resolvedVersionedSensor = Utils().resolveVersionedSensors(
-      fetcher_, slotPath_, pmUnitName_, {createVersionedPmSensor(1, 1, 2)});
+      fetcher_, slotPath_, {createVersionedPmSensor(1, 1, 2)});
   EXPECT_EQ(resolvedVersionedSensor, std::nullopt);
   // Case-3a: Matching Single VersionedPmSensors
-  EXPECT_CALL(fetcher_, fetch(_, _))
+  EXPECT_CALL(fetcher_, fetch(_))
       .WillOnce(Return(std::array<int16_t, 3>{1, 1, 20}));
   resolvedVersionedSensor = Utils().resolveVersionedSensors(
-      fetcher_, slotPath_, pmUnitName_, {createVersionedPmSensor(1, 1, 2)});
+      fetcher_, slotPath_, {createVersionedPmSensor(1, 1, 2)});
   EXPECT_NE(resolvedVersionedSensor, std::nullopt);
   EXPECT_TRUE(
       isEqual(*resolvedVersionedSensor, createVersionedPmSensor(1, 1, 2)));
   // Case-3b: Matching Multiple VersionedPmSensors
-  EXPECT_CALL(fetcher_, fetch(_, _))
+  EXPECT_CALL(fetcher_, fetch(_))
       .WillOnce(Return(std::array<int16_t, 3>{1, 1, 20}));
   resolvedVersionedSensor = Utils().resolveVersionedSensors(
       fetcher_,
       slotPath_,
-      pmUnitName_,
       {createVersionedPmSensor(1, 1, 2), createVersionedPmSensor(1, 1, 4)});
   EXPECT_NE(resolvedVersionedSensor, std::nullopt);
   EXPECT_TRUE(

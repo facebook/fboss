@@ -86,7 +86,6 @@ void SensorServiceImpl::fetchSensorData() {
       if (auto versionedPmSensors = Utils().resolveVersionedSensors(
               pmUnitInfoFetcher_,
               *pmUnitSensors.slotPath(),
-              *pmUnitSensors.pmUnitName(),
               *pmUnitSensors.versionedSensors())) {
         XLOG(INFO) << fmt::format(
             "Resolved to versionedPmSensors of productProductionState({}) "

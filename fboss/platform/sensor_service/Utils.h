@@ -30,7 +30,6 @@ class Utils {
   std::optional<VersionedPmSensor> resolveVersionedSensors(
       const PmUnitInfoFetcher& fetcher,
       const std::string& slotPath,
-      const std::string& pmUnitName,
       const std::vector<VersionedPmSensor>& versionedSensors);
 };
 } // namespace facebook::fboss::platform::sensor_service

@@ -27,10 +27,13 @@ add_fbthrift_cpp_library(
 add_library(sensor_service_utils
   fboss/platform/sensor_service/Utils.cpp
   fboss/platform/sensor_service/PmUnitInfoFetcher.cpp
+  fboss/platform/sensor_service/oss/PmClientFactory.cpp
 )
 
 target_link_libraries(sensor_service_utils
   sensor_config_cpp2
+  platform_manager_service_cpp2
+  platform_manager_config_cpp2
   ${RE2}
 )
 
@@ -48,6 +51,7 @@ target_link_libraries(sensor_service_lib
   log_thrift_call
   platform_config_lib
   platform_utils
+  sensor_service_utils
   sensor_service_cpp2
   sensor_service_stats_cpp2
   sensor_config_cpp2

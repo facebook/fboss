@@ -72,7 +72,23 @@ cpp_library(
 cpp_library(
     name = "pmunit_info_fetcher",
     srcs = [
+        "PmClientFactory.cpp",
         "PmUnitInfoFetcher.cpp",
+    ],
+    exported_deps = [
+        "fbsource//third-party/fmt:fmt",
+        "//common/fbwhoami:fb_who_am_i",
+        "//common/services/cpp:facebook_identity_verifier",
+        "//common/services/cpp:tls_constants",
+        "//configerator/structs/infrasec/if:acl-cpp2-types",
+        "//fboss/platform/platform_manager:platform_manager_service-cpp2-services",
+        "//folly/io/async:async_base",
+        "//folly/io/async:async_ssl_socket",
+        "//folly/io/async:ssl_options",
+        "//folly/logging:logging",
+        "//infrasec/authorization:base_identity_util",
+        "//security/ca/lib:cert_path_picker",
+        "//thrift/lib/cpp2/async:rocket_client_channel",
     ],
 )
 
