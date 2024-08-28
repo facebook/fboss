@@ -65,6 +65,9 @@ std::optional<VersionedPmSensor> Utils::resolveVersionedSensors(
     const PmUnitInfoFetcher& fetcher,
     const std::string& slotPath,
     const std::vector<VersionedPmSensor>& versionedSensors) {
+  if (versionedSensors.empty()) {
+    return std::nullopt;
+  }
   const auto pmUnitInfo = fetcher.fetch(slotPath);
   if (!pmUnitInfo) {
     return std::nullopt;

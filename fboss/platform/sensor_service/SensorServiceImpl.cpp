@@ -80,7 +80,7 @@ void SensorServiceImpl::fetchSensorData() {
   // If it's defined, we will use new sensor structs
   // Otherwise fall back to the existing sensors structs.
   if (!sensorConfig_.pmUnitSensorsList()->empty()) {
-    XLOG(INFO) << "Fetching using PM based sensor structs...";
+    XLOG(INFO) << "Reading SensorData using PM based sensor structs...";
     for (const auto& pmUnitSensors : *sensorConfig_.pmUnitSensorsList()) {
       auto pmSensors = *pmUnitSensors.sensors();
       if (auto versionedPmSensors = Utils().resolveVersionedSensors(
@@ -88,18 +88,21 @@ void SensorServiceImpl::fetchSensorData() {
               *pmUnitSensors.slotPath(),
               *pmUnitSensors.versionedSensors())) {
         XLOG(INFO) << fmt::format(
-            "Resolved to versionedPmSensors of productProductionState({}) "
-            "prductVersion({}) productSubVersion({}) for pmUnit {} at {}",
+            "Resolved to versionedPmSensors config with version {}.{}.{} for pmUnit {} at {}",
             *versionedPmSensors->productProductionState(),
             *versionedPmSensors->productVersion(),
             *versionedPmSensors->productSubVersion(),
-            *pmUnitSensors.slotPath(),
-            *pmUnitSensors.pmUnitName());
+            *pmUnitSensors.pmUnitName(),
+            *pmUnitSensors.slotPath());
         pmSensors.insert(
             pmSensors.end(),
             versionedPmSensors->sensors()->begin(),
             versionedPmSensors->sensors()->end());
       }
+      XLOG(INFO) << fmt::format(
+          "Processing {} unit {} sensors",
+          *pmUnitSensors.pmUnitName(),
+          pmSensors.size());
       for (const auto& sensor : pmSensors) {
         fetchSensorDataImpl(sensor, readFailures, polledData);
       }
@@ -117,7 +120,9 @@ void SensorServiceImpl::fetchSensorData() {
   fb303::fbData->setCounter(kTotalReadFailure, readFailures);
   fb303::fbData->setCounter(kHasReadFailure, readFailures > 0 ? 1 : 0);
   XLOG(INFO) << fmt::format(
-      "Processed {} Sensors. {} Failures.", polledData.size(), readFailures);
+      "In Total, Processed {} Sensors. {} Failures.",
+      polledData.size(),
+      readFailures);
   polledData_.swap(polledData);
 
   if (FLAGS_publish_stats_to_fsdb) {
