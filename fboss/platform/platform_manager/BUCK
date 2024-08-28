@@ -34,7 +34,9 @@ thrift_library(
     thrift_cpp2_options = ["json"],
     thrift_srcs = ["platform_manager_service.thrift"],
     deps = [
+        ":platform_manager_config",
         ":platform_manager_snapshot",
+        "//thrift/annotation:thrift",
     ],
 )
 

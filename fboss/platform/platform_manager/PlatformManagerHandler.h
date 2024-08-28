@@ -13,6 +13,9 @@ class PlatformManagerHandler
   explicit PlatformManagerHandler(const PlatformExplorer& platformExplorer);
   void getPlatformSnapshot(PlatformSnapshot& response) override;
   void getLastPMStatus(PlatformManagerStatus& response) override;
+  void getPmUnitInfo(
+      PmUnitInfoResponse& response,
+      std::unique_ptr<PmUnitInfoRequest> request) override;
 
  private:
   const PlatformExplorer& platformExplorer_;
