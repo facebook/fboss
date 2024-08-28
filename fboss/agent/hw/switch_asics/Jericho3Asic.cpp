@@ -86,6 +86,7 @@ bool Jericho3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::DELETED_CREDITS_STAT:
     case HwAsic::Feature::INGRESS_PRIORITY_GROUP_DROPPED_PACKETS:
     case HwAsic::Feature::ROUTE_METADATA:
+    case HwAsic::Feature::NO_RX_REASON_TRAP:
       return true;
     // Features not expected to work on SIM
     case HwAsic::Feature::SHARED_INGRESS_EGRESS_BUFFER_POOL:
