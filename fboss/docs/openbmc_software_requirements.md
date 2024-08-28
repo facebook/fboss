@@ -48,7 +48,7 @@ Guidelines](./) document when submitting Pull Requests for Meta OpenBMC projects
 ## 2.1 U-boot
 
 * Always adopt the latest u-boot version when starting a new platform. The
-  latest u-boot version is v2019.04 as of Aug. 2022.
+  latest u-boot version is v2019.04 as of Aug. 2024.
 * Make sure ECC (memory) is enabled in u-boot.
 * Make sure the 2nd-watchdog timer is programmed to 5 minutes in u-boot: the
   2nd-watchdog timer will be disabled by Linux after boot up.
@@ -59,7 +59,7 @@ Guidelines](./) document when submitting Pull Requests for Meta OpenBMC projects
 ## 2.2 Linux
 
 * Always adopt the latest Linux kernel when starting a new platform. The latest
-  kernel version is 6.1 as of Aug. 2023.
+  kernel version is 6.6 as of Aug. 2024.
 * Enable the primary watchdog in device tree, but do not install additional
   services to kick the primary watchdog: use the default kthread spawned by watchdog driver.
 * Make sure the 2nd watchdog is disabled at the end of Linux boot up
@@ -80,12 +80,12 @@ Guidelines](./) document when submitting Pull Requests for Meta OpenBMC projects
 ## 2.3 Yocto
 
 * Always adopt the latest yocto when starting a new platform. The latest yocto
-  version is `lf-kirkstone` as of Aug. 2022.
+  version is `lf-master` as of Aug. 2024.
 
 
 ## 2.4 systemd
 
-* `systemd` is preferred over `sysV` for all the new FBOSS BMC-lite systems.
+* `systemd` (rather than `sysV`) is required for all the FBOSS BMC-lite systems.
 
 
 ## 2.5 CLI commands/tools
