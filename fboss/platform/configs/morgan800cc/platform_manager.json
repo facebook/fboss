@@ -635,7 +635,7 @@
         {
           "busName": "MCB_MUX_B@1",
           "address": "0x4c",
-          "kernelDeviceName": "fb_tmp451",
+          "kernelDeviceName": "bp4c_tmp451",
           "pmUnitScopedName": "SCM_TMP451_0X4C"
         },
         {
@@ -3493,7 +3493,7 @@
     "/run/devmap/watchdogs/MCB_FAN_WD": "/[MCB_FAN_WD]"
   },
   "bspKmodsRpmName": "cisco_bsp_kmods",
-  "bspKmodsRpmVersion": "0.1.16-1",
+  "bspKmodsRpmVersion": "0.1.19-1",
   "bspKmodsToReload": [
     "cisco_fpga_pci",
     "cisco_fpga_spi",
@@ -3504,7 +3504,8 @@
     "cisco_fpga_fanpwm",
     "cisco_fpga_gled",
     "cisco_fpga_gpio",
-    "cisco_fpga_wd"
+    "cisco_fpga_wd",
+    "bp4c_lm90"
   ],
   "sharedKmodsToReload": [
     "cisco_meta",
