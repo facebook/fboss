@@ -981,6 +981,16 @@ void SaiSwitchManager::setLocalCapsuleSwitchIds(
   }
   XLOG(DBG2) << "set local capsule switch ids "
              << std::string(values.begin(), values.end());
+  if (values.empty()) {
+#if defined BRCM_SAI_SDK_DNX_GTE_12_0
+    switch_->setOptionalAttribute(
+        SaiSwitchTraits::Attributes::MultiStageLocalSwitchIds{values});
+#endif
+    // Note: setting MultiStageLocalSwitchIds to empty, when its was not set
+    // before should be a no-op, but there is a bug in pre 12.0 sai where this
+    // is not correctly handled complaining invalid parameters
+    return;
+  }
   switch_->setOptionalAttribute(
       SaiSwitchTraits::Attributes::MultiStageLocalSwitchIds{values});
 }
