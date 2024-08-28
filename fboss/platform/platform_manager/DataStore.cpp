@@ -93,20 +93,38 @@ void DataStore::updateCharDevPath(
 void DataStore::updatePmUnitInfo(
     const std::string& slotPath,
     const std::string& pmUnitName,
+    std::optional<int> productProductionState,
+    std::optional<int> productVersion,
     std::optional<int> productSubVersion) {
+  PmUnitInfo pmUnitInfo;
+  pmUnitInfo.name() = pmUnitName;
+  if (productProductionState && productVersion && productSubVersion) {
+    pmUnitInfo.version() = PmUnitVersion();
+    pmUnitInfo.version()->productProductionState() = *productProductionState;
+    pmUnitInfo.version()->productVersion() = *productVersion;
+    pmUnitInfo.version()->productSubVersion() = *productSubVersion;
+  } else if (productProductionState || productVersion || productSubVersion) {
+    XLOG(WARNING) << fmt::format(
+        "At SlotPath {}, unexpected partial versions: ProductProductionState `{}` "
+        "ProductVersion `{}` ProductSubVersion `{}`. Skipping updating PmUnit {}",
+        slotPath,
+        productProductionState ? std::to_string(*productProductionState)
+                               : "<ABSENT>",
+        productVersion ? std::to_string(*productVersion) : "<ABSENT>",
+        productSubVersion ? std::to_string(*productSubVersion) : "<ABSENT>",
+        pmUnitName);
+  }
   XLOG(INFO) << fmt::format(
       "At SlotPath {}, updating to PmUnit {} {}",
       slotPath,
       pmUnitName,
-      productSubVersion
-          ? fmt::format("ProductSubVersion {}", *productSubVersion)
+      pmUnitInfo.version()
+          ? fmt::format(
+                "ProductProductionState {}, ProductVersion {}, ProductSubVersion {}",
+                *productProductionState,
+                *productVersion,
+                *productSubVersion)
           : "");
-  PmUnitInfo pmUnitInfo;
-  pmUnitInfo.name() = pmUnitName;
-  if (productSubVersion) {
-    pmUnitInfo.version() = PmUnitVersion();
-    pmUnitInfo.version()->productSubVersion() = *productSubVersion;
-  }
   slotPathToPmUnitInfo[slotPath] = pmUnitInfo;
 }
 

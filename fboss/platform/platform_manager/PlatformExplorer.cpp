@@ -208,6 +208,8 @@ std::optional<std::string> PlatformExplorer::getPmUnitNameFromSlot(
   auto slotTypeConfig = platformConfig_.slotTypeConfigs_ref()->at(slotType);
   CHECK(slotTypeConfig.idpromConfig() || slotTypeConfig.pmUnitName());
   std::optional<std::string> pmUnitNameInEeprom{std::nullopt};
+  std::optional<int> productProductionStateInEeprom{std::nullopt};
+  std::optional<int> productVersionInEeprom{std::nullopt};
   std::optional<int> productSubVersionInEeprom{std::nullopt};
   if (slotTypeConfig.idpromConfig_ref()) {
     auto idpromConfig = *slotTypeConfig.idpromConfig_ref();
@@ -261,8 +263,23 @@ std::optional<std::string> PlatformExplorer::getPmUnitNameFromSlot(
       // I think we can refactor this simpler once I2CDevicePaths are also
       // stored in DataStore. 1/ Create IDPROMs 2/ Read contents from eepromPath
       // stored in DataStore.
+      productProductionStateInEeprom = eepromParser_.getProdutProductionState(
+          eepromPath, *idpromConfig.offset());
+      productVersionInEeprom =
+          eepromParser_.getProductVersion(eepromPath, *idpromConfig.offset());
       productSubVersionInEeprom = eepromParser_.getProductSubVersion(
           eepromPath, *idpromConfig.offset());
+      XLOG(INFO) << fmt::format(
+          "Found ProductProductionState `{}` ProductVersion `{}` ProductSubVersion `{}` in IDPROM {} at {}",
+          productProductionStateInEeprom
+              ? std::to_string(*productProductionStateInEeprom)
+              : "<ABSENT>",
+          productVersionInEeprom ? std::to_string(*productVersionInEeprom)
+                                 : "<ABSENT>",
+          productSubVersionInEeprom ? std::to_string(*productSubVersionInEeprom)
+                                    : "<ABSENT>",
+          eepromPath,
+          slotPath);
     } catch (const std::exception& e) {
       auto errMsg = fmt::format(
           "Could not fetch contents of IDPROM {} in {}. {}",
@@ -277,13 +294,6 @@ std::optional<std::string> PlatformExplorer::getPmUnitNameFromSlot(
       XLOG(INFO) << fmt::format(
           "Found PmUnit name `{}` in IDPROM {} at {}",
           *pmUnitNameInEeprom,
-          eepromPath,
-          slotPath);
-    }
-    if (productSubVersionInEeprom) {
-      XLOG(INFO) << fmt::format(
-          "Found PlatformSubVersion `{}` in IDPROM {} at {}",
-          *productSubVersionInEeprom,
           eepromPath,
           slotPath);
     }
@@ -311,7 +321,12 @@ std::optional<std::string> PlatformExplorer::getPmUnitNameFromSlot(
         "or SlotTypeConfig::idpromConfig at {}",
         slotPath));
   }
-  dataStore_.updatePmUnitInfo(slotPath, *pmUnitName, productSubVersionInEeprom);
+  dataStore_.updatePmUnitInfo(
+      slotPath,
+      *pmUnitName,
+      productProductionStateInEeprom,
+      productVersionInEeprom,
+      productSubVersionInEeprom);
   return pmUnitName;
 }
 

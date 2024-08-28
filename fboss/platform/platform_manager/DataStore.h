@@ -59,11 +59,15 @@ class DataStore {
       const std::string& devicePath,
       const std::string& charDevPath);
 
-  // Update PmUnitInfo(pmUnitName, productSubVersion) for a given slotPath.
+  // Update PmUnitInfo for a given slotPath.
+  // For valid version update, expect all values (productProductionState,
+  // productVersion, productSubVersion) to be passed.
   void updatePmUnitInfo(
       const std::string& slotPath,
       const std::string& pmUnitName,
-      std::optional<int> productSubVersion);
+      std::optional<int> productProductionState = std::nullopt,
+      std::optional<int> productVersion = std::nullopt,
+      std::optional<int> productSubVersion = std::nullopt);
 
   // Resolve PmUnitConfig based on the platformSubVersion from eeprom.
   // Throws if none of the VersionedPmUnitConfig matches the version.
