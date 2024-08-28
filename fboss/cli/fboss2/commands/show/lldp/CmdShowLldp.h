@@ -66,11 +66,18 @@ class CmdShowLldp : public CmdHandler<CmdShowLldp, CmdShowLldpTraits> {
     });
 
     for (auto const& entry : model.get_lldpEntries()) {
+      std::string expectedPeerDisplay = entry.get_expectedPeer();
+      if (expectedPeerDisplay.empty()) {
+        expectedPeerDisplay = "EMPTY";
+      }
+
       table.addRow({
           entry.get_localPort(),
           Table::StyledCell(
               entry.get_status(), get_StatusStyle(entry.get_status())),
-          Table::StyledCell(entry.get_expectedPeer(), Table::Style::INFO),
+          Table::StyledCell(
+              expectedPeerDisplay,
+              get_ExpectedPeerStyle(entry.get_expectedPeer())),
           Table::StyledCell(
               utils::removeFbDomains(entry.get_systemName()),
               get_PeerStyle(entry.get_expectedPeer(), entry.get_systemName())),
@@ -128,6 +135,14 @@ class CmdShowLldp : public CmdHandler<CmdShowLldp, CmdShowLldpTraits> {
       return Table::Style::GOOD;
     } else {
       return Table::Style::ERROR;
+    }
+  }
+
+  Table::Style get_ExpectedPeerStyle(const std::string& expectedPeer) {
+    if (expectedPeer.empty()) {
+      return Table::Style::WARN;
+    } else {
+      return Table::Style::INFO;
     }
   }
 
