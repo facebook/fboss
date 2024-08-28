@@ -8,13 +8,12 @@
  *
  */
 
+#include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/Platform.h"
-#include "fboss/agent/SwitchStats.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwSwitchEnsemble.h"
+#include "fboss/agent/test/AgentEnsemble.h"
 #include "fboss/agent/test/utils/VoqTestUtils.h"
-
-#include "fboss/agent/benchmarks/AgentBenchmarks.h"
 
 #include <folly/Benchmark.h>
 #include <folly/IPAddress.h>
@@ -22,8 +21,6 @@
 
 DECLARE_bool(enable_stats_update_thread);
 DECLARE_int32(update_voq_stats_interval_s);
-DECLARE_bool(dsf_subscribe);
-DECLARE_bool(disable_looped_fabric_ports);
 
 namespace facebook::fboss {
 
