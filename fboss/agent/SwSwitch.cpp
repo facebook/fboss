@@ -2208,6 +2208,10 @@ void SwSwitch::postInit() {
     }
   }
 
+  if (flags_ & SwitchFlags::PUBLISH_STATS) {
+    stats()->multiSwitchStatus(isRunModeMultiSwitch());
+  }
+
   auto bgHeartbeatStatsFunc = [this](int delay, int backLog) {
     stats()->bgHeartbeatDelay(delay);
     stats()->bgEventBacklog(backLog);

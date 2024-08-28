@@ -290,7 +290,8 @@ SwitchStats::SwitchStats(ThreadLocalStatsMap* map, int numSwitches)
           SUM,
           RATE),
       dsfGrExpired_(map, kCounterPrefix + "dsfsession_gr_expired", SUM, RATE),
-      dsfUpdateFailed_(map, kCounterPrefix + "dsf_update_failed", SUM, RATE)
+      dsfUpdateFailed_(map, kCounterPrefix + "dsf_update_failed", SUM, RATE),
+      multiSwitchStatus_(map, kCounterPrefix + "multi_switch", SUM, RATE)
 
 {
   for (auto switchIndex = 0; switchIndex < numSwitches; switchIndex++) {

@@ -738,10 +738,16 @@ TEST_F(SwSwitchHandlerTest, initialSyncSwSwitchNotConfigured) {
   std::thread clientRequestThread1([&]() { clientThreadBody(1); });
   std::thread clientRequestThread2([&]() { clientThreadBody(2); });
   getHwSwitchHandler()->waitUntilHwSwitchConnected();
-  sw_->init(HwWriteBehavior::WRITE, SwitchFlags::DEFAULT);
+  sw_->init(HwWriteBehavior::WRITE, SwitchFlags::PUBLISH_STATS);
   getHwSwitchHandler()->stateChanged(
       StateDelta(std::make_shared<SwitchState>(), sw->getState()), false);
   sw_->initialConfigApplied(std::chrono::steady_clock::now());
+
+  // check multi_switch status
+  CounterCache counters(sw_.get());
+  counters.checkDelta(
+      SwitchStats::kCounterPrefix + "multi_switch.sum.60", FLAGS_multi_switch);
+
   client1Baton.wait();
   client2Baton.wait();
   waitForStateUpdates(sw);

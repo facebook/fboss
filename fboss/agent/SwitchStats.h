@@ -424,6 +424,10 @@ class SwitchStats : public boost::noncopyable {
     coldBoot_.addValue(1);
   }
 
+  void multiSwitchStatus(bool enabled) {
+    multiSwitchStatus_.addValue(enabled ? 1 : 0);
+  }
+
   void switchConfiguredMs(uint64_t ms) {
     switchConfiguredMs_.addValue(ms);
   }
@@ -935,6 +939,9 @@ class SwitchStats : public boost::noncopyable {
   TLTimeseries switchConfiguredMs_;
   TLTimeseries dsfGrExpired_;
   TLTimeseries dsfUpdateFailed_;
+
+  // TODO: delete this once multi_switch becomes default
+  TLTimeseries multiSwitchStatus_;
 
   std::vector<TLCounter> hwAgentConnectionStatus_;
   std::vector<TLTimeseries> hwAgentUpdateTimeouts_;
