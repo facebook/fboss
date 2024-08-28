@@ -329,10 +329,6 @@ class SwitchStats : public boost::noncopyable {
     pcapDistFailure_.incrementValue(1);
   }
 
-  void updateStatsException() {
-    updateStatsExceptions_.addValue(1);
-  }
-
   void pktTooBig() {
     trapPktTooBig_.addValue(1);
   }
@@ -873,9 +869,6 @@ class SwitchStats : public boost::noncopyable {
 
   // Number of packets dropped by the PCAP distribution service
   TLCounter pcapDistFailure_;
-
-  // Number of failed updateStats callbacks do to exceptions.
-  TLTimeseries updateStatsExceptions_;
 
   // Number of packet too big ICMPv6 triggered
   TLTimeseries trapPktTooBig_;

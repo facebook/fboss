@@ -92,18 +92,6 @@ ACTION(ThrowException) {
   throw std::exception();
 }
 
-TEST_F(SwSwitchTest, UpdateStatsExceptionCounter) {
-  CounterCache counters(sw);
-
-  MockHwSwitch* hw = getMockHw(sw);
-  EXPECT_CALL(*hw, updateStatsImpl()).Times(1).WillRepeatedly(ThrowException());
-  sw->updateStats();
-
-  counters.update();
-  counters.checkDelta(
-      SwitchStats::kCounterPrefix + "update_stats_exceptions.sum.60", 1);
-}
-
 TEST_F(SwSwitchTest, VerifyIsValidStateUpdate) {
   ON_CALL(*getMockHw(sw), isValidStateUpdate(_))
       .WillByDefault(testing::Return(true));

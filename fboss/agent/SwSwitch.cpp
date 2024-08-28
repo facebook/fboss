@@ -830,7 +830,6 @@ void SwSwitch::updateStats() {
     try {
       monoHwSwitchHandler->updateStats();
     } catch (const std::exception& ex) {
-      stats()->updateStatsException();
       XLOG(ERR) << "Error running updateStats: " << folly::exceptionStr(ex);
     }
     try {
