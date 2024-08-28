@@ -495,19 +495,25 @@ void setTTLZeroCpuConfig(
   }
 
   std::vector<cfg::PacketRxReasonToQueue> rxReasons;
+  bool addTtlRxReason = true;
   if (config.cpuTrafficPolicy().has_value() &&
       config.cpuTrafficPolicy()->rxReasonToQueueOrderedList().has_value() &&
       config.cpuTrafficPolicy()->rxReasonToQueueOrderedList()->size()) {
     for (auto rxReasonAndQueue :
          *config.cpuTrafficPolicy()->rxReasonToQueueOrderedList()) {
+      if (rxReasonAndQueue.rxReason() == cfg::PacketRxReason::TTL_0) {
+        addTtlRxReason = false;
+      }
       rxReasons.push_back(rxReasonAndQueue);
     }
   }
-  auto ttlRxReasonToQueue = cfg::PacketRxReasonToQueue();
-  ttlRxReasonToQueue.rxReason() = cfg::PacketRxReason::TTL_0;
-  ttlRxReasonToQueue.queueId() = 0;
+  if (addTtlRxReason) {
+    auto ttlRxReasonToQueue = cfg::PacketRxReasonToQueue();
+    ttlRxReasonToQueue.rxReason() = cfg::PacketRxReason::TTL_0;
+    ttlRxReasonToQueue.queueId() = 0;
 
-  rxReasons.push_back(ttlRxReasonToQueue);
+    rxReasons.push_back(ttlRxReasonToQueue);
+  }
   cfg::CPUTrafficPolicyConfig cpuConfig;
 
   if (config.cpuTrafficPolicy().has_value()) {
