@@ -37,6 +37,7 @@ brcm_srcs = common_srcs + [
     "bcm/SwitchApi.cpp",
     "bcm/TamApi.cpp",
     "bcm/BufferApi.cpp",
+    "bcm/QueueApi.cpp",
 ]
 
 tajo_srcs = common_srcs + [
@@ -45,6 +46,7 @@ tajo_srcs = common_srcs + [
     "tajo/TamApi.cpp",
     "tajo/SwitchApi.cpp",
     "tajo/BufferApi.cpp",
+    "tajo/QueueApi.cpp",
 ]
 
 credo_srcs = common_srcs + [
@@ -53,6 +55,7 @@ credo_srcs = common_srcs + [
     "oss/SwitchApi.cpp",
     "oss/TamApi.cpp",
     "oss/BufferApi.cpp",
+    "oss/QueueApi.cpp",
 ]
 
 mrvl_srcs = common_srcs + [
@@ -61,6 +64,7 @@ mrvl_srcs = common_srcs + [
     "oss/SwitchApi.cpp",
     "oss/TamApi.cpp",
     "oss/BufferApi.cpp",
+    "oss/QueueApi.cpp",
 ]
 
 common_headers = [
