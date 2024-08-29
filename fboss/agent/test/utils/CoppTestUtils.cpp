@@ -441,6 +441,39 @@ void addHighPriAclForMyIPNetworkControl(
       {cfg::EtherType::IPv4, cfg::EtherType::IPv6});
 }
 
+void addHighPriAclForBgp(
+    const HwAsic* hwAsic,
+    cfg::ToCpuAction toCpuAction,
+    int highPriQueueId,
+    std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>>& acls,
+    bool isSai) {
+  cfg::AclEntry dstPortAcl;
+  dstPortAcl.name() =
+      folly::to<std::string>("cpuPolicing-high-dst-port-bgp-acl");
+  dstPortAcl.l4DstPort() = utility::kBgpPort;
+  dstPortAcl.lookupClassRoute() = cfg::AclLookupClass::DST_CLASS_L3_LOCAL_1;
+  dstPortAcl.proto() = 6; // tcp
+  addEtherTypeToAcl(
+      hwAsic,
+      dstPortAcl,
+      acls,
+      createQueueMatchAction(highPriQueueId, isSai, toCpuAction),
+      {cfg::EtherType::IPv4, cfg::EtherType::IPv6});
+
+  cfg::AclEntry srcPortAcl;
+  srcPortAcl.name() =
+      folly::to<std::string>("cpuPolicing-high-src-port-bgp-acl");
+  srcPortAcl.l4SrcPort() = utility::kBgpPort;
+  srcPortAcl.lookupClassRoute() = cfg::AclLookupClass::DST_CLASS_L3_LOCAL_1;
+  srcPortAcl.proto() = 6; // tcp
+  addEtherTypeToAcl(
+      hwAsic,
+      srcPortAcl,
+      acls,
+      createQueueMatchAction(highPriQueueId, isSai, toCpuAction),
+      {cfg::EtherType::IPv4, cfg::EtherType::IPv6});
+}
+
 void addLowPriAclForUnresolvedRoutes(
     const HwAsic* hwAsic,
     cfg::ToCpuAction toCpuAction,
@@ -647,6 +680,15 @@ std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>> defaultCpuAclsForSai(
      */
     addLowPriAclForUnresolvedRoutes(
         hwAsic, cfg::ToCpuAction::TRAP, acls, true /*isSai*/);
+
+    if (hwAsic->isSupported(HwAsic::Feature::NO_RX_REASON_TRAP)) {
+      addHighPriAclForBgp(
+          hwAsic,
+          cfg::ToCpuAction::TRAP,
+          getCoppHighPriQueueId(hwAsic),
+          acls,
+          true);
+    }
   }
 
   return acls;
@@ -880,6 +922,30 @@ std::vector<cfg::PacketRxReasonToQueue> getCoppRxReasonToQueuesForSai(
       ControlPlane::makeRxReasonToQueueEntry(
           cfg::PacketRxReason::DHCPV6, coppMidPriQueueId),
   };
+
+  if (hwAsic->isSupported(HwAsic::Feature::NO_RX_REASON_TRAP)) {
+    // TODO(daiweix): remove these rx reason traps and replace them by ACLs
+    rxReasonToQueues = {
+        ControlPlane::makeRxReasonToQueueEntry(
+            cfg::PacketRxReason::ARP, coppHighPriQueueId),
+        ControlPlane::makeRxReasonToQueueEntry(
+            cfg::PacketRxReason::ARP_RESPONSE, coppHighPriQueueId),
+        ControlPlane::makeRxReasonToQueueEntry(
+            cfg::PacketRxReason::NDP, coppHighPriQueueId),
+        ControlPlane::makeRxReasonToQueueEntry(
+            cfg::PacketRxReason::CPU_IS_NHOP, coppMidPriQueueId),
+        ControlPlane::makeRxReasonToQueueEntry(
+            cfg::PacketRxReason::LACP, coppHighPriQueueId),
+        ControlPlane::makeRxReasonToQueueEntry(
+            cfg::PacketRxReason::TTL_1, kCoppLowPriQueueId),
+        ControlPlane::makeRxReasonToQueueEntry(
+            cfg::PacketRxReason::LLDP, coppMidPriQueueId),
+        ControlPlane::makeRxReasonToQueueEntry(
+            cfg::PacketRxReason::DHCP, coppMidPriQueueId),
+        ControlPlane::makeRxReasonToQueueEntry(
+            cfg::PacketRxReason::DHCPV6, coppMidPriQueueId),
+    };
+  }
 
   if (hwAsic->isSupported(HwAsic::Feature::SAI_EAPOL_TRAP)) {
     rxReasonToQueues.push_back(ControlPlane::makeRxReasonToQueueEntry(

@@ -682,12 +682,16 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
             addedAclEntry->getL4DstPort().value(), kL4PortMask))};
   }
 
+  bool matchV4 = !addedAclEntry->getEtherType().has_value() ||
+      addedAclEntry->getEtherType().value() == cfg::EtherType::IPv4;
+  bool matchV6 = !addedAclEntry->getEtherType().has_value() ||
+      addedAclEntry->getEtherType().value() == cfg::EtherType::IPv6;
   std::optional<SaiAclEntryTraits::Attributes::FieldIpProtocol> fieldIpProtocol{
       std::nullopt};
   auto qualifierSet = getSupportedQualifierSet();
   if (qualifierSet.find(cfg::AclTableQualifier::IP_PROTOCOL) !=
           qualifierSet.end() &&
-      addedAclEntry->getProto()) {
+      matchV4 && addedAclEntry->getProto()) {
     fieldIpProtocol = SaiAclEntryTraits::Attributes::FieldIpProtocol{
         AclEntryFieldU8(std::make_pair(
             addedAclEntry->getProto().value(), kIpProtocolMask))};
@@ -698,7 +702,7 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
       fieldIpv6NextHeader{std::nullopt};
   if (qualifierSet.find(cfg::AclTableQualifier::IPV6_NEXT_HEADER) !=
           qualifierSet.end() &&
-      addedAclEntry->getProto()) {
+      matchV6 && addedAclEntry->getProto()) {
     fieldIpv6NextHeader = SaiAclEntryTraits::Attributes::FieldIpv6NextHeader{
         AclEntryFieldU8(std::make_pair(
             addedAclEntry->getProto().value(), kIpv6NextHeaderMask))};
@@ -1455,10 +1459,13 @@ std::set<cfg::AclTableQualifier> SaiAclTableManager::getSupportedQualifierSet()
         cfg::AclTableQualifier::SRC_PORT,
         cfg::AclTableQualifier::DSCP,
         cfg::AclTableQualifier::TTL,
+        cfg::AclTableQualifier::IP_PROTOCOL,
         cfg::AclTableQualifier::IPV6_NEXT_HEADER,
         cfg::AclTableQualifier::IP_TYPE,
         cfg::AclTableQualifier::LOOKUP_CLASS_NEIGHBOR,
         cfg::AclTableQualifier::LOOKUP_CLASS_ROUTE,
+        cfg::AclTableQualifier::L4_SRC_PORT,
+        cfg::AclTableQualifier::L4_DST_PORT,
         cfg::AclTableQualifier::BTH_OPCODE};
     return jericho3Qualifiers;
   } else {
