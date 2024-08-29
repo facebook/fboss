@@ -37,4 +37,12 @@ service AgentHwTestCtrl {
     3: list<switch_config.CounterType> types,
     4: string tableName,
   );
+
+  bool isMirrorProgrammed(1: switch_state.MirrorFields mirror);
+
+  bool isPortMirrored(1: i32 port, 2: string mirror, 3: bool ingress);
+
+  bool isPortSampled(1: i32 port, 2: string mirror, 3: bool ingress);
+
+  bool isAclEntryMirrored(1: string aclEntry,2: string mirror,3: bool ingress,);
 }

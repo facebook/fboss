@@ -433,6 +433,7 @@ def _test_thrift_handler(sai_impl, is_npu):
         name = "{}".format(sai_switch_dependent_name("agent_hw_test_thrift_handler", sai_impl, is_npu)),
         srcs = [
             "HwTestAclUtilsThriftHandler.cpp",
+            "HwTestMirrorUtilsThriftHandler.cpp",
             "HwTestThriftHandler.cpp",
         ],
         auto_headers = AutoHeaders.SOURCES,

@@ -606,6 +606,7 @@ cpp_library(
     name = "agent_hw_test_thrift_handler",
     srcs = [
         "HwTestAclUtilsThriftHandler.cpp",
+        "HwTestMirrorUtilsThriftHandler.cpp",
         "HwTestThriftHandler.cpp",
     ],
     headers = [

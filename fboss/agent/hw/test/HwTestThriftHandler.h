@@ -40,6 +40,23 @@ class HwTestThriftHandler : public AgentHwTestCtrlSvIf {
       std::unique_ptr<std::vector<cfg::CounterType>> types,
       std::unique_ptr<std::string> tableName) override;
 
+  bool isMirrorProgrammed(std::unique_ptr<state::MirrorFields> mirror) override;
+
+  bool isPortMirrored(
+      int32_t port,
+      std::unique_ptr<std::string> mirror,
+      bool ingress) override;
+
+  bool isPortSampled(
+      int32_t port,
+      std::unique_ptr<std::string> mirror,
+      bool ingress) override;
+
+  bool isAclEntryMirrored(
+      std::unique_ptr<std::string> aclEntry,
+      std::unique_ptr<std::string> mirror,
+      bool ingress) override;
+
  private:
   HwSwitch* hwSwitch_;
 };
