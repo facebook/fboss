@@ -496,6 +496,7 @@ class ThriftConfigApplier {
   std::vector<SwitchID> getFabricSwitchIds() const;
   std::optional<QueueConfig> getDefaultVoqConfigIfChanged(
       std::shared_ptr<SwitchSettings> switchSettings);
+  QueueConfig getVoqConfig(PortID portId);
 
   std::shared_ptr<SwitchState> orig_;
   std::shared_ptr<SwitchState> new_;
@@ -830,6 +831,7 @@ std::vector<SwitchID> ThriftConfigApplier::getFabricSwitchIds() const {
 std::optional<QueueConfig> ThriftConfigApplier::getDefaultVoqConfigIfChanged(
     std::shared_ptr<SwitchSettings> origSwitchSettings) {
   if (cfg_->defaultVoqConfig()->size()) {
+    // TODO(daiweix): do not hardcode 8
     const auto kNumVoqs = 8;
     auto origPortQueues = QueueConfig();
     if (origSwitchSettings &&
@@ -849,6 +851,38 @@ std::optional<QueueConfig> ThriftConfigApplier::getDefaultVoqConfigIfChanged(
     }
   }
   return std::nullopt;
+}
+
+QueueConfig ThriftConfigApplier::getVoqConfig(PortID portId) {
+  for (const auto& portCfg : *cfg_->ports()) {
+    if (PortID(*portCfg.logicalID()) == portId) {
+      if (auto portVoqConfigName = portCfg.portVoqConfigName()) {
+        auto it = cfg_->portQueueConfigs()->find(*portVoqConfigName);
+        if (it == cfg_->portQueueConfigs()->end()) {
+          throw FbossError(
+              "Port voq config name: ",
+              *portVoqConfigName,
+              " does not exist in PortQueueConfig map");
+        }
+        std::vector<cfg::PortQueue> cfgPortVoqs = it->second;
+        QueueConfig voqs;
+        // TODO(daiweix): do not hardcode 8
+        const auto kNumVoqs = 8;
+        return updatePortQueues(
+            voqs,
+            cfgPortVoqs,
+            kNumVoqs,
+            cfg::StreamType::UNICAST,
+            std::nullopt,
+            false);
+      } else {
+        break;
+      }
+    }
+  }
+  // use default voq config if not specified
+  return utility::getFirstNodeIf(new_->getSwitchSettings())
+      ->getDefaultVoqConfig();
 }
 
 void ThriftConfigApplier::processUpdatedDsfNodes() {
@@ -1023,10 +1057,11 @@ void ThriftConfigApplier::processUpdatedDsfNodes() {
     sysPort->setCoreIndex(recyclePortInfo.coreId);
     sysPort->setCorePortIndex(recyclePortInfo.corePortIndex);
     sysPort->setSpeedMbps(recyclePortInfo.speedMbps); // 10G
+    // TODO(daiweix): do not hardcode 8
     sysPort->setNumVoqs(8);
     sysPort->setScope(cfg::Scope::GLOBAL);
-    sysPort->resetPortQueues(utility::getFirstNodeIf(new_->getSwitchSettings())
-                                 ->getDefaultVoqConfig());
+    // TODO(daiweix): use voq config of rcy ports, hardcode rcy portID 1 for now
+    sysPort->resetPortQueues(getVoqConfig(PortID(1)));
     if (auto cpuTrafficPolicy = cfg_->cpuTrafficPolicy()) {
       if (auto trafficPolicy = cpuTrafficPolicy->trafficPolicy()) {
         if (auto defaultQosPolicy = trafficPolicy->defaultQosPolicy()) {
@@ -1392,6 +1427,7 @@ void ThriftConfigApplier::updateVlanInterfaces(const Interface* intf) {
 shared_ptr<SystemPortMap> ThriftConfigApplier::updateSystemPorts(
     const std::shared_ptr<MultiSwitchPortMap>& ports,
     const std::shared_ptr<MultiSwitchSettings>& multiSwitchSettings) {
+  // TODO(daiweix): do not hardcode 8
   const auto kNumVoqs = 8;
 
   static const std::set<cfg::PortType> kCreateSysPortsFor = {
@@ -1433,7 +1469,7 @@ shared_ptr<SystemPortMap> ThriftConfigApplier::updateSystemPorts(
       sysPort->setSpeedMbps(static_cast<int>(port.second->getSpeed()));
       sysPort->setNumVoqs(kNumVoqs);
       sysPort->setQosPolicy(port.second->getQosPolicy());
-      sysPort->resetPortQueues(switchSettings->getDefaultVoqConfig());
+      sysPort->resetPortQueues(getVoqConfig(port.second->getID()));
       // TODO(daiweix): remove this CHECK_EQ after verifying scope config is
       // always correct
       CHECK_EQ(
