@@ -9,7 +9,9 @@
  */
 
 #include "fboss/agent/AgentFeatures.h"
-#include "fboss/agent/Platform.h"
+#include "fboss/agent/HwSwitch.h"
+
+#include "fboss/agent/SwAgentInitializer.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwSwitchEnsemble.h"
 #include "fboss/agent/test/AgentEnsemble.h"
@@ -18,9 +20,6 @@
 #include <folly/Benchmark.h>
 #include <folly/IPAddress.h>
 #include <folly/logging/xlog.h>
-
-DECLARE_bool(enable_stats_update_thread);
-DECLARE_int32(update_voq_stats_interval_s);
 
 namespace facebook::fboss {
 

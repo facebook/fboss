@@ -18,6 +18,7 @@ DECLARE_bool(enable_lacp);
 DECLARE_bool(enable_lldp);
 DECLARE_bool(publish_boot_type);
 DECLARE_bool(enable_macsec);
+DECLARE_bool(enable_stats_update_thread);
 
 namespace facebook::fboss {
 
