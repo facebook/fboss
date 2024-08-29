@@ -822,11 +822,22 @@ class AgentVoqSwitchWithFabricPortsStartDrained
   }
 };
 
-TEST_F(AgentVoqSwitchWithFabricPortsStartDrained, assertLocalForwarding) {
+TEST_F(
+    AgentVoqSwitchWithFabricPortsStartDrained,
+    assertLocalForwardingAndCableLen) {
   auto verify = [this]() {
     assertPortAndDrainState(cfg::SwitchDrainState::DRAINED);
     // Local forwarding should work even when we come up drained
     verifyLocalForwarding();
+    getSw()->updateStats();
+    WITH_RETRIES({
+      auto port2Stats = getSw()->getHwPortStats(masterLogicalFabricPortIds());
+      for (auto portId : masterLogicalFabricPortIds()) {
+        auto pitr = port2Stats.find(portId);
+        EXPECT_EVENTUALLY_TRUE(pitr != port2Stats.end());
+        EXPECT_EVENTUALLY_TRUE(pitr->second.cableLengthMeters().has_value());
+      }
+    });
   };
   verifyAcrossWarmBoots([]() {}, verify);
 }
