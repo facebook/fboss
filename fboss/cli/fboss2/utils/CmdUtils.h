@@ -468,4 +468,8 @@ std::map<int16_t, std::vector<std::string>> getSwitchIndicesForInterfaces(
     const std::vector<std::string>& interfaces);
 Table::StyledCell styledBer(double ber);
 Table::StyledCell styledFecTail(int tail);
+
+cfg::SwitchType getSwitchType(
+    std::map<int64_t, cfg::SwitchInfo> switchIdToSwitchInfo);
+
 } // namespace facebook::fboss::utils

@@ -23,6 +23,9 @@
 
 using namespace std::chrono;
 
+using facebook::fboss::cfg::SwitchInfo;
+using facebook::fboss::cfg::SwitchType;
+
 using folly::ByteRange;
 using folly::IPAddress;
 using folly::IPAddressV6;
@@ -355,6 +358,22 @@ Table::StyledCell styledFecTail(int tail) {
     return Table::StyledCell(folly::to<std::string>(tail), Table::Style::WARN);
   }
   return Table::StyledCell(folly::to<std::string>(tail), Table::Style::GOOD);
+}
+
+cfg::SwitchType getSwitchType(
+    std::map<int64_t, cfg::SwitchInfo> switchIdToSwitchInfo) {
+  CHECK_GE(switchIdToSwitchInfo.size(), 1);
+
+  // Assert that all switches have the same switch type
+  auto switchType = switchIdToSwitchInfo.begin()->second.get_switchType();
+  CHECK(std::all_of(
+      switchIdToSwitchInfo.begin(),
+      switchIdToSwitchInfo.end(),
+      [switchType](const auto& pair) {
+        return pair.second.get_switchType() == switchType;
+      }));
+
+  return switchType;
 }
 
 } // namespace facebook::fboss::utils
