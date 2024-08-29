@@ -59,7 +59,7 @@ class YubaAsic : public TajoAsic {
     return 3;
   }
   uint64_t getMMUSizeBytes() const override {
-    return 108 * 1024 * 1024;
+    return 256 * 1024 * 1024;
   }
   uint32_t getMaxMirrors() const override {
     // TODO - verify this
