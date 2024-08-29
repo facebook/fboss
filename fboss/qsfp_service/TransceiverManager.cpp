@@ -36,7 +36,7 @@ DEFINE_bool(
 
 DEFINE_int32(
     state_machine_update_thread_heartbeat_ms,
-    10000,
+    20000,
     "State machine update thread's heartbeat interval (ms)");
 
 DEFINE_bool(
