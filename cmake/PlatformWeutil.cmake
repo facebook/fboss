@@ -61,4 +61,14 @@ target_link_libraries(weutil
   weutil_lib
 )
 
+add_executable(weutil_test
+  fboss/platform/weutil/hw_test/WeutilTest.cpp
+)
+
+target_link_libraries(weutil_test
+  weutil_lib
+  ${GTEST}
+  ${LIBGMOCK_LIBRARIES}
+)
+
 install(TARGETS weutil)
