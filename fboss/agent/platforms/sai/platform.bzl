@@ -257,6 +257,12 @@ def _wedge_agent_bin(sai_impl, is_npu):
         ],
     )
 
+def get_version_info_test_env(sai_impl):
+    test_env = {}
+    if sai_impl.is_dyn:
+        test_env["LD_LIBRARY_PATH"] = "third-party-buck/platform010-compat/build/{}/{}/lib/dyn".format(sai_impl.sdk_name, sai_impl.version)
+    return test_env
+
 def _wedge_agent_version_info_test(sai_impl, wedge_agent_name_prefix):
     wedge_agent_name = "{}{}".format(wedge_agent_name_prefix, to_impl_suffix(sai_impl))
     sai_platform_name = sai_switch_dependent_name("sai_platform", sai_impl, True)
@@ -273,6 +279,7 @@ def _wedge_agent_version_info_test(sai_impl, wedge_agent_name_prefix):
             ":{}".format(sai_platform_name),
             "//fboss/agent/hw/sai/impl:{}".format(to_impl_lib_name(sai_impl)),
         ],
+        env = get_version_info_test_env(sai_impl),
     )
 
 def _wedge_hwagent_bin(sai_impl, hwagent_prefix):
