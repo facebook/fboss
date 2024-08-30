@@ -7,6 +7,13 @@ namespace py.asyncio neteng.fboss.asyncio.agent_hw_test_ctrl
 
 include "fboss/agent/switch_state.thrift"
 include "fboss/agent/switch_config.thrift"
+include "fboss/agent/if/ctrl.thrift"
+
+struct NeighborInfo {
+  1: bool exists;
+  2: bool isProgrammedToCpu;
+  3: optional i32 classId;
+}
 
 service AgentHwTestCtrl {
   // acl utils begin
@@ -45,4 +52,7 @@ service AgentHwTestCtrl {
   bool isPortSampled(1: i32 port, 2: string mirror, 3: bool ingress);
 
   bool isAclEntryMirrored(1: string aclEntry,2: string mirror,3: bool ingress,);
+
+  // neighbor utils
+  NeighborInfo getNeighborInfo(1: ctrl.IfAndIP neighbor);
 }
