@@ -46,3 +46,35 @@ TEST(PIDLogicTest, Basic) {
   EXPECT_EQ(pidLogic4.calculatePwm(68), 24);
   EXPECT_EQ(pidLogic4.getLastError(), -8);
 }
+
+TEST(PIDLogicTest, Convergence) {
+  PidSetting pidSetting;
+  pidSetting.kp() = -0.05;
+  pidSetting.ki() = -0.01;
+  pidSetting.kd() = 0;
+  pidSetting.setPoint() = 70;
+  pidSetting.negHysteresis() = 2;
+  pidSetting.posHysteresis() = 0;
+  auto pidLogic = PidLogic(pidSetting, 30);
+  pidLogic.updateLastPwm(40);
+  double measurement = 80;
+  int max_steps = 50;
+  bool setpointReached = false;
+  for (int i = 0; i < max_steps; ++i) {
+    auto lastPwm = pidLogic.getLastPwm();
+    auto newPwm = pidLogic.calculatePwm(measurement);
+    measurement = measurement - (newPwm - lastPwm); // Simulate system response
+    XLOG(DBG1) << fmt::format(
+        "Iteration {}: Measurement = {}, newPwm = {}, Error = {}",
+        i,
+        measurement,
+        newPwm,
+        *pidSetting.setPoint() - measurement);
+    if (*pidSetting.setPoint() - *pidSetting.negHysteresis() <= measurement &&
+        measurement <= *pidSetting.setPoint() + *pidSetting.posHysteresis()) {
+      setpointReached = true;
+      break;
+    }
+  }
+  EXPECT_TRUE(setpointReached);
+}
