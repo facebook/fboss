@@ -26,6 +26,7 @@ add_library(fan_service_lib
   fboss/platform/fan_service/ControlLogic.cpp
   fboss/platform/fan_service/FanServiceHandler.cpp
   fboss/platform/fan_service/FsdbSensorSubscriber.cpp
+  fboss/platform/fan_service/PidLogic.cpp
   fboss/platform/fan_service/SensorData.cpp
   fboss/platform/fan_service/Utils.cpp
   fboss/platform/fan_service/oss/FsdbSensorSubscriber.cpp

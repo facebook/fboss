@@ -3,25 +3,20 @@
 #pragma once
 
 #include "fboss/platform/fan_service/Bsp.h"
+#include "fboss/platform/fan_service/PidLogic.h"
 #include "fboss/platform/fan_service/SensorData.h"
 #include "fboss/platform/fan_service/if/gen-cpp2/fan_service_types.h"
 
 namespace facebook::fboss::platform::fan_service {
 
 struct SensorReadCache {
+  // This is the last read value from the sensor which has been processed.
+  float processedReadValue{0};
+  // This is the last read value from the sensor which is yet to be processed.
   float lastReadValue{0};
   int16_t targetPwmCache{0};
   uint64_t lastUpdatedTime;
   bool sensorFailed{false};
-};
-
-struct PwmCalcCache {
-  float previousSensorRead{0};
-  int16_t previousTargetPwm{0};
-  float previousRead1{0};
-  float previousRead2{0};
-  float integral{0};
-  float last_error{0};
 };
 
 // ControlLogic class is a part of Fan Service
@@ -56,12 +51,6 @@ class ControlLogic {
   unsigned int getSensorFetchFrequency() const;
   void setFanHold(std::optional<int> pwm);
   std::optional<int> getFanHold();
-  int calculatePid(
-      const std::string& name,
-      float value,
-      PwmCalcCache& pwmCalcCache,
-      const PidSetting& pidSetting,
-      uint64_t dt);
 
  private:
   const FanServiceConfig config_;
@@ -75,7 +64,7 @@ class ControlLogic {
   // The timestamp of the last sensor data fetch
   uint64_t lastSensorFetchTimeSec_{0};
 
-  // Private Methods
+  void setupPidLogics();
   void getSensorUpdate();
   std::tuple<bool /*fanAccessFailed*/, int /*rpm*/, uint64_t /*timestamp*/>
   readFanRpm(const Fan& fan);
@@ -85,24 +74,17 @@ class ControlLogic {
       const Fan& fan,
       int16_t currentFanPwm,
       int16_t zonePwm);
-
-  float calculateIncrementalPid(
-      const std::string& name,
-      float value,
-      PwmCalcCache& pwmCalcCache,
-      const PidSetting& pidSetting);
   int16_t calculateZonePwm(const Zone& zone, bool boostMode);
   void updateTargetPwm(const Sensor& sensorItem);
   void programLed(const Fan& fan, bool fanFailed);
   bool isFanPresentInDevice(const Fan& fan);
-  bool isSensorPresentInConfig(const std::string& sensorName);
 
   folly::Synchronized<std::map<std::string /* fanName */, FanStatus>>
       fanStatuses_;
   std::atomic<std::optional<int>> fanHoldPwm_;
   std::map<std::string /* sensorName */, SensorReadCache> sensorReadCaches_;
   std::map<std::string /* sensorName */, int16_t /* pwm */> opticReadCaches_;
-  std::map<std::string /* sensorName */, PwmCalcCache> pwmCalcCaches_;
+  std::map<std::string /* sensorName */, PidLogic> pidLogics_;
   std::shared_ptr<SensorData> pSensorData_{nullptr};
 };
 } // namespace facebook::fboss::platform::fan_service
