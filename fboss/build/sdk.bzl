@@ -244,6 +244,7 @@ ALL_SDKS = [
     ),
     SaiLeabaSdk(
         fw_path = "third-party-buck/platform010-compat/build/leaba-sdk/24.4.90/res",
+        is_dyn = True,
         sai_version = "1.13.0",
         stage = SdkStage.DEV,
         version = "24.4.90",
