@@ -2078,6 +2078,10 @@ void SwSwitch::linkActiveStateChanged(
   auto updateActiveStateFn = [=,
                               this](const std::shared_ptr<SwitchState>& state) {
     std::shared_ptr<SwitchState> newState(state);
+    if (port2IsActive.size() == 0) {
+      return newState;
+    }
+
     auto numActiveFabricPorts = 0;
     for (const auto& [portID, isActive] : port2IsActive) {
       auto* port = newState->getPorts()->getNodeIf(portID).get();
@@ -2103,10 +2107,6 @@ void SwSwitch::linkActiveStateChanged(
           port->setActiveState(isActive);
         }
       }
-    }
-
-    if (port2IsActive.size() == 0) {
-      return newState;
     }
 
     // Pick matcher for any port.
