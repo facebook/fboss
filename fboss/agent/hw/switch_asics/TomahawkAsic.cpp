@@ -176,6 +176,7 @@ bool TomahawkAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::DELETED_CREDITS_STAT:
     case HwAsic::Feature::INGRESS_PRIORITY_GROUP_DROPPED_PACKETS:
     case HwAsic::Feature::NO_RX_REASON_TRAP:
+    case HwAsic::Feature::EGRESS_GVOQ_WATERMARK_BYTES:
       return false;
   }
   return false;

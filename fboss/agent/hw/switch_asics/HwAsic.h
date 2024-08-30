@@ -192,6 +192,7 @@ class HwAsic {
     // replace all ACL based trap reasons by
     // explicty ACL config programmed by FBOSS
     NO_RX_REASON_TRAP,
+    EGRESS_GVOQ_WATERMARK_BYTES,
   };
 
   enum class AsicMode {
