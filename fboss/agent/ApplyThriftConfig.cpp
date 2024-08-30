@@ -4679,7 +4679,6 @@ std::shared_ptr<MirrorMap> ThriftConfigApplier::updateMirrors() {
   auto newMirrors = std::make_shared<MirrorMap>();
 
   bool changed = false;
-
   size_t numExistingProcessed = 0;
   int sflowMirrorCount = 0;
   for (const auto& mirrorCfg : *cfg_->mirrors()) {
@@ -4880,13 +4879,20 @@ std::shared_ptr<Mirror> ThriftConfigApplier::updateMirror(
       newMirror->getTunnelUdpPorts() == orig->getTunnelUdpPorts() &&
       newMirror->getTruncate() == orig->getTruncate() &&
       (!newMirror->configHasEgressPort() ||
+       newMirror->getEgressPort() == orig->getEgressPort() ||
        newMirror->getEgressPortDesc() == orig->getEgressPortDesc())) {
     if (orig->getMirrorTunnel()) {
       newMirror->setMirrorTunnel(orig->getMirrorTunnel().value());
     }
+    if (orig->getEgressPort()) {
+      newMirror->setEgressPortDesc(
+          PortDescriptor(orig->getEgressPort().value()));
+      newMirror->setEgressPort(orig->getEgressPort().value());
+    }
     if (orig->getEgressPortDesc()) {
       newMirror->setEgressPortDesc(
           PortDescriptor(orig->getEgressPortDesc().value()));
+      newMirror->setEgressPort(orig->getEgressPortDesc().value().phyPortID());
     }
   }
   if (*newMirror == *orig) {
