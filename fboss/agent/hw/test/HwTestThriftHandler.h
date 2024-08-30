@@ -68,6 +68,9 @@ class HwTestThriftHandler : public AgentHwTestCtrlSvIf {
       std::unique_ptr<std::string> aclEntry,
       std::unique_ptr<std::string> mirror,
       bool ingress) override;
+  void getNeighborInfo(
+      NeighborInfo& neighborInfo,
+      std::unique_ptr<::facebook::fboss::IfAndIP> neighbor) override;
 
  private:
   HwSwitch* hwSwitch_;

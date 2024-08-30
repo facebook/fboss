@@ -161,6 +161,7 @@ add_library(agent_hw_test_thrift_handler
   fboss/agent/hw/sai/hw_test/HwTestThriftHandler.cpp
   fboss/agent/hw/sai/hw_test/HwTestAclUtilsThriftHandler.cpp
   fboss/agent/hw/sai/hw_test/HwTestMirrorUtilsThriftHandler.cpp
+  fboss/agent/hw/sai/hw_test/HwTestNeighborUtilsThriftHandler.cpp
 )
 
 target_link_libraries(agent_hw_test_thrift_handler
