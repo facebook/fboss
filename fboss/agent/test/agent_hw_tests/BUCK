@@ -36,6 +36,7 @@ cpp_library(
         "AgentMacLearningTests.cpp",
         "AgentMirroringTests.cpp",
         "AgentMmuTuningTests.cpp",
+        "AgentNeighborTests.cpp",
         "AgentOlympicQosSchedulerTests.cpp",
         "AgentOlympicQosTests.cpp",
         "AgentOverflowTestBase.cpp",
