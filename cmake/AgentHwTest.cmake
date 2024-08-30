@@ -202,7 +202,6 @@ set(hw_switch_test_srcs
   fboss/agent/hw/test/HwLabelSwitchRouteTest.cpp
   fboss/agent/hw/test/HwLinkStateDependentTest.cpp
   fboss/agent/hw/test/HwMirrorTests.cpp
-  fboss/agent/hw/test/HwNeighborTests.cpp
   fboss/agent/hw/test/HwTest.cpp
   fboss/agent/hw/test/HwTestAclUtils.cpp
   fboss/agent/hw/test/HwTestPortUtils.cpp
