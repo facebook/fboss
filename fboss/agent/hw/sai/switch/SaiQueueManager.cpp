@@ -61,7 +61,11 @@ void fillHwQueueStats(
         hwPortStats.queueEcnMarkedPackets_()[queueId] = value;
         break;
       default:
-        throw FbossError("Got unexpected queue counter id: ", counterId);
+        // Raise exception if this is not handled by implementation
+        // specific extension stats
+        if (!fillQueueExtensionStats(queueId, counterId, value, hwPortStats)) {
+          throw FbossError("Got unexpected queue counter id: ", counterId);
+        }
     }
   }
 }

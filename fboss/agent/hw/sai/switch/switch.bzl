@@ -52,6 +52,7 @@ _NPU_BRCM_SRCS = _NPU_COMMON_SRCS + [
     "facebook/SaiBufferManager.cpp",
     "facebook/SaiHostifManager.cpp",
     "facebook/SaiSwitchManager.cpp",
+    "npu/bcm/SaiQueueManager.cpp",
     "npu/bcm/SaiSwitch.cpp",
     "npu/bcm/SaiSwitchManager.cpp",
     "npu/bcm/SaiPortManager.cpp",
@@ -68,6 +69,7 @@ _NPU_TAJO_SRCS = _NPU_COMMON_SRCS + [
     "npu/tajo/SaiTamManager.cpp",
     "npu/tajo/SaiAclTableManager.cpp",
     "npu/tajo/SaiSwitchManager.cpp",
+    "oss/SaiQueueManager.cpp",
 ]
 
 _NPU_FAKE_SRCS = _NPU_COMMON_SRCS + [
@@ -78,6 +80,7 @@ _NPU_FAKE_SRCS = _NPU_COMMON_SRCS + [
     "oss/SaiPortManager.cpp",
     "oss/SaiAclTableManager.cpp",
     "oss/SaiSwitchManager.cpp",
+    "oss/SaiQueueManager.cpp",
 ]
 
 _PHY_COMMON_SRCS = _COMMON_SRCS + [
@@ -91,6 +94,7 @@ _PHY_COMMON_SRCS = _COMMON_SRCS + [
     "oss/SaiPortManager.cpp",
     "oss/SaiAclTableManager.cpp",
     "oss/SaiSwitchManager.cpp",
+    "oss/SaiQueueManager.cpp",
 ]
 
 _PHY_FAKE_SRCS = _PHY_COMMON_SRCS
