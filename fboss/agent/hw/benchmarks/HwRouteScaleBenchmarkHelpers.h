@@ -8,7 +8,9 @@
  *
  */
 
+#include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/HwSwitch.h"
+#include "fboss/agent/benchmarks/AgentBenchmarks.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwSwitchEnsemble.h"
 #include "fboss/agent/hw/test/HwSwitchEnsembleFactory.h"
@@ -25,9 +27,6 @@
 #include "fboss/lib/FunctionCallTimeReporter.h"
 
 #include "fboss/agent/test/AgentEnsemble.h"
-
-DECLARE_bool(json);
-DECLARE_bool(dsf_subscribe);
 
 namespace {
 const auto kEcmpWidth = 512;

@@ -34,9 +34,11 @@ cpp_library(
         "HwRouteScaleBenchmarkHelpers.h",
     ],
     exported_deps = [
+        "//fboss/agent:agent_features",
         "//fboss/agent:core",
         "//fboss/agent:hw_switch",
         "//fboss/agent:utils",
+        "//fboss/agent/benchmarks:mono_agent_benchmarks",
         "//fboss/agent/hw/test:config_factory",
         "//fboss/agent/hw/test:hw_switch_ensemble_factory",
         "//fboss/agent/test:agent_ensemble",
