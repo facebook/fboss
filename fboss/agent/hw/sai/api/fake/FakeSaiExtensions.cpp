@@ -3,6 +3,7 @@
 #include "fboss/agent/hw/sai/api/BufferApi.h"
 #include "fboss/agent/hw/sai/api/DebugCounterApi.h"
 #include "fboss/agent/hw/sai/api/PortApi.h"
+#include "fboss/agent/hw/sai/api/QueueApi.h"
 #include "fboss/agent/hw/sai/api/SwitchApi.h"
 #include "fboss/agent/hw/sai/api/TamApi.h"
 
@@ -207,6 +208,11 @@ const std::vector<sai_stat_id_t>& SaiSwitchTraits::deletedCredits() {
 
 const std::vector<sai_stat_id_t>&
 SaiSwitchTraits::egressCoreBufferWatermarkBytes() {
+  static const std::vector<sai_stat_id_t> stats;
+  return stats;
+}
+
+const std::vector<sai_stat_id_t>& SaiQueueTraits::egressGvoqWatermarkBytes() {
   static const std::vector<sai_stat_id_t> stats;
   return stats;
 }
