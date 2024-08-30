@@ -220,6 +220,7 @@ class AgentWatermarkTest : public AgentHwTest {
     auto portName =
         getProgrammedState()->getPorts()->getNodeIf(port)->getName();
     bool statsConditionMet = false;
+    std::string egressGvoqWatermarkBytesLog{};
     WITH_RETRIES({
       queueWaterMarks = getQueueWatermarks(port, isVoq);
       XLOG(DBG2) << "Port: " << portName << queueTypeStr << queueId
@@ -227,6 +228,16 @@ class AgentWatermarkTest : public AgentHwTest {
       statsConditionMet = (expectZero && !queueWaterMarks[queueId]) ||
           (!expectZero && queueWaterMarks[queueId]);
       EXPECT_EVENTUALLY_TRUE(statsConditionMet);
+      if (isSupportedOnAllAsics(HwAsic::Feature::EGRESS_GVOQ_WATERMARK_BYTES)) {
+        uint64_t egressGvoqWatermarkBytes =
+            (*getLatestPortStats(port).egressGvoqWatermarkBytes_())[queueId];
+        statsConditionMet &=
+            ((expectZero && !egressGvoqWatermarkBytes) ||
+             (!expectZero && egressGvoqWatermarkBytes));
+        EXPECT_EVENTUALLY_TRUE(statsConditionMet);
+        egressGvoqWatermarkBytesLog = ", GVOQ watermark bytes: " +
+            std::to_string(egressGvoqWatermarkBytes);
+      }
     });
 
     if (!statsConditionMet) {
@@ -235,7 +246,8 @@ class AgentWatermarkTest : public AgentHwTest {
                  << " watermark value!";
     } else {
       XLOG(DBG2) << "Port: " << portName << queueTypeStr << queueId
-                 << " got expected watermarks of " << queueWaterMarks[queueId];
+                 << " got expected queue watermarks of "
+                 << queueWaterMarks[queueId] << egressGvoqWatermarkBytesLog;
     }
     // Check fb303
     checkFb303BufferWatermarkUcast(port, queueId, isVoq);
