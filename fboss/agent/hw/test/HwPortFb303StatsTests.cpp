@@ -151,6 +151,7 @@ HwPortStats getInitedStats() {
       2, // leakyBucketFlapCount_
       1, // cableLengthMeters
       true, // dataCellsFilterIsOn
+      {{1, 0}, {2, 0}}, // egressGvoqWatermarkBytes_
   };
 }
 
