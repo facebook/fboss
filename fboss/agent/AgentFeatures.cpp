@@ -116,3 +116,8 @@ DEFINE_bool(
     "Enable wrong fabric connection. Done via SDK");
 
 DEFINE_bool(dsf_edsw_platform_mapping, false, "Use EDSW platform mapping");
+
+DEFINE_bool(
+    exit_for_any_hw_disconnect,
+    false,
+    "Flag to indicate whether SwSwitch will crash if any hw switch connection is lost. This will be used in tests to ensure all hw agent running.");
