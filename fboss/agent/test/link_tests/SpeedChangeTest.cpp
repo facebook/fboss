@@ -206,8 +206,9 @@ void SpeedChangeTest::setupConfigFlag() {
   originalConfigCopy =
       linkTestDir + "/agent_speed_change_test_original_config.conf";
 
-  // Create a copy of the original config during coldboot
-  if (sw()->getBootType() == BootType::COLD_BOOT) {
+  // Create a copy of the original config if we haven't created one before.
+  if (!boost::filesystem::exists(originalConfigCopy)) {
+    // Likely a coldboot iteration
     utilCreateDir(linkTestDir);
     boost::filesystem::copy_file(FLAGS_config, originalConfigCopy);
   }
