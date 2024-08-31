@@ -14,4 +14,5 @@ struct HwAgentStatusEntry {
   7: i32 fdbSyncActive;
   8: i32 rxPktSyncActive;
   9: i32 txPktSyncActive;
+  10: i32 switchReachabilityChangeSyncActive;
 }
