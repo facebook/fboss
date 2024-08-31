@@ -230,7 +230,7 @@ class FsdbSubscriber : public FsdbSubscriberBase {
         updateSubscriptionState(SubscriptionState::CANCELLED);
         break;
       default:
-        XLOG(DBG2) << "FsdbScubscriber: no-op transition for ConnectionState: "
+        XLOG(DBG2) << "No-op transition for ConnectionState: "
                    << connectionStateToString(oldState) << " -> "
                    << connectionStateToString(newState);
         break;
