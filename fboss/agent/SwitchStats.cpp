@@ -395,6 +395,8 @@ void SwitchStats::getHwAgentStatus(
     syncStatus.fdbEventSyncActive() = stats.getFdbEventSinkStatus();
     syncStatus.rxPktEventSyncActive() = stats.getRxPktEventSinkStatus();
     syncStatus.txPktEventSyncActive() = stats.getTxPktEventStreamStatus();
+    syncStatus.switchReachabilityChangeEventSyncActive() =
+        stats.getSwitchReachabilityChangeEventSinkStatus();
     syncStatus.statsEventSyncDisconnects() =
         stats.getStatsEventSinkDisconnectCount();
     syncStatus.fdbEventSyncDisconnects() =
@@ -405,6 +407,9 @@ void SwitchStats::getHwAgentStatus(
         stats.getRxPktEventSinkDisconnectCount();
     syncStatus.txPktEventSyncDisconnects() =
         stats.getTxPktEventStreamDisconnectCount();
+    syncStatus.switchReachabilityChangeEventSyncDisconnects() =
+        stats.getSwitchReachabilityChangeEventSinkDisconnectCount();
+
     statusMap.insert({switchIndex, std::move(syncStatus)});
     switchIndex++;
   }
