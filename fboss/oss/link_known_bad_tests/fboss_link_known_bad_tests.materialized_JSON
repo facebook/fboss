@@ -8,6 +8,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -80,6 +83,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -156,6 +162,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -228,6 +237,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -304,6 +316,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -376,6 +391,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -452,6 +470,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -524,6 +545,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -600,6 +624,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -674,6 +701,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -743,6 +773,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -816,6 +849,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -885,6 +921,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -958,6 +997,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -1027,6 +1069,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -1100,6 +1145,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -1169,6 +1217,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -1242,6 +1293,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -1311,6 +1365,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -1384,6 +1441,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -1455,6 +1515,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -1524,6 +1587,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -1600,6 +1666,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -1672,6 +1741,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -1748,6 +1820,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -1820,6 +1895,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -1896,6 +1974,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -1968,6 +2049,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -2044,6 +2128,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -2116,6 +2203,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -2192,6 +2282,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -2261,6 +2354,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -2334,6 +2430,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -2403,6 +2502,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -2476,6 +2578,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -2545,6 +2650,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -2618,6 +2726,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -2687,6 +2798,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -2760,6 +2874,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -2829,6 +2946,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -2902,6 +3022,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -2973,6 +3096,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -3042,6 +3168,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -3118,6 +3247,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -3190,6 +3322,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -3266,6 +3401,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -3338,6 +3476,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -3414,6 +3555,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -3486,6 +3630,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -3562,6 +3709,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -3634,6 +3784,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -3710,6 +3863,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -3779,6 +3935,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -3852,6 +4011,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -3921,6 +4083,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -3994,6 +4159,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -4063,6 +4231,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -4136,6 +4307,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -4205,6 +4379,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -4278,6 +4455,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -4347,6 +4527,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -4420,6 +4603,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -4489,6 +4675,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -4562,6 +4751,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "warm_boot.*$"
         },
         {
@@ -4631,6 +4823,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "warm_boot.*$"
@@ -4704,6 +4899,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "warm_boot.*$"
         },
         {
@@ -4773,6 +4971,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "warm_boot.*$"
@@ -4846,6 +5047,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "warm_boot.*$"
         },
         {
@@ -4915,6 +5119,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "warm_boot.*$"
@@ -4988,6 +5195,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "warm_boot.*$"
         },
         {
@@ -5057,6 +5267,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "warm_boot.*$"
@@ -5130,6 +5343,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "warm_boot.*$"
         },
         {
@@ -5201,6 +5417,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "warm_boot.*$"
         },
         {
@@ -5267,6 +5486,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "warm_boot.*$"
@@ -5337,6 +5559,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "warm_boot.*$"
         },
         {
@@ -5403,6 +5628,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "warm_boot.*$"
@@ -5473,6 +5701,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "warm_boot.*$"
         },
         {
@@ -5539,6 +5770,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "warm_boot.*$"
@@ -5609,6 +5843,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "warm_boot.*$"
         },
         {
@@ -5675,6 +5912,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "warm_boot.*$"
@@ -5745,6 +5985,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "warm_boot.*$"
         },
         {
@@ -5811,6 +6054,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "warm_boot.*$"
@@ -5881,6 +6127,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "warm_boot.*$"
         },
         {
@@ -5949,6 +6198,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "warm_boot.*$"
         },
         {
@@ -6015,6 +6267,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "warm_boot.*$"
@@ -6088,6 +6343,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "warm_boot.*$"
         },
         {
@@ -6157,6 +6415,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "warm_boot.*$"
@@ -6230,6 +6491,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "warm_boot.*$"
         },
         {
@@ -6299,6 +6563,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "warm_boot.*$"
@@ -6372,6 +6639,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "warm_boot.*$"
         },
         {
@@ -6441,6 +6711,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "warm_boot.*$"
@@ -6514,6 +6787,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "warm_boot.*$"
         },
         {
@@ -6583,6 +6859,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "warm_boot.*$"
@@ -6656,6 +6935,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "warm_boot.*$"
         },
         {
@@ -6722,6 +7004,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "warm_boot.*$"
@@ -6792,6 +7077,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "warm_boot.*$"
         },
         {
@@ -6858,6 +7146,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "warm_boot.*$"
@@ -6928,6 +7219,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "warm_boot.*$"
         },
         {
@@ -6994,6 +7288,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "warm_boot.*$"
@@ -7064,6 +7361,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "warm_boot.*$"
         },
         {
@@ -7130,6 +7430,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "warm_boot.*$"
@@ -7200,6 +7503,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "warm_boot.*$"
         },
         {
@@ -7266,6 +7572,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "warm_boot.*$"
@@ -7336,6 +7645,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "warm_boot.*$"
         },
         {
@@ -7404,6 +7716,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "warm_boot.*$"
         },
         {
@@ -7470,6 +7785,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -7570,6 +7888,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -7666,6 +7987,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -7766,6 +8090,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -7862,6 +8189,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -7962,6 +8292,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -8058,6 +8391,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -8158,6 +8494,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -8254,6 +8593,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -8354,6 +8696,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -8444,6 +8789,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -8538,6 +8886,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -8628,6 +8979,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -8722,6 +9076,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -8812,6 +9169,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -8906,6 +9266,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -8996,6 +9359,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -9090,6 +9456,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -9180,6 +9549,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -9274,6 +9646,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -9364,6 +9739,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -9458,6 +9836,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -9524,6 +9905,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -9594,6 +9978,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -9660,6 +10047,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -9730,6 +10120,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -9796,6 +10189,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -9866,6 +10262,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -9929,6 +10328,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -9996,6 +10398,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -10059,6 +10464,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -10126,6 +10534,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -10189,6 +10600,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -10256,6 +10670,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -10321,6 +10738,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -10384,6 +10804,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -10454,6 +10877,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -10520,6 +10946,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -10590,6 +11019,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -10656,6 +11088,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -10726,6 +11161,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -10794,6 +11232,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -10857,6 +11298,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -10924,6 +11368,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -10987,6 +11434,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -11054,6 +11504,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -11117,6 +11570,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -11184,6 +11640,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -11249,6 +11708,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -11312,6 +11774,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -11412,6 +11877,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -11508,6 +11976,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -11608,6 +12079,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -11704,6 +12178,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -11804,6 +12281,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -11900,6 +12380,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -12000,6 +12483,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -12096,6 +12582,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -12196,6 +12685,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -12289,6 +12781,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -12386,6 +12881,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -12479,6 +12977,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -12576,6 +13077,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -12669,6 +13173,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -12766,6 +13273,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -12859,6 +13369,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -12956,6 +13469,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -13049,6 +13565,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -13146,6 +13665,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -13239,6 +13761,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -13336,6 +13861,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -13429,6 +13957,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -13526,6 +14057,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -13619,6 +14153,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -13716,6 +14253,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -13809,6 +14349,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -13906,6 +14449,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -13984,6 +14530,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -14066,6 +14615,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -14144,6 +14696,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -14226,6 +14781,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -14304,6 +14862,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -14386,6 +14947,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -14464,6 +15028,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -14546,6 +15113,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -14626,6 +15196,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -14689,6 +15262,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -14756,6 +15332,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -14819,6 +15398,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -14886,6 +15468,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -14949,6 +15534,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -15016,6 +15604,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -15076,6 +15667,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -15140,6 +15734,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -15200,6 +15797,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -15264,6 +15864,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -15324,6 +15927,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -15388,6 +15994,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -15450,6 +16059,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -15510,6 +16122,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -15586,6 +16201,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -15658,6 +16276,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -15734,6 +16355,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -15806,6 +16430,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -15882,6 +16509,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -15954,6 +16584,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -16030,6 +16663,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -16102,6 +16738,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -16178,6 +16817,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -16247,6 +16889,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -16320,6 +16965,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -16389,6 +17037,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -16462,6 +17113,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -16531,6 +17185,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -16604,6 +17261,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -16673,6 +17333,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -16746,6 +17409,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -16815,6 +17481,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -16888,6 +17557,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -16959,6 +17631,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -17028,6 +17703,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -17107,6 +17785,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -17182,6 +17863,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -17261,6 +17945,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -17336,6 +18023,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -17415,6 +18105,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -17490,6 +18183,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -17569,6 +18265,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -17644,6 +18343,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -17723,6 +18425,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -17798,6 +18503,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -17877,6 +18585,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -17952,6 +18663,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -18031,6 +18745,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -18106,6 +18823,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -18185,6 +18905,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -18260,6 +18983,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -18339,6 +19065,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -18414,6 +19143,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -18493,6 +19225,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -18568,6 +19303,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -18647,6 +19385,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -18719,6 +19460,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -18795,6 +19539,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -18867,6 +19614,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -18943,6 +19693,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -19015,6 +19768,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -19091,6 +19847,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -19163,6 +19922,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -19239,6 +20001,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -19313,6 +20078,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -19382,6 +20150,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -19455,6 +20226,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -19524,6 +20298,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -19597,6 +20374,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -19666,6 +20446,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -19739,6 +20522,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -19808,6 +20594,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -19881,6 +20670,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -19950,6 +20742,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -20023,6 +20818,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -20094,6 +20892,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -20163,6 +20964,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -20245,6 +21049,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -20323,6 +21130,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -20405,6 +21215,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -20483,6 +21296,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -20565,6 +21381,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -20643,6 +21462,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -20725,6 +21547,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -20803,6 +21628,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -20885,6 +21713,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -20960,6 +21791,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -21039,6 +21873,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -21114,6 +21951,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -21193,6 +22033,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -21268,6 +22111,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -21347,6 +22193,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -21422,6 +22271,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -21501,6 +22353,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -21576,6 +22431,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -21655,6 +22513,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -21732,6 +22593,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -21807,6 +22671,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -21901,6 +22768,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -21991,6 +22861,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -22085,6 +22958,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -22175,6 +23051,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -22269,6 +23148,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -22359,6 +23241,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -22453,6 +23338,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -22543,6 +23431,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -22637,6 +23528,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -22724,6 +23618,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -22815,6 +23712,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -22902,6 +23802,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -22993,6 +23896,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -23080,6 +23986,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -23171,6 +24080,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -23258,6 +24170,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -23349,6 +24264,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -23436,6 +24354,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -23527,6 +24448,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -23614,6 +24538,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -23705,6 +24632,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -23792,6 +24722,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -23883,6 +24816,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -23970,6 +24906,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -24061,6 +25000,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -24148,6 +25090,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -24239,6 +25184,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -24326,6 +25274,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -24417,6 +25368,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -24504,6 +25458,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -24595,6 +25552,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -24682,6 +25642,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -24773,6 +25736,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -24860,6 +25826,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -24951,6 +25920,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -25038,6 +26010,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -25129,6 +26104,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -25216,6 +26194,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -25307,6 +26288,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -25394,6 +26378,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -25485,6 +26472,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -25574,6 +26564,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -25655,6 +26648,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -25740,6 +26736,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -25821,6 +26820,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -25906,6 +26908,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -25987,6 +26992,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -26072,6 +27080,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -26153,6 +27164,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -26238,6 +27252,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -26321,6 +27338,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -26399,6 +27419,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -26481,6 +27504,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -26559,6 +27585,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -26641,6 +27670,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -26719,6 +27751,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -26801,6 +27836,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -26879,6 +27917,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -26961,6 +28002,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -27039,6 +28083,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -27121,6 +28168,9 @@
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
         },
         {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -27199,6 +28249,9 @@
         },
         {
           "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
