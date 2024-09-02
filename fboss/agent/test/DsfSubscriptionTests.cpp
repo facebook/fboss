@@ -4,6 +4,7 @@
 #include "fboss/agent/AgentFsdbSyncManager.h"
 #include "fboss/agent/DsfSubscription.h"
 #include "fboss/agent/SwitchStats.h"
+#include "fboss/agent/hw/mock/MockPlatform.h"
 #include "fboss/agent/test/CounterCache.h"
 #include "fboss/agent/test/HwTestHandle.h"
 #include "fboss/agent/test/TestUtils.h"
@@ -15,6 +16,8 @@
 #include <gtest/gtest.h>
 #include "fboss/agent/GtestDefs.h"
 
+using ::testing::_;
+using ::testing::Return;
 namespace facebook::fboss {
 namespace {
 constexpr auto kRemoteSwitchIdBegin = 4;
@@ -359,6 +362,44 @@ TYPED_TEST(DsfSubscriptionTest, DataUpdate) {
 
   WITH_RETRIES(ASSERT_EVENTUALLY_EQ(
       this->getRemoteSystemPorts()->size(), this->kNumRemoteSwitchAsics + 1));
+}
+
+TYPED_TEST(DsfSubscriptionTest, updateFailed) {
+  CounterCache counters(this->sw_);
+  this->createPublisher();
+  auto state = this->makeSwitchState();
+  this->publishSwitchState(state);
+
+  std::optional<std::map<SwitchID, std::shared_ptr<SystemPortMap>>>
+      recvSysPorts;
+  std::optional<std::map<SwitchID, std::shared_ptr<InterfaceMap>>> recvIntfs;
+  this->subscription_ = this->createSubscription();
+
+  WITH_RETRIES({
+    ASSERT_EVENTUALLY_EQ(
+        this->getRemoteSystemPorts()->size(), this->kNumRemoteSwitchAsics);
+    ASSERT_EVENTUALLY_EQ(
+        this->getRemoteInterfaces()->size(), this->kNumRemoteSwitchAsics);
+    EXPECT_EQ(this->dsfSessionState(), DsfSessionState::WAIT_FOR_REMOTE);
+  });
+  waitForStateUpdates(this->sw_);
+
+  // Fail HW update by returning current state
+  EXPECT_HW_CALL(this->sw_, stateChangedImpl(_))
+      .Times(::testing::AtLeast(1))
+      .WillOnce(Return(this->sw_->getState()));
+  auto sysPort2 = makeSysPort(
+      std::nullopt, SystemPortID(kSysPortRangeMin + 2), kRemoteSwitchIdBegin);
+  auto portMap = state->getSystemPorts()->modify(&state);
+  portMap->addNode(sysPort2, this->matcher());
+  this->publishSwitchState(state);
+  auto dsfUpdateFailedCounter =
+      SwitchStats::kCounterPrefix + "dsf_update_failed.sum.60";
+  WITH_RETRIES({
+    counters.update();
+    ASSERT_EVENTUALLY_TRUE(counters.checkExist(dsfUpdateFailedCounter));
+    ASSERT_EVENTUALLY_EQ(counters.value(dsfUpdateFailedCounter), 1);
+  });
 }
 
 TYPED_TEST(DsfSubscriptionTest, updateWithRollbackProtection) {

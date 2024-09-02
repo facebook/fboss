@@ -115,6 +115,8 @@ class DsfSubscription {
   template <typename T>
   FRIEND_TEST(DsfSubscriptionTest, updateWithRollbackProtection);
   template <typename T>
+  FRIEND_TEST(DsfSubscriptionTest, updateFailed);
+  template <typename T>
   FRIEND_TEST(DsfSubscriptionTest, setupNeighbors);
 };
 
