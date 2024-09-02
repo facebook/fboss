@@ -492,10 +492,6 @@ void DsfSubscription::processGRHoldTimerExpired() {
     return std::shared_ptr<SwitchState>{};
   };
 
-  sw_->getRib()->updateStateInRibThread([this, updateDsfStateFn]() {
-    sw_->updateStateWithHwFailureProtection(
-        folly::sformat("Update state for node: {}", remoteNodeName_),
-        updateDsfStateFn);
-  });
+  updateDsfState(updateDsfStateFn);
 }
 } // namespace facebook::fboss
