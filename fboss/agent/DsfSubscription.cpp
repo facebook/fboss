@@ -342,7 +342,7 @@ void DsfSubscription::queueDsfUpdate(DsfUpdate&& dsfUpdate) {
         updateWithRollbackProtection(
             update.switchId2SystemPorts, update.switchId2Intfs);
 
-      } catch (std::exception& e) {
+      } catch (const std::exception& e) {
         XLOG(DBG2) << kDsfCtrlLogPrefix
                    << " update failed for : " << remoteEndpointStr();
         sw_->stats()->dsfUpdateFailed();
