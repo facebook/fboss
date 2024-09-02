@@ -62,6 +62,9 @@ class DsfSubscription {
     std::map<SwitchID, std::shared_ptr<SystemPortMap>> switchId2SystemPorts;
     std::map<SwitchID, std::shared_ptr<InterfaceMap>> switchId2Intfs;
   };
+  void updateDsfState(
+      const std::function<std::shared_ptr<SwitchState>(
+          const std::shared_ptr<SwitchState>&)>& updateDsfStateFn);
   std::string remoteEndpointStr() const;
   void updateWithRollbackProtection(
       const std::map<SwitchID, std::shared_ptr<SystemPortMap>>&
@@ -80,6 +83,7 @@ class DsfSubscription {
       const MultiSwitchSystemPortMap& newPortMap,
       const MultiSwitchInterfaceMap& newInterfaceMap);
   void queueDsfUpdate(DsfUpdate&& dsfUpdate);
+
   fsdb::FsdbStreamClient::State getStreamState() const;
 
   fsdb::SubscriptionOptions opts_;
