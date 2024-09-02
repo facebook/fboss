@@ -931,7 +931,7 @@ TEST(Port, verifyInterfaceIDsForNonVoqSwitches) {
 TEST(Port, verifyInterfaceIDsForVoqSwitches) {
   auto platform = createMockPlatform();
   auto stateV0 = make_shared<SwitchState>();
-  addSwitchInfo(stateV0, cfg::SwitchType::VOQ, 1 /* switchId*/);
+  addSwitchInfo(stateV0, cfg::SwitchType::VOQ, kVoqSwitchIdBegin /* switchId*/);
   auto config = testConfigA(cfg::SwitchType::VOQ);
 
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
@@ -967,7 +967,7 @@ TEST(Port, verifySysPortRangeForNonVoqSwitches) {
 TEST(Port, verifySwitchIdForVoqSwitches) {
   auto platform = createMockPlatform();
   auto stateV0 = make_shared<SwitchState>();
-  addSwitchInfo(stateV0, cfg::SwitchType::VOQ, 1 /* switchId*/);
+  addSwitchInfo(stateV0, cfg::SwitchType::VOQ, kVoqSwitchIdBegin /* switchId*/);
   auto config = testConfigA(cfg::SwitchType::VOQ);
 
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
@@ -976,7 +976,8 @@ TEST(Port, verifySwitchIdForVoqSwitches) {
   for (const auto& portMap : std::as_const(*(stateV1->getPorts()))) {
     for (auto port : *portMap.second) {
       auto portID = port.second->getID();
-      EXPECT_EQ(stateV1->getAssociatedSwitchID(portID), SwitchID(1));
+      EXPECT_EQ(
+          stateV1->getAssociatedSwitchID(portID), SwitchID(kVoqSwitchIdBegin));
     }
   }
 }
@@ -1000,7 +1001,7 @@ TEST(Port, verifySwitchIdForNonVoqSwitches) {
 TEST(Port, verifySysPortRangeForVoqSwitches) {
   auto platform = createMockPlatform();
   auto stateV0 = make_shared<SwitchState>();
-  addSwitchInfo(stateV0, cfg::SwitchType::VOQ, 1 /* switchId*/);
+  addSwitchInfo(stateV0, cfg::SwitchType::VOQ, kVoqSwitchIdBegin /* switchId*/);
 
   auto config = testConfigA(cfg::SwitchType::VOQ);
 
@@ -1017,7 +1018,7 @@ TEST(Port, verifySysPortRangeForVoqSwitches) {
 TEST(Port, verifyNeighborReachability) {
   auto platform = createMockPlatform();
   auto stateV0 = make_shared<SwitchState>();
-  addSwitchInfo(stateV0, cfg::SwitchType::VOQ, 1 /* switchId*/);
+  addSwitchInfo(stateV0, cfg::SwitchType::VOQ, kVoqSwitchIdBegin /* switchId*/);
   auto config = testConfigA(cfg::SwitchType::VOQ);
 
   cfg::PortNeighbor nbr;

@@ -183,7 +183,7 @@ cfg::SwitchConfig testConfigFabricSwitch() {
   cfg::SwitchConfig cfg;
   cfg.ports()->resize(kPortCount);
   cfg.switchSettings()->switchIdToSwitchInfo() = {std::make_pair(
-      20,
+      kFabricSwitchIdBegin,
       createSwitchInfo(
           cfg::SwitchType::FABRIC,
           cfg::AsicType::ASIC_TYPE_MOCK,
@@ -205,9 +205,10 @@ cfg::SwitchConfig testConfigFabricSwitch() {
         cfg::PortProfileID::PROFILE_25G_1_NRZ_CL74_COPPER;
     cfg.ports()[p].portType() = cfg::PortType::FABRIC_PORT;
   }
-  auto myNode = makeDsfNodeCfg(20, cfg::DsfNodeType::FABRIC_NODE);
+  auto myNode =
+      makeDsfNodeCfg(kFabricSwitchIdBegin, cfg::DsfNodeType::FABRIC_NODE);
   cfg.dsfNodes()->insert({*myNode.switchId(), myNode});
-  cfg::DsfNode inNode = makeDsfNodeCfg(1);
+  cfg::DsfNode inNode = makeDsfNodeCfg(0);
   cfg.dsfNodes()->insert({*inNode.switchId(), inNode});
   return cfg;
 }
@@ -296,12 +297,12 @@ cfg::SwitchConfig testConfigAImpl(bool isMhnic, cfg::SwitchType switchType) {
   } else {
     if (switchType == cfg::SwitchType::VOQ) {
       // Add config for VOQ DsfNode
-      cfg::DsfNode myNode = makeDsfNodeCfg(1);
+      cfg::DsfNode myNode = makeDsfNodeCfg(kVoqSwitchIdBegin);
       cfg.dsfNodes()->insert({*myNode.switchId(), myNode});
       cfg.interfaces()->resize(kPortCount);
       CHECK(myNode.systemPortRange().has_value());
       cfg.switchSettings()->switchIdToSwitchInfo() = {std::make_pair(
-          1,
+          kVoqSwitchIdBegin,
           createSwitchInfo(
               cfg::SwitchType::VOQ,
               cfg::AsicType::ASIC_TYPE_MOCK,
@@ -341,7 +342,8 @@ cfg::SwitchConfig testConfigAImpl(bool isMhnic, cfg::SwitchType switchType) {
       addRecyclePortRif(myNode, cfg);
       // Add a fabric node to DSF node as well. In prod DsfNode map will have
       // both IN and FN nodes
-      auto fnNode = makeDsfNodeCfg(20, cfg::DsfNodeType::FABRIC_NODE);
+      auto fnNode =
+          makeDsfNodeCfg(kFabricSwitchIdBegin, cfg::DsfNodeType::FABRIC_NODE);
       cfg.dsfNodes()->insert({*fnNode.switchId(), fnNode});
     }
   }
