@@ -76,6 +76,8 @@ class SwitchState;
 class Interface;
 class SwitchSettings;
 
+constexpr auto kRecyclePortIdOffset = 1;
+
 template <typename T>
 inline T readBuffer(const uint8_t* buffer, uint32_t pos, size_t buffSize) {
   CHECK_LE(pos + sizeof(T), buffSize);
@@ -405,5 +407,9 @@ std::set<SwitchID> getAllSwitchIDsForSwitch(
 uint32_t getRemotePortOffset(const PlatformType platformType);
 
 std::string runShellCmd(const std::string& cmd);
+
+InterfaceID getRecyclePortIntfID(
+    const std::shared_ptr<SwitchState>& state,
+    const SwitchID& switchId);
 
 } // namespace facebook::fboss

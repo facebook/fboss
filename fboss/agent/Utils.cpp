@@ -864,4 +864,19 @@ std::string runShellCmd(const std::string& cmd) {
   return result;
 }
 
+InterfaceID getRecyclePortIntfID(
+    const std::shared_ptr<SwitchState>& state,
+    const SwitchID& switchId) {
+  auto dsfNode = state->getDsfNodes()->getNodeIf(switchId);
+  CHECK(dsfNode);
+
+  auto systemPortRange = dsfNode->getSystemPortRange();
+  CHECK(systemPortRange.has_value());
+
+  auto recyclePortId =
+      InterfaceID(*systemPortRange.value().minimum() + kRecyclePortIdOffset);
+
+  return recyclePortId;
+}
+
 } // namespace facebook::fboss
