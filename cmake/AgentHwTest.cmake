@@ -177,11 +177,12 @@ add_library(prod_config_utils
 )
 
 target_link_libraries(prod_config_utils
+  copp_test_utils
   load_balancer_utils
   switch_config_cpp2
+  traffic_policy_utils
   olympic_qos_utils
   hw_copp_utils
-  hw_switch_test
 )
 
 add_fbthrift_cpp_library(
@@ -306,6 +307,7 @@ target_link_libraries(hw_switch_test
   hw_stat_printers
   port_stats_test_utils
   agent_hw_test_constants
+  sai_switch_ensemble
   ${GTEST}
   ${LIBGMOCK_LIBRARIES}
 )

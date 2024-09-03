@@ -83,6 +83,7 @@ target_link_libraries(olympic_qos_utils
   packet_factory
   Folly::folly
   switch_config_cpp2
+  traffic_policy_utils
 )
 
 add_library(port_test_utils
