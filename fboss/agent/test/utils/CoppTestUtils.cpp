@@ -474,6 +474,23 @@ void addHighPriAclForBgp(
       {cfg::EtherType::IPv4, cfg::EtherType::IPv6});
 }
 
+void addMidPriAclForIp2Me(
+    const HwAsic* hwAsic,
+    cfg::ToCpuAction toCpuAction,
+    int midPriQueueId,
+    std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>>& acls,
+    bool isSai) {
+  cfg::AclEntry acl;
+  acl.lookupClassRoute() = cfg::AclLookupClass::DST_CLASS_L3_LOCAL_1;
+  acl.name() = folly::to<std::string>("cpuPolicing-mid-ip2me-acl");
+  addEtherTypeToAcl(
+      hwAsic,
+      acl,
+      acls,
+      createQueueMatchAction(midPriQueueId, isSai, toCpuAction),
+      {cfg::EtherType::IPv4, cfg::EtherType::IPv6});
+}
+
 void addLowPriAclForUnresolvedRoutes(
     const HwAsic* hwAsic,
     cfg::ToCpuAction toCpuAction,
@@ -686,6 +703,12 @@ std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>> defaultCpuAclsForSai(
           hwAsic,
           cfg::ToCpuAction::TRAP,
           getCoppHighPriQueueId(hwAsic),
+          acls,
+          true);
+      addMidPriAclForIp2Me(
+          hwAsic,
+          cfg::ToCpuAction::TRAP,
+          getCoppMidPriQueueId({hwAsic}),
           acls,
           true);
     }
@@ -932,8 +955,6 @@ std::vector<cfg::PacketRxReasonToQueue> getCoppRxReasonToQueuesForSai(
             cfg::PacketRxReason::ARP_RESPONSE, coppHighPriQueueId),
         ControlPlane::makeRxReasonToQueueEntry(
             cfg::PacketRxReason::NDP, coppHighPriQueueId),
-        ControlPlane::makeRxReasonToQueueEntry(
-            cfg::PacketRxReason::CPU_IS_NHOP, coppMidPriQueueId),
         ControlPlane::makeRxReasonToQueueEntry(
             cfg::PacketRxReason::LACP, coppHighPriQueueId),
         ControlPlane::makeRxReasonToQueueEntry(
