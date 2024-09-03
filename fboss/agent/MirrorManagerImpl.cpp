@@ -114,6 +114,7 @@ std::shared_ptr<Mirror> MirrorManagerImpl<AddrT>::updateMirror(
     std::optional<PortDescriptor> egressPortDesc{};
     switch (neighborPort.type()) {
       case PortDescriptor::PortType::PHYSICAL:
+      case PortDescriptor::PortType::SYSTEM_PORT:
         egressPortDesc = entry->getPort();
         break;
       case PortDescriptor::PortType::AGGREGATE: {
@@ -136,9 +137,6 @@ std::shared_ptr<Mirror> MirrorManagerImpl<AddrT>::updateMirror(
           }
         }
       } break;
-      case PortDescriptor::PortType::SYSTEM_PORT:
-        XLOG(FATAL) << " No mirroring over system ports";
-        break;
     }
 
     if (!egressPortDesc) {
