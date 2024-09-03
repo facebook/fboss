@@ -324,6 +324,11 @@ TYPED_TEST(DsfSubscriptionTest, GR) {
         this->getRemoteInterfaces()->size(), this->kNumRemoteSwitchAsics);
     ASSERT_EVENTUALLY_EQ(
         this->dsfSessionState(), DsfSessionState::WAIT_FOR_REMOTE);
+    auto remoteRifs = this->getRemoteInterfaces();
+    for (const auto [_, rif] : std::as_const(*remoteRifs)) {
+      ASSERT_EVENTUALLY_EQ(rif->getNdpTable()->size(), 1);
+      ASSERT_EVENTUALLY_EQ(rif->getArpTable()->size(), 1);
+    }
   });
 
   auto assertStatus = [this](LivenessStatus expectedStatus) {
@@ -348,6 +353,12 @@ TYPED_TEST(DsfSubscriptionTest, GR) {
     ASSERT_EVENTUALLY_EQ(this->dsfSessionState(), DsfSessionState::CONNECT);
     ASSERT_EVENTUALLY_TRUE(counters.checkExist(grExpiredCounter));
     ASSERT_EVENTUALLY_EQ(counters.value(grExpiredCounter), 1);
+    auto remoteRifs = this->getRemoteInterfaces();
+    for (const auto [_, rif] : std::as_const(*remoteRifs)) {
+      // Neighbors should get pruned
+      ASSERT_EVENTUALLY_EQ(rif->getNdpTable()->size(), 0);
+      ASSERT_EVENTUALLY_EQ(rif->getArpTable()->size(), 0);
+    }
   });
   // Should be STATLE after GR expire
   assertStatus(LivenessStatus::STALE);
