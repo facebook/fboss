@@ -7337,6 +7337,38 @@
         "etherType": 34525
       },
       {
+        "proto": 6,
+        "name": "cpuPolicing-high-BGPSrcPort-dstLocalIp4",
+        "actionType": 1,
+        "l4SrcPort": 179,
+        "lookupClassRoute": 1,
+        "etherType": 2048
+      },
+      {
+        "proto": 6,
+        "name": "cpuPolicing-high-BGPDstPort-dstLocalIp4",
+        "actionType": 1,
+        "l4DstPort": 179,
+        "lookupClassRoute": 1,
+        "etherType": 2048
+      },
+      {
+        "proto": 6,
+        "name": "cpuPolicing-high-BGPSrcPort-dstLocalIp6",
+        "actionType": 1,
+        "l4SrcPort": 179,
+        "lookupClassRoute": 1,
+        "etherType": 34525
+      },
+      {
+        "proto": 6,
+        "name": "cpuPolicing-high-BGPDstPort-dstLocalIp6",
+        "actionType": 1,
+        "l4DstPort": 179,
+        "lookupClassRoute": 1,
+        "etherType": 34525
+      },
+      {
         "dstIp": "ff00::/8",
         "name": "drop-v6-multicast",
         "actionType": 0,
@@ -7466,6 +7498,54 @@
                 "tcValue": 3
               }
             }
+          },
+          {
+            "matcher": "cpuPolicing-high-BGPSrcPort-dstLocalIp4",
+            "action": {
+              "sendToQueue": {
+                "queueId": 7
+              },
+              "toCpuAction": 1,
+              "setTc": {
+                "tcValue": 7
+              }
+            }
+          },
+          {
+            "matcher": "cpuPolicing-high-BGPDstPort-dstLocalIp4",
+            "action": {
+              "sendToQueue": {
+                "queueId": 7
+              },
+              "toCpuAction": 1,
+              "setTc": {
+                "tcValue": 7
+              }
+            }
+          },
+          {
+            "matcher": "cpuPolicing-high-BGPSrcPort-dstLocalIp6",
+            "action": {
+              "sendToQueue": {
+                "queueId": 7
+              },
+              "toCpuAction": 1,
+              "setTc": {
+                "tcValue": 7
+              }
+            }
+          },
+          {
+            "matcher": "cpuPolicing-high-BGPDstPort-dstLocalIp6",
+            "action": {
+              "sendToQueue": {
+                "queueId": 7
+              },
+              "toCpuAction": 1,
+              "setTc": {
+                "tcValue": 7
+              }
+            }
           }
         ]
       },
@@ -7480,14 +7560,6 @@
         },
         {
           "rxReason": 10,
-          "queueId": 7
-        },
-        {
-          "rxReason": 11,
-          "queueId": 7
-        },
-        {
-          "rxReason": 12,
           "queueId": 7
         },
         {
