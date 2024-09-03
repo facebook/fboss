@@ -38,6 +38,7 @@ std::shared_ptr<SystemPortMap> makeSysPortsForSwitchIds(
   }
   return sysPorts;
 }
+
 std::shared_ptr<InterfaceMap> makeRifs(const SystemPortMap* sysPorts) {
   auto rifs = std::make_shared<InterfaceMap>();
   for (const auto& [id, sysPort] : *sysPorts) {
@@ -51,13 +52,29 @@ std::shared_ptr<InterfaceMap> makeRifs(const SystemPortMap* sysPorts) {
         false,
         true,
         cfg::InterfaceType::SYSTEM_PORT);
-    Interface::Addresses addresses{
-        {folly::IPAddressV4(
-             folly::to<std::string>(intfV4AddrPrefix, (id % 256))),
-         31},
-        {folly::IPAddressV6(
-             folly::to<std::string>(intfV6AddrPrefix, (id % 256))),
-         127}};
+    folly::IPAddress ipv4(folly::to<std::string>(intfV4AddrPrefix, (id % 256)));
+    folly::IPAddress ipv6(folly::to<std::string>(intfV6AddrPrefix, (id % 256)));
+    Interface::Addresses addresses{{ipv4.asV4(), 31}, {ipv6.asV6(), 127}};
+    state::NeighborEntries ndpTable, arpTable;
+    for (auto isV6 : std::vector<bool>({true, false})) {
+      state::NeighborEntryFields nbr;
+      nbr.mac() = "01:02:03:04:05:06";
+      cfg::PortDescriptor port;
+      port.portId() = id;
+      port.portType() = cfg::PortDescriptorType::SystemPort;
+      nbr.portId() = port;
+      nbr.interfaceId() = id;
+      nbr.isLocal() = true;
+      std::string ip = isV6 ? ipv6.str() : ipv4.str();
+      nbr.ipaddress() = ip;
+      if (isV6) {
+        ndpTable.insert({ip, nbr});
+      } else {
+        arpTable.insert({ip, nbr});
+      }
+    }
+    rif->setNdpTable(ndpTable);
+    rif->setArpTable(arpTable);
     rif->setAddresses(addresses);
     rif->setScope(cfg::Scope::GLOBAL);
     rif->setRemoteInterfaceType(RemoteInterfaceType::DYNAMIC_ENTRY);
