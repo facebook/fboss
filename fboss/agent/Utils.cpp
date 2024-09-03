@@ -849,4 +849,19 @@ uint32_t getRemotePortOffset(const PlatformType platformType) {
   return 0;
 }
 
+std::string runShellCmd(const std::string& cmd) {
+  std::array<char, 4096> buffer;
+  std::string result;
+  std::unique_ptr<FILE, decltype(&pclose)> pipe(
+      popen(cmd.c_str(), "r"), pclose);
+  if (!pipe) {
+    throw std::runtime_error("popen() failed!");
+  }
+  while (fgets(buffer.data(), buffer.size(), pipe.get()) != nullptr) {
+    result += buffer.data();
+  }
+
+  return result;
+}
+
 } // namespace facebook::fboss

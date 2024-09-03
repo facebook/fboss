@@ -404,4 +404,6 @@ std::set<SwitchID> getAllSwitchIDsForSwitch(
 
 uint32_t getRemotePortOffset(const PlatformType platformType);
 
+std::string runShellCmd(const std::string& cmd);
+
 } // namespace facebook::fboss
