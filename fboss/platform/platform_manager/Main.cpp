@@ -44,6 +44,11 @@ DEFINE_string(
     "",
     "Path to the local rpm file that needs to be installed on the system.");
 
+DEFINE_bool(
+    sd_notify,
+    true,
+    "By default sd_notify to notify systemd. Otherwise, sd_notify will be skipped.");
+
 constexpr auto kBspKmodsRpmName = "fboss_bsp_kmods_rpm";
 constexpr auto kBspKmodsRpmVersionCounter = "bsp_kmods_rpm_version.{}";
 
@@ -51,8 +56,10 @@ void sdNotifyReady() {
   auto cmd = "systemd-notify --ready";
   auto [exitStatus, standardOut] = PlatformUtils().execCommand(cmd);
   if (exitStatus != 0) {
-    throw std::runtime_error(
-        fmt::format("Failed to sd_notify ready by run command ({}).", cmd));
+    throw std::runtime_error(fmt::format(
+        "Failed to sd_notify ready by run command ({}). Run again with --sd_notify=false "
+        "to avoid systemd-notify if this wasn't executed by systemd",
+        cmd));
   }
   XLOG(INFO) << fmt::format(
       "Sent sd_notify ready by running command ({})", cmd);
@@ -96,7 +103,10 @@ int main(int argc, char** argv) {
         FLAGS_run_once);
     return 0;
   }
-  sdNotifyReady();
+
+  if (FLAGS_sd_notify) {
+    sdNotifyReady();
+  }
 
   XLOG(INFO) << "Running PlatformManager thrift service...";
 
