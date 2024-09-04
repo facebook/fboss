@@ -129,10 +129,31 @@ bool HwTestThriftHandler::isMirrorProgrammed(
 }
 
 bool HwTestThriftHandler::isPortMirrored(
-    int32_t /*port*/,
-    std::unique_ptr<std::string> /*mirror*/,
-    bool /*ingress*/) {
-  throw FbossError("isPortMirrored not implemented");
+    int32_t port,
+    std::unique_ptr<std::string> mirror,
+    bool ingress) {
+  BcmSwitch* bcmSwitch = static_cast<BcmSwitch*>(hwSwitch_);
+  bcm_gport_t port_mirror_dest_id = 0;
+  int count = 0;
+  bcm_mirror_port_dest_get(
+      bcmSwitch->getUnit(),
+      port,
+      ingress ? BCM_MIRROR_PORT_INGRESS : BCM_MIRROR_PORT_EGRESS,
+      1,
+      &port_mirror_dest_id,
+      &count);
+
+  if (count == 0) {
+    return false;
+  }
+
+  const auto* bcmMirrorTable = bcmSwitch->getBcmMirrorTable();
+  auto* bcmMirror = bcmMirrorTable->getNodeIf(*mirror);
+
+  if (!bcmMirror) {
+    return false;
+  }
+  return (port_mirror_dest_id == bcmMirror->getHandle());
 }
 
 bool HwTestThriftHandler::isPortSampled(

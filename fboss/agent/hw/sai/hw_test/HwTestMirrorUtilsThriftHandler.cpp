@@ -176,10 +176,34 @@ bool HwTestThriftHandler::isMirrorProgrammed(
 }
 
 bool HwTestThriftHandler::isPortMirrored(
-    int32_t /*port*/,
-    std::unique_ptr<std::string> /*mirror*/,
-    bool /*ingress*/) {
-  throw FbossError("isPortMirrored not implemented");
+    int32_t port,
+    std::unique_ptr<std::string> mirror,
+    bool ingress) {
+  auto saiSwitch = static_cast<SaiSwitch*>(hwSwitch_);
+  auto portHandle =
+      saiSwitch->managerTable()->portManager().getPortHandle(PortID(port));
+  std::vector<sai_object_id_t> mirrorSaiOidList;
+
+  if (ingress) {
+    mirrorSaiOidList = SaiApiTable::getInstance()->portApi().getAttribute(
+        portHandle->port->adapterKey(),
+        SaiPortTraits::Attributes::IngressSampleMirrorSession());
+  } else {
+    mirrorSaiOidList = SaiApiTable::getInstance()->portApi().getAttribute(
+        portHandle->port->adapterKey(),
+        SaiPortTraits::Attributes::EgressSampleMirrorSession());
+  }
+  if (mirrorSaiOidList.size() == 0) {
+    return false;
+  }
+
+  auto mirrorHandle =
+      saiSwitch->managerTable()->mirrorManager().getMirrorHandle(*mirror);
+  if (!mirrorHandle) {
+    return false;
+  }
+
+  return mirrorHandle->adapterKey() == mirrorSaiOidList[0];
 }
 
 bool HwTestThriftHandler::isPortSampled(
