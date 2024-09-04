@@ -61,6 +61,9 @@ const std::string kEgressErspan = "egress_erspan";
 const uint8_t kTrafficPortIndex = 0;
 const uint8_t kMirrorToPortIndex = 1;
 
+constexpr auto kDscpDefault = facebook::fboss::cfg::switch_config_constants::
+    DEFAULT_MIRROR_DSCP_; // default dscp value
+
 } // namespace
 
 namespace facebook::fboss {
@@ -85,7 +88,8 @@ class AgentMirroringTest : public AgentHwTest {
       cfg::SwitchConfig* cfg,
       const AgentEnsemble& ensemble,
       const std::string& mirrorName,
-      bool truncate) const {
+      bool truncate,
+      uint8_t dscp = kDscpDefault) const {
     auto mirrorToPort = ensemble.masterLogicalPortIds(
         {cfg::PortType::INTERFACE_PORT})[kMirrorToPortIndex];
     auto params = getTestParams<AddrT>();
@@ -103,6 +107,7 @@ class AgentMirroringTest : public AgentHwTest {
     mirrorConfig.name() = mirrorName;
     mirrorConfig.destination() = destination;
     mirrorConfig.truncate() = truncate;
+    mirrorConfig.dscp() = dscp;
     cfg->mirrors()->push_back(mirrorConfig);
   }
 
@@ -263,7 +268,21 @@ class AgentMirroringTest : public AgentHwTest {
     cfg->dataPlaneTrafficPolicy()->matchToAction()->push_back(matchToAction);
   }
 
+  void verifyMirrorProgrammed(const std::string& mirrorName) {
+    WITH_RETRIES({
+      auto mirror = getProgrammedState()->getMirrors()->getNodeIf(mirrorName);
+      EXPECT_EVENTUALLY_TRUE(mirror->isResolved());
+      auto fields = mirror->toThrift();
+      auto scope = getAgentEnsemble()->scopeResolver().scope(mirror);
+      for (auto switchID : scope.switchIds()) {
+        auto client = getAgentEnsemble()->getHwAgentTestClient(switchID);
+        EXPECT_EVENTUALLY_TRUE(client->sync_isMirrorProgrammed(fields));
+      }
+    });
+  }
+
   void verify(const std::string& mirrorName, int payloadSize = 500) {
+    verifyMirrorProgrammed(mirrorName);
     auto trafficPort = getAgentEnsemble()->masterLogicalPortIds(
         {cfg::PortType::INTERFACE_PORT})[kTrafficPortIndex];
     auto mirrorToPort = getAgentEnsemble()->masterLogicalPortIds(

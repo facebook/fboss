@@ -3,6 +3,7 @@
 #include "fboss/agent/hw/test/HwTestThriftHandler.h"
 
 #include "fboss/agent/hw/sai/switch/SaiSwitch.h"
+#include "fboss/agent/state/PortDescriptor.h"
 
 namespace facebook::fboss::utility {
 
@@ -37,8 +38,11 @@ bool verifyResolvedMirror(
     const state::MirrorFields& mirror,
     SaiMirrorHandle* mirrorHandle,
     sai_mirror_session_type_t session_type) {
-  auto portHandle = saiSwitch->managerTable()->portManager().getPortHandle(
-      PortID(*mirror.get_egressPort()));
+  auto cfgPortDesc = mirror.get_egressPortDesc();
+  auto egressPort =
+      PortDescriptor::fromCfgCfgPortDescriptor(*cfgPortDesc).phyPortID();
+  auto portHandle =
+      saiSwitch->managerTable()->portManager().getPortHandle(egressPort);
   if (!portHandle) {
     return false;
   }
@@ -153,8 +157,16 @@ bool HwTestThriftHandler::isMirrorProgrammed(
     throw FbossError("isMirrorProgrammed: mirror is null");
   }
   if (!mirror->get_isResolved()) {
-    throw FbossError("isMirrorProgrammed: mirror is not resolved");
+    XLOG(INFO) << "isMirrorProgrammed: " << mirror->get_name()
+               << " is not resolved";
+    return false;
   }
+  XLOG(INFO) << "isMirrorProgrammed: " << mirror->get_name() << " is resolved";
+
+  std::string jsonStr;
+  apache::thrift::SimpleJSONSerializer::serialize(*mirror, &jsonStr);
+  XLOG(INFO) << jsonStr;
+
   auto saiSwitch = static_cast<SaiSwitch*>(hwSwitch_);
   auto mirrorHandle =
       saiSwitch->managerTable()->mirrorManager().getMirrorHandle(
