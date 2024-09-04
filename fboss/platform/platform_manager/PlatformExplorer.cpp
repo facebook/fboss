@@ -21,6 +21,7 @@
 #include "fboss/platform/platform_manager/gen-cpp2/platform_manager_config_constants.h"
 #include "fboss/platform/weutil/IoctlSmbusEepromReader.h"
 
+namespace facebook::fboss::platform::platform_manager {
 namespace {
 constexpr auto kTotalFailures = "total_failures";
 constexpr auto kRootSlotPath = "/";
@@ -42,7 +43,7 @@ std::string getSlotPath(
 // TODO: Handle hwmon/info_rom cases (by standardizing them away, if possible).
 int readVersionNumber(
     const std::string& path,
-    const facebook::fboss::platform::PlatformFsUtils* platformFsUtils) {
+    const PlatformFsUtils* platformFsUtils) {
   const auto versionFileContent = platformFsUtils->getStringFileContent(path);
   if (!versionFileContent) {
     // This log is necessary to distinguish read error vs reading "0".
@@ -67,9 +68,21 @@ int readVersionNumber(
     return 0;
   }
 }
-} // namespace
 
-namespace facebook::fboss::platform::platform_manager {
+PlatformManagerStatus createPmStatus(
+    const ExplorationStatus& explorationStatus,
+    int64_t lastExplorationTime) {
+  PlatformManagerStatus status;
+  status.explorationStatus() = explorationStatus;
+  status.lastExplorationTime() = lastExplorationTime;
+  return status;
+}
+
+PlatformManagerStatus createPmStatus(
+    const ExplorationStatus& explorationStatus) {
+  return createPmStatus(explorationStatus, 0);
+}
+} // namespace
 
 namespace constants = platform_manager_config_constants;
 
@@ -82,16 +95,12 @@ PlatformExplorer::PlatformExplorer(
       presenceChecker_(devicePathResolver_),
       explorationErrMap_(platformConfig_, dataStore_),
       platformFsUtils_(platformFsUtils) {
-  platformManagerStatus_.withWLock([](PlatformManagerStatus& status) {
-    status.explorationStatus() = ExplorationStatus::UNSTARTED;
-  });
+  updatePmStatus(createPmStatus(ExplorationStatus::UNSTARTED));
 }
 
 void PlatformExplorer::explore() {
   XLOG(INFO) << "Exploring the platform";
-  platformManagerStatus_.withWLock([](PlatformManagerStatus& status) {
-    status.explorationStatus() = ExplorationStatus::IN_PROGRESS;
-  });
+  updatePmStatus(createPmStatus(ExplorationStatus::IN_PROGRESS));
   for (const auto& [busName, busNum] :
        i2cExplorer_.getBusNums(*platformConfig_.i2cAdaptersFromCpu())) {
     dataStore_.updateI2cBusNum(std::nullopt, busName, busNum);
@@ -107,14 +116,11 @@ void PlatformExplorer::explore() {
   }
   publishFirmwareVersions();
   auto explorationStatus = concludeExploration();
-  platformManagerStatus_.withWLock(
-      [explorationStatus](PlatformManagerStatus& status) {
-        status.explorationStatus() = explorationStatus;
-        status.lastExplorationTime() =
-            std::chrono::duration_cast<std::chrono::seconds>(
-                std::chrono::system_clock::now().time_since_epoch())
-                .count();
-      });
+  updatePmStatus(createPmStatus(
+      explorationStatus,
+      std::chrono::duration_cast<std::chrono::seconds>(
+          std::chrono::system_clock::now().time_since_epoch())
+          .count()));
 }
 
 void PlatformExplorer::explorePmUnit(
@@ -660,6 +666,11 @@ PlatformManagerStatus PlatformExplorer::getPMStatus() const {
 
 PmUnitInfo PlatformExplorer::getPmUnitInfo(const std::string& slotPath) const {
   return dataStore_.getPmUnitInfo(slotPath);
+}
+
+void PlatformExplorer::updatePmStatus(const PlatformManagerStatus& newStatus) {
+  platformManagerStatus_.withWLock(
+      [&](PlatformManagerStatus& status) { status = newStatus; });
 }
 
 void PlatformExplorer::setupI2cDevice(

@@ -28,6 +28,8 @@ class PlatformExplorer {
       const std::shared_ptr<PlatformFsUtils> platformFsUtils =
           std::make_shared<PlatformFsUtils>());
 
+  virtual ~PlatformExplorer() = default;
+
   // Explore the platform.
   void explore();
 
@@ -76,6 +78,13 @@ class PlatformExplorer {
   // throws if no PmUnit found at the SlotPath.
   PmUnitInfo getPmUnitInfo(const std::string& slotPath) const;
 
+ protected:
+  virtual void updatePmStatus(const PlatformManagerStatus& newStatus);
+  // A thrift struct which contains the status of PM exploration.
+  // This member is thread safe since callers could be on different threads
+  // E.g thrift API call on `getLastPmStatus`.
+  folly::Synchronized<PlatformManagerStatus> platformManagerStatus_;
+
  private:
   void createDeviceSymLink(
       const std::string& linkPath,
@@ -118,11 +127,6 @@ class PlatformExplorer {
 
   // Map from <SlotPath, GpioChipDeviceName> to gpio chip number.
   std::map<std::pair<std::string, std::string>, uint16_t> gpioChipNums_{};
-
-  // A thrift struct which contains the status of PM exploration.
-  // This member is thread safe since callers could be on different threads
-  // E.g thrift API call on `getLastPmStatus`.
-  folly::Synchronized<PlatformManagerStatus> platformManagerStatus_;
 };
 
 } // namespace facebook::fboss::platform::platform_manager
