@@ -29,21 +29,25 @@ void WeutilImpl::printInfo() {
 
 void WeutilImpl::printInfoJson() {
   auto info = getContents();
-  int vectorSize = info.size();
+
   int cursor = 0;
+  std::vector<std::string> items;
+  for (auto [key, value] : info) {
+    // CRC16 is not needed in JSON output
+    if (key == "CRC16") {
+      continue;
+    }
+    items.push_back(fmt::format("\"{}\": \"{}\"", key, value));
+  }
+  int vectorSize = items.size();
   // Manually create JSON object without using folly, so that this code
   // will be ported to BMC later
   // Print the first part of the JSON - fixed entry to make a JSON
   std::cout << "{";
   std::cout << "\"Information\": {";
   // Print the second part of the JSON, the dynamic entry
-  for (auto [key, value] : info) {
-    // CRC16 is not needed in JSON output
-    if (key == "CRC16") {
-      continue;
-    }
-    std::cout << "\"" << key << "\": ";
-    std::cout << "\"" << value << "\"";
+  for (auto& item : items) {
+    std::cout << item;
     if (cursor++ != vectorSize - 1) {
       std::cout << ", ";
     }
