@@ -22,7 +22,7 @@
 #include "fboss/platform/weutil/IoctlSmbusEepromReader.h"
 
 namespace {
-auto constexpr kTotalFailures = "total_failures";
+constexpr auto kTotalFailures = "total_failures";
 constexpr auto kRootSlotPath = "/";
 
 std::string getSlotPath(

@@ -7,9 +7,8 @@
 #include <fb303/ServiceData.h>
 
 #include "fboss/platform/helpers/Init.h"
-#include "fboss/platform/platform_manager/PkgUtils.h"
+#include "fboss/platform/platform_manager/PkgManager.h"
 #include "fboss/platform/platform_manager/PlatformManagerHandler.h"
-#include "fboss/platform/platform_manager/Utils.h"
 
 using namespace facebook;
 using namespace facebook::fboss::platform;
@@ -23,34 +22,15 @@ DEFINE_int32(
     "Frequency at which the platform needs to be explored");
 
 DEFINE_bool(
-    enable_pkg_mgmnt,
-    true,
-    "Enable download and installation of the BSP rpm");
-
-DEFINE_bool(
-    reload_kmods,
-    false,
-    "The kmods are usually reloaded only when the BSP RPM changes. "
-    "But if this flag is set, the kmods will be reloaded everytime.");
-
-DEFINE_bool(
     run_once,
     true,
     "Setup platform once and exit. If set to false, setup platform once "
     "and run thrift service.");
 
-DEFINE_string(
-    local_rpm_path,
-    "",
-    "Path to the local rpm file that needs to be installed on the system.");
-
 DEFINE_bool(
     sd_notify,
     true,
     "By default sd_notify to notify systemd. Otherwise, sd_notify will be skipped.");
-
-constexpr auto kBspKmodsRpmName = "fboss_bsp_kmods_rpm";
-constexpr auto kBspKmodsRpmVersionCounter = "bsp_kmods_rpm_version.{}";
 
 void sdNotifyReady() {
   auto cmd = "systemd-notify --ready";
@@ -71,30 +51,8 @@ int main(int argc, char** argv) {
 
   auto config = Utils().getConfig();
 
-  PkgUtils().loadUpstreamKmods(config);
-
-  if (FLAGS_enable_pkg_mgmnt) {
-    if (FLAGS_local_rpm_path != "") {
-      fb303::fbData->setExportedValue(
-          kBspKmodsRpmName, "local_rpm: " + FLAGS_local_rpm_path);
-      PkgUtils().processLocalRpms(FLAGS_local_rpm_path, config);
-    } else {
-      fb303::fbData->setExportedValue(
-          kBspKmodsRpmName, PkgUtils().getKmodsRpmName(config));
-      fb303::fbData->setCounter(
-          fmt::format(kBspKmodsRpmVersionCounter, *config.bspKmodsRpmVersion()),
-          1);
-      PkgUtils().processRpms(config);
-    }
-  } else {
-    fb303::fbData->setExportedValue(
-        kBspKmodsRpmName, "Not managing BSP package");
-  }
-
-  if (FLAGS_reload_kmods) {
-    PkgUtils().processKmods(config);
-  }
-
+  PkgManager pkgManager(config);
+  pkgManager.processAll();
   PlatformExplorer platformExplorer(config);
   platformExplorer.explore();
   if (FLAGS_run_once) {
