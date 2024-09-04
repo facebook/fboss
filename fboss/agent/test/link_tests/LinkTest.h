@@ -95,7 +95,8 @@ class LinkTest : public AgentTest {
 
   std::set<std::pair<PortID, PortID>> getConnectedOpticalPortPairWithFeature(
       TransceiverFeature feature,
-      phy::Side side) const;
+      phy::Side side,
+      bool skipLoopback = false) const;
 
   void waitForLldpOnCabledPorts(
       uint32_t retries = 60,
