@@ -112,6 +112,7 @@ target_link_libraries(platform_manager_device_path_resolver
 
 add_library(platform_manager_platform_explorer
   fboss/platform/platform_manager/PlatformExplorer.cpp
+  fboss/platform/platform_manager/ExplorationErrorMap.cpp
 )
 
 target_link_libraries(platform_manager_platform_explorer
