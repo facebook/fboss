@@ -610,6 +610,7 @@ cpp_library(
         "HwTestEcmpUtilsThriftHandler.cpp",
         "HwTestMirrorUtilsThriftHandler.cpp",
         "HwTestNeighborUtilsThriftHandler.cpp",
+        "HwTestPortUtilsThriftHandler.cpp",
         "HwTestThriftHandler.cpp",
     ],
     headers = [

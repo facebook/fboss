@@ -163,6 +163,7 @@ add_library(agent_hw_test_thrift_handler
   fboss/agent/hw/sai/hw_test/HwTestMirrorUtilsThriftHandler.cpp
   fboss/agent/hw/sai/hw_test/HwTestNeighborUtilsThriftHandler.cpp
   fboss/agent/hw/sai/hw_test/HwTestEcmpUtilsThriftHandler.cpp
+  fboss/agent/hw/sai/hw_test/HwTestPortUtilsThriftHandler.cpp
 )
 
 target_link_libraries(agent_hw_test_thrift_handler
@@ -170,6 +171,7 @@ target_link_libraries(agent_hw_test_thrift_handler
   acl_test_utils
   agent_hw_test_ctrl_cpp2
   sai_ecmp_utils
+  diag_shell
 )
 
 

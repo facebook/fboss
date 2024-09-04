@@ -77,6 +77,10 @@ class HwTestThriftHandler : public AgentHwTestCtrlSvIf {
       int routerID,
       int sizeInSw) override;
 
+  void injectFecError(
+      std::unique_ptr<std::vector<int>> hwPorts,
+      bool injectCorrectable) override;
+
  private:
   HwSwitch* hwSwitch_;
 };
