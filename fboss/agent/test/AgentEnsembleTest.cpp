@@ -337,6 +337,29 @@ void AgentEnsembleTest::assertNoInDiscards(int maxNumDiscards) {
   }
 }
 
+void AgentEnsembleTest::assertNoInErrors(int maxNumDiscards) {
+  // When port stat is not updated yet post warmboot (collect timestamp will be
+  // -1), retry another round on all ports.
+  int numRounds = 0;
+  auto lastStatRefTime = hardware_stats_constants::STAT_UNINITIALIZED();
+
+  // Gather 2 round of valid port stats and ensure the discards are within
+  // maxNumDiscards
+  for (numRounds = 0; numRounds < 2; numRounds++) {
+    auto portStats = getNextUpdatedHwPortStats(lastStatRefTime);
+    lastStatRefTime = *portStats.begin()->second.timestamp__ref();
+
+    for (auto [port, stats] : portStats) {
+      auto inErrors = *stats.inErrors_();
+      XLOG(DBG2) << "Port: " << port << " in errors: " << inErrors
+                 << " in bytes: " << *stats.inBytes_()
+                 << " out bytes: " << *stats.outBytes_() << " at timestamp "
+                 << *stats.timestamp_();
+      EXPECT_LE(inErrors, maxNumDiscards);
+    }
+  }
+}
+
 void AgentEnsembleTest::dumpRunningConfig(const std::string& targetDir) {
   auto testConfig = getSw()->getAgentConfig();
   auto newcfg = AgentConfig(
