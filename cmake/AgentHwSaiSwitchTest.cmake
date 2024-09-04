@@ -73,5 +73,10 @@ set_target_properties(switch_test PROPERTIES COMPILE_FLAGS
   -DSAI_VER_RELEASE=${SAI_VER_RELEASE}"
 )
 
+# switch_test can't run on devservers because of some library loading error,
+# but gtest_discover_tests will attempt to execute the binary, so disable it.
+if(NOT DEFINED ENV{DEVSERVER})
 gtest_discover_tests(switch_test)
+endif()
+
 endif()
