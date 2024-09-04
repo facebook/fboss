@@ -39,6 +39,7 @@ add_fbthrift_cpp_library(
     reflection
   DEPENDS
    platform_manager_snapshot_cpp2
+   platform_manager_config_cpp2
 )
 
 add_library(platform_manager_i2c_explorer
