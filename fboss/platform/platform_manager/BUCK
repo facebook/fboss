@@ -185,16 +185,25 @@ cpp_library(
     ],
 )
 
+cpp_library(
+    name = "platform_manager_handler",
+    srcs = [
+        "PlatformManagerHandler.cpp",
+    ],
+    exported_deps = [
+        ":platform_explorer",
+        ":platform_manager_service-cpp2-services",
+    ],
+)
+
 cpp_binary(
     name = "platform_manager",
     srcs = [
         "Main.cpp",
-        "PlatformManagerHandler.cpp",
     ],
     deps = [
         ":pkg_utils",
-        ":platform_explorer",
-        ":platform_manager_service-cpp2-services",
+        ":platform_manager_handler",
         ":utils",
         "//fb303:logging",
         "//fb303:service_data",
