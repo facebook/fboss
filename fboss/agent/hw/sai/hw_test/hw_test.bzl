@@ -435,6 +435,7 @@ def _test_thrift_handler(sai_impl, is_npu):
             "HwTestAclUtilsThriftHandler.cpp",
             "HwTestMirrorUtilsThriftHandler.cpp",
             "HwTestNeighborUtilsThriftHandler.cpp",
+            "HwTestEcmpUtilsThriftHandler.cpp",
             "HwTestThriftHandler.cpp",
         ],
         auto_headers = AutoHeaders.SOURCES,
@@ -443,6 +444,9 @@ def _test_thrift_handler(sai_impl, is_npu):
             "//fboss/agent/hw/test:hw_test_thrift_handler_h",
             "//fboss/agent/if:agent_hw_test_ctrl-cpp2-services",
             "//fboss/agent/hw/sai/switch:{}".format(switch_lib_name),
+            "//fboss/agent/hw/sai/hw_test:{}".format(
+                sai_switch_dependent_name("sai_ecmp_utils", sai_impl, True),
+            ),
         ],
         versions = to_versions(sai_impl),
     )

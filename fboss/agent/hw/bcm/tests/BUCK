@@ -607,6 +607,7 @@ cpp_library(
     name = "agent_hw_test_thrift_handler",
     srcs = [
         "HwTestAclUtilsThriftHandler.cpp",
+        "HwTestEcmpUtilsThriftHandler.cpp",
         "HwTestMirrorUtilsThriftHandler.cpp",
         "HwTestNeighborUtilsThriftHandler.cpp",
         "HwTestThriftHandler.cpp",
@@ -617,7 +618,9 @@ cpp_library(
         "//fboss/agent:hw_switch",
         "//fboss/agent/hw/bcm:bcm",
         "//fboss/agent/hw/bcm:bcmaddress_fb_convertors",
+        "//fboss/agent/hw/bcm/tests:bcm_ecmp_utils",
         "//fboss/agent/hw/switch_asics:switch_asics",
+        "//fboss/agent/hw/test:hw_test_ecmp_utils",
         "//fboss/agent/hw/test:hw_test_thrift_handler_h",
         "//fboss/agent/test/utils:acl_test_utils",
     ],

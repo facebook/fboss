@@ -11,6 +11,7 @@ def bcm_agent_benchmark(name, srcs, extra_deps):
                 "//fboss/agent/benchmarks:bcm_agent_benchmarks_main{}".format(to_impl_suffix(sdk)),
                 "//fboss/agent/hw/bcm/tests:bcm_linkstate_toggler",
                 "//fboss/agent/hw/bcm/tests:agent_hw_test_thrift_handler",
+                "//fboss/agent/hw/bcm/tests:bcm_ecmp_utils",
             ] + extra_deps,
             external_deps = [
                 ("broadcom-xgs-robo", None, "xgs_robo"),

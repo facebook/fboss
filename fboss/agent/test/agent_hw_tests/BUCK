@@ -189,6 +189,7 @@ cpp_binary(
             "//fboss/agent/hw/bcm/tests:agent_hw_test_thrift_handler",
             "//fboss/agent/hw/bcm/tests:bcm_acl_utils",
             "//fboss/agent/hw/bcm/tests:bcm_copp_utils",
+            "//fboss/agent/hw/bcm/tests:bcm_ecmp_utils",
             "//fboss/agent/hw/bcm/tests:bcm_linkstate_toggler",
             "//fboss/agent/platforms/wedge:platform",
             "//fboss/agent/test:agent_hw_test",

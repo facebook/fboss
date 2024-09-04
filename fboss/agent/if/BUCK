@@ -296,7 +296,9 @@ thrift_library(
         "AgentHwTestCtrl",
     ]},
     deps = [
+        ":ctrl",
         "//fboss/agent:switch_config",
         "//fboss/agent:switch_state",
+        "//thrift/annotation:cpp",
     ],
 )

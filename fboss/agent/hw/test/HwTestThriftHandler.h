@@ -72,6 +72,11 @@ class HwTestThriftHandler : public AgentHwTestCtrlSvIf {
       NeighborInfo& neighborInfo,
       std::unique_ptr<::facebook::fboss::IfAndIP> neighbor) override;
 
+  int getHwEcmpSize(
+      std::unique_ptr<CIDRNetwork> prefix,
+      int routerID,
+      int sizeInSw) override;
+
  private:
   HwSwitch* hwSwitch_;
 };
