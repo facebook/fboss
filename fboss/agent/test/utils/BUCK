@@ -59,6 +59,8 @@ cpp_library(
         "//fboss/agent:fboss-types",
         "//fboss/agent:packet",
         "//fboss/agent/hw:hardware_stats-cpp2-types",
+        "//fboss/agent/packet:ipproto",
+        "//fboss/agent/packet:packet",
         "//fboss/agent/packet:packet_factory",
         "//fboss/agent/test:test_ensemble_if",
         "//folly:network_address",

@@ -56,7 +56,4 @@ std::unique_ptr<facebook::fboss::TxPacket> makeLLDPPacket(
     const uint16_t ttl,
     const uint16_t capabilities);
 
-bool isPtpEventPacket(folly::io::Cursor& cursor);
-uint8_t getIpHopLimit(folly::io::Cursor& cursor);
-
 } // namespace facebook::fboss::utility

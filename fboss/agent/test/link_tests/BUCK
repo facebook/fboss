@@ -68,6 +68,7 @@ cpp_library(
         "//fboss/agent/test:utils",
         "//fboss/agent/test/utils:copp_test_utils",
         "//fboss/agent/test/utils:packet_snooper",
+        "//fboss/agent/test/utils:pkt_test_utils",
         "//fboss/agent/test/utils:port_test_utils",
         "//fboss/agent/test/utils:qos_test_utils",
         "//fboss/agent/test/utils:trap_packet_utils",
