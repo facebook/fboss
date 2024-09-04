@@ -81,7 +81,11 @@ PlatformExplorer::PlatformExplorer(
       devicePathResolver_(platformConfig_, dataStore_, i2cExplorer_),
       presenceChecker_(devicePathResolver_),
       explorationErrMap_(platformConfig_, dataStore_),
-      platformFsUtils_(platformFsUtils) {}
+      platformFsUtils_(platformFsUtils) {
+  platformManagerStatus_.withWLock([](PlatformManagerStatus& status) {
+    status.explorationStatus() = ExplorationStatus::UNSTARTED;
+  });
+}
 
 void PlatformExplorer::explore() {
   XLOG(INFO) << "Exploring the platform";

@@ -122,7 +122,7 @@ class PlatformExplorer {
   // A thrift struct which contains the status of PM exploration.
   // This member is thread safe since callers could be on different threads
   // E.g thrift API call on `getLastPmStatus`.
-  folly::Synchronized<PlatformManagerStatus> platformManagerStatus_{};
+  folly::Synchronized<PlatformManagerStatus> platformManagerStatus_;
 };
 
 } // namespace facebook::fboss::platform::platform_manager
