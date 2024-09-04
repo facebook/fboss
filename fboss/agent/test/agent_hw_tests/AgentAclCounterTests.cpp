@@ -475,6 +475,9 @@ class AgentAclCounterTest : public AgentHwTest {
         acl->ttl() = cfg::Ttl();
         *acl->ttl()->value() = 128;
         *acl->ttl()->mask() = 128;
+        if (isSupportedOnAllAsics(HwAsic::Feature::ACL_ENTRY_ETHER_TYPE)) {
+          acl->etherType() = cfg::EtherType::IPv6;
+        }
         break;
       case AclType::SRC_PORT:
       case AclType::SRC_PORT_DENY:
