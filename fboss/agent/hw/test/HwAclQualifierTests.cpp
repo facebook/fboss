@@ -25,6 +25,7 @@ enum class QualifierType : uint8_t {
   LOOKUPCLASS_L2,
   LOOKUPCLASS_NEIGHBOR,
   LOOKUPCLASS_ROUTE,
+  LOOKUPCLASS_IGNORE,
 };
 
 template <typename T, typename U>
@@ -124,10 +125,11 @@ using TestTypes =
 
 template <typename EnableMultiAclTableT>
 class HwAclQualifierTest : public HwTest {
+ public:
   static auto constexpr isMultiAclEnabled =
       EnableMultiAclTableT::multiAclTableEnabled;
+  bool addQualifiers = false;
 
- public:
   void configureAllHwQualifiers(cfg::AclEntry* acl, bool enable) {
     configureQualifier(
         acl->srcPort(), enable, masterLogicalInterfacePortIds()[0]);
@@ -198,7 +200,11 @@ class HwAclQualifierTest : public HwTest {
     return "acl0";
   }
 
-  void aclSetupHelper(bool isIpV4, QualifierType lookupClassType) {
+  void aclSetupHelper(
+      bool isIpV4,
+      QualifierType lookupClassType,
+      bool addQualifiers = false) {
+    this->addQualifiers = addQualifiers;
     auto newCfg = initialConfig();
     auto* acl = utility::addAcl(&newCfg, kAclName(), cfg::AclActionType::DENY);
 
@@ -231,6 +237,9 @@ class HwAclQualifierTest : public HwTest {
             true,
             isIpV4 ? cfg::AclLookupClass::DST_CLASS_L3_LOCAL_1
                    : cfg::AclLookupClass::DST_CLASS_L3_LOCAL_2);
+        break;
+      case QualifierType::LOOKUPCLASS_IGNORE:
+        // This case is here exactly to not do anything
         break;
       default:
         CHECK(false);
@@ -265,7 +274,16 @@ class HwAclQualifierTest : public HwTest {
     if (isMultiAclEnabled) {
       utility::addAclTableGroup(
           &cfg, cfg::AclStage::INGRESS, utility::getAclTableGroupName());
-      utility::addDefaultAclTable(cfg);
+      std::vector<cfg::AclTableActionType> actions = {};
+      std::vector<cfg::AclTableQualifier> qualifiers = addQualifiers
+          ? utility::genAclQualifiersConfig(this->getAsicType())
+          : std::vector<cfg::AclTableQualifier>();
+      utility::addAclTable(
+          &cfg,
+          utility::kDefaultAclTable(),
+          0 /* priority */,
+          actions,
+          qualifiers);
     }
     return cfg;
   }
@@ -565,6 +583,44 @@ TYPED_TEST(HwAclQualifierTest, AclIp6LookupClassRoute) {
   auto verify = [=, this]() { this->aclVerifyHelper(); };
 
   this->verifyAcrossWarmBoots(setup, verify);
+}
+
+// canary on for qualifiers from default to coop
+TYPED_TEST(HwAclQualifierTest, AclQualifiersCanaryOn) {
+  if (!this->isMultiAclEnabled) {
+    return;
+  }
+
+  auto setup = [=, this]() {
+    this->aclSetupHelper(true, QualifierType::LOOKUPCLASS_IGNORE, false);
+  };
+
+  auto verify = [=, this]() { this->aclVerifyHelper(); };
+
+  auto setupPostWarmboot = [=, this]() {
+    this->aclSetupHelper(true, QualifierType::LOOKUPCLASS_IGNORE, true);
+  };
+
+  this->verifyAcrossWarmBoots(setup, verify, setupPostWarmboot, []() {});
+}
+
+// canary off for qualifiers from coop to default
+TYPED_TEST(HwAclQualifierTest, AclQualifiersCanaryOff) {
+  if (!this->isMultiAclEnabled) {
+    return;
+  }
+
+  auto setup = [=, this]() {
+    this->aclSetupHelper(true, QualifierType::LOOKUPCLASS_IGNORE, true);
+  };
+
+  auto verify = [=, this]() { this->aclVerifyHelper(); };
+
+  auto setupPostWarmboot = [=, this]() {
+    this->aclSetupHelper(true, QualifierType::LOOKUPCLASS_IGNORE, false);
+  };
+
+  this->verifyAcrossWarmBoots(setup, verify, setupPostWarmboot, []() {});
 }
 
 } // namespace facebook::fboss

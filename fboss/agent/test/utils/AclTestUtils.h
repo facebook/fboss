@@ -45,6 +45,9 @@ void addEtherTypeToAcl(
     cfg::AclEntry* acl,
     const cfg::EtherType& etherType = cfg::EtherType::IPv6);
 
+std::vector<cfg::AclTableQualifier> genAclQualifiersConfig(
+    cfg::AsicType asicType);
+
 int getAclTableIndex(
     cfg::SwitchConfig* cfg,
     const std::optional<std::string>& tableName);

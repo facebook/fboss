@@ -177,6 +177,7 @@ bool SaiAclTableManager::needsAclTableRecreate(
   if (oldAclTable->getActionTypes() != newAclTable->getActionTypes() ||
       oldAclTable->getPriority() != newAclTable->getPriority() ||
       oldAclTable->getQualifiers() != newAclTable->getQualifiers()) {
+    XLOG(DBG2) << "Recreating ACL table";
     return true;
   }
   return false;
