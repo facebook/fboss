@@ -131,6 +131,7 @@ cpp_library(
 cpp_library(
     name = "platform_explorer",
     srcs = [
+        "ExplorationErrorMap.cpp",
         "PlatformExplorer.cpp",
     ],
     exported_deps = [
@@ -149,6 +150,9 @@ cpp_library(
         "//fboss/platform/weutil:ioctl_smbus_eeprom_reader",
         "//folly:file_util",
         "//folly/logging:logging",
+    ],
+    exported_external_deps = [
+        "re2",
     ],
 )
 

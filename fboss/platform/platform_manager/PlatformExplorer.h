@@ -9,6 +9,7 @@
 #include "fboss/platform/helpers/PlatformFsUtils.h"
 #include "fboss/platform/platform_manager/DataStore.h"
 #include "fboss/platform/platform_manager/DevicePathResolver.h"
+#include "fboss/platform/platform_manager/ExplorationErrorMap.h"
 #include "fboss/platform/platform_manager/I2cExplorer.h"
 #include "fboss/platform/platform_manager/PciExplorer.h"
 #include "fboss/platform/platform_manager/PresenceChecker.h"
@@ -79,7 +80,8 @@ class PlatformExplorer {
   void createDeviceSymLink(
       const std::string& linkPath,
       const std::string& devicePath);
-  void reportExplorationSummary();
+  ExplorationStatus concludeExploration();
+  void reportExplorationSummary(ExplorationStatus finalStatus);
   void setupI2cDevice(
       const std::string& devicePath,
       uint16_t busNum,
@@ -98,11 +100,12 @@ class PlatformExplorer {
   DataStore dataStore_;
   DevicePathResolver devicePathResolver_;
   PresenceChecker presenceChecker_;
+  ExplorationErrorMap explorationErrMap_;
   std::shared_ptr<PlatformFsUtils> platformFsUtils_;
 
   // Map from <pmUnitPath, pmUnitScopeBusName> to kernel i2c bus name.
-  // - The pmUnitPath to the rootPmUnit is /. So a bus at root PmUnit will have
-  // the entry <"/", "MuxA@1"> -> i2c-54.
+  // - The pmUnitPath to the rootPmUnit is /. So a bus at root PmUnit will
+  // have the entry <"/", "MuxA@1"> -> i2c-54.
   // - The CPU buses are not pinned to any PmUnit, so they are stored as
   // entry <std::nullopt, "SMBus Adapter 1654"> -> i2c-7.
   // - An INCOMING @1 bus at pmUnitPath /MCB_SLOT@0/PIM_SLOT@1 will have the
@@ -115,10 +118,6 @@ class PlatformExplorer {
 
   // Map from <SlotPath, GpioChipDeviceName> to gpio chip number.
   std::map<std::pair<std::string, std::string>, uint16_t> gpioChipNums_{};
-
-  // A collection of error messages to report at the end of an exploration.
-  // Map from DevicePath to errorMessages.
-  std::map<std::string, std::vector<std::string>> errorMessages_{};
 
   // A thrift struct which contains the status of PM exploration.
   // This member is thread safe since callers could be on different threads
