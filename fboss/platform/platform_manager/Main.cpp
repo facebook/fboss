@@ -1,6 +1,7 @@
 // Copyright (c) 2004-present, Meta Platforms, Inc. and affiliates.
 // All Rights Reserved.
 
+#include <cstdlib>
 #include <stdexcept>
 
 #include <fb303/FollyLoggingHandler.h>
@@ -27,19 +28,14 @@ DEFINE_bool(
     "Setup platform once and exit. If set to false, setup platform once "
     "and run thrift service.");
 
-DEFINE_bool(
-    sd_notify,
-    true,
-    "By default sd_notify to notify systemd. Otherwise, sd_notify will be skipped.");
-
 void sdNotifyReady() {
   auto cmd = "systemd-notify --ready";
   auto [exitStatus, standardOut] = PlatformUtils().execCommand(cmd);
   if (exitStatus != 0) {
     throw std::runtime_error(fmt::format(
-        "Failed to sd_notify ready by run command ({}). Run again with --sd_notify=false "
-        "to avoid systemd-notify if this wasn't executed by systemd",
-        cmd));
+        "Failed to sd_notify ready by run command ({}). ExitStatus: {}",
+        cmd,
+        exitStatus));
   }
   XLOG(INFO) << fmt::format(
       "Sent sd_notify ready by running command ({})", cmd);
@@ -62,8 +58,18 @@ int main(int argc, char** argv) {
     return 0;
   }
 
-  if (FLAGS_sd_notify) {
+  // When systemd starts PlatformManager, it sets the below env in PM
+  // environment. This is a path to Unix domain socket at /run/systemd/notify.
+  // Ideally, we can use sd_notify in systemd/sd-daemon.h since it does the
+  // check for us, if we can get OSS build to work.
+  const auto notifySocketEnv{"NOTIFY_SOCKET"};
+  if (std::getenv(notifySocketEnv)) {
     sdNotifyReady();
+  } else {
+    XLOG(WARNING) << fmt::format(
+        "Skipping sd_notify since ${} is not set which does not "
+        "imply systemd execution.",
+        notifySocketEnv);
   }
 
   XLOG(INFO) << "Running PlatformManager thrift service...";
