@@ -137,8 +137,7 @@ class TransceiverManager {
       const std::unordered_set<TransceiverID>& transceivers);
 
   /// Called to publish transceivers after a refresh
-  virtual void publishTransceiversToFsdb(
-      const std::vector<TransceiverID>& ids) = 0;
+  virtual void publishTransceiversToFsdb() = 0;
 
   virtual int scanTransceiverPresence(
       std::unique_ptr<std::vector<int32_t>> ids) = 0;
