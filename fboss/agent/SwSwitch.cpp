@@ -2169,6 +2169,8 @@ void SwSwitch::switchReachabilityChanged(
   runFsdbSyncFunction([switchId, &newReachability](auto& syncer) {
     syncer->switchReachabilityChanged(switchId, std::move(newReachability));
   });
+  // Update processing complete counter
+  stats()->switchReachabilityChangeProcessed();
 }
 
 void SwSwitch::startThreads() {

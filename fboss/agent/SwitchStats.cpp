@@ -214,6 +214,11 @@ SwitchStats::SwitchStats(ThreadLocalStatsMap* map, int numSwitches)
           map,
           kCounterPrefix + "link_active_state.flap",
           SUM),
+      switchReachabilityChangeProcessed_(
+          map,
+          kCounterPrefix + "switch_reachability_change_processed",
+          SUM),
+
       pcapDistFailure_(map, kCounterPrefix + "pcap_dist_failure.error"),
       trapPktTooBig_(map, kCounterPrefix + "trapped.packet_too_big", SUM, RATE),
       LldpRecvdPkt_(map, kCounterPrefix + "lldp.recvd", SUM, RATE),
