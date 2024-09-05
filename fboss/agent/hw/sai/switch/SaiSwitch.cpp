@@ -4069,4 +4069,8 @@ std::shared_ptr<MultiSwitchAclMap> SaiSwitch::reconstructMultiSwitchAclMap()
   }
   return reconstructedMultiSwitchAclMap;
 }
+
+void SaiSwitch::injectSwitchReachabilityChangeNotification() {
+  switchReachabilityChangeTopHalf();
+}
 } // namespace facebook::fboss

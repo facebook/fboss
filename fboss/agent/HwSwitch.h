@@ -386,6 +386,8 @@ class HwSwitch {
 
   virtual std::shared_ptr<SwitchState> reconstructSwitchState() const = 0;
 
+  virtual void injectSwitchReachabilityChangeNotification() = 0;
+
  protected:
   void setProgrammedState(const std::shared_ptr<SwitchState>& state);
 

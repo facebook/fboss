@@ -648,6 +648,8 @@ class BcmSwitch : public BcmSwitchIf {
 
   std::shared_ptr<SwitchState> reconstructSwitchState() const override;
 
+  void injectSwitchReachabilityChangeNotification() override {}
+
  private:
   enum Flags : uint32_t {
     RX_REGISTERED = 0x01,

@@ -236,6 +236,8 @@ class SaiSwitch : public HwSwitch {
 
   std::shared_ptr<SwitchState> reconstructSwitchState() const override;
 
+  void injectSwitchReachabilityChangeNotification() override;
+
  private:
   void gracefulExitImpl() override;
 
