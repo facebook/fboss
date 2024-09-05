@@ -9,10 +9,10 @@
  */
 #include "fboss/agent/test/utils/OlympicTestUtils.h"
 #include "fboss/agent/FbossError.h"
+#include "fboss/agent/Utils.h"
+#include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/test/utils/AsicUtils.h"
 #include "fboss/agent/test/utils/TrafficPolicyTestUtils.h"
-
-#include "fboss/agent/hw/switch_asics/HwAsic.h"
 
 namespace facebook::fboss::utility {
 
@@ -766,8 +766,14 @@ void addQosMapsHelper(
     // TODO(daiweix): properly set qos policy for rcy/mgmt ports
     // based on port type/scope
     int kMaxRecyclePort = 6;
-    for (int rcyPortId = 1; rcyPortId <= kMaxRecyclePort; rcyPortId++) {
-      overrideQosPolicy(&cfg, rcyPortId, cpuQosPolicyName);
+    for (const auto& switchInfo :
+         *cfg.switchSettings()->switchIdToSwitchInfo()) {
+      int basePortId = *switchInfo.second.portIdRange()->minimum();
+      for (int rcyPortId = basePortId + kRecyclePortIdOffset;
+           rcyPortId <= basePortId + kMaxRecyclePort;
+           rcyPortId++) {
+        overrideQosPolicy(&cfg, rcyPortId, cpuQosPolicyName);
+      }
     }
   }
 }
