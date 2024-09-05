@@ -588,4 +588,27 @@ TEST_F(AgentSflowMirrorTestV4, MoveToV6) {
       setup, verify, setupPostWb, [=, this]() { verifySampledPacket(false); });
 }
 
+TEST_F(AgentSflowMirrorTestV6, MoveToV4) {
+  // Test to migrate v6 mirror to v4
+  auto setup = [=, this]() {
+    auto config = initialConfig(*getAgentEnsemble());
+    configSampling(config, 1);
+    configureTrapAcl(config);
+    applyNewConfig(config);
+    resolveRouteForMirrorDestination();
+  };
+  auto verify = [=, this]() { verifySampledPacket(); };
+  auto setupPostWb = [=, this]() {
+    auto config = initialConfig(*getAgentEnsemble());
+    config.mirrors()->clear();
+    /* move to v4 */
+    configureMirror(config, true /* v4 */);
+    configSampling(config, 1);
+    configureTrapAcl(config, true /* v4 */);
+    applyNewConfig(config);
+    resolveRouteForMirrorDestination(true /* v4 */);
+  };
+  verifyAcrossWarmBoots(
+      setup, verify, setupPostWb, [=, this]() { verifySampledPacket(true); });
+}
 } // namespace facebook::fboss
