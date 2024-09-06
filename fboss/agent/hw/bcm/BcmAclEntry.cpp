@@ -347,6 +347,29 @@ void BcmAclEntry::createAclQualifiers() {
           bcmUdfGroupId);
     }
   }
+
+  if (acl_->getUdfTable()) {
+    const auto udfTable = acl_->getUdfTable().value();
+    for (const auto& udfEntry : udfTable) {
+      const int bcmUdfGroupId =
+          hw_->getUdfMgr()->getBcmUdfGroupId(*udfEntry.udfGroup());
+      const auto roceBytes = *udfEntry.roceBytes();
+      const auto roceMask = *udfEntry.roceMask();
+      size_t size = roceBytes.size();
+      uint8 data[8], mask[8];
+      std::copy(roceBytes.begin(), roceBytes.end(), data);
+      std::copy(roceMask.begin(), roceMask.end(), mask);
+
+      rv = bcm_field_qualify_udf(
+          hw_->getUnit(), handle_, bcmUdfGroupId, size /*length*/, data, mask);
+      bcmCheckError(
+          rv,
+          "failed to qualify udf table ",
+          *udfEntry.udfGroup(),
+          " bcmUdfGroupId:",
+          bcmUdfGroupId);
+    }
+  }
 }
 
 void BcmAclEntry::createAclActions() {
@@ -930,6 +953,33 @@ bool BcmAclEntry::isStateSame(
       const int bcmUdfGroupId = hw->getUdfMgr()->getBcmUdfGroupId(group);
       const auto roceBytes = acl->getRoceBytes().value();
       const auto roceMask = acl->getRoceMask().value();
+      size_t size = roceBytes.size();
+      uint8 swData[8], swMask[8];
+      std::copy(roceBytes.begin(), roceBytes.end(), swData);
+      std::copy(roceMask.begin(), roceMask.end(), swMask);
+
+      isSame &= isBcmQualFieldStateSame(
+          bcm_field_qualify_udf_get,
+          hw->getUnit(),
+          handle,
+          bcmUdfGroupId,
+          size /* max_length */,
+          true,
+          swData,
+          swMask,
+          size,
+          aclMsg,
+          "BcmUdfGroupId");
+    }
+  }
+
+  if (acl->getUdfTable()) {
+    const auto udfTable = acl->getUdfTable().value();
+    for (const auto& udfEntry : udfTable) {
+      const int bcmUdfGroupId =
+          hw->getUdfMgr()->getBcmUdfGroupId(*udfEntry.udfGroup());
+      const auto roceBytes = *udfEntry.roceBytes();
+      const auto roceMask = *udfEntry.roceMask();
       size_t size = roceBytes.size();
       uint8 swData[8], swMask[8];
       std::copy(roceBytes.begin(), roceBytes.end(), swData);
