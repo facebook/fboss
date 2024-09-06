@@ -168,6 +168,26 @@ void addOlympicQueueConfigWithSchedulingHelper(
 }
 } // namespace
 
+void addEventorVoqConfig(
+    cfg::SwitchConfig* config,
+    cfg::StreamType streamType) {
+  // Eventor port queue config
+  cfg::PortQueue queue;
+  *queue.id() = 0;
+  queue.streamType() = streamType;
+  queue.name() = "default";
+  *queue.scheduling() = cfg::QueueScheduling::INTERNAL;
+  queue.maxDynamicSharedBytes() = 20 * 1024 * 1024;
+  std::vector<cfg::PortQueue> eventorVoqConfig{std::move(queue)};
+  const std::string kEventorQueueConfigName{"eventor_queue_config"};
+  config->portQueueConfigs()[kEventorQueueConfigName] = eventorVoqConfig;
+  for (auto& port : *config->ports()) {
+    if (*port.portType() == cfg::PortType::EVENTOR_PORT) {
+      port.portVoqConfigName() = kEventorQueueConfigName;
+    }
+  }
+}
+
 int getOlympicQueueId(OlympicQueueType queueType) {
   switch (queueType) {
     case OlympicQueueType::SILVER:
