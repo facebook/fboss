@@ -75,10 +75,15 @@ std::shared_ptr<Mirror> MirrorManagerImpl<AddrT>::updateMirror(
   const auto state = sw_->getState();
   const auto nexthops = resolveMirrorNextHops(state, destinationIp);
 
+  std::optional<PortDescriptor> egressPortDesc = std::nullopt;
+  if (mirror->configHasEgressPort()) {
+    egressPortDesc = mirror->getEgressPortDesc().has_value()
+        ? mirror->getEgressPortDesc().value()
+        : PortDescriptor(mirror->getEgressPort().value());
+  }
   auto newMirror = std::make_shared<Mirror>(
       mirror->getID(),
-      mirror->configHasEgressPort() ? mirror->getEgressPortDesc()
-                                    : std::nullopt,
+      egressPortDesc,
       mirror->getDestinationIp(),
       mirror->getSrcIp(),
       mirror->getTunnelUdpPorts(),
@@ -96,9 +101,11 @@ std::shared_ptr<Mirror> MirrorManagerImpl<AddrT>::updateMirror(
     }
     auto neighborPort = entry->getPort();
     if (mirror->configHasEgressPort()) {
-      auto egressPortDesc = mirror->getEgressPortDesc().value();
+      auto egressPort = mirror->getEgressPortDesc().has_value()
+          ? mirror->getEgressPortDesc().value().phyPortID()
+          : mirror->getEgressPort().value();
       if (!neighborPort.isPhysicalPort() ||
-          neighborPort.phyPortID() != egressPortDesc.phyPortID()) {
+          neighborPort.phyPortID() != egressPort) {
         // TODO: support configuring LAG egress for mirror
         continue;
       }
@@ -107,6 +114,7 @@ std::shared_ptr<Mirror> MirrorManagerImpl<AddrT>::updateMirror(
     std::optional<PortDescriptor> egressPortDesc{};
     switch (neighborPort.type()) {
       case PortDescriptor::PortType::PHYSICAL:
+      case PortDescriptor::PortType::SYSTEM_PORT:
         egressPortDesc = entry->getPort();
         break;
       case PortDescriptor::PortType::AGGREGATE: {
@@ -129,9 +137,6 @@ std::shared_ptr<Mirror> MirrorManagerImpl<AddrT>::updateMirror(
           }
         }
       } break;
-      case PortDescriptor::PortType::SYSTEM_PORT:
-        XLOG(FATAL) << " No mirroring over system ports";
-        break;
     }
 
     if (!egressPortDesc) {
@@ -149,6 +154,7 @@ std::shared_ptr<Mirror> MirrorManagerImpl<AddrT>::updateMirror(
         entry,
         newMirror->getTunnelUdpPorts()));
     newMirror->setEgressPortDesc(egressPortDesc.value());
+    newMirror->setEgressPort(egressPortDesc.value().phyPortID());
     break;
   }
 

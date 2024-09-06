@@ -207,4 +207,25 @@ const TransceiverSpec* getTransceiverSpec(const SwSwitch* sw, PortID portId) {
   }
   return nullptr;
 }
+
+// This should only be called by platforms that actually have
+// an external phy
+std::optional<int32_t> getPortExternalPhyID(const SwSwitch* sw, PortID port) {
+  auto platformMapping = sw->getPlatformMapping();
+  const auto& platformPortEntry = platformMapping->getPlatformPort(port);
+  const auto& chips = platformMapping->getChips();
+  if (chips.empty()) {
+    throw FbossError("Not platform data plane phy chips");
+  }
+
+  const auto& xphy = utility::getDataPlanePhyChips(
+      platformPortEntry, chips, phy::DataPlanePhyChipType::XPHY);
+  if (xphy.empty()) {
+    return std::nullopt;
+  } else {
+    // One port should only has one xphy id
+    CHECK_EQ(xphy.size(), 1);
+    return *xphy.begin()->second.physicalID();
+  }
+}
 } // namespace facebook::fboss::utility

@@ -22,11 +22,16 @@ DECLARE_bool(flowletSwitchingEnable);
 
 namespace {
 enum AclType {
-  UDF_ACK,
+  UDF_ACK, // match on bth_opcode
+  UDF_NAK, // match on bth_opcode + aeth_syndrome
+  UDF_ACK_WITH_NAK,
+  UDF_WR_IMM_ZERO, // match on bth_opcode + reth_dma_length
   FLOWLET,
   FLOWLET_WITH_UDF_ACK,
-  UDF_FLOWLET,
+  FLOWLET_WITH_UDF_NAK,
+  UDF_FLOWLET, // match on bth_reserved
   UDF_FLOWLET_WITH_UDF_ACK,
+  UDF_FLOWLET_WITH_UDF_NAK,
 };
 }
 
@@ -67,12 +72,21 @@ class AgentAclCounterTestBase : public AgentHwTest {
       case AclType::UDF_ACK:
         aclName = "test-udf-acl";
         break;
+      case AclType::UDF_NAK:
+      case AclType::UDF_ACK_WITH_NAK:
+        aclName = "test-udf-nak-acl";
+        break;
+      case AclType::UDF_WR_IMM_ZERO:
+        aclName = "test-wr-imm-zero-acl";
+        break;
       case AclType::FLOWLET:
       case AclType::FLOWLET_WITH_UDF_ACK:
+      case AclType::FLOWLET_WITH_UDF_NAK:
         aclName = "test-flowlet-acl";
         break;
       case AclType::UDF_FLOWLET:
       case AclType::UDF_FLOWLET_WITH_UDF_ACK:
+      case AclType::UDF_FLOWLET_WITH_UDF_NAK:
         aclName = utility::kFlowletAclName;
         break;
       default:
@@ -147,7 +161,9 @@ class AgentAclCounterTestBase : public AgentHwTest {
   // roce write-immediate - udpport=4791 + opcode=11 + reserved=1
   size_t sendRoceTraffic(
       const PortID frontPanelEgrPort,
-      int roceOpcode = utility::kUdfRoceOpcodeAck) {
+      int roceOpcode = utility::kUdfRoceOpcodeAck,
+      std::optional<std::vector<uint8_t>> nxtHdr =
+          std::optional<std::vector<uint8_t>>()) {
     auto vlanId = utility::firstVlanID(getProgrammedState());
     auto intfMac = utility::getFirstInterfaceMac(getProgrammedState());
     return utility::pumpRoCETraffic(
@@ -162,7 +178,8 @@ class AgentAclCounterTestBase : public AgentHwTest {
         std::nullopt,
         1 /* one packet */,
         roceOpcode,
-        utility::kRoceReserved);
+        utility::kRoceReserved,
+        nxtHdr);
   }
 
   auto verifyAclType(bool bumpOnHit, AclType aclType) {
@@ -175,13 +192,29 @@ class AgentAclCounterTestBase : public AgentHwTest {
         getSw(), getCounterName(aclType), true /* bytes */);
     size_t sizeOfPacketSent = 0;
 
+    std::vector<uint8_t> aethHdr = {0x0a, 0x11, 0x22, 0x33};
+    // RDMAeth header with DMA length 0
+    std::vector<uint8_t> rethHdr(16);
+
     switch (aclType) {
       case AclType::UDF_ACK:
-        sizeOfPacketSent = sendRoceTraffic(egressPort);
+        sizeOfPacketSent =
+            sendRoceTraffic(egressPort, utility::kUdfRoceOpcodeAck, aethHdr);
+        break;
+      case AclType::UDF_NAK:
+        aethHdr[0] = 0x6a; // MSB bits 2 and 3 indicate NAK
+        sizeOfPacketSent =
+            sendRoceTraffic(egressPort, utility::kUdfRoceOpcodeAck, aethHdr);
         break;
       case AclType::FLOWLET:
       case AclType::UDF_FLOWLET:
-        sizeOfPacketSent = sendRoceTraffic(egressPort, 11 /* not ack opcode */);
+        rethHdr[15] = 0xFF; // non-zero sized packet
+        sizeOfPacketSent = sendRoceTraffic(
+            egressPort, utility::kUdfRoceOpcodeWriteImmediate, rethHdr);
+        break;
+      case AclType::UDF_WR_IMM_ZERO:
+        sizeOfPacketSent = sendRoceTraffic(
+            egressPort, utility::kUdfRoceOpcodeWriteImmediate, rethHdr);
         break;
       default:
         break;
@@ -228,10 +261,21 @@ class AgentAclCounterTestBase : public AgentHwTest {
     });
   }
 
+  // order of verification is sometimes important due to acl priority
   void verifyAcl(AclType aclType) {
     switch (aclType) {
       case AclType::UDF_ACK:
         verifyAclType(true, AclType::UDF_ACK);
+        break;
+      case AclType::UDF_NAK:
+        verifyAclType(true, AclType::UDF_NAK);
+        break;
+      case AclType::UDF_ACK_WITH_NAK:
+        verifyAclType(true, AclType::UDF_ACK);
+        verifyAclType(true, AclType::UDF_NAK);
+        break;
+      case AclType::UDF_WR_IMM_ZERO:
+        verifyAclType(true, AclType::UDF_WR_IMM_ZERO);
         break;
       case AclType::FLOWLET:
         verifyAclType(true, AclType::FLOWLET);
@@ -240,6 +284,10 @@ class AgentAclCounterTestBase : public AgentHwTest {
         verifyAclType(true, AclType::FLOWLET);
         verifyAclType(true, AclType::UDF_ACK);
         break;
+      case AclType::FLOWLET_WITH_UDF_NAK:
+        verifyAclType(true, AclType::FLOWLET);
+        verifyAclType(true, AclType::UDF_NAK);
+        break;
       case AclType::UDF_FLOWLET:
         verifyAclType(true, AclType::UDF_FLOWLET);
         break;
@@ -247,20 +295,57 @@ class AgentAclCounterTestBase : public AgentHwTest {
         verifyAclType(true, AclType::UDF_FLOWLET);
         verifyAclType(true, AclType::UDF_ACK);
         break;
+      case AclType::UDF_FLOWLET_WITH_UDF_NAK:
+        verifyAclType(true, AclType::UDF_FLOWLET);
+        verifyAclType(true, AclType::UDF_NAK);
+        break;
       default:
         break;
     }
   }
 
-  void addUdfAcl(
+  std::vector<cfg::AclUdfEntry> addUdfTable(
+      const std::vector<std::string>& udfGroups,
+      const std::vector<std::vector<int8_t>>& roceBytes,
+      const std::vector<std::vector<int8_t>>& roceMask) const {
+    std::vector<cfg::AclUdfEntry> udfTable;
+    for (int i = 0; i < udfGroups.size(); i++) {
+      cfg::AclUdfEntry aclUdfEntry;
+      aclUdfEntry.udfGroup() = udfGroups[i];
+      aclUdfEntry.roceBytes() = roceBytes[i];
+      aclUdfEntry.roceMask() = roceMask[i];
+      udfTable.push_back(aclUdfEntry);
+    }
+    return udfTable;
+  }
+
+  void addRoceAcl(
       cfg::SwitchConfig* config,
       const std::string& aclName,
-      const std::string& counterName) const {
+      const std::string& counterName,
+      const std::optional<std::string>& udfGroups,
+      const std::optional<int>& roceOpcode,
+      const std::optional<int>& roceBytes,
+      const std::optional<int>& roceMask,
+      const std::optional<std::vector<cfg::AclUdfEntry>>& udfTable) const {
     auto acl = utility::addAcl(config, aclName, aclActionType_);
     std::vector<cfg::CounterType> setCounterTypes{
         cfg::CounterType::PACKETS, cfg::CounterType::BYTES};
-    acl->udfGroups() = {utility::kUdfAclRoceOpcodeGroupName};
-    acl->roceOpcode() = utility::kUdfRoceOpcodeAck;
+    if (udfTable.has_value()) {
+      acl->udfTable() = udfTable.value();
+    }
+    if (udfGroups.has_value()) {
+      acl->udfGroups() = {udfGroups.value()};
+    }
+    if (roceOpcode.has_value()) {
+      acl->roceOpcode() = roceOpcode.value();
+    }
+    if (roceBytes.has_value()) {
+      acl->roceBytes() = {static_cast<signed char>(roceBytes.value())};
+    }
+    if (roceMask.has_value()) {
+      acl->roceMask() = {static_cast<signed char>(roceMask.value())};
+    }
     utility::addAclStat(
         config, aclName, counterName, std::move(setCounterTypes));
   }
@@ -268,34 +353,143 @@ class AgentAclCounterTestBase : public AgentHwTest {
   void addAclAndStat(cfg::SwitchConfig* config, AclType aclType) const {
     auto aclName = getAclName(aclType);
     auto counterName = getCounterName(aclType);
+    const signed char bm = 0xFF;
+    std::vector<signed char> dmaLengthZeros = {0x0, 0x0};
+    std::vector<signed char> dmaLengthMask = {bm, bm};
     switch (aclType) {
       case AclType::UDF_ACK:
-        config->udfConfig() = utility::addUdfAclConfig();
-        addUdfAcl(config, aclName, counterName);
+        config->udfConfig() =
+            utility::addUdfAclConfig(utility::kUdfOffsetBthOpcode);
+        addRoceAcl(
+            config,
+            aclName,
+            counterName,
+            utility::kUdfAclRoceOpcodeGroupName,
+            utility::kUdfRoceOpcodeAck,
+            std::nullopt,
+            std::nullopt,
+            std::nullopt);
         break;
+      case AclType::UDF_NAK: {
+        config->udfConfig() = utility::addUdfAclConfig(
+            utility::kUdfOffsetBthOpcode | utility::kUdfOffsetAethSyndrome);
+        auto udfTable = addUdfTable(
+            {utility::kUdfAclRoceOpcodeGroupName,
+             utility::kUdfAclAethNakGroupName},
+            {{utility::kUdfRoceOpcodeAck}, {utility::kAethSyndromeWithNak}},
+            {{utility::kUdfRoceOpcodeMask}, {utility::kAethSyndromeWithNak}});
+        addRoceAcl(
+            config,
+            aclName,
+            counterName,
+            std::nullopt,
+            std::nullopt,
+            std::nullopt,
+            std::nullopt,
+            std::move(udfTable));
+      } break;
+      case AclType::UDF_WR_IMM_ZERO: {
+        config->udfConfig() = utility::addUdfAclConfig(
+            utility::kUdfOffsetBthOpcode | utility::kUdfOffsetRethDmaLength);
+        auto udfTable = addUdfTable(
+            {utility::kUdfAclRoceOpcodeGroupName,
+             utility::kUdfAclRethWrImmZeroGroupName},
+            {{utility::kUdfRoceOpcodeWriteImmediate},
+             std::move(dmaLengthZeros)},
+            {{utility::kUdfRoceOpcodeMask}, std::move(dmaLengthMask)});
+        addRoceAcl(
+            config,
+            aclName,
+            counterName,
+            std::nullopt,
+            std::nullopt,
+            std::nullopt,
+            std::nullopt,
+            std::move(udfTable));
+      } break;
+      case AclType::UDF_ACK_WITH_NAK: {
+        config->udfConfig() = utility::addUdfAclConfig(
+            utility::kUdfOffsetBthOpcode | utility::kUdfOffsetAethSyndrome);
+        auto udfTable = addUdfTable(
+            {utility::kUdfAclRoceOpcodeGroupName,
+             utility::kUdfAclAethNakGroupName},
+            {{utility::kUdfRoceOpcodeAck}, {utility::kAethSyndromeWithNak}},
+            {{utility::kUdfRoceOpcodeMask}, {utility::kAethSyndromeWithNak}});
+        addRoceAcl(
+            config,
+            aclName,
+            counterName,
+            std::nullopt,
+            std::nullopt,
+            std::nullopt,
+            std::nullopt,
+            std::move(udfTable));
+        addRoceAcl(
+            config,
+            getAclName(AclType::UDF_ACK),
+            getCounterName(AclType::UDF_ACK),
+            utility::kUdfAclRoceOpcodeGroupName,
+            utility::kUdfRoceOpcodeAck,
+            std::nullopt,
+            std::nullopt,
+            std::nullopt);
+      } break;
       case AclType::FLOWLET:
         utility::addFlowletAcl(*config, aclName, counterName, false);
         break;
       case AclType::FLOWLET_WITH_UDF_ACK:
-        config->udfConfig() = utility::addUdfAclConfig();
-        addUdfAcl(
+        config->udfConfig() =
+            utility::addUdfAclConfig(utility::kUdfOffsetBthOpcode);
+        addRoceAcl(
             config,
             getAclName(AclType::UDF_ACK),
-            getCounterName(AclType::UDF_ACK));
+            getCounterName(AclType::UDF_ACK),
+            utility::kUdfAclRoceOpcodeGroupName,
+            utility::kUdfRoceOpcodeAck,
+            std::nullopt,
+            std::nullopt,
+            std::nullopt);
         utility::addFlowletAcl(*config, aclName, counterName, false);
         break;
       case AclType::UDF_FLOWLET:
-        config->udfConfig() = utility::addUdfFlowletAclConfig();
+        config->udfConfig() =
+            utility::addUdfAclConfig(utility::kUdfOffsetBthReserved);
         utility::addFlowletAcl(*config, aclName, counterName);
         break;
       case AclType::UDF_FLOWLET_WITH_UDF_ACK:
-        config->udfConfig() = utility::addUdfAckAndFlowletAclConfig();
-        addUdfAcl(
+        config->udfConfig() = utility::addUdfAclConfig(
+            utility::kUdfOffsetBthOpcode | utility::kUdfOffsetBthReserved);
+        addRoceAcl(
             config,
             getAclName(AclType::UDF_ACK),
-            getCounterName(AclType::UDF_ACK));
+            getCounterName(AclType::UDF_ACK),
+            utility::kUdfAclRoceOpcodeGroupName,
+            utility::kUdfRoceOpcodeAck,
+            std::nullopt,
+            std::nullopt,
+            std::nullopt);
         utility::addFlowletAcl(*config, aclName, counterName);
         break;
+      case AclType::UDF_FLOWLET_WITH_UDF_NAK: {
+        config->udfConfig() = utility::addUdfAclConfig(
+            utility::kUdfOffsetBthOpcode | utility::kUdfOffsetBthReserved |
+            utility::kUdfOffsetAethSyndrome);
+        auto udfTable = addUdfTable(
+            {utility::kUdfAclRoceOpcodeGroupName,
+             utility::kUdfAclAethNakGroupName},
+            {{utility::kUdfRoceOpcodeAck}, {utility::kAethSyndromeWithNak}},
+            {{utility::kUdfRoceOpcodeMask}, {utility::kAethSyndromeWithNak}});
+        addRoceAcl(
+            config,
+            getAclName(AclType::UDF_NAK),
+            getCounterName(AclType::UDF_NAK),
+            std::nullopt,
+            std::nullopt,
+            std::nullopt,
+            std::nullopt,
+            std::move(udfTable));
+        utility::addFlowletAcl(*config, aclName, counterName);
+      } break;
       default:
         break;
     }
@@ -354,6 +548,18 @@ TEST_F(AgentFlowletSwitchingTest, VerifyUdfFlowletToUdfFlowletWithUdfAck) {
       AclType::UDF_FLOWLET, AclType::UDF_FLOWLET_WITH_UDF_ACK);
 }
 
+// UDF A to UDF A + B + C
+TEST_F(AgentFlowletSwitchingTest, VerifyUdfFlowletToUdfFlowletWithUdfNak) {
+  flowletSwitchingAclHitHelper(
+      AclType::UDF_FLOWLET, AclType::UDF_FLOWLET_WITH_UDF_NAK);
+}
+
+// UDF A + B + C to UDF B + C
+TEST_F(AgentFlowletSwitchingTest, VerifyUdfFlowletWithUdfNakToUdfNak) {
+  flowletSwitchingAclHitHelper(
+      AclType::UDF_FLOWLET_WITH_UDF_NAK, AclType::UDF_NAK);
+}
+
 // UDF A + B to UDF B
 TEST_F(AgentFlowletSwitchingTest, VerifyUdfFlowletWithUdfAckToUdfAck) {
   flowletSwitchingAclHitHelper(
@@ -376,12 +582,28 @@ TEST_F(AgentFlowletSwitchingTest, VerifyUdfFlowletToFlowlet) {
   flowletSwitchingAclHitHelper(AclType::UDF_FLOWLET, AclType::FLOWLET);
 }
 
+TEST_F(AgentFlowletSwitchingTest, VerifyUdfFlowletToUdfWrImmZero) {
+  flowletSwitchingAclHitHelper(AclType::UDF_FLOWLET, AclType::UDF_WR_IMM_ZERO);
+}
+
+TEST_F(AgentFlowletSwitchingTest, VerifyUdfWrImmZeroToUdfFlowlet) {
+  flowletSwitchingAclHitHelper(AclType::UDF_WR_IMM_ZERO, AclType::UDF_FLOWLET);
+}
+
 TEST_F(AgentFlowletSwitchingTest, VerifyOneUdfGroupAddition) {
   verifyUdfAddDelete(AclType::UDF_FLOWLET, AclType::UDF_FLOWLET_WITH_UDF_ACK);
 }
 
 TEST_F(AgentFlowletSwitchingTest, VerifyOneUdfGroupDeletion) {
   verifyUdfAddDelete(AclType::UDF_FLOWLET_WITH_UDF_ACK, AclType::UDF_FLOWLET);
+}
+
+TEST_F(AgentFlowletSwitchingTest, VerifyUdfNakToUdfAckWithNak) {
+  flowletSwitchingAclHitHelper(AclType::UDF_NAK, AclType::UDF_ACK_WITH_NAK);
+}
+
+TEST_F(AgentFlowletSwitchingTest, VerifyUdfAckWithNakToUdfNak) {
+  flowletSwitchingAclHitHelper(AclType::UDF_ACK_WITH_NAK, AclType::UDF_NAK);
 }
 
 class AgentFlowletResourceTest : public AgentHwTest {

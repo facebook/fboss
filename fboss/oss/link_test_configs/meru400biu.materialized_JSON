@@ -2,6 +2,8 @@
   "defaultCommandLineArgs": {
     "check_wb_handles": "true",
     "counter_refresh_interval": "0",
+    "disable_neighbor_updates": "true",
+    "enable_replayer": "true",
     "intf_nbr_tables": "true",
     "log_variable_name": "true",
     "mode": "meru400biu",

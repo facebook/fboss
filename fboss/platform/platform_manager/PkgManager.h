@@ -6,22 +6,24 @@
 
 namespace facebook::fboss::platform::platform_manager {
 
-class PkgUtils {
+class PkgManager {
  public:
-  void processRpms(const PlatformConfig& config) const;
-  void processKmods(const PlatformConfig& config) const;
-  void processLocalRpms(
-      const std::string& rpmFullPath,
-      const PlatformConfig& config) const;
-  void loadUpstreamKmods(const PlatformConfig& config) const;
-  std::string getKmodsRpmName(const PlatformConfig& config) const;
+  explicit PkgManager(const PlatformConfig& config);
+  void processAll() const;
+  void processRpms() const;
+  void processKmods() const;
+  void processLocalRpms() const;
+  void loadUpstreamKmods() const;
+  std::string getKmodsRpmName() const;
 
  private:
   void loadKmod(const std::string& moduleName) const;
   void unloadKmod(const std::string& moduleName) const;
   bool isRpmInstalled(const std::string& rpmFullName) const;
   void installRpm(const std::string& rpmFullName, int maxAttempts) const;
-  void installLocalRpm(const std::string& rpmFullPath, int maxAttempts) const;
+  void installLocalRpm(int maxAttempts) const;
+
+  const PlatformConfig& platformConfig_;
 };
 
 } // namespace facebook::fboss::platform::platform_manager

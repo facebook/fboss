@@ -415,8 +415,10 @@ struct SaiPortTraits {
     struct AttributeReachabilityGroup {
       std::optional<sai_attr_id_t> operator()();
     };
-    using ReachabilityGroup =
-        SaiExtensionAttribute<bool, AttributeReachabilityGroup>;
+    using ReachabilityGroup = SaiExtensionAttribute<
+        sai_uint32_t,
+        AttributeReachabilityGroup,
+        SaiIntDefault<sai_uint32_t>>;
   };
   using AdapterKey = PortSaiId;
 
@@ -510,20 +512,18 @@ struct SaiPortTraits {
 #endif
       std::optional<Attributes::LinkTrainingEnable>,
       std::optional<Attributes::FdrEnable>,
-      std::optional<Attributes::RxLaneSquelchEnable>
+      std::optional<Attributes::RxLaneSquelchEnable>,
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 2)
-      ,
       std::optional<Attributes::PfcTcDldInterval>,
-      std::optional<Attributes::PfcTcDlrInterval>
+      std::optional<Attributes::PfcTcDlrInterval>,
 #endif
 #if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
-      ,
       std::optional<Attributes::ArsEnable>,
       std::optional<Attributes::ArsPortLoadScalingFactor>,
       std::optional<Attributes::ArsPortLoadPastWeight>,
-      std::optional<Attributes::ArsPortLoadFutureWeight>
+      std::optional<Attributes::ArsPortLoadFutureWeight>,
 #endif
-      >;
+      std::optional<Attributes::ReachabilityGroup>>;
   static constexpr std::array<sai_stat_id_t, 16> CounterIdsToRead = {
       SAI_PORT_STAT_IF_IN_OCTETS,
       SAI_PORT_STAT_IF_IN_UCAST_PKTS,

@@ -32,6 +32,9 @@ std::unique_ptr<TxPacket> makeLLDPPacket(
     const uint16_t ttl,
     const uint16_t capabilities);
 
+bool isPtpEventPacket(folly::io::Cursor& cursor);
+uint8_t getIpHopLimit(folly::io::Cursor& cursor);
+
 template <typename SwitchT>
 void sendTcpPkts(
     SwitchT* switchPtr,

@@ -51,7 +51,8 @@
         38,
         39,
         41,
-        40
+        40,
+        42
     ],
     "jericho3": [
         2,
@@ -80,7 +81,8 @@
         38,
         39,
         41,
-        40
+        40,
+        42
     ],
     "ramon": [
         1
@@ -145,7 +147,8 @@
         37,
         38,
         39,
-        40
+        40,
+        42
     ],
     "tomahawk4": [
         2,
@@ -178,7 +181,8 @@
         37,
         38,
         39,
-        40
+        40,
+        42
     ],
     "tomahawk5": [
         2,
@@ -210,7 +214,8 @@
         37,
         38,
         39,
-        40
+        40,
+        42
     ],
     "yuba": [
         2,
@@ -294,7 +299,8 @@
         "HGRID_DU_ROUTE_SCALE",
         "HGRID_UU_ROUTE_SCALE",
         "TH_ALPM_ROUTE_SCALE",
-        "HUNDRED_THOUSAND_ROUTE_SCALE"
+        "HUNDRED_THOUSAND_ROUTE_SCALE",
+        "PFC"
     ],
     "jericho3": [
         "CPU_RX_TX",
@@ -323,7 +329,8 @@
         "HGRID_DU_ROUTE_SCALE",
         "HGRID_UU_ROUTE_SCALE",
         "TH_ALPM_ROUTE_SCALE",
-        "HUNDRED_THOUSAND_ROUTE_SCALE"
+        "HUNDRED_THOUSAND_ROUTE_SCALE",
+        "PFC"
     ],
     "ramon": [
         "FABRIC"
@@ -388,7 +395,8 @@
         "FSW_ROUTE_SCALE",
         "HGRID_DU_ROUTE_SCALE",
         "HGRID_UU_ROUTE_SCALE",
-        "HUNDRED_THOUSAND_ROUTE_SCALE"
+        "HUNDRED_THOUSAND_ROUTE_SCALE",
+        "PFC"
     ],
     "tomahawk4": [
         "CPU_RX_TX",
@@ -421,7 +429,8 @@
         "FSW_ROUTE_SCALE",
         "HGRID_DU_ROUTE_SCALE",
         "HGRID_UU_ROUTE_SCALE",
-        "HUNDRED_THOUSAND_ROUTE_SCALE"
+        "HUNDRED_THOUSAND_ROUTE_SCALE",
+        "PFC"
     ],
     "tomahawk5": [
         "CPU_RX_TX",
@@ -453,7 +462,8 @@
         "FSW_ROUTE_SCALE",
         "HGRID_DU_ROUTE_SCALE",
         "HGRID_UU_ROUTE_SCALE",
-        "HUNDRED_THOUSAND_ROUTE_SCALE"
+        "HUNDRED_THOUSAND_ROUTE_SCALE",
+        "PFC"
     ],
     "yuba": [
         "CPU_RX_TX",

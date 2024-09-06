@@ -110,6 +110,10 @@ DEFINE_bool(
     false,
     "Fail if any warm boot handles are left unclaimed.");
 
+DEFINE_int32(
+    max_unprocessed_switch_reachability_changes,
+    1,
+    "Max number of switch reachability changes that can be enqueued to bottom-half.");
 DECLARE_bool(enable_acl_table_group);
 
 DEFINE_bool(
@@ -1273,6 +1277,15 @@ void SaiSwitch::processSwitchSettingsChangedEntryLocked(
           newVal.has_value() ? newVal.value() : false);
     }
   }
+
+  {
+    const auto oldVal = oldSwitchSettings->getReachabilityGroupSize();
+    const auto newVal = newSwitchSettings->getReachabilityGroupSize();
+    if (oldVal != newVal) {
+      managerTable_->switchManager().setReachabilityGroupSize(
+          newVal.has_value() ? newVal.value() : 0);
+    }
+  }
 }
 
 template <typename LockPolicyT>
@@ -2124,8 +2137,8 @@ void SaiSwitch::switchReachabilityChangeTopHalf() {
     return;
   }
   auto changePending = switchReachabilityChangePending_.wlock();
-  if (!*changePending) {
-    *changePending = true;
+  if (*changePending < FLAGS_max_unprocessed_switch_reachability_changes) {
+    *changePending += 1;
     switchReachabilityChangeBottomHalfEventBase_.runInFbossEventBaseThread(
         [this]() mutable { switchReachabilityChangeBottomHalf(); });
   }
@@ -2158,7 +2171,10 @@ std::set<PortID> SaiSwitch::getFabricReachabilityPortIds(
 }
 
 void SaiSwitch::switchReachabilityChangeBottomHalf() {
-  *switchReachabilityChangePending_.wlock() = false;
+  {
+    auto changePending = switchReachabilityChangePending_.wlock();
+    *changePending -= 1;
+  }
   auto& switchApi = SaiApiTable::getInstance()->switchApi();
 
   for (const auto& [_, dsfNodes] :
@@ -4059,5 +4075,9 @@ std::shared_ptr<MultiSwitchAclMap> SaiSwitch::reconstructMultiSwitchAclMap()
     }
   }
   return reconstructedMultiSwitchAclMap;
+}
+
+void SaiSwitch::injectSwitchReachabilityChangeNotification() {
+  switchReachabilityChangeTopHalf();
 }
 } // namespace facebook::fboss

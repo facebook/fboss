@@ -110,7 +110,9 @@ void SaiMirrorManager::addNode(const std::shared_ptr<Mirror>& mirror) {
   }
   auto mirrorHandle =
       std::make_unique<SaiMirrorHandle>(mirror->getID(), managerTable_);
-  auto monitorPort = getMonitorPort(mirror->getEgressPortDesc().value());
+  auto monitorPort = mirror->getEgressPortDesc().has_value()
+      ? getMonitorPort(mirror->getEgressPortDesc().value())
+      : getMonitorPort(PortDescriptor(mirror->getEgressPort().value()));
   if (mirror->getMirrorTunnel().has_value()) {
     auto mirrorTunnel = mirror->getMirrorTunnel().value();
     if (mirrorTunnel.udpPorts.has_value()) {

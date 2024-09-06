@@ -214,6 +214,11 @@ SwitchStats::SwitchStats(ThreadLocalStatsMap* map, int numSwitches)
           map,
           kCounterPrefix + "link_active_state.flap",
           SUM),
+      switchReachabilityChangeProcessed_(
+          map,
+          kCounterPrefix + "switch_reachability_change_processed",
+          SUM),
+
       pcapDistFailure_(map, kCounterPrefix + "pcap_dist_failure.error"),
       trapPktTooBig_(map, kCounterPrefix + "trapped.packet_too_big", SUM, RATE),
       LldpRecvdPkt_(map, kCounterPrefix + "lldp.recvd", SUM, RATE),
@@ -395,6 +400,8 @@ void SwitchStats::getHwAgentStatus(
     syncStatus.fdbEventSyncActive() = stats.getFdbEventSinkStatus();
     syncStatus.rxPktEventSyncActive() = stats.getRxPktEventSinkStatus();
     syncStatus.txPktEventSyncActive() = stats.getTxPktEventStreamStatus();
+    syncStatus.switchReachabilityChangeEventSyncActive() =
+        stats.getSwitchReachabilityChangeEventSinkStatus();
     syncStatus.statsEventSyncDisconnects() =
         stats.getStatsEventSinkDisconnectCount();
     syncStatus.fdbEventSyncDisconnects() =
@@ -405,6 +412,9 @@ void SwitchStats::getHwAgentStatus(
         stats.getRxPktEventSinkDisconnectCount();
     syncStatus.txPktEventSyncDisconnects() =
         stats.getTxPktEventStreamDisconnectCount();
+    syncStatus.switchReachabilityChangeEventSyncDisconnects() =
+        stats.getSwitchReachabilityChangeEventSinkDisconnectCount();
+
     statusMap.insert({switchIndex, std::move(syncStatus)});
     switchIndex++;
   }

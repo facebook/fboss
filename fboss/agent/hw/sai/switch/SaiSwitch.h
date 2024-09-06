@@ -236,6 +236,8 @@ class SaiSwitch : public HwSwitch {
 
   std::shared_ptr<SwitchState> reconstructSwitchState() const override;
 
+  void injectSwitchReachabilityChangeNotification() override;
+
  private:
   void gracefulExitImpl() override;
 
@@ -606,7 +608,7 @@ class SaiSwitch : public HwSwitch {
   std::map<PortID, phy::PhyInfo> lastPhyInfos_;
   std::unique_ptr<FabricConnectivityManager> fabricConnectivityManager_;
   bool pfcDeadlockEnabled_{false};
-  folly::Synchronized<bool> switchReachabilityChangePending_{false};
+  folly::Synchronized<int> switchReachabilityChangePending_{0};
 };
 
 } // namespace facebook::fboss

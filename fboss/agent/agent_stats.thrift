@@ -24,6 +24,8 @@ struct HwAgentEventSyncStatus {
   10: i64 linkActiveEventSyncDisconnects_DEPRECATED;
   11: i64 rxPktEventSyncDisconnects;
   12: i64 txPktEventSyncDisconnects;
+  13: i32 switchReachabilityChangeEventSyncActive;
+  14: i64 switchReachabilityChangeEventSyncDisconnects;
 }
 
 struct AgentStats {

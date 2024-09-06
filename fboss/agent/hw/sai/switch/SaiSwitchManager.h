@@ -102,6 +102,7 @@ class SaiSwitchManager {
   }
   void setLocalCapsuleSwitchIds(
       const std::map<SwitchID, int>& switchIdToNumCores);
+  void setReachabilityGroupSize(int reachabilityGroupSize);
 
  private:
   void programEcmpLoadBalancerParams(

@@ -284,6 +284,10 @@ AgentHwTest::sendTrafficAndCollectStats(
   std::map<PortID, std::pair<HwPortStats, HwPortStats>> portStats;
   std::vector<HwPortStats> portStatsBefore;
   startSendFn();
+  // In tests like QoS scheduler, smaller number of low priority packets might
+  // go through initially but dopped soon in subsequent looping. So, wait
+  // some time for traffic stablizing before collecting portStatsBefore
+  sleep(timeIntervalInSec);
   for (const auto& port : ports) {
     portStatsBefore.push_back(getLatestPortStats(port));
   }

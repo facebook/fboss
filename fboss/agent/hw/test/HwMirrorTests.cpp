@@ -28,7 +28,6 @@ constexpr auto kErspan = "mirror0"; // erspan mirror
 constexpr auto kSflow = "mirror1"; // sflow mirror
 constexpr auto kDscpDefault =
     cfg::switch_config_constants::DEFAULT_MIRROR_DSCP_; // default dscp value
-constexpr auto kDscp = 46; // non-default dscp value
 using TestTypes = ::testing::Types<IPAddressV4, folly::IPAddressV6>;
 
 template <typename AddrT>
@@ -192,72 +191,6 @@ class HwMirrorTest : public HwTest {
 };
 
 TYPED_TEST_SUITE(HwMirrorTest, TestTypes);
-
-TYPED_TEST(HwMirrorTest, ResolvedSpanMirror) {
-  auto setup = [=, this]() {
-    auto cfg = this->initialConfig();
-    cfg.mirrors()->push_back(this->getSpanMirror());
-    this->applyNewConfig(cfg);
-  };
-  auto verify = [=, this]() {
-    auto mirror = this->getProgrammedState()->getMirrors()->getNodeIf(kSpan);
-    utility::verifyResolvedMirror(this->getHwSwitch(), mirror);
-  };
-
-  this->verifyAcrossWarmBoots(setup, verify);
-}
-
-TYPED_TEST(HwMirrorTest, DscpHasDefault) {
-  auto setup = [=, this]() {
-    auto cfg = this->initialConfig();
-    cfg.mirrors()->push_back(this->getSpanMirror(kSpan, kDscpDefault));
-    this->applyNewConfig(cfg);
-  };
-  auto verify = [=, this]() {
-    auto mirror = this->getProgrammedState()->getMirrors()->getNodeIf(kSpan);
-    EXPECT_EQ(mirror->getDscp(), kDscpDefault);
-    utility::verifyResolvedMirror(this->getHwSwitch(), mirror);
-  };
-
-  this->verifyAcrossWarmBoots(setup, verify);
-}
-
-TYPED_TEST(HwMirrorTest, DscpHasSetValue) {
-  auto setup = [=, this]() {
-    auto cfg = this->initialConfig();
-    cfg.mirrors()->push_back(this->getSpanMirror(kSpan, kDscp));
-    this->applyNewConfig(cfg);
-  };
-  auto verify = [=, this]() {
-    auto mirror = this->getProgrammedState()->getMirrors()->getNodeIf(kSpan);
-    EXPECT_EQ(mirror->getDscp(), kDscp);
-    utility::verifyResolvedMirror(this->getHwSwitch(), mirror);
-  };
-
-  this->verifyAcrossWarmBoots(setup, verify);
-}
-
-TYPED_TEST(HwMirrorTest, MirrorWithTruncation) {
-  if (!this->getPlatform()->getAsic()->isSupported(
-          HwAsic::Feature::MIRROR_PACKET_TRUNCATION)) {
-#if defined(GTEST_SKIP)
-    GTEST_SKIP();
-#endif
-    return;
-  }
-  auto setup = [=, this]() {
-    auto cfg = this->initialConfig();
-    cfg.mirrors()->push_back(this->getSpanMirror(kSpan, kDscp, true));
-    this->applyNewConfig(cfg);
-  };
-  auto verify = [=, this]() {
-    auto mirror = this->getProgrammedState()->getMirrors()->getNodeIf(kSpan);
-    EXPECT_EQ(mirror->getDscp(), kDscp);
-    utility::verifyResolvedMirror(this->getHwSwitch(), mirror);
-  };
-
-  this->verifyAcrossWarmBoots(setup, verify);
-}
 
 TYPED_TEST(HwMirrorTest, MirrorRemoved) {
   auto setup = [=, this]() {
@@ -435,57 +368,6 @@ TYPED_TEST(HwMirrorTest, NoPortMirroringIfUnResolved) {
   this->verifyAcrossWarmBoots(setup, verify);
 }
 
-TYPED_TEST(HwMirrorTest, PortMirroringIfResolved) {
-  auto setup = [=, this]() {
-    auto params = this->testParams();
-    auto cfg = this->initialConfig();
-    cfg.mirrors()->push_back(this->getErspanMirror());
-    auto portCfg = utility::findCfgPort(cfg, this->masterLogicalPortIds()[0]);
-    portCfg->ingressMirror() = kErspan;
-    portCfg->egressMirror() = kErspan;
-    this->applyNewConfig(cfg);
-
-    auto mirror = this->getProgrammedState()->getMirrors()->getNodeIf(kErspan);
-    auto updatedMirror = std::make_shared<Mirror>(
-        mirror->getID(),
-        mirror->getEgressPortDesc(),
-        mirror->getDestinationIp());
-    updatedMirror->setEgressPortDesc(
-        PortDescriptor(this->masterLogicalPortIds()[1]));
-    updatedMirror->setMirrorTunnel(MirrorTunnel(
-        params.ipAddrs[2],
-        params.ipAddrs[3],
-        params.macAddrs[2],
-        params.macAddrs[3]));
-    this->updateMirror(updatedMirror);
-  };
-  auto verify = [=, this]() {
-    auto mirror = this->getProgrammedState()->getMirrors()->getNodeIf(kErspan);
-    utility::verifyResolvedMirror(this->getHwSwitch(), mirror);
-    std::vector<uint64_t> destinations;
-    utility::getAllMirrorDestinations(this->getHwSwitch(), destinations);
-
-    ASSERT_EQ(destinations.size(), 1);
-    utility::verifyPortMirrorDestination(
-        this->getHwSwitch(),
-        PortID(this->masterLogicalPortIds()[0]),
-        utility::getMirrorPortIngressFlags(),
-        destinations[0]);
-    utility::verifyPortMirrorDestination(
-        this->getHwSwitch(),
-        PortID(this->masterLogicalPortIds()[0]),
-        utility::getMirrorPortEgressFlags(),
-        destinations[0]);
-  };
-  if (this->skipMirrorTest()) {
-#if defined(GTEST_SKIP)
-    GTEST_SKIP();
-#endif
-    return;
-  }
-  this->verifyAcrossWarmBoots(setup, verify);
-}
-
 TYPED_TEST(HwMirrorTest, PortMirrorUpdateIfMirrorUpdate) {
   auto setup = [=, this]() {
     auto params = this->testParams();
@@ -523,52 +405,6 @@ TYPED_TEST(HwMirrorTest, PortMirrorUpdateIfMirrorUpdate) {
         params.macAddrs[3],
         params.macAddrs[2]));
     this->updateMirror(updatedMirror);
-  };
-  auto verify = [=, this]() {
-    auto mirror = this->getProgrammedState()->getMirrors()->getNodeIf(kErspan);
-    utility::verifyResolvedMirror(this->getHwSwitch(), mirror);
-    std::vector<uint64_t> destinations;
-    utility::getAllMirrorDestinations(this->getHwSwitch(), destinations);
-
-    ASSERT_EQ(destinations.size(), 1);
-    utility::verifyPortMirrorDestination(
-        this->getHwSwitch(),
-        PortID(this->masterLogicalPortIds()[0]),
-        utility::getMirrorPortIngressFlags(),
-        destinations[0]);
-  };
-  if (this->skipMirrorTest()) {
-#if defined(GTEST_SKIP)
-    GTEST_SKIP();
-#endif
-    return;
-  }
-  this->verifyAcrossWarmBoots(setup, verify);
-}
-
-TYPED_TEST(HwMirrorTest, PortMirror) {
-  auto setup = [=, this]() {
-    auto params = this->testParams();
-    auto cfg = this->initialConfig();
-    cfg.mirrors()->push_back(this->getErspanMirror());
-    auto portCfg = utility::findCfgPort(cfg, this->masterLogicalPortIds()[0]);
-    portCfg->ingressMirror() = kErspan;
-    portCfg->egressMirror() = kErspan;
-    this->applyNewConfig(cfg);
-
-    auto mirror = this->getProgrammedState()->getMirrors()->getNodeIf(kErspan);
-    auto newMirror = std::make_shared<Mirror>(
-        mirror->getID(),
-        mirror->getEgressPortDesc(),
-        mirror->getDestinationIp());
-    newMirror->setEgressPortDesc(
-        PortDescriptor(this->masterLogicalPortIds()[1]));
-    newMirror->setMirrorTunnel(MirrorTunnel(
-        params.ipAddrs[2],
-        params.ipAddrs[3],
-        params.macAddrs[2],
-        params.macAddrs[3]));
-    this->updateMirror(newMirror);
   };
   auto verify = [=, this]() {
     auto mirror = this->getProgrammedState()->getMirrors()->getNodeIf(kErspan);
@@ -869,46 +705,6 @@ TYPED_TEST(HwMirrorTest, HwUnresolvedMirrorStat) {
     EXPECT_EQ(*stats.mirrors_span(), 1);
     EXPECT_EQ(*stats.mirrors_erspan(), 0);
     EXPECT_EQ(*stats.mirrors_sflow(), 0);
-  };
-  if (this->skipMirrorTest()) {
-#if defined(GTEST_SKIP)
-    GTEST_SKIP();
-#endif
-    return;
-  }
-  this->verifyAcrossWarmBoots(setup, verify);
-}
-
-TYPED_TEST(HwMirrorTest, AclMirror) {
-  auto setup = [=, this]() {
-    auto params = this->testParams();
-    auto cfg = this->initialConfig();
-    cfg.mirrors()->push_back(this->getErspanMirror());
-    cfg::AclEntry acl;
-    acl.name() = "acl0";
-    acl.dstIp() = "192.168.0.0/16";
-    this->addAclMirror(kErspan, acl, cfg);
-    this->applyNewConfig(cfg);
-
-    auto mirrors = this->getProgrammedState()->getMirrors();
-    auto mirror = mirrors->getNodeIf(kErspan);
-    auto newMirror = std::make_shared<Mirror>(
-        mirror->getID(),
-        mirror->getEgressPortDesc(),
-        mirror->getDestinationIp());
-    newMirror->setEgressPortDesc(
-        PortDescriptor(this->masterLogicalPortIds()[1]));
-    newMirror->setMirrorTunnel(MirrorTunnel(
-        params.ipAddrs[2],
-        params.ipAddrs[3],
-        params.macAddrs[2],
-        params.macAddrs[3]));
-    this->updateMirror(newMirror);
-  };
-  auto verify = [=, this]() {
-    auto mirror = this->getProgrammedState()->getMirrors()->getNodeIf(kErspan);
-    utility::verifyResolvedMirror(this->getHwSwitch(), mirror);
-    utility::verifyAclMirrorDestination(this->getHwSwitch(), kErspan);
   };
   if (this->skipMirrorTest()) {
 #if defined(GTEST_SKIP)

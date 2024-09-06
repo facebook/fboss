@@ -111,9 +111,9 @@ TEST(DsfNode, publish) {
 }
 
 TEST(DsfNode, dsfNodeApplyConfig) {
-  auto platform = createMockPlatform(cfg::SwitchType::VOQ, 1);
+  auto platform = createMockPlatform(cfg::SwitchType::VOQ, kVoqSwitchIdBegin);
   auto stateV0 = std::make_shared<SwitchState>();
-  addSwitchInfo(stateV0, cfg::SwitchType::VOQ, 1 /* switchId*/);
+  addSwitchInfo(stateV0, cfg::SwitchType::VOQ, kVoqSwitchIdBegin /* switchId*/);
   auto config = testConfigA(cfg::SwitchType::VOQ);
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   ASSERT_NE(nullptr, stateV1);
@@ -222,16 +222,16 @@ TEST(DsfNode, dsfNodeApplyConfig) {
 }
 
 TEST(DsfNode, dsfNodeUpdateLocalDsfNodeConfig) {
-  auto platform = createMockPlatform(cfg::SwitchType::VOQ, 0);
+  auto platform = createMockPlatform(cfg::SwitchType::VOQ, kVoqSwitchIdBegin);
   auto stateV0 = std::make_shared<SwitchState>();
-  addSwitchInfo(stateV0, cfg::SwitchType::VOQ, 1 /* switchId*/);
+  addSwitchInfo(stateV0, cfg::SwitchType::VOQ, kVoqSwitchIdBegin /* switchId*/);
   auto config = testConfigA(cfg::SwitchType::VOQ);
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   ASSERT_NE(nullptr, stateV1);
   EXPECT_EQ(stateV1->getDsfNodes()->numNodes(), 2);
-  EXPECT_GT(config.dsfNodes()[1].loopbackIps()->size(), 0);
-  config.dsfNodes()[1].loopbackIps()->clear();
-  EXPECT_EQ(config.dsfNodes()[1].loopbackIps()->size(), 0);
+  EXPECT_GT(config.dsfNodes()[kVoqSwitchIdBegin].loopbackIps()->size(), 0);
+  config.dsfNodes()[kVoqSwitchIdBegin].loopbackIps()->clear();
+  EXPECT_EQ(config.dsfNodes()[kVoqSwitchIdBegin].loopbackIps()->size(), 0);
   auto stateV2 = publishAndApplyConfig(stateV1, &config, platform.get());
   ASSERT_NE(nullptr, stateV2);
   EXPECT_EQ(stateV1->getDsfNodes()->numNodes(), 2);

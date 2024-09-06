@@ -1,15 +1,15 @@
 // Copyright (c) 2004-present, Meta Platforms, Inc. and affiliates.
 // All Rights Reserved.
 
+#include <cstdlib>
 #include <stdexcept>
 
 #include <fb303/FollyLoggingHandler.h>
 #include <fb303/ServiceData.h>
 
 #include "fboss/platform/helpers/Init.h"
-#include "fboss/platform/platform_manager/PkgUtils.h"
+#include "fboss/platform/platform_manager/PkgManager.h"
 #include "fboss/platform/platform_manager/PlatformManagerHandler.h"
-#include "fboss/platform/platform_manager/Utils.h"
 
 using namespace facebook;
 using namespace facebook::fboss::platform;
@@ -23,36 +23,19 @@ DEFINE_int32(
     "Frequency at which the platform needs to be explored");
 
 DEFINE_bool(
-    enable_pkg_mgmnt,
-    true,
-    "Enable download and installation of the BSP rpm");
-
-DEFINE_bool(
-    reload_kmods,
-    false,
-    "The kmods are usually reloaded only when the BSP RPM changes. "
-    "But if this flag is set, the kmods will be reloaded everytime.");
-
-DEFINE_bool(
     run_once,
     true,
     "Setup platform once and exit. If set to false, setup platform once "
     "and run thrift service.");
 
-DEFINE_string(
-    local_rpm_path,
-    "",
-    "Path to the local rpm file that needs to be installed on the system.");
-
-constexpr auto kBspKmodsRpmName = "fboss_bsp_kmods_rpm";
-constexpr auto kBspKmodsRpmVersionCounter = "bsp_kmods_rpm_version.{}";
-
 void sdNotifyReady() {
   auto cmd = "systemd-notify --ready";
   auto [exitStatus, standardOut] = PlatformUtils().execCommand(cmd);
   if (exitStatus != 0) {
-    throw std::runtime_error(
-        fmt::format("Failed to sd_notify ready by run command ({}).", cmd));
+    throw std::runtime_error(fmt::format(
+        "Failed to sd_notify ready by run command ({}). ExitStatus: {}",
+        cmd,
+        exitStatus));
   }
   XLOG(INFO) << fmt::format(
       "Sent sd_notify ready by running command ({})", cmd);
@@ -64,30 +47,8 @@ int main(int argc, char** argv) {
 
   auto config = Utils().getConfig();
 
-  PkgUtils().loadUpstreamKmods(config);
-
-  if (FLAGS_enable_pkg_mgmnt) {
-    if (FLAGS_local_rpm_path != "") {
-      fb303::fbData->setExportedValue(
-          kBspKmodsRpmName, "local_rpm: " + FLAGS_local_rpm_path);
-      PkgUtils().processLocalRpms(FLAGS_local_rpm_path, config);
-    } else {
-      fb303::fbData->setExportedValue(
-          kBspKmodsRpmName, PkgUtils().getKmodsRpmName(config));
-      fb303::fbData->setCounter(
-          fmt::format(kBspKmodsRpmVersionCounter, *config.bspKmodsRpmVersion()),
-          1);
-      PkgUtils().processRpms(config);
-    }
-  } else {
-    fb303::fbData->setExportedValue(
-        kBspKmodsRpmName, "Not managing BSP package");
-  }
-
-  if (FLAGS_reload_kmods) {
-    PkgUtils().processKmods(config);
-  }
-
+  PkgManager pkgManager(config);
+  pkgManager.processAll();
   PlatformExplorer platformExplorer(config);
   platformExplorer.explore();
   if (FLAGS_run_once) {
@@ -96,7 +57,20 @@ int main(int argc, char** argv) {
         FLAGS_run_once);
     return 0;
   }
-  sdNotifyReady();
+
+  // When systemd starts PlatformManager, it sets the below env in PM
+  // environment. This is a path to Unix domain socket at /run/systemd/notify.
+  // Ideally, we can use sd_notify in systemd/sd-daemon.h since it does the
+  // check for us, if we can get OSS build to work.
+  const auto notifySocketEnv{"NOTIFY_SOCKET"};
+  if (std::getenv(notifySocketEnv)) {
+    sdNotifyReady();
+  } else {
+    XLOG(WARNING) << fmt::format(
+        "Skipping sd_notify since ${} is not set which does not "
+        "imply systemd execution.",
+        notifySocketEnv);
+  }
 
   XLOG(INFO) << "Running PlatformManager thrift service...";
 

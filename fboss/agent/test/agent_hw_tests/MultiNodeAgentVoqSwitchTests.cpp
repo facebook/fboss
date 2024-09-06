@@ -56,7 +56,38 @@ class MultiNodeAgentVoqSwitchTest : public AgentHwTest {
 };
 
 TEST_F(MultiNodeAgentVoqSwitchTest, verifyInbandPing) {
-  // TODO verify inband ping
+  auto setup = []() {};
+
+  auto verify = [this]() {
+    std::string ipAddrsToPing;
+    for (const auto& [_, dsfNodes] :
+         std::as_const(*getProgrammedState()->getDsfNodes())) {
+      for (const auto& [_, node] : std::as_const(*dsfNodes)) {
+        if (node->getType() == cfg::DsfNodeType::INTERFACE_NODE) {
+          CHECK_GE(node->getLoopbackIpsSorted().size(), 1);
+
+          auto ip = node->getLoopbackIpsSorted().begin()->first.str();
+          ipAddrsToPing = folly::to<std::string>(ipAddrsToPing, ip, " ");
+        }
+      }
+    }
+
+    auto switchSettings =
+        utility::getFirstNodeIf(getSw()->getState()->getSwitchSettings());
+    auto switchId =
+        SwitchID(switchSettings->getSwitchIdToSwitchInfo().begin()->first);
+    auto recyclePortIntfID =
+        getRecyclePortIntfID(getProgrammedState(), switchId);
+    auto recyclePortIntf = folly::to<std::string>("fboss", recyclePortIntfID);
+    auto cmd = folly::to<std::string>(
+        "/usr/sbin/fping6 -I ", recyclePortIntf, " ", ipAddrsToPing);
+
+    auto output = runShellCmd(cmd);
+    XLOG(DBG2) << "Cmd: " << cmd;
+    XLOG(DBG2) << "Output: \n" << output;
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
 }
 
 } // namespace facebook::fboss

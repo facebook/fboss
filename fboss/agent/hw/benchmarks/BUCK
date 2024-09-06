@@ -34,9 +34,11 @@ cpp_library(
         "HwRouteScaleBenchmarkHelpers.h",
     ],
     exported_deps = [
+        "//fboss/agent:agent_features",
         "//fboss/agent:core",
         "//fboss/agent:hw_switch",
         "//fboss/agent:utils",
+        "//fboss/agent/benchmarks:mono_agent_benchmarks",
         "//fboss/agent/hw/test:config_factory",
         "//fboss/agent/hw/test:hw_switch_ensemble_factory",
         "//fboss/agent/test:agent_ensemble",
@@ -365,5 +367,14 @@ agent_benchmark_lib(
     srcs = ["HwVoqScaleRouteDelBenchmark.cpp"],
     extra_deps = [
         "//fboss/agent/test:route_scale_gen",
+    ],
+)
+
+agent_benchmark_lib(
+    name = "hw_switch_reachability_change_speed",
+    srcs = ["HwSwitchReachabilityChangeBenchmark.cpp"],
+    extra_deps = [
+        "//fboss/agent/hw/test:hw_switch_ensemble_factory",
+        "//fboss/agent/hw/test:hw_test_thrift_handler_h",
     ],
 )

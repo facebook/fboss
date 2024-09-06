@@ -19,19 +19,7 @@ namespace facebook::fboss {
 class HwSwitch;
 namespace utility {
 
-bool nbrProgrammedToCpu(
-    const HwSwitch* hwSwitch,
-    InterfaceID intf,
-    const folly::IPAddress& ip);
-bool nbrExists(
-    const HwSwitch* hwSwitch,
-    InterfaceID intf,
-    const folly::IPAddress& ip);
 bool isHostHit(const HwSwitch* hwSwitch, const folly::IPAddress& ip);
 void clearHostHitBit(const HwSwitch* hwSwitch, const folly::IPAddress& ip);
-std::optional<uint32_t> getNbrClassId(
-    const HwSwitch* hwSwitch,
-    InterfaceID intf,
-    const folly::IPAddress& ip);
 } // namespace utility
 } // namespace facebook::fboss

@@ -5,6 +5,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -74,6 +80,12 @@
     "darwin/bcm/asicsdk-6.5.26/6.5.26/physdk-credo-0.7.2/credo-0.7.2": [
         {
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
+        },
+        {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -147,6 +159,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -216,6 +234,12 @@
     "darwin/bcm/asicsdk-6.5.26/6.5.28": [
         {
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
+        },
+        {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -289,6 +313,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -358,6 +388,12 @@
     "darwin/bcm/asicsdk-6.5.26/6.5.28/physdk-credo-0.8.4/credo-0.8.4": [
         {
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
+        },
+        {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -431,6 +467,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -500,6 +542,12 @@
     "darwin/bcm/asicsdk-6.5.28/6.5.28/physdk-credo-0.7.2/credo-0.7.2": [
         {
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
+        },
+        {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -573,6 +621,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -644,6 +698,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -710,6 +770,12 @@
     "darwin/sai/asicsdk-10.2.0.0_odp/10.2.0.0_odp/physdk-credo-0.7.2/credo-0.7.2": [
         {
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
+        },
+        {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -780,6 +846,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -846,6 +918,12 @@
     "darwin/sai/asicsdk-8.2.0.0_odp/8.2.0.0_odp": [
         {
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
+        },
+        {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -916,6 +994,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -982,6 +1066,12 @@
     "darwin/sai/asicsdk-8.2.0.0_odp/8.2.0.0_odp/physdk-credo-0.8.4/credo-0.8.4": [
         {
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
+        },
+        {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -1052,6 +1142,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -1118,6 +1214,12 @@
     "darwin/sai/asicsdk-8.2.0.0_odp/9.2.0.0_odp/physdk-credo-0.7.2/credo-0.7.2": [
         {
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
+        },
+        {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -1188,6 +1290,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -1254,6 +1362,12 @@
     "darwin/sai/asicsdk-9.2.0.0_odp/9.2.0.0_odp": [
         {
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
+        },
+        {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -1324,6 +1438,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -1392,6 +1512,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -1458,6 +1584,12 @@
     "darwin_mix/bcm/asicsdk-6.5.26/6.5.26": [
         {
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
+        },
+        {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -1531,6 +1663,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -1600,6 +1738,12 @@
     "darwin_mix/bcm/asicsdk-6.5.26/6.5.26/physdk-credo-0.8.4/credo-0.8.4": [
         {
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
+        },
+        {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -1673,6 +1817,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -1742,6 +1892,12 @@
     "darwin_mix/bcm/asicsdk-6.5.26/6.5.28/physdk-credo-0.7.2/credo-0.7.2": [
         {
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
+        },
+        {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -1815,6 +1971,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -1884,6 +2046,12 @@
     "darwin_mix/bcm/asicsdk-6.5.28/6.5.28": [
         {
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
+        },
+        {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -1957,6 +2125,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -2026,6 +2200,12 @@
     "darwin_mix/bcm/asicsdk-6.5.28/6.5.28/physdk-credo-0.8.4/credo-0.8.4": [
         {
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
+        },
+        {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -2099,6 +2279,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -2165,6 +2351,12 @@
     "darwin_mix/sai/asicsdk-10.2.0.0_odp/10.2.0.0_odp/physdk-credo-0.7.2/credo-0.7.2": [
         {
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
+        },
+        {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -2235,6 +2427,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -2301,6 +2499,12 @@
     "darwin_mix/sai/asicsdk-8.2.0.0_odp/8.2.0.0_odp": [
         {
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
+        },
+        {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -2371,6 +2575,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -2437,6 +2647,12 @@
     "darwin_mix/sai/asicsdk-8.2.0.0_odp/8.2.0.0_odp/physdk-credo-0.8.4/credo-0.8.4": [
         {
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
+        },
+        {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -2507,6 +2723,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -2573,6 +2795,12 @@
     "darwin_mix/sai/asicsdk-8.2.0.0_odp/9.2.0.0_odp/physdk-credo-0.7.2/credo-0.7.2": [
         {
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
+        },
+        {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -2643,6 +2871,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -2709,6 +2943,12 @@
     "darwin_mix/sai/asicsdk-9.2.0.0_odp/9.2.0.0_odp": [
         {
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
+        },
+        {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -2779,6 +3019,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -2847,6 +3093,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -2913,6 +3165,12 @@
     "darwin_original/bcm/asicsdk-6.5.26/6.5.26": [
         {
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
+        },
+        {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -2986,6 +3244,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -3055,6 +3319,12 @@
     "darwin_original/bcm/asicsdk-6.5.26/6.5.26/physdk-credo-0.8.4/credo-0.8.4": [
         {
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
+        },
+        {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -3128,6 +3398,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -3197,6 +3473,12 @@
     "darwin_original/bcm/asicsdk-6.5.26/6.5.28/physdk-credo-0.7.2/credo-0.7.2": [
         {
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
+        },
+        {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -3270,6 +3552,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -3339,6 +3627,12 @@
     "darwin_original/bcm/asicsdk-6.5.28/6.5.28": [
         {
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
+        },
+        {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -3412,6 +3706,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -3481,6 +3781,12 @@
     "darwin_original/bcm/asicsdk-6.5.28/6.5.28/physdk-credo-0.8.4/credo-0.8.4": [
         {
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
+        },
+        {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -3554,6 +3860,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -3620,6 +3932,12 @@
     "darwin_original/sai/asicsdk-10.2.0.0_odp/10.2.0.0_odp/physdk-credo-0.7.2/credo-0.7.2": [
         {
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
+        },
+        {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -3690,6 +4008,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -3756,6 +4080,12 @@
     "darwin_original/sai/asicsdk-8.2.0.0_odp/8.2.0.0_odp": [
         {
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
+        },
+        {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -3826,6 +4156,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -3892,6 +4228,12 @@
     "darwin_original/sai/asicsdk-8.2.0.0_odp/8.2.0.0_odp/physdk-credo-0.8.4/credo-0.8.4": [
         {
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
+        },
+        {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -3962,6 +4304,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -4028,6 +4376,12 @@
     "darwin_original/sai/asicsdk-8.2.0.0_odp/9.2.0.0_odp/physdk-credo-0.7.2/credo-0.7.2": [
         {
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
+        },
+        {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -4098,6 +4452,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -4164,6 +4524,12 @@
     "darwin_original/sai/asicsdk-9.2.0.0_odp/9.2.0.0_odp": [
         {
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
+        },
+        {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -4234,6 +4600,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -4300,6 +4672,12 @@
     "darwin_original/sai/asicsdk-9.2.0.0_odp/9.2.0.0_odp/physdk-credo-0.8.4/credo-0.8.4": [
         {
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
+        },
+        {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -4370,6 +4748,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "warm_boot.*$"
         },
         {
@@ -4436,6 +4820,12 @@
     "elbert_2x16Q_6x8DD/bcm/asicsdk-6.5.26/6.5.26/physdk-credo-0.7.2/credo-0.7.2": [
         {
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
+        },
+        {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "warm_boot.*$"
@@ -4506,6 +4896,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "warm_boot.*$"
         },
         {
@@ -4572,6 +4968,12 @@
     "elbert_2x16Q_6x8DD/bcm/asicsdk-6.5.26/6.5.28": [
         {
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
+        },
+        {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "warm_boot.*$"
@@ -4642,6 +5044,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "warm_boot.*$"
         },
         {
@@ -4708,6 +5116,12 @@
     "elbert_2x16Q_6x8DD/bcm/asicsdk-6.5.26/6.5.28/physdk-credo-0.8.4/credo-0.8.4": [
         {
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
+        },
+        {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "warm_boot.*$"
@@ -4778,6 +5192,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "warm_boot.*$"
         },
         {
@@ -4844,6 +5264,12 @@
     "elbert_2x16Q_6x8DD/bcm/asicsdk-6.5.28/6.5.28/physdk-credo-0.7.2/credo-0.7.2": [
         {
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
+        },
+        {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "warm_boot.*$"
@@ -4914,6 +5340,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "warm_boot.*$"
         },
         {
@@ -4982,6 +5414,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "warm_boot.*$"
         },
         {
@@ -5045,6 +5483,12 @@
     "elbert_2x16Q_6x8DD/sai/asicsdk-10.2.0.0_odp/10.2.0.0_odp/physdk-credo-0.7.2/credo-0.7.2": [
         {
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
+        },
+        {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "warm_boot.*$"
@@ -5112,6 +5556,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "warm_boot.*$"
         },
         {
@@ -5175,6 +5625,12 @@
     "elbert_2x16Q_6x8DD/sai/asicsdk-8.2.0.0_odp/8.2.0.0_odp": [
         {
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
+        },
+        {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "warm_boot.*$"
@@ -5242,6 +5698,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "warm_boot.*$"
         },
         {
@@ -5305,6 +5767,12 @@
     "elbert_2x16Q_6x8DD/sai/asicsdk-8.2.0.0_odp/8.2.0.0_odp/physdk-credo-0.8.4/credo-0.8.4": [
         {
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
+        },
+        {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "warm_boot.*$"
@@ -5372,6 +5840,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "warm_boot.*$"
         },
         {
@@ -5435,6 +5909,12 @@
     "elbert_2x16Q_6x8DD/sai/asicsdk-8.2.0.0_odp/9.2.0.0_odp/physdk-credo-0.7.2/credo-0.7.2": [
         {
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
+        },
+        {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "warm_boot.*$"
@@ -5502,6 +5982,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "warm_boot.*$"
         },
         {
@@ -5565,6 +6051,12 @@
     "elbert_2x16Q_6x8DD/sai/asicsdk-9.2.0.0_odp/9.2.0.0_odp": [
         {
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
+        },
+        {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "warm_boot.*$"
@@ -5632,6 +6124,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "warm_boot.*$"
         },
         {
@@ -5697,6 +6195,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "warm_boot.*$"
         },
         {
@@ -5760,6 +6264,12 @@
     "elbert_5x16Q_3x8DD/bcm/asicsdk-6.5.26/6.5.26": [
         {
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
+        },
+        {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "warm_boot.*$"
@@ -5830,6 +6340,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "warm_boot.*$"
         },
         {
@@ -5896,6 +6412,12 @@
     "elbert_5x16Q_3x8DD/bcm/asicsdk-6.5.26/6.5.26/physdk-credo-0.8.4/credo-0.8.4": [
         {
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
+        },
+        {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "warm_boot.*$"
@@ -5966,6 +6488,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "warm_boot.*$"
         },
         {
@@ -6032,6 +6560,12 @@
     "elbert_5x16Q_3x8DD/bcm/asicsdk-6.5.26/6.5.28/physdk-credo-0.7.2/credo-0.7.2": [
         {
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
+        },
+        {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "warm_boot.*$"
@@ -6102,6 +6636,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "warm_boot.*$"
         },
         {
@@ -6168,6 +6708,12 @@
     "elbert_5x16Q_3x8DD/bcm/asicsdk-6.5.28/6.5.28": [
         {
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
+        },
+        {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "warm_boot.*$"
@@ -6238,6 +6784,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "warm_boot.*$"
         },
         {
@@ -6304,6 +6856,12 @@
     "elbert_5x16Q_3x8DD/bcm/asicsdk-6.5.28/6.5.28/physdk-credo-0.8.4/credo-0.8.4": [
         {
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
+        },
+        {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "warm_boot.*$"
@@ -6374,6 +6932,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "warm_boot.*$"
         },
         {
@@ -6437,6 +7001,12 @@
     "elbert_5x16Q_3x8DD/sai/asicsdk-10.2.0.0_odp/10.2.0.0_odp/physdk-credo-0.7.2/credo-0.7.2": [
         {
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
+        },
+        {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "warm_boot.*$"
@@ -6504,6 +7074,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "warm_boot.*$"
         },
         {
@@ -6567,6 +7143,12 @@
     "elbert_5x16Q_3x8DD/sai/asicsdk-8.2.0.0_odp/8.2.0.0_odp": [
         {
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
+        },
+        {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "warm_boot.*$"
@@ -6634,6 +7216,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "warm_boot.*$"
         },
         {
@@ -6697,6 +7285,12 @@
     "elbert_5x16Q_3x8DD/sai/asicsdk-8.2.0.0_odp/8.2.0.0_odp/physdk-credo-0.8.4/credo-0.8.4": [
         {
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
+        },
+        {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "warm_boot.*$"
@@ -6764,6 +7358,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "warm_boot.*$"
         },
         {
@@ -6827,6 +7427,12 @@
     "elbert_5x16Q_3x8DD/sai/asicsdk-8.2.0.0_odp/9.2.0.0_odp/physdk-credo-0.7.2/credo-0.7.2": [
         {
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
+        },
+        {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "warm_boot.*$"
@@ -6894,6 +7500,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "warm_boot.*$"
         },
         {
@@ -6957,6 +7569,12 @@
     "elbert_5x16Q_3x8DD/sai/asicsdk-9.2.0.0_odp/9.2.0.0_odp": [
         {
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
+        },
+        {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "warm_boot.*$"
@@ -7024,6 +7642,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "warm_boot.*$"
         },
         {
@@ -7087,6 +7711,12 @@
     "elbert_5x16Q_3x8DD/sai/asicsdk-9.2.0.0_odp/9.2.0.0_odp/physdk-credo-0.8.4/credo-0.8.4": [
         {
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
+        },
+        {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "warm_boot.*$"
@@ -7154,6 +7784,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -7218,6 +7854,9 @@
         },
         {
           "test_name_regex": "SpeedChangeTest.HUNDREDGToTWOHUNDREDG$"
+        },
+        {
+          "test_name_regex": "SpeedChangeTest.speedChangeActivatedByWb$"
         },
         {
           "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
@@ -7246,6 +7885,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -7310,6 +7955,9 @@
         },
         {
           "test_name_regex": "SpeedChangeTest.HUNDREDGToTWOHUNDREDG$"
+        },
+        {
+          "test_name_regex": "SpeedChangeTest.speedChangeActivatedByWb$"
         },
         {
           "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
@@ -7338,6 +7986,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -7402,6 +8056,9 @@
         },
         {
           "test_name_regex": "SpeedChangeTest.HUNDREDGToTWOHUNDREDG$"
+        },
+        {
+          "test_name_regex": "SpeedChangeTest.speedChangeActivatedByWb$"
         },
         {
           "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
@@ -7430,6 +8087,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -7494,6 +8157,9 @@
         },
         {
           "test_name_regex": "SpeedChangeTest.HUNDREDGToTWOHUNDREDG$"
+        },
+        {
+          "test_name_regex": "SpeedChangeTest.speedChangeActivatedByWb$"
         },
         {
           "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
@@ -7522,6 +8188,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -7586,6 +8258,9 @@
         },
         {
           "test_name_regex": "SpeedChangeTest.HUNDREDGToTWOHUNDREDG$"
+        },
+        {
+          "test_name_regex": "SpeedChangeTest.speedChangeActivatedByWb$"
         },
         {
           "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
@@ -7614,6 +8289,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -7678,6 +8359,9 @@
         },
         {
           "test_name_regex": "SpeedChangeTest.HUNDREDGToTWOHUNDREDG$"
+        },
+        {
+          "test_name_regex": "SpeedChangeTest.speedChangeActivatedByWb$"
         },
         {
           "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
@@ -7706,6 +8390,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -7770,6 +8460,9 @@
         },
         {
           "test_name_regex": "SpeedChangeTest.HUNDREDGToTWOHUNDREDG$"
+        },
+        {
+          "test_name_regex": "SpeedChangeTest.speedChangeActivatedByWb$"
         },
         {
           "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
@@ -7798,6 +8491,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -7862,6 +8561,9 @@
         },
         {
           "test_name_regex": "SpeedChangeTest.HUNDREDGToTWOHUNDREDG$"
+        },
+        {
+          "test_name_regex": "SpeedChangeTest.speedChangeActivatedByWb$"
         },
         {
           "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
@@ -7890,6 +8592,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -7954,6 +8662,9 @@
         },
         {
           "test_name_regex": "SpeedChangeTest.HUNDREDGToTWOHUNDREDG$"
+        },
+        {
+          "test_name_regex": "SpeedChangeTest.speedChangeActivatedByWb$"
         },
         {
           "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
@@ -7982,6 +8693,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -8046,6 +8763,9 @@
         },
         {
           "test_name_regex": "SpeedChangeTest.HUNDREDGToTWOHUNDREDG$"
+        },
+        {
+          "test_name_regex": "SpeedChangeTest.speedChangeActivatedByWb$"
         },
         {
           "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
@@ -8068,6 +8788,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -8132,6 +8858,9 @@
         },
         {
           "test_name_regex": "SpeedChangeTest.HUNDREDGToTWOHUNDREDG$"
+        },
+        {
+          "test_name_regex": "SpeedChangeTest.speedChangeActivatedByWb$"
         },
         {
           "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
@@ -8154,6 +8883,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -8218,6 +8953,9 @@
         },
         {
           "test_name_regex": "SpeedChangeTest.HUNDREDGToTWOHUNDREDG$"
+        },
+        {
+          "test_name_regex": "SpeedChangeTest.speedChangeActivatedByWb$"
         },
         {
           "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
@@ -8240,6 +8978,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -8304,6 +9048,9 @@
         },
         {
           "test_name_regex": "SpeedChangeTest.HUNDREDGToTWOHUNDREDG$"
+        },
+        {
+          "test_name_regex": "SpeedChangeTest.speedChangeActivatedByWb$"
         },
         {
           "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
@@ -8326,6 +9073,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -8390,6 +9143,9 @@
         },
         {
           "test_name_regex": "SpeedChangeTest.HUNDREDGToTWOHUNDREDG$"
+        },
+        {
+          "test_name_regex": "SpeedChangeTest.speedChangeActivatedByWb$"
         },
         {
           "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
@@ -8412,6 +9168,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -8476,6 +9238,9 @@
         },
         {
           "test_name_regex": "SpeedChangeTest.HUNDREDGToTWOHUNDREDG$"
+        },
+        {
+          "test_name_regex": "SpeedChangeTest.speedChangeActivatedByWb$"
         },
         {
           "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
@@ -8498,6 +9263,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -8562,6 +9333,9 @@
         },
         {
           "test_name_regex": "SpeedChangeTest.HUNDREDGToTWOHUNDREDG$"
+        },
+        {
+          "test_name_regex": "SpeedChangeTest.speedChangeActivatedByWb$"
         },
         {
           "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
@@ -8584,6 +9358,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -8648,6 +9428,9 @@
         },
         {
           "test_name_regex": "SpeedChangeTest.HUNDREDGToTWOHUNDREDG$"
+        },
+        {
+          "test_name_regex": "SpeedChangeTest.speedChangeActivatedByWb$"
         },
         {
           "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
@@ -8670,6 +9453,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -8734,6 +9523,9 @@
         },
         {
           "test_name_regex": "SpeedChangeTest.HUNDREDGToTWOHUNDREDG$"
+        },
+        {
+          "test_name_regex": "SpeedChangeTest.speedChangeActivatedByWb$"
         },
         {
           "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
@@ -8756,6 +9548,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -8820,6 +9618,9 @@
         },
         {
           "test_name_regex": "SpeedChangeTest.HUNDREDGToTWOHUNDREDG$"
+        },
+        {
+          "test_name_regex": "SpeedChangeTest.speedChangeActivatedByWb$"
         },
         {
           "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
@@ -8842,6 +9643,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -8906,6 +9713,9 @@
         },
         {
           "test_name_regex": "SpeedChangeTest.HUNDREDGToTWOHUNDREDG$"
+        },
+        {
+          "test_name_regex": "SpeedChangeTest.speedChangeActivatedByWb$"
         },
         {
           "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
@@ -8928,6 +9738,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -8994,6 +9810,9 @@
           "test_name_regex": "SpeedChangeTest.HUNDREDGToTWOHUNDREDG$"
         },
         {
+          "test_name_regex": "SpeedChangeTest.speedChangeActivatedByWb$"
+        },
+        {
           "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
         },
         {
@@ -9012,6 +9831,12 @@
     "fuji_5x16Q/bcm/asicsdk-6.5.26/6.5.26": [
         {
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
+        },
+        {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -9079,6 +9904,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -9142,6 +9973,12 @@
     "fuji_5x16Q/bcm/asicsdk-6.5.26/6.5.28": [
         {
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
+        },
+        {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -9209,6 +10046,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -9272,6 +10115,12 @@
     "fuji_5x16Q/bcm/asicsdk-6.5.28/6.5.28": [
         {
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
+        },
+        {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -9339,6 +10188,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -9404,6 +10259,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -9464,6 +10325,12 @@
     "fuji_5x16Q/sai/asicsdk-10.2.0.0_odp/10.2.0.0_odp/physdk-barchetta2-5.2/barchetta2-5.2": [
         {
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
+        },
+        {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -9528,6 +10395,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -9588,6 +10461,12 @@
     "fuji_5x16Q/sai/asicsdk-8.2.0.0_odp/8.2.0.0_odp/physdk-barchetta2-5.2/barchetta2-5.2": [
         {
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
+        },
+        {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -9652,6 +10531,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -9712,6 +10597,12 @@
     "fuji_5x16Q/sai/asicsdk-8.2.0.0_odp/9.2.0.0_odp/physdk-barchetta2-5.2/barchetta2-5.2": [
         {
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
+        },
+        {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -9776,6 +10667,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -9838,6 +10735,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -9898,6 +10801,12 @@
     "fuji_8x16Q/bcm/asicsdk-6.5.26/6.5.26": [
         {
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
+        },
+        {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -9965,6 +10874,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -10028,6 +10943,12 @@
     "fuji_8x16Q/bcm/asicsdk-6.5.26/6.5.28": [
         {
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
+        },
+        {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -10095,6 +11016,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -10158,6 +11085,12 @@
     "fuji_8x16Q/bcm/asicsdk-6.5.28/6.5.28": [
         {
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
+        },
+        {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -10225,6 +11158,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -10290,6 +11229,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -10350,6 +11295,12 @@
     "fuji_8x16Q/sai/asicsdk-10.2.0.0_odp/10.2.0.0_odp/physdk-barchetta2-5.2/barchetta2-5.2": [
         {
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
+        },
+        {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -10414,6 +11365,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -10474,6 +11431,12 @@
     "fuji_8x16Q/sai/asicsdk-8.2.0.0_odp/8.2.0.0_odp/physdk-barchetta2-5.2/barchetta2-5.2": [
         {
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
+        },
+        {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -10538,6 +11501,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -10598,6 +11567,12 @@
     "fuji_8x16Q/sai/asicsdk-8.2.0.0_odp/9.2.0.0_odp/physdk-barchetta2-5.2/barchetta2-5.2": [
         {
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
+        },
+        {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -10662,6 +11637,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -10724,6 +11705,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -10784,6 +11771,12 @@
     "meru400bfu/sai/asicsdk-11.3.0.0_dnx_odp/11.3.0.0_dnx_odp": [
         {
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
+        },
+        {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -10881,6 +11874,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -10974,6 +11973,12 @@
     "meru400bfu/sai/asicsdk-11.3.0.0_dnx_odp/11.3.0.0_dnx_odp/physdk-credo-0.8.4/credo-0.8.4": [
         {
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
+        },
+        {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -11071,6 +12076,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -11164,6 +12175,12 @@
     "meru400bfu/sai/asicsdk-11.3.0.0_dnx_odp/12.0_ea_dnx_odp/physdk-credo-0.7.2/credo-0.7.2": [
         {
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
+        },
+        {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -11261,6 +12278,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -11354,6 +12377,12 @@
     "meru400bfu/sai/asicsdk-12.0_ea_dnx_odp/12.0_ea_dnx_odp": [
         {
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
+        },
+        {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -11451,6 +12480,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -11544,6 +12579,12 @@
     "meru400bfu/sai/asicsdk-12.0_ea_dnx_odp/12.0_ea_dnx_odp/physdk-credo-0.8.4/credo-0.8.4": [
         {
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
+        },
+        {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -11641,6 +12682,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -11731,6 +12778,12 @@
     "meru400biu/sai/asicsdk-11.3.0.0_dnx_odp/11.3.0.0_dnx_odp/physdk-credo-0.7.2/credo-0.7.2": [
         {
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
+        },
+        {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -11825,6 +12878,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -11915,6 +12974,12 @@
     "meru400biu/sai/asicsdk-11.3.0.0_dnx_odp/12.0_ea_dnx_odp": [
         {
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
+        },
+        {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -12009,6 +13074,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -12099,6 +13170,12 @@
     "meru400biu/sai/asicsdk-11.3.0.0_dnx_odp/12.0_ea_dnx_odp/physdk-credo-0.8.4/credo-0.8.4": [
         {
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
+        },
+        {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -12193,6 +13270,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -12283,6 +13366,12 @@
     "meru400biu/sai/asicsdk-12.0_ea_dnx_odp/12.0_ea_dnx_odp/physdk-credo-0.7.2/credo-0.7.2": [
         {
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
+        },
+        {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -12377,6 +13466,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -12467,6 +13562,12 @@
     "meru800bfa/sai/asicsdk-11.3.0.0_dnx_odp/11.3.0.0_dnx_odp": [
         {
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
+        },
+        {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -12561,6 +13662,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -12651,6 +13758,12 @@
     "meru800bfa/sai/asicsdk-11.3.0.0_dnx_odp/11.3.0.0_dnx_odp/physdk-credo-0.8.4/credo-0.8.4": [
         {
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
+        },
+        {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -12745,6 +13858,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -12835,6 +13954,12 @@
     "meru800bfa/sai/asicsdk-11.3.0.0_dnx_odp/12.0_ea_dnx_odp/physdk-credo-0.7.2/credo-0.7.2": [
         {
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
+        },
+        {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -12929,6 +14054,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -13019,6 +14150,12 @@
     "meru800bfa/sai/asicsdk-12.0_ea_dnx_odp/12.0_ea_dnx_odp": [
         {
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
+        },
+        {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -13113,6 +14250,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -13203,6 +14346,12 @@
     "meru800bfa/sai/asicsdk-12.0_ea_dnx_odp/12.0_ea_dnx_odp/physdk-credo-0.8.4/credo-0.8.4": [
         {
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
+        },
+        {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -13297,6 +14446,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -13372,6 +14527,12 @@
     "meru800bia/sai/asicsdk-11.3.0.0_dnx_odp/11.3.0.0_dnx_odp/physdk-credo-0.7.2/credo-0.7.2": [
         {
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
+        },
+        {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -13451,6 +14612,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -13526,6 +14693,12 @@
     "meru800bia/sai/asicsdk-11.3.0.0_dnx_odp/12.0_ea_dnx_odp": [
         {
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
+        },
+        {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -13605,6 +14778,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -13680,6 +14859,12 @@
     "meru800bia/sai/asicsdk-11.3.0.0_dnx_odp/12.0_ea_dnx_odp/physdk-credo-0.8.4/credo-0.8.4": [
         {
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
+        },
+        {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -13759,6 +14944,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -13834,6 +15025,12 @@
     "meru800bia/sai/asicsdk-12.0_ea_dnx_odp/12.0_ea_dnx_odp/physdk-credo-0.7.2/credo-0.7.2": [
         {
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
+        },
+        {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -13913,6 +15110,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -13990,6 +15193,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -14050,6 +15259,12 @@
     "minipack_7x16Q_1x16O/bcm/asicsdk-6.5.26/6.5.26/physdk-millenio-5.5/millenio-5.5": [
         {
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
+        },
+        {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -14114,6 +15329,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -14174,6 +15395,12 @@
     "minipack_7x16Q_1x16O/bcm/asicsdk-6.5.26/6.5.28/physdk-millenio-5.5/millenio-5.5": [
         {
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
+        },
+        {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -14238,6 +15465,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -14298,6 +15531,12 @@
     "minipack_7x16Q_1x16O/bcm/asicsdk-6.5.28/6.5.28/physdk-millenio-5.5/millenio-5.5": [
         {
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
+        },
+        {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -14362,6 +15601,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -14419,6 +15664,12 @@
     "minipack_7x16Q_1x16O/sai/asicsdk-10.2.0.0_odp/10.2.0.0_odp/physdk-millenio-5.5/millenio-5.5": [
         {
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
+        },
+        {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -14480,6 +15731,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -14537,6 +15794,12 @@
     "minipack_7x16Q_1x16O/sai/asicsdk-8.2.0.0_odp/8.2.0.0_odp/physdk-millenio-5.5/millenio-5.5": [
         {
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
+        },
+        {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -14598,6 +15861,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -14655,6 +15924,12 @@
     "minipack_7x16Q_1x16O/sai/asicsdk-8.2.0.0_odp/9.2.0.0_odp/physdk-millenio-5.5/millenio-5.5": [
         {
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
+        },
+        {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -14716,6 +15991,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -14775,6 +16056,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -14832,6 +16119,12 @@
     "montblanc/bcm/asicsdk-6.5.26/6.5.26": [
         {
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
+        },
+        {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -14905,6 +16198,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -14974,6 +16273,12 @@
     "montblanc/bcm/asicsdk-6.5.26/6.5.26/physdk-credo-0.8.4/credo-0.8.4": [
         {
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
+        },
+        {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -15047,6 +16352,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -15116,6 +16427,12 @@
     "montblanc/bcm/asicsdk-6.5.26/6.5.28/physdk-credo-0.7.2/credo-0.7.2": [
         {
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
+        },
+        {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -15189,6 +16506,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -15258,6 +16581,12 @@
     "montblanc/bcm/asicsdk-6.5.28/6.5.28": [
         {
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
+        },
+        {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -15331,6 +16660,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -15400,6 +16735,12 @@
     "montblanc/bcm/asicsdk-6.5.28/6.5.28/physdk-credo-0.8.4/credo-0.8.4": [
         {
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
+        },
+        {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -15473,6 +16814,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -15539,6 +16886,12 @@
     "montblanc/sai/asicsdk-10.2.0.0_odp/10.2.0.0_odp/physdk-credo-0.7.2/credo-0.7.2": [
         {
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
+        },
+        {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -15609,6 +16962,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -15675,6 +17034,12 @@
     "montblanc/sai/asicsdk-8.2.0.0_odp/8.2.0.0_odp": [
         {
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
+        },
+        {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -15745,6 +17110,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -15811,6 +17182,12 @@
     "montblanc/sai/asicsdk-8.2.0.0_odp/8.2.0.0_odp/physdk-credo-0.8.4/credo-0.8.4": [
         {
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
+        },
+        {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -15881,6 +17258,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -15947,6 +17330,12 @@
     "montblanc/sai/asicsdk-8.2.0.0_odp/9.2.0.0_odp/physdk-credo-0.7.2/credo-0.7.2": [
         {
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
+        },
+        {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -16017,6 +17406,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -16083,6 +17478,12 @@
     "montblanc/sai/asicsdk-9.2.0.0_odp/9.2.0.0_odp": [
         {
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
+        },
+        {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -16153,6 +17554,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -16221,6 +17628,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -16287,6 +17700,12 @@
     "morgan800cc/sai/asicsdk-1.42.8/1.42.8": [
         {
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
+        },
+        {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -16363,6 +17782,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -16435,6 +17860,12 @@
     "morgan800cc/sai/asicsdk-1.42.8/1.42.8/physdk-credo-0.8.4/credo-0.8.4": [
         {
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
+        },
+        {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -16511,6 +17942,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -16583,6 +18020,12 @@
     "morgan800cc/sai/asicsdk-1.42.8/24.4.90/physdk-credo-0.7.2/credo-0.7.2": [
         {
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
+        },
+        {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -16659,6 +18102,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -16731,6 +18180,12 @@
     "morgan800cc/sai/asicsdk-1.42.8/24.4.90_yuba": [
         {
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
+        },
+        {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -16807,6 +18262,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -16879,6 +18340,12 @@
     "morgan800cc/sai/asicsdk-1.42.8/24.4.90_yuba/physdk-credo-0.8.4/credo-0.8.4": [
         {
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
+        },
+        {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -16955,6 +18422,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -17027,6 +18500,12 @@
     "morgan800cc/sai/asicsdk-1.42.8/24.6.1_yuba/physdk-credo-0.7.2/credo-0.7.2": [
         {
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
+        },
+        {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -17103,6 +18582,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -17175,6 +18660,12 @@
     "morgan800cc/sai/asicsdk-24.4.90/24.4.90": [
         {
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
+        },
+        {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -17251,6 +18742,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -17323,6 +18820,12 @@
     "morgan800cc/sai/asicsdk-24.4.90/24.4.90/physdk-credo-0.8.4/credo-0.8.4": [
         {
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
+        },
+        {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -17399,6 +18902,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -17471,6 +18980,12 @@
     "morgan800cc/sai/asicsdk-24.4.90_yuba/24.4.90_yuba/physdk-credo-0.7.2/credo-0.7.2": [
         {
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
+        },
+        {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -17547,6 +19062,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -17619,6 +19140,12 @@
     "morgan800cc/sai/asicsdk-24.6.1_yuba/24.6.1_yuba": [
         {
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
+        },
+        {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -17695,6 +19222,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -17767,6 +19300,12 @@
     "morgan800cc/sai/asicsdk-24.6.1_yuba/24.6.1_yuba/physdk-credo-0.8.4/credo-0.8.4": [
         {
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
+        },
+        {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -17843,6 +19382,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -17912,6 +19457,12 @@
     "tahan800bc/bcm/asicsdk-6.5.26/6.5.26/physdk-credo-0.7.2/credo-0.7.2": [
         {
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
+        },
+        {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -17985,6 +19536,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -18054,6 +19611,12 @@
     "tahan800bc/bcm/asicsdk-6.5.26/6.5.28": [
         {
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
+        },
+        {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -18127,6 +19690,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -18196,6 +19765,12 @@
     "tahan800bc/bcm/asicsdk-6.5.26/6.5.28/physdk-credo-0.8.4/credo-0.8.4": [
         {
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
+        },
+        {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -18269,6 +19844,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -18338,6 +19919,12 @@
     "tahan800bc/bcm/asicsdk-6.5.28/6.5.28/physdk-credo-0.7.2/credo-0.7.2": [
         {
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
+        },
+        {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -18411,6 +19998,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -18482,6 +20075,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -18548,6 +20147,12 @@
     "tahan800bc/sai/asicsdk-10.2.0.0_odp/10.2.0.0_odp/physdk-credo-0.7.2/credo-0.7.2": [
         {
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
+        },
+        {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -18618,6 +20223,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -18684,6 +20295,12 @@
     "tahan800bc/sai/asicsdk-8.2.0.0_odp/8.2.0.0_odp": [
         {
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
+        },
+        {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -18754,6 +20371,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -18820,6 +20443,12 @@
     "tahan800bc/sai/asicsdk-8.2.0.0_odp/8.2.0.0_odp/physdk-credo-0.8.4/credo-0.8.4": [
         {
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
+        },
+        {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -18890,6 +20519,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -18956,6 +20591,12 @@
     "tahan800bc/sai/asicsdk-8.2.0.0_odp/9.2.0.0_odp/physdk-credo-0.7.2/credo-0.7.2": [
         {
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
+        },
+        {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -19026,6 +20667,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -19092,6 +20739,12 @@
     "tahan800bc/sai/asicsdk-9.2.0.0_odp/9.2.0.0_odp": [
         {
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
+        },
+        {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -19162,6 +20815,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -19230,6 +20889,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -19296,6 +20961,12 @@
     "wedge100s/bcm/asicsdk-6.5.26/6.5.26": [
         {
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
+        },
+        {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -19375,6 +21046,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -19450,6 +21127,12 @@
     "wedge100s/bcm/asicsdk-6.5.26/6.5.26/physdk-credo-0.8.4/credo-0.8.4": [
         {
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
+        },
+        {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -19529,6 +21212,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -19604,6 +21293,12 @@
     "wedge100s/bcm/asicsdk-6.5.26/6.5.28/physdk-credo-0.7.2/credo-0.7.2": [
         {
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
+        },
+        {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -19683,6 +21378,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -19758,6 +21459,12 @@
     "wedge100s/bcm/asicsdk-6.5.28/6.5.28": [
         {
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
+        },
+        {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -19837,6 +21544,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -19912,6 +21625,12 @@
     "wedge100s/bcm/asicsdk-6.5.28/6.5.28/physdk-credo-0.8.4/credo-0.8.4": [
         {
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
+        },
+        {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -19991,6 +21710,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -20063,6 +21788,12 @@
     "wedge100s/sai/asicsdk-10.2.0.0_odp/10.2.0.0_odp/physdk-credo-0.7.2/credo-0.7.2": [
         {
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
+        },
+        {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -20139,6 +21870,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -20211,6 +21948,12 @@
     "wedge100s/sai/asicsdk-8.2.0.0_odp/8.2.0.0_odp": [
         {
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
+        },
+        {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -20287,6 +22030,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -20359,6 +22108,12 @@
     "wedge100s/sai/asicsdk-8.2.0.0_odp/8.2.0.0_odp/physdk-credo-0.8.4/credo-0.8.4": [
         {
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
+        },
+        {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -20435,6 +22190,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -20507,6 +22268,12 @@
     "wedge100s/sai/asicsdk-8.2.0.0_odp/9.2.0.0_odp/physdk-credo-0.7.2/credo-0.7.2": [
         {
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
+        },
+        {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -20583,6 +22350,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -20655,6 +22428,12 @@
     "wedge100s/sai/asicsdk-9.2.0.0_odp/9.2.0.0_odp": [
         {
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
+        },
+        {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -20731,6 +22510,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -20805,6 +22590,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -20877,6 +22668,12 @@
     "wedge400/bcm/asicsdk-6.5.26/6.5.26": [
         {
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
+        },
+        {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -20968,6 +22765,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -21055,6 +22858,12 @@
     "wedge400/bcm/asicsdk-6.5.26/6.5.26/physdk-credo-0.8.4/credo-0.8.4": [
         {
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
+        },
+        {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -21146,6 +22955,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -21233,6 +23048,12 @@
     "wedge400/bcm/asicsdk-6.5.26/6.5.28/physdk-credo-0.7.2/credo-0.7.2": [
         {
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
+        },
+        {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -21324,6 +23145,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -21411,6 +23238,12 @@
     "wedge400/bcm/asicsdk-6.5.28/6.5.28": [
         {
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
+        },
+        {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -21502,6 +23335,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -21589,6 +23428,12 @@
     "wedge400/bcm/asicsdk-6.5.28/6.5.28/physdk-credo-0.8.4/credo-0.8.4": [
         {
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
+        },
+        {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -21680,6 +23525,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -21764,6 +23615,12 @@
     "wedge400/sai/asicsdk-10.2.0.0_odp/10.2.0.0_odp/physdk-credo-0.7.2/credo-0.7.2": [
         {
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
+        },
+        {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -21852,6 +23709,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -21936,6 +23799,12 @@
     "wedge400/sai/asicsdk-8.2.0.0_odp/8.2.0.0_odp": [
         {
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
+        },
+        {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -22024,6 +23893,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -22108,6 +23983,12 @@
     "wedge400/sai/asicsdk-8.2.0.0_odp/8.2.0.0_odp/physdk-credo-0.8.4/credo-0.8.4": [
         {
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
+        },
+        {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -22196,6 +24077,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -22280,6 +24167,12 @@
     "wedge400/sai/asicsdk-8.2.0.0_odp/9.2.0.0_odp/physdk-credo-0.7.2/credo-0.7.2": [
         {
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
+        },
+        {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -22368,6 +24261,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -22452,6 +24351,12 @@
     "wedge400/sai/asicsdk-9.2.0.0_odp/9.2.0.0_odp": [
         {
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
+        },
+        {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -22540,6 +24445,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -22624,6 +24535,12 @@
     "wedge400/sai/asicsdk-9.2.0.0_odp/9.2.0.0_odp/physdk-credo-0.8.4/credo-0.8.4": [
         {
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
+        },
+        {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -22712,6 +24629,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -22796,6 +24719,12 @@
     "wedge400c/sai/asicsdk-1.42.8/1.42.8/physdk-credo-0.7.2/credo-0.7.2": [
         {
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
+        },
+        {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -22884,6 +24813,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -22968,6 +24903,12 @@
     "wedge400c/sai/asicsdk-1.42.8/24.4.90": [
         {
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
+        },
+        {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -23056,6 +24997,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -23140,6 +25087,12 @@
     "wedge400c/sai/asicsdk-1.42.8/24.4.90/physdk-credo-0.8.4/credo-0.8.4": [
         {
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
+        },
+        {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -23228,6 +25181,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -23312,6 +25271,12 @@
     "wedge400c/sai/asicsdk-1.42.8/24.4.90_yuba/physdk-credo-0.7.2/credo-0.7.2": [
         {
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
+        },
+        {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -23400,6 +25365,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -23484,6 +25455,12 @@
     "wedge400c/sai/asicsdk-1.42.8/24.6.1_yuba": [
         {
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
+        },
+        {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -23572,6 +25549,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -23656,6 +25639,12 @@
     "wedge400c/sai/asicsdk-1.42.8/24.6.1_yuba/physdk-credo-0.8.4/credo-0.8.4": [
         {
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
+        },
+        {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -23744,6 +25733,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -23828,6 +25823,12 @@
     "wedge400c/sai/asicsdk-24.4.90/24.4.90/physdk-credo-0.7.2/credo-0.7.2": [
         {
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
+        },
+        {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -23916,6 +25917,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -24000,6 +26007,12 @@
     "wedge400c/sai/asicsdk-24.4.90_yuba/24.4.90_yuba": [
         {
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
+        },
+        {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -24088,6 +26101,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -24172,6 +26191,12 @@
     "wedge400c/sai/asicsdk-24.4.90_yuba/24.4.90_yuba/physdk-credo-0.8.4/credo-0.8.4": [
         {
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
+        },
+        {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -24260,6 +26285,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -24344,6 +26375,12 @@
     "wedge400c/sai/asicsdk-24.6.1_yuba/24.6.1_yuba/physdk-credo-0.7.2/credo-0.7.2": [
         {
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
+        },
+        {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -24432,6 +26469,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -24518,6 +26561,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -24596,6 +26645,12 @@
     "yamp_8x16Q/bcm/asicsdk-6.5.26/6.5.26/physdk-credo-0.7.2/credo-0.7.2": [
         {
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
+        },
+        {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -24678,6 +26733,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -24756,6 +26817,12 @@
     "yamp_8x16Q/bcm/asicsdk-6.5.26/6.5.28": [
         {
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
+        },
+        {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -24838,6 +26905,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -24916,6 +26989,12 @@
     "yamp_8x16Q/bcm/asicsdk-6.5.26/6.5.28/physdk-credo-0.8.4/credo-0.8.4": [
         {
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
+        },
+        {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -24998,6 +27077,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -25076,6 +27161,12 @@
     "yamp_8x16Q/bcm/asicsdk-6.5.28/6.5.28/physdk-credo-0.7.2/credo-0.7.2": [
         {
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
+        },
+        {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -25158,6 +27249,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -25238,6 +27335,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -25313,6 +27416,12 @@
     "yamp_8x16Q/sai/asicsdk-10.2.0.0_odp/10.2.0.0_odp/physdk-credo-0.7.2/credo-0.7.2": [
         {
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
+        },
+        {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -25392,6 +27501,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -25467,6 +27582,12 @@
     "yamp_8x16Q/sai/asicsdk-8.2.0.0_odp/8.2.0.0_odp": [
         {
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
+        },
+        {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -25546,6 +27667,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -25621,6 +27748,12 @@
     "yamp_8x16Q/sai/asicsdk-8.2.0.0_odp/8.2.0.0_odp/physdk-credo-0.8.4/credo-0.8.4": [
         {
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
+        },
+        {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -25700,6 +27833,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -25775,6 +27914,12 @@
     "yamp_8x16Q/sai/asicsdk-8.2.0.0_odp/9.2.0.0_odp/physdk-credo-0.7.2/credo-0.7.2": [
         {
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
+        },
+        {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -25854,6 +27999,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -25929,6 +28080,12 @@
     "yamp_8x16Q/sai/asicsdk-9.2.0.0_odp/9.2.0.0_odp": [
         {
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
+        },
+        {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"
@@ -26008,6 +28165,12 @@
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
         },
         {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "MacsecTest.*$"
         },
         {
@@ -26083,6 +28246,12 @@
     "yamp_8x16Q/sai/asicsdk-9.2.0.0_odp/9.2.0.0_odp/physdk-credo-0.8.4/credo-0.8.4": [
         {
           "test_name_regex": "LinkSanityTestDataPlaneFlood.*$"
+        },
+        {
+          "test_name_regex": "FsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "cold_boot.SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "MacsecTest.*$"

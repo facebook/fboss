@@ -24,6 +24,29 @@ std::string kDefaultAclTable() {
   return "AclTable1";
 }
 
+std::vector<cfg::AclTableQualifier> genAclQualifiersConfig(
+    cfg::AsicType asicType) {
+  std::vector<cfg::AclTableQualifier> qualifiers = {
+      cfg::AclTableQualifier::SRC_IPV6,
+      cfg::AclTableQualifier::DST_IPV6,
+      cfg::AclTableQualifier::SRC_IPV4,
+      cfg::AclTableQualifier::DST_IPV4,
+      cfg::AclTableQualifier::L4_SRC_PORT,
+      cfg::AclTableQualifier::L4_DST_PORT,
+      cfg::AclTableQualifier::IP_PROTOCOL,
+      cfg::AclTableQualifier::DSCP,
+      cfg::AclTableQualifier::TTL,
+      cfg::AclTableQualifier::ICMPV4_TYPE,
+      cfg::AclTableQualifier::ICMPV4_CODE,
+      cfg::AclTableQualifier::ICMPV6_TYPE,
+      cfg::AclTableQualifier::ICMPV6_CODE,
+      cfg::AclTableQualifier::OUTER_VLAN};
+  if (asicType != cfg::AsicType::ASIC_TYPE_JERICHO3) {
+    qualifiers.push_back(cfg::AclTableQualifier::IP_TYPE);
+  }
+  return qualifiers;
+}
+
 int getAclTableIndex(
     cfg::SwitchConfig* cfg,
     const std::optional<std::string>& tableName) {

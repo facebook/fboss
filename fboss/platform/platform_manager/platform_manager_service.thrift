@@ -11,6 +11,8 @@ enum ExplorationStatus {
   SUCCEEDED = 0,
   IN_PROGRESS = 1,
   FAILED = 2,
+  SUCCEEDED_WITH_EXPECTED_ERRORS = 3,
+  UNSTARTED = 4,
 }
 
 enum PlatformManagerErrorCode {

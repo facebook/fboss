@@ -115,7 +115,7 @@ void DataStore::updatePmUnitInfo(
         pmUnitName);
   }
   XLOG(INFO) << fmt::format(
-      "At SlotPath {}, updating to PmUnit {} {}",
+      "At SlotPath {}, updating to PmUnit {} with {}",
       slotPath,
       pmUnitName,
       pmUnitInfo.version()

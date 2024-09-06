@@ -338,23 +338,8 @@ void DsfSubscription::queueDsfUpdate(DsfUpdate&& dsfUpdate) {
         // At this point nextDsfUpdate should be null
         CHECK_EQ(*nextDsfUpdateWlock, nullptr);
       }
-      try {
-        updateWithRollbackProtection(
-            update.switchId2SystemPorts, update.switchId2Intfs);
-
-      } catch (std::exception& e) {
-        XLOG(DBG2) << kDsfCtrlLogPrefix
-                   << " update failed for : " << remoteEndpointStr();
-        sw_->stats()->dsfUpdateFailed();
-        // Tear down subscription so no more updates come for this
-        // subscription
-        tearDownSubscription();
-        // Clear any queued updates
-        auto nextDsfUpdateWlock = nextDsfUpdate_.wlock();
-        nextDsfUpdateWlock->reset();
-        // Setup subscription again to trigger a full resync
-        setupSubscription();
-      }
+      updateWithRollbackProtection(
+          update.switchId2SystemPorts, update.switchId2Intfs);
     });
   }
 }
@@ -401,11 +386,29 @@ void DsfSubscription::updateWithRollbackProtection(
 
     return std::shared_ptr<SwitchState>{};
   };
-
+  updateDsfState(updateDsfStateFn);
+}
+void DsfSubscription::updateDsfState(
+    const std::function<std::shared_ptr<SwitchState>(
+        const std::shared_ptr<SwitchState>&)>& updateDsfStateFn) {
   sw_->getRib()->updateStateInRibThread([this, updateDsfStateFn]() {
-    sw_->updateStateWithHwFailureProtection(
-        folly::sformat("Update state for node: {}", localNodeName_),
-        updateDsfStateFn);
+    try {
+      sw_->updateStateWithHwFailureProtection(
+          folly::sformat("Update state for node: {}", localNodeName_),
+          updateDsfStateFn);
+    } catch (const std::exception& e) {
+      XLOG(DBG2) << kDsfCtrlLogPrefix
+                 << " update failed for : " << remoteEndpointStr();
+      sw_->stats()->dsfUpdateFailed();
+      // Tear down subscription so no more updates come for this
+      // subscription
+      tearDownSubscription();
+      // Clear any queued updates
+      auto nextDsfUpdateWlock = nextDsfUpdate_.wlock();
+      nextDsfUpdateWlock->reset();
+      // Setup subscription again to trigger a full resync
+      setupSubscription();
+    }
   });
 }
 
@@ -489,10 +492,6 @@ void DsfSubscription::processGRHoldTimerExpired() {
     return std::shared_ptr<SwitchState>{};
   };
 
-  sw_->getRib()->updateStateInRibThread([this, updateDsfStateFn]() {
-    sw_->updateStateWithHwFailureProtection(
-        folly::sformat("Update state for node: {}", remoteNodeName_),
-        updateDsfStateFn);
-  });
+  updateDsfState(updateDsfStateFn);
 }
 } // namespace facebook::fboss

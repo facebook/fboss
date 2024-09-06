@@ -1,3 +1,15 @@
+/*
+ *  Copyright (c) 2004-present, Facebook, Inc.
+ *  All rights reserved.
+ *
+ *  This source code is licensed under the BSD-style license found in the
+ *  LICENSE file in the root directory of this source tree. An additional grant
+ *  of patent rights can be found in the PATENTS file in the same directory.
+ *
+ */
+
+#pragma once
+
 #include "fboss/agent/if/gen-cpp2/AgentHwTestCtrl.h"
 
 #include "fboss/agent/FbossError.h"
@@ -56,6 +68,20 @@ class HwTestThriftHandler : public AgentHwTestCtrlSvIf {
       std::unique_ptr<std::string> aclEntry,
       std::unique_ptr<std::string> mirror,
       bool ingress) override;
+  void getNeighborInfo(
+      NeighborInfo& neighborInfo,
+      std::unique_ptr<::facebook::fboss::IfAndIP> neighbor) override;
+
+  int getHwEcmpSize(
+      std::unique_ptr<CIDRNetwork> prefix,
+      int routerID,
+      int sizeInSw) override;
+
+  void injectFecError(
+      std::unique_ptr<std::vector<int>> hwPorts,
+      bool injectCorrectable) override;
+
+  void injectSwitchReachabilityChangeNotification() override;
 
  private:
   HwSwitch* hwSwitch_;

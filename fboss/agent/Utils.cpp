@@ -849,4 +849,34 @@ uint32_t getRemotePortOffset(const PlatformType platformType) {
   return 0;
 }
 
+std::string runShellCmd(const std::string& cmd) {
+  std::array<char, 4096> buffer;
+  std::string result;
+  std::unique_ptr<FILE, decltype(&pclose)> pipe(
+      popen(cmd.c_str(), "r"), pclose);
+  if (!pipe) {
+    throw std::runtime_error("popen() failed!");
+  }
+  while (fgets(buffer.data(), buffer.size(), pipe.get()) != nullptr) {
+    result += buffer.data();
+  }
+
+  return result;
+}
+
+InterfaceID getRecyclePortIntfID(
+    const std::shared_ptr<SwitchState>& state,
+    const SwitchID& switchId) {
+  auto dsfNode = state->getDsfNodes()->getNodeIf(switchId);
+  CHECK(dsfNode);
+
+  auto systemPortRange = dsfNode->getSystemPortRange();
+  CHECK(systemPortRange.has_value());
+
+  auto recyclePortId =
+      InterfaceID(*systemPortRange.value().minimum() + kRecyclePortIdOffset);
+
+  return recyclePortId;
+}
+
 } // namespace facebook::fboss

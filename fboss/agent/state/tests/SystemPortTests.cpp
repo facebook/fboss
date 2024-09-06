@@ -101,7 +101,7 @@ TEST(SystemPort, Modify) {
 TEST(SystemPort, sysPortApplyConfig) {
   auto platform = createMockPlatform();
   auto stateV0 = std::make_shared<SwitchState>();
-  addSwitchInfo(stateV0, cfg::SwitchType::VOQ, 1 /* switchId*/);
+  addSwitchInfo(stateV0, cfg::SwitchType::VOQ, kVoqSwitchIdBegin /* switchId*/);
   auto config = testConfigA(cfg::SwitchType::VOQ);
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   ASSERT_NE(nullptr, stateV1);
@@ -132,13 +132,14 @@ TEST(SystemPort, sysPortApplyConfig) {
 TEST(SystemPort, sysPortNameApplyConfig) {
   auto platform = createMockPlatform();
   auto stateV0 = std::make_shared<SwitchState>();
-  addSwitchInfo(stateV0, cfg::SwitchType::VOQ, 1 /* switchId*/);
+  addSwitchInfo(stateV0, cfg::SwitchType::VOQ, kVoqSwitchIdBegin /* switchId*/);
   auto config = testConfigA(cfg::SwitchType::VOQ);
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   ASSERT_NE(nullptr, stateV1);
   EXPECT_EQ(
       stateV1->getSystemPorts()->numNodes(), stateV1->getPorts()->numNodes());
-  auto nodeName = *config.dsfNodes()->find(SwitchID(1))->second.name();
+  auto nodeName =
+      *config.dsfNodes()->find(SwitchID(kVoqSwitchIdBegin))->second.name();
   for (auto portMap : std::as_const(*stateV1->getPorts())) {
     for (auto port : std::as_const(*portMap.second)) {
       auto sysPortName =
@@ -152,11 +153,11 @@ TEST(SystemPort, sysPortNameApplyConfig) {
 TEST(SystemPort, GetLocalSwitchPortsBySwitchId) {
   auto platform = createMockPlatform();
   auto stateV0 = std::make_shared<SwitchState>();
-  addSwitchInfo(stateV0, cfg::SwitchType::VOQ, 1 /* switchId*/);
+  addSwitchInfo(stateV0, cfg::SwitchType::VOQ, kVoqSwitchIdBegin /* switchId*/);
   auto config = testConfigA(cfg::SwitchType::VOQ);
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   ASSERT_NE(nullptr, stateV1);
-  auto localSwitchId = 1;
+  auto localSwitchId = kVoqSwitchIdBegin;
   auto mySysPorts = stateV1->getSystemPorts(SwitchID(localSwitchId));
   EXPECT_EQ(mySysPorts->size(), stateV1->getSystemPorts()->numNodes());
   // No remote sys ports
@@ -166,11 +167,12 @@ TEST(SystemPort, GetLocalSwitchPortsBySwitchId) {
 TEST(SystemPort, GetRemoteSwitchPortsBySwitchId) {
   auto platform = createMockPlatform();
   auto stateV0 = std::make_shared<SwitchState>();
-  addSwitchInfo(stateV0, cfg::SwitchType::VOQ, 1 /* switchId*/);
+  addSwitchInfo(stateV0, cfg::SwitchType::VOQ, kVoqSwitchIdBegin /* switchId*/);
   auto config = testConfigA(cfg::SwitchType::VOQ);
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   int64_t remoteSwitchId = 100;
-  HwSwitchMatcher scope{std::unordered_set<SwitchID>{SwitchID(1)}};
+  HwSwitchMatcher scope{
+      std::unordered_set<SwitchID>{SwitchID(kVoqSwitchIdBegin)}};
   auto sysPort1 = makeSysPort("olympic", 1, remoteSwitchId);
   auto sysPort2 = makeSysPort("olympic", 2, remoteSwitchId);
   auto stateV2 = stateV1->clone();

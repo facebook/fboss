@@ -1,0 +1,19 @@
+load("@fbcode_macros//build_defs:cpp_binary.bzl", "cpp_binary")
+
+oncall("fboss_platform")
+
+cpp_binary(
+    name = "platform_manager_hw_test",
+    srcs = [
+        "PlatformManagerHwTest.cpp",
+    ],
+    deps = [
+        "fbsource//third-party/fmt:fmt",
+        "fbsource//third-party/googletest:gtest",
+        "//fboss/platform/helpers:init",
+        "//fboss/platform/platform_manager:pkg_manager",
+        "//fboss/platform/platform_manager:platform_manager_handler",
+        "//fboss/platform/platform_manager:utils",
+        "//thrift/lib/cpp2/util:util",
+    ],
+)

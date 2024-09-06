@@ -82,3 +82,14 @@ cpp_unittest(
         "//fboss/platform/platform_manager:utils",
     ],
 )
+
+cpp_unittest(
+    name = "exploration_error_map_test",
+    srcs = [
+        "ExplorationErrorMapTest.cpp",
+    ],
+    deps = [
+        "fbsource//third-party/googletest:gmock",
+        "//fboss/platform/platform_manager:platform_explorer",
+    ],
+)

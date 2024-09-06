@@ -155,6 +155,8 @@ class SimSwitch : public HwSwitch {
     return 0;
   }
 
+  void injectSwitchReachabilityChangeNotification() override {}
+
  private:
   void switchRunStateChangedImpl(SwitchRunState newState) override {}
   // TODO

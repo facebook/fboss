@@ -333,7 +333,8 @@ std::set<std::pair<PortID, PortID>> LinkTest::getConnectedPairs() const {
 std::set<std::pair<PortID, PortID>>
 LinkTest::getConnectedOpticalPortPairWithFeature(
     TransceiverFeature feature,
-    phy::Side side) const {
+    phy::Side side,
+    bool skipLoopback) const {
   auto connectedPairs = getConnectedPairs();
   auto opticalPorts = std::get<0>(getOpticalCabledPortsAndNames(false));
 
@@ -342,6 +343,9 @@ LinkTest::getConnectedOpticalPortPairWithFeature(
     if (std::find(
             opticalPorts.begin(), opticalPorts.end(), connectedPair.first) !=
         opticalPorts.end()) {
+      if (connectedPair.first == connectedPair.second && skipLoopback) {
+        continue;
+      }
       connectedOpticalPortPairs.insert(connectedPair);
     }
   }

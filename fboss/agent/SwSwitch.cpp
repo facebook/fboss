@@ -159,7 +159,7 @@ DEFINE_int32(
 
 DEFINE_int32(
     fsdbStatsStreamIntervalSeconds,
-    60,
+    5,
     "Interval at which stats subscriptions are served");
 
 DECLARE_bool(intf_nbr_tables);
@@ -2078,6 +2078,10 @@ void SwSwitch::linkActiveStateChanged(
   auto updateActiveStateFn = [=,
                               this](const std::shared_ptr<SwitchState>& state) {
     std::shared_ptr<SwitchState> newState(state);
+    if (port2IsActive.size() == 0) {
+      return newState;
+    }
+
     auto numActiveFabricPorts = 0;
     for (const auto& [portID, isActive] : port2IsActive) {
       auto* port = newState->getPorts()->getNodeIf(portID).get();
@@ -2103,10 +2107,6 @@ void SwSwitch::linkActiveStateChanged(
           port->setActiveState(isActive);
         }
       }
-    }
-
-    if (port2IsActive.size() == 0) {
-      return newState;
     }
 
     // Pick matcher for any port.
@@ -2169,6 +2169,8 @@ void SwSwitch::switchReachabilityChanged(
   runFsdbSyncFunction([switchId, &newReachability](auto& syncer) {
     syncer->switchReachabilityChanged(switchId, std::move(newReachability));
   });
+  // Update processing complete counter
+  stats()->switchReachabilityChangeProcessed();
 }
 
 void SwSwitch::startThreads() {

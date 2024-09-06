@@ -12,7 +12,7 @@
     },
     "CPU_CPLD" : {
       "preUpgradeCmd" : "scBus=$(i2cdetect -l | grep '0000:ff:0b.3 SMBus master 2 bus 0' | cut -d '-' -f 2 | grep -o '^[0-9]*');i2cset -f -y $scBus 0x23 0x0c 0x00",
-      "getVersionCmd" : "cpu_cpld_ver=$((`cat /sys/bus/pci/drivers/scd/0000:ff:0b.3/fpga_ver`));cpu_cpld_subver=$((`cat /sys/bus/pci/drivers/scd/0000:ff:0b.3/fpga_sub_ver`));echo $cpu_cpld_ver'.'$cpu_cpld_subver",
+      "getVersionCmd" : "cpu_cpld_ver=$((`cat /sys/bus/pci/devices/0000:ff:0b.3/fpga_ver`));cpu_cpld_subver=$((`cat /sys/bus/pci/devices/0000:ff:0b.3/fpga_sub_ver`));echo $cpu_cpld_ver'.'$cpu_cpld_subver",
       "priority" : 2,
       "upgradeCmd" : "cpu_cpld_filename=$(head -n 1 /home/cpu_cpld_filename.txt);/usr/bin/jam -aprogram -fcpu_cpld -v $cpu_cpld_filename",
       "postUpgradeCmd" : "scBus=$(i2cdetect -l | grep '0000:ff:0b.3 SMBus master 2 bus 0' | cut -d '-' -f 2 | grep -o '^[0-9]*');i2cset -f -y $scBus 0x23 0x0c 0x00",

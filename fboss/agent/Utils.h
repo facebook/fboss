@@ -63,6 +63,7 @@ inline const int kUdfAclRoceOpcodeFieldSizeInBytes(1);
 inline const int kUdfL4DstPort(4791);
 inline const int kRandomUdfL4SrcPort(62946);
 inline const int kUdfRoceOpcodeAck(17);
+inline const signed char kUdfRoceOpcodeMask(0xFF);
 inline const int kUdfRoceOpcodeWriteImmediate(11);
 inline const std::string kRoceUdfFlowletGroupName("roceUdfFlowlet");
 inline const int kRoceUdfFlowletStartOffsetInBytes(16);
@@ -70,11 +71,22 @@ inline const int kRoceUdfFlowletFieldSizeInBytes(1);
 inline const int kRoceReserved(0x40); // offset 16
 inline const std::string kFlowletAclName("test-udf-flowlet_acl");
 inline const std::string kFlowletAclCounterName("test-udf-flowlet-acl-stats");
+inline const std::string kUdfAclAethNakGroupName("aethNak");
+inline const int kUdfAclAethNakStartOffsetInBytes(20);
+inline const int kUdfAclAethNakFieldSizeInBytes(1);
+inline const int kAethSyndromeWithNak(0x60);
+inline const std::string kUdfAclRethWrImmZeroGroupName("wrImmZero");
+// DMA length is 4 bytes. Typical length is less than 4K, so last 2 bytes match
+// is enough to save on ACL table TCAM
+inline const int kUdfAclRethDmaLenOffsetInBytes(34);
+inline const int kUdfAclRethDmaLenFieldSizeInBytes(2);
 } // namespace utility
 
 class SwitchState;
 class Interface;
 class SwitchSettings;
+
+constexpr auto kRecyclePortIdOffset = 1;
 
 template <typename T>
 inline T readBuffer(const uint8_t* buffer, uint32_t pos, size_t buffSize) {
@@ -403,5 +415,11 @@ std::set<SwitchID> getAllSwitchIDsForSwitch(
     const SwitchID& switchID);
 
 uint32_t getRemotePortOffset(const PlatformType platformType);
+
+std::string runShellCmd(const std::string& cmd);
+
+InterfaceID getRecyclePortIntfID(
+    const std::shared_ptr<SwitchState>& state,
+    const SwitchID& switchId);
 
 } // namespace facebook::fboss

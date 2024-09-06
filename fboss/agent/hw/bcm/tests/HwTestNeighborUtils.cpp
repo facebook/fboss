@@ -62,65 +62,6 @@ bcm_l3_route_t getRoute(int unit, const folly::IPAddress& ip, uint32_t flags) {
 }
 } // namespace
 
-bool nbrExists(
-    const HwSwitch* hwSwitch,
-    InterfaceID intf,
-    const folly::IPAddress& ip) {
-  try {
-    if (hwSwitch->getPlatform()->getAsic()->isSupported(
-            HwAsic::Feature::HOSTTABLE)) {
-      getHost(static_cast<const BcmSwitch*>(hwSwitch)->getUnit(), ip, 0);
-    } else {
-      getRoute(static_cast<const BcmSwitch*>(hwSwitch)->getUnit(), ip, 0);
-    }
-  } catch (const BcmError& e) {
-    if (e.getBcmError() == BCM_E_NOT_FOUND) {
-      return false;
-    } else {
-      throw;
-    }
-  }
-  return true;
-}
-
-bool nbrProgrammedToCpu(
-    const HwSwitch* hwSwitch,
-    InterfaceID /*intf*/,
-    const folly::IPAddress& ip) {
-  bcm_if_t intf;
-  if (hwSwitch->getPlatform()->getAsic()->isSupported(
-          HwAsic::Feature::HOSTTABLE)) {
-    auto host =
-        getHost(static_cast<const BcmSwitch*>(hwSwitch)->getUnit(), ip, 0);
-    intf = host.l3a_intf;
-  } else {
-    auto route =
-        getRoute(static_cast<const BcmSwitch*>(hwSwitch)->getUnit(), ip, 0);
-    intf = route.l3a_intf;
-  }
-  bcm_l3_egress_t egress;
-  auto cpuFlags = (BCM_L3_L2TOCPU | BCM_L3_COPY_TO_CPU);
-  bcm_l3_egress_t_init(&egress);
-  bcm_l3_egress_get(0, intf, &egress);
-  return (egress.flags & cpuFlags) == cpuFlags;
-}
-
-std::optional<uint32_t> getNbrClassId(
-    const HwSwitch* hwSwitch,
-    InterfaceID /*intf*/,
-    const folly::IPAddress& ip) {
-  if (hwSwitch->getPlatform()->getAsic()->isSupported(
-          HwAsic::Feature::HOSTTABLE)) {
-    auto host =
-        getHost(static_cast<const BcmSwitch*>(hwSwitch)->getUnit(), ip, 0);
-    return host.l3a_lookup_class;
-  } else {
-    auto route =
-        getRoute(static_cast<const BcmSwitch*>(hwSwitch)->getUnit(), ip, 0);
-    return route.l3a_lookup_class;
-  }
-}
-
 bool isHostHit(const HwSwitch* hwSwitch, const folly::IPAddress& ip) {
   if (hwSwitch->getPlatform()->getAsic()->isSupported(
           HwAsic::Feature::HOSTTABLE)) {

@@ -52,6 +52,7 @@ class AgentEnsembleTest : public ::testing::Test {
    * used to verify that none of the traffic bearing ports flapped
    */
   void assertNoInDiscards(int maxNumDiscards = 0);
+  void assertNoInErrors(int maxNumDiscards = 0);
 
   void reloadPlatformConfig();
   std::map<PortID, FabricEndpoint> getFabricConnectivity(
