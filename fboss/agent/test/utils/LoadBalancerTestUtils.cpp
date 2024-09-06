@@ -201,6 +201,23 @@ cfg::UdfConfig addUdfAclNakConfig(void) {
       cfg::UdfGroupType::ACL);
 }
 
+// Match on BTH opcode and RETH dma length fields
+cfg::UdfConfig addUdfOpcodeDmaLenConfig(void) {
+  std::map<std::string, cfg::UdfGroup> udfMap;
+  addUdfConfig(
+      udfMap,
+      kUdfAclRoceOpcodeGroupName,
+      kUdfAclRoceOpcodeStartOffsetInBytes,
+      kUdfAclRoceOpcodeFieldSizeInBytes,
+      cfg::UdfGroupType::ACL);
+  return addUdfConfig(
+      udfMap,
+      kUdfAclRethWrImmZeroGroupName,
+      kUdfAclRethDmaLenOffsetInBytes,
+      kUdfAclRethDmaLenFieldSizeInBytes,
+      cfg::UdfGroupType::ACL);
+}
+
 cfg::UdfConfig addUdfAckAndFlowletAclConfig(void) {
   std::map<std::string, cfg::UdfGroup> udfMap;
   addUdfConfig(

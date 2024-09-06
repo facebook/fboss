@@ -25,6 +25,7 @@ enum AclType {
   UDF_ACK,
   UDF_NAK,
   UDF_ACK_WITH_NAK,
+  UDF_WR_IMM_ZERO,
   FLOWLET,
   FLOWLET_WITH_UDF_ACK,
   FLOWLET_WITH_UDF_NAK,
@@ -74,6 +75,9 @@ class AgentAclCounterTestBase : public AgentHwTest {
       case AclType::UDF_NAK:
       case AclType::UDF_ACK_WITH_NAK:
         aclName = "test-udf-nak-acl";
+        break;
+      case AclType::UDF_WR_IMM_ZERO:
+        aclName = "test-wr-imm-zero-acl";
         break;
       case AclType::FLOWLET:
       case AclType::FLOWLET_WITH_UDF_ACK:
@@ -189,6 +193,8 @@ class AgentAclCounterTestBase : public AgentHwTest {
     size_t sizeOfPacketSent = 0;
 
     std::vector<uint8_t> aethHdr = {0x0a, 0x11, 0x22, 0x33};
+    // RDMAeth header with DMA length 0
+    std::vector<uint8_t> rethHdr(16);
 
     switch (aclType) {
       case AclType::UDF_ACK:
@@ -202,7 +208,13 @@ class AgentAclCounterTestBase : public AgentHwTest {
         break;
       case AclType::FLOWLET:
       case AclType::UDF_FLOWLET:
-        sizeOfPacketSent = sendRoceTraffic(egressPort, 11 /* not ack opcode */);
+        rethHdr[15] = 0xFF; // non-zero sized packet
+        sizeOfPacketSent = sendRoceTraffic(
+            egressPort, utility::kUdfRoceOpcodeWriteImmediate, rethHdr);
+        break;
+      case AclType::UDF_WR_IMM_ZERO:
+        sizeOfPacketSent = sendRoceTraffic(
+            egressPort, utility::kUdfRoceOpcodeWriteImmediate, rethHdr);
         break;
       default:
         break;
@@ -261,6 +273,9 @@ class AgentAclCounterTestBase : public AgentHwTest {
       case AclType::UDF_ACK_WITH_NAK:
         verifyAclType(true, AclType::UDF_ACK);
         verifyAclType(true, AclType::UDF_NAK);
+        break;
+      case AclType::UDF_WR_IMM_ZERO:
+        verifyAclType(true, AclType::UDF_WR_IMM_ZERO);
         break;
       case AclType::FLOWLET:
         verifyAclType(true, AclType::FLOWLET);
@@ -338,6 +353,9 @@ class AgentAclCounterTestBase : public AgentHwTest {
   void addAclAndStat(cfg::SwitchConfig* config, AclType aclType) const {
     auto aclName = getAclName(aclType);
     auto counterName = getCounterName(aclType);
+    const signed char bm = 0xFF;
+    std::vector<signed char> dmaLengthZeros = {0x0, 0x0};
+    std::vector<signed char> dmaLengthMask = {bm, bm};
     switch (aclType) {
       case AclType::UDF_ACK:
         config->udfConfig() = utility::addUdfAclConfig();
@@ -358,6 +376,24 @@ class AgentAclCounterTestBase : public AgentHwTest {
              utility::kUdfAclAethNakGroupName},
             {{utility::kUdfRoceOpcodeAck}, {utility::kAethSyndromeWithNak}},
             {{utility::kUdfRoceOpcodeMask}, {utility::kAethSyndromeWithNak}});
+        addRoceAcl(
+            config,
+            aclName,
+            counterName,
+            std::nullopt,
+            std::nullopt,
+            std::nullopt,
+            std::nullopt,
+            std::move(udfTable));
+      } break;
+      case AclType::UDF_WR_IMM_ZERO: {
+        config->udfConfig() = utility::addUdfOpcodeDmaLenConfig();
+        auto udfTable = addUdfTable(
+            {utility::kUdfAclRoceOpcodeGroupName,
+             utility::kUdfAclRethWrImmZeroGroupName},
+            {{utility::kUdfRoceOpcodeWriteImmediate},
+             std::move(dmaLengthZeros)},
+            {{utility::kUdfRoceOpcodeMask}, std::move(dmaLengthMask)});
         addRoceAcl(
             config,
             aclName,
@@ -535,6 +571,14 @@ TEST_F(AgentFlowletSwitchingTest, VerifyUdfFlowletWithUdfAckToFlowlet) {
 // UDF A to empty
 TEST_F(AgentFlowletSwitchingTest, VerifyUdfFlowletToFlowlet) {
   flowletSwitchingAclHitHelper(AclType::UDF_FLOWLET, AclType::FLOWLET);
+}
+
+TEST_F(AgentFlowletSwitchingTest, VerifyUdfFlowletToUdfWrImmZero) {
+  flowletSwitchingAclHitHelper(AclType::UDF_FLOWLET, AclType::UDF_WR_IMM_ZERO);
+}
+
+TEST_F(AgentFlowletSwitchingTest, VerifyUdfWrImmZeroToUdfFlowlet) {
+  flowletSwitchingAclHitHelper(AclType::UDF_WR_IMM_ZERO, AclType::UDF_FLOWLET);
 }
 
 TEST_F(AgentFlowletSwitchingTest, VerifyOneUdfGroupAddition) {

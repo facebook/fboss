@@ -184,6 +184,7 @@ inline const int kQueueWeight(30);
 cfg::UdfConfig addUdfHashConfig();
 cfg::UdfConfig addUdfAclConfig();
 cfg::UdfConfig addUdfAclNakConfig();
+cfg::UdfConfig addUdfOpcodeDmaLenConfig();
 cfg::UdfConfig addUdfFlowletAclConfig();
 cfg::UdfConfig addUdfAckAndFlowletAclConfig();
 cfg::UdfConfig addUdfHashAclConfig();

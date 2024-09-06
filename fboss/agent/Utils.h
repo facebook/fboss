@@ -75,6 +75,11 @@ inline const std::string kUdfAclAethNakGroupName("aethNak");
 inline const int kUdfAclAethNakStartOffsetInBytes(20);
 inline const int kUdfAclAethNakFieldSizeInBytes(1);
 inline const int kAethSyndromeWithNak(0x60);
+inline const std::string kUdfAclRethWrImmZeroGroupName("wrImmZero");
+// DMA length is 4 bytes. Typical length is less than 4K, so last 2 bytes match
+// is enough to save on ACL table TCAM
+inline const int kUdfAclRethDmaLenOffsetInBytes(34);
+inline const int kUdfAclRethDmaLenFieldSizeInBytes(2);
 } // namespace utility
 
 class SwitchState;
