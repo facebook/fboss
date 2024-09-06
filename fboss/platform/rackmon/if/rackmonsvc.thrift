@@ -280,6 +280,13 @@ service RackmonCtrl {
   ) throws (1: fboss.FbossBaseError error);
 
   /*
+   * Reload register matching the provided filter
+   */
+  void reload(1: MonitorDataFilter filter, 2: bool synchronous = true) throws (
+    1: fboss.FbossBaseError error,
+  );
+
+  /*
    * Send commands to control rackmond's behavior, such as pause/resume
    * rackmond's core loop.
    */
