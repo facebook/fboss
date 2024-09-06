@@ -66,4 +66,6 @@ service AgentHwTestCtrl {
   i32 getHwEcmpSize(1: CIDRNetwork prefix, 2: i32 routerID, 3: i32 sizeInSw);
 
   void injectFecError(1: list<i32> hwPorts, 2: bool injectCorrectable);
+
+  void injectSwitchReachabilityChangeNotification();
 }

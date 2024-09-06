@@ -81,6 +81,8 @@ class HwTestThriftHandler : public AgentHwTestCtrlSvIf {
       std::unique_ptr<std::vector<int>> hwPorts,
       bool injectCorrectable) override;
 
+  void injectSwitchReachabilityChangeNotification() override;
+
  private:
   HwSwitch* hwSwitch_;
 };
