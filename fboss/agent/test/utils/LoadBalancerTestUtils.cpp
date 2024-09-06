@@ -164,74 +164,46 @@ static cfg::UdfConfig addUdfConfig(
   return udfCfg;
 }
 
-cfg::UdfConfig addUdfAclConfig(void) {
+cfg::UdfConfig addUdfAclConfig(int udfType) {
   std::map<std::string, cfg::UdfGroup> udfMap;
-  return addUdfConfig(
-      udfMap,
-      kUdfAclRoceOpcodeGroupName,
-      kUdfAclRoceOpcodeStartOffsetInBytes,
-      kUdfAclRoceOpcodeFieldSizeInBytes,
-      cfg::UdfGroupType::ACL);
+  cfg::UdfConfig udfCfg;
+  if ((udfType & kUdfOffsetBthOpcode) == kUdfOffsetBthOpcode) {
+    udfCfg = addUdfConfig(
+        udfMap,
+        kUdfAclRoceOpcodeGroupName,
+        kUdfAclRoceOpcodeStartOffsetInBytes,
+        kUdfAclRoceOpcodeFieldSizeInBytes,
+        cfg::UdfGroupType::ACL);
+  }
+  if ((udfType & kUdfOffsetBthReserved) == kUdfOffsetBthReserved) {
+    udfCfg = addUdfConfig(
+        udfMap,
+        kRoceUdfFlowletGroupName,
+        kRoceUdfFlowletStartOffsetInBytes,
+        kRoceUdfFlowletFieldSizeInBytes,
+        cfg::UdfGroupType::ACL);
+  }
+  if ((udfType & kUdfOffsetAethSyndrome) == kUdfOffsetAethSyndrome) {
+    udfCfg = addUdfConfig(
+        udfMap,
+        kUdfAclAethNakGroupName,
+        kUdfAclAethNakStartOffsetInBytes,
+        kUdfAclAethNakFieldSizeInBytes,
+        cfg::UdfGroupType::ACL);
+  }
+  if ((udfType & kUdfOffsetRethDmaLength) == kUdfOffsetRethDmaLength) {
+    udfCfg = addUdfConfig(
+        udfMap,
+        kUdfAclRethWrImmZeroGroupName,
+        kUdfAclRethDmaLenOffsetInBytes,
+        kUdfAclRethDmaLenFieldSizeInBytes,
+        cfg::UdfGroupType::ACL);
+  }
+  return udfCfg;
 }
 
 cfg::UdfConfig addUdfFlowletAclConfig(void) {
   std::map<std::string, cfg::UdfGroup> udfMap;
-  return addUdfConfig(
-      udfMap,
-      kRoceUdfFlowletGroupName,
-      kRoceUdfFlowletStartOffsetInBytes,
-      kRoceUdfFlowletFieldSizeInBytes,
-      cfg::UdfGroupType::ACL);
-}
-
-// Match on BTH opcode and AETH syndrome fields
-cfg::UdfConfig addUdfAclNakConfig(void) {
-  std::map<std::string, cfg::UdfGroup> udfMap;
-  addUdfConfig(
-      udfMap,
-      kUdfAclRoceOpcodeGroupName,
-      kUdfAclRoceOpcodeStartOffsetInBytes,
-      kUdfAclRoceOpcodeFieldSizeInBytes,
-      cfg::UdfGroupType::ACL);
-  return addUdfConfig(
-      udfMap,
-      kUdfAclAethNakGroupName,
-      kUdfAclAethNakStartOffsetInBytes,
-      kUdfAclAethNakFieldSizeInBytes,
-      cfg::UdfGroupType::ACL);
-}
-
-// Match on BTH opcode and RETH dma length fields
-cfg::UdfConfig addUdfOpcodeDmaLenConfig(void) {
-  std::map<std::string, cfg::UdfGroup> udfMap;
-  addUdfConfig(
-      udfMap,
-      kUdfAclRoceOpcodeGroupName,
-      kUdfAclRoceOpcodeStartOffsetInBytes,
-      kUdfAclRoceOpcodeFieldSizeInBytes,
-      cfg::UdfGroupType::ACL);
-  return addUdfConfig(
-      udfMap,
-      kUdfAclRethWrImmZeroGroupName,
-      kUdfAclRethDmaLenOffsetInBytes,
-      kUdfAclRethDmaLenFieldSizeInBytes,
-      cfg::UdfGroupType::ACL);
-}
-
-cfg::UdfConfig addUdfAckAndFlowletAclConfig(void) {
-  std::map<std::string, cfg::UdfGroup> udfMap;
-  addUdfConfig(
-      udfMap,
-      kUdfAclRoceOpcodeGroupName,
-      kUdfAclRoceOpcodeStartOffsetInBytes,
-      kUdfAclRoceOpcodeFieldSizeInBytes,
-      cfg::UdfGroupType::ACL);
-  addUdfConfig(
-      udfMap,
-      kUdfAclAethNakGroupName,
-      kUdfAclAethNakStartOffsetInBytes,
-      kUdfAclAethNakFieldSizeInBytes,
-      cfg::UdfGroupType::ACL);
   return addUdfConfig(
       udfMap,
       kRoceUdfFlowletGroupName,

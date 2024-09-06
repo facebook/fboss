@@ -762,7 +762,8 @@ class AgentFlowletAclCounterTest
         ensemble.getSw(),
         ensemble.masterLogicalPortIds(),
         true /*interfaceHasSubnet*/);
-    cfg.udfConfig() = utility::addUdfAckAndFlowletAclConfig();
+    cfg.udfConfig() = utility::addUdfAclConfig(
+        utility::kUdfOffsetBthOpcode | utility::kUdfOffsetBthReserved);
     utility::addFlowletConfigs(cfg, ensemble.masterLogicalPortIds());
     return cfg;
   }

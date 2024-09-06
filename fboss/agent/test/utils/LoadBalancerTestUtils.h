@@ -181,12 +181,15 @@ inline const int kScalingFactor(100);
 inline const int kLoadWeight(70);
 inline const int kQueueWeight(30);
 
+// Prefix is header name, suffix is field name within header
+inline const int kUdfOffsetBthOpcode(0x1);
+inline const int kUdfOffsetBthReserved(0x2);
+inline const int kUdfOffsetAethSyndrome(0x4);
+inline const int kUdfOffsetRethDmaLength(0x8);
+
 cfg::UdfConfig addUdfHashConfig();
-cfg::UdfConfig addUdfAclConfig();
-cfg::UdfConfig addUdfAclNakConfig();
-cfg::UdfConfig addUdfOpcodeDmaLenConfig();
+cfg::UdfConfig addUdfAclConfig(int udfType = kUdfOffsetBthOpcode);
 cfg::UdfConfig addUdfFlowletAclConfig();
-cfg::UdfConfig addUdfAckAndFlowletAclConfig();
 cfg::UdfConfig addUdfHashAclConfig();
 
 cfg::FlowletSwitchingConfig getDefaultFlowletSwitchingConfig(

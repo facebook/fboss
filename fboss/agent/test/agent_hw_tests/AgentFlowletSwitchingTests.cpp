@@ -22,14 +22,14 @@ DECLARE_bool(flowletSwitchingEnable);
 
 namespace {
 enum AclType {
-  UDF_ACK,
-  UDF_NAK,
+  UDF_ACK, // match on bth_opcode
+  UDF_NAK, // match on bth_opcode + aeth_syndrome
   UDF_ACK_WITH_NAK,
-  UDF_WR_IMM_ZERO,
+  UDF_WR_IMM_ZERO, // match on bth_opcode + reth_dma_length
   FLOWLET,
   FLOWLET_WITH_UDF_ACK,
   FLOWLET_WITH_UDF_NAK,
-  UDF_FLOWLET,
+  UDF_FLOWLET, // match on bth_reserved
   UDF_FLOWLET_WITH_UDF_ACK,
   UDF_FLOWLET_WITH_UDF_NAK,
 };
@@ -358,7 +358,8 @@ class AgentAclCounterTestBase : public AgentHwTest {
     std::vector<signed char> dmaLengthMask = {bm, bm};
     switch (aclType) {
       case AclType::UDF_ACK:
-        config->udfConfig() = utility::addUdfAclConfig();
+        config->udfConfig() =
+            utility::addUdfAclConfig(utility::kUdfOffsetBthOpcode);
         addRoceAcl(
             config,
             aclName,
@@ -370,7 +371,8 @@ class AgentAclCounterTestBase : public AgentHwTest {
             std::nullopt);
         break;
       case AclType::UDF_NAK: {
-        config->udfConfig() = utility::addUdfAclNakConfig();
+        config->udfConfig() = utility::addUdfAclConfig(
+            utility::kUdfOffsetBthOpcode | utility::kUdfOffsetAethSyndrome);
         auto udfTable = addUdfTable(
             {utility::kUdfAclRoceOpcodeGroupName,
              utility::kUdfAclAethNakGroupName},
@@ -387,7 +389,8 @@ class AgentAclCounterTestBase : public AgentHwTest {
             std::move(udfTable));
       } break;
       case AclType::UDF_WR_IMM_ZERO: {
-        config->udfConfig() = utility::addUdfOpcodeDmaLenConfig();
+        config->udfConfig() = utility::addUdfAclConfig(
+            utility::kUdfOffsetBthOpcode | utility::kUdfOffsetRethDmaLength);
         auto udfTable = addUdfTable(
             {utility::kUdfAclRoceOpcodeGroupName,
              utility::kUdfAclRethWrImmZeroGroupName},
@@ -405,7 +408,8 @@ class AgentAclCounterTestBase : public AgentHwTest {
             std::move(udfTable));
       } break;
       case AclType::UDF_ACK_WITH_NAK: {
-        config->udfConfig() = utility::addUdfAclNakConfig();
+        config->udfConfig() = utility::addUdfAclConfig(
+            utility::kUdfOffsetBthOpcode | utility::kUdfOffsetAethSyndrome);
         auto udfTable = addUdfTable(
             {utility::kUdfAclRoceOpcodeGroupName,
              utility::kUdfAclAethNakGroupName},
@@ -434,7 +438,8 @@ class AgentAclCounterTestBase : public AgentHwTest {
         utility::addFlowletAcl(*config, aclName, counterName, false);
         break;
       case AclType::FLOWLET_WITH_UDF_ACK:
-        config->udfConfig() = utility::addUdfAclConfig();
+        config->udfConfig() =
+            utility::addUdfAclConfig(utility::kUdfOffsetBthOpcode);
         addRoceAcl(
             config,
             getAclName(AclType::UDF_ACK),
@@ -447,11 +452,13 @@ class AgentAclCounterTestBase : public AgentHwTest {
         utility::addFlowletAcl(*config, aclName, counterName, false);
         break;
       case AclType::UDF_FLOWLET:
-        config->udfConfig() = utility::addUdfFlowletAclConfig();
+        config->udfConfig() =
+            utility::addUdfAclConfig(utility::kUdfOffsetBthReserved);
         utility::addFlowletAcl(*config, aclName, counterName);
         break;
       case AclType::UDF_FLOWLET_WITH_UDF_ACK:
-        config->udfConfig() = utility::addUdfAckAndFlowletAclConfig();
+        config->udfConfig() = utility::addUdfAclConfig(
+            utility::kUdfOffsetBthOpcode | utility::kUdfOffsetBthReserved);
         addRoceAcl(
             config,
             getAclName(AclType::UDF_ACK),
@@ -464,7 +471,9 @@ class AgentAclCounterTestBase : public AgentHwTest {
         utility::addFlowletAcl(*config, aclName, counterName);
         break;
       case AclType::UDF_FLOWLET_WITH_UDF_NAK: {
-        config->udfConfig() = utility::addUdfAckAndFlowletAclConfig();
+        config->udfConfig() = utility::addUdfAclConfig(
+            utility::kUdfOffsetBthOpcode | utility::kUdfOffsetBthReserved |
+            utility::kUdfOffsetAethSyndrome);
         auto udfTable = addUdfTable(
             {utility::kUdfAclRoceOpcodeGroupName,
              utility::kUdfAclAethNakGroupName},
