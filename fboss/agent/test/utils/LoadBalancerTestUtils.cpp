@@ -184,6 +184,23 @@ cfg::UdfConfig addUdfFlowletAclConfig(void) {
       cfg::UdfGroupType::ACL);
 }
 
+// Match on BTH opcode and AETH syndrome fields
+cfg::UdfConfig addUdfAclNakConfig(void) {
+  std::map<std::string, cfg::UdfGroup> udfMap;
+  addUdfConfig(
+      udfMap,
+      kUdfAclRoceOpcodeGroupName,
+      kUdfAclRoceOpcodeStartOffsetInBytes,
+      kUdfAclRoceOpcodeFieldSizeInBytes,
+      cfg::UdfGroupType::ACL);
+  return addUdfConfig(
+      udfMap,
+      kUdfAclAethNakGroupName,
+      kUdfAclAethNakStartOffsetInBytes,
+      kUdfAclAethNakFieldSizeInBytes,
+      cfg::UdfGroupType::ACL);
+}
+
 cfg::UdfConfig addUdfAckAndFlowletAclConfig(void) {
   std::map<std::string, cfg::UdfGroup> udfMap;
   addUdfConfig(
@@ -191,6 +208,12 @@ cfg::UdfConfig addUdfAckAndFlowletAclConfig(void) {
       kUdfAclRoceOpcodeGroupName,
       kUdfAclRoceOpcodeStartOffsetInBytes,
       kUdfAclRoceOpcodeFieldSizeInBytes,
+      cfg::UdfGroupType::ACL);
+  addUdfConfig(
+      udfMap,
+      kUdfAclAethNakGroupName,
+      kUdfAclAethNakStartOffsetInBytes,
+      kUdfAclAethNakFieldSizeInBytes,
       cfg::UdfGroupType::ACL);
   return addUdfConfig(
       udfMap,
@@ -424,7 +447,8 @@ size_t pumpRoCETraffic(
     std::optional<folly::MacAddress> srcMacAddr,
     int packetCount,
     uint8_t roceOpcode,
-    uint8_t reserved) {
+    uint8_t reserved,
+    std::optional<std::vector<uint8_t>> nxtHdr) {
   folly::MacAddress srcMac(
       srcMacAddr.has_value() ? *srcMacAddr
                              : MacAddressGenerator().get(dstMac.u64HBO() + 1));
@@ -454,6 +478,12 @@ size_t pumpRoCETraffic(
         roceEndPayload.begin(),
         roceEndPayload.end(),
         std::back_inserter(rocePayload));
+    if (nxtHdr.has_value()) {
+      std::copy(
+          nxtHdr.value().begin(),
+          nxtHdr.value().end(),
+          std::back_inserter(rocePayload));
+    }
     auto pkt = makeUDPTxPacket(
         allocateFn,
         vlan,

@@ -65,7 +65,9 @@ size_t pumpRoCETraffic(
     std::optional<folly::MacAddress> srcMacAddr = std::nullopt,
     int packetCount = 200000,
     uint8_t roceOpcode = kUdfRoceOpcodeAck,
-    uint8_t reserved = kRoceReserved);
+    uint8_t reserved = kRoceReserved,
+    std::optional<std::vector<uint8_t>> nextHdr =
+        std::optional<std::vector<uint8_t>>());
 
 size_t pumpTrafficWithSourceFile(
     AllocatePktFunc allocateFn,
@@ -181,6 +183,7 @@ inline const int kQueueWeight(30);
 
 cfg::UdfConfig addUdfHashConfig();
 cfg::UdfConfig addUdfAclConfig();
+cfg::UdfConfig addUdfAclNakConfig();
 cfg::UdfConfig addUdfFlowletAclConfig();
 cfg::UdfConfig addUdfAckAndFlowletAclConfig();
 cfg::UdfConfig addUdfHashAclConfig();
