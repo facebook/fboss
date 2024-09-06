@@ -412,3 +412,15 @@ target_link_libraries(hw_voq_scale_route_del_speed
   Folly::folly
   Folly::follybenchmark
 )
+
+add_library(hw_switch_reachability_change_speed
+  fboss/agent/hw/benchmarks/HwSwitchReachabilityChangeBenchmark.cpp
+)
+
+target_link_libraries(hw_switch_reachability_change_speed
+  mono_agent_ensemble
+  mono_agent_benchmarks
+  config_factory
+  Folly::folly
+  Folly::follybenchmark
+)
