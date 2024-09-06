@@ -16,6 +16,7 @@
 #include "fboss/agent/test/utils/AsicUtils.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/test/utils/MirrorTestUtils.h"
+#include "fboss/agent/test/utils/OlympicTestUtils.h"
 #include "fboss/agent/test/utils/PacketSnooper.h"
 #include "fboss/lib/CommonUtils.h"
 
@@ -52,6 +53,9 @@ class AgentSflowMirrorTest : public AgentHwTest {
     auto asic = ensemble.getSw()->getHwAsicTable()->getHwAsic(port0Switch);
     auto ports = getPortsForSampling(ensemble.masterLogicalPortIds(), asic);
     this->configureMirror(cfg);
+    if (asic->isSupported(HwAsic::Feature::EVENTOR_PORT_FOR_SFLOW)) {
+      utility::addEventorVoqConfig(&cfg, cfg::StreamType::UNICAST);
+    }
     return cfg;
   }
 
