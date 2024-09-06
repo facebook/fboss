@@ -12,8 +12,8 @@
 
 // TODO: replace with our own ThriftTraverseResult
 #include <folly/json/dynamic.h>
+#include <thrift/lib/cpp2/folly_dynamic/folly_dynamic.h>
 #include <thrift/lib/cpp2/protocol/Serializer.h>
-#include <thrift/lib/cpp2/reflection/folly_dynamic.h>
 #include <functional>
 #include "fboss/agent/state/NodeBase-defs.h"
 #include "fboss/fsdb/if/gen-cpp2/fsdb_oper_types.h"
@@ -90,8 +90,8 @@ class ThriftPrimitiveNode : public thrift_cow::Serializable {
 
   folly::dynamic toFollyDynamic() const {
     folly::dynamic out;
-    apache::thrift::to_dynamic<TypeClass>(
-        out, toThrift(), apache::thrift::dynamic_format::JSON_1);
+    facebook::thrift::to_dynamic(
+        out, toThrift(), facebook::thrift::dynamic_format::JSON_1);
     return out;
   }
 
@@ -99,8 +99,8 @@ class ThriftPrimitiveNode : public thrift_cow::Serializable {
   auto fromFollyDynamic(const folly::dynamic& value)
       -> std::enable_if_t<!T::immutable, void> {
     ThriftType thrift;
-    apache::thrift::from_dynamic<TypeClass>(
-        thrift, value, apache::thrift::dynamic_format::JSON_1);
+    facebook::thrift::from_dynamic(
+        thrift, value, facebook::thrift::dynamic_format::JSON_1);
     fromThrift(thrift);
   }
 

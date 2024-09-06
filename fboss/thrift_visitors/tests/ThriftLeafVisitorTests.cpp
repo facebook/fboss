@@ -39,7 +39,7 @@ TEST(ThriftLeafVisitorTests, TraverseOk) {
 
   auto addLeaf = [&]<class Tag>(auto&& path, Tag, auto&& node) {
     folly::dynamic dyn;
-    facebook::thrift::to_dynamic<Tag>(
+    facebook::thrift::to_dynamic(
         dyn, node, facebook::thrift::dynamic_format::JSON_1);
     leaves.emplace_back(path, dyn);
   };

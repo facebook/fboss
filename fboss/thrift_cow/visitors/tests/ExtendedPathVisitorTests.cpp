@@ -8,7 +8,7 @@
 #include <gtest/gtest.h>
 
 #include <fboss/thrift_cow/visitors/ExtendedPathVisitor.h>
-#include <thrift/lib/cpp2/reflection/folly_dynamic.h>
+#include <thrift/lib/cpp2/folly_dynamic/folly_dynamic.h>
 #include <vector>
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/fsdb/oper/ExtendedPathBuilder.h"
@@ -45,8 +45,8 @@ TestStruct createTestStruct() {
             dynamic::object("min", 3)("max", 4));
   }
 
-  return apache::thrift::from_dynamic<TestStruct>(
-      testDyn, apache::thrift::dynamic_format::JSON_1);
+  return facebook::thrift::from_dynamic<TestStruct>(
+      testDyn, facebook::thrift::dynamic_format::JSON_1);
 }
 } // namespace
 
