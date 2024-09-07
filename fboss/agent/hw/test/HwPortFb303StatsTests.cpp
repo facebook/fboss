@@ -142,10 +142,10 @@ HwPortStats getInitedStats() {
       macsecStats,
       24, // inLabelMissDiscards_
       {}, // queueWatermarkLevel
-      0, // inCongestionDiscards - unused
-      26, // inAclDiscards
-      27, // inTrapDiscards
-      28, // outForwardingDiscards
+      25, // inCongestionDiscards_
+      27, // inAclDiscards
+      28, // inTrapDiscards
+      29, // outForwardingDiscards
       0, // fabricConnectivityMismatch
       1, // logicalPortId
       2, // leakyBucketFlapCount_

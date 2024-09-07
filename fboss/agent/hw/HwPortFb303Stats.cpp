@@ -46,6 +46,7 @@ HwPortFb303Stats::kPortMonotonicCounterStatKeys() const {
       kFecUncorrectable(),
       kLeakyBucketFlapCnt(),
       kInLabelMissDiscards(),
+      kInCongestionDiscards(),
       kInAclDiscards(),
       kInTrapDiscards(),
       kOutForwardingDiscards(),
@@ -180,6 +181,10 @@ void HwPortFb303Stats::updateStats(
       timeRetrieved_,
       kInLabelMissDiscards(),
       *curPortStats.inLabelMissDiscards_());
+  updateStat(
+      timeRetrieved_,
+      kInCongestionDiscards(),
+      *curPortStats.inCongestionDiscards_());
   if (curPortStats.inAclDiscards_().has_value()) {
     updateStat(
         timeRetrieved_, kInAclDiscards(), *curPortStats.inAclDiscards_());
