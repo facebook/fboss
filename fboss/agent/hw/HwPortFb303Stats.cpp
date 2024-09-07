@@ -267,6 +267,9 @@ void HwPortFb303Stats::updateStats(
   } else if (curPortStats.queueWatermarkLevel_()->size()) {
     updateQueueWatermarkStats(*curPortStats.queueWatermarkLevel_());
   }
+  if (curPortStats.egressGvoqWatermarkBytes_()->size()) {
+    updateEgressGvoqWatermarkStats(*curPortStats.egressGvoqWatermarkBytes_());
+  }
   // Macsec stats
   if (curPortStats.macsecStats()) {
     if (!macsecStatsInited()) {

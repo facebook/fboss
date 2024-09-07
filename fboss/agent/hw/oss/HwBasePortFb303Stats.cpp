@@ -15,4 +15,6 @@ namespace facebook::fboss {
 void HwBasePortFb303Stats::updateQueueWatermarkStats(
     const std::map<int16_t, int64_t>&
     /*queueWatermarks*/) const {}
+void HwBasePortFb303Stats::updateEgressGvoqWatermarkStats(
+    const std::map<int16_t, int64_t>& /*gvoqWatermarks*/) const {}
 } // namespace facebook::fboss
