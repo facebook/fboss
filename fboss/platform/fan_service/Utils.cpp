@@ -90,10 +90,6 @@ bool Utils::isValidConfig(const FanServiceConfig& config) {
       XLOG(ERR) << "presenceSysfsPath cannot be empty";
       return false;
     }
-    if (fan.ledSysfsPath()->empty()) {
-      XLOG(ERR) << "ledSysfsPath cannot be empty";
-      return false;
-    }
     if ((!fan.presenceSysfsPath()) && (!fan.presenceGpio())) {
       XLOG(ERR) << "either presenceSysfsPath or presenceGpio must be set";
       return false;
