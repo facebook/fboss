@@ -13,6 +13,7 @@ class PkgManager {
   void processRpms() const;
   void processKmods() const;
   void processLocalRpms() const;
+  void loadBSPKmods() const;
   void loadUpstreamKmods() const;
   std::string getKmodsRpmName() const;
 

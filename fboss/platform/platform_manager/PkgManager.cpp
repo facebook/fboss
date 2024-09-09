@@ -73,6 +73,8 @@ void PkgManager::processAll() const {
 
   if (FLAGS_reload_kmods) {
     processKmods();
+  } else {
+    loadBSPKmods();
   }
 }
 
@@ -106,6 +108,10 @@ void PkgManager::processKmods() const {
   for (int i = 0; i < platformConfig_.sharedKmodsToReload()->size(); ++i) {
     unloadKmod((*platformConfig_.sharedKmodsToReload())[i]);
   }
+  loadBSPKmods();
+}
+
+void PkgManager::loadBSPKmods() const {
   XLOG(INFO) << fmt::format(
       "Loading {} shared kernel modules",
       platformConfig_.sharedKmodsToReload()->size());
