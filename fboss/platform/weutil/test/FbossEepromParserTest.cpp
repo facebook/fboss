@@ -33,6 +33,7 @@ EepromData eepromV4 = {
     0x00, 0x13, 0x03, 0x4d, 0x43, 0x42, 0xfa, 0x02, 0x44, 0x11};
 
 EepromContents expectedContentsV4 = {
+    {"Version", "4"},
     {"Product Name", "MINIPACK3_MCB"},
     {"Product Part Number", ""},
     {"System Assembly Part Number", "        "},
@@ -79,6 +80,7 @@ EepromData eepromV5 = {
     0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff};
 
 EepromContents expectedContentsV5 = {
+    {"Version", "5"},
     {"Product Name", "FIRST_SQUEEZE"},
     {"Product Part Number", "20123456"},
     {"System Assembly Part Number", "SYSA1234"},
@@ -130,6 +132,7 @@ EepromData eepromV5WrongCrc = {
     0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff};
 
 EepromContents expectedContentsV5WrongCrc = {
+    {"Version", "5"},
     {"Product Name", "FIRST_SQUEEZE"},
     {"Product Part Number", "20123456"},
     {"System Assembly Part Number", "SYSA1234"},

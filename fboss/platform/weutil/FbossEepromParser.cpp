@@ -408,11 +408,15 @@ FbossEepromParser::prepareEepromFieldMap(
   std::vector<EepromFieldEntry> fieldDictionary;
   fieldDictionary = getEepromFieldDict(eepromVer);
 
+  // Add the EEPROM version to parsed result. It's not part of the
+  // field dictionary, so we add it here.
+  result.push_back({"Version", std::to_string(eepromVer)});
+
   for (auto dictItem : fieldDictionary) {
     std::string key = dictItem.fieldName;
     std::string value;
     auto match = parsedValue.find(dictItem.typeCode);
-    // "NA" is reservered, and not for display
+    // "NA" is reserved, and not for display
     if (key == "NA") {
       continue;
     }
