@@ -217,6 +217,18 @@ void PlatformProductInfo::initMode() {
   }
 }
 
+std::string PlatformProductInfo::getField(
+    const folly::dynamic& info,
+    const std::vector<std::string>& keys) {
+  for (const auto& key : keys) {
+    if (info.count(key)) {
+      return folly::to<std::string>(info[key].asString());
+    }
+  }
+  throw FbossError(
+      "Keys: ", folly::join(", ", keys), " are not in Information");
+}
+
 void PlatformProductInfo::parse(std::string data) {
   dynamic info;
   try {
@@ -233,30 +245,14 @@ void PlatformProductInfo::parse(std::string data) {
     // }
     info = parseJson(data);
   }
-  productInfo_.oem() = folly::to<std::string>(info[kSysMfg].asString());
-  productInfo_.product() = folly::to<std::string>(info[kProdName].asString());
-  productInfo_.serial() = folly::to<std::string>(info[kSerialNum].asString());
-  productInfo_.mfgDate() = folly::to<std::string>(info[kSysMfgDate].asString());
-  productInfo_.systemPartNumber() =
-      folly::to<std::string>(info[kSysAmbPartNum].asString());
-  productInfo_.assembledAt() = folly::to<std::string>(info[kAmbAt].asString());
-  productInfo_.pcbManufacturer() =
-      folly::to<std::string>(info[kPcbMfg].asString());
-  productInfo_.assetTag() =
-      folly::to<std::string>(info[kProdAssetTag].asString());
-  productInfo_.partNumber() =
-      folly::to<std::string>(info[kProdPartNum].asString());
-  productInfo_.odmPcbaPartNumber() =
-      folly::to<std::string>(info[kOdmPcbaPartNum].asString());
-  productInfo_.odmPcbaSerial() =
-      folly::to<std::string>(info[kOdmPcbaSerialNum].asString());
-  productInfo_.fbPcbaPartNumber() =
-      folly::to<std::string>(info[kFbPcbaPartNum].asString());
-  productInfo_.fbPcbPartNumber() =
-      folly::to<std::string>(info[kFbPcbPartNum].asString());
-
-  productInfo_.fabricLocation() =
-      folly::to<std::string>(info[kFabricLocation].asString());
+  productInfo_.oem() = getField(info, {kSysMfg});
+  productInfo_.product() = getField(info, {kProdName});
+  productInfo_.serial() = getField(info, {kSerialNum});
+  productInfo_.mfgDate() = getField(info, {kSysMfgDate});
+  productInfo_.systemPartNumber() = getField(info, {kSysAmbPartNum});
+  productInfo_.assembledAt() = getField(info, {kAmbAt});
+  productInfo_.pcbManufacturer() = getField(info, {kPcbMfg});
+  productInfo_.partNumber() = getField(info, {kProdPartNum});
   // FB only - we apply custom logic to construct unique SN for
   // cases where we create multiple assets for a single physical
   // card in chassis.
@@ -265,11 +261,37 @@ void PlatformProductInfo::parse(std::string data) {
   productInfo_.subVersion() = info[kSubVersion].asInt();
   productInfo_.productionState() = info[kProductionState].asInt();
   productInfo_.productVersion() = info[kProdVersion].asInt();
-  productInfo_.bmcMac() = folly::to<std::string>(info[kLocalMac].asString());
-  productInfo_.mgmtMac() = folly::to<std::string>(info[kExtMacBase].asString());
-  auto macBase = MacAddress(info[kExtMacBase].asString()).u64HBO() + 1;
+
+  // There are different keys for these values in BMC
+  // and BMC-Lite platforms.
+  productInfo_.fbPcbaPartNumber() =
+      getField(info, {kFbPcbaPartNum, kFbPcbaPartNumBmcLite});
+  productInfo_.fbPcbPartNumber() =
+      getField(info, {kFbPcbPartNum, kFbPcbPartNumBmcLite});
+  productInfo_.odmPcbaPartNumber() =
+      getField(info, {kOdmPcbaPartNum, kOdmPcbaPartNumBmcLite});
+  productInfo_.odmPcbaSerial() =
+      getField(info, {kOdmPcbaSerialNum, kOdmPcbaSerialNumBmcLite});
+  productInfo_.fabricLocation() =
+      getField(info, {kFabricLocation, kFabricLocationBmcLite});
+  productInfo_.bmcMac() = getField(info, {kLocalMac, kLocalMacBmcLite});
+  productInfo_.mgmtMac() = getField(info, {kExtMacBase, kExtMacBaseBmcLite});
+  auto macBase = MacAddress(productInfo_.mgmtMac().value()).u64HBO() + 1;
   productInfo_.macRangeStart() = MacAddress::fromHBO(macBase).toString();
-  productInfo_.macRangeSize() = info[kExtMacSize].asInt() - 1;
+  if (info.count(kExtMacSize)) {
+    productInfo_.macRangeSize() = info[kExtMacSize].asInt() - 1;
+  } else if (info.count(kExtMacSizeBmcLite)) {
+    productInfo_.macRangeSize() = info[kExtMacSizeBmcLite].asInt() - 1;
+  } else {
+    throw FbossError(
+        "Keys: kExtMacSize or kExtMacSizeBmcLite are not in Information field");
+  }
+
+  // Product Asset Tag is not present in BMC-Lite platforms.
+  if (info.count(kProdAssetTag)) {
+    productInfo_.assetTag() = getField(info, {kProdAssetTag});
+  }
+  XLOG(INFO) << "Success parsing product info fields";
 }
 
 std::unique_ptr<PlatformProductInfo> fakeProductInfo() {

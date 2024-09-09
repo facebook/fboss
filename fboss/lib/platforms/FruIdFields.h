@@ -8,27 +8,41 @@
 namespace facebook::fboss {
 
 constexpr auto kInfo = "Information";
+
+// Common Information keys
 constexpr auto kSysMfgDate = "System Manufacturing Date";
 constexpr auto kSysMfg = "System Manufacturer";
 constexpr auto kSysAmbPartNum = "System Assembly Part Number";
 constexpr auto kAmbAt = "Assembled At";
 constexpr auto kPcbMfg = "PCB Manufacturer";
-constexpr auto kProdAssetTag = "Product Asset Tag";
 constexpr auto kProdName = "Product Name";
 constexpr auto kProdVersion = "Product Version";
 constexpr auto kProductionState = "Product Production State";
 constexpr auto kProdPartNum = "Product Part Number";
 constexpr auto kSerialNum = "Product Serial Number";
 constexpr auto kSubVersion = "Product Sub-Version";
-constexpr auto kOdmPcbaPartNum = "ODM PCBA Part Number";
-constexpr auto kOdmPcbaSerialNum = "ODM PCBA Serial Number";
+constexpr auto kVersion = "Version";
+
+// Information keys for BMC based platforms
 constexpr auto kFbPcbaPartNum = "Facebook PCBA Part Number";
 constexpr auto kFbPcbPartNum = "Facebook PCB Part Number";
+constexpr auto kOdmPcbaPartNum = "ODM PCBA Part Number";
+constexpr auto kOdmPcbaSerialNum = "ODM PCBA Serial Number";
+constexpr auto kFabricLocation = "Location on Fabric";
+constexpr auto kLocalMac = "Local MAC";
 constexpr auto kExtMacSize = "Extended MAC Address Size";
 constexpr auto kExtMacBase = "Extended MAC Base";
-constexpr auto kLocalMac = "Local MAC";
-constexpr auto kVersion = "Version";
-constexpr auto kFabricLocation = "Location on Fabric";
+constexpr auto kProdAssetTag = "Product Asset Tag";
+
+// Information keys for BMC-Lite platforms
+constexpr auto kFbPcbaPartNumBmcLite = "Meta PCBA Part Number";
+constexpr auto kFbPcbPartNumBmcLite = "Meta PCB Part Number";
+constexpr auto kOdmPcbaPartNumBmcLite = "ODM/JDM PCBA Part Number";
+constexpr auto kOdmPcbaSerialNumBmcLite = "ODM/JDM PCBA Serial Number";
+constexpr auto kFabricLocationBmcLite = "EEPROM location on Fabric";
+constexpr auto kLocalMacBmcLite = "BMC MAC Base";
+constexpr auto kExtMacSizeBmcLite = "Switch ASIC MAC Address Size";
+constexpr auto kExtMacBaseBmcLite = "Switch ASIC MAC Base";
 
 // Dummy Fruid for fake platform
 inline const std::string& getFakeFruIdJson() {
