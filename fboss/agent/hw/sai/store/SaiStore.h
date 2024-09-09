@@ -406,12 +406,13 @@ class SaiObjectStore {
   }
 
  private:
-  size_t warmBootHandlesCount() const {
-    // ignore handles owned by adapter
+  size_t warmBootHandlesCount(bool includeAdapterOwned = false) const {
     return std::count_if(
         std::begin(warmBootHandles_),
         std::end(warmBootHandles_),
-        [](const auto& handle) { return !handle.second->isOwnedByAdapter(); });
+        [includeAdapterOwned](const auto& handle) {
+          return includeAdapterOwned || !handle.second->isOwnedByAdapter();
+        });
   }
 
   ObjectType getObject(
