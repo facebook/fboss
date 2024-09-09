@@ -390,8 +390,9 @@ class SaiObjectStore {
   }
 
   void removeUnclaimedWarmbootHandlesIf(
-      std::function<bool(const std::shared_ptr<ObjectType>&)> condition) {
-    if (!hasUnexpectedUnclaimedWarmbootHandles()) {
+      std::function<bool(const std::shared_ptr<ObjectType>&)> condition,
+      bool includeAdapterOwned = false) {
+    if (!hasUnexpectedUnclaimedWarmbootHandles(includeAdapterOwned)) {
       return;
     }
     auto iter = std::begin(warmBootHandles_);
@@ -404,9 +405,11 @@ class SaiObjectStore {
     }
   }
 
-  void removeUnexpectedUnclaimedWarmbootHandles() {
+  void removeUnexpectedUnclaimedWarmbootHandles(
+      bool includeAdapterOwned = false) {
     // delete all unclaimed handles
-    removeUnclaimedWarmbootHandlesIf([](const auto&) { return true; });
+    removeUnclaimedWarmbootHandlesIf(
+        [](const auto&) { return true; }, includeAdapterOwned);
   }
 
  private:
