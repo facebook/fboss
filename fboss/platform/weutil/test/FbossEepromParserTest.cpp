@@ -1,6 +1,5 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
-#include <sstream>
 #include <string>
 #include <vector>
 
@@ -48,7 +47,7 @@ EepromContents expectedContentsV4 = {
     {"System Manufacturer", "CLS"},
     {"System Manufacturing Date", "20230610"},
     {"PCB Manufacturer", "WUS"},
-    {"Assembled at", "CTH"},
+    {"Assembled At", "CTH"},
     {"Local MAC", "00:00:00:00:00:00"},
     {"Extended MAC Base", "00:00:00:00:00:00"},
     {"Extended MAC Address Size", "0"},
@@ -95,7 +94,7 @@ EepromContents expectedContentsV5 = {
     {"System Manufacturer", "UNA_MAS"},
     {"System Manufacturing Date", "20130203"},
     {"PCB Manufacturer", "TERZO"},
-    {"Assembled at", "JUICETORY"},
+    {"Assembled At", "JUICETORY"},
     {"EEPROM location on Fabric", "BUDOKAN"},
     {"X86 CPU MAC Base", "11:22:33:44:55:66"},
     {"X86 CPU MAC Address Size", "258"},
@@ -147,7 +146,7 @@ EepromContents expectedContentsV5WrongCrc = {
     {"System Manufacturer", "UNA_MAS"},
     {"System Manufacturing Date", "20130203"},
     {"PCB Manufacturer", "TERZO"},
-    {"Assembled at", "JUICETORY"},
+    {"Assembled At", "JUICETORY"},
     {"EEPROM location on Fabric", "BUDOKAN"},
     {"X86 CPU MAC Base", "11:22:33:44:55:66"},
     {"X86 CPU MAC Address Size", "258"},
