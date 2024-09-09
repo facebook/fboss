@@ -365,14 +365,18 @@ class SaiObjectStore {
     return objects_.end();
   }
 
-  bool hasUnexpectedUnclaimedWarmbootHandles() const {
-    bool unclaimedHandles = warmBootHandlesCount() > 0 &&
-        !IsSaiObjectOwnedByAdapter<SaiObjectTraits>::value;
+  bool hasUnexpectedUnclaimedWarmbootHandles(
+      bool includeAdapterOwned = false) const {
+    auto handlesCount = warmBootHandlesCount(includeAdapterOwned);
+    bool unclaimedHandles = handlesCount > 0 &&
+        (includeAdapterOwned ||
+         !IsSaiObjectOwnedByAdapter<SaiObjectTraits>::value);
     XLOGF(
         DBG1,
-        "unexpected warmboot handles {} entries: {}",
+        "unexpected warmboot handles {} entries: {}, includeAdapterOwned: {}",
         objectTypeName(),
-        unclaimedHandles);
+        unclaimedHandles,
+        includeAdapterOwned);
     return unclaimedHandles;
   }
 
