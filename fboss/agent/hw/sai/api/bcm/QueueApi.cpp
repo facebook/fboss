@@ -4,9 +4,14 @@
 
 #if defined(BRCM_SAI_SDK_DNX) && defined(BRCM_SAI_SDK_GTE_11_0)
 extern "C" {
-#include <brcm_sai_extensions.h>
-#include <sai.h>
+
+#ifndef IS_OSS_BRCM_SAI
+#include <experimental/saiqueueextensions.h>
+#else
+#include <saiqueueextensions.h>
+#endif
 }
+
 #endif
 
 namespace facebook::fboss {
@@ -14,7 +19,7 @@ namespace facebook::fboss {
 const std::vector<sai_stat_id_t>& SaiQueueTraits::egressGvoqWatermarkBytes() {
 #if defined(BRCM_SAI_SDK_DNX) && defined(BRCM_SAI_SDK_GTE_11_0)
   static const std::vector<sai_stat_id_t> stats{
-      SAI_QUEUE_STAT_EGRESS_GVOQ_THRESHOLD_WM};
+      SAI_QUEUE_STAT_EGRESS_GVOQ_THRESHOLD_WM_BYTES};
 #else
   static const std::vector<sai_stat_id_t> stats;
 #endif
