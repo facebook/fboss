@@ -365,14 +365,6 @@ class SaiObjectStore {
     return objects_.end();
   }
 
-  size_t warmBootHandlesCount() const {
-    // ignore handles owned by adapter
-    return std::count_if(
-        std::begin(warmBootHandles_),
-        std::end(warmBootHandles_),
-        [](const auto& handle) { return !handle.second->isOwnedByAdapter(); });
-  }
-
   bool hasUnexpectedUnclaimedWarmbootHandles() const {
     bool unclaimedHandles = warmBootHandlesCount() > 0 &&
         !IsSaiObjectOwnedByAdapter<SaiObjectTraits>::value;
@@ -414,6 +406,14 @@ class SaiObjectStore {
   }
 
  private:
+  size_t warmBootHandlesCount() const {
+    // ignore handles owned by adapter
+    return std::count_if(
+        std::begin(warmBootHandles_),
+        std::end(warmBootHandles_),
+        [](const auto& handle) { return !handle.second->isOwnedByAdapter(); });
+  }
+
   ObjectType getObject(
       typename ObjectTraits::AdapterKey key,
       const folly::dynamic* adapterKey2AdapterHostKey) {
