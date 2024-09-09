@@ -2119,8 +2119,9 @@ void SwSwitch::linkActiveStateChanged(
         state->getSwitchSettings()->getNodeIf(matcher.matcherString());
     auto newActualSwitchDrainState =
         computeActualSwitchDrainState(switchSettings, numActiveFabricPorts);
-    if (newActualSwitchDrainState !=
-        switchSettings->getActualSwitchDrainState()) {
+    auto currentActualDrainState = switchSettings->getActualSwitchDrainState();
+
+    if (newActualSwitchDrainState != currentActualDrainState) {
       auto newSwitchSettings = switchSettings->modify(&newState);
       newSwitchSettings->setActualSwitchDrainState(newActualSwitchDrainState);
     }
