@@ -877,7 +877,10 @@ TEST_F(AgentVoqSwitchWithFabricPortsTest, checkFabricPortSprayWithIsolate) {
                  << " After pkts: " << afterPkts;
       EXPECT_EVENTUALLY_GE(afterPkts, beforePkts + 10000);
       auto nifBytes = getLatestPortStats(kPort.phyPortID()).get_outBytes_();
-      auto fabricPortStats = getLatestPortStats(masterLogicalFabricPortIds());
+      auto switchId =
+          getSw()->getScopeResolver()->scope(kPort.phyPortID()).switchId();
+      auto fabricPortStats =
+          getLatestPortStats(masterLogicalFabricPortIds(switchId));
       auto fabricBytes = 0;
       for (const auto& idAndStats : fabricPortStats) {
         fabricBytes += idAndStats.second.get_outBytes_();
@@ -923,7 +926,10 @@ TEST_F(AgentVoqSwitchWithFabricPortsTest, checkFabricPortSpray) {
                  << " After pkts: " << afterPkts;
       EXPECT_EVENTUALLY_GE(afterPkts, beforePkts + 10000);
       auto nifBytes = getLatestPortStats(kPort.phyPortID()).get_outBytes_();
-      auto fabricPortStats = getLatestPortStats(masterLogicalFabricPortIds());
+      auto switchId =
+          getSw()->getScopeResolver()->scope(kPort.phyPortID()).switchId();
+      auto fabricPortStats =
+          getLatestPortStats(masterLogicalFabricPortIds(switchId));
       auto fabricBytes = 0;
       for (const auto& idAndStats : fabricPortStats) {
         fabricBytes += idAndStats.second.get_outBytes_();

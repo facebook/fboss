@@ -157,6 +157,12 @@ std::vector<PortID> AgentHwTest::masterLogicalPortIds(
   return getAgentEnsemble()->masterLogicalPortIds(portTypes);
 }
 
+std::vector<PortID> AgentHwTest::masterLogicalPortIds(
+    const std::set<cfg::PortType>& portTypes,
+    SwitchID switchId) const {
+  return getAgentEnsemble()->masterLogicalPortIds(portTypes, switchId);
+}
+
 void AgentHwTest::setSwitchDrainState(
     const cfg::SwitchConfig& curConfig,
     cfg::SwitchDrainState drainState) {

@@ -120,11 +120,17 @@ class AgentHwTest : public ::testing::Test {
   std::vector<PortID> masterLogicalPortIds() const;
   std::vector<PortID> masterLogicalPortIds(
       const std::set<cfg::PortType>& portTypes) const;
+  std::vector<PortID> masterLogicalPortIds(
+      const std::set<cfg::PortType>& portTypes,
+      SwitchID switchId) const;
   std::vector<PortID> masterLogicalInterfacePortIds() const {
     return masterLogicalPortIds({cfg::PortType::INTERFACE_PORT});
   }
   std::vector<PortID> masterLogicalFabricPortIds() const {
     return masterLogicalPortIds({cfg::PortType::FABRIC_PORT});
+  }
+  std::vector<PortID> masterLogicalFabricPortIds(SwitchID switchId) const {
+    return masterLogicalPortIds({cfg::PortType::FABRIC_PORT}, switchId);
   }
   void setSwitchDrainState(
       const cfg::SwitchConfig& curConfig,
