@@ -1006,7 +1006,12 @@ PortSaiId SaiPortManager::addPort(const std::shared_ptr<Port>& swPort) {
     // In future, if we need to support multiple global recycle ports, we would
     // need to invent some way to determiine which of the recycle ports
     // corresponds to the CPU port.
-    CHECK(!managerTable_->switchManager().getCpuRecyclePort().has_value());
+    // Assert that the recycle port we are setting is either the same or unset
+    // from before. During rollback, we do set recycle port again, but it should
+    // have the same value
+    CHECK_EQ(
+        managerTable_->switchManager().getCpuRecyclePort().value_or(portSaiId),
+        portSaiId);
     managerTable_->switchManager().setCpuRecyclePort(portSaiId);
   }
 
