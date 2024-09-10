@@ -625,18 +625,11 @@ void PlatformExplorer::publishFirmwareVersions() {
     CHECK(!linkPathParts.empty());
     const auto deviceName = linkPathParts.back();
     std::string verDirPath = linkPath;
-    // Check for and handle hwmon case. e.g.
-    // /run/devmap/cplds/FAN0_CPLD/hwmon/hwmon20/
-    auto hwmonSubdirPath = std::filesystem::path(linkPath) / "hwmon";
-    if (platformFsUtils_->exists(hwmonSubdirPath)) {
-      for (const auto& entry : platformFsUtils_->ls(hwmonSubdirPath)) {
-        if (entry.is_directory() &&
-            entry.path().filename().string().starts_with("hwmon")) {
-          verDirPath = hwmonSubdirPath / entry.path().filename();
-          break;
-        }
-      }
-    }
+    for (const auto& entry : std::filesystem::recursive_directory_iterator(linkPath)) {  
+        if (entry.is_regular_file() && entry.path().filename().string().find(fmt::format("{}_ver", deviceType)) != std::string::npos) {  
+            verDirPath = entry.path().parent_path();  
+        }  
+    } 
     const auto version = readVersionNumber(
         fmt::format("{}/{}_ver", verDirPath, deviceType),
         platformFsUtils_.get());
