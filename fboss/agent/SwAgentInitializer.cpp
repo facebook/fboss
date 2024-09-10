@@ -163,6 +163,7 @@ void SwAgentInitializer::stopServer() {
     lockedPtr->stop();
     XLOG(DBG2) << "Stopped thrift server";
     clearThriftModules();
+    XLOG(DBG2) << "Cleared thrift modules";
   } else {
     LOG(WARNING) << "Unable to stop Thrift Server";
   }
