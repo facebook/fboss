@@ -196,6 +196,7 @@ cpp_library(
         "LinkTestUtils.cpp",
         "facebook/AgentEnsembleFsdbTests.cpp",
         "facebook/AgentEnsembleMacsecFsdbTests.cpp",
+        "facebook/AgentEnsembleMacsecSanityTests.cpp",
         "facebook/AgentEnsembleMacsecTest.cpp",
         "facebook/AgentEnsembleQsfpFsdbTests.cpp",
     ],
