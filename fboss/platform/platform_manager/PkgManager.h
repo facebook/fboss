@@ -4,17 +4,23 @@
 
 #include "fboss/platform/platform_manager/gen-cpp2/platform_manager_config_types.h"
 
+DECLARE_bool(enable_pkg_mgmnt);
+DECLARE_bool(reload_kmods);
+DECLARE_string(local_rpm_path);
+
 namespace facebook::fboss::platform::platform_manager {
 
 class PkgManager {
  public:
   explicit PkgManager(const PlatformConfig& config);
+  virtual ~PkgManager() = default;
   void processAll() const;
-  void processRpms() const;
-  void processKmods() const;
-  void processLocalRpms() const;
-  void loadBSPKmods() const;
-  void loadUpstreamKmods() const;
+  // Returns true if the rpm is newly installed, false otherwise.
+  virtual bool processRpms() const;
+  virtual void processKmods() const;
+  virtual void processLocalRpms() const;
+  virtual void loadBSPKmods() const;
+  virtual void loadUpstreamKmods() const;
   std::string getKmodsRpmName() const;
 
  private:

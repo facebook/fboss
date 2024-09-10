@@ -52,11 +52,13 @@ PkgManager::PkgManager(const PlatformConfig& config)
 void PkgManager::processAll() const {
   loadUpstreamKmods();
 
+  bool newRpmInstalled{false};
   if (FLAGS_enable_pkg_mgmnt) {
-    if (FLAGS_local_rpm_path != "") {
+    if (!FLAGS_local_rpm_path.empty()) {
       fb303::fbData->setExportedValue(
           kBspKmodsRpmName, "local_rpm: " + FLAGS_local_rpm_path);
       processLocalRpms();
+      newRpmInstalled = true;
     } else {
       fb303::fbData->setExportedValue(kBspKmodsRpmName, getKmodsRpmName());
       fb303::fbData->setCounter(
@@ -64,35 +66,35 @@ void PkgManager::processAll() const {
               kBspKmodsRpmVersionCounter,
               *platformConfig_.bspKmodsRpmVersion()),
           1);
-      processRpms();
+      newRpmInstalled = processRpms();
     }
   } else {
     fb303::fbData->setExportedValue(
         kBspKmodsRpmName, "Not managing BSP package");
   }
 
-  if (FLAGS_reload_kmods) {
+  if (FLAGS_reload_kmods || newRpmInstalled) {
     processKmods();
   } else {
     loadBSPKmods();
   }
 }
 
-void PkgManager::processRpms() const {
+bool PkgManager::processRpms() const {
   auto bspKmodsRpmName = getKmodsRpmName();
   if (!isRpmInstalled(bspKmodsRpmName)) {
     XLOG(INFO) << fmt::format("Installing BSP Kmods {}", bspKmodsRpmName);
     installRpm(bspKmodsRpmName, 3 /* maxAttempts */);
-    processKmods();
+    return true;
   } else {
     XLOG(INFO) << fmt::format(
         "BSP Kmods {} is already installed", bspKmodsRpmName);
+    return false;
   }
 }
 
 void PkgManager::processLocalRpms() const {
   installLocalRpm(3 /* maxAttempts */);
-  processKmods();
 }
 
 void PkgManager::processKmods() const {
