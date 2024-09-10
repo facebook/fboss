@@ -106,11 +106,12 @@ cpp_library(
     ],
     headers = ["OlympicTestUtils.h"],
     exported_deps = [
-        ":asic_test_utils",
-        ":traffic_policy_utils",
-        "//fboss/agent:fboss-error",
-        "//fboss/agent:switch_config-cpp2-types",
-        "//fboss/agent/hw/switch_asics:switch_asics",
+        "fbcode//fboss/agent:fboss-error",
+        "fbcode//fboss/agent:switch_config-cpp2-types",
+        "fbcode//fboss/agent:utils",
+        "fbcode//fboss/agent/hw/switch_asics:switch_asics",
+        "fbcode//fboss/agent/test/utils:asic_test_utils",
+        "fbcode//fboss/agent/test/utils:traffic_policy_utils",
     ],
 )
 
@@ -434,6 +435,22 @@ cpp_library(
         "//fboss/agent:fboss-types",
         "//fboss/agent:switch_config-cpp2-types",
         "//folly:network_address",
+    ],
+)
+
+cpp_library(
+    name = "pfc_test_utils",
+    srcs = [
+        "PfcTestUtils.cpp",
+    ],
+    headers = [
+        "PfcTestUtils.h",
+    ],
+    exported_deps = [
+        "fbsource//third-party/googletest:gtest",
+        "//fboss/agent:fboss-types",
+        "//fboss/agent:switch_config-cpp2-types",
+        "//fboss/agent:utils",
     ],
 )
 
