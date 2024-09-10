@@ -283,6 +283,24 @@ void AgentEnsembleTest::waitForLinkStatus(
   throw FbossError(msg);
 }
 
+void AgentEnsembleTest::getAllHwPortStats(
+    std::map<std::string, HwPortStats>& hwPortStats) const {
+  checkWithRetry(
+      [&hwPortStats, this]() {
+        getSw()->getAllHwPortStats(hwPortStats);
+        for (const auto& [port, portStats] : hwPortStats) {
+          if (*portStats.timestamp__ref() ==
+              hardware_stats_constants::STAT_UNINITIALIZED()) {
+            return false;
+          }
+        }
+        return !hwPortStats.empty();
+      },
+      120,
+      std::chrono::milliseconds(1000),
+      " fetch all port stats");
+}
+
 // Provided the timestamp of the last port stats collection, get another unique
 // set of valid port stats
 std::map<std::string, HwPortStats> AgentEnsembleTest::getNextUpdatedHwPortStats(

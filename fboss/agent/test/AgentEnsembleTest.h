@@ -54,6 +54,8 @@ class AgentEnsembleTest : public ::testing::Test {
   void assertNoInDiscards(int maxNumDiscards = 0);
   void assertNoInErrors(int maxNumDiscards = 0);
 
+  void getAllHwPortStats(std::map<std::string, HwPortStats>& hwPortStats) const;
+
   void reloadPlatformConfig();
   std::map<PortID, FabricEndpoint> getFabricConnectivity(
       SwitchID switchId) const;
