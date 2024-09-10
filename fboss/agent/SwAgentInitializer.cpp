@@ -155,6 +155,8 @@ void SwAgentSignalHandler::signalReceived(int /*signum*/) noexcept {
 void SwAgentInitializer::stopServer() {
   // stop Thrift server: stop all worker threads and
   // stop accepting new connections
+  XLOG(DBG2) << "Stop listening on thrift server";
+  server_->stopListening();
   XLOG(DBG2) << "Stopping thrift server";
   auto stopController = server_->getStopController();
   if (auto lockedPtr = stopController.lock()) {
