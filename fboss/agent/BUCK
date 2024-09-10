@@ -935,6 +935,7 @@ cpp_library(
         "//fboss/thrift_cow/nodes:nodes",
         "//fboss/thrift_cow/nodes:serializer",
         "//fboss/thrift_cow/storage:cow_storage",
+        "//fboss/util:logging",
         "//folly:conv",
         "//folly:demangle",
         "//folly:exception_string",

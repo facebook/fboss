@@ -9,6 +9,7 @@
 #include "fboss/fsdb/if/FsdbModel.h"
 #include "fboss/fsdb/if/gen-cpp2/fsdb_common_types.h"
 #include "fboss/thrift_cow/nodes/Serializer.h"
+#include "fboss/util/Logging.h"
 
 using namespace facebook::fboss;
 namespace {
@@ -53,7 +54,6 @@ std::vector<std::vector<std::string>> getAllSubscribePaths(
           DsfSubscription::makeRemoteEndpoint(localNodeName, localIP))
           .tokens()};
 }
-auto constexpr kDsfCtrlLogPrefix = "DSF_CTRL_EVENT: ";
 } // namespace
 
 namespace facebook::fboss {

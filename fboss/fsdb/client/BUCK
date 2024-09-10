@@ -57,6 +57,7 @@ cpp_library(
         "//fboss/fsdb/if:fsdb-cpp2-services",
         "//fboss/fsdb/if:fsdb_common-cpp2-types",
         "//fboss/fsdb/if:fsdb_oper-cpp2-types",
+        "//fboss/util:logging",
         "//folly:format",
         "//folly:string",
         "//folly:synchronized",

@@ -115,6 +115,13 @@ cpp_library(
     ],
 )
 
+cpp_library(
+    name = "logging",
+    headers = [
+        "Logging.h",
+    ],
+)
+
 cpp_binary(
     name = "nic_util",
     srcs = [
