@@ -90,5 +90,17 @@ TEST_F(UtilsTests, PmUnitInfoFetcherTest) {
   EXPECT_NE(resolvedVersionedSensor, std::nullopt);
   EXPECT_TRUE(
       isEqual(*resolvedVersionedSensor, createVersionedPmSensor(1, 1, 4)));
+  // Case-4: Matching Unordered VersionedPmSensors
+  EXPECT_CALL(fetcher_, fetch(_))
+      .WillOnce(Return(std::array<int16_t, 3>{3, 1, 20}));
+  resolvedVersionedSensor = Utils().resolveVersionedSensors(
+      fetcher_,
+      slotPath_,
+      {createVersionedPmSensor(3, 1, 20),
+       createVersionedPmSensor(2, 1, 20),
+       createVersionedPmSensor(2, 3, 20)});
+  EXPECT_NE(resolvedVersionedSensor, std::nullopt);
+  EXPECT_TRUE(
+      isEqual(*resolvedVersionedSensor, createVersionedPmSensor(3, 1, 20)));
 }
 } // namespace facebook::fboss::platform::sensor_service
