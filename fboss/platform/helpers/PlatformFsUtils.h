@@ -31,7 +31,7 @@ class PlatformFsUtils {
   // - for given /x/y/z, directory y/z if x already exists.
   // No-op if parent directories already exist.
   // Returns true if created or already exist, otherwise false.
-  bool createDirectories(const std::filesystem::path& path) const;
+  virtual bool createDirectories(const std::filesystem::path& path) const;
 
   bool exists(const std::filesystem::path& path) const;
 

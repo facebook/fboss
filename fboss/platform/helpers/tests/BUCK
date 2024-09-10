@@ -9,8 +9,11 @@ cpp_unittest(
     ],
     deps = [
         "//fb303:service_data",
+        "//fboss/platform/helpers:mock_platform_fs_utils",
         "//fboss/platform/helpers:mock_platform_utils",
+        "//fboss/platform/helpers:platform_fs_utils",
         "//fboss/platform/helpers:platform_name_lib",
+        "//folly/testing:test_util",
     ],
 )
 
