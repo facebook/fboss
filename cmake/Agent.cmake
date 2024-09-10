@@ -294,6 +294,7 @@ set(core_libs
   agent_fsdb_sync_manager
   fboss_event_base
   phy_snapshot_manager
+  build_info_wrapper
 )
 
 target_link_libraries(core ${core_libs})
@@ -352,6 +353,11 @@ target_link_libraries(fboss_error
   fboss_cpp2
   fboss_types
   Folly::folly
+)
+
+add_library(build_info_wrapper
+  fboss/agent/BuildInfoWrapper.h
+  fboss/agent/oss/BuildInfoWrapper.cpp
 )
 
 add_library(platform_base
