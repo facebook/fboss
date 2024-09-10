@@ -310,6 +310,8 @@ std::map<std::string, HwPortStats> AgentEnsembleTest::getNextUpdatedHwPortStats(
   // TODO(Elangovan) do we need 120 retries?
   checkWithRetry(
       [&portStats, timestamp, this]() {
+        // clear the port stats between each retry
+        portStats.clear();
         getSw()->getAllHwPortStats(portStats);
         // Since each port can have a unique timestamp, compare with the first
         // port
