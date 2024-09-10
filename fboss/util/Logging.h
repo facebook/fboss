@@ -6,4 +6,6 @@ namespace facebook::fboss {
 
 auto constexpr kDsfCtrlLogPrefix = "DSF_CTRL_EVENT: ";
 
+auto constexpr kNetworkEventLogPrefix = "[NEL]";
+
 } // namespace facebook::fboss

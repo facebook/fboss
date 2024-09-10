@@ -1084,7 +1084,8 @@ std::shared_ptr<SwitchState> SwSwitch::preInit(SwitchFlags flags) {
   flags_ = flags;
   bootType_ = swSwitchWarmbootHelper_->canWarmBoot() ? BootType::WARM_BOOT
                                                      : BootType::COLD_BOOT;
-  XLOG(INFO) << "Boot Type: " << apache::thrift::util::enumNameSafe(bootType_);
+  XLOG(INFO) << kNetworkEventLogPrefix
+             << " Boot Type: " << apache::thrift::util::enumNameSafe(bootType_);
 
   multiHwSwitchHandler_->start();
   std::optional<state::WarmbootState> wbState{};
