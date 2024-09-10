@@ -198,6 +198,7 @@ cpp_library(
         "facebook/AgentEnsembleMacsecFsdbTests.cpp",
         "facebook/AgentEnsembleMacsecSanityTests.cpp",
         "facebook/AgentEnsembleMacsecSessionTests.cpp",
+        "facebook/AgentEnsembleMacsecStatTests.cpp",
         "facebook/AgentEnsembleMacsecTest.cpp",
         "facebook/AgentEnsembleQsfpFsdbTests.cpp",
     ],

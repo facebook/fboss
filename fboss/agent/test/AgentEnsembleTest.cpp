@@ -287,6 +287,7 @@ void AgentEnsembleTest::getAllHwPortStats(
     std::map<std::string, HwPortStats>& hwPortStats) const {
   checkWithRetry(
       [&hwPortStats, this]() {
+        hwPortStats.clear();
         getSw()->getAllHwPortStats(hwPortStats);
         for (const auto& [port, portStats] : hwPortStats) {
           if (*portStats.timestamp__ref() ==
