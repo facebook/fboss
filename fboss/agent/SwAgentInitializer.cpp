@@ -160,6 +160,7 @@ void SwAgentInitializer::stopServer() {
   if (auto lockedPtr = stopController.lock()) {
     lockedPtr->stop();
     XLOG(DBG2) << "Stopped thrift server";
+    clearThriftModules();
   } else {
     LOG(WARNING) << "Unable to stop Thrift Server";
   }
