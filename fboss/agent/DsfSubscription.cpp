@@ -262,7 +262,8 @@ void DsfSubscription::handleFsdbUpdate(fsdb::OperSubPathUnit&& operStateUnit) {
     } else if (getDsfSubscriptionsPath(
                    makeRemoteEndpoint(localNodeName_, localIp_))
                    .matchesPath(*change.path()->path())) {
-      XLOG(DBG2) << "Got dsf sub update from : " << remoteNodeName_;
+      XLOG(DBG2) << kDsfCtrlLogPrefix
+                 << "Got dsf sub update from : " << remoteNodeName_;
 
       using targetType = fsdb::FsdbSubscriptionState;
       using targetTypeClass = apache::thrift::type_class::enumeration;
