@@ -194,6 +194,26 @@ class CmdShowLldp : public CmdHandler<CmdShowLldp, CmdShowLldpTraits> {
     if (RE2::FullMatch(portDescription, fsw_regex)) {
       return results[0] + "." + results[1];
     }
+    const RE2 ctsw_regex("^ctsw.*");
+    if (RE2::FullMatch(portDescription, ctsw_regex)) {
+      return results[0] + "." + results[1];
+    }
+    const RE2 rsw_regex("^rsw.*");
+    if (RE2::FullMatch(portDescription, rsw_regex)) {
+      return results[0] + "." + results[1];
+    }
+    const RE2 rusw_regex("^rusw.*");
+    if (RE2::FullMatch(portDescription, rusw_regex)) {
+      return results[0] + "." + results[1];
+    }
+    const RE2 rtsw_regex("^rtsw.*");
+    if (RE2::FullMatch(portDescription, rtsw_regex)) {
+      return results[0] + "." + results[1];
+    }
+    const RE2 resw_regex("^resw.*");
+    if (RE2::FullMatch(portDescription, resw_regex)) {
+      return results[0] + "." + results[1];
+    }
 
     // default to empty string, entire port descriptions is in a separate column
     return "";
