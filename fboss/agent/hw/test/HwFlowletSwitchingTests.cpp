@@ -927,7 +927,15 @@ TEST_F(HwEcmpFlowletSwitchingTest, VerifyEcmpFlowletSwitchingEnable) {
     applyNewConfig(cfg);
     // verify the flowlet config
     verifyConfig(cfg);
+
     // modify switchingMode to per_packet
+    cfg = getDefaultConfig();
+    updateFlowletConfigs(
+        cfg, cfg::SwitchingMode::PER_PACKET_QUALITY, kFlowletTableSize1);
+    updatePortFlowletConfigName(cfg);
+    applyNewConfig(cfg);
+
+    // modify max_flows and keep mode the same
     cfg = getDefaultConfig();
     updateFlowletConfigs(
         cfg, cfg::SwitchingMode::PER_PACKET_QUALITY, kMinFlowletTableSize);
@@ -935,6 +943,7 @@ TEST_F(HwEcmpFlowletSwitchingTest, VerifyEcmpFlowletSwitchingEnable) {
     applyNewConfig(cfg);
     // verify the flowlet config
     verifyConfig(cfg);
+
     // Remove the flowlet configs
     cfg = getDefaultConfig();
     applyNewConfig(cfg);
@@ -1161,6 +1170,24 @@ TEST_F(HwEcmpFlowletSwitchingTest, VerifyModeSprayToFlowlet) {
       8,
       cfg::SwitchingMode::FLOWLET_QUALITY,
       kFlowletTableSize2,
+      8);
+}
+
+TEST_F(HwEcmpFlowletSwitchingTest, VerifyModeSprayFlowletSizeChange) {
+  if (this->skipTest()) {
+#if defined(GTEST_SKIP)
+    GTEST_SKIP();
+#endif
+    return;
+  }
+
+  // Update max_flows size from 2048 -> 256
+  flowletSwitchingWBHelper(
+      cfg::SwitchingMode::PER_PACKET_QUALITY,
+      kFlowletTableSize2,
+      8,
+      cfg::SwitchingMode::PER_PACKET_QUALITY,
+      kMinFlowletTableSize,
       8);
 }
 

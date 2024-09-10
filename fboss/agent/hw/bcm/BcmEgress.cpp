@@ -452,7 +452,8 @@ bool BcmEcmpEgress::isFlowletConfigUpdateNeeded() {
   const auto configDynamicMode =
       utility::getFlowletDynamicMode(bcmEcmpFlowletConfig.switchingMode);
   // if required and current modes match, no updated needed
-  if (obj.dynamic_mode != configDynamicMode) {
+  if (obj.dynamic_mode != configDynamicMode ||
+      obj.dynamic_size != bcmEcmpFlowletConfig.flowletTableSize) {
     const auto neededDynamicSize = utility::getFlowletSizeWithScalingFactor(
         static_cast<const BcmSwitch*>(hw_),
         bcmEcmpFlowletConfig.flowletTableSize,
