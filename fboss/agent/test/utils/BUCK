@@ -434,6 +434,7 @@ cpp_library(
         ":trap_packet_utils",
         "//fboss/agent:fboss-types",
         "//fboss/agent:switch_config-cpp2-types",
+        "//fboss/agent/test:agent_ensemble",
         "//folly:network_address",
     ],
 )
