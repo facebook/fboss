@@ -7370,6 +7370,18 @@
         "etherType": 34525
       },
       {
+        "name": "cpuPolicing-mid-Ip2Me-Ip4",
+        "actionType": 1,
+        "lookupClassRoute": 1,
+        "etherType": 2048
+      },
+      {
+        "name": "cpuPolicing-mid-Ip2Me-Ip6",
+        "actionType": 1,
+        "lookupClassRoute": 1,
+        "etherType": 34525
+      },
+      {
         "dstIp": "ff00::/8",
         "name": "drop-v6-multicast",
         "actionType": 0,
@@ -7547,6 +7559,30 @@
                 "tcValue": 7
               }
             }
+          },
+          {
+            "matcher": "cpuPolicing-mid-Ip2Me-Ip4",
+            "action": {
+              "sendToQueue": {
+                "queueId": 3
+              },
+              "toCpuAction": 1,
+              "setTc": {
+                "tcValue": 3
+              }
+            }
+          },
+          {
+            "matcher": "cpuPolicing-mid-Ip2Me-Ip6",
+            "action": {
+              "sendToQueue": {
+                "queueId": 3
+              },
+              "toCpuAction": 1,
+              "setTc": {
+                "tcValue": 3
+              }
+            }
           }
         ]
       },
@@ -7569,10 +7605,6 @@
         },
         {
           "rxReason": 9,
-          "queueId": 3
-        },
-        {
-          "rxReason": 7,
           "queueId": 3
         },
         {

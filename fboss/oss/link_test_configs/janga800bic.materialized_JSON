@@ -13250,6 +13250,18 @@
         "l4DstPort": 179,
         "lookupClassRoute": 1,
         "etherType": 34525
+      },
+      {
+        "name": "cpuPolicing-mid-Ip2Me-Ip4",
+        "actionType": 1,
+        "lookupClassRoute": 1,
+        "etherType": 2048
+      },
+      {
+        "name": "cpuPolicing-mid-Ip2Me-Ip6",
+        "actionType": 1,
+        "lookupClassRoute": 1,
+        "etherType": 34525
       }
     ],
     "maxNeighborProbes": 300,
@@ -13411,6 +13423,30 @@
                 "tcValue": 7
               }
             }
+          },
+          {
+            "matcher": "cpuPolicing-mid-Ip2Me-Ip4",
+            "action": {
+              "sendToQueue": {
+                "queueId": 2
+              },
+              "toCpuAction": 0,
+              "setTc": {
+                "tcValue": 2
+              }
+            }
+          },
+          {
+            "matcher": "cpuPolicing-mid-Ip2Me-Ip6",
+            "action": {
+              "sendToQueue": {
+                "queueId": 2
+              },
+              "toCpuAction": 0,
+              "setTc": {
+                "tcValue": 2
+              }
+            }
           }
         ]
       },
@@ -13433,10 +13469,6 @@
         },
         {
           "rxReason": 9,
-          "queueId": 2
-        },
-        {
-          "rxReason": 7,
           "queueId": 2
         },
         {
