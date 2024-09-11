@@ -79,6 +79,7 @@ void SplitAgentThriftSyncer::packetReceived(
   // coalesce the IOBuf before copy
   pkt->buf()->coalesce();
   rxPkt.data() = IOBuf::copyBuffer(pkt->buf()->data(), pkt->buf()->length());
+  rxPkt.length() = pkt->buf()->computeChainDataLength();
   rxPktEventSinkClient_->enqueue(std::move(rxPkt));
 }
 
