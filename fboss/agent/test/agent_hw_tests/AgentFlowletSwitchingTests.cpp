@@ -526,6 +526,17 @@ class AgentFlowletSwitchingTest : public AgentAclCounterTestBase {
   }
 };
 
+class AgentFlowletAclPriorityTest : public AgentFlowletSwitchingTest {
+ public:
+  std::vector<production_features::ProductionFeature>
+  getProductionFeaturesVerified() const override {
+    return {
+        production_features::ProductionFeature::DLB,
+        production_features::ProductionFeature::UDF_WR_IMMEDIATE_ACL,
+        production_features::ProductionFeature::SINGLE_ACL_TABLE};
+  }
+};
+
 // empty to UDF A
 TEST_F(AgentFlowletSwitchingTest, VerifyFlowletToUdfFlowlet) {
   flowletSwitchingAclHitHelper(AclType::FLOWLET, AclType::UDF_FLOWLET);
@@ -604,6 +615,67 @@ TEST_F(AgentFlowletSwitchingTest, VerifyUdfNakToUdfAckWithNak) {
 
 TEST_F(AgentFlowletSwitchingTest, VerifyUdfAckWithNakToUdfNak) {
   flowletSwitchingAclHitHelper(AclType::UDF_ACK_WITH_NAK, AclType::UDF_NAK);
+}
+
+// Skip this and next test due to lack of TCAM in ACL table on TH3
+TEST_F(AgentFlowletAclPriorityTest, VerifyUdfAclPriority) {
+  auto setup = [this]() {
+    this->setup();
+    auto newCfg{initialConfig(*getAgentEnsemble())};
+    // production priorities
+    addAclAndStat(&newCfg, AclType::UDF_NAK);
+    addAclAndStat(&newCfg, AclType::UDF_ACK);
+    addAclAndStat(&newCfg, AclType::UDF_WR_IMM_ZERO);
+    addAclAndStat(&newCfg, AclType::UDF_FLOWLET);
+    // Keep this at the end since each of the above calls update udfConfig
+    // differently
+    newCfg.udfConfig() = utility::addUdfAclConfig(
+        utility::kUdfOffsetBthOpcode | utility::kUdfOffsetBthReserved |
+        utility::kUdfOffsetAethSyndrome | utility::kUdfOffsetRethDmaLength);
+    applyNewConfig(newCfg);
+  };
+
+  auto verify = [this]() {
+    verifyAcl(AclType::UDF_NAK);
+    verifyAcl(AclType::UDF_ACK);
+    verifyAcl(AclType::UDF_WR_IMM_ZERO);
+    verifyAcl(AclType::UDF_FLOWLET);
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
+}
+
+TEST_F(AgentFlowletAclPriorityTest, VerifyUdfAclPriorityWB) {
+  auto setup = [this]() {
+    this->setup();
+    auto newCfg{initialConfig(*getAgentEnsemble())};
+    applyNewConfig(newCfg);
+  };
+
+  auto setupPostWarmboot = [this]() {
+    this->setup();
+    auto newCfg{initialConfig(*getAgentEnsemble())};
+    // production priorities
+    addAclAndStat(&newCfg, AclType::UDF_NAK);
+    addAclAndStat(&newCfg, AclType::UDF_ACK);
+    addAclAndStat(&newCfg, AclType::UDF_WR_IMM_ZERO);
+    addAclAndStat(&newCfg, AclType::UDF_FLOWLET);
+    // Keep this at the end since each of the above calls update udfConfig
+    // differently
+    newCfg.udfConfig() = utility::addUdfAclConfig(
+        utility::kUdfOffsetBthOpcode | utility::kUdfOffsetBthReserved |
+        utility::kUdfOffsetAethSyndrome | utility::kUdfOffsetRethDmaLength);
+    applyNewConfig(newCfg);
+  };
+
+  auto verifyPostWarmboot = [this]() {
+    verifyAcl(AclType::UDF_NAK);
+    verifyAcl(AclType::UDF_ACK);
+    verifyAcl(AclType::UDF_WR_IMM_ZERO);
+    verifyAcl(AclType::UDF_FLOWLET);
+  };
+
+  verifyAcrossWarmBoots(setup, []() {}, setupPostWarmboot, verifyPostWarmboot);
 }
 
 class AgentFlowletResourceTest : public AgentHwTest {
