@@ -77,6 +77,7 @@ TEST(PlatformNameLibTest, GetPlatformNameNoCache) {
 }
 
 TEST(PlatformNameLibTest, GetPlatformNameCache) {
+  fb303::fbData->zeroStats();
   auto tmpDir = folly::test::TemporaryDirectory();
   auto platformUtils = std::make_shared<MockPlatformUtils>();
   auto platformFsUtils =
