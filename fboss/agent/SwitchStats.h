@@ -529,6 +529,10 @@ class SwitchStats : public boost::noncopyable {
     thriftStreamConnectionStatus_[switchIndex].txPktEventSent();
   }
 
+  void hwAgentRxBadPktReceived(int switchIndex) {
+    thriftStreamConnectionStatus_[switchIndex].rxBadPktReceived();
+  }
+
   void dsfSessionGrExpired() {
     dsfGrExpired_.addValue(1);
   }
@@ -641,6 +645,9 @@ class SwitchStats : public boost::noncopyable {
     void switchReachabilityChangeEventReceived() {
       switchReachabilityChangeEventsReceived_.addValue(1);
     }
+    void rxBadPktReceived() {
+      rxBadPktReceived_.addValue(1);
+    }
     int64_t getStatsEventSinkDisconnectCount() const {
       return getCumulativeValue(statsEventSinkDisconnects_);
     }
@@ -671,6 +678,9 @@ class SwitchStats : public boost::noncopyable {
     int64_t getRxPktEventReceivedCount() const {
       return getCumulativeValue(rxPktEventsReceived_);
     }
+    int64_t getrxBadPktReceivedCount() const {
+      return getCumulativeValue(rxBadPktReceived_);
+    }
     int64_t getTxPktEventSentCount() const {
       return getCumulativeValue(txPktEventsSent_);
     }
@@ -699,6 +709,7 @@ class SwitchStats : public boost::noncopyable {
     TLTimeseries rxPktEventsReceived_;
     TLTimeseries txPktEventsSent_;
     TLTimeseries switchReachabilityChangeEventsReceived_;
+    TLTimeseries rxBadPktReceived_;
   };
 
   const int numSwitches_;

@@ -590,6 +590,16 @@ SwitchStats::HwAgentStreamConnectionStatus::HwAgentStreamConnectionStatus(
               ".",
               "switch_reachability_change_event_received"),
           SUM,
+          RATE)),
+      rxBadPktReceived_(TLTimeseries(
+          map,
+          folly::to<std::string>(
+              kCounterPrefix,
+              "switch.",
+              switchIndex,
+              ".",
+              "rx_bad_pkt_received"),
+          SUM,
           RATE)) {}
 
 void SwitchStats::setFabricOverdrainPct(
