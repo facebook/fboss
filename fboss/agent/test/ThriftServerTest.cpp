@@ -439,6 +439,7 @@ CO_TEST_F(ThriftServerTest, receivePktHandler) {
             MockPlatform::getMockLocalMac()));
         rxPkt.port() = 1;
         rxPkt.vlan() = 1;
+        rxPkt.length() = (*rxPkt.data())->computeChainDataLength();
         co_yield std::move(rxPkt);
       }());
   EXPECT_TRUE(ret);

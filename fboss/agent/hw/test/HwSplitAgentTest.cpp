@@ -112,6 +112,7 @@ TEST_F(HwSplitAgentCallbackTest, txPacket) {
       folly::IPAddressV4("1.0.0.1"),
       folly::IPAddressV4("1.0.0.2"));
   multiswitch::TxPacket txPacket;
+  txPacket.length() = pkt->buf()->computeChainDataLength();
   txPacket.data() = Packet::extractIOBuf(std::move(pkt));
 
   auto statBefore =

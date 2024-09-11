@@ -264,6 +264,11 @@ MultiSwitchThriftHandler::co_notifyRxPacket(int64_t switchId) {
             }
             // Agent pkt handling code assumes single buffer, so coalesce
             pkt->buf()->coalesce();
+            if (*item->length() != pkt->buf()->length()) {
+              XLOG(ERR) << "Rx packet length mismatch for switch " << switchId;
+              sw_->stats()->hwAgentRxBadPktReceived(switchIndex);
+              continue;
+            }
             sw_->packetReceived(std::move(pkt));
           }
         } catch (const std::exception& e) {

@@ -2495,6 +2495,7 @@ void SwSwitch::sendPacketOutViaThriftStream(
   if (queue) {
     txPacket.queue() = queue.value();
   }
+  txPacket.length() = pkt->buf()->computeChainDataLength();
   txPacket.data() = Packet::extractIOBuf(std::move(pkt));
   auto switchIndex =
       getSwitchInfoTable().getSwitchIndexFromSwitchId(SwitchID(switchId));
