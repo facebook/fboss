@@ -19,7 +19,7 @@ class MockPlatformFsUtils : public PlatformFsUtils {
   MOCK_METHOD(
       (bool),
       writeStringToFile,
-      (const std::string&, const std::filesystem::path&, int),
+      (const std::string&, const std::filesystem::path&, bool, int),
       (const));
   MOCK_METHOD(
       (std::optional<std::string>),
