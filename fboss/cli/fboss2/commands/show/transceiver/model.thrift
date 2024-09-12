@@ -3,8 +3,8 @@ namespace cpp2 facebook.fboss.cli
 include "fboss/qsfp_service/if/transceiver.thrift"
 
 struct ShowTransceiverModel {
-  /* key: transceiverId, value: TransceiverDetail */
-  1: map<i32, TransceiverDetail> transceivers;
+  /* key: portName, value: TransceiverDetail */
+  1: map<string, TransceiverDetail> transceivers;
 }
 
 struct TransceiverDetail {

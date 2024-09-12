@@ -321,7 +321,8 @@ class CmdShowTransceiver
         details.rxPower() = rxPower;
         details.rxSnr() = rxSnr;
       }
-      model.transceivers()->emplace(transceiverId, std::move(details));
+      model.transceivers()->emplace(
+          portEntries[portId].get_name(), std::move(details));
     }
 
     return model;
