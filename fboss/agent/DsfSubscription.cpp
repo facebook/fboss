@@ -133,7 +133,8 @@ void DsfSubscription::setupSubscription() {
     subMgr_->subscribe(
         [this, remoteEndpoint, sysPortPathKey, inftMapKey, dsfSubscriptionsKey](
             auto update) {
-          auto agentState = update.data->template ref<k_fsdb_model::agent>();
+          auto agentState =
+              update.data->template safe_cref<k_fsdb_model::agent>();
           bool portsOrIntfsChanged = false;
           for (const auto& key : update.updatedKeys) {
             if (key == sysPortPathKey || key == inftMapKey) {
@@ -149,7 +150,7 @@ void DsfSubscription::setupSubscription() {
           }
           if (portsOrIntfsChanged) {
             auto switchState =
-                agentState->template ref<k_fsdb_model::switchState>();
+                agentState->template safe_cref<k_fsdb_model::switchState>();
             queueRemoteStateChanged(
                 *switchState->getSystemPorts(), *switchState->getInterfaces());
           }
