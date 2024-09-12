@@ -6,6 +6,13 @@
   "pwmTransitionValue": 50,
   "pwmLowerThreshold": 30,
   "pwmUpperThreshold": 70,
+  "watchdog": {
+    "access": {
+      "accessType": "ACCESS_TYPE_SYSFS",
+      "path": "/run/devmap/watchdogs/FAN_WATCHDOG"
+    },
+    "value": 0
+  },
   "controlInterval": {
     "sensorReadInterval": 5,
     "pwmUpdateInterval": 5
@@ -82,25 +89,29 @@
         "24": 30,
         "27": 30,
         "32": 35,
-        "37": 40
+        "37": 40,
+        "42": 60
       },
       "normalDownTable": {
         "22": 30,
         "25": 30,
         "30": 35,
-        "35": 40
+        "35": 40,
+        "40": 60
       },
       "failUpTable": {
         "24": 35,
         "27": 35,
         "32": 40,
-        "37": 45
+        "37": 45,
+        "42": 65
       },
       "failDownTable": {
         "22": 35,
         "25": 35,
         "30": 40,
-        "35": 45
+        "35": 45,
+        "40": 65
       }
     },
     {
