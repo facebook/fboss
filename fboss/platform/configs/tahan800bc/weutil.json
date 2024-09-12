@@ -2,14 +2,16 @@
   "chassisEepromName" : "SMB" ,
   "fruEepromList" : {
     "SMB" : {
-      "path" : "/run/devmap/eeproms/SMB_EEPROM",
-      "offset" : 0,
-      "idEepromFormatVer" : 4
+      "path" : "/run/devmap/eeproms/SMB_EEPROM"
     },
     "COME" : {
-      "path" : "/run/devmap/eeproms/COME_EEPROM",
-      "offset" : 0,
-      "idEepromFormatVer" : 4
+      "path" : "/run/devmap/eeproms/COME_EEPROM"
+    },
+    "COME_FRU" : {
+      "path" : "/run/devmap/eeproms/COME_FRU"
+    },
+    "RUNBMC" : {
+      "path" : "/run/devmap/eeproms/RUNBMC_EEPROM"
     }
   }
 }
