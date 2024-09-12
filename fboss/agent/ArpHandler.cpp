@@ -147,6 +147,16 @@ void ArpHandler::handlePacket(
                << targetIP;
     return;
   }
+  if (op == ARP_OP_REPLY &&
+      !AggregatePort::isIngressValid(sw_->getState(), pkt, true)) {
+    // drop ARP reply packets when LAG port is not up yet,
+    // otherwise, ARP entry would be created for this down port,
+    // and confuse later neighbor/next hop resolution logics
+    XLOG(DBG2) << "Dropping invalid ARP reply ingressing on port "
+               << pkt->getSrcPort() << " on vlan " << vlanIDStr << " for "
+               << targetIP;
+    return;
+  }
 
   // This ARP packet is destined to us.
   // Update the sender IP --> sender MAC entry in the ARP table.
