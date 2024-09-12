@@ -131,6 +131,11 @@ class AgentSflowMirrorTest : public AgentHwTest {
   }
 
   std::optional<uint32_t> getHwLogicalPortId(PortID port) const {
+    auto asic = checkSameAndGetAsic();
+    if (asic->getAsicType() == cfg::AsicType::ASIC_TYPE_EBRO ||
+        asic->getAsicType() == cfg::AsicType::ASIC_TYPE_YUBA) {
+      return std::nullopt;
+    }
     return getSw()->getHwLogicalPortId(port);
   }
 
