@@ -103,8 +103,12 @@ bool PlatformFsUtils::writeStringToFile(
       errorCode = sync(prefixedPath.parent_path());
     }
   } else {
-    folly::writeFile(content, prefixedPath.c_str(), flags);
-    errorCode = errno;
+    bool written = folly::writeFile(content, prefixedPath.c_str(), flags);
+    // errno will be set to 2 when the file did not exist but was successfully
+    // created & written. Only set errCode on failed writes.
+    if (!written) {
+      errorCode = errno;
+    }
   }
   if (errorCode != 0) {
     XLOG(ERR) << fmt::format(
@@ -113,7 +117,7 @@ bool PlatformFsUtils::writeStringToFile(
         path.string(),
         folly::errnoStr(errorCode));
   }
-  return errorCode != 0;
+  return errorCode == 0;
 }
 
 std::optional<std::string> PlatformFsUtils::getStringFileContent(
