@@ -71,6 +71,14 @@
 #include "fboss/agent/state/VlanMap.h"
 #include "fboss/lib/config/PlatformConfigUtils.h"
 
+#include "fboss/agent/platforms/common/janga800bic/Janga800bicPlatformMapping.h"
+#include "fboss/agent/platforms/common/meru400bfu/Meru400bfuPlatformMapping.h"
+#include "fboss/agent/platforms/common/meru400bia/Meru400biaPlatformMapping.h"
+#include "fboss/agent/platforms/common/meru400biu/Meru400biuPlatformMapping.h"
+#include "fboss/agent/platforms/common/meru800bfa/Meru800bfaP1PlatformMapping.h"
+#include "fboss/agent/platforms/common/meru800bfa/Meru800bfaPlatformMapping.h"
+#include "fboss/agent/platforms/common/meru800bia/Meru800biaPlatformMapping.h"
+
 #include <boost/container/flat_map.hpp>
 #include <boost/container/flat_set.hpp>
 #include <folly/Range.h>
@@ -143,6 +151,46 @@ std::shared_ptr<MultiMap> toMultiSwitchMap(
     multiMap->addNode(idAndNode.second, resolver.scope(idAndNode.second, cfg));
   }
   return multiMap;
+}
+
+static const facebook::fboss::PlatformMapping* FOLLY_NULLABLE
+getPlatformMappingForDsfNode(const facebook::fboss::PlatformType platformType) {
+  switch (platformType) {
+    case facebook::fboss::PlatformType::PLATFORM_MERU400BIU: {
+      static facebook::fboss::Meru400biuPlatformMapping meru400biu;
+      return &meru400biu;
+    }
+    case facebook::fboss::PlatformType::PLATFORM_MERU400BIA: {
+      static facebook::fboss::Meru400biaPlatformMapping meru400bia;
+      return &meru400bia;
+    }
+    case facebook::fboss::PlatformType::PLATFORM_MERU400BFU: {
+      static facebook::fboss::Meru400bfuPlatformMapping meru400bfu;
+      return &meru400bfu;
+    }
+    case facebook::fboss::PlatformType::PLATFORM_MERU800BFA: {
+      static facebook::fboss::Meru800bfaPlatformMapping meru800bfa{
+          true /*multiNpuPlatformMapping*/};
+      return &meru800bfa;
+    }
+    case facebook::fboss::PlatformType::PLATFORM_MERU800BFA_P1: {
+      static facebook::fboss::Meru800bfaP1PlatformMapping meru800bfa{
+          true /*multiNpuPlatformMapping*/};
+      return &meru800bfa;
+    }
+    case facebook::fboss::PlatformType::PLATFORM_MERU800BIA: {
+      static facebook::fboss::Meru800biaPlatformMapping meru800bia;
+      return &meru800bia;
+    }
+    case facebook::fboss::PlatformType::PLATFORM_JANGA800BIC: {
+      static facebook::fboss::Janga800bicPlatformMapping janga800bic{
+          true /*multiNpuPlatformMapping*/};
+      return &janga800bic;
+    }
+    default:
+      break;
+  }
+  return nullptr;
 }
 } // anonymous namespace
 
