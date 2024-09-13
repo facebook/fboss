@@ -52,6 +52,7 @@ enum ProductionFeature {
   HGRID_UU_ROUTE_SCALE = 39,
   HUNDRED_THOUSAND_ROUTE_SCALE = 40,
   TH_ALPM_ROUTE_SCALE = 41,
+  PFC = 42,
   UDF_WR_IMMEDIATE_ACL = 43,
   # production feature which is present on all platforms, keep it at the end
   HW_SWITCH = 65536,
