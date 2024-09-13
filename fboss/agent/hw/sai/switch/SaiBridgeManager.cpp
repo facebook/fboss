@@ -24,6 +24,16 @@ std::shared_ptr<SaiBridgePort> SaiBridgeManager::addBridgePort(
     SaiPortDescriptor portDescriptor,
     PortDescriptorSaiId saiId) {
   // Lazily re-load or create the default bridge if it is missing
+  createBridgeHandle();
+  auto& store = saiStore_->get<SaiBridgePortTraits>();
+  auto saiObjectId = saiId.intID();
+  SaiBridgePortTraits::AdapterHostKey k{saiObjectId};
+  SaiBridgePortTraits::CreateAttributes attributes{
+      SAI_BRIDGE_PORT_TYPE_PORT, saiObjectId, true, fdbLearningMode_};
+  return store.setObject(k, attributes, portDescriptor);
+}
+
+void SaiBridgeManager::createBridgeHandle() {
   if (UNLIKELY(!bridgeHandle_)) {
     auto& store = saiStore_->get<SaiBridgeTraits>();
     bridgeHandle_ = std::make_unique<SaiBridgeHandle>();
@@ -35,14 +45,7 @@ std::shared_ptr<SaiBridgePort> SaiBridgeManager::addBridgePort(
         SaiBridgeTraits::AdapterKey{default1QBridgeId});
     CHECK(bridgeHandle_->bridge);
   }
-  auto& store = saiStore_->get<SaiBridgePortTraits>();
-  auto saiObjectId = saiId.intID();
-  SaiBridgePortTraits::AdapterHostKey k{saiObjectId};
-  SaiBridgePortTraits::CreateAttributes attributes{
-      SAI_BRIDGE_PORT_TYPE_PORT, saiObjectId, true, fdbLearningMode_};
-  return store.setObject(k, attributes, portDescriptor);
 }
-
 SaiBridgeManager::SaiBridgeManager(
     SaiStore* saiStore,
     SaiManagerTable* managerTable,

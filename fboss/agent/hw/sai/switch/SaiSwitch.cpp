@@ -2480,6 +2480,7 @@ void SaiSwitch::initStoreAndManagersLocked(
         const auto& obj = systemPortStore.get(confInfo);
         systemPortStore.loadObjectOwnedByAdapter(obj->adapterKey(), true);
       }
+      managerTable_->bridgeManager().createBridgeHandle();
     }
   }
 } // namespace facebook::fboss
