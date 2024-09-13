@@ -22,12 +22,14 @@ class PkgManager {
   virtual void loadBSPKmods() const;
   virtual void loadUpstreamKmods() const;
   std::string getKmodsRpmName() const;
+  std::string getKmodsRpmBaseWithKernelName() const;
 
  private:
   void loadKmod(const std::string& moduleName) const;
   void unloadKmod(const std::string& moduleName) const;
   bool isRpmInstalled(const std::string& rpmFullName) const;
   void installRpm(const std::string& rpmFullName, int maxAttempts) const;
+  void removeOldRpms(const std::string& rpmBaseName) const;
   void installLocalRpm(int maxAttempts) const;
 
   const PlatformConfig& platformConfig_;

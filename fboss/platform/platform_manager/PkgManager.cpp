@@ -84,6 +84,7 @@ bool PkgManager::processRpms() const {
   auto bspKmodsRpmName = getKmodsRpmName();
   if (!isRpmInstalled(bspKmodsRpmName)) {
     XLOG(INFO) << fmt::format("Installing BSP Kmods {}", bspKmodsRpmName);
+    removeOldRpms(getKmodsRpmBaseWithKernelName());
     installRpm(bspKmodsRpmName, 3 /* maxAttempts */);
     return true;
   } else {
@@ -166,6 +167,34 @@ void PkgManager::installRpm(const std::string& rpmFullName, int maxAttempts)
   }
 }
 
+void PkgManager::removeOldRpms(const std::string& rpmBaseName) const {
+  std::string stdOut{};
+  int exitStatus{0};
+  auto getInstalledRpmNamesCmd = fmt::format("rpm -qa | grep ^{}", rpmBaseName);
+  std::tie(exitStatus, stdOut) =
+      PlatformUtils().execCommand(getInstalledRpmNamesCmd);
+  if (exitStatus) {
+    XLOG(INFO) << "No old rpms to remove";
+    return;
+  }
+
+  std::vector<std::string> installedRpms;
+  folly::split('\n', stdOut, installedRpms);
+  XLOG(INFO) << fmt::format(
+      "Removing old rpms: {}", folly::join(", ", installedRpms));
+  auto removeOldRpmsCmd =
+      fmt::format("rpm -e --allmatches {}", folly::join(" ", installedRpms));
+  std::tie(exitStatus, stdOut) = PlatformUtils().execCommand(removeOldRpmsCmd);
+  if (exitStatus) {
+    XLOG(ERR) << fmt::format(
+        "Command ({}) failed with exit code {}", removeOldRpmsCmd, exitStatus);
+    throw std::runtime_error(fmt::format(
+        "Failed to remove old rpms ({}) with exit code {}",
+        folly::join(" ", installedRpms),
+        exitStatus));
+  }
+}
+
 void PkgManager::installLocalRpm(int maxAttempts) const {
   int exitStatus{0}, attempt{1};
   std::string standardOut{};
@@ -214,6 +243,11 @@ void PkgManager::loadKmod(const std::string& moduleName) const {
     throw std::runtime_error(fmt::format(
         "Failed to load kmod ({}) with exit code {}", moduleName, exitStatus));
   }
+}
+
+std::string PkgManager::getKmodsRpmBaseWithKernelName() const {
+  return fmt::format(
+      "{}-{}", *platformConfig_.bspKmodsRpmName(), getHostKernelVersion());
 }
 
 std::string PkgManager::getKmodsRpmName() const {
