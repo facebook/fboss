@@ -521,15 +521,6 @@ void SaiSwitch::rollback(const StateDelta& delta) noexcept {
         systemPortStore.release();
         systemPortStore.removeUnexpectedUnclaimedWarmbootHandles(
             true /*includeAdapterOwned*/);
-        // For VOQ switches, we never create any bridge ports.
-        // So the bridge object never gets claimed from store
-        // and destroyed during manager reset above. So explicitly
-        // clear this out from store before reinit the stores
-        // TODO: create object for bride in VOQ switch as well
-        auto& bridgeStore = saiStore_->get<SaiBridgeTraits>();
-        bridgeStore.release();
-        bridgeStore.removeUnexpectedUnclaimedWarmbootHandles(
-            true /*includeAdapterOwned*/);
       }
     }
     // The work flow below is essentially a in memory warm boot,
