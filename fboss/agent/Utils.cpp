@@ -12,8 +12,10 @@
 #include <sys/resource.h>
 #include <sys/syscall.h>
 
+#include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/FsdbHelper.h"
+#include "fboss/agent/SwitchIdScopeResolver.h"
 #include "fboss/agent/SysError.h"
 #include "fboss/agent/state/ArpEntry.h"
 #include "fboss/agent/state/ArpTable.h"
@@ -25,6 +27,14 @@
 #include "fboss/agent/state/Vlan.h"
 
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
+
+#include "fboss/agent/platforms/common/janga800bic/Janga800bicPlatformMapping.h"
+#include "fboss/agent/platforms/common/meru400bfu/Meru400bfuPlatformMapping.h"
+#include "fboss/agent/platforms/common/meru400bia/Meru400biaPlatformMapping.h"
+#include "fboss/agent/platforms/common/meru400biu/Meru400biuPlatformMapping.h"
+#include "fboss/agent/platforms/common/meru800bfa/Meru800bfaP1PlatformMapping.h"
+#include "fboss/agent/platforms/common/meru800bfa/Meru800bfaPlatformMapping.h"
+#include "fboss/agent/platforms/common/meru800bia/Meru800biaPlatformMapping.h"
 
 #include <folly/FileUtil.h>
 #include <folly/Subprocess.h>
@@ -87,6 +97,46 @@ AddrT getIPAddress(InterfaceID intfID, const Interface::AddressesType addrs) {
     }
   }
   throw FbossError("Cannot find IP address for interface ", intfID);
+}
+
+static const facebook::fboss::PlatformMapping* FOLLY_NULLABLE
+getPlatformMappingForDsfNode(const facebook::fboss::PlatformType platformType) {
+  switch (platformType) {
+    case facebook::fboss::PlatformType::PLATFORM_MERU400BIU: {
+      static facebook::fboss::Meru400biuPlatformMapping meru400biu;
+      return &meru400biu;
+    }
+    case facebook::fboss::PlatformType::PLATFORM_MERU400BIA: {
+      static facebook::fboss::Meru400biaPlatformMapping meru400bia;
+      return &meru400bia;
+    }
+    case facebook::fboss::PlatformType::PLATFORM_MERU400BFU: {
+      static facebook::fboss::Meru400bfuPlatformMapping meru400bfu;
+      return &meru400bfu;
+    }
+    case facebook::fboss::PlatformType::PLATFORM_MERU800BFA: {
+      static facebook::fboss::Meru800bfaPlatformMapping meru800bfa{
+          true /*multiNpuPlatformMapping*/};
+      return &meru800bfa;
+    }
+    case facebook::fboss::PlatformType::PLATFORM_MERU800BFA_P1: {
+      static facebook::fboss::Meru800bfaP1PlatformMapping meru800bfa{
+          true /*multiNpuPlatformMapping*/};
+      return &meru800bfa;
+    }
+    case facebook::fboss::PlatformType::PLATFORM_MERU800BIA: {
+      static facebook::fboss::Meru800biaPlatformMapping meru800bia;
+      return &meru800bia;
+    }
+    case facebook::fboss::PlatformType::PLATFORM_JANGA800BIC: {
+      static facebook::fboss::Janga800bicPlatformMapping janga800bic{
+          true /*multiNpuPlatformMapping*/};
+      return &janga800bic;
+    }
+    default:
+      break;
+  }
+  return nullptr;
 }
 
 } // namespace
@@ -878,5 +928,85 @@ InterfaceID getRecyclePortIntfID(
 
   return recyclePortId;
 }
+
+std::pair<std::string, std::string> getExpectedNeighborAndPortName(
+    const cfg::Port& port) {
+  CHECK_EQ(port.expectedNeighborReachability()->size(), 1);
+  const auto& expectedNeighbor = port.expectedNeighborReachability()->cbegin();
+  std::string neighborName = *expectedNeighbor->remoteSystem();
+  std::string neighborPortName = *expectedNeighbor->remotePort();
+  return std::make_pair(neighborName, neighborPortName);
+};
+
+int getRemoteSwitchID(
+    const cfg::SwitchConfig* cfg,
+    const cfg::Port& port,
+    const std::unordered_map<std::string, std::vector<uint32_t>>&
+        switchNameToSwitchIds) {
+  auto [neighborName, neighborPortName] = getExpectedNeighborAndPortName(port);
+  CHECK(!switchNameToSwitchIds.at(neighborName).empty());
+  auto baseSwitchId = *std::min_element(
+      switchNameToSwitchIds.at(neighborName).cbegin(),
+      switchNameToSwitchIds.at(neighborName).cend());
+  auto dsfNodeItr = cfg->dsfNodes()->find(baseSwitchId);
+  CHECK(dsfNodeItr != cfg->dsfNodes()->end());
+
+  const auto platformMapping =
+      getPlatformMappingForDsfNode(*dsfNodeItr->second.platformType());
+
+  if (!platformMapping) {
+    throw FbossError(
+        "Unable to find platform mapping for port: ",
+        *port.logicalID(),
+        " expected neighbor");
+  }
+  auto virtualDeviceId = platformMapping->getVirtualDeviceID(neighborPortName);
+  if (!virtualDeviceId.has_value()) {
+    throw FbossError(
+        "Unable to find virtual device id for port: ",
+        *port.logicalID(),
+        " expected neighbor");
+  }
+
+  const auto& hwAsic = getHwAsicForAsicType(*dsfNodeItr->second.asicType());
+  auto numVirtualDevices = hwAsic.getVirtualDevices();
+  auto remoteSwitchId = baseSwitchId +
+      (virtualDeviceId.value() / numVirtualDevices) * numVirtualDevices;
+
+  return remoteSwitchId;
+};
+
+bool haveParallelLinksToInterfaceNodes(
+    const cfg::SwitchConfig* cfg,
+    const std::vector<SwitchID>& localFabricSwitchIds,
+    const std::unordered_map<std::string, std::vector<uint32_t>>&
+        switchNameToSwitchIds,
+    SwitchIdScopeResolver& scopeResolver) {
+  for (const auto& fabricSwitchId : localFabricSwitchIds) {
+    // TODO(zecheng): Update to look at DsfNode layer config once available.
+    // Can be optimized to only look at FDSW layer
+    std::unordered_set<std::string> voqNeighbors;
+    for (const auto& port : *cfg->ports()) {
+      // Only process ports belonging to the passed switchId
+      if (scopeResolver.scope(port).has(SwitchID(fabricSwitchId)) &&
+          port.expectedNeighborReachability()->size() > 0) {
+        auto neighborRemoteSwitchId =
+            getRemoteSwitchID(cfg, port, switchNameToSwitchIds);
+        const auto& neighborDsfNodeIter =
+            cfg->dsfNodes()->find(neighborRemoteSwitchId);
+        CHECK(neighborDsfNodeIter != cfg->dsfNodes()->end());
+        if (*neighborDsfNodeIter->second.type() ==
+            cfg::DsfNodeType::INTERFACE_NODE) {
+          const auto& [neighborName, _] = getExpectedNeighborAndPortName(port);
+          if (voqNeighbors.find(neighborName) != voqNeighbors.end()) {
+            return true;
+          }
+          voqNeighbors.insert(neighborName);
+        }
+      }
+    }
+  }
+  return false;
+};
 
 } // namespace facebook::fboss
