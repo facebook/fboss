@@ -2516,7 +2516,7 @@ void SwSwitch::sendPacketSwitchedAsync(std::unique_ptr<TxPacket> pkt) noexcept {
     // send failures--even on successful return from sendPacketSwitchedAsync()
     // the send may ultimately fail since it occurs asynchronously in the
     // background.
-    XLOG(ERR) << "failed to send L2 switched packet";
+    XLOG(ERR) << "failed to send switched packet";
   }
 }
 
