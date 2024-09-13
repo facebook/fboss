@@ -19,6 +19,13 @@
 
 namespace {
 using TestTypes = ::testing::Types<folly::IPAddressV4, folly::IPAddressV6>;
+const std::string kIngressSpan = "ingress_span";
+const std::string kIngressErspan = "ingress_erspan";
+const std::string kEgressSpan = "egress_span";
+const std::string kEgressErspan = "egress_erspan";
+
+const std::string kMirrorAcl = "mirror_acl";
+
 } // namespace
 
 namespace facebook::fboss {
@@ -138,7 +145,7 @@ class AgentMirroringTest : public AgentHwTest {
       const AgentEnsemble& ensemble,
       const std::string& mirrorName) const {
     auto trafficPort = getTrafficPort(ensemble);
-    auto aclEntryName = "mirror_acl";
+    std::string aclEntryName = kMirrorAcl;
     utility::addAclTableGroup(
         cfg, cfg::AclStage::INGRESS, utility::getAclTableGroupName());
     utility::addDefaultAclTable(*cfg);
@@ -287,6 +294,7 @@ class AgentMirroringTest : public AgentHwTest {
         !isSupportedOnAllAsics(HwAsic::Feature::ERSPANv6);
   }
 
+  virtual bool isIngress() const = 0;
   const RouterID kRid{0};
   const uint16_t srcL4Port_{1234};
   const uint16_t dstL4Port_{4321};
@@ -294,7 +302,6 @@ class AgentMirroringTest : public AgentHwTest {
 
 template <typename AddrT>
 class AgentIngressPortSpanMirroringTest : public AgentMirroringTest<AddrT> {
- public:
  public:
   std::vector<production_features::ProductionFeature>
   getProductionFeaturesVerified() const override {
@@ -308,6 +315,10 @@ class AgentIngressPortSpanMirroringTest : public AgentMirroringTest<AddrT> {
         &cfg, ensemble, utility::kIngressSpan, false /* truncate */);
     this->addPortMirrorConfig(&cfg, ensemble, utility::kIngressSpan);
     return cfg;
+  }
+
+  bool isIngress() const override {
+    return true;
   }
 };
 
@@ -326,6 +337,10 @@ class AgentIngressPortErspanMirroringTest : public AgentMirroringTest<AddrT> {
         &cfg, ensemble, utility::kIngressErspan, false /* truncate */);
     this->addPortMirrorConfig(&cfg, ensemble, utility::kIngressErspan);
     return cfg;
+  }
+
+  bool isIngress() const override {
+    return true;
   }
 };
 
@@ -348,6 +363,10 @@ class AgentIngressPortErspanMirroringTruncateTest
     this->addPortMirrorConfig(&cfg, ensemble, utility::kIngressErspan);
     return cfg;
   }
+
+  bool isIngress() const override {
+    return true;
+  }
 };
 
 template <typename AddrT>
@@ -366,6 +385,10 @@ class AgentIngressAclSpanMirroringTest : public AgentMirroringTest<AddrT> {
     this->addAclMirrorConfig(&cfg, ensemble, utility::kIngressSpan);
     return cfg;
   }
+
+  bool isIngress() const override {
+    return true;
+  }
 };
 
 template <typename AddrT>
@@ -383,6 +406,10 @@ class AgentIngressAclErspanMirroringTest : public AgentMirroringTest<AddrT> {
         &cfg, ensemble, utility::kIngressErspan, false /* truncate */);
     this->addAclMirrorConfig(&cfg, ensemble, utility::kIngressErspan);
     return cfg;
+  }
+
+  bool isIngress() const override {
+    return true;
   }
 };
 
@@ -403,6 +430,10 @@ class AgentEgressPortSpanMirroringTest : public AgentMirroringTest<AddrT> {
     this->addPortMirrorConfig(&cfg, ensemble, utility::kEgressSpan);
     return cfg;
   }
+
+  bool isIngress() const override {
+    return false;
+  }
 };
 
 template <typename AddrT>
@@ -420,6 +451,10 @@ class AgentEgressPortErspanMirroringTest : public AgentMirroringTest<AddrT> {
         &cfg, ensemble, utility::kEgressErspan, false /* truncate */);
     this->addPortMirrorConfig(&cfg, ensemble, utility::kEgressErspan);
     return cfg;
+  }
+
+  bool isIngress() const override {
+    return false;
   }
 };
 
@@ -442,6 +477,10 @@ class AgentEgressPortErspanMirroringTruncateTest
     this->addPortMirrorConfig(&cfg, ensemble, utility::kEgressErspan);
     return cfg;
   }
+
+  bool isIngress() const override {
+    return false;
+  }
 };
 
 template <typename AddrT>
@@ -460,6 +499,10 @@ class AgentEgressAclSpanMirroringTest : public AgentMirroringTest<AddrT> {
     this->addAclMirrorConfig(&cfg, ensemble, utility::kEgressSpan);
     return cfg;
   }
+
+  bool isIngress() const override {
+    return false;
+  }
 };
 
 template <typename AddrT>
@@ -477,6 +520,10 @@ class AgentEgressAclErspanMirroringTest : public AgentMirroringTest<AddrT> {
         &cfg, ensemble, utility::kEgressErspan, false /* truncate */);
     this->addAclMirrorConfig(&cfg, ensemble, utility::kEgressErspan);
     return cfg;
+  }
+
+  bool isIngress() const override {
+    return false;
   }
 };
 
