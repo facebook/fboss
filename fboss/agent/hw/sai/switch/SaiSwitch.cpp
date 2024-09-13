@@ -513,15 +513,6 @@ void SaiSwitch::rollback(const StateDelta& delta) noexcept {
     {
       HwWriteBehaviorRAII writeBehavior{HwWriteBehavior::SKIP};
       managerTable_->reset(true /*skip switch manager reset*/);
-      if (getSwitchType() == cfg::SwitchType::VOQ) {
-        // TODO - model cpu sys port as a first class object in SysPortMgr
-        // VOQ switches have internally created system port (e.g. CPU)
-        // release them here, so we don't see dup entries during reload.
-        auto& systemPortStore = saiStore_->get<SaiSystemPortTraits>();
-        systemPortStore.release();
-        systemPortStore.removeUnexpectedUnclaimedWarmbootHandles(
-            true /*includeAdapterOwned*/);
-      }
     }
     // The work flow below is essentially a in memory warm boot,
     // so set the bootType to warm boot for duration of roll back. We
