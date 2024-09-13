@@ -63,6 +63,7 @@ struct RxPacket {
   3: optional i32 aggPort;
   4: optional i16 vlan;
   5: i32 length;
+  6: optional ctrl.CpuCosQueueId cosQueue;
 }
 
 struct StateOperDelta {
