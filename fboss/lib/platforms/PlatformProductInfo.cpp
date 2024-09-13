@@ -225,8 +225,8 @@ std::string PlatformProductInfo::getField(
       return folly::to<std::string>(info[key].asString());
     }
   }
-  throw FbossError(
-      "Keys: ", folly::join(", ", keys), " are not in Information");
+  // If field does not exist in fruid.json, return empty string
+  return "";
 }
 
 void PlatformProductInfo::parse(std::string data) {
@@ -245,8 +245,14 @@ void PlatformProductInfo::parse(std::string data) {
     // }
     info = parseJson(data);
   }
-  productInfo_.oem() = getField(info, {kSysMfg});
+
   productInfo_.product() = getField(info, {kProdName});
+  // Product Name is a required field, throw if it is not present in fruid.json.
+  // It will be populated from fbwhoami if missing in fruid.json.
+  if (productInfo_.product()->empty()) {
+    throw FbossError("Product Name not found in fruid.json");
+  }
+  productInfo_.oem() = getField(info, {kSysMfg});
   productInfo_.serial() = getField(info, {kSerialNum});
   productInfo_.mfgDate() = getField(info, {kSysMfgDate});
   productInfo_.systemPartNumber() = getField(info, {kSysAmbPartNum});
@@ -257,7 +263,11 @@ void PlatformProductInfo::parse(std::string data) {
   // cases where we create multiple assets for a single physical
   // card in chassis.
   setFBSerial();
-  productInfo_.version() = info[kVersion].asInt();
+
+  // Optional field in Information
+  if (info.count(kVersion)) {
+    productInfo_.version() = info[kVersion].asInt();
+  }
   productInfo_.subVersion() = info[kSubVersion].asInt();
   productInfo_.productionState() = info[kProductionState].asInt();
   productInfo_.productVersion() = info[kProdVersion].asInt();
@@ -282,9 +292,6 @@ void PlatformProductInfo::parse(std::string data) {
     productInfo_.macRangeSize() = info[kExtMacSize].asInt() - 1;
   } else if (info.count(kExtMacSizeBmcLite)) {
     productInfo_.macRangeSize() = info[kExtMacSizeBmcLite].asInt() - 1;
-  } else {
-    throw FbossError(
-        "Keys: kExtMacSize or kExtMacSizeBmcLite are not in Information field");
   }
 
   // Product Asset Tag is not present in BMC-Lite platforms.
