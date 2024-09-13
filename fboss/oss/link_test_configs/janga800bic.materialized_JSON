@@ -13124,7 +13124,7 @@
         "scope": 1
       },
       {
-        "intfID": 187,
+        "intfID": 55,
         "routerID": 0,
         "vlanID": 0,
         "ipAddresses": [
@@ -13551,7 +13551,7 @@
             },
             "systemPortRange": {
               "minimum": 10,
-              "maximum": 54
+              "maximum": 53
             },
             "switchMac": "02:00:00:00:00:01",
             "connectionHandle": "15:00"
@@ -13565,8 +13565,8 @@
               "maximum": 4095
             },
             "systemPortRange": {
-              "minimum": 186,
-              "maximum": 230
+              "minimum": 54,
+              "maximum": 97
             },
             "switchMac": "02:00:00:00:00:01",
             "connectionHandle": "18:00"
@@ -13589,22 +13589,22 @@
           ],
           "systemPortRange": {
             "minimum": 10,
-            "maximum": 54
+            "maximum": 53
           },
           "nodeMac": "02:00:00:00:0F:0B",
           "asicType": 14,
           "platformType": 32
       },
       "4": {
-          "name": "intfNode4",
+          "name": "intfNode1",
           "switchId": 4,
           "type": 2,
           "loopbackIps": [
             
           ],
           "systemPortRange": {
-            "minimum": 186,
-            "maximum": 230
+            "minimum": 54,
+            "maximum": 97
           },
           "nodeMac": "02:00:00:00:0F:0B",
           "asicType": 14,
