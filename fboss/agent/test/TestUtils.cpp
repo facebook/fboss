@@ -505,7 +505,11 @@ std::tuple<state::NeighborEntries, state::NeighborEntries> makeNbrs() {
   return std::make_pair(ndpTable, arpTable);
 }
 
-cfg::DsfNode makeDsfNodeCfg(int64_t switchId, cfg::DsfNodeType type) {
+cfg::DsfNode makeDsfNodeCfg(
+    int64_t switchId,
+    cfg::DsfNodeType type,
+    std::optional<int> clusterId,
+    cfg::AsicType asicType) {
   cfg::DsfNode dsfNodeCfg;
   dsfNodeCfg.switchId() = switchId;
   dsfNodeCfg.name() = folly::sformat("dsfNodeCfg{}", switchId);
@@ -519,7 +523,10 @@ cfg::DsfNode makeDsfNodeCfg(int64_t switchId, cfg::DsfNodeType type) {
     dsfNodeCfg.loopbackIps() = getLoopbackIps(switchId);
     dsfNodeCfg.nodeMac() = "02:00:00:00:0F:0B";
   }
-  dsfNodeCfg.asicType() = cfg::AsicType::ASIC_TYPE_MOCK;
+  dsfNodeCfg.asicType() = asicType;
+  if (clusterId.has_value()) {
+    dsfNodeCfg.clusterId() = clusterId.value();
+  }
   return dsfNodeCfg;
 }
 

@@ -160,7 +160,9 @@ std::unique_ptr<SwSwitch> setupMockSwitchWithHW(
     SwitchFlags flags);
 cfg::DsfNode makeDsfNodeCfg(
     int64_t switchId = 0,
-    cfg::DsfNodeType type = cfg::DsfNodeType::INTERFACE_NODE);
+    cfg::DsfNodeType type = cfg::DsfNodeType::INTERFACE_NODE,
+    std::optional<int> clusterId = std::nullopt,
+    cfg::AsicType asicType = cfg::AsicType::ASIC_TYPE_MOCK);
 
 std::shared_ptr<SystemPort> makeSysPort(
     const std::optional<std::string>& qosPolicy,
