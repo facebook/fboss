@@ -9,7 +9,8 @@
 namespace facebook::fboss::platform::platform_manager {
 namespace {
 const re2::RE2 kMeruRe{"meru800b[if]a"};
-}
+const re2::RE2 kMeruPsuSlotPath{"/SMB_SLOT@0/PSU_SLOT@(?P<SlotNum>[01])"};
+} // namespace
 
 ExplorationErrorMap::ExplorationErrorMap(
     const PlatformConfig& config,
@@ -80,6 +81,20 @@ bool ExplorationErrorMap::isExpectedDeviceToFail(
       // have the PmUnitInfo.
       if (deviceName == "IDPROM") {
         return true;
+      }
+
+      // Case-P1 (Viper), Viper P1 only has one PSU slot when two are defined in
+      // config. Check if the other PSU slot has no error.
+      // In P2, we confirmed that two PSUs will be plugged-in. Unfortunately,
+      // since missing PmUnit in the slot, we can't distinguish P1 and P2. So if
+      // one PSU is missing, it'll be treated as expected which isn't hard
+      // error in P2.
+      if (uint slotNum;
+          re2::RE2::FullMatch(slotPath, kMeruPsuSlotPath, &slotNum)) {
+        if (!devicePathToErrors_.contains(
+                fmt::format("/SMB_SLOT@0/PSU_SLOT@{}", !slotNum))) {
+          return true;
+        }
       }
     } else {
       auto pmUnitInfo = dataStore_.getPmUnitInfo(slotPath);
