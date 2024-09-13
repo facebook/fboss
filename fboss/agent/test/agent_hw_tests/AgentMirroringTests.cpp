@@ -185,7 +185,7 @@ class AgentMirroringTest : public AgentHwTest {
     ttl.value() = 255;
     ttl.mask() = 0xFF;
     aclEntry.ttl() = ttl;
-    cfg->acls()->push_back(aclEntry);
+    utility::addAclEntry(cfg, aclEntry, utility::kDefaultAclTable());
 
     cfg::MatchAction matchAction = cfg::MatchAction();
     if (mirrorName == utility::kIngressErspan ||
