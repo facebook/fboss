@@ -1153,7 +1153,6 @@ void ThriftConfigApplier::processReachabilityGroup(
     }
   }
   bool isSingleStageCluster = clusterIds.size() <= 1;
-  std::ignore = isSingleStageCluster;
 
   auto updateReachabilityGroupListSize = [&](const auto fabricSwitchId,
                                              const auto reachabilityGroupSize) {
@@ -1172,7 +1171,62 @@ void ThriftConfigApplier::processReachabilityGroup(
     }
   };
 
-  // TODO: Assign reachability group based on expected neighbor.
+  bool parallelVoqLinks = haveParallelLinksToInterfaceNodes(
+      cfg_, localFabricSwitchIds, switchNameToSwitchIds, scopeResolver_);
+
+  if (!isSingleStageCluster || parallelVoqLinks) {
+    auto newPortMap = new_->getPorts()->modify(&new_);
+    for (const auto& fabricSwitchId : localFabricSwitchIds) {
+      std::unordered_map<int, int> destinationId2ReachabilityGroup;
+      for (const auto& portCfg : *cfg_->ports()) {
+        if (scopeResolver_.scope(portCfg).has(SwitchID(fabricSwitchId)) &&
+            portCfg.expectedNeighborReachability()->size() > 0) {
+          auto neighborRemoteSwitchId =
+              getRemoteSwitchID(cfg_, portCfg, switchNameToSwitchIds);
+          const auto& neighborDsfNode =
+              new_->getDsfNodes()->getNode(neighborRemoteSwitchId);
+
+          int destinationId;
+          // For parallel VOQ links, assign links reaching the same VOQ
+          // switch.
+          if (parallelVoqLinks &&
+              neighborDsfNode->getType() == cfg::DsfNodeType::INTERFACE_NODE) {
+            destinationId = neighborRemoteSwitchId;
+          } else if (neighborDsfNode->getClusterId() == std::nullopt) {
+            // Assign links based on cluster ID. Note that in dual stage,
+            // FE2 has no cluster ID: use -1 for grouping purpose.
+            CHECK_EQ(
+                static_cast<int>(cfg::DsfNodeType::FABRIC_NODE),
+                static_cast<int>(neighborDsfNode->getType()));
+            destinationId = -1;
+          } else {
+            destinationId = neighborDsfNode->getClusterId().value();
+          }
+
+          auto [it, inserted] = destinationId2ReachabilityGroup.insert(
+              {destinationId, destinationId2ReachabilityGroup.size() + 1});
+          auto reachabilityGroupId = it->second;
+          if (inserted) {
+            XLOG(DBG2) << "Create new reachability group "
+                       << reachabilityGroupId << " towards node "
+                       << neighborDsfNode->getName() << " with switchId "
+                       << neighborRemoteSwitchId;
+          } else {
+            XLOG(DBG2) << "Add node " << neighborDsfNode->getName()
+                       << " with switchId " << neighborRemoteSwitchId
+                       << " to existing reachability group "
+                       << reachabilityGroupId;
+          }
+
+          auto newPort =
+              newPortMap->getNode(PortID(*portCfg.logicalID()))->modify(&new_);
+          newPort->setReachabilityGroupId(reachabilityGroupId);
+        }
+      }
+      updateReachabilityGroupListSize(
+          fabricSwitchId, destinationId2ReachabilityGroup.size());
+    }
+  }
 }
 
 void ThriftConfigApplier::validateUdfConfig(const UdfConfig& newUdfConfig) {
