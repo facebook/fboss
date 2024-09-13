@@ -234,8 +234,9 @@ class CmdShowLldp : public CmdHandler<CmdShowLldp, CmdShowLldpTraits> {
       const auto portInfo = getPortInfo(entry.get_localPort(), portEntries);
       if (queriedIfs.size() == 0 || queriedSet.count(portInfo.get_name())) {
         const auto operState = portInfo.get_operState();
-        const auto expected_peer =
-            extractExpectedPort(portInfo.get_description());
+        const auto expected_peer = portInfo.expectedLLDPeerName().has_value()
+            ? portInfo.expectedLLDPeerName().value()
+            : extractExpectedPort(portInfo.get_description());
         if (auto localPortName = entry.get_localPortName()) {
           lldpDetails.localPort() = *localPortName;
         }
