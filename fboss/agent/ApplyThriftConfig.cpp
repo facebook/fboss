@@ -469,6 +469,8 @@ class ThriftConfigApplier {
   std::shared_ptr<IpTunnelMap> updateIpInIpTunnels();
   std::shared_ptr<DsfNodeMap> updateDsfNodes();
   void processUpdatedDsfNodes();
+  void processReachabilityGroup(
+      const std::vector<SwitchID>& localFabricSwitchIds);
   void validateUdfConfig(const UdfConfig& newUdfConfig);
   std::shared_ptr<UdfConfig> updateUdfConfig(bool* changed);
 
@@ -493,7 +495,7 @@ class ThriftConfigApplier {
   SwitchID getSwitchId(const cfg::Interface& intfConfig) const;
   void addRemoteIntfRoute();
   std::optional<SwitchID> getAnyVoqSwitchId();
-  std::vector<SwitchID> getFabricSwitchIds() const;
+  std::vector<SwitchID> getLocalFabricSwitchIds() const;
   std::optional<QueueConfig> getDefaultVoqConfigIfChanged(
       std::shared_ptr<SwitchSettings> switchSettings);
   QueueConfig getVoqConfig(PortID portId);
@@ -795,6 +797,14 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
     }
   }
 
+  {
+    // Update reachability group setting for input balanced
+    auto localFabricSwitchIds = getLocalFabricSwitchIds();
+    if (!localFabricSwitchIds.empty()) {
+      processReachabilityGroup(localFabricSwitchIds);
+    }
+  }
+
   if (!changed) {
     return nullptr;
   }
@@ -814,16 +824,16 @@ std::optional<SwitchID> ThriftConfigApplier::getAnyVoqSwitchId() {
   return switchId;
 }
 
-std::vector<SwitchID> ThriftConfigApplier::getFabricSwitchIds() const {
-  std::vector<SwitchID> fabricSwitchIds;
+std::vector<SwitchID> ThriftConfigApplier::getLocalFabricSwitchIds() const {
+  std::vector<SwitchID> localFabricSwitchIds;
   for (const auto& switchIdAndSwitchInfo :
        *cfg_->switchSettings()->switchIdToSwitchInfo()) {
     if (switchIdAndSwitchInfo.second.switchType() == cfg::SwitchType::FABRIC) {
-      fabricSwitchIds.push_back(
+      localFabricSwitchIds.push_back(
           static_cast<SwitchID>(switchIdAndSwitchInfo.first));
     }
   }
-  return fabricSwitchIds;
+  return localFabricSwitchIds;
 }
 
 // Return the new defaultVoqConfig if it is different from the
@@ -1115,6 +1125,35 @@ void ThriftConfigApplier::processUpdatedDsfNodes() {
       },
       [&](auto newNode) { addDsfNode(newNode); },
       [&](auto oldNode) { rmDsfNode(oldNode); });
+}
+
+void ThriftConfigApplier::processReachabilityGroup(
+    const std::vector<SwitchID>& localFabricSwitchIds) {
+  std::unordered_map<std::string, std::vector<uint32_t>> switchNameToSwitchIds;
+
+  // TODO(zecheng): Update to look at DsfNode layer config once available.
+
+  // To determine if Dsf cluster is single stage:
+  // If there's more than one clusterIds in dsfNode map, it's in multi-stage.
+  std::unordered_set<int> clusterIds;
+  for (const auto& [_, dsfNodeMap] : std::as_const(*new_->getDsfNodes())) {
+    for (const auto& [_, dsfNode] : std::as_const(*dsfNodeMap)) {
+      std::string nodeName = dsfNode->getName();
+      auto iter = switchNameToSwitchIds.find(nodeName);
+      if (iter != switchNameToSwitchIds.end()) {
+        iter->second.push_back(dsfNode->getID());
+      } else {
+        switchNameToSwitchIds[nodeName] = {dsfNode->getID()};
+      }
+      if (auto clusterId = dsfNode->getClusterId()) {
+        clusterIds.insert(*clusterId);
+      }
+    }
+  }
+  bool isSingleStageCluster = clusterIds.size() <= 1;
+  std::ignore = isSingleStageCluster;
+
+  // TODO: Assign reachability group based on expected neighbor.
 }
 
 void ThriftConfigApplier::validateUdfConfig(const UdfConfig& newUdfConfig) {
