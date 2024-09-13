@@ -262,6 +262,9 @@
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.*HwTest_PROFILE_400G_8_PAM4_RS544X2N_COPPER"
         },
         {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*SaiQPHRollbackTest.rollback"
+        },
+        {
           "test_name_regex": "HwAqmTest.verifyPerQueueEcnMarkedStats$"
         },
         {
@@ -385,6 +388,9 @@
         },
         {
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.*HwTest_PROFILE_400G_8_PAM4_RS544X2N_COPPER"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*SaiQPHRollbackTest.rollback"
         },
         {
           "test_name_regex": "HwAqmTest.verifyPerQueueEcnMarkedStats$"
@@ -512,6 +518,9 @@
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.*HwTest_PROFILE_400G_8_PAM4_RS544X2N_COPPER"
         },
         {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*SaiQPHRollbackTest.rollback"
+        },
+        {
           "test_name_regex": "HwAqmTest.verifyPerQueueEcnMarkedStats$"
         },
         {
@@ -565,6 +574,9 @@
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.*HwTest_PROFILE_400G_8_PAM4_RS544X2N_COPPER"
         },
         {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*SaiQPHRollbackTest.rollback"
+        },
+        {
           "test_name_regex": "HwAqmTest.verifyPerQueueEcnMarkedStats$"
         },
         {
@@ -603,6 +615,9 @@
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.*HwTest_PROFILE_400G_8_PAM4_RS544X2N_COPPER"
         },
         {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*SaiQPHRollbackTest.rollback"
+        },
+        {
           "test_name_regex": "HwAqmTest.verifyPerQueueEcnMarkedStats$"
         },
         {
@@ -639,6 +654,9 @@
         },
         {
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.*HwTest_PROFILE_400G_8_PAM4_RS544X2N_COPPER"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*SaiQPHRollbackTest.rollback"
         },
         {
           "test_name_regex": "HwAqmTest.verifyPerQueueEcnMarkedStats$"
@@ -1410,6 +1428,9 @@
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.*HwTest_PROFILE_400G_8_PAM4_RS544X2N_COPPER"
         },
         {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*SaiQPHRollbackTest.rollback"
+        },
+        {
           "test_name_regex": "HwAqmTest.verifyPerQueueEcnMarkedStats$"
         },
         {
@@ -1463,6 +1484,9 @@
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.*HwTest_PROFILE_400G_8_PAM4_RS544X2N_COPPER"
         },
         {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*SaiQPHRollbackTest.rollback"
+        },
+        {
           "test_name_regex": "HwAqmTest.verifyPerQueueEcnMarkedStats$"
         },
         {
@@ -1501,6 +1525,9 @@
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.*HwTest_PROFILE_400G_8_PAM4_RS544X2N_COPPER"
         },
         {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*SaiQPHRollbackTest.rollback"
+        },
+        {
           "test_name_regex": "HwAqmTest.verifyPerQueueEcnMarkedStats$"
         },
         {
@@ -1537,6 +1564,9 @@
         },
         {
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.*HwTest_PROFILE_400G_8_PAM4_RS544X2N_COPPER"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*SaiQPHRollbackTest.rollback"
         },
         {
           "test_name_regex": "HwAqmTest.verifyPerQueueEcnMarkedStats$"
@@ -1592,6 +1622,9 @@
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.*HwTest_PROFILE_400G_8_PAM4_RS544X2N_COPPER"
         },
         {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*SaiQPHRollbackTest.rollback"
+        },
+        {
           "test_name_regex": "HwAqmTest.verifyPerQueueEcnMarkedStats$"
         },
         {
@@ -1630,6 +1663,9 @@
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.*HwTest_PROFILE_400G_8_PAM4_RS544X2N_COPPER"
         },
         {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*SaiQPHRollbackTest.rollback"
+        },
+        {
           "test_name_regex": "HwAqmTest.verifyPerQueueEcnMarkedStats$"
         },
         {
@@ -1666,6 +1702,9 @@
         },
         {
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.*HwTest_PROFILE_400G_8_PAM4_RS544X2N_COPPER"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*SaiQPHRollbackTest.rollback"
         },
         {
           "test_name_regex": "HwAqmTest.verifyPerQueueEcnMarkedStats$"
@@ -1793,6 +1832,9 @@
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.*HwTest_PROFILE_400G_8_PAM4_RS544X2N_COPPER"
         },
         {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*SaiQPHRollbackTest.rollback"
+        },
+        {
           "test_name_regex": "HwAqmTest.verifyPerQueueEcnMarkedStats$"
         },
         {
@@ -1846,6 +1888,9 @@
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.*HwTest_PROFILE_400G_8_PAM4_RS544X2N_COPPER"
         },
         {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*SaiQPHRollbackTest.rollback"
+        },
+        {
           "test_name_regex": "HwAqmTest.verifyPerQueueEcnMarkedStats$"
         },
         {
@@ -1882,6 +1927,9 @@
         },
         {
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.*HwTest_PROFILE_400G_8_PAM4_RS544X2N_COPPER"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*SaiQPHRollbackTest.rollback"
         },
         {
           "test_name_regex": "HwAqmTest.verifyPerQueueEcnMarkedStats$"
@@ -2005,6 +2053,9 @@
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.*HwTest_PROFILE_400G_8_PAM4_RS544X2N_COPPER"
         },
         {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*SaiQPHRollbackTest.rollback"
+        },
+        {
           "test_name_regex": "HwAclCounterTest/[01].*$"
         },
         {
@@ -2041,6 +2092,9 @@
         },
         {
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.*HwTest_PROFILE_400G_8_PAM4_RS544X2N_COPPER"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*SaiQPHRollbackTest.rollback"
         },
         {
           "test_name_regex": "HwAclCounterTest/[01].*$"
@@ -2081,6 +2135,9 @@
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.*HwTest_PROFILE_400G_8_PAM4_RS544X2N_COPPER"
         },
         {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*SaiQPHRollbackTest.rollback"
+        },
+        {
           "test_name_regex": "HwAclCounterTest/[01].*$"
         },
         {
@@ -2117,6 +2174,9 @@
         },
         {
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.*HwTest_PROFILE_400G_8_PAM4_RS544X2N_COPPER"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*SaiQPHRollbackTest.rollback"
         },
         {
           "test_name_regex": "HwAclCounterTest/[01].*$"
@@ -2157,6 +2217,9 @@
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.*HwTest_PROFILE_400G_8_PAM4_RS544X2N_COPPER"
         },
         {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*SaiQPHRollbackTest.rollback"
+        },
+        {
           "test_name_regex": "HwAclCounterTest/[01].*$"
         },
         {
@@ -2193,6 +2256,9 @@
         },
         {
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.*HwTest_PROFILE_400G_8_PAM4_RS544X2N_COPPER"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*SaiQPHRollbackTest.rollback"
         },
         {
           "test_name_regex": "HwAclCounterTest/[01].*$"
