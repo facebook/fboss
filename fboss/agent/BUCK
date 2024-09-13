@@ -564,6 +564,7 @@ cpp_library(
     name = "apply_thrift_config",
     srcs = ["ApplyThriftConfig.cpp"],
     exported_deps = [
+        ":asic_utils",
         ":core",
         ":fboss-error",
         ":hw_asic_table",

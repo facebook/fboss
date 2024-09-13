@@ -20,6 +20,7 @@
 
 #include "fboss/agent/AclNexthopHandler.h"
 
+#include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/HwAsicTable.h"
 #include "fboss/agent/LacpTypes.h"
@@ -1201,6 +1202,46 @@ void ThriftConfigApplier::processReachabilityGroup(
   bool isSingleStageCluster = clusterIds.size() <= 1;
   std::ignore = isSingleStageCluster;
 
+  auto getRemoteSwitchID = [&](const auto& port) {
+    CHECK_EQ(port->getExpectedNeighborValues()->size(), 1);
+    const auto& expectedNeighbor =
+        port->getExpectedNeighborValues()->safe_cref(0);
+    auto neighborName =
+        expectedNeighbor->template cref<switch_config_tags::remoteSystem>()
+            ->toThrift();
+    auto neighborPortName =
+        expectedNeighbor->template cref<switch_config_tags::remotePort>()
+            ->toThrift();
+    CHECK(!switchNameToSwitchIds.at(neighborName).empty());
+    auto baseSwitchId = *std::min_element(
+        switchNameToSwitchIds.at(neighborName).cbegin(),
+        switchNameToSwitchIds.at(neighborName).cend());
+    auto remoteDsfNode = new_->getDsfNodes()->getNode(baseSwitchId);
+    const auto platformMapping =
+        getPlatformMappingForDsfNode(remoteDsfNode->getPlatformType());
+
+    if (!platformMapping) {
+      throw FbossError(
+          "Unable to find platform mapping for port: ",
+          port->getID(),
+          " expected neighbor");
+    }
+    auto virtualDeviceId =
+        platformMapping->getVirtualDeviceID(neighborPortName);
+    if (!virtualDeviceId.has_value()) {
+      throw FbossError(
+          "Unable to find virtual device id for port: ",
+          port->getID(),
+          " expected neighbor");
+    }
+
+    const auto& hwAsic = getHwAsicForAsicType(remoteDsfNode->getAsicType());
+    auto numVirtualDevices = hwAsic.getVirtualDevices();
+    auto remoteSwitchId = baseSwitchId +
+        (virtualDeviceId.value() / numVirtualDevices) * numVirtualDevices;
+
+    return remoteSwitchId;
+  };
   // TODO: Assign reachability group based on expected neighbor.
 }
 
