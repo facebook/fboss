@@ -199,7 +199,6 @@ cfg::SwitchConfig testConfigFabricSwitch() {
     cfg.ports()[p].logicalID() = p + 1;
     cfg.ports()[p].name() = folly::to<string>("port", p + 1);
     cfg.ports()[p].state() = cfg::PortState::ENABLED;
-    cfg.ports()[p].speed() = cfg::PortSpeed::HUNDREDG;
     cfg.ports()[p].speed() = cfg::PortSpeed::TWENTYFIVEG;
     cfg.ports()[p].profileID() =
         cfg::PortProfileID::PROFILE_25G_1_NRZ_CL74_COPPER;
