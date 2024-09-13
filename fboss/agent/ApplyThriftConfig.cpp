@@ -1242,6 +1242,23 @@ void ThriftConfigApplier::processReachabilityGroup(
 
     return remoteSwitchId;
   };
+
+  auto updateReachabilityGroupListSize = [&](const auto fabricSwitchId,
+                                             const auto reachabilityGroupSize) {
+    auto matcher = HwSwitchMatcher(
+        std::unordered_set<SwitchID>({static_cast<SwitchID>(fabricSwitchId)}));
+    if (new_->getSwitchSettings()
+            ->getNodeIf(matcher.matcherString())
+            ->getReachabilityGroupSize() != reachabilityGroupSize) {
+      auto newMultiSwitchSettings = new_->getSwitchSettings()->clone();
+      auto newSwitchSettings =
+          newMultiSwitchSettings->getNodeIf(matcher.matcherString())->clone();
+      newSwitchSettings->setReachabilityGroupSize(reachabilityGroupSize);
+      newMultiSwitchSettings->updateNode(
+          matcher.matcherString(), newSwitchSettings);
+      new_->resetSwitchSettings(newMultiSwitchSettings);
+    }
+  };
   // TODO: Assign reachability group based on expected neighbor.
 }
 
