@@ -51,6 +51,13 @@ class Table {
 
     StyledCell& operator=(StyledCell& other) = default;
 
+    static StyledCell errorIfPos(int val) {
+      if (val > 1) {
+        return StyledCell{std::to_string(val), ERROR};
+      }
+      return StyledCell{std::to_string(val)};
+    }
+
     std::string getData() const {
       return data_;
     }
