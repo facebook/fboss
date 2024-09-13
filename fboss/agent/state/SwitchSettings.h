@@ -557,19 +557,21 @@ class SwitchSettings
     }
   }
 
-  std::optional<int32_t> getReachabilityGroupSize() const {
-    if (auto reachabilityGroupSize =
-            cref<switch_state_tags::reachabilityGroupSize>()) {
-      return reachabilityGroupSize->toThrift();
+  std::optional<int32_t> getReachabilityGroupListSize() const {
+    if (auto reachabilityGroupListSize =
+            cref<switch_state_tags::reachabilityGroupListSize>()) {
+      return reachabilityGroupListSize->toThrift();
     }
     return std::nullopt;
   }
 
-  void setReachabilityGroupSize(std::optional<int32_t> reachabilityGroupSize) {
-    if (!reachabilityGroupSize) {
-      ref<switch_state_tags::reachabilityGroupSize>().reset();
+  void setReachabilityGroupListSize(
+      std::optional<int32_t> reachabilityGroupListSize) {
+    if (!reachabilityGroupListSize) {
+      ref<switch_state_tags::reachabilityGroupListSize>().reset();
     } else {
-      set<switch_state_tags::reachabilityGroupSize>(*reachabilityGroupSize);
+      set<switch_state_tags::reachabilityGroupListSize>(
+          *reachabilityGroupListSize);
     }
   }
 

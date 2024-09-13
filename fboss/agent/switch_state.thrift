@@ -388,7 +388,7 @@ struct SwitchSettingsFields {
   // When there's no IPv4 addresses configured, what address to use to source IPv4 ICMP packets from.
   42: Address.BinaryAddress icmpV4UnavailableSrcAddress;
   // Switch property of reachability group size, for the use of input balanced mode.
-  43: optional i32 reachabilityGroupSize;
+  43: optional i32 reachabilityGroupListSize;
 }
 
 struct RoutePrefix {

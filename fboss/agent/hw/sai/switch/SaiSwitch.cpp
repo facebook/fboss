@@ -1279,10 +1279,10 @@ void SaiSwitch::processSwitchSettingsChangedEntryLocked(
   }
 
   {
-    const auto oldVal = oldSwitchSettings->getReachabilityGroupSize();
-    const auto newVal = newSwitchSettings->getReachabilityGroupSize();
+    const auto oldVal = oldSwitchSettings->getReachabilityGroupListSize();
+    const auto newVal = newSwitchSettings->getReachabilityGroupListSize();
     if (oldVal != newVal) {
-      managerTable_->switchManager().setReachabilityGroupSize(
+      managerTable_->switchManager().setReachabilityGroupList(
           newVal.has_value() ? newVal.value() : 0);
     }
   }

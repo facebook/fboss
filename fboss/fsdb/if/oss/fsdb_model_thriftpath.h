@@ -17113,7 +17113,7 @@ std::pair<strings::creditWatchdog, Child<bool, ::apache::thrift::type_class::int
 std::pair<strings::forceEcmpDynamicMemberUp, Child<bool, ::apache::thrift::type_class::integral, ::apache::thrift::type::bool_t>>,
 std::pair<strings::hostname, Child<::std::string, ::apache::thrift::type_class::string, ::apache::thrift::type::string_t>>,
 std::pair<strings::icmpV4UnavailableSrcAddress, ChildThriftPath<::facebook::network::thrift::BinaryAddress, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>,
-std::pair<strings::reachabilityGroupSize, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>>;
+std::pair<strings::reachabilityGroupListSize, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>>;
   using ChildrenById = fatal::tuple<   std::pair<std::integral_constant<apache::thrift::field_id_t, 1>, Child<::facebook::fboss::cfg::L2LearningMode, ::apache::thrift::type_class::enumeration, ::apache::thrift::type::enum_t<::facebook::fboss::cfg::L2LearningMode>>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 2>, Child<bool, ::apache::thrift::type_class::integral, ::apache::thrift::type::bool_t>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 3>, Child<bool, ::apache::thrift::type_class::integral, ::apache::thrift::type::bool_t>>,
@@ -17198,7 +17198,7 @@ std::pair<strings::creditWatchdog, std::integral_constant<apache::thrift::field_
 std::pair<strings::forceEcmpDynamicMemberUp, std::integral_constant<apache::thrift::field_id_t, 40>>,
 std::pair<strings::hostname, std::integral_constant<apache::thrift::field_id_t, 41>>,
 std::pair<strings::icmpV4UnavailableSrcAddress, std::integral_constant<apache::thrift::field_id_t, 42>>,
-std::pair<strings::reachabilityGroupSize, std::integral_constant<apache::thrift::field_id_t, 43>>>::template type_of<Name>;
+std::pair<strings::reachabilityGroupListSize, std::integral_constant<apache::thrift::field_id_t, 43>>>::template type_of<Name>;
 
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
@@ -17245,7 +17245,7 @@ std::pair<strings::reachabilityGroupSize, std::integral_constant<apache::thrift:
     STRUCT_CHILD_GETTERS(forceEcmpDynamicMemberUp, 40);
     STRUCT_CHILD_GETTERS(hostname, 41);
     STRUCT_CHILD_GETTERS(icmpV4UnavailableSrcAddress, 42);
-    STRUCT_CHILD_GETTERS(reachabilityGroupSize, 43);
+    STRUCT_CHILD_GETTERS(reachabilityGroupListSize, 43);
 
   template <apache::thrift::field_id_t __id>
   auto operator()(const std::integral_constant<apache::thrift::field_id_t, __id>&) {
@@ -17290,7 +17290,7 @@ std::pair<strings::reachabilityGroupSize, std::integral_constant<apache::thrift:
     else if constexpr (__id == 40) { return forceEcmpDynamicMemberUp(); }
     else if constexpr (__id == 41) { return hostname(); }
     else if constexpr (__id == 42) { return icmpV4UnavailableSrcAddress(); }
-    else if constexpr (__id == 43) { return reachabilityGroupSize(); }
+    else if constexpr (__id == 43) { return reachabilityGroupListSize(); }
   }
 
   template <typename T, T... Values>

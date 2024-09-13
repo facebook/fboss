@@ -1154,22 +1154,24 @@ void ThriftConfigApplier::processReachabilityGroup(
   }
   bool isSingleStageCluster = clusterIds.size() <= 1;
 
-  auto updateReachabilityGroupListSize = [&](const auto fabricSwitchId,
-                                             const auto reachabilityGroupSize) {
-    auto matcher = HwSwitchMatcher(
-        std::unordered_set<SwitchID>({static_cast<SwitchID>(fabricSwitchId)}));
-    if (new_->getSwitchSettings()
-            ->getNodeIf(matcher.matcherString())
-            ->getReachabilityGroupSize() != reachabilityGroupSize) {
-      auto newMultiSwitchSettings = new_->getSwitchSettings()->clone();
-      auto newSwitchSettings =
-          newMultiSwitchSettings->getNodeIf(matcher.matcherString())->clone();
-      newSwitchSettings->setReachabilityGroupSize(reachabilityGroupSize);
-      newMultiSwitchSettings->updateNode(
-          matcher.matcherString(), newSwitchSettings);
-      new_->resetSwitchSettings(newMultiSwitchSettings);
-    }
-  };
+  auto updateReachabilityGroupListSize =
+      [&](const auto fabricSwitchId, const auto reachabilityGroupListSize) {
+        auto matcher = HwSwitchMatcher(std::unordered_set<SwitchID>(
+            {static_cast<SwitchID>(fabricSwitchId)}));
+        if (new_->getSwitchSettings()
+                ->getNodeIf(matcher.matcherString())
+                ->getReachabilityGroupListSize() != reachabilityGroupListSize) {
+          auto newMultiSwitchSettings = new_->getSwitchSettings()->clone();
+          auto newSwitchSettings =
+              newMultiSwitchSettings->getNodeIf(matcher.matcherString())
+                  ->clone();
+          newSwitchSettings->setReachabilityGroupListSize(
+              reachabilityGroupListSize);
+          newMultiSwitchSettings->updateNode(
+              matcher.matcherString(), newSwitchSettings);
+          new_->resetSwitchSettings(newMultiSwitchSettings);
+        }
+      };
 
   bool parallelVoqLinks = haveParallelLinksToInterfaceNodes(
       cfg_, localFabricSwitchIds, switchNameToSwitchIds, scopeResolver_);
