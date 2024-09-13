@@ -2465,12 +2465,6 @@ void SaiSwitch::initStoreAndManagersLocked(
     // init and not need to be removed during warm boot. Change ownership for
     // them explicitly to adapter to remove it from unclaimed object
     if (getSwitchType() == cfg::SwitchType::VOQ) {
-      auto& systemPortStore = saiStore_->get<SaiSystemPortTraits>();
-      for (auto& sysPort : platform_->getInternalSystemPortConfig()) {
-        SaiSystemPortTraits::Attributes::ConfigInfo confInfo{sysPort};
-        const auto& obj = systemPortStore.get(confInfo);
-        systemPortStore.loadObjectOwnedByAdapter(obj->adapterKey(), true);
-      }
       managerTable_->bridgeManager().createBridgeHandle();
     }
   }
