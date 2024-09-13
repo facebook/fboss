@@ -86,6 +86,7 @@ bool PkgManager::processRpms() const {
     XLOG(INFO) << fmt::format("Installing BSP Kmods {}", bspKmodsRpmName);
     removeOldRpms(getKmodsRpmBaseWithKernelName());
     installRpm(bspKmodsRpmName, 3 /* maxAttempts */);
+    runDepmod();
     return true;
   } else {
     XLOG(INFO) << fmt::format(
@@ -192,6 +193,18 @@ void PkgManager::removeOldRpms(const std::string& rpmBaseName) const {
         "Failed to remove old rpms ({}) with exit code {}",
         folly::join(" ", installedRpms),
         exitStatus));
+  }
+}
+
+void PkgManager::runDepmod() const {
+  int exitStatus{0};
+  std::string standardOut{};
+  auto depmodCmd = "depmod -a";
+  XLOG(INFO) << fmt::format("Running command ({})", depmodCmd);
+  std::tie(exitStatus, standardOut) = PlatformUtils().execCommand(depmodCmd);
+  if (exitStatus != 0) {
+    XLOG(ERR) << fmt::format(
+        "Command ({}) failed with exit code {}", depmodCmd, exitStatus);
   }
 }
 

@@ -30,6 +30,7 @@ class PkgManager {
   bool isRpmInstalled(const std::string& rpmFullName) const;
   void installRpm(const std::string& rpmFullName, int maxAttempts) const;
   void removeOldRpms(const std::string& rpmBaseName) const;
+  void runDepmod() const;
   void installLocalRpm(int maxAttempts) const;
 
   const PlatformConfig& platformConfig_;
