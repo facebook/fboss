@@ -95,6 +95,7 @@ target_link_libraries(agent_hw_test_src
   pktutil
   mirror_test_utils
   voq_test_utils
+  fib_updater
 )
 
 add_executable(multi_switch_agent_hw_test
