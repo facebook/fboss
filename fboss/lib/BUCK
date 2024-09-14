@@ -255,8 +255,8 @@ cpp_library(
     exported_deps = [
         "//fb303:thread_cached_service_data",
         "//folly:network_address",
-        "//folly/experimental/coro:async_scope",
-        "//folly/experimental/coro:blocking_wait",
+        "//folly/coro:async_scope",
+        "//folly/coro:blocking_wait",
         "//folly/io/async:async_base",
         "//folly/logging:logging",
     ],

@@ -28,9 +28,9 @@
 #include <thrift/lib/cpp/util/EnumUtils.h>
 #include "fboss/agent/test/MultiSwitchTestServer.h"
 
-#include <folly/experimental/coro/GtestHelpers.h>
-#include <folly/experimental/coro/Timeout.h>
-#include <folly/experimental/coro/UnboundedQueue.h>
+#include <folly/coro/GtestHelpers.h>
+#include <folly/coro/Timeout.h>
+#include <folly/coro/UnboundedQueue.h>
 #include <folly/portability/GTest.h>
 #include <memory>
 

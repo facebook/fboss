@@ -10,7 +10,7 @@
 #include "fboss/thrift_cow/gen-cpp2/patch_types.h"
 
 #include <folly/Synchronized.h>
-#include <folly/experimental/coro/AsyncScope.h>
+#include <folly/coro/AsyncScope.h>
 #include <folly/io/async/EventBase.h>
 #include <folly/io/async/ScopedEventBaseThread.h>
 

@@ -10,7 +10,7 @@
 
 #include <folly/Format.h>
 #include <folly/String.h>
-#include <folly/experimental/coro/AsyncGenerator.h>
+#include <folly/coro/AsyncGenerator.h>
 
 #include <folly/logging/xlog.h>
 

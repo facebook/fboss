@@ -10,7 +10,7 @@
 #include "fboss/agent/mnpu/LinkChangeEventSyncer.h"
 #include "fboss/agent/HwSwitch.h"
 #if FOLLY_HAS_COROUTINES
-#include <folly/experimental/coro/BlockingWait.h>
+#include <folly/coro/BlockingWait.h>
 #endif
 
 namespace facebook::fboss {
