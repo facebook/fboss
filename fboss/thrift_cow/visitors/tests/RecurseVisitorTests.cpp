@@ -7,7 +7,7 @@
 #include <gtest/gtest.h>
 
 #include <fboss/thrift_cow/visitors/RecurseVisitor.h>
-#include <thrift/lib/cpp2/reflection/folly_dynamic.h>
+#include <thrift/lib/cpp2/folly_dynamic/folly_dynamic.h>
 #include "fboss/thrift_cow/nodes/Types.h"
 #include "fboss/thrift_cow/nodes/tests/gen-cpp2/test_fatal_types.h"
 
@@ -40,8 +40,8 @@ folly::dynamic createTestDynamic() {
 }
 
 TestStruct createTestStruct(folly::dynamic testDyn) {
-  return apache::thrift::from_dynamic<TestStruct>(
-      std::move(testDyn), apache::thrift::dynamic_format::JSON_1);
+  return facebook::thrift::from_dynamic<TestStruct>(
+      std::move(testDyn), facebook::thrift::dynamic_format::JSON_1);
 }
 
 } // namespace

@@ -536,7 +536,8 @@ TYPED_TEST(ThriftTestAllSwitchTypes, getDsfNodes) {
     EXPECT_THROW(handler.getDsfNodes(dsfNodes), FbossError);
   } else {
     handler.getDsfNodes(dsfNodes);
-    EXPECT_EQ(dsfNodes.size(), 2);
+    EXPECT_EQ(
+        dsfNodes.size(), this->sw_->getState()->getDsfNodes()->numNodes());
   }
 }
 

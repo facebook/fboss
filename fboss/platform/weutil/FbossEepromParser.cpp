@@ -57,7 +57,7 @@ const std::vector<EepromFieldEntry> kFieldDictionaryV3 = {
     {13, "System Manufacturer", FIELD_STRING, 8, 121},
     {14, "System Manufacturing Date", FIELD_DATE, 4, 129},
     {15, "PCB Manufacturer", FIELD_STRING, 8, 133},
-    {16, "Assembled at", FIELD_STRING, 8, 141},
+    {16, "Assembled At", FIELD_STRING, 8, 141},
     {17, "Local MAC", FIELD_LEGACY_MAC, 12, 149},
     {17, "Extended MAC Base", FIELD_LEGACY_MAC, 12, 161},
     {18, "Extended MAC Address Size", FIELD_LE_UINT, 2, 173},
@@ -80,7 +80,7 @@ const std::vector<EepromFieldEntry> kFieldDictionaryV4 = {
     {12, "System Manufacturer", FIELD_STRING, VARIABLE, VARIABLE},
     {13, "System Manufacturing Date", FIELD_STRING, 8, VARIABLE},
     {14, "PCB Manufacturer", FIELD_STRING, VARIABLE, VARIABLE},
-    {15, "Assembled at", FIELD_STRING, VARIABLE, VARIABLE},
+    {15, "Assembled At", FIELD_STRING, VARIABLE, VARIABLE},
     {16, "Local MAC", FIELD_V4_MAC, 6, VARIABLE},
     {17, "Extended MAC Base", FIELD_V4_MAC, 6, VARIABLE},
     {18, "Extended MAC Address Size", FIELD_LE_UINT, 2, VARIABLE},
@@ -104,7 +104,7 @@ const std::vector<EepromFieldEntry> kFieldDictionaryV5 = {
     {12, "System Manufacturer", FIELD_STRING, VARIABLE, VARIABLE},
     {13, "System Manufacturing Date", FIELD_STRING, 8, VARIABLE},
     {14, "PCB Manufacturer", FIELD_STRING, VARIABLE, VARIABLE},
-    {15, "Assembled at", FIELD_STRING, VARIABLE, VARIABLE},
+    {15, "Assembled At", FIELD_STRING, VARIABLE, VARIABLE},
     {16, "EEPROM location on Fabric", FIELD_STRING, VARIABLE, VARIABLE},
     {17, "X86 CPU MAC", FIELD_V5_MAC, 8, VARIABLE},
     {18, "BMC MAC", FIELD_V5_MAC, 8, VARIABLE},
@@ -408,11 +408,15 @@ FbossEepromParser::prepareEepromFieldMap(
   std::vector<EepromFieldEntry> fieldDictionary;
   fieldDictionary = getEepromFieldDict(eepromVer);
 
+  // Add the EEPROM version to parsed result. It's not part of the
+  // field dictionary, so we add it here.
+  result.push_back({"Version", std::to_string(eepromVer)});
+
   for (auto dictItem : fieldDictionary) {
     std::string key = dictItem.fieldName;
     std::string value;
     auto match = parsedValue.find(dictItem.typeCode);
-    // "NA" is reservered, and not for display
+    // "NA" is reserved, and not for display
     if (key == "NA") {
       continue;
     }

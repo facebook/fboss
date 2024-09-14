@@ -54,6 +54,7 @@ struct TxPacket {
   1: fbbinary data;
   2: optional i32 port;
   3: optional i32 queue;
+  4: i32 length;
 }
 
 struct RxPacket {
@@ -61,6 +62,8 @@ struct RxPacket {
   2: i32 port;
   3: optional i32 aggPort;
   4: optional i16 vlan;
+  5: i32 length;
+  6: optional ctrl.CpuCosQueueId cosQueue;
 }
 
 struct StateOperDelta {

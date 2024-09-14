@@ -9,6 +9,7 @@
 #include "fboss/fsdb/if/FsdbModel.h"
 #include "fboss/fsdb/if/gen-cpp2/fsdb_common_types.h"
 #include "fboss/thrift_cow/nodes/Serializer.h"
+#include "fboss/util/Logging.h"
 
 using namespace facebook::fboss;
 namespace {
@@ -53,7 +54,6 @@ std::vector<std::vector<std::string>> getAllSubscribePaths(
           DsfSubscription::makeRemoteEndpoint(localNodeName, localIP))
           .tokens()};
 }
-auto constexpr kDsfCtrlLogPrefix = "DSF_CTRL_EVENT: ";
 } // namespace
 
 namespace facebook::fboss {
@@ -133,7 +133,8 @@ void DsfSubscription::setupSubscription() {
     subMgr_->subscribe(
         [this, remoteEndpoint, sysPortPathKey, inftMapKey, dsfSubscriptionsKey](
             auto update) {
-          auto agentState = update.data->template ref<k_fsdb_model::agent>();
+          auto agentState =
+              update.data->template safe_cref<k_fsdb_model::agent>();
           bool portsOrIntfsChanged = false;
           for (const auto& key : update.updatedKeys) {
             if (key == sysPortPathKey || key == inftMapKey) {
@@ -149,7 +150,7 @@ void DsfSubscription::setupSubscription() {
           }
           if (portsOrIntfsChanged) {
             auto switchState =
-                agentState->template ref<k_fsdb_model::switchState>();
+                agentState->template safe_cref<k_fsdb_model::switchState>();
             queueRemoteStateChanged(
                 *switchState->getSystemPorts(), *switchState->getInterfaces());
           }
@@ -262,7 +263,8 @@ void DsfSubscription::handleFsdbUpdate(fsdb::OperSubPathUnit&& operStateUnit) {
     } else if (getDsfSubscriptionsPath(
                    makeRemoteEndpoint(localNodeName_, localIp_))
                    .matchesPath(*change.path()->path())) {
-      XLOG(DBG2) << "Got dsf sub update from : " << remoteNodeName_;
+      XLOG(DBG2) << kDsfCtrlLogPrefix
+                 << "Got dsf sub update from : " << remoteNodeName_;
 
       using targetType = fsdb::FsdbSubscriptionState;
       using targetTypeClass = apache::thrift::type_class::enumeration;

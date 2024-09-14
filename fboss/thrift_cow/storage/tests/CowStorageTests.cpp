@@ -8,7 +8,7 @@
 #include <fboss/thrift_cow/storage/CowStorage.h>
 #include <fboss/thrift_cow/visitors/PatchBuilder.h>
 #include <fboss/thrift_cow/visitors/RecurseVisitor.h>
-#include <thrift/lib/cpp2/reflection/folly_dynamic.h>
+#include <thrift/lib/cpp2/folly_dynamic/folly_dynamic.h>
 #include "fboss/fsdb/oper/ExtendedPathBuilder.h"
 #include "fboss/fsdb/tests/gen-cpp2-thriftpath/thriftpath_test.h" // @manual=//fboss/fsdb/tests:thriftpath_test_thrift-cpp2-thriftpath
 #include "fboss/fsdb/tests/gen-cpp2/thriftpath_test_fatal_types.h"
@@ -33,8 +33,8 @@ dynamic createTestDynamic() {
 
 TestStruct createTestStruct() {
   auto testDyn = createTestDynamic();
-  return apache::thrift::from_dynamic<TestStruct>(
-      testDyn, apache::thrift::dynamic_format::JSON_1);
+  return facebook::thrift::from_dynamic<TestStruct>(
+      testDyn, facebook::thrift::dynamic_format::JSON_1);
 }
 
 TestStruct createTestStructForExtendedTests() {
@@ -45,8 +45,8 @@ TestStruct createTestStructForExtendedTests() {
     testDyn["setOfI32"].push_back(i);
   }
 
-  return apache::thrift::from_dynamic<TestStruct>(
-      testDyn, apache::thrift::dynamic_format::JSON_1);
+  return facebook::thrift::from_dynamic<TestStruct>(
+      testDyn, facebook::thrift::dynamic_format::JSON_1);
 }
 
 template <typename T, typename = void>
@@ -79,8 +79,8 @@ TEST(CowStorageTests, GetThrift) {
 
   thriftpath::RootThriftPath<TestStruct> root;
 
-  auto testStruct = apache::thrift::from_dynamic<TestStruct>(
-      createTestDynamic(), apache::thrift::dynamic_format::JSON_1);
+  auto testStruct = facebook::thrift::from_dynamic<TestStruct>(
+      createTestDynamic(), facebook::thrift::dynamic_format::JSON_1);
   auto storage = CowStorage<TestStruct>(testStruct);
 
   EXPECT_EQ(storage.get(root.tx()).value(), true);
@@ -96,8 +96,8 @@ TEST(CowStorageTests, GetEncoded) {
 
   thriftpath::RootThriftPath<TestStruct> root;
 
-  auto testStruct = apache::thrift::from_dynamic<TestStruct>(
-      createTestDynamic(), apache::thrift::dynamic_format::JSON_1);
+  auto testStruct = facebook::thrift::from_dynamic<TestStruct>(
+      createTestDynamic(), facebook::thrift::dynamic_format::JSON_1);
   auto storage = CowStorage<TestStruct>(testStruct);
 
   auto result = storage.get_encoded(root.tx(), OperProtocol::SIMPLE_JSON);
@@ -137,8 +137,8 @@ TEST(CowStorageTests, GetEncodedMetadata) {
 
   thriftpath::RootThriftPath<TestStruct> root;
 
-  auto testStruct = apache::thrift::from_dynamic<TestStruct>(
-      createTestDynamic(), apache::thrift::dynamic_format::JSON_1);
+  auto testStruct = facebook::thrift::from_dynamic<TestStruct>(
+      createTestDynamic(), facebook::thrift::dynamic_format::JSON_1);
   auto storage = CowStorage<TestStruct>(testStruct);
 
   auto result = storage.get_encoded(root.tx(), OperProtocol::SIMPLE_JSON);
@@ -183,8 +183,8 @@ TEST(CowStorageTests, SetThrift) {
 
   thriftpath::RootThriftPath<TestStruct> root;
 
-  auto testStruct = apache::thrift::from_dynamic<TestStruct>(
-      createTestDynamic(), apache::thrift::dynamic_format::JSON_1);
+  auto testStruct = facebook::thrift::from_dynamic<TestStruct>(
+      createTestDynamic(), facebook::thrift::dynamic_format::JSON_1);
   auto storage = CowStorage<TestStruct>(testStruct);
 
   EXPECT_EQ(storage.get(root.tx()).value(), true);
@@ -217,8 +217,8 @@ TEST(CowStorageTests, AddThrift) {
 
   thriftpath::RootThriftPath<TestStruct> root;
 
-  auto testStruct = apache::thrift::from_dynamic<TestStruct>(
-      createTestDynamic(), apache::thrift::dynamic_format::JSON_1);
+  auto testStruct = facebook::thrift::from_dynamic<TestStruct>(
+      createTestDynamic(), facebook::thrift::dynamic_format::JSON_1);
   auto storage = CowStorage<TestStruct>(testStruct);
 
   EXPECT_EQ(storage.get(root.tx()).value(), true);
@@ -256,8 +256,8 @@ TEST(CowStorageTests, AddDynamic) {
 
   thriftpath::RootThriftPath<TestStruct> root;
 
-  auto testStruct = apache::thrift::from_dynamic<TestStruct>(
-      createTestDynamic(), apache::thrift::dynamic_format::JSON_1);
+  auto testStruct = facebook::thrift::from_dynamic<TestStruct>(
+      createTestDynamic(), facebook::thrift::dynamic_format::JSON_1);
   auto storage = CowStorage<TestStruct>(testStruct);
 
   EXPECT_EQ(storage.get(root.tx()).value(), true);
@@ -272,8 +272,8 @@ TEST(CowStorageTests, RemoveThrift) {
 
   thriftpath::RootThriftPath<TestStruct> root;
 
-  auto testStruct = apache::thrift::from_dynamic<TestStruct>(
-      createTestDynamic(), apache::thrift::dynamic_format::JSON_1);
+  auto testStruct = facebook::thrift::from_dynamic<TestStruct>(
+      createTestDynamic(), facebook::thrift::dynamic_format::JSON_1);
   auto storage = CowStorage<TestStruct>(testStruct);
 
   EXPECT_EQ(storage.get(root.tx()).value(), true);
@@ -329,8 +329,8 @@ TEST(CowStorageTests, PatchDelta) {
 
   thriftpath::RootThriftPath<TestStruct> root;
 
-  auto testStruct = apache::thrift::from_dynamic<TestStruct>(
-      createTestDynamic(), apache::thrift::dynamic_format::JSON_1);
+  auto testStruct = facebook::thrift::from_dynamic<TestStruct>(
+      createTestDynamic(), facebook::thrift::dynamic_format::JSON_1);
   auto storage = CowStorage<TestStruct>(testStruct);
 
   // publish to ensure we can patch published storage

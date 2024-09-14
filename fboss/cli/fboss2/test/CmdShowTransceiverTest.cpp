@@ -219,12 +219,12 @@ cli::ShowTransceiverModel createTransceiverModel() {
   setValidationStatus(entry6, "Validated", "--");
   setOperAttributes(entry6, 30.0, 30.0);
 
-  model.transceivers()->emplace(1, std::move(entry1));
-  model.transceivers()->emplace(2, std::move(entry2));
-  model.transceivers()->emplace(3, std::move(entry3));
-  model.transceivers()->emplace(4, std::move(entry4));
-  model.transceivers()->emplace(5, std::move(entry5));
-  model.transceivers()->emplace(6, std::move(entry6));
+  model.transceivers()->emplace("eth1/1/1", std::move(entry1));
+  model.transceivers()->emplace("eth1/2/1", std::move(entry2));
+  model.transceivers()->emplace("eth1/3/1", std::move(entry3));
+  model.transceivers()->emplace("eth1/4/1", std::move(entry4));
+  model.transceivers()->emplace("eth1/5/1", std::move(entry5));
+  model.transceivers()->emplace("eth1/6/1", std::move(entry6));
 
   return model;
 }

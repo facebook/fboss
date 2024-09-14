@@ -23,17 +23,18 @@ int16_t PidLogic::calculatePwm(float measurement) {
     auto derivative = (*error - lastError_) / dT_;
     newPwm = (*pidSetting_.kp() * error.value()) +
         (*pidSetting_.ki() * integral_) + (*pidSetting_.kd() * derivative);
-    if (newPwm < 0) {
-      newPwm = 0;
-    }
-    lastPwm_ = newPwm;
-    lastError_ = error.value();
   } else {
     newPwm = lastPwm_;
   }
 
   if (measurement <= maxVal) {
-    integral_ = lastPwm_ / *pidSetting_.ki();
+    integral_ = newPwm / *pidSetting_.ki();
+  }
+
+  if (newPwm < 0) {
+    newPwm = 0;
+  } else if (newPwm > 100) {
+    newPwm = 100;
   }
 
   XLOG(DBG1) << fmt::format(
@@ -42,6 +43,9 @@ int16_t PidLogic::calculatePwm(float measurement) {
       error.value_or(0),
       lastPwm_,
       newPwm);
+
+  lastPwm_ = newPwm;
+  lastError_ = error.value_or(0);
 
   return newPwm;
 }

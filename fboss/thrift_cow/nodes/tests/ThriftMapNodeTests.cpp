@@ -9,8 +9,8 @@
  */
 
 #include <fboss/thrift_cow/visitors/tests/VisitorTestUtils.h>
+#include <thrift/lib/cpp2/folly_dynamic/folly_dynamic.h>
 #include <thrift/lib/cpp2/protocol/Serializer.h>
-#include <thrift/lib/cpp2/reflection/folly_dynamic.h>
 #include <thrift/lib/cpp2/reflection/reflection.h>
 #include <thrift/lib/cpp2/reflection/testing.h>
 #include "fboss/agent/gen-cpp2/switch_config_fatal_types.h"
@@ -392,8 +392,10 @@ TEST(ThriftMapNodeTests, ThriftMapNodeStructsVisit) {
   auto result = visitPath(node, path.begin(), path.end(), f);
   ASSERT_EQ(result, ThriftTraverseResult::OK);
   folly::dynamic expected;
-  apache::thrift::to_dynamic(
-      expected, data[TestEnum::FIRST], apache::thrift::dynamic_format::JSON_1);
+  facebook::thrift::to_dynamic(
+      expected,
+      data[TestEnum::FIRST],
+      facebook::thrift::dynamic_format::JSON_1);
   ASSERT_EQ(out, expected);
 
   // visit by enum value should also work
@@ -405,8 +407,10 @@ TEST(ThriftMapNodeTests, ThriftMapNodeStructsVisit) {
   path = {"SECOND"};
   result = visitPath(node, path.begin(), path.end(), f);
   ASSERT_EQ(result, ThriftTraverseResult::OK);
-  apache::thrift::to_dynamic(
-      expected, data[TestEnum::SECOND], apache::thrift::dynamic_format::JSON_1);
+  facebook::thrift::to_dynamic(
+      expected,
+      data[TestEnum::SECOND],
+      facebook::thrift::dynamic_format::JSON_1);
   ASSERT_EQ(out, expected);
 
   path = {"2"};
@@ -466,15 +470,19 @@ TEST(ThriftMapNodeTests, ThriftMapNodeStructsVisitMutable) {
   auto result = visitPath(node, path.begin(), path.end(), read);
   ASSERT_EQ(result, ThriftTraverseResult::OK);
   folly::dynamic expected;
-  apache::thrift::to_dynamic(
-      expected, data[TestEnum::FIRST], apache::thrift::dynamic_format::JSON_1);
+  facebook::thrift::to_dynamic(
+      expected,
+      data[TestEnum::FIRST],
+      facebook::thrift::dynamic_format::JSON_1);
   ASSERT_EQ(out, expected);
 
   path = {"SECOND"};
   result = visitPath(node, path.begin(), path.end(), read);
   ASSERT_EQ(result, ThriftTraverseResult::OK);
-  apache::thrift::to_dynamic(
-      expected, data[TestEnum::SECOND], apache::thrift::dynamic_format::JSON_1);
+  facebook::thrift::to_dynamic(
+      expected,
+      data[TestEnum::SECOND],
+      facebook::thrift::dynamic_format::JSON_1);
   ASSERT_EQ(out, expected);
 
   path = {"THIRD"};
@@ -492,8 +500,8 @@ TEST(ThriftMapNodeTests, ThriftMapNodeStructsVisitMutable) {
   ASSERT_EQ(out, 1000);
 
   path = {"FIRST"};
-  apache::thrift::to_dynamic(
-      toWrite, buildPortRange(1, 2), apache::thrift::dynamic_format::JSON_1);
+  facebook::thrift::to_dynamic(
+      toWrite, buildPortRange(1, 2), facebook::thrift::dynamic_format::JSON_1);
   result = visitPath(node, path.begin(), path.end(), write);
   ASSERT_EQ(result, ThriftTraverseResult::OK);
   result = visitPath(node, path.begin(), path.end(), read);

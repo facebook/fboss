@@ -9,8 +9,8 @@
  */
 
 #include <fboss/thrift_cow/visitors/tests/VisitorTestUtils.h>
+#include <thrift/lib/cpp2/folly_dynamic/folly_dynamic.h>
 #include <thrift/lib/cpp2/protocol/Serializer.h>
-#include <thrift/lib/cpp2/reflection/folly_dynamic.h>
 #include <thrift/lib/cpp2/reflection/reflection.h>
 #include <thrift/lib/cpp2/reflection/testing.h>
 #include "fboss/agent/gen-cpp2/switch_config_fatal_types.h"
@@ -365,15 +365,15 @@ TEST(ThriftListNodeTests, ThriftListNodeStructsVisit) {
   auto result = visitPath(fields, path.begin(), path.end(), f);
   ASSERT_EQ(result, ThriftTraverseResult::OK);
   folly::dynamic expected;
-  apache::thrift::to_dynamic(
-      expected, data[0], apache::thrift::dynamic_format::JSON_1);
+  facebook::thrift::to_dynamic(
+      expected, data[0], facebook::thrift::dynamic_format::JSON_1);
   ASSERT_EQ(out, expected);
 
   path = {"1"};
   result = visitPath(fields, path.begin(), path.end(), f);
   ASSERT_EQ(result, ThriftTraverseResult::OK);
-  apache::thrift::to_dynamic(
-      expected, data[1], apache::thrift::dynamic_format::JSON_1);
+  facebook::thrift::to_dynamic(
+      expected, data[1], facebook::thrift::dynamic_format::JSON_1);
   ASSERT_EQ(out, expected);
 
   path = {"0", "nonexistent"};
@@ -407,19 +407,19 @@ TEST(ThriftListNodeTests, ThriftListNodeStructsVisitMutable) {
   auto result = visitPath(fields, path.begin(), path.end(), read);
   ASSERT_EQ(result, ThriftTraverseResult::OK);
   folly::dynamic expected;
-  apache::thrift::to_dynamic(
-      expected, data[0], apache::thrift::dynamic_format::JSON_1);
+  facebook::thrift::to_dynamic(
+      expected, data[0], facebook::thrift::dynamic_format::JSON_1);
   ASSERT_EQ(out, expected);
 
   path = {"1"};
   result = visitPath(fields, path.begin(), path.end(), read);
   ASSERT_EQ(result, ThriftTraverseResult::OK);
-  apache::thrift::to_dynamic(
-      expected, data[1], apache::thrift::dynamic_format::JSON_1);
+  facebook::thrift::to_dynamic(
+      expected, data[1], facebook::thrift::dynamic_format::JSON_1);
   ASSERT_EQ(out, expected);
 
-  apache::thrift::to_dynamic(
-      toWrite, buildPortRange(1, 2), apache::thrift::dynamic_format::JSON_1);
+  facebook::thrift::to_dynamic(
+      toWrite, buildPortRange(1, 2), facebook::thrift::dynamic_format::JSON_1);
 
   path = {"0"};
   result = visitPath(fields, path.begin(), path.end(), write);

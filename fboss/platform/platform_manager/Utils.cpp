@@ -65,7 +65,7 @@ void verifyPlatformNameMatches(
 
 PlatformConfig Utils::getConfig() {
   std::string platformNameFromBios =
-      helpers::PlatformNameLib().getPlatformNameFromBios();
+      helpers::PlatformNameLib().getPlatformNameFromBios(true);
   std::string configJson =
       ConfigLib().getPlatformManagerConfig(platformNameFromBios);
   PlatformConfig config;

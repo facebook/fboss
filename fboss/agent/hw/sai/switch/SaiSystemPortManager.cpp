@@ -55,7 +55,22 @@ SaiSystemPortManager::SaiSystemPortManager(
       tcToQueueMapAllowedOnSystemPort_(
           platform_->getAsic()->getSwitchType() == cfg::SwitchType::VOQ &&
           platform_->getAsic()->isSupported(
-              HwAsic::Feature::TC_TO_QUEUE_QOS_MAP_ON_SYSTEM_PORT)) {}
+              HwAsic::Feature::TC_TO_QUEUE_QOS_MAP_ON_SYSTEM_PORT)) {
+  // Extract platform created system ports
+  if (platform_->getAsic()->getSwitchType() == cfg::SwitchType::VOQ) {
+    auto& systemPortStore = saiStore_->get<SaiSystemPortTraits>();
+    for (auto& sysPort : platform_->getInternalSystemPortConfig()) {
+      SaiSystemPortTraits::Attributes::ConfigInfo confInfo{sysPort};
+      const auto& obj = systemPortStore.get(confInfo);
+      auto sysPortObj =
+          systemPortStore.loadObjectOwnedByAdapter(obj->adapterKey());
+      auto handle = std::make_unique<SaiSystemPortHandle>();
+      handle->systemPort = std::move(sysPortObj);
+      handles_.insert(
+          {SystemPortID(confInfo.value().port_id), std::move(handle)});
+    }
+  }
+}
 
 SaiSystemPortManager::~SaiSystemPortManager() {}
 

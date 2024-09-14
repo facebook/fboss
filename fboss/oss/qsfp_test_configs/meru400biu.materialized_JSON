@@ -80,7 +80,7 @@
           "versions": [
             {
               "fwType": 1,
-              "version": "1.13"
+              "version": "1.15"
             }
           ]
       },
@@ -200,7 +200,7 @@
           "versions": [
             {
               "fwType": 1,
-              "version": "103.243"
+              "version": "103.244"
             }
           ]
       }

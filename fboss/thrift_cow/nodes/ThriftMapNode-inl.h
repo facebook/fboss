@@ -12,8 +12,8 @@
 
 #include <fatal/container/tuple.h>
 #include <folly/json/dynamic.h>
+#include <thrift/lib/cpp2/folly_dynamic/folly_dynamic.h>
 #include <thrift/lib/cpp2/protocol/detail/protocol_methods.h>
-#include <thrift/lib/cpp2/reflection/folly_dynamic.h>
 #include <thrift/lib/cpp2/reflection/reflection.h>
 #include "fboss/agent/state/NodeBase-defs.h"
 #include "fboss/thrift_cow/nodes/NodeUtils.h"
@@ -60,6 +60,9 @@ struct ThriftMapFields {
       std::map<key_type, value_type, typename Traits::KeyCompare>;
   using iterator = typename StorageType::iterator;
   using const_iterator = typename StorageType::const_iterator;
+  using Tag = apache::thrift::type::map<
+      apache::thrift::type::infer_tag<key_type, true /* GuessStringTag */>,
+      apache::thrift::type::infer_tag<ValueTType, true /* GuessStringTag */>>;
 
   // whether the contained type is another Cow node, or a primitive node
   static constexpr bool HasChildNodes = ValueTraits::isChild::value;
@@ -106,15 +109,15 @@ struct ThriftMapFields {
 
   folly::dynamic toDynamic() const {
     folly::dynamic out;
-    apache::thrift::to_dynamic<TypeClass>(
-        out, toThrift(), apache::thrift::dynamic_format::JSON_1);
+    facebook::thrift::to_dynamic<Tag>(
+        out, toThrift(), facebook::thrift::dynamic_format::JSON_1);
     return out;
   }
 
   void fromDynamic(const folly::dynamic& value) {
     TType thrift;
-    apache::thrift::from_dynamic<TypeClass>(
-        thrift, value, apache::thrift::dynamic_format::JSON_1);
+    facebook::thrift::from_dynamic<Tag>(
+        thrift, value, facebook::thrift::dynamic_format::JSON_1);
     fromThrift(thrift);
   }
 #endif

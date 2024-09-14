@@ -6,6 +6,7 @@
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/utils/AclTestUtils.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
+#include "fboss/agent/test/utils/MirrorTestUtils.h"
 #include "fboss/lib/CommonUtils.h"
 
 #include <folly/IPAddress.h>
@@ -17,52 +18,13 @@
 #include <folly/logging/xlog.h>
 
 namespace {
-template <typename AddrT>
-struct TestParams {
-  AddrT senderIp;
-  AddrT receiverIp;
-  AddrT mirrorDestinationIp;
-
-  TestParams(
-      const AddrT& _senderIp,
-      const AddrT& _receiverIp,
-      const AddrT& _mirrorDestinationIp)
-      : senderIp(_senderIp),
-        receiverIp(_receiverIp),
-        mirrorDestinationIp(_mirrorDestinationIp) {}
-};
-
-template <typename AddrT>
-TestParams<AddrT> getTestParams();
-
-template <>
-TestParams<folly::IPAddressV4> getTestParams<folly::IPAddressV4>() {
-  return TestParams<folly::IPAddressV4>(
-      folly::IPAddressV4("101.0.0.10"), // sender
-      folly::IPAddressV4("201.0.0.10"), // receiver
-      folly::IPAddressV4("101.0.0.11")); // erspan destination
-}
-
-template <>
-TestParams<folly::IPAddressV6> getTestParams<folly::IPAddressV6>() {
-  return TestParams<folly::IPAddressV6>(
-      folly::IPAddressV6("101::10"), // sender
-      folly::IPAddressV6("201::10"), // receiver
-      folly::IPAddressV6("101::11")); // erspan destination
-}
-
 using TestTypes = ::testing::Types<folly::IPAddressV4, folly::IPAddressV6>;
 const std::string kIngressSpan = "ingress_span";
 const std::string kIngressErspan = "ingress_erspan";
 const std::string kEgressSpan = "egress_span";
 const std::string kEgressErspan = "egress_erspan";
 
-// Port 0 is used for traffic and port 1 is used for mirroring.
-const uint8_t kTrafficPortIndex = 0;
-const uint8_t kMirrorToPortIndex = 1;
-
-constexpr auto kDscpDefault = facebook::fboss::cfg::switch_config_constants::
-    DEFAULT_MIRROR_DSCP_; // default dscp value
+const std::string kMirrorAcl = "mirror_acl";
 
 } // namespace
 
@@ -80,47 +42,28 @@ class AgentMirroringTest : public AgentHwTest {
     return config;
   }
 
-  /*
-   * This configures a local/erspan mirror session.
-   * Adds a tunnel config if the mirrorname is erspan.
-   */
-  void addMirrorConfig(
-      cfg::SwitchConfig* cfg,
-      const AgentEnsemble& ensemble,
-      const std::string& mirrorName,
-      bool truncate,
-      uint8_t dscp = kDscpDefault) const {
-    auto mirrorToPort = ensemble.masterLogicalPortIds(
-        {cfg::PortType::INTERFACE_PORT})[kMirrorToPortIndex];
-    auto params = getTestParams<AddrT>();
-    cfg::MirrorDestination destination;
-    destination.egressPort() = cfg::MirrorEgressPort();
-    destination.egressPort()->logicalID_ref() = mirrorToPort;
-    if (mirrorName == kIngressErspan || mirrorName == kEgressErspan) {
-      cfg::MirrorTunnel tunnel;
-      cfg::GreTunnel greTunnel;
-      greTunnel.ip() = params.mirrorDestinationIp.str();
-      tunnel.greTunnel() = greTunnel;
-      destination.tunnel() = tunnel;
-    }
-    cfg::Mirror mirrorConfig;
-    mirrorConfig.name() = mirrorName;
-    mirrorConfig.destination() = destination;
-    mirrorConfig.truncate() = truncate;
-    mirrorConfig.dscp() = dscp;
-    cfg->mirrors()->push_back(mirrorConfig);
+  PortID getMirrorToPort(const AgentEnsemble& ensemble) const {
+    return ensemble.masterLogicalPortIds(
+        {cfg::PortType::INTERFACE_PORT})[utility::kMirrorToPortIndex];
+  }
+
+  PortID getTrafficPort(const AgentEnsemble& ensemble) const {
+    return ensemble.masterLogicalPortIds(
+        {cfg::PortType::INTERFACE_PORT})[utility::kTrafficPortIndex];
   }
 
   void addPortMirrorConfig(
       cfg::SwitchConfig* cfg,
       const AgentEnsemble& ensemble,
       const std::string& mirrorName) const {
-    auto trafficPort = ensemble.masterLogicalPortIds(
-        {cfg::PortType::INTERFACE_PORT})[kTrafficPortIndex];
+    auto trafficPort = getTrafficPort(ensemble);
     auto portConfig = utility::findCfgPort(*cfg, trafficPort);
-    if (mirrorName == kIngressSpan || mirrorName == kIngressErspan) {
+    if (mirrorName == utility::kIngressSpan ||
+        mirrorName == utility::kIngressErspan) {
       portConfig->ingressMirror() = mirrorName;
-    } else if (mirrorName == kEgressSpan || mirrorName == kEgressErspan) {
+    } else if (
+        mirrorName == utility::kEgressSpan ||
+        mirrorName == utility::kEgressErspan) {
       portConfig->egressMirror() = mirrorName;
     } else {
       throw FbossError("Invalid mirror name ", mirrorName);
@@ -128,12 +71,11 @@ class AgentMirroringTest : public AgentHwTest {
   }
 
   void sendPackets(int count, size_t payloadSize = 1) {
-    auto params = getTestParams<AddrT>();
+    auto params = utility::getMirrorTestParams<AddrT>();
     auto vlanId = utility::firstVlanID(getProgrammedState());
     auto intfMac = utility::getFirstInterfaceMac(getProgrammedState());
     std::vector<uint8_t> payload(payloadSize, 0xff);
-    auto trafficPort = getAgentEnsemble()->masterLogicalPortIds(
-        {cfg::PortType::INTERFACE_PORT})[kTrafficPortIndex];
+    auto trafficPort = getTrafficPort(*getAgentEnsemble());
     auto oldPacketStats = getLatestPortStats(trafficPort);
     auto oldOutPkts = *oldPacketStats.outUnicastPkts_();
     auto i = 0;
@@ -175,10 +117,8 @@ class AgentMirroringTest : public AgentHwTest {
   template <typename T = AddrT>
   void resolveMirror(const std::string& mirrorName) {
     utility::EcmpSetupAnyNPorts<AddrT> ecmpHelper(getProgrammedState());
-    auto trafficPort = getAgentEnsemble()->masterLogicalPortIds(
-        {cfg::PortType::INTERFACE_PORT})[kTrafficPortIndex];
-    auto mirrorToPort = getAgentEnsemble()->masterLogicalPortIds(
-        {cfg::PortType::INTERFACE_PORT})[kMirrorToPortIndex];
+    auto trafficPort = getTrafficPort(*getAgentEnsemble());
+    auto mirrorToPort = getMirrorToPort(*getAgentEnsemble());
     EXPECT_EQ(trafficPort, ecmpHelper.nhop(0).portDesc.phyPortID());
     EXPECT_EQ(mirrorToPort, ecmpHelper.nhop(1).portDesc.phyPortID());
     resolveNeigborAndProgramRoutes(ecmpHelper, 1);
@@ -204,9 +144,8 @@ class AgentMirroringTest : public AgentHwTest {
       cfg::SwitchConfig* cfg,
       const AgentEnsemble& ensemble,
       const std::string& mirrorName) const {
-    auto trafficPort = ensemble.masterLogicalPortIds(
-        {cfg::PortType::INTERFACE_PORT})[kTrafficPortIndex];
-    auto aclEntryName = "mirror_acl";
+    auto trafficPort = getTrafficPort(ensemble);
+    std::string aclEntryName = kMirrorAcl;
     utility::addAclTableGroup(
         cfg, cfg::AclStage::INGRESS, utility::getAclTableGroupName());
     utility::addDefaultAclTable(*cfg);
@@ -253,10 +192,11 @@ class AgentMirroringTest : public AgentHwTest {
     ttl.value() = 255;
     ttl.mask() = 0xFF;
     aclEntry.ttl() = ttl;
-    cfg->acls()->push_back(aclEntry);
+    utility::addAclEntry(cfg, aclEntry, utility::kDefaultAclTable());
 
     cfg::MatchAction matchAction = cfg::MatchAction();
-    if (mirrorName == kIngressErspan || mirrorName == kEgressErspan) {
+    if (mirrorName == utility::kIngressErspan ||
+        mirrorName == utility::kEgressErspan) {
       matchAction.ingressMirror() = mirrorName;
     } else {
       matchAction.egressMirror() = mirrorName;
@@ -271,6 +211,7 @@ class AgentMirroringTest : public AgentHwTest {
   void verifyMirrorProgrammed(const std::string& mirrorName) {
     WITH_RETRIES({
       auto mirror = getProgrammedState()->getMirrors()->getNodeIf(mirrorName);
+      EXPECT_EVENTUALLY_NE(mirror, nullptr);
       EXPECT_EVENTUALLY_TRUE(mirror->isResolved());
       auto fields = mirror->toThrift();
       auto scope = getAgentEnsemble()->scopeResolver().scope(mirror);
@@ -283,10 +224,8 @@ class AgentMirroringTest : public AgentHwTest {
 
   void verify(const std::string& mirrorName, int payloadSize = 500) {
     verifyMirrorProgrammed(mirrorName);
-    auto trafficPort = getAgentEnsemble()->masterLogicalPortIds(
-        {cfg::PortType::INTERFACE_PORT})[kTrafficPortIndex];
-    auto mirrorToPort = getAgentEnsemble()->masterLogicalPortIds(
-        {cfg::PortType::INTERFACE_PORT})[kMirrorToPortIndex];
+    auto trafficPort = getTrafficPort(*getAgentEnsemble());
+    auto mirrorToPort = getMirrorToPort(*getAgentEnsemble());
     WITH_RETRIES({
       auto ingressMirror =
           this->getProgrammedState()->getMirrors()->getNodeIf(mirrorName);
@@ -332,8 +271,7 @@ class AgentMirroringTest : public AgentHwTest {
   void testPortMirrorWithLargePacket(const std::string& mirrorName) {
     auto setup = [=, this]() { this->resolveMirror(mirrorName); };
     auto verify = [=, this]() {
-      auto mirrorToPort = getAgentEnsemble()->masterLogicalPortIds(
-          {cfg::PortType::INTERFACE_PORT})[kMirrorToPortIndex];
+      auto mirrorToPort = getMirrorToPort(*getAgentEnsemble());
       auto statsBefore = getLatestPortStats(mirrorToPort);
       this->verify(mirrorName, 8000);
       WITH_RETRIES({
@@ -356,6 +294,7 @@ class AgentMirroringTest : public AgentHwTest {
         !isSupportedOnAllAsics(HwAsic::Feature::ERSPANv6);
   }
 
+  virtual bool isIngress() const = 0;
   const RouterID kRid{0};
   const uint16_t srcL4Port_{1234};
   const uint16_t dstL4Port_{4321};
@@ -363,7 +302,6 @@ class AgentMirroringTest : public AgentHwTest {
 
 template <typename AddrT>
 class AgentIngressPortSpanMirroringTest : public AgentMirroringTest<AddrT> {
- public:
  public:
   std::vector<production_features::ProductionFeature>
   getProductionFeaturesVerified() const override {
@@ -373,9 +311,14 @@ class AgentIngressPortSpanMirroringTest : public AgentMirroringTest<AddrT> {
   cfg::SwitchConfig initialConfig(
       const AgentEnsemble& ensemble) const override {
     auto cfg = AgentMirroringTest<AddrT>::initialConfig(ensemble);
-    this->addMirrorConfig(&cfg, ensemble, kIngressSpan, false /* truncate */);
-    this->addPortMirrorConfig(&cfg, ensemble, kIngressSpan);
+    utility::addMirrorConfig<AddrT>(
+        &cfg, ensemble, utility::kIngressSpan, false /* truncate */);
+    this->addPortMirrorConfig(&cfg, ensemble, utility::kIngressSpan);
     return cfg;
+  }
+
+  bool isIngress() const override {
+    return true;
   }
 };
 
@@ -390,9 +333,14 @@ class AgentIngressPortErspanMirroringTest : public AgentMirroringTest<AddrT> {
   cfg::SwitchConfig initialConfig(
       const AgentEnsemble& ensemble) const override {
     auto cfg = AgentMirroringTest<AddrT>::initialConfig(ensemble);
-    this->addMirrorConfig(&cfg, ensemble, kIngressErspan, false /* truncate */);
-    this->addPortMirrorConfig(&cfg, ensemble, kIngressErspan);
+    utility::addMirrorConfig<AddrT>(
+        &cfg, ensemble, utility::kIngressErspan, false /* truncate */);
+    this->addPortMirrorConfig(&cfg, ensemble, utility::kIngressErspan);
     return cfg;
+  }
+
+  bool isIngress() const override {
+    return true;
   }
 };
 
@@ -410,9 +358,14 @@ class AgentIngressPortErspanMirroringTruncateTest
   cfg::SwitchConfig initialConfig(
       const AgentEnsemble& ensemble) const override {
     auto cfg = AgentMirroringTest<AddrT>::initialConfig(ensemble);
-    this->addMirrorConfig(&cfg, ensemble, kIngressErspan, true /* truncate */);
-    this->addPortMirrorConfig(&cfg, ensemble, kIngressErspan);
+    utility::addMirrorConfig<AddrT>(
+        &cfg, ensemble, utility::kIngressErspan, true /* truncate */);
+    this->addPortMirrorConfig(&cfg, ensemble, utility::kIngressErspan);
     return cfg;
+  }
+
+  bool isIngress() const override {
+    return true;
   }
 };
 
@@ -427,9 +380,14 @@ class AgentIngressAclSpanMirroringTest : public AgentMirroringTest<AddrT> {
   cfg::SwitchConfig initialConfig(
       const AgentEnsemble& ensemble) const override {
     auto cfg = AgentMirroringTest<AddrT>::initialConfig(ensemble);
-    this->addMirrorConfig(&cfg, ensemble, kIngressSpan, false /* truncate */);
-    this->addAclMirrorConfig(&cfg, ensemble, kIngressSpan);
+    utility::addMirrorConfig<AddrT>(
+        &cfg, ensemble, utility::kIngressSpan, false /* truncate */);
+    this->addAclMirrorConfig(&cfg, ensemble, utility::kIngressSpan);
     return cfg;
+  }
+
+  bool isIngress() const override {
+    return true;
   }
 };
 
@@ -444,9 +402,14 @@ class AgentIngressAclErspanMirroringTest : public AgentMirroringTest<AddrT> {
   cfg::SwitchConfig initialConfig(
       const AgentEnsemble& ensemble) const override {
     auto cfg = AgentMirroringTest<AddrT>::initialConfig(ensemble);
-    this->addMirrorConfig(&cfg, ensemble, kIngressErspan, false /* truncate */);
-    this->addAclMirrorConfig(&cfg, ensemble, kIngressErspan);
+    utility::addMirrorConfig<AddrT>(
+        &cfg, ensemble, utility::kIngressErspan, false /* truncate */);
+    this->addAclMirrorConfig(&cfg, ensemble, utility::kIngressErspan);
     return cfg;
+  }
+
+  bool isIngress() const override {
+    return true;
   }
 };
 
@@ -462,9 +425,14 @@ class AgentEgressPortSpanMirroringTest : public AgentMirroringTest<AddrT> {
   cfg::SwitchConfig initialConfig(
       const AgentEnsemble& ensemble) const override {
     auto cfg = AgentMirroringTest<AddrT>::initialConfig(ensemble);
-    this->addMirrorConfig(&cfg, ensemble, kEgressSpan, false /* truncate */);
-    this->addPortMirrorConfig(&cfg, ensemble, kEgressSpan);
+    utility::addMirrorConfig<AddrT>(
+        &cfg, ensemble, utility::kEgressSpan, false /* truncate */);
+    this->addPortMirrorConfig(&cfg, ensemble, utility::kEgressSpan);
     return cfg;
+  }
+
+  bool isIngress() const override {
+    return false;
   }
 };
 
@@ -479,9 +447,14 @@ class AgentEgressPortErspanMirroringTest : public AgentMirroringTest<AddrT> {
   cfg::SwitchConfig initialConfig(
       const AgentEnsemble& ensemble) const override {
     auto cfg = AgentMirroringTest<AddrT>::initialConfig(ensemble);
-    this->addMirrorConfig(&cfg, ensemble, kEgressErspan, false /* truncate */);
-    this->addPortMirrorConfig(&cfg, ensemble, kEgressErspan);
+    utility::addMirrorConfig<AddrT>(
+        &cfg, ensemble, utility::kEgressErspan, false /* truncate */);
+    this->addPortMirrorConfig(&cfg, ensemble, utility::kEgressErspan);
     return cfg;
+  }
+
+  bool isIngress() const override {
+    return false;
   }
 };
 
@@ -499,9 +472,14 @@ class AgentEgressPortErspanMirroringTruncateTest
   cfg::SwitchConfig initialConfig(
       const AgentEnsemble& ensemble) const override {
     auto cfg = AgentMirroringTest<AddrT>::initialConfig(ensemble);
-    this->addMirrorConfig(&cfg, ensemble, kEgressErspan, true /* truncate */);
-    this->addPortMirrorConfig(&cfg, ensemble, kEgressErspan);
+    utility::addMirrorConfig<AddrT>(
+        &cfg, ensemble, utility::kEgressErspan, true /* truncate */);
+    this->addPortMirrorConfig(&cfg, ensemble, utility::kEgressErspan);
     return cfg;
+  }
+
+  bool isIngress() const override {
+    return false;
   }
 };
 
@@ -516,9 +494,14 @@ class AgentEgressAclSpanMirroringTest : public AgentMirroringTest<AddrT> {
   cfg::SwitchConfig initialConfig(
       const AgentEnsemble& ensemble) const override {
     auto cfg = AgentMirroringTest<AddrT>::initialConfig(ensemble);
-    this->addMirrorConfig(&cfg, ensemble, kEgressSpan, false /* truncate */);
-    this->addAclMirrorConfig(&cfg, ensemble, kEgressSpan);
+    utility::addMirrorConfig<AddrT>(
+        &cfg, ensemble, utility::kEgressSpan, false /* truncate */);
+    this->addAclMirrorConfig(&cfg, ensemble, utility::kEgressSpan);
     return cfg;
+  }
+
+  bool isIngress() const override {
+    return false;
   }
 };
 
@@ -533,9 +516,14 @@ class AgentEgressAclErspanMirroringTest : public AgentMirroringTest<AddrT> {
   cfg::SwitchConfig initialConfig(
       const AgentEnsemble& ensemble) const override {
     auto cfg = AgentMirroringTest<AddrT>::initialConfig(ensemble);
-    this->addMirrorConfig(&cfg, ensemble, kEgressErspan, false /* truncate */);
-    this->addAclMirrorConfig(&cfg, ensemble, kEgressErspan);
+    utility::addMirrorConfig<AddrT>(
+        &cfg, ensemble, utility::kEgressErspan, false /* truncate */);
+    this->addAclMirrorConfig(&cfg, ensemble, utility::kEgressErspan);
     return cfg;
+  }
+
+  bool isIngress() const override {
+    return false;
   }
 };
 
@@ -551,46 +539,46 @@ TYPED_TEST_SUITE(AgentEgressAclSpanMirroringTest, TestTypes);
 TYPED_TEST_SUITE(AgentEgressAclErspanMirroringTest, TestTypes);
 
 TYPED_TEST(AgentIngressPortSpanMirroringTest, SpanPortMirror) {
-  this->testPortMirror(kIngressSpan);
+  this->testPortMirror(utility::kIngressSpan);
 }
 
 TYPED_TEST(AgentIngressPortErspanMirroringTest, ErspanPortMirror) {
-  this->testPortMirror(kIngressErspan);
+  this->testPortMirror(utility::kIngressErspan);
 }
 
 TYPED_TEST(AgentIngressAclSpanMirroringTest, SpanAclMirror) {
-  this->testAclMirror(kIngressSpan);
+  this->testAclMirror(utility::kIngressSpan);
 }
 
 TYPED_TEST(AgentIngressAclErspanMirroringTest, ErspanAclMirror) {
-  this->testAclMirror(kIngressErspan);
+  this->testAclMirror(utility::kIngressErspan);
 }
 
 TYPED_TEST(
     AgentIngressPortErspanMirroringTruncateTest,
     TrucatePortErspanMirror) {
-  this->testPortMirrorWithLargePacket(kIngressErspan);
+  this->testPortMirrorWithLargePacket(utility::kIngressErspan);
 }
 
 TYPED_TEST(AgentEgressPortSpanMirroringTest, SpanPortMirror) {
-  this->testPortMirror(kEgressSpan);
+  this->testPortMirror(utility::kEgressSpan);
 }
 
 TYPED_TEST(AgentEgressPortErspanMirroringTest, ErspanPortMirror) {
-  this->testPortMirror(kEgressErspan);
+  this->testPortMirror(utility::kEgressErspan);
 }
 
 TYPED_TEST(AgentEgressAclSpanMirroringTest, SpanAclMirror) {
-  this->testAclMirror(kEgressSpan);
+  this->testAclMirror(utility::kEgressSpan);
 }
 
 TYPED_TEST(AgentEgressAclErspanMirroringTest, ErspanAclMirror) {
-  this->testAclMirror(kEgressErspan);
+  this->testAclMirror(utility::kEgressErspan);
 }
 
 TYPED_TEST(
     AgentEgressPortErspanMirroringTruncateTest,
     TrucatePortErspanMirror) {
-  this->testPortMirrorWithLargePacket(kEgressErspan);
+  this->testPortMirrorWithLargePacket(utility::kEgressErspan);
 }
 } // namespace facebook::fboss

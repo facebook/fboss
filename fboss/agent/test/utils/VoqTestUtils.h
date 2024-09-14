@@ -68,5 +68,11 @@ boost::container::flat_set<PortDescriptor> resolveRemoteNhops(
     TestEnsembleIf* ensemble,
     utility::EcmpSetupTargetedPorts6& ecmpHelper);
 
+void populateRemoteIntfAndSysPorts(
+    std::map<SwitchID, std::shared_ptr<SystemPortMap>>& switchId2SystemPorts,
+    std::map<SwitchID, std::shared_ptr<InterfaceMap>>& switchId2Rifs,
+    const cfg::SwitchConfig& config,
+    bool useEncapIndex);
+
 } // namespace utility
 } // namespace facebook::fboss

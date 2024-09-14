@@ -60,12 +60,28 @@ TEST(PlatformExplorerTest, PublishFirmwareVersions) {
   writeVersions(
       cpldHwmonPath + "/hwmon/hwmon20", "cpld", "99", "99", platformFsUtils);
 
+  // New-style fw_ver file
+  std::string fpgaFwVerPath = "/run/devmap/fpgas/TEST_FPGA_FWVER";
+  EXPECT_TRUE(platformFsUtils->writeStringToFile(
+      "1.2", fmt::format("{}/fw_ver", fpgaFwVerPath)));
+  // fw_ver should be prioritized over old-style
+  std::string cpldFwVerPath = "/run/devmap/cplds/TEST_CPLD_FWVER";
+  writeVersions(cpldFwVerPath, "cpld", "999", "999", platformFsUtils);
+  EXPECT_TRUE(platformFsUtils->writeStringToFile(
+      "123.456.789", fmt::format("{}/fw_ver", cpldFwVerPath)));
+  std::string cpldBadFwVerPath = "/run/devmap/cplds/TEST_CPLD_BADFWVER";
+  EXPECT_TRUE(platformFsUtils->writeStringToFile(
+      "123.456.789 // comment", fmt::format("{}/fw_ver", cpldBadFwVerPath)));
+
   PlatformConfig platformConfig;
   platformConfig.symbolicLinkToDevicePath()[fpgaPath] = "";
   platformConfig.symbolicLinkToDevicePath()[cpldPath] = "";
   platformConfig.symbolicLinkToDevicePath()[cpldPath2] = "";
   platformConfig.symbolicLinkToDevicePath()[fpgaPathBadInt] = "";
   platformConfig.symbolicLinkToDevicePath()[cpldHwmonPath] = "";
+  platformConfig.symbolicLinkToDevicePath()[fpgaFwVerPath] = "";
+  platformConfig.symbolicLinkToDevicePath()[cpldFwVerPath] = "";
+  platformConfig.symbolicLinkToDevicePath()[cpldBadFwVerPath] = "";
 
   PlatformExplorer explorer(platformConfig, platformFsUtils);
   explorer.publishFirmwareVersions();
@@ -75,6 +91,10 @@ TEST(PlatformExplorerTest, PublishFirmwareVersions) {
   expectVersions("TEST_CPLD_MIXED", "15.9", 15009);
   expectVersions("TEST_FPGA_BAD_INT", "0.0", 0);
   expectVersions("FAN0_CPLD", "99.99", 99099);
+
+  expectVersions("TEST_FPGA_FWVER", "1.2", 1'002'000);
+  expectVersions("TEST_CPLD_FWVER", "123.456.789", 123456789);
+  expectVersions("TEST_CPLD_BADFWVER", "ERROR_INVALID_STRING", 0);
 }
 
 } // namespace facebook::fboss::platform::platform_manager

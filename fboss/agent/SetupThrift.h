@@ -28,6 +28,7 @@ namespace facebook::fboss {
 void serverSSLSetup(apache::thrift::ThriftServer& server);
 
 void setupThriftModules();
+void clearThriftModules();
 
 std::unique_ptr<apache::thrift::ThriftServer> setupThriftServer(
     folly::EventBase& eventBase,

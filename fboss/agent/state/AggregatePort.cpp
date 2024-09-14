@@ -136,7 +136,8 @@ AggregatePort* AggregatePort::modify(std::shared_ptr<SwitchState>* state) {
 // case C: is not CONFIGURED as a member of any AggregatePort
 bool AggregatePort::isIngressValid(
     const std::shared_ptr<SwitchState>& state,
-    const std::unique_ptr<RxPacket>& packet) {
+    const std::unique_ptr<RxPacket>& packet,
+    const bool needAggPortUp) {
   auto physicalIngressPort = packet->getSrcPort();
   auto owningAggregatePort =
       state->getAggregatePorts()->getAggregatePortForPort(physicalIngressPort);
@@ -147,6 +148,9 @@ bool AggregatePort::isIngressValid(
   }
 
   CHECK(owningAggregatePort);
+  if (needAggPortUp) {
+    return owningAggregatePort->isUp();
+  }
   auto physicalIngressForwardingState =
       owningAggregatePort->getForwardingState(physicalIngressPort);
 

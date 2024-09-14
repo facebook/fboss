@@ -5,9 +5,9 @@
 #include <folly/logging/xlog.h>
 #include <gtest/gtest.h>
 
+#include <thrift/lib/cpp2/folly_dynamic/folly_dynamic.h>
 #include <thrift/lib/cpp2/protocol/DebugProtocol.h>
 #include <thrift/lib/cpp2/protocol/Serializer.h>
-#include <thrift/lib/cpp2/reflection/folly_dynamic.h>
 #include "fboss/fsdb/tests/gen-cpp2/thriftpath_test_fatal_types.h"
 #include "fboss/fsdb/tests/gen-cpp2/thriftpath_test_types.h"
 #include "fboss/fsdb/tests/gen-cpp2/thriftpath_test_types_custom_protocol.h"
@@ -30,8 +30,8 @@ TestStruct createTestStruct() {
       dynamic::object("3", dynamic::object("min", 100)("max", 200)))(
       "enumSet", dynamic::array(1))("integralSet", dynamic::array(5));
 
-  return apache::thrift::from_dynamic<TestStruct>(
-      testDyn, apache::thrift::dynamic_format::JSON_1);
+  return facebook::thrift::from_dynamic<TestStruct>(
+      testDyn, facebook::thrift::dynamic_format::JSON_1);
 }
 
 CowStorage<TestStruct> createTestStorage() {

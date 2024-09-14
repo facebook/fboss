@@ -568,6 +568,28 @@ void ControlLogic::updateControl(std::shared_ptr<SensorData> pS) {
           *fanStatuses[*fan.fanName()].lastSuccessfulAccessTime();
       auto fanFailed = fanAccessFailed &&
           (timeSinceLastSuccessfulAccess >= kFanFailThresholdInSec);
+      // If rpmMin or rpmMax is set, compare fanRpm with them to decide
+      // whether fan is failed
+      if (fan.rpmMin()) {
+        if (fanRpm < *fan.rpmMin()) {
+          fanFailed = true;
+          XLOG(ERR) << fmt::format(
+              "fan {} : rpm {} is below the minimum value {}",
+              *fan.fanName(),
+              fanRpm,
+              *fan.rpmMin());
+        }
+      }
+      if (fan.rpmMax()) {
+        if (fanRpm > *fan.rpmMax()) {
+          fanFailed = true;
+          XLOG(ERR) << fmt::format(
+              "fan {} : rpm {} is above the maximum value {}",
+              *fan.fanName(),
+              fanRpm,
+              *fan.rpmMax());
+        }
+      }
       if (fanFailed) {
         numFanFailed_++;
       }

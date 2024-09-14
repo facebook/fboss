@@ -13124,7 +13124,7 @@
         "scope": 1
       },
       {
-        "intfID": 187,
+        "intfID": 55,
         "routerID": 0,
         "vlanID": 0,
         "ipAddresses": [
@@ -13248,6 +13248,18 @@
         "name": "cpuPolicing-high-BGPDstPort-dstLocalIp6",
         "actionType": 1,
         "l4DstPort": 179,
+        "lookupClassRoute": 1,
+        "etherType": 34525
+      },
+      {
+        "name": "cpuPolicing-mid-Ip2Me-Ip4",
+        "actionType": 1,
+        "lookupClassRoute": 1,
+        "etherType": 2048
+      },
+      {
+        "name": "cpuPolicing-mid-Ip2Me-Ip6",
+        "actionType": 1,
         "lookupClassRoute": 1,
         "etherType": 34525
       }
@@ -13411,6 +13423,30 @@
                 "tcValue": 7
               }
             }
+          },
+          {
+            "matcher": "cpuPolicing-mid-Ip2Me-Ip4",
+            "action": {
+              "sendToQueue": {
+                "queueId": 2
+              },
+              "toCpuAction": 0,
+              "setTc": {
+                "tcValue": 2
+              }
+            }
+          },
+          {
+            "matcher": "cpuPolicing-mid-Ip2Me-Ip6",
+            "action": {
+              "sendToQueue": {
+                "queueId": 2
+              },
+              "toCpuAction": 0,
+              "setTc": {
+                "tcValue": 2
+              }
+            }
           }
         ]
       },
@@ -13433,10 +13469,6 @@
         },
         {
           "rxReason": 9,
-          "queueId": 2
-        },
-        {
-          "rxReason": 7,
           "queueId": 2
         },
         {
@@ -13519,7 +13551,7 @@
             },
             "systemPortRange": {
               "minimum": 10,
-              "maximum": 54
+              "maximum": 53
             },
             "switchMac": "02:00:00:00:00:01",
             "connectionHandle": "15:00"
@@ -13533,8 +13565,8 @@
               "maximum": 4095
             },
             "systemPortRange": {
-              "minimum": 186,
-              "maximum": 230
+              "minimum": 54,
+              "maximum": 97
             },
             "switchMac": "02:00:00:00:00:01",
             "connectionHandle": "18:00"
@@ -13557,22 +13589,22 @@
           ],
           "systemPortRange": {
             "minimum": 10,
-            "maximum": 54
+            "maximum": 53
           },
           "nodeMac": "02:00:00:00:0F:0B",
           "asicType": 14,
           "platformType": 32
       },
       "4": {
-          "name": "intfNode4",
+          "name": "intfNode1",
           "switchId": 4,
           "type": 2,
           "loopbackIps": [
             
           ],
           "systemPortRange": {
-            "minimum": 186,
-            "maximum": 230
+            "minimum": 54,
+            "maximum": 97
           },
           "nodeMac": "02:00:00:00:0F:0B",
           "asicType": 14,

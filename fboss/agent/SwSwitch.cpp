@@ -1084,7 +1084,8 @@ std::shared_ptr<SwitchState> SwSwitch::preInit(SwitchFlags flags) {
   flags_ = flags;
   bootType_ = swSwitchWarmbootHelper_->canWarmBoot() ? BootType::WARM_BOOT
                                                      : BootType::COLD_BOOT;
-  XLOG(INFO) << "Boot Type: " << apache::thrift::util::enumNameSafe(bootType_);
+  XLOG(INFO) << kNetworkEventLogPrefix
+             << " Boot Type: " << apache::thrift::util::enumNameSafe(bootType_);
 
   multiHwSwitchHandler_->start();
   std::optional<state::WarmbootState> wbState{};
@@ -2119,8 +2120,9 @@ void SwSwitch::linkActiveStateChanged(
         state->getSwitchSettings()->getNodeIf(matcher.matcherString());
     auto newActualSwitchDrainState =
         computeActualSwitchDrainState(switchSettings, numActiveFabricPorts);
-    if (newActualSwitchDrainState !=
-        switchSettings->getActualSwitchDrainState()) {
+    auto currentActualDrainState = switchSettings->getActualSwitchDrainState();
+
+    if (newActualSwitchDrainState != currentActualDrainState) {
       auto newSwitchSettings = switchSettings->modify(&newState);
       newSwitchSettings->setActualSwitchDrainState(newActualSwitchDrainState);
     }
@@ -2493,6 +2495,7 @@ void SwSwitch::sendPacketOutViaThriftStream(
   if (queue) {
     txPacket.queue() = queue.value();
   }
+  txPacket.length() = pkt->buf()->computeChainDataLength();
   txPacket.data() = Packet::extractIOBuf(std::move(pkt));
   auto switchIndex =
       getSwitchInfoTable().getSwitchIndexFromSwitchId(SwitchID(switchId));
@@ -2513,7 +2516,7 @@ void SwSwitch::sendPacketSwitchedAsync(std::unique_ptr<TxPacket> pkt) noexcept {
     // send failures--even on successful return from sendPacketSwitchedAsync()
     // the send may ultimately fail since it occurs asynchronously in the
     // background.
-    XLOG(ERR) << "failed to send L2 switched packet";
+    XLOG(ERR) << "failed to send switched packet";
   }
 }
 

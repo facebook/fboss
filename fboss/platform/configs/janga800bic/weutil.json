@@ -9,6 +9,9 @@
     },
     "RUNBMC" : {
       "path" : "/run/devmap/eeproms/RUNBMC_EEPROM"
+    },
+    "COME_FRU" : {
+      "path" : "/run/devmap/eeproms/COME_FRU"
     }
   }
 }

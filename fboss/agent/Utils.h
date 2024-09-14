@@ -85,6 +85,7 @@ inline const int kUdfAclRethDmaLenFieldSizeInBytes(2);
 class SwitchState;
 class Interface;
 class SwitchSettings;
+class SwitchIdScopeResolver;
 
 constexpr auto kRecyclePortIdOffset = 1;
 
@@ -421,5 +422,21 @@ std::string runShellCmd(const std::string& cmd);
 InterfaceID getRecyclePortIntfID(
     const std::shared_ptr<SwitchState>& state,
     const SwitchID& switchId);
+
+std::pair<std::string, std::string> getExpectedNeighborAndPortName(
+    const cfg::Port& port);
+
+int getRemoteSwitchID(
+    const cfg::SwitchConfig* cfg,
+    const cfg::Port& port,
+    const std::unordered_map<std::string, std::vector<uint32_t>>&
+        switchNameToSwitchIds);
+
+bool haveParallelLinksToInterfaceNodes(
+    const cfg::SwitchConfig* cfg,
+    const std::vector<SwitchID>& localFabricSwitchIds,
+    const std::unordered_map<std::string, std::vector<uint32_t>>&
+        switchNameToSwitchIds,
+    SwitchIdScopeResolver& scopeResolver);
 
 } // namespace facebook::fboss

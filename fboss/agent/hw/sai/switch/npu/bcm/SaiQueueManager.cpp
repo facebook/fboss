@@ -4,7 +4,12 @@
 
 #if defined(BRCM_SAI_SDK_DNX) && defined(BRCM_SAI_SDK_GTE_11_0)
 extern "C" {
-#include <brcm_sai_extensions.h>
+
+#ifndef IS_OSS_BRCM_SAI
+#include <experimental/saiqueueextensions.h>
+#else
+#include <saiqueueextensions.h>
+#endif
 }
 #endif
 
@@ -18,7 +23,7 @@ bool fillQueueExtensionStats(
     HwPortStats& hwPortStats) {
   bool counterHandled = true;
   switch (counterId) {
-    case SAI_QUEUE_STAT_EGRESS_GVOQ_THRESHOLD_WM:
+    case SAI_QUEUE_STAT_EGRESS_GVOQ_THRESHOLD_WM_BYTES:
       // There are a few limitations w.r.t. GVOQ watermarks
       // 1. Granularity of this counter is 8K bytes as of now
       // 2. Max VoQ watermark that can be reported per VoQ is 16M

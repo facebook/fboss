@@ -11,6 +11,7 @@
 
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/HwSwitch.h"
+#include "fboss/agent/LldpManager.h"
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/TxPacket.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
@@ -474,6 +475,19 @@ void addHighPriAclForBgp(
       {cfg::EtherType::IPv4, cfg::EtherType::IPv6});
 }
 
+void addMidPriAclForLldp(
+    cfg::ToCpuAction toCpuAction,
+    int midPriQueueId,
+    std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>>& acls,
+    bool isSai) {
+  cfg::AclEntry acl;
+  acl.etherType() = cfg::EtherType::LLDP;
+  acl.dstMac() = LldpManager::LLDP_DEST_MAC.toString();
+  acl.name() = folly::to<std::string>("cpuPolicing-mid-lldp-acl");
+  auto action = createQueueMatchAction(midPriQueueId, isSai, toCpuAction);
+  acls.push_back(std::make_pair(acl, action));
+}
+
 void addMidPriAclForIp2Me(
     const HwAsic* hwAsic,
     cfg::ToCpuAction toCpuAction,
@@ -711,6 +725,8 @@ std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>> defaultCpuAclsForSai(
           getCoppMidPriQueueId({hwAsic}),
           acls,
           true);
+      addMidPriAclForLldp(
+          cfg::ToCpuAction::TRAP, getCoppMidPriQueueId({hwAsic}), acls, true);
     }
   }
 
@@ -959,8 +975,6 @@ std::vector<cfg::PacketRxReasonToQueue> getCoppRxReasonToQueuesForSai(
             cfg::PacketRxReason::LACP, coppHighPriQueueId),
         ControlPlane::makeRxReasonToQueueEntry(
             cfg::PacketRxReason::TTL_1, kCoppLowPriQueueId),
-        ControlPlane::makeRxReasonToQueueEntry(
-            cfg::PacketRxReason::LLDP, coppMidPriQueueId),
         ControlPlane::makeRxReasonToQueueEntry(
             cfg::PacketRxReason::DHCP, coppMidPriQueueId),
         ControlPlane::makeRxReasonToQueueEntry(

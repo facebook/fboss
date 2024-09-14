@@ -1279,10 +1279,10 @@ void SaiSwitch::processSwitchSettingsChangedEntryLocked(
   }
 
   {
-    const auto oldVal = oldSwitchSettings->getReachabilityGroupSize();
-    const auto newVal = newSwitchSettings->getReachabilityGroupSize();
+    const auto oldVal = oldSwitchSettings->getReachabilityGroupListSize();
+    const auto newVal = newSwitchSettings->getReachabilityGroupListSize();
     if (oldVal != newVal) {
-      managerTable_->switchManager().setReachabilityGroupSize(
+      managerTable_->switchManager().setReachabilityGroupList(
           newVal.has_value() ? newVal.value() : 0);
     }
   }
@@ -2456,12 +2456,7 @@ void SaiSwitch::initStoreAndManagersLocked(
     // init and not need to be removed during warm boot. Change ownership for
     // them explicitly to adapter to remove it from unclaimed object
     if (getSwitchType() == cfg::SwitchType::VOQ) {
-      auto& systemPortStore = saiStore_->get<SaiSystemPortTraits>();
-      for (auto& sysPort : platform_->getInternalSystemPortConfig()) {
-        SaiSystemPortTraits::Attributes::ConfigInfo confInfo{sysPort};
-        const auto& obj = systemPortStore.get(confInfo);
-        systemPortStore.loadObjectOwnedByAdapter(obj->adapterKey(), true);
-      }
+      managerTable_->bridgeManager().createBridgeHandle();
     }
   }
 } // namespace facebook::fboss

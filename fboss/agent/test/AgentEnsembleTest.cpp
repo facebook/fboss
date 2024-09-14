@@ -283,6 +283,25 @@ void AgentEnsembleTest::waitForLinkStatus(
   throw FbossError(msg);
 }
 
+void AgentEnsembleTest::getAllHwPortStats(
+    std::map<std::string, HwPortStats>& hwPortStats) const {
+  checkWithRetry(
+      [&hwPortStats, this]() {
+        hwPortStats.clear();
+        getSw()->getAllHwPortStats(hwPortStats);
+        for (const auto& [port, portStats] : hwPortStats) {
+          if (*portStats.timestamp__ref() ==
+              hardware_stats_constants::STAT_UNINITIALIZED()) {
+            return false;
+          }
+        }
+        return !hwPortStats.empty();
+      },
+      120,
+      std::chrono::milliseconds(1000),
+      " fetch all port stats");
+}
+
 // Provided the timestamp of the last port stats collection, get another unique
 // set of valid port stats
 std::map<std::string, HwPortStats> AgentEnsembleTest::getNextUpdatedHwPortStats(
@@ -291,6 +310,8 @@ std::map<std::string, HwPortStats> AgentEnsembleTest::getNextUpdatedHwPortStats(
   // TODO(Elangovan) do we need 120 retries?
   checkWithRetry(
       [&portStats, timestamp, this]() {
+        // clear the port stats between each retry
+        portStats.clear();
         getSw()->getAllHwPortStats(portStats);
         // Since each port can have a unique timestamp, compare with the first
         // port

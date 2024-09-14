@@ -50,7 +50,7 @@ class FsdbSubManager {
   struct SubUpdate {
     // Data will always received the FSDB root in the form of raw thrift or
     // thrift_cow object, depending on type of subscriber
-    Data data;
+    const Data data;
     // SubscriptionKeys that changed, can be compared against keys returned from
     // addPath
     std::vector<SubscriptionKey> updatedKeys;
@@ -174,6 +174,7 @@ class FsdbSubManager {
       // TODO: support patching a raw thrift object
       root_.patch(std::move(patch));
     }
+    root_.publish();
     SubUpdate update{
         root_.root(), std::move(changedKeys), std::move(changedPaths)};
     cb(std::move(update));

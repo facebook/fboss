@@ -380,6 +380,17 @@ void getPortInfoHelper(
     auto fec = hw.profileConfig()->iphy()->fec().value();
     portInfo.fecEnabled() = fec != phy::FecMode::NONE;
     portInfo.fecMode() = apache::thrift::util::enumName(fec);
+
+    // Fill expected LLDP info
+    auto lldpmap = port->getLLDPValidations();
+    auto peerName = lldpmap.find(cfg::LLDPTag::SYSTEM_NAME);
+    if (peerName != lldpmap.end()) {
+      portInfo.expectedLLDPeerName() = peerName->second;
+    }
+    auto peerPort = lldpmap.find(cfg::LLDPTag::PORT);
+    if (peerPort != lldpmap.end()) {
+      portInfo.expectedLLDPPeerPort() = peerPort->second;
+    }
   }
 
   auto pause = port->getPause();

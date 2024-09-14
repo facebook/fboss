@@ -194,28 +194,37 @@ bool HwTestThriftHandler::isPortMirrored(
   auto saiSwitch = static_cast<SaiSwitch*>(hwSwitch_);
   auto portHandle =
       saiSwitch->managerTable()->portManager().getPortHandle(PortID(port));
-  std::vector<sai_object_id_t> mirrorSaiOidList;
+  std::optional<SaiPortTraits::Attributes::IngressMirrorSession> ingressMirror;
+  std::optional<SaiPortTraits::Attributes::EgressMirrorSession> egressMirror;
 
+  std::optional<sai_object_id_t> mirrorSaiOid{};
   if (ingress) {
-    mirrorSaiOidList = SaiApiTable::getInstance()->portApi().getAttribute(
-        portHandle->port->adapterKey(),
-        SaiPortTraits::Attributes::IngressSampleMirrorSession());
+    ingressMirror = SaiApiTable::getInstance()->portApi().getAttribute(
+        portHandle->port->adapterKey(), ingressMirror);
   } else {
-    mirrorSaiOidList = SaiApiTable::getInstance()->portApi().getAttribute(
-        portHandle->port->adapterKey(),
-        SaiPortTraits::Attributes::EgressSampleMirrorSession());
+    egressMirror = SaiApiTable::getInstance()->portApi().getAttribute(
+        portHandle->port->adapterKey(), egressMirror);
   }
-  if (mirrorSaiOidList.size() == 0) {
+  if (!ingressMirror && !egressMirror) {
+    XLOG(DBG2) << "Port " << port << " is not mirrored";
+    return false;
+  } else if (ingressMirror) {
+    mirrorSaiOid = ingressMirror.value().value()[0];
+  } else if (egressMirror) {
+    mirrorSaiOid = egressMirror.value().value()[0];
+  }
+  if (!mirrorSaiOid) {
     return false;
   }
 
   auto mirrorHandle =
       saiSwitch->managerTable()->mirrorManager().getMirrorHandle(*mirror);
   if (!mirrorHandle) {
+    XLOG(DBG2) << "Mirror " << *mirror << " not found";
     return false;
   }
 
-  return mirrorHandle->adapterKey() == mirrorSaiOidList[0];
+  return mirrorHandle->adapterKey() == mirrorSaiOid.value();
 }
 
 bool HwTestThriftHandler::isPortSampled(

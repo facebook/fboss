@@ -52,11 +52,13 @@ PkgManager::PkgManager(const PlatformConfig& config)
 void PkgManager::processAll() const {
   loadUpstreamKmods();
 
+  bool newRpmInstalled{false};
   if (FLAGS_enable_pkg_mgmnt) {
-    if (FLAGS_local_rpm_path != "") {
+    if (!FLAGS_local_rpm_path.empty()) {
       fb303::fbData->setExportedValue(
           kBspKmodsRpmName, "local_rpm: " + FLAGS_local_rpm_path);
       processLocalRpms();
+      newRpmInstalled = true;
     } else {
       fb303::fbData->setExportedValue(kBspKmodsRpmName, getKmodsRpmName());
       fb303::fbData->setCounter(
@@ -64,33 +66,37 @@ void PkgManager::processAll() const {
               kBspKmodsRpmVersionCounter,
               *platformConfig_.bspKmodsRpmVersion()),
           1);
-      processRpms();
+      newRpmInstalled = processRpms();
     }
   } else {
     fb303::fbData->setExportedValue(
         kBspKmodsRpmName, "Not managing BSP package");
   }
 
-  if (FLAGS_reload_kmods) {
+  if (FLAGS_reload_kmods || newRpmInstalled) {
     processKmods();
+  } else {
+    loadBSPKmods();
   }
 }
 
-void PkgManager::processRpms() const {
+bool PkgManager::processRpms() const {
   auto bspKmodsRpmName = getKmodsRpmName();
   if (!isRpmInstalled(bspKmodsRpmName)) {
     XLOG(INFO) << fmt::format("Installing BSP Kmods {}", bspKmodsRpmName);
+    removeOldRpms(getKmodsRpmBaseWithKernelName());
     installRpm(bspKmodsRpmName, 3 /* maxAttempts */);
-    processKmods();
+    runDepmod();
+    return true;
   } else {
     XLOG(INFO) << fmt::format(
         "BSP Kmods {} is already installed", bspKmodsRpmName);
+    return false;
   }
 }
 
 void PkgManager::processLocalRpms() const {
   installLocalRpm(3 /* maxAttempts */);
-  processKmods();
 }
 
 void PkgManager::processKmods() const {
@@ -106,6 +112,10 @@ void PkgManager::processKmods() const {
   for (int i = 0; i < platformConfig_.sharedKmodsToReload()->size(); ++i) {
     unloadKmod((*platformConfig_.sharedKmodsToReload())[i]);
   }
+  loadBSPKmods();
+}
+
+void PkgManager::loadBSPKmods() const {
   XLOG(INFO) << fmt::format(
       "Loading {} shared kernel modules",
       platformConfig_.sharedKmodsToReload()->size());
@@ -158,6 +168,46 @@ void PkgManager::installRpm(const std::string& rpmFullName, int maxAttempts)
   }
 }
 
+void PkgManager::removeOldRpms(const std::string& rpmBaseName) const {
+  std::string stdOut{};
+  int exitStatus{0};
+  auto getInstalledRpmNamesCmd = fmt::format("rpm -qa | grep ^{}", rpmBaseName);
+  std::tie(exitStatus, stdOut) =
+      PlatformUtils().execCommand(getInstalledRpmNamesCmd);
+  if (exitStatus) {
+    XLOG(INFO) << "No old rpms to remove";
+    return;
+  }
+
+  std::vector<std::string> installedRpms;
+  folly::split('\n', stdOut, installedRpms);
+  XLOG(INFO) << fmt::format(
+      "Removing old rpms: {}", folly::join(", ", installedRpms));
+  auto removeOldRpmsCmd =
+      fmt::format("rpm -e --allmatches {}", folly::join(" ", installedRpms));
+  std::tie(exitStatus, stdOut) = PlatformUtils().execCommand(removeOldRpmsCmd);
+  if (exitStatus) {
+    XLOG(ERR) << fmt::format(
+        "Command ({}) failed with exit code {}", removeOldRpmsCmd, exitStatus);
+    throw std::runtime_error(fmt::format(
+        "Failed to remove old rpms ({}) with exit code {}",
+        folly::join(" ", installedRpms),
+        exitStatus));
+  }
+}
+
+void PkgManager::runDepmod() const {
+  int exitStatus{0};
+  std::string standardOut{};
+  auto depmodCmd = "depmod -a";
+  XLOG(INFO) << fmt::format("Running command ({})", depmodCmd);
+  std::tie(exitStatus, standardOut) = PlatformUtils().execCommand(depmodCmd);
+  if (exitStatus != 0) {
+    XLOG(ERR) << fmt::format(
+        "Command ({}) failed with exit code {}", depmodCmd, exitStatus);
+  }
+}
+
 void PkgManager::installLocalRpm(int maxAttempts) const {
   int exitStatus{0}, attempt{1};
   std::string standardOut{};
@@ -206,6 +256,11 @@ void PkgManager::loadKmod(const std::string& moduleName) const {
     throw std::runtime_error(fmt::format(
         "Failed to load kmod ({}) with exit code {}", moduleName, exitStatus));
   }
+}
+
+std::string PkgManager::getKmodsRpmBaseWithKernelName() const {
+  return fmt::format(
+      "{}-{}", *platformConfig_.bspKmodsRpmName(), getHostKernelVersion());
 }
 
 std::string PkgManager::getKmodsRpmName() const {

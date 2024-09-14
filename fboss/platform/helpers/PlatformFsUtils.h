@@ -31,19 +31,27 @@ class PlatformFsUtils {
   // - for given /x/y/z, directory y/z if x already exists.
   // No-op if parent directories already exist.
   // Returns true if created or already exist, otherwise false.
-  bool createDirectories(const std::filesystem::path& path) const;
+  virtual bool createDirectories(const std::filesystem::path& path) const;
 
   bool exists(const std::filesystem::path& path) const;
 
   std::filesystem::directory_iterator ls(
       const std::filesystem::path& path) const;
 
-  // Write string to file. Returns true if successful, otherwise false. File and
-  // directories will be created (recursively) if they don't exist. By default,
-  // if file already exists, it will be overwritten.
+  // Write string to file. Returns true if successful. File and directories will
+  // be created (recursively) if they don't exist. By default, if file already
+  // exists, it will be overwritten.
+  //
+  // If atomic is true, the file will be written atomically, i.e. there will
+  // never be partial writes. On returning true, the file write is guaranteed
+  // durable - up to whatever guarantees the filesystem provides for fsync +
+  // close.
+  //
+  // Note: `flags` are ignored when atomic = true.
   virtual bool writeStringToFile(
       const std::string& content,
       const std::filesystem::path& path,
+      bool atomic = false,
       int flags = O_WRONLY | O_CREAT | O_TRUNC) const;
 
   virtual std::optional<std::string> getStringFileContent(

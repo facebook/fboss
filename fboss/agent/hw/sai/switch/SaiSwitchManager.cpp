@@ -995,11 +995,11 @@ void SaiSwitchManager::setLocalCapsuleSwitchIds(
       SaiSwitchTraits::Attributes::MultiStageLocalSwitchIds{values});
 }
 
-void SaiSwitchManager::setReachabilityGroupSize(int reachabilityGroupSize) {
+void SaiSwitchManager::setReachabilityGroupList(int reachabilityGroupListSize) {
 #if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
-  if (reachabilityGroupSize > 0) {
+  if (reachabilityGroupListSize > 0) {
     std::vector<uint32_t> list;
-    for (int i = 0; i < reachabilityGroupSize; i++) {
+    for (int i = 0; i < reachabilityGroupListSize; i++) {
       list.push_back(i + 1);
     }
     switch_->setOptionalAttribute(

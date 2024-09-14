@@ -182,7 +182,8 @@
         38,
         39,
         40,
-        42
+        42,
+        43
     ],
     "tomahawk5": [
         2,
@@ -430,7 +431,8 @@
         "HGRID_DU_ROUTE_SCALE",
         "HGRID_UU_ROUTE_SCALE",
         "HUNDRED_THOUSAND_ROUTE_SCALE",
-        "PFC"
+        "PFC",
+        "UDF_WR_IMMEDIATE_ACL"
     ],
     "tomahawk5": [
         "CPU_RX_TX",

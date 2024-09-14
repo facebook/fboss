@@ -4,10 +4,11 @@
 
 #include <array>
 #include <chrono>
-#include <iostream>
 
 #include <exprtk.hpp>
 #include <re2/re2.h>
+
+namespace facebook::fboss::platform::sensor_service {
 
 namespace {
 // Compare the two array reprsentation of
@@ -28,8 +29,19 @@ bool greaterEqual(
   }
   return greaterEqual(l1, l2, ++i);
 }
+// Same as above greaterEqual except it takes VersionedPmSensor
+bool greaterEqual(
+    const VersionedPmSensor& vSensor1,
+    const VersionedPmSensor& vSensor2) {
+  return greaterEqual(
+      {*vSensor1.productProductionState(),
+       *vSensor1.productVersion(),
+       *vSensor1.productSubVersion()},
+      {*vSensor2.productProductionState(),
+       *vSensor2.productVersion(),
+       *vSensor2.productSubVersion()});
+}
 } // namespace
-namespace facebook::fboss::platform::sensor_service {
 
 uint64_t Utils::nowInSecs() {
   return std::chrono::duration_cast<std::chrono::seconds>(
@@ -79,7 +91,13 @@ std::optional<VersionedPmSensor> Utils::resolveVersionedSensors(
             {*versionedSensor.productProductionState(),
              *versionedSensor.productVersion(),
              *versionedSensor.productSubVersion()})) {
-      resolvedVersionedSensor = versionedSensor;
+      resolvedVersionedSensor = std::max(
+          versionedSensor,
+          // Default VersionedPmSensor if null i.e (0,0,0)
+          resolvedVersionedSensor.value_or(VersionedPmSensor{}),
+          [](const auto& vSensor1, const auto& vSensor2) {
+            return !greaterEqual(vSensor1, vSensor2);
+          });
     }
   }
   return resolvedVersionedSensor;

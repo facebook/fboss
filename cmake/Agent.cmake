@@ -102,6 +102,14 @@ target_link_libraries(address_utils
   Folly::folly
 )
 
+add_library(asic_utils
+  fboss/agent/AsicUtils.cpp
+)
+
+target_link_libraries(asic_utils
+  switch_asics
+)
+
 add_library(utils
   fboss/agent/AlpmUtils.cpp
   fboss/agent/LabelFibUtils.cpp
@@ -110,18 +118,18 @@ add_library(utils
 )
 
 target_link_libraries(utils
+  asic_utils
   error
   ctrl_cpp2
   state
+  switchid_scope_resolver
   Folly::folly
-)
-
-add_library(asic_utils
-  fboss/agent/AsicUtils.cpp
-)
-
-target_link_libraries(asic_utils
-  switch_asics
+  meru400biu_platform_mapping
+  meru400bia_platform_mapping
+  meru400bfu_platform_mapping
+  meru800bia_platform_mapping
+  meru800bfa_platform_mapping
+  janga800bic_platform_mapping
 )
 
 add_library(stats
@@ -294,6 +302,7 @@ set(core_libs
   agent_fsdb_sync_manager
   fboss_event_base
   phy_snapshot_manager
+  build_info_wrapper
 )
 
 target_link_libraries(core ${core_libs})
@@ -352,6 +361,11 @@ target_link_libraries(fboss_error
   fboss_cpp2
   fboss_types
   Folly::folly
+)
+
+add_library(build_info_wrapper
+  fboss/agent/BuildInfoWrapper.h
+  fboss/agent/oss/BuildInfoWrapper.cpp
 )
 
 add_library(platform_base

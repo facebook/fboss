@@ -35,7 +35,7 @@ class TxPktEventSyncer : public ThriftStreamClient<multiswitch::TxPacket> {
       SwitchID switchId,
       apache::thrift::Client<multiswitch::MultiSwitchCtrl>* client);
 #endif
-
+  static fb303::TimeseriesWrapper& getBadPacketCounter();
   static void TxPacketEventHandler(multiswitch::TxPacket&, HwSwitch*);
 
  private:

@@ -7,10 +7,71 @@
 
 namespace facebook::fboss::utility {
 
+template <>
+MirrorTestParams<folly::IPAddressV4> getMirrorTestParams<folly::IPAddressV4>() {
+  return MirrorTestParams<folly::IPAddressV4>(
+      folly::IPAddressV4("101.0.0.10"), // sender
+      folly::IPAddressV4("201.0.0.10"), // receiver
+      folly::IPAddressV4("101.0.0.11")); // erspan destination
+}
+
+template <>
+MirrorTestParams<folly::IPAddressV6> getMirrorTestParams<folly::IPAddressV6>() {
+  return MirrorTestParams<folly::IPAddressV6>(
+      folly::IPAddressV6("101::10"), // sender
+      folly::IPAddressV6("201::10"), // receiver
+      folly::IPAddressV6("101::11")); // erspan destination
+}
+
 folly::IPAddress getSflowMirrorDestination(bool isV4) {
   return isV4 ? folly::IPAddress("101.101.101.101")
               : folly::IPAddress("2401:101:101::101");
 }
+
+/*
+ * This configures a local/erspan mirror session.
+ * Adds a tunnel config if the mirrorname is erspan.
+ */
+template <typename AddrT>
+void addMirrorConfig(
+    cfg::SwitchConfig* cfg,
+    const AgentEnsemble& ensemble,
+    const std::string& mirrorName,
+    bool truncate,
+    uint8_t dscp) {
+  auto mirrorToPort = ensemble.masterLogicalPortIds(
+      {cfg::PortType::INTERFACE_PORT})[kMirrorToPortIndex];
+  auto params = getMirrorTestParams<AddrT>();
+  cfg::MirrorDestination destination;
+  destination.egressPort() = cfg::MirrorEgressPort();
+  destination.egressPort()->logicalID_ref() = mirrorToPort;
+  if (mirrorName == kIngressErspan || mirrorName == kEgressErspan) {
+    cfg::MirrorTunnel tunnel;
+    cfg::GreTunnel greTunnel;
+    greTunnel.ip() = params.mirrorDestinationIp.str();
+    tunnel.greTunnel() = greTunnel;
+    destination.tunnel() = tunnel;
+  }
+  cfg::Mirror mirrorConfig;
+  mirrorConfig.name() = mirrorName;
+  mirrorConfig.destination() = destination;
+  mirrorConfig.truncate() = truncate;
+  mirrorConfig.dscp() = dscp;
+  cfg->mirrors()->push_back(mirrorConfig);
+}
+
+template void addMirrorConfig<folly::IPAddressV4>(
+    cfg::SwitchConfig* cfg,
+    const AgentEnsemble& ensemble,
+    const std::string& mirrorName,
+    bool truncate,
+    uint8_t dscp);
+template void addMirrorConfig<folly::IPAddressV6>(
+    cfg::SwitchConfig* cfg,
+    const AgentEnsemble& ensemble,
+    const std::string& mirrorName,
+    bool truncate,
+    uint8_t dscp);
 
 void configureSflowMirror(
     cfg::SwitchConfig& config,

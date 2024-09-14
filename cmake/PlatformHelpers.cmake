@@ -23,6 +23,7 @@ target_link_libraries(platform_fs_utils
 )
 
 target_link_libraries(platform_name_lib
+  platform_fs_utils
   platform_utils
   Folly::folly
   fb303::fb303

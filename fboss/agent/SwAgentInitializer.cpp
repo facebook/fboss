@@ -153,13 +153,22 @@ void SwAgentSignalHandler::signalReceived(int /*signum*/) noexcept {
 }
 
 void SwAgentInitializer::stopServer() {
+  // Server init happens asynchronously, so if AgentEnsemble somehow exited
+  // before server_ is set (e.g. due to an error), the code below will crash.
+  if (!serverStarted_) {
+    return;
+  }
   // stop Thrift server: stop all worker threads and
   // stop accepting new connections
+  XLOG(DBG2) << "Stop listening on thrift server";
+  server_->stopListening();
   XLOG(DBG2) << "Stopping thrift server";
   auto stopController = server_->getStopController();
   if (auto lockedPtr = stopController.lock()) {
     lockedPtr->stop();
     XLOG(DBG2) << "Stopped thrift server";
+    clearThriftModules();
+    XLOG(DBG2) << "Cleared thrift modules";
   } else {
     LOG(WARNING) << "Unable to stop Thrift Server";
   }

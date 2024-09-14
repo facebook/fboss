@@ -361,7 +361,7 @@ TEST_F(AgentPacketSendReceiveTest, LldpPacketReceiveSrcPort) {
     auto payLoadSize = 256;
     auto expectedNumPktsReceived = 1;
     for (const auto& port :
-         {masterLogicalPortIds()[0], masterLogicalPortIds().back()}) {
+         {masterLogicalPortIds()[0], masterLogicalPortIds()[1]}) {
       auto txPacket = utility::makeEthTxPacket(
           getSw(),
           vlanId,

@@ -8,6 +8,7 @@ cpp_library(
         "PlatformNameLib.cpp",
     ],
     exported_deps = [
+        ":platform_fs_utils",
         ":platform_utils",
         "//fb303:service_data",
         "//folly:string",

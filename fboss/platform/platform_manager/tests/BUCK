@@ -93,3 +93,14 @@ cpp_unittest(
         "//fboss/platform/platform_manager:platform_explorer",
     ],
 )
+
+cpp_unittest(
+    name = "pkg_manager_test",
+    srcs = [
+        "PkgManagerTest.cpp",
+    ],
+    deps = [
+        "fbcode//fboss/platform/platform_manager:pkg_manager",
+        "fbsource//third-party/googletest:gmock",
+    ],
+)

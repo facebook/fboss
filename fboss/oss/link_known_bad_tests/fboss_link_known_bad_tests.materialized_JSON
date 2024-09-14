@@ -10319,6 +10319,9 @@
           "test_name_regex": "LacpTest.lacpFlap$"
         },
         {
+          "test_name_regex": "roundtrip.*.iPhyInfoTest$"
+        },
+        {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
@@ -10385,6 +10388,9 @@
         },
         {
           "test_name_regex": "LacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "roundtrip.*.iPhyInfoTest$"
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
@@ -10455,6 +10461,9 @@
           "test_name_regex": "LacpTest.lacpFlap$"
         },
         {
+          "test_name_regex": "roundtrip.*.iPhyInfoTest$"
+        },
+        {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
@@ -10521,6 +10530,9 @@
         },
         {
           "test_name_regex": "LacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "roundtrip.*.iPhyInfoTest$"
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
@@ -10591,6 +10603,9 @@
           "test_name_regex": "LacpTest.lacpFlap$"
         },
         {
+          "test_name_regex": "roundtrip.*.iPhyInfoTest$"
+        },
+        {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
@@ -10657,6 +10672,9 @@
         },
         {
           "test_name_regex": "LacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "roundtrip.*.iPhyInfoTest$"
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
@@ -10727,6 +10745,9 @@
           "test_name_regex": "LacpTest.lacpFlap$"
         },
         {
+          "test_name_regex": "roundtrip.*.iPhyInfoTest$"
+        },
+        {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
@@ -10793,6 +10814,9 @@
         },
         {
           "test_name_regex": "LacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "roundtrip.*.iPhyInfoTest$"
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"

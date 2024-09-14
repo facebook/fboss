@@ -90,6 +90,7 @@ cpp_library(
         "//fboss/agent/packet:packet",
         "//fboss/agent/packet:packet_factory",
         "//fboss/agent/packet:pktutil",
+        "//fboss/agent/rib:fib_updater",
         "//fboss/agent/state:label_forwarding_action",
         "//fboss/agent/state:state",
         "//fboss/agent/state:state_utils",

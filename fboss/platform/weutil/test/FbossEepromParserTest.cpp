@@ -1,6 +1,5 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
-#include <sstream>
 #include <string>
 #include <vector>
 
@@ -33,6 +32,7 @@ EepromData eepromV4 = {
     0x00, 0x13, 0x03, 0x4d, 0x43, 0x42, 0xfa, 0x02, 0x44, 0x11};
 
 EepromContents expectedContentsV4 = {
+    {"Version", "4"},
     {"Product Name", "MINIPACK3_MCB"},
     {"Product Part Number", ""},
     {"System Assembly Part Number", "        "},
@@ -47,7 +47,7 @@ EepromContents expectedContentsV4 = {
     {"System Manufacturer", "CLS"},
     {"System Manufacturing Date", "20230610"},
     {"PCB Manufacturer", "WUS"},
-    {"Assembled at", "CTH"},
+    {"Assembled At", "CTH"},
     {"Local MAC", "00:00:00:00:00:00"},
     {"Extended MAC Base", "00:00:00:00:00:00"},
     {"Extended MAC Address Size", "0"},
@@ -79,6 +79,7 @@ EepromData eepromV5 = {
     0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff};
 
 EepromContents expectedContentsV5 = {
+    {"Version", "5"},
     {"Product Name", "FIRST_SQUEEZE"},
     {"Product Part Number", "20123456"},
     {"System Assembly Part Number", "SYSA1234"},
@@ -93,7 +94,7 @@ EepromContents expectedContentsV5 = {
     {"System Manufacturer", "UNA_MAS"},
     {"System Manufacturing Date", "20130203"},
     {"PCB Manufacturer", "TERZO"},
-    {"Assembled at", "JUICETORY"},
+    {"Assembled At", "JUICETORY"},
     {"EEPROM location on Fabric", "BUDOKAN"},
     {"X86 CPU MAC Base", "11:22:33:44:55:66"},
     {"X86 CPU MAC Address Size", "258"},
@@ -130,6 +131,7 @@ EepromData eepromV5WrongCrc = {
     0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff};
 
 EepromContents expectedContentsV5WrongCrc = {
+    {"Version", "5"},
     {"Product Name", "FIRST_SQUEEZE"},
     {"Product Part Number", "20123456"},
     {"System Assembly Part Number", "SYSA1234"},
@@ -144,7 +146,7 @@ EepromContents expectedContentsV5WrongCrc = {
     {"System Manufacturer", "UNA_MAS"},
     {"System Manufacturing Date", "20130203"},
     {"PCB Manufacturer", "TERZO"},
-    {"Assembled at", "JUICETORY"},
+    {"Assembled At", "JUICETORY"},
     {"EEPROM location on Fabric", "BUDOKAN"},
     {"X86 CPU MAC Base", "11:22:33:44:55:66"},
     {"X86 CPU MAC Address Size", "258"},

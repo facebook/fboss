@@ -8,7 +8,7 @@
 
 #include <fboss/thrift_cow/visitors/DeltaVisitor.h>
 #include <fboss/thrift_cow/visitors/tests/VisitorTestUtils.h>
-#include <thrift/lib/cpp2/reflection/folly_dynamic.h>
+#include <thrift/lib/cpp2/folly_dynamic/folly_dynamic.h>
 #include "fboss/thrift_cow/nodes/Types.h"
 #include "fboss/thrift_cow/nodes/tests/gen-cpp2/test_fatal_types.h"
 

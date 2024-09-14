@@ -28,6 +28,10 @@ class SaiRollbackTest : public HwLinkStateDependentTest {
   }
   void rollback(const StateDelta& delta);
 
+  bool hideFabricPorts() const override {
+    return false;
+  }
+
  private:
   std::unique_ptr<HwProdInvariantHelper> prodInvariants_;
 };

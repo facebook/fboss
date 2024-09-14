@@ -101,6 +101,7 @@ uint16_t uplinksCountFromSwitch(PlatformType mode) {
     case PM::PLATFORM_WEDGE400C:
     case PM::PLATFORM_WEDGE400:
     case PM::PLATFORM_YAMP:
+    case PM::PLATFORM_MORGAN800CC:
     case PM::PLATFORM_MINIPACK:
     case PM::PLATFORM_ELBERT:
     case PM::PLATFORM_FUJI:
