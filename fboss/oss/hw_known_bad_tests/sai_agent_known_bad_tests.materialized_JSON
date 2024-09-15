@@ -26,7 +26,7 @@
           "test_name_regex": "AgentUdfAclCounterTest.*$"
         },
         {
-          "test_name_regex": "AgentFlowletAclCounterTest.*$"
+          "test_name_regex": "AgentFlowlet*$"
         },
         {
           "test_name_regex": "AgentCoppQosTest.HighVsLowerPriorityCpuQueueTrafficPrioritization$"
@@ -42,9 +42,6 @@
         },
         {
           "test_name_regex": "AgentMacLearningBatchEntriesTest.*$"
-        },
-        {
-          "test_name_regex": "AgentFlowletSwitchingTest.*$"
         },
         {
           "test_name_regex": "AgentSflowMirrorTestV[46].*$"
@@ -122,7 +119,7 @@
           "test_name_regex": "AgentUdfAclCounterTest.*$"
         },
         {
-          "test_name_regex": "AgentFlowletAclCounterTest.*$"
+          "test_name_regex": "AgentFlowlet*$"
         },
         {
           "test_name_regex": "AgentCoppQosTest.HighVsLowerPriorityCpuQueueTrafficPrioritization$"
@@ -138,9 +135,6 @@
         },
         {
           "test_name_regex": "AgentMacLearningBatchEntriesTest.*$"
-        },
-        {
-          "test_name_regex": "AgentFlowletSwitchingTest.*$"
         },
         {
           "test_name_regex": "AgentSflowMirrorTestV[46].*$"
@@ -319,7 +313,7 @@
           "test_name_regex": "AgentUdfAclCounterTest.*$"
         },
         {
-          "test_name_regex": "AgentFlowletAclCounterTest.*$"
+          "test_name_regex": "AgentFlowlet*$"
         },
         {
           "test_name_regex": "AgentCoppQosTest.HighVsLowerPriorityCpuQueueTrafficPrioritization$"
@@ -335,9 +329,6 @@
         },
         {
           "test_name_regex": "AgentMacLearningBatchEntriesTest.*$"
-        },
-        {
-          "test_name_regex": "AgentFlowletSwitchingTest.*$"
         },
         {
           "test_name_regex": "AgentSflowMirrorTestV[46].*$"
@@ -403,7 +394,7 @@
           "test_name_regex": "AgentUdfAclCounterTest.*$"
         },
         {
-          "test_name_regex": "AgentFlowletAclCounterTest.*$"
+          "test_name_regex": "AgentFlowlet*$"
         },
         {
           "test_name_regex": "AgentCoppQosTest.HighVsLowerPriorityCpuQueueTrafficPrioritization$"
@@ -419,9 +410,6 @@
         },
         {
           "test_name_regex": "AgentMacLearningBatchEntriesTest.*$"
-        },
-        {
-          "test_name_regex": "AgentFlowletSwitchingTest.*$"
         },
         {
           "test_name_regex": "AgentSflowMirrorTestV[46].*$"
@@ -621,7 +609,7 @@
           "test_name_regex": "AgentUdfAclCounterTest.*$"
         },
         {
-          "test_name_regex": "AgentFlowletAclCounterTest.*$"
+          "test_name_regex": "AgentFlowlet*$"
         },
         {
           "test_name_regex": "AgentCoppQosTest.HighVsLowerPriorityCpuQueueTrafficPrioritization$"
@@ -637,9 +625,6 @@
         },
         {
           "test_name_regex": "AgentMacLearningBatchEntriesTest.*$"
-        },
-        {
-          "test_name_regex": "AgentFlowletSwitchingTest.*$"
         },
         {
           "test_name_regex": "AgentSflowMirrorTestV[46].*$"
@@ -717,7 +702,7 @@
           "test_name_regex": "AgentUdfAclCounterTest.*$"
         },
         {
-          "test_name_regex": "AgentFlowletAclCounterTest.*$"
+          "test_name_regex": "AgentFlowlet*$"
         },
         {
           "test_name_regex": "AgentCoppQosTest.HighVsLowerPriorityCpuQueueTrafficPrioritization$"
@@ -733,9 +718,6 @@
         },
         {
           "test_name_regex": "AgentMacLearningBatchEntriesTest.*$"
-        },
-        {
-          "test_name_regex": "AgentFlowletSwitchingTest.*$"
         },
         {
           "test_name_regex": "AgentSflowMirrorTestV[46].*$"
@@ -872,7 +854,7 @@
           "test_name_regex": "AgentUdfAclCounterTest.*$"
         },
         {
-          "test_name_regex": "AgentFlowletAclCounterTest.*$"
+          "test_name_regex": "AgentFlowlet*$"
         },
         {
           "test_name_regex": "AgentCoppQosTest.HighVsLowerPriorityCpuQueueTrafficPrioritization$"
@@ -888,9 +870,6 @@
         },
         {
           "test_name_regex": "AgentMacLearningBatchEntriesTest.*$"
-        },
-        {
-          "test_name_regex": "AgentFlowletSwitchingTest.*$"
         },
         {
           "test_name_regex": "AgentSflowMirrorTestV[46].*$"
@@ -956,7 +935,7 @@
           "test_name_regex": "AgentUdfAclCounterTest.*$"
         },
         {
-          "test_name_regex": "AgentFlowletAclCounterTest.*$"
+          "test_name_regex": "AgentFlowlet*$"
         },
         {
           "test_name_regex": "AgentCoppQosTest.HighVsLowerPriorityCpuQueueTrafficPrioritization$"
@@ -972,9 +951,6 @@
         },
         {
           "test_name_regex": "AgentMacLearningBatchEntriesTest.*$"
-        },
-        {
-          "test_name_regex": "AgentFlowletSwitchingTest.*$"
         },
         {
           "test_name_regex": "AgentSflowMirrorTestV[46].*$"
@@ -1159,7 +1135,7 @@
           "test_name_regex": "AgentUdfAclCounterTest.*$"
         },
         {
-          "test_name_regex": "AgentFlowletAclCounterTest.*$"
+          "test_name_regex": "AgentFlowlet*$"
         },
         {
           "test_name_regex": "AgentCoppQosTest.HighVsLowerPriorityCpuQueueTrafficPrioritization$"
@@ -1175,9 +1151,6 @@
         },
         {
           "test_name_regex": "AgentMacLearningBatchEntriesTest.*$"
-        },
-        {
-          "test_name_regex": "AgentFlowletSwitchingTest.*$"
         },
         {
           "test_name_regex": "AgentSflowMirrorTestV[46].*$"
@@ -1255,7 +1228,7 @@
           "test_name_regex": "AgentUdfAclCounterTest.*$"
         },
         {
-          "test_name_regex": "AgentFlowletAclCounterTest.*$"
+          "test_name_regex": "AgentFlowlet*$"
         },
         {
           "test_name_regex": "AgentCoppQosTest.HighVsLowerPriorityCpuQueueTrafficPrioritization$"
@@ -1271,9 +1244,6 @@
         },
         {
           "test_name_regex": "AgentMacLearningBatchEntriesTest.*$"
-        },
-        {
-          "test_name_regex": "AgentFlowletSwitchingTest.*$"
         },
         {
           "test_name_regex": "AgentSflowMirrorTestV[46].*$"
@@ -1524,7 +1494,7 @@
           "test_name_regex": "AgentUdfAclCounterTest.*$"
         },
         {
-          "test_name_regex": "AgentFlowletAclCounterTest.*$"
+          "test_name_regex": "AgentFlowlet*$"
         },
         {
           "test_name_regex": "AgentCoppQosTest.HighVsLowerPriorityCpuQueueTrafficPrioritization$"
@@ -1540,9 +1510,6 @@
         },
         {
           "test_name_regex": "AgentMacLearningBatchEntriesTest.*$"
-        },
-        {
-          "test_name_regex": "AgentFlowletSwitchingTest.*$"
         },
         {
           "test_name_regex": "AgentSflowMirrorTestV[46].*$"
@@ -1608,7 +1575,7 @@
           "test_name_regex": "AgentUdfAclCounterTest.*$"
         },
         {
-          "test_name_regex": "AgentFlowletAclCounterTest.*$"
+          "test_name_regex": "AgentFlowlet*$"
         },
         {
           "test_name_regex": "AgentCoppQosTest.HighVsLowerPriorityCpuQueueTrafficPrioritization$"
@@ -1624,9 +1591,6 @@
         },
         {
           "test_name_regex": "AgentMacLearningBatchEntriesTest.*$"
-        },
-        {
-          "test_name_regex": "AgentFlowletSwitchingTest.*$"
         },
         {
           "test_name_regex": "AgentSflowMirrorTestV[46].*$"
@@ -1835,7 +1799,7 @@
           "test_name_regex": "AgentUdfAclCounterTest.*$"
         },
         {
-          "test_name_regex": "AgentFlowletAclCounterTest.*$"
+          "test_name_regex": "AgentFlowlet*$"
         },
         {
           "test_name_regex": "AgentCoppQosTest.HighVsLowerPriorityCpuQueueTrafficPrioritization$"
@@ -1851,9 +1815,6 @@
         },
         {
           "test_name_regex": "AgentMacLearningBatchEntriesTest.*$"
-        },
-        {
-          "test_name_regex": "AgentFlowletSwitchingTest.*$"
         },
         {
           "test_name_regex": "AgentSflowMirrorTestV[46].*$"
@@ -1931,7 +1892,7 @@
           "test_name_regex": "AgentUdfAclCounterTest.*$"
         },
         {
-          "test_name_regex": "AgentFlowletAclCounterTest.*$"
+          "test_name_regex": "AgentFlowlet*$"
         },
         {
           "test_name_regex": "AgentCoppQosTest.HighVsLowerPriorityCpuQueueTrafficPrioritization$"
@@ -1947,9 +1908,6 @@
         },
         {
           "test_name_regex": "AgentMacLearningBatchEntriesTest.*$"
-        },
-        {
-          "test_name_regex": "AgentFlowletSwitchingTest.*$"
         },
         {
           "test_name_regex": "AgentSflowMirrorTestV[46].*$"
@@ -2107,7 +2065,7 @@
           "test_name_regex": "AgentUdfAclCounterTest.*$"
         },
         {
-          "test_name_regex": "AgentFlowletAclCounterTest.*$"
+          "test_name_regex": "AgentFlowlet*$"
         },
         {
           "test_name_regex": "AgentCoppQosTest.HighVsLowerPriorityCpuQueueTrafficPrioritization$"
@@ -2123,9 +2081,6 @@
         },
         {
           "test_name_regex": "AgentMacLearningBatchEntriesTest.*$"
-        },
-        {
-          "test_name_regex": "AgentFlowletSwitchingTest.*$"
         },
         {
           "test_name_regex": "AgentSflowMirrorTestV[46].*$"
@@ -2191,7 +2146,7 @@
           "test_name_regex": "AgentUdfAclCounterTest.*$"
         },
         {
-          "test_name_regex": "AgentFlowletAclCounterTest.*$"
+          "test_name_regex": "AgentFlowlet*$"
         },
         {
           "test_name_regex": "AgentCoppQosTest.HighVsLowerPriorityCpuQueueTrafficPrioritization$"
@@ -2207,9 +2162,6 @@
         },
         {
           "test_name_regex": "AgentMacLearningBatchEntriesTest.*$"
-        },
-        {
-          "test_name_regex": "AgentFlowletSwitchingTest.*$"
         },
         {
           "test_name_regex": "AgentSflowMirrorTestV[46].*$"
@@ -2367,7 +2319,7 @@
           "test_name_regex": "AgentUdfAclCounterTest.*$"
         },
         {
-          "test_name_regex": "AgentFlowletAclCounterTest.*$"
+          "test_name_regex": "AgentFlowlet*$"
         },
         {
           "test_name_regex": "AgentCoppQosTest.HighVsLowerPriorityCpuQueueTrafficPrioritization$"
@@ -2383,9 +2335,6 @@
         },
         {
           "test_name_regex": "AgentMacLearningBatchEntriesTest.*$"
-        },
-        {
-          "test_name_regex": "AgentFlowletSwitchingTest.*$"
         },
         {
           "test_name_regex": "AgentSflowMirrorTestV[46].*$"
@@ -2451,7 +2400,7 @@
           "test_name_regex": "AgentUdfAclCounterTest.*$"
         },
         {
-          "test_name_regex": "AgentFlowletAclCounterTest.*$"
+          "test_name_regex": "AgentFlowlet*$"
         },
         {
           "test_name_regex": "AgentCoppQosTest.HighVsLowerPriorityCpuQueueTrafficPrioritization$"
@@ -2467,9 +2416,6 @@
         },
         {
           "test_name_regex": "AgentMacLearningBatchEntriesTest.*$"
-        },
-        {
-          "test_name_regex": "AgentFlowletSwitchingTest.*$"
         },
         {
           "test_name_regex": "AgentSflowMirrorTestV[46].*$"
@@ -2759,7 +2705,7 @@
           "test_name_regex": "AgentUdfAclCounterTest.*$"
         },
         {
-          "test_name_regex": "AgentFlowletAclCounterTest.*$"
+          "test_name_regex": "AgentFlowlet*$"
         },
         {
           "test_name_regex": "AgentCoppQosTest.HighVsLowerPriorityCpuQueueTrafficPrioritization$"
@@ -2775,9 +2721,6 @@
         },
         {
           "test_name_regex": "AgentMacLearningBatchEntriesTest.*$"
-        },
-        {
-          "test_name_regex": "AgentFlowletSwitchingTest.*$"
         },
         {
           "test_name_regex": "AgentSflowMirrorTestV[46].*$"
@@ -2855,7 +2798,7 @@
           "test_name_regex": "AgentUdfAclCounterTest.*$"
         },
         {
-          "test_name_regex": "AgentFlowletAclCounterTest.*$"
+          "test_name_regex": "AgentFlowlet*$"
         },
         {
           "test_name_regex": "AgentCoppQosTest.HighVsLowerPriorityCpuQueueTrafficPrioritization$"
@@ -2871,9 +2814,6 @@
         },
         {
           "test_name_regex": "AgentMacLearningBatchEntriesTest.*$"
-        },
-        {
-          "test_name_regex": "AgentFlowletSwitchingTest.*$"
         },
         {
           "test_name_regex": "AgentSflowMirrorTestV[46].*$"
@@ -3151,7 +3091,7 @@
           "test_name_regex": "AgentUdfAclCounterTest.*$"
         },
         {
-          "test_name_regex": "AgentFlowletAclCounterTest.*$"
+          "test_name_regex": "AgentFlowlet*$"
         },
         {
           "test_name_regex": "AgentCoppQosTest.HighVsLowerPriorityCpuQueueTrafficPrioritization$"
@@ -3167,9 +3107,6 @@
         },
         {
           "test_name_regex": "AgentMacLearningBatchEntriesTest.*$"
-        },
-        {
-          "test_name_regex": "AgentFlowletSwitchingTest.*$"
         },
         {
           "test_name_regex": "AgentSflowMirrorTestV[46].*$"
@@ -3235,7 +3172,7 @@
           "test_name_regex": "AgentUdfAclCounterTest.*$"
         },
         {
-          "test_name_regex": "AgentFlowletAclCounterTest.*$"
+          "test_name_regex": "AgentFlowlet*$"
         },
         {
           "test_name_regex": "AgentCoppQosTest.HighVsLowerPriorityCpuQueueTrafficPrioritization$"
@@ -3251,9 +3188,6 @@
         },
         {
           "test_name_regex": "AgentMacLearningBatchEntriesTest.*$"
-        },
-        {
-          "test_name_regex": "AgentFlowletSwitchingTest.*$"
         },
         {
           "test_name_regex": "AgentSflowMirrorTestV[46].*$"
@@ -3366,7 +3300,7 @@
           "test_name_regex": "AgentUdfAclCounterTest.*$"
         },
         {
-          "test_name_regex": "AgentFlowletAclCounterTest.*$"
+          "test_name_regex": "AgentFlowlet*$"
         },
         {
           "test_name_regex": "AgentCoppQosTest.HighVsLowerPriorityCpuQueueTrafficPrioritization$"
@@ -3382,9 +3316,6 @@
         },
         {
           "test_name_regex": "AgentMacLearningBatchEntriesTest.*$"
-        },
-        {
-          "test_name_regex": "AgentFlowletSwitchingTest.*$"
         },
         {
           "test_name_regex": "AgentSflowMirrorTestV[46].*$"
@@ -3462,7 +3393,7 @@
           "test_name_regex": "AgentUdfAclCounterTest.*$"
         },
         {
-          "test_name_regex": "AgentFlowletAclCounterTest.*$"
+          "test_name_regex": "AgentFlowlet*$"
         },
         {
           "test_name_regex": "AgentCoppQosTest.HighVsLowerPriorityCpuQueueTrafficPrioritization$"
@@ -3478,9 +3409,6 @@
         },
         {
           "test_name_regex": "AgentMacLearningBatchEntriesTest.*$"
-        },
-        {
-          "test_name_regex": "AgentFlowletSwitchingTest.*$"
         },
         {
           "test_name_regex": "AgentSflowMirrorTestV[46].*$"
@@ -3581,7 +3509,7 @@
           "test_name_regex": "AgentUdfAclCounterTest.*$"
         },
         {
-          "test_name_regex": "AgentFlowletAclCounterTest.*$"
+          "test_name_regex": "AgentFlowlet*$"
         },
         {
           "test_name_regex": "AgentCoppQosTest.HighVsLowerPriorityCpuQueueTrafficPrioritization$"
@@ -3597,9 +3525,6 @@
         },
         {
           "test_name_regex": "AgentMacLearningBatchEntriesTest.*$"
-        },
-        {
-          "test_name_regex": "AgentFlowletSwitchingTest.*$"
         },
         {
           "test_name_regex": "AgentSflowMirrorTestV[46].*$"
@@ -3665,7 +3590,7 @@
           "test_name_regex": "AgentUdfAclCounterTest.*$"
         },
         {
-          "test_name_regex": "AgentFlowletAclCounterTest.*$"
+          "test_name_regex": "AgentFlowlet*$"
         },
         {
           "test_name_regex": "AgentCoppQosTest.HighVsLowerPriorityCpuQueueTrafficPrioritization$"
@@ -3681,9 +3606,6 @@
         },
         {
           "test_name_regex": "AgentMacLearningBatchEntriesTest.*$"
-        },
-        {
-          "test_name_regex": "AgentFlowletSwitchingTest.*$"
         },
         {
           "test_name_regex": "AgentSflowMirrorTestV[46].*$"
@@ -3880,7 +3802,7 @@
           "test_name_regex": "AgentUdfAclCounterTest.*$"
         },
         {
-          "test_name_regex": "AgentFlowletAclCounterTest.*$"
+          "test_name_regex": "AgentFlowlet*$"
         },
         {
           "test_name_regex": "AgentCoppQosTest.HighVsLowerPriorityCpuQueueTrafficPrioritization$"
@@ -3896,9 +3818,6 @@
         },
         {
           "test_name_regex": "AgentMacLearningBatchEntriesTest.*$"
-        },
-        {
-          "test_name_regex": "AgentFlowletSwitchingTest.*$"
         },
         {
           "test_name_regex": "AgentSflowMirrorTestV[46].*$"
@@ -3976,7 +3895,7 @@
           "test_name_regex": "AgentUdfAclCounterTest.*$"
         },
         {
-          "test_name_regex": "AgentFlowletAclCounterTest.*$"
+          "test_name_regex": "AgentFlowlet*$"
         },
         {
           "test_name_regex": "AgentCoppQosTest.HighVsLowerPriorityCpuQueueTrafficPrioritization$"
@@ -3992,9 +3911,6 @@
         },
         {
           "test_name_regex": "AgentMacLearningBatchEntriesTest.*$"
-        },
-        {
-          "test_name_regex": "AgentFlowletSwitchingTest.*$"
         },
         {
           "test_name_regex": "AgentSflowMirrorTestV[46].*$"
@@ -4179,7 +4095,7 @@
           "test_name_regex": "AgentUdfAclCounterTest.*$"
         },
         {
-          "test_name_regex": "AgentFlowletAclCounterTest.*$"
+          "test_name_regex": "AgentFlowlet*$"
         },
         {
           "test_name_regex": "AgentCoppQosTest.HighVsLowerPriorityCpuQueueTrafficPrioritization$"
@@ -4195,9 +4111,6 @@
         },
         {
           "test_name_regex": "AgentMacLearningBatchEntriesTest.*$"
-        },
-        {
-          "test_name_regex": "AgentFlowletSwitchingTest.*$"
         },
         {
           "test_name_regex": "AgentSflowMirrorTestV[46].*$"
@@ -4263,7 +4176,7 @@
           "test_name_regex": "AgentUdfAclCounterTest.*$"
         },
         {
-          "test_name_regex": "AgentFlowletAclCounterTest.*$"
+          "test_name_regex": "AgentFlowlet*$"
         },
         {
           "test_name_regex": "AgentCoppQosTest.HighVsLowerPriorityCpuQueueTrafficPrioritization$"
@@ -4279,9 +4192,6 @@
         },
         {
           "test_name_regex": "AgentMacLearningBatchEntriesTest.*$"
-        },
-        {
-          "test_name_regex": "AgentFlowletSwitchingTest.*$"
         },
         {
           "test_name_regex": "AgentSflowMirrorTestV[46].*$"
@@ -4571,7 +4481,7 @@
           "test_name_regex": "AgentUdfAclCounterTest.*$"
         },
         {
-          "test_name_regex": "AgentFlowletAclCounterTest.*$"
+          "test_name_regex": "AgentFlowlet*$"
         },
         {
           "test_name_regex": "AgentCoppQosTest.HighVsLowerPriorityCpuQueueTrafficPrioritization$"
@@ -4587,9 +4497,6 @@
         },
         {
           "test_name_regex": "AgentMacLearningBatchEntriesTest.*$"
-        },
-        {
-          "test_name_regex": "AgentFlowletSwitchingTest.*$"
         },
         {
           "test_name_regex": "AgentSflowMirrorTestV[46].*$"
@@ -4667,7 +4574,7 @@
           "test_name_regex": "AgentUdfAclCounterTest.*$"
         },
         {
-          "test_name_regex": "AgentFlowletAclCounterTest.*$"
+          "test_name_regex": "AgentFlowlet*$"
         },
         {
           "test_name_regex": "AgentCoppQosTest.HighVsLowerPriorityCpuQueueTrafficPrioritization$"
@@ -4683,9 +4590,6 @@
         },
         {
           "test_name_regex": "AgentMacLearningBatchEntriesTest.*$"
-        },
-        {
-          "test_name_regex": "AgentFlowletSwitchingTest.*$"
         },
         {
           "test_name_regex": "AgentSflowMirrorTestV[46].*$"
@@ -4963,7 +4867,7 @@
           "test_name_regex": "AgentUdfAclCounterTest.*$"
         },
         {
-          "test_name_regex": "AgentFlowletAclCounterTest.*$"
+          "test_name_regex": "AgentFlowlet*$"
         },
         {
           "test_name_regex": "AgentCoppQosTest.HighVsLowerPriorityCpuQueueTrafficPrioritization$"
@@ -4979,9 +4883,6 @@
         },
         {
           "test_name_regex": "AgentMacLearningBatchEntriesTest.*$"
-        },
-        {
-          "test_name_regex": "AgentFlowletSwitchingTest.*$"
         },
         {
           "test_name_regex": "AgentSflowMirrorTestV[46].*$"
@@ -5047,7 +4948,7 @@
           "test_name_regex": "AgentUdfAclCounterTest.*$"
         },
         {
-          "test_name_regex": "AgentFlowletAclCounterTest.*$"
+          "test_name_regex": "AgentFlowlet*$"
         },
         {
           "test_name_regex": "AgentCoppQosTest.HighVsLowerPriorityCpuQueueTrafficPrioritization$"
@@ -5063,9 +4964,6 @@
         },
         {
           "test_name_regex": "AgentMacLearningBatchEntriesTest.*$"
-        },
-        {
-          "test_name_regex": "AgentFlowletSwitchingTest.*$"
         },
         {
           "test_name_regex": "AgentSflowMirrorTestV[46].*$"
@@ -5090,6 +4988,18 @@
         },
         {
           "test_name_regex": "AgentIngressEgress.*$"
+        },
+        {
+          "test_name_regex": "AgentIngressAclSpanMirroringTest.*$"
+        },
+        {
+          "test_name_regex": "AgentIngressAclErspanMirroringTest.*$"
+        },
+        {
+          "test_name_regex": "AgentEgressAclSpanMirroringTest.*$"
+        },
+        {
+          "test_name_regex": "AgentEgressAclErspanMirroringTest.*$"
         },
         {
           "test_name_regex": "AgentIngressAclSpanMirroringTest.*$"
@@ -5178,7 +5088,7 @@
           "test_name_regex": "AgentUdfAclCounterTest.*$"
         },
         {
-          "test_name_regex": "AgentFlowletAclCounterTest.*$"
+          "test_name_regex": "AgentFlowlet*$"
         },
         {
           "test_name_regex": "AgentCoppQosTest.HighVsLowerPriorityCpuQueueTrafficPrioritization$"
@@ -5194,9 +5104,6 @@
         },
         {
           "test_name_regex": "AgentMacLearningBatchEntriesTest.*$"
-        },
-        {
-          "test_name_regex": "AgentFlowletSwitchingTest.*$"
         },
         {
           "test_name_regex": "AgentSflowMirrorTestV[46].*$"
@@ -5274,7 +5181,7 @@
           "test_name_regex": "AgentUdfAclCounterTest.*$"
         },
         {
-          "test_name_regex": "AgentFlowletAclCounterTest.*$"
+          "test_name_regex": "AgentFlowlet*$"
         },
         {
           "test_name_regex": "AgentCoppQosTest.HighVsLowerPriorityCpuQueueTrafficPrioritization$"
@@ -5290,9 +5197,6 @@
         },
         {
           "test_name_regex": "AgentMacLearningBatchEntriesTest.*$"
-        },
-        {
-          "test_name_regex": "AgentFlowletSwitchingTest.*$"
         },
         {
           "test_name_regex": "AgentSflowMirrorTestV[46].*$"
@@ -5393,7 +5297,7 @@
           "test_name_regex": "AgentUdfAclCounterTest.*$"
         },
         {
-          "test_name_regex": "AgentFlowletAclCounterTest.*$"
+          "test_name_regex": "AgentFlowlet*$"
         },
         {
           "test_name_regex": "AgentCoppQosTest.HighVsLowerPriorityCpuQueueTrafficPrioritization$"
@@ -5409,9 +5313,6 @@
         },
         {
           "test_name_regex": "AgentMacLearningBatchEntriesTest.*$"
-        },
-        {
-          "test_name_regex": "AgentFlowletSwitchingTest.*$"
         },
         {
           "test_name_regex": "AgentSflowMirrorTestV[46].*$"
@@ -5477,7 +5378,7 @@
           "test_name_regex": "AgentUdfAclCounterTest.*$"
         },
         {
-          "test_name_regex": "AgentFlowletAclCounterTest.*$"
+          "test_name_regex": "AgentFlowlet*$"
         },
         {
           "test_name_regex": "AgentCoppQosTest.HighVsLowerPriorityCpuQueueTrafficPrioritization$"
@@ -5493,9 +5394,6 @@
         },
         {
           "test_name_regex": "AgentMacLearningBatchEntriesTest.*$"
-        },
-        {
-          "test_name_regex": "AgentFlowletSwitchingTest.*$"
         },
         {
           "test_name_regex": "AgentSflowMirrorTestV[46].*$"
@@ -5608,7 +5506,7 @@
           "test_name_regex": "AgentUdfAclCounterTest.*$"
         },
         {
-          "test_name_regex": "AgentFlowletAclCounterTest.*$"
+          "test_name_regex": "AgentFlowlet*$"
         },
         {
           "test_name_regex": "AgentCoppQosTest.HighVsLowerPriorityCpuQueueTrafficPrioritization$"
@@ -5624,9 +5522,6 @@
         },
         {
           "test_name_regex": "AgentMacLearningBatchEntriesTest.*$"
-        },
-        {
-          "test_name_regex": "AgentFlowletSwitchingTest.*$"
         },
         {
           "test_name_regex": "AgentSflowMirrorTestV[46].*$"
@@ -5704,7 +5599,7 @@
           "test_name_regex": "AgentUdfAclCounterTest.*$"
         },
         {
-          "test_name_regex": "AgentFlowletAclCounterTest.*$"
+          "test_name_regex": "AgentFlowlet*$"
         },
         {
           "test_name_regex": "AgentCoppQosTest.HighVsLowerPriorityCpuQueueTrafficPrioritization$"
@@ -5720,9 +5615,6 @@
         },
         {
           "test_name_regex": "AgentMacLearningBatchEntriesTest.*$"
-        },
-        {
-          "test_name_regex": "AgentFlowletSwitchingTest.*$"
         },
         {
           "test_name_regex": "AgentSflowMirrorTestV[46].*$"
@@ -5877,7 +5769,7 @@
           "test_name_regex": "AgentUdfAclCounterTest.*$"
         },
         {
-          "test_name_regex": "AgentFlowletAclCounterTest.*$"
+          "test_name_regex": "AgentFlowlet*$"
         },
         {
           "test_name_regex": "AgentCoppQosTest.HighVsLowerPriorityCpuQueueTrafficPrioritization$"
@@ -5893,9 +5785,6 @@
         },
         {
           "test_name_regex": "AgentMacLearningBatchEntriesTest.*$"
-        },
-        {
-          "test_name_regex": "AgentFlowletSwitchingTest.*$"
         },
         {
           "test_name_regex": "AgentSflowMirrorTestV[46].*$"
@@ -5961,7 +5850,7 @@
           "test_name_regex": "AgentUdfAclCounterTest.*$"
         },
         {
-          "test_name_regex": "AgentFlowletAclCounterTest.*$"
+          "test_name_regex": "AgentFlowlet*$"
         },
         {
           "test_name_regex": "AgentCoppQosTest.HighVsLowerPriorityCpuQueueTrafficPrioritization$"
@@ -5977,9 +5866,6 @@
         },
         {
           "test_name_regex": "AgentMacLearningBatchEntriesTest.*$"
-        },
-        {
-          "test_name_regex": "AgentFlowletSwitchingTest.*$"
         },
         {
           "test_name_regex": "AgentSflowMirrorTestV[46].*$"
@@ -6179,7 +6065,7 @@
           "test_name_regex": "AgentUdfAclCounterTest.*$"
         },
         {
-          "test_name_regex": "AgentFlowletAclCounterTest.*$"
+          "test_name_regex": "AgentFlowlet*$"
         },
         {
           "test_name_regex": "AgentCoppQosTest.HighVsLowerPriorityCpuQueueTrafficPrioritization$"
@@ -6195,9 +6081,6 @@
         },
         {
           "test_name_regex": "AgentMacLearningBatchEntriesTest.*$"
-        },
-        {
-          "test_name_regex": "AgentFlowletSwitchingTest.*$"
         },
         {
           "test_name_regex": "AgentSflowMirrorTestV[46].*$"
@@ -6275,7 +6158,7 @@
           "test_name_regex": "AgentUdfAclCounterTest.*$"
         },
         {
-          "test_name_regex": "AgentFlowletAclCounterTest.*$"
+          "test_name_regex": "AgentFlowlet*$"
         },
         {
           "test_name_regex": "AgentCoppQosTest.HighVsLowerPriorityCpuQueueTrafficPrioritization$"
@@ -6291,9 +6174,6 @@
         },
         {
           "test_name_regex": "AgentMacLearningBatchEntriesTest.*$"
-        },
-        {
-          "test_name_regex": "AgentFlowletSwitchingTest.*$"
         },
         {
           "test_name_regex": "AgentSflowMirrorTestV[46].*$"
@@ -6430,7 +6310,7 @@
           "test_name_regex": "AgentUdfAclCounterTest.*$"
         },
         {
-          "test_name_regex": "AgentFlowletAclCounterTest.*$"
+          "test_name_regex": "AgentFlowlet*$"
         },
         {
           "test_name_regex": "AgentCoppQosTest.HighVsLowerPriorityCpuQueueTrafficPrioritization$"
@@ -6446,9 +6326,6 @@
         },
         {
           "test_name_regex": "AgentMacLearningBatchEntriesTest.*$"
-        },
-        {
-          "test_name_regex": "AgentFlowletSwitchingTest.*$"
         },
         {
           "test_name_regex": "AgentSflowMirrorTestV[46].*$"
@@ -6514,7 +6391,7 @@
           "test_name_regex": "AgentUdfAclCounterTest.*$"
         },
         {
-          "test_name_regex": "AgentFlowletAclCounterTest.*$"
+          "test_name_regex": "AgentFlowlet*$"
         },
         {
           "test_name_regex": "AgentCoppQosTest.HighVsLowerPriorityCpuQueueTrafficPrioritization$"
@@ -6530,9 +6407,6 @@
         },
         {
           "test_name_regex": "AgentMacLearningBatchEntriesTest.*$"
-        },
-        {
-          "test_name_regex": "AgentFlowletSwitchingTest.*$"
         },
         {
           "test_name_regex": "AgentSflowMirrorTestV[46].*$"
@@ -6717,7 +6591,7 @@
           "test_name_regex": "AgentUdfAclCounterTest.*$"
         },
         {
-          "test_name_regex": "AgentFlowletAclCounterTest.*$"
+          "test_name_regex": "AgentFlowlet*$"
         },
         {
           "test_name_regex": "AgentCoppQosTest.HighVsLowerPriorityCpuQueueTrafficPrioritization$"
@@ -6733,9 +6607,6 @@
         },
         {
           "test_name_regex": "AgentMacLearningBatchEntriesTest.*$"
-        },
-        {
-          "test_name_regex": "AgentFlowletSwitchingTest.*$"
         },
         {
           "test_name_regex": "AgentSflowMirrorTestV[46].*$"
@@ -6813,7 +6684,7 @@
           "test_name_regex": "AgentUdfAclCounterTest.*$"
         },
         {
-          "test_name_regex": "AgentFlowletAclCounterTest.*$"
+          "test_name_regex": "AgentFlowlet*$"
         },
         {
           "test_name_regex": "AgentCoppQosTest.HighVsLowerPriorityCpuQueueTrafficPrioritization$"
@@ -6829,9 +6700,6 @@
         },
         {
           "test_name_regex": "AgentMacLearningBatchEntriesTest.*$"
-        },
-        {
-          "test_name_regex": "AgentFlowletSwitchingTest.*$"
         },
         {
           "test_name_regex": "AgentSflowMirrorTestV[46].*$"
@@ -7082,7 +6950,7 @@
           "test_name_regex": "AgentUdfAclCounterTest.*$"
         },
         {
-          "test_name_regex": "AgentFlowletAclCounterTest.*$"
+          "test_name_regex": "AgentFlowlet*$"
         },
         {
           "test_name_regex": "AgentCoppQosTest.HighVsLowerPriorityCpuQueueTrafficPrioritization$"
@@ -7098,9 +6966,6 @@
         },
         {
           "test_name_regex": "AgentMacLearningBatchEntriesTest.*$"
-        },
-        {
-          "test_name_regex": "AgentFlowletSwitchingTest.*$"
         },
         {
           "test_name_regex": "AgentSflowMirrorTestV[46].*$"
@@ -7166,7 +7031,7 @@
           "test_name_regex": "AgentUdfAclCounterTest.*$"
         },
         {
-          "test_name_regex": "AgentFlowletAclCounterTest.*$"
+          "test_name_regex": "AgentFlowlet*$"
         },
         {
           "test_name_regex": "AgentCoppQosTest.HighVsLowerPriorityCpuQueueTrafficPrioritization$"
@@ -7182,9 +7047,6 @@
         },
         {
           "test_name_regex": "AgentMacLearningBatchEntriesTest.*$"
-        },
-        {
-          "test_name_regex": "AgentFlowletSwitchingTest.*$"
         },
         {
           "test_name_regex": "AgentSflowMirrorTestV[46].*$"
@@ -7393,7 +7255,7 @@
           "test_name_regex": "AgentUdfAclCounterTest.*$"
         },
         {
-          "test_name_regex": "AgentFlowletAclCounterTest.*$"
+          "test_name_regex": "AgentFlowlet*$"
         },
         {
           "test_name_regex": "AgentCoppQosTest.HighVsLowerPriorityCpuQueueTrafficPrioritization$"
@@ -7409,9 +7271,6 @@
         },
         {
           "test_name_regex": "AgentMacLearningBatchEntriesTest.*$"
-        },
-        {
-          "test_name_regex": "AgentFlowletSwitchingTest.*$"
         },
         {
           "test_name_regex": "AgentSflowMirrorTestV[46].*$"
@@ -7489,7 +7348,7 @@
           "test_name_regex": "AgentUdfAclCounterTest.*$"
         },
         {
-          "test_name_regex": "AgentFlowletAclCounterTest.*$"
+          "test_name_regex": "AgentFlowlet*$"
         },
         {
           "test_name_regex": "AgentCoppQosTest.HighVsLowerPriorityCpuQueueTrafficPrioritization$"
@@ -7505,9 +7364,6 @@
         },
         {
           "test_name_regex": "AgentMacLearningBatchEntriesTest.*$"
-        },
-        {
-          "test_name_regex": "AgentFlowletSwitchingTest.*$"
         },
         {
           "test_name_regex": "AgentSflowMirrorTestV[46].*$"
@@ -7731,7 +7587,7 @@
           "test_name_regex": "AgentUdfAclCounterTest.*$"
         },
         {
-          "test_name_regex": "AgentFlowletAclCounterTest.*$"
+          "test_name_regex": "AgentFlowlet*$"
         },
         {
           "test_name_regex": "AgentCoppQosTest.HighVsLowerPriorityCpuQueueTrafficPrioritization$"
@@ -7747,9 +7603,6 @@
         },
         {
           "test_name_regex": "AgentMacLearningBatchEntriesTest.*$"
-        },
-        {
-          "test_name_regex": "AgentFlowletSwitchingTest.*$"
         },
         {
           "test_name_regex": "AgentSflowMirrorTestV[46].*$"
@@ -7937,7 +7790,7 @@
           "test_name_regex": "AgentUdfAclCounterTest.*$"
         },
         {
-          "test_name_regex": "AgentFlowletAclCounterTest.*$"
+          "test_name_regex": "AgentFlowlet*$"
         },
         {
           "test_name_regex": "AgentCoppQosTest.HighVsLowerPriorityCpuQueueTrafficPrioritization$"
@@ -7953,9 +7806,6 @@
         },
         {
           "test_name_regex": "AgentMacLearningBatchEntriesTest.*$"
-        },
-        {
-          "test_name_regex": "AgentFlowletSwitchingTest.*$"
         },
         {
           "test_name_regex": "AgentSflowMirrorTestV[46].*$"
@@ -8113,7 +7963,7 @@
           "test_name_regex": "AgentUdfAclCounterTest.*$"
         },
         {
-          "test_name_regex": "AgentFlowletAclCounterTest.*$"
+          "test_name_regex": "AgentFlowlet*$"
         },
         {
           "test_name_regex": "AgentCoppQosTest.HighVsLowerPriorityCpuQueueTrafficPrioritization$"
@@ -8129,9 +7979,6 @@
         },
         {
           "test_name_regex": "AgentMacLearningBatchEntriesTest.*$"
-        },
-        {
-          "test_name_regex": "AgentFlowletSwitchingTest.*$"
         },
         {
           "test_name_regex": "AgentSflowMirrorTestV[46].*$"
@@ -8277,7 +8124,7 @@
           "test_name_regex": "AgentUdfAclCounterTest.*$"
         },
         {
-          "test_name_regex": "AgentFlowletAclCounterTest.*$"
+          "test_name_regex": "AgentFlowlet*$"
         },
         {
           "test_name_regex": "AgentCoppQosTest.HighVsLowerPriorityCpuQueueTrafficPrioritization$"
@@ -8293,9 +8140,6 @@
         },
         {
           "test_name_regex": "AgentMacLearningBatchEntriesTest.*$"
-        },
-        {
-          "test_name_regex": "AgentFlowletSwitchingTest.*$"
         },
         {
           "test_name_regex": "AgentSflowMirrorTestV[46].*$"
@@ -8453,7 +8297,7 @@
           "test_name_regex": "AgentUdfAclCounterTest.*$"
         },
         {
-          "test_name_regex": "AgentFlowletAclCounterTest.*$"
+          "test_name_regex": "AgentFlowlet*$"
         },
         {
           "test_name_regex": "AgentCoppQosTest.HighVsLowerPriorityCpuQueueTrafficPrioritization$"
@@ -8469,9 +8313,6 @@
         },
         {
           "test_name_regex": "AgentMacLearningBatchEntriesTest.*$"
-        },
-        {
-          "test_name_regex": "AgentFlowletSwitchingTest.*$"
         },
         {
           "test_name_regex": "AgentSflowMirrorTestV[46].*$"
@@ -8617,7 +8458,7 @@
           "test_name_regex": "AgentUdfAclCounterTest.*$"
         },
         {
-          "test_name_regex": "AgentFlowletAclCounterTest.*$"
+          "test_name_regex": "AgentFlowlet*$"
         },
         {
           "test_name_regex": "AgentCoppQosTest.HighVsLowerPriorityCpuQueueTrafficPrioritization$"
@@ -8633,9 +8474,6 @@
         },
         {
           "test_name_regex": "AgentMacLearningBatchEntriesTest.*$"
-        },
-        {
-          "test_name_regex": "AgentFlowletSwitchingTest.*$"
         },
         {
           "test_name_regex": "AgentSflowMirrorTestV[46].*$"
@@ -8814,7 +8652,7 @@
           "test_name_regex": "AgentUdfAclCounterTest.*$"
         },
         {
-          "test_name_regex": "AgentFlowletAclCounterTest.*$"
+          "test_name_regex": "AgentFlowlet*$"
         },
         {
           "test_name_regex": "AgentCoppQosTest.HighVsLowerPriorityCpuQueueTrafficPrioritization$"
@@ -8830,9 +8668,6 @@
         },
         {
           "test_name_regex": "AgentMacLearningBatchEntriesTest.*$"
-        },
-        {
-          "test_name_regex": "AgentFlowletSwitchingTest.*$"
         },
         {
           "test_name_regex": "AgentSflowMirrorTestV[46].*$"
