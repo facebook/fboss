@@ -2864,17 +2864,21 @@ bool SwSwitch::isValidStateUpdate(const StateDelta& delta) const {
       [&](const shared_ptr<Port>& /* delport */) {});
 
   // Ensure only one sflow mirror session is configured
-  int sflowMirrorCount = 0;
-  for (auto mniter : std::as_const(*(delta.newState()->getMirrors()))) {
+  std::set<std::string> ingressMirrors;
+  for (auto mniter : std::as_const(*(delta.newState()->getPorts()))) {
     for (auto iter : std::as_const(*mniter.second)) {
-      auto mirror = iter.second;
-      if (mirror->type() == Mirror::Type::SFLOW) {
-        sflowMirrorCount++;
+      auto port = iter.second;
+      if (port && port->getIngressMirror().has_value()) {
+        auto ingressMirror = delta.newState()->getMirrors()->getNodeIf(
+            port->getIngressMirror().value());
+        if (ingressMirror && ingressMirror->type() == Mirror::Type::SFLOW) {
+          ingressMirrors.insert(port->getIngressMirror().value());
+        }
       }
     }
   }
-  if (sflowMirrorCount > 1) {
-    XLOG(ERR) << "More than one sflow mirrors configured";
+  if (ingressMirrors.size() > 1) {
+    XLOG(ERR) << "Only one sflow mirror can be configured across all ports";
     isValid = false;
   }
 

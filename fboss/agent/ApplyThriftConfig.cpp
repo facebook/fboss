@@ -4794,7 +4794,6 @@ std::shared_ptr<MirrorMap> ThriftConfigApplier::updateMirrors() {
 
   bool changed = false;
   size_t numExistingProcessed = 0;
-  int sflowMirrorCount = 0;
   for (const auto& mirrorCfg : *cfg_->mirrors()) {
     auto origMirror = origMirrors->getNodeIf(*mirrorCfg.name());
     std::shared_ptr<Mirror> newMirror;
@@ -4803,14 +4802,6 @@ std::shared_ptr<MirrorMap> ThriftConfigApplier::updateMirrors() {
       ++numExistingProcessed;
     } else {
       newMirror = createMirror(&mirrorCfg);
-    }
-    if (newMirror) {
-      sflowMirrorCount += newMirror->type() == Mirror::Type::SFLOW ? 1 : 0;
-    } else {
-      sflowMirrorCount += origMirror->type() == Mirror::Type::SFLOW ? 1 : 0;
-    }
-    if (sflowMirrorCount > 1) {
-      throw FbossError("More than one sflow mirrors configured");
     }
     changed |= updateThriftMapNode(newMirrors.get(), origMirror, newMirror);
   }
@@ -4821,6 +4812,7 @@ std::shared_ptr<MirrorMap> ThriftConfigApplier::updateMirrors() {
     changed = true;
   }
 
+  std::set<std::string> ingressMirrors;
   for (auto& portMap : std::as_const(*(new_->getPorts()))) {
     for (auto& port : std::as_const(*portMap.second)) {
       auto portInMirror = port.second->getIngressMirror();
@@ -4842,6 +4834,9 @@ std::shared_ptr<MirrorMap> ThriftConfigApplier::updateMirrors() {
               port.second->getID(),
               " not sflow");
         }
+        if (inMirrorMapEntry->second->type() == Mirror::Type::SFLOW) {
+          ingressMirrors.insert(portInMirror.value());
+        }
       }
       if (portEgMirror.has_value() &&
           newMirrors->find(portEgMirror.value()) == newMirrors->end()) {
@@ -4849,6 +4844,10 @@ std::shared_ptr<MirrorMap> ThriftConfigApplier::updateMirrors() {
             "Mirror ", portEgMirror.value(), " for port is not found");
       }
     }
+  }
+  if (ingressMirrors.size() > 1) {
+    throw FbossError(
+        "Only one sflow mirror can be configured across all ports");
   }
 
   if (!changed) {

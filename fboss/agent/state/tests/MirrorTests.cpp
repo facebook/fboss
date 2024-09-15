@@ -372,6 +372,31 @@ TEST_F(MirrorTest, PortWrongMirror) {
   publishWithFbossError();
 }
 
+TEST_F(MirrorTest, PortManyMirrors) {
+  config_.mirrors()->push_back(utility::getSFlowMirror(
+      "mirror1",
+      8998,
+      9889,
+      MirrorTest::tunnelDestination,
+      folly::IPAddress("10.0.0.1"),
+      MirrorTest::dscp,
+      true));
+  config_.mirrors()->push_back(utility::getSFlowMirror(
+      "mirror2",
+      8998,
+      9889,
+      MirrorTest::tunnelDestination,
+      folly::IPAddress("10.0.0.2"),
+      MirrorTest::dscp,
+      true));
+  publishWithStateUpdate();
+  configurePortMirror("mirror1", PortID(1));
+  configurePortMirror("mirror1", PortID(2));
+  publishWithStateUpdate();
+  configurePortMirror("mirror2", PortID(3));
+  publishWithFbossError();
+}
+
 TEST_F(MirrorTest, MirrorWrongPort) {
   config_.mirrors()->push_back(utility::getGREMirrorWithPort(
       "mirror0", "port129", MirrorTest::tunnelDestination));
