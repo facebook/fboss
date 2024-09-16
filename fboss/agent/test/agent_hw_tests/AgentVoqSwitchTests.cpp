@@ -1976,18 +1976,7 @@ class AgentVoqSwitchFullScaleDsfNodesTest : public AgentVoqSwitchTest {
   // Resolve and return list of local nhops (only NIF ports)
   std::vector<PortDescriptor> resolveLocalNhops(
       utility::EcmpSetupTargetedPorts6& ecmpHelper) {
-    auto ports = getProgrammedState()->getPorts()->getAllNodes();
-    std::vector<PortDescriptor> portDescs;
-    std::for_each(
-        ports->begin(),
-        ports->end(),
-        [this, &portDescs](const auto& idAndPort) {
-          const auto port = idAndPort.second;
-          if (port->getPortType() == cfg::PortType::INTERFACE_PORT) {
-            portDescs.push_back(
-                PortDescriptor(getSystemPortID(PortDescriptor(port->getID()))));
-          }
-        });
+    std::vector<PortDescriptor> portDescs = getLocalSysPortDesc();
 
     applyNewState([&](const std::shared_ptr<SwitchState>& in) {
       auto out = in->clone();
@@ -2021,6 +2010,36 @@ class AgentVoqSwitchFullScaleDsfNodesTest : public AgentVoqSwitchTest {
     });
   }
 
+  boost::container::flat_set<PortDescriptor> getRemoteSysPortDesc() {
+    auto remoteSysPorts =
+        getProgrammedState()->getRemoteSystemPorts()->getAllNodes();
+    boost::container::flat_set<PortDescriptor> sysPortDescs;
+    std::for_each(
+        remoteSysPorts->begin(),
+        remoteSysPorts->end(),
+        [&sysPortDescs](const auto& idAndPort) {
+          sysPortDescs.insert(
+              PortDescriptor(static_cast<SystemPortID>(idAndPort.first)));
+        });
+    return sysPortDescs;
+  }
+
+  std::vector<PortDescriptor> getLocalSysPortDesc() {
+    auto ports = getProgrammedState()->getPorts()->getAllNodes();
+    std::vector<PortDescriptor> portDescs;
+    std::for_each(
+        ports->begin(),
+        ports->end(),
+        [this, &portDescs](const auto& idAndPort) {
+          const auto port = idAndPort.second;
+          if (port->getPortType() == cfg::PortType::INTERFACE_PORT) {
+            portDescs.push_back(
+                PortDescriptor(getSystemPortID(PortDescriptor(port->getID()))));
+          }
+        });
+    return portDescs;
+  }
+
  private:
   void setCmdLineFlagOverrides() const override {
     AgentVoqSwitchTest::setCmdLineFlagOverrides();
@@ -2028,6 +2047,7 @@ class AgentVoqSwitchFullScaleDsfNodesTest : public AgentVoqSwitchTest {
     FLAGS_enable_stats_update_thread = false;
     // Allow 100% ECMP resource usage
     FLAGS_ecmp_resource_percentage = 100;
+    FLAGS_ecmp_width = 512;
   }
 };
 
@@ -2039,14 +2059,13 @@ TEST_F(AgentVoqSwitchFullScaleDsfNodesTest, systemPortScaleTest) {
 TEST_F(AgentVoqSwitchFullScaleDsfNodesTest, remoteNeighborWithEcmpGroup) {
   const auto kEcmpWidth = getMaxEcmpWidth();
   const auto kMaxDeviation = 25;
-  FLAGS_ecmp_width = kEcmpWidth;
-  boost::container::flat_set<PortDescriptor> sysPortDescs;
   auto setup = [&]() {
     setupRemoteIntfAndSysPorts();
     utility::EcmpSetupTargetedPorts6 ecmpHelper(getProgrammedState());
 
     // Resolve remote nhops and get a list of remote sysPort descriptors
-    sysPortDescs = utility::resolveRemoteNhops(getAgentEnsemble(), ecmpHelper);
+    boost::container::flat_set<PortDescriptor> sysPortDescs =
+        utility::resolveRemoteNhops(getAgentEnsemble(), ecmpHelper);
 
     for (int i = 0; i < getMaxEcmpGroup(); i++) {
       auto prefix = RoutePrefixV6{
@@ -2062,6 +2081,7 @@ TEST_F(AgentVoqSwitchFullScaleDsfNodesTest, remoteNeighborWithEcmpGroup) {
     }
   };
   auto verify = [&]() {
+    auto sysPortDescs = getRemoteSysPortDesc();
     // Send and verify packets across voq drops.
     auto defaultRouteSysPorts = std::vector<PortDescriptor>(
         sysPortDescs.begin(), sysPortDescs.begin() + kEcmpWidth);
@@ -2106,8 +2126,6 @@ TEST_F(AgentVoqSwitchFullScaleDsfNodesTest, remoteNeighborWithEcmpGroup) {
 TEST_F(AgentVoqSwitchFullScaleDsfNodesTest, remoteAndLocalLoadBalance) {
   const auto kEcmpWidth = 16;
   const auto kMaxDeviation = 25;
-  FLAGS_ecmp_width = kEcmpWidth;
-  std::vector<PortDescriptor> sysPortDescs;
   auto setup = [&]() {
     setupRemoteIntfAndSysPorts();
     utility::EcmpSetupTargetedPorts6 ecmpHelper(getProgrammedState());
@@ -2116,7 +2134,7 @@ TEST_F(AgentVoqSwitchFullScaleDsfNodesTest, remoteAndLocalLoadBalance) {
     auto remoteSysPortDescs =
         utility::resolveRemoteNhops(getAgentEnsemble(), ecmpHelper);
     auto localSysPortDescs = resolveLocalNhops(ecmpHelper);
-
+    std::vector<PortDescriptor> sysPortDescs;
     sysPortDescs.insert(
         sysPortDescs.end(),
         remoteSysPortDescs.begin(),
@@ -2136,6 +2154,19 @@ TEST_F(AgentVoqSwitchFullScaleDsfNodesTest, remoteAndLocalLoadBalance) {
         {prefix});
   };
   auto verify = [&]() {
+    std::vector<PortDescriptor> sysPortDescs;
+    auto remoteSysPortDescs = getRemoteSysPortDesc();
+    auto localSysPortDescs = getLocalSysPortDesc();
+
+    sysPortDescs.insert(
+        sysPortDescs.end(),
+        remoteSysPortDescs.begin(),
+        remoteSysPortDescs.begin() + kEcmpWidth / 2);
+    sysPortDescs.insert(
+        sysPortDescs.end(),
+        localSysPortDescs.begin(),
+        localSysPortDescs.begin() + kEcmpWidth / 2);
+
     // Send and verify packets across voq drops.
     std::function<std::map<SystemPortID, HwSysPortStats>(
         const std::vector<SystemPortID>&)>
@@ -2173,7 +2204,6 @@ TEST_F(AgentVoqSwitchFullScaleDsfNodesTest, remoteAndLocalLoadBalance) {
 
 TEST_F(AgentVoqSwitchFullScaleDsfNodesTest, stressProgramEcmpRoutes) {
   auto kEcmpWidth = getMaxEcmpWidth();
-  FLAGS_ecmp_width = kEcmpWidth;
   // Stress add/delete 40 iterations of 5 routes with ECMP width.
   // 40 iterations take ~17 mins on j3.
   const auto routeScale = 5;
