@@ -1,0 +1,43 @@
+name: ClangFormat Lint
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  clang-format-check:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+
+    - name: Install clang-format
+      run: sudo apt-get install -y clang-format
+
+    - name: Get changed files
+      id: changed-files
+      run: |
+        if [ ${{ github.event_name }} == 'pull_request' ]; then
+          # For pull requests, compare against the base branch
+          echo "FILES=$(git diff --name-only --diff-filter=ACMRT ${{ github.event.pull_request.base.sha }} ${{ github.sha }} | grep -E '\.(cpp|h)$' | xargs)" >> $GITHUB_OUTPUT
+        else
+          # For pushes, compare against the parent commit
+          echo "FILES=$(git diff --name-only --diff-filter=ACMRT ${{ github.event.before }} ${{ github.sha }} | grep -E '\.(cpp|h)$' | xargs)" >> $GITHUB_OUTPUT
+        fi
+
+    - name: Run clang-format
+      run: |
+        for file in ${{ steps.changed-files.outputs.FILES }}; do
+          clang-format -style=file -i "$file"
+        done
+        git diff --exit-code
+
+    - name: Suggest changes if formatting is incorrect
+      if: failure()
+      run: |
+        echo "::error::Formatting issues found. Please run clang-format on your changes and commit the results."
+        git diff
