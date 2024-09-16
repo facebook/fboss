@@ -38,6 +38,7 @@ target_link_libraries(fan_service_lib
   product_info
   common_file_utils
   platform_config_lib
+  platform_name_lib
   platform_utils
   fan_service_config_types_cpp2
   sensor_service_cpp2

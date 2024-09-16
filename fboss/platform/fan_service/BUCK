@@ -18,6 +18,7 @@ cpp_binary(
         "//fb303:logging",
         "//fboss/platform/config_lib:config_lib",
         "//fboss/platform/helpers:init",
+        "//fboss/platform/helpers:platform_name_lib",
         "//fboss/platform/sensor_service/if:sensor_service-cpp2-types",
         "//fboss/qsfp_service/lib:qsfp-service-client",
         "//folly/executors:function_scheduler",
