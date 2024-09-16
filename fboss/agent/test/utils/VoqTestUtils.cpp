@@ -230,68 +230,6 @@ std::shared_ptr<SwitchState> addRemoveRemoteNeighbor(
   return outState;
 }
 
-std::shared_ptr<SwitchState> setupRemoteIntfAndSysPorts(
-    std::shared_ptr<SwitchState> currState,
-    const SwitchIdScopeResolver& scopeResolver,
-    const cfg::SwitchConfig& config,
-    bool useEncapIndex) {
-  auto newState = currState->clone();
-  for (const auto& [remoteSwitchId, dsfNode] : *config.dsfNodes()) {
-    if ((*config.switchSettings())
-            .switchIdToSwitchInfo()
-            ->contains(remoteSwitchId)) {
-      continue;
-    }
-    CHECK(dsfNode.systemPortRange().has_value());
-    const auto minPortID = *dsfNode.systemPortRange()->minimum();
-    const auto maxPortID = *dsfNode.systemPortRange()->maximum();
-    // 0th port for CPU and 1st port for recycle port
-    for (int i = minPortID + kRemoteSysPortOffset; i <= maxPortID; i++) {
-      const SystemPortID remoteSysPortId(i);
-      const InterfaceID remoteIntfId(i);
-      const PortDescriptor portDesc(remoteSysPortId);
-      const std::optional<uint64_t> encapEndx =
-          useEncapIndex ? std::optional<uint64_t>(0x200001 + i) : std::nullopt;
-
-      // Use subnet 100+(dsfNodeId/256):(dsfNodeId%256):(localIntfId)::1/64
-      // and 100+(dsfNodeId/256).(dsfNodeId%256).(localIntfId).1/24
-      auto firstOctet = 100 + remoteSwitchId / 256;
-      auto secondOctet = remoteSwitchId % 256;
-      auto thirdOctet = i - minPortID;
-      folly::IPAddressV6 neighborIp(folly::to<std::string>(
-          firstOctet, ":", secondOctet, ":", thirdOctet, "::2"));
-      newState = addRemoteSysPort(
-          newState,
-          scopeResolver,
-          remoteSysPortId,
-          SwitchID(remoteSwitchId),
-          (i - minPortID - kRemoteSysPortOffset) / kNumPortPerCore,
-          (i - minPortID) % kNumPortPerCore);
-      newState = addRemoteInterface(
-          newState,
-          scopeResolver,
-          remoteIntfId,
-          {
-              {folly::IPAddress(folly::to<std::string>(
-                   firstOctet, ":", secondOctet, ":", thirdOctet, "::1")),
-               64},
-              {folly::IPAddress(folly::to<std::string>(
-                   firstOctet, ".", secondOctet, ".", thirdOctet, ".1")),
-               24},
-          });
-      newState = addRemoveRemoteNeighbor(
-          newState,
-          scopeResolver,
-          neighborIp,
-          remoteIntfId,
-          portDesc,
-          true /* add */,
-          encapEndx);
-    }
-  }
-  return newState;
-}
-
 void populateRemoteIntfAndSysPorts(
     std::map<SwitchID, std::shared_ptr<SystemPortMap>>& switchId2SystemPorts,
     std::map<SwitchID, std::shared_ptr<InterfaceMap>>& switchId2Rifs,
