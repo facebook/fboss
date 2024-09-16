@@ -17,6 +17,7 @@ cpp_binary(
         "//fboss/platform/config_lib:config_lib",
         "//fboss/platform/fw_util/if:fw_util_config-cpp2-types",
         "//fboss/platform/helpers:init_cli",
+        "//fboss/platform/helpers:platform_name_lib",
         "//fboss/platform/helpers:platform_utils",
         "//folly:string",
         "//folly:subprocess",

@@ -19,13 +19,15 @@
 #include "fboss/platform/config_lib/ConfigLib.h"
 #include "fboss/platform/fw_util/Flags.h"
 #include "fboss/platform/fw_util/FwUtilImpl.h"
+#include "fboss/platform/helpers/PlatformNameLib.h"
 #include "fboss/platform/helpers/PlatformUtils.h"
 
 using namespace folly::literals::shell_literals;
 namespace facebook::fboss::platform::fw_util {
 
 void FwUtilImpl::init() {
-  std::string fwUtilConfJson = ConfigLib().getFwUtilConfig();
+  auto platformName = helpers::PlatformNameLib().getPlatformName();
+  std::string fwUtilConfJson = ConfigLib().getFwUtilConfig(platformName);
   apache::thrift::SimpleJSONSerializer::deserialize<FwUtilConfig>(
       fwUtilConfJson, fwUtilConfig_);
 

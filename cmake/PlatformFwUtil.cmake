@@ -20,6 +20,7 @@ add_executable(fw_util
 target_link_libraries(fw_util
   Folly::folly
   platform_config_lib
+  platform_name_lib
   platform_utils
   FBThrift::thriftcpp2
   fw_util_config-cpp2-types
