@@ -67,4 +67,18 @@ TEST(PlatformFsUtilsTest, TemporaryRoot) {
       utils.getStringFileContent(tmpFilePathRelative), readContent.value());
 }
 
+TEST(PlatformFsUtilsTest, BasicWriteReadTest) {
+  fs::path tmpDirPath =
+      fs::path(folly::test::TemporaryDirectory().path().string());
+  PlatformFsUtils utils{tmpDirPath};
+  EXPECT_TRUE(utils.writeStringToFile("test", "/a/b/c/d"));
+  EXPECT_EQ(utils.getStringFileContent("/a/b/c/d"), "test");
+  EXPECT_TRUE(utils.writeStringToFile("overwrite", "/a/b/c/d"));
+  EXPECT_EQ(utils.getStringFileContent("/a/b/c/d"), "overwrite");
+  // Testing atomic writes here as basically just a sanity check. We rely on
+  // folly and their testing to maintain their atomicity guarantees.
+  EXPECT_TRUE(utils.writeStringToFile("test2", "/e/f/g/h", true));
+  EXPECT_EQ(utils.getStringFileContent("/e/f/g/h"), "test2");
+}
+
 } // namespace facebook::fboss::platform
