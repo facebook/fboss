@@ -237,7 +237,7 @@ TEST_F(CmdShowRouteDetailsTestFixture, printOutput) {
   std::string output = ss.str();
   std::string expectOutput = R"(
 Network Address: 2401:db00::/32
-  Nexthops from client 0
+  Nexthops from client BGPD
     2401:db00:e32f:8fc::2 weight 1 MPLS -> SWAP : 1
   Action: Nexthops
   Forwarding via:
@@ -247,7 +247,7 @@ Network Address: 2401:db00::/32
   Class Id: DST_CLASS_L3_DPR(20)
 
 Network Address: 176.161.6.0/32 (connected)
-  Nexthops from client 1
+  Nexthops from client STATIC_ROUTE
     240.161.6.0
   Action: Nexthops
   Forwarding via:
