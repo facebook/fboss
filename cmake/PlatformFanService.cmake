@@ -41,6 +41,7 @@ target_link_libraries(fan_service_lib
   platform_name_lib
   platform_utils
   fan_service_config_types_cpp2
+  gpiod_line
   sensor_service_cpp2
   fan_service_cpp2
   Folly::folly
@@ -72,6 +73,8 @@ add_executable(fan_service_sw_test
 target_link_libraries(fan_service_sw_test
   fan_service_lib
   Folly::folly
+  ${LIBGPIOD}
+  gpiod_line
   ${GTEST}
   ${LIBGMOCK_LIBRARIES}
 )

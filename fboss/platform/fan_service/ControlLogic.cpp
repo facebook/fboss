@@ -6,8 +6,10 @@
 #include "fboss/platform/fan_service/ControlLogic.h"
 
 #include <folly/logging/xlog.h>
+#include <gpiod.h>
 
 #include "common/time/Time.h"
+#include "fboss/lib/GpiodLine.h"
 #include "fboss/platform/fan_service/SensorData.h"
 #include "fboss/platform/fan_service/if/gen-cpp2/fan_service_config_constants.h"
 #include "fboss/platform/fan_service/if/gen-cpp2/fan_service_config_types.h"
@@ -349,15 +351,35 @@ void ControlLogic::getOpticsUpdate() {
 bool ControlLogic::isFanPresentInDevice(const Fan& fan) {
   unsigned int readVal;
   bool readSuccessful = false;
-  try {
-    readVal = static_cast<unsigned>(pBsp_->readSysfs(*fan.presenceSysfsPath()));
-    readSuccessful = true;
-  } catch (std::exception&) {
-    XLOG(ERR) << "Failed to read sysfs " << *fan.presenceSysfsPath();
-  }
-  auto fanPresent = (readSuccessful && readVal == *fan.fanPresentVal());
-  if (!fanPresent) {
-    XLOG(INFO) << fmt::format("{}: is absent in the host", *fan.fanName());
+  bool fanPresent = false;
+  if (fan.presenceSysfsPath()) {
+    try {
+      readVal =
+          static_cast<unsigned>(pBsp_->readSysfs(*fan.presenceSysfsPath()));
+      readSuccessful = true;
+    } catch (std::exception&) {
+      XLOG(ERR) << "Failed to read sysfs " << *fan.presenceSysfsPath();
+    }
+    fanPresent = (readSuccessful && readVal == *fan.fanPresentVal());
+    if (fanPresent) {
+      XLOG(INFO) << fmt::format(
+          "{}: is present in the host (through sysfs)", *fan.fanName());
+    } else {
+      XLOG(INFO) << fmt::format(
+          "{}: is absent in the host (through sysfs)", *fan.fanName());
+    }
+  } else if (fan.presenceGpio()) {
+    struct gpiod_chip* chip =
+        gpiod_chip_open(fan.presenceGpio()->path()->c_str());
+    GpiodLine line(chip, *fan.presenceGpio()->lineIndex(), "gpioline");
+    int16_t value = line.getValue();
+    gpiod_chip_close(chip);
+    if (value == *fan.presenceGpio()->desiredValue()) {
+      fanPresent = true;
+    } else {
+      XLOG(INFO) << fmt::format(
+          "{}: is absent in the host (through gpio)", *fan.fanName());
+    }
   }
   fb303::fbData->setCounter(
       fmt::format(kFanAbsent, *fan.fanName()), !fanPresent);

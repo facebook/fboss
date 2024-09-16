@@ -85,6 +85,7 @@ cpp_library(
         "//fboss/fsdb/if:fsdb_model",
         "//fboss/fsdb/if:fsdb_oper-cpp2-types",
         "//fboss/lib:common_file_utils",
+        "//fboss/lib:gpiod_line",
         "//fboss/platform/fan_service/if:fan_service-cpp2-services",
         "//fboss/platform/fan_service/if:fan_service-cpp2-types",
         "//fboss/platform/helpers:platform_utils",
@@ -103,6 +104,9 @@ cpp_library(
         "//infrasec/authorization:base_identity_util",
         "//security/ca/lib:cert_path_picker",
         "//thrift/lib/cpp2/protocol:protocol",
+    ],
+    exported_external_deps = [
+        ("libgpiod", None, "gpiod"),
     ],
 )
 
