@@ -271,6 +271,7 @@ cpp_library(
         "commands/show/facebook/bgp/ribpolicy/CmdShowBgpRibPolicyUtils.cpp",
         "commands/show/facebook/config/CmdShowConfigUtils.cpp",
         "commands/show/facebook/environment/env_keys.cpp",
+        "commands/show/facebook/environment/sensor/CmdShowEnvironmentSensor.cpp",
         "commands/show/facebook/fsdb/CmdShowFsdbUtils.cpp",
         "commands/show/route/utils.cpp",
         "facebook/CmdHandlerImpl.cpp",
