@@ -59,7 +59,7 @@ std::string PlatformNameLib::getPlatformNameFromBios(bool writeToCache) const {
   auto result = sanitizePlatformName(standardOut);
   XLOG(INFO) << "Platform name mapped: " << result;
   if (writeToCache) {
-    platformFsUtils_->writeStringToFile(result, kCachePath);
+    platformFsUtils_->writeStringToFile(result, kCachePath, true);
   }
   return result;
 }

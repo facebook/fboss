@@ -10,10 +10,9 @@ load("@shim//third-party:third_party.bzl", "third_party_library")
 oncall("open_source")
 
 third_party_library(
-    name = "lz4",
-    pkgconfig_name = "liblz4",
+    name = "uring",
+    pkgconfig_name = "liburing",
     repo_package_names = {
-        "fedora": "lz4-devel",
-        "homebrew": "lz4",
+        "fedora": "liburing-devel",
     },
 )

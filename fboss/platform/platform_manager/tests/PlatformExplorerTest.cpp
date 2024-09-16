@@ -72,6 +72,10 @@ TEST(PlatformExplorerTest, PublishFirmwareVersions) {
   std::string cpldBadFwVerPath = "/run/devmap/cplds/TEST_CPLD_BADFWVER";
   EXPECT_TRUE(platformFsUtils->writeStringToFile(
       "123.456.789 // comment", fmt::format("{}/fw_ver", cpldBadFwVerPath)));
+  // Case with fw_ver under hwmon
+  std::string cpldHwmonFwVerPath = "/run/devmap/cplds/FAN0_CPLD_FWVER";
+  EXPECT_TRUE(platformFsUtils->writeStringToFile(
+      "1.2.3", fmt::format("{}/hwmon/hwmon20/fw_ver", cpldHwmonFwVerPath)));
 
   PlatformConfig platformConfig;
   platformConfig.symbolicLinkToDevicePath()[fpgaPath] = "";
@@ -82,6 +86,7 @@ TEST(PlatformExplorerTest, PublishFirmwareVersions) {
   platformConfig.symbolicLinkToDevicePath()[fpgaFwVerPath] = "";
   platformConfig.symbolicLinkToDevicePath()[cpldFwVerPath] = "";
   platformConfig.symbolicLinkToDevicePath()[cpldBadFwVerPath] = "";
+  platformConfig.symbolicLinkToDevicePath()[cpldHwmonFwVerPath] = "";
 
   PlatformExplorer explorer(platformConfig, platformFsUtils);
   explorer.publishFirmwareVersions();
@@ -95,6 +100,7 @@ TEST(PlatformExplorerTest, PublishFirmwareVersions) {
   expectVersions("TEST_FPGA_FWVER", "1.2", 1'002'000);
   expectVersions("TEST_CPLD_FWVER", "123.456.789", 123456789);
   expectVersions("TEST_CPLD_BADFWVER", "ERROR_INVALID_STRING", 0);
+  expectVersions("FAN0_CPLD_FWVER", "1.2.3", 1'002'003);
 }
 
 } // namespace facebook::fboss::platform::platform_manager

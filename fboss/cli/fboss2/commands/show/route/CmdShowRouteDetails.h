@@ -15,6 +15,7 @@
 #include <folly/String.h>
 #include <cstdint>
 #include "fboss/agent/if/gen-cpp2/common_types.h"
+#include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 #include "fboss/cli/fboss2/CmdHandler.h"
 #include "fboss/cli/fboss2/commands/show/route/CmdShowRoute.h"
 #include "fboss/cli/fboss2/commands/show/route/gen-cpp2/model_types.h"
@@ -79,8 +80,9 @@ class CmdShowRouteDetails
           entry.get_isConnected() ? " (connected)" : "");
 
       for (const auto& clAndNxthops : entry.get_nextHopMulti()) {
-        out << fmt::format(
-            "  Nexthops from client {}\n", clAndNxthops.get_clientId());
+        auto clientId = static_cast<ClientID>(*clAndNxthops.clientId());
+        auto clientName = apache::thrift::util::enumNameSafe(clientId);
+        out << fmt::format("  Nexthops from client {}\n", clientName);
         for (const auto& nextHop : clAndNxthops.get_nextHops()) {
           out << fmt::format(
               "    {}\n", show::route::utils::getNextHopInfoStr(nextHop));

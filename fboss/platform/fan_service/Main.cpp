@@ -17,6 +17,7 @@
 #include "fboss/platform/fan_service/FanServiceHandler.h"
 #include "fboss/platform/fan_service/Utils.h"
 #include "fboss/platform/helpers/Init.h"
+#include "fboss/platform/helpers/PlatformNameLib.h"
 
 using namespace facebook;
 using namespace facebook::fboss::platform;
@@ -32,7 +33,9 @@ int main(int argc, char** argv) {
   fb303::registerFollyLoggingOptionHandlers();
   helpers::init(&argc, &argv);
 
-  std::string fanServiceConfJson = ConfigLib().getFanServiceConfig();
+  auto platformName = helpers::PlatformNameLib().getPlatformName();
+  std::string fanServiceConfJson =
+      ConfigLib().getFanServiceConfig(platformName);
   auto config =
       apache::thrift::SimpleJSONSerializer::deserialize<FanServiceConfig>(
           fanServiceConfJson);
