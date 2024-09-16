@@ -10,7 +10,7 @@
 #include "fboss/lib/CommonUtils.h"
 
 #include <fb303/ServiceData.h>
-#include <folly/experimental/coro/BlockingWait.h>
+#include <folly/coro/BlockingWait.h>
 #include <folly/io/async/ScopedEventBaseThread.h>
 
 #include <thrift/lib/cpp2/protocol/Serializer.h>

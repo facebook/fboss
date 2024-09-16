@@ -11,6 +11,8 @@ DEFINE_string(
     "1s",
     "Total time to run soak test, <\\d+>[smhd], s-sec, m-min, h-hour, d-day");
 
+using namespace std::chrono;
+
 namespace facebook::fboss {
 
 uint64_t SoakTest::SoakTimeStrToSeconds(std::string timeStr) {

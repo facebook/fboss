@@ -453,6 +453,7 @@ bool compareSystemPortName(
 
 std::optional<std::string> getMyHostname(const std::string& hostname);
 
+std::string escapeDoubleQuotes(const std::string& cmd);
 std::string getCmdToRun(const std::string& hostname, const std::string& cmd);
 std::string runCmd(const std::string& cmd);
 std::vector<std::string> getBgpDrainedInterafces(const HostInfo& hostInfo);
@@ -466,5 +467,9 @@ std::map<int16_t, std::vector<std::string>> getSwitchIndicesForInterfaces(
     const HostInfo& hostInfo,
     const std::vector<std::string>& interfaces);
 Table::StyledCell styledBer(double ber);
+Table::StyledCell styledFecTail(int tail);
+
+cfg::SwitchType getSwitchType(
+    std::map<int64_t, cfg::SwitchInfo> switchIdToSwitchInfo);
 
 } // namespace facebook::fboss::utils

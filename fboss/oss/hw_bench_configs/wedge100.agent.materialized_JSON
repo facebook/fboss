@@ -137,6 +137,7 @@
           "bcm_num_cos": "0xa",
           "buf.mqueue.guarantee.0": "0x0b",
           "custom_feature_mesh_topology_sync_mode": "1",
+          "host_as_route_disable": "1",
           "ipv6_lpm_128b_enable": "0x1",
           "l2_mem_entries": "0x8000",
           "l2xmsg_mode": "0x1",

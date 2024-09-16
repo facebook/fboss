@@ -50,6 +50,7 @@ TEST(OperDeltaTests, OperDeltaCompute) {
   mirror.name() = "mirror0";
   mirror.configHasEgressPort() = true;
   mirror.egressPort() = 1;
+  mirror.egressPortDesc() = PortDescriptor(PortID(1)).toThrift();
   mirror.isResolved() = true;
   auto mirrorObj = std::make_shared<Mirror>(mirror);
   HwSwitchMatcher scope(std::unordered_set<SwitchID>({SwitchID(0)}));

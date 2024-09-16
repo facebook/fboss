@@ -1,14 +1,10 @@
 // (c) Facebook, Inc. and its affiliates. Confidential and proprietary.
 
-#pragma once
-
 #include "fboss/agent/PhySnapshotManager.h"
-#include "fboss/agent/state/Port.h"
 
 namespace facebook::fboss {
 
-template <size_t intervalSeconds>
-void PhySnapshotManager<intervalSeconds>::updatePhyInfoLocked(
+void PhySnapshotManager::updatePhyInfoLocked(
     const SnapshotMapWLockedPtr& lockedSnapshotMap,
     PortID portID,
     const phy::PhyInfo& phyInfo) {
@@ -18,22 +14,22 @@ void PhySnapshotManager<intervalSeconds>::updatePhyInfoLocked(
 
   CHECK(!phyInfo.state()->get_name().empty());
   auto result = lockedSnapshotMap->try_emplace(
-      portID, std::set<std::string>({phyInfo.state()->get_name()}));
+      portID,
+      std::set<std::string>({phyInfo.state()->get_name()}),
+      intervalSeconds_);
   auto iter = result.first;
   auto& value = iter->second;
   value.addSnapshot(snapshot);
 }
 
-template <size_t intervalSeconds>
-void PhySnapshotManager<intervalSeconds>::updatePhyInfo(
+void PhySnapshotManager::updatePhyInfo(
     PortID portID,
     const phy::PhyInfo& phyInfo) {
   auto lockedSnapshotMap = snapshots_.wlock();
   updatePhyInfoLocked(lockedSnapshotMap, portID, phyInfo);
 }
 
-template <size_t intervalSeconds>
-void PhySnapshotManager<intervalSeconds>::updatePhyInfos(
+void PhySnapshotManager::updatePhyInfos(
     const std::map<PortID, phy::PhyInfo>& phyInfos) {
   auto lockedSnapshotMap = snapshots_.wlock();
   for (const auto& [portID, phyInfo] : phyInfos) {
@@ -41,9 +37,7 @@ void PhySnapshotManager<intervalSeconds>::updatePhyInfos(
   }
 }
 
-template <size_t intervalSeconds>
-std::optional<phy::PhyInfo>
-PhySnapshotManager<intervalSeconds>::getPhyInfoLocked(
+std::optional<phy::PhyInfo> PhySnapshotManager::getPhyInfoLocked(
     const SnapshotMapRLockedPtr& lockedSnapshotMap,
     PortID portID) const {
   std::optional<phy::PhyInfo> phyInfo;
@@ -59,16 +53,13 @@ PhySnapshotManager<intervalSeconds>::getPhyInfoLocked(
   return phyInfo;
 }
 
-template <size_t intervalSeconds>
-std::optional<phy::PhyInfo> PhySnapshotManager<intervalSeconds>::getPhyInfo(
+std::optional<phy::PhyInfo> PhySnapshotManager::getPhyInfo(
     PortID portID) const {
   const auto& lockedSnapshotMap = snapshots_.rlock();
   return getPhyInfoLocked(lockedSnapshotMap, portID);
 }
 
-template <size_t intervalSeconds>
-std::map<PortID, const phy::PhyInfo>
-PhySnapshotManager<intervalSeconds>::getPhyInfos(
+std::map<PortID, const phy::PhyInfo> PhySnapshotManager::getPhyInfos(
     const std::vector<PortID>& portIDs) const {
   std::map<PortID, const phy::PhyInfo> infoMap;
   auto lockedSnapshotMap = snapshots_.rlock();
@@ -81,9 +72,8 @@ PhySnapshotManager<intervalSeconds>::getPhyInfos(
   return infoMap;
 }
 
-template <size_t intervalSeconds>
-std::map<PortID, const phy::PhyInfo>
-PhySnapshotManager<intervalSeconds>::getAllPhyInfos() const {
+std::map<PortID, const phy::PhyInfo> PhySnapshotManager::getAllPhyInfos()
+    const {
   std::map<PortID, const phy::PhyInfo> infoMap;
   auto lockedSnapshotMap = snapshots_.rlock();
   for (auto it = lockedSnapshotMap->begin(); it != lockedSnapshotMap->end();
@@ -96,8 +86,7 @@ PhySnapshotManager<intervalSeconds>::getAllPhyInfos() const {
   return infoMap;
 }
 
-template <size_t intervalSeconds>
-void PhySnapshotManager<intervalSeconds>::publishSnapshots(PortID port) {
+void PhySnapshotManager::publishSnapshots(PortID port) {
   auto lockedSnapshotMap = snapshots_.wlock();
   if (auto it = lockedSnapshotMap->find(port); it != lockedSnapshotMap->end()) {
     it->second.publishAllSnapshots();

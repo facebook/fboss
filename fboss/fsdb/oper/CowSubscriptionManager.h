@@ -164,6 +164,10 @@ class CowSubscriptionManager
       SubscriptionStore& store,
       const std::shared_ptr<Root>& newRoot,
       const SubscriptionMetadataServer& metadataServer) {
+    if (!store.initialSyncNeeded().numSubsRecursive()) {
+      return;
+    }
+
     auto processPath = [&](CowInitialSyncTraverseHelper& traverser,
                            const auto& node) {
       SubscriptionPathStore* lookup = traverser.currentStore();

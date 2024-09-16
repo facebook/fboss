@@ -94,11 +94,20 @@ target_link_libraries(switchinfo_utils
   switch_asics
   ctrl_cpp2
   fboss_types
+  agent_config_cpp2
 )
 
 target_link_libraries(address_utils
   network_address_cpp2
   Folly::folly
+)
+
+add_library(asic_utils
+  fboss/agent/AsicUtils.cpp
+)
+
+target_link_libraries(asic_utils
+  switch_asics
 )
 
 add_library(utils
@@ -109,18 +118,18 @@ add_library(utils
 )
 
 target_link_libraries(utils
+  asic_utils
   error
   ctrl_cpp2
   state
+  switchid_scope_resolver
   Folly::folly
-)
-
-add_library(asic_utils
-  fboss/agent/AsicUtils.cpp
-)
-
-target_link_libraries(asic_utils
-  switch_asics
+  meru400biu_platform_mapping
+  meru400bia_platform_mapping
+  meru400bfu_platform_mapping
+  meru800bia_platform_mapping
+  meru800bfa_platform_mapping
+  janga800bic_platform_mapping
 )
 
 add_library(stats
@@ -163,6 +172,7 @@ add_library(core
   fboss/agent/FabricConnectivityManager.cpp
   fboss/agent/EncapIndexAllocator.cpp
   fboss/agent/FibHelpers.cpp
+  fboss/agent/FsdbAdaptedSubManager.cpp
   fboss/agent/HwAsicTable.cpp
   fboss/agent/HwSwitch.cpp
   fboss/agent/HwSwitchConnectionStatusTable.cpp
@@ -291,6 +301,8 @@ set(core_libs
   l2learn_event_observer
   agent_fsdb_sync_manager
   fboss_event_base
+  phy_snapshot_manager
+  build_info_wrapper
 )
 
 target_link_libraries(core ${core_libs})
@@ -349,6 +361,11 @@ target_link_libraries(fboss_error
   fboss_cpp2
   fboss_types
   Folly::folly
+)
+
+add_library(build_info_wrapper
+  fboss/agent/BuildInfoWrapper.h
+  fboss/agent/oss/BuildInfoWrapper.cpp
 )
 
 add_library(platform_base
@@ -463,6 +480,7 @@ target_link_libraries(hwagent-main
   setup_thrift
   split_agent_thrift_syncer
   Folly::folly
+  agent_hw_test_thrift_handler
 )
 
 add_library(restart_time_tracker

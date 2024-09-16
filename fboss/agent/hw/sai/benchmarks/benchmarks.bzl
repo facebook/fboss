@@ -7,6 +7,7 @@ def _mono_sai_agent_benchmark_binary(name, srcs, sai_impl, **kwargs):
     name = "{}-{}-{}".format(name, sai_impl.name, sai_impl.version)
     main_name = "mono_sai_agent_benchmarks_main"
     sai_agent_benchmarks_main = sai_switch_dependent_name(main_name, sai_impl, True)
+    agent_hw_test_thrift_handler = sai_switch_dependent_name("agent_hw_test_thrift_handler", sai_impl, True)
     deps = list(kwargs.get("deps", []))
     deps += [
         "//fboss/agent/hw/sai/impl:{}".format(to_impl_lib_name(sai_impl)),
@@ -17,6 +18,7 @@ def _mono_sai_agent_benchmark_binary(name, srcs, sai_impl, **kwargs):
         "//fboss/agent/hw/sai/hw_test:sai_packet_trap_helper{}".format(impl_suffix),
         "//fboss/agent/hw/sai/hw_test:sai_port_utils{}".format(impl_suffix),
         "//fboss/agent/benchmarks:{}".format(sai_agent_benchmarks_main),
+        "//fboss/agent/hw/sai/hw_test:{}".format(agent_hw_test_thrift_handler),
         "//fboss/agent/test:linkstate_toggler",
     ]
     kwargs["deps"] = deps

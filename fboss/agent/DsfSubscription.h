@@ -2,8 +2,13 @@
 
 #pragma once
 
+#include <fboss/thrift_cow/storage/CowStorage.h>
 #include "fboss/agent/DsfSession.h"
+#include "fboss/agent/FsdbAdaptedSubManager.h"
+#include "fboss/agent/state/SwitchState.h"
 #include "fboss/fsdb/client/FsdbPubSubManager.h"
+#include "fboss/fsdb/client/FsdbSubManager.h"
+#include "fboss/fsdb/if/FsdbModel.h"
 
 #include <string>
 
@@ -57,6 +62,9 @@ class DsfSubscription {
     std::map<SwitchID, std::shared_ptr<SystemPortMap>> switchId2SystemPorts;
     std::map<SwitchID, std::shared_ptr<InterfaceMap>> switchId2Intfs;
   };
+  void updateDsfState(
+      const std::function<std::shared_ptr<SwitchState>(
+          const std::shared_ptr<SwitchState>&)>& updateDsfStateFn);
   std::string remoteEndpointStr() const;
   void updateWithRollbackProtection(
       const std::map<SwitchID, std::shared_ptr<SystemPortMap>>&
@@ -71,11 +79,17 @@ class DsfSubscription {
       fsdb::SubscriptionState oldState,
       fsdb::SubscriptionState newState);
   void handleFsdbUpdate(fsdb::OperSubPathUnit&& operStateUnit);
+  void queueRemoteStateChanged(
+      const MultiSwitchSystemPortMap& newPortMap,
+      const MultiSwitchInterfaceMap& newInterfaceMap);
+  void queueDsfUpdate(DsfUpdate&& dsfUpdate);
+
   fsdb::FsdbStreamClient::State getStreamState() const;
 
   fsdb::SubscriptionOptions opts_;
   folly::EventBase* hwUpdateEvb_;
   std::unique_ptr<fsdb::FsdbPubSubManager> fsdbPubSubMgr_;
+  std::unique_ptr<FsdbAdaptedSubManager> subMgr_;
   std::string localNodeName_;
   std::string remoteNodeName_;
   std::set<SwitchID> remoteNodeSwitchIds_;
@@ -84,11 +98,24 @@ class DsfSubscription {
   SwSwitch* sw_;
   DsfSession session_;
   folly::Synchronized<std::unique_ptr<DsfUpdate>> nextDsfUpdate_;
+  // Cache current state of sysports and intfs received from remote
+  // node. Since after the initial update we are not guaranteed to
+  // receive the entire set of sysports and rifs in any update. For
+  // instance on a nbr change, we will get the entire set of RIFs
+  // but not sys ports. However when applying the update, we
+  // apply RIFs and sys ports together. To that end we need to
+  // cache the current sysports and rifs and then patch the
+  // receieved update on top of it.
+  // TODO: kill this code after we cutover to patch subscriptions.
+  MultiSwitchSystemPortMap curMswitchSysPorts_;
+  MultiSwitchInterfaceMap curMswitchIntfs_;
   bool stopped_{false};
   // Used for tests only
   std::shared_ptr<SwitchState> cachedState_;
   template <typename T>
   FRIEND_TEST(DsfSubscriptionTest, updateWithRollbackProtection);
+  template <typename T>
+  FRIEND_TEST(DsfSubscriptionTest, updateFailed);
   template <typename T>
   FRIEND_TEST(DsfSubscriptionTest, setupNeighbors);
 };

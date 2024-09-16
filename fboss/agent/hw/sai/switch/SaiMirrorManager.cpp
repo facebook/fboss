@@ -10,6 +10,7 @@
 
 #include "fboss/agent/hw/sai/switch/SaiMirrorManager.h"
 #include "fboss/agent/hw/sai/switch/SaiPortManager.h"
+#include "fboss/agent/hw/sai/switch/SaiSystemPortManager.h"
 
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/hw/sai/store/SaiStore.h"
@@ -23,7 +24,7 @@
 namespace facebook::fboss {
 
 SaiMirrorHandle::SaiMirror SaiMirrorManager::addNodeSpan(
-    PortSaiId monitorPort) {
+    sai_object_id_t monitorPort) {
   SaiLocalMirrorTraits::AdapterHostKey k{
       SAI_MIRROR_SESSION_TYPE_LOCAL, monitorPort};
   SaiLocalMirrorTraits::CreateAttributes attributes = k;
@@ -33,7 +34,7 @@ SaiMirrorHandle::SaiMirror SaiMirrorManager::addNodeSpan(
 
 SaiMirrorHandle::SaiMirror SaiMirrorManager::addNodeErSpan(
     const std::shared_ptr<Mirror>& mirror,
-    PortSaiId monitorPort) {
+    sai_object_id_t monitorPort) {
   auto mirrorTunnel = mirror->getMirrorTunnel().value();
   auto headerVersion = mirrorTunnel.srcIp.isV4() ? 4 : 6;
   auto truncateSize =
@@ -62,7 +63,7 @@ SaiMirrorHandle::SaiMirror SaiMirrorManager::addNodeErSpan(
 
 SaiMirrorHandle::SaiMirror SaiMirrorManager::addNodeSflow(
     const std::shared_ptr<Mirror>& mirror,
-    PortSaiId monitorPort) {
+    sai_object_id_t monitorPort) {
   auto mirrorTunnel = mirror->getMirrorTunnel().value();
   auto headerVersion = mirrorTunnel.srcIp.isV4() ? 4 : 6;
   auto truncateSize =
@@ -107,27 +108,20 @@ void SaiMirrorManager::addNode(const std::shared_ptr<Mirror>& mirror) {
     throw FbossError(
         "Attempted to add mirror which already exists: ", mirror->getID());
   }
-
   auto mirrorHandle =
       std::make_unique<SaiMirrorHandle>(mirror->getID(), managerTable_);
-  auto monitorPortHandle = managerTable_->portManager().getPortHandle(
-      mirror->getEgressPort().value());
-  if (!monitorPortHandle) {
-    throw FbossError(
-        "Failed to find sai port for egress port for mirroring: ",
-        mirror->getEgressPort().value());
-  }
+  auto monitorPort = mirror->getEgressPortDesc().has_value()
+      ? getMonitorPort(mirror->getEgressPortDesc().value())
+      : getMonitorPort(PortDescriptor(mirror->getEgressPort().value()));
   if (mirror->getMirrorTunnel().has_value()) {
     auto mirrorTunnel = mirror->getMirrorTunnel().value();
     if (mirrorTunnel.udpPorts.has_value()) {
-      mirrorHandle->mirror =
-          addNodeSflow(mirror, monitorPortHandle->port->adapterKey());
+      mirrorHandle->mirror = addNodeSflow(mirror, monitorPort);
     } else {
-      mirrorHandle->mirror =
-          addNodeErSpan(mirror, monitorPortHandle->port->adapterKey());
+      mirrorHandle->mirror = addNodeErSpan(mirror, monitorPort);
     }
   } else {
-    mirrorHandle->mirror = addNodeSpan(monitorPortHandle->port->adapterKey());
+    mirrorHandle->mirror = addNodeSpan(monitorPort);
   }
   mirrorHandles_.emplace(mirror->getID(), std::move(mirrorHandle));
   managerTable_->portManager().programMirrorOnAllPorts(
@@ -193,6 +187,40 @@ std::vector<MirrorSaiId> SaiMirrorManager::getAllMirrorSessionOids() const {
     mirrorSaiIds.push_back(mirrorIdAndHandle.second->adapterKey());
   }
   return mirrorSaiIds;
+}
+
+sai_object_id_t SaiMirrorManager::getMonitorPort(
+    const PortDescriptor& portDesc) {
+  sai_object_id_t monitorPort;
+  switch (portDesc.type()) {
+    case PortDescriptor::PortType::PHYSICAL: {
+      auto portHandle =
+          managerTable_->portManager().getPortHandle(portDesc.phyPortID());
+      if (!portHandle) {
+        throw FbossError(
+            "Failed to find sai port for egress port for mirroring: ",
+            portDesc.phyPortID());
+      }
+      monitorPort = portHandle->port->adapterKey();
+      break;
+    }
+    case PortDescriptor::PortType::SYSTEM_PORT: {
+      auto systemPortHandle =
+          managerTable_->systemPortManager().getSystemPortHandle(
+              portDesc.sysPortID());
+      if (!systemPortHandle) {
+        throw FbossError(
+            "Failed to find sai system port for egress port for mirroring: ",
+            portDesc.sysPortID());
+      }
+      monitorPort = systemPortHandle->systemPort->adapterKey();
+      break;
+    }
+    case PortDescriptor::PortType::AGGREGATE: {
+      throw FbossError("Invalid agg port desc type received for mirroring");
+    }
+  }
+  return monitorPort;
 }
 
 } // namespace facebook::fboss

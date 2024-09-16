@@ -94,7 +94,7 @@ class SwSwitchUpdateProcessingTest : public ::testing::TestWithParam<bool> {
     auto newState = state->clone();
     auto mirrors = newState->getMirrors()->modify(&newState);
     auto mirror = mirrors->getNode("foo")->clone();
-    mirror->setEgressPort(PortID(1));
+    mirror->setEgressPortDesc(PortDescriptor(PortID(1)));
     mirrors->updateNode(mirror, HwSwitchMatcher::defaultHwSwitchMatcher());
     return newState;
   }

@@ -239,8 +239,9 @@ TEST_F(AclTableManagerTest, aclMirroring) {
   std::string mirrorId = "mirror1";
   auto mirror = std::make_shared<Mirror>(
       mirrorId,
-      std::make_optional<PortID>(PortID(1)),
+      std::make_optional<PortDescriptor>(PortID(1)),
       std::optional<folly::IPAddress>());
+  mirror->setEgressPortDesc(PortDescriptor(PortID(1)));
   saiManagerTable->mirrorManager().addNode(mirror);
   auto aclEntry =
       std::make_shared<AclEntry>(kPriority(), std::string("AclEntry1"));

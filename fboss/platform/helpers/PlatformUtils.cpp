@@ -6,6 +6,7 @@
 #include <folly/logging/xlog.h>
 #include <folly/system/Shell.h>
 
+namespace fs = std::filesystem;
 using namespace folly::literals::shell_literals;
 
 namespace facebook::fboss::platform {

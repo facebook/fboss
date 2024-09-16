@@ -2,7 +2,7 @@
 
 #include "fboss/thrift_cow/visitors/tests/VisitorTestUtils.h"
 #include <folly/json/dynamic.h>
-#include <thrift/lib/cpp2/reflection/folly_dynamic.h>
+#include <thrift/lib/cpp2/folly_dynamic/folly_dynamic.h>
 
 namespace facebook::fboss::thrift_cow {
 
@@ -15,8 +15,8 @@ TestStruct createSimpleTestStruct() {
       "mapOfEnumToStruct",
       dynamic::object("3", dynamic::object("min", 100)("max", 200)));
 
-  return apache::thrift::from_dynamic<TestStruct>(
-      testDyn, apache::thrift::dynamic_format::JSON_1);
+  return facebook::thrift::from_dynamic<TestStruct>(
+      testDyn, facebook::thrift::dynamic_format::JSON_1);
 }
 
 } // namespace facebook::fboss::thrift_cow

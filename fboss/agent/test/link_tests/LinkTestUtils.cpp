@@ -2,8 +2,10 @@
 #include <folly/Subprocess.h>
 
 #include "fboss/agent/FbossError.h"
+#include "fboss/agent/platforms/common/PlatformMapping.h"
 #include "fboss/agent/test/link_tests/LinkTestUtils.h"
 #include "fboss/lib/CommonFileUtils.h"
+#include "fboss/lib/config/PlatformConfigUtils.h"
 #include "fboss/lib/thrift_service_client/ThriftServiceClient.h"
 
 DEFINE_bool(
@@ -194,5 +196,36 @@ std::map<int32_t, TransceiverInfo> waitForTransceiverInfo(
   }
 
   throw FbossError("TransceiverInfo was never populated.");
+}
+
+const TransceiverSpec* getTransceiverSpec(const SwSwitch* sw, PortID portId) {
+  auto& platformPort = sw->getPlatformMapping()->getPlatformPort(portId);
+  const auto& chips = sw->getPlatformMapping()->getChips();
+  if (auto tcvrID = utility::getTransceiverId(platformPort, chips)) {
+    auto transceiver = sw->getState()->getTransceivers()->getNodeIf(*tcvrID);
+    return transceiver.get();
+  }
+  return nullptr;
+}
+
+// This should only be called by platforms that actually have
+// an external phy
+std::optional<int32_t> getPortExternalPhyID(const SwSwitch* sw, PortID port) {
+  auto platformMapping = sw->getPlatformMapping();
+  const auto& platformPortEntry = platformMapping->getPlatformPort(port);
+  const auto& chips = platformMapping->getChips();
+  if (chips.empty()) {
+    throw FbossError("Not platform data plane phy chips");
+  }
+
+  const auto& xphy = utility::getDataPlanePhyChips(
+      platformPortEntry, chips, phy::DataPlanePhyChipType::XPHY);
+  if (xphy.empty()) {
+    return std::nullopt;
+  } else {
+    // One port should only has one xphy id
+    CHECK_EQ(xphy.size(), 1);
+    return *xphy.begin()->second.physicalID();
+  }
 }
 } // namespace facebook::fboss::utility

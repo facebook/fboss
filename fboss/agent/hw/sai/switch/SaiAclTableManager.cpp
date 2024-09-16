@@ -177,6 +177,7 @@ bool SaiAclTableManager::needsAclTableRecreate(
   if (oldAclTable->getActionTypes() != newAclTable->getActionTypes() ||
       oldAclTable->getPriority() != newAclTable->getPriority() ||
       oldAclTable->getQualifiers() != newAclTable->getQualifiers()) {
+    XLOG(DBG2) << "Recreating ACL table";
     return true;
   }
   return false;
@@ -682,12 +683,16 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
             addedAclEntry->getL4DstPort().value(), kL4PortMask))};
   }
 
+  bool matchV4 = !addedAclEntry->getEtherType().has_value() ||
+      addedAclEntry->getEtherType().value() == cfg::EtherType::IPv4;
+  bool matchV6 = !addedAclEntry->getEtherType().has_value() ||
+      addedAclEntry->getEtherType().value() == cfg::EtherType::IPv6;
   std::optional<SaiAclEntryTraits::Attributes::FieldIpProtocol> fieldIpProtocol{
       std::nullopt};
   auto qualifierSet = getSupportedQualifierSet();
   if (qualifierSet.find(cfg::AclTableQualifier::IP_PROTOCOL) !=
           qualifierSet.end() &&
-      addedAclEntry->getProto()) {
+      matchV4 && addedAclEntry->getProto()) {
     fieldIpProtocol = SaiAclEntryTraits::Attributes::FieldIpProtocol{
         AclEntryFieldU8(std::make_pair(
             addedAclEntry->getProto().value(), kIpProtocolMask))};
@@ -698,7 +703,7 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
       fieldIpv6NextHeader{std::nullopt};
   if (qualifierSet.find(cfg::AclTableQualifier::IPV6_NEXT_HEADER) !=
           qualifierSet.end() &&
-      addedAclEntry->getProto()) {
+      matchV6 && addedAclEntry->getProto()) {
     fieldIpv6NextHeader = SaiAclEntryTraits::Attributes::FieldIpv6NextHeader{
         AclEntryFieldU8(std::make_pair(
             addedAclEntry->getProto().value(), kIpv6NextHeaderMask))};
@@ -818,7 +823,7 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
             addedAclEntry->getVlanID().value(), kOuterVlanIdMask))};
   }
 
-#if !defined(TAJO_SDK) || defined(TAJO_SDK_GTE_1_65_0)
+#if !defined(TAJO_SDK) || defined(TAJO_SDK_GTE_24_4_90)
   std::optional<SaiAclEntryTraits::Attributes::FieldBthOpcode> fieldBthOpcode{
       std::nullopt};
   if (addedAclEntry->getRoceOpcode()) {
@@ -1091,7 +1096,7 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
        fieldTtl.has_value() || fieldFdbDstUserMeta.has_value() ||
        fieldRouteDstUserMeta.has_value() || fieldEtherType.has_value() ||
        fieldNeighborDstUserMeta.has_value() || fieldOuterVlanId.has_value() ||
-#if !defined(TAJO_SDK) || defined(TAJO_SDK_GTE_1_65_0)
+#if !defined(TAJO_SDK) || defined(TAJO_SDK_GTE_24_4_90)
        fieldBthOpcode.has_value() ||
 #endif
 #if !defined(TAJO_SDK) && !defined(BRCM_SAI_SDK_XGS)
@@ -1155,7 +1160,7 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
       fieldNeighborDstUserMeta,
       fieldEtherType,
       fieldOuterVlanId,
-#if !defined(TAJO_SDK) || defined(TAJO_SDK_GTE_1_65_0)
+#if !defined(TAJO_SDK) || defined(TAJO_SDK_GTE_24_4_90)
       fieldBthOpcode,
 #endif
 #if !defined(TAJO_SDK) && !defined(BRCM_SAI_SDK_XGS)
@@ -1412,7 +1417,7 @@ std::set<cfg::AclTableQualifier> SaiAclTableManager::getSupportedQualifierSet()
         cfg::AclTableQualifier::LOOKUP_CLASS_NEIGHBOR,
         cfg::AclTableQualifier::LOOKUP_CLASS_ROUTE};
 
-#if defined(TAJO_SDK_GTE_1_65_0)
+#if defined(TAJO_SDK_GTE_24_4_90)
     std::vector<cfg::AclTableQualifier> tajoExtraQualifierList = {
         cfg::AclTableQualifier::ETHER_TYPE,
         cfg::AclTableQualifier::BTH_OPCODE,
@@ -1455,10 +1460,18 @@ std::set<cfg::AclTableQualifier> SaiAclTableManager::getSupportedQualifierSet()
         cfg::AclTableQualifier::SRC_PORT,
         cfg::AclTableQualifier::DSCP,
         cfg::AclTableQualifier::TTL,
+        cfg::AclTableQualifier::IP_PROTOCOL,
         cfg::AclTableQualifier::IPV6_NEXT_HEADER,
         cfg::AclTableQualifier::IP_TYPE,
         cfg::AclTableQualifier::LOOKUP_CLASS_NEIGHBOR,
         cfg::AclTableQualifier::LOOKUP_CLASS_ROUTE,
+        cfg::AclTableQualifier::L4_SRC_PORT,
+        cfg::AclTableQualifier::L4_DST_PORT,
+        cfg::AclTableQualifier::ICMPV4_TYPE,
+        cfg::AclTableQualifier::ICMPV4_CODE,
+        cfg::AclTableQualifier::ICMPV6_TYPE,
+        cfg::AclTableQualifier::ICMPV6_CODE,
+        cfg::AclTableQualifier::DST_MAC,
         cfg::AclTableQualifier::BTH_OPCODE};
     return jericho3Qualifiers;
   } else {
@@ -1658,7 +1671,7 @@ bool SaiAclTableManager::isQualifierSupported(
               attributes));
 
     case cfg::AclTableQualifier::BTH_OPCODE:
-#if !defined(TAJO_SDK) || defined(TAJO_SDK_GTE_1_65_0)
+#if !defined(TAJO_SDK) || defined(TAJO_SDK_GTE_24_4_90)
       return hasField(
           std::get<
               std::optional<SaiAclTableTraits::Attributes::FieldBthOpcode>>(

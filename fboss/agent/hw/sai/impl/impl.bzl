@@ -37,6 +37,13 @@ def to_impl_lib_name(sai_impl):
         sai_impl.version,
     )
 
+def to_impl_bin_name(sai_impl, prefix):
+    return "{}-{}-{}".format(
+        prefix,
+        sai_impl.name,
+        sai_impl.version,
+    )
+
 def impl_category_suffix(is_npu):
     return "" if is_npu else "-phy"
 
@@ -51,14 +58,13 @@ def to_impl_external_deps(sai_impl):
         ("brcm-sai", "10.0_ea_dnx_sim_odp"): [("brcm-sai", None, "sai")],
         ("brcm-sai", "10.2.0.0_odp"): [("brcm-sai", None, "sai")],
         ("brcm-sai", "11.0_ea_odp"): [("brcm-sai", None, "sai")],
-        ("brcm-sai", "11.0_ea_dnx_odp"): [("brcm-sai", None, "sai")],
+        ("brcm-sai", "11.3.0.0_dnx_odp"): [("brcm-sai", None, "sai")],
         ("brcm-sai", "12.0_ea_dnx_odp"): [("brcm-sai", None, "sai")],
         ("CredoB52SAI", "0.7.2"): [("CredoB52SAI", None, "saiowl")],
         ("CredoB52SAI", "0.8.4"): [("CredoB52SAI", None, "saiowl")],
         ("fake", "1.14.0"): [("sai", None)],
         ("leaba-sdk", "1.42.8"): [("leaba-sdk", None, "sai-sdk")],
-        ("leaba-sdk", "1.65.1"): [("leaba-sdk", None, "sai-sdk")],
-        ("leaba-sdk", "24.4.90"): [("leaba-sdk", None, "sai-sdk")],
+        ("leaba-sdk", "24.4.90"): [("leaba-sdk", None, "dyn-sai"), ("leaba-sdk", None, "dyn-sdk")],
         ("leaba-sdk", "24.4.90_yuba"): [("leaba-sdk", None, "sai-sdk")],
         ("leaba-sdk", "24.6.1_yuba"): [("leaba-sdk", None, "sai-sdk")],
         ("leaba-sdk", "24.7.0_yuba"): [("leaba-sdk", None, "sai-sdk")],

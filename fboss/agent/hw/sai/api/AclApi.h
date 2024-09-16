@@ -191,7 +191,7 @@ struct SaiAclTableTraits {
         SaiAttribute<EnumType, SAI_ACL_TABLE_ATTR_FIELD_ETHER_TYPE, bool>;
     using FieldOuterVlanId =
         SaiAttribute<EnumType, SAI_ACL_TABLE_ATTR_FIELD_OUTER_VLAN_ID, bool>;
-#if !defined(TAJO_SDK) || defined(TAJO_SDK_GTE_1_65_0)
+#if !defined(TAJO_SDK) || defined(TAJO_SDK_GTE_24_4_90)
     using FieldBthOpcode =
         SaiAttribute<EnumType, SAI_ACL_TABLE_ATTR_FIELD_BTH_OPCODE, bool>;
 #endif
@@ -230,7 +230,7 @@ struct SaiAclTableTraits {
       std::optional<Attributes::FieldNeighborDstUserMeta>,
       std::optional<Attributes::FieldEthertype>,
       std::optional<Attributes::FieldOuterVlanId>
-#if !defined(TAJO_SDK) || defined(TAJO_SDK_GTE_1_65_0)
+#if !defined(TAJO_SDK) || defined(TAJO_SDK_GTE_24_4_90)
       ,
       std::optional<Attributes::FieldBthOpcode>
 #endif
@@ -273,7 +273,7 @@ SAI_ATTRIBUTE_NAME(AclTable, AvailableEntry);
 SAI_ATTRIBUTE_NAME(AclTable, AvailableCounter);
 SAI_ATTRIBUTE_NAME(AclTable, FieldEthertype);
 SAI_ATTRIBUTE_NAME(AclTable, FieldOuterVlanId);
-#if !defined(TAJO_SDK) || defined(TAJO_SDK_GTE_1_65_0)
+#if !defined(TAJO_SDK) || defined(TAJO_SDK_GTE_24_4_90)
 SAI_ATTRIBUTE_NAME(AclTable, FieldBthOpcode);
 #endif
 #if !defined(TAJO_SDK) && !defined(BRCM_SAI_SDK_XGS)
@@ -394,7 +394,7 @@ struct SaiAclEntryTraits {
         EnumType,
         SAI_ACL_ENTRY_ATTR_FIELD_OUTER_VLAN_ID,
         AclEntryFieldU16>;
-#if !defined(TAJO_SDK) || defined(TAJO_SDK_GTE_1_65_0)
+#if !defined(TAJO_SDK) || defined(TAJO_SDK_GTE_24_4_90)
     using FieldBthOpcode = SaiAttribute<
         EnumType,
         SAI_ACL_ENTRY_ATTR_FIELD_BTH_OPCODE,
@@ -481,7 +481,7 @@ struct SaiAclEntryTraits {
       std::optional<Attributes::FieldNeighborDstUserMeta>,
       std::optional<Attributes::FieldEthertype>,
       std::optional<Attributes::FieldOuterVlanId>,
-#if !defined(TAJO_SDK) || defined(TAJO_SDK_GTE_1_65_0)
+#if !defined(TAJO_SDK) || defined(TAJO_SDK_GTE_24_4_90)
       std::optional<Attributes::FieldBthOpcode>,
 #endif
 #if !defined(TAJO_SDK) && !defined(BRCM_SAI_SDK_XGS)
@@ -532,7 +532,7 @@ SAI_ATTRIBUTE_NAME(AclEntry, FieldRouteDstUserMeta);
 SAI_ATTRIBUTE_NAME(AclEntry, FieldNeighborDstUserMeta);
 SAI_ATTRIBUTE_NAME(AclEntry, FieldEthertype);
 SAI_ATTRIBUTE_NAME(AclEntry, FieldOuterVlanId);
-#if !defined(TAJO_SDK) || defined(TAJO_SDK_GTE_1_65_0)
+#if !defined(TAJO_SDK) || defined(TAJO_SDK_GTE_24_4_90)
 SAI_ATTRIBUTE_NAME(AclEntry, FieldBthOpcode);
 #endif
 #if !defined(TAJO_SDK) && !defined(BRCM_SAI_SDK_XGS)

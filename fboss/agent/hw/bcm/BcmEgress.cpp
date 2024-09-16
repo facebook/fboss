@@ -449,20 +449,24 @@ bool BcmEcmpEgress::isFlowletConfigUpdateNeeded() {
   bcmCheckError(ret, "Unable to get ECMP:  ", id_);
   auto bcmEcmpFlowletConfig = hw_->getEgressManager()->getBcmFlowletConfig();
 
-  const auto neededDynamicSize = utility::getFlowletSizeWithScalingFactor(
-      static_cast<const BcmSwitch*>(hw_),
-      bcmEcmpFlowletConfig.flowletTableSize,
-      pathsInHwCount,
-      bcmEcmpFlowletConfig.maxLinks);
-  if ((obj.dynamic_age != bcmEcmpFlowletConfig.inactivityIntervalUsecs) ||
-      (obj.dynamic_size != neededDynamicSize)) {
-    updateNeeded = true;
-  }
-
   const auto configDynamicMode =
       utility::getFlowletDynamicMode(bcmEcmpFlowletConfig.switchingMode);
-  if ((neededDynamicSize != 0) && (obj.dynamic_mode != configDynamicMode)) {
-    updateNeeded = true;
+  // if required and current modes match, no updated needed
+  if (obj.dynamic_mode != configDynamicMode ||
+      obj.dynamic_size != bcmEcmpFlowletConfig.flowletTableSize) {
+    const auto neededDynamicSize = utility::getFlowletSizeWithScalingFactor(
+        static_cast<const BcmSwitch*>(hw_),
+        bcmEcmpFlowletConfig.flowletTableSize,
+        pathsInHwCount,
+        bcmEcmpFlowletConfig.maxLinks);
+    if ((obj.dynamic_age != bcmEcmpFlowletConfig.inactivityIntervalUsecs) ||
+        (obj.dynamic_size != neededDynamicSize)) {
+      updateNeeded = true;
+    }
+
+    if (neededDynamicSize != 0) {
+      updateNeeded = true;
+    }
   }
 
   return updateNeeded;

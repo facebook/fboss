@@ -365,22 +365,18 @@ class SaiObjectStore {
     return objects_.end();
   }
 
-  size_t warmBootHandlesCount() const {
-    // ignore handles owned by adapter
-    return std::count_if(
-        std::begin(warmBootHandles_),
-        std::end(warmBootHandles_),
-        [](const auto& handle) { return !handle.second->isOwnedByAdapter(); });
-  }
-
-  bool hasUnexpectedUnclaimedWarmbootHandles() const {
-    bool unclaimedHandles = warmBootHandlesCount() > 0 &&
-        !IsSaiObjectOwnedByAdapter<SaiObjectTraits>::value;
+  bool hasUnexpectedUnclaimedWarmbootHandles(
+      bool includeAdapterOwned = false) const {
+    auto handlesCount = warmBootHandlesCount(includeAdapterOwned);
+    bool unclaimedHandles = handlesCount > 0 &&
+        (includeAdapterOwned ||
+         !IsSaiObjectOwnedByAdapter<SaiObjectTraits>::value);
     XLOGF(
         DBG1,
-        "unexpected warmboot handles {} entries: {}",
+        "unexpected warmboot handles {} entries: {}, includeAdapterOwned: {}",
         objectTypeName(),
-        unclaimedHandles);
+        unclaimedHandles,
+        includeAdapterOwned);
     return unclaimedHandles;
   }
 
@@ -394,8 +390,9 @@ class SaiObjectStore {
   }
 
   void removeUnclaimedWarmbootHandlesIf(
-      std::function<bool(const std::shared_ptr<ObjectType>&)> condition) {
-    if (!hasUnexpectedUnclaimedWarmbootHandles()) {
+      std::function<bool(const std::shared_ptr<ObjectType>&)> condition,
+      bool includeAdapterOwned = false) {
+    if (!hasUnexpectedUnclaimedWarmbootHandles(includeAdapterOwned)) {
       return;
     }
     auto iter = std::begin(warmBootHandles_);
@@ -408,12 +405,23 @@ class SaiObjectStore {
     }
   }
 
-  void removeUnexpectedUnclaimedWarmbootHandles() {
+  void removeUnexpectedUnclaimedWarmbootHandles(
+      bool includeAdapterOwned = false) {
     // delete all unclaimed handles
-    removeUnclaimedWarmbootHandlesIf([](const auto&) { return true; });
+    removeUnclaimedWarmbootHandlesIf(
+        [](const auto&) { return true; }, includeAdapterOwned);
   }
 
  private:
+  size_t warmBootHandlesCount(bool includeAdapterOwned = false) const {
+    return std::count_if(
+        std::begin(warmBootHandles_),
+        std::end(warmBootHandles_),
+        [includeAdapterOwned](const auto& handle) {
+          return includeAdapterOwned || !handle.second->isOwnedByAdapter();
+        });
+  }
+
   ObjectType getObject(
       typename ObjectTraits::AdapterKey key,
       const folly::dynamic* adapterKey2AdapterHostKey) {

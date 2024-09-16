@@ -9,6 +9,7 @@
  */
 
 #include "fboss/agent/HwAsicTable.h"
+#include "fboss/agent/IPv6Handler.h"
 #include "fboss/agent/TxPacket.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/packet/PktFactory.h"
@@ -32,8 +33,6 @@
 
 #include <iostream>
 #include <thread>
-
-DECLARE_bool(send_icmp_time_exceeded);
 
 namespace facebook::fboss {
 

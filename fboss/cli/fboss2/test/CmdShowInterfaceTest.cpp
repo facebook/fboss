@@ -16,13 +16,16 @@ namespace facebook::fboss {
 
 class CmdShowInterfaceTestFixture : public CmdHandlerTestBase {
  public:
+  HostInfo hostInfo{"hostName"};
   std::map<int32_t, facebook::fboss::PortInfoThrift> portEntries;
   std::map<int32_t, facebook::fboss::InterfaceDetail> intfDetails;
+  std::map<int64_t, cfg::DsfNode> dsfNodes;
   std::vector<std::string> queriedEntries;
   void SetUp() override {
     CmdHandlerTestBase::SetUp();
     portEntries = createPortEntries();
     intfDetails = createInterfaceDetails();
+    dsfNodes = {};
   }
 
   std::map<int32_t, facebook::fboss::PortInfoThrift> createPortEntries() {
@@ -142,7 +145,8 @@ class CmdShowInterfaceTestFixture : public CmdHandlerTestBase {
 
 TEST_F(CmdShowInterfaceTestFixture, createModel) {
   auto cmd = CmdShowInterface();
-  auto model = cmd.createModel(portEntries, intfDetails, queriedEntries);
+  auto model = cmd.createModel(
+      hostInfo, portEntries, intfDetails, dsfNodes, queriedEntries);
   auto intfAddressModel = *model.interfaces();
 
   EXPECT_EQ(intfAddressModel.size(), 3);
@@ -184,23 +188,28 @@ TEST_F(CmdShowInterfaceTestFixture, createModel) {
 
 TEST_F(CmdShowInterfaceTestFixture, printOutput) {
   auto cmd = CmdShowInterface();
-  auto model = cmd.createModel(portEntries, intfDetails, queriedEntries);
+  auto model = cmd.createModel(
+      hostInfo, portEntries, intfDetails, dsfNodes, queriedEntries);
 
   std::stringstream ss;
   cmd.printOutput(model, ss);
 
   std::string output = ss.str();
   std::string expectedOutput =
-      " Interface  Status  Speed  VLAN  MTU   Addresses              Description                         \n"
+      "+-----------+--------+-------+------+------+-----------------------+-------------------------------------+\n"
+      "| Interface | Status | Speed | VLAN | MTU  | Addresses             | Description                         |\n"
       "----------------------------------------------------------------------------------------------------------\n"
-      " eth1/1/1   up      100G   2001  1500  10.1.1.1/31            d-021: twshared54324.lol2           \n"
-      "                                       2401:db00::1:abcd/127                                      \n"
-      "                                       fe80::be:face:b00c/64                                      \n"
-      " eth2/1/1   up      200G   2002  1500  10.1.2.1/31            d-022: gpuhost1234.lol2             \n"
-      "                                       2401:db00::2:abcd/127                                      \n"
-      "                                       fe80::be:face:b00c/64                                      \n"
-      " eth3/1/1   down    400G   4001  9000  2401:db00::3:abcd/127  ctsw001.c081.f00.lol1:Ethernet5/4/1 \n"
-      "                                       fe80::be:face:b00c/64                                      \n\n";
+      "| eth1/1/1  | up     | 100G  | 2001 | 1500 | 10.1.1.1/31           | d-021: twshared54324.lol2           |\n"
+      "|           |        |       |      |      | 2401:db00::1:abcd/127 |                                     |\n"
+      "|           |        |       |      |      | fe80::be:face:b00c/64 |                                     |\n"
+      "+-----------+--------+-------+------+------+-----------------------+-------------------------------------+\n"
+      "| eth2/1/1  | up     | 200G  | 2002 | 1500 | 10.1.2.1/31           | d-022: gpuhost1234.lol2             |\n"
+      "|           |        |       |      |      | 2401:db00::2:abcd/127 |                                     |\n"
+      "|           |        |       |      |      | fe80::be:face:b00c/64 |                                     |\n"
+      "+-----------+--------+-------+------+------+-----------------------+-------------------------------------+\n"
+      "| eth3/1/1  | down   | 400G  | 4001 | 9000 | 2401:db00::3:abcd/127 | ctsw001.c081.f00.lol1:Ethernet5/4/1 |\n"
+      "|           |        |       |      |      | fe80::be:face:b00c/64 |                                     |\n"
+      "+-----------+--------+-------+------+------+-----------------------+-------------------------------------+\n";
 
   EXPECT_EQ(output, expectedOutput);
 }

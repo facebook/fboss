@@ -49,6 +49,12 @@ _HEADER_SUFFIXES = (
     "-defs.tcc",
 )
 
+CPP_UNITTEST_MAIN_DEP = "shim//third-party/googletest:cpp_unittest_main"
+CPP_UNITTEST_LIB_DEPS = [
+    "shim//third-party/googletest:gtest",
+    "shim//third-party/googletest:gmock",
+]
+
 def _get_headers_from_sources(srcs):
     """
     Return the headers likely associated with the given sources
@@ -198,14 +204,12 @@ def cpp_unittest(
         extract_helper_lib = None,
         compiler_specific_flags = None,
         default_strip_mode = None,
-        srcs = [],
         **kwargs):
     _unused = (supports_static_listing, allocator, owner, tags, emails, extract_helper_lib, compiler_specific_flags, default_strip_mode)  # @unused
-    srcs = srcs + ["shim//third-party/googletest:gtest_main.cpp"]
+    deps = deps + [CPP_UNITTEST_MAIN_DEP] + CPP_UNITTEST_LIB_DEPS
     prelude.cxx_test(
         deps = _maybe_select_map(deps + external_deps_to_targets(external_deps), _fix_deps),
         visibility = visibility,
-        srcs = srcs,
         **kwargs
     )
 
@@ -398,13 +402,29 @@ def _fix_dep(x: str) -> [
     None,
     str,
 ]:
+    def remove_version(x: str) -> str:
+        # When upgrading libraries we either suffix them as `-old` or with a version, e.g. `-1-08`
+        # Strip those so we grab the right one in open source.
+        if x.endswith(":md-5"):  # md-5 is the one exception
+            return x
+        xs = x.split("-")
+        for i in reversed(range(len(xs))):
+            s = xs[i]
+            if s == "old" or s.isdigit():
+                xs.pop(i)
+            else:
+                break
+        return "-".join(xs)
+
     if x == "//common/rust/shed/fbinit:fbinit":
         return "fbsource//third-party/rust:fbinit"
     elif x == "//common/rust/shed/sorted_vector_map:sorted_vector_map":
         return "fbsource//third-party/rust:sorted_vector_map"
     elif x == "//watchman/rust/watchman_client:watchman_client":
         return "fbsource//third-party/rust:watchman_client"
-    elif x.startswith("fbsource//third-party/rust:") or x.startswith(":"):
+    elif x.startswith("fbsource//third-party/rust:"):
+        return remove_version(x)
+    elif x.startswith(":"):
         return x
     elif x.startswith("//buck2/facebook/"):
         return None
@@ -451,3 +471,12 @@ def external_dep_to_target(t):
 
 def external_deps_to_targets(ts):
     return [external_dep_to_target(t) for t in ts]
+
+def _assert_eq(x, y):
+    if x != y:
+        fail("Expected {} == {}".format(x, y))
+
+def _test():
+    _assert_eq(_fix_dep("fbsource//third-party/rust:derive_more-1"), "fbsource//third-party/rust:derive_more")
+
+_test()

@@ -56,7 +56,8 @@ class CmdShowHwAgentStatus
          "Stats Sync",
          "Fdb Sync",
          "RxPkt Sync",
-         "TxPkt Sync"});
+         "TxPkt Sync",
+         "SwitchReachability Sync"});
 
     for (auto const& statusEntry : model.get_hwAgentStatusEntries()) {
       table.addRow(
@@ -67,7 +68,9 @@ class CmdShowHwAgentStatus
            folly::to<std::string>(statusEntry.get_statsSyncActive()),
            folly::to<std::string>(statusEntry.get_fdbSyncActive()),
            folly::to<std::string>(statusEntry.get_rxPktSyncActive()),
-           folly::to<std::string>(statusEntry.get_txPktSyncActive())});
+           folly::to<std::string>(statusEntry.get_txPktSyncActive()),
+           folly::to<std::string>(
+               statusEntry.get_switchReachabilityChangeSyncActive())});
     }
     out << table << std::endl;
   }
@@ -93,6 +96,9 @@ class CmdShowHwAgentStatus
           hwAgentStatus[switchIndex].get_rxPktEventSyncActive();
       hwStatusEntry.txPktSyncActive() =
           hwAgentStatus[switchIndex].get_txPktEventSyncActive();
+      hwStatusEntry.switchReachabilityChangeSyncActive() =
+          hwAgentStatus[switchIndex]
+              .get_switchReachabilityChangeEventSyncActive();
       model.hwAgentStatusEntries()->push_back(hwStatusEntry);
       switchIndex++;
     }

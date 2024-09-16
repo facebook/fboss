@@ -415,8 +415,10 @@ struct SaiPortTraits {
     struct AttributeReachabilityGroup {
       std::optional<sai_attr_id_t> operator()();
     };
-    using ReachabilityGroup =
-        SaiExtensionAttribute<sai_uint32_t, AttributeReachabilityGroup>;
+    using ReachabilityGroup = SaiExtensionAttribute<
+        sai_uint32_t,
+        AttributeReachabilityGroup,
+        SaiIntDefault<sai_uint32_t>>;
   };
   using AdapterKey = PortSaiId;
 

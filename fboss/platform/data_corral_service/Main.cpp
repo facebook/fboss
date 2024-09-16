@@ -12,6 +12,7 @@
 #include "fboss/platform/data_corral_service/FruPresenceExplorer.h"
 #include "fboss/platform/data_corral_service/if/gen-cpp2/data_corral_service_types.h"
 #include "fboss/platform/helpers/Init.h"
+#include "fboss/platform/helpers/PlatformNameLib.h"
 
 using namespace facebook;
 using namespace facebook::fboss::platform;
@@ -29,7 +30,8 @@ int main(int argc, char** argv) {
   helpers::init(&argc, &argv);
 
   LedManagerConfig config;
-  auto configJson = ConfigLib().getLedManagerConfig();
+  auto platformName = helpers::PlatformNameLib().getPlatformName();
+  auto configJson = ConfigLib().getLedManagerConfig(platformName);
   apache::thrift::SimpleJSONSerializer::deserialize<LedManagerConfig>(
       configJson, config);
 

@@ -371,6 +371,8 @@ struct PortInfoThrift {
   24: bool isDrained;
   25: optional PortActiveState activeState;
   26: list<PortError> activeErrors;
+  27: optional string expectedLLDPeerName;
+  28: optional string expectedLLDPPeerPort;
 }
 
 // Port queueing configuration

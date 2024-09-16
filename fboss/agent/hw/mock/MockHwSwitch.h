@@ -112,6 +112,8 @@ class MockHwSwitch : public HwSwitch {
     return 0;
   }
 
+  void injectSwitchReachabilityChangeNotification() override {}
+
   uint32_t generateDeterministicSeed(
       LoadBalancerID loadBalancerID,
       folly::MacAddress mac) const override {

@@ -43,7 +43,7 @@ cpp_unittest(
         "//fboss/fsdb/oper:extended_path_builder",
         "//fboss/fsdb/tests/utils:fsdb_test_server",
         "//fboss/lib:common_utils",
-        "//folly/experimental/coro:blocking_wait",
+        "//folly/coro:blocking_wait",
         "//folly/io/async:scoped_event_base_thread",
         "//folly/logging:log_level",
         "//folly/logging:logging",

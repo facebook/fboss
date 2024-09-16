@@ -42,6 +42,17 @@ cpp_library(
 )
 
 cpp_library(
+    name = "pid_logic_library",
+    srcs = [
+        "PidLogic.cpp",
+    ],
+    exported_deps = [
+        "//fboss/platform/fan_service/if:fan_service-cpp2-types",
+        "//folly/logging:logging",
+    ],
+)
+
+cpp_library(
     name = "core",
     srcs = [
         "Bsp.cpp",
@@ -60,6 +71,7 @@ cpp_library(
         "FsdbSensorSubscriber.h",
     ],
     exported_deps = [
+        ":pid_logic_library",
         "//common/fbwhoami:fb_who_am_i",
         "//common/services/cpp:facebook_identity_verifier",
         "//common/services/cpp:tls_constants",
@@ -80,7 +92,7 @@ cpp_library(
         "//fboss/qsfp_service/if:state-cpp2-types",
         "//fboss/qsfp_service/if:stats-cpp2-types",
         "//fboss/qsfp_service/lib:qsfp-service-client",
-        "//folly/experimental/coro:blocking_wait",
+        "//folly/coro:blocking_wait",
         "//folly/futures:core",
         "//folly/io/async:async_base",
         "//folly/io/async:async_ssl_socket",

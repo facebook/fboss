@@ -32,9 +32,11 @@ thrift_library(
         "cpp2",
     ],
     thrift_cpp2_options = ["json"],
-    thrift_srcs = ["platform_manager_service.thrift"],
+    thrift_srcs = {"platform_manager_service.thrift": ["PlatformManagerService"]},
     deps = [
+        ":platform_manager_config",
         ":platform_manager_snapshot",
+        "//thrift/annotation:thrift",
     ],
 )
 
@@ -109,16 +111,18 @@ cpp_library(
     exported_deps = [
         ":device_path_resolver",
         ":utils",
+        "//fboss/platform/helpers:platform_fs_utils",
     ],
 )
 
 cpp_library(
-    name = "pkg_utils",
+    name = "pkg_manager",
     srcs = [
-        "PkgUtils.cpp",
+        "PkgManager.cpp",
     ],
     exported_deps = [
         ":platform_manager_config-cpp2-types",
+        "//fb303:service_data",
         "//fboss/platform/helpers:platform_utils",
         "//folly:string",
         "//folly/logging:logging",
@@ -128,6 +132,7 @@ cpp_library(
 cpp_library(
     name = "platform_explorer",
     srcs = [
+        "ExplorationErrorMap.cpp",
         "PlatformExplorer.cpp",
     ],
     exported_deps = [
@@ -136,13 +141,19 @@ cpp_library(
         ":i2c_explorer",
         ":pci_explorer",
         ":platform_manager_config-cpp2-types",
+        ":platform_manager_service-cpp2-types",
         ":presence_checker",
         ":utils",
         "//fb303:service_data",
+        "//fboss/platform/helpers:platform_fs_utils",
+        "//fboss/platform/helpers:platform_utils",
         "//fboss/platform/weutil:fboss_eeprom_lib",
         "//fboss/platform/weutil:ioctl_smbus_eeprom_reader",
         "//folly:file_util",
         "//folly/logging:logging",
+    ],
+    exported_external_deps = [
+        "re2",
     ],
 )
 
@@ -175,17 +186,25 @@ cpp_library(
     ],
 )
 
+cpp_library(
+    name = "platform_manager_handler",
+    srcs = [
+        "PlatformManagerHandler.cpp",
+    ],
+    exported_deps = [
+        ":platform_explorer",
+        ":platform_manager_service-cpp2-services",
+    ],
+)
+
 cpp_binary(
     name = "platform_manager",
     srcs = [
         "Main.cpp",
-        "PlatformManagerHandler.cpp",
     ],
     deps = [
-        ":pkg_utils",
-        ":platform_explorer",
-        ":platform_manager_service-cpp2-services",
-        ":utils",
+        ":pkg_manager",
+        ":platform_manager_handler",
         "//fb303:logging",
         "//fb303:service_data",
         "//fboss/platform/helpers:init",

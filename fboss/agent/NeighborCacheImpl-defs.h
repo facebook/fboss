@@ -158,7 +158,7 @@ NeighborCacheImpl<NTable>::getUpdateFnToProgramEntryForVlan(Entry* entry) {
       table->updateEntry(fields);
       XLOG(DBG2) << "Converting pending entry for " << fields.ip << " --> "
                  << fields.mac << " on interface " << fields.interfaceID
-                 << " for vlan " << vlanID;
+                 << " port " << fields.port << " for vlan " << vlanID;
     }
     return newState;
   };

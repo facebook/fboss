@@ -164,34 +164,46 @@ static cfg::UdfConfig addUdfConfig(
   return udfCfg;
 }
 
-cfg::UdfConfig addUdfAclConfig(void) {
+cfg::UdfConfig addUdfAclConfig(int udfType) {
   std::map<std::string, cfg::UdfGroup> udfMap;
-  return addUdfConfig(
-      udfMap,
-      kUdfAclRoceOpcodeGroupName,
-      kUdfAclRoceOpcodeStartOffsetInBytes,
-      kUdfAclRoceOpcodeFieldSizeInBytes,
-      cfg::UdfGroupType::ACL);
+  cfg::UdfConfig udfCfg;
+  if ((udfType & kUdfOffsetBthOpcode) == kUdfOffsetBthOpcode) {
+    udfCfg = addUdfConfig(
+        udfMap,
+        kUdfAclRoceOpcodeGroupName,
+        kUdfAclRoceOpcodeStartOffsetInBytes,
+        kUdfAclRoceOpcodeFieldSizeInBytes,
+        cfg::UdfGroupType::ACL);
+  }
+  if ((udfType & kUdfOffsetBthReserved) == kUdfOffsetBthReserved) {
+    udfCfg = addUdfConfig(
+        udfMap,
+        kRoceUdfFlowletGroupName,
+        kRoceUdfFlowletStartOffsetInBytes,
+        kRoceUdfFlowletFieldSizeInBytes,
+        cfg::UdfGroupType::ACL);
+  }
+  if ((udfType & kUdfOffsetAethSyndrome) == kUdfOffsetAethSyndrome) {
+    udfCfg = addUdfConfig(
+        udfMap,
+        kUdfAclAethNakGroupName,
+        kUdfAclAethNakStartOffsetInBytes,
+        kUdfAclAethNakFieldSizeInBytes,
+        cfg::UdfGroupType::ACL);
+  }
+  if ((udfType & kUdfOffsetRethDmaLength) == kUdfOffsetRethDmaLength) {
+    udfCfg = addUdfConfig(
+        udfMap,
+        kUdfAclRethWrImmZeroGroupName,
+        kUdfAclRethDmaLenOffsetInBytes,
+        kUdfAclRethDmaLenFieldSizeInBytes,
+        cfg::UdfGroupType::ACL);
+  }
+  return udfCfg;
 }
 
 cfg::UdfConfig addUdfFlowletAclConfig(void) {
   std::map<std::string, cfg::UdfGroup> udfMap;
-  return addUdfConfig(
-      udfMap,
-      kRoceUdfFlowletGroupName,
-      kRoceUdfFlowletStartOffsetInBytes,
-      kRoceUdfFlowletFieldSizeInBytes,
-      cfg::UdfGroupType::ACL);
-}
-
-cfg::UdfConfig addUdfAckAndFlowletAclConfig(void) {
-  std::map<std::string, cfg::UdfGroup> udfMap;
-  addUdfConfig(
-      udfMap,
-      kUdfAclRoceOpcodeGroupName,
-      kUdfAclRoceOpcodeStartOffsetInBytes,
-      kUdfAclRoceOpcodeFieldSizeInBytes,
-      cfg::UdfGroupType::ACL);
   return addUdfConfig(
       udfMap,
       kRoceUdfFlowletGroupName,
@@ -424,7 +436,8 @@ size_t pumpRoCETraffic(
     std::optional<folly::MacAddress> srcMacAddr,
     int packetCount,
     uint8_t roceOpcode,
-    uint8_t reserved) {
+    uint8_t reserved,
+    std::optional<std::vector<uint8_t>> nxtHdr) {
   folly::MacAddress srcMac(
       srcMacAddr.has_value() ? *srcMacAddr
                              : MacAddressGenerator().get(dstMac.u64HBO() + 1));
@@ -454,6 +467,12 @@ size_t pumpRoCETraffic(
         roceEndPayload.begin(),
         roceEndPayload.end(),
         std::back_inserter(rocePayload));
+    if (nxtHdr.has_value()) {
+      std::copy(
+          nxtHdr.value().begin(),
+          nxtHdr.value().end(),
+          std::back_inserter(rocePayload));
+    }
     auto pkt = makeUDPTxPacket(
         allocateFn,
         vlan,

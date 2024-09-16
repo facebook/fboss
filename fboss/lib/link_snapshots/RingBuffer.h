@@ -13,11 +13,13 @@
 #include <list>
 
 namespace facebook::fboss {
-template <typename T, size_t length>
+template <typename T>
 class RingBuffer {
  public:
   using iterator = typename std::list<T>::iterator;
   using const_iterator = typename std::list<T>::const_iterator;
+
+  explicit RingBuffer<T>(size_t maxLength) : maxLength_(maxLength) {}
 
   void write(T val);
   const T last() const;
@@ -31,6 +33,7 @@ class RingBuffer {
 
  private:
   std::list<T> buf;
+  size_t maxLength_;
 };
 
 } // namespace facebook::fboss

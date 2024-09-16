@@ -49,6 +49,12 @@ struct SaiQueueHandle {
 using SaiQueueHandles =
     folly::F14FastMap<SaiQueueConfig, std::unique_ptr<SaiQueueHandle>>;
 
+bool fillQueueExtensionStats(
+    const uint8_t queueId,
+    const sai_stat_id_t& counterId,
+    const uint64_t& counterValue,
+    HwPortStats& hwPortStats);
+
 class SaiQueueManager {
  public:
   SaiQueueManager(

@@ -11,8 +11,8 @@
 #include "fboss/thrift_cow/gen-cpp2/patch_types.h"
 
 #include <boost/core/noncopyable.hpp>
-#include <folly/experimental/coro/AsyncPipe.h>
-#include <folly/experimental/coro/AsyncScope.h>
+#include <folly/coro/AsyncPipe.h>
+#include <folly/coro/AsyncScope.h>
 #include <folly/io/async/EventBase.h>
 #include <folly/json/dynamic.h>
 
@@ -663,7 +663,7 @@ class ExtendedPatchSubscription : public ExtendedSubscription,
   std::optional<SubscriberChunk> moveCurChunk(
       const SubscriptionMetadataServer& metadataServer);
 
-  std::map<SubscriptionKey, Patch> buffered_;
+  std::map<SubscriptionKey, std::vector<Patch>> buffered_;
   folly::coro::AsyncPipe<gen_type> pipe_;
 };
 

@@ -14,6 +14,8 @@ jobs:
     runs-on: 32-core-ubuntu
     steps:
       - run: echo "Confirming hardware specications:"; sudo lscpu
+      - name: Clean workspace
+        run: sudo rm -rf ${{ github.workspace }}/*
       - name: Check out repository code
         uses: actions/checkout@v4
       - name: Run Docker-based build for FBOSS

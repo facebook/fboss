@@ -123,6 +123,11 @@ TEST(PktUtilTest, ReadIPv6) {
   EXPECT_THROW(PktUtil::readIPv6(&c), std::out_of_range);
 }
 
+TEST(PktUtilTest, HexDumpEmptyBuffer) {
+  IOBuf buf(IOBuf::CREATE, 0);
+  EXPECT_EQ("", PktUtil::hexDump(buf));
+}
+
 TEST(PktUtilTest, HexDump) {
   size_t length = 64;
   IOBuf buf(IOBuf::CREATE, length);

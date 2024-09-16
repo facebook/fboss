@@ -14,57 +14,55 @@
 
 namespace facebook::fboss {
 
-template <typename T, size_t length>
-void RingBuffer<T, length>::write(T val) {
-  if (buf.size() == length) {
+template <typename T>
+void RingBuffer<T>::write(T val) {
+  if (buf.size() == maxLength_) {
     buf.pop_front();
   }
   buf.push_back(val);
 }
 
-template <typename T, size_t length>
-const T RingBuffer<T, length>::last() const {
+template <typename T>
+const T RingBuffer<T>::last() const {
   if (buf.empty()) {
     throw FbossError("Attempted to read from empty RingBuffer");
   }
   return buf.back();
 }
 
-template <typename T, size_t length>
-bool RingBuffer<T, length>::empty() const {
+template <typename T>
+bool RingBuffer<T>::empty() const {
   return buf.empty();
 }
 
-template <typename T, size_t length>
-typename RingBuffer<T, length>::iterator RingBuffer<T, length>::begin() {
+template <typename T>
+typename RingBuffer<T>::iterator RingBuffer<T>::begin() {
   return buf.begin();
 }
 
-template <typename T, size_t length>
-typename RingBuffer<T, length>::iterator RingBuffer<T, length>::end() {
+template <typename T>
+typename RingBuffer<T>::iterator RingBuffer<T>::end() {
   return buf.end();
 }
 
-template <typename T, size_t length>
-typename RingBuffer<T, length>::const_iterator RingBuffer<T, length>::begin()
-    const {
+template <typename T>
+typename RingBuffer<T>::const_iterator RingBuffer<T>::begin() const {
   return buf.begin();
 }
 
-template <typename T, size_t length>
-typename RingBuffer<T, length>::const_iterator RingBuffer<T, length>::end()
-    const {
+template <typename T>
+typename RingBuffer<T>::const_iterator RingBuffer<T>::end() const {
   return buf.end();
 }
 
-template <typename T, size_t length>
-size_t RingBuffer<T, length>::size() const {
+template <typename T>
+size_t RingBuffer<T>::size() const {
   return buf.size();
 }
 
-template <typename T, size_t length>
-size_t RingBuffer<T, length>::maxSize() const {
-  return length;
+template <typename T>
+size_t RingBuffer<T>::maxSize() const {
+  return maxLength_;
 }
 
 } // namespace facebook::fboss

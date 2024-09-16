@@ -7,8 +7,8 @@
 #include <fboss/fsdb/oper/DeltaValue.h>
 #include <fboss/thrift_cow/storage/Storage.h>
 #include <folly/Expected.h>
-#include <folly/experimental/coro/AsyncGenerator.h>
-#include <folly/experimental/coro/Sleep.h>
+#include <folly/coro/AsyncGenerator.h>
+#include <folly/coro/Sleep.h>
 #include <folly/json/dynamic.h>
 #include <folly/logging/xlog.h>
 #include <chrono>
@@ -174,6 +174,12 @@ class SubscribableStorage {
       SubscriberId subscriber,
       std::map<SubscriptionKey, RawOperPath> rawPaths) {
     return static_cast<Impl*>(this)->subscribe_patch_impl(
+        std::move(subscriber), std::move(rawPaths));
+  }
+  folly::coro::AsyncGenerator<SubscriberMessage&&> subscribe_patch_extended(
+      SubscriberId subscriber,
+      std::map<SubscriptionKey, ExtendedOperPath> rawPaths) {
+    return static_cast<Impl*>(this)->subscribe_patch_extended_impl(
         std::move(subscriber), std::move(rawPaths));
   }
 #endif

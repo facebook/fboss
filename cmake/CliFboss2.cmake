@@ -141,6 +141,8 @@ add_fbthrift_cpp_library(
   fboss/cli/fboss2/commands/show/transceiver/model.thrift
   OPTIONS
     json
+  DEPENDS
+    transceiver_cpp2
 )
 
 add_fbthrift_cpp_library(
@@ -292,6 +294,15 @@ add_fbthrift_cpp_library(
 )
 
 add_fbthrift_cpp_library(
+  show_interface_counters_fec_tail
+  fboss/cli/fboss2/commands/show/interface/counters/fec/tail/model.thrift
+  OPTIONS
+    json
+  DEPENDS
+    phy_cpp2
+)
+
+add_fbthrift_cpp_library(
   show_interface_counters_fec_histogram
   fboss/cli/fboss2/commands/show/interface/counters/fec/histogram/model.thrift
   OPTIONS
@@ -378,6 +389,7 @@ add_executable(fboss2
   fboss/cli/fboss2/commands/show/interface/counters/fec/CmdShowInterfaceCountersFec.h
   fboss/cli/fboss2/commands/show/interface/counters/fec/ber/CmdShowInterfaceCountersFecBer.h
   fboss/cli/fboss2/commands/show/interface/counters/fec/uncorrectable/CmdShowInterfaceCountersFecUncorrectable.h
+    fboss/cli/fboss2/commands/show/interface/counters/fec/tail/CmdShowInterfaceCountersFecTail.h
   fboss/cli/fboss2/commands/show/interface/counters/fec/histogram/CmdShowInterfaceCountersFecHistogram.h
   fboss/cli/fboss2/commands/show/interface/counters/mka/CmdShowInterfaceCountersMKA.h
   fboss/cli/fboss2/commands/show/interface/phy/CmdShowInterfacePhy.h
@@ -472,6 +484,7 @@ target_link_libraries(fboss2
   show_hwagent_status_model
   show_interface_counters_fec_ber
   show_interface_counters_fec_histogram
+  show_interface_counters_fec_tail
   show_fabric_topology_model
   show_rif
   show_interface_counters_fec_uncorrectable

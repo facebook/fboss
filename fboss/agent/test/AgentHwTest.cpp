@@ -16,6 +16,11 @@ DEFINE_bool(
     false,
     "list production feature needed for every single test");
 
+DEFINE_bool(
+    disable_link_toggler,
+    false,
+    "Used by certain tests where we don't want to bring up ports by toggler");
+
 namespace {
 int kArgc;
 char** kArgv;
@@ -44,18 +49,12 @@ void AgentHwTest::SetUp() {
       [this](const AgentEnsemble& ensemble) { return initialConfig(ensemble); };
   agentEnsemble_ = createAgentEnsemble(
       initialConfigFn,
-      false /*disableLinkStateToggler*/,
+      FLAGS_disable_link_toggler /*disableLinkStateToggler*/,
       platformConfigFn_,
       (HwSwitch::FeaturesDesired::PACKET_RX_DESIRED |
        HwSwitch::FeaturesDesired::LINKSCAN_DESIRED |
        HwSwitch::FeaturesDesired::TAM_EVENT_NOTIFY_DESIRED),
       failHwCallsOnWarmboot());
-
-  if (isSupportedOnAllAsics(HwAsic::Feature::ROUTE_METADATA)) {
-    // TODO: enable after set_classid_for_my_subnet_and_ip_routes feature is
-    // fully verified
-    FLAGS_set_classid_for_my_subnet_and_ip_routes = false;
-  }
 }
 
 void AgentHwTest::setCmdLineFlagOverrides() const {
@@ -156,6 +155,12 @@ std::vector<PortID> AgentHwTest::masterLogicalPortIds() const {
 std::vector<PortID> AgentHwTest::masterLogicalPortIds(
     const std::set<cfg::PortType>& portTypes) const {
   return getAgentEnsemble()->masterLogicalPortIds(portTypes);
+}
+
+std::vector<PortID> AgentHwTest::masterLogicalPortIds(
+    const std::set<cfg::PortType>& portTypes,
+    SwitchID switchId) const {
+  return getAgentEnsemble()->masterLogicalPortIds(portTypes, switchId);
 }
 
 void AgentHwTest::setSwitchDrainState(
@@ -285,6 +290,10 @@ AgentHwTest::sendTrafficAndCollectStats(
   std::map<PortID, std::pair<HwPortStats, HwPortStats>> portStats;
   std::vector<HwPortStats> portStatsBefore;
   startSendFn();
+  // In tests like QoS scheduler, smaller number of low priority packets might
+  // go through initially but dopped soon in subsequent looping. So, wait
+  // some time for traffic stablizing before collecting portStatsBefore
+  sleep(timeIntervalInSec);
   for (const auto& port : ports) {
     portStatsBefore.push_back(getLatestPortStats(port));
   }

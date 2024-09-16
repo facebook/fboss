@@ -66,11 +66,18 @@ class CmdShowLldp : public CmdHandler<CmdShowLldp, CmdShowLldpTraits> {
     });
 
     for (auto const& entry : model.get_lldpEntries()) {
+      std::string expectedPeerDisplay = entry.get_expectedPeer();
+      if (expectedPeerDisplay.empty()) {
+        expectedPeerDisplay = "EMPTY";
+      }
+
       table.addRow({
           entry.get_localPort(),
           Table::StyledCell(
               entry.get_status(), get_StatusStyle(entry.get_status())),
-          Table::StyledCell(entry.get_expectedPeer(), Table::Style::INFO),
+          Table::StyledCell(
+              expectedPeerDisplay,
+              get_ExpectedPeerStyle(entry.get_expectedPeer())),
           Table::StyledCell(
               utils::removeFbDomains(entry.get_systemName()),
               get_PeerStyle(entry.get_expectedPeer(), entry.get_systemName())),
@@ -131,6 +138,14 @@ class CmdShowLldp : public CmdHandler<CmdShowLldp, CmdShowLldpTraits> {
     }
   }
 
+  Table::Style get_ExpectedPeerStyle(const std::string& expectedPeer) {
+    if (expectedPeer.empty()) {
+      return Table::Style::WARN;
+    } else {
+      return Table::Style::INFO;
+    }
+  }
+
   Table::Style get_StatusStyle(std::string status_text) {
     if (status_text == "up") {
       return Table::Style::GOOD;
@@ -179,6 +194,26 @@ class CmdShowLldp : public CmdHandler<CmdShowLldp, CmdShowLldpTraits> {
     if (RE2::FullMatch(portDescription, fsw_regex)) {
       return results[0] + "." + results[1];
     }
+    const RE2 ctsw_regex("^ctsw.*");
+    if (RE2::FullMatch(portDescription, ctsw_regex)) {
+      return results[0] + "." + results[1];
+    }
+    const RE2 rsw_regex("^rsw.*");
+    if (RE2::FullMatch(portDescription, rsw_regex)) {
+      return results[0] + "." + results[1];
+    }
+    const RE2 rusw_regex("^rusw.*");
+    if (RE2::FullMatch(portDescription, rusw_regex)) {
+      return results[0] + "." + results[1];
+    }
+    const RE2 rtsw_regex("^rtsw.*");
+    if (RE2::FullMatch(portDescription, rtsw_regex)) {
+      return results[0] + "." + results[1];
+    }
+    const RE2 resw_regex("^resw.*");
+    if (RE2::FullMatch(portDescription, resw_regex)) {
+      return results[0] + "." + results[1];
+    }
 
     // default to empty string, entire port descriptions is in a separate column
     return "";
@@ -199,8 +234,9 @@ class CmdShowLldp : public CmdHandler<CmdShowLldp, CmdShowLldpTraits> {
       const auto portInfo = getPortInfo(entry.get_localPort(), portEntries);
       if (queriedIfs.size() == 0 || queriedSet.count(portInfo.get_name())) {
         const auto operState = portInfo.get_operState();
-        const auto expected_peer =
-            extractExpectedPort(portInfo.get_description());
+        const auto expected_peer = portInfo.expectedLLDPeerName().has_value()
+            ? portInfo.expectedLLDPeerName().value()
+            : extractExpectedPort(portInfo.get_description());
         if (auto localPortName = entry.get_localPortName()) {
           lldpDetails.localPort() = *localPortName;
         }

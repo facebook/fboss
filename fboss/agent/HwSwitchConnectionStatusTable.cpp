@@ -8,6 +8,7 @@
  *
  */
 #include "fboss/agent/HwSwitchConnectionStatusTable.h"
+#include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/SwitchStats.h"
 
@@ -46,6 +47,11 @@ bool HwSwitchConnectionStatusTable::disconnected(SwitchID switchId) {
   // down HwSwitch. Hence this condition can happen only if all HwSwitches crash
   if (connectedSwitches_.empty()) {
     XLOG(FATAL) << "No active HwSwitch connections";
+  }
+  if (FLAGS_exit_for_any_hw_disconnect) {
+    XLOG(FATAL)
+        << "exit_for_any_hw_disconnect is enabled. Received disconnect from "
+        << switchId << ".";
   }
   auto switchIndex =
       sw_->getSwitchInfoTable().getSwitchIndexFromSwitchId(switchId);

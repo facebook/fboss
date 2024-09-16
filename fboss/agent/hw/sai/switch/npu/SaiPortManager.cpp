@@ -269,6 +269,8 @@ PortSaiId SaiPortManager::addPortImpl(const std::shared_ptr<Port>& swPort) {
   // set the lower 32-bit of SaiId as Hardware logical port ID
   auto portSaiId = saiPort->adapterKey();
   uint32_t hwLogicalPortId = static_cast<uint32_t>(portSaiId);
+  XLOG(DBG2) << "swPort ID: " << swPort->getID()
+             << " hwLogicalPort ID: " << hwLogicalPortId;
   platformPort->setHwLogicalPortId(hwLogicalPortId);
   auto asicPrbs = swPort->getAsicPrbs();
   if (asicPrbs.enabled().value()) {
@@ -938,9 +940,11 @@ void SaiPortManager::programSerdes(
   // create if serdes doesn't exist or update existing serdes
   portHandle->serdes = store.setObject(serdesKey, serdesAttributes);
 
-  if (platform_->getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_GARONNE ||
-      platform_->getAsic()->getAsicType() ==
-          cfg::AsicType::ASIC_TYPE_TOMAHAWK5) {
+  if ((platform_->getAsic()->getAsicType() ==
+           cfg::AsicType::ASIC_TYPE_GARONNE ||
+       platform_->getAsic()->getAsicType() ==
+           cfg::AsicType::ASIC_TYPE_TOMAHAWK5) &&
+      swPort->getAdminState() == cfg::PortState::ENABLED) {
     /*
      * SI settings are not programmed to the hardware when the port is
      * created with admin UP. We need to explicitly toggle the admin

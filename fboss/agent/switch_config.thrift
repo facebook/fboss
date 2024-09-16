@@ -171,6 +171,7 @@ enum PortProfileID {
   PROFILE_100G_2_PAM4_RS544X2N_COPPER = 46,
   PROFILE_100G_1_PAM4_RS544_OPTICAL = 47,
   PROFILE_50G_2_NRZ_RS528_OPTICAL = 48,
+  PROFILE_100G_1_PAM4_NOFEC_COPPER = 49,
 }
 
 enum Scope {
@@ -417,6 +418,14 @@ enum PacketLookupResultType {
   PACKET_LOOKUP_RESULT_MPLS_NO_MATCH = 1,
 }
 
+struct AclUdfEntry {
+  1: string udfGroup;
+
+  2: list<byte> roceBytes;
+
+  3: list<byte> roceMask;
+}
+
 /**
  * An access control entry
  */
@@ -527,6 +536,8 @@ struct AclEntry {
   33: optional list<byte> roceBytes;
 
   34: optional list<byte> roceMask;
+
+  35: optional list<AclUdfEntry> udfTable;
 }
 
 enum AclTableActionType {
@@ -1127,6 +1138,7 @@ struct Port {
   30: optional PortFlowletConfigName flowletConfigName;
 
   31: Scope scope = Scope.LOCAL;
+  32: optional PortQueueConfigName portVoqConfigName;
 }
 
 enum LacpPortRate {
@@ -1746,6 +1758,10 @@ struct DsfNode {
   // In prod, this info could be figured out from name
   // like rdsw001.c085.n001.snc1, where 85 is cluster id.
   9: optional i32 clusterId;
+  // Applicable only for FABRIC_NODES
+  // Denotes the level for fabric switch in
+  // the DSF n/w topology. Value is either 1 or 2
+  10: optional i32 fabricLevel;
 }
 
 /**

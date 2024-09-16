@@ -18,10 +18,10 @@
 #include <string>
 
 #if FOLLY_HAS_COROUTINES
-#include <folly/experimental/coro/AsyncScope.h>
-#include <folly/experimental/coro/BlockingWait.h>
-#include <folly/experimental/coro/BoundedQueue.h>
-#include <folly/experimental/coro/UnboundedQueue.h>
+#include <folly/coro/AsyncScope.h>
+#include <folly/coro/BlockingWait.h>
+#include <folly/coro/BoundedQueue.h>
+#include <folly/coro/UnboundedQueue.h>
 #endif
 
 #include "fboss/agent/MultiSwitchThriftHandler.h"

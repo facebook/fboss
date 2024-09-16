@@ -341,11 +341,13 @@ def _sai_multinode_test_binary(sai_impl):
     ]
     if sai_impl.name == "fake" or sai_impl.name == "leaba":
         test_deps.append("//fboss/agent/platforms/sai:bcm-required-symbols")
+    binary_name = "sai_multinode_test-{}-{}".format(sai_impl.name, sai_impl.version)
     return cpp_binary(
-        name = "sai_multinode_test-{}-{}".format(sai_impl.name, sai_impl.version),
+        name = binary_name,
         srcs = [
             "SaiMultiNodeTest.cpp",
         ],
+        link_group_map = get_link_group_map(binary_name, sai_impl),
         deps = test_deps,
         auto_headers = AutoHeaders.SOURCES,
         versions = to_versions(sai_impl),
@@ -373,11 +375,13 @@ def _sai_macsec_multinode_test_binary(sai_impl):
     ]
     if sai_impl.name == "fake" or sai_impl.name == "leaba":
         test_deps.append("//fboss/agent/platforms/sai:bcm-required-symbols")
+    binary_name = "sai_macsec_multinode_test-{}-{}".format(sai_impl.name, sai_impl.version)
     return cpp_binary(
-        name = "sai_macsec_multinode_test-{}-{}".format(sai_impl.name, sai_impl.version),
+        name = binary_name,
         srcs = [
             "SaiMultiNodeTest.cpp",
         ],
+        link_group_map = get_link_group_map(binary_name, sai_impl),
         deps = test_deps,
         auto_headers = AutoHeaders.SOURCES,
         versions = to_versions(sai_impl),
@@ -415,6 +419,41 @@ def _test_handler(sai_impl, is_npu):
         versions = to_versions(sai_impl),
     )
 
+def _test_thrift_handlers(is_npu):
+    all_impls = get_all_impls_for(is_npu)
+    for sai_impl in all_impls:
+        _test_thrift_handler(sai_impl, is_npu)
+
+def all_test_thrift_handlers():
+    _test_thrift_handlers(is_npu = True)
+
+def _test_thrift_handler(sai_impl, is_npu):
+    switch_lib_name = sai_switch_lib_name(sai_impl, is_npu)
+    return cpp_library(
+        name = "{}".format(sai_switch_dependent_name("agent_hw_test_thrift_handler", sai_impl, is_npu)),
+        srcs = [
+            "HwTestAclUtilsThriftHandler.cpp",
+            "HwTestMirrorUtilsThriftHandler.cpp",
+            "HwTestNeighborUtilsThriftHandler.cpp",
+            "HwTestEcmpUtilsThriftHandler.cpp",
+            "HwTestPortUtilsThriftHandler.cpp",
+            "HwTestVoqSwitchUtilsThriftHandler.cpp",
+            "HwTestThriftHandler.cpp",
+        ],
+        auto_headers = AutoHeaders.SOURCES,
+        exported_deps = [
+            "//fboss/agent/test/utils:acl_test_utils",
+            "//fboss/agent/hw/test:hw_test_thrift_handler_h",
+            "//fboss/agent/if:agent_hw_test_ctrl-cpp2-services",
+            "//fboss/agent/hw/sai/switch:{}".format(switch_lib_name),
+            "//fboss/agent/hw/sai/hw_test:{}".format(
+                sai_switch_dependent_name("sai_ecmp_utils", sai_impl, True),
+            ),
+            "//fboss/agent/hw/sai/diag:{}".format(sai_switch_dependent_name("diag_shell", sai_impl, is_npu)),
+        ],
+        versions = to_versions(sai_impl),
+    )
+
 def all_test_libs():
     all_acl_utils()
     all_ecmp_utils()
@@ -426,3 +465,4 @@ def all_test_libs():
     all_trunk_utils()
     all_udf_utils()
     all_teflow_utils()
+    all_test_thrift_handlers()

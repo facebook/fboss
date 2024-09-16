@@ -8,9 +8,6 @@
 #include "fboss/agent/AgentConfig.h"
 #include "fboss/agent/LldpManager.h"
 #include "fboss/agent/SwSwitch.h"
-#include "fboss/agent/hw/gen-cpp2/hardware_stats_types.h"
-#include "fboss/agent/hw/test/LoadBalancerUtils.h"
-#include "fboss/agent/hw/test/dataplane_tests/HwTestQosUtils.h"
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/PortMap.h"
 #include "fboss/agent/state/StateUtils.h"
@@ -19,6 +16,7 @@
 #include "fboss/agent/test/link_tests/AgentEnsembleLinkTest.h"
 #include "fboss/agent/test/link_tests/LinkTestUtils.h"
 #include "fboss/agent/test/utils/CoppTestUtils.h"
+#include "fboss/agent/test/utils/LoadBalancerTestUtils.h"
 #include "fboss/agent/test/utils/QosTestUtils.h"
 #include "fboss/lib/CommonFileUtils.h"
 #include "fboss/lib/CommonUtils.h"
@@ -76,7 +74,6 @@ void AgentEnsembleLinkTest::overrideL2LearningConfig(
       apache::thrift::SimpleJSONSerializer::serialize<std::string>(testConfig));
   newAgentConfig.dumpConfig(getTestConfigPath());
   FLAGS_config = getTestConfigPath();
-  getSw()->applyConfig("applying new config", testConfig.sw().value());
 }
 
 void AgentEnsembleLinkTest::setupTtl0ForwardingEnable() {

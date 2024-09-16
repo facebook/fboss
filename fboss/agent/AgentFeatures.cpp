@@ -39,6 +39,10 @@ DEFINE_uint32(
     dsf_gr_hold_time,
     0,
     "GR hold time for FSDB DsfSubscription in sec");
+DEFINE_bool(
+    dsf_subscribe_patch,
+    false,
+    "Subscribe to remote FSDB using Patch apis");
 // Remote neighbor entries are always flushed to avoid blackholing the traffic.
 // However, by default, remote{systemPorts, Rifs} are not flushed but marked
 // STALE in the software. This is to avoid hardware programmign churn.
@@ -112,3 +116,8 @@ DEFINE_bool(
     "Enable wrong fabric connection. Done via SDK");
 
 DEFINE_bool(dsf_edsw_platform_mapping, false, "Use EDSW platform mapping");
+
+DEFINE_bool(
+    exit_for_any_hw_disconnect,
+    false,
+    "Flag to indicate whether SwSwitch will crash if any hw switch connection is lost. This will be used in tests to ensure all hw agent running.");

@@ -17,7 +17,7 @@ using namespace facebook::fboss::platform;
  * include cpld, fpga, and bios.
  */
 int main(int argc, char* argv[]) {
-  // TODO: Add file lock to prevent multiple instance of fw-util from running
+  // TODO: Add file lock to prevent multiple instance of fw_util from running
   // simultaneously.
 
   helpers::initCli(&argc, &argv, "fw_util");
@@ -36,11 +36,11 @@ int main(int argc, char* argv[]) {
       FLAGS_fw_binary_file = argv[3];
     }
     XLOG(WARNING)
-        << "Deprecation Warning: This current command line format will soon be deprecated.Please consider using fw_util --fw_target_name='binaryName' --fw-action='action' --fw_binary_file='path_to_file_to_be_upraded'";
+        << "Deprecation Warning: This current command line format will soon be deprecated.Please consider using fw_util --fw_target_name='binaryName' --fw_action='action' --fw_binary_file='path_to_file_to_be_upraded'";
   }
 
   if (FLAGS_fw_action == "version" && !FLAGS_fw_binary_file.empty()) {
-    XLOG(ERR) << "--fw-binary-file cannot be part of version command";
+    XLOG(ERR) << "--fw_binary_file cannot be part of version command";
     exit(1);
   }
 
@@ -75,7 +75,7 @@ int main(int argc, char* argv[]) {
     fwUtilImpl.doVersionAudit();
   } else {
     XLOG(ERR)
-        << "Wrong usage. please run ./fw-util --helpon=Flags for the flags needed for proper usage";
+        << "Wrong usage. please run fw_util --helpon=Flags for the flags needed for proper usage";
     exit(1);
   }
 

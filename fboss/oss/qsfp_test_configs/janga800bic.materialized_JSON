@@ -1,5 +1,6 @@
 {
   "defaultCommandLineArgs": {
+    "firmware_upgrade_supported": "true",
     "mode": "janga800bic",
     "multi_npu_platform_mapping": "true"
   },
@@ -69,7 +70,7 @@
           "versions": [
             {
               "fwType": 1,
-              "version": "15.6"
+              "version": "3.9"
             }
           ]
       },
@@ -77,7 +78,7 @@
           "versions": [
             {
               "fwType": 1,
-              "version": "15.6"
+              "version": "3.9"
             }
           ]
       },
@@ -101,7 +102,7 @@
           "versions": [
             {
               "fwType": 1,
-              "version": "1.12"
+              "version": "1.15"
             }
           ]
       },
@@ -221,7 +222,7 @@
           "versions": [
             {
               "fwType": 1,
-              "version": "103.130"
+              "version": "103.244"
             }
           ]
       }

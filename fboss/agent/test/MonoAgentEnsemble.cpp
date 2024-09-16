@@ -4,6 +4,8 @@
 #include <gtest/gtest.h>
 #include "fboss/agent/Main.h"
 
+#include "fboss/agent/hw/test/HwTestThriftHandler.h"
+
 namespace facebook::fboss {
 
 MonoAgentEnsemble::~MonoAgentEnsemble() {
@@ -48,6 +50,17 @@ HwSwitch* MonoAgentEnsemble::getHwSwitch() {
 
 const HwSwitch* MonoAgentEnsemble::getHwSwitch() const {
   return agentInitializer_.platform()->getHwSwitch();
+}
+
+std::vector<std::shared_ptr<apache::thrift::AsyncProcessorFactory>>
+MonolithicTestAgentInitializer::getThrifthandlers() {
+  auto handlers = MonolithicAgentInitializer::getThrifthandlers();
+
+  auto testUtilsHandler =
+      utility::createHwTestThriftHandler(platform()->getHwSwitch());
+  CHECK(testUtilsHandler);
+  handlers.push_back(testUtilsHandler);
+  return handlers;
 }
 
 std::unique_ptr<AgentEnsemble> createAgentEnsemble(

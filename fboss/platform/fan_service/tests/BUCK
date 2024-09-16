@@ -7,12 +7,15 @@ cpp_unittest(
     srcs = [
         "BspTests.cpp",
         "ControlLogicTests.cpp",
+        "PidLogicTests.cpp",
     ],
     deps = [
         "fbsource//third-party/googletest:gmock",
         "//fboss/platform/fan_service:core",
+        "//fboss/platform/fan_service:pid_logic_library",
         "//fboss/platform/fan_service/if:fan_service-cpp2-types",
         "//folly:file_util",
+        "//folly/logging:logging",
         "//thrift/lib/cpp2/protocol:protocol",
     ],
 )

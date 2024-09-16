@@ -50,7 +50,7 @@ class FsdbSubManager {
   struct SubUpdate {
     // Data will always received the FSDB root in the form of raw thrift or
     // thrift_cow object, depending on type of subscriber
-    Data data;
+    const Data data;
     // SubscriptionKeys that changed, can be compared against keys returned from
     // addPath
     std::vector<SubscriptionKey> updatedKeys;
@@ -161,15 +161,20 @@ class FsdbSubManager {
  private:
   void parseChunkAndInvokeCallback(SubscriberChunk chunk, DataCallback cb) {
     std::vector<SubscriptionKey> changedKeys;
-    changedKeys.reserve(chunk.patches()->size());
+    changedKeys.reserve(chunk.patchGroups()->size());
     std::vector<std::vector<std::string>> changedPaths;
-    changedPaths.reserve(chunk.patches()->size());
-    for (auto& [key, patch] : *chunk.patches()) {
+    changedPaths.reserve(chunk.patchGroups()->size());
+    for (auto& [key, patchGroup] : *chunk.patchGroups()) {
+      // FsdbSubManager only supports non-wildcard subs, which will always have
+      // a single patch per path
+      CHECK_EQ(patchGroup.size(), 1);
+      auto& patch = patchGroup.front();
       changedKeys.push_back(key);
       changedPaths.emplace_back(*patch.basePath());
       // TODO: support patching a raw thrift object
       root_.patch(std::move(patch));
     }
+    root_.publish();
     SubUpdate update{
         root_.root(), std::move(changedKeys), std::move(changedPaths)};
     cb(std::move(update));

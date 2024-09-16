@@ -14,6 +14,7 @@
 #include "fboss/cli/fboss2/CmdHandler.h"
 #include "fboss/cli/fboss2/commands/show/interface/gen-cpp2/model_types.h"
 #include "fboss/cli/fboss2/utils/CmdClientUtils.h"
+#include "fboss/cli/fboss2/utils/CmdUtils.h"
 #include "fboss/cli/fboss2/utils/Table.h"
 
 #include <re2/re2.h>
@@ -22,6 +23,17 @@
 #include <string>
 #include <unordered_set>
 #include <vector>
+
+namespace {
+
+std::string getRif(const std::string& name, int32_t port) {
+  if (port != 0 && (name.rfind("eth", 0) == 0 || name.rfind("evt", 0) == 0)) {
+    return "fboss" + std::to_string(port);
+  }
+  return "";
+}
+
+} // anonymous namespace
 
 namespace facebook::fboss {
 
@@ -38,6 +50,9 @@ struct CmdShowInterfaceTraits : public BaseCommandTraits {
 
 class CmdShowInterface
     : public CmdHandler<CmdShowInterface, CmdShowInterfaceTraits> {
+ private:
+  bool isVoq = false;
+
  public:
   using ObjectArgType = CmdShowInterfaceTraits::ObjectArgType;
   using RetType = CmdShowInterfaceTraits::RetType;
@@ -63,12 +78,33 @@ class CmdShowInterface
     client->sync_getAllPortInfo(portEntries);
     client->sync_getAllInterfaces(intfDetails);
 
-    return createModel(portEntries, intfDetails, queriedIfs);
+    // Get DSF nodes data
+    std::map<int64_t, cfg::DsfNode> dsfNodes;
+    try {
+      std::map<int64_t, cfg::SwitchInfo> switchIdToSwitchInfo;
+      client->sync_getSwitchIdToSwitchInfo(switchIdToSwitchInfo);
+      isVoq =
+          (cfg::SwitchType::VOQ ==
+           facebook::fboss::utils::getSwitchType(switchIdToSwitchInfo));
+      if (isVoq) {
+        client->sync_getDsfNodes(dsfNodes);
+      }
+    }
+    // Thrift exception is expected to be thrown for switches which do not yet
+    // have the API getSwitchIdToSwitchInfo implemented.
+    catch (const std::exception& e) {
+      XLOG(DBG2) << e.what();
+    }
+
+    return createModel(
+        hostInfo, portEntries, intfDetails, dsfNodes, queriedIfs);
   }
 
   RetType createModel(
+      const HostInfo& hostInfo,
       std::map<int32_t, facebook::fboss::PortInfoThrift> portEntries,
       std::map<int32_t, facebook::fboss::InterfaceDetail> intfDetails,
+      std::map<int64_t, cfg::DsfNode> dsfNodes,
       const ObjectArgType& queriedIfs) {
     RetType model;
     std::unordered_set<std::string> queriedSet(
@@ -79,6 +115,14 @@ class CmdShowInterface
     populateVlanToMtu(vlanToMtu, intfDetails);
     populateVlanToPrefixes(vlanToPrefixes, intfDetails);
 
+    int32_t minSystemPort = 0;
+    for (const auto& idAndNode : dsfNodes) {
+      const auto& node = idAndNode.second;
+      if (hostInfo.getName() == *node.name()) {
+        minSystemPort = *node.systemPortRange()->minimum();
+      }
+    }
+
     for (const auto& [portId, portInfo] : portEntries) {
       if (queriedIfs.size() == 0 || queriedSet.count(*portInfo.name())) {
         cli::Interface ifModel;
@@ -88,6 +132,7 @@ class CmdShowInterface
         ifModel.status() =
             (operState == facebook::fboss::PortOperState::UP) ? "up" : "down";
         ifModel.speed() = std::to_string(*portInfo.speedMbps() / 1000) + "G";
+        ifModel.prefixes() = {};
 
         // We assume that there is a one-to-one association between
         // port, interface, and VLAN.
@@ -99,6 +144,27 @@ class CmdShowInterface
           }
           if (vlanToPrefixes.contains(vlan)) {
             ifModel.prefixes() = vlanToPrefixes[vlan];
+          }
+        }
+
+        if (dsfNodes.size() > 0) {
+          int systemPortId = minSystemPort + portId;
+          ifModel.systemPortId() = systemPortId;
+
+          // Extract IP addresses for DSF switches
+          auto intf = intfDetails.find(systemPortId);
+          if (intf != intfDetails.end()) {
+            for (auto ipPrefix : *intf->second.address()) {
+              cli::IpPrefix prefix;
+              prefix.ip() = folly::IPAddress::fromBinary(
+                                folly::ByteRange(
+                                    reinterpret_cast<const unsigned char*>(
+                                        ipPrefix.ip()->addr()->data()),
+                                    ipPrefix.ip()->addr()->size()))
+                                .str();
+              prefix.prefixLength() = *ipPrefix.prefixLength();
+              ifModel.prefixes()->push_back(std::move(prefix));
+            }
           }
         }
 
@@ -183,36 +249,61 @@ class CmdShowInterface
   }
 
   void printOutput(const RetType& model, std::ostream& out = std::cout) {
-    Table outTable;
+    Table outTable{true};
 
-    outTable.setHeader({
-        "Interface",
-        "Status",
-        "Speed",
-        "VLAN",
-        "MTU",
-        "Addresses",
-        "Description",
-    });
+    if (isVoq) {
+      outTable.setHeader({
+          "Interface",
+          "RIF",
+          "Status",
+          "Speed",
+          "VLAN",
+          "MTU",
+          "Addresses",
+          "Description",
+      });
+    } else {
+      outTable.setHeader({
+          "Interface",
+          "Status",
+          "Speed",
+          "VLAN",
+          "MTU",
+          "Addresses",
+          "Description",
+      });
+    }
 
-    for (const auto& portAddress : *model.interfaces()) {
+    for (const auto& interface : *model.interfaces()) {
       std::vector<std::string> prefixes;
-      for (const auto& prefix : *portAddress.prefixes()) {
+      for (const auto& prefix : *interface.prefixes()) {
         prefixes.push_back(
             fmt::format("{}/{}", *prefix.ip(), *prefix.prefixLength()));
       }
 
-      outTable.addRow({
-          *portAddress.name(),
-          colorStatusCell(*portAddress.status()),
-          *portAddress.speed(),
-          (portAddress.vlan() ? std::to_string(*portAddress.vlan()) : ""),
-          (portAddress.mtu() ? std::to_string(*portAddress.mtu()) : ""),
-          (prefixes.size() > 0 ? folly::join("\n", prefixes) : ""),
-          *portAddress.description(),
-      });
+      std::string name = *interface.name();
+      std::vector<Table::RowData> row;
+      if (isVoq) {
+        outTable.addRow(
+            {name,
+             getRif(name, *interface.systemPortId()),
+             colorStatusCell(*interface.status()),
+             *interface.speed(),
+             (interface.vlan() ? std::to_string(*interface.vlan()) : ""),
+             (interface.mtu() ? std::to_string(*interface.mtu()) : ""),
+             (prefixes.size() > 0 ? folly::join("\n", prefixes) : ""),
+             *interface.description()});
+      } else {
+        outTable.addRow(
+            {name,
+             colorStatusCell(*interface.status()),
+             *interface.speed(),
+             (interface.vlan() ? std::to_string(*interface.vlan()) : ""),
+             (interface.mtu() ? std::to_string(*interface.mtu()) : ""),
+             (prefixes.size() > 0 ? folly::join("\n", prefixes) : ""),
+             *interface.description()});
+      }
     }
-
     out << outTable << std::endl;
   }
 

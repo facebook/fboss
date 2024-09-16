@@ -47,6 +47,7 @@
 #include "fboss/cli/fboss2/commands/show/interface/counters/fec/CmdShowInterfaceCountersFec.h"
 #include "fboss/cli/fboss2/commands/show/interface/counters/fec/ber/CmdShowInterfaceCountersFecBer.h"
 #include "fboss/cli/fboss2/commands/show/interface/counters/fec/histogram/CmdShowInterfaceCountersFecHistogram.h"
+#include "fboss/cli/fboss2/commands/show/interface/counters/fec/tail/CmdShowInterfaceCountersFecTail.h"
 #include "fboss/cli/fboss2/commands/show/interface/counters/fec/uncorrectable/CmdShowInterfaceCountersFecUncorrectable.h"
 #include "fboss/cli/fboss2/commands/show/interface/counters/mka/CmdShowInterfaceCountersMKA.h"
 #include "fboss/cli/fboss2/commands/show/interface/errors/CmdShowInterfaceErrors.h"
@@ -221,6 +222,10 @@ const CommandTree& kCommandTree() {
                       commandHandler<CmdShowInterfaceCountersFecHistogram>,
                       argTypeHandler<
                           CmdShowInterfaceCountersFecHistogramTraits>},
+                     {"tail",
+                      "Show Interface counters fec tail",
+                      commandHandler<CmdShowInterfaceCountersFecTail>,
+                      argTypeHandler<CmdShowInterfaceCountersFecTailTraits>},
                  }},
             }},
 

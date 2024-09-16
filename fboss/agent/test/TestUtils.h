@@ -95,6 +95,10 @@ using SwitchTypeTestTypes = ::testing::Types<
 using DsfSwitchTypeTestTypes = ::testing::Types<
     SwitchTypeT<cfg::SwitchType::VOQ>,
     SwitchTypeT<cfg::SwitchType::FABRIC>>;
+
+constexpr int64_t kNpuSwitchIdBegin = 0;
+constexpr int64_t kVoqSwitchIdBegin = 0;
+constexpr int64_t kFabricSwitchIdBegin = 1024;
 /*
  * In the non unit test code state passed to apply*Config is the state
  * returned from SwSwitch init, which is always published. However this
@@ -156,7 +160,10 @@ std::unique_ptr<SwSwitch> setupMockSwitchWithHW(
     SwitchFlags flags);
 cfg::DsfNode makeDsfNodeCfg(
     int64_t switchId = 0,
-    cfg::DsfNodeType type = cfg::DsfNodeType::INTERFACE_NODE);
+    cfg::DsfNodeType type = cfg::DsfNodeType::INTERFACE_NODE,
+    std::optional<int> clusterId = std::nullopt,
+    cfg::AsicType asicType = cfg::AsicType::ASIC_TYPE_MOCK,
+    std::optional<int> fabricLevel = std::nullopt);
 
 std::shared_ptr<SystemPort> makeSysPort(
     const std::optional<std::string>& qosPolicy,
@@ -286,7 +293,11 @@ std::shared_ptr<SwitchState> bringAllPortsDown(
 /*
  * Fabric switch test config
  */
-cfg::SwitchConfig testConfigFabricSwitch();
+cfg::SwitchConfig testConfigFabricSwitch(
+    bool dualStage = false,
+    int fabricLevel = 1,
+    int parallLinkPerNode = 4,
+    std::optional<int> dualStageLevel2FabricNodes = std::nullopt);
 /*
  * The returned configuration object, if applied to a SwitchState with ports
  * 1-20, will yield the same SwitchState as that returned by testStateA().

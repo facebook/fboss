@@ -15,6 +15,8 @@ from typing import Optional, Tuple
 OPT_ARG_SCRATCH_PATH = "--scratch-path"
 OPT_ARG_CMAKE_TARGET = "--target"
 OPT_ARG_NO_DOCKER_OUTPUT = "--no-docker-output"
+OPT_ARG_NO_SYSTEM_DEPS = "--no-system-deps"
+OPT_ARG_ADD_BUILD_ENV_VAR = "--env-var"
 
 FBOSS_IMAGE_NAME = "fboss_image"
 FBOSS_CONTAINER_NAME = "FBOSS_BUILD_CONTAINER"
@@ -118,6 +120,24 @@ def parse_args():
         action="store_false",
         help="Skips step to attach TTY outputs to the docker container.",
     )
+    parser.add_argument(
+        OPT_ARG_NO_SYSTEM_DEPS,
+        dest="use_system_deps",
+        default=True,
+        action="store_false",
+        help="Prevents usage of system libraries to satisfy dependency requirements. If this flag is used, all dependencies will be built from source.",
+    )
+    parser.add_argument(
+        OPT_ARG_ADD_BUILD_ENV_VAR,
+        dest="env_vars",
+        default=[],
+        action="append",
+        help=(
+            "Usage: --env-var <VAR>:<VAL>. "
+            "Adds a new environment variable to be set before performing the build. "
+            "This is particularly useful as some CMake targets are hidden behind flags, e.g. BUILD_SAI_FAKE=1"
+        ),
+    )
 
     return parser.parse_args()
 
@@ -153,8 +173,24 @@ def build_docker_image(docker_dir_path: str):
         sys.exit(1)
 
 
-def run_fboss_build(scratch_path: str, target: Optional[str], docker_output: bool):
+def run_fboss_build(
+    scratch_path: str,
+    target: Optional[str],
+    docker_output: bool,
+    use_system_deps: bool,
+    env_vars: list[str],
+):
     cmd_args = ["sudo", "docker", "run"]
+    # Add build environment variables, if any.
+    for ev in env_vars:
+        if ":" not in ev:
+            cmd_args.extend(["-e", f"{ev}=1"])
+        elif ev.count(":") == 1:
+            cmd_args.extend(["-e", ev])
+        else:
+            errMsg = f"Ignoring environment variable string {ev} as it does not match a supported pattern."
+            print(errMsg, file=sys.stderr)
+
     # Add args for directory mount for build output.
     cmd_args.append("-v")
     cmd_args.append(f"{scratch_path}:{CONTAINER_SCRATCH_PATH}:z")
@@ -171,17 +207,24 @@ def run_fboss_build(scratch_path: str, target: Optional[str], docker_output: boo
     build_cmd = [
         "./build/fbcode_builder/getdeps.py",
         "build",
-        "--allow-system-packages",
         '--extra-cmake-defines={"CMAKE_BUILD_TYPE": "MinSizeRel", "CMAKE_CXX_STANDARD": "20"}',
         "--scratch-path",
         f"{CONTAINER_SCRATCH_PATH}",
     ]
+    if use_system_deps:
+        build_cmd.append("--allow-system-packages")
     if target is not None:
         build_cmd.append("--cmake-target")
         build_cmd.append(target)
     build_cmd.append("fboss")
     cmd_args.extend(build_cmd)
-    subprocess.run(cmd_args)
+    build_cp = subprocess.run(cmd_args)
+    if build_cp.returncode != 0:
+        print(
+            "[ERROR] Encountered a failure while attempting to build. Check the logs to root cause.",
+            file=sys.stderr,
+        )
+    return build_cp.returncode
 
 
 def cleanup_fboss_build_container():
@@ -218,11 +261,17 @@ def main():
     docker_dir_path = get_docker_path()
     build_docker_image(docker_dir_path)
 
-    run_fboss_build(args.scratch_path, args.target, args.docker_output)
+    status_code = run_fboss_build(
+        args.scratch_path,
+        args.target,
+        args.docker_output,
+        args.use_system_deps,
+        args.env_vars,
+    )
 
     cleanup_fboss_build_container()
 
-    return 0
+    return status_code
 
 
 if __name__ == "__main__":

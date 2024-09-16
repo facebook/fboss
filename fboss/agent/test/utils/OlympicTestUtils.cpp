@@ -9,10 +9,10 @@
  */
 #include "fboss/agent/test/utils/OlympicTestUtils.h"
 #include "fboss/agent/FbossError.h"
+#include "fboss/agent/Utils.h"
+#include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/test/utils/AsicUtils.h"
 #include "fboss/agent/test/utils/TrafficPolicyTestUtils.h"
-
-#include "fboss/agent/hw/switch_asics/HwAsic.h"
 
 namespace facebook::fboss::utility {
 
@@ -167,6 +167,26 @@ void addOlympicQueueConfigWithSchedulingHelper(
       config, asics, addWredConfig, true, schedType);
 }
 } // namespace
+
+void addEventorVoqConfig(
+    cfg::SwitchConfig* config,
+    cfg::StreamType streamType) {
+  // Eventor port queue config
+  cfg::PortQueue queue;
+  *queue.id() = 0;
+  queue.streamType() = streamType;
+  queue.name() = "default";
+  *queue.scheduling() = cfg::QueueScheduling::INTERNAL;
+  queue.maxDynamicSharedBytes() = 20 * 1024 * 1024;
+  std::vector<cfg::PortQueue> eventorVoqConfig{std::move(queue)};
+  const std::string kEventorQueueConfigName{"eventor_queue_config"};
+  config->portQueueConfigs()[kEventorQueueConfigName] = eventorVoqConfig;
+  for (auto& port : *config->ports()) {
+    if (*port.portType() == cfg::PortType::EVENTOR_PORT) {
+      port.portVoqConfigName() = kEventorQueueConfigName;
+    }
+  }
+}
 
 int getOlympicQueueId(OlympicQueueType queueType) {
   switch (queueType) {
@@ -753,6 +773,9 @@ void addQosMapsHelper(
   dataPlaneTrafficPolicy.defaultQosPolicy() = qosPolicyName;
   cfg.dataPlaneTrafficPolicy() = dataPlaneTrafficPolicy;
   cfg::CPUTrafficPolicyConfig cpuConfig;
+  if (cfg.cpuTrafficPolicy()) {
+    cpuConfig = *cfg.cpuTrafficPolicy();
+  }
   cfg::TrafficPolicyConfig cpuTrafficPolicy;
   cpuTrafficPolicy.defaultQosPolicy() = cpuQosPolicyName;
   cpuConfig.trafficPolicy() = cpuTrafficPolicy;
@@ -763,8 +786,14 @@ void addQosMapsHelper(
     // TODO(daiweix): properly set qos policy for rcy/mgmt ports
     // based on port type/scope
     int kMaxRecyclePort = 6;
-    for (int rcyPortId = 1; rcyPortId <= kMaxRecyclePort; rcyPortId++) {
-      overrideQosPolicy(&cfg, rcyPortId, cpuQosPolicyName);
+    for (const auto& switchInfo :
+         *cfg.switchSettings()->switchIdToSwitchInfo()) {
+      int basePortId = *switchInfo.second.portIdRange()->minimum();
+      for (int rcyPortId = basePortId + kRecyclePortIdOffset;
+           rcyPortId <= basePortId + kMaxRecyclePort;
+           rcyPortId++) {
+        overrideQosPolicy(&cfg, rcyPortId, cpuQosPolicyName);
+      }
     }
   }
 }

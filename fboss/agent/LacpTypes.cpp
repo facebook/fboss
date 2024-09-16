@@ -87,7 +87,7 @@ folly::dynamic ParticipantInfo::toFollyDynamic() const {
   folly::dynamic info = folly::dynamic::object;
   info[kId] = static_cast<uint16_t>(key);
   info[kPortID] = static_cast<uint16_t>(port);
-  info[kSystemID] = folly::dynamic(systemID.begin(), systemID.end());
+  info[kSystemID] = folly::dynamic::array_range(systemID);
   info[kSystemPriority] = static_cast<uint16_t>(systemPriority);
   info[kPriority] = static_cast<uint16_t>(portPriority);
   info[kState] = static_cast<uint16_t>(state);

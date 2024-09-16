@@ -20,7 +20,9 @@ class AgentPreStartExec {
       std::unique_ptr<AgentNetWhoAmI> whoami,
       const AgentDirectoryUtil& dirUtil,
       std::unique_ptr<AgentConfig> config,
-      bool cppWedgeAgentWrapper);
+      bool cppWedgeAgentWrapper,
+      bool isNetOS,
+      int switchIndex);
 };
 
 } // namespace facebook::fboss

@@ -606,6 +606,21 @@ void IPv6Handler::handleNeighborAdvertisement(
     return;
   }
 
+  if (!AggregatePort::isIngressValid(sw_->getState(), pkt, true)) {
+    // drop NDP advertisement packets when LAG port is not up,
+    // otherwise, NDP entry would be created for this down port,
+    // and confuse later neighbor/next hop resolution logics
+    auto vlanID = getVlanIDFromVlanOrIntf(vlanOrIntf);
+    auto vlanIDStr = vlanID.has_value()
+        ? folly::to<std::string>(static_cast<int>(vlanID.value()))
+        : "None";
+    XLOG(DBG2) << "Dropping invalid neighbor advertisement ingressing on port "
+               << pkt->getSrcPort() << " on vlan " << vlanIDStr << " for "
+               << targetIP;
+    sw_->portStats(pkt)->pktDropped();
+    return;
+  }
+
   XLOG(DBG4) << "got neighbor advertisement for " << targetIP << " ("
              << targetMac << ")";
 

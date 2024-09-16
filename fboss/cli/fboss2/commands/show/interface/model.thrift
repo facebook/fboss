@@ -12,6 +12,8 @@ struct Interface {
   5: optional i32 vlan;
   6: optional i32 mtu;
   7: list<IpPrefix> prefixes;
+  8: i32 systemPortId;
+  9: list<string> ips;
 }
 
 struct IpPrefix {

@@ -29,8 +29,8 @@ class DataStore {
       const std::string& pmUnitScopeBusName,
       uint16_t busNum);
 
-  // Get PmUnitName at the given SlotPath
-  std::string getPmUnitName(const std::string& slotPath) const;
+  // Get PmUnitInfo at the given SlotPath
+  PmUnitInfo getPmUnitInfo(const std::string& slotPath) const;
 
   // Checks if a PmUnit exists at the given SlotPath
   bool hasPmUnit(const std::string& slotPath) const;
@@ -59,11 +59,15 @@ class DataStore {
       const std::string& devicePath,
       const std::string& charDevPath);
 
-  // Update PmUnitInfo(pmUnitName, productSubVersion) for a given slotPath.
+  // Update PmUnitInfo for a given slotPath.
+  // For valid version update, expect all values (productProductionState,
+  // productVersion, productSubVersion) to be passed.
   void updatePmUnitInfo(
       const std::string& slotPath,
       const std::string& pmUnitName,
-      std::optional<int> productSubVersion);
+      std::optional<int> productProductionState = std::nullopt,
+      std::optional<int> productVersion = std::nullopt,
+      std::optional<int> productSubVersion = std::nullopt);
 
   // Resolve PmUnitConfig based on the platformSubVersion from eeprom.
   // Throws if none of the VersionedPmUnitConfig matches the version.
@@ -86,9 +90,8 @@ class DataStore {
   // Map from PciSubDevicePath to CharDevPath
   std::map<std::string, std::string> pciSubDevicePathToCharDevPath_{};
 
-  // Map from PmUnitName to its PmUnitInfo(PmUnitName, ProductSubVersion)
-  std::map<std::string, std::pair<std::string, std::optional<int>>>
-      slotPathToPmUnitInfo{};
+  // Map from SlotPath to its PmUnitInfo
+  std::map<std::string, PmUnitInfo> slotPathToPmUnitInfo{};
 
   const PlatformConfig& platformConfig_;
 };

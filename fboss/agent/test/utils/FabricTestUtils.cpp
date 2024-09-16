@@ -61,26 +61,6 @@ void checkFabricConnectivity(TestEnsembleIf* ensemble, SwitchID switchId) {
   });
 }
 
-void checkFabricConnectivityStats(TestEnsembleIf* ensemble, SwitchID switchId) {
-  WITH_RETRIES({
-    ensemble->updateStats();
-    auto reachability = ensemble->getFabricConnectivity(switchId);
-    int count = 0;
-    for (auto [_, endpoint] : reachability) {
-      if (!*endpoint.isAttached()) {
-        continue;
-      }
-      // all interfaces which have reachability info collected
-      count++;
-    }
-    // expected all of interfaces to jump on mismatched and missing
-    EXPECT_EVENTUALLY_EQ(
-        *(ensemble->getFabricReachabilityStats().mismatchCount()), count);
-    EXPECT_EVENTUALLY_EQ(
-        *(ensemble->getFabricReachabilityStats().missingCount()), count);
-  });
-}
-
 void populatePortExpectedNeighbors(
     const std::vector<PortID>& ports,
     cfg::SwitchConfig& cfg) {

@@ -184,11 +184,11 @@ class ThriftTestAllSwitchTypes : public ::testing::Test {
 
   std::pair<SwitchID, cfg::SwitchType> getSwitchIdAndType() const {
     if (isNpu()) {
-      return {SwitchID(0), cfg::SwitchType::NPU};
+      return {SwitchID(kNpuSwitchIdBegin), cfg::SwitchType::NPU};
     } else if (isFabric()) {
-      return {SwitchID(20), cfg::SwitchType::FABRIC};
+      return {SwitchID(kFabricSwitchIdBegin), cfg::SwitchType::FABRIC};
     } else if (isVoq()) {
-      return {SwitchID(1), cfg::SwitchType::VOQ};
+      return {SwitchID(kVoqSwitchIdBegin), cfg::SwitchType::VOQ};
     }
     throw FbossError("Invalid switch type");
   }
@@ -342,8 +342,10 @@ TYPED_TEST(ThriftTestAllSwitchTypes, flushNonExistentNeighbor) {
     EXPECT_EQ(handler.flushNeighborEntry(std::move(v4Addr), 1), 0);
     EXPECT_EQ(handler.flushNeighborEntry(std::move(v6Addr), 1), 0);
   } else {
-    EXPECT_THROW(handler.flushNeighborEntry(std::move(v4Addr), 1), FbossError);
-    EXPECT_THROW(handler.flushNeighborEntry(std::move(v6Addr), 1), FbossError);
+    EXPECT_THROW(
+        handler.flushNeighborEntry(std::move(v4Addr), 1001), FbossError);
+    EXPECT_THROW(
+        handler.flushNeighborEntry(std::move(v6Addr), 1001), FbossError);
   }
 }
 
@@ -534,7 +536,8 @@ TYPED_TEST(ThriftTestAllSwitchTypes, getDsfNodes) {
     EXPECT_THROW(handler.getDsfNodes(dsfNodes), FbossError);
   } else {
     handler.getDsfNodes(dsfNodes);
-    EXPECT_EQ(dsfNodes.size(), 2);
+    EXPECT_EQ(
+        dsfNodes.size(), this->sw_->getState()->getDsfNodes()->numNodes());
   }
 }
 
@@ -695,7 +698,7 @@ TYPED_TEST(ThriftTestAllSwitchTypes, getSwitchReachability) {
   ThriftHandler handler(this->sw_);
   std::unique_ptr<std::vector<std::string>> switchNames =
       std::make_unique<std::vector<std::string>>();
-  switchNames->push_back("dsfNodeCfg1");
+  switchNames->push_back("dsfNodeCfg0");
   std::map<std::string, std::vector<std::string>> reachabilityMatrix;
   if (this->isNpu()) {
     EXPECT_HW_CALL(this->sw_, getSwitchReachability(testing::_)).Times(0);
@@ -995,7 +998,7 @@ TYPED_TEST(ThriftTestAllSwitchTypes, getInterfaceList) {
 TYPED_TEST(ThriftTestAllSwitchTypes, getInterfaceDetail) {
   ThriftHandler handler(this->sw_);
   InterfaceDetail intfDetail;
-  auto intfId = this->isVoq() ? 101 : 1;
+  auto intfId = 1;
   if (this->isFabric()) {
     EXPECT_THROW(handler.getInterfaceDetail(intfDetail, intfId), FbossError);
   } else {

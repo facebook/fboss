@@ -3,23 +3,37 @@
 
 #pragma once
 
+#include <memory>
 #include <string>
 
+#include "fboss/platform/helpers/PlatformFsUtils.h"
 #include "fboss/platform/platform_manager/DataStore.h"
 #include "fboss/platform/platform_manager/DevicePathResolver.h"
+#include "fboss/platform/platform_manager/ExplorationErrorMap.h"
 #include "fboss/platform/platform_manager/I2cExplorer.h"
 #include "fboss/platform/platform_manager/PciExplorer.h"
 #include "fboss/platform/platform_manager/PresenceChecker.h"
 #include "fboss/platform/platform_manager/gen-cpp2/platform_manager_config_types.h"
+#include "fboss/platform/platform_manager/gen-cpp2/platform_manager_service_types.h"
 #include "fboss/platform/weutil/CachedFbossEepromParser.h"
 
 namespace facebook::fboss::platform::platform_manager {
 class PlatformExplorer {
  public:
+  // Regex patterns for matching fw_ver format.
+  auto static constexpr kFwVerXYPatternStr = R"((\d{1,3})\.(\d{1,3}))";
+  auto static constexpr kFwVerXYZPatternStr =
+      R"((\d{1,3})\.(\d{1,3})\.(\d{1,3}))";
+
   auto static constexpr kFirmwareVersion = "{}.firmware_version";
   auto static constexpr kGroupedFirmwareVersion = "{}.firmware_version.{}";
 
-  explicit PlatformExplorer(const PlatformConfig& config);
+  explicit PlatformExplorer(
+      const PlatformConfig& config,
+      const std::shared_ptr<PlatformFsUtils> platformFsUtils =
+          std::make_shared<PlatformFsUtils>());
+
+  virtual ~PlatformExplorer() = default;
 
   // Explore the platform.
   void explore();
@@ -59,17 +73,29 @@ class PlatformExplorer {
       const std::string& slotPath,
       const std::string& pm);
 
-  // Publish firmware versions read from /run/devmap files to ODS. Additionally,
-  // paths will be prefixed with rootPrefix, which is intended for testing
-  // purposes.
-  void publishFirmwareVersions(
-      const std::optional<std::string>& rootPrefix = std::nullopt);
+  // Publish firmware versions read from /run/devmap files to ODS.
+  void publishFirmwareVersions();
+
+  // Get the last PlatformManagerStatus.
+  PlatformManagerStatus getPMStatus() const;
+
+  // Get the PmUnitInfo of the given SlotPath and PmUnitName.
+  // throws if no PmUnit found at the SlotPath.
+  PmUnitInfo getPmUnitInfo(const std::string& slotPath) const;
+
+ protected:
+  virtual void updatePmStatus(const PlatformManagerStatus& newStatus);
+  // A thrift struct which contains the status of PM exploration.
+  // This member is thread safe since callers could be on different threads
+  // E.g thrift API call on `getLastPmStatus`.
+  folly::Synchronized<PlatformManagerStatus> platformManagerStatus_;
 
  private:
   void createDeviceSymLink(
       const std::string& linkPath,
       const std::string& devicePath);
-  void reportExplorationSummary();
+  ExplorationStatus concludeExploration();
+  void reportExplorationSummary(ExplorationStatus finalStatus);
   void setupI2cDevice(
       const std::string& devicePath,
       uint16_t busNum,
@@ -88,10 +114,12 @@ class PlatformExplorer {
   DataStore dataStore_;
   DevicePathResolver devicePathResolver_;
   PresenceChecker presenceChecker_;
+  ExplorationErrorMap explorationErrMap_;
+  std::shared_ptr<PlatformFsUtils> platformFsUtils_;
 
   // Map from <pmUnitPath, pmUnitScopeBusName> to kernel i2c bus name.
-  // - The pmUnitPath to the rootPmUnit is /. So a bus at root PmUnit will have
-  // the entry <"/", "MuxA@1"> -> i2c-54.
+  // - The pmUnitPath to the rootPmUnit is /. So a bus at root PmUnit will
+  // have the entry <"/", "MuxA@1"> -> i2c-54.
   // - The CPU buses are not pinned to any PmUnit, so they are stored as
   // entry <std::nullopt, "SMBus Adapter 1654"> -> i2c-7.
   // - An INCOMING @1 bus at pmUnitPath /MCB_SLOT@0/PIM_SLOT@1 will have the
@@ -104,10 +132,6 @@ class PlatformExplorer {
 
   // Map from <SlotPath, GpioChipDeviceName> to gpio chip number.
   std::map<std::pair<std::string, std::string>, uint16_t> gpioChipNums_{};
-
-  // A collection of error messages to report at the end of an exploration.
-  // Map from DevicePath to errorMessages.
-  std::map<std::string, std::vector<std::string>> errorMessages_{};
 };
 
 } // namespace facebook::fboss::platform::platform_manager

@@ -11,6 +11,7 @@
 
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/HwSwitch.h"
+#include "fboss/agent/LldpManager.h"
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/TxPacket.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
@@ -341,6 +342,28 @@ createQueueMatchAction(int queueId, bool isSai, cfg::ToCpuAction toCpuAction) {
   return utility::getToQueueAction(queueId, isSai, toCpuAction);
 }
 
+void addEtherTypeToAcl(
+    const HwAsic* hwAsic,
+    const cfg::AclEntry& acl,
+    std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>>& acls,
+    const cfg::MatchAction& action,
+    const std::vector<cfg::EtherType>& etherTypes) {
+  if (hwAsic->isSupported(HwAsic::Feature::ACL_ENTRY_ETHER_TYPE)) {
+    for (auto etherType : etherTypes) {
+      cfg::AclEntry newAcl = folly::copy(acl);
+      if (etherType == cfg::EtherType::IPv4) {
+        newAcl.name() = folly::to<std::string>(acl.name().value(), "-v4");
+      } else {
+        newAcl.name() = folly::to<std::string>(acl.name().value(), "-v6");
+      }
+      addEtherTypeToAcl(hwAsic, &newAcl, etherType);
+      acls.push_back(std::make_pair(newAcl, action));
+    }
+  } else {
+    acls.push_back(std::make_pair(acl, action));
+  }
+}
+
 void addNoActionAclForNw(
     const HwAsic* hwAsic,
     const folly::CIDRNetwork& nw,
@@ -350,9 +373,13 @@ void addNoActionAclForNw(
   acl.name() = folly::to<std::string>("cpuPolicing-CPU-Port-Mcast-v6-", dstIp);
 
   acl.dstIp() = dstIp;
-  utility::addEtherTypeToAcl(hwAsic, &acl, cfg::EtherType::IPv6);
   acl.srcPort() = kCPUPort;
-  acls.push_back(std::make_pair(acl, cfg::MatchAction{}));
+  utility::addEtherTypeToAcl(
+      hwAsic,
+      acl,
+      acls,
+      cfg::MatchAction{},
+      {nw.first.isV6() ? cfg::EtherType::IPv6 : cfg::EtherType::IPv4});
 }
 
 void addHighPriAclForNwAndNetworkControlDscp(
@@ -368,10 +395,13 @@ void addHighPriAclForNwAndNetworkControlDscp(
   acl.name() = folly::to<std::string>(
       "cpuPolicing-high-", dstNetworkStr, "-network-control");
   acl.dstIp() = dstNetworkStr;
-  utility::addEtherTypeToAcl(hwAsic, &acl, cfg::EtherType::IPv6);
   acl.dscp() = 48;
-  acls.push_back(std::make_pair(
-      acl, createQueueMatchAction(highPriQueueId, isSai, toCpuAction)));
+  utility::addEtherTypeToAcl(
+      hwAsic,
+      acl,
+      acls,
+      createQueueMatchAction(highPriQueueId, isSai, toCpuAction),
+      {dstNetwork.first.isV6() ? cfg::EtherType::IPv6 : cfg::EtherType::IPv4});
 }
 
 void addMidPriAclForNw(
@@ -385,10 +415,12 @@ void addMidPriAclForNw(
   auto dstIp = folly::to<std::string>(dstNetwork.first, "/", dstNetwork.second);
   acl.name() = folly::to<std::string>("cpuPolicing-mid-", dstIp);
   acl.dstIp() = dstIp;
-  utility::addEtherTypeToAcl(hwAsic, &acl, cfg::EtherType::IPv6);
-
-  acls.push_back(std::make_pair(
-      acl, createQueueMatchAction(midPriQueueId, isSai, toCpuAction)));
+  utility::addEtherTypeToAcl(
+      hwAsic,
+      acl,
+      acls,
+      createQueueMatchAction(midPriQueueId, isSai, toCpuAction),
+      {dstNetwork.first.isV6() ? cfg::EtherType::IPv6 : cfg::EtherType::IPv4});
 }
 
 void addHighPriAclForMyIPNetworkControl(
@@ -402,9 +434,75 @@ void addHighPriAclForMyIPNetworkControl(
       folly::to<std::string>("cpuPolicing-high-myip-network-control-acl");
   acl.lookupClassRoute() = cfg::AclLookupClass::DST_CLASS_L3_LOCAL_1;
   acl.dscp() = 48;
-  utility::addEtherTypeToAcl(hwAsic, &acl, cfg::EtherType::IPv6);
-  acls.push_back(std::make_pair(
-      acl, createQueueMatchAction(highPriQueueId, isSai, toCpuAction)));
+  addEtherTypeToAcl(
+      hwAsic,
+      acl,
+      acls,
+      createQueueMatchAction(highPriQueueId, isSai, toCpuAction),
+      {cfg::EtherType::IPv4, cfg::EtherType::IPv6});
+}
+
+void addHighPriAclForBgp(
+    const HwAsic* hwAsic,
+    cfg::ToCpuAction toCpuAction,
+    int highPriQueueId,
+    std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>>& acls,
+    bool isSai) {
+  cfg::AclEntry dstPortAcl;
+  dstPortAcl.name() =
+      folly::to<std::string>("cpuPolicing-high-dst-port-bgp-acl");
+  dstPortAcl.l4DstPort() = utility::kBgpPort;
+  dstPortAcl.lookupClassRoute() = cfg::AclLookupClass::DST_CLASS_L3_LOCAL_1;
+  dstPortAcl.proto() = 6; // tcp
+  addEtherTypeToAcl(
+      hwAsic,
+      dstPortAcl,
+      acls,
+      createQueueMatchAction(highPriQueueId, isSai, toCpuAction),
+      {cfg::EtherType::IPv4, cfg::EtherType::IPv6});
+
+  cfg::AclEntry srcPortAcl;
+  srcPortAcl.name() =
+      folly::to<std::string>("cpuPolicing-high-src-port-bgp-acl");
+  srcPortAcl.l4SrcPort() = utility::kBgpPort;
+  srcPortAcl.lookupClassRoute() = cfg::AclLookupClass::DST_CLASS_L3_LOCAL_1;
+  srcPortAcl.proto() = 6; // tcp
+  addEtherTypeToAcl(
+      hwAsic,
+      srcPortAcl,
+      acls,
+      createQueueMatchAction(highPriQueueId, isSai, toCpuAction),
+      {cfg::EtherType::IPv4, cfg::EtherType::IPv6});
+}
+
+void addMidPriAclForLldp(
+    cfg::ToCpuAction toCpuAction,
+    int midPriQueueId,
+    std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>>& acls,
+    bool isSai) {
+  cfg::AclEntry acl;
+  acl.etherType() = cfg::EtherType::LLDP;
+  acl.dstMac() = LldpManager::LLDP_DEST_MAC.toString();
+  acl.name() = folly::to<std::string>("cpuPolicing-mid-lldp-acl");
+  auto action = createQueueMatchAction(midPriQueueId, isSai, toCpuAction);
+  acls.push_back(std::make_pair(acl, action));
+}
+
+void addMidPriAclForIp2Me(
+    const HwAsic* hwAsic,
+    cfg::ToCpuAction toCpuAction,
+    int midPriQueueId,
+    std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>>& acls,
+    bool isSai) {
+  cfg::AclEntry acl;
+  acl.lookupClassRoute() = cfg::AclLookupClass::DST_CLASS_L3_LOCAL_1;
+  acl.name() = folly::to<std::string>("cpuPolicing-mid-ip2me-acl");
+  addEtherTypeToAcl(
+      hwAsic,
+      acl,
+      acls,
+      createQueueMatchAction(midPriQueueId, isSai, toCpuAction),
+      {cfg::EtherType::IPv4, cfg::EtherType::IPv6});
 }
 
 void addLowPriAclForUnresolvedRoutes(
@@ -415,10 +513,12 @@ void addLowPriAclForUnresolvedRoutes(
   cfg::AclEntry acl;
   acl.name() = folly::to<std::string>("cpu-unresolved-route-acl");
   acl.lookupClassRoute() = cfg::AclLookupClass::DST_CLASS_L3_LOCAL_2;
-  utility::addEtherTypeToAcl(hwAsic, &acl, cfg::EtherType::IPv6);
-  acls.push_back(std::make_pair(
+  addEtherTypeToAcl(
+      hwAsic,
       acl,
-      createQueueMatchAction(utility::kCoppLowPriQueueId, isSai, toCpuAction)));
+      acls,
+      createQueueMatchAction(utility::kCoppLowPriQueueId, isSai, toCpuAction),
+      {cfg::EtherType::IPv4, cfg::EtherType::IPv6});
 }
 
 /*
@@ -459,19 +559,25 @@ void setTTLZeroCpuConfig(
   }
 
   std::vector<cfg::PacketRxReasonToQueue> rxReasons;
+  bool addTtlRxReason = true;
   if (config.cpuTrafficPolicy().has_value() &&
       config.cpuTrafficPolicy()->rxReasonToQueueOrderedList().has_value() &&
       config.cpuTrafficPolicy()->rxReasonToQueueOrderedList()->size()) {
     for (auto rxReasonAndQueue :
          *config.cpuTrafficPolicy()->rxReasonToQueueOrderedList()) {
+      if (rxReasonAndQueue.rxReason() == cfg::PacketRxReason::TTL_0) {
+        addTtlRxReason = false;
+      }
       rxReasons.push_back(rxReasonAndQueue);
     }
   }
-  auto ttlRxReasonToQueue = cfg::PacketRxReasonToQueue();
-  ttlRxReasonToQueue.rxReason() = cfg::PacketRxReason::TTL_0;
-  ttlRxReasonToQueue.queueId() = 0;
+  if (addTtlRxReason) {
+    auto ttlRxReasonToQueue = cfg::PacketRxReasonToQueue();
+    ttlRxReasonToQueue.rxReason() = cfg::PacketRxReason::TTL_0;
+    ttlRxReasonToQueue.queueId() = 0;
 
-  rxReasons.push_back(ttlRxReasonToQueue);
+    rxReasons.push_back(ttlRxReasonToQueue);
+  }
   cfg::CPUTrafficPolicyConfig cpuConfig;
 
   if (config.cpuTrafficPolicy().has_value()) {
@@ -535,9 +641,13 @@ void addNoActionAclForUnicastLinkLocal(
       folly::to<std::string>("cpuPolicing-CPU-Port-linkLocal-v6-", dstIp);
 
   acl.dstIp() = dstIp;
-  utility::addEtherTypeToAcl(hwAsic, &acl, cfg::EtherType::IPv6);
   acl.srcPort() = kCPUPort;
-  acls.push_back(std::make_pair(acl, cfg::MatchAction{}));
+  utility::addEtherTypeToAcl(
+      hwAsic,
+      acl,
+      acls,
+      cfg::MatchAction{},
+      {nw.first.isV6() ? cfg::EtherType::IPv6 : cfg::EtherType::IPv4});
 }
 
 std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>> defaultCpuAclsForSai(
@@ -601,6 +711,23 @@ std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>> defaultCpuAclsForSai(
      */
     addLowPriAclForUnresolvedRoutes(
         hwAsic, cfg::ToCpuAction::TRAP, acls, true /*isSai*/);
+
+    if (hwAsic->isSupported(HwAsic::Feature::NO_RX_REASON_TRAP)) {
+      addHighPriAclForBgp(
+          hwAsic,
+          cfg::ToCpuAction::TRAP,
+          getCoppHighPriQueueId(hwAsic),
+          acls,
+          true);
+      addMidPriAclForIp2Me(
+          hwAsic,
+          cfg::ToCpuAction::TRAP,
+          getCoppMidPriQueueId({hwAsic}),
+          acls,
+          true);
+      addMidPriAclForLldp(
+          cfg::ToCpuAction::TRAP, getCoppMidPriQueueId({hwAsic}), acls, true);
+    }
   }
 
   return acls;
@@ -834,6 +961,26 @@ std::vector<cfg::PacketRxReasonToQueue> getCoppRxReasonToQueuesForSai(
       ControlPlane::makeRxReasonToQueueEntry(
           cfg::PacketRxReason::DHCPV6, coppMidPriQueueId),
   };
+
+  if (hwAsic->isSupported(HwAsic::Feature::NO_RX_REASON_TRAP)) {
+    // TODO(daiweix): remove these rx reason traps and replace them by ACLs
+    rxReasonToQueues = {
+        ControlPlane::makeRxReasonToQueueEntry(
+            cfg::PacketRxReason::ARP, coppHighPriQueueId),
+        ControlPlane::makeRxReasonToQueueEntry(
+            cfg::PacketRxReason::ARP_RESPONSE, coppHighPriQueueId),
+        ControlPlane::makeRxReasonToQueueEntry(
+            cfg::PacketRxReason::NDP, coppHighPriQueueId),
+        ControlPlane::makeRxReasonToQueueEntry(
+            cfg::PacketRxReason::LACP, coppHighPriQueueId),
+        ControlPlane::makeRxReasonToQueueEntry(
+            cfg::PacketRxReason::TTL_1, kCoppLowPriQueueId),
+        ControlPlane::makeRxReasonToQueueEntry(
+            cfg::PacketRxReason::DHCP, coppMidPriQueueId),
+        ControlPlane::makeRxReasonToQueueEntry(
+            cfg::PacketRxReason::DHCPV6, coppMidPriQueueId),
+    };
+  }
 
   if (hwAsic->isSupported(HwAsic::Feature::SAI_EAPOL_TRAP)) {
     rxReasonToQueues.push_back(ControlPlane::makeRxReasonToQueueEntry(

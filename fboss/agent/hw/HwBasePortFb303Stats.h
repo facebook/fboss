@@ -121,6 +121,9 @@ class HwBasePortFb303Stats {
   void updateQueueWatermarkStats(
       const std::map<int16_t, int64_t>& queueWatermarkBytes) const;
 
+  void updateEgressGvoqWatermarkStats(
+      const std::map<int16_t, int64_t>& gvoqWatermarks) const;
+
   bool macsecStatsInited() const {
     return macsecStatsInited_;
   }

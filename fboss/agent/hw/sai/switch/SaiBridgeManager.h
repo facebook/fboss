@@ -46,6 +46,7 @@ class SaiBridgeManager {
   void setL2LearningMode(std::optional<cfg::L2LearningMode> l2LearningMode);
 
   cfg::L2LearningMode getL2LearningMode() const;
+  void createBridgeHandle();
 
  private:
   SaiStore* saiStore_;

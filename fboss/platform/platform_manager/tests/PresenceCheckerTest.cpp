@@ -3,10 +3,12 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
+#include "fboss/platform/helpers/MockPlatformFsUtils.h"
 #include "fboss/platform/platform_manager/PresenceChecker.h"
 #include "fboss/platform/platform_manager/Utils.h"
 
 using namespace ::testing;
+using namespace facebook::fboss::platform;
 using namespace facebook::fboss::platform::platform_manager;
 
 class MockDevicePathResolver : public DevicePathResolver {
@@ -33,11 +35,6 @@ class MockDevicePathResolver : public DevicePathResolver {
 class MockUtils : public Utils {
  public:
   MOCK_METHOD(int, getGpioLineValue, (const std::string&, int), (const));
-  MOCK_METHOD(
-      std::optional<std::string>,
-      getStringFileContent,
-      (const std::string&),
-      (const));
 };
 
 class PresenceCheckerTest : public testing::Test {
@@ -56,7 +53,8 @@ class PresenceCheckerTest : public testing::Test {
 
 TEST_F(PresenceCheckerTest, gpioPresent) {
   auto utils = std::make_shared<MockUtils>();
-  PresenceChecker presenceChecker(devicePathResolver_, utils);
+  auto platformFsUtils = std::make_shared<MockPlatformFsUtils>();
+  PresenceChecker presenceChecker(devicePathResolver_, utils, platformFsUtils);
 
   PresenceDetection presenceDetection = PresenceDetection();
   presenceDetection.gpioLineHandle() = GpioLineHandle();
@@ -84,7 +82,8 @@ TEST_F(PresenceCheckerTest, gpioPresent) {
 
 TEST_F(PresenceCheckerTest, sysfsPresent) {
   auto utils = std::make_shared<MockUtils>();
-  PresenceChecker presenceChecker(devicePathResolver_, utils);
+  auto platformFsUtils = std::make_shared<MockPlatformFsUtils>();
+  PresenceChecker presenceChecker(devicePathResolver_, utils, platformFsUtils);
 
   PresenceDetection presenceDetection = PresenceDetection();
   presenceDetection.sysfsFileHandle() = SysfsFileHandle();
@@ -96,11 +95,11 @@ TEST_F(PresenceCheckerTest, sysfsPresent) {
       devicePathResolver_, resolvePresencePath("device/path", "presenceName"))
       .WillRepeatedly(Return("/file/path"));
 
-  EXPECT_CALL(*utils, getStringFileContent("/file/path"))
+  EXPECT_CALL(*platformFsUtils, getStringFileContent({"/file/path"}))
       .WillOnce(Return(std::make_optional("1")));
   EXPECT_TRUE(presenceChecker.isPresent(presenceDetection, "/slot/path"));
 
-  EXPECT_CALL(*utils, getStringFileContent("/file/path"))
+  EXPECT_CALL(*platformFsUtils, getStringFileContent({"/file/path"}))
       .WillOnce(Return(std::make_optional("0")));
   EXPECT_FALSE(presenceChecker.isPresent(presenceDetection, "/slot/path"));
 

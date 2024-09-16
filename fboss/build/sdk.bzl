@@ -225,9 +225,9 @@ ALL_SDKS = [
     SaiBrcmDsfSdk(
         fw_path = "../third-party/tp2/broadcom-xgs-robo/6.5.30_dnx/hsdk-all-6.5.30/tools/sand/db/",
         native_bcm_sdk_version = "6.5.30_dnx",
-        sai_version = "1.13.1",
+        sai_version = "1.14.0",
         stage = SdkStage.TEST,
-        version = "11.0_ea_dnx_odp",
+        version = "11.3.0.0_dnx_odp",
     ),
     SaiBrcmDsfSdk(
         fw_path = "../third-party/tp2/broadcom-xgs-robo/6.5.31_dnx/hsdk-all-6.5.31/tools/sand/db/",
@@ -243,13 +243,8 @@ ALL_SDKS = [
         version = "1.42.8",
     ),
     SaiLeabaSdk(
-        fw_path = "third-party-buck/platform010-compat/build/leaba-sdk/1.65.1/res",
-        sai_version = "1.13.0",
-        stage = SdkStage.CANARY,
-        version = "1.65.1",
-    ),
-    SaiLeabaSdk(
         fw_path = "third-party-buck/platform010-compat/build/leaba-sdk/24.4.90/res",
+        is_dyn = True,
         sai_version = "1.13.0",
         stage = SdkStage.DEV,
         version = "24.4.90",

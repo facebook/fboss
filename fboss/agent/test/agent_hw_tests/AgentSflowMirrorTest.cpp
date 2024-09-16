@@ -16,6 +16,7 @@
 #include "fboss/agent/test/utils/AsicUtils.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/test/utils/MirrorTestUtils.h"
+#include "fboss/agent/test/utils/OlympicTestUtils.h"
 #include "fboss/agent/test/utils/PacketSnooper.h"
 #include "fboss/lib/CommonUtils.h"
 
@@ -52,6 +53,9 @@ class AgentSflowMirrorTest : public AgentHwTest {
     auto asic = ensemble.getSw()->getHwAsicTable()->getHwAsic(port0Switch);
     auto ports = getPortsForSampling(ensemble.masterLogicalPortIds(), asic);
     this->configureMirror(cfg);
+    if (asic->isSupported(HwAsic::Feature::EVENTOR_PORT_FOR_SFLOW)) {
+      utility::addEventorVoqConfig(&cfg, cfg::StreamType::UNICAST);
+    }
     return cfg;
   }
 
@@ -127,6 +131,11 @@ class AgentSflowMirrorTest : public AgentHwTest {
   }
 
   std::optional<uint32_t> getHwLogicalPortId(PortID port) const {
+    auto asic = checkSameAndGetAsic();
+    if (asic->getAsicType() == cfg::AsicType::ASIC_TYPE_EBRO ||
+        asic->getAsicType() == cfg::AsicType::ASIC_TYPE_YUBA) {
+      return std::nullopt;
+    }
     return getSw()->getHwLogicalPortId(port);
   }
 
@@ -588,4 +597,27 @@ TEST_F(AgentSflowMirrorTestV4, MoveToV6) {
       setup, verify, setupPostWb, [=, this]() { verifySampledPacket(false); });
 }
 
+TEST_F(AgentSflowMirrorTestV6, MoveToV4) {
+  // Test to migrate v6 mirror to v4
+  auto setup = [=, this]() {
+    auto config = initialConfig(*getAgentEnsemble());
+    configSampling(config, 1);
+    configureTrapAcl(config);
+    applyNewConfig(config);
+    resolveRouteForMirrorDestination();
+  };
+  auto verify = [=, this]() { verifySampledPacket(); };
+  auto setupPostWb = [=, this]() {
+    auto config = initialConfig(*getAgentEnsemble());
+    config.mirrors()->clear();
+    /* move to v4 */
+    configureMirror(config, true /* v4 */);
+    configSampling(config, 1);
+    configureTrapAcl(config, true /* v4 */);
+    applyNewConfig(config);
+    resolveRouteForMirrorDestination(true /* v4 */);
+  };
+  verifyAcrossWarmBoots(
+      setup, verify, setupPostWb, [=, this]() { verifySampledPacket(true); });
+}
 } // namespace facebook::fboss

@@ -8,7 +8,7 @@
 
 #include <fboss/thrift_cow/visitors/PathVisitor.h>
 #include <fboss/thrift_cow/visitors/tests/VisitorTestUtils.h>
-#include <thrift/lib/cpp2/reflection/folly_dynamic.h>
+#include <thrift/lib/cpp2/folly_dynamic/folly_dynamic.h>
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/thrift_cow/nodes/Types.h"
 #include "fboss/thrift_cow/nodes/tests/gen-cpp2/test_fatal_types.h"
@@ -51,8 +51,8 @@ TEST(PathVisitorTests, AccessFieldInContainer) {
   cfg::L4PortRange got;
   auto processPath = pvlambda([&got](auto& node, auto begin, auto end) {
     EXPECT_EQ(begin, end);
-    got = apache::thrift::from_dynamic<cfg::L4PortRange>(
-        node.toFollyDynamic(), apache::thrift::dynamic_format::JSON_1);
+    got = facebook::thrift::from_dynamic<cfg::L4PortRange>(
+        node.toFollyDynamic(), facebook::thrift::dynamic_format::JSON_1);
   });
 
   std::vector<std::string> path{"mapOfEnumToStruct", "3"};

@@ -213,6 +213,9 @@ void DsfSubscriber::destroySubscription(
 }
 
 void DsfSubscriber::stop() {
+  if (stopped_) {
+    return;
+  }
   sw_->unregisterStateObserver(this);
   // make sure all subscribers are stopped before thread cleanup
   auto subscriptionsWlock = subscriptions_.wlock();
@@ -220,6 +223,7 @@ void DsfSubscriber::stop() {
     destroySubscription(std::move(subscription));
   }
   subscriptionsWlock->clear();
+  stopped_ = true;
 }
 
 std::vector<DsfSessionThrift> DsfSubscriber::getDsfSessionsThrift() const {

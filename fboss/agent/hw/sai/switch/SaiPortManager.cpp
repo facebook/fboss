@@ -1006,7 +1006,12 @@ PortSaiId SaiPortManager::addPort(const std::shared_ptr<Port>& swPort) {
     // In future, if we need to support multiple global recycle ports, we would
     // need to invent some way to determiine which of the recycle ports
     // corresponds to the CPU port.
-    CHECK(!managerTable_->switchManager().getCpuRecyclePort().has_value());
+    // Assert that the recycle port we are setting is either the same or unset
+    // from before. During rollback, we do set recycle port again, but it should
+    // have the same value
+    CHECK_EQ(
+        managerTable_->switchManager().getCpuRecyclePort().value_or(portSaiId),
+        portSaiId);
     managerTable_->switchManager().setCpuRecyclePort(portSaiId);
   }
 
@@ -1336,7 +1341,7 @@ bool SaiPortManager::createOnlyAttributeChanged(
   // is possible only when the number of lanes are not changing, so the current
   // use case of 100G <-> 200G would work, but not potential future use cases
   // like 200G <-> 400G and 400G <-> 100G.  The SAI_PORT_SPEED_CHANGE will be
-  // supported in future releases like TAJO SDK 1.65.0 and should be enabled
+  // supported in future releases like TAJO SDK 24.4.90 and should be enabled
   // once validated.
   return (std::get<SaiPortTraits::Attributes::HwLaneList>(oldAttributes) !=
           std::get<SaiPortTraits::Attributes::HwLaneList>(newAttributes)) ||
@@ -1566,11 +1571,25 @@ SaiQueueHandle* SaiPortManager::getQueueHandle(PortID swId, uint8_t queueId)
 }
 
 bool SaiPortManager::fecStatsSupported(PortID portId) const {
+  if (platform_->getAsic()->getAsicType() ==
+          cfg::AsicType::ASIC_TYPE_TOMAHAWK5 &&
+      getPortType(portId) == cfg::PortType::MANAGEMENT_PORT) {
+    // TODO(daiweix): follow up why not supported on TH5 mgmt port, e.g.
+    // SAI_PORT_STAT_IF_IN_FEC_CORRECTABLE_FRAMES
+    return false;
+  }
   return platform_->getAsic()->isSupported(HwAsic::Feature::SAI_FEC_COUNTERS) &&
       utility::isReedSolomonFec(getFECMode(portId));
 }
 
 bool SaiPortManager::fecCorrectedBitsSupported(PortID portId) const {
+  if (platform_->getAsic()->getAsicType() ==
+          cfg::AsicType::ASIC_TYPE_TOMAHAWK5 &&
+      getPortType(portId) == cfg::PortType::MANAGEMENT_PORT) {
+    // TODO(daiweix): follow up why not supported on TH5 mgmt port, e.g.
+    // SAI_PORT_STAT_IF_IN_FEC_CORRECTED_BITS
+    return false;
+  }
   if (platform_->getAsic()->isSupported(
           HwAsic::Feature::SAI_FEC_CORRECTED_BITS) &&
       utility::isReedSolomonFec(getFECMode(portId))) {

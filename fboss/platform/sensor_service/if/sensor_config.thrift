@@ -53,11 +53,66 @@ struct Sensor {
   4: SensorType type;
 }
 
+// `PmSensor`: Describes a sensor in PmUnit.
+//
+// `name`: Name of the sensor. This isn't neccessarily same as PmUnitScopedName in PM config.
+//
+// `sysfsPath`: Sensor's sysfs path in /run/devmap/. E.g /run/devmap/sensors/MCB_SENSOR1/...
+//
+// `thresholds`: Manufacture provided threshold values
+//
+// `compute`: Compute method, same format and calculation approach as lm_sensor, e.g. @*0.1
+//
+// `type`: See SensorType definition above.
+struct PmSensor {
+  1: string name;
+  2: string sysfsPath;
+  3: optional Thresholds thresholds;
+  4: optional string compute;
+  5: SensorType type;
+}
+
+// `VersionedPmSensor`: Describes a set of sensors which would exist in Platforms with
+// minimum productProductionState, productVersion and productSubVersion.
+//
+// `sensors`: A set of sensors belong to this version. They're mutually exclusive from other versions.
+// If there're any carry-over sensors in the other versions, they must be redefined in that version.
+//
+// `productProductionState`: Minimum productProductionState (EEPROM V5 Type 8).
+//
+// `productVersion`: Minimum productVersion (EEPROM V5 Type 9).
+//
+// `productSubVersion`: Minimum productSubVersion (EEPROM V5 Type 10).
+struct VersionedPmSensor {
+  1: list<PmSensor> sensors;
+  2: i16 productProductionState;
+  3: i16 productVersion;
+  4: i16 productSubVersion;
+}
+
+// `PmUnitSensors`: Describes every sensor in PmUnit.
+//
+// `slotPath`: Refers to the location of slot in the platform.
+//
+// `pmUnitName`: Name of the PmUnit.
+//
+// `sensors`: List of common pmSensor across respins. See above PmSensor definition.
+//
+// `versionedSensors`: List of versionedPmSensors for specific respin.
+// See above VersionedPmSensor definition.
+struct PmUnitSensors {
+  1: string slotPath;
+  2: string pmUnitName;
+  3: list<PmSensor> sensors;
+  4: list<VersionedPmSensor> versionedSensors;
+}
+
 typedef string SensorName
 typedef map<SensorName, Sensor> sensorMap
 typedef string FruName
 
 // The configuration for sensor mapping.
 struct SensorConfig {
+  1: list<PmUnitSensors> pmUnitSensorsList;
   2: map<FruName, sensorMap> sensorMapList;
 }

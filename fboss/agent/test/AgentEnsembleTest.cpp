@@ -40,7 +40,7 @@ void AgentEnsembleTest::setupAgentEnsemble() {
   folly::SingletonVault::singleton()->reenableInstances();
 
   setCmdLineFlagOverrides();
-
+  utilCreateDir(getAgentTestDir());
   AgentEnsembleSwitchConfigFn initialConfigFn =
       [this](const AgentEnsemble& ensemble) { return initialConfig(ensemble); };
 
@@ -89,7 +89,7 @@ void AgentEnsembleTest::tearDownAgentEnsemble(bool doWarmboot) {
 }
 
 cfg::SwitchConfig AgentEnsembleTest::initialConfig(
-    const AgentEnsemble& ensemble) const {
+    [[maybe_unused]] const AgentEnsemble& ensemble) {
   auto agentConf = AgentConfig::fromDefaultFile();
   return agentConf->thrift.sw().value();
 }
@@ -283,6 +283,25 @@ void AgentEnsembleTest::waitForLinkStatus(
   throw FbossError(msg);
 }
 
+void AgentEnsembleTest::getAllHwPortStats(
+    std::map<std::string, HwPortStats>& hwPortStats) const {
+  checkWithRetry(
+      [&hwPortStats, this]() {
+        hwPortStats.clear();
+        getSw()->getAllHwPortStats(hwPortStats);
+        for (const auto& [port, portStats] : hwPortStats) {
+          if (*portStats.timestamp__ref() ==
+              hardware_stats_constants::STAT_UNINITIALIZED()) {
+            return false;
+          }
+        }
+        return !hwPortStats.empty();
+      },
+      120,
+      std::chrono::milliseconds(1000),
+      " fetch all port stats");
+}
+
 // Provided the timestamp of the last port stats collection, get another unique
 // set of valid port stats
 std::map<std::string, HwPortStats> AgentEnsembleTest::getNextUpdatedHwPortStats(
@@ -291,6 +310,8 @@ std::map<std::string, HwPortStats> AgentEnsembleTest::getNextUpdatedHwPortStats(
   // TODO(Elangovan) do we need 120 retries?
   checkWithRetry(
       [&portStats, timestamp, this]() {
+        // clear the port stats between each retry
+        portStats.clear();
         getSw()->getAllHwPortStats(portStats);
         // Since each port can have a unique timestamp, compare with the first
         // port
@@ -337,6 +358,29 @@ void AgentEnsembleTest::assertNoInDiscards(int maxNumDiscards) {
   }
 }
 
+void AgentEnsembleTest::assertNoInErrors(int maxNumDiscards) {
+  // When port stat is not updated yet post warmboot (collect timestamp will be
+  // -1), retry another round on all ports.
+  int numRounds = 0;
+  auto lastStatRefTime = hardware_stats_constants::STAT_UNINITIALIZED();
+
+  // Gather 2 round of valid port stats and ensure the discards are within
+  // maxNumDiscards
+  for (numRounds = 0; numRounds < 2; numRounds++) {
+    auto portStats = getNextUpdatedHwPortStats(lastStatRefTime);
+    lastStatRefTime = *portStats.begin()->second.timestamp__ref();
+
+    for (auto [port, stats] : portStats) {
+      auto inErrors = *stats.inErrors_();
+      XLOG(DBG2) << "Port: " << port << " in errors: " << inErrors
+                 << " in bytes: " << *stats.inBytes_()
+                 << " out bytes: " << *stats.outBytes_() << " at timestamp "
+                 << *stats.timestamp_();
+      EXPECT_LE(inErrors, maxNumDiscards);
+    }
+  }
+}
+
 void AgentEnsembleTest::dumpRunningConfig(const std::string& targetDir) {
   auto testConfig = getSw()->getAgentConfig();
   auto newcfg = AgentConfig(
@@ -350,6 +394,11 @@ void AgentEnsembleTest::setupConfigFile(
     const std::string& testConfigDir,
     const std::string& configFile) const {
   // TODO(Elangovan) evaluate if this is needed with the move to Agent ensemble
+}
+
+std::shared_ptr<SwitchState> AgentEnsembleTest::applyNewConfig(
+    const cfg::SwitchConfig& config) {
+  return agentEnsemble_->applyNewConfig(config);
 }
 
 void AgentEnsembleTest::reloadConfig(std::string reason) const {

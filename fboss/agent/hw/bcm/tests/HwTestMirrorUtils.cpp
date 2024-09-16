@@ -94,8 +94,8 @@ void verifyResolvedMirror(
 
   EXPECT_EQ(mirror_dest.mirror_dest_id, handle);
   bcm_gport_t gport;
-  BCM_GPORT_MODPORT_SET(
-      gport, bcmSwitch->getUnit(), mirror->getEgressPort().value());
+  auto egressPort = mirror->getEgressPortDesc().value().phyPortID();
+  BCM_GPORT_MODPORT_SET(gport, bcmSwitch->getUnit(), egressPort);
   EXPECT_EQ(mirror_dest.gport, gport);
   EXPECT_EQ(mirror_dest.tos, mirror->getDscp());
   EXPECT_EQ(

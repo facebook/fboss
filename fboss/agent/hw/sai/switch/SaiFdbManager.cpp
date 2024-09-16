@@ -111,7 +111,7 @@ SaiFdbTraits::FdbEntry ManagedFdbEntry::makeFdbEntry(
 }
 
 void ManagedFdbEntry::handleLinkDown() {
-  XLOG(DBG2) << "fdb entry (" << getInterfaceID() << ", " << getMac().toString()
+  XLOG(DBG2) << "fdb entry (" << toString()
              << ") notifying link down to subscribed neighbors";
   SaiObjectEventPublisher::getInstance()->get<SaiFdbTraits>().notifyLinkDown(
       intfIDAndMac_);

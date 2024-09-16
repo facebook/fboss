@@ -146,7 +146,10 @@ union PublisherMessage {
 }
 
 struct SubscriberChunk {
-  1: map<SubscriptionKey, Patch> patches;
+  // SubscriptionKey is specified by the client, it is an alias to the path
+  // For each path we have a list of patches because of the existence of wildcard
+  // paths. For non wildcard subs, there will always be only one patch per key
+  1: map<SubscriptionKey, list<Patch>> patchGroups;
 }
 
 struct Heartbeat {}

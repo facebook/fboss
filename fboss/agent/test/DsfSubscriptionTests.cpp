@@ -4,6 +4,7 @@
 #include "fboss/agent/AgentFsdbSyncManager.h"
 #include "fboss/agent/DsfSubscription.h"
 #include "fboss/agent/SwitchStats.h"
+#include "fboss/agent/hw/mock/MockPlatform.h"
 #include "fboss/agent/test/CounterCache.h"
 #include "fboss/agent/test/HwTestHandle.h"
 #include "fboss/agent/test/TestUtils.h"
@@ -15,6 +16,8 @@
 #include <gtest/gtest.h>
 #include "fboss/agent/GtestDefs.h"
 
+using ::testing::_;
+using ::testing::Return;
 namespace facebook::fboss {
 namespace {
 constexpr auto kRemoteSwitchIdBegin = 4;
@@ -35,6 +38,7 @@ std::shared_ptr<SystemPortMap> makeSysPortsForSwitchIds(
   }
   return sysPorts;
 }
+
 std::shared_ptr<InterfaceMap> makeRifs(const SystemPortMap* sysPorts) {
   auto rifs = std::make_shared<InterfaceMap>();
   for (const auto& [id, sysPort] : *sysPorts) {
@@ -48,13 +52,29 @@ std::shared_ptr<InterfaceMap> makeRifs(const SystemPortMap* sysPorts) {
         false,
         true,
         cfg::InterfaceType::SYSTEM_PORT);
-    Interface::Addresses addresses{
-        {folly::IPAddressV4(
-             folly::to<std::string>(intfV4AddrPrefix, (id % 256))),
-         31},
-        {folly::IPAddressV6(
-             folly::to<std::string>(intfV6AddrPrefix, (id % 256))),
-         127}};
+    folly::IPAddress ipv4(folly::to<std::string>(intfV4AddrPrefix, (id % 256)));
+    folly::IPAddress ipv6(folly::to<std::string>(intfV6AddrPrefix, (id % 256)));
+    Interface::Addresses addresses{{ipv4.asV4(), 31}, {ipv6.asV6(), 127}};
+    state::NeighborEntries ndpTable, arpTable;
+    for (auto isV6 : std::vector<bool>({true, false})) {
+      state::NeighborEntryFields nbr;
+      nbr.mac() = "01:02:03:04:05:06";
+      cfg::PortDescriptor port;
+      port.portId() = id;
+      port.portType() = cfg::PortDescriptorType::SystemPort;
+      nbr.portId() = port;
+      nbr.interfaceId() = id;
+      nbr.isLocal() = true;
+      std::string ip = isV6 ? ipv6.str() : ipv4.str();
+      nbr.ipaddress() = ip;
+      if (isV6) {
+        ndpTable.insert({ip, nbr});
+      } else {
+        arpTable.insert({ip, nbr});
+      }
+    }
+    rif->setNdpTable(ndpTable);
+    rif->setArpTable(arpTable);
     rif->setAddresses(addresses);
     rif->setScope(cfg::Scope::GLOBAL);
     rif->setRemoteInterfaceType(RemoteInterfaceType::DYNAMIC_ENTRY);
@@ -65,20 +85,26 @@ std::shared_ptr<InterfaceMap> makeRifs(const SystemPortMap* sysPorts) {
 }
 } // namespace
 
-template <uint16_t N>
-struct NumRemoteAsics {
-  static auto constexpr kNumRemoteAsics = N;
+template <uint16_t NumRemoteAsics, bool SubscribePatch>
+struct TestParams {
+  static auto constexpr kNumRemoteAsics = NumRemoteAsics;
+  static auto constexpr kSubscribePatch = SubscribePatch;
 };
-using TestTypes = ::testing::Types<NumRemoteAsics<1>, NumRemoteAsics<2>>;
+using TestTypes = ::testing::Types<
+    TestParams<1, true>,
+    TestParams<1, false>,
+    TestParams<2, true>,
+    TestParams<2, false>>;
 
-template <typename NumRemoteSwitchAsics>
+template <typename TestParam>
 class DsfSubscriptionTest : public ::testing::Test {
  public:
-  static auto constexpr kNumRemoteSwitchAsics =
-      NumRemoteSwitchAsics::kNumRemoteAsics;
+  static auto constexpr kNumRemoteSwitchAsics = TestParam::kNumRemoteAsics;
+  static auto constexpr kSubscribePatch = TestParam::kSubscribePatch;
   void SetUp() override {
     FLAGS_publish_state_to_fsdb = true;
     FLAGS_fsdb_sync_full_state = true;
+    FLAGS_dsf_subscribe_patch = kSubscribePatch;
     auto config = testConfigA(cfg::SwitchType::VOQ);
     handle_ = createTestHandle(&config);
     sw_ = handle_->getSw();
@@ -298,6 +324,11 @@ TYPED_TEST(DsfSubscriptionTest, GR) {
         this->getRemoteInterfaces()->size(), this->kNumRemoteSwitchAsics);
     ASSERT_EVENTUALLY_EQ(
         this->dsfSessionState(), DsfSessionState::WAIT_FOR_REMOTE);
+    auto remoteRifs = this->getRemoteInterfaces();
+    for (const auto [_, rif] : std::as_const(*remoteRifs)) {
+      ASSERT_EVENTUALLY_EQ(rif->getNdpTable()->size(), 1);
+      ASSERT_EVENTUALLY_EQ(rif->getArpTable()->size(), 1);
+    }
   });
 
   auto assertStatus = [this](LivenessStatus expectedStatus) {
@@ -322,6 +353,12 @@ TYPED_TEST(DsfSubscriptionTest, GR) {
     ASSERT_EVENTUALLY_EQ(this->dsfSessionState(), DsfSessionState::CONNECT);
     ASSERT_EVENTUALLY_TRUE(counters.checkExist(grExpiredCounter));
     ASSERT_EVENTUALLY_EQ(counters.value(grExpiredCounter), 1);
+    auto remoteRifs = this->getRemoteInterfaces();
+    for (const auto [_, rif] : std::as_const(*remoteRifs)) {
+      // Neighbors should get pruned
+      ASSERT_EVENTUALLY_EQ(rif->getNdpTable()->size(), 0);
+      ASSERT_EVENTUALLY_EQ(rif->getArpTable()->size(), 0);
+    }
   });
   // Should be STATLE after GR expire
   assertStatus(LivenessStatus::STALE);
@@ -353,6 +390,44 @@ TYPED_TEST(DsfSubscriptionTest, DataUpdate) {
 
   WITH_RETRIES(ASSERT_EVENTUALLY_EQ(
       this->getRemoteSystemPorts()->size(), this->kNumRemoteSwitchAsics + 1));
+}
+
+TYPED_TEST(DsfSubscriptionTest, updateFailed) {
+  CounterCache counters(this->sw_);
+  this->createPublisher();
+  auto state = this->makeSwitchState();
+  this->publishSwitchState(state);
+
+  std::optional<std::map<SwitchID, std::shared_ptr<SystemPortMap>>>
+      recvSysPorts;
+  std::optional<std::map<SwitchID, std::shared_ptr<InterfaceMap>>> recvIntfs;
+  this->subscription_ = this->createSubscription();
+
+  WITH_RETRIES({
+    ASSERT_EVENTUALLY_EQ(
+        this->getRemoteSystemPorts()->size(), this->kNumRemoteSwitchAsics);
+    ASSERT_EVENTUALLY_EQ(
+        this->getRemoteInterfaces()->size(), this->kNumRemoteSwitchAsics);
+    EXPECT_EQ(this->dsfSessionState(), DsfSessionState::WAIT_FOR_REMOTE);
+  });
+  waitForStateUpdates(this->sw_);
+
+  // Fail HW update by returning current state
+  EXPECT_HW_CALL(this->sw_, stateChangedImpl(_))
+      .Times(::testing::AtLeast(1))
+      .WillOnce(Return(this->sw_->getState()));
+  auto sysPort2 = makeSysPort(
+      std::nullopt, SystemPortID(kSysPortRangeMin + 2), kRemoteSwitchIdBegin);
+  auto portMap = state->getSystemPorts()->modify(&state);
+  portMap->addNode(sysPort2, this->matcher());
+  this->publishSwitchState(state);
+  auto dsfUpdateFailedCounter =
+      SwitchStats::kCounterPrefix + "dsf_update_failed.sum.60";
+  WITH_RETRIES({
+    counters.update();
+    ASSERT_EVENTUALLY_TRUE(counters.checkExist(dsfUpdateFailedCounter));
+    ASSERT_EVENTUALLY_EQ(counters.value(dsfUpdateFailedCounter), 1);
+  });
 }
 
 TYPED_TEST(DsfSubscriptionTest, updateWithRollbackProtection) {

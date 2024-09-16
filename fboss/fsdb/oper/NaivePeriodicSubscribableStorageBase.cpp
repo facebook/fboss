@@ -3,7 +3,7 @@
 #include "fboss/fsdb/oper/NaivePeriodicSubscribableStorageBase.h"
 
 #include <fb303/ThreadCachedServiceData.h>
-#include <folly/experimental/coro/BlockingWait.h>
+#include <folly/coro/BlockingWait.h>
 #include <folly/system/ThreadName.h>
 
 #ifndef IS_OSS
@@ -223,6 +223,14 @@ NaivePeriodicSubscribableStorageBase::getPublisherRoot(
 std::optional<std::string>
 NaivePeriodicSubscribableStorageBase::getPublisherRoot(
     const std::map<SubscriptionKey, RawOperPath>& paths) const {
+  return trackMetadata_
+      ? std::make_optional(OperPathToPublisherRoot().publisherRoot(paths))
+      : std::nullopt;
+}
+
+std::optional<std::string>
+NaivePeriodicSubscribableStorageBase::getPublisherRoot(
+    const std::map<SubscriptionKey, ExtendedOperPath>& paths) const {
   return trackMetadata_
       ? std::make_optional(OperPathToPublisherRoot().publisherRoot(paths))
       : std::nullopt;

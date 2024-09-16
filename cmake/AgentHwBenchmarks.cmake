@@ -267,6 +267,7 @@ add_library(hw_rx_slow_path_rate
 
 target_link_libraries(hw_rx_slow_path_rate
   config_factory
+  copp_test_utils
   hw_qos_utils
   hw_copp_utils
   hw_test_acl_utils
@@ -393,7 +394,11 @@ add_library(hw_voq_scale_route_add_speed
 )
 
 target_link_libraries(hw_voq_scale_route_add_speed
+  fabric_test_utils
   route_scale_gen
+  voq_test_utils
+  Folly::folly
+  Folly::follybenchmark
 )
 
 add_library(hw_voq_scale_route_del_speed
@@ -401,5 +406,21 @@ add_library(hw_voq_scale_route_del_speed
 )
 
 target_link_libraries(hw_voq_scale_route_del_speed
+  fabric_test_utils
   route_scale_gen
+  voq_test_utils
+  Folly::folly
+  Folly::follybenchmark
+)
+
+add_library(hw_switch_reachability_change_speed
+  fboss/agent/hw/benchmarks/HwSwitchReachabilityChangeBenchmark.cpp
+)
+
+target_link_libraries(hw_switch_reachability_change_speed
+  mono_agent_ensemble
+  mono_agent_benchmarks
+  config_factory
+  Folly::folly
+  Folly::follybenchmark
 )

@@ -3,21 +3,20 @@
 #pragma once
 
 #include "fboss/agent/state/Port.h"
-#include "fboss/lib/link_snapshots/SnapshotManager-defs.h"
+#include "fboss/lib/link_snapshots/SnapshotManager.h"
 #include "fboss/lib/phy/gen-cpp2/phy_types.h"
 
 namespace facebook::fboss {
 
-// intervalSeconds is the interval between Phy stat collections
-template <size_t intervalSeconds>
 class PhySnapshotManager {
-  using PhySnapshotCache = SnapshotManager<intervalSeconds>;
   using SnapshotMapRLockedPtr = typename folly::Synchronized<
-      std::map<PortID, PhySnapshotCache>>::ConstRLockedPtr;
+      std::map<PortID, SnapshotManager>>::ConstRLockedPtr;
   using SnapshotMapWLockedPtr = typename folly::Synchronized<
-      std::map<PortID, PhySnapshotCache>>::WLockedPtr;
+      std::map<PortID, SnapshotManager>>::WLockedPtr;
 
  public:
+  explicit PhySnapshotManager(size_t intervalSeconds)
+      : intervalSeconds_(intervalSeconds) {}
   void updatePhyInfo(PortID portID, const phy::PhyInfo& phyInfo);
   void updatePhyInfos(const std::map<PortID, phy::PhyInfo>& phyInfo);
   std::optional<phy::PhyInfo> getPhyInfo(PortID portID) const;
@@ -36,7 +35,8 @@ class PhySnapshotManager {
       PortID portID) const;
 
   // Map of portID to last few phy diagnostic snapshots
-  folly::Synchronized<std::map<PortID, PhySnapshotCache>> snapshots_;
+  folly::Synchronized<std::map<PortID, SnapshotManager>> snapshots_;
+  size_t intervalSeconds_;
 };
 
 } // namespace facebook::fboss

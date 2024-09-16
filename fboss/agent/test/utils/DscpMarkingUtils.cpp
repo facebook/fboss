@@ -109,7 +109,8 @@ void addDscpCounterAcl(
   auto acl = utility::addDscpAclToCfg(
       hwAsic, config, kDscpCounterAclName(), utility::kIcpDscp());
   acl->actionType() = actionType;
-  std::vector<cfg::CounterType> counterTypes{cfg::CounterType::PACKETS};
+  std::vector<cfg::CounterType> counterTypes =
+      utility::getAclCounterTypes({hwAsic});
   utility::addTrafficCounter(config, kCounterName(), counterTypes);
   cfg::MatchAction matchAction = cfg::MatchAction();
   matchAction.counter() = kCounterName();

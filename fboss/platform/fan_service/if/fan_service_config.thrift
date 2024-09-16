@@ -60,11 +60,17 @@ struct Optic {
   6: map<string/* optic_type */ , PidSetting> pidSettings;
 }
 
+struct Gpio {
+  1: string path;
+  2: i32 lineIndex;
+  3: i16 desiredValue;
+}
+
 struct Fan {
   1: string fanName;
   2: string rpmSysfsPath;
   3: string pwmSysfsPath;
-  4: string presenceSysfsPath;
+  4: optional string presenceSysfsPath;
   5: string ledSysfsPath;
   6: i32 pwmMin;
   7: i32 pwmMax;
@@ -72,6 +78,9 @@ struct Fan {
   9: i32 fanMissingVal;
   10: i32 fanGoodLedVal;
   11: i32 fanFailLedVal;
+  12: optional Gpio presenceGpio;
+  13: optional i32 rpmMin;
+  14: optional i32 rpmMax;
 }
 
 struct Watchdog {

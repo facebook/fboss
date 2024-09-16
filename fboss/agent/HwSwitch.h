@@ -36,6 +36,7 @@ struct dynamic;
 }
 
 DECLARE_bool(flowletStatsEnable);
+DECLARE_int32(update_voq_stats_interval_s);
 
 namespace facebook::fboss {
 
@@ -384,6 +385,8 @@ class HwSwitch {
   virtual AclStats getAclStats() const = 0;
 
   virtual std::shared_ptr<SwitchState> reconstructSwitchState() const = 0;
+
+  virtual void injectSwitchReachabilityChangeNotification() = 0;
 
  protected:
   void setProgrammedState(const std::shared_ptr<SwitchState>& state);

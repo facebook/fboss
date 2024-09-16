@@ -50,7 +50,8 @@ class OpticsTest : public LinkTest {
     // TransceiverFeature::NONE will get us all optical pairs.
     return getConnectedOpticalPortPairWithFeature(
         TransceiverFeature::NONE,
-        phy::Side::LINE /* side doesn't matter when feature is None */);
+        phy::Side::LINE /* side doesn't matter when feature is None */,
+        true /* skipLoopback */);
   }
 };
 

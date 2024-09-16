@@ -12,6 +12,8 @@
 
 DECLARE_string(config);
 DECLARE_bool(skip_drain_check_for_prbs);
+DECLARE_bool(link_stress_test);
+DECLARE_bool(disable_neighbor_updates);
 
 namespace facebook::fboss {
 

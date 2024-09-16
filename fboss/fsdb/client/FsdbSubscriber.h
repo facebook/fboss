@@ -6,10 +6,11 @@
 #include "fboss/fsdb/common/PathHelpers.h"
 #include "fboss/fsdb/if/gen-cpp2/fsdb_common_types.h"
 #include "fboss/fsdb/if/gen-cpp2/fsdb_oper_types.h"
+#include "fboss/util/Logging.h"
 
 #include <folly/Format.h>
 #include <folly/String.h>
-#include <folly/experimental/coro/AsyncGenerator.h>
+#include <folly/coro/AsyncGenerator.h>
 
 #include <folly/logging/xlog.h>
 
@@ -230,7 +231,7 @@ class FsdbSubscriber : public FsdbSubscriberBase {
         updateSubscriptionState(SubscriptionState::CANCELLED);
         break;
       default:
-        XLOG(DBG2) << "FsdbScubscriber: no-op transition for ConnectionState: "
+        XLOG(DBG2) << "No-op transition for ConnectionState: "
                    << connectionStateToString(oldState) << " -> "
                    << connectionStateToString(newState);
         break;

@@ -89,9 +89,9 @@ TEST_F(MirrorTest, MirrorWithPort) {
   EXPECT_NE(mirror, nullptr);
   EXPECT_EQ(mirror->getID(), "mirror0");
   EXPECT_EQ(mirror->configHasEgressPort(), true);
-  auto port = mirror->getEgressPort();
-  EXPECT_EQ(port.has_value(), true);
-  EXPECT_EQ(port.value(), egressPort);
+  auto portDesc = mirror->getEgressPortDesc();
+  EXPECT_EQ(portDesc.has_value(), true);
+  EXPECT_EQ(portDesc.value().phyPortID(), egressPort);
   auto dscp = mirror->getDscp();
   EXPECT_EQ(dscp, cfg::switch_config_constants::DEFAULT_MIRROR_DSCP_);
   EXPECT_FALSE(mirror->getTunnelUdpPorts().has_value());
@@ -105,9 +105,9 @@ TEST_F(MirrorTest, MirrorWithPortId) {
   EXPECT_NE(mirror, nullptr);
   EXPECT_EQ(mirror->getID(), "mirror0");
   EXPECT_EQ(mirror->configHasEgressPort(), true);
-  auto port = mirror->getEgressPort();
-  EXPECT_EQ(port.has_value(), true);
-  EXPECT_EQ(port.value(), egressPort);
+  auto portDesc = mirror->getEgressPortDesc();
+  EXPECT_EQ(portDesc.has_value(), true);
+  EXPECT_EQ(portDesc.value().phyPortID(), egressPort);
   auto dscp = mirror->getDscp();
   EXPECT_EQ(dscp, cfg::switch_config_constants::DEFAULT_MIRROR_DSCP_);
 }
@@ -124,9 +124,9 @@ TEST_F(MirrorTest, MirrorWithPortIdAndDscp) {
   EXPECT_NE(mirror, nullptr);
   EXPECT_EQ(mirror->getID(), "mirror0");
   EXPECT_EQ(mirror->configHasEgressPort(), true);
-  auto port = mirror->getEgressPort();
-  EXPECT_EQ(port.has_value(), true);
-  EXPECT_EQ(port.value(), egressPort);
+  auto portDesc = mirror->getEgressPortDesc();
+  EXPECT_EQ(portDesc.has_value(), true);
+  EXPECT_EQ(portDesc.value().phyPortID(), egressPort);
   auto dscp = mirror->getDscp();
   EXPECT_EQ(dscp, MirrorTest::dscp);
   EXPECT_FALSE(mirror->getTunnelUdpPorts().has_value());
@@ -140,8 +140,8 @@ TEST_F(MirrorTest, MirrorWithIp) {
   EXPECT_NE(mirror, nullptr);
   EXPECT_EQ(mirror->getID(), "mirror0");
   EXPECT_EQ(mirror->configHasEgressPort(), false);
-  auto port = mirror->getEgressPort();
-  EXPECT_EQ(port.has_value(), false);
+  auto portDesc = mirror->getEgressPortDesc();
+  EXPECT_EQ(portDesc.has_value(), false);
   auto ip = mirror->getDestinationIp();
   EXPECT_EQ(ip.has_value(), true);
   EXPECT_EQ(ip.value(), MirrorTest::tunnelDestination);
@@ -162,8 +162,8 @@ TEST_F(MirrorTest, MirrorWithIpAndDscp) {
   EXPECT_NE(mirror, nullptr);
   EXPECT_EQ(mirror->getID(), "mirror0");
   EXPECT_EQ(mirror->configHasEgressPort(), false);
-  auto port = mirror->getEgressPort();
-  EXPECT_EQ(port.has_value(), false);
+  auto portDesc = mirror->getEgressPortDesc();
+  EXPECT_EQ(portDesc.has_value(), false);
   auto ip = mirror->getDestinationIp();
   EXPECT_EQ(ip.has_value(), true);
   EXPECT_EQ(ip.value(), MirrorTest::tunnelDestination);
@@ -182,9 +182,9 @@ TEST_F(MirrorTest, MirrorWithPortAndIp) {
   EXPECT_NE(mirror, nullptr);
   EXPECT_EQ(mirror->getID(), "mirror0");
   EXPECT_EQ(mirror->configHasEgressPort(), true);
-  auto port = mirror->getEgressPort();
-  EXPECT_EQ(port.has_value(), true);
-  EXPECT_EQ(port.value(), egressPort);
+  auto portDesc = mirror->getEgressPortDesc();
+  EXPECT_EQ(portDesc.has_value(), true);
+  EXPECT_EQ(portDesc.value().phyPortID(), egressPort);
   auto ip = mirror->getDestinationIp();
   EXPECT_EQ(ip.has_value(), true);
   EXPECT_EQ(ip.value(), MirrorTest::tunnelDestination);
@@ -202,9 +202,9 @@ TEST_F(MirrorTest, MirrorWithPortIdAndIp) {
   EXPECT_NE(mirror, nullptr);
   EXPECT_EQ(mirror->getID(), "mirror0");
   EXPECT_EQ(mirror->configHasEgressPort(), true);
-  auto port = mirror->getEgressPort();
-  EXPECT_EQ(port.has_value(), true);
-  EXPECT_EQ(port.value(), egressPort);
+  auto portDesc = mirror->getEgressPortDesc();
+  EXPECT_EQ(portDesc.has_value(), true);
+  EXPECT_EQ(portDesc.value().phyPortID(), egressPort);
   auto ip = mirror->getDestinationIp();
   EXPECT_EQ(ip.has_value(), true);
   EXPECT_EQ(ip.value(), MirrorTest::tunnelDestination);
@@ -225,9 +225,9 @@ TEST_F(MirrorTest, MirrorWithPortIdAndIpAndDscp) {
   EXPECT_NE(mirror, nullptr);
   EXPECT_EQ(mirror->getID(), "mirror0");
   EXPECT_EQ(mirror->configHasEgressPort(), true);
-  auto port = mirror->getEgressPort();
-  EXPECT_EQ(port.has_value(), true);
-  EXPECT_EQ(port.value(), egressPort);
+  auto portDesc = mirror->getEgressPortDesc();
+  EXPECT_EQ(portDesc.has_value(), true);
+  EXPECT_EQ(portDesc.value().phyPortID(), egressPort);
   auto ip = mirror->getDestinationIp();
   EXPECT_EQ(ip.has_value(), true);
   EXPECT_EQ(ip.value(), MirrorTest::tunnelDestination);
@@ -252,9 +252,9 @@ TEST_F(MirrorTest, MirrorWithPortIdAndIpAndSflowTunnel) {
   EXPECT_NE(mirror, nullptr);
   EXPECT_EQ(mirror->getID(), "mirror0");
   EXPECT_EQ(mirror->configHasEgressPort(), true);
-  auto port = mirror->getEgressPort();
-  EXPECT_EQ(port.has_value(), true);
-  EXPECT_EQ(port.value(), egressPort);
+  auto portDesc = mirror->getEgressPortDesc();
+  EXPECT_EQ(portDesc.has_value(), true);
+  EXPECT_EQ(portDesc.value().phyPortID(), egressPort);
   auto ip = mirror->getDestinationIp();
   EXPECT_EQ(ip.has_value(), true);
   EXPECT_EQ(ip.value(), MirrorTest::tunnelDestination);
@@ -372,6 +372,31 @@ TEST_F(MirrorTest, PortWrongMirror) {
   publishWithFbossError();
 }
 
+TEST_F(MirrorTest, PortManyMirrors) {
+  config_.mirrors()->push_back(utility::getSFlowMirror(
+      "mirror1",
+      8998,
+      9889,
+      MirrorTest::tunnelDestination,
+      folly::IPAddress("10.0.0.1"),
+      MirrorTest::dscp,
+      true));
+  config_.mirrors()->push_back(utility::getSFlowMirror(
+      "mirror2",
+      8998,
+      9889,
+      MirrorTest::tunnelDestination,
+      folly::IPAddress("10.0.0.2"),
+      MirrorTest::dscp,
+      true));
+  publishWithStateUpdate();
+  configurePortMirror("mirror1", PortID(1));
+  configurePortMirror("mirror1", PortID(2));
+  publishWithStateUpdate();
+  configurePortMirror("mirror2", PortID(3));
+  publishWithFbossError();
+}
+
 TEST_F(MirrorTest, MirrorWrongPort) {
   config_.mirrors()->push_back(utility::getGREMirrorWithPort(
       "mirror0", "port129", MirrorTest::tunnelDestination));
@@ -413,8 +438,8 @@ TEST_F(MirrorTest, WithStateChange) {
   EXPECT_NE(mirror, nullptr);
   EXPECT_EQ(mirror->getID(), "mirror0");
   EXPECT_EQ(mirror->configHasEgressPort(), false);
-  auto port = mirror->getEgressPort();
-  EXPECT_EQ(port.has_value(), false);
+  auto portDesc = mirror->getEgressPortDesc();
+  EXPECT_EQ(portDesc.has_value(), false);
   auto ip = mirror->getDestinationIp();
   EXPECT_EQ(ip.has_value(), true);
   EXPECT_EQ(ip.value(), folly::IPAddress("10.0.0.2"));
@@ -572,7 +597,7 @@ TEST_F(MirrorTest, ToAndFromThrift) {
   auto unresolved = state_->getMirrors()->getNodeIf("unresolved");
   auto with_dscp = state_->getMirrors()->getNodeIf("with_dscp");
   auto resolved = state_->getMirrors()->getNodeIf("resolved");
-  resolved->setEgressPort(MirrorTest::egressPort);
+  resolved->setEgressPortDesc(PortDescriptor(MirrorTest::egressPort));
   resolved->setMirrorTunnel(MirrorTunnel(
       folly::IPAddress("1.1.1.1"),
       folly::IPAddress("2.2.2.2"),

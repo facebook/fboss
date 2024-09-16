@@ -25,6 +25,7 @@ constexpr auto kNumEdsw = 16;
 constexpr auto kNumRdswSysPort = 44;
 constexpr auto kNumEdswSysPort = 26;
 constexpr auto kJ2NumSysPort = 20;
+constexpr auto kNumVoq = 8;
 
 int getPerNodeSysPorts(const HwAsic* asic, int remoteSwitchId) {
   if (asic->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO2) {
@@ -34,6 +35,66 @@ int getPerNodeSysPorts(const HwAsic* asic, int remoteSwitchId) {
     return kNumRdswSysPort;
   }
   return kNumEdswSysPort;
+}
+
+std::shared_ptr<SystemPort> makeRemoteSysPort(
+    SystemPortID portId,
+    SwitchID remoteSwitchId,
+    int coreIndex,
+    int corePortIndex,
+    int64_t speed) {
+  auto remoteSysPort = std::make_shared<SystemPort>(portId);
+  auto voqConfig = getDefaultVoqConfig();
+  remoteSysPort->setName(folly::to<std::string>(
+      "hwTestSwitch", remoteSwitchId, ":eth/", portId, "/1"));
+  remoteSysPort->setSwitchId(remoteSwitchId);
+  remoteSysPort->setNumVoqs(kNumVoq);
+  remoteSysPort->setCoreIndex(coreIndex);
+  remoteSysPort->setCorePortIndex(corePortIndex);
+  remoteSysPort->setSpeedMbps(speed);
+  remoteSysPort->resetPortQueues(voqConfig);
+  remoteSysPort->setScope(cfg::Scope::GLOBAL);
+  return remoteSysPort;
+}
+
+std::shared_ptr<Interface> makeRemoteInterface(
+    InterfaceID intfId,
+    const Interface::Addresses& subnets) {
+  auto remoteIntf = std::make_shared<Interface>(
+      intfId,
+      RouterID(0),
+      std::optional<VlanID>(std::nullopt),
+      folly::StringPiece("RemoteIntf"),
+      folly::MacAddress("c6:ca:2b:2a:b1:b6"),
+      9000,
+      false,
+      false,
+      cfg::InterfaceType::SYSTEM_PORT);
+  remoteIntf->setAddresses(subnets);
+  remoteIntf->setScope(cfg::Scope::GLOBAL);
+  return remoteIntf;
+}
+
+void updateRemoteIntfWithNeighbor(
+    std::shared_ptr<Interface>& remoteIntf,
+    InterfaceID intfId,
+    PortDescriptor port,
+    const folly::IPAddressV6& neighborIp,
+    std::optional<int64_t> encapIndex) {
+  const folly::MacAddress kNeighborMac{"2:3:4:5:6:7"};
+  state::NeighborEntryFields ndp;
+  auto ndpTable = remoteIntf->getNdpTable()->clone();
+  ndp.mac() = kNeighborMac.toString();
+  ndp.ipaddress() = neighborIp.str();
+  ndp.portId() = port.toThrift();
+  ndp.interfaceId() = static_cast<int>(intfId);
+  ndp.state() = state::NeighborState::Reachable;
+  if (encapIndex) {
+    ndp.encapIndex() = *encapIndex;
+  }
+  ndp.isLocal() = false;
+  ndpTable->emplace(neighborIp.str(), std::move(ndp));
+  remoteIntf->setNdpTable(ndpTable->toThrift());
 }
 } // namespace
 
@@ -95,15 +156,12 @@ std::shared_ptr<SwitchState> addRemoteSysPort(
   const auto& localPorts = newState->getSystemPorts()->cbegin()->second;
   auto localPort = localPorts->cbegin()->second;
   auto remoteSystemPorts = newState->getRemoteSystemPorts()->modify(&newState);
-  auto remoteSysPort = std::make_shared<SystemPort>(portId);
-  remoteSysPort->setName(folly::to<std::string>(
-      "hwTestSwitch", remoteSwitchId, ":eth/", portId, "/1"));
-  remoteSysPort->setSwitchId(remoteSwitchId);
-  remoteSysPort->setNumVoqs(localPort->getNumVoqs());
-  remoteSysPort->setCoreIndex(coreIndex);
-  remoteSysPort->setCorePortIndex(corePortIndex);
-  remoteSysPort->setSpeedMbps(localPort->getSpeedMbps());
-  remoteSysPort->resetPortQueues(getDefaultVoqConfig());
+  auto remoteSysPort = makeRemoteSysPort(
+      portId,
+      remoteSwitchId,
+      coreIndex,
+      corePortIndex,
+      localPort->getSpeedMbps());
   remoteSystemPorts->addNode(remoteSysPort, scopeResolver.scope(remoteSysPort));
   return newState;
 }
@@ -124,17 +182,7 @@ std::shared_ptr<SwitchState> addRemoteInterface(
     const Interface::Addresses& subnets) {
   auto newState = currState;
   auto newRemoteInterfaces = newState->getRemoteInterfaces()->modify(&newState);
-  auto newRemoteInterface = std::make_shared<Interface>(
-      intfId,
-      RouterID(0),
-      std::optional<VlanID>(std::nullopt),
-      folly::StringPiece("RemoteIntf"),
-      folly::MacAddress("c6:ca:2b:2a:b1:b6"),
-      9000,
-      false,
-      false,
-      cfg::InterfaceType::SYSTEM_PORT);
-  newRemoteInterface->setAddresses(subnets);
+  auto newRemoteInterface = makeRemoteInterface(intfId, subnets);
   newRemoteInterfaces->addNode(
       newRemoteInterface, scopeResolver.scope(newRemoteInterface, newState));
   return newState;
@@ -182,16 +230,20 @@ std::shared_ptr<SwitchState> addRemoveRemoteNeighbor(
   return outState;
 }
 
-std::shared_ptr<SwitchState> setupRemoteIntfAndSysPorts(
-    std::shared_ptr<SwitchState> currState,
-    const SwitchIdScopeResolver& scopeResolver,
+void populateRemoteIntfAndSysPorts(
+    std::map<SwitchID, std::shared_ptr<SystemPortMap>>& switchId2SystemPorts,
+    std::map<SwitchID, std::shared_ptr<InterfaceMap>>& switchId2Rifs,
     const cfg::SwitchConfig& config,
     bool useEncapIndex) {
-  auto newState = currState->clone();
   for (const auto& [remoteSwitchId, dsfNode] : *config.dsfNodes()) {
-    if (remoteSwitchId == 0) {
+    if ((*config.switchSettings())
+            .switchIdToSwitchInfo()
+            ->contains(remoteSwitchId)) {
       continue;
     }
+    std::shared_ptr<SystemPortMap> remoteSysPorts =
+        std::make_shared<SystemPortMap>();
+    std::shared_ptr<InterfaceMap> remoteRifs = std::make_shared<InterfaceMap>();
     CHECK(dsfNode.systemPortRange().has_value());
     const auto minPortID = *dsfNode.systemPortRange()->minimum();
     const auto maxPortID = *dsfNode.systemPortRange()->maximum();
@@ -210,16 +262,15 @@ std::shared_ptr<SwitchState> setupRemoteIntfAndSysPorts(
       auto thirdOctet = i - minPortID;
       folly::IPAddressV6 neighborIp(folly::to<std::string>(
           firstOctet, ":", secondOctet, ":", thirdOctet, "::2"));
-      newState = addRemoteSysPort(
-          newState,
-          scopeResolver,
+      auto remoteSysPort = makeRemoteSysPort(
           remoteSysPortId,
           SwitchID(remoteSwitchId),
           (i - minPortID - kRemoteSysPortOffset) / kNumPortPerCore,
-          (i - minPortID) % kNumPortPerCore);
-      newState = addRemoteInterface(
-          newState,
-          scopeResolver,
+          (i - minPortID) % kNumPortPerCore,
+          static_cast<int64_t>(cfg::PortSpeed::FOURHUNDREDG));
+      remoteSysPorts->addSystemPort(remoteSysPort);
+
+      auto remoteRif = makeRemoteInterface(
           remoteIntfId,
           {
               {folly::IPAddress(folly::to<std::string>(
@@ -229,17 +280,14 @@ std::shared_ptr<SwitchState> setupRemoteIntfAndSysPorts(
                    firstOctet, ".", secondOctet, ".", thirdOctet, ".1")),
                24},
           });
-      newState = addRemoveRemoteNeighbor(
-          newState,
-          scopeResolver,
-          neighborIp,
-          remoteIntfId,
-          portDesc,
-          true /* add */,
-          encapEndx);
+
+      updateRemoteIntfWithNeighbor(
+          remoteRif, remoteIntfId, portDesc, neighborIp, encapEndx);
+      remoteRifs->addNode(remoteRif);
     }
+    switchId2SystemPorts[SwitchID(remoteSwitchId)] = remoteSysPorts;
+    switchId2Rifs[SwitchID(remoteSwitchId)] = remoteRifs;
   }
-  return newState;
 }
 
 QueueConfig getDefaultVoqConfig() {

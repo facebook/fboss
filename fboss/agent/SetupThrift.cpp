@@ -21,6 +21,11 @@ DEFINE_int32(
     30,
     "Thrift task expire timeout in seconds.");
 
+DEFINE_bool(
+    thrift_test_utils_thrift_handler,
+    false,
+    "Enable thrift handler for HW tests");
+
 namespace facebook::fboss {
 std::unique_ptr<apache::thrift::ThriftServer> setupThriftServer(
     folly::EventBase& eventBase,

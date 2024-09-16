@@ -75,9 +75,15 @@ std::shared_ptr<Mirror> MirrorManagerImpl<AddrT>::updateMirror(
   const auto state = sw_->getState();
   const auto nexthops = resolveMirrorNextHops(state, destinationIp);
 
+  std::optional<PortDescriptor> egressPortDesc = std::nullopt;
+  if (mirror->configHasEgressPort()) {
+    egressPortDesc = mirror->getEgressPortDesc().has_value()
+        ? mirror->getEgressPortDesc().value()
+        : PortDescriptor(mirror->getEgressPort().value());
+  }
   auto newMirror = std::make_shared<Mirror>(
       mirror->getID(),
-      mirror->configHasEgressPort() ? mirror->getEgressPort() : std::nullopt,
+      egressPortDesc,
       mirror->getDestinationIp(),
       mirror->getSrcIp(),
       mirror->getTunnelUdpPorts(),
@@ -95,17 +101,21 @@ std::shared_ptr<Mirror> MirrorManagerImpl<AddrT>::updateMirror(
     }
     auto neighborPort = entry->getPort();
     if (mirror->configHasEgressPort()) {
+      auto egressPort = mirror->getEgressPortDesc().has_value()
+          ? mirror->getEgressPortDesc().value().phyPortID()
+          : mirror->getEgressPort().value();
       if (!neighborPort.isPhysicalPort() ||
-          neighborPort.phyPortID() != mirror->getEgressPort().value()) {
+          neighborPort.phyPortID() != egressPort) {
         // TODO: support configuring LAG egress for mirror
         continue;
       }
     }
 
-    std::optional<PortID> egressPort{};
+    std::optional<PortDescriptor> egressPortDesc{};
     switch (neighborPort.type()) {
       case PortDescriptor::PortType::PHYSICAL:
-        egressPort = entry->getPort().phyPortID();
+      case PortDescriptor::PortType::SYSTEM_PORT:
+        egressPortDesc = entry->getPort();
         break;
       case PortDescriptor::PortType::AGGREGATE: {
         // pick first forwarding member port
@@ -122,17 +132,14 @@ std::shared_ptr<Mirror> MirrorManagerImpl<AddrT>::updateMirror(
         }
         for (auto subPortAndFwdState : subportAndFwdStates) {
           if (subPortAndFwdState.second == AggregatePort::Forwarding::ENABLED) {
-            egressPort = subPortAndFwdState.first;
+            egressPortDesc = PortDescriptor(subPortAndFwdState.first);
             break;
           }
         }
       } break;
-      case PortDescriptor::PortType::SYSTEM_PORT:
-        XLOG(FATAL) << " No mirroring over system ports";
-        break;
     }
 
-    if (!egressPort) {
+    if (!egressPortDesc) {
       continue;
     }
 
@@ -146,8 +153,8 @@ std::shared_ptr<Mirror> MirrorManagerImpl<AddrT>::updateMirror(
         nexthop,
         entry,
         newMirror->getTunnelUdpPorts()));
-    newMirror->setEgressPort(egressPort.value());
-    newMirror->setEgressPortDesc(PortDescriptor(egressPort.value()));
+    newMirror->setEgressPortDesc(egressPortDesc.value());
+    newMirror->setEgressPort(egressPortDesc.value().phyPortID());
     break;
   }
 
@@ -155,7 +162,6 @@ std::shared_ptr<Mirror> MirrorManagerImpl<AddrT>::updateMirror(
   if (newMirror && newMirror->type() == Mirror::Type::SFLOW &&
       asic->isSupported(HwAsic::Feature::EVENTOR_PORT_FOR_SFLOW)) {
     auto eventorPort = getEventorPortForSflowMirror(mirror->getSwitchId());
-    newMirror->setEgressPort(eventorPort);
     newMirror->setEgressPortDesc(PortDescriptor(eventorPort));
     newMirror->setDestinationMac(
         getEventorPortInterfaceMac(state, eventorPort));

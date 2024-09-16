@@ -5,8 +5,8 @@
 #include <folly/Format.h>
 #include <folly/String.h>
 #include <folly/concurrency/DynamicBoundedQueue.h>
-#include <folly/experimental/coro/AsyncGenerator.h>
-#include <folly/experimental/coro/AsyncPipe.h>
+#include <folly/coro/AsyncGenerator.h>
+#include <folly/coro/AsyncPipe.h>
 #include "fboss/fsdb/client/FsdbStreamClient.h"
 #include "fboss/fsdb/if/gen-cpp2/fsdb_oper_types.h"
 

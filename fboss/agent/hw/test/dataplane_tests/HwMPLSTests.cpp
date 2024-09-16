@@ -49,13 +49,6 @@ class HwMPLSTest : public HwLinkStateDependentTest {
       auto srcPortQualifierSupported =
           ensemble_->getPlatform()->getAsic()->isSupported(
               HwAsic::Feature::SAI_ACL_ENTRY_SRC_PORT_QUALIFIER);
-      bool isTajo = ensemble_->getPlatform()->getAsic()->getAsicVendor() ==
-          HwAsic::AsicVendor::ASIC_VENDOR_TAJO;
-      if (isTajo) {
-#if !defined(TAJO_SDK_VERSION_1_65_0) || defined(TAJO_SDK_VERSION_1_68_0)
-        srcPortQualifierSupported = false;
-#endif
-      }
       return srcPortQualifierSupported;
     }
     HwPacketVerifier(HwSwitchEnsemble* ensemble, MPLSHdr hdr)

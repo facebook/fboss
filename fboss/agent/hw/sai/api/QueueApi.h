@@ -132,6 +132,7 @@ struct SaiQueueTraits {
       WatermarkLevelCounterIdsToReadAndClear = {
           SAI_QUEUE_STAT_WATERMARK_LEVEL,
   };
+  static const std::vector<sai_stat_id_t>& egressGvoqWatermarkBytes();
 };
 
 SAI_ATTRIBUTE_NAME(Queue, Type)

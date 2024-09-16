@@ -64,6 +64,7 @@ void validateInterfaceAndMedium(
            }},
           {TransmitterTechnology::BACKPLANE,
            {
+               phy::InterfaceType::CR4,
                phy::InterfaceType::KR,
                phy::InterfaceType::KR2,
                phy::InterfaceType::KR4,

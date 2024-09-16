@@ -318,6 +318,66 @@ class AgentAqmTest : public AgentHwTest {
   }
 };
 
+class AgentAqmWredDropTest : public AgentAqmTest {
+ public:
+  cfg::SwitchConfig initialConfig(
+      const AgentEnsemble& ensemble) const override {
+    auto cfg = utility::onePortPerInterfaceConfig(
+        ensemble.getSw(),
+        ensemble.masterLogicalPortIds(),
+        true /*interfaceHasSubnet*/);
+    if (ensemble.getHwAsicTable()->isFeatureSupportedOnAllAsic(
+            HwAsic::Feature::L3_QOS)) {
+      auto streamType =
+          *utility::checkSameAndGetAsic(ensemble.getL3Asics())
+               ->getQueueStreamTypes(cfg::PortType::INTERFACE_PORT)
+               .begin();
+      utility::addQueueWredDropConfig(&cfg, streamType, ensemble.getL3Asics());
+      utility::addOlympicQosMaps(cfg, ensemble.getL3Asics());
+    }
+    utility::setTTLZeroCpuConfig(ensemble.getL3Asics(), cfg);
+    return cfg;
+  }
+
+  void runWredDropTest() {
+    auto setup = [=, this]() { setupEcmpTraffic(); };
+    auto verify = [=, this]() {
+      // Send packets to queue0 and queue2 (both configured to the same weight).
+      // Queue0 is configured with 0% drop probability and queue2 is configured
+      // with 5% drop probability.
+      sendPkts(kDscp(), false);
+      sendPkts(kSilverDscp(), false);
+
+      auto getQueueWatermarkBytes = [&](const auto& portStats, int queueId) {
+        auto queueWatermark =
+            portStats.get_queueWatermarkBytes_().find(queueId)->second;
+        XLOG(DBG0) << "Queue " << queueId << " watermark : " << queueWatermark;
+        return queueWatermark;
+      };
+
+      constexpr auto queue2Id = 2;
+      constexpr auto queue0Id = 0;
+      uint64_t queue0Watermark{0};
+      uint64_t queue2Watermark{0};
+      WITH_RETRIES({
+        auto portStats = getLatestPortStats(masterLogicalInterfacePortIds()[0]);
+        queue0Watermark = getQueueWatermarkBytes(portStats, queue0Id);
+        queue2Watermark = getQueueWatermarkBytes(portStats, queue2Id);
+        EXPECT_EVENTUALLY_GT(queue0Watermark, 0);
+        EXPECT_EVENTUALLY_GT(queue2Watermark, 0);
+      });
+
+      // Queue0 watermark should be higher than queue2 since it drops less
+      // packets.
+      XLOG(DBG0) << "Expecting queue 0 watermark " << queue0Watermark
+                 << " larger than queue 2 watermark : " << queue2Watermark;
+      EXPECT_TRUE(queue0Watermark > queue2Watermark);
+    };
+
+    verifyAcrossWarmBoots(setup, verify);
+  }
+};
+
 TEST_F(AgentAqmTest, verifyEct0) {
   runTest(kECT0, true /* enableWred */, true /* enableEcn */);
 }
@@ -337,4 +397,9 @@ TEST_F(AgentAqmTest, verifyWredWithoutEcnConfig) {
 TEST_F(AgentAqmTest, verifyWred) {
   runTest(kNotECT, true /* enableWred */, true /* enableEcn */);
 }
+
+TEST_F(AgentAqmWredDropTest, verifyWredDrop) {
+  runWredDropTest();
+}
+
 } // namespace facebook::fboss

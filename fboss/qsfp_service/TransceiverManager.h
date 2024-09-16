@@ -325,6 +325,10 @@ class TransceiverManager {
   updateStateBlockingWithoutWait(
       TransceiverID id,
       TransceiverStateMachineEvent event);
+  std::shared_ptr<BlockingTransceiverStateMachineUpdateResult>
+  enqueueStateUpdateForTcvrWithoutExecuting(
+      TransceiverID id,
+      TransceiverStateMachineEvent event);
 
   TransceiverStateMachineState getCurrentState(TransceiverID id) const;
 
@@ -784,6 +788,9 @@ class TransceiverManager {
    *
    */
   bool updateState(std::unique_ptr<TransceiverStateMachineUpdate> update);
+  bool enqueueStateUpdate(
+      std::unique_ptr<TransceiverStateMachineUpdate> update);
+  void executeStateUpdates();
 
   static void handlePendingUpdatesHelper(TransceiverManager* mgr);
   void handlePendingUpdates();

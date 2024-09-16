@@ -95,7 +95,12 @@ class HwSwitchFb303Stats {
   void switchReachabilityChangeCount() {
     switchReachabilityChangeCount_.addValue(1);
   }
-
+  void statsCollectionFailed() {
+    hwStatsCollectionFailed_.addValue(1);
+  }
+  void phyInfoCollectionFailed() {
+    phyInfoCollectionFailed_.addValue(1);
+  }
   void fabricReachabilityMissingCount(int64_t value);
   void fabricReachabilityMismatchCount(int64_t value);
   void virtualDevicesWithAsymmetricConnectivity(int64_t value);
@@ -248,6 +253,10 @@ class HwSwitchFb303Stats {
   TLCounter bcmSdkVer_;
   TLCounter bcmSaiSdkVer_;
   TLCounter leabaSdkVer_;
+  // Meta stats to capture stat and phy
+  // info collection failures
+  TLTimeseries hwStatsCollectionFailed_;
+  TLTimeseries phyInfoCollectionFailed_;
 };
 
 } // namespace facebook::fboss

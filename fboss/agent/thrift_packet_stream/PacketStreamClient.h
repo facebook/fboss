@@ -4,7 +4,7 @@
 
 #include <fboss/agent/if/gen-cpp2/PacketStreamAsyncClient.h>
 #if FOLLY_HAS_COROUTINES
-#include <folly/experimental/coro/BlockingWait.h>
+#include <folly/coro/BlockingWait.h>
 #endif
 #include <folly/Synchronized.h>
 #include <folly/io/async/ScopedEventBaseThread.h>

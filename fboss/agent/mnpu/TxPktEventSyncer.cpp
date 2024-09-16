@@ -12,7 +12,7 @@
 #include "fboss/agent/TxPacket.h"
 
 #if FOLLY_HAS_COROUTINES
-#include <folly/experimental/coro/BlockingWait.h>
+#include <folly/coro/BlockingWait.h>
 #endif
 
 DEFINE_int32(tx_pkt_stream_buffer_size, 1000, "TxPktEventStream buffer size");
@@ -57,6 +57,12 @@ TxPktEventSyncer::initTxPktEventStream(
 }
 #endif
 
+fb303::TimeseriesWrapper& TxPktEventSyncer::getBadPacketCounter() {
+  static fb303::TimeseriesWrapper txBadPktReceived{
+      "tx_bad_pkt_received", fb303::SUM, fb303::RATE};
+  return txBadPktReceived;
+}
+
 void TxPktEventSyncer::TxPacketEventHandler(
     multiswitch::TxPacket& txPkt,
     HwSwitch* hw) {
@@ -69,6 +75,13 @@ void TxPktEventSyncer::TxPacketEventHandler(
   folly::io::Cursor inCursor(txPkt.data()->get());
   folly::io::RWPrivateCursor outCursor(pkt->buf());
   outCursor.pushAtMost(inCursor, len);
+
+  if (*txPkt.length() != len) {
+    XLOG(ERR) << "Tx packet length mismatch for switch " << *hw->getSwitchId();
+    getBadPacketCounter().add(1);
+    return;
+  }
+
   if (txPkt.port().has_value()) {
     PortID portId(*txPkt.port());
     hw->sendPacketOutOfPortAsync(

@@ -14,6 +14,8 @@
 #endif
 #endif
 
+using namespace std::chrono;
+
 namespace facebook::fboss {
 
 void SplitSwSwitchInitializer::initImpl(

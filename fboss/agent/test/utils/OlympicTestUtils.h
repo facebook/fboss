@@ -209,6 +209,7 @@ void addQueueBurstSizeConfig(
     const int queueId,
     const uint32_t minKbits,
     const uint32_t maxKbits);
+void addEventorVoqConfig(cfg::SwitchConfig* config, cfg::StreamType streamType);
 
 int getOlympicQueueId(OlympicQueueType queueType);
 

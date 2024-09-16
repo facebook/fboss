@@ -58,7 +58,8 @@ TEST(SwitchSettingsTest, applyL2LearningConfig) {
 TEST(SwitchSettingsTest, applySwitchDrainState) {
   auto platform = createMockPlatform();
   auto stateV0 = make_shared<SwitchState>();
-  addSwitchInfo(stateV0, cfg::SwitchType::FABRIC, 20 /* switchId*/);
+  addSwitchInfo(
+      stateV0, cfg::SwitchType::FABRIC, kFabricSwitchIdBegin /* switchId*/);
 
   cfg::SwitchConfig config = testConfigA(cfg::SwitchType::FABRIC);
   *config.switchSettings()->switchDrainState() = cfg::SwitchDrainState::DRAINED;
@@ -152,7 +153,7 @@ TEST(SwitchSettingsTest, applyPtpTcEnable) {
 TEST(SwitchSettingsTest, applyL2AgeTimerSeconds) {
   auto platform = createMockPlatform();
   auto stateV0 = make_shared<SwitchState>();
-  addSwitchInfo(stateV0, cfg::SwitchType::NPU, 0 /* switchId*/);
+  addSwitchInfo(stateV0, cfg::SwitchType::NPU, kNpuSwitchIdBegin /* switchId*/);
 
   // Check default value
   auto l2AgeTimerSeconds = 300;
@@ -176,7 +177,7 @@ TEST(SwitchSettingsTest, applyL2AgeTimerSeconds) {
 TEST(SwitchSettingsTest, applyMaxRouteCounterIDs) {
   auto platform = createMockPlatform();
   auto stateV0 = make_shared<SwitchState>();
-  addSwitchInfo(stateV0, cfg::SwitchType::NPU, 0 /* switchId*/);
+  addSwitchInfo(stateV0, cfg::SwitchType::NPU, kVoqSwitchIdBegin /* switchId*/);
 
   // Check default value
   auto maxRouteCounterIDs = 0;
@@ -200,7 +201,7 @@ TEST(SwitchSettingsTest, applyMaxRouteCounterIDs) {
 TEST(SwitchSettingsTest, applyBlockNeighbors) {
   auto platform = createMockPlatform();
   auto stateV0 = make_shared<SwitchState>();
-  addSwitchInfo(stateV0, cfg::SwitchType::NPU, 0 /* switchId*/);
+  addSwitchInfo(stateV0, cfg::SwitchType::NPU, kNpuSwitchIdBegin /* switchId*/);
 
   // Check default value
   auto switchSettingsV0 = utility::getFirstNodeIf(stateV0->getSwitchSettings());
@@ -240,7 +241,7 @@ TEST(SwitchSettingsTest, applyBlockNeighbors) {
 TEST(SwitchSettingsTest, applyMacAddrsToBlock) {
   auto platform = createMockPlatform();
   auto stateV0 = make_shared<SwitchState>();
-  addSwitchInfo(stateV0, cfg::SwitchType::NPU, 0 /* switchId*/);
+  addSwitchInfo(stateV0, cfg::SwitchType::NPU, kNpuSwitchIdBegin /* switchId*/);
 
   // Check default value
   auto switchSettingsV0 = utility::getFirstNodeIf(stateV0->getSwitchSettings());
@@ -350,7 +351,7 @@ TEST(SwitchSettingsTest, ThrifyMigration) {
 TEST(SwitchSettingsTest, applyVoqSwitch) {
   auto platform = createMockPlatform();
   auto stateV0 = make_shared<SwitchState>();
-  addSwitchInfo(stateV0, cfg::SwitchType::VOQ, 1 /* switchId*/);
+  addSwitchInfo(stateV0, cfg::SwitchType::VOQ, kVoqSwitchIdBegin /* switchId*/);
 
   // Check default value
   auto switchSettingsV0 = utility::getFirstNodeIf(stateV0->getSwitchSettings());
@@ -365,9 +366,11 @@ TEST(SwitchSettingsTest, applyVoqSwitch) {
   ASSERT_NE(nullptr, switchSettingsV1);
   EXPECT_FALSE(switchSettingsV1->isPublished());
   EXPECT_EQ(switchSettingsV1->getSwitchIds().size(), 1);
-  EXPECT_EQ(*switchSettingsV1->getSwitchIds().begin(), SwitchID(1));
+  EXPECT_EQ(
+      *switchSettingsV1->getSwitchIds().begin(), SwitchID(kVoqSwitchIdBegin));
   EXPECT_EQ(switchSettingsV1->getSwitchIdToSwitchInfo().size(), 1);
-  auto switchInfo = switchSettingsV1->getSwitchIdToSwitchInfo().at(1);
+  auto switchInfo =
+      switchSettingsV1->getSwitchIdToSwitchInfo().at(kVoqSwitchIdBegin);
   EXPECT_EQ(switchInfo.switchType(), cfg::SwitchType::VOQ);
   EXPECT_EQ(switchInfo.switchIndex(), 0);
   EXPECT_EQ(
@@ -383,7 +386,8 @@ TEST(SwitchSettingsTest, applyVoqSwitch) {
       switchSettingsV1->getSwitchIdsOfType(cfg::SwitchType::NPU).size(), 0);
   EXPECT_FALSE(switchSettingsV1->vlansSupported());
   EXPECT_EQ(switchInfo.asicType(), cfg::AsicType::ASIC_TYPE_MOCK);
-  EXPECT_THROW(switchSettingsV1->getSwitchType(0), FbossError);
+  EXPECT_THROW(
+      switchSettingsV1->getSwitchType(kVoqSwitchIdBegin + 1), FbossError);
   cfg::SwitchInfo switchInfo2;
   switchInfo2.switchType() = cfg::SwitchType::FABRIC;
   switchInfo2.asicType() = cfg::AsicType::ASIC_TYPE_MOCK;
@@ -411,12 +415,13 @@ TEST(SwitchSettingsTest, applyVoqSwitch) {
   sysPortRange.maximum() = 200;
   switchInfo2.systemPortRange() = sysPortRange;
   config.switchSettings()->switchIdToSwitchInfo() = {
-      std::make_pair(1, switchInfo2)};
+      std::make_pair(kVoqSwitchIdBegin, switchInfo2)};
   auto stateV2 = publishAndApplyConfig(stateV1, &config, platform.get());
   EXPECT_NE(nullptr, stateV2);
   auto switchSettingsV2 = utility::getFirstNodeIf(stateV2->getSwitchSettings());
   ASSERT_NE(nullptr, switchSettingsV2);
-  auto switchInfo3 = switchSettingsV2->getSwitchIdToSwitchInfo().at(1);
+  auto switchInfo3 =
+      switchSettingsV2->getSwitchIdToSwitchInfo().at(kVoqSwitchIdBegin);
   EXPECT_EQ(
       switchInfo3.portIdRange()->minimum(),
       cfg::switch_config_constants::DEFAULT_PORT_ID_RANGE_MIN());
@@ -429,7 +434,7 @@ TEST(SwitchSettingsTest, applyVoqSwitch) {
 TEST(SwitchSettingsTest, applyExactMatchTableConfig) {
   auto platform = createMockPlatform();
   auto stateV0 = make_shared<SwitchState>();
-  addSwitchInfo(stateV0, cfg::SwitchType::NPU, 0 /* switchId*/);
+  addSwitchInfo(stateV0, cfg::SwitchType::NPU, kNpuSwitchIdBegin /* switchId*/);
 
   // Check default value
   auto switchSettingsV0 = utility::getFirstNodeIf(stateV0->getSwitchSettings());
@@ -490,7 +495,7 @@ TEST(SwitchSettingsTest, applyExactMatchTableConfig) {
 TEST(SwitchSettingsTest, applyDefaultVlanConfig) {
   auto platform = createMockPlatform();
   auto stateV0 = make_shared<SwitchState>();
-  addSwitchInfo(stateV0, cfg::SwitchType::NPU, 0 /* switchId*/);
+  addSwitchInfo(stateV0, cfg::SwitchType::NPU, kNpuSwitchIdBegin /* switchId*/);
 
   // Check default value
   auto switchSettingsV0 = utility::getFirstNodeIf(stateV0->getSwitchSettings());
@@ -512,7 +517,7 @@ TEST(SwitchSettingsTest, applyDefaultVlanConfig) {
 TEST(SwitchSettingsTest, applyArpNdpTimeoutConfig) {
   auto platform = createMockPlatform();
   auto stateV0 = make_shared<SwitchState>();
-  addSwitchInfo(stateV0, cfg::SwitchType::NPU, 0 /* switchId*/);
+  addSwitchInfo(stateV0, cfg::SwitchType::NPU, kNpuSwitchIdBegin /* switchId*/);
 
   // Check default value
   auto switchSettingsV0 = utility::getFirstNodeIf(stateV0->getSwitchSettings());
@@ -546,7 +551,7 @@ TEST(SwitchSettingsTest, applyArpNdpTimeoutConfig) {
 TEST(SwitchSettingsTest, applyDhcpConfig) {
   auto platform = createMockPlatform();
   auto stateV0 = make_shared<SwitchState>();
-  addSwitchInfo(stateV0, cfg::SwitchType::NPU, 0 /* switchId*/);
+  addSwitchInfo(stateV0, cfg::SwitchType::NPU, kNpuSwitchIdBegin /* switchId*/);
 
   const folly::IPAddressV6 kDhcpV6RelaySrc("100::1");
   const folly::IPAddressV6 kDhcpV6ReplySrc("101::1");
@@ -582,7 +587,7 @@ TEST(SwitchSettingsTest, applyDhcpConfig) {
 TEST(SwitchSettingsTest, applyHostnameConfig) {
   auto platform = createMockPlatform();
   auto stateV0 = make_shared<SwitchState>();
-  addSwitchInfo(stateV0, cfg::SwitchType::NPU, 0 /* switchId*/);
+  addSwitchInfo(stateV0, cfg::SwitchType::NPU, kNpuSwitchIdBegin /* switchId*/);
 
   // Check the default value
   auto switchSettingsV0 = utility::getFirstNodeIf(stateV0->getSwitchSettings());
@@ -608,7 +613,7 @@ TEST(SwitchSettingsTest, applyHostnameConfig) {
 TEST(SwitchSettingsTest, applyIcmpV4UnavailableSrcAddress) {
   auto platform = createMockPlatform();
   auto stateV0 = make_shared<SwitchState>();
-  addSwitchInfo(stateV0, cfg::SwitchType::NPU, 0 /* switchId*/);
+  addSwitchInfo(stateV0, cfg::SwitchType::NPU, kNpuSwitchIdBegin /* switchId*/);
 
   const folly::IPAddressV4 kIcmpV4UnavailableSrcAddress("100.0.0.1");
 
@@ -656,8 +661,10 @@ TEST(SwitchSettingsTest, applyMinLinksToRemainInVOQDomain) {
   // Setting minLinksToRemainInVOQDomain is not supported for NPU
   {
     auto stateV0 = make_shared<SwitchState>();
-    addSwitchInfo(stateV0, cfg::SwitchType::NPU, 0 /* switchId*/);
-    addSwitchInfo(stateV0, cfg::SwitchType::FABRIC, 2 /* switchId*/);
+    addSwitchInfo(
+        stateV0, cfg::SwitchType::NPU, kNpuSwitchIdBegin /* switchId*/);
+    addSwitchInfo(
+        stateV0, cfg::SwitchType::FABRIC, kFabricSwitchIdBegin /* switchId*/);
     cfg::SwitchConfig npuConfig = testConfigA(cfg::SwitchType::NPU);
     npuConfig.switchSettings()->minLinksToRemainInVOQDomain() =
         kMinLinksToRemainInVOQDomain;
@@ -676,7 +683,8 @@ TEST(SwitchSettingsTest, applyMinLinksToRemainInVOQDomain) {
   // Setting minLinksToRemainInVOQDomain is supported for VOQ
   {
     auto stateV0 = make_shared<SwitchState>();
-    addSwitchInfo(stateV0, cfg::SwitchType::VOQ, 1 /* switchId*/);
+    addSwitchInfo(
+        stateV0, cfg::SwitchType::VOQ, kVoqSwitchIdBegin /* switchId*/);
     cfg::SwitchConfig voqConfig = testConfigA(cfg::SwitchType::VOQ);
     voqConfig.switchSettings()->minLinksToRemainInVOQDomain() =
         kMinLinksToRemainInVOQDomain;
@@ -716,7 +724,8 @@ TEST(SwitchSettingsTest, applyMinLinksToJoinVOQDomain) {
   // Setting minLinksToJoinVOQDomai is not supported for NPU
   {
     auto stateV0 = make_shared<SwitchState>();
-    addSwitchInfo(stateV0, cfg::SwitchType::NPU, 0 /* switchId*/);
+    addSwitchInfo(
+        stateV0, cfg::SwitchType::NPU, kNpuSwitchIdBegin /* switchId*/);
     cfg::SwitchConfig npuConfig = testConfigA(cfg::SwitchType::NPU);
     npuConfig.switchSettings()->minLinksToJoinVOQDomain() =
         kMinLinksToJoinVOQDomain;
@@ -727,7 +736,8 @@ TEST(SwitchSettingsTest, applyMinLinksToJoinVOQDomain) {
   // Setting minLinksToJoinVOQDomai is not supported for FABRIC
   {
     auto stateV0 = make_shared<SwitchState>();
-    addSwitchInfo(stateV0, cfg::SwitchType::FABRIC, 2 /* switchId*/);
+    addSwitchInfo(
+        stateV0, cfg::SwitchType::FABRIC, kFabricSwitchIdBegin /* switchId*/);
     cfg::SwitchConfig fabricConfig = testConfigA(cfg::SwitchType::FABRIC);
     fabricConfig.switchSettings()->minLinksToJoinVOQDomain() =
         kMinLinksToJoinVOQDomain;
@@ -739,7 +749,8 @@ TEST(SwitchSettingsTest, applyMinLinksToJoinVOQDomain) {
   // Setting minLinksToJoinVOQDomai is supported for VOQ
   {
     auto stateV0 = make_shared<SwitchState>();
-    addSwitchInfo(stateV0, cfg::SwitchType::VOQ, 1 /* switchId*/);
+    addSwitchInfo(
+        stateV0, cfg::SwitchType::VOQ, kVoqSwitchIdBegin /* switchId*/);
     cfg::SwitchConfig voqConfig = testConfigA(cfg::SwitchType::VOQ);
     voqConfig.switchSettings()->minLinksToJoinVOQDomain() =
         kMinLinksToJoinVOQDomain;

@@ -25,6 +25,10 @@
 
 using namespace facebook::fboss;
 
+namespace {
+constexpr auto kIntfNodeStart = 100;
+}
+
 namespace facebook::fboss {
 class DsfSubscriberTest : public ::testing::Test {
  public:
@@ -107,45 +111,44 @@ TEST_F(DsfSubscriberTest, addSubscription) {
   EXPECT_EQ(sw_->getDsfSubscriber()->getSubscriptionInfo().size(), 0);
 
   // Insert 2 IN nodes
-  auto node5DsfConfig = makeDsfNodeCfg(5);
+  auto intfNodeCfg0 = makeDsfNodeCfg(kIntfNodeStart);
   sw_->updateStateBlocking(
       "Add IN node", [&](const std::shared_ptr<SwitchState>& state) {
         auto newState = state->clone();
         updateDsfInNode(
             newState->getDsfNodes()->modify(&newState),
-            node5DsfConfig,
+            intfNodeCfg0,
             /* add */ true);
         return newState;
       });
   EXPECT_EQ(
       sw_->getDsfSubscriber()->getSubscriptionInfo().size(),
-      node5DsfConfig.loopbackIps()->size());
+      intfNodeCfg0.loopbackIps()->size());
 
   EXPECT_TRUE(verifySubscriptionState(
-      node5DsfConfig, sw_->getDsfSubscriber()->getSubscriptionInfo()));
+      intfNodeCfg0, sw_->getDsfSubscriber()->getSubscriptionInfo()));
   EXPECT_TRUE(verifyDsfSessionState(
-      node5DsfConfig, sw_->getDsfSubscriber()->getDsfSessionsThrift()));
+      intfNodeCfg0, sw_->getDsfSubscriber()->getDsfSessionsThrift()));
 
-  auto node6DsfConfig = makeDsfNodeCfg(6);
+  auto intfNodeCfg1 = makeDsfNodeCfg(kIntfNodeStart + 1);
   sw_->updateStateBlocking(
       "Add IN node", [&](const std::shared_ptr<SwitchState>& state) {
         auto newState = state->clone();
         updateDsfInNode(
             newState->getDsfNodes()->modify(&newState),
-            node6DsfConfig,
+            intfNodeCfg1,
             /* add */ true);
         return newState;
       });
 
   EXPECT_EQ(
       sw_->getDsfSubscriber()->getSubscriptionInfo().size(),
-      node5DsfConfig.loopbackIps()->size() +
-          node6DsfConfig.loopbackIps()->size());
+      intfNodeCfg0.loopbackIps()->size() + intfNodeCfg1.loopbackIps()->size());
 
   EXPECT_TRUE(verifySubscriptionState(
-      node6DsfConfig, sw_->getDsfSubscriber()->getSubscriptionInfo()));
+      intfNodeCfg1, sw_->getDsfSubscriber()->getSubscriptionInfo()));
   EXPECT_TRUE(verifyDsfSessionState(
-      node6DsfConfig, sw_->getDsfSubscriber()->getDsfSessionsThrift()));
+      intfNodeCfg1, sw_->getDsfSubscriber()->getDsfSessionsThrift()));
 
   // Remove 2 IN nodes
   sw_->updateStateBlocking(
@@ -153,11 +156,11 @@ TEST_F(DsfSubscriberTest, addSubscription) {
         auto newState = state->clone();
         updateDsfInNode(
             newState->getDsfNodes()->modify(&newState),
-            node5DsfConfig,
+            intfNodeCfg0,
             /* add */ false);
         updateDsfInNode(
             newState->getDsfNodes()->modify(&newState),
-            node6DsfConfig,
+            intfNodeCfg1,
             /* add */ false);
         return newState;
       });
@@ -171,13 +174,13 @@ TEST_F(DsfSubscriberTest, failedDsfCounter) {
 
   CounterCache counters(sw_);
   auto failedDsfCounter = SwitchStats::kCounterPrefix + "failedDsfSubscription";
-  auto node5DsfConfig = makeDsfNodeCfg(5);
+  auto intfNodeCfg0 = makeDsfNodeCfg(kIntfNodeStart);
   sw_->updateStateBlocking(
       "Add IN node", [&](const std::shared_ptr<SwitchState>& state) {
         auto newState = state->clone();
         updateDsfInNode(
             newState->getDsfNodes()->modify(&newState),
-            node5DsfConfig,
+            intfNodeCfg0,
             /* add */ true);
         return newState;
       });
@@ -185,15 +188,15 @@ TEST_F(DsfSubscriberTest, failedDsfCounter) {
 
   EXPECT_TRUE(counters.checkExist(failedDsfCounter));
   EXPECT_EQ(
-      counters.value(failedDsfCounter), node5DsfConfig.loopbackIps()->size());
+      counters.value(failedDsfCounter), intfNodeCfg0.loopbackIps()->size());
 
-  auto node6DsfConfig = makeDsfNodeCfg(6);
+  auto intfNodeCfg1 = makeDsfNodeCfg(kIntfNodeStart + 1);
   sw_->updateStateBlocking(
       "Add IN node", [&](const std::shared_ptr<SwitchState>& state) {
         auto newState = state->clone();
         updateDsfInNode(
             newState->getDsfNodes()->modify(&newState),
-            node6DsfConfig,
+            intfNodeCfg1,
             /* add */ true);
         return newState;
       });
@@ -201,8 +204,7 @@ TEST_F(DsfSubscriberTest, failedDsfCounter) {
 
   EXPECT_EQ(
       counters.value(failedDsfCounter),
-      node5DsfConfig.loopbackIps()->size() +
-          node6DsfConfig.loopbackIps()->size());
+      intfNodeCfg0.loopbackIps()->size() + intfNodeCfg1.loopbackIps()->size());
 
   // Remove 2 IN nodes
   sw_->updateStateBlocking(
@@ -210,11 +212,11 @@ TEST_F(DsfSubscriberTest, failedDsfCounter) {
         auto newState = state->clone();
         updateDsfInNode(
             newState->getDsfNodes()->modify(&newState),
-            node5DsfConfig,
+            intfNodeCfg0,
             /* add */ false);
         updateDsfInNode(
             newState->getDsfNodes()->modify(&newState),
-            node6DsfConfig,
+            intfNodeCfg1,
             /* add */ false);
         return newState;
       });

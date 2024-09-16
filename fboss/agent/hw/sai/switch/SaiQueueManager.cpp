@@ -61,7 +61,11 @@ void fillHwQueueStats(
         hwPortStats.queueEcnMarkedPackets_()[queueId] = value;
         break;
       default:
-        throw FbossError("Got unexpected queue counter id: ", counterId);
+        // Raise exception if this is not handled by implementation
+        // specific extension stats
+        if (!fillQueueExtensionStats(queueId, counterId, value, hwPortStats)) {
+          throw FbossError("Got unexpected queue counter id: ", counterId);
+        }
     }
   }
 }
@@ -473,10 +477,23 @@ SaiQueueManager::supportedWatermarkCounterIdsReadAndClear(int queueType) const {
         SaiQueueTraits::WatermarkLevelCounterIdsToReadAndClear.end()};
     return kFabricQueueWatermarksStats;
   }
-  static const std::vector<sai_stat_id_t> kWatermarkStats{
-      SaiQueueTraits::WatermarkByteCounterIdsToReadAndClear.begin(),
-      SaiQueueTraits::WatermarkByteCounterIdsToReadAndClear.end()};
-  return kWatermarkStats;
+  static std::vector<sai_stat_id_t> watermarkStats{};
+  if (watermarkStats.empty()) {
+    watermarkStats.insert(
+        watermarkStats.end(),
+        SaiQueueTraits::WatermarkByteCounterIdsToReadAndClear.begin(),
+        SaiQueueTraits::WatermarkByteCounterIdsToReadAndClear.end());
+    if (queueType == SAI_QUEUE_TYPE_UNICAST &&
+        platform_->getAsic()->isSupported(
+            HwAsic::Feature::EGRESS_GVOQ_WATERMARK_BYTES)) {
+      // GVOQ watermark is supported only on egress queues
+      watermarkStats.insert(
+          watermarkStats.end(),
+          SaiQueueTraits::egressGvoqWatermarkBytes().begin(),
+          SaiQueueTraits::egressGvoqWatermarkBytes().end());
+    }
+  }
+  return watermarkStats;
 }
 
 void SaiQueueManager::updateStats(

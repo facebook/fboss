@@ -36,7 +36,7 @@ DEFINE_bool(
 
 DEFINE_int32(
     state_machine_update_thread_heartbeat_ms,
-    10000,
+    20000,
     "State machine update thread's heartbeat interval (ms)");
 
 DEFINE_bool(
@@ -792,6 +792,20 @@ void TransceiverManager::updateStateBlocking(
 }
 
 std::shared_ptr<BlockingTransceiverStateMachineUpdateResult>
+TransceiverManager::enqueueStateUpdateForTcvrWithoutExecuting(
+    TransceiverID id,
+    TransceiverStateMachineEvent event) {
+  auto result = std::make_shared<BlockingTransceiverStateMachineUpdateResult>();
+  auto update = std::make_unique<BlockingTransceiverStateMachineUpdate>(
+      id, event, result);
+  if (enqueueStateUpdate(std::move(update))) {
+    // Only return blocking result if the update has been added in queue
+    return result;
+  }
+  return nullptr;
+}
+
+std::shared_ptr<BlockingTransceiverStateMachineUpdateResult>
 TransceiverManager::updateStateBlockingWithoutWait(
     TransceiverID id,
     TransceiverStateMachineEvent event) {
@@ -805,7 +819,7 @@ TransceiverManager::updateStateBlockingWithoutWait(
   return nullptr;
 }
 
-bool TransceiverManager::updateState(
+bool TransceiverManager::enqueueStateUpdate(
     std::unique_ptr<TransceiverStateMachineUpdate> update) {
   if (isExiting_) {
     XLOG(WARN) << "Skipped queueing update:" << update->getName()
@@ -821,11 +835,23 @@ bool TransceiverManager::updateState(
     std::unique_lock guard(pendingUpdatesLock_);
     pendingUpdates_.push_back(*update.release());
   }
+  return true;
+}
 
+void TransceiverManager::executeStateUpdates() {
   // Signal the update thread that updates are pending.
   // We call runInEventBaseThread() with a static function pointer since this
   // is more efficient than having to allocate a new bound function object.
   updateEventBase_->runInEventBaseThread(handlePendingUpdatesHelper, this);
+}
+
+bool TransceiverManager::updateState(
+    std::unique_ptr<TransceiverStateMachineUpdate> update) {
+  if (!enqueueStateUpdate(std::move(update))) {
+    return false;
+  }
+  // Signal the update thread that updates are pending.
+  executeStateUpdates();
   return true;
 }
 
@@ -1527,14 +1553,19 @@ void TransceiverManager::triggerFirmwareUpgradeEvents(
         TransceiverStateMachineEvent::TCVR_EV_UPGRADE_FIRMWARE;
     heartbeatWatchdog_->pauseMonitoringHeartbeat(
         stateMachines_.find(tcvrID)->second->getThreadHeartbeat());
-    if (auto result = updateStateBlockingWithoutWait(tcvrID, event)) {
+    // Only enqueue updates for now, we'll execute them at once after this loop
+    if (auto result =
+            enqueueStateUpdateForTcvrWithoutExecuting(tcvrID, event)) {
       results.push_back(result);
     }
   }
-  heartbeatWatchdog_->pauseMonitoringHeartbeat(updateThreadHeartbeat_);
-  waitForAllBlockingStateUpdateDone(results);
+  if (!results.empty()) {
+    executeStateUpdates();
+    heartbeatWatchdog_->pauseMonitoringHeartbeat(updateThreadHeartbeat_);
+    waitForAllBlockingStateUpdateDone(results);
 
-  resetUpgradedTransceiversToDiscovered();
+    resetUpgradedTransceiversToDiscovered();
+  }
 }
 
 void TransceiverManager::updateTransceiverActiveState(
@@ -1787,6 +1818,7 @@ void TransceiverManager::updateValidationCache(TransceiverID id, bool isValid) {
 }
 
 void TransceiverManager::refreshStateMachines() {
+  XLOG(INFO) << "refreshStateMachines started";
   // Clear the map that tracks the firmware upgrades in progress per evb
   evbsRunningFirmwareUpgrade_.wlock()->clear();
 
@@ -1876,6 +1908,8 @@ void TransceiverManager::refreshStateMachines() {
   }
   // Update the warmboot state if there is a change.
   setWarmBootState();
+
+  XLOG(INFO) << "refreshStateMachines ended";
 }
 
 void TransceiverManager::triggerAgentConfigChangeEvent() {

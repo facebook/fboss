@@ -53,7 +53,7 @@
 #include "fboss/agent/NeighborUpdater.h"
 #include "fboss/agent/PacketLogger.h"
 #include "fboss/agent/PacketObserver.h"
-#include "fboss/agent/PhySnapshotManager-defs.h"
+#include "fboss/agent/PhySnapshotManager.h"
 #include "fboss/agent/PortStats.h"
 #include "fboss/agent/PortUpdateHandler.h"
 #include "fboss/agent/ResolvedNexthopMonitor.h"
@@ -159,7 +159,7 @@ DEFINE_int32(
 
 DEFINE_int32(
     fsdbStatsStreamIntervalSeconds,
-    60,
+    5,
     "Interval at which stats subscriptions are served");
 
 DECLARE_bool(intf_nbr_tables);
@@ -387,8 +387,7 @@ SwSwitch::SwSwitch(
       lookupClassRouteUpdater_(new LookupClassRouteUpdater(this)),
       staticL2ForNeighborObserver_(new StaticL2ForNeighborObserver(this)),
       macTableManager_(new MacTableManager(this)),
-      phySnapshotManager_(
-          new PhySnapshotManager<kIphySnapshotIntervalSeconds>()),
+      phySnapshotManager_(new PhySnapshotManager(kIphySnapshotIntervalSeconds)),
       aclNexthopHandler_(new AclNexthopHandler(this)),
       teFlowNextHopHandler_(new TeFlowNexthopHandler(this)),
       dsfSubscriber_(new DsfSubscriber(this)),
@@ -466,17 +465,19 @@ bool SwSwitch::fsdbStatePublishReady() const {
 }
 
 void SwSwitch::stop(bool isGracefulStop, bool revertToMinAlpmState) {
-  // Clean up connections to FSDB before stopping
-  // packet flow.
+  // Clean up connections to FSDB before stopping packet flow.
   runFsdbSyncFunction([isGracefulStop](auto& syncer) {
     syncer->stop(isGracefulStop);
     syncer.reset();
   });
+  // Stop DSF subscriber to let us unsubscribe gracefully before stoppping
+  // packet TX/RX functionality
+  dsfSubscriber_->stop();
+
   setSwitchRunState(SwitchRunState::EXITING);
 
   XLOG(DBG2) << "Stopping SwSwitch...";
-  // Stop DSF subscriber to let us unsubscribe gracefully before stoppping
-  // packet TX/RX functionality
+
   dsfSubscriber_.reset();
 
   // First tell the hw to stop sending us events by unregistering the callback
@@ -829,7 +830,6 @@ void SwSwitch::updateStats() {
     try {
       monoHwSwitchHandler->updateStats();
     } catch (const std::exception& ex) {
-      stats()->updateStatsException();
       XLOG(ERR) << "Error running updateStats: " << folly::exceptionStr(ex);
     }
     try {
@@ -1084,7 +1084,8 @@ std::shared_ptr<SwitchState> SwSwitch::preInit(SwitchFlags flags) {
   flags_ = flags;
   bootType_ = swSwitchWarmbootHelper_->canWarmBoot() ? BootType::WARM_BOOT
                                                      : BootType::COLD_BOOT;
-  XLOG(INFO) << "Boot Type: " << apache::thrift::util::enumNameSafe(bootType_);
+  XLOG(INFO) << kNetworkEventLogPrefix
+             << " Boot Type: " << apache::thrift::util::enumNameSafe(bootType_);
 
   multiHwSwitchHandler_->start();
   std::optional<state::WarmbootState> wbState{};
@@ -2078,6 +2079,10 @@ void SwSwitch::linkActiveStateChanged(
   auto updateActiveStateFn = [=,
                               this](const std::shared_ptr<SwitchState>& state) {
     std::shared_ptr<SwitchState> newState(state);
+    if (port2IsActive.size() == 0) {
+      return newState;
+    }
+
     auto numActiveFabricPorts = 0;
     for (const auto& [portID, isActive] : port2IsActive) {
       auto* port = newState->getPorts()->getNodeIf(portID).get();
@@ -2105,10 +2110,6 @@ void SwSwitch::linkActiveStateChanged(
       }
     }
 
-    if (port2IsActive.size() == 0) {
-      return newState;
-    }
-
     // Pick matcher for any port.
     // This is OK because the matcher is used to retrieve switchSettings which
     // are same for all the ports of a HwSwitch.
@@ -2119,8 +2120,9 @@ void SwSwitch::linkActiveStateChanged(
         state->getSwitchSettings()->getNodeIf(matcher.matcherString());
     auto newActualSwitchDrainState =
         computeActualSwitchDrainState(switchSettings, numActiveFabricPorts);
-    if (newActualSwitchDrainState !=
-        switchSettings->getActualSwitchDrainState()) {
+    auto currentActualDrainState = switchSettings->getActualSwitchDrainState();
+
+    if (newActualSwitchDrainState != currentActualDrainState) {
       auto newSwitchSettings = switchSettings->modify(&newState);
       newSwitchSettings->setActualSwitchDrainState(newActualSwitchDrainState);
     }
@@ -2169,6 +2171,8 @@ void SwSwitch::switchReachabilityChanged(
   runFsdbSyncFunction([switchId, &newReachability](auto& syncer) {
     syncer->switchReachabilityChanged(switchId, std::move(newReachability));
   });
+  // Update processing complete counter
+  stats()->switchReachabilityChangeProcessed();
 }
 
 void SwSwitch::startThreads() {
@@ -2206,6 +2210,10 @@ void SwSwitch::postInit() {
       case BootType::UNINITIALIZED:
         CHECK(0);
     }
+  }
+
+  if (flags_ & SwitchFlags::PUBLISH_STATS) {
+    stats()->multiSwitchStatus(isRunModeMultiSwitch());
   }
 
   auto bgHeartbeatStatsFunc = [this](int delay, int backLog) {
@@ -2487,6 +2495,7 @@ void SwSwitch::sendPacketOutViaThriftStream(
   if (queue) {
     txPacket.queue() = queue.value();
   }
+  txPacket.length() = pkt->buf()->computeChainDataLength();
   txPacket.data() = Packet::extractIOBuf(std::move(pkt));
   auto switchIndex =
       getSwitchInfoTable().getSwitchIndexFromSwitchId(SwitchID(switchId));
@@ -2507,7 +2516,7 @@ void SwSwitch::sendPacketSwitchedAsync(std::unique_ptr<TxPacket> pkt) noexcept {
     // send failures--even on successful return from sendPacketSwitchedAsync()
     // the send may ultimately fail since it occurs asynchronously in the
     // background.
-    XLOG(ERR) << "failed to send L2 switched packet";
+    XLOG(ERR) << "failed to send switched packet";
   }
 }
 
@@ -2855,17 +2864,21 @@ bool SwSwitch::isValidStateUpdate(const StateDelta& delta) const {
       [&](const shared_ptr<Port>& /* delport */) {});
 
   // Ensure only one sflow mirror session is configured
-  int sflowMirrorCount = 0;
-  for (auto mniter : std::as_const(*(delta.newState()->getMirrors()))) {
+  std::set<std::string> ingressMirrors;
+  for (auto mniter : std::as_const(*(delta.newState()->getPorts()))) {
     for (auto iter : std::as_const(*mniter.second)) {
-      auto mirror = iter.second;
-      if (mirror->type() == Mirror::Type::SFLOW) {
-        sflowMirrorCount++;
+      auto port = iter.second;
+      if (port && port->getIngressMirror().has_value()) {
+        auto ingressMirror = delta.newState()->getMirrors()->getNodeIf(
+            port->getIngressMirror().value());
+        if (ingressMirror && ingressMirror->type() == Mirror::Type::SFLOW) {
+          ingressMirrors.insert(port->getIngressMirror().value());
+        }
       }
     }
   }
-  if (sflowMirrorCount > 1) {
-    XLOG(ERR) << "More than one sflow mirrors configured";
+  if (ingressMirrors.size() > 1) {
+    XLOG(ERR) << "Only one sflow mirror can be configured across all ports";
     isValid = false;
   }
 

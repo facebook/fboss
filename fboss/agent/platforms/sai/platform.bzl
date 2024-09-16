@@ -2,7 +2,7 @@ load("@fbcode_macros//build_defs:auto_headers.bzl", "AutoHeaders")
 load("@fbcode_macros//build_defs:cpp_binary.bzl", "cpp_binary")
 load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
 load("@fbcode_macros//build_defs:custom_unittest.bzl", "custom_unittest")
-load("//fboss/agent/hw/sai/impl:impl.bzl", "get_all_npu_impls", "get_all_phy_impls", "to_impl_lib_name", "to_impl_suffix", "to_versions")
+load("//fboss/agent/hw/sai/impl:impl.bzl", "get_all_npu_impls", "get_all_phy_impls", "get_link_group_map", "to_impl_lib_name", "to_impl_suffix", "to_versions")
 load("//fboss/agent/hw/sai/switch:switch.bzl", "sai_switch_dependent_name", "sai_switch_lib_name")
 
 headers = [
@@ -246,6 +246,7 @@ def _wedge_agent_bin(sai_impl, is_npu):
             "--export-dynamic",
             "--unresolved-symbols=ignore-all",
         ],
+        link_group_map = get_link_group_map(wedge_agent_name, sai_impl),
         auto_headers = AutoHeaders.SOURCES,
         versions = _versions(sai_impl),
         deps = [
@@ -255,6 +256,12 @@ def _wedge_agent_bin(sai_impl, is_npu):
             "//fboss/agent/hw/sai/impl:{}".format(to_impl_lib_name(sai_impl)),
         ],
     )
+
+def get_version_info_test_env(sai_impl):
+    test_env = {}
+    if sai_impl.is_dyn:
+        test_env["LD_LIBRARY_PATH"] = "third-party-buck/platform010-compat/build/{}/{}/lib/dyn".format(sai_impl.sdk_name, sai_impl.version)
+    return test_env
 
 def _wedge_agent_version_info_test(sai_impl, wedge_agent_name_prefix):
     wedge_agent_name = "{}{}".format(wedge_agent_name_prefix, to_impl_suffix(sai_impl))
@@ -272,6 +279,7 @@ def _wedge_agent_version_info_test(sai_impl, wedge_agent_name_prefix):
             ":{}".format(sai_platform_name),
             "//fboss/agent/hw/sai/impl:{}".format(to_impl_lib_name(sai_impl)),
         ],
+        env = get_version_info_test_env(sai_impl),
     )
 
 def _wedge_hwagent_bin(sai_impl, hwagent_prefix):
@@ -282,6 +290,7 @@ def _wedge_hwagent_bin(sai_impl, hwagent_prefix):
         "//fboss/agent/facebook:sai_version_{}".format(to_impl_lib_name(sai_impl)),
         ":{}".format(sai_platform_name),
         "//fboss/agent/hw/sai/impl:{}".format(to_impl_lib_name(sai_impl)),
+        "//fboss/agent/hw/sai/hw_test:{}".format(sai_switch_dependent_name("agent_hw_test_thrift_handler", sai_impl, True)),
     ]
     if sai_impl.name == "fake" or sai_impl.name == "leaba":
         hw_bin_deps.append("//fboss/agent/platforms/sai:bcm-required-symbols")
@@ -295,6 +304,7 @@ def _wedge_hwagent_bin(sai_impl, hwagent_prefix):
             "--export-dynamic",
             "--unresolved-symbols=ignore-all",
         ],
+        link_group_map = get_link_group_map(wedge_agent_name, sai_impl),
         auto_headers = AutoHeaders.SOURCES,
         versions = _versions(sai_impl),
         deps = hw_bin_deps,

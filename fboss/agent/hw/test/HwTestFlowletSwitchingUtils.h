@@ -29,8 +29,7 @@ bool verifyEcmpForFlowletSwitching(
     const folly::CIDRNetwork& routePrefix,
     const cfg::FlowletSwitchingConfig& flowletCfg,
     const cfg::PortFlowletConfig& portFlowletCfg,
-    const bool flowletEnable,
-    const bool expectFlowsetSizeZero = false);
+    const bool flowletEnable);
 
 bool verifyEcmpForNonFlowlet(
     const facebook::fboss::HwSwitch* hw,
@@ -48,8 +47,7 @@ void setEcmpMemberStatus(const facebook::fboss::TestEnsembleIf* hw);
 
 bool validateFlowSetTable(
     const facebook::fboss::HwSwitch* hw,
-    const bool expectFlowsetSizeZero,
-    const int flowSetTableSize);
+    const bool expectFlowsetSizeZero);
 
 int getL3EcmpDlbFailPackets(const facebook::fboss::TestEnsembleIf* hw);
 

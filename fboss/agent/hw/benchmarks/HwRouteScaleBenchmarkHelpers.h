@@ -8,7 +8,10 @@
  *
  */
 
+#include "fboss/agent/AgentFeatures.h"
+#include "fboss/agent/DsfStateUpdaterUtil.h"
 #include "fboss/agent/HwSwitch.h"
+#include "fboss/agent/benchmarks/AgentBenchmarks.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwSwitchEnsemble.h"
 #include "fboss/agent/hw/test/HwSwitchEnsembleFactory.h"
@@ -25,9 +28,6 @@
 #include "fboss/lib/FunctionCallTimeReporter.h"
 
 #include "fboss/agent/test/AgentEnsemble.h"
-
-DECLARE_bool(json);
-DECLARE_bool(dsf_subscribe);
 
 namespace {
 const auto kEcmpWidth = 512;
@@ -201,14 +201,27 @@ inline void voqRouteBenchmark(bool add) {
       createAgentEnsemble(voqInitialConfig, false /*disableLinkStateToggler*/);
   ScopedCallTimer timeIt;
 
-  ensemble->applyNewState([&](const std::shared_ptr<SwitchState>& in) {
-    return utility::setupRemoteIntfAndSysPorts(
-        in,
-        ensemble->scopeResolver(),
+  auto updateDsfStateFn = [&ensemble](const std::shared_ptr<SwitchState>& in) {
+    std::map<SwitchID, std::shared_ptr<SystemPortMap>> switchId2SystemPorts;
+    std::map<SwitchID, std::shared_ptr<InterfaceMap>> switchId2Rifs;
+    utility::populateRemoteIntfAndSysPorts(
+        switchId2SystemPorts,
+        switchId2Rifs,
         ensemble->getSw()->getConfig(),
         ensemble->getSw()->getHwAsicTable()->isFeatureSupportedOnAllAsic(
             HwAsic::Feature::RESERVED_ENCAP_INDEX_RANGE));
-  });
+    return DsfStateUpdaterUtil::getUpdatedState(
+        in,
+        ensemble->getSw()->getScopeResolver(),
+        ensemble->getSw()->getRib(),
+        switchId2SystemPorts,
+        switchId2Rifs);
+  };
+  ensemble->getSw()->getRib()->updateStateInRibThread(
+      [&ensemble, updateDsfStateFn]() {
+        ensemble->getSw()->updateStateWithHwFailureProtection(
+            folly::sformat("Update state for node: {}", 0), updateDsfStateFn);
+      });
 
   // Trigger config apply to add remote interface routes as directly connected
   // in RIB. This is to resolve ECMP members pointing to remote nexthops.

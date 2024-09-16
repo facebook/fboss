@@ -145,14 +145,15 @@ class PciExplorer {
       const PciDevice& pciDevice,
       const FpgaIpBlockConfig& fpgaIpBlockConfig,
       uint32_t instanceId);
-  bool isPciSubDeviceCreated(
+  bool checkPciSubDeviceReadiness(
       const PciDevice& pciDevice,
       const FpgaIpBlockConfig& fpgaIpBlockConfig,
       uint32_t instanceId);
-  bool isPciSubDevicePresent(
+  bool isPciSubDeviceReady(
       const PciDevice& pciDevice,
       const FpgaIpBlockConfig& fpgaIpBlockConfig,
       uint32_t instanceId);
+  bool isPciSubDeviceDriverReady(const std::string& devPath);
   std::optional<std::string> getPciSubDeviceIOBlockPath(
       const PciDevice& pciDevice,
       const FpgaIpBlockConfig& fpgaIpBlockConfig,

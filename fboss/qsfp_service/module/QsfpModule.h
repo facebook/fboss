@@ -20,7 +20,7 @@
 
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/lib/firmware_storage/FbossFirmware.h"
-#include "fboss/lib/link_snapshots/SnapshotManager-defs.h"
+#include "fboss/lib/link_snapshots/SnapshotManager.h"
 #include "fboss/lib/phy/gen-cpp2/phy_types.h"
 #include "fboss/lib/phy/gen-cpp2/prbs_types.h"
 #include "fboss/qsfp_service/if/gen-cpp2/qsfp_service_config_types.h"
@@ -78,7 +78,6 @@ class QsfpModule : public Transceiver {
   static constexpr auto kSnapshotIntervalSeconds = 10;
   // Miniphoton module part number
   static constexpr auto kMiniphotonPartNumber = "LUX1626C4AD";
-  using TransceiverSnapshotCache = SnapshotManager<kSnapshotIntervalSeconds>;
   using LengthAndGauge = std::pair<double, uint8_t>;
 
   explicit QsfpModule(
@@ -221,7 +220,7 @@ class QsfpModule : public Transceiver {
 
   void clearTransceiverPrbsStats(phy::Side side) override;
 
-  TransceiverSnapshotCache getTransceiverSnapshots() const {
+  SnapshotManager getTransceiverSnapshots() const {
     // return a copy to avoid needing a lock in the caller
     return snapshots_.copy();
   }
@@ -335,7 +334,7 @@ class QsfpModule : public Transceiver {
    */
   uint64_t numRemediation_{0};
 
-  folly::Synchronized<TransceiverSnapshotCache> snapshots_;
+  folly::Synchronized<SnapshotManager> snapshots_;
   folly::Synchronized<std::optional<TransceiverInfo>> info_;
   /*
    * qsfpModuleMutex_ is held around all the read and writes to the qsfpModule

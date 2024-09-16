@@ -60,7 +60,7 @@ static void verifyResolvedLocalMirror(
     const std::shared_ptr<facebook::fboss::Mirror>& mirror,
     SaiMirrorHandle* mirrorHandle) {
   auto portHandle = saiSwitch->managerTable()->portManager().getPortHandle(
-      mirror->getEgressPort().value());
+      mirror->getEgressPortDesc().value().phyPortID());
   ASSERT_NE(portHandle, nullptr);
   auto monitorPort = SaiApiTable::getInstance()->mirrorApi().getAttribute(
       mirrorHandle->adapterKey(),
@@ -77,7 +77,7 @@ static void verifyResolvedErspanMirror(
     const std::shared_ptr<facebook::fboss::Mirror>& mirror,
     SaiMirrorHandle* mirrorHandle) {
   auto portHandle = saiSwitch->managerTable()->portManager().getPortHandle(
-      mirror->getEgressPort().value());
+      mirror->getEgressPortDesc().value().phyPortID());
   ASSERT_NE(portHandle, nullptr);
   auto monitorPort = SaiApiTable::getInstance()->mirrorApi().getAttribute(
       mirrorHandle->adapterKey(),
@@ -130,7 +130,7 @@ static void verifyResolvedSflowMirror(
     const std::shared_ptr<facebook::fboss::Mirror>& mirror,
     SaiMirrorHandle* mirrorHandle) {
   auto portHandle = saiSwitch->managerTable()->portManager().getPortHandle(
-      mirror->getEgressPort().value());
+      mirror->getEgressPortDesc().value().phyPortID());
   ASSERT_NE(portHandle, nullptr);
   auto monitorPort = SaiApiTable::getInstance()->mirrorApi().getAttribute(
       mirrorHandle->adapterKey(),

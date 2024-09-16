@@ -22,58 +22,7 @@
 
 namespace facebook::fboss {
 
-namespace {
-const SaiRouterInterfaceHandle* getRouterInterfaceHandle(
-    const SaiManagerTable* managerTable,
-    InterfaceID intf) {
-  return managerTable->routerInterfaceManager().getRouterInterfaceHandle(intf);
-}
-
-const SaiNeighborHandle* getNbrHandle(
-    const SaiManagerTable* managerTable,
-    InterfaceID intf,
-    const folly::IPAddress& ip) {
-  auto rintfHandle = getRouterInterfaceHandle(managerTable, intf);
-  SaiNeighborTraits::NeighborEntry entry(
-      managerTable->switchManager().getSwitchSaiId(),
-      rintfHandle->adapterKey(),
-      ip);
-  return managerTable->neighborManager().getNeighborHandle(entry);
-}
-} // namespace
-
 namespace utility {
-
-bool nbrProgrammedToCpu(
-    const HwSwitch* hwSwitch,
-    InterfaceID intf,
-    const folly::IPAddress& ip) {
-  auto managerTable = static_cast<const SaiSwitch*>(hwSwitch)->managerTable();
-  auto nbrHandle = getNbrHandle(managerTable, intf, ip);
-  // TODO Lookup interface route and confirm that it points to CPU nhop
-  return nbrHandle == nullptr;
-}
-
-bool nbrExists(
-    const HwSwitch* hwSwitch,
-    InterfaceID intf,
-    const folly::IPAddress& ip) {
-  auto managerTable = static_cast<const SaiSwitch*>(hwSwitch)->managerTable();
-  auto nbrHandle = getNbrHandle(managerTable, intf, ip);
-
-  return nbrHandle && nbrHandle->neighbor;
-}
-
-std::optional<uint32_t> getNbrClassId(
-    const HwSwitch* hwSwitch,
-    InterfaceID intf,
-    const folly::IPAddress& ip) {
-  auto managerTable = static_cast<const SaiSwitch*>(hwSwitch)->managerTable();
-  auto nbrHandle = getNbrHandle(managerTable, intf, ip);
-  return SaiApiTable::getInstance()->neighborApi().getAttribute(
-      nbrHandle->neighbor->adapterKey(),
-      SaiNeighborTraits::Attributes::Metadata{});
-}
 
 bool isHostHit(const HwSwitch* /*hwSwitch*/, const folly::IPAddress& /*ip*/) {
   throw FbossError("Neighbor entry hitbit is unsupported for SAI");

@@ -189,6 +189,10 @@ class HwAsic {
     EGRESS_CORE_BUFFER_WATERMARK,
     DELETED_CREDITS_STAT,
     INGRESS_PRIORITY_GROUP_DROPPED_PACKETS,
+    // replace all ACL based trap reasons by
+    // explicty ACL config programmed by FBOSS
+    NO_RX_REASON_TRAP,
+    EGRESS_GVOQ_WATERMARK_BYTES,
   };
 
   enum class AsicMode {

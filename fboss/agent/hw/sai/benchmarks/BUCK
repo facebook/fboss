@@ -31,6 +31,7 @@ sai_mono_agent_benchmark(
         "//fboss/agent/hw/benchmarks:hw_rib_sync_fib_speed",
         "//fboss/agent/hw/benchmarks:hw_rx_slow_path_rate",
         "//fboss/agent/hw/benchmarks:hw_stats_collection_speed",
+        "//fboss/agent/hw/benchmarks:hw_switch_reachability_change_speed",
         "//fboss/agent/hw/benchmarks:hw_th_alpm_scale_route_add_speed",
         "//fboss/agent/hw/benchmarks:hw_th_alpm_scale_route_del_speed",
         "//fboss/agent/hw/benchmarks:hw_tx_slow_path_rate",

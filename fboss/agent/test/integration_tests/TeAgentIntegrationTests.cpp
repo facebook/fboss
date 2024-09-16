@@ -41,6 +41,7 @@ static int kTeFlowEntries(9000);
 } // namespace
 
 using namespace facebook::neteng::ai;
+using namespace std::chrono;
 
 using StateUpdateFn = facebook::fboss::SwSwitch::StateUpdateFn;
 

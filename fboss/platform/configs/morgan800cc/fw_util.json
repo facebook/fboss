@@ -2,7 +2,7 @@
   "fwConfigs": {
     "bios": {
       "preUpgradeCmd": "printf '03000000:03FFFFFF normal\\n' > /home/bios_spi_layout; flashrom -p internal 2>&1 > /home/bios-flashrom-output.txt; grep \"Found Programmer flash chip\" /home/bios-flashrom-output.txt | grep -P '\"[^\"]+\"' | cut -d '\"' -f 2 > /home/bios-chip.txt || echo '****** error finding chip ****** ...'\n",
-      "getVersionCmd": "cat /sys/devices/virtual/dmi/id/bios_version | cut -d '.' -f 1-2\n",
+      "getVersionCmd": "cat /sys/devices/virtual/dmi/id/bios_version\n",
       "upgradeCmd": "chip=$(head -n 1 /home/bios-chip.txt); bios_filename=$(head -n 1 /home/bios_filename.txt); flashrom -p internal -c \"$chip\" -l /home/bios_spi_layout -i normal --noverify-all -w $bios_filename\n",
       "postUpgradeCmd": "chip=$(head -n 1 /home/bios-chip.txt); bios_filename=$(head -n 1 /home/bios_filename.txt); flashrom -p internal -c \"$chip\" -l /home/bios_spi_layout -i normal -v $bios_filename; rm /home/bios-chip.txt; rm /home/bios_spi_layout; rm /home/bios-flashrom-output.txt\n",
       "verifyFwCmd": "chip=$(head -n 1 /home/bios-chip.txt); bios_filename=$(head -n 1 /home/bios_filename.txt); flashrom -p internal -c \"$chip\" -l /home/bios_spi_layout -i normal -v $bios_filename\n",

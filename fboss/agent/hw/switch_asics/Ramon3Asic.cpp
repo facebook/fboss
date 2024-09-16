@@ -118,7 +118,7 @@ uint32_t Ramon3Asic::getMaxEcmpSize() const {
 }
 
 uint32_t Ramon3Asic::getNumCores() const {
-  throw FbossError("Num cores API not supported by Ramon3Asic");
+  return 2;
 }
 
 bool Ramon3Asic::scalingFactorBasedDynamicThresholdSupported() const {

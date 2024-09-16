@@ -6,7 +6,6 @@
 #include "fboss/agent/SwitchStats.h"
 #include "fboss/agent/Utils.h"
 
-#include <folly/io/async/ScopedEventBaseThread.h>
 #include "fboss/agent/CommonInit.h"
 #include "fboss/agent/EncapIndexAllocator.h"
 #include "fboss/agent/ThriftHandler.h"
@@ -16,6 +15,13 @@
 #include "fboss/lib/CommonFileUtils.h"
 #include "fboss/lib/CommonUtils.h"
 #include "fboss/lib/config/PlatformConfigUtils.h"
+
+#include <folly/io/async/EventBase.h>
+#include <folly/io/async/ScopedEventBaseThread.h>
+#include <thrift/lib/cpp2/async/PooledRequestChannel.h>
+#include <thrift/lib/cpp2/async/ReconnectingRequestChannel.h>
+#include <thrift/lib/cpp2/async/RetryingRequestChannel.h>
+#include <thrift/lib/cpp2/async/RocketClientChannel.h>
 
 #include <gtest/gtest.h>
 
@@ -563,6 +569,36 @@ bool AgentEnsemble::ensureSendPacketOutOfPort(
       getPortStats,
       queue,
       kMsWaitForStatsRetry);
+}
+
+std::unique_ptr<apache::thrift::Client<utility::AgentHwTestCtrl>>
+AgentEnsemble::getHwAgentTestClient(SwitchID switchId) {
+  auto switchIndex =
+      getSw()->getSwitchInfoTable().getSwitchIndexFromSwitchId(switchId);
+  uint16_t port = FLAGS_hwagent_port_base + switchIndex;
+  auto evbThread = std::make_shared<folly::ScopedEventBaseThread>();
+
+  auto reconnectingChannel =
+      apache::thrift::PooledRequestChannel::newSyncChannel(
+          evbThread, [port, evbThread](folly::EventBase& evb) {
+            return apache::thrift::RetryingRequestChannel::newChannel(
+                evb,
+                2, /*retries before error*/
+                apache::thrift::ReconnectingRequestChannel::newChannel(
+                    *evbThread->getEventBase(), [port](folly::EventBase& evb) {
+                      auto socket = folly::AsyncSocket::UniquePtr(
+                          new folly::AsyncSocket(&evb));
+                      socket->connect(
+                          nullptr, folly::SocketAddress("::1", port));
+                      auto channel =
+                          apache::thrift::RocketClientChannel::newChannel(
+                              std::move(socket));
+                      channel->setTimeout(FLAGS_hwswitch_query_timeout * 1000);
+                      return channel;
+                    }));
+          });
+  return std::make_unique<apache::thrift::Client<utility::AgentHwTestCtrl>>(
+      std::move(reconnectingChannel));
 }
 
 } // namespace facebook::fboss

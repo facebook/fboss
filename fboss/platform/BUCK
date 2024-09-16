@@ -1,5 +1,5 @@
 load("@fbcode_macros//build_defs:export_files.bzl", "export_file")
-load("//antlir/fbpkg:fbpkg.bzl", "fbpkg")
+load("//fbpkg:fbpkg.bzl", "fbpkg")
 
 oncall("fboss_platform")
 

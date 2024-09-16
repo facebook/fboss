@@ -17,8 +17,6 @@
 #include <folly/Benchmark.h>
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 
-DECLARE_bool(setup_for_warmboot);
-
 namespace facebook::fboss::utility {
 
 void initandExitBenchmarkHelper(

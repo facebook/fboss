@@ -571,6 +571,16 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
   voqLatencyMaxLevel2Ns = 4294967295;
 #endif
 
+  std::optional<SaiSwitchTraits::Attributes::RouteNoImplicitMetaData>
+      routeNoImplicitMetaData{std::nullopt};
+#if defined(BRCM_SAI_SDK_GTE_11_0)
+  if (getAsic()->isSupported(HwAsic::Feature::ROUTE_METADATA) &&
+      FLAGS_set_classid_for_my_subnet_and_ip_routes) {
+    XLOG(DBG2) << "Disable configuring implicit route metadata by sai adapter";
+    routeNoImplicitMetaData = true;
+  }
+#endif
+
   return {
       initSwitch,
       hwInfo, // hardware info
@@ -620,7 +630,7 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
 #endif
       maxCores, // Max cores
       std::nullopt, // PFC DLR Packet Action
-      std::nullopt, // route no implicit meta data
+      routeNoImplicitMetaData, // route no implicit meta data
       std::nullopt, // route allow implicit meta data
       std::nullopt, // multi-stage local switch ids
       voqLatencyMinLocalNs, // Local VoQ latency bin min

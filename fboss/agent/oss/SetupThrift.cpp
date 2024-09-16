@@ -14,5 +14,6 @@ namespace facebook::fboss {
 void serverSSLSetup(apache::thrift::ThriftServer& /*server*/) {}
 
 void setupThriftModules() {}
+void clearThriftModules() {}
 
 } // namespace facebook::fboss

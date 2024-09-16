@@ -336,7 +336,8 @@ class AggregatePort
 
   static bool isIngressValid(
       const std::shared_ptr<SwitchState>& state,
-      const std::unique_ptr<RxPacket>& packet);
+      const std::unique_ptr<RxPacket>& packet,
+      const bool needAggPortUp = false);
 
   bool isUp() const;
 

@@ -152,10 +152,15 @@ shared_ptr<SwitchState> setAllPortState(
 }
 
 std::vector<std::string> getLoopbackIps(int64_t switchIdVal) {
-  CHECK_LT(switchIdVal, 10) << " Switch Id >= 10, not supported";
-
-  auto v6 = folly::sformat("20{}::1/64", switchIdVal);
-  auto v4 = folly::sformat("20{}.0.0.1/24", switchIdVal);
+  // Starts loopback IP with 200::
+  static constexpr auto firstOctetLimit = 56;
+  static constexpr auto switchIdLimit = firstOctetLimit * 255;
+  CHECK_LE(switchIdVal, switchIdLimit)
+      << "SwitchId > " << switchIdLimit << " not supported";
+  auto firstOctet = 200 + switchIdVal % firstOctetLimit;
+  auto secondOctet = switchIdVal / firstOctetLimit;
+  auto v6 = folly::to<std::string>(firstOctet, ":", secondOctet, "::1/64");
+  auto v4 = folly::to<std::string>(firstOctet, ".", secondOctet, ".0.1/24");
   return {v6, v4};
 }
 
@@ -176,40 +181,6 @@ cfg::Interface getRecyclePortRif(const cfg::DsfNode& myNode) {
 void addRecyclePortRif(const cfg::DsfNode& myNode, cfg::SwitchConfig& cfg) {
   cfg::Interface recyclePortRif = getRecyclePortRif(myNode);
   cfg.interfaces()->push_back(recyclePortRif);
-}
-
-cfg::SwitchConfig testConfigFabricSwitch() {
-  static constexpr auto kPortCount = 20;
-  cfg::SwitchConfig cfg;
-  cfg.ports()->resize(kPortCount);
-  cfg.switchSettings()->switchIdToSwitchInfo() = {std::make_pair(
-      20,
-      createSwitchInfo(
-          cfg::SwitchType::FABRIC,
-          cfg::AsicType::ASIC_TYPE_MOCK,
-          0, /* port id range min */
-          1023, /* port id range max */
-          0, /* switchIndex */
-          std::nullopt, /* systemPort min */
-          std::nullopt, /* systemPort max */
-          std::nullopt, /* switchMac */
-          "68:00" /* connection handle */))};
-
-  for (int p = 0; p < kPortCount; ++p) {
-    cfg.ports()[p].logicalID() = p + 1;
-    cfg.ports()[p].name() = folly::to<string>("port", p + 1);
-    cfg.ports()[p].state() = cfg::PortState::ENABLED;
-    cfg.ports()[p].speed() = cfg::PortSpeed::HUNDREDG;
-    cfg.ports()[p].speed() = cfg::PortSpeed::TWENTYFIVEG;
-    cfg.ports()[p].profileID() =
-        cfg::PortProfileID::PROFILE_25G_1_NRZ_CL74_COPPER;
-    cfg.ports()[p].portType() = cfg::PortType::FABRIC_PORT;
-  }
-  auto myNode = makeDsfNodeCfg(20, cfg::DsfNodeType::FABRIC_NODE);
-  cfg.dsfNodes()->insert({*myNode.switchId(), myNode});
-  cfg::DsfNode inNode = makeDsfNodeCfg(1);
-  cfg.dsfNodes()->insert({*inNode.switchId(), inNode});
-  return cfg;
 }
 
 cfg::SwitchConfig testConfigAImpl(bool isMhnic, cfg::SwitchType switchType) {
@@ -296,12 +267,12 @@ cfg::SwitchConfig testConfigAImpl(bool isMhnic, cfg::SwitchType switchType) {
   } else {
     if (switchType == cfg::SwitchType::VOQ) {
       // Add config for VOQ DsfNode
-      cfg::DsfNode myNode = makeDsfNodeCfg(1);
+      cfg::DsfNode myNode = makeDsfNodeCfg(kVoqSwitchIdBegin);
       cfg.dsfNodes()->insert({*myNode.switchId(), myNode});
       cfg.interfaces()->resize(kPortCount);
       CHECK(myNode.systemPortRange().has_value());
       cfg.switchSettings()->switchIdToSwitchInfo() = {std::make_pair(
-          1,
+          kVoqSwitchIdBegin,
           createSwitchInfo(
               cfg::SwitchType::VOQ,
               cfg::AsicType::ASIC_TYPE_MOCK,
@@ -341,7 +312,8 @@ cfg::SwitchConfig testConfigAImpl(bool isMhnic, cfg::SwitchType switchType) {
       addRecyclePortRif(myNode, cfg);
       // Add a fabric node to DSF node as well. In prod DsfNode map will have
       // both IN and FN nodes
-      auto fnNode = makeDsfNodeCfg(20, cfg::DsfNodeType::FABRIC_NODE);
+      auto fnNode =
+          makeDsfNodeCfg(kFabricSwitchIdBegin, cfg::DsfNodeType::FABRIC_NODE);
       cfg.dsfNodes()->insert({*fnNode.switchId(), fnNode});
     }
   }
@@ -451,7 +423,8 @@ cfg::SwitchConfig testConfigBImpl() {
 
   // Add a fabric node to DSF node as well. In prod DsfNode map will have
   // both IN and FN nodes
-  auto fnNode = makeDsfNodeCfg(20, cfg::DsfNodeType::FABRIC_NODE);
+  auto fnNode =
+      makeDsfNodeCfg(kFabricSwitchIdBegin, cfg::DsfNodeType::FABRIC_NODE);
   cfg.dsfNodes()->insert({*fnNode.switchId(), fnNode});
 
   return cfg;
@@ -504,7 +477,12 @@ std::tuple<state::NeighborEntries, state::NeighborEntries> makeNbrs() {
   return std::make_pair(ndpTable, arpTable);
 }
 
-cfg::DsfNode makeDsfNodeCfg(int64_t switchId, cfg::DsfNodeType type) {
+cfg::DsfNode makeDsfNodeCfg(
+    int64_t switchId,
+    cfg::DsfNodeType type,
+    std::optional<int> clusterId,
+    cfg::AsicType asicType,
+    std::optional<int> fabricLevel) {
   cfg::DsfNode dsfNodeCfg;
   dsfNodeCfg.switchId() = switchId;
   dsfNodeCfg.name() = folly::sformat("dsfNodeCfg{}", switchId);
@@ -518,12 +496,143 @@ cfg::DsfNode makeDsfNodeCfg(int64_t switchId, cfg::DsfNodeType type) {
     dsfNodeCfg.loopbackIps() = getLoopbackIps(switchId);
     dsfNodeCfg.nodeMac() = "02:00:00:00:0F:0B";
   }
-  dsfNodeCfg.asicType() = cfg::AsicType::ASIC_TYPE_MOCK;
+  dsfNodeCfg.asicType() = asicType;
+  dsfNodeCfg.platformType() = type == cfg::DsfNodeType::INTERFACE_NODE
+      ? PlatformType::PLATFORM_MERU800BIA
+      : PlatformType::PLATFORM_MERU800BFA;
+  if (clusterId.has_value()) {
+    dsfNodeCfg.clusterId() = clusterId.value();
+  }
+  if (fabricLevel.has_value()) {
+    CHECK_EQ(
+        static_cast<int>(type),
+        static_cast<int>(cfg::DsfNodeType::FABRIC_NODE));
+    dsfNodeCfg.fabricLevel() = fabricLevel.value();
+  }
   return dsfNodeCfg;
 }
 
 cfg::SwitchConfig testConfigA(cfg::SwitchType switchType) {
   return testConfigAImpl(false, switchType);
+}
+
+cfg::SwitchConfig testConfigFabricSwitch(
+    bool dualStage,
+    int fabricLevel,
+    int parallLinkPerNode,
+    std::optional<int> dualStageNeighborLevel2FabricNodes) {
+  static constexpr auto kPortCount = 20;
+  static constexpr auto switchIdGap = 4;
+
+  // FabricLevel: FDSW - 1, SDSW - 2. Also ensure config is dual stage if
+  // fabricLevel is 2.
+  CHECK(fabricLevel == 1 || (fabricLevel == 2 && dualStage));
+  // If dual stage and fabricLevel == 1, dualStageLevel2NeighborFabricNodes is
+  // needed, and no larger than the total number of neighbor nodes.
+  if (dualStage && fabricLevel == 1) {
+    CHECK(dualStageNeighborLevel2FabricNodes.has_value());
+    CHECK_LE(
+        dualStageNeighborLevel2FabricNodes.value(),
+        kPortCount / parallLinkPerNode);
+  }
+
+  cfg::SwitchConfig cfg;
+  cfg.ports()->resize(kPortCount);
+  cfg.switchSettings()->switchIdToSwitchInfo() = {std::make_pair(
+      kFabricSwitchIdBegin,
+      createSwitchInfo(
+          cfg::SwitchType::FABRIC,
+          cfg::AsicType::ASIC_TYPE_MOCK,
+          0, /* port id range min */
+          1023, /* port id range max */
+          0, /* switchIndex */
+          std::nullopt, /* systemPort min */
+          std::nullopt, /* systemPort max */
+          std::nullopt, /* switchMac */
+          "68:00" /* connection handle */))};
+
+  for (int p = 0; p < kPortCount; ++p) {
+    cfg.ports()[p].logicalID() = p + 1;
+    cfg.ports()[p].name() = folly::to<string>("port", p + 1);
+    cfg.ports()[p].state() = cfg::PortState::ENABLED;
+    cfg.ports()[p].speed() = cfg::PortSpeed::TWENTYFIVEG;
+    cfg.ports()[p].profileID() =
+        cfg::PortProfileID::PROFILE_25G_1_NRZ_CL74_COPPER;
+    cfg.ports()[p].portType() = cfg::PortType::FABRIC_PORT;
+  }
+  auto myNode =
+      makeDsfNodeCfg(kFabricSwitchIdBegin, cfg::DsfNodeType::FABRIC_NODE);
+  cfg.dsfNodes()->insert({*myNode.switchId(), myNode});
+
+  auto nextFabricSwitchId = kFabricSwitchIdBegin + switchIdGap;
+  auto nextVoqSwitchId = kVoqSwitchIdBegin;
+
+  for (int i = 0; i < kPortCount / parallLinkPerNode; i++) {
+    // Single Stage - All nodes are interface node with no clusterId
+    // Dual Stage FDSW - dualStageNeighborLevel2FabricNodes fabric node and rest
+    // are interface node with same cluterId. Dual Stage SDSW = all farbic node
+    // with different clusterId
+    std::optional<int> clusterId;
+    std::optional<int> remoteFabricLevel;
+    if (dualStage) {
+      if (fabricLevel == 2) {
+        clusterId = i + 1;
+        remoteFabricLevel = 1;
+      } else if (i >= dualStageNeighborLevel2FabricNodes.value()) {
+        clusterId = 1;
+        remoteFabricLevel = 2;
+      }
+    }
+
+    cfg::DsfNodeType remoteDsfNodeType;
+    if (!dualStage) {
+      remoteDsfNodeType = cfg::DsfNodeType::INTERFACE_NODE;
+    } else if (fabricLevel == 1) {
+      remoteDsfNodeType = i < dualStageNeighborLevel2FabricNodes.value()
+          ? cfg::DsfNodeType::FABRIC_NODE
+          : cfg::DsfNodeType::INTERFACE_NODE;
+    } else {
+      remoteDsfNodeType = cfg::DsfNodeType::FABRIC_NODE;
+    }
+
+    auto asicType = remoteDsfNodeType == cfg::DsfNodeType::FABRIC_NODE
+        ? cfg::AsicType::ASIC_TYPE_RAMON3
+        : cfg::AsicType::ASIC_TYPE_JERICHO3;
+    cfg::DsfNode remoteNode = makeDsfNodeCfg(
+        remoteDsfNodeType == cfg::DsfNodeType::FABRIC_NODE ? nextFabricSwitchId
+                                                           : nextVoqSwitchId,
+        remoteDsfNodeType,
+        clusterId,
+        asicType,
+        remoteDsfNodeType == cfg::DsfNodeType::FABRIC_NODE ? remoteFabricLevel
+                                                           : std::nullopt);
+    cfg.dsfNodes()->insert({*remoteNode.switchId(), remoteNode});
+
+    if (remoteDsfNodeType == cfg::DsfNodeType::FABRIC_NODE) {
+      nextFabricSwitchId += switchIdGap;
+    } else {
+      nextVoqSwitchId += switchIdGap;
+    }
+
+    for (int j = 0; j < parallLinkPerNode; j++) {
+      cfg::PortNeighbor portNeighbor;
+      portNeighbor.remoteSystem() = *remoteNode.name();
+      portNeighbor.remotePort() = folly::to<string>("fab1/", j + 1, "/2");
+      auto portIdx = i * parallLinkPerNode + j;
+      cfg.ports()[portIdx].expectedNeighborReachability() = {portNeighbor};
+    }
+  }
+
+  // Insert one more node in different cluster, such that reachability group
+  // will be processed as dual stage.
+  if (dualStage && parallLinkPerNode == 1) {
+    cfg::DsfNode cluster2Node = makeDsfNodeCfg(
+        nextVoqSwitchId, cfg::DsfNodeType::INTERFACE_NODE, 2 /* clusterId */);
+    cfg.dsfNodes()->insert({*cluster2Node.switchId(), cluster2Node});
+
+    nextVoqSwitchId += switchIdGap;
+  }
+  return cfg;
 }
 
 cfg::SwitchConfig testConfigB() {

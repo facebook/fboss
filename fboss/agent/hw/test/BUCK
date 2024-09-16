@@ -328,12 +328,10 @@ hw_test_common_srcs = [
     "HwFlexPortTests.cpp",
     "HwEcmpTrunkTests.cpp",
     "HwEmptyTest.cpp",
-    "HwL2ClassIDTests.cpp",
     "HwLabelEdgeRouteTest.cpp",
     "HwLabelSwitchRouteTest.cpp",
     "HwLinkStateDependentTest.cpp",
     "HwMirrorTests.cpp",
-    "HwNeighborTests.cpp",
     "HwPortLedTests.cpp",
     "HwPortProfileTests.cpp",
     "HwPortStressTests.cpp",
@@ -425,7 +423,6 @@ cpp_library(
         "//fboss/agent:address_utils",
         "//fboss/agent:apply_thrift_config",
         "//fboss/agent:constants",
-        "//fboss/agent:core",
         "//fboss/agent:fboss-error",
         "//fboss/agent:fboss-types",
         "//fboss/agent:gtest_defs",
@@ -510,7 +507,6 @@ cpp_library(
         ":hw_test_flowlet_switching_utils",
         ":hw_test_mirror_utils",
         ":hw_test_mpls_utils",
-        ":hw_test_neighbor_utils",
         ":hw_test_port_utils",
         ":hw_test_ptp_tc_utils",
         ":hw_test_route_utils",
@@ -526,7 +522,6 @@ cpp_library(
         "//fboss/agent:address_utils",
         "//fboss/agent:apply_thrift_config",
         "//fboss/agent:constants",
-        "//fboss/agent:core",
         "//fboss/agent:fboss-error",
         "//fboss/agent:fboss-types",
         "//fboss/agent:gtest_defs",
@@ -818,5 +813,18 @@ cpp_library(
         "//fboss/agent/hw/switch_asics:switch_asics",
         "//fboss/agent/test/utils:aqm_test_utils",
         "//fboss/lib:common_utils",
+    ],
+)
+
+cpp_library(
+    name = "hw_test_thrift_handler_h",
+    headers = [
+        "HwTestThriftHandler.h",
+    ],
+    exported_deps = [
+        "//fboss/agent:fboss-error",
+        "//fboss/agent:hw_switch",
+        "//fboss/agent:switch_state-cpp2-types",
+        "//fboss/agent/if:agent_hw_test_ctrl-cpp2-services",
     ],
 )

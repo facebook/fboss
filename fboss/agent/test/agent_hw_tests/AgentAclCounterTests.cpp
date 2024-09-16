@@ -475,6 +475,9 @@ class AgentAclCounterTest : public AgentHwTest {
         acl->ttl() = cfg::Ttl();
         *acl->ttl()->value() = 128;
         *acl->ttl()->mask() = 128;
+        if (isSupportedOnAllAsics(HwAsic::Feature::ACL_ENTRY_ETHER_TYPE)) {
+          acl->etherType() = cfg::EtherType::IPv6;
+        }
         break;
       case AclType::SRC_PORT:
       case AclType::SRC_PORT_DENY:
@@ -759,7 +762,8 @@ class AgentFlowletAclCounterTest
         ensemble.getSw(),
         ensemble.masterLogicalPortIds(),
         true /*interfaceHasSubnet*/);
-    cfg.udfConfig() = utility::addUdfAckAndFlowletAclConfig();
+    cfg.udfConfig() = utility::addUdfAclConfig(
+        utility::kUdfOffsetBthOpcode | utility::kUdfOffsetBthReserved);
     utility::addFlowletConfigs(cfg, ensemble.masterLogicalPortIds());
     return cfg;
   }

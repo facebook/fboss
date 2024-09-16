@@ -52,6 +52,9 @@ class AgentEnsembleTest : public ::testing::Test {
    * used to verify that none of the traffic bearing ports flapped
    */
   void assertNoInDiscards(int maxNumDiscards = 0);
+  void assertNoInErrors(int maxNumDiscards = 0);
+
+  void getAllHwPortStats(std::map<std::string, HwPortStats>& hwPortStats) const;
 
   void reloadPlatformConfig();
   std::map<PortID, FabricEndpoint> getFabricConnectivity(
@@ -106,12 +109,14 @@ class AgentEnsembleTest : public ::testing::Test {
   }
 
   std::string getAgentTestDir() const {
-    return AgentDirectoryUtil().getPersistentStateDir() + "/agent_test/";
+    return AgentDirectoryUtil().agentEnsembleConfigDir();
   }
 
   std::string getTestConfigPath() const {
-    return getAgentTestDir() + "/agent_test.conf";
+    return getAgentTestDir() + "/agent.conf";
   }
+
+  std::shared_ptr<SwitchState> applyNewConfig(const cfg::SwitchConfig& config);
 
   void dumpRunningConfig(const std::string& targetDir);
   SwSwitch* getSw() const;
@@ -134,7 +139,7 @@ class AgentEnsembleTest : public ::testing::Test {
   void setupPlatformConfig(AgentEnsemblePlatformConfigFn platformConfigFn) {
     platformConfigFn_ = std::move(platformConfigFn);
   }
-  cfg::SwitchConfig initialConfig(const AgentEnsemble& ensemble) const;
+  virtual cfg::SwitchConfig initialConfig(const AgentEnsemble& ensemble);
   bool isSupportedOnAllAsics(HwAsic::Feature feature) const;
   AgentEnsemble* getAgentEnsemble() const;
   const std::shared_ptr<SwitchState> getProgrammedState() const;

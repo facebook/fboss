@@ -2,6 +2,8 @@
   "defaultCommandLineArgs": {
     "check_wb_handles": "true",
     "counter_refresh_interval": "0",
+    "disable_neighbor_updates": "true",
+    "enable_replayer": "true",
     "intf_nbr_tables": "true",
     "log_variable_name": "true",
     "sai_configure_six_tap": "true"
@@ -7508,7 +7510,7 @@
         "routable": true,
         "ingressVlan": 0,
         "speed": 106250,
-        "name": "fab1/23/1",
+        "name": "fab1/24/1",
         "description": "",
         "queues_DEPRECATED": [
           
@@ -7543,7 +7545,7 @@
         "routable": true,
         "ingressVlan": 0,
         "speed": 106250,
-        "name": "fab1/23/2",
+        "name": "fab1/24/2",
         "description": "",
         "queues_DEPRECATED": [
           
@@ -7578,7 +7580,7 @@
         "routable": true,
         "ingressVlan": 0,
         "speed": 106250,
-        "name": "fab1/23/3",
+        "name": "fab1/24/3",
         "description": "",
         "queues_DEPRECATED": [
           
@@ -7613,7 +7615,7 @@
         "routable": true,
         "ingressVlan": 0,
         "speed": 106250,
-        "name": "fab1/23/4",
+        "name": "fab1/24/4",
         "description": "",
         "queues_DEPRECATED": [
           
@@ -7648,7 +7650,7 @@
         "routable": true,
         "ingressVlan": 0,
         "speed": 106250,
-        "name": "fab1/23/5",
+        "name": "fab1/24/5",
         "description": "",
         "queues_DEPRECATED": [
           
@@ -7683,7 +7685,7 @@
         "routable": true,
         "ingressVlan": 0,
         "speed": 106250,
-        "name": "fab1/23/6",
+        "name": "fab1/24/6",
         "description": "",
         "queues_DEPRECATED": [
           
@@ -7718,7 +7720,7 @@
         "routable": true,
         "ingressVlan": 0,
         "speed": 106250,
-        "name": "fab1/23/7",
+        "name": "fab1/24/7",
         "description": "",
         "queues_DEPRECATED": [
           
@@ -7753,7 +7755,7 @@
         "routable": true,
         "ingressVlan": 0,
         "speed": 106250,
-        "name": "fab1/23/8",
+        "name": "fab1/24/8",
         "description": "",
         "queues_DEPRECATED": [
           
@@ -7788,7 +7790,7 @@
         "routable": true,
         "ingressVlan": 0,
         "speed": 106250,
-        "name": "fab1/24/1",
+        "name": "fab1/25/1",
         "description": "",
         "queues_DEPRECATED": [
           
@@ -7823,7 +7825,7 @@
         "routable": true,
         "ingressVlan": 0,
         "speed": 106250,
-        "name": "fab1/24/2",
+        "name": "fab1/25/2",
         "description": "",
         "queues_DEPRECATED": [
           
@@ -7858,7 +7860,7 @@
         "routable": true,
         "ingressVlan": 0,
         "speed": 106250,
-        "name": "fab1/24/3",
+        "name": "fab1/25/3",
         "description": "",
         "queues_DEPRECATED": [
           
@@ -7893,7 +7895,7 @@
         "routable": true,
         "ingressVlan": 0,
         "speed": 106250,
-        "name": "fab1/24/4",
+        "name": "fab1/25/4",
         "description": "",
         "queues_DEPRECATED": [
           
@@ -7928,7 +7930,7 @@
         "routable": true,
         "ingressVlan": 0,
         "speed": 106250,
-        "name": "fab1/24/5",
+        "name": "fab1/25/5",
         "description": "",
         "queues_DEPRECATED": [
           
@@ -7963,7 +7965,7 @@
         "routable": true,
         "ingressVlan": 0,
         "speed": 106250,
-        "name": "fab1/24/6",
+        "name": "fab1/25/6",
         "description": "",
         "queues_DEPRECATED": [
           
@@ -7998,7 +8000,7 @@
         "routable": true,
         "ingressVlan": 0,
         "speed": 106250,
-        "name": "fab1/24/7",
+        "name": "fab1/25/7",
         "description": "",
         "queues_DEPRECATED": [
           
@@ -8033,7 +8035,7 @@
         "routable": true,
         "ingressVlan": 0,
         "speed": 106250,
-        "name": "fab1/24/8",
+        "name": "fab1/25/8",
         "description": "",
         "queues_DEPRECATED": [
           
@@ -8068,7 +8070,7 @@
         "routable": true,
         "ingressVlan": 0,
         "speed": 106250,
-        "name": "fab1/25/1",
+        "name": "fab1/27/1",
         "description": "",
         "queues_DEPRECATED": [
           
@@ -8103,7 +8105,7 @@
         "routable": true,
         "ingressVlan": 0,
         "speed": 106250,
-        "name": "fab1/25/2",
+        "name": "fab1/27/2",
         "description": "",
         "queues_DEPRECATED": [
           
@@ -8138,7 +8140,7 @@
         "routable": true,
         "ingressVlan": 0,
         "speed": 106250,
-        "name": "fab1/25/3",
+        "name": "fab1/27/3",
         "description": "",
         "queues_DEPRECATED": [
           
@@ -8173,7 +8175,7 @@
         "routable": true,
         "ingressVlan": 0,
         "speed": 106250,
-        "name": "fab1/25/4",
+        "name": "fab1/27/4",
         "description": "",
         "queues_DEPRECATED": [
           
@@ -8208,7 +8210,7 @@
         "routable": true,
         "ingressVlan": 0,
         "speed": 106250,
-        "name": "fab1/25/5",
+        "name": "fab1/27/5",
         "description": "",
         "queues_DEPRECATED": [
           
@@ -8243,7 +8245,7 @@
         "routable": true,
         "ingressVlan": 0,
         "speed": 106250,
-        "name": "fab1/25/6",
+        "name": "fab1/27/6",
         "description": "",
         "queues_DEPRECATED": [
           
@@ -8278,7 +8280,7 @@
         "routable": true,
         "ingressVlan": 0,
         "speed": 106250,
-        "name": "fab1/25/7",
+        "name": "fab1/27/7",
         "description": "",
         "queues_DEPRECATED": [
           
@@ -8313,7 +8315,7 @@
         "routable": true,
         "ingressVlan": 0,
         "speed": 106250,
-        "name": "fab1/25/8",
+        "name": "fab1/27/8",
         "description": "",
         "queues_DEPRECATED": [
           
@@ -8628,7 +8630,7 @@
         "routable": true,
         "ingressVlan": 0,
         "speed": 106250,
-        "name": "fab1/27/1",
+        "name": "fab1/23/1",
         "description": "",
         "queues_DEPRECATED": [
           
@@ -8663,7 +8665,7 @@
         "routable": true,
         "ingressVlan": 0,
         "speed": 106250,
-        "name": "fab1/27/2",
+        "name": "fab1/23/2",
         "description": "",
         "queues_DEPRECATED": [
           
@@ -8698,7 +8700,7 @@
         "routable": true,
         "ingressVlan": 0,
         "speed": 106250,
-        "name": "fab1/27/3",
+        "name": "fab1/23/3",
         "description": "",
         "queues_DEPRECATED": [
           
@@ -8733,7 +8735,7 @@
         "routable": true,
         "ingressVlan": 0,
         "speed": 106250,
-        "name": "fab1/27/4",
+        "name": "fab1/23/4",
         "description": "",
         "queues_DEPRECATED": [
           
@@ -8768,7 +8770,7 @@
         "routable": true,
         "ingressVlan": 0,
         "speed": 106250,
-        "name": "fab1/27/5",
+        "name": "fab1/23/5",
         "description": "",
         "queues_DEPRECATED": [
           
@@ -8803,7 +8805,7 @@
         "routable": true,
         "ingressVlan": 0,
         "speed": 106250,
-        "name": "fab1/27/6",
+        "name": "fab1/23/6",
         "description": "",
         "queues_DEPRECATED": [
           
@@ -8838,7 +8840,7 @@
         "routable": true,
         "ingressVlan": 0,
         "speed": 106250,
-        "name": "fab1/27/7",
+        "name": "fab1/23/7",
         "description": "",
         "queues_DEPRECATED": [
           
@@ -8873,7 +8875,7 @@
         "routable": true,
         "ingressVlan": 0,
         "speed": 106250,
-        "name": "fab1/27/8",
+        "name": "fab1/23/8",
         "description": "",
         "queues_DEPRECATED": [
           
@@ -8908,7 +8910,7 @@
         "routable": true,
         "ingressVlan": 0,
         "speed": 106250,
-        "name": "fab1/28/1",
+        "name": "fab1/30/1",
         "description": "",
         "queues_DEPRECATED": [
           
@@ -8943,7 +8945,7 @@
         "routable": true,
         "ingressVlan": 0,
         "speed": 106250,
-        "name": "fab1/28/2",
+        "name": "fab1/30/2",
         "description": "",
         "queues_DEPRECATED": [
           
@@ -8978,7 +8980,7 @@
         "routable": true,
         "ingressVlan": 0,
         "speed": 106250,
-        "name": "fab1/28/3",
+        "name": "fab1/30/3",
         "description": "",
         "queues_DEPRECATED": [
           
@@ -9013,7 +9015,7 @@
         "routable": true,
         "ingressVlan": 0,
         "speed": 106250,
-        "name": "fab1/28/4",
+        "name": "fab1/30/4",
         "description": "",
         "queues_DEPRECATED": [
           
@@ -9048,7 +9050,7 @@
         "routable": true,
         "ingressVlan": 0,
         "speed": 106250,
-        "name": "fab1/28/5",
+        "name": "fab1/30/5",
         "description": "",
         "queues_DEPRECATED": [
           
@@ -9083,7 +9085,7 @@
         "routable": true,
         "ingressVlan": 0,
         "speed": 106250,
-        "name": "fab1/28/6",
+        "name": "fab1/30/6",
         "description": "",
         "queues_DEPRECATED": [
           
@@ -9118,7 +9120,7 @@
         "routable": true,
         "ingressVlan": 0,
         "speed": 106250,
-        "name": "fab1/28/7",
+        "name": "fab1/30/7",
         "description": "",
         "queues_DEPRECATED": [
           
@@ -9153,7 +9155,7 @@
         "routable": true,
         "ingressVlan": 0,
         "speed": 106250,
-        "name": "fab1/28/8",
+        "name": "fab1/30/8",
         "description": "",
         "queues_DEPRECATED": [
           
@@ -9188,7 +9190,7 @@
         "routable": true,
         "ingressVlan": 0,
         "speed": 106250,
-        "name": "fab1/29/1",
+        "name": "fab1/31/1",
         "description": "",
         "queues_DEPRECATED": [
           
@@ -9223,7 +9225,7 @@
         "routable": true,
         "ingressVlan": 0,
         "speed": 106250,
-        "name": "fab1/29/2",
+        "name": "fab1/31/2",
         "description": "",
         "queues_DEPRECATED": [
           
@@ -9258,7 +9260,7 @@
         "routable": true,
         "ingressVlan": 0,
         "speed": 106250,
-        "name": "fab1/29/3",
+        "name": "fab1/31/3",
         "description": "",
         "queues_DEPRECATED": [
           
@@ -9293,7 +9295,7 @@
         "routable": true,
         "ingressVlan": 0,
         "speed": 106250,
-        "name": "fab1/29/4",
+        "name": "fab1/31/4",
         "description": "",
         "queues_DEPRECATED": [
           
@@ -9328,7 +9330,7 @@
         "routable": true,
         "ingressVlan": 0,
         "speed": 106250,
-        "name": "fab1/29/5",
+        "name": "fab1/31/5",
         "description": "",
         "queues_DEPRECATED": [
           
@@ -9363,7 +9365,7 @@
         "routable": true,
         "ingressVlan": 0,
         "speed": 106250,
-        "name": "fab1/29/6",
+        "name": "fab1/31/6",
         "description": "",
         "queues_DEPRECATED": [
           
@@ -9398,7 +9400,7 @@
         "routable": true,
         "ingressVlan": 0,
         "speed": 106250,
-        "name": "fab1/29/7",
+        "name": "fab1/31/7",
         "description": "",
         "queues_DEPRECATED": [
           
@@ -9433,7 +9435,7 @@
         "routable": true,
         "ingressVlan": 0,
         "speed": 106250,
-        "name": "fab1/29/8",
+        "name": "fab1/31/8",
         "description": "",
         "queues_DEPRECATED": [
           
@@ -9468,7 +9470,7 @@
         "routable": true,
         "ingressVlan": 0,
         "speed": 106250,
-        "name": "fab1/30/1",
+        "name": "fab1/28/1",
         "description": "",
         "queues_DEPRECATED": [
           
@@ -9503,7 +9505,7 @@
         "routable": true,
         "ingressVlan": 0,
         "speed": 106250,
-        "name": "fab1/30/2",
+        "name": "fab1/28/2",
         "description": "",
         "queues_DEPRECATED": [
           
@@ -9538,7 +9540,7 @@
         "routable": true,
         "ingressVlan": 0,
         "speed": 106250,
-        "name": "fab1/30/3",
+        "name": "fab1/28/3",
         "description": "",
         "queues_DEPRECATED": [
           
@@ -9573,7 +9575,7 @@
         "routable": true,
         "ingressVlan": 0,
         "speed": 106250,
-        "name": "fab1/30/4",
+        "name": "fab1/28/4",
         "description": "",
         "queues_DEPRECATED": [
           
@@ -9608,7 +9610,7 @@
         "routable": true,
         "ingressVlan": 0,
         "speed": 106250,
-        "name": "fab1/30/5",
+        "name": "fab1/28/5",
         "description": "",
         "queues_DEPRECATED": [
           
@@ -9643,7 +9645,7 @@
         "routable": true,
         "ingressVlan": 0,
         "speed": 106250,
-        "name": "fab1/30/6",
+        "name": "fab1/28/6",
         "description": "",
         "queues_DEPRECATED": [
           
@@ -9678,7 +9680,7 @@
         "routable": true,
         "ingressVlan": 0,
         "speed": 106250,
-        "name": "fab1/30/7",
+        "name": "fab1/28/7",
         "description": "",
         "queues_DEPRECATED": [
           
@@ -9713,7 +9715,7 @@
         "routable": true,
         "ingressVlan": 0,
         "speed": 106250,
-        "name": "fab1/30/8",
+        "name": "fab1/28/8",
         "description": "",
         "queues_DEPRECATED": [
           
@@ -9748,7 +9750,7 @@
         "routable": true,
         "ingressVlan": 0,
         "speed": 106250,
-        "name": "fab1/31/1",
+        "name": "fab1/29/1",
         "description": "",
         "queues_DEPRECATED": [
           
@@ -9783,7 +9785,7 @@
         "routable": true,
         "ingressVlan": 0,
         "speed": 106250,
-        "name": "fab1/31/2",
+        "name": "fab1/29/2",
         "description": "",
         "queues_DEPRECATED": [
           
@@ -9818,7 +9820,7 @@
         "routable": true,
         "ingressVlan": 0,
         "speed": 106250,
-        "name": "fab1/31/3",
+        "name": "fab1/29/3",
         "description": "",
         "queues_DEPRECATED": [
           
@@ -9853,7 +9855,7 @@
         "routable": true,
         "ingressVlan": 0,
         "speed": 106250,
-        "name": "fab1/31/4",
+        "name": "fab1/29/4",
         "description": "",
         "queues_DEPRECATED": [
           
@@ -9888,7 +9890,7 @@
         "routable": true,
         "ingressVlan": 0,
         "speed": 106250,
-        "name": "fab1/31/5",
+        "name": "fab1/29/5",
         "description": "",
         "queues_DEPRECATED": [
           
@@ -9923,7 +9925,7 @@
         "routable": true,
         "ingressVlan": 0,
         "speed": 106250,
-        "name": "fab1/31/6",
+        "name": "fab1/29/6",
         "description": "",
         "queues_DEPRECATED": [
           
@@ -9958,7 +9960,7 @@
         "routable": true,
         "ingressVlan": 0,
         "speed": 106250,
-        "name": "fab1/31/7",
+        "name": "fab1/29/7",
         "description": "",
         "queues_DEPRECATED": [
           
@@ -9993,7 +9995,7 @@
         "routable": true,
         "ingressVlan": 0,
         "speed": 106250,
-        "name": "fab1/31/8",
+        "name": "fab1/29/8",
         "description": "",
         "queues_DEPRECATED": [
           
@@ -10588,7 +10590,7 @@
         "routable": true,
         "ingressVlan": 0,
         "speed": 106250,
-        "name": "fab1/34/1",
+        "name": "fab1/36/1",
         "description": "",
         "queues_DEPRECATED": [
           
@@ -10623,7 +10625,7 @@
         "routable": true,
         "ingressVlan": 0,
         "speed": 106250,
-        "name": "fab1/34/2",
+        "name": "fab1/36/2",
         "description": "",
         "queues_DEPRECATED": [
           
@@ -10658,7 +10660,7 @@
         "routable": true,
         "ingressVlan": 0,
         "speed": 106250,
-        "name": "fab1/34/3",
+        "name": "fab1/36/3",
         "description": "",
         "queues_DEPRECATED": [
           
@@ -10693,7 +10695,7 @@
         "routable": true,
         "ingressVlan": 0,
         "speed": 106250,
-        "name": "fab1/34/4",
+        "name": "fab1/36/4",
         "description": "",
         "queues_DEPRECATED": [
           
@@ -10728,7 +10730,7 @@
         "routable": true,
         "ingressVlan": 0,
         "speed": 106250,
-        "name": "fab1/34/5",
+        "name": "fab1/36/5",
         "description": "",
         "queues_DEPRECATED": [
           
@@ -10763,7 +10765,7 @@
         "routable": true,
         "ingressVlan": 0,
         "speed": 106250,
-        "name": "fab1/34/6",
+        "name": "fab1/36/6",
         "description": "",
         "queues_DEPRECATED": [
           
@@ -10798,7 +10800,7 @@
         "routable": true,
         "ingressVlan": 0,
         "speed": 106250,
-        "name": "fab1/34/7",
+        "name": "fab1/36/7",
         "description": "",
         "queues_DEPRECATED": [
           
@@ -10833,7 +10835,7 @@
         "routable": true,
         "ingressVlan": 0,
         "speed": 106250,
-        "name": "fab1/34/8",
+        "name": "fab1/36/8",
         "description": "",
         "queues_DEPRECATED": [
           
@@ -10868,7 +10870,7 @@
         "routable": true,
         "ingressVlan": 0,
         "speed": 106250,
-        "name": "fab1/35/1",
+        "name": "fab1/37/1",
         "description": "",
         "queues_DEPRECATED": [
           
@@ -10903,7 +10905,7 @@
         "routable": true,
         "ingressVlan": 0,
         "speed": 106250,
-        "name": "fab1/35/2",
+        "name": "fab1/37/2",
         "description": "",
         "queues_DEPRECATED": [
           
@@ -10938,7 +10940,7 @@
         "routable": true,
         "ingressVlan": 0,
         "speed": 106250,
-        "name": "fab1/35/3",
+        "name": "fab1/37/3",
         "description": "",
         "queues_DEPRECATED": [
           
@@ -10973,7 +10975,7 @@
         "routable": true,
         "ingressVlan": 0,
         "speed": 106250,
-        "name": "fab1/35/4",
+        "name": "fab1/37/4",
         "description": "",
         "queues_DEPRECATED": [
           
@@ -11008,7 +11010,7 @@
         "routable": true,
         "ingressVlan": 0,
         "speed": 106250,
-        "name": "fab1/35/5",
+        "name": "fab1/37/5",
         "description": "",
         "queues_DEPRECATED": [
           
@@ -11043,7 +11045,7 @@
         "routable": true,
         "ingressVlan": 0,
         "speed": 106250,
-        "name": "fab1/35/6",
+        "name": "fab1/37/6",
         "description": "",
         "queues_DEPRECATED": [
           
@@ -11078,7 +11080,7 @@
         "routable": true,
         "ingressVlan": 0,
         "speed": 106250,
-        "name": "fab1/35/7",
+        "name": "fab1/37/7",
         "description": "",
         "queues_DEPRECATED": [
           
@@ -11113,7 +11115,7 @@
         "routable": true,
         "ingressVlan": 0,
         "speed": 106250,
-        "name": "fab1/35/8",
+        "name": "fab1/37/8",
         "description": "",
         "queues_DEPRECATED": [
           
@@ -11148,7 +11150,7 @@
         "routable": true,
         "ingressVlan": 0,
         "speed": 106250,
-        "name": "fab1/36/1",
+        "name": "fab1/34/1",
         "description": "",
         "queues_DEPRECATED": [
           
@@ -11183,7 +11185,7 @@
         "routable": true,
         "ingressVlan": 0,
         "speed": 106250,
-        "name": "fab1/36/2",
+        "name": "fab1/34/2",
         "description": "",
         "queues_DEPRECATED": [
           
@@ -11218,7 +11220,7 @@
         "routable": true,
         "ingressVlan": 0,
         "speed": 106250,
-        "name": "fab1/36/3",
+        "name": "fab1/34/3",
         "description": "",
         "queues_DEPRECATED": [
           
@@ -11253,7 +11255,7 @@
         "routable": true,
         "ingressVlan": 0,
         "speed": 106250,
-        "name": "fab1/36/4",
+        "name": "fab1/34/4",
         "description": "",
         "queues_DEPRECATED": [
           
@@ -11288,7 +11290,7 @@
         "routable": true,
         "ingressVlan": 0,
         "speed": 106250,
-        "name": "fab1/36/5",
+        "name": "fab1/34/5",
         "description": "",
         "queues_DEPRECATED": [
           
@@ -11323,7 +11325,7 @@
         "routable": true,
         "ingressVlan": 0,
         "speed": 106250,
-        "name": "fab1/36/6",
+        "name": "fab1/34/6",
         "description": "",
         "queues_DEPRECATED": [
           
@@ -11358,7 +11360,7 @@
         "routable": true,
         "ingressVlan": 0,
         "speed": 106250,
-        "name": "fab1/36/7",
+        "name": "fab1/34/7",
         "description": "",
         "queues_DEPRECATED": [
           
@@ -11393,7 +11395,7 @@
         "routable": true,
         "ingressVlan": 0,
         "speed": 106250,
-        "name": "fab1/36/8",
+        "name": "fab1/34/8",
         "description": "",
         "queues_DEPRECATED": [
           
@@ -11428,7 +11430,7 @@
         "routable": true,
         "ingressVlan": 0,
         "speed": 106250,
-        "name": "fab1/37/1",
+        "name": "fab1/35/1",
         "description": "",
         "queues_DEPRECATED": [
           
@@ -11463,7 +11465,7 @@
         "routable": true,
         "ingressVlan": 0,
         "speed": 106250,
-        "name": "fab1/37/2",
+        "name": "fab1/35/2",
         "description": "",
         "queues_DEPRECATED": [
           
@@ -11498,7 +11500,7 @@
         "routable": true,
         "ingressVlan": 0,
         "speed": 106250,
-        "name": "fab1/37/3",
+        "name": "fab1/35/3",
         "description": "",
         "queues_DEPRECATED": [
           
@@ -11533,7 +11535,7 @@
         "routable": true,
         "ingressVlan": 0,
         "speed": 106250,
-        "name": "fab1/37/4",
+        "name": "fab1/35/4",
         "description": "",
         "queues_DEPRECATED": [
           
@@ -11568,7 +11570,7 @@
         "routable": true,
         "ingressVlan": 0,
         "speed": 106250,
-        "name": "fab1/37/5",
+        "name": "fab1/35/5",
         "description": "",
         "queues_DEPRECATED": [
           
@@ -11603,7 +11605,7 @@
         "routable": true,
         "ingressVlan": 0,
         "speed": 106250,
-        "name": "fab1/37/6",
+        "name": "fab1/35/6",
         "description": "",
         "queues_DEPRECATED": [
           
@@ -11638,7 +11640,7 @@
         "routable": true,
         "ingressVlan": 0,
         "speed": 106250,
-        "name": "fab1/37/7",
+        "name": "fab1/35/7",
         "description": "",
         "queues_DEPRECATED": [
           
@@ -11673,7 +11675,7 @@
         "routable": true,
         "ingressVlan": 0,
         "speed": 106250,
-        "name": "fab1/37/8",
+        "name": "fab1/35/8",
         "description": "",
         "queues_DEPRECATED": [
           
@@ -11708,7 +11710,7 @@
         "routable": true,
         "ingressVlan": 0,
         "speed": 106250,
-        "name": "fab1/38/1",
+        "name": "fab1/40/1",
         "description": "",
         "queues_DEPRECATED": [
           
@@ -11743,7 +11745,7 @@
         "routable": true,
         "ingressVlan": 0,
         "speed": 106250,
-        "name": "fab1/38/2",
+        "name": "fab1/40/2",
         "description": "",
         "queues_DEPRECATED": [
           
@@ -11778,7 +11780,7 @@
         "routable": true,
         "ingressVlan": 0,
         "speed": 106250,
-        "name": "fab1/38/3",
+        "name": "fab1/40/3",
         "description": "",
         "queues_DEPRECATED": [
           
@@ -11813,7 +11815,7 @@
         "routable": true,
         "ingressVlan": 0,
         "speed": 106250,
-        "name": "fab1/38/4",
+        "name": "fab1/40/4",
         "description": "",
         "queues_DEPRECATED": [
           
@@ -11848,7 +11850,7 @@
         "routable": true,
         "ingressVlan": 0,
         "speed": 106250,
-        "name": "fab1/38/5",
+        "name": "fab1/40/5",
         "description": "",
         "queues_DEPRECATED": [
           
@@ -11883,7 +11885,7 @@
         "routable": true,
         "ingressVlan": 0,
         "speed": 106250,
-        "name": "fab1/38/6",
+        "name": "fab1/40/6",
         "description": "",
         "queues_DEPRECATED": [
           
@@ -11918,7 +11920,7 @@
         "routable": true,
         "ingressVlan": 0,
         "speed": 106250,
-        "name": "fab1/38/7",
+        "name": "fab1/40/7",
         "description": "",
         "queues_DEPRECATED": [
           
@@ -11953,7 +11955,7 @@
         "routable": true,
         "ingressVlan": 0,
         "speed": 106250,
-        "name": "fab1/38/8",
+        "name": "fab1/40/8",
         "description": "",
         "queues_DEPRECATED": [
           
@@ -12268,7 +12270,7 @@
         "routable": true,
         "ingressVlan": 0,
         "speed": 106250,
-        "name": "fab1/40/1",
+        "name": "fab1/38/1",
         "description": "",
         "queues_DEPRECATED": [
           
@@ -12303,7 +12305,7 @@
         "routable": true,
         "ingressVlan": 0,
         "speed": 106250,
-        "name": "fab1/40/2",
+        "name": "fab1/38/2",
         "description": "",
         "queues_DEPRECATED": [
           
@@ -12338,7 +12340,7 @@
         "routable": true,
         "ingressVlan": 0,
         "speed": 106250,
-        "name": "fab1/40/3",
+        "name": "fab1/38/3",
         "description": "",
         "queues_DEPRECATED": [
           
@@ -12373,7 +12375,7 @@
         "routable": true,
         "ingressVlan": 0,
         "speed": 106250,
-        "name": "fab1/40/4",
+        "name": "fab1/38/4",
         "description": "",
         "queues_DEPRECATED": [
           
@@ -12408,7 +12410,7 @@
         "routable": true,
         "ingressVlan": 0,
         "speed": 106250,
-        "name": "fab1/40/5",
+        "name": "fab1/38/5",
         "description": "",
         "queues_DEPRECATED": [
           
@@ -12443,7 +12445,7 @@
         "routable": true,
         "ingressVlan": 0,
         "speed": 106250,
-        "name": "fab1/40/6",
+        "name": "fab1/38/6",
         "description": "",
         "queues_DEPRECATED": [
           
@@ -12478,7 +12480,7 @@
         "routable": true,
         "ingressVlan": 0,
         "speed": 106250,
-        "name": "fab1/40/7",
+        "name": "fab1/38/7",
         "description": "",
         "queues_DEPRECATED": [
           
@@ -12513,7 +12515,7 @@
         "routable": true,
         "ingressVlan": 0,
         "speed": 106250,
-        "name": "fab1/40/8",
+        "name": "fab1/38/8",
         "description": "",
         "queues_DEPRECATED": [
           
@@ -12548,7 +12550,7 @@
         "routable": true,
         "ingressVlan": 0,
         "speed": 106250,
-        "name": "fab1/42/1",
+        "name": "fab1/43/1",
         "description": "",
         "queues_DEPRECATED": [
           
@@ -12583,7 +12585,7 @@
         "routable": true,
         "ingressVlan": 0,
         "speed": 106250,
-        "name": "fab1/42/2",
+        "name": "fab1/43/2",
         "description": "",
         "queues_DEPRECATED": [
           
@@ -12618,7 +12620,7 @@
         "routable": true,
         "ingressVlan": 0,
         "speed": 106250,
-        "name": "fab1/42/3",
+        "name": "fab1/43/3",
         "description": "",
         "queues_DEPRECATED": [
           
@@ -12653,7 +12655,7 @@
         "routable": true,
         "ingressVlan": 0,
         "speed": 106250,
-        "name": "fab1/42/4",
+        "name": "fab1/43/4",
         "description": "",
         "queues_DEPRECATED": [
           
@@ -12688,7 +12690,7 @@
         "routable": true,
         "ingressVlan": 0,
         "speed": 106250,
-        "name": "fab1/42/5",
+        "name": "fab1/43/5",
         "description": "",
         "queues_DEPRECATED": [
           
@@ -12723,7 +12725,7 @@
         "routable": true,
         "ingressVlan": 0,
         "speed": 106250,
-        "name": "fab1/42/6",
+        "name": "fab1/43/6",
         "description": "",
         "queues_DEPRECATED": [
           
@@ -12758,7 +12760,7 @@
         "routable": true,
         "ingressVlan": 0,
         "speed": 106250,
-        "name": "fab1/42/7",
+        "name": "fab1/43/7",
         "description": "",
         "queues_DEPRECATED": [
           
@@ -12793,7 +12795,7 @@
         "routable": true,
         "ingressVlan": 0,
         "speed": 106250,
-        "name": "fab1/42/8",
+        "name": "fab1/43/8",
         "description": "",
         "queues_DEPRECATED": [
           
@@ -12828,7 +12830,7 @@
         "routable": true,
         "ingressVlan": 0,
         "speed": 106250,
-        "name": "fab1/43/1",
+        "name": "fab1/42/1",
         "description": "",
         "queues_DEPRECATED": [
           
@@ -12863,7 +12865,7 @@
         "routable": true,
         "ingressVlan": 0,
         "speed": 106250,
-        "name": "fab1/43/2",
+        "name": "fab1/42/2",
         "description": "",
         "queues_DEPRECATED": [
           
@@ -12898,7 +12900,7 @@
         "routable": true,
         "ingressVlan": 0,
         "speed": 106250,
-        "name": "fab1/43/3",
+        "name": "fab1/42/3",
         "description": "",
         "queues_DEPRECATED": [
           
@@ -12933,7 +12935,7 @@
         "routable": true,
         "ingressVlan": 0,
         "speed": 106250,
-        "name": "fab1/43/4",
+        "name": "fab1/42/4",
         "description": "",
         "queues_DEPRECATED": [
           
@@ -12968,7 +12970,7 @@
         "routable": true,
         "ingressVlan": 0,
         "speed": 106250,
-        "name": "fab1/43/5",
+        "name": "fab1/42/5",
         "description": "",
         "queues_DEPRECATED": [
           
@@ -13003,7 +13005,7 @@
         "routable": true,
         "ingressVlan": 0,
         "speed": 106250,
-        "name": "fab1/43/6",
+        "name": "fab1/42/6",
         "description": "",
         "queues_DEPRECATED": [
           
@@ -13038,7 +13040,7 @@
         "routable": true,
         "ingressVlan": 0,
         "speed": 106250,
-        "name": "fab1/43/7",
+        "name": "fab1/42/7",
         "description": "",
         "queues_DEPRECATED": [
           
@@ -13073,7 +13075,7 @@
         "routable": true,
         "ingressVlan": 0,
         "speed": 106250,
-        "name": "fab1/43/8",
+        "name": "fab1/42/8",
         "description": "",
         "queues_DEPRECATED": [
           
@@ -13122,7 +13124,7 @@
         "scope": 1
       },
       {
-        "intfID": 187,
+        "intfID": 55,
         "routerID": 0,
         "vlanID": 0,
         "ipAddresses": [
@@ -13215,6 +13217,50 @@
         "dstIp": "ff02::/16",
         "name": "cpuPolicing-mid-ff02::/16",
         "actionType": 1,
+        "etherType": 34525
+      },
+      {
+        "proto": 6,
+        "name": "cpuPolicing-high-BGPSrcPort-dstLocalIp4",
+        "actionType": 1,
+        "l4SrcPort": 179,
+        "lookupClassRoute": 1,
+        "etherType": 2048
+      },
+      {
+        "proto": 6,
+        "name": "cpuPolicing-high-BGPDstPort-dstLocalIp4",
+        "actionType": 1,
+        "l4DstPort": 179,
+        "lookupClassRoute": 1,
+        "etherType": 2048
+      },
+      {
+        "proto": 6,
+        "name": "cpuPolicing-high-BGPSrcPort-dstLocalIp6",
+        "actionType": 1,
+        "l4SrcPort": 179,
+        "lookupClassRoute": 1,
+        "etherType": 34525
+      },
+      {
+        "proto": 6,
+        "name": "cpuPolicing-high-BGPDstPort-dstLocalIp6",
+        "actionType": 1,
+        "l4DstPort": 179,
+        "lookupClassRoute": 1,
+        "etherType": 34525
+      },
+      {
+        "name": "cpuPolicing-mid-Ip2Me-Ip4",
+        "actionType": 1,
+        "lookupClassRoute": 1,
+        "etherType": 2048
+      },
+      {
+        "name": "cpuPolicing-mid-Ip2Me-Ip6",
+        "actionType": 1,
+        "lookupClassRoute": 1,
         "etherType": 34525
       }
     ],
@@ -13329,6 +13375,78 @@
                 "tcValue": 2
               }
             }
+          },
+          {
+            "matcher": "cpuPolicing-high-BGPSrcPort-dstLocalIp4",
+            "action": {
+              "sendToQueue": {
+                "queueId": 7
+              },
+              "toCpuAction": 0,
+              "setTc": {
+                "tcValue": 7
+              }
+            }
+          },
+          {
+            "matcher": "cpuPolicing-high-BGPDstPort-dstLocalIp4",
+            "action": {
+              "sendToQueue": {
+                "queueId": 7
+              },
+              "toCpuAction": 0,
+              "setTc": {
+                "tcValue": 7
+              }
+            }
+          },
+          {
+            "matcher": "cpuPolicing-high-BGPSrcPort-dstLocalIp6",
+            "action": {
+              "sendToQueue": {
+                "queueId": 7
+              },
+              "toCpuAction": 0,
+              "setTc": {
+                "tcValue": 7
+              }
+            }
+          },
+          {
+            "matcher": "cpuPolicing-high-BGPDstPort-dstLocalIp6",
+            "action": {
+              "sendToQueue": {
+                "queueId": 7
+              },
+              "toCpuAction": 0,
+              "setTc": {
+                "tcValue": 7
+              }
+            }
+          },
+          {
+            "matcher": "cpuPolicing-mid-Ip2Me-Ip4",
+            "action": {
+              "sendToQueue": {
+                "queueId": 2
+              },
+              "toCpuAction": 0,
+              "setTc": {
+                "tcValue": 2
+              }
+            }
+          },
+          {
+            "matcher": "cpuPolicing-mid-Ip2Me-Ip6",
+            "action": {
+              "sendToQueue": {
+                "queueId": 2
+              },
+              "toCpuAction": 0,
+              "setTc": {
+                "tcValue": 2
+              }
+            }
           }
         ]
       },
@@ -13346,23 +13464,11 @@
           "queueId": 7
         },
         {
-          "rxReason": 11,
-          "queueId": 7
-        },
-        {
-          "rxReason": 12,
-          "queueId": 7
-        },
-        {
           "rxReason": 13,
           "queueId": 7
         },
         {
           "rxReason": 9,
-          "queueId": 2
-        },
-        {
-          "rxReason": 7,
           "queueId": 2
         },
         {
@@ -13445,7 +13551,7 @@
             },
             "systemPortRange": {
               "minimum": 10,
-              "maximum": 54
+              "maximum": 53
             },
             "switchMac": "02:00:00:00:00:01",
             "connectionHandle": "15:00"
@@ -13459,8 +13565,8 @@
               "maximum": 4095
             },
             "systemPortRange": {
-              "minimum": 186,
-              "maximum": 230
+              "minimum": 54,
+              "maximum": 97
             },
             "switchMac": "02:00:00:00:00:01",
             "connectionHandle": "18:00"
@@ -13483,22 +13589,22 @@
           ],
           "systemPortRange": {
             "minimum": 10,
-            "maximum": 54
+            "maximum": 53
           },
           "nodeMac": "02:00:00:00:0F:0B",
           "asicType": 14,
           "platformType": 32
       },
       "4": {
-          "name": "intfNode4",
+          "name": "intfNode1",
           "switchId": 4,
           "type": 2,
           "loopbackIps": [
             
           ],
           "systemPortRange": {
-            "minimum": 186,
-            "maximum": 230
+            "minimum": 54,
+            "maximum": 97
           },
           "nodeMac": "02:00:00:00:0F:0B",
           "asicType": 14,
@@ -13715,12 +13821,12 @@
             "ucode_port_13.BCM8889X": "D3CE2:core_0.8",
             "ucode_port_14.BCM8889X": "D3CE3:core_0.9",
             "ucode_port_15.BCM8889X": "D3CE4:core_0.10",
-            "ucode_port_16.BCM8889X": "D3CE5:core_1.11",
-            "ucode_port_17.BCM8889X": "D3CE6:core_1.12",
-            "ucode_port_18.BCM8889X": "D3CE7:core_1.13",
-            "ucode_port_19.BCM8889X": "D3CE8:core_1.14",
+            "ucode_port_16.BCM8889X": "D3CE5:core_1.3",
+            "ucode_port_17.BCM8889X": "D3CE6:core_1.4",
+            "ucode_port_18.BCM8889X": "D3CE7:core_1.5",
+            "ucode_port_19.BCM8889X": "D3CE8:core_1.6",
             "ucode_port_2.BCM8889X": "RCY.21:core_0.1",
-            "ucode_port_20.BCM8889X": "D3CE9:core_2.15",
+            "ucode_port_20.BCM8889X": "D3CE9:core_2.3",
             "ucode_port_200.BCM8889X": "CPU.8:core_1.200",
             "ucode_port_200.BCM8889X_ADAPTER": "CPU.8:core_0.200",
             "ucode_port_201.BCM8889X": "CPU.16:core_0.201",
@@ -13729,16 +13835,16 @@
             "ucode_port_202.BCM8889X_ADAPTER": "CPU.24:core_0.202",
             "ucode_port_203.BCM8889X": "CPU.32:core_0.203",
             "ucode_port_203.BCM8889X_ADAPTER": "CPU.32:core_0.203",
-            "ucode_port_21.BCM8889X": "D3CE10:core_2.16",
+            "ucode_port_21.BCM8889X": "D3CE10:core_2.4",
             "ucode_port_218.BCM8889X_ADAPTER": "SAT:core_0.218",
-            "ucode_port_22.BCM8889X": "D3CE11:core_2.17",
-            "ucode_port_23.BCM8889X": "D3CE12:core_2.18",
-            "ucode_port_24.BCM8889X": "D3CE14:core_3.19",
+            "ucode_port_22.BCM8889X": "D3CE11:core_2.5",
+            "ucode_port_23.BCM8889X": "D3CE12:core_2.6",
+            "ucode_port_24.BCM8889X": "D3CE14:core_3.4",
             "ucode_port_240.BCM8889X": "OLP0:core_0.240",
             "ucode_port_241.BCM8889X": "OLP1:core_0.241",
-            "ucode_port_25.BCM8889X": "D3CE15:core_3.20",
-            "ucode_port_26.BCM8889X": "D3CE16:core_3.21",
-            "ucode_port_27.BCM8889X": "D3CE17:core_3.22",
+            "ucode_port_25.BCM8889X": "D3CE15:core_3.5",
+            "ucode_port_26.BCM8889X": "D3CE16:core_3.6",
+            "ucode_port_27.BCM8889X": "D3CE17:core_3.7",
             "ucode_port_3.BCM8889X": "RCY.22:core_1.1",
             "ucode_port_4.BCM8889X": "RCY.23:core_2.1",
             "ucode_port_5.BCM8889X": "RCY.24:core_3.1",

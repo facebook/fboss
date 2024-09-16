@@ -46,8 +46,17 @@ class Table {
         : data_(data), style_(Style::NONE) {}
     StyledCell(const std::string& data, Style style)
         : data_(data), style_(style) {}
-    StyledCell(StyledCell const& cell) = default;
+    StyledCell(StyledCell const& cell)
+        : data_(std::string(cell.data_)), style_(cell.style_) {}
+
     StyledCell& operator=(StyledCell& other) = default;
+
+    static StyledCell errorIfPos(int val) {
+      if (val > 1) {
+        return StyledCell{std::to_string(val), ERROR};
+      }
+      return StyledCell{std::to_string(val)};
+    }
 
     std::string getData() const {
       return data_;
@@ -64,6 +73,8 @@ class Table {
 
   Table();
 
+  Table(bool showBorders);
+
   using RowData = std::variant<std::string, StyledCell>;
 
   /*
@@ -75,9 +86,14 @@ class Table {
       const std::vector<RowData>& data,
       Table::Style rowStyle = Table::Style::NONE);
 
+  tabulate::Format& format() {
+    return internalTable_.format();
+  }
+
  private:
   friend std::ostream& operator<<(std::ostream& stream, const Table& table);
 
+  bool showBorders_;
   std::vector<Row> rows_;
   tabulate::Table internalTable_;
 };

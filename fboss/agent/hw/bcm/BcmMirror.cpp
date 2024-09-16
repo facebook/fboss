@@ -143,8 +143,10 @@ void BcmMirror::program(const std::shared_ptr<Mirror>& mirror) {
   }
 
   CHECK(!destination_);
-  auto* bcmPort =
-      hw_->getPortTable()->getBcmPortIf(mirror->getEgressPort().value());
+  auto egressPort = mirror->getEgressPortDesc().has_value()
+      ? mirror->getEgressPortDesc().value().phyPortID()
+      : mirror->getEgressPort().value();
+  auto* bcmPort = hw_->getPortTable()->getBcmPortIf(egressPort);
   auto* warmBootCache = hw_->getWarmBootCache();
   auto iter = warmBootCache->findMirror(
       bcmPort->getBcmGport(), mirror->getMirrorTunnel());

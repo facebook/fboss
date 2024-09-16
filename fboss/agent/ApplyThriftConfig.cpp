@@ -20,6 +20,7 @@
 
 #include "fboss/agent/AclNexthopHandler.h"
 
+#include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/HwAsicTable.h"
 #include "fboss/agent/LacpTypes.h"
@@ -144,6 +145,7 @@ std::shared_ptr<MultiMap> toMultiSwitchMap(
   }
   return multiMap;
 }
+
 } // anonymous namespace
 
 namespace facebook::fboss {
@@ -469,6 +471,8 @@ class ThriftConfigApplier {
   std::shared_ptr<IpTunnelMap> updateIpInIpTunnels();
   std::shared_ptr<DsfNodeMap> updateDsfNodes();
   void processUpdatedDsfNodes();
+  void processReachabilityGroup(
+      const std::vector<SwitchID>& localFabricSwitchIds);
   void validateUdfConfig(const UdfConfig& newUdfConfig);
   std::shared_ptr<UdfConfig> updateUdfConfig(bool* changed);
 
@@ -493,9 +497,10 @@ class ThriftConfigApplier {
   SwitchID getSwitchId(const cfg::Interface& intfConfig) const;
   void addRemoteIntfRoute();
   std::optional<SwitchID> getAnyVoqSwitchId();
-  std::vector<SwitchID> getFabricSwitchIds() const;
+  std::vector<SwitchID> getLocalFabricSwitchIds() const;
   std::optional<QueueConfig> getDefaultVoqConfigIfChanged(
       std::shared_ptr<SwitchSettings> switchSettings);
+  QueueConfig getVoqConfig(PortID portId);
 
   std::shared_ptr<SwitchState> orig_;
   std::shared_ptr<SwitchState> new_;
@@ -794,6 +799,14 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
     }
   }
 
+  {
+    // Update reachability group setting for input balanced
+    auto localFabricSwitchIds = getLocalFabricSwitchIds();
+    if (!localFabricSwitchIds.empty()) {
+      processReachabilityGroup(localFabricSwitchIds);
+    }
+  }
+
   if (!changed) {
     return nullptr;
   }
@@ -813,16 +826,16 @@ std::optional<SwitchID> ThriftConfigApplier::getAnyVoqSwitchId() {
   return switchId;
 }
 
-std::vector<SwitchID> ThriftConfigApplier::getFabricSwitchIds() const {
-  std::vector<SwitchID> fabricSwitchIds;
+std::vector<SwitchID> ThriftConfigApplier::getLocalFabricSwitchIds() const {
+  std::vector<SwitchID> localFabricSwitchIds;
   for (const auto& switchIdAndSwitchInfo :
        *cfg_->switchSettings()->switchIdToSwitchInfo()) {
     if (switchIdAndSwitchInfo.second.switchType() == cfg::SwitchType::FABRIC) {
-      fabricSwitchIds.push_back(
+      localFabricSwitchIds.push_back(
           static_cast<SwitchID>(switchIdAndSwitchInfo.first));
     }
   }
-  return fabricSwitchIds;
+  return localFabricSwitchIds;
 }
 
 // Return the new defaultVoqConfig if it is different from the
@@ -830,6 +843,7 @@ std::vector<SwitchID> ThriftConfigApplier::getFabricSwitchIds() const {
 std::optional<QueueConfig> ThriftConfigApplier::getDefaultVoqConfigIfChanged(
     std::shared_ptr<SwitchSettings> origSwitchSettings) {
   if (cfg_->defaultVoqConfig()->size()) {
+    // TODO(daiweix): do not hardcode 8
     const auto kNumVoqs = 8;
     auto origPortQueues = QueueConfig();
     if (origSwitchSettings &&
@@ -849,6 +863,38 @@ std::optional<QueueConfig> ThriftConfigApplier::getDefaultVoqConfigIfChanged(
     }
   }
   return std::nullopt;
+}
+
+QueueConfig ThriftConfigApplier::getVoqConfig(PortID portId) {
+  for (const auto& portCfg : *cfg_->ports()) {
+    if (PortID(*portCfg.logicalID()) == portId) {
+      if (auto portVoqConfigName = portCfg.portVoqConfigName()) {
+        auto it = cfg_->portQueueConfigs()->find(*portVoqConfigName);
+        if (it == cfg_->portQueueConfigs()->end()) {
+          throw FbossError(
+              "Port voq config name: ",
+              *portVoqConfigName,
+              " does not exist in PortQueueConfig map");
+        }
+        std::vector<cfg::PortQueue> cfgPortVoqs = it->second;
+        QueueConfig voqs;
+        // TODO(daiweix): do not hardcode 8
+        const auto kNumVoqs = 8;
+        return updatePortQueues(
+            voqs,
+            cfgPortVoqs,
+            kNumVoqs,
+            cfg::StreamType::UNICAST,
+            std::nullopt,
+            false);
+      } else {
+        break;
+      }
+    }
+  }
+  // use default voq config if not specified
+  return utility::getFirstNodeIf(new_->getSwitchSettings())
+      ->getDefaultVoqConfig();
 }
 
 void ThriftConfigApplier::processUpdatedDsfNodes() {
@@ -1023,10 +1069,11 @@ void ThriftConfigApplier::processUpdatedDsfNodes() {
     sysPort->setCoreIndex(recyclePortInfo.coreId);
     sysPort->setCorePortIndex(recyclePortInfo.corePortIndex);
     sysPort->setSpeedMbps(recyclePortInfo.speedMbps); // 10G
+    // TODO(daiweix): do not hardcode 8
     sysPort->setNumVoqs(8);
     sysPort->setScope(cfg::Scope::GLOBAL);
-    sysPort->resetPortQueues(utility::getFirstNodeIf(new_->getSwitchSettings())
-                                 ->getDefaultVoqConfig());
+    // TODO(daiweix): use voq config of rcy ports, hardcode rcy portID 1 for now
+    sysPort->resetPortQueues(getVoqConfig(PortID(1)));
     if (auto cpuTrafficPolicy = cfg_->cpuTrafficPolicy()) {
       if (auto trafficPolicy = cpuTrafficPolicy->trafficPolicy()) {
         if (auto defaultQosPolicy = trafficPolicy->defaultQosPolicy()) {
@@ -1080,6 +1127,108 @@ void ThriftConfigApplier::processUpdatedDsfNodes() {
       },
       [&](auto newNode) { addDsfNode(newNode); },
       [&](auto oldNode) { rmDsfNode(oldNode); });
+}
+
+void ThriftConfigApplier::processReachabilityGroup(
+    const std::vector<SwitchID>& localFabricSwitchIds) {
+  std::unordered_map<std::string, std::vector<uint32_t>> switchNameToSwitchIds;
+
+  // TODO(zecheng): Update to look at DsfNode layer config once available.
+
+  // To determine if Dsf cluster is single stage:
+  // If there's more than one clusterIds in dsfNode map, it's in multi-stage.
+  std::unordered_set<int> clusterIds;
+  for (const auto& [_, dsfNodeMap] : std::as_const(*new_->getDsfNodes())) {
+    for (const auto& [_, dsfNode] : std::as_const(*dsfNodeMap)) {
+      std::string nodeName = dsfNode->getName();
+      auto iter = switchNameToSwitchIds.find(nodeName);
+      if (iter != switchNameToSwitchIds.end()) {
+        iter->second.push_back(dsfNode->getID());
+      } else {
+        switchNameToSwitchIds[nodeName] = {dsfNode->getID()};
+      }
+      if (auto clusterId = dsfNode->getClusterId()) {
+        clusterIds.insert(*clusterId);
+      }
+    }
+  }
+  bool isSingleStageCluster = clusterIds.size() <= 1;
+
+  auto updateReachabilityGroupListSize =
+      [&](const auto fabricSwitchId, const auto reachabilityGroupListSize) {
+        auto matcher = HwSwitchMatcher(std::unordered_set<SwitchID>(
+            {static_cast<SwitchID>(fabricSwitchId)}));
+        if (new_->getSwitchSettings()
+                ->getNodeIf(matcher.matcherString())
+                ->getReachabilityGroupListSize() != reachabilityGroupListSize) {
+          auto newMultiSwitchSettings = new_->getSwitchSettings()->clone();
+          auto newSwitchSettings =
+              newMultiSwitchSettings->getNodeIf(matcher.matcherString())
+                  ->clone();
+          newSwitchSettings->setReachabilityGroupListSize(
+              reachabilityGroupListSize);
+          newMultiSwitchSettings->updateNode(
+              matcher.matcherString(), newSwitchSettings);
+          new_->resetSwitchSettings(newMultiSwitchSettings);
+        }
+      };
+
+  bool parallelVoqLinks = haveParallelLinksToInterfaceNodes(
+      cfg_, localFabricSwitchIds, switchNameToSwitchIds, scopeResolver_);
+
+  if (!isSingleStageCluster || parallelVoqLinks) {
+    auto newPortMap = new_->getPorts()->modify(&new_);
+    for (const auto& fabricSwitchId : localFabricSwitchIds) {
+      std::unordered_map<int, int> destinationId2ReachabilityGroup;
+      for (const auto& portCfg : *cfg_->ports()) {
+        if (scopeResolver_.scope(portCfg).has(SwitchID(fabricSwitchId)) &&
+            portCfg.expectedNeighborReachability()->size() > 0) {
+          auto neighborRemoteSwitchId =
+              getRemoteSwitchID(cfg_, portCfg, switchNameToSwitchIds);
+          const auto& neighborDsfNode =
+              new_->getDsfNodes()->getNode(neighborRemoteSwitchId);
+
+          int destinationId;
+          // For parallel VOQ links, assign links reaching the same VOQ
+          // switch.
+          if (parallelVoqLinks &&
+              neighborDsfNode->getType() == cfg::DsfNodeType::INTERFACE_NODE) {
+            destinationId = neighborRemoteSwitchId;
+          } else if (neighborDsfNode->getClusterId() == std::nullopt) {
+            // Assign links based on cluster ID. Note that in dual stage,
+            // FE2 has no cluster ID: use -1 for grouping purpose.
+            CHECK_EQ(
+                static_cast<int>(cfg::DsfNodeType::FABRIC_NODE),
+                static_cast<int>(neighborDsfNode->getType()));
+            destinationId = -1;
+          } else {
+            destinationId = neighborDsfNode->getClusterId().value();
+          }
+
+          auto [it, inserted] = destinationId2ReachabilityGroup.insert(
+              {destinationId, destinationId2ReachabilityGroup.size() + 1});
+          auto reachabilityGroupId = it->second;
+          if (inserted) {
+            XLOG(DBG2) << "Create new reachability group "
+                       << reachabilityGroupId << " towards node "
+                       << neighborDsfNode->getName() << " with switchId "
+                       << neighborRemoteSwitchId;
+          } else {
+            XLOG(DBG2) << "Add node " << neighborDsfNode->getName()
+                       << " with switchId " << neighborRemoteSwitchId
+                       << " to existing reachability group "
+                       << reachabilityGroupId;
+          }
+
+          auto newPort =
+              newPortMap->getNode(PortID(*portCfg.logicalID()))->modify(&new_);
+          newPort->setReachabilityGroupId(reachabilityGroupId);
+        }
+      }
+      updateReachabilityGroupListSize(
+          fabricSwitchId, destinationId2ReachabilityGroup.size());
+    }
+  }
 }
 
 void ThriftConfigApplier::validateUdfConfig(const UdfConfig& newUdfConfig) {
@@ -1392,6 +1541,7 @@ void ThriftConfigApplier::updateVlanInterfaces(const Interface* intf) {
 shared_ptr<SystemPortMap> ThriftConfigApplier::updateSystemPorts(
     const std::shared_ptr<MultiSwitchPortMap>& ports,
     const std::shared_ptr<MultiSwitchSettings>& multiSwitchSettings) {
+  // TODO(daiweix): do not hardcode 8
   const auto kNumVoqs = 8;
 
   static const std::set<cfg::PortType> kCreateSysPortsFor = {
@@ -1433,7 +1583,7 @@ shared_ptr<SystemPortMap> ThriftConfigApplier::updateSystemPorts(
       sysPort->setSpeedMbps(static_cast<int>(port.second->getSpeed()));
       sysPort->setNumVoqs(kNumVoqs);
       sysPort->setQosPolicy(port.second->getQosPolicy());
-      sysPort->resetPortQueues(switchSettings->getDefaultVoqConfig());
+      sysPort->resetPortQueues(getVoqConfig(port.second->getID()));
       // TODO(daiweix): remove this CHECK_EQ after verifying scope config is
       // always correct
       CHECK_EQ(
@@ -3419,6 +3569,9 @@ shared_ptr<AclEntry> ThriftConfigApplier::createAcl(
   if (auto roceMask = config->roceMask()) {
     newAcl->setRoceMask(*roceMask);
   }
+  if (auto udfTable = config->udfTable()) {
+    newAcl->setUdfTable(*udfTable);
+  }
   newAcl->setEnabled(enable);
   return newAcl;
 }
@@ -4640,9 +4793,7 @@ std::shared_ptr<MirrorMap> ThriftConfigApplier::updateMirrors() {
   auto newMirrors = std::make_shared<MirrorMap>();
 
   bool changed = false;
-
   size_t numExistingProcessed = 0;
-  int sflowMirrorCount = 0;
   for (const auto& mirrorCfg : *cfg_->mirrors()) {
     auto origMirror = origMirrors->getNodeIf(*mirrorCfg.name());
     std::shared_ptr<Mirror> newMirror;
@@ -4651,14 +4802,6 @@ std::shared_ptr<MirrorMap> ThriftConfigApplier::updateMirrors() {
       ++numExistingProcessed;
     } else {
       newMirror = createMirror(&mirrorCfg);
-    }
-    if (newMirror) {
-      sflowMirrorCount += newMirror->type() == Mirror::Type::SFLOW ? 1 : 0;
-    } else {
-      sflowMirrorCount += origMirror->type() == Mirror::Type::SFLOW ? 1 : 0;
-    }
-    if (sflowMirrorCount > 1) {
-      throw FbossError("More than one sflow mirrors configured");
     }
     changed |= updateThriftMapNode(newMirrors.get(), origMirror, newMirror);
   }
@@ -4669,6 +4812,7 @@ std::shared_ptr<MirrorMap> ThriftConfigApplier::updateMirrors() {
     changed = true;
   }
 
+  std::set<std::string> ingressMirrors;
   for (auto& portMap : std::as_const(*(new_->getPorts()))) {
     for (auto& port : std::as_const(*portMap.second)) {
       auto portInMirror = port.second->getIngressMirror();
@@ -4690,6 +4834,9 @@ std::shared_ptr<MirrorMap> ThriftConfigApplier::updateMirrors() {
               port.second->getID(),
               " not sflow");
         }
+        if (inMirrorMapEntry->second->type() == Mirror::Type::SFLOW) {
+          ingressMirrors.insert(portInMirror.value());
+        }
       }
       if (portEgMirror.has_value() &&
           newMirrors->find(portEgMirror.value()) == newMirrors->end()) {
@@ -4697,6 +4844,10 @@ std::shared_ptr<MirrorMap> ThriftConfigApplier::updateMirrors() {
             "Mirror ", portEgMirror.value(), " for port is not found");
       }
     }
+  }
+  if (ingressMirrors.size() > 1) {
+    throw FbossError(
+        "Only one sflow mirror can be configured across all ports");
   }
 
   if (!changed) {
@@ -4816,9 +4967,14 @@ std::shared_ptr<Mirror> ThriftConfigApplier::createMirror(
   uint8_t dscpMark = mirrorConfig->get_dscp();
   bool truncate = mirrorConfig->get_truncate();
 
+  std::optional<PortDescriptor> egressPortDesc;
+  if (mirrorEgressPort.has_value()) {
+    egressPortDesc = PortDescriptor(mirrorEgressPort.value());
+  }
+
   auto mirror = make_shared<Mirror>(
       *mirrorConfig->name(),
-      mirrorEgressPort,
+      egressPortDesc,
       destinationIp,
       srcIp,
       udpPorts,
@@ -4836,14 +4992,20 @@ std::shared_ptr<Mirror> ThriftConfigApplier::updateMirror(
       newMirror->getTunnelUdpPorts() == orig->getTunnelUdpPorts() &&
       newMirror->getTruncate() == orig->getTruncate() &&
       (!newMirror->configHasEgressPort() ||
-       newMirror->getEgressPort() == orig->getEgressPort())) {
+       newMirror->getEgressPort() == orig->getEgressPort() ||
+       newMirror->getEgressPortDesc() == orig->getEgressPortDesc())) {
     if (orig->getMirrorTunnel()) {
       newMirror->setMirrorTunnel(orig->getMirrorTunnel().value());
     }
     if (orig->getEgressPort()) {
-      newMirror->setEgressPort(orig->getEgressPort().value());
       newMirror->setEgressPortDesc(
           PortDescriptor(orig->getEgressPort().value()));
+      newMirror->setEgressPort(orig->getEgressPort().value());
+    }
+    if (orig->getEgressPortDesc()) {
+      newMirror->setEgressPortDesc(
+          PortDescriptor(orig->getEgressPortDesc().value()));
+      newMirror->setEgressPort(orig->getEgressPortDesc().value().phyPortID());
     }
   }
   if (*newMirror == *orig) {

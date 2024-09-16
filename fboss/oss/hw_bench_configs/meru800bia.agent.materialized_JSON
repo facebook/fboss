@@ -55,7 +55,7 @@
         "isVirtual": false,
         "isStateSyncDisabled": true,
         "type": 2,
-        "scope": 1
+        "scope": 0
       }
     ],
     "arpTimeoutSeconds": 60,
@@ -155,7 +155,7 @@
             },
             "systemPortRange": {
               "minimum": 10,
-              "maximum": 54
+              "maximum": 53
             },
             "switchMac": "02:00:00:00:00:01",
             "connectionHandle": "15:00"
@@ -178,7 +178,7 @@
           ],
           "systemPortRange": {
             "minimum": 10,
-            "maximum": 54
+            "maximum": 53
           },
           "nodeMac": "18*800G-8",
           "asicType": 14,

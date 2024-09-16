@@ -182,6 +182,8 @@ target_link_libraries(agent_ensemble
   fboss_config_utils
   test_ensemble_if
   pkt_test_utils
+  agent_hw_test_ctrl_cpp2
+  FBThrift::thriftcpp2
   ${GTEST}
 )
 
@@ -192,6 +194,7 @@ add_library(mono_agent_ensemble
 target_link_libraries(mono_agent_ensemble
   agent_ensemble
   monolithic_agent_initializer
+  agent_hw_test_thrift_handler
   ${GTEST}
 )
 

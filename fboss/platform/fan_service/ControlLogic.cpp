@@ -61,6 +61,8 @@ ControlLogic::ControlLogic(FanServiceConfig config, std::shared_ptr<Bsp> bsp)
     : config_(config), pBsp_(bsp) {
   pSensorData_ = std::make_shared<SensorData>();
 
+  setupPidLogics();
+
   XLOG(INFO)
       << "Upon fan_service start up, program all fan pwm with transitional value of "
       << *config_.pwmTransitionValue();
@@ -123,6 +125,25 @@ void ControlLogic::controlFan() {
   pBsp_->kickWatchdog();
 }
 
+void ControlLogic::setupPidLogics() {
+  for (const auto& sensor : *config_.sensors()) {
+    if (*sensor.pwmCalcType() == constants::SENSOR_PWM_CALC_TYPE_PID()) {
+      auto pidSetting = *sensor.pidSetting();
+      pidLogics_.emplace(
+          *sensor.sensorName(), PidLogic(pidSetting, getControlFrequency()));
+    }
+  }
+  for (const auto& optic : *config_.optics()) {
+    if (*optic.aggregationType() == constants::OPTIC_AGGREGATION_TYPE_PID()) {
+      for (const auto& [opticType, pidSetting] : *optic.pidSettings()) {
+        auto cacheKey = *optic.opticName() + opticType;
+        pidLogics_.emplace(
+            cacheKey, PidLogic(pidSetting, getControlFrequency()));
+      }
+    }
+  }
+}
+
 std::tuple<bool, int, uint64_t> ControlLogic::readFanRpm(const Fan& fan) {
   std::string fanName = *fan.fanName();
   bool fanRpmReadSuccess{false};
@@ -147,86 +168,14 @@ std::tuple<bool, int, uint64_t> ControlLogic::readFanRpm(const Fan& fan) {
   return std::make_tuple(!fanRpmReadSuccess, fanRpm, rpmTimeStamp);
 }
 
-int ControlLogic::calculatePid(
-    const std::string& name,
-    float value,
-    PwmCalcCache& pwmCalcCache,
-    const PidSetting& pidSetting,
-    uint64_t dT) {
-  float lastPwm, previousRead1, error, pwm;
-  lastPwm = pwmCalcCache.previousTargetPwm;
-  pwm = lastPwm;
-  previousRead1 = pwmCalcCache.previousRead1;
-  float minVal = *pidSetting.setPoint() - *pidSetting.negHysteresis();
-  float maxVal = *pidSetting.setPoint() + *pidSetting.posHysteresis();
-
-  if ((value < minVal) || (value > maxVal)) {
-    if (value < minVal) {
-      error = minVal - value;
-    } else {
-      error = maxVal - value;
-    }
-    pwmCalcCache.integral = pwmCalcCache.integral + error * dT;
-    auto derivative = (error - pwmCalcCache.last_error) / dT;
-    pwm = (*pidSetting.kp() * error) +
-        (*pidSetting.ki() * pwmCalcCache.integral) +
-        (*pidSetting.kd() * derivative);
-    if (pwm < 0) {
-      pwm = 0;
-    }
-    pwmCalcCache.previousTargetPwm = pwm;
-    pwmCalcCache.last_error = error;
-  }
-  // In the case of val <= maxVal, we use the previous pwm of the Zone
-  // to calculate the new integral, to compensate for too fast / too slow
-  // integral build up.
-  if (value <= maxVal) {
-    pwmCalcCache.integral = lastPwm / *pidSetting.ki();
-  }
-  pwmCalcCache.previousRead2 = previousRead1;
-  pwmCalcCache.previousRead1 = value;
-  XLOG(DBG1) << fmt::format(
-      "{}: Sensor Value: {}, PWM [PID]: {}", name, value, pwm);
-  XLOG(DBG1) << "               dT : " << dT
-             << " Time : " << pBsp_->getCurrentTime()
-             << " LUD : " << lastControlExecutionTimeSec_ << " Min : " << minVal
-             << " Max : " << maxVal;
-  return pwm;
-}
-
-float ControlLogic::calculateIncrementalPid(
-    const std::string& name,
-    float value,
-    PwmCalcCache& pwmCalcCache,
-    const PidSetting& pidSetting) {
-  float pwm, lastPwm, previousRead1, previousRead2;
-  lastPwm = pwmCalcCache.previousTargetPwm;
-  previousRead1 = pwmCalcCache.previousRead1;
-  previousRead2 = pwmCalcCache.previousRead2;
-  pwm = lastPwm + (*pidSetting.kp() * (value - previousRead1)) +
-      (*pidSetting.ki() * (value - *pidSetting.setPoint())) +
-      (*pidSetting.kd() * (value - 2 * previousRead1 + previousRead2));
-  // Even though the previous Target Pwm should be the zone pwm,
-  // the best effort is made here. Zone should update this value.
-  pwmCalcCache.previousTargetPwm = pwm;
-  pwmCalcCache.previousRead2 = previousRead1;
-  pwmCalcCache.previousRead1 = value;
-  XLOG(DBG1) << fmt::format(
-      "{}: Sensor Value: {}, PWM [PID]: {}", name, value, pwm);
-  XLOG(DBG1) << "           Prev1  : " << previousRead1
-             << " Prev2 : " << previousRead2;
-  return pwm;
-}
-
 void ControlLogic::updateTargetPwm(const Sensor& sensor) {
   int16_t targetPwm{0};
   TempToPwmMap tableToUse;
   auto& readCache = sensorReadCaches_[*sensor.sensorName()];
-  auto& pwmCalcCache = pwmCalcCaches_[*sensor.sensorName()];
   const auto& pwmCalcType = *sensor.pwmCalcType();
 
   if (pwmCalcType == constants::SENSOR_PWM_CALC_TYPE_FOUR_LINEAR_TABLE()) {
-    float previousSensorValue = pwmCalcCache.previousSensorRead;
+    float previousSensorValue = readCache.processedReadValue;
     float sensorValue = readCache.lastReadValue;
     bool deadFanExists = (numFanFailed_ > 0);
     bool accelerate =
@@ -258,25 +207,12 @@ void ControlLogic::updateTargetPwm(const Sensor& sensor) {
         targetPwm = readCache.targetPwmCache;
       }
     }
-    pwmCalcCache.previousSensorRead = sensorValue;
-  }
-
-  if (pwmCalcType == constants::SENSOR_PWM_CALC_TYPE_INCREMENT_PID()) {
-    targetPwm = calculateIncrementalPid(
-        *sensor.sensorName(),
-        readCache.lastReadValue,
-        pwmCalcCache,
-        *sensor.pidSetting());
+    readCache.processedReadValue = sensorValue;
   }
 
   if (pwmCalcType == constants::SENSOR_PWM_CALC_TYPE_PID()) {
-    uint64_t dT = pBsp_->getCurrentTime() - lastControlExecutionTimeSec_;
-    targetPwm = calculatePid(
-        *sensor.sensorName(),
-        readCache.lastReadValue,
-        pwmCalcCache,
-        *sensor.pidSetting(),
-        dT);
+    targetPwm = pidLogics_.at(*sensor.sensorName())
+                    .calculatePwm(readCache.lastReadValue);
   }
 
   XLOG(INFO) << fmt::format(
@@ -391,13 +327,7 @@ void ControlLogic::getOpticsUpdate() {
         }
         // Cache key is unique as long as opticName is unique
         cacheKey = opticName + opticType;
-        auto& pwmCalcCache = pwmCalcCaches_[cacheKey];
-        pwmCalcCache.previousTargetPwm =
-            pwmCalcCaches_[opticName].previousTargetPwm;
-
-        uint64_t dT = pBsp_->getCurrentTime() - lastControlExecutionTimeSec_;
-        float pwm =
-            calculatePid(opticType, value, pwmCalcCache, *pidSetting, dT);
+        float pwm = pidLogics_.at(cacheKey).calculatePwm(value);
         if (pwm > aggOpticPwm) {
           aggOpticPwm = pwm;
         }
@@ -416,20 +346,6 @@ void ControlLogic::getOpticsUpdate() {
   }
 }
 
-bool ControlLogic::isSensorPresentInConfig(const std::string& sensorName) {
-  for (auto& sensor : *config_.sensors()) {
-    if (*sensor.sensorName() == sensorName) {
-      return true;
-    }
-  }
-  for (auto& optic : *config_.optics()) {
-    if (*optic.opticName() == sensorName) {
-      return true;
-    }
-  }
-  return false;
-}
-
 bool ControlLogic::isFanPresentInDevice(const Fan& fan) {
   unsigned int readVal;
   bool readSuccessful = false;
@@ -441,8 +357,7 @@ bool ControlLogic::isFanPresentInDevice(const Fan& fan) {
   }
   auto fanPresent = (readSuccessful && readVal == *fan.fanPresentVal());
   if (!fanPresent) {
-    XLOG(INFO) << fmt::format(
-        "Control :: {} is absent in the host", *fan.fanName());
+    XLOG(INFO) << fmt::format("{}: is absent in the host", *fan.fanName());
   }
   fb303::fbData->setCounter(
       fmt::format(kFanAbsent, *fan.fanName()), !fanPresent);
@@ -564,13 +479,23 @@ int16_t ControlLogic::calculateZonePwm(const Zone& zone, bool boostMode) {
       folly::join(",", *zone.sensorNames()),
       zoneType,
       zonePwm);
-  // Update the previous pwm value in each associated sensors,
-  // so that they may be used in the next calculation.
   for (const auto& sensorName : *zone.sensorNames()) {
-    if (isSensorPresentInConfig(sensorName)) {
-      pwmCalcCaches_[sensorName].previousTargetPwm = zonePwm;
+    if (pidLogics_.find(sensorName) != pidLogics_.end()) {
+      pidLogics_.at(sensorName).updateLastPwm(zonePwm);
+    }
+    for (const auto& optic : *config_.optics()) {
+      if (optic.opticName() != sensorName) {
+        continue;
+      }
+      for (const auto& [opticType, _] : *optic.pidSettings()) {
+        auto cacheKey = *optic.opticName() + opticType;
+        if (pidLogics_.find(cacheKey) != pidLogics_.end()) {
+          pidLogics_.at(cacheKey).updateLastPwm(zonePwm);
+        }
+      }
     }
   }
+
   return zonePwm;
 }
 
@@ -585,11 +510,8 @@ void ControlLogic::setTransitionValue() {
                 *fan.fanName()) == zone.fanNames()->end()) {
           continue;
         }
-        for (const auto& sensorName : *zone.sensorNames()) {
-          if (isSensorPresentInConfig(sensorName)) {
-            pwmCalcCaches_[sensorName].previousTargetPwm =
-                *config_.pwmTransitionValue();
-          }
+        for (auto& [key, pidLogic] : pidLogics_) {
+          pidLogic.updateLastPwm(*config_.pwmTransitionValue());
         }
         const auto [fanFailed, newFanPwm] = programFan(
             zone,
@@ -646,6 +568,28 @@ void ControlLogic::updateControl(std::shared_ptr<SensorData> pS) {
           *fanStatuses[*fan.fanName()].lastSuccessfulAccessTime();
       auto fanFailed = fanAccessFailed &&
           (timeSinceLastSuccessfulAccess >= kFanFailThresholdInSec);
+      // If rpmMin or rpmMax is set, compare fanRpm with them to decide
+      // whether fan is failed
+      if (fan.rpmMin()) {
+        if (fanRpm < *fan.rpmMin()) {
+          fanFailed = true;
+          XLOG(ERR) << fmt::format(
+              "fan {} : rpm {} is below the minimum value {}",
+              *fan.fanName(),
+              fanRpm,
+              *fan.rpmMin());
+        }
+      }
+      if (fan.rpmMax()) {
+        if (fanRpm > *fan.rpmMax()) {
+          fanFailed = true;
+          XLOG(ERR) << fmt::format(
+              "fan {} : rpm {} is above the maximum value {}",
+              *fan.fanName(),
+              fanRpm,
+              *fan.rpmMax());
+        }
+      }
       if (fanFailed) {
         numFanFailed_++;
       }

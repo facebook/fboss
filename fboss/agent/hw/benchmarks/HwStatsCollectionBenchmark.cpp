@@ -8,22 +8,19 @@
  *
  */
 
-#include "fboss/agent/Platform.h"
-#include "fboss/agent/SwitchStats.h"
+#include "fboss/agent/AgentFeatures.h"
+#include "fboss/agent/HwSwitch.h"
+
+#include "fboss/agent/DsfStateUpdaterUtil.h"
+#include "fboss/agent/SwAgentInitializer.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwSwitchEnsemble.h"
+#include "fboss/agent/test/AgentEnsemble.h"
 #include "fboss/agent/test/utils/VoqTestUtils.h"
-
-#include "fboss/agent/benchmarks/AgentBenchmarks.h"
 
 #include <folly/Benchmark.h>
 #include <folly/IPAddress.h>
 #include <folly/logging/xlog.h>
-
-DECLARE_bool(enable_stats_update_thread);
-DECLARE_int32(update_voq_stats_interval_s);
-DECLARE_bool(dsf_subscribe);
-DECLARE_bool(disable_looped_fabric_ports);
 
 namespace facebook::fboss {
 
@@ -108,14 +105,28 @@ BENCHMARK(HwStatsCollection) {
 
   // Setup Remote Intf and System Ports
   if (ensemble->getSw()->getSwitchInfoTable().haveVoqSwitches()) {
-    ensemble->applyNewState([&](const std::shared_ptr<SwitchState>& in) {
-      return utility::setupRemoteIntfAndSysPorts(
-          in,
-          ensemble->scopeResolver(),
+    auto updateDsfStateFn = [&ensemble](
+                                const std::shared_ptr<SwitchState>& in) {
+      std::map<SwitchID, std::shared_ptr<SystemPortMap>> switchId2SystemPorts;
+      std::map<SwitchID, std::shared_ptr<InterfaceMap>> switchId2Rifs;
+      utility::populateRemoteIntfAndSysPorts(
+          switchId2SystemPorts,
+          switchId2Rifs,
           ensemble->getSw()->getConfig(),
           ensemble->getSw()->getHwAsicTable()->isFeatureSupportedOnAllAsic(
               HwAsic::Feature::RESERVED_ENCAP_INDEX_RANGE));
-    });
+      return DsfStateUpdaterUtil::getUpdatedState(
+          in,
+          ensemble->getSw()->getScopeResolver(),
+          ensemble->getSw()->getRib(),
+          switchId2SystemPorts,
+          switchId2Rifs);
+    };
+    ensemble->getSw()->getRib()->updateStateInRibThread(
+        [&ensemble, updateDsfStateFn]() {
+          ensemble->getSw()->updateStateWithHwFailureProtection(
+              folly::sformat("Update state for node: {}", 0), updateDsfStateFn);
+        });
     // For VOQ switches we have 2K - 4K remote system ports (each with 4-8
     // VOQs). This is >10x of local ports on NPU platforms. Therefore, only run
     // 100 iterations.

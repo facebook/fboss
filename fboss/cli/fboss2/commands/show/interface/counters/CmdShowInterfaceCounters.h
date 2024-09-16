@@ -10,6 +10,7 @@
 
 #pragma once
 
+#include "fboss/agent/hw/gen-cpp2/hardware_stats_constants.h"
 #include "fboss/cli/fboss2/CmdHandler.h"
 #include "fboss/cli/fboss2/commands/show/interface/CmdShowInterface.h"
 #include "fboss/cli/fboss2/commands/show/interface/counters/gen-cpp2/model_types.h"
@@ -105,17 +106,23 @@ class CmdShowInterfaceCounters : public CmdHandler<
          "Multicast Pkts(out)",
          "Broadcast Pkts(out)"});
 
+    auto makeStr = [](auto counterVal) -> std::string {
+      const std::string kNA = "n/a";
+      return counterVal == hardware_stats_constants::STAT_UNINITIALIZED()
+          ? kNA
+          : std::to_string(counterVal);
+    };
     for (const auto& counter : model.get_int_counters()) {
       table.addRow({
           counter.get_interfaceName(),
-          std::to_string(counter.get_inputBytes()),
-          std::to_string(counter.get_inputUcastPkts()),
-          std::to_string(counter.get_inputMulticastPkts()),
-          std::to_string(counter.get_inputBroadcastPkts()),
-          std::to_string(counter.get_outputBytes()),
-          std::to_string(counter.get_outputUcastPkts()),
-          std::to_string(counter.get_outputMulticastPkts()),
-          std::to_string(counter.get_outputBroadcastPkts()),
+          makeStr(counter.get_inputBytes()),
+          makeStr(counter.get_inputUcastPkts()),
+          makeStr(counter.get_inputMulticastPkts()),
+          makeStr(counter.get_inputBroadcastPkts()),
+          makeStr(counter.get_outputBytes()),
+          makeStr(counter.get_outputUcastPkts()),
+          makeStr(counter.get_outputMulticastPkts()),
+          makeStr(counter.get_outputBroadcastPkts()),
 
       });
     }

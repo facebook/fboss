@@ -77,8 +77,7 @@ void setEcmpMemberStatus(const TestEnsembleIf* /* unused */) {
 
 bool validateFlowSetTable(
     const HwSwitch* /*unit*/,
-    const bool /*expectFlowsetSizeZero*/,
-    const int /*flowletTableSize*/) {
+    const bool /*expectFlowsetSizeZero*/) {
   EXPECT_TRUE(false);
   return false;
 }

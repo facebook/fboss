@@ -214,11 +214,12 @@ SwitchStats::SwitchStats(ThreadLocalStatsMap* map, int numSwitches)
           map,
           kCounterPrefix + "link_active_state.flap",
           SUM),
-      pcapDistFailure_(map, kCounterPrefix + "pcap_dist_failure.error"),
-      updateStatsExceptions_(
+      switchReachabilityChangeProcessed_(
           map,
-          kCounterPrefix + "update_stats_exceptions",
+          kCounterPrefix + "switch_reachability_change_processed",
           SUM),
+
+      pcapDistFailure_(map, kCounterPrefix + "pcap_dist_failure.error"),
       trapPktTooBig_(map, kCounterPrefix + "trapped.packet_too_big", SUM, RATE),
       LldpRecvdPkt_(map, kCounterPrefix + "lldp.recvd", SUM, RATE),
       LldpBadPkt_(map, kCounterPrefix + "lldp.recv_bad", SUM, RATE),
@@ -294,7 +295,8 @@ SwitchStats::SwitchStats(ThreadLocalStatsMap* map, int numSwitches)
           SUM,
           RATE),
       dsfGrExpired_(map, kCounterPrefix + "dsfsession_gr_expired", SUM, RATE),
-      dsfUpdateFailed_(map, kCounterPrefix + "dsf_update_failed", SUM, RATE)
+      dsfUpdateFailed_(map, kCounterPrefix + "dsf_update_failed", SUM, RATE),
+      multiSwitchStatus_(map, kCounterPrefix + "multi_switch", SUM, RATE)
 
 {
   for (auto switchIndex = 0; switchIndex < numSwitches; switchIndex++) {
@@ -398,6 +400,8 @@ void SwitchStats::getHwAgentStatus(
     syncStatus.fdbEventSyncActive() = stats.getFdbEventSinkStatus();
     syncStatus.rxPktEventSyncActive() = stats.getRxPktEventSinkStatus();
     syncStatus.txPktEventSyncActive() = stats.getTxPktEventStreamStatus();
+    syncStatus.switchReachabilityChangeEventSyncActive() =
+        stats.getSwitchReachabilityChangeEventSinkStatus();
     syncStatus.statsEventSyncDisconnects() =
         stats.getStatsEventSinkDisconnectCount();
     syncStatus.fdbEventSyncDisconnects() =
@@ -408,6 +412,9 @@ void SwitchStats::getHwAgentStatus(
         stats.getRxPktEventSinkDisconnectCount();
     syncStatus.txPktEventSyncDisconnects() =
         stats.getTxPktEventStreamDisconnectCount();
+    syncStatus.switchReachabilityChangeEventSyncDisconnects() =
+        stats.getSwitchReachabilityChangeEventSinkDisconnectCount();
+
     statusMap.insert({switchIndex, std::move(syncStatus)});
     switchIndex++;
   }
@@ -582,6 +589,16 @@ SwitchStats::HwAgentStreamConnectionStatus::HwAgentStreamConnectionStatus(
               switchIndex,
               ".",
               "switch_reachability_change_event_received"),
+          SUM,
+          RATE)),
+      rxBadPktReceived_(TLTimeseries(
+          map,
+          folly::to<std::string>(
+              kCounterPrefix,
+              "switch.",
+              switchIndex,
+              ".",
+              "rx_bad_pkt_received"),
           SUM,
           RATE)) {}
 

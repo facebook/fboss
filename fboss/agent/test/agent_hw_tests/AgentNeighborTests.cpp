@@ -3,14 +3,15 @@
 #include <gtest/gtest.h>
 #include <algorithm>
 
-#include "fboss/agent/GtestDefs.h"
-#include "fboss/agent/hw/test/ConfigFactory.h"
-#include "fboss/agent/hw/test/HwLinkStateDependentTest.h"
-#include "fboss/agent/hw/test/HwTest.h"
-#include "fboss/agent/hw/test/HwTestNeighborUtils.h"
-#include "fboss/agent/hw/test/HwTestPacketUtils.h"
+#include "fboss/agent/TxPacket.h"
+#include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/TrunkUtils.h"
+#include "fboss/agent/test/utils/AsicUtils.h"
+#include "fboss/agent/test/utils/ConfigUtils.h"
+#include "fboss/agent/test/utils/PacketSnooper.h"
+
+#include "fboss/lib/CommonUtils.h"
 
 /*
  * Adding a new flag which can be used to setup ports in non-loopback
@@ -28,6 +29,25 @@ DECLARE_bool(intf_nbr_tables);
 
 using namespace ::testing;
 
+namespace {
+facebook::fboss::utility::NeighborInfo getNeighborInfo(
+    const facebook::fboss::InterfaceID& interfaceId,
+    const folly::IPAddress& ip,
+    facebook::fboss::AgentEnsemble& ensemble) {
+  auto switchId = ensemble.getSw()
+                      ->getScopeResolver()
+                      ->scope(ensemble.masterLogicalPortIds())
+                      .switchId();
+  auto client = ensemble.getHwAgentTestClient(switchId);
+  facebook::fboss::IfAndIP neighbor;
+  neighbor.interfaceID() = interfaceId;
+  neighbor.ip() = facebook::network::toBinaryAddress(ip);
+  facebook::fboss::utility::NeighborInfo neighborInfo;
+  client->sync_getNeighborInfo(neighborInfo, std::move(neighbor));
+  return neighborInfo;
+}
+} // namespace
+
 namespace facebook::fboss {
 
 template <typename AddrType, bool trunk = false, bool intfNbrTable = false>
@@ -40,7 +60,7 @@ struct NeighborT {
   std::enable_if_t<
       std::is_same<AddrT, folly::IPAddressV4>::value,
       folly::IPAddressV4> static getNeighborAddress() {
-    return folly::IPAddressV4("1.1.1.2");
+    return folly::IPAddressV4("1.0.0.2");
   }
 
   template <typename AddrT = IPAddrT>
@@ -74,7 +94,7 @@ using NeighborTypes = ::testing::Types<
     TrunkNeighborV6IntfNbrTable>;
 
 template <typename NeighborT>
-class HwNeighborTest : public HwLinkStateDependentTest {
+class AgentNeighborTest : public AgentHwTest {
  protected:
   using IPAddrT = typename NeighborT::IPAddrT;
   static auto constexpr programToTrunk = NeighborT::isTrunk;
@@ -87,31 +107,43 @@ class HwNeighborTest : public HwLinkStateDependentTest {
  protected:
   void SetUp() override {
     FLAGS_intf_nbr_tables = isIntfNbrTable;
-    HwLinkStateDependentTest::SetUp();
+    AgentHwTest::SetUp();
   }
 
-  cfg::SwitchConfig initialConfig() const override {
+  std::vector<production_features::ProductionFeature>
+  getProductionFeaturesVerified() const override {
+    std::vector<production_features::ProductionFeature> features = {
+        production_features::ProductionFeature::L3_FORWARDING};
+    if (isIntfNbrTable) {
+      features.push_back(
+          production_features::ProductionFeature::INTERFACE_NEIGHBOR_TABLE);
+    }
+    if (programToTrunk) {
+      features.push_back(production_features::ProductionFeature::LAG);
+    }
+    return features;
+  }
+
+  cfg::SwitchConfig initialConfig(
+      const AgentEnsemble& ensemble) const override {
     auto cfg = programToTrunk
         ? utility::oneL3IntfTwoPortConfig(
-              getHwSwitch()->getPlatform()->getPlatformMapping(),
-              getHwSwitch()->getPlatform()->getAsic(),
-              masterLogicalPortIds()[0],
-              masterLogicalPortIds()[1],
-              getHwSwitch()->getPlatform()->supportsAddRemovePort(),
-              getAsic()->desiredLoopbackModes())
+              ensemble.getSw(),
+              ensemble.masterLogicalPortIds()[0],
+              ensemble.masterLogicalPortIds()[1])
         : utility::onePortPerInterfaceConfig(
-              getHwSwitch(),
-              masterLogicalPortIds(),
-              getAsic()->desiredLoopbackModes());
+              ensemble.getSw(), ensemble.masterLogicalPortIds());
     if (programToTrunk) {
       // Keep member size to be less than/equal to HW limitation, but first add
       // the two ports for testing.
       std::set<int> portSet{
-          masterLogicalPortIds()[0], masterLogicalPortIds()[1]};
+          ensemble.masterLogicalPortIds()[0],
+          ensemble.masterLogicalPortIds()[1]};
       int idx = 0;
       while (portSet.size() <
              std::min(
-                 getAsic()->getMaxLagMemberSize(),
+                 utility::checkSameAndGetAsic(ensemble.getL3Asics())
+                     ->getMaxLagMemberSize(),
                  static_cast<uint32_t>((*cfg.ports()).size()))) {
         portSet.insert(*cfg.ports()[idx].logicalID());
         idx++;
@@ -122,7 +154,8 @@ class HwNeighborTest : public HwLinkStateDependentTest {
     return cfg;
   }
   VlanID kVlanID() const {
-    if (getSwitchType() == cfg::SwitchType::NPU) {
+    if (utility::checkSameAndGetAsic(getAgentEnsemble()->getL3Asics())
+            ->getSwitchType() == cfg::SwitchType::NPU) {
       auto vlanId = utility::firstVlanID(getProgrammedState());
       CHECK(vlanId.has_value());
       return *vlanId;
@@ -130,7 +163,9 @@ class HwNeighborTest : public HwLinkStateDependentTest {
     XLOG(FATAL) << " No vlans on non-npu switches";
   }
   InterfaceID kIntfID() const {
-    auto switchType = getSwitchType();
+    auto switchType =
+        utility::checkSameAndGetAsic(getAgentEnsemble()->getL3Asics())
+            ->getSwitchType();
     if (switchType == cfg::SwitchType::NPU) {
       return InterfaceID(static_cast<int>(kVlanID()));
     } else if (switchType == cfg::SwitchType::VOQ) {
@@ -153,7 +188,9 @@ class HwNeighborTest : public HwLinkStateDependentTest {
   }
 
   auto getNeighborTable(std::shared_ptr<SwitchState> state) {
-    auto switchType = getSwitchType();
+    auto switchType =
+        utility::checkSameAndGetAsic(getAgentEnsemble()->getL3Asics())
+            ->getSwitchType();
 
     if (isIntfNbrTable || switchType == cfg::SwitchType::VOQ) {
       return state->getInterfaces()
@@ -215,23 +252,31 @@ class HwNeighborTest : public HwLinkStateDependentTest {
      * Pending entry should not have a classID (0) associated with it.
      * Resolved entry should have a classID associated with it.
      */
-    auto gotClassid = utility::getNbrClassId(
-        this->getHwSwitch(), kIntfID(), NeighborT::getNeighborAddress());
-    XLOG(INFO) << " GOT CLASSID: " << gotClassid.value();
-    EXPECT_TRUE(programToTrunk || classID == gotClassid.value());
+    WITH_RETRIES({
+      auto neighborInfo = getNeighborInfo(
+          kIntfID(), NeighborT::getNeighborAddress(), *getAgentEnsemble());
+      EXPECT_EVENTUALLY_TRUE(neighborInfo.classId().has_value());
+      if (neighborInfo.classId().has_value()) {
+        XLOG(INFO) << " GOT CLASSID: " << neighborInfo.classId().value();
+        EXPECT_EVENTUALLY_TRUE(
+            programToTrunk || classID == neighborInfo.classId().value());
+      }
+    });
   }
 
-  bool nbrExists() const {
-    return utility::nbrExists(
-        this->getHwSwitch(), this->kIntfID(), this->getNeighborAddress());
+  bool nbrExists() {
+    auto neighborInfo = getNeighborInfo(
+        kIntfID(), NeighborT::getNeighborAddress(), *getAgentEnsemble());
+    return *neighborInfo.exists();
   }
   folly::IPAddress getNeighborAddress() const {
     return NeighborT::getNeighborAddress();
   }
 
-  bool isProgrammedToCPU() const {
-    return utility::nbrProgrammedToCpu(
-        this->getHwSwitch(), kIntfID(), this->getNeighborAddress());
+  bool isProgrammedToCPU() {
+    auto neighborInfo = getNeighborInfo(
+        kIntfID(), NeighborT::getNeighborAddress(), *getAgentEnsemble());
+    return *neighborInfo.isProgrammedToCpu();
   }
 
   const folly::MacAddress kNeighborMac{"2:3:4:5:6:7"};
@@ -241,35 +286,40 @@ class HwNeighborTest : public HwLinkStateDependentTest {
       cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_3};
 };
 
-TYPED_TEST_SUITE(HwNeighborTest, NeighborTypes);
+TYPED_TEST_SUITE(AgentNeighborTest, NeighborTypes);
 
-TYPED_TEST(HwNeighborTest, AddPendingEntry) {
+TYPED_TEST(AgentNeighborTest, AddPendingEntry) {
   auto setup = [this]() {
-    auto newState = this->addNeighbor(this->getProgrammedState());
-    this->applyNewState(newState);
+    this->applyNewState([&](const std::shared_ptr<SwitchState>& in) {
+      return this->addNeighbor(in);
+    });
   };
   auto verify = [this]() { EXPECT_TRUE(this->isProgrammedToCPU()); };
   this->verifyAcrossWarmBoots(setup, verify);
 }
 
-TYPED_TEST(HwNeighborTest, ResolvePendingEntry) {
+TYPED_TEST(AgentNeighborTest, ResolvePendingEntry) {
   auto setup = [this]() {
-    auto state = this->addNeighbor(this->getProgrammedState());
-    auto newState = this->resolveNeighbor(state);
-    this->applyNewState(newState);
+    this->applyNewState([&](const std::shared_ptr<SwitchState>& in) {
+      auto state = this->addNeighbor(in);
+      return this->resolveNeighbor(state);
+    });
   };
   auto verify = [this]() { EXPECT_FALSE(this->isProgrammedToCPU()); };
   this->verifyAcrossWarmBoots(setup, verify);
 }
 
-TYPED_TEST(HwNeighborTest, ResolvePendingEntryThenChangeLookupClass) {
+TYPED_TEST(AgentNeighborTest, ResolvePendingEntryThenChangeLookupClass) {
   auto setup = [this]() {
-    auto state = this->addNeighbor(this->getProgrammedState());
-    auto newState = this->resolveNeighbor(state, this->kLookupClass);
-    this->applyNewState(newState);
+    this->applyNewState([&](const std::shared_ptr<SwitchState>& in) {
+      auto state = this->addNeighbor(in);
+      return this->resolveNeighbor(state, this->kLookupClass);
+    });
+
     this->verifyClassId(static_cast<int>(this->kLookupClass));
-    newState = this->resolveNeighbor(state, this->kLookupClass2);
-    this->applyNewState(newState);
+    this->applyNewState([&](const std::shared_ptr<SwitchState>& in) {
+      return this->resolveNeighbor(in, this->kLookupClass2);
+    });
   };
   auto verify = [this]() {
     EXPECT_FALSE(this->isProgrammedToCPU());
@@ -278,56 +328,61 @@ TYPED_TEST(HwNeighborTest, ResolvePendingEntryThenChangeLookupClass) {
   this->verifyAcrossWarmBoots(setup, verify);
 }
 
-TYPED_TEST(HwNeighborTest, UnresolveResolvedEntry) {
+TYPED_TEST(AgentNeighborTest, UnresolveResolvedEntry) {
   auto setup = [this]() {
-    auto state =
-        this->resolveNeighbor(this->addNeighbor(this->getProgrammedState()));
-    auto newState = this->unresolveNeighbor(state);
-    this->applyNewState(newState);
+    this->applyNewState([&](const std::shared_ptr<SwitchState>& in) {
+      auto state = this->resolveNeighbor(this->addNeighbor(in));
+      return this->unresolveNeighbor(state);
+    });
   };
   auto verify = [this]() { EXPECT_TRUE(this->isProgrammedToCPU()); };
   this->verifyAcrossWarmBoots(setup, verify);
 }
 
-TYPED_TEST(HwNeighborTest, ResolveThenUnresolveEntry) {
+TYPED_TEST(AgentNeighborTest, ResolveThenUnresolveEntry) {
   auto setup = [this]() {
-    auto state =
-        this->resolveNeighbor(this->addNeighbor(this->getProgrammedState()));
-    this->applyNewState(state);
-    auto newState = this->unresolveNeighbor(this->getProgrammedState());
-    this->applyNewState(newState);
+    this->applyNewState([&](const std::shared_ptr<SwitchState>& in) {
+      return this->resolveNeighbor(this->addNeighbor(in));
+    });
+    this->applyNewState([&](const std::shared_ptr<SwitchState>& in) {
+      return this->unresolveNeighbor(in);
+    });
   };
   auto verify = [this]() { EXPECT_TRUE(this->isProgrammedToCPU()); };
   this->verifyAcrossWarmBoots(setup, verify);
 }
 
-TYPED_TEST(HwNeighborTest, RemoveResolvedEntry) {
+TYPED_TEST(AgentNeighborTest, RemoveResolvedEntry) {
   auto setup = [this]() {
-    auto state =
-        this->resolveNeighbor(this->addNeighbor(this->getProgrammedState()));
-    auto newState = this->removeNeighbor(state);
-    this->applyNewState(newState);
+    this->applyNewState([&](const std::shared_ptr<SwitchState>& in) {
+      auto state = this->resolveNeighbor(this->addNeighbor(in));
+      return this->removeNeighbor(state);
+    });
   };
   auto verify = [this]() { EXPECT_FALSE(this->nbrExists()); };
   this->verifyAcrossWarmBoots(setup, verify);
 }
 
-TYPED_TEST(HwNeighborTest, AddPendingRemovedEntry) {
+TYPED_TEST(AgentNeighborTest, AddPendingRemovedEntry) {
   auto setup = [this]() {
-    auto state =
-        this->resolveNeighbor(this->addNeighbor(this->getProgrammedState()));
-    this->applyNewState(this->removeNeighbor(state));
-    this->applyNewState(this->addNeighbor(this->getProgrammedState()));
+    this->applyNewState([&](const std::shared_ptr<SwitchState>& in) {
+      auto state = this->resolveNeighbor(this->addNeighbor(in));
+      return this->removeNeighbor(state);
+    });
+    this->applyNewState([&](const std::shared_ptr<SwitchState>& in) {
+      return this->addNeighbor(in);
+    });
   };
   auto verify = [this]() { EXPECT_TRUE(this->isProgrammedToCPU()); };
   this->verifyAcrossWarmBoots(setup, verify);
 }
 
-TYPED_TEST(HwNeighborTest, LinkDownOnResolvedEntry) {
+TYPED_TEST(AgentNeighborTest, LinkDownOnResolvedEntry) {
   auto setup = [this]() {
-    auto state = this->addNeighbor(this->getProgrammedState());
-    auto newState = this->resolveNeighbor(state);
-    newState = this->applyNewState(newState);
+    this->applyNewState([&](const std::shared_ptr<SwitchState>& in) {
+      auto state = this->addNeighbor(in);
+      return this->resolveNeighbor(state);
+    });
     this->bringDownPort(this->masterLogicalInterfacePortIds()[0]);
   };
   auto verify = [this]() {
@@ -344,11 +399,12 @@ TYPED_TEST(HwNeighborTest, LinkDownOnResolvedEntry) {
   this->verifyAcrossWarmBoots(setup, verify);
 }
 
-TYPED_TEST(HwNeighborTest, LinkDownAndUpOnResolvedEntry) {
+TYPED_TEST(AgentNeighborTest, LinkDownAndUpOnResolvedEntry) {
   auto setup = [this]() {
-    auto state = this->addNeighbor(this->getProgrammedState());
-    auto newState = this->resolveNeighbor(state);
-    newState = this->applyNewState(newState);
+    this->applyNewState([&](const std::shared_ptr<SwitchState>& in) {
+      auto state = this->addNeighbor(in);
+      return this->resolveNeighbor(state);
+    });
     this->bringDownPort(this->masterLogicalInterfacePortIds()[0]);
     this->bringUpPort(this->masterLogicalInterfacePortIds()[0]);
   };
@@ -376,24 +432,34 @@ using IntfNbrTableTypes =
     ::testing::Types<EnableIntfNbrTable<false>, EnableIntfNbrTable<true>>;
 
 template <typename EnableIntfNbrTableT>
-class HwNeighborOnMultiplePortsTest : public HwLinkStateDependentTest {
+class AgentNeighborOnMultiplePortsTest : public AgentHwTest {
   static auto constexpr isIntfNbrTable = EnableIntfNbrTableT::intfNbrTable;
 
  protected:
   void SetUp() override {
     FLAGS_intf_nbr_tables = isIntfNbrTable;
-    HwLinkStateDependentTest::SetUp();
+    AgentHwTest::SetUp();
   }
 
-  cfg::SwitchConfig initialConfig() const override {
+  std::vector<production_features::ProductionFeature>
+  getProductionFeaturesVerified() const override {
+    std::vector<production_features::ProductionFeature> features = {
+        production_features::ProductionFeature::L3_FORWARDING};
+    if (isIntfNbrTable) {
+      features.push_back(
+          production_features::ProductionFeature::INTERFACE_NEIGHBOR_TABLE);
+    }
+    return features;
+  }
+
+  cfg::SwitchConfig initialConfig(
+      const AgentEnsemble& ensemble) const override {
     return utility::onePortPerInterfaceConfig(
-        getHwSwitch(),
-        masterLogicalPortIds(),
-        getAsic()->desiredLoopbackModes());
+        ensemble.getSw(), ensemble.masterLogicalPortIds());
   }
 
   void oneNeighborPerPortSetup(const std::vector<PortID>& portIds) {
-    auto cfg = initialConfig();
+    auto cfg = initialConfig(*getAgentEnsemble());
     if (FLAGS_disable_loopback) {
       // Disable loopback on specific ports
       for (auto portId : portIds) {
@@ -402,17 +468,18 @@ class HwNeighborOnMultiplePortsTest : public HwLinkStateDependentTest {
           portCfg->loopbackMode() = cfg::PortLoopbackMode::NONE;
         }
       }
-      applyNewConfig(cfg);
+      this->applyNewConfig(cfg);
     }
 
     // Create adjacencies on all test ports
-    auto dstMac = utility::getFirstInterfaceMac(cfg);
+    auto dstMac = utility::getFirstInterfaceMac(this->getProgrammedState());
     for (int idx = 0; idx < portIds.size(); idx++) {
-      utility::EcmpSetupAnyNPorts6 ecmpHelper6(
-          getProgrammedState(),
-          utility::MacAddressGenerator().get(dstMac.u64NBO() + idx + 1));
-      applyNewState(ecmpHelper6.resolveNextHops(
-          getProgrammedState(), {PortDescriptor(portIds[idx])}));
+      this->applyNewState([&](const std::shared_ptr<SwitchState>& in) {
+        utility::EcmpSetupAnyNPorts6 ecmpHelper6(
+            in, utility::MacAddressGenerator().get(dstMac.u64NBO() + idx + 1));
+        return ecmpHelper6.resolveNextHops(
+            getProgrammedState(), {PortDescriptor(portIds[idx])});
+      });
     }
 
     // Dump the local interface config
@@ -426,7 +493,9 @@ class HwNeighborOnMultiplePortsTest : public HwLinkStateDependentTest {
   }
 
   InterfaceID getInterfaceId(const PortID& portId) const {
-    auto switchType = getSwitchType();
+    auto switchType =
+        utility::checkSameAndGetAsic(getAgentEnsemble()->getL3Asics())
+            ->getSwitchType();
 
     if (isIntfNbrTable || switchType == cfg::SwitchType::VOQ) {
       return InterfaceID(*getProgrammedState()
@@ -446,16 +515,16 @@ class HwNeighborOnMultiplePortsTest : public HwLinkStateDependentTest {
     XLOG(FATAL) << "Unexpected switch type " << static_cast<int>(switchType);
   }
 
-  bool isProgrammedToCPU(const PortID& portId, const folly::IPAddress& ip)
-      const {
+  bool isProgrammedToCPU(PortID& portId, folly::IPAddress ip) {
     auto intfId = getInterfaceId(portId);
-    return utility::nbrProgrammedToCpu(this->getHwSwitch(), intfId, ip);
+    auto neighborInfo = getNeighborInfo(intfId, ip, *getAgentEnsemble());
+    return *neighborInfo.isProgrammedToCpu();
   }
 };
 
-TYPED_TEST_SUITE(HwNeighborOnMultiplePortsTest, IntfNbrTableTypes);
+TYPED_TEST_SUITE(AgentNeighborOnMultiplePortsTest, IntfNbrTableTypes);
 
-TYPED_TEST(HwNeighborOnMultiplePortsTest, ResolveOnTwoPorts) {
+TYPED_TEST(AgentNeighborOnMultiplePortsTest, ResolveOnTwoPorts) {
   auto setup = [&]() {
     this->oneNeighborPerPortSetup(
         {this->masterLogicalInterfacePortIds()[0],

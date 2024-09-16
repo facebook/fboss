@@ -23,6 +23,9 @@
 
 using namespace std::chrono;
 
+using facebook::fboss::cfg::SwitchInfo;
+using facebook::fboss::cfg::SwitchType;
+
 using folly::ByteRange;
 using folly::IPAddress;
 using folly::IPAddressV6;
@@ -243,8 +246,8 @@ std::optional<std::string> getMyHostname(const std::string& hostname) {
 
 std::string escapeDoubleQuotes(const std::string& cmd) {
   std::string cmdCopy = cmd;
-  const re2::RE2 doubleQuotes("\"");
-  re2::RE2::Replace(&cmdCopy, doubleQuotes, "\\\"");
+  const re2::RE2 doubleQuotes(R"(")");
+  re2::RE2::GlobalReplace(&cmdCopy, doubleQuotes, R"(\\")");
   return cmdCopy;
 }
 
@@ -345,6 +348,32 @@ Table::StyledCell styledBer(double ber) {
     return Table::StyledCell(outStringStream.str(), Table::Style::WARN);
   }
   return Table::StyledCell(outStringStream.str(), Table::Style::GOOD);
+}
+
+Table::StyledCell styledFecTail(int tail) {
+  if (tail > 12) {
+    return Table::StyledCell(folly::to<std::string>(tail), Table::Style::ERROR);
+  }
+  if (tail > 8) {
+    return Table::StyledCell(folly::to<std::string>(tail), Table::Style::WARN);
+  }
+  return Table::StyledCell(folly::to<std::string>(tail), Table::Style::GOOD);
+}
+
+cfg::SwitchType getSwitchType(
+    std::map<int64_t, cfg::SwitchInfo> switchIdToSwitchInfo) {
+  CHECK_GE(switchIdToSwitchInfo.size(), 1);
+
+  // Assert that all switches have the same switch type
+  auto switchType = switchIdToSwitchInfo.begin()->second.get_switchType();
+  CHECK(std::all_of(
+      switchIdToSwitchInfo.begin(),
+      switchIdToSwitchInfo.end(),
+      [switchType](const auto& pair) {
+        return pair.second.get_switchType() == switchType;
+      }));
+
+  return switchType;
 }
 
 } // namespace facebook::fboss::utils

@@ -1,6 +1,6 @@
 load("@fbcode_macros//build_defs:auto_headers.bzl", "AutoHeaders")
 load("@fbcode_macros//build_defs:cpp_binary.bzl", "cpp_binary")
-load("//fboss/agent/hw/sai/impl:impl.bzl", "get_all_impls_for", "to_impl_lib_name", "to_impl_suffix", "to_versions")
+load("//fboss/agent/hw/sai/impl:impl.bzl", "get_all_impls_for", "get_link_group_map", "to_impl_lib_name", "to_impl_suffix", "to_versions")
 load("//fboss/agent/hw/sai/switch:switch.bzl", "sai_switch_dependent_name")
 
 TEST_BINARY_MODES = ["legacy", "mono", "multi"]
@@ -22,7 +22,9 @@ def _sai_link_test_binary(sai_impl, mode):
         test_deps.append("//fboss/agent/platforms/sai:bcm-required-symbols")
 
     if mode == "mono":
+        agent_hw_test_thrift_handler = sai_switch_dependent_name("agent_hw_test_thrift_handler", sai_impl, True)
         test_deps.append("//fboss/agent/test/link_tests:agent_ensemble_link_tests")
+        test_deps.append("//fboss/agent/hw/sai/hw_test:{}".format(agent_hw_test_thrift_handler))
         test_deps.append("//fboss/agent/test:mono_agent_ensemble")
         name = "sai_mono_link_test-{}-{}".format(sai_impl.name, sai_impl.version)
         srcs = [
@@ -48,6 +50,7 @@ def _sai_link_test_binary(sai_impl, mode):
             "--export-dynamic",
             "--unresolved-symbols=ignore-all",
         ] if sai_impl.name == "leaba" else [],
+        link_group_map = get_link_group_map(name, sai_impl),
         deps = test_deps,
         auto_headers = AutoHeaders.SOURCES,
         versions = to_versions(sai_impl),

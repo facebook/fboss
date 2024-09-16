@@ -40,6 +40,7 @@ auto constexpr kTestPrefixLength = 120;
 
 using namespace facebook::neteng::fboss::bgp::thrift;
 using namespace facebook::neteng::fboss::bgp_attr;
+using namespace std::chrono;
 
 using StateUpdateFn = facebook::fboss::SwSwitch::StateUpdateFn;
 
