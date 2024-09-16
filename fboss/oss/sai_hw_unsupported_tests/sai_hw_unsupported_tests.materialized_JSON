@@ -325,9 +325,6 @@
           "test_name_regex": "HwPacketSendTest.PortTxEnableTest"
         },
         {
-          "test_name_regex": "HwPfcTest.*"
-        },
-        {
           "test_name_regex": "HwVerifyPfcConfigInHwTest.*"
         },
         {
@@ -460,9 +457,6 @@
         },
         {
           "test_name_regex": "HwPacketSendTest.PortTxEnableTest"
-        },
-        {
-          "test_name_regex": "HwPfcTest.*"
         },
         {
           "test_name_regex": "HwVerifyPfcConfigInHwTest.*"
@@ -1873,9 +1867,6 @@
         },
         {
           "test_name_regex": "HwPacketSendTest.PortTxEnableTest"
-        },
-        {
-          "test_name_regex": "HwPfcTest.*"
         },
         {
           "test_name_regex": "HwVerifyPfcConfigInHwTest.*"
