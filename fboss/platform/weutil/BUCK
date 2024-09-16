@@ -21,6 +21,7 @@ cpp_library(
         "//fboss/lib/platforms:platform_mode",
         "//fboss/lib/platforms:product-info",
         "//fboss/platform/config_lib:config_lib",
+        "//fboss/platform/helpers:platform_name_lib",
         "//fboss/platform/helpers:platform_utils",
         "//fboss/platform/weutil/if:weutil_config-cpp2-types",
         "//folly:conv",

@@ -49,6 +49,7 @@ target_link_libraries(weutil_lib
   weutil_config_cpp2
   weutil_fboss_eeprom_parser
   platform_config_lib
+  platform_name_lib
   ioctl_smbus_eeprom_reader
 )
 
