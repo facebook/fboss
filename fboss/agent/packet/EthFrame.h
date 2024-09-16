@@ -56,6 +56,8 @@ class EthFrame {
       len += mplsPayLoad_->length();
     } else if (arpHdr_) {
       len += arpHdr_->size();
+    } else if (macControlPayload_) {
+      len += macControlPayload_->size();
     }
     len += hdr_.size();
     return len;
@@ -76,20 +78,32 @@ class EthFrame {
   std::optional<MPLSPacket> mplsPayLoad() const {
     return mplsPayLoad_;
   }
+
   std::optional<ArpHdr> arpHdr() const {
     return arpHdr_;
+  }
+
+  std::optional<std::vector<uint8_t>> macControlPayload() const {
+    return macControlPayload_;
   }
 
   void serialize(folly::io::RWPrivateCursor& cursor) const;
 
   bool operator==(const EthFrame& that) const {
-    return std::tie(hdr_, v4PayLoad_, v6PayLoad_, mplsPayLoad_, arpHdr_) ==
+    return std::tie(
+               hdr_,
+               v4PayLoad_,
+               v6PayLoad_,
+               mplsPayLoad_,
+               arpHdr_,
+               macControlPayload_) ==
         std::tie(
                that.hdr_,
                that.v4PayLoad_,
                that.v6PayLoad_,
                that.mplsPayLoad_,
-               arpHdr_);
+               that.arpHdr_,
+               that.macControlPayload_);
   }
   bool operator!=(const EthFrame& that) const {
     return !(*this == that);
@@ -118,6 +132,7 @@ class EthFrame {
   std::optional<IPPacket<folly::IPAddressV6>> v6PayLoad_;
   std::optional<MPLSPacket> mplsPayLoad_;
   std::optional<ArpHdr> arpHdr_;
+  std::optional<std::vector<uint8_t>> macControlPayload_;
 };
 
 inline std::ostream& operator<<(std::ostream& os, const EthFrame& ethFrame) {
