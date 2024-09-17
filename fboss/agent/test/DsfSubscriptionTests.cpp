@@ -21,8 +21,10 @@ using ::testing::Return;
 namespace facebook::fboss {
 namespace {
 constexpr auto kRemoteSwitchIdBegin = 4;
+constexpr auto kSwitchIdGap = 4;
 constexpr auto kSysPortBlockSize = 50;
-constexpr auto kSysPortRangeMin = kRemoteSwitchIdBegin * kSysPortBlockSize;
+constexpr auto kSysPortRangeMin =
+    (kRemoteSwitchIdBegin / kSwitchIdGap) * kSysPortBlockSize;
 constexpr auto intfV4AddrPrefix = "42.42.42.";
 constexpr auto intfV6AddrPrefix = "42::";
 std::shared_ptr<SystemPortMap> makeSysPortsForSwitchIds(
@@ -30,7 +32,7 @@ std::shared_ptr<SystemPortMap> makeSysPortsForSwitchIds(
     int numSysPorts = 1) {
   auto sysPorts = std::make_shared<SystemPortMap>();
   for (auto switchId : remoteSwitchIds) {
-    auto sysPortBegin = switchId * kSysPortBlockSize + 1;
+    auto sysPortBegin = (switchId / kSwitchIdGap) * kSysPortBlockSize + 1;
     for (auto sysPortId = sysPortBegin; sysPortId < sysPortBegin + numSysPorts;
          ++sysPortId) {
       sysPorts->addNode(makeSysPort(std::nullopt, sysPortId, switchId));
@@ -135,7 +137,7 @@ class DsfSubscriptionTest : public ::testing::Test {
   std::set<SwitchID> remoteSwitchIds() const {
     std::set<SwitchID> remoteSwitchIds;
     for (auto i = 0; i < kNumRemoteSwitchAsics; ++i) {
-      remoteSwitchIds.insert(SwitchID(kRemoteSwitchIdBegin + i));
+      remoteSwitchIds.insert(SwitchID(kRemoteSwitchIdBegin + i * kSwitchIdGap));
     }
     return remoteSwitchIds;
   }
