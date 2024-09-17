@@ -7370,6 +7370,24 @@
         "etherType": 34525
       },
       {
+        "name": "cpuPolicing-mid-lldp-dstMac0E",
+        "actionType": 1,
+        "dstMac": "01:80:c2:00:00:0e",
+        "etherType": 35020
+      },
+      {
+        "name": "cpuPolicing-mid-lldp-dstMac03",
+        "actionType": 1,
+        "dstMac": "01:80:c2:00:00:03",
+        "etherType": 35020
+      },
+      {
+        "name": "cpuPolicing-mid-lldp-dstMac00",
+        "actionType": 1,
+        "dstMac": "01:80:c2:00:00:00",
+        "etherType": 35020
+      },
+      {
         "name": "cpuPolicing-mid-Ip2Me-Ip4",
         "actionType": 1,
         "lookupClassRoute": 1,
@@ -7561,6 +7579,42 @@
             }
           },
           {
+            "matcher": "cpuPolicing-mid-lldp-dstMac0E",
+            "action": {
+              "sendToQueue": {
+                "queueId": 3
+              },
+              "toCpuAction": 1,
+              "setTc": {
+                "tcValue": 3
+              }
+            }
+          },
+          {
+            "matcher": "cpuPolicing-mid-lldp-dstMac03",
+            "action": {
+              "sendToQueue": {
+                "queueId": 3
+              },
+              "toCpuAction": 1,
+              "setTc": {
+                "tcValue": 3
+              }
+            }
+          },
+          {
+            "matcher": "cpuPolicing-mid-lldp-dstMac00",
+            "action": {
+              "sendToQueue": {
+                "queueId": 3
+              },
+              "toCpuAction": 1,
+              "setTc": {
+                "tcValue": 3
+              }
+            }
+          },
+          {
             "matcher": "cpuPolicing-mid-Ip2Me-Ip4",
             "action": {
               "sendToQueue": {
@@ -7602,10 +7656,6 @@
         {
           "rxReason": 13,
           "queueId": 7
-        },
-        {
-          "rxReason": 9,
-          "queueId": 3
         },
         {
           "rxReason": 2,
