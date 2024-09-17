@@ -376,14 +376,16 @@ cfg::DsfNode dsfNodeConfig(
     auto fromAsicSystemPortRange = fromAsic.getSystemPortRange();
     if (fromAsicSystemPortRange.has_value()) {
       cfg::Range64 range;
-      auto blockSize = *fromAsicSystemPortRange->maximum() -
-          *fromAsicSystemPortRange->minimum();
+      int numCores = fromAsic.getNumCores();
+      auto blockSize = (*fromAsicSystemPortRange->maximum() -
+                        *fromAsicSystemPortRange->minimum() + 1) /
+          numCores;
       range.minimum() = systemPortMin.has_value()
           ? kSysPortOffset + systemPortMin.value()
           : kSysPortOffset + switchId * blockSize;
       range.maximum() = systemPortMax.has_value()
           ? kSysPortOffset + systemPortMax.value()
-          : *range.minimum() + blockSize;
+          : *range.minimum() + numCores * blockSize - 1;
       systemPortRange = range;
     }
     auto localMac = utility::kLocalCpuMac();

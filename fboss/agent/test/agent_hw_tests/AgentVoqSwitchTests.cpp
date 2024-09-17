@@ -1592,7 +1592,8 @@ TEST_F(AgentVoqSwitchWithMultipleDsfNodesTest, addRemoveRemoteNeighbor) {
           in,
           scopeResolver(),
           kRemoteSysPortId,
-          static_cast<SwitchID>(numCores));
+          static_cast<SwitchID>(
+              numCores * getAgentEnsemble()->getNumL3Asics()));
     });
     const InterfaceID kIntfId(remotePortId);
     applyNewState([&](const std::shared_ptr<SwitchState>& in) {
@@ -1654,7 +1655,8 @@ TEST_F(AgentVoqSwitchWithMultipleDsfNodesTest, voqDelete) {
           in,
           scopeResolver(),
           kRemoteSysPortId,
-          static_cast<SwitchID>(numCores));
+          static_cast<SwitchID>(
+              numCores * getAgentEnsemble()->getNumL3Asics()));
     });
     const InterfaceID kIntfId(remotePortId);
     applyNewState([&](const std::shared_ptr<SwitchState>& in) {
@@ -1740,7 +1742,8 @@ TEST_F(AgentVoqSwitchWithMultipleDsfNodesTest, stressAddRemoveObjects) {
             in,
             scopeResolver(),
             kRemoteSysPortId,
-            static_cast<SwitchID>(numCores));
+            static_cast<SwitchID>(
+                numCores * getAgentEnsemble()->getNumL3Asics()));
       });
       const InterfaceID kIntfId(remotePortId);
       applyNewState([&](const std::shared_ptr<SwitchState>& in) {
@@ -1837,7 +1840,8 @@ TEST_F(AgentVoqSwitchWithMultipleDsfNodesTest, voqTailDropCounter) {
           in,
           scopeResolver(),
           kRemoteSysPortId,
-          static_cast<SwitchID>(numCores));
+          static_cast<SwitchID>(
+              numCores * getAgentEnsemble()->getNumL3Asics()));
     });
     const InterfaceID kIntfId(remotePortId);
     applyNewState([&](const std::shared_ptr<SwitchState>& in) {
@@ -1885,7 +1889,8 @@ TEST_F(AgentVoqSwitchWithMultipleDsfNodesTest, verifyDscpToVoqMapping) {
           in,
           scopeResolver(),
           kRemoteSysPortId,
-          static_cast<SwitchID>(numCores));
+          static_cast<SwitchID>(
+              numCores * getAgentEnsemble()->getNumL3Asics()));
     });
     const InterfaceID kIntfId(remotePortId);
     applyNewState([&](const std::shared_ptr<SwitchState>& in) {

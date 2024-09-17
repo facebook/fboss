@@ -125,10 +125,14 @@ std::optional<std::map<int64_t, cfg::DsfNode>> addRemoteDsfNodeCfg(
   CHECK(
       !numRemoteNodes.has_value() ||
       numRemoteNodes.value() < getDsfNodeCount(asic.get()));
-  int totalNodes = numRemoteNodes.has_value() ? numRemoteNodes.value() + 1
-                                              : getDsfNodeCount(asic.get());
-  int systemPortMin = getPerNodeSysPorts(asic.get(), 1);
-  for (int remoteSwitchId = numCores; remoteSwitchId < totalNodes * numCores;
+  int totalNodes = numRemoteNodes.has_value()
+      ? numRemoteNodes.value() + curDsfNodes.size()
+      : getDsfNodeCount(asic.get());
+  int remoteNodeStart = dsfNodes.rbegin()->first + numCores;
+  int systemPortMin = getPerNodeSysPorts(asic.get(), dsfNodes.begin()->first) *
+      curDsfNodes.size();
+  for (int remoteSwitchId = remoteNodeStart;
+       remoteSwitchId < totalNodes * numCores;
        remoteSwitchId += numCores) {
     cfg::Range64 systemPortRange;
     systemPortRange.minimum() = systemPortMin;
@@ -138,7 +142,8 @@ std::optional<std::map<int64_t, cfg::DsfNode>> addRemoteDsfNodeCfg(
         *asic,
         SwitchID(remoteSwitchId),
         systemPortMin,
-        *systemPortRange.maximum());
+        *systemPortRange.maximum(),
+        *firstDsfNode.platformType());
     dsfNodes.insert({remoteSwitchId, remoteDsfNodeCfg});
     systemPortMin = *systemPortRange.maximum() + 1;
   }
