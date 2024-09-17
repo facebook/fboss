@@ -34,7 +34,7 @@ SaiRxPacket::SaiRxPacket(
   srcPort_ = portId;
   srcVlan_ = vlanId;
   rxReason_ = rxReason;
-  _cosQueue = queueId;
+  cosQueue_ = queueId;
 }
 
 SaiRxPacket::SaiRxPacket(
@@ -51,7 +51,7 @@ SaiRxPacket::SaiRxPacket(
   srcVlan_ = vlanId;
   isFromAggregatePort_ = true;
   rxReason_ = rxReason;
-  _cosQueue = queueId;
+  cosQueue_ = queueId;
 }
 
 std::string SaiRxPacket::describeDetails() const {

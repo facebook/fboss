@@ -82,12 +82,9 @@ class RxPacket : public Packet {
   virtual std::string describeDetails() const {
     return "";
   }
-  /*
-   * Derived classes to override and provide CoS queue
-   * info (if available)
-   */
-  virtual int cosQueue() const {
-    return -1;
+
+  std::optional<uint8_t> cosQueue() const {
+    return cosQueue_;
   }
 
   /*
@@ -115,6 +112,7 @@ class RxPacket : public Packet {
   // Once all those callsites are fixed, default to std::nullopt.
   std::optional<VlanID> srcVlan_{0};
   uint32_t len_{0};
+  std::optional<uint8_t> cosQueue_;
 };
 
 } // namespace facebook::fboss

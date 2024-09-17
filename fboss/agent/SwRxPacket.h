@@ -30,6 +30,9 @@ class SwRxPacket : public RxPacket {
     isFromAggregatePort_ = true;
     srcAggregatePort_ = srcAggregatePort;
   }
+  void setCosQueue(uint8_t cosQueue) {
+    cosQueue_ = cosQueue;
+  }
 
  private:
   // Forbidden copy constructor and assignment operator
