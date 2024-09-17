@@ -439,4 +439,5 @@ bool haveParallelLinksToInterfaceNodes(
         switchNameToSwitchIds,
     SwitchIdScopeResolver& scopeResolver);
 
+CpuCosQueueId hwQueueIdToCpuCosQueueId(uint8_t hwQueueId);
 } // namespace facebook::fboss
