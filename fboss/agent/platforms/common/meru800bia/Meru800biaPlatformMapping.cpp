@@ -36,7 +36,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "scope": 1
         },
         "supportedProfiles": {
-          "11": {
+          "49": {
               "pins": {
                 "iphy": [
                   {
@@ -70,7 +70,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "scope": 0
         },
         "supportedProfiles": {
-          "11": {
+          "49": {
               "pins": {
                 "iphy": [
                   {
@@ -104,7 +104,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "scope": 0
         },
         "supportedProfiles": {
-          "11": {
+          "49": {
               "pins": {
                 "iphy": [
                   {
@@ -138,7 +138,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "scope": 0
         },
         "supportedProfiles": {
-          "11": {
+          "49": {
               "pins": {
                 "iphy": [
                   {
@@ -172,7 +172,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "scope": 0
         },
         "supportedProfiles": {
-          "11": {
+          "49": {
               "pins": {
                 "iphy": [
                   {
@@ -206,7 +206,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "scope": 0
         },
         "supportedProfiles": {
-          "11": {
+          "49": {
               "pins": {
                 "iphy": [
                   {
@@ -43099,21 +43099,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
     },
     {
       "factor": {
-        "profileID": 11
-      },
-      "profile": {
-        "speed": 10000,
-        "iphy": {
-          "numLanes": 1,
-          "modulation": 1,
-          "fec": 1,
-          "medium": 1,
-          "interfaceType": 10
-        }
-      }
-    },
-    {
-      "factor": {
         "profileID": 45
       },
       "profile": {
@@ -43124,6 +43109,21 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "fec": 11,
           "medium": 1,
           "interfaceType": 12
+        }
+      }
+    },
+    {
+      "factor": {
+        "profileID": 49
+      },
+      "profile": {
+        "speed": 100000,
+        "iphy": {
+          "numLanes": 1,
+          "modulation": 1,
+          "fec": 1,
+          "medium": 1,
+          "interfaceType": 10
         }
       }
     },
@@ -43199,7 +43199,7 @@ constexpr auto kJsonDsfJ3ScaleTestPlatformMappingStr = R"(
           "scope": 1
         },
         "supportedProfiles": {
-          "11": {
+          "49": {
               "pins": {
                 "iphy": [
                   {
@@ -43233,7 +43233,7 @@ constexpr auto kJsonDsfJ3ScaleTestPlatformMappingStr = R"(
           "scope": 0
         },
         "supportedProfiles": {
-          "11": {
+          "49": {
               "pins": {
                 "iphy": [
                   {
@@ -43267,7 +43267,7 @@ constexpr auto kJsonDsfJ3ScaleTestPlatformMappingStr = R"(
           "scope": 0
         },
         "supportedProfiles": {
-          "11": {
+          "49": {
               "pins": {
                 "iphy": [
                   {
@@ -43301,7 +43301,7 @@ constexpr auto kJsonDsfJ3ScaleTestPlatformMappingStr = R"(
           "scope": 0
         },
         "supportedProfiles": {
-          "11": {
+          "49": {
               "pins": {
                 "iphy": [
                   {
@@ -43335,7 +43335,7 @@ constexpr auto kJsonDsfJ3ScaleTestPlatformMappingStr = R"(
           "scope": 0
         },
         "supportedProfiles": {
-          "11": {
+          "49": {
               "pins": {
                 "iphy": [
                   {
@@ -43369,7 +43369,7 @@ constexpr auto kJsonDsfJ3ScaleTestPlatformMappingStr = R"(
           "scope": 0
         },
         "supportedProfiles": {
-          "11": {
+          "49": {
               "pins": {
                 "iphy": [
                   {
@@ -71724,21 +71724,6 @@ constexpr auto kJsonDsfJ3ScaleTestPlatformMappingStr = R"(
     },
     {
       "factor": {
-        "profileID": 11
-      },
-      "profile": {
-        "speed": 10000,
-        "iphy": {
-          "numLanes": 1,
-          "modulation": 1,
-          "fec": 1,
-          "medium": 1,
-          "interfaceType": 10
-        }
-      }
-    },
-    {
-      "factor": {
         "profileID": 47
       },
       "profile": {
@@ -71749,6 +71734,21 @@ constexpr auto kJsonDsfJ3ScaleTestPlatformMappingStr = R"(
           "fec": 11,
           "medium": 2,
           "interfaceType": 41
+        }
+      }
+    },
+    {
+      "factor": {
+        "profileID": 49
+      },
+      "profile": {
+        "speed": 100000,
+        "iphy": {
+          "numLanes": 1,
+          "modulation": 1,
+          "fec": 1,
+          "medium": 1,
+          "interfaceType": 10
         }
       }
     },
@@ -71809,7 +71809,7 @@ constexpr auto kJsonEdswPlatformMappingStr = R"(
           "scope": 1
         },
         "supportedProfiles": {
-          "11": {
+          "49": {
               "pins": {
                 "iphy": [
                   {
@@ -71843,7 +71843,7 @@ constexpr auto kJsonEdswPlatformMappingStr = R"(
           "scope": 0
         },
         "supportedProfiles": {
-          "11": {
+          "49": {
               "pins": {
                 "iphy": [
                   {
@@ -71877,7 +71877,7 @@ constexpr auto kJsonEdswPlatformMappingStr = R"(
           "scope": 0
         },
         "supportedProfiles": {
-          "11": {
+          "49": {
               "pins": {
                 "iphy": [
                   {
@@ -71911,7 +71911,7 @@ constexpr auto kJsonEdswPlatformMappingStr = R"(
           "scope": 0
         },
         "supportedProfiles": {
-          "11": {
+          "49": {
               "pins": {
                 "iphy": [
                   {
@@ -71945,7 +71945,7 @@ constexpr auto kJsonEdswPlatformMappingStr = R"(
           "scope": 0
         },
         "supportedProfiles": {
-          "11": {
+          "49": {
               "pins": {
                 "iphy": [
                   {
@@ -71979,7 +71979,7 @@ constexpr auto kJsonEdswPlatformMappingStr = R"(
           "scope": 0
         },
         "supportedProfiles": {
-          "11": {
+          "49": {
               "pins": {
                 "iphy": [
                   {
@@ -97454,13 +97454,13 @@ constexpr auto kJsonEdswPlatformMappingStr = R"(
     },
     {
       "factor": {
-        "profileID": 11
+        "profileID": 49
       },
       "profile": {
-        "speed": 10000,
+        "speed": 100000,
         "iphy": {
           "numLanes": 1,
-          "modulation": 1,
+          "modulation": 2,
           "fec": 1,
           "medium": 1,
           "interfaceType": 10
