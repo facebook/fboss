@@ -115,21 +115,9 @@ void configureAllIcmpQualifiers(
 
 namespace facebook::fboss {
 
-template <bool enableMultiAclTable>
-struct EnableMultiAclTableT {
-  static constexpr auto multiAclTableEnabled = enableMultiAclTable;
-};
-
-using TestTypes =
-    ::testing::Types<EnableMultiAclTableT<false>, EnableMultiAclTableT<true>>;
-
-template <typename EnableMultiAclTableT>
 class HwAclQualifierTest : public HwTest {
  public:
-  static auto constexpr isMultiAclEnabled =
-      EnableMultiAclTableT::multiAclTableEnabled;
   bool addQualifiers = false;
-
   void configureAllHwQualifiers(cfg::AclEntry* acl, bool enable) {
     configureQualifier(
         acl->srcPort(), enable, masterLogicalInterfacePortIds()[0]);
@@ -256,12 +244,11 @@ class HwAclQualifierTest : public HwTest {
 
  protected:
   void SetUp() override {
-    FLAGS_enable_acl_table_group = isMultiAclEnabled;
     HwTest::SetUp();
     // Skip multi acl tests for fake sdk
     if ((this->getPlatform()->getAsic()->getAsicType() ==
          cfg::AsicType::ASIC_TYPE_FAKE) &&
-        (isMultiAclEnabled)) {
+        (FLAGS_enable_acl_table_group)) {
       GTEST_SKIP();
     }
   }
@@ -271,7 +258,7 @@ class HwAclQualifierTest : public HwTest {
         getHwSwitch(),
         masterLogicalPortIds(),
         getAsic()->desiredLoopbackModes());
-    if (isMultiAclEnabled) {
+    if (FLAGS_enable_acl_table_group) {
       utility::addAclTableGroup(
           &cfg, cfg::AclStage::INGRESS, utility::getAclTableGroupName());
       std::vector<cfg::AclTableActionType> actions = {};
@@ -289,9 +276,7 @@ class HwAclQualifierTest : public HwTest {
   }
 };
 
-TYPED_TEST_SUITE(HwAclQualifierTest, TestTypes);
-
-TYPED_TEST(HwAclQualifierTest, AclIp4TcpQualifiers) {
+TEST_F(HwAclQualifierTest, AclIp4TcpQualifiers) {
   auto setup = [=, this]() {
     auto newCfg = this->initialConfig();
     auto* acl1 = utility::addAcl(&newCfg, "ip4_tcp", cfg::AclActionType::DENY);
@@ -312,7 +297,7 @@ TYPED_TEST(HwAclQualifierTest, AclIp4TcpQualifiers) {
   this->verifyAcrossWarmBoots(setup, verify);
 }
 
-TYPED_TEST(HwAclQualifierTest, AclIp6TcpQualifiers) {
+TEST_F(HwAclQualifierTest, AclIp6TcpQualifiers) {
   auto setup = [=, this]() {
     auto newCfg = this->initialConfig();
     auto* acl1 = utility::addAcl(&newCfg, "ip6_tcp", cfg::AclActionType::DENY);
@@ -333,7 +318,7 @@ TYPED_TEST(HwAclQualifierTest, AclIp6TcpQualifiers) {
   this->verifyAcrossWarmBoots(setup, verify);
 }
 
-TYPED_TEST(HwAclQualifierTest, AclIcmp4Qualifiers) {
+TEST_F(HwAclQualifierTest, AclIcmp4Qualifiers) {
   auto setup = [=, this]() {
     auto newCfg = this->initialConfig();
     auto* acl1 = utility::addAcl(&newCfg, "icmp4", cfg::AclActionType::DENY);
@@ -354,7 +339,7 @@ TYPED_TEST(HwAclQualifierTest, AclIcmp4Qualifiers) {
   this->verifyAcrossWarmBoots(setup, verify);
 }
 
-TYPED_TEST(HwAclQualifierTest, AclIcmp6Qualifiers) {
+TEST_F(HwAclQualifierTest, AclIcmp6Qualifiers) {
   auto setup = [=, this]() {
     auto newCfg = this->initialConfig();
     auto* acl1 = utility::addAcl(&newCfg, "icmp6", cfg::AclActionType::DENY);
@@ -375,7 +360,7 @@ TYPED_TEST(HwAclQualifierTest, AclIcmp6Qualifiers) {
   this->verifyAcrossWarmBoots(setup, verify);
 }
 
-TYPED_TEST(HwAclQualifierTest, AclRemove) {
+TEST_F(HwAclQualifierTest, AclRemove) {
   auto setup = [=, this]() {
     auto newCfg = this->initialConfig();
     auto* acl0 = utility::addAcl(&newCfg, "acl0", cfg::AclActionType::DENY);
@@ -398,7 +383,7 @@ TYPED_TEST(HwAclQualifierTest, AclRemove) {
   this->verifyAcrossWarmBoots(setup, verify);
 }
 
-TYPED_TEST(HwAclQualifierTest, AclModifyQualifier) {
+TEST_F(HwAclQualifierTest, AclModifyQualifier) {
   auto setup = [=, this]() {
     auto newCfg = this->initialConfig();
     auto* acl = utility::addAcl(&newCfg, "acl0", cfg::AclActionType::DENY);
@@ -432,7 +417,7 @@ TYPED_TEST(HwAclQualifierTest, AclModifyQualifier) {
   this->verifyAcrossWarmBoots(setup, verify);
 }
 
-TYPED_TEST(HwAclQualifierTest, AclEmptyCodeIcmp) {
+TEST_F(HwAclQualifierTest, AclEmptyCodeIcmp) {
   auto setup = [=, this]() {
     auto newCfg = this->initialConfig();
     auto* acl = utility::addAcl(&newCfg, "acl0", cfg::AclActionType::DENY);
@@ -458,7 +443,7 @@ TYPED_TEST(HwAclQualifierTest, AclEmptyCodeIcmp) {
   this->verifyAcrossWarmBoots(setup, verify);
 }
 
-TYPED_TEST(HwAclQualifierTest, AclVlanIDQualifier) {
+TEST_F(HwAclQualifierTest, AclVlanIDQualifier) {
   auto setup = [=, this]() {
     auto newCfg = this->initialConfig();
     if (this->getPlatform()->getAsic()->getAsicType() ==
@@ -487,7 +472,7 @@ TYPED_TEST(HwAclQualifierTest, AclVlanIDQualifier) {
   this->verifyAcrossWarmBoots(setup, verify);
 }
 
-TYPED_TEST(HwAclQualifierTest, AclIp4Qualifiers) {
+TEST_F(HwAclQualifierTest, AclIp4Qualifiers) {
   auto setup = [=, this]() {
     auto newCfg = this->initialConfig();
     auto* acl = utility::addAcl(&newCfg, "ip4", cfg::AclActionType::DENY);
@@ -505,7 +490,7 @@ TYPED_TEST(HwAclQualifierTest, AclIp4Qualifiers) {
   this->verifyAcrossWarmBoots(setup, verify);
 }
 
-TYPED_TEST(HwAclQualifierTest, AclIp6Qualifiers) {
+TEST_F(HwAclQualifierTest, AclIp6Qualifiers) {
   auto setup = [=, this]() {
     auto newCfg = this->initialConfig();
     auto* acl = utility::addAcl(&newCfg, "ip6", cfg::AclActionType::DENY);
@@ -523,7 +508,7 @@ TYPED_TEST(HwAclQualifierTest, AclIp6Qualifiers) {
   this->verifyAcrossWarmBoots(setup, verify);
 }
 
-TYPED_TEST(HwAclQualifierTest, AclIp4LookupClassL2) {
+TEST_F(HwAclQualifierTest, AclIp4LookupClassL2) {
   auto setup = [=, this]() {
     this->aclSetupHelper(true /* isIpV4 */, QualifierType::LOOKUPCLASS_L2);
   };
@@ -533,7 +518,7 @@ TYPED_TEST(HwAclQualifierTest, AclIp4LookupClassL2) {
   this->verifyAcrossWarmBoots(setup, verify);
 }
 
-TYPED_TEST(HwAclQualifierTest, AclIp4LookupClassNeighbor) {
+TEST_F(HwAclQualifierTest, AclIp4LookupClassNeighbor) {
   auto setup = [=, this]() {
     this->aclSetupHelper(
         true /* isIpV4 */, QualifierType::LOOKUPCLASS_NEIGHBOR);
@@ -544,7 +529,7 @@ TYPED_TEST(HwAclQualifierTest, AclIp4LookupClassNeighbor) {
   this->verifyAcrossWarmBoots(setup, verify);
 }
 
-TYPED_TEST(HwAclQualifierTest, AclIp4LookupClassRoute) {
+TEST_F(HwAclQualifierTest, AclIp4LookupClassRoute) {
   auto setup = [=, this]() {
     this->aclSetupHelper(true /* isIpV4 */, QualifierType::LOOKUPCLASS_ROUTE);
   };
@@ -554,7 +539,7 @@ TYPED_TEST(HwAclQualifierTest, AclIp4LookupClassRoute) {
   this->verifyAcrossWarmBoots(setup, verify);
 }
 
-TYPED_TEST(HwAclQualifierTest, AclIp6LookupClassL2) {
+TEST_F(HwAclQualifierTest, AclIp6LookupClassL2) {
   auto setup = [=, this]() {
     this->aclSetupHelper(false /* isIpV6 */, QualifierType::LOOKUPCLASS_L2);
   };
@@ -564,7 +549,7 @@ TYPED_TEST(HwAclQualifierTest, AclIp6LookupClassL2) {
   this->verifyAcrossWarmBoots(setup, verify);
 }
 
-TYPED_TEST(HwAclQualifierTest, AclIp6LookupClassNeighbor) {
+TEST_F(HwAclQualifierTest, AclIp6LookupClassNeighbor) {
   auto setup = [=, this]() {
     this->aclSetupHelper(
         false /* isIpV6 */, QualifierType::LOOKUPCLASS_NEIGHBOR);
@@ -575,7 +560,7 @@ TYPED_TEST(HwAclQualifierTest, AclIp6LookupClassNeighbor) {
   this->verifyAcrossWarmBoots(setup, verify);
 }
 
-TYPED_TEST(HwAclQualifierTest, AclIp6LookupClassRoute) {
+TEST_F(HwAclQualifierTest, AclIp6LookupClassRoute) {
   auto setup = [=, this]() {
     this->aclSetupHelper(false /* isIpV6 */, QualifierType::LOOKUPCLASS_ROUTE);
   };
@@ -586,11 +571,7 @@ TYPED_TEST(HwAclQualifierTest, AclIp6LookupClassRoute) {
 }
 
 // canary on for qualifiers from default to coop
-TYPED_TEST(HwAclQualifierTest, AclQualifiersCanaryOn) {
-  if (!this->isMultiAclEnabled) {
-    return;
-  }
-
+TEST_F(HwAclQualifierTest, AclQualifiersCanaryOn) {
   auto setup = [=, this]() {
     this->aclSetupHelper(true, QualifierType::LOOKUPCLASS_IGNORE, false);
   };
@@ -605,11 +586,7 @@ TYPED_TEST(HwAclQualifierTest, AclQualifiersCanaryOn) {
 }
 
 // canary off for qualifiers from coop to default
-TYPED_TEST(HwAclQualifierTest, AclQualifiersCanaryOff) {
-  if (!this->isMultiAclEnabled) {
-    return;
-  }
-
+TEST_F(HwAclQualifierTest, AclQualifiersCanaryOff) {
   auto setup = [=, this]() {
     this->aclSetupHelper(true, QualifierType::LOOKUPCLASS_IGNORE, true);
   };

@@ -53,22 +53,9 @@ void addSetDscpAction(
 
 namespace facebook::fboss {
 
-template <bool enableMultiAclTable>
-struct EnableMultiAclTableT {
-  static constexpr auto multiAclTableEnabled = enableMultiAclTable;
-};
-
-using TestTypes =
-    ::testing::Types<EnableMultiAclTableT<false>, EnableMultiAclTableT<true>>;
-
-template <typename EnableMultiAclTableT>
 class HwAclMatchActionsTest : public HwTest {
-  static auto constexpr isMultiAclEnabled =
-      EnableMultiAclTableT::multiAclTableEnabled;
-
  protected:
   void SetUp() override {
-    FLAGS_enable_acl_table_group = isMultiAclEnabled;
     HwTest::SetUp();
     /*
      * Native SDK does not support multi acl feature.
@@ -76,7 +63,7 @@ class HwAclMatchActionsTest : public HwTest {
      */
     if ((this->getPlatform()->getAsic()->getAsicType() ==
          cfg::AsicType::ASIC_TYPE_FAKE) &&
-        (isMultiAclEnabled)) {
+        (FLAGS_enable_acl_table_group)) {
       GTEST_SKIP();
     }
   }
@@ -86,7 +73,7 @@ class HwAclMatchActionsTest : public HwTest {
         getHwSwitch(),
         masterLogicalPortIds(),
         getAsic()->desiredLoopbackModes());
-    if (isMultiAclEnabled) {
+    if (FLAGS_enable_acl_table_group) {
       utility::addAclTableGroup(
           &cfg, cfg::AclStage::INGRESS, utility::getAclTableGroupName());
       utility::addDefaultAclTable(cfg);
@@ -95,9 +82,7 @@ class HwAclMatchActionsTest : public HwTest {
   }
 };
 
-TYPED_TEST_SUITE(HwAclMatchActionsTest, TestTypes);
-
-TYPED_TEST(HwAclMatchActionsTest, AddTrafficPolicy) {
+TEST_F(HwAclMatchActionsTest, AddTrafficPolicy) {
   constexpr uint32_t kDscp = 0x24;
   constexpr int kQueueId = 4;
 
@@ -119,7 +104,7 @@ TYPED_TEST(HwAclMatchActionsTest, AddTrafficPolicy) {
   this->verifyAcrossWarmBoots(setup, verify);
 }
 
-TYPED_TEST(HwAclMatchActionsTest, SetDscpMatchAction) {
+TEST_F(HwAclMatchActionsTest, SetDscpMatchAction) {
   constexpr uint32_t kDscp = 0x24;
   constexpr uint32_t kDscp2 = 0x8;
 
@@ -139,7 +124,7 @@ TYPED_TEST(HwAclMatchActionsTest, SetDscpMatchAction) {
   this->verifyAcrossWarmBoots(setup, verify);
 }
 
-TYPED_TEST(HwAclMatchActionsTest, AddSameMatcherTwice) {
+TEST_F(HwAclMatchActionsTest, AddSameMatcherTwice) {
   auto setup = [this]() {
     auto newCfg = this->initialConfig();
     auto asic = this->getPlatform()->getAsic();
@@ -166,7 +151,7 @@ TYPED_TEST(HwAclMatchActionsTest, AddSameMatcherTwice) {
   this->verifyAcrossWarmBoots(setup, verify);
 }
 
-TYPED_TEST(HwAclMatchActionsTest, AddMultipleActions) {
+TEST_F(HwAclMatchActionsTest, AddMultipleActions) {
   auto setup = [this]() {
     auto newCfg = this->initialConfig();
     auto asic = this->getPlatform()->getAsic();
@@ -195,7 +180,7 @@ TYPED_TEST(HwAclMatchActionsTest, AddMultipleActions) {
   this->verifyAcrossWarmBoots(setup, verify);
 }
 
-TYPED_TEST(HwAclMatchActionsTest, AddRemoveActions) {
+TEST_F(HwAclMatchActionsTest, AddRemoveActions) {
   auto setup = [this]() {
     auto newCfg = this->initialConfig();
     auto asic = this->getPlatform()->getAsic();
@@ -221,7 +206,7 @@ TYPED_TEST(HwAclMatchActionsTest, AddRemoveActions) {
   this->verifyAcrossWarmBoots(setup, verify);
 }
 
-TYPED_TEST(HwAclMatchActionsTest, AddTrafficPolicyMultipleRemoveOne) {
+TEST_F(HwAclMatchActionsTest, AddTrafficPolicyMultipleRemoveOne) {
   auto setup = [this]() {
     auto newCfg = this->initialConfig();
     auto asic = this->getPlatform()->getAsic();
