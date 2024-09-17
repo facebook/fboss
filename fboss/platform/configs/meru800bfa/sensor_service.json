@@ -956,12 +956,12 @@
       "PSU1_PIN": {
         "path": "/run/devmap/sensors/PSU1_PMBUS/power1_input",
         "compute": "@/1000000.0",
-        "type": 4
+        "type": 0
       },
       "PSU1_POUT": {
         "path": "/run/devmap/sensors/PSU1_PMBUS/power2_input",
         "compute": "@/1000000.0",
-        "type": 4
+        "type": 0
       }
     },
     "PSU2": {
