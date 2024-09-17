@@ -6,6 +6,7 @@
 #include "fboss/agent/hw/gen-cpp2/hardware_stats_constants.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwTestCoppUtils.h"
+#include "fboss/agent/test/utils/AclTestUtils.h"
 #include "fboss/agent/test/utils/StatsTestUtils.h"
 #include "fboss/lib/CommonUtils.h"
 
@@ -185,10 +186,17 @@ void AgentHwTest::applySwitchDrainState(cfg::SwitchDrainState drainState) {
 
 cfg::SwitchConfig AgentHwTest::initialConfig(
     const AgentEnsemble& ensemble) const {
-  return utility::onePortPerInterfaceConfig(
+  auto config = utility::onePortPerInterfaceConfig(
       ensemble.getSw(),
       ensemble.masterLogicalPortIds(),
       true /*interfaceHasSubnet*/);
+
+  if (FLAGS_enable_acl_table_group) {
+    utility::addAclTableGroup(
+        &config, cfg::AclStage::INGRESS, utility::getAclTableGroupName());
+    utility::addDefaultAclTable(config);
+  }
+  return config;
 }
 
 void AgentHwTest::printProductionFeatures() const {
