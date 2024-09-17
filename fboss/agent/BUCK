@@ -825,6 +825,7 @@ cpp_library(
         "//folly/container:f14_hash",
         "//folly/executors:io_thread_pool_executor",
         "//folly/executors/thread_factory:named_thread_factory",
+        "//folly/experimental/coro:bounded_queue",
         "//folly/futures:core",
         "//folly/gen:base",
         "//folly/io:iobuf",

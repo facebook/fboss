@@ -174,6 +174,10 @@ DEFINE_bool(
     false,
     "Flag to turn on GR behavior for DSF publisher");
 
+DEFINE_bool(rx_sw_priority, false, "Enable rx packet prioritization");
+
+DEFINE_int32(rx_pkt_thread_timeout, 100, "Rx packet thread timeout (ms)");
+
 namespace {
 
 /**
@@ -2180,6 +2184,47 @@ void SwSwitch::switchReachabilityChanged(
   stats()->switchReachabilityChangeProcessed();
 }
 
+void SwSwitch::packetRxThread() {
+  packetRxRunning_.store(true);
+  while (packetRxRunning_.load()) {
+    {
+      std::unique_lock<std::mutex> lk(rxPktMutex_);
+      rxPktThreadCV_.wait_for(
+          lk, std::chrono::milliseconds(FLAGS_rx_pkt_thread_timeout), [this] {
+            return (
+                rxPacketHandlerQueues_.hasPacketsToProcess() ||
+                !packetRxRunning_.load());
+          });
+    }
+    if (!packetRxRunning_.load()) {
+      return;
+    }
+#if FOLLY_HAS_COROUTINES
+    while (rxPacketHandlerQueues_.hasPacketsToProcess()) {
+      if (!packetRxRunning_.load()) {
+        return;
+      }
+      auto hiPriPkt = rxPacketHandlerQueues_.getHiPriRxPktQueue().try_dequeue();
+      if (hiPriPkt) {
+        this->packetReceived(std::move(*hiPriPkt));
+        continue;
+      }
+      auto midPriPkt =
+          rxPacketHandlerQueues_.getMidPriRxPktQueue().try_dequeue();
+      if (midPriPkt) {
+        this->packetReceived(std::move(*midPriPkt));
+        continue;
+      }
+      auto loPriPkt = rxPacketHandlerQueues_.getLoPriRxPktQueue().try_dequeue();
+      if (loPriPkt) {
+        this->packetReceived(std::move(*loPriPkt));
+        continue;
+      }
+    }
+#endif
+  }
+}
+
 void SwSwitch::startThreads() {
   backgroundThread_.reset(new std::thread(
       [this] { this->threadLoop("fbossBgThread", &backgroundEventBase_); }));
@@ -2197,6 +2242,11 @@ void SwSwitch::startThreads() {
   // start LACP thread, start before creating LinkAggregationManager
   lacpThread_.reset(new std::thread(
       [this] { this->threadLoop("fbossLacpThread", &lacpEventBase_); }));
+  if (FLAGS_rx_sw_priority) {
+    packetRxThread_.reset(new std::thread(
+        [this] { this->threadLoop("fbossPktRxThread", &packetRxEventBase_); }));
+    packetRxEventBase_.runInEventBaseThread([this] { this->packetRxThread(); });
+  }
 }
 
 void SwSwitch::postInit() {
@@ -2302,6 +2352,11 @@ void SwSwitch::stopThreads() {
     packetTxEventBase_.runInFbossEventBaseThread(
         [this] { packetTxEventBase_.terminateLoopSoon(); });
   }
+  if (packetRxThread_) {
+    packetRxRunning_.store(false);
+    packetRxEventBase_.runInEventBaseThread(
+        [this] { packetRxEventBase_.terminateLoopSoon(); });
+  }
   if (pcapDistributionThread_) {
     pcapDistributionEventBase_.runInFbossEventBaseThread(
         [this] { pcapDistributionEventBase_.terminateLoopSoon(); });
@@ -2322,6 +2377,9 @@ void SwSwitch::stopThreads() {
   }
   if (packetTxThread_) {
     packetTxThread_->join();
+  }
+  if (packetRxThread_) {
+    packetRxThread_->join();
   }
   if (pcapDistributionThread_) {
     pcapDistributionThread_->join();
@@ -3394,6 +3452,12 @@ void SwSwitch::updateAddrToLocalIntf(const StateDelta& delta) {
               std::make_pair(routerId, folly::IPAddress(addr)));
         }
       });
+}
+
+void SwSwitch::rxPacketReceived(std::unique_ptr<SwRxPacket> pkt) {
+  folly::coro::blockingWait(
+      rxPacketHandlerQueues_.enqueue(std::move(pkt), stats()));
+  rxPktThreadCV_.notify_one();
 }
 
 } // namespace facebook::fboss
