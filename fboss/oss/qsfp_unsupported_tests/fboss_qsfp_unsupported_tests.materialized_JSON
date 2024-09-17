@@ -171,6 +171,9 @@
         },
         {
           "test_name_regex": "HwTest_PROFILE_50G_2_NRZ_RS528_OPTICAL.TestProfile$"
+        },
+        {
+          "test_name_regex": "HwTest_PROFILE_100G_1_PAM4_NOFEC_COPPER.TestProfile$"
         }
     ],
     "darwin/physdk-credo-0.8.4/credo-0.8.4": [
@@ -344,6 +347,9 @@
         },
         {
           "test_name_regex": "HwTest_PROFILE_50G_2_NRZ_RS528_OPTICAL.TestProfile$"
+        },
+        {
+          "test_name_regex": "HwTest_PROFILE_100G_1_PAM4_NOFEC_COPPER.TestProfile$"
         }
     ],
     "darwin_mix/physdk-credo-0.7.2/credo-0.7.2": [
@@ -517,6 +523,9 @@
         },
         {
           "test_name_regex": "HwTest_PROFILE_50G_2_NRZ_RS528_OPTICAL.TestProfile$"
+        },
+        {
+          "test_name_regex": "HwTest_PROFILE_100G_1_PAM4_NOFEC_COPPER.TestProfile$"
         }
     ],
     "darwin_mix/physdk-credo-0.8.4/credo-0.8.4": [
@@ -690,6 +699,9 @@
         },
         {
           "test_name_regex": "HwTest_PROFILE_50G_2_NRZ_RS528_OPTICAL.TestProfile$"
+        },
+        {
+          "test_name_regex": "HwTest_PROFILE_100G_1_PAM4_NOFEC_COPPER.TestProfile$"
         }
     ],
     "darwin_original/physdk-credo-0.7.2/credo-0.7.2": [
@@ -857,6 +869,9 @@
         },
         {
           "test_name_regex": "HwTest_PROFILE_50G_2_NRZ_RS528_OPTICAL.TestProfile$"
+        },
+        {
+          "test_name_regex": "HwTest_PROFILE_100G_1_PAM4_NOFEC_COPPER.TestProfile$"
         }
     ],
     "darwin_original/physdk-credo-0.8.4/credo-0.8.4": [
@@ -1024,6 +1039,9 @@
         },
         {
           "test_name_regex": "HwTest_PROFILE_50G_2_NRZ_RS528_OPTICAL.TestProfile$"
+        },
+        {
+          "test_name_regex": "HwTest_PROFILE_100G_1_PAM4_NOFEC_COPPER.TestProfile$"
         }
     ],
     "elbert_2x16Q_6x8DD/physdk-credo-0.7.2/credo-0.7.2": [
@@ -1164,6 +1182,9 @@
         },
         {
           "test_name_regex": "HwTest_PROFILE_50G_2_NRZ_RS528_OPTICAL.TestProfile$"
+        },
+        {
+          "test_name_regex": "HwTest_PROFILE_100G_1_PAM4_NOFEC_COPPER.TestProfile$"
         }
     ],
     "elbert_2x16Q_6x8DD/physdk-credo-0.8.4/credo-0.8.4": [
@@ -1304,6 +1325,9 @@
         },
         {
           "test_name_regex": "HwTest_PROFILE_50G_2_NRZ_RS528_OPTICAL.TestProfile$"
+        },
+        {
+          "test_name_regex": "HwTest_PROFILE_100G_1_PAM4_NOFEC_COPPER.TestProfile$"
         }
     ],
     "elbert_5x16Q_3x8DD/physdk-credo-0.7.2/credo-0.7.2": [
@@ -1444,6 +1468,9 @@
         },
         {
           "test_name_regex": "HwTest_PROFILE_50G_2_NRZ_RS528_OPTICAL.TestProfile$"
+        },
+        {
+          "test_name_regex": "HwTest_PROFILE_100G_1_PAM4_NOFEC_COPPER.TestProfile$"
         }
     ],
     "elbert_5x16Q_3x8DD/physdk-credo-0.8.4/credo-0.8.4": [
@@ -1584,6 +1611,9 @@
         },
         {
           "test_name_regex": "HwTest_PROFILE_50G_2_NRZ_RS528_OPTICAL.TestProfile$"
+        },
+        {
+          "test_name_regex": "HwTest_PROFILE_100G_1_PAM4_NOFEC_COPPER.TestProfile$"
         }
     ],
     "elbert_8x16Q/physdk-credo-0.7.2/credo-0.7.2": [
@@ -1739,6 +1769,9 @@
         },
         {
           "test_name_regex": "HwTest_PROFILE_50G_2_NRZ_RS528_OPTICAL.TestProfile$"
+        },
+        {
+          "test_name_regex": "HwTest_PROFILE_100G_1_PAM4_NOFEC_COPPER.TestProfile$"
         }
     ],
     "elbert_8x16Q/physdk-credo-0.8.4/credo-0.8.4": [
@@ -1894,6 +1927,9 @@
         },
         {
           "test_name_regex": "HwTest_PROFILE_50G_2_NRZ_RS528_OPTICAL.TestProfile$"
+        },
+        {
+          "test_name_regex": "HwTest_PROFILE_100G_1_PAM4_NOFEC_COPPER.TestProfile$"
         }
     ],
     "fuji_5x16Q/physdk-barchetta2-5.2/barchetta2-5.2": [
@@ -2037,6 +2073,9 @@
         },
         {
           "test_name_regex": "HwTest_PROFILE_50G_2_NRZ_RS528_OPTICAL.TestProfile$"
+        },
+        {
+          "test_name_regex": "HwTest_PROFILE_100G_1_PAM4_NOFEC_COPPER.TestProfile$"
         }
     ],
     "fuji_8x16Q/physdk-barchetta2-5.2/barchetta2-5.2": [
@@ -2177,6 +2216,9 @@
         },
         {
           "test_name_regex": "HwTest_PROFILE_50G_2_NRZ_RS528_OPTICAL.TestProfile$"
+        },
+        {
+          "test_name_regex": "HwTest_PROFILE_100G_1_PAM4_NOFEC_COPPER.TestProfile$"
         }
     ],
     "janga800bic/physdk-credo-0.7.2/credo-0.7.2": [
@@ -2350,6 +2392,9 @@
         },
         {
           "test_name_regex": "HwTest_PROFILE_50G_2_NRZ_RS528_OPTICAL.TestProfile$"
+        },
+        {
+          "test_name_regex": "HwTest_PROFILE_100G_1_PAM4_NOFEC_COPPER.TestProfile$"
         }
     ],
     "janga800bic/physdk-credo-0.8.4/credo-0.8.4": [
@@ -2523,6 +2568,9 @@
         },
         {
           "test_name_regex": "HwTest_PROFILE_50G_2_NRZ_RS528_OPTICAL.TestProfile$"
+        },
+        {
+          "test_name_regex": "HwTest_PROFILE_100G_1_PAM4_NOFEC_COPPER.TestProfile$"
         }
     ],
     "meru400bfu/physdk-credo-0.7.2/credo-0.7.2": [
@@ -2696,6 +2744,9 @@
         },
         {
           "test_name_regex": "HwTest_PROFILE_50G_2_NRZ_RS528_OPTICAL.TestProfile$"
+        },
+        {
+          "test_name_regex": "HwTest_PROFILE_100G_1_PAM4_NOFEC_COPPER.TestProfile$"
         }
     ],
     "meru400bfu/physdk-credo-0.8.4/credo-0.8.4": [
@@ -2869,6 +2920,9 @@
         },
         {
           "test_name_regex": "HwTest_PROFILE_50G_2_NRZ_RS528_OPTICAL.TestProfile$"
+        },
+        {
+          "test_name_regex": "HwTest_PROFILE_100G_1_PAM4_NOFEC_COPPER.TestProfile$"
         }
     ],
     "meru400biu/physdk-credo-0.7.2/credo-0.7.2": [
@@ -3039,6 +3093,9 @@
         },
         {
           "test_name_regex": "HwTest_PROFILE_50G_2_NRZ_RS528_OPTICAL.TestProfile$"
+        },
+        {
+          "test_name_regex": "HwTest_PROFILE_100G_1_PAM4_NOFEC_COPPER.TestProfile$"
         }
     ],
     "meru400biu/physdk-credo-0.8.4/credo-0.8.4": [
@@ -3209,6 +3266,9 @@
         },
         {
           "test_name_regex": "HwTest_PROFILE_50G_2_NRZ_RS528_OPTICAL.TestProfile$"
+        },
+        {
+          "test_name_regex": "HwTest_PROFILE_100G_1_PAM4_NOFEC_COPPER.TestProfile$"
         }
     ],
     "meru800bfa/physdk-credo-0.7.2/credo-0.7.2": [
@@ -3385,6 +3445,9 @@
         },
         {
           "test_name_regex": "HwTest_PROFILE_50G_2_NRZ_RS528_OPTICAL.TestProfile$"
+        },
+        {
+          "test_name_regex": "HwTest_PROFILE_100G_1_PAM4_NOFEC_COPPER.TestProfile$"
         }
     ],
     "meru800bfa/physdk-credo-0.8.4/credo-0.8.4": [
@@ -3561,6 +3624,9 @@
         },
         {
           "test_name_regex": "HwTest_PROFILE_50G_2_NRZ_RS528_OPTICAL.TestProfile$"
+        },
+        {
+          "test_name_regex": "HwTest_PROFILE_100G_1_PAM4_NOFEC_COPPER.TestProfile$"
         }
     ],
     "meru800bia/physdk-credo-0.7.2/credo-0.7.2": [
@@ -3731,6 +3797,9 @@
         },
         {
           "test_name_regex": "HwTest_PROFILE_50G_2_NRZ_RS528_OPTICAL.TestProfile$"
+        },
+        {
+          "test_name_regex": "HwTest_PROFILE_100G_1_PAM4_NOFEC_COPPER.TestProfile$"
         }
     ],
     "meru800bia/physdk-credo-0.8.4/credo-0.8.4": [
@@ -3901,6 +3970,9 @@
         },
         {
           "test_name_regex": "HwTest_PROFILE_50G_2_NRZ_RS528_OPTICAL.TestProfile$"
+        },
+        {
+          "test_name_regex": "HwTest_PROFILE_100G_1_PAM4_NOFEC_COPPER.TestProfile$"
         }
     ],
     "minipack_7x16Q_1x16O/physdk-millenio-5.5/millenio-5.5": [
@@ -4056,6 +4128,9 @@
         },
         {
           "test_name_regex": "HwTest_PROFILE_50G_2_NRZ_RS528_OPTICAL.TestProfile$"
+        },
+        {
+          "test_name_regex": "HwTest_PROFILE_100G_1_PAM4_NOFEC_COPPER.TestProfile$"
         }
     ],
     "montblanc/physdk-credo-0.7.2/credo-0.7.2": [
@@ -4223,6 +4298,9 @@
         },
         {
           "test_name_regex": "HwTest_PROFILE_50G_2_NRZ_RS528_OPTICAL.TestProfile$"
+        },
+        {
+          "test_name_regex": "HwTest_PROFILE_100G_1_PAM4_NOFEC_COPPER.TestProfile$"
         }
     ],
     "montblanc/physdk-credo-0.8.4/credo-0.8.4": [
@@ -4390,6 +4468,9 @@
         },
         {
           "test_name_regex": "HwTest_PROFILE_50G_2_NRZ_RS528_OPTICAL.TestProfile$"
+        },
+        {
+          "test_name_regex": "HwTest_PROFILE_100G_1_PAM4_NOFEC_COPPER.TestProfile$"
         }
     ],
     "morgan800cc/physdk-credo-0.7.2/credo-0.7.2": [
@@ -4560,6 +4641,9 @@
         },
         {
           "test_name_regex": "HwTest_PROFILE_50G_2_NRZ_RS528_OPTICAL.TestProfile$"
+        },
+        {
+          "test_name_regex": "HwTest_PROFILE_100G_1_PAM4_NOFEC_COPPER.TestProfile$"
         }
     ],
     "morgan800cc/physdk-credo-0.8.4/credo-0.8.4": [
@@ -4730,6 +4814,9 @@
         },
         {
           "test_name_regex": "HwTest_PROFILE_50G_2_NRZ_RS528_OPTICAL.TestProfile$"
+        },
+        {
+          "test_name_regex": "HwTest_PROFILE_100G_1_PAM4_NOFEC_COPPER.TestProfile$"
         }
     ],
     "tahan800bc/physdk-credo-0.7.2/credo-0.7.2": [
@@ -4900,6 +4987,9 @@
         },
         {
           "test_name_regex": "HwTest_PROFILE_50G_2_NRZ_RS528_OPTICAL.TestProfile$"
+        },
+        {
+          "test_name_regex": "HwTest_PROFILE_100G_1_PAM4_NOFEC_COPPER.TestProfile$"
         }
     ],
     "tahan800bc/physdk-credo-0.8.4/credo-0.8.4": [
@@ -5070,6 +5160,9 @@
         },
         {
           "test_name_regex": "HwTest_PROFILE_50G_2_NRZ_RS528_OPTICAL.TestProfile$"
+        },
+        {
+          "test_name_regex": "HwTest_PROFILE_100G_1_PAM4_NOFEC_COPPER.TestProfile$"
         }
     ],
     "wedge100s/physdk-credo-0.7.2/credo-0.7.2": [
@@ -5246,6 +5339,9 @@
         },
         {
           "test_name_regex": "HwTest_PROFILE_50G_2_NRZ_RS528_OPTICAL.TestProfile$"
+        },
+        {
+          "test_name_regex": "HwTest_PROFILE_100G_1_PAM4_NOFEC_COPPER.TestProfile$"
         }
     ],
     "wedge100s/physdk-credo-0.8.4/credo-0.8.4": [
@@ -5422,6 +5518,9 @@
         },
         {
           "test_name_regex": "HwTest_PROFILE_50G_2_NRZ_RS528_OPTICAL.TestProfile$"
+        },
+        {
+          "test_name_regex": "HwTest_PROFILE_100G_1_PAM4_NOFEC_COPPER.TestProfile$"
         }
     ],
     "wedge400/physdk-credo-0.7.2/credo-0.7.2": [
@@ -5577,6 +5676,9 @@
         },
         {
           "test_name_regex": "HwTest_PROFILE_100G_1_PAM4_RS544_OPTICAL.TestProfile$"
+        },
+        {
+          "test_name_regex": "HwTest_PROFILE_100G_1_PAM4_NOFEC_COPPER.TestProfile$"
         }
     ],
     "wedge400/physdk-credo-0.8.4/credo-0.8.4": [
@@ -5732,6 +5834,9 @@
         },
         {
           "test_name_regex": "HwTest_PROFILE_100G_1_PAM4_RS544_OPTICAL.TestProfile$"
+        },
+        {
+          "test_name_regex": "HwTest_PROFILE_100G_1_PAM4_NOFEC_COPPER.TestProfile$"
         }
     ],
     "wedge400c/physdk-credo-0.7.2/credo-0.7.2": [
@@ -5899,6 +6004,9 @@
         },
         {
           "test_name_regex": "HwTest_PROFILE_50G_2_NRZ_RS528_OPTICAL.TestProfile$"
+        },
+        {
+          "test_name_regex": "HwTest_PROFILE_100G_1_PAM4_NOFEC_COPPER.TestProfile$"
         }
     ],
     "wedge400c/physdk-credo-0.8.4/credo-0.8.4": [
@@ -6066,6 +6174,9 @@
         },
         {
           "test_name_regex": "HwTest_PROFILE_50G_2_NRZ_RS528_OPTICAL.TestProfile$"
+        },
+        {
+          "test_name_regex": "HwTest_PROFILE_100G_1_PAM4_NOFEC_COPPER.TestProfile$"
         }
     ],
     "yamp_8x16Q/physdk-credo-0.7.2/credo-0.7.2": [
@@ -6215,6 +6326,9 @@
         },
         {
           "test_name_regex": "HwTest_PROFILE_50G_2_NRZ_RS528_OPTICAL.TestProfile$"
+        },
+        {
+          "test_name_regex": "HwTest_PROFILE_100G_1_PAM4_NOFEC_COPPER.TestProfile$"
         }
     ],
     "yamp_8x16Q/physdk-credo-0.8.4/credo-0.8.4": [
@@ -6364,6 +6478,9 @@
         },
         {
           "test_name_regex": "HwTest_PROFILE_50G_2_NRZ_RS528_OPTICAL.TestProfile$"
+        },
+        {
+          "test_name_regex": "HwTest_PROFILE_100G_1_PAM4_NOFEC_COPPER.TestProfile$"
         }
     ]
   }
