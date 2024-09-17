@@ -275,6 +275,10 @@ sai_acl_ip_type_t SaiAclTableManager::cfgIpTypeToSaiIpType(
       return SAI_ACL_IP_TYPE_IPV4ANY;
     case cfg::IpType::IP6:
       return SAI_ACL_IP_TYPE_IPV6ANY;
+    case cfg::IpType::ARP_REQUEST:
+      return SAI_ACL_IP_TYPE_ARP_REQUEST;
+    case cfg::IpType::ARP_REPLY:
+      return SAI_ACL_IP_TYPE_ARP_REPLY;
   }
   // should return in one of the cases
   throw FbossError("Unsupported IP Type option");
@@ -289,6 +293,7 @@ uint16_t SaiAclTableManager::cfgEtherTypeToSaiEtherType(
     case cfg::EtherType::EAPOL:
     case cfg::EtherType::MACSEC:
     case cfg::EtherType::LLDP:
+    case cfg::EtherType::ARP:
       return static_cast<uint16_t>(cfgEtherType);
   }
   // should return in one of the cases

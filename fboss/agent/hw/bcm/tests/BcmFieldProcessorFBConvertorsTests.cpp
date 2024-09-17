@@ -45,7 +45,11 @@ TEST(FPBcmConvertors, cfgIpFragToFromBcm) {
 }
 
 TEST(FPBcmConvertors, ipTypeToFromBcm) {
-  for (auto cfgIpType : apache::thrift::TEnumTraits<cfg::IpType>::values) {
+  for (auto cfgIpType :
+       {cfg::IpType::ANY,
+        cfg::IpType::IP,
+        cfg::IpType::IP4,
+        cfg::IpType::IP6}) {
     auto bcmIpType = cfgIpTypeToBcmIpType(cfgIpType);
     EXPECT_EQ(cfgIpType, bcmIpTypeToCfgIpType(bcmIpType));
   }
