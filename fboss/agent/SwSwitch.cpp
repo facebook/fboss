@@ -277,6 +277,11 @@ void accumulateFb303GlobalStats(
     dramBlockedTime += toAdd.dram_blocked_time_ns().value();
     accumulated.dram_blocked_time_ns() = dramBlockedTime;
   }
+  if (toAdd.vsq_resource_exhaustion_drops().has_value()) {
+    int64_t drops = accumulated.vsq_resource_exhaustion_drops().value_or(0);
+    drops += toAdd.vsq_resource_exhaustion_drops().value();
+    accumulated.vsq_resource_exhaustion_drops() = drops;
+  }
   *accumulated.fabric_reachability_missing() +=
       toAdd.fabric_reachability_missing().value();
   *accumulated.fabric_reachability_mismatch() +=
