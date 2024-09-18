@@ -277,4 +277,123 @@ TEST_F(AgentHwAclQualifierTest, AclIcmp6Qualifiers) {
   this->verifyAcrossWarmBoots(setup, verify);
 }
 
+TEST_F(AgentHwAclQualifierTest, AclRemove) {
+  auto setup = [=, this]() {
+    auto& ensemble = *getAgentEnsemble();
+    auto newCfg = initialConfig(ensemble);
+    auto l3Asics = ensemble.getSw()->getHwAsicTable()->getL3Asics();
+    auto asic = utility::checkSameAndGetAsic(l3Asics);
+
+    auto* acl0 = utility::addAcl(&newCfg, "acl0", cfg::AclActionType::DENY);
+    acl0->proto() = 6;
+    auto* acl1 = utility::addAcl(&newCfg, "acl1", cfg::AclActionType::DENY);
+    acl1->proto() = 58;
+    applyNewConfig(newCfg);
+
+    utility::delAcl(&newCfg, "acl0");
+    applyNewConfig(newCfg);
+  };
+
+  auto verify = [=, this]() {
+    auto client = getAgentEnsemble()->getHwAgentTestClient(SwitchID(0));
+    auto state = getAgentEnsemble()->getProgrammedState();
+    auto acl = utility::getAclEntry(state, "acl1", FLAGS_enable_acl_table_group)
+                   ->toThrift();
+    EXPECT_EQ(
+        client->sync_getAclTableNumAclEntries(utility::kDefaultAclTable()), 1);
+
+    EXPECT_TRUE(client->sync_isAclEntrySame(acl, utility::kDefaultAclTable()));
+  };
+
+  this->verifyAcrossWarmBoots(setup, verify);
+}
+
+TEST_F(AgentHwAclQualifierTest, AclModifyQualifier) {
+  auto setup = [=, this]() {
+    auto& ensemble = *getAgentEnsemble();
+    auto newCfg = initialConfig(ensemble);
+    auto* acl = utility::addAcl(&newCfg, "acl0", cfg::AclActionType::DENY);
+    // icmp6
+    this->configureAllHwQualifiers(acl, true);
+    this->configureAllL2QualifiersHelper(acl);
+    configureAllIcmpQualifiers(
+        acl, true, cfg::IpType::IP6, this->getAsicType());
+    applyNewConfig(newCfg);
+    // ip6 tcp
+    configureAllIcmpQualifiers(
+        acl, false, cfg::IpType::IP6, this->getAsicType());
+    configureAllIpQualifiers(acl, true, cfg::IpType::IP6, this->getAsicType());
+    applyNewConfig(newCfg);
+    // imcp6
+    configureAllIpQualifiers(acl, false, cfg::IpType::IP6, this->getAsicType());
+    configureAllIcmpQualifiers(
+        acl, true, cfg::IpType::IP6, this->getAsicType());
+    applyNewConfig(newCfg);
+  };
+
+  auto verify = [=, this]() {
+    auto client = getAgentEnsemble()->getHwAgentTestClient(SwitchID(0));
+    auto state = getAgentEnsemble()->getProgrammedState();
+    auto acl = utility::getAclEntry(state, "acl0", FLAGS_enable_acl_table_group)
+                   ->toThrift();
+    EXPECT_TRUE(client->sync_isAclEntrySame(acl, utility::kDefaultAclTable()));
+  };
+
+  this->verifyAcrossWarmBoots(setup, verify);
+}
+
+TEST_F(AgentHwAclQualifierTest, AclEmptyCodeIcmp) {
+  auto setup = [=, this]() {
+    auto& ensemble = *getAgentEnsemble();
+    auto newCfg = initialConfig(ensemble);
+
+    auto* acl = utility::addAcl(&newCfg, "acl0", cfg::AclActionType::DENY);
+    // add a icmp rule w/ type and code value
+    // Destination Unreachable(type=3):Source host isolated(code=8)
+    acl->proto() = 58;
+    acl->icmpType() = 3;
+    acl->icmpCode() = 8;
+    this->applyNewConfig(newCfg);
+    // change the rule to empty code icmp rule
+    // Reserved for security(type=19 code is unset)
+    acl->icmpType() = 19;
+    acl->icmpCode().reset();
+    applyNewConfig(newCfg);
+  };
+
+  auto verify = [=, this]() {
+    auto client = getAgentEnsemble()->getHwAgentTestClient(SwitchID(0));
+    auto state = getAgentEnsemble()->getProgrammedState();
+    EXPECT_EQ(
+        client->sync_getAclTableNumAclEntries(utility::kDefaultAclTable()), 1);
+    auto acl = utility::getAclEntry(state, "acl0", FLAGS_enable_acl_table_group)
+                   ->toThrift();
+    EXPECT_TRUE(client->sync_isAclEntrySame(acl, utility::kDefaultAclTable()));
+  };
+
+  this->verifyAcrossWarmBoots(setup, verify);
+}
+
+TEST_F(AgentHwAclQualifierTest, AclVlanIDQualifier) {
+  auto setup = [=, this]() {
+    auto& ensemble = *getAgentEnsemble();
+    auto newCfg = initialConfig(ensemble);
+    auto* acl = utility::addAcl(&newCfg, "acl0", cfg::AclActionType::DENY);
+    acl->vlanID() = 2001;
+    applyNewConfig(newCfg);
+  };
+
+  auto verify = [=, this]() {
+    auto client = getAgentEnsemble()->getHwAgentTestClient(SwitchID(0));
+    auto state = getAgentEnsemble()->getProgrammedState();
+    EXPECT_EQ(
+        client->sync_getAclTableNumAclEntries(utility::kDefaultAclTable()), 1);
+    auto acl = utility::getAclEntry(state, "acl0", FLAGS_enable_acl_table_group)
+                   ->toThrift();
+    EXPECT_TRUE(client->sync_isAclEntrySame(acl, utility::kDefaultAclTable()));
+  };
+
+  this->verifyAcrossWarmBoots(setup, verify);
+}
+
 } // namespace facebook::fboss
