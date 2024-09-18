@@ -3,6 +3,7 @@
 #include "fboss/agent/test/utils/PfcTestUtils.h"
 #include "fboss/agent/Utils.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
+#include "fboss/agent/test/utils/AclTestUtils.h"
 
 #include <gtest/gtest.h>
 
@@ -169,6 +170,28 @@ void setupPfcBuffers(
   setupBufferPoolConfig(
       bufferPoolCfgMap, buffer.globalShared, buffer.globalHeadroom);
   cfg.bufferPoolConfigs() = std::move(bufferPoolCfgMap);
+}
+
+void addPuntPfcPacketAcl(cfg::SwitchConfig& cfg, uint16_t queueId) {
+  cfg::AclEntry entry;
+  entry.name() = "pfcMacEntry";
+  entry.actionType() = cfg::AclActionType::PERMIT;
+  entry.dstMac() = "01:80:C2:00:00:01";
+  utility::addAclEntry(&cfg, entry, utility::kDefaultAclTable());
+
+  cfg::MatchToAction matchToAction;
+  matchToAction.matcher() = "pfcMacEntry";
+  cfg::MatchAction& action = matchToAction.action().ensure();
+  action.toCpuAction() = cfg::ToCpuAction::TRAP;
+  action.sendToQueue().ensure().queueId() = queueId;
+  action.setTc().ensure().tcValue() = queueId;
+  cfg.cpuTrafficPolicy()
+      .ensure()
+      .trafficPolicy()
+      .ensure()
+      .matchToAction()
+      .ensure()
+      .push_back(matchToAction);
 }
 
 } // namespace facebook::fboss::utility

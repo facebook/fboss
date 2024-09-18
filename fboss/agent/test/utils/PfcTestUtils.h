@@ -23,4 +23,6 @@ void setupPfcBuffers(
     const std::vector<int>& losslessPgIds,
     PfcBufferParams buffer = PfcBufferParams{});
 
+void addPuntPfcPacketAcl(cfg::SwitchConfig& cfg, uint16_t queueId);
+
 } // namespace facebook::fboss::utility

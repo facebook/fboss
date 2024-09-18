@@ -2,8 +2,11 @@
 
 #include "fboss/agent/TxPacket.h"
 #include "fboss/agent/packet/PktFactory.h"
+#include "fboss/agent/packet/PktUtil.h"
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
+#include "fboss/agent/test/utils/CoppTestUtils.h"
+#include "fboss/agent/test/utils/PacketSnooper.h"
 #include "fboss/agent/test/utils/PfcTestUtils.h"
 #include "fboss/lib/CommonUtils.h"
 
@@ -34,7 +37,7 @@ class AgentPfcTest : public AgentHwTest {
           0x01, 0x01, 0x00, classVector, 0x00, 0xF0, 0x00, 0xF0, 0x00, 0xF0,
           0x00, 0xF0, 0x00, 0xF0,        0x00, 0xF0, 0x00, 0xF0, 0x00, 0xF0,
       };
-      std::vector<uint8_t> padding(28, 0);
+      std::vector<uint8_t> padding(26, 0);
       payload.insert(payload.end(), padding.begin(), padding.end());
 
       // Send it out
@@ -82,6 +85,66 @@ TEST_F(AgentPfcTest, verifyPfcCounters) {
         for (int pgId : losslessPgIds) {
           EXPECT_EVENTUALLY_EQ(inPfc[pgId], 1);
         }
+      }
+    });
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
+}
+
+TEST_F(AgentPfcTest, verifyPfcLoopback) {
+  // TODO: Investigate if this can be extended to other ASICs
+  for (auto* asic : getAgentEnsemble()->getL3Asics()) {
+    if (asic->getAsicType() != cfg::AsicType::ASIC_TYPE_JERICHO3) {
+#if defined(GTEST_SKIP)
+      GTEST_SKIP();
+#endif
+      return;
+    }
+  }
+
+  std::vector<PortID> portIds = {masterLogicalInterfacePortIds()[0]};
+  std::vector<int> losslessPgIds = {2};
+
+  auto setup = [&]() {
+    auto cfg = getAgentEnsemble()->getCurrentConfig();
+    utility::setupPfcBuffers(cfg, portIds, losslessPgIds);
+    utility::addPuntPfcPacketAcl(
+        cfg, utility::getCoppMidPriQueueId(getAgentEnsemble()->getL3Asics()));
+    applyNewConfig(cfg);
+
+    for (const auto& switchId : getSw()->getHwAsicTable()->getSwitchIDs()) {
+      // TODO: Investigate spurious diag command failures.
+      std::string out;
+      getAgentEnsemble()->runDiagCommand(
+          "m DC3MAC_RSV_MASK MASK=0\n"
+          "m NBU_RX_MLF_DROP_FC_PKTS RX_DROP_FC_PKTS=0\n"
+          "g DC3MAC_RSV_MASK\n"
+          "g NBU_RX_MLF_DROP_FC_PKTS\n"
+          "",
+          out,
+          switchId);
+      XLOG(DBG3) << "==== Diag command output ====\n"
+                 << out << "\n==== End output ====";
+      getAgentEnsemble()->runDiagCommand("quit\n", out, switchId);
+    }
+  };
+
+  auto verify = [&]() {
+    utility::SwSwitchPacketSnooper snooper(getSw(), "snooper");
+    sendPfcFrame(portIds, 0xFF);
+
+    WITH_RETRIES({
+      auto frameRx = snooper.waitForPacket(1);
+      ASSERT_EVENTUALLY_TRUE(frameRx.has_value());
+
+      // Received packet should be unmodified.
+      folly::io::Cursor cursor(frameRx->get());
+      EthHdr ethHdr(cursor); // Consume ethernet header
+      EXPECT_EQ(cursor.readBE<uint16_t>(), 0x0101); // PFC opcode
+      EXPECT_EQ(cursor.readBE<uint16_t>(), 0x00FF); // PFC class vector
+      for (int i = 0; i < 8; ++i) {
+        EXPECT_EQ(cursor.readBE<uint16_t>(), 0x00F0); // PFC quanta
       }
     });
   };
