@@ -131,4 +131,9 @@ AclStatGetFunc getAclStatGetFn(SwitchT* sw) {
   };
 }
 
+std::shared_ptr<AclEntry> getAclEntry(
+    const std::shared_ptr<SwitchState>& state,
+    const std::string& name,
+    bool enableAclTableGroup);
+
 } // namespace facebook::fboss::utility

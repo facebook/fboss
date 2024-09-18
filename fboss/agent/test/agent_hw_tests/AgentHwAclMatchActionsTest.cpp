@@ -31,13 +31,8 @@ class AgentHwAclMatchActionsTest : public AgentHwTest {
   }
 
   std::shared_ptr<AclEntry> getAclEntry(const std::string& name) {
-    if (FLAGS_enable_acl_table_group) {
-      return getSw()
-          ->getState()
-          ->getAclsForTable(cfg::AclStage::INGRESS, utility::kDefaultAclTable())
-          ->getNodeIf(name);
-    }
-    return getSw()->getState()->getAcl(name);
+    return utility::getAclEntry(
+        getSw()->getState(), name, FLAGS_enable_acl_table_group);
   }
 };
 

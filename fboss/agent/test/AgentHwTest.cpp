@@ -512,7 +512,11 @@ SwitchID AgentHwTest::switchIdForPort(PortID port) const {
 }
 
 const HwAsic* AgentHwTest::hwAsicForPort(PortID port) const {
-  return getSw()->getHwAsicTable()->getHwAsic(switchIdForPort(port));
+  return hwAsicForSwitch(switchIdForPort(port));
+}
+
+const HwAsic* AgentHwTest::hwAsicForSwitch(SwitchID switchID) const {
+  return getSw()->getHwAsicTable()->getHwAsic(switchID);
 }
 
 void AgentHwTest::populateArpNeighborsToCache(

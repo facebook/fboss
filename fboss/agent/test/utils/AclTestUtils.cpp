@@ -358,4 +358,16 @@ uint64_t getAclInOutPackets(
   return statValue;
 }
 
+std::shared_ptr<AclEntry> getAclEntry(
+    const std::shared_ptr<SwitchState>& state,
+    const std::string& name,
+    bool enableAclTableGroup) {
+  if (enableAclTableGroup) {
+    return state
+        ->getAclsForTable(cfg::AclStage::INGRESS, utility::kDefaultAclTable())
+        ->getNodeIf(name);
+  }
+  return state->getAcl(name);
+}
+
 } // namespace facebook::fboss::utility

@@ -26,6 +26,7 @@ cpp_library(
         "AgentFabricSwitchTests.cpp",
         "AgentFlowletSwitchingTests.cpp",
         "AgentHwAclMatchActionsTest.cpp",
+        "AgentHwAclQualifierTest.cpp",
         "AgentInNullRouteDiscardsTest.cpp",
         "AgentInTrapDiscardsTest.cpp",
         "AgentJumboFramesTests.cpp",

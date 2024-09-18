@@ -49,6 +49,7 @@ add_library(agent_hw_test_src
   fboss/agent/test/agent_hw_tests/AgentRouteScaleTests.cpp
   fboss/agent/test/agent_hw_tests/MultiNodeAgentVoqSwitchTests.cpp
   fboss/agent/test/agent_hw_tests/AgentHwAclMatchActionsTest.cpp
+  fboss/agent/test/agent_hw_tests/AgentHwAclQualifierTest.cpp
 )
 
 target_link_libraries(agent_hw_test_src
