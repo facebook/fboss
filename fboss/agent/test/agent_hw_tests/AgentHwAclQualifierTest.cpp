@@ -158,6 +158,100 @@ class AgentHwAclQualifierTest : public AgentHwTest {
     }
   }
 
+  void configureIp4QualifiersHelper(
+      cfg::AclEntry* acl,
+      SwitchID switchID = SwitchID(0)) {
+    auto asicType = getAsicType(switchID);
+    cfg::Ttl ttl;
+    std::tie(*ttl.value(), *ttl.mask()) = std::make_tuple(0x80, 0x80);
+
+    if (asicType != cfg::AsicType::ASIC_TYPE_JERICHO3) {
+      // TODO(daiweix): remove after J3 ACL supports IP_TYPE
+      configureQualifier(acl->ipType(), true, cfg::IpType::IP4);
+    }
+    configureQualifier(acl->srcIp(), true, "192.168.0.1");
+    configureQualifier(acl->dstIp(), true, "192.168.0.0/24");
+    configureQualifier(acl->dscp(), true, 0x24);
+    configureQualifier(acl->ttl(), true, ttl);
+    configureQualifier(acl->proto(), true, 6);
+  }
+
+  void configureIp6QualifiersHelper(
+      cfg::AclEntry* acl,
+      SwitchID switchID = SwitchID(0)) {
+    auto asicType = getAsicType(switchID);
+    cfg::Ttl ttl;
+    std::tie(*ttl.value(), *ttl.mask()) = std::make_tuple(0x80, 0x80);
+
+    if (asicType != cfg::AsicType::ASIC_TYPE_JERICHO3) {
+      // TODO(daiweix): remove after J3 ACL supports IP_TYPE
+      configureQualifier(acl->ipType(), true, cfg::IpType::IP6);
+    }
+    configureQualifier(acl->srcIp(), true, "::ffff:c0a8:1");
+    configureQualifier(
+        acl->dstIp(), true, "2401:db00:3020:70e2:face:0:63:0/64");
+    configureQualifier(acl->dscp(), true, 0x24);
+    configureQualifier(acl->ttl(), true, ttl);
+    configureQualifier(acl->proto(), true, 6);
+  }
+
+  std::string kAclName() const {
+    return "acl0";
+  }
+
+  void aclSetupHelper(
+      bool isIpV4,
+      QualifierType lookupClassType,
+      SwitchID switchID = SwitchID(0)) {
+    auto newCfg = initialConfig(*getAgentEnsemble());
+    auto* acl = utility::addAcl(&newCfg, kAclName(), cfg::AclActionType::DENY);
+
+    if (isIpV4) {
+      configureIp4QualifiersHelper(acl, switchID);
+    } else {
+      configureIp6QualifiersHelper(acl, switchID);
+    }
+
+    switch (lookupClassType) {
+      case QualifierType::LOOKUPCLASS_L2:
+        configureQualifier(
+            acl->lookupClassL2(),
+            true,
+            cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_1);
+        break;
+      case QualifierType::LOOKUPCLASS_NEIGHBOR:
+        configureQualifier(
+            acl->lookupClassNeighbor(),
+            true,
+            isIpV4 ? cfg::AclLookupClass::DST_CLASS_L3_LOCAL_1
+                   : cfg::AclLookupClass::DST_CLASS_L3_LOCAL_2);
+        break;
+      case QualifierType::LOOKUPCLASS_ROUTE:
+        configureQualifier(
+            acl->lookupClassRoute(),
+            true,
+            isIpV4 ? cfg::AclLookupClass::DST_CLASS_L3_LOCAL_1
+                   : cfg::AclLookupClass::DST_CLASS_L3_LOCAL_2);
+        break;
+      default:
+        CHECK(false);
+    }
+
+    applyNewConfig(newCfg);
+  }
+
+  void aclVerifyHelper() {
+    auto client = getAgentEnsemble()->getHwAgentTestClient(SwitchID(0));
+    auto state = getAgentEnsemble()->getProgrammedState();
+
+    EXPECT_EQ(
+        client->sync_getAclTableNumAclEntries(utility::kDefaultAclTable()), 1);
+    auto acl =
+        utility::getAclEntry(state, kAclName(), FLAGS_enable_acl_table_group)
+            ->toThrift();
+    EXPECT_TRUE(client->sync_isAclEntrySame(acl, utility::kDefaultAclTable()));
+  }
+
   cfg::AsicType getAsicType(SwitchID switchID = SwitchID(0)) {
     return hwAsicForSwitch(switchID)->getAsicType();
   }
@@ -396,4 +490,114 @@ TEST_F(AgentHwAclQualifierTest, AclVlanIDQualifier) {
   this->verifyAcrossWarmBoots(setup, verify);
 }
 
+TEST_F(AgentHwAclQualifierTest, AclIp4Qualifiers) {
+  auto setup = [=, this]() {
+    auto& ensemble = *getAgentEnsemble();
+    auto newCfg = initialConfig(ensemble);
+
+    auto* acl = utility::addAcl(&newCfg, "ip4", cfg::AclActionType::DENY);
+    configureIp4QualifiersHelper(acl);
+    applyNewConfig(newCfg);
+  };
+
+  auto verify = [=, this]() {
+    auto client = getAgentEnsemble()->getHwAgentTestClient(SwitchID(0));
+    auto state = getAgentEnsemble()->getProgrammedState();
+
+    EXPECT_EQ(
+        client->sync_getAclTableNumAclEntries(utility::kDefaultAclTable()), 1);
+    auto acl = utility::getAclEntry(state, "ip4", FLAGS_enable_acl_table_group)
+                   ->toThrift();
+    EXPECT_TRUE(client->sync_isAclEntrySame(acl, utility::kDefaultAclTable()));
+  };
+
+  this->verifyAcrossWarmBoots(setup, verify);
+}
+
+TEST_F(AgentHwAclQualifierTest, AclIp6Qualifiers) {
+  auto setup = [=, this]() {
+    auto& ensemble = *getAgentEnsemble();
+    auto newCfg = initialConfig(ensemble);
+
+    auto* acl = utility::addAcl(&newCfg, "ip6", cfg::AclActionType::DENY);
+
+    configureIp6QualifiersHelper(acl);
+    applyNewConfig(newCfg);
+  };
+
+  auto verify = [=, this]() {
+    auto client = getAgentEnsemble()->getHwAgentTestClient(SwitchID(0));
+    auto state = getAgentEnsemble()->getProgrammedState();
+
+    EXPECT_EQ(
+        client->sync_getAclTableNumAclEntries(utility::kDefaultAclTable()), 1);
+    auto acl = utility::getAclEntry(state, "ip6", FLAGS_enable_acl_table_group)
+                   ->toThrift();
+    EXPECT_TRUE(client->sync_isAclEntrySame(acl, utility::kDefaultAclTable()));
+  };
+
+  this->verifyAcrossWarmBoots(setup, verify);
+}
+
+TEST_F(AgentHwAclQualifierTest, AclIp4LookupClassL2) {
+  auto setup = [=, this]() {
+    this->aclSetupHelper(true /* isIpV4 */, QualifierType::LOOKUPCLASS_L2);
+  };
+
+  auto verify = [=, this]() { this->aclVerifyHelper(); };
+
+  this->verifyAcrossWarmBoots(setup, verify);
+}
+
+TEST_F(AgentHwAclQualifierTest, AclIp4LookupClassNeighbor) {
+  auto setup = [=, this]() {
+    this->aclSetupHelper(
+        true /* isIpV4 */, QualifierType::LOOKUPCLASS_NEIGHBOR);
+  };
+
+  auto verify = [=, this]() { this->aclVerifyHelper(); };
+
+  this->verifyAcrossWarmBoots(setup, verify);
+}
+
+TEST_F(AgentHwAclQualifierTest, AclIp4LookupClassRoute) {
+  auto setup = [=, this]() {
+    this->aclSetupHelper(true /* isIpV4 */, QualifierType::LOOKUPCLASS_ROUTE);
+  };
+
+  auto verify = [=, this]() { this->aclVerifyHelper(); };
+
+  this->verifyAcrossWarmBoots(setup, verify);
+}
+
+TEST_F(AgentHwAclQualifierTest, AclIp6LookupClassL2) {
+  auto setup = [=, this]() {
+    this->aclSetupHelper(false /* isIpV6 */, QualifierType::LOOKUPCLASS_L2);
+  };
+
+  auto verify = [=, this]() { this->aclVerifyHelper(); };
+
+  this->verifyAcrossWarmBoots(setup, verify);
+}
+
+TEST_F(AgentHwAclQualifierTest, AclIp6LookupClassNeighbor) {
+  auto setup = [=, this]() {
+    this->aclSetupHelper(
+        false /* isIpV6 */, QualifierType::LOOKUPCLASS_NEIGHBOR);
+  };
+
+  auto verify = [=, this]() { this->aclVerifyHelper(); };
+
+  this->verifyAcrossWarmBoots(setup, verify);
+}
+
+TEST_F(AgentHwAclQualifierTest, AclIp6LookupClassRoute) {
+  auto setup = [=, this]() {
+    this->aclSetupHelper(false /* isIpV6 */, QualifierType::LOOKUPCLASS_ROUTE);
+  };
+
+  auto verify = [=, this]() { this->aclVerifyHelper(); };
+
+  this->verifyAcrossWarmBoots(setup, verify);
+}
 } // namespace facebook::fboss
