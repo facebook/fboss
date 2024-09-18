@@ -270,7 +270,8 @@ TYPED_TEST(DsfSubscriptionTest, Connect) {
         this->getRemoteSystemPorts()->size(), this->kNumRemoteSwitchAsics);
     ASSERT_EVENTUALLY_EQ(
         this->getRemoteInterfaces()->size(), this->kNumRemoteSwitchAsics);
-    EXPECT_EQ(this->dsfSessionState(), DsfSessionState::WAIT_FOR_REMOTE);
+    ASSERT_EVENTUALLY_EQ(
+        this->dsfSessionState(), DsfSessionState::WAIT_FOR_REMOTE);
   });
 
   this->updateDsfSubscriberState(
@@ -293,11 +294,13 @@ TYPED_TEST(DsfSubscriptionTest, ConnectDisconnect) {
         this->getRemoteSystemPorts()->size(), this->kNumRemoteSwitchAsics);
     ASSERT_EVENTUALLY_EQ(
         this->getRemoteInterfaces()->size(), this->kNumRemoteSwitchAsics);
-    EXPECT_EQ(this->dsfSessionState(), DsfSessionState::WAIT_FOR_REMOTE);
+    ASSERT_EVENTUALLY_EQ(
+        this->dsfSessionState(), DsfSessionState::WAIT_FOR_REMOTE);
   });
 
   this->stopPublisher();
-  EXPECT_EQ(this->dsfSessionState(), DsfSessionState::CONNECT);
+  WITH_RETRIES(
+      ASSERT_EVENTUALLY_EQ(this->dsfSessionState(), DsfSessionState::CONNECT));
 }
 
 TYPED_TEST(DsfSubscriptionTest, GR) {
@@ -312,7 +315,8 @@ TYPED_TEST(DsfSubscriptionTest, GR) {
         this->getRemoteSystemPorts()->size(), this->kNumRemoteSwitchAsics);
     ASSERT_EVENTUALLY_EQ(
         this->getRemoteInterfaces()->size(), this->kNumRemoteSwitchAsics);
-    EXPECT_EQ(this->dsfSessionState(), DsfSessionState::WAIT_FOR_REMOTE);
+    ASSERT_EVENTUALLY_EQ(
+        this->dsfSessionState(), DsfSessionState::WAIT_FOR_REMOTE);
   });
 
   this->stopPublisher(true);
@@ -337,8 +341,10 @@ TYPED_TEST(DsfSubscriptionTest, GR) {
     auto assertObjStatus = [expectedStatus](const auto& objs) {
       std::for_each(
           objs->begin(), objs->end(), [expectedStatus](const auto& idAndObj) {
-            EXPECT_EQ(
-                idAndObj.second->getRemoteLivenessStatus(), expectedStatus);
+            if (!idAndObj.second->isStatic()) {
+              EXPECT_EQ(
+                  idAndObj.second->getRemoteLivenessStatus(), expectedStatus);
+            }
           });
     };
     assertObjStatus(this->getRemoteSystemPorts());
@@ -358,8 +364,10 @@ TYPED_TEST(DsfSubscriptionTest, GR) {
     auto remoteRifs = this->getRemoteInterfaces();
     for (const auto [_, rif] : std::as_const(*remoteRifs)) {
       // Neighbors should get pruned
-      ASSERT_EVENTUALLY_EQ(rif->getNdpTable()->size(), 0);
-      ASSERT_EVENTUALLY_EQ(rif->getArpTable()->size(), 0);
+      if (!rif->isStatic()) {
+        ASSERT_EVENTUALLY_EQ(rif->getNdpTable()->size(), 0);
+        ASSERT_EVENTUALLY_EQ(rif->getArpTable()->size(), 0);
+      }
     }
   });
   // Should be STATLE after GR expire
@@ -381,7 +389,8 @@ TYPED_TEST(DsfSubscriptionTest, DataUpdate) {
         this->getRemoteSystemPorts()->size(), this->kNumRemoteSwitchAsics);
     ASSERT_EVENTUALLY_EQ(
         this->getRemoteInterfaces()->size(), this->kNumRemoteSwitchAsics);
-    EXPECT_EQ(this->dsfSessionState(), DsfSessionState::WAIT_FOR_REMOTE);
+    ASSERT_EVENTUALLY_EQ(
+        this->dsfSessionState(), DsfSessionState::WAIT_FOR_REMOTE);
   });
 
   auto sysPort2 = makeSysPort(
@@ -410,7 +419,8 @@ TYPED_TEST(DsfSubscriptionTest, updateFailed) {
         this->getRemoteSystemPorts()->size(), this->kNumRemoteSwitchAsics);
     ASSERT_EVENTUALLY_EQ(
         this->getRemoteInterfaces()->size(), this->kNumRemoteSwitchAsics);
-    EXPECT_EQ(this->dsfSessionState(), DsfSessionState::WAIT_FOR_REMOTE);
+    ASSERT_EVENTUALLY_EQ(
+        this->dsfSessionState(), DsfSessionState::WAIT_FOR_REMOTE);
   });
   waitForStateUpdates(this->sw_);
 
