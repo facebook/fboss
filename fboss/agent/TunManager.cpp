@@ -410,19 +410,27 @@ void TunManager::addRemoveSourceRouteRule(
   } else {
     error = rtnl_rule_delete(sock_, rule, 0);
   }
-  nlCheckError(
-      error,
-      "Failed to ",
-      add ? "add" : "remove",
-      " rule for address ",
-      addr,
-      " to lookup table ",
-      getTableId(ifID),
-      " for interface ",
-      ifID);
-  XLOG(DBG2) << (add ? "Added" : "Removed") << " rule for address " << addr
-             << " to lookup table " << getTableId(ifID) << " for interface "
-             << ifID;
+  // There are scenarios where the rule has already been deleted and we try to
+  // delete it again. In that case, we can ignore the error.
+  if (!add && (error == -NLE_OBJ_NOTFOUND)) {
+    XLOG(WARNING) << "Rule not existing for address " << addr
+                  << " to lookup table " << getTableId(ifID)
+                  << " for interface " << ifID;
+  } else {
+    nlCheckError(
+        error,
+        "Failed to ",
+        add ? "add" : "remove",
+        " rule for address ",
+        addr,
+        " to lookup table ",
+        getTableId(ifID),
+        " for interface ",
+        ifID);
+    XLOG(DBG2) << (add ? "Added" : "Removed") << " rule for address " << addr
+               << " to lookup table " << getTableId(ifID) << " for interface "
+               << ifID;
+  }
 }
 
 void TunManager::addRemoveTunAddress(
