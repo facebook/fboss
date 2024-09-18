@@ -140,6 +140,7 @@ class AgentEnsembleTest : public ::testing::Test {
     platformConfigFn_ = std::move(platformConfigFn);
   }
   virtual cfg::SwitchConfig initialConfig(const AgentEnsemble& ensemble);
+  virtual void preInitSetup();
   bool isSupportedOnAllAsics(HwAsic::Feature feature) const;
   AgentEnsemble* getAgentEnsemble() const;
   const std::shared_ptr<SwitchState> getProgrammedState() const;

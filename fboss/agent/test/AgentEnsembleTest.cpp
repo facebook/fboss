@@ -40,7 +40,7 @@ void AgentEnsembleTest::setupAgentEnsemble() {
   folly::SingletonVault::singleton()->reenableInstances();
 
   setCmdLineFlagOverrides();
-  utilCreateDir(getAgentTestDir());
+  preInitSetup();
   AgentEnsembleSwitchConfigFn initialConfigFn =
       [this](const AgentEnsemble& ensemble) { return initialConfig(ensemble); };
 
@@ -51,7 +51,6 @@ void AgentEnsembleTest::setupAgentEnsemble() {
       (HwSwitch::FeaturesDesired::PACKET_RX_DESIRED |
        HwSwitch::FeaturesDesired::LINKSCAN_DESIRED),
       false /* failHwCallsOnWarmboot*/);
-  utilCreateDir(getAgentTestDir());
   XLOG(DBG2) << "Agent has been setup and ready for the test";
 }
 
@@ -92,6 +91,10 @@ cfg::SwitchConfig AgentEnsembleTest::initialConfig(
     [[maybe_unused]] const AgentEnsemble& ensemble) {
   auto agentConf = AgentConfig::fromDefaultFile();
   return agentConf->thrift.sw().value();
+}
+
+void AgentEnsembleTest::preInitSetup() {
+  utilCreateDir(getAgentTestDir());
 }
 
 // We are now returning a map of portId to port stats. Need to modify callers
