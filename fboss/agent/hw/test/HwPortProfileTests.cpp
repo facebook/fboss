@@ -222,7 +222,12 @@ class HwPortProfileTest : public HwTest {
       for (auto port : {availablePorts[0], availablePorts[1]}) {
         auto hwSwitch = getHwSwitch();
         utility::configurePortProfile(
-            *hwSwitch, config, Profile, getAllPortsInGroup(port), port);
+            hwSwitch->getPlatform()->getPlatformMapping(),
+            hwSwitch->getPlatform()->supportsAddRemovePort(),
+            config,
+            Profile,
+            getAllPortsInGroup(port),
+            port);
       }
       applyNewConfig(config);
     };

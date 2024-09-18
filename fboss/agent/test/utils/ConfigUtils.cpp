@@ -1287,4 +1287,39 @@ bool checkConfigHasAclEntry(
   return false;
 }
 
+void configurePortProfile(
+    const PlatformMapping* platformMapping,
+    bool supportsAddRemovePort,
+    cfg::SwitchConfig& config,
+    cfg::PortProfileID profileID,
+    std::vector<PortID> allPortsInGroup,
+    PortID controllingPortID) {
+  auto controllingPort = findCfgPort(config, controllingPortID);
+  for (auto portID : allPortsInGroup) {
+    // We might have removed a subsumed port already in a previous
+    // iteration of the loop.
+    auto cfgPort = findCfgPortIf(config, portID);
+    if (cfgPort == config.ports()->end()) {
+      return;
+    }
+
+    const auto& platPortEntry = platformMapping->getPlatformPort(portID);
+    auto supportedProfiles = *platPortEntry.supportedProfiles();
+    auto profile = supportedProfiles.find(profileID);
+    if (profile == supportedProfiles.end()) {
+      XLOG(WARNING) << "Port " << static_cast<int>(portID)
+                    << " doesn't support profile "
+                    << apache::thrift::util::enumNameSafe(profileID)
+                    << ", disabling it instead";
+      // Port doesn't support this speed, just disable it.
+      cfgPort->state() = cfg::PortState::DISABLED;
+      continue;
+    }
+    cfgPort->profileID() = profileID;
+    cfgPort->speed() = getSpeed(profileID);
+    cfgPort->ingressVlan() = *controllingPort->ingressVlan();
+    cfgPort->state() = cfg::PortState::ENABLED;
+    removeSubsumedPorts(config, profile->second, supportsAddRemovePort);
+  }
+}
 } // namespace facebook::fboss::utility
