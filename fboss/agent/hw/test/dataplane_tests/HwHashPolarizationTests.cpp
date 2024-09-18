@@ -41,7 +41,7 @@ class HwHashPolarizationTests : public HwLinkStateDependentTest {
   cfg::SwitchConfig initialConfig() const override {
     auto cfg = utility::onePortPerInterfaceConfig(
         getHwSwitch(),
-        masterLogicalPortIds(),
+        masterLogicalInterfacePortIds(),
         getAsic()->desiredLoopbackModes());
     return cfg;
   }
@@ -430,7 +430,7 @@ class HwHashTrunkPolarizationTests : public HwHashPolarizationTests {
   cfg::SwitchConfig initialConfig() const override {
     auto cfg = utility::onePortPerInterfaceConfig(
         getHwSwitch(),
-        masterLogicalPortIds(),
+        masterLogicalInterfacePortIds(),
         getAsic()->desiredLoopbackModes());
     return cfg;
   }
@@ -440,7 +440,8 @@ class HwHashTrunkPolarizationTests : public HwHashPolarizationTests {
     for (auto i = 0; i < kNumAggregatePorts; ++i) {
       std::vector<int32_t> members(kAggregatePortWidth);
       for (auto j = 0; j < kAggregatePortWidth; ++j) {
-        members[j] = masterLogicalPortIds()[i * kAggregatePortWidth + j];
+        members[j] =
+            masterLogicalInterfacePortIds()[i * kAggregatePortWidth + j];
       }
       utility::addAggPort(curAggId++, members, cfg);
     }
@@ -477,11 +478,12 @@ class HwHashTrunkPolarizationTests : public HwHashPolarizationTests {
 
   std::vector<PortID> getEgressPorts(
       int numAggregatePorts = kNumAggregatePorts) const {
-    auto masterLogicalPorts = masterLogicalPortIds();
+    auto masterLogicalPorts = masterLogicalInterfacePortIds();
     std::vector<PortID> egressPorts{};
     for (auto i = 0; i < numAggregatePorts; ++i) {
       for (auto j = 0; j < kAggregatePortWidth; ++j) {
-        auto port = masterLogicalPortIds()[i * kAggregatePortWidth + j];
+        auto port =
+            masterLogicalInterfacePortIds()[i * kAggregatePortWidth + j];
         egressPorts.push_back(port);
       }
     }
@@ -516,7 +518,7 @@ class HwHashTrunkPolarizationTests : public HwHashPolarizationTests {
           hashes,
           scopeResolver()));
 
-      auto logicalPorts = masterLogicalPortIds();
+      auto logicalPorts = masterLogicalInterfacePortIds();
       auto portIter = logicalPorts.end() - 1;
 
       for (auto isV6 : {true, false}) {
@@ -565,7 +567,7 @@ class HwHashTrunkPolarizationTests : public HwHashPolarizationTests {
           ipPayload.udpPayload()->header().dstPort);
     };
 
-    auto logicalPorts = masterLogicalPortIds();
+    auto logicalPorts = masterLogicalInterfacePortIds();
     auto portIter = logicalPorts.end() - 1;
 
     for (auto& ethFrame : rxPackets) {
