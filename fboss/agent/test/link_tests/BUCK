@@ -190,6 +190,7 @@ cpp_library(
         "AgentEnsembleLacpSanityTests.cpp",
         "AgentEnsembleLinkTest.cpp",
         "AgentEnsembleMacLearningTests.cpp",
+        "AgentEnsembleOpenBmcUpgradeTests.cpp",
         "AgentEnsembleOpticsTest.cpp",
         "AgentEnsemblePrbsTest.cpp",
         "AgentEnsemblePtpTests.cpp",

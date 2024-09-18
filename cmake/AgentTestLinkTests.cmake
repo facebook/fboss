@@ -40,7 +40,8 @@ add_library(agent_ensemble_link_tests
   fboss/agent/test/link_tests/AgentEnsembleEmptyLinkTest.cpp
   fboss/agent/test/link_tests/AgentEnsembleMacLearningTests.cpp
   fboss/agent/test/link_tests/AgentEnsemblePrbsTest.cpp
-  fboss/agent/test/link_tests//AgentEnsemblePtpTests.cpp
+  fboss/agent/test/link_tests/AgentEnsemblePtpTests.cpp
+  fboss/agent/test/link_tests/AgentEnsembleOpenBmcUpgradeTests.cpp
 )
 
 target_link_libraries(agent_ensemble_link_tests
