@@ -45,27 +45,23 @@ class FsdbPubSubManagerTest : public ::testing::Test {
  protected:
   folly::Synchronized<std::map<std::string, FsdbErrorCode>>
       subscriptionLastDisconnectReason;
-  void updateSubscriptionLastDisconnectReason(bool isDelta, bool isStats) {
+  void updateSubscriptionLastDisconnectReason(
+      SubscriptionType subscriptionType,
+      bool isStats) {
     auto subscriptionInfoList = this->pubSubManager_->getSubscriptionInfo();
     for (const auto& subscriptionInfo : subscriptionInfoList) {
-      if (isDelta == subscriptionInfo.isDelta &&
+      if (subscriptionType == subscriptionInfo.subscriptionType &&
           isStats == subscriptionInfo.isStats) {
         auto reason = subscriptionInfo.disconnectReason;
         subscriptionLastDisconnectReason.withWLock([&](auto& map) {
           std::string subscriberId = isStats ? "STAT" : "State";
-          subscriberId += isDelta ? "_Delta" : "_Path";
+          subscriberId +=
+              fmt::format("_{}", subscriptionTypeToStr[subscriptionType]);
           map[subscriberId] = reason;
         });
         return;
       }
     }
-  }
-  FsdbErrorCode getSubscriptionLastDisconnectReason(
-      bool isDelta,
-      bool isStats) {
-    std::string subscriberId = isStats ? "STAT" : "State";
-    subscriberId += isDelta ? "_Delta" : "_Path";
-    return subscriptionLastDisconnectReason.rlock()->at(subscriberId);
   }
   void checkDisconnectReason(FsdbErrorCode expected) {
     WITH_RETRIES({
@@ -493,21 +489,26 @@ TYPED_TEST(FsdbPubSubManagerGRTest, verifySubscriptionDisconnectOnPublisherGR) {
   this->addStatDeltaSubscription(
       this->makeOperDeltaCb(statDeltas),
       this->subscrStateChangeCb(stateDeltas, [this]() {
-        this->updateSubscriptionLastDisconnectReason(true, true);
+        this->updateSubscriptionLastDisconnectReason(
+            SubscriptionType::DELTA, true);
       }));
   this->addStatPathSubscription(
       this->makeOperStateCb(statPaths),
       this->subscrStateChangeCb(stateDeltas, [this]() {
-        this->updateSubscriptionLastDisconnectReason(false, true);
+        this->updateSubscriptionLastDisconnectReason(
+            SubscriptionType::PATH, true);
       }));
   this->addStateDeltaSubscription(
       this->makeOperDeltaCb(stateDeltas),
       this->subscrStateChangeCb(stateDeltas, [this]() {
-        this->updateSubscriptionLastDisconnectReason(true, false);
+        this->updateSubscriptionLastDisconnectReason(
+            SubscriptionType::DELTA, false);
       }));
-  SubscriptionStateChangeCb stChangeCb = this->subscrStateChangeCb(
-      statePaths,
-      [this]() { this->updateSubscriptionLastDisconnectReason(false, false); });
+  SubscriptionStateChangeCb stChangeCb =
+      this->subscrStateChangeCb(statePaths, [this]() {
+        this->updateSubscriptionLastDisconnectReason(
+            SubscriptionType::PATH, false);
+      });
   this->addStatePathSubscription(this->makeOperStateCb(statePaths), stChangeCb);
   // Publish
   this->publish(makePortStats(1));

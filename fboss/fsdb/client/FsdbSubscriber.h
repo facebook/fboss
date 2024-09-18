@@ -26,6 +26,20 @@ enum class SubscriptionState : uint16_t {
   CONNECTED,
 };
 
+enum class SubscriptionType {
+  UNKNOWN = 0,
+  PATH = 1,
+  DELTA = 2,
+  PATCH = 3,
+};
+
+static std::unordered_map<SubscriptionType, std::string> subscriptionTypeToStr =
+    {
+        {SubscriptionType::PATH, "Path"},
+        {SubscriptionType::DELTA, "Delta"},
+        {SubscriptionType::PATCH, "Patch"},
+};
+
 inline bool isConnected(const SubscriptionState& state) {
   return state == SubscriptionState::CONNECTED;
 }
@@ -82,7 +96,7 @@ struct SubscriptionOptions {
 
 struct SubscriptionInfo {
   std::string server;
-  bool isDelta;
+  SubscriptionType subscriptionType;
   bool isStats;
   std::vector<std::string> paths;
   FsdbStreamClient::State state;
@@ -168,10 +182,12 @@ class FsdbSubscriber : public FsdbSubscriberBase {
     cancelStaleStateTimeout();
   }
 
+  static SubscriptionType subscriptionType();
+
   SubscriptionInfo getInfo() const override {
     return SubscriptionInfo{
         getServer(),
-        !std::is_same_v<SubUnit, OperState>,
+        subscriptionType(),
         this->isStats(),
         PathHelpers::toStringList(subscribePaths_),
         getState(),

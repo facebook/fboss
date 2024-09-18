@@ -222,4 +222,10 @@ TEST_F(PubSubManagerTest, removeAllSubscriptions) {
   addStatDeltaSubscription({"foo"});
 }
 
+TEST_F(PubSubManagerTest, TestSubscriptionInfo) {
+  EXPECT_EQ(FsdbPatchSubscriber::subscriptionType(), SubscriptionType::PATCH);
+  EXPECT_EQ(FsdbStateSubscriber::subscriptionType(), SubscriptionType::PATH);
+  EXPECT_EQ(FsdbDeltaSubscriber::subscriptionType(), SubscriptionType::DELTA);
+}
+
 } // namespace facebook::fboss::fsdb
