@@ -57,6 +57,7 @@ cpp_library(
         "AgentStateReconstructionTests.cpp",
         "AgentSwitchStateReplayTest.cpp",
         "AgentSwitchStatsTxCounterTests.cpp",
+        "AgentTrafficPfcTests.cpp",
         "AgentTrunkLoadBalancerTests.cpp",
         "AgentVoqSwitchInterruptsTests.cpp",
         "AgentVoqSwitchTests.cpp",
