@@ -1,10 +1,4 @@
 {
-  "chassisEepromName" : "CHASSIS" ,
-  "fruEepromList" : {
-    "CHASSIS" : {
-      "path" : "/run/devmap/eeproms/COME_EEPROM"
-    }
-  },
   "systemLedConfig": {
     "presentLedColor": 3,
     "presentLedSysfsPath": "/sys/class/leds/sys_led:blue:status/brightness",
