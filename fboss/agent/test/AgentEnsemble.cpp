@@ -307,6 +307,10 @@ void AgentEnsemble::setBootType() {
       : BootType::COLD_BOOT;
 }
 
+BootType AgentEnsemble::getBootType() const {
+  return bootType_;
+}
+
 void initEnsemble(
     PlatformInitFn initPlatform,
     std::optional<cfg::StreamType> streamType) {
