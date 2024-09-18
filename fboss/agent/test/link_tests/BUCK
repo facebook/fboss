@@ -186,6 +186,7 @@ cpp_library(
 cpp_library(
     name = "agent_ensemble_link_tests",
     srcs = [
+        "AgentEnsembleDependencyTest.cpp",
         "AgentEnsembleEmptyLinkTest.cpp",
         "AgentEnsembleLacpSanityTests.cpp",
         "AgentEnsembleLinkTest.cpp",
