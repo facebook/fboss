@@ -1128,6 +1128,9 @@
           "test_name_regex": "HwProdInvariantsRswStrictPriorityTest"
         },
         {
+          "test_name_regex": "HwTest_PROFILE_100G_4_NRZ_RS528_OPTICAL.TestProfile"
+        },
+        {
           "test_name_regex": "HwDscpQueueMappingTest.VerifyAclAndQosMap"
         },
         {
@@ -3240,6 +3243,9 @@
         },
         {
           "test_name_regex": "HwProdInvariantsRswStrictPriorityTest"
+        },
+        {
+          "test_name_regex": "HwTest_PROFILE_100G_4_NRZ_RS528_OPTICAL.TestProfile"
         }
     ],
     "brcm/11.3.0.0_dnx_odp/11.3.0.0_dnx_odp/jericho3": [
