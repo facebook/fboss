@@ -20,6 +20,7 @@ class AgentEnsembleTest : public ::testing::Test {
   }
   void TearDown() override;
   void tearDownAgentEnsemble(bool doWarmboot = false);
+  using StateUpdateFn = SwSwitch::StateUpdateFn;
 
  protected:
   void setupAgentEnsemble();
@@ -59,6 +60,19 @@ class AgentEnsembleTest : public ::testing::Test {
   void reloadPlatformConfig();
   std::map<PortID, FabricEndpoint> getFabricConnectivity(
       SwitchID switchId) const;
+
+  void applyNewState(
+      const StateUpdateFn& fn,
+      const std::string& name = "agent-ensemble-test") {
+    return applyNewStateImpl(fn, name, false);
+  }
+
+  void applyNewStateImpl(
+      const StateUpdateFn& fn,
+      const std::string& name,
+      bool transaction) {
+    agentEnsemble_->applyNewState(fn, name, transaction);
+  }
 
   template <
       typename SETUP_FN,

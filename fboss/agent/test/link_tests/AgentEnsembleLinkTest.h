@@ -103,6 +103,8 @@ class AgentEnsembleLinkTest : public AgentEnsembleTest {
 
   std::vector<std::pair<PortID, PortID>> getPortPairsForFecErrInj() const;
 
+  void setForceTrafficOverFabric(bool force);
+
  private:
   void programDefaultRoute(
       const boost::container::flat_set<PortDescriptor>& ecmpPorts,

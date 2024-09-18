@@ -85,10 +85,6 @@ void AgentEnsembleLinkTest::setupTtl0ForwardingEnable() {
       utility::setTTL0PacketForwardingEnableConfig(getSw(), *agentConfig);
   newAgentConfig.dumpConfig(getTestConfigPath());
   FLAGS_config = getTestConfigPath();
-  // TODO once LinkTest is deprecated. have setTTL0PacketForwardingEnableConfig
-  // just return cfg::AgentConfig
-  getSw()->applyConfig(
-      "applying new config", newAgentConfig.thrift.sw().value());
 }
 
 // Waits till the link status of the ports in cabledPorts vector reaches
@@ -507,6 +503,18 @@ AgentEnsembleLinkTest::getPortPairsForFecErrInj() const {
     }
   }
   return supportedPorts;
+}
+
+void AgentEnsembleLinkTest::setForceTrafficOverFabric(bool force) {
+  applyNewState([&](const std::shared_ptr<SwitchState>& in) {
+    auto out = in->clone();
+    for (const auto& [_, switchSetting] :
+         std::as_const(*out->getSwitchSettings())) {
+      auto newSwitchSettings = switchSetting->modify(&out);
+      newSwitchSettings->setForceTrafficOverFabric(force);
+    }
+    return out;
+  });
 }
 
 int agentEnsembleLinkTestMain(
