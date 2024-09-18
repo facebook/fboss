@@ -318,10 +318,8 @@ cpp_library(
 )
 
 hw_test_common_srcs = [
-    "HwAclMatchActionsTests.cpp",
     "HwVerifyPfcConfigInHwTest.cpp",
     "HwIngressBufferTests.cpp",
-    "HwAclQualifierTests.cpp",
     "HwAclStatTests.cpp",
     "HwPortTests.cpp",
     "HwTestFabricUtils.cpp",
