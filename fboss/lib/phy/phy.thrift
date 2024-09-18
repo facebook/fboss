@@ -122,12 +122,12 @@ enum Loopback {
 }
 
 struct TxSettings {
-  1: i16 pre = 0;
-  2: i16 pre2 = 0;
-  3: i16 main = 0;
-  4: i16 post = 0;
-  5: i16 post2 = 0;
-  6: i16 post3 = 0;
+  1: i32 pre = 0;
+  2: i32 pre2 = 0;
+  3: i32 main = 0;
+  4: i32 post = 0;
+  5: i32 post2 = 0;
+  6: i32 post3 = 0;
   7: optional i16 lutMode;
   8: optional i16 driveCurrent;
   9: optional i32 diffEncoderEn;
