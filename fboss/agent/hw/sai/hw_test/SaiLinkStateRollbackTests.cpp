@@ -26,7 +26,7 @@ TEST_F(SaiRollbackTest, rollbackLinkUpAndDown) {
     rollback(StateDelta(link1DownState, getProgrammedState()));
     // Back to square 1
     rollback(StateDelta(origState, getProgrammedState()));
-    for (auto portID : masterLogicalPortIds()) {
+    for (auto portID : masterLogicalInterfacePortIds()) {
       const auto& port = getProgrammedState()->getPorts()->getNodeIf(portID);
       EXPECT_TRUE(port->isPortUp());
     }
