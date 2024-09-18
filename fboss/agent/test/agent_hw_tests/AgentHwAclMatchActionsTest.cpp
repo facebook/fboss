@@ -123,4 +123,98 @@ TEST_F(AgentHwAclMatchActionsTest, AddSameMatcherTwice) {
   };
   verifyAcrossWarmBoots(setup, verify);
 }
+
+TEST_F(AgentHwAclMatchActionsTest, AddMultipleActions) {
+  auto setup = [this]() {
+    const auto& ensemble = *getAgentEnsemble();
+    auto newCfg = initialConfig(ensemble);
+    auto l3Asics = ensemble.getSw()->getHwAsicTable()->getL3Asics();
+    auto asic = utility::checkSameAndGetAsic(l3Asics);
+
+    utility::addDscpAclToCfg(asic, &newCfg, "acl1", 0);
+    utility::addDscpAclToCfg(asic, &newCfg, "acl2", 0);
+    utility::addDscpAclToCfg(asic, &newCfg, "acl3", 0);
+    utility::addQueueMatcher(&newCfg, "acl1", 0, ensemble.isSai());
+    utility::addQueueMatcher(&newCfg, "acl2", 0, ensemble.isSai());
+
+    addSetDscpAction(&newCfg, "acl3", 8);
+    this->applyNewConfig(newCfg);
+  };
+  auto verify = [this]() {
+    auto client = getAgentEnsemble()->getHwAgentTestClient(SwitchID(0));
+
+    EXPECT_EQ(
+        client->sync_getAclTableNumAclEntries(utility::kDefaultAclTable()), 3);
+    for (const auto& matcher : {"acl1", "acl2", "acl3"}) {
+      auto acl = getAclEntry(matcher)->toThrift();
+      EXPECT_TRUE(
+          client->sync_isAclEntrySame(acl, utility::kDefaultAclTable()));
+    }
+  };
+  this->verifyAcrossWarmBoots(setup, verify);
+}
+
+TEST_F(AgentHwAclMatchActionsTest, AddRemoveActions) {
+  auto setup = [this]() {
+    const auto& ensemble = *getAgentEnsemble();
+    auto newCfg = initialConfig(ensemble);
+    auto l3Asics = ensemble.getSw()->getHwAsicTable()->getL3Asics();
+    auto asic = utility::checkSameAndGetAsic(l3Asics);
+
+    utility::addDscpAclToCfg(asic, &newCfg, "acl1", 0);
+    utility::addQueueMatcher(&newCfg, "acl1", 0, ensemble.isSai());
+
+    utility::addDscpAclToCfg(asic, &newCfg, "acl2", 0);
+    addSetDscpAction(&newCfg, "acl2", 8);
+
+    newCfg.dataPlaneTrafficPolicy()->matchToAction()->pop_back();
+    newCfg.dataPlaneTrafficPolicy()->matchToAction()->pop_back();
+
+    this->applyNewConfig(newCfg);
+  };
+  auto verify = [this]() {
+    auto client = getAgentEnsemble()->getHwAgentTestClient(SwitchID(0));
+
+    EXPECT_EQ(
+        client->sync_getAclTableNumAclEntries(utility::kDefaultAclTable()), 2);
+    for (const auto& matcher : {"acl1", "acl2"}) {
+      auto acl = getAclEntry(matcher)->toThrift();
+      EXPECT_TRUE(
+          client->sync_isAclEntrySame(acl, utility::kDefaultAclTable()));
+    }
+  };
+  this->verifyAcrossWarmBoots(setup, verify);
+}
+
+TEST_F(AgentHwAclMatchActionsTest, AddTrafficPolicyMultipleRemoveOne) {
+  auto setup = [this]() {
+    const auto& ensemble = *getAgentEnsemble();
+    auto newCfg = initialConfig(ensemble);
+    auto l3Asics = ensemble.getSw()->getHwAsicTable()->getL3Asics();
+    auto asic = utility::checkSameAndGetAsic(l3Asics);
+
+    utility::addDscpAclToCfg(asic, &newCfg, "acl1", 0);
+    utility::addQueueMatcher(&newCfg, "acl1", 0, ensemble.isSai());
+    utility::addDscpAclToCfg(asic, &newCfg, "acl2", 0);
+    utility::addQueueMatcher(&newCfg, "acl2", 0, ensemble.isSai());
+    this->applyNewConfig(newCfg);
+
+    newCfg.dataPlaneTrafficPolicy()->matchToAction()->pop_back();
+
+    this->applyNewConfig(newCfg);
+  };
+  auto verify = [this]() {
+    auto client = getAgentEnsemble()->getHwAgentTestClient(SwitchID(0));
+
+    EXPECT_EQ(
+        client->sync_getAclTableNumAclEntries(utility::kDefaultAclTable()), 2);
+
+    for (const auto& matcher : {"acl1", "acl2"}) {
+      auto acl = getAclEntry(matcher)->toThrift();
+      EXPECT_TRUE(
+          client->sync_isAclEntrySame(acl, utility::kDefaultAclTable()));
+    }
+  };
+  this->verifyAcrossWarmBoots(setup, verify);
+}
 } // namespace facebook::fboss
