@@ -195,7 +195,7 @@ class HwProdInvariantsFswStrictPriorityTest : public HwProdInvariantsFswTest {
   cfg::SwitchConfig initConfigHelper() const override {
     auto config = utility::createProdFswConfig(
         getHwSwitch(),
-        masterLogicalPortIds(),
+        masterLogicalInterfacePortIds(),
         getHwSwitchEnsemble()->isSai(),
         true /* Strict priority enabled */);
     return config;

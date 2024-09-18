@@ -290,7 +290,7 @@ cfg::SwitchConfig createUplinkDownlinkConfig(
         lbModeMap,
         interfaceHasSubnet,
         true,
-        kUplinkBaseVlanId);
+        kDownlinkBaseVlanId /* TH3, TH4 ingress vlan case starts from 2000 */);
     for (auto portId : masterLogicalPortIds) {
       utility::updatePortSpeed(
           platformMapping,
