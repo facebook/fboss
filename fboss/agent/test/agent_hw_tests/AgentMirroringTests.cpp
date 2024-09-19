@@ -339,6 +339,36 @@ class AgentMirroringTest : public AgentHwTest {
     this->verifyAcrossWarmBoots(setup, verify);
   }
 
+  void testRemoveMirror(const std::string& mirrorName) {
+    auto setup = [=, this]() {
+      const auto& ensemble = *getAgentEnsemble();
+      this->resolveMirror(mirrorName);
+
+      auto config = utility::onePortPerInterfaceConfig(
+          ensemble.getSw(),
+          ensemble.masterLogicalPortIds(),
+          true /*interfaceHasSubnet*/);
+
+      this->applyNewConfig(config);
+    };
+    auto verify = [=, this]() {
+      auto mirror = getProgrammedState()->getMirrors()->getNodeIf(mirrorName);
+      EXPECT_EQ(mirror, nullptr);
+      auto scopeResolver = getAgentEnsemble()->getSw()->getScopeResolver();
+      auto scope = scopeResolver->scope(mirror);
+      for (auto switchID : scope.switchIds()) {
+        auto client = getAgentEnsemble()->getHwAgentTestClient(switchID);
+        WITH_RETRIES({
+          EXPECT_EVENTUALLY_FALSE(client->sync_isPortMirrored(
+              getTrafficPort(*getAgentEnsemble()), mirrorName, isIngress()));
+          EXPECT_TRUE(client->sync_isAclEntryMirrored(
+              kMirrorAcl, mirrorName, isIngress()));
+        });
+      }
+    };
+    this->verifyAcrossWarmBoots(setup, verify);
+  }
+
   void testPortMirrorWithLargePacket(const std::string& mirrorName) {
     auto setup = [=, this]() { this->resolveMirror(mirrorName); };
     auto verify = [=, this]() {
@@ -617,8 +647,16 @@ TYPED_TEST(AgentIngressPortSpanMirroringTest, UpdateSpanPortMirror) {
   this->testUpdatePortMirror(kIngressSpan);
 }
 
+TYPED_TEST(AgentIngressAclSpanMirroringTest, RemoveSpanMirror) {
+  this->testRemoveMirror(utility::kIngressSpan);
+}
+
 TYPED_TEST(AgentIngressPortErspanMirroringTest, ErspanPortMirror) {
   this->testPortMirror(utility::kIngressErspan);
+}
+
+TYPED_TEST(AgentIngressAclSpanMirroringTest, RemoveErspanMirror) {
+  this->testRemoveMirror(utility::kIngressErspan);
 }
 
 TYPED_TEST(AgentIngressPortErspanMirroringTest, UpdateErspanPortMirror) {
