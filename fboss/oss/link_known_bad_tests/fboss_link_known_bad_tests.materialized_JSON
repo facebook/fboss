@@ -7856,9 +7856,6 @@
           "test_name_regex": "SpeedChangeTest.HUNDREDGToTWOHUNDREDG$"
         },
         {
-          "test_name_regex": "SpeedChangeTest.speedChangeActivatedByWb$"
-        },
-        {
           "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
         },
         {
@@ -7955,9 +7952,6 @@
         },
         {
           "test_name_regex": "SpeedChangeTest.HUNDREDGToTWOHUNDREDG$"
-        },
-        {
-          "test_name_regex": "SpeedChangeTest.speedChangeActivatedByWb$"
         },
         {
           "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
@@ -8058,9 +8052,6 @@
           "test_name_regex": "SpeedChangeTest.HUNDREDGToTWOHUNDREDG$"
         },
         {
-          "test_name_regex": "SpeedChangeTest.speedChangeActivatedByWb$"
-        },
-        {
           "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
         },
         {
@@ -8157,9 +8148,6 @@
         },
         {
           "test_name_regex": "SpeedChangeTest.HUNDREDGToTWOHUNDREDG$"
-        },
-        {
-          "test_name_regex": "SpeedChangeTest.speedChangeActivatedByWb$"
         },
         {
           "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
@@ -8260,9 +8248,6 @@
           "test_name_regex": "SpeedChangeTest.HUNDREDGToTWOHUNDREDG$"
         },
         {
-          "test_name_regex": "SpeedChangeTest.speedChangeActivatedByWb$"
-        },
-        {
           "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
         },
         {
@@ -8359,9 +8344,6 @@
         },
         {
           "test_name_regex": "SpeedChangeTest.HUNDREDGToTWOHUNDREDG$"
-        },
-        {
-          "test_name_regex": "SpeedChangeTest.speedChangeActivatedByWb$"
         },
         {
           "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
@@ -8462,9 +8444,6 @@
           "test_name_regex": "SpeedChangeTest.HUNDREDGToTWOHUNDREDG$"
         },
         {
-          "test_name_regex": "SpeedChangeTest.speedChangeActivatedByWb$"
-        },
-        {
           "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
         },
         {
@@ -8561,9 +8540,6 @@
         },
         {
           "test_name_regex": "SpeedChangeTest.HUNDREDGToTWOHUNDREDG$"
-        },
-        {
-          "test_name_regex": "SpeedChangeTest.speedChangeActivatedByWb$"
         },
         {
           "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
@@ -8664,9 +8640,6 @@
           "test_name_regex": "SpeedChangeTest.HUNDREDGToTWOHUNDREDG$"
         },
         {
-          "test_name_regex": "SpeedChangeTest.speedChangeActivatedByWb$"
-        },
-        {
           "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
         },
         {
@@ -8765,9 +8738,6 @@
           "test_name_regex": "SpeedChangeTest.HUNDREDGToTWOHUNDREDG$"
         },
         {
-          "test_name_regex": "SpeedChangeTest.speedChangeActivatedByWb$"
-        },
-        {
           "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
         },
         {
@@ -8858,9 +8828,6 @@
         },
         {
           "test_name_regex": "SpeedChangeTest.HUNDREDGToTWOHUNDREDG$"
-        },
-        {
-          "test_name_regex": "SpeedChangeTest.speedChangeActivatedByWb$"
         },
         {
           "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
@@ -8955,9 +8922,6 @@
           "test_name_regex": "SpeedChangeTest.HUNDREDGToTWOHUNDREDG$"
         },
         {
-          "test_name_regex": "SpeedChangeTest.speedChangeActivatedByWb$"
-        },
-        {
           "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
         },
         {
@@ -9048,9 +9012,6 @@
         },
         {
           "test_name_regex": "SpeedChangeTest.HUNDREDGToTWOHUNDREDG$"
-        },
-        {
-          "test_name_regex": "SpeedChangeTest.speedChangeActivatedByWb$"
         },
         {
           "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
@@ -9145,9 +9106,6 @@
           "test_name_regex": "SpeedChangeTest.HUNDREDGToTWOHUNDREDG$"
         },
         {
-          "test_name_regex": "SpeedChangeTest.speedChangeActivatedByWb$"
-        },
-        {
           "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
         },
         {
@@ -9238,9 +9196,6 @@
         },
         {
           "test_name_regex": "SpeedChangeTest.HUNDREDGToTWOHUNDREDG$"
-        },
-        {
-          "test_name_regex": "SpeedChangeTest.speedChangeActivatedByWb$"
         },
         {
           "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
@@ -9335,9 +9290,6 @@
           "test_name_regex": "SpeedChangeTest.HUNDREDGToTWOHUNDREDG$"
         },
         {
-          "test_name_regex": "SpeedChangeTest.speedChangeActivatedByWb$"
-        },
-        {
           "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
         },
         {
@@ -9428,9 +9380,6 @@
         },
         {
           "test_name_regex": "SpeedChangeTest.HUNDREDGToTWOHUNDREDG$"
-        },
-        {
-          "test_name_regex": "SpeedChangeTest.speedChangeActivatedByWb$"
         },
         {
           "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
@@ -9525,9 +9474,6 @@
           "test_name_regex": "SpeedChangeTest.HUNDREDGToTWOHUNDREDG$"
         },
         {
-          "test_name_regex": "SpeedChangeTest.speedChangeActivatedByWb$"
-        },
-        {
           "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
         },
         {
@@ -9618,9 +9564,6 @@
         },
         {
           "test_name_regex": "SpeedChangeTest.HUNDREDGToTWOHUNDREDG$"
-        },
-        {
-          "test_name_regex": "SpeedChangeTest.speedChangeActivatedByWb$"
         },
         {
           "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
@@ -9715,9 +9658,6 @@
           "test_name_regex": "SpeedChangeTest.HUNDREDGToTWOHUNDREDG$"
         },
         {
-          "test_name_regex": "SpeedChangeTest.speedChangeActivatedByWb$"
-        },
-        {
           "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
         },
         {
@@ -9808,9 +9748,6 @@
         },
         {
           "test_name_regex": "SpeedChangeTest.HUNDREDGToTWOHUNDREDG$"
-        },
-        {
-          "test_name_regex": "SpeedChangeTest.speedChangeActivatedByWb$"
         },
         {
           "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
