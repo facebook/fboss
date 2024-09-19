@@ -223,9 +223,26 @@ class AgentMirroringTest : public AgentHwTest {
     auto scope = getAgentEnsemble()->scopeResolver().scope(mirror);
     for (auto switchID : scope.switchIds()) {
       auto client = getAgentEnsemble()->getHwAgentTestClient(switchID);
+      EXPECT_TRUE(client->sync_isMirrorProgrammed(fields));
       verifyMirrorProgrammed(client.get(), fields);
-      EXPECT_TRUE(client->sync_isPortMirrored(
-          getTrafficPort(*getAgentEnsemble()), mirrorName, isIngress()));
+      WITH_RETRIES({
+        EXPECT_EVENTUALLY_TRUE(client->sync_isPortMirrored(
+            getTrafficPort(*getAgentEnsemble()), mirrorName, isIngress()));
+      });
+    }
+  }
+
+  void verifyAclMirrorProgrammed(const std::string& mirrorName) {
+    auto mirror = getProgrammedState()->getMirrors()->getNodeIf(mirrorName);
+    EXPECT_NE(mirror, nullptr);
+    auto fields = mirror->toThrift();
+
+    auto scope = getAgentEnsemble()->scopeResolver().scope(mirror);
+    for (auto switchID : scope.switchIds()) {
+      auto client = getAgentEnsemble()->getHwAgentTestClient(switchID);
+      verifyMirrorProgrammed(client.get(), fields);
+      EXPECT_TRUE(
+          client->sync_isAclEntryMirrored(kMirrorAcl, mirrorName, isIngress()));
     }
   }
 
@@ -273,7 +290,10 @@ class AgentMirroringTest : public AgentHwTest {
 
   void testAclMirror(const std::string& mirrorName) {
     auto setup = [=, this]() { this->resolveMirror(mirrorName); };
-    auto verify = [=, this]() { this->verify(mirrorName); };
+    auto verify = [=, this]() {
+      this->verify(mirrorName);
+      this->verifyAclMirrorProgrammed(mirrorName);
+    };
     this->verifyAcrossWarmBoots(setup, verify);
   }
 
