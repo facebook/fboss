@@ -1592,7 +1592,6 @@ void ThriftHandler::setPortPrbs(
           capabilities.end()) {
     throw FbossError("Polynomial not supported");
   }
-  auto switchId = sw_->getScopeResolver()->scope(portId).switchId();
   phy::PortPrbsState newPrbsState;
   *newPrbsState.enabled() = enable;
   *newPrbsState.polynominal() = polynominal;

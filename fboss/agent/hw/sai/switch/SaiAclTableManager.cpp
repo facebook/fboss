@@ -690,8 +690,10 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
 
   bool matchV4 = !addedAclEntry->getEtherType().has_value() ||
       addedAclEntry->getEtherType().value() == cfg::EtherType::IPv4;
+#if !defined(TAJO_SDK) && !defined(BRCM_SAI_SDK_XGS)
   bool matchV6 = !addedAclEntry->getEtherType().has_value() ||
       addedAclEntry->getEtherType().value() == cfg::EtherType::IPv6;
+#endif
   std::optional<SaiAclEntryTraits::Attributes::FieldIpProtocol> fieldIpProtocol{
       std::nullopt};
   auto qualifierSet = getSupportedQualifierSet();
