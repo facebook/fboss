@@ -224,6 +224,8 @@ class AgentMirroringTest : public AgentHwTest {
     for (auto switchID : scope.switchIds()) {
       auto client = getAgentEnsemble()->getHwAgentTestClient(switchID);
       verifyMirrorProgrammed(client.get(), fields);
+      EXPECT_TRUE(client->sync_isPortMirrored(
+          getTrafficPort(*getAgentEnsemble()), mirrorName, isIngress()));
     }
   }
 
