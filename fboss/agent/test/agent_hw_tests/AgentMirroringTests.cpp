@@ -208,22 +208,26 @@ class AgentMirroringTest : public AgentHwTest {
     cfg->dataPlaneTrafficPolicy()->matchToAction()->push_back(matchToAction);
   }
 
-  void verifyMirrorProgrammed(const std::string& mirrorName) {
-    WITH_RETRIES({
-      auto mirror = getProgrammedState()->getMirrors()->getNodeIf(mirrorName);
-      EXPECT_EVENTUALLY_NE(mirror, nullptr);
-      EXPECT_EVENTUALLY_TRUE(mirror->isResolved());
-      auto fields = mirror->toThrift();
-      auto scope = getAgentEnsemble()->scopeResolver().scope(mirror);
-      for (auto switchID : scope.switchIds()) {
-        auto client = getAgentEnsemble()->getHwAgentTestClient(switchID);
-        EXPECT_EVENTUALLY_TRUE(client->sync_isMirrorProgrammed(fields));
-      }
-    });
+  void verifyMirrorProgrammed(
+      apache::thrift::Client<utility::AgentHwTestCtrl>* client,
+      const state::MirrorFields& fields) {
+    WITH_RETRIES(
+        { EXPECT_EVENTUALLY_TRUE(client->sync_isMirrorProgrammed(fields)); });
+  }
+
+  void verifyPortMirrorProgrammed(const std::string& mirrorName) {
+    auto mirror = getProgrammedState()->getMirrors()->getNodeIf(mirrorName);
+    EXPECT_NE(mirror, nullptr);
+    auto fields = mirror->toThrift();
+
+    auto scope = getAgentEnsemble()->scopeResolver().scope(mirror);
+    for (auto switchID : scope.switchIds()) {
+      auto client = getAgentEnsemble()->getHwAgentTestClient(switchID);
+      verifyMirrorProgrammed(client.get(), fields);
+    }
   }
 
   void verify(const std::string& mirrorName, int payloadSize = 500) {
-    verifyMirrorProgrammed(mirrorName);
     auto trafficPort = getTrafficPort(*getAgentEnsemble());
     auto mirrorToPort = getMirrorToPort(*getAgentEnsemble());
     WITH_RETRIES({
@@ -258,7 +262,10 @@ class AgentMirroringTest : public AgentHwTest {
 
   void testPortMirror(const std::string& mirrorName) {
     auto setup = [=, this]() { this->resolveMirror(mirrorName); };
-    auto verify = [=, this]() { this->verify(mirrorName); };
+    auto verify = [=, this]() {
+      this->verify(mirrorName);
+      this->verifyPortMirrorProgrammed(mirrorName);
+    };
     this->verifyAcrossWarmBoots(setup, verify);
   }
 
