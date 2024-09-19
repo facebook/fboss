@@ -376,6 +376,8 @@ bool ControlLogic::isFanPresentInDevice(const Fan& fan) {
     gpiod_chip_close(chip);
     if (value == *fan.presenceGpio()->desiredValue()) {
       fanPresent = true;
+      XLOG(INFO) << fmt::format(
+          "{}: is present in the host (through gpio)", *fan.fanName());
     } else {
       XLOG(INFO) << fmt::format(
           "{}: is absent in the host (through gpio)", *fan.fanName());
