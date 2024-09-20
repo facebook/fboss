@@ -15,6 +15,7 @@
 #include "fboss/agent/test/utils/AclTestUtils.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/test/utils/LoadBalancerTestUtils.h"
+#include "fboss/agent/test/utils/MirrorTestUtils.h"
 #include "fboss/agent/test/utils/ScaleTestUtils.h"
 #include "fboss/lib/CommonUtils.h"
 
@@ -34,6 +35,11 @@ enum AclType {
   UDF_FLOWLET_WITH_UDF_NAK,
 };
 }
+
+const std::string kSflowMirrorName = "sflow_mirror";
+const std::string sflowDestinationVIP = "2001::101";
+const std::string aclMirror = "acl_mirror";
+const std::string aclDestinationVIP = "2002::101";
 
 namespace facebook::fboss {
 
@@ -116,6 +122,39 @@ class AgentAclCounterTestBase : public AgentHwTest {
       }
       return out;
     });
+  }
+
+  RoutePrefixV6 getMirrorDestRoutePrefix(const folly::IPAddress dip) const {
+    return RoutePrefixV6{
+        folly::IPAddressV6{dip.str()}, static_cast<uint8_t>(dip.bitCount())};
+  }
+
+  void addSamplingConfig(cfg::SwitchConfig& config) {
+    auto trafficPort = getAgentEnsemble()->masterLogicalPortIds(
+        {cfg::PortType::INTERFACE_PORT})[utility::kTrafficPortIndex];
+    std::vector<PortID> samplePorts = {trafficPort};
+    utility::configureSflowSampling(config, kSflowMirrorName, samplePorts, 1);
+  }
+
+  void resolveMirror(const std::string& mirrorName, uint8_t dstPort) {
+    auto destinationPort = getAgentEnsemble()->masterLogicalPortIds(
+        {cfg::PortType::INTERFACE_PORT})[dstPort];
+    resolveNeigborAndProgramRoutes(*helper_, 1);
+    applyNewState([&](const std::shared_ptr<SwitchState>& in) {
+      boost::container::flat_set<PortDescriptor> nhopPorts{
+          PortDescriptor(destinationPort)};
+      return helper_->resolveNextHops(in, nhopPorts);
+    });
+    getSw()->getUpdateEvb()->runInFbossEventBaseThreadAndWait([] {});
+    auto mirror = getSw()->getState()->getMirrors()->getNodeIf(mirrorName);
+    auto dip = mirror->getDestinationIp();
+    if (dip.has_value()) {
+      auto prefix = getMirrorDestRoutePrefix(dip.value());
+      boost::container::flat_set<PortDescriptor> nhopPorts{
+          PortDescriptor(destinationPort)};
+      auto wrapper = getSw()->getRouteUpdater();
+      helper_->programRoutes(&wrapper, nhopPorts, {prefix});
+    }
   }
 
   void generateApplyConfig(AclType aclType) {
@@ -346,6 +385,12 @@ class AgentAclCounterTestBase : public AgentHwTest {
     if (roceMask.has_value()) {
       acl->roceMask() = {static_cast<signed char>(roceMask.value())};
     }
+    if (aclName == getAclName(AclType::UDF_NAK)) {
+      cfg::Ttl ttl;
+      ttl.value() = 255;
+      ttl.mask() = 0xFF;
+      acl->ttl() = ttl;
+    }
     utility::addAclStat(
         config, aclName, counterName, std::move(setCounterTypes));
   }
@@ -537,6 +582,80 @@ class AgentFlowletAclPriorityTest : public AgentFlowletSwitchingTest {
   }
 };
 
+class AgentFlowletMirrorTest : public AgentFlowletSwitchingTest {
+ public:
+  // TH* supports upto 4 different source types to mirror to same egress port.
+  // Here IFP mirror action and ingress port sflow actions can generate 2 copies
+  // going to same VIP or different VIP (different egress port in the test)
+  enum MirrorScope {
+    MIRROR_ONLY,
+    MIRROR_SFLOW_SAME_VIP,
+    MIRROR_SFLOW_DIFFERENT_VIP,
+  };
+  std::vector<production_features::ProductionFeature>
+  getProductionFeaturesVerified() const override {
+    return {
+        production_features::ProductionFeature::DLB,
+        production_features::ProductionFeature::SFLOWv6_SAMPLING,
+        production_features::ProductionFeature::INGRESS_MIRRORING,
+        production_features::ProductionFeature::SINGLE_ACL_TABLE};
+  }
+
+ protected:
+  cfg::SwitchConfig initialConfig(
+      const AgentEnsemble& ensemble) const override {
+    auto cfg = utility::onePortPerInterfaceConfig(
+        ensemble.getSw(),
+        ensemble.masterLogicalPortIds(),
+        true /*interfaceHasSubnet*/);
+    utility::addFlowletConfigs(cfg, ensemble.masterLogicalPortIds());
+    addAclAndStat(&cfg, AclType::UDF_NAK);
+    // overwrite existing traffic policy which only has a counter action
+    // It is added in addAclAndStat above
+    cfg.dataPlaneTrafficPolicy() = cfg::TrafficPolicyConfig();
+    std::string counterName = getCounterName(AclType::UDF_NAK);
+    utility::addAclMatchActions(
+        &cfg, getAclName(AclType::UDF_NAK), std::move(counterName), aclMirror);
+
+    // mirror session for acl
+    utility::configureSflowMirror(
+        cfg, aclMirror, false /* truncate */, aclDestinationVIP, 6344);
+
+    return cfg;
+  }
+
+  void verifyMirror(MirrorScope scope) {
+    // In addition to counting ACL hit with verifyAcl, verify packet mirrored
+    auto mirrorPort = helper_->ecmpPortDescriptorAt(1).phyPortID();
+    auto sflowPort = helper_->ecmpPortDescriptorAt(2).phyPortID();
+    auto pktsMirrorBefore =
+        *getNextUpdatedPortStats(mirrorPort).outUnicastPkts__ref();
+    auto pktsSflowBefore =
+        *getNextUpdatedPortStats(sflowPort).outUnicastPkts__ref();
+
+    verifyAcl(AclType::UDF_NAK);
+
+    WITH_RETRIES({
+      auto pktsMirrorAfter =
+          *getNextUpdatedPortStats(mirrorPort).outUnicastPkts__ref();
+      auto pktsSflowAfter =
+          *getNextUpdatedPortStats(sflowPort).outUnicastPkts__ref();
+      XLOG(DBG2) << "PacketMirrorCounter: " << pktsMirrorBefore << " -> "
+                 << pktsMirrorAfter
+                 << " PacketSflowCounter: " << pktsSflowBefore << " -> "
+                 << pktsSflowAfter;
+      if (scope == MirrorScope::MIRROR_ONLY) {
+        EXPECT_EVENTUALLY_GT(pktsMirrorAfter, pktsMirrorBefore);
+      } else if (scope == MirrorScope::MIRROR_SFLOW_SAME_VIP) {
+        EXPECT_EVENTUALLY_GE(pktsMirrorAfter, pktsMirrorBefore + 2);
+      } else if (scope == MirrorScope::MIRROR_SFLOW_DIFFERENT_VIP) {
+        EXPECT_EVENTUALLY_GT(pktsMirrorAfter, pktsMirrorBefore);
+        EXPECT_EVENTUALLY_GT(pktsSflowAfter, pktsSflowBefore);
+      }
+    });
+  }
+};
+
 // empty to UDF A
 TEST_F(AgentFlowletSwitchingTest, VerifyFlowletToUdfFlowlet) {
   flowletSwitchingAclHitHelper(AclType::FLOWLET, AclType::UDF_FLOWLET);
@@ -615,6 +734,63 @@ TEST_F(AgentFlowletSwitchingTest, VerifyUdfNakToUdfAckWithNak) {
 
 TEST_F(AgentFlowletSwitchingTest, VerifyUdfAckWithNakToUdfNak) {
   flowletSwitchingAclHitHelper(AclType::UDF_ACK_WITH_NAK, AclType::UDF_NAK);
+}
+
+TEST_F(AgentFlowletMirrorTest, VerifyUdfNakMirrorAction) {
+  auto setup = [this]() {
+    this->setup();
+    auto newCfg{initialConfig(*getAgentEnsemble())};
+    applyNewConfig(newCfg);
+    resolveMirror(aclMirror, utility::kMirrorToPortIndex);
+  };
+
+  auto verify = [this]() { verifyMirror(MirrorScope::MIRROR_ONLY); };
+
+  verifyAcrossWarmBoots(setup, verify);
+}
+
+TEST_F(AgentFlowletMirrorTest, VerifyUdfNakMirrorSflowSameVip) {
+  auto setup = [this]() {
+    this->setup();
+    auto newCfg{initialConfig(*getAgentEnsemble())};
+
+    // mirror session for ingress port sflow
+    // use same VIP as ACL mirror, only dst port varies
+    utility::configureSflowMirror(
+        newCfg, kSflowMirrorName, false /* truncate */, aclDestinationVIP);
+    // configure sampling on traffic port
+    addSamplingConfig(newCfg);
+
+    applyNewConfig(newCfg);
+    resolveMirror(aclMirror, utility::kMirrorToPortIndex);
+  };
+
+  auto verify = [this]() { verifyMirror(MirrorScope::MIRROR_SFLOW_SAME_VIP); };
+
+  verifyAcrossWarmBoots(setup, verify);
+}
+
+TEST_F(AgentFlowletMirrorTest, VerifyUdfNakMirrorSflowDifferentVip) {
+  auto setup = [this]() {
+    this->setup();
+    auto newCfg{initialConfig(*getAgentEnsemble())};
+
+    // mirror session for ingress port sflow
+    utility::configureSflowMirror(
+        newCfg, kSflowMirrorName, false /* truncate */, sflowDestinationVIP);
+    // configure sampling on traffic port
+    addSamplingConfig(newCfg);
+
+    applyNewConfig(newCfg);
+    resolveMirror(aclMirror, utility::kMirrorToPortIndex);
+    resolveMirror(kSflowMirrorName, utility::kSflowToPortIndex);
+  };
+
+  auto verify = [this]() {
+    verifyMirror(MirrorScope::MIRROR_SFLOW_DIFFERENT_VIP);
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
 }
 
 // Skip this and next test due to lack of TCAM in ACL table on TH3

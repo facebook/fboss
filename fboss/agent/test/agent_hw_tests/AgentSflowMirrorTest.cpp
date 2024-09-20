@@ -60,7 +60,8 @@ class AgentSflowMirrorTest : public AgentHwTest {
   }
 
   void configureMirror(cfg::SwitchConfig& cfg, bool v4) const {
-    utility::configureSflowMirror(cfg, kSflowMirror, false, v4);
+    utility::configureSflowMirror(
+        cfg, kSflowMirror, false, utility::getSflowMirrorDestination(v4).str());
   }
 
   virtual void configureMirror(cfg::SwitchConfig& cfg) const {
@@ -478,7 +479,11 @@ class AgentSflowMirrorTruncateTest : public AgentSflowMirrorTest<AddrT> {
   }
 
   void configureMirror(cfg::SwitchConfig& cfg, bool v4) const {
-    utility::configureSflowMirror(cfg, kSflowMirror, true /* truncate */, v4);
+    utility::configureSflowMirror(
+        cfg,
+        kSflowMirror,
+        true /* truncate */,
+        utility::getSflowMirrorDestination(v4).str());
   }
 
   virtual void configureMirror(cfg::SwitchConfig& cfg) const override {

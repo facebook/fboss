@@ -100,6 +100,13 @@ void delAclStat(
     const std::string& matcher,
     const std::string& counterName);
 
+void addAclMatchActions(
+    cfg::SwitchConfig* cfg,
+    const std::string& matcher,
+    const std::optional<std::string>& counterName,
+    const std::optional<std::string>& mirrorName,
+    bool ingress = true);
+
 void renameAclStat(
     cfg::SwitchConfig* cfg,
     const std::string& matcher,
