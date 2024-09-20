@@ -5,6 +5,8 @@
     "disable_neighbor_updates": "true",
     "enable_replayer": "true",
     "log_variable_name": "true",
+    "multi_npu_platform_mapping": "True",
+    "multi_switch": "True",
     "sai_configure_six_tap": "true"
   },
   "sw": {
