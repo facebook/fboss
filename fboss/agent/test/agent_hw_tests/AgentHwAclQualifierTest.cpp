@@ -262,7 +262,6 @@ TEST_F(AgentHwAclQualifierTest, AclIp4TcpQualifiers) {
     auto& ensemble = *getAgentEnsemble();
     auto newCfg = initialConfig(ensemble);
     auto l3Asics = ensemble.getSw()->getHwAsicTable()->getL3Asics();
-    auto asic = utility::checkSameAndGetAsic(l3Asics);
 
     auto* acl1 = utility::addAcl(&newCfg, "ip4_tcp", cfg::AclActionType::DENY);
     configureAllHwQualifiers(acl1, true);
@@ -290,7 +289,6 @@ TEST_F(AgentHwAclQualifierTest, AclIp6TcpQualifiers) {
     auto& ensemble = *getAgentEnsemble();
     auto newCfg = initialConfig(ensemble);
     auto l3Asics = ensemble.getSw()->getHwAsicTable()->getL3Asics();
-    auto asic = utility::checkSameAndGetAsic(l3Asics);
 
     auto* acl1 = utility::addAcl(&newCfg, "ip6_tcp", cfg::AclActionType::DENY);
     configureAllHwQualifiers(acl1, true);
@@ -321,7 +319,6 @@ TEST_F(AgentHwAclQualifierTest, AclIcmp4Qualifiers) {
     auto& ensemble = *getAgentEnsemble();
     auto newCfg = initialConfig(ensemble);
     auto l3Asics = ensemble.getSw()->getHwAsicTable()->getL3Asics();
-    auto asic = utility::checkSameAndGetAsic(l3Asics);
 
     auto* acl1 = utility::addAcl(&newCfg, "icmp4", cfg::AclActionType::DENY);
     configureAllHwQualifiers(acl1, true);
@@ -350,7 +347,6 @@ TEST_F(AgentHwAclQualifierTest, AclIcmp6Qualifiers) {
     auto& ensemble = *getAgentEnsemble();
     auto newCfg = initialConfig(ensemble);
     auto l3Asics = ensemble.getSw()->getHwAsicTable()->getL3Asics();
-    auto asic = utility::checkSameAndGetAsic(l3Asics);
 
     auto* acl1 = utility::addAcl(&newCfg, "icmp6", cfg::AclActionType::DENY);
     configureAllHwQualifiers(acl1, true);
@@ -376,7 +372,6 @@ TEST_F(AgentHwAclQualifierTest, AclRemove) {
     auto& ensemble = *getAgentEnsemble();
     auto newCfg = initialConfig(ensemble);
     auto l3Asics = ensemble.getSw()->getHwAsicTable()->getL3Asics();
-    auto asic = utility::checkSameAndGetAsic(l3Asics);
 
     auto* acl0 = utility::addAcl(&newCfg, "acl0", cfg::AclActionType::DENY);
     acl0->proto() = 6;
