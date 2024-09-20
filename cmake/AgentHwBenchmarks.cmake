@@ -421,6 +421,8 @@ target_link_libraries(hw_switch_reachability_change_speed
   mono_agent_ensemble
   mono_agent_benchmarks
   config_factory
+  voq_test_utils
+  fabric_test_utils
   Folly::folly
   Folly::follybenchmark
 )

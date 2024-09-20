@@ -41,6 +41,7 @@
 #include "fboss/agent/MKAServiceManager.h"
 #endif
 #include "fboss/agent/AclNexthopHandler.h"
+#include "fboss/agent/BuildInfoWrapper.h"
 #include "fboss/agent/DsfSubscriber.h"
 #include "fboss/agent/FsdbSyncer.h"
 #include "fboss/agent/HwSwitchThriftClientTable.h"
@@ -91,6 +92,7 @@
 #include "fboss/lib/config/PlatformConfigUtils.h"
 #include "fboss/lib/phy/gen-cpp2/phy_types.h"
 #include "fboss/lib/platforms/PlatformProductInfo.h"
+#include "fboss/util/Logging.h"
 
 #include "fboss/lib/CommonFileUtils.h"
 
@@ -131,7 +133,10 @@ using std::string;
 using std::unique_ptr;
 
 using facebook::fboss::AgentConfig;
+using facebook::fboss::SwitchSettings;
+using facebook::fboss::cfg::SdkVersion;
 using facebook::fboss::cfg::SwitchConfig;
+using facebook::fboss::cfg::SwitchDrainState;
 using facebook::fboss::cfg::SwitchInfo;
 using facebook::fboss::cfg::SwitchType;
 using facebook::fboss::DeltaFunctions::forEachChanged;
@@ -242,7 +247,29 @@ std::string getDrainStateChangedStr(
             "]")
       : folly::to<std::string>(
             apache::thrift::util::enumNameSafe(oldActualSwitchDrainState),
-            "(UNCHANGED)");
+            " (UNCHANGED)");
+}
+
+std::string getAsicSdkVersion(const std::optional<SdkVersion>& sdkVersion) {
+  return sdkVersion.has_value() ? (sdkVersion.value().get_asicSdk() != nullptr
+                                       ? *(sdkVersion.value().get_asicSdk())
+                                       : std::string("Not found"))
+                                : std::string("Not found");
+}
+
+// Create string about upper/lower port threshold for draining/undraining
+std::string getDrainThresholdStr(
+    SwitchDrainState newState,
+    const SwitchSettings& switchSettings) {
+  if (newState == SwitchDrainState::UNDRAINED) {
+    auto minLinks = switchSettings.getMinLinksToRemainInVOQDomain();
+    return "drains when active ports is below " +
+        (minLinks.has_value() ? std::to_string(minLinks.value()) : "N/A") + ")";
+  } else {
+    auto minLinks = switchSettings.getMinLinksToJoinVOQDomain();
+    return "undrains when active ports is above" +
+        (minLinks.has_value() ? std::to_string(minLinks.value()) : "N/A") + ")";
+  }
 }
 
 void accumulateHwAsicErrorStats(
@@ -1094,7 +1121,9 @@ std::shared_ptr<SwitchState> SwSwitch::preInit(SwitchFlags flags) {
   bootType_ = swSwitchWarmbootHelper_->canWarmBoot() ? BootType::WARM_BOOT
                                                      : BootType::COLD_BOOT;
   XLOG(INFO) << kNetworkEventLogPrefix
-             << " Boot Type: " << apache::thrift::util::enumNameSafe(bootType_);
+             << " Boot Type: " << apache::thrift::util::enumNameSafe(bootType_)
+             << " | SDK version: " << getAsicSdkVersion(sdkVersion_)
+             << " | Agent version: " << getBuildPackageVersion();
 
   multiHwSwitchHandler_->start();
   std::optional<state::WarmbootState> wbState{};
@@ -2065,9 +2094,9 @@ void SwSwitch::linkStateChanged(
         setPortStatusCounter(portId, up);
         portStats(portId)->linkStateChange(up);
 
-        XLOG(DBG2) << "SW Link state changed: " << port->getName() << " ["
-                   << (!up ? "UP" : "DOWN") << "->" << (up ? "UP" : "DOWN")
-                   << "]";
+        XLOG(DBG2) << "SW Link state changed: " << port->getName()
+                   << " id: " << portId << " [" << (!up ? "UP" : "DOWN") << "->"
+                   << (up ? "UP" : "DOWN") << "]";
       }
     }
 
@@ -2136,10 +2165,14 @@ void SwSwitch::linkActiveStateChanged(
       newSwitchSettings->setActualSwitchDrainState(newActualSwitchDrainState);
     }
 
-    XLOG(DBG2) << "SwitchIDs: " << matcher.matcherString()
-               << " numActiveFabricPorts: " << numActiveFabricPorts
-               << " Switch Drain state: "
-               << getDrainStateChangedStr(state, newState, matcher);
+    XLOG(DBG2) << "Switch state: "
+               << getDrainStateChangedStr(getState(), newState, matcher)
+               << " | SwitchIDs: " << matcher.matcherString()
+               << " | Active ports: " << numActiveFabricPorts << "/"
+               << port2IsActive.size() << " ("
+               << getDrainThresholdStr(
+                      newActualSwitchDrainState, switchSettings.get())
+               << ")";
 
     return newState;
   };

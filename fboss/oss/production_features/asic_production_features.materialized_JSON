@@ -245,7 +245,8 @@
         41,
         40,
         7,
-        25
+        25,
+        42
     ]
   },
   "asicToFeatureNames": {
@@ -494,7 +495,8 @@
         "TH_ALPM_ROUTE_SCALE",
         "HUNDRED_THOUSAND_ROUTE_SCALE",
         "PRBS",
-        "MAC_LEARNING"
+        "MAC_LEARNING",
+        "PFC"
     ]
   }
 }

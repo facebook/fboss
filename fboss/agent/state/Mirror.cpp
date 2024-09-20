@@ -177,6 +177,10 @@ Mirror::Type Mirror::type() const {
   return Mirror::Type::SFLOW;
 }
 
+uint32_t Mirror::getSamplingRate() const {
+  return get<switch_state_tags::samplingRate>()->cref();
+}
+
 template class ThriftStructNode<Mirror, state::MirrorFields>;
 
 } // namespace facebook::fboss

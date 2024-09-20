@@ -712,6 +712,7 @@ cpp_library(
         ":agent_fsdb_sync_manager",
         ":agent_stats-cpp2-types",
         ":asic_utils",
+        ":build_info_wrapper",
         ":constants",
         ":dhcpv4_options_of_interest",
         ":fboss-error",

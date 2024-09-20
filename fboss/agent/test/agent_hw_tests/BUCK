@@ -135,6 +135,7 @@ cpp_library(
         "//fboss/agent/test/utils:voq_test_utils",
         "//fboss/lib:common_utils",
         "//folly:file_util",
+        "//folly:map_util",
         "//folly:network_address",
         "//folly/json:dynamic",
         "//folly/logging:logging",

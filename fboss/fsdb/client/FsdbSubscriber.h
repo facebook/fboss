@@ -6,7 +6,6 @@
 #include "fboss/fsdb/common/PathHelpers.h"
 #include "fboss/fsdb/if/gen-cpp2/fsdb_common_types.h"
 #include "fboss/fsdb/if/gen-cpp2/fsdb_oper_types.h"
-#include "fboss/util/Logging.h"
 
 #include <folly/Format.h>
 #include <folly/String.h>
@@ -258,6 +257,8 @@ class FsdbSubscriber : public FsdbSubscriberBase {
   }
 
   void scheduleStaleStateTimeout() {
+    XLOG(DBG2) << "Scheduling stale state timeout for "
+               << subscriptionOptions_.grHoldTimeSec_ << " seconds";
     getStreamEventBase()->runInEventBaseThread([this] {
       if (!staleStateTimer_->isScheduled()) {
         staleStateTimer_->scheduleTimeout(
