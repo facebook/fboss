@@ -41,6 +41,7 @@
 #include "fboss/agent/MKAServiceManager.h"
 #endif
 #include "fboss/agent/AclNexthopHandler.h"
+#include "fboss/agent/BuildInfoWrapper.h"
 #include "fboss/agent/DsfSubscriber.h"
 #include "fboss/agent/FsdbSyncer.h"
 #include "fboss/agent/HwSwitchThriftClientTable.h"
@@ -1095,7 +1096,8 @@ std::shared_ptr<SwitchState> SwSwitch::preInit(SwitchFlags flags) {
   bootType_ = swSwitchWarmbootHelper_->canWarmBoot() ? BootType::WARM_BOOT
                                                      : BootType::COLD_BOOT;
   XLOG(INFO) << kNetworkEventLogPrefix
-             << " Boot Type: " << apache::thrift::util::enumNameSafe(bootType_);
+             << " Boot Type: " << apache::thrift::util::enumNameSafe(bootType_)
+             << " | Agent version: " << getBuildPackageVersion();
 
   multiHwSwitchHandler_->start();
   std::optional<state::WarmbootState> wbState{};
