@@ -214,7 +214,8 @@ void DsfSubscription::handleFsdbSubscriptionStateUpdate(
     fsdb::SubscriptionState oldState,
     fsdb::SubscriptionState newState) {
   auto remoteEndpoint = makeRemoteEndpoint(remoteNodeName_, remoteIp_);
-  XLOG(DBG2) << "DsfSubscriber: " << remoteEndpoint
+
+  XLOG(DBG2) << kDsfCtrlLogPrefix << "DsfSubscriber: " << remoteEndpoint
              << ": subscription state changed "
              << fsdb::subscriptionStateToString(oldState) << " -> "
              << fsdb::subscriptionStateToString(newState);

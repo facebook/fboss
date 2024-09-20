@@ -257,6 +257,8 @@ class FsdbSubscriber : public FsdbSubscriberBase {
   }
 
   void scheduleStaleStateTimeout() {
+    XLOG(DBG2) << "Scheduling stale state timeout for "
+               << subscriptionOptions_.grHoldTimeSec_ << " seconds";
     getStreamEventBase()->runInEventBaseThread([this] {
       if (!staleStateTimer_->isScheduled()) {
         staleStateTimer_->scheduleTimeout(
