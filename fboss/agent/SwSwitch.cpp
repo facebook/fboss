@@ -91,6 +91,7 @@
 #include "fboss/lib/config/PlatformConfigUtils.h"
 #include "fboss/lib/phy/gen-cpp2/phy_types.h"
 #include "fboss/lib/platforms/PlatformProductInfo.h"
+#include "fboss/util/Logging.h"
 
 #include "fboss/lib/CommonFileUtils.h"
 

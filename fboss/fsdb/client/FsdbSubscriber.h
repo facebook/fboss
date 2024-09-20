@@ -6,7 +6,6 @@
 #include "fboss/fsdb/common/PathHelpers.h"
 #include "fboss/fsdb/if/gen-cpp2/fsdb_common_types.h"
 #include "fboss/fsdb/if/gen-cpp2/fsdb_oper_types.h"
-#include "fboss/util/Logging.h"
 
 #include <folly/Format.h>
 #include <folly/String.h>
