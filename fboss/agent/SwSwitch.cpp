@@ -133,8 +133,10 @@ using std::string;
 using std::unique_ptr;
 
 using facebook::fboss::AgentConfig;
+using facebook::fboss::SwitchSettings;
 using facebook::fboss::cfg::SdkVersion;
 using facebook::fboss::cfg::SwitchConfig;
+using facebook::fboss::cfg::SwitchDrainState;
 using facebook::fboss::cfg::SwitchInfo;
 using facebook::fboss::cfg::SwitchType;
 using facebook::fboss::DeltaFunctions::forEachChanged;
@@ -253,6 +255,21 @@ std::string getAsicSdkVersion(const std::optional<SdkVersion>& sdkVersion) {
                                        ? *(sdkVersion.value().get_asicSdk())
                                        : std::string("Not found"))
                                 : std::string("Not found");
+}
+
+// Create string about upper/lower port threshold for draining/undraining
+std::string getDrainThresholdStr(
+    SwitchDrainState newState,
+    const SwitchSettings& switchSettings) {
+  if (newState == SwitchDrainState::UNDRAINED) {
+    auto minLinks = switchSettings.getMinLinksToRemainInVOQDomain();
+    return "drains when active ports is below " +
+        (minLinks.has_value() ? std::to_string(minLinks.value()) : "N/A") + ")";
+  } else {
+    auto minLinks = switchSettings.getMinLinksToJoinVOQDomain();
+    return "undrains when active ports is above" +
+        (minLinks.has_value() ? std::to_string(minLinks.value()) : "N/A") + ")";
+  }
 }
 
 void accumulateHwAsicErrorStats(
@@ -2148,10 +2165,14 @@ void SwSwitch::linkActiveStateChanged(
       newSwitchSettings->setActualSwitchDrainState(newActualSwitchDrainState);
     }
 
-    XLOG(DBG2) << "SwitchIDs: " << matcher.matcherString()
-               << " numActiveFabricPorts: " << numActiveFabricPorts
-               << " Switch Drain state: "
-               << getDrainStateChangedStr(state, newState, matcher);
+    XLOG(DBG2) << "Switch state: "
+               << getDrainStateChangedStr(getState(), newState, matcher)
+               << " | SwitchIDs: " << matcher.matcherString()
+               << " | Active ports: " << numActiveFabricPorts << "/"
+               << port2IsActive.size() << " ("
+               << getDrainThresholdStr(
+                      newActualSwitchDrainState, switchSettings.get())
+               << ")";
 
     return newState;
   };
