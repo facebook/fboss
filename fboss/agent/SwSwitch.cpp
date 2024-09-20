@@ -133,6 +133,7 @@ using std::string;
 using std::unique_ptr;
 
 using facebook::fboss::AgentConfig;
+using facebook::fboss::cfg::SdkVersion;
 using facebook::fboss::cfg::SwitchConfig;
 using facebook::fboss::cfg::SwitchInfo;
 using facebook::fboss::cfg::SwitchType;
@@ -244,7 +245,14 @@ std::string getDrainStateChangedStr(
             "]")
       : folly::to<std::string>(
             apache::thrift::util::enumNameSafe(oldActualSwitchDrainState),
-            "(UNCHANGED)");
+            " (UNCHANGED)");
+}
+
+std::string getAsicSdkVersion(const std::optional<SdkVersion>& sdkVersion) {
+  return sdkVersion.has_value() ? (sdkVersion.value().get_asicSdk() != nullptr
+                                       ? *(sdkVersion.value().get_asicSdk())
+                                       : std::string("Not found"))
+                                : std::string("Not found");
 }
 
 void accumulateHwAsicErrorStats(
@@ -1097,6 +1105,7 @@ std::shared_ptr<SwitchState> SwSwitch::preInit(SwitchFlags flags) {
                                                      : BootType::COLD_BOOT;
   XLOG(INFO) << kNetworkEventLogPrefix
              << " Boot Type: " << apache::thrift::util::enumNameSafe(bootType_)
+             << " | SDK version: " << getAsicSdkVersion(sdkVersion_)
              << " | Agent version: " << getBuildPackageVersion();
 
   multiHwSwitchHandler_->start();
