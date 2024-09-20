@@ -2077,9 +2077,9 @@ void SwSwitch::linkStateChanged(
         setPortStatusCounter(portId, up);
         portStats(portId)->linkStateChange(up);
 
-        XLOG(DBG2) << "SW Link state changed: " << port->getName() << " ["
-                   << (!up ? "UP" : "DOWN") << "->" << (up ? "UP" : "DOWN")
-                   << "]";
+        XLOG(DBG2) << "SW Link state changed: " << port->getName()
+                   << " id: " << portId << " [" << (!up ? "UP" : "DOWN") << "->"
+                   << (up ? "UP" : "DOWN") << "]";
       }
     }
 
