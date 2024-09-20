@@ -10,5 +10,6 @@ cpp_library(
     ],
     exported_deps = [
         "//fboss/agent/platforms/common:platform_mapping",
+        "//folly/logging:logging",
     ],
 )

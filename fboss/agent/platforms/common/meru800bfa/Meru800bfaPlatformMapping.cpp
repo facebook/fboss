@@ -9,10 +9,11 @@
  */
 
 #include "fboss/agent/platforms/common/meru800bfa/Meru800bfaPlatformMapping.h"
+#include <folly/logging/xlog.h>
 
 namespace facebook::fboss {
 namespace {
-constexpr auto kJsonPlatformMappingStr = R"(
+constexpr auto kJsonSingleNpuP2PlatformMappingStr = R"(
 {
   "ports": {
     "0": {
@@ -49988,7 +49989,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
 }
 )";
 
-constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
+// This platform mapping is used on P2 and older versions
+constexpr auto kJsonMultiNpuP2PlatformMappingStr = R"(
 {
   "ports": {
     "0": {
@@ -148603,12 +148605,21 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
   ]
 }
 )";
+
+static const std::string getPlatformMappingStr(bool multiNpuPlatformMapping) {
+  if (multiNpuPlatformMapping) {
+    XLOG(INFO) << "Using P2 MNPU Platform Mapping";
+    return kJsonMultiNpuP2PlatformMappingStr;
+  } else {
+    XLOG(INFO) << "Using P2 Single NPU Platform Mapping";
+    return kJsonSingleNpuP2PlatformMappingStr;
+  }
+}
 } // namespace
 
 Meru800bfaPlatformMapping::Meru800bfaPlatformMapping()
-    : PlatformMapping(
-          FLAGS_multi_npu_platform_mapping ? kJsonMultiNpuPlatformMappingStr
-                                           : kJsonPlatformMappingStr) {}
+    : PlatformMapping(getPlatformMappingStr(FLAGS_multi_npu_platform_mapping)) {
+}
 
 Meru800bfaPlatformMapping::Meru800bfaPlatformMapping(
     const std::string& platformMappingStr)
@@ -148616,8 +148627,6 @@ Meru800bfaPlatformMapping::Meru800bfaPlatformMapping(
 
 Meru800bfaPlatformMapping::Meru800bfaPlatformMapping(
     bool multiNpuPlatformMapping)
-    : PlatformMapping(
-          multiNpuPlatformMapping ? kJsonMultiNpuPlatformMappingStr
-                                  : kJsonPlatformMappingStr) {}
+    : PlatformMapping(getPlatformMappingStr(multiNpuPlatformMapping)) {}
 
 } // namespace facebook::fboss
