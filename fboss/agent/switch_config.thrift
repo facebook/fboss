@@ -359,6 +359,13 @@ struct Mirror {
   2: MirrorDestination destination;
   3: byte dscp = DEFAULT_MIRROR_DSCP;
   4: bool truncate = false;
+  /*
+   * 0 - no sampling
+   * 1 - sample all packets
+   * Any other integer value represent the 1 out of samplingRate
+   * packets will be mirrored.
+   */
+  5: optional i32 samplingRate = 0;
 }
 
 /**
