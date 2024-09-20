@@ -9,7 +9,9 @@ cpp_library(
         "Meru800bfaPlatformMapping.cpp",
     ],
     exported_deps = [
+        "//fboss/agent:fboss-error",
         "//fboss/agent/platforms/common:platform_mapping",
+        "//fboss/lib/platforms:product-info",
         "//folly/logging:logging",
     ],
 )

@@ -10,6 +10,8 @@
 
 #include "fboss/agent/platforms/common/meru800bfa/Meru800bfaPlatformMapping.h"
 #include <folly/logging/xlog.h>
+#include "fboss/agent/FbossError.h"
+#include "fboss/lib/platforms/PlatformProductInfo.h"
 
 namespace facebook::fboss {
 namespace {
@@ -148607,12 +148609,20 @@ constexpr auto kJsonMultiNpuP2PlatformMappingStr = R"(
 )";
 
 static const std::string getPlatformMappingStr(bool multiNpuPlatformMapping) {
-  if (multiNpuPlatformMapping) {
+  auto productInfo =
+      std::make_unique<PlatformProductInfo>(FLAGS_fruid_filepath);
+  productInfo->initialize();
+  auto productVersion = productInfo->getProductVersion();
+  XLOG(INFO) << "Product version: " << productVersion;
+  if (productVersion < 4 && multiNpuPlatformMapping) {
     XLOG(INFO) << "Using P2 MNPU Platform Mapping";
     return kJsonMultiNpuP2PlatformMappingStr;
-  } else {
+  } else if (productVersion < 4) {
     XLOG(INFO) << "Using P2 Single NPU Platform Mapping";
     return kJsonSingleNpuP2PlatformMappingStr;
+  } else {
+    throw FbossError(
+        "No platform mapping found for product version ", productVersion);
   }
 }
 } // namespace

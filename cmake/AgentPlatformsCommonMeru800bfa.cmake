@@ -11,4 +11,6 @@ add_library(meru800bfa_platform_mapping
 target_link_libraries(meru800bfa_platform_mapping
   platform_mapping
   Folly::folly
+  product_info
+  fboss_error
 )
