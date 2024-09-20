@@ -275,6 +275,7 @@ class AgentTrafficPfcTest : public AgentHwTest {
   void runTestWithCfg(
       const int trafficClass,
       const int pfcPriority,
+      const std::map<int, int>& tcToPgOverride = {},
       TrafficTestParams testParams = TrafficTestParams{},
       std::function<void(
           AgentEnsemble* ensemble,
@@ -301,7 +302,11 @@ class AgentTrafficPfcTest : public AgentHwTest {
         portIdsToConfigure = masterLogicalInterfacePortIds();
       }
       setupPfcBuffers(
-          cfg, portIdsToConfigure, kLosslessPgIds, testParams.buffer);
+          cfg,
+          portIdsToConfigure,
+          kLosslessPgIds,
+          tcToPgOverride,
+          testParams.buffer);
       applyNewConfig(cfg);
 
       setupEcmpTraffic(portIds);
@@ -374,7 +379,27 @@ TEST_P(AgentTrafficPfcGenTest, verifyPfc) {
   const int trafficClass = kLosslessTrafficClass;
   const int pfcPriority = kLosslessPriority;
   TrafficTestParams trafficParams = GetParam();
-  runTestWithCfg(trafficClass, pfcPriority, trafficParams);
+  runTestWithCfg(trafficClass, pfcPriority, {}, trafficParams);
+}
+
+// intent of this test is to send traffic so that it maps to
+// tc 2, now map tc 2 to PG 3. Mapping from PG to pfc priority
+// is 1:1, which means PG 3 is mapped to pfc priority 3.
+// Generate traffic to fire off PFC with smaller shared buffer
+TEST_F(AgentTrafficPfcTest, verifyPfcWithMapChanges_0) {
+  const int trafficClass = kLosslessTrafficClass;
+  const int pfcPriority = 3;
+  runTestWithCfg(trafficClass, pfcPriority, {{trafficClass, pfcPriority}});
+}
+
+// intent of this test is to send traffic so that it maps to
+// tc 7. Now we map tc 7 -> PG 2. Mapping from PG to pfc
+// priority is 1:1, which means PG 2 is mapped to pfc priority 2.
+// Generate traffic to fire off PFC with smaller shared buffer
+TEST_F(AgentTrafficPfcTest, verifyPfcWithMapChanges_1) {
+  const int trafficClass = 7;
+  const int pfcPriority = kLosslessPriority;
+  runTestWithCfg(trafficClass, pfcPriority, {{trafficClass, pfcPriority}});
 }
 
 } // namespace facebook::fboss
