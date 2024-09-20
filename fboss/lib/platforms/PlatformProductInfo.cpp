@@ -60,6 +60,10 @@ std::string PlatformProductInfo::getProductName() {
   return *productInfo_.product();
 }
 
+int PlatformProductInfo::getProductVersion() const {
+  return *productInfo_.productVersion();
+}
+
 void PlatformProductInfo::initMode() {
   if (FLAGS_mode.empty()) {
     auto modelName = getProductName();
