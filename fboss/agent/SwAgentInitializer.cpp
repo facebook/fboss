@@ -176,7 +176,11 @@ void SwAgentInitializer::stopServer() {
 
 void SwAgentInitializer::stopServices() {
   stopServer();
-  initializer_->stopFunctionScheduler();
+  // initializer_ could end up being null if createSwitch() wasn't complete,
+  // for example if an error was encountered.
+  if (initializer_) {
+    initializer_->stopFunctionScheduler();
+  }
   XLOG(DBG2) << "Stopped stats FunctionScheduler";
   fbossFinalize();
 }
