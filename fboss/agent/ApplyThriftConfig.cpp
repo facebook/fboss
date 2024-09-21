@@ -4966,6 +4966,9 @@ std::shared_ptr<Mirror> ThriftConfigApplier::createMirror(
 
   uint8_t dscpMark = mirrorConfig->get_dscp();
   bool truncate = mirrorConfig->get_truncate();
+  uint32_t samplingRate = mirrorConfig->samplingRate().has_value()
+      ? mirrorConfig->samplingRate().value()
+      : 0;
 
   std::optional<PortDescriptor> egressPortDesc;
   if (mirrorEgressPort.has_value()) {
@@ -4979,7 +4982,8 @@ std::shared_ptr<Mirror> ThriftConfigApplier::createMirror(
       srcIp,
       udpPorts,
       dscpMark,
-      truncate);
+      truncate,
+      samplingRate);
   return mirror;
 }
 
@@ -4993,7 +4997,8 @@ std::shared_ptr<Mirror> ThriftConfigApplier::updateMirror(
       newMirror->getTruncate() == orig->getTruncate() &&
       (!newMirror->configHasEgressPort() ||
        newMirror->getEgressPort() == orig->getEgressPort() ||
-       newMirror->getEgressPortDesc() == orig->getEgressPortDesc())) {
+       newMirror->getEgressPortDesc() == orig->getEgressPortDesc()) &&
+      newMirror->getSamplingRate() == orig->getSamplingRate()) {
     if (orig->getMirrorTunnel()) {
       newMirror->setMirrorTunnel(orig->getMirrorTunnel().value());
     }

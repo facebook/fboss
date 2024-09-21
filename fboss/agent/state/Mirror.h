@@ -145,7 +145,8 @@ class Mirror : public ThriftStructNode<Mirror, state::MirrorFields> {
       std::optional<folly::IPAddress> srcIp = std::nullopt,
       std::optional<TunnelUdpPorts> udpPorts = std::nullopt,
       uint8_t dscp = cfg::switch_config_constants::DEFAULT_MIRROR_DSCP_,
-      bool truncate = false);
+      bool truncate = false,
+      uint32_t samplingRate = 0);
   enum Type { SPAN = 1, ERSPAN = 2, SFLOW = 3 };
   std::string getID() const;
   std::optional<folly::IPAddress> getDestinationIp() const;
