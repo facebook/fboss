@@ -75,6 +75,15 @@ TEST_F(AgentPfcTest, verifyPfcCounters) {
   };
 
   auto verify = [&]() {
+    // Collect PFC counters before test
+    std::map<PortID, std::map<int, int>> inPfcBefore;
+    for (auto portId : portIds) {
+      auto inPfc = getLatestPortStats(portId).get_inPfc_();
+      for (int pgId : losslessPgIds) {
+        inPfcBefore[portId][pgId] = inPfc[pgId];
+      }
+    }
+
     sendPfcFrame(portIds, 0xFF);
 
     WITH_RETRIES({
@@ -83,7 +92,7 @@ TEST_F(AgentPfcTest, verifyPfcCounters) {
         auto inPfc = getLatestPortStats(portId).get_inPfc_();
         ASSERT_EVENTUALLY_GE(inPfc.size(), losslessPgIds.size());
         for (int pgId : losslessPgIds) {
-          EXPECT_EVENTUALLY_EQ(inPfc[pgId], 1);
+          EXPECT_EVENTUALLY_EQ(inPfc[pgId], inPfcBefore[portId][pgId] + 1);
         }
       }
     });
@@ -94,13 +103,12 @@ TEST_F(AgentPfcTest, verifyPfcCounters) {
 
 TEST_F(AgentPfcTest, verifyPfcLoopback) {
   // TODO: Investigate if this can be extended to other ASICs
-  for (auto* asic : getAgentEnsemble()->getL3Asics()) {
-    if (asic->getAsicType() != cfg::AsicType::ASIC_TYPE_JERICHO3) {
+  if (utility::checkSameAndGetAsic(getAgentEnsemble()->getL3Asics())
+          ->getAsicType() != cfg::AsicType::ASIC_TYPE_JERICHO3) {
 #if defined(GTEST_SKIP)
-      GTEST_SKIP();
+    GTEST_SKIP();
 #endif
-      return;
-    }
+    return;
   }
 
   std::vector<PortID> portIds = {masterLogicalInterfacePortIds()[0]};
