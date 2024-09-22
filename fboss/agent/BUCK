@@ -628,6 +628,7 @@ cpp_library(
         "DsfStateUpdaterUtil.cpp",
         "DsfSubscriber.cpp",
         "DsfSubscription.cpp",
+        "DsfUpdateValidator.cpp",
         "EncapIndexAllocator.cpp",
         "FabricConnectivityManager.cpp",
         "FibHelpers.cpp",
