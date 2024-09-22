@@ -16,8 +16,11 @@ class DsfUpdateValidator {
  public:
   DsfUpdateValidator(
       const SwSwitch* sw,
+      const std::unordered_set<SwitchID>& localSwitchIds,
       const std::set<SwitchID>& remoteSwitchIds)
-      : sw_(sw), remoteSwitchIds_(remoteSwitchIds) {}
+      : sw_(sw),
+        localSwitchIds_(localSwitchIds),
+        remoteSwitchIds_(remoteSwitchIds) {}
 
   ~DsfUpdateValidator();
   std::shared_ptr<SwitchState> validateAndGetUpdate(
@@ -28,6 +31,7 @@ class DsfUpdateValidator {
 
  private:
   const SwSwitch* sw_;
+  std::unordered_set<SwitchID> localSwitchIds_;
   std::set<SwitchID> remoteSwitchIds_;
 };
 } // namespace facebook::fboss
