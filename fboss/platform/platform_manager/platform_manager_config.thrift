@@ -489,6 +489,19 @@ struct PmUnitVersion {
   3: i16 productSubVersion;
 }
 
+// Defines thrift structure used for the Bsp Kmods file under /usr/local/{vendor}_bsp/...
+// This file will be written during BSP development. PM will consume this file to unload
+// specified kmods before exploration.
+//
+// `bspKmods`: Specify the list of names of bsp kmods on the installed rpm.
+//
+// `sharedKmods`: Specify the list of names of shared kmods on the installed rpm.
+// These shared kmods will be unloaded after bspKmods.
+struct BspKmodsFile {
+  1: list<string> bspKmods;
+  2: list<string> sharedKmods;
+}
+
 // Defines the whole Platform. The top level struct.
 struct PlatformConfig {
   // Name of the platform.  Should match the name set in dmidecode
