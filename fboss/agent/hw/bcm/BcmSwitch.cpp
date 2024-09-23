@@ -4245,4 +4245,8 @@ std::shared_ptr<SwitchState> BcmSwitch::reconstructSwitchState() const {
   throw FbossError("reconstructSwitchState not implemented for BCM");
 }
 
+HwResourceStats BcmSwitch::getResourceStats() const {
+  return bcmStatUpdater_->getHwTableStats();
+}
+
 } // namespace facebook::fboss

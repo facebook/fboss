@@ -4075,4 +4075,8 @@ std::shared_ptr<MultiSwitchAclMap> SaiSwitch::reconstructMultiSwitchAclMap()
 void SaiSwitch::injectSwitchReachabilityChangeNotification() {
   switchReachabilityChangeTopHalf();
 }
+
+HwResourceStats SaiSwitch::getResourceStats() const {
+  return hwResourceStats_;
+}
 } // namespace facebook::fboss

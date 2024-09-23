@@ -223,7 +223,6 @@ class AgentMirroringTest : public AgentHwTest {
     auto scope = getAgentEnsemble()->scopeResolver().scope(mirror);
     for (auto switchID : scope.switchIds()) {
       auto client = getAgentEnsemble()->getHwAgentTestClient(switchID);
-      EXPECT_TRUE(client->sync_isMirrorProgrammed(fields));
       verifyMirrorProgrammed(client.get(), fields);
       WITH_RETRIES({
         EXPECT_EVENTUALLY_TRUE(client->sync_isPortMirrored(

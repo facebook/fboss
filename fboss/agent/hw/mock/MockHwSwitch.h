@@ -147,6 +147,8 @@ class MockHwSwitch : public HwSwitch {
     setProgrammedState(state);
   }
 
+  MOCK_CONST_METHOD0(getResourceStats, HwResourceStats());
+
  private:
   MOCK_METHOD1(switchRunStateChangedImpl, void(SwitchRunState newState));
   MOCK_METHOD0(initialStateApplied, void());

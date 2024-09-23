@@ -117,6 +117,8 @@ class SaiSwitch : public HwSwitch {
   HwSwitchDropStats getSwitchDropStats() const override;
   HwSwitchWatermarkStats getSwitchWatermarkStats() const override;
 
+  HwResourceStats getResourceStats() const override;
+
   uint64_t getDeviceWatermarkBytes() const override;
 
   void fetchL2Table(std::vector<L2EntryThrift>* l2Table) const override;

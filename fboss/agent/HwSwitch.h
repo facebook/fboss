@@ -256,6 +256,7 @@ class HwSwitch {
   virtual HwFlowletStats getHwFlowletStats() const = 0;
   virtual std::vector<EcmpDetails> getAllEcmpDetails() const = 0;
   virtual HwSwitchWatermarkStats getSwitchWatermarkStats() const = 0;
+  virtual HwResourceStats getResourceStats() const = 0;
 
   /*
    * Get latest device watermark bytes

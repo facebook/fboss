@@ -79,6 +79,10 @@ class SimSwitch : public HwSwitch {
     return HwSwitchWatermarkStats{};
   }
 
+  HwResourceStats getResourceStats() const override {
+    return HwResourceStats{};
+  }
+
   std::vector<EcmpDetails> getAllEcmpDetails() const override {
     return {};
   }
