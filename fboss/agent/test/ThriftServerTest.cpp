@@ -56,6 +56,7 @@ class ThriftServerTest : public ::testing::Test {
   void SetUp() override {
     cfg::AgentConfig agentConfig;
     FLAGS_multi_switch = true;
+    FLAGS_rx_sw_priority = true;
     agentConfig.sw() = testConfigA();
     agentConfig.sw()->switchSettings()->switchIdToSwitchInfo() = {
         {0, createSwitchInfo(cfg::SwitchType::NPU)},
@@ -451,6 +452,67 @@ CO_TEST_F(ThriftServerTest, receivePktHandler) {
   });
 }
 
+CO_TEST_F(ThriftServerTest, receivePktHandlerPriorityHandling) {
+  // setup server and clients
+  setupServerAndClients();
+
+  CounterCache counters(sw_);
+  // Send packets to server using sink
+  auto result = co_await multiSwitchClient_->co_notifyRxPacket(0);
+  int pktCount;
+  auto ret = co_await result.sink(
+      [&]() -> folly::coro::AsyncGenerator<multiswitch::RxPacket&&> {
+        // verify rx pkt event sync is active
+        WITH_RETRIES({
+          counters.update();
+          EXPECT_EVENTUALLY_EQ(
+              counters.value("switch.0.rx_pkt_event_sync_active"), 1);
+        });
+        for (pktCount = 0; pktCount < 100000; pktCount++) {
+          multiswitch::RxPacket rxPkt;
+          rxPkt.data() = std::make_unique<folly::IOBuf>(createV4Packet(
+              folly::IPAddressV4("10.0.0.2"),
+              folly::IPAddressV4("10.0.0.1"),
+              MockPlatform::getMockLocalMac(),
+              MockPlatform::getMockLocalMac()));
+          rxPkt.port() = 1;
+          rxPkt.vlan() = 1;
+          if (pktCount % 2) {
+            rxPkt.cosQueue() = CpuCosQueueId(2);
+          } else {
+            rxPkt.cosQueue() = CpuCosQueueId(9);
+          }
+          rxPkt.length() = (*rxPkt.data())->computeChainDataLength();
+          co_yield std::move(rxPkt);
+        }
+      }());
+  EXPECT_TRUE(ret);
+  WITH_RETRIES({
+    counters.update();
+    EXPECT_EVENTUALLY_EQ(
+        counters.value(
+            SwitchStats::kCounterPrefix + "hi_pri_pkts_received.sum"),
+        pktCount / 2);
+  });
+  int midPriCount =
+      counters.value(SwitchStats::kCounterPrefix + "mid_pri_pkts_received.sum");
+  WITH_RETRIES({
+    counters.update();
+    EXPECT_EVENTUALLY_EQ(
+        counters.value(
+            SwitchStats::kCounterPrefix + "mid_pri_pkts_received.sum"),
+        midPriCount);
+    midPriCount = counters.value(
+        SwitchStats::kCounterPrefix + "mid_pri_pkts_received.sum");
+  });
+  XLOG(DBG2) << "Total pkt sent: " << pktCount << " hi pri rx: "
+             << counters.value(
+                    SwitchStats::kCounterPrefix + "hi_pri_pkts_received.sum")
+             << " mid pri rx: "
+             << counters.value(
+                    SwitchStats::kCounterPrefix + "mid_pri_pkts_received.sum");
+  EXPECT_LE(midPriCount, pktCount / 2);
+}
 CO_TEST_F(ThriftServerTest, transmitPktHandler) {
   // setup server and clients
   setupServerAndClients();
@@ -478,7 +540,7 @@ CO_TEST_F(ThriftServerTest, transmitPktHandler) {
   const auto& val = co_await gen.next();
   // got packet
   EXPECT_EQ(5, *val->port());
-  EXPECT_EQ(origPktSize, (*val->data())->length());
+  EXPECT_EQ(origPktSize, (*val->data())->computeChainDataLength());
   sw_->getHwSwitchHandler()->stop();
 }
 
