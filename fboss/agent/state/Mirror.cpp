@@ -179,8 +179,11 @@ Mirror::Type Mirror::type() const {
   return Mirror::Type::SFLOW;
 }
 
-uint32_t Mirror::getSamplingRate() const {
-  return get<switch_state_tags::samplingRate>()->cref();
+std::optional<uint32_t> Mirror::getSamplingRate() const {
+  if (auto samplingRate = get<switch_state_tags::samplingRate>()) {
+    return samplingRate->cref();
+  }
+  return std::nullopt;
 }
 
 template class ThriftStructNode<Mirror, state::MirrorFields>;

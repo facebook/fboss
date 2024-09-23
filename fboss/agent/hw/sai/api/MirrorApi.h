@@ -92,6 +92,10 @@ struct SaiMirrorTraits<SAI_MIRROR_SESSION_TYPE_ENHANCED_REMOTE> {
         EnumType,
         SAI_MIRROR_SESSION_ATTR_IPHDR_VERSION,
         sai_uint8_t>;
+    using SampleRate = SaiAttribute<
+        EnumType,
+        SAI_MIRROR_SESSION_ATTR_SAMPLE_RATE,
+        sai_uint32_t>;
   };
   using CreateAttributes = std::tuple<
       Attributes::Type,
@@ -105,7 +109,8 @@ struct SaiMirrorTraits<SAI_MIRROR_SESSION_TYPE_ENHANCED_REMOTE> {
       Attributes::GreProtocolType,
       Attributes::IpHeaderVersion,
       std::optional<Attributes::Ttl>,
-      std::optional<Attributes::TruncateSize>>;
+      std::optional<Attributes::TruncateSize>,
+      std::optional<Attributes::SampleRate>>;
   using AdapterHostKey = std::tuple<
       Attributes::Type,
       Attributes::MonitorPort,
@@ -161,6 +166,10 @@ struct SaiMirrorTraits<SAI_MIRROR_SESSION_TYPE_SFLOW> {
         EnumType,
         SAI_MIRROR_SESSION_ATTR_IPHDR_VERSION,
         sai_uint8_t>;
+    using SampleRate = SaiAttribute<
+        EnumType,
+        SAI_MIRROR_SESSION_ATTR_SAMPLE_RATE,
+        sai_uint32_t>;
   };
   using CreateAttributes = std::tuple<
       typename Attributes::Type,
@@ -174,7 +183,8 @@ struct SaiMirrorTraits<SAI_MIRROR_SESSION_TYPE_SFLOW> {
       typename Attributes::UdpDstPort,
       typename Attributes::IpHeaderVersion,
       std::optional<typename Attributes::Ttl>,
-      std::optional<typename Attributes::TruncateSize>>;
+      std::optional<typename Attributes::TruncateSize>,
+      std::optional<Attributes::SampleRate>>;
   using AdapterHostKey = std::tuple<
       typename Attributes::Type,
       typename Attributes::MonitorPort,
@@ -237,6 +247,7 @@ SAI_ATTRIBUTE_NAME(EnhancedRemoteMirror, DstIpAddress)
 SAI_ATTRIBUTE_NAME(EnhancedRemoteMirror, SrcMacAddress)
 SAI_ATTRIBUTE_NAME(EnhancedRemoteMirror, DstMacAddress)
 SAI_ATTRIBUTE_NAME(EnhancedRemoteMirror, IpHeaderVersion)
+SAI_ATTRIBUTE_NAME(EnhancedRemoteMirror, SampleRate)
 SAI_ATTRIBUTE_NAME(SflowMirror, UdpSrcPort)
 SAI_ATTRIBUTE_NAME(SflowMirror, UdpDstPort)
 

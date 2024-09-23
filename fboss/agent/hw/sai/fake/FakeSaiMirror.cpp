@@ -38,6 +38,7 @@ sai_status_t create_mirror_session_fn(
   std::optional<sai_uint16_t> greProtocolType;
   std::optional<sai_uint16_t> truncateSize;
   std::optional<sai_uint8_t> ipHeaderVersion;
+  std::optional<sai_uint32_t> sampleRate;
 
   for (int i = 0; i < attr_count; ++i) {
     switch (attr_list[i].id) {
@@ -84,6 +85,9 @@ sai_status_t create_mirror_session_fn(
       case SAI_MIRROR_SESSION_ATTR_TTL:
         ttl = attr_list[i].value.u8;
         break;
+      case SAI_MIRROR_SESSION_ATTR_SAMPLE_RATE:
+        sampleRate = attr_list[i].value.u32;
+        break;
       default:
         return SAI_STATUS_INVALID_PARAMETER;
     }
@@ -112,7 +116,8 @@ sai_status_t create_mirror_session_fn(
         ipHeaderVersion.value(),
         greProtocolType.value(),
         ttl.has_value() ? ttl.value() : (uint8_t)0,
-        truncateSize.has_value() ? truncateSize.value() : (uint16_t)0);
+        truncateSize.has_value() ? truncateSize.value() : (uint16_t)0,
+        sampleRate.has_value() ? sampleRate.value() : (uint32_t)0);
   } else if (type == SAI_MIRROR_SESSION_TYPE_SFLOW) {
     if (!srcIp || !dstIp || !srcMac || !dstMac || !tos || !udpSrcPort ||
         !udpDstPort) {
@@ -130,7 +135,8 @@ sai_status_t create_mirror_session_fn(
         udpSrcPort.value(),
         udpDstPort.value(),
         ttl.has_value() ? ttl.value() : (uint8_t)0,
-        truncateSize.has_value() ? truncateSize.value() : (uint16_t)0);
+        truncateSize.has_value() ? truncateSize.value() : (uint16_t)0,
+        sampleRate.has_value() ? sampleRate.value() : (uint32_t)0);
   } else {
     return SAI_STATUS_INVALID_PARAMETER;
   }
@@ -194,6 +200,9 @@ sai_status_t set_mirror_session_attribute_fn(
     case SAI_MIRROR_SESSION_ATTR_TTL:
       mirrorSession.ttl = attr->value.u8;
       break;
+    case SAI_MIRROR_SESSION_ATTR_SAMPLE_RATE:
+      mirrorSession.sampleRate = attr->value.u32;
+      break;
     default:
       return SAI_STATUS_INVALID_PARAMETER;
   }
@@ -254,6 +263,9 @@ sai_status_t get_mirror_session_attribute_fn(
         break;
       case SAI_MIRROR_SESSION_ATTR_TTL:
         attr_list[i].value.u8 = mirrorSession.ttl;
+        break;
+      case SAI_MIRROR_SESSION_ATTR_SAMPLE_RATE:
+        attr_list[i].value.u32 = mirrorSession.sampleRate;
         break;
       default:
         return SAI_STATUS_INVALID_PARAMETER;

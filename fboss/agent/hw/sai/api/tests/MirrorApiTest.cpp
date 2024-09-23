@@ -51,7 +51,8 @@ class MirrorApiTest : public ::testing::Test {
       folly::MacAddress& srcMac,
       folly::MacAddress& dstMac,
       uint8_t ipHeaderVersion,
-      uint16_t greProtocol) {
+      uint16_t greProtocol,
+      uint32_t samplingRate) {
     return mirrorApi->create<SaiEnhancedRemoteMirrorTraits>(
         {SAI_MIRROR_SESSION_TYPE_ENHANCED_REMOTE,
          portId,
@@ -64,7 +65,8 @@ class MirrorApiTest : public ::testing::Test {
          greProtocol,
          ipHeaderVersion,
          ttl,
-         truncateSize},
+         truncateSize,
+         samplingRate},
         0);
   }
 
@@ -131,19 +133,19 @@ TEST_F(MirrorApiTest, removeLocalMirror) {
 
 TEST_F(MirrorApiTest, createEnhancedRemoteMirror) {
   auto mirrorSaiId = createEnhancedRemoteMirror(
-      1, 16, 240, 255, srcIp, dstIp, srcMac, dstMac, 4, 2148);
+      1, 16, 240, 255, srcIp, dstIp, srcMac, dstMac, 4, 2148, 0);
   checkEnhancedRemoteMirror(mirrorSaiId);
 }
 
 TEST_F(MirrorApiTest, removeEnhancedRemoteMirror) {
   auto mirrorSaiId = createEnhancedRemoteMirror(
-      2, 42, 238, 255, srcIp, dstIp, srcMac, dstMac, 4, 220);
+      2, 42, 238, 255, srcIp, dstIp, srcMac, dstMac, 4, 220, 0);
   mirrorApi->remove(mirrorSaiId);
 }
 
 TEST_F(MirrorApiTest, setMirrorAttributes) {
   auto mirrorSaiId = createEnhancedRemoteMirror(
-      1, 16, 240, 255, srcIp, dstIp, srcMac, dstMac, 4, 2148);
+      1, 16, 240, 255, srcIp, dstIp, srcMac, dstMac, 4, 2148, 0);
   checkEnhancedRemoteMirror(mirrorSaiId);
   SaiEnhancedRemoteMirrorTraits::Attributes::MonitorPort monitorPort{2};
   mirrorApi->setAttribute(mirrorSaiId, monitorPort);

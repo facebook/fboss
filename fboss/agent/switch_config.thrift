@@ -365,7 +365,7 @@ struct Mirror {
    * Any other integer value represent the 1 out of samplingRate
    * packets will be mirrored.
    */
-  5: optional i32 samplingRate = 0;
+  5: optional i32 samplingRate;
 }
 
 /**

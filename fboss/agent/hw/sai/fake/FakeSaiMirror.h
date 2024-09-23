@@ -36,7 +36,8 @@ struct FakeMirror {
       uint8_t ipHeaderVersion,
       sai_uint16_t greProtocolType,
       uint8_t ttl,
-      sai_uint16_t truncateSize)
+      sai_uint16_t truncateSize,
+      sai_uint32_t sampleRate)
       : type(type),
         monitorPort(monitorPort),
         erspanEncapType(erspanEncapType),
@@ -48,7 +49,8 @@ struct FakeMirror {
         ipHeaderVersion(ipHeaderVersion),
         greProtocolType(greProtocolType),
         ttl(ttl),
-        truncateSize(truncateSize) {}
+        truncateSize(truncateSize),
+        sampleRate(sampleRate) {}
   FakeMirror(
       sai_mirror_session_type_t type,
       sai_object_id_t monitorPort,
@@ -61,7 +63,8 @@ struct FakeMirror {
       sai_uint16_t udpSrcPort,
       sai_uint16_t udpDstPort,
       uint8_t ttl,
-      sai_uint16_t truncateSize)
+      sai_uint16_t truncateSize,
+      sai_uint32_t sampleRate)
       : type(type),
         monitorPort(monitorPort),
         tos(tos),
@@ -73,7 +76,8 @@ struct FakeMirror {
         udpSrcPort(udpSrcPort),
         udpDstPort(udpDstPort),
         ttl(ttl),
-        truncateSize(truncateSize) {}
+        truncateSize(truncateSize),
+        sampleRate(sampleRate) {}
   sai_object_id_t id;
   sai_int32_t type;
   sai_object_id_t monitorPort;
@@ -89,6 +93,7 @@ struct FakeMirror {
   sai_uint16_t udpDstPort;
   uint8_t ttl;
   sai_uint16_t truncateSize;
+  sai_uint32_t sampleRate;
 };
 
 using FakeMirrorManager = FakeManager<sai_object_id_t, FakeMirror>;

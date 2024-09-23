@@ -51,7 +51,8 @@ SaiMirrorHandle::SaiMirror SaiMirrorManager::addNodeErSpan(
       mirrorTunnel.greProtocol,
       headerVersion,
       mirrorTunnel.ttl,
-      truncateSize};
+      truncateSize,
+      mirror->getSamplingRate()};
   SaiEnhancedRemoteMirrorTraits::AdapterHostKey k{
       SAI_MIRROR_SESSION_TYPE_ENHANCED_REMOTE,
       monitorPort,
@@ -80,7 +81,8 @@ SaiMirrorHandle::SaiMirror SaiMirrorManager::addNodeSflow(
       mirrorTunnel.udpPorts.value().udpDstPort,
       headerVersion,
       mirrorTunnel.ttl,
-      truncateSize};
+      truncateSize,
+      mirror->getSamplingRate()};
   SaiSflowMirrorTraits::AdapterHostKey k{
       SAI_MIRROR_SESSION_TYPE_SFLOW,
       monitorPort,

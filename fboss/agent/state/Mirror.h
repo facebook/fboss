@@ -167,7 +167,7 @@ class Mirror : public ThriftStructNode<Mirror, state::MirrorFields> {
   bool isResolved() const;
   void setEgressPortDesc(const PortDescriptor& egressPortDesc);
   std::optional<PortDescriptor> getEgressPortDesc() const;
-  uint32_t getSamplingRate() const;
+  std::optional<uint32_t> getSamplingRate() const;
 
   Type type() const;
 
