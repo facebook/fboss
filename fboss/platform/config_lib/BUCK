@@ -12,6 +12,7 @@ cpp_binary(
     ],
     deps = [
         "//fboss/platform/data_corral_service/if:led_manager-cpp2-types",
+        "//fboss/platform/fan_service:utils",
         "//fboss/platform/fan_service/if:fan_service-cpp2-types",
         "//fboss/platform/fbdevd/if:fbdevd-cpp2-types",
         "//fboss/platform/fw_util/if:fw_util_config-cpp2-types",

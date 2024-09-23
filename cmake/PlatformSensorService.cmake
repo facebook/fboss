@@ -50,6 +50,7 @@ add_library(sensor_service_lib
 target_link_libraries(sensor_service_lib
   log_thrift_call
   platform_config_lib
+  platform_name_lib
   platform_utils
   sensor_service_utils
   sensor_service_cpp2

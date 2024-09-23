@@ -39,30 +39,15 @@ void addAclEntry(cfg::SwitchConfig& cfg, cfg::AclEntry* acl) {
 
 namespace facebook::fboss {
 
-template <bool enableMultiAclTable>
-struct EnableMultiAclTable {
-  static constexpr auto multiAclTableEnabled = enableMultiAclTable;
-};
-
-using TestTypes =
-    ::testing::Types<EnableMultiAclTable<false>, EnableMultiAclTable<true>>;
-
-template <typename EnableMultiAclTableT>
 class AgentAclPriorityTest : public AgentHwTest {
-  static auto constexpr isMultiAclEnabled =
-      EnableMultiAclTableT::multiAclTableEnabled;
-
   void setCmdLineFlagOverrides() const override {
-    FLAGS_enable_acl_table_group = isMultiAclEnabled;
     AgentHwTest::setCmdLineFlagOverrides();
   }
 
  public:
   std::vector<production_features::ProductionFeature>
   getProductionFeaturesVerified() const override {
-    if constexpr (std::is_same_v<
-                      EnableMultiAclTableT,
-                      EnableMultiAclTable<false>>) {
+    if (FLAGS_enable_acl_table_group) {
       return {production_features::ProductionFeature::SINGLE_ACL_TABLE};
     } else {
       return {production_features::ProductionFeature::MULTI_ACL_TABLE};
@@ -76,7 +61,7 @@ class AgentAclPriorityTest : public AgentHwTest {
         ensemble.getSw(),
         ensemble.masterLogicalPortIds(),
         true /*interfaceHasSubnet*/);
-    if (isMultiAclEnabled) {
+    if (FLAGS_enable_acl_table_group) {
       utility::addAclTableGroup(
           &cfg, cfg::AclStage::INGRESS, utility::getAclTableGroupName());
       utility::addDefaultAclTable(cfg);
@@ -111,11 +96,9 @@ class AgentAclPriorityTest : public AgentHwTest {
   }
 };
 
-TYPED_TEST_SUITE(AgentAclPriorityTest, TestTypes);
-
 // This test verifies that trafficPolicy configuration have no influence on
 // ACL entry priority
-TYPED_TEST(AgentAclPriorityTest, CheckAclPriorityOrder) {
+TEST_F(AgentAclPriorityTest, CheckAclPriorityOrder) {
   const folly::IPAddress kIp("2400::1");
   auto setup = [this, kIp]() {
     auto newCfg = this->getSw()->getConfig();
@@ -154,7 +137,7 @@ TYPED_TEST(AgentAclPriorityTest, CheckAclPriorityOrder) {
   this->verifyAcrossWarmBoots(setup, verify);
 }
 
-TYPED_TEST(AgentAclPriorityTest, CheckAclPriortyOrderInsertMiddle) {
+TEST_F(AgentAclPriorityTest, CheckAclPriortyOrderInsertMiddle) {
   auto setup = [this]() {
     auto newCfg = this->getSw()->getConfig();
     this->addDenyPortAcl(newCfg, "A");
@@ -184,7 +167,7 @@ TYPED_TEST(AgentAclPriorityTest, CheckAclPriortyOrderInsertMiddle) {
  * This unit test case is to test we won't crash cause we're using aclName as
  * key of the aclMap in S/W while using priority as key of aclTable in H/W
  */
-TYPED_TEST(AgentAclPriorityTest, AclNameChange) {
+TEST_F(AgentAclPriorityTest, AclNameChange) {
   auto setup = [this]() {
     auto newCfg = this->getSw()->getConfig();
     this->addDenyPortAcl(newCfg, "A");
@@ -212,7 +195,7 @@ TYPED_TEST(AgentAclPriorityTest, AclNameChange) {
   this->verifyAcrossWarmBoots(setup, verify);
 }
 
-TYPED_TEST(AgentAclPriorityTest, AclsChanged) {
+TEST_F(AgentAclPriorityTest, AclsChanged) {
   const folly::IPAddress kIp("2400::1");
   auto setup = [this, kIp]() {
     auto config = this->getSw()->getConfig();
@@ -236,7 +219,7 @@ TYPED_TEST(AgentAclPriorityTest, AclsChanged) {
   this->verifyAcrossWarmBoots(setup, []() {}, setupPostWb, []() {});
 }
 
-TYPED_TEST(AgentAclPriorityTest, Reprioritize) {
+TEST_F(AgentAclPriorityTest, Reprioritize) {
   auto setup = [=, this]() {
     auto config = this->getSw()->getConfig();
     this->addPermitIpAcl(config, "B", folly::IPAddress("1::2"));

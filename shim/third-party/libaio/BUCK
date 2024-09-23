@@ -11,4 +11,10 @@ oncall("open_source")
 
 third_party_library(
     name = "aio",
+    linker_flags = ["-laio"],
+    repo_package_names = {
+        "fedora": "libaio-devel",
+        "homebrew": "libaio",
+        "ubuntu": "libaio-dev",
+    },
 )

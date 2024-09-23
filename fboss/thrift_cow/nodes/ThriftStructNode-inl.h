@@ -162,19 +162,7 @@ struct ThriftStructFields {
   using TypeFor = typename fatal::find<
       MemberTypes,
       Name,
-      std::enable_if_t<
-          fatal::contains<MemberTypes, Name, fatal::get_type::name>::value,
-          std::false_type>,
-      fatal::get_type::name,
-      fatal::get_type::type>;
-
-  template <typename Name>
-  using ThriftTypeFor = typename fatal::find<
-      Members,
-      Name,
-      std::enable_if_t<
-          fatal::contains<Members, Name, fatal::get_type::name>::value,
-          std::false_type>,
+      std::false_type,
       fatal::get_type::name,
       fatal::get_type::type>;
 
@@ -182,11 +170,12 @@ struct ThriftStructFields {
   using MemberFor = typename fatal::find<
       Members,
       Name,
-      std::enable_if_t<
-          fatal::contains<Members, Name, fatal::get_type::name>::value,
-          std::false_type>,
+      std::false_type,
       fatal::get_type::name,
       fatal::get_identity>;
+
+  template <typename Name>
+  using ThriftTypeFor = typename MemberFor<Name>::type;
 
   template <typename Name>
   using IsChildNode =

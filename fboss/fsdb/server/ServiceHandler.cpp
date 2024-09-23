@@ -4,8 +4,8 @@
 #include "fboss/fsdb/if/gen-cpp2/fsdb_common_types.h"
 
 #include <fboss/lib/LogThriftCall.h>
-#include <folly/experimental/coro/BlockingWait.h>
-#include <folly/experimental/coro/Timeout.h>
+#include <folly/coro/BlockingWait.h>
+#include <folly/coro/Timeout.h>
 #include <folly/logging/xlog.h>
 #include "fboss/fsdb/if/gen-cpp2/fsdb_common_constants.h"
 #include "fboss/fsdb/oper/PathValidator.h"

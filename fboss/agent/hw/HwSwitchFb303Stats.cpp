@@ -499,6 +499,8 @@ HwSwitchFb303GlobalStats HwSwitchFb303Stats::getAllFb303Stats() const {
     hwFb303Stats.fdr_cell_drops() = *currentDropStats_.fdrCellDrops();
   }
   hwFb303Stats.deleted_credit_bytes() = getDeletedCreditBytes();
+  hwFb303Stats.vsq_resource_exhaustion_drops() =
+      getVsqResourcesExhautionDrops();
   return hwFb303Stats;
 }
 
@@ -520,6 +522,11 @@ void HwSwitchFb303Stats::updateStats(HwSwitchFb303GlobalStats& globalStats) {
   updateValue(dramDequeuedBytes_, *globalStats.dram_dequeued_bytes());
   if (globalStats.dram_blocked_time_ns().has_value()) {
     updateValue(dramBlockedTimeNsec_, *globalStats.dram_blocked_time_ns());
+  }
+  if (globalStats.vsq_resource_exhaustion_drops().has_value()) {
+    updateValue(
+        vsqResourceExhaustionDrops_,
+        *globalStats.vsq_resource_exhaustion_drops());
   }
   updateValue(
       switchReachabilityChangeCount_,

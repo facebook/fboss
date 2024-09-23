@@ -3,7 +3,7 @@
 #include "fboss/fsdb/oper/NaivePeriodicSubscribableStorageBase.h"
 
 #include <fb303/ThreadCachedServiceData.h>
-#include <folly/experimental/coro/BlockingWait.h>
+#include <folly/coro/BlockingWait.h>
 #include <folly/system/ThreadName.h>
 
 #ifndef IS_OSS

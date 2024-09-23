@@ -59,7 +59,6 @@ void LinkTest::TearDown() {
 
 void LinkTest::setCmdLineFlagOverrides() const {
   FLAGS_enable_macsec = true;
-  FLAGS_skip_drain_check_for_prbs = true;
   AgentTest::setCmdLineFlagOverrides();
 }
 

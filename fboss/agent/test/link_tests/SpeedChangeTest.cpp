@@ -101,7 +101,8 @@ class SpeedChangeTest : public LinkTest {
             apache::thrift::util::enumName(desiredProfileId));
         PortID portID = PortID(*port.logicalID());
         utility::configurePortProfile(
-            *platform()->getHwSwitch(),
+            platform()->getPlatformMapping(),
+            platform()->supportsAddRemovePort(),
             swConfig,
             desiredProfileId,
             utility::getAllPortsInGroup(sw()->getPlatformMapping(), portID),

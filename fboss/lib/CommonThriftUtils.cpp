@@ -9,7 +9,7 @@
  */
 
 #include "fboss/lib/CommonThriftUtils.h"
-#include <folly/experimental/coro/BlockingWait.h>
+#include <folly/coro/BlockingWait.h>
 #include <folly/io/async/AsyncTimeout.h>
 #include <folly/io/async/EventBase.h>
 #include <folly/logging/xlog.h>

@@ -11,7 +11,7 @@
 #include <fstream>
 #include <sstream>
 
-#include <folly/experimental/coro/BlockingWait.h>
+#include <folly/coro/BlockingWait.h>
 #include <folly/io/async/EventBase.h>
 #include <folly/system/Shell.h>
 

@@ -11,7 +11,7 @@
 #include <fboss/thrift_cow/storage/Storage.h>
 
 #include <folly/Expected.h>
-#include <folly/experimental/coro/Sleep.h>
+#include <folly/coro/Sleep.h>
 #include <thrift/lib/cpp2/protocol/Serializer.h>
 #include <chrono>
 #include <utility>

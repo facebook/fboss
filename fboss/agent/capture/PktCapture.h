@@ -27,10 +27,11 @@ class RxPacketFilter {
             rxCaptureFilter.get_cosQueues().begin(),
             rxCaptureFilter.get_cosQueues().end()) {}
   bool passes(const RxPacket* pkt) const {
+    auto cosQueue = pkt->cosQueue()
+        ? static_cast<CpuCosQueueId>(*pkt->cosQueue())
+        : CpuCosQueueId::HIPRI;
     return (
-        cosQueues_.empty() ||
-        cosQueues_.find(static_cast<CpuCosQueueId>(pkt->cosQueue())) !=
-            cosQueues_.end());
+        cosQueues_.empty() || cosQueues_.find(cosQueue) != cosQueues_.end());
   }
 
  private:

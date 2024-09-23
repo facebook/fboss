@@ -70,12 +70,6 @@ void updatePortSpeed(
     PortID port,
     cfg::PortSpeed speed);
 
-void configurePortProfile(
-    const HwSwitch& hwSwitch,
-    cfg::SwitchConfig& config,
-    cfg::PortProfileID profileID,
-    std::vector<PortID> allPortsInGroup,
-    PortID controllingPortID);
 std::string getAsicChipFromPortID(const HwSwitch* hwSwitch, PortID id);
 
 std::vector<PortDescriptor> getUplinksForEcmp(

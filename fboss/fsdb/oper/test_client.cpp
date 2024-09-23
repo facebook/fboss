@@ -4,8 +4,8 @@
 
 #include <folly/FileUtil.h>
 #include <folly/String.h>
-#include <folly/experimental/coro/BlockingWait.h>
-#include <folly/experimental/coro/Task.h>
+#include <folly/coro/BlockingWait.h>
+#include <folly/coro/Task.h>
 #include <folly/init/Init.h>
 #include "fboss/fsdb/if/FsdbModel.h"
 #include "fboss/fsdb/if/gen-cpp2/FsdbService.h"

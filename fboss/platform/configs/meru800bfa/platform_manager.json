@@ -478,13 +478,13 @@
           "spiMasterConfigs": [
             {
               "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "SMB_SPI_MASTER0",
+                "pmUnitScopedName": "SMB_SPI0_MASTER0",
                 "deviceName": "spi_master",
                 "csrOffset": "0x7900"
               },
               "spiDeviceConfigs": [
                 {
-                  "pmUnitScopedName": "SMB_SPI_MASTER0_DEVICE1",
+                  "pmUnitScopedName": "SMB_SPI0_MASTER0_DEVICE1",
                   "chipSelect": 0,
                   "modalias": "spidev",
                   "maxSpeedHz": 25000000
@@ -1380,13 +1380,13 @@
           "spiMasterConfigs": [
             {
               "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "SMB_SPI_MASTER0",
+                "pmUnitScopedName": "SMB_SPI1_MASTER0",
                 "deviceName": "spi_master",
                 "csrOffset": "0x7900"
               },
               "spiDeviceConfigs": [
                 {
-                  "pmUnitScopedName": "SMB_SPI_MASTER0_DEVICE1",
+                  "pmUnitScopedName": "SMB_SPI1_MASTER0_DEVICE1",
                   "chipSelect": 0,
                   "modalias": "spidev",
                   "maxSpeedHz": 25000000
@@ -2282,13 +2282,13 @@
           "spiMasterConfigs": [
             {
               "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "SMB_SPI_MASTER0",
+                "pmUnitScopedName": "SMB_SPI2_MASTER0",
                 "deviceName": "spi_master",
                 "csrOffset": "0x7900"
               },
               "spiDeviceConfigs": [
                 {
-                  "pmUnitScopedName": "SMB_SPI_MASTER0_DEVICE1",
+                  "pmUnitScopedName": "SMB_SPI2_MASTER0_DEVICE1",
                   "chipSelect": 0,
                   "modalias": "spidev",
                   "maxSpeedHz": 25000000
@@ -3220,13 +3220,13 @@
           "spiMasterConfigs": [
             {
               "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "SMB_SPI_MASTER0",
+                "pmUnitScopedName": "SMB_SPI3_MASTER0",
                 "deviceName": "spi_master",
                 "csrOffset": "0x7900"
               },
               "spiDeviceConfigs": [
                 {
-                  "pmUnitScopedName": "SMB_SPI_MASTER0_DEVICE1",
+                  "pmUnitScopedName": "SMB_SPI3_MASTER0_DEVICE1",
                   "chipSelect": 0,
                   "modalias": "spidev",
                   "maxSpeedHz": 25000000
@@ -4114,12 +4114,17 @@
     "/run/devmap/i2c-busses/MERU_SCM_CPLD_SMBUS1_CH5": "/[SCM_I2C_MASTER1@5]",
     "/run/devmap/i2c-busses/MERU_SCM_CPLD_SMBUS1_CH6": "/[SCM_I2C_MASTER1@6]",
     "/run/devmap/i2c-busses/MERU_SCM_CPLD_SMBUS1_CH7": "/[SCM_I2C_MASTER1@7]",
-    "/run/devmap/eeproms/MERU_SCM_EEPROM_P1": "/[SCM_IDPROM_P1]",
+    "/run/devmap/eeproms/MERU800BFA_SMB_EEPROM": "/SMB_SLOT@0/[IDPROM]",
     "/run/devmap/sensors/CPU_MPS_PMBUS": "/[SCM_MPS_PMBUS]",
+    "/run/devmap/eeproms/MERU_SCM_EEPROM_P1": "/[SCM_IDPROM_P1]",
     "/run/devmap/sensors/CPU_PXM1310_1": "/[SCM_PXM1310_1]",
     "/run/devmap/sensors/CPU_PXE1211": "/[SCM_PXE1211]",
     "/run/devmap/sensors/CPU_PXM1310_2": "/[SCM_PXM1310_2]",
+    "/run/devmap/sensors/CPU_CORE_TEMP": "/[CPU_CORE_TEMP]",
     "/run/devmap/fpgas/MERU800BFA_SMB_FPGA0": "/SMB_SLOT@0/[SMB_FPGA0]",
+    "/run/devmap/fpgas/MERU800BFA_SMB_FPGA1": "/SMB_SLOT@0/[SMB_FPGA1]",
+    "/run/devmap/fpgas/MERU800BFA_SMB_FPGA2": "/SMB_SLOT@0/[SMB_FPGA2]",
+    "/run/devmap/fpgas/MERU800BFA_SMB_FPGA3": "/SMB_SLOT@0/[SMB_FPGA3]",
     "/run/devmap/i2c-busses/MERU800BFA_SMB_FPGA0_SMBUS0_CH0": "/SMB_SLOT@0/[SMB_FPGA0_I2C_MASTER0@0]",
     "/run/devmap/i2c-busses/MERU800BFA_SMB_FPGA0_SMBUS0_CH1": "/SMB_SLOT@0/[SMB_FPGA0_I2C_MASTER0@1]",
     "/run/devmap/i2c-busses/MERU800BFA_SMB_FPGA0_SMBUS0_CH2": "/SMB_SLOT@0/[SMB_FPGA0_I2C_MASTER0@2]",
@@ -4160,7 +4165,6 @@
     "/run/devmap/i2c-busses/MERU800BFA_SMB_FPGA0_SMBUS4_CH5": "/SMB_SLOT@0/[SMB_FPGA0_I2C_MASTER4@5]",
     "/run/devmap/i2c-busses/MERU800BFA_SMB_FPGA0_SMBUS4_CH6": "/SMB_SLOT@0/[SMB_FPGA0_I2C_MASTER4@6]",
     "/run/devmap/i2c-busses/MERU800BFA_SMB_FPGA0_SMBUS4_CH7": "/SMB_SLOT@0/[SMB_FPGA0_I2C_MASTER4@7]",
-    "/run/devmap/fpgas/MERU800BFA_SMB_FPGA1": "/SMB_SLOT@0/[SMB_FPGA1]",
     "/run/devmap/i2c-busses/MERU800BFA_SMB_FPGA1_SMBUS0_CH0": "/SMB_SLOT@0/[SMB_FPGA1_I2C_MASTER0@0]",
     "/run/devmap/i2c-busses/MERU800BFA_SMB_FPGA1_SMBUS0_CH1": "/SMB_SLOT@0/[SMB_FPGA1_I2C_MASTER0@1]",
     "/run/devmap/i2c-busses/MERU800BFA_SMB_FPGA1_SMBUS0_CH2": "/SMB_SLOT@0/[SMB_FPGA1_I2C_MASTER0@2]",
@@ -4201,7 +4205,6 @@
     "/run/devmap/i2c-busses/MERU800BFA_SMB_FPGA1_SMBUS4_CH5": "/SMB_SLOT@0/[SMB_FPGA1_I2C_MASTER4@5]",
     "/run/devmap/i2c-busses/MERU800BFA_SMB_FPGA1_SMBUS4_CH6": "/SMB_SLOT@0/[SMB_FPGA1_I2C_MASTER4@6]",
     "/run/devmap/i2c-busses/MERU800BFA_SMB_FPGA1_SMBUS4_CH7": "/SMB_SLOT@0/[SMB_FPGA1_I2C_MASTER4@7]",
-    "/run/devmap/fpgas/MERU800BFA_SMB_FPGA2": "/SMB_SLOT@0/[SMB_FPGA2]",
     "/run/devmap/i2c-busses/MERU800BFA_SMB_FPGA2_SMBUS0_CH0": "/SMB_SLOT@0/[SMB_FPGA2_I2C_MASTER0@0]",
     "/run/devmap/i2c-busses/MERU800BFA_SMB_FPGA2_SMBUS0_CH1": "/SMB_SLOT@0/[SMB_FPGA2_I2C_MASTER0@1]",
     "/run/devmap/i2c-busses/MERU800BFA_SMB_FPGA2_SMBUS0_CH2": "/SMB_SLOT@0/[SMB_FPGA2_I2C_MASTER0@2]",
@@ -4242,7 +4245,6 @@
     "/run/devmap/i2c-busses/MERU800BFA_SMB_FPGA2_SMBUS4_CH5": "/SMB_SLOT@0/[SMB_FPGA2_I2C_MASTER4@5]",
     "/run/devmap/i2c-busses/MERU800BFA_SMB_FPGA2_SMBUS4_CH6": "/SMB_SLOT@0/[SMB_FPGA2_I2C_MASTER4@6]",
     "/run/devmap/i2c-busses/MERU800BFA_SMB_FPGA2_SMBUS4_CH7": "/SMB_SLOT@0/[SMB_FPGA2_I2C_MASTER4@7]",
-    "/run/devmap/fpgas/MERU800BFA_SMB_FPGA3": "/SMB_SLOT@0/[SMB_FPGA3]",
     "/run/devmap/i2c-busses/MERU800BFA_SMB_FPGA3_SMBUS0_CH0": "/SMB_SLOT@0/[SMB_FPGA3_I2C_MASTER0@0]",
     "/run/devmap/i2c-busses/MERU800BFA_SMB_FPGA3_SMBUS0_CH1": "/SMB_SLOT@0/[SMB_FPGA3_I2C_MASTER0@1]",
     "/run/devmap/i2c-busses/MERU800BFA_SMB_FPGA3_SMBUS0_CH2": "/SMB_SLOT@0/[SMB_FPGA3_I2C_MASTER0@2]",
@@ -4283,9 +4285,7 @@
     "/run/devmap/i2c-busses/MERU800BFA_SMB_FPGA3_SMBUS4_CH5": "/SMB_SLOT@0/[SMB_FPGA3_I2C_MASTER4@5]",
     "/run/devmap/i2c-busses/MERU800BFA_SMB_FPGA3_SMBUS4_CH6": "/SMB_SLOT@0/[SMB_FPGA3_I2C_MASTER4@6]",
     "/run/devmap/i2c-busses/MERU800BFA_SMB_FPGA3_SMBUS4_CH7": "/SMB_SLOT@0/[SMB_FPGA3_I2C_MASTER4@7]",
-    "/run/devmap/eeproms/MERU800BFA_SMB_EEPROM": "/SMB_SLOT@0/[IDPROM]",
     "/run/devmap/cplds/MERU800BFA_SMB_CPLD": "/SMB_SLOT@0/[SMB_CPLD]",
-    "/run/devmap/sensors/CPU_CORE_TEMP": "/[CPU_CORE_TEMP]",
     "/run/devmap/sensors/SMB_MAX6581": "/SMB_SLOT@0/[SMB_MAX6581]",
     "/run/devmap/sensors/SMB_TMP75": "/SMB_SLOT@0/[SMB_TMP75]",
     "/run/devmap/sensors/SMB_RAA228926_R3R0_CORE": "/SMB_SLOT@0/[SMB_RAA228926_R3R0_CORE]",
@@ -4298,6 +4298,7 @@
     "/run/devmap/sensors/SMB_ISL68226_OSFP_TR": "/SMB_SLOT@0/[SMB_ISL68226_OSFP_TR]",
     "/run/devmap/sensors/SMB_ISL68226_OSFP_BL": "/SMB_SLOT@0/[SMB_ISL68226_OSFP_BL]",
     "/run/devmap/sensors/SMB_ISL68226_OSFP_BR": "/SMB_SLOT@0/[SMB_ISL68226_OSFP_BR]",
+    "/run/devmap/sensors/SMB_UCD90320": "/SMB_SLOT@0/[SMB_UCD90320]",
     "/run/devmap/sensors/FAN0_TMP75": "/SMB_SLOT@0/[FAN0_TMP75]",
     "/run/devmap/cplds/FAN0_CPLD": "/SMB_SLOT@0/[FAN0_CPLD]",
     "/run/devmap/sensors/FAN_CPLD0": "/SMB_SLOT@0/[FAN0_CPLD]",
@@ -4307,10 +4308,6 @@
     "/run/devmap/sensors/FAN2_TMP75": "/SMB_SLOT@0/[FAN2_TMP75]",
     "/run/devmap/cplds/FAN2_CPLD": "/SMB_SLOT@0/[FAN2_CPLD]",
     "/run/devmap/sensors/FAN_CPLD2": "/SMB_SLOT@0/[FAN2_CPLD]",
-    "/run/devmap/sensors/PSU1_PMBUS": "/SMB_SLOT@0/PSU_SLOT@0/[PSU_PMBUS]",
-    "/run/devmap/sensors/PSU2_PMBUS": "/SMB_SLOT@0/PSU_SLOT@1/[PSU_PMBUS]",
-    "/run/devmap/sensors/PSU3_PMBUS": "/SMB_SLOT@0/PSU_SLOT@2/[PSU_PMBUS]",
-    "/run/devmap/sensors/PSU4_PMBUS": "/SMB_SLOT@0/PSU_SLOT@3/[PSU_PMBUS]",
     "/run/devmap/xcvrs/xcvr_1": "/SMB_SLOT@0/[OSFP_PORT1_XCVR]",
     "/run/devmap/xcvrs/xcvr_2": "/SMB_SLOT@0/[OSFP_PORT2_XCVR]",
     "/run/devmap/xcvrs/xcvr_3": "/SMB_SLOT@0/[OSFP_PORT3_XCVR]",
@@ -4438,10 +4435,18 @@
     "/run/devmap/xcvrs/xcvr_125": "/SMB_SLOT@0/[OSFP_PORT125_XCVR]",
     "/run/devmap/xcvrs/xcvr_126": "/SMB_SLOT@0/[OSFP_PORT126_XCVR]",
     "/run/devmap/xcvrs/xcvr_127": "/SMB_SLOT@0/[OSFP_PORT127_XCVR]",
-    "/run/devmap/xcvrs/xcvr_128": "/SMB_SLOT@0/[OSFP_PORT128_XCVR]"
+    "/run/devmap/xcvrs/xcvr_128": "/SMB_SLOT@0/[OSFP_PORT128_XCVR]",
+    "/run/devmap/flashes/SMB_SPI0_MASTER0_DEVICE1": "/SMB_SLOT@0/[SMB_SPI0_MASTER0_DEVICE1]",
+    "/run/devmap/flashes/SMB_SPI1_MASTER0_DEVICE1": "/SMB_SLOT@0/[SMB_SPI1_MASTER0_DEVICE1]",
+    "/run/devmap/flashes/SMB_SPI2_MASTER0_DEVICE1": "/SMB_SLOT@0/[SMB_SPI2_MASTER0_DEVICE1]",
+    "/run/devmap/flashes/SMB_SPI3_MASTER0_DEVICE1": "/SMB_SLOT@0/[SMB_SPI3_MASTER0_DEVICE1]",
+    "/run/devmap/sensors/PSU1_PMBUS": "/SMB_SLOT@0/PSU_SLOT@0/[PSU_PMBUS]",
+    "/run/devmap/sensors/PSU2_PMBUS": "/SMB_SLOT@0/PSU_SLOT@1/[PSU_PMBUS]",
+    "/run/devmap/sensors/PSU3_PMBUS": "/SMB_SLOT@0/PSU_SLOT@2/[PSU_PMBUS]",
+    "/run/devmap/sensors/PSU4_PMBUS": "/SMB_SLOT@0/PSU_SLOT@3/[PSU_PMBUS]"
   },
   "bspKmodsRpmName": "arista_bsp_kmods",
-  "bspKmodsRpmVersion": "0.7.3-1",
+  "bspKmodsRpmVersion": "0.7.4-1",
   "bspKmodsToReload": [
     "scd-xcvr",
     "scd-spi",

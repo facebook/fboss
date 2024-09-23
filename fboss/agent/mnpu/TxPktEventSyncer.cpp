@@ -12,7 +12,7 @@
 #include "fboss/agent/TxPacket.h"
 
 #if FOLLY_HAS_COROUTINES
-#include <folly/experimental/coro/BlockingWait.h>
+#include <folly/coro/BlockingWait.h>
 #endif
 
 DEFINE_int32(tx_pkt_stream_buffer_size, 1000, "TxPktEventStream buffer size");

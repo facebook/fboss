@@ -182,44 +182,6 @@ void updatePortSpeed(
   removeSubsumedPorts(cfg, profile->second, supportsAddRemovePort);
 }
 
-void configurePortProfile(
-    const HwSwitch& hwSwitch,
-    cfg::SwitchConfig& config,
-    cfg::PortProfileID profileID,
-    std::vector<PortID> allPortsInGroup,
-    PortID controllingPortID) {
-  auto platform = hwSwitch.getPlatform();
-  auto supportsAddRemovePort = platform->supportsAddRemovePort();
-  auto controllingPort = findCfgPort(config, controllingPortID);
-  for (auto portID : allPortsInGroup) {
-    // We might have removed a subsumed port already in a previous
-    // iteration of the loop.
-    auto cfgPort = findCfgPortIf(config, portID);
-    if (cfgPort == config.ports()->end()) {
-      return;
-    }
-
-    auto platformPort = platform->getPlatformPort(portID);
-    const auto& platPortEntry = platformPort->getPlatformPortEntry();
-    auto supportedProfiles = *platPortEntry.supportedProfiles();
-    auto profile = supportedProfiles.find(profileID);
-    if (profile == supportedProfiles.end()) {
-      XLOG(WARNING) << "Port " << static_cast<int>(portID)
-                    << " doesn't support profile "
-                    << apache::thrift::util::enumNameSafe(profileID)
-                    << ", disabling it instead";
-      // Port doesn't support this speed, just disable it.
-      cfgPort->state() = cfg::PortState::DISABLED;
-      continue;
-    }
-    cfgPort->profileID() = profileID;
-    cfgPort->speed() = getSpeed(profileID);
-    cfgPort->ingressVlan() = *controllingPort->ingressVlan();
-    cfgPort->state() = cfg::PortState::ENABLED;
-    removeSubsumedPorts(config, profile->second, supportsAddRemovePort);
-  }
-}
-
 cfg::SwitchConfig createRtswUplinkDownlinkConfig(
     const HwSwitch* hwSwitch,
     HwSwitchEnsemble* ensemble,
@@ -290,7 +252,7 @@ cfg::SwitchConfig createUplinkDownlinkConfig(
         lbModeMap,
         interfaceHasSubnet,
         true,
-        kUplinkBaseVlanId);
+        kDownlinkBaseVlanId /* TH3, TH4 ingress vlan case starts from 2000 */);
     for (auto portId : masterLogicalPortIds) {
       utility::updatePortSpeed(
           platformMapping,

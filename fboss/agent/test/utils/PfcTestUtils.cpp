@@ -3,6 +3,7 @@
 #include "fboss/agent/test/utils/PfcTestUtils.h"
 #include "fboss/agent/Utils.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
+#include "fboss/agent/test/utils/AclTestUtils.h"
 
 #include <gtest/gtest.h>
 
@@ -14,8 +15,7 @@ static const std::vector<int> kLossyPgIds{0};
 
 void setupQosMapForPfc(
     cfg::QosMap& qosMap,
-    const std::map<int, int>& tc2PgOverride = {},
-    const std::map<int, int>& pfcPri2PgIdOverride = {}) {
+    const std::map<int, int>& tc2PgOverride = {}) {
   // update pfc maps
   std::map<int16_t, int16_t> tc2PgId;
   std::map<int16_t, int16_t> tc2QueueId;
@@ -35,9 +35,6 @@ void setupQosMapForPfc(
   for (auto& tc2Pg : tc2PgOverride) {
     tc2PgId[tc2Pg.first] = tc2Pg.second;
   }
-  for (auto& tmp : pfcPri2PgIdOverride) {
-    pfcPri2PgId[tmp.first] = tmp.second;
-  }
 
   qosMap.dscpMaps()->resize(8);
   for (auto i = 0; i < 8; i++) {
@@ -52,7 +49,10 @@ void setupQosMapForPfc(
   qosMap.pfcPriorityToQueueId() = std::move(pfcPri2QueueId);
 }
 
-void setupPfc(cfg::SwitchConfig& cfg, const std::vector<PortID>& ports) {
+void setupPfc(
+    cfg::SwitchConfig& cfg,
+    const std::vector<PortID>& ports,
+    const std::map<int, int>& tcToPgOverride) {
   cfg::PortPfc pfc;
   pfc.tx() = true;
   pfc.rx() = true;
@@ -60,7 +60,7 @@ void setupPfc(cfg::SwitchConfig& cfg, const std::vector<PortID>& ports) {
 
   cfg::QosMap qosMap;
   // setup qos map with pfc structs
-  setupQosMapForPfc(qosMap);
+  setupQosMapForPfc(qosMap, tcToPgOverride);
 
   // setup qosPolicy
   cfg.qosPolicies()->resize(1);
@@ -151,8 +151,9 @@ void setupPfcBuffers(
     cfg::SwitchConfig& cfg,
     const std::vector<PortID>& ports,
     const std::vector<int>& losslessPgIds,
+    const std::map<int, int>& tcToPgOverride,
     PfcBufferParams buffer) {
-  setupPfc(cfg, ports);
+  setupPfc(cfg, ports, tcToPgOverride);
 
   std::map<std::string, std::vector<cfg::PortPgConfig>> portPgConfigMap;
   setupPortPgConfig(
@@ -169,6 +170,28 @@ void setupPfcBuffers(
   setupBufferPoolConfig(
       bufferPoolCfgMap, buffer.globalShared, buffer.globalHeadroom);
   cfg.bufferPoolConfigs() = std::move(bufferPoolCfgMap);
+}
+
+void addPuntPfcPacketAcl(cfg::SwitchConfig& cfg, uint16_t queueId) {
+  cfg::AclEntry entry;
+  entry.name() = "pfcMacEntry";
+  entry.actionType() = cfg::AclActionType::PERMIT;
+  entry.dstMac() = "01:80:C2:00:00:01";
+  utility::addAclEntry(&cfg, entry, utility::kDefaultAclTable());
+
+  cfg::MatchToAction matchToAction;
+  matchToAction.matcher() = "pfcMacEntry";
+  cfg::MatchAction& action = matchToAction.action().ensure();
+  action.toCpuAction() = cfg::ToCpuAction::TRAP;
+  action.sendToQueue().ensure().queueId() = queueId;
+  action.setTc().ensure().tcValue() = queueId;
+  cfg.cpuTrafficPolicy()
+      .ensure()
+      .trafficPolicy()
+      .ensure()
+      .matchToAction()
+      .ensure()
+      .push_back(matchToAction);
 }
 
 } // namespace facebook::fboss::utility

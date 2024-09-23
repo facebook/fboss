@@ -262,6 +262,9 @@ MultiSwitchThriftHandler::co_notifyRxPacket(int64_t switchId) {
             if (item->aggPort()) {
               pkt->setSrcAggregatePort(AggregatePortID(*item->aggPort()));
             }
+            if (item->cosQueue()) {
+              pkt->setCosQueue(static_cast<uint8_t>(*item->cosQueue()));
+            }
             // Agent pkt handling code assumes single buffer, so coalesce
             pkt->buf()->coalesce();
             if (*item->length() != pkt->buf()->length()) {
@@ -269,7 +272,11 @@ MultiSwitchThriftHandler::co_notifyRxPacket(int64_t switchId) {
               sw_->stats()->hwAgentRxBadPktReceived(switchIndex);
               continue;
             }
-            sw_->packetReceived(std::move(pkt));
+            if (FLAGS_rx_sw_priority) {
+              sw_->rxPacketReceived(std::move(pkt));
+            } else {
+              sw_->packetReceived(std::move(pkt));
+            }
           }
         } catch (const std::exception& e) {
           XLOG(DBG2) << "Rx packet event sink cancelled for switch " << switchId

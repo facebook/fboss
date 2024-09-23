@@ -5,6 +5,7 @@
 #include <folly/io/async/ScopedEventBaseThread.h>
 #include <gtest/gtest_prod.h>
 #include "fboss/fsdb/client/FsdbDeltaSubscriber.h"
+#include "fboss/fsdb/client/FsdbPatchSubscriber.h"
 #include "fboss/fsdb/client/FsdbStateSubscriber.h"
 #include "fboss/fsdb/client/FsdbStreamClient.h"
 #include "fboss/fsdb/common/Flags.h"
@@ -247,7 +248,7 @@ class FsdbPubSubManager {
   void removeSubscriptionImpl(
       const std::vector<PathElement>& subscribePath,
       const std::string& fsdbHost,
-      bool isDelta,
+      SubscriptionType subscribeType,
       bool subscribeStats);
   template <typename SubscriberT, typename PathElement>
   void addSubscriptionImpl(

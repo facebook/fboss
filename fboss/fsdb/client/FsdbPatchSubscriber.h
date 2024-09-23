@@ -35,5 +35,8 @@ using FsdbPatchSubscriber = FsdbPatchSubscriberImpl<
     SubscriberMessage,
     SubscriberChunk,
     std::map<SubscriptionKey, RawOperPath>>;
-// TODO: impl extended patch subscribers
+using FsdbExtPatchSubscriber = FsdbPatchSubscriberImpl<
+    SubscriberMessage,
+    SubscriberChunk,
+    std::map<SubscriptionKey, ExtendedOperPath>>;
 } // namespace facebook::fboss::fsdb

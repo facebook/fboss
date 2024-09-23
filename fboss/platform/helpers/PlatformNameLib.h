@@ -13,7 +13,6 @@ namespace facebook::fboss::platform::helpers {
 class PlatformNameLib {
  public:
   auto static constexpr dmidecodeCommand = "dmidecode -s system-product-name";
-  auto static constexpr kPlatformNameBiosReads = "platform_name_bios_reads";
   auto static constexpr kPlatformNameBiosReadFailures =
       "platform_name_bios_read_failures";
   auto static constexpr kCacheDir = "/var/facebook/fboss/";

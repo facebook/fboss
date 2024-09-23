@@ -8,6 +8,7 @@
 #include "fboss/lib/platforms/PlatformMode.h"
 #include "fboss/lib/platforms/PlatformProductInfo.h"
 #include "fboss/platform/config_lib/ConfigLib.h"
+#include "fboss/platform/helpers/PlatformNameLib.h"
 #include "fboss/platform/weutil/WeutilDarwin.h"
 #include "fboss/platform/weutil/WeutilImpl.h"
 #include "fboss/platform/weutil/if/gen-cpp2/weutil_config_types.h"
@@ -18,7 +19,8 @@ namespace {
 
 weutil_config::WeutilConfig getWeUtilConfig() {
   weutil_config::WeutilConfig thriftConfig;
-  std::string weutilConfigJson = ConfigLib().getWeutilConfig();
+  auto platformName = helpers::PlatformNameLib().getPlatformName();
+  std::string weutilConfigJson = ConfigLib().getWeutilConfig(platformName);
   apache::thrift::SimpleJSONSerializer::deserialize<
       weutil_config::WeutilConfig>(weutilConfigJson, thriftConfig);
   XLOG(DBG1) << apache::thrift::SimpleJSONSerializer::serialize<std::string>(

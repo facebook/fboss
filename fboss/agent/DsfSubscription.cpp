@@ -3,6 +3,7 @@
 #include "fboss/agent/DsfSubscription.h"
 #include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/DsfStateUpdaterUtil.h"
+#include "fboss/agent/DsfUpdateValidator.h"
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/SwitchStats.h"
 #include "fboss/agent/state/SwitchState.h"
@@ -82,6 +83,10 @@ DsfSubscription::DsfSubscription(
           getServerOptions(localIp.str(), remoteIp.str()),
           reconnectEvb,
           subscriberEvb)),
+      validator_(std::make_unique<DsfUpdateValidator>(
+          sw,
+          sw->getSwitchInfoTable().getSwitchIDs(),
+          remoteNodeSwitchIds)),
       localNodeName_(std::move(localNodeName)),
       remoteNodeName_(std::move(remoteNodeName)),
       remoteNodeSwitchIds_(std::move(remoteNodeSwitchIds)),
@@ -214,7 +219,8 @@ void DsfSubscription::handleFsdbSubscriptionStateUpdate(
     fsdb::SubscriptionState oldState,
     fsdb::SubscriptionState newState) {
   auto remoteEndpoint = makeRemoteEndpoint(remoteNodeName_, remoteIp_);
-  XLOG(DBG2) << "DsfSubscriber: " << remoteEndpoint
+
+  XLOG(DBG2) << kDsfCtrlLogPrefix << "DsfSubscriber: " << remoteEndpoint
              << ": subscription state changed "
              << fsdb::subscriptionStateToString(oldState) << " -> "
              << fsdb::subscriptionStateToString(newState);
@@ -421,6 +427,7 @@ void DsfSubscription::processGRHoldTimerExpired() {
     bool changed{false};
     auto out = in->clone();
 
+    int expiredOrRemovedSysPorts = 0;
     auto remoteSystemPorts = out->getRemoteSystemPorts()->modify(&out);
     for (auto& [_, remoteSystemPortMap] : *remoteSystemPorts) {
       for (auto& [_, remoteSystemPort] : *remoteSystemPortMap) {
@@ -433,8 +440,12 @@ void DsfSubscription::processGRHoldTimerExpired() {
             remoteSystemPort->getRemoteSystemPortType().has_value() &&
             remoteSystemPort->getRemoteSystemPortType().value() ==
                 RemoteSystemPortType::DYNAMIC_ENTRY) {
+          expiredOrRemovedSysPorts++;
+
           if (FLAGS_dsf_flush_remote_sysports_and_rifs_on_gr) {
             remoteSystemPorts->removeNode(remoteSystemPort->getID());
+            XLOG(DBG2) << kDsfCtrlLogPrefix << "Removed remote system port "
+                       << remoteSystemPort->getName();
           } else {
             auto clonedNode = remoteSystemPort->isPublished()
                 ? remoteSystemPort->clone()
@@ -442,6 +453,8 @@ void DsfSubscription::processGRHoldTimerExpired() {
             clonedNode->setRemoteLivenessStatus(LivenessStatus::STALE);
             remoteSystemPorts->updateNode(
                 clonedNode, sw_->getScopeResolver()->scope(clonedNode));
+            XLOG(DBG2) << kDsfCtrlLogPrefix << "Marked remote system port "
+                       << remoteSystemPort->getName() << " as STALE";
           }
 
           changed = true;
@@ -449,6 +462,11 @@ void DsfSubscription::processGRHoldTimerExpired() {
       }
     }
 
+    XLOG(DBG2) << kDsfCtrlLogPrefix << "Expired/removed"
+               << expiredOrRemovedSysPorts << " remote ports from remote node "
+               << remoteNodeName_;
+
+    int expiredOrRemovedInterfaces = 0;
     auto remoteInterfaces = out->getRemoteInterfaces()->modify(&out);
     for (auto& [_, remoteInterfaceMap] : *remoteInterfaces) {
       for (auto& [_, remoteInterface] : *remoteInterfaceMap) {
@@ -468,8 +486,12 @@ void DsfSubscription::processGRHoldTimerExpired() {
               remoteInterface->getRemoteInterfaceType().has_value() &&
               remoteInterface->getRemoteInterfaceType().value() ==
                   RemoteInterfaceType::DYNAMIC_ENTRY) {
+            expiredOrRemovedInterfaces++;
+
             if (FLAGS_dsf_flush_remote_sysports_and_rifs_on_gr) {
               remoteInterfaces->removeNode(remoteInterface->getID());
+              XLOG(DBG2) << kDsfCtrlLogPrefix << "Removed remote interface "
+                         << remoteNodeName_ << "/" << remoteInterface->getID();
             } else {
               auto clonedNode = remoteInterface->isPublished()
                   ? remoteInterface->clone()
@@ -477,9 +499,11 @@ void DsfSubscription::processGRHoldTimerExpired() {
               clonedNode->setRemoteLivenessStatus(LivenessStatus::STALE);
               clonedNode->setArpTable(state::NeighborEntries{});
               clonedNode->setNdpTable(state::NeighborEntries{});
-
               remoteInterfaces->updateNode(
                   clonedNode, sw_->getScopeResolver()->scope(clonedNode, out));
+              XLOG(DBG2) << kDsfCtrlLogPrefix << "Marked remote interface "
+                         << remoteNodeName_ << "/" << remoteInterface->getName()
+                         << " as STALE";
             }
 
             changed = true;
@@ -487,6 +511,10 @@ void DsfSubscription::processGRHoldTimerExpired() {
         }
       }
     }
+
+    XLOG(DBG2) << kDsfCtrlLogPrefix << "Expired/removed "
+               << expiredOrRemovedInterfaces
+               << " remote interfaces from remote node " << remoteNodeName_;
 
     if (changed) {
       return out;

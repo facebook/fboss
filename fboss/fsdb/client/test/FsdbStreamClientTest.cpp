@@ -7,8 +7,8 @@
 #include "fboss/lib/CommonUtils.h"
 
 #include <fb303/ServiceData.h>
-#include <folly/experimental/coro/AsyncGenerator.h>
-#include <folly/experimental/coro/AsyncPipe.h>
+#include <folly/coro/AsyncGenerator.h>
+#include <folly/coro/AsyncPipe.h>
 #include <folly/io/async/ScopedEventBaseThread.h>
 #include <folly/logging/xlog.h>
 #include <algorithm>

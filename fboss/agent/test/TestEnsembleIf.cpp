@@ -55,6 +55,10 @@ std::vector<const HwAsic*> TestEnsembleIf::getL3Asics() const {
   return l3Asics;
 }
 
+int TestEnsembleIf::getNumL3Asics() const {
+  return getHwAsicTable()->getL3Asics().size();
+}
+
 std::vector<SystemPortID> TestEnsembleIf::masterLogicalSysPortIds() const {
   std::vector<SystemPortID> sysPorts;
   for (const auto& asic : getHwAsicTable()->getL3Asics()) {

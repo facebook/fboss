@@ -309,6 +309,34 @@ void renameAclStat(
   addAclStat(cfg, matcher, newCounterName);
 }
 
+// Just mirror and counter for now. More can go here if needed
+void addAclMatchActions(
+    cfg::SwitchConfig* cfg,
+    const std::string& matcher,
+    const std::optional<std::string>& counterName,
+    const std::optional<std::string>& mirrorName,
+    bool ingress) {
+  cfg::MatchAction matchAction = cfg::MatchAction();
+  if (mirrorName.has_value()) {
+    if (ingress) {
+      matchAction.ingressMirror() = mirrorName.value();
+    } else {
+      matchAction.egressMirror() = mirrorName.value();
+    }
+  }
+  if (counterName.has_value()) {
+    matchAction.counter() = counterName.value();
+  }
+  auto matchToAction = cfg::MatchToAction();
+  *matchToAction.matcher() = matcher;
+  *matchToAction.action() = matchAction;
+
+  if (!cfg->dataPlaneTrafficPolicy()) {
+    cfg->dataPlaneTrafficPolicy() = cfg::TrafficPolicyConfig();
+  }
+  cfg->dataPlaneTrafficPolicy()->matchToAction()->push_back(matchToAction);
+}
+
 std::vector<cfg::CounterType> getAclCounterTypes(
     const std::vector<const HwAsic*>& asics) {
   auto asic = checkSameAndGetAsic(asics);
@@ -356,6 +384,18 @@ uint64_t getAclInOutPackets(
     statValue += entry->second;
   }
   return statValue;
+}
+
+std::shared_ptr<AclEntry> getAclEntry(
+    const std::shared_ptr<SwitchState>& state,
+    const std::string& name,
+    bool enableAclTableGroup) {
+  if (enableAclTableGroup) {
+    return state
+        ->getAclsForTable(cfg::AclStage::INGRESS, utility::kDefaultAclTable())
+        ->getNodeIf(name);
+  }
+  return state->getAcl(name);
 }
 
 } // namespace facebook::fboss::utility

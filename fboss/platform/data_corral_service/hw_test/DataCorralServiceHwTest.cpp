@@ -25,14 +25,40 @@
 using namespace facebook::fboss::platform;
 using namespace facebook::fboss::platform::data_corral_service;
 
-namespace {
+// When running OSS, users must supply config_file unlike in fb environment.
+// getUncachedFruid test, DataCorral talks to WeUtil to parse eeprom
+// content. Sincne config_file flag only store a single file, WeUtil will
+// end up deserializing led_manger.json...
+// To avoid this different user expectations, we could:
+// 1) Figure out how to avoid passing config files in OSS.
+// 2) See whether this can be avoided when we merge DataCorral into PM.
+DEFINE_string(
+    led_manager_config_file,
+    "",
+    "[OSS-Only] Path to led_manager.json file used for DataCorral service configuration during HwTest.");
+DEFINE_string(
+    weutil_config_file,
+    "",
+    "[OSS-Only] Path to weutil.json file used for weutil configuration during HWTest. "
+    "This will overwrite FLAGS_config_file when weutil initializes the config.");
+
 class DataCorralServiceHwTest : public ::testing::Test {
  public:
   void SetUp() override {
     thriftHandler_ = std::make_shared<DataCorralServiceThriftHandler>();
 
+    std::string jsonLedManagerConfig;
+    if (FLAGS_led_manager_config_file.empty()) {
+      jsonLedManagerConfig = ConfigLib().getLedManagerConfig();
+    } else {
+      folly::readFile(
+          FLAGS_led_manager_config_file.c_str(), jsonLedManagerConfig);
+    }
+    if (!FLAGS_weutil_config_file.empty()) {
+      FLAGS_config_file = FLAGS_weutil_config_file;
+    }
     apache::thrift::SimpleJSONSerializer::deserialize<LedManagerConfig>(
-        ConfigLib().getLedManagerConfig(), ledManagerConfig_);
+        jsonLedManagerConfig, ledManagerConfig_);
 
     auto ledManager = std::make_shared<LedManager>(
         *ledManagerConfig_.systemLedConfig(),
@@ -55,7 +81,6 @@ class DataCorralServiceHwTest : public ::testing::Test {
   std::shared_ptr<DataCorralServiceThriftHandler> thriftHandler_;
   LedManagerConfig ledManagerConfig_;
 };
-} // namespace
 
 TEST_F(DataCorralServiceHwTest, FruLedProgrammingSysfsCheck) {
   fruPresenceExplorer_->detectFruPresence();
@@ -123,6 +148,21 @@ int main(int argc, char* argv[]) {
   // Parse command line flags
   testing::InitGoogleTest(&argc, argv);
   facebook::fboss::platform::helpers::init(&argc, &argv);
+  if (!FLAGS_config_file.empty()) {
+    XLOG(ERR)
+        << "Please use --led_manager_config_file and --weutil_config_file instead of --config_file. "
+        << "For more info on the flags, run with --helpon=DataCorralServiceHwTest";
+    return -1;
+  }
+#ifdef IS_OSS
+  if (FLAGS_led_manager_config_file.empty() ||
+      FLAGS_weutil_config_file.empty()) {
+    XLOG(ERR)
+        << "Please specify --led_manager_config_file and --weutil_config_file. "
+        << "For more info on the flags, run with --helpon=DataCorralServiceHwTest";
+    return -1;
+  }
+#endif
   // Run the tests
   return RUN_ALL_TESTS();
 }

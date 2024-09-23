@@ -77,11 +77,12 @@ void configureSflowMirror(
     cfg::SwitchConfig& config,
     const std::string& mirrorName,
     bool truncate,
-    bool isV4) {
+    const std::string& destinationIp,
+    uint32_t udpDstPort) {
   cfg::SflowTunnel sflowTunnel;
-  sflowTunnel.ip() = getSflowMirrorDestination(isV4).str();
+  sflowTunnel.ip() = destinationIp;
   sflowTunnel.udpSrcPort() = 6545;
-  sflowTunnel.udpDstPort() = 6343;
+  sflowTunnel.udpDstPort() = udpDstPort;
 
   cfg::MirrorTunnel tunnel;
   tunnel.sflowTunnel() = sflowTunnel;

@@ -5,18 +5,26 @@
 namespace facebook::fboss::fsdb {
 
 template <typename SubUnit, typename Paths>
-std::string FsdbSubscriber<SubUnit, Paths>::typeStr() const {
+SubscriptionType FsdbSubscriber<SubUnit, Paths>::subscriptionType() {
   if constexpr (
       std::is_same_v<SubUnit, OperDelta> ||
-      std::is_same_v<SubUnit, TaggedOperDelta>) {
-    return "Delta";
-  } else if (
+      std::is_same_v<SubUnit, OperSubDeltaUnit>) {
+    return SubscriptionType::DELTA;
+  } else if constexpr (
       std::is_same_v<SubUnit, OperState> ||
-      std::is_same_v<SubUnit, TaggedOperState>) {
-    return "Path";
+      std::is_same_v<SubUnit, OperSubPathUnit>) {
+    return SubscriptionType::PATH;
+  } else if constexpr (std::is_same_v<SubUnit, SubscriberChunk>) {
+    return SubscriptionType::PATCH;
   } else {
-    return "Patch";
+    static_assert(folly::always_false<SubUnit>, "unsupported request type");
   }
+}
+
+template <typename SubUnit, typename Paths>
+std::string FsdbSubscriber<SubUnit, Paths>::typeStr() const {
+  auto subType = subscriptionType();
+  return subscriptionTypeToStr[subType];
 }
 template <typename SubUnit, typename Paths>
 std::string FsdbSubscriber<SubUnit, Paths>::pathsStr(const Paths& path) const {

@@ -32,6 +32,7 @@ class PlatformProductInfo {
   void initialize();
   std::string getFabricLocation();
   std::string getProductName();
+  int getProductVersion() const;
 
  private:
   // Forbidden copy constructor and assignment operator

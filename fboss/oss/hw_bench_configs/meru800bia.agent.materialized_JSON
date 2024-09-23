@@ -155,7 +155,7 @@
             },
             "systemPortRange": {
               "minimum": 10,
-              "maximum": 54
+              "maximum": 53
             },
             "switchMac": "02:00:00:00:00:01",
             "connectionHandle": "15:00"
@@ -178,7 +178,7 @@
           ],
           "systemPortRange": {
             "minimum": 10,
-            "maximum": 54
+            "maximum": 53
           },
           "nodeMac": "18*800G-8",
           "asicType": 14,
@@ -1194,8 +1194,10 @@
             "port_init_speed_cd.BCM8889X": "400000",
             "port_init_speed_ce.BCM8889X": "100000",
             "port_init_speed_d3c.BCM8889X": "800000",
+            "port_init_speed_eventor.BCM8889X": "100000",
             "port_init_speed_fabric.BCM8889X": "106250",
             "port_init_speed_le.BCM8889X": "50000",
+            "port_init_speed_rcy.BCM8889X": "100000",
             "port_init_speed_sat.BCM8889X": "400000",
             "port_init_speed_xe.BCM8889X": "25000",
             "port_init_speed_xe13.BCM8889X": "10000",

@@ -1009,4 +1009,23 @@ bool haveParallelLinksToInterfaceNodes(
   return false;
 };
 
+CpuCosQueueId hwQueueIdToCpuCosQueueId(uint8_t hwQueueId) {
+  switch (hwQueueId) {
+    case 0:
+      return CpuCosQueueId::LOPRI;
+    case 1:
+      return CpuCosQueueId::DEFAULT;
+    case 2:
+      return CpuCosQueueId::MIDPRI;
+    /* On asics with 8 queues, cosQueue 7 is high priority
+     * bcm has 10 mcast cpu queues and use queue 9 as high priority queue
+     */
+    case 7:
+    case 9:
+      return CpuCosQueueId::HIPRI;
+    default:
+      XLOG(FATAL) << "Got Invalid hwQueueId " << hwQueueId;
+      break;
+  }
+}
 } // namespace facebook::fboss

@@ -278,6 +278,7 @@ class AgentEnsemble : public TestEnsembleIf {
 
   std::unique_ptr<apache::thrift::Client<utility::AgentHwTestCtrl>>
   getHwAgentTestClient(SwitchID switchId);
+  BootType getBootType() const;
 
  protected:
   void joinAsyncInitThread() {

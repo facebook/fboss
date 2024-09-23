@@ -37,6 +37,7 @@ inline const std::string kEgressErspan("egress_erspan");
 // Port 0 is used for traffic and port 1 is used for mirroring.
 inline const uint8_t kTrafficPortIndex = 0;
 inline const uint8_t kMirrorToPortIndex = 1;
+inline const uint8_t kSflowToPortIndex = 2;
 
 constexpr auto kDscpDefault = facebook::fboss::cfg::switch_config_constants::
     DEFAULT_MIRROR_DSCP_; // default dscp value
@@ -55,7 +56,8 @@ void configureSflowMirror(
     cfg::SwitchConfig& config,
     const std::string& mirrorName,
     bool truncate,
-    bool isV4 = true);
+    const std::string& destinationIp,
+    uint32_t udpSrcPort = 6343);
 
 void configureSflowSampling(
     cfg::SwitchConfig& config,

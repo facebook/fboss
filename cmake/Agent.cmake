@@ -169,6 +169,7 @@ add_library(core
   fboss/agent/DsfStateUpdaterUtil.cpp
   fboss/agent/DsfSubscriber.cpp
   fboss/agent/DsfSubscription.cpp
+  fboss/agent/DsfUpdateValidator.cpp
   fboss/agent/FabricConnectivityManager.cpp
   fboss/agent/EncapIndexAllocator.cpp
   fboss/agent/FibHelpers.cpp

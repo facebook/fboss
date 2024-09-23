@@ -11,7 +11,7 @@
 
 #include <fb303/ThreadCachedServiceData.h>
 #include <folly/SocketAddress.h>
-#include <folly/experimental/coro/AsyncScope.h>
+#include <folly/coro/AsyncScope.h>
 
 #include <optional>
 #include <string>

@@ -11,6 +11,7 @@
 #include <folly/Benchmark.h>
 #include <gtest/gtest.h>
 #include "fboss/agent/AgentFeatures.h"
+#include "fboss/agent/DsfStateUpdaterUtil.h"
 #include "fboss/agent/Platform.h"
 #include "fboss/agent/SwitchStats.h"
 #include "fboss/agent/benchmarks/AgentBenchmarks.h"
@@ -53,14 +54,27 @@ BENCHMARK(HwSwitchReachabilityChange) {
       };
   auto ensemble =
       createAgentEnsemble(initialConfig, false /*disableLinkStateToggler*/);
-  ensemble->applyNewState([&](const std::shared_ptr<SwitchState>& in) {
-    return utility::setupRemoteIntfAndSysPorts(
-        in,
-        ensemble->scopeResolver(),
+  auto updateDsfStateFn = [&ensemble](const std::shared_ptr<SwitchState>& in) {
+    std::map<SwitchID, std::shared_ptr<SystemPortMap>> switchId2SystemPorts;
+    std::map<SwitchID, std::shared_ptr<InterfaceMap>> switchId2Rifs;
+    utility::populateRemoteIntfAndSysPorts(
+        switchId2SystemPorts,
+        switchId2Rifs,
         ensemble->getSw()->getConfig(),
         ensemble->getSw()->getHwAsicTable()->isFeatureSupportedOnAllAsic(
             HwAsic::Feature::RESERVED_ENCAP_INDEX_RANGE));
-  });
+    return DsfStateUpdaterUtil::getUpdatedState(
+        in,
+        ensemble->getSw()->getScopeResolver(),
+        ensemble->getSw()->getRib(),
+        switchId2SystemPorts,
+        switchId2Rifs);
+  };
+  ensemble->getSw()->getRib()->updateStateInRibThread(
+      [&ensemble, updateDsfStateFn]() {
+        ensemble->getSw()->updateStateWithHwFailureProtection(
+            folly::sformat("Update state for node: {}", 0), updateDsfStateFn);
+      });
 
   XLOG(DBG0) << "Wait for all fabric ports to be ACTIVE";
   // Wait for all fabric ports to be ACTIVE

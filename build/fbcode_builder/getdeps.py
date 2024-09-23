@@ -960,6 +960,7 @@ class GenerateGitHubActionsCmd(ProjectCmdBase):
         build_opts = setup_build_options(args, platform)
         ctx_gen = build_opts.get_context_generator()
         loader = ManifestLoader(build_opts, ctx_gen)
+        self.process_project_dir_arguments(args, loader)
         manifest = loader.load_manifest(args.project)
         manifest_ctx = loader.ctx_gen.get_context(manifest.name)
         run_on = self.get_run_on(args)
@@ -1147,8 +1148,10 @@ jobs:
 
             project_prefix = ""
             if not build_opts.is_windows():
-                project_prefix = (
-                    " --project-install-prefix %s:/usr/local" % manifest.name
+                prefix = loader.get_project_install_prefix(manifest) or "/usr/local"
+                project_prefix = " --project-install-prefix %s:%s" % (
+                    manifest.name,
+                    prefix,
                 )
 
             # If we have dep from same repo, we already built it and don't want to rebuild it again
@@ -1190,9 +1193,13 @@ jobs:
                 and manifest.get("github.actions", "run_tests", ctx=manifest_ctx)
                 != "off"
             ):
+                num_jobs_arg = ""
+                if args.num_jobs:
+                    num_jobs_arg = f"--num-jobs {args.num_jobs} "
+
                 out.write("    - name: Test %s\n" % manifest.name)
                 out.write(
-                    f"      run: {getdepscmd}{allow_sys_arg} test --src-dir=. {manifest.name} {project_prefix}\n"
+                    f"      run: {getdepscmd}{allow_sys_arg} test {num_jobs_arg}--src-dir=. {manifest.name} {project_prefix}\n"
                 )
             if build_opts.free_up_disk and not build_opts.is_windows():
                 out.write("    - name: Show disk space at end\n")
