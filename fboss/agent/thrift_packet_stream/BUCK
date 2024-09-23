@@ -14,7 +14,7 @@ cpp_library(
         "//fboss/agent/if:packet_stream-cpp2-clients",
         "//folly:cancellation_token",
         "//folly:synchronized",
-        "//folly/experimental/coro:blocking_wait",
+        "//folly/coro:blocking_wait",
         "//folly/io/async:async_socket",
         "//folly/io/async:scoped_event_base_thread",
         "//folly/logging:logging",

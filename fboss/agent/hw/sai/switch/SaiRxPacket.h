@@ -54,14 +54,9 @@ class SaiRxPacket : public RxPacket {
     srcAggregatePort_ = srcAggregatePort;
   }
 
-  int cosQueue() const override {
-    return _cosQueue;
-  }
-
   std::string describeDetails() const override;
 
  private:
   cfg::PacketRxReason rxReason_;
-  uint8_t _cosQueue{0};
 };
 } // namespace facebook::fboss

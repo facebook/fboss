@@ -125,10 +125,14 @@ std::optional<std::map<int64_t, cfg::DsfNode>> addRemoteDsfNodeCfg(
   CHECK(
       !numRemoteNodes.has_value() ||
       numRemoteNodes.value() < getDsfNodeCount(asic.get()));
-  int totalNodes = numRemoteNodes.has_value() ? numRemoteNodes.value() + 1
-                                              : getDsfNodeCount(asic.get());
-  int systemPortMin = getPerNodeSysPorts(asic.get(), 1);
-  for (int remoteSwitchId = numCores; remoteSwitchId < totalNodes * numCores;
+  int totalNodes = numRemoteNodes.has_value()
+      ? numRemoteNodes.value() + curDsfNodes.size()
+      : getDsfNodeCount(asic.get());
+  int remoteNodeStart = dsfNodes.rbegin()->first + numCores;
+  int systemPortMin = getPerNodeSysPorts(asic.get(), dsfNodes.begin()->first) *
+      curDsfNodes.size();
+  for (int remoteSwitchId = remoteNodeStart;
+       remoteSwitchId < totalNodes * numCores;
        remoteSwitchId += numCores) {
     cfg::Range64 systemPortRange;
     systemPortRange.minimum() = systemPortMin;
@@ -138,7 +142,8 @@ std::optional<std::map<int64_t, cfg::DsfNode>> addRemoteDsfNodeCfg(
         *asic,
         SwitchID(remoteSwitchId),
         systemPortMin,
-        *systemPortRange.maximum());
+        *systemPortRange.maximum(),
+        *firstDsfNode.platformType());
     dsfNodes.insert({remoteSwitchId, remoteDsfNodeCfg});
     systemPortMin = *systemPortRange.maximum() + 1;
   }
@@ -228,68 +233,6 @@ std::shared_ptr<SwitchState> addRemoveRemoteNeighbor(
   interface->setNdpTable(ndpTable->toThrift());
   interfaceMap->updateNode(interface, scopeResolver.scope(interface, outState));
   return outState;
-}
-
-std::shared_ptr<SwitchState> setupRemoteIntfAndSysPorts(
-    std::shared_ptr<SwitchState> currState,
-    const SwitchIdScopeResolver& scopeResolver,
-    const cfg::SwitchConfig& config,
-    bool useEncapIndex) {
-  auto newState = currState->clone();
-  for (const auto& [remoteSwitchId, dsfNode] : *config.dsfNodes()) {
-    if ((*config.switchSettings())
-            .switchIdToSwitchInfo()
-            ->contains(remoteSwitchId)) {
-      continue;
-    }
-    CHECK(dsfNode.systemPortRange().has_value());
-    const auto minPortID = *dsfNode.systemPortRange()->minimum();
-    const auto maxPortID = *dsfNode.systemPortRange()->maximum();
-    // 0th port for CPU and 1st port for recycle port
-    for (int i = minPortID + kRemoteSysPortOffset; i <= maxPortID; i++) {
-      const SystemPortID remoteSysPortId(i);
-      const InterfaceID remoteIntfId(i);
-      const PortDescriptor portDesc(remoteSysPortId);
-      const std::optional<uint64_t> encapEndx =
-          useEncapIndex ? std::optional<uint64_t>(0x200001 + i) : std::nullopt;
-
-      // Use subnet 100+(dsfNodeId/256):(dsfNodeId%256):(localIntfId)::1/64
-      // and 100+(dsfNodeId/256).(dsfNodeId%256).(localIntfId).1/24
-      auto firstOctet = 100 + remoteSwitchId / 256;
-      auto secondOctet = remoteSwitchId % 256;
-      auto thirdOctet = i - minPortID;
-      folly::IPAddressV6 neighborIp(folly::to<std::string>(
-          firstOctet, ":", secondOctet, ":", thirdOctet, "::2"));
-      newState = addRemoteSysPort(
-          newState,
-          scopeResolver,
-          remoteSysPortId,
-          SwitchID(remoteSwitchId),
-          (i - minPortID - kRemoteSysPortOffset) / kNumPortPerCore,
-          (i - minPortID) % kNumPortPerCore);
-      newState = addRemoteInterface(
-          newState,
-          scopeResolver,
-          remoteIntfId,
-          {
-              {folly::IPAddress(folly::to<std::string>(
-                   firstOctet, ":", secondOctet, ":", thirdOctet, "::1")),
-               64},
-              {folly::IPAddress(folly::to<std::string>(
-                   firstOctet, ".", secondOctet, ".", thirdOctet, ".1")),
-               24},
-          });
-      newState = addRemoveRemoteNeighbor(
-          newState,
-          scopeResolver,
-          neighborIp,
-          remoteIntfId,
-          portDesc,
-          true /* add */,
-          encapEndx);
-    }
-  }
-  return newState;
 }
 
 void populateRemoteIntfAndSysPorts(

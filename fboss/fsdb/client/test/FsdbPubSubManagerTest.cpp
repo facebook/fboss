@@ -9,8 +9,8 @@
 #include "fboss/fsdb/common/Flags.h"
 #include "fboss/lib/CommonUtils.h"
 
-#include <folly/experimental/coro/AsyncGenerator.h>
-#include <folly/experimental/coro/AsyncPipe.h>
+#include <folly/coro/AsyncGenerator.h>
+#include <folly/coro/AsyncPipe.h>
 #include <folly/io/async/ScopedEventBaseThread.h>
 #include <folly/logging/xlog.h>
 
@@ -220,6 +220,12 @@ TEST_F(PubSubManagerTest, removeAllSubscriptions) {
 
   pubSubManager_.clearStatSubscriptions();
   addStatDeltaSubscription({"foo"});
+}
+
+TEST_F(PubSubManagerTest, TestSubscriptionInfo) {
+  EXPECT_EQ(FsdbPatchSubscriber::subscriptionType(), SubscriptionType::PATCH);
+  EXPECT_EQ(FsdbStateSubscriber::subscriptionType(), SubscriptionType::PATH);
+  EXPECT_EQ(FsdbDeltaSubscriber::subscriptionType(), SubscriptionType::DELTA);
 }
 
 } // namespace facebook::fboss::fsdb

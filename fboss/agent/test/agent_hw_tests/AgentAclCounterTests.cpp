@@ -39,28 +39,14 @@ enum AclType {
 
 namespace facebook::fboss {
 
-template <bool enableMultiAclTable>
-struct EnableMultiAclTable {
-  static constexpr auto multiAclTableEnabled = enableMultiAclTable;
-};
-
-using TestTypes =
-    ::testing::Types<EnableMultiAclTable<false>, EnableMultiAclTable<true>>;
-
-template <typename EnableMultiAclTableT>
 class AgentAclCounterTest : public AgentHwTest {
-  static auto constexpr isMultiAclEnabled =
-      EnableMultiAclTableT::multiAclTableEnabled;
-
  public:
   cfg::AclActionType aclActionType_ = cfg::AclActionType::PERMIT;
   uint8_t roceReservedByte_ = utility::kRoceReserved;
 
   std::vector<production_features::ProductionFeature>
   getProductionFeaturesVerified() const override {
-    if constexpr (std::is_same_v<
-                      EnableMultiAclTableT,
-                      EnableMultiAclTable<false>>) {
+    if (!FLAGS_enable_acl_table_group) {
       return {
           production_features::ProductionFeature::ACL_COUNTER,
           production_features::ProductionFeature::SINGLE_ACL_TABLE};
@@ -73,7 +59,6 @@ class AgentAclCounterTest : public AgentHwTest {
 
  protected:
   void SetUp() override {
-    FLAGS_enable_acl_table_group = isMultiAclEnabled;
     AgentHwTest::SetUp();
     if (IsSkipped()) {
       return;
@@ -87,7 +72,7 @@ class AgentAclCounterTest : public AgentHwTest {
         ensemble.getSw(),
         ensemble.masterLogicalPortIds(),
         true /*interfaceHasSubnet*/);
-    if (isMultiAclEnabled) {
+    if (FLAGS_enable_acl_table_group) {
       utility::addAclTableGroup(
           &cfg, cfg::AclStage::INGRESS, utility::getAclTableGroupName());
       utility::addDefaultAclTable(cfg);
@@ -398,7 +383,7 @@ class AgentAclCounterTest : public AgentHwTest {
     verifyAcrossWarmBoots(setup, verify);
   }
 
-  auto verifyAclType(bool bumpOnHit, bool frontPanel, AclType aclType) {
+  void verifyAclType(bool bumpOnHit, bool frontPanel, AclType aclType) {
     auto egressPort = helper_->ecmpPortDescriptorAt(0).phyPortID();
     auto pktsBefore =
         *getNextUpdatedPortStats(egressPort).outUnicastPkts__ref();
@@ -512,46 +497,44 @@ class AgentAclCounterTest : public AgentHwTest {
   std::unique_ptr<utility::EcmpSetupAnyNPorts6> helper_;
 };
 
-TYPED_TEST_SUITE(AgentAclCounterTest, TestTypes);
-
 // Verify that traffic arrive on a front panel port increments ACL counter.
-TYPED_TEST(AgentAclCounterTest, VerifyCounterBumpOnTtlHitFrontPanel) {
+TEST_F(AgentAclCounterTest, VerifyCounterBumpOnTtlHitFrontPanel) {
   this->counterBumpOnHitHelper(
       true /* bump on hit */,
       true /* front panel port */,
       {AclType::TCP_TTLD, AclType::UDP_TTLD});
 }
 
-TYPED_TEST(AgentAclCounterTest, VerifyCounterBumpOnSportHitFrontPanel) {
+TEST_F(AgentAclCounterTest, VerifyCounterBumpOnSportHitFrontPanel) {
   this->counterBumpOnHitHelper(
       true /* bump on hit */, true /* front panel port */, {AclType::SRC_PORT});
 }
-TYPED_TEST(AgentAclCounterTest, VerifyCounterBumpOnL4DstportHitFrontPanel) {
+TEST_F(AgentAclCounterTest, VerifyCounterBumpOnL4DstportHitFrontPanel) {
   this->counterBumpOnHitHelper(
       true /* bump on hit */,
       true /* front panel port */,
       {AclType::L4_DST_PORT});
 }
-TYPED_TEST(AgentAclCounterTest, VerifyCounterBumpOnSportHitFrontPanelWithDrop) {
+TEST_F(AgentAclCounterTest, VerifyCounterBumpOnSportHitFrontPanelWithDrop) {
   this->aclActionType_ = cfg::AclActionType::DENY;
   this->counterBumpOnHitHelper(
       true /* bump on hit */, true /* front panel port */, {AclType::SRC_PORT});
 }
 // Verify that traffic originating on the CPU increments ACL counter.
-TYPED_TEST(AgentAclCounterTest, VerifyCounterBumpOnTtlHitCpu) {
+TEST_F(AgentAclCounterTest, VerifyCounterBumpOnTtlHitCpu) {
   this->counterBumpOnHitHelper(
       true /* bump on hit */,
       false /* cpu port */,
       {AclType::TCP_TTLD, AclType::UDP_TTLD});
 }
 
-TYPED_TEST(AgentAclCounterTest, VerifyCounterBumpOnSportHitCpu) {
+TEST_F(AgentAclCounterTest, VerifyCounterBumpOnSportHitCpu) {
   this->counterBumpOnHitHelper(
       true /* bump on hit */, false /* cpu port */, {AclType::SRC_PORT});
 }
 
 // Verify that traffic arrive on a front panel port increments ACL counter.
-TYPED_TEST(AgentAclCounterTest, VerifyCounterNoTtlHitNoBumpFrontPanel) {
+TEST_F(AgentAclCounterTest, VerifyCounterNoTtlHitNoBumpFrontPanel) {
   this->counterBumpOnHitHelper(
       false /* no hit, no bump */,
       true /* front panel port */,
@@ -559,18 +542,18 @@ TYPED_TEST(AgentAclCounterTest, VerifyCounterNoTtlHitNoBumpFrontPanel) {
 }
 
 // Verify that traffic originating on the CPU increments ACL counter.
-TYPED_TEST(AgentAclCounterTest, VerifyCounterNoHitNoBumpCpu) {
+TEST_F(AgentAclCounterTest, VerifyCounterNoHitNoBumpCpu) {
   this->counterBumpOnHitHelper(
       false /* no hit, no bump */,
       false /* cpu port */,
       {AclType::TCP_TTLD, AclType::UDP_TTLD});
 }
 
-TYPED_TEST(AgentAclCounterTest, VerifyAclPrioritySportHitFrontPanel) {
+TEST_F(AgentAclCounterTest, VerifyAclPrioritySportHitFrontPanel) {
   this->aclPriorityTestHelper();
 }
 
-TYPED_TEST(AgentAclCounterTest, VerifyAclPriorityL4DstportHitFrontPanel) {
+TEST_F(AgentAclCounterTest, VerifyAclPriorityL4DstportHitFrontPanel) {
   this->aclPriorityTestHelper2();
 }
 
@@ -578,8 +561,7 @@ TYPED_TEST(AgentAclCounterTest, VerifyAclPriorityL4DstportHitFrontPanel) {
  * UDF Acls are not supported on SAI and multi ACL. So we only test with
  * multi acl disabled for now.
  */
-class AgentUdfAclCounterTest
-    : public AgentAclCounterTest<EnableMultiAclTable<false>> {
+class AgentUdfAclCounterTest : public AgentAclCounterTest {
  protected:
   cfg::SwitchConfig initialConfig(
       const AgentEnsemble& ensemble) const override {
@@ -721,8 +703,7 @@ TEST_F(AgentUdfAclCounterTest, VerifyUdfMinusUdfHash) {
   verifyAcrossWarmBoots(setup, verify, setupPostWarmboot, verify);
 }
 
-class AgentBthOpcodeAclCounterTest
-    : public AgentAclCounterTest<EnableMultiAclTable<false>> {
+class AgentBthOpcodeAclCounterTest : public AgentAclCounterTest {
  public:
   std::vector<production_features::ProductionFeature>
   getProductionFeaturesVerified() const override {
@@ -745,8 +726,7 @@ TEST_F(
  * Flowlet Acls are not supported on SAI and multi ACL. So we only test with
  * multi acl disabled for now.
  */
-class AgentFlowletAclCounterTest
-    : public AgentAclCounterTest<EnableMultiAclTable<false>> {
+class AgentFlowletAclCounterTest : public AgentAclCounterTest {
  public:
   std::vector<production_features::ProductionFeature>
   getProductionFeaturesVerified() const override {

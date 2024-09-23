@@ -18,6 +18,7 @@ cpp_binary(
         "//fb303:logging",
         "//fboss/platform/config_lib:config_lib",
         "//fboss/platform/helpers:init",
+        "//fboss/platform/helpers:platform_name_lib",
         "//fboss/platform/sensor_service/if:sensor_service-cpp2-types",
         "//fboss/qsfp_service/lib:qsfp-service-client",
         "//folly/executors:function_scheduler",
@@ -84,6 +85,7 @@ cpp_library(
         "//fboss/fsdb/if:fsdb_model",
         "//fboss/fsdb/if:fsdb_oper-cpp2-types",
         "//fboss/lib:common_file_utils",
+        "//fboss/lib:gpiod_line",
         "//fboss/platform/fan_service/if:fan_service-cpp2-services",
         "//fboss/platform/fan_service/if:fan_service-cpp2-types",
         "//fboss/platform/helpers:platform_utils",
@@ -92,7 +94,7 @@ cpp_library(
         "//fboss/qsfp_service/if:state-cpp2-types",
         "//fboss/qsfp_service/if:stats-cpp2-types",
         "//fboss/qsfp_service/lib:qsfp-service-client",
-        "//folly/experimental/coro:blocking_wait",
+        "//folly/coro:blocking_wait",
         "//folly/futures:core",
         "//folly/io/async:async_base",
         "//folly/io/async:async_ssl_socket",
@@ -102,6 +104,9 @@ cpp_library(
         "//infrasec/authorization:base_identity_util",
         "//security/ca/lib:cert_path_picker",
         "//thrift/lib/cpp2/protocol:protocol",
+    ],
+    exported_external_deps = [
+        ("libgpiod", None, "gpiod"),
     ],
 )
 

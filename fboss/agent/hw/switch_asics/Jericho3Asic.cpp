@@ -279,7 +279,7 @@ HwAsic::RecyclePortInfo Jericho3Asic::getRecyclePortInfo() const {
   return {
       .coreId = 2,
       .corePortIndex = 2,
-      .speedMbps = 10000 // 10G
+      .speedMbps = 100000 // 100G
   };
 }
 

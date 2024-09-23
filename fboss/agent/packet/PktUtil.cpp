@@ -130,6 +130,10 @@ string PktUtil::hexDump(Cursor start, Cursor end) {
 }
 
 string PktUtil::hexDump(Cursor cursor, uint32_t length) {
+  if (UNLIKELY(length == 0)) {
+    return "";
+  }
+
   // Go ahead and reserve the required space
   size_t numLines = (length + 15) / 16;
   size_t expectedLength = (length * 3) + // 3 bytes for each character

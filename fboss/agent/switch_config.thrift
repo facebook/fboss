@@ -223,6 +223,8 @@ enum IpType {
   IP = 1,
   IP4 = 2,
   IP6 = 3,
+  ARP_REQUEST = 4,
+  ARP_REPLY = 5,
 }
 
 enum EtherType {
@@ -232,6 +234,7 @@ enum EtherType {
   EAPOL = 0x888E,
   MACSEC = 0x88E5,
   LLDP = 0x88CC,
+  ARP = 0x0806,
 }
 
 struct Ttl {
@@ -356,6 +359,13 @@ struct Mirror {
   2: MirrorDestination destination;
   3: byte dscp = DEFAULT_MIRROR_DSCP;
   4: bool truncate = false;
+  /*
+   * 0 - no sampling
+   * 1 - sample all packets
+   * Any other integer value represent the 1 out of samplingRate
+   * packets will be mirrored.
+   */
+  5: optional i32 samplingRate = 0;
 }
 
 /**

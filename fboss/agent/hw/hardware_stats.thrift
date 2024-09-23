@@ -347,6 +347,7 @@ struct HwSwitchFb303GlobalStats {
   26: optional i64 inter_port_group_cable_skew_meters;
   27: optional i64 dram_blocked_time_ns;
   28: optional i64 deleted_credit_bytes;
+  29: optional i64 vsq_resource_exhaustion_drops;
 }
 
 struct HwFlowletStats {

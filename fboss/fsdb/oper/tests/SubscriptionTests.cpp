@@ -2,8 +2,8 @@
 
 #include <fboss/fsdb/oper/Subscription.h>
 
-#include <folly/experimental/coro/BlockingWait.h>
-#include <folly/experimental/coro/Timeout.h>
+#include <folly/coro/BlockingWait.h>
+#include <folly/coro/Timeout.h>
 #include <folly/io/async/ScopedEventBaseThread.h>
 #include <gtest/gtest.h>
 

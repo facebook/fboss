@@ -59,7 +59,7 @@ std::string PlatformNameLib::getPlatformNameFromBios(bool writeToCache) const {
   auto result = sanitizePlatformName(standardOut);
   XLOG(INFO) << "Platform name mapped: " << result;
   if (writeToCache) {
-    platformFsUtils_->writeStringToFile(result, kCachePath);
+    platformFsUtils_->writeStringToFile(result, kCachePath, true);
   }
   return result;
 }
@@ -69,14 +69,15 @@ std::optional<std::string> PlatformNameLib::getPlatformName() const {
   if (nameFromCache.has_value()) {
     auto result = nameFromCache.value();
     XLOG(INFO) << "Platform name read from cache: " << result;
+    fb303::fbData->setCounter(kPlatformNameBiosReadFailures, 0);
     return result;
   }
   try {
     auto nameFromBios = getPlatformNameFromBios();
-    fb303::fbData->incrementCounter(kPlatformNameBiosReads, 1);
+    fb303::fbData->setCounter(kPlatformNameBiosReadFailures, 0);
     return nameFromBios;
   } catch (const std::exception& e) {
-    fb303::fbData->incrementCounter(kPlatformNameBiosReadFailures, 1);
+    fb303::fbData->setCounter(kPlatformNameBiosReadFailures, 1);
     return std::nullopt;
   }
 }

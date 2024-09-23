@@ -132,7 +132,7 @@ FbBcmRxPacket::FbBcmRxPacket(
   _reasons.usePktIO = usePktIO;
   if (!usePktIO) {
     bcm_pkt_t* pkt = bcmPacket.ptrUnion.pkt;
-    _cosQueue = pkt->cos;
+    cosQueue_ = pkt->cos;
 
     if (pkt->flags & BCM_PKT_F_TRUNK) {
       isFromAggregatePort_ = true;
@@ -152,7 +152,7 @@ FbBcmRxPacket::FbBcmRxPacket(
     auto rv = bcm_pktio_pmd_field_get(
         unit_, pkt, bcmPktioPmdTypeRx, BCMPKT_RXPMD_CPU_COS, &val);
     bcmCheckError(rv, "failed to get pktio CPU_COS");
-    _cosQueue = val;
+    cosQueue_ = val;
 
     if (auto optRet = bcmSwitch->getTrunkTable()->portToAggPortGet(
             PortID(getSrcPort()))) {
@@ -176,7 +176,7 @@ FbBcmRxPacket::FbBcmRxPacket(
 std::string FbBcmRxPacket::describeDetails() const {
   return folly::sformat(
       "cos={} priority={} reasons={}",
-      _cosQueue,
+      cosQueue_ ? std::to_string(*cosQueue_) : "none",
       _priority,
       RxUtils::describeReasons(_reasons));
 }

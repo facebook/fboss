@@ -296,6 +296,27 @@ SwitchStats::SwitchStats(ThreadLocalStatsMap* map, int numSwitches)
           RATE),
       dsfGrExpired_(map, kCounterPrefix + "dsfsession_gr_expired", SUM, RATE),
       dsfUpdateFailed_(map, kCounterPrefix + "dsf_update_failed", SUM, RATE),
+      hiPriPktsReceived_(
+          map,
+          kCounterPrefix + "hi_pri_pkts_received",
+          SUM,
+          RATE),
+      midPriPktsReceived_(
+          map,
+          kCounterPrefix + "mid_pri_pkts_received",
+          SUM,
+          RATE),
+      loPriPktsReceived_(
+          map,
+          kCounterPrefix + "lo_pri_pkts_received",
+          SUM,
+          RATE),
+      midPriPktsDropped_(
+          map,
+          kCounterPrefix + "mid_pri_pkts_dropped",
+          SUM,
+          RATE),
+      loPriPktsDropped_(map, kCounterPrefix + "lo_pri_pkts_dropped", SUM, RATE),
       multiSwitchStatus_(map, kCounterPrefix + "multi_switch", SUM, RATE)
 
 {

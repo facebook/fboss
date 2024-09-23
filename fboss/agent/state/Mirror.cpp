@@ -21,7 +21,8 @@ Mirror::Mirror(
     std::optional<folly::IPAddress> srcIp,
     std::optional<TunnelUdpPorts> udpPorts,
     uint8_t dscp,
-    bool truncate)
+    bool truncate,
+    uint32_t samplingRate)
     : ThriftStructNode<Mirror, state::MirrorFields>() {
   // span mirror is resolved as soon as it is created
   // erspan and sflow are resolved when tunnel is set
@@ -30,6 +31,7 @@ Mirror::Mirror(
   set<switch_state_tags::truncate>(truncate);
   set<switch_state_tags::configHasEgressPort>(false);
   set<switch_state_tags::isResolved>(false);
+  set<switch_state_tags::samplingRate>(samplingRate);
 
   if (egressPortDesc.has_value()) {
     set<switch_state_tags::egressPortDesc>(egressPortDesc.value().toThrift());
@@ -175,6 +177,10 @@ Mirror::Type Mirror::type() const {
     return Mirror::Type::ERSPAN;
   }
   return Mirror::Type::SFLOW;
+}
+
+uint32_t Mirror::getSamplingRate() const {
+  return get<switch_state_tags::samplingRate>()->cref();
 }
 
 template class ThriftStructNode<Mirror, state::MirrorFields>;

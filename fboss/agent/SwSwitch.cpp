@@ -41,6 +41,7 @@
 #include "fboss/agent/MKAServiceManager.h"
 #endif
 #include "fboss/agent/AclNexthopHandler.h"
+#include "fboss/agent/BuildInfoWrapper.h"
 #include "fboss/agent/DsfSubscriber.h"
 #include "fboss/agent/FsdbSyncer.h"
 #include "fboss/agent/HwSwitchThriftClientTable.h"
@@ -91,6 +92,7 @@
 #include "fboss/lib/config/PlatformConfigUtils.h"
 #include "fboss/lib/phy/gen-cpp2/phy_types.h"
 #include "fboss/lib/platforms/PlatformProductInfo.h"
+#include "fboss/util/Logging.h"
 
 #include "fboss/lib/CommonFileUtils.h"
 
@@ -131,7 +133,10 @@ using std::string;
 using std::unique_ptr;
 
 using facebook::fboss::AgentConfig;
+using facebook::fboss::SwitchSettings;
+using facebook::fboss::cfg::SdkVersion;
 using facebook::fboss::cfg::SwitchConfig;
+using facebook::fboss::cfg::SwitchDrainState;
 using facebook::fboss::cfg::SwitchInfo;
 using facebook::fboss::cfg::SwitchType;
 using facebook::fboss::DeltaFunctions::forEachChanged;
@@ -173,6 +178,10 @@ DEFINE_bool(
     dsf_publisher_GR,
     false,
     "Flag to turn on GR behavior for DSF publisher");
+
+DEFINE_bool(rx_sw_priority, false, "Enable rx packet prioritization");
+
+DEFINE_int32(rx_pkt_thread_timeout, 100, "Rx packet thread timeout (ms)");
 
 namespace {
 
@@ -238,7 +247,29 @@ std::string getDrainStateChangedStr(
             "]")
       : folly::to<std::string>(
             apache::thrift::util::enumNameSafe(oldActualSwitchDrainState),
-            "(UNCHANGED)");
+            " (UNCHANGED)");
+}
+
+std::string getAsicSdkVersion(const std::optional<SdkVersion>& sdkVersion) {
+  return sdkVersion.has_value() ? (sdkVersion.value().get_asicSdk() != nullptr
+                                       ? *(sdkVersion.value().get_asicSdk())
+                                       : std::string("Not found"))
+                                : std::string("Not found");
+}
+
+// Create string about upper/lower port threshold for draining/undraining
+std::string getDrainThresholdStr(
+    SwitchDrainState newState,
+    const SwitchSettings& switchSettings) {
+  if (newState == SwitchDrainState::UNDRAINED) {
+    auto minLinks = switchSettings.getMinLinksToRemainInVOQDomain();
+    return "drains when active ports is below " +
+        (minLinks.has_value() ? std::to_string(minLinks.value()) : "N/A") + ")";
+  } else {
+    auto minLinks = switchSettings.getMinLinksToJoinVOQDomain();
+    return "undrains when active ports is above" +
+        (minLinks.has_value() ? std::to_string(minLinks.value()) : "N/A") + ")";
+  }
 }
 
 void accumulateHwAsicErrorStats(
@@ -276,6 +307,11 @@ void accumulateFb303GlobalStats(
     uint64_t dramBlockedTime = accumulated.dram_blocked_time_ns().value_or(0);
     dramBlockedTime += toAdd.dram_blocked_time_ns().value();
     accumulated.dram_blocked_time_ns() = dramBlockedTime;
+  }
+  if (toAdd.vsq_resource_exhaustion_drops().has_value()) {
+    int64_t drops = accumulated.vsq_resource_exhaustion_drops().value_or(0);
+    drops += toAdd.vsq_resource_exhaustion_drops().value();
+    accumulated.vsq_resource_exhaustion_drops() = drops;
   }
   *accumulated.fabric_reachability_missing() +=
       toAdd.fabric_reachability_missing().value();
@@ -1085,7 +1121,9 @@ std::shared_ptr<SwitchState> SwSwitch::preInit(SwitchFlags flags) {
   bootType_ = swSwitchWarmbootHelper_->canWarmBoot() ? BootType::WARM_BOOT
                                                      : BootType::COLD_BOOT;
   XLOG(INFO) << kNetworkEventLogPrefix
-             << " Boot Type: " << apache::thrift::util::enumNameSafe(bootType_);
+             << " Boot Type: " << apache::thrift::util::enumNameSafe(bootType_)
+             << " | SDK version: " << getAsicSdkVersion(sdkVersion_)
+             << " | Agent version: " << getBuildPackageVersion();
 
   multiHwSwitchHandler_->start();
   std::optional<state::WarmbootState> wbState{};
@@ -2056,9 +2094,9 @@ void SwSwitch::linkStateChanged(
         setPortStatusCounter(portId, up);
         portStats(portId)->linkStateChange(up);
 
-        XLOG(DBG2) << "SW Link state changed: " << port->getName() << " ["
-                   << (!up ? "UP" : "DOWN") << "->" << (up ? "UP" : "DOWN")
-                   << "]";
+        XLOG(DBG2) << "SW Link state changed: " << port->getName()
+                   << " id: " << portId << " [" << (!up ? "UP" : "DOWN") << "->"
+                   << (up ? "UP" : "DOWN") << "]";
       }
     }
 
@@ -2127,10 +2165,14 @@ void SwSwitch::linkActiveStateChanged(
       newSwitchSettings->setActualSwitchDrainState(newActualSwitchDrainState);
     }
 
-    XLOG(DBG2) << "SwitchIDs: " << matcher.matcherString()
-               << " numActiveFabricPorts: " << numActiveFabricPorts
-               << " Switch Drain state: "
-               << getDrainStateChangedStr(state, newState, matcher);
+    XLOG(DBG2) << "Switch state: "
+               << getDrainStateChangedStr(getState(), newState, matcher)
+               << " | SwitchIDs: " << matcher.matcherString()
+               << " | Active ports: " << numActiveFabricPorts << "/"
+               << port2IsActive.size() << " ("
+               << getDrainThresholdStr(
+                      newActualSwitchDrainState, switchSettings.get())
+               << ")";
 
     return newState;
   };
@@ -2175,6 +2217,47 @@ void SwSwitch::switchReachabilityChanged(
   stats()->switchReachabilityChangeProcessed();
 }
 
+void SwSwitch::packetRxThread() {
+  packetRxRunning_.store(true);
+  while (packetRxRunning_.load()) {
+    {
+      std::unique_lock<std::mutex> lk(rxPktMutex_);
+      rxPktThreadCV_.wait_for(
+          lk, std::chrono::milliseconds(FLAGS_rx_pkt_thread_timeout), [this] {
+            return (
+                rxPacketHandlerQueues_.hasPacketsToProcess() ||
+                !packetRxRunning_.load());
+          });
+    }
+    if (!packetRxRunning_.load()) {
+      return;
+    }
+#if FOLLY_HAS_COROUTINES
+    while (rxPacketHandlerQueues_.hasPacketsToProcess()) {
+      if (!packetRxRunning_.load()) {
+        return;
+      }
+      auto hiPriPkt = rxPacketHandlerQueues_.getHiPriRxPktQueue().try_dequeue();
+      if (hiPriPkt) {
+        this->packetReceived(std::move(*hiPriPkt));
+        continue;
+      }
+      auto midPriPkt =
+          rxPacketHandlerQueues_.getMidPriRxPktQueue().try_dequeue();
+      if (midPriPkt) {
+        this->packetReceived(std::move(*midPriPkt));
+        continue;
+      }
+      auto loPriPkt = rxPacketHandlerQueues_.getLoPriRxPktQueue().try_dequeue();
+      if (loPriPkt) {
+        this->packetReceived(std::move(*loPriPkt));
+        continue;
+      }
+    }
+#endif
+  }
+}
+
 void SwSwitch::startThreads() {
   backgroundThread_.reset(new std::thread(
       [this] { this->threadLoop("fbossBgThread", &backgroundEventBase_); }));
@@ -2192,6 +2275,11 @@ void SwSwitch::startThreads() {
   // start LACP thread, start before creating LinkAggregationManager
   lacpThread_.reset(new std::thread(
       [this] { this->threadLoop("fbossLacpThread", &lacpEventBase_); }));
+  if (FLAGS_rx_sw_priority) {
+    packetRxThread_.reset(new std::thread(
+        [this] { this->threadLoop("fbossPktRxThread", &packetRxEventBase_); }));
+    packetRxEventBase_.runInEventBaseThread([this] { this->packetRxThread(); });
+  }
 }
 
 void SwSwitch::postInit() {
@@ -2297,6 +2385,11 @@ void SwSwitch::stopThreads() {
     packetTxEventBase_.runInFbossEventBaseThread(
         [this] { packetTxEventBase_.terminateLoopSoon(); });
   }
+  if (packetRxThread_) {
+    packetRxRunning_.store(false);
+    packetRxEventBase_.runInEventBaseThread(
+        [this] { packetRxEventBase_.terminateLoopSoon(); });
+  }
   if (pcapDistributionThread_) {
     pcapDistributionEventBase_.runInFbossEventBaseThread(
         [this] { pcapDistributionEventBase_.terminateLoopSoon(); });
@@ -2317,6 +2410,9 @@ void SwSwitch::stopThreads() {
   }
   if (packetTxThread_) {
     packetTxThread_->join();
+  }
+  if (packetRxThread_) {
+    packetRxThread_->join();
   }
   if (pcapDistributionThread_) {
     pcapDistributionThread_->join();
@@ -2864,17 +2960,21 @@ bool SwSwitch::isValidStateUpdate(const StateDelta& delta) const {
       [&](const shared_ptr<Port>& /* delport */) {});
 
   // Ensure only one sflow mirror session is configured
-  int sflowMirrorCount = 0;
-  for (auto mniter : std::as_const(*(delta.newState()->getMirrors()))) {
+  std::set<std::string> ingressMirrors;
+  for (auto mniter : std::as_const(*(delta.newState()->getPorts()))) {
     for (auto iter : std::as_const(*mniter.second)) {
-      auto mirror = iter.second;
-      if (mirror->type() == Mirror::Type::SFLOW) {
-        sflowMirrorCount++;
+      auto port = iter.second;
+      if (port && port->getIngressMirror().has_value()) {
+        auto ingressMirror = delta.newState()->getMirrors()->getNodeIf(
+            port->getIngressMirror().value());
+        if (ingressMirror && ingressMirror->type() == Mirror::Type::SFLOW) {
+          ingressMirrors.insert(port->getIngressMirror().value());
+        }
       }
     }
   }
-  if (sflowMirrorCount > 1) {
-    XLOG(ERR) << "More than one sflow mirrors configured";
+  if (ingressMirrors.size() > 1) {
+    XLOG(ERR) << "Only one sflow mirror can be configured across all ports";
     isValid = false;
   }
 
@@ -3385,6 +3485,12 @@ void SwSwitch::updateAddrToLocalIntf(const StateDelta& delta) {
               std::make_pair(routerId, folly::IPAddress(addr)));
         }
       });
+}
+
+void SwSwitch::rxPacketReceived(std::unique_ptr<SwRxPacket> pkt) {
+  folly::coro::blockingWait(
+      rxPacketHandlerQueues_.enqueue(std::move(pkt), stats()));
+  rxPktThreadCV_.notify_one();
 }
 
 } // namespace facebook::fboss

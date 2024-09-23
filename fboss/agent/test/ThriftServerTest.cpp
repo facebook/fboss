@@ -28,9 +28,9 @@
 #include <thrift/lib/cpp/util/EnumUtils.h>
 #include "fboss/agent/test/MultiSwitchTestServer.h"
 
-#include <folly/experimental/coro/GtestHelpers.h>
-#include <folly/experimental/coro/Timeout.h>
-#include <folly/experimental/coro/UnboundedQueue.h>
+#include <folly/coro/GtestHelpers.h>
+#include <folly/coro/Timeout.h>
+#include <folly/coro/UnboundedQueue.h>
 #include <folly/portability/GTest.h>
 #include <memory>
 
@@ -443,8 +443,12 @@ CO_TEST_F(ThriftServerTest, receivePktHandler) {
         co_yield std::move(rxPkt);
       }());
   EXPECT_TRUE(ret);
-  counters.update();
-  counters.checkDelta(SwitchStats::kCounterPrefix + "ipv4.mine.sum", 1);
+  WITH_RETRIES({
+    counters.update();
+    EXPECT_EVENTUALLY_EQ(
+        counters.value(SwitchStats::kCounterPrefix + "ipv4.mine.sum"),
+        counters.prevValue(SwitchStats::kCounterPrefix + "ipv4.mine.sum") + 1);
+  });
 }
 
 CO_TEST_F(ThriftServerTest, transmitPktHandler) {

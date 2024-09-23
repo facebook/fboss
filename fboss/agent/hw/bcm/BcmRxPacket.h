@@ -61,9 +61,6 @@ class FbBcmRxPacket : public BcmRxPacket {
       const BcmSwitch* bcmSwitch);
 
   std::string describeDetails() const override;
-  int cosQueue() const override {
-    return _cosQueue;
-  }
   std::vector<RxReason> getReasons() override;
 
  private:
@@ -71,7 +68,6 @@ class FbBcmRxPacket : public BcmRxPacket {
   FbBcmRxPacket(FbBcmRxPacket const&) = delete;
   FbBcmRxPacket& operator=(FbBcmRxPacket const&) = delete;
 
-  uint8_t _cosQueue{0};
   uint8_t _priority{0};
   BcmRxReasonsT _reasons;
 };

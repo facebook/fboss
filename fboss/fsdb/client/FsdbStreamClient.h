@@ -4,7 +4,7 @@
 
 #include <fb303/ThreadCachedServiceData.h>
 #include <folly/SocketAddress.h>
-#include <folly/experimental/coro/AsyncScope.h>
+#include <folly/coro/AsyncScope.h>
 #include <folly/io/async/AsyncSocketTransport.h>
 #include <folly/io/async/ScopedEventBaseThread.h>
 #include <folly/synchronization/Baton.h>

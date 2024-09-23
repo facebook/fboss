@@ -203,6 +203,12 @@ SwitchState::getRemoteSystemPorts() const {
 }
 
 std::shared_ptr<AclEntry> SwitchState::getAcl(const std::string& name) const {
+  if (FLAGS_enable_acl_table_group) {
+    getAclTableGroups()
+        ->getNode(cfg::AclStage::INGRESS)
+        ->getAclTableMap()
+        ->getNodeIf(name);
+  }
   return getAcls()->getNodeIf(name);
 }
 

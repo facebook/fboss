@@ -8,7 +8,14 @@ cpp_library(
         "Meru800bfaP1PlatformMapping.cpp",
         "Meru800bfaPlatformMapping.cpp",
     ],
+    headers = [
+        "Meru800bfaP2PlatformMapping.h",
+        "Meru800bfaProdPlatformMapping.h",
+    ],
     exported_deps = [
+        "//fboss/agent:fboss-error",
         "//fboss/agent/platforms/common:platform_mapping",
+        "//fboss/lib/platforms:product-info",
+        "//folly/logging:logging",
     ],
 )

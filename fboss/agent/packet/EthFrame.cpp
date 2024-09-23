@@ -7,13 +7,19 @@
 
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/TxPacket.h"
+#include "fboss/agent/packet/PktUtil.h"
 
 #include <sstream>
 
 namespace facebook::fboss::utility {
 namespace {
 static auto kDefaultPayload = std::vector<uint8_t>(256, 0xff);
-}
+
+// See IEEE 802.3-2022 31.4.1 and 4.4.2. TL;DR this should be
+// 64 (minFrameSize) - 12 (src/dest mac) - 2 (ethertype)
+// - 4 (FCS) = 46 bytes.
+static size_t kMacControlPayloadSize = 46;
+} // namespace
 
 EthFrame::EthFrame(folly::io::Cursor& cursor) {
   hdr_ = EthHdr(cursor);
@@ -30,6 +36,12 @@ EthFrame::EthFrame(folly::io::Cursor& cursor) {
     case static_cast<uint16_t>(ETHERTYPE::ETHERTYPE_ARP):
       arpHdr_ = ArpHdr(cursor);
       break;
+    case static_cast<uint16_t>(ETHERTYPE::ETHERTYPE_EPON): {
+      CHECK(cursor.canAdvance(kMacControlPayloadSize));
+      macControlPayload_ = std::vector<uint8_t>(kMacControlPayloadSize);
+      cursor.pull(macControlPayload_->data(), kMacControlPayloadSize);
+      break;
+    }
     case static_cast<uint16_t>(ETHERTYPE::ETHERTYPE_LLDP):
     case static_cast<uint16_t>(ETHERTYPE::ETHERTYPE_SLOW_PROTOCOLS):
     case static_cast<uint16_t>(ETHERTYPE::ETHERTYPE_EAPOL):
@@ -74,6 +86,10 @@ std::unique_ptr<facebook::fboss::TxPacket> EthFrame::getTxPacket(
     rwCursor.push(cursor, mplsPayLoad_->length());
   } else if (arpHdr_) {
     arpHdr_->serialize(&rwCursor);
+  } else if (macControlPayload_) {
+    rwCursor.template writeBE<uint16_t>(
+        static_cast<uint16_t>(ETHERTYPE::ETHERTYPE_EPON));
+    rwCursor.push(macControlPayload_->data(), macControlPayload_->size());
   }
   return txPacket;
 }
@@ -107,6 +123,10 @@ void EthFrame::serialize(folly::io::RWPrivateCursor& cursor) const {
     cursor.template writeBE<uint16_t>(
         static_cast<uint16_t>(ETHERTYPE::ETHERTYPE_ARP));
     arpHdr_->serialize(&cursor);
+  } else if (macControlPayload_) {
+    cursor.template writeBE<uint16_t>(
+        static_cast<uint16_t>(ETHERTYPE::ETHERTYPE_EPON));
+    cursor.push(macControlPayload_->data(), macControlPayload_->size());
   }
 }
 
@@ -196,7 +216,13 @@ std::string utility::EthFrame::toString() const {
      << " arp: " << (arpHdr_.has_value() ? arpHdr_->toString() : "")
      << " mpls: " << (mplsPayLoad_.has_value() ? mplsPayLoad_->toString() : "")
      << " v6 : " << (v6PayLoad_.has_value() ? v6PayLoad_->toString() : "")
-     << " v4 : " << (v4PayLoad_.has_value() ? v4PayLoad_->toString() : "");
+     << " v4 : " << (v4PayLoad_.has_value() ? v4PayLoad_->toString() : "")
+     << " mac control: "
+     << (macControlPayload_ ? PktUtil::hexDump(folly::IOBuf(
+                                  folly::IOBuf::CopyBufferOp::COPY_BUFFER,
+                                  macControlPayload_->data(),
+                                  macControlPayload_->size()))
+                            : "");
   return ss.str();
 }
 

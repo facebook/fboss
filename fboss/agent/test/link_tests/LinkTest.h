@@ -19,7 +19,6 @@ DECLARE_bool(disable_neighbor_updates);
 DECLARE_bool(link_stress_test);
 DECLARE_bool(enable_macsec);
 
-DECLARE_bool(skip_drain_check_for_prbs);
 namespace facebook::fboss {
 
 using namespace std::chrono_literals;

@@ -436,6 +436,26 @@ class SwitchStats : public boost::noncopyable {
     multiSwitchStatus_.addValue(enabled ? 1 : 0);
   }
 
+  void hiPriPktsReceived() {
+    hiPriPktsReceived_.addValue(1);
+  }
+
+  void midPriPktsReceived() {
+    midPriPktsReceived_.addValue(1);
+  }
+
+  void loPriPktsReceived() {
+    loPriPktsReceived_.addValue(1);
+  }
+
+  void midPriPktsDropped() {
+    midPriPktsDropped_.addValue(1);
+  }
+
+  void loPriPktsDropped() {
+    loPriPktsDropped_.addValue(1);
+  }
+
   void switchConfiguredMs(uint64_t ms) {
     switchConfiguredMs_.addValue(ms);
   }
@@ -963,6 +983,11 @@ class SwitchStats : public boost::noncopyable {
   TLTimeseries switchConfiguredMs_;
   TLTimeseries dsfGrExpired_;
   TLTimeseries dsfUpdateFailed_;
+  TLTimeseries hiPriPktsReceived_;
+  TLTimeseries midPriPktsReceived_;
+  TLTimeseries loPriPktsReceived_;
+  TLTimeseries midPriPktsDropped_;
+  TLTimeseries loPriPktsDropped_;
 
   // TODO: delete this once multi_switch becomes default
   TLTimeseries multiSwitchStatus_;

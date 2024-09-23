@@ -267,4 +267,11 @@ bool checkConfigHasAclEntry(
     const cfg::SwitchConfig& config,
     std::string aclName);
 
+void configurePortProfile(
+    const PlatformMapping* platformMapping,
+    bool supportsAddRemovePort,
+    cfg::SwitchConfig& config,
+    cfg::PortProfileID profileID,
+    std::vector<PortID> allPortsInGroup,
+    PortID controllingPortID);
 } // namespace facebook::fboss::utility

@@ -54,12 +54,6 @@ std::shared_ptr<SwitchState> addRemoveRemoteNeighbor(
     bool add,
     std::optional<int64_t> encapIndex = std::nullopt);
 
-std::shared_ptr<SwitchState> setupRemoteIntfAndSysPorts(
-    std::shared_ptr<SwitchState> currState,
-    const SwitchIdScopeResolver& scopeResolver,
-    const cfg::SwitchConfig& config,
-    bool useEncapIndex);
-
 QueueConfig getDefaultVoqConfig();
 
 std::optional<uint64_t> getDummyEncapIndex(TestEnsembleIf* ensemble);

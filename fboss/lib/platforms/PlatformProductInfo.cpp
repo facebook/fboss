@@ -60,6 +60,10 @@ std::string PlatformProductInfo::getProductName() {
   return *productInfo_.product();
 }
 
+int PlatformProductInfo::getProductVersion() const {
+  return *productInfo_.productVersion();
+}
+
 void PlatformProductInfo::initMode() {
   if (FLAGS_mode.empty()) {
     auto modelName = getProductName();
@@ -146,7 +150,7 @@ void PlatformProductInfo::initMode() {
         modelName.find("JANGA800BIC") == 0 || modelName.find("JANGA") == 0) {
       type_ = PlatformType::PLATFORM_JANGA800BIC;
     } else if (
-        modelName.find("TAHAN800BC") == 0 ||
+        modelName.find("TAHAN") == 0 || modelName.find("TAHAN800BC") == 0 ||
         modelName.find("R4063-F9001-01") == 0) {
       type_ = PlatformType::PLATFORM_TAHAN800BC;
     } else {

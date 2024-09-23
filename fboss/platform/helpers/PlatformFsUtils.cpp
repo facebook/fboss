@@ -93,8 +93,8 @@ bool PlatformFsUtils::writeStringToFile(
   }
   int errorCode = 0;
   if (atomic) {
-    auto& options =
-        folly::WriteFileAtomicOptions().setSyncType(folly::SyncType::WITH_SYNC);
+    auto options = folly::WriteFileAtomicOptions();
+    options.setSyncType(folly::SyncType::WITH_SYNC);
     errorCode = folly::writeFileAtomicNoThrow(
         folly::StringPiece(prefixedPath.c_str()), content, options);
     // On successful write, fsync the directory to ensure durable write, which

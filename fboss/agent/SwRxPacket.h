@@ -15,9 +15,23 @@ namespace facebook::fboss {
 
 class SwRxPacket : public RxPacket {
  public:
-  explicit SwRxPacket(std::unique_ptr<folly::IOBuf> buf) {
+  explicit SwRxPacket(std::unique_ptr<folly::IOBuf> buf) noexcept {
     buf_ = std::move(buf);
     len_ = buf_->computeChainDataLength();
+  }
+
+  // Noexcept move constructor
+  SwRxPacket(SwRxPacket&& other) noexcept {
+    buf_ = std::move(other.buf_);
+    len_ = other.len_;
+    setSrcPort(other.getSrcPort());
+    setSrcVlan(other.getSrcVlan());
+    if (other.cosQueue()) {
+      setCosQueue(*other.cosQueue());
+    }
+    if (other.isFromAggregatePort()) {
+      setSrcAggregatePort(other.getSrcAggregatePort());
+    }
   }
 
   void setSrcPort(PortID id) {
@@ -29,6 +43,9 @@ class SwRxPacket : public RxPacket {
   void setSrcAggregatePort(AggregatePortID srcAggregatePort) {
     isFromAggregatePort_ = true;
     srcAggregatePort_ = srcAggregatePort;
+  }
+  void setCosQueue(uint8_t cosQueue) {
+    cosQueue_ = cosQueue;
   }
 
  private:

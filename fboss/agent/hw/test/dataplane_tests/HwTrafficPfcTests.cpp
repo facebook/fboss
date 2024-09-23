@@ -226,34 +226,15 @@ class HwTrafficPfcTest : public HwLinkStateDependentTest {
     return cfg;
   }
 
-  folly::IPAddressV6 kDestIp1() const {
-    return folly::IPAddressV6("2620:0:1cfe:face:b00c::4");
-  }
-  folly::IPAddressV6 kDestIp2() const {
-    return folly::IPAddressV6("2620:0:1cfe:face:b00c::5");
-  }
-  PortDescriptor portDesc1() const {
-    return PortDescriptor(masterLogicalInterfacePortIds()[0]);
-  }
-  PortDescriptor portDesc2() const {
-    return PortDescriptor(masterLogicalInterfacePortIds()[1]);
+  std::vector<PortID> portIdsForTest() {
+    return {
+        masterLogicalInterfacePortIds()[0], masterLogicalInterfacePortIds()[1]};
   }
 
-  void setupECMPForwarding(
-      const utility::EcmpSetupTargetedPorts6& ecmpHelper,
-      PortDescriptor port,
-      const folly::CIDRNetwork& prefix) {
-    RoutePrefixV6 route{prefix.first.asV6(), prefix.second};
-    applyNewState(ecmpHelper.resolveNextHops(getProgrammedState(), {port}));
-    ecmpHelper.programRoutes(getRouteUpdater(), {port}, {route});
-  }
-  template <typename ECMP_HELPER>
-  void disableTTLDecrements(const ECMP_HELPER& ecmpHelper) {
-    for (const auto& nextHop :
-         {ecmpHelper.nhop(portDesc1()), ecmpHelper.nhop(portDesc2())}) {
-      utility::ttlDecrementHandlingForLoopbackTraffic(
-          getHwSwitchEnsemble(), ecmpHelper.getRouterId(), nextHop);
-    }
+  std::vector<folly::IPAddressV6> kDestIps() const {
+    return {
+        folly::IPAddressV6("2620:0:1cfe:face:b00c::4"),
+        folly::IPAddressV6("2620:0:1cfe:face:b00c::5")};
   }
 
   folly::MacAddress getIntfMac() const {
@@ -488,8 +469,9 @@ class HwTrafficPfcTest : public HwLinkStateDependentTest {
       std::function<void(
           HwSwitchEnsemble* ensemble,
           const int pri,
-          const std::vector<PortID>& portIds)> validateCounterFn =
+          const std::vector<PortID>& portIdsToValidate)> validateCounterFn =
           validatePfcCounters) {
+    std::vector<PortID> portIds = portIdsForTest();
     auto setup = [&]() {
       if ((getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO2) ||
           (getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO3)) {
@@ -498,31 +480,20 @@ class HwTrafficPfcTest : public HwLinkStateDependentTest {
         testParams.buffer.scalingFactor = cfg::MMUScalingFactor::ONE_32768TH;
       }
       setupBuffers(testParams.buffer, testParams.scale);
-      setupEcmpTraffic();
+      setupEcmpTraffic(portIds);
       // ensure counter is 0 before we start traffic
-      validateInitPfcCounters(
-          {masterLogicalInterfacePortIds()[0],
-           masterLogicalInterfacePortIds()[1]},
-          pfcPriority);
+      validateInitPfcCounters(portIds, pfcPriority);
     };
     auto verifyCommon = [&](bool postWb) {
       pumpTraffic(trafficClass);
       // check counters are as expected
-      validateCounterFn(
-          getHwSwitchEnsemble(),
-          pfcPriority,
-          {masterLogicalInterfacePortIds()[0],
-           masterLogicalInterfacePortIds()[1]});
+      validateCounterFn(getHwSwitchEnsemble(), pfcPriority, portIds);
       if (testParams.expectDrop) {
-        validateIngressDropCounters(
-            {masterLogicalInterfacePortIds()[0],
-             masterLogicalInterfacePortIds()[1]});
+        validateIngressDropCounters(portIds);
       }
       if (!FLAGS_skip_stop_pfc_test_traffic && postWb) {
         // stop traffic so that unconfiguration can happen without issues
-        stopTraffic(
-            {masterLogicalInterfacePortIds()[0],
-             masterLogicalInterfacePortIds()[1]});
+        stopTraffic(portIds);
       }
     };
     auto verify = [&]() { verifyCommon(false /* postWb */); };
@@ -530,23 +501,26 @@ class HwTrafficPfcTest : public HwLinkStateDependentTest {
     verifyAcrossWarmBoots(setup, verify, []() {}, verifyPostWb);
   }
 
-  void setupEcmpTraffic() {
-    utility::EcmpSetupTargetedPorts6 ecmpHelper6{
+  void setupEcmpTraffic(const std::vector<PortID>& portIds) {
+    utility::EcmpSetupTargetedPorts6 ecmpHelper{
         getProgrammedState(), getIntfMac()};
-    setupECMPForwarding(
-        ecmpHelper6,
-        PortDescriptor(masterLogicalInterfacePortIds()[0]),
-        {kDestIp1(), 128});
-    setupECMPForwarding(
-        ecmpHelper6,
-        PortDescriptor(masterLogicalInterfacePortIds()[1]),
-        {kDestIp2(), 128});
-    disableTTLDecrements(ecmpHelper6);
+
+    CHECK_EQ(portIds.size(), kDestIps().size());
+    for (int i = 0; i < portIds.size(); ++i) {
+      const PortDescriptor port(portIds[i]);
+      RoutePrefixV6 route{kDestIps()[i], 128};
+      applyNewState(ecmpHelper.resolveNextHops(getProgrammedState(), {port}));
+      ecmpHelper.programRoutes(getRouteUpdater(), {port}, {route});
+      utility::ttlDecrementHandlingForLoopbackTraffic(
+          getHwSwitchEnsemble(),
+          ecmpHelper.getRouterId(),
+          ecmpHelper.nhop(port));
+    }
   }
 
   void setupConfigAndEcmpTraffic() {
     setupBuffers();
-    setupEcmpTraffic();
+    setupEcmpTraffic(portIdsForTest());
   }
 
  public:
@@ -560,7 +534,7 @@ class HwTrafficPfcTest : public HwLinkStateDependentTest {
     int numPacketsPerFlow = getHwSwitchEnsemble()->getMinPktsForLineRate(
         masterLogicalInterfacePortIds()[0]);
     for (int i = 0; i < numPacketsPerFlow; i++) {
-      for (const auto& dstIp : {kDestIp1(), kDestIp2()}) {
+      for (const auto& dstIp : kDestIps()) {
         auto txPacket = utility::makeUDPTxPacket(
             getHwSwitch(),
             vlanId,
@@ -610,9 +584,7 @@ class HwTrafficPfcTest : public HwLinkStateDependentTest {
       }
     }
 
-    for (const auto& portID :
-         {masterLogicalInterfacePortIds()[0],
-          masterLogicalInterfacePortIds()[1]}) {
+    for (const auto& portID : portIdsForTest()) {
       auto portCfg = utility::findCfgPort(cfg_, portID);
       if (portCfg->pfc().has_value()) {
         if (enable) {

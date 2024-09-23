@@ -475,6 +475,24 @@ void addHighPriAclForBgp(
       {cfg::EtherType::IPv4, cfg::EtherType::IPv6});
 }
 
+void addHighPriAclForArp(
+    cfg::ToCpuAction toCpuAction,
+    int highPriQueueId,
+    std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>>& acls,
+    bool isSai) {
+  cfg::AclEntry acl1;
+  acl1.etherType() = cfg::EtherType::ARP;
+  acl1.ipType() = cfg::IpType::ARP_REQUEST;
+  acl1.name() = folly::to<std::string>("cpuPolicing-high-arp-request-acl");
+  auto action = createQueueMatchAction(highPriQueueId, isSai, toCpuAction);
+  acls.push_back(std::make_pair(acl1, action));
+  cfg::AclEntry acl2;
+  acl2.etherType() = cfg::EtherType::ARP;
+  acl2.ipType() = cfg::IpType::ARP_REPLY;
+  acl2.name() = folly::to<std::string>("cpuPolicing-high-arp-reply-acl");
+  acls.push_back(std::make_pair(acl2, action));
+}
+
 void addMidPriAclForLldp(
     cfg::ToCpuAction toCpuAction,
     int midPriQueueId,
@@ -713,6 +731,9 @@ std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>> defaultCpuAclsForSai(
         hwAsic, cfg::ToCpuAction::TRAP, acls, true /*isSai*/);
 
     if (hwAsic->isSupported(HwAsic::Feature::NO_RX_REASON_TRAP)) {
+      addHighPriAclForArp(
+
+          cfg::ToCpuAction::TRAP, getCoppHighPriQueueId(hwAsic), acls, true);
       addHighPriAclForBgp(
           hwAsic,
           cfg::ToCpuAction::TRAP,
@@ -965,10 +986,6 @@ std::vector<cfg::PacketRxReasonToQueue> getCoppRxReasonToQueuesForSai(
   if (hwAsic->isSupported(HwAsic::Feature::NO_RX_REASON_TRAP)) {
     // TODO(daiweix): remove these rx reason traps and replace them by ACLs
     rxReasonToQueues = {
-        ControlPlane::makeRxReasonToQueueEntry(
-            cfg::PacketRxReason::ARP, coppHighPriQueueId),
-        ControlPlane::makeRxReasonToQueueEntry(
-            cfg::PacketRxReason::ARP_RESPONSE, coppHighPriQueueId),
         ControlPlane::makeRxReasonToQueueEntry(
             cfg::PacketRxReason::NDP, coppHighPriQueueId),
         ControlPlane::makeRxReasonToQueueEntry(

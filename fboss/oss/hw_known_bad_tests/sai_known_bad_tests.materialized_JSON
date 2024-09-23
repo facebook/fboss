@@ -20,9 +20,6 @@
           "test_name_regex": "HwHashConsistencyTest.UdpEgressLinksOnEcmpExpand"
         },
         {
-          "test_name_regex": "HwPfcTest.PfcWatchdog*"
-        },
-        {
           "test_name_regex": "HwVerifyPfcConfigInHwTest.PfcWatchdog*"
         },
         {
@@ -419,9 +416,6 @@
         },
         {
           "test_name_regex": "HwMacSwLearningModeTest.VerifyCallbacksOnMacEntryChange"
-        },
-        {
-          "test_name_regex": "HwPfcTest.PfcWatchdog.*"
         },
         {
           "test_name_regex": "HwVerifyPfcConfigInHwTest.PfcWatchdog.*"
@@ -1032,9 +1026,6 @@
           "test_name_regex": "HwMacSwLearningModeTest.VerifyCallbacksOnMacEntryChange"
         },
         {
-          "test_name_regex": "HwPfcTest.PfcWatchdog.*"
-        },
-        {
           "test_name_regex": "HwVerifyPfcConfigInHwTest.PfcWatchdog.*"
         },
         {
@@ -1135,6 +1126,9 @@
         },
         {
           "test_name_regex": "HwProdInvariantsRswStrictPriorityTest"
+        },
+        {
+          "test_name_regex": "HwTest_PROFILE_100G_4_NRZ_RS528_OPTICAL.TestProfile"
         },
         {
           "test_name_regex": "HwDscpQueueMappingTest.VerifyAclAndQosMap"
@@ -1587,9 +1581,6 @@
         },
         {
           "test_name_regex": "HwTrafficPfcTest.*"
-        },
-        {
-          "test_name_regex": "HwPfcTest.*"
         },
         {
           "test_name_regex": "HwVerifyPfcConfigInHwTest.*"
@@ -2233,9 +2224,6 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.HwFlexPortTest.FlexPortFOURX25G"
         },
         {
-          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.HwPfcTest.*"
-        },
-        {
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.HwVerifyPfcConfigInHwTest.*"
         },
         {
@@ -2312,9 +2300,6 @@
         },
         {
           "test_name_regex": "HwLoadBalancerNegativeProtocolMatchTestV6RoCE.*"
-        },
-        {
-          "test_name_regex": "HwPfcTest.PfcWatchdog.*"
         },
         {
           "test_name_regex": "HwVerifyPfcConfigInHwTest.PfcWatchdog.*"
@@ -2614,9 +2599,6 @@
         },
         {
           "test_name_regex": "HwMacSwLearningModeTest.VerifyCallbacksOnMacEntryChange"
-        },
-        {
-          "test_name_regex": "HwPfcTest.PfcWatchdog.*"
         },
         {
           "test_name_regex": "HwVerifyPfcConfigInHwTest.PfcWatchdog.*"
@@ -3161,9 +3143,6 @@
           "test_name_regex": "HwMacSwLearningModeTest.VerifyCallbacksOnMacEntryChange"
         },
         {
-          "test_name_regex": "HwPfcTest.PfcWatchdog.*"
-        },
-        {
           "test_name_regex": "HwVerifyPfcConfigInHwTest.PfcWatchdog.*"
         },
         {
@@ -3264,6 +3243,9 @@
         },
         {
           "test_name_regex": "HwProdInvariantsRswStrictPriorityTest"
+        },
+        {
+          "test_name_regex": "HwTest_PROFILE_100G_4_NRZ_RS528_OPTICAL.TestProfile"
         }
     ],
     "brcm/11.3.0.0_dnx_odp/11.3.0.0_dnx_odp/jericho3": [
@@ -3418,9 +3400,6 @@
         },
         {
           "test_name_regex": "HwHashConsistencyTest.UdpEgressLinksOnEcmpExpand"
-        },
-        {
-          "test_name_regex": "HwPfcTest.PfcWatchdog*"
         },
         {
           "test_name_regex": "HwVerifyPfcConfigInHwTest.PfcWatchdog*"
@@ -3737,9 +3716,6 @@
         },
         {
           "test_name_regex": "HwRouteTest/[01].VerifyClassIdWithNhopResolutionFlap"
-        },
-        {
-          "test_name_regex": "HwPfcTest.PfcWatchdog*"
         },
         {
           "test_name_regex": "HwVerifyPfcConfigInHwTest.PfcWatchdog*"
@@ -4082,9 +4058,6 @@
         },
         {
           "test_name_regex": "HwOlympicQosTests.*"
-        },
-        {
-          "test_name_regex": "HwPfcTest.*"
         },
         {
           "test_name_regex": "HwVerifyPfcConfigInHwTest.*"
@@ -4561,9 +4534,6 @@
         },
         {
           "test_name_regex": "HwTrafficPfcTest.*"
-        },
-        {
-          "test_name_regex": "HwPfcTest.*"
         },
         {
           "test_name_regex": "HwVerifyPfcConfigInHwTest.*"
@@ -5207,9 +5177,6 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.HwFlexPortTest.FlexPortFOURX25G"
         },
         {
-          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.HwPfcTest.*"
-        },
-        {
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.HwVerifyPfcConfigInHwTest.*"
         },
         {
@@ -5286,9 +5253,6 @@
         },
         {
           "test_name_regex": "HwLoadBalancerNegativeProtocolMatchTestV6RoCE.*"
-        },
-        {
-          "test_name_regex": "HwPfcTest.PfcWatchdog.*"
         },
         {
           "test_name_regex": "HwVerifyPfcConfigInHwTest.PfcWatchdog.*"
@@ -5585,9 +5549,6 @@
         },
         {
           "test_name_regex": "HwMacSwLearningModeTest.VerifyCallbacksOnMacEntryChange"
-        },
-        {
-          "test_name_regex": "HwPfcTest.PfcWatchdog.*"
         },
         {
           "test_name_regex": "HwVerifyPfcConfigInHwTest.PfcWatchdog.*"
@@ -6258,9 +6219,6 @@
           "test_name_regex": "HwTrafficPfcTest.*"
         },
         {
-          "test_name_regex": "HwPfcTest.*"
-        },
-        {
           "test_name_regex": "HwVerifyPfcConfigInHwTest.*"
         },
         {
@@ -6400,9 +6358,6 @@
         },
         {
           "test_name_regex": "HwTrafficPfcTest.*"
-        },
-        {
-          "test_name_regex": "HwPfcTest.*"
         },
         {
           "test_name_regex": "HwVerifyPfcConfigInHwTest.*"
@@ -6929,9 +6884,6 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.HwFlexPortTest.FlexPortFOURX25G"
         },
         {
-          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.HwPfcTest.*"
-        },
-        {
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.HwVerifyPfcConfigInHwTest.*"
         },
         {
@@ -7010,9 +6962,6 @@
           "test_name_regex": "HwLoadBalancerNegativeProtocolMatchTestV6RoCE.*"
         },
         {
-          "test_name_regex": "HwPfcTest.PfcWatchdog.*"
-        },
-        {
           "test_name_regex": "HwVerifyPfcConfigInHwTest.PfcWatchdog.*"
         },
         {
@@ -7050,9 +6999,6 @@
         },
         {
           "test_name_regex": "HwTrafficPfcTest.*"
-        },
-        {
-          "test_name_regex": "HwPfcTest.*"
         },
         {
           "test_name_regex": "HwVerifyPfcConfigInHwTest.*"
@@ -7334,9 +7280,6 @@
         },
         {
           "test_name_regex": "HwMacSwLearningModeTest.VerifyCallbacksOnMacEntryChange"
-        },
-        {
-          "test_name_regex": "HwPfcTest.PfcWatchdog.*"
         },
         {
           "test_name_regex": "HwVerifyPfcConfigInHwTest.PfcWatchdog.*"
@@ -7624,9 +7567,6 @@
           "test_name_regex": "HwTrafficPfcTest.*"
         },
         {
-          "test_name_regex": "HwPfcTest.*"
-        },
-        {
           "test_name_regex": "HwVerifyPfcConfigInHwTest.*"
         },
         {
@@ -7906,9 +7846,6 @@
         },
         {
           "test_name_regex": "HwMacSwLearningModeTest.VerifyCallbacksOnMacEntryChange"
-        },
-        {
-          "test_name_regex": "HwPfcTest.PfcWatchdog.*"
         },
         {
           "test_name_regex": "HwVerifyPfcConfigInHwTest.PfcWatchdog.*"
@@ -8645,9 +8582,6 @@
           "test_name_regex": "HwTrafficPfcTest.*"
         },
         {
-          "test_name_regex": "HwPfcTest.*"
-        },
-        {
           "test_name_regex": "HwVerifyPfcConfigInHwTest.*"
         },
         {
@@ -9289,9 +9223,6 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.HwFlexPortTest.FlexPortFOURX25G"
         },
         {
-          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.HwPfcTest.*"
-        },
-        {
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.HwVerifyPfcConfigInHwTest.*"
         },
         {
@@ -9368,9 +9299,6 @@
         },
         {
           "test_name_regex": "HwLoadBalancerNegativeProtocolMatchTestV6RoCE.*"
-        },
-        {
-          "test_name_regex": "HwPfcTest.PfcWatchdog.*"
         },
         {
           "test_name_regex": "HwVerifyPfcConfigInHwTest.PfcWatchdog.*"
@@ -9672,9 +9600,6 @@
           "test_name_regex": "HwMacSwLearningModeTest.VerifyCallbacksOnMacEntryChange"
         },
         {
-          "test_name_regex": "HwPfcTest.PfcWatchdog.*"
-        },
-        {
           "test_name_regex": "HwVerifyPfcConfigInHwTest.PfcWatchdog.*"
         },
         {
@@ -9960,9 +9885,6 @@
     "leaba/1.42.8/1.42.8/gibraltar": [
         {
           "test_name_regex": "HwTrafficPfcTest.*"
-        },
-        {
-          "test_name_regex": "HwPfcTest.*"
         },
         {
           "test_name_regex": "HwVerifyPfcConfigInHwTest.*"
@@ -10352,9 +10274,6 @@
     "leaba/1.42.8/1.42.8/simulator": [
         {
           "test_name_regex": "HwTrafficPfcTest.*"
-        },
-        {
-          "test_name_regex": "HwPfcTest.*"
         },
         {
           "test_name_regex": "HwVerifyPfcConfigInHwTest.*"
@@ -11052,9 +10971,6 @@
           "test_name_regex": "HwTrafficPfcTest.*"
         },
         {
-          "test_name_regex": "HwPfcTest.*"
-        },
-        {
           "test_name_regex": "HwVerifyPfcConfigInHwTest.*"
         },
         {
@@ -11460,9 +11376,6 @@
     "leaba/1.68.0/1.68.0/graphene200/simulator": [
         {
           "test_name_regex": "HwTrafficPfcTest.*"
-        },
-        {
-          "test_name_regex": "HwPfcTest.*"
         },
         {
           "test_name_regex": "HwVerifyPfcConfigInHwTest.*"
@@ -12161,9 +12074,6 @@
     "leaba/24.4.90/24.4.90/gibraltar": [
         {
           "test_name_regex": "HwTrafficPfcTest.*"
-        },
-        {
-          "test_name_regex": "HwPfcTest.*"
         },
         {
           "test_name_regex": "HwVerifyPfcConfigInHwTest.*"

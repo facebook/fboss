@@ -208,22 +208,47 @@ class AgentMirroringTest : public AgentHwTest {
     cfg->dataPlaneTrafficPolicy()->matchToAction()->push_back(matchToAction);
   }
 
-  void verifyMirrorProgrammed(const std::string& mirrorName) {
-    WITH_RETRIES({
-      auto mirror = getProgrammedState()->getMirrors()->getNodeIf(mirrorName);
-      EXPECT_EVENTUALLY_NE(mirror, nullptr);
-      EXPECT_EVENTUALLY_TRUE(mirror->isResolved());
-      auto fields = mirror->toThrift();
-      auto scope = getAgentEnsemble()->scopeResolver().scope(mirror);
-      for (auto switchID : scope.switchIds()) {
-        auto client = getAgentEnsemble()->getHwAgentTestClient(switchID);
-        EXPECT_EVENTUALLY_TRUE(client->sync_isMirrorProgrammed(fields));
-      }
-    });
+  void verifyMirrorProgrammed(
+      apache::thrift::Client<utility::AgentHwTestCtrl>* client,
+      const state::MirrorFields& fields) {
+    WITH_RETRIES(
+        { EXPECT_EVENTUALLY_TRUE(client->sync_isMirrorProgrammed(fields)); });
+  }
+
+  void verifyPortMirrorProgrammed(const std::string& mirrorName) {
+    auto mirror = getProgrammedState()->getMirrors()->getNodeIf(mirrorName);
+    EXPECT_NE(mirror, nullptr);
+    auto fields = mirror->toThrift();
+
+    auto scope = getAgentEnsemble()->scopeResolver().scope(mirror);
+    for (auto switchID : scope.switchIds()) {
+      auto client = getAgentEnsemble()->getHwAgentTestClient(switchID);
+      EXPECT_TRUE(client->sync_isMirrorProgrammed(fields));
+      verifyMirrorProgrammed(client.get(), fields);
+      WITH_RETRIES({
+        EXPECT_EVENTUALLY_TRUE(client->sync_isPortMirrored(
+            getTrafficPort(*getAgentEnsemble()), mirrorName, isIngress()));
+      });
+    }
+  }
+
+  void verifyAclMirrorProgrammed(const std::string& mirrorName) {
+    auto mirror = getProgrammedState()->getMirrors()->getNodeIf(mirrorName);
+    EXPECT_NE(mirror, nullptr);
+    auto fields = mirror->toThrift();
+
+    auto scope = getAgentEnsemble()->scopeResolver().scope(mirror);
+    for (auto switchID : scope.switchIds()) {
+      auto client = getAgentEnsemble()->getHwAgentTestClient(switchID);
+      verifyMirrorProgrammed(client.get(), fields);
+      WITH_RETRIES({
+        EXPECT_EVENTUALLY_TRUE(client->sync_isAclEntryMirrored(
+            kMirrorAcl, mirrorName, isIngress()));
+      });
+    }
   }
 
   void verify(const std::string& mirrorName, int payloadSize = 500) {
-    verifyMirrorProgrammed(mirrorName);
     auto trafficPort = getTrafficPort(*getAgentEnsemble());
     auto mirrorToPort = getMirrorToPort(*getAgentEnsemble());
     WITH_RETRIES({
@@ -258,13 +283,89 @@ class AgentMirroringTest : public AgentHwTest {
 
   void testPortMirror(const std::string& mirrorName) {
     auto setup = [=, this]() { this->resolveMirror(mirrorName); };
-    auto verify = [=, this]() { this->verify(mirrorName); };
+    auto verify = [=, this]() {
+      this->verify(mirrorName);
+      this->verifyPortMirrorProgrammed(mirrorName);
+    };
+    this->verifyAcrossWarmBoots(setup, verify);
+  }
+
+  void testUpdatePortMirror(const std::string& mirrorName) {
+    auto setup = [=, this]() {
+      this->resolveMirror(mirrorName);
+      auto cfg = initialConfig(*getAgentEnsemble());
+      cfg.mirrors()->clear();
+      utility::addMirrorConfig<AddrT>(
+          &cfg,
+          *getAgentEnsemble(),
+          mirrorName,
+          false /* truncate */,
+          48 /* dscp */);
+      this->applyNewConfig(cfg);
+    };
+    auto verify = [=, this]() {
+      this->verify(mirrorName);
+      this->verifyPortMirrorProgrammed(mirrorName);
+    };
     this->verifyAcrossWarmBoots(setup, verify);
   }
 
   void testAclMirror(const std::string& mirrorName) {
     auto setup = [=, this]() { this->resolveMirror(mirrorName); };
-    auto verify = [=, this]() { this->verify(mirrorName); };
+    auto verify = [=, this]() {
+      this->verify(mirrorName);
+      this->verifyAclMirrorProgrammed(mirrorName);
+    };
+    this->verifyAcrossWarmBoots(setup, verify);
+  }
+
+  void testUpdateAclMirror(const std::string& mirrorName) {
+    auto setup = [=, this]() {
+      this->resolveMirror(mirrorName);
+      auto cfg = initialConfig(*getAgentEnsemble());
+      cfg.mirrors()->clear();
+      utility::addMirrorConfig<AddrT>(
+          &cfg,
+          *getAgentEnsemble(),
+          mirrorName,
+          false /* truncate */,
+          48 /* dscp */);
+      this->applyNewConfig(cfg);
+    };
+    auto verify = [=, this]() {
+      this->verify(mirrorName);
+      this->verifyAclMirrorProgrammed(mirrorName);
+    };
+    this->verifyAcrossWarmBoots(setup, verify);
+  }
+
+  void testRemoveMirror(const std::string& mirrorName) {
+    auto setup = [=, this]() {
+      const auto& ensemble = *getAgentEnsemble();
+      this->resolveMirror(mirrorName);
+
+      auto config = utility::onePortPerInterfaceConfig(
+          ensemble.getSw(),
+          ensemble.masterLogicalPortIds(),
+          true /*interfaceHasSubnet*/);
+
+      this->applyNewConfig(config);
+    };
+    auto verify = [=, this]() {
+      auto mirror = getProgrammedState()->getMirrors()->getNodeIf(mirrorName);
+      EXPECT_EQ(mirror, nullptr);
+      auto scopeResolver = getAgentEnsemble()->getSw()->getScopeResolver();
+      auto scope = scopeResolver->scope(mirror);
+      for (auto switchID : scope.switchIds()) {
+        auto client = getAgentEnsemble()->getHwAgentTestClient(switchID);
+        WITH_RETRIES({
+          EXPECT_EVENTUALLY_FALSE(client->sync_isPortMirrored(
+              getTrafficPort(*getAgentEnsemble()), mirrorName, isIngress()));
+          EXPECT_TRUE(client->sync_isAclEntryMirrored(
+              kMirrorAcl, mirrorName, isIngress()));
+        });
+      }
+    };
     this->verifyAcrossWarmBoots(setup, verify);
   }
 
@@ -542,16 +643,40 @@ TYPED_TEST(AgentIngressPortSpanMirroringTest, SpanPortMirror) {
   this->testPortMirror(utility::kIngressSpan);
 }
 
+TYPED_TEST(AgentIngressPortSpanMirroringTest, UpdateSpanPortMirror) {
+  this->testUpdatePortMirror(kIngressSpan);
+}
+
+TYPED_TEST(AgentIngressAclSpanMirroringTest, RemoveSpanMirror) {
+  this->testRemoveMirror(utility::kIngressSpan);
+}
+
 TYPED_TEST(AgentIngressPortErspanMirroringTest, ErspanPortMirror) {
   this->testPortMirror(utility::kIngressErspan);
+}
+
+TYPED_TEST(AgentIngressAclSpanMirroringTest, RemoveErspanMirror) {
+  this->testRemoveMirror(utility::kIngressErspan);
+}
+
+TYPED_TEST(AgentIngressPortErspanMirroringTest, UpdateErspanPortMirror) {
+  this->testUpdatePortMirror(kIngressErspan);
 }
 
 TYPED_TEST(AgentIngressAclSpanMirroringTest, SpanAclMirror) {
   this->testAclMirror(utility::kIngressSpan);
 }
 
+TYPED_TEST(AgentIngressAclSpanMirroringTest, UpdateSpanAclMirror) {
+  this->testUpdateAclMirror(kIngressSpan);
+}
+
 TYPED_TEST(AgentIngressAclErspanMirroringTest, ErspanAclMirror) {
   this->testAclMirror(utility::kIngressErspan);
+}
+
+TYPED_TEST(AgentIngressAclErspanMirroringTest, UpdateErspanAclMirror) {
+  this->testUpdateAclMirror(kIngressErspan);
 }
 
 TYPED_TEST(

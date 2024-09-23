@@ -12,6 +12,7 @@
 #include <fboss/agent/SwSwitch.h>
 #include <fboss/agent/test/AgentEnsemble.h>
 #include "fboss/agent/ApplyThriftConfig.h"
+#include "fboss/agent/DsfStateUpdaterUtil.h"
 #include "fboss/agent/Utils.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
@@ -255,16 +256,32 @@ void initandExitBenchmarkHelper(
         ensemble = createAgentEnsemble(
             voqInitialConfig, false /*disableLinkStateToggler*/);
         if (ensemble->getSw()->getBootType() == BootType::COLD_BOOT) {
-          ensemble->applyNewState([&](const std::shared_ptr<SwitchState>& in) {
-            return utility::setupRemoteIntfAndSysPorts(
-                in,
-                ensemble->scopeResolver(),
-                ensemble->getSw()->getConfig(),
-                ensemble->getSw()
-                    ->getHwAsicTable()
-                    ->isFeatureSupportedOnAllAsic(
-                        HwAsic::Feature::RESERVED_ENCAP_INDEX_RANGE));
-          });
+          auto updateDsfStateFn =
+              [&ensemble](const std::shared_ptr<SwitchState>& in) {
+                std::map<SwitchID, std::shared_ptr<SystemPortMap>>
+                    switchId2SystemPorts;
+                std::map<SwitchID, std::shared_ptr<InterfaceMap>> switchId2Rifs;
+                utility::populateRemoteIntfAndSysPorts(
+                    switchId2SystemPorts,
+                    switchId2Rifs,
+                    ensemble->getSw()->getConfig(),
+                    ensemble->getSw()
+                        ->getHwAsicTable()
+                        ->isFeatureSupportedOnAllAsic(
+                            HwAsic::Feature::RESERVED_ENCAP_INDEX_RANGE));
+                return DsfStateUpdaterUtil::getUpdatedState(
+                    in,
+                    ensemble->getSw()->getScopeResolver(),
+                    ensemble->getSw()->getRib(),
+                    switchId2SystemPorts,
+                    switchId2Rifs);
+              };
+          ensemble->getSw()->getRib()->updateStateInRibThread(
+              [&ensemble, updateDsfStateFn]() {
+                ensemble->getSw()->updateStateWithHwFailureProtection(
+                    folly::sformat("Update state for node: {}", 0),
+                    updateDsfStateFn);
+              });
         }
         break;
       case cfg::SwitchType::NPU:

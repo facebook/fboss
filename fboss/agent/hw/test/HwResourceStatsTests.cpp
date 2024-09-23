@@ -29,29 +29,16 @@ using namespace facebook::fb303;
 
 namespace facebook::fboss {
 
-template <bool enableMultiAclTable>
-struct EnableMultiAclTableT {
-  static constexpr auto multiAclTableEnabled = enableMultiAclTable;
-};
-
-using TestTypes =
-    ::testing::Types<EnableMultiAclTableT<false>, EnableMultiAclTableT<true>>;
-
-template <typename EnableMultiAclTableT>
 class HwResourceStatsTest : public HwLinkStateDependentTest {
-  static auto constexpr isMultiAclEnabled =
-      EnableMultiAclTableT::multiAclTableEnabled;
-
  protected:
   void SetUp() override {
-    FLAGS_enable_acl_table_group = isMultiAclEnabled;
     HwTest::SetUp();
   }
 
   cfg::SwitchConfig initialConfig() const override {
     auto cfg = utility::onePortPerInterfaceConfig(
         getHwSwitch(), masterLogicalPortIds());
-    if (isMultiAclEnabled) {
+    if (FLAGS_enable_acl_table_group) {
       utility::addAclTableGroup(
           &cfg, cfg::AclStage::INGRESS, utility::getAclTableGroupName());
       utility::addDefaultAclTable(cfg);
@@ -68,9 +55,7 @@ class HwResourceStatsTest : public HwLinkStateDependentTest {
   }
 };
 
-TYPED_TEST_SUITE(HwResourceStatsTest, TestTypes);
-
-TYPED_TEST(HwResourceStatsTest, l3Stats) {
+TEST_F(HwResourceStatsTest, l3Stats) {
   if (!this->isSupported(HwAsic::Feature::RESOURCE_USAGE_STATS)) {
 #if defined(GTEST_SKIP)
     GTEST_SKIP();
@@ -148,7 +133,7 @@ TYPED_TEST(HwResourceStatsTest, l3Stats) {
   this->verifyAcrossWarmBoots(setup, verify);
 };
 
-TYPED_TEST(HwResourceStatsTest, aclStats) {
+TEST_F(HwResourceStatsTest, aclStats) {
   if (!this->isSupported(HwAsic::Feature::RESOURCE_USAGE_STATS)) {
 #if defined(GTEST_SKIP)
     GTEST_SKIP();

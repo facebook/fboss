@@ -44,7 +44,7 @@ cfg::SwitchConfig AgentOverflowTestBase::initialConfig(
       ensemble.getSw()->getPlatformType(),
       ensemble.getSw()->getPlatformMapping(),
       ensemble.getSw()->getPlatformSupportsAddRemovePort(),
-      ensemble.masterLogicalPortIds(),
+      ensemble.masterLogicalInterfacePortIds(),
       ensemble.isSai());
 }
 

@@ -19,7 +19,7 @@
         "parserType": 1,
         "routable": true,
         "ingressVlan": 0,
-        "speed": 10000,
+        "speed": 100000,
         "name": "rcy1/1/441",
         "description": "",
         "queues_DEPRECATED": [
@@ -38,7 +38,7 @@
         "lookupClasses": [
           
         ],
-        "profileID": 11,
+        "profileID": 49,
         "portType": 3,
         "expectedNeighborReachability": [
           
@@ -54,7 +54,7 @@
         "parserType": 1,
         "routable": true,
         "ingressVlan": 0,
-        "speed": 10000,
+        "speed": 100000,
         "name": "rcy1/1/442",
         "description": "",
         "queues_DEPRECATED": [
@@ -73,7 +73,7 @@
         "lookupClasses": [
           
         ],
-        "profileID": 11,
+        "profileID": 49,
         "portType": 3,
         "expectedNeighborReachability": [
           
@@ -89,7 +89,7 @@
         "parserType": 1,
         "routable": true,
         "ingressVlan": 0,
-        "speed": 10000,
+        "speed": 100000,
         "name": "rcy1/1/443",
         "description": "",
         "queues_DEPRECATED": [
@@ -108,7 +108,7 @@
         "lookupClasses": [
           
         ],
-        "profileID": 11,
+        "profileID": 49,
         "portType": 3,
         "expectedNeighborReachability": [
           
@@ -124,7 +124,7 @@
         "parserType": 1,
         "routable": true,
         "ingressVlan": 0,
-        "speed": 10000,
+        "speed": 100000,
         "name": "rcy1/1/444",
         "description": "",
         "queues_DEPRECATED": [
@@ -143,7 +143,7 @@
         "lookupClasses": [
           
         ],
-        "profileID": 11,
+        "profileID": 49,
         "portType": 3,
         "expectedNeighborReachability": [
           
@@ -159,7 +159,7 @@
         "parserType": 1,
         "routable": true,
         "ingressVlan": 0,
-        "speed": 10000,
+        "speed": 100000,
         "name": "rcy1/1/445",
         "description": "",
         "queues_DEPRECATED": [
@@ -178,7 +178,7 @@
         "lookupClasses": [
           
         ],
-        "profileID": 11,
+        "profileID": 49,
         "portType": 3,
         "expectedNeighborReachability": [
           
@@ -194,7 +194,7 @@
         "parserType": 1,
         "routable": true,
         "ingressVlan": 0,
-        "speed": 10000,
+        "speed": 100000,
         "name": "evt1/1/506",
         "description": "",
         "queues_DEPRECATED": [
@@ -213,7 +213,7 @@
         "lookupClasses": [
           
         ],
-        "profileID": 11,
+        "profileID": 49,
         "portType": 5,
         "expectedNeighborReachability": [
           
@@ -7370,6 +7370,24 @@
         "etherType": 34525
       },
       {
+        "name": "cpuPolicing-mid-lldp-dstMac0E",
+        "actionType": 1,
+        "dstMac": "01:80:c2:00:00:0e",
+        "etherType": 35020
+      },
+      {
+        "name": "cpuPolicing-mid-lldp-dstMac03",
+        "actionType": 1,
+        "dstMac": "01:80:c2:00:00:03",
+        "etherType": 35020
+      },
+      {
+        "name": "cpuPolicing-mid-lldp-dstMac00",
+        "actionType": 1,
+        "dstMac": "01:80:c2:00:00:00",
+        "etherType": 35020
+      },
+      {
         "name": "cpuPolicing-mid-Ip2Me-Ip4",
         "actionType": 1,
         "lookupClassRoute": 1,
@@ -7561,6 +7579,42 @@
             }
           },
           {
+            "matcher": "cpuPolicing-mid-lldp-dstMac0E",
+            "action": {
+              "sendToQueue": {
+                "queueId": 3
+              },
+              "toCpuAction": 1,
+              "setTc": {
+                "tcValue": 3
+              }
+            }
+          },
+          {
+            "matcher": "cpuPolicing-mid-lldp-dstMac03",
+            "action": {
+              "sendToQueue": {
+                "queueId": 3
+              },
+              "toCpuAction": 1,
+              "setTc": {
+                "tcValue": 3
+              }
+            }
+          },
+          {
+            "matcher": "cpuPolicing-mid-lldp-dstMac00",
+            "action": {
+              "sendToQueue": {
+                "queueId": 3
+              },
+              "toCpuAction": 1,
+              "setTc": {
+                "tcValue": 3
+              }
+            }
+          },
+          {
             "matcher": "cpuPolicing-mid-Ip2Me-Ip4",
             "action": {
               "sendToQueue": {
@@ -7602,10 +7656,6 @@
         {
           "rxReason": 13,
           "queueId": 7
-        },
-        {
-          "rxReason": 9,
-          "queueId": 3
         },
         {
           "rxReason": 2,
@@ -8734,8 +8784,10 @@
             "port_init_speed_cd.BCM8889X": "400000",
             "port_init_speed_ce.BCM8889X": "100000",
             "port_init_speed_d3c.BCM8889X": "800000",
+            "port_init_speed_eventor.BCM8889X": "100000",
             "port_init_speed_fabric.BCM8889X": "106250",
             "port_init_speed_le.BCM8889X": "50000",
+            "port_init_speed_rcy.BCM8889X": "100000",
             "port_init_speed_sat.BCM8889X": "400000",
             "port_init_speed_xe.BCM8889X": "25000",
             "port_init_speed_xe13.BCM8889X": "10000",
