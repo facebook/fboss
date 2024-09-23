@@ -3,6 +3,7 @@
 #include "fboss/agent/DsfSubscription.h"
 #include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/DsfStateUpdaterUtil.h"
+#include "fboss/agent/DsfUpdateValidator.h"
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/SwitchStats.h"
 #include "fboss/agent/state/SwitchState.h"
@@ -82,6 +83,10 @@ DsfSubscription::DsfSubscription(
           getServerOptions(localIp.str(), remoteIp.str()),
           reconnectEvb,
           subscriberEvb)),
+      validator_(std::make_unique<DsfUpdateValidator>(
+          sw,
+          sw->getSwitchInfoTable().getSwitchIDs(),
+          remoteNodeSwitchIds)),
       localNodeName_(std::move(localNodeName)),
       remoteNodeName_(std::move(remoteNodeName)),
       remoteNodeSwitchIds_(std::move(remoteNodeSwitchIds)),

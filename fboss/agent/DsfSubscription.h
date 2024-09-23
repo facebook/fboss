@@ -18,6 +18,7 @@ class InterfaceMap;
 class SystemPortMap;
 class SwSwitch;
 class SwitchState;
+class DsfUpdateValidator;
 
 class DsfSubscription {
  public:
@@ -90,6 +91,7 @@ class DsfSubscription {
   folly::EventBase* hwUpdateEvb_;
   std::unique_ptr<fsdb::FsdbPubSubManager> fsdbPubSubMgr_;
   std::unique_ptr<FsdbAdaptedSubManager> subMgr_;
+  std::unique_ptr<DsfUpdateValidator> validator_;
   std::string localNodeName_;
   std::string remoteNodeName_;
   std::set<SwitchID> remoteNodeSwitchIds_;
