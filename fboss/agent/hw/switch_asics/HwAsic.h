@@ -193,6 +193,7 @@ class HwAsic {
     // explicty ACL config programmed by FBOSS
     NO_RX_REASON_TRAP,
     EGRESS_GVOQ_WATERMARK_BYTES,
+    INGRESS_PRIORITY_GROUP_SHARED_WATERMARK,
   };
 
   enum class AsicMode {
