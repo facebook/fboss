@@ -16,12 +16,19 @@ std::shared_ptr<SwitchState> DsfUpdateValidator::validateAndGetUpdate(
     const std::map<SwitchID, std::shared_ptr<SystemPortMap>>&
         switchId2SystemPorts,
     const std::map<SwitchID, std::shared_ptr<InterfaceMap>>& switchId2Intfs) {
-  return DsfStateUpdaterUtil::getUpdatedState(
+  auto out = DsfStateUpdaterUtil::getUpdatedState(
       in,
       sw_->getScopeResolver(),
       sw_->getRib(),
       switchId2SystemPorts,
       switchId2Intfs);
+  validate(in, out);
+  return out;
 }
 
+void DsfUpdateValidator::validate(
+    const std::shared_ptr<SwitchState>& /*oldState*/,
+    const std::shared_ptr<SwitchState>& /*newState*/) {
+  // TODO
+}
 } // namespace facebook::fboss

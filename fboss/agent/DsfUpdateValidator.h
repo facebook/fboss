@@ -30,6 +30,9 @@ class DsfUpdateValidator {
       const std::map<SwitchID, std::shared_ptr<InterfaceMap>>& switchId2Intfs);
 
  private:
+  void validate(
+      const std::shared_ptr<SwitchState>& oldState,
+      const std::shared_ptr<SwitchState>& newState);
   const SwSwitch* sw_;
   std::unordered_set<SwitchID> localSwitchIds_;
   std::set<SwitchID> remoteSwitchIds_;
