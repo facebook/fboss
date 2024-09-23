@@ -162,10 +162,7 @@ struct SaiIngressPriorityGroupTraits {
    * as clearOnRead counters. This is addressed for DNX via CS00012282384,
    * however, still open for rest of the SAI platforms.
    */
-  static constexpr std::array<sai_stat_id_t, 0> CounterIdsToReadAndClear = {
-      // SAI_INGRESS_PRIORITY_GROUP_STAT_SHARED_WATERMARK_BYTES,
-      // SAI_INGRESS_PRIORITY_GROUP_STAT_XOFF_ROOM_WATERMARK_BYTES,
-  };
+  static constexpr std::array<sai_stat_id_t, 0> CounterIdsToReadAndClear = {};
   static constexpr std::array<sai_stat_id_t, 0> CounterIdsToRead = {};
 };
 

@@ -350,18 +350,14 @@ SaiBufferManager::supportedIngressPriorityGroupWatermarkStats() const {
       stats.end(),
       SaiIngressPriorityGroupTraits::CounterIdsToReadAndClear.begin(),
       SaiIngressPriorityGroupTraits::CounterIdsToReadAndClear.end());
-  // TODO: Only DNX supports watermarks as of now, this would need
-  // modifications once XGS side support is in place.
-  if ((platform_->getAsic()->getAsicType() ==
-           cfg::AsicType::ASIC_TYPE_JERICHO2 ||
-       platform_->getAsic()->getAsicType() ==
-           cfg::AsicType::ASIC_TYPE_JERICHO3) &&
-      std::find(
-          stats.begin(),
-          stats.end(),
-          SAI_INGRESS_PRIORITY_GROUP_STAT_SHARED_WATERMARK_BYTES) ==
-          stats.end()) {
+  if (platform_->getAsic()->isSupported(
+          HwAsic::Feature::INGRESS_PRIORITY_GROUP_SHARED_WATERMARK)) {
     stats.emplace_back(SAI_INGRESS_PRIORITY_GROUP_STAT_SHARED_WATERMARK_BYTES);
+  }
+  if (platform_->getAsic()->isSupported(
+          HwAsic::Feature::INGRESS_PRIORITY_GROUP_HEADROOM_WATERMARK)) {
+    stats.emplace_back(
+        SAI_INGRESS_PRIORITY_GROUP_STAT_XOFF_ROOM_WATERMARK_BYTES);
   }
   return stats;
 }
