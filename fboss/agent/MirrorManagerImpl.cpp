@@ -88,7 +88,8 @@ std::shared_ptr<Mirror> MirrorManagerImpl<AddrT>::updateMirror(
       mirror->getSrcIp(),
       mirror->getTunnelUdpPorts(),
       mirror->getDscp(),
-      mirror->getTruncate());
+      mirror->getTruncate(),
+      mirror->getSamplingRate());
   newMirror->setSwitchId(mirror->getSwitchId());
 
   for (const auto& nexthop : nexthops) {

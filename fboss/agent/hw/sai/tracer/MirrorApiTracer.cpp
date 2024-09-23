@@ -31,6 +31,7 @@ std::map<int32_t, std::pair<std::string, std::size_t>> _MirrorSessionMap{
     SAI_ATTR_MAP(EnhancedRemoteMirror, SrcMacAddress),
     SAI_ATTR_MAP(EnhancedRemoteMirror, DstMacAddress),
     SAI_ATTR_MAP(EnhancedRemoteMirror, IpHeaderVersion),
+    SAI_ATTR_MAP(EnhancedRemoteMirror, SampleRate),
     SAI_ATTR_MAP(SflowMirror, UdpSrcPort),
     SAI_ATTR_MAP(SflowMirror, UdpDstPort),
 };

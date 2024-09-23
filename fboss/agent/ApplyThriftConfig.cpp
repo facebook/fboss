@@ -4966,13 +4966,15 @@ std::shared_ptr<Mirror> ThriftConfigApplier::createMirror(
 
   uint8_t dscpMark = mirrorConfig->get_dscp();
   bool truncate = mirrorConfig->get_truncate();
-  uint32_t samplingRate = mirrorConfig->samplingRate().has_value()
-      ? mirrorConfig->samplingRate().value()
-      : 0;
 
   std::optional<PortDescriptor> egressPortDesc;
   if (mirrorEgressPort.has_value()) {
     egressPortDesc = PortDescriptor(mirrorEgressPort.value());
+  }
+
+  std::optional<uint32_t> samplingRate;
+  if (mirrorConfig->samplingRate().has_value()) {
+    samplingRate = mirrorConfig->samplingRate().value();
   }
 
   auto mirror = make_shared<Mirror>(
