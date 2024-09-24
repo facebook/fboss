@@ -942,8 +942,9 @@ void SaiPortManager::programSerdes(
 
   if ((platform_->getAsic()->getAsicType() ==
            cfg::AsicType::ASIC_TYPE_GARONNE ||
-       platform_->getAsic()->getAsicType() ==
-           cfg::AsicType::ASIC_TYPE_TOMAHAWK5) &&
+       (platform_->getAsic()->getAsicType() ==
+            cfg::AsicType::ASIC_TYPE_TOMAHAWK5 &&
+        platform_->getHwSwitch()->getBootType() == BootType::COLD_BOOT)) &&
       swPort->getAdminState() == cfg::PortState::ENABLED) {
     /*
      * SI settings are not programmed to the hardware when the port is
