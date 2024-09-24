@@ -16,6 +16,9 @@ cpp_library(
 
 cpp_library(
     name = "cow_storage",
+    srcs = [
+        "CowStorage.cpp",
+    ],
     headers = [
         "CowStorage.h",
     ],

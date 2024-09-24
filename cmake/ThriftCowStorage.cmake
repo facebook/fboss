@@ -20,6 +20,7 @@ target_link_libraries(storage
 add_library(
   cow_storage
   fboss/thrift_cow/storage/CowStorage.h
+  fboss/thrift_cow/storage/CowStorage.cpp
 )
 
 set_target_properties(cow_storage PROPERTIES LINKER_LANGUAGE CXX)
