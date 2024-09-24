@@ -2,6 +2,11 @@
 
 #pragma once
 
+#include <chrono>
+#include <functional>
+#include <optional>
+#include <string>
+
 #include "fboss/platform/platform_manager/gen-cpp2/platform_manager_config_types.h"
 
 namespace facebook::fboss::platform::platform_manager {
@@ -31,6 +36,11 @@ class Utils {
   // Explore and resolve Watchdogs's CharDevicePath for given SysfsPath.
   // Throws an exception when it fails to resolve CharDevicePath
   std::string resolveWatchdogCharDevPath(const std::string& sysfsPath);
+
+  bool checkDeviceReadiness(
+      std::function<bool()>&& isDeviceReadyFunc,
+      const std::string& onWaitMsg,
+      std::chrono::seconds maxWaitSecs = std::chrono::seconds(1));
 
   virtual int getGpioLineValue(const std::string& charDevPath, int lineIndex)
       const;

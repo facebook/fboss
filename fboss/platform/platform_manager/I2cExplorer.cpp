@@ -1,7 +1,6 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
 #include "fboss/platform/platform_manager/I2cExplorer.h"
-#include "fboss/lib/i2c/I2cDevIo.h"
 
 #include <folly/FileUtil.h>
 #include <folly/String.h>
@@ -9,12 +8,15 @@
 #include <filesystem>
 #include <stdexcept>
 
+#include "fboss/lib/i2c/I2cDevIo.h"
+#include "fboss/platform/platform_manager/Utils.h"
+
 namespace fs = std::filesystem;
 
 namespace {
 
 const re2::RE2 kI2cMuxChannelRegex{"channel-\\d+"};
-constexpr auto kI2cDevCreationWaitSecs = 5;
+constexpr auto kI2cDevCreationWaitSecs = std::chrono::seconds(5);
 constexpr auto kCpuI2cBusNumsWaitSecs = 1;
 
 std::string getI2cAdapterName(const fs::path& busPath) {
@@ -162,7 +164,7 @@ void I2cExplorer::createI2cDevice(
       busNum);
   auto [exitStatus, standardOut] = platformUtils_->execCommand(cmd);
   XLOG_IF(INFO, !standardOut.empty()) << standardOut;
-  if (exitStatus != 0 || !isI2cDeviceCreated(busNum, addr)) {
+  if (exitStatus != 0) {
     throw std::runtime_error(fmt::format(
         "Failed to create i2c device for {} ({}) at bus: {}, addr: {} with exit status {}",
         pmUnitScopedName,
@@ -170,6 +172,21 @@ void I2cExplorer::createI2cDevice(
         busNum,
         addr.hex2Str(),
         exitStatus));
+  }
+  if (!Utils().checkDeviceReadiness(
+          [&]() -> bool { return isI2cDevicePresent(busNum, addr); },
+          fmt::format(
+              "I2cDevice at busNum: {} and addr: {} is not yet initialized. Waiting for at most {}s",
+              busNum,
+              addr.hex4Str(),
+              kI2cDevCreationWaitSecs.count()),
+          kI2cDevCreationWaitSecs)) {
+    throw std::runtime_error(fmt::format(
+        "Failed to initialize i2c device for {} ({}) at bus: {}, addr: {}",
+        pmUnitScopedName,
+        deviceName,
+        busNum,
+        addr.hex2Str()));
   }
   XLOG(INFO) << fmt::format(
       "Created i2c device {} ({}) at {}",
@@ -218,19 +235,4 @@ std::string I2cExplorer::getDeviceI2cPath(
 std::string I2cExplorer::getI2cBusCharDevPath(uint16_t busNum) {
   return fmt::format("/dev/i2c-{}", busNum);
 }
-
-bool I2cExplorer::isI2cDeviceCreated(uint16_t busNum, const I2cAddr& addr)
-    const {
-  if (isI2cDevicePresent(busNum, addr)) {
-    return true;
-  }
-  XLOG(INFO) << fmt::format(
-      "I2cDevice at busNum: {} and addr: {} is not yet created. Waiting for {}s",
-      busNum,
-      addr.hex4Str(),
-      kI2cDevCreationWaitSecs);
-  sleep(kI2cDevCreationWaitSecs);
-  return isI2cDevicePresent(busNum, addr);
-}
-
 } // namespace facebook::fboss::platform::platform_manager

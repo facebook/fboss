@@ -49,6 +49,7 @@ add_library(platform_manager_i2c_explorer
 target_link_libraries(platform_manager_i2c_explorer
   fmt::fmt
   platform_manager_config_cpp2
+  platform_manager_utils
   i2c_ctrl
   platform_utils
   Folly::folly

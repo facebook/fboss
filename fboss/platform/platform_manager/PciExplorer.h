@@ -145,10 +145,6 @@ class PciExplorer {
       const PciDevice& pciDevice,
       const FpgaIpBlockConfig& fpgaIpBlockConfig,
       uint32_t instanceId);
-  bool checkPciSubDeviceReadiness(
-      const PciDevice& pciDevice,
-      const FpgaIpBlockConfig& fpgaIpBlockConfig,
-      uint32_t instanceId);
   bool isPciSubDeviceReady(
       const PciDevice& pciDevice,
       const FpgaIpBlockConfig& fpgaIpBlockConfig,

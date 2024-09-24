@@ -69,6 +69,7 @@ cpp_library(
         "fbsource//third-party/fmt:fmt",
         ":i2c_misc",
         ":platform_manager_config-cpp2-types",
+        ":utils",
     ],
     exported_external_deps = [
         "re2",

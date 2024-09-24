@@ -19,8 +19,7 @@ using namespace facebook::fboss::platform::platform_manager;
 namespace {
 const re2::RE2 kSpiBusRe{"spi\\d+"};
 const re2::RE2 kSpiDevIdRe{"spi(?P<BusNum>\\d+).(?P<ChipSelect>\\d+)"};
-// TODO (T181346009) for more granular interval retries.
-constexpr auto kPciWaitSecs = 5;
+constexpr auto kPciWaitSecs = std::chrono::seconds(5);
 
 bool hasEnding(std::string const& input, std::string const& ending) {
   if (input.length() >= ending.length()) {
@@ -64,15 +63,15 @@ PciDevice::PciDevice(
       std::string(subSystemVendorId, 2, 4),
       std::string(subSystemDeviceId, 2, 4));
 
-  if (!fs::exists(charDevPath_)) {
-    XLOG(INFO) << fmt::format(
-        "No character device found at {} for {}. Waiting for {}s",
-        charDevPath_,
-        name,
-        kPciWaitSecs);
-    sleep(kPciWaitSecs);
-  }
-  if (!fs::exists(charDevPath_)) {
+  if (!Utils().checkDeviceReadiness(
+          [&charDevPath_ = charDevPath_]() -> bool {
+            return fs::exists(charDevPath_);
+          },
+          fmt::format(
+              "No character device found at {} for {}. Waiting for at most {}s",
+              charDevPath_,
+              name,
+              kPciWaitSecs.count()))) {
     throw std::runtime_error(fmt::format(
         "No character device found at {} for {}. This could either mean the "
         "FPGA does not show up as PCI device (see lspci output), or the kmods "
@@ -278,7 +277,7 @@ void PciExplorer::create(
   // PciSubDevice creation failure cases.
   // 1. ioctl() failures (ret < 0).
   // More details: https://man7.org/linux/man-pages/man2/ioctl.2.html#ERRORS
-  // 2. PciSubDevice driver binding failure (checkPciSubDeviceReadiness =
+  // 2. PciSubDevice driver binding failure (checkDeviceReadiness =
   // false).
   if (ret < 0) {
     throw std::runtime_error(fmt::format(
@@ -293,8 +292,20 @@ void PciExplorer::create(
         auxData.csr_offset,
         auxData.iobuf_offset,
         folly::errnoStr(savedErrno)));
-  } else if (!checkPciSubDeviceReadiness(
-                 pciDevice, fpgaIpBlockConfig, auxData.id.id)) {
+  }
+  if (!Utils().checkDeviceReadiness(
+          [&]() -> bool {
+            return isPciSubDeviceReady(
+                pciDevice, fpgaIpBlockConfig, auxData.id.id);
+          },
+          fmt::format(
+              "PciSubDevice {} with deviceName {} and instId {} is not yet initialized "
+              "at {}. Waiting for at most {}",
+              *fpgaIpBlockConfig.pmUnitScopedName(),
+              *fpgaIpBlockConfig.deviceName(),
+              auxData.id.id,
+              pciDevice.sysfsPath(),
+              kPciWaitSecs.count()))) {
     throw std::runtime_error(fmt::format(
         "Failed to initialize device {} in {} using {}. "
         "Args - deviceName: {} instanceId: {}, "
@@ -555,28 +566,6 @@ std::string PciExplorer::getXcvrCtrlSysfsPath(
       "Couldn't find XcvrCtrl {} under {}",
       *fpgaIpBlockConfig.deviceName(),
       pciDevice.sysfsPath()));
-}
-
-bool PciExplorer::checkPciSubDeviceReadiness(
-    const PciDevice& pciDevice,
-    const FpgaIpBlockConfig& fpgaIpBlockConfig,
-    uint32_t instanceId) {
-  if (isPciSubDeviceReady(pciDevice, fpgaIpBlockConfig, instanceId)) {
-    return true;
-  }
-  XLOG(INFO) << fmt::format(
-      "PciSubDevice {} with deviceName {} and instId {} is not yet created "
-      "at {}. Waiting for {}s",
-      *fpgaIpBlockConfig.pmUnitScopedName(),
-      *fpgaIpBlockConfig.deviceName(),
-      instanceId,
-      pciDevice.sysfsPath(),
-      kPciWaitSecs);
-  sleep(kPciWaitSecs);
-  if (isPciSubDeviceReady(pciDevice, fpgaIpBlockConfig, instanceId)) {
-    return true;
-  }
-  return false;
 }
 
 bool PciExplorer::isPciSubDeviceReady(
