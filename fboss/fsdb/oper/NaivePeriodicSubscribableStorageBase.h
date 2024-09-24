@@ -111,42 +111,12 @@ class NaivePeriodicSubscribableStorageBase {
 
   folly::coro::AsyncGenerator<SubscriberMessage&&> subscribe_patch_impl(
       SubscriberId subscriber,
-      std::map<SubscriptionKey, RawOperPath> rawPaths) {
-    for (auto& [key, path] : rawPaths) {
-      auto convertedPath = convertPath(std::move(*path.path()));
-      path.path() = std::move(convertedPath);
-    }
-    auto root = getPublisherRoot(rawPaths);
-    auto [gen, subscription] = ExtendedPatchSubscription::create(
-        std::move(subscriber),
-        std::move(rawPaths),
-        patchOperProtocol_,
-        std::move(root),
-        heartbeatThread_ ? heartbeatThread_->getEventBase() : nullptr,
-        subscriptionHeartbeatInterval_);
-    subMgr().registerExtendedSubscription(std::move(subscription));
-    return std::move(gen);
-  }
+      std::map<SubscriptionKey, RawOperPath> rawPaths);
 
   folly::coro::AsyncGenerator<SubscriberMessage&&>
   subscribe_patch_extended_impl(
       SubscriberId subscriber,
-      std::map<SubscriptionKey, ExtendedOperPath> paths) {
-    for (auto& [key, path] : paths) {
-      auto convertedPath = convertPath(std::move(*path.path()));
-      path.path() = std::move(convertedPath);
-    }
-    auto root = getPublisherRoot(paths);
-    auto [gen, subscription] = ExtendedPatchSubscription::create(
-        std::move(subscriber),
-        std::move(paths),
-        patchOperProtocol_,
-        std::move(root),
-        heartbeatThread_ ? heartbeatThread_->getEventBase() : nullptr,
-        subscriptionHeartbeatInterval_);
-    subMgr().registerExtendedSubscription(std::move(subscription));
-    return std::move(gen);
-  }
+      std::map<SubscriptionKey, ExtendedOperPath> paths);
 
   size_t numSubscriptions() const {
     return subMgr().numSubscriptions();

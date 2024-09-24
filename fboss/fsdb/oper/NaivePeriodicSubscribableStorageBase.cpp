@@ -342,4 +342,44 @@ NaivePeriodicSubscribableStorageBase::subscribe_delta_extended_impl(
   return std::move(gen);
 }
 
+folly::coro::AsyncGenerator<SubscriberMessage&&>
+NaivePeriodicSubscribableStorageBase::subscribe_patch_impl(
+    SubscriberId subscriber,
+    std::map<SubscriptionKey, RawOperPath> rawPaths) {
+  for (auto& [key, path] : rawPaths) {
+    auto convertedPath = convertPath(std::move(*path.path()));
+    path.path() = std::move(convertedPath);
+  }
+  auto root = getPublisherRoot(rawPaths);
+  auto [gen, subscription] = ExtendedPatchSubscription::create(
+      std::move(subscriber),
+      std::move(rawPaths),
+      patchOperProtocol_,
+      std::move(root),
+      heartbeatThread_ ? heartbeatThread_->getEventBase() : nullptr,
+      subscriptionHeartbeatInterval_);
+  subMgr().registerExtendedSubscription(std::move(subscription));
+  return std::move(gen);
+}
+
+folly::coro::AsyncGenerator<SubscriberMessage&&>
+NaivePeriodicSubscribableStorageBase::subscribe_patch_extended_impl(
+    SubscriberId subscriber,
+    std::map<SubscriptionKey, ExtendedOperPath> paths) {
+  for (auto& [key, path] : paths) {
+    auto convertedPath = convertPath(std::move(*path.path()));
+    path.path() = std::move(convertedPath);
+  }
+  auto root = getPublisherRoot(paths);
+  auto [gen, subscription] = ExtendedPatchSubscription::create(
+      std::move(subscriber),
+      std::move(paths),
+      patchOperProtocol_,
+      std::move(root),
+      heartbeatThread_ ? heartbeatThread_->getEventBase() : nullptr,
+      subscriptionHeartbeatInterval_);
+  subMgr().registerExtendedSubscription(std::move(subscription));
+  return std::move(gen);
+}
+
 } // namespace facebook::fboss::fsdb
