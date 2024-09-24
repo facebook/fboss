@@ -87,7 +87,7 @@ class PortList : public BaseObjectArgType<std::string> {
  public:
   /* implicit */ PortList() : BaseObjectArgType() {}
   /* implicit */ PortList(std::vector<std::string> ports) {
-    static const RE2 exp("([a-z]+)(\\d+)/(\\d+)/(\\d)");
+    static const RE2 exp("([a-z]+)(\\d+)/(\\d+)/(\\d+)");
     for (auto const& port : ports) {
       if (!RE2::FullMatch(port, exp)) {
         throw std::invalid_argument(folly::to<std::string>(
