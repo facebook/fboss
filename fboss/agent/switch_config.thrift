@@ -235,6 +235,7 @@ enum EtherType {
   MACSEC = 0x88E5,
   LLDP = 0x88CC,
   ARP = 0x0806,
+  LACP = 0x8809,
 }
 
 struct Ttl {

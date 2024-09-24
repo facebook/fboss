@@ -294,6 +294,7 @@ uint16_t SaiAclTableManager::cfgEtherTypeToSaiEtherType(
     case cfg::EtherType::MACSEC:
     case cfg::EtherType::LLDP:
     case cfg::EtherType::ARP:
+    case cfg::EtherType::LACP:
       return static_cast<uint16_t>(cfgEtherType);
   }
   // should return in one of the cases

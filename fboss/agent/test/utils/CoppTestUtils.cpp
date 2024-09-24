@@ -493,6 +493,19 @@ void addHighPriAclForArp(
   acls.push_back(std::make_pair(acl2, action));
 }
 
+void addHighPriAclForLacp(
+    cfg::ToCpuAction toCpuAction,
+    int highPriQueueId,
+    std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>>& acls,
+    bool isSai) {
+  cfg::AclEntry acl;
+  acl.etherType() = cfg::EtherType::LACP;
+  acl.dstMac() = LACPDU::kSlowProtocolsDstMac().toString();
+  acl.name() = folly::to<std::string>("cpuPolicing-high-lacp-acl");
+  auto action = createQueueMatchAction(highPriQueueId, isSai, toCpuAction);
+  acls.push_back(std::make_pair(acl, action));
+}
+
 void addMidPriAclForLldp(
     cfg::ToCpuAction toCpuAction,
     int midPriQueueId,
@@ -746,6 +759,8 @@ std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>> defaultCpuAclsForSai(
           getCoppMidPriQueueId({hwAsic}),
           acls,
           true);
+      addHighPriAclForLacp(
+          cfg::ToCpuAction::TRAP, getCoppHighPriQueueId(hwAsic), acls, true);
       addMidPriAclForLldp(
           cfg::ToCpuAction::TRAP, getCoppMidPriQueueId({hwAsic}), acls, true);
     }
@@ -988,8 +1003,6 @@ std::vector<cfg::PacketRxReasonToQueue> getCoppRxReasonToQueuesForSai(
     rxReasonToQueues = {
         ControlPlane::makeRxReasonToQueueEntry(
             cfg::PacketRxReason::NDP, coppHighPriQueueId),
-        ControlPlane::makeRxReasonToQueueEntry(
-            cfg::PacketRxReason::LACP, coppHighPriQueueId),
         ControlPlane::makeRxReasonToQueueEntry(
             cfg::PacketRxReason::TTL_1, kCoppLowPriQueueId),
         ControlPlane::makeRxReasonToQueueEntry(
