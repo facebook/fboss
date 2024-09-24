@@ -109,7 +109,6 @@ class NaivePeriodicSubscribableStorageBase {
       std::vector<ExtendedOperPath> paths,
       OperProtocol protocol);
 
-#ifdef ENABLE_PATCH_APIS
   folly::coro::AsyncGenerator<SubscriberMessage&&> subscribe_patch_impl(
       SubscriberId subscriber,
       std::map<SubscriptionKey, RawOperPath> rawPaths) {
@@ -148,7 +147,6 @@ class NaivePeriodicSubscribableStorageBase {
     subMgr().registerExtendedSubscription(std::move(subscription));
     return std::move(gen);
   }
-#endif
 
   size_t numSubscriptions() const {
     return subMgr().numSubscriptions();

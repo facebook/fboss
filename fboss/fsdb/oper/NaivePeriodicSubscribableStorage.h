@@ -16,15 +16,6 @@
 #include <chrono>
 #include <utility>
 
-/*
-  Patch apis require the need for a couple new visitor types which end up
-  increasing our compile time by quite a bit. For now using a preproccessor flag
-  ENABLE_PATCH_APIS to disable this for NSDB
-*/
-#ifdef ENABLE_PATCH_APIS
-#include <fboss/fsdb/oper/PathConverter.h>
-#endif
-
 namespace facebook::fboss::fsdb {
 
 template <typename Storage, typename SubscribeManager>
@@ -67,9 +58,7 @@ class NaivePeriodicSubscribableStorage
         currentState_(std::in_place, initialState),
         lastPublishedState_(*currentState_.rlock()),
         subscriptions_(patchOperProtocol_, requireResponseOnInitialSync) {
-#ifdef ENABLE_PATCH_APIS
     subscriptions_.useIdPaths(convertToIDPaths);
-#endif
     auto currentState = currentState_.wlock();
     currentState->publish();
   }
@@ -85,6 +74,7 @@ class NaivePeriodicSubscribableStorage
   using Base::get;
   using Base::get_encoded;
   using Base::get_encoded_extended;
+  using Base::remove;
   using Base::set;
   using Base::set_encoded;
   using Base::start;
@@ -94,9 +84,7 @@ class NaivePeriodicSubscribableStorage
   using Base::subscribe_delta_extended;
   using Base::subscribe_encoded;
   using Base::subscribe_encoded_extended;
-#ifdef ENABLE_PATCH_APIS
   using Base::subscribe_patch;
-#endif
 
   template <typename T>
   Result<T> get_impl(PathIter begin, PathIter end) const {
@@ -178,7 +166,6 @@ class NaivePeriodicSubscribableStorage
     state->remove(begin, end);
   }
 
-#ifdef ENABLE_PATCH_APIS
   std::optional<StorageError> patch_impl(Patch&& patch) {
     if (patch.patch()->getType() == thrift_cow::PatchNode::Type::__EMPTY__) {
       XLOG(DBG3) << "Patch is empty, nothing to do";
@@ -191,7 +178,6 @@ class NaivePeriodicSubscribableStorage
   }
   using NaivePeriodicSubscribableStorageBase::subscribe_patch_extended_impl;
   using NaivePeriodicSubscribableStorageBase::subscribe_patch_impl;
-#endif
 
   std::optional<StorageError> patch_impl(const fsdb::OperDelta& delta) {
     if (!delta.changes()->size()) {
@@ -312,25 +298,17 @@ template <typename Storage, typename SubscribeManager>
 typename Storage::ConcretePath
 NaivePeriodicSubscribableStorage<Storage, SubscribeManager>::convertPath(
     ConcretePath&& path) const {
-#ifdef ENABLE_PATCH_APIS
   return convertSubsToIDPaths_
       ? PathConverter<RootT>::pathToIdTokens(std::move(path))
       : path;
-#else
-  return path;
-#endif
 }
 
 template <typename Storage, typename SubscribeManager>
 typename Storage::ExtPath
 NaivePeriodicSubscribableStorage<Storage, SubscribeManager>::convertPath(
     const ExtPath& path) const {
-#ifdef ENABLE_PATCH_APIS
   return convertSubsToIDPaths_ ? PathConverter<RootT>::extPathToIdTokens(path)
                                : path;
-#else
-  return path;
-#endif
 }
 
 template <typename Root>

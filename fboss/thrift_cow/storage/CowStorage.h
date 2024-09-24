@@ -188,7 +188,6 @@ class CowStorage : public Storage<Root, CowStorage<Root, Node>> {
     return detail::parseTraverseResult(traverseResult);
   }
 
-#ifdef ENABLE_PATCH_APIS
   std::optional<StorageError> patch_impl(Patch&& patch) {
     auto begin = patch.basePath()->begin();
     auto end = patch.basePath()->end();
@@ -213,7 +212,6 @@ class CowStorage : public Storage<Root, CowStorage<Root, Node>> {
     }
     return detail::parsePatchResult(patchResult);
   }
-#endif
 
   std::optional<StorageError> patch_impl(const fsdb::OperDelta& delta) {
     std::optional<StorageError> result;

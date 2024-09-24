@@ -109,8 +109,6 @@ cpp_library(
     headers = [
         "FsdbSubManager.h",
     ],
-    preprocessor_flags = ["-DENABLE_PATCH_APIS"],
-    propagated_pp_flags = ["-DENABLE_PATCH_APIS"],
     exported_deps = [
         ":fsdb_pub_sub",
         "//fboss/fsdb/if:fsdb_model",

@@ -141,7 +141,6 @@ class SubscribableStorage {
         subscriber, std::move(paths), protocol);
   }
 
-#ifdef ENABLE_PATCH_APIS
   template <
       typename Path,
       typename = std::enable_if_t<
@@ -182,7 +181,6 @@ class SubscribableStorage {
     return static_cast<Impl*>(this)->subscribe_patch_extended_impl(
         std::move(subscriber), std::move(rawPaths));
   }
-#endif
 
   // wrapper calls to underlying storage
 
@@ -300,11 +298,9 @@ class SubscribableStorage {
     static_cast<Impl*>(this)->remove_impl(begin, end);
   }
 
-#ifdef ENABLE_PATCH_APIS
   std::optional<StorageError> patch(Patch&& patch) {
     return static_cast<Impl*>(this)->patch_impl(std::move(patch));
   }
-#endif
 
   std::optional<StorageError> patch(const fsdb::OperDelta& delta) {
     return static_cast<Impl*>(this)->patch_impl(delta);

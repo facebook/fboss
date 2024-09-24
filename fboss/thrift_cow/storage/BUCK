@@ -7,7 +7,6 @@ cpp_library(
     headers = [
         "Storage.h",
     ],
-    propagated_pp_flags = ["-DENABLE_PATCH_APIS"],
     exported_deps = [
         "//fboss/fsdb/if:fsdb_oper-cpp2-types",
         "//fboss/thrift_cow:patch-cpp2-types",

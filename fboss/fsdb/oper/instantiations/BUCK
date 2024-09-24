@@ -31,7 +31,6 @@ cpp_library(
     name = "fsdb_cow_storage",
     srcs = ["FsdbCowStorage.cpp"],
     headers = ["FsdbCowStorage.h"],
-    propagated_pp_flags = ["-DENABLE_PATCH_APIS"],
     exported_deps = [
         ":fsdb_cow_root",
         ":fsdb_cow_root_path_visitor",
@@ -44,7 +43,6 @@ cpp_library(
     name = "fsdb_cow_subscription_manager",
     srcs = ["FsdbCowSubscriptionManager.cpp"],
     headers = ["FsdbCowSubscriptionManager.h"],
-    propagated_pp_flags = ["-DENABLE_PATCH_APIS"],
     exported_deps = [
         ":fsdb_cow_root",
         "//fboss/fsdb/if:fsdb_model",
@@ -69,7 +67,6 @@ cpp_library(
         "FsdbNaivePeriodicSubscribableStatsStorage.cpp",
     ],
     headers = ["FsdbNaivePeriodicSubscribableStorage.h"],
-    propagated_pp_flags = ["-DENABLE_PATCH_APIS"],
     exported_deps = [
         ":fsdb_cow_root",
         ":fsdb_cow_storage",

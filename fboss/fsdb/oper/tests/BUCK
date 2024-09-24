@@ -5,9 +5,6 @@ oncall("fboss_agent_push")
 cpp_unittest(
     name = "subscription_tests",
     srcs = ["SubscriptionTests.cpp"],
-    preprocessor_flags = [
-        "-DENABLE_PATCH_APIS",
-    ],
     deps = [
         "//fboss/fsdb/oper:subscription_manager",
         "//folly/coro:blocking_wait",
@@ -20,9 +17,6 @@ cpp_unittest(
     name = "subscribable_storage_tests",
     srcs = ["SubscribableStorageTests.cpp"],
     compiler_flags = ["-ftemplate-backtrace-limit=0"],
-    preprocessor_flags = [
-        "-DENABLE_PATCH_APIS",
-    ],
     supports_static_listing = False,
     deps = [
         "fbsource//third-party/googletest:gmock",
@@ -72,9 +66,6 @@ cpp_unittest(
         "SubscriptionPathStoreTests.cpp",
     ],
     compiler_flags = ["-ftemplate-backtrace-limit=0"],
-    preprocessor_flags = [
-        "-DENABLE_PATCH_APIS",
-    ],
     deps = [
         "fbsource//third-party/googletest:gmock",
         "//fboss/fsdb/if:fsdb_oper-cpp2-types",
