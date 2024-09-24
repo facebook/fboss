@@ -34,7 +34,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "scope": 1
         },
         "supportedProfiles": {
-          "11": {
+          "49": {
               "pins": {
                 "iphy": [
                   {
@@ -68,7 +68,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "scope": 0
         },
         "supportedProfiles": {
-          "11": {
+          "49": {
               "pins": {
                 "iphy": [
                   {
@@ -102,7 +102,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "scope": 0
         },
         "supportedProfiles": {
-          "11": {
+          "49": {
               "pins": {
                 "iphy": [
                   {
@@ -136,7 +136,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "scope": 0
         },
         "supportedProfiles": {
-          "11": {
+          "49": {
               "pins": {
                 "iphy": [
                   {
@@ -170,7 +170,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "scope": 0
         },
         "supportedProfiles": {
-          "11": {
+          "49": {
               "pins": {
                 "iphy": [
                   {
@@ -204,7 +204,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "scope": 0
         },
         "supportedProfiles": {
-          "11": {
+          "49": {
               "pins": {
                 "iphy": [
                   {
@@ -16576,21 +16576,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
     },
     {
       "factor": {
-        "profileID": 11
-      },
-      "profile": {
-        "speed": 10000,
-        "iphy": {
-          "numLanes": 1,
-          "modulation": 1,
-          "fec": 1,
-          "medium": 1,
-          "interfaceType": 10
-        }
-      }
-    },
-    {
-      "factor": {
         "profileID": 45
       },
       "profile": {
@@ -16601,6 +16586,21 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "fec": 11,
           "medium": 1,
           "interfaceType": 12
+        }
+      }
+    },
+    {
+      "factor": {
+        "profileID": 49
+      },
+      "profile": {
+        "speed": 100000,
+        "iphy": {
+          "numLanes": 1,
+          "modulation": 2,
+          "fec": 1,
+          "medium": 1,
+          "interfaceType": 10
         }
       }
     },
@@ -16676,7 +16676,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
           "scope": 1
         },
         "supportedProfiles": {
-          "11": {
+          "49": {
               "pins": {
                 "iphy": [
                   {
@@ -16710,7 +16710,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
           "scope": 0
         },
         "supportedProfiles": {
-          "11": {
+          "49": {
               "pins": {
                 "iphy": [
                   {
@@ -16744,7 +16744,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
           "scope": 0
         },
         "supportedProfiles": {
-          "11": {
+          "49": {
               "pins": {
                 "iphy": [
                   {
@@ -16778,7 +16778,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
           "scope": 0
         },
         "supportedProfiles": {
-          "11": {
+          "49": {
               "pins": {
                 "iphy": [
                   {
@@ -16812,7 +16812,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
           "scope": 0
         },
         "supportedProfiles": {
-          "11": {
+          "49": {
               "pins": {
                 "iphy": [
                   {
@@ -16846,7 +16846,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
           "scope": 0
         },
         "supportedProfiles": {
-          "11": {
+          "49": {
               "pins": {
                 "iphy": [
                   {
@@ -32332,7 +32332,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
           "scope": 1
         },
         "supportedProfiles": {
-          "11": {
+          "49": {
               "pins": {
                 "iphy": [
                   {
@@ -32366,7 +32366,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
           "scope": 0
         },
         "supportedProfiles": {
-          "11": {
+          "49": {
               "pins": {
                 "iphy": [
                   {
@@ -32400,7 +32400,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
           "scope": 0
         },
         "supportedProfiles": {
-          "11": {
+          "49": {
               "pins": {
                 "iphy": [
                   {
@@ -32434,7 +32434,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
           "scope": 0
         },
         "supportedProfiles": {
-          "11": {
+          "49": {
               "pins": {
                 "iphy": [
                   {
@@ -32468,7 +32468,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
           "scope": 0
         },
         "supportedProfiles": {
-          "11": {
+          "49": {
               "pins": {
                 "iphy": [
                   {
@@ -32502,7 +32502,7 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
           "scope": 0
         },
         "supportedProfiles": {
-          "11": {
+          "49": {
               "pins": {
                 "iphy": [
                   {
@@ -48874,21 +48874,6 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
     },
     {
       "factor": {
-        "profileID": 11
-      },
-      "profile": {
-        "speed": 10000,
-        "iphy": {
-          "numLanes": 1,
-          "modulation": 1,
-          "fec": 1,
-          "medium": 1,
-          "interfaceType": 10
-        }
-      }
-    },
-    {
-      "factor": {
         "profileID": 45
       },
       "profile": {
@@ -48899,6 +48884,21 @@ constexpr auto kJsonMultiNpuPlatformMappingStr = R"(
           "fec": 11,
           "medium": 1,
           "interfaceType": 12
+        }
+      }
+    },
+    {
+      "factor": {
+        "profileID": 49
+      },
+      "profile": {
+        "speed": 100000,
+        "iphy": {
+          "numLanes": 1,
+          "modulation": 2,
+          "fec": 1,
+          "medium": 1,
+          "interfaceType": 10
         }
       }
     },
