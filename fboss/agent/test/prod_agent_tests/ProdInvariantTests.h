@@ -37,13 +37,16 @@ class ProdInvariantTest : public ProdAgentTests {
  protected:
   std::optional<bool> useProdConfig_ = std::nullopt;
   PortID getDownlinkPort();
-
- private:
-  std::vector<PortID> getEcmpPortIds();
-  void sendTraffic();
-  void setupAgentTestEcmp(const std::vector<PortDescriptor>& ecmpPorts);
   std::map<PortID, HwPortStats> getLatestPortStats(
       const std::vector<PortID>& ports);
+  std::vector<PortID> getEcmpPortIds();
+  void setCmdLineFlagOverrides() const override {
+    ProdAgentTests::setCmdLineFlagOverrides();
+  }
+
+ private:
+  void sendTraffic();
+  void setupAgentTestEcmp(const std::vector<PortDescriptor>& ecmpPorts);
   bool mmuLosslessMode_ = false;
 };
 

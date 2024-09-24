@@ -29,6 +29,8 @@ namespace {
 using facebook::fboss::PortDescriptor;
 using facebook::fboss::PortID;
 auto constexpr kEcmpWidth = 4;
+auto constexpr kLbPacketCount = 200000;
+auto constexpr kLbDeviation = 25;
 } // namespace
 
 namespace facebook::fboss {
@@ -490,6 +492,16 @@ class ProdInvariantRtswTest : public ProdInvariantTest {
   }
 
  protected:
+  void SetUp() override {
+    ProdInvariantTest::SetUp();
+  }
+
+  void setCmdLineFlagOverrides() const override {
+    FLAGS_flowletSwitchingEnable = true;
+    FLAGS_flowletStatsEnable = true;
+    ProdInvariantTest::setCmdLineFlagOverrides();
+  }
+
   cfg::SwitchConfig getConfigFromFlag() override {
     auto config = ProdInvariantTest::getConfigFromFlag();
 
@@ -525,19 +537,46 @@ class ProdInvariantRtswTest : public ProdInvariantTest {
     ASSERT_TRUE(flowletAclsFound_ > 0);
   }
 
- private:
-  void sendAndVerifyRoCETraffic(
-      int opcode,
-      std::string aclName,
-      std::string counterName) {
-    // DLB configuration is still evolving so we will opportunistically test
-    // ACLs if they are present on a given device
-    if (!utility::checkConfigHasAclEntry(initialConfig(), aclName)) {
-      XLOG(DBG2) << aclName << " ACL entry not found, skipping verification";
-      return;
-    }
+  void verifyEEcmp() {
+    std::function<std::map<PortID, HwPortStats>(const std::vector<PortID>&)>
+        getPortStatsFn = [&](const std::vector<PortID>& portIds) {
+          return getLatestPortStats(portIds);
+        };
+    utility::pumpTrafficAndVerifyLoadBalanced(
+        [=, this]() {
+          sendRoCETraffic(utility::kUdfRoceOpcodeAck, kLbPacketCount);
+        },
+        [=, this]() {
+          auto ports = std::make_unique<std::vector<int32_t>>();
+          auto ecmpPortIds = getEcmpPortIds();
+          for (auto ecmpPortId : ecmpPortIds) {
+            ports->push_back(static_cast<int32_t>(ecmpPortId));
+          }
+          platform()->getHwSwitch()->clearPortStats(ports);
+        },
+        [=, this]() {
+          return utility::isLoadBalanced(
+              ecmpPorts_,
+              std::vector<NextHopWeight>(kEcmpWidth, 1),
+              getPortStatsFn,
+              kLbDeviation);
+        });
+    XLOG(DBG2) << "Verify E-Ecmp Done";
+  }
 
-    auto aclPktCountBefore = utility::getAclInOutPackets(sw(), counterName);
+  void verifyDlbGroups() {
+    // DLB groups can be either spray or flowlet
+    auto ecmpGroups = platform()->getHwSwitch()->getAllEcmpDetails();
+    XLOG(DBG2) << "ECMP group count " << ecmpGroups.size();
+    for (auto ecmpGroup : ecmpGroups) {
+      XLOG(DBG2) << "ECMP ID: " << *(ecmpGroup.ecmpId());
+      ASSERT_TRUE(*(ecmpGroup.flowletEnabled()));
+    }
+    XLOG(DBG2) << "Verify DLB groups Done";
+  }
+
+ private:
+  void sendRoCETraffic(int opcode, int packetCount = 1) {
     auto mac = utility::getInterfaceMac(
         sw()->getState(), sw()->getState()->getVlans()->getFirstVlanID());
 
@@ -551,9 +590,24 @@ class ProdInvariantRtswTest : public ProdInvariantTest {
         utility::kUdfL4DstPort,
         255,
         std::nullopt,
-        1,
+        packetCount,
         opcode,
         utility::kRoceReserved);
+  }
+
+  void sendAndVerifyRoCETraffic(
+      int opcode,
+      const std::string& aclName,
+      const std::string& counterName) {
+    // DLB configuration is still evolving so we will opportunistically test
+    // ACLs if they are present on a given device
+    if (!utility::checkConfigHasAclEntry(initialConfig(), aclName)) {
+      XLOG(DBG2) << aclName << " ACL entry not found, skipping verification";
+      return;
+    }
+
+    auto aclPktCountBefore = utility::getAclInOutPackets(sw(), counterName);
+    sendRoCETraffic(opcode);
 
     WITH_RETRIES({
       auto aclPktCountAfter = utility::getAclInOutPackets(sw(), counterName);
@@ -583,6 +637,8 @@ TEST_F(ProdInvariantRtswTest, verifyInvariants) {
     verifySafeDiagCommands();
     verifyThriftHandler();
     verifyFlowletAcls();
+    verifyEEcmp();
+    verifyDlbGroups();
   };
   verifyAcrossWarmBoots(setup, verify);
 }
