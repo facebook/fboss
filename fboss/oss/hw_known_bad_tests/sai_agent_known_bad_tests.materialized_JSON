@@ -517,6 +517,9 @@
           "test_name_regex": "AgentEgressPortErspanMirroringTest/1.ErspanPortMirror$"
         },
         {
+          "test_name_regex": "AgentIngressPortErspanMirroringTest/1.UpdateErspanPortMirror$"
+        },
+        {
           "test_name_regex": "AgentSflowMirrorTestV6.*$"
         },
         {
@@ -820,6 +823,9 @@
         },
         {
           "test_name_regex": "AgentEgressPortErspanMirroringTest/1.ErspanPortMirror$"
+        },
+        {
+          "test_name_regex": "AgentIngressPortErspanMirroringTest/1.UpdateErspanPortMirror$"
         },
         {
           "test_name_regex": "AgentSflowMirrorTestV6.*$"
@@ -2366,6 +2372,21 @@
         },
         {
           "test_name_regex": "AgentPfcTest.verifyPfcCounters$"
+        },
+        {
+          "test_name_regex": "AgentTrafficPfcTest.*$"
+        },
+        {
+          "test_name_regex": "AgentSendPacketToQueueTest.SendPacketOutOfPortToDefaultUCQueue$"
+        },
+        {
+          "test_name_regex": "AgentSendPacketToQueueTest.SendPacketOutOfPortToUCQueue$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningAndNeighborResolutionTest/0.learnMacProgramNeighborsAndMove$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningAndNeighborResolutionTest/2.learnMacProgramNeighborsAndMove$"
         }
     ],
     "brcm/11.3.0.0_dnx_odp/11.3.0.0_dnx_odp/jericho3/mono": [
@@ -6075,6 +6096,9 @@
           "test_name_regex": "AgentEgressPortErspanMirroringTest/1.ErspanPortMirror$"
         },
         {
+          "test_name_regex": "AgentIngressPortErspanMirroringTest/1.UpdateErspanPortMirror$"
+        },
+        {
           "test_name_regex": "AgentSflowMirrorTestV6.*$"
         },
         {
@@ -6378,6 +6402,9 @@
         },
         {
           "test_name_regex": "AgentEgressPortErspanMirroringTest/1.ErspanPortMirror$"
+        },
+        {
+          "test_name_regex": "AgentIngressPortErspanMirroringTest/1.UpdateErspanPortMirror$"
         },
         {
           "test_name_regex": "AgentSflowMirrorTestV6.*$"
