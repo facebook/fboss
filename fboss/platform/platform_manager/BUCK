@@ -46,7 +46,7 @@ cpp_library(
         "ConfigValidator.cpp",
     ],
     exported_deps = [
-        ":i2c_explorer",
+        ":i2c_misc",
         ":platform_manager_config-cpp2-types",
         "//folly/logging:logging",
     ],
@@ -61,13 +61,14 @@ cpp_library(
         "I2cExplorer.cpp",
     ],
     exported_deps = [
+        "fbcode//fboss/lib/i2c:i2c_ctrl",
+        "fbcode//fboss/platform/helpers:platform_utils",
+        "fbcode//folly:file_util",
+        "fbcode//folly:string",
+        "fbcode//folly/logging:logging",
         "fbsource//third-party/fmt:fmt",
+        ":i2c_misc",
         ":platform_manager_config-cpp2-types",
-        "//fboss/lib/i2c:i2c_ctrl",
-        "//fboss/platform/helpers:platform_utils",
-        "//folly:file_util",
-        "//folly:string",
-        "//folly/logging:logging",
     ],
     exported_external_deps = [
         "re2",
@@ -159,7 +160,9 @@ cpp_library(
 
 cpp_library(
     name = "utils",
-    srcs = ["Utils.cpp"],
+    srcs = [
+        "Utils.cpp",
+    ],
     exported_deps = [
         ":config_validator",
         ":platform_manager_config-cpp2-types",
@@ -173,6 +176,19 @@ cpp_library(
     exported_external_deps = [
         "re2",
         ("libgpiod", None, "gpiod"),
+    ],
+)
+
+cpp_library(
+    name = "i2c_misc",
+    headers = [
+        "I2cAddr.h",
+    ],
+    exported_deps = [
+        "fbsource//third-party/fmt:fmt",
+    ],
+    exported_external_deps = [
+        "re2",
     ],
 )
 

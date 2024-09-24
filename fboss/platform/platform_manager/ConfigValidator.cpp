@@ -5,8 +5,7 @@
 #include <folly/logging/xlog.h>
 #include <re2/re2.h>
 
-#include "fboss/platform/platform_manager/I2cExplorer.h"
-#include "fboss/platform/platform_manager/gen-cpp2/platform_manager_config_constants.h"
+#include "fboss/platform/platform_manager/I2cAddr.h"
 
 namespace {
 const re2::RE2 kRpmVersionRegex{"^[0-9]+\\.[0-9]+\\.[0-9]+\\-[0-9]+$"};
