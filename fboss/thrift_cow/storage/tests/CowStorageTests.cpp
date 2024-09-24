@@ -212,45 +212,6 @@ TEST(CowStorageTests, SetThrift) {
   EXPECT_EQ(storage.get(root.structMap()[3]).value(), newStructMapMember);
 }
 
-TEST(CowStorageTests, AddThrift) {
-  using namespace facebook::fboss::fsdb;
-
-  thriftpath::RootThriftPath<TestStruct> root;
-
-  auto testStruct = facebook::thrift::from_dynamic<TestStruct>(
-      createTestDynamic(), facebook::thrift::dynamic_format::JSON_1);
-  auto storage = CowStorage<TestStruct>(testStruct);
-
-  EXPECT_EQ(storage.get(root.tx()).value(), true);
-  EXPECT_EQ(storage.get(root.rx()).value(), false);
-  EXPECT_EQ(storage.get(root.member()).value(), testStruct.member().value());
-  EXPECT_EQ(
-      storage.get(root.structMap()[3]).value(), testStruct.structMap()->at(3));
-
-  TestStructSimple member1;
-  member1.min() = 500;
-  member1.max() = 5000;
-  TestStructSimple member2;
-  member2.min() = 300;
-  member2.max() = 3000;
-
-  // add values
-  EXPECT_EQ(storage.add(root.structMap()[1], member1), std::nullopt);
-  EXPECT_EQ(storage.add(root.structMap()[2], member2), std::nullopt);
-  // EXPECT_EQ(storage.add(root.structList()[-1], member1), std::nullopt);
-  EXPECT_EQ(storage.add(root.structList()[0], member2), std::nullopt);
-  EXPECT_EQ(
-      storage.add(root.enumMap()[TestEnum::FIRST], member2), std::nullopt);
-
-  EXPECT_EQ(storage.get(root.structMap()[1]).value(), member1);
-  EXPECT_EQ(storage.get(root.structMap()[2]).value(), member2);
-  EXPECT_EQ(storage.get(root.structList()[0]).value(), member2);
-  EXPECT_EQ(storage.get(root.enumMap()[TestEnum::FIRST]).value(), member2);
-
-  std::vector<std::string> testPath = {"enumMap", "FIRST"};
-  EXPECT_EQ(storage.template get<TestStructSimple>(testPath).value(), member2);
-}
-
 TEST(CowStorageTests, AddDynamic) {
   using namespace facebook::fboss::fsdb;
 
@@ -274,13 +235,6 @@ TEST(CowStorageTests, RemoveThrift) {
 
   auto testStruct = facebook::thrift::from_dynamic<TestStruct>(
       createTestDynamic(), facebook::thrift::dynamic_format::JSON_1);
-  auto storage = CowStorage<TestStruct>(testStruct);
-
-  EXPECT_EQ(storage.get(root.tx()).value(), true);
-  EXPECT_EQ(storage.get(root.rx()).value(), false);
-  EXPECT_EQ(storage.get(root.member()).value(), testStruct.member().value());
-  EXPECT_EQ(
-      storage.get(root.structMap()[3]).value(), testStruct.structMap()->at(3));
 
   TestStructSimple member1;
   member1.min() = 500;
@@ -289,12 +243,17 @@ TEST(CowStorageTests, RemoveThrift) {
   member2.min() = 300;
   member2.max() = 3000;
 
-  // add values
-  EXPECT_EQ(storage.add(root.structMap()[1], member1), std::nullopt);
-  EXPECT_EQ(storage.add(root.structMap()[2], member2), std::nullopt);
-  EXPECT_EQ(storage.add(root.structList()[0], member2), std::nullopt);
-  EXPECT_EQ(storage.add(root.structList()[1], member1), std::nullopt);
-  EXPECT_EQ(storage.add(root.structList()[2], member1), std::nullopt);
+  (*testStruct.structMap())[1] = member1;
+  (*testStruct.structMap())[2] = member2;
+  (*testStruct.structList()) = {member2, member1, member1};
+
+  auto storage = CowStorage<TestStruct>(testStruct);
+
+  EXPECT_EQ(storage.get(root.tx()).value(), true);
+  EXPECT_EQ(storage.get(root.rx()).value(), false);
+  EXPECT_EQ(storage.get(root.member()).value(), testStruct.member().value());
+  EXPECT_EQ(
+      storage.get(root.structMap()[3]).value(), testStruct.structMap()->at(3));
 
   EXPECT_EQ(storage.get(root.structMap()[1]).value(), member1);
   EXPECT_EQ(storage.get(root.structMap()[2]).value(), member2);

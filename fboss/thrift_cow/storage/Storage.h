@@ -134,26 +134,6 @@ class Storage {
       typename Path,
       typename =
           std::enable_if_t<std::is_same_v<typename Path::RootT, Root>, void>>
-  std::optional<StorageError> add(
-      const Path& path,
-      typename Path::DataT value) {
-    return this->add(path.begin(), path.end(), std::move(value));
-  }
-
-  template <typename T>
-  std::optional<StorageError> add(const ConcretePath& path, T&& value) {
-    return this->template add(path.begin(), path.end(), std::forward<T>(value));
-  }
-  template <typename T>
-  std::optional<StorageError> add(PathIter begin, PathIter end, T&& value) {
-    return static_cast<Derived*>(this)->add_impl(
-        begin, end, std::forward<T>(value));
-  }
-
-  template <
-      typename Path,
-      typename =
-          std::enable_if_t<std::is_same_v<typename Path::RootT, Root>, void>>
   std::optional<StorageError> add_encoded(
       const Path& path,
       const OperState& state) {

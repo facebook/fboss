@@ -70,7 +70,6 @@ class NaivePeriodicSubscribableStorage
   using NaivePeriodicSubscribableStorageBase::start_impl;
   using NaivePeriodicSubscribableStorageBase::stop_impl;
 
-  using Base::add;
   using Base::get;
   using Base::get_encoded;
   using Base::get_encoded_extended;

@@ -83,7 +83,6 @@ class CowStorage : public Storage<Root, CowStorage<Root, Node>> {
     root_->publish();
   }
 
-  using Base::add;
   using Base::get;
   using Base::get_encoded;
   using Base::get_encoded_extended;
@@ -247,18 +246,6 @@ class CowStorage : public Storage<Root, CowStorage<Root, Node>> {
     result = this->set_encoded_impl(
         rawPath.begin(), rawPath.end(), std::move(newState));
     return result;
-  }
-
-  template <typename T>
-  std::optional<StorageError>
-  add_impl(PathIter begin, PathIter end, T&& value) {
-    // TODO: support add to end with "-1" index
-    return this->template set_impl<T>(begin, end, std::forward<T>(value));
-  }
-
-  std::optional<StorageError>
-  add_encoded_impl(PathIter begin, PathIter end, const OperState& state) {
-    return this->set_encoded_impl(begin, end, state);
   }
 
   std::optional<StorageError> remove_impl(PathIter begin, PathIter end) {
