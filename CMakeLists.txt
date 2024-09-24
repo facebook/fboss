@@ -795,5 +795,8 @@ if (GITHUB_ACTIONS_BUILD)
     sensor_service_utils_tests
     rackmon_test
     fan_service_sw_test
+    data_corral_service_hw_test
+    fan_service_hw_test
+    sensor_service_hw_test
   )
 endif()
