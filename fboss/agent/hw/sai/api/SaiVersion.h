@@ -111,17 +111,18 @@
  *   - TAJO_SDK: Flags for all TAJO SDK
  */
 #if defined(TAJO_SDK_VERSION_24_4_90) || defined(TAJO_SDK_VERSION_24_6_1) || \
-    defined(TAJO_SDK_VERSION_24_7_0)
+    defined(TAJO_SDK_VERSION_24_7_0) || defined(TAJO_SDK_VERSION_24_8_3001)
 #define TAJO_P4_WB_SDK
 #endif
 
 #if defined(TAJO_SDK_VERSION_1_42_8) || defined(TAJO_SDK_VERSION_24_4_90) || \
-    defined(TAJO_SDK_VERSION_24_6_1) || defined(TAJO_SDK_VERSION_24_7_0)
+    defined(TAJO_SDK_VERSION_24_6_1) || defined(TAJO_SDK_VERSION_24_7_0) ||  \
+    defined(TAJO_SDK_VERSION_24_8_3001)
 #define TAJO_SDK_EBRO
 #endif
 
 #if defined(TAJO_SDK_VERSION_24_4_90) || defined(TAJO_SDK_VERSION_24_6_1) || \
-    defined(TAJO_SDK_VERSION_24_7_0)
+    defined(TAJO_SDK_VERSION_24_7_0) || defined(TAJO_SDK_VERSION_24_8_3001)
 #define TAJO_SDK_GTE_24_4_90
 #endif
 
