@@ -27,12 +27,14 @@ constexpr auto kSysPortRangeMin =
     (kRemoteSwitchIdBegin / kSwitchIdGap) * kSysPortBlockSize;
 constexpr auto intfV4AddrPrefix = "42.42.42.";
 constexpr auto intfV6AddrPrefix = "42::";
+constexpr auto kDynamicSysPortsOffset = 2;
 std::shared_ptr<SystemPortMap> makeSysPortsForSwitchIds(
     const std::set<SwitchID>& remoteSwitchIds,
     int numSysPorts = 1) {
   auto sysPorts = std::make_shared<SystemPortMap>();
   for (auto switchId : remoteSwitchIds) {
-    auto sysPortBegin = (switchId / kSwitchIdGap) * kSysPortBlockSize + 1;
+    auto sysPortBegin =
+        (switchId / kSwitchIdGap) * kSysPortBlockSize + kDynamicSysPortsOffset;
     for (auto sysPortId = sysPortBegin; sysPortId < sysPortBegin + numSysPorts;
          ++sysPortId) {
       sysPorts->addNode(makeSysPort(std::nullopt, sysPortId, switchId));
@@ -394,7 +396,9 @@ TYPED_TEST(DsfSubscriptionTest, DataUpdate) {
   });
 
   auto sysPort2 = makeSysPort(
-      std::nullopt, SystemPortID(kSysPortRangeMin + 2), kRemoteSwitchIdBegin);
+      std::nullopt,
+      SystemPortID(kSysPortRangeMin + kDynamicSysPortsOffset + 1),
+      kRemoteSwitchIdBegin);
   auto portMap = state->getSystemPorts()->modify(&state);
   portMap->addNode(sysPort2, this->matcher());
   this->publishSwitchState(state);
@@ -429,7 +433,9 @@ TYPED_TEST(DsfSubscriptionTest, updateFailed) {
       .Times(::testing::AtLeast(1))
       .WillOnce(Return(this->sw_->getState()));
   auto sysPort2 = makeSysPort(
-      std::nullopt, SystemPortID(kSysPortRangeMin + 2), kRemoteSwitchIdBegin);
+      std::nullopt,
+      SystemPortID(kSysPortRangeMin + kDynamicSysPortsOffset + 1),
+      kRemoteSwitchIdBegin);
   auto portMap = state->getSystemPorts()->modify(&state);
   portMap->addNode(sysPort2, this->matcher());
   this->publishSwitchState(state);
@@ -459,7 +465,7 @@ TYPED_TEST(DsfSubscriptionTest, updateWithRollbackProtection) {
       switchId2SystemPorts, switchId2Intfs);
 
   const auto addedState = this->sw_->getState();
-  this->verifyRemoteIntfRouteDelta(StateDelta(prevState, addedState), 4, 0);
+  this->verifyRemoteIntfRouteDelta(StateDelta(prevState, addedState), 2, 0);
 
   // Change remote interface routes
   switchId2SystemPorts[SwitchID(kRemoteSwitchIdBegin)] =
@@ -467,7 +473,7 @@ TYPED_TEST(DsfSubscriptionTest, updateWithRollbackProtection) {
           std::set<SwitchID>({SwitchID(kRemoteSwitchIdBegin)}), 2);
   switchId2Intfs[SwitchID(kRemoteSwitchIdBegin)] = makeRifs(sysPorts.get());
 
-  const auto sysPort1Id = kSysPortRangeMin + 1;
+  const auto sysPort1Id = kSysPortRangeMin + kDynamicSysPortsOffset;
   Interface::Addresses updatedAddresses{
       {folly::IPAddressV4(
            folly::to<std::string>(intfV4AddrPrefix, (sysPort1Id % 256 + 10))),
@@ -496,7 +502,7 @@ TYPED_TEST(DsfSubscriptionTest, updateWithRollbackProtection) {
 
   waitForStateUpdates(this->sw_);
   auto deletedState = this->sw_->getState();
-  this->verifyRemoteIntfRouteDelta(StateDelta(addedState, deletedState), 0, 4);
+  this->verifyRemoteIntfRouteDelta(StateDelta(addedState, deletedState), 0, 2);
 }
 
 TYPED_TEST(DsfSubscriptionTest, setupNeighbors) {
@@ -602,7 +608,7 @@ TYPED_TEST(DsfSubscriptionTest, setupNeighbors) {
       auto sysPorts = makeSysPortsForSwitchIds(
           std::set<SwitchID>({SwitchID(kRemoteSwitchIdBegin)}));
       auto rifs = makeRifs(sysPorts.get());
-      auto firstRif = kSysPortRangeMin + 1;
+      auto firstRif = kSysPortRangeMin + kDynamicSysPortsOffset;
       auto [ndpTable, arpTable] = makeNbrs();
       rifs->ref(firstRif)->setNdpTable(ndpTable);
       rifs->ref(firstRif)->setArpTable(arpTable);
@@ -613,7 +619,7 @@ TYPED_TEST(DsfSubscriptionTest, setupNeighbors) {
       auto sysPorts = makeSysPortsForSwitchIds(
           std::set<SwitchID>({SwitchID(kRemoteSwitchIdBegin)}));
       auto rifs = makeRifs(sysPorts.get());
-      auto firstRif = kSysPortRangeMin + 1;
+      auto firstRif = kSysPortRangeMin + kDynamicSysPortsOffset;
       auto [ndpTable, arpTable] = makeNbrs();
       ndpTable.begin()->second.mac() = "06:05:04:03:02:01";
       arpTable.begin()->second.mac() = "06:05:04:03:02:01";
@@ -626,7 +632,7 @@ TYPED_TEST(DsfSubscriptionTest, setupNeighbors) {
       auto sysPorts = makeSysPortsForSwitchIds(
           std::set<SwitchID>({SwitchID(kRemoteSwitchIdBegin)}));
       auto rifs = makeRifs(sysPorts.get());
-      auto firstRif = kSysPortRangeMin + 1;
+      auto firstRif = kSysPortRangeMin + kDynamicSysPortsOffset;
       auto [ndpTable, arpTable] = makeNbrs();
       ndpTable.erase(ndpTable.begin());
       arpTable.erase(arpTable.begin());
