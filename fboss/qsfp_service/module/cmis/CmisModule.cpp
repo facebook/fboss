@@ -3636,7 +3636,7 @@ prbs::InterfacePrbsState CmisModule::getPortPrbsStateLocked(
     // 1 byte which gives the polynomial configured on lane 0
     cmisRegister = cmisPatternRegister[firstLane / 2];
     readCmisField(cmisRegister, &patternByte);
-    pattern = patternByte >> (((firstLane % 2) * 4) & 0xF);
+    pattern = (patternByte >> (((firstLane % 2) * 4))) & 0xF;
     auto polynomialItr = prbsPatternMap.right.find(pattern);
     if (polynomialItr != prbsPatternMap.right.end()) {
       state.polynomial() = prbs::PrbsPolynomial(polynomialItr->second);
@@ -3745,7 +3745,7 @@ phy::PrbsStats CmisModule::getPortPrbsStatsSideLocked(
       uint16_t snrRawVal = (msb << 8) | lsb;
       laneStats.snr() = CmisFieldInfo::getSnr(snrRawVal);
     }
-
+    laneStats.timeCollected() = std::time(nullptr);
     prbsStats.laneStats()->push_back(laneStats);
   }
   prbsStats.timeCollected() = std::time(nullptr);
