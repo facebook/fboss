@@ -130,15 +130,17 @@ class PrbsTest : public LinkTest {
 
     // 6. Let PRBS run for 10 seconds for regular link test or 10 mins for a
     // stress test so that we can check the BER later
-    if (FLAGS_link_stress_test) {
-      /* sleep override */ std::this_thread::sleep_for(600s);
-    } else {
-      /* sleep override */ std::this_thread::sleep_for(10s);
-    }
+    auto timeForTest = FLAGS_link_stress_test ? 600s : 10s;
 
     // 7. Check PRBS stats, expect no loss of lock
     XLOG(DBG2) << "Verifying PRBS stats";
-    checkPrbsStatsOnAllInterfaces();
+    auto startTime = std::time(nullptr);
+    auto timeNow = std::time(nullptr);
+    while (timeNow < timeForTest.count() + startTime) {
+      /* sleep override */ std::this_thread::sleep_for(10s);
+      checkPrbsStatsOnAllInterfaces();
+      timeNow = std::time(nullptr);
+    }
 
     // 8. Clear PRBS stats
     auto timestampBeforeClear = std::time(nullptr);
