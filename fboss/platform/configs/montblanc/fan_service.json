@@ -3,8 +3,8 @@
   "pwmBoostOnNumDeadSensor": 0,
   "pwmBoostOnNoQsfpAfterInSec": 55,
   "pwmBoostValue": 50,
-  "pwmTransitionValue": 50,
-  "pwmLowerThreshold": 30,
+  "pwmTransitionValue": 45,
+  "pwmLowerThreshold": 25,
   "pwmUpperThreshold": 70,
   "watchdog": {
     "access": {
@@ -32,7 +32,7 @@
           "kd": 0,
           "setPoint": 67.0,
           "posHysteresis": 0.0,
-          "negHysteresis": 2.0
+          "negHysteresis": 3.0
         },
         "OPTIC_TYPE_400_GENERIC": {
           "kp": -4,
@@ -40,7 +40,7 @@
           "kd": 0,
           "setPoint": 67.0,
           "posHysteresis": 0.0,
-          "negHysteresis": 2.0
+          "negHysteresis": 3.0
         },
         "OPTIC_TYPE_200_GENERIC": {
           "kp": -4,
@@ -48,7 +48,7 @@
           "kd": 0,
           "setPoint": 67.0,
           "posHysteresis": 0.0,
-          "negHysteresis": 2.0
+          "negHysteresis": 3.0
         },
         "OPTIC_TYPE_100_GENERIC": {
           "kp": -4,
@@ -56,7 +56,7 @@
           "kd": 0,
           "setPoint": 67.0,
           "posHysteresis": 0.0,
-          "negHysteresis": 2.0
+          "negHysteresis": 3.0
         }
       }
     }
@@ -75,7 +75,7 @@
         "kd": 0,
         "setPoint": 97.0,
         "posHysteresis": 0.0,
-        "negHysteresis": 5.0
+        "negHysteresis": 8.0
       }
     },
     {
@@ -86,31 +86,27 @@
       "pwmCalcType": "SENSOR_PWM_CALC_TYPE_FOUR_LINEAR_TABLE",
       "scale": 1,
       "normalUpTable": {
-        "24": 30,
-        "27": 30,
-        "32": 35,
-        "37": 40,
+        "31": 25,
+        "32": 30,
+        "37": 35,
         "42": 60
       },
       "normalDownTable": {
-        "22": 30,
-        "25": 30,
-        "30": 35,
-        "35": 40,
+        "29": 25,
+        "30": 30,
+        "35": 35,
         "40": 60
       },
       "failUpTable": {
-        "24": 35,
-        "27": 35,
-        "32": 40,
-        "37": 45,
+        "31": 30,
+        "32": 35,
+        "37": 40,
         "42": 65
       },
       "failDownTable": {
-        "22": 35,
-        "25": 35,
-        "30": 40,
-        "35": 45,
+        "29": 30,
+        "30": 35,
+        "35": 40,
         "40": 65
       }
     },
@@ -143,7 +139,8 @@
       "fanPresentVal": 1,
       "fanMissingVal": 0,
       "fanGoodLedVal": 1,
-      "fanFailLedVal": 2
+      "fanFailLedVal": 2,
+      "rpmMin": 1500
     },
     {
       "fanName": "FAN_1_R",
@@ -156,7 +153,8 @@
       "fanPresentVal": 1,
       "fanMissingVal": 0,
       "fanGoodLedVal": 1,
-      "fanFailLedVal": 2
+      "fanFailLedVal": 2,
+      "rpmMin": 1500
     },
     {
       "fanName": "FAN_2_F",
@@ -169,7 +167,8 @@
       "fanPresentVal": 1,
       "fanMissingVal": 0,
       "fanGoodLedVal": 1,
-      "fanFailLedVal": 2
+      "fanFailLedVal": 2,
+      "rpmMin": 1500
     },
     {
       "fanName": "FAN_2_R",
@@ -182,7 +181,8 @@
       "fanPresentVal": 1,
       "fanMissingVal": 0,
       "fanGoodLedVal": 1,
-      "fanFailLedVal": 2
+      "fanFailLedVal": 2,
+      "rpmMin": 1500
     },
     {
       "fanName": "FAN_3_F",
@@ -195,7 +195,8 @@
       "fanPresentVal": 1,
       "fanMissingVal": 0,
       "fanGoodLedVal": 1,
-      "fanFailLedVal": 2
+      "fanFailLedVal": 2,
+      "rpmMin": 1500
     },
     {
       "fanName": "FAN_3_R",
@@ -208,7 +209,8 @@
       "fanPresentVal": 1,
       "fanMissingVal": 0,
       "fanGoodLedVal": 1,
-      "fanFailLedVal": 2
+      "fanFailLedVal": 2,
+      "rpmMin": 1500
     },
     {
       "fanName": "FAN_4_F",
@@ -221,7 +223,8 @@
       "fanPresentVal": 1,
       "fanMissingVal": 0,
       "fanGoodLedVal": 1,
-      "fanFailLedVal": 2
+      "fanFailLedVal": 2,
+      "rpmMin": 1500
     },
     {
       "fanName": "FAN_4_R",
@@ -234,7 +237,8 @@
       "fanPresentVal": 1,
       "fanMissingVal": 0,
       "fanGoodLedVal": 1,
-      "fanFailLedVal": 2
+      "fanFailLedVal": 2,
+      "rpmMin": 1500
     },
     {
       "fanName": "FAN_5_F",
@@ -247,7 +251,8 @@
       "fanPresentVal": 1,
       "fanMissingVal": 0,
       "fanGoodLedVal": 1,
-      "fanFailLedVal": 2
+      "fanFailLedVal": 2,
+      "rpmMin": 1500
     },
     {
       "fanName": "FAN_5_R",
@@ -260,7 +265,8 @@
       "fanPresentVal": 1,
       "fanMissingVal": 0,
       "fanGoodLedVal": 1,
-      "fanFailLedVal": 2
+      "fanFailLedVal": 2,
+      "rpmMin": 1500
     },
     {
       "fanName": "FAN_6_F",
@@ -273,7 +279,8 @@
       "fanPresentVal": 1,
       "fanMissingVal": 0,
       "fanGoodLedVal": 1,
-      "fanFailLedVal": 2
+      "fanFailLedVal": 2,
+      "rpmMin": 1500
     },
     {
       "fanName": "FAN_6_R",
@@ -286,7 +293,8 @@
       "fanPresentVal": 1,
       "fanMissingVal": 0,
       "fanGoodLedVal": 1,
-      "fanFailLedVal": 2
+      "fanFailLedVal": 2,
+      "rpmMin": 1500
     },
     {
       "fanName": "FAN_7_F",
@@ -299,7 +307,8 @@
       "fanPresentVal": 1,
       "fanMissingVal": 0,
       "fanGoodLedVal": 1,
-      "fanFailLedVal": 2
+      "fanFailLedVal": 2,
+      "rpmMin": 1500
     },
     {
       "fanName": "FAN_7_R",
@@ -312,7 +321,8 @@
       "fanPresentVal": 1,
       "fanMissingVal": 0,
       "fanGoodLedVal": 1,
-      "fanFailLedVal": 2
+      "fanFailLedVal": 2,
+      "rpmMin": 1500
     },
     {
       "fanName": "FAN_8_F",
@@ -325,7 +335,8 @@
       "fanPresentVal": 1,
       "fanMissingVal": 0,
       "fanGoodLedVal": 1,
-      "fanFailLedVal": 2
+      "fanFailLedVal": 2,
+      "rpmMin": 1500
     },
     {
       "fanName": "FAN_8_R",
@@ -338,7 +349,8 @@
       "fanPresentVal": 1,
       "fanMissingVal": 0,
       "fanGoodLedVal": 1,
-      "fanFailLedVal": 2
+      "fanFailLedVal": 2,
+      "rpmMin": 1500
     }
   ],
   "zones": [
