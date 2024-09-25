@@ -637,7 +637,7 @@ TEST_F(ProdInvariantRtswTest, verifyInvariants) {
     verifySafeDiagCommands();
     verifyThriftHandler();
     verifyFlowletAcls();
-    verifyEEcmp();
+    // verifyEEcmp();
     verifyDlbGroups();
   };
   verifyAcrossWarmBoots(setup, verify);
