@@ -41,8 +41,7 @@ cfg::L4PortRange buildPortRange(int min, int max) {
 
 template <typename ThriftType>
 struct is_allow_skip_thrift_cow {
-  using annotations =
-      apache::thrift::reflect_struct<ThriftType>::annotations::values;
+  using annotations = apache::thrift::reflect_struct<ThriftType>::annotations;
   static constexpr bool value =
       read_annotation_allow_skip_thrift_cow<annotations>::value;
 };
@@ -50,6 +49,7 @@ struct is_allow_skip_thrift_cow {
 TEST(ThriftStructNodeTests, ReadThriftStructAnnotation) {
   static_assert(is_allow_skip_thrift_cow<TestStruct>::value == true);
   static_assert(is_allow_skip_thrift_cow<ParentTestStruct>::value == false);
+  static_assert(is_allow_skip_thrift_cow<TestStruct2>::value == false);
 }
 
 TEST(ThriftStructNodeTests, ThriftStructFieldsSimple) {

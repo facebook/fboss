@@ -140,8 +140,10 @@ struct ResolveMemberType : std::false_type {};
 using fatal_true = fatal::sequence<char, '1'>;
 
 // helper struct to read Thrift annotation allow_skip_thrift_cow
-template <typename T>
-struct read_annotation_allow_skip_thrift_cow;
+template <typename T, typename T2 = void>
+struct read_annotation_allow_skip_thrift_cow {
+  static constexpr bool value = false;
+};
 
 // need a little template specialization magic since annotation values are void
 // when nothing is set. without this we can't try to pull out
@@ -151,10 +153,17 @@ struct read_annotation_allow_skip_thrift_cow<void> {
   static constexpr bool value = false;
 };
 
+FATAL_S(allow_skip_thrift_cow_annotation, "allow_skip_thrift_cow");
+
 template <typename Annotations>
-struct read_annotation_allow_skip_thrift_cow {
-  static constexpr bool value = std::
-      is_same<typename Annotations::allow_skip_thrift_cow, fatal_true>::value;
+struct read_annotation_allow_skip_thrift_cow<
+    Annotations,
+    typename std::enable_if_t<std::is_same_v<
+        typename Annotations::keys::allow_skip_thrift_cow,
+        allow_skip_thrift_cow_annotation>>> {
+  static constexpr bool value = std::is_same<
+      typename Annotations::values::allow_skip_thrift_cow,
+      fatal_true>::value;
 };
 
 template <typename Derived, typename Member>
@@ -173,7 +182,7 @@ struct StructMemberTraits {
       default_type>;
   using isChild = typename ConvertToNodeTraits<tc, ttype>::isChild;
   // read member annotations
-  using member_annotations = typename Member::annotations::values;
+  using member_annotations = typename Member::annotations;
   static constexpr bool allowSkipThriftCow =
       read_annotation_allow_skip_thrift_cow<member_annotations>::value;
 };

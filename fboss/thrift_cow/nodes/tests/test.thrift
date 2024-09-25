@@ -61,4 +61,6 @@ struct TestStruct {
 
 struct ParentTestStruct {
   1: TestStruct childStruct;
-}
+} (random_annotation)
+
+struct TestStruct2 {} (deprecated, allow_skip_thrift_cow = false)
