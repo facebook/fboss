@@ -3414,6 +3414,37 @@ bool CmisModule::getModuleStateChanged() {
   return getSettingsValue(CmisField::MODULE_FLAG, MODULE_STATE_CHANGED_MASK);
 }
 
+void CmisModule::clearTransceiverPrbsStats(
+    const std::string& portName,
+    phy::Side side) {
+  auto clearTransceiverPrbsStatsLambda = [side, portName, this]() {
+    lock_guard<std::mutex> g(qsfpModuleMutex_);
+    // Read modify write
+    // Write bit 5 in 13h.177 to 1 and then 0 to reset counters
+    uint8_t val;
+    readCmisField(CmisField::BER_CTRL, &val);
+    val |= BER_CTRL_RESET_STAT_MASK;
+    writeCmisField(CmisField::BER_CTRL, &val);
+    val &= ~BER_CTRL_RESET_STAT_MASK;
+    writeCmisField(CmisField::BER_CTRL, &val);
+  };
+  auto i2cEvb = qsfpImpl_->getI2cEventBase();
+  if (!i2cEvb) {
+    // Certain platforms cannot execute multiple I2C transactions in parallel
+    // and therefore don't have an I2C evb thread
+    clearTransceiverPrbsStatsLambda();
+  } else {
+    via(i2cEvb)
+        .thenValue([clearTransceiverPrbsStatsLambda](auto&&) mutable {
+          clearTransceiverPrbsStatsLambda();
+        })
+        .get();
+  }
+
+  // Call the base class implementation to clear the common stats
+  QsfpModule::clearTransceiverPrbsStats(portName, side);
+}
+
 /*
  * setPortPrbsLocked
  *

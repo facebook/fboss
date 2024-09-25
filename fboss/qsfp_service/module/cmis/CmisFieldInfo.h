@@ -265,6 +265,7 @@ enum FieldMasks : uint8_t {
   VDM_DESCRIPTOR_RESOURCE_MASK = 0x0f,
   CDB_FW_DOWNLOAD_EPL_SUPPORTED = 0x10,
   CDB_FW_DOWNLOAD_LPL_EPL_SUPPORTED = 0x11,
+  BER_CTRL_RESET_STAT_MASK = 0x20,
 };
 
 enum FieldBitShift : uint8_t {

@@ -239,7 +239,10 @@ class Transceiver {
       const std::string& /* portName */,
       phy::Side /* side */) = 0;
 
-  virtual void clearTransceiverPrbsStats(phy::Side side) = 0;
+  // Clear the PRBS stats for the given port and side
+  virtual void clearTransceiverPrbsStats(
+      const std::string& portName,
+      phy::Side side) = 0;
 
   /*
    * Return true if such Transceiver can support remediation.

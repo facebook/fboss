@@ -435,7 +435,8 @@ class PrbsTest : public LinkTest {
       client->sync_getInterfacePrbsStats(stats, interfaceName, component);
       EXPECT_FALSE(stats.get_laneStats().empty());
       for (const auto& laneStat : stats.get_laneStats()) {
-        EXPECT_EQ(laneStat.get_locked(), prbsEnabled);
+        // Don't check lock status because clear would have cleared it too and
+        // we may not have had an update of stats yet
         EXPECT_EQ(laneStat.get_numLossOfLock(), 0);
         EXPECT_LT(laneStat.get_timeSinceLastClear(), timestampBeforeClear);
       }

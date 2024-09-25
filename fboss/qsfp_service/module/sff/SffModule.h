@@ -257,7 +257,9 @@ class SffModule : public QsfpModule {
     // no-op
   }
 
-  void clearTransceiverPrbsStats(phy::Side side) override;
+  void clearTransceiverPrbsStats(
+      const std::string& /* portName */,
+      phy::Side side) override;
 
   std::vector<uint8_t> configuredHostLanes(
       uint8_t hostStartLane) const override;

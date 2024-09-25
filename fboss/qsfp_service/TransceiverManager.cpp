@@ -2553,6 +2553,10 @@ phy::PrbsStats TransceiverManager::getPortPrbsStats(
 void TransceiverManager::clearPortPrbsStats(
     PortID portId,
     phy::PortComponent component) {
+  auto portName = getPortNameByPortId(portId);
+  if (!portName.has_value()) {
+    throw FbossError("Can't find a portName for portId ", portId);
+  }
   phy::Side side = prbsComponentToPhySide(component);
   if (component == phy::PortComponent::TRANSCEIVER_SYSTEM ||
       component == phy::PortComponent::TRANSCEIVER_LINE) {
@@ -2560,7 +2564,7 @@ void TransceiverManager::clearPortPrbsStats(
     if (auto tcvrID = getTransceiverID(portId)) {
       if (auto it = lockedTransceivers->find(*tcvrID);
           it != lockedTransceivers->end()) {
-        it->second->clearTransceiverPrbsStats(side);
+        it->second->clearTransceiverPrbsStats(*portName, side);
       } else {
         throw FbossError("Can't find transceiver ", *tcvrID);
       }

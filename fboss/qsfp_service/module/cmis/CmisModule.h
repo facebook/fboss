@@ -611,6 +611,9 @@ class CmisModule : public QsfpModule {
       bool mediaSide);
 
   uint8_t datapathResetPendingMask_{0};
+
+  void clearTransceiverPrbsStats(const std::string& portName, phy::Side side)
+      override;
 };
 
 } // namespace fboss
