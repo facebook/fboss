@@ -361,21 +361,6 @@ void DsfSubscription::updateWithRollbackProtection(
     const std::map<SwitchID, std::shared_ptr<SystemPortMap>>&
         switchId2SystemPorts,
     const std::map<SwitchID, std::shared_ptr<InterfaceMap>>& switchId2Intfs) {
-  auto hasNoLocalSwitchId = [this](const auto& switchId2Objects) {
-    for (const auto& [switchId, _] : switchId2Objects) {
-      if (this->isLocal(switchId)) {
-        throw FbossError(
-            "Got updates for a local switch ID, from: ",
-            localNodeName_,
-            " id: ",
-            switchId);
-      }
-    }
-  };
-
-  hasNoLocalSwitchId(switchId2SystemPorts);
-  hasNoLocalSwitchId(switchId2Intfs);
-
   auto updateDsfStateFn = [this, switchId2SystemPorts, switchId2Intfs](
                               const std::shared_ptr<SwitchState>& in) {
     auto out = validator_->validateAndGetUpdate(
