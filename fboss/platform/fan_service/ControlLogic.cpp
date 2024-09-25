@@ -457,14 +457,20 @@ std::pair<bool, int16_t> ControlLogic::programFan(
 }
 
 void ControlLogic::programLed(const Fan& fan, bool fanFailed) {
-  unsigned int valueToWrite =
-      (fanFailed ? *fan.fanFailLedVal() : *fan.fanGoodLedVal());
-  pBsp_->setFanLedSysfs(*fan.ledSysfsPath(), valueToWrite);
-  XLOG(INFO) << fmt::format(
-      "{}: Setting LED to {} (value: {})",
-      *fan.fanName(),
-      (fanFailed ? "Fail" : "Good"),
-      valueToWrite);
+  if (!fan.ledSysfsPath()->empty()) {
+    unsigned int valueToWrite =
+        (fanFailed ? *fan.fanFailLedVal() : *fan.fanGoodLedVal());
+    pBsp_->setFanLedSysfs(*fan.ledSysfsPath(), valueToWrite);
+    XLOG(INFO) << fmt::format(
+        "{}: Setting LED to {} (value: {})",
+        *fan.fanName(),
+        (fanFailed ? "Fail" : "Good"),
+        valueToWrite);
+  } else {
+    XLOG(INFO) << fmt::format(
+        "{}: FAN LED sysfs path is empty. It's normal when FAN LED is controlled by hardware.",
+        *fan.fanName());
+  }
 }
 
 int16_t ControlLogic::calculateZonePwm(const Zone& zone, bool boostMode) {
