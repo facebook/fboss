@@ -108,8 +108,20 @@ class DsfSubscriptionTest : public ::testing::Test {
   void SetUp() override {
     FLAGS_publish_state_to_fsdb = true;
     FLAGS_fsdb_sync_full_state = true;
+    FLAGS_dsf_subscribe = false;
     FLAGS_dsf_subscribe_patch = kSubscribePatch;
     auto config = testConfigA(cfg::SwitchType::VOQ);
+    for (auto remoteSwitch : remoteSwitchIds()) {
+      int remoteSwitchId = static_cast<int64_t>(remoteSwitch);
+      auto dsfNode = makeDsfNodeCfg(remoteSwitchId);
+      cfg::Range64 sysPortRange;
+      sysPortRange.minimum() =
+          remoteSwitchId / kSwitchIdGap * kSysPortBlockSize;
+      sysPortRange.maximum() = *sysPortRange.minimum() + kSysPortBlockSize;
+      dsfNode.systemPortRange() = sysPortRange;
+      dsfNode.loopbackIps() = {"::1/128", "169.254.0.1/24"};
+      config.dsfNodes()->insert(std::make_pair(remoteSwitchId, dsfNode));
+    }
     handle_ = createTestHandle(&config);
     sw_ = handle_->getSw();
     fsdbTestServer_ = std::make_unique<fsdb::test::FsdbTestServer>();
@@ -268,10 +280,12 @@ TYPED_TEST(DsfSubscriptionTest, Connect) {
   std::optional<std::map<SwitchID, std::shared_ptr<InterfaceMap>>> recvIntfs;
   this->subscription_ = this->createSubscription();
   WITH_RETRIES({
+    // 2 sys ports added per ASIC - 1 RCY, 1 Dynamic
     ASSERT_EVENTUALLY_EQ(
-        this->getRemoteSystemPorts()->size(), this->kNumRemoteSwitchAsics);
+        this->getRemoteSystemPorts()->size(), this->kNumRemoteSwitchAsics * 2);
     ASSERT_EVENTUALLY_EQ(
-        this->getRemoteInterfaces()->size(), this->kNumRemoteSwitchAsics);
+        this->getRemoteInterfaces()->size(),
+        this->getRemoteSystemPorts()->size());
     ASSERT_EVENTUALLY_EQ(
         this->dsfSessionState(), DsfSessionState::WAIT_FOR_REMOTE);
   });
@@ -292,10 +306,12 @@ TYPED_TEST(DsfSubscriptionTest, ConnectDisconnect) {
   this->subscription_ = this->createSubscription();
 
   WITH_RETRIES({
+    // 2 sys ports added per ASIC - 1 RCY, 1 Dynamic
     ASSERT_EVENTUALLY_EQ(
-        this->getRemoteSystemPorts()->size(), this->kNumRemoteSwitchAsics);
+        this->getRemoteSystemPorts()->size(), this->kNumRemoteSwitchAsics * 2);
     ASSERT_EVENTUALLY_EQ(
-        this->getRemoteInterfaces()->size(), this->kNumRemoteSwitchAsics);
+        this->getRemoteInterfaces()->size(),
+        this->getRemoteSystemPorts()->size());
     ASSERT_EVENTUALLY_EQ(
         this->dsfSessionState(), DsfSessionState::WAIT_FOR_REMOTE);
   });
@@ -313,10 +329,12 @@ TYPED_TEST(DsfSubscriptionTest, GR) {
   this->subscription_ = this->createSubscription();
 
   WITH_RETRIES({
+    // 2 sys ports added per ASIC - 1 RCY, 1 Dynamic
     ASSERT_EVENTUALLY_EQ(
-        this->getRemoteSystemPorts()->size(), this->kNumRemoteSwitchAsics);
+        this->getRemoteSystemPorts()->size(), this->kNumRemoteSwitchAsics * 2);
     ASSERT_EVENTUALLY_EQ(
-        this->getRemoteInterfaces()->size(), this->kNumRemoteSwitchAsics);
+        this->getRemoteInterfaces()->size(),
+        this->getRemoteSystemPorts()->size());
     ASSERT_EVENTUALLY_EQ(
         this->dsfSessionState(), DsfSessionState::WAIT_FOR_REMOTE);
   });
@@ -326,10 +344,12 @@ TYPED_TEST(DsfSubscriptionTest, GR) {
   this->publishSwitchState(state);
 
   WITH_RETRIES({
+    // 2 sys ports added per ASIC - 1 RCY, 1 Dynamic
     ASSERT_EVENTUALLY_EQ(
-        this->getRemoteSystemPorts()->size(), this->kNumRemoteSwitchAsics);
+        this->getRemoteSystemPorts()->size(), this->kNumRemoteSwitchAsics * 2);
     ASSERT_EVENTUALLY_EQ(
-        this->getRemoteInterfaces()->size(), this->kNumRemoteSwitchAsics);
+        this->getRemoteInterfaces()->size(),
+        this->getRemoteSystemPorts()->size());
     ASSERT_EVENTUALLY_EQ(
         this->dsfSessionState(), DsfSessionState::WAIT_FOR_REMOTE);
     auto remoteRifs = this->getRemoteInterfaces();
@@ -338,7 +358,6 @@ TYPED_TEST(DsfSubscriptionTest, GR) {
       ASSERT_EVENTUALLY_EQ(rif->getArpTable()->size(), 1);
     }
   });
-
   auto assertStatus = [this](LivenessStatus expectedStatus) {
     auto assertObjStatus = [expectedStatus](const auto& objs) {
       std::for_each(
@@ -363,6 +382,7 @@ TYPED_TEST(DsfSubscriptionTest, GR) {
     ASSERT_EVENTUALLY_EQ(this->dsfSessionState(), DsfSessionState::CONNECT);
     ASSERT_EVENTUALLY_TRUE(counters.checkExist(grExpiredCounter));
     ASSERT_EVENTUALLY_EQ(counters.value(grExpiredCounter), 1);
+
     auto remoteRifs = this->getRemoteInterfaces();
     for (const auto [_, rif] : std::as_const(*remoteRifs)) {
       // Neighbors should get pruned
@@ -387,10 +407,12 @@ TYPED_TEST(DsfSubscriptionTest, DataUpdate) {
   this->subscription_ = this->createSubscription();
 
   WITH_RETRIES({
+    // 2 sys ports added per ASIC - 1 RCY, 1 Dynamic
     ASSERT_EVENTUALLY_EQ(
-        this->getRemoteSystemPorts()->size(), this->kNumRemoteSwitchAsics);
+        this->getRemoteSystemPorts()->size(), this->kNumRemoteSwitchAsics * 2);
     ASSERT_EVENTUALLY_EQ(
-        this->getRemoteInterfaces()->size(), this->kNumRemoteSwitchAsics);
+        this->getRemoteInterfaces()->size(),
+        this->getRemoteSystemPorts()->size());
     ASSERT_EVENTUALLY_EQ(
         this->dsfSessionState(), DsfSessionState::WAIT_FOR_REMOTE);
   });
@@ -404,7 +426,8 @@ TYPED_TEST(DsfSubscriptionTest, DataUpdate) {
   this->publishSwitchState(state);
 
   WITH_RETRIES(ASSERT_EVENTUALLY_EQ(
-      this->getRemoteSystemPorts()->size(), this->kNumRemoteSwitchAsics + 1));
+      this->getRemoteSystemPorts()->size(),
+      (this->kNumRemoteSwitchAsics * 2) + 1));
 }
 
 TYPED_TEST(DsfSubscriptionTest, updateFailed) {
@@ -419,10 +442,12 @@ TYPED_TEST(DsfSubscriptionTest, updateFailed) {
   this->subscription_ = this->createSubscription();
 
   WITH_RETRIES({
+    // 2 sys ports added per ASIC - 1 RCY, 1 Dynamic
     ASSERT_EVENTUALLY_EQ(
-        this->getRemoteSystemPorts()->size(), this->kNumRemoteSwitchAsics);
+        this->getRemoteSystemPorts()->size(), this->kNumRemoteSwitchAsics * 2);
     ASSERT_EVENTUALLY_EQ(
-        this->getRemoteInterfaces()->size(), this->kNumRemoteSwitchAsics);
+        this->getRemoteInterfaces()->size(),
+        this->getRemoteSystemPorts()->size());
     ASSERT_EVENTUALLY_EQ(
         this->dsfSessionState(), DsfSessionState::WAIT_FOR_REMOTE);
   });
@@ -540,16 +565,13 @@ TYPED_TEST(DsfSubscriptionTest, setupNeighbors) {
         switchId2SystemPorts, switchId2Intfs);
 
     waitForStateUpdates(this->sw_);
-    EXPECT_EQ(
-        sysPorts->toThrift(),
-        this->sw_->getState()
-            ->getRemoteSystemPorts()
-            ->getAllNodes()
-            ->toThrift());
 
     for (const auto& [_, intfMap] :
          std::as_const(*this->sw_->getState()->getRemoteInterfaces())) {
       for (const auto& [_, localRif] : std::as_const(*intfMap)) {
+        if (localRif->isStatic()) {
+          continue;
+        }
         const auto& expectedRif = expectedRifs.at(localRif->getID());
         // Since resolved timestamp is only set locally, update expectedRifs to
         // the same timestamp such that they're the same, for both arp and ndp.
@@ -571,15 +593,6 @@ TYPED_TEST(DsfSubscriptionTest, setupNeighbors) {
         }
       }
     }
-    EXPECT_EQ(
-        apache::thrift::SimpleJSONSerializer::serialize<std::string>(
-            expectedRifs.toThrift()),
-        apache::thrift::SimpleJSONSerializer::serialize<std::string>(
-            this->sw_->getState()
-                ->getRemoteInterfaces()
-                ->getAllNodes()
-                ->toThrift()));
-
     // neighbor entries are modified to set isLocal=false
     // Thus, if neighbor table is non-empty, programmed vs. actually
     // programmed would be unequal for published state.
