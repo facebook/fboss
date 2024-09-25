@@ -34,7 +34,7 @@ void DsfUpdateValidator::validate(
   StateDelta delta(oldState, newState);
 
   DeltaFunctions::forEachChanged(
-      delta.getSystemPortsDelta(),
+      delta.getRemoteSystemPortsDelta(),
       [&](const auto& oldSysPort, const auto& newSysPort) {
         if (oldSysPort->getSwitchId() != newSysPort->getSwitchId()) {
           throw FbossError("SwitchID change not permitted for sys ports");
