@@ -166,7 +166,8 @@ auto filterTupleMonostates(Tuple tup) {
 void postAppInit(int argc, char* argv[], CLI::App& app);
 
 // API to retrieve host related information
-const folly::IPAddress getIPFromHost(const std::string& hostname);
+std::pair<std::string, folly::IPAddress> getCanonicalNameAndIPFromHost(
+    const std::string& hostname);
 const std::string getOobNameFromHost(const std::string& host);
 std::vector<std::string> getHostsInSmcTier(const std::string& parentTierName);
 std::vector<std::string> getHostsFromFile(const std::string& filename);
