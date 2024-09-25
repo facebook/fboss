@@ -57,7 +57,7 @@ struct TestStruct {
   23: i64 unsigned_int64;
   24: map<string, TestStruct> mapA;
   25: map<string, TestStruct> mapB;
-}
+} (allow_skip_thrift_cow = true)
 
 struct ParentTestStruct {
   1: TestStruct childStruct;
