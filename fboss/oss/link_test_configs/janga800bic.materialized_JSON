@@ -13252,6 +13252,18 @@
         "etherType": 34525
       },
       {
+        "name": "cpuPolicing-high-arp-request",
+        "actionType": 1,
+        "ipType": 4,
+        "etherType": 2054
+      },
+      {
+        "name": "cpuPolicing-high-arp-reply",
+        "actionType": 1,
+        "ipType": 5,
+        "etherType": 2054
+      },
+      {
         "name": "cpuPolicing-mid-lldp-dstMac0E",
         "actionType": 1,
         "dstMac": "01:80:c2:00:00:0e",
@@ -13443,6 +13455,30 @@
             }
           },
           {
+            "matcher": "cpuPolicing-high-arp-request",
+            "action": {
+              "sendToQueue": {
+                "queueId": 7
+              },
+              "toCpuAction": 0,
+              "setTc": {
+                "tcValue": 7
+              }
+            }
+          },
+          {
+            "matcher": "cpuPolicing-high-arp-reply",
+            "action": {
+              "sendToQueue": {
+                "queueId": 7
+              },
+              "toCpuAction": 0,
+              "setTc": {
+                "tcValue": 7
+              }
+            }
+          },
+          {
             "matcher": "cpuPolicing-mid-lldp-dstMac0E",
             "action": {
               "sendToQueue": {
@@ -13507,14 +13543,6 @@
       "rxReasonToQueueOrderedList": [
         {
           "rxReason": 8,
-          "queueId": 7
-        },
-        {
-          "rxReason": 1,
-          "queueId": 7
-        },
-        {
-          "rxReason": 10,
           "queueId": 7
         },
         {
