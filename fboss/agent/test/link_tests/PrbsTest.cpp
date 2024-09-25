@@ -371,8 +371,10 @@ class PrbsTest : public LinkTest {
       if (!initial) {
         EXPECT_FALSE(laneStat.get_numLossOfLock());
       }
-      EXPECT_TRUE(laneStat.get_ber() >= 0 && laneStat.get_ber() < 1);
-      EXPECT_TRUE(laneStat.get_maxBer() >= 0 && laneStat.get_maxBer() < 1);
+      auto berThreshold = FLAGS_link_stress_test ? 5e-7 : 1;
+      EXPECT_TRUE(laneStat.get_ber() >= 0 && laneStat.get_ber() < berThreshold);
+      EXPECT_TRUE(
+          laneStat.get_maxBer() >= 0 && laneStat.get_maxBer() < berThreshold);
       EXPECT_TRUE(laneStat.get_ber() <= laneStat.get_maxBer());
       EXPECT_TRUE(laneStat.get_timeSinceLastLocked());
     }
