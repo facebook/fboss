@@ -308,13 +308,18 @@ class PrbsTest : public LinkTest {
   }
 
   void checkPrbsStatsOnAllInterfaces(bool initial = false) {
+    auto timeReference = std::time(nullptr);
     for (const auto& testPort : portsToTest_) {
       auto interfaceName = testPort.portName;
       auto component = testPort.component;
       if (component == phy::PortComponent::ASIC) {
         auto agentClient = utils::createWedgeAgentClient();
         checkPrbsStatsOnInterface<apache::thrift::Client<FbossCtrl>>(
-            agentClient.get(), interfaceName, component, initial);
+            agentClient.get(),
+            interfaceName,
+            component,
+            timeReference,
+            initial);
       } else if (
           component == phy::PortComponent::GB_LINE ||
           component == phy::PortComponent::GB_SYSTEM) {
@@ -323,7 +328,11 @@ class PrbsTest : public LinkTest {
       } else {
         auto qsfpServiceClient = utils::createQsfpServiceClient();
         checkPrbsStatsOnInterface<apache::thrift::Client<QsfpService>>(
-            qsfpServiceClient.get(), interfaceName, component, initial);
+            qsfpServiceClient.get(),
+            interfaceName,
+            component,
+            timeReference,
+            initial);
       }
     }
   }
@@ -333,33 +342,40 @@ class PrbsTest : public LinkTest {
       Client* client,
       std::string& interfaceName,
       phy::PortComponent component,
+      time_t timeReference,
       bool initial = false) {
+    phy::PrbsStats stats;
+    int countPrbsUpdate = 2;
+    // Count at least 2 updates to the stats. The first update may not have
+    // valid stats as it is just when PRBS is getting enabled. We need both ends
+    // to be enabled to read valid stats
     WITH_RETRIES_N_TIMED(12, std::chrono::milliseconds(5000), {
-      phy::PrbsStats stats;
       client->sync_getInterfacePrbsStats(stats, interfaceName, component);
-      ASSERT_EVENTUALLY_FALSE(stats.get_laneStats().empty());
-      for (const auto& laneStat : stats.get_laneStats()) {
-        EXPECT_EVENTUALLY_TRUE(laneStat.get_locked());
-        if (!initial) {
-          EXPECT_EVENTUALLY_FALSE(laneStat.get_numLossOfLock());
-        }
-        EXPECT_EVENTUALLY_TRUE(
-            laneStat.get_ber() >= 0 && laneStat.get_ber() < 1);
-        EXPECT_EVENTUALLY_TRUE(
-            laneStat.get_maxBer() >= 0 && laneStat.get_maxBer() < 1);
-        EXPECT_EVENTUALLY_TRUE(laneStat.get_ber() <= laneStat.get_maxBer());
-        EXPECT_EVENTUALLY_TRUE(laneStat.get_timeSinceLastLocked());
-        XLOG(DBG2) << folly::sformat(
-            "Interface {:s}, lane: {:d}, locked: {:d}, numLossOfLock: {:d}, ber: {:e}, maxBer: {:e}, timeSinceLastLock: {:d}",
-            interfaceName,
-            laneStat.get_laneId(),
-            laneStat.get_locked(),
-            laneStat.get_numLossOfLock(),
-            laneStat.get_ber(),
-            laneStat.get_maxBer(),
-            laneStat.get_timeSinceLastLocked());
+      if (stats.get_timeCollected() > timeReference) {
+        countPrbsUpdate--;
       }
+      ASSERT_EVENTUALLY_EQ(countPrbsUpdate, 0);
     });
+    ASSERT_FALSE(stats.get_laneStats().empty());
+    for (const auto& laneStat : stats.get_laneStats()) {
+      XLOG(DBG2) << folly::sformat(
+          "Interface {:s}, lane: {:d}, locked: {:d}, numLossOfLock: {:d}, ber: {:e}, maxBer: {:e}, timeSinceLastLock: {:d}",
+          interfaceName,
+          laneStat.get_laneId(),
+          laneStat.get_locked(),
+          laneStat.get_numLossOfLock(),
+          laneStat.get_ber(),
+          laneStat.get_maxBer(),
+          laneStat.get_timeSinceLastLocked());
+      EXPECT_TRUE(laneStat.get_locked());
+      if (!initial) {
+        EXPECT_FALSE(laneStat.get_numLossOfLock());
+      }
+      EXPECT_TRUE(laneStat.get_ber() >= 0 && laneStat.get_ber() < 1);
+      EXPECT_TRUE(laneStat.get_maxBer() >= 0 && laneStat.get_maxBer() < 1);
+      EXPECT_TRUE(laneStat.get_ber() <= laneStat.get_maxBer());
+      EXPECT_TRUE(laneStat.get_timeSinceLastLocked());
+    }
   }
 
   void checkPrbsStatsAfterClearOnAllInterfaces(
