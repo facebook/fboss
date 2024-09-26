@@ -42,6 +42,57 @@ struct OpticsPerformanceMonitoringThresholds kCmisOpticsThresholds = {
         },
 };
 
+void validateVdm(
+    const std::map<int, TransceiverInfo>& transceiverInfos,
+    const std::vector<int>& tcvrsToTest) {
+  for (const auto& tcvrId : tcvrsToTest) {
+    auto txInfoItr = transceiverInfos.find(tcvrId);
+    ASSERT_TRUE(txInfoItr != transceiverInfos.end());
+    ASSERT_TRUE(txInfoItr->second.tcvrStats()->vdmDiagsStats().has_value());
+    XLOG(DBG2) << "Tcvr Id " << tcvrId
+               << " Checking for Line/Host BER, Line SNR";
+
+    auto preFecBerMediaMax = txInfoItr->second.tcvrStats()
+                                 ->vdmDiagsStats()
+                                 .value()
+                                 .preFecBerMediaMax()
+                                 .value();
+    EXPECT_LE(
+        preFecBerMediaMax,
+        kCmisOpticsThresholds.mediaThresholds.preFecBer.maxThreshold);
+
+    auto preFecBerHostMax = txInfoItr->second.tcvrStats()
+                                ->vdmDiagsStats()
+                                .value()
+                                .preFecBerHostMax()
+                                .value();
+    EXPECT_LE(
+        preFecBerHostMax,
+        kCmisOpticsThresholds.hostThresholds.preFecBer.maxThreshold);
+
+    auto& snrMediaPerChannel = txInfoItr->second.tcvrStats()
+                                   ->vdmDiagsStats()
+                                   .value()
+                                   .eSnrMediaChannel()
+                                   .value();
+    for (auto& [channel, channelSnr] : snrMediaPerChannel) {
+      EXPECT_GE(
+          channelSnr,
+          kCmisOpticsThresholds.mediaThresholds.pam4eSnr.minThreshold);
+    }
+    auto& ltpMediaPerChannel = txInfoItr->second.tcvrStats()
+                                   ->vdmDiagsStats()
+                                   .value()
+                                   .pam4LtpMediaChannel()
+                                   .value();
+    for (auto& [channel, channelLtp] : ltpMediaPerChannel) {
+      EXPECT_GE(
+          channelLtp,
+          kCmisOpticsThresholds.mediaThresholds.pam4Ltp.minThreshold);
+    }
+  }
+}
+
 } // namespace
 
 class OpticsTest : public LinkTest {
@@ -274,51 +325,5 @@ TEST_F(LinkTest, opticsVdmPerformanceMonitoring) {
       << "opticsVdmPerformanceMonitoring: Got TransceiverInfo 20sec data from qsfp_service";
 
   // 4. validate the VDM Performance Monitoring parameters within the threshold
-  for (const auto& tcvrId : transceiverIds) {
-    auto txInfoItr = transceiverInfos.find(tcvrId);
-    if (txInfoItr != transceiverInfos.end()) {
-      EXPECT_TRUE(txInfoItr->second.tcvrStats()->vdmDiagsStats().has_value());
-      XLOG(DBG2) << "Tcvr Id " << tcvrId
-                 << " Checking for Line/Host BER, Line SNR";
-
-      auto preFecBerMediaMax = txInfoItr->second.tcvrStats()
-                                   ->vdmDiagsStats()
-                                   .value()
-                                   .preFecBerMediaMax()
-                                   .value();
-      EXPECT_LE(
-          preFecBerMediaMax,
-          kCmisOpticsThresholds.mediaThresholds.preFecBer.maxThreshold);
-
-      auto preFecBerHostMax = txInfoItr->second.tcvrStats()
-                                  ->vdmDiagsStats()
-                                  .value()
-                                  .preFecBerHostMax()
-                                  .value();
-      EXPECT_LE(
-          preFecBerHostMax,
-          kCmisOpticsThresholds.hostThresholds.preFecBer.maxThreshold);
-
-      auto& snrMediaPerChannel = txInfoItr->second.tcvrStats()
-                                     ->vdmDiagsStats()
-                                     .value()
-                                     .eSnrMediaChannel()
-                                     .value();
-      for (auto& [channel, channelSnr] : snrMediaPerChannel) {
-        EXPECT_GE(
-            channelSnr,
-            kCmisOpticsThresholds.mediaThresholds.pam4eSnr.minThreshold);
-      }
-      auto& ltpMediaPerChannel = txInfoItr->second.tcvrStats()
-                                     ->vdmDiagsStats()
-                                     .value()
-                                     .pam4LtpMediaChannel()
-                                     .value();
-      for (auto& [channel, channelLtp] : ltpMediaPerChannel) {
-        EXPECT_GE(
-            channelLtp,
-            kCmisOpticsThresholds.mediaThresholds.pam4Ltp.minThreshold);
-      }
-    }
-  }
+  validateVdm(transceiverInfos, transceiverIds);
 }
