@@ -173,6 +173,21 @@ class DsfSubscriptionTest : public ::testing::Test {
     state->resetIntfs(intfs);
     return state;
   }
+  std::shared_ptr<SwitchState> makeSwitchState(
+      std::shared_ptr<SystemPortMap>& sysPorts,
+      std::shared_ptr<InterfaceMap>& intfs) const {
+    auto state = std::make_shared<SwitchState>();
+    auto mSysPorts = std::make_shared<MultiSwitchSystemPortMap>();
+    auto mIntfs = std::make_shared<MultiSwitchInterfaceMap>();
+    CHECK(!sysPorts->empty());
+    HwSwitchMatcher matcher(
+        std::unordered_set<SwitchID>{sysPorts->begin()->second->getSwitchId()});
+    mSysPorts->addMapNode(sysPorts, matcher);
+    mIntfs->addMapNode(intfs, matcher);
+    state->resetSystemPorts(mSysPorts);
+    state->resetIntfs(mIntfs);
+    return state;
+  }
   void publishSwitchState(std::shared_ptr<SwitchState> state) {
     CHECK(publisher_);
     publisher_->stateUpdated(StateDelta(std::shared_ptr<SwitchState>(), state));
@@ -666,4 +681,29 @@ TYPED_TEST(DsfSubscriptionTest, setupNeighbors) {
   verifySetupNeighbors(false /* publishState */);
   verifySetupNeighbors(true /* publishState */);
 }
+
+TYPED_TEST(DsfSubscriptionTest, DataUpdateForLocalSwitchId) {
+  CounterCache counters(this->sw_);
+  this->createPublisher();
+  auto state = this->makeSwitchState();
+  this->publishSwitchState(state);
+  this->subscription_ = this->createSubscription();
+  WITH_RETRIES({
+    ASSERT_EVENTUALLY_EQ(
+        this->dsfSessionState(), DsfSessionState::WAIT_FOR_REMOTE);
+  });
+  auto localSwitchId = *this->sw_->getSwitchInfoTable().getSwitchIDs().begin();
+  auto sysPorts = makeSysPortsForSwitchIds(std::set<SwitchID>({localSwitchId}));
+  auto rifs = makeRifs(sysPorts.get());
+  state = this->makeSwitchState(sysPorts, rifs);
+  this->publishSwitchState(state);
+  auto dsfUpdateFailedCounter =
+      SwitchStats::kCounterPrefix + "dsf_update_failed.sum.60";
+  WITH_RETRIES({
+    counters.update();
+    ASSERT_EVENTUALLY_TRUE(counters.checkExist(dsfUpdateFailedCounter));
+    ASSERT_EVENTUALLY_GE(counters.value(dsfUpdateFailedCounter), 1);
+  });
+}
+
 } // namespace facebook::fboss
