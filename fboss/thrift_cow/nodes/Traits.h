@@ -173,18 +173,27 @@ struct StructMemberTraits {
   using name = typename Member::name;
   using ttype = typename Member::type;
   using tc = typename Member::type_class;
+
+  // read member annotations
+  using member_annotations = typename Member::annotations;
+  static constexpr bool allowSkipThriftCow =
+      read_annotation_allow_skip_thrift_cow<member_annotations>::value;
+
   // need to resolve here
-  using default_type = typename ConvertToNodeTraits<tc, ttype>::type;
+  using default_type = std::conditional_t<
+      allowSkipThriftCow,
+      typename std::shared_ptr<ThriftHybridNode<tc, ttype>>,
+      typename ConvertToNodeTraits<tc, ttype>::type>;
+  using isChild = std::conditional_t<
+      read_annotation_allow_skip_thrift_cow<member_annotations>::value,
+      std::false_type,
+      typename ConvertToNodeTraits<tc, ttype>::isChild>;
+
   // if the member type is overriden, use the overriden type.
   using type = std::conditional_t<
       ResolveMemberType<Derived, name>::value,
       std::shared_ptr<typename ResolveMemberType<Derived, name>::type>,
       default_type>;
-  using isChild = typename ConvertToNodeTraits<tc, ttype>::isChild;
-  // read member annotations
-  using member_annotations = typename Member::annotations;
-  static constexpr bool allowSkipThriftCow =
-      read_annotation_allow_skip_thrift_cow<member_annotations>::value;
 };
 
 template <typename Derived>

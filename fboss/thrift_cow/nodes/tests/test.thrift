@@ -55,9 +55,9 @@ struct TestStruct {
   22: optional string optionalString;
   @cpp.Type{name = "uint64_t"}
   23: i64 unsigned_int64;
-  24: map<string, TestStruct> mapA;
+  24: map<string, TestStruct> mapA; // (allow_skip_thrift_cow = true)
   25: map<string, TestStruct> mapB;
-} (allow_skip_thrift_cow = true)
+}
 
 struct ParentTestStruct {
   1: TestStruct childStruct;

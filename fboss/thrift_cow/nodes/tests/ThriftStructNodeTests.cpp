@@ -47,9 +47,27 @@ struct is_allow_skip_thrift_cow {
 };
 
 TEST(ThriftStructNodeTests, ReadThriftStructAnnotation) {
+#ifdef __ENABLE_HYBRID_THRIFT_COW_TESTS__
   static_assert(is_allow_skip_thrift_cow<TestStruct>::value == true);
+#endif // __ENABLE_HYBRID_THRIFT_COW_TESTS__
   static_assert(is_allow_skip_thrift_cow<ParentTestStruct>::value == false);
   static_assert(is_allow_skip_thrift_cow<TestStruct2>::value == false);
+}
+
+TEST(ThriftStructNodeTests, ThriftStructNodeAnnotations) {
+  ThriftStructFields<TestStruct> fields;
+
+#ifdef __ENABLE_HYBRID_THRIFT_COW_TESTS__
+  static_assert(fields.isSkipThriftCowEnabled<k::mapA>() == true);
+#endif // __ENABLE_HYBRID_THRIFT_COW_TESTS__
+  static_assert(fields.isSkipThriftCowEnabled<k::mapB>() == false);
+
+  ThriftStructNode<TestStruct> node;
+
+#ifdef __ENABLE_HYBRID_THRIFT_COW_TESTS__
+  ASSERT_EQ(node.isSkipThriftCowEnabled<k::mapA>(), true);
+#endif // __ENABLE_HYBRID_THRIFT_COW_TESTS__
+  ASSERT_EQ(node.isSkipThriftCowEnabled<k::mapB>(), false);
 }
 
 TEST(ThriftStructNodeTests, ThriftStructFieldsSimple) {

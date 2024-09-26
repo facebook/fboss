@@ -36,6 +36,14 @@ constexpr bool isOptional() {
   return Member::optional::value == apache::thrift::optionality::optional;
 }
 
+struct HasSkipThriftCow {
+  template <typename Traits>
+  using apply = typename std::conditional<
+      Traits::allowSkipThriftCow,
+      std::true_type,
+      std::false_type>::type;
+};
+
 struct IsChildNode {
   template <typename Traits>
   using apply = typename Traits::isChild;
@@ -150,6 +158,23 @@ struct ThriftStructFields {
 
   // Extracting useful common types out of each member via Traits.h
   using MemberTypes = fatal::transform<Members, ExtractStructFields<Derived>>;
+
+  // type list of members with SkipThriftCow enabled
+  using MemberTypesWithSkipThriftCow =
+      fatal::filter<MemberTypes, struct_helpers::HasSkipThriftCow>;
+
+  template <typename Name>
+  using HasSkipThriftCow = typename fatal::
+      contains<MemberTypesWithSkipThriftCow, Name, fatal::get_type::name>;
+
+  template <typename Name>
+  constexpr bool isSkipThriftCowEnabled() const {
+    if constexpr (HasSkipThriftCow<Name>::value) {
+      return true;
+    } else {
+      return false;
+    }
+  }
 
   // This is our ultimate storage type, which is effectively a
   // std::tuple with syntactic sugar for accessing based on
@@ -394,6 +419,11 @@ class ThriftStructNode
   using BaseT::BaseT;
 
   ThriftStructNode() : BaseT(ThriftType{}) {}
+
+  template <typename Name>
+  constexpr bool isSkipThriftCowEnabled() const {
+    return this->getFields()->template isSkipThriftCowEnabled<Name>();
+  }
 
   TType toThrift() const {
     return this->getFields()->toThrift();
