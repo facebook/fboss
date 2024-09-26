@@ -33,12 +33,45 @@ void DsfUpdateValidator::validate(
     const std::shared_ptr<SwitchState>& newState) {
   StateDelta delta(oldState, newState);
 
+  auto checkInRange = [&newState](const SystemPort& sysPort) {
+    const auto dsfNode = newState->getDsfNodes()->getNodeIf(
+        static_cast<int64_t>(sysPort.getSwitchId()));
+    if (!dsfNode) {
+      throw FbossError(
+          "Switch ID: ",
+          sysPort.getSwitchId(),
+          " not found for : ",
+          sysPort.getName());
+    }
+    auto sysPortRange = dsfNode->getSystemPortRange();
+    if (!sysPortRange.has_value()) {
+      throw FbossError(
+          "No system port range for node ",
+          dsfNode->getName(),
+          " corresponding to ",
+          sysPort.getName());
+    }
+    if (sysPort.getID() < *sysPortRange->minimum() ||
+        sysPort.getID() > *sysPortRange->maximum()) {
+      throw FbossError(
+          "Sys port : ",
+          sysPort.getName(),
+          " belonging to: ",
+          sysPort.getSwitchId(),
+          " out of range: [",
+          *sysPortRange->minimum(),
+          ", ",
+          *sysPortRange->maximum(),
+          "]");
+    }
+  };
   DeltaFunctions::forEachChanged(
       delta.getRemoteSystemPortsDelta(),
       [&](const auto& oldSysPort, const auto& newSysPort) {
         if (oldSysPort->getSwitchId() != newSysPort->getSwitchId()) {
           throw FbossError("SwitchID change not permitted for sys ports");
         }
+        checkInRange(*newSysPort);
       },
       [&](const auto& addedSysPort) {
         if (localSwitchIds_.find(addedSysPort->getSwitchId()) !=
@@ -49,6 +82,7 @@ void DsfUpdateValidator::validate(
               " with local switchId: ",
               addedSysPort->getSwitchId());
         }
+        checkInRange(*addedSysPort);
       },
       [&](const auto& /*removedSysPort*/) {});
   DeltaFunctions::forEachChanged(
