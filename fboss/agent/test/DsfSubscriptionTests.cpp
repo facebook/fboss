@@ -174,14 +174,14 @@ class DsfSubscriptionTest : public ::testing::Test {
     return state;
   }
   std::shared_ptr<SwitchState> makeSwitchState(
-      std::shared_ptr<SystemPortMap>& sysPorts,
-      std::shared_ptr<InterfaceMap>& intfs) const {
+      const std::shared_ptr<SystemPortMap>& sysPorts,
+      const std::shared_ptr<InterfaceMap>& intfs) const {
     auto state = std::make_shared<SwitchState>();
     auto mSysPorts = std::make_shared<MultiSwitchSystemPortMap>();
     auto mIntfs = std::make_shared<MultiSwitchInterfaceMap>();
     CHECK(!sysPorts->empty());
-    HwSwitchMatcher matcher(
-        std::unordered_set<SwitchID>{sysPorts->begin()->second->getSwitchId()});
+    HwSwitchMatcher matcher(std::unordered_set<SwitchID>{
+        sysPorts->cbegin()->second->getSwitchId()});
     mSysPorts->addMapNode(sysPorts, matcher);
     mIntfs->addMapNode(intfs, matcher);
     state->resetSystemPorts(mSysPorts);
@@ -722,10 +722,37 @@ TYPED_TEST(DsfSubscriptionTest, FirstUpdateFailsValidation) {
     ASSERT_EVENTUALLY_TRUE(counters.checkExist(dsfUpdateFailedCounter));
     ASSERT_EVENTUALLY_GE(counters.value(dsfUpdateFailedCounter), 1);
   });
-  // Session should never goto this state now, since connection establish
+  // Session should never get established now, since connection establish
   // should itself fail
   EXPECT_NE(this->dsfSessionState(), DsfSessionState::WAIT_FOR_REMOTE);
   EXPECT_NE(this->dsfSessionState(), DsfSessionState::REMOTE_DISCONNECTED);
   EXPECT_NE(this->dsfSessionState(), DsfSessionState::ESTABLISHED);
 }
+
+TYPED_TEST(DsfSubscriptionTest, BogusIntfAdd) {
+  CounterCache counters(this->sw_);
+  auto localSwitchId = *this->sw_->getSwitchInfoTable().getSwitchIDs().begin();
+  auto sysPorts = this->makeSysPorts();
+  auto rifs = makeRifs(sysPorts.get());
+  auto state = this->makeSwitchState(sysPorts, rifs);
+  this->createPublisher();
+  this->publishSwitchState(state);
+  this->subscription_ = this->createSubscription();
+  WITH_RETRIES({
+    ASSERT_EVENTUALLY_EQ(
+        this->dsfSessionState(), DsfSessionState::WAIT_FOR_REMOTE);
+  });
+  auto newSysPorts = this->makeSysPorts(2);
+  auto newRifs = makeRifs(newSysPorts.get());
+  auto newState = this->makeSwitchState(sysPorts, newRifs);
+  this->publishSwitchState(newState);
+  auto dsfUpdateFailedCounter =
+      SwitchStats::kCounterPrefix + "dsf_update_failed.sum.60";
+  WITH_RETRIES({
+    counters.update();
+    ASSERT_EVENTUALLY_TRUE(counters.checkExist(dsfUpdateFailedCounter));
+    ASSERT_EVENTUALLY_GE(counters.value(dsfUpdateFailedCounter), 1);
+  });
+}
+
 } // namespace facebook::fboss
