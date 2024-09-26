@@ -298,31 +298,30 @@ TEST_F(LinkTest, opticsVdmPerformanceMonitoring) {
     allTestPorts.push_back(portPair.second);
   }
 
-  // 2. Wait till we have data for 20 seconds
-  // The qsfp_service cache refresh may not happen at exactly in 20 seconds so
-  // we read the TransceiverInfo time and then wait till we get 20 second later
-  // data
-  std::vector<int32_t> transceiverIds;
+  std::unordered_set<int32_t> transceiverIdSet;
   for (const auto& port : allTestPorts) {
     auto tcvrId = platform()->getPlatformPort(port)->getTransceiverID().value();
-    transceiverIds.push_back(tcvrId);
+    transceiverIdSet.insert(tcvrId);
   }
+  std::vector<int32_t> transceiverIds(
+      transceiverIdSet.begin(), transceiverIdSet.end());
   auto transceiverInfos = utility::waitForTransceiverInfo(transceiverIds);
-  auto startTime =
-      transceiverInfos.begin()->second.tcvrStats()->timeCollected().value();
 
   transceiverInfos = utility::waitForTransceiverInfo(transceiverIds);
 
-  WITH_RETRIES_N_TIMED(10, std::chrono::seconds(5), {
+  std::time_t startTime = std::time(nullptr);
+  // 2. Wait for a VDM interval to begin starting now and a transceiverInfo
+  // update to finish after the start of VDM interval. This skips any noise from
+  // the initial interval during the time of link up
+  WITH_RETRIES_N_TIMED(20, std::chrono::seconds(5), {
     transceiverInfos = utility::waitForTransceiverInfo(transceiverIds);
-    auto endTime =
-        transceiverInfos.begin()->second.tcvrStats()->timeCollected().value();
-    ASSERT_EVENTUALLY_GT(endTime, startTime + 20);
+    auto vdmStat =
+        transceiverInfos.begin()->second.tcvrStats()->vdmPerfMonitorStats();
+    ASSERT_EVENTUALLY_TRUE(vdmStat.has_value());
+    ASSERT_EVENTUALLY_GT(vdmStat->get_intervalStartTime(), startTime);
+    ASSERT_EVENTUALLY_GT(
+        vdmStat->get_statsCollectionTme(), vdmStat->get_intervalStartTime());
   });
-
-  // 3. Get the TransceiverInfo from qsfp_service
-  XLOG(DBG2)
-      << "opticsVdmPerformanceMonitoring: Got TransceiverInfo 20sec data from qsfp_service";
 
   // 4. validate the VDM Performance Monitoring parameters within the threshold
   validateVdm(transceiverInfos, transceiverIds);

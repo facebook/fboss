@@ -18015,14 +18015,17 @@ class ChildThriftPath<::facebook::fboss::VdmPerfMonitorStats, ::facebook::fboss:
   >;
   using Children = fatal::tuple<std::pair<strings::mediaPortVdmStats, ChildThriftPath<::std::map<::std::string, ::facebook::fboss::VdmPerfMonitorPortSideStats>, ::facebook::fboss::fsdb::FsdbOperStatsRoot, Self>>,
 std::pair<strings::hostPortVdmStats, ChildThriftPath<::std::map<::std::string, ::facebook::fboss::VdmPerfMonitorPortSideStats>, ::facebook::fboss::fsdb::FsdbOperStatsRoot, Self>>,
-std::pair<strings::statsCollectionTme, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>>;
+std::pair<strings::statsCollectionTme, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
+std::pair<strings::intervalStartTime, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>>;
   using ChildrenById = fatal::tuple<   std::pair<std::integral_constant<apache::thrift::field_id_t, 1>, ChildThriftPath<::std::map<::std::string, ::facebook::fboss::VdmPerfMonitorPortSideStats>, ::facebook::fboss::fsdb::FsdbOperStatsRoot, Self>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 2>, ChildThriftPath<::std::map<::std::string, ::facebook::fboss::VdmPerfMonitorPortSideStats>, ::facebook::fboss::fsdb::FsdbOperStatsRoot, Self>>,
-   std::pair<std::integral_constant<apache::thrift::field_id_t, 3>, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>>;
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 3>, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 4>, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>>;
   template <typename Name>
   using NameToId = fatal::tuple<std::pair<strings::mediaPortVdmStats, std::integral_constant<apache::thrift::field_id_t, 1>>,
 std::pair<strings::hostPortVdmStats, std::integral_constant<apache::thrift::field_id_t, 2>>,
-std::pair<strings::statsCollectionTme, std::integral_constant<apache::thrift::field_id_t, 3>>>::template type_of<Name>;
+std::pair<strings::statsCollectionTme, std::integral_constant<apache::thrift::field_id_t, 3>>,
+std::pair<strings::intervalStartTime, std::integral_constant<apache::thrift::field_id_t, 4>>>::template type_of<Name>;
 
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
@@ -18031,12 +18034,14 @@ std::pair<strings::statsCollectionTme, std::integral_constant<apache::thrift::fi
     STRUCT_CHILD_GETTERS(mediaPortVdmStats, 1);
     STRUCT_CHILD_GETTERS(hostPortVdmStats, 2);
     STRUCT_CHILD_GETTERS(statsCollectionTme, 3);
+    STRUCT_CHILD_GETTERS(intervalStartTime, 4);
 
   template <apache::thrift::field_id_t __id>
   auto operator()(const std::integral_constant<apache::thrift::field_id_t, __id>&) {
     if constexpr (__id == 1) { return mediaPortVdmStats(); }
     else if constexpr (__id == 2) { return hostPortVdmStats(); }
     else if constexpr (__id == 3) { return statsCollectionTme(); }
+    else if constexpr (__id == 4) { return intervalStartTime(); }
   }
 
   template <typename T, T... Values>

@@ -391,6 +391,7 @@ struct VdmPerfMonitorStats {
   // Map of SW Port to Host side VDM Performance Monitor diags stats
   2: map<string, VdmPerfMonitorPortSideStats> hostPortVdmStats;
   3: i64 statsCollectionTme;
+  4: i64 intervalStartTime;
 }
 
 struct VdmPerfMonitorPortSideStatsForOds {

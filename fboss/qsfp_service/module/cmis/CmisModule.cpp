@@ -1815,6 +1815,7 @@ std::optional<VdmPerfMonitorStats> CmisModule::getVdmPerfMonitorStats() {
   }
 
   vdmStats.statsCollectionTme() = WallClockUtil::NowInSecFast();
+  vdmStats.intervalStartTime() = vdmIntervalStartTime_;
 
   if (!fillVdmPerfMonitorSnr(vdmStats)) {
     QSFP_LOG(ERR, this) << "Failed to get VDM Perf Monitor SNR";
@@ -3388,11 +3389,13 @@ void CmisModule::latchAndReadVdmDataLocked() {
 
   // Write Byte 2F.144, bit 7 to 0 (clear latch)
   latchRequest &= ~FieldMasks::VDM_LATCH_REQUEST_MASK;
-  // Release the latch to resume VDM data collection
+  // Release the latch to resume VDM data collection. This automatically starts
+  // a new VDM interval in HW
   writeCmisField(CmisField::VDM_LATCH_REQUEST, &latchRequest);
   // Wait tNack time
   /* sleep override */
   usleep(kUsecVdmLatchHold);
+  vdmIntervalStartTime_ = std::time(nullptr);
 }
 
 /*

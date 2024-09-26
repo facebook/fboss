@@ -614,6 +614,8 @@ class CmisModule : public QsfpModule {
 
   void clearTransceiverPrbsStats(const std::string& portName, phy::Side side)
       override;
+
+  std::time_t vdmIntervalStartTime_{0};
 };
 
 } // namespace fboss
