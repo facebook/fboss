@@ -484,7 +484,7 @@ class ThriftStructNode
   }
 
   template <typename Name>
-  auto& modify() {
+  auto& modify(bool construct = true) {
     DCHECK(!this->isPublished());
 
     auto& child = this->template ref<Name>();
@@ -495,7 +495,7 @@ class ThriftStructNode
           child.swap(clonedChild);
         }
       }
-    } else {
+    } else if (construct) {
       this->template constructMember<Name>();
     }
     return this->template ref<Name>();
@@ -509,10 +509,10 @@ class ThriftStructNode
     return child;
   }
 
-  virtual void modify(const std::string& token) {
+  virtual void modify(const std::string& token, bool construct = true) {
     visitMember<typename Fields::Members>(token, [&](auto tag) {
       using name = typename decltype(fatal::tag_type(tag))::name;
-      this->modify<name>();
+      this->modify<name>(construct);
     });
   }
 
@@ -567,7 +567,7 @@ class ThriftStructNode
       if (begin == end) {
         node.remove(tok);
       } else {
-        node.modify(tok);
+        node.modify(tok, false);
       }
     });
 

@@ -138,13 +138,13 @@ class ThriftPrimitiveNode : public thrift_cow::Serializable {
         "Cannot remove a child from a primitive node: ", token));
   }
 
-  void modify(const std::string&) {
+  void modify(const std::string&, bool = true) {
     if constexpr (immutable) {
       throwImmutableException();
     }
   }
 
-  void modify(const std::string&) const {
+  void modify(const std::string&, bool = true) const {
     throwImmutableException();
   }
 

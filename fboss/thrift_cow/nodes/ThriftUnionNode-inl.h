@@ -500,7 +500,7 @@ class ThriftUnionNode
   }
 
   template <typename Name>
-  void modify() {
+  void modify(bool construct = true) {
     DCHECK(!this->isPublished());
 
     if (this->template isSet<Name>()) {
@@ -511,16 +511,16 @@ class ThriftUnionNode
           child.swap(clonedChild);
         }
       }
-    } else {
+    } else if (construct) {
       // default construct target member
       this->template set<Name>();
     }
   }
 
-  virtual void modify(const std::string& token) {
+  virtual void modify(const std::string& token, bool construct = true) {
     visitMember<typename Fields::MemberTypes>(token, [&](auto tag) {
       using name = typename decltype(fatal::tag_type(tag))::name;
-      this->template modify<name>();
+      this->template modify<name>(construct);
     });
   }
 
