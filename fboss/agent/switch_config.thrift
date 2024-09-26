@@ -1688,6 +1688,7 @@ struct SwitchSettings {
 struct BufferPoolConfig {
   1: i32 sharedBytes;
   2: optional i32 headroomBytes;
+  3: optional i32 reservedBytes;
 }
 
 // max PG/port supported

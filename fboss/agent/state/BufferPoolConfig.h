@@ -47,6 +47,13 @@ class BufferPoolCfg
     return std::nullopt;
   }
 
+  std::optional<int> getReservedBytes() const {
+    if (auto reservedBytes = safe_cref<switch_state_tags::reservedBytes>()) {
+      return reservedBytes->toThrift();
+    }
+    return std::nullopt;
+  }
+
   const std::string& getID() const {
     return cref<switch_state_tags::id>()->cref();
   }
@@ -57,6 +64,14 @@ class BufferPoolCfg
 
   void setSharedBytes(int sharedBytes) {
     set<switch_state_tags::sharedBytes>(sharedBytes);
+  }
+
+  void setReservedBytes(std::optional<int> reservedBytes) {
+    if (reservedBytes) {
+      set<switch_state_tags::reservedBytes>(*reservedBytes);
+    } else {
+      ref<switch_state_tags::reservedBytes>().reset();
+    }
   }
 
  private:

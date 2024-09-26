@@ -23,6 +23,7 @@ struct BufferPoolFields {
   1: string id;
   2: optional i32 headroomBytes;
   3: i32 sharedBytes;
+  4: optional i32 reservedBytes;
 }
 
 struct PortPgFields {
