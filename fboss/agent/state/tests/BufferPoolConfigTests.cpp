@@ -146,7 +146,7 @@ TEST(BufferPoolConfigTest, applyConfig) {
       std::string bufferPoolName = folly::to<std::string>("bufferPool_", index);
       EXPECT_EQ(bufferPool->getID(), bufferPoolName);
       EXPECT_EQ(bufferPool->getSharedBytes(), kSharedBytes);
-      EXPECT_EQ(bufferPool->getHeadroomBytes(), kHeadroomBytes);
+      EXPECT_EQ(*bufferPool->getHeadroomBytes(), kHeadroomBytes);
       index++;
     }
   }

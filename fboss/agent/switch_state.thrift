@@ -21,7 +21,7 @@ struct VlanInfo {
 
 struct BufferPoolFields {
   1: string id;
-  2: i32 headroomBytes;
+  2: optional i32 headroomBytes;
   3: i32 sharedBytes;
 }
 

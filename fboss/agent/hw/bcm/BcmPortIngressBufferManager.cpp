@@ -237,7 +237,7 @@ void BcmPortIngressBufferManager::resetIngressPoolsToDefault() {
   writeCosqTypeToHwIfNeeded(
       kDefaultPgId,
       bcmCosqControlIngressHeadroomPoolLimitBytes,
-      bufferPoolCfg.getHeadroomBytes(),
+      *bufferPoolCfg.getHeadroomBytes(),
       "bcmCosqControlIngressHeadroomPoolLimitBytes");
 }
 

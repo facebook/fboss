@@ -1682,10 +1682,12 @@ struct SwitchSettings {
   18: optional bool needL2EntryForNeighbor;
 }
 
-// Global buffer pool shared by {port, pgs}
+// Global buffer pool
+//  (1) shared by {port, pgs} at ingress
+//  (2) shared by {port, queues} at egress
 struct BufferPoolConfig {
   1: i32 sharedBytes;
-  2: i32 headroomBytes;
+  2: optional i32 headroomBytes;
 }
 
 // max PG/port supported

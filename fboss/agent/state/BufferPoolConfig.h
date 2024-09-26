@@ -40,8 +40,11 @@ class BufferPoolCfg
     return get<switch_state_tags::sharedBytes>()->cref();
   }
 
-  int getHeadroomBytes() const {
-    return get<switch_state_tags::headroomBytes>()->cref();
+  std::optional<int> getHeadroomBytes() const {
+    if (auto headroomBytes = safe_cref<switch_state_tags::headroomBytes>()) {
+      return headroomBytes->toThrift();
+    }
+    return std::nullopt;
   }
 
   const std::string& getID() const {
