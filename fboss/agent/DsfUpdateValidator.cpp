@@ -51,5 +51,17 @@ void DsfUpdateValidator::validate(
         }
       },
       [&](const auto& /*removedSysPort*/) {});
+  DeltaFunctions::forEachChanged(
+      delta.getRemoteIntfsDelta(),
+      [&](const auto& /*oldIntf*/, const auto& /*newIntf*/) {},
+      [&](const auto& addedIntf) {
+        const auto& remoteSysPorts = newState->getRemoteSystemPorts();
+        if (!remoteSysPorts->getNodeIf(SystemPortID(addedIntf->getID()))) {
+          throw FbossError(
+              "Adding a interface, without a corresponding sys port:",
+              addedIntf->getID());
+        }
+      },
+      [&](const auto& /*removedSysPort*/) {});
 }
 } // namespace facebook::fboss
