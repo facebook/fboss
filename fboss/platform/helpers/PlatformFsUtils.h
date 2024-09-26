@@ -40,14 +40,14 @@ class PlatformFsUtils {
 
   // Write string to file. Returns true if successful. File and directories will
   // be created (recursively) if they don't exist. By default, if file already
-  // exists, it will be overwritten.
+  // exists, it will be overwritten. File flags can be specified via `flags`
+  // parameter.
   //
-  // If atomic is true, the file will be written atomically, i.e. there will
-  // never be partial writes. On returning true, the file write is guaranteed
-  // durable - up to whatever guarantees the filesystem provides for fsync +
-  // close.
+  // If `atomic` is true, the file will be written atomically, i.e. there will
+  // never be partial writes. However, the write is NOT guaranteed durable, i.e.
+  // the write may not be persisted after this function returns `true`.
   //
-  // Note: `flags` are ignored when atomic = true.
+  // Note: `flags` are ignored when `atomic` = true.
   virtual bool writeStringToFile(
       const std::string& content,
       const std::filesystem::path& path,

@@ -28,27 +28,6 @@ fs::path concat(const fs::path& p1, const fs::path& p2) {
   return result.lexically_normal();
 }
 
-// Open, fsync, and close. Returns 0 on success, errno on failure. Uses folly
-// for retry on EINTR.
-int sync(const fs::path& path) {
-  // Use same flags as folly::readFile
-  int fd = folly::openNoInt(path.c_str(), O_RDONLY | O_CLOEXEC);
-  if (fd == -1) {
-    return errno;
-  }
-  int rc = folly::fsyncNoInt(fd);
-  if (rc == -1) {
-    folly::closeNoInt(fd);
-    return errno;
-  }
-  rc = folly::closeNoInt(fd);
-  fd = -1;
-  if (rc == -1) {
-    return errno;
-  }
-  return 0;
-}
-
 } // namespace
 
 namespace facebook::fboss::platform {
@@ -97,11 +76,6 @@ bool PlatformFsUtils::writeStringToFile(
     options.setSyncType(folly::SyncType::WITH_SYNC);
     errorCode = folly::writeFileAtomicNoThrow(
         folly::StringPiece(prefixedPath.c_str()), content, options);
-    // On successful write, fsync the directory to ensure durable write, which
-    // writeFileAtomic explicitly does not guarantee.
-    if (errorCode == 0) {
-      errorCode = sync(prefixedPath.parent_path());
-    }
   } else {
     bool written = folly::writeFile(content, prefixedPath.c_str(), flags);
     // errno will be set to 2 when the file did not exist but was successfully
