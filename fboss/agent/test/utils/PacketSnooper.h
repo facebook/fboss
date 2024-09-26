@@ -8,8 +8,10 @@
 
 #include <folly/Optional.h>
 #include <folly/io/IOBuf.h>
+#include <gtest/gtest.h>
 #include <condition_variable>
 #include <optional>
+#include <queue>
 
 namespace facebook::fboss {
 class RxPacket;
@@ -26,7 +28,9 @@ class PacketSnooper : public PacketObserverIf {
 
   void packetReceived(const RxPacket* pkt) noexcept override;
 
-  virtual ~PacketSnooper() override = default;
+  virtual ~PacketSnooper() override {
+    EXPECT_TRUE(receivedFrames_.empty());
+  }
   // Wait until timeout (seconds), If timeout = 0, wait forever.
   std::optional<utility::EthFrame> waitForPacket(uint32_t timeout_s = 0);
 
@@ -35,7 +39,7 @@ class PacketSnooper : public PacketObserverIf {
   std::optional<utility::EthFrame> expectedFrame_;
   std::mutex mtx_;
   std::condition_variable cv_;
-  std::unique_ptr<utility::EthFrame> receivedFrame_;
+  std::queue<std::unique_ptr<utility::EthFrame>> receivedFrames_;
 };
 
 class SwSwitchPacketSnooper : public PacketSnooper {

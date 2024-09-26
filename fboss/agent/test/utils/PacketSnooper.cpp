@@ -23,15 +23,17 @@ void PacketSnooper::packetReceived(const RxPacket* pkt) noexcept {
                << " got: " << *frame;
     return;
   }
+
   std::lock_guard<std::mutex> lock(mtx_);
-  receivedFrame_ = std::move(frame);
+  receivedFrames_.push(std::move(frame));
   cv_.notify_all();
 }
 
 std::optional<utility::EthFrame> PacketSnooper::waitForPacket(
     uint32_t timeout_s) {
   std::unique_lock<std::mutex> lock(mtx_);
-  while (!receivedFrame_) {
+
+  while (receivedFrames_.empty()) {
     if (timeout_s > 0) {
       if (cv_.wait_for(lock, std::chrono::seconds(timeout_s)) ==
           std::cv_status::timeout) {
@@ -41,8 +43,8 @@ std::optional<utility::EthFrame> PacketSnooper::waitForPacket(
       cv_.wait(lock);
     }
   }
-  utility::EthFrame ret = *receivedFrame_;
-  receivedFrame_.reset();
+  utility::EthFrame ret = *receivedFrames_.front();
+  receivedFrames_.pop();
   return ret;
 }
 
