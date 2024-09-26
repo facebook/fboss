@@ -84,7 +84,6 @@ DsfSubscription::DsfSubscription(
           reconnectEvb,
           subscriberEvb)),
       validator_(std::make_unique<DsfUpdateValidator>(
-          sw,
           sw->getSwitchInfoTable().getSwitchIDs(),
           remoteNodeSwitchIds)),
       localNodeName_(std::move(localNodeName)),
@@ -363,8 +362,13 @@ void DsfSubscription::updateWithRollbackProtection(
     const std::map<SwitchID, std::shared_ptr<InterfaceMap>>& switchId2Intfs) {
   auto updateDsfStateFn = [this, switchId2SystemPorts, switchId2Intfs](
                               const std::shared_ptr<SwitchState>& in) {
-    auto out = validator_->validateAndGetUpdate(
-        in, switchId2SystemPorts, switchId2Intfs);
+    auto out = DsfStateUpdaterUtil::getUpdatedState(
+        in,
+        sw_->getScopeResolver(),
+        sw_->getRib(),
+        switchId2SystemPorts,
+        switchId2Intfs);
+    validator_->validate(in, out);
 
     if (FLAGS_dsf_subscriber_cache_updated_state) {
       cachedState_ = out;
