@@ -19,6 +19,7 @@ struct OpticsSidePerformanceMonitoringThresholds {
   OpticsThresholdRange pam4eSnr;
   OpticsThresholdRange pam4Ltp;
   OpticsThresholdRange preFecBer;
+  OpticsThresholdRange fecTailMax;
 };
 
 struct OpticsPerformanceMonitoringThresholds {
@@ -33,63 +34,71 @@ struct OpticsPerformanceMonitoringThresholds kCmisOpticsThresholds = {
             .pam4eSnr = {19.0, 49.0},
             .pam4Ltp = {33.0, 99.0},
             .preFecBer = {0, 2.4e-5},
+            .fecTailMax = {0, 14.0},
         },
     .hostThresholds =
         {
             .pam4eSnr = {19.0, 49.0},
             .pam4Ltp = {33.0, 99.0},
             .preFecBer = {0, 2.4e-5},
+            .fecTailMax = {0, 14.0},
         },
 };
 
 void validateVdm(
     const std::map<int, TransceiverInfo>& transceiverInfos,
     const std::vector<int>& tcvrsToTest) {
+  auto validatePerfMon =
+      [](const std::string& portName,
+         phy::Side side,
+         const VdmPerfMonitorPortSideStats& vdmPerfMon,
+         OpticsSidePerformanceMonitoringThresholds thresholds) {
+        auto& preFecBer = vdmPerfMon.get_datapathBER();
+        // Fec tail is not implemented on all modules that support VDM. FEC tail
+        // is available starting CMIS 5.0 (2x400G-[D|F]R4)
+        auto fecTailMax = vdmPerfMon.fecTailMax().value_or({});
+        auto& laneSnr = vdmPerfMon.get_laneSNR();
+        auto& lanePam4Ltp = vdmPerfMon.get_lanePam4LTP();
+
+        XLOG(DBG2) << "Validating VDM performance monitoring for " << portName
+                   << ", side: " << apache::thrift::util::enumNameSafe(side);
+        EXPECT_LE(preFecBer.get_max(), thresholds.preFecBer.maxThreshold)
+            << folly::sformat(
+                   "PreFecBer Max for {} is {}", portName, preFecBer.get_max());
+        EXPECT_LE(fecTailMax, thresholds.fecTailMax.maxThreshold)
+            << folly::sformat("FecTail Max for {} is {}", portName, fecTailMax);
+        for (auto& [lane, snr] : laneSnr) {
+          EXPECT_GE(snr, thresholds.pam4eSnr.minThreshold) << folly::sformat(
+              "SNR for lane {} on {} is {}", lane, portName, snr);
+        }
+        for (auto& [lane, ltp] : lanePam4Ltp) {
+          EXPECT_GE(ltp, thresholds.pam4Ltp.minThreshold) << folly::sformat(
+              "LTP for lane {} on {} is {}", lane, portName, ltp);
+        }
+      };
+
   for (const auto& tcvrId : tcvrsToTest) {
     auto txInfoItr = transceiverInfos.find(tcvrId);
     ASSERT_TRUE(txInfoItr != transceiverInfos.end());
-    ASSERT_TRUE(txInfoItr->second.tcvrStats()->vdmDiagsStats().has_value());
-    XLOG(DBG2) << "Tcvr Id " << tcvrId
-               << " Checking for Line/Host BER, Line SNR";
+    auto vdmPerfMonitorStats =
+        txInfoItr->second.tcvrStats()->vdmPerfMonitorStats();
+    ASSERT_TRUE(vdmPerfMonitorStats.has_value());
+    auto& mediaStats = vdmPerfMonitorStats->get_mediaPortVdmStats();
+    auto& hostStats = vdmPerfMonitorStats->get_hostPortVdmStats();
 
-    auto preFecBerMediaMax = txInfoItr->second.tcvrStats()
-                                 ->vdmDiagsStats()
-                                 .value()
-                                 .preFecBerMediaMax()
-                                 .value();
-    EXPECT_LE(
-        preFecBerMediaMax,
-        kCmisOpticsThresholds.mediaThresholds.preFecBer.maxThreshold);
-
-    auto preFecBerHostMax = txInfoItr->second.tcvrStats()
-                                ->vdmDiagsStats()
-                                .value()
-                                .preFecBerHostMax()
-                                .value();
-    EXPECT_LE(
-        preFecBerHostMax,
-        kCmisOpticsThresholds.hostThresholds.preFecBer.maxThreshold);
-
-    auto& snrMediaPerChannel = txInfoItr->second.tcvrStats()
-                                   ->vdmDiagsStats()
-                                   .value()
-                                   .eSnrMediaChannel()
-                                   .value();
-    for (auto& [channel, channelSnr] : snrMediaPerChannel) {
-      EXPECT_GE(
-          channelSnr,
-          kCmisOpticsThresholds.mediaThresholds.pam4eSnr.minThreshold);
-    }
-    auto& ltpMediaPerChannel = txInfoItr->second.tcvrStats()
-                                   ->vdmDiagsStats()
-                                   .value()
-                                   .pam4LtpMediaChannel()
-                                   .value();
-    for (auto& [channel, channelLtp] : ltpMediaPerChannel) {
-      EXPECT_GE(
-          channelLtp,
-          kCmisOpticsThresholds.mediaThresholds.pam4Ltp.minThreshold);
-    }
+    auto validateSideStats =
+        [&, validatePerfMon](
+            const std::map<std::string, VdmPerfMonitorPortSideStats>& sideStat,
+            phy::Side side,
+            OpticsSidePerformanceMonitoringThresholds threshold) {
+          for (auto& [portName, vdmPerfMon] : sideStat) {
+            validatePerfMon(portName, side, vdmPerfMon, threshold);
+          }
+        };
+    validateSideStats(
+        mediaStats, phy::Side::LINE, kCmisOpticsThresholds.mediaThresholds);
+    validateSideStats(
+        hostStats, phy::Side::SYSTEM, kCmisOpticsThresholds.hostThresholds);
   }
 }
 
