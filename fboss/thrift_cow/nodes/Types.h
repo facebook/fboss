@@ -97,6 +97,9 @@ struct FieldsType {};
 template <typename TType, typename Derived>
 struct ThriftStructFields;
 
+template <typename TypeClass, typename TType>
+struct ThriftHybridNode;
+
 template <typename TType, typename>
 class ThriftStructNode;
 
@@ -132,6 +135,7 @@ class ThriftPrimitiveNode;
 // clang-format off
 #include "fboss/thrift_cow/nodes/ThriftPrimitiveNode-inl.h"
 #include "fboss/thrift_cow/nodes/Traits.h"
+#include "fboss/thrift_cow/nodes/ThriftHybridNode-inl.h"
 #include "fboss/thrift_cow/nodes/ThriftStructNode-inl.h"
 #include "fboss/thrift_cow/nodes/ThriftListNode-inl.h"
 #include "fboss/thrift_cow/nodes/ThriftMapNode-inl.h"
