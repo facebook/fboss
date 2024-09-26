@@ -546,6 +546,21 @@
         },
         {
           "test_name_regex": "HwTransceiverConfigValidationTest.validateAllActiveTransceivers$"
+        },
+        {
+          "test_name_regex": "HwStateMachineTest.CheckAgentConfigChanged$"
+        },
+        {
+          "test_name_regex": "HwStateMachineTest.CheckPortsProgrammed$"
+        },
+        {
+          "test_name_regex": "HwStateMachineTest.CheckTransceiverRemediated$"
+        },
+        {
+          "test_name_regex": "HwTest_PROFILE_200G_4_PAM4_RS544X2N_OPTICAL.TestProfile$"
+        },
+        {
+          "test_name_regex": "HwTest_PROFILE_400G_4_PAM4_RS544X2N_OPTICAL.TestProfile$"
         }
     ],
     "morgan800cc/physdk-credo-0.8.4/credo-0.8.4": [
@@ -560,6 +575,21 @@
         },
         {
           "test_name_regex": "HwTransceiverConfigValidationTest.validateAllActiveTransceivers$"
+        },
+        {
+          "test_name_regex": "HwStateMachineTest.CheckAgentConfigChanged$"
+        },
+        {
+          "test_name_regex": "HwStateMachineTest.CheckPortsProgrammed$"
+        },
+        {
+          "test_name_regex": "HwStateMachineTest.CheckTransceiverRemediated$"
+        },
+        {
+          "test_name_regex": "HwTest_PROFILE_200G_4_PAM4_RS544X2N_OPTICAL.TestProfile$"
+        },
+        {
+          "test_name_regex": "HwTest_PROFILE_400G_4_PAM4_RS544X2N_OPTICAL.TestProfile$"
         }
     ],
     "tahan800bc/physdk-credo-0.7.2/credo-0.7.2": [
