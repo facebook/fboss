@@ -387,7 +387,8 @@ void DsfSubscription::updateDsfState(
           updateDsfStateFn);
     } catch (const std::exception& e) {
       XLOG(DBG2) << kDsfCtrlLogPrefix
-                 << " update failed for : " << remoteEndpointStr();
+                 << " update failed for : " << remoteEndpointStr()
+                 << " Exception: " << e.what();
       sw_->stats()->dsfUpdateFailed();
       // Tear down subscription so no more updates come for this
       // subscription
