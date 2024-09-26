@@ -706,4 +706,26 @@ TYPED_TEST(DsfSubscriptionTest, DataUpdateForLocalSwitchId) {
   });
 }
 
+TYPED_TEST(DsfSubscriptionTest, FirstUpdateFailsValidation) {
+  CounterCache counters(this->sw_);
+  auto localSwitchId = *this->sw_->getSwitchInfoTable().getSwitchIDs().begin();
+  auto sysPorts = makeSysPortsForSwitchIds(std::set<SwitchID>({localSwitchId}));
+  auto rifs = makeRifs(sysPorts.get());
+  auto state = this->makeSwitchState(sysPorts, rifs);
+  this->createPublisher();
+  this->publishSwitchState(state);
+  this->subscription_ = this->createSubscription();
+  auto dsfUpdateFailedCounter =
+      SwitchStats::kCounterPrefix + "dsf_update_failed.sum.60";
+  WITH_RETRIES({
+    counters.update();
+    ASSERT_EVENTUALLY_TRUE(counters.checkExist(dsfUpdateFailedCounter));
+    ASSERT_EVENTUALLY_GE(counters.value(dsfUpdateFailedCounter), 1);
+  });
+  // Session should never goto this state now, since connection establish
+  // should itself fail
+  EXPECT_NE(this->dsfSessionState(), DsfSessionState::WAIT_FOR_REMOTE);
+  EXPECT_NE(this->dsfSessionState(), DsfSessionState::REMOTE_DISCONNECTED);
+  EXPECT_NE(this->dsfSessionState(), DsfSessionState::ESTABLISHED);
+}
 } // namespace facebook::fboss
