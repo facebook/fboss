@@ -7796,6 +7796,10 @@
         
       ]
     },
+    "sdkVersion": {
+      "asicSdk": "sdk",
+      "saiSdk": "sai"
+    },
     "dsfNodes": {
       "0": {
           "name": "intfNode0",

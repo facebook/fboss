@@ -37009,6 +37009,10 @@
         
       ]
     },
+    "sdkVersion": {
+      "asicSdk": "sdk",
+      "saiSdk": "sai"
+    },
     "dsfNodes": {
       
     },
