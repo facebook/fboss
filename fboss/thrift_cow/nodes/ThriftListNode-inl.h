@@ -350,11 +350,11 @@ class ThriftListNode : public NodeBaseT<
     return this->writableFields()->remove(index);
   }
 
-  void modify(std::string token) {
-    modify(folly::to<std::size_t>(token));
+  void modify(std::string token, bool construct = true) {
+    modify(folly::to<std::size_t>(token), construct);
   }
 
-  virtual void modify(std::size_t index) {
+  virtual void modify(std::size_t index, bool construct = true) {
     DCHECK(!this->isPublished());
 
     if (index < this->size()) {
@@ -365,7 +365,7 @@ class ThriftListNode : public NodeBaseT<
           child.swap(clonedChild);
         }
       }
-    } else {
+    } else if (construct) {
       // create unpublished default constructed child if missing
       while (this->size() <= index) {
         emplace_back();

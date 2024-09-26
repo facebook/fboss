@@ -21,6 +21,31 @@ struct TestPort {
   prbs::PrbsPolynomial polynomial;
 };
 
+class AllPrbsStats {
+  using StatsMap = std::map<std::string, phy::PrbsStats>;
+
+ public:
+  StatsMap& getStatsForComponent(phy::PortComponent component) {
+    switch (component) {
+      case phy::PortComponent::ASIC:
+        return asicStats_;
+      case phy::PortComponent::TRANSCEIVER_SYSTEM:
+        return tcvrSystemStats_;
+      case phy::PortComponent::TRANSCEIVER_LINE:
+        return tcvrLineStats_;
+      default:
+        throw FbossError(
+            "Unsupported component ",
+            apache::thrift::util::enumNameSafe(component));
+    }
+  }
+
+ private:
+  StatsMap tcvrSystemStats_;
+  StatsMap tcvrLineStats_;
+  StatsMap asicStats_;
+};
+
 class PrbsTest : public LinkTest {
  public:
   bool checkValidMedia(PortID port, MediaInterfaceCode media) {
@@ -85,6 +110,7 @@ class PrbsTest : public LinkTest {
     disabledState.generatorEnabled() = false;
     disabledState.checkerEnabled() = false;
 
+    std::time_t testStartTime = std::time(nullptr);
     // 1. Enable PRBS on all Ports
     XLOG(DBG2) << "Enabling PRBS Generator on all ports";
     enabledState.generatorEnabled() = true;
@@ -122,7 +148,7 @@ class PrbsTest : public LinkTest {
     // 4. Do an initial check of PRBS stats to account for lock loss
     // at startup.
     XLOG(DBG2) << "Initially checking PRBS stats";
-    checkPrbsStatsOnAllInterfaces(true);
+    checkPrbsStatsOnAllInterfaces(true, testStartTime);
 
     // 5. Clear the PRBS stats to clear the instability at PRBS startup
     XLOG(DBG2) << "Clearing PRBS stats before monitoring stats";
@@ -130,15 +156,17 @@ class PrbsTest : public LinkTest {
 
     // 6. Let PRBS run for 10 seconds for regular link test or 10 mins for a
     // stress test so that we can check the BER later
-    if (FLAGS_link_stress_test) {
-      /* sleep override */ std::this_thread::sleep_for(600s);
-    } else {
-      /* sleep override */ std::this_thread::sleep_for(10s);
-    }
+    auto timeForTest = FLAGS_link_stress_test ? 600s : 10s;
 
     // 7. Check PRBS stats, expect no loss of lock
     XLOG(DBG2) << "Verifying PRBS stats";
-    checkPrbsStatsOnAllInterfaces();
+    auto startTime = std::time(nullptr);
+    auto timeNow = std::time(nullptr);
+    while (timeNow < timeForTest.count() + startTime) {
+      /* sleep override */ std::this_thread::sleep_for(10s);
+      checkPrbsStatsOnAllInterfaces(false, testStartTime);
+      timeNow = std::time(nullptr);
+    }
 
     // 8. Clear PRBS stats
     auto timestampBeforeClear = std::time(nullptr);
@@ -270,7 +298,7 @@ class PrbsTest : public LinkTest {
   template <class Client>
   bool checkPrbsStateOnInterface(
       Client* client,
-      std::string interfaceName,
+      std::string& interfaceName,
       phy::PortComponent component,
       prbs::InterfacePrbsState& expectedState) {
     try {
@@ -305,59 +333,112 @@ class PrbsTest : public LinkTest {
     }
   }
 
-  void checkPrbsStatsOnAllInterfaces(bool initial = false) {
+  // Waits for a PRBS stat update. If the update is received within 1min, it
+  // returns successfully with the stats updated in the arguments passed to it
+  void waitForPrbsStatsUpdate(AllPrbsStats& allPrbsStats) {
+    auto timeReference = std::time(nullptr);
+    int updateCount = 0;
+    WITH_RETRIES_N_TIMED(12, std::chrono::milliseconds(5000), {
+      allPrbsStats = AllPrbsStats();
+      // Fetch PRBS stats from all components
+      for (const auto& testPort : portsToTest_) {
+        if ((testPort.component == phy::PortComponent::TRANSCEIVER_LINE ||
+             testPort.component == phy::PortComponent::TRANSCEIVER_SYSTEM) &&
+            allPrbsStats.getStatsForComponent(testPort.component).empty()) {
+          auto qsfpServiceClient = utils::createQsfpServiceClient();
+          qsfpServiceClient->sync_getAllInterfacePrbsStats(
+              allPrbsStats.getStatsForComponent(testPort.component),
+              testPort.component);
+        } else if (testPort.component == phy::PortComponent::ASIC) {
+          auto agentClient = utils::createWedgeAgentClient();
+          // Agent currently doesn't have an API to get all prbs stats. So do it
+          // one port at a time
+          agentClient->sync_getInterfacePrbsStats(
+              allPrbsStats.getStatsForComponent(
+                  testPort.component)[testPort.portName],
+              testPort.portName,
+              testPort.component);
+        }
+      }
+
+      bool updated = true;
+      // Verify if the stats got updated since the time reference
+      for (const auto& testPort : portsToTest_) {
+        auto stats = allPrbsStats.getStatsForComponent(testPort.component);
+        if (stats.find(testPort.portName) == stats.end()) {
+          updated = false;
+          break;
+        }
+        auto prbsStats = stats[testPort.portName];
+        if (prbsStats.get_timeCollected() <= timeReference) {
+          updated = false;
+          break;
+        }
+      }
+
+      if (updated) {
+        updateCount++;
+      }
+      // Wait for two updates so that we can also verify the timeSinceLastLock
+      // is updated correctly
+      ASSERT_EVENTUALLY_TRUE(updateCount >= 2);
+    });
+  }
+
+  void checkPrbsStatsOnAllInterfaces(bool initial, time_t testStartTime) {
+    AllPrbsStats allPrbsStats;
+    // First wait till we have a prbs stats update
+    waitForPrbsStatsUpdate(allPrbsStats);
+    // Now check each individual prbs stat update and ensure all the stats are
+    // valid
     for (const auto& testPort : portsToTest_) {
       auto interfaceName = testPort.portName;
       auto component = testPort.component;
-      if (component == phy::PortComponent::ASIC) {
-        auto agentClient = utils::createWedgeAgentClient();
-        checkPrbsStatsOnInterface<apache::thrift::Client<FbossCtrl>>(
-            agentClient.get(), interfaceName, component, initial);
-      } else if (
-          component == phy::PortComponent::GB_LINE ||
-          component == phy::PortComponent::GB_SYSTEM) {
-        // TODO: Not supported yet
-        return;
-      } else {
-        auto qsfpServiceClient = utils::createQsfpServiceClient();
-        checkPrbsStatsOnInterface<apache::thrift::Client<QsfpService>>(
-            qsfpServiceClient.get(), interfaceName, component, initial);
-      }
+      auto stats = allPrbsStats.getStatsForComponent(component);
+      ASSERT_TRUE(stats.find(interfaceName) != stats.end());
+      checkPrbsStatsOnInterface(
+          interfaceName,
+          component,
+          stats[interfaceName],
+          initial,
+          testStartTime);
     }
   }
 
-  template <class Client>
   void checkPrbsStatsOnInterface(
-      Client* client,
       std::string& interfaceName,
       phy::PortComponent component,
-      bool initial = false) {
-    WITH_RETRIES_N_TIMED(12, std::chrono::milliseconds(5000), {
-      phy::PrbsStats stats;
-      client->sync_getInterfacePrbsStats(stats, interfaceName, component);
-      ASSERT_EVENTUALLY_FALSE(stats.get_laneStats().empty());
-      for (const auto& laneStat : stats.get_laneStats()) {
-        EXPECT_EVENTUALLY_TRUE(laneStat.get_locked());
-        if (!initial) {
-          EXPECT_EVENTUALLY_FALSE(laneStat.get_numLossOfLock());
-        }
-        EXPECT_EVENTUALLY_TRUE(
-            laneStat.get_ber() >= 0 && laneStat.get_ber() < 1);
-        EXPECT_EVENTUALLY_TRUE(
-            laneStat.get_maxBer() >= 0 && laneStat.get_maxBer() < 1);
-        EXPECT_EVENTUALLY_TRUE(laneStat.get_ber() <= laneStat.get_maxBer());
-        EXPECT_EVENTUALLY_TRUE(laneStat.get_timeSinceLastLocked());
-        XLOG(DBG2) << folly::sformat(
-            "Interface {:s}, lane: {:d}, locked: {:d}, numLossOfLock: {:d}, ber: {:e}, maxBer: {:e}, timeSinceLastLock: {:d}",
-            interfaceName,
-            laneStat.get_laneId(),
-            laneStat.get_locked(),
-            laneStat.get_numLossOfLock(),
-            laneStat.get_ber(),
-            laneStat.get_maxBer(),
-            laneStat.get_timeSinceLastLocked());
+      phy::PrbsStats& stats,
+      bool initial,
+      time_t testStartTime) {
+    ASSERT_FALSE(stats.get_laneStats().empty());
+    for (const auto& laneStat : stats.get_laneStats()) {
+      XLOG(DBG2) << folly::sformat(
+          "Interface {:s}, component {:s}, lane: {:d}, locked: {:d}, numLossOfLock: {:d}, ber: {:e}, maxBer: {:e}, timeSinceLastLock: {:d}",
+          interfaceName,
+          apache::thrift::util::enumNameSafe(component),
+          laneStat.get_laneId(),
+          laneStat.get_locked(),
+          laneStat.get_numLossOfLock(),
+          laneStat.get_ber(),
+          laneStat.get_maxBer(),
+          laneStat.get_timeSinceLastLocked());
+      EXPECT_TRUE(laneStat.get_locked());
+      auto currentTime = std::time(nullptr);
+      EXPECT_LE(
+          laneStat.get_timeSinceLastLocked(), currentTime - testStartTime);
+      if (!initial) {
+        // These stats may not be valid when initial is true which is when we
+        // just enable PRBS
+        EXPECT_EQ(laneStat.get_numLossOfLock(), 0);
+        auto berThreshold = FLAGS_link_stress_test ? 5e-7 : 1;
+        EXPECT_TRUE(
+            laneStat.get_ber() >= 0 && laneStat.get_ber() < berThreshold);
+        EXPECT_TRUE(
+            laneStat.get_maxBer() >= 0 && laneStat.get_maxBer() < berThreshold);
+        EXPECT_TRUE(laneStat.get_ber() <= laneStat.get_maxBer());
       }
-    });
+    }
   }
 
   void checkPrbsStatsAfterClearOnAllInterfaces(
@@ -411,11 +492,15 @@ class PrbsTest : public LinkTest {
       phy::PortComponent component,
       bool prbsEnabled) {
     try {
+      XLOG(DBG2) << "Checking PRBS stats after clear on " << interfaceName
+                 << ", component: "
+                 << apache::thrift::util::enumNameSafe(component);
       phy::PrbsStats stats;
       client->sync_getInterfacePrbsStats(stats, interfaceName, component);
       EXPECT_FALSE(stats.get_laneStats().empty());
       for (const auto& laneStat : stats.get_laneStats()) {
-        EXPECT_EQ(laneStat.get_locked(), prbsEnabled);
+        // Don't check lock status because clear would have cleared it too and
+        // we may not have had an update of stats yet
         EXPECT_EQ(laneStat.get_numLossOfLock(), 0);
         EXPECT_LT(laneStat.get_timeSinceLastClear(), timestampBeforeClear);
       }
@@ -640,5 +725,7 @@ PRBS_TRANSCEIVER_LINE_TRANSCEIVER_LINE_TEST(FR4_400G, PRBS31Q);
 PRBS_PHY_TRANSCEIVER_SYSTEM_TEST(FR4_200G, PRBS31, ASIC, PRBS31Q);
 
 PRBS_PHY_TRANSCEIVER_SYSTEM_TEST(FR4_400G, PRBS31, ASIC, PRBS31Q);
+
+PRBS_PHY_TRANSCEIVER_SYSTEM_TEST(FR1_100G, PRBS31, ASIC, PRBS31Q);
 
 PRBS_ASIC_ASIC_TEST(PRBS31);

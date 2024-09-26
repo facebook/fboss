@@ -1815,6 +1815,7 @@ std::optional<VdmPerfMonitorStats> CmisModule::getVdmPerfMonitorStats() {
   }
 
   vdmStats.statsCollectionTme() = WallClockUtil::NowInSecFast();
+  vdmStats.intervalStartTime() = vdmIntervalStartTime_;
 
   if (!fillVdmPerfMonitorSnr(vdmStats)) {
     QSFP_LOG(ERR, this) << "Failed to get VDM Perf Monitor SNR";
@@ -3388,11 +3389,13 @@ void CmisModule::latchAndReadVdmDataLocked() {
 
   // Write Byte 2F.144, bit 7 to 0 (clear latch)
   latchRequest &= ~FieldMasks::VDM_LATCH_REQUEST_MASK;
-  // Release the latch to resume VDM data collection
+  // Release the latch to resume VDM data collection. This automatically starts
+  // a new VDM interval in HW
   writeCmisField(CmisField::VDM_LATCH_REQUEST, &latchRequest);
   // Wait tNack time
   /* sleep override */
   usleep(kUsecVdmLatchHold);
+  vdmIntervalStartTime_ = std::time(nullptr);
 }
 
 /*
@@ -3412,6 +3415,37 @@ void CmisModule::triggerVdmStatsCapture() {
 
 bool CmisModule::getModuleStateChanged() {
   return getSettingsValue(CmisField::MODULE_FLAG, MODULE_STATE_CHANGED_MASK);
+}
+
+void CmisModule::clearTransceiverPrbsStats(
+    const std::string& portName,
+    phy::Side side) {
+  auto clearTransceiverPrbsStatsLambda = [side, portName, this]() {
+    lock_guard<std::mutex> g(qsfpModuleMutex_);
+    // Read modify write
+    // Write bit 5 in 13h.177 to 1 and then 0 to reset counters
+    uint8_t val;
+    readCmisField(CmisField::BER_CTRL, &val);
+    val |= BER_CTRL_RESET_STAT_MASK;
+    writeCmisField(CmisField::BER_CTRL, &val);
+    val &= ~BER_CTRL_RESET_STAT_MASK;
+    writeCmisField(CmisField::BER_CTRL, &val);
+  };
+  auto i2cEvb = qsfpImpl_->getI2cEventBase();
+  if (!i2cEvb) {
+    // Certain platforms cannot execute multiple I2C transactions in parallel
+    // and therefore don't have an I2C evb thread
+    clearTransceiverPrbsStatsLambda();
+  } else {
+    via(i2cEvb)
+        .thenValue([clearTransceiverPrbsStatsLambda](auto&&) mutable {
+          clearTransceiverPrbsStatsLambda();
+        })
+        .get();
+  }
+
+  // Call the base class implementation to clear the common stats
+  QsfpModule::clearTransceiverPrbsStats(portName, side);
 }
 
 /*
@@ -3636,7 +3670,7 @@ prbs::InterfacePrbsState CmisModule::getPortPrbsStateLocked(
     // 1 byte which gives the polynomial configured on lane 0
     cmisRegister = cmisPatternRegister[firstLane / 2];
     readCmisField(cmisRegister, &patternByte);
-    pattern = patternByte >> (((firstLane % 2) * 4) & 0xF);
+    pattern = (patternByte >> (((firstLane % 2) * 4))) & 0xF;
     auto polynomialItr = prbsPatternMap.right.find(pattern);
     if (polynomialItr != prbsPatternMap.right.end()) {
       state.polynomial() = prbs::PrbsPolynomial(polynomialItr->second);
@@ -3745,7 +3779,7 @@ phy::PrbsStats CmisModule::getPortPrbsStatsSideLocked(
       uint16_t snrRawVal = (msb << 8) | lsb;
       laneStats.snr() = CmisFieldInfo::getSnr(snrRawVal);
     }
-
+    laneStats.timeCollected() = std::time(nullptr);
     prbsStats.laneStats()->push_back(laneStats);
   }
   prbsStats.timeCollected() = std::time(nullptr);

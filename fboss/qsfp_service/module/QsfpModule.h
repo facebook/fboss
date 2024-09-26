@@ -218,7 +218,8 @@ class QsfpModule : public Transceiver {
     return (*diagsCapability).value().get_prbsLineCapabilities();
   }
 
-  void clearTransceiverPrbsStats(phy::Side side) override;
+  void clearTransceiverPrbsStats(const std::string& portName, phy::Side side)
+      override;
 
   SnapshotManager getTransceiverSnapshots() const {
     // return a copy to avoid needing a lock in the caller

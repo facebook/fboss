@@ -36,7 +36,8 @@ folly::dynamic createTestDynamic() {
       "mapOfStringToStruct", dynamic::object())("setOfEnum", dynamic::array())(
       "setOfI32", dynamic::array())("setOfString", dynamic::array())(
       "unsigned_int64", 123)("mapA", dynamic::object())(
-      "mapB", dynamic::object());
+      "mapB", dynamic::object())("cowMap", dynamic::object())(
+      "hybridMap", dynamic::object());
 }
 
 TestStruct createTestStruct(folly::dynamic testDyn) {
@@ -62,6 +63,8 @@ TEST(RecurseVisitorTests, TestFullRecurse) {
 
   std::map<std::vector<std::string>, folly::dynamic> expected = {
       {{}, testDyn},
+      {{"cowMap"}, dynamic::object()},
+      {{"hybridMap"}, dynamic::object()},
       {{"inlineBool"}, testDyn["inlineBool"]},
       {{"inlineInt"}, testDyn["inlineInt"]},
       {{"inlineString"}, testDyn["inlineString"]},

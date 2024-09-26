@@ -72,6 +72,12 @@ void publishAllNodes(CowStorage<Root>& storage) {
   storage.publish();
 }
 
+OperDeltaUnit createEmptyDeltaUnit(std::vector<std::string> path) {
+  OperDeltaUnit unit;
+  unit.path()->raw() = std::move(path);
+  return unit;
+}
+
 } // namespace
 
 TEST(CowStorageTests, GetThrift) {
@@ -681,4 +687,40 @@ TEST(SubscribableStorageTests, PatchInvalidDeltaPath) {
   unit.path()->raw() = {"inlineStruct", "invalid", "path"};
   delta.changes() = {unit};
   EXPECT_EQ(storage.patch(delta), StorageError::INVALID_PATH);
+}
+
+TEST(CowStorageTests, PatchEmptyDeltaNonexistentPath) {
+  using namespace facebook::fboss::fsdb;
+
+  thriftpath::RootThriftPath<TestStruct> root;
+
+  auto testStructA = createTestStruct();
+  auto storage = CowStorage<TestStruct>(testStructA);
+
+  EXPECT_EQ(storage.get(root.mapOfStructs())->size(), 0);
+  EXPECT_EQ(storage.get(root.listofStructs())->size(), 0);
+
+  std::vector<OperDeltaUnit> units = {
+      // patch invalid map entry
+      createEmptyDeltaUnit(root.mapOfStructs()["a"].m()["some"].tokens()),
+      createEmptyDeltaUnit(root.mapOfStructs()["b"].l()[1].tokens()),
+      createEmptyDeltaUnit(root.mapOfStructs()["b"].s()[1].tokens()),
+      createEmptyDeltaUnit(root.mapOfStructs()["c"].u().integral().tokens()),
+      createEmptyDeltaUnit(root.mapOfStructs()["d"].o().tokens()),
+      // patch invalid list entry
+      createEmptyDeltaUnit(root.listofStructs()[0].m()["some"].tokens()),
+      createEmptyDeltaUnit(root.listofStructs()[1].l()[1].tokens()),
+      createEmptyDeltaUnit(root.listofStructs()[2].s()[1].tokens()),
+      createEmptyDeltaUnit(root.listofStructs()[3].u().integral().tokens()),
+      createEmptyDeltaUnit(root.listofStructs()[4].o().tokens()),
+  };
+  for (const auto& unit : units) {
+    OperDelta delta;
+    delta.changes() = {unit};
+
+    EXPECT_EQ(storage.patch(delta), StorageError::INVALID_PATH);
+    // None of the patches should creat the intermediate nodes
+    EXPECT_EQ(storage.get(root.mapOfStructs())->size(), 0);
+    EXPECT_EQ(storage.get(root.listofStructs())->size(), 0);
+  }
 }

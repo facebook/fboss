@@ -135,6 +135,37 @@ struct ConvertToImmutableNodeTraits {
 template <typename Derived, typename Name>
 struct ResolveMemberType : std::false_type {};
 
+// fatal respsents true and false as
+// "constexpr" char sequence of "1" and "0", respectively
+using fatal_true = fatal::sequence<char, '1'>;
+
+// helper struct to read Thrift annotation allow_skip_thrift_cow
+template <typename T, typename T2 = void>
+struct read_annotation_allow_skip_thrift_cow {
+  static constexpr bool value = false;
+};
+
+// need a little template specialization magic since annotation values are void
+// when nothing is set. without this we can't try to pull out
+// annotation allow_skip_thrift_cow on structs that don't have annotatiosn
+template <>
+struct read_annotation_allow_skip_thrift_cow<void> {
+  static constexpr bool value = false;
+};
+
+FATAL_S(allow_skip_thrift_cow_annotation, "allow_skip_thrift_cow");
+
+template <typename Annotations>
+struct read_annotation_allow_skip_thrift_cow<
+    Annotations,
+    typename std::enable_if_t<std::is_same_v<
+        typename Annotations::keys::allow_skip_thrift_cow,
+        allow_skip_thrift_cow_annotation>>> {
+  static constexpr bool value = std::is_same<
+      typename Annotations::values::allow_skip_thrift_cow,
+      fatal_true>::value;
+};
+
 template <typename Derived, typename Member>
 struct StructMemberTraits {
   using member = Member;
@@ -142,14 +173,27 @@ struct StructMemberTraits {
   using name = typename Member::name;
   using ttype = typename Member::type;
   using tc = typename Member::type_class;
+
+  // read member annotations
+  using member_annotations = typename Member::annotations;
+  static constexpr bool allowSkipThriftCow =
+      read_annotation_allow_skip_thrift_cow<member_annotations>::value;
+
   // need to resolve here
-  using default_type = typename ConvertToNodeTraits<tc, ttype>::type;
+  using default_type = std::conditional_t<
+      allowSkipThriftCow,
+      typename std::shared_ptr<ThriftHybridNode<tc, ttype>>,
+      typename ConvertToNodeTraits<tc, ttype>::type>;
+  using isChild = std::conditional_t<
+      read_annotation_allow_skip_thrift_cow<member_annotations>::value,
+      std::false_type,
+      typename ConvertToNodeTraits<tc, ttype>::isChild>;
+
   // if the member type is overriden, use the overriden type.
   using type = std::conditional_t<
       ResolveMemberType<Derived, name>::value,
       std::shared_ptr<typename ResolveMemberType<Derived, name>::type>,
       default_type>;
-  using isChild = typename ConvertToNodeTraits<tc, ttype>::isChild;
 };
 
 template <typename Derived>

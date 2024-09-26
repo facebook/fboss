@@ -84,7 +84,6 @@ DsfSubscription::DsfSubscription(
           reconnectEvb,
           subscriberEvb)),
       validator_(std::make_unique<DsfUpdateValidator>(
-          sw,
           sw->getSwitchInfoTable().getSwitchIDs(),
           remoteNodeSwitchIds)),
       localNodeName_(std::move(localNodeName)),
@@ -361,21 +360,6 @@ void DsfSubscription::updateWithRollbackProtection(
     const std::map<SwitchID, std::shared_ptr<SystemPortMap>>&
         switchId2SystemPorts,
     const std::map<SwitchID, std::shared_ptr<InterfaceMap>>& switchId2Intfs) {
-  auto hasNoLocalSwitchId = [this](const auto& switchId2Objects) {
-    for (const auto& [switchId, _] : switchId2Objects) {
-      if (this->isLocal(switchId)) {
-        throw FbossError(
-            "Got updates for a local switch ID, from: ",
-            localNodeName_,
-            " id: ",
-            switchId);
-      }
-    }
-  };
-
-  hasNoLocalSwitchId(switchId2SystemPorts);
-  hasNoLocalSwitchId(switchId2Intfs);
-
   auto updateDsfStateFn = [this, switchId2SystemPorts, switchId2Intfs](
                               const std::shared_ptr<SwitchState>& in) {
     auto out = DsfStateUpdaterUtil::getUpdatedState(
@@ -384,6 +368,7 @@ void DsfSubscription::updateWithRollbackProtection(
         sw_->getRib(),
         switchId2SystemPorts,
         switchId2Intfs);
+    validator_->validate(in, out);
 
     if (FLAGS_dsf_subscriber_cache_updated_state) {
       cachedState_ = out;
@@ -406,7 +391,8 @@ void DsfSubscription::updateDsfState(
           updateDsfStateFn);
     } catch (const std::exception& e) {
       XLOG(DBG2) << kDsfCtrlLogPrefix
-                 << " update failed for : " << remoteEndpointStr();
+                 << " update failed for : " << remoteEndpointStr()
+                 << " Exception: " << e.what();
       sw_->stats()->dsfUpdateFailed();
       // Tear down subscription so no more updates come for this
       // subscription

@@ -13264,6 +13264,12 @@
         "etherType": 2054
       },
       {
+        "name": "cpuPolicing-high-lacp",
+        "actionType": 1,
+        "dstMac": "01:80:c2:00:00:02",
+        "etherType": 34825
+      },
+      {
         "name": "cpuPolicing-mid-lldp-dstMac0E",
         "actionType": 1,
         "dstMac": "01:80:c2:00:00:0e",
@@ -13468,6 +13474,18 @@
           },
           {
             "matcher": "cpuPolicing-high-arp-reply",
+            "action": {
+              "sendToQueue": {
+                "queueId": 7
+              },
+              "toCpuAction": 0,
+              "setTc": {
+                "tcValue": 7
+              }
+            }
+          },
+          {
+            "matcher": "cpuPolicing-high-lacp",
             "action": {
               "sendToQueue": {
                 "queueId": 7

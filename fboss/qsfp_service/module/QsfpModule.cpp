@@ -842,23 +842,29 @@ void QsfpModule::refreshLocked() {
   }
 }
 
-void QsfpModule::clearTransceiverPrbsStats(phy::Side side) {
+void QsfpModule::clearTransceiverPrbsStats(
+    const std::string& portName,
+    phy::Side side) {
+  QSFP_LOG(INFO, this) << " Clearing prbs stats for port " << portName << " "
+                       << ((side == phy::Side::LINE) ? "Line" : "Host");
   auto systemPrbs = systemPrbsStats_.wlock();
   auto linePrbs = linePrbsStats_.wlock();
+  auto tcvrLanes = getTcvrLanesForPort(portName, side);
 
-  auto clearLaneStats = [this](std::vector<phy::PrbsLaneStats>& laneStats) {
-    for (auto& laneStat : laneStats) {
-      laneStat.ber() = 0;
-      laneStat.maxBer() = 0;
-      laneStat.snr().reset();
-      laneStat.maxSnr().reset();
-      laneStat.numLossOfLock() = 0;
-      laneStat.timeSinceLastClear() = 0;
+  auto clearLaneStats =
+      [this, &tcvrLanes](std::vector<phy::PrbsLaneStats>& laneStats) {
+        for (auto& laneStat : laneStats) {
+          auto laneId = *laneStat.laneId();
+          if (tcvrLanes.find(laneId) == tcvrLanes.end()) {
+            continue;
+          }
+          laneStat = phy::PrbsLaneStats();
+          laneStat.laneId() = laneId;
 
-      QSFP_LOG(INFO, this) << " Lane " << *laneStat.laneId()
-                           << " ber and maxBer cleared";
-    }
-  };
+          QSFP_LOG(INFO, this)
+              << " Lane " << *laneStat.laneId() << " ber and maxBer cleared";
+        }
+      };
   if (side == phy::Side::SYSTEM) {
     clearLaneStats(*systemPrbs->laneStats());
   } else {

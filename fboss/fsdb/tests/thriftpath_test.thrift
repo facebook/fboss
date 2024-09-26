@@ -33,6 +33,14 @@ union UnionSimple {
   3: string str;
 }
 
+struct OtherStruct {
+  1: map<string, i32> m;
+  2: list<i32> l;
+  3: set<i32> s;
+  4: UnionSimple u;
+  5: optional i32 o;
+}
+
 struct TestStruct {
   1: bool tx = false;
   2: bool rx = false;
@@ -52,4 +60,6 @@ struct TestStruct {
   15: set<i32> setOfI32;
   16: map<string, TestStructSimple> stringToStruct = {};
   17: ListTypedef listTypedef = [];
+  18: map<string, OtherStruct> mapOfStructs;
+  19: list<OtherStruct> listofStructs;
 } (thriftpath.root)

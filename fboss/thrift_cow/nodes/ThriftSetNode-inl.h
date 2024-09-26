@@ -369,19 +369,19 @@ class ThriftSetNode : public NodeBaseT<
     return this->writableFields()->remove(value);
   }
 
-  void modify(const std::string& token) {
+  void modify(const std::string& token, bool construct = true) {
     if (auto value =
             tryParseKey<ValueTType, typename Fields::ValueTypeClass>(token)) {
-      modifyTyped(value.value());
+      modifyTyped(value.value(), construct);
       return;
     }
 
     throw std::runtime_error(folly::to<std::string>("Invalid key: ", token));
   }
 
-  virtual void modifyTyped(const ValueTType& value) {
+  virtual void modifyTyped(const ValueTType& value, bool construct = true) {
     DCHECK(!this->isPublished());
-    if (auto it = this->find(value); it == this->end()) {
+    if (construct && this->find(value) == this->end()) {
       this->emplace(value);
     }
   }

@@ -2553,6 +2553,10 @@ phy::PrbsStats TransceiverManager::getPortPrbsStats(
 void TransceiverManager::clearPortPrbsStats(
     PortID portId,
     phy::PortComponent component) {
+  auto portName = getPortNameByPortId(portId);
+  if (!portName.has_value()) {
+    throw FbossError("Can't find a portName for portId ", portId);
+  }
   phy::Side side = prbsComponentToPhySide(component);
   if (component == phy::PortComponent::TRANSCEIVER_SYSTEM ||
       component == phy::PortComponent::TRANSCEIVER_LINE) {
@@ -2560,7 +2564,7 @@ void TransceiverManager::clearPortPrbsStats(
     if (auto tcvrID = getTransceiverID(portId)) {
       if (auto it = lockedTransceivers->find(*tcvrID);
           it != lockedTransceivers->end()) {
-        it->second->clearTransceiverPrbsStats(side);
+        it->second->clearTransceiverPrbsStats(*portName, side);
       } else {
         throw FbossError("Can't find transceiver ", *tcvrID);
       }
@@ -2658,9 +2662,17 @@ void TransceiverManager::getAllInterfacePrbsStates(
   const auto& platformPorts = platformMapping_->getPlatformPorts();
   for (const auto& platformPort : platformPorts) {
     auto portName = platformPort.second.mapping()->name_ref();
-    prbs::InterfacePrbsState prbsState;
-    getInterfacePrbsState(prbsState, *portName, component);
-    prbsStates[*portName] = prbsState;
+    try {
+      prbs::InterfacePrbsState prbsState;
+      getInterfacePrbsState(prbsState, *portName, component);
+      prbsStates[*portName] = prbsState;
+    } catch (const std::exception& ex) {
+      // If PRBS is not enabled on this port, return
+      // a default stats / State.
+      XLOG(DBG2) << "Failed to get prbs state for port " << *portName
+                 << " with error: " << ex.what();
+      prbsStates[*portName] = prbs::InterfacePrbsState();
+    }
   }
 }
 
@@ -2679,8 +2691,16 @@ void TransceiverManager::getAllInterfacePrbsStats(
   const auto& platformPorts = platformMapping_->getPlatformPorts();
   for (const auto& platformPort : platformPorts) {
     auto portName = platformPort.second.mapping()->name_ref();
-    auto prbsStatsEntry = getInterfacePrbsStats(*portName, component);
-    prbsStats[*portName] = prbsStatsEntry;
+    try {
+      auto prbsStatsEntry = getInterfacePrbsStats(*portName, component);
+      prbsStats[*portName] = prbsStatsEntry;
+    } catch (const std::exception& ex) {
+      // If PRBS is not enabled on this port, return
+      // a default stats / State.
+      XLOG(DBG2) << "Failed to get prbs stats for port " << *portName
+                 << " with error: " << ex.what();
+      prbsStats[*portName] = phy::PrbsStats();
+    }
   }
 }
 

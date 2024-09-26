@@ -187,6 +187,8 @@ class AgentDirectoryUtil {
 
   std::string agentEnsembleConfigDir() const;
 
+  std::string getTestHwAgentConfigFile(int switchIndex) const;
+
  private:
   const std::string volatileStateDir_;
   const std::string persistentStateDir_;

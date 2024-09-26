@@ -32,6 +32,7 @@ cpp_library(
 cpp_library(
     name = "nodes",
     headers = [
+        "ThriftHybridNode-inl.h",
         "ThriftListNode-inl.h",
         "ThriftMapNode-inl.h",
         "ThriftPrimitiveNode-inl.h",

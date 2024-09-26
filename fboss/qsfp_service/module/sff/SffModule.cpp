@@ -977,7 +977,9 @@ void SffModule::updateQsfpData(bool allPages) {
   }
 }
 
-void SffModule::clearTransceiverPrbsStats(phy::Side side) {
+void SffModule::clearTransceiverPrbsStats(
+    const std::string& portName,
+    phy::Side side) {
   // We are asked to clear the prbs stats, therefore reset the bit count
   // reference points so that the BER calculations get reset too.
 
@@ -1018,7 +1020,7 @@ void SffModule::clearTransceiverPrbsStats(phy::Side side) {
   }
 
   // Call the base class implementation to clear the common stats
-  QsfpModule::clearTransceiverPrbsStats(side);
+  QsfpModule::clearTransceiverPrbsStats(portName, side);
 }
 
 phy::PrbsStats SffModule::getPortPrbsStatsSideLocked(
