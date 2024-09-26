@@ -3250,10 +3250,13 @@
     ],
     "brcm/11.3.0.0_dnx_odp/11.3.0.0_dnx_odp/jericho3": [
         {
-          "test_name_regex": "SaiRouteRollbackTest.*"
+          "test_name_regex": "SaiRouteRollbackTest.rollbackAllWithTrunk"
         },
         {
-          "test_name_regex": "SaiRollbackTest.*"
+          "test_name_regex": "SaiRouteRollbackTest.rollbackManyTimesWithTrunk"
+        },
+        {
+          "test_name_regex": "SaiQPHRollbackTest.*"
         },
         {
           "test_name_regex": "HwOverflowTest.*"
@@ -3542,10 +3545,13 @@
     ],
     "brcm/12.0_ea_dnx_odp/12.0_ea_dnx_odp/jericho3": [
         {
-          "test_name_regex": "SaiRouteRollbackTest.*"
+          "test_name_regex": "SaiRouteRollbackTest.rollbackAllWithTrunk"
         },
         {
-          "test_name_regex": "SaiRollbackTest.*"
+          "test_name_regex": "SaiRouteRollbackTest.rollbackManyTimesWithTrunk"
+        },
+        {
+          "test_name_regex": "SaiQPHRollbackTest.*"
         },
         {
           "test_name_regex": "HwOverflowTest.*"
@@ -3859,7 +3865,10 @@
           "test_name_regex": "HwFlexPortTest.*"
         },
         {
-          "test_name_regex": "SaiRouteRollbackTest.*"
+          "test_name_regex": "SaiRouteRollbackTest.rollbackManyTimesWithTrunk"
+        },
+        {
+          "test_name_regex": "SaiRouteRollbackTest.rollbackAllWithTrunk"
         },
         {
           "test_name_regex": "SaiQPHRollbackTest.*"
@@ -3893,9 +3902,6 @@
         },
         {
           "test_name_regex": "HwEcmpTrunkTest.*"
-        },
-        {
-          "test_name_regex": "SaiRollbackTest.*"
         },
         {
           "test_name_regex": "HwEmptyTest.*"
