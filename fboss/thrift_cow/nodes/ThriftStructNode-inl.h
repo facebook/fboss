@@ -81,7 +81,11 @@ struct MemberConstruct {
   void operator()(fatal::tag<T>, NamedMemberTypes& storage) {
     using name = typename T::name;
     if constexpr (!isOptional<typename T::member>()) {
-      if constexpr (FieldsT::template IsChildNode<name>::value) {
+      if constexpr (FieldsT::template HasSkipThriftCow<name>::value) {
+        using UnderlyingType =
+            typename FieldsT::template TypeFor<name>::element_type;
+        storage.template get<name>() = std::make_shared<UnderlyingType>();
+      } else if constexpr (FieldsT::template IsChildNode<name>::value) {
         using ChildType =
             typename FieldsT::template TypeFor<name>::element_type;
         storage.template get<name>() = std::make_shared<ChildType>();
@@ -111,7 +115,12 @@ struct CopyToMember {
       return;
     }
 
-    if constexpr (FieldsT::template IsChildNode<name>::value) {
+    if constexpr (FieldsT::template HasSkipThriftCow<name>::value) {
+      using UnderlyingType =
+          typename FieldsT::template TypeFor<name>::element_type;
+      storage.template get<name>() =
+          std::make_shared<UnderlyingType>(typename member::getter{}(thrift));
+    } else if constexpr (FieldsT::template IsChildNode<name>::value) {
       using ChildType = typename FieldsT::template TypeFor<name>::element_type;
       storage.template get<name>() =
           std::make_shared<ChildType>(typename member::getter{}(thrift));
@@ -298,7 +307,10 @@ struct ThriftStructFields {
         std::is_convertible_v<std::decay_t<TTypeFor>, ThriftTypeFor<Name>>,
         "Unexpected thrift type for set()");
 
-    if constexpr (IsChildNode<Name>::value) {
+    if constexpr (HasSkipThriftCow<Name>::value) {
+      using MemberType = typename TypeFor<Name>::element_type;
+      ref<Name>() = std::make_shared<MemberType>(std::forward<TTypeFor>(value));
+    } else if constexpr (IsChildNode<Name>::value) {
       using MemberType = typename TypeFor<Name>::element_type;
       ref<Name>() = std::make_shared<MemberType>(std::forward<TTypeFor>(value));
     } else {
@@ -341,7 +353,11 @@ struct ThriftStructFields {
 
   template <typename Name, typename... Args>
   TypeFor<Name>& constructMember(Args&&... args) {
-    if constexpr (IsChildNode<Name>::value) {
+    if constexpr (HasSkipThriftCow<Name>::value) {
+      using UnderlyingType = typename TypeFor<Name>::element_type;
+      return ref<Name>() =
+                 std::make_shared<UnderlyingType>(std::forward<Args>(args)...);
+    } else if constexpr (IsChildNode<Name>::value) {
       using ChildType = typename TypeFor<Name>::element_type;
       return ref<Name>() =
                  std::make_shared<ChildType>(std::forward<Args>(args)...);
