@@ -22,6 +22,7 @@ template <typename TypeClass, typename TType>
 struct ThriftHybridNode : public thrift_cow::Serializable {
  public:
   using ThriftType = TType;
+  using CowType = HybridNodeType;
   using Self = ThriftHybridNode<TypeClass, TType>;
   using PathIter = typename std::vector<std::string>::const_iterator;
 

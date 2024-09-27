@@ -17,6 +17,8 @@
 
 namespace facebook::fboss::thrift_cow {
 
+struct HybridNodeType;
+
 namespace pv_detail {
 using PathIter = typename std::vector<std::string>::const_iterator;
 }
@@ -173,19 +175,16 @@ struct LambdaPathVisitorOperator {
   Func f_;
 };
 
-template <
-    typename TC,
-    typename Node,
-    typename Op,
-    // only enable for Node types
-    std::enable_if_t<std::is_same_v<typename Node::CowType, NodeType>, bool> =
-        true>
+template <typename TC, typename Node, typename Op>
 ThriftTraverseResult visitNode(
     Node& node,
     PathIter begin,
     PathIter end,
     const PathVisitMode& mode,
-    Op& op) {
+    Op& op)
+    // only enable for Node types
+  requires(std::is_same_v<typename Node::CowType, NodeType>)
+{
   if (mode == PathVisitMode::FULL || begin == end) {
     try {
       op.visitTyped(node, begin, end);
@@ -213,34 +212,43 @@ template <typename ValueTypeClass>
 struct PathVisitorImpl<apache::thrift::type_class::set<ValueTypeClass>> {
   using TC = apache::thrift::type_class::set<ValueTypeClass>;
 
-  template <
-      typename Node,
-      typename Op,
-      // only enable for Node types
-      std::enable_if_t<std::is_same_v<typename Node::CowType, NodeType>, bool> =
-          true>
+  template <typename Node, typename Op>
   static inline ThriftTraverseResult visit(
       Node& node,
       pv_detail::PathIter begin,
       pv_detail::PathIter end,
       const PathVisitMode& mode,
-      Op& op) {
+      Op& op)
+      // only enable for Node types
+    requires(std::is_same_v<typename Node::CowType, NodeType>)
+  {
     return pv_detail::visitNode<TC>(node, begin, end, mode, op);
   }
 
-  template <
-      typename Fields,
-      typename Op,
-      // only enable for Fields types
-      std::enable_if_t<
-          std::is_same_v<typename Fields::CowType, FieldsType>,
-          bool> = true>
+  template <typename Node, typename Op>
+  static ThriftTraverseResult visit(
+      Node& node,
+      pv_detail::PathIter begin,
+      pv_detail::PathIter end,
+      const PathVisitMode& mode,
+      Op& op)
+      // only enable for HybridNode types
+    requires(std::is_same_v<typename Node::CowType, HybridNodeType>)
+  {
+    // TODO: implement specialization for hybrid nodes
+    return ThriftTraverseResult::VISITOR_EXCEPTION;
+  }
+
+  template <typename Fields, typename Op>
   static ThriftTraverseResult visit(
       Fields& fields,
       pv_detail::PathIter begin,
       pv_detail::PathIter end,
       const PathVisitMode& mode,
-      Op& op) {
+      Op& op)
+      // only enable for Fields types
+    requires(std::is_same_v<typename Fields::CowType, FieldsType>)
+  {
     using ValueTType = typename Fields::ValueTType;
 
     // Get value
@@ -268,34 +276,43 @@ template <typename ValueTypeClass>
 struct PathVisitorImpl<apache::thrift::type_class::list<ValueTypeClass>> {
   using TC = apache::thrift::type_class::list<ValueTypeClass>;
 
-  template <
-      typename Node,
-      typename Op,
-      // only enable for Node types
-      std::enable_if_t<std::is_same_v<typename Node::CowType, NodeType>, bool> =
-          true>
+  template <typename Node, typename Op>
   static inline ThriftTraverseResult visit(
       Node& node,
       pv_detail::PathIter begin,
       pv_detail::PathIter end,
       const PathVisitMode& mode,
-      Op& op) {
+      Op& op)
+      // only enable for Node types
+    requires(std::is_same_v<typename Node::CowType, NodeType>)
+  {
     return pv_detail::visitNode<TC>(node, begin, end, mode, op);
   }
 
-  template <
-      typename Fields,
-      typename Op,
-      // only enable for Fields types
-      std::enable_if_t<
-          std::is_same_v<typename Fields::CowType, FieldsType>,
-          bool> = true>
+  template <typename Node, typename Op>
+  static ThriftTraverseResult visit(
+      Node& node,
+      pv_detail::PathIter begin,
+      pv_detail::PathIter end,
+      const PathVisitMode& mode,
+      Op& op)
+      // only enable for HybridNode types
+    requires(std::is_same_v<typename Node::CowType, HybridNodeType>)
+  {
+    // TODO: implement specialization for hybrid nodes
+    return ThriftTraverseResult::VISITOR_EXCEPTION;
+  }
+
+  template <typename Fields, typename Op>
   static ThriftTraverseResult visit(
       Fields& fields,
       pv_detail::PathIter begin,
       pv_detail::PathIter end,
       const PathVisitMode& mode,
-      Op& op) {
+      Op& op)
+      // only enable for Fields types
+    requires(std::is_same_v<typename Fields::CowType, FieldsType>)
+  {
     // Parse and pop token. Also check for index bound
     auto index = folly::tryTo<size_t>(*begin++);
     if (index.hasError() || index.value() >= fields.size()) {
@@ -321,34 +338,43 @@ struct PathVisitorImpl<
     apache::thrift::type_class::map<KeyTypeClass, MappedTypeClass>> {
   using TC = apache::thrift::type_class::map<KeyTypeClass, MappedTypeClass>;
 
-  template <
-      typename Node,
-      typename Op,
-      // only enable for Node types
-      std::enable_if_t<std::is_same_v<typename Node::CowType, NodeType>, bool> =
-          true>
+  template <typename Node, typename Op>
   static inline ThriftTraverseResult visit(
       Node& node,
       pv_detail::PathIter begin,
       pv_detail::PathIter end,
       const PathVisitMode& mode,
-      Op& op) {
+      Op& op)
+      // only enable for Node types
+    requires(std::is_same_v<typename Node::CowType, NodeType>)
+  {
     return pv_detail::visitNode<TC>(node, begin, end, mode, op);
   }
 
-  template <
-      typename Fields,
-      typename Op,
-      // only enable for Fields types
-      std::enable_if_t<
-          std::is_same_v<typename Fields::CowType, FieldsType>,
-          bool> = true>
+  template <typename Node, typename Op>
+  static ThriftTraverseResult visit(
+      Node& node,
+      pv_detail::PathIter begin,
+      pv_detail::PathIter end,
+      const PathVisitMode& mode,
+      Op& op)
+      // only enable for HybridNode types
+    requires(std::is_same_v<typename Node::CowType, HybridNodeType>)
+  {
+    // TODO: implement specialization for hybrid nodes
+    return ThriftTraverseResult::VISITOR_EXCEPTION;
+  }
+
+  template <typename Fields, typename Op>
   static ThriftTraverseResult visit(
       Fields& fields,
       pv_detail::PathIter begin,
       pv_detail::PathIter end,
       const PathVisitMode& mode,
-      Op& op) {
+      Op& op)
+      // only enable for Fields types
+    requires(std::is_same_v<typename Fields::CowType, FieldsType>)
+  {
     using key_type = typename Fields::key_type;
 
     // Get key
@@ -381,34 +407,43 @@ template <>
 struct PathVisitorImpl<apache::thrift::type_class::variant> {
   using TC = apache::thrift::type_class::variant;
 
-  template <
-      typename Node,
-      typename Op,
-      // only enable for Node types
-      std::enable_if_t<std::is_same_v<typename Node::CowType, NodeType>, bool> =
-          true>
+  template <typename Node, typename Op>
   static inline ThriftTraverseResult visit(
       Node& node,
       pv_detail::PathIter begin,
       pv_detail::PathIter end,
       const PathVisitMode& mode,
-      Op& op) {
+      Op& op)
+      // only enable for Node types
+    requires(std::is_same_v<typename Node::CowType, NodeType>)
+  {
     return pv_detail::visitNode<TC>(node, begin, end, mode, op);
   }
 
-  template <
-      typename Fields,
-      typename Op,
-      // only enable for Fields types
-      std::enable_if_t<
-          std::is_same_v<typename Fields::CowType, FieldsType>,
-          bool> = true>
+  template <typename Node, typename Op>
+  static ThriftTraverseResult visit(
+      Node& node,
+      pv_detail::PathIter begin,
+      pv_detail::PathIter end,
+      const PathVisitMode& mode,
+      Op& op)
+      // only enable for HybridNode types
+    requires(std::is_same_v<typename Node::CowType, HybridNodeType>)
+  {
+    // TODO: implement specialization for hybrid nodes
+    return ThriftTraverseResult::VISITOR_EXCEPTION;
+  }
+
+  template <typename Fields, typename Op>
   static ThriftTraverseResult visit(
       Fields& fields,
       pv_detail::PathIter begin,
       pv_detail::PathIter end,
       const PathVisitMode& mode,
-      Op& op) {
+      Op& op)
+      // only enable for Fields types
+    requires(std::is_same_v<typename Fields::CowType, FieldsType>)
+  {
     using MemberTypes = typename Fields::MemberTypes;
 
     auto result = ThriftTraverseResult::INVALID_VARIANT_MEMBER;
@@ -449,34 +484,43 @@ template <>
 struct PathVisitorImpl<apache::thrift::type_class::structure> {
   using TC = apache::thrift::type_class::structure;
 
-  template <
-      typename Node,
-      typename Op,
-      // only enable for Node types
-      std::enable_if_t<std::is_same_v<typename Node::CowType, NodeType>, bool> =
-          true>
+  template <typename Node, typename Op>
   static inline ThriftTraverseResult visit(
       Node& node,
       pv_detail::PathIter begin,
       pv_detail::PathIter end,
       const PathVisitMode& mode,
-      Op& op) {
+      Op& op)
+      // only enable for Node types
+    requires(std::is_same_v<typename Node::CowType, NodeType>)
+  {
     return pv_detail::visitNode<TC>(node, begin, end, mode, op);
   }
 
-  template <
-      typename Fields,
-      typename Op,
-      // only enable for Fields types
-      std::enable_if_t<
-          std::is_same_v<typename Fields::CowType, FieldsType>,
-          bool> = true>
+  template <typename Node, typename Op>
+  static ThriftTraverseResult visit(
+      Node& node,
+      pv_detail::PathIter begin,
+      pv_detail::PathIter end,
+      const PathVisitMode& mode,
+      Op& op)
+      // only enable for HybridNode types
+    requires(std::is_same_v<typename Node::CowType, HybridNodeType>)
+  {
+    // TODO: implement specialization for hybrid nodes
+    return ThriftTraverseResult::VISITOR_EXCEPTION;
+  }
+
+  template <typename Fields, typename Op>
   static ThriftTraverseResult visit(
       Fields& fields,
       pv_detail::PathIter begin,
       pv_detail::PathIter end,
       const PathVisitMode& mode,
-      Op& op) {
+      Op& op)
+      // only enable for Fields types
+    requires(std::is_same_v<typename Fields::CowType, FieldsType>)
+  {
     using Members = typename Fields::Members;
 
     // Get key
@@ -565,63 +609,55 @@ inline pv_detail::LambdaPathVisitorOperator<Func> pvlambda(Func&& f) {
 
 template <typename TC>
 struct PathVisitor {
-  template <
-      typename Node,
-      typename Func,
-      // only enable for Node types
-      std::enable_if_t<std::is_same_v<typename Node::CowType, NodeType>, bool> =
-          true>
+  template <typename Node, typename Func>
   static inline ThriftTraverseResult visit(
       Node& node,
       pv_detail::PathIter begin,
       pv_detail::PathIter end,
       const PathVisitMode& mode,
-      pv_detail::LambdaPathVisitorOperator<Func>& op) {
+      pv_detail::LambdaPathVisitorOperator<Func>& op)
+      // only enable for Node types
+    requires(std::is_same_v<typename Node::CowType, NodeType>)
+  {
     return pv_detail::PathVisitorImpl<TC>::visit(node, begin, end, mode, op);
   }
 
-  template <
-      typename Node,
-      // only enable for Node types
-      std::enable_if_t<std::is_same_v<typename Node::CowType, NodeType>, bool> =
-          true>
+  template <typename Node>
   static inline ThriftTraverseResult visit(
       Node& node,
       pv_detail::PathIter begin,
       pv_detail::PathIter end,
       const PathVisitMode& mode,
-      BasePathVisitorOperator& op) {
+      BasePathVisitorOperator& op)
+      // only enable for Node types
+    requires(std::is_same_v<typename Node::CowType, NodeType>)
+  {
     return pv_detail::PathVisitorImpl<TC>::visit(node, begin, end, mode, op);
   }
 
-  template <
-      typename Fields,
-      typename Func,
-      // only enable for Fields types
-      std::enable_if_t<
-          std::is_same_v<typename Fields::CowType, FieldsType>,
-          bool> = true>
+  template <typename Fields, typename Func>
   inline static ThriftTraverseResult visit(
       Fields& fields,
       pv_detail::PathIter begin,
       pv_detail::PathIter end,
       const PathVisitMode& mode,
-      pv_detail::LambdaPathVisitorOperator<Func>& op) {
+      pv_detail::LambdaPathVisitorOperator<Func>& op)
+      // only enable for Fields types
+    requires(std::is_same_v<typename Fields::CowType, FieldsType>)
+  {
     return pv_detail::PathVisitorImpl<TC>::visit(fields, begin, end, mode, op);
   }
 
-  template <
-      typename Fields,
-      // only enable for Fields types
-      std::enable_if_t<
-          std::is_same_v<typename Fields::CowType, FieldsType>,
-          bool> = true>
+  template <typename Fields>
   inline static ThriftTraverseResult visit(
       Fields& fields,
       pv_detail::PathIter begin,
       pv_detail::PathIter end,
       const PathVisitMode& mode,
-      BasePathVisitorOperator& op) {
+      BasePathVisitorOperator& op)
+      // only enable for Fields types
+    requires(std::is_same_v<typename Fields::CowType, FieldsType>)
+  {
     return pv_detail::PathVisitorImpl<TC>::visit(fields, begin, end, mode, op);
   }
 };
