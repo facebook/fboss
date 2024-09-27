@@ -1,6 +1,7 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
 #include "fboss/agent/DsfStateUpdaterUtil.h"
+#include "fboss/agent/FbossHwUpdateError.h"
 #include "fboss/agent/TxPacket.h"
 #include "fboss/agent/hw/HwResourceStatsPublisher.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
@@ -2045,7 +2046,7 @@ class AgentVoqSwitchFullScaleDsfNodesTest : public AgentVoqSwitchTest {
     return portDescs;
   }
 
- private:
+ protected:
   void setCmdLineFlagOverrides() const override {
     AgentVoqSwitchTest::setCmdLineFlagOverrides();
     // Disable stats update to improve performance
@@ -2053,6 +2054,16 @@ class AgentVoqSwitchFullScaleDsfNodesTest : public AgentVoqSwitchTest {
     // Allow 100% ECMP resource usage
     FLAGS_ecmp_resource_percentage = 100;
     FLAGS_ecmp_width = 512;
+  }
+};
+
+class AgentVoqSwitchFullScaleDsfNodesWithFabricPortsTest
+    : public AgentVoqSwitchFullScaleDsfNodesTest {
+ private:
+  void setCmdLineFlagOverrides() const override {
+    AgentVoqSwitchFullScaleDsfNodesTest::setCmdLineFlagOverrides();
+    // Unhide fabric ports
+    FLAGS_hide_fabric_ports = false;
   }
 };
 
@@ -2300,6 +2311,41 @@ TEST_F(AgentVoqSwitchLineRateTest, creditsDeleted) {
     addRemoveNeighbor(PortDescriptor(kPort), true);
   };
   this->verifyAcrossWarmBoots(setup, verify);
+}
+
+TEST_F(
+    AgentVoqSwitchFullScaleDsfNodesWithFabricPortsTest,
+    failUpdateAtFullSysPortScale) {
+  auto setup = [this]() { setupRemoteIntfAndSysPorts(); };
+  auto verify = [this]() {
+    getSw()->getRib()->updateStateInRibThread([this]() {
+      EXPECT_THROW(
+          getSw()->updateStateWithHwFailureProtection(
+              "Add bogus intf",
+              [this](const std::shared_ptr<SwitchState>& in) {
+                auto out = in->clone();
+                auto remoteIntfs = out->getRemoteInterfaces()->modify(&out);
+                auto remoteIntf = std::make_shared<Interface>(
+                    InterfaceID(INT32_MAX),
+                    RouterID(0),
+                    std::optional<VlanID>(std::nullopt),
+                    folly::StringPiece("RemoteIntf"),
+                    folly::MacAddress("c6:ca:2b:2a:b1:b6"),
+                    9000,
+                    false,
+                    false,
+                    cfg::InterfaceType::SYSTEM_PORT);
+                remoteIntf->setScope(cfg::Scope::GLOBAL);
+                remoteIntfs->addNode(
+                    remoteIntf,
+                    HwSwitchMatcher(
+                        getSw()->getSwitchInfoTable().getL3SwitchIDs()));
+                return out;
+              }),
+          FbossHwUpdateError);
+    });
+  };
+  verifyAcrossWarmBoots(setup, verify);
 }
 
 } // namespace facebook::fboss
