@@ -72,10 +72,10 @@ struct ThriftMapFields {
 
   ThriftMapFields() {}
 
-  template <
-      typename T,
-      typename = std::enable_if_t<std::is_same<std::decay_t<T>, TType>::value>>
-  explicit ThriftMapFields(T&& thrift) {
+  template <typename T>
+  explicit ThriftMapFields(T&& thrift)
+    requires(std::is_same_v<std::decay_t<T>, TType>)
+  {
     fromThrift(std::forward<T>(thrift));
   }
 
@@ -95,10 +95,10 @@ struct ThriftMapFields {
     return thrift;
   }
 
-  template <
-      typename T,
-      typename = std::enable_if_t<std::is_same<std::decay_t<T>, TType>::value>>
-  void fromThrift(T&& thrift) {
+  template <typename T>
+  void fromThrift(T&& thrift)
+    requires(std::is_same_v<std::decay_t<T>, TType>)
+  {
     storage_.clear();
     for (const auto& [key, elem] : thrift) {
       emplace(key, elem);

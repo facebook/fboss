@@ -223,10 +223,10 @@ struct ThriftStructFields {
         struct_helpers::MemberConstruct<Self>(), storage_);
   }
 
-  template <
-      typename T,
-      typename = std::enable_if_t<std::is_same<std::decay_t<T>, TType>::value>>
-  explicit ThriftStructFields(T&& thrift) {
+  template <typename T>
+  explicit ThriftStructFields(T&& thrift)
+    requires(std::is_same_v<std::decay_t<T>, TType>)
+  {
     fromThrift(std::forward<T>(thrift));
   }
 
@@ -237,10 +237,10 @@ struct ThriftStructFields {
     return thrift;
   }
 
-  template <
-      typename T,
-      typename = std::enable_if_t<std::is_same<std::decay_t<T>, TType>::value>>
-  void fromThrift(T&& thrift) {
+  template <typename T>
+  void fromThrift(T&& thrift)
+    requires(std::is_same_v<std::decay_t<T>, TType>)
+  {
     fatal::foreach<MemberTypes>(
         struct_helpers::CopyToMember<Self>(),
         storage_,

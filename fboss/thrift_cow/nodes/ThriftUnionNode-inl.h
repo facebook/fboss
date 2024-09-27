@@ -265,10 +265,10 @@ struct ThriftUnionFields {
 
   ThriftUnionFields() {}
 
-  template <
-      typename T,
-      typename = std::enable_if_t<std::is_same<std::decay_t<T>, TType>::value>>
-  explicit ThriftUnionFields(T&& thrift) {
+  template <typename T>
+  explicit ThriftUnionFields(T&& thrift)
+    requires(std::is_same_v<std::decay_t<T>, TType>)
+  {
     fromThrift(std::forward<T>(thrift));
   }
 
@@ -279,10 +279,10 @@ struct ThriftUnionFields {
     return thrift;
   }
 
-  template <
-      typename T,
-      typename = std::enable_if_t<std::is_same<std::decay_t<T>, TType>::value>>
-  void fromThrift(T&& thrift) {
+  template <typename T>
+  void fromThrift(T&& thrift)
+    requires(std::is_same_v<std::decay_t<T>, TType>)
+  {
     fatal::foreach<MemberTypes>(
         union_helpers::CopyToMember<Self>(), storage_, std::forward<T>(thrift));
   }
