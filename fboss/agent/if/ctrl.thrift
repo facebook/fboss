@@ -373,6 +373,8 @@ struct PortInfoThrift {
   26: list<PortError> activeErrors;
   27: optional string expectedLLDPeerName;
   28: optional string expectedLLDPPeerPort;
+  29: optional i32 coreId;
+  30: optional i32 virtualDeviceId;
 }
 
 // Port queueing configuration
