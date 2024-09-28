@@ -46,6 +46,8 @@ std::map<int32_t, PortInfoThrift> createPortEntries() {
   pfcCfg.watchdog() = true;
   portEntry1.pfc() = pfcCfg;
   portEntry1.isDrained() = false;
+  portEntry1.coreId() = 1;
+  portEntry1.virtualDeviceId() = 1;
 
   PortInfoThrift portEntry2;
   portEntry2.portId() = 2;
@@ -60,6 +62,8 @@ std::map<int32_t, PortInfoThrift> createPortEntries() {
   portEntry2.transceiverIdx() = tcvr2;
   portEntry2.rxPause() = true;
   portEntry2.isDrained() = false;
+  portEntry2.coreId() = 2;
+  portEntry2.virtualDeviceId() = 2;
 
   PortInfoThrift portEntry3;
   portEntry3.portId() = 3;
@@ -73,6 +77,8 @@ std::map<int32_t, PortInfoThrift> createPortEntries() {
   tcvr3.transceiverId() = 2;
   portEntry3.transceiverIdx() = tcvr3;
   portEntry3.isDrained() = false;
+  portEntry3.coreId() = 3;
+  portEntry3.virtualDeviceId() = 3;
 
   PortInfoThrift portEntry4;
   portEntry4.portId() = 8;
@@ -99,6 +105,8 @@ std::map<int32_t, PortInfoThrift> createPortEntries() {
   tcvr5.transceiverId() = 4;
   portEntry5.transceiverIdx() = tcvr5;
   portEntry5.isDrained() = false;
+  portEntry5.coreId() = 5;
+  portEntry5.virtualDeviceId() = 5;
 
   PortInfoThrift portEntry6;
   portEntry6.portId() = 9;
@@ -112,6 +120,8 @@ std::map<int32_t, PortInfoThrift> createPortEntries() {
   tcvr6.transceiverId() = 5;
   portEntry6.transceiverIdx() = tcvr6;
   portEntry6.isDrained() = false;
+  portEntry6.coreId() = 6;
+  portEntry6.virtualDeviceId() = 6;
 
   portMap[portEntry1.get_portId()] = portEntry1;
   portMap[portEntry2.get_portId()] = portEntry2;
@@ -193,6 +203,8 @@ cli::ShowPortModel createPortModel() {
   entry1.pfc() = "TX RX WD";
   entry1.isDrained() = "Yes";
   entry1.activeErrors() = "--";
+  entry1.coreId() = "1";
+  entry1.virtualDeviceId() = "1";
 
   entry2.id() = 2;
   entry2.hwLogicalPortId() = 2;
@@ -208,6 +220,8 @@ cli::ShowPortModel createPortModel() {
   entry2.pause() = "RX";
   entry2.isDrained() = "No";
   entry2.activeErrors() = "--";
+  entry2.coreId() = "2";
+  entry2.virtualDeviceId() = "2";
 
   entry3.id() = 3;
   entry3.hwLogicalPortId() = 3;
@@ -223,6 +237,8 @@ cli::ShowPortModel createPortModel() {
   entry3.pause() = "";
   entry3.isDrained() = "No";
   entry3.activeErrors() = "--";
+  entry3.coreId() = "3";
+  entry3.virtualDeviceId() = "3";
 
   entry4.id() = 8;
   entry4.hwLogicalPortId() = 8;
@@ -238,6 +254,8 @@ cli::ShowPortModel createPortModel() {
   entry4.pause() = "";
   entry4.isDrained() = "Yes";
   entry4.activeErrors() = "--";
+  entry4.coreId() = "--";
+  entry4.virtualDeviceId() = "--";
 
   entry5.id() = 7;
   entry5.hwLogicalPortId() = 7;
@@ -253,6 +271,8 @@ cli::ShowPortModel createPortModel() {
   entry5.pause() = "";
   entry5.isDrained() = "No";
   entry5.activeErrors() = "--";
+  entry5.coreId() = "5";
+  entry5.virtualDeviceId() = "5";
 
   entry6.id() = 9;
   entry6.hwLogicalPortId() = 9;
@@ -268,6 +288,8 @@ cli::ShowPortModel createPortModel() {
   entry6.pause() = "";
   entry6.isDrained() = "Yes";
   entry6.activeErrors() = "--";
+  entry6.coreId() = "6";
+  entry6.virtualDeviceId() = "6";
 
   // sorted by name
   model.portEntries() = {entry6, entry1, entry2, entry3, entry5, entry4};

@@ -229,19 +229,22 @@ class CmdShowPort : public CmdHandler<CmdShowPort, CmdShowPortTraits> {
       out << folly::join("\n", detailedOutput) << std::endl;
     } else {
       Table table;
-      table.setHeader(
-          {"ID",
-           "Name",
-           "AdminState",
-           "LinkState",
-           "ActiveState",
-           "Transceiver",
-           "TcvrID",
-           "Speed",
-           "ProfileID",
-           "HwLogicalPortId",
-           "Drained",
-           "Errors"});
+      table.setHeader({
+          "ID",
+          "Name",
+          "AdminState",
+          "LinkState",
+          "ActiveState",
+          "Transceiver",
+          "TcvrID",
+          "Speed",
+          "ProfileID",
+          "HwLogicalPortId",
+          "Drained",
+          "Errors",
+          "Core Id",
+          "Virtual device Id",
+      });
 
       for (auto const& portInfo : model.get_portEntries()) {
         std::string hwLogicalPortId;
@@ -260,7 +263,9 @@ class CmdShowPort : public CmdHandler<CmdShowPort, CmdShowPortTraits> {
              portInfo.get_profileId(),
              hwLogicalPortId,
              portInfo.get_isDrained(),
-             getStyledErrors(portInfo.get_activeErrors())});
+             getStyledErrors(portInfo.get_activeErrors()),
+             portInfo.get_coreId(),
+             portInfo.get_virtualDeviceId()});
       }
       out << table << std::endl;
     }
@@ -375,6 +380,15 @@ class CmdShowPort : public CmdHandler<CmdShowPort, CmdShowPortTraits> {
         portDetails.activeState() = activeState;
         portDetails.speed() = utils::getSpeedGbps(portInfo.get_speedMbps());
         portDetails.profileId() = portInfo.get_profileID();
+        portDetails.coreId() = "--";
+        portDetails.virtualDeviceId() = "--";
+        if (portInfo.coreId().has_value()) {
+          portDetails.coreId() = folly::to<std::string>(*portInfo.coreId());
+        }
+        if (portInfo.virtualDeviceId().has_value()) {
+          portDetails.virtualDeviceId() =
+              folly::to<std::string>(*portInfo.virtualDeviceId());
+        }
         if (portInfo.activeErrors()->size()) {
           std::vector<std::string> errorStrs;
           std::for_each(
