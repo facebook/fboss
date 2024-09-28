@@ -356,8 +356,14 @@ void getPortInfoHelper(
 
   *portInfo.profileID() = apache::thrift::util::enumName(port->getProfileID());
 
+  const auto pPort = sw.getPlatformMapping()->getPlatformPort(port->getID());
+  if (pPort.mapping()->attachedCoreId().has_value()) {
+    portInfo.coreId() = *pPort.mapping()->attachedCoreId();
+  }
+  if (pPort.mapping()->virtualDeviceId().has_value()) {
+    portInfo.virtualDeviceId() = *pPort.mapping()->virtualDeviceId();
+  }
   if (port->isEnabled()) {
-    const auto pPort = sw.getPlatformMapping()->getPlatformPort(port->getID());
     PortHardwareDetails hw;
     hw.profile() = port->getProfileID();
     auto matcher =
