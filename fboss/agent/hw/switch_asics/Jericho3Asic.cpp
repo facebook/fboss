@@ -188,6 +188,7 @@ bool Jericho3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::SAI_ECMP_HASH_ALGORITHM:
     case HwAsic::Feature::SCHEDULER_PPS:
     case HwAsic::Feature::DATA_CELL_FILTER:
+    case HwAsic::Feature::MULTIPLE_EGRESS_BUFFER_POOL:
       return false;
   }
   return false;
