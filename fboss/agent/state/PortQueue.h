@@ -14,6 +14,7 @@
 #include "fboss/agent/gen-cpp2/switch_state_types.h"
 #include "fboss/agent/if/gen-cpp2/common_types.h"
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
+#include "fboss/agent/state/BufferPoolConfig.h"
 #include "fboss/agent/state/Thrifty.h"
 #include "fboss/agent/types.h"
 
@@ -26,7 +27,10 @@
 
 namespace facebook::fboss {
 
+using BufferPoolCfgPtr = std::shared_ptr<BufferPoolCfg>;
+
 USE_THRIFT_COW(PortQueue)
+RESOLVE_STRUCT_MEMBER(PortQueue, ctrl_if_tags::bufferPoolConfig, BufferPoolCfg);
 
 // TODO: add resolver for thrift list and a mechanism for thrift struct node to
 // pick that resolver for member list.
@@ -226,6 +230,29 @@ class PortQueue : public thrift_cow::ThriftStructNode<PortQueueFields> {
     } else {
       ref<switch_state_tags::pfcPriorities>().reset();
     }
+  }
+
+  std::optional<std::string> getBufferPoolName() const {
+    if (const auto& bufferPoolName = cref<ctrl_if_tags::bufferPoolName>()) {
+      return std::optional<std::string>(bufferPoolName->cref());
+    }
+    return std::nullopt;
+  }
+
+  void setBufferPoolName(const std::string& bufferPoolName) {
+    set<ctrl_if_tags::bufferPoolName>(bufferPoolName);
+  }
+
+  std::optional<BufferPoolCfgPtr> getBufferPoolConfig() const {
+    if (auto bufferPoolConfigPtr =
+            safe_cref<ctrl_if_tags::bufferPoolConfig>()) {
+      return bufferPoolConfigPtr;
+    }
+    return std::nullopt;
+  }
+
+  void setBufferPoolConfig(BufferPoolCfgPtr bufferPoolConfigPtr) {
+    ref<ctrl_if_tags::bufferPoolConfig>() = bufferPoolConfigPtr;
   }
 
   bool isAqmsSame(const PortQueue* other) const;

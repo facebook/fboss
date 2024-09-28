@@ -401,6 +401,8 @@ struct PortQueueFields {
   15: optional i16 trafficClass;
   16: optional list<i16> pfcPriorities;
   17: optional i32 maxDynamicSharedBytes;
+  18: optional string bufferPoolName;
+  19: optional common.BufferPoolFields bufferPoolConfig;
 }
 
 struct SystemPortThrift {
