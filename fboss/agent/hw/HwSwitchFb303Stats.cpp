@@ -238,19 +238,23 @@ void HwSwitchFb303Stats::update(const HwSwitchDropStats& dropStats) {
   }
   if (dropStats.voqResourceExhaustionDrops().has_value()) {
     voqResourceExhaustionDrops_.addValue(
-        *dropStats.voqResourceExhaustionDrops());
+        *dropStats.voqResourceExhaustionDrops() -
+        currentDropStats_.voqResourceExhaustionDrops().value_or(0));
   }
   if (dropStats.globalResourceExhaustionDrops().has_value()) {
     globalResourceExhaustionDrops_.addValue(
-        *dropStats.globalResourceExhaustionDrops());
+        *dropStats.globalResourceExhaustionDrops() -
+        currentDropStats_.globalResourceExhaustionDrops().value_or(0));
   }
   if (dropStats.sramResourceExhaustionDrops().has_value()) {
     sramResourceExhaustionDrops_.addValue(
-        *dropStats.sramResourceExhaustionDrops());
+        *dropStats.sramResourceExhaustionDrops() -
+        currentDropStats_.sramResourceExhaustionDrops().value_or(0));
   }
   if (dropStats.vsqResourceExhaustionDrops().has_value()) {
     vsqResourceExhaustionDrops_.addValue(
-        *dropStats.vsqResourceExhaustionDrops());
+        *dropStats.vsqResourceExhaustionDrops() -
+        currentDropStats_.vsqResourceExhaustionDrops().value_or(0));
   }
   if (dropStats.dropPrecedenceDrops().has_value()) {
     dropPrecedenceDrops_.addValue(
