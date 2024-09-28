@@ -1769,6 +1769,21 @@ std::shared_ptr<PortQueue> ThriftConfigApplier::createPortQueue(
   if (auto maxDynamicSharedBytes = cfg->maxDynamicSharedBytes()) {
     queue->setMaxDynamicSharedBytes(*maxDynamicSharedBytes);
   }
+  if (auto bufferPoolName = cfg->bufferPoolName()) {
+    auto bufferPoolCfgMap = new_->getBufferPoolCfgs();
+    // bufferPool cfg is keyed on the buffer pool name
+    auto bufferPoolCfg = bufferPoolCfgMap->getNodeIf(*bufferPoolName);
+    if (!bufferPoolCfg) {
+      throw FbossError(
+          "Queue: ",
+          queue->getID(),
+          " buffer pool: ",
+          *bufferPoolName,
+          " doesn't exist in the bufferPool map.");
+    }
+    queue->setBufferPoolName(*bufferPoolName);
+    queue->setBufferPoolConfig(bufferPoolCfg);
+  }
   return queue;
 }
 
