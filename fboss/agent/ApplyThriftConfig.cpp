@@ -4139,6 +4139,10 @@ std::shared_ptr<BufferPoolCfg> ThriftConfigApplier::createBufferPoolConfig(
   if (bufferPoolConfig.headroomBytes().has_value()) {
     bufferPoolCfg->setHeadroomBytes(*bufferPoolConfig.headroomBytes());
   }
+  if (bufferPoolConfig.reservedBytes().has_value()) {
+    bufferPoolCfg->setReservedBytes(*bufferPoolConfig.reservedBytes());
+  }
+
   return bufferPoolCfg;
 }
 
