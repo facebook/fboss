@@ -283,6 +283,12 @@ class CmdShowPort : public CmdHandler<CmdShowPort, CmdShowPortTraits> {
         "Unsupported AdminState: " +
         std::to_string(static_cast<int>(adminState)));
   }
+  std::string getOptionalIntStr(std::optional<int> val) {
+    if (val.has_value()) {
+      return folly::to<std::string>(*val);
+    }
+    return "--";
+  }
 
   Table::StyledCell getStyledLinkState(std::string linkState) {
     if (linkState == "Down") {
@@ -380,15 +386,10 @@ class CmdShowPort : public CmdHandler<CmdShowPort, CmdShowPortTraits> {
         portDetails.activeState() = activeState;
         portDetails.speed() = utils::getSpeedGbps(portInfo.get_speedMbps());
         portDetails.profileId() = portInfo.get_profileID();
-        portDetails.coreId() = "--";
-        portDetails.virtualDeviceId() = "--";
-        if (portInfo.coreId().has_value()) {
-          portDetails.coreId() = folly::to<std::string>(*portInfo.coreId());
-        }
-        if (portInfo.virtualDeviceId().has_value()) {
-          portDetails.virtualDeviceId() =
-              folly::to<std::string>(*portInfo.virtualDeviceId());
-        }
+        portDetails.coreId() =
+            getOptionalIntStr(portInfo.coreId().to_optional());
+        portDetails.virtualDeviceId() =
+            getOptionalIntStr(portInfo.virtualDeviceId().to_optional());
         if (portInfo.activeErrors()->size()) {
           std::vector<std::string> errorStrs;
           std::for_each(
