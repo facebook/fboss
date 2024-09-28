@@ -11424,7 +11424,8 @@ std::pair<strings::aqms, ChildThriftPath<::std::vector<::facebook::fboss::cfg::A
 std::pair<strings::portQueueRate, ChildThriftPath<::facebook::fboss::cfg::PortQueueRate, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>,
 std::pair<strings::bandwidthBurstMinKbits, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
 std::pair<strings::bandwidthBurstMaxKbits, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
-std::pair<strings::maxDynamicSharedBytes, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>>;
+std::pair<strings::maxDynamicSharedBytes, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
+std::pair<strings::bufferPoolName, Child<::std::string, ::apache::thrift::type_class::string, ::apache::thrift::type::string_t>>>;
   using ChildrenById = fatal::tuple<   std::pair<std::integral_constant<apache::thrift::field_id_t, 1>, Child<::std::int16_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i16_t>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 2>, Child<::facebook::fboss::cfg::StreamType, ::apache::thrift::type_class::enumeration, ::apache::thrift::type::enum_t<::facebook::fboss::cfg::StreamType>>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 3>, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
@@ -11438,7 +11439,8 @@ std::pair<strings::maxDynamicSharedBytes, Child<::std::int32_t, ::apache::thrift
    std::pair<std::integral_constant<apache::thrift::field_id_t, 12>, ChildThriftPath<::facebook::fboss::cfg::PortQueueRate, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 13>, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 14>, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
-   std::pair<std::integral_constant<apache::thrift::field_id_t, 15>, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>>;
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 15>, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 16>, Child<::std::string, ::apache::thrift::type_class::string, ::apache::thrift::type::string_t>>>;
   template <typename Name>
   using NameToId = fatal::tuple<std::pair<strings::id, std::integral_constant<apache::thrift::field_id_t, 1>>,
 std::pair<strings::streamType, std::integral_constant<apache::thrift::field_id_t, 2>>,
@@ -11453,7 +11455,8 @@ std::pair<strings::aqms, std::integral_constant<apache::thrift::field_id_t, 11>>
 std::pair<strings::portQueueRate, std::integral_constant<apache::thrift::field_id_t, 12>>,
 std::pair<strings::bandwidthBurstMinKbits, std::integral_constant<apache::thrift::field_id_t, 13>>,
 std::pair<strings::bandwidthBurstMaxKbits, std::integral_constant<apache::thrift::field_id_t, 14>>,
-std::pair<strings::maxDynamicSharedBytes, std::integral_constant<apache::thrift::field_id_t, 15>>>::template type_of<Name>;
+std::pair<strings::maxDynamicSharedBytes, std::integral_constant<apache::thrift::field_id_t, 15>>,
+std::pair<strings::bufferPoolName, std::integral_constant<apache::thrift::field_id_t, 16>>>::template type_of<Name>;
 
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
@@ -11473,6 +11476,7 @@ std::pair<strings::maxDynamicSharedBytes, std::integral_constant<apache::thrift:
     STRUCT_CHILD_GETTERS(bandwidthBurstMinKbits, 13);
     STRUCT_CHILD_GETTERS(bandwidthBurstMaxKbits, 14);
     STRUCT_CHILD_GETTERS(maxDynamicSharedBytes, 15);
+    STRUCT_CHILD_GETTERS(bufferPoolName, 16);
 
   template <apache::thrift::field_id_t __id>
   auto operator()(const std::integral_constant<apache::thrift::field_id_t, __id>&) {
@@ -11490,6 +11494,7 @@ std::pair<strings::maxDynamicSharedBytes, std::integral_constant<apache::thrift:
     else if constexpr (__id == 13) { return bandwidthBurstMinKbits(); }
     else if constexpr (__id == 14) { return bandwidthBurstMaxKbits(); }
     else if constexpr (__id == 15) { return maxDynamicSharedBytes(); }
+    else if constexpr (__id == 16) { return bufferPoolName(); }
   }
 
   template <typename T, T... Values>

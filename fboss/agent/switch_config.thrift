@@ -837,6 +837,9 @@ struct PortQueue {
   // this specifies the dynamic max threshold in buffer profile,
   // e.g. when scalingFactor/alpha is used
   15: optional i32 maxDynamicSharedBytes;
+  // Specifies the buffer pool that should be used for this queue.
+  // An option to force a queue to use a non-default buffer pool.
+  16: optional string bufferPoolName;
 }
 
 struct DscpQosMap {
