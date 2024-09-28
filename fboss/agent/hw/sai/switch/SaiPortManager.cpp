@@ -885,7 +885,6 @@ void SaiPortManager::programPfcBuffers(const std::shared_ptr<Port>& swPort) {
   if (!platform_->getAsic()->isSupported(HwAsic::Feature::BUFFER_POOL)) {
     return;
   }
-  managerTable_->bufferManager().createIngressBufferPool(swPort);
   SaiPortHandle* portHandle = getPortHandle(swPort->getID());
   const auto& portPgCfgs = swPort->getPortPgConfigs();
   if (portPgCfgs) {
