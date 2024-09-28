@@ -161,7 +161,7 @@ void SaiBufferManager::setupEgressBufferPool(
   assertMaxBufferPoolSize(platform_);
   egressBufferPoolHandle_ = std::make_unique<SaiBufferPoolHandle>();
   auto& store = saiStore_->get<SaiBufferPoolTraits>();
-  std::optional<SaiBufferPoolTraits::Attributes::XoffSize> xoffSize{};
+  std::optional<SaiBufferPoolTraits::Attributes::XoffSize> xoffSize{0};
   uint64_t poolSize;
   if (bufferPoolCfg.has_value()) {
     // TODO: Account for reserved once available
@@ -169,13 +169,15 @@ void SaiBufferManager::setupEgressBufferPool(
   } else {
     poolSize = getMaxEgressPoolBytes(platform_);
   }
-  SaiBufferPoolTraits::CreateAttributes c{
+  SaiBufferPoolTraits::CreateAttributes attributes{
       SAI_BUFFER_POOL_TYPE_EGRESS,
       poolSize,
       SAI_BUFFER_POOL_THRESHOLD_MODE_DYNAMIC,
       xoffSize};
-  egressBufferPoolHandle_->bufferPool =
-      store.setObject(SAI_BUFFER_POOL_TYPE_EGRESS, c);
+  SaiBufferPoolTraits::AdapterHostKey k = tupleProjection<
+      SaiBufferPoolTraits::CreateAttributes,
+      SaiBufferPoolTraits::AdapterHostKey>(attributes);
+  egressBufferPoolHandle_->bufferPool = store.setObject(k, attributes);
 }
 
 void SaiBufferManager::setupBufferPool(const PortQueue& queue) {
@@ -213,13 +215,15 @@ void SaiBufferManager::setupIngressBufferPool(
         platform_->getAsic()->getNumMemoryBuffers();
   }
 #endif
-  SaiBufferPoolTraits::CreateAttributes c{
+  SaiBufferPoolTraits::CreateAttributes attributes{
       SAI_BUFFER_POOL_TYPE_INGRESS,
       poolSize,
       SAI_BUFFER_POOL_THRESHOLD_MODE_STATIC,
       xoffSize};
-  ingressBufferPoolHandle_->bufferPool =
-      store.setObject(SAI_BUFFER_POOL_TYPE_INGRESS, c);
+  SaiBufferPoolTraits::AdapterHostKey k = tupleProjection<
+      SaiBufferPoolTraits::CreateAttributes,
+      SaiBufferPoolTraits::AdapterHostKey>(attributes);
+  ingressBufferPoolHandle_->bufferPool = store.setObject(k, attributes);
   ingressBufferPoolHandle_->bufferPoolName = bufferPoolName;
 }
 
@@ -232,7 +236,7 @@ void SaiBufferManager::createOrUpdateIngressEgressBufferPool(
   }
   XLOG(DBG2) << "Pool size: " << poolSize
              << ", Xoff size: " << (newXoffSize.has_value() ? *newXoffSize : 0);
-  SaiBufferPoolTraits::CreateAttributes c{
+  SaiBufferPoolTraits::CreateAttributes attributes{
       SAI_BUFFER_POOL_TYPE_BOTH,
       poolSize,
       SAI_BUFFER_POOL_THRESHOLD_MODE_STATIC,
@@ -242,8 +246,10 @@ void SaiBufferManager::createOrUpdateIngressEgressBufferPool(
   if (!ingressEgressBufferPoolHandle_) {
     ingressEgressBufferPoolHandle_ = std::make_unique<SaiBufferPoolHandle>();
   }
-  ingressEgressBufferPoolHandle_->bufferPool =
-      store.setObject(SAI_BUFFER_POOL_TYPE_BOTH, c);
+  SaiBufferPoolTraits::AdapterHostKey k = tupleProjection<
+      SaiBufferPoolTraits::CreateAttributes,
+      SaiBufferPoolTraits::AdapterHostKey>(attributes);
+  ingressEgressBufferPoolHandle_->bufferPool = store.setObject(k, attributes);
 }
 
 void SaiBufferManager::setupIngressEgressBufferPool(

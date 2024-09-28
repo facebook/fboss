@@ -29,7 +29,7 @@ class BufferStoreTest : public SaiStoreTest {
     SaiBufferPoolTraits::Attributes::Size size{42};
     SaiBufferPoolTraits::Attributes::ThresholdMode mode{
         SAI_BUFFER_POOL_THRESHOLD_MODE_DYNAMIC};
-    std::optional<SaiBufferPoolTraits::Attributes::XoffSize> xoffSize;
+    std::optional<SaiBufferPoolTraits::Attributes::XoffSize> xoffSize{0};
     return {type, size, mode, xoffSize};
   }
   BufferPoolSaiId createBufferPool() const {
@@ -88,7 +88,7 @@ TEST_F(BufferStoreTest, loadBufferPool) {
   SaiStore s(0);
   s.reload();
   auto& store = s.get<SaiBufferPoolTraits>();
-  auto got = store.get(SAI_BUFFER_POOL_TYPE_EGRESS);
+  auto got = store.get(createPoolAttrs());
   EXPECT_EQ(got->adapterKey(), poolId);
   EXPECT_EQ(
       std::get<SaiBufferPoolTraits::Attributes::ThresholdMode>(
@@ -117,7 +117,7 @@ TEST_F(BufferStoreTest, loadBufferPoolFromJson) {
   SaiStore s2(0);
   s2.reload(&json);
   auto& store = s2.get<SaiBufferPoolTraits>();
-  auto got = store.get(SAI_BUFFER_POOL_TYPE_EGRESS);
+  auto got = store.get(createPoolAttrs());
   EXPECT_EQ(got->adapterKey(), poolId);
   EXPECT_EQ(
       std::get<SaiBufferPoolTraits::Attributes::ThresholdMode>(
@@ -158,8 +158,8 @@ TEST_F(BufferStoreTest, bufferProfileLoadCtor) {
 }
 
 TEST_F(BufferStoreTest, bufferPoolCreateCtor) {
-  SaiObject<SaiBufferPoolTraits> obj =
-      createObj<SaiBufferPoolTraits>(24, createPoolAttrs(), 0);
+  auto c = createPoolAttrs();
+  SaiObject<SaiBufferPoolTraits> obj = createObj<SaiBufferPoolTraits>(c, c, 0);
   EXPECT_EQ(GET_ATTR(BufferPool, Size, obj.attributes()), 42);
 }
 

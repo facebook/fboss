@@ -48,12 +48,12 @@ struct SaiBufferPoolTraits {
         SaiIntDefault<sai_uint64_t>>;
   };
   using AdapterKey = BufferPoolSaiId;
-  using AdapterHostKey = Attributes::Type;
   using CreateAttributes = std::tuple<
       Attributes::Type,
       Attributes::Size,
       Attributes::ThresholdMode,
       std::optional<Attributes::XoffSize>>;
+  using AdapterHostKey = CreateAttributes;
 
   static constexpr std::array<sai_stat_id_t, 1> CounterIdsToReadAndClear = {
       SAI_BUFFER_POOL_STAT_WATERMARK_BYTES,
