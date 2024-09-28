@@ -154,7 +154,7 @@ uint64_t SaiBufferManager::getMaxEgressPoolBytes(const SaiPlatform* platform) {
 }
 
 void SaiBufferManager::setupEgressBufferPool(
-    const std::optional<BufferPoolFields>& /*bufferPoolCfg*/) {
+    const std::optional<BufferPoolFields>& bufferPoolCfg) {
   if (egressBufferPoolHandle_) {
     return;
   }
@@ -162,22 +162,33 @@ void SaiBufferManager::setupEgressBufferPool(
   egressBufferPoolHandle_ = std::make_unique<SaiBufferPoolHandle>();
   auto& store = saiStore_->get<SaiBufferPoolTraits>();
   std::optional<SaiBufferPoolTraits::Attributes::XoffSize> xoffSize{};
+  uint64_t poolSize;
+  if (bufferPoolCfg.has_value()) {
+    // TODO: Account for reserved once available
+    poolSize = *bufferPoolCfg->sharedBytes();
+  } else {
+    poolSize = getMaxEgressPoolBytes(platform_);
+  }
   SaiBufferPoolTraits::CreateAttributes c{
       SAI_BUFFER_POOL_TYPE_EGRESS,
-      getMaxEgressPoolBytes(platform_),
+      poolSize,
       SAI_BUFFER_POOL_THRESHOLD_MODE_DYNAMIC,
       xoffSize};
   egressBufferPoolHandle_->bufferPool =
       store.setObject(SAI_BUFFER_POOL_TYPE_EGRESS, c);
 }
 
-void SaiBufferManager::setupBufferPool(const PortQueue& /*queue*/) {
+void SaiBufferManager::setupBufferPool(const PortQueue& queue) {
   if (platform_->getAsic()->isSupported(
           HwAsic::Feature::SHARED_INGRESS_EGRESS_BUFFER_POOL)) {
     setupIngressEgressBufferPool();
   } else {
-    // TODO: Make use of queue data
-    setupEgressBufferPool(std::nullopt);
+    std::optional<BufferPoolFields> bufferPoolCfg;
+    if (queue.getBufferPoolConfig().has_value() &&
+        queue.getBufferPoolConfig().value()) {
+      bufferPoolCfg = queue.getBufferPoolConfig().value()->toThrift();
+    }
+    setupEgressBufferPool(bufferPoolCfg);
   }
 }
 
