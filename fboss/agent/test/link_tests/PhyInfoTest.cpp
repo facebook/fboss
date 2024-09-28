@@ -462,54 +462,60 @@ TEST_F(LinkTest, verifyIphyFecCounters) {
 
 TEST_F(LinkTest, verifyIphyFecBerCounters) {
   /*
-   * Collects 5 phyInfos and verifies
+   * Collects 5 (500 for stress test) phyInfos and verifies
    * 1. No uncorrected codewords
    * 2. If there are corrected codewords, expect pre-FEC BER to be non-zero
-   * 3. Pre-FEC BER should always be >= e-5 (e-4 is the FEC correction limit)
+   * 3. Pre-FEC BER should always be <= e-5 (e-4 is the FEC correction limit)
    * 4. If the hardware supports FEC histogram, we should always have something
    * populated in bin 0. Bin 0 indicates the number of codewords that didn't
-   * require correction
+   * require correction. Stress tests have a stricter threshold of 5.0e-7
    * 5. If the hardware supports FEC histogram and there are some corrected
    * codewords, we should expect to see some non-zero values in bins >= 1.
    */
-  auto verify = [this]() {
-    auto cabledPorts = getCabledPorts();
-    auto previousPhyInfoTime = std::chrono::duration_cast<std::chrono::seconds>(
-        std::chrono::system_clock::now().time_since_epoch());
-
-    // Collect 5 PhyInfo updates and ensure that the counters are within the
-    // thresholds
-    std::vector<std::map<PortID, const phy::PhyInfo>> phyInfos;
+  auto iterations = FLAGS_link_stress_test ? 500 : 5;
+  auto preFecBerThreshold = FLAGS_link_stress_test ? 5.0e-7 : 1e-5;
+  std::map<PortID, const phy::PhyInfo> previousPhyInfo;
+  std::map<PortID, const phy::PhyInfo> currentPhyInfo;
+  auto cabledPorts = getCabledPorts();
+  auto getPhyInfo = [this, &cabledPorts](
+                        time_t timeReference,
+                        std::map<PortID, const phy::PhyInfo>& phyInfo) {
     WITH_RETRIES_N_TIMED(
         120 /* retries */,
         std::chrono::milliseconds(1000) /* msBetweenRetry */,
         {
-          auto newPhyInfo = sw()->getIPhyInfo(cabledPorts);
+          phyInfo = sw()->getIPhyInfo(cabledPorts);
           for (const auto& port : cabledPorts) {
-            auto phyIt = newPhyInfo.find(port);
-            ASSERT_EVENTUALLY_NE(phyIt, newPhyInfo.end());
+            auto phyIt = phyInfo.find(port);
+            ASSERT_EVENTUALLY_NE(phyIt, phyInfo.end());
             // If the time stamp hasn't advanced, no need to check the counters.
             // Thus this is an ASSERT_EVENTUALLY_GT and not EXPECT_EVENTUALLY_GT
             ASSERT_EVENTUALLY_GT(
-                *(newPhyInfo[port].stats()->timeCollected()),
-                previousPhyInfoTime.count());
+                *(phyInfo[port].stats()->timeCollected()), timeReference);
           }
-          phyInfos.push_back(newPhyInfo);
-          ASSERT_EVENTUALLY_EQ(phyInfos.size(), 5);
         });
+  };
 
-    ASSERT_EQ(phyInfos.size(), 5);
+  std::time_t timeReference = std::time(nullptr);
+  getPhyInfo(timeReference, previousPhyInfo);
 
-    for (int idx = 1; idx < phyInfos.size(); idx++) {
-      auto phyInfoNow = phyInfos[idx];
-      auto phyInfoBefore = phyInfos.at(idx - 1);
+  auto verify = [this,
+                 iterations,
+                 preFecBerThreshold,
+                 &previousPhyInfo,
+                 &currentPhyInfo,
+                 getPhyInfo,
+                 &cabledPorts]() {
+    for (int i = 1; i <= iterations && !::testing::Test::HasFailure(); i++) {
+      XLOG(INFO) << "Starting iteration " << i;
+      getPhyInfo(std::time(nullptr), currentPhyInfo);
       for (const auto& port : cabledPorts) {
-        auto phyIt = phyInfoNow.find(port);
+        auto phyIt = currentPhyInfo.find(port);
         // We always expect the port to be present in the map. So this is a
         // hard assert
-        ASSERT_NE(phyIt, phyInfoNow.end());
-        auto pcsStatsBefore = phyInfoBefore[port].stats()->line()->pcs();
-        auto pcsStatsNow = phyInfoNow[port].stats()->line()->pcs();
+        ASSERT_NE(phyIt, currentPhyInfo.end());
+        auto pcsStatsBefore = previousPhyInfo[port].stats()->line()->pcs();
+        auto pcsStatsNow = currentPhyInfo[port].stats()->line()->pcs();
         if (pcsStatsBefore.has_value() || pcsStatsNow.has_value()) {
           // We always expect pcsStats to be present in both the phyInfos
           // or in none
@@ -532,11 +538,11 @@ TEST_F(LinkTest, verifyIphyFecBerCounters) {
         }
 
         XLOG(INFO)
-            << "Before: RS FEC stats for port " << port
+            << "Before: RS FEC stats for port " << getPortName(port)
             << apache::thrift::SimpleJSONSerializer::serialize<std::string>(
                    rsFecBefore.value());
         XLOG(INFO)
-            << "Now: RS FEC stats for port " << port
+            << "Now: RS FEC stats for port " << getPortName(port)
             << apache::thrift::SimpleJSONSerializer::serialize<std::string>(
                    rsFecNow.value());
 
@@ -544,13 +550,12 @@ TEST_F(LinkTest, verifyIphyFecBerCounters) {
         EXPECT_EQ(
             rsFecNow->get_uncorrectedCodewords(),
             rsFecBefore->get_uncorrectedCodewords());
-        // Expect pre-FEC BER to be lower than e-5
+        // Expect pre-FEC BER to be lower than e-5 (or 5.0e-7 for stress test)
         // TODO: Make the threshold stricter once
         // 1) we start using a SAI version that supports FEC corrected bits.
         // Before 10.2 SAI, ASIC doesn't support FEC corrected bits and we
         // approximate pre-FEC BER using FEC corrected codewords.
         // 2) we cleanup existing bad links in the lab
-        auto preFecBerThreshold = 1e-5;
         EXPECT_LT(rsFecNow->get_preFECBer(), preFecBerThreshold);
         // If there were corrected codewords in the interval, expect pre-FEC
         // BER non-zero
@@ -587,6 +592,7 @@ TEST_F(LinkTest, verifyIphyFecBerCounters) {
           }
         }
       }
+      previousPhyInfo = currentPhyInfo;
     }
   };
   verifyAcrossWarmBoots([]() {}, verify);
