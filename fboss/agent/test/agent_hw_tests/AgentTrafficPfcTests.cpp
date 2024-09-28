@@ -19,7 +19,6 @@ DEFINE_bool(
 namespace {
 
 using facebook::fboss::utility::PfcBufferParams;
-using facebook::fboss::utility::setupPfcBuffers;
 
 static constexpr auto kGlobalSharedBytes{20000};
 static constexpr auto kPgLimitBytes{2200};
@@ -307,6 +306,9 @@ class AgentTrafficPfcTest : public AgentHwTest {
           kLosslessPgIds,
           tcToPgOverride,
           testParams.buffer);
+      if (isSupportedOnAllAsics(HwAsic::Feature::MULTIPLE_EGRESS_BUFFER_POOL)) {
+        utility::setupMultipleEgressPoolAndQueueConfigs(cfg, kLosslessPgIds);
+      }
       applyNewConfig(cfg);
 
       setupEcmpTraffic(portIds);
