@@ -1322,4 +1322,47 @@ void configurePortProfile(
     removeSubsumedPorts(config, profile->second, supportsAddRemovePort);
   }
 }
+
+void setupMultipleEgressPoolAndQueueConfigs(
+    cfg::SwitchConfig& config,
+    const std::vector<int>& losslessQueueIds) {
+  const std::string kLosslessPoolName{"egress_lossless_pool"};
+  const std::string kLossyPoolName{"egress_lossy_pool"};
+
+  // Create pool configs for 2 egress buffer pools
+  cfg::BufferPoolConfig losslessPoolCfg;
+  losslessPoolCfg.sharedBytes() = 256 * 1024 * 1024;
+  cfg::BufferPoolConfig lossyPoolCfg;
+  lossyPoolCfg.sharedBytes() = 80 * 1024 * 1024;
+  std::map<std::string, cfg::BufferPoolConfig> bufferPoolCfgMap =
+      config.bufferPoolConfigs().ensure();
+  bufferPoolCfgMap.insert(std::make_pair(kLosslessPoolName, losslessPoolCfg));
+  bufferPoolCfgMap.insert(std::make_pair(kLossyPoolName, lossyPoolCfg));
+  config.bufferPoolConfigs() = std::move(bufferPoolCfgMap);
+
+  // Attach lossless pool to lossless queues and lossy pool to the rest
+  std::vector<cfg::PortQueue> queues;
+  for (int qid = 0; qid < 8; qid++) {
+    cfg::PortQueue queueCfg;
+    queueCfg.id() = qid;
+    queueCfg.name() = folly::to<std::string>("queue", qid);
+    queueCfg.streamType() = cfg::StreamType::UNICAST;
+    queueCfg.scheduling() = cfg::QueueScheduling::STRICT_PRIORITY;
+    if (std::find(losslessQueueIds.begin(), losslessQueueIds.end(), qid) !=
+        losslessQueueIds.end()) {
+      queueCfg.bufferPoolName() = kLosslessPoolName;
+    } else {
+      queueCfg.bufferPoolName() = kLossyPoolName;
+    }
+    queues.push_back(queueCfg);
+  }
+  const std::string kPortQueueName{"egress_port_queue_config"};
+  config.portQueueConfigs()[kPortQueueName] = std::move(queues);
+  for (auto& portCfg : *config.ports()) {
+    if (portCfg.portType() == cfg::PortType::INTERFACE_PORT) {
+      portCfg.portQueueConfigName() = kPortQueueName;
+    }
+  }
+}
+
 } // namespace facebook::fboss::utility

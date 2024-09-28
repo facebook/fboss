@@ -166,7 +166,8 @@ void setupPfcBuffers(
   cfg.portPgConfigs() = std::move(portPgConfigMap);
 
   // create buffer pool
-  std::map<std::string, cfg::BufferPoolConfig> bufferPoolCfgMap;
+  std::map<std::string, cfg::BufferPoolConfig> bufferPoolCfgMap =
+      cfg.bufferPoolConfigs().ensure();
   setupBufferPoolConfig(
       bufferPoolCfgMap, buffer.globalShared, buffer.globalHeadroom);
   cfg.bufferPoolConfigs() = std::move(bufferPoolCfgMap);

@@ -274,4 +274,7 @@ void configurePortProfile(
     cfg::PortProfileID profileID,
     std::vector<PortID> allPortsInGroup,
     PortID controllingPortID);
+void setupMultipleEgressPoolAndQueueConfigs(
+    cfg::SwitchConfig& config,
+    const std::vector<int>& losslessQueueIds);
 } // namespace facebook::fboss::utility
