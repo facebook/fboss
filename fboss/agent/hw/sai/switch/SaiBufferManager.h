@@ -126,7 +126,7 @@ class SaiBufferManager {
   void createOrUpdateIngressEgressBufferPool(
       uint64_t poolSize,
       std::optional<int32_t> newXoffSize);
-  SaiBufferPoolHandle* getEgressBufferPoolHandle() const;
+  SaiBufferPoolHandle* getEgressBufferPoolHandle(const PortQueue& queue) const;
   const std::vector<sai_stat_id_t>&
   supportedIngressPriorityGroupWatermarkStats() const;
   const std::vector<sai_stat_id_t>&
@@ -135,7 +135,8 @@ class SaiBufferManager {
   SaiStore* saiStore_;
   SaiManagerTable* managerTable_;
   const SaiPlatform* platform_;
-  std::unique_ptr<SaiBufferPoolHandle> egressBufferPoolHandle_;
+  std::map<std::string, std::unique_ptr<SaiBufferPoolHandle>>
+      egressBufferPoolHandle_;
   std::unique_ptr<SaiBufferPoolHandle> ingressBufferPoolHandle_;
   std::unique_ptr<SaiBufferPoolHandle> ingressEgressBufferPoolHandle_;
   UnorderedRefMap<SaiBufferProfileTraits::AdapterHostKey, SaiBufferProfile>
