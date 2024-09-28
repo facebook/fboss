@@ -31,17 +31,17 @@ struct OpticsPerformanceMonitoringThresholds {
 struct OpticsPerformanceMonitoringThresholds kCmisOpticsThresholds = {
     .mediaThresholds =
         {
-            .pam4eSnr = {19.0, 49.0},
+            .pam4eSnr = {FLAGS_link_stress_test ? 20.0 : 19.0, 49.0},
             .pam4Ltp = {33.0, 99.0},
-            .preFecBer = {0, 2.4e-5},
-            .fecTailMax = {0, 14.0},
+            .preFecBer = {0, FLAGS_link_stress_test ? 5.0e-7 : 2.4e-5},
+            .fecTailMax = {0, FLAGS_link_stress_test ? 11.0 : 14.0},
         },
     .hostThresholds =
         {
-            .pam4eSnr = {19.0, 49.0},
+            .pam4eSnr = {FLAGS_link_stress_test ? 20.0 : 19.0, 49.0},
             .pam4Ltp = {33.0, 99.0},
-            .preFecBer = {0, 2.4e-5},
-            .fecTailMax = {0, 14.0},
+            .preFecBer = {0, FLAGS_link_stress_test ? 5.0e-7 : 2.4e-5},
+            .fecTailMax = {0, FLAGS_link_stress_test ? 11.0 : 14.0},
         },
 };
 
@@ -333,5 +333,10 @@ TEST_F(LinkTest, opticsVdmPerformanceMonitoring) {
   });
 
   // 4. validate the VDM Performance Monitoring parameters within the threshold
-  validateVdm(transceiverInfos, transceiverIds);
+  int testIterations = FLAGS_link_stress_test ? 60 : 1;
+  do {
+    validateVdm(transceiverInfos, transceiverIds);
+    /* sleep override */ std::this_thread::sleep_for(10s);
+    transceiverInfos = utility::waitForTransceiverInfo(transceiverIds);
+  } while (testIterations-- && !::testing::Test::HasFailure());
 }
