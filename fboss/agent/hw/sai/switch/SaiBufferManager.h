@@ -62,10 +62,8 @@ class SaiBufferManager {
   std::shared_ptr<SaiBufferProfile> getOrCreateIngressProfile(
       const state::PortPgFields& portPgConfig);
 
-  void setupBufferPool(
-      const std::optional<std::string>& bufferPoolName = std::nullopt,
-      const std::optional<state::BufferPoolFields>& ingressPgCfg =
-          std::nullopt);
+  void setupBufferPool(const PortQueue& queue);
+  void setupBufferPool(const state::PortPgFields& portPgConfig);
 
   void updateStats();
   void updateIngressBufferPoolStats();
@@ -117,12 +115,15 @@ class SaiBufferManager {
       std::shared_ptr<SaiBufferPoolHandle> bufferPoolHandle,
       const PortPgConfig* portPgCfg);
   void setupEgressBufferPool();
+  void setupEgressBufferPool(
+      const std::optional<state::BufferPoolFields>& bufferPoolCfg);
   void setupIngressBufferPool(
       const std::string& bufferPoolName,
       const state::BufferPoolFields& bufferPoolCfg);
   void setupIngressEgressBufferPool(
-      const std::optional<std::string>& bufferPoolName,
-      const std::optional<state::BufferPoolFields>& ingressPgCfg);
+      const std::optional<std::string>& bufferPoolName = std::nullopt,
+      const std::optional<state::BufferPoolFields>& ingressPgCfg =
+          std::nullopt);
   void createOrUpdateIngressEgressBufferPool(
       uint64_t poolSize,
       std::optional<int32_t> newXoffSize);
