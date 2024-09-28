@@ -233,10 +233,10 @@ void checkSwHwPgCfgMatch(
     const auto bufferPool =
         pgConfig->cref<switch_state_tags::bufferPoolConfig>();
     EXPECT_EQ(
-        bufferPool->cref<switch_state_tags::sharedBytes>()->cref(),
+        bufferPool->cref<common_if_tags::sharedBytes>()->cref(),
         (*bufferPoolHwPtr).getSharedBytes());
     EXPECT_EQ(
-        bufferPool->safe_cref<switch_state_tags::headroomBytes>()->toThrift(),
+        bufferPool->safe_cref<common_if_tags::headroomBytes>()->toThrift(),
         *((*bufferPoolHwPtr).getHeadroomBytes()));
     // we are in lossless mode if headroom > 0, else lossless mode = 0
     EXPECT_EQ(bcmPort->getProgrammedPgLosslessMode(id), pgHeadroom ? 1 : 0);

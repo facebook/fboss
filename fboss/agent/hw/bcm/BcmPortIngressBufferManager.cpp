@@ -364,9 +364,9 @@ void BcmPortIngressBufferManager::reprogramIngressPools(
       auto currentGlobalHeadroomBytes = getIngressPoolHeadroomBytes(portPgId);
       auto currentGlobalSharedBytes = getIngressSharedBytes(portPgId);
       auto newGlobalSharedBytes =
-          bufferPoolCfg->cref<switch_state_tags::sharedBytes>()->cref();
+          bufferPoolCfg->cref<common_if_tags::sharedBytes>()->cref();
       auto newGlobalHeadroomBytes =
-          bufferPoolCfg->cref<switch_state_tags::headroomBytes>()->cref();
+          bufferPoolCfg->cref<common_if_tags::headroomBytes>()->cref();
 
       // When we program shared pool, SDK runs a check on hdrm + shared buffer
       // and it shouldn't exceed the MAX. If we program shared buffer first

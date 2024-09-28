@@ -136,8 +136,7 @@ class PortPgConfig
       std::optional<int> headroomLimitBytes,
       std::optional<int> resumeOffsetBytes,
       const std::string& bufferPoolName,
-      const std::optional<state::BufferPoolFields>& bufferPoolConfig =
-          std::nullopt) {
+      const std::optional<BufferPoolFields>& bufferPoolConfig = std::nullopt) {
     state::PortPgFields obj{};
     obj.id() = id;
     if (scalingFactor) {

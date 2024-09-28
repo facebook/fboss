@@ -12,6 +12,7 @@
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/gen-cpp2/switch_state_types.h"
+#include "fboss/agent/if/gen-cpp2/common_types.h"
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 #include "fboss/agent/state/Thrifty.h"
 #include "fboss/agent/types.h"
@@ -152,13 +153,13 @@ class PortQueue : public thrift_cow::ThriftStructNode<PortQueueFields> {
     set<ctrl_if_tags::name>(name);
   }
   std::optional<int> getSharedBytes() const {
-    if (const auto& sharedBytes = cref<switch_state_tags::sharedBytes>()) {
+    if (const auto& sharedBytes = cref<common_if_tags::sharedBytes>()) {
       return sharedBytes->cref();
     }
     return std::nullopt;
   }
   void setSharedBytes(int sharedBytes) {
-    set<switch_state_tags::sharedBytes>(sharedBytes);
+    set<common_if_tags::sharedBytes>(sharedBytes);
   }
 
   const auto& getPortQueueRate() const {

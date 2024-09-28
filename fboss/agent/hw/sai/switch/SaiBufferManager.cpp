@@ -154,7 +154,7 @@ uint64_t SaiBufferManager::getMaxEgressPoolBytes(const SaiPlatform* platform) {
 }
 
 void SaiBufferManager::setupEgressBufferPool(
-    const std::optional<state::BufferPoolFields>& /*bufferPoolCfg*/) {
+    const std::optional<BufferPoolFields>& /*bufferPoolCfg*/) {
   if (egressBufferPoolHandle_) {
     return;
   }
@@ -183,7 +183,7 @@ void SaiBufferManager::setupBufferPool(const PortQueue& /*queue*/) {
 
 void SaiBufferManager::setupIngressBufferPool(
     const std::string& bufferPoolName,
-    const state::BufferPoolFields& bufferPoolCfg) {
+    const BufferPoolFields& bufferPoolCfg) {
   if (ingressBufferPoolHandle_) {
     return;
   }
@@ -237,7 +237,7 @@ void SaiBufferManager::createOrUpdateIngressEgressBufferPool(
 
 void SaiBufferManager::setupIngressEgressBufferPool(
     const std::optional<std::string>& bufferPoolName,
-    const std::optional<state::BufferPoolFields>& bufferPoolCfg) {
+    const std::optional<BufferPoolFields>& bufferPoolCfg) {
   uint64_t poolSize{0};
   if (FLAGS_ingress_egress_buffer_pool_size) {
     // An option for test to override the buffer pool size to be used.

@@ -1131,8 +1131,8 @@ class BcmSwitch : public BcmSwitchIf {
   bool isL2EntryPending(const bcm_l2_addr_t* l2Addr);
 
   bool processChangedIngressPoolCfg(
-      std::optional<state::BufferPoolFields> oldBufferPoolCfgPtr,
-      std::optional<state::BufferPoolFields> newBufferPoolCfgPtr);
+      std::optional<BufferPoolFields> oldBufferPoolCfgPtr,
+      std::optional<BufferPoolFields> newBufferPoolCfgPtr);
 
   void processControlPlaneEntryChanged(
       const std::shared_ptr<ControlPlane>& oldCPU,

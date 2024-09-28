@@ -10,6 +10,7 @@
 #pragma once
 
 #include "fboss/agent/gen-cpp2/switch_state_types.h"
+#include "fboss/agent/if/gen-cpp2/common_types.h"
 #include "fboss/agent/state/BufferPoolConfig.h"
 #include "fboss/agent/state/NodeMap.h"
 #include "fboss/agent/state/Thrifty.h"
@@ -20,8 +21,7 @@ namespace facebook::fboss {
 using BufferPoolCfgMapTypeClass = apache::thrift::type_class::map<
     apache::thrift::type_class::string,
     apache::thrift::type_class::structure>;
-using BufferPoolCfgMapThriftType =
-    std::map<std::string, state::BufferPoolFields>;
+using BufferPoolCfgMapThriftType = std::map<std::string, BufferPoolFields>;
 
 class BufferPoolCfgMap;
 using BufferPoolCfgMapTraits = ThriftMapNodeTraits<

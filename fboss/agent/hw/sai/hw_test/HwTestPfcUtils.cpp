@@ -278,7 +278,7 @@ void checkSwHwPgCfgMatch(
     const auto bufferPool =
         pgConfig->cref<switch_state_tags::bufferPoolConfig>();
     EXPECT_EQ(
-        bufferPool->cref<switch_state_tags::headroomBytes>()->cref() *
+        bufferPool->cref<common_if_tags::headroomBytes>()->cref() *
             static_cast<const SaiSwitch*>(hw)
                 ->getPlatform()
                 ->getAsic()

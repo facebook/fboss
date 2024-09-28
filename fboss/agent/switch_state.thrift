@@ -19,13 +19,6 @@ struct VlanInfo {
   1: bool tagged;
 }
 
-struct BufferPoolFields {
-  1: string id;
-  2: optional i32 headroomBytes;
-  3: i32 sharedBytes;
-  4: optional i32 reservedBytes;
-}
-
 struct PortPgFields {
   1: i16 id;
   2: i32 minLimitBytes;
@@ -34,7 +27,7 @@ struct PortPgFields {
   5: optional i32 resumeOffsetBytes;
   6: string bufferPoolName;
   7: optional string scalingFactor;
-  8: optional BufferPoolFields bufferPoolConfig;
+  8: optional common.BufferPoolFields bufferPoolConfig;
 }
 
 struct MKASakKey {
@@ -618,7 +611,10 @@ struct SwitchState {
   101: map<SwitchIdList, map<i16, VlanFields>> vlanMaps;
   102: map<SwitchIdList, map<string, AclEntryFields>> aclMaps;
   103: map<SwitchIdList, map<i16, TransceiverSpecFields>> transceiverMaps;
-  104: map<SwitchIdList, map<string, BufferPoolFields>> bufferPoolCfgMaps;
+  104: map<
+    SwitchIdList,
+    map<string, common.BufferPoolFields>
+  > bufferPoolCfgMaps;
   105: map<SwitchIdList, map<string, MirrorFields>> mirrorMaps;
   106: map<SwitchIdList, ControlPlaneFields> controlPlaneMap;
   107: map<SwitchIdList, SwitchSettingsFields> switchSettingsMap;

@@ -116,14 +116,13 @@ class SaiBufferManager {
       const PortPgConfig* portPgCfg);
   void setupEgressBufferPool();
   void setupEgressBufferPool(
-      const std::optional<state::BufferPoolFields>& bufferPoolCfg);
+      const std::optional<BufferPoolFields>& bufferPoolCfg);
   void setupIngressBufferPool(
       const std::string& bufferPoolName,
-      const state::BufferPoolFields& bufferPoolCfg);
+      const BufferPoolFields& bufferPoolCfg);
   void setupIngressEgressBufferPool(
       const std::optional<std::string>& bufferPoolName = std::nullopt,
-      const std::optional<state::BufferPoolFields>& ingressPgCfg =
-          std::nullopt);
+      const std::optional<BufferPoolFields>& ingressPgCfg = std::nullopt);
   void createOrUpdateIngressEgressBufferPool(
       uint64_t poolSize,
       std::optional<int32_t> newXoffSize);

@@ -13,6 +13,7 @@
 #include <utility>
 
 #include "fboss/agent/gen-cpp2/switch_state_types.h"
+#include "fboss/agent/if/gen-cpp2/common_types.h"
 #include "fboss/agent/state/NodeBase.h"
 #include "fboss/agent/state/Thrifty.h"
 #include "fboss/agent/types.h"
@@ -23,54 +24,53 @@ USE_THRIFT_COW(BufferPoolCfg)
 /*
  * BufferPoolCfg stores the buffer pool related properites as need by {port, PG}
  */
-class BufferPoolCfg
-    : public ThriftStructNode<BufferPoolCfg, state::BufferPoolFields> {
+class BufferPoolCfg : public ThriftStructNode<BufferPoolCfg, BufferPoolFields> {
  public:
-  using BaseT = ThriftStructNode<BufferPoolCfg, state::BufferPoolFields>;
+  using BaseT = ThriftStructNode<BufferPoolCfg, BufferPoolFields>;
 
   explicit BufferPoolCfg(const std::string& id) {
-    set<switch_state_tags::id>(id);
+    set<common_if_tags::id>(id);
   }
   BufferPoolCfg(const std::string& id, int sharedBytes, int headroomBytes) {
-    set<switch_state_tags::id>(id);
+    set<common_if_tags::id>(id);
     setSharedBytes(sharedBytes);
     setHeadroomBytes(headroomBytes);
   }
   int getSharedBytes() const {
-    return get<switch_state_tags::sharedBytes>()->cref();
+    return get<common_if_tags::sharedBytes>()->cref();
   }
 
   std::optional<int> getHeadroomBytes() const {
-    if (auto headroomBytes = safe_cref<switch_state_tags::headroomBytes>()) {
+    if (auto headroomBytes = safe_cref<common_if_tags::headroomBytes>()) {
       return headroomBytes->toThrift();
     }
     return std::nullopt;
   }
 
   std::optional<int> getReservedBytes() const {
-    if (auto reservedBytes = safe_cref<switch_state_tags::reservedBytes>()) {
+    if (auto reservedBytes = safe_cref<common_if_tags::reservedBytes>()) {
       return reservedBytes->toThrift();
     }
     return std::nullopt;
   }
 
   const std::string& getID() const {
-    return cref<switch_state_tags::id>()->cref();
+    return cref<common_if_tags::id>()->cref();
   }
 
   void setHeadroomBytes(int headroomBytes) {
-    set<switch_state_tags::headroomBytes>(headroomBytes);
+    set<common_if_tags::headroomBytes>(headroomBytes);
   }
 
   void setSharedBytes(int sharedBytes) {
-    set<switch_state_tags::sharedBytes>(sharedBytes);
+    set<common_if_tags::sharedBytes>(sharedBytes);
   }
 
   void setReservedBytes(std::optional<int> reservedBytes) {
     if (reservedBytes) {
-      set<switch_state_tags::reservedBytes>(*reservedBytes);
+      set<common_if_tags::reservedBytes>(*reservedBytes);
     } else {
-      ref<switch_state_tags::reservedBytes>().reset();
+      ref<common_if_tags::reservedBytes>().reset();
     }
   }
 
