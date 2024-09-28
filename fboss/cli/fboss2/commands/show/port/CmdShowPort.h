@@ -121,6 +121,10 @@ class CmdShowPort : public CmdHandler<CmdShowPort, CmdShowPortTraits> {
             fmt::format("ProfileID:      \t\t {}", portInfo.get_profileId()));
         detailedOutput.emplace_back(
             fmt::format("ProfileID:      \t\t {}", hwLogicalPortId));
+        detailedOutput.emplace_back(
+            fmt::format("Core ID:             \t\t {}", portInfo.get_coreId()));
+        detailedOutput.emplace_back(fmt::format(
+            "Virtual device ID:    \t\t {}", portInfo.get_virtualDeviceId()));
         if (portInfo.get_pause()) {
           detailedOutput.emplace_back(
               fmt::format("Pause:          \t\t {}", *portInfo.get_pause()));
