@@ -19,6 +19,7 @@ struct OpticsSidePerformanceMonitoringThresholds {
   OpticsThresholdRange pam4eSnr;
   OpticsThresholdRange pam4Ltp;
   OpticsThresholdRange preFecBer;
+  OpticsThresholdRange fecTailMax;
 };
 
 struct OpticsPerformanceMonitoringThresholds {
@@ -30,17 +31,76 @@ struct OpticsPerformanceMonitoringThresholds {
 struct OpticsPerformanceMonitoringThresholds kCmisOpticsThresholds = {
     .mediaThresholds =
         {
-            .pam4eSnr = {19.0, 49.0},
+            .pam4eSnr = {FLAGS_link_stress_test ? 20.0 : 19.0, 49.0},
             .pam4Ltp = {33.0, 99.0},
-            .preFecBer = {0, 2.4e-5},
+            .preFecBer = {0, FLAGS_link_stress_test ? 5.0e-7 : 2.4e-5},
+            .fecTailMax = {0, FLAGS_link_stress_test ? 11.0 : 14.0},
         },
     .hostThresholds =
         {
-            .pam4eSnr = {19.0, 49.0},
+            .pam4eSnr = {FLAGS_link_stress_test ? 20.0 : 19.0, 49.0},
             .pam4Ltp = {33.0, 99.0},
-            .preFecBer = {0, 2.4e-5},
+            .preFecBer = {0, FLAGS_link_stress_test ? 5.0e-7 : 2.4e-5},
+            .fecTailMax = {0, FLAGS_link_stress_test ? 11.0 : 14.0},
         },
 };
+
+void validateVdm(
+    const std::map<int, TransceiverInfo>& transceiverInfos,
+    const std::vector<int>& tcvrsToTest) {
+  auto validatePerfMon =
+      [](const std::string& portName,
+         phy::Side side,
+         const VdmPerfMonitorPortSideStats& vdmPerfMon,
+         OpticsSidePerformanceMonitoringThresholds thresholds) {
+        auto& preFecBer = vdmPerfMon.get_datapathBER();
+        // Fec tail is not implemented on all modules that support VDM. FEC tail
+        // is available starting CMIS 5.0 (2x400G-[D|F]R4)
+        auto fecTailMax = vdmPerfMon.fecTailMax().value_or({});
+        auto& laneSnr = vdmPerfMon.get_laneSNR();
+        auto& lanePam4Ltp = vdmPerfMon.get_lanePam4LTP();
+
+        XLOG(DBG2) << "Validating VDM performance monitoring for " << portName
+                   << ", side: " << apache::thrift::util::enumNameSafe(side);
+        EXPECT_LE(preFecBer.get_max(), thresholds.preFecBer.maxThreshold)
+            << folly::sformat(
+                   "PreFecBer Max for {} is {}", portName, preFecBer.get_max());
+        EXPECT_LE(fecTailMax, thresholds.fecTailMax.maxThreshold)
+            << folly::sformat("FecTail Max for {} is {}", portName, fecTailMax);
+        for (auto& [lane, snr] : laneSnr) {
+          EXPECT_GE(snr, thresholds.pam4eSnr.minThreshold) << folly::sformat(
+              "SNR for lane {} on {} is {}", lane, portName, snr);
+        }
+        for (auto& [lane, ltp] : lanePam4Ltp) {
+          EXPECT_GE(ltp, thresholds.pam4Ltp.minThreshold) << folly::sformat(
+              "LTP for lane {} on {} is {}", lane, portName, ltp);
+        }
+      };
+
+  for (const auto& tcvrId : tcvrsToTest) {
+    auto txInfoItr = transceiverInfos.find(tcvrId);
+    ASSERT_TRUE(txInfoItr != transceiverInfos.end());
+    auto vdmPerfMonitorStats =
+        txInfoItr->second.tcvrStats()->vdmPerfMonitorStats();
+    ASSERT_TRUE(vdmPerfMonitorStats.has_value());
+    auto& mediaStats = vdmPerfMonitorStats->get_mediaPortVdmStats();
+    auto& hostStats = vdmPerfMonitorStats->get_hostPortVdmStats();
+
+    auto validateSideStats =
+        [&, validatePerfMon](
+            const std::map<std::string, VdmPerfMonitorPortSideStats>& sideStat,
+            phy::Side side,
+            OpticsSidePerformanceMonitoringThresholds threshold) {
+          for (auto& [portName, vdmPerfMon] : sideStat) {
+            validatePerfMon(portName, side, vdmPerfMon, threshold);
+          }
+        };
+    validateSideStats(
+        mediaStats, phy::Side::LINE, kCmisOpticsThresholds.mediaThresholds);
+    validateSideStats(
+        hostStats, phy::Side::SYSTEM, kCmisOpticsThresholds.hostThresholds);
+  }
+}
 
 } // namespace
 
@@ -245,79 +305,37 @@ TEST_F(AgentEnsembleLinkTest, opticsVdmPerformanceMonitoring) {
     allTestPorts.push_back(portPair.second);
   }
 
-  // 2. Wait till we have data for 20 seconds
-  // The qsfp_service cache refresh may not happen at exactly in 20 seconds so
-  // we read the TransceiverInfo time and then wait till we get 20 second later
-  // data
-  std::vector<int32_t> transceiverIds;
+  std::unordered_set<int32_t> transceiverIdSet;
   for (const auto& port : allTestPorts) {
     auto tcvrId =
         getSw()->getPlatformMapping()->getTransceiverIdFromSwPort(port);
-    transceiverIds.push_back(tcvrId);
+    transceiverIdSet.insert(tcvrId);
   }
+  std::vector<int32_t> transceiverIds(
+      transceiverIdSet.begin(), transceiverIdSet.end());
   auto transceiverInfos = utility::waitForTransceiverInfo(transceiverIds);
-  auto startTime =
-      transceiverInfos.begin()->second.tcvrStats()->timeCollected().value();
 
   transceiverInfos = utility::waitForTransceiverInfo(transceiverIds);
 
-  WITH_RETRIES_N_TIMED(10, std::chrono::seconds(5), {
+  std::time_t startTime = std::time(nullptr);
+  // 2. Wait for a VDM interval to begin starting now and a transceiverInfo
+  // update to finish after the start of VDM interval. This skips any noise from
+  // the initial interval during the time of link up
+  WITH_RETRIES_N_TIMED(20, std::chrono::seconds(5), {
     transceiverInfos = utility::waitForTransceiverInfo(transceiverIds);
-    auto endTime =
-        transceiverInfos.begin()->second.tcvrStats()->timeCollected().value();
-    ASSERT_EVENTUALLY_GT(endTime, startTime + 20);
+    auto vdmStat =
+        transceiverInfos.begin()->second.tcvrStats()->vdmPerfMonitorStats();
+    ASSERT_EVENTUALLY_TRUE(vdmStat.has_value());
+    ASSERT_EVENTUALLY_GT(vdmStat->get_intervalStartTime(), startTime);
+    ASSERT_EVENTUALLY_GT(
+        vdmStat->get_statsCollectionTme(), vdmStat->get_intervalStartTime());
   });
 
-  // 3. Get the TransceiverInfo from qsfp_service
-  XLOG(DBG2)
-      << "opticsVdmPerformanceMonitoring: Got TransceiverInfo 20sec data from qsfp_service";
-
   // 4. validate the VDM Performance Monitoring parameters within the threshold
-  for (const auto& tcvrId : transceiverIds) {
-    auto txInfoItr = transceiverInfos.find(tcvrId);
-    if (txInfoItr != transceiverInfos.end()) {
-      EXPECT_TRUE(txInfoItr->second.tcvrStats()->vdmDiagsStats().has_value());
-      XLOG(DBG2) << "Tcvr Id " << tcvrId
-                 << " Checking for Line/Host BER, Line SNR";
-
-      auto preFecBerMediaMax = txInfoItr->second.tcvrStats()
-                                   ->vdmDiagsStats()
-                                   .value()
-                                   .preFecBerMediaMax()
-                                   .value();
-      EXPECT_LE(
-          preFecBerMediaMax,
-          kCmisOpticsThresholds.mediaThresholds.preFecBer.maxThreshold);
-
-      auto preFecBerHostMax = txInfoItr->second.tcvrStats()
-                                  ->vdmDiagsStats()
-                                  .value()
-                                  .preFecBerHostMax()
-                                  .value();
-      EXPECT_LE(
-          preFecBerHostMax,
-          kCmisOpticsThresholds.hostThresholds.preFecBer.maxThreshold);
-
-      auto& snrMediaPerChannel = txInfoItr->second.tcvrStats()
-                                     ->vdmDiagsStats()
-                                     .value()
-                                     .eSnrMediaChannel()
-                                     .value();
-      for (auto& [channel, channelSnr] : snrMediaPerChannel) {
-        EXPECT_GE(
-            channelSnr,
-            kCmisOpticsThresholds.mediaThresholds.pam4eSnr.minThreshold);
-      }
-      auto& ltpMediaPerChannel = txInfoItr->second.tcvrStats()
-                                     ->vdmDiagsStats()
-                                     .value()
-                                     .pam4LtpMediaChannel()
-                                     .value();
-      for (auto& [channel, channelLtp] : ltpMediaPerChannel) {
-        EXPECT_GE(
-            channelLtp,
-            kCmisOpticsThresholds.mediaThresholds.pam4Ltp.minThreshold);
-      }
-    }
-  }
+  int testIterations = FLAGS_link_stress_test ? 60 : 1;
+  do {
+    validateVdm(transceiverInfos, transceiverIds);
+    /* sleep override */ std::this_thread::sleep_for(10s);
+    transceiverInfos = utility::waitForTransceiverInfo(transceiverIds);
+  } while (testIterations-- && !::testing::Test::HasFailure());
 }
