@@ -55,6 +55,11 @@ DEFINE_string(
     "/etc/packages/neteng-fboss-wedge_agent/current",
     "Path to load the firmware");
 
+DEFINE_bool(
+    enable_delay_drop_congestion_threshold,
+    false,
+    "Enable new delay drop congestion threshold in CGM");
+
 namespace {
 
 std::unordered_map<std::string, std::string> kSaiProfileValues;
@@ -580,6 +585,16 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
     routeNoImplicitMetaData = true;
   }
 #endif
+  std::optional<SaiSwitchTraits::Attributes::DelayDropCongThreshold>
+      delayDropCongThreshold{std::nullopt};
+#if defined(TAJO_SDK_VERSION_1_42_8)
+  if (getAsic()->isSupported(
+          HwAsic::Feature::ENABLE_DELAY_DROP_CONGESTION_THRESHOLD) &&
+      FLAGS_enable_delay_drop_congestion_threshold) {
+    XLOG(DBG2) << "Enable new CGM delay drop congestion thresholds";
+    delayDropCongThreshold = 1;
+  }
+#endif
 
   return {
       initSwitch,
@@ -643,7 +658,7 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
       std::nullopt, // ARS profile
 #endif
       std::nullopt, // ReachabilityGroupList
-      std::nullopt, // Delay Drop Cong Threshold
+      delayDropCongThreshold, // Delay Drop Cong Threshold
   };
 }
 
