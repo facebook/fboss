@@ -643,6 +643,7 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
       std::nullopt, // ARS profile
 #endif
       std::nullopt, // ReachabilityGroupList
+      std::nullopt, // Delay Drop Cong Threshold
   };
 }
 
