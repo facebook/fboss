@@ -266,12 +266,6 @@
           "test_name_regex": "HwTrafficPfcTest.PfcWatchdog.*"
         },
         {
-          "test_name_regex": "HwTrafficPfcTest.verifyPfcWithGlobalHeadRoomToZero"
-        },
-        {
-          "test_name_regex": "HwTrafficPfcTest.verifyPfcWithPGHeadRoomToZero"
-        },
-        {
           "test_name_regex": "HwTrafficPfcTest/HwTrafficPfcGenTest.verifyPfc/WithZeroPgHeadRoomCfg"
         },
         {
@@ -872,12 +866,6 @@
         },
         {
           "test_name_regex": "HwTrafficPfcTest.PfcWatchdog.*"
-        },
-        {
-          "test_name_regex": "HwTrafficPfcTest.verifyPfcWithGlobalHeadRoomToZero"
-        },
-        {
-          "test_name_regex": "HwTrafficPfcTest.verifyPfcWithPGHeadRoomToZero"
         },
         {
           "test_name_regex": "HwTrafficPfcTest/HwTrafficPfcGenTest.verifyPfc/WithZeroPgHeadRoomCfg"
@@ -2150,12 +2138,6 @@
           "test_name_regex": "HwTrafficPfcTest.PfcWatchdog.*"
         },
         {
-          "test_name_regex": "HwTrafficPfcTest.verifyPfcWithGlobalHeadRoomToZero"
-        },
-        {
-          "test_name_regex": "HwTrafficPfcTest.verifyPfcWithPGHeadRoomToZero"
-        },
-        {
           "test_name_regex": "HwTrafficPfcTest/HwTrafficPfcGenTest.verifyPfc/WithZeroPgHeadRoomCfg"
         },
         {
@@ -2447,12 +2429,6 @@
         },
         {
           "test_name_regex": "HwTrafficPfcTest.PfcWatchdog.*"
-        },
-        {
-          "test_name_regex": "HwTrafficPfcTest.verifyPfcWithGlobalHeadRoomToZero"
-        },
-        {
-          "test_name_regex": "HwTrafficPfcTest.verifyPfcWithPGHeadRoomToZero"
         },
         {
           "test_name_regex": "HwTrafficPfcTest/HwTrafficPfcGenTest.verifyPfc/WithZeroPgHeadRoomCfg"
@@ -2989,12 +2965,6 @@
         },
         {
           "test_name_regex": "HwTrafficPfcTest.PfcWatchdog.*"
-        },
-        {
-          "test_name_regex": "HwTrafficPfcTest.verifyPfcWithGlobalHeadRoomToZero"
-        },
-        {
-          "test_name_regex": "HwTrafficPfcTest.verifyPfcWithPGHeadRoomToZero"
         },
         {
           "test_name_regex": "HwTrafficPfcTest/HwTrafficPfcGenTest.verifyPfc/WithZeroPgHeadRoomCfg"
@@ -4951,12 +4921,6 @@
           "test_name_regex": "HwTrafficPfcTest.PfcWatchdog.*"
         },
         {
-          "test_name_regex": "HwTrafficPfcTest.verifyPfcWithGlobalHeadRoomToZero"
-        },
-        {
-          "test_name_regex": "HwTrafficPfcTest.verifyPfcWithPGHeadRoomToZero"
-        },
-        {
           "test_name_regex": "HwTrafficPfcTest/HwTrafficPfcGenTest.verifyPfc/WithZeroPgHeadRoomCfg"
         },
         {
@@ -5245,12 +5209,6 @@
         },
         {
           "test_name_regex": "HwTrafficPfcTest.PfcWatchdog.*"
-        },
-        {
-          "test_name_regex": "HwTrafficPfcTest.verifyPfcWithGlobalHeadRoomToZero"
-        },
-        {
-          "test_name_regex": "HwTrafficPfcTest.verifyPfcWithPGHeadRoomToZero"
         },
         {
           "test_name_regex": "HwTrafficPfcTest/HwTrafficPfcGenTest.verifyPfc/WithZeroPgHeadRoomCfg"
@@ -6658,12 +6616,6 @@
           "test_name_regex": "HwTrafficPfcTest.PfcWatchdog.*"
         },
         {
-          "test_name_regex": "HwTrafficPfcTest.verifyPfcWithGlobalHeadRoomToZero"
-        },
-        {
-          "test_name_regex": "HwTrafficPfcTest.verifyPfcWithPGHeadRoomToZero"
-        },
-        {
           "test_name_regex": "HwTrafficPfcTest/HwTrafficPfcGenTest.verifyPfc/WithZeroPgHeadRoomCfg"
         },
         {
@@ -6976,12 +6928,6 @@
         },
         {
           "test_name_regex": "HwTrafficPfcTest.PfcWatchdog.*"
-        },
-        {
-          "test_name_regex": "HwTrafficPfcTest.verifyPfcWithGlobalHeadRoomToZero"
-        },
-        {
-          "test_name_regex": "HwTrafficPfcTest.verifyPfcWithPGHeadRoomToZero"
         },
         {
           "test_name_regex": "HwTrafficPfcTest/HwTrafficPfcGenTest.verifyPfc/WithZeroPgHeadRoomCfg"
@@ -7542,12 +7488,6 @@
         },
         {
           "test_name_regex": "HwTrafficPfcTest.PfcWatchdog.*"
-        },
-        {
-          "test_name_regex": "HwTrafficPfcTest.verifyPfcWithGlobalHeadRoomToZero"
-        },
-        {
-          "test_name_regex": "HwTrafficPfcTest.verifyPfcWithPGHeadRoomToZero"
         },
         {
           "test_name_regex": "HwTrafficPfcTest/HwTrafficPfcGenTest.verifyPfc/WithZeroPgHeadRoomCfg"
@@ -8997,12 +8937,6 @@
           "test_name_regex": "HwTrafficPfcTest.PfcWatchdog.*"
         },
         {
-          "test_name_regex": "HwTrafficPfcTest.verifyPfcWithGlobalHeadRoomToZero"
-        },
-        {
-          "test_name_regex": "HwTrafficPfcTest.verifyPfcWithPGHeadRoomToZero"
-        },
-        {
           "test_name_regex": "HwTrafficPfcTest/HwTrafficPfcGenTest.verifyPfc/WithZeroPgHeadRoomCfg"
         },
         {
@@ -9294,12 +9228,6 @@
         },
         {
           "test_name_regex": "HwTrafficPfcTest.PfcWatchdog.*"
-        },
-        {
-          "test_name_regex": "HwTrafficPfcTest.verifyPfcWithGlobalHeadRoomToZero"
-        },
-        {
-          "test_name_regex": "HwTrafficPfcTest.verifyPfcWithPGHeadRoomToZero"
         },
         {
           "test_name_regex": "HwTrafficPfcTest/HwTrafficPfcGenTest.verifyPfc/WithZeroPgHeadRoomCfg"
