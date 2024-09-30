@@ -53,7 +53,8 @@ struct SaiBufferPoolTraits {
       Attributes::Size,
       Attributes::ThresholdMode,
       std::optional<Attributes::XoffSize>>;
-  using AdapterHostKey = CreateAttributes;
+  using AdapterHostKey =
+      std::tuple<Attributes::Type, Attributes::Size, Attributes::ThresholdMode>;
 
   static constexpr std::array<sai_stat_id_t, 1> CounterIdsToReadAndClear = {
       SAI_BUFFER_POOL_STAT_WATERMARK_BYTES,

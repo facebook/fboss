@@ -88,7 +88,11 @@ TEST_F(BufferStoreTest, loadBufferPool) {
   SaiStore s(0);
   s.reload();
   auto& store = s.get<SaiBufferPoolTraits>();
-  auto got = store.get(createPoolAttrs());
+  SaiBufferPoolTraits::AdapterHostKey k = tupleProjection<
+      SaiBufferPoolTraits::CreateAttributes,
+      SaiBufferPoolTraits::AdapterHostKey>(createPoolAttrs());
+  auto got = store.get(k);
+
   EXPECT_EQ(got->adapterKey(), poolId);
   EXPECT_EQ(
       std::get<SaiBufferPoolTraits::Attributes::ThresholdMode>(
@@ -117,7 +121,10 @@ TEST_F(BufferStoreTest, loadBufferPoolFromJson) {
   SaiStore s2(0);
   s2.reload(&json);
   auto& store = s2.get<SaiBufferPoolTraits>();
-  auto got = store.get(createPoolAttrs());
+  SaiBufferPoolTraits::AdapterHostKey k = tupleProjection<
+      SaiBufferPoolTraits::CreateAttributes,
+      SaiBufferPoolTraits::AdapterHostKey>(createPoolAttrs());
+  auto got = store.get(k);
   EXPECT_EQ(got->adapterKey(), poolId);
   EXPECT_EQ(
       std::get<SaiBufferPoolTraits::Attributes::ThresholdMode>(
@@ -159,7 +166,10 @@ TEST_F(BufferStoreTest, bufferProfileLoadCtor) {
 
 TEST_F(BufferStoreTest, bufferPoolCreateCtor) {
   auto c = createPoolAttrs();
-  SaiObject<SaiBufferPoolTraits> obj = createObj<SaiBufferPoolTraits>(c, c, 0);
+  SaiBufferPoolTraits::AdapterHostKey k = tupleProjection<
+      SaiBufferPoolTraits::CreateAttributes,
+      SaiBufferPoolTraits::AdapterHostKey>(c);
+  SaiObject<SaiBufferPoolTraits> obj = createObj<SaiBufferPoolTraits>(k, c, 0);
   EXPECT_EQ(GET_ATTR(BufferPool, Size, obj.attributes()), 42);
 }
 

@@ -167,7 +167,7 @@ void SaiBufferManager::setupEgressBufferPool(
   }
   assertMaxBufferPoolSize(platform_);
   uint64_t poolSize;
-  std::optional<SaiBufferPoolTraits::Attributes::XoffSize> xoffSize{0};
+  std::optional<SaiBufferPoolTraits::Attributes::XoffSize> xoffSize;
   if (bufferPoolCfg.has_value() && *bufferPoolCfg->sharedBytes()) {
     // TODO: Account for reserved once available
     poolSize = *bufferPoolCfg->sharedBytes();
