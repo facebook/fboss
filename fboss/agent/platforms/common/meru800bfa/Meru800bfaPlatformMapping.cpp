@@ -20,7 +20,13 @@ namespace {
 static const std::string getPlatformMappingStr(bool multiNpuPlatformMapping) {
   auto productInfo =
       std::make_unique<PlatformProductInfo>(FLAGS_fruid_filepath);
-  productInfo->initialize();
+  try {
+    productInfo->initialize();
+  } catch (const std::exception& ex) {
+    // Expected when fruid file is not of a switch (eg: on devservers)
+    XLOG(INFO) << "Couldn't initialize platform mapping " << ex.what();
+  }
+
   auto productVersion = productInfo->getProductVersion();
   XLOG(INFO) << "Product version: " << productVersion;
   if (productVersion < 4 && multiNpuPlatformMapping) {
