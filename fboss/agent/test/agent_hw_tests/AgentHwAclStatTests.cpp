@@ -100,4 +100,105 @@ TEST_F(AgentHwAclStatTest, AclStatCreateDeleteCreate) {
   this->verifyAcrossWarmBoots(setup, verify);
 }
 
+TEST_F(AgentHwAclStatTest, AclStatChangeCounterType) {
+  auto setup = [=, this]() {
+    auto& ensemble = *getAgentEnsemble();
+    auto newCfg = initialConfig(ensemble);
+    addDscpAcl(&newCfg, "acl0");
+    utility::addAclStat(&newCfg, "acl0", "stat0", {cfg::CounterType::PACKETS});
+    this->applyNewConfig(newCfg);
+  };
+
+  auto verify = [=, this]() {
+    auto& ensemble = *getAgentEnsemble();
+    auto client = ensemble.getHwAgentTestClient(SwitchID(0));
+
+    EXPECT_TRUE(client->sync_isStatProgrammedInDefaultAclTable(
+        {"acl0"}, {"stat0"}, {cfg::CounterType::PACKETS}));
+  };
+
+  auto setupPostWB = [=, this]() {
+    auto& ensemble = *getAgentEnsemble();
+    auto newCfg = initialConfig(ensemble);
+    addDscpAcl(&newCfg, "acl0");
+    utility::addAclStat(&newCfg, "acl0", "stat0", {cfg::CounterType::BYTES});
+    this->applyNewConfig(newCfg);
+  };
+
+  auto verifyPostWB = [=, this]() {
+    auto& ensemble = *getAgentEnsemble();
+    auto client = ensemble.getHwAgentTestClient(SwitchID(0));
+
+    EXPECT_TRUE(client->sync_isStatProgrammedInDefaultAclTable(
+        {"acl0"}, {"stat0"}, {cfg::CounterType::BYTES}));
+  };
+  verifyAcrossWarmBoots(setup, verify, setupPostWB, verifyPostWB);
+}
+
+TEST_F(AgentHwAclStatTest, AclStatCreateShared) {
+  auto setup = [=, this]() {
+    auto& ensemble = *getAgentEnsemble();
+    auto newCfg = initialConfig(ensemble);
+    addDscpAcl(&newCfg, "acl0");
+    addDscpAcl(&newCfg, "acl1");
+    utility::addAclStat(
+        &newCfg,
+        "acl0",
+        "stat",
+        utility::getAclCounterTypes(ensemble.getHwAsicTable()->getL3Asics()));
+    utility::addAclStat(
+        &newCfg,
+        "acl1",
+        "stat",
+        utility::getAclCounterTypes(ensemble.getHwAsicTable()->getL3Asics()));
+    applyNewConfig(newCfg);
+  };
+
+  auto verify = [=, this]() {
+    auto& ensemble = *getAgentEnsemble();
+    auto client = ensemble.getHwAgentTestClient(SwitchID(0));
+    EXPECT_TRUE(client->sync_isStatProgrammedInDefaultAclTable(
+        {"acl0", "acl1"},
+        {"stat"},
+        utility::getAclCounterTypes(ensemble.getHwAsicTable()->getL3Asics())));
+  };
+
+  this->verifyAcrossWarmBoots(setup, verify);
+}
+
+TEST_F(AgentHwAclStatTest, AclStatCreateMultiple) {
+  auto setup = [=, this]() {
+    auto& ensemble = *getAgentEnsemble();
+    auto newCfg = initialConfig(ensemble);
+    addDscpAcl(&newCfg, "acl0");
+    addDscpAcl(&newCfg, "acl1");
+    utility::addAclStat(
+        &newCfg,
+        "acl0",
+        "stat0",
+        utility::getAclCounterTypes(ensemble.getHwAsicTable()->getL3Asics()));
+    utility::addAclStat(
+        &newCfg,
+        "acl1",
+        "stat1",
+        utility::getAclCounterTypes(ensemble.getHwAsicTable()->getL3Asics()));
+    applyNewConfig(newCfg);
+  };
+
+  auto verify = [=, this]() {
+    auto& ensemble = *getAgentEnsemble();
+    auto client = ensemble.getHwAgentTestClient(SwitchID(0));
+    EXPECT_TRUE(client->sync_isStatProgrammedInDefaultAclTable(
+        {"acl0"},
+        "stat0",
+        utility::getAclCounterTypes(ensemble.getHwAsicTable()->getL3Asics())));
+    EXPECT_TRUE(client->sync_isStatProgrammedInDefaultAclTable(
+        {"acl1"},
+        "stat1",
+        utility::getAclCounterTypes(ensemble.getHwAsicTable()->getL3Asics())));
+  };
+
+  this->verifyAcrossWarmBoots(setup, verify);
+}
+
 } // namespace facebook::fboss
