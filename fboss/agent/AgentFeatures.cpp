@@ -121,3 +121,8 @@ DEFINE_bool(
     exit_for_any_hw_disconnect,
     false,
     "Flag to indicate whether SwSwitch will crash if any hw switch connection is lost. This will be used in tests to ensure all hw agent running.");
+
+DEFINE_bool(
+    enable_balanced_intput_mode,
+    true,
+    "Enable balanced input mode on fabric devices");

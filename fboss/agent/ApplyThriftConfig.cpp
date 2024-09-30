@@ -20,6 +20,7 @@
 
 #include "fboss/agent/AclNexthopHandler.h"
 
+#include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/HwAsicTable.h"
@@ -802,7 +803,7 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
   {
     // Update reachability group setting for input balanced
     auto localFabricSwitchIds = getLocalFabricSwitchIds();
-    if (!localFabricSwitchIds.empty()) {
+    if (FLAGS_enable_balanced_intput_mode && !localFabricSwitchIds.empty()) {
       processReachabilityGroup(localFabricSwitchIds);
     }
   }
