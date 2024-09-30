@@ -47,8 +47,8 @@ class FabricConnectivityManagerTest : public ::testing::Test {
   std::shared_ptr<DsfNode> makeDsfNode(
       int64_t switchId,
       std::string name,
-      cfg::AsicType asicType = cfg::AsicType::ASIC_TYPE_RAMON,
-      PlatformType platformType = PlatformType::PLATFORM_MERU400BFU) {
+      cfg::AsicType asicType = cfg::AsicType::ASIC_TYPE_RAMON3,
+      PlatformType platformType = PlatformType::PLATFORM_MERU800BFA) {
     auto dsfNode = std::make_shared<DsfNode>(SwitchID(switchId));
     auto cfgDsfNode = makeDsfNodeCfg(switchId, name);
     cfgDsfNode.asicType() = asicType;
@@ -132,7 +132,7 @@ TEST_F(FabricConnectivityManagerTest, validateRemoteOffset) {
   std::map<PortID, FabricEndpoint> hwConnectivityMap;
   FabricEndpoint endpoint;
   endpoint.portId() =
-      160; // known from platforom mapping for Meru400biuPlatformMapping
+      9; // known from platforom mapping for Meru800biaPlatformMapping
   endpoint.switchId() = 10;
   endpoint.isAttached() = true;
   hwConnectivityMap.emplace(swPort->getID(), endpoint);
@@ -140,8 +140,8 @@ TEST_F(FabricConnectivityManagerTest, validateRemoteOffset) {
   auto dsfNode = makeDsfNode(
       10,
       "rdswA",
-      cfg::AsicType::ASIC_TYPE_JERICHO2,
-      PlatformType::PLATFORM_MERU400BIU);
+      cfg::AsicType::ASIC_TYPE_JERICHO3,
+      PlatformType::PLATFORM_MERU800BIA);
   auto dsfNodeMap = std::make_shared<MultiSwitchDsfNodeMap>();
   dsfNodeMap->addNode(dsfNode, getScope(dsfNode));
   newState->resetDsfNodes(dsfNodeMap);
@@ -155,10 +155,10 @@ TEST_F(FabricConnectivityManagerTest, validateRemoteOffset) {
 
   for (const auto& expectedConnectivity : expectedConnectivityMap) {
     const auto& neighbor = expectedConnectivity.second;
-    // remote offset for jericho2 is 256
-    EXPECT_EQ(neighbor.expectedPortId(), 160);
+    // remote offset for jericho3 is 1024
+    EXPECT_EQ(neighbor.expectedPortId(), 9);
     EXPECT_EQ(neighbor.expectedPortName(), "fab1/9/2");
-    EXPECT_EQ(*neighbor.portId(), 160);
+    EXPECT_EQ(*neighbor.portId(), 9);
     XLOG(ERR) << "foo_bar expected: " << neighbor.expectedPortName().value()
               << " actual: " << neighbor.portName().value();
     EXPECT_EQ(neighbor.expectedPortName(), neighbor.portName());
@@ -177,13 +177,13 @@ TEST_F(FabricConnectivityManagerTest, validateProcessConnectivityInfo) {
 
   std::map<PortID, FabricEndpoint> hwConnectivityMap;
   FabricEndpoint endpoint;
-  endpoint.portId() = 79; // known from platforom mapping for ramon
+  endpoint.portId() = 12; // known from platforom mapping for ramon3
   endpoint.switchId() = 10;
   endpoint.isAttached() = true;
 
   hwConnectivityMap.emplace(swPort->getID(), endpoint);
 
-  auto dsfNode = makeDsfNode(10, "fdswA", cfg::AsicType::ASIC_TYPE_RAMON);
+  auto dsfNode = makeDsfNode(10, "fdswA", cfg::AsicType::ASIC_TYPE_RAMON3);
   auto dsfNodeMap = std::make_shared<MultiSwitchDsfNodeMap>();
   dsfNodeMap->addNode(dsfNode, getScope(dsfNode));
   newState->resetDsfNodes(dsfNodeMap);
@@ -196,7 +196,7 @@ TEST_F(FabricConnectivityManagerTest, validateProcessConnectivityInfo) {
 
   for (const auto& expectedConnectivity : expectedConnectivityMap) {
     const auto& neighbor = expectedConnectivity.second;
-    EXPECT_EQ(neighbor.expectedPortId(), 79);
+    EXPECT_EQ(neighbor.expectedPortId(), 12);
     EXPECT_EQ(neighbor.expectedSwitchId(), 10);
     EXPECT_EQ(neighbor.switchId(), 10);
     EXPECT_EQ(neighbor.expectedSwitchName(), "fdswA");
@@ -240,7 +240,7 @@ TEST_F(FabricConnectivityManagerTest, validateProcessConnectivityInfo) {
 
   for (const auto& expectedConnectivity : expectedConnectivityMap) {
     const auto& neighbor = expectedConnectivity.second;
-    EXPECT_EQ(neighbor.expectedPortId(), 79);
+    EXPECT_EQ(neighbor.expectedPortId(), 12);
     EXPECT_EQ(neighbor.expectedSwitchId(), 10);
     EXPECT_EQ(neighbor.switchId(), 10);
     EXPECT_EQ(neighbor.expectedSwitchName(), "fdswA");
@@ -267,13 +267,13 @@ TEST_F(FabricConnectivityManagerTest, validateNoExpectedConnectivity) {
 
   std::map<PortID, FabricEndpoint> hwConnectivityMap;
   FabricEndpoint endpoint;
-  endpoint.portId() = 79; // known from platforom mapping for ramon
+  endpoint.portId() = 12; // known from platforom mapping for ramon3
   endpoint.switchId() = 10;
   endpoint.isAttached() = true;
 
   hwConnectivityMap.emplace(swPort->getID(), endpoint);
 
-  auto dsfNode = makeDsfNode(10, "fdswA", cfg::AsicType::ASIC_TYPE_RAMON);
+  auto dsfNode = makeDsfNode(10, "fdswA", cfg::AsicType::ASIC_TYPE_RAMON3);
   auto dsfNodeMap = std::make_shared<MultiSwitchDsfNodeMap>();
   dsfNodeMap->addNode(dsfNode, getScope(dsfNode));
   newState->resetDsfNodes(dsfNodeMap);
@@ -312,13 +312,13 @@ TEST_F(FabricConnectivityManagerTest, connectivityRetainedOnPortUpdates) {
 
   std::map<PortID, FabricEndpoint> hwConnectivityMap;
   FabricEndpoint endpoint;
-  endpoint.portId() = 79; // known from platforom mapping for ramon
+  endpoint.portId() = 12; // known from platforom mapping for ramon3
   endpoint.switchId() = 10;
   endpoint.isAttached() = true;
 
   hwConnectivityMap.emplace(swPort->getID(), endpoint);
 
-  auto dsfNode = makeDsfNode(10, "fdswA", cfg::AsicType::ASIC_TYPE_RAMON);
+  auto dsfNode = makeDsfNode(10, "fdswA", cfg::AsicType::ASIC_TYPE_RAMON3);
   auto dsfNodeMap = std::make_shared<MultiSwitchDsfNodeMap>();
   dsfNodeMap->addNode(dsfNode, getScope(dsfNode));
   newState->resetDsfNodes(dsfNodeMap);
@@ -330,7 +330,7 @@ TEST_F(FabricConnectivityManagerTest, connectivityRetainedOnPortUpdates) {
 
   auto prevConnectivityInfo = getCurrentConnectivity(swPort->getID());
   auto assertConnectivity = [](const FabricEndpoint& endpoint) {
-    EXPECT_EQ(endpoint.expectedPortId(), 79);
+    EXPECT_EQ(endpoint.expectedPortId(), 12);
     EXPECT_EQ(endpoint.expectedSwitchId(), 10);
     EXPECT_EQ(endpoint.switchId(), 10);
     EXPECT_EQ(endpoint.expectedSwitchName(), "fdswA");
@@ -552,7 +552,7 @@ TEST_F(FabricConnectivityManagerTest, validateMissingNeighborInfo) {
 TEST_F(FabricConnectivityManagerTest, validateConnectivityDelta) {
   auto oldState = std::make_shared<SwitchState>();
   auto newState = std::make_shared<SwitchState>();
-  constexpr auto kRemotePortId = 79;
+  constexpr auto kRemotePortId = 12;
   constexpr auto kLocalPortId = 1;
 
   // create port with neighbor connectivity
@@ -561,8 +561,8 @@ TEST_F(FabricConnectivityManagerTest, validateConnectivityDelta) {
       createPortNeighbor("fab1/2/4", "fdswA"));
   newState->getPorts()->addNode(swPort, getScope(swPort));
 
-  auto dsfNode10 = makeDsfNode(10, "fdswA", cfg::AsicType::ASIC_TYPE_RAMON);
-  auto dsfNode11 = makeDsfNode(11, "fdswB", cfg::AsicType::ASIC_TYPE_RAMON);
+  auto dsfNode10 = makeDsfNode(10, "fdswA", cfg::AsicType::ASIC_TYPE_RAMON3);
+  auto dsfNode11 = makeDsfNode(11, "fdswB", cfg::AsicType::ASIC_TYPE_RAMON3);
   auto dsfNodeMap = std::make_shared<MultiSwitchDsfNodeMap>();
   dsfNodeMap->addNode(dsfNode10, getScope(dsfNode10));
   dsfNodeMap->addNode(dsfNode11, getScope(dsfNode11));
@@ -570,7 +570,7 @@ TEST_F(FabricConnectivityManagerTest, validateConnectivityDelta) {
   fabricConnectivityManager_->stateUpdated(StateDelta(oldState, newState));
 
   FabricEndpoint endpoint;
-  endpoint.portId() = kRemotePortId; // known from platform mapping for ramon
+  endpoint.portId() = kRemotePortId; // known from platform mapping for ramon3
   endpoint.switchId() = 10;
   endpoint.isAttached() = true;
   // Update connectivity before processing port. Old connectivity should
@@ -613,10 +613,10 @@ TEST_F(FabricConnectivityManagerTest, virtualDeviceToRemoteConnectionGroups) {
     newState->getPorts()->addNode(swPort, getScope(swPort));
   }
 
-  auto dsfNode10 =
-      makeDsfNode(kRemoteSwitchIdBase, "fdswA", cfg::AsicType::ASIC_TYPE_RAMON);
+  auto dsfNode10 = makeDsfNode(
+      kRemoteSwitchIdBase, "fdswA", cfg::AsicType::ASIC_TYPE_RAMON3);
   auto dsfNode11 = makeDsfNode(
-      kRemoteSwitchIdBase + 1, "fdswB", cfg::AsicType::ASIC_TYPE_RAMON);
+      kRemoteSwitchIdBase + 1, "fdswB", cfg::AsicType::ASIC_TYPE_RAMON3);
   auto dsfNodeMap = std::make_shared<MultiSwitchDsfNodeMap>();
   dsfNodeMap->addNode(dsfNode10, getScope(dsfNode10));
   dsfNodeMap->addNode(dsfNode11, getScope(dsfNode11));
