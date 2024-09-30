@@ -6,6 +6,7 @@
 #include "fboss/agent/packet/PktFactory.h"
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
+#include "fboss/agent/test/utils/AsicUtils.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/test/utils/PfcTestUtils.h"
 #include "fboss/agent/test/utils/QosTestUtils.h"
@@ -101,6 +102,67 @@ void validatePfcCountersIncreased(
   for (const auto& portId : portIds) {
     waitPfcCounterIncrease(ensemble, portId, pri);
   }
+}
+
+void validateBufferPoolWatermarkCounters(
+    facebook::fboss::AgentEnsemble* ensemble,
+    const int /* pri */,
+    const std::vector<facebook::fboss::PortID>& /* portIds */) {
+  uint64_t globalHeadroomWatermark{};
+  uint64_t globalSharedWatermark{};
+  WITH_RETRIES({
+    ensemble->getSw()->updateStats();
+    for (const auto& [switchIdx, stats] :
+         ensemble->getSw()->getHwSwitchStatsExpensive()) {
+      for (const auto& [pool, bytes] :
+           *stats.switchWatermarkStats()->globalHeadroomWatermarkBytes()) {
+        globalHeadroomWatermark += bytes;
+      }
+      for (const auto& [pool, bytes] :
+           *stats.switchWatermarkStats()->globalSharedWatermarkBytes()) {
+        globalSharedWatermark += bytes;
+      }
+    }
+    XLOG(DBG0) << "Global headroom watermark: " << globalHeadroomWatermark
+               << ", Global shared watermark: " << globalSharedWatermark;
+    if (ensemble->getSw()->getHwAsicTable()->isFeatureSupportedOnAllAsic(
+            facebook::fboss::HwAsic::Feature::
+                INGRESS_PRIORITY_GROUP_HEADROOM_WATERMARK)) {
+      EXPECT_EVENTUALLY_GT(globalHeadroomWatermark, 0);
+    }
+    EXPECT_EVENTUALLY_GT(globalSharedWatermark, 0);
+  });
+}
+
+void validateIngressPriorityGroupWatermarkCounters(
+    facebook::fboss::AgentEnsemble* ensemble,
+    const int pri,
+    const std::vector<facebook::fboss::PortID>& portIds) {
+  std::string watermarkKeys = "shared";
+  int numKeys = 1;
+  if (ensemble->getSw()->getHwAsicTable()->isFeatureSupportedOnAllAsic(
+          facebook::fboss::HwAsic::Feature::
+              INGRESS_PRIORITY_GROUP_HEADROOM_WATERMARK)) {
+    watermarkKeys.append("|headroom");
+    numKeys++;
+  }
+  WITH_RETRIES({
+    for (const auto& portId : portIds) {
+      const auto& portName = ensemble->getProgrammedState()
+                                 ->getPorts()
+                                 ->getNodeIf(portId)
+                                 ->getName();
+      std::string pg = ensemble->isSai() ? folly::sformat(".pg{}", pri) : "";
+      auto regex = folly::sformat(
+          "buffer_watermark_pg_({}).{}{}.p100.60", watermarkKeys, portName, pg);
+      auto counters = facebook::fb303::fbData->getRegexCounters(regex);
+      CHECK_EQ(counters.size(), numKeys);
+      for (const auto& ctr : counters) {
+        XLOG(DBG0) << ctr.first << " : " << ctr.second;
+        EXPECT_EVENTUALLY_GT(ctr.second, 0);
+      }
+    }
+  });
 }
 
 } // namespace
@@ -243,22 +305,27 @@ class AgentTrafficPfcTest : public AgentHwTest {
     int numPacketsPerFlow = getAgentEnsemble()->getMinPktsForLineRate(
         masterLogicalInterfacePortIds()[0]);
     for (int i = 0; i < numPacketsPerFlow; i++) {
-      for (const auto& dstIp : kDestIps()) {
+      auto ips = kDestIps();
+      for (int j = 0; j < ips.size(); j++) {
         auto txPacket = utility::makeUDPTxPacket(
             getSw(),
             vlanId,
             srcMac,
             intfMac,
             folly::IPAddressV6("2620:0:1cfe:face:b00c::3"),
-            dstIp,
+            ips[j],
             8000,
             8001,
             dscp << 2, // dscp is last 6 bits in TC
             255,
             std::vector<uint8_t>(2000, 0xff));
 
+        // If we don't specify the outgoing port, watermarks sometimes end up as
+        // 0, but it's not clear why.
         getAgentEnsemble()->sendPacketAsync(
-            std::move(txPacket), std::nullopt, std::nullopt);
+            std::move(txPacket),
+            PortDescriptor(masterLogicalInterfacePortIds()[j]),
+            std::nullopt);
       }
     }
   }
@@ -402,6 +469,35 @@ TEST_F(AgentTrafficPfcTest, verifyPfcWithMapChanges_1) {
   const int trafficClass = 7;
   const int pfcPriority = kLosslessPriority;
   runTestWithCfg(trafficClass, pfcPriority, {{trafficClass, pfcPriority}});
+}
+
+TEST_F(AgentTrafficPfcTest, verifyBufferPoolWatermarks) {
+  const int trafficClass = kLosslessTrafficClass;
+  const int pfcPriority = kLosslessPriority;
+  cfg::MMUScalingFactor scalingFactor =
+      utility::checkSameAndGetAsic(getAgentEnsemble()->getL3Asics())
+              ->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO2
+      ? cfg::MMUScalingFactor::ONE_32768TH
+      : cfg::MMUScalingFactor::ONE_64TH;
+  runTestWithCfg(
+      trafficClass,
+      pfcPriority,
+      {},
+      TrafficTestParams{
+          .buffer = PfcBufferParams{.scalingFactor = scalingFactor}},
+      validateBufferPoolWatermarkCounters);
+}
+
+TEST_F(AgentTrafficPfcTest, verifyIngressPriorityGroupWatermarks) {
+  const int trafficClass = kLosslessTrafficClass;
+  const int pfcPriority = kLosslessPriority;
+  runTestWithCfg(
+      trafficClass,
+      pfcPriority,
+      {},
+      TrafficTestParams{
+          .buffer = PfcBufferParams{.scalingFactor = std::nullopt}},
+      validateIngressPriorityGroupWatermarkCounters);
 }
 
 } // namespace facebook::fboss
