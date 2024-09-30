@@ -75,6 +75,20 @@
         "44": 70,
         "47": 85,
         "48": 100
+      },
+      "failUpTable": {
+        "41": 55,
+        "42": 60,
+        "45": 70,
+        "48": 85,
+        "51": 100
+      },
+      "failDownTable": {
+        "38": 55,
+        "41": 60,
+        "44": 70,
+        "47": 85,
+        "48": 100
       }
     },
     {
@@ -106,7 +120,8 @@
       "fanPresentVal": 1,
       "fanMissingVal": 0,
       "fanGoodLedVal": 1,
-      "fanFailLedVal": 2
+      "fanFailLedVal": 2,
+      "rpmMin": 1500
     },
     {
       "fanName": "FANTRAY1_FAN2",
@@ -119,7 +134,8 @@
       "fanPresentVal": 1,
       "fanMissingVal": 0,
       "fanGoodLedVal": 1,
-      "fanFailLedVal": 2
+      "fanFailLedVal": 2,
+      "rpmMin": 1500
     },
     {
       "fanName": "FANTRAY1_FAN3",
@@ -132,7 +148,8 @@
       "fanPresentVal": 1,
       "fanMissingVal": 0,
       "fanGoodLedVal": 1,
-      "fanFailLedVal": 2
+      "fanFailLedVal": 2,
+      "rpmMin": 1500
     },
     {
       "fanName": "FANTRAY1_FAN4",
@@ -145,7 +162,8 @@
       "fanPresentVal": 1,
       "fanMissingVal": 0,
       "fanGoodLedVal": 1,
-      "fanFailLedVal": 2
+      "fanFailLedVal": 2,
+      "rpmMin": 1500
     },
     {
       "fanName": "FANTRAY1_FAN5",
@@ -158,7 +176,8 @@
       "fanPresentVal": 1,
       "fanMissingVal": 0,
       "fanGoodLedVal": 1,
-      "fanFailLedVal": 2
+      "fanFailLedVal": 2,
+      "rpmMin": 1500
     },
     {
       "fanName": "FANTRAY1_FAN6",
@@ -171,7 +190,8 @@
       "fanPresentVal": 1,
       "fanMissingVal": 0,
       "fanGoodLedVal": 1,
-      "fanFailLedVal": 2
+      "fanFailLedVal": 2,
+      "rpmMin": 1500
     },
     {
       "fanName": "FANTRAY1_FAN7",
@@ -184,7 +204,8 @@
       "fanPresentVal": 1,
       "fanMissingVal": 0,
       "fanGoodLedVal": 1,
-      "fanFailLedVal": 2
+      "fanFailLedVal": 2,
+      "rpmMin": 1500
     },
     {
       "fanName": "FANTRAY1_FAN8",
@@ -197,7 +218,8 @@
       "fanPresentVal": 1,
       "fanMissingVal": 0,
       "fanGoodLedVal": 1,
-      "fanFailLedVal": 2
+      "fanFailLedVal": 2,
+      "rpmMin": 1500
     },
     {
       "fanName": "FANTRAY2_FAN1",
@@ -210,7 +232,8 @@
       "fanPresentVal": 1,
       "fanMissingVal": 0,
       "fanGoodLedVal": 1,
-      "fanFailLedVal": 2
+      "fanFailLedVal": 2,
+      "rpmMin": 1500
     },
     {
       "fanName": "FANTRAY2_FAN2",
@@ -223,7 +246,8 @@
       "fanPresentVal": 1,
       "fanMissingVal": 0,
       "fanGoodLedVal": 1,
-      "fanFailLedVal": 2
+      "fanFailLedVal": 2,
+      "rpmMin": 1500
     },
     {
       "fanName": "FANTRAY2_FAN3",
@@ -236,7 +260,8 @@
       "fanPresentVal": 1,
       "fanMissingVal": 0,
       "fanGoodLedVal": 1,
-      "fanFailLedVal": 2
+      "fanFailLedVal": 2,
+      "rpmMin": 1500
     },
     {
       "fanName": "FANTRAY2_FAN4",
@@ -249,7 +274,8 @@
       "fanPresentVal": 1,
       "fanMissingVal": 0,
       "fanGoodLedVal": 1,
-      "fanFailLedVal": 2
+      "fanFailLedVal": 2,
+      "rpmMin": 1500
     },
     {
       "fanName": "FANTRAY2_FAN5",
@@ -262,7 +288,8 @@
       "fanPresentVal": 1,
       "fanMissingVal": 0,
       "fanGoodLedVal": 1,
-      "fanFailLedVal": 2
+      "fanFailLedVal": 2,
+      "rpmMin": 1500
     },
     {
       "fanName": "FANTRAY2_FAN6",
@@ -275,7 +302,8 @@
       "fanPresentVal": 1,
       "fanMissingVal": 0,
       "fanGoodLedVal": 1,
-      "fanFailLedVal": 2
+      "fanFailLedVal": 2,
+      "rpmMin": 1500
     },
     {
       "fanName": "FANTRAY2_FAN7",
@@ -288,7 +316,8 @@
       "fanPresentVal": 1,
       "fanMissingVal": 0,
       "fanGoodLedVal": 1,
-      "fanFailLedVal": 2
+      "fanFailLedVal": 2,
+      "rpmMin": 1500
     },
     {
       "fanName": "FANTRAY2_FAN8",
@@ -301,7 +330,8 @@
       "fanPresentVal": 1,
       "fanMissingVal": 0,
       "fanGoodLedVal": 1,
-      "fanFailLedVal": 2
+      "fanFailLedVal": 2,
+      "rpmMin": 1500
     }
   ],
   "zones": [
