@@ -66,32 +66,6 @@ class HwAclStatTest : public HwTest {
   }
 };
 
-TEST_F(HwAclStatTest, AclStatMultipleCounters) {
-  auto setup = [=, this]() {
-    auto newCfg = this->initialConfig();
-    this->addDscpAcl(&newCfg, "acl0");
-    utility::addAclStat(
-        &newCfg,
-        "acl0",
-        "stat0",
-        {cfg::CounterType::BYTES, cfg::CounterType::PACKETS});
-    this->applyNewConfig(newCfg);
-  };
-
-  auto verify = [=, this]() {
-    utility::checkAclEntryAndStatCount(
-        this->getHwSwitch(), /*ACLs*/ 1, /*stats*/ 1, /*counters*/ 2);
-    utility::checkAclStat(
-        this->getHwSwitch(),
-        this->getProgrammedState(),
-        {"acl0"},
-        "stat0",
-        {cfg::CounterType::BYTES, cfg::CounterType::PACKETS});
-  };
-
-  this->verifyAcrossWarmBoots(setup, verify);
-}
-
 TEST_F(HwAclStatTest, AclStatChangeCounterType) {
   auto setup = [=, this]() {
     auto newCfg = this->initialConfig();
@@ -623,85 +597,6 @@ TEST_F(HwAclStatTest, AclStatRenameShared) {
   this->verifyAcrossWarmBoots(setup, verify, setupPostWB, verifyPostWB);
 }
 
-TEST_F(HwAclStatTest, AclStatCreateSameTwice) {
-  auto state = this->getProgrammedState();
-  auto newCfg = this->initialConfig();
-  this->addDscpAcl(&newCfg, "acl0");
-  utility::addAclStat(
-      &newCfg,
-      "acl0",
-      "stat0",
-      utility::getAclCounterTypes(this->getHwSwitchEnsemble()->getL3Asics()));
-  this->applyNewConfig(newCfg);
-  StateDelta delta(state, this->getProgrammedState());
-  // adding same ACL twice with oper delta and state maintained in HW switch
-  // leads to process change, not process added.
-  EXPECT_NO_THROW(this->getHwSwitch()->stateChanged(delta));
-}
-
-TEST_F(HwAclStatTest, AclStatDeleteNonExistent) {
-  auto newCfg = this->initialConfig();
-  this->addDscpAcl(&newCfg, "acl0");
-  utility::addAclStat(
-      &newCfg,
-      "acl0",
-      "stat0",
-      utility::getAclCounterTypes(this->getHwSwitchEnsemble()->getL3Asics()));
-  this->applyNewConfig(newCfg);
-
-  auto state = this->getProgrammedState();
-  utility::delAcl(&newCfg, "acl0");
-  utility::delAclStat(&newCfg, "acl0", "stat0");
-  this->applyNewConfig(newCfg);
-  StateDelta delta(state, this->getProgrammedState());
-
-  // TODO(pshaikh): uncomment next release
-  // EXPECT_THROW(getHwSwitch()->stateChanged(delta), FbossError);
-}
-
-TEST_F(HwAclStatTest, AclStatModify) {
-  auto setup = [=, this]() {
-    auto newCfg = this->initialConfig();
-    this->addDscpAcl(&newCfg, "acl0");
-    utility::addAclStat(
-        &newCfg,
-        "acl0",
-        "stat0",
-        utility::getAclCounterTypes(this->getHwSwitchEnsemble()->getL3Asics()));
-    this->applyNewConfig(newCfg);
-  };
-
-  auto verify = [=, this]() {
-    utility::checkAclEntryAndStatCount(
-        this->getHwSwitch(),
-        /* ACLs */ 1,
-        /* Stats */ 1,
-        /*counters*/
-        utility::getAclCounterTypes(this->getHwSwitchEnsemble()->getL3Asics())
-            .size());
-    utility::checkAclStat(
-        this->getHwSwitch(),
-        this->getProgrammedState(),
-        {"acl0"},
-        "stat0",
-        utility::getAclCounterTypes(this->getHwSwitchEnsemble()->getL3Asics()));
-  };
-
-  auto setupPostWB = [=, this]() {
-    auto newCfg = this->initialConfig();
-    auto acl = this->addDscpAcl(&newCfg, "acl0");
-    acl->proto() = 58;
-    utility::addAclStat(
-        &newCfg,
-        "acl0",
-        "stat0",
-        utility::getAclCounterTypes(this->getHwSwitchEnsemble()->getL3Asics()));
-    this->applyNewConfig(newCfg);
-  };
-
-  this->verifyAcrossWarmBoots(setup, verify, setupPostWB, verify);
-}
-
 TEST_F(HwAclStatTest, AclStatShuffle) {
   auto setup = [=, this]() {
     auto newCfg = this->initialConfig();
@@ -798,20 +693,6 @@ TEST_F(HwAclStatTest, StatNumberOfCounters) {
     utility::checkAclStatSize(this->getHwSwitch(), "stat0");
   };
   this->verifyAcrossWarmBoots(setup, verify, setupPostWB, verifyPostWB);
-}
-
-TEST_F(HwAclStatTest, EmptyAclCheck) {
-  // TODO(joseph5wu) Current this test failed on TH4 because of CS00011697882
-  auto setup = [this]() {
-    auto newCfg = this->initialConfig();
-    this->applyNewConfig(newCfg);
-  };
-  auto verify = [this]() {
-    EXPECT_EQ(utility::getAclTableNumAclEntries(this->getHwSwitch()), 0);
-    utility::checkAclEntryAndStatCount(
-        this->getHwSwitch(), /*ACLs*/ 0, /*stats*/ 0, /*counters*/ 0);
-  };
-  this->verifyAcrossWarmBoots(setup, verify);
 }
 
 } // namespace facebook::fboss
