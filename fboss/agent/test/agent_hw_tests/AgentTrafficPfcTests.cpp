@@ -216,7 +216,7 @@ class AgentTrafficPfcTest : public AgentHwTest {
     utility::EcmpSetupTargetedPorts6 ecmpHelper{
         getProgrammedState(), getIntfMac()};
 
-    CHECK_EQ(portIds.size(), kDestIps().size());
+    CHECK_LE(portIds.size(), kDestIps().size());
     for (int i = 0; i < portIds.size(); ++i) {
       const PortDescriptor port(portIds[i]);
       RoutePrefixV6 route{kDestIps()[i], 128};
@@ -498,6 +498,171 @@ TEST_F(AgentTrafficPfcTest, verifyIngressPriorityGroupWatermarks) {
       TrafficTestParams{
           .buffer = PfcBufferParams{.scalingFactor = std::nullopt}},
       validateIngressPriorityGroupWatermarkCounters);
+}
+
+class AgentTrafficPfcWatchdogTest : public AgentTrafficPfcTest {
+ protected:
+  void setupConfigAndEcmpTraffic(const std::vector<PortID>& portIds) {
+    cfg::SwitchConfig cfg = getAgentEnsemble()->getCurrentConfig();
+    setupPfcBuffers(cfg, portIds, kLosslessPgIds, {}, PfcBufferParams{});
+    applyNewConfig(cfg);
+    setupEcmpTraffic(portIds);
+  }
+
+  void setupWatchdog(const std::vector<PortID>& portIds, bool enable) {
+    cfg::PfcWatchdog pfcWatchdog;
+    if (enable) {
+      pfcWatchdog.recoveryAction() = cfg::PfcWatchdogRecoveryAction::NO_DROP;
+      if (canTriggerPfcDeadlockDetectionWithTraffic()) {
+        pfcWatchdog.recoveryTimeMsecs() = 10;
+        pfcWatchdog.detectionTimeMsecs() = 1;
+      } else {
+        pfcWatchdog.recoveryTimeMsecs() = 1000;
+        pfcWatchdog.detectionTimeMsecs() = 200;
+      }
+    }
+
+    auto cfg = getAgentEnsemble()->getCurrentConfig();
+    for (const auto& portID : portIds) {
+      auto portCfg = utility::findCfgPort(cfg, portID);
+      if (portCfg->pfc().has_value()) {
+        if (enable) {
+          portCfg->pfc()->watchdog() = pfcWatchdog;
+        } else {
+          portCfg->pfc()->watchdog().reset();
+        }
+      }
+    }
+    applyNewConfig(cfg);
+  }
+
+  bool canTriggerPfcDeadlockDetectionWithTraffic() {
+    // Return false for ASICs that cannot trigger PFC detection with
+    // loop traffic!
+    auto asic = utility::checkSameAndGetAsic(getAgentEnsemble()->getL3Asics());
+    if ((asic->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO2) ||
+        (asic->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO3)) {
+      return false;
+    } else {
+      return true;
+    }
+  }
+
+  void triggerPfcDeadlockDetection(const PortID& port) {
+    auto asic = utility::checkSameAndGetAsic(getAgentEnsemble()->getL3Asics());
+    if ((asic->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO2) ||
+        (asic->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO3)) {
+      // As traffic cannot trigger deadlock for DNX, force back
+      // to back PFC frame generation which causes a deadlock!
+      XLOG(DBG0) << "Triggering PFC deadlock detection on port ID : "
+                 << static_cast<int>(port);
+      auto iter = kRegValToForcePfcTxForPriorityOnPortDnx.find(std::make_tuple(
+          asic->getAsicType(), static_cast<int>(port), kLosslessPriority));
+      EXPECT_FALSE(iter == kRegValToForcePfcTxForPriorityOnPortDnx.end());
+      std::string out;
+      getAgentEnsemble()->runDiagCommand(
+          "modreg CFC_FRC_NIF_ETH_PFC FRC_NIF_ETH_PFC=" + iter->second +
+              "\nquit\n",
+          out);
+    } else {
+      // Send traffic to trigger deadlock
+      pumpTraffic(kLosslessTrafficClass);
+      validateRxPfcCounterIncrement(port, kLosslessPriority);
+    }
+  }
+
+  void validateRxPfcCounterIncrement(
+      const PortID& port,
+      const int pfcPriority) {
+    int rxPfcCtrOld = getLatestPortStats(port).get_inPfc_()[pfcPriority];
+    WITH_RETRIES_N_TIMED(3, std::chrono::milliseconds(1000), {
+      int rxPfcCtrNew = getLatestPortStats(port).get_inPfc_()[pfcPriority];
+      EXPECT_EVENTUALLY_GT(rxPfcCtrNew, rxPfcCtrOld);
+    });
+  }
+
+  std::tuple<int, int> getPfcDeadlockCounters(const PortID& portId) {
+    const auto& portName = getAgentEnsemble()
+                               ->getProgrammedState()
+                               ->getPorts()
+                               ->getNodeIf(portId)
+                               ->getName();
+    return {
+        facebook::fb303::fbData
+            ->getCounterIfExists(portName + ".pfc_deadlock_detection.sum")
+            .value_or(0),
+        facebook::fb303::fbData
+            ->getCounterIfExists(portName + ".pfc_deadlock_recovery.sum")
+            .value_or(0),
+    };
+  }
+
+  void validatePfcWatchdogCountersIncrease(const PortID& portId) {
+    auto [deadlockCtrBefore, recoveryCtrBefore] =
+        getPfcDeadlockCounters(portId);
+    WITH_RETRIES_N_TIMED(10, std::chrono::milliseconds(1000), {
+      auto [deadlockCtr, recoveryCtr] = getPfcDeadlockCounters(portId);
+      XLOG(DBG0) << "For port: " << portId << " deadlockCtr = " << deadlockCtr
+                 << " recoveryCtr = " << recoveryCtr;
+      EXPECT_EVENTUALLY_GT(deadlockCtr, deadlockCtrBefore);
+      EXPECT_EVENTUALLY_GT(recoveryCtr, recoveryCtrBefore);
+    });
+  }
+};
+
+// intent of this test is to setup watchdog for the PFC
+// and observe it kicks in and update the watchdog counters
+// watchdog counters are created/incremented when callback
+// for deadlock/recovery kicks in
+TEST_F(AgentTrafficPfcWatchdogTest, PfcWatchdogDetection) {
+  PortID portId = masterLogicalInterfacePortIds()[0];
+  auto setup = [&]() {
+    setupConfigAndEcmpTraffic({portId});
+    setupWatchdog({portId}, true /* enable watchdog */);
+  };
+  auto verify = [&]() {
+    triggerPfcDeadlockDetection(portId);
+    validatePfcWatchdogCountersIncrease(portId);
+  };
+  verifyAcrossWarmBoots(setup, verify);
+}
+
+// intent of this test is to setup watchdog for PFC
+// and remove it. Observe that counters should stop incrementing
+// Clear them and check they stay the same
+// Since the watchdog counters are sw based, upon warm boot
+// we don't expect these counters to be incremented either
+TEST_F(AgentTrafficPfcWatchdogTest, PfcWatchdogReset) {
+  PortID portId = masterLogicalInterfacePortIds()[0];
+  int deadlockCtrBefore = 0;
+  int recoveryCtrBefore = 0;
+
+  auto setup = [&]() {
+    setupConfigAndEcmpTraffic({portId});
+    setupWatchdog({portId}, true /* enable watchdog */);
+    triggerPfcDeadlockDetection(portId);
+    // lets wait for the watchdog counters to be populated
+    validatePfcWatchdogCountersIncrease(portId);
+    // reset watchdog
+    setupWatchdog({portId}, false /* disable */);
+    // sleep a bit to let counters reset
+    std::this_thread::sleep_for(std::chrono::seconds(1));
+    std::tie(deadlockCtrBefore, recoveryCtrBefore) =
+        getPfcDeadlockCounters(portId);
+  };
+
+  auto verify = [&]() {
+    // ensure that RX PFC continues to increment
+    validateRxPfcCounterIncrement(portId, kLosslessPriority);
+    // validate that pfc watchdog counters do not increment anymore
+    auto [deadlockCtr, recoveryCtr] = getPfcDeadlockCounters(portId);
+    XLOG(DBG0) << "For port: " << portId << " deadlockCtr = " << deadlockCtr
+               << " recoveryCtr = " << recoveryCtr;
+    EXPECT_EQ(deadlockCtr, deadlockCtrBefore);
+    EXPECT_EQ(recoveryCtr, recoveryCtrBefore);
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
 }
 
 } // namespace facebook::fboss
