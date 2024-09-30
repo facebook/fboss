@@ -159,8 +159,6 @@ TEST_F(FabricConnectivityManagerTest, validateRemoteOffset) {
     EXPECT_EQ(neighbor.expectedPortId(), 9);
     EXPECT_EQ(neighbor.expectedPortName(), "fab1/9/2");
     EXPECT_EQ(*neighbor.portId(), 9);
-    XLOG(ERR) << "foo_bar expected: " << neighbor.expectedPortName().value()
-              << " actual: " << neighbor.portName().value();
     EXPECT_EQ(neighbor.expectedPortName(), neighbor.portName());
   }
 }
