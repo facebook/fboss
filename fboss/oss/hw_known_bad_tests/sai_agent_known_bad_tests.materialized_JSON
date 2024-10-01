@@ -1149,6 +1149,21 @@
         },
         {
           "test_name_regex": "AgentSflowMirrorOnTrunkTestV[46].*$"
+        },
+        {
+          "test_name_regex": "AgentTrafficPfcTest/AgentTrafficPfcGenTest.verifyPfc/WithZeroPgHeadRoomCfg$"
+        },
+        {
+          "test_name_regex": "AgentTrafficPfcTest/AgentTrafficPfcGenTest.verifyPfc/WithZeroGlobalHeadRoomCfg$"
+        },
+        {
+          "test_name_regex": "AgentTrafficPfcTest.verifyBufferPoolWatermarks$"
+        },
+        {
+          "test_name_regex": "AgentTrafficPfcTest.verifyIngressPriorityGroupWatermarks$"
+        },
+        {
+          "test_name_regex": "AgentTrafficPfcWatchdogTest.*$"
         }
     ],
     "brcm/10.2.0.0_odp/10.2.0.0_odp/tomahawk3/multi_switch": [
@@ -1439,6 +1454,21 @@
         },
         {
           "test_name_regex": "AgentSflowMirrorOnTrunkTestV[46].*$"
+        },
+        {
+          "test_name_regex": "AgentTrafficPfcTest/AgentTrafficPfcGenTest.verifyPfc/WithZeroPgHeadRoomCfg$"
+        },
+        {
+          "test_name_regex": "AgentTrafficPfcTest/AgentTrafficPfcGenTest.verifyPfc/WithZeroGlobalHeadRoomCfg$"
+        },
+        {
+          "test_name_regex": "AgentTrafficPfcTest.verifyBufferPoolWatermarks$"
+        },
+        {
+          "test_name_regex": "AgentTrafficPfcTest.verifyIngressPriorityGroupWatermarks$"
+        },
+        {
+          "test_name_regex": "AgentTrafficPfcWatchdogTest.*$"
         }
     ],
     "brcm/10.2.0.0_odp/10.2.0.0_odp/tomahawk4/mono": [
@@ -1519,6 +1549,21 @@
         },
         {
           "test_name_regex": "AgentSflowMirrorOnTrunkTestV[46].*$"
+        },
+        {
+          "test_name_regex": "AgentTrafficPfcTest/AgentTrafficPfcGenTest.verifyPfc/WithZeroPgHeadRoomCfg$"
+        },
+        {
+          "test_name_regex": "AgentTrafficPfcTest/AgentTrafficPfcGenTest.verifyPfc/WithZeroGlobalHeadRoomCfg$"
+        },
+        {
+          "test_name_regex": "AgentTrafficPfcTest.verifyBufferPoolWatermarks$"
+        },
+        {
+          "test_name_regex": "AgentTrafficPfcTest.verifyIngressPriorityGroupWatermarks$"
+        },
+        {
+          "test_name_regex": "AgentTrafficPfcWatchdogTest.*$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].DstIpNetworkControlDscpToHighPriQ$"
@@ -1833,6 +1878,21 @@
         },
         {
           "test_name_regex": "AgentSflowMirrorOnTrunkTestV[46].*$"
+        },
+        {
+          "test_name_regex": "AgentTrafficPfcTest/AgentTrafficPfcGenTest.verifyPfc/WithZeroPgHeadRoomCfg$"
+        },
+        {
+          "test_name_regex": "AgentTrafficPfcTest/AgentTrafficPfcGenTest.verifyPfc/WithZeroGlobalHeadRoomCfg$"
+        },
+        {
+          "test_name_regex": "AgentTrafficPfcTest.verifyBufferPoolWatermarks$"
+        },
+        {
+          "test_name_regex": "AgentTrafficPfcTest.verifyIngressPriorityGroupWatermarks$"
+        },
+        {
+          "test_name_regex": "AgentTrafficPfcWatchdogTest.*$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].DstIpNetworkControlDscpToHighPriQ$"
@@ -2371,12 +2431,6 @@
           "test_name_regex": "AgentVoqSwitchLineRateTest.*$"
         },
         {
-          "test_name_regex": "AgentPfcTest.verifyPfcCounters$"
-        },
-        {
-          "test_name_regex": "AgentTrafficPfcTest.*$"
-        },
-        {
           "test_name_regex": "AgentSendPacketToQueueTest.SendPacketOutOfPortToDefaultUCQueue$"
         },
         {
@@ -2722,6 +2776,12 @@
         },
         {
           "test_name_regex": "AgentPortBandwidthPpsTest.VerifyPps$"
+        },
+        {
+          "test_name_regex": "AgentTrafficPfcTest/AgentTrafficPfcGenTest.verifyPfc/WithZeroGlobalHeadRoomCfg$"
+        },
+        {
+          "test_name_regex": "AgentTrafficPfcWatchdogTest.*$"
         },
         {
           "test_name_regex": "AgentVoqSwitchTest.rxPacketToCpu.*$"
@@ -3102,6 +3162,12 @@
         },
         {
           "test_name_regex": "AgentPortBandwidthPpsTest.VerifyPps$"
+        },
+        {
+          "test_name_regex": "AgentTrafficPfcTest/AgentTrafficPfcGenTest.verifyPfc/WithZeroGlobalHeadRoomCfg$"
+        },
+        {
+          "test_name_regex": "AgentTrafficPfcWatchdogTest.*$"
         },
         {
           "test_name_regex": "AgentVoqSwitchTest.rxPacketToCpu.*$"
@@ -4524,6 +4590,12 @@
           "test_name_regex": "AgentPortBandwidthPpsTest.VerifyPps$"
         },
         {
+          "test_name_regex": "AgentTrafficPfcTest/AgentTrafficPfcGenTest.verifyPfc/WithZeroGlobalHeadRoomCfg$"
+        },
+        {
+          "test_name_regex": "AgentTrafficPfcWatchdogTest.*$"
+        },
+        {
           "test_name_regex": "AgentVoqSwitchTest.rxPacketToCpu.*$"
         },
         {
@@ -4902,6 +4974,12 @@
         },
         {
           "test_name_regex": "AgentPortBandwidthPpsTest.VerifyPps$"
+        },
+        {
+          "test_name_regex": "AgentTrafficPfcTest/AgentTrafficPfcGenTest.verifyPfc/WithZeroGlobalHeadRoomCfg$"
+        },
+        {
+          "test_name_regex": "AgentTrafficPfcWatchdogTest.*$"
         },
         {
           "test_name_regex": "AgentVoqSwitchTest.rxPacketToCpu.*$"
@@ -6728,6 +6806,21 @@
         },
         {
           "test_name_regex": "AgentSflowMirrorOnTrunkTestV[46].*$"
+        },
+        {
+          "test_name_regex": "AgentTrafficPfcTest/AgentTrafficPfcGenTest.verifyPfc/WithZeroPgHeadRoomCfg$"
+        },
+        {
+          "test_name_regex": "AgentTrafficPfcTest/AgentTrafficPfcGenTest.verifyPfc/WithZeroGlobalHeadRoomCfg$"
+        },
+        {
+          "test_name_regex": "AgentTrafficPfcTest.verifyBufferPoolWatermarks$"
+        },
+        {
+          "test_name_regex": "AgentTrafficPfcTest.verifyIngressPriorityGroupWatermarks$"
+        },
+        {
+          "test_name_regex": "AgentTrafficPfcWatchdogTest.*$"
         }
     ],
     "brcm/8.2.0.0_odp/8.2.0.0_odp/tomahawk3/multi_switch": [
@@ -7018,6 +7111,21 @@
         },
         {
           "test_name_regex": "AgentSflowMirrorOnTrunkTestV[46].*$"
+        },
+        {
+          "test_name_regex": "AgentTrafficPfcTest/AgentTrafficPfcGenTest.verifyPfc/WithZeroPgHeadRoomCfg$"
+        },
+        {
+          "test_name_regex": "AgentTrafficPfcTest/AgentTrafficPfcGenTest.verifyPfc/WithZeroGlobalHeadRoomCfg$"
+        },
+        {
+          "test_name_regex": "AgentTrafficPfcTest.verifyBufferPoolWatermarks$"
+        },
+        {
+          "test_name_regex": "AgentTrafficPfcTest.verifyIngressPriorityGroupWatermarks$"
+        },
+        {
+          "test_name_regex": "AgentTrafficPfcWatchdogTest.*$"
         }
     ],
     "brcm/8.2.0.0_odp/8.2.0.0_odp/tomahawk4/mono": [
@@ -7098,6 +7206,21 @@
         },
         {
           "test_name_regex": "AgentSflowMirrorOnTrunkTestV[46].*$"
+        },
+        {
+          "test_name_regex": "AgentTrafficPfcTest/AgentTrafficPfcGenTest.verifyPfc/WithZeroPgHeadRoomCfg$"
+        },
+        {
+          "test_name_regex": "AgentTrafficPfcTest/AgentTrafficPfcGenTest.verifyPfc/WithZeroGlobalHeadRoomCfg$"
+        },
+        {
+          "test_name_regex": "AgentTrafficPfcTest.verifyBufferPoolWatermarks$"
+        },
+        {
+          "test_name_regex": "AgentTrafficPfcTest.verifyIngressPriorityGroupWatermarks$"
+        },
+        {
+          "test_name_regex": "AgentTrafficPfcWatchdogTest.*$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].DstIpNetworkControlDscpToHighPriQ$"
@@ -7412,6 +7535,21 @@
         },
         {
           "test_name_regex": "AgentSflowMirrorOnTrunkTestV[46].*$"
+        },
+        {
+          "test_name_regex": "AgentTrafficPfcTest/AgentTrafficPfcGenTest.verifyPfc/WithZeroPgHeadRoomCfg$"
+        },
+        {
+          "test_name_regex": "AgentTrafficPfcTest/AgentTrafficPfcGenTest.verifyPfc/WithZeroGlobalHeadRoomCfg$"
+        },
+        {
+          "test_name_regex": "AgentTrafficPfcTest.verifyBufferPoolWatermarks$"
+        },
+        {
+          "test_name_regex": "AgentTrafficPfcTest.verifyIngressPriorityGroupWatermarks$"
+        },
+        {
+          "test_name_regex": "AgentTrafficPfcWatchdogTest.*$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].DstIpNetworkControlDscpToHighPriQ$"
