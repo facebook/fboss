@@ -32,7 +32,7 @@ class PidLogic {
   }
 
  private:
-  const PidSetting& pidSetting_;
+  const PidSetting pidSetting_;
   float integral_{0};
   float lastError_{0};
   int16_t lastPwm_{0};
