@@ -492,6 +492,16 @@ void QsfpModule::updateCachedTransceiverInfoLocked(ModuleStatus moduleStatus) {
     }
     tcvrStats.portNameToMediaLanes() = *tcvrState.portNameToMediaLanes();
 
+    for (const auto& [portName, lanes] : *tcvrStats.portNameToHostLanes()) {
+      int lastDataPathResetTime = 0;
+      for (const auto& lane : lanes) {
+        // Get the most recent reset time (max) for any of the port lanes.
+        lastDataPathResetTime = std::max<long>(
+            lastDataPathResetTime, getLastDatapathResetTime(lane));
+      }
+      tcvrStats.lastDatapathResetTime()[portName] = lastDataPathResetTime;
+    }
+
     auto diagCapability = getDiagsCapability();
     if (diagCapability.has_value()) {
       tcvrState.diagCapability() = diagCapability.value();

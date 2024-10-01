@@ -661,6 +661,9 @@ class QsfpModule : public Transceiver {
 
   void triggerModuleReset();
 
+  // Map key = laneId, value = last datapath reset time for that lane
+  std::unordered_map<int, std::time_t> lastDatapathResetTimes_;
+
  private:
   // no copy or assignment
   QsfpModule(QsfpModule const&) = delete;
@@ -783,6 +786,13 @@ class QsfpModule : public Transceiver {
       bool upgradeInProgress) override;
 
   std::string primaryPortName_;
+
+  std::time_t getLastDatapathResetTime(int lane) {
+    if (lastDatapathResetTimes_.find(lane) == lastDatapathResetTimes_.end()) {
+      return 0;
+    }
+    return lastDatapathResetTimes_[lane];
+  }
 };
 } // namespace fboss
 } // namespace facebook

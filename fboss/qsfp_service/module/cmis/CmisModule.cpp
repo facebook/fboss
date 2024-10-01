@@ -3862,6 +3862,12 @@ void CmisModule::resetDataPathWithFunc(
         kUsecDatapathStateUpdateTime);
   }
 
+  // Update the last datapath reset time for all the lanes in hostLaneMask
+  for (int lane = 0; lane < CmisModule::kMaxOsfpNumLanes; lane++) {
+    if ((1 << lane) & hostLaneMask) {
+      lastDatapathResetTimes_[lane] = std::time(nullptr);
+    }
+  }
   QSFP_LOG(INFO, this) << folly::sformat(
       "DATA_PATH_DEINIT set and reset done for host lane mask 0x{:#x}",
       hostLaneMask);

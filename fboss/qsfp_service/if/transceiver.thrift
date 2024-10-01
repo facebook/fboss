@@ -533,6 +533,7 @@ struct TcvrStats {
   12: optional VdmPerfMonitorStats vdmPerfMonitorStats;
   13: optional VdmPerfMonitorStatsForOds vdmPerfMonitorStatsForOds;
   14: map<string, CdbDatapathSymErrHistogram> cdbDatapathSymErrHistogram;
+  15: map<string, i64> lastDatapathResetTime;
 }
 
 struct TransceiverInfo {
