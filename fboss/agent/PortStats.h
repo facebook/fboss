@@ -59,7 +59,8 @@ class PortStats {
   void dhcpV6BadPkt();
   void dhcpV6DropPkt();
 
-  void linkStateChange(bool isUp, bool isDrained, std::optional<bool> isActive);
+  void
+  linkStateChange(bool isUp, bool isDrained, std::optional<bool> activeState);
   void linkActiveStateChange(bool isActive);
 
   void ipv4DstLookupFailure();

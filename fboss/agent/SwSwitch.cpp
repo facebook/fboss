@@ -183,6 +183,7 @@ DEFINE_bool(rx_sw_priority, false, "Enable rx packet prioritization");
 
 DEFINE_int32(rx_pkt_thread_timeout, 100, "Rx packet thread timeout (ms)");
 
+using namespace facebook::fboss;
 namespace {
 
 /**
@@ -366,6 +367,16 @@ void updatePhyFb303Stats(
       }
     }
   }
+}
+
+bool isPortDrained(
+    const std::shared_ptr<SwitchState>& state,
+    const Port* port,
+    SwitchID portSwitchId) {
+  HwSwitchMatcher matcher(std::unordered_set<SwitchID>({portSwitchId}));
+  const auto& switchSettings = state->getSwitchSettings()->getSwitchSettings(
+      HwSwitchMatcher(std::unordered_set<SwitchID>({portSwitchId})));
+  return switchSettings->isSwitchDrained() || port->isDrained();
 }
 } // anonymous namespace
 
@@ -891,8 +902,9 @@ void SwSwitch::updateStats() {
     auto state = getState();
     for (const auto& portMap : std::as_const(*state->getPorts())) {
       for (const auto& [_, port] : std::as_const(*portMap.second)) {
-        auto portSwitchIdx = switchInfoTable_.getSwitchIndexFromSwitchId(
-            scopeResolver_->scope(port).switchId());
+        auto portSwitchId = scopeResolver_->scope(port).switchId();
+        auto portSwitchIdx =
+            switchInfoTable_.getSwitchIndexFromSwitchId(portSwitchId);
         auto sitr = lockedStats->find(portSwitchIdx);
         if (sitr == lockedStats->cend()) {
           continue;
@@ -907,12 +919,10 @@ void SwSwitch::updateStats() {
         }
         auto portStat = portStats(port->getID());
         const auto& hwPortStats = pitr->second;
-        portStat->inErrors(
-            *hwPortStats.inErrors_(), port->isDrained(), portActive);
+        auto portDrained = isPortDrained(state, port.get(), portSwitchId);
+        portStat->inErrors(*hwPortStats.inErrors_(), portDrained, portActive);
         portStat->fecUncorrectableErrors(
-            *hwPortStats.fecUncorrectableErrors(),
-            port->isDrained(),
-            portActive);
+            *hwPortStats.fecUncorrectableErrors(), portDrained, portActive);
       }
     }
   }
@@ -2123,7 +2133,9 @@ void SwSwitch::linkStateChanged(
         if (port->getActiveState().has_value()) {
           portActive = *port->getActiveState() == Port::ActiveState::ACTIVE;
         }
-        portStats(portId)->linkStateChange(up, port->isDrained(), portActive);
+        auto portSwitchId = scopeResolver_->scope(port->getID()).switchId();
+        portStats(portId)->linkStateChange(
+            up, isPortDrained(state, port, portSwitchId), portActive);
 
         XLOG(DBG2) << "SW Link state changed: " << port->getName()
                    << " id: " << portId << " [" << (!up ? "UP" : "DOWN") << "->"
