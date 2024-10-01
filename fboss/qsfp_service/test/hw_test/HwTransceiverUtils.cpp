@@ -197,7 +197,7 @@ void HwTransceiverUtils::verifyTransceiverSettings(
     verifyOpticsSettings(tcvrState, portName, profile);
   }
 
-  verifyMediaInterfaceCompliance(tcvrState, profile);
+  verifyMediaInterfaceCompliance(tcvrState, profile, portName);
 
   if (profile != cfg::PortProfileID::PROFILE_53POINT125G_1_PAM4_RS545_COPPER &&
       profile != cfg::PortProfileID::PROFILE_53POINT125G_1_PAM4_RS545_OPTICAL) {
@@ -277,7 +277,8 @@ void HwTransceiverUtils::verifyOpticsSettings(
 
 void HwTransceiverUtils::verifyMediaInterfaceCompliance(
     const TcvrState& tcvrState,
-    cfg::PortProfileID profile) {
+    cfg::PortProfileID profile,
+    const std::string& portName) {
   auto settings = apache::thrift::can_throw(*tcvrState.settings());
   auto mgmtInterface =
       apache::thrift::can_throw(*tcvrState.transceiverManagementInterface());
@@ -285,7 +286,14 @@ void HwTransceiverUtils::verifyMediaInterfaceCompliance(
       mgmtInterface == TransceiverManagementInterface::SFF8472 ||
       mgmtInterface == TransceiverManagementInterface::SFF ||
       mgmtInterface == TransceiverManagementInterface::CMIS);
-  auto mediaInterfaces = apache::thrift::can_throw(*settings.mediaInterface());
+  auto allMediaInterfaces =
+      apache::thrift::can_throw(*settings.mediaInterface());
+  std::vector<MediaInterfaceId> mediaInterfaces;
+  // Filter out the mediaInterfaces for this specific port
+  for (auto mediaLane : tcvrState.portNameToMediaLanes()->at(portName)) {
+    ASSERT_TRUE(mediaLane < allMediaInterfaces.size());
+    mediaInterfaces.push_back(allMediaInterfaces[mediaLane]);
+  }
 
   switch (profile) {
     case cfg::PortProfileID::PROFILE_10G_1_NRZ_NOFEC_OPTICAL:

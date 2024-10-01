@@ -47,7 +47,8 @@ class HwTransceiverUtils {
       cfg::PortProfileID profile);
   static void verifyMediaInterfaceCompliance(
       const TcvrState& tcvrState,
-      cfg::PortProfileID profile);
+      cfg::PortProfileID profile,
+      const std::string& portName);
   static void verify10gProfile(
       const TcvrState& tcvrState,
       const TransceiverManagementInterface mgmtInterface,
