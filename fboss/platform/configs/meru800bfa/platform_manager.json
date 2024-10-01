@@ -134,7 +134,7 @@
         {
           "busName": "INCOMING@0",
           "address": "0x48",
-          "kernelDeviceName": "tmp75",
+          "kernelDeviceName": "lm75",
           "pmUnitScopedName": "SMB_TMP75"
         },
         {
@@ -206,7 +206,7 @@
         {
           "busName": "INCOMING@3",
           "address": "0x48",
-          "kernelDeviceName": "tmp75",
+          "kernelDeviceName": "lm75",
           "pmUnitScopedName": "FAN0_TMP75"
         },
         {
@@ -218,7 +218,7 @@
         {
           "busName": "INCOMING@3",
           "address": "0x49",
-          "kernelDeviceName": "tmp75",
+          "kernelDeviceName": "lm75",
           "pmUnitScopedName": "FAN1_TMP75"
         },
         {
@@ -230,7 +230,7 @@
         {
           "busName": "INCOMING@3",
           "address": "0x4a",
-          "kernelDeviceName": "tmp75",
+          "kernelDeviceName": "lm75",
           "pmUnitScopedName": "FAN2_TMP75"
         },
         {
@@ -4446,7 +4446,7 @@
     "/run/devmap/sensors/PSU4_PMBUS": "/SMB_SLOT@0/PSU_SLOT@3/[PSU_PMBUS]"
   },
   "bspKmodsRpmName": "arista_bsp_kmods",
-  "bspKmodsRpmVersion": "0.7.4-1",
+  "bspKmodsRpmVersion": "0.7.3-1",
   "bspKmodsToReload": [
     "scd-xcvr",
     "scd-spi",
