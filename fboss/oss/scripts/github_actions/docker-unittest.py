@@ -17,6 +17,7 @@ FBOSS_IMAGE_NAME = "fboss_image"
 FBOSS_CONTAINER_NAME = "FBOSS_BUILD_CONTAINER"
 
 TEST_PATH_REGEX = re.compile(".*tests?$")
+HW_TEST_PATH_REGEX = re.compile(".*hw_tests?$")
 
 
 # TODO: paulcruz74 - deduplicate this from docker-build.py
@@ -68,13 +69,22 @@ def find_tests(output_dir: str) -> list[str]:
     bin_dir = os.path.join(output_dir, "bin")
     for f in os.listdir(bin_dir):
         file_path = os.path.join(bin_dir, f)
-        if is_test(file_path):
+        # Make sure to ignore hw tests as they will not pass on GitHub actions runners.
+        if is_test(file_path) and not is_hw_test(file_path):
             tests.append(f)
     return tests
 
 
 def is_test(path: str) -> bool:
     match = TEST_PATH_REGEX.match(path)
+    if not match:
+        return False
+
+    return os.path.isfile(path) and os.access(path, os.X_OK)
+
+
+def is_hw_test(path: str) -> bool:
+    match = HW_TEST_PATH_REGEX.match(path)
     if not match:
         return False
 

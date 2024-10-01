@@ -1,7 +1,6 @@
 name: Build QSFP Service - Hourly
 run-name: Build QSFP Service - Hourly
 on:
-  # Allow on pull request - for testing TODO: paulcruz74 - remove this after the build starts passing
   pull_request:
   # Allow manually triggering the workflow
   workflow_dispatch:
@@ -19,4 +18,26 @@ jobs:
       - name: Check out repository code
         uses: actions/checkout@v4
       - name: Run Docker-based build for FBOSS
-        run: sudo ./fboss/oss/scripts/docker-build.py --scratch-path ${{ github.workspace }}/build-output --target qsfp_service --no-docker-output
+        run: >
+          sudo
+          ./fboss/oss/scripts/docker-build.py
+          --scratch-path
+          ${{ github.workspace }}/build-output
+          --target
+          qsfp_targets
+          --no-docker-output
+          --no-system-deps
+      - name: Package FBOSS binaries and library dependencies
+        run: >
+          sudo
+          ./fboss/oss/scripts/package-fboss.py
+          --scratch-path
+          ${{ github.workspace }}/build-output
+          --compress
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: fboss
+          path: ${{ github.workspace }}/build-output/fboss_bins.tar.gz
+          # Explicitly set the retention at the object level
+          retention-days: 14
