@@ -44,6 +44,8 @@ void PortStats::setPortName(const std::string& portName) {
   // clear counter
   clearPortStatusCounter();
   clearPortActiveStatusCounter();
+  tcData().clearCounter(getCounterKey(kLoadBearingInErrors));
+  tcData().clearCounter(getCounterKey(kLoadBearingFecUncorrErrors));
   portName_ = portName;
 }
 
