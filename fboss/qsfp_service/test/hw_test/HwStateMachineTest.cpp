@@ -411,6 +411,7 @@ TEST_F(HwStateMachineTest, CheckTransceiverRemediated) {
 TEST_F(HwStateMachineTest, CheckAgentConfigChanged) {
   auto verify = [this]() {
     auto verifyConfigChanged = [this](bool isAgentColdboot) {
+      std::time_t testStartTime = std::time(nullptr);
       auto wedgeMgr = getHwQsfpEnsemble()->getWedgeManager();
       // Prepare expected states
       std::
@@ -460,6 +461,19 @@ TEST_F(HwStateMachineTest, CheckAgentConfigChanged) {
           std::chrono::milliseconds(10000) /* msBetweenRetry */,
           EXPECT_EVENTUALLY_TRUE(refreshStateMachinesTillMeetAllStates(
               expectedStates, false /* isRemediated */, isAgentColdboot)));
+
+      // Verify datapath reset happened on a config change that involved agent
+      // cold boot and didn't happen for warmboot
+      for (auto id : getPresentTransceivers()) {
+        auto tcvrInfo = wedgeMgr->getTransceiverInfo(id);
+        auto& tcvrState = tcvrInfo.tcvrState().value();
+        auto& tcvrStats = tcvrInfo.tcvrStats().value();
+        for (auto& [portName, _] : tcvrStats.get_portNameToHostLanes()) {
+          XLOG(INFO) << "Verify datapath reset timestamp for port " << portName;
+          utility::HwTransceiverUtils::verifyDatapathResetTimestamp(
+              portName, tcvrState, tcvrStats, testStartTime, isAgentColdboot);
+        }
+      }
     };
 
     // First verify warmboot config change

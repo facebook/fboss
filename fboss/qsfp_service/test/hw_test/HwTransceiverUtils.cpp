@@ -619,4 +619,30 @@ void HwTransceiverUtils::verifyDiagsCapability(
       " is using unrecognized transceiverManagementInterface:",
       apache::thrift::util::enumNameSafe(*mgmtInterface));
 }
+
+void HwTransceiverUtils::verifyDatapathResetTimestamp(
+    const std::string& portName,
+    const TcvrState& tcvrState,
+    const TcvrStats& tcvrStats,
+    time_t timeReference,
+    bool expectedReset) {
+  auto mgmtInterface =
+      apache::thrift::can_throw(tcvrState.transceiverManagementInterface());
+  auto cable = apache::thrift::can_throw(tcvrState.cable());
+  if (mgmtInterface != TransceiverManagementInterface::CMIS ||
+      cable->get_transmitterTech() == TransmitterTechnology::COPPER) {
+    // Datapath reset timestamp is only supported for CMIS optical modules
+    return;
+  }
+  auto& datapathResetTimestamp = *tcvrStats.lastDatapathResetTime();
+  if (expectedReset) {
+    ASSERT_TRUE(
+        datapathResetTimestamp.find(portName) != datapathResetTimestamp.end());
+    EXPECT_GT(datapathResetTimestamp.at(portName), timeReference);
+  } else {
+    if (datapathResetTimestamp.find(portName) != datapathResetTimestamp.end()) {
+      EXPECT_LE(datapathResetTimestamp.at(portName), timeReference);
+    }
+  }
+}
 } // namespace facebook::fboss::utility
