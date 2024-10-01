@@ -263,15 +263,17 @@ std::string PortStats::getCounterKey(const std::string& key) {
 }
 
 void PortStats::inErrors(
-    int64_t /*fecUncorrectableErrors*/,
+    int64_t inErrors,
     bool /*isDrained*/,
     std::optional<bool> /*activeState*/) {
-  // TODO
+  curInErrors_ = inErrors;
 }
 
 void PortStats::fecUncorrectableErrors(
-    int64_t /*fecUncorrectableErrors*/,
+    int64_t fecUncorrectableErrors,
     bool /*isDrained*/,
-    std::optional<bool> /*activeState*/) {}
+    std::optional<bool> /*activeState*/) {
+  curFecUncorrectableErrors_ = fecUncorrectableErrors;
+}
 
 } // namespace facebook::fboss
