@@ -888,6 +888,33 @@ void SwSwitch::updateStats() {
         phyInfo.insert({PortID(portID), phyInfoEntry});
       }
     }
+    auto state = getState();
+    for (const auto& portMap : std::as_const(*state->getPorts())) {
+      for (const auto& [_, port] : std::as_const(*portMap.second)) {
+        auto portSwitchIdx = switchInfoTable_.getSwitchIndexFromSwitchId(
+            scopeResolver_->scope(port).switchId());
+        auto sitr = lockedStats->find(portSwitchIdx);
+        if (sitr == lockedStats->cend()) {
+          continue;
+        }
+        auto pitr = sitr->second.hwPortStats()->find(port->getName());
+        if (pitr == sitr->second.hwPortStats()->cend()) {
+          continue;
+        }
+        std::optional<bool> portActive;
+        if (port->getActiveState().has_value()) {
+          portActive = *port->getActiveState() == Port::ActiveState::ACTIVE;
+        }
+        auto portStat = portStats(port->getID());
+        const auto& hwPortStats = pitr->second;
+        portStat->inErrors(
+            *hwPortStats.inErrors_(), port->isDrained(), portActive);
+        portStat->fecUncorrectableErrors(
+            *hwPortStats.fecUncorrectableErrors(),
+            port->isDrained(),
+            portActive);
+      }
+    }
   }
 
   phySnapshotManager_->updatePhyInfos(phyInfo);
