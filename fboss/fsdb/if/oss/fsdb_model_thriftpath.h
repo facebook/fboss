@@ -10038,7 +10038,14 @@ std::pair<strings::driverSwing, Child<::std::int32_t, ::apache::thrift::type_cla
 std::pair<strings::innerEyeNeg, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
 std::pair<strings::innerEyePos, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
 std::pair<strings::ffeCoeff5, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
-std::pair<strings::ldoBypass, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>>;
+std::pair<strings::ldoBypass, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
+std::pair<strings::firPre1, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
+std::pair<strings::firPre2, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
+std::pair<strings::firPre3, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
+std::pair<strings::firMain, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
+std::pair<strings::firPost1, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
+std::pair<strings::firPost2, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
+std::pair<strings::firPost3, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>>;
   using ChildrenById = fatal::tuple<   std::pair<std::integral_constant<apache::thrift::field_id_t, 1>, Child<::std::int16_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i16_t>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 2>, Child<::std::int16_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i16_t>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 3>, Child<::std::int16_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i16_t>>,
@@ -10062,7 +10069,14 @@ std::pair<strings::ldoBypass, Child<::std::int32_t, ::apache::thrift::type_class
    std::pair<std::integral_constant<apache::thrift::field_id_t, 21>, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 22>, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 23>, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
-   std::pair<std::integral_constant<apache::thrift::field_id_t, 24>, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>>;
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 24>, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 25>, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 26>, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 27>, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 28>, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 29>, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 30>, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 31>, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>>;
   template <typename Name>
   using NameToId = fatal::tuple<std::pair<strings::pre, std::integral_constant<apache::thrift::field_id_t, 1>>,
 std::pair<strings::pre2, std::integral_constant<apache::thrift::field_id_t, 2>>,
@@ -10087,7 +10101,14 @@ std::pair<strings::driverSwing, std::integral_constant<apache::thrift::field_id_
 std::pair<strings::innerEyeNeg, std::integral_constant<apache::thrift::field_id_t, 21>>,
 std::pair<strings::innerEyePos, std::integral_constant<apache::thrift::field_id_t, 22>>,
 std::pair<strings::ffeCoeff5, std::integral_constant<apache::thrift::field_id_t, 23>>,
-std::pair<strings::ldoBypass, std::integral_constant<apache::thrift::field_id_t, 24>>>::template type_of<Name>;
+std::pair<strings::ldoBypass, std::integral_constant<apache::thrift::field_id_t, 24>>,
+std::pair<strings::firPre1, std::integral_constant<apache::thrift::field_id_t, 25>>,
+std::pair<strings::firPre2, std::integral_constant<apache::thrift::field_id_t, 26>>,
+std::pair<strings::firPre3, std::integral_constant<apache::thrift::field_id_t, 27>>,
+std::pair<strings::firMain, std::integral_constant<apache::thrift::field_id_t, 28>>,
+std::pair<strings::firPost1, std::integral_constant<apache::thrift::field_id_t, 29>>,
+std::pair<strings::firPost2, std::integral_constant<apache::thrift::field_id_t, 30>>,
+std::pair<strings::firPost3, std::integral_constant<apache::thrift::field_id_t, 31>>>::template type_of<Name>;
 
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
@@ -10117,6 +10138,13 @@ std::pair<strings::ldoBypass, std::integral_constant<apache::thrift::field_id_t,
     STRUCT_CHILD_GETTERS(innerEyePos, 22);
     STRUCT_CHILD_GETTERS(ffeCoeff5, 23);
     STRUCT_CHILD_GETTERS(ldoBypass, 24);
+    STRUCT_CHILD_GETTERS(firPre1, 25);
+    STRUCT_CHILD_GETTERS(firPre2, 26);
+    STRUCT_CHILD_GETTERS(firPre3, 27);
+    STRUCT_CHILD_GETTERS(firMain, 28);
+    STRUCT_CHILD_GETTERS(firPost1, 29);
+    STRUCT_CHILD_GETTERS(firPost2, 30);
+    STRUCT_CHILD_GETTERS(firPost3, 31);
 
   template <apache::thrift::field_id_t __id>
   auto operator()(const std::integral_constant<apache::thrift::field_id_t, __id>&) {
@@ -10144,6 +10172,13 @@ std::pair<strings::ldoBypass, std::integral_constant<apache::thrift::field_id_t,
     else if constexpr (__id == 22) { return innerEyePos(); }
     else if constexpr (__id == 23) { return ffeCoeff5(); }
     else if constexpr (__id == 24) { return ldoBypass(); }
+    else if constexpr (__id == 25) { return firPre1(); }
+    else if constexpr (__id == 26) { return firPre2(); }
+    else if constexpr (__id == 27) { return firPre3(); }
+    else if constexpr (__id == 28) { return firMain(); }
+    else if constexpr (__id == 29) { return firPost1(); }
+    else if constexpr (__id == 30) { return firPost2(); }
+    else if constexpr (__id == 31) { return firPost3(); }
   }
 
   template <typename T, T... Values>
