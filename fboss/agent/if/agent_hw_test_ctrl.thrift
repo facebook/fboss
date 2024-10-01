@@ -9,6 +9,7 @@ include "thrift/annotation/cpp.thrift"
 include "fboss/agent/switch_state.thrift"
 include "fboss/agent/switch_config.thrift"
 include "fboss/agent/if/ctrl.thrift"
+include "common/network/if/Address.thrift"
 
 struct NeighborInfo {
   1: bool exists;
@@ -20,6 +21,14 @@ struct CIDRNetwork {
   1: string IPAddress;
   @cpp.Type{name = "uint8_t"}
   2: byte mask;
+}
+
+struct RouteInfo {
+  1: bool exists;
+  2: bool isProgrammedToCpu;
+  3: bool isMultiPath;
+  4: bool isRouteUnresolvedToClassId;
+  5: optional i32 classId;
 }
 
 service AgentHwTestCtrl {
@@ -68,4 +77,13 @@ service AgentHwTestCtrl {
   void injectFecError(1: list<i32> hwPorts, 2: bool injectCorrectable);
 
   void injectSwitchReachabilityChangeNotification();
+
+  // route utils
+  RouteInfo getRouteInfo(1: ctrl.IpPrefix prefix);
+  bool isRouteHit(1: ctrl.IpPrefix prefix);
+  void clearRouteHit(1: ctrl.IpPrefix prefix);
+  bool isRouteToNexthop(
+    1: ctrl.IpPrefix prefix,
+    2: Address.BinaryAddress address,
+  );
 }

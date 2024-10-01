@@ -647,6 +647,7 @@ add_fbthrift_cpp_library(
     ctrl_cpp2
     fboss_cpp2
     switch_state_cpp2
+    network_address_cpp2
     phy_cpp2
     prbs_cpp2
   OPTIONS
