@@ -664,6 +664,8 @@ class QsfpModule : public Transceiver {
   // Map key = laneId, value = last datapath reset time for that lane
   std::unordered_map<int, std::time_t> lastDatapathResetTimes_;
 
+  uint8_t datapathResetPendingMask_{0};
+
  private:
   // no copy or assignment
   QsfpModule(QsfpModule const&) = delete;

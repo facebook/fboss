@@ -610,8 +610,6 @@ class CmisModule : public QsfpModule {
       uint8_t datapathId,
       bool mediaSide);
 
-  uint8_t datapathResetPendingMask_{0};
-
   void clearTransceiverPrbsStats(const std::string& portName, phy::Side side)
       override;
 

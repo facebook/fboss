@@ -1357,6 +1357,10 @@ void QsfpModule::programTransceiver(
       }
       updateCachedTransceiverInfoLocked({});
     }
+
+    // We are done programming the transceivers. Clear the pending datapath mask
+    // and start fresh for the next programTransceiver call
+    datapathResetPendingMask_ = 0;
   };
 
   auto i2cEvb = qsfpImpl_->getI2cEventBase();
