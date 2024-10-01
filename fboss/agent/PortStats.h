@@ -97,6 +97,10 @@ class PortStats {
       bool isDrained,
       std::optional<bool> activeState);
 
+  PortID portId() const {
+    return portID_;
+  }
+
  private:
   // Forbidden copy constructor and assignment operator
   PortStats(PortStats const&) = delete;
