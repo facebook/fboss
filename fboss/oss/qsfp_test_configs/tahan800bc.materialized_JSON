@@ -9,8 +9,63 @@
   "qsfpTestConfig": {
     "cabledPortPairs": [
       {
+        "aPortName": "eth1/1/1",
+        "zPortName": "eth1/2/1",
+        "profileID": 38
+      },
+      {
+        "aPortName": "eth1/1/5",
+        "zPortName": "eth1/2/5",
+        "profileID": 38
+      },
+      {
+        "aPortName": "eth1/3/1",
+        "zPortName": "eth1/6/1",
+        "profileID": 38
+      },
+      {
+        "aPortName": "eth1/3/5",
+        "zPortName": "eth1/6/5",
+        "profileID": 38
+      },
+      {
+        "aPortName": "eth1/13/1",
+        "zPortName": "eth1/14/1",
+        "profileID": 38
+      },
+      {
+        "aPortName": "eth1/13/5",
+        "zPortName": "eth1/14/5",
+        "profileID": 38
+      },
+      {
+        "aPortName": "eth1/22/1",
+        "zPortName": "eth1/23/1",
+        "profileID": 38
+      },
+      {
+        "aPortName": "eth1/22/5",
+        "zPortName": "eth1/23/5",
+        "profileID": 38
+      },
+      {
+        "aPortName": "eth1/27/1",
+        "zPortName": "eth1/30/1",
+        "profileID": 38
+      },
+      {
+        "aPortName": "eth1/27/5",
+        "zPortName": "eth1/30/5",
+        "profileID": 38
+      },
+      {
         "aPortName": "eth1/31/1",
         "zPortName": "eth1/32/1",
+        "profileID": 38
+      },
+      {
+        "aPortName": "eth1/31/5",
+        "zPortName": "eth1/32/5",
         "profileID": 38
       }
     ]
