@@ -2119,7 +2119,11 @@ void SwSwitch::linkStateChanged(
         // Log event and update counters if there is a change
         logLinkStateEvent(portId, up);
         setPortStatusCounter(portId, up);
-        portStats(portId)->linkStateChange(up);
+        std::optional<bool> portActive;
+        if (port->getActiveState().has_value()) {
+          portActive = *port->getActiveState() == Port::ActiveState::ACTIVE;
+        }
+        portStats(portId)->linkStateChange(up, port->isDrained(), portActive);
 
         XLOG(DBG2) << "SW Link state changed: " << port->getName()
                    << " id: " << portId << " [" << (!up ? "UP" : "DOWN") << "->"

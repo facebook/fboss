@@ -26,6 +26,7 @@ const std::string kPfcDeadlockRecoveryCount = "pfc_deadlock_recovery";
 const std::string kLoadBearingInErrors = "load_bearing_in_errors";
 const std::string kLoadBearingFecUncorrErrors =
     "load_bearing_fec_uncorrectable_errors";
+const std::string kLoadBearingLinkStateFlap = "load_bearing_link_state.flap";
 
 PortStats::PortStats(
     PortID portID,
@@ -150,7 +151,10 @@ void PortStats::dhcpV6DropPkt() {
   switchStats_->dhcpV6DropPkt();
 }
 
-void PortStats::linkStateChange(bool isUp) {
+void PortStats::linkStateChange(
+    bool isUp,
+    bool isDrained,
+    std::optional<bool> activeState) {
   // We decided not to maintain the TLTimeseries in PortStats and use tcData()
   // to addStatValue based on the key name, because:
   // 1) each thread has its own SwitchStats and PortStats
@@ -163,6 +167,10 @@ void PortStats::linkStateChange(bool isUp) {
   // TLTimeseries and leave ThreadLocalStats do it for us.
   if (!portName_.empty()) {
     tcData().addStatValue(getCounterKey(kLinkStateFlap), 1, SUM);
+    if (!isDrained && activeState.value_or(false)) {
+      // not drained and active (peer not drained)
+      tcData().addStatValue(getCounterKey(kLoadBearingLinkStateFlap), 1, SUM);
+    }
   }
   switchStats_->linkStateChange();
 }
@@ -272,7 +280,7 @@ void PortStats::inErrors(
     bool isDrained,
     std::optional<bool> activeState) {
   if (!isDrained && activeState.value_or(false)) {
-    // Not drained and active (peer not drained)
+    // not drained and active (peer not drained)
     if (!portName_.empty()) {
       tcData().addStatValue(
           getCounterKey(kLoadBearingInErrors), inErrors - curInErrors_, SUM);
