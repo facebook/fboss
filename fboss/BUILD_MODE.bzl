@@ -50,6 +50,12 @@ _lsan_suppressions = [
     # Disable asan warning till DLB warmboot support implemented
     "bcm_th2_l3_egress_dlb_attr_set",
     "CRYPTO_zalloc",
+    # Suppress EDK init memleaks until BRCM fixes the leak
+    # CSP CS00012369114
+    "devicemgr_open",
+    "devicemgr_alloc_resources",
+    "sharedheap_open",
+    "rpc_open",
 ]
 
 _tsan_suppressions = [
