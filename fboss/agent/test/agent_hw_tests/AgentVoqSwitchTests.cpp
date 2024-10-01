@@ -2269,7 +2269,59 @@ TEST_F(AgentVoqSwitchLineRateTest, dramBlockedTime) {
       WITH_RETRIES({
         std::string out;
         getAgentEnsemble()->runDiagCommand(
-            "m IPS_DRAM_ONLY_PROFILE  DRAM_ONLY_PROFILE=-1\nmod CGM_VOQ_SRAM_DRAM_MODE 0 127 VOQ_SRAM_DRAM_MODE_DATA=0x2\ns CGM_DRAM_BOUND_STATE_TH 0\nmodreg TDU_DRAM_BLOCKED_CONFIG DRAM_BLOCKED_WRITE_LEAKY_BUCKET_ASSERT_THRESHOLD=2 DRAM_BLOCKED_WRITE_LEAKY_BUCKET_DEASSERT_THRESHOLD=1 DRAM_BLOCKED_WRITE_PLUS_READ_LEAKY_BUCKET_ASSERT_THRESHOLD=2 DRAM_BLOCKED_WRITE_PLUS_READ_LEAKY_BUCKET_DEASSERT_THRESHOLD=1 DRAM_BLOCKED_AVERAGE_READ_INFLIGHTS_LEAKY_BUCKET_ASSERT_THRESHOLD=3 DRAM_BLOCKED_AVERAGE_READ_INFLIGHTS_LEAKY_BUCKET_DEASSERT_THRESHOLD=1\n",
+            "m IPS_DRAM_ONLY_PROFILE DRAM_ONLY_PROFILE=-1\n", out, switchId);
+        getAgentEnsemble()->runDiagCommand(
+            "mod CGM_VOQ_SRAM_DRAM_MODE 0 127 VOQ_SRAM_DRAM_MODE_DATA=0x2\n",
+            out,
+            switchId);
+        getAgentEnsemble()->runDiagCommand(
+            "s CGM_DRAM_BOUND_STATE_TH 0\n", out, switchId);
+        getAgentEnsemble()->runDiagCommand(
+            "m TDU_DRAM_BLOCKED_CONFIG DRAM_BLOCKED_WRITE_LEAKY_BUCKET_ASSERT_THRESHOLD=2\n",
+            out,
+            switchId);
+        getAgentEnsemble()->runDiagCommand(
+            "m TDU_DRAM_BLOCKED_CONFIG DRAM_BLOCKED_WRITE_LEAKY_BUCKET_DEASSERT_THRESHOLD=1\n",
+            out,
+            switchId);
+        getAgentEnsemble()->runDiagCommand(
+            "m TDU_DRAM_BLOCKED_CONFIG DRAM_BLOCKED_WRITE_PLUS_READ_LEAKY_BUCKET_ASSERT_THRESHOLD=2\n",
+            out,
+            switchId);
+        getAgentEnsemble()->runDiagCommand(
+            "m TDU_DRAM_BLOCKED_CONFIG DRAM_BLOCKED_WRITE_PLUS_READ_LEAKY_BUCKET_DEASSERT_THRESHOLD=1\n",
+            out,
+            switchId);
+        getAgentEnsemble()->runDiagCommand(
+            "m TDU_DRAM_BLOCKED_CONFIG DRAM_BLOCKED_AVERAGE_READ_INFLIGHTS_LEAKY_BUCKET_ASSERT_THRESHOLD=2\n",
+            out,
+            switchId);
+        getAgentEnsemble()->runDiagCommand(
+            "m TDU_DRAM_BLOCKED_CONFIG DRAM_BLOCKED_AVERAGE_READ_INFLIGHTS_LEAKY_BUCKET_DEASSERT_THRESHOLD=1\n",
+            out,
+            switchId);
+        getAgentEnsemble()->runDiagCommand(
+            "m TDU_DRAM_BLOCKED_CONFIG DRAM_BLOCKED_AVERAGE_READ_INFLIGHTS_LEAKY_BUCKET_INCREMENT_THRESHOLD_0=1\n",
+            out,
+            switchId);
+        getAgentEnsemble()->runDiagCommand(
+            "m TDU_DRAM_BLOCKED_CONFIG DRAM_BLOCKED_AVERAGE_READ_INFLIGHTS_LEAKY_BUCKET_INCREMENT_THRESHOLD_1=1\n",
+            out,
+            switchId);
+        getAgentEnsemble()->runDiagCommand(
+            "m TDU_DRAM_BLOCKED_CONFIG DRAM_BLOCKED_AVERAGE_READ_INFLIGHTS_LEAKY_BUCKET_INCREMENT_THRESHOLD_2=1\n",
+            out,
+            switchId);
+        getAgentEnsemble()->runDiagCommand(
+            "m TDU_DRAM_BLOCKED_CONFIG DRAM_BLOCKED_AVERAGE_READ_INFLIGHTS_LEAKY_BUCKET_INCREMENT_SIZE_0=8\n",
+            out,
+            switchId);
+        getAgentEnsemble()->runDiagCommand(
+            "m TDU_DRAM_BLOCKED_CONFIG DRAM_BLOCKED_AVERAGE_READ_INFLIGHTS_LEAKY_BUCKET_INCREMENT_SIZE_1=8\n",
+            out,
+            switchId);
+        getAgentEnsemble()->runDiagCommand(
+            "m TDU_DRAM_BLOCKED_CONFIG DRAM_BLOCKED_AVERAGE_READ_INFLIGHTS_LEAKY_BUCKET_INCREMENT_SIZE_2=8\n",
             out,
             switchId);
         getAgentEnsemble()->runDiagCommand("quit\n", out, switchId);
