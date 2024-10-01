@@ -90,6 +90,13 @@ class PortStats {
 
   void pfcDeadlockRecoveryCount();
   void pfcDeadlockDetectionCount();
+  void
+  inErrors(int64_t inErrors, bool isDrained, std::optional<bool> activeState);
+
+  void fecUncorrectableErrors(
+      int64_t fecUncorrectableErrors,
+      bool isDrained,
+      std::optional<bool> activeState);
 
  private:
   // Forbidden copy constructor and assignment operator
@@ -116,6 +123,8 @@ class PortStats {
   using TLTimeseries = fb303::ThreadCachedServiceData::TLTimeseries;
   std::unique_ptr<TLTimeseries> loadBearingInErrors_;
   std::unique_ptr<TLTimeseries> loadBearingFecErrors_;
+  int64_t curInErrors_{0};
+  int64_t curFecUncorrectableErrors_{0};
 };
 
 } // namespace facebook::fboss

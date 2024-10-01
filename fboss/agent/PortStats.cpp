@@ -262,4 +262,16 @@ std::string PortStats::getCounterKey(const std::string& key) {
   return folly::to<std::string>(portName_, kNameKeySeperator, key);
 }
 
+void PortStats::inErrors(
+    int64_t /*fecUncorrectableErrors*/,
+    bool /*isDrained*/,
+    std::optional<bool> /*activeState*/) {
+  // TODO
+}
+
+void PortStats::fecUncorrectableErrors(
+    int64_t /*fecUncorrectableErrors*/,
+    bool /*isDrained*/,
+    std::optional<bool> /*activeState*/) {}
+
 } // namespace facebook::fboss
