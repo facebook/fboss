@@ -38,7 +38,7 @@ def platform_config(request):
             )
         config_file_path = os.path.join(install_dir, config_subdir, f"{platform}.json")
 
-    with open(Path(config_file_path), "r") as f:
+    with open(Path(config_file_path)) as f:
         json_string = f.read()
     return Config.from_json(json_string)
 
@@ -49,7 +49,7 @@ def platform_fpgas(platform_config):
 
 
 @pytest.fixture(scope="session")
-def fpga_with_adapters(platform_fpgas) -> List[Tuple[FpgaSpec, I2CAdapter]]:
+def fpga_with_adapters(platform_fpgas) -> list[tuple[FpgaSpec, I2CAdapter]]:
     return [(fpga, adapter) for fpga in platform_fpgas for adapter in fpga.i2cAdapters]
 
 

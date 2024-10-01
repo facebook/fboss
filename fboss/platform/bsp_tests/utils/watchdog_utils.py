@@ -15,7 +15,7 @@ WDIOC_SETTIMEOUT = IOWR(WATCHDOG_IOCTL_BASE, 6, ctypes.c_int)
 WDIOC_GETTIMEOUT = IOR(WATCHDOG_IOCTL_BASE, 7, ctypes.c_int)
 
 
-def get_watchdogs() -> Set[str]:
+def get_watchdogs() -> set[str]:
     return set(glob.glob("/dev/watchdog*"))
 
 

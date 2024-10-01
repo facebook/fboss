@@ -55,4 +55,4 @@ class AgentConfigCmd(cmds.FbossCmd):
         elif cmd_type == KEYWORD_CONFIG_RELOAD:
             self._reload_config()
         else:
-            raise Exception("Unknown command `{}`".format(cmd_type))
+            raise Exception(f"Unknown command `{cmd_type}`")

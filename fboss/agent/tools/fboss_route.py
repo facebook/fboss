@@ -4,7 +4,6 @@
 import contextlib
 import socket
 from argparse import ArgumentParser
-from builtins import range, str
 
 import ipaddr
 from facebook.network.Address.ttypes import BinaryAddress
@@ -70,7 +69,7 @@ def format_ip(ip):
 
 def format_route(route):
     next_hops = ", ".join(format_ip(ip) for ip in route.nextHopAddrs)
-    return "%s --> %s" % (format_prefix(route.dest), next_hops)
+    return "{} --> {}".format(format_prefix(route.dest), next_hops)
 
 
 def format_prefix(prefix):
@@ -78,11 +77,11 @@ def format_prefix(prefix):
 
 
 def format_interface(intf):
-    return "%s (%s)" % (", ".join(format_prefix(i) for i in intf.address), intf.mac)
+    return "{} ({})".format(", ".join(format_prefix(i) for i in intf.address), intf.mac)
 
 
 def format_arp(arp):
-    return "%s -> %s" % (format_ip(arp.ip), arp.mac)
+    return "{} -> {}".format(format_ip(arp.ip), arp.mac)
 
 
 def list_routes(args):

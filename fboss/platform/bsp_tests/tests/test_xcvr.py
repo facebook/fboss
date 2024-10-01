@@ -51,8 +51,8 @@ def test_xcvr_creates_sysfs_files(platform_fpgas, platform_config) -> None:
 
 
 def find_subdevice(
-    fpga: FpgaSpec, dev: AuxDevice, id: int, fpgaDirMap: Dict[str, str]
-) -> Optional[str]:
+    fpga: FpgaSpec, dev: AuxDevice, id: int, fpgaDirMap: dict[str, str]
+) -> str | None:
     pciDir = fpgaDirMap[fpga.name]
     path_pattern = f"{pciDir}/*{dev.deviceName}.{id}"
     matching_files = glob.glob(path_pattern)

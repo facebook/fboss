@@ -74,7 +74,7 @@ class LldpCmd(cmds.FbossCmd):
         return utils.port_name_sort_fn(port_name)
 
     def _print_fields(self, selected, fields, headers, max_widths):
-        fmt = " ".join("{{{}:<{}}}".format(key, max_widths[key]) for key in selected)
+        fmt = " ".join(f"{{{key}:<{max_widths[key]}}}" for key in selected)
 
         header = fmt.format(**headers)
         print(header)
@@ -96,18 +96,18 @@ class LldpCmd(cmds.FbossCmd):
 
             raw_chassis = entry["raw_chassis"]
             if self.is_printable(raw_chassis):
-                print("  Chassis ID: {}".format(raw_chassis))
+                print(f"  Chassis ID: {raw_chassis}")
             else:
                 rc = binascii.hexlify(raw_chassis)
-                print("  Raw Chassis ID: hex({})".format(rc))
+                print(f"  Raw Chassis ID: hex({rc})")
                 print("  Chassis ID: {}".format(entry["chassis"]))
 
             raw_port = entry["raw_port"]
             if self.is_printable(raw_port):
-                print("  Port ID: {}".format(raw_port))
+                print(f"  Port ID: {raw_port}")
             else:
                 rc = binascii.hexlify(raw_port)
-                print("  Raw Port ID: hex({})".format(rc))
+                print(f"  Raw Port ID: hex({rc})")
                 print("  Port ID: {}".format(entry["port"]))
 
             print("  System Name: {}".format(entry["system"]))
@@ -115,9 +115,9 @@ class LldpCmd(cmds.FbossCmd):
             desc = entry["system_desc"]
             if "\n" in desc:
                 desc = "\n    ".join(desc.splitlines())
-                print("  System Description:\n    {}".format(desc))
+                print(f"  System Description:\n    {desc}")
             else:
-                print("  System Description: {}".format(desc))
+                print(f"  System Description: {desc}")
             print("  Port Description: {}".format(entry["port_desc"]))
             print()
 

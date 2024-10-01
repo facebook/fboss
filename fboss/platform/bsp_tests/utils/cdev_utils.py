@@ -53,8 +53,8 @@ def make_cdev_path(fpga: FpgaSpec) -> str:
     return f"/dev/fbiob_{vendor}.{device}.{subsystemVendor}.{subsystemDevice}"
 
 
-def find_fpga_dirs(fpgas: List[FpgaSpec]) -> Dict[str, str]:
-    ret: Dict[str, str] = {}
+def find_fpga_dirs(fpgas: list[FpgaSpec]) -> dict[str, str]:
+    ret: dict[str, str] = {}
     for fpga in fpgas:
         found = False
         for subdir in os.listdir("/sys/bus/pci/devices/"):
@@ -82,7 +82,7 @@ def check_files_for_fpga(fpga: FpgaSpec, dirPath: str) -> bool:
         file_path = os.path.join(dirPath, filename)
         if not os.path.isfile(file_path):
             return False
-        with open(file_path, "r") as f:
+        with open(file_path) as f:
             content = f.read().strip()
             if content != value:
                 return False

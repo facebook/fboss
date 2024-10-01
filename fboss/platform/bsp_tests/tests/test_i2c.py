@@ -190,7 +190,7 @@ def test_simultaneous_transactions(platform_fpgas) -> None:
     # if so, run transaction tests simultaneously on all channels
     for fpga in platform_fpgas:
         for adapter in fpga.i2cAdapters:
-            devicesByChannel: Dict[int, List[I2CDevice]] = defaultdict(list)
+            devicesByChannel: dict[int, list[I2CDevice]] = defaultdict(list)
             for device in adapter.i2cDevices:
                 if device.testData:
                     devicesByChannel[device.channel].append(device)

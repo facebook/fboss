@@ -19,8 +19,8 @@ class GpioInfoResult:
     direction: str
 
 
-def gpiodetect(label: Optional[str] = None) -> List[GpioDetectResults]:
-    ret: List[GpioDetectResults] = []
+def gpiodetect(label: str | None = None) -> list[GpioDetectResults]:
+    ret: list[GpioDetectResults] = []
     results = run_cmd(["gpiodetect"]).stdout.decode()
     # format of gpiodetect output is:
     # <name> [<label>] (<num_lines> lines)
@@ -38,14 +38,14 @@ def gpiodetect(label: Optional[str] = None) -> List[GpioDetectResults]:
     return ret
 
 
-def gpioinfo(name: str) -> List[GpioInfoResult]:
+def gpioinfo(name: str) -> list[GpioInfoResult]:
     """
     the output format of gpioinfo changes significantly between
     versions, so instead of strictly parsing it, we only extract
     the values that we will want to check to avoid needing a
     lot of logic to deal with the differences.
     """
-    ret: List[GpioInfoResult] = []
+    ret: list[GpioInfoResult] = []
     results = run_cmd(["gpioinfo", name]).stdout.decode()
     for line in results.splitlines()[1:]:
         parts = line.split()

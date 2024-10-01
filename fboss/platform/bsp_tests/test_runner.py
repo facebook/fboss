@@ -13,8 +13,8 @@ from fboss.platform.bsp_tests.utils.cdev_types import FpgaSpec
 @dataclass
 class Config:
     platform: str
-    kmods: List[str]
-    fpgas: List[FpgaSpec]
+    kmods: list[str]
+    fpgas: list[FpgaSpec]
 
 
 PLATFORMS = ["meru800bia", "meru800bfa"]

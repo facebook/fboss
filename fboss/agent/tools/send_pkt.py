@@ -21,7 +21,7 @@ def load_hex_file(path):
             try:
                 raw_line = binascii.a2b_hex(line)
             except Exception as ex:
-                raise Exception("error parsing line %s: %s" % (line_num, ex))
+                raise Exception("error parsing line {}: {}".format(line_num, ex))
             lines.append(raw_line)
     return b"".join(lines)
 

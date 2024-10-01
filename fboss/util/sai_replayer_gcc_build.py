@@ -43,7 +43,7 @@ SAI_REPLAYER_CPP = "sai_replayer.cpp"
 
 
 def process_log(log_path, output_path):
-    with open(log_path, "r") as log_file:
+    with open(log_path) as log_file:
         with open(output_path, "w") as output_file:
             write_include = False
 

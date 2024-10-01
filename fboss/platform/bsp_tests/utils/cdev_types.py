@@ -75,8 +75,8 @@ class fbiob_aux_data(ctypes.Structure):
 @dataclass_json
 @dataclass
 class I2cInfo:
-    busFreqHz: Optional[int] = None
-    numChannels: Optional[int] = None
+    busFreqHz: int | None = None
+    numChannels: int | None = None
 
 
 @dataclass_json
@@ -91,7 +91,7 @@ class SpiConfig:
 @dataclass
 class SpiInfo:
     numSpidevs: int
-    spiDevices: List[SpiConfig]
+    spiDevices: list[SpiConfig]
 
 
 @dataclass_json
@@ -126,13 +126,13 @@ class AuxDeviceType(Enum):
 class AuxDevice:
     type: AuxDeviceType
     deviceName: str
-    csrOffset: Optional[str] = ""
-    iobufOffset: Optional[str] = ""
-    fanInfo: Optional[FanInfo] = None
-    i2cInfo: Optional[I2cInfo] = None
-    spiInfo: Optional[SpiInfo] = None
-    ledInfo: Optional[LedInfo] = None
-    xcvrInfo: Optional[XcvrInfo] = None
+    csrOffset: str | None = ""
+    iobufOffset: str | None = ""
+    fanInfo: FanInfo | None = None
+    i2cInfo: I2cInfo | None = None
+    spiInfo: SpiInfo | None = None
+    ledInfo: LedInfo | None = None
+    xcvrInfo: XcvrInfo | None = None
 
 
 @dataclass_json
@@ -140,7 +140,7 @@ class AuxDevice:
 class I2CDumpData:
     start: str
     end: str
-    expected: List[str]
+    expected: list[str]
 
 
 @dataclass_json
@@ -160,9 +160,9 @@ class I2CSetData:
 @dataclass_json
 @dataclass
 class I2CTestData:
-    i2cDumpData: List[I2CDumpData] = field(default_factory=list)
-    i2cGetData: List[I2CGetData] = field(default_factory=list)
-    i2cSetData: List[I2CSetData] = field(default_factory=list)
+    i2cDumpData: list[I2CDumpData] = field(default_factory=list)
+    i2cGetData: list[I2CGetData] = field(default_factory=list)
+    i2cSetData: list[I2CSetData] = field(default_factory=list)
 
 
 @dataclass_json
@@ -170,20 +170,20 @@ class I2CTestData:
 class GpioLineInfo:
     name: str
     direction: str
-    getValue: Optional[int] = None
+    getValue: int | None = None
 
 
 @dataclass_json
 @dataclass
 class GpioTestData:
     numLines: int
-    lines: List[GpioLineInfo]
+    lines: list[GpioLineInfo]
 
 
 @dataclass_json
 @dataclass
 class HwmonTestData:
-    expectedFeatures: List[str] = field(default_factory=list)
+    expectedFeatures: list[str] = field(default_factory=list)
 
 
 @dataclass_json
@@ -195,9 +195,9 @@ class WatchdogTestData:
 @dataclass_json
 @dataclass
 class LedTestData:
-    expectedColors: List[str]
-    ledType: Optional[str] = None
-    ledId: Optional[int] = None
+    expectedColors: list[str]
+    ledType: str | None = None
+    ledId: int | None = None
 
 
 @dataclass_json
@@ -206,18 +206,18 @@ class I2CDevice:
     channel: int
     deviceName: str
     address: str
-    testData: Optional[I2CTestData] = None
-    hwmonTestData: Optional[HwmonTestData] = None
-    gpioTestData: Optional[GpioTestData] = None
-    watchdogTestData: Optional[WatchdogTestData] = None
-    ledTestData: Optional[List[LedTestData]] = None
+    testData: I2CTestData | None = None
+    hwmonTestData: HwmonTestData | None = None
+    gpioTestData: GpioTestData | None = None
+    watchdogTestData: WatchdogTestData | None = None
+    ledTestData: list[LedTestData] | None = None
 
 
 @dataclass_json
 @dataclass
 class I2CAdapter:
     auxDevice: AuxDevice
-    i2cDevices: List[I2CDevice] = field(default_factory=list)
+    i2cDevices: list[I2CDevice] = field(default_factory=list)
 
 
 @dataclass_json
@@ -235,10 +235,10 @@ class FpgaSpec:
     deviceId: str
     subSystemVendorId: str
     subSystemDeviceId: str
-    i2cAdapters: List[I2CAdapter] = field(default_factory=list)
-    xcvrCtrls: List[AuxDevice] = field(default_factory=list)
-    ledCtrls: List[LedCtrlInfo] = field(default_factory=list)
-    auxDevices: List[AuxDevice] = field(default_factory=list)
+    i2cAdapters: list[I2CAdapter] = field(default_factory=list)
+    xcvrCtrls: list[AuxDevice] = field(default_factory=list)
+    ledCtrls: list[LedCtrlInfo] = field(default_factory=list)
+    auxDevices: list[AuxDevice] = field(default_factory=list)
 
 
 def print_fields(obj, indent=0):
@@ -252,7 +252,7 @@ def print_fields(obj, indent=0):
         ):
             print("  " * indent + field_name + ":")
             for i, item in enumerate(value):
-                print("  " * (indent + 1) + "[{}]: ".format(i))
+                print("  " * (indent + 1) + f"[{i}]: ")
                 print_fields(item, indent + 2)
         else:
             print("  " * indent + field_name + ": " + str(value))

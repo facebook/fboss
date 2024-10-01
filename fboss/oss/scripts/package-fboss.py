@@ -213,7 +213,7 @@ class PackageFboss:
                     print(f"Copying {abs_path} to {bin_pkg_path}")
                     try:
                         shutil.copy(abs_path, bin_pkg_path)
-                    except IOError:
+                    except OSError:
                         print("Skipping non-existent " + abs_path)
 
         self._copy_run_scripts(tmp_dir_name)

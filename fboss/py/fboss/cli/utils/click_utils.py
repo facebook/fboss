@@ -10,7 +10,7 @@ class AliasedGroup(click.Group):
         http://click.pocoo.org/5/advanced/#command-aliases
     """
 
-    def get_command(self, ctx: Context, cmd_name: str) -> Optional[Command]:
+    def get_command(self, ctx: Context, cmd_name: str) -> Command | None:
         rv = click.Group.get_command(self, ctx, cmd_name)
         if rv is not None:
             return rv

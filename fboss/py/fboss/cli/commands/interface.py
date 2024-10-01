@@ -39,7 +39,7 @@ class InterfaceShowCmd(cmds.FbossCmd):
                     for interface in interfaces:
                         self._interface_details(client, interface)
             except FbossBaseError as e:
-                raise SystemExit("Fboss Error: {}".format(e))
+                raise SystemExit(f"Fboss Error: {e}")
 
     def _all_interface_info(self, client):
         resp = client.getInterfaceList()
@@ -55,13 +55,13 @@ class InterfaceShowCmd(cmds.FbossCmd):
             print("No interface details found for interface")
             return
 
-        print("{}\tInterface ID: {}".format(resp.interfaceName, resp.interfaceId))
-        print("  Vlan: {}\t\t\tRouter Id: {}".format(resp.vlanId, resp.routerId))
-        print("  MTU: {}".format(resp.mtu))
-        print("  Mac Address: {}".format(resp.mac))
+        print(f"{resp.interfaceName}\tInterface ID: {resp.interfaceId}")
+        print(f"  Vlan: {resp.vlanId}\t\t\tRouter Id: {resp.routerId}")
+        print(f"  MTU: {resp.mtu}")
+        print(f"  Mac Address: {resp.mac}")
         print("  IP Address:")
         for addr in resp.address:
-            print("\t{}/{}".format(utils.ip_ntop(addr.ip.addr), addr.prefixLength))
+            print(f"\t{utils.ip_ntop(addr.ip.addr)}/{addr.prefixLength}")
 
 
 def convert_address(addr: bytes) -> str:
@@ -82,7 +82,7 @@ def sort_key(port: str) -> Any:
     return port
 
 
-def get_interface_summary(agent_client, qsfp_client) -> List[Interface]:
+def get_interface_summary(agent_client, qsfp_client) -> list[Interface]:
     # Getting the port/agg to VLAN map in order to display them
     vlan_port_map = utils.get_vlan_port_map(agent_client, qsfp_client=qsfp_client)
     vlan_aggregate_port_map = utils.get_vlan_aggregate_port_map(agent_client)
@@ -91,7 +91,7 @@ def get_interface_summary(agent_client, qsfp_client) -> List[Interface]:
     except Exception:
         sys_port_map = None
 
-    interface_summary: List[Interface] = []
+    interface_summary: list[Interface] = []
     for interface in agent_client.getAllInterfaces().values():
         # build the addresses variable for this interface
         addresses = "\n".join(
@@ -138,7 +138,7 @@ def get_interface_summary(agent_client, qsfp_client) -> List[Interface]:
 class InterfaceSummaryCmd(cmds.FbossCmd):
     """Show interface summary"""
 
-    def print_table(self, interface_summary: List[Interface]) -> None:
+    def print_table(self, interface_summary: list[Interface]) -> None:
         """build and output a table with interface summary data"""
         table = prettytable.PrettyTable(hrules=prettytable.ALL)
         table.field_names = ["VLAN", "Interface", "MTU", "Addresses", "Ports"]

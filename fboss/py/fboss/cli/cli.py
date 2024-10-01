@@ -386,9 +386,7 @@ class PortState:
 class PrbsContext(CliOptions):  # noqa: B903
     def __init__(self, cli_opts, component):
         self.component = component
-        super(PrbsContext, self).__init__(
-            cli_opts.hostname, cli_opts.port, cli_opts.timeout
-        )
+        super().__init__(cli_opts.hostname, cli_opts.port, cli_opts.timeout)
 
 
 class PortPrbsCli:
@@ -857,7 +855,7 @@ if __name__ == "__main__":
     try:
         main()
     except FbossBaseError as e:
-        raise SystemExit("Fboss Error: {}".format(e))
+        raise SystemExit(f"Fboss Error: {e}")
     except TApplicationException:
         raise SystemExit("Command not available on host")
     except TTransportException:

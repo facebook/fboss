@@ -23,11 +23,11 @@ FBOSS_CONTAINER_NAME = "FBOSS_BUILD_CONTAINER"
 CONTAINER_SCRATCH_PATH = "/var/FBOSS/tmp_bld_dir"
 
 
-def get_linux_type() -> Tuple[Optional[str], Optional[str], Optional[str]]:
+def get_linux_type() -> tuple[str | None, str | None, str | None]:
     try:
         with open("/etc/os-release") as f:
             data = f.read()
-    except EnvironmentError:
+    except OSError:
         return (None, None, None)
 
     os_vars = {}
@@ -175,7 +175,7 @@ def build_docker_image(docker_dir_path: str):
 
 def run_fboss_build(
     scratch_path: str,
-    target: Optional[str],
+    target: str | None,
     docker_output: bool,
     use_system_deps: bool,
     env_vars: list[str],

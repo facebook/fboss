@@ -40,7 +40,7 @@ TTY_GREEN = "\033[32m"
 TTY_RESET = "\033[m"
 
 
-def get_colors() -> Tuple[str, str, str]:
+def get_colors() -> tuple[str, str, str]:
     if sys.stdout.isatty():
         return (TTY_RED, TTY_GREEN, TTY_RESET)
     return ("", "", "")
@@ -50,10 +50,10 @@ def ip_to_binary(ip):
     for family in (socket.AF_INET, socket.AF_INET6):
         try:
             data = socket.inet_pton(family, ip)
-        except socket.error:
+        except OSError:
             continue
         return BinaryAddress(addr=data)
-    raise socket.error("illegal IP address string: {}".format(ip))
+    raise OSError(f"illegal IP address string: {ip}")
 
 
 def ip_ntop(addr):
@@ -62,7 +62,7 @@ def ip_ntop(addr):
     elif len(addr) == 16:
         return socket.inet_ntop(socket.AF_INET6, addr)
     else:
-        raise ValueError("bad binary address %r" % (addr,))
+        raise ValueError("bad binary address {!r}".format(addr))
 
 
 def port_sort_fn(port):
@@ -95,7 +95,7 @@ def get_status_strs(status, is_present):
     profileID = getattr(status, "profileID", "")
 
     if status.speedMbps:
-        speed = "{}G".format(status.speedMbps // 1000)
+        speed = f"{status.speedMbps // 1000}G"
     padding = 0
 
     color_start = COLOR_GREEN
@@ -139,24 +139,22 @@ def get_qsfp_info_map(qsfp_client, qsfps, continue_on_error=False):
     except Exception as e:
         if not continue_on_error:
             raise
-        print(
-            make_error_string("Could not get qsfp info; continue anyway\n{}".format(e))
-        )
+        print(make_error_string(f"Could not get qsfp info; continue anyway\n{e}"))
         return {}
 
 
 @retryable(num_tries=3, sleep_time=0.1)
 def get_vlan_port_map(
     agent_client, qsfp_client, colors=True, details=True
-) -> DefaultDict[str, DefaultDict[str, List[str]]]:
+) -> DefaultDict[str, DefaultDict[str, list[str]]]:
     """fetch port info and map vlan -> ports"""
     all_port_info_map = agent_client.getAllPortInfo()
     port_status_map = agent_client.getPortStatus()
 
     qsfp_info_map = get_qsfp_info_map(qsfp_client, None, continue_on_error=True)
 
-    vlan_port_map: DefaultDict[str, DefaultDict[str, List[str]]] = defaultdict(
-        lambda: defaultdict(lambda: [])
+    vlan_port_map: DefaultDict[str, DefaultDict[str, list[str]]] = defaultdict(
+        lambda: defaultdict(list)
     )
     for port in all_port_info_map.values():
         # unconfigured ports can be skipped
@@ -213,7 +211,7 @@ def get_vlan_port_map(
 @retryable(num_tries=3, sleep_time=0.1)
 def get_system_port_map(
     agent_client, qsfp_client, colors=True, details=True
-) -> DefaultDict[str, DefaultDict[str, List[str]]]:
+) -> DefaultDict[str, DefaultDict[str, list[str]]]:
     """fetch port info and map vlan -> ports"""
     all_port_info_map = agent_client.getAllPortInfo()
     port_status_map = agent_client.getPortStatus()
@@ -221,8 +219,8 @@ def get_system_port_map(
     dsf_nodes = agent_client.getDsfNodes()
     qsfp_info_map = get_qsfp_info_map(qsfp_client, None, continue_on_error=True)
 
-    sys_port_map: DefaultDict[str, DefaultDict[str, List[str]]] = defaultdict(
-        lambda: defaultdict(lambda: [])
+    sys_port_map: DefaultDict[str, DefaultDict[str, list[str]]] = defaultdict(
+        lambda: defaultdict(list)
     )
     for sys_port in sys_ports.values():
         sysPortRange = dsf_nodes[sys_port.switchId].systemPortRange
@@ -267,7 +265,7 @@ def get_system_port_map(
 
 def get_port_summary(
     port_name: str,
-    channels: List[int],
+    channels: list[int],
     qsfp_present: bool,
     fab_port: bool,
     enabled: bool,
@@ -297,10 +295,10 @@ def get_port_speed_display(speed):
 
 
 @retryable(num_tries=3, sleep_time=0.1)
-def get_vlan_aggregate_port_map(client) -> Dict[str, str]:
+def get_vlan_aggregate_port_map(client) -> dict[str, str]:
     """fetch aggregate port table and map vlan -> port channel name"""
     aggregate_port_table = client.getAggregatePortTable()
-    vlan_aggregate_port_map: Dict = {}
+    vlan_aggregate_port_map: dict = {}
     for aggregate_port in aggregate_port_table:
         agg_port_name = aggregate_port.name
         for member_port in aggregate_port.memberPorts:
@@ -322,9 +320,9 @@ def label_forwarding_action_to_str(label_forwarding_action: MplsAction) -> str:
         stack_str = "{{{}}}".format(
             ",".join([str(element) for element in label_forwarding_action.pushLabels])
         )
-        labels = ": {}".format(stack_str)
+        labels = f": {stack_str}"
 
-    return " MPLS -> {} {}".format(code, labels)
+    return f" MPLS -> {code} {labels}"
 
 
 def nexthop_to_str(
@@ -337,7 +335,7 @@ def nexthop_to_str(
     label_str = label_forwarding_action_to_str(nexthop.mplsAction)
 
     if nexthop.weight:
-        weight_str = " weight {}".format(nexthop.weight)
+        weight_str = f" weight {nexthop.weight}"
 
     nh = nexthop.address
     if nh.ifName:

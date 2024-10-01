@@ -61,7 +61,7 @@ class ResultType(Enum):
 
 class FBOSSOSSVerifier:
     def __init__(self) -> None:
-        self._args: Optional[argparse.Namespace] = None
+        self._args: argparse.Namespace | None = None
         self._oss_dir = "/var/FBOSS"
         self._bcm_sai_dir = os.path.join(self._oss_dir, "bcm_sai")
         self._built_bcmsim_sai_dir = os.path.join(self._oss_dir, "built-bcmsim-sai")
@@ -185,7 +185,7 @@ class FBOSSOSSVerifier:
             os.path.join(self._test_pkg_dir, "hwtest_results_") + "*"
         )[0]
         result_type = ResultType.OK
-        with open(result_file_path, "r") as result_file:
+        with open(result_file_path) as result_file:
             for line in result_file:
                 if "Test Name,Result" in line:
                     continue
@@ -216,7 +216,7 @@ class FBOSSOSSVerifier:
                     src = os.path.join(executable_path, executable)
                     try:
                         shutil.copy(src, "/lib64/")
-                    except IOError:
+                    except OSError:
                         print("Skipping non-existent " + src)
         target_bin = glob.glob(
             os.path.join(

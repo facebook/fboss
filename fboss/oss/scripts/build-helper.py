@@ -170,7 +170,7 @@ class BuildHelper:
             f.writelines(manifest_str)
 
     def _edit_fboss_manifest(self):
-        with open(self._fboss_manifest_path, "r", encoding="utf-8") as f:
+        with open(self._fboss_manifest_path, encoding="utf-8") as f:
             data = f.readlines()
 
         # sai_impl dependency is already added to the fboss manifest

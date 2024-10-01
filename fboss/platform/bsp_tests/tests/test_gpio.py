@@ -90,7 +90,7 @@ def test_gpio_get(fpga_with_adapters):
 
 
 def test_driver_unload(platform_fpgas, platform_config):
-    adaptersToUnload: List[Tuple(FpgaSpec, I2CAdapter, int)] = []
+    adaptersToUnload: list[tuple(FpgaSpec, I2CAdapter, int)] = []
     id = 1
     for fpga in platform_fpgas:
         try:

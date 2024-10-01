@@ -77,13 +77,13 @@ class StressRouteInsertion:
         prefix = random.randint(self.minprefix, self.maxprefix)  # inclusive
         r = ""
         for i in range(0, int(prefix / 4)):
-            r += "{0:x}".format(random.randint(0, 15))
+            r += f"{random.randint(0, 15):x}"
             if ((i + 1) % 4) == 0:
                 r += ":"
         leftover = prefix - (i * 4)
         # this ensures we don't end with a ':' as well
-        r += "{0:x}".format(random.randint(0, 15) & (pow(2, leftover) - 1))
-        return r + "::1/{}".format(prefix)
+        r += f"{random.randint(0, 15) & (pow(2, leftover) - 1):x}"
+        return r + f"::1/{prefix}"
 
     def insert_routes(self, routes):
         uniRoutes = []
@@ -122,21 +122,19 @@ class StressRouteInsertion:
         start = time.clock()
         self.insert_routes(self.routes)
         stop = time.clock()
-        print(
-            " ... done : {} seconds - not the real test, but FYI".format(stop - start)
-        )
+        print(f" ... done : {stop - start} seconds - not the real test, but FYI")
 
         target = (1 - (self.percent / 100)) * self.entries
         for loop in range(0, self.loops):
-            print("--- Starting loop {}...".format(loop))
-            print("Deleting {} routes".format(self.entries - target))
+            print(f"--- Starting loop {loop}...")
+            print(f"Deleting {self.entries - target} routes")
             delete_routes = []
             while len(self.routes) > target:
                 route = random.choice(list(self.routes.keys()))
                 delete_routes.append(route)
                 del self.routes[route]
             self.delete_routes(delete_routes)
-            print("Picking {} new routes".format(self.entries - target))
+            print(f"Picking {self.entries - target} new routes")
             new_routes = self.generate_random_routes(n=self.entries - target)
             print("Adding new routes")
             start = time.clock()

@@ -21,7 +21,7 @@ def parse_i2cdetect_line(line):
     )
 
 
-def parse_i2cdump_data(data: str) -> List[str]:
+def parse_i2cdump_data(data: str) -> list[str]:
     # first line is header
     data_lines = data.split("\n")[1:]
     data_bytes = []
@@ -53,7 +53,7 @@ def detect_i2c_device(bus: int, hexAddr: str) -> bool:
 
 def create_i2c_adapter(
     fpga: FpgaSpec, adapter: I2CAdapter, id: int = 1
-) -> Tuple[Set[I2CBus], int]:
+) -> tuple[set[I2CBus], int]:
     assert adapter.auxDevice.i2cInfo
     numBusses = adapter.auxDevice.i2cInfo.numChannels
     # record the current existing busses
@@ -65,9 +65,9 @@ def create_i2c_adapter(
     return (newBusses, minBusNum)
 
 
-def find_i2c_busses() -> Set[I2CBus]:
+def find_i2c_busses() -> set[I2CBus]:
     output = run_cmd(["i2cdetect", "-l"]).stdout.decode()
-    adapters: Set[I2CBus] = set()
+    adapters: set[I2CBus] = set()
     for line in output.split("\n"):
         if line:
             adapters.add(parse_i2cdetect_line(line))
@@ -84,7 +84,7 @@ def create_i2c_device(dev: I2CDevice, bus: int) -> bool:
             f"{dev_dir}/i2c-{bus}"
         ), f"Device {dev.address} on bus {bus} not found"
         # read the "name" file and verify it is correct
-        with open(f"{dev_dir}/{bus}-{dev.address[2:].zfill(4)}/name", "r") as f:
+        with open(f"{dev_dir}/{bus}-{dev.address[2:].zfill(4)}/name") as f:
             name = f.read().strip()
             assert (
                 name == dev.deviceName
