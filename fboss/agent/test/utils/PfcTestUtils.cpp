@@ -3,6 +3,7 @@
 #include "fboss/agent/test/utils/PfcTestUtils.h"
 #include "fboss/agent/Utils.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
+#include "fboss/agent/hw/gen-cpp2/hardware_stats_types.h"
 #include "fboss/agent/test/utils/AclTestUtils.h"
 
 #include <gtest/gtest.h>
@@ -193,6 +194,23 @@ void addPuntPfcPacketAcl(cfg::SwitchConfig& cfg, uint16_t queueId) {
       .matchToAction()
       .ensure()
       .push_back(matchToAction);
+}
+
+std::string pfcStatsString(const HwPortStats& stats) {
+  std::stringstream ss;
+  ss << "outBytes=" << stats.get_outBytes_()
+     << " inBytes=" << stats.get_inBytes_()
+     << " outUnicastPkts=" << stats.get_outUnicastPkts_()
+     << " inUnicastPkts=" << stats.get_inUnicastPkts_()
+     << " inDiscards=" << stats.get_inDiscards_()
+     << " inErrors=" << stats.get_inErrors_();
+  for (auto [qos, value] : stats.get_inPfc_()) {
+    ss << " inPfc[" << qos << "]=" << value;
+  }
+  for (auto [qos, value] : stats.get_outPfc_()) {
+    ss << " outPfc[" << qos << "]=" << value;
+  }
+  return ss.str();
 }
 
 } // namespace facebook::fboss::utility

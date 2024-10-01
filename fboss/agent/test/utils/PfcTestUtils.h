@@ -3,6 +3,7 @@
 #pragma once
 
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
+#include "fboss/agent/hw/gen-cpp2/hardware_stats_types.h"
 #include "fboss/agent/types.h"
 
 namespace facebook::fboss::utility {
@@ -25,5 +26,7 @@ void setupPfcBuffers(
     PfcBufferParams buffer = PfcBufferParams{});
 
 void addPuntPfcPacketAcl(cfg::SwitchConfig& cfg, uint16_t queueId);
+
+std::string pfcStatsString(const HwPortStats& stats);
 
 } // namespace facebook::fboss::utility
