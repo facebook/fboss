@@ -23,6 +23,9 @@ const std::string kActive = "active";
 const std::string kLinkActiveStateFlap = "link_active_state.flap";
 const std::string kPfcDeadlockDetectionCount = "pfc_deadlock_detection";
 const std::string kPfcDeadlockRecoveryCount = "pfc_deadlock_recovery";
+const std::string kLoadBearingInErrors = "load_bearing_in_errors";
+const std::string kLoadBearingFecUncorrErrors =
+    "load_bearing_fec_uncorrectable_errors";
 
 PortStats::PortStats(
     PortID portID,
@@ -264,15 +267,31 @@ std::string PortStats::getCounterKey(const std::string& key) {
 
 void PortStats::inErrors(
     int64_t inErrors,
-    bool /*isDrained*/,
-    std::optional<bool> /*activeState*/) {
+    bool isDrained,
+    std::optional<bool> activeState) {
+  if (!isDrained && activeState.value_or(false)) {
+    // Not drained and active (peer not drained)
+    if (!portName_.empty()) {
+      tcData().addStatValue(
+          getCounterKey(kLoadBearingInErrors), inErrors - curInErrors_, SUM);
+    }
+  }
   curInErrors_ = inErrors;
 }
 
 void PortStats::fecUncorrectableErrors(
     int64_t fecUncorrectableErrors,
-    bool /*isDrained*/,
-    std::optional<bool> /*activeState*/) {
+    bool isDrained,
+    std::optional<bool> activeState) {
+  if (!isDrained && activeState.value_or(false)) {
+    // Not drained and active (peer not drained)
+    if (!portName_.empty()) {
+      tcData().addStatValue(
+          getCounterKey(kLoadBearingFecUncorrErrors),
+          fecUncorrectableErrors - curFecUncorrectableErrors_,
+          SUM);
+    }
+  }
   curFecUncorrectableErrors_ = fecUncorrectableErrors;
 }
 
