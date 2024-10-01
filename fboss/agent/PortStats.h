@@ -11,6 +11,7 @@
 
 #include <chrono>
 
+#include <fb303/ThreadCachedServiceData.h>
 #include "fboss/agent/types.h"
 
 namespace facebook::fboss {
@@ -112,6 +113,9 @@ class PortStats {
   SwitchStats* switchStats_;
 
   std::chrono::steady_clock::time_point lastMkPduTime_;
+  using TLTimeseries = fb303::ThreadCachedServiceData::TLTimeseries;
+  std::unique_ptr<TLTimeseries> loadBearingInErrors_;
+  std::unique_ptr<TLTimeseries> loadBearingFecErrors_;
 };
 
 } // namespace facebook::fboss
