@@ -13564,10 +13564,6 @@
           "queueId": 7
         },
         {
-          "rxReason": 13,
-          "queueId": 7
-        },
-        {
           "rxReason": 2,
           "queueId": 2
         },
