@@ -189,6 +189,10 @@ class CmdShowInterface
       std::unordered_map<int32_t, std::vector<cli::IpPrefix>>& vlanToPrefixes,
       const std::map<int32_t, facebook::fboss::InterfaceDetail>& intfDetails) {
     for (const auto& [intfId, intfDetail] : intfDetails) {
+      if (intfDetail.remoteIntfType() == RemoteInterfaceType::DYNAMIC_ENTRY) {
+        continue; // Only search for local interfaces
+      }
+
       const auto& vlan = *intfDetail.vlanId();
       for (const auto& ifAddr : *intfDetail.address()) {
         cli::IpPrefix prefix;
@@ -275,13 +279,16 @@ class CmdShowInterface
     }
 
     for (const auto& interface : *model.interfaces()) {
+      std::string name = *interface.name();
       std::vector<std::string> prefixes;
-      for (const auto& prefix : *interface.prefixes()) {
-        prefixes.push_back(
-            fmt::format("{}/{}", *prefix.ip(), *prefix.prefixLength()));
+
+      if (!name.starts_with("fab")) { // Skip addresses for fabric ports
+        for (const auto& prefix : *interface.prefixes()) {
+          prefixes.push_back(
+              fmt::format("{}/{}", *prefix.ip(), *prefix.prefixLength()));
+        }
       }
 
-      std::string name = *interface.name();
       std::vector<Table::RowData> row;
       if (isVoq) {
         outTable.addRow(
