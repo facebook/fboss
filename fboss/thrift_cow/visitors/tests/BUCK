@@ -21,6 +21,28 @@ cpp_library(
 )
 
 cpp_unittest(
+    name = "path_visitor_tests",
+    srcs = [
+        "PathVisitorTests.cpp",
+    ],
+    preprocessor_flags = [
+        "-DENABLE_DYNAMIC_APIS",
+    ],
+    deps = [
+        "fbsource//third-party/googletest:gmock",
+        ":visitor_test_utils",
+        "//fboss/agent:switch_config-cpp2-types",
+        "//fboss/thrift_cow/nodes:nodes",
+        "//fboss/thrift_cow/nodes/tests:test-cpp2-reflection",
+        "//fboss/thrift_cow/visitors:visitors",
+        "//folly:string",
+        "//folly/json:dynamic",
+        "//folly/logging:logging",
+        "//thrift/lib/cpp2/folly_dynamic:folly_dynamic",
+    ],
+)
+
+cpp_unittest(
     name = "visitor_tests",
     srcs = [
         "DeltaVisitorTests.cpp",

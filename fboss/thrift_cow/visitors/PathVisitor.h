@@ -361,8 +361,18 @@ struct PathVisitorImpl<
       // only enable for HybridNode types
     requires(std::is_same_v<typename Node::CowType, HybridNodeType>)
   {
-    // TODO: implement specialization for hybrid nodes
-    return ThriftTraverseResult::VISITOR_EXCEPTION;
+    try {
+      if (begin == end) {
+        op.visitTyped(node, begin, end);
+      } else {
+        // TODO: handle traversing thrift objects in hybrid nodes
+        return ThriftTraverseResult::VISITOR_EXCEPTION;
+      }
+      return ThriftTraverseResult::OK;
+    } catch (const std::exception& ex) {
+      XLOG(ERR) << "Exception while traversing path: " << ex.what();
+      return ThriftTraverseResult::VISITOR_EXCEPTION;
+    }
   }
 
   template <typename Fields, typename Op>

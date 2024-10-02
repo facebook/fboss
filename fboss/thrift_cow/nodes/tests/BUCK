@@ -22,6 +22,7 @@ cpp_unittest(
     srcs = [
         "ThriftHybridStructNodeTests.cpp",
     ],
+    preprocessor_flags = ["-DENABLE_DYNAMIC_APIS"],
     deps = [
         ":test-cpp2-reflection",
         "//fboss/thrift_cow/nodes:nodes",

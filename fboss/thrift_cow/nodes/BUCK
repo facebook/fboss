@@ -52,6 +52,7 @@ cpp_library(
         "//fboss/fsdb/if:fsdb_oper-cpp2-types",
         "//fboss/thrift_cow/visitors:visitors",
         "//folly:conv",
+        "//folly:dynamic",
         "//folly:fbstring",
         "//folly/json:dynamic",
         "//thrift/lib/cpp2/folly_dynamic:folly_dynamic",

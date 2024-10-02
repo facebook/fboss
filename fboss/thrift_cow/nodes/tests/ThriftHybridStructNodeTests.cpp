@@ -128,3 +128,42 @@ TEST(ThriftHybridStructNodeTests, ThriftStructNodeHybridMemberToFromThrift) {
   ASSERT_EQ(thrift, *data);
 }
 #endif // __ENABLE_HYBRID_THRIFT_COW_TESTS__
+
+#ifdef ENABLE_DYNAMIC_APIS
+TEST(ThriftHybridStructNodeTests, FollyDynamicTest) {
+  // toFollyDynamic
+  {
+    TestStruct data;
+    data.inlineBool() = true;
+    data.inlineInt() = 123;
+    data.inlineString() = "HelloThere";
+
+    ThriftStructNode<TestStruct> node(data);
+    auto dyn = node.toFollyDynamic();
+    TestStruct myObj = facebook::thrift::from_dynamic<TestStruct>(
+        dyn, facebook::thrift::dynamic_format::JSON_1);
+    EXPECT_EQ(123, *myObj.inlineInt());
+    EXPECT_EQ("HelloThere", *myObj.inlineString());
+    EXPECT_TRUE(*myObj.inlineBool());
+  }
+
+  // fromFollyDynamic
+  {
+    TestStruct data;
+    ThriftStructNode<TestStruct> node(data);
+    data.inlineBool() = true;
+    data.inlineInt() = 123;
+    data.inlineString() = "HelloThere";
+    folly::dynamic dyn;
+    facebook::thrift::to_dynamic(
+        dyn, data, facebook::thrift::dynamic_format::PORTABLE);
+    node.fromFollyDynamic(dyn);
+    auto valDyn = node.toFollyDynamic();
+    TestStruct myObj = facebook::thrift::from_dynamic<TestStruct>(
+        valDyn, facebook::thrift::dynamic_format::JSON_1);
+    EXPECT_EQ(123, *myObj.inlineInt());
+    EXPECT_EQ("HelloThere", *myObj.inlineString());
+    EXPECT_TRUE(*myObj.inlineBool());
+  }
+}
+#endif // ENABLE_DYNAMIC_APIS
