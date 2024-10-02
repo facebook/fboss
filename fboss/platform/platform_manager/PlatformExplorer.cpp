@@ -164,7 +164,7 @@ PlatformExplorer::PlatformExplorer(
     const std::shared_ptr<PlatformFsUtils> platformFsUtils)
     : platformConfig_(config),
       dataStore_(platformConfig_),
-      devicePathResolver_(platformConfig_, dataStore_, i2cExplorer_),
+      devicePathResolver_(dataStore_, i2cExplorer_),
       presenceChecker_(devicePathResolver_),
       explorationErrMap_(platformConfig_, dataStore_),
       platformFsUtils_(platformFsUtils) {
@@ -778,6 +778,8 @@ void PlatformExplorer::createI2cDevice(
       Utils().parseDevicePath(devicePath);
   try {
     i2cExplorer_.createI2cDevice(pmUnitScopedName, deviceName, busNum, addr);
+    dataStore_.updateSysfsPath(
+        devicePath, i2cExplorer_.getDeviceI2cPath(busNum, addr));
   } catch (const std::exception& ex) {
     XLOG(ERR) << ex.what();
     explorationErrMap_.add(devicePath, ex.what());

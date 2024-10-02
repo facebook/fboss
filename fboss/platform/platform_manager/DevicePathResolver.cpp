@@ -11,7 +11,6 @@
 namespace fs = std::filesystem;
 
 namespace {
-constexpr auto kIdprom = "IDPROM";
 const re2::RE2 kHwmonRe{"hwmon\\d+"};
 const re2::RE2 kIioDeviceRe{"iio:device\\d+"};
 } // namespace
@@ -19,25 +18,13 @@ const re2::RE2 kIioDeviceRe{"iio:device\\d+"};
 namespace facebook::fboss::platform::platform_manager {
 
 DevicePathResolver::DevicePathResolver(
-    const PlatformConfig& config,
     const DataStore& dataStore,
     const I2cExplorer& i2cExplorer)
-    : platformConfig_(config),
-      dataStore_(dataStore),
-      i2cExplorer_(i2cExplorer) {}
+    : dataStore_(dataStore), i2cExplorer_(i2cExplorer) {}
 
 std::string DevicePathResolver::resolveSensorPath(
     const std::string& devicePath) {
-  std::string sensorPath;
-  if (dataStore_.hasSysfsPath(devicePath)) {
-    // Case-1: the sensor isn't I2cDevice.
-    // Examples: FanPwmCtrl and EmbeddedSensorConfig
-    // TODO: Relying on dataStore_ even for I2CDevice.
-    sensorPath = dataStore_.getSysfsPath(devicePath);
-  } else {
-    // Case-2: the sensor is I2cDevice.
-    sensorPath = resolveI2cDevicePath(devicePath);
-  }
+  auto sensorPath = dataStore_.getSysfsPath(devicePath);
   if (fs::exists(fmt::format("{}/hwmon", sensorPath))) {
     sensorPath = fmt::format("{}/hwmon", sensorPath);
   }
@@ -56,7 +43,7 @@ std::string DevicePathResolver::resolveSensorPath(
 
 std::string DevicePathResolver::resolveEepromPath(
     const std::string& devicePath) {
-  auto i2cDevicPath = resolveI2cDevicePath(devicePath);
+  auto i2cDevicPath = dataStore_.getSysfsPath(devicePath);
   auto eepromPath = i2cDevicPath + "/eeprom";
   if (!fs::exists(eepromPath)) {
     throw std::runtime_error(fmt::format(
@@ -98,31 +85,10 @@ std::string DevicePathResolver::resolvePciSubDevCharDevPath(
   return charDevPath;
 }
 
-std::string DevicePathResolver::resolveI2cDevicePath(
-    const std::string& devicePath) {
-  const auto [slotPath, deviceName] = Utils().parseDevicePath(devicePath);
-  uint16_t busNum;
-  std::optional<I2cAddr> i2cAddr;
-  if (deviceName == kIdprom) {
-    auto idpromConfig = getIdpromConfig(slotPath);
-    busNum = dataStore_.getI2cBusNum(slotPath, *idpromConfig.busName());
-    i2cAddr = I2cAddr(*idpromConfig.address());
-  } else {
-    auto i2cDeviceConfig = getI2cDeviceConfig(slotPath, deviceName);
-    busNum = dataStore_.getI2cBusNum(slotPath, *i2cDeviceConfig.busName());
-    i2cAddr = I2cAddr(*i2cDeviceConfig.address());
-  }
-  if (!i2cExplorer_.isI2cDevicePresent(busNum, *i2cAddr)) {
-    throw std::runtime_error(
-        fmt::format("{} is not plugged-in to the platform", deviceName));
-  }
-  return i2cExplorer_.getDeviceI2cPath(busNum, *i2cAddr);
-}
-
 std::optional<std::string> DevicePathResolver::tryResolveI2cDevicePath(
     const std::string& devicePath) {
   try {
-    return resolveI2cDevicePath(devicePath);
+    return dataStore_.getSysfsPath(devicePath);
   } catch (const std::exception& ex) {
     XLOG(ERR) << fmt::format(
         "Failed to resolve I2cDevicePath from {}. Reason: {}",
@@ -215,35 +181,6 @@ std::optional<std::string> DevicePathResolver::resolvePresencePath(
     return targetPath / presenceFileName;
   }
   return std::nullopt;
-}
-
-I2cDeviceConfig DevicePathResolver::getI2cDeviceConfig(
-    const std::string& slotPath,
-    const std::string& deviceName) {
-  auto pmUnitConfig = dataStore_.resolvePmUnitConfig(slotPath);
-  auto i2cDeviceConfig = std::find_if(
-      pmUnitConfig.i2cDeviceConfigs()->begin(),
-      pmUnitConfig.i2cDeviceConfigs()->end(),
-      [&](auto i2cDeviceConfig) {
-        return *i2cDeviceConfig.pmUnitScopedName() == deviceName;
-      });
-  if (i2cDeviceConfig == pmUnitConfig.i2cDeviceConfigs()->end()) {
-    throw std::runtime_error(fmt::format(
-        "Couldn't find i2c device config for {} at {}", deviceName, slotPath));
-  }
-  return *i2cDeviceConfig;
-}
-
-IdpromConfig DevicePathResolver::getIdpromConfig(const std::string& slotPath) {
-  auto pmUnitConfig = dataStore_.resolvePmUnitConfig(slotPath);
-  auto idpromConfig = platformConfig_.slotTypeConfigs()
-                          ->at(*pmUnitConfig.pluggedInSlotType())
-                          .idpromConfig();
-  if (!idpromConfig) {
-    throw std::runtime_error(
-        fmt::format("Couldn't find idprom config at {}", slotPath));
-  }
-  return *idpromConfig;
 }
 
 PciDeviceConfig DevicePathResolver::getPciDeviceConfig(

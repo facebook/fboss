@@ -14,10 +14,9 @@ using namespace facebook::fboss::platform::platform_manager;
 class MockDevicePathResolver : public DevicePathResolver {
  public:
   explicit MockDevicePathResolver(
-      PlatformConfig& config,
       DataStore& dataStore,
       I2cExplorer& i2cExplorer)
-      : DevicePathResolver(config, dataStore, i2cExplorer) {
+      : DevicePathResolver(dataStore, i2cExplorer) {
     std::cout << "Constructing MockDevicePathResolver" << std::endl;
   }
   MOCK_METHOD(
@@ -45,10 +44,7 @@ class PresenceCheckerTest : public testing::Test {
   DataStore dataStore_{platformConfig_};
   I2cExplorer i2cExplorer_;
 
-  MockDevicePathResolver devicePathResolver_{
-      platformConfig_,
-      dataStore_,
-      i2cExplorer_};
+  MockDevicePathResolver devicePathResolver_{dataStore_, i2cExplorer_};
 };
 
 TEST_F(PresenceCheckerTest, gpioPresent) {
