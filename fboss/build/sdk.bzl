@@ -126,6 +126,9 @@ def NativeBarchettaSdk(version, stage):
         version = version,
     )
 
+def filter(f, arr):
+    return [v for v in arr if f(v)]
+
 def filter_sdks_by_name(sdks: list, names: list[str]) -> list:
     return filter(lambda sdk: sdk.name in names, sdks)
 
@@ -155,11 +158,16 @@ def filter_sdks(
     sdks = filter_sdks_by_sim(sdks, is_sim)
     return list(sdks)
 
+def get_buildable_sdks(product_lines: list, is_sim: bool = False):
+    stages = [SdkStage.DEV, SdkStage.TEST, SdkStage.CANARY, SdkStage.COLDBOOT_CANARY, SdkStage.PRODUCTION, SdkStage.PRODUCTION_END]
+    return filter_sdks(product_lines = product_lines, stages = stages, is_sim = is_sim)
+
 def get_fbpkg_sdks(product_lines):
-    FBPKG_STAGES = [SdkStage.TEST, SdkStage.CANARY, SdkStage.PRODUCTION, SdkStage.PRODUCTION_END]
+    FBPKG_STAGES = [SdkStage.TEST, SdkStage.COLDBOOT_CANARY, SdkStage.CANARY, SdkStage.PRODUCTION, SdkStage.PRODUCTION_END]
     return filter_sdks(is_sim = False, product_lines = product_lines, stages = FBPKG_STAGES)
 
 ALL_SDKS = [
+    # Native Bcm
     NativeBcmSdk(
         stage = SdkStage.PRODUCTION,
         version = "6.5.26-1",
@@ -172,10 +180,16 @@ ALL_SDKS = [
         stage = SdkStage.DEV,
         version = "6.5.29-1",
     ),
+    NativeBcmSdk(
+        stage = SdkStage.NO_STAGE,
+        version = "6.5.30-3",
+    ),
+    # Fake
     FakeSdk(
         sai_version = "1.14.0",
         version = "1.14.0",
     ),
+    # Brcm sai
     SaiBrcmSdk(
         native_bcm_sdk_version = "6.5.26",
         sai_version = "1.11.0",
@@ -197,7 +211,7 @@ ALL_SDKS = [
     SaiBrcmSdk(
         native_bcm_sdk_version = "6.5.29",
         sai_version = "1.13.2",
-        stage = SdkStage.DEV,
+        stage = SdkStage.COLDBOOT_CANARY,
         version = "10.2.0.0_odp",
     ),
     SaiBrcmSdk(
@@ -206,6 +220,7 @@ ALL_SDKS = [
         stage = SdkStage.DEV,
         version = "11.0_ea_odp",
     ),
+    # Brcm sai sim
     SaiBrcmSimSdk(
         sai_version = "1.11.0",
         version = "8.2.0.0_sim_odp",
@@ -222,6 +237,7 @@ ALL_SDKS = [
         sai_version = "1.12.0",
         version = "10.0_ea_dnx_sim_odp",
     ),
+    # DNX
     SaiBrcmDsfSdk(
         fw_path = "../third-party/tp2/broadcom-xgs-robo/6.5.30_dnx/hsdk-all-6.5.30/tools/sand/db/",
         native_bcm_sdk_version = "6.5.30_dnx",
@@ -236,6 +252,7 @@ ALL_SDKS = [
         stage = SdkStage.TEST,
         version = "12.0_ea_dnx_odp",
     ),
+    # Leaba
     SaiLeabaSdk(
         fw_path = "third-party-buck/platform010-compat/build/leaba-sdk/1.42.8/res",
         sai_version = "1.7.4",
@@ -274,6 +291,7 @@ ALL_SDKS = [
         stage = SdkStage.DEV,
         version = "24.8.3001",
     ),
+    # Phy
     SaiCredoSdk(
         sai_version = "1.8.1",
         stage = SdkStage.PRODUCTION,

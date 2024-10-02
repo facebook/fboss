@@ -5,7 +5,7 @@
 # See https://fb.quip.com/aaiqAo5OAkia for a complete explanation.
 #
 
-load("//fboss/build:sdk.bzl", "filter_sdks")
+load("//fboss/build:sdk.bzl", "get_buildable_sdks")
 load("//fboss/build:sdk.thrift.bzl", "ProductLine")
 
 # mapping from sdk_name -> extra version to append to versions map
@@ -41,21 +41,21 @@ def to_impl_suffix(sdk):
             sdk.major_version,
         )
 
-BCM_SDKS = filter_sdks(product_lines = [ProductLine.BCM_NATIVE_SDK])
-SAI_FAKE_IMPLS = filter_sdks(product_lines = [ProductLine.FAKE_SDK])
-SAI_BRCM_HW_IMPLS = filter_sdks(product_lines = [ProductLine.SAI_SDK_BCM])
-SAI_BRCM_SIM_IMPLS = filter_sdks(product_lines = [ProductLine.SAI_SDK_BCM], is_sim = True)
-SAI_BRCM_DNX_SIM_IMPLS = filter_sdks(product_lines = [ProductLine.BCM_DSF_SDK], is_sim = True)
-SAI_BRCM_DNX_IMPLS = filter_sdks(product_lines = [ProductLine.BCM_DSF_SDK])
+BCM_SDKS = get_buildable_sdks(product_lines = [ProductLine.BCM_NATIVE_SDK])
+SAI_FAKE_IMPLS = get_buildable_sdks(product_lines = [ProductLine.FAKE_SDK])
+SAI_BRCM_HW_IMPLS = get_buildable_sdks(product_lines = [ProductLine.SAI_SDK_BCM])
+SAI_BRCM_SIM_IMPLS = get_buildable_sdks(product_lines = [ProductLine.SAI_SDK_BCM], is_sim = True)
+SAI_BRCM_DNX_SIM_IMPLS = get_buildable_sdks(product_lines = [ProductLine.BCM_DSF_SDK], is_sim = True)
+SAI_BRCM_DNX_IMPLS = get_buildable_sdks(product_lines = [ProductLine.BCM_DSF_SDK])
 SAI_BRCM_IMPLS = SAI_BRCM_HW_IMPLS + SAI_BRCM_SIM_IMPLS + SAI_BRCM_DNX_IMPLS + SAI_BRCM_DNX_SIM_IMPLS
-SAI_LEABA_IMPLS = filter_sdks(product_lines = [ProductLine.LEABA])
+SAI_LEABA_IMPLS = get_buildable_sdks(product_lines = [ProductLine.LEABA])
 
 # NOTE: Before deleting any of these, we must verify that they are not
 # referenced in configerator/source/neteng/fboss/fbpkg/qsfp_service.cinc as our
 # conveyor attempts to build qsfp_service binaries against each SDK referenced
 # in that config
-SAI_CREDO_IMPLS = filter_sdks(product_lines = [ProductLine.CREDO_SAI_SDK])
-SAI_MRVL_IMPLS = filter_sdks(product_lines = [ProductLine.MRVL_SAI_SDK])
+SAI_CREDO_IMPLS = get_buildable_sdks(product_lines = [ProductLine.CREDO_SAI_SDK])
+SAI_MRVL_IMPLS = get_buildable_sdks(product_lines = [ProductLine.MRVL_SAI_SDK])
 
 SAI_PHY_IMPLS = SAI_CREDO_IMPLS + SAI_MRVL_IMPLS
 SAI_VENDOR_IMPLS = SAI_BRCM_IMPLS + SAI_LEABA_IMPLS + SAI_CREDO_IMPLS + SAI_MRVL_IMPLS
@@ -67,4 +67,4 @@ SAI_IMPLS = SAI_VENDOR_IMPLS + SAI_FAKE_IMPLS
 # otherwise we'll have header mismatches.
 # NOTE: Similar to the SAI comment above, any version referenced in
 # qsfp_service.cinc must be present here
-NATIVE_IMPLS = filter_sdks(product_lines = [ProductLine.MILLENIO_SDK]) + filter_sdks(product_lines = [ProductLine.BARCHETTA2_SDK])
+NATIVE_IMPLS = get_buildable_sdks(product_lines = [ProductLine.MILLENIO_SDK, ProductLine.BARCHETTA2_SDK])

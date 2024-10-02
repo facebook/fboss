@@ -6,6 +6,7 @@ SdkStage = struct(
     CANARY = 3,
     PRODUCTION = 4,
     PRODUCTION_END = 5,
+    COLDBOOT_CANARY = 6,
 )
 
 ProductLine = struct(
