@@ -463,14 +463,18 @@ TEST_F(FabricConnectivityManagerTest, validateUnexpectedNeighbors) {
     EXPECT_NE(neighbor.expectedSwitchName(), neighbor.switchName());
     EXPECT_NE(neighbor.expectedPortName(), neighbor.portName());
     EXPECT_TRUE(neighbor.expectedPortId().has_value());
-    // portId = 79 results no portname
-    EXPECT_FALSE(neighbor.portName().has_value());
+
+    // PortID 79 corresponds to fab1/40/2 in Meru800bfa platform map
+    EXPECT_EQ(neighbor.portName(), "fab1/40/2");
   }
 
   // there is info mismatch here
   EXPECT_TRUE(
       fabricConnectivityManager_->isConnectivityInfoMismatch(PortID(1)));
-  EXPECT_TRUE(fabricConnectivityManager_->isConnectivityInfoMissing(PortID(1)));
+
+  // but connectivity info is present
+  EXPECT_FALSE(
+      fabricConnectivityManager_->isConnectivityInfoMissing(PortID(1)));
 }
 
 TEST_F(FabricConnectivityManagerTest, nonFabricPorts) {
@@ -531,8 +535,10 @@ TEST_F(FabricConnectivityManagerTest, validateMissingNeighborInfo) {
     EXPECT_EQ(neighbor.expectedPortName(), "fab1/2/3");
     EXPECT_NE(neighbor.expectedSwitchName(), neighbor.switchName());
     EXPECT_NE(neighbor.expectedPortName(), neighbor.portName());
-    // portId = 79 results no portname
-    EXPECT_FALSE(neighbor.portName().has_value());
+
+    // PortID 79 corresponds to fab1/40/2 in Meru800bfa platform map
+    EXPECT_EQ(neighbor.portName(), "fab1/40/2");
+
     // can't get it since dsf node is missing (fdswA)
     EXPECT_FALSE(neighbor.expectedPortId().has_value());
     EXPECT_FALSE(neighbor.expectedSwitchId().has_value());

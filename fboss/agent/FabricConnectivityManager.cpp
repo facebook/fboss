@@ -382,28 +382,45 @@ FabricConnectivityManager::processConnectivityInfoForPort(
     // expected matches actual and thus we can use expected{Switch, Port}Name to
     // populate actual{Switch, Port}Name.
 
-    bool switchIdMismatch;
     if (iter->second.expectedSwitchId().has_value() &&
         iter->second.expectedSwitchId().value() == iter->second.switchId() &&
         iter->second.expectedSwitchName().has_value()) {
-      switchIdMismatch = false;
       iter->second.switchName() = iter->second.expectedSwitchName().value();
+
+      if (iter->second.expectedPortId().has_value() &&
+          iter->second.expectedPortId().value() == iter->second.portId() &&
+          iter->second.expectedPortName().has_value()) {
+        iter->second.portName() = iter->second.expectedPortName().value();
+      }
     } else {
-      switchIdMismatch = true;
       auto switchIdIter =
           switchIdToBaseSwitchIdAndSwitchName_.find(*iter->second.switchId());
       if (switchIdIter == switchIdToBaseSwitchIdAndSwitchName_.end()) {
         XLOG(ERR) << "Unknown Peer SwitchID: "
                   << static_cast<int>(*iter->second.switchId());
       } else {
-        iter->second.switchName() = switchIdIter->second.second;
-      }
-    }
+        auto& [baseSwitchId, switchName] = switchIdIter->second;
+        iter->second.switchName() = switchName;
 
-    if (!switchIdMismatch && iter->second.expectedPortId().has_value() &&
-        iter->second.expectedPortId().value() == iter->second.portId() &&
-        iter->second.expectedPortName().has_value()) {
-      iter->second.portName() = iter->second.expectedPortName().value();
+        auto actualPortId = getActualPortIdForSwitch(
+            *iter->second.portId(),
+            SwitchID(*iter->second.switchId()),
+            baseSwitchId,
+            switchName);
+        if (actualPortId.has_value()) {
+          const auto platformMapping = getPlatformMappingForDsfNode(
+              switchIdToDsfNode_[baseSwitchId]->getPlatformType());
+          if (!platformMapping) {
+            throw FbossError(
+                "Unable to find platform mapping for port: ", portId);
+          }
+          auto portName =
+              platformMapping->getPortNameByPortId(actualPortId.value());
+          if (portName.has_value()) {
+            iter->second.portName() = portName.value();
+          }
+        }
+      }
     }
   } else {
     iter = currentNeighborConnectivity_.insert({portId, hwEndpoint}).first;
