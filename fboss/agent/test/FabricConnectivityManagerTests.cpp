@@ -229,7 +229,7 @@ TEST_F(FabricConnectivityManagerTest, validateProcessConnectivityInfo) {
   }
 
   EXPECT_TRUE(fabricConnectivityManager_->isConnectivityInfoMissing(PortID(1)));
-  EXPECT_FALSE(
+  EXPECT_TRUE(
       fabricConnectivityManager_->isConnectivityInfoMismatch(PortID(1)));
   // Update port to have expected neighbors again
   fabricConnectivityManager_->stateUpdated(StateDelta(newerState, newState));
@@ -294,7 +294,7 @@ TEST_F(FabricConnectivityManagerTest, validateNoExpectedConnectivity) {
   }
 
   EXPECT_TRUE(fabricConnectivityManager_->isConnectivityInfoMissing(PortID(1)));
-  EXPECT_FALSE(
+  EXPECT_TRUE(
       fabricConnectivityManager_->isConnectivityInfoMismatch(PortID(1)));
 }
 

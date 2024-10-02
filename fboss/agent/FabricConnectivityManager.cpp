@@ -355,13 +355,25 @@ FabricConnectivityManager::processConnectivityInfoForPort(
     // expected matches actual and thus we can use expected{Switch, Port}Name to
     // populate actual{Switch, Port}Name.
 
+    bool switchIdMismatch;
     if (iter->second.expectedSwitchId().has_value() &&
         iter->second.expectedSwitchId().value() == iter->second.switchId() &&
         iter->second.expectedSwitchName().has_value()) {
+      switchIdMismatch = false;
       iter->second.switchName() = iter->second.expectedSwitchName().value();
+    } else {
+      switchIdMismatch = true;
+      auto switchIdIter =
+          switchIdToBaseSwitchIdAndSwitchName_.find(*iter->second.switchId());
+      if (switchIdIter == switchIdToBaseSwitchIdAndSwitchName_.end()) {
+        XLOG(ERR) << "Unknown Peer SwitchID: "
+                  << static_cast<int>(*iter->second.switchId());
+      } else {
+        iter->second.switchName() = switchIdIter->second.second;
+      }
     }
 
-    if (iter->second.expectedPortId().has_value() &&
+    if (!switchIdMismatch && iter->second.expectedPortId().has_value() &&
         iter->second.expectedPortId().value() == iter->second.portId() &&
         iter->second.expectedPortName().has_value()) {
       iter->second.portName() = iter->second.expectedPortName().value();
