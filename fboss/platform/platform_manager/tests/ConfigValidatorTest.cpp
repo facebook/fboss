@@ -317,6 +317,11 @@ TEST(ConfigValidatorTest, DevicePath) {
   EXPECT_TRUE(ConfigValidator().isValidDevicePath("/SMB_SLOT@0/[MCB_MUX_1]"));
   EXPECT_TRUE(
       ConfigValidator().isValidDevicePath("/SMB_SLOT@0/SCM_SLOT@1/[sensor]"));
+  EXPECT_TRUE(ConfigValidator().isValidDevicePath("/SMB_FRU_SLOT@0/[idprom]"));
+  EXPECT_FALSE(
+      ConfigValidator().isValidDevicePath("/COME@SCM_SLOT@0/[idprom]"));
+  EXPECT_FALSE(
+      ConfigValidator().isValidDevicePath("/COME_SLOT@SCM_SLOT@0/[SCM_MUX_5]"));
 }
 
 TEST(ConfigValidatorTest, BspRpm) {
