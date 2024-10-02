@@ -11,14 +11,12 @@ namespace facebook::fboss::platform::platform_manager {
 class DevicePathResolver {
  public:
   virtual ~DevicePathResolver() = default;
-  explicit DevicePathResolver(
-      const DataStore& dataStore,
-      const I2cExplorer& i2cExplorer);
+  explicit DevicePathResolver(const DataStore& dataStore);
 
   // Resolves a given DevicePath to the sensor sysfs path in the system.
   // Throws a runtime exception if devicePath fails to resolve to I2cDevicePath
   // or fails to resolve to sensor sysfs path.
-  std::string resolveSensorPath(const std::string& devicePath);
+  std::string resolveSensorPath(const std::string& devicePath) const;
 
   // Resolves a given DevicePath to the eeprom sysfs path in the system.
   // Throws a runtime exception if devicePath fails to resolve to I2cDevicePath
@@ -59,7 +57,6 @@ class DevicePathResolver {
       const std::string& deviceName);
 
   const DataStore& dataStore_;
-  const I2cExplorer& i2cExplorer_;
 };
 
 } // namespace facebook::fboss::platform::platform_manager

@@ -17,13 +17,11 @@ const re2::RE2 kIioDeviceRe{"iio:device\\d+"};
 
 namespace facebook::fboss::platform::platform_manager {
 
-DevicePathResolver::DevicePathResolver(
-    const DataStore& dataStore,
-    const I2cExplorer& i2cExplorer)
-    : dataStore_(dataStore), i2cExplorer_(i2cExplorer) {}
+DevicePathResolver::DevicePathResolver(const DataStore& dataStore)
+    : dataStore_(dataStore) {}
 
 std::string DevicePathResolver::resolveSensorPath(
-    const std::string& devicePath) {
+    const std::string& devicePath) const {
   auto sensorPath = dataStore_.getSysfsPath(devicePath);
   if (fs::exists(fmt::format("{}/hwmon", sensorPath))) {
     sensorPath = fmt::format("{}/hwmon", sensorPath);
@@ -124,46 +122,24 @@ std::string DevicePathResolver::resolvePciDevicePath(
 std::optional<std::string> DevicePathResolver::resolvePresencePath(
     const std::string& devicePath,
     const std::string& presenceFileName) const {
+  try {
+    XLOG(INFO) << "Resolving PresencePath with SensorPath";
+    auto sensorPath = fs::path(resolveSensorPath(devicePath));
+    return sensorPath / presenceFileName;
+  } catch (const std::exception& e) {
+    XLOG(ERR) << fmt::format(
+        "Failed to resolve PresencePath with SensorPath. Reason: {}", e.what());
+  }
+  XLOG(INFO) << "Resolving PresencePath with PciDevicePath";
   const auto [slotPath, deviceName] = Utils().parseDevicePath(devicePath);
   if (!dataStore_.hasPmUnit(slotPath)) {
-    XLOG(ERR) << fmt::format("No PmUnit exists at {}", slotPath);
+    XLOG(ERR) << fmt::format(
+        "Failed to resolve PresencePath with PciDevicePath. "
+        "Reason: No PmUnit exists at {}",
+        slotPath);
     return std::nullopt;
   }
   auto pmUnitConfig = dataStore_.resolvePmUnitConfig(slotPath);
-  auto i2cDeviceConfig = std::find_if(
-      pmUnitConfig.i2cDeviceConfigs()->begin(),
-      pmUnitConfig.i2cDeviceConfigs()->end(),
-      [deviceNameCopy = deviceName](auto i2cDeviceConfig) {
-        return *i2cDeviceConfig.pmUnitScopedName() == deviceNameCopy;
-      });
-  if (i2cDeviceConfig != pmUnitConfig.i2cDeviceConfigs()->end()) {
-    auto busNum =
-        dataStore_.getI2cBusNum(slotPath, *i2cDeviceConfig->busName());
-    auto i2cAddr = I2cAddr(*i2cDeviceConfig->address());
-    if (!i2cExplorer_.isI2cDevicePresent(busNum, i2cAddr)) {
-      XLOG(ERR) << fmt::format(
-          "{} is not plugged-in to the platform", deviceName);
-      return std::nullopt;
-    }
-    auto targetPath =
-        std::filesystem::path(i2cExplorer_.getDeviceI2cPath(busNum, i2cAddr)) /
-        "hwmon";
-    std::string hwmonSubDir = "";
-    for (const auto& dirEntry :
-         std::filesystem::directory_iterator(targetPath)) {
-      auto dirName = dirEntry.path().filename();
-      if (re2::RE2::FullMatch(dirName.string(), kHwmonRe)) {
-        hwmonSubDir = dirName.string();
-        break;
-      }
-    }
-    if (hwmonSubDir.empty()) {
-      XLOG(ERR) << fmt::format(
-          "Couldn't find hwmon[num] folder within ({})", targetPath.string());
-      return std::nullopt;
-    }
-    return targetPath / hwmonSubDir / presenceFileName;
-  }
   auto pciDeviceConfig = std::find_if(
       pmUnitConfig.pciDeviceConfigs()->begin(),
       pmUnitConfig.pciDeviceConfigs()->end(),

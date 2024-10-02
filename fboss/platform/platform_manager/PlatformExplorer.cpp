@@ -164,7 +164,7 @@ PlatformExplorer::PlatformExplorer(
     const std::shared_ptr<PlatformFsUtils> platformFsUtils)
     : platformConfig_(config),
       dataStore_(platformConfig_),
-      devicePathResolver_(dataStore_, i2cExplorer_),
+      devicePathResolver_(dataStore_),
       presenceChecker_(devicePathResolver_),
       explorationErrMap_(platformConfig_, dataStore_),
       platformFsUtils_(platformFsUtils) {
