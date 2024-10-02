@@ -1,8 +1,10 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 
 #include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
-
 #include "fboss/agent/hw/HwSwitchFb303Stats.h"
+
+#include <folly/FileUtil.h>
+#include <filesystem>
 
 extern "C" {
 #ifndef IS_OSS_BRCM_SAI
@@ -81,5 +83,28 @@ void fillHwSwitchCreditStats(
         throw FbossError("Got unexpected switch counter id: ", counterId);
     }
   }
+}
+
+void switchPreInitSequence(cfg::AsicType asicType) {
+  if (asicType != cfg::AsicType::ASIC_TYPE_JERICHO3) {
+    return;
+  }
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
+  // Generate SOC file with register/table settings to enable PFC based on OBM
+  // usage at per port level and to enable FC between EGQ / FDR-FDA blocks,
+  // which will help avoid drops at ingress and egress respectively with higher
+  // GPU NCCL collective runs.
+  // TODO: Remove these once the patch for CS00012371269 and CS00012370885 are
+  // available.
+  const std::string kSaiPostInitCmdFileContent{
+      "w CGM_VSQE_RJCT_PRMS 0 128 -1 -1 -1 -1\n"
+      "mod CGM_PB_VSQ_RJCT_MASK 0 16 VSQ_RJCT_MASK=0x0\n"
+      "mod CGM_VSQF_FC_PRMS 0 16 WORDS_MIN_TH=60000 WORDS_MAX_TH=60000 WORDS_OFFSET=20000 SRAM_BUFFERS_MAX_TH=2048 SRAM_BUFFERS_MIN_TH=256 SRAM_BUFFERS_OFFSET=128\n"
+      "m ECGM_CONGESTION_MANAGEMENT_GLOBAL_THRESHOLDS TOTAL_DB_STOP_TH=29000\n"};
+  const std::string kSaiPostInitCmdFilePath{"/tmp/sai_postinit_cmd_file.soc"};
+  std::filesystem::create_directories(
+      std::filesystem::path(kSaiPostInitCmdFilePath).parent_path().u8string());
+  folly::writeFile(kSaiPostInitCmdFileContent, kSaiPostInitCmdFilePath.c_str());
+#endif
 }
 } // namespace facebook::fboss

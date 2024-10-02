@@ -26,4 +26,6 @@ void fillHwSwitchCreditStats(
 
 void publishSwitchWatermarks(HwSwitchWatermarkStats& /*watermarkStats*/) {}
 
+void switchPreInitSequence(cfg::AsicType /*asicType*/) {}
+
 } // namespace facebook::fboss

@@ -24,4 +24,6 @@ void fillHwSwitchCreditStats(
   CHECK_EQ(counterId2Value.size(), 0);
 }
 
+void switchPreInitSequence(cfg::AsicType /*asicType*/) {}
+
 } // namespace facebook::fboss

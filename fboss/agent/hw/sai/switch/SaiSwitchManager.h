@@ -163,4 +163,5 @@ void fillHwSwitchCreditStats(
     const folly::F14FastMap<sai_stat_id_t, uint64_t>& counterId2Value,
     HwSwitchCreditStats& hwSwitchCreditStats);
 void publishSwitchWatermarks(HwSwitchWatermarkStats& watermarkStats);
+void switchPreInitSequence(cfg::AsicType asicType);
 } // namespace facebook::fboss
