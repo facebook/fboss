@@ -109,31 +109,31 @@ void HwTransceiverUtils::verifyPortNameToLaneMap(
         break;
       case MediaInterfaceCode::FR4_2x400G:
       case MediaInterfaceCode::DR4_2x400G:
-        if (profile ==
-            cfg::PortProfileID::PROFILE_400G_4_PAM4_RS544X2N_OPTICAL) {
-          if (std::find(
-                  hostLaneMap[portName].begin(),
-                  hostLaneMap[portName].end(),
-                  0) != hostLaneMap[portName].end()) {
-            // When lane 0 is one of the host lanes, the media lanes are
-            // expected to be 0,1,2,3.
-            expectedMediaLanes = {0, 1, 2, 3};
-          } else {
-            expectedMediaLanes = {4, 5, 6, 7};
-          }
-        } else if (
-            profile ==
-                cfg::PortProfileID::PROFILE_106POINT25G_1_PAM4_RS544_OPTICAL ||
-            profile == cfg::PortProfileID::PROFILE_100G_1_PAM4_RS544_OPTICAL) {
-          expectedMediaLanes = {*hostLaneMap[portName].begin()};
-        } else if (
-            profile ==
-            cfg::PortProfileID::PROFILE_800G_8_PAM4_RS544X2N_OPTICAL) {
-          expectedMediaLanes = {0, 1, 2, 3, 4, 5, 6, 7};
-        } else {
-          throw FbossError(
-              "Unhandled profile ",
-              apache::thrift::util::enumNameSafe(profile));
+        switch (profile) {
+          case cfg::PortProfileID::PROFILE_400G_4_PAM4_RS544X2N_OPTICAL:
+          case cfg::PortProfileID::PROFILE_200G_4_PAM4_RS544X2N_OPTICAL:
+            if (std::find(
+                    hostLaneMap[portName].begin(),
+                    hostLaneMap[portName].end(),
+                    0) != hostLaneMap[portName].end()) {
+              // When lane 0 is one of the host lanes, the media lanes are
+              // expected to be 0,1,2,3.
+              expectedMediaLanes = {0, 1, 2, 3};
+            } else {
+              expectedMediaLanes = {4, 5, 6, 7};
+            }
+            break;
+          case cfg::PortProfileID::PROFILE_106POINT25G_1_PAM4_RS544_OPTICAL:
+          case cfg::PortProfileID::PROFILE_100G_1_PAM4_RS544_OPTICAL:
+            expectedMediaLanes = {*hostLaneMap[portName].begin()};
+            break;
+          case cfg::PortProfileID::PROFILE_800G_8_PAM4_RS544X2N_OPTICAL:
+            expectedMediaLanes = {0, 1, 2, 3, 4, 5, 6, 7};
+            break;
+          default:
+            throw FbossError(
+                "Unhandled profile ",
+                apache::thrift::util::enumNameSafe(profile));
         }
         break;
       case MediaInterfaceCode::FR1_100G:
