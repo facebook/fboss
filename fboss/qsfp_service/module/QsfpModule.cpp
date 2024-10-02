@@ -43,6 +43,7 @@ DEFINE_int32(
     time_for_tcvr_ready_after_fw_upgrade_s,
     60,
     "max time after firmware upgrade sequence when the the tcvr is expected to be ready for link up");
+DEFINE_bool(remediation_enabled, true, "Flag to disable/enable remediation.");
 
 using folly::IOBuf;
 using std::lock_guard;
@@ -1009,7 +1010,7 @@ bool QsfpModule::shouldRemediate(time_t pauseRemidiation) {
 }
 
 bool QsfpModule::shouldRemediateLocked(time_t pauseRemidiation) {
-  if (!supportRemediate()) {
+  if (!FLAGS_remediation_enabled || !supportRemediate()) {
     return false;
   }
 
