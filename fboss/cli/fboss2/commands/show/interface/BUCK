@@ -9,4 +9,7 @@ thrift_library(
     ],
     thrift_cpp2_options = "json",
     thrift_srcs = {"model.thrift": []},
+    deps = [
+        "//fboss/agent:switch_config",
+    ],
 )

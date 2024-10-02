@@ -375,6 +375,7 @@ struct PortInfoThrift {
   28: optional string expectedLLDPPeerPort;
   29: optional i32 coreId;
   30: optional i32 virtualDeviceId;
+  31: switch_config.PortType portType;
 }
 
 // Port queueing configuration

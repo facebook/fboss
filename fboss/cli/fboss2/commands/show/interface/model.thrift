@@ -1,5 +1,7 @@
 namespace cpp2 facebook.fboss.cli
 
+include "fboss/agent/switch_config.thrift"
+
 struct ShowInterfaceModel {
   1: list<Interface> interfaces;
 }
@@ -14,6 +16,7 @@ struct Interface {
   7: list<IpPrefix> prefixes;
   8: i32 systemPortId;
   9: list<string> ips;
+  10: switch_config.PortType portType;
 }
 
 struct IpPrefix {

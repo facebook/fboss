@@ -198,6 +198,7 @@ void getPortInfoHelper(
   if (auto id = sw.getHwLogicalPortId(port->getID())) {
     portInfo.hwLogicalPortId() = *id;
   }
+  *portInfo.portType() = port->getPortType();
 
   std::shared_ptr<QosPolicy> qosPolicy;
   auto state = sw.getState();

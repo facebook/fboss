@@ -133,6 +133,7 @@ class CmdShowInterface
             (operState == facebook::fboss::PortOperState::UP) ? "up" : "down";
         ifModel.speed() = std::to_string(*portInfo.speedMbps() / 1000) + "G";
         ifModel.prefixes() = {};
+        ifModel.portType() = *portInfo.portType();
 
         // We assume that there is a one-to-one association between
         // port, interface, and VLAN.
@@ -282,7 +283,8 @@ class CmdShowInterface
       std::string name = *interface.name();
       std::vector<std::string> prefixes;
 
-      if (!name.starts_with("fab")) { // Skip addresses for fabric ports
+      if (interface.portType() == cfg::PortType::FABRIC_PORT ||
+          !name.starts_with("fab")) { // Skip addresses for fabric ports
         for (const auto& prefix : *interface.prefixes()) {
           prefixes.push_back(
               fmt::format("{}/{}", *prefix.ip(), *prefix.prefixLength()));
