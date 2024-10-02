@@ -75,8 +75,11 @@ class PortStats {
   void pktTooBig();
 
   void setPortName(const std::string& portName);
-  std::string getPortName() {
+  std::string getPortName() const {
     return portName_;
+  }
+  PortID getPortId() const {
+    return portID_;
   }
 
   void MkPduRecvdPkt();
@@ -98,16 +101,12 @@ class PortStats {
       bool isDrained,
       std::optional<bool> activeState);
 
-  PortID portId() const {
-    return portID_;
-  }
-
  private:
   // Forbidden copy constructor and assignment operator
   PortStats(PortStats const&) = delete;
   PortStats& operator=(PortStats const&) = delete;
 
-  std::string getCounterKey(const std::string& key);
+  std::string getCounterKey(const std::string& key) const;
 
   /*
    * It's useful to store this

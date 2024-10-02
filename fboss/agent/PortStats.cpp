@@ -271,7 +271,7 @@ void PortStats::MKAServiceRecvSuccess() {
   switchStats_->MKAServiceRecvSuccess();
 }
 
-std::string PortStats::getCounterKey(const std::string& key) {
+std::string PortStats::getCounterKey(const std::string& key) const {
   return folly::to<std::string>(portName_, kNameKeySeperator, key);
 }
 
