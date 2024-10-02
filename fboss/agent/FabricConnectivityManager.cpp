@@ -254,6 +254,35 @@ void FabricConnectivityManager::addDsfNode(
     const std::shared_ptr<DsfNode>& dsfNode) {
   switchIdToDsfNode_[dsfNode->getID()] = dsfNode;
   switchNameToSwitchIDs_[dsfNode->getName()].insert(dsfNode->getSwitchId());
+
+  // DSFNodeMap for multi-core devices is spaced out by the number of cores.
+  // However, SAI implementation may return peer switchId for any core.
+  // Construct a map to process it.
+  //
+  // For example, for a 2-core, 2-NPU device, DSFNodeMap contains:
+  //  1024 => fdsw1
+  //  1026 => fdsw1
+  //  1028 => fdsw2
+  //  1030 => fdsw2
+  //  ...
+  //
+  //  Build a map as:
+  //  1024 => 1024, fdsw1
+  //  1025 => 1024, fdsw1
+  //  1026 => 1026, fdsw1
+  //  1027 => 1026, fdsw1
+  //  1028 => 1028, fdsw2
+  //  1029 => 1028, fdsw2
+  //  ...
+  auto baseSwitchId = dsfNode->getID();
+  const auto& hwAsic =
+      getHwAsicForAsicType(switchIdToDsfNode_[baseSwitchId]->getAsicType());
+  for (auto currSwitchId = baseSwitchId;
+       currSwitchId < baseSwitchId + hwAsic.getNumCores();
+       currSwitchId++) {
+    switchIdToBaseSwitchIdAndSwitchName_[currSwitchId] =
+        std::make_pair(baseSwitchId, dsfNode->getName());
+  }
 }
 
 void FabricConnectivityManager::removeDsfNode(

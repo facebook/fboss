@@ -75,6 +75,8 @@ class FabricConnectivityManager {
 
   std::unordered_map<uint64_t, std::shared_ptr<DsfNode>> switchIdToDsfNode_;
   std::unordered_map<std::string, std::set<uint64_t>> switchNameToSwitchIDs_;
+  std::unordered_map<uint64_t, std::pair<uint64_t, std::string>>
+      switchIdToBaseSwitchIdAndSwitchName_;
   std::map<PortID, FabricEndpoint> currentNeighborConnectivity_;
   std::map<PortID, std::string> fabricPortId2Name_;
 };
