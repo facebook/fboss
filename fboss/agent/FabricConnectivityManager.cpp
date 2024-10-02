@@ -334,6 +334,33 @@ void FabricConnectivityManager::stateUpdated(const StateDelta& delta) {
   updateDsfNodes(delta);
 }
 
+std::optional<PortID> FabricConnectivityManager::getActualPortIdForSwitch(
+    int32_t portId,
+    uint64_t switchId,
+    uint64_t baseSwitchId,
+    const auto& switchName) {
+  auto switchNameIter = switchNameToSwitchIDs_.find(switchName);
+  if (switchNameIter == switchNameToSwitchIDs_.end()) {
+    return std::nullopt;
+  }
+
+  auto iter = switchNameIter->second.find(baseSwitchId);
+  if (iter == switchNameIter->second.end()) {
+    return std::nullopt;
+  }
+
+  auto npuIndex = std::distance(switchNameIter->second.begin(), iter);
+  const auto& hwAsic =
+      getHwAsicForAsicType(switchIdToDsfNode_[baseSwitchId]->getAsicType());
+
+  return PortID(
+      portId + npuIndex * hwAsic.getMaxPorts() +
+      ((switchId - baseSwitchId) *
+       getFabricPortsPerVirtualDevice(
+           switchIdToDsfNode_[baseSwitchId]->getAsicType())) +
+      getRemotePortOffset(switchIdToDsfNode_[baseSwitchId]->getPlatformType()));
+}
+
 std::optional<multiswitch::FabricConnectivityDelta>
 FabricConnectivityManager::processConnectivityInfoForPort(
     const PortID& portId,

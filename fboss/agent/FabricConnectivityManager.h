@@ -61,6 +61,11 @@ class FabricConnectivityManager {
   static int virtualDevicesWithAsymmetricConnectivity(
       const std::map<int64_t, RemoteConnectionGroups>&
           virtualDevice2RemoteConnectionGroups);
+  std::optional<PortID> getActualPortIdForSwitch(
+      int32_t portId,
+      uint64_t switchId,
+      uint64_t baseSwitchId,
+      const auto& switchName);
 
  private:
   void updateExpectedSwitchIdAndPortIdForPort(PortID portID);
