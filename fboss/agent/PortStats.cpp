@@ -151,6 +151,22 @@ void PortStats::dhcpV6DropPkt() {
   switchStats_->dhcpV6DropPkt();
 }
 
+void PortStats::updateLoadBearingTLStatValue(
+    const std::string& counter,
+    bool isDrained,
+    std::optional<bool> activeState,
+    int64_t val) const {
+  if (activeState.has_value()) {
+    if (!isDrained && *activeState) {
+      // not drained and active (peer not drained) - log value
+      tcData().addStatValue(getCounterKey(counter), val, SUM);
+    } else {
+      // local drain or peer drained. No load bearing impact
+      tcData().addStatValue(getCounterKey(counter), 0, SUM);
+    }
+  }
+}
+
 void PortStats::linkStateChange(
     bool isUp,
     bool isDrained,
@@ -167,10 +183,8 @@ void PortStats::linkStateChange(
   // TLTimeseries and leave ThreadLocalStats do it for us.
   if (!portName_.empty()) {
     tcData().addStatValue(getCounterKey(kLinkStateFlap), 1, SUM);
-    if (!isDrained && activeState.value_or(false)) {
-      // not drained and active (peer not drained)
-      tcData().addStatValue(getCounterKey(kLoadBearingLinkStateFlap), 1, SUM);
-    }
+    updateLoadBearingTLStatValue(
+        kLoadBearingLinkStateFlap, isDrained, activeState, 1);
   }
   switchStats_->linkStateChange();
 }
@@ -279,13 +293,8 @@ void PortStats::inErrors(
     int64_t inErrors,
     bool isDrained,
     std::optional<bool> activeState) {
-  if (!isDrained && activeState.value_or(false)) {
-    // not drained and active (peer not drained)
-    if (!portName_.empty()) {
-      tcData().addStatValue(
-          getCounterKey(kLoadBearingInErrors), inErrors - curInErrors_, SUM);
-    }
-  }
+  updateLoadBearingTLStatValue(
+      kLoadBearingInErrors, isDrained, activeState, inErrors - curInErrors_);
   curInErrors_ = inErrors;
 }
 
@@ -293,15 +302,11 @@ void PortStats::fecUncorrectableErrors(
     int64_t fecUncorrectableErrors,
     bool isDrained,
     std::optional<bool> activeState) {
-  if (!isDrained && activeState.value_or(false)) {
-    // Not drained and active (peer not drained)
-    if (!portName_.empty()) {
-      tcData().addStatValue(
-          getCounterKey(kLoadBearingFecUncorrErrors),
-          fecUncorrectableErrors - curFecUncorrectableErrors_,
-          SUM);
-    }
-  }
+  updateLoadBearingTLStatValue(
+      kLoadBearingFecUncorrErrors,
+      isDrained,
+      activeState,
+      fecUncorrectableErrors - curFecUncorrectableErrors_);
   curFecUncorrectableErrors_ = fecUncorrectableErrors;
 }
 

@@ -107,6 +107,11 @@ class PortStats {
   PortStats& operator=(PortStats const&) = delete;
 
   std::string getCounterKey(const std::string& key) const;
+  void updateLoadBearingTLStatValue(
+      const std::string& counter,
+      bool isDrained,
+      std::optional<bool> activeState,
+      int64_t val) const;
 
   /*
    * It's useful to store this
