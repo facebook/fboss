@@ -92,7 +92,6 @@ target_link_libraries(sai_platform
   wedge400_platform_mapping
   wedge400c_platform_mapping
   morgan_platform_mapping
-  sandia_platform_mapping
   wedge_led_utils
   bcm_yaml_config
   cloud_ripper_platform_mapping

@@ -112,10 +112,6 @@ void PlatformProductInfo::initMode() {
     } else if (modelName.find("CLOUDRIPPER") == 0) {
       type_ = PlatformType::PLATFORM_CLOUDRIPPER;
     } else if (
-        modelName.find("Sandia") == 0 || modelName.find("SANDIA") == 0 ||
-        modelName.find("8508-F-SYS-HV") == 0) {
-      type_ = PlatformType::PLATFORM_SANDIA;
-    } else if (
         modelName.find("Meru400biu") == 0 ||
         modelName.find("S9710-76D-BB12") == 0) {
       type_ = PlatformType::PLATFORM_MERU400BIU;
@@ -181,8 +177,6 @@ void PlatformProductInfo::initMode() {
       type_ = PlatformType::PLATFORM_ELBERT;
     } else if (FLAGS_mode == "darwin") {
       type_ = PlatformType::PLATFORM_DARWIN;
-    } else if (FLAGS_mode == "sandia") {
-      type_ = PlatformType::PLATFORM_SANDIA;
     } else if (FLAGS_mode == "meru400biu") {
       type_ = PlatformType::PLATFORM_MERU400BIU;
     } else if (FLAGS_mode == "meru800bia") {

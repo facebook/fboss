@@ -6,26 +6,17 @@ _CREDO_SRCS = [
     "facebook/credo/elbert/ElbertPhyManager.cpp",
 ]
 
-_MRVL_SRCS = [
-    "facebook/mvl/sandia/SandiaPhyManager.cpp",
-]
+_ALL_SRCS = _CREDO_SRCS
 
-_ALL_SRCS = _CREDO_SRCS + _MRVL_SRCS
-
-def _get_srcs(sai_impl):
+def _get_srcs():
     # TODO: actually split up sources once we support doing so
-    if sai_impl.name == "credo":
-        return _ALL_SRCS
-    elif sai_impl.name == "mrvl":
-        return _ALL_SRCS
-    else:
-        return _ALL_SRCS
+    return _ALL_SRCS
 
 def _sai_phy_management_lib(sai_impl):
     impl_suffix = to_sdk_suffix(sai_impl)
     return cpp_library(
         name = "sai-phy-management{}".format(impl_suffix),
-        srcs = _get_srcs(sai_impl) + [
+        srcs = _get_srcs() + [
             "SaiPhyManager.cpp",
         ],
         headers = [

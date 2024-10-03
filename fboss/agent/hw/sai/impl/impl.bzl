@@ -8,7 +8,6 @@ load(
     "SAI_FAKE_IMPLS",
     "SAI_IMPLS",
     "SAI_LEABA_IMPLS",
-    "SAI_MRVL_IMPLS",
     "SAI_PHY_IMPLS",
     "SAI_VENDOR_IMPLS",
     "to_impl_suffix",
@@ -22,7 +21,6 @@ SAI_CREDO_IMPLS = SAI_CREDO_IMPLS
 SAI_FAKE_IMPLS = SAI_FAKE_IMPLS
 SAI_IMPLS = SAI_IMPLS
 SAI_LEABA_IMPLS = SAI_LEABA_IMPLS
-SAI_MRVL_IMPLS = SAI_MRVL_IMPLS
 SAI_VENDOR_IMPLS = SAI_VENDOR_IMPLS
 SAI_PHY_IMPLS = SAI_PHY_IMPLS
 to_versions = to_versions
@@ -69,7 +67,6 @@ def to_impl_external_deps(sai_impl):
         ("leaba-sdk", "24.6.1_yuba"): [("leaba-sdk", None, "sai-sdk")],
         ("leaba-sdk", "24.7.0_yuba"): [("leaba-sdk", None, "sai-sdk")],
         ("leaba-sdk", "24.8.3001"): [("leaba-sdk", None, "dyn-sai"), ("leaba-sdk", None, "dyn-sdk")],
-        ("mrvl_phy_sai", "1.4.0"): [("mrvl_phy_sai", None, "sai")],
     }
     return _external_deps_map[(sai_impl.sdk_name, sai_impl.version)]
 
@@ -175,23 +172,11 @@ def sai_credo_impl_lib():
         auto_headers = AutoHeaders.SOURCES,
     ) for sai_impl in SAI_CREDO_IMPLS]
 
-def sai_mrvl_impl_lib():
-    return [cpp_library(
-        name = to_impl_lib_name(sai_impl),
-        srcs = [
-        ],
-        exported_deps = [
-            "//fboss/agent/hw/sai/tracer:sai_tracer{}".format(to_impl_suffix(sai_impl)),
-        ],
-        auto_headers = AutoHeaders.SOURCES,
-    ) for sai_impl in SAI_MRVL_IMPLS]
-
 def sai_impl_libs():
     sai_fake_impl_lib()
     sai_leaba_impl_lib()
     sai_brcm_impl_lib()
     sai_credo_impl_lib()
-    sai_mrvl_impl_lib()
 
 def _sai_impl_version_lib(sai_impl, srcs = []):
     external_deps = to_impl_external_deps(sai_impl)

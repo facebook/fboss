@@ -91,17 +91,6 @@ def SaiCredoSdk(version, sai_version, stage):
         version = version,
     )
 
-def SaiMrvlSdk(version, sai_version, stage):
-    return FbossSdk(
-        name = "mrvl_phy_sai",
-        is_npu = False,
-        product_line = ProductLine.MRVL_SAI_SDK,
-        product_name = "mrvl",
-        sai_version = sai_version,
-        stage = stage,
-        version = version,
-    )
-
 def NativeMillenioSdk(version, stage):
     return FbossSdk(
         name = "broadcom-plp-millenio",
@@ -301,11 +290,6 @@ ALL_SDKS = [
         sai_version = "1.11.0",
         stage = SdkStage.TEST,
         version = "0.8.4",
-    ),
-    SaiMrvlSdk(
-        sai_version = "1.11.0",
-        stage = SdkStage.DEV,
-        version = "1.4.0",
     ),
     NativeMillenioSdk(
         stage = SdkStage.PRODUCTION,

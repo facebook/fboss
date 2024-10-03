@@ -13,10 +13,8 @@
 #include "fboss/agent/hw/switch_asics/CredoPhyAsic.h"
 #include "fboss/agent/hw/switch_asics/EbroAsic.h"
 #include "fboss/agent/hw/switch_asics/FakeAsic.h"
-#include "fboss/agent/hw/switch_asics/GaronneAsic.h"
 #include "fboss/agent/hw/switch_asics/Jericho2Asic.h"
 #include "fboss/agent/hw/switch_asics/Jericho3Asic.h"
-#include "fboss/agent/hw/switch_asics/MarvelPhyAsic.h"
 #include "fboss/agent/hw/switch_asics/MockAsic.h"
 #include "fboss/agent/hw/switch_asics/Ramon3Asic.h"
 #include "fboss/agent/hw/switch_asics/RamonAsic.h"
@@ -105,14 +103,8 @@ std::unique_ptr<HwAsic> HwAsic::makeAsic(
     case cfg::AsicType::ASIC_TYPE_EBRO:
       return std::make_unique<EbroAsic>(
           switchType, switchId, switchIndex, systemPortRange, mac, sdkVersion);
-    case cfg::AsicType::ASIC_TYPE_GARONNE:
-      return std::make_unique<GaronneAsic>(
-          switchType, switchId, switchIndex, systemPortRange, mac, sdkVersion);
     case cfg::AsicType::ASIC_TYPE_YUBA:
       return std::make_unique<YubaAsic>(
-          switchType, switchId, switchIndex, systemPortRange, mac, sdkVersion);
-    case cfg::AsicType::ASIC_TYPE_SANDIA_PHY:
-      return std::make_unique<MarvelPhyAsic>(
           switchType, switchId, switchIndex, systemPortRange, mac, sdkVersion);
     case cfg::AsicType::ASIC_TYPE_JERICHO2:
       return std::make_unique<Jericho2Asic>(
@@ -126,6 +118,9 @@ std::unique_ptr<HwAsic> HwAsic::makeAsic(
     case cfg::AsicType::ASIC_TYPE_RAMON3:
       return std::make_unique<Ramon3Asic>(
           switchType, switchId, switchIndex, systemPortRange, mac, sdkVersion);
+    case cfg::AsicType::ASIC_TYPE_GARONNE:
+    case cfg::AsicType::ASIC_TYPE_SANDIA_PHY:
+      throw FbossError("Unexcepted asic type: ", asicType);
   };
   throw FbossError("Unexcepted asic type: ", asicType);
 }

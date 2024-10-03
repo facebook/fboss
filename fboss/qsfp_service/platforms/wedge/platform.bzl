@@ -24,8 +24,6 @@ CLOSED_SRCS = COMMON_SRCS + [
     "facebook/Wedge400Manager.cpp",
     "facebook/WedgeManagerInit.cpp",
     "facebook/YampManager.cpp",
-    "facebook/SandiaManager.cpp",
-    "facebook/SandiaBspManager.cpp",
 ]
 
 CREDO_SRCS = CLOSED_SRCS + [
@@ -62,7 +60,6 @@ CLOSED_DEPS = COMMON_DEPS + [
     "//fboss/lib/fpga/facebook/fuji:fuji_container",
     "//fboss/lib/phy:phy-management",
     "//fboss/qsfp_service/fsdb:fsdb-syncer",
-    "//fboss/lib/bsp/facebook/sandia:sandia_bsp",
 ]
 
 def _get_srcs(sai_impl):
@@ -95,7 +92,6 @@ def _sai_platform_lib(sai_impl):
             "//fboss/lib/fpga/facebook/cloudripper:cloudripper_i2c",
             "//fboss/lib/fpga/facebook/darwin:darwin_i2c",
             "//fboss/lib/fpga/facebook/elbert:elbert_i2c",
-            "//fboss/lib/fpga/facebook/sandia:sandia_i2c",
             "//fboss/lib/fpga:wedge400_i2c",
             "//fboss/lib/fpga/facebook/yamp:yamp_i2c",
             "//fboss/lib/i2c/facebook/fuji:fuji_i2c",

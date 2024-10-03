@@ -69,8 +69,6 @@ std::unique_ptr<WedgeManager> createWedgeManager() {
     return createDarwinWedgeManager(platformMappingStr);
   } else if (mode == PlatformType::PLATFORM_ELBERT) {
     return createElbertWedgeManager(platformMappingStr);
-  } else if (mode == PlatformType::PLATFORM_SANDIA) {
-    return createSandiaWedgeManager(platformMappingStr);
   } else if (mode == PlatformType::PLATFORM_MERU400BFU) {
     return createMeru400bfuWedgeManager(platformMappingStr);
   } else if (mode == PlatformType::PLATFORM_MERU400BIA) {

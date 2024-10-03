@@ -37,7 +37,6 @@ target_link_libraries(platform_mapping_utils
   wedge400_platform_mapping
   wedge400c_platform_mapping
   morgan_platform_mapping
-  sandia_platform_mapping
   cloud_ripper_platform_mapping
   meru400biu_platform_mapping
   meru400bfu_platform_mapping

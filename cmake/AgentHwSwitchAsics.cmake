@@ -10,7 +10,6 @@ add_library(version_util
 add_library(switch_asics
   fboss/agent/hw/switch_asics/FakeAsic.h
   fboss/agent/hw/switch_asics/EbroAsic.cpp
-  fboss/agent/hw/switch_asics/GaronneAsic.cpp
   fboss/agent/hw/switch_asics/YubaAsic.cpp
   fboss/agent/hw/switch_asics/HwAsic.cpp
   fboss/agent/hw/switch_asics/HwAsic.h
@@ -20,7 +19,6 @@ add_library(switch_asics
   fboss/agent/hw/switch_asics/TomahawkAsic.cpp
   fboss/agent/hw/switch_asics/Trident2Asic.cpp
   fboss/agent/hw/switch_asics/CredoPhyAsic.cpp
-  fboss/agent/hw/switch_asics/MarvelPhyAsic.cpp
   fboss/agent/hw/switch_asics/Jericho2Asic.cpp
   fboss/agent/hw/switch_asics/Jericho3Asic.cpp
   fboss/agent/hw/switch_asics/RamonAsic.cpp

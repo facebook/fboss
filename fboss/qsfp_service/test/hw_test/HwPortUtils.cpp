@@ -93,9 +93,7 @@ void verifyPhyPortConfig(
 void verifyPhyPortConnector(PortID portID, HwQsfpEnsemble* qsfpEnsemble) {
   // FIXME: remove Sandia check when Sandia XPHY supports getattr for
   // PortConnector object in SAI
-  if (!qsfpEnsemble->isSaiPlatform() ||
-      qsfpEnsemble->getWedgeManager()->getPlatformType() ==
-          PlatformType::PLATFORM_SANDIA) {
+  if (!qsfpEnsemble->isSaiPlatform()) {
     return;
   }
   // FIXME: [oss-fix] Remove this when linking to a SAI library is supported in

@@ -101,8 +101,6 @@ _PHY_FAKE_SRCS = _PHY_COMMON_SRCS
 
 _PHY_ELBERT_8DD_SRCS = _PHY_COMMON_SRCS
 
-_PHY_MRVL_SRCS = _PHY_COMMON_SRCS
-
 def _sai_switch_srcs(sai_impl, is_npu):
     if is_npu:
         if sai_impl.name == "fake":
@@ -116,8 +114,6 @@ def _sai_switch_srcs(sai_impl, is_npu):
             return _PHY_FAKE_SRCS
         if sai_impl.name == "credo":
             return _PHY_ELBERT_8DD_SRCS
-        if sai_impl.name == "mrvl":
-            return _PHY_MRVL_SRCS
     return []
 
 def sai_switch_lib_name(sai_impl, is_npu):

@@ -51,10 +51,5 @@ std::string getDeviceHostnameScheme() {
   return "";
 }
 
-std::unique_ptr<WedgeManager> createSandiaWedgeManager(
-    const std::string& /* platformMappingStr */) {
-  return std::unique_ptr<WedgeManager>{};
-}
-
 } // namespace fboss
 } // namespace facebook

@@ -50,7 +50,6 @@ cpp_library(
         "//fboss/agent/platforms/common/minipack:minipack_platform_mapping",
         "//fboss/agent/platforms/common/montblanc:montblanc_platform_mapping",
         "//fboss/agent/platforms/common/morgan800cc:morgan800cc_platform_mapping",
-        "//fboss/agent/platforms/common/sandia:sandia_platform_mapping",
         "//fboss/agent/platforms/common/tahan800bc:tahan800bc_platform_mapping",
         "//fboss/agent/platforms/common/wedge100:wedge100_platform_mapping",
         "//fboss/agent/platforms/common/wedge40:wedge40_platform_mapping",

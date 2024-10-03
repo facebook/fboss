@@ -55,10 +55,9 @@ SAI_LEABA_IMPLS = get_buildable_sdks(product_lines = [ProductLine.LEABA])
 # conveyor attempts to build qsfp_service binaries against each SDK referenced
 # in that config
 SAI_CREDO_IMPLS = get_buildable_sdks(product_lines = [ProductLine.CREDO_SAI_SDK])
-SAI_MRVL_IMPLS = get_buildable_sdks(product_lines = [ProductLine.MRVL_SAI_SDK])
 
-SAI_PHY_IMPLS = SAI_CREDO_IMPLS + SAI_MRVL_IMPLS
-SAI_VENDOR_IMPLS = SAI_BRCM_IMPLS + SAI_LEABA_IMPLS + SAI_CREDO_IMPLS + SAI_MRVL_IMPLS
+SAI_PHY_IMPLS = SAI_CREDO_IMPLS
+SAI_VENDOR_IMPLS = SAI_BRCM_IMPLS + SAI_LEABA_IMPLS + SAI_CREDO_IMPLS
 
 SAI_IMPLS = SAI_VENDOR_IMPLS + SAI_FAKE_IMPLS
 

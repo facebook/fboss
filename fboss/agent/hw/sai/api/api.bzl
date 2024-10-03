@@ -58,15 +58,6 @@ credo_srcs = common_srcs + [
     "oss/QueueApi.cpp",
 ]
 
-mrvl_srcs = common_srcs + [
-    "oss/DebugCounterApi.cpp",
-    "oss/PortApi.cpp",
-    "oss/SwitchApi.cpp",
-    "oss/TamApi.cpp",
-    "oss/BufferApi.cpp",
-    "oss/QueueApi.cpp",
-]
-
 common_headers = [
     "AclApi.h",
     "AdapterKeySerializers.h",
@@ -135,7 +126,6 @@ def sai_api_libs():
         "credo": credo_srcs,
         "fake": fake_srcs,
         "leaba": tajo_srcs,
-        "mrvl": mrvl_srcs,
     }
     for sai_impl in SAI_IMPLS:
         deps = common_deps + [
