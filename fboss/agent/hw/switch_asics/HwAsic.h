@@ -211,6 +211,11 @@ class HwAsic {
     ASIC_VENDOR_MOCK,
     ASIC_VENDOR_FAKE,
   };
+  enum FabricNodeRole {
+    SINGLE_STAGE_L1,
+    DUAL_STAGE_L1,
+    DUAL_STAGE_L2,
+  };
   virtual ~HwAsic() {}
   static std::unique_ptr<HwAsic> makeAsic(
       cfg::AsicType asicType,

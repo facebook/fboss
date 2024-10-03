@@ -203,4 +203,5 @@ std::optional<uint32_t> HwAsic::computePortGroupSkew(
   throw FbossError(
       "Derived class must override getPortGroupSkew, where applicable");
 }
+
 } // namespace facebook::fboss
