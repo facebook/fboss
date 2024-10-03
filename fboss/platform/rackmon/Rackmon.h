@@ -14,15 +14,7 @@ namespace rackmon {
 struct ModbusDeviceFilter {
   std::optional<std::set<uint8_t>> addrFilter{};
   std::optional<std::set<std::string>> typeFilter{};
-  operator bool() const {
-    return addrFilter || typeFilter;
-  }
-  bool contains(uint8_t addr) const {
-    return addrFilter && addrFilter->find(addr) != addrFilter->end();
-  }
-  bool contains(const std::string& type) const {
-    return typeFilter && typeFilter->find(type) != typeFilter->end();
-  }
+  bool contains(const ModbusDevice& dev) const;
 };
 
 class Rackmon {
@@ -184,6 +176,10 @@ class Rackmon {
       const ModbusDeviceFilter& devFilter = {},
       const ModbusRegisterFilter& regFilter = {},
       bool latestValueOnly = false) const;
+
+  void reload(
+      const ModbusDeviceFilter& devFilter,
+      const ModbusRegisterFilter& regFilter);
 };
 
 } // namespace rackmon

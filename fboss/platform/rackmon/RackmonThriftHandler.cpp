@@ -245,15 +245,14 @@ void ThriftHandler::getMonitorData(std::vector<RackmonMonitorData>& data) {
   }
 }
 
-void ThriftHandler::getMonitorDataEx(
-    std::vector<RackmonMonitorData>& data,
-    std::unique_ptr<MonitorDataFilter> filter) {
-  DeviceFilter* reqDevFilter = filter->get_deviceFilter();
-  RegisterFilter* reqRegFilter = filter->get_registerFilter();
-  bool latestOnly = filter->get_latestValueOnly();
-  std::vector<rackmon::ModbusDeviceValueData> indata;
-  rackmon::ModbusDeviceFilter devFilter{};
-  rackmon::ModbusRegisterFilter regFilter{};
+void ThriftHandler::transformMonitorDataFilter(
+    const MonitorDataFilter& filter,
+    rackmon::ModbusDeviceFilter& devFilter,
+    rackmon::ModbusRegisterFilter& regFilter,
+    bool& latestOnly) {
+  const DeviceFilter* reqDevFilter = filter.get_deviceFilter();
+  const RegisterFilter* reqRegFilter = filter.get_registerFilter();
+  latestOnly = filter.get_latestValueOnly();
   if (reqDevFilter) {
     if (reqDevFilter->addressFilter_ref().has_value()) {
       std::set<int16_t> devs = reqDevFilter->get_addressFilter();
@@ -284,10 +283,40 @@ void ThriftHandler::getMonitorDataEx(
       LOG(ERROR) << "Unsupported empty reg filter" << std::endl;
     }
   }
+}
 
+void ThriftHandler::getMonitorDataEx(
+    std::vector<RackmonMonitorData>& data,
+    std::unique_ptr<MonitorDataFilter> filter) {
+  rackmon::ModbusDeviceFilter devFilter{};
+  rackmon::ModbusRegisterFilter regFilter{};
+  bool latestOnly{};
+  transformMonitorDataFilter(*filter, devFilter, regFilter, latestOnly);
+  std::vector<rackmon::ModbusDeviceValueData> indata;
   rackmond_.getValueData(indata, devFilter, regFilter, latestOnly);
   for (auto& dev : indata) {
     data.emplace_back(transformModbusDeviceValueData(dev));
+  }
+}
+
+void ThriftHandler::reload(
+    std::unique_ptr<MonitorDataFilter> filter,
+    bool synchronous) {
+  rackmon::ModbusDeviceFilter devFilter{};
+  rackmon::ModbusRegisterFilter regFilter{};
+  bool latestOnly{};
+  transformMonitorDataFilter(*filter, devFilter, regFilter, latestOnly);
+  if (synchronous) {
+    rackmond_.reload(devFilter, regFilter);
+  } else {
+    auto tid = std::thread([this, devFilter, regFilter]() {
+      try {
+        rackmond_.reload(devFilter, regFilter);
+      } catch (std::exception& e) {
+        LOG(ERROR) << "Async reload failed: " << e.what() << std::endl;
+      }
+    });
+    tid.detach();
   }
 }
 

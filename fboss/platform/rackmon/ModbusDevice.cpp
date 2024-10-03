@@ -228,10 +228,7 @@ bool ModbusDevice::reloadRegisterSpan(
   return false;
 }
 
-void ModbusDevice::reloadRegisters() {
-  RACKMON_PROFILE_SCOPE(
-      reloadRegs,
-      "reloadRegisters::" + std::to_string(int(info_.deviceAddress)));
+void ModbusDevice::reloadAllRegisters() {
   setPreferredBaudrate();
   // If the number of consecutive failures has exceeded
   // a threshold, mark the device as dormant.
@@ -291,8 +288,10 @@ ModbusDeviceValueData ModbusDevice::getValueData(
     const ModbusRegisterFilter& filter,
     bool latestValueOnly) const {
   ModbusDeviceValueData data;
-  std::shared_lock lk(infoMutex_);
-  data.ModbusDeviceInfo::operator=(info_);
+  {
+    std::shared_lock lk(infoMutex_);
+    data.ModbusDeviceInfo::operator=(info_);
+  }
   auto shouldPickRegister = [&filter](const RegisterStore& reg) {
     return !filter || filter.contains(reg.regAddr()) ||
         filter.contains(reg.name());
@@ -308,6 +307,29 @@ ModbusDeviceValueData ModbusDevice::getValueData(
     }
   }
   return data;
+}
+
+void ModbusDevice::forceReloadRegisters(const ModbusRegisterFilter& filter) {
+  auto shouldPickRegister = [&filter](const RegisterStore& reg) {
+    return !filter || filter.contains(reg.regAddr()) ||
+        filter.contains(reg.name());
+  };
+  std::vector<RegisterStoreSpan> regSpans{};
+  for (auto& reg : info_.registerList) {
+    if (shouldPickRegister(reg)) {
+      bool added = RegisterStoreSpan::buildRegisterSpanList(regSpans, reg);
+      if (!added) {
+        logError << "reload:: Not including register: " << reg.name()
+                 << std::endl;
+      }
+    }
+  }
+  for (auto& span : regSpans) {
+    if (!reloadRegisterSpan(span, true)) {
+      logError << "reload:: Reload failed at address: "
+               << +span.getSpanAddress() << std::endl;
+    }
+  }
 }
 
 static std::string commandOutput(const std::string& shell) {
