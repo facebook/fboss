@@ -520,8 +520,9 @@ cpp_library(
         "DsfConfigUtils.h",
     ],
     exported_deps = [
-        "fbcode//fboss/agent:switch_config-cpp2-types",
-        "fbcode//fboss/agent/hw/switch_asics:switch_asics",
-        "fbcode//fboss/agent/test/utils:config_utils",
+        ":config_utils",
+        "//fboss/agent:asic_utils",
+        "//fboss/agent:switch_config-cpp2-types",
+        "//fboss/agent/hw/switch_asics:switch_asics",
     ],
 )

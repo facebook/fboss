@@ -15,4 +15,11 @@ int getDsfNodeCount(const HwAsic* asic);
 std::optional<std::map<int64_t, cfg::DsfNode>> addRemoteIntfNodeCfg(
     const std::map<int64_t, cfg::DsfNode>& curDsfNodes,
     std::optional<int> numRemoteNodes = std::nullopt);
+
+std::pair<int, cfg::DsfNode> getRemoteFabricNodeCfg(
+    const std::map<int64_t, cfg::DsfNode>& curDsfNodes,
+    int fabricLevel,
+    int clusterId,
+    cfg::AsicType asicType,
+    PlatformType platformType);
 } // namespace facebook::fboss::utility
