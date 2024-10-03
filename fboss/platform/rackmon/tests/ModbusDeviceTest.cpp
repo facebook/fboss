@@ -43,8 +43,7 @@ class ModbusDeviceTest : public ::testing::Test {
     "name": "orv3_psu",
     "address_range": [[110, 140]],
     "probe_register": 104,
-    "default_baudrate": 19200,
-    "preferred_baudrate": 19200,
+    "baudrate": 19200,
     "registers": [
       {
         "begin": 0,
@@ -630,8 +629,7 @@ TEST(ModbusSpecialHandler, BasicHandlingStringValuePeriodic) {
     "name": "orv3_psu",
     "address_range": [[110, 140]],
     "probe_register": 104,
-    "default_baudrate": 19200,
-    "preferred_baudrate": 19200,
+    "baudrate": 19200,
     "registers": [
       {
         "begin": 0,
@@ -688,8 +686,7 @@ TEST(ModbusSpecialHandler, BasicHandlingIntegerOneShot) {
     "name": "orv3_psu",
     "address_range": [[110, 140]],
     "probe_register": 104,
-    "default_baudrate": 19200,
-    "preferred_baudrate": 19200,
+    "baudrate": 19200,
     "registers": [
       {
         "begin": 0,
@@ -739,159 +736,12 @@ TEST(ModbusSpecialHandler, BasicHandlingIntegerOneShot) {
   special.handle(dev);
 }
 
-static nlohmann::json getBaudrateRegmap() {
-  std::string regmap_s = R"({
-    "name": "orv3_psu",
-    "address_range": [[5, 7]],
-    "probe_register": 104,
-    "default_baudrate": 19200,
-    "preferred_baudrate": 115200,
-    "baud_config": {
-      "reg": 16,
-      "baud_value_map": [
-        [19200, 1],
-        [57600, 2],
-        [115200, 256]
-      ]
-    },
-    "registers": [
-      {
-        "begin": 0,
-        "length": 2,
-        "keep": 2,
-        "format": "STRING",
-        "name": "MFG_MODEL"
-      }
-    ]
-  })";
-  return nlohmann::json::parse(regmap_s);
-}
-
-TEST(ModbusDeviceBaudrate, BaudrateNegotiationTest) {
-  RegisterMap regmap = getBaudrateRegmap();
-  Mock2Modbus mockdev;
-  InSequence seq;
-  // Expect baudrate to be set to preferred 115200. Command
-  // itself sent at the default 19200 baudrate
-  EXPECT_CALL(
-      mockdev,
-      command(
-          // addr(1) = 0x05
-          // func(1) = 0x06
-          // reg_off(2) = 0x0010 (16),
-          // reg_val(2) = 0x0100 (256)
-          encodeMsgContentEqual(0x050600100100_EM),
-          _,
-          19200,
-          ModbusTime::zero(),
-          _))
-      .Times(1)
-      .WillOnce(SetMsgDecode<1>(0x050600100100_EM));
-
-  // Expect request to read register at new baudrate (115200)
-  EXPECT_CALL(
-      mockdev,
-      command(
-          // addr(1) = 0x05
-          // func(1) = 0x03
-          // reg_off(2) = 0x0000 (0),
-          // reg_val(2) = 0x0002 (2)
-          encodeMsgContentEqual(0x050300000002_EM),
-          _,
-          115200,
-          ModbusTime::zero(),
-          _))
-      .Times(1)
-      .WillOnce(SetMsgDecode<1>(0x05030461626364_EM));
-
-  // Expect on destruction for the baudrate to be reset to
-  // the default 19200
-  EXPECT_CALL(
-      mockdev,
-      command(
-          // addr(1) = 0x05
-          // func(1) = 0x06
-          // reg_off(2) = 0x0010 (16),
-          // reg_val(2) = 0x0001 (1)
-          encodeMsgContentEqual(0x050600100001_EM),
-          _,
-          115200,
-          ModbusTime::zero(),
-          _))
-      .Times(1)
-      .WillOnce(SetMsgDecode<1>(0x050600100001_EM));
-  {
-    ModbusDevice dev(mockdev, 5, regmap, 1);
-    dev.reloadAllRegisters();
-    ModbusDeviceValueData data = dev.getValueData();
-    EXPECT_EQ(data.deviceAddress, 0x05);
-    EXPECT_EQ(data.baudrate, 115200);
-    EXPECT_EQ(data.registerList.size(), 1);
-    EXPECT_EQ(data.registerList[0].regAddr, 0);
-    EXPECT_EQ(data.registerList[0].name, "MFG_MODEL");
-    EXPECT_EQ(
-        std::get<std::string>(data.registerList[0].history[0].value), "abcd");
-  }
-}
-
-TEST(ModbusDeviceBaudrate, BaudrateNegotiationRejection) {
-  RegisterMap regmap = getBaudrateRegmap();
-  Mock2Modbus mockdev;
-  InSequence seq;
-  // Expect the call to set baudrate at 115200. Fake a ModbusError
-  // exception thrown. This should cause us to stop negotiation
-  // and stick to default.
-  EXPECT_CALL(
-      mockdev,
-      command(
-          // addr(1) = 0x05
-          // func(1) = 0x06
-          // reg_off(2) = 0x0010 (16),
-          // reg_val(2) = 0x0100 (256)
-          encodeMsgContentEqual(0x050600100100_EM),
-          _,
-          19200,
-          ModbusTime::zero(),
-          _))
-      .Times(1)
-      .WillOnce(Throw(ModbusError(3)));
-
-  // Expect request to read register at default baudrate (19200)
-  EXPECT_CALL(
-      mockdev,
-      command(
-          // addr(1) = 0x05
-          // func(1) = 0x03
-          // reg_off(2) = 0x0000 (0),
-          // reg_val(2) = 0x0002 (2)
-          encodeMsgContentEqual(0x050300000002_EM),
-          _,
-          19200,
-          ModbusTime::zero(),
-          _))
-      .Times(1)
-      .WillOnce(SetMsgDecode<1>(0x05030461626364_EM));
-  {
-    ModbusDevice dev(mockdev, 5, regmap, 1);
-    dev.reloadAllRegisters();
-    ModbusDeviceValueData data = dev.getValueData();
-    EXPECT_EQ(data.deviceAddress, 0x05);
-    EXPECT_EQ(data.baudrate, 19200);
-    EXPECT_EQ(data.registerList.size(), 1);
-    EXPECT_EQ(data.registerList[0].regAddr, 0);
-    EXPECT_EQ(data.registerList[0].name, "MFG_MODEL");
-    EXPECT_EQ(
-        std::get<std::string>(data.registerList[0].history[0].value), "abcd");
-  }
-}
-
 static nlohmann::json getPlanRegmap() {
   std::string regmap_s = R"({
     "name": "orv3_psu",
     "address_range": [[5, 5]],
     "probe_register": 0,
-    "default_baudrate": 19200,
-    "preferred_baudrate": 19200,
+    "baudrate": 19200,
     "registers": [
       {
         "begin": 0,

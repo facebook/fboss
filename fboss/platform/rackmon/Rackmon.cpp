@@ -99,8 +99,7 @@ bool Rackmon::probe(Modbus& interface, uint8_t addr) {
   try {
     ReadHoldingRegistersReq req(addr, rmap.probeRegister, v.size());
     ReadHoldingRegistersResp resp(addr, v);
-    interface.command(
-        req, resp, rmap.defaultBaudrate, kProbeTimeout, rmap.parity);
+    interface.command(req, resp, rmap.baudrate, kProbeTimeout, rmap.parity);
     std::unique_lock lock(devicesMutex_);
     devices_[addr] = std::make_unique<ModbusDevice>(interface, addr, rmap);
     logInfo << std::hex << std::setw(2) << std::setfill('0') << "Found "

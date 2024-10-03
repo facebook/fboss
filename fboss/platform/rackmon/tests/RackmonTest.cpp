@@ -123,8 +123,7 @@ class RackmonTest : public ::testing::Test {
         "name": "orv2_psu",
         "address_range": [[160, 162]],
         "probe_register": 104,
-        "default_baudrate": 19200,
-        "preferred_baudrate": 19200,
+        "baudrate": 19200,
         "registers": [
           {
             "begin": 0,
@@ -176,8 +175,7 @@ TEST_F(RackmonTest, BasicLoad) {
       "name": "orv3_psu",
       "address_range": [[110, 112]],
       "probe_register": 104,
-      "default_baudrate": 19200,
-      "preferred_baudrate": 19200,
+      "baudrate": 19200,
       "registers": [
         {
           "begin": 0,
@@ -392,8 +390,7 @@ TEST_F(RackmonTest, DormantRecovery) {
     "name": "orv2_psu",
     "address_range": [[161, 161]],
     "probe_register": 104,
-    "default_baudrate": 19200,
-    "preferred_baudrate": 19200,
+    "baudrate": 19200,
     "registers": [
       {
         "begin": 0,

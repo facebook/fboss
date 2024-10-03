@@ -13,13 +13,9 @@ ModbusDevice::ModbusDevice(
     uint8_t deviceAddress,
     const RegisterMap& registerMap,
     int numCommandRetries)
-    : interface_(interface),
-      numCommandRetries_(numCommandRetries),
-      baudConfig_(registerMap.baudConfig) {
+    : interface_(interface), numCommandRetries_(numCommandRetries) {
   info_.deviceAddress = deviceAddress;
-  info_.preferredBaudrate = registerMap.preferredBaudrate;
-  info_.defaultBaudrate = registerMap.defaultBaudrate;
-  info_.baudrate = info_.defaultBaudrate;
+  info_.baudrate = registerMap.baudrate;
   info_.deviceType = registerMap.name;
   info_.parity = registerMap.parity;
 
@@ -138,32 +134,6 @@ void ModbusDevice::readFileRecord(
   command(req, resp, timeout);
 }
 
-bool ModbusDevice::setBaudrateAllowed(uint32_t baud) {
-  std::shared_lock lk(infoMutex_);
-  if (!setBaudEnabled_ || !baudConfig_.isSet || baud == info_.baudrate) {
-    return false;
-  }
-  return true;
-}
-
-void ModbusDevice::setBaudrate(uint32_t baud) {
-  // Return early if earlier setBaud failed, or
-  // we dont have configuration or if we already
-  // are at the requested baudrate.
-  if (!setBaudrateAllowed(baud)) {
-    return;
-  }
-  try {
-    writeSingleRegister(baudConfig_.reg, baudConfig_.baudValueMap.at(baud));
-    std::unique_lock lk(infoMutex_);
-    info_.baudrate = baud;
-  } catch (std::exception&) {
-    std::unique_lock lk(infoMutex_);
-    setBaudEnabled_ = false;
-    logError << "Failed to set baudrate to " << baud << std::endl;
-  }
-}
-
 void ModbusDevice::forceReloadRegister(
     RegisterStore& registerStore,
     time_t reloadTime) {
@@ -229,7 +199,6 @@ bool ModbusDevice::reloadRegisterSpan(
 }
 
 void ModbusDevice::reloadAllRegisters() {
-  setPreferredBaudrate();
   // If the number of consecutive failures has exceeded
   // a threshold, mark the device as dormant.
   for (auto& specialHandler : specialHandlers_) {

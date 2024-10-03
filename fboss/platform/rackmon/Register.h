@@ -297,13 +297,6 @@ struct SpecialHandlerInfo {
 };
 void from_json(const nlohmann::json& j, SpecialHandlerInfo& m);
 
-struct BaudrateConfig {
-  bool isSet = false;
-  uint16_t reg = 0;
-  std::map<uint32_t, uint16_t> baudValueMap{};
-};
-void from_json(const nlohmann::json& j, BaudrateConfig& m);
-
 // Storage for address ranges. Provides comparision operators
 // to allow for it to be used as a key in a map --> This allows
 // for us to do quick lookups of addr to register map to use.
@@ -324,10 +317,8 @@ struct RegisterMap {
   AddrRange applicableAddresses;
   std::string name;
   uint16_t probeRegister;
-  uint32_t defaultBaudrate;
-  uint32_t preferredBaudrate;
+  uint32_t baudrate;
   Parity parity;
-  BaudrateConfig baudConfig{};
   std::vector<SpecialHandlerInfo> specialHandlers;
   std::map<uint16_t, RegisterDescriptor> registerDescriptors;
   const RegisterDescriptor& at(uint16_t reg) const {

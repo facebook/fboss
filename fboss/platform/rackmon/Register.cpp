@@ -500,19 +500,12 @@ void from_json(const json& j, SpecialHandlerInfo& m) {
   j.at("info").get_to(m.info);
 }
 
-void from_json(const json& j, BaudrateConfig& m) {
-  m.isSet = true;
-  j.at("reg").get_to(m.reg);
-  j.at("baud_value_map").get_to(m.baudValueMap);
-}
-
 void from_json(const json& j, RegisterMap& m) {
   j.at("address_range").get_to(m.applicableAddresses);
   j.at("probe_register").get_to(m.probeRegister);
   j.at("name").get_to(m.name);
   m.parity = j.value("parity", Parity::EVEN);
-  j.at("preferred_baudrate").get_to(m.preferredBaudrate);
-  j.at("default_baudrate").get_to(m.defaultBaudrate);
+  j.at("baudrate").get_to(m.baudrate);
   std::vector<RegisterDescriptor> tmp;
   j.at("registers").get_to(tmp);
   for (auto& i : tmp) {
@@ -521,16 +514,12 @@ void from_json(const json& j, RegisterMap& m) {
   if (j.contains("special_handlers")) {
     j.at("special_handlers").get_to(m.specialHandlers);
   }
-  if (j.contains("baud_config")) {
-    j.at("baud_config").get_to(m.baudConfig);
-  }
 }
 void to_json(json& j, const RegisterMap& m) {
   j["address_range"] = m.applicableAddresses;
   j["probe_register"] = m.probeRegister;
   j["name"] = m.name;
-  j["preferred_baudrate"] = m.preferredBaudrate;
-  j["default_baudrate"] = m.preferredBaudrate;
+  j["baudrate"] = m.baudrate;
   j["registers"] = {};
   std::transform(
       m.registerDescriptors.begin(),

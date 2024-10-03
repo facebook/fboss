@@ -56,8 +56,6 @@ struct ModbusDeviceInfo {
   uint8_t deviceAddress = 0;
   std::string deviceType{"Unknown"};
   uint32_t baudrate = 0;
-  uint32_t preferredBaudrate = 0;
-  uint32_t defaultBaudrate = 0;
   ModbusDeviceMode mode = ModbusDeviceMode::ACTIVE;
   uint32_t crcErrors = 0;
   uint32_t timeouts = 0;
@@ -89,7 +87,6 @@ class ModbusDevice {
   std::vector<RegisterStoreSpan> reloadPlan_{};
   mutable std::shared_mutex infoMutex_{};
   std::vector<ModbusSpecialHandler> specialHandlers_{};
-  const BaudrateConfig& baudConfig_;
   bool setBaudEnabled_ = true;
   std::atomic<bool> singleShotReload_{true};
   std::atomic<bool> exclusiveMode_{false};
@@ -97,15 +94,6 @@ class ModbusDevice {
   void handleCommandFailure(std::exception& baseException);
 
   std::tuple<uint32_t, Parity> getDeviceConfig();
-
-  bool setBaudrateAllowed(uint32_t baud);
-  void setBaudrate(uint32_t baud);
-  void setDefaultBaudrate() {
-    setBaudrate(info_.defaultBaudrate);
-  }
-  void setPreferredBaudrate() {
-    setBaudrate(info_.preferredBaudrate);
-  }
 
   void forceReloadRegister(RegisterStore& registerStore, time_t reloadTime);
   void forceReloadPlan();
@@ -122,9 +110,7 @@ class ModbusDevice {
       uint8_t deviceAddress,
       const RegisterMap& registerMap,
       int numCommandRetries = 5);
-  virtual ~ModbusDevice() {
-    setDefaultBaudrate();
-  }
+  virtual ~ModbusDevice() {}
 
   virtual void
   command(Msg& req, Msg& resp, ModbusTime timeout = ModbusTime::zero());
