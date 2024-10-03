@@ -204,4 +204,8 @@ std::optional<uint32_t> HwAsic::computePortGroupSkew(
       "Derived class must override getPortGroupSkew, where applicable");
 }
 
+HwAsic::FabricNodeRole HwAsic::getFabricNodeRole() const {
+  throw FbossError(
+      "Derived class must override getFabricNodeRole, where applicable");
+}
 } // namespace facebook::fboss

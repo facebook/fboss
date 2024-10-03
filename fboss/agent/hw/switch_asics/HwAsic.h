@@ -255,6 +255,7 @@ class HwAsic {
   virtual bool mmuQgroupsEnabled() const {
     return false;
   }
+  virtual FabricNodeRole getFabricNodeRole() const;
   // Get the smallest packet buffer unit for ASIC, cell size for BCM
   virtual uint32_t getPacketBufferUnitSize() const = 0;
 
