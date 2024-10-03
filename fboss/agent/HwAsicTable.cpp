@@ -159,6 +159,15 @@ std::vector<const HwAsic*> HwAsicTable::getL3Asics() const {
   return l3Asics;
 }
 
+std::vector<const HwAsic*> HwAsicTable::getFabricAsics() const {
+  auto fabricSwitchIds = getSwitchIdsOfType(cfg::SwitchType::FABRIC);
+  std::vector<const HwAsic*> fabricAsics;
+  for (auto switchId : fabricSwitchIds) {
+    fabricAsics.push_back(getHwAsic(switchId));
+  }
+  return fabricAsics;
+}
+
 std::set<cfg::StreamType> HwAsicTable::getQueueStreamTypes(
     SwitchID switchId,
     cfg::PortType portType) const {
