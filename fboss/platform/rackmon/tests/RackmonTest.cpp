@@ -30,10 +30,9 @@ class FakeModbus : public Modbus {
     encoder.encode(req);
     EXPECT_GE(req.addr, min_addr);
     EXPECT_LE(req.addr, max_addr);
-    EXPECT_EQ(b, baud);
     // We are mocking a system with only one available
     // address, exp_addr. So, throw an exception for others.
-    if (req.addr != exp_addr) {
+    if (req.addr != exp_addr || b != baud) {
       throw TimeoutException();
     }
     // There is really no reason at this point for rackmon
@@ -151,13 +150,14 @@ class RackmonTest : public ::testing::Test {
   }
 
  public:
-  std::unique_ptr<Modbus> make_modbus(uint8_t exp_addr, int num_cmd_calls) {
+  std::unique_ptr<Modbus>
+  make_modbus(uint8_t exp_addr, int num_cmd_calls, uint32_t exp_baud = 19200) {
     json exp = R"({
       "device_path": "/tmp/blah",
       "baudrate": 19200
     })"_json;
     std::unique_ptr<Mock3Modbus> ptr =
-        std::make_unique<Mock3Modbus>(exp_addr, 160, 162, 19200);
+        std::make_unique<Mock3Modbus>(exp_addr, 160, 162, exp_baud);
     EXPECT_CALL(*ptr, initialize(exp)).Times(1);
     if (num_cmd_calls > 0) {
       EXPECT_CALL(*ptr, isPresent())
@@ -235,13 +235,31 @@ TEST_F(RackmonTest, BasicScanFoundNone) {
 }
 
 TEST_F(RackmonTest, BasicScanFoundOne) {
+  std::string json2 = R"({
+      "name": "orv3_psu",
+      "address_range": [[161, 161]],
+      "probe_register": 104,
+      "baudrate": 115200,
+      "registers": [
+        {
+          "begin": 0,
+          "length": 8,
+          "format": "STRING",
+          "name": "MFG_MODEL2"
+        }
+      ]
+    })";
+  std::ofstream ofs2(r_test2_map);
+  ofs2 << json2;
+  ofs2.close();
+
   MockRackmon mon;
   // Mock a modbus with no active devices,
   // we expect rackmon to scan all of them on
   // start up.
   EXPECT_CALL(mon, makeInterface())
       .Times(1)
-      .WillOnce(Return(ByMove(make_modbus(161, 4))));
+      .WillOnce(Return(ByMove(make_modbus(161, 4, 115200))));
   mon.load(r_conf, r_test_dir);
   mon.start();
 
@@ -249,7 +267,9 @@ TEST_F(RackmonTest, BasicScanFoundOne) {
   mon.scanTick();
   std::vector<ModbusDeviceInfo> devs = mon.listDevices();
   EXPECT_EQ(devs.size(), 1);
+  EXPECT_EQ(devs[0].baudrate, 115200);
   EXPECT_EQ(devs[0].deviceAddress, 161);
+  EXPECT_EQ(devs[0].deviceType, "orv3_psu");
   EXPECT_EQ(devs[0].mode, ModbusDeviceMode::ACTIVE);
   mon.stop();
 

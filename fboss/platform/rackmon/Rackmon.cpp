@@ -94,20 +94,25 @@ bool Rackmon::probe(Modbus& interface, uint8_t addr) {
   if (!interface.isPresent()) {
     return false;
   }
-  const RegisterMap& rmap = registerMapDB_.at(addr);
-  std::vector<uint16_t> v(1);
-  try {
-    ReadHoldingRegistersReq req(addr, rmap.probeRegister, v.size());
-    ReadHoldingRegistersResp resp(addr, v);
-    interface.command(req, resp, rmap.baudrate, kProbeTimeout, rmap.parity);
-    std::unique_lock lock(devicesMutex_);
-    devices_[addr] = std::make_unique<ModbusDevice>(interface, addr, rmap);
-    logInfo << std::hex << std::setw(2) << std::setfill('0') << "Found "
-            << int(addr) << " on " << interface.name() << std::endl;
-    return true;
-  } catch (std::exception&) {
-    return false;
+  for (auto it = registerMapDB_.find(addr); it != registerMapDB_.end(); ++it) {
+    const auto& rmap = *it;
+    std::vector<uint16_t> v(1);
+    try {
+      ReadHoldingRegistersReq req(addr, rmap.probeRegister, v.size());
+      ReadHoldingRegistersResp resp(addr, v);
+      interface.command(req, resp, rmap.baudrate, kProbeTimeout, rmap.parity);
+      {
+        std::unique_lock lock(devicesMutex_);
+        devices_[addr] = std::make_unique<ModbusDevice>(interface, addr, rmap);
+      }
+      logInfo << std::hex << std::setw(2) << std::setfill('0') << "Found "
+              << int(addr) << " on " << interface.name() << std::endl;
+      return true;
+    } catch (std::exception&) {
+      // Exceptions are expected for unfound addresses.
+    }
   }
+  return false;
 }
 
 bool Rackmon::probe(uint8_t addr) {

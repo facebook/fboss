@@ -182,7 +182,7 @@ class RegisterMapDatabaseTest : public ::testing::Test {
     mkdir(r_test_dir.c_str(), 0755);
     json1 = R"({
         "name": "orv2_psu",
-        "address_range": [[160, 191]],
+        "address_range": [[160, 191], [10, 10]],
         "probe_register": 104,
         "baudrate": 19200,
         "registers": [
@@ -197,9 +197,9 @@ class RegisterMapDatabaseTest : public ::testing::Test {
       })";
     json2 = R"({
         "name": "orv3_psu",
-        "address_range": [[110, 140]],
+        "address_range": [[110, 140], [10, 10]],
         "probe_register": 104,
-        "baudrate": 19200,
+        "baudrate": 115200,
         "registers": [
           {
             "begin": 0,
@@ -251,4 +251,15 @@ TEST_F(RegisterMapDatabaseTest, Load) {
   const auto& m7 = db.at(120);
   EXPECT_EQ(m7.name, "orv3_psu");
   EXPECT_EQ(db.minMonitorInterval(), 40);
+  auto it = db.find(10);
+  EXPECT_NE(it, db.end());
+  const auto& m8 = *it;
+  EXPECT_EQ(m8.name, "orv2_psu");
+  ++it;
+  EXPECT_NE(it, db.end());
+  const auto& m9 = *it;
+  EXPECT_EQ(m9.name, "orv3_psu");
+  ++it;
+  EXPECT_EQ(it, db.end());
+  EXPECT_THROW(*it, std::out_of_range);
 }
