@@ -125,7 +125,23 @@ TEST_F(AgentFabricSwitchTest, checkFabricConnectivityStats) {
 TEST_F(AgentFabricSwitchTest, collectStats) {
   auto verify = [this]() {
     EXPECT_GT(getProgrammedState()->getPorts()->numNodes(), 0);
-    getSw()->updateStats();
+    WITH_RETRIES({
+      getSw()->updateStats();
+      for (auto& portMap : std::as_const(*getProgrammedState()->getPorts())) {
+        for (auto& [_, port] : std::as_const(*portMap.second)) {
+          auto loadBearingInErrors = fb303::fbData->getCounterIfExists(
+              port->getName() + ".load_bearing_in_errors.sum.60");
+          auto loadBearingFecErrors = fb303::fbData->getCounterIfExists(
+              port->getName() +
+              ".load_bearing_fec_uncorrectable_errors.sum.60");
+          auto loadBearingFlaps = fb303::fbData->getCounterIfExists(
+              port->getName() + ".load_bearing_link_state.flap.sum.60");
+          EXPECT_EVENTUALLY_TRUE(loadBearingInErrors.has_value());
+          EXPECT_EVENTUALLY_TRUE(loadBearingFecErrors.has_value());
+          EXPECT_EVENTUALLY_TRUE(loadBearingFlaps.has_value());
+        }
+      }
+    });
   };
   verifyAcrossWarmBoots([] {}, verify);
 }
