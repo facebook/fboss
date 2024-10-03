@@ -6,8 +6,15 @@
 #include "fboss/agent/hw/HwSwitchFb303Stats.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/test/AgentHwTest.h"
+#include "fboss/agent/test/utils/AsicUtils.h"
+#include "fboss/agent/test/utils/DsfConfigUtils.h"
 #include "fboss/agent/test/utils/FabricTestUtils.h"
 #include "fboss/lib/CommonUtils.h"
+
+namespace {
+constexpr auto kNumRemoteFabricNodes = 8;
+constexpr auto kNumParallelLinks = 5;
+} // namespace
 
 namespace facebook::fboss {
 class AgentFabricSwitchTest : public AgentHwTest {
@@ -446,6 +453,79 @@ TEST_F(AgentFabricSwitchTest, switchReachability) {
     }
   };
 
+  verifyAcrossWarmBoots([]() {}, verify);
+}
+
+class AgentBalancedInputModeTest : public AgentFabricSwitchTest {
+ public:
+  cfg::SwitchConfig initialConfig(
+      const AgentEnsemble& ensemble) const override {
+    auto config = utility::onePortPerInterfaceConfig(
+        ensemble.getSw(),
+        ensemble.masterLogicalPortIds(),
+        false /*interfaceHasSubnet*/,
+        false /*setInterfaceMac*/,
+        utility::kBaseVlanId,
+        true /*enable fabric ports*/);
+    // Initialize local switch as level 2 (SDSW)
+    const auto selfFabricLevel = 2;
+    const auto remoteFabricLevel = 1;
+    for (auto& [_, dsfNode] : *config.dsfNodes()) {
+      dsfNode.fabricLevel() = selfFabricLevel;
+    }
+    std::vector<int> fabricSwitchIds;
+    // Add fabric nodes to DsfConfig with different clusterIDs
+    for (int i = 0; i < kNumRemoteFabricNodes; i++) {
+      auto [fabricSwitchId, fabricNode] = utility::getRemoteFabricNodeCfg(
+          *config.dsfNodes(),
+          remoteFabricLevel,
+          i /* clusterId */,
+          utility::checkSameAndGetAsic(
+              ensemble.getHwAsicTable()->getFabricAsics())
+              ->getAsicType(),
+          ensemble.getSw()->getPlatformType());
+      config.dsfNodes()->insert({fabricSwitchId, fabricNode});
+      fabricSwitchIds.push_back(fabricSwitchId);
+    }
+    // Populate expected neighbor reachability to all remote fabric nodes
+    utility::populatePortExpectedNeighborsToRemote(
+        ensemble.masterLogicalFabricPortIds(),
+        config,
+        fabricSwitchIds,
+        kNumParallelLinks);
+    return config;
+  }
+
+ private:
+  void setCmdLineFlagOverrides() const override {
+    AgentFabricSwitchTest::setCmdLineFlagOverrides();
+    FLAGS_disable_looped_fabric_ports = false;
+    FLAGS_detect_wrong_fabric_connections = false;
+  }
+};
+
+TEST_F(AgentBalancedInputModeTest, init) {
+  auto verify = [this]() {
+    auto fabricPortIds = masterLogicalFabricPortIds();
+    auto fabricPortIter = fabricPortIds.begin();
+    std::optional<int> currReachabilityGroupId;
+
+    for (int i = 0; i < kNumRemoteFabricNodes; i++) {
+      currReachabilityGroupId = std::nullopt;
+
+      for (int j = 0; j < kNumParallelLinks - 1; j++) {
+        CHECK(fabricPortIter != fabricPortIds.end());
+        auto port = getProgrammedState()->getPorts()->getNode(*fabricPortIter);
+        EXPECT_TRUE(port->getReachabilityGroupId().has_value());
+
+        // Check ports to the same remote neighbor has same reachabilityGroupId
+        if (!currReachabilityGroupId.has_value()) {
+          currReachabilityGroupId = port->getReachabilityGroupId();
+        }
+        EXPECT_EQ(currReachabilityGroupId, port->getReachabilityGroupId());
+      }
+    }
+  };
   verifyAcrossWarmBoots([]() {}, verify);
 }
 } // namespace facebook::fboss
