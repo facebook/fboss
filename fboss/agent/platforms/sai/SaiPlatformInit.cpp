@@ -22,7 +22,6 @@
 #include "fboss/agent/platforms/sai/SaiBcmMontblancPlatform.h"
 #include "fboss/agent/platforms/sai/SaiBcmWedge100Platform.h"
 #include "fboss/agent/platforms/sai/SaiBcmWedge400Platform.h"
-#include "fboss/agent/platforms/sai/SaiBcmWedge40Platform.h"
 #include "fboss/agent/platforms/sai/SaiBcmYampPlatform.h"
 #include "fboss/agent/platforms/sai/SaiCloudRipperPlatform.h"
 #include "fboss/agent/platforms/sai/SaiFakePlatform.h"
@@ -44,9 +43,6 @@ std::unique_ptr<SaiPlatform> chooseSaiPlatform(
     const std::string& platformMappingStr) {
   if (productInfo->getType() == PlatformType::PLATFORM_WEDGE100) {
     return std::make_unique<SaiBcmWedge100Platform>(
-        std::move(productInfo), localMac, platformMappingStr);
-  } else if (productInfo->getType() == PlatformType::PLATFORM_WEDGE) {
-    return std::make_unique<SaiBcmWedge40Platform>(
         std::move(productInfo), localMac, platformMappingStr);
   } else if (
       productInfo->getType() == PlatformType::PLATFORM_WEDGE400 ||

@@ -24,7 +24,6 @@
 #include "fboss/agent/platforms/sai/SaiBcmPlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiBcmWedge100PlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiBcmWedge400PlatformPort.h"
-#include "fboss/agent/platforms/sai/SaiBcmWedge40PlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiBcmYampPlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiCloudRipperPlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiElbert8DDPhyPlatformPort.h"
@@ -327,8 +326,6 @@ void SaiPlatform::initPorts() {
         platformMode == PlatformType::PLATFORM_CLOUDRIPPER_VOQ ||
         platformMode == PlatformType::PLATFORM_CLOUDRIPPER_FABRIC) {
       saiPort = std::make_unique<SaiCloudRipperPlatformPort>(portId, this);
-    } else if (platformMode == PlatformType::PLATFORM_WEDGE) {
-      saiPort = std::make_unique<SaiBcmWedge40PlatformPort>(portId, this);
     } else if (platformMode == PlatformType::PLATFORM_WEDGE100) {
       saiPort = std::make_unique<SaiBcmWedge100PlatformPort>(portId, this);
     } else if (
