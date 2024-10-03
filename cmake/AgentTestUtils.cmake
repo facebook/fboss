@@ -375,13 +375,23 @@ target_link_libraries(mirror_test_utils
   Folly::folly
 )
 
+add_library(dsf_config_utils
+  fboss/agent/test/utils/DsfConfigUtils.cpp
+)
+
+target_link_libraries(dsf_config_utils
+  config_utils
+  switch_config_cpp2
+  switch_asics
+)
+
 add_library(voq_test_utils
   fboss/agent/test/utils/VoqTestUtils.cpp
 )
 
 target_link_libraries(voq_test_utils
+  dsf_config_utils
   config_factory
-  switch_asics
   fboss_types
   switchid_scope_resolver
   switch_config_cpp2

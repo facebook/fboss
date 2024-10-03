@@ -15,27 +15,11 @@
 namespace facebook::fboss::utility {
 
 namespace {
-
 constexpr auto kNumPortPerCore = 10;
 // 0: CPU port, 1: gloabl rcy port, 2-5: local recycle port, 6: eventor port,
 // 7: mgm port, 8-43 front panel nif
 constexpr auto kRemoteSysPortOffset = 7;
-constexpr auto kNumRdsw = 128;
-constexpr auto kNumEdsw = 16;
-constexpr auto kNumRdswSysPort = 44;
-constexpr auto kNumEdswSysPort = 26;
-constexpr auto kJ2NumSysPort = 20;
 constexpr auto kNumVoq = 8;
-
-int getPerNodeSysPorts(const HwAsic* asic, int remoteSwitchId) {
-  if (asic->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO2) {
-    return kJ2NumSysPort;
-  }
-  if (remoteSwitchId < kNumRdsw * asic->getNumCores()) {
-    return kNumRdswSysPort;
-  }
-  return kNumEdswSysPort;
-}
 
 std::shared_ptr<SystemPort> makeRemoteSysPort(
     SystemPortID portId,
@@ -97,58 +81,6 @@ void updateRemoteIntfWithNeighbor(
   remoteIntf->setNdpTable(ndpTable->toThrift());
 }
 } // namespace
-
-int getDsfNodeCount(const HwAsic* asic) {
-  return asic->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO2
-      ? kNumRdsw
-      : kNumRdsw + kNumEdsw;
-}
-
-std::optional<std::map<int64_t, cfg::DsfNode>> addRemoteDsfNodeCfg(
-    const std::map<int64_t, cfg::DsfNode>& curDsfNodes,
-    std::optional<int> numRemoteNodes) {
-  CHECK(!curDsfNodes.empty());
-  auto dsfNodes = curDsfNodes;
-  const auto& firstDsfNode = dsfNodes.begin()->second;
-  CHECK(firstDsfNode.systemPortRange().has_value());
-  CHECK(firstDsfNode.nodeMac().has_value());
-  folly::MacAddress mac(*firstDsfNode.nodeMac());
-  auto asic = HwAsic::makeAsic(
-      *firstDsfNode.asicType(),
-      cfg::SwitchType::VOQ,
-      *firstDsfNode.switchId(),
-      0,
-      *firstDsfNode.systemPortRange(),
-      mac,
-      std::nullopt);
-  int numCores = asic->getNumCores();
-  CHECK(
-      !numRemoteNodes.has_value() ||
-      numRemoteNodes.value() < getDsfNodeCount(asic.get()));
-  int totalNodes = numRemoteNodes.has_value()
-      ? numRemoteNodes.value() + curDsfNodes.size()
-      : getDsfNodeCount(asic.get());
-  int remoteNodeStart = dsfNodes.rbegin()->first + numCores;
-  int systemPortMin = getPerNodeSysPorts(asic.get(), dsfNodes.begin()->first) *
-      curDsfNodes.size();
-  for (int remoteSwitchId = remoteNodeStart;
-       remoteSwitchId < totalNodes * numCores;
-       remoteSwitchId += numCores) {
-    cfg::Range64 systemPortRange;
-    systemPortRange.minimum() = systemPortMin;
-    systemPortRange.maximum() =
-        systemPortMin + getPerNodeSysPorts(asic.get(), remoteSwitchId) - 1;
-    auto remoteDsfNodeCfg = dsfNodeConfig(
-        *asic,
-        SwitchID(remoteSwitchId),
-        systemPortMin,
-        *systemPortRange.maximum(),
-        *firstDsfNode.platformType());
-    dsfNodes.insert({remoteSwitchId, remoteDsfNodeCfg});
-    systemPortMin = *systemPortRange.maximum() + 1;
-  }
-  return dsfNodes;
-}
 
 std::shared_ptr<SwitchState> addRemoteSysPort(
     std::shared_ptr<SwitchState> currState,
