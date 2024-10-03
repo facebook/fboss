@@ -41,7 +41,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: fboss
-          path: ${{ github.workspace }}/build-output/fboss_bins.tar.gz
+          path: ${{ github.workspace }}/build-output/fboss_bins.tar.zst
           # Explicitly set the retention at the object level
           retention-days: 14
   Platform-Services-Test:
@@ -59,4 +59,4 @@ jobs:
         run: >
           sudo
           ./fboss/oss/scripts/github_actions/docker-unittest.py
-          ${{ github.workspace }}/fboss_bins.tar.gz
+          ${{ github.workspace }}/fboss_bins.tar.zst

@@ -38,6 +38,6 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: fboss
-          path: ${{ github.workspace }}/build-output/fboss_bins.tar.gz
+          path: ${{ github.workspace }}/build-output/fboss_bins.tar.zst
           # Explicitly set the retention at the object level
           retention-days: 14
