@@ -230,6 +230,10 @@ struct RegisterStore {
     return desc_.length;
   }
 
+  const RegisterDescriptor& descriptor() const {
+    return desc_;
+  }
+
   const std::string& name() const {
     return desc_.name;
   }
@@ -248,6 +252,32 @@ struct RegisterStore {
   friend void to_json(nlohmann::json& j, const RegisterStore& m);
 };
 void to_json(nlohmann::json& j, const RegisterStore& m);
+
+// Group of registers which are at contiguous register locations.
+class RegisterStoreSpan {
+  static constexpr uint16_t kMaxRegisterSpanLength = 120;
+  uint16_t spanAddress_ = 0;
+  time_t interval_ = 0;
+  std::vector<uint16_t> span_{};
+  std::vector<RegisterStore*> registers_{};
+  time_t timestamp_ = 0;
+
+ public:
+  explicit RegisterStoreSpan(RegisterStore* reg);
+  bool addRegister(RegisterStore* reg);
+  std::vector<uint16_t>& beginReloadSpan();
+  void endReloadSpan(time_t reloadTime);
+  uint16_t getSpanAddress() const {
+    return spanAddress_;
+  }
+  size_t length() const {
+    return span_.size();
+  }
+  bool reloadPending(time_t currentTime);
+  static bool buildRegisterSpanList(
+      std::vector<RegisterStoreSpan>& list,
+      RegisterStore& reg);
+};
 
 struct WriteActionInfo {
   std::optional<std::string> shell{};

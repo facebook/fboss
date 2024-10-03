@@ -264,6 +264,60 @@ RegisterStore::operator RegisterStoreValue() const {
   return ret;
 }
 
+RegisterStoreSpan::RegisterStoreSpan(RegisterStore* reg)
+    : spanAddress_(reg->regAddr()),
+      interval_(reg->interval()),
+      span_(reg->length(), 0),
+      registers_{reg},
+      timestamp_(reg->back().timestamp) {}
+
+bool RegisterStoreSpan::addRegister(RegisterStore* reg) {
+  if (reg->interval() != interval_) {
+    return false;
+  }
+  if (reg->regAddr() != spanAddress_ + span_.size()) {
+    return false;
+  }
+  if (span_.size() + reg->length() > kMaxRegisterSpanLength) {
+    return false;
+  }
+  span_.resize(span_.size() + reg->length());
+  registers_.push_back(reg);
+  return true;
+}
+
+bool RegisterStoreSpan::reloadPending(time_t currentTime) {
+  return timestamp_ == 0 || (timestamp_ + interval_) <= currentTime;
+}
+
+std::vector<uint16_t>& RegisterStoreSpan::beginReloadSpan() {
+  return span_;
+}
+
+void RegisterStoreSpan::endReloadSpan(time_t reloadTime) {
+  timestamp_ = reloadTime;
+  for (auto [source, target] = std::pair(span_.begin(), registers_.begin());
+       source != span_.end() && target != registers_.end();
+       ++target) {
+    source = (*target)->setRegister(source, span_.end(), reloadTime);
+  }
+}
+
+bool RegisterStoreSpan::buildRegisterSpanList(
+    std::vector<RegisterStoreSpan>& list,
+    RegisterStore& reg) {
+  // Drop it from a plan if not enabled.
+  if (!reg.isEnabled()) {
+    return false;
+  }
+  if (!std::any_of(list.begin(), list.end(), [&reg](auto& span) {
+        return span.addRegister(&reg);
+      })) {
+    list.emplace_back(&reg);
+  }
+  return true;
+}
+
 const RegisterMap& RegisterMapDatabase::at(uint8_t addr) const {
   const auto result = std::find_if(
       regmaps.begin(),
