@@ -12,7 +12,7 @@ int getDsfNodeCount(const HwAsic* asic);
 // Returns config with remote DSF node added. If numRemoteNodes is not
 // specified, it will check the asic type and use max DSF node count
 // (128 for J2 and 256 for J3).
-std::optional<std::map<int64_t, cfg::DsfNode>> addRemoteDsfNodeCfg(
+std::optional<std::map<int64_t, cfg::DsfNode>> addRemoteIntfNodeCfg(
     const std::map<int64_t, cfg::DsfNode>& curDsfNodes,
     std::optional<int> numRemoteNodes = std::nullopt);
 } // namespace facebook::fboss::utility

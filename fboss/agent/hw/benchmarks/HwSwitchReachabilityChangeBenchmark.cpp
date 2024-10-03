@@ -49,7 +49,7 @@ BENCHMARK(HwSwitchReachabilityChange) {
             true /*enable fabric ports*/);
         utility::populatePortExpectedNeighbors(
             ensemble.masterLogicalPortIds(), config);
-        config.dsfNodes() = *utility::addRemoteDsfNodeCfg(*config.dsfNodes());
+        config.dsfNodes() = *utility::addRemoteIntfNodeCfg(*config.dsfNodes());
         return config;
       };
   auto ensemble =

@@ -37,7 +37,7 @@ int getDsfNodeCount(const HwAsic* asic) {
       : kNumRdsw + kNumEdsw;
 }
 
-std::optional<std::map<int64_t, cfg::DsfNode>> addRemoteDsfNodeCfg(
+std::optional<std::map<int64_t, cfg::DsfNode>> addRemoteIntfNodeCfg(
     const std::map<int64_t, cfg::DsfNode>& curDsfNodes,
     std::optional<int> numRemoteNodes) {
   CHECK(!curDsfNodes.empty());

@@ -94,7 +94,8 @@ BENCHMARK(HwStatsCollection) {
           config.switchSettings()->maxRouteCounterIDs() = numRouteCounters;
         }
         if (ensemble.getSw()->getSwitchInfoTable().haveVoqSwitches()) {
-          config.dsfNodes() = *utility::addRemoteDsfNodeCfg(*config.dsfNodes());
+          config.dsfNodes() =
+              *utility::addRemoteIntfNodeCfg(*config.dsfNodes());
         }
         return config;
       };

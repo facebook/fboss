@@ -1459,7 +1459,7 @@ class AgentVoqSwitchWithMultipleDsfNodesTest : public AgentVoqSwitchTest {
 
   std::optional<std::map<int64_t, cfg::DsfNode>> overrideDsfNodes(
       const std::map<int64_t, cfg::DsfNode>& curDsfNodes) const {
-    return utility::addRemoteDsfNodeCfg(curDsfNodes, 1);
+    return utility::addRemoteIntfNodeCfg(curDsfNodes, 1);
   }
   SwitchID getRemoteVoqSwitchId() const {
     auto dsfNodes = getSw()->getConfig().dsfNodes();
@@ -1514,7 +1514,7 @@ TEST_F(AgentVoqSwitchWithMultipleDsfNodesTest, twoDsfNodes) {
 
 TEST_F(AgentVoqSwitchWithMultipleDsfNodesTest, remoteSystemPort) {
   auto setup = [this]() {
-    // in addRemoteDsfNodeCfg, we use numCores to calculate the remoteSwitchId
+    // in addRemoteIntfNodeCfg, we use numCores to calculate the remoteSwitchId
     // keeping remote switch id passed below in sync with it
     int numCores =
         utility::checkSameAndGetAsic(getAgentEnsemble()->getL3Asics())
@@ -1547,7 +1547,7 @@ TEST_F(AgentVoqSwitchWithMultipleDsfNodesTest, remoteSystemPort) {
 
 TEST_F(AgentVoqSwitchWithMultipleDsfNodesTest, remoteRouterInterface) {
   auto setup = [this]() {
-    // in addRemoteDsfNodeCfg, we use numCores to calculate the remoteSwitchId
+    // in addRemoteIntfNodeCfg, we use numCores to calculate the remoteSwitchId
     // keeping remote switch id passed below in sync with it
     int numCores =
         utility::checkSameAndGetAsic(getAgentEnsemble()->getL3Asics())
@@ -1582,7 +1582,7 @@ TEST_F(AgentVoqSwitchWithMultipleDsfNodesTest, remoteRouterInterface) {
 
 TEST_F(AgentVoqSwitchWithMultipleDsfNodesTest, addRemoveRemoteNeighbor) {
   auto setup = [this]() {
-    // in addRemoteDsfNodeCfg, we use numCores to calculate the remoteSwitchId
+    // in addRemoteIntfNodeCfg, we use numCores to calculate the remoteSwitchId
     // keeping remote switch id passed below in sync with it
     int numCores =
         utility::checkSameAndGetAsic(getAgentEnsemble()->getL3Asics())
@@ -1647,7 +1647,7 @@ TEST_F(AgentVoqSwitchWithMultipleDsfNodesTest, voqDelete) {
   const SystemPortID kRemoteSysPortId(remotePortId);
   folly::IPAddressV6 kNeighborIp("100::2");
   auto setup = [=, this]() {
-    // in addRemoteDsfNodeCfg, we use numCores to calculate the remoteSwitchId
+    // in addRemoteIntfNodeCfg, we use numCores to calculate the remoteSwitchId
     // keeping remote switch id passed below in sync with it
     int numCores =
         utility::checkSameAndGetAsic(getAgentEnsemble()->getL3Asics())
@@ -1727,7 +1727,7 @@ TEST_F(AgentVoqSwitchWithMultipleDsfNodesTest, stressAddRemoveObjects) {
     const SystemPortID kRemoteSysPortId(remotePortId);
     folly::IPAddressV6 kNeighborIp("100::2");
     utility::EcmpSetupAnyNPorts6 ecmpHelper(getProgrammedState());
-    // in addRemoteDsfNodeCfg, we use numCores to calculate the remoteSwitchId
+    // in addRemoteIntfNodeCfg, we use numCores to calculate the remoteSwitchId
     // keeping remote switch id passed below in sync with it
     int numCores =
         utility::checkSameAndGetAsic(getAgentEnsemble()->getL3Asics())
@@ -1830,7 +1830,7 @@ TEST_F(AgentVoqSwitchWithMultipleDsfNodesTest, voqTailDropCounter) {
   auto constexpr remotePortId = 401;
   const SystemPortID kRemoteSysPortId(remotePortId);
   auto setup = [=, this]() {
-    // in addRemoteDsfNodeCfg, we use numCores to calculate the remoteSwitchId
+    // in addRemoteIntfNodeCfg, we use numCores to calculate the remoteSwitchId
     // keeping remote switch id passed below in sync with it
     int numCores =
         utility::checkSameAndGetAsic(getAgentEnsemble()->getL3Asics())
@@ -1881,7 +1881,7 @@ TEST_F(AgentVoqSwitchWithMultipleDsfNodesTest, verifyDscpToVoqMapping) {
   auto constexpr remotePortId = 401;
   const SystemPortID kRemoteSysPortId(remotePortId);
   auto setup = [=, this]() {
-    // in addRemoteDsfNodeCfg, we use numCores to calculate the remoteSwitchId
+    // in addRemoteIntfNodeCfg, we use numCores to calculate the remoteSwitchId
     // keeping remote switch id passed below in sync with it
     int numCores =
         utility::checkSameAndGetAsic(getAgentEnsemble()->getL3Asics())
@@ -1966,7 +1966,7 @@ class AgentVoqSwitchFullScaleDsfNodesTest : public AgentVoqSwitchTest {
 
   std::optional<std::map<int64_t, cfg::DsfNode>> overrideDsfNodes(
       const std::map<int64_t, cfg::DsfNode>& curDsfNodes) const {
-    return utility::addRemoteDsfNodeCfg(curDsfNodes);
+    return utility::addRemoteIntfNodeCfg(curDsfNodes);
   }
 
  protected:
