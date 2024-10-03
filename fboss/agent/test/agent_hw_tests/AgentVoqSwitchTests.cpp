@@ -530,6 +530,27 @@ TEST_F(AgentVoqSwitchWithFabricPortsTest, collectStats) {
         EXPECT_EVENTUALLY_TRUE(pitr != port2Stats.end());
         EXPECT_EVENTUALLY_TRUE(pitr->second.cableLengthMeters().has_value());
       }
+      auto state = getProgrammedState();
+      for (auto& portMap : std::as_const(*state->getPorts())) {
+        for (auto& [_, port] : std::as_const(*portMap.second)) {
+          auto loadBearingInErrors = fb303::fbData->getCounterIfExists(
+              port->getName() + ".load_bearing_in_errors.sum.60");
+          auto loadBearingFecErrors = fb303::fbData->getCounterIfExists(
+              port->getName() +
+              ".load_bearing_fec_uncorrectable_errors.sum.60");
+          auto loadBearingFlaps = fb303::fbData->getCounterIfExists(
+              port->getName() + ".load_bearing_link_state.flap.sum.60");
+          if (port->getPortType() == cfg::PortType::FABRIC_PORT) {
+            EXPECT_EVENTUALLY_TRUE(loadBearingInErrors.has_value());
+            EXPECT_EVENTUALLY_TRUE(loadBearingFecErrors.has_value());
+            EXPECT_EVENTUALLY_TRUE(loadBearingFlaps.has_value());
+          } else {
+            EXPECT_FALSE(loadBearingInErrors.has_value());
+            EXPECT_FALSE(loadBearingFecErrors.has_value());
+            EXPECT_FALSE(loadBearingFlaps.has_value());
+          }
+        }
+      }
     });
   };
   verifyAcrossWarmBoots([] {}, verify);
