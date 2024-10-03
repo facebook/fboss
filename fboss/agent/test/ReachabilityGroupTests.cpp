@@ -222,4 +222,99 @@ TEST_F(ReachabilityGroupDualStageSdswTest, test) {
     }
   }
 }
+
+TEST_F(
+    ReachabilityGroupDualStageFdswNoParallelIntfLinkTest,
+    configUpdateToParallelIntfLinks) {
+  // Dual stage FDSW with no parallel links to interface node.
+  // One group for uplinks to SDSW (1) and one group for downlink to RDSW (2).
+  verifyReachabilityGroupListSize(2);
+
+  const auto newConfig = testConfigFabricSwitch(
+      true /* dualStage*/,
+      1 /* fabricLevel */,
+      kParallelLinkPerNode,
+      kDualStageLevel2FabricNodes);
+
+  sw_->applyConfig("New config to parallel intf links", newConfig);
+
+  // Dual stage FDSW with parallel links to interface node.
+  // One group for uplinks to SDSW (1) and one group per interface node.
+  verifyReachabilityGroupListSize(
+      newConfig.dsfNodes()->size() - kDualStageLevel2FabricNodes);
+
+  std::unordered_map<std::string, int> remoteSystem2ReachabilityGroup;
+
+  for (const auto& [_, portMap] : std::as_const(*sw_->getState()->getPorts())) {
+    for (const auto& [_, port] : std::as_const(*portMap)) {
+      EXPECT_TRUE(port->getReachabilityGroupId().has_value());
+      auto neighborDsfNodeType = getPortNeighborDsfNodeType(newConfig, port);
+
+      if (neighborDsfNodeType == cfg::DsfNodeType::FABRIC_NODE) {
+        EXPECT_EQ(port->getReachabilityGroupId().value(), 1);
+      } else {
+        CHECK(!port->getExpectedNeighborValues()->empty());
+        std::string expectedNeighborName = *port->getExpectedNeighborValues()
+                                                ->cbegin()
+                                                ->get()
+                                                ->toThrift()
+                                                .remoteSystem();
+        // Offset 2 because 1) reachability group starts at 1, and 2) fabric
+        // links take group 1 already.
+        auto [it, _] = remoteSystem2ReachabilityGroup.insert(
+            {expectedNeighborName, remoteSystem2ReachabilityGroup.size() + 2});
+        EXPECT_EQ(port->getReachabilityGroupId().value(), it->second);
+      }
+    }
+  }
+}
+
+TEST_F(
+    ReachabilityGroupSingleStageFdswNoParallelIntfLinkTest,
+    configUpdateToParallelIntfLinks) {
+  // Single stage FDSW with no parallel links to interface node.
+  // There should be no reachability group programming.
+  verifyReachabilityGroupListSize(0);
+
+  const auto newConfig = testConfigFabricSwitch(
+      false /* dualStage*/, 1 /* fabricLevel */, kParallelLinkPerNode);
+
+  sw_->applyConfig("New config to parallel intf links", newConfig);
+
+  // Single stage FDSW with parallel links to interface node.
+  // There should be one group per interface node.
+  verifyReachabilityGroupListSize(numIntfNode(newConfig));
+
+  for (const auto& [_, portMap] : std::as_const(*sw_->getState()->getPorts())) {
+    for (const auto& [_, port] : std::as_const(*portMap)) {
+      EXPECT_TRUE(port->getReachabilityGroupId().has_value());
+      EXPECT_EQ(
+          port->getReachabilityGroupId().value(),
+          ((port->getID() - 1) / kParallelLinkPerNode) + 1);
+    }
+  }
+}
+
+TEST_F(ReachabilityGroupSingleStageFdswTest, changeNumParallelLinks) {
+  // Single stage FDSW with parallel links to interface node.
+  // There should be one group per interface node.
+  verifyReachabilityGroupListSize(numIntfNode(initialConfig()));
+
+  const auto newParallelLinkPerNode = kParallelLinkPerNode / 2;
+  CHECK_GT(newParallelLinkPerNode, 1);
+  const auto newConfig = testConfigFabricSwitch(
+      false /* dualStage*/, 1 /* fabricLevel */, newParallelLinkPerNode);
+
+  sw_->applyConfig("New config to parallel intf links", newConfig);
+
+  for (const auto& [_, portMap] : std::as_const(*sw_->getState()->getPorts())) {
+    for (const auto& [_, port] : std::as_const(*portMap)) {
+      EXPECT_TRUE(port->getReachabilityGroupId().has_value());
+      EXPECT_EQ(
+          port->getReachabilityGroupId().value(),
+          ((port->getID() - 1) / newParallelLinkPerNode) + 1);
+    }
+  }
+}
+
 } // namespace facebook::fboss
