@@ -13,7 +13,9 @@ ModbusDevice::ModbusDevice(
     uint8_t deviceAddress,
     const RegisterMap& registerMap,
     int numCommandRetries)
-    : interface_(interface), numCommandRetries_(numCommandRetries) {
+    : interface_(interface),
+      numCommandRetries_(numCommandRetries),
+      registerMap_(registerMap) {
   info_.deviceAddress = deviceAddress;
   info_.baudrate = registerMap.baudrate;
   info_.deviceType = registerMap.name;

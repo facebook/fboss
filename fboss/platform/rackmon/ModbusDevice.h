@@ -88,6 +88,7 @@ class ModbusDevice {
   mutable std::shared_mutex infoMutex_{};
   std::vector<ModbusSpecialHandler> specialHandlers_{};
   bool setBaudEnabled_ = true;
+  const RegisterMap& registerMap_;
   std::atomic<bool> singleShotReload_{true};
   std::atomic<bool> exclusiveMode_{false};
 
@@ -177,6 +178,10 @@ class ModbusDevice {
   // Reloads requested registers in-place (blocking) ignoring
   // their configured reload interval.
   void forceReloadRegisters(const ModbusRegisterFilter& filter);
+
+  const RegisterMap& getRegisterMap() const {
+    return registerMap_;
+  }
 };
 
 } // namespace rackmon

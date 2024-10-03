@@ -130,7 +130,7 @@ std::vector<uint8_t> Rackmon::inspectDormant() {
     // If its more than 300s since last activity, start probing it.
     // change to something larger if required.
     if ((it.second->lastActive() + kDormantMinInactiveTime) < curr) {
-      const RegisterMap& rmap = registerMapDB_.at(it.first);
+      const RegisterMap& rmap = it.second->getRegisterMap();
       uint16_t probe = rmap.probeRegister;
       std::vector<uint16_t> v(1);
       try {
