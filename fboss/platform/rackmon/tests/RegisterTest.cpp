@@ -180,3 +180,47 @@ TEST(RegisterStoreTest, DataRetrievalConversions) {
   EXPECT_EQ(std::string(j2["readings"][0]["data"]), "30313233");
   EXPECT_EQ(std::string(j2["readings"][1]["data"]), "31323334");
 }
+
+TEST(RegisterStoreTest, setRegisterTest) {
+  RegisterDescriptor desc{
+      0,
+      2,
+      "HELLO",
+      2,
+      false,
+      RegisterEndian::BIG,
+      RegisterValueType::STRING,
+      0};
+  RegisterStore reg(desc);
+  RegisterStoreValue val = reg;
+  EXPECT_EQ(val.history.size(), 0);
+
+  std::vector<uint16_t> vals_exact{0x3031, 0x3233};
+  auto it = reg.setRegister(vals_exact.begin(), vals_exact.end(), 4);
+  EXPECT_EQ(std::distance(vals_exact.begin(), it), 2);
+  val = reg;
+  EXPECT_EQ(val.history.size(), 1);
+  EXPECT_EQ(val.history[0].timestamp, 4);
+  EXPECT_EQ(val.history[0].type, RegisterValueType::STRING);
+  EXPECT_EQ(std::get<std::string>(val.history[0].value), "0123");
+
+  std::vector<uint16_t> vals_excess{0x3132, 0x3334, 0x3436};
+  it = reg.setRegister(vals_excess.begin(), vals_excess.end(), 5);
+  val = reg;
+  EXPECT_EQ(val.history.size(), 2);
+  EXPECT_EQ(val.history[0].timestamp, 4);
+  EXPECT_EQ(val.history[0].type, RegisterValueType::STRING);
+  EXPECT_EQ(std::get<std::string>(val.history[0].value), "0123");
+  EXPECT_EQ(val.history[1].timestamp, 5);
+  EXPECT_EQ(val.history[1].type, RegisterValueType::STRING);
+  EXPECT_EQ(std::get<std::string>(val.history[1].value), "1234");
+
+  std::vector<uint16_t> vals_below{0x3132};
+  EXPECT_THROW(
+      reg.setRegister(vals_below.begin(), vals_below.end(), 6),
+      std::out_of_range);
+  val = reg;
+  EXPECT_EQ(val.history.size(), 2);
+  EXPECT_EQ(val.history[0].timestamp, 4);
+  EXPECT_EQ(val.history[1].timestamp, 5);
+}

@@ -177,40 +177,15 @@ RegisterValue::RegisterValue(const std::vector<uint16_t>& reg)
   makeHex(reg);
 }
 
-Register::Register(const RegisterDescriptor& d)
-    : value_{d.length, d.length},
-      desc(d),
-      timestamp(value_.first.timestamp),
-      value(value_.first.value) {}
+Register::Register(const RegisterDescriptor& d) : desc(d), value(d.length, 0) {}
 
 Register::Register(const Register& other)
-    : value_(other.value_),
-      isFirstActive(other.isFirstActive),
-      desc(other.desc),
-      timestamp(
-          other.isFirstActive ? value_.first.timestamp
-                              : value_.second.timestamp),
-      value(other.isFirstActive ? value_.first.value : value_.second.value) {}
+    : desc(other.desc), value(other.value), timestamp(other.timestamp) {}
 
 Register::Register(Register&& other) noexcept
-    : value_(std::move(other.value_)),
-      isFirstActive(other.isFirstActive),
-      desc(other.desc),
-      timestamp(
-          other.isFirstActive ? value_.first.timestamp
-                              : value_.second.timestamp),
-      value(other.isFirstActive ? value_.first.value : value_.second.value) {}
-
-void Register::updateReferences() {
-  RegisterReading& active = getActive();
-  value = active.value;
-  timestamp = active.timestamp;
-}
-
-void Register::swapActive() {
-  isFirstActive = !isFirstActive;
-  updateReferences();
-}
+    : desc(other.desc),
+      value(std::move(other.value)),
+      timestamp(other.timestamp) {}
 
 Register::operator RegisterValue() const {
   return RegisterValue(value, desc, timestamp);
@@ -242,24 +217,20 @@ void RegisterStore::disable() {
   enabled_ = false;
 }
 
-std::vector<uint16_t>& RegisterStore::beginReloadRegister() {
+std::vector<uint16_t>::iterator RegisterStore::setRegister(
+    std::vector<uint16_t>::iterator start,
+    std::vector<uint16_t>::iterator end,
+    time_t reloadTime) {
   std::unique_lock lk(historyMutex_);
-  return front().getInactive().value;
-}
-
-void RegisterStore::endReloadRegister(time_t reloadTime) {
-  std::unique_lock lk(historyMutex_);
-  front().getInactive().timestamp = reloadTime;
-  // Update the front and bump indexs.
-  front().swapActive();
-  // If we care about changes only and the values
-  // look the same, then ignore it.
-  if (desc_.storeChangesOnly && front() == back()) {
-    // Keep old value. Discard new value.
-    front().swapActive();
-    return;
+  auto& reg = front();
+  size_t size = reg.value.size();
+  if ((reg.value.size() + start) > end) {
+    throw std::out_of_range("Source not large enough to set register");
   }
+  std::copy(start, start + size, reg.value.begin());
+  reg.timestamp = reloadTime;
   ++(*this);
+  return start + size;
 }
 
 Register& RegisterStore::back() {

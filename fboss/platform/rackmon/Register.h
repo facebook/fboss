@@ -122,48 +122,20 @@ struct RegisterValue {
 };
 void to_json(nlohmann::json& j, const RegisterValue& m);
 
-// Container of the register value/timestamp of a specific sampling.
-struct RegisterReading {
-  // Timestamp when the register was read.
-  uint32_t timestamp = 0;
-  // Value of the register when read.
-  std::vector<uint16_t> value;
-  explicit RegisterReading(uint16_t size) : value(size_t(size)) {}
-};
-
 // Container of a instance of a register at a given point in time.
 struct Register {
- private:
-  // In order to provide atomic updates of the registers without holding
-  // a lock for up to 100s of milli-seconds, every register now has active
-  // and inactive contents. We update the inactive content lock-less
-  // and using a lock swapActive() which flips isFirstActive and
-  // updateReferences() so the timestamp/value pair now point to the new
-  // values without copies.
-  std::pair<RegisterReading, RegisterReading> value_;
-  bool isFirstActive = true;
-  // Update references after changes to isFirstActive
-  void updateReferences();
-
- public:
   // Reference to the register descriptor.
   const RegisterDescriptor& desc;
 
-  // These point to the current active value/timestamp pair.
-  uint32_t& timestamp;
-  std::vector<uint16_t>& value;
+  // These point to the current value.
+  std::vector<uint16_t> value;
+
+  // Timestamp of reading. 0 is considered invalid.
+  uint32_t timestamp = 0;
 
   explicit Register(const RegisterDescriptor& d);
   Register(const Register& other);
   Register(Register&& other) noexcept;
-
-  RegisterReading& getActive() {
-    return isFirstActive ? value_.first : value_.second;
-  }
-  RegisterReading& getInactive() {
-    return isFirstActive ? value_.second : value_.first;
-  }
-  void swapActive();
 
   // equals operator works only on valid register reads. Register
   // with a zero timestamp is considered as invalid.
@@ -176,14 +148,12 @@ struct Register {
   }
 
   void operator=(const Register& other) {
-    value_ = other.value_;
-    isFirstActive = other.isFirstActive;
-    updateReferences();
+    value = other.value;
+    timestamp = other.timestamp;
   }
   void operator=(Register&& other) {
-    value_ = std::move(other.value_);
-    isFirstActive = other.isFirstActive;
-    updateReferences();
+    value = std::move(other.value);
+    timestamp = other.timestamp;
   }
 
   // Returns true if the register contents is valid.
@@ -236,11 +206,10 @@ struct RegisterStore {
   void disable();
   void enable();
 
-  // Request to start loading new value into register
-  std::vector<uint16_t>& beginReloadRegister();
-
-  // Request to commit the loaded register
-  void endReloadRegister(time_t reloadTime = std::time(nullptr));
+  std::vector<uint16_t>::iterator setRegister(
+      std::vector<uint16_t>::iterator start,
+      std::vector<uint16_t>::iterator end,
+      time_t reloadTime = std::time(nullptr));
 
   // Returns a reference to the last written value (Back of the list)
   Register& back();
@@ -255,6 +224,10 @@ struct RegisterStore {
   // register address accessor
   uint16_t regAddr() const {
     return regAddr_;
+  }
+
+  size_t length() const {
+    return desc_.length;
   }
 
   const std::string& name() const {

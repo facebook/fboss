@@ -178,9 +178,9 @@ bool ModbusDevice::reloadRegister(
   }
   uint16_t registerOffset = registerStore.regAddr();
   try {
-    std::vector<uint16_t>& value = registerStore.beginReloadRegister();
+    std::vector<uint16_t> value(registerStore.length(), 0);
     readHoldingRegisters(registerOffset, value);
-    registerStore.endReloadRegister(reloadTime);
+    registerStore.setRegister(value.begin(), value.end(), reloadTime);
   } catch (ModbusError& e) {
     logInfo << "DEV:0x" << std::hex << int(info_.deviceAddress) << " ReadReg 0x"
             << std::hex << registerOffset << ' ' << registerStore.name()
