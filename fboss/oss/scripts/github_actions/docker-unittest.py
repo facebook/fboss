@@ -49,7 +49,7 @@ def build_docker_image(docker_dir_path: str):
 def unpack_tarball(tarball_path: str) -> str:
     output_dir = tempfile.mkdtemp()
     print(f"Unpacking tarball to {output_dir}")
-    shutil.unpack_archive(tarball_path, output_dir, "gztar")
+    subprocess.run(["tar", "-xvf", tarball_path, "-C", output_dir])
     return output_dir
 
 
