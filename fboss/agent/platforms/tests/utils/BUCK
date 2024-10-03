@@ -10,8 +10,6 @@ bcm_test_platforms_common_srcs = [
     "BcmTestWedge40Port.cpp",
     "BcmTestWedge100Platform.cpp",
     "BcmTestWedge100Port.cpp",
-    "BcmTestGalaxyPlatform.cpp",
-    "BcmTestGalaxyPort.cpp",
     "BcmTestWedge400Platform.cpp",
     "BcmTestWedge400Port.cpp",
     "BcmTestDarwinPlatform.cpp",

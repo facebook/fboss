@@ -14,7 +14,6 @@
 #include "fboss/agent/platforms/tests/utils/BcmTestDarwinPlatform.h"
 #include "fboss/agent/platforms/tests/utils/BcmTestElbertPlatform.h"
 #include "fboss/agent/platforms/tests/utils/BcmTestFujiPlatform.h"
-#include "fboss/agent/platforms/tests/utils/BcmTestGalaxyPlatform.h"
 #include "fboss/agent/platforms/tests/utils/BcmTestMinipackPlatform.h"
 #include "fboss/agent/platforms/tests/utils/BcmTestWedge100Platform.h"
 #include "fboss/agent/platforms/tests/utils/BcmTestWedge400Platform.h"
@@ -45,10 +44,6 @@ std::unique_ptr<Platform> createTestPlatform() {
     return std::make_unique<BcmTestWedge40Platform>(std::move(productInfo));
   } else if (mode == PlatformType::PLATFORM_WEDGE100) {
     return std::make_unique<BcmTestWedge100Platform>(std::move(productInfo));
-  } else if (mode == PlatformType::PLATFORM_GALAXY_LC) {
-    return std::make_unique<BcmTestGalaxyLCPlatform>(std::move(productInfo));
-  } else if (mode == PlatformType::PLATFORM_GALAXY_FC) {
-    return std::make_unique<BcmTestGalaxyFCPlatform>(std::move(productInfo));
   } else if (mode == PlatformType::PLATFORM_MINIPACK) {
     return std::make_unique<BcmTestMinipackPlatform>(std::move(productInfo));
   } else if (mode == PlatformType::PLATFORM_YAMP) {

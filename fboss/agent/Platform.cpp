@@ -111,7 +111,6 @@ void Platform::init(
     auto switchInfo = getSwitchInfo(switchIndex);
     switchId = std::optional<int64_t>(switchInfo.first);
     switchType = *switchInfo.second.switchType();
-    auto asicType = *switchInfo.second.asicType();
     if (switchType == cfg::SwitchType::VOQ) {
       const auto& dsfNodesConfig = *config_->thrift.sw()->dsfNodes();
       const auto& dsfNodeConfig = dsfNodesConfig.find(*switchId);
@@ -119,12 +118,6 @@ void Platform::init(
           dsfNodeConfig->second.systemPortRange().has_value()) {
         systemPortRange = *dsfNodeConfig->second.systemPortRange();
       }
-    }
-    // SwitchId not supported in fabric mode
-    if (switchType == cfg::SwitchType::FABRIC &&
-        (asicType == cfg::AsicType::ASIC_TYPE_EBRO ||
-         asicType == cfg::AsicType::ASIC_TYPE_GARONNE)) {
-      switchId = std::nullopt;
     }
     if (switchInfo.second.switchMac()) {
       macStr = *switchInfo.second.switchMac();
