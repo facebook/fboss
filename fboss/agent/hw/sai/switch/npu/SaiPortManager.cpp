@@ -988,28 +988,47 @@ SaiPortManager::serdesAttributesFromSwPinConfigs(
   for (const auto& pinConfig : pinConfigs) {
     if (auto tx = pinConfig.tx()) {
       ++numExpectedTxLanes;
-      txPre1.push_back(*tx->pre());
-      txMain.push_back(*tx->main());
-      txPost1.push_back(*tx->post());
-      if (FLAGS_sai_configure_six_tap &&
-          platform_->getAsic()->isSupported(
-              HwAsic::Feature::SAI_CONFIGURE_SIX_TAP)) {
-        txPost2.push_back(*tx->post2());
-        txPost3.push_back(*tx->post3());
-        txPre2.push_back(*tx->pre2());
-        if (platform_->getAsic()->getAsicVendor() ==
-            HwAsic::AsicVendor::ASIC_VENDOR_TAJO) {
-          if (auto lutMode = tx->lutMode()) {
-            txLutMode.push_back(*lutMode);
+      if (platform_->getAsic()->getAsicType() ==
+          cfg::AsicType::ASIC_TYPE_YUBA) {
+        if (auto firPre1 = tx->firPre1()) {
+          txPre1.push_back(*firPre1);
+        }
+        if (auto firPre2 = tx->firPre2()) {
+          txPre2.push_back(*firPre2);
+        }
+        if (auto firPre3 = tx->firPre3()) {
+          txPre3.push_back(*firPre3);
+        }
+        if (auto firMain = tx->firMain()) {
+          txMain.push_back(*firMain);
+        }
+        if (auto firPost1 = tx->firPost1()) {
+          txPost1.push_back(*firPost1);
+        }
+      } else {
+        txPre1.push_back(*tx->pre());
+        txMain.push_back(*tx->main());
+        txPost1.push_back(*tx->post());
+        if (FLAGS_sai_configure_six_tap &&
+            platform_->getAsic()->isSupported(
+                HwAsic::Feature::SAI_CONFIGURE_SIX_TAP)) {
+          txPost2.push_back(*tx->post2());
+          txPost3.push_back(*tx->post3());
+          txPre2.push_back(*tx->pre2());
+          if (platform_->getAsic()->getAsicVendor() ==
+              HwAsic::AsicVendor::ASIC_VENDOR_TAJO) {
+            if (auto lutMode = tx->lutMode()) {
+              txLutMode.push_back(*lutMode);
+            }
           }
         }
-      }
-      if (auto pre3 = tx->pre3()) {
-        txPre3.push_back(*pre3);
-      }
+        if (auto pre3 = tx->pre3()) {
+          txPre3.push_back(*pre3);
+        }
 
-      if (auto driveCurrent = tx->driveCurrent()) {
-        txIDriver.push_back(driveCurrent.value());
+        if (auto driveCurrent = tx->driveCurrent()) {
+          txIDriver.push_back(driveCurrent.value());
+        }
       }
     }
     if (auto rx = pinConfig.rx()) {
