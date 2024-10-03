@@ -11,7 +11,7 @@ python_binary(
     main_function = "fboss.agent.tools.fboss_route.main",
     deps = [
         "fbsource//third-party/pypi/ipaddr:ipaddr",
-        "//common/network/if:if-py",
+        "//common/network/if:if-py-deprecated",
         "//fboss/agent/if:ctrl-py",
         "//fboss/qsfp_service/if:qsfp-py",
         "//thrift/lib/py:server_base",
