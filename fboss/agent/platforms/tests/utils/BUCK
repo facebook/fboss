@@ -6,8 +6,6 @@ bcm_test_platforms_common_srcs = [
     "BcmTestPort.cpp",
     "BcmTestPlatform.cpp",
     "BcmTestWedgePlatform.cpp",
-    "BcmTestWedge40Platform.cpp",
-    "BcmTestWedge40Port.cpp",
     "BcmTestWedge100Platform.cpp",
     "BcmTestWedge100Port.cpp",
     "BcmTestWedge400Platform.cpp",
@@ -31,7 +29,6 @@ bcm_test_platforms_common_srcs = [
 cpp_library(
     name = "bcm_test_platforms",
     srcs = bcm_test_platforms_common_srcs + [
-        "BcmTestWedge40Platform.cpp",
         "BcmTestWedgeTomahawk3Platform.cpp",
         "BcmTestWedgeTomahawkPlatform.cpp",
         "FakeBcmTestPlatform.cpp",
@@ -53,7 +50,6 @@ cpp_library(
         "//fboss/agent/platforms/common/minipack:minipack_platform_mapping",
         "//fboss/agent/platforms/common/utils:wedge-led-utils",
         "//fboss/agent/platforms/common/wedge100:wedge100_platform_mapping",
-        "//fboss/agent/platforms/common/wedge40:wedge40_platform_mapping",
         "//fboss/agent/platforms/common/wedge400:wedge400_platform_mapping",
         "//fboss/agent/platforms/common/yamp:yamp_platform_mapping",
         "//fboss/agent/platforms/wedge/utils:bcm-led-utils",  # @manual
@@ -73,7 +69,6 @@ cpp_library(
 cpp_library(
     name = "fake_bcm_test_platforms",
     srcs = bcm_test_platforms_common_srcs + [
-        "BcmTestWedge40Platform.cpp",
         "BcmTestWedgeTomahawk3Platform.cpp",
         "BcmTestWedgeTomahawkPlatform.cpp",
         "FakeBcmTestPlatform.cpp",
@@ -95,7 +90,6 @@ cpp_library(
         "//fboss/agent/platforms/common/minipack:minipack_platform_mapping",
         "//fboss/agent/platforms/common/utils:wedge-led-utils",
         "//fboss/agent/platforms/common/wedge100:wedge100_platform_mapping",
-        "//fboss/agent/platforms/common/wedge40:wedge40_platform_mapping",
         "//fboss/agent/platforms/common/wedge400:wedge400_platform_mapping",
         "//fboss/agent/platforms/common/yamp:yamp_platform_mapping",
         "//fboss/agent/platforms/wedge/utils:bcm-led-utils-oss",
