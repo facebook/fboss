@@ -7,9 +7,6 @@ add_library(sai_platform
   fboss/agent/platforms/sai/SaiPlatform.cpp
   fboss/agent/platforms/sai/SaiBcmPlatform.cpp
   fboss/agent/platforms/sai/SaiBcmPlatformPort.cpp
-  fboss/agent/platforms/sai/SaiBcmGalaxyPlatform.cpp
-  fboss/agent/platforms/sai/SaiBcmGalaxyFCPlatform.cpp
-  fboss/agent/platforms/sai/SaiBcmGalaxyLCPlatform.cpp
   fboss/agent/platforms/sai/SaiBcmMinipackPlatform.cpp
   fboss/agent/platforms/sai/SaiBcmYampPlatform.cpp
   fboss/agent/platforms/sai/SaiBcmWedge100Platform.cpp
@@ -46,7 +43,6 @@ add_library(sai_platform
 
   fboss/agent/platforms/sai/oss/SaiBcmMinipackPlatform.cpp
   fboss/agent/platforms/sai/oss/SaiTajoPlatform.cpp
-  fboss/agent/platforms/sai/oss/SaiBcmGalaxyPlatformPort.cpp
   fboss/agent/platforms/sai/oss/SaiBcmMinipackPlatformPort.cpp
   fboss/agent/platforms/sai/oss/SaiBcmFujiPlatformPort.cpp
   fboss/agent/platforms/sai/oss/SaiBcmWedge100PlatformPort.cpp

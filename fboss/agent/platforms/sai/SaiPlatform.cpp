@@ -19,7 +19,6 @@
 #include "fboss/agent/platforms/sai/SaiBcmDarwinPlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiBcmElbertPlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiBcmFujiPlatformPort.h"
-#include "fboss/agent/platforms/sai/SaiBcmGalaxyPlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiBcmMinipackPlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiBcmMontblancPlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiBcmPlatformPort.h"
@@ -332,10 +331,6 @@ void SaiPlatform::initPorts() {
       saiPort = std::make_unique<SaiBcmWedge40PlatformPort>(portId, this);
     } else if (platformMode == PlatformType::PLATFORM_WEDGE100) {
       saiPort = std::make_unique<SaiBcmWedge100PlatformPort>(portId, this);
-    } else if (
-        platformMode == PlatformType::PLATFORM_GALAXY_LC ||
-        platformMode == PlatformType::PLATFORM_GALAXY_FC) {
-      saiPort = std::make_unique<SaiBcmGalaxyPlatformPort>(portId, this);
     } else if (
         platformMode == PlatformType::PLATFORM_WEDGE400 ||
         platformMode == PlatformType::PLATFORM_WEDGE400_GRANDTETON) {

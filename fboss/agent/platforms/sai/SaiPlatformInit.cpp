@@ -18,8 +18,6 @@
 #include "fboss/agent/platforms/sai/SaiBcmDarwinPlatform.h"
 #include "fboss/agent/platforms/sai/SaiBcmElbertPlatform.h"
 #include "fboss/agent/platforms/sai/SaiBcmFujiPlatform.h"
-#include "fboss/agent/platforms/sai/SaiBcmGalaxyFCPlatform.h"
-#include "fboss/agent/platforms/sai/SaiBcmGalaxyLCPlatform.h"
 #include "fboss/agent/platforms/sai/SaiBcmMinipackPlatform.h"
 #include "fboss/agent/platforms/sai/SaiBcmMontblancPlatform.h"
 #include "fboss/agent/platforms/sai/SaiBcmWedge100Platform.h"
@@ -49,12 +47,6 @@ std::unique_ptr<SaiPlatform> chooseSaiPlatform(
         std::move(productInfo), localMac, platformMappingStr);
   } else if (productInfo->getType() == PlatformType::PLATFORM_WEDGE) {
     return std::make_unique<SaiBcmWedge40Platform>(
-        std::move(productInfo), localMac, platformMappingStr);
-  } else if (productInfo->getType() == PlatformType::PLATFORM_GALAXY_FC) {
-    return std::make_unique<SaiBcmGalaxyFCPlatform>(
-        std::move(productInfo), localMac, platformMappingStr);
-  } else if (productInfo->getType() == PlatformType::PLATFORM_GALAXY_LC) {
-    return std::make_unique<SaiBcmGalaxyLCPlatform>(
         std::move(productInfo), localMac, platformMappingStr);
   } else if (
       productInfo->getType() == PlatformType::PLATFORM_WEDGE400 ||

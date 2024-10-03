@@ -9,7 +9,6 @@ headers = [
     "SaiBcmDarwinPlatformPort.h",
     "SaiBcmElbertPlatformPort.h",
     "SaiBcmFujiPlatformPort.h",
-    "SaiBcmGalaxyPlatformPort.h",
     "SaiBcmMinipackPlatformPort.h",
     "SaiBcmWedge100PlatformPort.h",
     "SaiBcmWedge40PlatformPort.h",
@@ -29,9 +28,6 @@ common_srcs = [
     "SaiPlatform.cpp",
     "SaiBcmPlatform.cpp",
     "SaiBcmPlatformPort.cpp",
-    "SaiBcmGalaxyPlatform.cpp",
-    "SaiBcmGalaxyFCPlatform.cpp",
-    "SaiBcmGalaxyLCPlatform.cpp",
     "SaiBcmWedge100Platform.cpp",
     "SaiBcmWedge40Platform.cpp",
     "SaiBcmWedge400Platform.cpp",
@@ -70,7 +66,6 @@ common_srcs = [
 
 bcm_srcs = common_srcs + [
     "bcm/SaiBcmMinipackPlatform.cpp",
-    "bcm/SaiBcmGalaxyPlatformPort.cpp",
     "bcm/SaiBcmPlatform.cpp",
     "bcm/SaiBcmWedge100PlatformPort.cpp",
     "bcm/SaiBcmWedge40PlatformPort.cpp",
@@ -97,7 +92,6 @@ bcm_srcs = common_srcs + [
 
 fake_srcs = common_srcs + [
     "oss/SaiBcmMinipackPlatform.cpp",
-    "oss/SaiBcmGalaxyPlatformPort.cpp",
     "oss/SaiBcmPlatform.cpp",
     "oss/SaiBcmMinipackPlatformPort.cpp",
     "oss/SaiBcmFujiPlatformPort.cpp",
@@ -124,7 +118,6 @@ fake_srcs = common_srcs + [
 
 tajo_srcs = common_srcs + [
     "oss/SaiBcmMinipackPlatform.cpp",
-    "oss/SaiBcmGalaxyPlatformPort.cpp",
     "facebook/SaiWedge400CPlatformPort.cpp",
     "oss/SaiBcmPlatform.cpp",
     "oss/SaiBcmMinipackPlatformPort.cpp",
