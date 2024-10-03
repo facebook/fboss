@@ -70,7 +70,9 @@ class BcmTestTomahawk4Platform : public BcmTestWedgePlatform {
       std::optional<int64_t> switchId,
       int16_t switchIndex,
       std::optional<cfg::Range64> systemPortRange,
-      folly::MacAddress& mac) override {
+      folly::MacAddress& mac,
+      std::optional<HwAsic::FabricNodeRole> fabricNodeRole) override {
+    CHECK(!fabricNodeRole.has_value());
     asic_ = std::make_unique<Tomahawk4Asic>(
         switchType, switchId, switchIndex, systemPortRange, mac);
   }

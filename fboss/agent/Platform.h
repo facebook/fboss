@@ -19,9 +19,11 @@
 #include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/PlatformPort.h"
 #include "fboss/agent/SwitchIdScopeResolver.h"
+#include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 #include "fboss/agent/platforms/common/PlatformMapping.h"
 #include "fboss/agent/types.h"
+
 #include "fboss/lib/phy/gen-cpp2/phy_types.h"
 
 DECLARE_int32(switchIndex);
@@ -33,7 +35,6 @@ class HwSwitch;
 class SwSwitch;
 class ThriftHandler;
 struct ProductInfo;
-class HwAsic;
 class HwSwitchWarmBootHelper;
 class PlatformProductInfo;
 class HwSwitchCallback;
@@ -272,7 +273,8 @@ class Platform {
       std::optional<int64_t> switchId,
       int16_t switchIndex,
       std::optional<cfg::Range64> systemPortRange,
-      folly::MacAddress& mac) = 0;
+      folly::MacAddress& mac,
+      std::optional<HwAsic::FabricNodeRole> role) = 0;
 
   std::unique_ptr<AgentConfig> config_;
 

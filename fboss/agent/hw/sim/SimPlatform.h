@@ -59,7 +59,9 @@ class SimPlatform : public Platform {
       std::optional<int64_t> /*switchId*/,
       int16_t /*switchIndex*/,
       std::optional<cfg::Range64> /*systemPortRange*/,
-      folly::MacAddress& /*mac*/) override {
+      folly::MacAddress& /*mac*/,
+      std::optional<HwAsic::FabricNodeRole> /*fabricNodeRole) */
+      ) override {
     // noop - no asic implemented
   }
   // Forbidden copy constructor and assignment operator

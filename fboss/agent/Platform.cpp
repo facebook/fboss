@@ -133,7 +133,13 @@ void Platform::init(
   XLOG(DBG2) << "Initializing Platform with switch ID: " << switchId.value_or(0)
              << " switch Index: " << switchIndex;
 
-  setupAsic(switchType, switchId, switchIndex, systemPortRange, localMac_);
+  setupAsic(
+      switchType,
+      switchId,
+      switchIndex,
+      systemPortRange,
+      localMac_,
+      std::nullopt);
   initImpl(hwFeaturesDesired);
   // We should always initPorts() here instead of leaving the hw/ to call
   initPorts();

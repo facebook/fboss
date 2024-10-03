@@ -67,7 +67,8 @@ class FakeBcmTestPlatform : public BcmTestPlatform {
       std::optional<int64_t> switchId,
       int16_t switchIndex,
       std::optional<cfg::Range64> systemPortRange,
-      folly::MacAddress& mac) override;
+      folly::MacAddress& mac,
+      std::optional<HwAsic::FabricNodeRole> fabricNodeRole) override;
   // Forbidden copy constructor and assignment operator
   FakeBcmTestPlatform(FakeBcmTestPlatform const&) = delete;
   FakeBcmTestPlatform& operator=(FakeBcmTestPlatform const&) = delete;

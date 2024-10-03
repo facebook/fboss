@@ -61,7 +61,8 @@ class SaiFakePlatform : public SaiPlatform {
       std::optional<int64_t> switchId,
       int16_t switchIndex,
       std::optional<cfg::Range64> systemPortRange,
-      folly::MacAddress& mac) override;
+      folly::MacAddress& mac,
+      std::optional<HwAsic::FabricNodeRole> fabricNodeRole) override;
   folly::test::TemporaryDirectory tmpDir_;
   std::unique_ptr<FakeAsic> asic_;
   std::unique_ptr<AgentDirectoryUtil> agentDirUtil_;

@@ -35,7 +35,9 @@ void SaiCloudRipperPlatform::setupAsic(
     std::optional<int64_t> switchId,
     int16_t switchIndex,
     std::optional<cfg::Range64> systemPortRange,
-    folly::MacAddress& mac) {
+    folly::MacAddress& mac,
+    std::optional<HwAsic::FabricNodeRole> fabricNodeRole) {
+  CHECK(!fabricNodeRole.has_value());
   std::optional<cfg::SdkVersion> sdkVersion;
 #if defined(TAJO_SDK_GTE_24_4_90)
   /*

@@ -98,7 +98,9 @@ void SaiElbert8DDPhyPlatform::setupAsic(
     std::optional<int64_t> switchId,
     int16_t switchIndex,
     std::optional<cfg::Range64> systemPortRange,
-    folly::MacAddress& mac) {
+    folly::MacAddress& mac,
+    std::optional<HwAsic::FabricNodeRole> fabricNodeRole) {
+  CHECK(!fabricNodeRole.has_value());
   asic_ = std::make_unique<CredoPhyAsic>(
       switchType, switchId, switchIndex, systemPortRange, mac);
 }
