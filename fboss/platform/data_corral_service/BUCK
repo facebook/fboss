@@ -36,12 +36,24 @@ cpp_library(
     ],
 )
 
+cpp_library(
+    name = "config_validator",
+    srcs = [
+        "ConfigValidator.cpp",
+    ],
+    exported_deps = [
+        "//fboss/platform/data_corral_service/if:led_manager-cpp2-types",
+        "//folly/logging:logging",
+    ],
+)
+
 cpp_binary(
     name = "data_corral_service",
     srcs = [
         "Main.cpp",
     ],
     deps = [
+        ":config_validator",
         ":core",
         ":led_management",
         "//fb303:logging",

@@ -28,6 +28,7 @@ add_library(data_corral_service_lib
   fboss/platform/data_corral_service/DataCorralServiceThriftHandler.cpp
   fboss/platform/data_corral_service/FruPresenceExplorer.cpp
   fboss/platform/data_corral_service/LedManager.cpp
+  fboss/platform/data_corral_service/ConfigValidator.cpp
 )
 
 target_link_libraries(data_corral_service_lib

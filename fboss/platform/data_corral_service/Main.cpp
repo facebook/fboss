@@ -8,6 +8,7 @@
 #include <thrift/lib/cpp2/protocol/Serializer.h>
 
 #include "fboss/platform/config_lib/ConfigLib.h"
+#include "fboss/platform/data_corral_service/ConfigValidator.h"
 #include "fboss/platform/data_corral_service/DataCorralServiceThriftHandler.h"
 #include "fboss/platform/data_corral_service/FruPresenceExplorer.h"
 #include "fboss/platform/data_corral_service/if/gen-cpp2/data_corral_service_types.h"
@@ -34,6 +35,11 @@ int main(int argc, char** argv) {
   auto configJson = ConfigLib().getLedManagerConfig(platformName);
   apache::thrift::SimpleJSONSerializer::deserialize<LedManagerConfig>(
       configJson, config);
+
+  if (!ConfigValidator().isValid(config)) {
+    XLOG(ERR) << "Invalid LedManager config";
+    throw std::runtime_error("Invalid LedManager config");
+  }
 
   auto ledManager = std::make_shared<LedManager>(
       *config.systemLedConfig(), *config.fruTypeLedConfigs());
