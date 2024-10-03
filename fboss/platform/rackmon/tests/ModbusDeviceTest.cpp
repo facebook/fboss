@@ -884,3 +884,146 @@ TEST(ModbusDeviceBaudrate, BaudrateNegotiationRejection) {
         std::get<std::string>(data.registerList[0].history[0].value), "abcd");
   }
 }
+
+static nlohmann::json getPlanRegmap() {
+  std::string regmap_s = R"({
+    "name": "orv3_psu",
+    "address_range": [[5, 5]],
+    "probe_register": 0,
+    "default_baudrate": 19200,
+    "preferred_baudrate": 19200,
+    "registers": [
+      {
+        "begin": 0,
+        "length": 2,
+        "keep": 2,
+        "format": "LONG",
+        "name": "THING1"
+      },
+      {
+        "begin": 2,
+        "length": 2,
+        "keep": 2,
+        "format": "LONG",
+        "name": "THING2"
+      }
+    ]
+  })";
+  return nlohmann::json::parse(regmap_s);
+}
+
+TEST_F(ModbusDeviceTest, ReloadPlan) {
+  RegisterMap regmap = getPlanRegmap();
+  InSequence seq;
+  // First reload registers, We read first reg returns 0x12345678
+  EXPECT_CALL(
+      get_modbus(),
+      command(
+          // addr(1) = 0x5,
+          // func(1) = 0x03,
+          // reg_off(2) = 0x0000,
+          // reg_cnt(2) = 0x0002
+          encodeMsgContentEqual(0x050300000002_EM),
+          _,
+          19200,
+          ModbusTime::zero(),
+          _))
+      .Times(1)
+      .WillOnce(SetMsgDecode<1>(0x05030412345678_EM))
+      .RetiresOnSaturation();
+  // First (same) reload registers we read the second reg.
+  // Returns 0x89abcdef
+  EXPECT_CALL(
+      get_modbus(),
+      command(
+          // addr(1) = 0x5,
+          // func(1) = 0x03,
+          // reg_off(2) = 0x0002,
+          // reg_cnt(2) = 0x0002
+          encodeMsgContentEqual(0x050300020002_EM),
+          _,
+          19200,
+          ModbusTime::zero(),
+          _))
+      .Times(1)
+      .WillOnce(SetMsgDecode<1>(0x05030489abcdef_EM))
+      .RetiresOnSaturation();
+  // Now the first two are part of the plan. The second
+  // time we call reloadRegisters, we expect to do a
+  // batched read.
+  EXPECT_CALL(
+      get_modbus(),
+      command(
+          // addr(1) = 0x5,
+          // func(1) = 0x03,
+          // reg_off(2) = 0x0000,
+          // reg_cnt(2) = 0x0004
+          encodeMsgContentEqual(0x050300000004_EM),
+          _,
+          19200,
+          ModbusTime::zero(),
+          _))
+      .Times(1)
+      .WillOnce(SetMsgDecode<1>(0x050308fedcba9876543210_EM))
+      .RetiresOnSaturation();
+
+  time_t baseTime = std::time(nullptr);
+  constexpr time_t monInterval = RegisterDescriptor::kDefaultInterval;
+  ModbusDeviceMockTime dev(get_modbus(), 0x5, regmap, baseTime);
+
+  // We expect it to reload the registers one by one.
+  // This should cover the first two expect-calls.
+  dev.reloadRegisters();
+  {
+    auto data = dev.getValueData();
+    EXPECT_EQ(data.deviceAddress, 0x5);
+    EXPECT_EQ(data.registerList.size(), 2);
+
+    EXPECT_EQ(data.registerList[0].regAddr, 0);
+    EXPECT_EQ(data.registerList[0].history.size(), 1);
+    EXPECT_EQ(data.registerList[0].history[0].timestamp, baseTime);
+    EXPECT_EQ(data.registerList[0].history[0].type, RegisterValueType::LONG);
+    EXPECT_EQ(
+        std::get<int64_t>(data.registerList[0].history[0].value), 0x12345678);
+
+    EXPECT_EQ(data.registerList[1].regAddr, 2);
+    EXPECT_EQ(data.registerList[1].history.size(), 1);
+    EXPECT_EQ(data.registerList[1].history[0].timestamp, baseTime);
+    EXPECT_EQ(data.registerList[1].history[0].type, RegisterValueType::LONG);
+    EXPECT_EQ(
+        std::get<int64_t>(data.registerList[1].history[0].value), 0x89abcdef);
+  }
+  dev.incTime(monInterval);
+  // Second reload should exercise the span-read and the final (3d)
+  // expect should be satisfied.
+  dev.reloadRegisters();
+  {
+    auto data = dev.getValueData();
+    EXPECT_EQ(data.deviceAddress, 0x5);
+    EXPECT_EQ(data.registerList.size(), 2);
+
+    EXPECT_EQ(data.registerList[0].regAddr, 0);
+    EXPECT_EQ(data.registerList[0].history.size(), 2);
+    EXPECT_EQ(data.registerList[0].history[0].timestamp, baseTime);
+    EXPECT_EQ(data.registerList[0].history[0].type, RegisterValueType::LONG);
+    EXPECT_EQ(
+        std::get<int64_t>(data.registerList[0].history[0].value), 0x12345678);
+    EXPECT_EQ(
+        data.registerList[0].history[1].timestamp, baseTime + monInterval);
+    EXPECT_EQ(data.registerList[0].history[1].type, RegisterValueType::LONG);
+    EXPECT_EQ(
+        std::get<int64_t>(data.registerList[0].history[1].value), 0xfedcba98);
+
+    EXPECT_EQ(data.registerList[1].regAddr, 2);
+    EXPECT_EQ(data.registerList[1].history.size(), 2);
+    EXPECT_EQ(data.registerList[1].history[0].timestamp, baseTime);
+    EXPECT_EQ(data.registerList[1].history[0].type, RegisterValueType::LONG);
+    EXPECT_EQ(
+        std::get<int64_t>(data.registerList[1].history[0].value), 0x89abcdef);
+    EXPECT_EQ(
+        data.registerList[1].history[1].timestamp, baseTime + monInterval);
+    EXPECT_EQ(data.registerList[1].history[1].type, RegisterValueType::LONG);
+    EXPECT_EQ(
+        std::get<int64_t>(data.registerList[1].history[1].value), 0x76543210);
+  }
+}

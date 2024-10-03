@@ -86,11 +86,12 @@ class ModbusDevice {
   Modbus& interface_;
   int numCommandRetries_;
   ModbusDeviceRawData info_;
+  std::vector<RegisterStoreSpan> reloadPlan_{};
   mutable std::shared_mutex infoMutex_{};
   std::vector<ModbusSpecialHandler> specialHandlers_{};
   const BaudrateConfig& baudConfig_;
   bool setBaudEnabled_ = true;
-  std::atomic<bool> singleShotReload_{false};
+  std::atomic<bool> singleShotReload_{true};
   std::atomic<bool> exclusiveMode_{false};
 
   void handleCommandFailure(std::exception& baseException);
@@ -106,7 +107,9 @@ class ModbusDevice {
     setBaudrate(info_.preferredBaudrate);
   }
 
-  bool reloadRegister(RegisterStore& registerStore, bool singleShot);
+  void forceReloadRegister(RegisterStore& registerStore, time_t reloadTime);
+  void forceReloadPlan();
+  bool reloadRegisterSpan(RegisterStoreSpan& span, bool singleShot);
 
  protected:
   virtual time_t getCurrentTime() {

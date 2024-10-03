@@ -164,27 +164,15 @@ void ModbusDevice::setBaudrate(uint32_t baud) {
   }
 }
 
-bool ModbusDevice::reloadRegister(
+void ModbusDevice::forceReloadRegister(
     RegisterStore& registerStore,
-    bool singleShot) {
-  if (!registerStore.isEnabled()) {
-    return false;
-  }
-  const auto& lastReg = registerStore.back();
-  time_t reloadTime = getCurrentTime();
-  if (!singleShot && lastReg &&
-      (time_t)lastReg.timestamp + registerStore.interval() > reloadTime) {
-    return false;
-  }
+    time_t reloadTime) {
   uint16_t registerOffset = registerStore.regAddr();
   try {
     std::vector<uint16_t> value(registerStore.length(), 0);
     readHoldingRegisters(registerOffset, value);
     registerStore.setRegister(value.begin(), value.end(), reloadTime);
   } catch (ModbusError& e) {
-    logInfo << "DEV:0x" << std::hex << int(info_.deviceAddress) << " ReadReg 0x"
-            << std::hex << registerOffset << ' ' << registerStore.name()
-            << " caught: " << e.what() << std::endl;
     if (e.errorCode == ModbusErrorCode::ILLEGAL_DATA_ADDRESS) {
       logInfo << "DEV:0x" << std::hex << int(info_.deviceAddress)
               << " ReadReg 0x" << std::hex << registerOffset << ' '
@@ -201,10 +189,49 @@ bool ModbusDevice::reloadRegister(
             << std::hex << registerOffset << ' ' << registerStore.name()
             << " caught: " << e.what() << std::endl;
   }
-  return true;
+}
+
+void ModbusDevice::forceReloadPlan() {
+  reloadPlan_.clear();
+  time_t reloadTime = getCurrentTime();
+  for (auto& reg : info_.registerList) {
+    forceReloadRegister(reg, reloadTime);
+    RegisterStoreSpan::buildRegisterSpanList(reloadPlan_, reg);
+  }
+}
+
+bool ModbusDevice::reloadRegisterSpan(
+    RegisterStoreSpan& span,
+    bool singleShot) {
+  time_t reloadTime = getCurrentTime();
+  if (!singleShot && !span.reloadPending(reloadTime)) {
+    return false;
+  }
+  uint16_t registerOffset = span.getSpanAddress();
+  try {
+    auto& data = span.beginReloadSpan();
+    readHoldingRegisters(registerOffset, data);
+    span.endReloadSpan(reloadTime);
+    return true;
+  } catch (ModbusError& e) {
+    logInfo << "DEV:0x" << std::hex << int(info_.deviceAddress) << " ReadReg 0x"
+            << std::hex << registerOffset << " Len: " << span.length()
+            << " caught: " << e.what() << std::endl;
+    if (e.errorCode == ModbusErrorCode::ILLEGAL_DATA_ADDRESS) {
+      // TODO we might need to reform a plan.
+    }
+  } catch (std::exception& e) {
+    logInfo << "DEV:0x" << std::hex << int(info_.deviceAddress) << " ReadReg 0x"
+            << std::hex << registerOffset << " Len: " << span.length()
+            << " caught: " << e.what() << std::endl;
+  }
+  return false;
 }
 
 void ModbusDevice::reloadRegisters() {
+  RACKMON_PROFILE_SCOPE(
+      reloadRegs,
+      "reloadRegisters::" + std::to_string(int(info_.deviceAddress)));
   setPreferredBaudrate();
   // If the number of consecutive failures has exceeded
   // a threshold, mark the device as dormant.
@@ -217,12 +244,16 @@ void ModbusDevice::reloadRegisters() {
   }
   bool singleShot = singleShotReload_;
   singleShotReload_ = false;
-  for (auto& registerStore : info_.registerList) {
+  if (singleShot) {
+    forceReloadPlan();
+    return;
+  }
+  for (auto& plan : reloadPlan_) {
     // Break early, if we are entering exclusive mode
     if (exclusiveMode_) {
       break;
     }
-    if (reloadRegister(registerStore, singleShot)) {
+    if (reloadRegisterSpan(plan, singleShot)) {
       // Release thread to allow for higher priority tasks to execute.
       std::this_thread::yield();
     }
