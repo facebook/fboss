@@ -61,7 +61,7 @@ void checkFabricConnectivity(TestEnsembleIf* ensemble, SwitchID switchId) {
   });
 }
 
-void populatePortExpectedNeighbors(
+void populatePortExpectedNeighborsToSelf(
     const std::vector<PortID>& ports,
     cfg::SwitchConfig& cfg) {
   const auto& dsfNode = cfg.dsfNodes()->begin()->second;

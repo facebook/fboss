@@ -216,7 +216,7 @@ void initandExitBenchmarkHelper(
             true, /*setInterfaceMac*/
             utility::kBaseVlanId,
             true /*enable fabric ports*/);
-        utility::populatePortExpectedNeighbors(
+        utility::populatePortExpectedNeighborsToSelf(
             ensemble.masterLogicalPortIds(), config);
         config.dsfNodes() = *utility::addRemoteIntfNodeCfg(*config.dsfNodes());
         return config;
@@ -232,7 +232,7 @@ void initandExitBenchmarkHelper(
             false /*setInterfaceMac*/,
             utility::kBaseVlanId,
             true /*enable fabric ports*/);
-        utility::populatePortExpectedNeighbors(
+        utility::populatePortExpectedNeighborsToSelf(
             ensemble.masterLogicalPortIds(), config);
         return config;
       };

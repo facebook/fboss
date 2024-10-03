@@ -115,7 +115,7 @@ class AgentFabricPrbsTest : public AgentPrbsTest {
         false /*setInterfaceMac*/,
         utility::kBaseVlanId,
         true /*enable fabric ports*/);
-    utility::populatePortExpectedNeighbors(
+    utility::populatePortExpectedNeighborsToSelf(
         ensemble.masterLogicalPortIds(), config);
     return config;
   }

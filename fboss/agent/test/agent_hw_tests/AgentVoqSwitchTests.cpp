@@ -441,7 +441,7 @@ class AgentVoqSwitchWithFabricPortsTest : public AgentVoqSwitchTest {
         true, /*setInterfaceMac*/
         utility::kBaseVlanId,
         true /*enable fabric ports*/);
-    utility::populatePortExpectedNeighbors(
+    utility::populatePortExpectedNeighborsToSelf(
         ensemble.masterLogicalPortIds(), config);
     return config;
   }
