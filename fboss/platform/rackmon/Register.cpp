@@ -318,17 +318,30 @@ bool RegisterStoreSpan::buildRegisterSpanList(
   return true;
 }
 
-const RegisterMap& RegisterMapDatabase::at(uint8_t addr) const {
-  const auto result = std::find_if(
+RegisterMapDatabase::Iterator& RegisterMapDatabase::Iterator::operator++() {
+  if (it == end) {
+    return *this;
+  }
+  ++it;
+  if (addr.has_value()) {
+    while (it != end) {
+      if ((*it)->applicableAddresses.contains(addr.value())) {
+        break;
+      }
+      ++it;
+    }
+  }
+  return *this;
+}
+
+RegisterMapDatabase::Iterator RegisterMapDatabase::find(uint8_t addr) const {
+  auto result = std::find_if(
       regmaps.begin(),
       regmaps.end(),
       [addr](const std::unique_ptr<RegisterMap>& m) {
         return m->applicableAddresses.contains(addr);
       });
-  if (result == regmaps.end()) {
-    throw std::out_of_range("not found: " + std::to_string(int(addr)));
-  }
-  return **result;
+  return RegisterMapDatabase::Iterator{result, regmaps.cend(), addr};
 }
 
 void RegisterMapDatabase::load(const nlohmann::json& j) {

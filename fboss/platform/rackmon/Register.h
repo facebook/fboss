@@ -331,8 +331,42 @@ struct RegisterMap {
 struct RegisterMapDatabase {
   std::vector<std::unique_ptr<RegisterMap>> regmaps{};
 
-  // Returns a register map of a given address
-  const RegisterMap& at(uint8_t addr) const;
+  struct Iterator {
+    std::vector<std::unique_ptr<RegisterMap>>::const_iterator it;
+    std::vector<std::unique_ptr<RegisterMap>>::const_iterator end;
+    const std::optional<uint8_t> addr{};
+    bool operator!=(struct Iterator const& other) const {
+      return it != other.it;
+    }
+    bool operator==(struct Iterator const& other) const {
+      return it == other.it;
+    }
+    Iterator& operator++();
+    const RegisterMap& operator*() {
+      if (it == end) {
+        throw std::out_of_range("Getting info from end");
+      }
+      return **it;
+    }
+  };
+
+  Iterator begin() {
+    return Iterator{regmaps.begin(), regmaps.end()};
+  }
+  Iterator end() {
+    return Iterator{regmaps.end(), regmaps.end()};
+  }
+  Iterator begin() const {
+    return Iterator{regmaps.cbegin(), regmaps.cend()};
+  }
+  Iterator end() const {
+    return Iterator{regmaps.cend(), regmaps.cend()};
+  }
+  Iterator find(uint8_t addr) const;
+
+  const RegisterMap& at(uint8_t addr) const {
+    return *find(addr);
+  }
 
   // Loads a configuration JSON into the DB.
   void load(const nlohmann::json& j);
