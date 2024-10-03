@@ -371,8 +371,9 @@ bool ControlLogic::isFanPresentInDevice(const Fan& fan) {
   } else if (fan.presenceGpio()) {
     struct gpiod_chip* chip =
         gpiod_chip_open(fan.presenceGpio()->path()->c_str());
-    GpiodLine line(chip, *fan.presenceGpio()->lineIndex(), "gpioline");
-    int16_t value = line.getValue();
+    // Ensure GpiodLine is destroyed before gpiod_chip_close
+    int value = GpiodLine(chip, *fan.presenceGpio()->lineIndex(), "gpioline")
+                    .getValue();
     gpiod_chip_close(chip);
     if (value == *fan.presenceGpio()->desiredValue()) {
       fanPresent = true;
