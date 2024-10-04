@@ -37,7 +37,9 @@ folly::dynamic createTestDynamic() {
       "setOfI32", dynamic::array())("setOfString", dynamic::array())(
       "unsigned_int64", 123)("mapA", dynamic::object())(
       "mapB", dynamic::object())("cowMap", dynamic::object())(
-      "hybridMap", dynamic::object());
+      "hybridMap", dynamic::object())("hybridList", dynamic::array())(
+      "hybridSet", dynamic::array())("hybridUnion", dynamic::object())(
+      "hybridStruct", dynamic::object("childMap", dynamic::object()));
 }
 
 TestStruct createTestStruct(folly::dynamic testDyn) {
@@ -65,6 +67,11 @@ TEST(RecurseVisitorTests, TestFullRecurse) {
       {{}, testDyn},
       {{"cowMap"}, dynamic::object()},
       {{"hybridMap"}, dynamic::object()},
+      {{"hybridList"}, dynamic::array()},
+      {{"hybridSet"}, dynamic::array()},
+      {{"hybridUnion"}, dynamic::object()},
+      {{"hybridStruct"}, testDyn["hybridStruct"]},
+      {{"hybridStruct", "childMap"}, testDyn["hybridStruct"]["childMap"]},
       {{"inlineBool"}, testDyn["inlineBool"]},
       {{"inlineInt"}, testDyn["inlineInt"]},
       {{"inlineString"}, testDyn["inlineString"]},

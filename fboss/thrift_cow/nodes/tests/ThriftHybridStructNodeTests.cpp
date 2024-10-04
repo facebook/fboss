@@ -127,6 +127,46 @@ TEST(ThriftHybridStructNodeTests, ThriftStructNodeHybridMemberToFromThrift) {
   auto thrift = val->toThrift();
   ASSERT_EQ(thrift, *data);
 }
+
+TEST(ThriftHybridStructNodeTests, TestHybridNodeMemberTypes) {
+  ThriftStructNode<TestStruct> node;
+
+  // list
+  ASSERT_EQ(node.isSkipThriftCowEnabled<k::hybridList>(), true);
+  auto v_list = node.get<k::hybridList>();
+  using underlying_type_l =
+      folly::remove_cvref_t<decltype(*v_list)>::ThriftType;
+  static_assert(std::is_same_v<underlying_type_l, std::vector<int>>);
+  using ref_type_l = folly::remove_cvref_t<decltype(v_list->ref())>;
+  static_assert(std::is_same_v<ref_type_l, std::vector<int>>);
+
+  // set
+  ASSERT_EQ(node.isSkipThriftCowEnabled<k::hybridSet>(), true);
+  auto v_set = node.get<k::hybridSet>();
+  using underlying_type_s = folly::remove_cvref_t<decltype(*v_set)>::ThriftType;
+  static_assert(std::is_same_v<underlying_type_s, std::set<int>>);
+  using ref_type_s = folly::remove_cvref_t<decltype(v_set->ref())>;
+  static_assert(std::is_same_v<ref_type_s, std::set<int>>);
+
+  // union
+  ASSERT_EQ(node.isSkipThriftCowEnabled<k::hybridUnion>(), true);
+  auto v_union = node.get<k::hybridUnion>();
+  using underlying_type_u =
+      folly::remove_cvref_t<decltype(*v_union)>::ThriftType;
+  static_assert(std::is_same_v<underlying_type_u, TestUnion>);
+  using ref_type_u = folly::remove_cvref_t<decltype(v_union->ref())>;
+  static_assert(std::is_same_v<ref_type_u, TestUnion>);
+
+  // child struct
+  ASSERT_EQ(node.isSkipThriftCowEnabled<k::hybridStruct>(), true);
+  auto v_struct = node.get<k::hybridStruct>();
+  using underlying_type_c =
+      folly::remove_cvref_t<decltype(*v_struct)>::ThriftType;
+  static_assert(std::is_same_v<underlying_type_c, ChildStruct>);
+  using ref_type_c = folly::remove_cvref_t<decltype(v_struct->ref())>;
+  static_assert(std::is_same_v<ref_type_c, ChildStruct>);
+}
+
 #endif // __ENABLE_HYBRID_THRIFT_COW_TESTS__
 
 #ifdef ENABLE_DYNAMIC_APIS
