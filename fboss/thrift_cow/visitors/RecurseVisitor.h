@@ -43,11 +43,16 @@ struct RecurseVisitOptions {
   RecurseVisitOptions(
       RecurseVisitMode mode,
       RecurseVisitOrder order,
-      bool outputIdPaths = false)
-      : mode(mode), order(order), outputIdPaths(outputIdPaths) {}
+      bool outputIdPaths = false,
+      bool recurseIntoHybridNodes = false)
+      : mode(mode),
+        order(order),
+        outputIdPaths(outputIdPaths),
+        recurseIntoHybridNodes(recurseIntoHybridNodes) {}
   RecurseVisitMode mode;
   RecurseVisitOrder order;
   bool outputIdPaths;
+  bool recurseIntoHybridNodes;
 };
 
 template <typename>
