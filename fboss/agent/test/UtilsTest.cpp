@@ -47,3 +47,57 @@ TEST_F(UtilsTest, AddTrapPacketAcl) {
   sw->applyConfig("AddTrapPacketAcl", config);
   EXPECT_NE(sw->getState()->getAcls()->getNodeIf("trap-10.0.0.1"), nullptr);
 }
+
+TEST_F(UtilsTest, numFabricLevelsNoDsfNodes) {
+  EXPECT_EQ(numFabricLevels({}), 0);
+}
+
+TEST_F(UtilsTest, numFabricLevelsNoFabricNodes) {
+  std::map<int64_t, cfg::DsfNode> dsfNodes;
+  dsfNodes.insert({0, makeDsfNodeCfg(0, cfg::DsfNodeType::INTERFACE_NODE)});
+  dsfNodes.insert({4, makeDsfNodeCfg(4, cfg::DsfNodeType::INTERFACE_NODE)});
+  EXPECT_EQ(numFabricLevels(dsfNodes), 0);
+}
+
+TEST_F(UtilsTest, numFabricLevelsL1DsfNoFabricLevelSet) {
+  std::map<int64_t, cfg::DsfNode> dsfNodes;
+  dsfNodes.insert({0, makeDsfNodeCfg(0, cfg::DsfNodeType::INTERFACE_NODE)});
+  dsfNodes.insert({4, makeDsfNodeCfg(4, cfg::DsfNodeType::FABRIC_NODE)});
+  EXPECT_EQ(numFabricLevels(dsfNodes), 1);
+}
+
+TEST_F(UtilsTest, numFabricLevelsL1Dsf) {
+  std::map<int64_t, cfg::DsfNode> dsfNodes;
+  dsfNodes.insert({0, makeDsfNodeCfg(0, cfg::DsfNodeType::INTERFACE_NODE)});
+  dsfNodes.insert(
+      {4,
+       makeDsfNodeCfg(
+           4,
+           cfg::DsfNodeType::FABRIC_NODE,
+           1,
+           cfg::AsicType::ASIC_TYPE_MOCK,
+           1)});
+  EXPECT_EQ(numFabricLevels(dsfNodes), 1);
+}
+
+TEST_F(UtilsTest, numFabricLevelsL2Dsf) {
+  std::map<int64_t, cfg::DsfNode> dsfNodes;
+  dsfNodes.insert({0, makeDsfNodeCfg(0, cfg::DsfNodeType::INTERFACE_NODE)});
+  dsfNodes.insert(
+      {4,
+       makeDsfNodeCfg(
+           4,
+           cfg::DsfNodeType::FABRIC_NODE,
+           1,
+           cfg::AsicType::ASIC_TYPE_MOCK,
+           1)});
+  dsfNodes.insert(
+      {6,
+       makeDsfNodeCfg(
+           6,
+           cfg::DsfNodeType::FABRIC_NODE,
+           std::nullopt,
+           cfg::AsicType::ASIC_TYPE_MOCK,
+           2)});
+  EXPECT_EQ(numFabricLevels(dsfNodes), 2);
+}
