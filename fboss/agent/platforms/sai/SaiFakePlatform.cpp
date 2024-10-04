@@ -49,7 +49,6 @@ void SaiFakePlatform::setupAsic(
     std::optional<cfg::Range64> systemPortRange,
     folly::MacAddress& mac,
     std::optional<HwAsic::FabricNodeRole> fabricNodeRole) {
-  CHECK(!fabricNodeRole.has_value());
   asic_ = std::make_unique<FakeAsic>(
       switchType, switchId, switchIndex, systemPortRange, mac);
 }
