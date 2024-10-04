@@ -308,7 +308,8 @@ std::optional<std::string> PlatformExplorer::getPmUnitNameFromSlot(
     See: https://github.com/facebookexternal/fboss.bsp.arista/pull/31/files
     */
     if ((platformConfig_.platformName().value() == "meru800bfa" ||
-         platformConfig_.platformName().value() == "meru800bia") &&
+         platformConfig_.platformName().value() == "meru800bia" ||
+         platformConfig_.platformName().value() == "meru800biab") &&
         (!(idpromConfig.busName()->starts_with("INCOMING")) &&
          *idpromConfig.address() == "0x50")) {
       try {
