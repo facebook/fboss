@@ -5,6 +5,7 @@
 #include <fb303/ServiceData.h>
 #include <folly/String.h>
 #include <folly/logging/xlog.h>
+#include <sys/utsname.h>
 
 #include "fboss/platform/helpers/PlatformUtils.h"
 
@@ -30,19 +31,9 @@ constexpr auto kBspKmodsRpmName = "fboss_bsp_kmods_rpm";
 constexpr auto kBspKmodsRpmVersionCounter = "bsp_kmods_rpm_version.{}";
 
 std::string getHostKernelVersion() {
-  auto getKernelVersionCmd = "uname --kernel-release";
-  auto [exitStatus, standardOut] =
-      PlatformUtils().execCommand(getKernelVersionCmd);
-  if (exitStatus != 0) {
-    XLOG(ERR) << fmt::format(
-        "Command ({}) failed with exit code {}",
-        getKernelVersionCmd,
-        exitStatus);
-    throw std::runtime_error(fmt::format(
-        "Failed to get kernel version with exit code {}", exitStatus));
-  }
-  standardOut = folly::trimWhitespace(standardOut).str();
-  return standardOut;
+  utsname result;
+  uname(&result);
+  return result.release;
 }
 } // namespace
 
