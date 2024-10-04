@@ -3615,7 +3615,7 @@
     "/run/devmap/flashes/MCB_SPI_MASTER_7_DEVICE_1": "/[MCB_SPI_MASTER_7_DEVICE_1]"
   },
   "bspKmodsRpmName": "fboss_bsp_kmods",
-  "bspKmodsRpmVersion": "2.3.0-1",
+  "bspKmodsRpmVersion": "2.4.0-1",
   "bspKmodsToReload": [
     "bp4f_lm25066",
     "bp4f_tda38640",

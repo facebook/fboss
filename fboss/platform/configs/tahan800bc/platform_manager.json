@@ -1961,7 +1961,7 @@
     "/run/devmap/flashes/SMB_SPI_MASTER_7_DEVICE_1": "/[SMB_SPI_MASTER_7_DEVICE_1]"
   },
   "bspKmodsRpmName": "fboss_bsp_kmods",
-  "bspKmodsRpmVersion": "2.3.0-1",
+  "bspKmodsRpmVersion": "2.4.0-1",
   "bspKmodsToReload": [
     "bp4f_max31790",
     "bp4f_tda38640",
