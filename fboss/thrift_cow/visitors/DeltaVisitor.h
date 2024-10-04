@@ -87,12 +87,17 @@ struct DeltaVisitOptions {
   explicit DeltaVisitOptions(
       DeltaVisitMode mode,
       DeltaVisitOrder order = DeltaVisitOrder::PARENTS_FIRST,
-      bool outputIdPaths = false)
-      : mode(mode), order(order), outputIdPaths(outputIdPaths) {}
+      bool outputIdPaths = false,
+      bool recurseIntoHybridNodes = false)
+      : mode(mode),
+        order(order),
+        outputIdPaths(outputIdPaths),
+        recurseIntoHybridNodes(recurseIntoHybridNodes) {}
 
   DeltaVisitMode mode;
   DeltaVisitOrder order;
   bool outputIdPaths;
+  bool recurseIntoHybridNodes;
 };
 
 namespace dv_detail {
@@ -243,7 +248,10 @@ void visitAddedOrRemovedNode(
         traverser,
         target,
         RecurseVisitOptions(
-            RecurseVisitMode::FULL, subtreeVisitOrder, options.outputIdPaths),
+            RecurseVisitMode::FULL,
+            subtreeVisitOrder,
+            options.outputIdPaths,
+            options.recurseIntoHybridNodes),
         std::move(processChange));
   }
 
