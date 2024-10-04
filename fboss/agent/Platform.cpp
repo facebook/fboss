@@ -107,6 +107,7 @@ void Platform::init(
     throw FbossError("No SwitchInfo found for switchIndex", switchIndex);
   };
 
+  std::optional<HwAsic::FabricNodeRole> fabricNodeRole;
   if (switchSettings.switchIdToSwitchInfo()->size()) {
     auto switchInfo = getSwitchInfo(switchIndex);
     switchId = std::optional<int64_t>(switchInfo.first);
@@ -118,6 +119,8 @@ void Platform::init(
           dsfNodeConfig->second.systemPortRange().has_value()) {
         systemPortRange = *dsfNodeConfig->second.systemPortRange();
       }
+    } else if (switchType == cfg::SwitchType::FABRIC) {
+      fabricNodeRole = HwAsic::FabricNodeRole::SINGLE_STAGE_L1;
     }
     if (switchInfo.second.switchMac()) {
       macStr = *switchInfo.second.switchMac();
@@ -139,7 +142,7 @@ void Platform::init(
       switchIndex,
       systemPortRange,
       localMac_,
-      std::nullopt);
+      fabricNodeRole);
   initImpl(hwFeaturesDesired);
   // We should always initPorts() here instead of leaving the hw/ to call
   initPorts();
