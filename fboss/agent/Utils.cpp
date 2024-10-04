@@ -1028,4 +1028,21 @@ CpuCosQueueId hwQueueIdToCpuCosQueueId(uint8_t hwQueueId) {
       break;
   }
 }
+
+int numFabricLevels(const std::map<int64_t, cfg::DsfNode>& dsfNodes) {
+  int maxFabricLevel{0};
+  std::for_each(
+      dsfNodes.begin(),
+      dsfNodes.end(),
+      [&maxFabricLevel](const auto& idAndDsfNode) {
+        const auto& dsfNode = idAndDsfNode.second;
+        int nodeFabricLevel = dsfNode.fabricLevel().value_or(0);
+        if (nodeFabricLevel == 0 &&
+            dsfNode.type() == cfg::DsfNodeType::FABRIC_NODE) {
+          nodeFabricLevel = 1;
+        }
+        maxFabricLevel = std::max(maxFabricLevel, nodeFabricLevel);
+      });
+  return maxFabricLevel;
+}
 } // namespace facebook::fboss
