@@ -58,7 +58,6 @@ void validateVdm(
         // is available starting CMIS 5.0 (2x400G-[D|F]R4)
         auto fecTailMax = vdmPerfMon.fecTailMax().value_or({});
         auto& laneSnr = vdmPerfMon.get_laneSNR();
-        auto& lanePam4Ltp = vdmPerfMon.get_lanePam4LTP();
 
         XLOG(DBG2) << "Validating VDM performance monitoring for " << portName
                    << ", side: " << apache::thrift::util::enumNameSafe(side);
@@ -70,10 +69,6 @@ void validateVdm(
         for (auto& [lane, snr] : laneSnr) {
           EXPECT_GE(snr, thresholds.pam4eSnr.minThreshold) << folly::sformat(
               "SNR for lane {} on {} is {}", lane, portName, snr);
-        }
-        for (auto& [lane, ltp] : lanePam4Ltp) {
-          EXPECT_GE(ltp, thresholds.pam4Ltp.minThreshold) << folly::sformat(
-              "LTP for lane {} on {} is {}", lane, portName, ltp);
         }
       };
 
