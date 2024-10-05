@@ -1371,14 +1371,24 @@ TEST_F(AgentVoqSwitchTest, packetIntegrityError) {
       auto switchStats = getSw()->getHwSwitchStatsExpensive()[switchIndex];
       auto pktIntegrityDrops =
           switchStats.switchDropStats()->packetIntegrityDrops().value_or(0);
-      XLOG(INFO) << " Packet integrity drops: " << pktIntegrityDrops;
+      auto corruptedCellPacketIntegrityDrops =
+          switchStats.switchDropStats()
+              ->corruptedCellPacketIntegrityDrops()
+              .value_or(0);
+      XLOG(INFO) << " Packet integrity drops: " << pktIntegrityDrops
+                 << " Corrupted cell integrity drops: "
+                 << corruptedCellPacketIntegrityDrops;
       EXPECT_EVENTUALLY_GT(pktIntegrityDrops, 0);
+      // TODO: corruptedCellPacketIntegrityDrops should increment here.
+      // But its not, uncomment the check below once we get
+      // CS00012336139 resolved
+      // EXPECT_EVENTUALLY_GT(corruptedCellPacketIntegrityDrops, 0);
     });
     // Assert that packet Integrity drops don't continuously increment.
     // Packet integrity drop counter is clear on read from HW. So we
     // accumulate its value in memory. If HW/SDK ever changed this to
     // not be clear on read, but cumulative, then our approach would
-    // yeild constantly increasing values. Assert against that.
+    // yield constantly increasing values. Assert against that.
     checkNoStatsChange(30);
   };
   verifyAcrossWarmBoots(setup, verify);
