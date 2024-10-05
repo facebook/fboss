@@ -37,29 +37,30 @@ std::string getSlotPath(
   }
 }
 
-// Read an arbitrary version string from the file at given path, then attempt to
-// parse as an X.Y(.Z) version number where each part is a valid 3-digit decimal
-// integer.
+// Return the first path passing file existence, or std::nullopt if neither
+// exists. Conceptually (p1 || p2) where "truthiness" is file existence.
+std::optional<std::filesystem::path> pathExistsOr(
+    const std::filesystem::path& p1,
+    const std::filesystem::path& p2,
+    const facebook::fboss::platform::PlatformFsUtils* platformFsUtils) {
+  if (platformFsUtils->exists(p1)) {
+    return p1;
+  }
+  if (platformFsUtils->exists(p2)) {
+    return p2;
+  }
+  return std::nullopt;
+}
+
+// Read an arbitrary version string from the file at given path.
 //
 // The file is expected to only contain the version string itself. If we fail to
 // read a non-empty version string, or if the string contains whitespace or
-// control characters, the string returned corresponds to an error. Otherwise,
-// the version string is considered valid and returned, even if it cannot be
-// parsed numerically.
+// control characters, the string returned corresponds to an error.
 //
-// The returned integer is encoded as:
-//   X * 1,000,000 + Y * 1000 + Z
-// If the version string only has 2 parts (X.Y) then Z=0.
-// If the version string cannot be parsed into 3-digit decimal values in X.Y(.Z)
-// format, then 0 is returned.
-//
-// Examples of integer values:
-//   1. "1.2.3", return 1,002,003
-//   2. "4.5", return 4,005,000
-//   3. "12345.6789", return 0 (integers exceed 3 digits)
-//   4. "foobar", return 0
-//   5. "foo.bar", return 0
-std::pair<std::string, int> readVersionString(
+// The version string is NOT parsed into integers, however, we will attempt to
+// verify it matches XXX.YYY(.ZZZ) format and emit a WARN log if it does not.
+std::string readVersionString(
     const std::string& path,
     const facebook::fboss::platform::PlatformFsUtils* platformFsUtils) {
   static const re2::RE2 kFwVerXYPattern =
@@ -73,12 +74,12 @@ std::pair<std::string, int> readVersionString(
         "Failed to open firmware version file {}: {}",
         path,
         folly::errnoStr(errno));
-    return {fmt::format("ERROR_FILE_{}", errno), 0};
+    return fmt::format("ERROR_FILE_{}", errno);
   }
   const auto versionString = versionFileContent.value();
   if (versionString.empty()) {
     XLOGF(ERR, "Empty firmware version file {}", path);
-    return {"ERROR_EMPTY_FILE", 0};
+    return "ERROR_EMPTY_FILE";
   }
   if (folly::hasSpaceOrCntrlSymbols(versionString)) {
     XLOGF(
@@ -86,7 +87,7 @@ std::pair<std::string, int> readVersionString(
         "Firmware version string \"{}\" from file {} contains whitespace or control characters.",
         versionString,
         path);
-    return {"ERROR_INVALID_STRING", 0};
+    return "ERROR_INVALID_STRING";
   }
   // These names are for ease of reference. Neither semver nor any other
   // interpretation is enforced in fw_ver.
@@ -102,11 +103,8 @@ std::pair<std::string, int> readVersionString(
         "Firmware version string {} from file {} does not match XXX.YYY.ZZZ format. This may be OK if it's an expected checksum.",
         versionString,
         path);
-    return {versionString, 0};
   }
-  CHECK(major < 1000 && minor < 1000 && patch < 1000);
-  int odsValue = major * 1'000'000 + minor * 1000 + patch;
-  return {versionString, odsValue};
+  return versionString;
 }
 
 // Read a singular version number from the file at given path. If there is any
@@ -698,8 +696,7 @@ void PlatformExplorer::publishFirmwareVersions() {
     CHECK(!linkPathParts.empty());
     const auto deviceName = linkPathParts.back();
     std::string versionString;
-    int odsValue = 0;
-    std::string verDirPath = linkPath;
+    std::string linkPathHwmon = linkPath;
     // Check for and handle hwmon case. e.g.
     // /run/devmap/cplds/FAN0_CPLD/hwmon/hwmon20/
     auto hwmonSubdirPath = std::filesystem::path(linkPath) / "hwmon";
@@ -707,37 +704,44 @@ void PlatformExplorer::publishFirmwareVersions() {
       for (const auto& entry : platformFsUtils_->ls(hwmonSubdirPath)) {
         if (entry.is_directory() &&
             entry.path().filename().string().starts_with("hwmon")) {
-          verDirPath = hwmonSubdirPath / entry.path().filename();
+          linkPathHwmon = hwmonSubdirPath / entry.path().filename();
           break;
         }
       }
     }
-    // New-style fw_ver
-    auto fwVerFilePath = std::filesystem::path(verDirPath) / "fw_ver";
-    if (platformFsUtils_->exists(fwVerFilePath)) {
-      auto version = readVersionString(fwVerFilePath, platformFsUtils_.get());
-      versionString = version.first;
-      odsValue = version.second;
-    } else {
-      const auto version = readVersionNumber(
-          fmt::format("{}/{}_ver", verDirPath, deviceType),
-          platformFsUtils_.get());
-      const auto subversion = readVersionNumber(
-          fmt::format("{}/{}_sub_ver", verDirPath, deviceType),
-          platformFsUtils_.get());
+    std::optional<std::filesystem::path> fwVerFilePath = pathExistsOr(
+        std::filesystem::path(linkPath) / "fw_ver",
+        std::filesystem::path(linkPathHwmon) / "fw_ver",
+        platformFsUtils_.get());
+    std::optional<std::filesystem::path> verFilePath = pathExistsOr(
+        std::filesystem::path(linkPath) / fmt::format("{}_ver", deviceType),
+        std::filesystem::path(linkPathHwmon) /
+            fmt::format("{}_ver", deviceType),
+        platformFsUtils_.get());
+    std::optional<std::filesystem::path> subVerFilePath = pathExistsOr(
+        std::filesystem::path(linkPath) / fmt::format("{}_sub_ver", deviceType),
+        std::filesystem::path(linkPathHwmon) /
+            fmt::format("{}_sub_ver", deviceType),
+        platformFsUtils_.get());
+    if (fwVerFilePath.has_value()) {
+      versionString =
+          readVersionString(fwVerFilePath.value(), platformFsUtils_.get());
+    } else if (verFilePath.has_value() || subVerFilePath.has_value()) {
+      const int version =
+          readVersionNumber(verFilePath.value(), platformFsUtils_.get());
+      const int subversion =
+          readVersionNumber(subVerFilePath.value(), platformFsUtils_.get());
 
       versionString = fmt::format("{}.{}", version, subversion);
-      odsValue = version * 1000 + subversion;
+    } else {
+      versionString = "ERROR_FILE_NOT_FOUND";
     }
 
     XLOGF(
         INFO,
-        "Reporting firmware version for {} - version string:{} ODS value:{}",
+        "Reporting firmware version for {} - version string:{}",
         deviceName,
-        versionString,
-        odsValue);
-    fb303::fbData->setCounter(
-        fmt::format(kFirmwareVersion, deviceName), odsValue);
+        versionString);
     fb303::fbData->setCounter(
         fmt::format(kGroupedFirmwareVersion, deviceName, versionString), 1);
   }
