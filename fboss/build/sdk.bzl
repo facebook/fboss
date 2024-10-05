@@ -209,6 +209,12 @@ ALL_SDKS = [
         stage = SdkStage.DEV,
         version = "11.0_ea_odp",
     ),
+    SaiBrcmSdk(
+        native_bcm_sdk_version = "6.5.30",
+        sai_version = "1.14.0",
+        stage = SdkStage.DEV,
+        version = "11.3.0.0_odp",
+    ),
     # Brcm sai sim
     SaiBrcmSimSdk(
         sai_version = "1.11.0",
