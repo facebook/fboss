@@ -1896,8 +1896,9 @@ void SaiPortManager::updateStats(
       std::optional<SaiPortTraits::Attributes::CablePropogationDelayNS> attrT =
           SaiPortTraits::Attributes::CablePropogationDelayNS{};
 
+      std::optional<uint32_t> cablePropogationDelayNS;
       try {
-        curPortStats.cableLengthMeters() =
+        cablePropogationDelayNS =
             *SaiApiTable::getInstance()->portApi().getAttribute(
                 handle->port->adapterKey(), attrT);
       } catch (const SaiApiError& e) {
@@ -1907,14 +1908,20 @@ void SaiPortManager::updateStats(
         if (e.getSaiStatus() != SAI_STATUS_INVALID_PORT_NUMBER) {
           throw;
         }
-        curPortStats.cableLengthMeters() = std::numeric_limits<uint32_t>::max();
+        cablePropogationDelayNS = std::numeric_limits<uint32_t>::max();
       }
-      if (curPortStats.cableLengthMeters().has_value() &&
-          curPortStats.cableLengthMeters() !=
-              std::numeric_limits<uint32_t>::max()) {
+      if (cablePropogationDelayNS.has_value() &&
+          *cablePropogationDelayNS != std::numeric_limits<uint32_t>::max()) {
         // In fiber it takes about 5ns for light to travel 1 meter
         curPortStats.cableLengthMeters() =
-            std::ceil(*curPortStats.cableLengthMeters() / 5.0);
+            std::ceil(*cablePropogationDelayNS / 5.0);
+      } else if (cablePropogationDelayNS.has_value()) {
+        // Assign null or int_max value to cable length.
+        // In case of invalid port (FE13->FAP facing ports)
+        // we will set cableLengthMeters to int_max.  So then
+        // next time around, we don't need to collect this
+        // expensive stat.
+        curPortStats.cableLengthMeters() = *cablePropogationDelayNS;
       }
     }
   }
