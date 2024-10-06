@@ -121,6 +121,20 @@ void Platform::init(
       }
     } else if (switchType == cfg::SwitchType::FABRIC) {
       fabricNodeRole = HwAsic::FabricNodeRole::SINGLE_STAGE_L1;
+      const auto& dsfNodesConfig = *config_->thrift.sw()->dsfNodes();
+      const auto& dsfNodeConfig = dsfNodesConfig.find(*switchId);
+      if (dsfNodeConfig != dsfNodesConfig.end() &&
+          dsfNodeConfig->second.fabricLevel().has_value()) {
+        auto fabricLevel = *dsfNodeConfig->second.fabricLevel();
+        if (fabricLevel == 2) {
+          fabricNodeRole = HwAsic::FabricNodeRole::DUAL_STAGE_L2;
+        } else if (numFabricLevels(*config_->thrift.sw()->dsfNodes()) == 2) {
+          // fabric level can only be 1 or 2
+          CHECK_EQ(fabricLevel, 1);
+          // Dual stage, node fabric level == 1
+          fabricNodeRole = HwAsic::FabricNodeRole::DUAL_STAGE_L1;
+        }
+      }
     }
     if (switchInfo.second.switchMac()) {
       macStr = *switchInfo.second.switchMac();
