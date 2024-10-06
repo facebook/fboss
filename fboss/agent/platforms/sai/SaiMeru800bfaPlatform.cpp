@@ -41,10 +41,16 @@ void SaiMeru800bfaPlatform::setupAsic(
     int16_t switchIndex,
     std::optional<cfg::Range64> systemPortRange,
     folly::MacAddress& mac,
-    std::optional<HwAsic::FabricNodeRole> /*fabricNodeRole*/) {
-  // TODO pass fabricNodeRole to Ramon3Asic
+    std::optional<HwAsic::FabricNodeRole> fabricNodeRole) {
+  CHECK(fabricNodeRole.has_value());
   asic_ = std::make_unique<Ramon3Asic>(
-      switchType, switchId, switchIndex, systemPortRange, mac);
+      switchType,
+      switchId,
+      switchIndex,
+      systemPortRange,
+      mac,
+      std::nullopt,
+      *fabricNodeRole);
 }
 
 HwAsic* SaiMeru800bfaPlatform::getAsic() const {
