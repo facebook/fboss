@@ -212,7 +212,9 @@ void HwPortFb303Stats::updateStats(
         *curPortStats.fabricLinkDownDroppedCells_());
   }
   // Set fb303 counter stats
-  if (curPortStats.cableLengthMeters().has_value()) {
+  if (curPortStats.cableLengthMeters().has_value() &&
+      curPortStats.cableLengthMeters() !=
+          std::numeric_limits<uint32_t>::max()) {
     fb303::fbData->setCounter(
         statName(kCableLengthMeters(), portName()),
         *curPortStats.cableLengthMeters());
