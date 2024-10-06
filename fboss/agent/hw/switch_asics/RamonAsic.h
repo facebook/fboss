@@ -14,7 +14,8 @@ class RamonAsic : public BroadcomAsic {
       int16_t index,
       std::optional<cfg::Range64> systemPortRange,
       const folly::MacAddress& mac,
-      std::optional<cfg::SdkVersion> sdkVersion = std::nullopt)
+      std::optional<cfg::SdkVersion> sdkVersion = std::nullopt,
+      FabricNodeRole fabricNodeRole = FabricNodeRole::SINGLE_STAGE_L1)
       : BroadcomAsic(
             type,
             id,
@@ -22,7 +23,8 @@ class RamonAsic : public BroadcomAsic {
             systemPortRange,
             mac,
             sdkVersion,
-            {cfg::SwitchType::FABRIC}) {}
+            {cfg::SwitchType::FABRIC}),
+        fabricNodeRole_(fabricNodeRole) {}
   bool isSupported(Feature feature) const override;
   const std::map<cfg::PortType, cfg::PortLoopbackMode>& desiredLoopbackModes()
       const override;
@@ -77,5 +79,11 @@ class RamonAsic : public BroadcomAsic {
   uint32_t getMaxHashSeedLength() const override {
     return 16;
   }
+  FabricNodeRole getFabricNodeRole() const override {
+    return fabricNodeRole_;
+  }
+
+ private:
+  FabricNodeRole fabricNodeRole_;
 };
 } // namespace facebook::fboss
