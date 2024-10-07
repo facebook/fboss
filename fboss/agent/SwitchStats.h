@@ -293,6 +293,14 @@ class SwitchStats : public boost::noncopyable {
     packetRxHeartbeatDelay_.addValue(delay);
   }
 
+  void dsfSubReconnectThreadHeartbeatDelay(int delay) {
+    dsfSubReconnectThreadHeartbeatDelay_.addValue(delay);
+  }
+
+  void dsfSubStreamThreadHeartbeatDelay(int delay) {
+    dsfSubStreamThreadHeartbeatDelay_.addValue(delay);
+  }
+
   void bgEventBacklog(int value) {
     bgEventBacklog_.addValue(value);
   }
@@ -311,6 +319,14 @@ class SwitchStats : public boost::noncopyable {
 
   void neighborCacheEventBacklog(int value) {
     neighborCacheEventBacklog_.addValue(value);
+  }
+
+  void dsfSubReconnectThreadEventBacklog(int value) {
+    dsfSubReconnectThreadEventBacklog_.addValue(value);
+  }
+
+  void dsfSubStreamThreadEventBacklog(int value) {
+    dsfSubStreamThreadEventBacklog_.addValue(value);
   }
 
   void maxNumOfPhysicalHostsPerQueue(int value) {
@@ -866,6 +882,14 @@ class SwitchStats : public boost::noncopyable {
    * Arp Cache thread heartbeat delay in milliseconds
    */
   TLHistogram neighborCacheHeartbeatDelay_;
+  /**
+   * DSF Subscriber Reconnect thread heartbeat delay in milliseconds
+   */
+  TLHistogram dsfSubReconnectThreadHeartbeatDelay_;
+  /**
+   * DSF Subscriber Stream thread heartbeat delay in milliseconds
+   */
+  TLHistogram dsfSubStreamThreadHeartbeatDelay_;
 
   /**
    * Number of events queued in background thread
@@ -886,6 +910,14 @@ class SwitchStats : public boost::noncopyable {
    * Number of events queued in fboss Arp Cache thread
    */
   TLHistogram neighborCacheEventBacklog_;
+  /**
+   * Number of events queued in DSF Subscriber Reconnect thread
+   */
+  TLHistogram dsfSubReconnectThreadEventBacklog_;
+  /**
+   * Number of events queued in DSF Subscriber stream serve thread
+   */
+  TLHistogram dsfSubStreamThreadEventBacklog_;
 
   /*
    * Maximum number of physical hosts assigned to a port egress queue

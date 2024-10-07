@@ -1292,6 +1292,8 @@ class SwSwitch : public HwSwitchCallback {
   folly::Synchronized<std::unique_ptr<FsdbSyncer>> fsdbSyncer_;
   std::unique_ptr<TeFlowNexthopHandler> teFlowNextHopHandler_;
   std::unique_ptr<DsfSubscriber> dsfSubscriber_;
+  std::shared_ptr<ThreadHeartbeat> dsfSubscriberReconnectThreadHeartbeat_;
+  std::shared_ptr<ThreadHeartbeat> dsfSubscriberStreamThreadHeartbeat_;
   SwitchInfoTable switchInfoTable_;
   std::unique_ptr<PlatformMapping> platformMapping_;
   std::unique_ptr<HwAsicTable> hwAsicTable_;

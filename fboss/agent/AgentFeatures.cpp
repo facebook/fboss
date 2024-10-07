@@ -43,6 +43,14 @@ DEFINE_bool(
     dsf_subscribe_patch,
     false,
     "Subscribe to remote FSDB using Patch apis");
+DEFINE_int32(
+    dsf_subscriber_reconnect_thread_heartbeat_ms,
+    1000,
+    "DSF subscriber reconnect thread heartbeat interval in msec");
+DEFINE_int32(
+    dsf_subscriber_stream_thread_heartbeat_ms,
+    1000,
+    "DSF subscriber stream thread heartbeat interval in msec");
 // Remote neighbor entries are always flushed to avoid blackholing the traffic.
 // However, by default, remote{systemPorts, Rifs} are not flushed but marked
 // STALE in the software. This is to avoid hardware programmign churn.

@@ -29,6 +29,14 @@ class DsfSubscriber : public StateObserver {
 
   void stop();
 
+  folly::EventBase* getReconnectThreadEvb() {
+    return streamConnectPool_->getEventBase();
+  }
+
+  folly::EventBase* getStreamThreadEvb() {
+    return streamServePool_->getEventBase();
+  }
+
   // Used in tests for asserting on modifications
   // made by DsfSubscriber
   const std::shared_ptr<SwitchState> cachedState() const {
