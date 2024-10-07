@@ -82,6 +82,14 @@
         "compute": "@/1000.0",
         "type": 3
       },
+      "NVME_COMPOSITE_TEMP": {
+        "path": "/run/devmap/sensors/NVME_TEMP/temp1_input",
+        "thresholds": {
+          "upperCriticalVal": 80.0
+        },
+        "compute": "@/1000.0",
+        "type": 3
+      },
       "SCM_ECB_VIN": {
         "path": "/run/devmap/sensors/CPU_MPS_PMBUS/in1_input",
         "thresholds": {
@@ -104,150 +112,6 @@
         "path": "/run/devmap/sensors/CPU_MPS_PMBUS/curr1_input",
         "compute": "@/1000.0",
         "type": 2
-      },
-      "SCM_VRM1_VIN": {
-        "path": "/run/devmap/sensors/CPU_PXM1310_1/in1_input",
-        "thresholds": {
-          "upperCriticalVal": 14.4,
-          "lowerCriticalVal": 9.6
-        },
-        "compute": "@/1000.0",
-        "type": 1
-      },
-      "SCM_VRM1_VOUT_VCCIN": {
-        "path": "/run/devmap/sensors/CPU_PXM1310_1/in3_input",
-        "thresholds": {
-          "upperCriticalVal": 2.16,
-          "lowerCriticalVal": 1.44
-        },
-        "compute": "@/1000.0",
-        "type": 1
-      },
-      "SCM_VRM1_VOUT_1V8_CPU": {
-        "path": "/run/devmap/sensors/CPU_PXM1310_1/in4_input",
-        "thresholds": {
-          "upperCriticalVal": 2.16,
-          "lowerCriticalVal": 1.44
-        },
-        "compute": "@/1000.0",
-        "type": 1
-      },
-      "SCM_VRM1_TEMP1": {
-        "path": "/run/devmap/sensors/CPU_PXM1310_1/temp1_input",
-        "thresholds": {
-          "upperCriticalVal": 110.0,
-          "maxAlarmVal": 105.0
-        },
-        "compute": "@/1000.0",
-        "type": 3
-      },
-      "SCM_VRM1_TEMP2": {
-        "path": "/run/devmap/sensors/CPU_PXM1310_1/temp2_input",
-        "thresholds": {
-          "upperCriticalVal": 110.0,
-          "maxAlarmVal": 105.0
-        },
-        "compute": "@/1000.0",
-        "type": 3
-      },
-      "SCM_VRM2_VIN": {
-        "path": "/run/devmap/sensors/CPU_PXE1211/in1_input",
-        "thresholds": {
-          "upperCriticalVal": 14.4,
-          "lowerCriticalVal": 9.6
-        },
-        "compute": "@/1000.0",
-        "type": 1
-      },
-      "SCM_VRM2_VOUT_1V2_VDDQ": {
-        "path": "/run/devmap/sensors/CPU_PXE1211/in4_input",
-        "thresholds": {
-          "upperCriticalVal": 1.44,
-          "lowerCriticalVal": 0.96
-        },
-        "compute": "@/1000.0",
-        "type": 1
-      },
-      "SCM_VRM2_VOUT_VNN_NAC": {
-        "path": "/run/devmap/sensors/CPU_PXE1211/in5_input",
-        "thresholds": {
-          "upperCriticalVal": 1.44,
-          "lowerCriticalVal": 0.48
-        },
-        "compute": "@/1000.0",
-        "type": 1
-      },
-      "SCM_VRM2_VOUT_1V0_CPU": {
-        "path": "/run/devmap/sensors/CPU_PXE1211/in6_input",
-        "thresholds": {
-          "upperCriticalVal": 1.2,
-          "lowerCriticalVal": 0.8
-        },
-        "compute": "@/1000.0",
-        "type": 1
-      },
-      "SCM_VRM2_TEMP1": {
-        "path": "/run/devmap/sensors/CPU_PXE1211/temp1_input",
-        "thresholds": {
-          "upperCriticalVal": 110.0,
-          "maxAlarmVal": 105.0
-        },
-        "compute": "@/1000.0",
-        "type": 3
-      },
-      "SCM_VRM2_TEMP2": {
-        "path": "/run/devmap/sensors/CPU_PXE1211/temp2_input",
-        "thresholds": {
-          "upperCriticalVal": 110.0,
-          "maxAlarmVal": 105.0
-        },
-        "compute": "@/1000.0",
-        "type": 3
-      },
-      "SCM_VRM3_VIN": {
-        "path": "/run/devmap/sensors/CPU_PXM1310_2/in1_input",
-        "thresholds": {
-          "upperCriticalVal": 14.4,
-          "lowerCriticalVal": 9.6
-        },
-        "compute": "@/1000.0",
-        "type": 1
-      },
-      "SCM_VRM3_VOUT_1V05_CPU": {
-        "path": "/run/devmap/sensors/CPU_PXM1310_2/in3_input",
-        "thresholds": {
-          "upperCriticalVal": 1.272,
-          "lowerCriticalVal": 0.848
-        },
-        "compute": "@/1000.0",
-        "type": 1
-      },
-      "SCM_VRM3_VOUT_VNN_PCH": {
-        "path": "/run/devmap/sensors/CPU_PXM1310_2/in4_input",
-        "thresholds": {
-          "upperCriticalVal": 1.44,
-          "lowerCriticalVal": 0.48
-        },
-        "compute": "@/1000.0",
-        "type": 1
-      },
-      "SCM_VRM3_TEMP1": {
-        "path": "/run/devmap/sensors/CPU_PXM1310_2/temp1_input",
-        "thresholds": {
-          "upperCriticalVal": 110.0,
-          "maxAlarmVal": 105.0
-        },
-        "compute": "@/1000.0",
-        "type": 3
-      },
-      "SCM_VRM3_TEMP2": {
-        "path": "/run/devmap/sensors/CPU_PXM1310_2/temp2_input",
-        "thresholds": {
-          "upperCriticalVal": 110.0,
-          "maxAlarmVal": 105.0
-        },
-        "compute": "@/1000.0",
-        "type": 3
       }
     },
     "SMB": {
