@@ -12,23 +12,62 @@ cpp_unittest(
 )
 
 cpp_unittest(
-    name = "visitor_tests",
+    name = "delta_visitor_tests",
     srcs = [
         "DeltaVisitorTests.cpp",
-        "NameToPathVisitorTests.cpp",
-        "PathVisitorTests.cpp",
-        "ThriftLeafVisitorTests.cpp",
     ],
     deps = [
         "fbsource//third-party/googletest:gmock",
-        "//fboss/fsdb/tests:thriftpath_test_thrift-cpp2-thriftpath",
         "//fboss/fsdb/tests:thriftpath_test_thrift-cpp2-types",
         "//fboss/thrift_visitors:visitors",
-        "//folly:demangle",
+        "//folly:string",
+        "//folly/json:dynamic",
+        "//folly/logging:logging",
+        "//thrift/lib/cpp2/folly_dynamic:folly_dynamic",
+    ],
+)
+
+cpp_unittest(
+    name = "path_visitor_tests",
+    srcs = [
+        "PathVisitorTests.cpp",
+    ],
+    deps = [
+        "//fboss/fsdb/tests:thriftpath_test_thrift-cpp2-types",
+        "//fboss/thrift_visitors:visitors",
         "//folly:string",
         "//folly/json:dynamic",
         "//folly/logging:logging",
         "//thrift/lib/cpp2/folly_dynamic:folly_dynamic",
         "//thrift/lib/cpp2/protocol:protocol",
+    ],
+)
+
+cpp_unittest(
+    name = "name_to_path_visitor_tests",
+    srcs = [
+        "NameToPathVisitorTests.cpp",
+    ],
+    deps = [
+        "//fboss/fsdb/tests:thriftpath_test_thrift-cpp2-thriftpath",
+        "//fboss/fsdb/tests:thriftpath_test_thrift-cpp2-types",
+        "//fboss/thrift_visitors:visitors",
+        "//folly:demangle",
+        "//folly:string",
+        "//folly/logging:logging",
+    ],
+)
+
+cpp_unittest(
+    name = "thrift_leaf_visitor_tests",
+    srcs = [
+        "ThriftLeafVisitorTests.cpp",
+    ],
+    deps = [
+        "//fboss/fsdb/tests:thriftpath_test_thrift-cpp2-types",
+        "//fboss/thrift_visitors:visitors",
+        "//folly/json:dynamic",
+        "//folly/logging:logging",
+        "//thrift/lib/cpp2/folly_dynamic:folly_dynamic",
     ],
 )
