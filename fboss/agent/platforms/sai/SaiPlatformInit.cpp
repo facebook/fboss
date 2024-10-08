@@ -50,7 +50,9 @@ std::unique_ptr<SaiPlatform> chooseSaiPlatform(
     auto type = productInfo->getType();
     return std::make_unique<SaiBcmWedge400Platform>(
         std::move(productInfo), type, localMac, platformMappingStr);
-  } else if (productInfo->getType() == PlatformType::PLATFORM_DARWIN) {
+  } else if (
+      productInfo->getType() == PlatformType::PLATFORM_DARWIN ||
+      productInfo->getType() == PlatformType::PLATFORM_DARWIN48V) {
     return std::make_unique<SaiBcmDarwinPlatform>(
         std::move(productInfo), localMac, platformMappingStr);
   } else if (productInfo->getType() == PlatformType::PLATFORM_MINIPACK) {

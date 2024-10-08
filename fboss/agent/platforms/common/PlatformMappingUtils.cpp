@@ -119,6 +119,7 @@ std::unique_ptr<PlatformMapping> initPlatformMapping(PlatformType type) {
           ? std::make_unique<CloudRipperPlatformMapping>()
           : std::make_unique<CloudRipperPlatformMapping>(platformMappingStr);
     case PlatformType::PLATFORM_DARWIN:
+    case PlatformType::PLATFORM_DARWIN48V:
       return platformMappingStr.empty()
           ? std::make_unique<DarwinPlatformMapping>()
           : std::make_unique<DarwinPlatformMapping>(platformMappingStr);
