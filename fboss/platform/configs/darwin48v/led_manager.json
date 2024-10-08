@@ -46,6 +46,11 @@
       "presenceSysfsPath": "/run/devmap/sensors/FAN_CPLD/fan5_present"
     },
     {
+      "fruName": "FAN6",
+      "fruType": "FAN",
+      "presenceSysfsPath": "/run/devmap/fpgas/SCD_FPGA/rackmon_present"
+    },
+    {
       "fruName": "PSU1",
       "fruType": "PSU",
       "presenceSysfsPath": "/run/devmap/fpgas/SCD_FPGA/pem_present"
