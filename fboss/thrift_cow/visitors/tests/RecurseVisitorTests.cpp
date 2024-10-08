@@ -39,7 +39,8 @@ folly::dynamic createTestDynamic() {
       "mapB", dynamic::object())("cowMap", dynamic::object())(
       "hybridMap", dynamic::object())("hybridList", dynamic::array())(
       "hybridSet", dynamic::array())("hybridUnion", dynamic::object())(
-      "hybridStruct", dynamic::object("childMap", dynamic::object()));
+      "hybridStruct", dynamic::object("childMap", dynamic::object()))(
+      "hybridMapOfI32ToStruct", dynamic::object());
 }
 
 TestStruct createTestStruct(folly::dynamic testDyn) {
@@ -67,6 +68,7 @@ TEST(RecurseVisitorTests, TestFullRecurse) {
       {{}, testDyn},
       {{"cowMap"}, dynamic::object()},
       {{"hybridMap"}, dynamic::object()},
+      {{"hybridMapOfI32ToStruct"}, dynamic::object()},
       {{"hybridList"}, dynamic::array()},
       {{"hybridSet"}, dynamic::array()},
       {{"hybridUnion"}, dynamic::object()},

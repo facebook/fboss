@@ -67,6 +67,7 @@ struct TestStruct {
   29: set<i32> hybridSet; // (allow_skip_thrift_cow = true);
   30: TestUnion hybridUnion; // (allow_skip_thrift_cow = true);
   31: ChildStruct hybridStruct; // (allow_skip_thrift_cow = true);
+  32: map<i32, switch_config.L4PortRange> hybridMapOfI32ToStruct; // (allow_skip_thrift_cow = true)
 } // (allow_skip_thrift_cow = true)
 
 struct ParentTestStruct {
