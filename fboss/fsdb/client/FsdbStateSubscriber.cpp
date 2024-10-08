@@ -45,8 +45,8 @@ FsdbStateSubscriberImpl<SubUnit, PathElement>::serveStream(StreamT&& stream) {
       XLOG(DBG2) << " Detected cancellation: " << this->clientId();
       break;
     }
-    // even empty change/heartbeat indicates subscription is connected
-    if (this->getSubscriptionState() != SubscriptionState::CONNECTED) {
+    if (!this->subscriptionOptions().requireInitialSyncToMarkConnect_ &&
+        this->getSubscriptionState() != SubscriptionState::CONNECTED) {
       BaseT::updateSubscriptionState(SubscriptionState::CONNECTED);
     }
     if constexpr (std::is_same_v<SubUnitT, OperState>) {
@@ -57,6 +57,10 @@ FsdbStateSubscriberImpl<SubUnit, PathElement>::serveStream(StreamT&& stream) {
       if (!state->changes()->size()) {
         continue;
       }
+    }
+    if (this->subscriptionOptions().requireInitialSyncToMarkConnect_ &&
+        this->getSubscriptionState() != SubscriptionState::CONNECTED) {
+      BaseT::updateSubscriptionState(SubscriptionState::CONNECTED);
     }
     SubUnitT tmp(*state);
     this->operSubUnitUpdate_(std::move(tmp));

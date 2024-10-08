@@ -83,14 +83,18 @@ struct SubscriptionOptions {
   explicit SubscriptionOptions(
       const std::string& clientId,
       bool subscribeStats = false,
-      uint32_t grHoldTimeSec = 0)
+      uint32_t grHoldTimeSec = 0,
+      // only mark subscription as CONNECTED on initial sync
+      bool requireInitialSyncToMarkConnect = false)
       : clientId_(clientId),
         subscribeStats_(subscribeStats),
-        grHoldTimeSec_(grHoldTimeSec) {}
+        grHoldTimeSec_(grHoldTimeSec),
+        requireInitialSyncToMarkConnect_(requireInitialSyncToMarkConnect) {}
 
   const std::string clientId_;
   bool subscribeStats_{false};
   uint32_t grHoldTimeSec_{0};
+  bool requireInitialSyncToMarkConnect_{false};
 };
 
 struct SubscriptionInfo {
@@ -281,6 +285,10 @@ class FsdbSubscriber : public FsdbSubscriberBase {
 
   const Paths& subscribePaths() const {
     return subscribePaths_;
+  }
+
+  const SubscriptionOptions& subscriptionOptions() const {
+    return subscriptionOptions_;
   }
 
   FsdbSubUnitUpdateCb operSubUnitUpdate_;
