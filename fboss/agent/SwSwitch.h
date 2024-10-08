@@ -42,7 +42,7 @@
 #include <optional>
 
 #if FOLLY_HAS_COROUTINES
-#include <folly/experimental/coro/BoundedQueue.h>
+#include <folly/coro/BoundedQueue.h>
 #endif
 
 #include <atomic>
