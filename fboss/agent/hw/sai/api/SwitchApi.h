@@ -552,6 +552,13 @@ struct SaiSwitchTraits {
         std::vector<sai_uint32_t>,
         AttributeReachabilityGroupList,
         SaiU32ListDefault>;
+    struct AttributeFabricLinkLayerFlowControlThreshold {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    using FabricLinkLayerFlowControlThreshold = SaiExtensionAttribute<
+        std::vector<sai_uint32_t>,
+        AttributeFabricLinkLayerFlowControlThreshold,
+        SaiU32ListDefault>;
   };
   using AdapterKey = SwitchSaiId;
   using AdapterHostKey = std::monostate;

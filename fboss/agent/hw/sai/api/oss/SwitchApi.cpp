@@ -157,4 +157,9 @@ std::optional<sai_attr_id_t>
 SaiSwitchTraits::Attributes::AttributeReachabilityGroupList::operator()() {
   return std::nullopt;
 }
+
+std::optional<sai_attr_id_t> SaiSwitchTraits::Attributes::
+    AttributeFabricLinkLayerFlowControlThreshold::operator()() {
+  return std::nullopt;
+}
 } // namespace facebook::fboss

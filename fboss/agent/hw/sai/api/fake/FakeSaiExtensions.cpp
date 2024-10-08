@@ -256,4 +256,10 @@ std::optional<sai_attr_id_t>
 SaiSwitchTraits::Attributes::AttributeReachabilityGroupList::operator()() {
   return SAI_SWITCH_ATTR_REACHABILITY_GROUP_LIST;
 }
+
+std::optional<sai_attr_id_t> SaiSwitchTraits::Attributes::
+    AttributeFabricLinkLayerFlowControlThreshold::operator()() {
+  return SAI_SWITCH_ATTR_FABRIC_LLFC_THRESHOLD;
+}
+
 } // namespace facebook::fboss

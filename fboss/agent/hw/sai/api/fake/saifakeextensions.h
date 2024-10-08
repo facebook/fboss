@@ -50,6 +50,7 @@ typedef enum _sai_switch_extensions_attr_t {
   SAI_SWITCH_ATTR_VOQ_LATENCY_MIN_LEVEL_2,
   SAI_SWITCH_ATTR_VOQ_LATENCY_MAX_LEVEL_2,
   SAI_SWITCH_ATTR_REACHABILITY_GROUP_LIST,
+  SAI_SWITCH_ATTR_FABRIC_LLFC_THRESHOLD,
 } sai_switch_extensions_attr_t;
 
 typedef enum _sai_tam_event_extensions_attr_t {
