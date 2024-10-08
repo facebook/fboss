@@ -76,6 +76,9 @@ class OpticsFwUpgradeTest : public HwTest {
         tcvrsToTest.push_back(tcvrID);
       }
     }
+
+    CHECK(!tcvrsToTest.empty()) << "No upgradeable transceivers found";
+
     return tcvrsToTest;
   }
 
@@ -267,12 +270,9 @@ TEST_F(OpticsFwUpgradeTest, upgradeOnLinkDown) {
     portsForFwUpgrade = getHwQsfpEnsemble()
                             ->getWedgeManager()
                             ->getPortsRequiringOpticsFwUpgrade();
-    // TODO: T193884846 to make sure all machines have upgradeable transceivers
-    // and remove this check.
-    if (!tcvrsToTest.empty()) {
-      EXPECT_FALSE(portsForFwUpgrade.empty())
-          << "No modules requiring firmware upgrade";
-    }
+
+    EXPECT_FALSE(portsForFwUpgrade.empty())
+        << "No modules requiring firmware upgrade";
   };
 
   // Verify function is called for both cold boot and warm boot iterations of
@@ -345,12 +345,6 @@ TEST_F(OpticsFwUpgradeTestNoIPhySetup, noUpgradeOnWarmboot) {
    */
 
   auto tcvrsToTest = transceiversToTest();
-  // TODO: T193884846 to make sure all machines have upgradeable transceivers
-  // and remove this check.
-  if (tcvrsToTest.empty()) {
-    XLOG(INFO) << "Chassis has no upgradeable transceivers";
-    return;
-  }
 
   // Lambda to refresh state machine and return true if all transceivers are in
   // TRANSCEIVER_PROGRAMMED state
