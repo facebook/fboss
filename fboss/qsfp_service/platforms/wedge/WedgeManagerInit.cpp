@@ -65,7 +65,9 @@ std::unique_ptr<WedgeManager> createWedgeManager() {
     return std::make_unique<GalaxyManager>(mode, platformMappingStr);
   } else if (mode == PlatformType::PLATFORM_YAMP) {
     return createYampWedgeManager(platformMappingStr);
-  } else if (mode == PlatformType::PLATFORM_DARWIN) {
+  } else if (
+      mode == PlatformType::PLATFORM_DARWIN ||
+      mode == PlatformType::PLATFORM_DARWIN48V) {
     return createDarwinWedgeManager(platformMappingStr);
   } else if (mode == PlatformType::PLATFORM_ELBERT) {
     return createElbertWedgeManager(platformMappingStr);
