@@ -587,6 +587,9 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
     delayDropCongThreshold = 1;
   }
 #endif
+  std::optional<
+      SaiSwitchTraits::Attributes::FabricLinkLayerFlowControlThreshold>
+      fabricLLFC;
 
   return {
       initSwitch,
@@ -651,6 +654,7 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
 #endif
       std::nullopt, // ReachabilityGroupList
       delayDropCongThreshold, // Delay Drop Cong Threshold
+      fabricLLFC,
   };
 }
 

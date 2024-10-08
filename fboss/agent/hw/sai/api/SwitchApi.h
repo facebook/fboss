@@ -626,7 +626,8 @@ struct SaiSwitchTraits {
       std::optional<Attributes::ArsProfile>,
 #endif
       std::optional<Attributes::ReachabilityGroupList>,
-      std::optional<Attributes::DelayDropCongThreshold>>;
+      std::optional<Attributes::DelayDropCongThreshold>,
+      std::optional<Attributes::FabricLinkLayerFlowControlThreshold>>;
 
 #if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
   static constexpr std::array<sai_stat_id_t, 3> CounterIdsToRead = {
@@ -758,6 +759,7 @@ SAI_ATTRIBUTE_NAME(Switch, VoqLatencyMaxLevel2Ns);
 SAI_ATTRIBUTE_NAME(Switch, ArsProfile)
 #endif
 SAI_ATTRIBUTE_NAME(Switch, ReachabilityGroupList);
+SAI_ATTRIBUTE_NAME(Switch, FabricLinkLayerFlowControlThreshold);
 
 template <>
 struct SaiObjectHasStats<SaiSwitchTraits> : public std::true_type {};

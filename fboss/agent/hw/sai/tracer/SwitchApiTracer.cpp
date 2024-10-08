@@ -123,6 +123,7 @@ void handleExtensionAttributes() {
   SAI_EXT_ATTR_MAP(Switch, VoqLatencyMaxLevel2Ns);
   SAI_EXT_ATTR_MAP(Switch, ReachabilityGroupList);
   SAI_EXT_ATTR_MAP(Switch, DelayDropCongThreshold);
+  SAI_EXT_ATTR_MAP(Switch, FabricLinkLayerFlowControlThreshold);
 }
 
 } // namespace
