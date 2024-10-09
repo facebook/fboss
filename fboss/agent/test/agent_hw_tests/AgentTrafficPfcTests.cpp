@@ -8,6 +8,7 @@
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/utils/AsicUtils.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
+#include "fboss/agent/test/utils/CoppTestUtils.h"
 #include "fboss/agent/test/utils/PfcTestUtils.h"
 #include "fboss/agent/test/utils/QosTestUtils.h"
 #include "fboss/lib/CommonUtils.h"
@@ -188,6 +189,7 @@ class AgentTrafficPfcTest : public AgentHwTest {
         ensemble.getSw(),
         ensemble.masterLogicalPortIds(),
         true /*interfaceHasSubnet*/);
+    utility::setTTLZeroCpuConfig(ensemble.getL3Asics(), config);
     return config;
   }
 
@@ -367,7 +369,7 @@ class AgentTrafficPfcTest : public AgentHwTest {
         // Apply PFC config to all ports
         portIdsToConfigure = masterLogicalInterfacePortIds();
       }
-      setupPfcBuffers(
+      utility::setupPfcBuffers(
           cfg,
           portIdsToConfigure,
           kLosslessPgIds,
@@ -504,7 +506,8 @@ class AgentTrafficPfcWatchdogTest : public AgentTrafficPfcTest {
  protected:
   void setupConfigAndEcmpTraffic(const std::vector<PortID>& portIds) {
     cfg::SwitchConfig cfg = getAgentEnsemble()->getCurrentConfig();
-    setupPfcBuffers(cfg, portIds, kLosslessPgIds, {}, PfcBufferParams{});
+    utility::setupPfcBuffers(
+        cfg, portIds, kLosslessPgIds, {}, PfcBufferParams{});
     applyNewConfig(cfg);
     setupEcmpTraffic(portIds);
   }
