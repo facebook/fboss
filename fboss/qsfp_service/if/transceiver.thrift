@@ -730,3 +730,9 @@ struct QsfpToBmcSyncData {
   3: SwitchDeploymentInfo switchDeploymentInfo;
   4: map<string, TransceiverThermalData> transceiverThermalData;
 }
+
+struct FirmwareUpgradeData {
+  1: string partNumber;
+  2: string currentFirmwareVersion;
+  3: string desiredFirmwareVersion;
+}

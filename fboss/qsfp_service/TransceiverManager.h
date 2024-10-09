@@ -602,9 +602,11 @@ class TransceiverManager {
   // Determine if transceiver FW requires upgrade.
   // Transceiver has to be present, and the version in the QsfpConfig
   // has to be different from whats already running in HW.
-  bool requiresFirmwareUpgrade(Transceiver& tcvr) const;
+  std::optional<FirmwareUpgradeData> getFirmwareUpgradeData(
+      Transceiver& tcvr) const;
 
-  std::vector<std::string> getPortsRequiringOpticsFwUpgrade() const;
+  std::map<std::string, FirmwareUpgradeData> getPortsRequiringOpticsFwUpgrade()
+      const;
 
  protected:
   /*

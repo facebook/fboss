@@ -244,9 +244,13 @@ TEST_F(OpticsFwUpgradeTest, upgradeOnLinkDown) {
     auto portsForFwUpgrade = getHwQsfpEnsemble()
                                  ->getWedgeManager()
                                  ->getPortsRequiringOpticsFwUpgrade();
+    std::vector<std::string> fwUpgradePorts;
+    for (auto& [portName, _] : portsForFwUpgrade) {
+      fwUpgradePorts.push_back(portName);
+    }
     EXPECT_TRUE(portsForFwUpgrade.empty())
         << "Some modules still require firmware upgrade: " +
-            folly::join(",", portsForFwUpgrade);
+            folly::join(",", fwUpgradePorts);
 
     // During cold boot setup, update the firmware versions in the config
     auto qsfpCfg =

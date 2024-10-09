@@ -408,16 +408,17 @@ const std::string TransceiverManager::getPortName(TransceiverID tcvrId) const {
   return portNames.empty() ? "" : *portNames.begin();
 }
 
-std::vector<std::string> TransceiverManager::getPortsRequiringOpticsFwUpgrade()
-    const {
-  std::vector<std::string> ports;
+std::map<std::string, FirmwareUpgradeData>
+TransceiverManager::getPortsRequiringOpticsFwUpgrade() const {
+  std::map<std::string, FirmwareUpgradeData> ports;
   if (!isFullyInitialized()) {
     throw FbossError("Service is still initializing...");
   }
   auto lockedTransceivers = transceivers_.rlock();
   for (const auto& tcvrIt : *lockedTransceivers) {
-    if (requiresFirmwareUpgrade(*tcvrIt.second)) {
-      ports.push_back(getPortName(tcvrIt.first));
+    auto firmwareUpgradeData = getFirmwareUpgradeData(*tcvrIt.second);
+    if (firmwareUpgradeData.has_value()) {
+      ports[getPortName(tcvrIt.first)] = firmwareUpgradeData.value();
     }
   }
   return ports;
@@ -436,7 +437,7 @@ bool TransceiverManager::firmwareUpgradeRequired(TransceiverID id) {
   bool iOevbBusy = false;
   bool present = tcvr.isPresent();
   std::string partNumber = tcvr.getPartNumber();
-  bool requiresUpgrade = present && requiresFirmwareUpgrade(tcvr);
+  bool requiresUpgrade = present && getFirmwareUpgradeData(tcvr).has_value();
   if (forceFirmwareUpgradeForTesting_ || requiresUpgrade) {
     // If we are here, it means that this transceiver is present and has the
     // firmware version mismatch and hence requires upgrade
@@ -502,9 +503,10 @@ std::optional<cfg::Firmware> TransceiverManager::getFirmwareFromCfg(
   return fwVersionInCfgIt->second;
 }
 
-bool TransceiverManager::requiresFirmwareUpgrade(Transceiver& tcvr) const {
-  // Returns true if the current firmware revision is different than the one in
-  // qsfp config
+std::optional<FirmwareUpgradeData> TransceiverManager::getFirmwareUpgradeData(
+    Transceiver& tcvr) const {
+  // Returns a FirmwareUpgrade if the current firmware revision is different
+  // than the one in qsfp config else std::nullopt
   auto cachedTcvrInfo = tcvr.getTransceiverInfo();
   auto moduleStatus = cachedTcvrInfo.tcvrState()->status();
   int tcvrID = tcvr.getID();
@@ -513,24 +515,26 @@ bool TransceiverManager::requiresFirmwareUpgrade(Transceiver& tcvr) const {
   if (!moduleStatus.has_value()) {
     FW_LOG(DBG4, tcvrID)
         << " Part Number " << partNumber
-        << " moduleStatus not set. Returning false from requiresFirmwareUpgrade";
-    return false;
+        << " moduleStatus not set. Returning nullopt from getFirmwareUpgradeData";
+    return std::nullopt;
   }
 
   auto fwStatus = moduleStatus->fwStatus();
   if (!fwStatus.has_value()) {
     FW_LOG(DBG4, tcvrID)
         << " Part Number " << partNumber
-        << " fwStatus not set. Returning false from requiresFirmwareUpgrade";
-    return false;
+        << " fwStatus not set. Returning nullopt from getFirmwareUpgradeData";
+    return std::nullopt;
   }
+  FirmwareUpgradeData fwUpgradeData;
+  fwUpgradeData.partNumber() = partNumber;
 
   auto fwFromConfig = getFirmwareFromCfg(tcvr);
   if (!fwFromConfig.has_value()) {
     FW_LOG(DBG4, tcvrID)
         << " Part Number " << partNumber
-        << " Fw not available in config. Returning false from requiresFirmwareUpgrade";
-    return false;
+        << " Fw not available in config. Returning nullopt from getFirmwareUpgradeData";
+    return std::nullopt;
   }
 
   auto& versions = *fwFromConfig->versions();
@@ -542,9 +546,11 @@ bool TransceiverManager::requiresFirmwareUpgrade(Transceiver& tcvr) const {
           << " Part Number " << partNumber
           << " Application Version in cfg=" << fwIt.get_version()
           << " current operational version= " << *fwStatus->version()
-          << ". Returning true from requiresFirmwareUpgrade for tcvr="
+          << ". Returning valid getFirmwareUpgradeData for tcvr="
           << tcvr.getID();
-      return true;
+      fwUpgradeData.currentFirmwareVersion() = *fwStatus->version();
+      fwUpgradeData.desiredFirmwareVersion() = fwIt.get_version();
+      return fwUpgradeData;
     }
     if (fwType == cfg::FirmwareType::DSP && fwStatus->dspFwVer() &&
         fwIt.get_version() != *fwStatus->dspFwVer()) {
@@ -552,9 +558,11 @@ bool TransceiverManager::requiresFirmwareUpgrade(Transceiver& tcvr) const {
           << " Part Number " << partNumber
           << " DSP Version in cfg=" << fwIt.get_version()
           << " current operational version= " << *fwStatus->dspFwVer()
-          << ". Returning true from requiresFirmwareUpgrade for tcvr="
+          << ". Returning valid getFirmwareUpgradeData for tcvr="
           << tcvr.getID();
-      return true;
+      fwUpgradeData.currentFirmwareVersion() = *fwStatus->dspFwVer();
+      fwUpgradeData.desiredFirmwareVersion() = fwIt.get_version();
+      return fwUpgradeData;
     }
     FW_LOG(DBG, tcvrID) << " Part Number " << partNumber << " FW Type Cfg "
                         << apache::thrift::util::enumNameSafe(fwType)
@@ -566,10 +574,10 @@ bool TransceiverManager::requiresFirmwareUpgrade(Transceiver& tcvr) const {
   FW_LOG(INFO, tcvrID)
       << " Part Number " << partNumber
       << " num versions found: " << versions.size()
-      << " Version match in requiresFirmwareUpgrade. Not Upgrading";
+      << " Version match in getFirmwareUpgradeData. Not Upgrading";
 
   // Versions match. No need to upgrade firmware
-  return false;
+  return std::nullopt;
 }
 
 bool TransceiverManager::upgradeFirmware(Transceiver& tcvr) {
