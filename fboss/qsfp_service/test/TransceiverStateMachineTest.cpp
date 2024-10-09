@@ -2243,7 +2243,12 @@ TEST_F(TransceiverStateMachineTest, upgradeFirmware) {
     auto allStates = getAllStates();
     verifyStateMachine(
         {TransceiverStateMachineState::UPGRADING,
-         TransceiverStateMachineState::INACTIVE},
+         TransceiverStateMachineState::INACTIVE,
+         TransceiverStateMachineState::IPHY_PORTS_PROGRAMMED,
+         TransceiverStateMachineState::XPHY_PORTS_PROGRAMMED,
+         TransceiverStateMachineState::TRANSCEIVER_READY,
+         TransceiverStateMachineState::TRANSCEIVER_PROGRAMMED,
+         TransceiverStateMachineState::ACTIVE},
         TransceiverStateMachineState::DISCOVERED /* expected state */,
         allStates,
         []() {} /* preUpdate */,
