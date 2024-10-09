@@ -5,7 +5,8 @@ RUN dnf install git sudo lsof -y
 # Use /var/FBOSS as the set location to clone the git repository and store the outputs of the build.
 WORKDIR /var/FBOSS/
 
-RUN git clone https://github.com/facebook/fboss.git
+RUN mkdir -p /var/FBOSS/fboss
+COPY . fboss
 WORKDIR fboss
 
 RUN rm -rf build/deps/github_hashes/
