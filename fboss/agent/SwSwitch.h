@@ -1189,7 +1189,7 @@ class SwSwitch : public HwSwitchCallback {
    * A thread for performing various background tasks.
    */
   std::unique_ptr<std::thread> backgroundThread_;
-  FbossEventBase backgroundEventBase_;
+  FbossEventBase backgroundEventBase_{"SwSwitchBackgroundEventBase"};
   std::shared_ptr<ThreadHeartbeat> bgThreadHeartbeat_;
 
   /*
@@ -1198,34 +1198,35 @@ class SwSwitch : public HwSwitchCallback {
    * ASIC front panel ports
    */
   std::unique_ptr<std::thread> packetTxThread_;
-  FbossEventBase packetTxEventBase_;
+  FbossEventBase packetTxEventBase_{"SwSwitchPacketTxEventBase"};
   std::shared_ptr<ThreadHeartbeat> packetTxThreadHeartbeat_;
 
   /*
    * A thread for sending packets to the distribution process
    */
   std::shared_ptr<std::thread> pcapDistributionThread_;
-  FbossEventBase pcapDistributionEventBase_;
+  FbossEventBase pcapDistributionEventBase_{
+      "SwSwitchPcapDistributionEventBase"};
 
   /*
    * A thread for processing SwitchState updates.
    */
   std::unique_ptr<std::thread> updateThread_;
-  FbossEventBase updateEventBase_;
+  FbossEventBase updateEventBase_{"SwSwitchUpdateEventBase"};
   std::shared_ptr<ThreadHeartbeat> updThreadHeartbeat_;
 
   /*
    * A thread dedicated to LACP processing.
    */
   std::unique_ptr<std::thread> lacpThread_;
-  FbossEventBase lacpEventBase_;
+  FbossEventBase lacpEventBase_{"SwSwitchLacpEventBase"};
   std::shared_ptr<ThreadHeartbeat> lacpThreadHeartbeat_;
 
   /*
    * A thread dedicated to Arp and Ndp cache entry processing.
    */
   std::unique_ptr<std::thread> neighborCacheThread_;
-  FbossEventBase neighborCacheEventBase_;
+  FbossEventBase neighborCacheEventBase_{"SwSwitchNeighborCacheEventBase"};
   std::shared_ptr<ThreadHeartbeat> neighborCacheThreadHeartbeat_;
 
   /*

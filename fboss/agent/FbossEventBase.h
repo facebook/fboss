@@ -17,6 +17,8 @@ namespace facebook::fboss {
 
 class FbossEventBase : public folly::EventBase {
  public:
+  explicit FbossEventBase(const std::string& name) : eventBaseName_(name) {}
+
   void runInFbossEventBaseThread(Func fn) noexcept {
     if (!isRunning()) {
       XLOG(ERR) << "runInFbossEventBaseThread to non-running " << eventBaseName_

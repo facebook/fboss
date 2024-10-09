@@ -617,13 +617,13 @@ cpp_library(
     headers = [
     ],
     exported_deps = [
-        "fbcode//fboss/agent:hw_switch",
-        "fbcode//fboss/agent/hw/bcm:bcm",
-        "fbcode//fboss/agent/hw/bcm:bcmaddress_fb_convertors",
-        "fbcode//fboss/agent/hw/bcm/tests:bcm_ecmp_utils",
-        "fbcode//fboss/agent/hw/switch_asics:switch_asics",
-        "fbcode//fboss/agent/hw/test:hw_test_ecmp_utils",
-        "fbcode//fboss/agent/hw/test:hw_test_thrift_handler_h",
-        "fbcode//fboss/agent/test/utils:acl_test_utils",
+        "//fboss/agent:hw_switch",
+        "//fboss/agent/hw/bcm:bcm",
+        "//fboss/agent/hw/bcm:bcmaddress_fb_convertors",
+        "//fboss/agent/hw/bcm/tests:bcm_ecmp_utils",  # @manual
+        "//fboss/agent/hw/switch_asics:switch_asics",
+        "//fboss/agent/hw/test:hw_test_ecmp_utils",
+        "//fboss/agent/hw/test:hw_test_thrift_handler_h",
+        "//fboss/agent/test/utils:acl_test_utils",
     ],
 )

@@ -1184,7 +1184,7 @@ class BcmSwitch : public BcmSwitchIf {
   std::unique_ptr<BcmBstStatsMgr> bstStatsMgr_;
 
   std::unique_ptr<std::thread> linkScanBottomHalfThread_;
-  FbossEventBase linkScanBottomHalfEventBase_;
+  FbossEventBase linkScanBottomHalfEventBase_{"BcmLinkScanBottomHalfEventBase"};
 
   std::unique_ptr<BcmSwitchSettings> switchSettings_;
 

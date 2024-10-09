@@ -43,7 +43,7 @@ namespace {
 
 class LacpTest : public ::testing::Test {
  protected:
-  LacpTest() : lacpEvb_() {}
+  LacpTest() : lacpEvb_("LacpEventBase") {}
 
   void SetUp() override {
     lacpThread_.reset(new std::thread([this] {
@@ -65,7 +65,7 @@ class LacpTest : public ::testing::Test {
   }
 
  private:
-  FbossEventBase lacpEvb_;
+  FbossEventBase lacpEvb_{"LacpEventBase"};
   std::unique_ptr<std::thread> lacpThread_{nullptr};
 };
 

@@ -589,15 +589,18 @@ class SaiSwitch : public HwSwitch {
   SwitchSaiId saiSwitchId_;
 
   std::unique_ptr<std::thread> linkStateBottomHalfThread_;
-  FbossEventBase linkStateBottomHalfEventBase_;
+  FbossEventBase linkStateBottomHalfEventBase_{"LinkStateBottomHalfEventBase"};
   std::unique_ptr<std::thread> fdbEventBottomHalfThread_;
-  FbossEventBase fdbEventBottomHalfEventBase_;
+  FbossEventBase fdbEventBottomHalfEventBase_{"FdbEventBottomHalfEventBase"};
   std::unique_ptr<std::thread> txReadyStatusChangeBottomHalfThread_;
-  FbossEventBase txReadyStatusChangeBottomHalfEventBase_;
+  FbossEventBase txReadyStatusChangeBottomHalfEventBase_{
+      "TxReadyStatusChangeBottomHalfEventBase"};
   std::unique_ptr<std::thread> linkConnectivityChangeBottomHalfThread_;
-  FbossEventBase linkConnectivityChangeBottomHalfEventBase_;
+  FbossEventBase linkConnectivityChangeBottomHalfEventBase_{
+      "LinkConnectivityChangeBottomHalfEventBase"};
   std::unique_ptr<std::thread> switchReachabilityChangeBottomHalfThread_;
-  FbossEventBase switchReachabilityChangeBottomHalfEventBase_;
+  FbossEventBase switchReachabilityChangeBottomHalfEventBase_{
+      "SwitchReachabilityChangeBottomHalfEventBase"};
 
   HwResourceStats hwResourceStats_;
   std::atomic<SwitchRunState> runState_{SwitchRunState::UNINITIALIZED};
