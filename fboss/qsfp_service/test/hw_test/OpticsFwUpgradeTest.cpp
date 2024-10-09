@@ -30,6 +30,12 @@ class OpticsFwUpgradeTest : public HwTest {
     // starts later
     gflags::SetCommandLineOptionWithMode(
         "max_concurrent_evb_fw_upgrade", "8", gflags::SET_FLAGS_DEFAULT);
+    gflags::SetCommandLineOptionWithMode(
+        "firmware_upgrade_on_coldboot", "1", gflags::SET_FLAGS_DEFAULT);
+    gflags::SetCommandLineOptionWithMode(
+        "firmware_upgrade_on_link_down", "1", gflags::SET_FLAGS_DEFAULT);
+    gflags::SetCommandLineOptionWithMode(
+        "firmware_upgrade_on_tcvr_insert", "1", gflags::SET_FLAGS_DEFAULT);
     HwTest::SetUp();
     // Revert the max_concurrent_evb_fw_upgrade back to 1 which is the default
     gflags::SetCommandLineOptionWithMode(

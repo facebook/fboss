@@ -59,6 +59,21 @@ DEFINE_bool(
     false,
     "Enable transceiver validation feature in qsfp_service");
 
+DEFINE_bool(
+    firmware_upgrade_on_coldboot,
+    false,
+    "Set to true to automatically upgrade firmware on coldboot");
+
+DEFINE_bool(
+    firmware_upgrade_on_link_down,
+    false,
+    "Set to true to automatically upgrade firmware when link goes down");
+
+DEFINE_bool(
+    firmware_upgrade_on_tcvr_insert,
+    false,
+    "Set to true to automatically upgrade firmware when a transceiver is inserted");
+
 namespace {
 constexpr auto kForceColdBootFileName = "cold_boot_once_qsfp_service";
 constexpr auto kWarmBootFlag = "can_warm_boot";
@@ -1547,7 +1562,9 @@ void TransceiverManager::updateTransceiverPortStatus() noexcept {
       << " transceivers need to update port status. Total execute time(ms):"
       << duration_cast<milliseconds>(steady_clock::now() - begin).count();
 
-  triggerFirmwareUpgradeEvents(tcvrsForFwUpgrade);
+  if (FLAGS_firmware_upgrade_on_link_down) {
+    triggerFirmwareUpgradeEvents(tcvrsForFwUpgrade);
+  }
 }
 
 void TransceiverManager::triggerFirmwareUpgradeEvents(
@@ -1841,18 +1858,20 @@ void TransceiverManager::refreshStateMachines() {
   const auto& presentXcvrIds = refreshTransceivers();
 
   bool firstRefreshAfterColdboot = !canWarmBoot_ && !isFullyInitialized();
-  // Find transceivers that were just discovered or that are still inactive
   std::unordered_set<TransceiverID> potentialTcvrsForFwUpgrade;
   for (auto tcvrID : presentXcvrIds) {
     auto curState = getCurrentState(tcvrID);
-    if (curState == TransceiverStateMachineState::INACTIVE) {
+    if (curState == TransceiverStateMachineState::INACTIVE &&
+        FLAGS_firmware_upgrade_on_link_down) {
       // Anytime a module is in inactive state (link down), it's a candidate for
       // fw upgrade
       XLOG(INFO)
           << "Transceiver " << static_cast<int>(tcvrID)
           << " is in INACTIVE state, adding it to list of potentialTcvrsForFwUpgrade";
       potentialTcvrsForFwUpgrade.insert(tcvrID);
-    } else if (curState == TransceiverStateMachineState::DISCOVERED) {
+    } else if (
+        curState == TransceiverStateMachineState::DISCOVERED &&
+        FLAGS_firmware_upgrade_on_coldboot) {
       if (firstRefreshAfterColdboot) {
         // First refresh after cold boot and module is still in
         // discovered state
@@ -1860,7 +1879,7 @@ void TransceiverManager::refreshStateMachines() {
             << "Transceiver " << static_cast<int>(tcvrID)
             << " just did a cold boot and is still in discovered state, adding it to list of potentialTcvrsForFwUpgrade";
         potentialTcvrsForFwUpgrade.insert(tcvrID);
-      } else {
+      } else if (FLAGS_firmware_upgrade_on_tcvr_insert) {
         auto stateMachine = stateMachines_.find(tcvrID);
         if (stateMachine != stateMachines_.end() &&
             stateMachine->second->getStateMachine().rlock()->get_attribute(
@@ -1875,7 +1894,6 @@ void TransceiverManager::refreshStateMachines() {
       }
     }
   }
-
   if (!potentialTcvrsForFwUpgrade.empty()) {
     triggerFirmwareUpgradeEvents(potentialTcvrsForFwUpgrade);
   }
