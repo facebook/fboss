@@ -590,6 +590,16 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
   std::optional<
       SaiSwitchTraits::Attributes::FabricLinkLayerFlowControlThreshold>
       fabricLLFC;
+#if defined(BRCM_SAI_SDK_DNX) && defined(BRCM_SAI_SDK_GTE_12_0)
+  if (getAsic()->getSwitchType() == cfg::SwitchType::FABRIC &&
+      getAsic()->getFabricNodeRole() == HwAsic::FabricNodeRole::DUAL_STAGE_L1) {
+    CHECK(getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_RAMON3)
+        << " LLFC threshold values for no R3 chips in DUAL_STAGE_L1 role needs to figured out";
+    // Vendor suggested valie
+    constexpr uint32_t kRamon3LlfcThreshold{800};
+    fabricLLFC = std::vector<uint32_t>({kRamon3LlfcThreshold});
+  }
+#endif
 
   return {
       initSwitch,
