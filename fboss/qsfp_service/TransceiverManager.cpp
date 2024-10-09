@@ -236,6 +236,9 @@ QsfpServiceRunState TransceiverManager::getRunState() const {
   if (isExiting()) {
     return QsfpServiceRunState::EXITING;
   }
+  if (isUpgradingFirmware()) {
+    return QsfpServiceRunState::UPGRADING_FIRMWARE;
+  }
   if (isFullyInitialized()) {
     return QsfpServiceRunState::ACTIVE;
   }
@@ -444,6 +447,9 @@ TransceiverManager::triggerAllOpticsFwUpgrade() {
   std::map<std::string, FirmwareUpgradeData> ports;
   if (!isFullyInitialized()) {
     throw FbossError("Service is still initializing...");
+  }
+  if (isUpgradingFirmware()) {
+    throw FbossError("Service is already upgrading firmware...");
   }
   auto portsForFwUpgrade = getPortsRequiringOpticsFwUpgrade();
   auto tcvrsToUpgradeWLock = tcvrsForFwUpgrade.wlock();
@@ -1604,6 +1610,7 @@ void TransceiverManager::triggerFirmwareUpgradeEvents(
     }
   }
   if (!results.empty()) {
+    isUpgradingFirmware_ = true;
     executeStateUpdates();
     heartbeatWatchdog_->pauseMonitoringHeartbeat(updateThreadHeartbeat_);
     waitForAllBlockingStateUpdateDone(results);
@@ -1959,6 +1966,8 @@ void TransceiverManager::refreshStateMachines() {
   }
   // Update the warmboot state if there is a change.
   setWarmBootState();
+
+  isUpgradingFirmware_ = false;
 
   XLOG(INFO) << "refreshStateMachines ended";
 }

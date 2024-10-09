@@ -20,6 +20,7 @@ enum QsfpServiceRunState {
   INITIALIZED = 1,
   ACTIVE = 2,
   EXITING = 3,
+  UPGRADING_FIRMWARE = 4,
 }
 
 struct Vendor {

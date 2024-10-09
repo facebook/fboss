@@ -571,6 +571,10 @@ class TransceiverManager {
     return isExiting_;
   }
 
+  bool isUpgradingFirmware() const {
+    return isUpgradingFirmware_;
+  }
+
   bool isFullyInitialized() const {
     return isFullyInitialized_;
   }
@@ -878,6 +882,10 @@ class TransceiverManager {
   // A global flag to indicate whether the service is exiting.
   // If it is, we should not accept any state update
   std::atomic<bool> isExiting_{false};
+
+  // A global flag to indicate whether the any optics firmware upgrade is in
+  // progress
+  std::atomic<bool> isUpgradingFirmware_{false};
 
   /*
    * Flag that indicates whether the service has been fully initialized.
