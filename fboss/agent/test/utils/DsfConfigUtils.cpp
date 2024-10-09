@@ -46,27 +46,33 @@ std::optional<std::map<int64_t, cfg::DsfNode>> addRemoteIntfNodeCfg(
   const auto& firstDsfNode = dsfNodes.begin()->second;
   CHECK(firstDsfNode.systemPortRange().has_value());
   CHECK(firstDsfNode.nodeMac().has_value());
-  const auto& asic =
-      getHwAsicForAsicType(*dsfNodes.cbegin()->second.asicType());
-  int numCores = asic.getNumCores();
+  auto asic = HwAsic::makeAsic(
+      *firstDsfNode.asicType(),
+      cfg::SwitchType::VOQ,
+      *firstDsfNode.switchId(),
+      0,
+      *firstDsfNode.systemPortRange(),
+      folly::MacAddress(*firstDsfNode.nodeMac()),
+      std::nullopt);
+  int numCores = asic->getNumCores();
   CHECK(
       !numRemoteNodes.has_value() ||
-      numRemoteNodes.value() < getDsfNodeCount(asic));
+      numRemoteNodes.value() < getDsfNodeCount(*asic));
   int totalNodes = numRemoteNodes.has_value()
       ? numRemoteNodes.value() + curDsfNodes.size()
-      : getDsfNodeCount(asic);
+      : getDsfNodeCount(*asic);
   int remoteNodeStart = dsfNodes.rbegin()->first + numCores;
   int systemPortMin =
-      getPerNodeSysPorts(asic, dsfNodes.begin()->first) * numCores;
+      getPerNodeSysPorts(*asic, dsfNodes.begin()->first) * numCores;
   for (int remoteSwitchId = remoteNodeStart;
        remoteSwitchId < totalNodes * numCores;
        remoteSwitchId += numCores) {
     cfg::Range64 systemPortRange;
     systemPortRange.minimum() = systemPortMin;
     systemPortRange.maximum() =
-        systemPortMin + getPerNodeSysPorts(asic, remoteSwitchId) - 1;
+        systemPortMin + getPerNodeSysPorts(*asic, remoteSwitchId) - 1;
     auto remoteDsfNodeCfg = dsfNodeConfig(
-        asic,
+        *asic,
         SwitchID(remoteSwitchId),
         systemPortMin,
         *systemPortRange.maximum(),
