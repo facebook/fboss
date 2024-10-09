@@ -18,5 +18,6 @@ class ConfigValidator {
   bool isValidFruConfigs(
       const std::vector<FruConfig>& fruConfigs,
       const std::map<std::string, LedConfig>& fruTypeLedConfigs);
+  bool isValidPresenceConfig(const PresenceDetection& presenceConfig);
 };
 } // namespace facebook::fboss::platform::data_corral_service

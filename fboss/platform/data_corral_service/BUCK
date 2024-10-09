@@ -31,8 +31,12 @@ cpp_library(
         "//fb303:service_data",
         "//fboss/lib:common_file_utils",
         "//fboss/platform/data_corral_service/if:led_manager-cpp2-types",
+        "//fboss/platform/platform_manager:utils",
         "//folly:string",
         "//folly/logging:logging",
+    ],
+    exported_external_deps = [
+        ("libgpiod", None, "gpiod"),
     ],
 )
 

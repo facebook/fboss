@@ -27,6 +27,9 @@ class FruPresenceExplorer {
   bool isAllPresent() const;
 
  private:
+  bool detectFruSysfsPresence(const SysfsFileHandle& handle);
+  bool detectFruGpioPresence(const GpioLineHandle& handle);
+
   const std::vector<FruConfig> fruConfigs_;
   const std::shared_ptr<LedManager> ledManager_;
   std::unordered_map<std::string, bool> fruTypePresence_;
