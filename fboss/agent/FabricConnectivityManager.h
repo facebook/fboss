@@ -66,6 +66,8 @@ class FabricConnectivityManager {
       uint64_t switchId,
       uint64_t baseSwitchId,
       const auto& switchName);
+  std::pair<std::optional<std::string>, std::optional<std::string>>
+  getActualSwitchNameAndPortName(uint64_t switchId, int32_t portId);
 
  private:
   void updateExpectedSwitchIdAndPortIdForPort(PortID portID);

@@ -361,6 +361,35 @@ std::optional<PortID> FabricConnectivityManager::getActualPortIdForSwitch(
       getRemotePortOffset(switchIdToDsfNode_[baseSwitchId]->getPlatformType()));
 }
 
+std::pair<std::optional<std::string>, std::optional<std::string>>
+FabricConnectivityManager::getActualSwitchNameAndPortName(
+    uint64_t switchId,
+    int32_t portId) {
+  std::optional<std::string> switchName{std::nullopt}, portName{std::nullopt};
+
+  auto switchIdIter = switchIdToBaseSwitchIdAndSwitchName_.find(switchId);
+  if (switchIdIter == switchIdToBaseSwitchIdAndSwitchName_.end()) {
+    XLOG(ERR) << "Unknown Peer SwitchID: " << static_cast<int>(switchId);
+  } else {
+    SwitchID baseSwitchId;
+
+    std::tie(baseSwitchId, switchName) = switchIdIter->second;
+
+    auto actualPortId = getActualPortIdForSwitch(
+        PortID(portId), SwitchID(switchId), baseSwitchId, switchName.value());
+    if (actualPortId.has_value()) {
+      const auto platformMapping = getPlatformMappingForDsfNode(
+          switchIdToDsfNode_[baseSwitchId]->getPlatformType());
+      if (!platformMapping) {
+        throw FbossError("Unable to find platform mapping for port: ", portId);
+      }
+      portName = platformMapping->getPortNameByPortId(actualPortId.value());
+    }
+  }
+
+  return std::make_pair(switchName, portName);
+}
+
 std::optional<multiswitch::FabricConnectivityDelta>
 FabricConnectivityManager::processConnectivityInfoForPort(
     const PortID& portId,
@@ -384,42 +413,29 @@ FabricConnectivityManager::processConnectivityInfoForPort(
 
     if (iter->second.expectedSwitchId().has_value() &&
         iter->second.expectedSwitchId().value() == iter->second.switchId() &&
-        iter->second.expectedSwitchName().has_value()) {
+        iter->second.expectedSwitchName().has_value() &&
+        iter->second.expectedPortId().has_value() &&
+        iter->second.expectedPortId().value() == iter->second.portId() &&
+        iter->second.expectedPortName().has_value()) {
+      // actual{switchID, portID} == expected{switchID, portID}
       iter->second.switchName() = iter->second.expectedSwitchName().value();
-
-      if (iter->second.expectedPortId().has_value() &&
-          iter->second.expectedPortId().value() == iter->second.portId() &&
-          iter->second.expectedPortName().has_value()) {
-        iter->second.portName() = iter->second.expectedPortName().value();
-      }
+      iter->second.portName() = iter->second.expectedPortName().value();
     } else {
-      auto switchIdIter =
-          switchIdToBaseSwitchIdAndSwitchName_.find(*iter->second.switchId());
-      if (switchIdIter == switchIdToBaseSwitchIdAndSwitchName_.end()) {
-        XLOG(ERR) << "Unknown Peer SwitchID: "
-                  << static_cast<int>(*iter->second.switchId());
-      } else {
-        auto& [baseSwitchId, switchName] = switchIdIter->second;
-        iter->second.switchName() = switchName;
+      // Miscabling:
+      //    - Connected to expected Switch but on wrong port
+      //    - Connected to non-expected Switch
+      // Expected switchName/portName are not set
+      //
+      // For any of these scenarios, derive SwitchName, PortName
+      // from actual{switchID, portID}.
+      auto [switchName, portName] = getActualSwitchNameAndPortName(
+          *iter->second.switchId(), *iter->second.portId());
 
-        auto actualPortId = getActualPortIdForSwitch(
-            *iter->second.portId(),
-            SwitchID(*iter->second.switchId()),
-            baseSwitchId,
-            switchName);
-        if (actualPortId.has_value()) {
-          const auto platformMapping = getPlatformMappingForDsfNode(
-              switchIdToDsfNode_[baseSwitchId]->getPlatformType());
-          if (!platformMapping) {
-            throw FbossError(
-                "Unable to find platform mapping for port: ", portId);
-          }
-          auto portName =
-              platformMapping->getPortNameByPortId(actualPortId.value());
-          if (portName.has_value()) {
-            iter->second.portName() = portName.value();
-          }
-        }
+      if (switchName.has_value()) {
+        iter->second.switchName() = switchName.value();
+      }
+      if (portName.has_value()) {
+        iter->second.portName() = portName.value();
       }
     }
   } else {
