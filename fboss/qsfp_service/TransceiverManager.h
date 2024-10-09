@@ -608,6 +608,8 @@ class TransceiverManager {
   std::map<std::string, FirmwareUpgradeData> getPortsRequiringOpticsFwUpgrade()
       const;
 
+  std::map<std::string, FirmwareUpgradeData> triggerAllOpticsFwUpgrade();
+
  protected:
   /*
    * Check to see if we can attempt a warm boot.
@@ -803,7 +805,8 @@ class TransceiverManager {
 
   void triggerAgentConfigChangeEvent();
 
-  void triggerFirmwareUpgradeEvents(std::unordered_set<TransceiverID>& tcvrs);
+  void triggerFirmwareUpgradeEvents(
+      const std::unordered_set<TransceiverID>& tcvrs);
 
   // Update the cached PortStatus of TransceiverToPortInfo using wedge_agent
   // getPortStatus() results
@@ -977,6 +980,8 @@ class TransceiverManager {
   std::atomic<int> failedOpticsFwUpgradeCount_{0};
   std::atomic<int> exceededTimeLimitFwUpgradeCount_{0};
   std::atomic<int> maxTimeTakenForFwUpgrade_{0};
+
+  folly::Synchronized<std::unordered_set<TransceiverID>> tcvrsForFwUpgrade;
 
   friend class TransceiverStateMachineTest;
 };

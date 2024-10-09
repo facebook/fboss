@@ -439,6 +439,25 @@ TransceiverManager::getPortsRequiringOpticsFwUpgrade() const {
   return ports;
 }
 
+std::map<std::string, FirmwareUpgradeData>
+TransceiverManager::triggerAllOpticsFwUpgrade() {
+  std::map<std::string, FirmwareUpgradeData> ports;
+  if (!isFullyInitialized()) {
+    throw FbossError("Service is still initializing...");
+  }
+  auto portsForFwUpgrade = getPortsRequiringOpticsFwUpgrade();
+  auto tcvrsToUpgradeWLock = tcvrsForFwUpgrade.wlock();
+
+  for (const auto& [portName, _] : portsForFwUpgrade) {
+    if (portNameToModule_.find(portName) != portNameToModule_.end()) {
+      auto tcvrID = TransceiverID(portNameToModule_[portName]);
+      FW_LOG(INFO, tcvrID) << "Selected for FW upgrade";
+      tcvrsToUpgradeWLock->insert(TransceiverID(portNameToModule_[portName]));
+    }
+  }
+  return portsForFwUpgrade;
+}
+
 bool TransceiverManager::firmwareUpgradeRequired(TransceiverID id) {
   auto lockedTransceivers = transceivers_.rlock();
   auto tcvrIt = lockedTransceivers->find(id);
@@ -1568,7 +1587,7 @@ void TransceiverManager::updateTransceiverPortStatus() noexcept {
 }
 
 void TransceiverManager::triggerFirmwareUpgradeEvents(
-    std::unordered_set<TransceiverID>& tcvrs) {
+    const std::unordered_set<TransceiverID>& tcvrs) {
   if (!FLAGS_firmware_upgrade_supported || tcvrs.empty()) {
     return;
   }
@@ -1894,6 +1913,12 @@ void TransceiverManager::refreshStateMachines() {
       }
     }
   }
+  {
+    auto tcvrsToUpgradeWLock = tcvrsForFwUpgrade.wlock();
+    triggerFirmwareUpgradeEvents(*tcvrsToUpgradeWLock);
+    tcvrsToUpgradeWLock->clear();
+  }
+
   if (!potentialTcvrsForFwUpgrade.empty()) {
     triggerFirmwareUpgradeEvents(potentialTcvrsForFwUpgrade);
   }

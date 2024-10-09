@@ -87,6 +87,12 @@ void QsfpServiceHandler::getPortsRequiringOpticsFwUpgrade(
   ports = manager_->getPortsRequiringOpticsFwUpgrade();
 }
 
+void QsfpServiceHandler::triggerAllOpticsFwUpgrade(
+    std::map<std::string, FirmwareUpgradeData>& ports) {
+  auto log = LOG_THRIFT_CALL(INFO);
+  ports = manager_->triggerAllOpticsFwUpgrade();
+}
+
 void QsfpServiceHandler::getTransceiverConfigValidationInfo(
     std::map<int32_t, std::string>& info,
     std::unique_ptr<std::vector<int32_t>> ids,
