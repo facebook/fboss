@@ -214,12 +214,12 @@ class AgentVoqSwitchTest : public AgentHwTest {
   }
 
   int sendPacket(
-      const folly::IPAddressV6& dstIp,
+      const folly::IPAddress& dstIp,
       std::optional<PortID> frontPanelPort,
       std::optional<std::vector<uint8_t>> payload =
           std::optional<std::vector<uint8_t>>(),
       int dscp = 0x24) {
-    folly::IPAddressV6 kSrcIp("1::1");
+    folly::IPAddress kSrcIp(dstIp.isV6() ? "1::1" : "1.0.0.1");
     const auto srcMac = utility::kLocalCpuMac();
     const auto dstMac = utility::kLocalCpuMac();
 
