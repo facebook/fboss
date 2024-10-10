@@ -47,18 +47,8 @@ class SensorServiceImpl {
   }
 
  private:
-  // Interim function while migrating to PmSensor.
-  // This will be removed once migration is done for all platforms.
-  template <
-      typename T,
-      typename = std::enable_if_t<
-          std::is_same_v<T, std::pair<std::string, Sensor>> ||
-          std::is_same_v<T, PmSensor>>>
-  void fetchSensorDataImpl(
-      const T& sensor,
-      uint& readFailures,
-      std::map<std::string, SensorData>& polledData);
-  SensorData createSensorData(
+  std::vector<PmSensor> resolveSensors(const PmUnitSensors& pmUnitSensors);
+  SensorData fetchSensorDataImpl(
       const std::string& name,
       const std::string& sysfsPath,
       SensorType sensorType,
