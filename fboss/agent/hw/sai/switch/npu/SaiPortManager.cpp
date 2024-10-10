@@ -981,6 +981,49 @@ SaiPortManager::serdesAttributesFromSwPinConfigs(
   SaiPortSerdesTraits::Attributes::RxAfeTrim::ValueType rxAfeTrim;
   SaiPortSerdesTraits::Attributes::RxAcCouplingByPass::ValueType
       rxAcCouplingByPass;
+  // TX Params
+  SaiPortSerdesTraits::Attributes::TxDiffEncoderEn::ValueType txDiffEncoderEn;
+  SaiPortSerdesTraits::Attributes::TxDigGain::ValueType txDigGain;
+  SaiPortSerdesTraits::Attributes::TxFfeCoeff0::ValueType txFfeCoeff0;
+  SaiPortSerdesTraits::Attributes::TxFfeCoeff1::ValueType txFfeCoeff1;
+  SaiPortSerdesTraits::Attributes::TxFfeCoeff2::ValueType txFfeCoeff2;
+  SaiPortSerdesTraits::Attributes::TxFfeCoeff3::ValueType txFfeCoeff3;
+  SaiPortSerdesTraits::Attributes::TxFfeCoeff4::ValueType txFfeCoeff4;
+  SaiPortSerdesTraits::Attributes::TxDriverSwing::ValueType txDriverSwing;
+  // RX Params
+  SaiPortSerdesTraits::Attributes::RxInstgBoost1Start::ValueType
+      rxInstgBoost1Start;
+  SaiPortSerdesTraits::Attributes::RxInstgBoost1Step::ValueType
+      rxInstgBoost1Step;
+  SaiPortSerdesTraits::Attributes::RxInstgBoost1Stop::ValueType
+      rxInstgBoost1Stop;
+  SaiPortSerdesTraits::Attributes::RxInstgBoost2OrHrStart::ValueType
+      rxInstgBoost2OrHrStart;
+  SaiPortSerdesTraits::Attributes::RxInstgBoost2OrHrStep::ValueType
+      rxInstgBoost2OrHrStep;
+  SaiPortSerdesTraits::Attributes::RxInstgBoost2OrHrStop::ValueType
+      rxInstgBoost2OrHrStop;
+  SaiPortSerdesTraits::Attributes::RxInstgC1Start1p7::ValueType
+      rxInstgC1Start1p7;
+  SaiPortSerdesTraits::Attributes::RxInstgC1Step1p7::ValueType rxInstgC1Step1p7;
+  SaiPortSerdesTraits::Attributes::RxInstgC1Stop1p7::ValueType rxInstgC1Stop1p7;
+  SaiPortSerdesTraits::Attributes::RxInstgDfeStart1p7::ValueType
+      rxInstgDfeStart1p7;
+  SaiPortSerdesTraits::Attributes::RxInstgDfeStep1p7::ValueType
+      rxInstgDfeStep1p7;
+  SaiPortSerdesTraits::Attributes::RxInstgDfeStop1p7::ValueType
+      rxInstgDfeStop1p7;
+  SaiPortSerdesTraits::Attributes::RxEnableScanSelection::ValueType
+      rxEnableScanSelection;
+  SaiPortSerdesTraits::Attributes::RxInstgScanUseSrSettings::ValueType
+      rxInstgScanUseSrSettings;
+  SaiPortSerdesTraits::Attributes::RxCdrCfgOvEn::ValueType rxCdrCfgOvEn;
+  SaiPortSerdesTraits::Attributes::RxCdrTdet1stOrdStepOvVal::ValueType
+      rxCdrTdet1stOrdStepOvVal;
+  SaiPortSerdesTraits::Attributes::RxCdrTdet2ndOrdStepOvVal::ValueType
+      rxCdrTdet2ndOrdStepOvVal;
+  SaiPortSerdesTraits::Attributes::RxCdrTdetFineStepOvVal::ValueType
+      rxCdrTdetFineStepOvVal;
 
   // Now use pinConfigs from SW port as the source of truth
   auto numExpectedTxLanes = 0;
@@ -1004,6 +1047,30 @@ SaiPortManager::serdesAttributesFromSwPinConfigs(
         }
         if (auto firPost1 = tx->firPost1()) {
           txPost1.push_back(*firPost1);
+        }
+        if (auto diffEncoderEn = tx->diffEncoderEn()) {
+          txDiffEncoderEn.push_back(diffEncoderEn.value());
+        }
+        if (auto digGain = tx->digGain()) {
+          txDigGain.push_back(digGain.value());
+        }
+        if (auto ffeCoeff0 = tx->ffeCoeff0()) {
+          txFfeCoeff0.push_back(ffeCoeff0.value());
+        }
+        if (auto ffeCoeff1 = tx->ffeCoeff1()) {
+          txFfeCoeff1.push_back(ffeCoeff1.value());
+        }
+        if (auto ffeCoeff2 = tx->ffeCoeff2()) {
+          txFfeCoeff2.push_back(ffeCoeff2.value());
+        }
+        if (auto ffeCoeff3 = tx->ffeCoeff3()) {
+          txFfeCoeff3.push_back(ffeCoeff3.value());
+        }
+        if (auto ffeCoeff4 = tx->ffeCoeff4()) {
+          txFfeCoeff4.push_back(ffeCoeff4.value());
+        }
+        if (auto driverSwing = tx->driverSwing()) {
+          txDriverSwing.push_back(driverSwing.value());
         }
       } else {
         txPre1.push_back(*tx->pre());
@@ -1045,6 +1112,61 @@ SaiPortManager::serdesAttributesFromSwPinConfigs(
       if (auto acCouplingByPass = rx->acCouplingBypass()) {
         rxAcCouplingByPass.push_back(*acCouplingByPass);
       }
+      // RX Params
+      if (auto instgBoost1Start = rx->instgBoost1Start()) {
+        rxInstgBoost1Start.push_back(instgBoost1Start.value());
+      }
+      if (auto instgBoost1Step = rx->instgBoost1Step()) {
+        rxInstgBoost1Step.push_back(instgBoost1Step.value());
+      }
+      if (auto instgBoost1Stop = rx->instgBoost1Stop()) {
+        rxInstgBoost1Stop.push_back(instgBoost1Stop.value());
+      }
+      if (auto instgBoost2OrHrStart = rx->instgBoost2OrHrStart()) {
+        rxInstgBoost2OrHrStart.push_back(instgBoost2OrHrStart.value());
+      }
+      if (auto instgBoost2OrHrStep = rx->instgBoost2OrHrStep()) {
+        rxInstgBoost2OrHrStep.push_back(instgBoost2OrHrStep.value());
+      }
+      if (auto instgBoost2OrHrStop = rx->instgBoost2OrHrStop()) {
+        rxInstgBoost2OrHrStop.push_back(instgBoost2OrHrStop.value());
+      }
+      if (auto instgC1Start1p7 = rx->instgC1Start1p7()) {
+        rxInstgC1Start1p7.push_back(instgC1Start1p7.value());
+      }
+      if (auto instgC1Step1p7 = rx->instgC1Step1p7()) {
+        rxInstgC1Step1p7.push_back(instgC1Step1p7.value());
+      }
+      if (auto instgC1Stop1p7 = rx->instgC1Stop1p7()) {
+        rxInstgC1Stop1p7.push_back(instgC1Stop1p7.value());
+      }
+      if (auto instgDfeStart1p7 = rx->instgDfeStart1p7()) {
+        rxInstgDfeStart1p7.push_back(instgDfeStart1p7.value());
+      }
+      if (auto instgDfeStep1p7 = rx->instgDfeStep1p7()) {
+        rxInstgDfeStep1p7.push_back(instgDfeStep1p7.value());
+      }
+      if (auto instgDfeStop1p7 = rx->instgDfeStop1p7()) {
+        rxInstgDfeStop1p7.push_back(instgDfeStop1p7.value());
+      }
+      if (auto enableScanSelection = rx->enableScanSelection()) {
+        rxEnableScanSelection.push_back(enableScanSelection.value());
+      }
+      if (auto instgScanUseSrSettings = rx->instgScanUseSrSettings()) {
+        rxInstgScanUseSrSettings.push_back(instgScanUseSrSettings.value());
+      }
+      if (auto cdrCfgOvEn = rx->cdrCfgOvEn()) {
+        rxCdrCfgOvEn.push_back(cdrCfgOvEn.value());
+      }
+      if (auto cdrTdet1stOrdStepOvVal = rx->cdrTdet1stOrdStepOvVal()) {
+        rxCdrTdet1stOrdStepOvVal.push_back(cdrTdet1stOrdStepOvVal.value());
+      }
+      if (auto cdrTdet2ndOrdStepOvVal = rx->cdrTdet2ndOrdStepOvVal()) {
+        rxCdrTdet2ndOrdStepOvVal.push_back(cdrTdet2ndOrdStepOvVal.value());
+      }
+      if (auto cdrTdetFineStepOvVal = rx->cdrTdetFineStepOvVal()) {
+        rxCdrTdetFineStepOvVal.push_back(cdrTdetFineStepOvVal.value());
+      }
     }
   }
 
@@ -1072,6 +1194,96 @@ SaiPortManager::serdesAttributesFromSwPinConfigs(
         HwAsic::AsicVendor::ASIC_VENDOR_TAJO) {
       setTxRxAttr(
           attrs, SaiPortSerdesTraits::Attributes::TxLutMode{}, txLutMode);
+      setTxRxAttr(
+          attrs,
+          SaiPortSerdesTraits::Attributes::TxDiffEncoderEn{},
+          txDiffEncoderEn);
+      setTxRxAttr(
+          attrs, SaiPortSerdesTraits::Attributes::TxDigGain{}, txDigGain);
+      setTxRxAttr(
+          attrs, SaiPortSerdesTraits::Attributes::TxFfeCoeff0{}, txFfeCoeff0);
+      setTxRxAttr(
+          attrs, SaiPortSerdesTraits::Attributes::TxFfeCoeff1{}, txFfeCoeff1);
+      setTxRxAttr(
+          attrs, SaiPortSerdesTraits::Attributes::TxFfeCoeff2{}, txFfeCoeff2);
+      setTxRxAttr(
+          attrs, SaiPortSerdesTraits::Attributes::TxFfeCoeff3{}, txFfeCoeff3);
+      setTxRxAttr(
+          attrs, SaiPortSerdesTraits::Attributes::TxFfeCoeff4{}, txFfeCoeff4);
+      setTxRxAttr(
+          attrs,
+          SaiPortSerdesTraits::Attributes::TxDriverSwing{},
+          txDriverSwing);
+      setTxRxAttr(
+          attrs,
+          SaiPortSerdesTraits::Attributes::RxInstgBoost1Start{},
+          rxInstgBoost1Start);
+      setTxRxAttr(
+          attrs,
+          SaiPortSerdesTraits::Attributes::RxInstgBoost1Step{},
+          rxInstgBoost1Step);
+      setTxRxAttr(
+          attrs,
+          SaiPortSerdesTraits::Attributes::RxInstgBoost1Stop{},
+          rxInstgBoost1Stop);
+      setTxRxAttr(
+          attrs,
+          SaiPortSerdesTraits::Attributes::RxInstgBoost2OrHrStart{},
+          rxInstgBoost2OrHrStart);
+      setTxRxAttr(
+          attrs,
+          SaiPortSerdesTraits::Attributes::RxInstgBoost2OrHrStep{},
+          rxInstgBoost2OrHrStep);
+      setTxRxAttr(
+          attrs,
+          SaiPortSerdesTraits::Attributes::RxInstgBoost2OrHrStop{},
+          rxInstgBoost2OrHrStop);
+      setTxRxAttr(
+          attrs,
+          SaiPortSerdesTraits::Attributes::RxInstgC1Start1p7{},
+          rxInstgC1Start1p7);
+      setTxRxAttr(
+          attrs,
+          SaiPortSerdesTraits::Attributes::RxInstgC1Step1p7{},
+          rxInstgC1Step1p7);
+      setTxRxAttr(
+          attrs,
+          SaiPortSerdesTraits::Attributes::RxInstgC1Stop1p7{},
+          rxInstgC1Stop1p7);
+      setTxRxAttr(
+          attrs,
+          SaiPortSerdesTraits::Attributes::RxInstgDfeStart1p7{},
+          rxInstgDfeStart1p7);
+      setTxRxAttr(
+          attrs,
+          SaiPortSerdesTraits::Attributes::RxInstgDfeStep1p7{},
+          rxInstgDfeStep1p7);
+      setTxRxAttr(
+          attrs,
+          SaiPortSerdesTraits::Attributes::RxInstgDfeStop1p7{},
+          rxInstgDfeStop1p7);
+      setTxRxAttr(
+          attrs,
+          SaiPortSerdesTraits::Attributes::RxEnableScanSelection{},
+          rxEnableScanSelection);
+      setTxRxAttr(
+          attrs,
+          SaiPortSerdesTraits::Attributes::RxInstgScanUseSrSettings{},
+          rxInstgScanUseSrSettings);
+      setTxRxAttr(
+          attrs, SaiPortSerdesTraits::Attributes::RxCdrCfgOvEn{}, rxCdrCfgOvEn);
+      setTxRxAttr(
+          attrs,
+          SaiPortSerdesTraits::Attributes::RxCdrTdet1stOrdStepOvVal{},
+          rxCdrTdet1stOrdStepOvVal);
+      setTxRxAttr(
+          attrs,
+          SaiPortSerdesTraits::Attributes::RxCdrTdet2ndOrdStepOvVal{},
+          rxCdrTdet2ndOrdStepOvVal);
+      setTxRxAttr(
+          attrs,
+          SaiPortSerdesTraits::Attributes::RxCdrTdetFineStepOvVal{},
+          rxCdrTdetFineStepOvVal);
     }
   }
 
