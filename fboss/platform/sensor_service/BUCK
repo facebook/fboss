@@ -93,6 +93,21 @@ cpp_library(
     ],
 )
 
+cpp_library(
+    name = "config_validator",
+    srcs = [
+        "ConfigValidator.cpp",
+    ],
+    exported_deps = [
+        "fbsource//third-party/fmt:fmt",
+        "//fboss/platform/sensor_service/if:sensor_config-cpp2-types",
+        "//folly/logging:logging",
+    ],
+    exported_external_deps = [
+        "re2",
+    ],
+)
+
 cpp_binary(
     name = "sensor_service",
     srcs = [
