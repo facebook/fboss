@@ -771,6 +771,167 @@ struct SaiPortSerdesTraits {
     using RxAfeAdaptiveEnable = SaiExtensionAttribute<
         std::vector<sai_int32_t>,
         AttributeRxAfeAdaptiveEnableWrapper>;
+    // Tx Attributes
+    struct AttributeTxDiffEncoderEnWrapper {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    struct AttributeTxDigGainWrapper {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    struct AttributeTxFfeCoeff0Wrapper {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    struct AttributeTxFfeCoeff1Wrapper {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    struct AttributeTxFfeCoeff2Wrapper {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    struct AttributeTxFfeCoeff3Wrapper {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    struct AttributeTxFfeCoeff4Wrapper {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    struct AttributeTxDriverSwingWrapper {
+      std::optional<sai_attr_id_t> operator()();
+    };
+
+    // Rx Attributes
+    struct AttributeRxInstgBoost1StartWrapper {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    struct AttributeRxInstgBoost1StepWrapper {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    struct AttributeRxInstgBoost1StopWrapper {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    struct AttributeRxInstgBoost2OrHrStartWrapper {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    struct AttributeRxInstgBoost2OrHrStepWrapper {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    struct AttributeRxInstgBoost2OrHrStopWrapper {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    struct AttributeRxInstgC1Start1p7Wrapper {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    struct AttributeRxInstgC1Step1p7Wrapper {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    struct AttributeRxInstgC1Stop1p7Wrapper {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    struct AttributeRxInstgDfeStart1p7Wrapper {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    struct AttributeRxInstgDfeStep1p7Wrapper {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    struct AttributeRxInstgDfeStop1p7Wrapper {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    struct AttributeRxEnableScanSelectionWrapper {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    struct AttributeRxInstgScanUseSrSettingsWrapper {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    struct AttributeRxCdrCfgOvEnWrapper {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    struct AttributeRxCdrTdet1stOrdStepOvValWrapper {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    struct AttributeRxCdrTdet2ndOrdStepOvValWrapper {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    struct AttributeRxCdrTdetFineStepOvValWrapper {
+      std::optional<sai_attr_id_t> operator()();
+    };
+
+    using TxDiffEncoderEn = SaiExtensionAttribute<
+        std::vector<sai_int32_t>,
+        AttributeTxDiffEncoderEnWrapper>;
+    using TxDigGain = SaiExtensionAttribute<
+        std::vector<sai_int32_t>,
+        AttributeTxDigGainWrapper>;
+    using TxFfeCoeff0 = SaiExtensionAttribute<
+        std::vector<sai_int32_t>,
+        AttributeTxFfeCoeff0Wrapper>;
+    using TxFfeCoeff1 = SaiExtensionAttribute<
+        std::vector<sai_int32_t>,
+        AttributeTxFfeCoeff1Wrapper>;
+    using TxFfeCoeff2 = SaiExtensionAttribute<
+        std::vector<sai_int32_t>,
+        AttributeTxFfeCoeff2Wrapper>;
+    using TxFfeCoeff3 = SaiExtensionAttribute<
+        std::vector<sai_int32_t>,
+        AttributeTxFfeCoeff3Wrapper>;
+    using TxFfeCoeff4 = SaiExtensionAttribute<
+        std::vector<sai_int32_t>,
+        AttributeTxFfeCoeff4Wrapper>;
+    using TxDriverSwing = SaiExtensionAttribute<
+        std::vector<sai_int32_t>,
+        AttributeTxDriverSwingWrapper>;
+
+    using RxInstgBoost1Start = SaiExtensionAttribute<
+        std::vector<sai_int32_t>,
+        AttributeRxInstgBoost1StartWrapper>;
+    using RxInstgBoost1Step = SaiExtensionAttribute<
+        std::vector<sai_int32_t>,
+        AttributeRxInstgBoost1StepWrapper>;
+    using RxInstgBoost1Stop = SaiExtensionAttribute<
+        std::vector<sai_int32_t>,
+        AttributeRxInstgBoost1StopWrapper>;
+    using RxInstgBoost2OrHrStart = SaiExtensionAttribute<
+        std::vector<sai_int32_t>,
+        AttributeRxInstgBoost2OrHrStartWrapper>;
+    using RxInstgBoost2OrHrStep = SaiExtensionAttribute<
+        std::vector<sai_int32_t>,
+        AttributeRxInstgBoost2OrHrStepWrapper>;
+    using RxInstgBoost2OrHrStop = SaiExtensionAttribute<
+        std::vector<sai_int32_t>,
+        AttributeRxInstgBoost2OrHrStopWrapper>;
+    using RxInstgC1Start1p7 = SaiExtensionAttribute<
+        std::vector<sai_int32_t>,
+        AttributeRxInstgC1Start1p7Wrapper>;
+    using RxInstgC1Step1p7 = SaiExtensionAttribute<
+        std::vector<sai_int32_t>,
+        AttributeRxInstgC1Step1p7Wrapper>;
+    using RxInstgC1Stop1p7 = SaiExtensionAttribute<
+        std::vector<sai_int32_t>,
+        AttributeRxInstgC1Stop1p7Wrapper>;
+    using RxInstgDfeStart1p7 = SaiExtensionAttribute<
+        std::vector<sai_int32_t>,
+        AttributeRxInstgDfeStart1p7Wrapper>;
+    using RxInstgDfeStep1p7 = SaiExtensionAttribute<
+        std::vector<sai_int32_t>,
+        AttributeRxInstgDfeStep1p7Wrapper>;
+    using RxInstgDfeStop1p7 = SaiExtensionAttribute<
+        std::vector<sai_int32_t>,
+        AttributeRxInstgDfeStop1p7Wrapper>;
+    using RxEnableScanSelection = SaiExtensionAttribute<
+        std::vector<sai_int32_t>,
+        AttributeRxEnableScanSelectionWrapper>;
+    using RxInstgScanUseSrSettings = SaiExtensionAttribute<
+        std::vector<sai_int32_t>,
+        AttributeRxInstgScanUseSrSettingsWrapper>;
+    using RxCdrCfgOvEn = SaiExtensionAttribute<
+        std::vector<sai_int32_t>,
+        AttributeRxCdrCfgOvEnWrapper>;
+    using RxCdrTdet1stOrdStepOvVal = SaiExtensionAttribute<
+        std::vector<sai_int32_t>,
+        AttributeRxCdrTdet1stOrdStepOvValWrapper>;
+    using RxCdrTdet2ndOrdStepOvVal = SaiExtensionAttribute<
+        std::vector<sai_int32_t>,
+        AttributeRxCdrTdet2ndOrdStepOvValWrapper>;
+    using RxCdrTdetFineStepOvVal = SaiExtensionAttribute<
+        std::vector<sai_int32_t>,
+        AttributeRxCdrTdetFineStepOvValWrapper>;
   };
   using AdapterKey = PortSerdesSaiId;
   using AdapterHostKey = Attributes::PortId;
@@ -791,7 +952,33 @@ struct SaiPortSerdesTraits {
       std::optional<Attributes::RxDspMode>,
       std::optional<Attributes::RxAfeTrim>,
       std::optional<Attributes::RxAcCouplingByPass>,
-      std::optional<Attributes::RxAfeAdaptiveEnable>>;
+      std::optional<Attributes::RxAfeAdaptiveEnable>,
+      std::optional<Attributes::TxDiffEncoderEn>,
+      std::optional<Attributes::TxDigGain>,
+      std::optional<Attributes::TxFfeCoeff0>,
+      std::optional<Attributes::TxFfeCoeff1>,
+      std::optional<Attributes::TxFfeCoeff2>,
+      std::optional<Attributes::TxFfeCoeff3>,
+      std::optional<Attributes::TxFfeCoeff4>,
+      std::optional<Attributes::TxDriverSwing>,
+      std::optional<Attributes::RxInstgBoost1Start>,
+      std::optional<Attributes::RxInstgBoost1Step>,
+      std::optional<Attributes::RxInstgBoost1Stop>,
+      std::optional<Attributes::RxInstgBoost2OrHrStart>,
+      std::optional<Attributes::RxInstgBoost2OrHrStep>,
+      std::optional<Attributes::RxInstgBoost2OrHrStop>,
+      std::optional<Attributes::RxInstgC1Start1p7>,
+      std::optional<Attributes::RxInstgC1Step1p7>,
+      std::optional<Attributes::RxInstgC1Stop1p7>,
+      std::optional<Attributes::RxInstgDfeStart1p7>,
+      std::optional<Attributes::RxInstgDfeStep1p7>,
+      std::optional<Attributes::RxInstgDfeStop1p7>,
+      std::optional<Attributes::RxEnableScanSelection>,
+      std::optional<Attributes::RxInstgScanUseSrSettings>,
+      std::optional<Attributes::RxCdrCfgOvEn>,
+      std::optional<Attributes::RxCdrTdet1stOrdStepOvVal>,
+      std::optional<Attributes::RxCdrTdet2ndOrdStepOvVal>,
+      std::optional<Attributes::RxCdrTdetFineStepOvVal>>;
 };
 
 SAI_ATTRIBUTE_NAME(PortSerdes, PortId);
@@ -810,6 +997,32 @@ SAI_ATTRIBUTE_NAME(PortSerdes, RxDspMode);
 SAI_ATTRIBUTE_NAME(PortSerdes, RxAfeTrim);
 SAI_ATTRIBUTE_NAME(PortSerdes, RxAcCouplingByPass);
 SAI_ATTRIBUTE_NAME(PortSerdes, RxAfeAdaptiveEnable);
+SAI_ATTRIBUTE_NAME(PortSerdes, TxDiffEncoderEn);
+SAI_ATTRIBUTE_NAME(PortSerdes, TxDigGain);
+SAI_ATTRIBUTE_NAME(PortSerdes, TxFfeCoeff0);
+SAI_ATTRIBUTE_NAME(PortSerdes, TxFfeCoeff1);
+SAI_ATTRIBUTE_NAME(PortSerdes, TxFfeCoeff2);
+SAI_ATTRIBUTE_NAME(PortSerdes, TxFfeCoeff3);
+SAI_ATTRIBUTE_NAME(PortSerdes, TxFfeCoeff4);
+SAI_ATTRIBUTE_NAME(PortSerdes, TxDriverSwing);
+SAI_ATTRIBUTE_NAME(PortSerdes, RxInstgBoost1Start);
+SAI_ATTRIBUTE_NAME(PortSerdes, RxInstgBoost1Step);
+SAI_ATTRIBUTE_NAME(PortSerdes, RxInstgBoost1Stop);
+SAI_ATTRIBUTE_NAME(PortSerdes, RxInstgBoost2OrHrStart);
+SAI_ATTRIBUTE_NAME(PortSerdes, RxInstgBoost2OrHrStep);
+SAI_ATTRIBUTE_NAME(PortSerdes, RxInstgBoost2OrHrStop);
+SAI_ATTRIBUTE_NAME(PortSerdes, RxInstgC1Start1p7);
+SAI_ATTRIBUTE_NAME(PortSerdes, RxInstgC1Step1p7);
+SAI_ATTRIBUTE_NAME(PortSerdes, RxInstgC1Stop1p7);
+SAI_ATTRIBUTE_NAME(PortSerdes, RxInstgDfeStart1p7);
+SAI_ATTRIBUTE_NAME(PortSerdes, RxInstgDfeStep1p7);
+SAI_ATTRIBUTE_NAME(PortSerdes, RxInstgDfeStop1p7);
+SAI_ATTRIBUTE_NAME(PortSerdes, RxEnableScanSelection);
+SAI_ATTRIBUTE_NAME(PortSerdes, RxInstgScanUseSrSettings);
+SAI_ATTRIBUTE_NAME(PortSerdes, RxCdrCfgOvEn);
+SAI_ATTRIBUTE_NAME(PortSerdes, RxCdrTdet1stOrdStepOvVal);
+SAI_ATTRIBUTE_NAME(PortSerdes, RxCdrTdet2ndOrdStepOvVal);
+SAI_ATTRIBUTE_NAME(PortSerdes, RxCdrTdetFineStepOvVal);
 
 struct SaiPortConnectorTraits {
   static constexpr sai_object_type_t ObjectType =

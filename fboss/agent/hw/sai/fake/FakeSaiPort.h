@@ -123,6 +123,32 @@ struct FakePortSerdes {
   std::vector<int32_t> rxAfeTrim;
   std::vector<int32_t> rxCouplingByPass;
   std::vector<int32_t> rxAfeTrimAdaptiveEnable;
+  std::vector<int32_t> txDiffEncoderEn;
+  std::vector<int32_t> txDigGain;
+  std::vector<int32_t> txFfeCoeff0;
+  std::vector<int32_t> txFfeCoeff1;
+  std::vector<int32_t> txFfeCoeff2;
+  std::vector<int32_t> txFfeCoeff3;
+  std::vector<int32_t> txFfeCoeff4;
+  std::vector<int32_t> txDriverSwing;
+  std::vector<int32_t> rxInstgBoost1Start;
+  std::vector<int32_t> rxInstgBoost1Step;
+  std::vector<int32_t> rxInstgBoost1Stop;
+  std::vector<int32_t> rxInstgBoost2OrHrStart;
+  std::vector<int32_t> rxInstgBoost2OrHrStep;
+  std::vector<int32_t> rxInstgBoost2OrHrStop;
+  std::vector<int32_t> rxInstgC1Start1p7;
+  std::vector<int32_t> rxInstgC1Step1p7;
+  std::vector<int32_t> rxInstgC1Stop1p7;
+  std::vector<int32_t> rxInstgDfeStart1p7;
+  std::vector<int32_t> rxInstgDfeStep1p7;
+  std::vector<int32_t> rxInstgDfeStop1p7;
+  std::vector<int32_t> rxEnableScanSelection;
+  std::vector<int32_t> rxInstgScanUseSrSettings;
+  std::vector<int32_t> rxCdrCfgOvEn;
+  std::vector<int32_t> rxCdrTdet1stOrdStepOvVal;
+  std::vector<int32_t> rxCdrTdet2ndOrdStepOvVal;
+  std::vector<int32_t> rxCdrTdetFineStepOvVal;
 };
 
 struct FakePortConnector {
