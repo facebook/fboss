@@ -454,6 +454,7 @@ cpp_library(
         "//fboss/agent:fboss-types",
         "//fboss/agent:switch_config-cpp2-types",
         "//fboss/agent:utils",
+        "//fboss/agent/hw:hardware_stats-cpp2-types",
     ],
 )
 
