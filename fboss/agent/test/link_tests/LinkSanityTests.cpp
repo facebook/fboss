@@ -235,7 +235,7 @@ TEST_F(LinkSanityTestDataPlaneFlood, ptpEnableIsHitless) {
 TEST_F(LinkTest, opticsTxDisableRandomPorts) {
   auto [opticalPorts, opticalPortNames] = getOpticalCabledPortsAndNames();
   EXPECT_FALSE(opticalPorts.empty())
-      << "opticsTxDisableEnable: Did not detect any optical transceivers";
+      << "opticsTxDisableRandomPorts: Did not detect any optical transceivers";
 
   auto connectedPairPortIds = getConnectedOpticalPortPairWithFeature(
       TransceiverFeature::TX_DISABLE, phy::Side::LINE);
@@ -293,7 +293,8 @@ TEST_F(LinkTest, opticsTxDisableRandomPorts) {
   // 4. Verify all Expected Down ports from step 2 go Down
   EXPECT_NO_THROW(waitForLinkStatus(expectedDownPorts, false));
   XLOG(DBG2) << fmt::format(
-      "opticsTxDisableEnable: link Tx disabled for {:s}", disabledPortNames);
+      "opticsTxDisableRandomPorts: link Tx disabled for {:s}",
+      disabledPortNames);
 
   // 5. Verify thet expected Up ports (all optical ports - expected Down ports)
   // keep
@@ -314,7 +315,8 @@ TEST_F(LinkTest, opticsTxDisableRandomPorts) {
   // 7. Make sure all the ports are Up again
   EXPECT_NO_THROW(waitForLinkStatus(opticalPorts, true));
   XLOG(DBG2) << fmt::format(
-      "opticsTxDisableEnable: link Tx enabled for {:s}", disabledPortNames);
+      "opticsTxDisableRandomPorts: link Tx enabled for {:s}",
+      disabledPortNames);
 }
 
 TEST_F(LinkTest, opticsTxDisableEnable) {
