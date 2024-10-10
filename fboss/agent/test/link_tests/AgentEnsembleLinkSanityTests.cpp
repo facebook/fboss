@@ -42,6 +42,14 @@ bool isEqual(
       getChannelId(left) == getChannelId(right) &&
       getChannels(left) == getChannels(right);
 }
+
+// For some reason this flag always evaluates as false if we hardcode the string
+// So return it from a function instead
+const std::string qsfpUtilPrefix() {
+  return FLAGS_multi_npu_platform_mapping
+      ? "wedge_qsfp_util --multi-npu-platform-mapping "
+      : "wedge_qsfp_util ";
+}
 } // namespace
 
 class AgentEnsembleLinkSanityTestDataPlaneFlood : public AgentEnsembleLinkTest {
@@ -275,7 +283,7 @@ TEST_F(AgentEnsembleLinkTest, opticsTxDisableRandomPorts) {
 
   // 3. Disable the randomly selected port from step 1
   const std::string txDisableCmd =
-      "wedge_qsfp_util " + disabledPortNames + " --tx_disable";
+      qsfpUtilPrefix() + disabledPortNames + " --tx_disable";
   XLOG(DBG2) << fmt::format(
       "opticsTxDisableRandomPorts: Disabling ports using command: {:s}",
       txDisableCmd);
@@ -296,7 +304,7 @@ TEST_F(AgentEnsembleLinkTest, opticsTxDisableRandomPorts) {
 
   // 6. Enable the randomly selected port from step 1
   const std::string txEnableCmd =
-      "wedge_qsfp_util " + disabledPortNames + " --tx_enable";
+      qsfpUtilPrefix() + disabledPortNames + " --tx_enable";
   XLOG(DBG2) << fmt::format(
       "opticsTxDisableRandomPorts: Enabling ports using command: {:s}",
       txEnableCmd);
@@ -317,7 +325,7 @@ TEST_F(AgentEnsembleLinkTest, opticsTxDisableEnable) {
       << "opticsTxDisableEnable: Did not detect any optical transceivers";
 
   if (!opticalPorts.empty()) {
-    opticalPortNames = "wedge_qsfp_util " + opticalPortNames;
+    opticalPortNames = qsfpUtilPrefix() + opticalPortNames;
     const std::string txDisableCmd = opticalPortNames + "--tx-disable";
 
     XLOG(DBG2) << "opticsTxDisableEnable: About to execute cmd: "
@@ -375,7 +383,7 @@ TEST_F(AgentEnsembleLinkTest, testOpticsRemediation) {
     }
 
     const std::string txDisableCmd =
-        "wedge_qsfp_util " + disabledPortNames + " --tx-disable";
+        qsfpUtilPrefix() + disabledPortNames + " --tx-disable";
     // @lint-ignore CLANGTIDY
     folly::Subprocess(txDisableCmd).waitChecked();
 
