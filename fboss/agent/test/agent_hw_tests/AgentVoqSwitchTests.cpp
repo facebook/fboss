@@ -1907,6 +1907,73 @@ TEST_F(AgentVoqSwitchWithMultipleDsfNodesTest, voqTailDropCounter) {
   verifyAcrossWarmBoots(setup, verify);
 };
 
+TEST_F(
+    AgentVoqSwitchWithMultipleDsfNodesTest,
+    sendPktsToRemoteUnresolvedNeighbor) {
+  auto constexpr kRemotePortId = 401;
+  const SystemPortID kRemoteSysPortId(kRemotePortId);
+  auto setup = [=, this]() {
+    // in addRemoteIntfNodeCfg, we use numCores to calculate the remoteSwitchId
+    // keeping remote switch id passed below in sync with it
+    int numCores =
+        utility::checkSameAndGetAsic(getAgentEnsemble()->getL3Asics())
+            ->getNumCores();
+    applyNewState([&](const std::shared_ptr<SwitchState>& in) {
+      return utility::addRemoteSysPort(
+          in,
+          scopeResolver(),
+          kRemoteSysPortId,
+          static_cast<SwitchID>(
+              numCores * getAgentEnsemble()->getNumL3Asics()));
+    });
+    const InterfaceID kIntfId(kRemotePortId);
+    applyNewState([&](const std::shared_ptr<SwitchState>& in) {
+      return utility::addRemoteInterface(
+          in,
+          scopeResolver(),
+          kIntfId,
+          {
+              {folly::IPAddress("100::1"), 64},
+              {folly::IPAddress("100.0.0.1"), 24},
+          });
+    });
+  };
+
+  auto verify = [=, this]() {
+    PortID portId = masterLogicalInterfacePortIds()[0];
+    folly::IPAddressV6 kNeighborIp("100::2");
+    auto portStatsBefore = getLatestPortStats(portId);
+    auto switchDropStatsBefore = getAggregatedSwitchDropStats();
+    sendPacket(kNeighborIp, portId);
+    WITH_RETRIES({
+      auto portStatsAfter = getLatestPortStats(portId);
+      auto switchDropStatsAfter = getAggregatedSwitchDropStats();
+      EXPECT_EVENTUALLY_EQ(
+          1,
+          *portStatsAfter.inDiscardsRaw_() - *portStatsBefore.inDiscardsRaw_());
+      EXPECT_EVENTUALLY_EQ(
+          1,
+          *portStatsAfter.inDstNullDiscards_() -
+              *portStatsBefore.inDstNullDiscards_());
+      EXPECT_EVENTUALLY_EQ(
+          *portStatsAfter.inDiscardsRaw_(),
+          *portStatsAfter.inDstNullDiscards_());
+      EXPECT_EVENTUALLY_EQ(
+          *switchDropStatsAfter.ingressPacketPipelineRejectDrops() -
+              *switchDropStatsBefore.ingressPacketPipelineRejectDrops(),
+          1);
+      // Pipeline reject drop, not a queue resolution drop,
+      // which happens say when a pkt comes in with a non router
+      // MAC
+      EXPECT_EQ(
+          *switchDropStatsAfter.queueResolutionDrops() -
+              *switchDropStatsBefore.queueResolutionDrops(),
+          0);
+    });
+  };
+  verifyAcrossWarmBoots(setup, verify);
+};
+
 TEST_F(AgentVoqSwitchWithMultipleDsfNodesTest, verifyDscpToVoqMapping) {
   folly::IPAddressV6 kNeighborIp("100::2");
   auto constexpr remotePortId = 401;
