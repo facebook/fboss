@@ -134,3 +134,9 @@ DEFINE_bool(
     enable_balanced_intput_mode,
     true,
     "Enable balanced input mode on fabric devices");
+
+DEFINE_int32(
+    hw_agent_connection_timeout_ms,
+    0,
+    "Time to wait for HwSwitch to connect before SwSwitch exits. "
+    "By default, SwSwitch waits forever and hence default value is 0.");

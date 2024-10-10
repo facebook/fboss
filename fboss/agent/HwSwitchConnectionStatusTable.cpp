@@ -64,10 +64,21 @@ bool HwSwitchConnectionStatusTable::waitUntilHwSwitchConnected() {
   if (!connectedSwitches_.empty()) {
     return true;
   }
-  hwSwitchConnectedCV_.wait(lk, [this] {
-    return !connectedSwitches_.empty() || connectionWaitCancelled_;
-  });
-  return !connectionWaitCancelled_;
+  if (FLAGS_hw_agent_connection_timeout_ms != 0) {
+    hwSwitchConnectedCV_.wait_for(
+        lk,
+        std::chrono::milliseconds(FLAGS_hw_agent_connection_timeout_ms),
+        [this] {
+          return !connectedSwitches_.empty() || connectionWaitCancelled_;
+        });
+    return !connectedSwitches_.empty() && !connectionWaitCancelled_;
+  } else {
+    // Wait forever for HwSwitch to connect
+    hwSwitchConnectedCV_.wait(lk, [this] {
+      return !connectedSwitches_.empty() || connectionWaitCancelled_;
+    });
+    return !connectionWaitCancelled_;
+  }
 }
 
 void HwSwitchConnectionStatusTable::cancelWait() {
