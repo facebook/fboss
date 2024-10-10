@@ -42,17 +42,6 @@ struct Thresholds {
   6: optional double lowerCriticalVal;
 }
 
-struct Sensor {
-  // Sysfs path
-  1: string path;
-  // Contains the manufacture provided threshold values
-  2: optional Thresholds thresholds;
-  // Compute method, same format and calculation approach as lm_sensor, e.g. @*0.1
-  3: optional string compute;
-  // contain various sensor type
-  4: SensorType type;
-}
-
 // `PmSensor`: Describes a sensor in PmUnit.
 //
 // `name`: Name of the sensor. This isn't neccessarily same as PmUnitScopedName in PM config.
@@ -107,12 +96,7 @@ struct PmUnitSensors {
   4: list<VersionedPmSensor> versionedSensors;
 }
 
-typedef string SensorName
-typedef map<SensorName, Sensor> sensorMap
-typedef string FruName
-
 // The configuration for sensor mapping.
 struct SensorConfig {
   1: list<PmUnitSensors> pmUnitSensorsList;
-  2: map<FruName, sensorMap> sensorMapList;
 }
