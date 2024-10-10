@@ -84,5 +84,21 @@ std::vector<ExtendedOperPath> PathHelpers::toExtendedOperPath(
   }
   return extPaths;
 }
+std::map<SubscriptionKey, ExtendedOperPath> toMappedExtendedOperPath(
+    const std::vector<std::vector<std::string>>& paths) {
+  std::map<SubscriptionKey, ExtendedOperPath> result;
+  for (size_t i = 0; i < paths.size(); i++) {
+    auto path = paths[i];
+    ExtendedOperPath extPath;
+    extPath.path()->reserve(path.size());
+    for (const auto& pathElm : path) {
+      OperPathElem operPathElm;
+      operPathElm.raw_ref() = pathElm;
+      extPath.path()->push_back(std::move(operPathElm));
+    }
+    result[i] = std::move(extPath);
+  }
+  return result;
+}
 
 } // namespace facebook::fboss::fsdb
