@@ -35,9 +35,6 @@ cpp_library(
         "//folly:string",
         "//folly/logging:logging",
     ],
-    exported_external_deps = [
-        ("libgpiod", None, "gpiod"),
-    ],
 )
 
 cpp_library(
