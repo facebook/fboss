@@ -191,6 +191,11 @@ struct RxSettings {
   33: optional i32 cdrTdetFineStepOvVal;
   34: optional i32 ldoBypass;
   35: optional i32 ffeLengthBitmap;
+  36: optional i32 instgEnableScan;
+  37: optional i32 dcwEn;
+  38: optional i32 dcwStepCoarseOvVal;
+  39: optional i32 dcwStepFineOvVal;
+  40: optional i32 dcwOvEn;
 }
 
 struct LaneMap {

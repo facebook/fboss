@@ -5300,7 +5300,12 @@ std::pair<strings::cdrTdet1stOrdStepOvVal, Child<::std::int32_t, ::apache::thrif
 std::pair<strings::cdrTdet2ndOrdStepOvVal, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
 std::pair<strings::cdrTdetFineStepOvVal, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
 std::pair<strings::ldoBypass, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
-std::pair<strings::ffeLengthBitmap, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>>;
+std::pair<strings::ffeLengthBitmap, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
+std::pair<strings::instgEnableScan, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
+std::pair<strings::dcwEn, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
+std::pair<strings::dcwStepCoarseOvVal, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
+std::pair<strings::dcwStepFineOvVal, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
+std::pair<strings::dcwOvEn, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>>;
   using ChildrenById = fatal::tuple<   std::pair<std::integral_constant<apache::thrift::field_id_t, 1>, Child<::std::int16_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i16_t>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 2>, Child<::std::int16_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i16_t>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 3>, Child<::std::int16_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i16_t>>,
@@ -5335,7 +5340,12 @@ std::pair<strings::ffeLengthBitmap, Child<::std::int32_t, ::apache::thrift::type
    std::pair<std::integral_constant<apache::thrift::field_id_t, 32>, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 33>, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 34>, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
-   std::pair<std::integral_constant<apache::thrift::field_id_t, 35>, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>>;
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 35>, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 36>, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 37>, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 38>, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 39>, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 40>, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>>;
   template <typename Name>
   using NameToId = fatal::tuple<std::pair<strings::ctlCode, std::integral_constant<apache::thrift::field_id_t, 1>>,
 std::pair<strings::dspMode, std::integral_constant<apache::thrift::field_id_t, 2>>,
@@ -5371,7 +5381,12 @@ std::pair<strings::cdrTdet1stOrdStepOvVal, std::integral_constant<apache::thrift
 std::pair<strings::cdrTdet2ndOrdStepOvVal, std::integral_constant<apache::thrift::field_id_t, 32>>,
 std::pair<strings::cdrTdetFineStepOvVal, std::integral_constant<apache::thrift::field_id_t, 33>>,
 std::pair<strings::ldoBypass, std::integral_constant<apache::thrift::field_id_t, 34>>,
-std::pair<strings::ffeLengthBitmap, std::integral_constant<apache::thrift::field_id_t, 35>>>::template type_of<Name>;
+std::pair<strings::ffeLengthBitmap, std::integral_constant<apache::thrift::field_id_t, 35>>,
+std::pair<strings::instgEnableScan, std::integral_constant<apache::thrift::field_id_t, 36>>,
+std::pair<strings::dcwEn, std::integral_constant<apache::thrift::field_id_t, 37>>,
+std::pair<strings::dcwStepCoarseOvVal, std::integral_constant<apache::thrift::field_id_t, 38>>,
+std::pair<strings::dcwStepFineOvVal, std::integral_constant<apache::thrift::field_id_t, 39>>,
+std::pair<strings::dcwOvEn, std::integral_constant<apache::thrift::field_id_t, 40>>>::template type_of<Name>;
 
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
@@ -5412,6 +5427,11 @@ std::pair<strings::ffeLengthBitmap, std::integral_constant<apache::thrift::field
     STRUCT_CHILD_GETTERS(cdrTdetFineStepOvVal, 33);
     STRUCT_CHILD_GETTERS(ldoBypass, 34);
     STRUCT_CHILD_GETTERS(ffeLengthBitmap, 35);
+    STRUCT_CHILD_GETTERS(instgEnableScan, 36);
+    STRUCT_CHILD_GETTERS(dcwEn, 37);
+    STRUCT_CHILD_GETTERS(dcwStepCoarseOvVal, 38);
+    STRUCT_CHILD_GETTERS(dcwStepFineOvVal, 39);
+    STRUCT_CHILD_GETTERS(dcwOvEn, 40);
 
   template <apache::thrift::field_id_t __id>
   auto operator()(const std::integral_constant<apache::thrift::field_id_t, __id>&) {
@@ -5450,6 +5470,11 @@ std::pair<strings::ffeLengthBitmap, std::integral_constant<apache::thrift::field
     else if constexpr (__id == 33) { return cdrTdetFineStepOvVal(); }
     else if constexpr (__id == 34) { return ldoBypass(); }
     else if constexpr (__id == 35) { return ffeLengthBitmap(); }
+    else if constexpr (__id == 36) { return instgEnableScan(); }
+    else if constexpr (__id == 37) { return dcwEn(); }
+    else if constexpr (__id == 38) { return dcwStepCoarseOvVal(); }
+    else if constexpr (__id == 39) { return dcwStepFineOvVal(); }
+    else if constexpr (__id == 40) { return dcwOvEn(); }
   }
 
   template <typename T, T... Values>
