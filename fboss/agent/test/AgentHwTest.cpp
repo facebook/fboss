@@ -90,6 +90,8 @@ void AgentHwTest::setCmdLineFlagOverrides() const {
   FLAGS_detect_wrong_fabric_connections = false;
   // Disable DSF subscription on single-box test
   FLAGS_dsf_subscribe = false;
+  // Set HW agent connection timeout to 120 seconds
+  FLAGS_hw_agent_connection_timeout_ms = 120000;
 }
 
 void AgentHwTest::TearDown() {
