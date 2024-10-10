@@ -52,17 +52,9 @@ bool sensorReadOk(const std::string& sensorName) {
 TEST_F(SensorServiceHwTest, GetAllSensors) {
   auto res = getSensors(std::vector<std::string>{});
   std::vector<std::string> sensorNames;
-  if (sensorConfig_.pmUnitSensorsList()->empty()) {
-    for (const auto& [fruName, sensorMap] : *sensorConfig_.sensorMapList()) {
-      for (const auto& [sensorName, sensor] : sensorMap) {
-        sensorNames.push_back(sensorName);
-      }
-    }
-  } else {
-    for (const auto& pmUnitSensors : *sensorConfig_.pmUnitSensorsList()) {
-      for (const auto& sensor : *pmUnitSensors.sensors()) {
-        sensorNames.push_back(*sensor.name());
-      }
+  for (const auto& pmUnitSensors : *sensorConfig_.pmUnitSensorsList()) {
+    for (const auto& sensor : *pmUnitSensors.sensors()) {
+      sensorNames.push_back(*sensor.name());
     }
   }
   EXPECT_EQ(sensorNames.size(), res.sensorData()->size());
@@ -87,17 +79,9 @@ TEST_F(SensorServiceHwTest, GetBogusSensor) {
 
 TEST_F(SensorServiceHwTest, GetSomeSensors) {
   std::vector<std::string> sensorNames;
-  if (sensorConfig_.pmUnitSensorsList()->empty()) {
-    for (const auto& [fruName, sensorMap] : *sensorConfig_.sensorMapList()) {
-      if (sensorMap.size() > 0) {
-        sensorNames.push_back(sensorMap.begin()->first);
-      }
-    }
-  } else {
-    for (const auto& pmUnitSensors : *sensorConfig_.pmUnitSensorsList()) {
-      if (pmUnitSensors.sensors()->size() > 0) {
-        sensorNames.push_back(*pmUnitSensors.sensors()->front().name());
-      }
+  for (const auto& pmUnitSensors : *sensorConfig_.pmUnitSensorsList()) {
+    if (pmUnitSensors.sensors()->size() > 0) {
+      sensorNames.push_back(*pmUnitSensors.sensors()->front().name());
     }
   }
 
@@ -146,17 +130,9 @@ TEST_F(SensorServiceHwTest, GetSomeSensors) {
 
 TEST_F(SensorServiceHwTest, GetSomeSensorsViaThrift) {
   std::vector<std::string> sensorNames;
-  if (sensorConfig_.pmUnitSensorsList()->empty()) {
-    for (const auto& [fruName, sensorMap] : *sensorConfig_.sensorMapList()) {
-      if (sensorMap.size() > 0) {
-        sensorNames.push_back(sensorMap.begin()->first);
-      }
-    }
-  } else {
-    for (const auto& pmUnitSensors : *sensorConfig_.pmUnitSensorsList()) {
-      if (pmUnitSensors.sensors()->size() > 0) {
-        sensorNames.push_back(*pmUnitSensors.sensors()->front().name());
-      }
+  for (const auto& pmUnitSensors : *sensorConfig_.pmUnitSensorsList()) {
+    if (pmUnitSensors.sensors()->size() > 0) {
+      sensorNames.push_back(*pmUnitSensors.sensors()->front().name());
     }
   }
   // Trigger a fetch before the thrift request hits the server.
