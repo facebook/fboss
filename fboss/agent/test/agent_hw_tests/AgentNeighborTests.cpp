@@ -117,6 +117,8 @@ class AgentNeighborTest : public AgentHwTest {
     if (isIntfNbrTable) {
       features.push_back(
           production_features::ProductionFeature::INTERFACE_NEIGHBOR_TABLE);
+    } else {
+      features.push_back(production_features::ProductionFeature::VLAN);
     }
     if (programToTrunk) {
       features.push_back(production_features::ProductionFeature::LAG);
