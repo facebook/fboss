@@ -1194,6 +1194,7 @@ SaiPortManager::serdesAttributesFromSwPinConfigs(
         HwAsic::AsicVendor::ASIC_VENDOR_TAJO) {
       setTxRxAttr(
           attrs, SaiPortSerdesTraits::Attributes::TxLutMode{}, txLutMode);
+#if defined(TAJO_SDK_GTE_24_4_90)
       setTxRxAttr(
           attrs,
           SaiPortSerdesTraits::Attributes::TxDiffEncoderEn{},
@@ -1284,6 +1285,7 @@ SaiPortManager::serdesAttributesFromSwPinConfigs(
           attrs,
           SaiPortSerdesTraits::Attributes::RxCdrTdetFineStepOvVal{},
           rxCdrTdetFineStepOvVal);
+#endif
     }
   }
 
