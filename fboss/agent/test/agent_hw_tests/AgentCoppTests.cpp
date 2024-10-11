@@ -1660,7 +1660,7 @@ TEST_F(AgentCoppQueueStuckTest, CpuQueueHighRateTraffic) {
 
 TEST_F(AgentCoppQosTest, HighVsLowerPriorityCpuQueueTrafficPrioritization) {
   constexpr int kReceiveRetries = 2;
-  constexpr int kHighPriorityPacketCount = 30000;
+  constexpr int kHigherPriorityPacketCount = 30000;
   constexpr int packetsPerBurst = 1000;
 
   auto setup = [=, this]() { setupEcmpDataplaneLoop(); };
@@ -1668,7 +1668,7 @@ TEST_F(AgentCoppQosTest, HighVsLowerPriorityCpuQueueTrafficPrioritization) {
   auto verify = [&]() {
     auto configIntf = folly::copy(
         *(this->initialConfig(*getAgentEnsemble())).interfaces())[1];
-    const auto ipForHighPriorityQueue =
+    const auto ipForHigherPriorityQueue =
         folly::IPAddress::createNetwork(configIntf.ipAddresses()[1], -1, false)
             .first;
     auto baseVlan = utility::firstVlanID(getProgrammedState());
@@ -1685,6 +1685,7 @@ TEST_F(AgentCoppQosTest, HighVsLowerPriorityCpuQueueTrafficPrioritization) {
     auto switchId = getSw()->getScopeResolver()->scope(portId).switchId();
     auto asic = getSw()->getHwAsicTable()->getHwAsic(switchId);
 
+    // first verify high priority traffic vs low priority traffic
     auto highPriorityCoppQueueStatsBefore =
         utility::getQueueOutPacketsWithRetry(
             getSw(),
@@ -1698,9 +1699,9 @@ TEST_F(AgentCoppQosTest, HighVsLowerPriorityCpuQueueTrafficPrioritization) {
     sendPacketBursts(
         portId,
         nextVlan,
-        kHighPriorityPacketCount,
+        kHigherPriorityPacketCount,
         packetsPerBurst,
-        ipForHighPriorityQueue,
+        ipForHigherPriorityQueue,
         utility::kNonSpecialPort1,
         utility::kBgpPort);
 
@@ -1711,11 +1712,43 @@ TEST_F(AgentCoppQosTest, HighVsLowerPriorityCpuQueueTrafficPrioritization) {
             this->masterLogicalPortIds({cfg::PortType::INTERFACE_PORT})[0]),
         utility::getCoppHighPriQueueId(asic),
         kReceiveRetries,
-        highPriorityCoppQueueStatsBefore + kHighPriorityPacketCount);
+        highPriorityCoppQueueStatsBefore + kHigherPriorityPacketCount);
 
     EXPECT_EQ(
-        kHighPriorityPacketCount,
+        kHigherPriorityPacketCount,
         highPriorityCoppQueueStatsAfter - highPriorityCoppQueueStatsBefore);
+
+    // then verify mid priority traffic vs low priority traffic
+    auto midPriorityCoppQueueStatsBefore = utility::getQueueOutPacketsWithRetry(
+        getSw(),
+        this->switchIdForPort(
+            this->masterLogicalPortIds({cfg::PortType::INTERFACE_PORT})[0]),
+        utility::getCoppMidPriQueueId(this->getAgentEnsemble()->getL3Asics()),
+        kReceiveRetries,
+        0);
+
+    // Send a fixed number of mid priority packets on port1
+    sendPacketBursts(
+        portId,
+        nextVlan,
+        kHigherPriorityPacketCount,
+        packetsPerBurst,
+        ipForHigherPriorityQueue,
+        utility::kNonSpecialPort1,
+        utility::kNonSpecialPort2);
+
+    // Check mid priority queue stats to see if all packets are received
+    auto midPriorityCoppQueueStatsAfter = utility::getQueueOutPacketsWithRetry(
+        getSw(),
+        this->switchIdForPort(
+            this->masterLogicalPortIds({cfg::PortType::INTERFACE_PORT})[0]),
+        utility::getCoppMidPriQueueId(this->getAgentEnsemble()->getL3Asics()),
+        kReceiveRetries,
+        highPriorityCoppQueueStatsBefore + kHigherPriorityPacketCount);
+
+    EXPECT_EQ(
+        kHigherPriorityPacketCount,
+        midPriorityCoppQueueStatsAfter - midPriorityCoppQueueStatsBefore);
 
     if (asic->isSupported(HwAsic::Feature::CPU_VOQ_BUFFER_PROFILE)) {
       // check watermark of low priority voq should reach max shared buffer size
