@@ -1941,18 +1941,20 @@ TEST_F(
 
   auto verify = [=, this]() {
     PortID portId = masterLogicalInterfacePortIds()[0];
-    folly::IPAddressV6 kNeighborIp("100::2");
+    folly::IPAddressV6 kNeighbor6Ip("100::2");
+    folly::IPAddressV4 kNeighbor4Ip("100.0.0.2");
     auto portStatsBefore = getLatestPortStats(portId);
     auto switchDropStatsBefore = getAggregatedSwitchDropStats();
-    sendPacket(kNeighborIp, portId);
+    sendPacket(kNeighbor6Ip, portId);
+    sendPacket(kNeighbor4Ip, portId);
     WITH_RETRIES({
       auto portStatsAfter = getLatestPortStats(portId);
       auto switchDropStatsAfter = getAggregatedSwitchDropStats();
       EXPECT_EVENTUALLY_EQ(
-          1,
+          2,
           *portStatsAfter.inDiscardsRaw_() - *portStatsBefore.inDiscardsRaw_());
       EXPECT_EVENTUALLY_EQ(
-          1,
+          2,
           *portStatsAfter.inDstNullDiscards_() -
               *portStatsBefore.inDstNullDiscards_());
       EXPECT_EVENTUALLY_EQ(
@@ -1961,7 +1963,7 @@ TEST_F(
       EXPECT_EVENTUALLY_EQ(
           *switchDropStatsAfter.ingressPacketPipelineRejectDrops() -
               *switchDropStatsBefore.ingressPacketPipelineRejectDrops(),
-          1);
+          2);
       // Pipeline reject drop, not a queue resolution drop,
       // which happens say when a pkt comes in with a non router
       // MAC
