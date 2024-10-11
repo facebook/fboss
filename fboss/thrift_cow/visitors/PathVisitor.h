@@ -18,6 +18,8 @@
 namespace facebook::fboss::thrift_cow {
 
 struct HybridNodeType;
+struct NodeType;
+struct FieldsType;
 
 namespace pv_detail {
 using PathIter = typename std::vector<std::string>::const_iterator;
@@ -29,17 +31,68 @@ using PathIter = typename std::vector<std::string>::const_iterator;
 // instantiations
 class BasePathVisitorOperator {
  public:
+  template <typename TType>
+  class SerializableReader : public Serializable {
+   public:
+    explicit SerializableReader(TType& node) : node_(node) {}
+
+    folly::IOBuf encodeBuf(fsdb::OperProtocol proto) const override {
+      folly::IOBufQueue queue;
+      switch (proto) {
+        case fsdb::OperProtocol::BINARY:
+          apache::thrift::BinarySerializer::serialize(node_, &queue);
+          break;
+        case fsdb::OperProtocol::COMPACT:
+          apache::thrift::CompactSerializer::serialize(node_, &queue);
+          break;
+        case fsdb::OperProtocol::SIMPLE_JSON:
+          apache::thrift::SimpleJSONSerializer::serialize(node_, &queue);
+          break;
+        default:
+          throw std::runtime_error(folly::to<std::string>(
+              "Unknown protocol: ", static_cast<int>(proto)));
+      }
+      return queue.moveAsValue();
+    }
+
+    void fromEncodedBuf(fsdb::OperProtocol, folly::IOBuf&&) override {}
+
+   private:
+    TType& node_;
+  };
+
   virtual ~BasePathVisitorOperator() = default;
 
   template <typename Node>
   inline void
-  visitTyped(Node& node, pv_detail::PathIter begin, pv_detail::PathIter end) {
+  visitTyped(Node& node, pv_detail::PathIter begin, pv_detail::PathIter end)
+    requires(is_cow_type_v<Node>)
+  {
     if constexpr (std::is_const_v<Node>) {
       cvisit(node, begin, end);
       cvisit(node);
     } else {
       visit(node, begin, end);
       visit(node);
+    }
+  }
+
+  template <typename Node>
+  inline void
+  visitTyped(Node& node, pv_detail::PathIter begin, pv_detail::PathIter end)
+    requires(apache::thrift::is_thrift_class_v<Node>)
+  {
+    // supporting only read-only visitation
+    CHECK(visitReadOnly_);
+
+    // Node is not a Serializable, dispatch with wrapper
+    SerializableReader wrapper(node);
+    if constexpr (std::is_const_v<Node>) {
+      cvisit(wrapper, begin, end);
+      cvisit(wrapper);
+    } else {
+      visit(wrapper, begin, end);
+      visit(wrapper);
     }
   }
 
@@ -57,6 +110,8 @@ class BasePathVisitorOperator {
       pv_detail::PathIter /* end */) {}
 
   virtual void cvisit(const Serializable& node) {}
+
+  bool visitReadOnly_ = true;
 };
 
 struct GetEncodedPathVisitorOperator : public BasePathVisitorOperator {
@@ -82,7 +137,9 @@ struct SetEncodedPathVisitorOperator : public BasePathVisitorOperator {
   SetEncodedPathVisitorOperator(
       fsdb::OperProtocol protocol,
       const folly::fbstring& val)
-      : protocol_(protocol), val_(val) {}
+      : protocol_(protocol), val_(val) {
+    visitReadOnly_ = false;
+  }
 
  protected:
   void visit(facebook::fboss::thrift_cow::Serializable& node) override {
@@ -121,9 +178,6 @@ enum class ThriftTraverseResult {
  *
  * This allows a visitor to use the remaining path tokens if needed.
  */
-
-struct NodeType;
-struct FieldsType;
 
 enum class PathVisitMode {
   /*
