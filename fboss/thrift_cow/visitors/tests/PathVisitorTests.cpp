@@ -72,12 +72,12 @@ TEST(PathVisitorTests, HybridMapAccess) {
     EXPECT_TRUE(dyn[1].asBool());
   }
   {
-    // TODO: handle traversing beyond hybrid node
     // hybridMap/1
     std::vector<std::string> path = {"hybridMap", "1"};
     auto result = RootPathVisitor::visit(
         *nodeA, path.begin(), path.end(), PathVisitMode::LEAF, processPath);
-    EXPECT_EQ(result, ThriftTraverseResult::VISITOR_EXCEPTION);
+    EXPECT_EQ(result, ThriftTraverseResult::OK);
+    // EXPECT_TRUE(dyn.asBool());
   }
 }
 #endif // __ENABLE_HYBRID_THRIFT_COW_TESTS__

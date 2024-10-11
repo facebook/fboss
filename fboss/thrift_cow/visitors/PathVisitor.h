@@ -365,8 +365,18 @@ struct PathVisitorImpl<
       if (begin == end) {
         op.visitTyped(node, begin, end);
       } else {
-        // TODO: handle traversing thrift objects in hybrid nodes
-        return ThriftTraverseResult::VISITOR_EXCEPTION;
+        // get the value based on the key
+        auto& tObj = node.ref();
+        using KeyT = typename folly::remove_cvref_t<decltype(tObj)>::key_type;
+        // Get key
+        auto token = *begin++;
+        auto key = folly::tryTo<KeyT>(token);
+        if (!key.hasValue()) {
+          return ThriftTraverseResult::INVALID_MAP_KEY;
+        }
+        auto& val = tObj.at(key.value());
+        // TODO: support operator
+        LOG(INFO) << val;
       }
       return ThriftTraverseResult::OK;
     } catch (const std::exception& ex) {
