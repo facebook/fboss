@@ -457,6 +457,10 @@ class AgentNeighborOnMultiplePortsTest : public AgentHwTest {
     return utility::onePortPerInterfaceConfig(
         ensemble.getSw(), ensemble.masterLogicalPortIds());
   }
+  folly::IPAddressV6 neighborIP(PortID port) const {
+    utility::EcmpSetupAnyNPorts6 ecmpHelper6(getProgrammedState());
+    return ecmpHelper6.ip(PortDescriptor(port));
+  }
 
   void oneNeighborPerPortSetup(const std::vector<PortID>& portIds) {
     auto cfg = initialConfig(*getAgentEnsemble());
@@ -532,9 +536,11 @@ TYPED_TEST(AgentNeighborOnMultiplePortsTest, ResolveOnTwoPorts) {
   };
   auto verify = [&]() {
     EXPECT_FALSE(this->isProgrammedToCPU(
-        this->masterLogicalInterfacePortIds()[0], folly::IPAddressV6("1::1")));
+        this->masterLogicalInterfacePortIds()[0],
+        this->neighborIP(this->masterLogicalInterfacePortIds()[0])));
     EXPECT_FALSE(this->isProgrammedToCPU(
-        this->masterLogicalInterfacePortIds()[1], folly::IPAddressV6("2::2")));
+        this->masterLogicalInterfacePortIds()[1],
+        this->neighborIP(this->masterLogicalInterfacePortIds()[1])));
   };
   this->verifyAcrossWarmBoots(setup, verify);
 }
