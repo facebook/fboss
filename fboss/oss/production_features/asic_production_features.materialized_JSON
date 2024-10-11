@@ -27,7 +27,8 @@
         38,
         39,
         41,
-        40
+        40,
+        44
     ],
     "jericho2": [
         2,
@@ -112,7 +113,8 @@
         35,
         36,
         37,
-        41
+        41,
+        44
     ],
     "tomahawk3": [
         2,
@@ -148,7 +150,8 @@
         38,
         39,
         40,
-        42
+        42,
+        44
     ],
     "tomahawk4": [
         2,
@@ -183,7 +186,8 @@
         39,
         40,
         42,
-        43
+        43,
+        44
     ],
     "tomahawk5": [
         2,
@@ -216,7 +220,8 @@
         38,
         39,
         40,
-        42
+        42,
+        44
     ],
     "yuba": [
         2,
@@ -246,7 +251,8 @@
         40,
         7,
         25,
-        42
+        42,
+        44
     ]
   },
   "asicToFeatureNames": {
@@ -277,7 +283,8 @@
         "HGRID_DU_ROUTE_SCALE",
         "HGRID_UU_ROUTE_SCALE",
         "TH_ALPM_ROUTE_SCALE",
-        "HUNDRED_THOUSAND_ROUTE_SCALE"
+        "HUNDRED_THOUSAND_ROUTE_SCALE",
+        "VLAN"
     ],
     "jericho2": [
         "CPU_RX_TX",
@@ -362,7 +369,8 @@
         "EGRESS_MIRRORING",
         "RSW_ROUTE_SCALE",
         "FSW_ROUTE_SCALE",
-        "TH_ALPM_ROUTE_SCALE"
+        "TH_ALPM_ROUTE_SCALE",
+        "VLAN"
     ],
     "tomahawk3": [
         "CPU_RX_TX",
@@ -398,7 +406,8 @@
         "HGRID_DU_ROUTE_SCALE",
         "HGRID_UU_ROUTE_SCALE",
         "HUNDRED_THOUSAND_ROUTE_SCALE",
-        "PFC"
+        "PFC",
+        "VLAN"
     ],
     "tomahawk4": [
         "CPU_RX_TX",
@@ -433,7 +442,8 @@
         "HGRID_UU_ROUTE_SCALE",
         "HUNDRED_THOUSAND_ROUTE_SCALE",
         "PFC",
-        "UDF_WR_IMMEDIATE_ACL"
+        "UDF_WR_IMMEDIATE_ACL",
+        "VLAN"
     ],
     "tomahawk5": [
         "CPU_RX_TX",
@@ -466,7 +476,8 @@
         "HGRID_DU_ROUTE_SCALE",
         "HGRID_UU_ROUTE_SCALE",
         "HUNDRED_THOUSAND_ROUTE_SCALE",
-        "PFC"
+        "PFC",
+        "VLAN"
     ],
     "yuba": [
         "CPU_RX_TX",
@@ -496,7 +507,8 @@
         "HUNDRED_THOUSAND_ROUTE_SCALE",
         "PRBS",
         "MAC_LEARNING",
-        "PFC"
+        "PFC",
+        "VLAN"
     ]
   }
 }
