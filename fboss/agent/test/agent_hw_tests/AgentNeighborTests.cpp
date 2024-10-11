@@ -481,8 +481,7 @@ class AgentNeighborOnMultiplePortsTest : public AgentHwTest {
       this->applyNewState([&](const std::shared_ptr<SwitchState>& in) {
         utility::EcmpSetupAnyNPorts6 ecmpHelper6(
             in, utility::MacAddressGenerator().get(dstMac.u64NBO() + idx + 1));
-        return ecmpHelper6.resolveNextHops(
-            getProgrammedState(), {PortDescriptor(portIds[idx])});
+        return ecmpHelper6.resolveNextHops(in, {PortDescriptor(portIds[idx])});
       });
     }
 
