@@ -257,7 +257,6 @@ class AgentNeighborTest : public AgentHwTest {
           kIntfID(), NeighborT::getNeighborAddress(), *getAgentEnsemble());
       EXPECT_EVENTUALLY_TRUE(neighborInfo.classId().has_value());
       if (neighborInfo.classId().has_value()) {
-        XLOG(INFO) << " GOT CLASSID: " << neighborInfo.classId().value();
         EXPECT_EVENTUALLY_TRUE(
             programToTrunk || classID == neighborInfo.classId().value());
       }
