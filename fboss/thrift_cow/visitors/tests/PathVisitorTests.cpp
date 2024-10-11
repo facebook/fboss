@@ -86,17 +86,17 @@ TEST(PathVisitorTests, AccessFieldInContainer) {
   auto structA = createSimpleTestStruct();
   auto nodeA = std::make_shared<ThriftStructNode<TestStruct>>(structA);
 
-  cfg::L4PortRange got;
-  auto processPath = pvlambda([&got](auto& node, auto begin, auto end) {
+  folly::dynamic dyn;
+  auto processPath = pvlambda([&dyn](auto& node, auto begin, auto end) {
     EXPECT_EQ(begin, end);
-    got = facebook::thrift::from_dynamic<cfg::L4PortRange>(
-        node.toFollyDynamic(), facebook::thrift::dynamic_format::JSON_1);
+    dyn = node.toFollyDynamic();
   });
-
   std::vector<std::string> path{"mapOfEnumToStruct", "3"};
   auto result = RootPathVisitor::visit(
       *nodeA, path.begin(), path.end(), PathVisitMode::LEAF, processPath);
   EXPECT_EQ(result, ThriftTraverseResult::OK);
+  cfg::L4PortRange got = facebook::thrift::from_dynamic<cfg::L4PortRange>(
+      dyn, facebook::thrift::dynamic_format::JSON_1);
   EXPECT_EQ(*got.min(), 100);
   EXPECT_EQ(*got.max(), 200);
 
@@ -104,6 +104,8 @@ TEST(PathVisitorTests, AccessFieldInContainer) {
   result = RootPathVisitor::visit(
       *nodeA, path.begin(), path.end(), PathVisitMode::LEAF, processPath);
   EXPECT_EQ(result, ThriftTraverseResult::OK);
+  got = facebook::thrift::from_dynamic<cfg::L4PortRange>(
+      dyn, facebook::thrift::dynamic_format::JSON_1);
   EXPECT_EQ(*got.min(), 100);
   EXPECT_EQ(*got.max(), 200);
 }

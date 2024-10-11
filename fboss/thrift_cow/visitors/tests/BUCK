@@ -27,6 +27,7 @@ cpp_unittest(
     ],
     preprocessor_flags = [
         "-DENABLE_DYNAMIC_APIS",
+        # "-D__ENABLE_HYBRID_THRIFT_COW_TESTS__",
     ],
     deps = [
         "fbsource//third-party/googletest:gmock",
