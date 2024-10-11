@@ -11,8 +11,7 @@ using namespace sensor_config;
 namespace {
 // For more info, see below
 // https://github.com/facebook/fboss/blob/main/fboss/platform/platform_manager/platform_manager_config.thrift#L73
-const re2::RE2 kSlotPathRe =
-    "/(([A-Z]+(_[A-Z]+)*_SLOT@\\d+/)*[A-Z]+(_[A-Z]+)*_SLOT@\\d+$)*";
+const re2::RE2 kSlotPathRe = "/|(/([A-Z]+_)+SLOT@\\d+)+";
 } // namespace
 
 bool ConfigValidator::isValid(const SensorConfig& sensorConfig) {
