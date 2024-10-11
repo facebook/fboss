@@ -352,6 +352,17 @@ target_link_libraries(route_test_utils
   route_distribution_gen
 )
 
+add_library(pfc_test_utils
+  fboss/agent/test/utils/PfcTestUtils.cpp
+)
+
+target_link_libraries(pfc_test_utils
+  acl_test_utils
+  hardware_stats_cpp2
+  switch_config_cpp2
+  utils
+)
+
 add_library(queue_test_utils
   fboss/agent/test/utils/QueueTestUtils.cpp
 )

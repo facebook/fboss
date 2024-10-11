@@ -78,6 +78,7 @@ target_link_libraries(agent_hw_test_src
   trunk_utils
   traffic_policy_utils
   olympic_qos_utils
+  pfc_test_utils
   qos_test_utils
   queue_test_utils
   invariant_test_utils
