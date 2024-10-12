@@ -956,6 +956,11 @@ void SaiPortManager::programSerdes(
     portHandle->serdes.reset();
     serdes.reset();
   }
+  if (platform_->getAsic()->getAsicType() ==
+          cfg::AsicType::ASIC_TYPE_TOMAHAWK3 &&
+      swPort->getZeroPreemphasis()) {
+    createSerdesWithZeroPreemphasis(portHandle, swPort->getPinConfigs());
+  }
   // create if serdes doesn't exist or update existing serdes
   portHandle->serdes = store.setObject(serdesKey, serdesAttributes);
 
@@ -1378,5 +1383,35 @@ SaiPortManager::serdesAttributesFromSwPinConfigs(
         rxAcCouplingByPass);
   }
   return attrs;
+}
+
+void SaiPortManager::createSerdesWithZeroPreemphasis(
+    SaiPortHandle* portHandle,
+    const std::vector<phy::PinConfig>& pinConfigs) {
+  SaiPortSerdesTraits::CreateAttributes attributes;
+
+  auto portSaiId = portHandle->port->adapterKey();
+  std::get<SaiPortSerdesTraits::Attributes::PortId>(attributes) =
+      static_cast<sai_object_id_t>(portSaiId);
+
+  auto numExpectedTxLanes = 0;
+  for (const auto& pinConfig : pinConfigs) {
+    if (auto tx = pinConfig.tx()) {
+      ++numExpectedTxLanes;
+    }
+  }
+
+  SaiPortSerdesTraits::Attributes::Preemphasis::ValueType preemphasis;
+  preemphasis.resize(numExpectedTxLanes, 0);
+  std::get<std::optional<
+      std::decay_t<decltype(SaiPortSerdesTraits::Attributes::Preemphasis{})>>>(
+      attributes) = preemphasis;
+  SaiPortSerdesTraits::AdapterHostKey serdesKey{portSaiId};
+  auto& store = saiStore_->get<SaiPortSerdesTraits>();
+  portHandle->serdes = store.setObject(serdesKey, attributes);
+
+  // Reload attributes
+  reloadSixTapAttributes(portHandle, attributes);
+  portHandle->serdes->setAttributes(attributes, true /* skipHwWrite */);
 }
 } // namespace facebook::fboss

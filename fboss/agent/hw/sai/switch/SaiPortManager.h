@@ -425,6 +425,9 @@ class SaiPortManager {
   double calculateRate(uint32_t speed);
   void updatePrbsStatsEntryRate(const std::shared_ptr<Port>& swPort);
   void resetCableLength(PortID portId);
+  void createSerdesWithZeroPreemphasis(
+      SaiPortHandle* portHandle,
+      const std::vector<phy::PinConfig>& pinConfigs);
 
   SaiStore* saiStore_;
   SaiManagerTable* managerTable_;
