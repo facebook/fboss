@@ -21,6 +21,7 @@
 #include "fboss/agent/test/utils/MultiPortTrafficTestUtils.h"
 #include "fboss/agent/test/utils/OlympicTestUtils.h"
 #include "fboss/agent/test/utils/PacketSnooper.h"
+#include "fboss/agent/test/utils/PfcTestUtils.h"
 #include "fboss/agent/test/utils/QosTestUtils.h"
 #include "fboss/lib/CommonUtils.h"
 
@@ -538,18 +539,38 @@ class AgentSflowMirrorOnTrunkTest : public AgentSflowMirrorTruncateTest<AddrT> {
 class AgentSflowMirrorWithLineRateTrafficTest
     : public AgentSflowMirrorTest<folly::IPAddressV6> {
  public:
+  static const int kLosslessPriority{2};
   void testSflowEgressCongestion() {
-    constexpr int kNumDataTrafficPorts{4};
+    constexpr int kNumDataTrafficPorts{6};
     auto setup = [=, this]() {
+      auto allPorts = masterLogicalInterfacePortIds();
+      std::vector<PortID> portIds(
+          allPorts.begin(), allPorts.begin() + kNumDataTrafficPorts);
+      std::vector<int> losslessPgIds = {kLosslessPriority};
       auto config = initialConfig(*getAgentEnsemble());
       // Configure 1:1 sampling to ensure high rate on mirror egress port
       configSampling(config, 1);
+      // PFC buffer configurations to ensure we have lossless traffic
+      const std::map<int, int> tcToPgOverride{};
+      const utility::PfcBufferParams bufferParams{
+          .scalingFactor = cfg::MMUScalingFactor::ONE};
+      utility::setupPfcBuffers(
+          getAgentEnsemble(),
+          config,
+          portIds,
+          losslessPgIds,
+          tcToPgOverride,
+          bufferParams);
+      // Make sure that traffic is going to loop for ever!
       utility::setTTLZeroCpuConfig(getAgentEnsemble()->getL3Asics(), config);
       applyNewConfig(config);
       resolveRouteForMirrorDestination();
       utility::setupEcmpDataplaneLoopOnAllPorts(getAgentEnsemble());
       utility::createTrafficOnMultiplePorts(
-          getAgentEnsemble(), kNumDataTrafficPorts, sendPacket);
+          getAgentEnsemble(),
+          kNumDataTrafficPorts,
+          sendPacket,
+          50 /*desiredPctLineRate*/);
     };
     auto verify = [=, this]() {
       verifySflowEgressPortNotStuck();
@@ -579,26 +600,26 @@ class AgentSflowMirrorWithLineRateTrafficTest
         dstIp,
         8000, // l4 src port
         8001, // l4 dst port
-        0x24 << 2, // dscp
+        kLosslessPriority * 8 << 2, // dscp for lossless traffic
         255, // hopLimit
-        std::vector<uint8_t>(1024));
+        std::vector<uint8_t>(4500));
     // Forward the packet in the pipeline
     ensemble->getSw()->sendPacketSwitchedAsync(std::move(txPacket));
   }
 
   void verifySflowEgressPortNotStuck() {
     auto portId = getNonSflowSampledInterfacePorts();
-    EXPECT_NO_THROW(getAgentEnsemble()->waitForLineRateOnPort(portId));
+    // Check if stay above 90% of line rate
+    auto desiredRate =
+        static_cast<uint64_t>(
+            getProgrammedState()->getPorts()->getNodeIf(portId)->getSpeed()) *
+        1000 * 1000 * 0.9;
+    EXPECT_NO_THROW(
+        getAgentEnsemble()->waitForSpecificRateOnPort(portId, desiredRate));
     // Make sure that we can sustain the rate for longer duration
     constexpr int kNumberOfIterations{6};
     constexpr int kWaitPeriod{5};
     auto prevPortStats = getLatestPortStats(portId);
-    // Keep desired rate 2% lesser than line rate to allow for
-    // fluctuations.
-    auto desiredRate =
-        static_cast<uint64_t>(
-            getProgrammedState()->getPorts()->getNodeIf(portId)->getSpeed()) *
-        1000 * 1000 * 0.98;
     for (int iter = 0; iter < kNumberOfIterations; iter++) {
       sleep(kWaitPeriod);
       auto curPortStats = getLatestPortStats(portId);
