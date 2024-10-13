@@ -527,3 +527,20 @@ cpp_library(
         "//fboss/agent/hw/switch_asics:switch_asics",
     ],
 )
+
+cpp_library(
+    name = "multi_port_traffic_test_utils",
+    srcs = [
+        "MultiPortTrafficTestUtils.cpp",
+    ],
+    headers = [
+        "MultiPortTrafficTestUtils.h",
+    ],
+    exported_deps = [
+        ":qos_test_utils",
+        "//fboss/agent:utils",
+        "//fboss/agent/state:state_utils",
+        "//fboss/agent/test:agent_hw_test",
+        "//fboss/agent/test:ecmp_helper",
+    ],
+)

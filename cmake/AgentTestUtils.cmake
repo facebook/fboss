@@ -411,3 +411,13 @@ target_link_libraries(voq_test_utils
   ecmp_helper
   test_ensemble_if
 )
+
+add_library(multi_port_traffic_test_utils
+  fboss/agent/test/utils/MultiPortTrafficTestUtils.cpp
+)
+
+target_link_libraries(multi_port_traffic_test_utils
+  qos_test_utils
+  state
+  ecmp_helper
+)
