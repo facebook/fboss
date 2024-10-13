@@ -451,10 +451,10 @@ cpp_library(
     exported_deps = [
         "fbsource//third-party/googletest:gtest",
         ":acl_test_utils",
-        "//fboss/agent:fboss-types",
         "//fboss/agent:switch_config-cpp2-types",
         "//fboss/agent:utils",
         "//fboss/agent/hw:hardware_stats-cpp2-types",
+        "//fboss/agent/test:agent_hw_test",
     ],
 )
 

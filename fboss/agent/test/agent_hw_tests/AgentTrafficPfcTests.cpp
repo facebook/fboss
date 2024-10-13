@@ -370,6 +370,7 @@ class AgentTrafficPfcTest : public AgentHwTest {
         portIdsToConfigure = masterLogicalInterfacePortIds();
       }
       utility::setupPfcBuffers(
+          getAgentEnsemble(),
           cfg,
           portIdsToConfigure,
           kLosslessPgIds,
@@ -507,7 +508,12 @@ class AgentTrafficPfcWatchdogTest : public AgentTrafficPfcTest {
   void setupConfigAndEcmpTraffic(const std::vector<PortID>& portIds) {
     cfg::SwitchConfig cfg = getAgentEnsemble()->getCurrentConfig();
     utility::setupPfcBuffers(
-        cfg, portIds, kLosslessPgIds, {}, PfcBufferParams{});
+        getAgentEnsemble(),
+        cfg,
+        portIds,
+        kLosslessPgIds,
+        {},
+        PfcBufferParams{});
     applyNewConfig(cfg);
     setupEcmpTraffic(portIds);
   }
