@@ -18,6 +18,7 @@
 #include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/test/utils/CoppTestUtils.h"
 #include "fboss/agent/test/utils/MirrorTestUtils.h"
+#include "fboss/agent/test/utils/MultiPortTrafficTestUtils.h"
 #include "fboss/agent/test/utils/OlympicTestUtils.h"
 #include "fboss/agent/test/utils/PacketSnooper.h"
 #include "fboss/agent/test/utils/QosTestUtils.h"
@@ -536,6 +537,24 @@ class AgentSflowMirrorOnTrunkTest : public AgentSflowMirrorTruncateTest<AddrT> {
 
 class AgentSflowMirrorWithLineRateTrafficTest
     : public AgentSflowMirrorTest<folly::IPAddressV6> {
+ public:
+  void testSflowEgressCongestion() {
+    constexpr int kNumDataTrafficPorts{4};
+    auto setup = [=, this]() {
+      auto config = initialConfig(*getAgentEnsemble());
+      // Configure 1:1 sampling to ensure high rate on mirror egress port
+      configSampling(config, 1);
+      utility::setTTLZeroCpuConfig(getAgentEnsemble()->getL3Asics(), config);
+      applyNewConfig(config);
+      resolveRouteForMirrorDestination();
+      utility::setupEcmpDataplaneLoopOnAllPorts(getAgentEnsemble());
+      utility::createTrafficOnMultiplePorts(
+          getAgentEnsemble(), kNumDataTrafficPorts, sendPacket);
+    };
+    auto verify = [=, this]() { verifySflowEgressPortNotStuck(); };
+    verifyAcrossWarmBoots(setup, verify);
+  }
+
  private:
   static void sendPacket(
       facebook::fboss::AgentEnsemble* ensemble,
@@ -632,6 +651,10 @@ SFLOW_SAMPLING_TRUNK_TEST_V4_V6(VerifySampledPacket, {
 SFLOW_SAMPLING_TRUNK_TEST_V4_V6(VerifySampledPacketRate, {
   this->testSampledPacketRate(true);
 })
+
+TEST_F(AgentSflowMirrorWithLineRateTrafficTest, VerifySflowEgressCongestion) {
+  this->testSflowEgressCongestion();
+}
 
 TEST_F(AgentSflowMirrorTestV4, MoveToV6) {
   // Test to migrate v4 mirror to v6
