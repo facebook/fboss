@@ -10,14 +10,17 @@
 #include "fboss/agent/packet/PktFactory.h"
 #include "fboss/agent/packet/PktUtil.h"
 
+#include "fboss/agent/test/AgentEnsemble.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/ResourceLibUtil.h"
 #include "fboss/agent/test/TrunkUtils.h"
 #include "fboss/agent/test/utils/AsicUtils.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
+#include "fboss/agent/test/utils/CoppTestUtils.h"
 #include "fboss/agent/test/utils/MirrorTestUtils.h"
 #include "fboss/agent/test/utils/OlympicTestUtils.h"
 #include "fboss/agent/test/utils/PacketSnooper.h"
+#include "fboss/agent/test/utils/QosTestUtils.h"
 #include "fboss/lib/CommonUtils.h"
 
 #include "fboss/agent/SflowShimUtils.h"
@@ -528,6 +531,58 @@ class AgentSflowMirrorOnTrunkTest : public AgentSflowMirrorTruncateTest<AddrT> {
         1,
         {getPortsForSampling(ensemble.masterLogicalPortIds(), asic)[0]},
         &config);
+  }
+};
+
+class AgentSflowMirrorWithLineRateTrafficTest
+    : public AgentSflowMirrorTest<folly::IPAddressV6> {
+ private:
+  static void sendPacket(
+      facebook::fboss::AgentEnsemble* ensemble,
+      const folly::IPAddressV6& dstIp) {
+    folly::IPAddressV6 kSrcIp("2402::1");
+    const auto dstMac =
+        utility::getFirstInterfaceMac(ensemble->getProgrammedState());
+    const auto srcMac = utility::MacAddressGenerator().get(dstMac.u64NBO() + 1);
+
+    auto txPacket = utility::makeUDPTxPacket(
+        ensemble->getSw(),
+        std::nullopt, // vlanID
+        srcMac,
+        dstMac,
+        kSrcIp,
+        dstIp,
+        8000, // l4 src port
+        8001, // l4 dst port
+        0x24 << 2, // dscp
+        255, // hopLimit
+        std::vector<uint8_t>(1024));
+    // Forward the packet in the pipeline
+    ensemble->getSw()->sendPacketSwitchedAsync(std::move(txPacket));
+  }
+
+  void verifySflowEgressPortNotStuck() {
+    auto portId = getNonSflowSampledInterfacePorts();
+    EXPECT_NO_THROW(getAgentEnsemble()->waitForLineRateOnPort(portId));
+    // Make sure that we can sustain the rate for longer duration
+    constexpr int kNumberOfIterations{6};
+    constexpr int kWaitPeriod{5};
+    auto prevPortStats = getLatestPortStats(portId);
+    // Keep desired rate 2% lesser than line rate to allow for
+    // fluctuations.
+    auto desiredRate =
+        static_cast<uint64_t>(
+            getProgrammedState()->getPorts()->getNodeIf(portId)->getSpeed()) *
+        1000 * 1000 * 0.98;
+    for (int iter = 0; iter < kNumberOfIterations; iter++) {
+      sleep(kWaitPeriod);
+      auto curPortStats = getLatestPortStats(portId);
+      auto rate = getAgentEnsemble()->getTrafficRate(
+          prevPortStats, curPortStats, kWaitPeriod);
+      // Ensure that we always see greater than the desired rate
+      EXPECT_GT(rate, desiredRate);
+      prevPortStats = curPortStats;
+    }
   }
 };
 

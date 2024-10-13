@@ -177,7 +177,8 @@ void addEventorVoqConfig(
   queue.streamType() = streamType;
   queue.name() = "default";
   *queue.scheduling() = cfg::QueueScheduling::INTERNAL;
-  queue.maxDynamicSharedBytes() = 20 * 1024 * 1024;
+  queue.maxDynamicSharedBytes() = 1024 * 1024; // 1MB
+  queue.scalingFactor() = cfg::MMUScalingFactor::ONE_HALF;
   std::vector<cfg::PortQueue> eventorVoqConfig{std::move(queue)};
   const std::string kEventorQueueConfigName{"eventor_queue_config"};
   config->portQueueConfigs()[kEventorQueueConfigName] = eventorVoqConfig;
