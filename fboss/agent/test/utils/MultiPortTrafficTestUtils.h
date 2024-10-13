@@ -13,5 +13,6 @@ void createTrafficOnMultiplePorts(
     int numberOfPorts,
     std::function<void(
         facebook::fboss::AgentEnsemble* ensemble,
-        const folly::IPAddressV6&)> sendPacketFn);
+        const folly::IPAddressV6&)> sendPacketFn,
+    double desiredPctLineRate = 100);
 } // namespace facebook::fboss::utility

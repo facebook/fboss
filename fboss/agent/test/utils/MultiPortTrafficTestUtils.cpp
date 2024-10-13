@@ -11,7 +11,7 @@ std::vector<folly::IPAddressV6> getOneRemoteHostIpPerInterfacePort(
   std::vector<folly::IPAddressV6> ips;
   for (int idx = 1; idx <= ensemble->masterLogicalInterfacePortIds().size();
        idx++) {
-    ips.push_back(folly::IPAddressV6(folly::to<std::string>(2401, "::", idx)));
+    ips.push_back(folly::IPAddressV6(folly::to<std::string>("2401::", idx)));
   }
   return ips;
 }
@@ -53,7 +53,8 @@ void createTrafficOnMultiplePorts(
     int numberOfPorts,
     std::function<void(
         facebook::fboss::AgentEnsemble* ensemble,
-        const folly::IPAddressV6&)> sendPacketFn) {
+        const folly::IPAddressV6&)> sendPacketFn,
+    double desiredPctLineRate) {
   auto minPktsForLineRate = ensemble->getMinPktsForLineRate(
       ensemble->masterLogicalInterfacePortIds()[0]);
   auto hostIps = getOneRemoteHostIpPerInterfacePort(ensemble);
@@ -64,8 +65,13 @@ void createTrafficOnMultiplePorts(
   }
   // Now, make sure that we have line rate traffic on these ports!
   for (int idx = 0; idx < numberOfPorts; idx++) {
-    ensemble->waitForLineRateOnPort(
-        ensemble->masterLogicalInterfacePortIds()[idx]);
+    auto portId = ensemble->masterLogicalInterfacePortIds()[idx];
+    uint64_t desiredRate = static_cast<uint64_t>(ensemble->getProgrammedState()
+                                                     ->getPorts()
+                                                     ->getNodeIf(portId)
+                                                     ->getSpeed()) *
+        1000 * 1000 * desiredPctLineRate / 100;
+    ensemble->waitForSpecificRateOnPort(portId, desiredRate);
   }
 }
 
