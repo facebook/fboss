@@ -551,7 +551,13 @@ class AgentSflowMirrorWithLineRateTrafficTest
       utility::createTrafficOnMultiplePorts(
           getAgentEnsemble(), kNumDataTrafficPorts, sendPacket);
     };
-    auto verify = [=, this]() { verifySflowEgressPortNotStuck(); };
+    auto verify = [=, this]() {
+      verifySflowEgressPortNotStuck();
+      if (checkSameAndGetAsic()->isSupported(
+              HwAsic::Feature::EVENTOR_PORT_FOR_SFLOW)) {
+        validateEventorPortQueueLimitRespected();
+      }
+    };
     verifyAcrossWarmBoots(setup, verify);
   }
 
@@ -602,6 +608,41 @@ class AgentSflowMirrorWithLineRateTrafficTest
       EXPECT_GT(rate, desiredRate);
       prevPortStats = curPortStats;
     }
+  }
+
+  void validateEventorPortQueueLimitRespected() {
+    auto config{initialConfig(*getAgentEnsemble())};
+    uint32_t maxExpectedQueueLimitBytes{0};
+    PortID eventorPortId;
+    for (auto& port : *config.ports()) {
+      if (*port.portType() == cfg::PortType::EVENTOR_PORT) {
+        auto voqConfigName = *port.portVoqConfigName();
+        for (auto& voqConfig : config.portQueueConfigs()[voqConfigName]) {
+          // Set the expected queue limit bytes to be 15% higher than
+          // what we are configuring, as queue limit is not always
+          // respected accurately.
+          if (voqConfig.id() == 0) {
+            maxExpectedQueueLimitBytes =
+                *voqConfig.maxDynamicSharedBytes() * 1.15;
+            break;
+          }
+        }
+        eventorPortId = *port.logicalID();
+        break;
+      }
+    }
+    EXPECT_GT(maxExpectedQueueLimitBytes, 0);
+    auto eventorSysPortId = getSystemPortID(
+        eventorPortId,
+        getProgrammedState(),
+        SwitchID(*checkSameAndGetAsic()->getSwitchId()));
+    WITH_RETRIES({
+      auto latestStats = getLatestSysPortStats(eventorSysPortId);
+      auto watermarkBytes = latestStats.queueWatermarkBytes_()->at(0);
+      EXPECT_EVENTUALLY_GT(watermarkBytes, 0);
+      EXPECT_LT(watermarkBytes, maxExpectedQueueLimitBytes);
+      EXPECT_EVENTUALLY_GT(latestStats.queueOutDiscardBytes_()->at(0), 0);
+    });
   }
 };
 
