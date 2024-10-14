@@ -15,6 +15,7 @@
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/TxPacket.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
+#include "fboss/agent/packet/ICMPHdr.h"
 #include "fboss/agent/packet/PktFactory.h"
 #include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/SwitchState.h"
@@ -493,6 +494,61 @@ void addHighPriAclForArp(
   acls.push_back(std::make_pair(acl2, action));
 }
 
+void addHighPriAclForNdp(
+    cfg::ToCpuAction toCpuAction,
+    int highPriQueueId,
+    std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>>& acls,
+    bool isSai) {
+  cfg::Ttl ttl;
+  ttl.value() = 255;
+  ttl.mask() = 0xff;
+  auto action = createQueueMatchAction(highPriQueueId, isSai, toCpuAction);
+
+  cfg::AclEntry acl1;
+  acl1.etherType() = cfg::EtherType::IPv6;
+  acl1.ttl() = ttl;
+  acl1.icmpType() =
+      static_cast<uint16_t>(ICMPv6Type::ICMPV6_TYPE_NDP_ROUTER_SOLICITATION);
+  acl1.name() =
+      folly::to<std::string>("cpuPolicing-high-ndp-router-solicit-acl");
+  acls.push_back(std::make_pair(acl1, action));
+
+  cfg::AclEntry acl2;
+  acl2.etherType() = cfg::EtherType::IPv6;
+  acl2.ttl() = ttl;
+  acl2.icmpType() =
+      static_cast<uint16_t>(ICMPv6Type::ICMPV6_TYPE_NDP_ROUTER_ADVERTISEMENT);
+  acl2.name() =
+      folly::to<std::string>("cpuPolicing-high-ndp-router-advertisement-acl");
+  acls.push_back(std::make_pair(acl2, action));
+
+  cfg::AclEntry acl3;
+  acl3.etherType() = cfg::EtherType::IPv6;
+  acl3.ttl() = ttl;
+  acl3.icmpType() =
+      static_cast<uint16_t>(ICMPv6Type::ICMPV6_TYPE_NDP_NEIGHBOR_SOLICITATION);
+  acl3.name() =
+      folly::to<std::string>("cpuPolicing-high-ndp-neighbor-solicit-acl");
+  acls.push_back(std::make_pair(acl3, action));
+
+  cfg::AclEntry acl4;
+  acl4.etherType() = cfg::EtherType::IPv6;
+  acl4.ttl() = ttl;
+  acl4.icmpType() =
+      static_cast<uint16_t>(ICMPv6Type::ICMPV6_TYPE_NDP_NEIGHBOR_ADVERTISEMENT);
+  acl4.name() =
+      folly::to<std::string>("cpuPolicing-high-ndp-neighbor-advertisement-acl");
+  acls.push_back(std::make_pair(acl4, action));
+
+  cfg::AclEntry acl5;
+  acl5.etherType() = cfg::EtherType::IPv6;
+  acl5.ttl() = ttl;
+  acl5.icmpType() =
+      static_cast<uint16_t>(ICMPv6Type::ICMPV6_TYPE_NDP_REDIRECT_MESSAGE);
+  acl5.name() = folly::to<std::string>("cpuPolicing-high-ndp-redirect-acl");
+  acls.push_back(std::make_pair(acl5, action));
+}
+
 void addHighPriAclForLacp(
     cfg::ToCpuAction toCpuAction,
     int highPriQueueId,
@@ -745,7 +801,8 @@ std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>> defaultCpuAclsForSai(
 
     if (hwAsic->isSupported(HwAsic::Feature::NO_RX_REASON_TRAP)) {
       addHighPriAclForArp(
-
+          cfg::ToCpuAction::TRAP, getCoppHighPriQueueId(hwAsic), acls, true);
+      addHighPriAclForNdp(
           cfg::ToCpuAction::TRAP, getCoppHighPriQueueId(hwAsic), acls, true);
       addHighPriAclForBgp(
           hwAsic,
@@ -1001,8 +1058,6 @@ std::vector<cfg::PacketRxReasonToQueue> getCoppRxReasonToQueuesForSai(
   if (hwAsic->isSupported(HwAsic::Feature::NO_RX_REASON_TRAP)) {
     // TODO(daiweix): remove these rx reason traps and replace them by ACLs
     rxReasonToQueues = {
-        ControlPlane::makeRxReasonToQueueEntry(
-            cfg::PacketRxReason::NDP, coppHighPriQueueId),
         ControlPlane::makeRxReasonToQueueEntry(
             cfg::PacketRxReason::TTL_1, kCoppLowPriQueueId),
         ControlPlane::makeRxReasonToQueueEntry(

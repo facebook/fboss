@@ -3468,10 +3468,11 @@ void ThriftConfigApplier::checkAcl(const cfg::AclEntry* config) const {
           std::to_string(AclEntry::kMaxIcmpCode));
     }
   }
-  if (config->icmpType() &&
-      (!config->proto() ||
-       !(*config->proto() == AclEntry::kProtoIcmp ||
-         *config->proto() == AclEntry::kProtoIcmpv6))) {
+  // TODO(daiweix): check proto should be 58 if icmp type/code is specified
+  // after CS00012373216 is resolved.
+  if (config->icmpType() && config->proto() &&
+      !(*config->proto() == AclEntry::kProtoIcmp ||
+        *config->proto() == AclEntry::kProtoIcmpv6)) {
     throw FbossError(
         "proto must be either icmp or icmpv6 ", "if icmp type is set");
   }

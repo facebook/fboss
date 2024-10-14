@@ -467,7 +467,8 @@ class AgentCoppTest : public AgentHwTest {
       const folly::IPAddressV6& neighborIp,
       ICMPv6Type type,
       bool outOfPort,
-      bool selfSolicit) {
+      bool selfSolicit,
+      bool snoopAndVerify = true) {
     auto vlanId = utility::firstVlanID(getProgrammedState());
     auto intfMac = utility::getFirstInterfaceMac(getProgrammedState());
     auto neighborMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
@@ -489,7 +490,7 @@ class AgentCoppTest : public AgentHwTest {
                 intfMac, // my mac
                 neighborIp, // sender ip
                 folly::IPAddressV6("1::")); // sent to me
-      sendPkt(std::move(txPacket), outOfPort, true /*snoopAndVerify*/);
+      sendPkt(std::move(txPacket), outOfPort, snoopAndVerify);
     }
   }
 
@@ -500,7 +501,8 @@ class AgentCoppTest : public AgentHwTest {
       bool selfSolicit = true,
       bool outOfPort = true,
       const int numPktsToSend = 1,
-      const int expectedPktDelta = 1) {
+      const int expectedPktDelta = 1,
+      bool snoopAndVerify = true) {
     auto beforeOutPkts = utility::getQueueOutPacketsWithRetry(
         getSw(),
 
@@ -510,7 +512,13 @@ class AgentCoppTest : public AgentHwTest {
         queueId,
         0 /* retryTimes */,
         0 /* expectedNumPkts */);
-    sendNdpPkts(numPktsToSend, neighborIp, ndpType, outOfPort, selfSolicit);
+    sendNdpPkts(
+        numPktsToSend,
+        neighborIp,
+        ndpType,
+        outOfPort,
+        selfSolicit,
+        snoopAndVerify);
     auto afterOutPkts = utility::getQueueOutPacketsWithRetry(
         getSw(),
 
@@ -1102,9 +1110,18 @@ TYPED_TEST(AgentCoppTest, NdpSolicitNeighbor) {
   // again.
 
   // More explanation in the test plan section of - D34782575
-  auto setup = [=, this]() { this->setup(); };
+  auto setup = [=, this]() {
+    this->setup();
+    if (!this->isSupportedOnAllAsics(HwAsic::Feature::BRIDGE_PORT_8021Q)) {
+      this->setupEcmp(true);
+    }
+  };
   auto verify = [=, this]() {
     XLOG(DBG2) << "verifying solicitation";
+    // do not snoop when L2 is not supported, e.g. J3, where NDP packets goes
+    // through L3 pipeline and might change ttl and dst mac
+    bool snoopAndVerify =
+        this->isSupportedOnAllAsics(HwAsic::Feature::BRIDGE_PORT_8021Q);
     this->sendPktAndVerifyNdpPacketsCpuQueue(
         utility::getCoppHighPriQueueId(utility::checkSameAndGetAsic(
             this->getAgentEnsemble()->getL3Asics())),
@@ -1113,7 +1130,8 @@ TYPED_TEST(AgentCoppTest, NdpSolicitNeighbor) {
         false,
         false,
         1,
-        1);
+        1,
+        snoopAndVerify);
   };
   this->verifyAcrossWarmBoots(setup, verify);
 }
