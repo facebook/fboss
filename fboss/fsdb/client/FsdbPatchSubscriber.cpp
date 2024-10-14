@@ -15,6 +15,7 @@ FsdbPatchSubscriberImpl<MessageType, SubUnit, PathElement>::createRequest()
   request.clientId()->instanceId() = clientId();
   RawOperPath path;
   request.paths() = this->subscribePaths();
+  request.forceSubscribe() = this->subscriptionOptions().forceSubscribe_;
   return request;
 }
 
