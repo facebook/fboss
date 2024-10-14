@@ -11,6 +11,7 @@ class SaiManagerTable;
 class SaiPlatform;
 class SaiStore;
 
+using SaiTamCollector = SaiObject<SaiTamCollectorTraits>;
 using SaiTamTransport = SaiObject<SaiTamTransportTraits>;
 using SaiTamReport = SaiObject<SaiTamReportTraits>;
 using SaiTamEventAction = SaiObject<SaiTamEventActionTraits>;
@@ -18,6 +19,7 @@ using SaiTamEvent = SaiObject<SaiTamEventTraits>;
 using SaiTam = SaiObject<SaiTamTraits>;
 
 struct SaiTamHandle {
+  std::shared_ptr<SaiTamCollector> collector;
   std::shared_ptr<SaiTamTransport> transport;
   std::shared_ptr<SaiTamReport> report;
   std::shared_ptr<SaiTamEventAction> action;
