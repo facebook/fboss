@@ -3693,6 +3693,7 @@ std::string SaiSwitch::listObjects(
         objTypes.push_back(SAI_OBJECT_TYPE_DEBUG_COUNTER);
         break;
       case HwObjectType::TELEMETRY:
+        objTypes.push_back(SAI_OBJECT_TYPE_TAM_TRANSPORT);
         objTypes.push_back(SAI_OBJECT_TYPE_TAM_REPORT);
         objTypes.push_back(SAI_OBJECT_TYPE_TAM_EVENT_ACTION);
         objTypes.push_back(SAI_OBJECT_TYPE_TAM_EVENT);
