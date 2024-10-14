@@ -24,6 +24,62 @@ class TamApiTest : public ::testing::Test {
   std::unique_ptr<TamApi> tamApi;
 };
 
+TEST_F(TamApiTest, TamCollectorV4) {
+  folly::IPAddress srcIp{"1.1.1.1"};
+  folly::IPAddress dstIp{"2.2.2.2"};
+  sai_object_id_t transportSaiObjectId = 100;
+
+  SaiTamCollectorTraits::CreateAttributes collectorAttr;
+  std::get<SaiTamCollectorTraits::Attributes::SrcIp>(collectorAttr) = srcIp;
+  std::get<SaiTamCollectorTraits::Attributes::DstIp>(collectorAttr) = dstIp;
+  std::get<std::optional<SaiTamCollectorTraits::Attributes::TruncateSize>>(
+      collectorAttr) = 128;
+  std::get<SaiTamCollectorTraits::Attributes::Transport>(collectorAttr) =
+      transportSaiObjectId;
+  std::get<std::optional<SaiTamCollectorTraits::Attributes::DscpValue>>(
+      collectorAttr) = 0;
+
+  auto collectorSaiId =
+      tamApi->create<SaiTamCollectorTraits>(collectorAttr, switchId);
+  EXPECT_EQ(
+      tamApi->getAttribute(
+          collectorSaiId, SaiTamCollectorTraits::CreateAttributes{}),
+      collectorAttr);
+  tamApi->remove(collectorSaiId);
+  EXPECT_THROW(
+      tamApi->getAttribute(
+          collectorSaiId, SaiTamCollectorTraits::CreateAttributes{}),
+      std::exception);
+}
+
+TEST_F(TamApiTest, TamCollectorV6) {
+  folly::IPAddress srcIp{"2401::1"};
+  folly::IPAddress dstIp{"2401::2"};
+  sai_object_id_t transportSaiObjectId = 100;
+
+  SaiTamCollectorTraits::CreateAttributes collectorAttr;
+  std::get<SaiTamCollectorTraits::Attributes::SrcIp>(collectorAttr) = srcIp;
+  std::get<SaiTamCollectorTraits::Attributes::DstIp>(collectorAttr) = dstIp;
+  std::get<std::optional<SaiTamCollectorTraits::Attributes::TruncateSize>>(
+      collectorAttr) = 128;
+  std::get<SaiTamCollectorTraits::Attributes::Transport>(collectorAttr) =
+      transportSaiObjectId;
+  std::get<std::optional<SaiTamCollectorTraits::Attributes::DscpValue>>(
+      collectorAttr) = 0;
+
+  auto collectorSaiId =
+      tamApi->create<SaiTamCollectorTraits>(collectorAttr, switchId);
+  EXPECT_EQ(
+      tamApi->getAttribute(
+          collectorSaiId, SaiTamCollectorTraits::CreateAttributes{}),
+      collectorAttr);
+  tamApi->remove(collectorSaiId);
+  EXPECT_THROW(
+      tamApi->getAttribute(
+          collectorSaiId, SaiTamCollectorTraits::CreateAttributes{}),
+      std::exception);
+}
+
 TEST_F(TamApiTest, TamTransport) {
   SaiTamTransportTraits::CreateAttributes transportAttr;
   std::get<SaiTamTransportTraits::Attributes::Type>(transportAttr) =

@@ -2,6 +2,7 @@
 
 #include "fboss/agent/hw/sai/fake/FakeSaiTam.h"
 
+#include "fboss/agent/hw/sai/api/AddressUtil.h"
 #include "fboss/agent/hw/sai/fake/FakeSai.h"
 
 namespace {
@@ -503,6 +504,131 @@ sai_status_t set_tam_transport_attribute(
   return SAI_STATUS_SUCCESS;
 }
 
+sai_status_t create_tam_collector(
+    sai_object_id_t* id,
+    sai_object_id_t /*switch_id*/,
+    uint32_t attr_count,
+    const sai_attribute_t* attr_list) {
+  folly::IPAddress srcIp{};
+  folly::IPAddress dstIp{};
+  std::optional<sai_uint16_t> truncateSize{};
+  sai_object_id_t transport{};
+  std::optional<sai_uint8_t> dscp{};
+
+  for (auto i = 0; i < attr_count; i++) {
+    switch (attr_list[i].id) {
+      case SAI_TAM_COLLECTOR_ATTR_SRC_IP:
+        srcIp = facebook::fboss::fromSaiIpAddress(attr_list[i].value.ipaddr);
+        break;
+
+      case SAI_TAM_COLLECTOR_ATTR_DST_IP:
+        dstIp = facebook::fboss::fromSaiIpAddress(attr_list[i].value.ipaddr);
+        break;
+
+      case SAI_TAM_COLLECTOR_ATTR_TRUNCATE_SIZE:
+        truncateSize = attr_list[i].value.u16;
+        break;
+
+      case SAI_TAM_COLLECTOR_ATTR_TRANSPORT:
+        transport = attr_list[i].value.oid;
+        break;
+
+      case SAI_TAM_COLLECTOR_ATTR_DSCP_VALUE:
+        dscp = attr_list[i].value.u8;
+        break;
+
+      default:
+        return SAI_STATUS_ATTR_NOT_SUPPORTED_0 + i;
+    }
+  }
+  auto fs = FakeSai::getInstance();
+  *id = fs->tamCollectorManager.create(
+      srcIp, dstIp, truncateSize, transport, dscp);
+  return SAI_STATUS_SUCCESS;
+}
+
+sai_status_t remove_tam_collector(sai_object_id_t id) {
+  auto fs = FakeSai::getInstance();
+  fs->tamCollectorManager.remove(id);
+  return SAI_STATUS_SUCCESS;
+}
+
+sai_status_t get_tam_collector_attribute(
+    sai_object_id_t id,
+    uint32_t attr_count,
+    sai_attribute_t* attr_list) {
+  auto fs = FakeSai::getInstance();
+  auto& collector = fs->tamCollectorManager.get(id);
+  for (auto i = 0; i < attr_count; i++) {
+    switch (attr_list[i].id) {
+      case SAI_TAM_COLLECTOR_ATTR_SRC_IP:
+        attr_list[i].value.ipaddr =
+            facebook::fboss::toSaiIpAddress(folly::IPAddress(collector.srcIp_));
+        break;
+
+      case SAI_TAM_COLLECTOR_ATTR_DST_IP:
+        attr_list[i].value.ipaddr =
+            facebook::fboss::toSaiIpAddress(folly::IPAddress(collector.dstIp_));
+        break;
+
+      case SAI_TAM_COLLECTOR_ATTR_TRUNCATE_SIZE:
+        attr_list[i].value.u16 = collector.truncateSize_.value();
+        break;
+
+      case SAI_TAM_COLLECTOR_ATTR_TRANSPORT:
+        attr_list[i].value.oid = collector.transport_;
+        break;
+
+      case SAI_TAM_COLLECTOR_ATTR_DSCP_VALUE:
+        attr_list[i].value.u8 = collector.dscp_.value();
+        break;
+
+      default:
+        return SAI_STATUS_ATTR_NOT_SUPPORTED_0 + i;
+    }
+  }
+  return SAI_STATUS_SUCCESS;
+}
+
+sai_status_t set_tam_collector_attribute(
+    sai_object_id_t id,
+    const sai_attribute_t* attr) {
+  try {
+    auto fs = FakeSai::getInstance();
+    auto& collector = fs->tamCollectorManager.get(id);
+
+    switch (attr->id) {
+      case SAI_TAM_COLLECTOR_ATTR_SRC_IP:
+        collector.srcIp_ =
+            facebook::fboss::fromSaiIpAddress(attr->value.ipaddr);
+        break;
+
+      case SAI_TAM_COLLECTOR_ATTR_DST_IP:
+        collector.dstIp_ =
+            facebook::fboss::fromSaiIpAddress(attr->value.ipaddr);
+        break;
+
+      case SAI_TAM_COLLECTOR_ATTR_TRUNCATE_SIZE:
+        collector.truncateSize_ = attr->value.u16;
+        break;
+
+      case SAI_TAM_COLLECTOR_ATTR_TRANSPORT:
+        collector.transport_ = attr->value.oid;
+        break;
+
+      case SAI_TAM_COLLECTOR_ATTR_DSCP_VALUE:
+        collector.dscp_ = attr->value.u8;
+        break;
+
+      default:
+        return SAI_STATUS_ATTR_NOT_SUPPORTED_0;
+    }
+  } catch (...) {
+    return SAI_STATUS_ITEM_NOT_FOUND;
+  }
+  return SAI_STATUS_SUCCESS;
+}
+
 } // namespace
 
 namespace facebook::fboss {
@@ -533,6 +659,11 @@ void populate_tam_api(sai_tam_api_t** tam_api) {
   _tam_api.remove_tam_transport = &remove_tam_transport;
   _tam_api.set_tam_transport_attribute = &set_tam_transport_attribute;
   _tam_api.get_tam_transport_attribute = &get_tam_transport_attribute;
+
+  _tam_api.create_tam_collector = &create_tam_collector;
+  _tam_api.remove_tam_collector = &remove_tam_collector;
+  _tam_api.set_tam_collector_attribute = &set_tam_collector_attribute;
+  _tam_api.get_tam_collector_attribute = &get_tam_collector_attribute;
 
   *tam_api = &_tam_api;
 }

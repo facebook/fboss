@@ -149,6 +149,9 @@ sai_status_t sai_get_object_count(
     case SAI_OBJECT_TYPE_WRED:
       *count = fs->wredManager.map().size();
       break;
+    case SAI_OBJECT_TYPE_TAM_COLLECTOR:
+      *count = fs->tamCollectorManager.map().size();
+      break;
     case SAI_OBJECT_TYPE_TAM_TRANSPORT:
       *count = fs->tamTransportManager.map().size();
       break;
@@ -482,6 +485,12 @@ sai_status_t sai_get_object_key(
     case SAI_OBJECT_TYPE_WRED: {
       for (const auto& wred : fs->wredManager.map()) {
         object_list[i++].key.object_id = wred.second.id;
+      }
+      break;
+    }
+    case SAI_OBJECT_TYPE_TAM_COLLECTOR: {
+      for (const auto& ob : fs->tamCollectorManager.map()) {
+        object_list[i++].key.object_id = ob.second.id;
       }
       break;
     }

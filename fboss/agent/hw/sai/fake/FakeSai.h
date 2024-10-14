@@ -99,6 +99,7 @@ struct FakeSai {
   FakeTamEventActionManager tamEventActionManager;
   FakeTamReportManager tamReportManager;
   FakeTamTransportManager tamTransportManager;
+  FakeTamCollectorManager tamCollectorManager;
   FakeTunnelManager tunnelManager;
   FakeTunnelTermManager tunnelTermManager;
   FakeMacsecManager macsecManager;

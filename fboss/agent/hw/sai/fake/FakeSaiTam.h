@@ -4,6 +4,8 @@
 
 #include "fboss/agent/hw/sai/fake/FakeManager.h"
 
+#include <folly/IPAddress.h>
+
 extern "C" {
 #include <sai.h>
 }
@@ -72,6 +74,27 @@ class FakeSaiTamTransport {
   sai_uint32_t mtu_;
 };
 
+class FakeSaiTamCollector {
+ public:
+  FakeSaiTamCollector(
+      const folly::IPAddress& srcIp,
+      const folly::IPAddress& dstIp,
+      std::optional<sai_uint16_t> truncateSize,
+      sai_object_id_t transport,
+      std::optional<sai_uint8_t> dscp)
+      : srcIp_(srcIp),
+        dstIp_(dstIp),
+        truncateSize_(truncateSize),
+        transport_(transport),
+        dscp_(dscp) {}
+  sai_object_id_t id;
+  folly::IPAddress srcIp_;
+  folly::IPAddress dstIp_;
+  std::optional<sai_uint16_t> truncateSize_;
+  sai_object_id_t transport_;
+  std::optional<sai_uint8_t> dscp_;
+};
+
 using FakeTamManager = FakeManager<sai_object_id_t, FakeSaiTam>;
 using FakeTamEventManager = FakeManager<sai_object_id_t, FakeSaiTamEvent>;
 using FakeTamEventActionManager =
@@ -79,6 +102,8 @@ using FakeTamEventActionManager =
 using FakeTamReportManager = FakeManager<sai_object_id_t, FakeSaiTamReport>;
 using FakeTamTransportManager =
     FakeManager<sai_object_id_t, FakeSaiTamTransport>;
+using FakeTamCollectorManager =
+    FakeManager<sai_object_id_t, FakeSaiTamCollector>;
 
 void populate_tam_api(sai_tam_api_t** tam_api);
 

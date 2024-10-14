@@ -44,6 +44,14 @@ std::map<int32_t, std::pair<std::string, std::size_t>> _TamTransportMap{
     SAI_ATTR_MAP(TamTransport, Mtu),
 };
 
+std::map<int32_t, std::pair<std::string, std::size_t>> _TamCollectorMap{
+    SAI_ATTR_MAP(TamCollector, SrcIp),
+    SAI_ATTR_MAP(TamCollector, DstIp),
+    SAI_ATTR_MAP(TamCollector, TruncateSize),
+    SAI_ATTR_MAP(TamCollector, Transport),
+    SAI_ATTR_MAP(TamCollector, DscpValue),
+};
+
 void handleExtensionAttributes() {
   SAI_EXT_ATTR_MAP(TamEvent, SwitchEventType)
   SAI_EXT_ATTR_MAP(TamEvent, SwitchEventId)
@@ -78,6 +86,11 @@ WRAP_REMOVE_FUNC(tam_transport, SAI_OBJECT_TYPE_TAM_TRANSPORT, tam);
 WRAP_SET_ATTR_FUNC(tam_transport, SAI_OBJECT_TYPE_TAM_TRANSPORT, tam);
 WRAP_GET_ATTR_FUNC(tam_transport, SAI_OBJECT_TYPE_TAM_TRANSPORT, tam);
 
+WRAP_CREATE_FUNC(tam_collector, SAI_OBJECT_TYPE_TAM_COLLECTOR, tam);
+WRAP_REMOVE_FUNC(tam_collector, SAI_OBJECT_TYPE_TAM_COLLECTOR, tam);
+WRAP_SET_ATTR_FUNC(tam_collector, SAI_OBJECT_TYPE_TAM_COLLECTOR, tam);
+WRAP_GET_ATTR_FUNC(tam_collector, SAI_OBJECT_TYPE_TAM_COLLECTOR, tam);
+
 sai_tam_api_t* wrappedTamApi() {
   handleExtensionAttributes();
   static sai_tam_api_t tamWrappers;
@@ -108,6 +121,11 @@ sai_tam_api_t* wrappedTamApi() {
   tamWrappers.set_tam_transport_attribute = &wrap_set_tam_transport_attribute;
   tamWrappers.get_tam_transport_attribute = &wrap_get_tam_transport_attribute;
 
+  tamWrappers.create_tam_collector = &wrap_create_tam_collector;
+  tamWrappers.remove_tam_collector = &wrap_remove_tam_collector;
+  tamWrappers.set_tam_collector_attribute = &wrap_set_tam_collector_attribute;
+  tamWrappers.get_tam_collector_attribute = &wrap_get_tam_transport_attribute;
+
   return &tamWrappers;
 }
 
@@ -116,5 +134,6 @@ SET_SAI_ATTRIBUTES(TamEvent)
 SET_SAI_ATTRIBUTES(TamEventAction)
 SET_SAI_ATTRIBUTES(TamReport)
 SET_SAI_ATTRIBUTES(TamTransport)
+SET_SAI_ATTRIBUTES(TamCollector)
 
 } // namespace facebook::fboss
