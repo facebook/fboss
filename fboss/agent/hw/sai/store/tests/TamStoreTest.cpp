@@ -14,6 +14,17 @@ class TamStoreTest : public SaiStoreTest {
     SaiStoreTest::SetUp();
   }
 
+  facebook::fboss::SaiTamTransportTraits::CreateAttributes
+  tamTransportTraits() {
+    SaiTamTransportTraits::CreateAttributes result;
+    std::get<SaiTamTransportTraits::Attributes::Type>(result) =
+        SAI_TAM_TRANSPORT_TYPE_UDP;
+    std::get<SaiTamTransportTraits::Attributes::SrcPort>(result) = 10001;
+    std::get<SaiTamTransportTraits::Attributes::DstPort>(result) = 10002;
+    std::get<SaiTamTransportTraits::Attributes::Mtu>(result) = 1500;
+    return result;
+  }
+
   facebook::fboss::SaiTamReportTraits::CreateAttributes tamReportTraits() {
     return SaiTamReportTraits::CreateAttributes{
         SAI_TAM_REPORT_TYPE_VENDOR_EXTN};
@@ -48,6 +59,11 @@ class TamStoreTest : public SaiStoreTest {
     return SaiTamTraits::CreateAttributes{events, bindpoints};
   }
 
+  facebook::fboss::TamTransportSaiId createTransport() {
+    return saiApiTable->tamApi().create<SaiTamTransportTraits>(
+        tamTransportTraits(), 0);
+  }
+
   facebook::fboss::TamReportSaiId createReport() {
     return saiApiTable->tamApi().create<SaiTamReportTraits>(
         tamReportTraits(), 0);
@@ -70,6 +86,7 @@ class TamStoreTest : public SaiStoreTest {
 };
 
 TEST_F(TamStoreTest, loadTam) {
+  auto transport = createTransport();
   auto report = createReport();
   auto action = createEventAction(report);
   auto event = createEvent(action);
@@ -78,10 +95,12 @@ TEST_F(TamStoreTest, loadTam) {
   SaiStore s(0);
   s.reload();
 
+  auto& transportStore = s.get<SaiTamTransportTraits>();
   auto& reportStore = s.get<SaiTamReportTraits>();
   auto& actionStore = s.get<SaiTamEventActionTraits>();
   auto& eventStore = s.get<SaiTamEventTraits>();
   auto& tamStore = s.get<SaiTamTraits>();
+  EXPECT_EQ(transportStore.get(tamTransportTraits())->adapterKey(), transport);
   EXPECT_EQ(
       reportStore
           .get(SaiTamReportTraits::AdapterHostKey{
@@ -97,10 +116,30 @@ TEST_F(TamStoreTest, loadTam) {
 }
 
 TEST_F(TamStoreTest, tamCtors) {
+  auto transport = createTransport();
   auto report = createReport();
   auto action = createEventAction(report);
   auto event = createEvent(action);
   auto tam = createTam(event);
+
+  auto transportObj = createObj<SaiTamTransportTraits>(transport);
+  auto tamTransportAhk = tamTransportTraits();
+  EXPECT_EQ(
+      GET_ATTR(TamTransport, Type, transportObj.attributes()),
+      std::get<SaiTamTransportTraits::Attributes::Type>(tamTransportAhk)
+          .value());
+  EXPECT_EQ(
+      GET_ATTR(TamTransport, SrcPort, transportObj.attributes()),
+      std::get<SaiTamTransportTraits::Attributes::SrcPort>(tamTransportAhk)
+          .value());
+  EXPECT_EQ(
+      GET_ATTR(TamTransport, DstPort, transportObj.attributes()),
+      std::get<SaiTamTransportTraits::Attributes::DstPort>(tamTransportAhk)
+          .value());
+  EXPECT_EQ(
+      GET_ATTR(TamTransport, Mtu, transportObj.attributes()),
+      std::get<SaiTamTransportTraits::Attributes::Mtu>(tamTransportAhk)
+          .value());
 
   auto reportObj = createObj<SaiTamReportTraits>(report);
   EXPECT_EQ(
@@ -141,6 +180,25 @@ TEST_F(TamStoreTest, tamCtors) {
 TEST_F(TamStoreTest, setObject) {
   SaiStore s(0);
   s.reload();
+
+  auto transportAhk = tamTransportTraits();
+  auto transport =
+      s.get<SaiTamTransportTraits>().setObject(transportAhk, transportAhk);
+  EXPECT_EQ(
+      GET_ATTR(TamTransport, Type, transport->attributes()),
+      std::get<SaiTamTransportTraits::Attributes::Type>(transportAhk).value());
+  EXPECT_EQ(
+      GET_ATTR(TamTransport, SrcPort, transport->attributes()),
+      std::get<SaiTamTransportTraits::Attributes::SrcPort>(transportAhk)
+          .value());
+  EXPECT_EQ(
+      GET_ATTR(TamTransport, DstPort, transport->attributes()),
+      std::get<SaiTamTransportTraits::Attributes::DstPort>(transportAhk)
+          .value());
+  EXPECT_EQ(
+      GET_ATTR(TamTransport, Mtu, transport->attributes()),
+      std::get<SaiTamTransportTraits::Attributes::Mtu>(transportAhk).value());
+
   auto reportKey = tamReportTraits();
   auto report = s.get<SaiTamReportTraits>().setObject(reportKey, reportKey);
   EXPECT_EQ(
@@ -194,6 +252,10 @@ TEST_F(TamStoreTest, updateObject) {
   auto eventAhk = tamEventTraits(action->adapterKey());
   auto event = s.get<SaiTamEventTraits>().setObject(eventAhk, eventAhk);
 
+  auto transportAhk = tamTransportTraits();
+  auto transport =
+      s.get<SaiTamTransportTraits>().setObject(transportAhk, transportAhk);
+
   auto tamAhk = tamTraits(event->adapterKey());
   auto tam = s.get<SaiTamTraits>().setObject(tamAhk, tamAhk);
 
@@ -204,4 +266,10 @@ TEST_F(TamStoreTest, updateObject) {
   EXPECT_EQ(
       GET_ATTR(TamEvent, SwitchEventType, updatedEvent->attributes()),
       newEvents);
+
+  std::get<SaiTamTransportTraits::Attributes::DstPort>(transportAhk) = 10003;
+  auto updatedTransport =
+      s.get<SaiTamTransportTraits>().setObject(transportAhk, transportAhk);
+  EXPECT_EQ(
+      GET_ATTR(TamTransport, DstPort, updatedTransport->attributes()), 10003);
 }
