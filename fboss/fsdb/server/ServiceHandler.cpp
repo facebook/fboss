@@ -674,7 +674,9 @@ void ServiceHandler::updateSubscriptionCounters(
   }
 }
 
-void ServiceHandler::registerSubscription(const OperSubscriberInfo& info) {
+void ServiceHandler::registerSubscription(
+    const OperSubscriberInfo& info,
+    bool forceSubscribe) {
   if (info.subscriberId()->empty()) {
     throw Utils::createFsdbException(
         FsdbErrorCode::EMPTY_SUBSCRIBER_ID, "Subscriber Id must not be empty");
@@ -694,7 +696,7 @@ void ServiceHandler::registerSubscription(const OperSubscriberInfo& info) {
       buildPathUnion(info),
       *info.type(),
       *info.isStats());
-  if (FLAGS_forceRegisterSubscriptions) {
+  if (FLAGS_forceRegisterSubscriptions || forceSubscribe) {
     (*activeSubscriptions_.wlock())[std::move(key)] = info;
   } else {
     auto resp = activeSubscriptions_.wlock()->insert({std::move(key), info});
@@ -762,7 +764,7 @@ ServiceHandler::co_subscribeOperStatePath(
   PathValidator::validateStatePath(*request->path()->raw());
 
   auto subscriberInfo = makeSubscriberInfo(*request, PubSubType::PATH, false);
-  registerSubscription(subscriberInfo);
+  registerSubscription(subscriberInfo, *request->forceSubscribe());
   auto cleanupSubscriber =
       folly::makeGuard([this, subscriberInfo = std::move(subscriberInfo)]() {
         unregisterSubscription(subscriberInfo);
@@ -800,7 +802,7 @@ ServiceHandler::co_subscribeOperStatsPath(
   PathValidator::validateStatsPath(*request->path()->raw());
 
   auto subscriberInfo = makeSubscriberInfo(*request, PubSubType::PATH, true);
-  registerSubscription(subscriberInfo);
+  registerSubscription(subscriberInfo, *request->forceSubscribe());
   auto cleanupSubscriber =
       folly::makeGuard([this, subscriberInfo = std::move(subscriberInfo)]() {
         unregisterSubscription(subscriberInfo);
@@ -864,7 +866,7 @@ ServiceHandler::co_subscribeOperStateDelta(
   PathValidator::validateStatePath(*request->path()->raw());
 
   auto subscriberInfo = makeSubscriberInfo(*request, PubSubType::DELTA, false);
-  registerSubscription(subscriberInfo);
+  registerSubscription(subscriberInfo, *request->forceSubscribe());
   auto cleanupSubscriber =
       folly::makeGuard([this, subscriberInfo = std::move(subscriberInfo)]() {
         unregisterSubscription(subscriberInfo);
@@ -896,7 +898,7 @@ ServiceHandler::co_subscribeOperStatePathExtended(
   PathValidator::validateExtendedStatePaths(*request->paths());
 
   auto subscriberInfo = makeSubscriberInfo(*request, PubSubType::PATH, false);
-  registerSubscription(subscriberInfo);
+  registerSubscription(subscriberInfo, *request->forceSubscribe());
   auto cleanupSubscriber =
       folly::makeGuard([this, subscriberInfo = std::move(subscriberInfo)]() {
         unregisterSubscription(subscriberInfo);
@@ -942,7 +944,7 @@ ServiceHandler::co_subscribeOperStateDeltaExtended(
   PathValidator::validateExtendedStatePaths(*request->paths());
 
   auto subscriberInfo = makeSubscriberInfo(*request, PubSubType::DELTA, false);
-  registerSubscription(subscriberInfo);
+  registerSubscription(subscriberInfo, *request->forceSubscribe());
   auto cleanupSubscriber =
       folly::makeGuard([this, subscriberInfo = std::move(subscriberInfo)]() {
         unregisterSubscription(subscriberInfo);
@@ -978,7 +980,7 @@ ServiceHandler::co_subscribeOperStatsDelta(
   PathValidator::validateStatsPath(*request->path()->raw());
 
   auto subscriberInfo = makeSubscriberInfo(*request, PubSubType::DELTA, true);
-  registerSubscription(subscriberInfo);
+  registerSubscription(subscriberInfo, *request->forceSubscribe());
   auto cleanupSubscriber =
       folly::makeGuard([this, subscriberInfo = std::move(subscriberInfo)]() {
         unregisterSubscription(subscriberInfo);
@@ -1009,7 +1011,7 @@ ServiceHandler::co_subscribeOperStatsPathExtended(
   PathValidator::validateExtendedStatsPaths(*request->paths());
 
   auto subscriberInfo = makeSubscriberInfo(*request, PubSubType::PATH, true);
-  registerSubscription(subscriberInfo);
+  registerSubscription(subscriberInfo, *request->forceSubscribe());
   auto cleanupSubscriber =
       folly::makeGuard([this, subscriberInfo = std::move(subscriberInfo)]() {
         unregisterSubscription(subscriberInfo);
@@ -1055,7 +1057,7 @@ ServiceHandler::co_subscribeOperStatsDeltaExtended(
   PathValidator::validateExtendedStatsPaths(*request->paths());
 
   auto subscriberInfo = makeSubscriberInfo(*request, PubSubType::DELTA, true);
-  registerSubscription(subscriberInfo);
+  registerSubscription(subscriberInfo, *request->forceSubscribe());
   auto cleanupSubscriber =
       folly::makeGuard([this, subscriberInfo = std::move(subscriberInfo)]() {
         unregisterSubscription(subscriberInfo);
@@ -1090,7 +1092,7 @@ ServiceHandler::co_subscribeState(std::unique_ptr<SubRequest> request) {
   auto log = LOG_THRIFT_CALL(INFO, getRequestDetails(*request));
   validatePaths(*request->paths(), false);
   auto subscriberInfo = makeSubscriberInfo(*request, PubSubType::PATCH, false);
-  registerSubscription(subscriberInfo);
+  registerSubscription(subscriberInfo, *request->forceSubscribe());
   auto cleanupSubscriber =
       folly::makeGuard([this, subscriberInfo = std::move(subscriberInfo)]() {
         unregisterSubscription(subscriberInfo);
@@ -1113,7 +1115,7 @@ ServiceHandler::co_subscribeStats(std::unique_ptr<SubRequest> request) {
   auto log = LOG_THRIFT_CALL(INFO, getRequestDetails(*request));
   validatePaths(*request->paths(), true);
   auto subscriberInfo = makeSubscriberInfo(*request, PubSubType::PATCH, true);
-  registerSubscription(subscriberInfo);
+  registerSubscription(subscriberInfo, *request->forceSubscribe());
   auto cleanupSubscriber =
       folly::makeGuard([this, subscriberInfo = std::move(subscriberInfo)]() {
         unregisterSubscription(subscriberInfo);

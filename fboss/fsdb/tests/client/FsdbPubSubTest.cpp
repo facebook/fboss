@@ -388,6 +388,9 @@ TYPED_TEST(FsdbPubSubTest, dupSubscriber) {
   // @lint-ignore CLANGTIDY
   std::this_thread::sleep_for(std::chrono::seconds(3));
   EXPECT_THROW({ auto res2 = this->subscribe(req); }, FsdbException);
+
+  req.forceSubscribe() = true;
+  EXPECT_NO_THROW({ auto res2 = this->subscribe(req); });
 }
 
 TYPED_TEST(FsdbPubSubTest, multiplePublishers) {

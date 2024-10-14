@@ -42,6 +42,19 @@ class ServiceHandlerTest : public ::testing::Test {
     return req;
   }
 
+  SubRequest createPatchRequest(
+      const std::string& subId,
+      bool forceSubscribe = false) {
+    SubRequest req;
+    RawOperPath p;
+    p.path() = {"agent"};
+    req.paths() = {{0, p}};
+    req.clientId()->client() = FsdbClient::AGENT;
+    req.clientId()->instanceId() = subId;
+    req.forceSubscribe() = forceSubscribe;
+    return req;
+  }
+
   std::unique_ptr<FsdbTestServer> fsdb_;
 };
 
@@ -107,6 +120,20 @@ TEST_F(ServiceHandlerTest, testSubscriberInfo) {
     client->sync_getAllOperSubscriberInfos(subInfos);
     EXPECT_EVENTUALLY_EQ(subInfos.size(), 1);
   });
+}
+
+TEST_F(ServiceHandlerTest, subscribeDup) {
+  folly::EventBase evb;
+  auto client = createClient(&evb);
+  auto sub1 = client->sync_subscribeState(createPatchRequest("test-sub-1"));
+  EXPECT_THROW(
+      client->sync_subscribeState(createPatchRequest("test-sub-1")),
+      fsdb::FsdbException);
+
+  auto sub2 =
+      client->sync_subscribeState(createPatchRequest("test-sub-2", true));
+  EXPECT_NO_THROW(
+      client->sync_subscribeState(createPatchRequest("test-sub-2", true)));
 }
 
 } // namespace facebook::fboss::fsdb::test
