@@ -377,7 +377,6 @@ hw_dataplane_test_srcs = [
     "dataplane_tests/HwSflowTests.cpp",
     "dataplane_tests/HwTrunkLoadBalancerTests.cpp",
     "dataplane_tests/HwTeFlowTrafficTests.cpp",
-    "dataplane_tests/HwTrafficPfcTests.cpp",
     "dataplane_tests/HwRouteStatTests.cpp",
 ]
 
@@ -431,10 +430,8 @@ cpp_library(
         "//fboss/agent:packet",
         "//fboss/agent:platform_base",
         "//fboss/agent:route_update_wrapper",
-        "//fboss/agent:stats",
         "//fboss/agent:switch_config-cpp2-types",
         "//fboss/agent:switchid_scope_resolver",
-        "//fboss/agent:utils",
         "//fboss/agent:validated_shell_commands-cpp2-types",
         "//fboss/agent/hw:counter_utils",
         "//fboss/agent/hw:hardware_stats-cpp2-types",
