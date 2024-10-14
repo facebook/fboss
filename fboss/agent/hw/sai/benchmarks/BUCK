@@ -37,6 +37,7 @@ sai_mono_agent_benchmark(
         "//fboss/agent/hw/benchmarks:hw_tx_slow_path_rate",
         "//fboss/agent/hw/benchmarks:hw_voq_scale_route_add_speed",
         "//fboss/agent/hw/benchmarks:hw_voq_scale_route_del_speed",
+        "//fboss/agent/hw/benchmarks:hw_voq_sys_port_programming",
         "//fboss/agent/test:route_scale_gen",
     ],
 )
@@ -61,6 +62,7 @@ sai_multi_switch_agent_benchmark(
         "//fboss/agent/hw/benchmarks:hw_tx_slow_path_rate",
         "//fboss/agent/hw/benchmarks:hw_voq_scale_route_add_speed",
         "//fboss/agent/hw/benchmarks:hw_voq_scale_route_del_speed",
+        "//fboss/agent/hw/benchmarks:hw_voq_sys_port_programming",
         "//fboss/agent/test:route_scale_gen",
     ],
 )

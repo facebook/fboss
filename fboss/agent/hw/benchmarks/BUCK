@@ -378,3 +378,9 @@ agent_benchmark_lib(
         "//fboss/agent/hw/test:hw_test_thrift_handler_h",
     ],
 )
+
+agent_benchmark_lib(
+    name = "hw_voq_sys_port_programming",
+    srcs = ["HwVoqSysPortProgrammingBenchmark.cpp"],
+    extra_deps = [],
+)
