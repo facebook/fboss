@@ -14,6 +14,28 @@ class TamStoreTest : public SaiStoreTest {
     SaiStoreTest::SetUp();
   }
 
+  const folly::IPAddress kTamCollectorSrcIpV4{"1.1.1.1"};
+  const folly::IPAddress kTamCollectorDstIpV4{"2.2.2.2"};
+  const folly::IPAddress kTamCollectorSrcIpV6{"2401::1"};
+  const folly::IPAddress kTamCollectorDstIpV6{"2401::2"};
+
+  facebook::fboss::SaiTamCollectorTraits::CreateAttributes tamCollectorTraits(
+      facebook::fboss::TamTransportSaiId transportId,
+      bool ipV4) {
+    SaiTamCollectorTraits::CreateAttributes result;
+    std::get<SaiTamCollectorTraits::Attributes::SrcIp>(result) =
+        ipV4 ? kTamCollectorSrcIpV4 : kTamCollectorSrcIpV6;
+    std::get<SaiTamCollectorTraits::Attributes::DstIp>(result) =
+        ipV4 ? kTamCollectorDstIpV4 : kTamCollectorDstIpV6;
+    std::get<std::optional<SaiTamCollectorTraits::Attributes::TruncateSize>>(
+        result) = 128;
+    std::get<SaiTamCollectorTraits::Attributes::Transport>(result) =
+        SaiTamCollectorTraits::Attributes::Transport{transportId};
+    std::get<std::optional<SaiTamCollectorTraits::Attributes::DscpValue>>(
+        result) = 0;
+    return result;
+  }
+
   facebook::fboss::SaiTamTransportTraits::CreateAttributes
   tamTransportTraits() {
     SaiTamTransportTraits::CreateAttributes result;
@@ -59,6 +81,13 @@ class TamStoreTest : public SaiStoreTest {
     return SaiTamTraits::CreateAttributes{events, bindpoints};
   }
 
+  facebook::fboss::TamCollectorSaiId createCollector(
+      facebook::fboss::TamTransportSaiId transportId,
+      bool ipV4) {
+    return saiApiTable->tamApi().create<SaiTamCollectorTraits>(
+        tamCollectorTraits(transportId, ipV4), ipV4 ? 0 : 1);
+  }
+
   facebook::fboss::TamTransportSaiId createTransport() {
     return saiApiTable->tamApi().create<SaiTamTransportTraits>(
         tamTransportTraits(), 0);
@@ -87,6 +116,8 @@ class TamStoreTest : public SaiStoreTest {
 
 TEST_F(TamStoreTest, loadTam) {
   auto transport = createTransport();
+  auto collectorV4 = createCollector(transport, true /* ipV4 */);
+  auto collectorV6 = createCollector(transport, false /* ipV4 */);
   auto report = createReport();
   auto action = createEventAction(report);
   auto event = createEvent(action);
@@ -95,11 +126,20 @@ TEST_F(TamStoreTest, loadTam) {
   SaiStore s(0);
   s.reload();
 
+  auto& collectorStore = s.get<SaiTamCollectorTraits>();
   auto& transportStore = s.get<SaiTamTransportTraits>();
   auto& reportStore = s.get<SaiTamReportTraits>();
   auto& actionStore = s.get<SaiTamEventActionTraits>();
   auto& eventStore = s.get<SaiTamEventTraits>();
   auto& tamStore = s.get<SaiTamTraits>();
+  EXPECT_EQ(
+      collectorStore.get(tamCollectorTraits(transport, true /* ipV4 */))
+          ->adapterKey(),
+      collectorV4);
+  EXPECT_EQ(
+      collectorStore.get(tamCollectorTraits(transport, false /* ipV4 */))
+          ->adapterKey(),
+      collectorV6);
   EXPECT_EQ(transportStore.get(tamTransportTraits())->adapterKey(), transport);
   EXPECT_EQ(
       reportStore
@@ -117,6 +157,8 @@ TEST_F(TamStoreTest, loadTam) {
 
 TEST_F(TamStoreTest, tamCtors) {
   auto transport = createTransport();
+  auto collectorV4 = createCollector(transport, true /* ipV4 */);
+  auto collectorV6 = createCollector(transport, false /* ipV4 */);
   auto report = createReport();
   auto action = createEventAction(report);
   auto event = createEvent(action);
@@ -139,6 +181,60 @@ TEST_F(TamStoreTest, tamCtors) {
   EXPECT_EQ(
       GET_ATTR(TamTransport, Mtu, transportObj.attributes()),
       std::get<SaiTamTransportTraits::Attributes::Mtu>(tamTransportAhk)
+          .value());
+
+  auto collectorObjV4 = createObj<SaiTamCollectorTraits>(collectorV4);
+  auto tamCollectorAhkV4 = tamCollectorTraits(transport, true /* ipV4 */);
+  EXPECT_EQ(
+      GET_ATTR(TamCollector, SrcIp, collectorObjV4.attributes()),
+      std::get<SaiTamCollectorTraits::Attributes::SrcIp>(tamCollectorAhkV4)
+          .value());
+  EXPECT_EQ(
+      GET_ATTR(TamCollector, DstIp, collectorObjV4.attributes()),
+      std::get<SaiTamCollectorTraits::Attributes::DstIp>(tamCollectorAhkV4)
+          .value());
+  EXPECT_EQ(
+      GET_OPT_ATTR(TamCollector, TruncateSize, collectorObjV4.attributes()),
+      std::get<std::optional<SaiTamCollectorTraits::Attributes::TruncateSize>>(
+          tamCollectorAhkV4)
+          .value()
+          .value());
+  EXPECT_EQ(
+      GET_ATTR(TamCollector, Transport, collectorObjV4.attributes()),
+      std::get<SaiTamCollectorTraits::Attributes::Transport>(tamCollectorAhkV4)
+          .value());
+  EXPECT_EQ(
+      GET_OPT_ATTR(TamCollector, DscpValue, collectorObjV4.attributes()),
+      std::get<std::optional<SaiTamCollectorTraits::Attributes::DscpValue>>(
+          tamCollectorAhkV4)
+          .value()
+          .value());
+
+  auto collectorObjV6 = createObj<SaiTamCollectorTraits>(collectorV6);
+  auto tamCollectorAhkV6 = tamCollectorTraits(transport, false /* ipV6 */);
+  EXPECT_EQ(
+      GET_ATTR(TamCollector, SrcIp, collectorObjV6.attributes()),
+      std::get<SaiTamCollectorTraits::Attributes::SrcIp>(tamCollectorAhkV6)
+          .value());
+  EXPECT_EQ(
+      GET_ATTR(TamCollector, DstIp, collectorObjV6.attributes()),
+      std::get<SaiTamCollectorTraits::Attributes::DstIp>(tamCollectorAhkV6)
+          .value());
+  EXPECT_EQ(
+      GET_OPT_ATTR(TamCollector, TruncateSize, collectorObjV6.attributes()),
+      std::get<std::optional<SaiTamCollectorTraits::Attributes::TruncateSize>>(
+          tamCollectorAhkV6)
+          .value()
+          .value());
+  EXPECT_EQ(
+      GET_ATTR(TamCollector, Transport, collectorObjV6.attributes()),
+      std::get<SaiTamCollectorTraits::Attributes::Transport>(tamCollectorAhkV6)
+          .value());
+  EXPECT_EQ(
+      GET_OPT_ATTR(TamCollector, DscpValue, collectorObjV6.attributes()),
+      std::get<std::optional<SaiTamCollectorTraits::Attributes::DscpValue>>(
+          tamCollectorAhkV6)
+          .value()
           .value());
 
   auto reportObj = createObj<SaiTamReportTraits>(report);
@@ -199,6 +295,64 @@ TEST_F(TamStoreTest, setObject) {
       GET_ATTR(TamTransport, Mtu, transport->attributes()),
       std::get<SaiTamTransportTraits::Attributes::Mtu>(transportAhk).value());
 
+  auto collectorAhkV4 =
+      tamCollectorTraits(transport->adapterKey(), true /* ipV4 */);
+  auto collectorV4 =
+      s.get<SaiTamCollectorTraits>().setObject(collectorAhkV4, collectorAhkV4);
+  EXPECT_EQ(
+      GET_ATTR(TamCollector, SrcIp, collectorV4->attributes()),
+      std::get<SaiTamCollectorTraits::Attributes::SrcIp>(collectorAhkV4)
+          .value());
+  EXPECT_EQ(
+      GET_ATTR(TamCollector, DstIp, collectorV4->attributes()),
+      std::get<SaiTamCollectorTraits::Attributes::DstIp>(collectorAhkV4)
+          .value());
+  EXPECT_EQ(
+      GET_OPT_ATTR(TamCollector, TruncateSize, collectorV4->attributes()),
+      std::get<std::optional<SaiTamCollectorTraits::Attributes::TruncateSize>>(
+          collectorAhkV4)
+          .value()
+          .value());
+  EXPECT_EQ(
+      GET_ATTR(TamCollector, Transport, collectorV4->attributes()),
+      std::get<SaiTamCollectorTraits::Attributes::Transport>(collectorAhkV4)
+          .value());
+  EXPECT_EQ(
+      GET_OPT_ATTR(TamCollector, DscpValue, collectorV4->attributes()),
+      std::get<std::optional<SaiTamCollectorTraits::Attributes::DscpValue>>(
+          collectorAhkV4)
+          .value()
+          .value());
+
+  auto collectorAhkV6 =
+      tamCollectorTraits(transport->adapterKey(), false /* ipV6 */);
+  auto collectorV6 =
+      s.get<SaiTamCollectorTraits>().setObject(collectorAhkV6, collectorAhkV6);
+  EXPECT_EQ(
+      GET_ATTR(TamCollector, SrcIp, collectorV6->attributes()),
+      std::get<SaiTamCollectorTraits::Attributes::SrcIp>(collectorAhkV6)
+          .value());
+  EXPECT_EQ(
+      GET_ATTR(TamCollector, DstIp, collectorV6->attributes()),
+      std::get<SaiTamCollectorTraits::Attributes::DstIp>(collectorAhkV6)
+          .value());
+  EXPECT_EQ(
+      GET_OPT_ATTR(TamCollector, TruncateSize, collectorV6->attributes()),
+      std::get<std::optional<SaiTamCollectorTraits::Attributes::TruncateSize>>(
+          collectorAhkV6)
+          .value()
+          .value());
+  EXPECT_EQ(
+      GET_ATTR(TamCollector, Transport, collectorV6->attributes()),
+      std::get<SaiTamCollectorTraits::Attributes::Transport>(collectorAhkV6)
+          .value());
+  EXPECT_EQ(
+      GET_OPT_ATTR(TamCollector, DscpValue, collectorV6->attributes()),
+      std::get<std::optional<SaiTamCollectorTraits::Attributes::DscpValue>>(
+          collectorAhkV6)
+          .value()
+          .value());
+
   auto reportKey = tamReportTraits();
   auto report = s.get<SaiTamReportTraits>().setObject(reportKey, reportKey);
   EXPECT_EQ(
@@ -256,6 +410,16 @@ TEST_F(TamStoreTest, updateObject) {
   auto transport =
       s.get<SaiTamTransportTraits>().setObject(transportAhk, transportAhk);
 
+  auto collectorAhkV4 =
+      tamCollectorTraits(transport->adapterKey(), true /* ipV4 */);
+  auto collectorV4 =
+      s.get<SaiTamCollectorTraits>().setObject(collectorAhkV4, collectorAhkV4);
+
+  auto collectorAhkV6 =
+      tamCollectorTraits(transport->adapterKey(), false /* ipV4 */);
+  auto collectorV6 =
+      s.get<SaiTamCollectorTraits>().setObject(collectorAhkV6, collectorAhkV6);
+
   auto tamAhk = tamTraits(event->adapterKey());
   auto tam = s.get<SaiTamTraits>().setObject(tamAhk, tamAhk);
 
@@ -272,4 +436,21 @@ TEST_F(TamStoreTest, updateObject) {
       s.get<SaiTamTransportTraits>().setObject(transportAhk, transportAhk);
   EXPECT_EQ(
       GET_ATTR(TamTransport, DstPort, updatedTransport->attributes()), 10003);
+
+  std::get<std::optional<SaiTamCollectorTraits::Attributes::TruncateSize>>(
+      collectorAhkV4) = 256;
+  auto updatedCollectorV4 =
+      s.get<SaiTamCollectorTraits>().setObject(collectorAhkV4, collectorAhkV4);
+  EXPECT_EQ(
+      GET_OPT_ATTR(
+          TamCollector, TruncateSize, updatedCollectorV4->attributes()),
+      256);
+
+  std::get<std::optional<SaiTamCollectorTraits::Attributes::DscpValue>>(
+      collectorAhkV6) = 2;
+  auto updatedCollectorV6 =
+      s.get<SaiTamCollectorTraits>().setObject(collectorAhkV6, collectorAhkV6);
+  EXPECT_EQ(
+      GET_OPT_ATTR(TamCollector, DscpValue, updatedCollectorV6->attributes()),
+      2);
 }
