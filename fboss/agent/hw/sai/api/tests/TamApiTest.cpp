@@ -24,6 +24,27 @@ class TamApiTest : public ::testing::Test {
   std::unique_ptr<TamApi> tamApi;
 };
 
+TEST_F(TamApiTest, TamTransport) {
+  SaiTamTransportTraits::CreateAttributes transportAttr;
+  std::get<SaiTamTransportTraits::Attributes::Type>(transportAttr) =
+      SAI_TAM_TRANSPORT_TYPE_UDP;
+  std::get<SaiTamTransportTraits::Attributes::SrcPort>(transportAttr) = 10001;
+  std::get<SaiTamTransportTraits::Attributes::DstPort>(transportAttr) = 10002;
+  std::get<SaiTamTransportTraits::Attributes::Mtu>(transportAttr) = 1500;
+
+  auto transportSaiId =
+      tamApi->create<SaiTamTransportTraits>(transportAttr, switchId);
+  EXPECT_EQ(
+      tamApi->getAttribute(
+          transportSaiId, SaiTamTransportTraits::CreateAttributes{}),
+      transportAttr);
+  tamApi->remove(transportSaiId);
+  EXPECT_THROW(
+      tamApi->getAttribute(
+          transportSaiId, SaiTamTransportTraits::CreateAttributes{}),
+      std::exception);
+}
+
 TEST_F(TamApiTest, TamReport) {
   SaiTamReportTraits::CreateAttributes reportAttr;
   // for call back

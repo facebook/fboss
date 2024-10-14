@@ -396,6 +396,113 @@ sai_status_t set_tam_report_attribute(
   }
   return SAI_STATUS_SUCCESS;
 }
+
+sai_status_t create_tam_transport(
+    sai_object_id_t* id,
+    sai_object_id_t /*switch_id*/,
+    uint32_t attr_count,
+    const sai_attribute_t* attr_list) {
+  sai_int32_t transportType{};
+  sai_uint32_t srcPort{};
+  sai_uint32_t dstPort{};
+  sai_uint32_t mtu{};
+
+  for (auto i = 0; i < attr_count; i++) {
+    switch (attr_list[i].id) {
+      case SAI_TAM_TRANSPORT_ATTR_TRANSPORT_TYPE:
+        transportType = attr_list[i].value.s32;
+        break;
+
+      case SAI_TAM_TRANSPORT_ATTR_SRC_PORT:
+        srcPort = attr_list[i].value.u32;
+        break;
+
+      case SAI_TAM_TRANSPORT_ATTR_DST_PORT:
+        dstPort = attr_list[i].value.u32;
+        break;
+
+      case SAI_TAM_TRANSPORT_ATTR_MTU:
+        mtu = attr_list[i].value.u32;
+        break;
+
+      default:
+        return SAI_STATUS_ATTR_NOT_SUPPORTED_0 + i;
+    }
+  }
+  auto fs = FakeSai::getInstance();
+  *id = fs->tamTransportManager.create(transportType, srcPort, dstPort, mtu);
+  return SAI_STATUS_SUCCESS;
+}
+
+sai_status_t remove_tam_transport(sai_object_id_t id) {
+  auto fs = FakeSai::getInstance();
+  fs->tamTransportManager.remove(id);
+  return SAI_STATUS_SUCCESS;
+}
+
+sai_status_t get_tam_transport_attribute(
+    sai_object_id_t id,
+    uint32_t attr_count,
+    sai_attribute_t* attr_list) {
+  auto fs = FakeSai::getInstance();
+  auto& transport = fs->tamTransportManager.get(id);
+  for (auto i = 0; i < attr_count; i++) {
+    switch (attr_list[i].id) {
+      case SAI_TAM_TRANSPORT_ATTR_TRANSPORT_TYPE:
+        attr_list[i].value.s32 = transport.transportType_;
+        break;
+
+      case SAI_TAM_TRANSPORT_ATTR_SRC_PORT:
+        attr_list[i].value.u32 = transport.srcPort_;
+        break;
+
+      case SAI_TAM_TRANSPORT_ATTR_DST_PORT:
+        attr_list[i].value.u32 = transport.dstPort_;
+        break;
+
+      case SAI_TAM_TRANSPORT_ATTR_MTU:
+        attr_list[i].value.u32 = transport.mtu_;
+        break;
+
+      default:
+        return SAI_STATUS_ATTR_NOT_SUPPORTED_0 + i;
+    }
+  }
+  return SAI_STATUS_SUCCESS;
+}
+
+sai_status_t set_tam_transport_attribute(
+    sai_object_id_t id,
+    const sai_attribute_t* attr) {
+  try {
+    auto fs = FakeSai::getInstance();
+    auto& transport = fs->tamTransportManager.get(id);
+    switch (attr->id) {
+      case SAI_TAM_TRANSPORT_ATTR_TRANSPORT_TYPE:
+        transport.transportType_ = attr->value.s32;
+        break;
+
+      case SAI_TAM_TRANSPORT_ATTR_SRC_PORT:
+        transport.srcPort_ = attr->value.u32;
+        break;
+
+      case SAI_TAM_TRANSPORT_ATTR_DST_PORT:
+        transport.dstPort_ = attr->value.u32;
+        break;
+
+      case SAI_TAM_TRANSPORT_ATTR_MTU:
+        transport.mtu_ = attr->value.u32;
+        break;
+
+      default:
+        return SAI_STATUS_ATTR_NOT_SUPPORTED_0;
+    }
+  } catch (...) {
+    return SAI_STATUS_ITEM_NOT_FOUND;
+  }
+  return SAI_STATUS_SUCCESS;
+}
+
 } // namespace
 
 namespace facebook::fboss {
@@ -421,6 +528,11 @@ void populate_tam_api(sai_tam_api_t** tam_api) {
   _tam_api.remove_tam_report = &remove_tam_report;
   _tam_api.set_tam_report_attribute = &set_tam_report_attribute;
   _tam_api.get_tam_report_attribute = &get_tam_report_attribute;
+
+  _tam_api.create_tam_transport = &create_tam_transport;
+  _tam_api.remove_tam_transport = &remove_tam_transport;
+  _tam_api.set_tam_transport_attribute = &set_tam_transport_attribute;
+  _tam_api.get_tam_transport_attribute = &get_tam_transport_attribute;
 
   *tam_api = &_tam_api;
 }

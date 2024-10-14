@@ -64,6 +64,7 @@ void FakeSai::clear() {
   fs->tamEventManager.clear();
   fs->tamEventActionManager.clear();
   fs->tamReportManager.clear();
+  fs->tamTransportManager.clear();
   fs->tunnelManager.clear();
   fs->tunnelTermManager.clear();
   fs->systemPortManager.clear();
