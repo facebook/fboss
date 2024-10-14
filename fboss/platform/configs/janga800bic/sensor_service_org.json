@@ -93,7 +93,93 @@
             "upperCriticalVal": 100
           },
           "compute": "@/1000"
+        }
+      ]
+    },
+    {
+      "slotPath": "/PDB_SLOT@0",
+      "pmUnitName": "PDB",
+      "sensors": [
+        {
+          "name": "PDB_PS1_12V_IOUT",
+          "sysfsPath": "/run/devmap/sensors/PDB_PMBUS_BRICK_1/curr1_input",
+          "type": 2,
+          "thresholds": {
+            "maxAlarmVal": 120,
+            "upperCriticalVal": 130
+          },
+          "compute": "@/1000.0"
         },
+        {
+          "name": "PDB_PS1_12V_VOUT",
+          "sysfsPath": "/run/devmap/sensors/PDB_PMBUS_BRICK_1/in2_input",
+          "type": 1,
+          "thresholds": {
+            "maxAlarmVal": 13.5,
+            "minAlarmVal": 10.5,
+            "upperCriticalVal": 14,
+            "lowerCriticalVal": 10
+          },
+          "compute": "@/1000.0"
+        },
+        {
+          "name": "PDB_PS1_12V_TEMP",
+          "sysfsPath": "/run/devmap/sensors/PDB_PMBUS_BRICK_1/temp1_input",
+          "type": 3,
+          "thresholds": {
+            "maxAlarmVal": 115,
+            "upperCriticalVal": 125
+          },
+          "compute": "@/1000.0"
+        },
+        {
+          "name": "PDB_PS2_12V_IOUT",
+          "sysfsPath": "/run/devmap/sensors/PDB_PMBUS_BRICK_2/curr1_input",
+          "type": 2,
+          "thresholds": {
+            "maxAlarmVal": 120,
+            "upperCriticalVal": 130
+          },
+          "compute": "@/1000.0"
+        },
+        {
+          "name": "PDB_PS2_12V_VOUT",
+          "sysfsPath": "/run/devmap/sensors/PDB_PMBUS_BRICK_2/in2_input",
+          "type": 1,
+          "thresholds": {
+            "maxAlarmVal": 13.2,
+            "minAlarmVal": 10.8,
+            "upperCriticalVal": 14,
+            "lowerCriticalVal": 10
+          },
+          "compute": "@/1000.0"
+        },
+        {
+          "name": "PDB_PS2_12V_TEMP",
+          "sysfsPath": "/run/devmap/sensors/PDB_PMBUS_BRICK_2/temp1_input",
+          "type": 3,
+          "thresholds": {
+            "maxAlarmVal": 115,
+            "upperCriticalVal": 125
+          },
+          "compute": "@/1000.0"
+        },
+        {
+          "name": "PDB_U1_LM75_TEMP",
+          "sysfsPath": "/run/devmap/sensors/PDB_U1_LM75B/temp1_input",
+          "type": 3,
+          "thresholds": {
+            "maxAlarmVal": 55,
+            "upperCriticalVal": 60
+          },
+          "compute": "@/1000.0"
+        }
+      ]
+    },
+    {
+      "slotPath": "/",
+      "pmUnitName": "SMB",
+      "sensors": [
         {
           "name": "SMB_E1S_SSD_TEMP",
           "sysfsPath": "/run/devmap/sensors/SMB_E1S_SSD_TEMP/temp1_input",
@@ -131,6 +217,48 @@
           "thresholds": {
             "maxAlarmVal": 85,
             "upperCriticalVal": 90
+          },
+          "compute": "@/1000.0"
+        },
+        {
+          "name": "SMB_U177_J3A_XP0R75V_VDD_CORE_IOUT_",
+          "sysfsPath": "/run/devmap/sensors/SMB_U177_PMBUS_2/curr1_input",
+          "type": 2,
+          "thresholds": {
+            "maxAlarmVal": 850,
+            "upperCriticalVal": 870
+          },
+          "compute": "@/1000.0"
+        },
+        {
+          "name": "SMB_U177_J3A_XP0R75V_VDD_CORE_VOUT",
+          "sysfsPath": "/run/devmap/sensors/SMB_U177_PMBUS_2/in2_input",
+          "type": 1,
+          "thresholds": {
+            "maxAlarmVal": 0.814,
+            "minAlarmVal": 0.736,
+            "upperCriticalVal": 0.95,
+            "lowerCriticalVal": 0.7
+          },
+          "compute": "@/1000.0"
+        },
+        {
+          "name": "SMB_U177_J3A_XP0R75V_VDD_CORE_POUT",
+          "sysfsPath": "/run/devmap/sensors/SMB_U177_PMBUS_2/power2_input",
+          "type": 0,
+          "thresholds": {
+            "maxAlarmVal": 660,
+            "upperCriticalVal": 680
+          },
+          "compute": "@/1000000.0"
+        },
+        {
+          "name": "SMB_U177_J3A_XP0R75V_VDD_CORE_TEMP",
+          "sysfsPath": "/run/devmap/sensors/SMB_U177_PMBUS_2/temp1_input",
+          "type": 3,
+          "thresholds": {
+            "maxAlarmVal": 115,
+            "upperCriticalVal": 125
           },
           "compute": "@/1000.0"
         },
@@ -263,6 +391,48 @@
             "minAlarmVal": 1,
             "upperCriticalVal": 1.25,
             "lowerCriticalVal": 0.95
+          },
+          "compute": "@/1000.0"
+        },
+        {
+          "name": "SMB_U337_J3B_XP0R75V_VDD_CORE_IOUT",
+          "sysfsPath": "/run/devmap/sensors/SMB_U337_PMBUS_1/curr1_input",
+          "type": 2,
+          "thresholds": {
+            "maxAlarmVal": 850,
+            "upperCriticalVal": 870
+          },
+          "compute": "@/1000.0"
+        },
+        {
+          "name": "SMB_U337_J3B_XP0R75V_VDD_CORE_VOUT",
+          "sysfsPath": "/run/devmap/sensors/SMB_U337_PMBUS_1/in2_input",
+          "type": 1,
+          "thresholds": {
+            "maxAlarmVal": 0.814,
+            "minAlarmVal": 0.736,
+            "upperCriticalVal": 0.95,
+            "lowerCriticalVal": 0.7
+          },
+          "compute": "@/1000.0"
+        },
+        {
+          "name": "SMB_U337_J3B_XP0R75V_VDD_CORE_POUT",
+          "sysfsPath": "/run/devmap/sensors/SMB_U337_PMBUS_1/power2_input",
+          "type": 0,
+          "thresholds": {
+            "maxAlarmVal": 660,
+            "upperCriticalVal": 680
+          },
+          "compute": "@/1000000.0"
+        },
+        {
+          "name": "SMB_U337_J3B_XP0R75V_VDD_CORE_TEMP",
+          "sysfsPath": "/run/devmap/sensors/SMB_U337_PMBUS_1/temp1_input",
+          "type": 3,
+          "thresholds": {
+            "maxAlarmVal": 115,
+            "upperCriticalVal": 125
           },
           "compute": "@/1000.0"
         },
@@ -1006,92 +1176,7 @@
           },
           "compute": "(1000/3650)*@/1000.0"
         }
-      ]
-    },
-    {
-      "slotPath": "/PDB_SLOT@0",
-      "pmUnitName": "PDB",
-      "sensors": [
-        {
-          "name": "PDB_PS1_12V_IOUT",
-          "sysfsPath": "/run/devmap/sensors/PDB_PMBUS_BRICK_1/curr1_input",
-          "type": 2,
-          "thresholds": {
-            "maxAlarmVal": 120,
-            "upperCriticalVal": 130
-          },
-          "compute": "@/1000.0"
-        },
-        {
-          "name": "PDB_PS1_12V_VOUT",
-          "sysfsPath": "/run/devmap/sensors/PDB_PMBUS_BRICK_1/in2_input",
-          "type": 1,
-          "thresholds": {
-            "maxAlarmVal": 13.5,
-            "minAlarmVal": 10.5,
-            "upperCriticalVal": 14,
-            "lowerCriticalVal": 10
-          },
-          "compute": "@/1000.0"
-        },
-        {
-          "name": "PDB_PS1_12V_TEMP",
-          "sysfsPath": "/run/devmap/sensors/PDB_PMBUS_BRICK_1/temp1_input",
-          "type": 3,
-          "thresholds": {
-            "maxAlarmVal": 115,
-            "upperCriticalVal": 125
-          },
-          "compute": "@/1000.0"
-        },
-        {
-          "name": "PDB_PS2_12V_IOUT",
-          "sysfsPath": "/run/devmap/sensors/PDB_PMBUS_BRICK_2/curr1_input",
-          "type": 2,
-          "thresholds": {
-            "maxAlarmVal": 120,
-            "upperCriticalVal": 130
-          },
-          "compute": "@/1000.0"
-        },
-        {
-          "name": "PDB_PS2_12V_VOUT",
-          "sysfsPath": "/run/devmap/sensors/PDB_PMBUS_BRICK_2/in2_input",
-          "type": 1,
-          "thresholds": {
-            "maxAlarmVal": 13.2,
-            "minAlarmVal": 10.8,
-            "upperCriticalVal": 14,
-            "lowerCriticalVal": 10
-          },
-          "compute": "@/1000.0"
-        },
-        {
-          "name": "PDB_PS2_12V_TEMP",
-          "sysfsPath": "/run/devmap/sensors/PDB_PMBUS_BRICK_2/temp1_input",
-          "type": 3,
-          "thresholds": {
-            "maxAlarmVal": 115,
-            "upperCriticalVal": 125
-          },
-          "compute": "@/1000.0"
-        },
-        {
-          "name": "PDB_U1_LM75_TEMP",
-          "sysfsPath": "/run/devmap/sensors/PDB_U1_LM75B/temp1_input",
-          "type": 3,
-          "thresholds": {
-            "maxAlarmVal": 55,
-            "upperCriticalVal": 60
-          },
-          "compute": "@/1000.0"
-        }
-      ]
-    },
-    {
-      "slotPath": "/SMB_FRU_SLOT@0",
-      "pmUnitName": "SMB",
-      "sensors": [],
+      ],
       "versionedSensors": [
         {
           "sensors": [
@@ -1686,126 +1771,6 @@
                 "upperCriticalVal": 125
               },
               "compute": "@/1000.0"
-            },
-            {
-              "name": "SMB_U337_J3B_XP0R75V_VDD_CORE_IOUT",
-              "sysfsPath": "/run/devmap/sensors/SMB_U337_PMBUS_1/curr1_input",
-              "type": 2,
-              "thresholds": {
-                "maxAlarmVal": 850,
-                "upperCriticalVal": 870
-              },
-              "compute": "@/1000.0"
-            },
-            {
-              "name": "SMB_U337_J3B_XP0R75V_VDD_CORE_VOUT",
-              "sysfsPath": "/run/devmap/sensors/SMB_U337_PMBUS_1/in2_input",
-              "type": 1,
-              "thresholds": {
-                "maxAlarmVal": 0.814,
-                "minAlarmVal": 0.736,
-                "upperCriticalVal": 0.95,
-                "lowerCriticalVal": 0.7
-              },
-              "compute": "@/1000.0"
-            },
-            {
-              "name": "SMB_U337_J3B_XP0R75V_VDD_CORE_POUT",
-              "sysfsPath": "/run/devmap/sensors/SMB_U337_PMBUS_1/power2_input",
-              "type": 0,
-              "thresholds": {
-                "maxAlarmVal": 660,
-                "upperCriticalVal": 680
-              },
-              "compute": "@/1000000.0"
-            },
-            {
-              "name": "SMB_U337_J3B_XP0R75V_VDD_CORE_TEMP",
-              "sysfsPath": "/run/devmap/sensors/SMB_U337_PMBUS_1/temp1_input",
-              "type": 3,
-              "thresholds": {
-                "maxAlarmVal": 115,
-                "upperCriticalVal": 125
-              },
-              "compute": "@/1000.0"
-            },
-            {
-              "name": "SMB_U337_J3B_XP0R75V_VDD_CORE_VIN",
-              "sysfsPath": "/run/devmap/sensors/SMB_U337_PMBUS_1/in1_input",
-              "type": 1,
-              "thresholds": {
-                "maxAlarmVal": 13.5,
-                "minAlarmVal": 10.5,
-                "upperCriticalVal": 14,
-                "lowerCriticalVal": 10
-              },
-              "compute": "@/1000.0"
-            },
-            {
-              "name": "SMB_U337_J3B_XP0R75V_VDD_CORE_PIN",
-              "sysfsPath": "/run/devmap/sensors/SMB_U337_PMBUS_1/power1_input",
-              "type": 0,
-              "compute": "@/1000000.0"
-            },
-            {
-              "name": "SMB_U177_J3A_XP0R75V_VDD_CORE_IOUT_",
-              "sysfsPath": "/run/devmap/sensors/SMB_U177_PMBUS_2/curr1_input",
-              "type": 2,
-              "thresholds": {
-                "maxAlarmVal": 850,
-                "upperCriticalVal": 870
-              },
-              "compute": "@/1000.0"
-            },
-            {
-              "name": "SMB_U177_J3A_XP0R75V_VDD_CORE_VOUT",
-              "sysfsPath": "/run/devmap/sensors/SMB_U177_PMBUS_2/in2_input",
-              "type": 1,
-              "thresholds": {
-                "maxAlarmVal": 0.814,
-                "minAlarmVal": 0.736,
-                "upperCriticalVal": 0.95,
-                "lowerCriticalVal": 0.7
-              },
-              "compute": "@/1000.0"
-            },
-            {
-              "name": "SMB_U177_J3A_XP0R75V_VDD_CORE_POUT",
-              "sysfsPath": "/run/devmap/sensors/SMB_U177_PMBUS_2/power2_input",
-              "type": 0,
-              "thresholds": {
-                "maxAlarmVal": 660,
-                "upperCriticalVal": 680
-              },
-              "compute": "@/1000000.0"
-            },
-            {
-              "name": "SMB_U177_J3A_XP0R75V_VDD_CORE_TEMP",
-              "sysfsPath": "/run/devmap/sensors/SMB_U177_PMBUS_2/temp1_input",
-              "type": 3,
-              "thresholds": {
-                "maxAlarmVal": 115,
-                "upperCriticalVal": 125
-              },
-              "compute": "@/1000.0"
-            },
-            {
-              "name": "SMB_U177_J3A_XP0R75V_VDD_CORE_VIN",
-              "sysfsPath": "/run/devmap/sensors/SMB_U177_PMBUS_2/in1_input",
-              "type": 1,
-              "thresholds": {
-                "maxAlarmVal": 13.5,
-                "minAlarmVal": 10.5,
-                "upperCriticalVal": 14,
-                "lowerCriticalVal": 10
-              },
-              "compute": "@/1000.0"
-            },
-            {
-              "name": "SMB_U177_J3A_XP0R75V_VDD_CORE_PIN",
-              "sysfsPath": "/run/devmap/sensors/SMB_U177_PMBUS_2/power1_input",
-              "type": 0,
-              "compute": "@/1000000.0"
             }
           ],
           "productProductionState": 2,
@@ -2405,126 +2370,6 @@
                 "upperCriticalVal": 125
               },
               "compute": "@/1000.0"
-            },
-            {
-              "name": "SMB_U337_J3B_XP0R75V_VDD_CORE_IOUT",
-              "sysfsPath": "/run/devmap/sensors/SMB_U337_PMBUS_1/curr1_input",
-              "type": 2,
-              "thresholds": {
-                "maxAlarmVal": 850,
-                "upperCriticalVal": 870
-              },
-              "compute": "@/1000.0"
-            },
-            {
-              "name": "SMB_U337_J3B_XP0R75V_VDD_CORE_VOUT",
-              "sysfsPath": "/run/devmap/sensors/SMB_U337_PMBUS_1/in2_input",
-              "type": 1,
-              "thresholds": {
-                "maxAlarmVal": 0.814,
-                "minAlarmVal": 0.736,
-                "upperCriticalVal": 0.95,
-                "lowerCriticalVal": 0.7
-              },
-              "compute": "@/1000.0"
-            },
-            {
-              "name": "SMB_U337_J3B_XP0R75V_VDD_CORE_POUT",
-              "sysfsPath": "/run/devmap/sensors/SMB_U337_PMBUS_1/power2_input",
-              "type": 0,
-              "thresholds": {
-                "maxAlarmVal": 660,
-                "upperCriticalVal": 680
-              },
-              "compute": "@/1000000.0"
-            },
-            {
-              "name": "SMB_U337_J3B_XP0R75V_VDD_CORE_TEMP",
-              "sysfsPath": "/run/devmap/sensors/SMB_U337_PMBUS_1/temp1_input",
-              "type": 3,
-              "thresholds": {
-                "maxAlarmVal": 115,
-                "upperCriticalVal": 125
-              },
-              "compute": "@/1000.0"
-            },
-            {
-              "name": "SMB_U337_J3B_XP0R75V_VDD_CORE_VIN",
-              "sysfsPath": "/run/devmap/sensors/SMB_U337_PMBUS_1/in1_input",
-              "type": 1,
-              "thresholds": {
-                "maxAlarmVal": 13.5,
-                "minAlarmVal": 10.5,
-                "upperCriticalVal": 14,
-                "lowerCriticalVal": 10
-              },
-              "compute": "@/1000.0"
-            },
-            {
-              "name": "SMB_U337_J3B_XP0R75V_VDD_CORE_PIN",
-              "sysfsPath": "/run/devmap/sensors/SMB_U337_PMBUS_1/power1_input",
-              "type": 0,
-              "compute": "@/1000000.0"
-            },
-            {
-              "name": "SMB_U177_J3A_XP0R75V_VDD_CORE_IOUT_",
-              "sysfsPath": "/run/devmap/sensors/SMB_U177_PMBUS_2/curr1_input",
-              "type": 2,
-              "thresholds": {
-                "maxAlarmVal": 850,
-                "upperCriticalVal": 870
-              },
-              "compute": "@/1000.0"
-            },
-            {
-              "name": "SMB_U177_J3A_XP0R75V_VDD_CORE_VOUT",
-              "sysfsPath": "/run/devmap/sensors/SMB_U177_PMBUS_2/in2_input",
-              "type": 1,
-              "thresholds": {
-                "maxAlarmVal": 0.814,
-                "minAlarmVal": 0.736,
-                "upperCriticalVal": 0.95,
-                "lowerCriticalVal": 0.7
-              },
-              "compute": "@/1000.0"
-            },
-            {
-              "name": "SMB_U177_J3A_XP0R75V_VDD_CORE_POUT",
-              "sysfsPath": "/run/devmap/sensors/SMB_U177_PMBUS_2/power2_input",
-              "type": 0,
-              "thresholds": {
-                "maxAlarmVal": 660,
-                "upperCriticalVal": 680
-              },
-              "compute": "@/1000000.0"
-            },
-            {
-              "name": "SMB_U177_J3A_XP0R75V_VDD_CORE_TEMP",
-              "sysfsPath": "/run/devmap/sensors/SMB_U177_PMBUS_2/temp1_input",
-              "type": 3,
-              "thresholds": {
-                "maxAlarmVal": 115,
-                "upperCriticalVal": 125
-              },
-              "compute": "@/1000.0"
-            },
-            {
-              "name": "SMB_U177_J3A_XP0R75V_VDD_CORE_VIN",
-              "sysfsPath": "/run/devmap/sensors/SMB_U177_PMBUS_2/in1_input",
-              "type": 1,
-              "thresholds": {
-                "maxAlarmVal": 13.5,
-                "minAlarmVal": 10.5,
-                "upperCriticalVal": 14,
-                "lowerCriticalVal": 10
-              },
-              "compute": "@/1000.0"
-            },
-            {
-              "name": "SMB_U177_J3A_XP0R75V_VDD_CORE_PIN",
-              "sysfsPath": "/run/devmap/sensors/SMB_U177_PMBUS_2/power1_input",
-              "type": 0,
-              "compute": "@/1000000.0"
             }
           ],
           "productProductionState": 2,
@@ -3124,126 +2969,6 @@
                 "upperCriticalVal": 125
               },
               "compute": "@/1000.0"
-            },
-            {
-              "name": "SMB_U337_J3B_XP0R75V_VDD_CORE_IOUT",
-              "sysfsPath": "/run/devmap/sensors/SMB_U337_PMBUS_1/curr1_input",
-              "type": 2,
-              "thresholds": {
-                "maxAlarmVal": 850,
-                "upperCriticalVal": 870
-              },
-              "compute": "@/1000.0"
-            },
-            {
-              "name": "SMB_U337_J3B_XP0R75V_VDD_CORE_VOUT",
-              "sysfsPath": "/run/devmap/sensors/SMB_U337_PMBUS_1/in2_input",
-              "type": 1,
-              "thresholds": {
-                "maxAlarmVal": 0.814,
-                "minAlarmVal": 0.736,
-                "upperCriticalVal": 0.95,
-                "lowerCriticalVal": 0.7
-              },
-              "compute": "@/1000.0"
-            },
-            {
-              "name": "SMB_U337_J3B_XP0R75V_VDD_CORE_POUT",
-              "sysfsPath": "/run/devmap/sensors/SMB_U337_PMBUS_1/power2_input",
-              "type": 0,
-              "thresholds": {
-                "maxAlarmVal": 660,
-                "upperCriticalVal": 680
-              },
-              "compute": "@/1000000.0"
-            },
-            {
-              "name": "SMB_U337_J3B_XP0R75V_VDD_CORE_TEMP",
-              "sysfsPath": "/run/devmap/sensors/SMB_U337_PMBUS_1/temp1_input",
-              "type": 3,
-              "thresholds": {
-                "maxAlarmVal": 115,
-                "upperCriticalVal": 125
-              },
-              "compute": "@/1000.0"
-            },
-            {
-              "name": "SMB_U337_J3B_XP0R75V_VDD_CORE_VIN",
-              "sysfsPath": "/run/devmap/sensors/SMB_U337_PMBUS_1/in1_input",
-              "type": 1,
-              "thresholds": {
-                "maxAlarmVal": 13.5,
-                "minAlarmVal": 10.5,
-                "upperCriticalVal": 14,
-                "lowerCriticalVal": 10
-              },
-              "compute": "@/1000.0"
-            },
-            {
-              "name": "SMB_U337_J3B_XP0R75V_VDD_CORE_PIN",
-              "sysfsPath": "/run/devmap/sensors/SMB_U337_PMBUS_1/power1_input",
-              "type": 0,
-              "compute": "@/1000000.0"
-            },
-            {
-              "name": "SMB_U177_J3A_XP0R75V_VDD_CORE_IOUT_",
-              "sysfsPath": "/run/devmap/sensors/SMB_U177_PMBUS_2/curr1_input",
-              "type": 2,
-              "thresholds": {
-                "maxAlarmVal": 850,
-                "upperCriticalVal": 870
-              },
-              "compute": "@/1000.0"
-            },
-            {
-              "name": "SMB_U177_J3A_XP0R75V_VDD_CORE_VOUT",
-              "sysfsPath": "/run/devmap/sensors/SMB_U177_PMBUS_2/in2_input",
-              "type": 1,
-              "thresholds": {
-                "maxAlarmVal": 0.814,
-                "minAlarmVal": 0.736,
-                "upperCriticalVal": 0.95,
-                "lowerCriticalVal": 0.7
-              },
-              "compute": "@/1000.0"
-            },
-            {
-              "name": "SMB_U177_J3A_XP0R75V_VDD_CORE_POUT",
-              "sysfsPath": "/run/devmap/sensors/SMB_U177_PMBUS_2/power2_input",
-              "type": 0,
-              "thresholds": {
-                "maxAlarmVal": 660,
-                "upperCriticalVal": 680
-              },
-              "compute": "@/1000000.0"
-            },
-            {
-              "name": "SMB_U177_J3A_XP0R75V_VDD_CORE_TEMP",
-              "sysfsPath": "/run/devmap/sensors/SMB_U177_PMBUS_2/temp1_input",
-              "type": 3,
-              "thresholds": {
-                "maxAlarmVal": 115,
-                "upperCriticalVal": 125
-              },
-              "compute": "@/1000.0"
-            },
-            {
-              "name": "SMB_U177_J3A_XP0R75V_VDD_CORE_VIN",
-              "sysfsPath": "/run/devmap/sensors/SMB_U177_PMBUS_2/in1_input",
-              "type": 1,
-              "thresholds": {
-                "maxAlarmVal": 13.5,
-                "minAlarmVal": 10.5,
-                "upperCriticalVal": 14,
-                "lowerCriticalVal": 10
-              },
-              "compute": "@/1000.0"
-            },
-            {
-              "name": "SMB_U177_J3A_XP0R75V_VDD_CORE_PIN",
-              "sysfsPath": "/run/devmap/sensors/SMB_U177_PMBUS_2/power1_input",
-              "type": 0,
-              "compute": "@/1000000.0"
             }
           ],
           "productProductionState": 2,
@@ -3843,126 +3568,6 @@
                 "upperCriticalVal": 125
               },
               "compute": "@/1000.0"
-            },
-            {
-              "name": "SMB_U337_J3B_XP0R75V_VDD_CORE_IOUT",
-              "sysfsPath": "/run/devmap/sensors/SMB_U337_PMBUS_1/curr1_input",
-              "type": 2,
-              "thresholds": {
-                "maxAlarmVal": 850,
-                "upperCriticalVal": 870
-              },
-              "compute": "@/1000.0"
-            },
-            {
-              "name": "SMB_U337_J3B_XP0R75V_VDD_CORE_VOUT",
-              "sysfsPath": "/run/devmap/sensors/SMB_U337_PMBUS_1/in2_input",
-              "type": 1,
-              "thresholds": {
-                "maxAlarmVal": 0.814,
-                "minAlarmVal": 0.736,
-                "upperCriticalVal": 0.95,
-                "lowerCriticalVal": 0.7
-              },
-              "compute": "@/1000.0"
-            },
-            {
-              "name": "SMB_U337_J3B_XP0R75V_VDD_CORE_POUT",
-              "sysfsPath": "/run/devmap/sensors/SMB_U337_PMBUS_1/power2_input",
-              "type": 0,
-              "thresholds": {
-                "maxAlarmVal": 660,
-                "upperCriticalVal": 680
-              },
-              "compute": "@/1000000.0"
-            },
-            {
-              "name": "SMB_U337_J3B_XP0R75V_VDD_CORE_TEMP",
-              "sysfsPath": "/run/devmap/sensors/SMB_U337_PMBUS_1/temp1_input",
-              "type": 3,
-              "thresholds": {
-                "maxAlarmVal": 115,
-                "upperCriticalVal": 125
-              },
-              "compute": "@/1000.0"
-            },
-            {
-              "name": "SMB_U337_J3B_XP0R75V_VDD_CORE_VIN",
-              "sysfsPath": "/run/devmap/sensors/SMB_U337_PMBUS_1/in1_input",
-              "type": 1,
-              "thresholds": {
-                "maxAlarmVal": 13.5,
-                "minAlarmVal": 10.5,
-                "upperCriticalVal": 14,
-                "lowerCriticalVal": 10
-              },
-              "compute": "@/1000.0"
-            },
-            {
-              "name": "SMB_U337_J3B_XP0R75V_VDD_CORE_PIN",
-              "sysfsPath": "/run/devmap/sensors/SMB_U337_PMBUS_1/power1_input",
-              "type": 0,
-              "compute": "@/1000000.0"
-            },
-            {
-              "name": "SMB_U177_J3A_XP0R75V_VDD_CORE_IOUT_",
-              "sysfsPath": "/run/devmap/sensors/SMB_U177_PMBUS_2/curr1_input",
-              "type": 2,
-              "thresholds": {
-                "maxAlarmVal": 850,
-                "upperCriticalVal": 870
-              },
-              "compute": "@/1000.0"
-            },
-            {
-              "name": "SMB_U177_J3A_XP0R75V_VDD_CORE_VOUT",
-              "sysfsPath": "/run/devmap/sensors/SMB_U177_PMBUS_2/in2_input",
-              "type": 1,
-              "thresholds": {
-                "maxAlarmVal": 0.814,
-                "minAlarmVal": 0.736,
-                "upperCriticalVal": 0.95,
-                "lowerCriticalVal": 0.7
-              },
-              "compute": "@/1000.0"
-            },
-            {
-              "name": "SMB_U177_J3A_XP0R75V_VDD_CORE_POUT",
-              "sysfsPath": "/run/devmap/sensors/SMB_U177_PMBUS_2/power2_input",
-              "type": 0,
-              "thresholds": {
-                "maxAlarmVal": 660,
-                "upperCriticalVal": 680
-              },
-              "compute": "@/1000000.0"
-            },
-            {
-              "name": "SMB_U177_J3A_XP0R75V_VDD_CORE_TEMP",
-              "sysfsPath": "/run/devmap/sensors/SMB_U177_PMBUS_2/temp1_input",
-              "type": 3,
-              "thresholds": {
-                "maxAlarmVal": 115,
-                "upperCriticalVal": 125
-              },
-              "compute": "@/1000.0"
-            },
-            {
-              "name": "SMB_U177_J3A_XP0R75V_VDD_CORE_VIN",
-              "sysfsPath": "/run/devmap/sensors/SMB_U177_PMBUS_2/in1_input",
-              "type": 1,
-              "thresholds": {
-                "maxAlarmVal": 13.5,
-                "minAlarmVal": 10.5,
-                "upperCriticalVal": 14,
-                "lowerCriticalVal": 10
-              },
-              "compute": "@/1000.0"
-            },
-            {
-              "name": "SMB_U177_J3A_XP0R75V_VDD_CORE_PIN",
-              "sysfsPath": "/run/devmap/sensors/SMB_U177_PMBUS_2/power1_input",
-              "type": 0,
-              "compute": "@/1000000.0"
             }
           ],
           "productProductionState": 2,
@@ -4502,126 +4107,6 @@
                 "upperCriticalVal": 125
               },
               "compute": "@/1000.0"
-            },
-            {
-              "name": "SMB_U337_J3B_XP0R75V_VDD_CORE_IOUT",
-              "sysfsPath": "/run/devmap/sensors/SMB_U337_PMBUS_1/curr1_input",
-              "type": 2,
-              "thresholds": {
-                "maxAlarmVal": 850,
-                "upperCriticalVal": 870
-              },
-              "compute": "@/1000.0"
-            },
-            {
-              "name": "SMB_U337_J3B_XP0R75V_VDD_CORE_VOUT",
-              "sysfsPath": "/run/devmap/sensors/SMB_U337_PMBUS_1/in2_input",
-              "type": 1,
-              "thresholds": {
-                "maxAlarmVal": 0.814,
-                "minAlarmVal": 0.736,
-                "upperCriticalVal": 0.95,
-                "lowerCriticalVal": 0.7
-              },
-              "compute": "@/1000.0"
-            },
-            {
-              "name": "SMB_U337_J3B_XP0R75V_VDD_CORE_POUT",
-              "sysfsPath": "/run/devmap/sensors/SMB_U337_PMBUS_1/power2_input",
-              "type": 0,
-              "thresholds": {
-                "maxAlarmVal": 660,
-                "upperCriticalVal": 680
-              },
-              "compute": "@/1000000.0"
-            },
-            {
-              "name": "SMB_U337_J3B_XP0R75V_VDD_CORE_TEMP",
-              "sysfsPath": "/run/devmap/sensors/SMB_U337_PMBUS_1/temp1_input",
-              "type": 3,
-              "thresholds": {
-                "maxAlarmVal": 115,
-                "upperCriticalVal": 125
-              },
-              "compute": "@/1000.0"
-            },
-            {
-              "name": "SMB_U337_J3B_XP0R75V_VDD_CORE_VIN",
-              "sysfsPath": "/run/devmap/sensors/SMB_U337_PMBUS_1/in1_input",
-              "type": 1,
-              "thresholds": {
-                "maxAlarmVal": 13.5,
-                "minAlarmVal": 10.5,
-                "upperCriticalVal": 14,
-                "lowerCriticalVal": 10
-              },
-              "compute": "@/1000.0"
-            },
-            {
-              "name": "SMB_U337_J3B_XP0R75V_VDD_CORE_PIN",
-              "sysfsPath": "/run/devmap/sensors/SMB_U337_PMBUS_1/power1_input",
-              "type": 0,
-              "compute": "@/1000000.0"
-            },
-            {
-              "name": "SMB_U177_J3A_XP0R75V_VDD_CORE_IOUT_",
-              "sysfsPath": "/run/devmap/sensors/SMB_U177_PMBUS_2/curr1_input",
-              "type": 2,
-              "thresholds": {
-                "maxAlarmVal": 850,
-                "upperCriticalVal": 870
-              },
-              "compute": "@/1000.0"
-            },
-            {
-              "name": "SMB_U177_J3A_XP0R75V_VDD_CORE_VOUT",
-              "sysfsPath": "/run/devmap/sensors/SMB_U177_PMBUS_2/in2_input",
-              "type": 1,
-              "thresholds": {
-                "maxAlarmVal": 0.814,
-                "minAlarmVal": 0.736,
-                "upperCriticalVal": 0.95,
-                "lowerCriticalVal": 0.7
-              },
-              "compute": "@/1000.0"
-            },
-            {
-              "name": "SMB_U177_J3A_XP0R75V_VDD_CORE_POUT",
-              "sysfsPath": "/run/devmap/sensors/SMB_U177_PMBUS_2/power2_input",
-              "type": 0,
-              "thresholds": {
-                "maxAlarmVal": 660,
-                "upperCriticalVal": 680
-              },
-              "compute": "@/1000000.0"
-            },
-            {
-              "name": "SMB_U177_J3A_XP0R75V_VDD_CORE_TEMP",
-              "sysfsPath": "/run/devmap/sensors/SMB_U177_PMBUS_2/temp1_input",
-              "type": 3,
-              "thresholds": {
-                "maxAlarmVal": 115,
-                "upperCriticalVal": 125
-              },
-              "compute": "@/1000.0"
-            },
-            {
-              "name": "SMB_U177_J3A_XP0R75V_VDD_CORE_VIN",
-              "sysfsPath": "/run/devmap/sensors/SMB_U177_PMBUS_2/in1_input",
-              "type": 1,
-              "thresholds": {
-                "maxAlarmVal": 13.5,
-                "minAlarmVal": 10.5,
-                "upperCriticalVal": 14,
-                "lowerCriticalVal": 10
-              },
-              "compute": "@/1000.0"
-            },
-            {
-              "name": "SMB_U177_J3A_XP0R75V_VDD_CORE_PIN",
-              "sysfsPath": "/run/devmap/sensors/SMB_U177_PMBUS_2/power1_input",
-              "type": 0,
-              "compute": "@/1000000.0"
             }
           ],
           "productProductionState": 2,
@@ -5567,7 +5052,7 @@
     },
     {
       "slotPath": "/RUNBMC_SLOT@0",
-      "pmUnitName": "MINERVA_BMC",
+      "pmUnitName": "RUNBMC",
       "sensors": [
         {
           "name": "BMC_U9_Thermal_Sensor_TMP1075_TEMP",
