@@ -71,7 +71,6 @@ bool Jericho3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::SAI_FEC_CODEWORDS_STATS:
     case HwAsic::Feature::CRC_ERROR_DETECT:
     case HwAsic::Feature::ACL_METADATA_QUALIFER:
-    case HwAsic::Feature::L3_MTU_ERROR_TRAP:
     case HwAsic::Feature::EVENTOR_PORT_FOR_SFLOW:
     case HwAsic::Feature::SFLOWv6:
     case HwAsic::Feature::ZERO_SDK_WRITE_WARMBOOT:
@@ -191,6 +190,8 @@ bool Jericho3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::DATA_CELL_FILTER:
     case HwAsic::Feature::MULTIPLE_EGRESS_BUFFER_POOL:
     case HwAsic::Feature::ENABLE_DELAY_DROP_CONGESTION_THRESHOLD:
+    case HwAsic::Feature::L3_MTU_ERROR_TRAP:
+    case HwAsic::Feature::L3_INTF_MTU:
       return false;
   }
   return false;

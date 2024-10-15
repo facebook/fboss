@@ -87,6 +87,7 @@ bool YubaAsic::isSupportedNonFabric(Feature feature) const {
     case HwAsic::Feature::INGRESS_PRIORITY_GROUP_HEADROOM_WATERMARK:
     case HwAsic::Feature::INGRESS_PRIORITY_GROUP_SHARED_WATERMARK:
     case HwAsic::Feature::MULTIPLE_EGRESS_BUFFER_POOL:
+    case HwAsic::Feature::L3_INTF_MTU:
       return true;
     case HwAsic::Feature::ACL_BYTE_COUNTER:
     case HwAsic::Feature::SAI_MPLS_LABEL_LOOKUP_FAIL_COUNTER:

@@ -10,6 +10,7 @@
 
 #include "fboss/agent/hw/sai/switch/SaiRouterInterfaceManager.h"
 
+#include <folly/logging/xlog.h>
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/hw/sai/store/SaiStore.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
@@ -17,8 +18,8 @@
 #include "fboss/agent/hw/sai/switch/SaiSystemPortManager.h"
 #include "fboss/agent/hw/sai/switch/SaiVirtualRouterManager.h"
 #include "fboss/agent/hw/sai/switch/SaiVlanManager.h"
-
-#include <folly/logging/xlog.h>
+#include "fboss/agent/hw/switch_asics/HwAsic.h"
+#include "fboss/agent/platforms/sai/SaiPlatform.h"
 
 namespace facebook::fboss {
 
@@ -63,8 +64,12 @@ RouterInterfaceSaiId SaiRouterInterfaceManager::addOrUpdateVlanRouterInterface(
   SaiVlanRouterInterfaceTraits::Attributes::SrcMac srcMacAttribute{srcMac};
 
   // get MTU
-  SaiVlanRouterInterfaceTraits::Attributes::Mtu mtuAttribute{
-      static_cast<uint32_t>(swInterface->getMtu())};
+  std::optional<SaiVlanRouterInterfaceTraits::Attributes::Mtu> mtuAttribute =
+      std::nullopt;
+  if (platform_->getAsic()->isSupported(HwAsic::Feature::L3_INTF_MTU)) {
+    mtuAttribute = SaiVlanRouterInterfaceTraits::Attributes::Mtu(
+        static_cast<uint32_t>(swInterface->getMtu()));
+  }
 
   // create the router interface
   SaiVlanRouterInterfaceTraits::CreateAttributes attributes{
@@ -131,8 +136,12 @@ RouterInterfaceSaiId SaiRouterInterfaceManager::addOrUpdatePortRouterInterface(
   SaiPortRouterInterfaceTraits::Attributes::SrcMac srcMacAttribute{srcMac};
 
   // get MTU
-  SaiPortRouterInterfaceTraits::Attributes::Mtu mtuAttribute{
-      static_cast<uint32_t>(swInterface->getMtu())};
+  std::optional<SaiVlanRouterInterfaceTraits::Attributes::Mtu> mtuAttribute =
+      std::nullopt;
+  if (platform_->getAsic()->isSupported(HwAsic::Feature::L3_INTF_MTU)) {
+    mtuAttribute = SaiVlanRouterInterfaceTraits::Attributes::Mtu(
+        static_cast<uint32_t>(swInterface->getMtu()));
+  }
 
   // create the router interface
   SaiPortRouterInterfaceTraits::CreateAttributes attributes{

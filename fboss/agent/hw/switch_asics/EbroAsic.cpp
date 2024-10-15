@@ -85,6 +85,7 @@ bool EbroAsic::isSupportedNonFabric(Feature feature) const {
     case HwAsic::Feature::PORT_SERDES_ZERO_PREEMPHASIS:
     case HwAsic::Feature::SAI_ECMP_HASH_ALGORITHM:
     case HwAsic::Feature::ENABLE_DELAY_DROP_CONGESTION_THRESHOLD:
+    case HwAsic::Feature::L3_INTF_MTU:
       return true;
     case HwAsic::Feature::ACL_BYTE_COUNTER:
     case HwAsic::Feature::RESERVED_ENCAP_INDEX_RANGE:
