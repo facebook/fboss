@@ -438,6 +438,7 @@ def _test_thrift_handler(sai_impl, is_npu):
             "HwTestEcmpUtilsThriftHandler.cpp",
             "HwTestPortUtilsThriftHandler.cpp",
             "HwTestVoqSwitchUtilsThriftHandler.cpp",
+            "HwTestRouteUtilsThriftHandler.cpp",
             "HwTestThriftHandler.cpp",
         ],
         auto_headers = AutoHeaders.SOURCES,

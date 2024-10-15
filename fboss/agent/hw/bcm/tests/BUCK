@@ -611,16 +611,18 @@ cpp_library(
         "HwTestMirrorUtilsThriftHandler.cpp",
         "HwTestNeighborUtilsThriftHandler.cpp",
         "HwTestPortUtilsThriftHandler.cpp",
+        "HwTestRouteUtilsThriftHandler.cpp",
         "HwTestThriftHandler.cpp",
         "HwTestVoqSwitchUtilsThriftHandler.cpp",
     ],
     headers = [
     ],
+    undefined_symbols = "True",  # The sai/bcm implementations will define some functions
     exported_deps = [
+        "//fboss/agent:fboss-types",
         "//fboss/agent:hw_switch",
         "//fboss/agent/hw/bcm:bcm",
-        "//fboss/agent/hw/bcm:bcmaddress_fb_convertors",
-        "//fboss/agent/hw/bcm/tests:bcm_ecmp_utils",  # @manual
+        "//fboss/agent/hw/bcm:bcmaddress_fb_convertors",  # @manual
         "//fboss/agent/hw/switch_asics:switch_asics",
         "//fboss/agent/hw/test:hw_test_ecmp_utils",
         "//fboss/agent/hw/test:hw_test_thrift_handler_h",

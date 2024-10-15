@@ -82,6 +82,13 @@ class HwTestThriftHandler : public AgentHwTestCtrlSvIf {
       bool injectCorrectable) override;
 
   void injectSwitchReachabilityChangeNotification() override;
+  void getRouteInfo(RouteInfo& routeInfo, std::unique_ptr<IpPrefix> prefix)
+      override;
+  bool isRouteHit(std::unique_ptr<IpPrefix> prefix) override;
+  void clearRouteHit(std::unique_ptr<IpPrefix> prefix) override;
+  bool isRouteToNexthop(
+      std::unique_ptr<IpPrefix> prefix,
+      std::unique_ptr<network::thrift::BinaryAddress> nexthop) override;
 
  private:
   HwSwitch* hwSwitch_;
