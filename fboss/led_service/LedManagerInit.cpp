@@ -36,7 +36,9 @@ std::unique_ptr<LedManager> createLedManager() {
     return std::make_unique<YampLedManager>();
   } else if (mode == PlatformType::PLATFORM_ELBERT) {
     return std::make_unique<ElbertLedManager>();
-  } else if (mode == PlatformType::PLATFORM_DARWIN) {
+  } else if (
+      mode == PlatformType::PLATFORM_DARWIN ||
+      mode == PlatformType::PLATFORM_DARWIN48V) {
     return std::make_unique<DarwinLedManager>();
   } else if (mode == PlatformType::PLATFORM_WEDGE400) {
     return std::make_unique<Wedge400LedManager>();
