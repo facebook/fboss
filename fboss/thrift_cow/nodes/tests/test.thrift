@@ -62,13 +62,13 @@ struct TestStruct {
   24: map<string, TestStruct> mapA;
   25: map<string, TestStruct> mapB;
   26: map<i32, bool> cowMap;
-  27: map<i32, bool> hybridMap; // (allow_skip_thrift_cow = true);
-  28: list<i32> hybridList; // (allow_skip_thrift_cow = true);
-  29: set<i32> hybridSet; // (allow_skip_thrift_cow = true);
-  30: TestUnion hybridUnion; // (allow_skip_thrift_cow = true);
-  31: ChildStruct hybridStruct; // (allow_skip_thrift_cow = true);
+  27: map<i32, bool> hybridMap (allow_skip_thrift_cow = true);
+  28: list<i32> hybridList (allow_skip_thrift_cow = true);
+  29: set<i32> hybridSet (allow_skip_thrift_cow = true);
+  30: TestUnion hybridUnion (allow_skip_thrift_cow = true);
+  31: ChildStruct hybridStruct (allow_skip_thrift_cow = true);
   32: map<i32, switch_config.L4PortRange> hybridMapOfI32ToStruct; // (allow_skip_thrift_cow = true)
-} // (allow_skip_thrift_cow = true)
+} (allow_skip_thrift_cow = true)
 
 struct ParentTestStruct {
   1: TestStruct childStruct;
