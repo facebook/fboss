@@ -41,6 +41,14 @@
         "compute": "@/1000.0",
         "type": 3
       },
+      "PCH_TEMP": {
+        "path": "/run/devmap/sensors/PCH_THERMAL/temp1_input",
+        "thresholds": {
+          "upperCriticalVal": 85.0
+        },
+        "compute": "@/1000.0",
+        "type": 3
+      },
       "CPU_BOARD_TEMP": {
         "path": "/run/devmap/sensors/CPU_BOARD_TEMP_MAX6658/temp1_input",
         "thresholds": {
