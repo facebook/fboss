@@ -62,7 +62,7 @@
         "accessType": "ACCESS_TYPE_THRIFT"
       },
       "pwmCalcType": "SENSOR_PWM_CALC_TYPE_FOUR_LINEAR_TABLE",
-      "scale": 1000,
+      "scale": 1,
       "normalUpTable": {
         "15": 24,
         "110": 100
@@ -86,7 +86,7 @@
         "accessType": "ACCESS_TYPE_THRIFT"
       },
       "pwmCalcType": "SENSOR_PWM_CALC_TYPE_FOUR_LINEAR_TABLE",
-      "scale": 1000,
+      "scale": 1,
       "normalUpTable": {
         "15": 24,
         "110": 100
@@ -170,6 +170,19 @@
       "fanMissingVal": 0,
       "fanGoodLedVal": 2,
       "fanFailLedVal": 1
+    },
+    {
+      "fanName": "fan_6",
+      "rpmSysfsPath": "/run/devmap/sensors/FS_FAN_SLG4F4527/fan1_input",
+      "pwmSysfsPath": "/run/devmap/sensors/FS_FAN_SLG4F4527/pwm",
+      "presenceSysfsPath": "/run/devmap/fpgas/SCD_FPGA/rackmon_present",
+      "ledSysfsPath": "/sys/class/leds/rackmon::status/brightness",
+      "pwmMin": 1,
+      "pwmMax": 255,
+      "fanPresentVal": 1,
+      "fanMissingVal": 0,
+      "fanGoodLedVal": 2,
+      "fanFailLedVal": 1
     }
   ],
   "zones": [
@@ -186,7 +199,8 @@
         "fan_2",
         "fan_3",
         "fan_4",
-        "fan_5"
+        "fan_5",
+        "fan_6"
       ],
       "slope": 3
     }
