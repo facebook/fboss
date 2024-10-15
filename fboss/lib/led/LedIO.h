@@ -47,9 +47,9 @@ class LedIO {
   void setBlink(const std::string& ledPath, led::Blink blink);
 
   led::LedState currState_;
-  uint32_t id_;
-  std::optional<std::string> bluePath_;
-  std::optional<std::string> yellowPath_;
+  const uint32_t id_;
+  std::string bluePath_;
+  std::string yellowPath_;
 };
 
 } // namespace facebook::fboss
