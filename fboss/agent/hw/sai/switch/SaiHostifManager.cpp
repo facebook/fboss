@@ -128,6 +128,7 @@ SaiHostifManager::packetReasonToHostifTrap(
           SAI_HOSTIF_TRAP_TYPE_SAMPLEPACKET, SAI_PACKET_ACTION_TRAP);
     case cfg::PacketRxReason::EAPOL:
       return std::make_pair(SAI_HOSTIF_TRAP_TYPE_EAPOL, SAI_PACKET_ACTION_TRAP);
+    case cfg::PacketRxReason::PORT_MTU_ERROR:
     case cfg::PacketRxReason::MPLS_UNKNOWN_LABEL:
     case cfg::PacketRxReason::BPDU:
     case cfg::PacketRxReason::L3_SLOW_PATH:

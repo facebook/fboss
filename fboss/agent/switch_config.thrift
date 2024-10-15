@@ -932,6 +932,7 @@ enum PacketRxReason {
   SAMPLEPACKET = 18, // Sample Packet
   TTL_0 = 19, // Packets with TTL as 0
   EAPOL = 20, // EAPOL for Macsec
+  PORT_MTU_ERROR = 21, // Packet size exceeds port MTU, should not use together with L3_MTU_ERROR
 }
 
 enum PortLoopbackMode {
