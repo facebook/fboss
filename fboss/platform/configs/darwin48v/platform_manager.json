@@ -307,6 +307,10 @@
         {
           "pmUnitScopedName": "CPU_CORE_TEMP",
           "sysfsPath": "/sys/bus/platform/devices/coretemp.0"
+        },
+        {
+          "pmUnitScopedName": "PCH_THERMAL",
+          "sysfsPath": "/sys/devices/virtual/thermal/thermal_zone0"
         }
       ]
     },
@@ -409,6 +413,7 @@
     "/run/devmap/sensors/SC_TH3_ANLG_IR35223": "/[SC_TH3_ANLG_IR35223]",
     "/run/devmap/sensors/SC_QSFPDD_IR35223": "/[SC_QSFPDD_IR35223]",
     "/run/devmap/sensors/CPU_CORE_TEMP": "/[CPU_CORE_TEMP]",
+    "/run/devmap/sensors/PCH_THERMAL": "/[PCH_THERMAL]",
     "/run/devmap/flashes/SCD_SPI_MASTER_DEVICE1": "/[SCD_SPI_MASTER_DEVICE1]",
     "/run/devmap/eeproms/RACKMON_EEPROM": "/RACKMON_SLOT@0/[IDPROM]",
     "/run/devmap/sensors/FS_FAN_SLG4F4527": "/RACKMON_SLOT@0/[FS_FAN_SLG4F4527]",
