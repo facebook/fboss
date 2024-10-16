@@ -118,8 +118,10 @@ class CmdShowInterface
     int32_t minSystemPort = 0;
     for (const auto& idAndNode : dsfNodes) {
       const auto& node = idAndNode.second;
-      if (hostInfo.getName() == *node.name()) {
+      if (utils::removeFbDomains(hostInfo.getName()) ==
+          utils::removeFbDomains(*node.name())) {
         minSystemPort = *node.systemPortRange()->minimum();
+        break;
       }
     }
 
