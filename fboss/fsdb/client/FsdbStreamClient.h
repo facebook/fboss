@@ -138,6 +138,9 @@ class FsdbStreamClient : public ReconnectingThriftClient {
  private:
   void updateDisconnectReasonCounter(fsdb::FsdbErrorCode reason) {
     switch (reason) {
+      case fsdb::FsdbErrorCode::CLIENT_CHUNK_TIMEOUT:
+        disconnectReasonChunkTimeout_.add(1);
+        break;
       case fsdb::FsdbErrorCode::SUBSCRIPTION_DATA_CALLBACK_ERROR:
         disconnectReasonDataCbError_.add(1);
         break;
@@ -150,6 +153,11 @@ class FsdbStreamClient : public ReconnectingThriftClient {
   std::atomic<bool> serviceLoopRunning_{false};
   const bool isStats_;
   apache::thrift::RpcOptions rpcOptions_;
+  // counters for various disconnect reasons
+  fb303::TimeseriesWrapper disconnectReasonChunkTimeout_{
+      getCounterPrefix() + ".disconnectReason.chunkTimeout",
+      fb303::SUM,
+      fb303::RATE};
   fb303::TimeseriesWrapper disconnectReasonDataCbError_{
       getCounterPrefix() + ".disconnectReason.dataCbError",
       fb303::SUM,

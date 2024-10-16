@@ -124,6 +124,14 @@ folly::coro::Task<void> FsdbStreamClient::serviceLoopWrapper() {
                      << apache::thrift::util::enumNameSafe(ef.get_errorCode())
                      << ": " << ef.get_message();
     setStateDisconnectedWithReason(ef.get_errorCode());
+  } catch (const apache::thrift::transport::TTransportException& et) {
+    FsdbErrorCode disconnectReason = FsdbErrorCode::CLIENT_TRANSPORT_EXCEPTION;
+    if (et.getType() ==
+        apache::thrift::transport::TTransportException::
+            TTransportExceptionType::TIMED_OUT) {
+      disconnectReason = FsdbErrorCode::CLIENT_CHUNK_TIMEOUT;
+    }
+    setStateDisconnectedWithReason(disconnectReason);
   } catch (const std::exception& ex) {
     STREAM_XLOG(ERR) << "Unknown error: " << folly::exceptionStr(ex);
     setStateDisconnectedWithReason(FsdbErrorCode::DISCONNECTED);
