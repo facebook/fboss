@@ -22,6 +22,7 @@
 #include "fboss/agent/HwSwitch.h"
 #include "fboss/agent/RestartTimeTracker.h"
 #include "fboss/agent/SetupThrift.h"
+#include "fboss/agent/Utils.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/mnpu/SplitAgentThriftSyncer.h"
 #include "fboss/agent/state/StateDelta.h"
@@ -157,6 +158,10 @@ int hwAgentMain(
   fb303::fbData->setUseOptionsAsFlags(true);
   auto config = fbossCommonInit(argc, argv, true /*useBitsflowAclFileSuffix*/);
 
+  if (FLAGS_thrift_test_utils_thrift_handler || FLAGS_hw_agent_for_testing) {
+    config = getConfigFileForTesting(FLAGS_switchIndex);
+  }
+
   auto hwAgent = std::make_unique<HwAgent>(
       std::move(config), hwFeaturesDesired, initPlatformFn, FLAGS_switchIndex);
 
@@ -202,7 +207,7 @@ int hwAgentMain(
   std::vector<std::shared_ptr<apache::thrift::AsyncProcessorFactory>>
       handlers{};
   handlers.push_back(hwAgent->getPlatform()->createHandler());
-  if (FLAGS_thrift_test_utils_thrift_handler) {
+  if (FLAGS_thrift_test_utils_thrift_handler || FLAGS_hw_agent_for_testing) {
     // Add HwTestThriftHandler to the thrift server
     auto testUtilsHandler = utility::createHwTestThriftHandler(
         hwAgent->getPlatform()->getHwSwitch());
