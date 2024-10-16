@@ -277,4 +277,13 @@ void configurePortProfile(
 void setupMultipleEgressPoolAndQueueConfigs(
     cfg::SwitchConfig& config,
     const std::vector<int>& losslessQueueIds);
+
+bool isSaiConfig(const cfg::SwitchConfig& config);
+
+void modifyPlatformConfig(
+    cfg::PlatformConfig& config,
+    const std::function<void(std::string&)>& modifyYamlFunc,
+    const std::function<void(std::map<std::string, std::string>&)>&
+        modifyMapFunc);
+
 } // namespace facebook::fboss::utility

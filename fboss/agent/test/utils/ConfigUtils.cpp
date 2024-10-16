@@ -1365,4 +1365,35 @@ void setupMultipleEgressPoolAndQueueConfigs(
   }
 }
 
+bool isSaiConfig(const cfg::SwitchConfig& config) {
+  return config.sdkVersion().has_value() &&
+      config.sdkVersion()->saiSdk().has_value() &&
+      !config.sdkVersion()->saiSdk()->empty();
+}
+
+void modifyPlatformConfig(
+    cfg::PlatformConfig& config,
+    const std::function<void(std::string&)>& modifyYamlFunc,
+    const std::function<void(std::map<std::string, std::string>&)>&
+        modifyMapFunc) {
+  auto& chip = *config.chip();
+  if (chip.getType() == chip.bcm) {
+    auto& bcm = chip.mutable_bcm();
+    if (!bcm.yamlConfig().value_or("").empty()) {
+      // yamlConfig used for TH4
+      modifyYamlFunc(*bcm.yamlConfig());
+    } else {
+      modifyMapFunc(*bcm.config());
+    }
+  } else if (chip.getType() == chip.asicConfig) {
+    auto& common = *(chip.mutable_asicConfig().common());
+    if (common.getType() == common.yamlConfig) {
+      // yamlConfig used for TH4
+      modifyYamlFunc(common.mutable_yamlConfig());
+    } else if (common.getType() == common.config) {
+      modifyMapFunc(common.mutable_config());
+    }
+  }
+}
+
 } // namespace facebook::fboss::utility
