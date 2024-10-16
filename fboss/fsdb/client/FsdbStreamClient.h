@@ -126,6 +126,7 @@ class FsdbStreamClient : public ReconnectingThriftClient {
   void setStateDisconnectedWithReason(fsdb::FsdbErrorCode reason) {
     setDisconnectReason(reason);
     setState(State::DISCONNECTED);
+    updateDisconnectReasonCounter(reason);
   }
   std::unique_ptr<apache::thrift::Client<FsdbService>> client_;
 
@@ -135,10 +136,24 @@ class FsdbStreamClient : public ReconnectingThriftClient {
   folly::Synchronized<FsdbErrorCode> disconnectReason_{FsdbErrorCode::NONE};
 
  private:
+  void updateDisconnectReasonCounter(fsdb::FsdbErrorCode reason) {
+    switch (reason) {
+      case fsdb::FsdbErrorCode::SUBSCRIPTION_DATA_CALLBACK_ERROR:
+        disconnectReasonDataCbError_.add(1);
+        break;
+      default:
+        break;
+    };
+  }
+
   folly::EventBase* streamEvb_;
   std::atomic<bool> serviceLoopRunning_{false};
   const bool isStats_;
   apache::thrift::RpcOptions rpcOptions_;
+  fb303::TimeseriesWrapper disconnectReasonDataCbError_{
+      getCounterPrefix() + ".disconnectReason.dataCbError",
+      fb303::SUM,
+      fb303::RATE};
 };
 
 } // namespace facebook::fboss::fsdb
