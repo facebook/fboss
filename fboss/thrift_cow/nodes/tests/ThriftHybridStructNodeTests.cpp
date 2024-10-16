@@ -40,19 +40,27 @@ TEST(ThriftHybridStructNodeTests, ReadThriftStructAnnotation) {
 }
 
 TEST(ThriftHybridStructNodeTests, ThriftStructNodeAnnotations) {
-  ThriftStructFields<TestStruct> fields;
+  {
+    ThriftStructFields<TestStruct> fields;
 
 #ifdef __ENABLE_HYBRID_THRIFT_COW_TESTS__
-  static_assert(fields.isSkipThriftCowEnabled<k::hybridMap>() == true);
+    static_assert(fields.isSkipThriftCowEnabled<k::hybridMap>() == true);
 #endif // __ENABLE_HYBRID_THRIFT_COW_TESTS__
-  static_assert(fields.isSkipThriftCowEnabled<k::cowMap>() == false);
-
-  ThriftStructNode<TestStruct> node;
+    static_assert(fields.isSkipThriftCowEnabled<k::cowMap>() == false);
+  }
+  {
+    ThriftStructNode<TestStruct> node;
 
 #ifdef __ENABLE_HYBRID_THRIFT_COW_TESTS__
-  ASSERT_EQ(node.isSkipThriftCowEnabled<k::hybridMap>(), true);
+    ASSERT_EQ(node.isSkipThriftCowEnabled<k::hybridMap>(), true);
 #endif // __ENABLE_HYBRID_THRIFT_COW_TESTS__
-  ASSERT_EQ(node.isSkipThriftCowEnabled<k::cowMap>(), false);
+    ASSERT_EQ(node.isSkipThriftCowEnabled<k::cowMap>(), false);
+  }
+  // annotation that is other than `allow_skip_thrift_cow`
+  {
+    ThriftStructNode<TestStruct2> node;
+    ASSERT_EQ(node.isSkipThriftCowEnabled<k::deprecatedField>(), false);
+  }
 }
 
 TEST(ThriftHybridStructNodeTests, TestHybridNodeTypes) {

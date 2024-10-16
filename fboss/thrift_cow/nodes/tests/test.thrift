@@ -77,4 +77,6 @@ struct ParentTestStruct {
   1: TestStruct childStruct;
 } (random_annotation)
 
-struct TestStruct2 {} (deprecated, allow_skip_thrift_cow = false)
+struct TestStruct2 {
+  10: i32 deprecatedField (deprecated);
+} (deprecated, allow_skip_thrift_cow = false)
