@@ -702,6 +702,9 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
         std::nullopt, // ARS port load future weight
 #endif
         std::nullopt, // Reachability Group
+        std::nullopt, // CondEntropyRehashEnable
+        std::nullopt, // CondEntropyRehashPeriodUS
+        std::nullopt, // CondEntropyRehashSeed
     };
   }
   return SaiPortTraits::CreateAttributes{
@@ -770,6 +773,9 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
       arsPortLoadFutureWeight, // ARS port load future weight
 #endif
       reachabilityGroup,
+      std::nullopt, // CondEntropyRehashEnable
+      std::nullopt, // CondEntropyRehashPeriodUS
+      std::nullopt, // CondEntropyRehashSeed
   };
 }
 

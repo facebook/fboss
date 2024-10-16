@@ -171,6 +171,9 @@ void handleExtensionAttributes() {
   SAI_EXT_ATTR_MAP(PortSerdes, RxCdrTdet1stOrdStepOvVal)
   SAI_EXT_ATTR_MAP(PortSerdes, RxCdrTdet2ndOrdStepOvVal)
   SAI_EXT_ATTR_MAP(PortSerdes, RxCdrTdetFineStepOvVal)
+  SAI_EXT_ATTR_MAP(Port, CondEntropyRehashEnable)
+  SAI_EXT_ATTR_MAP(Port, CondEntropyRehashPeriodUS)
+  SAI_EXT_ATTR_MAP(Port, CondEntropyRehashSeed)
 }
 
 } // namespace

@@ -237,4 +237,33 @@ std::optional<sai_attr_id_t> SaiPortSerdesTraits::Attributes::
   return std::nullopt;
 }
 
+std::optional<sai_attr_id_t>
+SaiPortTraits::Attributes::AttributeCondEntropyRehashEnable::operator()() {
+// TODO(zecheng): Update flag when new 12.0 release has the attribute
+#if defined(SAI_VERSION_11_3_0_0_DNX_ODP)
+  return SAI_PORT_ATTR_COND_ENTROPY_REHASH_ENABLE;
+#else
+  return std::nullopt;
+#endif
+}
+
+std::optional<sai_attr_id_t>
+SaiPortTraits::Attributes::AttributeCondEntropyRehashPeriodUS::operator()() {
+// TODO(zecheng): Update flag when new 12.0 release has the attribute
+#if defined(SAI_VERSION_11_3_0_0_DNX_ODP)
+  return SAI_PORT_ATTR_COND_ENTROPY_REHASH_PERIOD_US;
+#else
+  return std::nullopt;
+#endif
+}
+
+std::optional<sai_attr_id_t>
+SaiPortTraits::Attributes::AttributeCondEntropyRehashSeed::operator()() {
+// TODO(zecheng): Update flag when new 12.0 release has the attribute
+#if defined(SAI_VERSION_11_3_0_0_DNX_ODP)
+  return SAI_PORT_ATTR_COND_ENTROPY_REHASH_SEED;
+#else
+  return std::nullopt;
+#endif
+}
 } // namespace facebook::fboss

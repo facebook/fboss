@@ -78,6 +78,9 @@ class PortApiTest : public ::testing::Test {
         std::nullopt, // ARS port load future weight
 #endif
         std::nullopt, // Reachability Group
+        std::nullopt, // CondEntropyRehashEnable
+        std::nullopt, // CondEntropyRehashPeriodUS
+        std::nullopt, // CondEntropyRehashSeed
     };
     return portApi->create<SaiPortTraits>(a, 0);
   }
