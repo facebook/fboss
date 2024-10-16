@@ -70,6 +70,7 @@ struct TestStruct {
   32: map<i32, switch_config.L4PortRange> hybridMapOfI32ToStruct (
     allow_skip_thrift_cow = true,
   );
+  33: map<i32, map<i32, i32>> hybridMapOfMap (allow_skip_thrift_cow = true);
 } (allow_skip_thrift_cow = true)
 
 struct ParentTestStruct {

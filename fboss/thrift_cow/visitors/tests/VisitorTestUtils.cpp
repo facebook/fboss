@@ -34,7 +34,8 @@ TestStruct createHybridMapTestStruct() {
       "cowMap", dynamic::object(1, true))(
       "hybridMap", dynamic::object(1, true))(
       "hybridMapOfI32ToStruct",
-      dynamic::object(20, dynamic::object("min", 400)("max", 600)));
+      dynamic::object(20, dynamic::object("min", 400)("max", 600)))(
+      "hybridMapOfMap", dynamic::object(10, dynamic::object(20, 30)));
 
   return facebook::thrift::from_dynamic<TestStruct>(
       testDyn, facebook::thrift::dynamic_format::JSON_1);

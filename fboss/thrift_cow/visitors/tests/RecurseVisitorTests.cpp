@@ -40,7 +40,8 @@ folly::dynamic createTestDynamic() {
       "hybridMap", dynamic::object())("hybridList", dynamic::array())(
       "hybridSet", dynamic::array())("hybridUnion", dynamic::object())(
       "hybridStruct", dynamic::object("childMap", dynamic::object()))(
-      "hybridMapOfI32ToStruct", dynamic::object());
+      "hybridMapOfI32ToStruct", dynamic::object())(
+      "hybridMapOfMap", dynamic::object());
 }
 
 TestStruct createTestStruct(folly::dynamic testDyn) {
@@ -69,6 +70,7 @@ TEST(RecurseVisitorTests, TestFullRecurse) {
       {{"cowMap"}, dynamic::object()},
       {{"hybridMap"}, dynamic::object()},
       {{"hybridMapOfI32ToStruct"}, dynamic::object()},
+      {{"hybridMapOfMap"}, dynamic::object()},
       {{"hybridList"}, dynamic::array()},
       {{"hybridSet"}, dynamic::array()},
       {{"hybridUnion"}, dynamic::object()},
@@ -135,6 +137,7 @@ TEST(RecurseVisitorTests, TestLeafRecurse) {
 #ifdef __ENABLE_HYBRID_THRIFT_COW_TESTS__
       {{"hybridMap"}, testDyn["hybridMap"]},
       {{"hybridMapOfI32ToStruct"}, testDyn["hybridMapOfI32ToStruct"]},
+      {{"hybridMapOfMap"}, testDyn["hybridMapOfMap"]},
       {{"hybridList"}, testDyn["hybridList"]},
       {{"hybridSet"}, testDyn["hybridSet"]},
       {{"hybridUnion"}, testDyn["hybridUnion"]},
@@ -177,6 +180,7 @@ TEST(RecurseVisitorTests, TestLeafRecurse) {
       {{"30"}, testDyn["hybridUnion"]},
       {{"31"}, testDyn["hybridStruct"]},
       {{"32"}, testDyn["hybridMapOfI32ToStruct"]},
+      {{"33"}, testDyn["hybridMapOfMap"]},
 #endif // __ENABLE_HYBRID_THRIFT_COW_TESTS__
       {{"1"}, testDyn["inlineBool"]},
       {{"2"}, testDyn["inlineInt"]},
