@@ -140,3 +140,10 @@ DEFINE_int32(
     0,
     "Time to wait for HwSwitch to connect before SwSwitch exits. "
     "By default, SwSwitch waits forever and hence default value is 0.");
+
+DEFINE_bool(
+    qgroup_guarantee_enable,
+    false,
+    "Enable setting of unicast and multicast queue guaranteed buffer sizes");
+
+DEFINE_bool(skip_buffer_reservation, false, "Enable skip reservation");

@@ -60,3 +60,5 @@ DECLARE_bool(dsf_edsw_platform_mapping);
 DECLARE_bool(exit_for_any_hw_disconnect);
 DECLARE_bool(enable_balanced_intput_mode);
 DECLARE_int32(hw_agent_connection_timeout_ms);
+DECLARE_bool(qgroup_guarantee_enable);
+DECLARE_bool(skip_buffer_reservation);
