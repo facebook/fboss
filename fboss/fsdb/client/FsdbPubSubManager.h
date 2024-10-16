@@ -76,32 +76,32 @@ class FsdbPubSubManager {
   void publishStat(Patch&& pubUnit);
 
   /* Subscriber add APIs */
-  void addStatDeltaSubscription(
+  std::string addStatDeltaSubscription(
       const Path& subscribePath,
       SubscriptionStateChangeCb subscriptionStateChangeCb,
       FsdbDeltaSubscriber::FsdbOperDeltaUpdateCb operDeltaCb,
       FsdbStreamClient::ServerOptions&& serverOptions =
           kDefaultServerOptions());
-  void addStatPathSubscription(
+  std::string addStatPathSubscription(
       const Path& subscribePath,
       SubscriptionStateChangeCb subscriptionStateChangeCb,
       FsdbStateSubscriber::FsdbOperStateUpdateCb operDeltaCb,
       FsdbStreamClient::ServerOptions&& serverOptions =
           kDefaultServerOptions());
   /* multi path subscription */
-  void addStateDeltaSubscription(
+  std::string addStateDeltaSubscription(
       const MultiPath& subscribePaths,
       SubscriptionStateChangeCb subscriptionStateChangeCb,
       FsdbExtDeltaSubscriber::FsdbOperDeltaUpdateCb operDeltaCb,
       FsdbStreamClient::ServerOptions&& serverOptions =
           kDefaultServerOptions());
-  void addStatDeltaSubscription(
+  std::string addStatDeltaSubscription(
       const MultiPath& subscribePath,
       SubscriptionStateChangeCb subscriptionStateChangeCb,
       FsdbExtDeltaSubscriber::FsdbOperDeltaUpdateCb operDeltaCb,
       FsdbStreamClient::ServerOptions&& serverOptions =
           kDefaultServerOptions());
-  void addStatPathSubscription(
+  std::string addStatPathSubscription(
       const MultiPath& subscribePath,
       SubscriptionStateChangeCb subscriptionStateChangeCb,
       FsdbExtStateSubscriber::FsdbOperStateUpdateCb operDeltaCb,
@@ -110,57 +110,57 @@ class FsdbPubSubManager {
 
   /* Apis that use ServerOptions */
   // TODO: change all above apis to use server options
-  void addStatePathSubscription(
+  std::string addStatePathSubscription(
       const Path& subscribePath,
       SubscriptionStateChangeCb subscriptionStateChangeCb,
       FsdbStateSubscriber::FsdbOperStateUpdateCb operStateCb,
       FsdbStreamClient::ServerOptions&& serverOptions =
           kDefaultServerOptions());
-  void addStatePathSubscription(
+  std::string addStatePathSubscription(
       const MultiPath& subscribePaths,
       SubscriptionStateChangeCb subscriptionStateChangeCb,
       FsdbExtStateSubscriber::FsdbOperStateUpdateCb operStateCb,
       FsdbStreamClient::ServerOptions&& serverOptions = kDefaultServerOptions(),
       const std::optional<std::string>& clientIdSuffix = std::nullopt);
-  void addStateDeltaSubscription(
+  std::string addStateDeltaSubscription(
       const Path& subscribePath,
       SubscriptionStateChangeCb stateChangeCb,
       FsdbDeltaSubscriber::FsdbOperDeltaUpdateCb operDeltaCb,
       FsdbStreamClient::ServerOptions&& serverOptions =
           kDefaultServerOptions());
-  void addStatePatchSubscription(
+  std::string addStatePatchSubscription(
       const PatchPath& subscribePath,
       SubscriptionStateChangeCb stateChangeCb,
       FsdbPatchSubscriber::FsdbOperPatchUpdateCb patchCb,
       FsdbStreamClient::ServerOptions&& serverOptions);
-  void addStatePathSubscription(
+  std::string addStatePathSubscription(
       SubscriptionOptions&& subscriptionOptions,
       const Path& subscribePath,
       SubscriptionStateChangeCb stateChangeCb,
       FsdbStateSubscriber::FsdbOperStateUpdateCb operStateCb,
       FsdbStreamClient::ServerOptions&& serverOptions);
-  void addStatePathSubscription(
+  std::string addStatePathSubscription(
       SubscriptionOptions&& subscriptionOptions,
       const MultiPath& subscribePaths,
       SubscriptionStateChangeCb stateChangeCb,
       FsdbExtStateSubscriber::FsdbOperStateUpdateCb operStateCb,
       FsdbStreamClient::ServerOptions&& serverOptions);
-  void addStateExtPathSubscription(
+  std::string addStateExtPathSubscription(
       const std::vector<ExtendedOperPath>& subscribePaths,
       SubscriptionStateChangeCb stateChangeCb,
       FsdbExtStateSubscriber::FsdbOperStateUpdateCb operStateCb,
       FsdbStreamClient::ServerOptions&& serverOptions);
-  void addStatExtPathSubscription(
+  std::string addStatExtPathSubscription(
       const std::vector<ExtendedOperPath>& subscribePaths,
       SubscriptionStateChangeCb stateChangeCb,
       FsdbExtStateSubscriber::FsdbOperStateUpdateCb operStateCb,
       FsdbStreamClient::ServerOptions&& serverOptions);
-  void addStateExtDeltaSubscription(
+  std::string addStateExtDeltaSubscription(
       const std::vector<ExtendedOperPath>& subscribePaths,
       SubscriptionStateChangeCb stateChangeCb,
       FsdbExtDeltaSubscriber::FsdbOperDeltaUpdateCb operDeltaCb,
       FsdbStreamClient::ServerOptions&& serverOptions);
-  void addStatExtDeltaSubscription(
+  std::string addStatExtDeltaSubscription(
       const std::vector<ExtendedOperPath>& subscribePaths,
       SubscriptionStateChangeCb stateChangeCb,
       FsdbExtDeltaSubscriber::FsdbOperDeltaUpdateCb operDeltaCb,
@@ -231,6 +231,16 @@ class FsdbPubSubManager {
     return stats ? statPatchPublisher_.get() : statePatchPublisher_.get();
   }
 
+  std::string getSubscriberStatsPrefix(bool stats, std::string& key) {
+    auto& path2Subscriber =
+        stats ? statPath2Subscriber_ : statePath2Subscriber_;
+    auto path2SubscriberR = path2Subscriber.rlock();
+    if (path2SubscriberR->find(key) != path2SubscriberR->end()) {
+      return path2SubscriberR->find(key)->second->getCounterPrefix();
+    }
+    return "";
+  }
+
   std::string getClientId() const {
     return clientId_;
   }
@@ -264,7 +274,7 @@ class FsdbPubSubManager {
       bool subscribeStats);
 
   template <typename SubscriberT, typename PathElement>
-  void addSubscriptionImpl(
+  std::string addSubscriptionImpl(
       const std::vector<PathElement>& subscribePath,
       SubscriptionStateChangeCb stateChangeCb,
       typename SubscriberT::FsdbSubUnitUpdateCb subUnitAvailableCb,
@@ -272,7 +282,7 @@ class FsdbPubSubManager {
       FsdbStreamClient::ServerOptions&& serverOptions,
       const std::optional<std::string>& clientIdSuffix = std::nullopt);
   template <typename SubscriberT, typename PathElement>
-  void addSubscriptionImpl(
+  std::string addSubscriptionImpl(
       const std::map<SubscriptionKey, PathElement>& subscribePath,
       SubscriptionStateChangeCb stateChangeCb,
       typename SubscriberT::FsdbSubUnitUpdateCb subUnitAvailableCb,
@@ -280,7 +290,7 @@ class FsdbPubSubManager {
       FsdbStreamClient::ServerOptions&& serverOptions,
       const std::optional<std::string>& clientIdSuffix = std::nullopt);
   template <typename SubscriberT, typename PathElement>
-  void addSubscriptionImpl(
+  std::string addSubscriptionImpl(
       SubscriptionOptions&& subscriptionOptions,
       const std::vector<PathElement>& subscribePath,
       SubscriptionStateChangeCb stateChangeCb,
