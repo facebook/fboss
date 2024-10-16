@@ -292,6 +292,7 @@ class AgentEnsemble : public TestEnsembleIf {
   void setConfigFiles(const std::string& fileName);
   void setBootType();
   void overrideConfigFlag(const std::string& fileName);
+  void dumpConfigForHwAgent(AgentConfig* agentConf);
 
   void writeConfig(const cfg::SwitchConfig& config);
   void writeConfig(const cfg::AgentConfig& config);
