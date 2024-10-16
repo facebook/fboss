@@ -26,10 +26,6 @@ TEST(ParserTest, GetNameForTests) {
       "meru800bia");
   EXPECT_EQ(
       facebook::fboss::Parser::getNameFor(
-          facebook::fboss::PlatformType::PLATFORM_MERU800BIAB),
-      "meru800biab");
-  EXPECT_EQ(
-      facebook::fboss::Parser::getNameFor(
           facebook::fboss::PlatformType::PLATFORM_MERU800BFA),
       "meru800bfa");
   EXPECT_EQ(
