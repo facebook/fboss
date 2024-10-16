@@ -16,6 +16,10 @@ using namespace facebook::fboss::fsdb;
 
 class TestSubscription : public Subscription {
  public:
+  ~TestSubscription() override {
+    stop();
+  }
+
   PubSubType type() const override {
     return PubSubType::PATH;
   }
@@ -43,6 +47,10 @@ class TestSubscription : public Subscription {
 
 class TestDeltaSubscription : public Subscription {
  public:
+  ~TestDeltaSubscription() override {
+    stop();
+  }
+
   PubSubType type() const override {
     return PubSubType::DELTA;
   }
@@ -78,6 +86,10 @@ class TestExtendedSubscription : public ExtendedSubscription {
             std::nullopt,
             nullptr,
             std::chrono::milliseconds(0)) {}
+
+  ~TestExtendedSubscription() override {
+    stop();
+  }
 
   PubSubType type() const override {
     return PubSubType::PATH;
