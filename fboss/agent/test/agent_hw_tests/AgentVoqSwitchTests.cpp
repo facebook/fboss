@@ -1,6 +1,7 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
 #include "fboss/agent/DsfStateUpdaterUtil.h"
+#include "fboss/agent/FabricConnectivityManager.h"
 #include "fboss/agent/FbossHwUpdateError.h"
 #include "fboss/agent/TxPacket.h"
 #include "fboss/agent/hw/HwResourceStatsPublisher.h"
@@ -495,6 +496,10 @@ class AgentVoqSwitchWithFabricPortsTest : public AgentVoqSwitchTest {
     // Allow disabling of looped ports. This should
     // be a noop for VOQ switches
     FLAGS_disable_looped_fabric_ports = true;
+    // Fabric connectivity manager to expect single NPU
+    if (!FLAGS_multi_switch) {
+      FLAGS_janga_single_npu_for_testing = true;
+    }
   }
 };
 
@@ -2165,6 +2170,10 @@ class AgentVoqSwitchFullScaleDsfNodesWithFabricPortsTest
     AgentVoqSwitchFullScaleDsfNodesTest::setCmdLineFlagOverrides();
     // Unhide fabric ports
     FLAGS_hide_fabric_ports = false;
+    // Fabric connectivity manager to expect single NPU
+    if (!FLAGS_multi_switch) {
+      FLAGS_janga_single_npu_for_testing = true;
+    }
   }
 };
 
