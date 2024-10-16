@@ -11,6 +11,8 @@
 #include "fboss/agent/state/StateDelta.h"
 #include "fboss/agent/types.h"
 
+DECLARE_bool(janga_single_npu_for_testing);
+
 namespace facebook::fboss {
 class HwAsic;
 class SwitchState;

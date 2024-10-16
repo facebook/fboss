@@ -23,6 +23,12 @@
 #include "fboss/agent/hw/switch_asics/RamonAsic.h"
 
 #include <sstream>
+
+DEFINE_bool(
+    janga_single_npu_for_testing,
+    false,
+    "Fabric connectivity manager to use single NPU janga platform for testing.");
+
 using facebook::fboss::DeltaFunctions::forEachAdded;
 using facebook::fboss::DeltaFunctions::forEachChanged;
 using facebook::fboss::DeltaFunctions::forEachRemoved;
@@ -62,7 +68,7 @@ getPlatformMappingForDsfNode(const PlatformType platformType) {
     }
     case PlatformType::PLATFORM_JANGA800BIC: {
       static Janga800bicPlatformMapping janga800bic{
-          true /*multiNpuPlatformMapping*/};
+          !FLAGS_janga_single_npu_for_testing /*multiNpuPlatformMapping*/};
       return &janga800bic;
     }
     default:
