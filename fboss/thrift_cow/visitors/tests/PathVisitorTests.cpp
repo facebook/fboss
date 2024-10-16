@@ -22,7 +22,13 @@ TEST(PathVisitorTests, AccessField) {
   folly::dynamic dyn;
   auto processPath = pvlambda([&dyn](auto& node, auto begin, auto end) {
     EXPECT_EQ(begin, end);
-    dyn = node.toFollyDynamic();
+    if constexpr (std::is_base_of_v<
+                      Serializable,
+                      std::remove_cvref_t<decltype(node)>>) {
+      dyn = node.toFollyDynamic();
+    } else {
+      FAIL() << "unexpected non-cow visit";
+    }
   });
   std::vector<std::string> path{"inlineInt"};
   auto result = RootPathVisitor::visit(
@@ -60,7 +66,14 @@ TEST(PathVisitorTests, HybridMapAccess) {
   folly::dynamic dyn;
   auto processPath = pvlambda([&dyn](auto& node, auto begin, auto end) {
     EXPECT_EQ(begin, end);
-    dyn = node.toFollyDynamic();
+    if constexpr (std::is_base_of_v<
+                      Serializable,
+                      std::remove_cvref_t<decltype(node)>>) {
+      dyn = node.toFollyDynamic();
+    } else {
+      facebook::thrift::to_dynamic(
+          dyn, node, facebook::thrift::dynamic_format::JSON_1);
+    }
   });
 
   // hybridMap
@@ -77,7 +90,7 @@ TEST(PathVisitorTests, HybridMapAccess) {
     auto result = RootPathVisitor::visit(
         *nodeA, path.begin(), path.end(), PathVisitMode::LEAF, processPath);
     EXPECT_EQ(result, ThriftTraverseResult::OK);
-    // EXPECT_TRUE(dyn.asBool());
+    EXPECT_TRUE(dyn.asBool());
   }
 }
 #endif // __ENABLE_HYBRID_THRIFT_COW_TESTS__
@@ -89,7 +102,13 @@ TEST(PathVisitorTests, AccessFieldInContainer) {
   folly::dynamic dyn;
   auto processPath = pvlambda([&dyn](auto& node, auto begin, auto end) {
     EXPECT_EQ(begin, end);
-    dyn = node.toFollyDynamic();
+    if constexpr (std::is_base_of_v<
+                      Serializable,
+                      std::remove_cvref_t<decltype(node)>>) {
+      dyn = node.toFollyDynamic();
+    } else {
+      FAIL() << "unexpected non-cow visit";
+    }
   });
   std::vector<std::string> path{"mapOfEnumToStruct", "3"};
   auto result = RootPathVisitor::visit(
@@ -125,6 +144,14 @@ struct GetVisitedPathsOperator : public BasePathVisitorOperator {
         "/" + folly::join('/', std::vector<std::string>(begin, end)));
   }
 
+  template <typename Node>
+  void visit(Node& node, pv_detail::PathIter begin, pv_detail::PathIter end)
+    requires(!is_cow_type_v<Node>)
+  {
+    SerializableReader dummy(node);
+    visit(dummy, begin, end);
+  }
+
  private:
   std::set<std::string> visited;
 };
@@ -151,9 +178,14 @@ TEST(PathVisitorTests, AccessOptional) {
   std::string got;
   auto processPath = pvlambda([&got](auto& node, auto begin, auto end) {
     EXPECT_EQ(begin, end);
-    got = node.toFollyDynamic().asString();
+    if constexpr (std::is_base_of_v<
+                      Serializable,
+                      std::remove_cvref_t<decltype(node)>>) {
+      got = node.toFollyDynamic().asString();
+    } else {
+      FAIL() << "unexpected non-cow visit";
+    }
   });
-
   std::vector<std::string> path{"optionalString"};
   auto result = RootPathVisitor::visit(
       *nodeA, path.begin(), path.end(), PathVisitMode::LEAF, processPath);

@@ -80,7 +80,7 @@ class BasePathVisitorOperator {
   template <typename Node>
   inline void
   visitTyped(Node& node, pv_detail::PathIter begin, pv_detail::PathIter end)
-    requires(apache::thrift::is_thrift_class_v<Node>)
+    requires(!is_cow_type_v<Node>)
   {
     // supporting only read-only visitation
     CHECK(visitReadOnly_);
@@ -429,8 +429,11 @@ struct PathVisitorImpl<
           return ThriftTraverseResult::INVALID_MAP_KEY;
         }
         auto& val = tObj.at(key.value());
-        // TODO: support operator
-        LOG(INFO) << val;
+        if (begin == end) {
+          op.visitTyped(val, begin, end);
+        } else {
+          // TODO: further recurse
+        }
       }
       return ThriftTraverseResult::OK;
     } catch (const std::exception& ex) {

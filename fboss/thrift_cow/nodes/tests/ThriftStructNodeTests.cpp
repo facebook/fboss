@@ -228,7 +228,15 @@ TEST(ThriftStructNodeTests, ThriftStructNodeVisit) {
   ThriftStructNode<TestStruct> node(data);
 
   folly::dynamic out;
-  auto f = [&out](auto& node) { out = node.toFollyDynamic(); };
+  auto f = [&out](auto& node) {
+    if constexpr (std::is_base_of_v<
+                      Serializable,
+                      std::remove_cvref_t<decltype(node)>>) {
+      out = node.toFollyDynamic();
+    } else {
+      FAIL() << "unexpected non-cow visit";
+    }
+  };
 
   std::vector<std::string> path = {"inlineBool"};
   auto result = visitPath(node, path.begin(), path.end(), f);
@@ -263,8 +271,24 @@ TEST(ThriftStructNodeTests, ThriftStructNodeVisitMutable) {
   ThriftStructNode<TestStruct> node(data);
 
   folly::dynamic toWrite, out;
-  auto write = [&toWrite](auto& node) { node.fromFollyDynamic(toWrite); };
-  auto read = [&out](auto& node) { out = node.toFollyDynamic(); };
+  auto write = [&toWrite](auto& node) {
+    if constexpr (std::is_base_of_v<
+                      Serializable,
+                      std::remove_cvref_t<decltype(node)>>) {
+      node.fromFollyDynamic(toWrite);
+    } else {
+      FAIL() << "unexpected non-cow visit";
+    }
+  };
+  auto read = [&out](auto& node) {
+    if constexpr (std::is_base_of_v<
+                      Serializable,
+                      std::remove_cvref_t<decltype(node)>>) {
+      out = node.toFollyDynamic();
+    } else {
+      FAIL() << "unexpected non-cow visit";
+    }
+  };
 
   std::vector<std::string> path = {"inlineBool"};
   toWrite = false;
