@@ -548,7 +548,12 @@ TEST_F(AgentVoqSwitchWithFabricPortsTest, collectStats) {
           if (port->getPortType() == cfg::PortType::FABRIC_PORT) {
             EXPECT_EVENTUALLY_TRUE(loadBearingInErrors.has_value());
             EXPECT_EVENTUALLY_TRUE(loadBearingFecErrors.has_value());
-            EXPECT_EVENTUALLY_TRUE(loadBearingFlaps.has_value());
+            if (getAgentEnsemble()->getBootType() == BootType::COLD_BOOT) {
+              EXPECT_EVENTUALLY_TRUE(loadBearingFlaps.has_value());
+            } else {
+              // No port flap after wb, hence there no stats being recorded
+              EXPECT_FALSE(loadBearingFlaps.has_value());
+            }
           } else {
             EXPECT_FALSE(loadBearingInErrors.has_value());
             EXPECT_FALSE(loadBearingFecErrors.has_value());
