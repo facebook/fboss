@@ -65,6 +65,7 @@ target_link_libraries(agent_hw_test_src
   packet
   packet_snooper
   queue_per_host_test_utils
+  multi_port_traffic_test_utils
   trap_packet_utils
   core
   hw_asic_table
