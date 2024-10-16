@@ -425,7 +425,7 @@ struct PathVisitorImpl<
         // Get key
         auto token = *begin++;
         auto key = folly::tryTo<KeyT>(token);
-        if (!key.hasValue()) {
+        if (!key.hasValue() || tObj.find(key.value()) == tObj.end()) {
           return ThriftTraverseResult::INVALID_MAP_KEY;
         }
         auto& val = tObj.at(key.value());

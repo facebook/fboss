@@ -92,6 +92,14 @@ TEST(PathVisitorTests, HybridMapAccess) {
     EXPECT_EQ(result, ThriftTraverseResult::OK);
     EXPECT_TRUE(dyn.asBool());
   }
+  // Invalid path
+  // hybridMap/2
+  {
+    std::vector<std::string> path = {"hybridMap", "2"};
+    auto result = RootPathVisitor::visit(
+        *nodeA, path.begin(), path.end(), PathVisitMode::LEAF, processPath);
+    EXPECT_EQ(result, ThriftTraverseResult::INVALID_MAP_KEY);
+  }
   // hybridMapOfI32ToStruct
   {
     std::vector<std::string> path = {"hybridMapOfI32ToStruct"};
