@@ -44,9 +44,7 @@ std::unique_ptr<LedManager> createLedManager() {
       mode == PlatformType::PLATFORM_MERU800BFA ||
       mode == PlatformType::PLATFORM_MERU800BFA_P1) {
     return std::make_unique<Meru800bfaLedManager>();
-  } else if (
-      mode == PlatformType::PLATFORM_MERU800BIA ||
-      mode == PlatformType::PLATFORM_MERU800BIAB) {
+  } else if (mode == PlatformType::PLATFORM_MERU800BIA) {
     return std::make_unique<Meru800biaLedManager>();
   } else if (mode == PlatformType::PLATFORM_MORGAN800CC) {
     return std::make_unique<Morgan800ccLedManager>();
