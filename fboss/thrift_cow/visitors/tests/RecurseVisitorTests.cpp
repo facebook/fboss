@@ -134,6 +134,7 @@ TEST(RecurseVisitorTests, TestLeafRecurse) {
   std::map<std::vector<std::string>, folly::dynamic> expected = {
 #ifdef __ENABLE_HYBRID_THRIFT_COW_TESTS__
       {{"hybridMap"}, testDyn["hybridMap"]},
+      {{"hybridMapOfI32ToStruct"}, testDyn["hybridMapOfI32ToStruct"]},
       {{"hybridList"}, testDyn["hybridList"]},
       {{"hybridSet"}, testDyn["hybridSet"]},
       {{"hybridUnion"}, testDyn["hybridUnion"]},
@@ -175,6 +176,7 @@ TEST(RecurseVisitorTests, TestLeafRecurse) {
       {{"29"}, testDyn["hybridSet"]},
       {{"30"}, testDyn["hybridUnion"]},
       {{"31"}, testDyn["hybridStruct"]},
+      {{"32"}, testDyn["hybridMapOfI32ToStruct"]},
 #endif // __ENABLE_HYBRID_THRIFT_COW_TESTS__
       {{"1"}, testDyn["inlineBool"]},
       {{"2"}, testDyn["inlineInt"]},

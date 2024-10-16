@@ -84,13 +84,27 @@ TEST(PathVisitorTests, HybridMapAccess) {
     EXPECT_EQ(result, ThriftTraverseResult::OK);
     EXPECT_TRUE(dyn[1].asBool());
   }
+  // hybridMap/1
   {
-    // hybridMap/1
     std::vector<std::string> path = {"hybridMap", "1"};
     auto result = RootPathVisitor::visit(
         *nodeA, path.begin(), path.end(), PathVisitMode::LEAF, processPath);
     EXPECT_EQ(result, ThriftTraverseResult::OK);
     EXPECT_TRUE(dyn.asBool());
+  }
+  // hybridMapOfI32ToStruct
+  {
+    std::vector<std::string> path = {"hybridMapOfI32ToStruct"};
+    auto result = RootPathVisitor::visit(
+        *nodeA, path.begin(), path.end(), PathVisitMode::LEAF, processPath);
+    EXPECT_EQ(result, ThriftTraverseResult::OK);
+    EXPECT_NE(dyn.find(20), dyn.items().end());
+    cfg::L4PortRange got;
+
+    got = facebook::thrift::from_dynamic<cfg::L4PortRange>(
+        dyn[20], facebook::thrift::dynamic_format::JSON_1);
+    EXPECT_EQ(*got.min(), 400);
+    EXPECT_EQ(*got.max(), 600);
   }
 }
 #endif // __ENABLE_HYBRID_THRIFT_COW_TESTS__
