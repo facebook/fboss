@@ -58,7 +58,8 @@ void AgentEnsemble::setupEnsemble(
     auto inputAgentConfig =
         AgentConfig::fromFile(AgentEnsemble::getInputConfigFile())->thrift;
     if (platformConfigFn) {
-      platformConfigFn(*(inputAgentConfig.platform()));
+      platformConfigFn(
+          *(inputAgentConfig.sw()), *(inputAgentConfig.platform()));
     }
     // some platform config may need cold boots. so overwrite the config before
     // creating a switch

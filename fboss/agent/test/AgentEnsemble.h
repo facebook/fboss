@@ -32,7 +32,8 @@ class HwSwitch;
 
 using AgentEnsembleSwitchConfigFn =
     std::function<cfg::SwitchConfig(const AgentEnsemble&)>;
-using AgentEnsemblePlatformConfigFn = std::function<void(cfg::PlatformConfig&)>;
+using AgentEnsemblePlatformConfigFn =
+    std::function<void(const cfg::SwitchConfig& sw, cfg::PlatformConfig&)>;
 
 class AgentEnsemble : public TestEnsembleIf {
  public:
