@@ -118,9 +118,11 @@ add_library(utils
 )
 
 target_link_libraries(utils
+  agent_dir_util
   asic_utils
   error
   ctrl_cpp2
+  load_agent_config
   state
   switchid_scope_resolver
   Folly::folly
