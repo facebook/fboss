@@ -59,7 +59,7 @@ TEST(PathVisitorTests, AccessField) {
 }
 
 #ifdef __ENABLE_HYBRID_THRIFT_COW_TESTS__
-TEST(PathVisitorTests, HybridMapAccess) {
+TEST(PathVisitorTests, HybridMapPrimitiveAccess) {
   auto structA = createHybridMapTestStruct();
 
   auto nodeA = std::make_shared<ThriftStructNode<TestStruct>>(structA);
@@ -113,6 +113,27 @@ TEST(PathVisitorTests, HybridMapAccess) {
         dyn[20], facebook::thrift::dynamic_format::JSON_1);
     EXPECT_EQ(*got.min(), 400);
     EXPECT_EQ(*got.max(), 600);
+  }
+  // hybridMapOfI32ToStruct/20
+  {
+    std::vector<std::string> path = {"hybridMapOfI32ToStruct", "20"};
+    auto result = RootPathVisitor::visit(
+        *nodeA, path.begin(), path.end(), PathVisitMode::LEAF, processPath);
+    EXPECT_EQ(result, ThriftTraverseResult::OK);
+    cfg::L4PortRange got;
+
+    got = facebook::thrift::from_dynamic<cfg::L4PortRange>(
+        dyn, facebook::thrift::dynamic_format::JSON_1);
+    EXPECT_EQ(*got.min(), 400);
+    EXPECT_EQ(*got.max(), 600);
+  }
+  // Invalid path
+  // hybridMapOfI32ToStruct/30
+  {
+    std::vector<std::string> path = {"hybridMapOfI32ToStruct", "30"};
+    auto result = RootPathVisitor::visit(
+        *nodeA, path.begin(), path.end(), PathVisitMode::LEAF, processPath);
+    EXPECT_EQ(result, ThriftTraverseResult::INVALID_MAP_KEY);
   }
 }
 #endif // __ENABLE_HYBRID_THRIFT_COW_TESTS__
