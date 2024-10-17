@@ -743,26 +743,34 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
   std::optional<SaiAclEntryTraits::Attributes::FieldIcmpV6Code> fieldIcmpV6Code{
       std::nullopt};
   if (addedAclEntry->getIcmpType()) {
-    if (addedAclEntry->getProto()) {
-      if (addedAclEntry->getProto().value() == AclEntry::kProtoIcmp) {
-        fieldIcmpV4Type = SaiAclEntryTraits::Attributes::FieldIcmpV4Type{
+    if ((addedAclEntry->getProto() &&
+         addedAclEntry->getProto().value() == AclEntry::kProtoIcmp) ||
+        (addedAclEntry->getEtherType() &&
+         addedAclEntry->getEtherType().value() == cfg::EtherType::IPv4)) {
+      fieldIcmpV4Type = SaiAclEntryTraits::Attributes::FieldIcmpV4Type{
+          AclEntryFieldU8(std::make_pair(
+              addedAclEntry->getIcmpType().value(), kIcmpTypeMask))};
+      if (addedAclEntry->getIcmpCode()) {
+        fieldIcmpV4Code = SaiAclEntryTraits::Attributes::FieldIcmpV4Code{
             AclEntryFieldU8(std::make_pair(
-                addedAclEntry->getIcmpType().value(), kIcmpTypeMask))};
-        if (addedAclEntry->getIcmpCode()) {
-          fieldIcmpV4Code = SaiAclEntryTraits::Attributes::FieldIcmpV4Code{
-              AclEntryFieldU8(std::make_pair(
-                  addedAclEntry->getIcmpCode().value(), kIcmpCodeMask))};
-        }
-      } else if (addedAclEntry->getProto().value() == AclEntry::kProtoIcmpv6) {
-        fieldIcmpV6Type = SaiAclEntryTraits::Attributes::FieldIcmpV6Type{
-            AclEntryFieldU8(std::make_pair(
-                addedAclEntry->getIcmpType().value(), kIcmpTypeMask))};
-        if (addedAclEntry->getIcmpCode()) {
-          fieldIcmpV6Code = SaiAclEntryTraits::Attributes::FieldIcmpV6Code{
-              AclEntryFieldU8(std::make_pair(
-                  addedAclEntry->getIcmpCode().value(), kIcmpCodeMask))};
-        }
+                addedAclEntry->getIcmpCode().value(), kIcmpCodeMask))};
       }
+    } else if (
+        (addedAclEntry->getProto() &&
+         addedAclEntry->getProto().value() == AclEntry::kProtoIcmpv6) ||
+        (addedAclEntry->getEtherType() &&
+         addedAclEntry->getEtherType().value() == cfg::EtherType::IPv6)) {
+      fieldIcmpV6Type = SaiAclEntryTraits::Attributes::FieldIcmpV6Type{
+          AclEntryFieldU8(std::make_pair(
+              addedAclEntry->getIcmpType().value(), kIcmpTypeMask))};
+      if (addedAclEntry->getIcmpCode()) {
+        fieldIcmpV6Code = SaiAclEntryTraits::Attributes::FieldIcmpV6Code{
+            AclEntryFieldU8(std::make_pair(
+                addedAclEntry->getIcmpCode().value(), kIcmpCodeMask))};
+      }
+    } else {
+      throw FbossError(
+          "proto or etherType not sepcified in ACL when matching icmp type/code");
     }
   }
 
