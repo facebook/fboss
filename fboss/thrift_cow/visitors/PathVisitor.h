@@ -419,21 +419,23 @@ struct PathVisitorImpl<
     requires(!is_cow_type_v<Obj> && !is_field_type_v<Obj>)
   {
     try {
-      if (begin == end) {
+      if (mode == PathVisitMode::FULL || begin == end) {
         op.visitTyped(tObj, begin, end);
-      } else {
-        // get the value based on the key
-        using KeyT = typename folly::remove_cvref_t<decltype(tObj)>::key_type;
-        // Get key
-        auto token = *begin++;
-        auto key = folly::tryTo<KeyT>(token);
-        if (!key.hasValue() || tObj.find(key.value()) == tObj.end()) {
-          return ThriftTraverseResult::INVALID_MAP_KEY;
+        if (begin == end) {
+          return ThriftTraverseResult::OK;
         }
-        return PathVisitorImpl<MappedTypeClass>::visit(
-            tObj.at(*key), begin, end, mode, op);
       }
-      return ThriftTraverseResult::OK;
+      // get the value based on the key
+      using KeyT = typename folly::remove_cvref_t<decltype(tObj)>::key_type;
+      // Get key
+      auto token = *begin++;
+      auto key = folly::tryTo<KeyT>(token);
+      if (!key.hasValue() || tObj.find(key.value()) == tObj.end()) {
+        return ThriftTraverseResult::INVALID_MAP_KEY;
+      }
+      return PathVisitorImpl<MappedTypeClass>::visit(
+          tObj.at(*key), begin, end, mode, op);
+
     } catch (const std::exception& ex) {
       XLOG(ERR) << "Exception while traversing path: " << ex.what();
       return ThriftTraverseResult::VISITOR_EXCEPTION;
@@ -451,9 +453,11 @@ struct PathVisitorImpl<
     requires(std::is_same_v<typename Node::CowType, HybridNodeType>)
   {
     try {
-      if (begin == end) {
+      if (mode == PathVisitMode::FULL || begin == end) {
         op.visitTyped(node, begin, end);
-        return ThriftTraverseResult::OK;
+        if (begin == end) {
+          return ThriftTraverseResult::OK;
+        }
       }
       // get the value based on the key
       auto& tObj = node.ref();
