@@ -54,8 +54,28 @@ SaiTamEventTraits::Attributes::AttributeSwitchEventType::operator()() {
 }
 
 std::optional<sai_attr_id_t>
+SaiTamEventTraits::Attributes::AttributeDeviceId::operator()() {
+  return SAI_TAM_EVENT_ATTR_FAKE_DEVICE_ID;
+}
+
+std::optional<sai_attr_id_t>
 SaiTamEventTraits::Attributes::AttributeEventId::operator()() {
   return SAI_TAM_EVENT_ATTR_FAKE_SWITCH_EVENT_ID;
+}
+
+std::optional<sai_attr_id_t>
+SaiTamEventTraits::Attributes::AttributeExtensionsCollectorList::operator()() {
+  return SAI_TAM_EVENT_ATTR_FAKE_EXTENSIONS_COLLECTOR_LIST;
+}
+
+std::optional<sai_attr_id_t>
+SaiTamEventTraits::Attributes::AttributePacketDropTypeMmu::operator()() {
+  return SAI_TAM_EVENT_ATTR_FAKE_PACKET_DROP_TYPE_MMU;
+}
+
+std::optional<sai_attr_id_t>
+SaiTamEventTraits::Attributes::AttributeAgingGroup::operator()() {
+  return SAI_TAM_EVENT_ATTR_FAKE_AGING_GROUP;
 }
 
 std::optional<sai_attr_id_t>

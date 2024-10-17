@@ -31,16 +31,31 @@ class FakeSaiTamEvent {
       sai_int32_t eventType,
       const std::vector<sai_object_id_t>& actions,
       const std::vector<sai_object_id_t>& collectors,
-      const std::vector<sai_int32_t>& switchEvents)
+      const std::vector<sai_int32_t>& switchEvents,
+      sai_int32_t deviceId,
+      sai_int32_t eventId,
+      std::vector<sai_object_id_t> extensionsCollectorList,
+      std::vector<sai_int32_t> packetDropTypeMmu,
+      sai_object_id_t agingGroup)
       : eventType_(eventType),
         actions_(actions),
         collectors_(collectors),
-        switchEvents_(switchEvents) {}
+        switchEvents_(switchEvents),
+        deviceId_(deviceId),
+        eventId_(eventId),
+        extensionsCollectorList_(std::move(extensionsCollectorList)),
+        packetDropTypeMmu_(std::move(packetDropTypeMmu)),
+        agingGroup_(agingGroup) {}
   sai_object_id_t id;
   sai_int32_t eventType_;
   std::vector<sai_object_id_t> actions_;
   std::vector<sai_object_id_t> collectors_;
   std::vector<sai_int32_t> switchEvents_;
+  sai_int32_t deviceId_;
+  sai_int32_t eventId_;
+  std::vector<sai_object_id_t> extensionsCollectorList_;
+  std::vector<sai_int32_t> packetDropTypeMmu_;
+  sai_object_id_t agingGroup_;
 };
 
 class FakeSaiTamEventAction {

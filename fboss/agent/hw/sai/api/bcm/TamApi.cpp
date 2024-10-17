@@ -18,7 +18,42 @@ SaiTamEventTraits::Attributes::AttributeSwitchEventType::operator()() {
 }
 
 std::optional<sai_attr_id_t>
+SaiTamEventTraits::Attributes::AttributeDeviceId::operator()() {
+#if defined(SAI_VERSION_11_3_0_0_DNX_ODP)
+  return SAI_TAM_EVENT_ATTR_DEVICE_ID;
+#endif
+  return std::nullopt;
+}
+
+std::optional<sai_attr_id_t>
 SaiTamEventTraits::Attributes::AttributeEventId::operator()() {
+#if defined(SAI_VERSION_11_3_0_0_DNX_ODP)
+  return SAI_TAM_EVENT_ATTR_EVENT_ID;
+#endif
+  return std::nullopt;
+}
+
+std::optional<sai_attr_id_t>
+SaiTamEventTraits::Attributes::AttributeExtensionsCollectorList::operator()() {
+#if defined(SAI_VERSION_11_3_0_0_DNX_ODP)
+  return SAI_TAM_EVENT_ATTR_EXTENSIONS_COLLECTOR_LIST;
+#endif
+  return std::nullopt;
+}
+
+std::optional<sai_attr_id_t>
+SaiTamEventTraits::Attributes::AttributePacketDropTypeMmu::operator()() {
+#if defined(SAI_VERSION_11_3_0_0_DNX_ODP)
+  return SAI_TAM_EVENT_ATTR_PACKET_DROP_TYPE_MMU;
+#endif
+  return std::nullopt;
+}
+
+std::optional<sai_attr_id_t>
+SaiTamEventTraits::Attributes::AttributeAgingGroup::operator()() {
+#if defined(SAI_VERSION_11_3_0_0_DNX_ODP)
+  return SAI_TAM_EVENT_ATTR_AGING_GROUP;
+#endif
   return std::nullopt;
 }
 

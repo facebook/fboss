@@ -142,6 +142,12 @@ TEST_F(TamApiTest, TamEvent) {
   std::vector<sai_object_id_t> eventCollectors{SAI_NULL_OBJECT_ID};
   std::vector<sai_int32_t> eventTypes{1, 2, 3, 4}; // parity error e.g.
 
+  sai_int32_t deviceId = 0;
+  sai_int32_t eventId = 1;
+  std::vector<sai_object_id_t> extensionsCollectorList{10};
+  std::vector<sai_int32_t> packetDropTypeMmu = {3, 4};
+  sai_object_id_t agingGroup = 20;
+
   SaiTamEventTraits::CreateAttributes eventAttr;
   std::get<SaiTamEventTraits::Attributes::Type>(eventAttr) =
       SAI_TAM_EVENT_TYPE_PACKET_DROP; // type of Event
@@ -150,6 +156,17 @@ TEST_F(TamApiTest, TamEvent) {
       eventCollectors;
   std::get<SaiTamEventTraits::Attributes::SwitchEventType>(eventAttr) =
       eventTypes;
+  std::get<std::optional<SaiTamEventTraits::Attributes::DeviceId>>(eventAttr) =
+      deviceId;
+  std::get<std::optional<SaiTamEventTraits::Attributes::SwitchEventId>>(
+      eventAttr) = eventId;
+  std::get<
+      std::optional<SaiTamEventTraits::Attributes::ExtensionsCollectorList>>(
+      eventAttr) = extensionsCollectorList;
+  std::get<std::optional<SaiTamEventTraits::Attributes::PacketDropTypeMmu>>(
+      eventAttr) = packetDropTypeMmu;
+  std::get<std::optional<SaiTamEventTraits::Attributes::AgingGroup>>(
+      eventAttr) = agingGroup;
 
   auto eventSaiId = tamApi->create<SaiTamEventTraits>(eventAttr, switchId);
   EXPECT_EQ(

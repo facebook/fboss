@@ -68,6 +68,12 @@ class TamStoreTest : public SaiStoreTest {
     std::vector<sai_object_id_t> collectors{SAI_NULL_OBJECT_ID};
     std::vector<sai_int32_t> eventTypes{1, 2, 3, 4};
 
+    sai_int32_t deviceId = 0;
+    sai_int32_t eventId = 1;
+    std::vector<sai_object_id_t> extensionsCollectorList{10};
+    std::vector<sai_int32_t> packetDropTypeMmu = {3, 4};
+    sai_object_id_t agingGroup = 20;
+
     SaiTamEventTraits::CreateAttributes result;
     std::get<SaiTamEventTraits::Attributes::Type>(result) =
         SAI_TAM_EVENT_TYPE_PACKET_DROP;
@@ -75,6 +81,17 @@ class TamStoreTest : public SaiStoreTest {
     std::get<SaiTamEventTraits::Attributes::CollectorList>(result) = collectors;
     std::get<SaiTamEventTraits::Attributes::SwitchEventType>(result) =
         eventTypes;
+    std::get<std::optional<SaiTamEventTraits::Attributes::DeviceId>>(result) =
+        deviceId;
+    std::get<std::optional<SaiTamEventTraits::Attributes::SwitchEventId>>(
+        result) = eventId;
+    std::get<
+        std::optional<SaiTamEventTraits::Attributes::ExtensionsCollectorList>>(
+        result) = extensionsCollectorList;
+    std::get<std::optional<SaiTamEventTraits::Attributes::PacketDropTypeMmu>>(
+        result) = packetDropTypeMmu;
+    std::get<std::optional<SaiTamEventTraits::Attributes::AgingGroup>>(result) =
+        agingGroup;
 
     return result;
   }
