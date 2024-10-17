@@ -3863,7 +3863,7 @@
           "compute": "@/1000"
         },
         {
-          "name": "SMB_3V3_L_VRM_PIN",
+          "name": "SMB_3V3_R_VRM_PIN",
           "sysfsPath": "/run/devmap/sensors/3V3_R_MONITOR/power1_input",
           "type": 0,
           "thresholds": {
@@ -3873,7 +3873,7 @@
           "compute": "@/1000000"
         },
         {
-          "name": "SMB_3V3_L_VRM_VIN",
+          "name": "SMB_3V3_R_VRM_VIN",
           "sysfsPath": "/run/devmap/sensors/3V3_R_MONITOR/in1_input",
           "type": 1,
           "thresholds": {
@@ -3885,7 +3885,7 @@
           "compute": "@/1000"
         },
         {
-          "name": "SMB_3V3_L_VRM_VOUT",
+          "name": "SMB_3V3_R_VRM_VOUT",
           "sysfsPath": "/run/devmap/sensors/3V3_R_MONITOR/in2_input",
           "type": 1,
           "thresholds": {
@@ -3897,7 +3897,7 @@
           "compute": "@/1000"
         },
         {
-          "name": "SMB_3V3_L_VRM_TEMP",
+          "name": "SMB_3V3_R_VRM_TEMP",
           "sysfsPath": "/run/devmap/sensors/3V3_R_MONITOR/temp1_input",
           "type": 3,
           "compute": "@/1000"
@@ -3907,7 +3907,7 @@
         {
           "sensors": [
             {
-              "name": "SMB_3V3_L_VRM_IOUT",
+              "name": "SMB_3V3_R_VRM_IOUT",
               "sysfsPath": "/run/devmap/sensors/3V3_R_MONITOR/curr3_input",
               "type": 2,
               "thresholds": {
@@ -3917,7 +3917,7 @@
               "compute": "@/1000"
             },
             {
-              "name": "SMB_3V3_L_VRM_POUT",
+              "name": "SMB_3V3_R_VRM_POUT",
               "sysfsPath": "/run/devmap/sensors/3V3_R_MONITOR/power3_input",
               "type": 0,
               "thresholds": {
@@ -3934,7 +3934,7 @@
         {
           "sensors": [
             {
-              "name": "SMB_3V3_L_VRM_IOUT",
+              "name": "SMB_3V3_R_VRM_IOUT",
               "sysfsPath": "/run/devmap/sensors/3V3_R_MONITOR/curr3_input",
               "type": 2,
               "thresholds": {
@@ -3944,7 +3944,7 @@
               "compute": "@/1000"
             },
             {
-              "name": "SMB_3V3_L_VRM_POUT",
+              "name": "SMB_3V3_R_VRM_POUT",
               "sysfsPath": "/run/devmap/sensors/3V3_R_MONITOR/power3_input",
               "type": 0,
               "thresholds": {
@@ -3961,7 +3961,7 @@
         {
           "sensors": [
             {
-              "name": "SMB_3V3_L_VRM_IOUT",
+              "name": "SMB_3V3_R_VRM_IOUT",
               "sysfsPath": "/run/devmap/sensors/3V3_R_MONITOR/curr3_input",
               "type": 2,
               "thresholds": {
@@ -3971,7 +3971,7 @@
               "compute": "@/1000"
             },
             {
-              "name": "SMB_3V3_L_VRM_POUT",
+              "name": "SMB_3V3_R_VRM_POUT",
               "sysfsPath": "/run/devmap/sensors/3V3_R_MONITOR/power3_input",
               "type": 0,
               "thresholds": {
@@ -3988,7 +3988,7 @@
         {
           "sensors": [
             {
-              "name": "SMB_3V3_L_VRM_IOUT",
+              "name": "SMB_3V3_R_VRM_IOUT",
               "sysfsPath": "/run/devmap/sensors/3V3_R_MONITOR/curr3_input",
               "type": 2,
               "thresholds": {
@@ -3998,7 +3998,7 @@
               "compute": "@/1000"
             },
             {
-              "name": "SMB_3V3_L_VRM_POUT",
+              "name": "SMB_3V3_R_VRM_POUT",
               "sysfsPath": "/run/devmap/sensors/3V3_R_MONITOR/power3_input",
               "type": 0,
               "thresholds": {
@@ -4015,7 +4015,7 @@
         {
           "sensors": [
             {
-              "name": "SMB_3V3_L_VRM_IOUT",
+              "name": "SMB_3V3_R_VRM_IOUT",
               "sysfsPath": "/run/devmap/sensors/3V3_R_MONITOR/curr3_input",
               "type": 2,
               "thresholds": {
@@ -4025,7 +4025,7 @@
               "compute": "@/1000"
             },
             {
-              "name": "SMB_3V3_L_VRM_POUT",
+              "name": "SMB_3V3_R_VRM_POUT",
               "sysfsPath": "/run/devmap/sensors/3V3_R_MONITOR/power3_input",
               "type": 0,
               "thresholds": {
