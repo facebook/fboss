@@ -79,6 +79,8 @@ typedef enum _sai_switch_extensions_attr_t {
 typedef enum _sai_tam_event_extensions_attr_t {
   SAI_TAM_EVENT_ATTR_FAKE_SWITCH_EVENT_TYPE = SAI_TAM_EVENT_ATTR_END,
   SAI_TAM_EVENT_ATTR_FAKE_SWITCH_EVENT_ID,
+  SAI_TAM_TRANSPORT_ATTR_FAKE_SRC_MAC_ADDRESS = SAI_TAM_TRANSPORT_ATTR_END,
+  SAI_TAM_TRANSPORT_ATTR_FAKE_DST_MAC_ADDRESS,
 } sai_tam_event_extensions_attr_t;
 
 typedef enum _sai_port_extensions_attr_t {

@@ -5,6 +5,7 @@
 #include "fboss/agent/hw/sai/fake/FakeManager.h"
 
 #include <folly/IPAddress.h>
+#include <folly/MacAddress.h>
 
 extern "C" {
 #include <sai.h>
@@ -62,16 +63,22 @@ class FakeSaiTamTransport {
       sai_int32_t transportType,
       sai_uint32_t srcPort,
       sai_uint32_t dstPort,
-      sai_uint32_t mtu)
+      sai_uint32_t mtu,
+      std::optional<folly::MacAddress> srcMac,
+      std::optional<folly::MacAddress> dstMac)
       : transportType_(transportType),
         srcPort_(srcPort),
         dstPort_(dstPort),
-        mtu_(mtu) {}
+        mtu_(mtu),
+        srcMac_(srcMac),
+        dstMac_(dstMac) {}
   sai_object_id_t id;
   sai_int32_t transportType_;
   sai_uint32_t srcPort_;
   sai_uint32_t dstPort_;
   sai_uint32_t mtu_;
+  std::optional<folly::MacAddress> srcMac_;
+  std::optional<folly::MacAddress> dstMac_;
 };
 
 class FakeSaiTamCollector {

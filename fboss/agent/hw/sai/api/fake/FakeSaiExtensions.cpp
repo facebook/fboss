@@ -59,6 +59,16 @@ SaiTamEventTraits::Attributes::AttributeEventId::operator()() {
 }
 
 std::optional<sai_attr_id_t>
+SaiTamTransportTraits::Attributes::AttributeSrcMacAddress::operator()() {
+  return SAI_TAM_TRANSPORT_ATTR_FAKE_SRC_MAC_ADDRESS;
+}
+
+std::optional<sai_attr_id_t>
+SaiTamTransportTraits::Attributes::AttributeDstMacAddress::operator()() {
+  return SAI_TAM_TRANSPORT_ATTR_FAKE_DST_MAC_ADDRESS;
+}
+
+std::optional<sai_attr_id_t>
 SaiSwitchTraits::Attributes::AttributeAclFieldListWrapper::operator()() {
   return SAI_SWITCH_ATTR_EXT_FAKE_ACL_FIELD_LIST;
 }

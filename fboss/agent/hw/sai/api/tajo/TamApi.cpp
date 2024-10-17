@@ -18,4 +18,14 @@ SaiTamEventTraits::Attributes::AttributeEventId::operator()() {
   return std::nullopt;
 }
 
+std::optional<sai_attr_id_t>
+SaiTamTransportTraits::Attributes::AttributeSrcMacAddress::operator()() {
+  return std::nullopt;
+}
+
+std::optional<sai_attr_id_t>
+SaiTamTransportTraits::Attributes::AttributeDstMacAddress::operator()() {
+  return std::nullopt;
+}
+
 } // namespace facebook::fboss

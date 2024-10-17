@@ -1,5 +1,7 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 
+#include <folly/MacAddress.h>
+
 #include "fboss/agent/hw/sai/api/TamApi.h"
 #include "fboss/agent/hw/sai/fake/FakeSai.h"
 #include "fboss/agent/hw/sai/store/SaiObject.h"
@@ -36,14 +38,17 @@ class TamStoreTest : public SaiStoreTest {
     return result;
   }
 
-  facebook::fboss::SaiTamTransportTraits::CreateAttributes
-  tamTransportTraits() {
-    SaiTamTransportTraits::CreateAttributes result;
+  facebook::fboss::SaiTamTransportTraits::AdapterHostKey tamTransportTraits() {
+    SaiTamTransportTraits::AdapterHostKey result;
     std::get<SaiTamTransportTraits::Attributes::Type>(result) =
         SAI_TAM_TRANSPORT_TYPE_UDP;
     std::get<SaiTamTransportTraits::Attributes::SrcPort>(result) = 10001;
     std::get<SaiTamTransportTraits::Attributes::DstPort>(result) = 10002;
     std::get<SaiTamTransportTraits::Attributes::Mtu>(result) = 1500;
+    std::get<std::optional<SaiTamTransportTraits::Attributes::SrcMacAddress>>(
+        result) = folly::MacAddress("00:00:00:00:00:01");
+    std::get<std::optional<SaiTamTransportTraits::Attributes::DstMacAddress>>(
+        result) = folly::MacAddress("00:00:00:00:00:02");
     return result;
   }
 
@@ -182,6 +187,18 @@ TEST_F(TamStoreTest, tamCtors) {
       GET_ATTR(TamTransport, Mtu, transportObj.attributes()),
       std::get<SaiTamTransportTraits::Attributes::Mtu>(tamTransportAhk)
           .value());
+  EXPECT_EQ(
+      GET_OPT_ATTR(TamTransport, SrcMacAddress, transportObj.attributes()),
+      std::get<std::optional<SaiTamTransportTraits::Attributes::SrcMacAddress>>(
+          tamTransportAhk)
+          .value()
+          .value());
+  EXPECT_EQ(
+      GET_OPT_ATTR(TamTransport, DstMacAddress, transportObj.attributes()),
+      std::get<std::optional<SaiTamTransportTraits::Attributes::DstMacAddress>>(
+          tamTransportAhk)
+          .value()
+          .value());
 
   auto collectorObjV4 = createObj<SaiTamCollectorTraits>(collectorV4);
   auto tamCollectorAhkV4 = tamCollectorTraits(transport, true /* ipV4 */);
@@ -294,6 +311,18 @@ TEST_F(TamStoreTest, setObject) {
   EXPECT_EQ(
       GET_ATTR(TamTransport, Mtu, transport->attributes()),
       std::get<SaiTamTransportTraits::Attributes::Mtu>(transportAhk).value());
+  EXPECT_EQ(
+      GET_OPT_ATTR(TamTransport, SrcMacAddress, transport->attributes()),
+      std::get<std::optional<SaiTamTransportTraits::Attributes::SrcMacAddress>>(
+          transportAhk)
+          .value()
+          .value());
+  EXPECT_EQ(
+      GET_OPT_ATTR(TamTransport, DstMacAddress, transport->attributes()),
+      std::get<std::optional<SaiTamTransportTraits::Attributes::DstMacAddress>>(
+          transportAhk)
+          .value()
+          .value());
 
   auto collectorAhkV4 =
       tamCollectorTraits(transport->adapterKey(), true /* ipV4 */);

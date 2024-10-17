@@ -1,12 +1,12 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 
-#include "fboss/agent/hw/sai/api/TamApi.h"
-#include "fboss/agent/hw/sai/api/SaiObjectApi.h"
-#include "fboss/agent/hw/sai/fake/FakeSai.h"
-
+#include <folly/MacAddress.h>
 #include <folly/logging/xlog.h>
-
 #include <gtest/gtest.h>
+
+#include "fboss/agent/hw/sai/api/SaiObjectApi.h"
+#include "fboss/agent/hw/sai/api/TamApi.h"
+#include "fboss/agent/hw/sai/fake/FakeSai.h"
 
 using namespace facebook::fboss;
 
@@ -87,6 +87,10 @@ TEST_F(TamApiTest, TamTransport) {
   std::get<SaiTamTransportTraits::Attributes::SrcPort>(transportAttr) = 10001;
   std::get<SaiTamTransportTraits::Attributes::DstPort>(transportAttr) = 10002;
   std::get<SaiTamTransportTraits::Attributes::Mtu>(transportAttr) = 1500;
+  std::get<std::optional<SaiTamTransportTraits::Attributes::SrcMacAddress>>(
+      transportAttr) = folly::MacAddress("00:00:00:00:00:01");
+  std::get<std::optional<SaiTamTransportTraits::Attributes::DstMacAddress>>(
+      transportAttr) = folly::MacAddress("00:00:00:00:00:02");
 
   auto transportSaiId =
       tamApi->create<SaiTamTransportTraits>(transportAttr, switchId);

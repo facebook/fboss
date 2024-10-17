@@ -407,6 +407,8 @@ sai_status_t create_tam_transport(
   sai_uint32_t srcPort{};
   sai_uint32_t dstPort{};
   sai_uint32_t mtu{};
+  std::optional<folly::MacAddress> srcMac;
+  std::optional<folly::MacAddress> dstMac;
 
   for (auto i = 0; i < attr_count; i++) {
     switch (attr_list[i].id) {
@@ -426,12 +428,21 @@ sai_status_t create_tam_transport(
         mtu = attr_list[i].value.u32;
         break;
 
+      case SAI_TAM_TRANSPORT_ATTR_FAKE_SRC_MAC_ADDRESS:
+        srcMac = facebook::fboss::fromSaiMacAddress(attr_list[i].value.mac);
+        break;
+
+      case SAI_TAM_TRANSPORT_ATTR_FAKE_DST_MAC_ADDRESS:
+        dstMac = facebook::fboss::fromSaiMacAddress(attr_list[i].value.mac);
+        break;
+
       default:
         return SAI_STATUS_ATTR_NOT_SUPPORTED_0 + i;
     }
   }
   auto fs = FakeSai::getInstance();
-  *id = fs->tamTransportManager.create(transportType, srcPort, dstPort, mtu);
+  *id = fs->tamTransportManager.create(
+      transportType, srcPort, dstPort, mtu, srcMac, dstMac);
   return SAI_STATUS_SUCCESS;
 }
 
@@ -465,6 +476,16 @@ sai_status_t get_tam_transport_attribute(
         attr_list[i].value.u32 = transport.mtu_;
         break;
 
+      case SAI_TAM_TRANSPORT_ATTR_FAKE_SRC_MAC_ADDRESS:
+        facebook::fboss::toSaiMacAddress(
+            transport.srcMac_.value(), attr_list[i].value.mac);
+        break;
+
+      case SAI_TAM_TRANSPORT_ATTR_FAKE_DST_MAC_ADDRESS:
+        facebook::fboss::toSaiMacAddress(
+            transport.dstMac_.value(), attr_list[i].value.mac);
+        break;
+
       default:
         return SAI_STATUS_ATTR_NOT_SUPPORTED_0 + i;
     }
@@ -493,6 +514,14 @@ sai_status_t set_tam_transport_attribute(
 
       case SAI_TAM_TRANSPORT_ATTR_MTU:
         transport.mtu_ = attr->value.u32;
+        break;
+
+      case SAI_TAM_TRANSPORT_ATTR_FAKE_SRC_MAC_ADDRESS:
+        transport.srcMac_ = facebook::fboss::fromSaiMacAddress(attr->value.mac);
+        break;
+
+      case SAI_TAM_TRANSPORT_ATTR_FAKE_DST_MAC_ADDRESS:
+        transport.dstMac_ = facebook::fboss::fromSaiMacAddress(attr->value.mac);
         break;
 
       default:
