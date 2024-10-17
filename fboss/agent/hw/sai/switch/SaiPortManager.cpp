@@ -2194,6 +2194,19 @@ void SaiPortManager::changeQosPolicy(
   setQosPolicy(newPort->getID(), newPort->getQosPolicy());
 }
 
+void SaiPortManager::setTamObject(
+    PortID portId,
+    std::vector<sai_object_id_t> tamObjects) {
+  getPortHandle(portId)->port->setOptionalAttribute(
+      SaiPortTraits::Attributes::TamObject{std::move(tamObjects)});
+}
+
+void SaiPortManager::resetTamObject(PortID portId) {
+  getPortHandle(portId)->port->setOptionalAttribute(
+      SaiPortTraits::Attributes::TamObject{
+          std::vector<sai_object_id_t>{SAI_NULL_OBJECT_ID}});
+}
+
 void SaiPortManager::programSampling(
     PortID portId,
     SamplePacketDirection direction,

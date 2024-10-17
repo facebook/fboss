@@ -200,6 +200,9 @@ class SaiPortManager {
   void clearQosPolicy(const std::shared_ptr<QosPolicy>& qosPolicy);
   void clearQosPolicy();
 
+  void setTamObject(PortID portId, std::vector<sai_object_id_t> tamObject);
+  void resetTamObject(PortID portId);
+
   std::shared_ptr<MultiSwitchPortMap> reconstructPortsFromStore(
       cfg::SwitchType switchType) const;
 
