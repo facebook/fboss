@@ -79,8 +79,8 @@ class TamStoreTest : public SaiStoreTest {
         SAI_TAM_EVENT_TYPE_PACKET_DROP;
     std::get<SaiTamEventTraits::Attributes::ActionList>(result) = actions;
     std::get<SaiTamEventTraits::Attributes::CollectorList>(result) = collectors;
-    std::get<SaiTamEventTraits::Attributes::SwitchEventType>(result) =
-        eventTypes;
+    std::get<std::optional<SaiTamEventTraits::Attributes::SwitchEventType>>(
+        result) = eventTypes;
     std::get<std::optional<SaiTamEventTraits::Attributes::DeviceId>>(result) =
         deviceId;
     std::get<std::optional<SaiTamEventTraits::Attributes::SwitchEventId>>(
@@ -293,8 +293,10 @@ TEST_F(TamStoreTest, tamCtors) {
       std::get<SaiTamEventTraits::Attributes::CollectorList>(tamEventAhk)
           .value());
   EXPECT_EQ(
-      GET_ATTR(TamEvent, SwitchEventType, eventObj.attributes()),
-      std::get<SaiTamEventTraits::Attributes::SwitchEventType>(tamEventAhk)
+      GET_OPT_ATTR(TamEvent, SwitchEventType, eventObj.attributes()),
+      std::get<std::optional<SaiTamEventTraits::Attributes::SwitchEventType>>(
+          tamEventAhk)
+          .value()
           .value());
 
   auto tamObj = createObj<SaiTamTraits>(tam);
@@ -425,8 +427,10 @@ TEST_F(TamStoreTest, setObject) {
       GET_ATTR(TamEvent, CollectorList, event->attributes()),
       std::get<SaiTamEventTraits::Attributes::CollectorList>(eventAhk).value());
   EXPECT_EQ(
-      GET_ATTR(TamEvent, SwitchEventType, event->attributes()),
-      std::get<SaiTamEventTraits::Attributes::SwitchEventType>(eventAhk)
+      GET_OPT_ATTR(TamEvent, SwitchEventType, event->attributes()),
+      std::get<std::optional<SaiTamEventTraits::Attributes::SwitchEventType>>(
+          eventAhk)
+          .value()
           .value());
 
   auto tamAhk = tamTraits(event->adapterKey());
@@ -470,11 +474,11 @@ TEST_F(TamStoreTest, updateObject) {
   auto tam = s.get<SaiTamTraits>().setObject(tamAhk, tamAhk);
 
   std::vector<sai_int32_t> newEvents = {4, 5, 6};
-  std::get<SaiTamEventTraits::Attributes::SwitchEventType>(eventAhk) =
-      newEvents;
+  std::get<std::optional<SaiTamEventTraits::Attributes::SwitchEventType>>(
+      eventAhk) = newEvents;
   auto updatedEvent = s.get<SaiTamEventTraits>().setObject(eventAhk, eventAhk);
   EXPECT_EQ(
-      GET_ATTR(TamEvent, SwitchEventType, updatedEvent->attributes()),
+      GET_OPT_ATTR(TamEvent, SwitchEventType, updatedEvent->attributes()),
       newEvents);
 
   std::get<SaiTamTransportTraits::Attributes::DstPort>(transportAhk) = 10003;

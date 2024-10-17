@@ -184,7 +184,7 @@ struct SaiTamEventTraits {
       Attributes::Type,
       Attributes::ActionList,
       Attributes::CollectorList,
-      Attributes::SwitchEventType,
+      std::optional<Attributes::SwitchEventType>,
       std::optional<Attributes::DeviceId>,
       std::optional<Attributes::SwitchEventId>,
       std::optional<Attributes::ExtensionsCollectorList>,

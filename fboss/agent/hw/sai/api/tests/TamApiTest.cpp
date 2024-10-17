@@ -154,8 +154,8 @@ TEST_F(TamApiTest, TamEvent) {
   std::get<SaiTamEventTraits::Attributes::ActionList>(eventAttr) = eventActions;
   std::get<SaiTamEventTraits::Attributes::CollectorList>(eventAttr) =
       eventCollectors;
-  std::get<SaiTamEventTraits::Attributes::SwitchEventType>(eventAttr) =
-      eventTypes;
+  std::get<std::optional<SaiTamEventTraits::Attributes::SwitchEventType>>(
+      eventAttr) = eventTypes;
   std::get<std::optional<SaiTamEventTraits::Attributes::DeviceId>>(eventAttr) =
       deviceId;
   std::get<std::optional<SaiTamEventTraits::Attributes::SwitchEventId>>(
