@@ -26,6 +26,7 @@ cpp_unittest(
         "-DENABLE_DYNAMIC_APIS",
         "-D__ENABLE_HYBRID_THRIFT_COW_TESTS__",
     ],
+    supports_static_listing = False,
     deps = [
         ":test-cpp2-reflection",
         "//fboss/thrift_cow/nodes:nodes",
@@ -52,6 +53,7 @@ cpp_unittest(
         "-DENABLE_DYNAMIC_APIS",
         "-D__ENABLE_HYBRID_THRIFT_COW_TESTS__",
     ],
+    supports_static_listing = False,
     deps = [
         ":test-cpp2-reflection",
         "//fboss/agent:switch_config-cpp2-reflection",

@@ -21,40 +21,76 @@
 
 using namespace facebook::fboss;
 using namespace facebook::fboss::thrift_cow;
+using namespace ::testing;
 
 using k = test_tags::strings;
 
-template <typename ThriftType>
+template <typename ThriftType, bool EnableHybridStorage>
 struct is_allow_skip_thrift_cow {
   using annotations = apache::thrift::reflect_struct<ThriftType>::annotations;
   static constexpr bool value =
-      read_annotation_allow_skip_thrift_cow<annotations>::value;
+      read_annotation_allow_skip_thrift_cow<annotations>::value &&
+      EnableHybridStorage;
 };
 
-TEST(ThriftHybridStructNodeTests, ReadThriftStructAnnotation) {
+struct TestParams {
+  bool enableHybridStorage;
+};
+
+template <typename T>
+class ThriftHybridStructNodeTestSuite : public ::testing::Test {};
+
+TYPED_TEST_SUITE_P(ThriftHybridStructNodeTestSuite);
+
+template <bool EnableHybridStorage>
+void readThriftStructAnnotation() {
 #ifdef __ENABLE_HYBRID_THRIFT_COW_TESTS__
-  static_assert(is_allow_skip_thrift_cow<TestStruct>::value == true);
+  static_assert(
+      is_allow_skip_thrift_cow<TestStruct, EnableHybridStorage>::value ==
+      EnableHybridStorage);
 #endif // __ENABLE_HYBRID_THRIFT_COW_TESTS__
-  static_assert(is_allow_skip_thrift_cow<ParentTestStruct>::value == false);
-  static_assert(is_allow_skip_thrift_cow<TestStruct2>::value == false);
+  static_assert(
+      is_allow_skip_thrift_cow<ParentTestStruct, EnableHybridStorage>::value ==
+      false);
+  static_assert(
+      is_allow_skip_thrift_cow<TestStruct2, EnableHybridStorage>::value ==
+      false);
 }
 
-TEST(ThriftHybridStructNodeTests, ThriftStructNodeAnnotations) {
+TYPED_TEST_P(ThriftHybridStructNodeTestSuite, ReadThriftStructAnnotation) {
+  readThriftStructAnnotation<false>();
+  readThriftStructAnnotation<true>();
+}
+
+template <bool EnableHybridStorage>
+void thriftStructNodeAnnotations() {
   {
-    ThriftStructFields<TestStruct> fields;
+    ThriftStructFields<
+        TestStruct,
+        ThriftStructResolver<TestStruct>,
+        EnableHybridStorage>
+        fields;
 
 #ifdef __ENABLE_HYBRID_THRIFT_COW_TESTS__
-    static_assert(fields.isSkipThriftCowEnabled<k::hybridMap>() == true);
+    static_assert(
+        fields.template isSkipThriftCowEnabled<k::hybridMap>() ==
+        EnableHybridStorage);
 #endif // __ENABLE_HYBRID_THRIFT_COW_TESTS__
-    static_assert(fields.isSkipThriftCowEnabled<k::cowMap>() == false);
+    static_assert(fields.template isSkipThriftCowEnabled<k::cowMap>() == false);
   }
   {
-    ThriftStructNode<TestStruct> node;
+    ThriftStructNode<
+        TestStruct,
+        ThriftStructResolver<TestStruct>,
+        EnableHybridStorage>
+        node;
 
 #ifdef __ENABLE_HYBRID_THRIFT_COW_TESTS__
-    ASSERT_EQ(node.isSkipThriftCowEnabled<k::hybridMap>(), true);
+    ASSERT_EQ(
+        node.template isSkipThriftCowEnabled<k::hybridMap>(),
+        EnableHybridStorage);
 #endif // __ENABLE_HYBRID_THRIFT_COW_TESTS__
-    ASSERT_EQ(node.isSkipThriftCowEnabled<k::cowMap>(), false);
+    ASSERT_EQ(node.template isSkipThriftCowEnabled<k::cowMap>(), false);
   }
   // annotation that is other than `allow_skip_thrift_cow`
   {
@@ -63,15 +99,25 @@ TEST(ThriftHybridStructNodeTests, ThriftStructNodeAnnotations) {
   }
 }
 
-TEST(ThriftHybridStructNodeTests, TestHybridNodeTypes) {
-  ThriftStructNode<TestStruct> node;
+TYPED_TEST_P(ThriftHybridStructNodeTestSuite, ThriftStructNodeAnnotations) {
+  thriftStructNodeAnnotations<false>();
+  thriftStructNodeAnnotations<true>();
+}
+
+template <bool EnableHybridStorage>
+void testHybridNodeTypes() {
+  ThriftStructNode<
+      TestStruct,
+      ThriftStructResolver<TestStruct>,
+      EnableHybridStorage>
+      node;
   // cow member
-  auto val = node.get<k::cowMap>();
+  auto val = node.template get<k::cowMap>();
   using underlying_type = folly::remove_cvref_t<decltype(*val)>::ThriftType;
   static_assert(std::is_same_v<underlying_type, std::map<int, bool>>);
   // hybrid member
 #ifdef __ENABLE_HYBRID_THRIFT_COW_TESTS__
-  auto valHybrid = node.get<k::hybridMap>();
+  auto valHybrid = node.template get<k::hybridMap>();
   using underlying_type =
       folly::remove_cvref_t<decltype(*valHybrid)>::ThriftType;
   static_assert(std::is_same_v<underlying_type, std::map<int, bool>>);
@@ -80,39 +126,62 @@ TEST(ThriftHybridStructNodeTests, TestHybridNodeTypes) {
 #endif // __ENABLE_HYBRID_THRIFT_COW_TESTS__
 }
 
-TEST(ThriftHybridStructNodeTests, ThriftStructFieldsHybridMemberGetSet) {
-  ThriftStructFields<TestStruct> fields;
+TYPED_TEST_P(ThriftHybridStructNodeTestSuite, TestHybridNodeTypes) {
+  testHybridNodeTypes<false>();
+  testHybridNodeTypes<true>();
+}
+
+template <bool EnableHybridStorage>
+void thriftStructFieldsHybridMemberGetSet() {
+  ThriftStructFields<
+      TestStruct,
+      ThriftStructResolver<TestStruct>,
+      EnableHybridStorage>
+      fields;
 
   auto data = std::make_shared<std::map<int, bool>>();
   data->insert({1, false});
   data->insert({2, true});
 
   // cow member
-  fields.set<k::cowMap>(*data);
-  auto val = fields.get<k::cowMap>();
+  fields.template set<k::cowMap>(*data);
+  auto val = fields.template get<k::cowMap>();
   ASSERT_EQ(val->size(), 2);
   ASSERT_EQ(val->at(1), false);
   ASSERT_EQ(val->at(2), true);
   // hybrid member
 #ifdef __ENABLE_HYBRID_THRIFT_COW_TESTS__
-  fields.set<k::hybridMap>(*data);
-  auto valHybrid = fields.get<k::hybridMap>();
+  fields.template set<k::hybridMap>(*data);
+  auto valHybrid = fields.template get<k::hybridMap>();
   ASSERT_EQ(valHybrid->cref().size(), 2);
   ASSERT_EQ(valHybrid->cref().at(1), false);
   ASSERT_EQ(valHybrid->cref().at(2), true);
 #endif // __ENABLE_HYBRID_THRIFT_COW_TESTS__
 }
 
+TYPED_TEST_P(
+    ThriftHybridStructNodeTestSuite,
+    ThriftStructFieldsHybridMemberGetSet) {
+  thriftStructFieldsHybridMemberGetSet<false>();
+  thriftStructFieldsHybridMemberGetSet<true>();
+}
+
 #ifdef __ENABLE_HYBRID_THRIFT_COW_TESTS__
-TEST(ThriftHybridStructNodeTests, ThriftStructFieldsHybridMemberToFromThrift) {
-  ThriftStructFields<TestStruct> fields;
+
+template <bool EnableHybridStorage>
+void thriftStructFieldsHybridMemberToFromThrift() {
+  ThriftStructFields<
+      TestStruct,
+      ThriftStructResolver<TestStruct>,
+      EnableHybridStorage>
+      fields;
 
   auto data = std::make_shared<std::map<int, bool>>();
   data->insert({1, false});
   data->insert({2, true});
 
   // fromThrift
-  auto val = fields.get<k::hybridMap>();
+  auto val = fields.template get<k::hybridMap>();
   val->fromThrift(*data);
 
   // toThrift
@@ -120,15 +189,27 @@ TEST(ThriftHybridStructNodeTests, ThriftStructFieldsHybridMemberToFromThrift) {
   ASSERT_EQ(thrift, *data);
 }
 
-TEST(ThriftHybridStructNodeTests, ThriftStructNodeHybridMemberToFromThrift) {
-  ThriftStructNode<TestStruct> node;
+TYPED_TEST_P(
+    ThriftHybridStructNodeTestSuite,
+    ThriftStructFieldsHybridMemberToFromThrift) {
+  thriftStructFieldsHybridMemberToFromThrift<false>();
+  thriftStructFieldsHybridMemberToFromThrift<true>();
+}
+
+template <bool EnableHybridStorage>
+void thriftStructNodeHybridMemberToFromThrift() {
+  ThriftStructNode<
+      TestStruct,
+      ThriftStructResolver<TestStruct>,
+      EnableHybridStorage>
+      node;
 
   auto data = std::make_shared<std::map<int, bool>>();
   data->insert({1, false});
   data->insert({2, true});
 
   // fromThrift
-  auto val = node.get<k::hybridMap>();
+  auto val = node.template get<k::hybridMap>();
   val->fromThrift(*data);
 
   // toThrift
@@ -136,12 +217,26 @@ TEST(ThriftHybridStructNodeTests, ThriftStructNodeHybridMemberToFromThrift) {
   ASSERT_EQ(thrift, *data);
 }
 
-TEST(ThriftHybridStructNodeTests, TestHybridNodeMemberTypes) {
-  ThriftStructNode<TestStruct> node;
+TYPED_TEST_P(
+    ThriftHybridStructNodeTestSuite,
+    ThriftStructNodeHybridMemberToFromThrift) {
+  thriftStructNodeHybridMemberToFromThrift<false>();
+  thriftStructNodeHybridMemberToFromThrift<true>();
+}
+
+template <bool EnableHybridStorage>
+void testHybridNodeMemberTypes() {
+  ThriftStructNode<
+      TestStruct,
+      ThriftStructResolver<TestStruct>,
+      EnableHybridStorage>
+      node;
 
   // list
-  ASSERT_EQ(node.isSkipThriftCowEnabled<k::hybridList>(), true);
-  auto v_list = node.get<k::hybridList>();
+  ASSERT_EQ(
+      node.template isSkipThriftCowEnabled<k::hybridList>(),
+      EnableHybridStorage);
+  auto v_list = node.template get<k::hybridList>();
   using underlying_type_l =
       folly::remove_cvref_t<decltype(*v_list)>::ThriftType;
   static_assert(std::is_same_v<underlying_type_l, std::vector<int>>);
@@ -149,16 +244,20 @@ TEST(ThriftHybridStructNodeTests, TestHybridNodeMemberTypes) {
   static_assert(std::is_same_v<ref_type_l, std::vector<int>>);
 
   // set
-  ASSERT_EQ(node.isSkipThriftCowEnabled<k::hybridSet>(), true);
-  auto v_set = node.get<k::hybridSet>();
+  ASSERT_EQ(
+      node.template isSkipThriftCowEnabled<k::hybridSet>(),
+      EnableHybridStorage);
+  auto v_set = node.template get<k::hybridSet>();
   using underlying_type_s = folly::remove_cvref_t<decltype(*v_set)>::ThriftType;
   static_assert(std::is_same_v<underlying_type_s, std::set<int>>);
   using ref_type_s = folly::remove_cvref_t<decltype(v_set->ref())>;
   static_assert(std::is_same_v<ref_type_s, std::set<int>>);
 
   // union
-  ASSERT_EQ(node.isSkipThriftCowEnabled<k::hybridUnion>(), true);
-  auto v_union = node.get<k::hybridUnion>();
+  ASSERT_EQ(
+      node.template isSkipThriftCowEnabled<k::hybridUnion>(),
+      EnableHybridStorage);
+  auto v_union = node.template get<k::hybridUnion>();
   using underlying_type_u =
       folly::remove_cvref_t<decltype(*v_union)>::ThriftType;
   static_assert(std::is_same_v<underlying_type_u, TestUnion>);
@@ -166,8 +265,10 @@ TEST(ThriftHybridStructNodeTests, TestHybridNodeMemberTypes) {
   static_assert(std::is_same_v<ref_type_u, TestUnion>);
 
   // child struct
-  ASSERT_EQ(node.isSkipThriftCowEnabled<k::hybridStruct>(), true);
-  auto v_struct = node.get<k::hybridStruct>();
+  ASSERT_EQ(
+      node.template isSkipThriftCowEnabled<k::hybridStruct>(),
+      EnableHybridStorage);
+  auto v_struct = node.template get<k::hybridStruct>();
   using underlying_type_c =
       folly::remove_cvref_t<decltype(*v_struct)>::ThriftType;
   static_assert(std::is_same_v<underlying_type_c, ChildStruct>);
@@ -175,7 +276,29 @@ TEST(ThriftHybridStructNodeTests, TestHybridNodeMemberTypes) {
   static_assert(std::is_same_v<ref_type_c, ChildStruct>);
 }
 
+TYPED_TEST_P(ThriftHybridStructNodeTestSuite, TestHybridNodeMemberTypes) {
+  testHybridNodeMemberTypes<false>();
+  testHybridNodeMemberTypes<true>();
+}
+
 #endif // __ENABLE_HYBRID_THRIFT_COW_TESTS__
+
+using EnableHybridStorageTypes = testing::Types<bool>;
+
+REGISTER_TYPED_TEST_SUITE_P(
+    ThriftHybridStructNodeTestSuite,
+    ReadThriftStructAnnotation,
+    ThriftStructNodeAnnotations,
+    TestHybridNodeTypes,
+    ThriftStructFieldsHybridMemberGetSet,
+    ThriftStructFieldsHybridMemberToFromThrift,
+    ThriftStructNodeHybridMemberToFromThrift,
+    TestHybridNodeMemberTypes);
+
+INSTANTIATE_TYPED_TEST_SUITE_P(
+    ThriftHybridStructNodeTests,
+    ThriftHybridStructNodeTestSuite,
+    EnableHybridStorageTypes);
 
 #ifdef ENABLE_DYNAMIC_APIS
 TEST(ThriftHybridStructNodeTests, FollyDynamicTest) {
