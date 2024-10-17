@@ -35,6 +35,7 @@ class PortStoreTest : public SaiStoreTest {
 #endif
         std::nullopt, std::nullopt, std::nullopt,  std::nullopt, std::nullopt,
         std::nullopt, std::nullopt, std::nullopt,  std::nullopt, std::nullopt,
+        std::nullopt, // TAM object
         std::nullopt, // Ingress Mirror Session
         std::nullopt, // Egress Mirror Session
         std::nullopt, // Ingress Sample Packet

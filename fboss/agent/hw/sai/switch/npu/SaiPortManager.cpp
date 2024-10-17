@@ -665,6 +665,7 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
         disableTtl,
         std::nullopt,
         pktTxEnable, /* PktTxEnable */
+        std::nullopt, // TAM Object
         std::nullopt,
         std::nullopt,
         std::nullopt,
@@ -736,6 +737,7 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
       disableTtl,
       interfaceType,
       std::nullopt,
+      std::nullopt, // TAM Object
       std::nullopt, // Ingress Mirror Session
       std::nullopt, // Egress Mirror Session
       std::nullopt, // Ingress Sample Packet

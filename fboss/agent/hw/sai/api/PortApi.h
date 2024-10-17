@@ -152,6 +152,11 @@ struct SaiPortTraits {
         SAI_PORT_ATTR_PKT_TX_ENABLE,
         bool,
         SaiBoolDefaultTrue>;
+    using TamObject = SaiAttribute<
+        EnumType,
+        SAI_PORT_ATTR_TAM_OBJECT,
+        std::vector<sai_object_id_t>,
+        SaiObjectIdListDefault>;
     using SerdesId = SaiAttribute<
         EnumType,
         SAI_PORT_ATTR_PORT_SERDES_ID,
@@ -508,6 +513,7 @@ struct SaiPortTraits {
       std::optional<Attributes::DisableTtlDecrement>,
       std::optional<Attributes::InterfaceType>,
       std::optional<Attributes::PktTxEnable>,
+      std::optional<Attributes::TamObject>,
       std::optional<Attributes::IngressMirrorSession>,
       std::optional<Attributes::EgressMirrorSession>,
       std::optional<Attributes::IngressSamplePacketEnable>,
@@ -624,6 +630,7 @@ SAI_ATTRIBUTE_NAME(Port, QosQueueList)
 SAI_ATTRIBUTE_NAME(Port, Type)
 SAI_ATTRIBUTE_NAME(Port, InterfaceType)
 SAI_ATTRIBUTE_NAME(Port, PktTxEnable)
+SAI_ATTRIBUTE_NAME(Port, TamObject)
 SAI_ATTRIBUTE_NAME(Port, SerdesId)
 SAI_ATTRIBUTE_NAME(Port, IngressMirrorSession)
 SAI_ATTRIBUTE_NAME(Port, EgressMirrorSession)

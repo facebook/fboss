@@ -37,6 +37,7 @@ std::map<int32_t, std::pair<std::string, std::size_t>> _PortMap{
     SAI_ATTR_MAP(Port, Type),
     SAI_ATTR_MAP(Port, InterfaceType),
     SAI_ATTR_MAP(Port, PktTxEnable),
+    SAI_ATTR_MAP(Port, TamObject),
     SAI_ATTR_MAP(Port, SerdesId),
     SAI_ATTR_MAP(Port, IngressMirrorSession),
     SAI_ATTR_MAP(Port, EgressMirrorSession),

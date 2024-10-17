@@ -258,6 +258,7 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
       std::nullopt,   std::nullopt,
       std::nullopt,   std::nullopt,
       intfType,       std::nullopt,
+      std::nullopt, // TAM Object
       std::nullopt,   std::nullopt,
       std::nullopt,   std::nullopt,
       std::nullopt,   std::nullopt,
