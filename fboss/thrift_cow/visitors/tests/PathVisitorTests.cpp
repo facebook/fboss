@@ -100,6 +100,23 @@ TEST(PathVisitorTests, HybridMapPrimitiveAccess) {
         *nodeA, path.begin(), path.end(), PathVisitMode::LEAF, processPath);
     EXPECT_EQ(result, ThriftTraverseResult::INVALID_MAP_KEY);
   }
+}
+TEST(PathVisitorTests, HybridMapStructAccess) {
+  auto structA = createHybridMapTestStruct();
+
+  auto nodeA = std::make_shared<ThriftStructNode<TestStruct>>(structA);
+  folly::dynamic dyn;
+  auto processPath = pvlambda([&dyn](auto& node, auto begin, auto end) {
+    EXPECT_EQ(begin, end);
+    if constexpr (std::is_base_of_v<
+                      Serializable,
+                      std::remove_cvref_t<decltype(node)>>) {
+      dyn = node.toFollyDynamic();
+    } else {
+      facebook::thrift::to_dynamic(
+          dyn, node, facebook::thrift::dynamic_format::JSON_1);
+    }
+  });
   // hybridMapOfI32ToStruct
   {
     std::vector<std::string> path = {"hybridMapOfI32ToStruct"};
@@ -131,6 +148,52 @@ TEST(PathVisitorTests, HybridMapPrimitiveAccess) {
   // hybridMapOfI32ToStruct/30
   {
     std::vector<std::string> path = {"hybridMapOfI32ToStruct", "30"};
+    auto result = RootPathVisitor::visit(
+        *nodeA, path.begin(), path.end(), PathVisitMode::LEAF, processPath);
+    EXPECT_EQ(result, ThriftTraverseResult::INVALID_MAP_KEY);
+  }
+}
+
+TEST(PathVisitorTests, HybridMapOfMapAccess) {
+  auto structA = createHybridMapTestStruct();
+
+  auto nodeA = std::make_shared<ThriftStructNode<TestStruct>>(structA);
+  folly::dynamic dyn;
+  auto processPath = pvlambda([&dyn](auto& node, auto begin, auto end) {
+    EXPECT_EQ(begin, end);
+    if constexpr (std::is_base_of_v<
+                      Serializable,
+                      std::remove_cvref_t<decltype(node)>>) {
+      dyn = node.toFollyDynamic();
+    } else {
+      facebook::thrift::to_dynamic(
+          dyn, node, facebook::thrift::dynamic_format::JSON_1);
+    }
+  });
+
+  // hybridMapOfMap/10
+  {
+    std::vector<std::string> path = {"hybridMapOfMap", "10"};
+    auto result = RootPathVisitor::visit(
+        *nodeA, path.begin(), path.end(), PathVisitMode::LEAF, processPath);
+    EXPECT_EQ(result, ThriftTraverseResult::OK);
+    EXPECT_NE(dyn.find(20), dyn.items().end());
+    EXPECT_EQ(dyn[20].asInt(), 30);
+  }
+
+  // hybridMapOfMap/10/20
+  {
+    std::vector<std::string> path = {"hybridMapOfMap", "10", "20"};
+    auto result = RootPathVisitor::visit(
+        *nodeA, path.begin(), path.end(), PathVisitMode::LEAF, processPath);
+    EXPECT_EQ(result, ThriftTraverseResult::OK);
+    EXPECT_EQ(dyn.asInt(), 30);
+  }
+
+  // Invalid path
+  // hybridMapOfMap/10/30
+  {
+    std::vector<std::string> path = {"hybridMapOfMap", "10", "30"};
     auto result = RootPathVisitor::visit(
         *nodeA, path.begin(), path.end(), PathVisitMode::LEAF, processPath);
     EXPECT_EQ(result, ThriftTraverseResult::INVALID_MAP_KEY);

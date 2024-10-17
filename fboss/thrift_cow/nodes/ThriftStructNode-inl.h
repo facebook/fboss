@@ -155,7 +155,7 @@ struct ChildInvoke {
 } // namespace struct_helpers
 
 template <typename TType, typename Derived = ThriftStructResolver<TType>>
-struct ThriftStructFields {
+struct ThriftStructFields : public FieldBaseType {
   using Self = ThriftStructFields<TType, Derived>;
   using Info = apache::thrift::reflect_struct<TType>;
   using CowType = FieldsType;
