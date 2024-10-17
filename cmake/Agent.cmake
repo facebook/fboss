@@ -484,6 +484,8 @@ target_link_libraries(hwagent-main
   split_agent_thrift_syncer
   Folly::folly
   agent_hw_test_thrift_handler
+  utils
+  test_utils
 )
 
 add_library(restart_time_tracker
@@ -689,4 +691,15 @@ target_link_libraries(hw_asic_table
   product_info
   switch_asics
   utils
+)
+
+add_library(test_utils
+  fboss/agent/TestUtils.cpp
+)
+
+target_link_libraries(test_utils
+  agent_dir_util
+  load_agent_config
+  common_file_utils
+  Folly::folly
 )

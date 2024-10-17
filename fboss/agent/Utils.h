@@ -442,6 +442,4 @@ bool haveParallelLinksToInterfaceNodes(
 
 CpuCosQueueId hwQueueIdToCpuCosQueueId(uint8_t hwQueueId);
 int numFabricLevels(const std::map<int64_t, cfg::DsfNode>& dsfNodes);
-
-std::unique_ptr<AgentConfig> getConfigFileForTesting(int switchIndex);
 } // namespace facebook::fboss

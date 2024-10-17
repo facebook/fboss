@@ -469,13 +469,11 @@ cpp_library(
         "facebook/Utils.cpp",
     ],
     exported_deps = [
-        ":agent_dir_util",
         ":asic_utils",
         ":fboss-error",
         ":fboss-types",
         ":fsdb_helper",
         ":hwswitch_matcher",
-        ":load_agent_config",
         ":switch_config-cpp2-types",
         ":switch_state-cpp2-types",
         ":switchid_scope_resolver",
@@ -489,7 +487,6 @@ cpp_library(
         "//fboss/agent/platforms/common/meru800bia:meru800bia_platform_mapping",
         "//fboss/agent/state:state",
         "//fboss/fsdb/if:fsdb_oper-cpp2-types",
-        "//fboss/lib:common_file_utils",
         "//folly:file_util",
         "//folly:network_address",
         "//folly:range",
@@ -1354,6 +1351,7 @@ cpp_library(
         ":restart_time_tracker",
         ":setup_thrift",
         ":split_agent_thrift_syncer",
+        ":test_utils",
         ":utils",
         "//common/fb303/cpp:default_control",
         "//fb303:logging",
@@ -1728,6 +1726,19 @@ cpp_library(
         "//fboss/agent/hw/switch_asics:switch_asics",
         "//fboss/agent/platforms/common:platform_mapping_utils",
         "//fboss/lib/platforms:product-info",
+    ],
+)
+
+cpp_library(
+    name = "test_utils",
+    srcs = [
+        "TestUtils.cpp",
+    ],
+    exported_deps = [
+        ":agent_dir_util",
+        ":load_agent_config",
+        "//fboss/lib:common_file_utils",
+        "//folly/logging:logging",
     ],
 )
 
