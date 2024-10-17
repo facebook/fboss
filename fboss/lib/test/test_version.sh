@@ -1,3 +1,4 @@
 #!/bin/bash
-
-$1 --version | grep "Package Version"
+if [[ "$2" == "no" ]]; then
+    $1 --version | grep "Package Version"
+fi
