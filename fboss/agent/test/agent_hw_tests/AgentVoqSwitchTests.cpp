@@ -2515,4 +2515,35 @@ TEST_F(
   verifyAcrossWarmBoots(setup, verify);
 }
 
+class AgentVoqSwitchConditionalEntropyTest : public AgentVoqSwitchTest {
+ public:
+  cfg::SwitchConfig initialConfig(
+      const AgentEnsemble& ensemble) const override {
+    auto cfg = AgentVoqSwitchTest::initialConfig(ensemble);
+    // Enable Conditional Entropy on Interface Ports
+    for (auto& port : *cfg.ports()) {
+      if (port.portType() == cfg::PortType::INTERFACE_PORT) {
+        port.conditionalEntropyRehash() = true;
+      }
+    }
+    return cfg;
+  }
+};
+
+TEST_F(AgentVoqSwitchConditionalEntropyTest, init) {
+  auto setup = []() {};
+
+  auto verify = [this]() {
+    auto state = getProgrammedState();
+    for (const auto& portMap : std::as_const(*state->getPorts())) {
+      for (const auto& port : std::as_const(*portMap.second)) {
+        if (port.second->getPortType() == cfg::PortType::INTERFACE_PORT) {
+          EXPECT_TRUE(port.second->getConditionalEntropyRehash());
+        }
+      }
+    }
+    // TODO: Program ECMP route, insert traffic and verify change in next hop.
+  };
+  verifyAcrossWarmBoots(setup, verify);
+}
 } // namespace facebook::fboss
