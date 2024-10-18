@@ -639,6 +639,13 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
   }
 #endif
 
+  std::optional<SaiPortTraits::Attributes::CondEntropyRehashEnable>
+      condEntropyRehashEnable{};
+// TODO(zecheng): Update flag when new 12.0 release has the attribute
+#if defined(SAI_VERSION_11_3_0_0_DNX_ODP)
+  condEntropyRehashEnable = swPort->getConditionalEntropyRehash();
+#endif
+
   if (basicAttributeOnly) {
     return SaiPortTraits::CreateAttributes{
 #if defined(BRCM_SAI_SDK_DNX)
@@ -775,7 +782,7 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
       arsPortLoadFutureWeight, // ARS port load future weight
 #endif
       reachabilityGroup,
-      std::nullopt, // CondEntropyRehashEnable
+      condEntropyRehashEnable, // CondEntropyRehashEnable
       std::nullopt, // CondEntropyRehashPeriodUS
       std::nullopt, // CondEntropyRehashSeed
   };
