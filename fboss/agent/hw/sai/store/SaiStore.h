@@ -627,6 +627,9 @@ class SaiStore {
       SaiObjectStore<SaiTamTraits>,
       SaiObjectStore<SaiTamReportTraits>,
       SaiObjectStore<SaiTamEventActionTraits>,
+#if defined(SAI_VERSION_11_3_0_0_DNX_ODP)
+      SaiObjectStore<SaiTamEventAgingGroupTraits>,
+#endif
       SaiObjectStore<SaiTamEventTraits>,
       SaiObjectStore<SaiTamTransportTraits>,
       SaiObjectStore<SaiTamCollectorTraits>,

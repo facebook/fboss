@@ -85,6 +85,15 @@
 
 extern "C" {
 #include <sai.h>
+
+#if defined(SAI_VERSION_11_3_0_0_DNX_ODP)
+#include <saiextensions.h>
+#ifndef IS_OSS_BRCM_SAI
+#include <experimental/saiexperimentaltameventaginggroup.h>
+#else
+#include <saiexperimentaltameventaginggroup.h>
+#endif
+#endif
 }
 
 using std::chrono::duration_cast;
@@ -3697,6 +3706,10 @@ std::string SaiSwitch::listObjects(
         objTypes.push_back(SAI_OBJECT_TYPE_TAM_TRANSPORT);
         objTypes.push_back(SAI_OBJECT_TYPE_TAM_REPORT);
         objTypes.push_back(SAI_OBJECT_TYPE_TAM_EVENT_ACTION);
+#if defined(SAI_VERSION_11_3_0_0_DNX_ODP)
+        objTypes.push_back(static_cast<sai_object_type_t>(
+            SAI_OBJECT_TYPE_TAM_EVENT_AGING_GROUP));
+#endif
         objTypes.push_back(SAI_OBJECT_TYPE_TAM_EVENT);
         objTypes.push_back(SAI_OBJECT_TYPE_TAM);
         break;
