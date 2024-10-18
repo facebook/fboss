@@ -10,6 +10,7 @@
 #pragma once
 
 #include "fboss/agent/if/gen-cpp2/ctrl_clients.h"
+#include "fboss/lib/thrift_service_client/ConnectionOptions.h"
 #include "fboss/qsfp_service/if/gen-cpp2/qsfp_clients.h"
 
 #include <folly/IPAddress.h>
@@ -64,6 +65,14 @@ std::unique_ptr<apache::thrift::Client<ClientT>> createPlaintextClient(
   return std::make_unique<apache::thrift::Client<ClientT>>(std::move(channel));
 }
 
+template <typename ClientT>
+std::unique_ptr<apache::thrift::Client<ClientT>> createPlaintextClient(
+    const ConnectionOptions& options,
+    folly::EventBase* eb = nullptr) {
+  return createPlaintextClient<ClientT>(
+      options.getDstAddr(), options.getSrcAddr(), eb, options.getTos());
+}
+
 // Prefers encrypted client, creates plaintext client if certs are unavailble
 template <typename ClientT>
 std::unique_ptr<apache::thrift::Client<ClientT>> tryCreateEncryptedClient(
@@ -71,6 +80,11 @@ std::unique_ptr<apache::thrift::Client<ClientT>> tryCreateEncryptedClient(
     const std::optional<folly::SocketAddress>& srcAddr = std::nullopt,
     folly::EventBase* eb = nullptr,
     std::optional<uint8_t> tos = std::nullopt);
+
+template <typename ClientT>
+std::unique_ptr<apache::thrift::Client<ClientT>> tryCreateEncryptedClient(
+    const ConnectionOptions& options,
+    folly::EventBase* eb = nullptr);
 
 std::unique_ptr<apache::thrift::Client<facebook::fboss::FbossCtrl>>
 createWedgeAgentClient(

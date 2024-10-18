@@ -63,6 +63,11 @@ class ConnectionOptions {
     return *this;
   }
 
+  ConnectionOptions& setSrcAddr(std::optional<folly::SocketAddress> srcAddr) {
+    srcAddr_ = std::move(srcAddr);
+    return *this;
+  }
+
   folly::SocketAddress getSrcAddr() const {
     return srcAddr_ ? *srcAddr_ : folly::AsyncSocketTransport::anyAddress();
   }
