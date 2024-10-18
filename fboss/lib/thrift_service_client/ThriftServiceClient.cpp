@@ -35,4 +35,13 @@ createQsfpServiceClient(
       ConnectionOptions::defaultOptions<facebook::fboss::QsfpService>(dstAddr),
       eb);
 }
+
+std::unique_ptr<apache::thrift::Client<facebook::fboss::fsdb::FsdbService>>
+createFsdbClient(ConnectionOptions options, folly::EventBase* eb) {
+  return options.getPreferEncrypted()
+      ? tryCreateEncryptedClient<facebook::fboss::fsdb::FsdbService>(
+            options, eb)
+      : createPlaintextClient<facebook::fboss::fsdb::FsdbService>(options, eb);
+}
+
 } // namespace facebook::fboss::utils

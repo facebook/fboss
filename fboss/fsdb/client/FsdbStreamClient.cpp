@@ -2,7 +2,7 @@
 
 #include "fboss/fsdb/client/FsdbStreamClient.h"
 #include "common/time/Time.h"
-#include "fboss/fsdb/client/Client.h"
+#include "fboss/lib/thrift_service_client/ThriftServiceClient.h"
 
 #include <folly/logging/xlog.h>
 #include <chrono>
@@ -141,27 +141,17 @@ folly::coro::Task<void> FsdbStreamClient::serviceLoopWrapper() {
 }
 #endif
 
-// Set DSCP to 48 (Network Control)
-// 8-bit TOS = 6-bit DSCP followed by 2-bit ECN
-const uint8_t kTosForClassOfServiceNC = 48 << 2;
-
 void FsdbStreamClient::resetClient() {
   CHECK(streamEvb_->getEventBase()->isInEventBaseThread());
   client_.reset();
 }
 
-std::optional<uint8_t> getTosForClientPriority(
+utils::ConnectionOptions::TrafficClass getTosForClientPriority(
     const std::optional<FsdbStreamClient::Priority> priority) {
-  if (priority.has_value()) {
-    switch (*priority) {
-      case FsdbStreamClient::Priority::CRITICAL:
-        return kTosForClassOfServiceNC;
-      case FsdbStreamClient::Priority::NORMAL:
-        // no TC marking by default
-        return std::nullopt;
-    }
+  if (priority == FsdbStreamClient::Priority::CRITICAL) {
+    return utils::ConnectionOptions::TrafficClass::NC;
   }
-  return std::nullopt;
+  return utils::ConnectionOptions::TrafficClass::DEFAULT;
 }
 
 bool shouldUseEncryptedClient(const FsdbStreamClient::ServerOptions& options) {
@@ -175,13 +165,12 @@ void FsdbStreamClient::createClient(const ServerOptions& options) {
 
   auto tos = getTosForClientPriority(options.priority);
   bool encryptedClient = shouldUseEncryptedClient(options);
-
-  client_ = Client::getClient(
-      options.dstAddr /* dstAddr */,
-      options.srcAddr /* srcAddr */,
-      tos,
-      !encryptedClient,
-      streamEvb_->getEventBase());
+  client_ = createFsdbClient(
+      utils::ConnectionOptions(options.dstAddr)
+          .setSrcAddr(options.srcAddr)
+          .setTrafficClass(tos)
+          .setPreferEncrypted(encryptedClient),
+      streamEvb_);
 }
 
 } // namespace facebook::fboss::fsdb

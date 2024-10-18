@@ -10,6 +10,7 @@
 #pragma once
 
 #include "fboss/agent/if/gen-cpp2/ctrl_clients.h"
+#include "fboss/fsdb/if/gen-cpp2/FsdbService.h"
 #include "fboss/lib/thrift_service_client/ConnectionOptions.h"
 #include "fboss/qsfp_service/if/gen-cpp2/qsfp_clients.h"
 
@@ -102,5 +103,11 @@ createWedgeAgentClient(
 std::unique_ptr<apache::thrift::Client<facebook::fboss::QsfpService>>
 createQsfpServiceClient(
     const std::optional<folly::SocketAddress>& dstAddr = std::nullopt,
+    folly::EventBase* eb = nullptr);
+
+std::unique_ptr<apache::thrift::Client<facebook::fboss::fsdb::FsdbService>>
+createFsdbClient(
+    ConnectionOptions options =
+        ConnectionOptions::defaultOptions<facebook::fboss::fsdb::FsdbService>(),
     folly::EventBase* eb = nullptr);
 } // namespace facebook::fboss::utils

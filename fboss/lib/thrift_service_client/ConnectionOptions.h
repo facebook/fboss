@@ -25,7 +25,7 @@ class ConnectionOptions {
   ConnectionOptions(folly::IPAddress dstIp, uint16_t dstPort)
       : ConnectionOptions(folly::SocketAddress(std::move(dstIp), dstPort)) {}
 
-  enum class TrafficClass : uint8_t { NORMAL, NC };
+  enum class TrafficClass : uint8_t { DEFAULT, NC };
 
   folly::SocketAddress getDstAddr() const {
     return dstAddr_;
@@ -116,6 +116,8 @@ class ConnectionOptions {
       std::optional<folly::SocketAddress> dstAddr = std::nullopt);
 
  private:
+  // DSCP for Network Control is 48
+  // 8-bit TOS = 6-bit DSCP followed by 2-bit ECN
   static constexpr uint8_t kTosForClassOfServiceNC = 48 << 2;
   static constexpr uint32_t kConnTimeout = 1000;
   static constexpr uint32_t kSendTimeout = 5000;
