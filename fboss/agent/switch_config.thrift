@@ -1154,6 +1154,7 @@ struct Port {
 
   31: Scope scope = Scope.LOCAL;
   32: optional PortQueueConfigName portVoqConfigName;
+  33: bool conditionalEntropyRehash = false;
 }
 
 enum LacpPortRate {

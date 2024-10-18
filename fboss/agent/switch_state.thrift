@@ -129,6 +129,7 @@ struct PortFields {
   52: list<ctrl.PortError> activeErrors;
   53: switch_config.Scope scope = switch_config.Scope.LOCAL;
   54: optional i32 reachabilityGroupId;
+  55: bool conditionalEntropyRehash = false;
 }
 
 typedef ctrl.SystemPortThrift SystemPortFields
