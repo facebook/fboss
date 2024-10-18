@@ -157,3 +157,9 @@ DEFINE_bool(
     "Enable setting of unicast and multicast queue guaranteed buffer sizes");
 
 DEFINE_bool(skip_buffer_reservation, false, "Enable skip reservation");
+
+// TODO(zecheng): Remove this once firmware support is ready
+DEFINE_bool(
+    conditional_entropy_cpu_seed_test_only,
+    false,
+    "Enable test-only feature for CPU updating conditional entropy seed");

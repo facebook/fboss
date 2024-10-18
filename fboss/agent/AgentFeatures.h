@@ -64,3 +64,5 @@ DECLARE_bool(enable_balanced_intput_mode);
 DECLARE_int32(hw_agent_connection_timeout_ms);
 DECLARE_bool(qgroup_guarantee_enable);
 DECLARE_bool(skip_buffer_reservation);
+// TODO(zecheng): Remove this once firmware support is ready
+DECLARE_bool(conditional_entropy_cpu_seed_test_only);
