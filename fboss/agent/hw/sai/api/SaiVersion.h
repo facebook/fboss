@@ -128,3 +128,7 @@
 #if defined(TAJO_SDK_EBRO) || defined(TAJO_SDK_MORGAN)
 #define TAJO_SAI_SDK
 #endif
+
+#if defined(SAI_CHENAB_IMPL)
+#define SAI_CHENAB_IMPL
+#endif

@@ -149,7 +149,7 @@ struct SaiAclTableTraits {
         SaiAttribute<EnumType, SAI_ACL_TABLE_ATTR_FIELD_IP_PROTOCOL, bool>;
     using FieldTcpFlags =
         SaiAttribute<EnumType, SAI_ACL_TABLE_ATTR_FIELD_TCP_FLAGS, bool>;
-#if defined(TAJO_SDK)
+#if defined(TAJO_SDK) || defined(SAI_CHENAB_IMPL)
     using FieldSrcPort =
         SaiAttribute<EnumType, SAI_ACL_TABLE_ATTR_FIELD_IN_PORT, bool>;
 #else
@@ -311,7 +311,7 @@ struct SaiAclEntryTraits {
         EnumType,
         SAI_ACL_ENTRY_ATTR_FIELD_DST_IP,
         AclEntryFieldIpV4>;
-#if defined(TAJO_SDK)
+#if defined(TAJO_SDK) || defined(SAI_CHENAB_IMPL)
     using FieldSrcPort = SaiAttribute<
         EnumType,
         SAI_ACL_ENTRY_ATTR_FIELD_IN_PORT,
