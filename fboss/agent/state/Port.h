@@ -738,6 +738,13 @@ class Port : public ThriftStructNode<Port, state::PortFields> {
     }
   }
 
+  bool getConditionalEntropyRehash() const {
+    return cref<switch_state_tags::conditionalEntropyRehash>()->cref();
+  }
+  void setConditionalEntropyRehash(bool conditionalEntropyRehash) {
+    set<switch_state_tags::conditionalEntropyRehash>(conditionalEntropyRehash);
+  }
+
  private:
   auto getRxSaks() const {
     return safe_cref<switch_state_tags::rxSecureAssociationKeys>();
