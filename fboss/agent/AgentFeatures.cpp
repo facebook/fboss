@@ -76,6 +76,16 @@ DEFINE_int32(
     1,
     "Number of threads to use for DSF remote stream pool");
 
+DEFINE_int32(
+    dsf_session_conn_timeout_ms,
+    4000,
+    "Socket connection timeout for DSF session");
+
+DEFINE_int32(
+    dsf_session_recv_timeout_ms,
+    12000,
+    "Socket pkt receive timeout for DSF session");
+
 DEFINE_bool(
     set_classid_for_my_subnet_and_ip_routes,
     false,

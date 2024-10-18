@@ -29,7 +29,11 @@ utils::ConnectionOptions getConnectionOptions(
   return utils::ConnectionOptions(dstIP, FLAGS_fsdbPort)
       .setSrcAddr(srcIP)
       .setPreferEncrypted(false)
-      .setTrafficClass(utils::ConnectionOptions::TrafficClass::NC);
+      .setTrafficClass(utils::ConnectionOptions::TrafficClass::NC)
+      .setConnectionTimeout(
+          std::chrono::milliseconds(FLAGS_dsf_session_conn_timeout_ms))
+      .setRecvTimeout(
+          std::chrono::milliseconds(FLAGS_dsf_session_recv_timeout_ms));
 }
 
 const auto& getSystemPortsPath() {

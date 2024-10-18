@@ -46,6 +46,8 @@ DECLARE_int32(dsf_num_fsdb_stream_threads);
 DECLARE_bool(dsf_subscribe_patch);
 DECLARE_int32(dsf_subscriber_reconnect_thread_heartbeat_ms);
 DECLARE_int32(dsf_subscriber_stream_thread_heartbeat_ms);
+DECLARE_int32(dsf_session_conn_timeout_ms);
+DECLARE_int32(dsf_session_recv_timeout_ms);
 
 DECLARE_bool(set_classid_for_my_subnet_and_ip_routes);
 DECLARE_int32(stat_publish_interval_ms);
