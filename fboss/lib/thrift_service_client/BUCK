@@ -5,10 +5,12 @@ oncall("fboss_agent_push")
 cpp_library(
     name = "thrift-service-client",
     srcs = [
+        "ConnectionOptions.cpp",
         "ThriftServiceClient.cpp",
         "facebook/ThriftServiceClient.cpp",
     ],
     headers = [
+        "ConnectionOptions.h",
         "ThriftServiceClient.h",
     ],
     exported_deps = [
@@ -17,10 +19,13 @@ cpp_library(
         "//common/services/cpp:tls_constants",
         "//configerator/structs/infrasec/if:acl-cpp2-types",
         "//fboss/agent/if:ctrl-cpp2-clients",
+        "//fboss/fsdb/common:flags",
         "//fboss/fsdb/if:fsdb-cpp2-services",
         "//fboss/qsfp_service/if:qsfp-cpp2-clients",
         "//folly:network_address",
+        "//folly/io:socket_option_map",
         "//folly/io/async:async_base",
+        "//folly/io/async:async_socket_transport",
         "//folly/io/async:async_ssl_socket",
         "//folly/io/async:ssl_context",
         "//infrasec/authorization:base_identity_util",
