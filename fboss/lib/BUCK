@@ -254,6 +254,7 @@ cpp_library(
     ],
     exported_deps = [
         "//fb303:thread_cached_service_data",
+        "//fboss/lib/thrift_service_client:thrift-service-client",
         "//folly:network_address",
         "//folly/coro:async_scope",
         "//folly/coro:blocking_wait",

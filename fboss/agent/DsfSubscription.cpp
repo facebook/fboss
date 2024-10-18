@@ -9,6 +9,7 @@
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/fsdb/if/FsdbModel.h"
 #include "fboss/fsdb/if/gen-cpp2/fsdb_common_types.h"
+#include "fboss/lib/thrift_service_client/ConnectionOptions.h"
 #include "fboss/thrift_cow/nodes/Serializer.h"
 #include "fboss/util/Logging.h"
 
@@ -17,16 +18,18 @@ namespace {
 const thriftpath::RootThriftPath<facebook::fboss::fsdb::FsdbOperStateRoot>
     stateRoot;
 
-fsdb::FsdbStreamClient::ServerOptions getServerOptions(
+utils::ConnectionOptions getConnectionOptions(
     const std::string& srcIP,
     const std::string& dstIP) {
   // Subscribe to FSDB of DSF node in the cluster with:
   //  dstIP = inband IP of that DSF node
   //  dstPort = FSDB port
   //  srcIP = self inband IP
-  //  priority = CRITICAL
-  return fsdb::FsdbStreamClient::ServerOptions(
-      dstIP, FLAGS_fsdbPort, srcIP, fsdb::FsdbStreamClient::Priority::CRITICAL);
+  //  tos = NC
+  return utils::ConnectionOptions(dstIP, FLAGS_fsdbPort)
+      .setSrcAddr(srcIP)
+      .setPreferEncrypted(false)
+      .setTrafficClass(utils::ConnectionOptions::TrafficClass::NC);
 }
 
 const auto& getSystemPortsPath() {
@@ -80,7 +83,7 @@ DsfSubscription::DsfSubscription(
           subscriberEvb)),
       subMgr_(new FsdbAdaptedSubManager(
           fsdb::SubscriptionOptions(opts_),
-          getServerOptions(localIp.str(), remoteIp.str()),
+          getConnectionOptions(localIp.str(), remoteIp.str()),
           reconnectEvb,
           subscriberEvb)),
       validator_(std::make_unique<DsfUpdateValidator>(
@@ -172,7 +175,7 @@ void DsfSubscription::setupSubscription() {
         [this](fsdb::OperSubPathUnit&& operStateUnit) {
           handleFsdbUpdate(std::move(operStateUnit));
         },
-        getServerOptions(localIp_.str(), remoteIp_.str()));
+        getConnectionOptions(localIp_.str(), remoteIp_.str()));
     XLOG(DBG2) << kDsfCtrlLogPrefix
                << "added subscription for : " << remoteEndpointStr();
   }

@@ -5,6 +5,7 @@
 #include "fboss/fsdb/tests/client/FsdbTestClients.h"
 #include "fboss/fsdb/tests/utils/FsdbTestServer.h"
 #include "fboss/lib/CommonUtils.h"
+#include "fboss/lib/thrift_service_client/ConnectionOptions.h"
 
 #include <folly/io/async/ScopedEventBaseThread.h>
 
@@ -35,8 +36,8 @@ class FsdbStreamClientTest : public ::testing::Test {
 };
 
 TEST_F(FsdbStreamClientTest, connectAndCancel) {
-  streamClient_->setServerOptions(
-      FsdbStreamClient::ServerOptions("::1", fsdbTestServer_->getFsdbPort()));
+  streamClient_->setConnectionOptions(
+      utils::ConnectionOptions("::1", fsdbTestServer_->getFsdbPort()));
   WITH_RETRIES(ASSERT_EVENTUALLY_TRUE(streamClient_->isConnectedToServer()));
   EXPECT_EQ(
       *streamClient_->lastStateUpdateSeen(),
@@ -49,12 +50,12 @@ TEST_F(FsdbStreamClientTest, connectAndCancel) {
 }
 
 TEST_F(FsdbStreamClientTest, multipleStreamClientsOnSameEvb) {
-  streamClient_->setServerOptions(
-      FsdbStreamClient::ServerOptions("::1", fsdbTestServer_->getFsdbPort()));
+  streamClient_->setConnectionOptions(
+      utils::ConnectionOptions("::1", fsdbTestServer_->getFsdbPort()));
   auto streamClient2 = std::make_unique<TestFsdbStreamClient>(
       streamEvbThread_->getEventBase(), connRetryEvbThread_->getEventBase());
-  streamClient2->setServerOptions(
-      FsdbStreamClient::ServerOptions("::1", fsdbTestServer_->getFsdbPort()));
+  streamClient2->setConnectionOptions(
+      utils::ConnectionOptions("::1", fsdbTestServer_->getFsdbPort()));
   WITH_RETRIES(ASSERT_EVENTUALLY_TRUE(streamClient_->isConnectedToServer()));
   WITH_RETRIES(ASSERT_EVENTUALLY_TRUE(streamClient2->isConnectedToServer()));
   EXPECT_EQ(
@@ -76,8 +77,8 @@ TEST_F(FsdbStreamClientTest, multipleStreamClientsOnSameEvb) {
 }
 
 TEST_F(FsdbStreamClientTest, reconnect) {
-  streamClient_->setServerOptions(
-      FsdbStreamClient::ServerOptions("::1", fsdbTestServer_->getFsdbPort()));
+  streamClient_->setConnectionOptions(
+      utils::ConnectionOptions("::1", fsdbTestServer_->getFsdbPort()));
   WITH_RETRIES(ASSERT_EVENTUALLY_TRUE(streamClient_->isConnectedToServer()));
   EXPECT_EQ(
       *streamClient_->lastStateUpdateSeen(),
@@ -92,9 +93,8 @@ TEST_F(FsdbStreamClientTest, reconnect) {
   fsdbTestServer_ = std::make_unique<FsdbTestServer>();
   // Need to update server address since we are binding to ephemeral port
   // which will change on server recreate
-  streamClient_->setServerOptions(
-      FsdbStreamClient::ServerOptions("::1", fsdbTestServer_->getFsdbPort()),
-      true);
+  streamClient_->setConnectionOptions(
+      utils::ConnectionOptions("::1", fsdbTestServer_->getFsdbPort()), true);
   WITH_RETRIES(ASSERT_EVENTUALLY_TRUE(streamClient_->isConnectedToServer()));
   EXPECT_EQ(
       *streamClient_->lastStateUpdateSeen(),

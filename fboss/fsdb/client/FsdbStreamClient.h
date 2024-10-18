@@ -6,6 +6,7 @@
 #include "fboss/fsdb/if/gen-cpp2/FsdbService.h"
 #include "fboss/fsdb/if/gen-cpp2/fsdb_oper_types.h"
 #include "fboss/lib/CommonThriftUtils.h"
+#include "fboss/lib/thrift_service_client/ConnectionOptions.h"
 
 #include <fb303/ThreadCachedServiceData.h>
 #include <folly/SocketAddress.h>
@@ -100,9 +101,9 @@ class FsdbStreamClient : public ReconnectingThriftClient {
       DeltaExtSubStreamT>;
 
  private:
-  void createClient(const ServerOptions& options);
+  void createClient(const utils::ConnectionOptions& options);
   void resetClient() override;
-  void connectToServer(const ServerOptions& options) override;
+  void connectToServer(const utils::ConnectionOptions& options) override;
   void timeoutExpired() noexcept;
 
 #if FOLLY_HAS_COROUTINES

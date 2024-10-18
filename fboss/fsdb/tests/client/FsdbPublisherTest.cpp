@@ -7,6 +7,7 @@
 #include "fboss/fsdb/tests/client/FsdbTestClients.h"
 #include "fboss/fsdb/tests/utils/FsdbTestServer.h"
 #include "fboss/lib/CommonUtils.h"
+#include "fboss/lib/thrift_service_client/ConnectionOptions.h"
 #include "fboss/lib/thrift_service_client/ThriftServiceClient.h"
 
 #include <fb303/ServiceData.h>
@@ -57,8 +58,8 @@ class FsdbPublisherTest : public ::testing::Test {
     return std::is_same_v<PubUnitT, OperDelta>;
   }
   void setupConnection(bool updateServerPort = false) {
-    publisher_->setServerOptions(
-        FsdbStreamClient::ServerOptions("::1", fsdbTestServer_->getFsdbPort()),
+    publisher_->setConnectionOptions(
+        utils::ConnectionOptions("::1", fsdbTestServer_->getFsdbPort()),
         updateServerPort);
     WITH_RETRIES_N(
         kRetries, auto metadata = getPublisherRootMetadata();

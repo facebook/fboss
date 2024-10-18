@@ -57,6 +57,7 @@ cpp_library(
         "//fboss/fsdb/if:fsdb-cpp2-services",
         "//fboss/fsdb/if:fsdb_common-cpp2-types",
         "//fboss/fsdb/if:fsdb_oper-cpp2-types",
+        "//fboss/lib/thrift_service_client:thrift-service-client",
         "//folly:format",
         "//folly:string",
         "//folly:synchronized",
@@ -98,6 +99,7 @@ cpp_library(
         ":fsdb_pub_sub",
         "//fboss/fsdb/if:fsdb_model",
         "//fboss/fsdb/if:fsdb_oper-cpp2-types",
+        "//fboss/lib/thrift_service_client:thrift-service-client",
         "//folly/io/async:scoped_event_base_thread",
     ],
 )

@@ -278,7 +278,6 @@ class DsfSubscriptionTest : public ::testing::Test {
   std::unique_ptr<folly::IOThreadPoolExecutor> streamConnectPool_;
   std::unique_ptr<folly::IOThreadPoolExecutor> streamServePool_;
   std::unique_ptr<folly::IOThreadPoolExecutor> hwUpdatePool_;
-  std::optional<ReconnectingThriftClient::ServerOptions> serverOptions_;
   std::unique_ptr<HwTestHandle> handle_;
   std::shared_ptr<DsfSubscription> subscription_;
   SwSwitch* sw_;

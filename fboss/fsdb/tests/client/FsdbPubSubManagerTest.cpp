@@ -7,6 +7,7 @@
 #include "fboss/fsdb/tests/client/FsdbTestClients.h"
 #include "fboss/fsdb/tests/utils/FsdbTestServer.h"
 #include "fboss/lib/CommonUtils.h"
+#include "fboss/lib/thrift_service_client/ConnectionOptions.h"
 
 #include <folly/io/async/ScopedEventBaseThread.h>
 #include <folly/synchronization/Baton.h>
@@ -262,7 +263,7 @@ class FsdbPubSubManagerTest : public ::testing::Test {
         subscriptionPath(),
         stChangeCb,
         operDeltaUpdate,
-        FsdbStreamClient::ServerOptions("::1", fsdbTestServer_->getFsdbPort()));
+        utils::ConnectionOptions("::1", fsdbTestServer_->getFsdbPort()));
   }
   std::string addStateDeltaSubscription(
       FsdbDeltaSubscriber::FsdbOperDeltaUpdateCb operDeltaUpdate,
@@ -271,7 +272,7 @@ class FsdbPubSubManagerTest : public ::testing::Test {
         subscriptionPath(),
         stChangeCb,
         operDeltaUpdate,
-        FsdbStreamClient::ServerOptions("::1", fsdbTestServer_->getFsdbPort()));
+        utils::ConnectionOptions("::1", fsdbTestServer_->getFsdbPort()));
   }
   void addSubscriptions(
       FsdbDeltaSubscriber::FsdbOperDeltaUpdateCb operDeltaUpdate) {
@@ -285,7 +286,7 @@ class FsdbPubSubManagerTest : public ::testing::Test {
         subscriptionPath(),
         stChangeCb,
         operPathUpdate,
-        FsdbStreamClient::ServerOptions("::1", fsdbTestServer_->getFsdbPort()));
+        utils::ConnectionOptions("::1", fsdbTestServer_->getFsdbPort()));
   }
   std::string addStatePathSubscription(
       FsdbStateSubscriber::FsdbOperStateUpdateCb operPathUpdate,
@@ -294,15 +295,14 @@ class FsdbPubSubManagerTest : public ::testing::Test {
         subscriptionPath(),
         stChangeCb,
         operPathUpdate,
-        FsdbStreamClient::ServerOptions("::1", fsdbTestServer_->getFsdbPort()));
+        utils::ConnectionOptions("::1", fsdbTestServer_->getFsdbPort()));
   }
   void addStatePathSubscriptionWithGrHoldTime(
       FsdbStateSubscriber::FsdbOperStateUpdateCb operPathUpdate,
       SubscriptionStateChangeCb stChangeCb,
       uint32_t grHoldTimeSec) {
     auto subscribeStats = false;
-    ReconnectingThriftClient::ServerOptions serverOpts{
-        "::1", fsdbTestServer_->getFsdbPort()};
+    utils::ConnectionOptions connOpts{"::1", fsdbTestServer_->getFsdbPort()};
     SubscriptionOptions opts{
         pubSubManager_->getClientId(), subscribeStats, grHoldTimeSec};
     pubSubManager_->addStatePathSubscription(
@@ -310,15 +310,14 @@ class FsdbPubSubManagerTest : public ::testing::Test {
         subscriptionPath(),
         stChangeCb,
         operPathUpdate,
-        std::move(serverOpts));
+        std::move(connOpts));
   }
   std::string addStateExtDeltaSubscription(
       FsdbExtDeltaSubscriber::FsdbOperDeltaUpdateCb operDeltaCb,
       SubscriptionStateChangeCb stChangeCb) {
-    ReconnectingThriftClient::ServerOptions serverOpts{
-        "::1", fsdbTestServer_->getFsdbPort()};
+    utils::ConnectionOptions connOpts{"::1", fsdbTestServer_->getFsdbPort()};
     return pubSubManager_->addStateExtDeltaSubscription(
-        extSubscriptionPaths(), stChangeCb, operDeltaCb, std::move(serverOpts));
+        extSubscriptionPaths(), stChangeCb, operDeltaCb, std::move(connOpts));
   }
   void addSubscriptions(
       FsdbStateSubscriber::FsdbOperStateUpdateCb operPathUpdate) {

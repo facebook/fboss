@@ -2,6 +2,7 @@
 
 #include "fboss/fsdb/client/FsdbStreamClient.h"
 #include "common/time/Time.h"
+#include "fboss/lib/thrift_service_client/ConnectionOptions.h"
 #include "fboss/lib/thrift_service_client/ThriftServiceClient.h"
 
 #include <folly/logging/xlog.h>
@@ -81,7 +82,8 @@ FsdbStreamClient::~FsdbStreamClient() {
   CHECK(isCancelled());
 }
 
-void FsdbStreamClient::connectToServer(const ServerOptions& options) {
+void FsdbStreamClient::connectToServer(
+    const utils::ConnectionOptions& options) {
   CHECK(getState() == State::DISCONNECTED);
   streamEvb_->runImmediatelyOrRunInEventBaseThreadAndWait([this, &options]() {
     try {
@@ -146,31 +148,11 @@ void FsdbStreamClient::resetClient() {
   client_.reset();
 }
 
-utils::ConnectionOptions::TrafficClass getTosForClientPriority(
-    const std::optional<FsdbStreamClient::Priority> priority) {
-  if (priority == FsdbStreamClient::Priority::CRITICAL) {
-    return utils::ConnectionOptions::TrafficClass::NC;
-  }
-  return utils::ConnectionOptions::TrafficClass::DEFAULT;
-}
-
-bool shouldUseEncryptedClient(const FsdbStreamClient::ServerOptions& options) {
-  // use encrypted connection for all clients except CRITICAL ones.
-  return (options.priority != FsdbStreamClient::Priority::CRITICAL);
-}
-
-void FsdbStreamClient::createClient(const ServerOptions& options) {
+void FsdbStreamClient::createClient(const utils::ConnectionOptions& options) {
   CHECK(streamEvb_->getEventBase()->isInEventBaseThread());
   resetClient();
 
-  auto tos = getTosForClientPriority(options.priority);
-  bool encryptedClient = shouldUseEncryptedClient(options);
-  client_ = createFsdbClient(
-      utils::ConnectionOptions(options.dstAddr)
-          .setSrcAddr(options.srcAddr)
-          .setTrafficClass(tos)
-          .setPreferEncrypted(encryptedClient),
-      streamEvb_);
+  client_ = createFsdbClient(options, streamEvb_);
 }
 
 } // namespace facebook::fboss::fsdb
