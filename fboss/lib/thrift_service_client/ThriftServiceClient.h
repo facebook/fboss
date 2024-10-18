@@ -42,8 +42,8 @@ inline folly::SocketOptionMap getSocketOptionMap(
   }
 }
 
-template <typename ClientT>
-std::unique_ptr<apache::thrift::Client<ClientT>> createPlaintextClient(
+template <typename ServiceT>
+std::unique_ptr<apache::thrift::Client<ServiceT>> createPlaintextClient(
     const folly::SocketAddress& dstAddr,
     const std::optional<folly::SocketAddress>& srcAddr = std::nullopt,
     folly::EventBase* eb = nullptr,
@@ -62,27 +62,35 @@ std::unique_ptr<apache::thrift::Client<ClientT>> createPlaintextClient(
   auto channel =
       apache::thrift::RocketClientChannel::newChannel(std::move(socket));
   channel->setTimeout(kRecvTimeout);
-  return std::make_unique<apache::thrift::Client<ClientT>>(std::move(channel));
+  return std::make_unique<apache::thrift::Client<ServiceT>>(std::move(channel));
 }
 
-template <typename ClientT>
-std::unique_ptr<apache::thrift::Client<ClientT>> createPlaintextClient(
+template <typename ServiceT>
+std::unique_ptr<apache::thrift::Client<ServiceT>> createPlaintextClient(
     const ConnectionOptions& options,
     folly::EventBase* eb = nullptr) {
-  return createPlaintextClient<ClientT>(
+  return createPlaintextClient<ServiceT>(
       options.getDstAddr(), options.getSrcAddr(), eb, options.getTos());
 }
 
+// client with default dst and options
+template <typename ServiceT>
+std::unique_ptr<apache::thrift::Client<ServiceT>> createPlaintextClient(
+    folly::EventBase* eb = nullptr) {
+  return createPlaintextClient<ServiceT>(
+      ConnectionOptions::defaultOptions<ServiceT>(), eb);
+}
+
 // Prefers encrypted client, creates plaintext client if certs are unavailble
-template <typename ClientT>
-std::unique_ptr<apache::thrift::Client<ClientT>> tryCreateEncryptedClient(
+template <typename ServiceT>
+std::unique_ptr<apache::thrift::Client<ServiceT>> tryCreateEncryptedClient(
     const folly::SocketAddress& dstAddr,
     const std::optional<folly::SocketAddress>& srcAddr = std::nullopt,
     folly::EventBase* eb = nullptr,
     std::optional<uint8_t> tos = std::nullopt);
 
-template <typename ClientT>
-std::unique_ptr<apache::thrift::Client<ClientT>> tryCreateEncryptedClient(
+template <typename ServiceT>
+std::unique_ptr<apache::thrift::Client<ServiceT>> tryCreateEncryptedClient(
     const ConnectionOptions& options,
     folly::EventBase* eb = nullptr);
 
