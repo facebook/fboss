@@ -23,10 +23,7 @@ createWedgeAgentClient(
     const std::optional<folly::SocketAddress>& dstAddr,
     folly::EventBase* eb) {
   return tryCreateEncryptedClient<facebook::fboss::FbossCtrl>(
-      dstAddr ? *dstAddr
-              : folly::SocketAddress(
-                    FLAGS_wedge_agent_host, FLAGS_wedge_agent_port),
-      std::nullopt /* srcAddr */,
+      ConnectionOptions::defaultOptions<facebook::fboss::FbossCtrl>(dstAddr),
       eb);
 }
 
@@ -35,10 +32,7 @@ createQsfpServiceClient(
     const std::optional<folly::SocketAddress>& dstAddr,
     folly::EventBase* eb) {
   return tryCreateEncryptedClient<facebook::fboss::QsfpService>(
-      dstAddr ? *dstAddr
-              : folly::SocketAddress(
-                    FLAGS_qsfp_service_host, FLAGS_qsfp_service_port),
-      std::nullopt /* srcAddr */,
+      ConnectionOptions::defaultOptions<facebook::fboss::QsfpService>(dstAddr),
       eb);
 }
 } // namespace facebook::fboss::utils
