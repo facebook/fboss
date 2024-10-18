@@ -27,6 +27,15 @@
 
 extern "C" {
 #include <sai.h>
+
+#if defined(SAI_VERSION_11_3_0_0_DNX_ODP)
+#include <saiextensions.h>
+#ifndef IS_OSS_BRCM_SAI
+#include <experimental/saiexperimentaltameventaginggroup.h>
+#else
+#include <saiexperimentaltameventaginggroup.h>
+#endif
+#endif
 }
 
 DECLARE_bool(enable_replayer);
@@ -237,6 +246,9 @@ class SaiTracer {
   sai_switch_api_t* switchApi_;
   sai_system_port_api_t* systemPortApi_;
   sai_tam_api_t* tamApi_;
+#if defined(SAI_VERSION_11_3_0_0_DNX_ODP)
+  sai_tam_event_aging_group_api_t* tamEventAgingGroupApi_;
+#endif
   sai_tunnel_api_t* tunnelApi_;
   sai_udf_api_t* udfApi_;
   sai_virtual_router_api_t* virtualRouterApi_;
@@ -412,6 +424,10 @@ class SaiTracer {
       {SAI_OBJECT_TYPE_TAM_TRANSPORT, "tamTransport_"},
       {SAI_OBJECT_TYPE_TAM_REPORT, "tamReport_"},
       {SAI_OBJECT_TYPE_TAM_EVENT_ACTION, "tamEventAction_"},
+#if defined(SAI_VERSION_11_3_0_0_DNX_ODP)
+      {static_cast<sai_object_type_t>(SAI_OBJECT_TYPE_TAM_EVENT_AGING_GROUP),
+          "tamEventAgingGroup_"},
+#endif
       {SAI_OBJECT_TYPE_TAM_EVENT, "tamEvent_"},
       {SAI_OBJECT_TYPE_TAM, "tam_"},
       {SAI_OBJECT_TYPE_TUNNEL, "tunnel_"},
@@ -477,6 +493,10 @@ class SaiTracer {
       {SAI_OBJECT_TYPE_TAM_TRANSPORT, "tam_api->"},
       {SAI_OBJECT_TYPE_TAM_REPORT, "tam_api->"},
       {SAI_OBJECT_TYPE_TAM_EVENT_ACTION, "tam_api->"},
+#if defined(SAI_VERSION_11_3_0_0_DNX_ODP)
+      {static_cast<sai_object_type_t>(SAI_OBJECT_TYPE_TAM_EVENT_AGING_GROUP),
+          "tam_event_aging_group_api->"},
+#endif
       {SAI_OBJECT_TYPE_TAM_EVENT, "tam_api->"},
       {SAI_OBJECT_TYPE_TAM, "tam_api->"},
       {SAI_OBJECT_TYPE_TUNNEL, "tunnel_api->"},

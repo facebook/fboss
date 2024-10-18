@@ -43,6 +43,7 @@
 #include "fboss/agent/hw/sai/tracer/SwitchApiTracer.h"
 #include "fboss/agent/hw/sai/tracer/SystemPortApiTracer.h"
 #include "fboss/agent/hw/sai/tracer/TamApiTracer.h"
+#include "fboss/agent/hw/sai/tracer/TamEventAgingGroupApiTracer.h" // NOLINT(facebook-unused-include-check)
 #include "fboss/agent/hw/sai/tracer/TunnelApiTracer.h"
 #include "fboss/agent/hw/sai/tracer/UdfApiTracer.h"
 #include "fboss/agent/hw/sai/tracer/VirtualRouterApiTracer.h"
@@ -194,6 +195,23 @@ sai_status_t __wrap_sai_api_query(
   if (!FLAGS_enable_replayer) {
     return rv;
   }
+
+#if defined(SAI_VERSION_11_3_0_0_DNX_ODP)
+  if (UNLIKELY(sai_api_id >= SAI_API_MAX)) {
+    switch (static_cast<sai_api_extensions_t>(sai_api_id)) {
+      case SAI_API_TAM_EVENT_AGING_GROUP:
+        SaiTracer::getInstance()->tamEventAgingGroupApi_ =
+            static_cast<sai_tam_event_aging_group_api_t*>(*api_method_table);
+        *api_method_table = facebook::fboss::wrappedTamEventAgingGroupApi();
+        SaiTracer::getInstance()->logApiQuery(
+            sai_api_id, "tam_event_aging_group_api");
+        break;
+      default:
+        break;
+    }
+    return rv;
+  }
+#endif
 
   switch (sai_api_id) {
     case SAI_API_ACL:
@@ -395,6 +413,7 @@ sai_status_t __wrap_sai_api_query(
       // funtion here
       break;
   }
+
   return rv;
 }
 
@@ -1326,6 +1345,19 @@ vector<string> SaiTracer::setAttrList(
         to<string>(sai_attribute, "[", i, "].id=", attr_list[i].id));
   }
 
+#if defined(SAI_VERSION_11_3_0_0_DNX_ODP)
+  if (UNLIKELY(object_type >= SAI_OBJECT_TYPE_MAX)) {
+    switch (static_cast<sai_object_type_extensions_t>(object_type)) {
+      case SAI_OBJECT_TYPE_TAM_EVENT_AGING_GROUP:
+        setTamEventAgingGroupAttributes(attr_list, attr_count, attrLines, rv);
+        break;
+      default:
+        break;
+    }
+    return attrLines;
+  }
+#endif
+
   // Call functions defined in *ApiTracer.h to serialize attributes
   // that are specific to each Sai object type
   switch (object_type) {
@@ -1846,6 +1878,10 @@ void SaiTracer::initVarCounts() {
   varCounts_.emplace(SAI_OBJECT_TYPE_TAM_TRANSPORT, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_TAM_REPORT, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_TAM_EVENT_ACTION, 0);
+#if defined(SAI_VERSION_11_3_0_0_DNX_ODP)
+  varCounts_.emplace(
+      static_cast<sai_object_type_t>(SAI_OBJECT_TYPE_TAM_EVENT_AGING_GROUP), 0);
+#endif
   varCounts_.emplace(SAI_OBJECT_TYPE_TAM_EVENT, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_TAM, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_TUNNEL, 0);
