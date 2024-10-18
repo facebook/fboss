@@ -1502,6 +1502,19 @@ std::shared_ptr<Port> SaiPortManager::swPortFromAttributes(
   auto prbsPolynomial = GET_OPT_ATTR(Port, PrbsPolynomial, attributes);
   prbsState.polynominal() = prbsPolynomial;
   port->setAsicPrbs(prbsState);
+
+#if defined(BRCM_SAI_SDK_GTE_12_0) && defined(BRCM_SAI_SDK_DNX)
+  auto reachabilityGroupId = GET_OPT_ATTR(Port, ReachabilityGroup, attributes);
+  if (reachabilityGroupId > 0) {
+    port->setReachabilityGroupId(reachabilityGroupId);
+  }
+#endif
+
+// TODO(zecheng): Update flag when new 12.0 release has the attribute
+#if defined(SAI_VERSION_11_3_0_0_DNX_ODP)
+  port->setReachabilityGroupId(
+      GET_OPT_ATTR(Port, CondEntropyRehashEnable, attributes));
+#endif
   return port;
 }
 
