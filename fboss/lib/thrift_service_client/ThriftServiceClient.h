@@ -27,51 +27,25 @@ DECLARE_int32(qsfp_service_port);
 DECLARE_int32(bgp_service_port);
 namespace facebook::fboss::utils {
 
-auto constexpr kConnTimeout = 1000;
-auto constexpr kRecvTimeout = 45000;
-auto constexpr kSendTimeout = 5000;
-
-inline folly::SocketOptionMap getSocketOptionMap(
-    std::optional<uint8_t> tos = std::nullopt) {
-  if (tos.has_value()) {
-    folly::SocketOptionKey v6Opts = {IPPROTO_IPV6, IPV6_TCLASS};
-    folly::SocketOptionMap sockOptsMap;
-    sockOptsMap.insert({v6Opts, *tos});
-    return sockOptsMap;
-  } else {
-    return folly::emptySocketOptionMap;
-  }
-}
-
 template <typename ServiceT>
 std::unique_ptr<apache::thrift::Client<ServiceT>> createPlaintextClient(
-    const folly::SocketAddress& dstAddr,
-    const std::optional<folly::SocketAddress>& srcAddr = std::nullopt,
-    folly::EventBase* eb = nullptr,
-    std::optional<uint8_t> tos = std::nullopt) {
+    ConnectionOptions options,
+    folly::EventBase* eb = nullptr) {
   folly::EventBase* socketEb =
       eb ? eb : folly::EventBaseManager::get()->getEventBase();
 
   auto socket = folly::AsyncSocket::UniquePtr(new folly::AsyncSocket(socketEb));
-  socket->setSendTimeout(kSendTimeout);
+  socket->setSendTimeout(options.getSendTimeoutMs());
   socket->connect(
       nullptr,
-      dstAddr,
-      kConnTimeout,
-      getSocketOptionMap(tos),
-      srcAddr ? *srcAddr : folly::AsyncSocketTransport::anyAddress());
+      options.getDstAddr(),
+      options.getConnTimeoutMs(),
+      options.getSocketOptionMap(),
+      options.getSrcAddr());
   auto channel =
       apache::thrift::RocketClientChannel::newChannel(std::move(socket));
-  channel->setTimeout(kRecvTimeout);
+  channel->setTimeout(options.getRecvTimeoutMs());
   return std::make_unique<apache::thrift::Client<ServiceT>>(std::move(channel));
-}
-
-template <typename ServiceT>
-std::unique_ptr<apache::thrift::Client<ServiceT>> createPlaintextClient(
-    const ConnectionOptions& options,
-    folly::EventBase* eb = nullptr) {
-  return createPlaintextClient<ServiceT>(
-      options.getDstAddr(), options.getSrcAddr(), eb, options.getTos());
 }
 
 // client with default dst and options
