@@ -2975,4 +2975,19 @@ void SaiPortManager::changeTxEnable(
                                                : false});
   }
 }
+
+void SaiPortManager::updateConditionalEntropySeed(PortID portID, uint32_t seed)
+    const {
+// TODO(zecheng): Update flag when new 12.0 release has the attribute
+#if defined(SAI_VERSION_11_3_0_0_DNX_ODP)
+  auto portHandle = getPortHandle(portID);
+  if (!portHandle) {
+    throw FbossError(
+        "Cannot update conditional entropy seed on non existent port: ",
+        portID);
+  }
+  portHandle->port->setOptionalAttribute(
+      SaiPortTraits::Attributes::CondEntropyRehashSeed{seed});
+#endif
+}
 } // namespace facebook::fboss
