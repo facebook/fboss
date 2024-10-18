@@ -197,6 +197,12 @@ const TamApi& SaiApiTable::tamApi() const {
   return getApi<TamApi>();
 }
 
+#if defined(SAI_VERSION_11_3_0_0_DNX_ODP)
+const TamEventAgingGroupApi& SaiApiTable::tamEventAgingGroupApi() const {
+  return getApi<TamEventAgingGroupApi>();
+}
+#endif
+
 const TunnelApi& SaiApiTable::tunnelApi() const {
   return getApi<TunnelApi>();
 }

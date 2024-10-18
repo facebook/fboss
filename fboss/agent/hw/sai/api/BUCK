@@ -94,6 +94,7 @@ cpp_library(
         "SwitchApi.h",
         "SystemPortApi.h",
         "TamApi.h",
+        "TamEventAgingGroupApi.h",
         "Traits.h",
         "TunnelApi.h",
         "Types.h",

@@ -16,9 +16,31 @@
 
 #include <folly/Format.h>
 
+extern "C" {
+#if defined(SAI_VERSION_11_3_0_0_DNX_ODP)
+#include <saiextensions.h>
+#ifndef IS_OSS_BRCM_SAI
+#include <experimental/saiexperimentaltameventaginggroup.h>
+#else
+#include <saiexperimentaltameventaginggroup.h>
+#endif
+#endif
+}
+
 namespace facebook::fboss {
 
 folly::StringPiece saiApiTypeToString(sai_api_t apiType) {
+#if defined(SAI_VERSION_11_3_0_0_DNX_ODP)
+  if (UNLIKELY(apiType >= SAI_API_MAX)) {
+    switch (static_cast<sai_api_extensions_t>(apiType)) {
+      case SAI_API_TAM_EVENT_AGING_GROUP:
+        return "tam-event-aging-group";
+      default:
+        break;
+    }
+  }
+#endif
+
   switch (apiType) {
     case SAI_API_UNSPECIFIED:
       return "unspecified";
@@ -127,6 +149,17 @@ folly::StringPiece saiApiTypeToString(sai_api_t apiType) {
 }
 
 folly::StringPiece saiObjectTypeToString(sai_object_type_t objectType) {
+#if defined(SAI_VERSION_11_3_0_0_DNX_ODP)
+  if (UNLIKELY(objectType >= SAI_OBJECT_TYPE_MAX)) {
+    switch (static_cast<sai_object_type_extensions_t>(objectType)) {
+      case SAI_OBJECT_TYPE_TAM_EVENT_AGING_GROUP:
+        return "event-aging-group";
+      default:
+        throw FbossError("object type extension invalid: ", objectType);
+    }
+  }
+#endif
+
   switch (objectType) {
     case SAI_OBJECT_TYPE_NULL:
       return "null";
