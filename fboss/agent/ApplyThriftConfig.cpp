@@ -2387,7 +2387,9 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
       *portConf->portType() == orig->getPortType() &&
       *portConf->drainState() == orig->getPortDrainState() &&
       portFlowletConfigUnchanged &&
-      newFlowletConfigName == orig->getFlowletConfigName()) {
+      newFlowletConfigName == orig->getFlowletConfigName() &&
+      *portConf->conditionalEntropyRehash() ==
+          orig->getConditionalEntropyRehash()) {
     return nullptr;
   }
 
@@ -2430,6 +2432,7 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
   newPort->setFlowletConfigName(newFlowletConfigName);
   newPort->setPortFlowletConfig(portFlowletCfg);
   newPort->setScope(*portConf->scope());
+  newPort->setConditionalEntropyRehash(*portConf->conditionalEntropyRehash());
   return newPort;
 }
 
