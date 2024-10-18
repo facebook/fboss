@@ -948,6 +948,7 @@ void ThriftConfigApplier::processUpdatedDsfNodes() {
           case cfg::AsicType::ASIC_TYPE_JERICHO3:
             asicCore = 441;
             break;
+          case cfg::AsicType::ASIC_TYPE_CHENAB:
           case cfg::AsicType::ASIC_TYPE_TRIDENT2:
           case cfg::AsicType::ASIC_TYPE_TOMAHAWK:
           case cfg::AsicType::ASIC_TYPE_TOMAHAWK3:

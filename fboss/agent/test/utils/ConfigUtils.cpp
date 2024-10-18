@@ -430,6 +430,7 @@ cfg::DsfNode dsfNodeConfig(
                 std::nullopt,
                 localMac),
             PlatformType::PLATFORM_MERU800BFA);
+      case cfg::AsicType::ASIC_TYPE_CHENAB:
       default:
         throw FbossError("Unexpected asic type: ", fromAsic.getAsicTypeStr());
     }
