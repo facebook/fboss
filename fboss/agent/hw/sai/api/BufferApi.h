@@ -106,6 +106,26 @@ struct SaiBufferProfileTraits {
     };
     using SharedFadtMaxTh =
         SaiExtensionAttribute<sai_uint64_t, AttributeSharedFadtMaxTh>;
+    struct AttributeSharedFadtMinTh {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    using SharedFadtMinTh =
+        SaiExtensionAttribute<sai_uint64_t, AttributeSharedFadtMinTh>;
+    struct AttributeSramFadtMaxTh {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    using SramFadtMaxTh =
+        SaiExtensionAttribute<sai_uint64_t, AttributeSramFadtMaxTh>;
+    struct AttributeSramFadtMinTh {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    using SramFadtMinTh =
+        SaiExtensionAttribute<sai_uint64_t, AttributeSramFadtMinTh>;
+    struct AttributeSramFadtXonOffset {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    using SramFadtXonOffset =
+        SaiExtensionAttribute<sai_uint64_t, AttributeSramFadtXonOffset>;
   };
   using AdapterKey = BufferProfileSaiId;
   using CreateAttributes = std::tuple<
@@ -116,7 +136,11 @@ struct SaiBufferProfileTraits {
       std::optional<Attributes::XoffTh>,
       std::optional<Attributes::XonTh>,
       std::optional<Attributes::XonOffsetTh>,
-      std::optional<Attributes::SharedFadtMaxTh>>;
+      std::optional<Attributes::SharedFadtMaxTh>,
+      std::optional<Attributes::SharedFadtMinTh>,
+      std::optional<Attributes::SramFadtMaxTh>,
+      std::optional<Attributes::SramFadtMinTh>,
+      std::optional<Attributes::SramFadtXonOffset>>;
   using AdapterHostKey = CreateAttributes;
 };
 
@@ -128,6 +152,10 @@ SAI_ATTRIBUTE_NAME(BufferProfile, XoffTh);
 SAI_ATTRIBUTE_NAME(BufferProfile, XonTh);
 SAI_ATTRIBUTE_NAME(BufferProfile, XonOffsetTh);
 SAI_ATTRIBUTE_NAME(BufferProfile, SharedFadtMaxTh);
+SAI_ATTRIBUTE_NAME(BufferProfile, SharedFadtMinTh);
+SAI_ATTRIBUTE_NAME(BufferProfile, SramFadtMaxTh);
+SAI_ATTRIBUTE_NAME(BufferProfile, SramFadtMinTh);
+SAI_ATTRIBUTE_NAME(BufferProfile, SramFadtXonOffset);
 
 struct SaiIngressPriorityGroupTraits {
   static constexpr sai_api_t ApiType = SAI_API_BUFFER;

@@ -514,6 +514,14 @@ SaiBufferProfileTraits::CreateAttributes SaiBufferManager::profileCreateAttrs(
   }
   std::optional<SaiBufferProfileTraits::Attributes::SharedFadtMaxTh>
       sharedFadtMaxTh;
+  std::optional<SaiBufferProfileTraits::Attributes::SharedFadtMinTh>
+      sharedFadtMinTh{};
+  std::optional<SaiBufferProfileTraits::Attributes::SramFadtMaxTh>
+      sramFadtMaxTh{};
+  std::optional<SaiBufferProfileTraits::Attributes::SramFadtMinTh>
+      sramFadtMinTh{};
+  std::optional<SaiBufferProfileTraits::Attributes::SramFadtXonOffset>
+      sramFadtXonOffset{};
 #if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
   if (queue.getMaxDynamicSharedBytes()) {
     sharedFadtMaxTh = queue.getMaxDynamicSharedBytes().value();
@@ -522,8 +530,27 @@ SaiBufferProfileTraits::CreateAttributes SaiBufferManager::profileCreateAttrs(
     sharedFadtMaxTh = 0;
   }
 #endif
+// TODO: Change to BRCM_SAI_SDK_DNX_GTE_11_0 once support is available in 12.0
+#if defined(SAI_VERSION_11_3_0_0_DNX_ODP)
+  // Unused, set default value as 0
+  sharedFadtMinTh = 0;
+  sramFadtMaxTh = 0;
+  sramFadtMinTh = 0;
+  sramFadtXonOffset = 0;
+#endif
   return SaiBufferProfileTraits::CreateAttributes{
-      pool, reservedBytes, mode, dynThresh, 0, 0, 0, sharedFadtMaxTh};
+      pool,
+      reservedBytes,
+      mode,
+      dynThresh,
+      0,
+      0,
+      0,
+      sharedFadtMaxTh,
+      sharedFadtMinTh,
+      sramFadtMaxTh,
+      sramFadtMinTh,
+      sramFadtXonOffset};
 }
 
 void SaiBufferManager::setupBufferPool(
@@ -583,10 +610,26 @@ SaiBufferManager::ingressProfileCreateAttrs(
   }
   std::optional<SaiBufferProfileTraits::Attributes::SharedFadtMaxTh>
       sharedFadtMaxTh;
+  std::optional<SaiBufferProfileTraits::Attributes::SharedFadtMinTh>
+      sharedFadtMinTh;
+  std::optional<SaiBufferProfileTraits::Attributes::SramFadtMaxTh>
+      sramFadtMaxTh;
+  std::optional<SaiBufferProfileTraits::Attributes::SramFadtMinTh>
+      sramFadtMinTh;
+  std::optional<SaiBufferProfileTraits::Attributes::SramFadtXonOffset>
+      sramFadtXonOffset;
 #if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
   // use default 0 since this attribute currently only used by profile for
   // cpu/eventor/rcy port queues
   sharedFadtMaxTh = 0;
+#endif
+// TODO: Change to BRCM_SAI_SDK_DNX_GTE_11_0 once support is available in 12.0
+#if defined(SAI_VERSION_11_3_0_0_DNX_ODP)
+  // TODO: Populate based on config
+  sharedFadtMinTh = 0;
+  sramFadtMaxTh = 0;
+  sramFadtMinTh = 0;
+  sramFadtXonOffset = 0;
 #endif
   return SaiBufferProfileTraits::CreateAttributes{
       pool,
@@ -596,7 +639,11 @@ SaiBufferManager::ingressProfileCreateAttrs(
       xoffTh,
       xonTh,
       xonOffsetTh,
-      sharedFadtMaxTh};
+      sharedFadtMaxTh,
+      sharedFadtMinTh,
+      sramFadtMaxTh,
+      sramFadtMinTh,
+      sramFadtXonOffset};
 }
 
 std::shared_ptr<SaiBufferProfile> SaiBufferManager::getOrCreateIngressProfile(

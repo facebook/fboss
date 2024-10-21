@@ -69,6 +69,10 @@ class BufferApiTest : public ::testing::Test {
         xoffTh,
         xonTh,
         xonOffsetTh,
+        std::nullopt,
+        std::nullopt,
+        std::nullopt,
+        std::nullopt,
         std::nullopt};
     return bufferApi->create<SaiBufferProfileTraits>(c, 0);
   }

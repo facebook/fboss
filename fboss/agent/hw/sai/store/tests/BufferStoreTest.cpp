@@ -58,6 +58,10 @@ class BufferStoreTest : public SaiStoreTest {
         xoffTh,
         xonTh,
         xonOffsetTh,
+        std::nullopt,
+        std::nullopt,
+        std::nullopt,
+        std::nullopt,
         std::nullopt};
   }
   BufferProfileSaiId createBufferProfile(BufferPoolSaiId _pool) {
