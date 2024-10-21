@@ -74,6 +74,8 @@ typedef enum _sai_switch_extensions_attr_t {
   SAI_SWITCH_ATTR_VOQ_LATENCY_MAX_LEVEL_2,
   SAI_SWITCH_ATTR_REACHABILITY_GROUP_LIST,
   SAI_SWITCH_ATTR_FABRIC_LLFC_THRESHOLD,
+  SAI_SWITCH_ATTR_SRAM_FREE_PERCENT_XOFF_TH,
+  SAI_SWITCH_ATTR_SRAM_FREE_PERCENT_XON_TH,
 } sai_switch_extensions_attr_t;
 
 typedef enum _sai_tam_event_extensions_attr_t {

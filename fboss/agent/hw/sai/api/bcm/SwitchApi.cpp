@@ -72,6 +72,26 @@ SaiSwitchTraits::Attributes::AttributeSdkBootTimeWrapper::operator()() {
   return SAI_SWITCH_ATTR_CUSTOM_RANGE_START + 1;
 }
 
+std::optional<sai_attr_id_t> SaiSwitchTraits::Attributes::
+    AttributeSramFreePercentXoffThWrapper::operator()() {
+// TODO: Change to BRCM_SAI_SDK_DNX_GTE_11_0 once support is available in 12.0
+#if defined(SAI_VERSION_11_3_0_0_DNX_ODP)
+  return SAI_SWITCH_ATTR_SRAM_FREE_PERCENT_XOFF_TH;
+#else
+  return std::nullopt;
+#endif
+}
+
+std::optional<sai_attr_id_t> SaiSwitchTraits::Attributes::
+    AttributeSramFreePercentXonThWrapper::operator()() {
+// TODO: Change to BRCM_SAI_SDK_DNX_GTE_11_0 once support is available in 12.0
+#if defined(SAI_VERSION_11_3_0_0_DNX_ODP)
+  return SAI_SWITCH_ATTR_SRAM_FREE_PERCENT_XON_TH;
+#else
+  return std::nullopt;
+#endif
+}
+
 const std::vector<sai_stat_id_t>& SaiSwitchTraits::dramStats() {
 #if defined(BRCM_SAI_SDK_DNX)
   static const std::vector<sai_stat_id_t> stats{

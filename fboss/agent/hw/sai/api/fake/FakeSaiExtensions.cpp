@@ -312,6 +312,16 @@ std::optional<sai_attr_id_t> SaiSwitchTraits::Attributes::
   return SAI_SWITCH_ATTR_FABRIC_LLFC_THRESHOLD;
 }
 
+std::optional<sai_attr_id_t> SaiSwitchTraits::Attributes::
+    AttributeSramFreePercentXoffThWrapper::operator()() {
+  return SAI_SWITCH_ATTR_SRAM_FREE_PERCENT_XOFF_TH;
+}
+
+std::optional<sai_attr_id_t> SaiSwitchTraits::Attributes::
+    AttributeSramFreePercentXonThWrapper::operator()() {
+  return SAI_SWITCH_ATTR_SRAM_FREE_PERCENT_XON_TH;
+}
+
 std::optional<sai_attr_id_t>
 SaiPortSerdesTraits::Attributes::AttributeTxDiffEncoderEnWrapper::operator()() {
   return SAI_PORT_SERDES_ATTR_EXT_TX_DIFF_ENCODER_EN;

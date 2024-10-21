@@ -678,6 +678,8 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
       std::nullopt, // ReachabilityGroupList
       delayDropCongThreshold, // Delay Drop Cong Threshold
       fabricLLFC,
+      std::nullopt, // SRAM free percent XOFF threshold
+      std::nullopt, // SRAM free percent XON threshold
   };
 }
 
