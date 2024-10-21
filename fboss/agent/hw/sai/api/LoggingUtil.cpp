@@ -427,6 +427,8 @@ folly::StringPiece packetRxReasonToString(cfg::PacketRxReason rxReason) {
       return "samplepacket";
     case cfg::PacketRxReason::EAPOL:
       return "eapol";
+    case cfg::PacketRxReason::PORT_MTU_ERROR:
+      return "port-mtu-error";
     default:
       return "unknown-trap";
   }

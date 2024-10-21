@@ -1058,6 +1058,62 @@ TYPED_TEST(AgentCoppTest, L3MTUErrorToLowPriQ) {
   this->verifyAcrossWarmBoots(setup, verify);
 }
 
+template <typename TestType>
+class AgentCoppPortMtuTest : public AgentCoppTest<TestType> {
+ public:
+  std::vector<production_features::ProductionFeature>
+  getProductionFeaturesVerified() const override {
+    if constexpr (std::is_same_v<TestType, PortID>) {
+      return {
+          production_features::ProductionFeature::COPP,
+          production_features::ProductionFeature::PORT_MTU_ERROR_TRAP};
+    } else {
+      return {
+          production_features::ProductionFeature::COPP,
+          production_features::ProductionFeature::LAG,
+          production_features::ProductionFeature::PORT_MTU_ERROR_TRAP};
+    }
+  }
+};
+
+TYPED_TEST_SUITE(AgentCoppPortMtuTest, TestTypes);
+TYPED_TEST(AgentCoppPortMtuTest, PortMTUErrorToLowPriQ) {
+  auto setup = [=, this]() {
+    this->setup();
+    this->setupEcmp();
+  };
+  auto verify = [=, this]() {
+    // Make sure all packets packet with large payload (> MTU)
+    // are sent to cpu low priority queue.
+    // Port Max Frame size is set to 9412
+    // Ethernet header size is 14 bytes Ipv6 header size is 40, TCP header size
+    // is 20. Thus paload 9412 - 20 - 40 - 14 = 9338
+
+    // send packet with payload 9338, should not be trapped
+    this->sendTcpPktAndVerifyCpuQueue(
+        utility::kCoppLowPriQueueId,
+        kRandomIP,
+        utility::kNonSpecialPort1,
+        utility::kNonSpecialPort2,
+        std::nullopt,
+        0, /* traffic class*/
+        std::vector<uint8_t>(9338, 0xff),
+        false /* expectQueueHit */);
+
+    // send packet with payload 9339, should be trapped
+    this->sendTcpPktAndVerifyCpuQueue(
+        utility::kCoppLowPriQueueId,
+        kRandomIP,
+        utility::kNonSpecialPort1,
+        utility::kNonSpecialPort2,
+        std::nullopt,
+        0, /* traffic class*/
+        std::vector<uint8_t>(9339, 0xff),
+        true /* expectQueueHit */);
+  };
+  this->verifyAcrossWarmBoots(setup, verify);
+}
+
 TYPED_TEST(AgentCoppTest, ArpRequestAndReplyToHighPriQ) {
   auto setup = [=, this]() { this->setup(); };
   auto verify = [=, this]() {

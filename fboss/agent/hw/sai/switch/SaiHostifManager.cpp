@@ -21,6 +21,16 @@
 
 #include <chrono>
 
+extern "C" {
+#if defined(SAI_VERSION_11_3_0_0_DNX_ODP)
+#ifndef IS_OSS_BRCM_SAI
+#include <experimental/saihostifextensions.h>
+#else
+#include <saihostifextensions.h>
+#endif
+#endif
+}
+
 using namespace std::chrono;
 
 namespace facebook::fboss {
@@ -55,7 +65,7 @@ SaiHostifManager::~SaiHostifManager() {
   store.release();
 }
 
-std::pair<sai_hostif_trap_type_t, sai_packet_action_t>
+std::pair<sai_int32_t, sai_packet_action_t>
 SaiHostifManager::packetReasonToHostifTrap(
     cfg::PacketRxReason reason,
     const SaiPlatform* platform) {
@@ -129,6 +139,10 @@ SaiHostifManager::packetReasonToHostifTrap(
     case cfg::PacketRxReason::EAPOL:
       return std::make_pair(SAI_HOSTIF_TRAP_TYPE_EAPOL, SAI_PACKET_ACTION_TRAP);
     case cfg::PacketRxReason::PORT_MTU_ERROR:
+#if defined(SAI_VERSION_11_3_0_0_DNX_ODP)
+      return std::make_pair(
+          SAI_HOSTIF_TRAP_TYPE_PORT_MTU_ERROR, SAI_PACKET_ACTION_TRAP);
+#endif
     case cfg::PacketRxReason::MPLS_UNKNOWN_LABEL:
     case cfg::PacketRxReason::BPDU:
     case cfg::PacketRxReason::L3_SLOW_PATH:
@@ -145,7 +159,7 @@ SaiHostifManager::makeHostifTrapAttributes(
     HostifTrapGroupSaiId trapGroupId,
     uint16_t priority,
     const SaiPlatform* platform) {
-  sai_hostif_trap_type_t hostifTrapId;
+  sai_int32_t hostifTrapId;
   sai_packet_action_t hostifPacketAction;
   std::tie(hostifTrapId, hostifPacketAction) =
       packetReasonToHostifTrap(trapId, platform);

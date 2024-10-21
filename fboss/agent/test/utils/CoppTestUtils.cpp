@@ -1085,11 +1085,13 @@ std::vector<cfg::PacketRxReasonToQueue> getCoppRxReasonToQueuesForSai(
         cfg::PacketRxReason::SAMPLEPACKET, kCoppLowPriQueueId));
   }
 
-  // TODO: remove once CS00012311423 is fixed. Gate setting the L3 mtu error
-  // trap on J2/J3 more specifically.
   if (hwAsic->isSupported(HwAsic::Feature::L3_MTU_ERROR_TRAP)) {
     rxReasonToQueues.push_back(ControlPlane::makeRxReasonToQueueEntry(
         cfg::PacketRxReason::L3_MTU_ERROR, kCoppLowPriQueueId));
+  }
+  if (hwAsic->isSupported(HwAsic::Feature::PORT_MTU_ERROR_TRAP)) {
+    rxReasonToQueues.push_back(ControlPlane::makeRxReasonToQueueEntry(
+        cfg::PacketRxReason::PORT_MTU_ERROR, kCoppLowPriQueueId));
   }
 
   return rxReasonToQueues;
