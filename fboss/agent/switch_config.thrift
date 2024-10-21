@@ -1720,12 +1720,16 @@ struct PortPgConfig {
   7: string bufferPoolName;
 }
 
-// Sdk version information that will be parsed by the wrapper script
-// -> asicSdk would be the native SDK for a binary
-// -> saiSdk would be the SDK required for a Sai device, if the Native SDK does not provide support
+// asicSdk: Native SDK version. may or may not support SAI
+// saiSdk: Set to SAI SDK version on SAI device if asicSdk does not support SAI
+// firmware: Set to firmware version if a device uses firmware
+//
+// asicSdk and saiSdk are consumed by the wrapper script.
+// firmware version will be consumed by Agent.
 struct SdkVersion {
   1: optional string asicSdk;
   2: optional string saiSdk;
+  3: optional string firmware;
 }
 
 enum IpTunnelMode {
