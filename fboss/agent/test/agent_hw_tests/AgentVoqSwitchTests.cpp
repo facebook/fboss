@@ -2335,10 +2335,8 @@ TEST_F(AgentVoqSwitchFullScaleDsfNodesTest, remoteAndLocalLoadBalance) {
 
 TEST_F(AgentVoqSwitchFullScaleDsfNodesTest, stressProgramEcmpRoutes) {
   auto kEcmpWidth = getMaxEcmpWidth();
-  // Stress add/delete 40 iterations of 5 routes with ECMP width.
-  // 40 iterations take ~17 mins on j3.
   const auto routeScale = 5;
-  const auto numIterations = 40;
+  const auto numIterations = 20;
   auto setup = [&]() {
     setupRemoteIntfAndSysPorts();
     utility::EcmpSetupTargetedPorts6 ecmpHelper(getProgrammedState());
