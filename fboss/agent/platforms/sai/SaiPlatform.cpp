@@ -712,7 +712,7 @@ const std::set<sai_api_t>& SaiPlatform::getDefaultSwitchAsicSupportedApis()
   static auto apis = SaiApiTable::getInstance()->getFullApiList();
   // Macsec is not currently supported in the broadcom sai sdk
   apis.erase(facebook::fboss::MacsecApi::ApiType);
-  // TODO_NV: What is the condition here to erase not supported APIs?
+#if defined(CHENAB_SDK)
   apis.erase(facebook::fboss::MplsApi::ApiType);
   apis.erase(facebook::fboss::VirtualRouterApi::ApiType);
   apis.erase(facebook::fboss::TamApi::ApiType);
@@ -720,6 +720,7 @@ const std::set<sai_api_t>& SaiPlatform::getDefaultSwitchAsicSupportedApis()
 #if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
   apis.erase(facebook::fboss::ArsApi::ApiType);
   apis.erase(facebook::fboss::ArsProfileApi::ApiType);
+#endif
 #endif
   return apis;
 }
