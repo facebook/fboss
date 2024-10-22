@@ -22,6 +22,10 @@ class LedTests : public ::testing::Test {
     CHECK(yellowFd_);
 
     const std::string content = "1";
+    folly::writeFile(content, blueMaxBrightness_.c_str());
+    folly::writeFile(content, yellowMaxBrightness_.c_str());
+    // We turn the LEDs on. Expect that during initialization (after
+    // LedIO constructor is called) that the LEDs are turned off.
     folly::writeFile(content, bluePath_.c_str());
     folly::writeFile(content, yellowPath_.c_str());
   }
@@ -73,6 +77,8 @@ class LedTests : public ::testing::Test {
   std::string yellowBasePath_ = tmpDir_.path().string() + "/invalidYellowLed";
   std::string bluePath_ = blueBasePath_ + "/brightness";
   std::string yellowPath_ = yellowBasePath_ + "/brightness";
+  std::string blueMaxBrightness_ = blueBasePath_ + "/max_brightness";
+  std::string yellowMaxBrightness_ = yellowBasePath_ + "/max_brightness";
   int blueFd_;
   int yellowFd_;
   std::unique_ptr<LedIO> led_;

@@ -46,10 +46,16 @@ class LedIO {
   void setLed(const std::string& ledPath, const std::string& ledOp);
   void setBlink(const std::string& ledPath, led::Blink blink);
 
+  // Max brightness for the LED is determined by /max_brightness
+  // per LED.
+  void initMaxBrightness(const std::string& path, std::string& maxBrightness);
+
   led::LedState currState_;
   const uint32_t id_;
   std::string bluePath_;
+  std::string blueMaxBrightness_;
   std::string yellowPath_;
+  std::string yellowMaxBrightness_;
 };
 
 } // namespace facebook::fboss

@@ -16,8 +16,8 @@
 #include "fboss/lib/led/gen-cpp2/led_mapping_types.h"
 
 namespace {
-constexpr auto kLedOn = "1";
 constexpr auto kLedOff = "0";
+constexpr auto kLedMaxBrightnessPath = "/max_brightness";
 constexpr auto kLedBrightnessPath = "/brightness";
 constexpr auto kLedTriggerPath = "/trigger";
 constexpr auto kLedDelayOnPath = "/delay_on";
@@ -26,6 +26,8 @@ constexpr auto kLedTimerTrigger = "timer";
 constexpr auto kLedBlinkOff = "0";
 constexpr auto kLedBlinkSlow = "1000";
 constexpr auto kLedBlinkFast = "500";
+constexpr auto kMinBrightness = 1;
+constexpr auto kMaxBrightness = 255;
 } // namespace
 
 namespace facebook::fboss {
@@ -38,7 +40,31 @@ LedIO::LedIO(LedMapping ledMapping) : id_(*ledMapping.id()) {
   }
   bluePath_ = ledMapping.bluePath().value();
   yellowPath_ = ledMapping.yellowPath().value();
+  initMaxBrightness(bluePath_, blueMaxBrightness_);
+  initMaxBrightness(yellowPath_, yellowMaxBrightness_);
   init();
+}
+
+void LedIO::initMaxBrightness(
+    const std::string& path,
+    std::string& maxBrightness) {
+  std::fstream fs;
+  auto maxBrightnessPath = path + kLedMaxBrightnessPath;
+  fs.open(maxBrightnessPath, std::fstream::in);
+  if (fs.is_open()) {
+    fs >> maxBrightness;
+    fs.close();
+  } else {
+    throw LedIOError(fmt::format(
+        "initMaxBrightness() failed to open {} for ID {:d} (0 base)",
+        maxBrightnessPath,
+        id_));
+  }
+  auto value = folly::to<int>(maxBrightness);
+  CHECK((value >= kMinBrightness) && (value <= kMaxBrightness)) << fmt::format(
+      "Value of brightness is not in range {} {}",
+      kMinBrightness,
+      kMaxBrightness);
 }
 
 void LedIO::setLedState(led::LedState ledState) {
@@ -80,7 +106,7 @@ void LedIO::init() {
 
 void LedIO::blueOn(led::Blink blink) {
   setBlink(bluePath_, blink);
-  setLed(bluePath_, kLedOn);
+  setLed(bluePath_, blueMaxBrightness_);
   XLOG(INFO) << fmt::format(
       "Trace: set LED {:d} (0 base) to Blue and blink {:s}",
       id_,
@@ -94,7 +120,7 @@ void LedIO::blueOff() {
 
 void LedIO::yellowOn(led::Blink blink) {
   setBlink(yellowPath_, blink);
-  setLed(yellowPath_, kLedOn);
+  setLed(yellowPath_, yellowMaxBrightness_);
   XLOG(INFO) << fmt::format(
       "Trace: set LED {:d} (0 base) to Yellow and blink {:s}",
       id_,
