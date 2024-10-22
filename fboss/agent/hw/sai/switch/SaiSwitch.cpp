@@ -2353,8 +2353,8 @@ std::shared_ptr<SwitchState> SaiSwitch::getColdBootSwitchState() {
       scopeResolver->switchIdToSwitchInfo());
   multiSwitchSwitchSettings->addNode(matcher.matcherString(), switchSettings);
 
-  if (platform_->getAsic()->isSupported(
-          HwAsic::Feature::LINK_INACTIVE_BASED_ISOLATE)) {
+  if (getSwitchType() == cfg::SwitchType::VOQ ||
+      getSwitchType() == cfg::SwitchType::FABRIC) {
     CHECK(getSwitchId().has_value());
     // In practice, this will read and populate the value set during switch
     // create viz. DRAINED
