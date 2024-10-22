@@ -1199,7 +1199,29 @@ void SaiSwitch::processSwitchSettingsDrainStateChangeLocked(
     const std::lock_guard<std::mutex>& lock,
     cfg::SwitchDrainState drainStateToProcess,
     const StateDelta& delta) {
-  // TODO
+  const auto switchSettingDelta = delta.getSwitchSettingsDelta();
+  DeltaFunctions::forEachAdded(
+      switchSettingDelta, [&](const auto& newSwitchSettings) {
+        processSwitchSettingsChangeDrainedEntryLocked(
+            lock,
+            drainStateToProcess,
+            std::make_shared<SwitchSettings>(),
+            newSwitchSettings);
+      });
+  DeltaFunctions::forEachChanged(
+      switchSettingDelta,
+      [&](const auto& oldSwitchSettings, const auto& newSwitchSettings) {
+        processSwitchSettingsChangeDrainedEntryLocked(
+            lock, drainStateToProcess, oldSwitchSettings, newSwitchSettings);
+      });
+  DeltaFunctions::forEachRemoved(
+      switchSettingDelta, [&](const auto& oldSwitchSettings) {
+        processSwitchSettingsChangeDrainedEntryLocked(
+            lock,
+            drainStateToProcess,
+            oldSwitchSettings,
+            std::make_shared<SwitchSettings>());
+      });
 }
 
 void SaiSwitch::processSwitchSettingsChangeDrainedEntryLocked(
@@ -1207,7 +1229,14 @@ void SaiSwitch::processSwitchSettingsChangeDrainedEntryLocked(
     cfg::SwitchDrainState drainStateToProcess,
     const std::shared_ptr<SwitchSettings>& oldSwitchSettings,
     const std::shared_ptr<SwitchSettings>& newSwitchSettings) {
-  // TODO
+  const auto oldVal = oldSwitchSettings->isSwitchDrained();
+  const auto newVal = newSwitchSettings->isSwitchDrained();
+  cfg::SwitchDrainState newDrainState = newVal
+      ? cfg::SwitchDrainState::DRAINED
+      : cfg::SwitchDrainState::UNDRAINED;
+  if (oldVal != newVal && newDrainState == drainStateToProcess) {
+    managerTable_->switchManager().setSwitchIsolate(newVal);
+  }
 }
 
 void SaiSwitch::processSwitchSettingsChangeSansDrainedLocked(
