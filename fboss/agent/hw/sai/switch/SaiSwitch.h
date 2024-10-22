@@ -395,11 +395,11 @@ class SaiSwitch : public HwSwitch {
   uint64_t getDeviceWatermarkBytesLocked(
       const std::lock_guard<std::mutex>& lock) const;
 
-  void processSwitchSettingsChangedLocked(
+  void processSwitchSettingsChangeSansDrainedLocked(
       const std::lock_guard<std::mutex>& lock,
       const StateDelta& delta);
 
-  void processSwitchSettingsChangedEntryLocked(
+  void processSwitchSettingsChangeSansDrainedEntryLocked(
       const std::lock_guard<std::mutex>& lock,
       const std::shared_ptr<SwitchSettings>& oldSwitchSettings,
       const std::shared_ptr<SwitchSettings>& newSwitchSettings);
@@ -489,7 +489,7 @@ class SaiSwitch : public HwSwitch {
       Args... args);
 
   template <typename LockPolicyT>
-  void processSwitchSettingsChanged(
+  void processSwitchSettingsChangeSansDrained(
       const StateDelta& delta,
       const LockPolicyT& lockPolicy);
 

@@ -613,7 +613,7 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChangedImplLocked(
   checkUnsupportedDelta(
       delta.getTeFlowEntriesDelta(), managerTable_->teFlowEntryManager());
   // update switch settings first
-  processSwitchSettingsChanged(delta, lockPolicy);
+  processSwitchSettingsChangeSansDrained(delta, lockPolicy);
   processLocalCapsuleSwitchIdsDelta(delta, lockPolicy);
 
   // process non-default qos policies, which are stored in
@@ -1195,29 +1195,29 @@ void SaiSwitch::updateResourceUsage(const LockPolicyT& lockPolicy) {
   }
 }
 
-void SaiSwitch::processSwitchSettingsChangedLocked(
+void SaiSwitch::processSwitchSettingsChangeSansDrainedLocked(
     const std::lock_guard<std::mutex>& lock,
     const StateDelta& delta) {
   const auto switchSettingDelta = delta.getSwitchSettingsDelta();
   DeltaFunctions::forEachAdded(
       switchSettingDelta, [&](const auto& newSwitchSettings) {
-        processSwitchSettingsChangedEntryLocked(
+        processSwitchSettingsChangeSansDrainedEntryLocked(
             lock, std::make_shared<SwitchSettings>(), newSwitchSettings);
       });
   DeltaFunctions::forEachChanged(
       switchSettingDelta,
       [&](const auto& oldSwitchSettings, const auto& newSwitchSettings) {
-        processSwitchSettingsChangedEntryLocked(
+        processSwitchSettingsChangeSansDrainedEntryLocked(
             lock, oldSwitchSettings, newSwitchSettings);
       });
   DeltaFunctions::forEachRemoved(
       switchSettingDelta, [&](const auto& oldSwitchSettings) {
-        processSwitchSettingsChangedEntryLocked(
+        processSwitchSettingsChangeSansDrainedEntryLocked(
             lock, oldSwitchSettings, std::make_shared<SwitchSettings>());
       });
 }
 
-void SaiSwitch::processSwitchSettingsChangedEntryLocked(
+void SaiSwitch::processSwitchSettingsChangeSansDrainedEntryLocked(
     const std::lock_guard<std::mutex>& /*lock*/,
     const std::shared_ptr<SwitchSettings>& oldSwitchSettings,
     const std::shared_ptr<SwitchSettings>& newSwitchSettings) {
@@ -1262,14 +1262,6 @@ void SaiSwitch::processSwitchSettingsChangedEntryLocked(
   }
 
   {
-    const auto oldVal = oldSwitchSettings->isSwitchDrained();
-    const auto newVal = newSwitchSettings->isSwitchDrained();
-    if (oldVal != newVal) {
-      managerTable_->switchManager().setSwitchIsolate(newVal);
-    }
-  }
-
-  {
     const auto oldVal = oldSwitchSettings->getForceTrafficOverFabric();
     const auto newVal = newSwitchSettings->getForceTrafficOverFabric();
     if (oldVal != newVal) {
@@ -1298,7 +1290,7 @@ void SaiSwitch::processSwitchSettingsChangedEntryLocked(
 }
 
 template <typename LockPolicyT>
-void SaiSwitch::processSwitchSettingsChanged(
+void SaiSwitch::processSwitchSettingsChangeSansDrained(
     const StateDelta& delta,
     const LockPolicyT& lockPolicy) {
   const auto switchSettingsDelta = delta.getSwitchSettingsDelta();
@@ -1313,7 +1305,7 @@ void SaiSwitch::processSwitchSettingsChanged(
   CHECK(newSwitchSettings);
 
   if (oldSwitchSettings != newSwitchSettings) {
-    processSwitchSettingsChangedLocked(lockPolicy.lock(), delta);
+    processSwitchSettingsChangeSansDrainedLocked(lockPolicy.lock(), delta);
   }
 }
 
