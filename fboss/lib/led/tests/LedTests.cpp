@@ -11,77 +11,26 @@
 namespace facebook::fboss {
 
 class LedTests : public ::testing::Test {
- public:
-  void testInvalidLedPath() {
-    LedMapping ledMapping;
-    ledMapping.id() = 0;
-    EXPECT_THROW(
-        std::unique_ptr<LedIO> led = std::make_unique<LedIO>(ledMapping),
-        LedIOError);
-  }
-
-  void testFakeLed() {
+ protected:
+  void SetUp() override {
     mkdir(blueBasePath_.c_str(), 0777);
     blueFd_ = open(bluePath_.c_str(), O_RDWR | O_CREAT, 0777);
-    EXPECT_GE(blueFd_, 0);
+    CHECK(blueFd_);
 
     mkdir(yellowBasePath_.c_str(), 0777);
     yellowFd_ = open(yellowPath_.c_str(), O_RDWR | O_CREAT, 0777);
-    EXPECT_GE(yellowFd_, 0);
+    CHECK(yellowFd_);
 
-    LedMapping ledMapping;
-    ledMapping.id() = 0;
-    ledMapping.bluePath() = blueBasePath_;
-    ledMapping.yellowPath() = yellowBasePath_;
-    // Instantiating Led object will write 0 to both blue and yellow LED
-    // files and set current color to Off
-    led_ = std::make_unique<LedIO>(ledMapping);
-
-    VerifyLedOff();
-
-    // Since current color is Off, setting it to Off again will be noop
-    led_->setLedState(
-        utility::constructLedState(led::LedColor::OFF, led::Blink::OFF));
-    VerifyLedOff();
-
-    // Change current color from Off to Blue
-    led_->setLedState(
-        utility::constructLedState(led::LedColor::BLUE, led::Blink::OFF));
-    VerifyBlueOn();
-
-    // Since current color is Blue, setting it to Blue again will be noop
-    led_->setLedState(
-        utility::constructLedState(led::LedColor::BLUE, led::Blink::OFF));
-    VerifyBlueOn();
-
-    // Change current color from Blue to Off
-    led_->setLedState(
-        utility::constructLedState(led::LedColor::OFF, led::Blink::OFF));
-    VerifyLedOff();
-
-    // Change current color from Off to Yellow
-    led_->setLedState(
-        utility::constructLedState(led::LedColor::YELLOW, led::Blink::OFF));
-    VerifyYellowOn();
-
-    // Since current color is Yellow, setting it to Yellow again will be noop
-    led_->setLedState(
-        utility::constructLedState(led::LedColor::YELLOW, led::Blink::OFF));
-    VerifyYellowOn();
-
-    close(blueFd_);
-    close(yellowFd_);
-  }
-
- protected:
-  void SetUp() override {
-    // Write 1 to both blue and yellow LED files initially
     const std::string content = "1";
     folly::writeFile(content, bluePath_.c_str());
     folly::writeFile(content, yellowPath_.c_str());
   }
 
- private:
+  void TearDown() override {
+    close(blueFd_);
+    close(yellowFd_);
+  }
+
   char ReadLedFile(int fd) {
     constexpr auto len = 1;
     char readBuf;
@@ -130,11 +79,54 @@ class LedTests : public ::testing::Test {
 };
 
 TEST_F(LedTests, TestInvalidLedPath) {
-  testInvalidLedPath();
+  LedMapping ledMapping;
+  ledMapping.id() = 0;
+  EXPECT_THROW(
+      std::unique_ptr<LedIO> led = std::make_unique<LedIO>(ledMapping),
+      LedIOError);
 }
 
 TEST_F(LedTests, testFakeLed) {
-  testFakeLed();
+  LedMapping ledMapping;
+  ledMapping.id() = 0;
+  ledMapping.bluePath() = blueBasePath_;
+  ledMapping.yellowPath() = yellowBasePath_;
+  // Instantiating Led object will write 0 to both blue and yellow LED
+  // files and set current color to Off
+  led_ = std::make_unique<LedIO>(ledMapping);
+
+  // Expect LEDs to be off after initialization
+  VerifyLedOff();
+
+  // Since current color is Off, setting it to Off again will be noop
+  led_->setLedState(
+      utility::constructLedState(led::LedColor::OFF, led::Blink::OFF));
+  VerifyLedOff();
+
+  // Change current color from Off to Blue
+  led_->setLedState(
+      utility::constructLedState(led::LedColor::BLUE, led::Blink::OFF));
+  VerifyBlueOn();
+
+  // Since current color is Blue, setting it to Blue again will be noop
+  led_->setLedState(
+      utility::constructLedState(led::LedColor::BLUE, led::Blink::OFF));
+  VerifyBlueOn();
+
+  // Change current color from Blue to Off
+  led_->setLedState(
+      utility::constructLedState(led::LedColor::OFF, led::Blink::OFF));
+  VerifyLedOff();
+
+  // Change current color from Off to Yellow
+  led_->setLedState(
+      utility::constructLedState(led::LedColor::YELLOW, led::Blink::OFF));
+  VerifyYellowOn();
+
+  // Since current color is Yellow, setting it to Yellow again will be noop
+  led_->setLedState(
+      utility::constructLedState(led::LedColor::YELLOW, led::Blink::OFF));
+  VerifyYellowOn();
 }
 
 } // namespace facebook::fboss
