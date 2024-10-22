@@ -222,6 +222,8 @@ std::string errorType(sai_switch_error_type_t type) {
       return "SAI_SWITCH_ERROR_TYPE_RQP_PACKET_REASSEMBLY_RCM_ALL_CONTEXTS_TAKEN_DISCARD_ERR";
     case SAI_SWITCH_ERROR_TYPE_RTP_TABLE_CHANGE:
       return "SAI_SWITCH_ERROR_TYPE_RTP_TABLE_CHANGE";
+    case SAI_SWITCH_ERROR_TYPE_FABRIC_AUTO_ISOLATION:
+      return "SAI_SWITCH_ERROR_TYPE_FABRIC_AUTO_ISOLATION";
 #endif
     default:
       break;

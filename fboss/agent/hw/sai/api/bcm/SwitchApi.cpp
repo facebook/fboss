@@ -172,13 +172,14 @@ void SwitchApi::registerSwitchEventCallback(
 
     // Register switch events
 #if defined BRCM_SAI_SDK_GTE_11_0
-    std::array<uint32_t, 6> events = {
+    std::array<uint32_t, 7> events = {
         SAI_SWITCH_EVENT_TYPE_PARITY_ERROR,
         SAI_SWITCH_EVENT_TYPE_STABLE_FULL,
         SAI_SWITCH_EVENT_TYPE_STABLE_ERROR,
         SAI_SWITCH_EVENT_TYPE_UNCONTROLLED_SHUTDOWN,
         SAI_SWITCH_EVENT_TYPE_WARM_BOOT_DOWNGRADE,
-        SAI_SWITCH_EVENT_TYPE_INTERRUPT};
+        SAI_SWITCH_EVENT_TYPE_INTERRUPT,
+        SAI_SWITCH_EVENT_TYPE_FABRIC_AUTO_ISOLATE};
 #else
     std::array<uint32_t, 5> events = {
         SAI_SWITCH_EVENT_TYPE_PARITY_ERROR,
