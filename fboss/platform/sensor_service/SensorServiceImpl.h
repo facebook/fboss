@@ -34,7 +34,7 @@ class SensorServiceImpl {
   auto static constexpr kTotalReadFailure = "sensor_read.total.failures";
   auto static constexpr kHasReadFailure = "sensor_read.has.failures";
 
-  explicit SensorServiceImpl();
+  explicit SensorServiceImpl(const SensorConfig& sensorConfig);
   ~SensorServiceImpl();
 
   std::vector<SensorData> getSensorsData(

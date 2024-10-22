@@ -14,8 +14,8 @@
 #include <thrift/lib/cpp2/protocol/Serializer.h>
 #include <thrift/lib/cpp2/util/ScopedServerInterfaceThread.h>
 
-#include "fboss/platform/config_lib/ConfigLib.h"
 #include "fboss/platform/helpers/Init.h"
+#include "fboss/platform/sensor_service/Utils.h"
 
 using namespace apache::thrift;
 
@@ -24,12 +24,10 @@ namespace facebook::fboss::platform::sensor_service {
 SensorServiceHwTest::~SensorServiceHwTest() = default;
 
 void SensorServiceHwTest::SetUp() {
-  sensorServiceImpl_ = std::make_shared<SensorServiceImpl>();
+  sensorConfig_ = Utils().getConfig();
+  sensorServiceImpl_ = std::make_shared<SensorServiceImpl>(sensorConfig_);
   sensorServiceHandler_ =
       std::make_shared<SensorServiceThriftHandler>(sensorServiceImpl_);
-  auto sensorServiceConfigJson = ConfigLib().getSensorServiceConfig();
-  apache::thrift::SimpleJSONSerializer::deserialize<SensorConfig>(
-      sensorServiceConfigJson, sensorConfig_);
 }
 
 SensorReadResponse SensorServiceHwTest::getSensors(
