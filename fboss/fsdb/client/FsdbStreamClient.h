@@ -147,6 +147,18 @@ class FsdbStreamClient : public ReconnectingThriftClient {
       case fsdb::FsdbErrorCode::SUBSCRIPTION_DATA_CALLBACK_ERROR:
         disconnectReasonDataCbError_.add(1);
         break;
+      case fsdb::FsdbErrorCode::CLIENT_TRANSPORT_EXCEPTION:
+        disconnectReasonTransportError_.add(1);
+        break;
+      case fsdb::FsdbErrorCode::ID_ALREADY_EXISTS:
+        disconnectReasonIdExists_.add(1);
+        break;
+      case fsdb::FsdbErrorCode::EMPTY_PUBLISHER_ID:
+      case fsdb::FsdbErrorCode::UNKNOWN_PUBLISHER:
+      case fsdb::FsdbErrorCode::EMPTY_SUBSCRIBER_ID:
+      case fsdb::FsdbErrorCode::INVALID_PATH:
+        disconnectReasonBadArgs_.add(1);
+        break;
       default:
         break;
     };
@@ -163,6 +175,18 @@ class FsdbStreamClient : public ReconnectingThriftClient {
       fb303::RATE};
   fb303::TimeseriesWrapper disconnectReasonDataCbError_{
       getCounterPrefix() + ".disconnectReason.dataCbError",
+      fb303::SUM,
+      fb303::RATE};
+  fb303::TimeseriesWrapper disconnectReasonTransportError_{
+      getCounterPrefix() + ".disconnectReason.transportError",
+      fb303::SUM,
+      fb303::RATE};
+  fb303::TimeseriesWrapper disconnectReasonIdExists_{
+      getCounterPrefix() + ".disconnectReason.dupId",
+      fb303::SUM,
+      fb303::RATE};
+  fb303::TimeseriesWrapper disconnectReasonBadArgs_{
+      getCounterPrefix() + ".disconnectReason.badArgs",
       fb303::SUM,
       fb303::RATE};
 };
