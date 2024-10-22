@@ -441,6 +441,14 @@ void SaiSwitch::switchEventCallback(
         getSwitchStats()->switchReachabilityChangeCount();
       }
     } break;
+    case SAI_SWITCH_EVENT_TYPE_FABRIC_AUTO_ISOLATE: {
+      // TODO(skhare) Process the callback
+      XLOG(ERR) << "Firmware Isolate callback received"
+                << " error type: " << errorType(eventInfo->error_type)
+                << " is_isolated: " << static_cast<int>(eventInfo->index)
+                << " nof_active_links: " << static_cast<int>(eventInfo->index2);
+      break;
+    }
 #endif
   }
 }
