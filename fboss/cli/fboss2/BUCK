@@ -275,6 +275,7 @@ cpp_library(
         "commands/show/facebook/environment/power/CmdShowEnvironmentPower.cpp",
         "commands/show/facebook/environment/sensor/CmdShowEnvironmentSensor.cpp",
         "commands/show/facebook/fsdb/CmdShowFsdbUtils.cpp",
+        "commands/show/facebook/techsupport/CmdShowTechSupport.cpp",
         "commands/show/route/utils.cpp",
         "facebook/CmdHandlerImpl.cpp",
         "facebook/CmdList.cpp",
