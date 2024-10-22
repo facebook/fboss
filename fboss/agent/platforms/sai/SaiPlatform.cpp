@@ -454,7 +454,7 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
     bool mandatoryOnly,
     cfg::SwitchType swType,
     std::optional<int64_t> swId,
-    BootType /*bootType*/) {
+    BootType bootType) {
   SaiSwitchTraits::Attributes::InitSwitch initSwitch(true);
 
   std::optional<SaiSwitchTraits::Attributes::HwInfo> hwInfo = getHwInfo(this);
@@ -614,6 +614,11 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
     fabricLLFC = std::vector<uint32_t>({kRamon3LlfcThreshold});
   }
 #endif
+  if (swType == cfg::SwitchType::FABRIC && bootType == BootType::COLD_BOOT) {
+    // FABRIC switches should always start in isolated state until we configure
+    // the switch
+    switchIsolate = true;
+  }
 
   return {
       initSwitch,
