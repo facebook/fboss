@@ -404,6 +404,17 @@ class SaiSwitch : public HwSwitch {
       const std::shared_ptr<SwitchSettings>& oldSwitchSettings,
       const std::shared_ptr<SwitchSettings>& newSwitchSettings);
 
+  void processSwitchSettingsDrainStateChangeLocked(
+      const std::lock_guard<std::mutex>& lock,
+      cfg::SwitchDrainState drainStateToProcess,
+      const StateDelta& delta);
+
+  void processSwitchSettingsChangeDrainedEntryLocked(
+      const std::lock_guard<std::mutex>& lock,
+      cfg::SwitchDrainState drainStateToProcess,
+      const std::shared_ptr<SwitchSettings>& oldSwitchSettings,
+      const std::shared_ptr<SwitchSettings>& newSwitchSettings);
+
   void syncLinkStatesLocked(const std::lock_guard<std::mutex>& lock);
   void syncLinkConnectivityLocked(const std::lock_guard<std::mutex>& lock);
 

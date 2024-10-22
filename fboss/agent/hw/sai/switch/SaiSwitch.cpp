@@ -1195,6 +1195,21 @@ void SaiSwitch::updateResourceUsage(const LockPolicyT& lockPolicy) {
   }
 }
 
+void SaiSwitch::processSwitchSettingsDrainStateChangeLocked(
+    const std::lock_guard<std::mutex>& lock,
+    cfg::SwitchDrainState drainStateToProcess,
+    const StateDelta& delta) {
+  // TODO
+}
+
+void SaiSwitch::processSwitchSettingsChangeDrainedEntryLocked(
+    const std::lock_guard<std::mutex>& lock,
+    cfg::SwitchDrainState drainStateToProcess,
+    const std::shared_ptr<SwitchSettings>& oldSwitchSettings,
+    const std::shared_ptr<SwitchSettings>& newSwitchSettings) {
+  // TODO
+}
+
 void SaiSwitch::processSwitchSettingsChangeSansDrainedLocked(
     const std::lock_guard<std::mutex>& lock,
     const StateDelta& delta) {
