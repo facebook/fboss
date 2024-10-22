@@ -1,0 +1,162 @@
+{
+  "defaultCommandLineArgs": {
+    "check_wb_handles": "true",
+    "counter_refresh_interval": "0",
+    "intf_nbr_tables": "true",
+    "log_variable_name": "true",
+    "mode": "yangra",
+    "skip_transceiver_programming": "true"
+  },
+  "sw": {
+    "version": 0,
+    "ports": [
+      
+    ],
+    "vlans": [
+      
+    ],
+    "vlanPorts": [
+      
+    ],
+    "defaultVlan": 0,
+    "interfaces": [
+      {
+        "intfID": 101,
+        "routerID": 0,
+        "vlanID": 0,
+        "ipAddresses": [
+          
+        ],
+        "mtu": 9000,
+        "isVirtual": false,
+        "isStateSyncDisabled": true,
+        "type": 2,
+        "scope": 0
+      }
+    ],
+    "arpTimeoutSeconds": 60,
+    "arpRefreshSeconds": 20,
+    "arpAgerInterval": 5,
+    "proactiveArp": false,
+    "staticRoutesWithNhops": [
+      
+    ],
+    "staticRoutesToNull": [
+      
+    ],
+    "staticRoutesToCPU": [
+      
+    ],
+    "acls": [
+      
+    ],
+    "maxNeighborProbes": 300,
+    "staleEntryInterval": 10,
+    "aggregatePorts": [
+      
+    ],
+    "clientIdToAdminDistance": {
+      "0": 20,
+      "1": 1,
+      "2": 0,
+      "3": 0,
+      "700": 255,
+      "786": 10
+    },
+    "sFlowCollectors": [
+      
+    ],
+    "cpuQueues": [
+      
+    ],
+    "loadBalancers": [
+      
+    ],
+    "mirrors": [
+      
+    ],
+    "trafficCounters": [
+      
+    ],
+    "qosPolicies": [
+      
+    ],
+    "defaultPortQueues": [
+      
+    ],
+    "staticMplsRoutesWithNhops": [
+      
+    ],
+    "staticMplsRoutesToNull": [
+      
+    ],
+    "staticMplsRoutesToCPU": [
+      
+    ],
+    "staticIp2MplsRoutes": [
+      
+    ],
+    "portQueueConfigs": {
+      
+    },
+    "switchSettings": {
+      "l2LearningMode": 0,
+      "qcmEnable": false,
+      "ptpTcEnable": false,
+      "l2AgeTimerSeconds": 300,
+      "maxRouteCounterIDs": 0,
+      "blockNeighbors": [
+        
+      ],
+      "macAddrsToBlock": [
+        
+      ],
+      "switchType": 0,
+      "switchId": 0,
+      "exactMatchTableConfigs": [
+        
+      ],
+      "switchIdToSwitchType": {
+        
+      },
+      "switchDrainState": 0,
+      "switchIdToSwitchInfo": {
+        "0": {
+            "switchType": 0,
+            "asicType": 17,
+            "switchIndex": 0,
+            "portIdRange": {
+              "minimum": 0,
+              "maximum": 2047
+            },
+            "systemPortRange": {
+              "minimum": 100,
+              "maximum": 120
+            },
+            "switchMac": "02:00:00:00:00:01",
+            "connectionHandle": "68:00"
+        }
+      },
+      "vendorMacOuis": [
+        
+      ],
+      "metaMacOuis": [
+        
+      ],
+      "needL2EntryForNeighbor": true
+    },
+    "dsfNodes": {
+    },
+    "defaultVoqConfig": [
+      
+    ]
+  },
+  "platform": {
+    "chip": {
+      "bcm": {
+        "config": {
+        }
+      }
+    }
+  }
+}

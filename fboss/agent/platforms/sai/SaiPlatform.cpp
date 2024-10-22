@@ -37,6 +37,7 @@
 #include "fboss/agent/platforms/sai/SaiMorgan800ccPlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiTahan800bcPlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiWedge400CPlatformPort.h"
+#include "fboss/agent/platforms/sai/SaiYangraPlatformPort.h"
 #include "fboss/agent/state/Port.h"
 #include "fboss/lib/CommonFileUtils.h"
 #include "fboss/lib/config/PlatformConfigUtils.h"
@@ -380,6 +381,8 @@ void SaiPlatform::initPorts() {
       saiPort = std::make_unique<SaiJanga800bicPlatformPort>(portId, this);
     } else if (platformMode == PlatformType::PLATFORM_TAHAN800BC) {
       saiPort = std::make_unique<SaiTahan800bcPlatformPort>(portId, this);
+    } else if (platformMode == PlatformType::PLATFORM_YANGRA) {
+      saiPort = std::make_unique<SaiYangraPlatformPort>(portId, this);
     } else {
       saiPort = std::make_unique<SaiFakePlatformPort>(portId, this);
     }
@@ -709,6 +712,15 @@ const std::set<sai_api_t>& SaiPlatform::getDefaultSwitchAsicSupportedApis()
   static auto apis = SaiApiTable::getInstance()->getFullApiList();
   // Macsec is not currently supported in the broadcom sai sdk
   apis.erase(facebook::fboss::MacsecApi::ApiType);
+  // TODO_NV: What is the condition here to erase not supported APIs?
+  apis.erase(facebook::fboss::MplsApi::ApiType);
+  apis.erase(facebook::fboss::VirtualRouterApi::ApiType);
+  apis.erase(facebook::fboss::TamApi::ApiType);
+  apis.erase(facebook::fboss::SystemPortApi::ApiType);
+#if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
+  apis.erase(facebook::fboss::ArsApi::ApiType);
+  apis.erase(facebook::fboss::ArsProfileApi::ApiType);
+#endif
   return apis;
 }
 const std::set<sai_api_t>& SaiPlatform::getDefaultPhyAsicSupportedApis() const {

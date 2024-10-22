@@ -431,6 +431,14 @@ cfg::DsfNode dsfNodeConfig(
                 localMac),
             PlatformType::PLATFORM_MERU800BFA);
       case cfg::AsicType::ASIC_TYPE_CHENAB:
+        return std::pair(
+            std::make_unique<ChenabAsic>(
+                fromAsic.getSwitchType(),
+                switchId,
+                fromAsic.getSwitchIndex(),
+                std::nullopt,
+                localMac),
+            PlatformType::PLATFORM_YANGRA);
       default:
         throw FbossError("Unexpected asic type: ", fromAsic.getAsicTypeStr());
     }
