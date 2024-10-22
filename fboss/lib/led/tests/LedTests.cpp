@@ -54,22 +54,52 @@ class LedTests : public ::testing::Test {
     EXPECT_EQ('0', ReadLedFile(blueFd_));
     EXPECT_EQ('0', ReadLedFile(yellowFd_));
     EXPECT_EQ(led::LedColor::OFF, led_->getLedState().get_ledColor());
+    VerifyYellowBlink("0");
+    VerifyBlueBlink("0");
   }
 
   // Verify that the blue file contains a single 1, the yellow file
   // contains a single 0, and the current color is Blue
-  void VerifyBlueOn() {
+  void VerifyBlueOn(const std::string& blink) {
     EXPECT_EQ('1', ReadLedFile(blueFd_));
     EXPECT_EQ('0', ReadLedFile(yellowFd_));
     EXPECT_EQ(led::LedColor::BLUE, led_->getLedState().get_ledColor());
+    VerifyYellowBlink("0");
+    VerifyBlueBlink(blink);
   }
 
   // Verify that the yellow file contains a single 1, the blue file
   // contains a single 0, and the current color is Yellow
-  void VerifyYellowOn() {
+  void VerifyYellowOn(const std::string& blink) {
     EXPECT_EQ('0', ReadLedFile(blueFd_));
     EXPECT_EQ('1', ReadLedFile(yellowFd_));
     EXPECT_EQ(led::LedColor::YELLOW, led_->getLedState().get_ledColor());
+    VerifyYellowBlink(blink);
+    VerifyBlueBlink("0");
+  }
+
+  void VerifyYellowBlink(const std::string& ledBlinkSpeed) {
+    std::string yellow;
+    folly::readFile(yellowDelayOn_.c_str(), yellow);
+    EXPECT_TRUE(ledBlinkSpeed == yellow);
+    folly::readFile(yellowTrigger_.c_str(), yellow);
+    if (ledBlinkSpeed == "0") {
+      EXPECT_TRUE(yellow.empty());
+    } else {
+      EXPECT_TRUE("timer" == yellow);
+    }
+  }
+
+  void VerifyBlueBlink(const std::string& ledBlinkSpeed) {
+    std::string blue;
+    folly::readFile(blueDelayOn_.c_str(), blue);
+    EXPECT_TRUE(ledBlinkSpeed == blue);
+    folly::readFile(blueTrigger_.c_str(), blue);
+    if (ledBlinkSpeed == "0") {
+      EXPECT_TRUE(blue.empty());
+    } else {
+      EXPECT_TRUE("timer" == blue);
+    }
   }
 
   folly::test::TemporaryDirectory tmpDir_;
@@ -79,6 +109,12 @@ class LedTests : public ::testing::Test {
   std::string yellowPath_ = yellowBasePath_ + "/brightness";
   std::string blueMaxBrightness_ = blueBasePath_ + "/max_brightness";
   std::string yellowMaxBrightness_ = yellowBasePath_ + "/max_brightness";
+  std::string blueDelayOn_ = blueBasePath_ + "/delay_on";
+  std::string yellowDelayOn_ = yellowBasePath_ + "/delay_on";
+  std::string blueDelayOff_ = blueBasePath_ + "/delay_off";
+  std::string yellowDelayOff_ = yellowBasePath_ + "/delay_off";
+  std::string blueTrigger_ = blueBasePath_ + "/trigger";
+  std::string yellowTrigger_ = yellowBasePath_ + "/trigger";
   int blueFd_;
   int yellowFd_;
   std::unique_ptr<LedIO> led_;
@@ -112,12 +148,12 @@ TEST_F(LedTests, testFakeLed) {
   // Change current color from Off to Blue
   led_->setLedState(
       utility::constructLedState(led::LedColor::BLUE, led::Blink::OFF));
-  VerifyBlueOn();
+  VerifyBlueOn("0");
 
   // Since current color is Blue, setting it to Blue again will be noop
   led_->setLedState(
       utility::constructLedState(led::LedColor::BLUE, led::Blink::OFF));
-  VerifyBlueOn();
+  VerifyBlueOn("0");
 
   // Change current color from Blue to Off
   led_->setLedState(
@@ -127,12 +163,37 @@ TEST_F(LedTests, testFakeLed) {
   // Change current color from Off to Yellow
   led_->setLedState(
       utility::constructLedState(led::LedColor::YELLOW, led::Blink::OFF));
-  VerifyYellowOn();
+  VerifyYellowOn("0");
 
   // Since current color is Yellow, setting it to Yellow again will be noop
   led_->setLedState(
       utility::constructLedState(led::LedColor::YELLOW, led::Blink::OFF));
-  VerifyYellowOn();
+  VerifyYellowOn("0");
+}
+
+TEST_F(LedTests, TestBlink) {
+  LedMapping ledMapping;
+  ledMapping.id() = 0;
+  ledMapping.bluePath() = blueBasePath_;
+  ledMapping.yellowPath() = yellowBasePath_;
+  // Instantiating Led object will write 0 to both blue and yellow LED
+  // files and set current color to Off
+  led_ = std::make_unique<LedIO>(ledMapping);
+  led_->setLedState(
+      utility::constructLedState(led::LedColor::YELLOW, led::Blink::SLOW));
+  VerifyYellowOn(kLedBlinkSlow);
+
+  led_->setLedState(
+      utility::constructLedState(led::LedColor::BLUE, led::Blink::SLOW));
+  VerifyBlueOn(kLedBlinkSlow);
+
+  led_->setLedState(
+      utility::constructLedState(led::LedColor::YELLOW, led::Blink::FAST));
+  VerifyYellowOn(kLedBlinkFast);
+
+  led_->setLedState(
+      utility::constructLedState(led::LedColor::BLUE, led::Blink::FAST));
+  VerifyBlueOn(kLedBlinkFast);
 }
 
 } // namespace facebook::fboss

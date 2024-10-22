@@ -15,6 +15,19 @@
 
 namespace facebook::fboss {
 
+constexpr auto kLedOff = "0";
+constexpr auto kLedMaxBrightnessPath = "/max_brightness";
+constexpr auto kLedBrightnessPath = "/brightness";
+constexpr auto kLedTriggerPath = "/trigger";
+constexpr auto kLedDelayOnPath = "/delay_on";
+constexpr auto kLedDelayOffPath = "/delay_off";
+constexpr auto kLedTimerTrigger = "timer";
+constexpr auto kLedBlinkOff = "0";
+constexpr auto kLedBlinkSlow = "1000";
+constexpr auto kLedBlinkFast = "500";
+constexpr auto kMinBrightness = 1;
+constexpr auto kMaxBrightness = 255;
+
 class LedIOError : public std::runtime_error {
  public:
   explicit LedIOError(const std::string& what) : runtime_error(what) {}

@@ -15,21 +15,6 @@
 #include "fboss/led_service/LedUtils.h"
 #include "fboss/lib/led/gen-cpp2/led_mapping_types.h"
 
-namespace {
-constexpr auto kLedOff = "0";
-constexpr auto kLedMaxBrightnessPath = "/max_brightness";
-constexpr auto kLedBrightnessPath = "/brightness";
-constexpr auto kLedTriggerPath = "/trigger";
-constexpr auto kLedDelayOnPath = "/delay_on";
-constexpr auto kLedDelayOffPath = "/delay_off";
-constexpr auto kLedTimerTrigger = "timer";
-constexpr auto kLedBlinkOff = "0";
-constexpr auto kLedBlinkSlow = "1000";
-constexpr auto kLedBlinkFast = "500";
-constexpr auto kMinBrightness = 1;
-constexpr auto kMaxBrightness = 255;
-} // namespace
-
 namespace facebook::fboss {
 
 LedIO::LedIO(LedMapping ledMapping) : id_(*ledMapping.id()) {
