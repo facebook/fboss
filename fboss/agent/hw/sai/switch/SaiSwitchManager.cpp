@@ -190,7 +190,8 @@ SaiSwitchManager::SaiSwitchManager(
     // init attribute (warm boot path)
     auto& switchApi = SaiApiTable::getInstance()->switchApi();
     auto newSwitchId = switchApi.create<SaiSwitchTraits>(
-        platform->getSwitchAttributes(true, switchType, switchId), swId);
+        platform->getSwitchAttributes(true, switchType, switchId, bootType),
+        swId);
     // Load all switch attributes
     switch_ = std::make_unique<SaiSwitchObj>(newSwitchId);
     if (switchType != cfg::SwitchType::FABRIC) {
@@ -204,7 +205,7 @@ SaiSwitchManager::SaiSwitchManager(
   } else {
     switch_ = std::make_unique<SaiSwitchObj>(
         std::monostate(),
-        platform->getSwitchAttributes(false, switchType, switchId),
+        platform->getSwitchAttributes(false, switchType, switchId, bootType),
         swId);
 
     const auto& asic = platform_->getAsic();

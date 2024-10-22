@@ -453,7 +453,8 @@ std::vector<SaiPlatformPort*> SaiPlatform::getPortsWithTransceiverID(
 SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
     bool mandatoryOnly,
     cfg::SwitchType swType,
-    std::optional<int64_t> swId) {
+    std::optional<int64_t> swId,
+    BootType /*bootType*/) {
   SaiSwitchTraits::Attributes::InitSwitch initSwitch(true);
 
   std::optional<SaiSwitchTraits::Attributes::HwInfo> hwInfo = getHwInfo(this);
