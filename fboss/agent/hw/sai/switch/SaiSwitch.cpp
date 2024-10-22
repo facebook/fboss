@@ -612,7 +612,10 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChangedImplLocked(
   // Unsupported features
   checkUnsupportedDelta(
       delta.getTeFlowEntriesDelta(), managerTable_->teFlowEntryManager());
-  // update switch settings first
+  // update switch settings first. In particular drain box first if drain ==
+  // true
+  processSwitchSettingsDrainStateChange(
+      delta, cfg::SwitchDrainState::DRAINED, lockPolicy);
   processSwitchSettingsChangeSansDrained(delta, lockPolicy);
   processLocalCapsuleSwitchIdsDelta(delta, lockPolicy);
 
@@ -1128,6 +1131,9 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChangedImplLocked(
 
   // Process link state change delta and update the LED status
   processLinkStateChangeDelta(delta, lockPolicy);
+  // Undrain switch last
+  processSwitchSettingsDrainStateChange(
+      delta, cfg::SwitchDrainState::UNDRAINED, lockPolicy);
 
   return delta.newState();
 }
@@ -1350,6 +1356,28 @@ void SaiSwitch::processSwitchSettingsChangeSansDrained(
 
   if (oldSwitchSettings != newSwitchSettings) {
     processSwitchSettingsChangeSansDrainedLocked(lockPolicy.lock(), delta);
+  }
+}
+
+template <typename LockPolicyT>
+void SaiSwitch::processSwitchSettingsDrainStateChange(
+    const StateDelta& delta,
+    cfg::SwitchDrainState drainStateToProcess,
+    const LockPolicyT& lockPolicy) {
+  const auto switchSettingsDelta = delta.getSwitchSettingsDelta();
+  const auto& oldSwitchSettings = switchSettingsDelta.getOld();
+  const auto& newSwitchSettings = switchSettingsDelta.getNew();
+
+  /*
+   * SwitchSettings are mandatory and can thus only be modified.
+   * Every field in SwitchSettings must always be set in new SwitchState.
+   */
+  CHECK(oldSwitchSettings);
+  CHECK(newSwitchSettings);
+
+  if (oldSwitchSettings != newSwitchSettings) {
+    processSwitchSettingsDrainStateChangeLocked(
+        lockPolicy.lock(), drainStateToProcess, delta);
   }
 }
 

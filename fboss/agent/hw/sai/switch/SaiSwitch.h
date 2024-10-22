@@ -504,6 +504,12 @@ class SaiSwitch : public HwSwitch {
       const StateDelta& delta,
       const LockPolicyT& lockPolicy);
 
+  template <typename LockPolicyT>
+  void processSwitchSettingsDrainStateChange(
+      const StateDelta& delta,
+      cfg::SwitchDrainState drainStateToProcess,
+      const LockPolicyT& lockPolicy);
+
   PortSaiId getCPUPortSaiId() const;
 
   void packetRxCallbackPort(
