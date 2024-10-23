@@ -110,7 +110,7 @@ elseif (SAI_BRCM_IMPL)
   find_path(SAI_IMPL_DIR NAMES lib/libsai_impl.a)
   include_directories(${SAI_IMPL_DIR})
   message(STATUS "Found SAI_INCLUDE_DIR: ${SAI_INCLUDE_DIR}")
-elseif (SAI_CHENAB_IMPL)
+elseif (CHENAB_SAI_SDK)
   list(APPEND SAI_API_SRC
     fboss/agent/hw/sai/api/chenab/PortApi.cpp
     fboss/agent/hw/sai/api/chenab/TamApi.cpp
