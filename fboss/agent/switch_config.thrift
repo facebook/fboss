@@ -1718,6 +1718,14 @@ struct PortPgConfig {
   6: optional i32 resumeOffsetBytes;
   // global buffer pool as used by this PG
   7: string bufferPoolName;
+  // Shared buffer min/max threshold range at which to trigger PFC
+  8: optional i64 maxSharedXoffThresholdBytes;
+  9: optional i64 minSharedXoffThresholdBytes;
+  // SRAM/OCB buffer min/max threshold range at which to trigger PFC
+  10: optional i64 maxSramXoffThresholdBytes;
+  11: optional i64 minSramXoffThresholdBytes;
+  // Offset from XOFF in SRAM before allowing XON
+  12: optional i64 sramResumeOffsetBytes;
 }
 
 // asicSdk: Native SDK version. may or may not support SAI

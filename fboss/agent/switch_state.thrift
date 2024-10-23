@@ -28,6 +28,11 @@ struct PortPgFields {
   6: string bufferPoolName;
   7: optional string scalingFactor;
   8: optional common.BufferPoolFields bufferPoolConfig;
+  9: optional i64 maxSharedXoffThresholdBytes;
+  10: optional i64 minSharedXoffThresholdBytes;
+  11: optional i64 maxSramXoffThresholdBytes;
+  12: optional i64 minSramXoffThresholdBytes;
+  13: optional i64 sramResumeOffsetBytes;
 }
 
 struct MKASakKey {
