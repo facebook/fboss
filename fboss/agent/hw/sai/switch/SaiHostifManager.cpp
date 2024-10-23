@@ -22,7 +22,7 @@
 #include <chrono>
 
 extern "C" {
-#if defined(SAI_VERSION_11_3_0_0_DNX_ODP)
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
 #ifndef IS_OSS_BRCM_SAI
 #include <experimental/saihostifextensions.h>
 #else
@@ -139,7 +139,7 @@ SaiHostifManager::packetReasonToHostifTrap(
     case cfg::PacketRxReason::EAPOL:
       return std::make_pair(SAI_HOSTIF_TRAP_TYPE_EAPOL, SAI_PACKET_ACTION_TRAP);
     case cfg::PacketRxReason::PORT_MTU_ERROR:
-#if defined(SAI_VERSION_11_3_0_0_DNX_ODP)
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
       return std::make_pair(
           SAI_HOSTIF_TRAP_TYPE_PORT_MTU_ERROR, SAI_PACKET_ACTION_TRAP);
 #endif
