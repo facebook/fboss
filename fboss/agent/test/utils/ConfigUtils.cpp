@@ -454,6 +454,8 @@ cfg::DsfNode dsfNodeConfig(
       dsfNode.systemPortRange() = *otherAsic->getSystemPortRange();
       dsfNode.nodeMac() = kLocalCpuMac().toString();
       dsfNode.loopbackIps() = getLoopbackIps(SwitchID(*dsfNode.switchId()));
+      dsfNode.localSystemPortOffset() = *dsfNode.systemPortRange()->minimum();
+      dsfNode.globalSystemPortOffset() = *dsfNode.systemPortRange()->minimum();
       break;
     case cfg::SwitchType::FABRIC:
       dsfNode.type() = cfg::DsfNodeType::FABRIC_NODE;

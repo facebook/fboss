@@ -495,6 +495,8 @@ cfg::DsfNode makeDsfNodeCfg(
     dsfNodeCfg.systemPortRange() = sysPortRange;
     dsfNodeCfg.loopbackIps() = getLoopbackIps(switchId);
     dsfNodeCfg.nodeMac() = "02:00:00:00:0F:0B";
+    dsfNodeCfg.localSystemPortOffset() = *sysPortRange.minimum();
+    dsfNodeCfg.globalSystemPortOffset() = *sysPortRange.minimum();
   }
   dsfNodeCfg.asicType() = asicType;
   dsfNodeCfg.platformType() = type == cfg::DsfNodeType::INTERFACE_NODE
