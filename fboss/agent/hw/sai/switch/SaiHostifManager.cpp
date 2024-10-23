@@ -491,6 +491,10 @@ SaiHostifManager::getVoqHandle(const SaiQueueConfig& saiQueueConfig) {
 void SaiHostifManager::changeCpuQueue(
     const ControlPlane::PortQueues& oldQueueConfig,
     const ControlPlane::PortQueues& newQueueConfig) {
+  if (platform_->getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_CHENAB) {
+    // Chenab-TODO(pshaikh): no way to configure queues on CPU port
+    return;
+  }
   cpuPortHandle_->configuredQueues.clear();
   cpuPortHandle_->configuredVoqs.clear();
 
@@ -570,6 +574,10 @@ void SaiHostifManager::loadCpuPortQueues() {
   SaiPortTraits::Attributes::QosQueueList queueListAttribute{queueList};
   auto queueSaiIdList = SaiApiTable::getInstance()->portApi().getAttribute(
       cpuPortHandle_->cpuPortId, queueListAttribute);
+  if (platform_->getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_CHENAB) {
+    // Chenab-TODO(pshaikh): no way to load queues on CPU port
+    return;
+  }
   if (queueSaiIdList.size() == 0) {
     throw FbossError("no queues exist for cpu port ");
   }

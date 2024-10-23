@@ -51,6 +51,9 @@ void assertMaxBufferPoolSize(const SaiPlatform* platform) {
   if (asic->getAsicVendor() == HwAsic::AsicVendor::ASIC_VENDOR_TAJO) {
     return;
   }
+  if (asic->getAsicVendor() == HwAsic::AsicVendor::ASIC_VENDOR_CHENAB) {
+    return;
+  }
   auto availableBuffer = getSwitchEgressPoolAvailableSize(platform);
   auto maxEgressPoolSize = SaiBufferManager::getMaxEgressPoolBytes(platform);
   switch (asic->getAsicType()) {
@@ -103,6 +106,7 @@ uint64_t SaiBufferManager::getMaxEgressPoolBytes(const SaiPlatform* platform) {
     case cfg::AsicType::ASIC_TYPE_GARONNE:
     case cfg::AsicType::ASIC_TYPE_YUBA:
     case cfg::AsicType::ASIC_TYPE_CHENAB:
+      /* TODO(pshaikh): Chenab, define pool size */
       return asic->getMMUSizeBytes();
     case cfg::AsicType::ASIC_TYPE_TOMAHAWK: {
       auto constexpr kNumXpes = 4;
