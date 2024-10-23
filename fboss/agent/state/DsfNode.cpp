@@ -85,5 +85,20 @@ std::optional<int> DsfNode::getClusterId() const {
   return clusterId;
 }
 
+std::optional<int> DsfNode::getLocalSystemPortOffset() const {
+  std::optional<int> ret;
+  if (get<switch_config_tags::localSystemPortOffset>().has_value()) {
+    ret = get<switch_config_tags::localSystemPortOffset>()->cref();
+  }
+  return ret;
+}
+
+std::optional<int> DsfNode::getGlobalSystemPortOffset() const {
+  std::optional<int> ret;
+  if (get<switch_config_tags::globalSystemPortOffset>().has_value()) {
+    ret = get<switch_config_tags::globalSystemPortOffset>()->cref();
+  }
+  return ret;
+}
 template class ThriftStructNode<DsfNode, cfg::DsfNode>;
 } // namespace facebook::fboss
