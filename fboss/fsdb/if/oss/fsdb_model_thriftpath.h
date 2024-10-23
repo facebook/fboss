@@ -11775,7 +11775,9 @@ std::pair<strings::nodeMac, Child<::std::string, ::apache::thrift::type_class::s
 std::pair<strings::asicType, Child<::facebook::fboss::cfg::AsicType, ::apache::thrift::type_class::enumeration, ::apache::thrift::type::enum_t<::facebook::fboss::cfg::AsicType>>>,
 std::pair<strings::platformType, Child<::facebook::fboss::PlatformType, ::apache::thrift::type_class::enumeration, ::apache::thrift::type::enum_t<::facebook::fboss::PlatformType>>>,
 std::pair<strings::clusterId, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
-std::pair<strings::fabricLevel, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>>;
+std::pair<strings::fabricLevel, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
+std::pair<strings::localSystemPortOffset, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
+std::pair<strings::globalSystemPortOffset, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>>;
   using ChildrenById = fatal::tuple<   std::pair<std::integral_constant<apache::thrift::field_id_t, 1>, Child<::std::string, ::apache::thrift::type_class::string, ::apache::thrift::type::string_t>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 2>, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 3>, Child<::facebook::fboss::cfg::DsfNodeType, ::apache::thrift::type_class::enumeration, ::apache::thrift::type::enum_t<::facebook::fboss::cfg::DsfNodeType>>>,
@@ -11785,7 +11787,9 @@ std::pair<strings::fabricLevel, Child<::std::int32_t, ::apache::thrift::type_cla
    std::pair<std::integral_constant<apache::thrift::field_id_t, 7>, Child<::facebook::fboss::cfg::AsicType, ::apache::thrift::type_class::enumeration, ::apache::thrift::type::enum_t<::facebook::fboss::cfg::AsicType>>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 8>, Child<::facebook::fboss::PlatformType, ::apache::thrift::type_class::enumeration, ::apache::thrift::type::enum_t<::facebook::fboss::PlatformType>>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 9>, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
-   std::pair<std::integral_constant<apache::thrift::field_id_t, 10>, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>>;
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 10>, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 11>, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 12>, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>>;
   template <typename Name>
   using NameToId = fatal::tuple<std::pair<strings::name, std::integral_constant<apache::thrift::field_id_t, 1>>,
 std::pair<strings::switchId, std::integral_constant<apache::thrift::field_id_t, 2>>,
@@ -11796,7 +11800,9 @@ std::pair<strings::nodeMac, std::integral_constant<apache::thrift::field_id_t, 6
 std::pair<strings::asicType, std::integral_constant<apache::thrift::field_id_t, 7>>,
 std::pair<strings::platformType, std::integral_constant<apache::thrift::field_id_t, 8>>,
 std::pair<strings::clusterId, std::integral_constant<apache::thrift::field_id_t, 9>>,
-std::pair<strings::fabricLevel, std::integral_constant<apache::thrift::field_id_t, 10>>>::template type_of<Name>;
+std::pair<strings::fabricLevel, std::integral_constant<apache::thrift::field_id_t, 10>>,
+std::pair<strings::localSystemPortOffset, std::integral_constant<apache::thrift::field_id_t, 11>>,
+std::pair<strings::globalSystemPortOffset, std::integral_constant<apache::thrift::field_id_t, 12>>>::template type_of<Name>;
 
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
@@ -11812,6 +11818,8 @@ std::pair<strings::fabricLevel, std::integral_constant<apache::thrift::field_id_
     STRUCT_CHILD_GETTERS(platformType, 8);
     STRUCT_CHILD_GETTERS(clusterId, 9);
     STRUCT_CHILD_GETTERS(fabricLevel, 10);
+    STRUCT_CHILD_GETTERS(localSystemPortOffset, 11);
+    STRUCT_CHILD_GETTERS(globalSystemPortOffset, 12);
 
   template <apache::thrift::field_id_t __id>
   auto operator()(const std::integral_constant<apache::thrift::field_id_t, __id>&) {
@@ -11825,6 +11833,8 @@ std::pair<strings::fabricLevel, std::integral_constant<apache::thrift::field_id_
     else if constexpr (__id == 8) { return platformType(); }
     else if constexpr (__id == 9) { return clusterId(); }
     else if constexpr (__id == 10) { return fabricLevel(); }
+    else if constexpr (__id == 11) { return localSystemPortOffset(); }
+    else if constexpr (__id == 12) { return globalSystemPortOffset(); }
   }
 
   template <typename T, T... Values>
@@ -12822,12 +12832,15 @@ class ChildThriftPath<::facebook::fboss::cfg::SdkVersion, ::facebook::fboss::fsd
     Self
   >;
   using Children = fatal::tuple<std::pair<strings::asicSdk, Child<::std::string, ::apache::thrift::type_class::string, ::apache::thrift::type::string_t>>,
-std::pair<strings::saiSdk, Child<::std::string, ::apache::thrift::type_class::string, ::apache::thrift::type::string_t>>>;
+std::pair<strings::saiSdk, Child<::std::string, ::apache::thrift::type_class::string, ::apache::thrift::type::string_t>>,
+std::pair<strings::firmware, Child<::std::string, ::apache::thrift::type_class::string, ::apache::thrift::type::string_t>>>;
   using ChildrenById = fatal::tuple<   std::pair<std::integral_constant<apache::thrift::field_id_t, 1>, Child<::std::string, ::apache::thrift::type_class::string, ::apache::thrift::type::string_t>>,
-   std::pair<std::integral_constant<apache::thrift::field_id_t, 2>, Child<::std::string, ::apache::thrift::type_class::string, ::apache::thrift::type::string_t>>>;
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 2>, Child<::std::string, ::apache::thrift::type_class::string, ::apache::thrift::type::string_t>>,
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 3>, Child<::std::string, ::apache::thrift::type_class::string, ::apache::thrift::type::string_t>>>;
   template <typename Name>
   using NameToId = fatal::tuple<std::pair<strings::asicSdk, std::integral_constant<apache::thrift::field_id_t, 1>>,
-std::pair<strings::saiSdk, std::integral_constant<apache::thrift::field_id_t, 2>>>::template type_of<Name>;
+std::pair<strings::saiSdk, std::integral_constant<apache::thrift::field_id_t, 2>>,
+std::pair<strings::firmware, std::integral_constant<apache::thrift::field_id_t, 3>>>::template type_of<Name>;
 
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
@@ -12835,11 +12848,13 @@ std::pair<strings::saiSdk, std::integral_constant<apache::thrift::field_id_t, 2>
   
     STRUCT_CHILD_GETTERS(asicSdk, 1);
     STRUCT_CHILD_GETTERS(saiSdk, 2);
+    STRUCT_CHILD_GETTERS(firmware, 3);
 
   template <apache::thrift::field_id_t __id>
   auto operator()(const std::integral_constant<apache::thrift::field_id_t, __id>&) {
     if constexpr (__id == 1) { return asicSdk(); }
     else if constexpr (__id == 2) { return saiSdk(); }
+    else if constexpr (__id == 3) { return firmware(); }
   }
 
   template <typename T, T... Values>

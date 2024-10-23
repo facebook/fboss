@@ -1786,6 +1786,12 @@ struct DsfNode {
   // Denotes the level for fabric switch in
   // the DSF n/w topology. Value is either 1 or 2
   10: optional i32 fabricLevel;
+  // Offset from where to start local system port
+  // ID allocation from
+  11: optional i32 localSystemPortOffset;
+  // Offset from where to start local system port
+  // ID allocation from
+  12: optional i32 globalSystemPortOffset;
 }
 
 /**
