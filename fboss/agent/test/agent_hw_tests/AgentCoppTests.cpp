@@ -429,7 +429,7 @@ class AgentCoppTest : public AgentHwTest {
           folly::IPAddress("1.1.1.2"),
           dstIpAddress,
           arpType);
-      sendPkt(std::move(txPacket), outOfPort);
+      sendPkt(std::move(txPacket), outOfPort, true /*snoopAndVerify*/);
     }
   }
 
