@@ -272,7 +272,7 @@ class MultiNodeLacpTest : public MultiNodeTest {
   }
 
   std::vector<LegacyAggregatePortFields::Subport> getSubPorts(
-      AggregatePortID aggId) {
+      AggregatePortID aggId) const {
     const auto& aggPort = sw()->getState()->getAggregatePorts()->getNode(aggId);
     EXPECT_NE(aggPort, nullptr);
     return aggPort->sortedSubports();
@@ -525,4 +525,36 @@ TEST_F(MultiNodeRoutingLoop, LoopTraffic) {
     assertNoInDiscards(0);
   };
   verifyAcrossWarmBoots(setup, verify, setup, verify);
+}
+
+class MultiNodeLacpMinLinkTest : public MultiNodeLacpTest {
+ protected:
+  cfg::SwitchConfig initialConfig() const override {
+    auto config = getConfigWithAggPort(
+        cfg::LacpPortRate::SLOW /* rate */, 0.5 /* minLinkPercentage */);
+    // Bring down one port for each agg port
+    for (auto& aggPort : *config.aggregatePorts()) {
+      const auto portId = *aggPort.key();
+      for (auto& port : *config.ports()) {
+        if (*port.logicalID() == portId) {
+          port.state() = cfg::PortState::DISABLED;
+          break;
+        }
+      }
+    }
+    return config;
+  }
+};
+TEST_F(MultiNodeLacpMinLinkTest, Bringup) {
+  auto verify = [=, this]() {
+    auto period = PeriodicTransmissionMachine::LONG_PERIOD * 3;
+    // ensure that lacp session can stay up post timeout
+    XLOG(DBG2) << "Waiting for LACP timeout period";
+    std::this_thread::sleep_for(period);
+    for (const auto& aggId : getAggPorts()) {
+      verifyLacpState(aggId, getSubPorts(aggId).size());
+    }
+  };
+
+  verifyAcrossWarmBoots(verify);
 }
