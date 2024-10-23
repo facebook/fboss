@@ -1176,7 +1176,11 @@ void ThriftConfigApplier::processReachabilityGroup(
       };
 
   bool parallelVoqLinks = haveParallelLinksToInterfaceNodes(
-      cfg_, localFabricSwitchIds, switchNameToSwitchIds, scopeResolver_);
+      cfg_,
+      localFabricSwitchIds,
+      switchNameToSwitchIds,
+      scopeResolver_,
+      platformMapping_);
 
   if (!isSingleStageCluster || parallelVoqLinks) {
     auto newPortMap = new_->getPorts()->modify(&new_);

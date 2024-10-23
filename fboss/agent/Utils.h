@@ -86,6 +86,7 @@ class SwitchState;
 class Interface;
 class SwitchSettings;
 class SwitchIdScopeResolver;
+class PlatformMapping;
 struct AgentConfig;
 
 constexpr auto kRecyclePortIdOffset = 1;
@@ -438,7 +439,8 @@ bool haveParallelLinksToInterfaceNodes(
     const std::vector<SwitchID>& localFabricSwitchIds,
     const std::unordered_map<std::string, std::vector<uint32_t>>&
         switchNameToSwitchIds,
-    SwitchIdScopeResolver& scopeResolver);
+    SwitchIdScopeResolver& scopeResolver,
+    const PlatformMapping* platformMapping);
 
 CpuCosQueueId hwQueueIdToCpuCosQueueId(uint8_t hwQueueId);
 int numFabricLevels(const std::map<int64_t, cfg::DsfNode>& dsfNodes);

@@ -982,13 +982,13 @@ bool haveParallelLinksToInterfaceNodes(
     const std::vector<SwitchID>& localFabricSwitchIds,
     const std::unordered_map<std::string, std::vector<uint32_t>>&
         switchNameToSwitchIds,
-    SwitchIdScopeResolver& scopeResolver) {
+    SwitchIdScopeResolver& scopeResolver,
+    const PlatformMapping* platformMapping) {
   for (const auto& fabricSwitchId : localFabricSwitchIds) {
-    // TODO(zecheng): Update to look at DsfNode layer config once available.
-    // Can be optimized to only look at FDSW layer
-    std::unordered_set<std::string> voqNeighbors;
+    // Determine parallel links on VD level - there are two VDs per R3 ASIC
+    std::unordered_map<int, std::unordered_set<std::string>> vd2VoqNeighbors;
     for (const auto& port : *cfg->ports()) {
-      // Only process ports belonging to the passed switchId
+      // Only process ports belonging to one switchId
       if (scopeResolver.scope(port).has(SwitchID(fabricSwitchId)) &&
           port.expectedNeighborReachability()->size() > 0) {
         auto neighborRemoteSwitchId =
@@ -998,6 +998,23 @@ bool haveParallelLinksToInterfaceNodes(
         CHECK(neighborDsfNodeIter != cfg->dsfNodes()->end());
         if (*neighborDsfNodeIter->second.type() ==
             cfg::DsfNodeType::INTERFACE_NODE) {
+          CHECK(port.name().has_value());
+          auto localVirtualDeviceId =
+              platformMapping->getVirtualDeviceID(*port.name());
+          if (!localVirtualDeviceId.has_value()) {
+            throw FbossError(
+                "Unable to find virtual device id for port: ",
+                *port.logicalID(),
+                " virtual device");
+          }
+
+          if (vd2VoqNeighbors.find(localVirtualDeviceId.value()) ==
+              vd2VoqNeighbors.end()) {
+            vd2VoqNeighbors.insert(
+                {localVirtualDeviceId.value(),
+                 std::unordered_set<std::string>()});
+          }
+          auto& voqNeighbors = vd2VoqNeighbors[localVirtualDeviceId.value()];
           const auto& [neighborName, _] = getExpectedNeighborAndPortName(port);
           if (voqNeighbors.find(neighborName) != voqNeighbors.end()) {
             return true;

@@ -553,7 +553,7 @@ cfg::SwitchConfig testConfigFabricSwitch(
 
   for (int p = 0; p < kPortCount; ++p) {
     cfg.ports()[p].logicalID() = p + 1;
-    cfg.ports()[p].name() = folly::to<string>("port", p + 1);
+    cfg.ports()[p].name() = folly::to<string>("eth1/", p + 1, "/1");
     cfg.ports()[p].state() = cfg::PortState::ENABLED;
     cfg.ports()[p].speed() = cfg::PortSpeed::TWENTYFIVEG;
     cfg.ports()[p].profileID() =
