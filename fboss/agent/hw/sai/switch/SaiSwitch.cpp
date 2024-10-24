@@ -2414,6 +2414,15 @@ HwInitResult SaiSwitch::initLocked(
       adapterKeysJson.get(),
       adapterKeys2AdapterHostKeysJson.get());
   if (bootType_ != BootType::WARM_BOOT) {
+    if (getSwitchType() == cfg::SwitchType::FABRIC) {
+      // 11.0 is not honoring isolate attribute during fabric switch create
+      // We still want the switch to be isolated before we start enabling ports
+      // after cold boot. This is tracked in CS00012372888.
+      // TODO: get rid of this call once CS00012372888 is resolved
+      auto& switchApi = SaiApiTable::getInstance()->switchApi();
+      switchApi.setAttribute(
+          saiSwitchId_, SaiSwitchTraits::Attributes::SwitchIsolate{true});
+    }
     ret.switchState = getColdBootSwitchState();
     ret.switchState->publish();
     setProgrammedState(ret.switchState);
