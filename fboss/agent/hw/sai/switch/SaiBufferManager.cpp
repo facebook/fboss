@@ -623,17 +623,14 @@ SaiBufferManager::ingressProfileCreateAttrs(
   std::optional<SaiBufferProfileTraits::Attributes::SramFadtXonOffset>
       sramFadtXonOffset;
 #if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
-  // use default 0 since this attribute currently only used by profile for
-  // cpu/eventor/rcy port queues
-  sharedFadtMaxTh = 0;
+  sharedFadtMaxTh = config.maxSharedXoffThresholdBytes().value_or(0);
 #endif
 // TODO: Change to BRCM_SAI_SDK_DNX_GTE_11_0 once support is available in 12.0
 #if defined(SAI_VERSION_11_3_0_0_DNX_ODP)
-  // TODO: Populate based on config
-  sharedFadtMinTh = 0;
-  sramFadtMaxTh = 0;
-  sramFadtMinTh = 0;
-  sramFadtXonOffset = 0;
+  sharedFadtMinTh = config.minSharedXoffThresholdBytes().value_or(0);
+  sramFadtMaxTh = config.maxSramXoffThresholdBytes().value_or(0);
+  sramFadtMinTh = config.minSramXoffThresholdBytes().value_or(0);
+  sramFadtXonOffset = config.sramResumeOffsetBytes().value_or(0);
 #endif
   return SaiBufferProfileTraits::CreateAttributes{
       pool,
