@@ -2363,6 +2363,11 @@ std::shared_ptr<SwitchState> SaiSwitch::getColdBootSwitchState() {
         saiSwitchId_, SaiSwitchTraits::Attributes::SwitchIsolate{});
     auto drainState = switchIsolate ? cfg::SwitchDrainState::DRAINED
                                     : cfg::SwitchDrainState::UNDRAINED;
+    CHECK(drainState == cfg::SwitchDrainState::DRAINED)
+        << " Switch must be drained on cold boot";
+    XLOG(DBG2) << " On cold boot, switch came up:  "
+               << (drainState == cfg::SwitchDrainState::DRAINED ? "DRAINED"
+                                                                : "UNDRAINED");
     switchSettings->setActualSwitchDrainState(drainState);
   }
 
