@@ -84,3 +84,19 @@ TEST_F(RegisterSpanTest, spanListTest) {
   ASSERT_EQ(spanList[1].getSpanAddress(), 10);
   ASSERT_EQ(spanList[1].length(), 2);
 }
+
+TEST_F(RegisterSpanTest, smallSpanListTest) {
+  std::vector<RegisterStoreSpan> spanList{};
+  for (auto& reg : regs) {
+    ASSERT_TRUE(RegisterStoreSpan::buildRegisterSpanList(spanList, reg, 4));
+  }
+  ASSERT_EQ(spanList.size(), 4);
+  ASSERT_EQ(spanList[0].getSpanAddress(), 4);
+  ASSERT_EQ(spanList[0].length(), 2);
+  ASSERT_EQ(spanList[1].getSpanAddress(), 6);
+  ASSERT_EQ(spanList[1].length(), 4);
+  ASSERT_EQ(spanList[2].getSpanAddress(), 10);
+  ASSERT_EQ(spanList[2].length(), 2);
+  ASSERT_EQ(spanList[3].getSpanAddress(), 19);
+  ASSERT_EQ(spanList[3].length(), 1);
+}
