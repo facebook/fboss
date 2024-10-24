@@ -3476,32 +3476,39 @@ void SaiSwitch::fdbEventCallback(
   fdbEventBottomHalfEventBase_.runInFbossEventBaseThread(
       [this,
        fdbNotifications = std::move(fdbEventNotificationDataTmp)]() mutable {
-        auto lock = std::lock_guard<std::mutex>(saiSwitchMutex_);
-        fdbEventCallbackLockedBottomHalf(lock, std::move(fdbNotifications));
+        fdbEventCallbackLockedBottomHalf(std::move(fdbNotifications));
       });
 }
 
 void SaiSwitch::fdbEventCallbackLockedBottomHalf(
-    const std::lock_guard<std::mutex>& /*lock*/,
     std::vector<FdbEventNotificationData> fdbNotifications) {
-  if (managerTable_->bridgeManager().getL2LearningMode() !=
-      cfg::L2LearningMode::SOFTWARE) {
-    // Some platforms call fdb callback even when mode is set to HW. In
-    // keeping with our native SDK approach, don't send these events up.
-    return;
-  }
-  for (const auto& fdbNotification : fdbNotifications) {
-    auto ditr =
-        kL2AddrUpdateOperationsOfInterest.find(fdbNotification.eventType);
-    if (ditr != kL2AddrUpdateOperationsOfInterest.end()) {
-      auto updateTypeStr = fdbEventToString(ditr->first);
-      auto l2Entry = getL2Entry(fdbNotification);
-      if (l2Entry) {
-        XLOG(DBG2) << "Received FDB " << updateTypeStr
-                   << " notification for: " << l2Entry->str();
-        callback_->l2LearningUpdateReceived(l2Entry.value(), ditr->second);
+  std::vector<std::pair<L2Entry, L2EntryUpdateType>> l2Entries;
+  {
+    auto lock = std::lock_guard<std::mutex>(saiSwitchMutex_);
+    if (managerTable_->bridgeManager().getL2LearningMode() !=
+        cfg::L2LearningMode::SOFTWARE) {
+      // Some platforms call fdb callback even when mode is set to HW. In
+      // keeping with our native SDK approach, don't send these events up.
+      return;
+    }
+
+    for (const auto& fdbNotification : fdbNotifications) {
+      auto ditr =
+          kL2AddrUpdateOperationsOfInterest.find(fdbNotification.eventType);
+      if (ditr != kL2AddrUpdateOperationsOfInterest.end()) {
+        auto updateTypeStr = fdbEventToString(ditr->first);
+        auto l2Entry = getL2Entry(fdbNotification);
+        if (l2Entry) {
+          XLOG(DBG2) << "Received FDB " << updateTypeStr
+                     << " notification for: " << l2Entry->str();
+          l2Entries.push_back({l2Entry.value(), ditr->second});
+        }
       }
     }
+  }
+
+  for (auto& l2Entry : l2Entries) {
+    callback_->l2LearningUpdateReceived(l2Entry.first, l2Entry.second);
   }
 }
 

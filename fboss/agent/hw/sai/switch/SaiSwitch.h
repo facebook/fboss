@@ -335,7 +335,6 @@ class SaiSwitch : public HwSwitch {
       PortID port) const;
 
   void fdbEventCallbackLockedBottomHalf(
-      const std::lock_guard<std::mutex>& lock,
       std::vector<FdbEventNotificationData> data);
 
   const SaiManagerTable* managerTableLocked(
