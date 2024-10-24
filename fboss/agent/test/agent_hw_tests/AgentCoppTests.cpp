@@ -205,7 +205,7 @@ class AgentCoppTest : public AgentHwTest {
   void sendPkt(
       std::unique_ptr<TxPacket> pkt,
       bool outOfPort,
-      bool snoopAndVerify = false,
+      bool expectRxPacket = false,
       bool skipTtlDecrement = true) {
     XLOG(DBG2) << "Packet Dump::"
                << folly::hexDump(pkt->buf()->data(), pkt->buf()->length());
@@ -220,11 +220,14 @@ class AgentCoppTest : public AgentHwTest {
     } else {
       getSw()->sendPacketSwitchedAsync(std::move(pkt));
     }
-    if (snoopAndVerify) {
+    if (expectRxPacket) {
       WITH_RETRIES({
         auto frameRx = snooper.waitForPacket(1);
         EXPECT_EVENTUALLY_TRUE(frameRx.has_value());
       });
+    } else {
+      auto frameRx = snooper.waitForPacket(10);
+      EXPECT_FALSE(frameRx.has_value());
     }
   }
 
@@ -256,7 +259,7 @@ class AgentCoppTest : public AgentHwTest {
       sendPkt(
           std::move(pkt),
           outOfPort,
-          expectQueueHit /*snoopAndVerify*/,
+          expectQueueHit /*expectRxPacket*/,
           skipTtlDecrement);
     };
     utility::sendPktAndVerifyCpuQueue(
@@ -296,7 +299,7 @@ class AgentCoppTest : public AgentHwTest {
     XLOG(DBG2) << "UDP packet Dump::"
                << folly::hexDump(
                       txPacket->buf()->data(), txPacket->buf()->length());
-    sendPkt(std::move(txPacket), outOfPort, expectPktTrap /*snoopAndVerify*/);
+    sendPkt(std::move(txPacket), outOfPort, expectPktTrap /*expectRxPacket*/);
   }
 
   void sendUdpPktAndVerify(
@@ -349,7 +352,7 @@ class AgentCoppTest : public AgentHwTest {
           dstMac ? *dstMac : intfMac,
           etherType,
           payload);
-      sendPkt(std::move(txPacket), true /*outOfPort*/, true /*snoopAndVerify*/);
+      sendPkt(std::move(txPacket), true /*outOfPort*/, true /*expectRxPacket*/);
     }
   }
 
@@ -429,7 +432,7 @@ class AgentCoppTest : public AgentHwTest {
           folly::IPAddress("1.1.1.2"),
           dstIpAddress,
           arpType);
-      sendPkt(std::move(txPacket), outOfPort, true /*snoopAndVerify*/);
+      sendPkt(std::move(txPacket), outOfPort, true /*expectRxPacket*/);
     }
   }
 
@@ -468,7 +471,7 @@ class AgentCoppTest : public AgentHwTest {
       ICMPv6Type type,
       bool outOfPort,
       bool selfSolicit,
-      bool snoopAndVerify = true) {
+      bool expectRxPacket = true) {
     auto vlanId = utility::firstVlanID(getProgrammedState());
     auto intfMac = utility::getFirstInterfaceMac(getProgrammedState());
     auto neighborMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
@@ -490,7 +493,7 @@ class AgentCoppTest : public AgentHwTest {
                 intfMac, // my mac
                 neighborIp, // sender ip
                 folly::IPAddressV6("1::")); // sent to me
-      sendPkt(std::move(txPacket), outOfPort, snoopAndVerify);
+      sendPkt(std::move(txPacket), outOfPort, expectRxPacket);
     }
   }
 
@@ -502,7 +505,7 @@ class AgentCoppTest : public AgentHwTest {
       bool outOfPort = true,
       const int numPktsToSend = 1,
       const int expectedPktDelta = 1,
-      bool snoopAndVerify = true) {
+      bool expectRxPacket = true) {
     auto beforeOutPkts = utility::getQueueOutPacketsWithRetry(
         getSw(),
 
@@ -518,7 +521,7 @@ class AgentCoppTest : public AgentHwTest {
         ndpType,
         outOfPort,
         selfSolicit,
-        snoopAndVerify);
+        expectRxPacket);
     auto afterOutPkts = utility::getQueueOutPacketsWithRetry(
         getSw(),
 
@@ -610,7 +613,7 @@ class AgentCoppTest : public AgentHwTest {
                 DHCPv6Packet::DHCP6_SERVERAGENT_UDPPORT, // DstPort: 547
                 0 /* dscp */,
                 ttl); // sent to me
-      sendPkt(std::move(txPacket), outOfPort, true /* snoopAndVerify*/);
+      sendPkt(std::move(txPacket), outOfPort, true /* expectRxPacket*/);
     }
   }
 
@@ -1176,7 +1179,7 @@ TYPED_TEST(AgentCoppTest, NdpSolicitNeighbor) {
     XLOG(DBG2) << "verifying solicitation";
     // do not snoop when L2 is not supported, e.g. J3, where NDP packets goes
     // through L3 pipeline and might change ttl and dst mac
-    bool snoopAndVerify =
+    bool expectRxPacket =
         this->isSupportedOnAllAsics(HwAsic::Feature::BRIDGE_PORT_8021Q);
     this->sendPktAndVerifyNdpPacketsCpuQueue(
         utility::getCoppHighPriQueueId(utility::checkSameAndGetAsic(
@@ -1187,7 +1190,7 @@ TYPED_TEST(AgentCoppTest, NdpSolicitNeighbor) {
         false,
         1,
         1,
-        snoopAndVerify);
+        expectRxPacket);
   };
   this->verifyAcrossWarmBoots(setup, verify);
 }
