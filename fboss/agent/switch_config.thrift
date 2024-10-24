@@ -540,6 +540,7 @@ struct AclEntry {
 
   30: optional i32 vlanID;
 
+  /* 31-34 not to be used for SAI */
   31: optional list<string> udfGroups;
 
   32: optional byte roceOpcode;
@@ -597,6 +598,7 @@ struct AclTable {
   3: list<AclEntry> aclEntries = [];
   4: list<AclTableActionType> actionTypes = [];
   5: list<AclTableQualifier> qualifiers = [];
+  6: list<string> udfGroups = [];
 }
 
 enum AclStage {
