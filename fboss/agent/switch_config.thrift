@@ -1616,6 +1616,10 @@ const i16 DEFAULT_FLOWLET_TABLE_SIZE = 4096;
 const i64 DEFAULT_PORT_ID_RANGE_MIN = 0;
 const i64 DEFAULT_PORT_ID_RANGE_MAX = 2047;
 
+struct SystemPortRanges {
+  1: list<Range64> systemPortRanges;
+}
+
 struct SwitchInfo {
   1: SwitchType switchType;
   2: AsicType asicType;
@@ -1625,6 +1629,7 @@ struct SwitchInfo {
   5: optional Range64 systemPortRange;
   6: optional string switchMac;
   7: optional string connectionHandle;
+  8: SystemPortRanges systemPortRanges;
 }
 
 /*
@@ -1800,6 +1805,7 @@ struct DsfNode {
   // Offset from where to start local system port
   // ID allocation from
   12: optional i32 globalSystemPortOffset;
+  13: SystemPortRanges systemPortRanges;
 }
 
 /**
