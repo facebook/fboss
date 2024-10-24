@@ -1813,6 +1813,23 @@ std::shared_ptr<PortPgConfig> ThriftConfigApplier::createPortPg(
     pgCfg->setResumeOffsetBytes(*resumeOffsetBytes);
   }
   pgCfg->setBufferPoolName(*cfg->bufferPoolName());
+  if (const auto maxSharedXoffThresholdBytes =
+          cfg->maxSharedXoffThresholdBytes()) {
+    pgCfg->setMaxSharedXoffThresholdBytes(*maxSharedXoffThresholdBytes);
+  }
+  if (const auto minSharedXoffThresholdBytes =
+          cfg->minSharedXoffThresholdBytes()) {
+    pgCfg->setMinSharedXoffThresholdBytes(*minSharedXoffThresholdBytes);
+  }
+  if (const auto maxSramXoffThresholdBytes = cfg->maxSramXoffThresholdBytes()) {
+    pgCfg->setMaxSramXoffThresholdBytes(*maxSramXoffThresholdBytes);
+  }
+  if (const auto minSramXoffThresholdBytes = cfg->minSramXoffThresholdBytes()) {
+    pgCfg->setMinSramXoffThresholdBytes(*minSramXoffThresholdBytes);
+  }
+  if (const auto sramResumeOffsetBytes = cfg->sramResumeOffsetBytes()) {
+    pgCfg->setSramResumeOffsetBytes(*sramResumeOffsetBytes);
+  }
   return pgCfg;
 }
 
