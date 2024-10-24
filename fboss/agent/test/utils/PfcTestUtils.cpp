@@ -120,12 +120,10 @@ void setupBufferPoolConfig(
 }
 
 void setupPortPgConfig(
+    const facebook::fboss::AgentEnsemble* ensemble,
     std::map<std::string, std::vector<cfg::PortPgConfig>>& portPgConfigMap,
     const std::vector<int>& losslessPgIds,
-    int pgLimit,
-    int pgHeadroom,
-    std::optional<cfg::MMUScalingFactor> scalingFactor,
-    int resumeOffset) {
+    const PfcBufferParams& buffer) {
   std::vector<cfg::PortPgConfig> portPgConfigs;
   // create 2 pgs
   for (auto pgId : losslessPgIds) {
@@ -133,14 +131,26 @@ void setupPortPgConfig(
     pgConfig.id() = pgId;
     pgConfig.bufferPoolName() = "bufferNew";
     // provide atleast 1 cell worth of minLimit
-    pgConfig.minLimitBytes() = pgLimit;
+    pgConfig.minLimitBytes() = buffer.pgLimit;
     // set large enough headroom to avoid drop
-    pgConfig.headroomLimitBytes() = pgHeadroom;
+    pgConfig.headroomLimitBytes() = buffer.pgHeadroom;
     // resume offset
-    pgConfig.resumeOffsetBytes() = resumeOffset;
+    if (ensemble->getHwAsicTable()
+            ->getHwAsics()
+            .cbegin()
+            ->second->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO3) {
+      // Need to translate global config to shared thresholds
+      pgConfig.maxSharedXoffThresholdBytes() = buffer.globalShared;
+      pgConfig.minSharedXoffThresholdBytes() = buffer.globalShared;
+      // Set some default values for SRAM thresholds
+      pgConfig.maxSramXoffThresholdBytes() = 2048 * 16 * 256;
+      pgConfig.minSramXoffThresholdBytes() = 256 * 16 * 256;
+      pgConfig.sramResumeOffsetBytes() = 128 * 16 * 256;
+    }
+    pgConfig.resumeOffsetBytes() = buffer.resumeOffset;
     // set scaling factor
-    if (scalingFactor) {
-      pgConfig.scalingFactor() = *scalingFactor;
+    if (buffer.scalingFactor) {
+      pgConfig.scalingFactor() = *buffer.scalingFactor;
     }
     portPgConfigs.emplace_back(pgConfig);
   }
@@ -157,14 +167,14 @@ void setupPortPgConfig(
       pgConfig.id() = pgId;
       pgConfig.bufferPoolName() = "bufferNew";
       // provide atleast 1 cell worth of minLimit
-      pgConfig.minLimitBytes() = pgLimit;
+      pgConfig.minLimitBytes() = buffer.pgLimit;
       // headroom set 0 identifies lossy pgs
       pgConfig.headroomLimitBytes() = 0;
       // resume offset
-      pgConfig.resumeOffsetBytes() = resumeOffset;
+      pgConfig.resumeOffsetBytes() = buffer.resumeOffset;
       // set scaling factor
-      if (scalingFactor) {
-        pgConfig.scalingFactor() = *scalingFactor;
+      if (buffer.scalingFactor) {
+        pgConfig.scalingFactor() = *buffer.scalingFactor;
       }
       portPgConfigs.emplace_back(pgConfig);
     }
@@ -185,13 +195,7 @@ void setupPfcBuffers(
   setupPfc(ensemble, cfg, ports, tcToPgOverride);
 
   std::map<std::string, std::vector<cfg::PortPgConfig>> portPgConfigMap;
-  setupPortPgConfig(
-      portPgConfigMap,
-      losslessPgIds,
-      buffer.pgLimit,
-      buffer.pgHeadroom,
-      buffer.scalingFactor,
-      buffer.resumeOffset);
+  setupPortPgConfig(ensemble, portPgConfigMap, losslessPgIds, buffer);
   cfg.portPgConfigs() = std::move(portPgConfigMap);
 
   // create buffer pool
