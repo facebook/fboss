@@ -316,8 +316,6 @@ cpp_library(
         "commands/debug/facebook/bgp/add_network/CmdDebugBgpAddNetworkCommunity.h",
         "commands/debug/facebook/bgp/add_network/CmdDebugBgpAddNetworkLocalPref.h",
         "commands/debug/facebook/bgp/del_network/CmdDebugBgpDelNetwork.h",
-        "commands/debug/facebook/bgp/leak_trace/CmdDebugBgpLeakTraceEnd.h",
-        "commands/debug/facebook/bgp/leak_trace/CmdDebugBgpLeakTraceStart.h",
         "commands/debug/facebook/bgp/neighbors/CmdDebugBgpNeighbors.h",
         "commands/debug/facebook/bgp/neighbors/CmdDebugBgpNeighborsRestart.h",
         "commands/debug/facebook/bgp/neighbors/CmdDebugBgpNeighborsShutdown.h",
