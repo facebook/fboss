@@ -390,6 +390,9 @@ struct SwitchSettingsFields {
   42: Address.BinaryAddress icmpV4UnavailableSrcAddress;
   // Switch property of reachability group size, for the use of input balanced mode.
   43: optional i32 reachabilityGroupListSize;
+  // SRAM global thresholds to send PFC XOFF/XON
+  44: optional byte sramGlobalFreePercentXoffThreshold;
+  45: optional byte sramGlobalFreePercentXonThreshold;
 }
 
 struct RoutePrefix {

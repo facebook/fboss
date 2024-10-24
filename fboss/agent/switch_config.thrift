@@ -1691,6 +1691,12 @@ struct SwitchSettings {
   // When queue-per-host is enabled, MACs matching any OUI from this list could get any queue.
   17: list<string> metaMacOuis = [];
   18: optional bool needL2EntryForNeighbor;
+  // Once the SRAM free buffers fall below this threshold,
+  // specified as a percent of total SRAM buffers, send XOFF.
+  19: optional byte sramGlobalFreePercentXoffThreshold;
+  // Once the SRAM free buffers goes above this threshold,
+  // specified as a percent of total SRAM buffers, send XON.
+  20: optional byte sramGlobalFreePercentXonThreshold;
 }
 
 // Global buffer pool
