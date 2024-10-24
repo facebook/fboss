@@ -4454,6 +4454,30 @@ shared_ptr<SwitchSettings> ThriftConfigApplier::updateSwitchSettings(
     switchSettingsChange = true;
   }
 
+  std::optional<uint8_t> newSramGlobalFreePercentXoffThreshold;
+  if (cfg_->switchSettings()->sramGlobalFreePercentXoffThreshold()) {
+    newSramGlobalFreePercentXoffThreshold =
+        *cfg_->switchSettings()->sramGlobalFreePercentXoffThreshold();
+  }
+  if (newSramGlobalFreePercentXoffThreshold !=
+      origSwitchSettings->getSramGlobalFreePercentXoffThreshold()) {
+    newSwitchSettings->setSramGlobalFreePercentXoffThreshold(
+        newSramGlobalFreePercentXoffThreshold);
+    switchSettingsChange = true;
+  }
+
+  std::optional<uint8_t> newSramGlobalFreePercentXonThreshold;
+  if (cfg_->switchSettings()->sramGlobalFreePercentXonThreshold()) {
+    newSramGlobalFreePercentXonThreshold =
+        *cfg_->switchSettings()->sramGlobalFreePercentXonThreshold();
+  }
+  if (newSramGlobalFreePercentXonThreshold !=
+      origSwitchSettings->getSramGlobalFreePercentXonThreshold()) {
+    newSwitchSettings->setSramGlobalFreePercentXonThreshold(
+        newSramGlobalFreePercentXonThreshold);
+    switchSettingsChange = true;
+  }
+
   if (origSwitchSettings->getSwitchDrainState() !=
       *cfg_->switchSettings()->switchDrainState()) {
     auto numVoqSwtitches =
