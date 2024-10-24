@@ -156,7 +156,7 @@ struct ChildInvoke {
 
 template <
     typename TType,
-    typename Derived = ThriftStructResolver<TType>,
+    typename Derived = ThriftStructResolver<TType, false>,
     bool EnableHybridStorage = false>
 struct ThriftStructFields : public FieldBaseType {
   using Self = ThriftStructFields<TType, Derived, EnableHybridStorage>;
@@ -169,7 +169,8 @@ struct ThriftStructFields : public FieldBaseType {
   using Members = typename Info::members;
 
   // Extracting useful common types out of each member via Traits.h
-  using MemberTypes = fatal::transform<Members, ExtractStructFields<Derived>>;
+  using MemberTypes = fatal::
+      transform<Members, ExtractStructFields<Derived, EnableHybridStorage>>;
 
   // type list of members with SkipThriftCow enabled
   using MemberTypesWithSkipThriftCow =
@@ -422,7 +423,7 @@ struct ThriftStructFields : public FieldBaseType {
 
 template <
     typename TType,
-    typename Resolver = ThriftStructResolver<TType>,
+    typename Resolver = ThriftStructResolver<TType, false>,
     bool EnableHybridStorage = false>
 class ThriftStructNode : public NodeBaseT<
                              typename Resolver::type,

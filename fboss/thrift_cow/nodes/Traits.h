@@ -16,11 +16,14 @@
 
 namespace facebook::fboss::thrift_cow {
 
-template <typename TType>
+template <typename TType, bool EnableHybridStorage = false>
 struct ThriftStructResolver {
   // if resolver is not specialized for given thrift type, default to
   // ThriftStructNode
-  using type = ThriftStructNode<TType, ThriftStructResolver<TType>, false>;
+  using type = ThriftStructNode<
+      TType,
+      ThriftStructResolver<TType, EnableHybridStorage>,
+      EnableHybridStorage>;
 };
 
 template <typename Traits>
@@ -167,7 +170,7 @@ struct read_annotation_allow_skip_thrift_cow<
       fatal_true>::value;
 };
 
-template <typename Derived, typename Member>
+template <typename Derived, typename Member, bool EnableHybridStorage = false>
 struct StructMemberTraits {
   using member = Member;
   using traits = StructMemberTraits<Derived, Member>;
@@ -177,7 +180,7 @@ struct StructMemberTraits {
 
   // read member annotations
   using member_annotations = typename Member::annotations;
-  static constexpr bool allowSkipThriftCow =
+  static constexpr bool allowSkipThriftCow = EnableHybridStorage &&
       read_annotation_allow_skip_thrift_cow<member_annotations>::value;
 
   // need to resolve here
@@ -186,7 +189,7 @@ struct StructMemberTraits {
       typename std::shared_ptr<ThriftHybridNode<tc, ttype>>,
       typename ConvertToNodeTraits<tc, ttype>::type>;
   using isChild = std::conditional_t<
-      read_annotation_allow_skip_thrift_cow<member_annotations>::value,
+      allowSkipThriftCow,
       std::false_type,
       typename ConvertToNodeTraits<tc, ttype>::isChild>;
 
@@ -197,10 +200,10 @@ struct StructMemberTraits {
       default_type>;
 };
 
-template <typename Derived>
+template <typename Derived, bool EnableHybridStorage = false>
 struct ExtractStructFields {
   template <typename T>
-  using apply = StructMemberTraits<Derived, T>;
+  using apply = StructMemberTraits<Derived, T, EnableHybridStorage>;
 };
 
 template <typename Member>

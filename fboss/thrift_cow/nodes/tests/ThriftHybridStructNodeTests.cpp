@@ -67,7 +67,7 @@ void thriftStructNodeAnnotations() {
   {
     ThriftStructFields<
         TestStruct,
-        ThriftStructResolver<TestStruct>,
+        ThriftStructResolver<TestStruct, EnableHybridStorage>,
         EnableHybridStorage>
         fields;
 
@@ -81,7 +81,7 @@ void thriftStructNodeAnnotations() {
   {
     ThriftStructNode<
         TestStruct,
-        ThriftStructResolver<TestStruct>,
+        ThriftStructResolver<TestStruct, EnableHybridStorage>,
         EnableHybridStorage>
         node;
 
@@ -108,7 +108,7 @@ template <bool EnableHybridStorage>
 void testHybridNodeTypes() {
   ThriftStructNode<
       TestStruct,
-      ThriftStructResolver<TestStruct>,
+      ThriftStructResolver<TestStruct, EnableHybridStorage>,
       EnableHybridStorage>
       node;
   // cow member
@@ -121,8 +121,14 @@ void testHybridNodeTypes() {
   using underlying_type =
       folly::remove_cvref_t<decltype(*valHybrid)>::ThriftType;
   static_assert(std::is_same_v<underlying_type, std::map<int, bool>>);
-  using ref_type = folly::remove_cvref_t<decltype(valHybrid->ref())>;
-  static_assert(std::is_same_v<ref_type, std::map<int, bool>>);
+  static_assert(
+      std::is_same_v<
+          typename decltype(valHybrid)::element_type::CowType,
+          HybridNodeType> == EnableHybridStorage);
+  if constexpr (EnableHybridStorage) {
+    using ref_type = folly::remove_cvref_t<decltype(valHybrid->ref())>;
+    static_assert(std::is_same_v<ref_type, std::map<int, bool>>);
+  }
 #endif // __ENABLE_HYBRID_THRIFT_COW_TESTS__
 }
 
@@ -135,7 +141,7 @@ template <bool EnableHybridStorage>
 void thriftStructFieldsHybridMemberGetSet() {
   ThriftStructFields<
       TestStruct,
-      ThriftStructResolver<TestStruct>,
+      ThriftStructResolver<TestStruct, EnableHybridStorage>,
       EnableHybridStorage>
       fields;
 
@@ -153,9 +159,15 @@ void thriftStructFieldsHybridMemberGetSet() {
 #ifdef __ENABLE_HYBRID_THRIFT_COW_TESTS__
   fields.template set<k::hybridMap>(*data);
   auto valHybrid = fields.template get<k::hybridMap>();
-  ASSERT_EQ(valHybrid->cref().size(), 2);
-  ASSERT_EQ(valHybrid->cref().at(1), false);
-  ASSERT_EQ(valHybrid->cref().at(2), true);
+  static_assert(
+      std::is_same_v<
+          typename decltype(valHybrid)::element_type::CowType,
+          HybridNodeType> == EnableHybridStorage);
+  if constexpr (EnableHybridStorage) {
+    ASSERT_EQ(valHybrid->cref().size(), 2);
+    ASSERT_EQ(valHybrid->cref().at(1), false);
+    ASSERT_EQ(valHybrid->cref().at(2), true);
+  }
 #endif // __ENABLE_HYBRID_THRIFT_COW_TESTS__
 }
 
@@ -172,7 +184,7 @@ template <bool EnableHybridStorage>
 void thriftStructFieldsHybridMemberToFromThrift() {
   ThriftStructFields<
       TestStruct,
-      ThriftStructResolver<TestStruct>,
+      ThriftStructResolver<TestStruct, EnableHybridStorage>,
       EnableHybridStorage>
       fields;
 
@@ -200,7 +212,7 @@ template <bool EnableHybridStorage>
 void thriftStructNodeHybridMemberToFromThrift() {
   ThriftStructNode<
       TestStruct,
-      ThriftStructResolver<TestStruct>,
+      ThriftStructResolver<TestStruct, EnableHybridStorage>,
       EnableHybridStorage>
       node;
 
@@ -228,7 +240,7 @@ template <bool EnableHybridStorage>
 void testHybridNodeMemberTypes() {
   ThriftStructNode<
       TestStruct,
-      ThriftStructResolver<TestStruct>,
+      ThriftStructResolver<TestStruct, EnableHybridStorage>,
       EnableHybridStorage>
       node;
 
@@ -240,8 +252,14 @@ void testHybridNodeMemberTypes() {
   using underlying_type_l =
       folly::remove_cvref_t<decltype(*v_list)>::ThriftType;
   static_assert(std::is_same_v<underlying_type_l, std::vector<int>>);
-  using ref_type_l = folly::remove_cvref_t<decltype(v_list->ref())>;
-  static_assert(std::is_same_v<ref_type_l, std::vector<int>>);
+  static_assert(
+      std::is_same_v<
+          typename decltype(v_list)::element_type::CowType,
+          HybridNodeType> == EnableHybridStorage);
+  if constexpr (EnableHybridStorage) {
+    using ref_type_l = folly::remove_cvref_t<decltype(v_list->ref())>;
+    static_assert(std::is_same_v<ref_type_l, std::vector<int>>);
+  }
 
   // set
   ASSERT_EQ(
@@ -250,8 +268,14 @@ void testHybridNodeMemberTypes() {
   auto v_set = node.template get<k::hybridSet>();
   using underlying_type_s = folly::remove_cvref_t<decltype(*v_set)>::ThriftType;
   static_assert(std::is_same_v<underlying_type_s, std::set<int>>);
-  using ref_type_s = folly::remove_cvref_t<decltype(v_set->ref())>;
-  static_assert(std::is_same_v<ref_type_s, std::set<int>>);
+  static_assert(
+      std::is_same_v<
+          typename decltype(v_set)::element_type::CowType,
+          HybridNodeType> == EnableHybridStorage);
+  if constexpr (EnableHybridStorage) {
+    using ref_type_s = folly::remove_cvref_t<decltype(v_set->ref())>;
+    static_assert(std::is_same_v<ref_type_s, std::set<int>>);
+  }
 
   // union
   ASSERT_EQ(
@@ -261,9 +285,14 @@ void testHybridNodeMemberTypes() {
   using underlying_type_u =
       folly::remove_cvref_t<decltype(*v_union)>::ThriftType;
   static_assert(std::is_same_v<underlying_type_u, TestUnion>);
-  using ref_type_u = folly::remove_cvref_t<decltype(v_union->ref())>;
-  static_assert(std::is_same_v<ref_type_u, TestUnion>);
-
+  static_assert(
+      std::is_same_v<
+          typename decltype(v_union)::element_type::CowType,
+          HybridNodeType> == EnableHybridStorage);
+  if constexpr (EnableHybridStorage) {
+    using ref_type_u = folly::remove_cvref_t<decltype(v_union->ref())>;
+    static_assert(std::is_same_v<ref_type_u, TestUnion>);
+  }
   // child struct
   ASSERT_EQ(
       node.template isSkipThriftCowEnabled<k::hybridStruct>(),
@@ -272,8 +301,14 @@ void testHybridNodeMemberTypes() {
   using underlying_type_c =
       folly::remove_cvref_t<decltype(*v_struct)>::ThriftType;
   static_assert(std::is_same_v<underlying_type_c, ChildStruct>);
-  using ref_type_c = folly::remove_cvref_t<decltype(v_struct->ref())>;
-  static_assert(std::is_same_v<ref_type_c, ChildStruct>);
+  static_assert(
+      std::is_same_v<
+          typename decltype(v_struct)::element_type::CowType,
+          HybridNodeType> == EnableHybridStorage);
+  if constexpr (EnableHybridStorage) {
+    using ref_type_c = folly::remove_cvref_t<decltype(v_struct->ref())>;
+    static_assert(std::is_same_v<ref_type_c, ChildStruct>);
+  }
 }
 
 TYPED_TEST_P(ThriftHybridStructNodeTestSuite, TestHybridNodeMemberTypes) {

@@ -89,7 +89,10 @@ TEST(PathVisitorTests, AccessField) {
 TEST(PathVisitorTests, HybridMapPrimitiveAccess) {
   auto structA = createHybridMapTestStruct();
 
-  auto nodeA = std::make_shared<ThriftStructNode<TestStruct>>(structA);
+  auto nodeA = std::make_shared<ThriftStructNode<
+      TestStruct,
+      ThriftStructResolver<TestStruct, true>,
+      true>>(structA);
   folly::dynamic dyn;
   auto processPath = pvlambda([&dyn](auto& node, auto begin, auto end) {
     EXPECT_EQ(begin, end);
@@ -131,7 +134,10 @@ TEST(PathVisitorTests, HybridMapPrimitiveAccess) {
 TEST(PathVisitorTests, HybridMapStructAccess) {
   auto structA = createHybridMapTestStruct();
 
-  auto nodeA = std::make_shared<ThriftStructNode<TestStruct>>(structA);
+  auto nodeA = std::make_shared<ThriftStructNode<
+      TestStruct,
+      ThriftStructResolver<TestStruct, true>,
+      true>>(structA);
   folly::dynamic dyn;
   auto processPath = pvlambda([&dyn](auto& node, auto begin, auto end) {
     EXPECT_EQ(begin, end);
@@ -184,7 +190,10 @@ TEST(PathVisitorTests, HybridMapStructAccess) {
 TEST(PathVisitorTests, HybridMapOfMapAccess) {
   auto structA = createHybridMapTestStruct();
 
-  auto nodeA = std::make_shared<ThriftStructNode<TestStruct>>(structA);
+  auto nodeA = std::make_shared<ThriftStructNode<
+      TestStruct,
+      ThriftStructResolver<TestStruct, true>,
+      true>>(structA);
   folly::dynamic dyn;
   auto processPath = pvlambda([&dyn](auto& node, auto begin, auto end) {
     EXPECT_EQ(begin, end);
