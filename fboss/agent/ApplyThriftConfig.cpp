@@ -1310,6 +1310,12 @@ std::shared_ptr<DsfNodeMap> ThriftConfigApplier::updateDsfNodes() {
   bool changed = false;
   for (const auto& idAndNode : *newNodes) {
     auto newNode = idAndNode.second;
+    if (newNode->isInterfaceNode() &&
+        (!newNode->getLocalSystemPortOffset().has_value() ||
+         !newNode->getGlobalSystemPortOffset().has_value())) {
+      throw FbossError(
+          "Local/Global system port offsets must be set for interface nodes");
+    }
     auto origNode = origNodes->getNodeIf(newNode->getID());
     if (!origNode || *origNode != *newNode) {
       changed |= true;

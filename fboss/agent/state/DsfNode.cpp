@@ -114,6 +114,10 @@ bool DsfNode::isLevel2FabricNode() const {
   return fabricLevel.has_value() && fabricLevel.value() == 2;
 }
 
+bool DsfNode::isInterfaceNode() const {
+  return getType() == cfg::DsfNodeType::INTERFACE_NODE;
+}
+
 std::optional<int> DsfNode::getLocalSystemPortOffset() const {
   std::optional<int> ret;
   if (get<switch_config_tags::localSystemPortOffset>().has_value()) {

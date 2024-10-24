@@ -48,6 +48,7 @@ class DsfNode : public ThriftStructNode<DsfNode, cfg::DsfNode> {
   void setGlobalSystemPortOffset(std::optional<int> val);
   std::optional<int> getFabricLevel() const;
   bool isLevel2FabricNode() const;
+  bool isInterfaceNode() const;
 
  private:
   // Inherit the constructors required for clone()
