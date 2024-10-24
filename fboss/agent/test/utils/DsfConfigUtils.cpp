@@ -71,12 +71,10 @@ std::optional<std::map<int64_t, cfg::DsfNode>> addRemoteIntfNodeCfg(
     systemPortRange.minimum() = systemPortMin;
     systemPortRange.maximum() =
         systemPortMin + getPerNodeSysPorts(*asic, remoteSwitchId) - 1;
+    cfg::SystemPortRanges ranges;
+    ranges.systemPortRanges()->push_back(systemPortRange);
     auto remoteDsfNodeCfg = dsfNodeConfig(
-        *asic,
-        SwitchID(remoteSwitchId),
-        systemPortMin,
-        *systemPortRange.maximum(),
-        *firstDsfNode.platformType());
+        *asic, SwitchID(remoteSwitchId), ranges, *firstDsfNode.platformType());
     dsfNodes.insert({remoteSwitchId, remoteDsfNodeCfg});
     systemPortMin = *systemPortRange.maximum() + 1;
   }

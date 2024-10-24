@@ -367,8 +367,7 @@ void securePortsInConfig(
 cfg::DsfNode dsfNodeConfig(
     const HwAsic& myAsic,
     int64_t otherSwitchId,
-    std::optional<int> systemPortMin,
-    std::optional<int> systemPortMax,
+    cfg::SystemPortRanges sysPortRanges,
     const std::optional<PlatformType> platformType) {
   auto createAsic = [&](const HwAsic& fromAsic, int64_t switchId)
       -> std::pair<std::shared_ptr<HwAsic>, PlatformType> {
@@ -380,12 +379,16 @@ cfg::DsfNode dsfNodeConfig(
       auto blockSize = (*fromAsicSystemPortRange->maximum() -
                         *fromAsicSystemPortRange->minimum() + 1) /
           numCores;
-      range.minimum() = systemPortMin.has_value()
-          ? kSysPortOffset + systemPortMin.value()
-          : kSysPortOffset + switchId * blockSize;
-      range.maximum() = systemPortMax.has_value()
-          ? kSysPortOffset + systemPortMax.value()
-          : *range.minimum() + numCores * blockSize - 1;
+      if (sysPortRanges.systemPortRanges()->size()) {
+        CHECK_EQ(sysPortRanges.systemPortRanges()->size(), 1)
+            << " Multiple sys port ranges per node are not supported yet in tests (TODO)";
+        auto firstRange = *sysPortRanges.systemPortRanges()->begin();
+        range.minimum() = kSysPortOffset + *firstRange.minimum();
+        range.maximum() = kSysPortOffset + *firstRange.maximum();
+      } else {
+        range.minimum() = kSysPortOffset + switchId * blockSize;
+        range.maximum() = *range.minimum() + numCores * blockSize - 1;
+      }
       systemPortRange = range;
     }
     auto localMac = utility::kLocalCpuMac();
@@ -452,6 +455,8 @@ cfg::DsfNode dsfNodeConfig(
       dsfNode.type() = cfg::DsfNodeType::INTERFACE_NODE;
       CHECK(otherAsic->getSystemPortRange().has_value());
       dsfNode.systemPortRange() = *otherAsic->getSystemPortRange();
+      dsfNode.systemPortRanges()->systemPortRanges()->push_back(
+          dsfNode.systemPortRange().value());
       dsfNode.nodeMac() = kLocalCpuMac().toString();
       dsfNode.loopbackIps() = getLoopbackIps(SwitchID(*dsfNode.switchId()));
       dsfNode.localSystemPortOffset() = *dsfNode.systemPortRange()->minimum();
@@ -884,11 +889,7 @@ void populateSwitchInfo(
       newDsfNodes.insert(
           {switchId,
            dsfNodeConfig(
-               *hwAsic,
-               switchId,
-               std::nullopt /*systemPortMin*/,
-               std::nullopt /*systemPortMax*/,
-               platformType)});
+               *hwAsic, switchId, cfg::SystemPortRanges(), platformType)});
     }
   }
   config.switchSettings()->switchIdToSwitchInfo() = newSwitchIdToSwitchInfo;
