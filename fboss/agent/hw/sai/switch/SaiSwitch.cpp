@@ -1337,6 +1337,26 @@ void SaiSwitch::processSwitchSettingsChangeSansDrainedEntryLocked(
           newVal.has_value() ? newVal.value() : 0);
     }
   }
+
+  {
+    const auto oldSramGlobalXoffTh =
+        oldSwitchSettings->getSramGlobalFreePercentXoffThreshold();
+    const auto newSramGlobalXoffTh =
+        newSwitchSettings->getSramGlobalFreePercentXoffThreshold();
+    if (oldSramGlobalXoffTh != newSramGlobalXoffTh) {
+      managerTable_->switchManager().setSramGlobalFreePercentXoffTh(
+          newSramGlobalXoffTh.value_or(0));
+    }
+
+    const auto oldSramGlobalXonTh =
+        oldSwitchSettings->getSramGlobalFreePercentXonThreshold();
+    const auto newSramGlobalXonTh =
+        newSwitchSettings->getSramGlobalFreePercentXonThreshold();
+    if (oldSramGlobalXonTh != newSramGlobalXonTh) {
+      managerTable_->switchManager().setSramGlobalFreePercentXonTh(
+          newSramGlobalXonTh.value_or(0));
+    }
+  }
 }
 
 template <typename LockPolicyT>

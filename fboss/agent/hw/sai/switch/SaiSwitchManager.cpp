@@ -1008,4 +1008,22 @@ void SaiSwitchManager::setReachabilityGroupList(int reachabilityGroupListSize) {
   }
 #endif
 }
+
+void SaiSwitchManager::setSramGlobalFreePercentXoffTh(
+    uint8_t sramFreePercentXoffThreshold) {
+#if defined(SAI_VERSION_11_3_0_0_DNX_ODP)
+  switch_->setOptionalAttribute(
+      SaiSwitchTraits::Attributes::SramFreePercentXoffTh{
+          sramFreePercentXoffThreshold});
+#endif
+}
+
+void SaiSwitchManager::setSramGlobalFreePercentXonTh(
+    uint8_t sramFreePercentXonThreshold) {
+#if defined(SAI_VERSION_11_3_0_0_DNX_ODP)
+  switch_->setOptionalAttribute(
+      SaiSwitchTraits::Attributes::SramFreePercentXonTh{
+          sramFreePercentXonThreshold});
+#endif
+}
 } // namespace facebook::fboss
