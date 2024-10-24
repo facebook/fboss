@@ -31,6 +31,22 @@ void DsfNode::setName(const std::string& name) {
   set<switch_config_tags::name>(name);
 }
 
+void DsfNode::setLocalSystemPortOffset(std::optional<int> val) {
+  if (val.has_value()) {
+    set<switch_config_tags::localSystemPortOffset>(val.value());
+  } else {
+    remove<switch_config_tags::localSystemPortOffset>();
+  }
+}
+
+void DsfNode::setGlobalSystemPortOffset(std::optional<int> val) {
+  if (val.has_value()) {
+    set<switch_config_tags::globalSystemPortOffset>(val.value());
+  } else {
+    remove<switch_config_tags::globalSystemPortOffset>();
+  }
+}
+
 cfg::DsfNodeType DsfNode::getType() const {
   return get<switch_config_tags::type>()->cref();
 }

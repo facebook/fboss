@@ -251,3 +251,19 @@ TEST(DSFNode, loopackIpsSorted) {
       });
   EXPECT_EQ(loopbacksSorted, dsfNode->getLoopbackIpsSorted());
 }
+
+TEST(DsfNode, localGlobalSysPortOffset) {
+  auto dsfNode = makeDsfNode();
+  EXPECT_TRUE(dsfNode->getLocalSystemPortOffset().has_value());
+  EXPECT_TRUE(dsfNode->getGlobalSystemPortOffset().has_value());
+  dsfNode->setGlobalSystemPortOffset(std::nullopt);
+  dsfNode->setLocalSystemPortOffset(std::nullopt);
+  EXPECT_FALSE(dsfNode->getLocalSystemPortOffset().has_value());
+  EXPECT_FALSE(dsfNode->getGlobalSystemPortOffset().has_value());
+  dsfNode->setLocalSystemPortOffset(42);
+  dsfNode->setGlobalSystemPortOffset(43);
+  ASSERT_TRUE(dsfNode->getLocalSystemPortOffset().has_value());
+  EXPECT_EQ(dsfNode->getLocalSystemPortOffset().value(), 42);
+  ASSERT_TRUE(dsfNode->getGlobalSystemPortOffset().has_value());
+  EXPECT_EQ(dsfNode->getGlobalSystemPortOffset().value(), 43);
+}
