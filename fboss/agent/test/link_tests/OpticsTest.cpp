@@ -174,6 +174,14 @@ TEST_F(OpticsTest, verifyTxRxLatches) {
 
             auto& tcvrState = *tcvrInfoInfoItr->second.tcvrState();
             auto mediaInterface = tcvrState.moduleMediaInterface().value_or({});
+            ASSERT_EVENTUALLY_TRUE(
+                cachedHostLanes.find(portName) != cachedHostLanes.end())
+                << folly::sformat(
+                       "Port {} not found in cachedHostLanes", portName);
+            ASSERT_EVENTUALLY_TRUE(
+                cachedMediaLanes.find(portName) != cachedMediaLanes.end())
+                << folly::sformat(
+                       "Port {} not found in cachedMediaLanes", portName);
             auto& hostLanes = cachedHostLanes.at(portName);
             auto& mediaLanes = cachedMediaLanes.at(portName);
             auto& hostLaneSignals = *tcvrState.hostLaneSignals();

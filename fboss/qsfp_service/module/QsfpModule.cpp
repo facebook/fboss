@@ -1419,7 +1419,17 @@ bool QsfpModule::readyTransceiver() {
       // Check the transceiver power configuration state and then return
       // accordingly. This function's implementation is dependent on optics
       // type (Cmis, Sff etc)
-      return ensureTransceiverReadyLocked();
+      if (ensureTransceiverReadyLocked()) {
+        // After the transceiver is ready, update the cache with the latest
+        // data. Some modules report inconsistent data while the module is not
+        // ready, which fails the subsequent calls to program transceiver. Thus
+        // ensure that the cache is updated for all the subsequent operations
+        QSFP_LOG(INFO, this) << "Transceiver is ready, updating cache";
+        updateQsfpData(false);
+        return true;
+      } else {
+        return false;
+      }
     } else {
       // If module is not present then don't block state machine transition
       // and return true
