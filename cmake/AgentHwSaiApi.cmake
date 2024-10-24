@@ -112,12 +112,12 @@ elseif (SAI_BRCM_IMPL)
   message(STATUS "Found SAI_INCLUDE_DIR: ${SAI_INCLUDE_DIR}")
 elseif (CHENAB_SAI_SDK)
   list(APPEND SAI_API_SRC
-    fboss/agent/hw/sai/api/chenab/PortApi.cpp
-    fboss/agent/hw/sai/api/chenab/TamApi.cpp
-    fboss/agent/hw/sai/api/chenab/SwitchApi.cpp
-    fboss/agent/hw/sai/api/chenab/DebugCounterApi.cpp
-    fboss/agent/hw/sai/api/chenab/BufferApi.cpp
-    fboss/agent/hw/sai/api/chenab/QueueApi.cpp
+    fboss/agent/hw/sai/api/oss/PortApi.cpp
+    fboss/agent/hw/sai/api/oss/TamApi.cpp
+    fboss/agent/hw/sai/api/oss/SwitchApi.cpp
+    fboss/agent/hw/sai/api/oss/DebugCounterApi.cpp
+    fboss/agent/hw/sai/api/oss/BufferApi.cpp
+    fboss/agent/hw/sai/api/oss/QueueApi.cpp
   )
 
   find_path(SAI_IMPL_DIR NAMES lib/libsai_impl.a)
