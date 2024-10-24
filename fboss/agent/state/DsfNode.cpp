@@ -85,6 +85,19 @@ std::optional<int> DsfNode::getClusterId() const {
   return clusterId;
 }
 
+std::optional<int> DsfNode::getFabricLevel() const {
+  std::optional<int> fabricLevel;
+  if (get<switch_config_tags::fabricLevel>().has_value()) {
+    fabricLevel = get<switch_config_tags::fabricLevel>()->cref();
+  }
+  return fabricLevel;
+}
+
+bool DsfNode::isLevel2FabricNode() const {
+  auto fabricLevel = getFabricLevel();
+  return fabricLevel.has_value() && fabricLevel.value() == 2;
+}
+
 std::optional<int> DsfNode::getLocalSystemPortOffset() const {
   std::optional<int> ret;
   if (get<switch_config_tags::localSystemPortOffset>().has_value()) {
