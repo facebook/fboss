@@ -1632,6 +1632,12 @@ struct SwitchInfo {
   6: optional string switchMac;
   7: optional string connectionHandle;
   8: SystemPortRanges systemPortRanges;
+  // Offset from where to start local system port
+  // ID allocation from
+  9: optional i32 localSystemPortOffset;
+  // Offset from where to start global system port
+  // ID allocation from
+  10: optional i32 globalSystemPortOffset;
 }
 
 /*
