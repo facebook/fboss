@@ -1471,6 +1471,10 @@ cfg::SwitchInfo createSwitchInfo(
     systemPortRange.minimum() = *sysPortMin;
     systemPortRange.maximum() = *sysPortMax;
     switchInfo.systemPortRange() = systemPortRange;
+    switchInfo.systemPortRanges()->systemPortRanges()->push_back(
+        systemPortRange);
+    switchInfo.localSystemPortOffset() = *sysPortMin;
+    switchInfo.globalSystemPortOffset() = *sysPortMin;
   }
   if (mac) {
     switchInfo.switchMac() = *mac;
