@@ -770,6 +770,12 @@ cfg::SwitchConfig genPortVlanCfg(
     }
     if (asic->getSystemPortRange().has_value()) {
       switchInfo.systemPortRange() = *asic->getSystemPortRange();
+      switchInfo.systemPortRanges()->systemPortRanges()->push_back(
+          *asic->getSystemPortRange());
+      switchInfo.localSystemPortOffset() =
+          *asic->getSystemPortRange()->minimum();
+      switchInfo.globalSystemPortOffset() =
+          *asic->getSystemPortRange()->minimum();
     }
     defaultSwitchIdToSwitchInfo.insert({SwitchID(switchId), switchInfo});
     populateSwitchInfo(
