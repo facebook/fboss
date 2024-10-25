@@ -11,7 +11,6 @@ cpp_library(
     headers = [
         "VisitorTestUtils.h",
     ],
-    preprocessor_flags = ["-D__ENABLE_HYBRID_THRIFT_COW_TESTS__"],
     exported_deps = [
         "//fboss/agent:switch_config-cpp2-reflection",
         "//fboss/thrift_cow/nodes/tests:test-cpp2-reflection",
@@ -26,10 +25,7 @@ cpp_unittest(
     srcs = [
         "PathVisitorTests.cpp",
     ],
-    preprocessor_flags = [
-        "-DENABLE_DYNAMIC_APIS",
-        "-D__ENABLE_HYBRID_THRIFT_COW_TESTS__",
-    ],
+    preprocessor_flags = ["-DENABLE_DYNAMIC_APIS"],
     deps = [
         "fbsource//third-party/googletest:gmock",
         ":visitor_test_utils",
@@ -70,10 +66,7 @@ cpp_unittest(
     srcs = [
         "DeltaVisitorTests.cpp",
     ],
-    preprocessor_flags = [
-        "-DENABLE_DYNAMIC_APIS",
-        "-D__ENABLE_HYBRID_THRIFT_COW_TESTS__",
-    ],
+    preprocessor_flags = ["-DENABLE_DYNAMIC_APIS"],
     deps = [
         "fbsource//third-party/googletest:gmock",
         ":visitor_test_utils",
@@ -92,10 +85,7 @@ cpp_unittest(
     srcs = [
         "RecurseVisitorTests.cpp",
     ],
-    preprocessor_flags = [
-        "-DENABLE_DYNAMIC_APIS",
-        "-D__ENABLE_HYBRID_THRIFT_COW_TESTS__",
-    ],
+    preprocessor_flags = ["-DENABLE_DYNAMIC_APIS"],
     deps = [
         "fbsource//third-party/googletest:gmock",
         "//fboss/thrift_cow/nodes:nodes",

@@ -85,7 +85,6 @@ TEST(PathVisitorTests, AccessField) {
   EXPECT_TRUE(dyn.asBool());
 }
 
-#ifdef __ENABLE_HYBRID_THRIFT_COW_TESTS__
 TEST(PathVisitorTests, HybridMapPrimitiveAccess) {
   auto structA = createHybridMapTestStruct();
 
@@ -257,7 +256,6 @@ TEST(PathVisitorTests, HybridMapOfMapAccess) {
             "/", "/10/20", "/20", "/hybridMapOfMap/10/20"}));
   }
 }
-#endif // __ENABLE_HYBRID_THRIFT_COW_TESTS__
 
 TEST(PathVisitorTests, AccessFieldInContainer) {
   auto structA = createSimpleTestStruct();

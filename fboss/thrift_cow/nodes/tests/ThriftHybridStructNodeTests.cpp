@@ -44,17 +44,15 @@ TYPED_TEST_SUITE_P(ThriftHybridStructNodeTestSuite);
 
 template <bool EnableHybridStorage>
 void readThriftStructAnnotation() {
-#ifdef __ENABLE_HYBRID_THRIFT_COW_TESTS__
-  static_assert(
-      is_allow_skip_thrift_cow<TestStruct, EnableHybridStorage>::value ==
-      EnableHybridStorage);
-#endif // __ENABLE_HYBRID_THRIFT_COW_TESTS__
   static_assert(
       is_allow_skip_thrift_cow<ParentTestStruct, EnableHybridStorage>::value ==
       false);
   static_assert(
       is_allow_skip_thrift_cow<TestStruct2, EnableHybridStorage>::value ==
       false);
+  static_assert(
+      is_allow_skip_thrift_cow<TestStruct3, EnableHybridStorage>::value ==
+      EnableHybridStorage);
 }
 
 TYPED_TEST_P(ThriftHybridStructNodeTestSuite, ReadThriftStructAnnotation) {
@@ -71,11 +69,9 @@ void thriftStructNodeAnnotations() {
         EnableHybridStorage>
         fields;
 
-#ifdef __ENABLE_HYBRID_THRIFT_COW_TESTS__
     static_assert(
         fields.template isSkipThriftCowEnabled<k::hybridMap>() ==
         EnableHybridStorage);
-#endif // __ENABLE_HYBRID_THRIFT_COW_TESTS__
     static_assert(fields.template isSkipThriftCowEnabled<k::cowMap>() == false);
   }
   {
@@ -85,11 +81,9 @@ void thriftStructNodeAnnotations() {
         EnableHybridStorage>
         node;
 
-#ifdef __ENABLE_HYBRID_THRIFT_COW_TESTS__
     ASSERT_EQ(
         node.template isSkipThriftCowEnabled<k::hybridMap>(),
         EnableHybridStorage);
-#endif // __ENABLE_HYBRID_THRIFT_COW_TESTS__
     ASSERT_EQ(node.template isSkipThriftCowEnabled<k::cowMap>(), false);
   }
   // annotation that is other than `allow_skip_thrift_cow`
@@ -116,7 +110,6 @@ void testHybridNodeTypes() {
   using underlying_type = folly::remove_cvref_t<decltype(*val)>::ThriftType;
   static_assert(std::is_same_v<underlying_type, std::map<int, bool>>);
   // hybrid member
-#ifdef __ENABLE_HYBRID_THRIFT_COW_TESTS__
   auto valHybrid = node.template get<k::hybridMap>();
   using underlying_type =
       folly::remove_cvref_t<decltype(*valHybrid)>::ThriftType;
@@ -129,7 +122,6 @@ void testHybridNodeTypes() {
     using ref_type = folly::remove_cvref_t<decltype(valHybrid->ref())>;
     static_assert(std::is_same_v<ref_type, std::map<int, bool>>);
   }
-#endif // __ENABLE_HYBRID_THRIFT_COW_TESTS__
 }
 
 TYPED_TEST_P(ThriftHybridStructNodeTestSuite, TestHybridNodeTypes) {
@@ -156,7 +148,6 @@ void thriftStructFieldsHybridMemberGetSet() {
   ASSERT_EQ(val->at(1), false);
   ASSERT_EQ(val->at(2), true);
   // hybrid member
-#ifdef __ENABLE_HYBRID_THRIFT_COW_TESTS__
   fields.template set<k::hybridMap>(*data);
   auto valHybrid = fields.template get<k::hybridMap>();
   static_assert(
@@ -168,7 +159,6 @@ void thriftStructFieldsHybridMemberGetSet() {
     ASSERT_EQ(valHybrid->cref().at(1), false);
     ASSERT_EQ(valHybrid->cref().at(2), true);
   }
-#endif // __ENABLE_HYBRID_THRIFT_COW_TESTS__
 }
 
 TYPED_TEST_P(
@@ -177,8 +167,6 @@ TYPED_TEST_P(
   thriftStructFieldsHybridMemberGetSet<false>();
   thriftStructFieldsHybridMemberGetSet<true>();
 }
-
-#ifdef __ENABLE_HYBRID_THRIFT_COW_TESTS__
 
 template <bool EnableHybridStorage>
 void thriftStructFieldsHybridMemberToFromThrift() {
@@ -315,8 +303,6 @@ TYPED_TEST_P(ThriftHybridStructNodeTestSuite, TestHybridNodeMemberTypes) {
   testHybridNodeMemberTypes<false>();
   testHybridNodeMemberTypes<true>();
 }
-
-#endif // __ENABLE_HYBRID_THRIFT_COW_TESTS__
 
 using EnableHybridStorageTypes = testing::Types<bool>;
 

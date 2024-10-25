@@ -71,7 +71,7 @@ struct TestStruct {
     allow_skip_thrift_cow = true,
   );
   33: map<i32, map<i32, i32>> hybridMapOfMap (allow_skip_thrift_cow = true);
-} (allow_skip_thrift_cow = true)
+}
 
 struct ParentTestStruct {
   1: TestStruct childStruct;
@@ -80,3 +80,7 @@ struct ParentTestStruct {
 struct TestStruct2 {
   10: i32 deprecatedField (deprecated);
 } (deprecated, allow_skip_thrift_cow = false)
+
+struct TestStruct3 {
+  1: i32 inlineInt;
+} (allow_skip_thrift_cow)

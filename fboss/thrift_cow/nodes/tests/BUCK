@@ -22,10 +22,7 @@ cpp_unittest(
     srcs = [
         "ThriftHybridStructNodeTests.cpp",
     ],
-    preprocessor_flags = [
-        "-DENABLE_DYNAMIC_APIS",
-        "-D__ENABLE_HYBRID_THRIFT_COW_TESTS__",
-    ],
+    preprocessor_flags = ["-DENABLE_DYNAMIC_APIS"],
     supports_static_listing = False,
     deps = [
         ":test-cpp2-reflection",
@@ -49,10 +46,7 @@ cpp_unittest(
         "ThriftStructNodeTests.cpp",
         "ThriftUnionNodeTests.cpp",
     ],
-    preprocessor_flags = [
-        "-DENABLE_DYNAMIC_APIS",
-        "-D__ENABLE_HYBRID_THRIFT_COW_TESTS__",
-    ],
+    preprocessor_flags = ["-DENABLE_DYNAMIC_APIS"],
     supports_static_listing = False,
     deps = [
         ":test-cpp2-reflection",
