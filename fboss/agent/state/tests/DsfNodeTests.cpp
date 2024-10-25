@@ -267,3 +267,10 @@ TEST(DsfNode, localGlobalSysPortOffset) {
   ASSERT_TRUE(dsfNode->getGlobalSystemPortOffset().has_value());
   EXPECT_EQ(dsfNode->getGlobalSystemPortOffset().value(), 43);
 }
+
+TEST(DsfNode, systemPortRanges) {
+  auto dsfNode = makeDsfNode();
+  auto sysPortRanges = *dsfNode->getSystemPortRanges().systemPortRanges();
+  EXPECT_FALSE(sysPortRanges.empty());
+  EXPECT_EQ(sysPortRanges.size(), 1);
+}

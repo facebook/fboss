@@ -75,6 +75,11 @@ std::optional<cfg::Range64> DsfNode::getSystemPortRange() const {
   return sysPortRange;
 }
 
+cfg::SystemPortRanges DsfNode::getSystemPortRanges() const {
+  auto ranges = get<switch_config_tags::systemPortRanges>()->toThrift();
+  return ranges;
+}
+
 std::optional<folly::MacAddress> DsfNode::getMac() const {
   std::optional<folly::MacAddress> mac;
   if (get<switch_config_tags::nodeMac>().has_value()) {
