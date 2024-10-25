@@ -18,6 +18,14 @@ namespace facebook::fboss {
 
 MacTableManager::MacTableManager(SwSwitch* sw) : sw_(sw) {}
 
+bool MacTableManager::isHwUpdateProtected() {
+  // this API return true if the platform supports hw protection
+  // for this we are using transactionsSupported() API
+  // and return true for SAI switches. MAC protection uses transactions
+  // support in HW switch which is available only in SAI switches
+  return sw_->getHwSwitchHandler()->transactionsSupported();
+}
+
 void MacTableManager::handleL2LearningUpdate(
     L2Entry l2Entry,
     L2EntryUpdateType l2EntryUpdateType) {

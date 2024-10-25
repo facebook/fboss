@@ -22,6 +22,7 @@ class MacTableManager {
   void handleL2LearningUpdate(
       L2Entry l2Entry,
       L2EntryUpdateType l2EntryUpdateType);
+  bool isHwUpdateProtected();
 
  private:
   // Forbidden copy constructor and assignment operator
