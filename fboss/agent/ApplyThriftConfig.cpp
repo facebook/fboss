@@ -409,6 +409,9 @@ class ThriftConfigApplier {
       VlanOrIntfT* vlanOrIntf,
       const CfgVlanOrIntfT* config);
   std::shared_ptr<InterfaceMap> updateInterfaces();
+  std::shared_ptr<MultiSwitchInterfaceMap> updateRemoteInterfaces(
+      const std::shared_ptr<MultiSwitchInterfaceMap>& interfaces);
+
   shared_ptr<Interface> createInterface(
       const cfg::Interface* config,
       const Interface::Addresses& addrs);
@@ -641,6 +644,7 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
     if (newIntfs) {
       new_->resetIntfs(toMultiSwitchMap<MultiSwitchInterfaceMap>(
           std::move(newIntfs), *cfg_, scopeResolver_));
+      new_->resetRemoteIntfs(updateRemoteInterfaces(new_->getInterfaces()));
       changed = true;
     }
   }
@@ -3786,6 +3790,57 @@ std::shared_ptr<InterfaceMap> ThriftConfigApplier::updateInterfaces() {
   return std::make_shared<InterfaceMap>(std::move(newIntfs));
 }
 
+std::shared_ptr<MultiSwitchInterfaceMap>
+ThriftConfigApplier::updateRemoteInterfaces(
+    const std::shared_ptr<MultiSwitchInterfaceMap>& interfaces) {
+  if (scopeResolver_.hasVoq() &&
+      scopeResolver_.scope(cfg::SwitchType::VOQ).size() <= 1) {
+    // remote system ports are applicable only for voq switches
+    // remote system ports are updated on config only when more than voq
+    // switches are configured on a given SwSwitch
+    return orig_->getRemoteInterfaces();
+  }
+  auto remoteInterfaces = orig_->getRemoteInterfaces()->clone();
+
+  for (const auto& [matcher, interfaceMap] : std::as_const(*interfaces)) {
+    for (const auto& [intfID, intf] : std::as_const(*interfaceMap)) {
+      if (intf->getType() != cfg::InterfaceType::SYSTEM_PORT) {
+        continue;
+      }
+      auto remoteIntfScope = scopeResolver_.scope(cfg::SwitchType::VOQ);
+      remoteIntfScope.exclude(scopeResolver_.scope(intf, *cfg_).switchIds());
+      auto remoteIntf = std::make_shared<Interface>();
+      remoteIntf->fromThrift(intf->toThrift());
+      for (const auto& [ip, entry] : *remoteIntf->getArpTable()) {
+        entry->setIsLocal(false);
+      }
+      for (const auto& [ip, entry] : *remoteIntf->getNdpTable()) {
+        entry->setIsLocal(false);
+      }
+      if (remoteInterfaces->getNodeIf(intfID)) {
+        remoteInterfaces->updateNode(std::move(remoteIntf), remoteIntfScope);
+      } else {
+        remoteInterfaces->addNode(std::move(remoteIntf), remoteIntfScope);
+      }
+    }
+  }
+
+  // check for deleted interfaces
+  for (const auto& [matcher, interfaceMap] :
+       std::as_const(*orig_->getInterfaces())) {
+    for (const auto& [intfID, intf] : std::as_const(*interfaceMap)) {
+      if (intf->getType() != cfg::InterfaceType::SYSTEM_PORT) {
+        continue;
+      }
+      if (!interfaces->getNodeIf(intfID)) {
+        remoteInterfaces->removeNode(intfID);
+      }
+    }
+  }
+
+  return remoteInterfaces;
+}
+
 shared_ptr<Interface> ThriftConfigApplier::createInterface(
     const cfg::Interface* config,
     const Interface::Addresses& addrs) {
@@ -4260,8 +4315,9 @@ ThriftConfigApplier::updateMultiSwitchSettings() {
     auto origSwitchSettings =
         origMultiSwitchSettings->getNodeIf(matcher.matcherString());
 
-    // If origmultiSwitchSettings is already populated, and if config carries
-    // switchId that is not present in origMultiSwitchSettings, throw error
+    // If origmultiSwitchSettings is already populated, and if config
+    // carries switchId that is not present in origMultiSwitchSettings,
+    // throw error
     if (origMultiSwitchSettings->size() != 0) {
       if (!origSwitchSettings) {
         throw FbossError("SwitchId cannot be changed on the fly");
@@ -4422,8 +4478,8 @@ shared_ptr<SwitchSettings> ThriftConfigApplier::updateSwitchSettings(
   }
 
   // computeActualSwitchDrainState relies on minLinksToRemainInVOQDomain and
-  // minLinksToJoinVOQDomain. Thus, setting these fields must precede call to
-  // computeActualSwitchDrainState.
+  // minLinksToJoinVOQDomain. Thus, setting these fields must precede call
+  // to computeActualSwitchDrainState.
   std::optional<int32_t> newMinLinksToRemainInVOQDomain{std::nullopt};
   if (cfg_->switchSettings()->minLinksToRemainInVOQDomain()) {
     if (newSwitchSettings->getSwitchIdsOfType(cfg::SwitchType::VOQ).size() ==
@@ -4719,9 +4775,9 @@ shared_ptr<MultiControlPlane> ThriftConfigApplier::updateControlPlane() {
     }
   } else {
     /*
-     * if cpuTrafficPolicy is not configured default to dataPlaneTrafficPolicy
-     * default i.e. with regards to QoS map configuration, treat CPU port like
-     * any front panel port.
+     * if cpuTrafficPolicy is not configured default to
+     * dataPlaneTrafficPolicy default i.e. with regards to QoS map
+     * configuration, treat CPU port like any front panel port.
      */
     if (auto dataPlaneTrafficPolicy = cfg_->dataPlaneTrafficPolicy()) {
       if (auto defaultDataPlaneQosPolicy =
@@ -4836,9 +4892,9 @@ Interface::Addresses ThriftConfigApplier::getInterfaceAddresses(
     }
 
     // NOTE: We do not want to leak link-local address into intfRouteTables_
-    // TODO: For now we are allowing v4 LLs to be programmed because they are
-    // used within Galaxy for LL routing. This hack should go away once we
-    // move BGP sessions over non LL addresses
+    // TODO: For now we are allowing v4 LLs to be programmed because they
+    // are used within Galaxy for LL routing. This hack should go away once
+    // we move BGP sessions over non LL addresses
     if (intfAddr.first.isV6() and intfAddr.first.isLinkLocal()) {
       continue;
     }
@@ -4846,7 +4902,8 @@ Interface::Addresses ThriftConfigApplier::getInterfaceAddresses(
         IPAddress::createNetwork(addr),
         std::make_pair(InterfaceID(*config->intfID()), intfAddr.first));
     if (!ret2.second) {
-      // we get same network, only allow it if that is from the same interface
+      // we get same network, only allow it if that is from the same
+      // interface
       auto other = ret2.first->second.first;
       if (other != InterfaceID(*config->intfID())) {
         throw FbossError(
@@ -5414,8 +5471,8 @@ folly::MacAddress ThriftConfigApplier::getLocalMac(SwitchID switchId) const {
 void ThriftConfigApplier::addRemoteIntfRoute() {
   // In order to resolve ECMP members pointing to remote nexthops,
   // also treat remote Interfaces as directly connected route in rib.
-  // HwSwitch will point remote nextHops as dropped such that switch does not
-  // attract traffic for remote nexthops.
+  // HwSwitch will point remote nextHops as dropped such that switch does
+  // not attract traffic for remote nexthops.
   for (const auto& remoteInterfaceMap :
        std::as_const(*orig_->getRemoteInterfaces())) {
     for (const auto& [_, remoteInterface] :
