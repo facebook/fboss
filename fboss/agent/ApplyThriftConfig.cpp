@@ -21,7 +21,8 @@
 #include "fboss/agent/AclNexthopHandler.h"
 
 #include "fboss/agent/AgentFeatures.h"
-#include "fboss/agent/AsicUtils.h"
+
+#include "fboss/agent/DsfStateUpdaterUtil.h"
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/HwAsicTable.h"
 #include "fboss/agent/LacpTypes.h"
@@ -3811,12 +3812,13 @@ ThriftConfigApplier::updateRemoteInterfaces(
       remoteIntfScope.exclude(scopeResolver_.scope(intf, *cfg_).switchIds());
       auto remoteIntf = std::make_shared<Interface>();
       remoteIntf->fromThrift(intf->toThrift());
-      for (const auto& [ip, entry] : *remoteIntf->getArpTable()) {
-        entry->setIsLocal(false);
-      }
-      for (const auto& [ip, entry] : *remoteIntf->getNdpTable()) {
-        entry->setIsLocal(false);
-      }
+      auto oldRemoteInterface = remoteInterfaces->getNodeIf(intfID);
+      DsfStateUpdaterUtil::updateNeighborEntry(
+          oldRemoteInterface ? oldRemoteInterface->getArpTable() : nullptr,
+          remoteIntf->getArpTable());
+      DsfStateUpdaterUtil::updateNeighborEntry(
+          oldRemoteInterface ? oldRemoteInterface->getNdpTable() : nullptr,
+          remoteIntf->getNdpTable());
       if (remoteInterfaces->getNodeIf(intfID)) {
         remoteInterfaces->updateNode(std::move(remoteIntf), remoteIntfScope);
       } else {

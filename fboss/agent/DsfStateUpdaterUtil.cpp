@@ -70,8 +70,11 @@ void DsfStateUpdaterUtil::updateNeighborEntry(
           static_cast<int64_t>(std::time(nullptr)));
     } else {
       // Retain the resolved timestamp from the old entry.
-      nbrEntryIter->second->setResolvedSince(
-          oldTable->at(nbrEntryIter->second->getID())->getResolvedSince());
+      if (std::as_const(*oldTable).find(nbrEntryIter->second->getID()) !=
+          oldTable->cend()) {
+        nbrEntryIter->second->setResolvedSince(
+            oldTable->at(nbrEntryIter->second->getID())->getResolvedSince());
+      }
     }
   };
 

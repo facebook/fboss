@@ -57,6 +57,7 @@
 #include "fboss/agent/PhySnapshotManager.h"
 #include "fboss/agent/PortStats.h"
 #include "fboss/agent/PortUpdateHandler.h"
+#include "fboss/agent/RemoteNeighborUpdater.h"
 #include "fboss/agent/ResolvedNexthopMonitor.h"
 #include "fboss/agent/ResolvedNexthopProbeScheduler.h"
 #include "fboss/agent/RestartTimeTracker.h"
@@ -429,6 +430,7 @@ SwSwitch::SwSwitch(
       routeUpdateLogger_(new RouteUpdateLogger(this)),
       resolvedNexthopMonitor_(new ResolvedNexthopMonitor(this)),
       resolvedNexthopProbeScheduler_(new ResolvedNexthopProbeScheduler(this)),
+      remoteNeighborUpdater_(new RemoteNeighborUpdater(this)),
       portUpdateHandler_(new PortUpdateHandler(this)),
       lookupClassUpdater_(new LookupClassUpdater(this)),
       lookupClassRouteUpdater_(new LookupClassRouteUpdater(this)),
@@ -541,6 +543,7 @@ void SwSwitch::stop(bool isGracefulStop, bool revertToMinAlpmState) {
 
   resolvedNexthopMonitor_.reset();
   resolvedNexthopProbeScheduler_.reset();
+  remoteNeighborUpdater_.reset();
   // Several member variables are performing operations in the background
   // thread.  Ask them to stop, before we shut down the background thread.
   //

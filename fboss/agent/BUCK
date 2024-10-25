@@ -572,7 +572,6 @@ cpp_library(
     srcs = ["ApplyThriftConfig.cpp"],
     exported_deps = [
         ":agent_features",
-        ":asic_utils",
         ":core",
         ":fboss-error",
         ":hw_asic_table",
@@ -664,6 +663,7 @@ cpp_library(
         "NeighborUpdaterImpl.cpp",
         "NeighborUpdaterNoopImpl.cpp",
         "PortUpdateHandler.cpp",
+        "RemoteNeighborUpdater.cpp",
         "ResolvedNexthopMonitor.cpp",
         "ResolvedNexthopProbe.cpp",
         "ResolvedNexthopProbeScheduler.cpp",

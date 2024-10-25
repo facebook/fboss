@@ -6,6 +6,13 @@
 #include <folly/dynamic.h>
 #include <gtest/gtest.h>
 
+namespace {
+const auto kInterfaceID = facebook::fboss::InterfaceID(101);
+const auto kSystemPortID = facebook::fboss::SystemPortID(101);
+const auto kIpV6Address = folly::IPAddressV6("201::10");
+const auto kIpV4Address = folly::IPAddressV4("200.0.0.10");
+} // namespace
+
 namespace facebook::fboss {
 
 class RemoteSystemInterfaceTest : public ::testing::Test {
@@ -119,4 +126,44 @@ TEST_F(RemoteSystemInterfaceTest, ReConfigureSystemPortInterfaces) {
   EXPECT_EQ(newRemoteSystemIntfs->getNodeIf(InterfaceID(101)), nullptr);
 }
 
+TEST_F(RemoteSystemInterfaceTest, verifyNeighborEntries) {
+  sw_->updateStateBlocking(
+      "Add Ndp Entry", [=](const std::shared_ptr<SwitchState>& state) {
+        auto newState = state->clone();
+        auto interfaces = newState->getInterfaces()->modify(&newState);
+        auto intf = interfaces->getNodeIf(kInterfaceID);
+        auto ndpTable = intf->getNdpTable()->modify(kInterfaceID, &newState);
+        ndpTable->addEntry(
+            kIpV6Address,
+            MacAddress("00:02:00:00:00:01"),
+            PortDescriptor(kSystemPortID),
+            kInterfaceID);
+        return newState;
+      });
+  sw_->updateStateBlocking(
+      "Add Arp Entry", [=](const std::shared_ptr<SwitchState>& state) {
+        auto newState = state->clone();
+        auto interfaces = newState->getInterfaces()->modify(&newState);
+        auto intf = interfaces->getNodeIf(kInterfaceID);
+        auto arpTable = intf->getArpTable()->modify(kInterfaceID, &newState);
+        arpTable->addEntry(
+            kIpV4Address,
+            MacAddress("00:02:00:00:00:01"),
+            PortDescriptor(kSystemPortID),
+            kInterfaceID);
+        return newState;
+      });
+  waitForStateUpdates(sw_);
+  waitForStateUpdates(sw_);
+  auto remoteIntfs = sw_->getState()->getRemoteInterfaces()->getMapNodeIf(
+      HwSwitchMatcher(std::unordered_set<SwitchID>{SwitchID(2)}));
+  auto remoteIntf = remoteIntfs->getNodeIf(kInterfaceID);
+  EXPECT_NE(remoteIntf, nullptr);
+  auto ndpEntry = remoteIntf->getNdpTable()->getEntry(kIpV6Address);
+  EXPECT_NE(ndpEntry, nullptr);
+  EXPECT_FALSE(ndpEntry->getIsLocal());
+  auto arpEntry = remoteIntf->getArpTable()->getEntry(kIpV4Address);
+  EXPECT_NE(arpEntry, nullptr);
+  EXPECT_FALSE(arpEntry->getIsLocal());
+}
 } // namespace facebook::fboss
