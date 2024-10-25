@@ -921,11 +921,11 @@ InterfaceID getRecyclePortIntfID(
   auto dsfNode = state->getDsfNodes()->getNodeIf(switchId);
   CHECK(dsfNode);
 
-  auto systemPortRange = dsfNode->getSystemPortRange();
-  CHECK(systemPortRange.has_value());
+  auto globalSystemPortOffset = dsfNode->getGlobalSystemPortOffset();
+  CHECK(globalSystemPortOffset.has_value());
 
   auto recyclePortId =
-      InterfaceID(*systemPortRange.value().minimum() + kRecyclePortIdOffset);
+      InterfaceID(*globalSystemPortOffset + kRecyclePortIdOffset);
 
   return recyclePortId;
 }
