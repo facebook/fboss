@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 3.8)
 
+include(functions.cmake)
+
 option(WITH_ASAN "Turn ON address sanitizer build options" OFF)
 if ($ENV{WITH_ASAN})
   message(STATUS "ENV WITH_ASAN is set")
