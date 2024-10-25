@@ -250,15 +250,18 @@ class AgentVoqSwitchTest : public AgentHwTest {
     return txPacketSize;
   }
 
-  SystemPortID getSystemPortID(const PortDescriptor& port) {
+  SystemPortID getSystemPortID(
+      const PortDescriptor& port,
+      cfg::Scope portScope) {
     auto switchId =
         scopeResolver().scope(getProgrammedState(), port).switchId();
-    auto sysPortRange = getProgrammedState()
-                            ->getDsfNodes()
-                            ->getNodeIf(switchId)
-                            ->getSystemPortRange();
-    CHECK(sysPortRange.has_value());
-    return SystemPortID(port.intID() + *sysPortRange->minimum());
+    const auto& dsfNode =
+        getProgrammedState()->getDsfNodes()->getNodeIf(switchId);
+    auto sysPortOffset = portScope == cfg::Scope::GLOBAL
+        ? dsfNode->getGlobalSystemPortOffset()
+        : dsfNode->getLocalSystemPortOffset();
+    CHECK(sysPortOffset.has_value());
+    return SystemPortID(port.intID() + *sysPortOffset);
   }
 
   std::string kDscpAclName() const {
@@ -1056,7 +1059,7 @@ TEST_F(AgentVoqSwitchTest, sendPacketCpuAndFrontPanel) {
             getLatestPortStats(kPort.phyPortID()).get_queueOutBytes_());
       };
       auto getAllVoQOutBytes = [kPort, this]() {
-        return getLatestSysPortStats(getSystemPortID(kPort))
+        return getLatestSysPortStats(getSystemPortID(kPort, cfg::Scope::GLOBAL))
             .get_queueOutBytes_();
       };
       auto getAclPackets = [this]() {
@@ -1478,7 +1481,7 @@ TEST_F(AgentVoqSwitchTest, verifyQueueLatencyWatermark) {
     utility::setPortTx(getAgentEnsemble(), kPort.phyPortID(), true);
     WITH_RETRIES({
       auto queueLatencyWatermarkNsec =
-          *getLatestSysPortStats(getSystemPortID(kPort))
+          *getLatestSysPortStats(getSystemPortID(kPort, cfg::Scope::GLOBAL))
                .queueLatencyWatermarkNsec_();
       XLOG(DBG2) << "Port: " << kPort.phyPortID() << " voq queueId: " << queueId
                  << " latency watermark: " << queueLatencyWatermarkNsec[queueId]
@@ -2093,7 +2096,7 @@ class AgentVoqSwitchFullScaleDsfNodesTest : public AgentVoqSwitchTest {
   // Resolve and return list of local nhops (only NIF ports)
   std::vector<PortDescriptor> resolveLocalNhops(
       utility::EcmpSetupTargetedPorts6& ecmpHelper) {
-    std::vector<PortDescriptor> portDescs = getLocalSysPortDesc();
+    std::vector<PortDescriptor> portDescs = getInterfacePortSysPortDesc();
 
     applyNewState([&](const std::shared_ptr<SwitchState>& in) {
       auto out = in->clone();
@@ -2141,7 +2144,7 @@ class AgentVoqSwitchFullScaleDsfNodesTest : public AgentVoqSwitchTest {
     return sysPortDescs;
   }
 
-  std::vector<PortDescriptor> getLocalSysPortDesc() {
+  std::vector<PortDescriptor> getInterfacePortSysPortDesc() {
     auto ports = getProgrammedState()->getPorts()->getAllNodes();
     std::vector<PortDescriptor> portDescs;
     std::for_each(
@@ -2150,8 +2153,8 @@ class AgentVoqSwitchFullScaleDsfNodesTest : public AgentVoqSwitchTest {
         [this, &portDescs](const auto& idAndPort) {
           const auto port = idAndPort.second;
           if (port->getPortType() == cfg::PortType::INTERFACE_PORT) {
-            portDescs.push_back(
-                PortDescriptor(getSystemPortID(PortDescriptor(port->getID()))));
+            portDescs.push_back(PortDescriptor(getSystemPortID(
+                PortDescriptor(port->getID()), cfg::Scope::GLOBAL)));
           }
         });
     return portDescs;
@@ -2287,7 +2290,7 @@ TEST_F(AgentVoqSwitchFullScaleDsfNodesTest, remoteAndLocalLoadBalance) {
   auto verify = [&]() {
     std::vector<PortDescriptor> sysPortDescs;
     auto remoteSysPortDescs = getRemoteSysPortDesc();
-    auto localSysPortDescs = getLocalSysPortDesc();
+    auto localSysPortDescs = getInterfacePortSysPortDesc();
 
     sysPortDescs.insert(
         sysPortDescs.end(),
