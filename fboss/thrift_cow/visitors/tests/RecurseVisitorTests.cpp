@@ -57,7 +57,7 @@ struct TestParams {
   static constexpr auto hybridStorage = EnableHybridStorage;
 };
 
-using StorageTestTypes = ::testing::Types<TestParams<true>>;
+using StorageTestTypes = ::testing::Types<TestParams<false>, TestParams<true>>;
 
 template <typename TestParams>
 class RecurseVisitorTests : public ::testing::Test {
@@ -67,7 +67,7 @@ class RecurseVisitorTests : public ::testing::Test {
     using RootType = std::remove_cvref_t<decltype(val)>;
     return std::make_shared<ThriftStructNode<
         RootType,
-        ThriftStructResolver<RootType>,
+        ThriftStructResolver<RootType, TestParams::hybridStorage>,
         TestParams::hybridStorage>>(val);
   }
   bool isHybridStorage() {
