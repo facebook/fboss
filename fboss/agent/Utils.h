@@ -421,7 +421,7 @@ uint32_t getRemotePortOffset(const PlatformType platformType);
 
 std::string runShellCmd(const std::string& cmd);
 
-InterfaceID getRecyclePortIntfID(
+InterfaceID getInbandPortIntfID(
     const std::shared_ptr<SwitchState>& state,
     const SwitchID& switchId);
 

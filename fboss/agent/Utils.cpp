@@ -915,12 +915,13 @@ std::string runShellCmd(const std::string& cmd) {
   return result;
 }
 
-InterfaceID getRecyclePortIntfID(
+InterfaceID getInbandPortIntfID(
     const std::shared_ptr<SwitchState>& state,
     const SwitchID& switchId) {
   auto dsfNode = state->getDsfNodes()->getNodeIf(switchId);
   CHECK(dsfNode);
 
+  // Inband port is of Global scope by definition
   auto globalSystemPortOffset = dsfNode->getGlobalSystemPortOffset();
   CHECK(globalSystemPortOffset.has_value());
 
