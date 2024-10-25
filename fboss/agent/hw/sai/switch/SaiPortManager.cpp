@@ -2928,25 +2928,18 @@ void SaiPortManager::changeZeroPreemphasis(
 #else
       // Brcm enforces main tap to be greater than all attributes.
       // Hence set other attributes first, and then set main to zero.
-      auto setTxRxAttr = [](auto& attrs, auto type, const auto& val) {
-        auto& attr =
-            std::get<std::optional<std::decay_t<decltype(type)>>>(attrs);
-        if (!val.empty()) {
-          attr = val;
-        }
-      };
-
       auto nonZeroMainAttribute = serDesAttributes;
       auto txMain =
           std::get<std::optional<SaiPortSerdesTraits::Attributes::TxFirMain>>(
-              serDesAttributes);
+              portHandle->serdes->attributes());
       if (txMain.has_value()) {
-        setTxRxAttr(
-            nonZeroMainAttribute,
-            SaiPortSerdesTraits::Attributes::TxFirMain{},
-            txMain.value().value());
-        portHandle->serdes->setAttributes(nonZeroMainAttribute);
+        std::get<std::optional<SaiPortSerdesTraits::Attributes::TxFirMain>>(
+            nonZeroMainAttribute) = txMain.value().value();
+      } else {
+        std::get<std::optional<SaiPortSerdesTraits::Attributes::TxFirMain>>(
+            nonZeroMainAttribute) = std::nullopt;
       }
+      portHandle->serdes->setAttributes(nonZeroMainAttribute);
       portHandle->serdes->setAttributes(serDesAttributes);
 #endif
     }
