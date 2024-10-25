@@ -34,7 +34,6 @@ template <typename TestParams>
 class DeltaVisitorTests : public ::testing::Test {
  public:
   auto initNode(auto val) {
-    auto constexpr isHybridStorage = TestParams::hybridStorage;
     using RootType = std::remove_cvref_t<decltype(val)>;
     return std::make_shared<ThriftStructNode<
         RootType,
