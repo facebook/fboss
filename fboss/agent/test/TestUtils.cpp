@@ -69,6 +69,7 @@ using namespace facebook::fboss;
 namespace {
 
 constexpr auto kSysPortRangeMin = 1000;
+constexpr auto kSingleStageInbandPortId = 1;
 
 void initSwSwitchWithFlags(SwSwitch* sw, SwitchFlags flags) {
   if (flags & SwitchFlags::ENABLE_TUN) {
@@ -498,6 +499,7 @@ cfg::DsfNode makeDsfNodeCfg(
     dsfNodeCfg.localSystemPortOffset() = *sysPortRange.minimum();
     dsfNodeCfg.globalSystemPortOffset() = *sysPortRange.minimum();
     dsfNodeCfg.systemPortRanges()->systemPortRanges()->push_back(sysPortRange);
+    dsfNodeCfg.inbandPortId() = kSingleStageInbandPortId;
   }
   dsfNodeCfg.asicType() = asicType;
   dsfNodeCfg.platformType() = type == cfg::DsfNodeType::INTERFACE_NODE
@@ -1475,6 +1477,9 @@ cfg::SwitchInfo createSwitchInfo(
         systemPortRange);
     switchInfo.localSystemPortOffset() = *sysPortMin;
     switchInfo.globalSystemPortOffset() = *sysPortMin;
+  }
+  if (switchType == cfg::SwitchType::VOQ) {
+    switchInfo.inbandPortId() = kSingleStageInbandPortId;
   }
   if (mac) {
     switchInfo.switchMac() = *mac;
