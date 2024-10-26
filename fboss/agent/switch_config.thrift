@@ -1638,6 +1638,11 @@ struct SwitchInfo {
   // Offset from where to start global system port
   // ID allocation from
   10: optional i32 globalSystemPortOffset;
+  // Inband port ID - port used by this DSF node
+  // for inband communication. This must be known
+  // as part of config for other nodes to bootstrap
+  // communication to this node
+  11: optional i32 inbandPortId;
 }
 
 /*
@@ -1820,6 +1825,11 @@ struct DsfNode {
   // ID allocation from
   12: optional i32 globalSystemPortOffset;
   13: SystemPortRanges systemPortRanges;
+  // Inband port ID - port used by this DSF node
+  // for inband communication. This must be known
+  // as part of config for other nodes to bootstrap
+  // communication to this node
+  14: optional i32 inbandPortId;
 }
 
 /**
