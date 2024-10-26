@@ -183,6 +183,26 @@ class FakeAclEntry {
   sai_uint8_t fieldIpv6NextHeaderData;
   sai_uint8_t fieldIpv6NextHeaderMask;
 
+  bool userDefinedFieldGroupMinEnable{false};
+  std::vector<sai_uint8_t> userDefinedFieldGroupMinData;
+  std::vector<sai_uint8_t> userDefinedFieldGroupMinMask;
+
+  bool userDefinedFieldGroupMin1Enable{false};
+  std::vector<sai_uint8_t> userDefinedFieldGroupMin1Data;
+  std::vector<sai_uint8_t> userDefinedFieldGroupMin1Mask;
+
+  bool userDefinedFieldGroupMin2Enable{false};
+  std::vector<sai_uint8_t> userDefinedFieldGroupMin2Data;
+  std::vector<sai_uint8_t> userDefinedFieldGroupMin2Mask;
+
+  bool userDefinedFieldGroupMin3Enable{false};
+  std::vector<sai_uint8_t> userDefinedFieldGroupMin3Data;
+  std::vector<sai_uint8_t> userDefinedFieldGroupMin3Mask;
+
+  bool userDefinedFieldGroupMin4Enable{false};
+  std::vector<sai_uint8_t> userDefinedFieldGroupMin4Data;
+  std::vector<sai_uint8_t> userDefinedFieldGroupMin4Mask;
+
   bool actionPacketActionEnable{false};
   sai_uint32_t actionPacketActionData;
 
@@ -243,7 +263,12 @@ class FakeAclTable {
       bool fieldEthertype,
       bool fieldOuterVlanId,
       bool fieldBthOpcode,
-      bool fieldIpv6NextHeader)
+      bool fieldIpv6NextHeader,
+      sai_object_id_t userDefinedFieldGroupMin,
+      sai_object_id_t userDefinedFieldGroupMin1,
+      sai_object_id_t userDefinedFieldGroupMin2,
+      sai_object_id_t userDefinedFieldGroupMin3,
+      sai_object_id_t userDefinedFieldGroupMin4)
       : stage(stage),
         bindPointTypeList(bindPointTypeList),
         actionTypeList(actionTypeList),
@@ -272,7 +297,12 @@ class FakeAclTable {
         fieldEthertype(fieldEthertype),
         fieldOuterVlanId(fieldOuterVlanId),
         fieldBthOpcode(fieldBthOpcode),
-        fieldIpv6NextHeader(fieldIpv6NextHeader) {}
+        fieldIpv6NextHeader(fieldIpv6NextHeader),
+        userDefinedFieldGroupMin(userDefinedFieldGroupMin),
+        userDefinedFieldGroupMin1(userDefinedFieldGroupMin1),
+        userDefinedFieldGroupMin2(userDefinedFieldGroupMin2),
+        userDefinedFieldGroupMin3(userDefinedFieldGroupMin3),
+        userDefinedFieldGroupMin4(userDefinedFieldGroupMin4) {}
 
   bool entryFieldSupported(const sai_attribute_t& attr) const;
   static sai_acl_api_t* kApi();
@@ -308,6 +338,11 @@ class FakeAclTable {
   bool fieldOuterVlanId;
   bool fieldBthOpcode;
   bool fieldIpv6NextHeader;
+  sai_object_id_t userDefinedFieldGroupMin;
+  sai_object_id_t userDefinedFieldGroupMin1;
+  sai_object_id_t userDefinedFieldGroupMin2;
+  sai_object_id_t userDefinedFieldGroupMin3;
+  sai_object_id_t userDefinedFieldGroupMin4;
 };
 
 class FakeAclCounter {
