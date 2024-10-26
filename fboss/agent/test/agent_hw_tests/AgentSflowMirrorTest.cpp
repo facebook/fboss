@@ -45,30 +45,23 @@ class AgentSflowMirrorTest : public AgentHwTest {
     }
   }
 
-  cfg::SwitchConfig baseConfig(const AgentEnsemble& ensemble, bool enableMirror)
-      const {
+  cfg::SwitchConfig initialConfig(
+      const AgentEnsemble& ensemble) const override {
     auto cfg = utility::onePortPerInterfaceConfig(
         ensemble.getSw(),
         ensemble.masterLogicalPortIds(),
         true /*interfaceHasSubnet*/);
 
-    if (enableMirror) {
-      this->configureMirror(cfg);
-    }
     auto port0 = ensemble.masterLogicalPortIds()[0];
     auto port0Switch =
         ensemble.getSw()->getScopeResolver()->scope(port0).switchId();
     auto asic = ensemble.getSw()->getHwAsicTable()->getHwAsic(port0Switch);
     auto ports = getPortsForSampling(ensemble.masterLogicalPortIds(), asic);
+    this->configureMirror(cfg);
     if (asic->isSupported(HwAsic::Feature::EVENTOR_PORT_FOR_SFLOW)) {
       utility::addEventorVoqConfig(&cfg, cfg::StreamType::UNICAST);
     }
     return cfg;
-  }
-
-  cfg::SwitchConfig initialConfig(
-      const AgentEnsemble& ensemble) const override {
-    return baseConfig(ensemble, true /* enableMirror */);
   }
 
   void configureMirror(cfg::SwitchConfig& cfg, bool v4) const {
@@ -547,18 +540,16 @@ class AgentSflowMirrorWithLineRateTrafficTest
     : public AgentSflowMirrorTest<folly::IPAddressV6> {
  public:
   static const int kLosslessPriority{2};
-  cfg::SwitchConfig initialConfig(
-      const AgentEnsemble& ensemble) const override {
-    return baseConfig(ensemble, false /* enableMirror */);
-  }
   void testSflowEgressCongestion() {
     constexpr int kNumDataTrafficPorts{6};
-    auto baseSetup = [=, this]() {
+    auto setup = [=, this]() {
       auto allPorts = masterLogicalInterfacePortIds();
       std::vector<PortID> portIds(
           allPorts.begin(), allPorts.begin() + kNumDataTrafficPorts);
       std::vector<int> losslessPgIds = {kLosslessPriority};
       auto config = initialConfig(*getAgentEnsemble());
+      // Configure 1:1 sampling to ensure high rate on mirror egress port
+      configSampling(config, 1);
       // PFC buffer configurations to ensure we have lossless traffic
       const std::map<int, int> tcToPgOverride{};
       const utility::PfcBufferParams bufferParams{
@@ -572,23 +563,14 @@ class AgentSflowMirrorWithLineRateTrafficTest
           bufferParams);
       // Make sure that traffic is going to loop for ever!
       utility::setTTLZeroCpuConfig(getAgentEnsemble()->getL3Asics(), config);
-      return config;
-    };
-    auto setup = [=, this]() {
-      applyNewConfig(baseSetup());
+      applyNewConfig(config);
+      resolveRouteForMirrorDestination();
       utility::setupEcmpDataplaneLoopOnAllPorts(getAgentEnsemble());
       utility::createTrafficOnMultiplePorts(
           getAgentEnsemble(),
           kNumDataTrafficPorts,
           sendPacket,
           50 /*desiredPctLineRate*/);
-      // Now that we have line rate traffic, enable mirror
-      auto config = baseSetup();
-      this->configureMirror(config, false);
-      // Configure 1:1 sampling to ensure high rate on mirror egress port
-      configSampling(config, 1);
-      applyNewConfig(config);
-      resolveRouteForMirrorDestination();
     };
     auto verify = [=, this]() {
       verifySflowEgressPortNotStuck();
