@@ -34,9 +34,15 @@ void MacTableManager::handleL2LearningUpdate(
         return MacTableUtils::updateMacTable(state, l2Entry, l2EntryUpdateType);
       };
 
-  sw_->updateStateNoCoalescing(
-      folly::to<std::string>("Programming : ", l2Entry.str()),
-      std::move(updateMacTableFn));
+  if (isHwUpdateProtected()) {
+    sw_->updateStateWithHwFailureProtection(
+        folly::to<std::string>("Programming : ", l2Entry.str()),
+        std::move(updateMacTableFn));
+  } else {
+    sw_->updateStateNoCoalescing(
+        folly::to<std::string>("Programming : ", l2Entry.str()),
+        std::move(updateMacTableFn));
+  }
 }
 
 } // namespace facebook::fboss
