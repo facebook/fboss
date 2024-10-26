@@ -9,7 +9,9 @@
  */
 
 #include "fboss/agent/FbossHwUpdateError.h"
+#include "fboss/agent/MacTableManager.h"
 #include "fboss/agent/MacTableUtils.h"
+#include "fboss/agent/ResourceAccountant.h"
 #include "fboss/agent/TxPacket.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
@@ -40,10 +42,23 @@ using folly::IPAddress;
 using folly::IPAddressV4;
 using folly::IPAddressV6;
 
+// mac l2 entry limit is used to bypass resourceAccountant check
 DECLARE_int32(max_l2_entries);
 
 namespace {
+// this is for mac overflow test for TH3/TH4
+// setting max L2 entries to 8194 for TH3/TH4
+// Maximum theortical MAC/L2 scale is 8k for TH3/TH4.
+// MAC overflow test case is not supported in TH and Cisco gibralta,
+// as Cisco gibraltar(300K) and TH supports higher scale and exhausting
+// them will lead to large test time
+constexpr auto kL2MaxMacCount = 8194;
+// update switchState mac table with 7800 static entry, this should
+// return success. here sdk should be able to program 7800 MACs
+// without getting TABLE FULL error
+constexpr auto kBulkProgrammedMacCount = 7800;
 class L2Entry;
+class MacTableManager;
 
 // Even when running the same test repeatedly could result in different
 // learning counts based on hash insertion  order.
@@ -1193,46 +1208,106 @@ class AgentMacOverFlowTest : public AgentMacLearningBatchEntriesTest {
       const AgentEnsemble& ensemble) const override {
     auto cfg = AgentMacLearningTest::initialConfig(ensemble);
     cfg.switchSettings()->l2LearningMode() = cfg::L2LearningMode::SOFTWARE;
+
     // set mac l2 entry limit to 10000 to bypass resourceAccountant check
     FLAGS_max_l2_entries = 10000;
     return cfg;
   }
 
+  // adds L2 entries to mac table
+  void addMacsBulk(
+      const std::vector<L2Entry>& l2Entries,
+      L2EntryUpdateType l2EntryUpdateType) {
+    auto updateMacTableFn = [l2Entries, l2EntryUpdateType, this](
+                                const std::shared_ptr<SwitchState>& state) {
+      return updateMacTableBulk(state, l2Entries, l2EntryUpdateType);
+    };
+    getSw()->updateStateWithHwFailureProtection(
+        ("test MAC Programming : "), std::move(updateMacTableFn));
+  }
+
  protected:
-  void VerifyMacOverFlow(const std::vector<folly::MacAddress>& macs) {
-    WITH_RETRIES_N_TIMED(30, std::chrono::seconds(4), {
+  void VerifyMacOverFlow(const std::vector<L2Entry>& l2Entries) {
+    WITH_RETRIES({
       const auto& learntMacs =
           getMacsForPort(getSw(), masterLogicalPortIds()[0], false);
-      XLOG(DBG2) << "learntMacs.size() = " << learntMacs.size()
-                 << ", macs.size() = " << macs.size();
-      EXPECT_EVENTUALLY_TRUE(learntMacs.size() >= macs.size());
+      // check total macs programmed
+      EXPECT_EVENTUALLY_GE(learntMacs.size(), kBulkProgrammedMacCount);
+      EXPECT_EQ(getSw()->stats()->getMacTableUpdateFailure(), 0);
     });
+
+    for (int i = kBulkProgrammedMacCount; i < l2Entries.size(); i++) {
+      XLOG(DBG2) << "Adding i " << i << "MAC " << l2Entries[i].str();
+      getSw()->l2LearningUpdateReceived(
+          l2Entries[i], L2EntryUpdateType::L2_ENTRY_UPDATE_TYPE_ADD);
+      // as soon as we get hw failure, terminate the test and verify
+      // rollback
+      if (getSw()->stats()->getMacTableUpdateFailure()) {
+        XLOG(DBG2) << "MacTableUpdateFailure = "
+                   << getSw()->stats()->getMacTableUpdateFailure();
+        break;
+      }
+    }
+
+    const auto& learntMacs =
+        getMacsForPort(getSw(), masterLogicalPortIds()[0], false);
+    XLOG(DBG2) << "learntMacs.size() = " << learntMacs.size()
+               << ", macTableUpdateFailure = "
+               << getSw()->stats()->getMacTableUpdateFailure()
+               << ", l2Entries.size() = " << l2Entries.size();
+
+    EXPECT_GE(learntMacs.size(), kBulkProgrammedMacCount);
+    EXPECT_GT(getSw()->stats()->getMacTableUpdateFailure(), 0);
+  }
+
+  // generate L2Entries with macs
+  std::vector<L2Entry> generateL2Entries(
+      const std::vector<folly::MacAddress>& macs) {
+    std::vector<L2Entry> l2Entries;
+    const auto portDescr = physPortDescr();
+    VlanID vlanId =
+        (VlanID)*initialConfig(*getAgentEnsemble()).vlanPorts()[0].vlanID();
+
+    for (auto& mac : macs) {
+      l2Entries.push_back(L2Entry(
+          mac,
+          vlanId,
+          portDescr,
+          L2Entry::L2EntryType::L2_ENTRY_TYPE_VALIDATED));
+    }
+    return l2Entries;
+  }
+
+  // update mac table entries in switchState
+  std::shared_ptr<SwitchState> updateMacTableBulk(
+      const std::shared_ptr<SwitchState>& state,
+      const std::vector<L2Entry>& l2Entries,
+      L2EntryUpdateType l2EntryUpdateType) {
+    std::shared_ptr<SwitchState> newState{state};
+
+    for (int i = 0; i < kBulkProgrammedMacCount; i++) {
+      newState = MacTableUtils::updateMacTable(
+          newState, l2Entries[i], l2EntryUpdateType);
+    }
+    return newState;
   }
 };
 
 TEST_F(AgentMacOverFlowTest, VerifyMacUpdateOverFlow) {
-  std::vector<folly::MacAddress> macs = generateMacs(1000);
+  std::vector<folly::MacAddress> macs = generateMacs(kL2MaxMacCount);
   auto portDescr = physPortDescr();
+  auto l2Entries = generateL2Entries(macs);
   VlanID vlanId =
       (VlanID)*initialConfig(*getAgentEnsemble()).vlanPorts()[0].vlanID();
-  auto setup = [this, portDescr, vlanId, &macs]() {
+  auto setup = [this, portDescr, vlanId, &l2Entries]() {
     setupHelper(cfg::L2LearningMode::SOFTWARE, portDescr);
     // Disable aging, so entry stays in L2 table when we verify.
     utility::setMacAgeTimerSeconds(getAgentEnsemble(), 0);
-    int i = 0;
-    for (auto& mac : macs) {
-      i++;
-      XLOG(DBG2) << "Adding " << i << " : mac " << mac.toString();
-      auto l2Entry = L2Entry(
-          mac,
-          vlanId,
-          portDescr,
-          L2Entry::L2EntryType::L2_ENTRY_TYPE_VALIDATED);
-      getSw()->l2LearningUpdateReceived(
-          std::move(l2Entry), L2EntryUpdateType::L2_ENTRY_UPDATE_TYPE_ADD);
-    }
+    addMacsBulk(l2Entries, L2EntryUpdateType::L2_ENTRY_UPDATE_TYPE_ADD);
+    EXPECT_EQ(getSw()->stats()->getMacTableUpdateFailure(), 0);
   };
-  auto verify = [this, &macs]() { VerifyMacOverFlow(macs); };
+
+  auto verify = [this, &l2Entries]() { VerifyMacOverFlow(l2Entries); };
   // MACs learned should be preserved across warm boot
   verifyAcrossWarmBoots(setup, verify);
 }
