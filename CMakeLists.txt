@@ -76,6 +76,8 @@ option(CHENAB_SAI_SDK "Build SAI api with CHENAB-SAI extensions" OFF)
 if ($ENV{CHENAB_SAI_SDK})
   message(STATUS "ENV CHENAB_SAI_SDK is set")
   set (CHENAB_SAI_SDK ON)
+  link_directories(/var/FBOSS/sai_impl/lib)
+  link_directories(/var/FBOSS/sdk/usr/lib64)
 endif()
 
 option(BUILD_SAI_FAKE_LINK_TEST "Building of SAI Fake Link Test binaries" OFF)
