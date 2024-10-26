@@ -1325,6 +1325,9 @@ std::shared_ptr<DsfNodeMap> ThriftConfigApplier::updateDsfNodes() {
         throw FbossError(
             "System port range must be non-empty for interface nodes");
       }
+      if (!newNode->getInbandPortId().has_value()) {
+        throw FbossError("Inband port ID must be set for interface nodes");
+      }
     }
     auto origNode = origNodes->getNodeIf(newNode->getID());
     if (!origNode || *origNode != *newNode) {

@@ -47,6 +47,7 @@ class DsfNode : public ThriftStructNode<DsfNode, cfg::DsfNode> {
   std::optional<int> getClusterId() const;
   std::optional<int> getLocalSystemPortOffset() const;
   std::optional<int> getGlobalSystemPortOffset() const;
+  std::optional<int> getInbandPortId() const;
   void setLocalSystemPortOffset(std::optional<int> val);
   void setGlobalSystemPortOffset(std::optional<int> val);
   std::optional<int> getFabricLevel() const;

@@ -106,6 +106,14 @@ std::optional<int> DsfNode::getClusterId() const {
   return clusterId;
 }
 
+std::optional<int> DsfNode::getInbandPortId() const {
+  std::optional<int> inbandPortId;
+  if (get<switch_config_tags::inbandPortId>().has_value()) {
+    inbandPortId = get<switch_config_tags::inbandPortId>()->cref();
+  }
+  return inbandPortId;
+}
+
 std::optional<int> DsfNode::getFabricLevel() const {
   std::optional<int> fabricLevel;
   if (get<switch_config_tags::fabricLevel>().has_value()) {
