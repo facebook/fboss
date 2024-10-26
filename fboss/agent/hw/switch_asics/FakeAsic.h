@@ -213,5 +213,11 @@ class FakeAsic : public HwAsic {
   uint32_t getNumMemoryBuffers() const override {
     return 0;
   }
+  int getMidPriCpuQueueId() const override {
+    throw FbossError("Fake ASIC does not support cpu queue");
+  }
+  int getHiPriCpuQueueId() const override {
+    throw FbossError("Fake ASIC does not support cpu queue");
+  }
 };
 } // namespace facebook::fboss

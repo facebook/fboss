@@ -3,6 +3,11 @@
 #include "fboss/agent/hw/switch_asics/ChenabAsic.h"
 #include <thrift/lib/cpp/util/EnumUtils.h>
 
+namespace {
+static constexpr int kDefaultMidPriCpuQueueId = 2;
+static constexpr int kDefaultHiPriCpuQueueId = 7;
+} // namespace
+
 namespace facebook::fboss {
 
 bool ChenabAsic::isSupportedNonFabric(Feature feature) const {
@@ -341,5 +346,11 @@ uint32_t ChenabAsic::getStaticQueueLimitBytes() const {
 }
 uint32_t ChenabAsic::getNumMemoryBuffers() const {
   return 1;
+}
+int ChenabAsic::getMidPriCpuQueueId() const {
+  return kDefaultMidPriCpuQueueId;
+}
+int ChenabAsic::getHiPriCpuQueueId() const {
+  return kDefaultHiPriCpuQueueId;
 }
 } // namespace facebook::fboss

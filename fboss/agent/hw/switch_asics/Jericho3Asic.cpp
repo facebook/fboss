@@ -3,6 +3,11 @@
 #include "fboss/agent/hw/switch_asics/Jericho3Asic.h"
 #include <thrift/lib/cpp/util/EnumUtils.h>
 
+namespace {
+static constexpr int kDefaultMidPriCpuQueueId = 3;
+static constexpr int kDefaultHiPriCpuQueueId = 7;
+} // namespace
+
 namespace facebook::fboss {
 
 bool Jericho3Asic::isSupported(Feature feature) const {
@@ -353,5 +358,13 @@ std::vector<std::pair<int, int>> Jericho3Asic::getPortGroups() const {
     portGroups.push_back(std::make_pair(portGroupStart, portGroupEnd));
   }
   return portGroups;
+}
+
+int Jericho3Asic::getMidPriCpuQueueId() const {
+  return kDefaultMidPriCpuQueueId;
+}
+
+int Jericho3Asic::getHiPriCpuQueueId() const {
+  return kDefaultHiPriCpuQueueId;
 }
 } // namespace facebook::fboss

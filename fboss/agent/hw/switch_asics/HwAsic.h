@@ -410,6 +410,9 @@ class HwAsic {
     return 32;
   }
 
+  virtual int getMidPriCpuQueueId() const = 0;
+  virtual int getHiPriCpuQueueId() const = 0;
+
  protected:
   static cfg::Range64 makeRange(int64_t min, int64_t max);
 

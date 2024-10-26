@@ -4,6 +4,11 @@
 #include <thrift/lib/cpp/util/EnumUtils.h>
 #include "fboss/agent/AgentFeatures.h"
 
+namespace {
+static constexpr int kDefaultMidPriCpuQueueId = 3;
+static constexpr int kDefaultHiPriCpuQueueId = 7;
+} // namespace
+
 namespace facebook::fboss {
 
 bool Jericho2Asic::isSupported(Feature feature) const {
@@ -288,5 +293,13 @@ Jericho2Asic::desiredLoopbackModes() const {
       {cfg::PortType::FABRIC_PORT, cfg::PortLoopbackMode::MAC},
       {cfg::PortType::RECYCLE_PORT, cfg::PortLoopbackMode::NONE}};
   return kLoopbackMode;
+}
+
+int Jericho2Asic::getMidPriCpuQueueId() const {
+  return kDefaultMidPriCpuQueueId;
+}
+
+int Jericho2Asic::getHiPriCpuQueueId() const {
+  return kDefaultHiPriCpuQueueId;
 }
 } // namespace facebook::fboss

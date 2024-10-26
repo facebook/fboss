@@ -122,6 +122,8 @@ class Jericho2Asic : public BroadcomAsic {
   uint32_t getMaxHashSeedLength() const override {
     return 16;
   }
+  int getMidPriCpuQueueId() const override;
+  int getHiPriCpuQueueId() const override;
 };
 
 } // namespace facebook::fboss

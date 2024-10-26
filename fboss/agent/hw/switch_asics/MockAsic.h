@@ -207,6 +207,12 @@ class MockAsic : public HwAsic {
   uint32_t getNumMemoryBuffers() const override {
     return 0;
   }
+  int getMidPriCpuQueueId() const override {
+    throw FbossError("Mock ASIC does not support cpu queue");
+  }
+  int getHiPriCpuQueueId() const override {
+    throw FbossError("Mock ASIC does not support cpu queue");
+  }
 };
 
 } // namespace facebook::fboss
