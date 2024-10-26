@@ -2152,12 +2152,27 @@ void SaiSwitch::txReadyStatusChangeCallbackTopHalf(SwitchSaiId switchId) {
     return;
   }
 
-  txReadyStatusChangeBottomHalfEventBase_.runInFbossEventBaseThread(
-      [this]() mutable { txReadyStatusChangeCallbackBottomHalf(); });
+  // When txReadyStatusChangeCallbackBottomHalf runs, it queries for
+  // active/inactive link status of all the links at that time.
+  // Thus, if we txReadyStatusChangeCallbackBottomHalf is already queued for
+  // run, we can skip scheduling another.
+  // Note: txReadyStatusChangeCallbackBottomHalf sets changePending to false
+  // before querying link active/inactive status, so avoid race.
+  auto changePending = txReadyStatusChangePending_.wlock();
+  if (!(*changePending)) {
+    *changePending = true;
+    txReadyStatusChangeBottomHalfEventBase_.runInFbossEventBaseThread(
+        [this]() mutable { txReadyStatusChangeCallbackBottomHalf(); });
+  }
 }
 
 void SaiSwitch::txReadyStatusChangeCallbackBottomHalf() {
 #if SAI_API_VERSION >= SAI_VERSION(1, 13, 0)
+  {
+    auto changePending = txReadyStatusChangePending_.wlock();
+    *changePending = false;
+  }
+
   std::vector<SaiPortTraits::AdapterKey> adapterKeys;
   for (const auto& [portSaiId, portInfo] :
        concurrentIndices_->portSaiId2PortInfo) {

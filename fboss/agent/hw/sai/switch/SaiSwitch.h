@@ -630,6 +630,7 @@ class SaiSwitch : public HwSwitch {
   std::unique_ptr<FabricConnectivityManager> fabricConnectivityManager_;
   bool pfcDeadlockEnabled_{false};
   folly::Synchronized<int> switchReachabilityChangePending_{0};
+  folly::Synchronized<bool> txReadyStatusChangePending_{false};
 };
 
 } // namespace facebook::fboss
