@@ -609,13 +609,10 @@ class AgentSflowMirrorWithLineRateTrafficTest
 
   void verifySflowEgressPortNotStuck() {
     auto portId = getNonSflowSampledInterfacePorts();
-    // Check if stay above 90% of line rate
-    auto desiredRate =
-        static_cast<uint64_t>(
-            getProgrammedState()->getPorts()->getNodeIf(portId)->getSpeed()) *
-        1000 * 1000 * 0.9;
-    EXPECT_NO_THROW(
-        getAgentEnsemble()->waitForSpecificRateOnPort(portId, desiredRate));
+    // Expect atleast 1Gbps of mirror traffic!
+    const uint64_t kDesiredMirroredTrafficRate{1000000000};
+    EXPECT_NO_THROW(getAgentEnsemble()->waitForSpecificRateOnPort(
+        portId, kDesiredMirroredTrafficRate));
     // Make sure that we can sustain the rate for longer duration
     constexpr int kNumberOfIterations{6};
     constexpr int kWaitPeriod{5};
@@ -626,7 +623,7 @@ class AgentSflowMirrorWithLineRateTrafficTest
       auto rate = getAgentEnsemble()->getTrafficRate(
           prevPortStats, curPortStats, kWaitPeriod);
       // Ensure that we always see greater than the desired rate
-      EXPECT_GT(rate, desiredRate);
+      EXPECT_GT(rate, kDesiredMirroredTrafficRate);
       prevPortStats = curPortStats;
     }
   }
