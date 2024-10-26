@@ -537,7 +537,7 @@ class AgentSflowMirrorOnTrunkTest : public AgentSflowMirrorTruncateTest<AddrT> {
 };
 
 class AgentSflowMirrorWithLineRateTrafficTest
-    : public AgentSflowMirrorTest<folly::IPAddressV6> {
+    : public AgentSflowMirrorTruncateTest<folly::IPAddressV6> {
  public:
   static const int kLosslessPriority{2};
   void testSflowEgressCongestion() {
