@@ -76,6 +76,7 @@ class SplitAgentThriftSyncer : public HwSwitchCallback {
  private:
   std::shared_ptr<folly::ScopedEventBaseThread> retryThread_;
   SwitchID switchId_;
+  HwSwitch* hwSwitch_;
   std::unique_ptr<LinkChangeEventSyncer> linkChangeEventSinkClient_;
   std::unique_ptr<TxPktEventSyncer> txPktEventStreamClient_;
   std::unique_ptr<OperDeltaSyncer> operDeltaClient_;

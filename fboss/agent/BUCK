@@ -478,6 +478,7 @@ cpp_library(
         ":switch_state-cpp2-types",
         ":switchid_scope_resolver",
         "//common/network:util",
+        "//fboss/agent/hw:hw_switch_fb303_stats",
         "//fboss/agent/if:ctrl-cpp2-types",
         "//fboss/agent/platforms/common/janga800bic:janga800bic_platform_mapping",
         "//fboss/agent/platforms/common/meru400bfu:meru400bfu_platform_mapping",

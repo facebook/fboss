@@ -88,6 +88,8 @@ class SwitchSettings;
 class SwitchIdScopeResolver;
 class PlatformMapping;
 struct AgentConfig;
+class HwAsic;
+class HwSwitchFb303Stats;
 
 constexpr auto kRecyclePortIdOffset = 1;
 
@@ -442,6 +444,9 @@ bool haveParallelLinksToInterfaceNodes(
     SwitchIdScopeResolver& scopeResolver,
     const PlatformMapping* platformMapping);
 
-CpuCosQueueId hwQueueIdToCpuCosQueueId(uint8_t hwQueueId);
+CpuCosQueueId hwQueueIdToCpuCosQueueId(
+    uint8_t hwQueueId,
+    const HwAsic* asic,
+    HwSwitchFb303Stats* hwswitchStats);
 int numFabricLevels(const std::map<int64_t, cfg::DsfNode>& dsfNodes);
 } // namespace facebook::fboss

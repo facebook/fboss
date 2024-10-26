@@ -11,12 +11,12 @@
 
 #include <sys/resource.h>
 #include <sys/syscall.h>
-
 #include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/FsdbHelper.h"
 #include "fboss/agent/SwitchIdScopeResolver.h"
 #include "fboss/agent/SysError.h"
+#include "fboss/agent/hw/HwSwitchFb303Stats.h"
 #include "fboss/agent/state/ArpEntry.h"
 #include "fboss/agent/state/ArpTable.h"
 #include "fboss/agent/state/Interface.h"
@@ -1028,24 +1028,22 @@ bool haveParallelLinksToInterfaceNodes(
   return false;
 };
 
-CpuCosQueueId hwQueueIdToCpuCosQueueId(uint8_t hwQueueId) {
-  switch (hwQueueId) {
-    case 0:
-      return CpuCosQueueId::LOPRI;
-    case 1:
-      return CpuCosQueueId::DEFAULT;
-    case 2:
-      return CpuCosQueueId::MIDPRI;
-    /* On asics with 8 queues, cosQueue 7 is high priority
-     * bcm has 10 mcast cpu queues and use queue 9 as high priority queue
-     */
-    case 7:
-    case 9:
-      return CpuCosQueueId::HIPRI;
-    default:
-      XLOG(FATAL) << "Got Invalid hwQueueId " << hwQueueId;
-      break;
+CpuCosQueueId hwQueueIdToCpuCosQueueId(
+    uint8_t hwQueueId,
+    const HwAsic* asic,
+    HwSwitchFb303Stats* switchStats) {
+  if (hwQueueId == asic->getHiPriCpuQueueId()) {
+    return CpuCosQueueId::HIPRI;
+  } else if (hwQueueId == asic->getMidPriCpuQueueId()) {
+    return CpuCosQueueId::MIDPRI;
+  } else if (hwQueueId == static_cast<uint8_t>(CpuCosQueueId::LOPRI)) {
+    return CpuCosQueueId::LOPRI;
+  } else if (hwQueueId == static_cast<uint8_t>(CpuCosQueueId::DEFAULT)) {
+    return CpuCosQueueId::DEFAULT;
   }
+  XLOG_EVERY_N(ERR, 10000) << "Got Invalid hwQueueId " << hwQueueId;
+  switchStats->invalidQueueRxPackets();
+  return CpuCosQueueId::LOPRI;
 }
 
 int numFabricLevels(const std::map<int64_t, cfg::DsfNode>& dsfNodes) {
