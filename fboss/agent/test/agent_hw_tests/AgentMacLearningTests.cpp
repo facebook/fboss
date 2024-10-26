@@ -1211,6 +1211,8 @@ class AgentMacOverFlowTest : public AgentMacLearningBatchEntriesTest {
 
     // set mac l2 entry limit to 10000 to bypass resourceAccountant check
     FLAGS_max_l2_entries = 10000;
+    // to enable mac update protection
+    FLAGS_enable_mac_update_protection = true;
     return cfg;
   }
 

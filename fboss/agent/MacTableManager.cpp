@@ -35,10 +35,11 @@ void MacTableManager::handleL2LearningUpdate(
         return MacTableUtils::updateMacTable(state, l2Entry, l2EntryUpdateType);
       };
 
-  if (isHwUpdateProtected()) {
+  if (FLAGS_enable_mac_update_protection && isHwUpdateProtected()) {
     try {
       sw_->updateStateWithHwFailureProtection(
-          folly::to<std::string>("Programming : ", l2Entry.str()),
+          folly::to<std::string>(
+              "Programming with hw failure protection : ", l2Entry.str()),
           std::move(updateMacTableFn));
     } catch (const FbossHwUpdateError& e) {
       XLOG(ERR) << "Exception: " << e.what() << std::endl;
