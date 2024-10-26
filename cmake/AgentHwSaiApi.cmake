@@ -92,6 +92,7 @@ if (SAI_TAJO_IMPL)
     fboss/agent/hw/sai/api/tajo/DebugCounterApi.cpp
     fboss/agent/hw/sai/api/tajo/BufferApi.cpp
     fboss/agent/hw/sai/api/tajo/QueueApi.cpp
+    fboss/agent/hw/sai/api/tajo/MirrorApi.cpp
   )
 
   find_path(SAI_IMPL_DIR NAMES lib/libsai_impl.a)
@@ -105,6 +106,7 @@ elseif (SAI_BRCM_IMPL)
     fboss/agent/hw/sai/api/bcm/DebugCounterApi.cpp
     fboss/agent/hw/sai/api/bcm/BufferApi.cpp
     fboss/agent/hw/sai/api/bcm/QueueApi.cpp
+    fboss/agent/hw/sai/api/bcm/MirrorApi.cpp
   )
 
   find_path(SAI_IMPL_DIR NAMES lib/libsai_impl.a)
@@ -118,6 +120,7 @@ elseif (CHENAB_SAI_SDK)
     fboss/agent/hw/sai/api/oss/DebugCounterApi.cpp
     fboss/agent/hw/sai/api/oss/BufferApi.cpp
     fboss/agent/hw/sai/api/oss/QueueApi.cpp
+    fboss/agent/hw/sai/api/oss/MirrorApi.cpp
   )
 
   find_path(SAI_IMPL_DIR NAMES lib/libsai_impl.a)

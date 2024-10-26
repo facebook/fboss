@@ -2,6 +2,7 @@
 
 #include "fboss/agent/hw/sai/api/BufferApi.h"
 #include "fboss/agent/hw/sai/api/DebugCounterApi.h"
+#include "fboss/agent/hw/sai/api/MirrorApi.h"
 #include "fboss/agent/hw/sai/api/PortApi.h"
 #include "fboss/agent/hw/sai/api/QueueApi.h"
 #include "fboss/agent/hw/sai/api/SwitchApi.h"
@@ -233,6 +234,11 @@ SaiBufferProfileTraits::Attributes::AttributeSramFadtMaxTh::operator()() {
 
 std::optional<sai_attr_id_t>
 SaiBufferProfileTraits::Attributes::AttributeSramFadtXonOffset::operator()() {
+  return std::nullopt;
+}
+
+std::optional<sai_attr_id_t>
+SaiSflowMirrorTraits::Attributes::AttributeTcBufferLimit::operator()() {
   return std::nullopt;
 }
 

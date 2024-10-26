@@ -69,6 +69,12 @@ SaiMirrorHandle::SaiMirror SaiMirrorManager::addNodeSflow(
   auto headerVersion = mirrorTunnel.srcIp.isV4() ? 4 : 6;
   auto truncateSize =
       mirror->getTruncate() ? platform_->getAsic()->getMirrorTruncateSize() : 0;
+  std::optional<SaiSflowMirrorTraits::Attributes::TcBufferLimit> tcBufferLimit;
+#if defined(SAI_VERSION_11_3_0_0_DNX_ODP)
+  // TODO: Fix this to be picked up from eventor VoQ config.
+  // For now, defaulting to 1M.
+  tcBufferLimit = 1000000;
+#endif
   SaiSflowMirrorTraits::CreateAttributes attributes{
       SAI_MIRROR_SESSION_TYPE_SFLOW,
       monitorPort,
@@ -82,7 +88,8 @@ SaiMirrorHandle::SaiMirror SaiMirrorManager::addNodeSflow(
       headerVersion,
       mirrorTunnel.ttl,
       truncateSize,
-      mirror->getSamplingRate()};
+      mirror->getSamplingRate(),
+      tcBufferLimit};
   SaiSflowMirrorTraits::AdapterHostKey k{
       SAI_MIRROR_SESSION_TYPE_SFLOW,
       monitorPort,
