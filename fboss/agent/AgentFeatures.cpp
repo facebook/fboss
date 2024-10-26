@@ -140,9 +140,10 @@ DEFINE_bool(
     false,
     "Flag to indicate whether SwSwitch will crash if any hw switch connection is lost. This will be used in tests to ensure all hw agent running.");
 
+// TODO: Need fix for the feature on single link configuration (CS00012375262)
 DEFINE_bool(
-    enable_balanced_intput_mode,
-    true,
+    enable_balanced_input_mode,
+    false,
     "Enable balanced input mode on fabric devices");
 
 DEFINE_int32(

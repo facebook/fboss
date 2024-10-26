@@ -808,7 +808,7 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
   {
     // Update reachability group setting for input balanced
     auto localFabricSwitchIds = getLocalFabricSwitchIds();
-    if (FLAGS_enable_balanced_intput_mode && !localFabricSwitchIds.empty()) {
+    if (FLAGS_enable_balanced_input_mode && !localFabricSwitchIds.empty()) {
       processReachabilityGroup(localFabricSwitchIds);
     }
   }
