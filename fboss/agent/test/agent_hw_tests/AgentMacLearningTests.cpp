@@ -8,6 +8,7 @@
  *
  */
 
+#include "fboss/agent/FbossHwUpdateError.h"
 #include "fboss/agent/MacTableUtils.h"
 #include "fboss/agent/TxPacket.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
@@ -39,7 +40,11 @@ using folly::IPAddress;
 using folly::IPAddressV4;
 using folly::IPAddressV6;
 
+DECLARE_int32(max_l2_entries);
+
 namespace {
+class L2Entry;
+
 // Even when running the same test repeatedly could result in different
 // learning counts based on hash insertion  order.
 // Maximum theortical is 8k for TH ..but practically we hit numbers below it
@@ -67,6 +72,7 @@ getMacsForPort(facebook::fboss::SwSwitch* sw, int port, bool isTrunk) {
 
 namespace facebook::fboss {
 
+using std::string;
 using utility::addAggPort;
 using utility::enableTrunkPorts;
 
@@ -1060,7 +1066,7 @@ class AgentMacLearningBatchEntriesTest : public AgentMacLearningTest {
         kAsicToMacChunkSizeAndSleepUsecs = {
             {cfg::AsicType::ASIC_TYPE_TOMAHAWK3, {16, 500000}},
             {cfg::AsicType::ASIC_TYPE_TOMAHAWK4, {32, 10000}},
-        };
+            {cfg::AsicType::ASIC_TYPE_TOMAHAWK, {16, 10000}}};
     auto switchId = getSw()
                         ->getScopeResolver()
                         ->scope(masterLogicalPortIds()[0])
@@ -1180,6 +1186,56 @@ class AgentMacLearningBatchEntriesTest : public AgentMacLearningTest {
     bringDownPort(masterLogicalPortIds()[1]);
   }
 };
+
+class AgentMacOverFlowTest : public AgentMacLearningBatchEntriesTest {
+ public:
+  cfg::SwitchConfig initialConfig(
+      const AgentEnsemble& ensemble) const override {
+    auto cfg = AgentMacLearningTest::initialConfig(ensemble);
+    cfg.switchSettings()->l2LearningMode() = cfg::L2LearningMode::SOFTWARE;
+    // set mac l2 entry limit to 10000 to bypass resourceAccountant check
+    FLAGS_max_l2_entries = 10000;
+    return cfg;
+  }
+
+ protected:
+  void VerifyMacOverFlow(const std::vector<folly::MacAddress>& macs) {
+    WITH_RETRIES_N_TIMED(30, std::chrono::seconds(4), {
+      const auto& learntMacs =
+          getMacsForPort(getSw(), masterLogicalPortIds()[0], false);
+      XLOG(DBG2) << "learntMacs.size() = " << learntMacs.size()
+                 << ", macs.size() = " << macs.size();
+      EXPECT_EVENTUALLY_TRUE(learntMacs.size() >= macs.size());
+    });
+  }
+};
+
+TEST_F(AgentMacOverFlowTest, VerifyMacUpdateOverFlow) {
+  std::vector<folly::MacAddress> macs = generateMacs(1000);
+  auto portDescr = physPortDescr();
+  VlanID vlanId =
+      (VlanID)*initialConfig(*getAgentEnsemble()).vlanPorts()[0].vlanID();
+  auto setup = [this, portDescr, vlanId, &macs]() {
+    setupHelper(cfg::L2LearningMode::SOFTWARE, portDescr);
+    // Disable aging, so entry stays in L2 table when we verify.
+    utility::setMacAgeTimerSeconds(getAgentEnsemble(), 0);
+    int i = 0;
+    for (auto& mac : macs) {
+      i++;
+      XLOG(DBG2) << "Adding " << i << " : mac " << mac.toString();
+      auto l2Entry = L2Entry(
+          mac,
+          vlanId,
+          portDescr,
+          L2Entry::L2EntryType::L2_ENTRY_TYPE_VALIDATED);
+      getSw()->l2LearningUpdateReceived(
+          std::move(l2Entry), L2EntryUpdateType::L2_ENTRY_UPDATE_TYPE_ADD);
+    }
+  };
+  auto verify = [this, &macs]() { VerifyMacOverFlow(macs); };
+  // MACs learned should be preserved across warm boot
+  verifyAcrossWarmBoots(setup, verify);
+}
 
 // Intent of this test is to attempt to learn large number of macs
 // (L2_LEARN_MAX_MAC_COUNT) and ensure HW can learn them.
