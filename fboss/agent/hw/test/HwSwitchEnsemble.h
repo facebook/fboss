@@ -179,6 +179,7 @@ class HwSwitchEnsemble : public TestEnsembleIf {
   void linkStateChanged(
       PortID port,
       bool up,
+      cfg::PortType portType,
       std::optional<phy::LinkFaultStatus> iPhyFaultStatus =
           std::nullopt) override;
   void linkActiveStateChanged(

@@ -2112,6 +2112,7 @@ void SwSwitch::pfcWatchdogStateChanged(
 void SwSwitch::linkStateChanged(
     PortID portId,
     bool up,
+    cfg::PortType portType,
     std::optional<phy::LinkFaultStatus> iPhyFaultStatus) {
   if (!isFullyInitialized()) {
     XLOG(ERR)
@@ -3480,7 +3481,8 @@ void SwSwitch::setPortsDownForSwitch(SwitchID switchId) {
     if (HwSwitchMatcher(matcher).has(switchId)) {
       for (const auto& port : std::as_const(*portMap)) {
         if (port.second->isUp()) {
-          linkStateChanged(port.second->getID(), false);
+          linkStateChanged(
+              port.second->getID(), false, port.second->getPortType());
         }
       }
     }

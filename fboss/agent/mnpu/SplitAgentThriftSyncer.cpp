@@ -89,10 +89,12 @@ void SplitAgentThriftSyncer::packetReceived(
 void SplitAgentThriftSyncer::linkStateChanged(
     PortID port,
     bool up,
+    cfg::PortType portType,
     std::optional<phy::LinkFaultStatus> iPhyFaultStatus) {
   multiswitch::LinkEvent event;
   event.port() = port;
   event.up() = up;
+  event.portType() = portType;
   if (iPhyFaultStatus) {
     event.iPhyLinkFaultStatus() = *iPhyFaultStatus;
   }

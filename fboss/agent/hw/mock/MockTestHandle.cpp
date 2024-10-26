@@ -33,11 +33,11 @@ void MockTestHandle::rxPacket(
 }
 
 void MockTestHandle::forcePortDown(PortID port) {
-  getSw()->linkStateChanged(port, false);
+  getSw()->linkStateChanged(port, false, cfg::PortType::INTERFACE_PORT);
 }
 
 void MockTestHandle::forcePortUp(PortID port) {
-  getSw()->linkStateChanged(port, true);
+  getSw()->linkStateChanged(port, true, cfg::PortType::INTERFACE_PORT);
 }
 
 void MockTestHandle::forcePortFlap(PortID port) {

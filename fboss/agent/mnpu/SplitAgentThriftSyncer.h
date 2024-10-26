@@ -45,6 +45,7 @@ class SplitAgentThriftSyncer : public HwSwitchCallback {
   void linkStateChanged(
       PortID port,
       bool up,
+      cfg::PortType portType,
       std::optional<phy::LinkFaultStatus> iPhyFaultStatus =
           std::nullopt) override;
   void linkActiveStateChanged(

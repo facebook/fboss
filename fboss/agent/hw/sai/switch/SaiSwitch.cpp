@@ -2136,7 +2136,9 @@ void SaiSwitch::linkStateChangedCallbackBottomHalf(
   // does with the callback notification.
   for (auto swPortIdAndStatus : swPortId2Status) {
     callback_->linkStateChanged(
-        swPortIdAndStatus.first, swPortIdAndStatus.second);
+        swPortIdAndStatus.first,
+        swPortIdAndStatus.second,
+        managerTable_->portManager().getPortType(swPortIdAndStatus.first));
   }
 }
 
@@ -2614,7 +2616,9 @@ void SaiSwitch::syncLinkStatesLocked(
                << portIdAndHandle.first << " with oper status: "
                << (operStatus == SAI_PORT_OPER_STATUS_UP ? "UP" : "DOWN");
     callback_->linkStateChanged(
-        portIdAndHandle.first, operStatus == SAI_PORT_OPER_STATUS_UP);
+        portIdAndHandle.first,
+        operStatus == SAI_PORT_OPER_STATUS_UP,
+        managerTable_->portManager().getPortType(portIdAndHandle.first));
   }
 }
 

@@ -353,14 +353,14 @@ TYPED_TEST(ThriftTestAllSwitchTypes, setPortState) {
   const PortID port5{5};
   ThriftHandler handler(this->sw_);
   handler.setPortState(port5, true);
-  this->sw_->linkStateChanged(port5, true);
+  this->sw_->linkStateChanged(port5, true, cfg::PortType::INTERFACE_PORT);
   waitForStateUpdates(this->sw_);
 
   auto port = this->sw_->getState()->getPorts()->getNodeIf(port5);
   EXPECT_TRUE(port->isUp());
   EXPECT_TRUE(port->isEnabled());
 
-  this->sw_->linkStateChanged(port5, false);
+  this->sw_->linkStateChanged(port5, false, cfg::PortType::INTERFACE_PORT);
   handler.setPortState(port5, false);
   waitForStateUpdates(this->sw_);
 

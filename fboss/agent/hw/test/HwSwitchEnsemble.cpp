@@ -79,7 +79,9 @@ class HwEnsembleMultiSwitchThriftHandler
                          << switchId << " for port " << *linkEvent.port()
                          << " up :" << *linkEvent.up();
               ensemble_->linkStateChanged(
-                  PortID(*linkEvent.port()), *linkEvent.up());
+                  PortID(*linkEvent.port()),
+                  *linkEvent.up(),
+                  *linkEvent.portType());
             }
           }
           co_return true;
@@ -413,6 +415,7 @@ void HwSwitchEnsemble::applyInitialConfig(const cfg::SwitchConfig& initCfg) {
 void HwSwitchEnsemble::linkStateChanged(
     PortID port,
     bool up,
+    cfg::PortType portType,
     std::optional<phy::LinkFaultStatus> /* iPhyFaultStatus */) {
   if (getHwSwitch()->getRunState() < SwitchRunState::INITIALIZED) {
     return;
