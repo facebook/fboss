@@ -276,6 +276,9 @@
         },
         {
           "test_name_regex": "AgentDiagShellStressTest.stressDiagCmds$"
+        },
+        {
+          "test_name_regex": "AgentMacOverFlowTest.*$"
         }
     ],
     "brcm/10.2.0.0_odp/10.2.0.0_odp/tomahawk/mono": [
@@ -623,6 +626,9 @@
         },
         {
           "test_name_regex": "AgentCoppTest/[01].EapolToHighPriQ$"
+        },
+        {
+          "test_name_regex": "AgentMacOverFlowTest.*$"
         }
     ],
     "brcm/10.2.0.0_odp/10.2.0.0_odp/tomahawk/multi_switch": [
@@ -973,6 +979,9 @@
         },
         {
           "test_name_regex": "AgentQueuePerHostTest/[0123].VerifyHostToQueueMappingClassIDsAfterResolve.*$"
+        },
+        {
+          "test_name_regex": "AgentMacOverFlowTest.*$"
         }
     ],
     "brcm/10.2.0.0_odp/10.2.0.0_odp/tomahawk3/mono": [
@@ -1311,6 +1320,9 @@
         },
         {
           "test_name_regex": "AgentTrafficPfcWatchdogTest.*$"
+        },
+        {
+          "test_name_regex": "AgentMacOverFlowTest.*$"
         }
     ],
     "brcm/10.2.0.0_odp/10.2.0.0_odp/tomahawk3/multi_switch": [
@@ -1649,6 +1661,9 @@
         },
         {
           "test_name_regex": "AgentTrafficPfcWatchdogTest.*$"
+        },
+        {
+          "test_name_regex": "AgentMacOverFlowTest.*$"
         }
     ],
     "brcm/10.2.0.0_odp/10.2.0.0_odp/tomahawk4/mono": [
@@ -2011,6 +2026,9 @@
         },
         {
           "test_name_regex": "warm_boot.AgentTrunkLoadBalancerTest.ECMPFullTrunkHalf4X2WideTrunksV6FrontPanelTraffic$"
+        },
+        {
+          "test_name_regex": "AgentMacOverFlowTest.*$"
         }
     ],
     "brcm/10.2.0.0_odp/10.2.0.0_odp/tomahawk4/multi_switch": [
@@ -2358,6 +2376,9 @@
         },
         {
           "test_name_regex": "AgentDiagShellStressTest.*$"
+        },
+        {
+          "test_name_regex": "AgentMacOverFlowTest.*$"
         }
     ],
     "brcm/10.2.0.0_odp/10.2.0.0_odp/tomahawk5/mono": [
@@ -2732,6 +2753,9 @@
         },
         {
           "test_name_regex": "AgentSendPacketToQueueTest.SendPacketOutOfPortToMCQueue$"
+        },
+        {
+          "test_name_regex": "AgentMacOverFlowTest.*$"
         }
     ],
     "brcm/10.2.0.0_odp/10.2.0.0_odp/tomahawk5/multi_switch": [
@@ -3142,6 +3166,9 @@
         },
         {
           "test_name_regex": "AgentSendPacketToQueueTest.SendPacketOutOfPortToMCQueue$"
+        },
+        {
+          "test_name_regex": "AgentMacOverFlowTest.*$"
         }
     ],
     "brcm/11.3.0.0_dnx_odp/11.3.0.0_dnx_odp/jericho3/mono": [
