@@ -9,6 +9,7 @@
  */
 #include "fboss/agent/MacTableManager.h"
 
+#include "fboss/agent/FbossHwUpdateError.h"
 #include "fboss/agent/L2Entry.h"
 #include "fboss/agent/MacTableUtils.h"
 #include "fboss/agent/SwSwitch.h"
@@ -35,9 +36,14 @@ void MacTableManager::handleL2LearningUpdate(
       };
 
   if (isHwUpdateProtected()) {
-    sw_->updateStateWithHwFailureProtection(
-        folly::to<std::string>("Programming : ", l2Entry.str()),
-        std::move(updateMacTableFn));
+    try {
+      sw_->updateStateWithHwFailureProtection(
+          folly::to<std::string>("Programming : ", l2Entry.str()),
+          std::move(updateMacTableFn));
+    } catch (const FbossHwUpdateError& e) {
+      XLOG(ERR) << "Exception: " << e.what() << std::endl;
+      sw_->stats()->macTableUpdateFailure();
+    }
   } else {
     sw_->updateStateNoCoalescing(
         folly::to<std::string>("Programming : ", l2Entry.str()),
