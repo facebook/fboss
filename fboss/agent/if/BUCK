@@ -280,6 +280,7 @@ thrift_library(
     deps = [
         ":common",
         ":ctrl",
+        "//fboss/agent:switch_config",
         "//fboss/agent/hw:hardware_stats",
         "//fboss/fsdb/if:fsdb_oper",
         "//fboss/lib/phy:phy",
