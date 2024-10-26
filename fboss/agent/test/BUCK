@@ -194,6 +194,7 @@ cpp_library(
         "//fb303:service_data",
         "//fb303:thread_cached_service_data",
         "//fboss/agent:apply_thrift_config",
+        "//fboss/agent:constants",
         "//fboss/agent:core",
         "//fboss/agent:fboss-error",
         "//fboss/agent:load_agent_config",

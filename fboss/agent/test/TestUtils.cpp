@@ -32,6 +32,7 @@
 #include "fboss/agent/test/HwTestHandle.h"
 #include "fboss/agent/test/MockTunManager.h"
 
+#include "fboss/agent/Constants.h"
 #include "fboss/agent/SwSwitchRouteUpdateWrapper.h"
 #include "fboss/agent/gen-cpp2/switch_config_constants.h"
 #include "fboss/agent/rib/RoutingInformationBase.h"
@@ -69,7 +70,6 @@ using namespace facebook::fboss;
 namespace {
 
 constexpr auto kSysPortRangeMin = 1000;
-constexpr auto kSingleStageInbandPortId = 1;
 
 void initSwSwitchWithFlags(SwSwitch* sw, SwitchFlags flags) {
   if (flags & SwitchFlags::ENABLE_TUN) {

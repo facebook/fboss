@@ -12,6 +12,7 @@
 #include <memory>
 
 #include "fboss/agent/AgentFeatures.h"
+#include "fboss/agent/Constants.h"
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/test/TestEnsembleIf.h"
@@ -461,6 +462,7 @@ cfg::DsfNode dsfNodeConfig(
       dsfNode.loopbackIps() = getLoopbackIps(SwitchID(*dsfNode.switchId()));
       dsfNode.localSystemPortOffset() = *dsfNode.systemPortRange()->minimum();
       dsfNode.globalSystemPortOffset() = *dsfNode.systemPortRange()->minimum();
+      dsfNode.inbandPortId() = kSingleStageInbandPortId;
       break;
     case cfg::SwitchType::FABRIC:
       dsfNode.type() = cfg::DsfNodeType::FABRIC_NODE;
@@ -776,6 +778,9 @@ cfg::SwitchConfig genPortVlanCfg(
           *asic->getSystemPortRange()->minimum();
       switchInfo.globalSystemPortOffset() =
           *asic->getSystemPortRange()->minimum();
+    }
+    if (switchType == cfg::SwitchType::VOQ) {
+      switchInfo.inbandPortId() = kSingleStageInbandPortId;
     }
     defaultSwitchIdToSwitchInfo.insert({SwitchID(switchId), switchInfo});
     populateSwitchInfo(
