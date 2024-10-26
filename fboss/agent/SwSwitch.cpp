@@ -2152,8 +2152,20 @@ void SwSwitch::linkStateChanged(
 
     return newState;
   };
-  updateStateNoCoalescing(
-      "Port OperState (UP/DOWN) Update", std::move(updateOperStateFn));
+
+  // Note: On NIF ports, we never coalesce link up/down updates to ensure
+  // expiry of NDP/ARP entries, but that is not applicable for Fabric port.
+  // Thus, coalesce updates on Fabric ports. This is especially useful for a
+  // flapping fabric ports as coalescing means that fewer state updates get
+  // queued and other state updates (e.g. drain request to take a flapping
+  // link off the prod) can get through quicker.
+  if (portType == cfg::PortType::FABRIC_PORT) {
+    updateState(
+        "Fabric Port OperState (UP/DOWN) Update", std::move(updateOperStateFn));
+  } else {
+    updateStateNoCoalescing(
+        "Port OperState (UP/DOWN) Update", std::move(updateOperStateFn));
+  }
 }
 
 void SwSwitch::linkActiveStateChanged(
