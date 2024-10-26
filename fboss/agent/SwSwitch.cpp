@@ -2225,7 +2225,23 @@ void SwSwitch::linkActiveStateChanged(
 
     return newState;
   };
-  updateStateNoCoalescing(
+
+  /*
+   * Consider the following scenario:
+   *  - Continuous flaps on fabric port(s).
+   *  - linkActiveStateChanged callbacks for each flap.
+   *  - A large number of state updates will be queued.
+   *  - If processed without coalescing, state update queue will build up.
+   *  - This will significantly delay any other state updates.
+   *  - For example, Self Healing's attempt to drain a flapping link will
+   *    require a state update, and could get significantly delayed.
+   *
+   * Thus, process linkActiveStateChanged with coalescing.
+   *
+   * Note: On NIF ports, we never coalesce link up/down updates to ensure
+   * expiry of NDP/ARP entries, but that is not applicable for Fabric port.
+   */
+  updateState(
       "Port ActiveState (ACTIVE/INACTIVE) Update",
       std::move(updateActiveStateFn));
 }
