@@ -230,6 +230,16 @@ function(BUILD_SAI_TEST SAI_IMPL_NAME SAI_IMPL_ARG)
     ${LIBGMOCK_LIBRARIES}
   )
 
+  if(SAI_TAJO_IMPL)
+  target_link_libraries(sai_test-${SAI_IMPL_NAME}
+    ${GRPC}
+    ${ABSL_SYNCHRONIZATION}
+    ${PROTOBUF}
+    ${LIBNL3}
+    ${LIBNL_GENL3}
+  )
+endif()
+
   if (SAI_BRCM_IMPL)
     target_link_libraries(sai_test-${SAI_IMPL_NAME}
       ${YAML}

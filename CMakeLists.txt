@@ -116,6 +116,40 @@ message(STATUS "CMAKE_CXX_FLAGS: ${CMAKE_CXX_FLAGS}")
 
 message(STATUS "Building for SAI Spec ${SAI_VER_MAJOR}.${SAI_VER_MINOR}.${SAI_VER_RELEASE}")
 
+if(SAI_TAJO_IMPL)
+list(APPEND CMAKE_LIBRARY_PATH /usr/lib64 /opt/grpc/lib /opt/sdk_build/klish/.libs)
+
+  # Find libnl-3 and libnl-genl-3 libraries only if SAI_TAJO_IMPL is set
+  find_library(LIBNL3 NAMES nl-3)
+  find_library(LIBNL_GENL3 NAMES nl-genl-3)
+
+  # Print paths for debugging
+  message(STATUS "LIBNL3 found at: ${LIBNL3}")
+  message(STATUS "LIBNL_GENL3 found at: ${LIBNL_GENL3}")
+
+  # Check if both libraries were found; if not, show an error
+  if(NOT LIBNL3 OR NOT LIBNL_GENL3)
+    message(FATAL_ERROR "Required libnl libraries not found!")
+  endif()
+
+  # Locate grpc, absl_synchronization, and protobuf libraries
+  find_library(GRPC NAMES grpc++)
+  find_library(ABSL_SYNCHRONIZATION NAMES absl_synchronization)
+  find_library(PROTOBUF NAMES protobuf)
+
+  # Print paths for verification
+  message(STATUS "GRPC found at: ${GRPC}")
+  message(STATUS "ABSL_SYNCHRONIZATION found at: ${ABSL_SYNCHRONIZATION}")
+  message(STATUS "PROTOBUF found at: ${PROTOBUF}")
+
+  # Check if all required libraries are found
+  if(NOT GRPC OR NOT ABSL_SYNCHRONIZATION OR NOT PROTOBUF)
+      message(FATAL_ERROR "One or more grpc/absl/protobuf libraries were not found!")
+  endif()
+
+endif()
+
+
 set(CMAKE_MODULE_PATH
   "${CMAKE_CURRENT_SOURCE_DIR}/build/fbcode_builder/CMake"
   ${CMAKE_MODULE_PATH})

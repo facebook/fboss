@@ -150,6 +150,17 @@ function(BUILD_SAI_AGENT_HW_TEST SAI_IMPL_NAME SAI_IMPL_ARG)
     -Wl,--no-whole-archive
   )
 
+if(SAI_TAJO_IMPL)
+  # Link libraries only under TAJO_SAI_SDK
+  target_link_libraries(sai_agent_hw_test-${SAI_IMPL_NAME}
+    ${GRPC}
+    ${ABSL_SYNCHRONIZATION}
+    ${PROTOBUF}
+    ${LIBNL3}
+    ${LIBNL_GENL3}
+  )
+endif()
+
 set_target_properties(sai_agent_hw_test-${SAI_IMPL_NAME}
   PROPERTIES COMPILE_FLAGS
   "-DSAI_VER_MAJOR=${SAI_VER_MAJOR} \
