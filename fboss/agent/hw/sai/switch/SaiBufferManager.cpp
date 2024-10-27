@@ -511,6 +511,7 @@ SaiBufferProfileTraits::CreateAttributes SaiBufferManager::profileCreateAttrs(
   SaiBufferProfileTraits::Attributes::ThresholdMode mode{
       SAI_BUFFER_PROFILE_THRESHOLD_MODE_DYNAMIC};
   SaiBufferProfileTraits::Attributes::SharedDynamicThreshold dynThresh{0};
+  SaiBufferProfileTraits::Attributes::SharedStaticThreshold staticThresh{0};
   if (platform_->getAsic()->scalingFactorBasedDynamicThresholdSupported() &&
       queue.getScalingFactor()) {
     dynThresh = platform_->getAsic()->getBufferDynThreshFromScalingFactor(
@@ -547,6 +548,11 @@ SaiBufferProfileTraits::CreateAttributes SaiBufferManager::profileCreateAttrs(
       reservedBytes,
       mode,
       dynThresh,
+#if not defined(BRCM_SAI_SDK_XGS_AND_DNX)
+      // TODO(nivinl): Get rid of the check once support is
+      // available in SAI 8.2/11.3 - CS00012374846.
+      staticThresh,
+#endif
       0,
       0,
       0,
@@ -597,6 +603,7 @@ SaiBufferManager::ingressProfileCreateAttrs(
   SaiBufferProfileTraits::Attributes::ThresholdMode mode{
       SAI_BUFFER_PROFILE_THRESHOLD_MODE_DYNAMIC};
   SaiBufferProfileTraits::Attributes::SharedDynamicThreshold dynThresh{0};
+  SaiBufferProfileTraits::Attributes::SharedStaticThreshold staticThresh{0};
   if (config.scalingFactor() &&
       platform_->getAsic()->scalingFactorBasedDynamicThresholdSupported()) {
     // If scalingFactor is specified, configure the same!
@@ -637,6 +644,11 @@ SaiBufferManager::ingressProfileCreateAttrs(
       reservedBytes,
       mode,
       dynThresh,
+#if not defined(BRCM_SAI_SDK_XGS_AND_DNX)
+      // TODO(nivinl): Get rid of the check once support is
+      // available in SAI 8.2/11.3 - CS00012374846.
+      staticThresh,
+#endif
       xoffTh,
       xonTh,
       xonOffsetTh,

@@ -46,6 +46,8 @@ class BufferStoreTest : public SaiStoreTest {
         SAI_BUFFER_PROFILE_THRESHOLD_MODE_DYNAMIC};
     std::optional<SaiBufferProfileTraits::Attributes::SharedDynamicThreshold>
         dynamicThresh{24};
+    std::optional<SaiBufferProfileTraits::Attributes::SharedStaticThreshold>
+        staticThresh{0};
     std::optional<SaiBufferProfileTraits::Attributes::XoffTh> xoffTh{293624};
     std::optional<SaiBufferProfileTraits::Attributes::XonTh> xonTh{0};
     std::optional<SaiBufferProfileTraits::Attributes::XonOffsetTh> xonOffsetTh{
@@ -55,6 +57,7 @@ class BufferStoreTest : public SaiStoreTest {
         reservedBytes,
         mode,
         dynamicThresh,
+        staticThresh,
         xoffTh,
         xonTh,
         xonOffsetTh,

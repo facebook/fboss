@@ -32,6 +32,7 @@ std::map<int32_t, std::pair<std::string, std::size_t>> _BufferProfileMap{
     SAI_ATTR_MAP(BufferProfile, ReservedBytes),
     SAI_ATTR_MAP(BufferProfile, ThresholdMode),
     SAI_ATTR_MAP(BufferProfile, SharedDynamicThreshold),
+    SAI_ATTR_MAP(BufferProfile, SharedStaticThreshold),
     SAI_ATTR_MAP(BufferProfile, XoffTh),
     SAI_ATTR_MAP(BufferProfile, XonTh),
     SAI_ATTR_MAP(BufferProfile, XonOffsetTh),
