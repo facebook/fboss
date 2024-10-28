@@ -21,6 +21,8 @@ def test_xcvr_names(platform_fpgas) -> None:
 def test_xcvr_creates_sysfs_files(platform_fpgas, platform_config) -> None:
     platform = platform_config.platform
     if platform == "meru800bfa" or platform == "meru800bia":
+        # pyre-fixme[29]: `_WithException[typing.Any,
+        #  typing.Type[_pytest.outcomes.Skipped]]` is not a function.
         pytest.skip("DSF fails xcvr test currently.")
     fpgaDirMap = find_fpga_dirs(platform_fpgas)
     for fpga in platform_fpgas:
