@@ -1763,7 +1763,7 @@ std::shared_ptr<SwitchState> SwSwitch::applyUpdate(
     return oldState;
   }
 
-  if (!resourceAccountant_->isValidRouteUpdate(delta)) {
+  if (!resourceAccountant_->isValidUpdate(delta)) {
     // Notify resource account to revert back to previous state
     resourceAccountant_->stateChanged(StateDelta(newState, oldState));
     return oldState;

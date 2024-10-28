@@ -18,12 +18,15 @@
 
 DECLARE_int32(max_l2_entries);
 
+DECLARE_bool(enable_mac_update_protection);
+
 namespace facebook::fboss {
 
 class ResourceAccountant {
  public:
   explicit ResourceAccountant(const HwAsicTable* asicTable);
 
+  bool isValidUpdate(const StateDelta& delta);
   bool isValidRouteUpdate(const StateDelta& delta);
   void stateChanged(const StateDelta& delta);
   void enableDlbResourceCheck(bool enable);
@@ -32,7 +35,7 @@ class ResourceAccountant {
   int getMemberCountForEcmpGroup(const RouteNextHopEntry& fwd) const;
   bool checkEcmpResource(bool intermediateState) const;
   bool checkDlbResource(uint32_t resourcePercentage) const;
-  bool stateChangedImpl(const StateDelta& delta);
+  bool ecmpStateChangedImpl(const StateDelta& delta);
   bool shouldCheckRouteUpdate() const;
   bool isEcmp(const RouteNextHopEntry& fwd) const;
   int computeWeightedEcmpMemberCount(
@@ -44,6 +47,8 @@ class ResourceAccountant {
       const std::shared_ptr<Route<AddrT>>& route,
       bool add);
 
+  bool l2StateChangedImpl(const StateDelta& delta);
+
   uint32_t ecmpMemberUsage_{0};
   std::map<RouteNextHopEntry::NextHopSet, uint32_t> ecmpGroupRefMap_;
 
@@ -51,6 +56,7 @@ class ResourceAccountant {
   bool nativeWeightedEcmp_{true};
   bool checkRouteUpdate_;
   bool checkDlbResource_{true};
+  int32_t l2Entries_{0};
 
   FRIEND_TEST(ResourceAccountantTest, getMemberCountForEcmpGroup);
   FRIEND_TEST(ResourceAccountantTest, checkDlbResource);
