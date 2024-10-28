@@ -25,26 +25,29 @@ void DsfUpdateValidator::validate(
           " not found for : ",
           sysPort.getName());
     }
-    auto sysPortRange = dsfNode->getSystemPortRange();
-    if (!sysPortRange.has_value()) {
+    auto sysPortRanges = *dsfNode->getSystemPortRanges().systemPortRanges();
+    if (sysPortRanges.empty()) {
       throw FbossError(
           "No system port range for node ",
           dsfNode->getName(),
           " corresponding to ",
           sysPort.getName());
     }
-    if (sysPort.getID() < *sysPortRange->minimum() ||
-        sysPort.getID() > *sysPortRange->maximum()) {
+    bool withinRange{false};
+    for (const auto& sysPortRange : sysPortRanges) {
+      if (sysPort.getID() >= *sysPortRange.minimum() &&
+          sysPort.getID() <= *sysPortRange.maximum()) {
+        withinRange = true;
+        break;
+      }
+    }
+    if (!withinRange) {
       throw FbossError(
           "Sys port : ",
           sysPort.getName(),
           " belonging to: ",
           sysPort.getSwitchId(),
-          " out of range: [",
-          *sysPortRange->minimum(),
-          ", ",
-          *sysPortRange->maximum(),
-          "]");
+          " out of range");
     }
   };
   DeltaFunctions::forEachChanged(
