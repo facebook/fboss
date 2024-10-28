@@ -218,6 +218,9 @@ class SwSwitch : public HwSwitchCallback {
     return hwSwitchThriftClientTable_.get();
   }
 
+  ResourceAccountant* getResourceAccountant() const {
+    return resourceAccountant_.get();
+  }
   /*
    * Initialize the switch.
    *
