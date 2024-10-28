@@ -1382,8 +1382,13 @@ void ThriftConfigApplier::processInterfaceForPortForVoqSwitches(
   auto switchInfoItr =
       cfg_->switchSettings()->switchIdToSwitchInfo()->find(switchId);
   CHECK(switchInfoItr != cfg_->switchSettings()->switchIdToSwitchInfo()->end());
+  const auto& switchInfo = switchInfoItr->second;
   CHECK(dsfNodeItr->second.systemPortRange().has_value());
-  CHECK(switchInfoItr->second.portIdRange().has_value());
+  CHECK(switchInfo.portIdRange().has_value());
+  CHECK(!switchInfo.systemPortRanges()->systemPortRanges()->empty());
+  CHECK(switchInfo.localSystemPortOffset().has_value());
+  CHECK(switchInfo.globalSystemPortOffset().has_value());
+  CHECK(switchInfo.inbandPortId().has_value());
   auto systemPortRange = dsfNodeItr->second.systemPortRange();
   auto portIdRange = switchInfoItr->second.portIdRange();
   CHECK(systemPortRange);
