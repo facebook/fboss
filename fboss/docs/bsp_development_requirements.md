@@ -166,6 +166,23 @@ this is to avoid potential log spew.
 10. The BSP must include a bash script named `fbsp-remove.sh` which successfully
 unloads all of the provided kernel modules. This script must be kept up to date
 with any changes made to the BSP.
+11. A file `kmods.json` must be included in the same directory as `fbsp-remove.sh`
+and this file contains a list of kmods (as named in `lsmod`) in the following
+format:
+```
+{
+    "bspKmods": [
+        "kmod_A",
+        "kmod_B",
+    ],
+    "sharedKmods": [
+        "shared_kmod_C",
+        "shared_kmod_D"
+    ]
+}
+```
+`fbsp-remove.sh` must read `kmods.json` and remove `bspKmods` before `sharedKmods`.
+A "shared" kmod is any kmod which other kmods depend upon.
 
 ## 4.1 Source Code Repository Structure
 
