@@ -1348,15 +1348,18 @@ void configurePortProfile(
 
 void setupMultipleEgressPoolAndQueueConfigs(
     cfg::SwitchConfig& config,
-    const std::vector<int>& losslessQueueIds) {
+    const std::vector<int>& losslessQueueIds,
+    const uint64_t mmuSizeBytes) {
   const std::string kLosslessPoolName{"egress_lossless_pool"};
   const std::string kLossyPoolName{"egress_lossy_pool"};
 
-  // Create pool configs for 2 egress buffer pools
+  // Create pool configs for 2 egress buffer pools. The buffer pool
+  // sizing here is very specific to YUBA. A different allocation
+  // might be needed for other ASICs.
   cfg::BufferPoolConfig losslessPoolCfg;
-  losslessPoolCfg.sharedBytes() = 256 * 1024 * 1024;
+  losslessPoolCfg.sharedBytes() = mmuSizeBytes;
   cfg::BufferPoolConfig lossyPoolCfg;
-  lossyPoolCfg.sharedBytes() = 80 * 1024 * 1024;
+  lossyPoolCfg.sharedBytes() = mmuSizeBytes * 0.3; // 30% of MMU!
   std::map<std::string, cfg::BufferPoolConfig> bufferPoolCfgMap =
       config.bufferPoolConfigs().ensure();
   bufferPoolCfgMap.insert(std::make_pair(kLosslessPoolName, losslessPoolCfg));

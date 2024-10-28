@@ -417,8 +417,27 @@ class AgentTrafficPfcTest : public AgentHwTest {
           kLosslessPgIds,
           tcToPgOverride,
           testParams.buffer);
+      auto asic =
+          utility::checkSameAndGetAsic(getAgentEnsemble()->getL3Asics());
       if (isSupportedOnAllAsics(HwAsic::Feature::MULTIPLE_EGRESS_BUFFER_POOL)) {
-        utility::setupMultipleEgressPoolAndQueueConfigs(cfg, kLosslessPgIds);
+        utility::setupMultipleEgressPoolAndQueueConfigs(
+            cfg, kLosslessPgIds, asic->getMMUSizeBytes());
+      }
+      if (asic->getAsicType() == cfg::AsicType::ASIC_TYPE_YUBA) {
+        // For YUBA, lossless queues needs to be configured with static
+        // queue limit equal to the MMU size to ensure its lossless.
+        for (auto& queueConfigs : *cfg.portQueueConfigs()) {
+          for (auto& queueCfg : queueConfigs.second) {
+            if (std::find(
+                    kLosslessPgIds.begin(),
+                    kLosslessPgIds.end(),
+                    *queueCfg.id()) != kLosslessPgIds.end()) {
+              // Given the 1:1 mapping for queueID to PG ID,
+              // this is a lossless queue.
+              queueCfg.sharedBytes() = asic->getMMUSizeBytes();
+            }
+          }
+        }
       }
       applyNewConfig(cfg);
 

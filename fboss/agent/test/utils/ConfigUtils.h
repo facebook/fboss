@@ -276,7 +276,8 @@ void configurePortProfile(
     PortID controllingPortID);
 void setupMultipleEgressPoolAndQueueConfigs(
     cfg::SwitchConfig& config,
-    const std::vector<int>& losslessQueueIds);
+    const std::vector<int>& losslessQueueIds,
+    const uint64_t mmuSizeBytes);
 
 bool isSaiConfig(const cfg::SwitchConfig& config);
 
