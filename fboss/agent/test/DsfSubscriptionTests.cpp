@@ -119,6 +119,7 @@ class DsfSubscriptionTest : public ::testing::Test {
           remoteSwitchId / kSwitchIdGap * kSysPortBlockSize;
       sysPortRange.maximum() = *sysPortRange.minimum() + kSysPortBlockSize;
       dsfNode.systemPortRange() = sysPortRange;
+      dsfNode.systemPortRanges()->systemPortRanges()->push_back(sysPortRange);
       dsfNode.loopbackIps() = {"::1/128", "169.254.0.1/24"};
       config.dsfNodes()->insert(std::make_pair(remoteSwitchId, dsfNode));
     }
