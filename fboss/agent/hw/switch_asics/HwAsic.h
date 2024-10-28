@@ -198,6 +198,7 @@ class HwAsic {
     ENABLE_DELAY_DROP_CONGESTION_THRESHOLD,
     PORT_MTU_ERROR_TRAP,
     L3_INTF_MTU,
+    DEDICATED_CPU_BUFFER_POOL,
   };
 
   enum class AsicMode {

@@ -197,6 +197,7 @@ bool Jericho3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::ENABLE_DELAY_DROP_CONGESTION_THRESHOLD:
     case HwAsic::Feature::L3_MTU_ERROR_TRAP:
     case HwAsic::Feature::L3_INTF_MTU:
+    case HwAsic::Feature::DEDICATED_CPU_BUFFER_POOL:
       return false;
   }
   return false;
