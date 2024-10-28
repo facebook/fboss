@@ -523,7 +523,8 @@ void SaiHostifManager::changeCpuQueue(
             ? *newPortQueue->getScalingFactor()
             : asic->getDefaultScalingFactor(
                   newPortQueue->getStreamType(), true /*cpu port*/));
-    managerTable_->queueManager().changeQueue(queueHandle, *portQueue);
+    managerTable_->queueManager().changeQueue(
+        queueHandle, *portQueue, nullptr /*swPort*/, cfg::PortType::CPU_PORT);
     if (platform_->getAsic()->isSupported(
             HwAsic::Feature::CPU_VOQ_BUFFER_PROFILE)) {
       auto voqHandle = getVoqHandle(saiQueueConfig);
