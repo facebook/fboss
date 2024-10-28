@@ -512,7 +512,12 @@ SaiBufferProfileTraits::CreateAttributes SaiBufferManager::profileCreateAttrs(
       SAI_BUFFER_PROFILE_THRESHOLD_MODE_DYNAMIC};
   SaiBufferProfileTraits::Attributes::SharedDynamicThreshold dynThresh{0};
   SaiBufferProfileTraits::Attributes::SharedStaticThreshold staticThresh{0};
-  if (platform_->getAsic()->scalingFactorBasedDynamicThresholdSupported() &&
+  if (queue.getSharedBytes()) {
+    // If staticBytes is explicitly set, then apply the queue limit!
+    staticThresh = queue.getSharedBytes().value();
+    mode = SAI_BUFFER_PROFILE_THRESHOLD_MODE_STATIC;
+  } else if (
+      platform_->getAsic()->scalingFactorBasedDynamicThresholdSupported() &&
       queue.getScalingFactor()) {
     dynThresh = platform_->getAsic()->getBufferDynThreshFromScalingFactor(
         queue.getScalingFactor().value());
