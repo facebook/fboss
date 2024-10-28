@@ -43,6 +43,12 @@ class SaiYangraPlatform : public SaiPlatform {
 
   std::string getHwConfig() override;
 
+  SaiSwitchTraits::CreateAttributes getSwitchAttributes(
+      bool mandatoryOnly,
+      cfg::SwitchType switchType,
+      std::optional<int64_t> switchId,
+      BootType bootType) override;
+
  private:
   void setupAsic(
       cfg::SwitchType switchType,

@@ -96,4 +96,15 @@ bool SaiYangraPlatform::supportInterfaceType() const {
 void SaiYangraPlatform::initLEDs() {}
 SaiYangraPlatform::~SaiYangraPlatform() = default;
 
+SaiSwitchTraits::CreateAttributes SaiYangraPlatform::getSwitchAttributes(
+    bool mandatoryOnly,
+    cfg::SwitchType switchType,
+    std::optional<int64_t> switchId,
+    BootType bootType) {
+  auto attributes = SaiPlatform::getSwitchAttributes(
+      mandatoryOnly, switchType, switchId, bootType);
+  std::get<std::optional<SaiSwitchTraits::Attributes::HwInfo>>(attributes) =
+      std::nullopt;
+  return attributes;
+}
 } // namespace facebook::fboss
