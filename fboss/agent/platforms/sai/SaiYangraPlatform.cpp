@@ -12,6 +12,13 @@
 #include "fboss/agent/hw/switch_asics/ChenabAsic.h"
 #include "fboss/agent/platforms/common/yangra/YangraPlatformMapping.h"
 
+#include "fboss/agent/hw/sai/api/ArsApi.h"
+#include "fboss/agent/hw/sai/api/ArsProfileApi.h"
+#include "fboss/agent/hw/sai/api/MplsApi.h"
+#include "fboss/agent/hw/sai/api/SystemPortApi.h"
+#include "fboss/agent/hw/sai/api/TamApi.h"
+#include "fboss/agent/hw/sai/api/VirtualRouterApi.h"
+
 #include <algorithm>
 
 namespace facebook::fboss {
@@ -49,7 +56,16 @@ SaiYangraPlatform::getSaiProfileVendorExtensionValues() const {
 }
 
 const std::set<sai_api_t>& SaiYangraPlatform::getSupportedApiList() const {
-  return getDefaultSwitchAsicSupportedApis();
+  static auto apis = getDefaultSwitchAsicSupportedApis();
+  apis.erase(facebook::fboss::MplsApi::ApiType);
+  apis.erase(facebook::fboss::VirtualRouterApi::ApiType);
+  apis.erase(facebook::fboss::TamApi::ApiType);
+  apis.erase(facebook::fboss::SystemPortApi::ApiType);
+#if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
+  apis.erase(facebook::fboss::ArsApi::ApiType);
+  apis.erase(facebook::fboss::ArsProfileApi::ApiType);
+#endif
+  return apis;
 }
 
 std::optional<SaiSwitchTraits::Attributes::AclFieldList>
