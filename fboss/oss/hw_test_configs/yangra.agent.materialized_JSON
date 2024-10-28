@@ -133,8 +133,7 @@
               "minimum": 100,
               "maximum": 120
             },
-            "switchMac": "02:00:00:00:00:01",
-            "connectionHandle": "68:00"
+            "switchMac": "02:00:00:00:00:01"
         }
       },
       "vendorMacOuis": [
