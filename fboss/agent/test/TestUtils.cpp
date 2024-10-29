@@ -387,7 +387,9 @@ cfg::SwitchConfig testConfigBImpl() {
       const auto& port = cfg.ports()->at(index);
       cfg::Interface intf;
       auto intfId = getSystemPortID(
-          PortID(*port.logicalID()), switchId2SwitchInfo, switchIndex + 1);
+          PortID(*port.logicalID()),
+          switchId2SwitchInfo,
+          SwitchID(switchIndex + 1));
       XLOG(INFO) << "Port id : " << *port.logicalID()
                  << ", intf id : " << intfId;
       intf.intfID() = static_cast<int>(intfId);

@@ -389,8 +389,8 @@ PortID getPortID(
 SystemPortID getSystemPortID(
     const PortID& portId,
     const std::map<int64_t, cfg::SwitchInfo>& switchToSwitchInfo,
-    int64_t switchId) {
-  auto switchInfo = switchToSwitchInfo.find(switchId);
+    SwitchID switchId) {
+  auto switchInfo = switchToSwitchInfo.find(static_cast<int64_t>(switchId));
   if (switchInfo == switchToSwitchInfo.end()) {
     throw FbossError(
         "switchId: ", switchId, " not found in switchToSwitchInfo");
@@ -402,14 +402,6 @@ SystemPortID getSystemPortID(
       *portIdRange.minimum();
   CHECK_LE(systemPortId, *sysPortRange->maximum());
   return SystemPortID(systemPortId);
-}
-
-SystemPortID getSystemPortID(
-    const PortID& portId,
-    const std::map<int64_t, cfg::SwitchInfo>& switchToSwitchInfo,
-    SwitchID switchId) {
-  return getSystemPortID(
-      portId, switchToSwitchInfo, static_cast<int64_t>(switchId));
 }
 
 SystemPortID getSystemPortID(
