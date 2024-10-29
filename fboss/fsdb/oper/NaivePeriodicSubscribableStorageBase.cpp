@@ -43,6 +43,7 @@ NaivePeriodicSubscribableStorageBase::NaivePeriodicSubscribableStorageBase(
       trackMetadata_(trackMetadata),
       convertSubsToIDPaths_(convertToIDPaths),
       rss_(fmt::format("{}.{}", metricPrefix, kRss)),
+      registeredSubs_(fmt::format("{}.{}", metricPrefix, kRegisteredSubs)),
       serveSubMs_(fmt::format("{}.{}", metricPrefix, kServeSubMs)),
       serveSubNum_(fmt::format("{}.{}", metricPrefix, kServeSubNum)) {
   if (trackMetadata) {
@@ -52,6 +53,9 @@ NaivePeriodicSubscribableStorageBase::NaivePeriodicSubscribableStorageBase(
   // init metrics
 
   fb303::ThreadCachedServiceData::get()->addStatExportType(rss_, fb303::AVG);
+
+  fb303::ThreadCachedServiceData::get()->addStatExportType(
+      registeredSubs_, fb303::AVG);
 
   // elapsed time to serve each subscription
   // histogram range [0, 1s], 10ms width (100 bins)
@@ -177,6 +181,9 @@ void NaivePeriodicSubscribableStorageBase::exportServeMetrics(
   int64_t memUsage = getMemoryUsage(); // RSS
   fb303::ThreadCachedServiceData::get()->addStatValue(
       rss_, memUsage, fb303::AVG);
+  int64_t n_registeredSubs = numSubscriptions();
+  fb303::ThreadCachedServiceData::get()->addStatValue(
+      registeredSubs_, n_registeredSubs, fb303::AVG);
   auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(
       std::chrono::steady_clock::now() - serveStartTime);
   if (elapsed.count() > 0) {
