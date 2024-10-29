@@ -252,11 +252,6 @@ PortID getPortID(
 
 SystemPortID getSystemPortID(
     const PortID& portId,
-    const std::map<int64_t, cfg::SwitchInfo>& switchToSwitchInfo,
-    SwitchID switchId);
-
-SystemPortID getSystemPortID(
-    const PortID& portId,
     cfg::Scope portScope,
     const std::map<int64_t, cfg::SwitchInfo>& switchToSwitchInfo,
     SwitchID switchId);
