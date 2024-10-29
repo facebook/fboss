@@ -173,13 +173,12 @@ class ThriftTestAllSwitchTypes : public ::testing::Test {
   }
   int interfaceIdBegin() const {
     auto switchId = getSwitchIdAndType().first;
-    return isVoq() ? *sw_->getState()
-                          ->getDsfNodes()
-                          ->getNodeIf(switchId)
-                          ->getSystemPortRange()
-                          ->minimum() +
-            5
-                   : 1;
+    if (isVoq()) {
+      auto dsfNode = sw_->getState()->getDsfNodes()->getNodeIf(switchId);
+      CHECK(dsfNode->getGlobalSystemPortOffset().has_value());
+      return *dsfNode->getGlobalSystemPortOffset() + 5;
+    }
+    return 1;
   }
 
   std::pair<SwitchID, cfg::SwitchType> getSwitchIdAndType() const {
