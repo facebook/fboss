@@ -388,6 +388,28 @@ PortID getPortID(
 
 SystemPortID getSystemPortID(
     const PortID& portId,
+    cfg::Scope portScope,
+    const std::map<int64_t, cfg::SwitchInfo>& switchToSwitchInfo,
+    SwitchID switchId) {
+  auto switchInfo = switchToSwitchInfo.find(static_cast<int64_t>(switchId));
+  if (switchInfo == switchToSwitchInfo.end()) {
+    throw FbossError(
+        "switchId: ", switchId, " not found in switchToSwitchInfo");
+  }
+  auto offset = portScope == cfg::Scope::GLOBAL
+      ? switchInfo->second.globalSystemPortOffset()
+      : switchInfo->second.localSystemPortOffset();
+  if (!offset.has_value()) {
+    throw FbossError("Global/local offset not set");
+  }
+  auto portIdRange = *switchInfo->second.portIdRange();
+  auto systemPortId =
+      static_cast<int64_t>(portId) + *offset - *portIdRange.minimum();
+  return SystemPortID(systemPortId);
+}
+
+SystemPortID getSystemPortID(
+    const PortID& portId,
     const std::map<int64_t, cfg::SwitchInfo>& switchToSwitchInfo,
     SwitchID switchId) {
   auto switchInfo = switchToSwitchInfo.find(static_cast<int64_t>(switchId));

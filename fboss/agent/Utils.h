@@ -257,6 +257,12 @@ SystemPortID getSystemPortID(
 
 SystemPortID getSystemPortID(
     const PortID& portId,
+    cfg::Scope portScope,
+    const std::map<int64_t, cfg::SwitchInfo>& switchToSwitchInfo,
+    SwitchID switchId);
+
+SystemPortID getSystemPortID(
+    const PortID& portId,
     const std::shared_ptr<SwitchState>& state,
     SwitchID switchId);
 
