@@ -50,6 +50,8 @@ using std::lock_guard;
 using std::memcpy;
 using std::mutex;
 
+static constexpr int kAllowedFwUpgradeAttempts = 3;
+
 namespace facebook {
 namespace fboss {
 
@@ -173,11 +175,10 @@ bool QsfpModule::upgradeFirmwareLocked(
     std::vector<std::unique_ptr<FbossFirmware>>& fwList) {
   QSFP_LOG(INFO, this) << "Upgrading firmware";
 
-  bool fwUpgradeResult = true;
-
   lastFwUpgradeStartTime_ = std::time(nullptr);
-  { // Start of firmware upgrade
-
+  auto fwUpgradeFn = [this, &fwList]() {
+    bool fwUpgradeResult = true;
+    // Start of firmware upgrade
     // Step 1: Disable TX before upgrading the firmware. This helps keeps the
     // link down during upgrade and avoid noise
     try {
@@ -211,20 +212,40 @@ bool QsfpModule::upgradeFirmwareLocked(
 
     // Step 4: Upgrade Firmware
     for (auto& fw : fwList) {
-      fwUpgradeResult &= upgradeFirmwareLockedImpl(std::move(fw));
+      fwUpgradeResult &= upgradeFirmwareLockedImpl(fw.get());
     }
 
     // Trigger a hard reset of the transceiver to kick start the new firmware
     triggerModuleReset();
-  } // End of firmware upgrade
+    // End of Firmware Upgrade
+    return fwUpgradeResult;
+  };
 
+  int upgradeAttempts = 1;
+  bool finalFwUpgradeResult = false;
+  while (upgradeAttempts <= kAllowedFwUpgradeAttempts) {
+    finalFwUpgradeResult = fwUpgradeFn();
+    if (!finalFwUpgradeResult && upgradeAttempts < kAllowedFwUpgradeAttempts) {
+      // Sleep 5 seconds so that the module recovers after it is reset
+      // @lint-ignore CLANGTIDY facebook-hte-BadCall-sleep
+      sleep(5);
+      // Refresh the cache to get the latest state of the module after the
+      // module was reset after a failed FW upgrade
+      updateQsfpData(true);
+      upgradeAttempts++;
+    } else {
+      break;
+    }
+  }
   lastFwUpgradeEndTime_ = std::time(nullptr);
   auto elapsedSeconds = lastFwUpgradeEndTime_ - lastFwUpgradeStartTime_;
 
   QSFP_LOG(INFO, this) << "Firmware upgrade completed "
-                       << (fwUpgradeResult ? "successfully" : "unsuccessfully")
-                       << " in " << elapsedSeconds << " seconds. ";
-  return fwUpgradeResult;
+                       << (finalFwUpgradeResult ? "successfully"
+                                                : "unsuccessfully")
+                       << " in " << elapsedSeconds
+                       << " seconds, attempts = " << upgradeAttempts;
+  return finalFwUpgradeResult;
 }
 
 void QsfpModule::triggerModuleReset() {
