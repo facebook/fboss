@@ -726,6 +726,7 @@ cpp_library(
         "//fboss/agent:hw_switch",
         "//fboss/agent:platform_base",
         "//fboss/agent:switch_config-cpp2-types",
+        "//fboss/agent:utils",
         "//fboss/agent/state:state",
         "//fboss/agent/state:state_update",
         "//folly/gen:base",
