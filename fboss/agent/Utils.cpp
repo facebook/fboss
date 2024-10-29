@@ -422,6 +422,28 @@ SystemPortID getSystemPortID(
       switchId);
 }
 
+SystemPortID getInbandSystemPortID(
+    const std::shared_ptr<SwitchState>& state,
+    SwitchID switchId) {
+  const auto& switchId2Info = state->getSwitchSettings()
+                                  ->getSwitchSettings(HwSwitchMatcher(
+                                      std::unordered_set<SwitchID>({switchId})))
+                                  ->getSwitchIdToSwitchInfo();
+  auto switchInfoItr = switchId2Info.find(switchId);
+  if (switchInfoItr == switchId2Info.end()) {
+    throw FbossError("Unable to lookup switch info for : ", switchId);
+  }
+  if (!switchInfoItr->second.inbandPortId().has_value()) {
+    throw FbossError("Inband port id not set for: ", switchId);
+  }
+  return getSystemPortID(
+      PortID(*switchInfoItr->second.inbandPortId()),
+      // Inband port scope is always global
+      cfg::Scope::GLOBAL,
+      switchId2Info,
+      switchId);
+}
+
 cfg::Range64 getFirstSwitchSystemPortIdRange(
     const std::map<int64_t, cfg::SwitchInfo>& switchToSwitchInfo) {
   for (const auto& [switchId, switchInfo] : switchToSwitchInfo) {

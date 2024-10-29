@@ -261,6 +261,10 @@ SystemPortID getSystemPortID(
     const std::shared_ptr<SwitchState>& state,
     SwitchID switchId);
 
+SystemPortID getInbandSystemPortID(
+    const std::shared_ptr<SwitchState>& state,
+    SwitchID switchId);
+
 cfg::Range64 getFirstSwitchSystemPortIdRange(
     const std::map<int64_t, cfg::SwitchInfo>& switchToSwitchInfo);
 
