@@ -23,10 +23,14 @@ using facebook::fboss::cfg::AclLookupClass;
 
 namespace {
 bool isEgressToIp(folly::IPAddress addr, sai_object_id_t adapterKey) {
-  auto ipAttr = SaiApiTable::getInstance()->nextHopApi().getAttribute(
-      static_cast<facebook::fboss::NextHopSaiId>(adapterKey),
-      SaiNextHopTraitsT<SAI_NEXT_HOP_TYPE_IP>::Attributes::Ip());
-  return ipAttr == addr;
+  try {
+    auto ipAttr = SaiApiTable::getInstance()->nextHopApi().getAttribute(
+        static_cast<facebook::fboss::NextHopSaiId>(adapterKey),
+        SaiNextHopTraitsT<SAI_NEXT_HOP_TYPE_IP>::Attributes::Ip());
+    return ipAttr == addr;
+  } catch (const facebook::fboss::SaiApiError&) {
+    return false;
+  }
 }
 
 SaiRouteTraits::RouteEntry getSaiRouteAdapterKey(
@@ -68,17 +72,21 @@ bool isHwRouteToCpu(
     const folly::CIDRNetwork& cidrNetwork) {
   const auto saiSwitch = static_cast<const SaiSwitch*>(hwSwitch);
 
-  auto routeAdapterKey = getSaiRouteAdapterKey(saiSwitch, rid, cidrNetwork);
-  sai_object_id_t nhop = SaiApiTable::getInstance()->routeApi().getAttribute(
-      routeAdapterKey, SaiRouteTraits::Attributes::NextHopId());
+  try {
+    auto routeAdapterKey = getSaiRouteAdapterKey(saiSwitch, rid, cidrNetwork);
+    sai_object_id_t nhop = SaiApiTable::getInstance()->routeApi().getAttribute(
+        routeAdapterKey, SaiRouteTraits::Attributes::NextHopId());
 
-  facebook::fboss::SwitchSaiId switchId =
-      saiSwitch->managerTable()->switchManager().getSwitchSaiId();
-  sai_object_id_t cpuPortId{
-      SaiApiTable::getInstance()->switchApi().getAttribute(
-          switchId, SaiSwitchTraits::Attributes::CpuPort{})};
+    facebook::fboss::SwitchSaiId switchId =
+        saiSwitch->managerTable()->switchManager().getSwitchSaiId();
+    sai_object_id_t cpuPortId{
+        SaiApiTable::getInstance()->switchApi().getAttribute(
+            switchId, SaiSwitchTraits::Attributes::CpuPort{})};
 
-  return nhop == cpuPortId;
+    return nhop == cpuPortId;
+  } catch (const facebook::fboss::SaiApiError&) {
+    return false;
+  }
 }
 
 bool isHwRouteHit(
@@ -101,11 +109,11 @@ bool isHwRouteMultiPath(
     const folly::CIDRNetwork& cidrNetwork) {
   const auto saiSwitch = static_cast<const SaiSwitch*>(hwSwitch);
 
-  auto routeAdapterKey = getSaiRouteAdapterKey(saiSwitch, rid, cidrNetwork);
-  sai_object_id_t nhop = SaiApiTable::getInstance()->routeApi().getAttribute(
-      routeAdapterKey, SaiRouteTraits::Attributes::NextHopId());
-
   try {
+    auto routeAdapterKey = getSaiRouteAdapterKey(saiSwitch, rid, cidrNetwork);
+    sai_object_id_t nhop = SaiApiTable::getInstance()->routeApi().getAttribute(
+        routeAdapterKey, SaiRouteTraits::Attributes::NextHopId());
+
     SaiApiTable::getInstance()->nextHopGroupApi().getAttribute(
         static_cast<facebook::fboss::NextHopGroupSaiId>(nhop),
         facebook::fboss::SaiNextHopGroupTraits::Attributes::
@@ -134,9 +142,14 @@ bool isHwRouteToNextHop(
     return false;
   }
 
+  sai_object_id_t nhop;
   auto routeAdapterKey = getSaiRouteAdapterKey(saiSwitch, rid, cidrNetwork);
-  sai_object_id_t nhop = SaiApiTable::getInstance()->routeApi().getAttribute(
-      routeAdapterKey, SaiRouteTraits::Attributes::NextHopId());
+  try {
+    nhop = SaiApiTable::getInstance()->routeApi().getAttribute(
+        routeAdapterKey, SaiRouteTraits::Attributes::NextHopId());
+  } catch (const facebook::fboss::SaiApiError&) {
+    return false;
+  }
 
   try {
     auto members = SaiApiTable::getInstance()->nextHopGroupApi().getAttribute(
@@ -184,6 +197,19 @@ bool isRoutePresent(
   return true;
 }
 
+bool isRouteSetToDrop(
+    const HwSwitch* hwSwitch,
+    RouterID rid,
+    const folly::CIDRNetwork& cidrNetwork) {
+  const auto saiSwitch = static_cast<const SaiSwitch*>(hwSwitch);
+
+  auto routeAdapterKey = getSaiRouteAdapterKey(saiSwitch, rid, cidrNetwork);
+  auto packetAction = SaiApiTable::getInstance()->routeApi().getAttribute(
+      routeAdapterKey, SaiRouteTraits::Attributes::PacketAction());
+
+  return packetAction == SAI_PACKET_ACTION_DROP;
+}
+
 bool isRouteUnresolvedToCpuClassId(
     const HwSwitch* hwSwitch,
     RouterID rid,
@@ -206,7 +232,8 @@ void HwTestThriftHandler::getRouteInfo(
   auto routePrefix = folly::CIDRNetwork(
       network::toIPAddress(*prefix->ip()), *prefix->prefixLength());
   routeInfo.exists() = isRoutePresent(hwSwitch_, RouterID(0), routePrefix);
-  if (*routeInfo.exists()) {
+  if (*routeInfo.exists() &&
+      !isRouteSetToDrop(hwSwitch_, RouterID(0), routePrefix)) {
     auto classID = getHwRouteClassID(hwSwitch_, RouterID(0), routePrefix);
     if (classID.has_value()) {
       routeInfo.classId() = classID.value();
