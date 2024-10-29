@@ -18,6 +18,7 @@ DECLARE_string(volatile_state_dir);
 DECLARE_bool(disable_neighbor_updates);
 DECLARE_bool(link_stress_test);
 DECLARE_bool(enable_macsec);
+DECLARE_bool(list_production_feature);
 
 namespace facebook::fboss {
 

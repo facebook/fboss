@@ -27,9 +27,25 @@
 #include "fboss/lib/thrift_service_client/ThriftServiceClient.h"
 #include "fboss/qsfp_service/if/gen-cpp2/transceiver_types_custom_protocol.h"
 
+DEFINE_bool(
+    list_production_feature,
+    false,
+    "List production feature needed for every single test.");
+
+namespace {
+int kArgc;
+char** kArgv;
+} // namespace
+
 namespace facebook::fboss {
 
 void LinkTest::SetUp() {
+  gflags::ParseCommandLineFlags(&kArgc, &kArgv, false);
+  if (FLAGS_list_production_feature) {
+    GTEST_SKIP() << "Skipping this test because list_production_feature is set";
+    return;
+  }
+
   AgentTest::SetUp();
   initializeCabledPorts();
   // Wait for all the cabled ports to link up before finishing the setup
@@ -44,17 +60,19 @@ void LinkTest::SetUp() {
 }
 
 void LinkTest::TearDown() {
-  // Expect the qsfp service to be running at the end of the tests
-  auto qsfpServiceClient = utils::createQsfpServiceClient();
-  EXPECT_EQ(
-      facebook::fb303::cpp2::fb_status::ALIVE,
-      qsfpServiceClient.get()->sync_getStatus())
-      << "QSFP Service no longer alive after the test";
-  EXPECT_EQ(
-      QsfpServiceRunState::ACTIVE,
-      qsfpServiceClient.get()->sync_getQsfpServiceRunState())
-      << "QSFP Service run state no longer active after the test";
-  AgentTest::TearDown();
+  if (!FLAGS_list_production_feature) {
+    // Expect the qsfp service to be running at the end of the tests
+    auto qsfpServiceClient = utils::createQsfpServiceClient();
+    EXPECT_EQ(
+        facebook::fb303::cpp2::fb_status::ALIVE,
+        qsfpServiceClient.get()->sync_getStatus())
+        << "QSFP Service no longer alive after the test";
+    EXPECT_EQ(
+        QsfpServiceRunState::ACTIVE,
+        qsfpServiceClient.get()->sync_getQsfpServiceRunState())
+        << "QSFP Service run state no longer active after the test";
+    AgentTest::TearDown();
+  }
 }
 
 void LinkTest::setCmdLineFlagOverrides() const {
@@ -517,6 +535,9 @@ int linkTestMain(
     PlatformInitFn initPlatformFn,
     std::optional<cfg::StreamType> streamType) {
   ::testing::InitGoogleTest(&argc, argv);
+
+  kArgc = argc;
+  kArgv = argv;
   initAgentTest(argc, argv, initPlatformFn, streamType);
   return RUN_ALL_TESTS();
 }
