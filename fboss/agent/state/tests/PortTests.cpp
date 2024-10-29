@@ -940,8 +940,12 @@ TEST(Port, verifyInterfaceIDsForVoqSwitches) {
   for (const auto& portMap : std::as_const(*(stateV1->getPorts()))) {
     for (auto port : *portMap.second) {
       auto portID = port.second->getID();
+      // FIXME [2-stage DSF] migrate to using global/localSysetemPortOffset
       auto expectedIntfID = InterfaceID(
-          *stateV1->getAssociatedSystemPortRangeIf(portID)->minimum() +
+          *stateV1->getAssociatedSystemPortRangesIf(portID)
+               .systemPortRanges()
+               ->begin()
+               ->minimum() +
           port.second->getID());
       EXPECT_EQ(expectedIntfID, port.second->getInterfaceID());
     }
@@ -959,7 +963,9 @@ TEST(Port, verifySysPortRangeForNonVoqSwitches) {
   for (const auto& portMap : std::as_const(*(stateV1->getPorts()))) {
     for (auto port : *portMap.second) {
       auto portID = port.second->getID();
-      EXPECT_FALSE(stateV1->getAssociatedSystemPortRangeIf(portID).has_value());
+      EXPECT_TRUE(stateV1->getAssociatedSystemPortRangesIf(portID)
+                      .systemPortRanges()
+                      ->empty());
     }
   }
 }
@@ -1011,7 +1017,9 @@ TEST(Port, verifySysPortRangeForVoqSwitches) {
   for (const auto& portMap : std::as_const(*(stateV1->getPorts()))) {
     for (auto port : *portMap.second) {
       auto portID = port.second->getID();
-      EXPECT_TRUE(stateV1->getAssociatedSystemPortRangeIf(portID).has_value());
+      EXPECT_FALSE(stateV1->getAssociatedSystemPortRangesIf(portID)
+                       .systemPortRanges()
+                       ->empty());
     }
   }
 }

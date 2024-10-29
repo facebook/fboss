@@ -383,11 +383,13 @@ std::optional<InterfaceID> BaseEcmpSetupHelper<AddrT, NextHopT>::getInterface(
     return intf->getID();
   } else if (port.isPhysicalPort()) {
     // Look for port RIF
-    auto sysPortRange = state->getAssociatedSystemPortRangeIf(port.phyPortID());
-    if (!sysPortRange.has_value()) {
+    auto sysPortRanges =
+        state->getAssociatedSystemPortRangesIf(port.phyPortID());
+    if (sysPortRanges.systemPortRanges()->empty()) {
       return std::nullopt;
     }
-    auto sysPortBase = *sysPortRange->minimum();
+    // FIXME [2-stage DSF] migrate to using global/localSysetemPortOffset
+    auto sysPortBase = *sysPortRanges.systemPortRanges()->begin()->minimum();
     SystemPortID sysPortId{// static_cast to avoid spurious narrowing conversion
                            // compiler warning. PortID is just 16 bits
                            static_cast<int64_t>(port.intID()) + sysPortBase};

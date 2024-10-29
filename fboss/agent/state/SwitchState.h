@@ -256,13 +256,13 @@ class SwitchState : public ThriftStructNode<SwitchState, state::SwitchState> {
    * Get sys port range associated with this interface. Only applicable
    * for interfaces of type system port
    */
-  std::optional<cfg::Range64> getAssociatedSystemPortRangeIf(
+  cfg::SystemPortRanges getAssociatedSystemPortRangesIf(
       InterfaceID intfID) const;
   /*
    * Get sys port range associated with this port. Only applicable
    * for ports that have intf of type SYS_PORT attached.
    */
-  std::optional<cfg::Range64> getAssociatedSystemPortRangeIf(PortID port) const;
+  cfg::SystemPortRanges getAssociatedSystemPortRangesIf(PortID port) const;
   std::optional<int> getClusterId(SwitchID switchId) const;
   std::vector<SwitchID> getIntraClusterSwitchIds(SwitchID switchId) const;
   const std::shared_ptr<MultiSwitchInterfaceMap>& getInterfaces() const;

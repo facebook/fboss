@@ -110,10 +110,14 @@ TEST(SystemPort, sysPortApplyConfig) {
   // Flip one port to fabric port type and see that sys ports are updated
   config.ports()->begin()->portType() = cfg::PortType::FABRIC_PORT;
   // Prune the interface corresponding to now changed port type
-  auto sysPortRange = stateV1->getAssociatedSystemPortRangeIf(
-      PortID(*config.ports()->begin()->logicalID()));
-  auto intfIDToPrune =
-      *sysPortRange->minimum() + *config.ports()->begin()->logicalID();
+  auto sysPortRanges = *stateV1
+                            ->getAssociatedSystemPortRangesIf(
+                                PortID(*config.ports()->begin()->logicalID()))
+                            .systemPortRanges();
+  ASSERT_FALSE(sysPortRanges.empty());
+  // FIXME [2-stage DSF] migrate to using global/localSysetemPortOffset
+  auto sysPortBase = *sysPortRanges.begin()->minimum();
+  auto intfIDToPrune = sysPortBase + *config.ports()->begin()->logicalID();
   std::vector<cfg::Interface> intfs;
   for (const auto& intf : *config.interfaces()) {
     if (*intf.intfID() != intfIDToPrune) {
