@@ -4588,24 +4588,6 @@ shared_ptr<SwitchSettings> ThriftConfigApplier::updateSwitchSettings(
         *cfg_->switchSettings()->exactMatchTableConfigs());
     switchSettingsChange = true;
   }
-  for (auto& switchId : newSwitchSettings->getSwitchIds()) {
-    if (newSwitchSettings->getSwitchType(static_cast<int64_t>(switchId)) ==
-        cfg::SwitchType::VOQ) {
-      auto dsfItr = *cfg_->dsfNodes()->find(static_cast<int64_t>(switchId));
-      if (dsfItr == *cfg_->dsfNodes()->end()) {
-        throw FbossError(
-            "Missing dsf config for switch id: ",
-            static_cast<int64_t>(switchId));
-      }
-      auto localNode = dsfItr.second;
-      CHECK(localNode.systemPortRange().has_value());
-      auto origLocalNode = orig_->getDsfNodes()->getNodeIf(switchId);
-      if (!origLocalNode ||
-          origLocalNode->getSystemPortRange() != *localNode.systemPortRange()) {
-        switchSettingsChange = true;
-      }
-    }
-  }
 
   VlanID defaultVlan(*cfg_->defaultVlan());
   if (orig_->getDefaultVlan() != defaultVlan) {
