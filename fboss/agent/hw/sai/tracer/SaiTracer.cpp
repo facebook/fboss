@@ -484,6 +484,8 @@ sai_status_t __wrap_sai_get_object_key(
 namespace {
 
 folly::Singleton<facebook::fboss::SaiTracer> _saiTracer;
+constexpr std::string_view kGlobalVarStart = "/* Global Variables Start */";
+constexpr std::string_view kGlobalVarEnd = "/* Global Variables End */";
 
 } // namespace
 
@@ -575,7 +577,9 @@ void SaiTracer::logApiQuery(sai_api_t api_id, const std::string& api_var) {
   init_api_.emplace(api_id, api_var);
 
   writeToFile(
-      {to<string>("sai_", api_var, "_t* ", api_var),
+      {to<string>(kGlobalVarStart),
+       to<string>("sai_", api_var, "_t* ", api_var),
+       to<string>(kGlobalVarEnd),
        to<string>(
            "sai_api_query((sai_api_t)", api_id, ",(void**)&", api_var, ")"),
        to<string>(
@@ -1780,6 +1784,7 @@ void SaiTracer::logPostInvocation(
 void SaiTracer::setupGlobals() {
   // TODO(zecheng): Handle list size that's larger than 512 bytes.
   vector<string> globalVar = {to<string>(
+      to<string>(kGlobalVarStart),
       "sai_attribute_t *s_a=(sai_attribute_t*)malloc(ATTR_SIZE * ",
       FLAGS_default_list_size,
       ")")};
@@ -1814,6 +1819,7 @@ void SaiTracer::setupGlobals() {
       to<string>("sai_stat_id_t counter_list[", FLAGS_default_list_size, "]"));
   globalVar.push_back(
       to<string>("uint64_t counter_vals[", FLAGS_default_list_size, "]"));
+  globalVar.push_back(to<string>(kGlobalVarEnd));
   writeToFile(globalVar);
 
   maxAttrCount_ = FLAGS_default_list_size;
