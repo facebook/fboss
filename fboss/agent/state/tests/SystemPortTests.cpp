@@ -8,6 +8,7 @@
  *
  */
 
+#include "fboss/agent/Utils.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/state/SystemPort.h"
 #include "fboss/agent/test/TestUtils.h"
@@ -109,15 +110,15 @@ TEST(SystemPort, sysPortApplyConfig) {
       stateV1->getSystemPorts()->numNodes(), stateV1->getPorts()->numNodes());
   // Flip one port to fabric port type and see that sys ports are updated
   config.ports()->begin()->portType() = cfg::PortType::FABRIC_PORT;
-  // Prune the interface corresponding to now changed port type
-  auto sysPortRanges = *stateV1
-                            ->getAssociatedSystemPortRangesIf(
-                                PortID(*config.ports()->begin()->logicalID()))
-                            .systemPortRanges();
-  ASSERT_FALSE(sysPortRanges.empty());
-  // FIXME [2-stage DSF] migrate to using global/localSysetemPortOffset
-  auto sysPortBase = *sysPortRanges.begin()->minimum();
-  auto intfIDToPrune = sysPortBase + *config.ports()->begin()->logicalID();
+  auto portConfig = *config.ports()->begin();
+  SwitchIdScopeResolver scopeResolver(
+      *config.switchSettings()->switchIdToSwitchInfo());
+  auto portSwitchId =
+      scopeResolver.scope(PortID(*config.ports()->begin()->logicalID()))
+          .switchId();
+  auto sysPortId =
+      getSystemPortID(PortID(*portConfig.logicalID()), stateV1, portSwitchId);
+  auto intfIDToPrune = static_cast<uint32_t>(sysPortId);
   std::vector<cfg::Interface> intfs;
   for (const auto& intf : *config.interfaces()) {
     if (*intf.intfID() != intfIDToPrune) {
