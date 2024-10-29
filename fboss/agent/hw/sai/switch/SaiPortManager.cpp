@@ -1509,6 +1509,7 @@ std::shared_ptr<Port> SaiPortManager::swPortFromAttributes(
     port->setReachabilityGroupId(reachabilityGroupId);
   }
 #endif
+  port->setScope(platform_->getPlatformMapping()->getPortScope(port->getID()));
 
 // TODO(zecheng): Update flag when new 12.0 release has the attribute
 #if defined(SAI_VERSION_11_3_0_0_DNX_ODP)
