@@ -31,6 +31,10 @@ struct RouteInfo {
   5: optional i32 classId;
 }
 
+struct PortInfo {
+  1: i32 loopbackMode;
+}
+
 service AgentHwTestCtrl {
   // acl utils begin
   i32 getDefaultAclTableNumAclEntries();
@@ -86,4 +90,7 @@ service AgentHwTestCtrl {
     1: ctrl.IpPrefix prefix,
     2: Address.BinaryAddress address,
   );
+
+  // port utils
+  list<PortInfo> getPortInfo(1: list<i32> portIds);
 }
