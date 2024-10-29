@@ -4,6 +4,7 @@
 import argparse
 import glob
 import os
+import pathlib
 import shutil
 import subprocess
 import tempfile
@@ -90,8 +91,28 @@ class PackageFboss:
             .split("\n")[-1]
         )
 
+    def get_fboss_subdirectory(self, path_suffix: str) -> str:
+        candidate = os.path.join(self.git_path, path_suffix)
+        # Check if this directory exists. Under certain conditions, this
+        # directory might be missing, such as cases where the build was done
+        # from a local checkout of the code.
+        if not os.path.isdir(candidate):
+            # If the run_scripts_path does not exist, attempt to locate the run
+            # scripts via a relative path based on location of package-fboss.py
+            # fboss/oss/scripts/package-fboss.py four parents up should take us
+            # to the root of the repository
+            fboss_root_path = pathlib.Path(
+                __file__
+            ).parent.parent.parent.parent.resolve()
+            candidate = os.path.join(fboss_root_path, path_suffix)
+        if os.path.isdir(candidate):
+            return candidate
+        else:
+            raise RuntimeError(f"Could not find directory for {path_suffix}")
+
     def _copy_run_scripts(self, tmp_dir_name):
-        run_scripts_path = os.path.join(self.git_path, "fboss/oss/scripts/run_scripts")
+        run_scripts_path = self.get_fboss_subdirectory("fboss/oss/scripts/run_scripts")
+
         src_files = os.listdir(run_scripts_path)
         for file_name in src_files:
             full_file_name = os.path.join(run_scripts_path, file_name)
@@ -100,7 +121,8 @@ class PackageFboss:
             shutil.copy(full_file_name, script_pkg_path)
 
     def _copy_run_configs(self, tmp_dir_name):
-        run_configs_path = os.path.join(self.git_path, "fboss/oss/scripts/run_configs")
+        run_configs_path = self.get_fboss_subdirectory("fboss/oss/scripts/run_configs")
+
         src_files = os.listdir(run_configs_path)
         for file_name in src_files:
             full_file_name = os.path.join(run_configs_path, file_name)
