@@ -388,6 +388,7 @@ cfg::SwitchConfig testConfigBImpl() {
       cfg::Interface intf;
       auto intfId = getSystemPortID(
           PortID(*port.logicalID()),
+          *port.scope(),
           switchId2SwitchInfo,
           SwitchID(switchIndex + 1));
       XLOG(INFO) << "Port id : " << *port.logicalID()

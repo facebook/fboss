@@ -1598,6 +1598,7 @@ shared_ptr<SystemPortMap> ThriftConfigApplier::updateSystemPorts(
       }
       auto sysPort = std::make_shared<SystemPort>(getSystemPortID(
           port.second->getID(),
+          port.second->getScope(),
           switchSettings->getSwitchIdToSwitchInfo(),
           switchId));
       sysPort->setSwitchId(SwitchID(switchId));
