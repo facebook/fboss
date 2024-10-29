@@ -229,14 +229,16 @@ cfg::SwitchConfig AgentEnsembleSpeedChangeTest::initialConfig(
 }
 
 void AgentEnsembleSpeedChangeTest::TearDown() {
-  if (!FLAGS_setup_for_warmboot) {
-    // If this test wasn't setup for warmboot, revert back the original config
-    // in FLAGS_config path. Also clean up the copy
-    boost::filesystem::copy_file(
-        originalConfigCopy,
-        FLAGS_config,
-        boost::filesystem::copy_option::overwrite_if_exists);
-    CHECK(removeFile(originalConfigCopy));
+  if (!FLAGS_list_production_feature) {
+    if (!FLAGS_setup_for_warmboot) {
+      // If this test wasn't setup for warmboot, revert back the original config
+      // in FLAGS_config path. Also clean up the copy
+      boost::filesystem::copy_file(
+          originalConfigCopy,
+          FLAGS_config,
+          boost::filesystem::copy_option::overwrite_if_exists);
+      CHECK(removeFile(originalConfigCopy));
+    }
   }
   AgentEnsembleLinkTest::TearDown();
 }

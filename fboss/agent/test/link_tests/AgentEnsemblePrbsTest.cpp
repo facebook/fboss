@@ -83,18 +83,20 @@ class AgentEnsemblePrbsTest : public AgentEnsembleLinkTest {
  protected:
   void SetUp() override {
     AgentEnsembleLinkTest::SetUp();
-    waitForLldpOnCabledPorts();
+    if (!IsSkipped()) {
+      waitForLldpOnCabledPorts();
 
-    // Get the list of ports and their components to enable the test on
-    portsToTest_ = getPortsToTest();
-    CHECK(!portsToTest_.empty());
+      // Get the list of ports and their components to enable the test on
+      portsToTest_ = getPortsToTest();
+      CHECK(!portsToTest_.empty());
 
-    for (auto testPort : portsToTest_) {
-      XLOG(DBG2) << "Will run the PRBS "
-                 << apache::thrift::util::enumNameSafe(testPort.polynomial)
-                 << " test on "
-                 << apache::thrift::util::enumNameSafe(testPort.component)
-                 << " on " << testPort.portName;
+      for (auto testPort : portsToTest_) {
+        XLOG(DBG2) << "Will run the PRBS "
+                   << apache::thrift::util::enumNameSafe(testPort.polynomial)
+                   << " test on "
+                   << apache::thrift::util::enumNameSafe(testPort.component)
+                   << " on " << testPort.portName;
+      }
     }
   }
 

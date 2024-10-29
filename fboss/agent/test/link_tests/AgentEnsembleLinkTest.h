@@ -13,6 +13,7 @@
 DECLARE_string(config);
 DECLARE_bool(link_stress_test);
 DECLARE_bool(disable_neighbor_updates);
+DECLARE_bool(list_production_feature);
 
 namespace facebook::fboss {
 
