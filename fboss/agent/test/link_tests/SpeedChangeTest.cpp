@@ -22,6 +22,13 @@ struct SpeedAndProfile {
 };
 
 class SpeedChangeTest : public LinkTest {
+ private:
+  std::vector<link_test_production_features::LinkTestProductionFeature>
+  getProductionFeatures() const override {
+    return {
+        link_test_production_features::LinkTestProductionFeature::L2_LINK_TEST};
+  }
+
  public:
   void TearDown() override;
   void setupConfigFlag() override;

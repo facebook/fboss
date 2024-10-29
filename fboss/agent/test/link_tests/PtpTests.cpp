@@ -25,6 +25,13 @@ const folly::IPAddressV6 kIPv6Dst = folly::IPAddressV6("2::1"); // arbit
 const auto kSrcMac = folly::MacAddress{"00:00:00:00:01:03"}; // arbit
 
 class PtpTests : public LinkTest {
+ private:
+  std::vector<link_test_production_features::LinkTestProductionFeature>
+  getProductionFeatures() const override {
+    return {
+        link_test_production_features::LinkTestProductionFeature::L2_LINK_TEST};
+  }
+
  public:
   std::unique_ptr<facebook::fboss::TxPacket> createPtpPkt(
       PTPMessageType ptpType) {

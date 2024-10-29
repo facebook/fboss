@@ -39,6 +39,7 @@ cpp_library(
     undefined_symbols = True,
     exported_deps = [
         "fbsource//third-party/googletest:gtest",
+        ":link_test_production_features-cpp2-types",
         "//common/process:process",
         "//fboss/agent:agent_stats-cpp2-types",
         "//fboss/agent:core",
@@ -137,6 +138,7 @@ cpp_library(
     undefined_symbols = True,
     exported_deps = [
         "fbsource//third-party/googletest:gtest",
+        ":link_test_production_features-cpp2-types",
         "//fboss/agent:core",
         "//fboss/agent:fboss-error",
         "//fboss/agent:fboss-types",

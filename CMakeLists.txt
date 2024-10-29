@@ -541,6 +541,13 @@ add_fbthrift_cpp_library(
     reflection
 )
 add_fbthrift_cpp_library(
+  link_test_production_features_cpp2
+  fboss/agent/test/link_tests/link_test_production_features.thrift
+  OPTIONS
+    json
+    reflection
+)
+add_fbthrift_cpp_library(
   i2c_controller_stats_cpp2
   fboss/lib/i2c/i2c_controller_stats.thrift
 )

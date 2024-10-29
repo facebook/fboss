@@ -581,6 +581,13 @@ class PrbsTest : public LinkTest {
 
 template <MediaInterfaceCode Media, prbs::PrbsPolynomial Polynomial>
 class TransceiverLineToTransceiverLinePrbsTest : public PrbsTest {
+ private:
+  std::vector<link_test_production_features::LinkTestProductionFeature>
+  getProductionFeatures() const override {
+    return {
+        link_test_production_features::LinkTestProductionFeature::L1_LINK_TEST};
+  }
+
  protected:
   std::vector<TestPort> getPortsToTest() override {
     std::vector<TestPort> portsToTest;
@@ -612,6 +619,13 @@ template <
     phy::PortComponent ComponentA,
     prbs::PrbsPolynomial PolynomialZ>
 class PhyToTransceiverSystemPrbsTest : public PrbsTest {
+ private:
+  std::vector<link_test_production_features::LinkTestProductionFeature>
+  getProductionFeatures() const override {
+    return {
+        link_test_production_features::LinkTestProductionFeature::L1_LINK_TEST};
+  }
+
  protected:
   std::vector<TestPort> getPortsToTest() override {
     CHECK(
@@ -641,6 +655,13 @@ class PhyToTransceiverSystemPrbsTest : public PrbsTest {
 
 template <prbs::PrbsPolynomial Polynomial>
 class AsicToAsicPrbsTest : public PrbsTest {
+ private:
+  std::vector<link_test_production_features::LinkTestProductionFeature>
+  getProductionFeatures() const override {
+    return {
+        link_test_production_features::LinkTestProductionFeature::L2_LINK_TEST};
+  }
+
  protected:
   std::vector<TestPort> getPortsToTest() override {
     std::vector<TestPort> portsToTest;

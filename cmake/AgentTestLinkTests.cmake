@@ -28,6 +28,7 @@ target_link_libraries(link_tests
   packet
   packet_snooper
   pkt_test_utils
+  link_test_production_features_cpp2
   ${GTEST}
   ${LIBGMOCK_LIBRARIES}
 )
