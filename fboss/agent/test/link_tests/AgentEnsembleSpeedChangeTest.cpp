@@ -21,6 +21,13 @@ struct SpeedAndProfile {
 };
 
 class AgentEnsembleSpeedChangeTest : public AgentEnsembleLinkTest {
+ private:
+  std::vector<link_test_production_features::LinkTestProductionFeature>
+  getProductionFeatures() const override {
+    return {
+        link_test_production_features::LinkTestProductionFeature::L2_LINK_TEST};
+  }
+
  public:
   void TearDown() override;
   void preInitSetup() override;

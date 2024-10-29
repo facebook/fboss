@@ -269,6 +269,7 @@ cpp_library(
         "fbcode//thrift/lib/cpp2/async:rocket_client_channel",
         "fbcode//thrift/lib/cpp2/protocol:protocol",
         "fbsource//third-party/googletest:gtest",
+        ":link_test_production_features-cpp2-types",
         "//common/process:process",
         "//fboss/agent:agent_stats-cpp2-types",
         "//fboss/agent:core",

@@ -33,6 +33,22 @@ DEFINE_bool(
 namespace {
 int kArgc;
 char** kArgv;
+
+const std::vector<std::string> l1LinkTestNames = {
+    "asicLinkFlap",
+    "getTransceivers",
+    "opticsTxDisableRandomPorts",
+    "opticsTxDisableEnable",
+    "testOpticsRemediation",
+    "qsfpColdbootAfterAgentUp",
+    "fabricLinkHealth",
+    "opticsVdmPerformanceMonitoring",
+    "iPhyInfoTest",
+    "xPhyInfoTest",
+    "verifyIphyFecCounters",
+    "verifyIphyFecBerCounters"};
+
+const std::vector<std::string> l2LinkTestNames = {"trafficRxTx", "ecmpShrink"};
 } // namespace
 
 namespace facebook::fboss {
@@ -40,6 +56,7 @@ namespace facebook::fboss {
 void AgentEnsembleLinkTest::SetUp() {
   gflags::ParseCommandLineFlags(&kArgc, &kArgv, false);
   if (FLAGS_list_production_feature) {
+    printProductionFeatures();
     GTEST_SKIP() << "Skipping this test because list_production_feature is set";
     return;
   }
@@ -532,6 +549,34 @@ void AgentEnsembleLinkTest::setForceTrafficOverFabric(bool force) {
     }
     return out;
   });
+}
+
+std::vector<link_test_production_features::LinkTestProductionFeature>
+AgentEnsembleLinkTest::getProductionFeatures() const {
+  const std::string testName =
+      testing::UnitTest::GetInstance()->current_test_info()->name();
+
+  if (std::find(l1LinkTestNames.begin(), l1LinkTestNames.end(), testName) !=
+      l1LinkTestNames.end()) {
+    return {
+        link_test_production_features::LinkTestProductionFeature::L1_LINK_TEST};
+  } else if (
+      std::find(l2LinkTestNames.begin(), l2LinkTestNames.end(), testName) !=
+      l2LinkTestNames.end()) {
+    return {
+        link_test_production_features::LinkTestProductionFeature::L2_LINK_TEST};
+  } else {
+    throw std::runtime_error(
+        "Test type (L1/L2) not specified for this test case");
+  }
+}
+
+void AgentEnsembleLinkTest::printProductionFeatures() const {
+  std::vector<std::string> supportedFeatures;
+  for (const auto& feature : getProductionFeatures()) {
+    supportedFeatures.push_back(apache::thrift::util::enumNameSafe(feature));
+  }
+  std::cout << "Feature List: " << folly::join(",", supportedFeatures) << "\n";
 }
 
 int agentEnsembleLinkTestMain(
