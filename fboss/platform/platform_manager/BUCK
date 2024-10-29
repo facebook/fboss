@@ -46,8 +46,11 @@ cpp_library(
         "ConfigValidator.cpp",
     ],
     exported_deps = [
+        "fbsource//third-party/range-v3:range-v3",
         ":i2c_misc",
         ":platform_manager_config-cpp2-types",
+        "//folly/gen:base",
+        "//folly/gen:string",
         "//folly/logging:logging",
     ],
     exported_external_deps = [

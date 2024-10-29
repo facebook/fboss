@@ -39,6 +39,7 @@ CLI11
 exprtk
 nlohmann-json
 libgpiod
+range-v3
 
 [shipit.pathmap]
 fbcode/fboss/github = .
