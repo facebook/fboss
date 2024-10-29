@@ -432,6 +432,7 @@ SystemPortID getSystemPortID(
     SwitchID switchId) {
   return getSystemPortID(
       portId,
+      state->getPorts()->getNode(portId)->getScope(),
       state->getSwitchSettings()
           ->getSwitchSettings(
               HwSwitchMatcher(std::unordered_set<SwitchID>({switchId})))
