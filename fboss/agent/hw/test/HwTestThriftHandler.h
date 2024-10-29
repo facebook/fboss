@@ -90,6 +90,10 @@ class HwTestThriftHandler : public AgentHwTestCtrlSvIf {
       std::unique_ptr<IpPrefix> prefix,
       std::unique_ptr<network::thrift::BinaryAddress> nexthop) override;
 
+  void getPortInfo(
+      ::std::vector<::facebook::fboss::utility::PortInfo>& portInfos,
+      std::unique_ptr<::std::vector<::std::int32_t>> portIds) override;
+
  private:
   HwSwitch* hwSwitch_;
 };

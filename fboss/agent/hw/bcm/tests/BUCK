@@ -629,4 +629,7 @@ cpp_library(
         "//fboss/agent/hw/test:hw_test_thrift_handler_h",
         "//fboss/agent/test/utils:acl_test_utils",
     ],
+    exported_external_deps = [
+        ("broadcom-xgs-robo", None, "xgs_robo"),
+    ],
 )
