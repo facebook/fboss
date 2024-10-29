@@ -1175,6 +1175,11 @@ std::shared_ptr<SwitchState> SwSwitch::preInit(SwitchFlags flags) {
              << " | SDK version: " << getAsicSdkVersion(sdkVersion_)
              << " | Agent version: " << getBuildPackageVersion();
 
+  swSwitchWarmbootHelper_->logBoot(
+      apache::thrift::util::enumNameSafe(bootType_),
+      getAsicSdkVersion(sdkVersion_),
+      getBuildPackageVersion());
+
   multiHwSwitchHandler_->start();
   std::optional<state::WarmbootState> wbState{};
   if (bootType_ == BootType::WARM_BOOT) {
