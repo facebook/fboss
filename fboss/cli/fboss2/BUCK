@@ -661,6 +661,7 @@ cpp_library(
         "//nettools/skynet/if:query-cpp2-types",
         "//nettools/skynet/if:skynet_structs-cpp2-types",
         "//nettools/skynet/lib/cpp:skynet_thrift_client",
+        "//nettools/vipinjector/vip_service:util_lib",
         "//nettools/vipinjector/vip_service/if:vip_service-cpp2-services",
         "//nettools/vipinjector/vip_service/if:vip_service-cpp2-types",
         "//openr/common:network_util",
