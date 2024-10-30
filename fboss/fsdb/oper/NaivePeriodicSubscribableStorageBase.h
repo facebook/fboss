@@ -33,12 +33,32 @@ class NaivePeriodicSubscribableStorageBase {
   using ExtPath = typename OperPathToPublisherRoot::ExtPath;
   using ExtPathIter = typename OperPathToPublisherRoot::ExtPathIter;
 
-  NaivePeriodicSubscribableStorageBase(
-      std::chrono::milliseconds subscriptionServeInterval,
-      std::chrono::milliseconds subscriptionHeartbeatInterval,
-      bool trackMetadata,
-      const std::string& metricPrefix,
-      bool convertToIDPaths);
+  struct StorageParams {
+    StorageParams(
+        std::chrono::milliseconds subscriptionServeInterval =
+            std::chrono::milliseconds(50),
+        std::chrono::milliseconds subscriptionHeartbeatInterval =
+            std::chrono::seconds(5),
+        bool trackMetadata = false,
+        const std::string& metricPrefix = "fsdb",
+        bool convertToIDPaths = false,
+        bool requireResponseOnInitialSync = false)
+        : subscriptionServeInterval_(subscriptionServeInterval),
+          subscriptionHeartbeatInterval_(subscriptionHeartbeatInterval),
+          trackMetadata_(trackMetadata),
+          metricPrefix_(metricPrefix),
+          convertSubsToIDPaths_(convertToIDPaths),
+          requireResponseOnInitialSync_(requireResponseOnInitialSync) {}
+
+    const std::chrono::milliseconds subscriptionServeInterval_;
+    const std::chrono::milliseconds subscriptionHeartbeatInterval_;
+    const bool trackMetadata_;
+    const std::string& metricPrefix_;
+    bool convertSubsToIDPaths_;
+    const bool requireResponseOnInitialSync_;
+  };
+
+  explicit NaivePeriodicSubscribableStorageBase(StorageParams params);
 
   virtual ~NaivePeriodicSubscribableStorageBase() {}
 
@@ -130,7 +150,7 @@ class NaivePeriodicSubscribableStorageBase {
   }
 
   void setConvertToIDPaths(bool convertToIDPaths) {
-    convertSubsToIDPaths_ = convertToIDPaths;
+    params_.convertSubsToIDPaths_ = convertToIDPaths;
     subMgr().useIdPaths(convertToIDPaths);
   }
 
@@ -170,13 +190,9 @@ class NaivePeriodicSubscribableStorageBase {
 
   folly::Synchronized<bool> running_{false};
 
-  const std::chrono::milliseconds subscriptionServeInterval_;
-  const std::chrono::milliseconds subscriptionHeartbeatInterval_;
+  StorageParams params_;
   folly::Synchronized<std::unique_ptr<FsdbOperTreeMetadataTracker>>
       metadataTracker_;
-  const bool trackMetadata_{false};
-
-  bool convertSubsToIDPaths_{false};
 
   // as an optimization, for now we decide what protocol is used in patches
   // instead of letting the client choose

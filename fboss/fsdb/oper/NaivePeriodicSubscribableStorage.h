@@ -41,24 +41,14 @@ class NaivePeriodicSubscribableStorage
 
   explicit NaivePeriodicSubscribableStorage(
       const RootT& initialState,
-      std::chrono::milliseconds subscriptionServeInterval =
-          std::chrono::milliseconds(50),
-      std::chrono::milliseconds subscriptionHeartbeatInterval =
-          std::chrono::seconds(5),
-      bool trackMetadata = false,
-      const std::string& metricPrefix = "fsdb",
-      bool convertToIDPaths = false,
-      bool requireResponseOnInitialSync = false)
-      : NaivePeriodicSubscribableStorageBase(
-            subscriptionServeInterval,
-            subscriptionHeartbeatInterval,
-            trackMetadata,
-            metricPrefix,
-            convertToIDPaths),
+      StorageParams params = {})
+      : NaivePeriodicSubscribableStorageBase(params),
         currentState_(std::in_place, initialState),
         lastPublishedState_(*currentState_.rlock()),
-        subscriptions_(patchOperProtocol_, requireResponseOnInitialSync) {
-    subscriptions_.useIdPaths(convertToIDPaths);
+        subscriptions_(
+            patchOperProtocol_,
+            params.requireResponseOnInitialSync_) {
+    subscriptions_.useIdPaths(params.convertSubsToIDPaths_);
     auto currentState = currentState_.wlock();
     currentState->publish();
   }
@@ -95,7 +85,7 @@ class NaivePeriodicSubscribableStorage
   get_encoded_impl(PathIter begin, PathIter end, OperProtocol protocol) const {
     auto state = currentState_.rlock();
     auto result = state->get_encoded(begin, end, protocol);
-    if (result.hasValue() && trackMetadata_) {
+    if (result.hasValue() && params_.trackMetadata_) {
       metadataTracker_.withRLock([&](auto& tracker) {
         CHECK(tracker);
         auto metadata =
@@ -117,7 +107,7 @@ class NaivePeriodicSubscribableStorage
       OperProtocol protocol) const {
     auto state = currentState_.rlock();
     auto result = state->get_encoded_extended(begin, end, protocol);
-    if (result.hasValue() && trackMetadata_) {
+    if (result.hasValue() && params_.trackMetadata_) {
       metadataTracker_.withRLock([&](auto& tracker) {
         CHECK(tracker);
         auto metadata =
@@ -248,7 +238,7 @@ class NaivePeriodicSubscribableStorage
 
       exportServeMetrics(start);
 
-      co_await folly::coro::sleep(subscriptionServeInterval_);
+      co_await folly::coro::sleep(params_.subscriptionServeInterval_);
     }
   }
 
@@ -297,7 +287,7 @@ template <typename Storage, typename SubscribeManager>
 typename Storage::ConcretePath
 NaivePeriodicSubscribableStorage<Storage, SubscribeManager>::convertPath(
     ConcretePath&& path) const {
-  return convertSubsToIDPaths_
+  return params_.convertSubsToIDPaths_
       ? PathConverter<RootT>::pathToIdTokens(std::move(path))
       : path;
 }
@@ -306,8 +296,9 @@ template <typename Storage, typename SubscribeManager>
 typename Storage::ExtPath
 NaivePeriodicSubscribableStorage<Storage, SubscribeManager>::convertPath(
     const ExtPath& path) const {
-  return convertSubsToIDPaths_ ? PathConverter<RootT>::extPathToIdTokens(path)
-                               : path;
+  return params_.convertSubsToIDPaths_
+      ? PathConverter<RootT>::extPathToIdTokens(path)
+      : path;
 }
 
 template <typename Root>

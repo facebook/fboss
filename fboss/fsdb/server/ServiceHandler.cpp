@@ -241,19 +241,21 @@ ServiceHandler::ServiceHandler(
           fb303::RATE),
       operStorage_(
           {},
-          std::chrono::milliseconds(FLAGS_stateSubscriptionServe_ms),
-          std::chrono::seconds(FLAGS_stateSubscriptionHeartbeat_s),
-          FLAGS_trackMetadata,
-          "fsdb",
-          options_.serveIdPathSubs,
-          true),
+          NaivePeriodicSubscribableStorageBase::StorageParams(
+              std::chrono::milliseconds(FLAGS_stateSubscriptionServe_ms),
+              std::chrono::seconds(FLAGS_stateSubscriptionHeartbeat_s),
+              FLAGS_trackMetadata,
+              "fsdb",
+              options_.serveIdPathSubs,
+              true)),
       operStatsStorage_(
           {},
-          std::chrono::seconds(FLAGS_statsSubscriptionServe_s),
-          std::chrono::seconds(FLAGS_statsSubscriptionHeartbeat_s),
-          FLAGS_trackMetadata,
-          "fsdb",
-          options_.serveIdPathSubs) {
+          NaivePeriodicSubscribableStorageBase::StorageParams(
+              std::chrono::seconds(FLAGS_statsSubscriptionServe_s),
+              std::chrono::seconds(FLAGS_statsSubscriptionHeartbeat_s),
+              FLAGS_trackMetadata,
+              "fsdb",
+              options_.serveIdPathSubs)) {
   num_instances_.incrementValue(1);
 
   initPerStreamCounters();

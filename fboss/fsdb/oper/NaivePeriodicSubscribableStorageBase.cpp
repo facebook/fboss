@@ -33,20 +33,14 @@ DEFINE_bool(
 namespace facebook::fboss::fsdb {
 
 NaivePeriodicSubscribableStorageBase::NaivePeriodicSubscribableStorageBase(
-    std::chrono::milliseconds subscriptionServeInterval,
-    std::chrono::milliseconds subscriptionHeartbeatInterval,
-    bool trackMetadata,
-    const std::string& metricPrefix,
-    bool convertToIDPaths)
-    : subscriptionServeInterval_(subscriptionServeInterval),
-      subscriptionHeartbeatInterval_(subscriptionHeartbeatInterval),
-      trackMetadata_(trackMetadata),
-      convertSubsToIDPaths_(convertToIDPaths),
-      rss_(fmt::format("{}.{}", metricPrefix, kRss)),
-      registeredSubs_(fmt::format("{}.{}", metricPrefix, kRegisteredSubs)),
-      serveSubMs_(fmt::format("{}.{}", metricPrefix, kServeSubMs)),
-      serveSubNum_(fmt::format("{}.{}", metricPrefix, kServeSubNum)) {
-  if (trackMetadata) {
+    StorageParams params)
+    : params_(std::move(params)),
+      rss_(fmt::format("{}.{}", params_.metricPrefix_, kRss)),
+      registeredSubs_(
+          fmt::format("{}.{}", params_.metricPrefix_, kRegisteredSubs)),
+      serveSubMs_(fmt::format("{}.{}", params_.metricPrefix_, kServeSubMs)),
+      serveSubNum_(fmt::format("{}.{}", params_.metricPrefix_, kServeSubNum)) {
+  if (params_.trackMetadata_) {
     metadataTracker_ = std::make_unique<FsdbOperTreeMetadataTracker>();
   }
 
@@ -136,7 +130,7 @@ void NaivePeriodicSubscribableStorageBase::stop_impl() {
 void NaivePeriodicSubscribableStorageBase::registerPublisher(
     PathIter begin,
     PathIter end) {
-  if (!trackMetadata_) {
+  if (!params_.trackMetadata_) {
     return;
   }
   metadataTracker_.withWLock([&](auto& tracker) {
@@ -149,7 +143,7 @@ void NaivePeriodicSubscribableStorageBase::unregisterPublisher(
     PathIter begin,
     PathIter end,
     FsdbErrorCode disconnectReason) {
-  if (!trackMetadata_) {
+  if (!params_.trackMetadata_) {
     return;
   }
   metadataTracker_.withWLock([&](auto& tracker) {
@@ -200,7 +194,7 @@ NaivePeriodicSubscribableStorageBase::getPublisherRoot(
     PathIter begin,
     PathIter end) const {
   auto path = convertPath(ConcretePath(begin, end));
-  return trackMetadata_
+  return params_.trackMetadata_
       ? std::make_optional(
             OperPathToPublisherRoot().publisherRoot(path.begin(), path.end()))
       : std::nullopt;
@@ -210,7 +204,7 @@ std::optional<std::string>
 NaivePeriodicSubscribableStorageBase::getPublisherRoot(
     const std::vector<ExtendedOperPath>& paths) const {
   auto convertedPaths = convertExtPaths(paths);
-  return trackMetadata_
+  return params_.trackMetadata_
       ? std::make_optional(
             OperPathToPublisherRoot().publisherRoot(convertedPaths))
       : std::nullopt;
@@ -221,7 +215,7 @@ NaivePeriodicSubscribableStorageBase::getPublisherRoot(
     ExtPathIter begin,
     ExtPathIter end) const {
   auto path = convertPath(ExtPath(begin, end));
-  return trackMetadata_
+  return params_.trackMetadata_
       ? std::make_optional(
             OperPathToPublisherRoot().publisherRoot(path.begin(), path.end()))
       : std::nullopt;
@@ -230,7 +224,7 @@ NaivePeriodicSubscribableStorageBase::getPublisherRoot(
 std::optional<std::string>
 NaivePeriodicSubscribableStorageBase::getPublisherRoot(
     const std::map<SubscriptionKey, RawOperPath>& paths) const {
-  return trackMetadata_
+  return params_.trackMetadata_
       ? std::make_optional(OperPathToPublisherRoot().publisherRoot(paths))
       : std::nullopt;
 }
@@ -238,7 +232,7 @@ NaivePeriodicSubscribableStorageBase::getPublisherRoot(
 std::optional<std::string>
 NaivePeriodicSubscribableStorageBase::getPublisherRoot(
     const std::map<SubscriptionKey, ExtendedOperPath>& paths) const {
-  return trackMetadata_
+  return params_.trackMetadata_
       ? std::make_optional(OperPathToPublisherRoot().publisherRoot(paths))
       : std::nullopt;
 }
@@ -262,7 +256,7 @@ void NaivePeriodicSubscribableStorageBase::updateMetadata(
 std::vector<ExtendedOperPath>
 NaivePeriodicSubscribableStorageBase::convertExtPaths(
     const std::vector<ExtendedOperPath>& paths) const {
-  if (!convertSubsToIDPaths_) {
+  if (!params_.convertSubsToIDPaths_) {
     return paths;
   }
   std::vector<ExtendedOperPath> convertedPaths;
@@ -289,7 +283,7 @@ NaivePeriodicSubscribableStorageBase::subscribe_encoded_impl(
       protocol,
       getPublisherRoot(path.begin(), path.end()),
       heartbeatThread_ ? heartbeatThread_->getEventBase() : nullptr,
-      subscriptionHeartbeatInterval_);
+      params_.subscriptionHeartbeatInterval_);
   subMgr().registerSubscription(std::move(subscription));
   return std::move(gen);
 }
@@ -308,7 +302,7 @@ NaivePeriodicSubscribableStorageBase::subscribe_delta_impl(
       protocol,
       getPublisherRoot(path.begin(), path.end()),
       heartbeatThread_ ? heartbeatThread_->getEventBase() : nullptr,
-      subscriptionHeartbeatInterval_);
+      params_.subscriptionHeartbeatInterval_);
   subMgr().registerSubscription(std::move(subscription));
   return std::move(gen);
 }
@@ -326,7 +320,7 @@ NaivePeriodicSubscribableStorageBase::subscribe_encoded_extended_impl(
       std::move(publisherRoot),
       protocol,
       heartbeatThread_ ? heartbeatThread_->getEventBase() : nullptr,
-      subscriptionHeartbeatInterval_);
+      params_.subscriptionHeartbeatInterval_);
   subMgr().registerExtendedSubscription(std::move(subscription));
   return std::move(gen);
 }
@@ -344,7 +338,7 @@ NaivePeriodicSubscribableStorageBase::subscribe_delta_extended_impl(
       std::move(publisherRoot),
       protocol,
       heartbeatThread_ ? heartbeatThread_->getEventBase() : nullptr,
-      subscriptionHeartbeatInterval_);
+      params_.subscriptionHeartbeatInterval_);
   subMgr().registerExtendedSubscription(std::move(subscription));
   return std::move(gen);
 }
@@ -364,7 +358,7 @@ NaivePeriodicSubscribableStorageBase::subscribe_patch_impl(
       patchOperProtocol_,
       std::move(root),
       heartbeatThread_ ? heartbeatThread_->getEventBase() : nullptr,
-      subscriptionHeartbeatInterval_);
+      params_.subscriptionHeartbeatInterval_);
   subMgr().registerExtendedSubscription(std::move(subscription));
   return std::move(gen);
 }
@@ -384,7 +378,7 @@ NaivePeriodicSubscribableStorageBase::subscribe_patch_extended_impl(
       patchOperProtocol_,
       std::move(root),
       heartbeatThread_ ? heartbeatThread_->getEventBase() : nullptr,
-      subscriptionHeartbeatInterval_);
+      params_.subscriptionHeartbeatInterval_);
   subMgr().registerExtendedSubscription(std::move(subscription));
   return std::move(gen);
 }
