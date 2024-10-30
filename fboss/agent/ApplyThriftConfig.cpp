@@ -936,9 +936,12 @@ void ThriftConfigApplier::processUpdatedDsfNodes() {
   auto switchIdToSwitchIndex =
       computeSwitchIdToSwitchIndex(new_->getDsfNodes());
 
-  auto getRecyclePortId = [](const std::shared_ptr<DsfNode>& node) {
-    CHECK(node->getSystemPortRange().has_value());
-    return *node->getSystemPortRange()->minimum() + 1;
+  auto getInbandSysPortId = [](const std::shared_ptr<DsfNode>& node) {
+    CHECK(node->getInbandPortId().has_value());
+    CHECK(node->getGlobalSystemPortOffset().has_value());
+    // TODO factor in multi npu nodes where portId range maybe
+    // different
+    return *node->getGlobalSystemPortOffset() + *node->getInbandPortId();
   };
 
   auto getRecyclePortName =
@@ -1006,7 +1009,7 @@ void ThriftConfigApplier::processUpdatedDsfNodes() {
       };
   auto processLoopbacks = [&](const std::shared_ptr<DsfNode>& node,
                               const HwAsic* dsfNodeAsic) {
-    auto recyclePortId = getRecyclePortId(node);
+    auto recyclePortId = getInbandSysPortId(node);
     InterfaceID intfID(recyclePortId);
     auto intfs = isLocal(node) ? new_->getInterfaces()->modify(&new_)
                                : new_->getRemoteInterfaces()->modify(&new_);
@@ -1066,7 +1069,7 @@ void ThriftConfigApplier::processUpdatedDsfNodes() {
       // via local config. So only process need to process loopback IPs here.
       return;
     }
-    auto recyclePortId = getRecyclePortId(node);
+    auto recyclePortId = getInbandSysPortId(node);
     auto sysPort = std::make_shared<SystemPort>(
         SystemPortID(recyclePortId),
         std::make_optional(RemoteSystemPortType::STATIC_ENTRY));
@@ -1114,7 +1117,7 @@ void ThriftConfigApplier::processUpdatedDsfNodes() {
       return;
     }
     if (!isLocal(node)) {
-      auto recyclePortId = getRecyclePortId(node);
+      auto recyclePortId = getInbandSysPortId(node);
       auto sysPorts = new_->getRemoteSystemPorts()->modify(&new_);
       sysPorts->removeNode(SystemPortID(recyclePortId));
       auto intfs = new_->getRemoteInterfaces()->modify(&new_);
