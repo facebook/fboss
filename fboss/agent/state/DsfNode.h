@@ -38,9 +38,6 @@ class DsfNode : public ThriftStructNode<DsfNode, cfg::DsfNode> {
   }
   std::set<folly::CIDRNetwork> getLoopbackIpsSorted() const;
   void setLoopbackIps(const std::vector<std::string>& loopbackIps);
-  // TODO - deprecate getSystemPortRange in favor of
-  // getSystemPortRanges
-  std::optional<cfg::Range64> getSystemPortRange() const;
   cfg::SystemPortRanges getSystemPortRanges() const;
   std::optional<folly::MacAddress> getMac() const;
   PlatformType getPlatformType() const;

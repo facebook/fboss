@@ -67,14 +67,6 @@ void DsfNode::setLoopbackIps(const std::vector<std::string>& loopbackIps) {
   set<switch_config_tags::loopbackIps>(loopbackIps);
 }
 
-std::optional<cfg::Range64> DsfNode::getSystemPortRange() const {
-  std::optional<cfg::Range64> sysPortRange;
-  if (get<switch_config_tags::systemPortRange>()) {
-    sysPortRange = get<switch_config_tags::systemPortRange>()->toThrift();
-  }
-  return sysPortRange;
-}
-
 cfg::SystemPortRanges DsfNode::getSystemPortRanges() const {
   auto ranges = get<switch_config_tags::systemPortRanges>()->toThrift();
   return ranges;
