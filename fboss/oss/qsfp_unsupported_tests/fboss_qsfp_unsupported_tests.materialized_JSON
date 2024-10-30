@@ -2392,6 +2392,9 @@
         },
         {
           "test_name_regex": "HwTest_PROFILE_100G_1_PAM4_NOFEC_COPPER.TestProfile$"
+        },
+        {
+          "test_name_regex": "HwStateMachineTest.CheckTransceiverRemediated$"
         }
     ],
     "janga800bic/physdk-credo-0.8.4/credo-0.8.4": [
@@ -2565,6 +2568,9 @@
         },
         {
           "test_name_regex": "HwTest_PROFILE_100G_1_PAM4_NOFEC_COPPER.TestProfile$"
+        },
+        {
+          "test_name_regex": "HwStateMachineTest.CheckTransceiverRemediated$"
         }
     ],
     "meru400bfu/physdk-credo-0.7.2/credo-0.7.2": [
@@ -3297,6 +3303,9 @@
           "test_name_regex": "PhyIOTest.phyIOStats$"
         },
         {
+          "test_name_regex": "HwStateMachineTest.CheckTransceiverRemediated$"
+        },
+        {
           "test_name_regex": "HwTest_PROFILE_DEFAULT.TestProfile$"
         },
         {
@@ -3474,6 +3483,9 @@
         },
         {
           "test_name_regex": "PhyIOTest.phyIOStats$"
+        },
+        {
+          "test_name_regex": "HwStateMachineTest.CheckTransceiverRemediated$"
         },
         {
           "test_name_regex": "HwTest_PROFILE_DEFAULT.TestProfile$"
@@ -3655,6 +3667,9 @@
           "test_name_regex": "PhyIOTest.phyIOStats$"
         },
         {
+          "test_name_regex": "HwStateMachineTest.CheckTransceiverRemediated$"
+        },
+        {
           "test_name_regex": "HwTest_PROFILE_DEFAULT.TestProfile$"
         },
         {
@@ -3826,6 +3841,9 @@
         },
         {
           "test_name_regex": "PhyIOTest.phyIOStats$"
+        },
+        {
+          "test_name_regex": "HwStateMachineTest.CheckTransceiverRemediated$"
         },
         {
           "test_name_regex": "HwTest_PROFILE_DEFAULT.TestProfile$"
@@ -4295,6 +4313,9 @@
         },
         {
           "test_name_regex": "HwTest_PROFILE_100G_1_PAM4_NOFEC_COPPER.TestProfile$"
+        },
+        {
+          "test_name_regex": "HwStateMachineTest.CheckTransceiverRemediated$"
         }
     ],
     "montblanc/physdk-credo-0.8.4/credo-0.8.4": [
@@ -4465,6 +4486,9 @@
         },
         {
           "test_name_regex": "HwTest_PROFILE_100G_1_PAM4_NOFEC_COPPER.TestProfile$"
+        },
+        {
+          "test_name_regex": "HwStateMachineTest.CheckTransceiverRemediated$"
         }
     ],
     "morgan800cc/physdk-credo-0.7.2/credo-0.7.2": [
@@ -4632,6 +4656,9 @@
         },
         {
           "test_name_regex": "HwTest_PROFILE_100G_1_PAM4_NOFEC_COPPER.TestProfile$"
+        },
+        {
+          "test_name_regex": "HwStateMachineTest.CheckTransceiverRemediated$"
         }
     ],
     "morgan800cc/physdk-credo-0.8.4/credo-0.8.4": [
@@ -4799,6 +4826,9 @@
         },
         {
           "test_name_regex": "HwTest_PROFILE_100G_1_PAM4_NOFEC_COPPER.TestProfile$"
+        },
+        {
+          "test_name_regex": "HwStateMachineTest.CheckTransceiverRemediated$"
         }
     ],
     "tahan800bc/physdk-credo-0.7.2/credo-0.7.2": [
@@ -4969,6 +4999,9 @@
         },
         {
           "test_name_regex": "HwTest_PROFILE_100G_1_PAM4_NOFEC_COPPER.TestProfile$"
+        },
+        {
+          "test_name_regex": "HwStateMachineTest.CheckTransceiverRemediated$"
         }
     ],
     "tahan800bc/physdk-credo-0.8.4/credo-0.8.4": [
@@ -5139,6 +5172,9 @@
         },
         {
           "test_name_regex": "HwTest_PROFILE_100G_1_PAM4_NOFEC_COPPER.TestProfile$"
+        },
+        {
+          "test_name_regex": "HwStateMachineTest.CheckTransceiverRemediated$"
         }
     ],
     "wedge100s/physdk-credo-0.7.2/credo-0.7.2": [
