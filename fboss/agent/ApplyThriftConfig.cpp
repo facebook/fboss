@@ -998,12 +998,14 @@ void ThriftConfigApplier::processUpdatedDsfNodes() {
         CHECK(isInterfaceNode(node))
             << " Only expect to be called for Interface nodes";
         auto mac = node->getMac() ? *node->getMac() : folly::MacAddress();
+        CHECK(!node->getSystemPortRanges().systemPortRanges()->empty());
         return HwAsic::makeAsic(
             node->getAsicType(),
             cfg::SwitchType::VOQ,
             static_cast<int64_t>(node->getSwitchId()),
             0, /* dummy switchIndex*/
-            node->getSystemPortRange(),
+            // TODO - get rid of system port range in HwAsic
+            *node->getSystemPortRanges().systemPortRanges()->begin(),
             mac,
             std::nullopt);
       };
