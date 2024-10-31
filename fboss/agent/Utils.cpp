@@ -446,12 +446,25 @@ SystemPortID getInbandSystemPortID(
   if (!switchInfoItr->second.inbandPortId().has_value()) {
     throw FbossError("Inband port id not set for: ", switchId);
   }
-  return getSystemPortID(
-      PortID(*switchInfoItr->second.inbandPortId()),
-      // Inband port scope is always global
-      cfg::Scope::GLOBAL,
-      switchId2Info,
-      switchId);
+  if (!switchInfoItr->second.globalSystemPortOffset().has_value()) {
+    throw FbossError("Global sys port offset not set for  ", switchId);
+  }
+  /*
+   * We need to derive inband port Ids in 2 scenarios.
+   * Local switchIds - here we can use the generic getSystemPortID functions
+   * which leverages port Id range information (we have that for local
+   * switches). Remote switchIds - here we don't have the remote switch id's
+   * port range. So we can't leverage the generic getSystemPortID function.
+   * Alternatives
+   * 1. Embed inband port id offset (instead of inband port ID)  in the
+   * inbandPortId field in config. Rename the field as inbandPortOffset.
+   * 2. Embed port id range in DsfNode struct.
+   *
+   * 1 is lighter weight and hence used right now.
+   */
+  return SystemPortID(
+      *switchInfoItr->second.globalSystemPortOffset() +
+      *switchInfoItr->second.inbandPortId());
 }
 
 cfg::Range64 getFirstSwitchSystemPortIdRange(
