@@ -262,11 +262,12 @@ std::string SaiPlatform::getHwAsicConfig(
 
 #if defined(BRCM_SAI_SDK_DNX_GTE_11_0) && !defined(BRCM_SAI_SDK_DNX_GTE_12_0)
   if (getAsic()->isSupported(HwAsic::Feature::EVENTOR_PORT_FOR_SFLOW)) {
-    // Interim workaround for 11.0.0.14 as this SoC property is needed for
-    // J3AI 11.x but not for 12.x until 12.0.0.3.
-    // TODO: While integrating 12.0.0.3, this workaround needs to be removed
+    // Interim workaround for 11.7 GA as this SoC property is needed for
+    // J3AI 11.x but not for 12.x until 12.0.0.3/4.
+    // TODO: While integrating 12.0.0.3/4, these workarounds need to be removed
     // and instead this SoC property would be added in config directly.
     nameValStrs.push_back("eventor_sbus_dma_channels.BCM8889X=0,6,0,7");
+    nameValStrs.push_back("custom_feature_shel_arm_enable=1");
   }
 #endif
 
