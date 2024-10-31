@@ -257,9 +257,6 @@
         },
         {
           "test_name_regex": "HwTransceiverResetTest.verifyResetControl$"
-        },
-        {
-          "test_name_regex": "PhyIOTest.phyIOStats$"
         }
     ],
     "elbert_8x16Q/physdk-credo-0.8.4/credo-0.8.4": [
@@ -277,9 +274,6 @@
         },
         {
           "test_name_regex": "HwTransceiverResetTest.verifyResetControl$"
-        },
-        {
-          "test_name_regex": "PhyIOTest.phyIOStats$"
         }
     ],
     "fuji_5x16Q/physdk-barchetta2-5.2/barchetta2-5.2": [
@@ -308,7 +302,7 @@
           "test_name_regex": "HwXphyPortInfoTest.*$"
         },
         {
-          "test_name_regex": "HwPortPrbsTest.*$"
+          "test_name_regex": "HwPortPrbsTest.*._true.SetPrbs$"
         },
         {
           "test_name_regex": "HwTransceiverResetTest.verifyResetControl$"
@@ -498,9 +492,6 @@
         },
         {
           "test_name_regex": "HwTransceiverConfigValidationTest.validateAllActiveTransceivers$"
-        },
-        {
-          "test_name_regex": "HwTest.cmisPageChange$"
         },
         {
           "test_name_regex": "HwTransceiverResetTest.verifyResetControl$"
