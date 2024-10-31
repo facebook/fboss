@@ -9,6 +9,7 @@ include "thrift/annotation/cpp.thrift"
 include "fboss/agent/switch_state.thrift"
 include "fboss/agent/switch_config.thrift"
 include "fboss/agent/if/ctrl.thrift"
+include "fboss/agent/if/mpls.thrift"
 include "common/network/if/Address.thrift"
 
 struct NeighborInfo {
@@ -89,6 +90,12 @@ service AgentHwTestCtrl {
   bool isRouteToNexthop(
     1: ctrl.IpPrefix prefix,
     2: Address.BinaryAddress address,
+  );
+  bool isProgrammedInHw(
+    1: i32 intfID,
+    2: ctrl.IpPrefix prefix,
+    3: mpls.MplsLabelStack labelStack,
+    4: i32 refCount,
   );
 
   // port utils
