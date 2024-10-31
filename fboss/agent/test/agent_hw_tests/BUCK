@@ -63,6 +63,7 @@ cpp_library(
         "AgentSwitchStatsTxCounterTests.cpp",
         "AgentTrafficPfcTests.cpp",
         "AgentTrunkLoadBalancerTests.cpp",
+        "AgentTunnelMgrTests.cpp",
         "AgentVoqSwitchInterruptsTests.cpp",
         "AgentVoqSwitchTests.cpp",
         "AgentWatermarkTests.cpp",
