@@ -433,15 +433,7 @@ SystemPortID getInbandSystemPortID(
   if (switchInfoItr == switchId2Info.end()) {
     throw FbossError("Unable to lookup switch info for : ", switchId);
   }
-  if (!switchInfoItr->second.inbandPortId().has_value()) {
-    throw FbossError("Inband port id not set for: ", switchId);
-  }
-  return getSystemPortID(
-      PortID(*switchInfoItr->second.inbandPortId()),
-      // Inband port scope is always global
-      cfg::Scope::GLOBAL,
-      switchId2Info,
-      switchId);
+  return getInbandSystemPortID(switchId2Info, switchId);
 }
 
 SystemPortID getInbandSystemPortID(
