@@ -1512,7 +1512,7 @@ std::shared_ptr<Port> SaiPortManager::swPortFromAttributes(
   port->setScope(platform_->getPlatformMapping()->getPortScope(port->getID()));
 
 // TODO(zecheng): Update flag when new 12.0 release has the attribute
-#if defined(SAI_VERSION_11_3_0_0_DNX_ODP)
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_0) && !defined(BRCM_SAI_SDK_DNX_GTE_12_0)
   port->setReachabilityGroupId(
       GET_OPT_ATTR(Port, CondEntropyRehashEnable, attributes));
 #endif
@@ -2966,7 +2966,7 @@ void SaiPortManager::changeTxEnable(
 void SaiPortManager::updateConditionalEntropySeed(PortID portID, uint32_t seed)
     const {
 // TODO(zecheng): Update flag when new 12.0 release has the attribute
-#if defined(SAI_VERSION_11_3_0_0_DNX_ODP)
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_0) && !defined(BRCM_SAI_SDK_DNX_GTE_12_0)
   auto portHandle = getPortHandle(portID);
   if (!portHandle) {
     throw FbossError(

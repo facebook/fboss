@@ -25,7 +25,7 @@ SaiBufferProfileTraits::Attributes::AttributeSharedFadtMaxTh::operator()() {
 std::optional<sai_attr_id_t>
 SaiBufferProfileTraits::Attributes::AttributeSharedFadtMinTh::operator()() {
 // TODO: Change to BRCM_SAI_SDK_DNX_GTE_11_0 once support is available in 12.0
-#if defined(SAI_VERSION_11_3_0_0_DNX_ODP)
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_0) && !defined(BRCM_SAI_SDK_DNX_GTE_12_0)
   return SAI_BUFFER_PROFILE_ATTR_SHARED_FADT_MIN_TH;
 #else
   return std::nullopt;
@@ -35,7 +35,7 @@ SaiBufferProfileTraits::Attributes::AttributeSharedFadtMinTh::operator()() {
 std::optional<sai_attr_id_t>
 SaiBufferProfileTraits::Attributes::AttributeSramFadtMinTh::operator()() {
 // TODO: Change to BRCM_SAI_SDK_DNX_GTE_11_0 once support is available in 12.0
-#if defined(SAI_VERSION_11_3_0_0_DNX_ODP)
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_0) && !defined(BRCM_SAI_SDK_DNX_GTE_12_0)
   return SAI_BUFFER_PROFILE_ATTR_SRAM_FADT_MIN_TH;
 #else
   return std::nullopt;
@@ -45,7 +45,7 @@ SaiBufferProfileTraits::Attributes::AttributeSramFadtMinTh::operator()() {
 std::optional<sai_attr_id_t>
 SaiBufferProfileTraits::Attributes::AttributeSramFadtMaxTh::operator()() {
 // TODO: Change to BRCM_SAI_SDK_DNX_GTE_11_0 once support is available in 12.0
-#if defined(SAI_VERSION_11_3_0_0_DNX_ODP)
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_0) && !defined(BRCM_SAI_SDK_DNX_GTE_12_0)
   return SAI_BUFFER_PROFILE_ATTR_SRAM_FADT_MAX_TH;
 #else
   return std::nullopt;
@@ -55,7 +55,7 @@ SaiBufferProfileTraits::Attributes::AttributeSramFadtMaxTh::operator()() {
 std::optional<sai_attr_id_t>
 SaiBufferProfileTraits::Attributes::AttributeSramFadtXonOffset::operator()() {
 // TODO: Change to BRCM_SAI_SDK_DNX_GTE_11_0 once support is available in 12.0
-#if defined(SAI_VERSION_11_3_0_0_DNX_ODP)
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_0) && !defined(BRCM_SAI_SDK_DNX_GTE_12_0)
   return SAI_BUFFER_PROFILE_ATTR_SRAM_FADT_XON_OFFSET;
 #else
   return std::nullopt;

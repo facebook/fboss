@@ -1011,7 +1011,7 @@ void SaiSwitchManager::setReachabilityGroupList(int reachabilityGroupListSize) {
 
 void SaiSwitchManager::setSramGlobalFreePercentXoffTh(
     uint8_t sramFreePercentXoffThreshold) {
-#if defined(SAI_VERSION_11_3_0_0_DNX_ODP)
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_0) && !defined(BRCM_SAI_SDK_DNX_GTE_12_0)
   switch_->setOptionalAttribute(
       SaiSwitchTraits::Attributes::SramFreePercentXoffTh{
           sramFreePercentXoffThreshold});
@@ -1020,7 +1020,7 @@ void SaiSwitchManager::setSramGlobalFreePercentXoffTh(
 
 void SaiSwitchManager::setSramGlobalFreePercentXonTh(
     uint8_t sramFreePercentXonThreshold) {
-#if defined(SAI_VERSION_11_3_0_0_DNX_ODP)
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_0) && !defined(BRCM_SAI_SDK_DNX_GTE_12_0)
   switch_->setOptionalAttribute(
       SaiSwitchTraits::Attributes::SramFreePercentXonTh{
           sramFreePercentXonThreshold});

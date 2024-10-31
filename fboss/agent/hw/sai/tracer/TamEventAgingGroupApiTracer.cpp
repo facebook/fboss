@@ -8,7 +8,8 @@
  *
  */
 
-#if defined(SAI_VERSION_11_3_0_0_DNX_ODP)
+#if defined(SAI_VERSION_11_3_0_0_DNX_ODP) || \
+    defined(SAI_VERSION_11_7_0_0_DNX_ODP)
 
 #include "fboss/agent/hw/sai/tracer/TamEventAgingGroupApiTracer.h"
 #include <typeindex>

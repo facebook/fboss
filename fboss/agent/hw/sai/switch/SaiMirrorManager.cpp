@@ -70,7 +70,7 @@ SaiMirrorHandle::SaiMirror SaiMirrorManager::addNodeSflow(
   auto truncateSize =
       mirror->getTruncate() ? platform_->getAsic()->getMirrorTruncateSize() : 0;
   std::optional<SaiSflowMirrorTraits::Attributes::TcBufferLimit> tcBufferLimit;
-#if defined(SAI_VERSION_11_3_0_0_DNX_ODP)
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_0) && !defined(BRCM_SAI_SDK_DNX_GTE_12_0)
   // TODO: Fix this to be picked up from eventor VoQ config.
   // For now, defaulting to 1M.
   tcBufferLimit = 1000000;

@@ -260,7 +260,7 @@ std::string SaiPlatform::getHwAsicConfig(
     addNameValue(entry);
   }
 
-#if defined(SAI_VERSION_11_3_0_0_DNX_ODP)
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_0) && !defined(BRCM_SAI_SDK_DNX_GTE_12_0)
   if (getAsic()->isSupported(HwAsic::Feature::EVENTOR_PORT_FOR_SFLOW)) {
     // Interim workaround for 11.0.0.14 as this SoC property is needed for
     // J3AI 11.x but not for 12.x until 12.0.0.3.

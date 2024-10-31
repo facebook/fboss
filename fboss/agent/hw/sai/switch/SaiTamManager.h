@@ -16,7 +16,7 @@ using SaiTamCollector = SaiObject<SaiTamCollectorTraits>;
 using SaiTamTransport = SaiObject<SaiTamTransportTraits>;
 using SaiTamReport = SaiObject<SaiTamReportTraits>;
 using SaiTamEventAction = SaiObject<SaiTamEventActionTraits>;
-#if defined(SAI_VERSION_11_3_0_0_DNX_ODP)
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_0) && !defined(BRCM_SAI_SDK_DNX_GTE_12_0)
 using SaiTamEventAgingGroup = SaiObject<SaiTamEventAgingGroupTraits>;
 #endif
 using SaiTamEvent = SaiObject<SaiTamEventTraits>;
@@ -27,7 +27,7 @@ struct SaiTamHandle {
   std::shared_ptr<SaiTamTransport> transport;
   std::shared_ptr<SaiTamReport> report;
   std::shared_ptr<SaiTamEventAction> action;
-#if defined(SAI_VERSION_11_3_0_0_DNX_ODP)
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_0) && !defined(BRCM_SAI_SDK_DNX_GTE_12_0)
   std::shared_ptr<SaiTamEventAgingGroup> agingGroup;
 #endif
   std::shared_ptr<SaiTamEvent> event;

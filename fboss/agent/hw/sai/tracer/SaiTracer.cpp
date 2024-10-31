@@ -196,7 +196,7 @@ sai_status_t __wrap_sai_api_query(
     return rv;
   }
 
-#if defined(SAI_VERSION_11_3_0_0_DNX_ODP)
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_0) && !defined(BRCM_SAI_SDK_DNX_GTE_12_0)
   if (UNLIKELY(sai_api_id >= SAI_API_MAX)) {
     switch (static_cast<sai_api_extensions_t>(sai_api_id)) {
       case SAI_API_TAM_EVENT_AGING_GROUP:
@@ -1349,7 +1349,7 @@ vector<string> SaiTracer::setAttrList(
         to<string>(sai_attribute, "[", i, "].id=", attr_list[i].id));
   }
 
-#if defined(SAI_VERSION_11_3_0_0_DNX_ODP)
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_0) && !defined(BRCM_SAI_SDK_DNX_GTE_12_0)
   if (UNLIKELY(object_type >= SAI_OBJECT_TYPE_MAX)) {
     switch (static_cast<sai_object_type_extensions_t>(object_type)) {
       case SAI_OBJECT_TYPE_TAM_EVENT_AGING_GROUP:
@@ -1884,7 +1884,7 @@ void SaiTracer::initVarCounts() {
   varCounts_.emplace(SAI_OBJECT_TYPE_TAM_TRANSPORT, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_TAM_REPORT, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_TAM_EVENT_ACTION, 0);
-#if defined(SAI_VERSION_11_3_0_0_DNX_ODP)
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_0) && !defined(BRCM_SAI_SDK_DNX_GTE_12_0)
   varCounts_.emplace(
       static_cast<sai_object_type_t>(SAI_OBJECT_TYPE_TAM_EVENT_AGING_GROUP), 0);
 #endif
