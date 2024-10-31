@@ -7,6 +7,7 @@
 #include "fboss/agent/hw/sai/api/SaiApiTable.h"
 #include "fboss/agent/hw/sai/switch/SaiCounterManager.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
+#include "fboss/agent/hw/sai/switch/SaiRouterInterfaceManager.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitch.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
 #include "fboss/agent/hw/sai/switch/SaiVirtualRouterManager.h"
@@ -31,6 +32,66 @@ bool isEgressToIp(folly::IPAddress addr, sai_object_id_t adapterKey) {
   } catch (const facebook::fboss::SaiApiError&) {
     return false;
   }
+}
+
+template <typename AddrT>
+sai_object_id_t getNextHopId(
+    const HwSwitch* hwSwitch,
+    typename facebook::fboss::Route<AddrT>::Prefix prefix) {
+  auto saiSwitch = static_cast<const facebook::fboss::SaiSwitch*>(hwSwitch);
+  // Query the nexthop ID given the route prefix
+  folly::IPAddress prefixNetwork{prefix.network()};
+  folly::CIDRNetwork follyPrefix{prefixNetwork, prefix.mask()};
+  auto virtualRouterHandle =
+      saiSwitch->managerTable()->virtualRouterManager().getVirtualRouterHandle(
+          RouterID(0));
+  CHECK(virtualRouterHandle);
+  auto routeEntry = SaiRouteTraits::RouteEntry(
+      saiSwitch->getSaiSwitchId(),
+      virtualRouterHandle->virtualRouter->adapterKey(),
+      follyPrefix);
+  return SaiApiTable::getInstance()->routeApi().getAttribute(
+      routeEntry, SaiRouteTraits::Attributes::NextHopId());
+}
+
+template <typename AddrT>
+facebook::fboss::NextHopSaiId getNextHopSaiId(
+    const facebook::fboss::HwSwitch* hwSwitch,
+    typename facebook::fboss::Route<AddrT>::Prefix prefix) {
+  return static_cast<facebook::fboss::NextHopSaiId>(
+      getNextHopId<AddrT>(hwSwitch, prefix));
+}
+
+facebook::fboss::NextHopSaiId getNextHopSaiIdForMember(
+    facebook::fboss::NextHopGroupMemberSaiId member) {
+  return static_cast<facebook::fboss::NextHopSaiId>(
+      SaiApiTable::getInstance()->nextHopGroupApi().getAttribute(
+          member,
+          facebook::fboss::SaiNextHopGroupMemberTraits::Attributes::
+              NextHopId{}));
+}
+
+std::vector<facebook::fboss::NextHopSaiId> getNextHopMembers(
+    facebook::fboss::NextHopGroupSaiId group) {
+  auto members = SaiApiTable::getInstance()->nextHopGroupApi().getAttribute(
+      group,
+      facebook::fboss::SaiNextHopGroupTraits::Attributes::NextHopMemberList{});
+  std::vector<facebook::fboss::NextHopSaiId> nexthops{};
+  for (auto member : members) {
+    auto nexthop = getNextHopSaiIdForMember(
+        static_cast<facebook::fboss::NextHopGroupMemberSaiId>(member));
+    nexthops.push_back(nexthop);
+  }
+  return nexthops;
+}
+
+std::vector<facebook::fboss::NextHopSaiId> getNextHops(sai_object_id_t id) {
+  auto type = sai_object_type_query(id);
+  if (type == SAI_OBJECT_TYPE_NEXT_HOP) {
+    return {static_cast<facebook::fboss::NextHopSaiId>(id)};
+  }
+  EXPECT_EQ(type, SAI_OBJECT_TYPE_NEXT_HOP_GROUP);
+  return getNextHopMembers(static_cast<facebook::fboss::NextHopGroupSaiId>(id));
 }
 
 SaiRouteTraits::RouteEntry getSaiRouteAdapterKey(
@@ -220,6 +281,76 @@ bool isRouteUnresolvedToCpuClassId(
       facebook::fboss::cfg::AclLookupClass::DST_CLASS_L3_LOCAL_2;
 }
 
+// Verifies that the stack is programmed correctly.
+// Reference count has no meaning in SAI and we assume that there always is a
+// labelStack programmed for nexthop when this function is called.
+template <typename AddrT>
+bool verifyProgrammedStack(
+    const HwSwitch* hwSwitch,
+    typename facebook::fboss::Route<AddrT>::Prefix prefix,
+    const facebook::fboss::InterfaceID& intfID,
+    const facebook::fboss::LabelForwardingAction::LabelStack& stack,
+    long /* unused */) {
+  auto* saiSwitch = static_cast<const SaiSwitch*>(hwSwitch);
+  auto& nextHopApi = SaiApiTable::getInstance()->nextHopApi();
+  sai_object_id_t nexthopId =
+      static_cast<sai_object_id_t>(getNextHopSaiId<AddrT>(hwSwitch, prefix));
+  auto nexthopIds = getNextHops(nexthopId);
+  auto intfHandle = saiSwitch->managerTable()
+                        ->routerInterfaceManager()
+                        .getRouterInterfaceHandle(intfID);
+  auto intfKey = intfHandle->adapterKey();
+  bool found = false;
+  bool verified = true;
+  for (auto nextHopId : nexthopIds) {
+    auto intfObjId = nextHopApi.getAttribute(
+        nextHopId,
+        facebook::fboss::SaiMplsNextHopTraits::Attributes::RouterInterfaceId());
+    if (intfObjId != intfKey) {
+      continue;
+    }
+    found = true;
+    // If stack is empty, simply check if the labelStack is programmed
+    // If the stack is empty, check if the labelstack has a label with MPLS
+    // Else, check that the stacks match
+    if (stack.empty()) {
+      if (nextHopApi.getAttribute(
+              nextHopId,
+              facebook::fboss::SaiMplsNextHopTraits::Attributes::Type()) !=
+          SAI_NEXT_HOP_TYPE_IP) {
+        XLOG(DBG2) << "nexthop is not of type IP";
+        verified = false;
+      }
+    } else {
+      if (nextHopApi.getAttribute(
+              nextHopId,
+              facebook::fboss::SaiMplsNextHopTraits::Attributes::Type()) !=
+          SAI_NEXT_HOP_TYPE_MPLS) {
+        XLOG(DBG2) << "nexthop is not of type MPLS";
+        verified = false;
+      }
+      auto labelStack = nextHopApi.getAttribute(
+          nextHopId,
+          facebook::fboss::SaiMplsNextHopTraits::Attributes::LabelStack{});
+      if (labelStack.size() != stack.size()) {
+        XLOG(DBG2) << "label stack size mismatch " << labelStack.size() << " "
+                   << stack.size();
+        verified = false;
+      }
+      for (int i = 0; i < labelStack.size(); i++) {
+        if (labelStack[i] != stack[i]) {
+          XLOG(DBG2) << "label stack mismatch " << labelStack[i] << " "
+                     << stack[i];
+          verified = false;
+        }
+      }
+    }
+    break;
+  }
+  XLOG(DBG2) << "found " << found << " verified " << verified;
+  return found && verified;
+}
+
 } // namespace
 
 namespace facebook {
@@ -270,6 +401,29 @@ bool HwTestThriftHandler::isRouteToNexthop(
       routePrefix,
       network::toIPAddress(*nexthop),
       std::nullopt);
+}
+
+bool HwTestThriftHandler::isProgrammedInHw(
+    int intfID,
+    std::unique_ptr<IpPrefix> prefix,
+    std::unique_ptr<MplsLabelStack> labelStack,
+    int refCount) {
+  auto routePrefix = folly::CIDRNetwork(
+      network::toIPAddress(*prefix->ip()), *prefix->prefixLength());
+  if (routePrefix.first.isV4()) {
+    auto pfx = RoutePrefix<folly::IPAddressV4>{
+        network::toIPAddress(*prefix->ip()).asV4(),
+        static_cast<uint8_t>(*prefix->prefixLength())};
+    return verifyProgrammedStack<folly::IPAddressV4>(
+        hwSwitch_, pfx, InterfaceID(intfID), *labelStack, refCount);
+  } else {
+    auto pfx = RoutePrefix<folly::IPAddressV6>{
+        network::toIPAddress(*prefix->ip()).asV6(),
+        static_cast<uint8_t>(*prefix->prefixLength())};
+    return verifyProgrammedStack<folly::IPAddressV6>(
+        hwSwitch_, pfx, InterfaceID(intfID), *labelStack, refCount);
+  }
+  return true;
 }
 
 } // namespace utility

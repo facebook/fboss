@@ -89,6 +89,11 @@ class HwTestThriftHandler : public AgentHwTestCtrlSvIf {
   bool isRouteToNexthop(
       std::unique_ptr<IpPrefix> prefix,
       std::unique_ptr<network::thrift::BinaryAddress> nexthop) override;
+  bool isProgrammedInHw(
+      int intfID,
+      std::unique_ptr<IpPrefix> prefix,
+      std::unique_ptr<MplsLabelStack> labelStack,
+      int refCount) override;
 
   void getPortInfo(
       ::std::vector<::facebook::fboss::utility::PortInfo>& portInfos,

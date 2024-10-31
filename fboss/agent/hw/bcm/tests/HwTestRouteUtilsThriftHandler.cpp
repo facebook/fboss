@@ -6,6 +6,7 @@
 #include "fboss/agent/hw/bcm/BcmAddressFBConvertors.h"
 #include "fboss/agent/hw/bcm/BcmError.h"
 #include "fboss/agent/hw/bcm/BcmHost.h"
+#include "fboss/agent/hw/bcm/BcmIntf.h"
 #include "fboss/agent/types.h"
 
 using facebook::fboss::bcmCheckError;
@@ -255,6 +256,25 @@ bool HwTestThriftHandler::isRouteToNexthop(
       routePrefix,
       network::toIPAddress(*nexthop),
       std::nullopt);
+}
+
+bool HwTestThriftHandler::isProgrammedInHw(
+    int intfID,
+    std::unique_ptr<IpPrefix> /*prefix*/,
+    std::unique_ptr<MplsLabelStack> labelStack,
+    int refCount) {
+  if (labelStack->empty()) {
+    return static_cast<const facebook::fboss::BcmSwitch*>(hwSwitch_)
+               ->getIntfTable()
+               ->getBcmIntfIf(InterfaceID(intfID))
+               ->getLabeledTunnelRefCount(*labelStack) == refCount;
+  } else {
+    return static_cast<const facebook::fboss::BcmSwitch*>(hwSwitch_)
+               ->getIntfTable()
+               ->getBcmIntfIf(InterfaceID(intfID))
+               ->getLabeledTunnelRefCount(LabelForwardingAction::LabelStack{
+                   labelStack->begin() + 1, labelStack->end()}) == refCount;
+  }
 }
 
 } // namespace utility
