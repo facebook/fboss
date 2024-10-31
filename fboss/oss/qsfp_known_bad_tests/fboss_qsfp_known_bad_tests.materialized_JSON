@@ -638,13 +638,7 @@
           "test_name_regex": "HwTransceiverConfigValidationTest.validateAllActiveTransceivers$"
         },
         {
-          "test_name_regex": "HwTest_PROFILE_400G_8_PAM4_RS544X2N_COPPER.TestProfile$"
-        },
-        {
           "test_name_regex": "HwTransceiverResetTest.verifyResetControl$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_10G_1_NRZ_NOFEC_OPTICAL.TestProfile$"
         }
     ],
     "wedge400/physdk-credo-0.8.4/credo-0.8.4": [
@@ -661,13 +655,7 @@
           "test_name_regex": "HwTransceiverConfigValidationTest.validateAllActiveTransceivers$"
         },
         {
-          "test_name_regex": "HwTest_PROFILE_400G_8_PAM4_RS544X2N_COPPER.TestProfile$"
-        },
-        {
           "test_name_regex": "HwTransceiverResetTest.verifyResetControl$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_10G_1_NRZ_NOFEC_OPTICAL.TestProfile$"
         }
     ],
     "wedge400c/physdk-credo-0.7.2/credo-0.7.2": [
