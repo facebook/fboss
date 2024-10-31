@@ -251,7 +251,10 @@ std::optional<sai_attr_id_t>
 SaiPortTraits::Attributes::AttributeCondEntropyRehashPeriodUS::operator()() {
 // TODO(zecheng): Update flag when new 12.0 release has the attribute
 #if defined(SAI_VERSION_11_3_0_0_DNX_ODP)
-  return SAI_PORT_ATTR_COND_ENTROPY_REHASH_PERIOD_US;
+  // TODO: Fix this properly as SAI_PORT_ATTR_COND_ENTROPY_REHASH_PERIOD_US
+  // port extension attribute is removed and no longer supported.
+  // This is just a workaround to integrate BRCM SAI 11.7 GA
+  return std::nullopt;
 #else
   return std::nullopt;
 #endif
