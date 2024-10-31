@@ -324,4 +324,14 @@ std::optional<sai_attr_id_t> SaiSwitchTraits::Attributes::
 #endif
   return std::nullopt;
 }
+
+std::optional<sai_attr_id_t>
+SaiSwitchTraits::Attributes::AttributeNoAclsForTrapsWrapper::operator()() {
+#if defined(BRCM_SAI_SDK_GTE_11_0)
+  return SAI_SWITCH_ATTR_NO_ACLS_FOR_TRAPS;
+#else
+  return std::nullopt;
+#endif
+}
+
 } // namespace facebook::fboss

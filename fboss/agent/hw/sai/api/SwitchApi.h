@@ -573,6 +573,11 @@ struct SaiSwitchTraits {
         sai_uint8_t,
         AttributeSramFreePercentXonThWrapper,
         SaiIntDefault<sai_uint8_t>>;
+    struct AttributeNoAclsForTrapsWrapper {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    using NoAclsForTraps =
+        SaiExtensionAttribute<bool, AttributeNoAclsForTrapsWrapper>;
   };
   using AdapterKey = SwitchSaiId;
   using AdapterHostKey = std::monostate;
@@ -643,7 +648,8 @@ struct SaiSwitchTraits {
       std::optional<Attributes::DelayDropCongThreshold>,
       std::optional<Attributes::FabricLinkLayerFlowControlThreshold>,
       std::optional<Attributes::SramFreePercentXoffTh>,
-      std::optional<Attributes::SramFreePercentXonTh>>;
+      std::optional<Attributes::SramFreePercentXonTh>,
+      std::optional<Attributes::NoAclsForTraps>>;
 
 #if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
   static constexpr std::array<sai_stat_id_t, 3> CounterIdsToRead = {
@@ -778,6 +784,7 @@ SAI_ATTRIBUTE_NAME(Switch, ReachabilityGroupList);
 SAI_ATTRIBUTE_NAME(Switch, FabricLinkLayerFlowControlThreshold);
 SAI_ATTRIBUTE_NAME(Switch, SramFreePercentXoffTh);
 SAI_ATTRIBUTE_NAME(Switch, SramFreePercentXonTh);
+SAI_ATTRIBUTE_NAME(Switch, NoAclsForTraps)
 
 template <>
 struct SaiObjectHasStats<SaiSwitchTraits> : public std::true_type {};

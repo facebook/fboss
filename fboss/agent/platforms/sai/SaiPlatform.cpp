@@ -689,6 +689,7 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
       fabricLLFC,
       std::nullopt, // SRAM free percent XOFF threshold
       std::nullopt, // SRAM free percent XON threshold
+      std::nullopt, // No acls for traps
   };
 }
 

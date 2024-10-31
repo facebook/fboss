@@ -126,6 +126,7 @@ void handleExtensionAttributes() {
   SAI_EXT_ATTR_MAP(Switch, FabricLinkLayerFlowControlThreshold);
   SAI_EXT_ATTR_MAP(Switch, SramFreePercentXoffTh);
   SAI_EXT_ATTR_MAP(Switch, SramFreePercentXonTh);
+  SAI_EXT_ATTR_MAP(Switch, NoAclsForTraps);
 }
 
 } // namespace
