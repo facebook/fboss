@@ -47,6 +47,10 @@ template <>
 struct AdapterHostKeyWarmbootRecoverable<SaiAclTableTraits> : std::false_type {
 };
 
+template <>
+struct AdapterHostKeyWarmbootRecoverable<SaiUdfGroupTraits> : std::false_type {
+};
+
 #if defined(BRCM_SAI_SDK_XGS_AND_DNX)
 template <>
 struct AdapterHostKeyWarmbootRecoverable<SaiWredTraits> : std::false_type {};
@@ -440,6 +444,12 @@ class SaiObjectStore {
           // recover itself even if adapter host key is not saved in warm boot
           // state.
           return ObjectType(key);
+        }
+        if constexpr (std::is_same_v<ObjectTraits, SaiUdfGroupTraits>) {
+          // UDF groups are similar to ACL tables above where adapterHostKey is
+          // a string. This if condition is strictly not required and here only
+          // to allow build
+          return ObjectType(key, SaiUdfGroupTraits::AdapterHostKey{"udfGroup"});
         }
 #if defined(BRCM_SAI_SDK_XGS)
         if constexpr (std::is_same_v<ObjectTraits, SaiWredTraits>) {
