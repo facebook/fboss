@@ -677,14 +677,12 @@ cfg::SwitchConfig multiplePortsPerIntfConfig(
         continue;
       }
       auto mySwitchId = scopeResolver.scope(port).switchId();
-      CHECK(config.dsfNodes()[mySwitchId].systemPortRange().has_value());
-      auto sysportRangeBegin =
-          *config.dsfNodes()[mySwitchId].systemPortRange()->minimum();
-      auto switchInfoItr =
-          config.switchSettings()->switchIdToSwitchInfo()->find(mySwitchId);
-      auto portIdRange = switchInfoItr->second.portIdRange();
-      auto intfId =
-          sysportRangeBegin + *port.logicalID() - *portIdRange->minimum();
+      auto sysPortId = getSystemPortID(
+          PortID(*port.logicalID()),
+          *port.scope(),
+          *config.switchSettings()->switchIdToSwitchInfo(),
+          SwitchID(mySwitchId));
+      auto intfId = static_cast<uint32_t>(sysPortId);
       std::optional<std::vector<std::string>> subnets;
       auto portScope = *platformMapping->getPlatformPort(*port.logicalID())
                             .mapping()
@@ -1035,15 +1033,22 @@ cfg::SwitchConfig twoL3IntfConfig(
       lbModeMap,
       supportsAddRemovePort);
 
-  auto computeIntfId = [&config, &ports, &switchType, &vlans](auto idx) {
+  auto computeIntfId = [&config, &platformMapping, &ports, &switchType, &vlans](
+                           auto idx) {
     if (switchType == cfg::SwitchType::NPU) {
       return static_cast<int64_t>(vlans[idx]);
     }
     auto mySwitchId =
         config.switchSettings()->switchIdToSwitchInfo()->begin()->first;
-    auto sysportRangeBegin =
-        *config.dsfNodes()[mySwitchId].systemPortRange()->minimum();
-    return sysportRangeBegin + static_cast<int>(ports[idx]);
+
+    auto port = ports[idx];
+    auto portScope = *platformMapping->getPlatformPort(port).mapping()->scope();
+    auto sysPortId = getSystemPortID(
+        port,
+        portScope,
+        *config.switchSettings()->switchIdToSwitchInfo(),
+        SwitchID(mySwitchId));
+    return static_cast<int64_t>(sysPortId);
   };
   for (auto i = 0; i < ports.size(); ++i) {
     cfg::Interface intf;
