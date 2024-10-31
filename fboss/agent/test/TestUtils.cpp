@@ -165,13 +165,13 @@ std::vector<std::string> getLoopbackIps(int64_t switchIdVal) {
   return {v6, v4};
 }
 
-uint16_t recycleSysPortId(const cfg::DsfNode& node) {
-  return *node.systemPortRange()->minimum() + 1;
-}
-
-cfg::Interface getRecyclePortRif(const cfg::DsfNode& myNode) {
+cfg::Interface getRecyclePortRif(
+    const cfg::DsfNode& myNode,
+    const cfg::SwitchConfig& cfg) {
   cfg::Interface recyclePortRif;
-  recyclePortRif.intfID() = recycleSysPortId(myNode);
+  recyclePortRif.intfID() = static_cast<uint32_t>(getInbandSystemPortID(
+      *cfg.switchSettings()->switchIdToSwitchInfo(),
+      SwitchID(*myNode.switchId())));
   recyclePortRif.type() = cfg::InterfaceType::SYSTEM_PORT;
   for (const auto& address : getLoopbackIps(*myNode.switchId())) {
     recyclePortRif.ipAddresses()->push_back(address);
@@ -180,7 +180,7 @@ cfg::Interface getRecyclePortRif(const cfg::DsfNode& myNode) {
 }
 
 void addRecyclePortRif(const cfg::DsfNode& myNode, cfg::SwitchConfig& cfg) {
-  cfg::Interface recyclePortRif = getRecyclePortRif(myNode);
+  cfg::Interface recyclePortRif = getRecyclePortRif(myNode, cfg);
   cfg.interfaces()->push_back(recyclePortRif);
 }
 
@@ -415,7 +415,7 @@ cfg::SwitchConfig testConfigBImpl() {
     recyclePort.portType() = cfg::PortType::RECYCLE_PORT;
 
     recyclePorts.push_back(recyclePort);
-    auto recycleRif = getRecyclePortRif(myNode);
+    auto recycleRif = getRecyclePortRif(myNode, cfg);
     recycleIntfs.push_back(recycleRif);
   }
   for (auto recyclePort : recyclePorts) {
