@@ -67,6 +67,24 @@ bool isRouteToNexthop(
   auto client = ensemble.getHwAgentTestClient(switchId);
   return client->sync_isRouteToNexthop(prefix, toBinaryAddress(nexthop));
 }
+
+template <typename AddrT>
+bool verifyProgrammedStack(
+    typename facebook::fboss::Route<AddrT>::Prefix routePrefix,
+    const facebook::fboss::InterfaceID& intfID,
+    const facebook::fboss::LabelForwardingAction::LabelStack& stack,
+    long refCount,
+    facebook::fboss::AgentEnsemble& ensemble) {
+  auto switchId = ensemble.getSw()
+                      ->getScopeResolver()
+                      ->scope(ensemble.masterLogicalPortIds())
+                      .switchId();
+  facebook::fboss::IpPrefix prefix;
+  prefix.ip() = toBinaryAddress(routePrefix.network());
+  prefix.prefixLength() = routePrefix.mask();
+  auto client = ensemble.getHwAgentTestClient(switchId);
+  return client->sync_isProgrammedInHw(intfID, prefix, stack, refCount);
+}
 } // namespace
 
 namespace facebook::fboss {
@@ -483,6 +501,65 @@ TYPED_TEST(AgentRouteTest, ResolvedMultiNexthopToUnresolvedSingleNexthop) {
         {this->kGetRoutePrefix0()});
   };
   this->verifyAcrossWarmBoots([] {}, verify);
+}
+
+TYPED_TEST(AgentRouteTest, StaticIp2MplsRoutes) {
+  using AddrT = typename TestFixture::Type;
+
+  auto setup = [=, this]() {
+    auto config = this->initialConfig(*this->getAgentEnsemble());
+
+    config.staticIp2MplsRoutes()->resize(1);
+    config.staticIp2MplsRoutes()[0].prefix() = this->kGetRoutePrefix1().str();
+
+    NextHopThrift nexthop;
+    nexthop.address() = toBinaryAddress(folly::IPAddress(
+        this->kStaticIp2MplsNextHop().str())); // in prefix 0 subnet
+    MplsAction action;
+    action.action() = MplsActionCode::PUSH;
+    action.pushLabels() = {1001, 1002};
+    nexthop.mplsAction() = action;
+
+    config.staticIp2MplsRoutes()[0].nexthops()->resize(1);
+    config.staticIp2MplsRoutes()[0].nexthops()[0] = nexthop;
+    this->applyNewConfig(config);
+
+    // resolve prefix 0 subnet
+    utility::EcmpSetupTargetedPorts<AddrT> ecmpHelper(
+        this->getProgrammedState(), this->kRouterID());
+    auto wrapper = this->getSw()->getRouteUpdater();
+    ecmpHelper.programRoutes(
+        &wrapper,
+        {PortDescriptor(this->masterLogicalInterfacePortIds()[0]),
+         PortDescriptor(this->masterLogicalInterfacePortIds()[1])},
+        {this->kGetRoutePrefix0()});
+
+    this->applyNewState([&](const std::shared_ptr<SwitchState>& in) {
+      auto newState = ecmpHelper.resolveNextHops(
+          in,
+          {PortDescriptor(this->masterLogicalInterfacePortIds()[0]),
+           PortDescriptor(this->masterLogicalInterfacePortIds()[1])});
+      return newState;
+    });
+  };
+  auto verify = [=, this]() {
+    // prefix 1 subnet reachable via prefix 0 with mpls stack over this stack
+    WITH_RETRIES({
+      EXPECT_EVENTUALLY_TRUE(verifyProgrammedStack<AddrT>(
+          this->kGetRoutePrefix1(),
+          InterfaceID(utility::kBaseVlanId),
+          {1001, 1002},
+          1,
+          *this->getAgentEnsemble()));
+      EXPECT_EVENTUALLY_TRUE(verifyProgrammedStack<AddrT>(
+          this->kGetRoutePrefix1(),
+          InterfaceID(utility::kBaseVlanId + 1),
+          {1001, 1002},
+          1,
+          *this->getAgentEnsemble()));
+    });
+  };
+  this->verifyAcrossWarmBoots(setup, verify);
 }
 
 TYPED_TEST(AgentRouteTest, VerifyRouting) {
