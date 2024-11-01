@@ -414,6 +414,28 @@ SystemPortID getSystemPortID(
   if (!offset.has_value()) {
     throw FbossError("Global/local offset not set");
   }
+  /*
+   * System port is 1:1 with every interface and recycle port.
+   * Interface is 1:1 with system port.
+   * InterfaceID is chosen to be the same as systemPortID. Thus:
+   * For multi ASIC switches, the the port ID range minimum must
+   * taken into account while computing the interface or system port
+   * IDs
+   *
+   * For eg:
+   *
+   * ----------------------------------------------
+   * |   config        |   asic 0   |   asic 1    |
+   * ----------------------------------------------
+   * | sys port range  |   100-199  |  200-299    |
+   * ----------------------------------------------
+   * | port range      |   0-2047   | 2048-4096   |
+   * ----------------------------------------------
+   *
+   * Interface of recycle port on asic 1 is 201.
+   * Port ID of a recycle port in platform mapping will be 2049
+   * Interface ID of recycle port = 200 + 2049 - 2048 = 201
+   */
   auto portIdRange = *switchInfo->second.portIdRange();
   auto systemPortId =
       static_cast<int64_t>(portId) + *offset - *portIdRange.minimum();

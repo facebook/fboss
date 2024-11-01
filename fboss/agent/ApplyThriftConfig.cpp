@@ -1388,15 +1388,11 @@ void ThriftConfigApplier::processInterfaceForPortForVoqSwitches(
       cfg_->switchSettings()->switchIdToSwitchInfo()->find(switchId);
   CHECK(switchInfoItr != cfg_->switchSettings()->switchIdToSwitchInfo()->end());
   const auto& switchInfo = switchInfoItr->second;
-  CHECK(dsfNodeItr->second.systemPortRange().has_value());
   CHECK(switchInfo.portIdRange().has_value());
   CHECK(!switchInfo.systemPortRanges()->systemPortRanges()->empty());
   CHECK(switchInfo.localSystemPortOffset().has_value());
   CHECK(switchInfo.globalSystemPortOffset().has_value());
   CHECK(switchInfo.inbandPortId().has_value());
-  auto systemPortRange = dsfNodeItr->second.systemPortRange();
-  auto portIdRange = switchInfoItr->second.portIdRange();
-  CHECK(systemPortRange);
   for (const auto& portCfg : *cfg_->ports()) {
     auto portType = *portCfg.portType();
     auto portID = PortID(*portCfg.logicalID());
@@ -1407,29 +1403,11 @@ void ThriftConfigApplier::processInterfaceForPortForVoqSwitches(
         case cfg::PortType::RECYCLE_PORT:
         case cfg::PortType::EVENTOR_PORT:
         case cfg::PortType::MANAGEMENT_PORT: {
-          /*
-           * System port is 1:1 with every interface and recycle port.
-           * Interface is 1:1 with system port.
-           * InterfaceID is chosen to be the same as systemPortID. Thus:
-           * For multi ASIC switches, the the port ID range minimum must
-           * taken into account while computing the interface ID.
-           *
-           * For eg:
-           *
-           * ----------------------------------------------
-           * |   config        |   asic 0   |   asic 1    |
-           * ----------------------------------------------
-           * | sys port range  |   100-199  |  200-299    |
-           * ----------------------------------------------
-           * | port range      |   0-2047   | 2048-4096   |
-           * ----------------------------------------------
-           *
-           * Interface of recycle port on asic 1 is 201.
-           * Port ID of a recycle port in platform mapping will be 2049
-           * Interface ID of recycle port = 200 + 2049 - 2048 = 201
-           */
-          auto interfaceID = SystemPortID{
-              *systemPortRange->minimum() + portID - *portIdRange->minimum()};
+          auto interfaceID = getSystemPortID(
+              portID,
+              *portCfg.scope(),
+              *cfg_->switchSettings()->switchIdToSwitchInfo(),
+              SwitchID(switchId));
           port2InterfaceId_[portID].push_back(interfaceID);
         } break;
         case cfg::PortType::FABRIC_PORT:
