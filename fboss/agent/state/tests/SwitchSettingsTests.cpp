@@ -422,7 +422,6 @@ TEST(SwitchSettingsTest, applyVoqSwitch) {
   cfg::Range64 sysPortRange;
   sysPortRange.minimum() = 100;
   sysPortRange.maximum() = 200;
-  switchInfo2.systemPortRange() = sysPortRange;
   switchInfo2.systemPortRanges()->systemPortRanges()->push_back(sysPortRange);
   switchInfo2.localSystemPortOffset() = *sysPortRange.minimum();
   switchInfo2.globalSystemPortOffset() = *sysPortRange.minimum();
