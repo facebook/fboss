@@ -948,7 +948,7 @@ TEST_P(SubscribableStorageTests, PruneSubscriptionPathStores) {
       folly::coro::timeout(consumeOne(generator), std::chrono::seconds(1)));
   EXPECT_EQ(deltaVal.changes()->size(), 1);
 
-  auto initialNumPathStores = storage.numPathStores();
+  auto initialNumPathStores = storage.numPathStoresRecursive_Expensive();
   XLOG(DBG2) << "initialNumPathStores: " << initialNumPathStores;
 
   // add another path and check PathStores count
@@ -958,7 +958,7 @@ TEST_P(SubscribableStorageTests, PruneSubscriptionPathStores) {
       folly::coro::timeout(consumeOne(generator), std::chrono::seconds(1)));
   EXPECT_EQ(deltaVal.changes()->size(), 1);
 
-  auto maxNumPathStores = storage.numPathStores();
+  auto maxNumPathStores = storage.numPathStoresRecursive_Expensive();
   XLOG(DBG2) << "maxNumPathStores: " << maxNumPathStores;
   if (FLAGS_lazyPathStoreCreation) {
     // with lazy PathStore creation, numPathStores should not change
@@ -976,7 +976,7 @@ TEST_P(SubscribableStorageTests, PruneSubscriptionPathStores) {
   EXPECT_EQ(deltaVal.changes()->size(), 1);
 
   // after path deletion, numPathStores should drop
-  auto finalNumPathStores = storage.numPathStores();
+  auto finalNumPathStores = storage.numPathStoresRecursive_Expensive();
   XLOG(DBG2) << "finalNumPathStores : " << finalNumPathStores;
   if (FLAGS_lazyPathStoreCreation) {
     EXPECT_EQ(finalNumPathStores, maxNumPathStores);
@@ -984,6 +984,10 @@ TEST_P(SubscribableStorageTests, PruneSubscriptionPathStores) {
     EXPECT_LT(finalNumPathStores, maxNumPathStores);
   }
   EXPECT_EQ(finalNumPathStores, initialNumPathStores);
+
+  // stronger check: allocation stats and numPathStores must match
+  auto numAllocatedPathStore = storage.numPathStores();
+  EXPECT_EQ(numAllocatedPathStore, finalNumPathStores);
 }
 
 TEST_P(SubscribableStorageTests, ApplyPatch) {

@@ -244,6 +244,8 @@ class NaivePeriodicSubscribableStorage
 
   using NaivePeriodicSubscribableStorageBase::getSubscriptions;
   using NaivePeriodicSubscribableStorageBase::numPathStores;
+  // Do not use, except for UTs that cross check numPathStores()
+  using NaivePeriodicSubscribableStorageBase::numPathStoresRecursive_Expensive;
   using NaivePeriodicSubscribableStorageBase::numSubscriptions;
   using NaivePeriodicSubscribableStorageBase::setConvertToIDPaths;
 

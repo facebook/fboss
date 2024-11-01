@@ -23,6 +23,8 @@ inline constexpr std::string_view kServeSubMs{"storage.serve_sub_ms"};
 inline constexpr std::string_view kServeSubNum{"storage.serve_sub_num"};
 inline constexpr std::string_view kRss{"rss"};
 inline constexpr std::string_view kRegisteredSubs{"subscriptions.registered"};
+inline constexpr std::string_view kPathStoreNum{"object.count.pathStores"};
+inline constexpr std::string_view kPathStoreAllocs{"object.allocs.pathStores"};
 
 // non-templated parts of NaivePeriodicSubscribableStorage to help with
 // compilation
@@ -148,6 +150,15 @@ class NaivePeriodicSubscribableStorageBase {
   size_t numPathStores() const {
     return subMgr().numPathStores();
   }
+  size_t numPathStoresRecursive_Expensive() const {
+    return subMgr().numPathStoresRecursive_Expensive();
+  }
+  uint64_t numPathStoreAllocs() const {
+    return subMgr().numPathStoreAllocs();
+  }
+  uint64_t numPathStoreFrees() const {
+    return subMgr().numPathStoreFrees();
+  }
 
   void setConvertToIDPaths(bool convertToIDPaths) {
     params_.convertSubsToIDPaths_ = convertToIDPaths;
@@ -209,6 +220,8 @@ class NaivePeriodicSubscribableStorageBase {
   // metric names
   const std::string rss_{""};
   const std::string registeredSubs_{""};
+  const std::string nPathStores_{""};
+  const std::string nPathStoreAllocs_{""};
   const std::string serveSubMs_{""};
   const std::string serveSubNum_{""};
 
