@@ -3770,18 +3770,14 @@ std::shared_ptr<InterfaceMap> ThriftConfigApplier::updateInterfaces() {
       auto sysPort =
           new_->getSystemPorts()->getNode(SystemPortID(*interfaceCfg.intfID()));
       auto dsfNode = cfg_->dsfNodes()->find(sysPort->getSwitchId())->second;
-      auto sysPortRange = dsfNode.systemPortRange();
-      CHECK(sysPortRange.has_value());
-      if (interfaceCfg.intfID() < sysPortRange->minimum() ||
-          interfaceCfg.intfID() > sysPortRange->maximum()) {
+      if (!withinRange(
+              *dsfNode.systemPortRanges(),
+              InterfaceID(*interfaceCfg.intfID()))) {
         throw FbossError(
             "Interface intfID :",
             *interfaceCfg.intfID(),
             "is out of range for corresponding VOQ switch.",
-            "sys port range,->min: ",
-            *sysPortRange->minimum(),
-            "->max: ",
-            *sysPortRange->maximum());
+            "sys port range");
       }
       CHECK_EQ((int)sysPort->getScope(), (int)(*interfaceCfg.scope()));
     }
