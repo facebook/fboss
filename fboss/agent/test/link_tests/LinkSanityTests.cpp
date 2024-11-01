@@ -44,6 +44,11 @@ bool isEqual(
       getChannelId(left) == getChannelId(right) &&
       getChannels(left) == getChannels(right);
 }
+const std::vector<std::string> l1LinkTestNames = {"qsfpWarmbootIsHitLess"};
+
+const std::vector<std::string> l2LinkTestNames = {
+    "warmbootIsHitLess",
+    "ptpEnableIsHitless"};
 } // namespace
 
 class LinkSanityTestDataPlaneFlood : public LinkTest {
@@ -52,6 +57,26 @@ class LinkSanityTestDataPlaneFlood : public LinkTest {
     XLOG(DBG2)
         << "setup up initial config for sw ttl0 to create dataplane flood";
     setupTtl0ForwardingEnable();
+  }
+
+  std::vector<link_test_production_features::LinkTestProductionFeature>
+  getProductionFeatures() const override {
+    const std::string testName =
+        testing::UnitTest::GetInstance()->current_test_info()->name();
+
+    if (std::find(l1LinkTestNames.begin(), l1LinkTestNames.end(), testName) !=
+        l1LinkTestNames.end()) {
+      return {link_test_production_features::LinkTestProductionFeature::
+                  L1_LINK_TEST};
+    } else if (
+        std::find(l2LinkTestNames.begin(), l2LinkTestNames.end(), testName) !=
+        l2LinkTestNames.end()) {
+      return {link_test_production_features::LinkTestProductionFeature::
+                  L2_LINK_TEST};
+    } else {
+      throw std::runtime_error(
+          "Test type (L1/L2) not specified for this test case");
+    }
   }
 };
 

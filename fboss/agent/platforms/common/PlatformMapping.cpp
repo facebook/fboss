@@ -303,6 +303,14 @@ cfg::PortSpeed PlatformMapping::getPortMaxSpeed(PortID portID) const {
   return maxSpeed;
 }
 
+cfg::Scope PlatformMapping::getPortScope(PortID portID) const {
+  auto itPlatformPort = platformPorts_.find(portID);
+  if (itPlatformPort == platformPorts_.end()) {
+    throw FbossError("Unrecoganized port:", portID);
+  }
+  return *itPlatformPort->second.mapping()->scope();
+}
+
 std::vector<phy::PinConfig> PlatformMapping::getPortIphyPinConfigs(
     PlatformPortProfileConfigMatcher matcher) const {
   std::optional<phy::DataPlanePhyChip> chip;

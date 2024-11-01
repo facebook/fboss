@@ -64,11 +64,12 @@ void MultiSwitchThriftHandler::processLinkState(
              << *linkStateEvent.port()
              << " up :" << (*linkStateEvent.up() ? "UP" : "DOWN");
   PortID portId = PortID(*linkStateEvent.port());
+  cfg::PortType portType = *linkStateEvent.portType();
   std::optional<phy::LinkFaultStatus> faultStatus;
   if (linkStateEvent.iPhyLinkFaultStatus()) {
     faultStatus = *linkStateEvent.iPhyLinkFaultStatus();
   }
-  sw_->linkStateChanged(portId, *linkStateEvent.up(), faultStatus);
+  sw_->linkStateChanged(portId, *linkStateEvent.up(), portType, faultStatus);
 }
 
 void MultiSwitchThriftHandler::processLinkActiveState(

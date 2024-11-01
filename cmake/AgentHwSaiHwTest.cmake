@@ -165,6 +165,7 @@ add_library(agent_hw_test_thrift_handler
   fboss/agent/hw/sai/hw_test/HwTestEcmpUtilsThriftHandler.cpp
   fboss/agent/hw/sai/hw_test/HwTestPortUtilsThriftHandler.cpp
   fboss/agent/hw/sai/hw_test/HwTestVoqSwitchUtilsThriftHandler.cpp
+  fboss/agent/hw/sai/hw_test/HwTestRouteUtilsThriftHandler.cpp
 )
 
 target_link_libraries(agent_hw_test_thrift_handler
@@ -212,6 +213,8 @@ function(BUILD_SAI_TEST SAI_IMPL_NAME SAI_IMPL_ARG)
     fboss/agent/hw/sai/hw_test/SaiRouteRollbackTests.cpp
     fboss/agent/hw/sai/hw_test/SaiQPHRollbackTests.cpp
   )
+
+  add_sai_sdk_dependencies(sai_test-${SAI_IMPL_NAME})
 
   target_link_libraries(sai_test-${SAI_IMPL_NAME}
     # --whole-archive is needed for gtest to find these tests

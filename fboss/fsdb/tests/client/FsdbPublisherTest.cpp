@@ -1,13 +1,14 @@
 // (c) Facebook, Inc. and its affiliates. Confidential and proprietary.
 
 #include <gtest/gtest.h>
-#include "fboss/fsdb/client/Client.h"
 #include "fboss/fsdb/client/FsdbDeltaPublisher.h"
 #include "fboss/fsdb/client/FsdbStatePublisher.h"
 #include "fboss/fsdb/if/FsdbModel.h"
 #include "fboss/fsdb/tests/client/FsdbTestClients.h"
 #include "fboss/fsdb/tests/utils/FsdbTestServer.h"
 #include "fboss/lib/CommonUtils.h"
+#include "fboss/lib/thrift_service_client/ConnectionOptions.h"
+#include "fboss/lib/thrift_service_client/ThriftServiceClient.h"
 
 #include <fb303/ServiceData.h>
 #include <folly/coro/BlockingWait.h>
@@ -57,8 +58,8 @@ class FsdbPublisherTest : public ::testing::Test {
     return std::is_same_v<PubUnitT, OperDelta>;
   }
   void setupConnection(bool updateServerPort = false) {
-    publisher_->setServerOptions(
-        FsdbStreamClient::ServerOptions("::1", fsdbTestServer_->getFsdbPort()),
+    publisher_->setConnectionOptions(
+        utils::ConnectionOptions("::1", fsdbTestServer_->getFsdbPort()),
         updateServerPort);
     WITH_RETRIES_N(
         kRetries, auto metadata = getPublisherRootMetadata();
@@ -231,12 +232,8 @@ TYPED_TEST(FsdbPublisherTest, getState) {
   folly::ScopedEventBaseThread streamEvb;
   std::unique_ptr<apache::thrift::Client<FsdbService>> client;
   streamEvb.getEventBase()->runInEventBaseThreadAndWait([&]() {
-    client = Client::getClient(
-        folly::SocketAddress(
-            "::1", this->fsdbTestServer_->getFsdbPort()) /* dstAddr */,
-        std::nullopt /* srcAddr */,
-        std::nullopt /* tos */,
-        false /* plaintextClient */,
+    client = utils::createFsdbClient(
+        utils::ConnectionOptions("::1", this->fsdbTestServer_->getFsdbPort()),
         streamEvb.getEventBase());
   });
 

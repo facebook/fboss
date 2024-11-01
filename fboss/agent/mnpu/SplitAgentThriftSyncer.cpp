@@ -28,6 +28,7 @@ SplitAgentThriftSyncer::SplitAgentThriftSyncer(
     : retryThread_(std::make_shared<folly::ScopedEventBaseThread>(
           "SplitAgentThriftRetryThread")),
       switchId_(switchId),
+      hwSwitch_(hw),
       linkChangeEventSinkClient_(std::make_unique<LinkChangeEventSyncer>(
           serverPort,
           switchId_,
@@ -77,7 +78,10 @@ void SplitAgentThriftSyncer::packetReceived(
     rxPkt.aggPort() = pkt->getSrcAggregatePort();
   }
   if (pkt->cosQueue()) {
-    rxPkt.cosQueue() = hwQueueIdToCpuCosQueueId(*pkt->cosQueue());
+    rxPkt.cosQueue() = hwQueueIdToCpuCosQueueId(
+        *pkt->cosQueue(),
+        hwSwitch_->getPlatform()->getAsic(),
+        hwSwitch_->getSwitchStats());
   }
   // coalesce the IOBuf before copy
   pkt->buf()->coalesce();
@@ -89,10 +93,12 @@ void SplitAgentThriftSyncer::packetReceived(
 void SplitAgentThriftSyncer::linkStateChanged(
     PortID port,
     bool up,
+    cfg::PortType portType,
     std::optional<phy::LinkFaultStatus> iPhyFaultStatus) {
   multiswitch::LinkEvent event;
   event.port() = port;
   event.up() = up;
+  event.portType() = portType;
   if (iPhyFaultStatus) {
     event.iPhyLinkFaultStatus() = *iPhyFaultStatus;
   }

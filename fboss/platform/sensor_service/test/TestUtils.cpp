@@ -11,7 +11,7 @@ using namespace facebook::fboss::platform::sensor_service;
 
 namespace {
 
-std::string mockSensorConfig(const std::string& tmpPath) {
+SensorConfig mockSensorConfig(const std::string& tmpPath) {
   SensorConfig config;
   PmUnitSensors pmUnitSensors;
   pmUnitSensors.slotPath() = "/";
@@ -40,20 +40,19 @@ std::string mockSensorConfig(const std::string& tmpPath) {
   };
   config.pmUnitSensorsList() = {std::move(pmUnitSensors)};
 
-  std::string fileName = tmpPath + "/sensor_service.json";
+  std::string sensorConfigPath = tmpPath + "/sensor_service.json";
   folly::writeFile(
       apache::thrift::SimpleJSONSerializer::serialize<std::string>(config),
-      fileName.c_str());
-  return fileName;
+      sensorConfigPath.c_str());
+  FLAGS_config_file = sensorConfigPath;
+  return config;
 }
 
 } // namespace
 
 std::shared_ptr<SensorServiceImpl> createSensorServiceImplForTest(
     const std::string& tmpDirPath) {
-  auto confFileName = mockSensorConfig(tmpDirPath);
-  FLAGS_config_file = confFileName;
-  return std::make_shared<SensorServiceImpl>();
+  return std::make_shared<SensorServiceImpl>(mockSensorConfig(tmpDirPath));
 }
 
 std::map<std::string, float> getDefaultMockSensorData() {

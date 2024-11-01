@@ -54,6 +54,7 @@ sai_status_t create_port_fn(
   bool disableTtlDecrement{false};
   sai_port_interface_type_t interface_type{SAI_PORT_INTERFACE_TYPE_NONE};
   bool txEnable{true};
+  std::vector<sai_object_id_t> tamObjectList;
   std::optional<uint32_t> prbsPolynomial;
   std::optional<int32_t> prbsConfig;
   std::optional<sai_object_id_t> ingressMacsecAcl;
@@ -155,6 +156,11 @@ sai_status_t create_port_fn(
         break;
       case SAI_PORT_ATTR_PKT_TX_ENABLE:
         txEnable = attr_list[i].value.booldata;
+        break;
+      case SAI_PORT_ATTR_TAM_OBJECT:
+        for (int j = 0; j < attr_list[i].value.objlist.count; ++j) {
+          tamObjectList.push_back(attr_list[i].value.objlist.list[j]);
+        }
         break;
       case SAI_PORT_ATTR_INGRESS_MIRROR_SESSION: {
         for (int j = 0; j < attr_list[i].value.objlist.count; ++j) {
@@ -349,6 +355,7 @@ sai_status_t create_port_fn(
   port.egressSamplePacket = egressSamplePacket;
   port.disableTtlDecrement = disableTtlDecrement;
   port.txEnable = txEnable;
+  port.tamObjectList = tamObjectList;
   // TODO: Use number of queues by querying SAI_SWITCH_ATTR_NUMBER_OF_QUEUES
   for (uint8_t queueId = 0; queueId < 8; queueId++) {
     auto saiQueueId = fs->queueManager.create(
@@ -514,6 +521,13 @@ sai_status_t set_port_attribute_fn(
     case SAI_PORT_ATTR_PKT_TX_ENABLE:
       port.txEnable = attr->value.booldata;
       break;
+    case SAI_PORT_ATTR_TAM_OBJECT: {
+      auto& tamObjectList = port.tamObjectList;
+      tamObjectList.clear();
+      for (int j = 0; j < attr->value.objlist.count; ++j) {
+        tamObjectList.push_back(attr->value.objlist.list[j]);
+      }
+    } break;
     case SAI_PORT_ATTR_INGRESS_MIRROR_SESSION: {
       auto& ingressMirrorList = port.ingressMirrorList;
       ingressMirrorList.clear();
@@ -859,6 +873,16 @@ sai_status_t get_port_attribute_fn(
         break;
       case SAI_PORT_ATTR_PKT_TX_ENABLE:
         attr->value.booldata = port.txEnable;
+        break;
+      case SAI_PORT_ATTR_TAM_OBJECT:
+        if (port.tamObjectList.size() > attr[i].value.objlist.count) {
+          attr[i].value.objlist.count = port.tamObjectList.size();
+          return SAI_STATUS_BUFFER_OVERFLOW;
+        }
+        for (int j = 0; j < port.tamObjectList.size(); ++j) {
+          attr[i].value.objlist.list[j] = port.tamObjectList[j];
+        }
+        attr[i].value.objlist.count = port.tamObjectList.size();
         break;
       case SAI_PORT_ATTR_INGRESS_MIRROR_SESSION:
         if (port.ingressMirrorList.size() > attr[i].value.objlist.count) {

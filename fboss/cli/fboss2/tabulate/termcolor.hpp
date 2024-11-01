@@ -8,9 +8,7 @@
 //! :copyright: (c) 2013 by Ihor Kalnytskyi
 //! :license: BSD, see LICENSE for details
 //!
-
-#ifndef TERMCOLOR_HPP_
-#define TERMCOLOR_HPP_
+#pragma once
 
 // the following snippet of code detects the current OS and
 // defines the appropriate macro that is used to wrap some
@@ -443,5 +441,3 @@ inline void win_change_attributes(std::ostream &stream, int foreground, int back
 #undef TERMCOLOR_OS_WINDOWS
 #undef TERMCOLOR_OS_MACOS
 #undef TERMCOLOR_OS_LINUX
-
-#endif // TERMCOLOR_HPP_

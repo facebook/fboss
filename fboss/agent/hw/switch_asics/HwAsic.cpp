@@ -10,6 +10,7 @@
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include <thrift/lib/cpp/util/EnumUtils.h>
 #include "fboss/agent/FbossError.h"
+#include "fboss/agent/hw/switch_asics/ChenabAsic.h"
 #include "fboss/agent/hw/switch_asics/CredoPhyAsic.h"
 #include "fboss/agent/hw/switch_asics/EbroAsic.h"
 #include "fboss/agent/hw/switch_asics/FakeAsic.h"
@@ -105,6 +106,9 @@ std::unique_ptr<HwAsic> HwAsic::makeAsic(
           switchType, switchId, switchIndex, systemPortRange, mac, sdkVersion);
     case cfg::AsicType::ASIC_TYPE_YUBA:
       return std::make_unique<YubaAsic>(
+          switchType, switchId, switchIndex, systemPortRange, mac, sdkVersion);
+    case cfg::AsicType::ASIC_TYPE_CHENAB:
+      return std::make_unique<ChenabAsic>(
           switchType, switchId, switchIndex, systemPortRange, mac, sdkVersion);
     case cfg::AsicType::ASIC_TYPE_JERICHO2:
       return std::make_unique<Jericho2Asic>(

@@ -2,6 +2,7 @@
 
 #include "fboss/agent/hw/sai/api/BufferApi.h"
 #include "fboss/agent/hw/sai/api/DebugCounterApi.h"
+#include "fboss/agent/hw/sai/api/MirrorApi.h"
 #include "fboss/agent/hw/sai/api/PortApi.h"
 #include "fboss/agent/hw/sai/api/QueueApi.h"
 #include "fboss/agent/hw/sai/api/SwitchApi.h"
@@ -54,8 +55,38 @@ SaiTamEventTraits::Attributes::AttributeSwitchEventType::operator()() {
 }
 
 std::optional<sai_attr_id_t>
+SaiTamEventTraits::Attributes::AttributeDeviceId::operator()() {
+  return SAI_TAM_EVENT_ATTR_FAKE_DEVICE_ID;
+}
+
+std::optional<sai_attr_id_t>
 SaiTamEventTraits::Attributes::AttributeEventId::operator()() {
   return SAI_TAM_EVENT_ATTR_FAKE_SWITCH_EVENT_ID;
+}
+
+std::optional<sai_attr_id_t>
+SaiTamEventTraits::Attributes::AttributeExtensionsCollectorList::operator()() {
+  return SAI_TAM_EVENT_ATTR_FAKE_EXTENSIONS_COLLECTOR_LIST;
+}
+
+std::optional<sai_attr_id_t>
+SaiTamEventTraits::Attributes::AttributePacketDropTypeMmu::operator()() {
+  return SAI_TAM_EVENT_ATTR_FAKE_PACKET_DROP_TYPE_MMU;
+}
+
+std::optional<sai_attr_id_t>
+SaiTamEventTraits::Attributes::AttributeAgingGroup::operator()() {
+  return SAI_TAM_EVENT_ATTR_FAKE_AGING_GROUP;
+}
+
+std::optional<sai_attr_id_t>
+SaiTamTransportTraits::Attributes::AttributeSrcMacAddress::operator()() {
+  return SAI_TAM_TRANSPORT_ATTR_FAKE_SRC_MAC_ADDRESS;
+}
+
+std::optional<sai_attr_id_t>
+SaiTamTransportTraits::Attributes::AttributeDstMacAddress::operator()() {
+  return SAI_TAM_TRANSPORT_ATTR_FAKE_DST_MAC_ADDRESS;
 }
 
 std::optional<sai_attr_id_t>
@@ -186,6 +217,36 @@ std::optional<sai_attr_id_t> SaiSwitchTraits::Attributes::
   return std::nullopt;
 }
 
+std::optional<sai_attr_id_t>
+SaiBufferProfileTraits::Attributes::AttributeSharedFadtMinTh::operator()() {
+  return std::nullopt;
+}
+
+std::optional<sai_attr_id_t>
+SaiBufferProfileTraits::Attributes::AttributeSramFadtMinTh::operator()() {
+  return std::nullopt;
+}
+
+std::optional<sai_attr_id_t>
+SaiBufferProfileTraits::Attributes::AttributeSramFadtMaxTh::operator()() {
+  return std::nullopt;
+}
+
+std::optional<sai_attr_id_t>
+SaiBufferProfileTraits::Attributes::AttributeSramFadtXonOffset::operator()() {
+  return std::nullopt;
+}
+
+std::optional<sai_attr_id_t>
+SaiSflowMirrorTraits::Attributes::AttributeTcBufferLimit::operator()() {
+  return std::nullopt;
+}
+
+std::optional<sai_attr_id_t>
+SaiSwitchTraits::Attributes::AttributeNoAclsForTrapsWrapper::operator()() {
+  return std::nullopt;
+}
+
 const std::vector<sai_stat_id_t>& SaiSwitchTraits::dramStats() {
   static const std::vector<sai_stat_id_t> stats;
   return stats;
@@ -260,6 +321,16 @@ SaiSwitchTraits::Attributes::AttributeReachabilityGroupList::operator()() {
 std::optional<sai_attr_id_t> SaiSwitchTraits::Attributes::
     AttributeFabricLinkLayerFlowControlThreshold::operator()() {
   return SAI_SWITCH_ATTR_FABRIC_LLFC_THRESHOLD;
+}
+
+std::optional<sai_attr_id_t> SaiSwitchTraits::Attributes::
+    AttributeSramFreePercentXoffThWrapper::operator()() {
+  return SAI_SWITCH_ATTR_SRAM_FREE_PERCENT_XOFF_TH;
+}
+
+std::optional<sai_attr_id_t> SaiSwitchTraits::Attributes::
+    AttributeSramFreePercentXonThWrapper::operator()() {
+  return SAI_SWITCH_ATTR_SRAM_FREE_PERCENT_XON_TH;
 }
 
 std::optional<sai_attr_id_t>
@@ -387,4 +458,18 @@ std::optional<sai_attr_id_t> SaiPortSerdesTraits::Attributes::
   return SAI_PORT_SERDES_ATTR_EXT_RX_CDR_TDET_FINE_STEP_OV_VAL;
 }
 
+std::optional<sai_attr_id_t>
+SaiPortTraits::Attributes::AttributeCondEntropyRehashEnable::operator()() {
+  return std::nullopt;
+}
+
+std::optional<sai_attr_id_t>
+SaiPortTraits::Attributes::AttributeCondEntropyRehashPeriodUS::operator()() {
+  return std::nullopt;
+}
+
+std::optional<sai_attr_id_t>
+SaiPortTraits::Attributes::AttributeCondEntropyRehashSeed::operator()() {
+  return std::nullopt;
+}
 } // namespace facebook::fboss

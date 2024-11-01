@@ -15,6 +15,7 @@ using folly::dynamic;
 using namespace facebook::fboss;
 using namespace facebook::fboss::thrift_cow;
 using k = facebook::fboss::test_tags::strings;
+using namespace testing;
 
 namespace {
 
@@ -40,7 +41,8 @@ folly::dynamic createTestDynamic() {
       "hybridMap", dynamic::object())("hybridList", dynamic::array())(
       "hybridSet", dynamic::array())("hybridUnion", dynamic::object())(
       "hybridStruct", dynamic::object("childMap", dynamic::object()))(
-      "hybridMapOfI32ToStruct", dynamic::object());
+      "hybridMapOfI32ToStruct", dynamic::object())(
+      "hybridMapOfMap", dynamic::object());
 }
 
 TestStruct createTestStruct(folly::dynamic testDyn) {
@@ -50,11 +52,35 @@ TestStruct createTestStruct(folly::dynamic testDyn) {
 
 } // namespace
 
-TEST(RecurseVisitorTests, TestFullRecurse) {
+template <bool EnableHybridStorage>
+struct TestParams {
+  static constexpr auto hybridStorage = EnableHybridStorage;
+};
+
+using StorageTestTypes = ::testing::Types<TestParams<false>, TestParams<true>>;
+
+template <typename TestParams>
+class RecurseVisitorTests : public ::testing::Test {
+ public:
+  auto initNode(auto val) {
+    using RootType = std::remove_cvref_t<decltype(val)>;
+    return std::make_shared<ThriftStructNode<
+        RootType,
+        ThriftStructResolver<RootType, TestParams::hybridStorage>,
+        TestParams::hybridStorage>>(val);
+  }
+  bool isHybridStorage() {
+    return TestParams::hybridStorage;
+  }
+};
+
+TYPED_TEST_SUITE(RecurseVisitorTests, StorageTestTypes);
+
+TYPED_TEST(RecurseVisitorTests, TestFullRecurse) {
   auto testDyn = createTestDynamic();
   auto structA = createTestStruct(testDyn);
 
-  auto nodeA = std::make_shared<ThriftStructNode<TestStruct>>(structA);
+  auto nodeA = this->initNode(structA);
   std::map<std::vector<std::string>, folly::dynamic> visited;
   auto processPath = [&visited](
                          const std::vector<std::string>& path, auto&& node) {
@@ -69,13 +95,11 @@ TEST(RecurseVisitorTests, TestFullRecurse) {
       {{"cowMap"}, dynamic::object()},
       {{"hybridMap"}, dynamic::object()},
       {{"hybridMapOfI32ToStruct"}, dynamic::object()},
+      {{"hybridMapOfMap"}, dynamic::object()},
       {{"hybridList"}, dynamic::array()},
       {{"hybridSet"}, dynamic::array()},
       {{"hybridUnion"}, dynamic::object()},
       {{"hybridStruct"}, testDyn["hybridStruct"]},
-#ifndef __ENABLE_HYBRID_THRIFT_COW_TESTS__
-      {{"hybridStruct", "childMap"}, testDyn["hybridStruct"]["childMap"]},
-#endif // __ENABLE_HYBRID_THRIFT_COW_TESTS__
       {{"inlineBool"}, testDyn["inlineBool"]},
       {{"inlineInt"}, testDyn["inlineInt"]},
       {{"inlineString"}, testDyn["inlineString"]},
@@ -111,6 +135,15 @@ TEST(RecurseVisitorTests, TestFullRecurse) {
       {{"mapA"}, dynamic::object()},
       {{"mapB"}, dynamic::object()}};
 
+  std::map<std::vector<std::string>, folly::dynamic> hybridLeaves = {
+      {{"hybridStruct", "childMap"}, testDyn["hybridStruct"]["childMap"]}};
+
+  if (!this->isHybridStorage()) {
+    for (const auto& entry : hybridLeaves) {
+      expected.insert(entry);
+    }
+  }
+
   EXPECT_EQ(visited.size(), expected.size());
   for (auto& [path, dyn] : expected) {
     EXPECT_EQ(dyn, visited[path])
@@ -118,11 +151,11 @@ TEST(RecurseVisitorTests, TestFullRecurse) {
   }
 }
 
-TEST(RecurseVisitorTests, TestLeafRecurse) {
+TYPED_TEST(RecurseVisitorTests, TestLeafRecurse) {
   auto testDyn = createTestDynamic();
   auto structA = createTestStruct(testDyn);
 
-  auto nodeA = std::make_shared<ThriftStructNode<TestStruct>>(structA);
+  auto nodeA = this->initNode(structA);
   std::map<std::vector<std::string>, folly::dynamic> visited;
   auto processPath = [&visited](
                          const std::vector<std::string>& path, auto&& node) {
@@ -132,13 +165,6 @@ TEST(RecurseVisitorTests, TestLeafRecurse) {
   RootRecurseVisitor::visit(nodeA, RecurseVisitMode::LEAVES, processPath);
 
   std::map<std::vector<std::string>, folly::dynamic> expected = {
-#ifdef __ENABLE_HYBRID_THRIFT_COW_TESTS__
-      {{"hybridMap"}, testDyn["hybridMap"]},
-      {{"hybridList"}, testDyn["hybridList"]},
-      {{"hybridSet"}, testDyn["hybridSet"]},
-      {{"hybridUnion"}, testDyn["hybridUnion"]},
-      {{"hybridStruct"}, testDyn["hybridStruct"]},
-#endif // __ENABLE_HYBRID_THRIFT_COW_TESTS__
       {{"inlineBool"}, testDyn["inlineBool"]},
       {{"inlineInt"}, testDyn["inlineInt"]},
       {{"inlineString"}, testDyn["inlineString"]},
@@ -155,6 +181,21 @@ TEST(RecurseVisitorTests, TestLeafRecurse) {
       {{"mapOfEnumToStruct", "3", "invert"},
        testDyn["mapOfEnumToStruct"][3]["invert"]}};
 
+  std::map<std::vector<std::string>, folly::dynamic> hybridNodes = {
+      {{"hybridMap"}, testDyn["hybridMap"]},
+      {{"hybridMapOfI32ToStruct"}, testDyn["hybridMapOfI32ToStruct"]},
+      {{"hybridMapOfMap"}, testDyn["hybridMapOfMap"]},
+      {{"hybridList"}, testDyn["hybridList"]},
+      {{"hybridSet"}, testDyn["hybridSet"]},
+      {{"hybridUnion"}, testDyn["hybridUnion"]},
+      {{"hybridStruct"}, testDyn["hybridStruct"]}};
+
+  if (this->isHybridStorage()) {
+    for (const auto& entry : hybridNodes) {
+      expected.insert(entry);
+    }
+  }
+
   EXPECT_EQ(visited.size(), expected.size());
   for (auto& [path, dyn] : expected) {
     EXPECT_EQ(dyn, visited[path])
@@ -169,13 +210,6 @@ TEST(RecurseVisitorTests, TestLeafRecurse) {
       processPath);
 
   expected = {
-#ifdef __ENABLE_HYBRID_THRIFT_COW_TESTS__
-      {{"27"}, testDyn["hybridMap"]},
-      {{"28"}, testDyn["hybridList"]},
-      {{"29"}, testDyn["hybridSet"]},
-      {{"30"}, testDyn["hybridUnion"]},
-      {{"31"}, testDyn["hybridStruct"]},
-#endif // __ENABLE_HYBRID_THRIFT_COW_TESTS__
       {{"1"}, testDyn["inlineBool"]},
       {{"2"}, testDyn["inlineInt"]},
       {{"3"}, testDyn["inlineString"]},
@@ -188,6 +222,21 @@ TEST(RecurseVisitorTests, TestLeafRecurse) {
       {{"15", "3", "1"}, testDyn["mapOfEnumToStruct"][3]["min"]},
       {{"15", "3", "2"}, testDyn["mapOfEnumToStruct"][3]["max"]},
       {{"15", "3", "3"}, testDyn["mapOfEnumToStruct"][3]["invert"]}};
+
+  hybridNodes = {
+      {{"27"}, testDyn["hybridMap"]},
+      {{"28"}, testDyn["hybridList"]},
+      {{"29"}, testDyn["hybridSet"]},
+      {{"30"}, testDyn["hybridUnion"]},
+      {{"31"}, testDyn["hybridStruct"]},
+      {{"32"}, testDyn["hybridMapOfI32ToStruct"]},
+      {{"33"}, testDyn["hybridMapOfMap"]}};
+
+  if (this->isHybridStorage()) {
+    for (const auto& entry : hybridNodes) {
+      expected.insert(entry);
+    }
+  }
 
   EXPECT_EQ(visited.size(), expected.size());
   for (auto& [path, dyn] : expected) {

@@ -11,6 +11,15 @@ namespace facebook {
 namespace fboss {
 namespace utility {
 
+namespace {
+SaiPortTraits::AdapterKey getPortAdapterKey(const HwSwitch* hw, PortID port) {
+  auto saiSwitch = static_cast<const SaiSwitch*>(hw);
+  auto handle = saiSwitch->managerTable()->portManager().getPortHandle(port);
+  CHECK(handle);
+  return handle->port->adapterKey();
+}
+} // namespace
+
 void HwTestThriftHandler::injectFecError(
     std::unique_ptr<std::vector<int>> hwPorts,
     bool injectCorrectable) {
@@ -60,6 +69,27 @@ void HwTestThriftHandler::injectFecError(
   diagCmdServer->diagCmd(
       std::make_unique<fbstring>("quit\n"),
       std::make_unique<ClientInformation>(clientInfo));
+}
+
+void HwTestThriftHandler::getPortInfo(
+    ::std::vector<::facebook::fboss::utility::PortInfo>& portInfos,
+    std::unique_ptr<::std::vector<::std::int32_t>> portIds) {
+  for (const auto& portId : *portIds) {
+    PortInfo portInfo;
+    auto key = getPortAdapterKey(hwSwitch_, PortID(portId));
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
+    SaiPortTraits::Attributes::PortLoopbackMode loopbackMode;
+    SaiApiTable::getInstance()->portApi().getAttribute(key, loopbackMode);
+    portInfo.loopbackMode() = loopbackMode.value();
+#else
+    SaiPortTraits::Attributes::InternalLoopbackMode internalLoopbackMode;
+    SaiApiTable::getInstance()->portApi().getAttribute(
+        key, internalLoopbackMode);
+    portInfo.loopbackMode() = internalLoopbackMode.value();
+#endif
+    portInfos.push_back(portInfo);
+  }
+  return;
 }
 
 } // namespace utility

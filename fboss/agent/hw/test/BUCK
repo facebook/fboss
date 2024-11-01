@@ -321,7 +321,6 @@ hw_test_common_srcs = [
     "HwVerifyPfcConfigInHwTest.cpp",
     "HwIngressBufferTests.cpp",
     "HwAclStatTests.cpp",
-    "HwPortTests.cpp",
     "HwTestFabricUtils.cpp",
     "HwFlexPortTests.cpp",
     "HwEcmpTrunkTests.cpp",

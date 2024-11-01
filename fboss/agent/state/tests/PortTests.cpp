@@ -9,6 +9,7 @@
  */
 #include "fboss/agent/ApplyThriftConfig.h"
 #include "fboss/agent/FbossError.h"
+#include "fboss/agent/SwitchIdScopeResolver.h"
 #include "fboss/agent/gen-cpp2/switch_config_constants.h"
 #include "fboss/agent/hw/mock/MockPlatform.h"
 #include "fboss/agent/state/DeltaFunctions.h"
@@ -937,12 +938,14 @@ TEST(Port, verifyInterfaceIDsForVoqSwitches) {
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   ASSERT_NE(nullptr, stateV1);
 
+  SwitchIdScopeResolver scopeResolver(
+      *config.switchSettings()->switchIdToSwitchInfo());
   for (const auto& portMap : std::as_const(*(stateV1->getPorts()))) {
     for (auto port : *portMap.second) {
       auto portID = port.second->getID();
-      auto expectedIntfID = InterfaceID(
-          *stateV1->getAssociatedSystemPortRangeIf(portID)->minimum() +
-          port.second->getID());
+      auto sysPortId = getSystemPortID(
+          portID, stateV1, scopeResolver.scope(portID).switchId());
+      auto expectedIntfID = InterfaceID(static_cast<uint32_t>(sysPortId));
       EXPECT_EQ(expectedIntfID, port.second->getInterfaceID());
     }
   }
@@ -959,7 +962,9 @@ TEST(Port, verifySysPortRangeForNonVoqSwitches) {
   for (const auto& portMap : std::as_const(*(stateV1->getPorts()))) {
     for (auto port : *portMap.second) {
       auto portID = port.second->getID();
-      EXPECT_FALSE(stateV1->getAssociatedSystemPortRangeIf(portID).has_value());
+      EXPECT_TRUE(stateV1->getAssociatedSystemPortRangesIf(portID)
+                      .systemPortRanges()
+                      ->empty());
     }
   }
 }
@@ -1011,7 +1016,9 @@ TEST(Port, verifySysPortRangeForVoqSwitches) {
   for (const auto& portMap : std::as_const(*(stateV1->getPorts()))) {
     for (auto port : *portMap.second) {
       auto portID = port.second->getID();
-      EXPECT_TRUE(stateV1->getAssociatedSystemPortRangeIf(portID).has_value());
+      EXPECT_FALSE(stateV1->getAssociatedSystemPortRangesIf(portID)
+                       .systemPortRanges()
+                       ->empty());
     }
   }
 }

@@ -269,6 +269,19 @@ struct formatter<sai_prbs_rx_state_t> {
         prbsStats.error_count);
   }
 };
+// Formatting for sai_object_type_t
+template <>
+struct formatter<sai_object_type_t> {
+  template <typename ParseContext>
+  constexpr auto parse(ParseContext& ctx) const {
+    return ctx.begin();
+  }
+
+  template <typename FormatContext>
+  auto format(const sai_object_type_t& type, FormatContext& ctx) const {
+    return format_to(ctx.out(), "{}", static_cast<int>(type));
+  }
+};
 #endif
 
 // Formatting for sai_port_err_status_list_t

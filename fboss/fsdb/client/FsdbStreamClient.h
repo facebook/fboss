@@ -2,6 +2,12 @@
 
 #pragma once
 
+#include "fboss/fsdb/common/Utils.h"
+#include "fboss/fsdb/if/gen-cpp2/FsdbService.h"
+#include "fboss/fsdb/if/gen-cpp2/fsdb_oper_types.h"
+#include "fboss/lib/CommonThriftUtils.h"
+#include "fboss/lib/thrift_service_client/ConnectionOptions.h"
+
 #include <fb303/ThreadCachedServiceData.h>
 #include <folly/SocketAddress.h>
 #include <folly/coro/AsyncScope.h>
@@ -12,14 +18,11 @@
 #include <thrift/lib/cpp2/async/ClientBufferedStream.h>
 #include <thrift/lib/cpp2/async/RpcOptions.h>
 #include <thrift/lib/cpp2/async/Sink.h>
-#include <optional>
-#include <string>
-#include "fboss/fsdb/common/Utils.h"
-#include "fboss/fsdb/if/gen-cpp2/fsdb_oper_types.h"
-#include "fboss/lib/CommonThriftUtils.h"
 
 #include <atomic>
 #include <functional>
+#include <optional>
+#include <string>
 
 namespace folly {
 class CancellationToken;
@@ -98,9 +101,9 @@ class FsdbStreamClient : public ReconnectingThriftClient {
       DeltaExtSubStreamT>;
 
  private:
-  void createClient(const ServerOptions& options);
+  void createClient(const utils::ConnectionOptions& options);
   void resetClient() override;
-  void connectToServer(const ServerOptions& options) override;
+  void connectToServer(const utils::ConnectionOptions& options) override;
   void timeoutExpired() noexcept;
 
 #if FOLLY_HAS_COROUTINES
@@ -126,6 +129,7 @@ class FsdbStreamClient : public ReconnectingThriftClient {
   void setStateDisconnectedWithReason(fsdb::FsdbErrorCode reason) {
     setDisconnectReason(reason);
     setState(State::DISCONNECTED);
+    updateDisconnectReasonCounter(reason);
   }
   std::unique_ptr<apache::thrift::Client<FsdbService>> client_;
 
@@ -135,10 +139,56 @@ class FsdbStreamClient : public ReconnectingThriftClient {
   folly::Synchronized<FsdbErrorCode> disconnectReason_{FsdbErrorCode::NONE};
 
  private:
+  void updateDisconnectReasonCounter(fsdb::FsdbErrorCode reason) {
+    switch (reason) {
+      case fsdb::FsdbErrorCode::CLIENT_CHUNK_TIMEOUT:
+        disconnectReasonChunkTimeout_.add(1);
+        break;
+      case fsdb::FsdbErrorCode::SUBSCRIPTION_DATA_CALLBACK_ERROR:
+        disconnectReasonDataCbError_.add(1);
+        break;
+      case fsdb::FsdbErrorCode::CLIENT_TRANSPORT_EXCEPTION:
+        disconnectReasonTransportError_.add(1);
+        break;
+      case fsdb::FsdbErrorCode::ID_ALREADY_EXISTS:
+        disconnectReasonIdExists_.add(1);
+        break;
+      case fsdb::FsdbErrorCode::EMPTY_PUBLISHER_ID:
+      case fsdb::FsdbErrorCode::UNKNOWN_PUBLISHER:
+      case fsdb::FsdbErrorCode::EMPTY_SUBSCRIBER_ID:
+      case fsdb::FsdbErrorCode::INVALID_PATH:
+        disconnectReasonBadArgs_.add(1);
+        break;
+      default:
+        break;
+    };
+  }
+
   folly::EventBase* streamEvb_;
   std::atomic<bool> serviceLoopRunning_{false};
   const bool isStats_;
   apache::thrift::RpcOptions rpcOptions_;
+  // counters for various disconnect reasons
+  fb303::TimeseriesWrapper disconnectReasonChunkTimeout_{
+      getCounterPrefix() + ".disconnectReason.chunkTimeout",
+      fb303::SUM,
+      fb303::RATE};
+  fb303::TimeseriesWrapper disconnectReasonDataCbError_{
+      getCounterPrefix() + ".disconnectReason.dataCbError",
+      fb303::SUM,
+      fb303::RATE};
+  fb303::TimeseriesWrapper disconnectReasonTransportError_{
+      getCounterPrefix() + ".disconnectReason.transportError",
+      fb303::SUM,
+      fb303::RATE};
+  fb303::TimeseriesWrapper disconnectReasonIdExists_{
+      getCounterPrefix() + ".disconnectReason.dupId",
+      fb303::SUM,
+      fb303::RATE};
+  fb303::TimeseriesWrapper disconnectReasonBadArgs_{
+      getCounterPrefix() + ".disconnectReason.badArgs",
+      fb303::SUM,
+      fb303::RATE};
 };
 
 } // namespace facebook::fboss::fsdb

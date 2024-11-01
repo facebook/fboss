@@ -37,7 +37,7 @@ struct ExtractTypeClass<apache::thrift::type_class::set<ValueTypeClass>> {
 } // namespace set_helpers
 
 template <typename TypeClass, typename TType>
-struct ThriftSetFields {
+struct ThriftSetFields : public FieldBaseType {
   using Self = ThriftSetFields<TypeClass, TType>;
   using CowType = FieldsType;
   using ThriftType = TType;

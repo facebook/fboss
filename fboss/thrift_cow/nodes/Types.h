@@ -97,13 +97,13 @@ struct FieldsType {};
 // used to differentiate from COW NodeType
 struct HybridNodeType {};
 
-template <typename TType, typename Derived>
+template <typename TType, typename Derived, bool EnableHybridStorage>
 struct ThriftStructFields;
 
 template <typename TypeClass, typename TType>
 struct ThriftHybridNode;
 
-template <typename TType, typename>
+template <typename TType, typename, bool>
 class ThriftStructNode;
 
 template <typename TType>

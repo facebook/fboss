@@ -255,7 +255,6 @@ void to_json(nlohmann::json& j, const RegisterStore& m);
 
 // Group of registers which are at contiguous register locations.
 class RegisterStoreSpan {
-  static constexpr uint16_t kMaxRegisterSpanLength = 120;
   uint16_t spanAddress_ = 0;
   time_t interval_ = 0;
   std::vector<uint16_t> span_{};
@@ -263,8 +262,11 @@ class RegisterStoreSpan {
   time_t timestamp_ = 0;
 
  public:
+  static constexpr uint16_t kDefaultMaxRegisterSpanLength = 120;
   explicit RegisterStoreSpan(RegisterStore* reg);
-  bool addRegister(RegisterStore* reg);
+  bool addRegister(
+      RegisterStore* reg,
+      size_t maxSpanLength = kDefaultMaxRegisterSpanLength);
   std::vector<uint16_t>& beginReloadSpan();
   void endReloadSpan(time_t reloadTime);
   uint16_t getSpanAddress() const {
@@ -276,7 +278,8 @@ class RegisterStoreSpan {
   bool reloadPending(time_t currentTime);
   static bool buildRegisterSpanList(
       std::vector<RegisterStoreSpan>& list,
-      RegisterStore& reg);
+      RegisterStore& reg,
+      size_t maxSpanLength = kDefaultMaxRegisterSpanLength);
 };
 
 struct WriteActionInfo {
@@ -318,6 +321,7 @@ struct RegisterMap {
   std::string name;
   uint16_t probeRegister;
   uint32_t baudrate;
+  size_t maxRegisterSpanLength;
   Parity parity;
   std::vector<SpecialHandlerInfo> specialHandlers;
   std::map<uint16_t, RegisterDescriptor> registerDescriptors;

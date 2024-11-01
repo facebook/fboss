@@ -138,7 +138,12 @@ TEST_F(AgentFabricSwitchTest, collectStats) {
               port->getName() + ".load_bearing_link_state.flap.sum.60");
           EXPECT_EVENTUALLY_TRUE(loadBearingInErrors.has_value());
           EXPECT_EVENTUALLY_TRUE(loadBearingFecErrors.has_value());
-          EXPECT_EVENTUALLY_TRUE(loadBearingFlaps.has_value());
+          if (getAgentEnsemble()->getBootType() == BootType::COLD_BOOT) {
+            EXPECT_EVENTUALLY_TRUE(loadBearingFlaps.has_value());
+          } else {
+            // No port flaps after wb, hence no port flap stats being recorded
+            EXPECT_FALSE(loadBearingFlaps.has_value());
+          }
         }
       }
     });
