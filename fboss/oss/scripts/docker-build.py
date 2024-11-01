@@ -17,13 +17,14 @@ OPT_ARG_CMAKE_TARGET = "--target"
 OPT_ARG_NO_DOCKER_OUTPUT = "--no-docker-output"
 OPT_ARG_NO_SYSTEM_DEPS = "--no-system-deps"
 OPT_ARG_ADD_BUILD_ENV_VAR = "--env-var"
+OPT_ARG_LOCAL = "--local"
 
 FBOSS_IMAGE_NAME = "fboss_image"
 FBOSS_CONTAINER_NAME = "FBOSS_BUILD_CONTAINER"
 CONTAINER_SCRATCH_PATH = "/var/FBOSS/tmp_bld_dir"
 
 
-def get_linux_type() -> tuple[str | None, str | None, str | None]:
+def get_linux_type() -> tuple[Optional[str], Optional[str], Optional[str]]:
     try:
         with open("/etc/os-release") as f:
             data = f.read()
@@ -138,6 +139,13 @@ def parse_args():
             "This is particularly useful as some CMake targets are hidden behind flags, e.g. BUILD_SAI_FAKE=1"
         ),
     )
+    parser.add_argument(
+        OPT_ARG_LOCAL,
+        required=False,
+        help="Compiles using the local clone of the FBOSS git repository. By default, a separate clone of the repository with the head commit is used.",
+        default=False,
+        action="store_true",
+    )
 
     return parser.parse_args()
 
@@ -162,8 +170,18 @@ def build_docker_image(docker_dir_path: str):
         f"Attempting to build docker image from {docker_dir_path}/Dockerfile. You can run `sudo tail -f {log_path}` in order to follow along."
     )
     with os.fdopen(fd, "w") as output:
+        dockerfile_path = os.path.join(docker_dir_path, "Dockerfile")
         cp = subprocess.run(
-            ["sudo", "docker", "build", docker_dir_path, "-t", FBOSS_IMAGE_NAME],
+            [
+                "sudo",
+                "docker",
+                "build",
+                ".",
+                "-t",
+                FBOSS_IMAGE_NAME,
+                "-f",
+                dockerfile_path,
+            ],
             stdout=output,
             stderr=subprocess.STDOUT,
         )
@@ -175,10 +193,11 @@ def build_docker_image(docker_dir_path: str):
 
 def run_fboss_build(
     scratch_path: str,
-    target: str | None,
+    target: Optional[str],
     docker_output: bool,
     use_system_deps: bool,
     env_vars: list[str],
+    use_local: bool,
 ):
     cmd_args = ["sudo", "docker", "run"]
     # Add build environment variables, if any.
@@ -216,6 +235,8 @@ def run_fboss_build(
     if target is not None:
         build_cmd.append("--cmake-target")
         build_cmd.append(target)
+    if use_local:
+        build_cmd.extend(["--src-dir", "."])
     build_cmd.append("fboss")
     cmd_args.extend(build_cmd)
     build_cp = subprocess.run(cmd_args)
@@ -267,6 +288,7 @@ def main():
         args.docker_output,
         args.use_system_deps,
         args.env_vars,
+        args.local,
     )
 
     cleanup_fboss_build_container()

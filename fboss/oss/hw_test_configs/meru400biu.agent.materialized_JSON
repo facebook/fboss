@@ -2,6 +2,7 @@
   "defaultCommandLineArgs": {
     "check_wb_handles": "true",
     "counter_refresh_interval": "0",
+    "enable_acl_table_group": "true",
     "intf_nbr_tables": "true",
     "log_variable_name": "true",
     "mode": "meru400biu",
@@ -60,6 +61,7 @@
       "1": 1,
       "2": 0,
       "3": 0,
+      "4": 0,
       "700": 255,
       "786": 10
     },
@@ -116,7 +118,7 @@
       "exactMatchTableConfigs": [
         
       ],
-      "switchIdToSwitchType": {
+      "switchIdToSwitchType_DEPRECATED": {
         
       },
       "switchDrainState": 0,
@@ -131,10 +133,21 @@
             },
             "systemPortRange": {
               "minimum": 10,
-              "maximum": 30
+              "maximum": 29
             },
             "switchMac": "02:00:00:00:00:01",
-            "connectionHandle": "68:00"
+            "connectionHandle": "68:00",
+            "systemPortRanges": {
+              "systemPortRanges": [
+                {
+                  "minimum": 10,
+                  "maximum": 29
+                }
+              ]
+            },
+            "localSystemPortOffset": 10,
+            "globalSystemPortOffset": 10,
+            "inbandPortId": 1
         }
       },
       "vendorMacOuis": [
@@ -144,6 +157,32 @@
         
       ],
       "needL2EntryForNeighbor": true
+    },
+    "aclTableGroup": {
+      "name": "acl-table-group-ingress",
+      "aclTables": [
+        {
+          "name": "AclTable1",
+          "priority": 0,
+          "aclEntries": [
+            
+          ],
+          "actionTypes": [
+            
+          ],
+          "qualifiers": [
+            
+          ],
+          "udfGroups": [
+            
+          ]
+        }
+      ],
+      "stage": 0
+    },
+    "sdkVersion": {
+      "asicSdk": "sdk",
+      "saiSdk": "sai"
     },
     "dsfNodes": {
       "0": {
@@ -155,11 +194,22 @@
           ],
           "systemPortRange": {
             "minimum": 10,
-            "maximum": 30
+            "maximum": 29
           },
           "nodeMac": "02:00:00:00:0F:0B",
           "asicType": 11,
-          "platformType": 18
+          "platformType": 18,
+          "localSystemPortOffset": 10,
+          "globalSystemPortOffset": 10,
+          "systemPortRanges": {
+            "systemPortRanges": [
+              {
+                "minimum": 10,
+                "maximum": 29
+              }
+            ]
+          },
+          "inbandPortId": 1
       }
     },
     "defaultVoqConfig": [

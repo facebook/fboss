@@ -20,4 +20,17 @@ std::vector<facebook::fboss::fsdb::OperPathElem> copyAndExtendVec(
   return out;
 }
 
+std::string pathElemToString(const facebook::fboss::fsdb::OperPathElem& elem) {
+  switch (elem.getType()) {
+    case facebook::fboss::fsdb::OperPathElem::Type::raw:
+      return elem.get_raw();
+    case facebook::fboss::fsdb::OperPathElem::Type::regex:
+      return elem.get_regex();
+    case facebook::fboss::fsdb::OperPathElem::Type::any:
+      return "*";
+    default:
+      throw std::runtime_error("Unknown path elem type");
+  }
+}
+
 } // namespace thriftpath

@@ -32,7 +32,8 @@ class HwSwitch;
 
 using AgentEnsembleSwitchConfigFn =
     std::function<cfg::SwitchConfig(const AgentEnsemble&)>;
-using AgentEnsemblePlatformConfigFn = std::function<void(cfg::PlatformConfig&)>;
+using AgentEnsemblePlatformConfigFn =
+    std::function<void(const cfg::SwitchConfig& sw, cfg::PlatformConfig&)>;
 
 class AgentEnsemble : public TestEnsembleIf {
  public:
@@ -134,13 +135,14 @@ class AgentEnsemble : public TestEnsembleIf {
   void linkStateChanged(
       PortID port,
       bool up,
+      cfg::PortType portType,
       std::optional<phy::LinkFaultStatus> iPhyFaultStatus =
           std::nullopt) override {
     if (getSw()->getSwitchRunState() >= SwitchRunState::CONFIGURED) {
       if (linkToggler_) {
         linkToggler_->linkStateChanged(port, up);
       }
-      getSw()->linkStateChanged(port, up);
+      getSw()->linkStateChanged(port, up, portType);
     }
   }
 
@@ -292,6 +294,7 @@ class AgentEnsemble : public TestEnsembleIf {
   void setConfigFiles(const std::string& fileName);
   void setBootType();
   void overrideConfigFlag(const std::string& fileName);
+  void dumpConfigForHwAgent(AgentConfig* agentConf);
 
   void writeConfig(const cfg::SwitchConfig& config);
   void writeConfig(const cfg::AgentConfig& config);

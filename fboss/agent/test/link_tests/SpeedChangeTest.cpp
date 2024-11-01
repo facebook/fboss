@@ -22,6 +22,13 @@ struct SpeedAndProfile {
 };
 
 class SpeedChangeTest : public LinkTest {
+ private:
+  std::vector<link_test_production_features::LinkTestProductionFeature>
+  getProductionFeatures() const override {
+    return {
+        link_test_production_features::LinkTestProductionFeature::L2_LINK_TEST};
+  }
+
  public:
   void TearDown() override;
   void setupConfigFlag() override;
@@ -218,14 +225,16 @@ void SpeedChangeTest::setupConfigFlag() {
 }
 
 void SpeedChangeTest::TearDown() {
-  if (!FLAGS_setup_for_warmboot) {
-    // If this test wasn't setup for warmboot, revert back the original config
-    // in FLAGS_config path. Also clean up the copy
-    boost::filesystem::copy_file(
-        originalConfigCopy,
-        FLAGS_config,
-        boost::filesystem::copy_option::overwrite_if_exists);
-    CHECK(removeFile(originalConfigCopy));
+  if (!FLAGS_list_production_feature) {
+    if (!FLAGS_setup_for_warmboot) {
+      // If this test wasn't setup for warmboot, revert back the original config
+      // in FLAGS_config path. Also clean up the copy
+      boost::filesystem::copy_file(
+          originalConfigCopy,
+          FLAGS_config,
+          boost::filesystem::copy_option::overwrite_if_exists);
+      CHECK(removeFile(originalConfigCopy));
+    }
   }
   LinkTest::TearDown();
 }

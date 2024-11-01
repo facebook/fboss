@@ -743,26 +743,34 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
   std::optional<SaiAclEntryTraits::Attributes::FieldIcmpV6Code> fieldIcmpV6Code{
       std::nullopt};
   if (addedAclEntry->getIcmpType()) {
-    if (addedAclEntry->getProto()) {
-      if (addedAclEntry->getProto().value() == AclEntry::kProtoIcmp) {
-        fieldIcmpV4Type = SaiAclEntryTraits::Attributes::FieldIcmpV4Type{
+    if ((addedAclEntry->getProto() &&
+         addedAclEntry->getProto().value() == AclEntry::kProtoIcmp) ||
+        (addedAclEntry->getEtherType() &&
+         addedAclEntry->getEtherType().value() == cfg::EtherType::IPv4)) {
+      fieldIcmpV4Type = SaiAclEntryTraits::Attributes::FieldIcmpV4Type{
+          AclEntryFieldU8(std::make_pair(
+              addedAclEntry->getIcmpType().value(), kIcmpTypeMask))};
+      if (addedAclEntry->getIcmpCode()) {
+        fieldIcmpV4Code = SaiAclEntryTraits::Attributes::FieldIcmpV4Code{
             AclEntryFieldU8(std::make_pair(
-                addedAclEntry->getIcmpType().value(), kIcmpTypeMask))};
-        if (addedAclEntry->getIcmpCode()) {
-          fieldIcmpV4Code = SaiAclEntryTraits::Attributes::FieldIcmpV4Code{
-              AclEntryFieldU8(std::make_pair(
-                  addedAclEntry->getIcmpCode().value(), kIcmpCodeMask))};
-        }
-      } else if (addedAclEntry->getProto().value() == AclEntry::kProtoIcmpv6) {
-        fieldIcmpV6Type = SaiAclEntryTraits::Attributes::FieldIcmpV6Type{
-            AclEntryFieldU8(std::make_pair(
-                addedAclEntry->getIcmpType().value(), kIcmpTypeMask))};
-        if (addedAclEntry->getIcmpCode()) {
-          fieldIcmpV6Code = SaiAclEntryTraits::Attributes::FieldIcmpV6Code{
-              AclEntryFieldU8(std::make_pair(
-                  addedAclEntry->getIcmpCode().value(), kIcmpCodeMask))};
-        }
+                addedAclEntry->getIcmpCode().value(), kIcmpCodeMask))};
       }
+    } else if (
+        (addedAclEntry->getProto() &&
+         addedAclEntry->getProto().value() == AclEntry::kProtoIcmpv6) ||
+        (addedAclEntry->getEtherType() &&
+         addedAclEntry->getEtherType().value() == cfg::EtherType::IPv6)) {
+      fieldIcmpV6Type = SaiAclEntryTraits::Attributes::FieldIcmpV6Type{
+          AclEntryFieldU8(std::make_pair(
+              addedAclEntry->getIcmpType().value(), kIcmpTypeMask))};
+      if (addedAclEntry->getIcmpCode()) {
+        fieldIcmpV6Code = SaiAclEntryTraits::Attributes::FieldIcmpV6Code{
+            AclEntryFieldU8(std::make_pair(
+                addedAclEntry->getIcmpCode().value(), kIcmpCodeMask))};
+      }
+    } else {
+      throw FbossError(
+          "proto or etherType not sepcified in ACL when matching icmp type/code");
     }
   }
 
@@ -1410,6 +1418,8 @@ std::set<cfg::AclTableQualifier> SaiAclTableManager::getSupportedQualifierSet()
       platform_->getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO3;
   bool isTomahawk5 =
       platform_->getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_TOMAHAWK5;
+  bool isChenab =
+      platform_->getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_CHENAB;
 
   if (isTajo) {
     std::set<cfg::AclTableQualifier> tajoQualifiers = {
@@ -1482,6 +1492,24 @@ std::set<cfg::AclTableQualifier> SaiAclTableManager::getSupportedQualifierSet()
         cfg::AclTableQualifier::DST_MAC,
         cfg::AclTableQualifier::BTH_OPCODE};
     return jericho3Qualifiers;
+  } else if (isChenab) {
+    /* TODO(pshaikh): review the qualifiers */
+    std::set<cfg::AclTableQualifier> chenabQualifiers = {
+        cfg::AclTableQualifier::SRC_IPV6,
+        cfg::AclTableQualifier::DST_IPV6,
+        cfg::AclTableQualifier::SRC_IPV4,
+        cfg::AclTableQualifier::DST_IPV4,
+        cfg::AclTableQualifier::L4_SRC_PORT,
+        cfg::AclTableQualifier::L4_DST_PORT,
+        cfg::AclTableQualifier::IP_PROTOCOL,
+        cfg::AclTableQualifier::SRC_PORT,
+        cfg::AclTableQualifier::DSCP,
+        cfg::AclTableQualifier::TTL,
+        cfg::AclTableQualifier::OUTER_VLAN,
+        // TODO(pshaikh): Add UDF?
+    };
+
+    return chenabQualifiers;
   } else {
     std::set<cfg::AclTableQualifier> bcmQualifiers = {
         cfg::AclTableQualifier::SRC_IPV6,

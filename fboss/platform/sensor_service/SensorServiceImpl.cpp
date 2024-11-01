@@ -18,7 +18,7 @@
 #include <thrift/lib/cpp2/protocol/Serializer.h>
 
 #include "fboss/platform/config_lib/ConfigLib.h"
-#include "fboss/platform/helpers/PlatformNameLib.h"
+#include "fboss/platform/sensor_service/ConfigValidator.h"
 #include "fboss/platform/sensor_service/FsdbSyncer.h"
 #include "fboss/platform/sensor_service/SensorServiceImpl.h"
 #include "fboss/platform/sensor_service/Utils.h"
@@ -31,24 +31,9 @@ DEFINE_int32(
 
 namespace facebook::fboss::platform::sensor_service {
 
-SensorServiceImpl::SensorServiceImpl() {
-  auto platformName = helpers::PlatformNameLib().getPlatformName();
-  std::string sensorConfJson = ConfigLib().getSensorServiceConfig(platformName);
-  XLOG(DBG2) << "Read sensor config: " << sensorConfJson;
-  apache::thrift::SimpleJSONSerializer::deserialize<SensorConfig>(
-      sensorConfJson, sensorConfig_);
-  for (const auto& [fruName, sensorMap] : *sensorConfig_.sensorMapList()) {
-    for (const auto& [sensorName, sensor] : sensorMap) {
-      XLOG(INFO) << fmt::format(
-          "{}: Path={}, Compute={}, FRU={}",
-          sensorName,
-          *sensor.path(),
-          sensor.compute().value_or(""),
-          fruName);
-    }
-  }
+SensorServiceImpl::SensorServiceImpl(const SensorConfig& sensorConfig)
+    : sensorConfig_(sensorConfig) {
   fsdbSyncer_ = std::make_unique<FsdbSyncer>();
-  XLOG(INFO) << "========================================================";
 }
 
 SensorServiceImpl::~SensorServiceImpl() {
@@ -78,43 +63,34 @@ std::map<std::string, SensorData> SensorServiceImpl::getAllSensorData() {
 void SensorServiceImpl::fetchSensorData() {
   std::map<std::string, SensorData> polledData;
   uint readFailures{0};
-  // Not all platforms have new sensor thrift structs.
-  // If it's defined, we will use new sensor structs
-  // Otherwise fall back to the existing sensors structs.
-  if (!sensorConfig_.pmUnitSensorsList()->empty()) {
-    XLOG(INFO) << "Reading SensorData using PM based sensor structs...";
-    for (const auto& pmUnitSensors : *sensorConfig_.pmUnitSensorsList()) {
-      auto pmSensors = *pmUnitSensors.sensors();
-      if (auto versionedPmSensors = Utils().resolveVersionedSensors(
-              pmUnitInfoFetcher_,
-              *pmUnitSensors.slotPath(),
-              *pmUnitSensors.versionedSensors())) {
-        XLOG(INFO) << fmt::format(
-            "Resolved to versionedPmSensors config with version {}.{}.{} for pmUnit {} at {}",
-            *versionedPmSensors->productProductionState(),
-            *versionedPmSensors->productVersion(),
-            *versionedPmSensors->productSubVersion(),
-            *pmUnitSensors.pmUnitName(),
-            *pmUnitSensors.slotPath());
-        pmSensors.insert(
-            pmSensors.end(),
-            versionedPmSensors->sensors()->begin(),
-            versionedPmSensors->sensors()->end());
-      }
-      XLOG(INFO) << fmt::format(
-          "Processing {} unit {} sensors",
-          *pmUnitSensors.pmUnitName(),
-          pmSensors.size());
-      for (const auto& sensor : pmSensors) {
-        fetchSensorDataImpl(sensor, readFailures, polledData);
-      }
-    }
-  } else {
-    XLOG(INFO) << "Fetching using legacy sensor structs...";
-    for (const auto& [fruName, sensorMap] : *sensorConfig_.sensorMapList()) {
-      for (const auto& [sensorName, sensor] : sensorMap) {
-        fetchSensorDataImpl(
-            std::make_pair(sensorName, sensor), readFailures, polledData);
+  XLOG(INFO) << "Reading SensorData using PM based sensor structs...";
+  for (const auto& pmUnitSensors : *sensorConfig_.pmUnitSensorsList()) {
+    auto pmSensors = resolveSensors(pmUnitSensors);
+    XLOG(INFO) << fmt::format(
+        "Processing {} unit {} sensors",
+        *pmUnitSensors.pmUnitName(),
+        pmSensors.size());
+    for (const auto& sensor : pmSensors) {
+      const auto& sensorName = *sensor.name();
+      auto sensorData = fetchSensorDataImpl(
+          sensorName,
+          *sensor.sysfsPath(),
+          *sensor.type(),
+          sensor.thresholds().to_optional(),
+          sensor.compute().to_optional());
+      polledData[sensorName] = sensorData;
+      // We log 0 if there is a read failure.  If we dont log 0 on failure,
+      // fb303 will pick up the last reported (on read success) value and
+      // keep reporting that as the value. For 0 values, it is accurate to
+      // read the value along with the kReadFailure counter. Alternative is
+      // to delete this counter if there is a failure.
+      fb303::fbData->setCounter(
+          fmt::format(kReadValue, sensorName), sensorData.value().value_or(0));
+      if (!sensorData.value()) {
+        fb303::fbData->setCounter(fmt::format(kReadFailure, sensorName), 1);
+        readFailures++;
+      } else {
+        fb303::fbData->setCounter(fmt::format(kReadFailure, sensorName), 0);
       }
     }
   }
@@ -141,47 +117,29 @@ void SensorServiceImpl::fetchSensorData() {
   }
 }
 
-template <typename T, typename>
-void SensorServiceImpl::fetchSensorDataImpl(
-    const T& sensor,
-    uint& readFailures,
-    std::map<std::string, SensorData>& polledData) {
-  SensorData sensorData;
-  std::string sensorName;
-  if constexpr (std::is_same_v<T, std::pair<std::string, Sensor>>) {
-    sensorName = sensor.first;
-    sensorData = createSensorData(
-        sensorName,
-        *sensor.second.path(),
-        *sensor.second.type(),
-        sensor.second.thresholds().to_optional(),
-        sensor.second.compute().to_optional());
-  } else {
-    sensorName = *sensor.name();
-    sensorData = createSensorData(
-        sensorName,
-        *sensor.sysfsPath(),
-        *sensor.type(),
-        sensor.thresholds().to_optional(),
-        sensor.compute().to_optional());
+std::vector<PmSensor> SensorServiceImpl::resolveSensors(
+    const PmUnitSensors& pmUnitSensors) {
+  auto pmSensors = *pmUnitSensors.sensors();
+  if (auto versionedPmSensors = Utils().resolveVersionedSensors(
+          pmUnitInfoFetcher_,
+          *pmUnitSensors.slotPath(),
+          *pmUnitSensors.versionedSensors())) {
+    XLOG(INFO) << fmt::format(
+        "Resolved to versionedPmSensors config with version {}.{}.{} for pmUnit {} at {}",
+        *versionedPmSensors->productProductionState(),
+        *versionedPmSensors->productVersion(),
+        *versionedPmSensors->productSubVersion(),
+        *pmUnitSensors.pmUnitName(),
+        *pmUnitSensors.slotPath());
+    pmSensors.insert(
+        pmSensors.end(),
+        versionedPmSensors->sensors()->begin(),
+        versionedPmSensors->sensors()->end());
   }
-  polledData[sensorName] = sensorData;
-  // We log 0 if there is a read failure.  If we dont log 0 on failure,
-  // fb303 will pick up the last reported (on read success) value and
-  // keep reporting that as the value. For 0 values, it is accurate to
-  // read the value along with the kReadFailure counter. Alternative is
-  // to delete this counter if there is a failure.
-  fb303::fbData->setCounter(
-      fmt::format(kReadValue, sensorName), sensorData.value().value_or(0));
-  if (!sensorData.value()) {
-    fb303::fbData->setCounter(fmt::format(kReadFailure, sensorName), 1);
-    readFailures++;
-  } else {
-    fb303::fbData->setCounter(fmt::format(kReadFailure, sensorName), 0);
-  }
+  return pmSensors;
 }
 
-SensorData SensorServiceImpl::createSensorData(
+SensorData SensorServiceImpl::fetchSensorDataImpl(
     const std::string& sensorName,
     const std::string& sysfsPath,
     SensorType sensorType,

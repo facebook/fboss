@@ -29,13 +29,15 @@ void addAggPort(
     int key,
     const std::vector<int32_t>& ports,
     cfg::SwitchConfig* config,
-    cfg::LacpPortRate rate) {
+    cfg::LacpPortRate rate,
+    double minLinkPercentage) {
   // Create agg port with requisite members
   static constexpr auto kAggPortName = "AGG";
   cfg::AggregatePort aggPort;
-  *aggPort.key() = key;
+  aggPort.key() = key;
   aggPort.name() = folly::to<std::string>(kAggPortName, "-", key);
-  *aggPort.description() = kAggPortName;
+  aggPort.description() = kAggPortName;
+  aggPort.minimumCapacity()->set_linkPercentage(minLinkPercentage);
   for (auto port : ports) {
     aggPort.memberPorts()->push_back(makePortMember(port, rate));
   }

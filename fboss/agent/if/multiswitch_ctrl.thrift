@@ -12,6 +12,7 @@ include "thrift/annotation/cpp.thrift"
 include "fboss/lib/phy/phy.thrift"
 include "fboss/agent/hw/hardware_stats.thrift"
 include "thrift/annotation/thrift.thrift"
+include "fboss/agent/switch_config.thrift"
 
 @cpp.Type{name = "std::unique_ptr<folly::IOBuf>"}
 typedef binary fbbinary
@@ -20,6 +21,7 @@ struct LinkEvent {
   1: i32 port;
   2: bool up;
   3: optional phy.LinkFaultStatus iPhyLinkFaultStatus;
+  4: switch_config.PortType portType;
 }
 
 struct LinkActiveEvent {

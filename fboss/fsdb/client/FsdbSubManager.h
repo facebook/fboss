@@ -5,6 +5,7 @@
 #include "fboss/fsdb/client/FsdbPatchSubscriber.h"
 #include "fboss/fsdb/if/FsdbModel.h"
 #include "fboss/fsdb/if/gen-cpp2/fsdb_oper_types.h"
+#include "fboss/lib/thrift_service_client/ConnectionOptions.h"
 
 #include <folly/io/async/ScopedEventBaseThread.h>
 
@@ -62,11 +63,11 @@ class FsdbSubManager {
 
   FsdbSubManager(
       fsdb::SubscriptionOptions opts,
-      ReconnectingThriftClient::ServerOptions serverOptions,
+      utils::ConnectionOptions serverOptions,
       folly::EventBase* reconnectEvb = nullptr,
       folly::EventBase* subscriberEvb = nullptr)
       : opts_(std::move(opts)),
-        serverOptions_(std::move(serverOptions)),
+        connectionOptions_(std::move(serverOptions)),
         reconnectEvbThread_(
             reconnectEvb ? nullptr
                          : std::make_unique<folly::ScopedEventBaseThread>(
@@ -127,8 +128,7 @@ class FsdbSubManager {
           parseChunkAndInvokeCallback(std::move(chunk), std::move(cb));
         },
         std::move(subscriptionStateChangeCb));
-    subscriber_->setServerOptions(
-        ReconnectingThriftClient::ServerOptions(serverOptions_));
+    subscriber_->setConnectionOptions(connectionOptions_);
   }
 
   // Returns a synchronized data object that is always kept up to date
@@ -181,7 +181,7 @@ class FsdbSubManager {
   }
 
   fsdb::SubscriptionOptions opts_;
-  ReconnectingThriftClient::ServerOptions serverOptions_;
+  utils::ConnectionOptions connectionOptions_;
 
   // local threads are only needed when there are no external eventbases
   std::unique_ptr<folly::ScopedEventBaseThread> reconnectEvbThread_{nullptr};

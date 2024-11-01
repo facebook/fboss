@@ -776,7 +776,8 @@ void BcmSwitch::setupLinkscan() {
     // so we need to update sw state here. This needs to be done after linkscan
     // is enabled otherwise the sdk may return inconsistent results
     for (auto& port : std::as_const(*portTable_)) {
-      callback_->linkStateChanged(port.first, port.second->isUp());
+      callback_->linkStateChanged(
+          port.first, port.second->isUp(), cfg::PortType::INTERFACE_PORT);
     }
   }
 }
@@ -3014,7 +3015,10 @@ void BcmSwitch::linkStateChangedHwNotLocked(
     // back. Adding them earlier leads to packet loss.
   }
   callback_->linkStateChanged(
-      portTable_->getPortId(bcmPortId), up, iPhyLinkFaultStatus);
+      portTable_->getPortId(bcmPortId),
+      up,
+      cfg::PortType::INTERFACE_PORT,
+      iPhyLinkFaultStatus);
 }
 
 // The callback provided to bcm_rx_register()
@@ -4105,6 +4109,7 @@ void BcmSwitch::disableHotSwap() const {
       case cfg::AsicType::ASIC_TYPE_EBRO:
       case cfg::AsicType::ASIC_TYPE_GARONNE:
       case cfg::AsicType::ASIC_TYPE_YUBA:
+      case cfg::AsicType::ASIC_TYPE_CHENAB:
       case cfg::AsicType::ASIC_TYPE_MOCK:
       case cfg::AsicType::ASIC_TYPE_ELBERT_8DD:
       case cfg::AsicType::ASIC_TYPE_SANDIA_PHY:
@@ -4219,7 +4224,8 @@ void BcmSwitch::initialStateApplied() {
 void BcmSwitch::syncLinkStates() {
   linkScanBottomHalfEventBase_.runInFbossEventBaseThread([this]() {
     for (auto& port : std::as_const(*portTable_)) {
-      callback_->linkStateChanged(port.first, port.second->isUp());
+      callback_->linkStateChanged(
+          port.first, port.second->isUp(), cfg::PortType::INTERFACE_PORT);
     }
   });
 }

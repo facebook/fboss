@@ -9,12 +9,13 @@ cpp_library(
     ],
     exported_deps = [
         "fbsource//third-party/googletest:gtest_headers",
-        ":client",
         "//common/time:time",
         "//fb303:thread_cached_service_data",
         "//fboss/fsdb/common:utils",
+        "//fboss/fsdb/if:fsdb-cpp2-services",
         "//fboss/fsdb/if:fsdb_oper-cpp2-types",
         "//fboss/lib:common_thrift_utils",
+        "//fboss/lib/thrift_service_client:thrift-service-client",
         "//folly:network_address",
         "//folly/coro:async_scope",
         "//folly/io/async:async_socket_transport",
@@ -50,13 +51,13 @@ cpp_library(
     ],
     exported_deps = [
         "fbsource//third-party/googletest:gtest_headers",
-        ":client",
         ":fsdb_stream_client",
         "//fboss/fsdb/common:flags",
         "//fboss/fsdb/common:utils",
         "//fboss/fsdb/if:fsdb-cpp2-services",
         "//fboss/fsdb/if:fsdb_common-cpp2-types",
         "//fboss/fsdb/if:fsdb_oper-cpp2-types",
+        "//fboss/lib/thrift_service_client:thrift-service-client",
         "//folly:format",
         "//folly:string",
         "//folly:synchronized",
@@ -88,21 +89,6 @@ cpp_library(
     ],
 )
 
-cpp_library(
-    name = "client",
-    srcs = [
-        "Client.cpp",
-    ],
-    exported_deps = [
-        "//fboss/fsdb/if:fsdb-cpp2-services",
-        "//fboss/lib/thrift_service_client:thrift-service-client",
-        "//folly:network_address",
-        "//folly/io/async:async_base",
-        "//folly/io/async:async_socket",
-        "//folly/logging:logging",
-    ],
-)
-
 # templated FsdbSubManager. Users should use one of the instantiations below
 cpp_library(
     name = "fsdb_sub_manager",
@@ -113,6 +99,7 @@ cpp_library(
         ":fsdb_pub_sub",
         "//fboss/fsdb/if:fsdb_model",
         "//fboss/fsdb/if:fsdb_oper-cpp2-types",
+        "//fboss/lib/thrift_service_client:thrift-service-client",
         "//folly/io/async:scoped_event_base_thread",
     ],
 )

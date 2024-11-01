@@ -128,6 +128,70 @@ class PortPgConfig
     ref<switch_state_tags::bufferPoolConfig>() = bufferPoolConfigPtr;
   }
 
+  std::optional<uint64_t> getMaxSharedXoffThresholdBytes() const {
+    if (const auto& maxSharedXoffThresholdBytes =
+            cref<switch_state_tags::maxSharedXoffThresholdBytes>()) {
+      return std::optional<uint64_t>(maxSharedXoffThresholdBytes->cref());
+    }
+    return std::nullopt;
+  }
+
+  void setMaxSharedXoffThresholdBytes(uint64_t maxSharedXoffThresholdBytes) {
+    set<switch_state_tags::maxSharedXoffThresholdBytes>(
+        maxSharedXoffThresholdBytes);
+  }
+
+  std::optional<uint64_t> getMinSharedXoffThresholdBytes() const {
+    if (const auto& minSharedXoffThresholdBytes =
+            cref<switch_state_tags::minSharedXoffThresholdBytes>()) {
+      return std::optional<uint64_t>(minSharedXoffThresholdBytes->cref());
+    }
+    return std::nullopt;
+  }
+
+  void setMinSharedXoffThresholdBytes(uint64_t minSharedXoffThresholdBytes) {
+    set<switch_state_tags::minSharedXoffThresholdBytes>(
+        minSharedXoffThresholdBytes);
+  }
+
+  std::optional<uint64_t> getMaxSramXoffThresholdBytes() const {
+    if (const auto& maxSramXoffThresholdBytes =
+            cref<switch_state_tags::maxSramXoffThresholdBytes>()) {
+      return std::optional<uint64_t>(maxSramXoffThresholdBytes->cref());
+    }
+    return std::nullopt;
+  }
+
+  void setMaxSramXoffThresholdBytes(uint64_t maxSramXoffThresholdBytes) {
+    set<switch_state_tags::maxSramXoffThresholdBytes>(
+        maxSramXoffThresholdBytes);
+  }
+
+  std::optional<uint64_t> getMinSramXoffThresholdBytes() const {
+    if (const auto& minSramXoffThresholdBytes =
+            cref<switch_state_tags::minSramXoffThresholdBytes>()) {
+      return std::optional<uint64_t>(minSramXoffThresholdBytes->cref());
+    }
+    return std::nullopt;
+  }
+
+  void setMinSramXoffThresholdBytes(uint64_t minSramXoffThresholdBytes) {
+    set<switch_state_tags::minSramXoffThresholdBytes>(
+        minSramXoffThresholdBytes);
+  }
+
+  std::optional<uint64_t> getSramResumeOffsetBytes() const {
+    if (auto sramResumeOffsetBytes =
+            safe_cref<switch_state_tags::sramResumeOffsetBytes>()) {
+      return sramResumeOffsetBytes->toThrift();
+    }
+    return std::nullopt;
+  }
+
+  void setSramResumeOffsetBytes(uint64_t sramResumeOffsetBytes) {
+    set<switch_state_tags::sramResumeOffsetBytes>(sramResumeOffsetBytes);
+  }
+
   static state::PortPgFields makeThrift(
       uint8_t id,
       std::optional<cfg::MMUScalingFactor> scalingFactor,

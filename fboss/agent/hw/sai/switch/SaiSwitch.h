@@ -335,7 +335,6 @@ class SaiSwitch : public HwSwitch {
       PortID port) const;
 
   void fdbEventCallbackLockedBottomHalf(
-      const std::lock_guard<std::mutex>& lock,
       std::vector<FdbEventNotificationData> data);
 
   const SaiManagerTable* managerTableLocked(
@@ -395,12 +394,23 @@ class SaiSwitch : public HwSwitch {
   uint64_t getDeviceWatermarkBytesLocked(
       const std::lock_guard<std::mutex>& lock) const;
 
-  void processSwitchSettingsChangedLocked(
+  void processSwitchSettingsChangeSansDrainedLocked(
       const std::lock_guard<std::mutex>& lock,
       const StateDelta& delta);
 
-  void processSwitchSettingsChangedEntryLocked(
+  void processSwitchSettingsChangeSansDrainedEntryLocked(
       const std::lock_guard<std::mutex>& lock,
+      const std::shared_ptr<SwitchSettings>& oldSwitchSettings,
+      const std::shared_ptr<SwitchSettings>& newSwitchSettings);
+
+  void processSwitchSettingsDrainStateChangeLocked(
+      const std::lock_guard<std::mutex>& lock,
+      cfg::SwitchDrainState drainStateToProcess,
+      const StateDelta& delta);
+
+  void processSwitchSettingsChangeDrainedEntryLocked(
+      const std::lock_guard<std::mutex>& lock,
+      cfg::SwitchDrainState drainStateToProcess,
       const std::shared_ptr<SwitchSettings>& oldSwitchSettings,
       const std::shared_ptr<SwitchSettings>& newSwitchSettings);
 
@@ -489,8 +499,14 @@ class SaiSwitch : public HwSwitch {
       Args... args);
 
   template <typename LockPolicyT>
-  void processSwitchSettingsChanged(
+  void processSwitchSettingsChangeSansDrained(
       const StateDelta& delta,
+      const LockPolicyT& lockPolicy);
+
+  template <typename LockPolicyT>
+  void processSwitchSettingsDrainStateChange(
+      const StateDelta& delta,
+      cfg::SwitchDrainState drainStateToProcess,
       const LockPolicyT& lockPolicy);
 
   PortSaiId getCPUPortSaiId() const;
@@ -589,15 +605,18 @@ class SaiSwitch : public HwSwitch {
   SwitchSaiId saiSwitchId_;
 
   std::unique_ptr<std::thread> linkStateBottomHalfThread_;
-  FbossEventBase linkStateBottomHalfEventBase_;
+  FbossEventBase linkStateBottomHalfEventBase_{"LinkStateBottomHalfEventBase"};
   std::unique_ptr<std::thread> fdbEventBottomHalfThread_;
-  FbossEventBase fdbEventBottomHalfEventBase_;
+  FbossEventBase fdbEventBottomHalfEventBase_{"FdbEventBottomHalfEventBase"};
   std::unique_ptr<std::thread> txReadyStatusChangeBottomHalfThread_;
-  FbossEventBase txReadyStatusChangeBottomHalfEventBase_;
+  FbossEventBase txReadyStatusChangeBottomHalfEventBase_{
+      "TxReadyStatusChangeBottomHalfEventBase"};
   std::unique_ptr<std::thread> linkConnectivityChangeBottomHalfThread_;
-  FbossEventBase linkConnectivityChangeBottomHalfEventBase_;
+  FbossEventBase linkConnectivityChangeBottomHalfEventBase_{
+      "LinkConnectivityChangeBottomHalfEventBase"};
   std::unique_ptr<std::thread> switchReachabilityChangeBottomHalfThread_;
-  FbossEventBase switchReachabilityChangeBottomHalfEventBase_;
+  FbossEventBase switchReachabilityChangeBottomHalfEventBase_{
+      "SwitchReachabilityChangeBottomHalfEventBase"};
 
   HwResourceStats hwResourceStats_;
   std::atomic<SwitchRunState> runState_{SwitchRunState::UNINITIALIZED};
@@ -611,6 +630,7 @@ class SaiSwitch : public HwSwitch {
   std::unique_ptr<FabricConnectivityManager> fabricConnectivityManager_;
   bool pfcDeadlockEnabled_{false};
   folly::Synchronized<int> switchReachabilityChangePending_{0};
+  folly::Synchronized<bool> txReadyStatusChangePending_{false};
 };
 
 } // namespace facebook::fboss

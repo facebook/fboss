@@ -561,8 +561,7 @@ class CmisModule : public QsfpModule {
       uint8_t lane,
       bool readFromCache = true);
 
-  bool upgradeFirmwareLockedImpl(
-      std::unique_ptr<FbossFirmware> fbossFw) const override;
+  bool upgradeFirmwareLockedImpl(FbossFirmware* fbossFw) const override;
 
   void readFromCacheOrHw(
       CmisField field,

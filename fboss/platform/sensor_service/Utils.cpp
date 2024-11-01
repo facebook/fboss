@@ -8,6 +8,10 @@
 #include <exprtk.hpp>
 #include <re2/re2.h>
 
+#include "fboss/platform/config_lib/ConfigLib.h"
+#include "fboss/platform/helpers/PlatformNameLib.h"
+#include "fboss/platform/sensor_service/ConfigValidator.h"
+
 namespace facebook::fboss::platform::sensor_service {
 
 namespace {
@@ -103,4 +107,14 @@ std::optional<VersionedPmSensor> Utils::resolveVersionedSensors(
   return resolvedVersionedSensor;
 }
 
+SensorConfig Utils::getConfig() {
+  auto platformName = helpers::PlatformNameLib().getPlatformName();
+  SensorConfig sensorConfig;
+  apache::thrift::SimpleJSONSerializer::deserialize<SensorConfig>(
+      ConfigLib().getSensorServiceConfig(platformName), sensorConfig);
+  if (!ConfigValidator().isValid(sensorConfig)) {
+    throw std::runtime_error("Invalid sensor config");
+  }
+  return sensorConfig;
+}
 } // namespace facebook::fboss::platform::sensor_service

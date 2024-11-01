@@ -34,7 +34,7 @@ TEST_F(HostifManagerTest, createHostifTrap) {
       trapId, SaiHostifTrapTraits::Attributes::TrapType{});
   auto trapPacketActionExpected = saiApiTable->hostifApi().getAttribute(
       trapId, SaiHostifTrapTraits::Attributes::PacketAction{});
-  sai_hostif_trap_type_t hostifTrapId;
+  sai_int32_t hostifTrapId;
   sai_packet_action_t hostifPacketAction;
   std::tie(hostifTrapId, hostifPacketAction) =
       SaiHostifManager::packetReasonToHostifTrap(trapType, saiPlatform.get());
