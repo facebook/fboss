@@ -15,6 +15,19 @@
 
 namespace facebook::fboss {
 
+constexpr auto kLedOff = "0";
+constexpr auto kLedMaxBrightnessPath = "/max_brightness";
+constexpr auto kLedBrightnessPath = "/brightness";
+constexpr auto kLedTriggerPath = "/trigger";
+constexpr auto kLedDelayOnPath = "/delay_on";
+constexpr auto kLedDelayOffPath = "/delay_off";
+constexpr auto kLedTimerTrigger = "timer";
+constexpr auto kLedBlinkOff = "0";
+constexpr auto kLedBlinkSlow = "1000";
+constexpr auto kLedBlinkFast = "500";
+constexpr auto kMinBrightness = 1;
+constexpr auto kMaxBrightness = 255;
+
 class LedIOError : public std::runtime_error {
  public:
   explicit LedIOError(const std::string& what) : runtime_error(what) {}
@@ -46,10 +59,16 @@ class LedIO {
   void setLed(const std::string& ledPath, const std::string& ledOp);
   void setBlink(const std::string& ledPath, led::Blink blink);
 
+  // Max brightness for the LED is determined by /max_brightness
+  // per LED.
+  void initMaxBrightness(const std::string& path, std::string& maxBrightness);
+
   led::LedState currState_;
-  uint32_t id_;
-  std::optional<std::string> bluePath_;
-  std::optional<std::string> yellowPath_;
+  const uint32_t id_;
+  std::string bluePath_;
+  std::string blueMaxBrightness_;
+  std::string yellowPath_;
+  std::string yellowMaxBrightness_;
 };
 
 } // namespace facebook::fboss

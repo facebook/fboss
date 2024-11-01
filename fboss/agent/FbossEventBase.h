@@ -11,16 +11,20 @@
 
 #include <folly/io/async/EventBase.h>
 #include <folly/logging/xlog.h>
+#include <string>
 
 namespace facebook::fboss {
 
 class FbossEventBase : public folly::EventBase {
  public:
+  explicit FbossEventBase(const std::string& name) : eventBaseName_(name) {}
+
   void runInFbossEventBaseThread(Func fn) noexcept {
-    runInEventBaseThread(std::move(fn));
     if (!isRunning()) {
-      XLOG(ERR) << "Cannot enqueue callback to non-running FbossEventBase.";
+      XLOG(ERR) << "runInFbossEventBaseThread to non-running " << eventBaseName_
+                << " FbossEventBase.";
     }
+    runInEventBaseThread(std::move(fn));
   }
 
   template <typename T>
@@ -29,18 +33,24 @@ class FbossEventBase : public folly::EventBase {
   }
 
   void runInFbossEventBaseThreadAndWait(Func fn) noexcept {
-    runInEventBaseThreadAndWait(std::move(fn));
     if (!isRunning()) {
-      XLOG(ERR) << "Cannot enqueue callback to non-running FbossEventBase.";
+      XLOG(ERR) << "runInFbossEventBaseThreadAndWait for non-running "
+                << eventBaseName_ << " FbossEventBase.";
     }
+    runInEventBaseThreadAndWait(std::move(fn));
   }
 
   void runImmediatelyOrRunInFbossEventBaseThreadAndWait(Func fn) noexcept {
-    runImmediatelyOrRunInEventBaseThreadAndWait(std::move(fn));
     if (!isRunning()) {
-      XLOG(ERR) << "Cannot enqueue callback to non-running FbossEventBase.";
+      XLOG(ERR)
+          << "runImmediatelyOrRunInFbossEventBaseThreadAndWait for non-running "
+          << eventBaseName_ << " FbossEventBase.";
     }
+    runImmediatelyOrRunInEventBaseThreadAndWait(std::move(fn));
   }
+
+ private:
+  std::string eventBaseName_;
 };
 
 } // namespace facebook::fboss

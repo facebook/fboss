@@ -27,6 +27,8 @@ class PathHelpers {
 
   static std::vector<ExtendedOperPath> toExtendedOperPath(
       const std::vector<std::vector<std::string>>& paths);
+  static std::map<SubscriptionKey, ExtendedOperPath> toMappedExtendedOperPath(
+      const std::vector<std::vector<std::string>>& paths);
 };
 
 } // namespace facebook::fboss::fsdb

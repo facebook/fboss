@@ -53,6 +53,7 @@ cpp_library(
     link_whole = True,
     exported_deps = [
         ":bcm_test_handler",
+        "//fboss/agent:agent_features",
         "//fboss/agent:fboss-error",
         "//fboss/agent:load_agent_config",
         "//fboss/agent:setup_thrift",
@@ -611,19 +612,24 @@ cpp_library(
         "HwTestMirrorUtilsThriftHandler.cpp",
         "HwTestNeighborUtilsThriftHandler.cpp",
         "HwTestPortUtilsThriftHandler.cpp",
+        "HwTestRouteUtilsThriftHandler.cpp",
         "HwTestThriftHandler.cpp",
         "HwTestVoqSwitchUtilsThriftHandler.cpp",
     ],
     headers = [
     ],
+    undefined_symbols = "True",  # The sai/bcm implementations will define some functions
     exported_deps = [
-        "fbcode//fboss/agent:hw_switch",
-        "fbcode//fboss/agent/hw/bcm:bcm",
-        "fbcode//fboss/agent/hw/bcm:bcmaddress_fb_convertors",
-        "fbcode//fboss/agent/hw/bcm/tests:bcm_ecmp_utils",
-        "fbcode//fboss/agent/hw/switch_asics:switch_asics",
-        "fbcode//fboss/agent/hw/test:hw_test_ecmp_utils",
-        "fbcode//fboss/agent/hw/test:hw_test_thrift_handler_h",
-        "fbcode//fboss/agent/test/utils:acl_test_utils",
+        "//fboss/agent:fboss-types",
+        "//fboss/agent:hw_switch",
+        "//fboss/agent/hw/bcm:bcm",
+        "//fboss/agent/hw/bcm:bcmaddress_fb_convertors",  # @manual
+        "//fboss/agent/hw/switch_asics:switch_asics",
+        "//fboss/agent/hw/test:hw_test_ecmp_utils",
+        "//fboss/agent/hw/test:hw_test_thrift_handler_h",
+        "//fboss/agent/test/utils:acl_test_utils",
+    ],
+    exported_external_deps = [
+        ("broadcom-xgs-robo", None, "xgs_robo"),
     ],
 )

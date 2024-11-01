@@ -229,7 +229,7 @@ int SwAgentInitializer::initAgent(
   swHandler->setIdleTimeout(FLAGS_thrift_idle_timeout);
   auto handlers = getThrifthandlers();
   handlers.push_back(swHandler);
-  eventBase_ = new FbossEventBase();
+  eventBase_ = new FbossEventBase("SwAgentInitializerInitAgentEventBase");
   std::vector<int> ports = {FLAGS_port, FLAGS_migrated_port};
   // serve on hw agent port in mono so that clients can access
   // hw agent apis on mono as well

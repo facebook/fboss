@@ -18,16 +18,9 @@ class AgentEgressForwardingDiscardsCounterTest : public AgentHwTest {
       const AgentEnsemble& ensemble) const override {
     auto cfg = AgentHwTest::initialConfig(ensemble);
     auto firstPortId = ensemble.masterLogicalInterfacePortIds()[0];
-    auto firstPortSwitchId =
-        ensemble.scopeResolver().scope(firstPortId).switchId();
-    auto sysPortRange =
-        cfg.dsfNodes()->find(firstPortSwitchId)->second.systemPortRange();
-    CHECK(sysPortRange.has_value());
-    auto firstPortRifId =
-        *sysPortRange->minimum() + static_cast<int>(firstPortId);
-    for (auto& intf : *cfg.interfaces()) {
-      if (intf.intfID() == firstPortRifId) {
-        intf.mtu() = 1500;
+    for (auto& port : *cfg.ports()) {
+      if (PortID(*port.logicalID()) == firstPortId) {
+        port.maxFrameSize() = 1500;
       }
     }
     return cfg;

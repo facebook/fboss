@@ -18,6 +18,13 @@ std::unique_ptr<facebook::fboss::FbossCtrlAsyncClient> createClient(
 }
 
 template <>
+std::unique_ptr<facebook::fboss::FbossCtrlAsyncClient> createClient(
+    const HostInfo& hostInfo,
+    const std::chrono::milliseconds& timeout) {
+  return utils::createAgentClient(hostInfo, timeout);
+}
+
+template <>
 std::unique_ptr<apache::thrift::Client<FbossCtrl>> createClient(
     const HostInfo& hostInfo,
     int switchIndex) {

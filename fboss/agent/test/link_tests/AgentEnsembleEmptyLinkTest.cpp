@@ -7,7 +7,14 @@
 using namespace ::testing;
 using namespace facebook::fboss;
 
-class AgentEnsembleEmptyLinkTest : public AgentEnsembleLinkTest {};
+class AgentEnsembleEmptyLinkTest : public AgentEnsembleLinkTest {
+  std::vector<link_test_production_features::LinkTestProductionFeature>
+  getProductionFeatures() const override {
+    return {
+        link_test_production_features::LinkTestProductionFeature::L1_LINK_TEST,
+        link_test_production_features::LinkTestProductionFeature::L2_LINK_TEST};
+  }
+};
 
 TEST_F(AgentEnsembleEmptyLinkTest, CheckInit) {
   verifyAcrossWarmBoots(

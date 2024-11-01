@@ -654,8 +654,7 @@ class QsfpModule : public Transceiver {
 
   bool shouldRemediateLocked(time_t pauseRemidiation) override;
 
-  virtual bool upgradeFirmwareLockedImpl(
-      std::unique_ptr<FbossFirmware> /* fbossFw */) const {
+  virtual bool upgradeFirmwareLockedImpl(FbossFirmware* /* fbossFw */) const {
     return false;
   }
 

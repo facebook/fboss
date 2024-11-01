@@ -2,7 +2,8 @@
 
 #include "fboss/fsdb/client/FsdbStreamClient.h"
 #include "common/time/Time.h"
-#include "fboss/fsdb/client/Client.h"
+#include "fboss/lib/thrift_service_client/ConnectionOptions.h"
+#include "fboss/lib/thrift_service_client/ThriftServiceClient.h"
 
 #include <folly/logging/xlog.h>
 #include <chrono>
@@ -81,7 +82,8 @@ FsdbStreamClient::~FsdbStreamClient() {
   CHECK(isCancelled());
 }
 
-void FsdbStreamClient::connectToServer(const ServerOptions& options) {
+void FsdbStreamClient::connectToServer(
+    const utils::ConnectionOptions& options) {
   CHECK(getState() == State::DISCONNECTED);
   streamEvb_->runImmediatelyOrRunInEventBaseThreadAndWait([this, &options]() {
     try {
@@ -124,6 +126,14 @@ folly::coro::Task<void> FsdbStreamClient::serviceLoopWrapper() {
                      << apache::thrift::util::enumNameSafe(ef.get_errorCode())
                      << ": " << ef.get_message();
     setStateDisconnectedWithReason(ef.get_errorCode());
+  } catch (const apache::thrift::transport::TTransportException& et) {
+    FsdbErrorCode disconnectReason = FsdbErrorCode::CLIENT_TRANSPORT_EXCEPTION;
+    if (et.getType() ==
+        apache::thrift::transport::TTransportException::
+            TTransportExceptionType::TIMED_OUT) {
+      disconnectReason = FsdbErrorCode::CLIENT_CHUNK_TIMEOUT;
+    }
+    setStateDisconnectedWithReason(disconnectReason);
   } catch (const std::exception& ex) {
     STREAM_XLOG(ERR) << "Unknown error: " << folly::exceptionStr(ex);
     setStateDisconnectedWithReason(FsdbErrorCode::DISCONNECTED);
@@ -133,47 +143,16 @@ folly::coro::Task<void> FsdbStreamClient::serviceLoopWrapper() {
 }
 #endif
 
-// Set DSCP to 48 (Network Control)
-// 8-bit TOS = 6-bit DSCP followed by 2-bit ECN
-const uint8_t kTosForClassOfServiceNC = 48 << 2;
-
 void FsdbStreamClient::resetClient() {
   CHECK(streamEvb_->getEventBase()->isInEventBaseThread());
   client_.reset();
 }
 
-std::optional<uint8_t> getTosForClientPriority(
-    const std::optional<FsdbStreamClient::Priority> priority) {
-  if (priority.has_value()) {
-    switch (*priority) {
-      case FsdbStreamClient::Priority::CRITICAL:
-        return kTosForClassOfServiceNC;
-      case FsdbStreamClient::Priority::NORMAL:
-        // no TC marking by default
-        return std::nullopt;
-    }
-  }
-  return std::nullopt;
-}
-
-bool shouldUseEncryptedClient(const FsdbStreamClient::ServerOptions& options) {
-  // use encrypted connection for all clients except CRITICAL ones.
-  return (options.priority != FsdbStreamClient::Priority::CRITICAL);
-}
-
-void FsdbStreamClient::createClient(const ServerOptions& options) {
+void FsdbStreamClient::createClient(const utils::ConnectionOptions& options) {
   CHECK(streamEvb_->getEventBase()->isInEventBaseThread());
   resetClient();
 
-  auto tos = getTosForClientPriority(options.priority);
-  bool encryptedClient = shouldUseEncryptedClient(options);
-
-  client_ = Client::getClient(
-      options.dstAddr /* dstAddr */,
-      options.srcAddr /* srcAddr */,
-      tos,
-      !encryptedClient,
-      streamEvb_->getEventBase());
+  client_ = createFsdbClient(options, streamEvb_);
 }
 
 } // namespace facebook::fboss::fsdb

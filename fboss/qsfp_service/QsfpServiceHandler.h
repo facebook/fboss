@@ -185,7 +185,11 @@ class QsfpServiceHandler
   void dumpTransceiverI2cLog(std::unique_ptr<std::string> portName) override;
 
   void getPortsRequiringOpticsFwUpgrade(
-      std::vector<std::string>& ports) override;
+      std::map<std::string, FirmwareUpgradeData>& ports) override;
+
+  void triggerAllOpticsFwUpgrade(
+      std::map<std::string, FirmwareUpgradeData>& ports) override;
+
   /*
    * Get the list of supported PRBS polynomials for the given port and
    * prbs component

@@ -38,10 +38,18 @@ class DsfNode : public ThriftStructNode<DsfNode, cfg::DsfNode> {
   }
   std::set<folly::CIDRNetwork> getLoopbackIpsSorted() const;
   void setLoopbackIps(const std::vector<std::string>& loopbackIps);
-  std::optional<cfg::Range64> getSystemPortRange() const;
+  cfg::SystemPortRanges getSystemPortRanges() const;
   std::optional<folly::MacAddress> getMac() const;
   PlatformType getPlatformType() const;
   std::optional<int> getClusterId() const;
+  std::optional<int> getLocalSystemPortOffset() const;
+  std::optional<int> getGlobalSystemPortOffset() const;
+  std::optional<int> getInbandPortId() const;
+  void setLocalSystemPortOffset(std::optional<int> val);
+  void setGlobalSystemPortOffset(std::optional<int> val);
+  std::optional<int> getFabricLevel() const;
+  bool isLevel2FabricNode() const;
+  bool isInterfaceNode() const;
 
  private:
   // Inherit the constructors required for clone()

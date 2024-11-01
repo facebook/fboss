@@ -231,7 +231,7 @@ class StaticL2ForNeighorObserverTest : public ::testing::Test {
   }
 
   void bringPortDown(PortID portID) {
-    this->sw_->linkStateChanged(portID, false);
+    this->sw_->linkStateChanged(portID, false, cfg::PortType::INTERFACE_PORT);
 
     waitForStateUpdates(this->sw_);
     this->sw_->getNeighborUpdater()->waitForPendingUpdates();

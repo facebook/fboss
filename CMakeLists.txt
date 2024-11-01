@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 3.8)
 
+include(functions.cmake)
+
 option(WITH_ASAN "Turn ON address sanitizer build options" OFF)
 if ($ENV{WITH_ASAN})
   message(STATUS "ENV WITH_ASAN is set")
@@ -68,6 +70,14 @@ option(SAI_BRCM_IMPL "Build SAI api with BRCM-SAI extensions" OFF)
 if ($ENV{SAI_BRCM_IMPL})
   message(STATUS "ENV SAI_BRCM_IMPL is set")
   set (SAI_BRCM_IMPL ON)
+endif()
+
+option(CHENAB_SAI_SDK "Build SAI api with CHENAB-SAI extensions" OFF)
+if ($ENV{CHENAB_SAI_SDK})
+  message(STATUS "ENV CHENAB_SAI_SDK is set")
+  set (CHENAB_SAI_SDK ON)
+  link_directories(/var/FBOSS/sai_impl/lib)
+  link_directories(/var/FBOSS/sdk/usr/lib64)
 endif()
 
 option(BUILD_SAI_FAKE_LINK_TEST "Building of SAI Fake Link Test binaries" OFF)
@@ -183,6 +193,11 @@ include_directories(${SAI_INCLUDE_DIR})
 
 if (SAI_BRCM_IMPL)
   find_path(SAI_EXPERIMENTAL_INCLUDE_DIR NAMES saiswitchextensions.h)
+  include_directories(${SAI_EXPERIMENTAL_INCLUDE_DIR})
+  message(STATUS, "Experimental dir: ${SAI_EXPERIMENTAL_INCLUDE_DIR}")
+elseif(CHENAB_SAI_SDK)
+  # Chenab-TODO: set experimental directories appropriately
+  set(SAI_EXPERIMENTAL_INCLUDE_DIR "/var/FBOSS/sai_impl_output/include")
   include_directories(${SAI_EXPERIMENTAL_INCLUDE_DIR})
   message(STATUS, "Experimental dir: ${SAI_EXPERIMENTAL_INCLUDE_DIR}")
 else()
@@ -526,6 +541,13 @@ add_fbthrift_cpp_library(
     reflection
 )
 add_fbthrift_cpp_library(
+  link_test_production_features_cpp2
+  fboss/agent/test/link_tests/link_test_production_features.thrift
+  OPTIONS
+    json
+    reflection
+)
+add_fbthrift_cpp_library(
   i2c_controller_stats_cpp2
   fboss/lib/i2c/i2c_controller_stats.thrift
 )
@@ -648,6 +670,7 @@ add_fbthrift_cpp_library(
     fboss_cpp2
     switch_state_cpp2
     network_address_cpp2
+    mpls_cpp2
     phy_cpp2
     prbs_cpp2
   OPTIONS

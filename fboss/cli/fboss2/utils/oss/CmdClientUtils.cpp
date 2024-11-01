@@ -31,6 +31,15 @@ std::unique_ptr<apache::thrift::Client<FbossCtrl>> createAgentClient(
       hostInfo, agentPort);
 }
 
+std::unique_ptr<facebook::fboss::FbossCtrlAsyncClient> createAgentClient(
+    const HostInfo& hostInfo,
+    const std::chrono::milliseconds& timeout) {
+  auto port = CmdGlobalOptions::getInstance()->getAgentThriftPort();
+
+  return createPlaintextClient<facebook::fboss::FbossCtrlAsyncClient>(
+      hostInfo, port);
+}
+
 std::unique_ptr<apache::thrift::Client<FbossHwCtrl>> createHwAgentClient(
     const HostInfo& hostInfo,
     int switchIndex) {

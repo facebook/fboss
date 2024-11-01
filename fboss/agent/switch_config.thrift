@@ -540,6 +540,7 @@ struct AclEntry {
 
   30: optional i32 vlanID;
 
+  /* 31-34 not to be used for SAI */
   31: optional list<string> udfGroups;
 
   32: optional byte roceOpcode;
@@ -597,6 +598,7 @@ struct AclTable {
   3: list<AclEntry> aclEntries = [];
   4: list<AclTableActionType> actionTypes = [];
   5: list<AclTableQualifier> qualifiers = [];
+  6: list<string> udfGroups = [];
 }
 
 enum AclStage {
@@ -932,6 +934,7 @@ enum PacketRxReason {
   SAMPLEPACKET = 18, // Sample Packet
   TTL_0 = 19, // Packets with TTL as 0
   EAPOL = 20, // EAPOL for Macsec
+  PORT_MTU_ERROR = 21, // Packet size exceeds port MTU, should not use together with L3_MTU_ERROR
 }
 
 enum PortLoopbackMode {
@@ -1153,6 +1156,7 @@ struct Port {
 
   31: Scope scope = Scope.LOCAL;
   32: optional PortQueueConfigName portVoqConfigName;
+  33: bool conditionalEntropyRehash = false;
 }
 
 enum LacpPortRate {
@@ -1344,6 +1348,7 @@ enum AsicType {
   ASIC_TYPE_JERICHO3 = 14,
   ASIC_TYPE_YUBA = 15,
   ASIC_TYPE_RAMON3 = 16,
+  ASIC_TYPE_CHENAB = 17,
 }
 /**
  * The configuration for an interface
@@ -1613,6 +1618,10 @@ const i16 DEFAULT_FLOWLET_TABLE_SIZE = 4096;
 const i64 DEFAULT_PORT_ID_RANGE_MIN = 0;
 const i64 DEFAULT_PORT_ID_RANGE_MAX = 2047;
 
+struct SystemPortRanges {
+  1: list<Range64> systemPortRanges;
+}
+
 struct SwitchInfo {
   1: SwitchType switchType;
   2: AsicType asicType;
@@ -1622,6 +1631,18 @@ struct SwitchInfo {
   5: optional Range64 systemPortRange;
   6: optional string switchMac;
   7: optional string connectionHandle;
+  8: SystemPortRanges systemPortRanges;
+  // Offset from where to start local system port
+  // ID allocation from
+  9: optional i32 localSystemPortOffset;
+  // Offset from where to start global system port
+  // ID allocation from
+  10: optional i32 globalSystemPortOffset;
+  // Inband port ID - port used by this DSF node
+  // for inband communication. This must be known
+  // as part of config for other nodes to bootstrap
+  // communication to this node
+  11: optional i32 inbandPortId;
 }
 
 /*
@@ -1683,6 +1704,12 @@ struct SwitchSettings {
   // When queue-per-host is enabled, MACs matching any OUI from this list could get any queue.
   17: list<string> metaMacOuis = [];
   18: optional bool needL2EntryForNeighbor;
+  // Once the SRAM free buffers fall below this threshold,
+  // specified as a percent of total SRAM buffers, send XOFF.
+  19: optional byte sramGlobalFreePercentXoffThreshold;
+  // Once the SRAM free buffers goes above this threshold,
+  // specified as a percent of total SRAM buffers, send XON.
+  20: optional byte sramGlobalFreePercentXonThreshold;
 }
 
 // Global buffer pool
@@ -1715,14 +1742,26 @@ struct PortPgConfig {
   6: optional i32 resumeOffsetBytes;
   // global buffer pool as used by this PG
   7: string bufferPoolName;
+  // Shared buffer min/max threshold range at which to trigger PFC
+  8: optional i64 maxSharedXoffThresholdBytes;
+  9: optional i64 minSharedXoffThresholdBytes;
+  // SRAM/OCB buffer min/max threshold range at which to trigger PFC
+  10: optional i64 maxSramXoffThresholdBytes;
+  11: optional i64 minSramXoffThresholdBytes;
+  // Offset from XOFF in SRAM before allowing XON
+  12: optional i64 sramResumeOffsetBytes;
 }
 
-// Sdk version information that will be parsed by the wrapper script
-// -> asicSdk would be the native SDK for a binary
-// -> saiSdk would be the SDK required for a Sai device, if the Native SDK does not provide support
+// asicSdk: Native SDK version. may or may not support SAI
+// saiSdk: Set to SAI SDK version on SAI device if asicSdk does not support SAI
+// firmware: Set to firmware version if a device uses firmware
+//
+// asicSdk and saiSdk are consumed by the wrapper script.
+// firmware version will be consumed by Agent.
 struct SdkVersion {
   1: optional string asicSdk;
   2: optional string saiSdk;
+  3: optional string firmware;
 }
 
 enum IpTunnelMode {
@@ -1779,6 +1818,18 @@ struct DsfNode {
   // Denotes the level for fabric switch in
   // the DSF n/w topology. Value is either 1 or 2
   10: optional i32 fabricLevel;
+  // Offset from where to start local system port
+  // ID allocation from
+  11: optional i32 localSystemPortOffset;
+  // Offset from where to start local system port
+  // ID allocation from
+  12: optional i32 globalSystemPortOffset;
+  13: SystemPortRanges systemPortRanges;
+  // Inband port ID - port used by this DSF node
+  // for inband communication. This must be known
+  // as part of config for other nodes to bootstrap
+  // communication to this node
+  14: optional i32 inbandPortId;
 }
 
 /**

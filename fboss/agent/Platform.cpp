@@ -116,8 +116,13 @@ void Platform::init(
       const auto& dsfNodesConfig = *config_->thrift.sw()->dsfNodes();
       const auto& dsfNodeConfig = dsfNodesConfig.find(*switchId);
       if (dsfNodeConfig != dsfNodesConfig.end() &&
-          dsfNodeConfig->second.systemPortRange().has_value()) {
-        systemPortRange = *dsfNodeConfig->second.systemPortRange();
+          !dsfNodeConfig->second.systemPortRanges()
+               ->systemPortRanges()
+               ->empty()) {
+        // FIXME[2-stage DSF] Pass SystemPortRanges to ASIC
+        systemPortRange = *dsfNodeConfig->second.systemPortRanges()
+                               ->systemPortRanges()
+                               ->begin();
       }
     } else if (switchType == cfg::SwitchType::FABRIC) {
       fabricNodeRole = HwAsic::FabricNodeRole::SINGLE_STAGE_L1;

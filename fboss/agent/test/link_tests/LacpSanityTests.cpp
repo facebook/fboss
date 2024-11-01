@@ -25,6 +25,12 @@ constexpr int kBaseAggId{500};
 } // unnamed namespace
 
 class LacpTest : public LinkTest {
+  std::vector<link_test_production_features::LinkTestProductionFeature>
+  getProductionFeatures() const override {
+    return {
+        link_test_production_features::LinkTestProductionFeature::L2_LINK_TEST};
+  }
+
  private:
   void setCmdLineFlagOverrides() const override {
     FLAGS_enable_lacp = true;

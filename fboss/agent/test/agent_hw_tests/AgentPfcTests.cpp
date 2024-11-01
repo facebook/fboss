@@ -63,7 +63,7 @@ TEST_F(AgentPfcTest, verifyPfcCounters) {
 
   auto setup = [&]() {
     auto cfg = getAgentEnsemble()->getCurrentConfig();
-    utility::setupPfcBuffers(cfg, portIds, losslessPgIds);
+    utility::setupPfcBuffers(getAgentEnsemble(), cfg, portIds, losslessPgIds);
     applyNewConfig(cfg);
 
     for (auto portId : portIds) {
@@ -116,7 +116,7 @@ TEST_F(AgentPfcTest, verifyPfcLoopback) {
 
   auto setup = [&]() {
     auto cfg = getAgentEnsemble()->getCurrentConfig();
-    utility::setupPfcBuffers(cfg, portIds, losslessPgIds);
+    utility::setupPfcBuffers(getAgentEnsemble(), cfg, portIds, losslessPgIds);
     utility::addPuntPfcPacketAcl(
         cfg, utility::getCoppMidPriQueueId(getAgentEnsemble()->getL3Asics()));
     applyNewConfig(cfg);

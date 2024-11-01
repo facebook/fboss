@@ -46,6 +46,13 @@ int UdfGroup::getFieldSizeInBytes() const {
   return get<switch_config_tags::fieldSizeInBytes>()->cref();
 }
 
+void UdfGroup::setUdfGroupType(std::optional<cfg::UdfGroupType> type) {
+  if (type) {
+    set<switch_config_tags::type>(*type);
+  } else {
+    ref<switch_config_tags::type>().reset();
+  }
+}
 void UdfGroup::setUdfBaseHeader(cfg::UdfBaseHeaderType header) {
   set<switch_config_tags::header>(header);
 }

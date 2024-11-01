@@ -222,5 +222,17 @@ SaiObject<SaiAclTableTraits>::follyDynamicToAdapterHostKey(
     folly::dynamic json) {
   return json.asString();
 }
+
+template <>
+folly::dynamic SaiObject<SaiUdfGroupTraits>::adapterHostKeyToFollyDynamic() {
+  return adapterHostKey_;
+}
+
+template <>
+typename SaiUdfGroupTraits::AdapterHostKey
+SaiObject<SaiUdfGroupTraits>::follyDynamicToAdapterHostKey(
+    folly::dynamic json) {
+  return json.asString();
+}
 } // namespace fboss
 } // namespace facebook

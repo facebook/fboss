@@ -1,7 +1,6 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
 #include "fboss/fsdb/client/FsdbPatchPublisher.h"
-#include "fboss/fsdb/client/Client.h"
 
 #include <folly/logging/xlog.h>
 #include <chrono>

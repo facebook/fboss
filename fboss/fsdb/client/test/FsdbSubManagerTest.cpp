@@ -6,6 +6,7 @@
 #include "fboss/fsdb/if/FsdbModel.h"
 #include "fboss/fsdb/tests/utils/FsdbTestServer.h"
 #include "fboss/lib/CommonUtils.h"
+#include "fboss/lib/thrift_service_client/ConnectionOptions.h"
 
 #include <folly/logging/Init.h>
 #include <folly/logging/LogLevel.h>
@@ -19,11 +20,9 @@ namespace facebook::fboss::fsdb::test {
 
 class TestAgentPublisher {
  public:
-  TestAgentPublisher(
-      bool isStats,
-      ReconnectingThriftClient::ServerOptions serverOptions)
+  TestAgentPublisher(bool isStats, utils::ConnectionOptions serverOptions)
       : isStats_(isStats),
-        serverOptions_(std::move(serverOptions)),
+        connectionOptions_(std::move(serverOptions)),
         publisherThread_(std::make_unique<folly::ScopedEventBaseThread>(
             "test-publisher-stream")),
         reconnectThread_(std::make_unique<folly::ScopedEventBaseThread>(
@@ -46,8 +45,7 @@ class TestAgentPublisher {
             b.post();
           }
         }));
-    publisher_->setServerOptions(
-        ReconnectingThriftClient::ServerOptions(serverOptions_));
+    publisher_->setConnectionOptions(connectionOptions_);
     b.wait();
   }
 
@@ -71,7 +69,7 @@ class TestAgentPublisher {
  private:
   bool isStats_;
   std::unique_ptr<FsdbPatchPublisher> publisher_;
-  ReconnectingThriftClient::ServerOptions serverOptions_;
+  utils::ConnectionOptions connectionOptions_;
   std::unique_ptr<folly::ScopedEventBaseThread> publisherThread_;
   std::unique_ptr<folly::ScopedEventBaseThread> reconnectThread_;
 };
@@ -208,9 +206,10 @@ class FsdbSubManagerTest : public ::testing::Test,
   std::unique_ptr<Subscriber> createSubscriber(
       std::string clientId,
       int grHoldTimer = 0) {
-    CHECK(serverOptions_);
+    CHECK(connectionOptions_);
     SubscriptionOptions options(clientId, IsStats, grHoldTimer);
-    return std::make_unique<Subscriber>(std::move(options), *serverOptions_);
+    return std::make_unique<Subscriber>(
+        std::move(options), *connectionOptions_);
   }
 
   template <typename PathT>
@@ -230,10 +229,10 @@ class FsdbSubManagerTest : public ::testing::Test,
 
   void createFsdbServerAndPublisher() {
     fsdbTestServer_ = std::make_unique<FsdbTestServer>();
-    serverOptions_ = ReconnectingThriftClient::ServerOptions(
-        "::1", fsdbTestServer_->getFsdbPort());
+    connectionOptions_ =
+        utils::ConnectionOptions("::1", fsdbTestServer_->getFsdbPort());
     testPublisher_ =
-        std::make_unique<TestAgentPublisher>(IsStats, *serverOptions_);
+        std::make_unique<TestAgentPublisher>(IsStats, *connectionOptions_);
   }
 
   void killFsdb() {
@@ -243,7 +242,7 @@ class FsdbSubManagerTest : public ::testing::Test,
  private:
   std::unique_ptr<FsdbTestServer> fsdbTestServer_;
   std::unique_ptr<TestAgentPublisher> testPublisher_;
-  std::optional<ReconnectingThriftClient::ServerOptions> serverOptions_;
+  std::optional<utils::ConnectionOptions> connectionOptions_;
 };
 
 using SubscriberTypes =

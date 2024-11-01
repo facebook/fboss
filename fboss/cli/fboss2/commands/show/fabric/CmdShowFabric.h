@@ -71,6 +71,7 @@ class CmdShowFabric : public CmdHandler<CmdShowFabric, CmdShowFabricTraits> {
         "Exp Peer Switch (Id)",
         "Peer Port (Id)",
         "Exp Peer Port (Id)",
+        "Match",
     });
 
     for (auto const& entry : model.get_fabricEntries()) {
@@ -90,6 +91,10 @@ class CmdShowFabric : public CmdHandler<CmdShowFabric, CmdShowFabricTraits> {
       udpateNametoIdString(
           expectedRemotePortNameId, *entry.expectedRemotePortId());
 
+      bool match =
+          (remoteSwitchNameId == expectedRemoteSwitchNameId &&
+           remotePortNameId == expectedRemotePortNameId);
+
       table.addRow({
           *entry.localPort(),
           Table::StyledCell(
@@ -101,6 +106,7 @@ class CmdShowFabric : public CmdHandler<CmdShowFabric, CmdShowFabricTraits> {
               remotePortNameId,
               get_NeighborStyle(remotePortNameId, expectedRemotePortNameId)),
           expectedRemotePortNameId,
+          match ? "Yes" : "No",
       });
     }
 

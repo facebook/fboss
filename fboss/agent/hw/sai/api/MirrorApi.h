@@ -170,6 +170,11 @@ struct SaiMirrorTraits<SAI_MIRROR_SESSION_TYPE_SFLOW> {
         EnumType,
         SAI_MIRROR_SESSION_ATTR_SAMPLE_RATE,
         sai_uint32_t>;
+    struct AttributeTcBufferLimit {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    using TcBufferLimit =
+        SaiExtensionAttribute<sai_uint32_t, AttributeTcBufferLimit>;
   };
   using CreateAttributes = std::tuple<
       typename Attributes::Type,
@@ -184,7 +189,8 @@ struct SaiMirrorTraits<SAI_MIRROR_SESSION_TYPE_SFLOW> {
       typename Attributes::IpHeaderVersion,
       std::optional<typename Attributes::Ttl>,
       std::optional<typename Attributes::TruncateSize>,
-      std::optional<Attributes::SampleRate>>;
+      std::optional<Attributes::SampleRate>,
+      std::optional<typename Attributes::TcBufferLimit>>;
   using AdapterHostKey = std::tuple<
       typename Attributes::Type,
       typename Attributes::MonitorPort,
@@ -250,6 +256,7 @@ SAI_ATTRIBUTE_NAME(EnhancedRemoteMirror, IpHeaderVersion)
 SAI_ATTRIBUTE_NAME(EnhancedRemoteMirror, SampleRate)
 SAI_ATTRIBUTE_NAME(SflowMirror, UdpSrcPort)
 SAI_ATTRIBUTE_NAME(SflowMirror, UdpDstPort)
+SAI_ATTRIBUTE_NAME(SflowMirror, TcBufferLimit)
 
 class MirrorApi : public SaiApi<MirrorApi> {
  public:

@@ -51,6 +51,9 @@ void assertMaxBufferPoolSize(const SaiPlatform* platform) {
   if (asic->getAsicVendor() == HwAsic::AsicVendor::ASIC_VENDOR_TAJO) {
     return;
   }
+  if (asic->getAsicVendor() == HwAsic::AsicVendor::ASIC_VENDOR_CHENAB) {
+    return;
+  }
   auto availableBuffer = getSwitchEgressPoolAvailableSize(platform);
   auto maxEgressPoolSize = SaiBufferManager::getMaxEgressPoolBytes(platform);
   switch (asic->getAsicType()) {
@@ -61,6 +64,7 @@ void assertMaxBufferPoolSize(const SaiPlatform* platform) {
     case cfg::AsicType::ASIC_TYPE_SANDIA_PHY:
     case cfg::AsicType::ASIC_TYPE_RAMON:
     case cfg::AsicType::ASIC_TYPE_RAMON3:
+    case cfg::AsicType::ASIC_TYPE_CHENAB:
       XLOG(FATAL) << " Not supported";
       break;
     case cfg::AsicType::ASIC_TYPE_FAKE:
@@ -101,6 +105,8 @@ uint64_t SaiBufferManager::getMaxEgressPoolBytes(const SaiPlatform* platform) {
     case cfg::AsicType::ASIC_TYPE_EBRO:
     case cfg::AsicType::ASIC_TYPE_GARONNE:
     case cfg::AsicType::ASIC_TYPE_YUBA:
+    case cfg::AsicType::ASIC_TYPE_CHENAB:
+      /* TODO(pshaikh): Chenab, define pool size */
       return asic->getMMUSizeBytes();
     case cfg::AsicType::ASIC_TYPE_TOMAHAWK: {
       auto constexpr kNumXpes = 4;
@@ -505,13 +511,27 @@ SaiBufferProfileTraits::CreateAttributes SaiBufferManager::profileCreateAttrs(
   SaiBufferProfileTraits::Attributes::ThresholdMode mode{
       SAI_BUFFER_PROFILE_THRESHOLD_MODE_DYNAMIC};
   SaiBufferProfileTraits::Attributes::SharedDynamicThreshold dynThresh{0};
-  if (platform_->getAsic()->scalingFactorBasedDynamicThresholdSupported() &&
+  SaiBufferProfileTraits::Attributes::SharedStaticThreshold staticThresh{0};
+  if (queue.getSharedBytes()) {
+    // If staticBytes is explicitly set, then apply the queue limit!
+    staticThresh = queue.getSharedBytes().value();
+    mode = SAI_BUFFER_PROFILE_THRESHOLD_MODE_STATIC;
+  } else if (
+      platform_->getAsic()->scalingFactorBasedDynamicThresholdSupported() &&
       queue.getScalingFactor()) {
     dynThresh = platform_->getAsic()->getBufferDynThreshFromScalingFactor(
         queue.getScalingFactor().value());
   }
   std::optional<SaiBufferProfileTraits::Attributes::SharedFadtMaxTh>
       sharedFadtMaxTh;
+  std::optional<SaiBufferProfileTraits::Attributes::SharedFadtMinTh>
+      sharedFadtMinTh{};
+  std::optional<SaiBufferProfileTraits::Attributes::SramFadtMaxTh>
+      sramFadtMaxTh{};
+  std::optional<SaiBufferProfileTraits::Attributes::SramFadtMinTh>
+      sramFadtMinTh{};
+  std::optional<SaiBufferProfileTraits::Attributes::SramFadtXonOffset>
+      sramFadtXonOffset{};
 #if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
   if (queue.getMaxDynamicSharedBytes()) {
     sharedFadtMaxTh = queue.getMaxDynamicSharedBytes().value();
@@ -520,8 +540,32 @@ SaiBufferProfileTraits::CreateAttributes SaiBufferManager::profileCreateAttrs(
     sharedFadtMaxTh = 0;
   }
 #endif
+// TODO: Change to BRCM_SAI_SDK_DNX_GTE_11_0 once support is available in 12.0
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_0) && !defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+  // Unused, set default value as 0
+  sharedFadtMinTh = 0;
+  sramFadtMaxTh = 0;
+  sramFadtMinTh = 0;
+  sramFadtXonOffset = 0;
+#endif
   return SaiBufferProfileTraits::CreateAttributes{
-      pool, reservedBytes, mode, dynThresh, 0, 0, 0, sharedFadtMaxTh};
+      pool,
+      reservedBytes,
+      mode,
+      dynThresh,
+#if not defined(BRCM_SAI_SDK_XGS_AND_DNX)
+      // TODO(nivinl): Get rid of the check once support is
+      // available in SAI 8.2/11.3 - CS00012374846.
+      staticThresh,
+#endif
+      0,
+      0,
+      0,
+      sharedFadtMaxTh,
+      sharedFadtMinTh,
+      sramFadtMaxTh,
+      sramFadtMinTh,
+      sramFadtXonOffset};
 }
 
 void SaiBufferManager::setupBufferPool(
@@ -564,6 +608,7 @@ SaiBufferManager::ingressProfileCreateAttrs(
   SaiBufferProfileTraits::Attributes::ThresholdMode mode{
       SAI_BUFFER_PROFILE_THRESHOLD_MODE_DYNAMIC};
   SaiBufferProfileTraits::Attributes::SharedDynamicThreshold dynThresh{0};
+  SaiBufferProfileTraits::Attributes::SharedStaticThreshold staticThresh{0};
   if (config.scalingFactor() &&
       platform_->getAsic()->scalingFactorBasedDynamicThresholdSupported()) {
     // If scalingFactor is specified, configure the same!
@@ -581,20 +626,42 @@ SaiBufferManager::ingressProfileCreateAttrs(
   }
   std::optional<SaiBufferProfileTraits::Attributes::SharedFadtMaxTh>
       sharedFadtMaxTh;
+  std::optional<SaiBufferProfileTraits::Attributes::SharedFadtMinTh>
+      sharedFadtMinTh;
+  std::optional<SaiBufferProfileTraits::Attributes::SramFadtMaxTh>
+      sramFadtMaxTh;
+  std::optional<SaiBufferProfileTraits::Attributes::SramFadtMinTh>
+      sramFadtMinTh;
+  std::optional<SaiBufferProfileTraits::Attributes::SramFadtXonOffset>
+      sramFadtXonOffset;
 #if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
-  // use default 0 since this attribute currently only used by profile for
-  // cpu/eventor/rcy port queues
-  sharedFadtMaxTh = 0;
+  sharedFadtMaxTh = config.maxSharedXoffThresholdBytes().value_or(0);
+#endif
+// TODO: Change to BRCM_SAI_SDK_DNX_GTE_11_0 once support is available in 12.0
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_0) && !defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+  sharedFadtMinTh = config.minSharedXoffThresholdBytes().value_or(0);
+  sramFadtMaxTh = config.maxSramXoffThresholdBytes().value_or(0);
+  sramFadtMinTh = config.minSramXoffThresholdBytes().value_or(0);
+  sramFadtXonOffset = config.sramResumeOffsetBytes().value_or(0);
 #endif
   return SaiBufferProfileTraits::CreateAttributes{
       pool,
       reservedBytes,
       mode,
       dynThresh,
+#if not defined(BRCM_SAI_SDK_XGS_AND_DNX)
+      // TODO(nivinl): Get rid of the check once support is
+      // available in SAI 8.2/11.3 - CS00012374846.
+      staticThresh,
+#endif
       xoffTh,
       xonTh,
       xonOffsetTh,
-      sharedFadtMaxTh};
+      sharedFadtMaxTh,
+      sharedFadtMinTh,
+      sramFadtMaxTh,
+      sramFadtMinTh,
+      sramFadtXonOffset};
 }
 
 std::shared_ptr<SaiBufferProfile> SaiBufferManager::getOrCreateIngressProfile(

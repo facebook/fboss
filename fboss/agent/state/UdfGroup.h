@@ -33,6 +33,7 @@ class UdfGroup : public ThriftStructNode<UdfGroup, cfg::UdfGroup> {
   int getFieldSizeInBytes() const;
   std::vector<std::string> getUdfPacketMatcherIds() const;
 
+  void setUdfGroupType(std::optional<cfg::UdfGroupType> type);
   void setUdfBaseHeader(cfg::UdfBaseHeaderType header);
   void setStartOffsetInBytes(int offset);
   void setFieldSizeInBytes(int size);
