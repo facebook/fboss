@@ -37,6 +37,7 @@ cpp_library(
         "AgentLoopBackTests.cpp",
         "AgentMacLearningAndNeighborResolutionTests.cpp",
         "AgentMacLearningTests.cpp",
+        "AgentMemoryUsageTests.cpp",
         "AgentMirroringTests.cpp",
         "AgentMmuTuningTests.cpp",
         "AgentNeighborTests.cpp",
@@ -217,6 +218,7 @@ cpp_library(
         "//folly:network_address",
         "//folly/json:dynamic",
         "//folly/logging:logging",
+        "//folly/memory:mallctl_helper",
         "//folly/testing:test_util",
     ],
     exported_external_deps = [
