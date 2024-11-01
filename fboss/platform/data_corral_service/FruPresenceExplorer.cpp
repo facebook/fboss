@@ -8,7 +8,9 @@
 #include <folly/logging/xlog.h>
 
 #include "fboss/lib/CommonFileUtils.h"
+#include "fboss/platform/platform_manager/Utils.h"
 
+using namespace facebook::fboss::platform;
 namespace {
 auto constexpr kFruPresence = "fru_presence_explorer.{}.presence";
 auto constexpr kSystem = "SYSTEM";
@@ -25,13 +27,21 @@ void FruPresenceExplorer::detectFruPresence() {
   XLOG(INFO) << "Detecting presence of FRUs";
   fruTypePresence_.clear();
   for (const auto& fruConfig : fruConfigs_) {
+    bool present = false;
     auto fruType = *fruConfig.fruType();
     try {
-      auto value = std::stoi(
-          readSysfs(*fruConfig.presenceSysfsPath()).c_str(),
-          nullptr,
-          0 /*determine base by format*/);
-      auto present = value > 0 ? true : false;
+      // ConfigValidator guarantees one of these must be present
+      if (fruConfig.presenceDetection()->sysfsFileHandle()) {
+        XLOG(INFO) << "Detecting presence of " << *fruConfig.fruName()
+                   << " (via sysfs)";
+        present = detectFruSysfsPresence(
+            *fruConfig.presenceDetection()->sysfsFileHandle());
+      } else if (fruConfig.presenceDetection()->gpioLineHandle()) {
+        XLOG(INFO) << "Detecting presence of " << *fruConfig.fruName()
+                   << " (via gpio)";
+        present = detectFruGpioPresence(
+            *fruConfig.presenceDetection()->gpioLineHandle());
+      }
       if (fruTypePresence_.find(fruType) == fruTypePresence_.end()) {
         fruTypePresence_[fruType] = present;
       } else {
@@ -60,6 +70,21 @@ void FruPresenceExplorer::detectFruPresence() {
   }
   fb303::fbData->setCounter(fmt::format(kFruPresence, kSystem), allFrusPresent);
   ledManager_->programSystemLed(allFrusPresent);
+}
+
+bool FruPresenceExplorer::detectFruSysfsPresence(
+    const SysfsFileHandle& handle) {
+  auto value = std::stoi(
+      readSysfs(*handle.presenceFilePath()).c_str(),
+      nullptr,
+      0 /*determine base by format*/);
+  return value == *handle.desiredValue();
+}
+
+bool FruPresenceExplorer::detectFruGpioPresence(const GpioLineHandle& handle) {
+  auto value = platform_manager::Utils().getGpioLineValue(
+      handle.charDevPath()->c_str(), *handle.lineIndex());
+  return value == *handle.desiredValue();
 }
 
 bool FruPresenceExplorer::isPresent(const std::string& fruType) const {

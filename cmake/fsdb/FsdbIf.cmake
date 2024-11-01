@@ -67,9 +67,11 @@ add_library(thriftpath_lib
 )
 
 target_link_libraries(thriftpath_lib
+  switch_config_cpp2
   fsdb_oper_cpp2
   FBThrift::thriftcpp2
   Folly::folly
+  ${RE2}
 )
 
 add_library(fsdb_model_thriftpath_cpp2

@@ -43,6 +43,7 @@ target_link_libraries(data_corral_service_lib
   Folly::folly
   fb303::fb303
   FBThrift::thriftcpp2
+  platform_manager_utils
 )
 
 add_executable(data_corral_service

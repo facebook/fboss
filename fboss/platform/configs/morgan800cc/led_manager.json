@@ -17,42 +17,82 @@
     {
       "fruName": "FAN1",
       "fruType": "FAN",
-      "presenceSysfsPath": "/run/devmap/sensors/MCB_FAN_PWM/fan1_presence"
+      "presenceDetection": {
+        "sysfsFileHandle": {
+          "presenceFilePath": "/run/devmap/sensors/MCB_FAN_PWM/fan1_presence",
+          "desiredValue": 1
+        }
+      }
     },
     {
       "fruName": "FAN2",
       "fruType": "FAN",
-      "presenceSysfsPath": "/run/devmap/sensors/MCB_FAN_PWM/fan2_presence"
+      "presenceDetection": {
+        "sysfsFileHandle": {
+          "presenceFilePath": "/run/devmap/sensors/MCB_FAN_PWM/fan2_presence",
+          "desiredValue": 1
+        }
+      }
     },
     {
       "fruName": "FAN3",
       "fruType": "FAN",
-      "presenceSysfsPath": "/run/devmap/sensors/MCB_FAN_PWM/fan3_presence"
+      "presenceDetection": {
+        "sysfsFileHandle": {
+          "presenceFilePath": "/run/devmap/sensors/MCB_FAN_PWM/fan3_presence",
+          "desiredValue": 1
+        }
+      }
     },
     {
       "fruName": "FAN4",
       "fruType": "FAN",
-      "presenceSysfsPath": "/run/devmap/sensors/MCB_FAN_PWM/fan4_presence"
+      "presenceDetection": {
+        "sysfsFileHandle": {
+          "presenceFilePath": "/run/devmap/sensors/MCB_FAN_PWM/fan4_presence",
+          "desiredValue": 1
+        }
+      }
     },
     {
       "fruName": "FAN5",
       "fruType": "FAN",
-      "presenceSysfsPath": "/run/devmap/sensors/MCB_FAN_PWM/fan5_presence"
+      "presenceDetection": {
+        "sysfsFileHandle": {
+          "presenceFilePath": "/run/devmap/sensors/MCB_FAN_PWM/fan5_presence",
+          "desiredValue": 1
+        }
+      }
     },
     {
       "fruName": "FAN6",
       "fruType": "FAN",
-      "presenceSysfsPath": "/run/devmap/sensors/MCB_FAN_PWM/fan6_presence"
+      "presenceDetection": {
+        "sysfsFileHandle": {
+          "presenceFilePath": "/run/devmap/sensors/MCB_FAN_PWM/fan6_presence",
+          "desiredValue": 1
+        }
+      }
     },
     {
       "fruName": "FAN7",
       "fruType": "FAN",
-      "presenceSysfsPath": "/run/devmap/sensors/MCB_FAN_PWM/fan7_presence"
+      "presenceDetection": {
+        "sysfsFileHandle": {
+          "presenceFilePath": "/run/devmap/sensors/MCB_FAN_PWM/fan7_presence",
+          "desiredValue": 1
+        }
+      }
     },
     {
       "fruName": "FAN8",
       "fruType": "FAN",
-      "presenceSysfsPath": "/run/devmap/sensors/MCB_FAN_PWM/fan8_presence"
+      "presenceDetection": {
+        "sysfsFileHandle": {
+          "presenceFilePath": "/run/devmap/sensors/MCB_FAN_PWM/fan8_presence",
+          "desiredValue": 1
+        }
+      }
     }
   ]
 }

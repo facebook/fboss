@@ -287,4 +287,8 @@ std::string AgentDirectoryUtil::getTestHwAgentConfigFile(
   return folly::to<std::string>(
       agentEnsembleConfigDir(), "hw_agent_test_", switchIndex, ".conf");
 }
+
+std::string AgentDirectoryUtil::getAgentBootHistoryLogFile() const {
+  return "/var/facebook/logs/fboss/wedge_agent_boot_history.log";
+}
 } // namespace facebook::fboss

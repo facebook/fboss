@@ -28,7 +28,8 @@ void addAggPort(
     int key,
     const std::vector<int32_t>& ports,
     cfg::SwitchConfig* config,
-    cfg::LacpPortRate rate = cfg::LacpPortRate::FAST);
+    cfg::LacpPortRate rate = cfg::LacpPortRate::FAST,
+    double minLinkPercentage = 1.0);
 std::shared_ptr<SwitchState> enableTrunkPorts(
     std::shared_ptr<SwitchState> curState);
 std::shared_ptr<SwitchState> setTrunkMinLinkCount(

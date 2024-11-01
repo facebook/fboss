@@ -95,7 +95,8 @@ void PlatformProductInfo::initMode() {
       type_ = PlatformType::PLATFORM_GALAXY_FC;
     } else if (
         modelName.find("Montblanc") == 0 || modelName.find("MONTBLANC") == 0 ||
-        modelName.find("MINIPACK3_CHASSIS_BUNDLE") == 0) {
+        modelName.find("MINIPACK3_CHASSIS_BUNDLE") == 0 ||
+        modelName.find("MINIPACK3") == 0) {
       type_ = PlatformType::PLATFORM_MONTBLANC;
     } else if (
         modelName.find("MINIPACK") == 0 || modelName.find("MINIPHOTON") == 0) {
@@ -111,6 +112,10 @@ void PlatformProductInfo::initMode() {
       type_ = PlatformType::PLATFORM_FAKE_WEDGE;
     } else if (modelName.find("CLOUDRIPPER") == 0) {
       type_ = PlatformType::PLATFORM_CLOUDRIPPER;
+    } else if (
+        modelName.find("Yangra") == 0 || modelName.find("yangra") == 0 ||
+        modelName.find("YANGRA") == 0) {
+      type_ = PlatformType::PLATFORM_YANGRA;
     } else if (
         modelName.find("Meru400biu") == 0 ||
         modelName.find("S9710-76D-BB12") == 0) {
@@ -131,6 +136,14 @@ void PlatformProductInfo::initMode() {
         modelName.find("DCS-DL-7700R4C-38PE-DC-F") == 0) {
       type_ = PlatformType::PLATFORM_MERU800BIA;
     } else if (
+        modelName.find("Meru800biab") == 0 ||
+        modelName.find("MERU800BIAB") == 0 ||
+        modelName.find("ASY-92459-109") == 0 ||
+        modelName.find("ASY-08999-09") == 0 ||
+        modelName.find("DCS-DL-7700R4C-38PE-B-AC-F") == 0 ||
+        modelName.find("DCS-DL-7700R4C-38PE-B-DC-F") == 0) {
+      type_ = PlatformType::PLATFORM_MERU800BIAB;
+    } else if (
         modelName.find("Meru800bfa") == 0 ||
         modelName.find("MERU800BFA") == 0 ||
         modelName.find("ASY-57651-102") == 0 ||
@@ -140,6 +153,8 @@ void PlatformProductInfo::initMode() {
         modelName.find("MORGAN800CC") == 0 ||
         modelName.find("8501-SYS-MT") == 0) {
       type_ = PlatformType::PLATFORM_MORGAN800CC;
+    } else if (modelName.find("YANGRA") == 0) {
+      type_ = PlatformType::PLATFORM_YANGRA;
     } else if (modelName.find("FAKE_SAI") == 0) {
       type_ = PlatformType::PLATFORM_FAKE_SAI;
     } else if (
@@ -181,6 +196,8 @@ void PlatformProductInfo::initMode() {
       type_ = PlatformType::PLATFORM_MERU400BIU;
     } else if (FLAGS_mode == "meru800bia") {
       type_ = PlatformType::PLATFORM_MERU800BIA;
+    } else if (FLAGS_mode == "meru800biab") {
+      type_ = PlatformType::PLATFORM_MERU800BIAB;
     } else if (FLAGS_mode == "meru800bfa") {
       type_ = PlatformType::PLATFORM_MERU800BFA;
     } else if (FLAGS_mode == "meru800bfa_p1") {
@@ -209,6 +226,8 @@ void PlatformProductInfo::initMode() {
       type_ = PlatformType::PLATFORM_TAHAN800BC;
     } else if (FLAGS_mode == "morgan800cc") {
       type_ = PlatformType::PLATFORM_MORGAN800CC;
+    } else if (FLAGS_mode == "yangra") {
+      type_ = PlatformType::PLATFORM_YANGRA;
     } else {
       throw std::runtime_error("invalid mode " + FLAGS_mode);
     }

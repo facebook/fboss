@@ -23,6 +23,8 @@ class SensorServiceHwTest : public ::testing::Test {
 
  protected:
   SensorReadResponse getSensors(const std::vector<std::string>& sensors);
+  std::vector<std::string> allSensorNamesFromConfig();
+  std::vector<std::string> someSensorNamesFromConfig();
   std::shared_ptr<SensorServiceImpl> sensorServiceImpl_;
   std::shared_ptr<SensorServiceThriftHandler> sensorServiceHandler_;
   SensorConfig sensorConfig_;

@@ -134,7 +134,9 @@ void DsfSubscriber::stateUpdated(const StateDelta& stateDelta) {
       fsdb::SubscriptionOptions opts{
           folly::sformat("{}_{}:agent", localNodeName_, dstIPAddr.str()),
           false /* subscribeStats */,
-          FLAGS_dsf_gr_hold_time};
+          FLAGS_dsf_gr_hold_time,
+          true /* requireInitialSyncToMarkConnect */,
+          true /* forceSubscribe */};
       auto subscriptionsWlock = subscriptions_.wlock();
       if (subscriptionsWlock->find(remoteEndpoint) !=
           subscriptionsWlock->end()) {

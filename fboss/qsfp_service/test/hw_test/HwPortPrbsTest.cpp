@@ -28,7 +28,10 @@ static const std::unordered_map<
            {7, 9, 10, 11, 13, 15, 20, 23, 31, 49, 58}}}},
         {PlatformType::PLATFORM_YAMP,
          {{{phy::IpModulation::NRZ, {9, 15, 23, 31}},
-           {phy::IpModulation::PAM4, {9, 13, 15, 31}}}}}};
+           {phy::IpModulation::PAM4, {9, 13, 15, 31}}}}},
+        {PlatformType::PLATFORM_FUJI,
+         {{{phy::IpModulation::NRZ, {31}}, {phy::IpModulation::PAM4, {31}}}}},
+};
 }
 
 template <phy::Side Side, phy::IpModulation Modulation>

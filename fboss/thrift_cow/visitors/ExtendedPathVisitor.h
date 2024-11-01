@@ -6,6 +6,7 @@
 
 #include <fboss/thrift_cow/visitors/VisitorUtils.h>
 #include <re2/re2.h>
+#include <thrift/lib/cpp/util/EnumUtils.h>
 #include <thrift/lib/cpp2/Thrift.h>
 #include <thrift/lib/cpp2/TypeClass.h>
 #include <thrift/lib/cpp2/reflection/reflection.h>
@@ -87,7 +88,7 @@ std::optional<std::string> matchingEnumToken(
     const Enum& e,
     const fsdb::OperPathElem& elem) {
   // TODO: should we allow regex/raw matching by int value?
-  auto enumName = fatal::enum_traits<Enum>::to_string(e);
+  auto enumName = apache::thrift::util::enumName(e);
   if (matchesStrToken(enumName, elem)) {
     return enumName;
   }

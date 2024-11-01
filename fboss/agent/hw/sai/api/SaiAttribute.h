@@ -184,6 +184,7 @@ DEFINE_extract(facebook::fboss::AclEntryFieldU32, aclfield);
 DEFINE_extract(facebook::fboss::AclEntryFieldIpV6, aclfield);
 DEFINE_extract(facebook::fboss::AclEntryFieldIpV4, aclfield);
 DEFINE_extract(facebook::fboss::AclEntryFieldMac, aclfield);
+DEFINE_extract(facebook::fboss::AclEntryFieldU8List, aclfield);
 DEFINE_extract(facebook::fboss::AclEntryFieldSaiObjectIdT, aclfield);
 DEFINE_extract(facebook::fboss::AclEntryActionBool, aclaction);
 DEFINE_extract(facebook::fboss::AclEntryActionU8, aclaction);
@@ -401,6 +402,37 @@ inline void _fill(
 
 inline void _fill(
     const sai_acl_field_data_t& src,
+    facebook::fboss::AclEntryFieldU8List& dst) {
+  std::vector<sai_uint8_t> data(src.data.u8list.count);
+  std::vector<sai_uint8_t> mask(src.mask.u8list.count);
+  data.resize(src.data.u8list.count);
+  mask.resize(src.mask.u8list.count);
+  std::copy(
+      src.data.u8list.list,
+      src.data.u8list.list + src.data.u8list.count,
+      std::begin(data));
+  std::copy(
+      src.mask.u8list.list,
+      src.mask.u8list.list + src.mask.u8list.count,
+      std::begin(mask));
+  dst.setDataAndMask(std::make_pair(std::move(data), std::move(mask)));
+}
+
+inline void _fill(
+    const facebook::fboss::AclEntryFieldU8List& src,
+    sai_acl_field_data_t& dst) {
+  dst.enable = true;
+  const auto& dataAndMask = src.getDataAndMask();
+  dst.data.u8list.count = dataAndMask.first.size();
+  dst.mask.u8list.count = dataAndMask.second.size();
+  dst.data.u8list.list = const_cast<sai_uint8_t*>(
+      reinterpret_cast<const sai_uint8_t*>(dataAndMask.first.data()));
+  dst.mask.u8list.list = const_cast<sai_uint8_t*>(
+      reinterpret_cast<const sai_uint8_t*>(dataAndMask.second.data()));
+}
+
+inline void _fill(
+    const sai_acl_field_data_t& src,
     facebook::fboss::AclEntryFieldSaiObjectIdT& dst) {
   /*
    * Mask is not needed for sai_object_id_t Acl Entry field.
@@ -511,6 +543,16 @@ inline void _realloc(
   std::vector<sai_object_id_t> dstData(src.parameter.objlist.count);
   dstData.resize(src.parameter.objlist.count);
   dst.setData(dstData);
+}
+
+inline void _realloc(
+    const sai_acl_field_data_t& src,
+    facebook::fboss::AclEntryFieldU8List& dst) {
+  std::vector<sai_uint8_t> dstData(src.data.u8list.count);
+  std::vector<sai_uint8_t> dstMask(src.mask.u8list.count);
+  dstData.resize(src.data.u8list.count);
+  dstMask.resize(src.mask.u8list.count);
+  dst.setDataAndMask(std::make_pair(std::move(dstData), std::move(dstMask)));
 }
 
 template <typename SaiListT, typename T>

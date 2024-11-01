@@ -17,6 +17,7 @@ struct Interface {
   8: i32 systemPortId;
   9: list<string> ips;
   10: switch_config.PortType portType;
+  11: switch_config.Scope scope;
 }
 
 struct IpPrefix {

@@ -43,6 +43,7 @@
 #include "fboss/agent/hw/sai/tracer/SwitchApiTracer.h"
 #include "fboss/agent/hw/sai/tracer/SystemPortApiTracer.h"
 #include "fboss/agent/hw/sai/tracer/TamApiTracer.h"
+#include "fboss/agent/hw/sai/tracer/TamEventAgingGroupApiTracer.h" // NOLINT(facebook-unused-include-check)
 #include "fboss/agent/hw/sai/tracer/TunnelApiTracer.h"
 #include "fboss/agent/hw/sai/tracer/UdfApiTracer.h"
 #include "fboss/agent/hw/sai/tracer/VirtualRouterApiTracer.h"
@@ -194,6 +195,23 @@ sai_status_t __wrap_sai_api_query(
   if (!FLAGS_enable_replayer) {
     return rv;
   }
+
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_0) && !defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+  if (UNLIKELY(sai_api_id >= SAI_API_MAX)) {
+    switch (static_cast<sai_api_extensions_t>(sai_api_id)) {
+      case SAI_API_TAM_EVENT_AGING_GROUP:
+        SaiTracer::getInstance()->tamEventAgingGroupApi_ =
+            static_cast<sai_tam_event_aging_group_api_t*>(*api_method_table);
+        *api_method_table = facebook::fboss::wrappedTamEventAgingGroupApi();
+        SaiTracer::getInstance()->logApiQuery(
+            sai_api_id, "tam_event_aging_group_api");
+        break;
+      default:
+        break;
+    }
+    return rv;
+  }
+#endif
 
   switch (sai_api_id) {
     case SAI_API_ACL:
@@ -395,6 +413,7 @@ sai_status_t __wrap_sai_api_query(
       // funtion here
       break;
   }
+
   return rv;
 }
 
@@ -465,6 +484,8 @@ sai_status_t __wrap_sai_get_object_key(
 namespace {
 
 folly::Singleton<facebook::fboss::SaiTracer> _saiTracer;
+constexpr std::string_view kGlobalVarStart = "/* Global Variables Start */";
+constexpr std::string_view kGlobalVarEnd = "/* Global Variables End */";
 
 } // namespace
 
@@ -556,7 +577,9 @@ void SaiTracer::logApiQuery(sai_api_t api_id, const std::string& api_var) {
   init_api_.emplace(api_id, api_var);
 
   writeToFile(
-      {to<string>("sai_", api_var, "_t* ", api_var),
+      {to<string>(kGlobalVarStart),
+       to<string>("sai_", api_var, "_t* ", api_var),
+       to<string>(kGlobalVarEnd),
        to<string>(
            "sai_api_query((sai_api_t)", api_id, ",(void**)&", api_var, ")"),
        to<string>(
@@ -1326,6 +1349,19 @@ vector<string> SaiTracer::setAttrList(
         to<string>(sai_attribute, "[", i, "].id=", attr_list[i].id));
   }
 
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_0) && !defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+  if (UNLIKELY(object_type >= SAI_OBJECT_TYPE_MAX)) {
+    switch (static_cast<sai_object_type_extensions_t>(object_type)) {
+      case SAI_OBJECT_TYPE_TAM_EVENT_AGING_GROUP:
+        setTamEventAgingGroupAttributes(attr_list, attr_count, attrLines, rv);
+        break;
+      default:
+        break;
+    }
+    return attrLines;
+  }
+#endif
+
   // Call functions defined in *ApiTracer.h to serialize attributes
   // that are specific to each Sai object type
   switch (object_type) {
@@ -1474,6 +1510,12 @@ vector<string> SaiTracer::setAttrList(
       break;
     case SAI_OBJECT_TYPE_TAM_REPORT:
       setTamReportAttributes(attr_list, attr_count, attrLines, rv);
+      break;
+    case SAI_OBJECT_TYPE_TAM_TRANSPORT:
+      setTamTransportAttributes(attr_list, attr_count, attrLines, rv);
+      break;
+    case SAI_OBJECT_TYPE_TAM_COLLECTOR:
+      setTamCollectorAttributes(attr_list, attr_count, attrLines, rv);
       break;
     case SAI_OBJECT_TYPE_TUNNEL:
       setTunnelAttributes(attr_list, attr_count, attrLines, rv);
@@ -1742,6 +1784,7 @@ void SaiTracer::logPostInvocation(
 void SaiTracer::setupGlobals() {
   // TODO(zecheng): Handle list size that's larger than 512 bytes.
   vector<string> globalVar = {to<string>(
+      to<string>(kGlobalVarStart),
       "sai_attribute_t *s_a=(sai_attribute_t*)malloc(ATTR_SIZE * ",
       FLAGS_default_list_size,
       ")")};
@@ -1776,6 +1819,7 @@ void SaiTracer::setupGlobals() {
       to<string>("sai_stat_id_t counter_list[", FLAGS_default_list_size, "]"));
   globalVar.push_back(
       to<string>("uint64_t counter_vals[", FLAGS_default_list_size, "]"));
+  globalVar.push_back(to<string>(kGlobalVarEnd));
   writeToFile(globalVar);
 
   maxAttrCount_ = FLAGS_default_list_size;
@@ -1836,8 +1880,14 @@ void SaiTracer::initVarCounts() {
   varCounts_.emplace(SAI_OBJECT_TYPE_SCHEDULER_GROUP, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_SWITCH, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_SYSTEM_PORT, 0);
+  varCounts_.emplace(SAI_OBJECT_TYPE_TAM_COLLECTOR, 0);
+  varCounts_.emplace(SAI_OBJECT_TYPE_TAM_TRANSPORT, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_TAM_REPORT, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_TAM_EVENT_ACTION, 0);
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_0) && !defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+  varCounts_.emplace(
+      static_cast<sai_object_type_t>(SAI_OBJECT_TYPE_TAM_EVENT_AGING_GROUP), 0);
+#endif
   varCounts_.emplace(SAI_OBJECT_TYPE_TAM_EVENT, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_TAM, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_TUNNEL, 0);

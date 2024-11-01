@@ -14,5 +14,7 @@ class BroadcomXgsAsic : public BroadcomAsic {
   using BroadcomAsic::BroadcomAsic;
   std::set<cfg::StreamType> getQueueStreamTypes(
       cfg::PortType portType) const override;
+  int getMidPriCpuQueueId() const override;
+  int getHiPriCpuQueueId() const override;
 };
 } // namespace facebook::fboss

@@ -73,6 +73,7 @@ set(SAI_API_SRC
   fboss/agent/hw/sai/api/SystemPortApi.h
   fboss/agent/hw/sai/api/SystemPortApi.cpp
   fboss/agent/hw/sai/api/TamApi.h
+  fboss/agent/hw/sai/api/TamEventAgingGroupApi.h
   fboss/agent/hw/sai/api/Traits.h
   fboss/agent/hw/sai/api/TunnelApi.h
   fboss/agent/hw/sai/api/Types.h
@@ -91,6 +92,7 @@ if (SAI_TAJO_IMPL)
     fboss/agent/hw/sai/api/tajo/DebugCounterApi.cpp
     fboss/agent/hw/sai/api/tajo/BufferApi.cpp
     fboss/agent/hw/sai/api/tajo/QueueApi.cpp
+    fboss/agent/hw/sai/api/tajo/MirrorApi.cpp
   )
 
   find_path(SAI_IMPL_DIR NAMES lib/libsai_impl.a)
@@ -104,11 +106,27 @@ elseif (SAI_BRCM_IMPL)
     fboss/agent/hw/sai/api/bcm/DebugCounterApi.cpp
     fboss/agent/hw/sai/api/bcm/BufferApi.cpp
     fboss/agent/hw/sai/api/bcm/QueueApi.cpp
+    fboss/agent/hw/sai/api/bcm/MirrorApi.cpp
   )
 
   find_path(SAI_IMPL_DIR NAMES lib/libsai_impl.a)
   include_directories(${SAI_IMPL_DIR})
   message(STATUS "Found SAI_INCLUDE_DIR: ${SAI_INCLUDE_DIR}")
+elseif (CHENAB_SAI_SDK)
+  list(APPEND SAI_API_SRC
+    fboss/agent/hw/sai/api/oss/PortApi.cpp
+    fboss/agent/hw/sai/api/oss/TamApi.cpp
+    fboss/agent/hw/sai/api/oss/SwitchApi.cpp
+    fboss/agent/hw/sai/api/oss/DebugCounterApi.cpp
+    fboss/agent/hw/sai/api/oss/BufferApi.cpp
+    fboss/agent/hw/sai/api/oss/QueueApi.cpp
+    fboss/agent/hw/sai/api/oss/MirrorApi.cpp
+  )
+
+  find_path(SAI_IMPL_DIR NAMES lib/libsai_impl.a)
+  include_directories(${SAI_IMPL_DIR})
+  message(STATUS "Found SAI_INCLUDE_DIR: ${SAI_INCLUDE_DIR}")
+
 else()
   list(APPEND SAI_API_SRC
     fboss/agent/hw/sai/api/fake/FakeSaiExtensions.cpp

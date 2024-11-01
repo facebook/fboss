@@ -1,5 +1,7 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
+#include <ranges>
+
 #include <folly/testing/TestUtil.h>
 #include <gtest/gtest.h>
 
@@ -37,16 +39,19 @@ TEST_F(
 TEST_F(
     SensorServiceThriftHandlerTest,
     getSensorValuesByNameWithNonEmptySensorName) {
-  auto sensorNames = std::vector<std::string>{"MOCK_FRU_1_SENSOR_1"};
+  auto mockSensorData = getDefaultMockSensorData();
+  auto mockSensorNamesIt = std::views::keys(mockSensorData).begin();
+
+  auto sensorNames = std::vector<std::string>{*mockSensorNamesIt};
   SensorReadResponse response;
   sensorServiceHandler_->getSensorValuesByNames(
       response, std::make_unique<std::vector<std::string>>(sensorNames));
   EXPECT_EQ(response.sensorData()->size(), sensorNames.size());
   EXPECT_EQ(
-      sensorMockData_.at("MOCK_FRU_1_SENSOR_1"),
+      sensorMockData_.at(*mockSensorNamesIt),
       *response.sensorData()[0].value());
 
-  sensorNames.push_back("MOCK_FRU_1_SENSOR_2");
+  sensorNames.push_back(*(++mockSensorNamesIt));
   sensorServiceHandler_->getSensorValuesByNames(
       response, std::make_unique<std::vector<std::string>>(sensorNames));
   EXPECT_EQ(response.sensorData()->size(), sensorNames.size());

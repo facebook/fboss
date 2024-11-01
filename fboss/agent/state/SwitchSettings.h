@@ -575,6 +575,42 @@ class SwitchSettings
     }
   }
 
+  std::optional<uint8_t> getSramGlobalFreePercentXoffThreshold() const {
+    if (auto sramGlobalFreePercentXoffTh =
+            cref<switch_state_tags::sramGlobalFreePercentXoffThreshold>()) {
+      return sramGlobalFreePercentXoffTh->toThrift();
+    }
+    return std::nullopt;
+  }
+
+  void setSramGlobalFreePercentXoffThreshold(
+      std::optional<uint8_t> sramGlobalFreePercentXoffTh) {
+    if (!sramGlobalFreePercentXoffTh) {
+      ref<switch_state_tags::sramGlobalFreePercentXoffThreshold>().reset();
+    } else {
+      set<switch_state_tags::sramGlobalFreePercentXoffThreshold>(
+          *sramGlobalFreePercentXoffTh);
+    }
+  }
+
+  std::optional<uint8_t> getSramGlobalFreePercentXonThreshold() const {
+    if (auto sramGlobalFreePercentXonTh =
+            cref<switch_state_tags::sramGlobalFreePercentXonThreshold>()) {
+      return sramGlobalFreePercentXonTh->toThrift();
+    }
+    return std::nullopt;
+  }
+
+  void setSramGlobalFreePercentXonThreshold(
+      std::optional<uint8_t> sramGlobalFreePercentXonTh) {
+    if (!sramGlobalFreePercentXonTh) {
+      ref<switch_state_tags::sramGlobalFreePercentXonThreshold>().reset();
+    } else {
+      set<switch_state_tags::sramGlobalFreePercentXonThreshold>(
+          *sramGlobalFreePercentXonTh);
+    }
+  }
+
   SwitchSettings* modify(std::shared_ptr<SwitchState>* state);
 
  private:

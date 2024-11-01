@@ -118,7 +118,7 @@ class DsfSubscriptionTest : public ::testing::Test {
       sysPortRange.minimum() =
           remoteSwitchId / kSwitchIdGap * kSysPortBlockSize;
       sysPortRange.maximum() = *sysPortRange.minimum() + kSysPortBlockSize;
-      dsfNode.systemPortRange() = sysPortRange;
+      dsfNode.systemPortRanges()->systemPortRanges()->push_back(sysPortRange);
       dsfNode.loopbackIps() = {"::1/128", "169.254.0.1/24"};
       config.dsfNodes()->insert(std::make_pair(remoteSwitchId, dsfNode));
     }
@@ -278,7 +278,6 @@ class DsfSubscriptionTest : public ::testing::Test {
   std::unique_ptr<folly::IOThreadPoolExecutor> streamConnectPool_;
   std::unique_ptr<folly::IOThreadPoolExecutor> streamServePool_;
   std::unique_ptr<folly::IOThreadPoolExecutor> hwUpdatePool_;
-  std::optional<ReconnectingThriftClient::ServerOptions> serverOptions_;
   std::unique_ptr<HwTestHandle> handle_;
   std::shared_ptr<DsfSubscription> subscription_;
   SwSwitch* sw_;

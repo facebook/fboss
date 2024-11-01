@@ -60,11 +60,12 @@ fb303
 fbthrift
 rust-shed
 
-[dependencies.test=on]
+[dependencies.all(test=on,not(os=darwin))]
 hexdump
 
 [dependencies.not(os=windows)]
 python
+python-setuptools
 
 # We use the system openssl on linux
 [dependencies.not(os=linux)]

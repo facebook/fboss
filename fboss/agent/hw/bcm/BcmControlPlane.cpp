@@ -74,6 +74,7 @@ bcm_rx_reasons_t configRxReasonToBcmReasons(cfg::PacketRxReason reason) {
       return RxUtils::genReasons(bcmRxReasonNhop);
     case cfg::PacketRxReason::L3_MTU_ERROR:
       return RxUtils::genReasons(bcmRxReasonL3MtuFail);
+    case cfg::PacketRxReason::PORT_MTU_ERROR:
     case cfg::PacketRxReason::NDP:
     case cfg::PacketRxReason::LLDP:
     case cfg::PacketRxReason::ARP_RESPONSE:

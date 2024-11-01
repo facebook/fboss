@@ -11,6 +11,7 @@
 #include <gtest/gtest.h>
 
 #include "fboss/agent/L2Entry.h"
+#include "fboss/agent/ResourceAccountant.h"
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/state/Vlan.h"
@@ -29,6 +30,7 @@ class MacTableManagerTest : public ::testing::Test {
   void SetUp() override {
     handle_ = createTestHandle(testStateA());
     sw_ = handle_->getSw();
+    FLAGS_enable_mac_update_protection = true;
   }
 
   void verifyStateUpdate(Func func) {
@@ -61,6 +63,24 @@ class MacTableManagerTest : public ::testing::Test {
         facebook::fboss::L2EntryUpdateType::L2_ENTRY_UPDATE_TYPE_DELETE, wait);
   }
 
+  void triggerMacBulkLearnedCb(
+      const std::vector<folly::MacAddress>& macs,
+      bool wait = true) {
+    triggerMacBulkCbHelper(
+        macs,
+        facebook::fboss::L2EntryUpdateType::L2_ENTRY_UPDATE_TYPE_ADD,
+        wait);
+  }
+
+  void triggerMacBulkAgedCb(
+      const std::vector<folly::MacAddress>& macs,
+      bool wait = true) {
+    triggerMacBulkCbHelper(
+        macs,
+        facebook::fboss::L2EntryUpdateType::L2_ENTRY_UPDATE_TYPE_DELETE,
+        wait);
+  }
+
   void verifyMacIsAdded() {
     verifyStateUpdate([=]() {
       auto vlan = sw_->getState()->getVlans()->getNode(kVlan());
@@ -70,6 +90,22 @@ class MacTableManagerTest : public ::testing::Test {
       EXPECT_NE(nullptr, node);
       EXPECT_EQ(kMacAddress(), node->getMac());
       EXPECT_EQ(kPortID(), node->getPort().phyPortID());
+    });
+  }
+
+  // verify mac entris in switchState is in sync with resourceAccountant
+  // l2Entries_
+  void verifyMacEntryCount(int l2ResourceAccountantEntries) {
+    verifyStateUpdate([=, this]() {
+      auto vlan = sw_->getState()->getVlans()->getNode(kVlan());
+      auto* macTable = vlan->getMacTable().get();
+      XLOG(DBG2) << "macTable size: " << macTable->size()
+                 << ", l2ResourceAccountantEntries: "
+                 << l2ResourceAccountantEntries
+                 << ", getMacTableUpdateFailure: "
+                 << sw_->stats()->getMacTableUpdateFailure();
+
+      EXPECT_EQ(l2ResourceAccountantEntries, macTable->size());
     });
   }
 
@@ -108,6 +144,24 @@ class MacTableManagerTest : public ::testing::Test {
 
     sw_->l2LearningUpdateReceived(l2Entry, l2EntryUpdateType);
 
+    if (wait) {
+      waitForBackgroundThread(sw_);
+      waitForStateUpdates(sw_);
+    }
+  }
+
+  void triggerMacBulkCbHelper(
+      const std::vector<folly::MacAddress>& macs,
+      L2EntryUpdateType l2EntryUpdateType,
+      bool wait = true) {
+    for (const auto& mac : macs) {
+      auto l2Entry = L2Entry(
+          mac,
+          kVlan(),
+          PortDescriptor(kPortID()),
+          L2Entry::L2EntryType::L2_ENTRY_TYPE_PENDING);
+      sw_->l2LearningUpdateReceived(l2Entry, l2EntryUpdateType);
+    }
     if (wait) {
       waitForBackgroundThread(sw_);
       waitForStateUpdates(sw_);
@@ -166,6 +220,43 @@ TEST_F(MacTableManagerTest, SameMacAgedCbTwice) {
   triggerMacAgedCb();
 
   verifyMacIsDeleted();
+}
+// This test is to verify resourceAccountant is updated correctly
+TEST_F(MacTableManagerTest, MacLearnedBulkCb) {
+  int16_t numMac = 100;
+  int16_t deleted = 0;
+  int16_t batchSize = 10;
+  std::vector<folly::MacAddress> macs;
+  for (int16_t i = 0; i < numMac; i++) {
+    macs.push_back(MacAddress::fromHBO(i));
+  }
+
+  // learn 10 mac entries
+  triggerMacBulkLearnedCb(
+      std::vector<folly::MacAddress>(macs.begin(), macs.begin() + batchSize));
+  // expect 10 mac entries in switchState and resourceAccountant
+  verifyMacEntryCount(getSw()->getResourceAccountant()->l2Entries_);
+
+  // age 10 mac entries
+  triggerMacBulkAgedCb(
+      std::vector<folly::MacAddress>(macs.begin(), macs.begin() + batchSize));
+  deleted = batchSize;
+  // expect 0 mac entries in switchState and resourceAccountant
+  verifyMacEntryCount(getSw()->getResourceAccountant()->l2Entries_);
+
+  // learn 90 mac entries
+  triggerMacBulkLearnedCb(
+      std::vector<folly::MacAddress>(macs.begin() + batchSize, macs.end()));
+  // expect 90 mac entries in switchState and resourceAccountant
+  verifyMacEntryCount(getSw()->getResourceAccountant()->l2Entries_);
+
+  // age 20 mac entries
+  batchSize = 20;
+  triggerMacBulkAgedCb(std::vector<folly::MacAddress>(
+      macs.begin() + deleted, macs.begin() + deleted + batchSize));
+  deleted += batchSize;
+  // expect 70 mac entries in switchState and resourceAccountant
+  verifyMacEntryCount(getSw()->getResourceAccountant()->l2Entries_);
 }
 
 } // namespace facebook::fboss

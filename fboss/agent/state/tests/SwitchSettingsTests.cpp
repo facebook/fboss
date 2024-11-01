@@ -351,7 +351,16 @@ TEST(SwitchSettingsTest, ThrifyMigration) {
 TEST(SwitchSettingsTest, applyVoqSwitch) {
   auto platform = createMockPlatform();
   auto stateV0 = make_shared<SwitchState>();
-  addSwitchInfo(stateV0, cfg::SwitchType::VOQ, kVoqSwitchIdBegin /* switchId*/);
+  addSwitchInfo(
+      stateV0,
+      cfg::SwitchType::VOQ,
+      kVoqSwitchIdBegin /* switchId*/,
+      cfg::AsicType::ASIC_TYPE_MOCK,
+      cfg::switch_config_constants::DEFAULT_PORT_ID_RANGE_MIN(),
+      cfg::switch_config_constants::DEFAULT_PORT_ID_RANGE_MAX(),
+      0,
+      10,
+      54);
 
   // Check default value
   auto switchSettingsV0 = utility::getFirstNodeIf(stateV0->getSwitchSettings());
@@ -413,7 +422,10 @@ TEST(SwitchSettingsTest, applyVoqSwitch) {
   cfg::Range64 sysPortRange;
   sysPortRange.minimum() = 100;
   sysPortRange.maximum() = 200;
-  switchInfo2.systemPortRange() = sysPortRange;
+  switchInfo2.systemPortRanges()->systemPortRanges()->push_back(sysPortRange);
+  switchInfo2.localSystemPortOffset() = *sysPortRange.minimum();
+  switchInfo2.globalSystemPortOffset() = *sysPortRange.minimum();
+  switchInfo2.inbandPortId() = kSingleStageInbandPortId;
   config.switchSettings()->switchIdToSwitchInfo() = {
       std::make_pair(kVoqSwitchIdBegin, switchInfo2)};
   auto stateV2 = publishAndApplyConfig(stateV1, &config, platform.get());

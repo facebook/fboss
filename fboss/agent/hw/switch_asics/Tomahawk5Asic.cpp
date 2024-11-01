@@ -98,6 +98,7 @@ bool Tomahawk5Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::SAI_ECMP_HASH_ALGORITHM:
     case HwAsic::Feature::ACL_BYTE_COUNTER:
     case HwAsic::Feature::SAI_PRBS:
+    case HwAsic::Feature::L3_INTF_MTU:
       return true;
     // features not working well with bcmsim
     case HwAsic::Feature::MIRROR_PACKET_TRUNCATION:
@@ -182,6 +183,8 @@ bool Tomahawk5Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::INGRESS_PRIORITY_GROUP_SHARED_WATERMARK:
     case HwAsic::Feature::MULTIPLE_EGRESS_BUFFER_POOL:
     case HwAsic::Feature::ENABLE_DELAY_DROP_CONGESTION_THRESHOLD:
+    case HwAsic::Feature::PORT_MTU_ERROR_TRAP:
+    case HwAsic::Feature::DEDICATED_CPU_BUFFER_POOL:
       return false;
   }
   return false;

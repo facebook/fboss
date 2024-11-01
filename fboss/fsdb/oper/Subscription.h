@@ -73,6 +73,8 @@ class BaseSubscription {
     return heartbeatInterval_;
   }
 
+  void stop();
+
  protected:
   BaseSubscription(
       SubscriberId subscriber,
@@ -181,8 +183,6 @@ class ExtendedSubscription : public BaseSubscription {
 
 class BasePathSubscription : public Subscription {
  public:
-  virtual ~BasePathSubscription() override = default;
-
   using Subscription::Subscription;
 
   virtual void offer(DeltaValue<OperState> newVal) = 0;
@@ -197,7 +197,9 @@ class PathSubscription : public BasePathSubscription,
  public:
   using value_type = DeltaValue<OperState>;
 
-  virtual ~PathSubscription() override = default;
+  virtual ~PathSubscription() override {
+    stop();
+  }
   using PathIter = std::vector<std::string>::const_iterator;
 
   void offer(DeltaValue<OperState> newVal) override {
@@ -277,8 +279,6 @@ class PathSubscription : public BasePathSubscription,
 
 class BaseDeltaSubscription : public Subscription {
  public:
-  virtual ~BaseDeltaSubscription() override = default;
-
   PubSubType type() const override {
     return PubSubType::DELTA;
   }
@@ -314,6 +314,10 @@ class BaseDeltaSubscription : public Subscription {
 class DeltaSubscription : public BaseDeltaSubscription,
                           private boost::noncopyable {
  public:
+  virtual ~DeltaSubscription() override {
+    stop();
+  }
+
   using PathIter = std::vector<std::string>::const_iterator;
 
   void flush(const SubscriptionMetadataServer& metadataServer) override;
@@ -363,7 +367,9 @@ class ExtendedPathSubscription;
 class FullyResolvedExtendedPathSubscription : public BasePathSubscription,
                                               private boost::noncopyable {
  public:
-  virtual ~FullyResolvedExtendedPathSubscription() override = default;
+  virtual ~FullyResolvedExtendedPathSubscription() override {
+    stop();
+  }
 
   FullyResolvedExtendedPathSubscription(
       const std::vector<std::string>& path,
@@ -390,7 +396,9 @@ class FullyResolvedExtendedPathSubscription : public BasePathSubscription,
 class ExtendedPathSubscription : public ExtendedSubscription,
                                  private boost::noncopyable {
  public:
-  virtual ~ExtendedPathSubscription() override = default;
+  virtual ~ExtendedPathSubscription() override {
+    stop();
+  }
   // we only support encoded extended subscriptions
   using value_type = TaggedOperState;
   using gen_type = std::vector<DeltaValue<value_type>>;
@@ -458,7 +466,9 @@ class ExtendedDeltaSubscription;
 class FullyResolvedExtendedDeltaSubscription : public BaseDeltaSubscription,
                                                private boost::noncopyable {
  public:
-  virtual ~FullyResolvedExtendedDeltaSubscription() override = default;
+  virtual ~FullyResolvedExtendedDeltaSubscription() override {
+    stop();
+  }
 
   FullyResolvedExtendedDeltaSubscription(
       const std::vector<std::string>& path,
@@ -483,7 +493,9 @@ class FullyResolvedExtendedDeltaSubscription : public BaseDeltaSubscription,
 class ExtendedDeltaSubscription : public ExtendedSubscription,
                                   private boost::noncopyable {
  public:
-  virtual ~ExtendedDeltaSubscription() override = default;
+  virtual ~ExtendedDeltaSubscription() override {
+    stop();
+  }
   // we only support encoded extended subscriptions
   using value_type = std::vector<TaggedOperDelta>;
 
@@ -556,7 +568,9 @@ class PatchSubscription : public Subscription, private boost::noncopyable {
       std::vector<std::string> path,
       ExtendedPatchSubscription& subscription);
 
-  virtual ~PatchSubscription() override = default;
+  virtual ~PatchSubscription() override {
+    stop();
+  }
 
   PubSubType type() const override {
     return PubSubType::PATCH;
@@ -585,7 +599,9 @@ class ExtendedPatchSubscription : public ExtendedSubscription,
  public:
   using gen_type = SubscriberMessage;
 
-  virtual ~ExtendedPatchSubscription() override = default;
+  virtual ~ExtendedPatchSubscription() override {
+    stop();
+  }
 
   // Single path
   static std::pair<

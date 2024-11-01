@@ -20,6 +20,7 @@ struct PatchApplier;
 
 struct NodeType;
 struct FieldsType;
+struct HybridNodeType;
 
 namespace pa_detail {
 
@@ -75,7 +76,26 @@ struct PatchApplier<
       Node& node,
       PatchNode&& patch,
       const fsdb::OperProtocol& protocol,
-      PatchTraverser& traverser) {
+      PatchTraverser& traverser)
+    requires(
+        is_cow_type_v<Node> &&
+        std::is_same_v<typename Node::CowType, HybridNodeType>)
+  {
+    auto& underlying = node.ref();
+    return PatchApplier<TC>::apply(
+        underlying, std::move(patch), protocol, traverser);
+  }
+
+  template <typename Node>
+  static PatchApplyResult apply(
+      Node& node,
+      PatchNode&& patch,
+      const fsdb::OperProtocol& protocol,
+      PatchTraverser& traverser)
+    requires(
+        !is_cow_type_v<Node> ||
+        !std::is_same_v<typename Node::CowType, HybridNodeType>)
+  {
     if (patch.getType() == PatchNode::Type::val) {
       return pa_detail::patchNode<TC>(node, patch.move_val(), protocol);
     }
@@ -159,7 +179,26 @@ struct PatchApplier<apache::thrift::type_class::list<ValueTypeClass>> {
       Node& node,
       PatchNode&& patch,
       const fsdb::OperProtocol& protocol,
-      PatchTraverser& traverser) {
+      PatchTraverser& traverser)
+    requires(
+        is_cow_type_v<Node> &&
+        std::is_same_v<typename Node::CowType, HybridNodeType>)
+  {
+    auto& underlying = node.ref();
+    return PatchApplier<TC>::apply(
+        underlying, std::move(patch), protocol, traverser);
+  }
+
+  template <typename Node>
+  static PatchApplyResult apply(
+      Node& node,
+      PatchNode&& patch,
+      const fsdb::OperProtocol& protocol,
+      PatchTraverser& traverser)
+    requires(
+        !is_cow_type_v<Node> ||
+        !std::is_same_v<typename Node::CowType, HybridNodeType>)
+  {
     if (patch.getType() == PatchNode::Type::val) {
       return pa_detail::patchNode<TC>(node, patch.move_val(), protocol);
     }
@@ -248,7 +287,26 @@ struct PatchApplier<apache::thrift::type_class::set<KeyTypeClass>> {
       Node& node,
       PatchNode&& patch,
       const fsdb::OperProtocol& protocol,
-      PatchTraverser& traverser) {
+      PatchTraverser& traverser)
+    requires(
+        is_cow_type_v<Node> &&
+        std::is_same_v<typename Node::CowType, HybridNodeType>)
+  {
+    auto& underlying = node.ref();
+    return PatchApplier<TC>::apply(
+        underlying, std::move(patch), protocol, traverser);
+  }
+
+  template <typename Node>
+  static PatchApplyResult apply(
+      Node& node,
+      PatchNode&& patch,
+      const fsdb::OperProtocol& protocol,
+      PatchTraverser& traverser)
+    requires(
+        !is_cow_type_v<Node> ||
+        !std::is_same_v<typename Node::CowType, HybridNodeType>)
+  {
     if (patch.getType() == PatchNode::Type::val) {
       return pa_detail::patchNode<TC>(node, patch.move_val(), protocol);
     }
@@ -314,7 +372,26 @@ struct PatchApplier<apache::thrift::type_class::variant> {
       Node& node,
       PatchNode&& patch,
       const fsdb::OperProtocol& protocol,
-      PatchTraverser& traverser) {
+      PatchTraverser& traverser)
+    requires(
+        is_cow_type_v<Node> &&
+        std::is_same_v<typename Node::CowType, HybridNodeType>)
+  {
+    auto& underlying = node.ref();
+    return PatchApplier<TC>::apply(
+        underlying, std::move(patch), protocol, traverser);
+  }
+
+  template <typename Node>
+  static PatchApplyResult apply(
+      Node& node,
+      PatchNode&& patch,
+      const fsdb::OperProtocol& protocol,
+      PatchTraverser& traverser)
+    requires(
+        !is_cow_type_v<Node> ||
+        !std::is_same_v<typename Node::CowType, HybridNodeType>)
+  {
     if (patch.getType() == PatchNode::Type::val) {
       return pa_detail::patchNode<TC>(node, patch.move_val(), protocol);
     }
@@ -416,7 +493,26 @@ struct PatchApplier<apache::thrift::type_class::structure> {
       Node& node,
       PatchNode&& patch,
       const fsdb::OperProtocol& protocol,
-      PatchTraverser& traverser) {
+      PatchTraverser& traverser)
+    requires(
+        is_cow_type_v<Node> &&
+        std::is_same_v<typename Node::CowType, HybridNodeType>)
+  {
+    auto& underlying = node.ref();
+    return PatchApplier<TC>::apply(
+        underlying, std::move(patch), protocol, traverser);
+  }
+
+  template <typename Node>
+  static PatchApplyResult apply(
+      Node& node,
+      PatchNode&& patch,
+      const fsdb::OperProtocol& protocol,
+      PatchTraverser& traverser)
+    requires(
+        !is_cow_type_v<Node> ||
+        !std::is_same_v<typename Node::CowType, HybridNodeType>)
+  {
     if (patch.getType() == PatchNode::Type::val) {
       return pa_detail::patchNode<TC>(node, patch.move_val(), protocol);
     }
@@ -459,8 +555,16 @@ struct PatchApplier<apache::thrift::type_class::structure> {
           }
 
           auto& child = node.template modify<name>();
-          result =
-              PatchApplier<tc>::apply(*child, std::move(childPatch), protocol);
+
+          if constexpr (Fields::template HasSkipThriftCow<name>::value) {
+            auto& underlying = child->ref();
+            result = PatchApplier<tc>::apply(
+                underlying, std::move(childPatch), protocol);
+            return;
+          } else {
+            result = PatchApplier<tc>::apply(
+                *child, std::move(childPatch), protocol);
+          }
         });
     return result;
   }

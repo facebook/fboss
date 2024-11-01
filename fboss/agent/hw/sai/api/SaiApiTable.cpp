@@ -197,6 +197,12 @@ const TamApi& SaiApiTable::tamApi() const {
   return getApi<TamApi>();
 }
 
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_0) && !defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+const TamEventAgingGroupApi& SaiApiTable::tamEventAgingGroupApi() const {
+  return getApi<TamEventAgingGroupApi>();
+}
+#endif
+
 const TunnelApi& SaiApiTable::tunnelApi() const {
   return getApi<TunnelApi>();
 }

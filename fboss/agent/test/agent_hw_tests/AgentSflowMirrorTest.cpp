@@ -10,14 +10,19 @@
 #include "fboss/agent/packet/PktFactory.h"
 #include "fboss/agent/packet/PktUtil.h"
 
+#include "fboss/agent/test/AgentEnsemble.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/ResourceLibUtil.h"
 #include "fboss/agent/test/TrunkUtils.h"
 #include "fboss/agent/test/utils/AsicUtils.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
+#include "fboss/agent/test/utils/CoppTestUtils.h"
 #include "fboss/agent/test/utils/MirrorTestUtils.h"
+#include "fboss/agent/test/utils/MultiPortTrafficTestUtils.h"
 #include "fboss/agent/test/utils/OlympicTestUtils.h"
 #include "fboss/agent/test/utils/PacketSnooper.h"
+#include "fboss/agent/test/utils/PfcTestUtils.h"
+#include "fboss/agent/test/utils/QosTestUtils.h"
 #include "fboss/lib/CommonUtils.h"
 
 #include "fboss/agent/SflowShimUtils.h"
@@ -531,6 +536,134 @@ class AgentSflowMirrorOnTrunkTest : public AgentSflowMirrorTruncateTest<AddrT> {
   }
 };
 
+class AgentSflowMirrorWithLineRateTrafficTest
+    : public AgentSflowMirrorTruncateTest<folly::IPAddressV6> {
+ public:
+  static const int kLosslessPriority{2};
+  void testSflowEgressCongestion() {
+    constexpr int kNumDataTrafficPorts{6};
+    auto setup = [=, this]() {
+      auto allPorts = masterLogicalInterfacePortIds();
+      std::vector<PortID> portIds(
+          allPorts.begin(), allPorts.begin() + kNumDataTrafficPorts);
+      std::vector<int> losslessPgIds = {kLosslessPriority};
+      auto config = initialConfig(*getAgentEnsemble());
+      // Configure 1:1 sampling to ensure high rate on mirror egress port
+      configSampling(config, 1);
+      // PFC buffer configurations to ensure we have lossless traffic
+      const std::map<int, int> tcToPgOverride{};
+      const utility::PfcBufferParams bufferParams{
+          .scalingFactor = cfg::MMUScalingFactor::ONE};
+      utility::setupPfcBuffers(
+          getAgentEnsemble(),
+          config,
+          portIds,
+          losslessPgIds,
+          tcToPgOverride,
+          bufferParams);
+      // Make sure that traffic is going to loop for ever!
+      utility::setTTLZeroCpuConfig(getAgentEnsemble()->getL3Asics(), config);
+      applyNewConfig(config);
+      resolveRouteForMirrorDestination();
+      utility::setupEcmpDataplaneLoopOnAllPorts(getAgentEnsemble());
+      utility::createTrafficOnMultiplePorts(
+          getAgentEnsemble(),
+          kNumDataTrafficPorts,
+          sendPacket,
+          50 /*desiredPctLineRate*/);
+    };
+    auto verify = [=, this]() {
+      verifySflowEgressPortNotStuck();
+      if (checkSameAndGetAsic()->isSupported(
+              HwAsic::Feature::EVENTOR_PORT_FOR_SFLOW)) {
+        validateEventorPortQueueLimitRespected();
+      }
+    };
+    verifyAcrossWarmBoots(setup, verify);
+  }
+
+ private:
+  static void sendPacket(
+      facebook::fboss::AgentEnsemble* ensemble,
+      const folly::IPAddressV6& dstIp) {
+    folly::IPAddressV6 kSrcIp("2402::1");
+    const auto dstMac =
+        utility::getFirstInterfaceMac(ensemble->getProgrammedState());
+    const auto srcMac = utility::MacAddressGenerator().get(dstMac.u64NBO() + 1);
+
+    auto txPacket = utility::makeUDPTxPacket(
+        ensemble->getSw(),
+        std::nullopt, // vlanID
+        srcMac,
+        dstMac,
+        kSrcIp,
+        dstIp,
+        8000, // l4 src port
+        8001, // l4 dst port
+        kLosslessPriority * 8 << 2, // dscp for lossless traffic
+        255, // hopLimit
+        std::vector<uint8_t>(4500));
+    // Forward the packet in the pipeline
+    ensemble->getSw()->sendPacketSwitchedAsync(std::move(txPacket));
+  }
+
+  void verifySflowEgressPortNotStuck() {
+    auto portId = getNonSflowSampledInterfacePorts();
+    // Expect atleast 1Gbps of mirror traffic!
+    const uint64_t kDesiredMirroredTrafficRate{1000000000};
+    EXPECT_NO_THROW(getAgentEnsemble()->waitForSpecificRateOnPort(
+        portId, kDesiredMirroredTrafficRate));
+    // Make sure that we can sustain the rate for longer duration
+    constexpr int kNumberOfIterations{6};
+    constexpr int kWaitPeriod{5};
+    auto prevPortStats = getLatestPortStats(portId);
+    for (int iter = 0; iter < kNumberOfIterations; iter++) {
+      sleep(kWaitPeriod);
+      auto curPortStats = getLatestPortStats(portId);
+      auto rate = getAgentEnsemble()->getTrafficRate(
+          prevPortStats, curPortStats, kWaitPeriod);
+      // Ensure that we always see greater than the desired rate
+      EXPECT_GT(rate, kDesiredMirroredTrafficRate);
+      prevPortStats = curPortStats;
+    }
+  }
+
+  void validateEventorPortQueueLimitRespected() {
+    auto config{initialConfig(*getAgentEnsemble())};
+    uint32_t maxExpectedQueueLimitBytes{0};
+    PortID eventorPortId;
+    for (auto& port : *config.ports()) {
+      if (*port.portType() == cfg::PortType::EVENTOR_PORT) {
+        auto voqConfigName = *port.portVoqConfigName();
+        for (auto& voqConfig : config.portQueueConfigs()[voqConfigName]) {
+          // Set the expected queue limit bytes to be 15% higher than
+          // what we are configuring, as queue limit is not always
+          // respected accurately.
+          if (voqConfig.id() == 0) {
+            maxExpectedQueueLimitBytes =
+                *voqConfig.maxDynamicSharedBytes() * 1.15;
+            break;
+          }
+        }
+        eventorPortId = *port.logicalID();
+        break;
+      }
+    }
+    EXPECT_GT(maxExpectedQueueLimitBytes, 0);
+    auto eventorSysPortId = getSystemPortID(
+        eventorPortId,
+        getProgrammedState(),
+        SwitchID(*checkSameAndGetAsic()->getSwitchId()));
+    WITH_RETRIES({
+      auto latestStats = getLatestSysPortStats(eventorSysPortId);
+      auto watermarkBytes = latestStats.queueWatermarkBytes_()->at(0);
+      EXPECT_EVENTUALLY_GT(watermarkBytes, 0);
+      EXPECT_LT(watermarkBytes, maxExpectedQueueLimitBytes);
+      EXPECT_EVENTUALLY_GT(latestStats.queueOutDiscardBytes_()->at(0), 0);
+    });
+  }
+};
+
 using AgentSflowMirrorTestV4 = AgentSflowMirrorTest<folly::IPAddressV4>;
 using AgentSflowMirrorTestV6 = AgentSflowMirrorTest<folly::IPAddressV6>;
 using AgentSflowMirrorTruncateTestV4 =
@@ -577,6 +710,10 @@ SFLOW_SAMPLING_TRUNK_TEST_V4_V6(VerifySampledPacket, {
 SFLOW_SAMPLING_TRUNK_TEST_V4_V6(VerifySampledPacketRate, {
   this->testSampledPacketRate(true);
 })
+
+TEST_F(AgentSflowMirrorWithLineRateTrafficTest, VerifySflowEgressCongestion) {
+  this->testSflowEgressCongestion();
+}
 
 TEST_F(AgentSflowMirrorTestV4, MoveToV6) {
   // Test to migrate v4 mirror to v6

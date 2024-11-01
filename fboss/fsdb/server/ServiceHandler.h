@@ -204,11 +204,14 @@ class ServiceHandler : public FsdbServiceSvIf,
   }
 
  private:
-  void registerSubscription(const OperSubscriberInfo& info);
+  void registerSubscription(
+      const OperSubscriberInfo& info,
+      bool forceSubscribe = false);
   void unregisterSubscription(const OperSubscriberInfo& info);
   void updateSubscriptionCounters(
       const OperSubscriberInfo& info,
-      bool isConnected);
+      bool isConnected,
+      bool uniqueSubForClient);
   void registerPublisher(const OperPublisherInfo& info);
   void unregisterPublisher(
       const OperPublisherInfo& info,

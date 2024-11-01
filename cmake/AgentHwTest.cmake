@@ -212,7 +212,6 @@ set(hw_switch_test_srcs
   fboss/agent/hw/test/HwVlanTests.cpp
   fboss/agent/hw/test/HwVerifyPfcConfigInHwTest.cpp
   fboss/agent/hw/test/HwAclStatTests.cpp
-  fboss/agent/hw/test/HwPortTests.cpp
   fboss/agent/hw/test/HwPortLedTests.cpp
   fboss/agent/hw/test/HwPortProfileTests.cpp
   fboss/agent/hw/test/HwPortStressTests.cpp
@@ -230,7 +229,6 @@ set(hw_switch_test_srcs
   fboss/agent/hw/test/dataplane_tests/HwMPLSTests.cpp
   fboss/agent/hw/test/dataplane_tests/HwLoadBalancerTests.cpp
   fboss/agent/hw/test/dataplane_tests/HwTeFlowTrafficTests.cpp
-  fboss/agent/hw/test/dataplane_tests/HwTrafficPfcTests.cpp
   fboss/agent/hw/test/dataplane_tests/HwProdInvariantHelper.cpp
   fboss/agent/hw/test/dataplane_tests/HwProdInvariantTests.cpp
   fboss/agent/hw/test/dataplane_tests/HwPacketSendTests.cpp
