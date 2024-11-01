@@ -25,7 +25,7 @@ SaiAclTableGroupManager::SaiAclTableGroupManager(
     : saiStore_(saiStore), managerTable_(managerTable), platform_(platform) {}
 
 sai_acl_stage_t SaiAclTableGroupManager::cfgAclStageToSaiAclStage(
-    cfg::AclStage aclStage) const {
+    cfg::AclStage aclStage) {
   switch (aclStage) {
     case cfg::AclStage::INGRESS:
       return SAI_ACL_STAGE_INGRESS;

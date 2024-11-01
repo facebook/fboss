@@ -98,7 +98,7 @@ AclTableSaiId SaiAclTableManager::addAclTable(
     const std::shared_ptr<AclTable>& addedAclTable,
     cfg::AclStage aclStage) {
   auto saiAclStage =
-      managerTable_->aclTableGroupManager().cfgAclStageToSaiAclStage(aclStage);
+      SaiAclTableGroupManager::cfgAclStageToSaiAclStage(aclStage);
 
   /*
    * TODO(skhare)
