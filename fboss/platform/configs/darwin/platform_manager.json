@@ -49,12 +49,6 @@
           "pmUnitScopedName": "CPU_FP_TEMP_LM73"
         },
         {
-          "busName": "ROOK_SMBUS0@1",
-          "address": "0x4e",
-          "kernelDeviceName": "ucd90160",
-          "pmUnitScopedName": "CPU_POS_UCD90160"
-        },
-        {
           "busName": "ROOK_SMBUS0@2",
           "address": "0x21",
           "kernelDeviceName": "pmbus",
@@ -65,6 +59,12 @@
           "address": "0x27",
           "kernelDeviceName": "pmbus",
           "pmUnitScopedName": "CPU_MPS2_PMBUS"
+        },
+        {
+          "busName": "ROOK_SMBUS0@1",
+          "address": "0x4e",
+          "kernelDeviceName": "ucd90160",
+          "pmUnitScopedName": "CPU_POS_UCD90160"
         },
         {
           "busName": "ROOK_SMBUS3@0",
@@ -310,12 +310,12 @@
       ],
       "embeddedSensorConfigs": [
         {
-          "pmUnitScopedName": "CPU_CORE_TEMP",
-          "sysfsPath": "/sys/bus/platform/devices/coretemp.0"
-        },
-        {
           "pmUnitScopedName": "PCH_THERMAL",
           "sysfsPath": "/sys/devices/virtual/thermal/thermal_zone0"
+        },
+        {
+          "pmUnitScopedName": "CPU_CORE_TEMP",
+          "sysfsPath": "/sys/bus/platform/devices/coretemp.0"
         }
       ]
     },
@@ -417,9 +417,9 @@
     "/run/devmap/i2c-busses/SCD_SMBUS1_CH7": "/[SCD_SMBUS1@7]",
     "/run/devmap/sensors/CPU_BOARD_TEMP_MAX6658": "/[CPU_BOARD_TEMP_MAX6658]",
     "/run/devmap/sensors/CPU_FP_TEMP_LM73": "/[CPU_FP_TEMP_LM73]",
-    "/run/devmap/sensors/CPU_POS_UCD90160": "/[CPU_POS_UCD90160]",
     "/run/devmap/sensors/CPU_MPS1_PMBUS": "/[CPU_MPS1_PMBUS]",
     "/run/devmap/sensors/CPU_MPS2_PMBUS": "/[CPU_MPS2_PMBUS]",
+    "/run/devmap/sensors/CPU_POS_UCD90160": "/[CPU_POS_UCD90160]",
     "/run/devmap/cplds/FAN_CPLD": "/[FAN_CPLD]",
     "/run/devmap/sensors/FAN_CPLD": "/[FAN_CPLD]",
     "/run/devmap/cplds/BLACKHAWK_CPLD": "/[BLACKHAWK_CPLD]",
@@ -428,8 +428,8 @@
     "/run/devmap/sensors/SC_TH3_CORE_IR35223": "/[SC_TH3_CORE_IR35223]",
     "/run/devmap/sensors/SC_TH3_ANLG_IR35223": "/[SC_TH3_ANLG_IR35223]",
     "/run/devmap/sensors/SC_QSFPDD_IR35223": "/[SC_QSFPDD_IR35223]",
-    "/run/devmap/sensors/CPU_CORE_TEMP": "/[CPU_CORE_TEMP]",
     "/run/devmap/sensors/PCH_THERMAL": "/[PCH_THERMAL]",
+    "/run/devmap/sensors/CPU_CORE_TEMP": "/[CPU_CORE_TEMP]",
     "/run/devmap/flashes/SCD_SPI_MASTER_DEVICE1": "/[SCD_SPI_MASTER_DEVICE1]",
     "/run/devmap/eeproms/RACKMON_EEPROM": "/RACKMON_SLOT@0/[IDPROM]",
     "/run/devmap/sensors/FS_FAN_SLG4F4527": "/RACKMON_SLOT@0/[FS_FAN_SLG4F4527]",
@@ -440,7 +440,7 @@
     "/run/devmap/sensors/PEM_TEMP_MAX6658": "/PEM_SLOT@0/[PEM_TEMP_MAX6658]"
   },
   "bspKmodsRpmName": "arista_bsp_kmods",
-  "bspKmodsRpmVersion": "0.7.4-1",
+  "bspKmodsRpmVersion": "0.7.5-1",
   "bspKmodsToReload": [
     "scd",
     "scd-leds",
