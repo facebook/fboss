@@ -197,6 +197,8 @@ class HwAsic {
     MULTIPLE_EGRESS_BUFFER_POOL,
     ENABLE_DELAY_DROP_CONGESTION_THRESHOLD,
     PORT_MTU_ERROR_TRAP,
+    L3_INTF_MTU,
+    DEDICATED_CPU_BUFFER_POOL,
   };
 
   enum class AsicMode {
@@ -209,6 +211,7 @@ class HwAsic {
     ASIC_VENDOR_TAJO,
     ASIC_VENDOR_CREDO,
     ASIC_VENDOR_MARVELL,
+    ASIC_VENDOR_CHENAB,
     ASIC_VENDOR_MOCK,
     ASIC_VENDOR_FAKE,
   };
@@ -407,6 +410,9 @@ class HwAsic {
   virtual uint32_t getMaxHashSeedLength() const {
     return 32;
   }
+
+  virtual int getMidPriCpuQueueId() const = 0;
+  virtual int getHiPriCpuQueueId() const = 0;
 
  protected:
   static cfg::Range64 makeRange(int64_t min, int64_t max);

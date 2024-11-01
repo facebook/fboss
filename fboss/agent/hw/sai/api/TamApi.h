@@ -2,6 +2,9 @@
 
 #pragma once
 
+#include <folly/IPAddress.h>
+#include <folly/MacAddress.h>
+
 #include "fboss/agent/hw/sai/api/SaiApi.h"
 #include "fboss/agent/hw/sai/api/SaiAttribute.h"
 #include "fboss/agent/hw/sai/api/SaiAttributeDataTypes.h"
@@ -67,13 +70,26 @@ struct SaiTamTransportTraits {
         SaiAttribute<EnumType, SAI_TAM_TRANSPORT_ATTR_DST_PORT, sai_uint32_t>;
     using Mtu =
         SaiAttribute<EnumType, SAI_TAM_TRANSPORT_ATTR_MTU, sai_uint32_t>;
+    /* extension attributes */
+    struct AttributeSrcMacAddress {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    using SrcMacAddress =
+        SaiExtensionAttribute<folly::MacAddress, AttributeSrcMacAddress>;
+    struct AttributeDstMacAddress {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    using DstMacAddress =
+        SaiExtensionAttribute<folly::MacAddress, AttributeDstMacAddress>;
   };
   using AdapterKey = TamTransportSaiId;
   using AdapterHostKey = std::tuple<
       Attributes::Type,
       Attributes::SrcPort,
       Attributes::DstPort,
-      Attributes::Mtu>;
+      Attributes::Mtu,
+      std::optional<Attributes::SrcMacAddress>,
+      std::optional<Attributes::DstMacAddress>>;
   using CreateAttributes = AdapterHostKey;
 };
 
@@ -81,6 +97,8 @@ SAI_ATTRIBUTE_NAME(TamTransport, Type)
 SAI_ATTRIBUTE_NAME(TamTransport, SrcPort)
 SAI_ATTRIBUTE_NAME(TamTransport, DstPort)
 SAI_ATTRIBUTE_NAME(TamTransport, Mtu)
+SAI_ATTRIBUTE_NAME(TamTransport, SrcMacAddress)
+SAI_ATTRIBUTE_NAME(TamTransport, DstMacAddress)
 
 struct SaiTamReportTraits {
   static constexpr sai_object_type_t ObjectType = SAI_OBJECT_TYPE_TAM_REPORT;
@@ -135,18 +153,43 @@ struct SaiTamEventTraits {
     using SwitchEventType = SaiExtensionAttribute<
         std::vector<sai_int32_t>,
         AttributeSwitchEventType>;
-
+    struct AttributeDeviceId {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    using DeviceId = SaiExtensionAttribute<sai_uint32_t, AttributeDeviceId>;
     struct AttributeEventId {
       std::optional<sai_attr_id_t> operator()();
     };
     using SwitchEventId = SaiExtensionAttribute<sai_uint32_t, AttributeEventId>;
+    struct AttributeExtensionsCollectorList {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    using ExtensionsCollectorList = SaiExtensionAttribute<
+        std::vector<sai_object_id_t>,
+        AttributeExtensionsCollectorList>;
+    struct AttributePacketDropTypeMmu {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    using PacketDropTypeMmu = SaiExtensionAttribute<
+        std::vector<sai_int32_t>,
+        AttributePacketDropTypeMmu>;
+    struct AttributeAgingGroup {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    using AgingGroup =
+        SaiExtensionAttribute<sai_object_id_t, AttributeAgingGroup>;
   };
   using AdapterKey = TamEventSaiId;
   using AdapterHostKey = std::tuple<
       Attributes::Type,
       Attributes::ActionList,
       Attributes::CollectorList,
-      Attributes::SwitchEventType>;
+      std::optional<Attributes::SwitchEventType>,
+      std::optional<Attributes::DeviceId>,
+      std::optional<Attributes::SwitchEventId>,
+      std::optional<Attributes::ExtensionsCollectorList>,
+      std::optional<Attributes::PacketDropTypeMmu>,
+      std::optional<Attributes::AgingGroup>>;
   using CreateAttributes = AdapterHostKey;
 };
 
@@ -154,6 +197,11 @@ SAI_ATTRIBUTE_NAME(TamEvent, Type)
 SAI_ATTRIBUTE_NAME(TamEvent, ActionList)
 SAI_ATTRIBUTE_NAME(TamEvent, CollectorList)
 SAI_ATTRIBUTE_NAME(TamEvent, SwitchEventType)
+SAI_ATTRIBUTE_NAME(TamEvent, DeviceId)
+SAI_ATTRIBUTE_NAME(TamEvent, SwitchEventId)
+SAI_ATTRIBUTE_NAME(TamEvent, ExtensionsCollectorList)
+SAI_ATTRIBUTE_NAME(TamEvent, PacketDropTypeMmu)
+SAI_ATTRIBUTE_NAME(TamEvent, AgingGroup)
 
 struct SaiTamTraits {
   static constexpr sai_object_type_t ObjectType = SAI_OBJECT_TYPE_TAM;
@@ -331,3 +379,25 @@ class TamApi : public SaiApi<TamApi> {
 };
 
 } // namespace facebook::fboss
+
+namespace std {
+
+template <>
+struct hash<facebook::fboss::SaiTamTransportTraits::Attributes::SrcMacAddress> {
+  size_t operator()(
+      const facebook::fboss::SaiTamTransportTraits::Attributes::SrcMacAddress&
+          key) const {
+    return std::hash<folly::MacAddress>()(key.value());
+  }
+};
+
+template <>
+struct hash<facebook::fboss::SaiTamTransportTraits::Attributes::DstMacAddress> {
+  size_t operator()(
+      const facebook::fboss::SaiTamTransportTraits::Attributes::DstMacAddress&
+          key) const {
+    return std::hash<folly::MacAddress>()(key.value());
+  }
+};
+
+} // namespace std

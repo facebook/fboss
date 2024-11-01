@@ -15,31 +15,22 @@ namespace facebook::fboss::utils {
 
 template <typename ClientT>
 std::unique_ptr<apache::thrift::Client<ClientT>> tryCreateEncryptedClient(
-    const folly::SocketAddress& dstAddr,
-    const std::optional<folly::SocketAddress>& srcAddr,
-    folly::EventBase* eb,
-    std::optional<uint8_t> tos) {
-  // default to plaintext in oss
-  return createPlaintextClient<ClientT>(dstAddr, srcAddr, eb);
+    const ConnectionOptions& options,
+    folly::EventBase* eb) {
+  return createPlaintextClient<ClientT>(std::move(options), eb);
 }
 
 template std::unique_ptr<apache::thrift::Client<facebook::fboss::FbossCtrl>>
 tryCreateEncryptedClient(
-    const folly::SocketAddress& dstAddr,
-    const std::optional<folly::SocketAddress>& srcAddr,
-    folly::EventBase* eb,
-    std::optional<uint8_t> tos);
+    const ConnectionOptions& options,
+    folly::EventBase* eb);
 template std::unique_ptr<apache::thrift::Client<facebook::fboss::QsfpService>>
 tryCreateEncryptedClient(
-    const folly::SocketAddress& dstAddr,
-    const std::optional<folly::SocketAddress>& srcAddr,
-    folly::EventBase* eb,
-    std::optional<uint8_t> tos);
+    const ConnectionOptions& options,
+    folly::EventBase* eb);
 template std::unique_ptr<
     apache::thrift::Client<facebook::fboss::fsdb::FsdbService>>
 tryCreateEncryptedClient(
-    const folly::SocketAddress& dstAddr,
-    const std::optional<folly::SocketAddress>& srcAddr,
-    folly::EventBase* eb,
-    std::optional<uint8_t> tos);
+    const ConnectionOptions& options,
+    folly::EventBase* eb);
 } // namespace facebook::fboss::utils

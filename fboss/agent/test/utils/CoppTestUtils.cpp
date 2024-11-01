@@ -115,6 +115,7 @@ uint16_t getCoppHighPriQueueId(const HwAsic* hwAsic) {
     case cfg::AsicType::ASIC_TYPE_YUBA:
     case cfg::AsicType::ASIC_TYPE_JERICHO2:
     case cfg::AsicType::ASIC_TYPE_JERICHO3:
+    case cfg::AsicType::ASIC_TYPE_CHENAB:
       return 7;
     case cfg::AsicType::ASIC_TYPE_ELBERT_8DD:
     case cfg::AsicType::ASIC_TYPE_SANDIA_PHY:
@@ -154,6 +155,7 @@ cfg::ToCpuAction getCpuActionType(const HwAsic* hwAsic) {
       return cfg::ToCpuAction::COPY;
     case cfg::AsicType::ASIC_TYPE_JERICHO2:
     case cfg::AsicType::ASIC_TYPE_JERICHO3:
+    case cfg::AsicType::ASIC_TYPE_CHENAB:
       return cfg::ToCpuAction::TRAP;
     case cfg::AsicType::ASIC_TYPE_ELBERT_8DD:
     case cfg::AsicType::ASIC_TYPE_SANDIA_PHY:
@@ -206,7 +208,8 @@ uint32_t getCoppQueuePps(const HwAsic* hwAsic, uint16_t queueId) {
 
 uint32_t getCoppQueueKbpsFromPps(const HwAsic* hwAsic, uint32_t pps) {
   uint32_t kbps;
-  if (hwAsic->getAsicVendor() == HwAsic::AsicVendor::ASIC_VENDOR_TAJO) {
+  if (hwAsic->getAsicVendor() == HwAsic::AsicVendor::ASIC_VENDOR_TAJO ||
+      hwAsic->getAsicVendor() == HwAsic::AsicVendor::ASIC_VENDOR_CHENAB) {
     kbps = (round(pps / 60) * 60) *
         (kAveragePacketSize + kCpuPacketOverheadBytes) * 8 / 1000;
   } else {
@@ -1082,11 +1085,13 @@ std::vector<cfg::PacketRxReasonToQueue> getCoppRxReasonToQueuesForSai(
         cfg::PacketRxReason::SAMPLEPACKET, kCoppLowPriQueueId));
   }
 
-  // TODO: remove once CS00012311423 is fixed. Gate setting the L3 mtu error
-  // trap on J2/J3 more specifically.
   if (hwAsic->isSupported(HwAsic::Feature::L3_MTU_ERROR_TRAP)) {
     rxReasonToQueues.push_back(ControlPlane::makeRxReasonToQueueEntry(
         cfg::PacketRxReason::L3_MTU_ERROR, kCoppLowPriQueueId));
+  }
+  if (hwAsic->isSupported(HwAsic::Feature::PORT_MTU_ERROR_TRAP)) {
+    rxReasonToQueues.push_back(ControlPlane::makeRxReasonToQueueEntry(
+        cfg::PacketRxReason::PORT_MTU_ERROR, kCoppLowPriQueueId));
   }
 
   return rxReasonToQueues;

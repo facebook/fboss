@@ -78,6 +78,7 @@ class UdfManagerTest : public ManagerTestBase {
     swUdfGroup->setStartOffsetInBytes(kOffset());
     swUdfGroup->setFieldSizeInBytes(kFieldSize());
     swUdfGroup->setUdfPacketMatcherIds(matcherIds);
+    swUdfGroup->setUdfGroupType(cfg::UdfGroupType::HASH);
     return swUdfGroup;
   }
 

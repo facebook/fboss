@@ -72,6 +72,26 @@ SaiSwitchTraits::Attributes::AttributeSdkBootTimeWrapper::operator()() {
   return SAI_SWITCH_ATTR_CUSTOM_RANGE_START + 1;
 }
 
+std::optional<sai_attr_id_t> SaiSwitchTraits::Attributes::
+    AttributeSramFreePercentXoffThWrapper::operator()() {
+// TODO: Change to BRCM_SAI_SDK_DNX_GTE_11_0 once support is available in 12.0
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_0) && !defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+  return SAI_SWITCH_ATTR_SRAM_FREE_PERCENT_XOFF_TH;
+#else
+  return std::nullopt;
+#endif
+}
+
+std::optional<sai_attr_id_t> SaiSwitchTraits::Attributes::
+    AttributeSramFreePercentXonThWrapper::operator()() {
+// TODO: Change to BRCM_SAI_SDK_DNX_GTE_11_0 once support is available in 12.0
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_0) && !defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+  return SAI_SWITCH_ATTR_SRAM_FREE_PERCENT_XON_TH;
+#else
+  return std::nullopt;
+#endif
+}
+
 const std::vector<sai_stat_id_t>& SaiSwitchTraits::dramStats() {
 #if defined(BRCM_SAI_SDK_DNX)
   static const std::vector<sai_stat_id_t> stats{
@@ -152,13 +172,14 @@ void SwitchApi::registerSwitchEventCallback(
 
     // Register switch events
 #if defined BRCM_SAI_SDK_GTE_11_0
-    std::array<uint32_t, 6> events = {
+    std::array<uint32_t, 7> events = {
         SAI_SWITCH_EVENT_TYPE_PARITY_ERROR,
         SAI_SWITCH_EVENT_TYPE_STABLE_FULL,
         SAI_SWITCH_EVENT_TYPE_STABLE_ERROR,
         SAI_SWITCH_EVENT_TYPE_UNCONTROLLED_SHUTDOWN,
         SAI_SWITCH_EVENT_TYPE_WARM_BOOT_DOWNGRADE,
-        SAI_SWITCH_EVENT_TYPE_INTERRUPT};
+        SAI_SWITCH_EVENT_TYPE_INTERRUPT,
+        SAI_SWITCH_EVENT_TYPE_FABRIC_AUTO_ISOLATE};
 #else
     std::array<uint32_t, 5> events = {
         SAI_SWITCH_EVENT_TYPE_PARITY_ERROR,
@@ -303,4 +324,14 @@ std::optional<sai_attr_id_t> SaiSwitchTraits::Attributes::
 #endif
   return std::nullopt;
 }
+
+std::optional<sai_attr_id_t>
+SaiSwitchTraits::Attributes::AttributeNoAclsForTrapsWrapper::operator()() {
+#if defined(BRCM_SAI_SDK_GTE_11_0)
+  return SAI_SWITCH_ATTR_NO_ACLS_FOR_TRAPS;
+#else
+  return std::nullopt;
+#endif
+}
+
 } // namespace facebook::fboss

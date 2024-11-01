@@ -99,3 +99,22 @@ TEST(PathTests, WildcardPaths) {
   EXPECT_THROW(path.tokens(), std::runtime_error);
   EXPECT_THROW(path.idTokens(), std::runtime_error);
 }
+
+TEST(PathTests, ExtendedPathMatching) {
+  using namespace facebook::fboss::fsdb;
+
+  using RootPath =
+      thriftpath::RootThriftPath<facebook::fboss::cfg::AgentConfig>;
+  RootPath root;
+  OperPathElem wildcard;
+  wildcard.set_any(true);
+  auto path = root.sw().ports()[wildcard].logicalID();
+
+  auto idPath = root.sw().ports()[123].logicalID().idTokens();
+  auto namePath = root.sw().ports()[123].logicalID().tokens();
+
+  EXPECT_TRUE(path.matchesPath(namePath));
+  EXPECT_TRUE(path.matchesPath(idPath));
+
+  EXPECT_FALSE(path.matchesPath({"sw", "ports"}));
+}

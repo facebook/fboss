@@ -126,8 +126,7 @@ class AgentWatermarkTest : public AgentHwTest {
     } else {
       auto systemPortId = getSystemPortID(
           portId,
-          utility::getFirstNodeIf(getProgrammedState()->getSwitchSettings())
-              ->getSwitchIdToSwitchInfo(),
+          getProgrammedState(),
           scopeResolver().scope(portId).switchId());
       portName = getProgrammedState()
                      ->getSystemPorts()
@@ -152,10 +151,7 @@ class AgentWatermarkTest : public AgentHwTest {
       bool isVoq) {
     if (isVoq) {
       auto sysPortId = getSystemPortID(
-          portId,
-          utility::getFirstNodeIf(getProgrammedState()->getSwitchSettings())
-              ->getSwitchIdToSwitchInfo(),
-          switchIdForPort(portId));
+          portId, getProgrammedState(), switchIdForPort(portId));
       return *getLatestSysPortStats(sysPortId).queueWatermarkBytes_();
     } else {
       return *getLatestPortStats(portId).queueWatermarkBytes_();

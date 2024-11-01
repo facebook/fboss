@@ -52,6 +52,7 @@ class FakeAsic : public HwAsic {
       case HwAsic::Feature::LINK_INACTIVE_BASED_ISOLATE:
       case HwAsic::Feature::ANY_TRAP_DROP_COUNTER:
       case HwAsic::Feature::LINK_ACTIVE_INACTIVE_NOTIFY:
+      case HwAsic::Feature::PORT_MTU_ERROR_TRAP:
         return false;
 
       default:
@@ -211,6 +212,12 @@ class FakeAsic : public HwAsic {
   }
   uint32_t getNumMemoryBuffers() const override {
     return 0;
+  }
+  int getMidPriCpuQueueId() const override {
+    throw FbossError("Fake ASIC does not support cpu queue");
+  }
+  int getHiPriCpuQueueId() const override {
+    throw FbossError("Fake ASIC does not support cpu queue");
   }
 };
 } // namespace facebook::fboss

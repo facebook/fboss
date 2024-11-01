@@ -95,4 +95,10 @@ uint32_t CredoPhyAsic::getStaticQueueLimitBytes() const {
 uint32_t CredoPhyAsic::getNumMemoryBuffers() const {
   throw FbossError("CredoPhyAsic doesn't support MMU feature");
 }
+int CredoPhyAsic::getMidPriCpuQueueId() const {
+  throw FbossError("Credo ASIC does not support cpu queue");
+}
+int CredoPhyAsic::getHiPriCpuQueueId() const {
+  throw FbossError("Credo ASIC does not support cpu queue");
+}
 }; // namespace facebook::fboss

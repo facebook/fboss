@@ -931,7 +931,7 @@ class BcmSwitch : public BcmSwitchIf {
    * loss in case of back to back port up/down events.
    *
    */
-  void linkStateChanged(PortID port, bool up);
+  void linkStateChanged(PortID port, bool up, cfg::PortType portType);
 
   /*
    * Private callback called by the Broadcom API. Dispatches to

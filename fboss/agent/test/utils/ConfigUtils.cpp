@@ -12,6 +12,7 @@
 #include <memory>
 
 #include "fboss/agent/AgentFeatures.h"
+#include "fboss/agent/Constants.h"
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/test/TestEnsembleIf.h"
@@ -367,8 +368,7 @@ void securePortsInConfig(
 cfg::DsfNode dsfNodeConfig(
     const HwAsic& myAsic,
     int64_t otherSwitchId,
-    std::optional<int> systemPortMin,
-    std::optional<int> systemPortMax,
+    cfg::SystemPortRanges sysPortRanges,
     const std::optional<PlatformType> platformType) {
   auto createAsic = [&](const HwAsic& fromAsic, int64_t switchId)
       -> std::pair<std::shared_ptr<HwAsic>, PlatformType> {
@@ -380,12 +380,16 @@ cfg::DsfNode dsfNodeConfig(
       auto blockSize = (*fromAsicSystemPortRange->maximum() -
                         *fromAsicSystemPortRange->minimum() + 1) /
           numCores;
-      range.minimum() = systemPortMin.has_value()
-          ? kSysPortOffset + systemPortMin.value()
-          : kSysPortOffset + switchId * blockSize;
-      range.maximum() = systemPortMax.has_value()
-          ? kSysPortOffset + systemPortMax.value()
-          : *range.minimum() + numCores * blockSize - 1;
+      if (sysPortRanges.systemPortRanges()->size()) {
+        CHECK_EQ(sysPortRanges.systemPortRanges()->size(), 1)
+            << " Multiple sys port ranges per node are not supported yet in tests (TODO)";
+        auto firstRange = *sysPortRanges.systemPortRanges()->begin();
+        range.minimum() = kSysPortOffset + *firstRange.minimum();
+        range.maximum() = kSysPortOffset + *firstRange.maximum();
+      } else {
+        range.minimum() = kSysPortOffset + switchId * blockSize;
+        range.maximum() = *range.minimum() + numCores * blockSize - 1;
+      }
       systemPortRange = range;
     }
     auto localMac = utility::kLocalCpuMac();
@@ -430,6 +434,15 @@ cfg::DsfNode dsfNodeConfig(
                 std::nullopt,
                 localMac),
             PlatformType::PLATFORM_MERU800BFA);
+      case cfg::AsicType::ASIC_TYPE_CHENAB:
+        return std::pair(
+            std::make_unique<ChenabAsic>(
+                fromAsic.getSwitchType(),
+                switchId,
+                fromAsic.getSwitchIndex(),
+                std::nullopt,
+                localMac),
+            PlatformType::PLATFORM_YANGRA);
       default:
         throw FbossError("Unexpected asic type: ", fromAsic.getAsicTypeStr());
     }
@@ -443,8 +456,13 @@ cfg::DsfNode dsfNodeConfig(
       dsfNode.type() = cfg::DsfNodeType::INTERFACE_NODE;
       CHECK(otherAsic->getSystemPortRange().has_value());
       dsfNode.systemPortRange() = *otherAsic->getSystemPortRange();
+      dsfNode.systemPortRanges()->systemPortRanges()->push_back(
+          dsfNode.systemPortRange().value());
       dsfNode.nodeMac() = kLocalCpuMac().toString();
       dsfNode.loopbackIps() = getLoopbackIps(SwitchID(*dsfNode.switchId()));
+      dsfNode.localSystemPortOffset() = *dsfNode.systemPortRange()->minimum();
+      dsfNode.globalSystemPortOffset() = *dsfNode.systemPortRange()->minimum();
+      dsfNode.inbandPortId() = kSingleStageInbandPortId;
       break;
     case cfg::SwitchType::FABRIC:
       dsfNode.type() = cfg::DsfNodeType::FABRIC_NODE;
@@ -659,14 +677,12 @@ cfg::SwitchConfig multiplePortsPerIntfConfig(
         continue;
       }
       auto mySwitchId = scopeResolver.scope(port).switchId();
-      CHECK(config.dsfNodes()[mySwitchId].systemPortRange().has_value());
-      auto sysportRangeBegin =
-          *config.dsfNodes()[mySwitchId].systemPortRange()->minimum();
-      auto switchInfoItr =
-          config.switchSettings()->switchIdToSwitchInfo()->find(mySwitchId);
-      auto portIdRange = switchInfoItr->second.portIdRange();
-      auto intfId =
-          sysportRangeBegin + *port.logicalID() - *portIdRange->minimum();
+      auto sysPortId = getSystemPortID(
+          PortID(*port.logicalID()),
+          *port.scope(),
+          *config.switchSettings()->switchIdToSwitchInfo(),
+          SwitchID(mySwitchId));
+      auto intfId = static_cast<uint32_t>(sysPortId);
       std::optional<std::vector<std::string>> subnets;
       auto portScope = *platformMapping->getPlatformPort(*port.logicalID())
                             .mapping()
@@ -754,6 +770,15 @@ cfg::SwitchConfig genPortVlanCfg(
     }
     if (asic->getSystemPortRange().has_value()) {
       switchInfo.systemPortRange() = *asic->getSystemPortRange();
+      switchInfo.systemPortRanges()->systemPortRanges()->push_back(
+          *asic->getSystemPortRange());
+      switchInfo.localSystemPortOffset() =
+          *asic->getSystemPortRange()->minimum();
+      switchInfo.globalSystemPortOffset() =
+          *asic->getSystemPortRange()->minimum();
+    }
+    if (switchType == cfg::SwitchType::VOQ) {
+      switchInfo.inbandPortId() = kSingleStageInbandPortId;
     }
     defaultSwitchIdToSwitchInfo.insert({SwitchID(switchId), switchInfo});
     populateSwitchInfo(
@@ -873,11 +898,7 @@ void populateSwitchInfo(
       newDsfNodes.insert(
           {switchId,
            dsfNodeConfig(
-               *hwAsic,
-               switchId,
-               std::nullopt /*systemPortMin*/,
-               std::nullopt /*systemPortMax*/,
-               platformType)});
+               *hwAsic, switchId, cfg::SystemPortRanges(), platformType)});
     }
   }
   config.switchSettings()->switchIdToSwitchInfo() = newSwitchIdToSwitchInfo;
@@ -1012,15 +1033,22 @@ cfg::SwitchConfig twoL3IntfConfig(
       lbModeMap,
       supportsAddRemovePort);
 
-  auto computeIntfId = [&config, &ports, &switchType, &vlans](auto idx) {
+  auto computeIntfId = [&config, &platformMapping, &ports, &switchType, &vlans](
+                           auto idx) {
     if (switchType == cfg::SwitchType::NPU) {
       return static_cast<int64_t>(vlans[idx]);
     }
     auto mySwitchId =
         config.switchSettings()->switchIdToSwitchInfo()->begin()->first;
-    auto sysportRangeBegin =
-        *config.dsfNodes()[mySwitchId].systemPortRange()->minimum();
-    return sysportRangeBegin + static_cast<int>(ports[idx]);
+
+    auto port = ports[idx];
+    auto portScope = *platformMapping->getPlatformPort(port).mapping()->scope();
+    auto sysPortId = getSystemPortID(
+        port,
+        portScope,
+        *config.switchSettings()->switchIdToSwitchInfo(),
+        SwitchID(mySwitchId));
+    return static_cast<int64_t>(sysPortId);
   };
   for (auto i = 0; i < ports.size(); ++i) {
     cfg::Interface intf;
@@ -1325,15 +1353,18 @@ void configurePortProfile(
 
 void setupMultipleEgressPoolAndQueueConfigs(
     cfg::SwitchConfig& config,
-    const std::vector<int>& losslessQueueIds) {
+    const std::vector<int>& losslessQueueIds,
+    const uint64_t mmuSizeBytes) {
   const std::string kLosslessPoolName{"egress_lossless_pool"};
   const std::string kLossyPoolName{"egress_lossy_pool"};
 
-  // Create pool configs for 2 egress buffer pools
+  // Create pool configs for 2 egress buffer pools. The buffer pool
+  // sizing here is very specific to YUBA. A different allocation
+  // might be needed for other ASICs.
   cfg::BufferPoolConfig losslessPoolCfg;
-  losslessPoolCfg.sharedBytes() = 256 * 1024 * 1024;
+  losslessPoolCfg.sharedBytes() = mmuSizeBytes;
   cfg::BufferPoolConfig lossyPoolCfg;
-  lossyPoolCfg.sharedBytes() = 80 * 1024 * 1024;
+  lossyPoolCfg.sharedBytes() = mmuSizeBytes * 0.3; // 30% of MMU!
   std::map<std::string, cfg::BufferPoolConfig> bufferPoolCfgMap =
       config.bufferPoolConfigs().ensure();
   bufferPoolCfgMap.insert(std::make_pair(kLosslessPoolName, losslessPoolCfg));
@@ -1361,6 +1392,37 @@ void setupMultipleEgressPoolAndQueueConfigs(
   for (auto& portCfg : *config.ports()) {
     if (portCfg.portType() == cfg::PortType::INTERFACE_PORT) {
       portCfg.portQueueConfigName() = kPortQueueName;
+    }
+  }
+}
+
+bool isSaiConfig(const cfg::SwitchConfig& config) {
+  return config.sdkVersion().has_value() &&
+      config.sdkVersion()->saiSdk().has_value() &&
+      !config.sdkVersion()->saiSdk()->empty();
+}
+
+void modifyPlatformConfig(
+    cfg::PlatformConfig& config,
+    const std::function<void(std::string&)>& modifyYamlFunc,
+    const std::function<void(std::map<std::string, std::string>&)>&
+        modifyMapFunc) {
+  auto& chip = *config.chip();
+  if (chip.getType() == chip.bcm) {
+    auto& bcm = chip.mutable_bcm();
+    if (!bcm.yamlConfig().value_or("").empty()) {
+      // yamlConfig used for TH4
+      modifyYamlFunc(*bcm.yamlConfig());
+    } else {
+      modifyMapFunc(*bcm.config());
+    }
+  } else if (chip.getType() == chip.asicConfig) {
+    auto& common = *(chip.mutable_asicConfig().common());
+    if (common.getType() == common.yamlConfig) {
+      // yamlConfig used for TH4
+      modifyYamlFunc(common.mutable_yamlConfig());
+    } else if (common.getType() == common.config) {
+      modifyMapFunc(common.mutable_config());
     }
   }
 }

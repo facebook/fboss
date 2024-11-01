@@ -2,6 +2,7 @@
 
 #include "fboss/agent/DsfUpdateValidator.h"
 #include "fboss/agent/DsfStateUpdaterUtil.h"
+#include "fboss/agent/Utils.h"
 #include "fboss/agent/state/DeltaFunctions.h"
 #include "fboss/agent/state/InterfaceMap.h"
 #include "fboss/agent/state/StateDelta.h"
@@ -25,26 +26,13 @@ void DsfUpdateValidator::validate(
           " not found for : ",
           sysPort.getName());
     }
-    auto sysPortRange = dsfNode->getSystemPortRange();
-    if (!sysPortRange.has_value()) {
-      throw FbossError(
-          "No system port range for node ",
-          dsfNode->getName(),
-          " corresponding to ",
-          sysPort.getName());
-    }
-    if (sysPort.getID() < *sysPortRange->minimum() ||
-        sysPort.getID() > *sysPortRange->maximum()) {
+    if (!withinRange(dsfNode->getSystemPortRanges(), sysPort.getID())) {
       throw FbossError(
           "Sys port : ",
           sysPort.getName(),
           " belonging to: ",
           sysPort.getSwitchId(),
-          " out of range: [",
-          *sysPortRange->minimum(),
-          ", ",
-          *sysPortRange->maximum(),
-          "]");
+          " out of range");
     }
   };
   DeltaFunctions::forEachChanged(

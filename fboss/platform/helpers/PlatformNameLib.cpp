@@ -52,6 +52,7 @@ std::string PlatformNameLib::getPlatformNameFromBios(bool writeToCache) const {
       platformUtils_->execCommand(dmidecodeCommand);
   if (exitStatus != 0) {
     XLOG(ERR) << "Failed to get platform name from bios: " << stdout;
+    fb303::fbData->setCounter(kPlatformNameBiosReadFailures, 1);
     throw std::runtime_error("Failed to get platform name from bios");
   }
   standardOut = folly::trimWhitespace(standardOut).str();
@@ -61,6 +62,7 @@ std::string PlatformNameLib::getPlatformNameFromBios(bool writeToCache) const {
   if (writeToCache) {
     platformFsUtils_->writeStringToFile(result, kCachePath, true);
   }
+  fb303::fbData->setCounter(kPlatformNameBiosReadFailures, 0);
   return result;
 }
 
@@ -73,11 +75,8 @@ std::optional<std::string> PlatformNameLib::getPlatformName() const {
     return result;
   }
   try {
-    auto nameFromBios = getPlatformNameFromBios();
-    fb303::fbData->setCounter(kPlatformNameBiosReadFailures, 0);
-    return nameFromBios;
+    return getPlatformNameFromBios();
   } catch (const std::exception& e) {
-    fb303::fbData->setCounter(kPlatformNameBiosReadFailures, 1);
     return std::nullopt;
   }
 }

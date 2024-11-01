@@ -63,7 +63,14 @@ FsdbStateSubscriberImpl<SubUnit, PathElement>::serveStream(StreamT&& stream) {
       BaseT::updateSubscriptionState(SubscriptionState::CONNECTED);
     }
     SubUnitT tmp(*state);
-    this->operSubUnitUpdate_(std::move(tmp));
+    try {
+      this->operSubUnitUpdate_(std::move(tmp));
+    } catch (const std::exception& ex) {
+      FsdbException e;
+      e.message() = folly::exceptionStr(ex);
+      e.errorCode() = FsdbErrorCode::SUBSCRIPTION_DATA_CALLBACK_ERROR;
+      throw e;
+    }
   }
   co_return;
 }

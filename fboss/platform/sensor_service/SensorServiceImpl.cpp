@@ -18,7 +18,7 @@
 #include <thrift/lib/cpp2/protocol/Serializer.h>
 
 #include "fboss/platform/config_lib/ConfigLib.h"
-#include "fboss/platform/helpers/PlatformNameLib.h"
+#include "fboss/platform/sensor_service/ConfigValidator.h"
 #include "fboss/platform/sensor_service/FsdbSyncer.h"
 #include "fboss/platform/sensor_service/SensorServiceImpl.h"
 #include "fboss/platform/sensor_service/Utils.h"
@@ -31,12 +31,8 @@ DEFINE_int32(
 
 namespace facebook::fboss::platform::sensor_service {
 
-SensorServiceImpl::SensorServiceImpl() {
-  auto platformName = helpers::PlatformNameLib().getPlatformName();
-  std::string sensorConfJson = ConfigLib().getSensorServiceConfig(platformName);
-  XLOG(DBG2) << "Read sensor config: " << sensorConfJson;
-  apache::thrift::SimpleJSONSerializer::deserialize<SensorConfig>(
-      sensorConfJson, sensorConfig_);
+SensorServiceImpl::SensorServiceImpl(const SensorConfig& sensorConfig)
+    : sensorConfig_(sensorConfig) {
   fsdbSyncer_ = std::make_unique<FsdbSyncer>();
 }
 

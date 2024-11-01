@@ -36,6 +36,11 @@ Also, now that this is set up with some magic fb internal plugins, there is no n
 
 # Static Docs: Contributing
 
+## Contributing through Code
+All our wiki pages are hosted under ~/fbsource/fbcode/fboss/agent/wiki/static_docs/docs/. 
+* Depending on where you want the wiki to be placed under in the sidebar, choose the appropriate folder
+* Once selected, create a new MDX file under the directory for OSS page or under fb/ for closed source page
+* Once you created the new MDX page, refer to the instructions below to setup your devserver to view the changes
 ## Contributing through the UI
 
 You should be able to contribute directly from this page by clicking **Edit this page** or **Add new page** in the bottom.

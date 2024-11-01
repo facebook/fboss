@@ -14,8 +14,8 @@
 #include <thrift/lib/cpp2/protocol/Serializer.h>
 #include <thrift/lib/cpp2/util/ScopedServerInterfaceThread.h>
 
-#include "fboss/platform/config_lib/ConfigLib.h"
 #include "fboss/platform/helpers/Init.h"
+#include "fboss/platform/sensor_service/Utils.h"
 
 using namespace apache::thrift;
 
@@ -24,12 +24,10 @@ namespace facebook::fboss::platform::sensor_service {
 SensorServiceHwTest::~SensorServiceHwTest() = default;
 
 void SensorServiceHwTest::SetUp() {
-  sensorServiceImpl_ = std::make_shared<SensorServiceImpl>();
+  sensorConfig_ = Utils().getConfig();
+  sensorServiceImpl_ = std::make_shared<SensorServiceImpl>(sensorConfig_);
   sensorServiceHandler_ =
       std::make_shared<SensorServiceThriftHandler>(sensorServiceImpl_);
-  auto sensorServiceConfigJson = ConfigLib().getSensorServiceConfig();
-  apache::thrift::SimpleJSONSerializer::deserialize<SensorConfig>(
-      sensorServiceConfigJson, sensorConfig_);
 }
 
 SensorReadResponse SensorServiceHwTest::getSensors(
@@ -49,21 +47,37 @@ bool sensorReadOk(const std::string& sensorName) {
   return false;
 }
 
-TEST_F(SensorServiceHwTest, GetAllSensors) {
-  auto res = getSensors(std::vector<std::string>{});
-  std::vector<std::string> sensorNames;
+std::vector<std::string> SensorServiceHwTest::allSensorNamesFromConfig() {
+  std::vector<std::string> sensors;
   for (const auto& pmUnitSensors : *sensorConfig_.pmUnitSensorsList()) {
-    for (const auto& sensor : *pmUnitSensors.sensors()) {
-      sensorNames.push_back(*sensor.name());
+    for (const auto& sensor :
+         sensorServiceImpl_->resolveSensors(pmUnitSensors)) {
+      sensors.push_back(*sensor.name());
     }
   }
-  EXPECT_EQ(sensorNames.size(), res.sensorData()->size());
-  for (const auto& sensorName : sensorNames) {
+  return sensors;
+}
+
+std::vector<std::string> SensorServiceHwTest::someSensorNamesFromConfig() {
+  std::vector<std::string> sensors;
+  for (const auto& pmUnitSensors : *sensorConfig_.pmUnitSensorsList()) {
+    auto resolvedSensors = sensorServiceImpl_->resolveSensors(pmUnitSensors);
+    sensors.push_back(
+        *resolvedSensors[folly::Random::rand32(resolvedSensors.size())].name());
+  }
+  return sensors;
+}
+
+TEST_F(SensorServiceHwTest, GetAllSensors) {
+  auto res = getSensors(std::vector<std::string>{});
+  std::vector<std::string> allSensorNames = allSensorNamesFromConfig();
+  EXPECT_EQ(allSensorNames.size(), res.sensorData()->size());
+  for (const auto& sensorName : allSensorNames) {
     auto it = std::find_if(
         res.sensorData()->begin(),
         res.sensorData()->end(),
-        [sensorNameCopy = sensorName](auto sensorData) {
-          return *sensorData.name() == sensorNameCopy;
+        [&](const auto& sensorData) {
+          return *sensorData.name() == sensorName;
         });
     EXPECT_NE(it, std::end(*res.sensorData()));
     // only non-failed sensors will have value
@@ -78,15 +92,9 @@ TEST_F(SensorServiceHwTest, GetBogusSensor) {
 }
 
 TEST_F(SensorServiceHwTest, GetSomeSensors) {
-  std::vector<std::string> sensorNames;
-  for (const auto& pmUnitSensors : *sensorConfig_.pmUnitSensorsList()) {
-    if (pmUnitSensors.sensors()->size() > 0) {
-      sensorNames.push_back(*pmUnitSensors.sensors()->front().name());
-    }
-  }
-
-  auto response1 = getSensors(sensorNames);
-  EXPECT_EQ(response1.sensorData()->size(), sensorNames.size());
+  std::vector<std::string> someSensorNames = someSensorNamesFromConfig();
+  auto response1 = getSensors(someSensorNames);
+  EXPECT_EQ(response1.sensorData()->size(), someSensorNames.size());
   for (const auto& sensorData : *response1.sensorData()) {
     if (sensorReadOk(*sensorData.name())) {
       EXPECT_TRUE(sensorData.value().has_value());
@@ -96,8 +104,8 @@ TEST_F(SensorServiceHwTest, GetSomeSensors) {
   // Burn a second
   std::this_thread::sleep_for(std::chrono::seconds(1));
 
-  auto response2 = getSensors(sensorNames);
-  EXPECT_EQ(response2.sensorData()->size(), sensorNames.size());
+  auto response2 = getSensors(someSensorNames);
+  EXPECT_EQ(response2.sensorData()->size(), someSensorNames.size());
   for (const auto& sensorData : *response2.sensorData()) {
     if (sensorReadOk(*sensorData.name())) {
       EXPECT_TRUE(sensorData.value().has_value());
@@ -129,19 +137,14 @@ TEST_F(SensorServiceHwTest, GetSomeSensors) {
 }
 
 TEST_F(SensorServiceHwTest, GetSomeSensorsViaThrift) {
-  std::vector<std::string> sensorNames;
-  for (const auto& pmUnitSensors : *sensorConfig_.pmUnitSensorsList()) {
-    if (pmUnitSensors.sensors()->size() > 0) {
-      sensorNames.push_back(*pmUnitSensors.sensors()->front().name());
-    }
-  }
+  std::vector<std::string> someSensorNames = someSensorNamesFromConfig();
   // Trigger a fetch before the thrift request hits the server.
   sensorServiceImpl_->fetchSensorData();
   apache::thrift::ScopedServerInterfaceThread server(sensorServiceHandler_);
   auto client = server.newClient<apache::thrift::Client<SensorServiceThrift>>();
   SensorReadResponse response;
-  client->sync_getSensorValuesByNames(response, sensorNames);
-  EXPECT_EQ(response.sensorData()->size(), sensorNames.size());
+  client->sync_getSensorValuesByNames(response, someSensorNames);
+  EXPECT_EQ(response.sensorData()->size(), someSensorNames.size());
   for (const auto& sensorData : *response.sensorData()) {
     if (sensorReadOk(*sensorData.name())) {
       EXPECT_TRUE(sensorData.value().has_value());

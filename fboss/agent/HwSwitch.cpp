@@ -85,6 +85,7 @@ constexpr auto kBuildSdkVersion = "SDK Version";
    This function will match each type of sdk and produce results accordingly.
    */
 std::tuple<int, int, int> normalizeSdkVersion(std::string sdkVersion) {
+  // Chenab-TODO(pshaikh): add CHENAB SAI support for sdk version normalization
   /* Matches broadcom SDK version strings (e.g: BCM SDK Version: sdk-6.5.17) */
   constexpr auto bcmSdkVerRegex =
       "BCM SDK Version: sdk-([0-9]{1,2})\\.([0-9]{1,2})\\.([0-9]{1,2})";

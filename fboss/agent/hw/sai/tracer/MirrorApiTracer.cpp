@@ -35,6 +35,11 @@ std::map<int32_t, std::pair<std::string, std::size_t>> _MirrorSessionMap{
     SAI_ATTR_MAP(SflowMirror, UdpSrcPort),
     SAI_ATTR_MAP(SflowMirror, UdpDstPort),
 };
+
+void handleExtensionAttributes() {
+  SAI_EXT_ATTR_MAP_2(MirrorSession, SflowMirror, TcBufferLimit)
+}
+
 } // namespace
 namespace facebook::fboss {
 
@@ -44,6 +49,7 @@ WRAP_SET_ATTR_FUNC(mirror_session, SAI_OBJECT_TYPE_MIRROR_SESSION, mirror);
 WRAP_GET_ATTR_FUNC(mirror_session, SAI_OBJECT_TYPE_MIRROR_SESSION, mirror);
 
 sai_mirror_api_t* wrappedMirrorApi() {
+  handleExtensionAttributes();
   static sai_mirror_api_t mirrorWrappers;
   mirrorWrappers.create_mirror_session = &wrap_create_mirror_session;
   mirrorWrappers.remove_mirror_session = &wrap_remove_mirror_session;

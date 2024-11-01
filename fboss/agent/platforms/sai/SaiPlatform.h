@@ -104,7 +104,8 @@ class SaiPlatform : public Platform, public StateObserver {
   virtual SaiSwitchTraits::CreateAttributes getSwitchAttributes(
       bool mandatoryOnly,
       cfg::SwitchType switchType,
-      std::optional<int64_t> switchId);
+      std::optional<int64_t> switchId,
+      BootType bootType);
 
   uint32_t getDefaultMacAgingTime() const;
 

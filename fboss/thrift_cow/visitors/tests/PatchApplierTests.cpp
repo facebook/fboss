@@ -350,11 +350,14 @@ TEST(PatchApplierTests, FailPatchingSetEntry) {
   auto process = [&](auto& node) {
     EXPECT_FALSE(visited);
     visited = true;
-
-    using NodeT = typename folly::remove_cvref_t<decltype(node)>;
-    using TC = typename NodeT::TC;
-    auto ret = PatchApplier<TC>::apply(node, PatchNode(intPatch));
-    EXPECT_EQ(ret, PatchApplyResult::PATCHING_IMMUTABLE_NODE);
+    if constexpr (is_cow_type_v<decltype(node)>) {
+      using NodeT = typename folly::remove_cvref_t<decltype(node)>;
+      using TC = typename NodeT::TC;
+      auto ret = PatchApplier<TC>::apply(node, PatchNode(intPatch));
+      EXPECT_EQ(ret, PatchApplyResult::PATCHING_IMMUTABLE_NODE);
+    } else {
+      FAIL() << "unexpected non-cow visit";
+    }
   };
   visitPath(*nodeA, path.begin(), path.end(), process);
   EXPECT_TRUE(visited);

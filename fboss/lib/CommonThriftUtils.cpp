@@ -13,6 +13,7 @@
 #include <folly/io/async/AsyncTimeout.h>
 #include <folly/io/async/EventBase.h>
 #include <folly/logging/xlog.h>
+#include "fboss/lib/thrift_service_client/ConnectionOptions.h"
 
 namespace facebook::fboss {
 
@@ -91,14 +92,14 @@ void ReconnectingThriftClient::setState(State state) {
   stateChangeCb_(oldState, state);
 }
 
-void ReconnectingThriftClient::setServerOptions(
-    ServerOptions&& options,
+void ReconnectingThriftClient::setConnectionOptions(
+    utils::ConnectionOptions options,
     bool allowReset) {
-  if (!allowReset && *serverOptions_.rlock()) {
+  if (!allowReset && *connectionOptions_.rlock()) {
     throw std::runtime_error("Cannot reset server address");
   }
-  connectionLogStr_ = fmt::format("{}->{}", clientId(), options.deviceName);
-  *serverOptions_.wlock() = std::move(options);
+  connectionLogStr_ = fmt::format("{}->{}", clientId(), options.getHostname());
+  *connectionOptions_.wlock() = std::move(options);
 }
 
 void ReconnectingThriftClient::cancel() {
@@ -109,7 +110,7 @@ void ReconnectingThriftClient::cancel() {
     STREAM_XLOG(WARNING) << "Already cancelled";
     return;
   }
-  serverOptions_.wlock()->reset();
+  connectionOptions_.wlock()->reset();
   connRetryEvb_->runImmediatelyOrRunInEventBaseThreadAndWait(
       [this] { timer_->cancelTimeout(); });
   setState(State::CANCELLED);
@@ -119,7 +120,7 @@ void ReconnectingThriftClient::cancel() {
 }
 
 void ReconnectingThriftClient::timeoutExpired() noexcept {
-  auto serverOptions = *serverOptions_.rlock();
+  auto serverOptions = *connectionOptions_.rlock();
   if (getState() == State::DISCONNECTED && serverOptions) {
     connectToServer(*serverOptions);
   }

@@ -54,7 +54,13 @@ std::map<int32_t, std::pair<std::string, std::size_t>> _TamCollectorMap{
 
 void handleExtensionAttributes() {
   SAI_EXT_ATTR_MAP(TamEvent, SwitchEventType)
+  SAI_EXT_ATTR_MAP(TamEvent, DeviceId)
   SAI_EXT_ATTR_MAP(TamEvent, SwitchEventId)
+  SAI_EXT_ATTR_MAP(TamEvent, ExtensionsCollectorList)
+  SAI_EXT_ATTR_MAP(TamEvent, PacketDropTypeMmu)
+  SAI_EXT_ATTR_MAP(TamEvent, AgingGroup)
+  SAI_EXT_ATTR_MAP(TamTransport, SrcMacAddress)
+  SAI_EXT_ATTR_MAP(TamTransport, DstMacAddress)
 }
 
 } // namespace

@@ -216,7 +216,7 @@ struct ThriftUnionStorage {
 };
 
 template <typename TType>
-struct ThriftUnionFields {
+struct ThriftUnionFields : public FieldBaseType {
   using Self = ThriftUnionFields<TType>;
 
   // reflected union metadata
