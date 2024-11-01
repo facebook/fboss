@@ -472,4 +472,25 @@ std::optional<sai_attr_id_t>
 SaiPortTraits::Attributes::AttributeCondEntropyRehashSeed::operator()() {
   return std::nullopt;
 }
+
+std::optional<sai_attr_id_t>
+SaiSwitchTraits::Attributes::AttributeMaxSystemPortId::operator()() {
+  return SAI_SWITCH_ATTR_MAX_SYSTEM_PORT_ID;
+}
+
+std::optional<sai_attr_id_t>
+SaiSwitchTraits::Attributes::AttributeMaxLocalSystemPortId::operator()() {
+  return SAI_SWITCH_ATTR_MAX_LOCAL_SYSTEM_PORT_ID;
+}
+
+std::optional<sai_attr_id_t>
+SaiSwitchTraits::Attributes::AttributeMaxSystemPorts::operator()() {
+  return SAI_SWITCH_ATTR_MAX_SYSTEM_PORTS;
+}
+
+std::optional<sai_attr_id_t>
+SaiSwitchTraits::Attributes::AttributeMaxVoqs::operator()() {
+  return SAI_SWITCH_ATTR_MAX_VOQS;
+}
+
 } // namespace facebook::fboss

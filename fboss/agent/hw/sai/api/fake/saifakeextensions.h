@@ -76,6 +76,10 @@ typedef enum _sai_switch_extensions_attr_t {
   SAI_SWITCH_ATTR_FABRIC_LLFC_THRESHOLD,
   SAI_SWITCH_ATTR_SRAM_FREE_PERCENT_XOFF_TH,
   SAI_SWITCH_ATTR_SRAM_FREE_PERCENT_XON_TH,
+  SAI_SWITCH_ATTR_MAX_SYSTEM_PORT_ID,
+  SAI_SWITCH_ATTR_MAX_LOCAL_SYSTEM_PORT_ID,
+  SAI_SWITCH_ATTR_MAX_SYSTEM_PORTS,
+  SAI_SWITCH_ATTR_MAX_VOQS,
 } sai_switch_extensions_attr_t;
 
 typedef enum _sai_tam_event_extensions_attr_t {

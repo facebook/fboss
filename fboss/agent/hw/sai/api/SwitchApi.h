@@ -578,6 +578,34 @@ struct SaiSwitchTraits {
     };
     using NoAclsForTraps =
         SaiExtensionAttribute<bool, AttributeNoAclsForTrapsWrapper>;
+    struct AttributeMaxSystemPortId {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    using MaxSystemPortId = SaiExtensionAttribute<
+        sai_int32_t,
+        AttributeMaxSystemPortId,
+        SaiIntDefault<sai_int32_t>>;
+    struct AttributeMaxLocalSystemPortId {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    using MaxLocalSystemPortId = SaiExtensionAttribute<
+        sai_int32_t,
+        AttributeMaxLocalSystemPortId,
+        SaiIntDefault<sai_int32_t>>;
+    struct AttributeMaxSystemPorts {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    using MaxSystemPorts = SaiExtensionAttribute<
+        sai_int32_t,
+        AttributeMaxSystemPorts,
+        SaiIntDefault<sai_int32_t>>;
+    struct AttributeMaxVoqs {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    using MaxVoqs = SaiExtensionAttribute<
+        sai_int32_t,
+        AttributeMaxVoqs,
+        SaiIntDefault<sai_int32_t>>;
   };
   using AdapterKey = SwitchSaiId;
   using AdapterHostKey = std::monostate;

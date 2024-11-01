@@ -198,4 +198,23 @@ std::optional<sai_attr_id_t> SaiSwitchTraits::Attributes::
     AttributeSramFreePercentXonThWrapper::operator()() {
   return std::nullopt;
 }
+std::optional<sai_attr_id_t>
+SaiSwitchTraits::Attributes::AttributeMaxSystemPortId::operator()() {
+  return std::nullopt;
+}
+
+std::optional<sai_attr_id_t>
+SaiSwitchTraits::Attributes::AttributeMaxLocalSystemPortId::operator()() {
+  return std::nullopt;
+}
+
+std::optional<sai_attr_id_t>
+SaiSwitchTraits::Attributes::AttributeMaxSystemPorts::operator()() {
+  return std::nullopt;
+}
+
+std::optional<sai_attr_id_t>
+SaiSwitchTraits::Attributes::AttributeMaxVoqs::operator()() {
+  return std::nullopt;
+}
 } // namespace facebook::fboss
