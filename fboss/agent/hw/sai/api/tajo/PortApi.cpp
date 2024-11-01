@@ -206,4 +206,19 @@ std::optional<sai_attr_id_t> SaiPortSerdesTraits::Attributes::
   RETURN_SUPPORTED_ATTR(SAI_PORT_SERDES_ATTR_EXT_RX_CDR_TDET_FINE_STEP_OV_VAL);
 }
 
+std::optional<sai_attr_id_t>
+SaiPortTraits::Attributes::AttributeCondEntropyRehashEnable::operator()() {
+  return std::nullopt;
+}
+
+std::optional<sai_attr_id_t>
+SaiPortTraits::Attributes::AttributeCondEntropyRehashPeriodUS::operator()() {
+  return std::nullopt;
+}
+
+std::optional<sai_attr_id_t>
+SaiPortTraits::Attributes::AttributeCondEntropyRehashSeed::operator()() {
+  return std::nullopt;
+}
+
 } // namespace facebook::fboss

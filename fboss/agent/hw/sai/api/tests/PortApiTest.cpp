@@ -41,6 +41,7 @@ class PortApiTest : public ::testing::Test {
 #endif
         std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt,
         std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt,
+        std::nullopt, // TAM object
         std::nullopt, // Ingress Mirror Session
         std::nullopt, // Egress Mirror Session
         std::nullopt, // Ingress Sample Packet
@@ -78,6 +79,9 @@ class PortApiTest : public ::testing::Test {
         std::nullopt, // ARS port load future weight
 #endif
         std::nullopt, // Reachability Group
+        std::nullopt, // CondEntropyRehashEnable
+        std::nullopt, // CondEntropyRehashPeriodUS
+        std::nullopt, // CondEntropyRehashSeed
     };
     return portApi->create<SaiPortTraits>(a, 0);
   }

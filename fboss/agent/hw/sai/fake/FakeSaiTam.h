@@ -5,6 +5,7 @@
 #include "fboss/agent/hw/sai/fake/FakeManager.h"
 
 #include <folly/IPAddress.h>
+#include <folly/MacAddress.h>
 
 extern "C" {
 #include <sai.h>
@@ -30,16 +31,31 @@ class FakeSaiTamEvent {
       sai_int32_t eventType,
       const std::vector<sai_object_id_t>& actions,
       const std::vector<sai_object_id_t>& collectors,
-      const std::vector<sai_int32_t>& switchEvents)
+      const std::vector<sai_int32_t>& switchEvents,
+      sai_int32_t deviceId,
+      sai_int32_t eventId,
+      std::vector<sai_object_id_t> extensionsCollectorList,
+      std::vector<sai_int32_t> packetDropTypeMmu,
+      sai_object_id_t agingGroup)
       : eventType_(eventType),
         actions_(actions),
         collectors_(collectors),
-        switchEvents_(switchEvents) {}
+        switchEvents_(switchEvents),
+        deviceId_(deviceId),
+        eventId_(eventId),
+        extensionsCollectorList_(std::move(extensionsCollectorList)),
+        packetDropTypeMmu_(std::move(packetDropTypeMmu)),
+        agingGroup_(agingGroup) {}
   sai_object_id_t id;
   sai_int32_t eventType_;
   std::vector<sai_object_id_t> actions_;
   std::vector<sai_object_id_t> collectors_;
   std::vector<sai_int32_t> switchEvents_;
+  sai_int32_t deviceId_;
+  sai_int32_t eventId_;
+  std::vector<sai_object_id_t> extensionsCollectorList_;
+  std::vector<sai_int32_t> packetDropTypeMmu_;
+  sai_object_id_t agingGroup_;
 };
 
 class FakeSaiTamEventAction {
@@ -62,16 +78,22 @@ class FakeSaiTamTransport {
       sai_int32_t transportType,
       sai_uint32_t srcPort,
       sai_uint32_t dstPort,
-      sai_uint32_t mtu)
+      sai_uint32_t mtu,
+      std::optional<folly::MacAddress> srcMac,
+      std::optional<folly::MacAddress> dstMac)
       : transportType_(transportType),
         srcPort_(srcPort),
         dstPort_(dstPort),
-        mtu_(mtu) {}
+        mtu_(mtu),
+        srcMac_(srcMac),
+        dstMac_(dstMac) {}
   sai_object_id_t id;
   sai_int32_t transportType_;
   sai_uint32_t srcPort_;
   sai_uint32_t dstPort_;
   sai_uint32_t mtu_;
+  std::optional<folly::MacAddress> srcMac_;
+  std::optional<folly::MacAddress> dstMac_;
 };
 
 class FakeSaiTamCollector {

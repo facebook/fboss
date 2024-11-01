@@ -117,8 +117,11 @@ struct SaiRouterInterfaceTraitsT {
         typename detail::RouterInterfaceAttributesTypes<type>::VlanId;
     using PortId =
         typename detail::RouterInterfaceAttributesTypes<type>::PortId;
-    using Mtu =
-        SaiAttribute<EnumType, SAI_ROUTER_INTERFACE_ATTR_MTU, sai_uint32_t>;
+    using Mtu = SaiAttribute<
+        EnumType,
+        SAI_ROUTER_INTERFACE_ATTR_MTU,
+        sai_uint32_t,
+        SaiIntDefault<sai_int32_t>>;
   };
   using AdapterKey = RouterInterfaceSaiId;
   using AdapterHostKey = typename detail::

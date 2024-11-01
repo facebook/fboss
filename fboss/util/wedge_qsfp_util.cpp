@@ -2866,7 +2866,7 @@ bool cliModulefirmwareUpgrade(
   auto qsfpImpl = std::make_unique<WedgeQsfp>(
       port - 1, i2cInfo.bus, i2cInfo.transceiverManager, /*logBuffer*/ nullptr);
   auto fwUpgradeObj = std::make_unique<CmisFirmwareUpgrader>(
-      qsfpImpl.get(), port, std::move(fbossFwObj));
+      qsfpImpl.get(), port, fbossFwObj.get());
 
   // Do the standalone upgrade in the same process as wedge_qsfp_util
   bool ret = fwUpgradeObj->cmisModuleFirmwareUpgrade();
@@ -3021,7 +3021,7 @@ void fwUpgradeThreadHandler(
         i2cInfo.transceiverManager,
         /*logBuffer*/ nullptr);
     auto fwUpgradeObj = std::make_unique<CmisFirmwareUpgrader>(
-        qsfpImpl.get(), module, std::move(fbossFwObj));
+        qsfpImpl.get(), module, fbossFwObj.get());
 
     // Do the upgrade in this thread
     bool ret = fwUpgradeObj->cmisModuleFirmwareUpgrade();

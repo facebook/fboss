@@ -173,13 +173,12 @@ class ThriftTestAllSwitchTypes : public ::testing::Test {
   }
   int interfaceIdBegin() const {
     auto switchId = getSwitchIdAndType().first;
-    return isVoq() ? *sw_->getState()
-                          ->getDsfNodes()
-                          ->getNodeIf(switchId)
-                          ->getSystemPortRange()
-                          ->minimum() +
-            5
-                   : 1;
+    if (isVoq()) {
+      auto dsfNode = sw_->getState()->getDsfNodes()->getNodeIf(switchId);
+      CHECK(dsfNode->getGlobalSystemPortOffset().has_value());
+      return *dsfNode->getGlobalSystemPortOffset() + 5;
+    }
+    return 1;
   }
 
   std::pair<SwitchID, cfg::SwitchType> getSwitchIdAndType() const {
@@ -353,14 +352,14 @@ TYPED_TEST(ThriftTestAllSwitchTypes, setPortState) {
   const PortID port5{5};
   ThriftHandler handler(this->sw_);
   handler.setPortState(port5, true);
-  this->sw_->linkStateChanged(port5, true);
+  this->sw_->linkStateChanged(port5, true, cfg::PortType::INTERFACE_PORT);
   waitForStateUpdates(this->sw_);
 
   auto port = this->sw_->getState()->getPorts()->getNodeIf(port5);
   EXPECT_TRUE(port->isUp());
   EXPECT_TRUE(port->isEnabled());
 
-  this->sw_->linkStateChanged(port5, false);
+  this->sw_->linkStateChanged(port5, false, cfg::PortType::INTERFACE_PORT);
   handler.setPortState(port5, false);
   waitForStateUpdates(this->sw_);
 

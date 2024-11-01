@@ -30,11 +30,19 @@ struct PartiallyResolvedExtendedSubscription {
 
 class SubscriptionStore;
 
+struct SubscriptionPathStoreTreeStats {
+  uint64_t numPathStores{0};
+  uint64_t numPathStoreAllocs{0};
+  uint64_t numPathStoreFrees{0};
+};
+
 class SubscriptionPathStore {
  public:
   using PathIter = std::vector<std::string>::const_iterator;
 
-  void add(Subscription* subscription);
+  explicit SubscriptionPathStore(SubscriptionPathStoreTreeStats* stats);
+
+  void add(Subscription* subscription, SubscriptionPathStoreTreeStats* stats);
 
   void remove(Subscription* subscription);
 
@@ -57,11 +65,15 @@ class SubscriptionPathStore {
 
   SubscriptionPathStore* FOLLY_NULLABLE child(const std::string& key) const;
 
-  SubscriptionPathStore* getOrCreateChild(const std::string& key);
+  SubscriptionPathStore* getOrCreateChild(
+      const std::string& key,
+      SubscriptionPathStoreTreeStats* stats);
 
-  void removeChild(const std::string& key);
+  void removeChild(
+      const std::string& key,
+      SubscriptionPathStoreTreeStats* stats);
 
-  void clear();
+  void clear(SubscriptionPathStoreTreeStats* stats);
 
   void debugPrint() const;
 
@@ -74,10 +86,10 @@ class SubscriptionPathStore {
   uint32_t numSubsRecursive() const {
     return numSubs() + numChildSubs();
   }
-  uint32_t numPathStores() const {
-    auto totalPathStores = children_.size();
+  uint32_t numPathStoresRecursive_Expensive() const {
+    uint32_t totalPathStores{1};
     for (auto& [_name, child] : children_) {
-      totalPathStores += child->numPathStores();
+      totalPathStores += child->numPathStoresRecursive_Expensive();
     }
     return totalPathStores;
   }
@@ -94,11 +106,17 @@ class SubscriptionPathStore {
   }
 
  private:
+  void freePathStore(SubscriptionPathStoreTreeStats* stats);
+
   void debugPrint(std::vector<std::string>& pathSoFar) const;
 
   void gatherChildren(std::vector<Subscription*>& gathered);
 
-  void add(PathIter begin, PathIter end, Subscription* subscription);
+  void add(
+      SubscriptionPathStoreTreeStats* stats,
+      PathIter begin,
+      PathIter end,
+      Subscription* subscription);
 
   // returns true if a subscription was actually removed
   bool remove(PathIter begin, PathIter end, Subscription* subscription);

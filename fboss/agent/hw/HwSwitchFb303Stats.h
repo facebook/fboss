@@ -101,6 +101,9 @@ class HwSwitchFb303Stats {
   void phyInfoCollectionFailed() {
     phyInfoCollectionFailed_.addValue(1);
   }
+  void invalidQueueRxPackets() {
+    invalidQueueRxPackets_.addValue(1);
+  }
   void fabricReachabilityMissingCount(int64_t value);
   void fabricReachabilityMismatchCount(int64_t value);
   void virtualDevicesWithAsymmetricConnectivity(int64_t value);
@@ -257,6 +260,7 @@ class HwSwitchFb303Stats {
   // info collection failures
   TLTimeseries hwStatsCollectionFailed_;
   TLTimeseries phyInfoCollectionFailed_;
+  TLTimeseries invalidQueueRxPackets_;
 };
 
 } // namespace facebook::fboss

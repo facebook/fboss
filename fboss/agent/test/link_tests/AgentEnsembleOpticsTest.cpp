@@ -105,6 +105,13 @@ void validateVdm(
 } // namespace
 
 class AgentEnsembleOpticsTest : public AgentEnsembleLinkTest {
+ private:
+  std::vector<link_test_production_features::LinkTestProductionFeature>
+  getProductionFeatures() const override {
+    return {
+        link_test_production_features::LinkTestProductionFeature::L1_LINK_TEST};
+  }
+
  public:
   std::set<std::pair<PortID, PortID>> getConnectedOpticalPortPairs() const {
     // TransceiverFeature::NONE will get us all optical pairs.

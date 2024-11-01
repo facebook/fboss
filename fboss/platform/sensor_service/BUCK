@@ -16,6 +16,7 @@ cpp_library(
         "SensorServiceImpl.h",
     ],
     exported_deps = [
+        ":config_validator",
         ":pmunit_info_fetcher",
         ":sensor_service_stats-cpp2-types",
         ":utils",
@@ -26,7 +27,6 @@ cpp_library(
         "//fboss/fsdb/if:fsdb_model",
         "//fboss/fsdb/if:fsdb_oper-cpp2-types",
         "//fboss/platform/config_lib:config_lib",
-        "//fboss/platform/helpers:platform_name_lib",
         "//fboss/platform/sensor_service/if:sensor_config-cpp2-types",
         "//fboss/platform/sensor_service/if:sensor_service-cpp2-types",
         "//folly:file_util",
@@ -62,7 +62,10 @@ cpp_library(
     ],
     exported_deps = [
         "fbsource//third-party/exprtk:exprtk",
+        ":config_validator",
         ":pmunit_info_fetcher",
+        "//fboss/platform/config_lib:config_lib",
+        "//fboss/platform/helpers:platform_name_lib",
         "//fboss/platform/sensor_service/if:sensor_config-cpp2-types",
     ],
     exported_external_deps = [
@@ -115,6 +118,7 @@ cpp_binary(
     ],
     deps = [
         ":core",
+        ":utils",
         "//fb303:logging",
         "//fboss/platform/helpers:init",
         "//folly/executors:function_scheduler",

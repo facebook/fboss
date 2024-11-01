@@ -9,6 +9,8 @@ function(BUILD_SAI_LINK_TEST SAI_IMPL_NAME SAI_IMPL_ARG)
     fboss/agent/test/link_tests/SaiLinkTest.cpp
   )
 
+  add_sai_sdk_dependencies(sai_link_test-${SAI_IMPL_NAME})
+
   target_link_libraries(sai_link_test-${SAI_IMPL_NAME}
     # --whole-archive is needed for gtest to find these tests
     -Wl,--whole-archive

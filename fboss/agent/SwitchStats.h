@@ -452,6 +452,14 @@ class SwitchStats : public boost::noncopyable {
     multiSwitchStatus_.addValue(enabled ? 1 : 0);
   }
 
+  void macTableUpdateFailure() {
+    macTableUpdateFailure_.addValue(1);
+  }
+
+  int getMacTableUpdateFailure() const {
+    return getCumulativeValue(macTableUpdateFailure_);
+  }
+
   void hiPriPktsReceived() {
     hiPriPktsReceived_.addValue(1);
   }
@@ -1023,6 +1031,8 @@ class SwitchStats : public boost::noncopyable {
 
   // TODO: delete this once multi_switch becomes default
   TLTimeseries multiSwitchStatus_;
+
+  TLTimeseries macTableUpdateFailure_;
 
   std::vector<TLCounter> hwAgentConnectionStatus_;
   std::vector<TLTimeseries> hwAgentUpdateTimeouts_;

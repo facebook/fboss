@@ -189,8 +189,8 @@ TEST_F(SwSwitchTest, overlappingUpdatesWithExit) {
     const PortID kPort1{1};
     while (!done) {
       // Now flap the port. This should schedule non coalescing updates.
-      sw->linkStateChanged(kPort1, false);
-      sw->linkStateChanged(kPort1, true);
+      sw->linkStateChanged(kPort1, false, cfg::PortType::INTERFACE_PORT);
+      sw->linkStateChanged(kPort1, true, cfg::PortType::INTERFACE_PORT);
     }
   });
   std::thread blockingUpdates([this, &done] {
@@ -406,8 +406,8 @@ TYPED_TEST(SwSwitchTestNbrs, TestStateNonCoalescing) {
   // 2 neighbor entries expected
   verifyReachableCnt(2);
   // Now flap the port. This should schedule non coalescing updates.
-  sw->linkStateChanged(kPort1, false);
-  sw->linkStateChanged(kPort1, true);
+  sw->linkStateChanged(kPort1, false, cfg::PortType::INTERFACE_PORT);
+  sw->linkStateChanged(kPort1, true, cfg::PortType::INTERFACE_PORT);
   waitForStateUpdates(sw);
   // Neighbor purge is scheduled on BG thread. Wait for it to be scheduled.
   waitForBackgroundThread(sw);

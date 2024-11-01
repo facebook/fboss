@@ -93,6 +93,10 @@ struct SaiBufferProfileTraits {
         EnumType,
         SAI_BUFFER_PROFILE_ATTR_SHARED_DYNAMIC_TH,
         sai_int8_t>;
+    using SharedStaticThreshold = SaiAttribute<
+        EnumType,
+        SAI_BUFFER_PROFILE_ATTR_SHARED_STATIC_TH,
+        sai_uint64_t>;
     using XoffTh =
         SaiAttribute<EnumType, SAI_BUFFER_PROFILE_ATTR_XOFF_TH, sai_uint64_t>;
     using XonTh =
@@ -106,6 +110,26 @@ struct SaiBufferProfileTraits {
     };
     using SharedFadtMaxTh =
         SaiExtensionAttribute<sai_uint64_t, AttributeSharedFadtMaxTh>;
+    struct AttributeSharedFadtMinTh {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    using SharedFadtMinTh =
+        SaiExtensionAttribute<sai_uint64_t, AttributeSharedFadtMinTh>;
+    struct AttributeSramFadtMaxTh {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    using SramFadtMaxTh =
+        SaiExtensionAttribute<sai_uint64_t, AttributeSramFadtMaxTh>;
+    struct AttributeSramFadtMinTh {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    using SramFadtMinTh =
+        SaiExtensionAttribute<sai_uint64_t, AttributeSramFadtMinTh>;
+    struct AttributeSramFadtXonOffset {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    using SramFadtXonOffset =
+        SaiExtensionAttribute<sai_uint64_t, AttributeSramFadtXonOffset>;
   };
   using AdapterKey = BufferProfileSaiId;
   using CreateAttributes = std::tuple<
@@ -113,10 +137,19 @@ struct SaiBufferProfileTraits {
       std::optional<Attributes::ReservedBytes>,
       std::optional<Attributes::ThresholdMode>,
       std::optional<Attributes::SharedDynamicThreshold>,
+#if not defined(BRCM_SAI_SDK_XGS_AND_DNX)
+      // TODO(nivinl): Get rid of the check once support is
+      // available in SAI 8.2/11.3 - CS00012374846.
+      std::optional<Attributes::SharedStaticThreshold>,
+#endif
       std::optional<Attributes::XoffTh>,
       std::optional<Attributes::XonTh>,
       std::optional<Attributes::XonOffsetTh>,
-      std::optional<Attributes::SharedFadtMaxTh>>;
+      std::optional<Attributes::SharedFadtMaxTh>,
+      std::optional<Attributes::SharedFadtMinTh>,
+      std::optional<Attributes::SramFadtMaxTh>,
+      std::optional<Attributes::SramFadtMinTh>,
+      std::optional<Attributes::SramFadtXonOffset>>;
   using AdapterHostKey = CreateAttributes;
 };
 
@@ -124,10 +157,15 @@ SAI_ATTRIBUTE_NAME(BufferProfile, PoolId);
 SAI_ATTRIBUTE_NAME(BufferProfile, ReservedBytes);
 SAI_ATTRIBUTE_NAME(BufferProfile, ThresholdMode);
 SAI_ATTRIBUTE_NAME(BufferProfile, SharedDynamicThreshold);
+SAI_ATTRIBUTE_NAME(BufferProfile, SharedStaticThreshold);
 SAI_ATTRIBUTE_NAME(BufferProfile, XoffTh);
 SAI_ATTRIBUTE_NAME(BufferProfile, XonTh);
 SAI_ATTRIBUTE_NAME(BufferProfile, XonOffsetTh);
 SAI_ATTRIBUTE_NAME(BufferProfile, SharedFadtMaxTh);
+SAI_ATTRIBUTE_NAME(BufferProfile, SharedFadtMinTh);
+SAI_ATTRIBUTE_NAME(BufferProfile, SramFadtMaxTh);
+SAI_ATTRIBUTE_NAME(BufferProfile, SramFadtMinTh);
+SAI_ATTRIBUTE_NAME(BufferProfile, SramFadtXonOffset);
 
 struct SaiIngressPriorityGroupTraits {
   static constexpr sai_api_t ApiType = SAI_API_BUFFER;

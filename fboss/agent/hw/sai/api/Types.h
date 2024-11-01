@@ -62,6 +62,7 @@ FBOSS_STRONG_TYPE(sai_object_id_t, TamCollectorSaiId);
 FBOSS_STRONG_TYPE(sai_object_id_t, TamTransportSaiId);
 FBOSS_STRONG_TYPE(sai_object_id_t, TamReportSaiId);
 FBOSS_STRONG_TYPE(sai_object_id_t, TamEventActionSaiId);
+FBOSS_STRONG_TYPE(sai_object_id_t, TamEventAgingGroupSaiId);
 FBOSS_STRONG_TYPE(sai_object_id_t, TamEventSaiId);
 FBOSS_STRONG_TYPE(sai_object_id_t, TamSaiId);
 FBOSS_STRONG_TYPE(sai_object_id_t, TunnelSaiId);

@@ -82,6 +82,7 @@ def is_ucmp_active(next_hops: t.Iterator[NextHopThrift]) -> bool:
     if not next_hops:
         return False
 
+    # pyre-fixme[16]: `Iterator` has no attribute `__getitem__`.
     return not all(next_hops[0].weight == nh.weight for nh in next_hops)
 
 

@@ -4,6 +4,11 @@
 #include <thrift/lib/cpp/util/EnumUtils.h>
 #include "fboss/agent/AgentFeatures.h"
 
+namespace {
+static constexpr int kDefaultMidPriCpuQueueId = 3;
+static constexpr int kDefaultHiPriCpuQueueId = 7;
+} // namespace
+
 namespace facebook::fboss {
 
 bool Jericho2Asic::isSupported(Feature feature) const {
@@ -86,6 +91,7 @@ bool Jericho2Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::SAI_ECMP_HASH_ALGORITHM:
     case HwAsic::Feature::ACL_BYTE_COUNTER:
     case HwAsic::Feature::INGRESS_PRIORITY_GROUP_SHARED_WATERMARK:
+    case HwAsic::Feature::L3_INTF_MTU:
       return true;
     case HwAsic::Feature::UDF_HASH_FIELD_QUERY:
     case HwAsic::Feature::IN_PAUSE_INCREMENTS_DISCARDS:
@@ -187,6 +193,7 @@ bool Jericho2Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::MULTIPLE_EGRESS_BUFFER_POOL:
     case HwAsic::Feature::ENABLE_DELAY_DROP_CONGESTION_THRESHOLD:
     case HwAsic::Feature::PORT_MTU_ERROR_TRAP:
+    case HwAsic::Feature::DEDICATED_CPU_BUFFER_POOL:
       return false;
   }
   return false;
@@ -287,5 +294,13 @@ Jericho2Asic::desiredLoopbackModes() const {
       {cfg::PortType::FABRIC_PORT, cfg::PortLoopbackMode::MAC},
       {cfg::PortType::RECYCLE_PORT, cfg::PortLoopbackMode::NONE}};
   return kLoopbackMode;
+}
+
+int Jericho2Asic::getMidPriCpuQueueId() const {
+  return kDefaultMidPriCpuQueueId;
+}
+
+int Jericho2Asic::getHiPriCpuQueueId() const {
+  return kDefaultHiPriCpuQueueId;
 }
 } // namespace facebook::fboss

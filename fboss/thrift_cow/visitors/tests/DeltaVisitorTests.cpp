@@ -13,6 +13,7 @@
 #include "fboss/thrift_cow/nodes/tests/gen-cpp2/test_fatal_types.h"
 
 using folly::dynamic;
+using namespace testing;
 
 namespace {
 using namespace facebook::fboss;
@@ -22,13 +23,34 @@ using PathTagSet = std::set<std::pair<std::string, thrift_cow::DeltaElemTag>>;
 
 namespace facebook::fboss::thrift_cow::test {
 
-TEST(DeltaVisitorTests, ChangeOneField) {
+template <bool EnableHybridStorage>
+struct TestParams {
+  static constexpr auto hybridStorage = EnableHybridStorage;
+};
+
+using StorageTestTypes = ::testing::Types<TestParams<false>, TestParams<true>>;
+
+template <typename TestParams>
+class DeltaVisitorTests : public ::testing::Test {
+ public:
+  auto initNode(auto val) {
+    using RootType = std::remove_cvref_t<decltype(val)>;
+    return std::make_shared<ThriftStructNode<
+        RootType,
+        ThriftStructResolver<RootType, TestParams::hybridStorage>,
+        TestParams::hybridStorage>>(val);
+  }
+};
+
+TYPED_TEST_SUITE(DeltaVisitorTests, StorageTestTypes);
+
+TYPED_TEST(DeltaVisitorTests, ChangeOneField) {
   auto structA = createSimpleTestStruct();
   auto structB = structA;
   structB.inlineInt() = false;
 
-  auto nodeA = std::make_shared<ThriftStructNode<TestStruct>>(structA);
-  auto nodeB = std::make_shared<ThriftStructNode<TestStruct>>(structB);
+  auto nodeA = this->initNode(structA);
+  auto nodeB = this->initNode(structB);
 
   PathTagSet differingPaths;
   auto processChange = [&](const std::vector<std::string>& path,
@@ -88,13 +110,13 @@ TEST(DeltaVisitorTests, ChangeOneField) {
           std::make_pair("/inlineInt", DeltaElemTag::MINIMAL)}));
 }
 
-TEST(DeltaVisitorTests, ChangeOneFieldInContainer) {
+TYPED_TEST(DeltaVisitorTests, ChangeOneFieldInContainer) {
   auto structA = createSimpleTestStruct();
   auto structB = structA;
   structB.mapOfEnumToStruct()->at(TestEnum::THIRD).min() = 11;
 
-  auto nodeA = std::make_shared<ThriftStructNode<TestStruct>>(structA);
-  auto nodeB = std::make_shared<ThriftStructNode<TestStruct>>(structB);
+  auto nodeA = this->initNode(structA);
+  auto nodeB = this->initNode(structB);
 
   PathTagSet differingPaths;
   auto processChange = [&](const std::vector<std::string>& path,
@@ -126,13 +148,13 @@ TEST(DeltaVisitorTests, ChangeOneFieldInContainer) {
           std::make_pair("/mapOfEnumToStruct/3/min", DeltaElemTag::MINIMAL)}));
 }
 
-TEST(DeltaVisitorTests, SetOptional) {
+TYPED_TEST(DeltaVisitorTests, SetOptional) {
   auto structA = createSimpleTestStruct();
   auto structB = structA;
   structB.optionalString() = "now I'm set";
 
-  auto nodeA = std::make_shared<ThriftStructNode<TestStruct>>(structA);
-  auto nodeB = std::make_shared<ThriftStructNode<TestStruct>>(structB);
+  auto nodeA = this->initNode(structA);
+  auto nodeB = this->initNode(structB);
 
   PathTagSet differingPaths;
   auto processChange = [&](const std::vector<std::string>& path,
@@ -175,7 +197,7 @@ TEST(DeltaVisitorTests, SetOptional) {
           std::make_pair("/optionalString", DeltaElemTag::MINIMAL)}));
 }
 
-TEST(DeltaVisitorTests, AddToMap) {
+TYPED_TEST(DeltaVisitorTests, AddToMap) {
   auto structA = createSimpleTestStruct();
   auto structB = structA;
 
@@ -184,8 +206,8 @@ TEST(DeltaVisitorTests, AddToMap) {
   newOne.max() = 100;
   structB.mapOfEnumToStruct()->emplace(TestEnum::FIRST, std::move(newOne));
 
-  auto nodeA = std::make_shared<ThriftStructNode<TestStruct>>(structA);
-  auto nodeB = std::make_shared<ThriftStructNode<TestStruct>>(structB);
+  auto nodeA = this->initNode(structA);
+  auto nodeB = this->initNode(structB);
 
   PathTagSet differingPaths;
   auto processChange = [&](const std::vector<std::string>& path,
@@ -234,7 +256,7 @@ TEST(DeltaVisitorTests, AddToMap) {
               "/mapOfEnumToStruct/1/invert", DeltaElemTag::NOT_MINIMAL)}));
 }
 
-TEST(DeltaVisitorTests, UpdateMap) {
+TYPED_TEST(DeltaVisitorTests, UpdateMap) {
   auto structA = createSimpleTestStruct();
   auto structB = structA;
 
@@ -250,8 +272,8 @@ TEST(DeltaVisitorTests, UpdateMap) {
   newOne.max() = 1000;
   structB.mapOfEnumToStruct()->emplace(TestEnum::FIRST, std::move(newOne));
 
-  auto nodeA = std::make_shared<ThriftStructNode<TestStruct>>(structA);
-  auto nodeB = std::make_shared<ThriftStructNode<TestStruct>>(structB);
+  auto nodeA = this->initNode(structA);
+  auto nodeB = this->initNode(structB);
 
   PathTagSet differingPaths;
   auto processChange = [&](const std::vector<std::string>& path,
@@ -320,13 +342,13 @@ TEST(DeltaVisitorTests, UpdateMap) {
       }));
 }
 
-TEST(DeltaVisitorTests, DeleteFromMap) {
+TYPED_TEST(DeltaVisitorTests, DeleteFromMap) {
   auto structA = createSimpleTestStruct();
   auto structB = structA;
   structB.mapOfEnumToStruct()->erase(TestEnum::THIRD);
 
-  auto nodeA = std::make_shared<ThriftStructNode<TestStruct>>(structA);
-  auto nodeB = std::make_shared<ThriftStructNode<TestStruct>>(structB);
+  auto nodeA = this->initNode(structA);
+  auto nodeB = this->initNode(structB);
 
   PathTagSet differingPaths;
   auto processChange = [&](const std::vector<std::string>& path,
@@ -375,7 +397,7 @@ TEST(DeltaVisitorTests, DeleteFromMap) {
               "/mapOfEnumToStruct/3/invert", DeltaElemTag::NOT_MINIMAL)}));
 }
 
-TEST(DeltaVisitorTests, AddToList) {
+TYPED_TEST(DeltaVisitorTests, AddToList) {
   auto structA = createSimpleTestStruct();
   auto structB = structA;
   cfg::L4PortRange newOne;
@@ -383,8 +405,8 @@ TEST(DeltaVisitorTests, AddToList) {
   newOne.max() = 100;
   structB.listOfStructs()->push_back(std::move(newOne));
 
-  auto nodeA = std::make_shared<ThriftStructNode<TestStruct>>(structA);
-  auto nodeB = std::make_shared<ThriftStructNode<TestStruct>>(structB);
+  auto nodeA = this->initNode(structA);
+  auto nodeB = this->initNode(structB);
 
   PathTagSet differingPaths;
   auto processChange = [&](const std::vector<std::string>& path,
@@ -433,7 +455,7 @@ TEST(DeltaVisitorTests, AddToList) {
               "/listOfStructs/0/invert", DeltaElemTag::NOT_MINIMAL)}));
 }
 
-TEST(DeltaVisitorTests, DeleteFromList) {
+TYPED_TEST(DeltaVisitorTests, DeleteFromList) {
   auto structA = createSimpleTestStruct();
   auto structB = structA;
   cfg::L4PortRange newOne;
@@ -441,8 +463,8 @@ TEST(DeltaVisitorTests, DeleteFromList) {
   newOne.max() = 100;
   structB.listOfStructs()->push_back(std::move(newOne));
 
-  auto nodeA = std::make_shared<ThriftStructNode<TestStruct>>(structA);
-  auto nodeB = std::make_shared<ThriftStructNode<TestStruct>>(structB);
+  auto nodeA = this->initNode(structA);
+  auto nodeB = this->initNode(structB);
 
   PathTagSet differingPaths;
   auto processChange = [&](const std::vector<std::string>& path,
@@ -491,13 +513,13 @@ TEST(DeltaVisitorTests, DeleteFromList) {
               "/listOfStructs/0/invert", DeltaElemTag::NOT_MINIMAL)}));
 }
 
-TEST(DeltaVisitorTests, EditVariantField) {
+TYPED_TEST(DeltaVisitorTests, EditVariantField) {
   auto structA = createSimpleTestStruct();
   auto structB = structA;
   structB.inlineVariant()->inlineInt_ref() = 1000;
 
-  auto nodeA = std::make_shared<ThriftStructNode<TestStruct>>(structA);
-  auto nodeB = std::make_shared<ThriftStructNode<TestStruct>>(structB);
+  auto nodeA = this->initNode(structA);
+  auto nodeB = this->initNode(structB);
 
   PathTagSet differingPaths;
   auto processChange = [&](const std::vector<std::string>& path,
@@ -560,13 +582,13 @@ TEST(DeltaVisitorTests, EditVariantField) {
           std::make_pair("/21/2", DeltaElemTag::MINIMAL)}));
 }
 
-TEST(DeltaVisitorTests, SwitchVariantField) {
+TYPED_TEST(DeltaVisitorTests, SwitchVariantField) {
   auto structA = createSimpleTestStruct();
   auto structB = structA;
   structB.inlineVariant()->inlineBool_ref() = true;
 
-  auto nodeA = std::make_shared<ThriftStructNode<TestStruct>>(structA);
-  auto nodeB = std::make_shared<ThriftStructNode<TestStruct>>(structB);
+  auto nodeA = this->initNode(structA);
+  auto nodeB = this->initNode(structB);
 
   PathTagSet differingPaths;
   auto processChange = [&](const std::vector<std::string>& path,
@@ -614,7 +636,7 @@ TEST(DeltaVisitorTests, SwitchVariantField) {
           std::make_pair("/inlineVariant/inlineBool", DeltaElemTag::MINIMAL)}));
 }
 
-TEST(DeltaVisitorTests, SwitchVariantFieldToStruct) {
+TYPED_TEST(DeltaVisitorTests, SwitchVariantFieldToStruct) {
   auto structA = createSimpleTestStruct();
 
   cfg::L4PortRange newOne;
@@ -624,8 +646,8 @@ TEST(DeltaVisitorTests, SwitchVariantFieldToStruct) {
   auto structB = structA;
   structB.inlineVariant()->inlineStruct_ref() = std::move(newOne);
 
-  auto nodeA = std::make_shared<ThriftStructNode<TestStruct>>(structA);
-  auto nodeB = std::make_shared<ThriftStructNode<TestStruct>>(structB);
+  auto nodeA = this->initNode(structA);
+  auto nodeB = this->initNode(structB);
 
   PathTagSet differingPaths;
   auto processChange = [&](const std::vector<std::string>& path,

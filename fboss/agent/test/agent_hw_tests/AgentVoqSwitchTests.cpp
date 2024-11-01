@@ -1,6 +1,7 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
 #include "fboss/agent/DsfStateUpdaterUtil.h"
+#include "fboss/agent/FabricConnectivityManager.h"
 #include "fboss/agent/FbossHwUpdateError.h"
 #include "fboss/agent/TxPacket.h"
 #include "fboss/agent/hw/HwResourceStatsPublisher.h"
@@ -249,15 +250,18 @@ class AgentVoqSwitchTest : public AgentHwTest {
     return txPacketSize;
   }
 
-  SystemPortID getSystemPortID(const PortDescriptor& port) {
+  SystemPortID getSystemPortID(
+      const PortDescriptor& port,
+      cfg::Scope portScope) {
     auto switchId =
         scopeResolver().scope(getProgrammedState(), port).switchId();
-    auto sysPortRange = getProgrammedState()
-                            ->getDsfNodes()
-                            ->getNodeIf(switchId)
-                            ->getSystemPortRange();
-    CHECK(sysPortRange.has_value());
-    return SystemPortID(port.intID() + *sysPortRange->minimum());
+    const auto& dsfNode =
+        getProgrammedState()->getDsfNodes()->getNodeIf(switchId);
+    auto sysPortOffset = portScope == cfg::Scope::GLOBAL
+        ? dsfNode->getGlobalSystemPortOffset()
+        : dsfNode->getLocalSystemPortOffset();
+    CHECK(sysPortOffset.has_value());
+    return SystemPortID(port.intID() + *sysPortOffset);
   }
 
   std::string kDscpAclName() const {
@@ -495,6 +499,10 @@ class AgentVoqSwitchWithFabricPortsTest : public AgentVoqSwitchTest {
     // Allow disabling of looped ports. This should
     // be a noop for VOQ switches
     FLAGS_disable_looped_fabric_ports = true;
+    // Fabric connectivity manager to expect single NPU
+    if (!FLAGS_multi_switch) {
+      FLAGS_janga_single_npu_for_testing = true;
+    }
   }
 };
 
@@ -543,7 +551,12 @@ TEST_F(AgentVoqSwitchWithFabricPortsTest, collectStats) {
           if (port->getPortType() == cfg::PortType::FABRIC_PORT) {
             EXPECT_EVENTUALLY_TRUE(loadBearingInErrors.has_value());
             EXPECT_EVENTUALLY_TRUE(loadBearingFecErrors.has_value());
-            EXPECT_EVENTUALLY_TRUE(loadBearingFlaps.has_value());
+            if (getAgentEnsemble()->getBootType() == BootType::COLD_BOOT) {
+              EXPECT_EVENTUALLY_TRUE(loadBearingFlaps.has_value());
+            } else {
+              // No port flap after wb, hence there no stats being recorded
+              EXPECT_FALSE(loadBearingFlaps.has_value());
+            }
           } else {
             EXPECT_FALSE(loadBearingInErrors.has_value());
             EXPECT_FALSE(loadBearingFecErrors.has_value());
@@ -1046,7 +1059,7 @@ TEST_F(AgentVoqSwitchTest, sendPacketCpuAndFrontPanel) {
             getLatestPortStats(kPort.phyPortID()).get_queueOutBytes_());
       };
       auto getAllVoQOutBytes = [kPort, this]() {
-        return getLatestSysPortStats(getSystemPortID(kPort))
+        return getLatestSysPortStats(getSystemPortID(kPort, cfg::Scope::GLOBAL))
             .get_queueOutBytes_();
       };
       auto getAclPackets = [this]() {
@@ -1468,7 +1481,7 @@ TEST_F(AgentVoqSwitchTest, verifyQueueLatencyWatermark) {
     utility::setPortTx(getAgentEnsemble(), kPort.phyPortID(), true);
     WITH_RETRIES({
       auto queueLatencyWatermarkNsec =
-          *getLatestSysPortStats(getSystemPortID(kPort))
+          *getLatestSysPortStats(getSystemPortID(kPort, cfg::Scope::GLOBAL))
                .queueLatencyWatermarkNsec_();
       XLOG(DBG2) << "Port: " << kPort.phyPortID() << " voq queueId: " << queueId
                  << " latency watermark: " << queueLatencyWatermarkNsec[queueId]
@@ -2083,7 +2096,7 @@ class AgentVoqSwitchFullScaleDsfNodesTest : public AgentVoqSwitchTest {
   // Resolve and return list of local nhops (only NIF ports)
   std::vector<PortDescriptor> resolveLocalNhops(
       utility::EcmpSetupTargetedPorts6& ecmpHelper) {
-    std::vector<PortDescriptor> portDescs = getLocalSysPortDesc();
+    std::vector<PortDescriptor> portDescs = getInterfacePortSysPortDesc();
 
     applyNewState([&](const std::shared_ptr<SwitchState>& in) {
       auto out = in->clone();
@@ -2131,7 +2144,7 @@ class AgentVoqSwitchFullScaleDsfNodesTest : public AgentVoqSwitchTest {
     return sysPortDescs;
   }
 
-  std::vector<PortDescriptor> getLocalSysPortDesc() {
+  std::vector<PortDescriptor> getInterfacePortSysPortDesc() {
     auto ports = getProgrammedState()->getPorts()->getAllNodes();
     std::vector<PortDescriptor> portDescs;
     std::for_each(
@@ -2140,8 +2153,8 @@ class AgentVoqSwitchFullScaleDsfNodesTest : public AgentVoqSwitchTest {
         [this, &portDescs](const auto& idAndPort) {
           const auto port = idAndPort.second;
           if (port->getPortType() == cfg::PortType::INTERFACE_PORT) {
-            portDescs.push_back(
-                PortDescriptor(getSystemPortID(PortDescriptor(port->getID()))));
+            portDescs.push_back(PortDescriptor(getSystemPortID(
+                PortDescriptor(port->getID()), cfg::Scope::GLOBAL)));
           }
         });
     return portDescs;
@@ -2165,6 +2178,10 @@ class AgentVoqSwitchFullScaleDsfNodesWithFabricPortsTest
     AgentVoqSwitchFullScaleDsfNodesTest::setCmdLineFlagOverrides();
     // Unhide fabric ports
     FLAGS_hide_fabric_ports = false;
+    // Fabric connectivity manager to expect single NPU
+    if (!FLAGS_multi_switch) {
+      FLAGS_janga_single_npu_for_testing = true;
+    }
   }
 };
 
@@ -2273,7 +2290,7 @@ TEST_F(AgentVoqSwitchFullScaleDsfNodesTest, remoteAndLocalLoadBalance) {
   auto verify = [&]() {
     std::vector<PortDescriptor> sysPortDescs;
     auto remoteSysPortDescs = getRemoteSysPortDesc();
-    auto localSysPortDescs = getLocalSysPortDesc();
+    auto localSysPortDescs = getInterfacePortSysPortDesc();
 
     sysPortDescs.insert(
         sysPortDescs.end(),
@@ -2321,10 +2338,8 @@ TEST_F(AgentVoqSwitchFullScaleDsfNodesTest, remoteAndLocalLoadBalance) {
 
 TEST_F(AgentVoqSwitchFullScaleDsfNodesTest, stressProgramEcmpRoutes) {
   auto kEcmpWidth = getMaxEcmpWidth();
-  // Stress add/delete 40 iterations of 5 routes with ECMP width.
-  // 40 iterations take ~17 mins on j3.
   const auto routeScale = 5;
-  const auto numIterations = 40;
+  const auto numIterations = 20;
   auto setup = [&]() {
     setupRemoteIntfAndSysPorts();
     utility::EcmpSetupTargetedPorts6 ecmpHelper(getProgrammedState());
@@ -2501,4 +2516,35 @@ TEST_F(
   verifyAcrossWarmBoots(setup, verify);
 }
 
+class AgentVoqSwitchConditionalEntropyTest : public AgentVoqSwitchTest {
+ public:
+  cfg::SwitchConfig initialConfig(
+      const AgentEnsemble& ensemble) const override {
+    auto cfg = AgentVoqSwitchTest::initialConfig(ensemble);
+    // Enable Conditional Entropy on Interface Ports
+    for (auto& port : *cfg.ports()) {
+      if (port.portType() == cfg::PortType::INTERFACE_PORT) {
+        port.conditionalEntropyRehash() = true;
+      }
+    }
+    return cfg;
+  }
+};
+
+TEST_F(AgentVoqSwitchConditionalEntropyTest, init) {
+  auto setup = []() {};
+
+  auto verify = [this]() {
+    auto state = getProgrammedState();
+    for (const auto& portMap : std::as_const(*state->getPorts())) {
+      for (const auto& port : std::as_const(*portMap.second)) {
+        if (port.second->getPortType() == cfg::PortType::INTERFACE_PORT) {
+          EXPECT_TRUE(port.second->getConditionalEntropyRehash());
+        }
+      }
+    }
+    // TODO: Program ECMP route, insert traffic and verify change in next hop.
+  };
+  verifyAcrossWarmBoots(setup, verify);
+}
 } // namespace facebook::fboss

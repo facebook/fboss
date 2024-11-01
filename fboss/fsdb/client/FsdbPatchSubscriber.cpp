@@ -58,7 +58,14 @@ FsdbPatchSubscriberImpl<MessageType, SubUnit, PathElement>::serveStream(
             this->getSubscriptionState() != SubscriptionState::CONNECTED) {
           BaseT::updateSubscriptionState(SubscriptionState::CONNECTED);
         }
-        this->operSubUnitUpdate_(message->move_chunk());
+        try {
+          this->operSubUnitUpdate_(message->move_chunk());
+        } catch (const std::exception& ex) {
+          FsdbException e;
+          e.message() = folly::exceptionStr(ex);
+          e.errorCode() = FsdbErrorCode::SUBSCRIPTION_DATA_CALLBACK_ERROR;
+          throw e;
+        }
         break;
       case SubscriberMessage::Type::heartbeat:
       case SubscriberMessage::Type::__EMPTY__:

@@ -28,6 +28,10 @@ class SwSwitchWarmBootHelper {
   const std::string& warmBootDir() const {
     return warmBootDir_;
   }
+  void logBoot(
+      const std::string& bootType,
+      const std::string& sdkVersion,
+      const std::string& agentVersion);
 
   static std::pair<
       std::shared_ptr<SwitchState>,
