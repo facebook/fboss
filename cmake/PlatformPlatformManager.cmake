@@ -171,6 +171,7 @@ target_link_libraries(platform_manager
   ioctl_smbus_eeprom_reader
   i2c_ctrl
   ${LIBGPIOD}
+  ${SYSTEMD}
   gpiod_line
 )
 

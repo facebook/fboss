@@ -703,6 +703,10 @@ find_library(LIBGPIOD gpiod)
 find_path(LIBGPIOD_INCLUDE_DIR NAMES gpiod.h)
 include_directories(${LIBGPIOD_INCLUDE_DIR})
 
+find_library(SYSTEMD systemd)
+find_path(SYSTEMD_INCLUDE_DIR NAMES systemd/sd-daemon.h)
+include_directories(${SYSTEMD_INCLUDE_DIR})
+
 # Unit Testing
 add_definitions (-DIS_OSS=true)
 find_package(Threads REQUIRED)
