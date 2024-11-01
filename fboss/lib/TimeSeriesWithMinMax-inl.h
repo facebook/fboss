@@ -90,9 +90,9 @@ void TimeSeriesWithMinMax<ValueType>::addValue(
     } else if (i + 1 < locked_buf->size()) {
       if (t < locked_buf->at(i + 1).getInstantiatedTime() &&
           t > b->getInstantiatedTime()) {
-        Bucket b(t, bucketInterval_);
-        b.addValue(value);
-        locked_buf->insert(locked_buf->begin() + i, std::move(b));
+        Bucket b_2(t, bucketInterval_);
+        b_2.addValue(value);
+        locked_buf->insert(locked_buf->begin() + i, std::move(b_2));
         return;
       }
     }

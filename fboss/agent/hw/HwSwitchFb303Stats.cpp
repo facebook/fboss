@@ -214,6 +214,11 @@ HwSwitchFb303Stats::HwSwitchFb303Stats(
           map,
           getCounterPrefix() + "phy_info_collection_failed",
           SUM,
+          RATE),
+      invalidQueueRxPackets_(
+          map,
+          getCounterPrefix() + "invalid_queue_rx_packets",
+          SUM,
           RATE) {}
 
 void HwSwitchFb303Stats::update(const HwSwitchDropStats& dropStats) {

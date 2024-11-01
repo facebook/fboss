@@ -107,6 +107,23 @@ bool hasPortQueueChanges(
   return false;
 }
 
+// PfcPriorities is compiled taking headroom limit into consideration
+// Refer to findEnabledPfcPriorities()
+bool hasPfcPrioritiesChanged(
+    const shared_ptr<facebook::fboss::Port>& oldPort,
+    const shared_ptr<facebook::fboss::Port>& newPort) {
+  auto oldList = oldPort->getPfcPriorities();
+  auto newList = newPort->getPfcPriorities();
+  std::set<facebook::fboss::PfcPriority> oldPfcPriorities(
+      oldList.begin(), oldList.end());
+  std::set<facebook::fboss::PfcPriority> newPfcPriorities(
+      newList.begin(), newList.end());
+  if (oldPfcPriorities != newPfcPriorities) {
+    return true;
+  }
+  return false;
+}
+
 bool hasPfcStatusChangedToEnabled(
     const shared_ptr<facebook::fboss::Port>& oldPort,
     const shared_ptr<facebook::fboss::Port>& newPort) {
@@ -1035,7 +1052,17 @@ void BcmPort::setupStatsIfNeeded(const std::shared_ptr<Port>& swPort) {
 
   if (!savedPort || swPort->getName() != savedPort->getName() ||
       hasPortQueueChanges(savedPort, swPort) ||
-      hasPfcStatusChangedToEnabled(savedPort, swPort)) {
+      hasPfcStatusChangedToEnabled(savedPort, swPort) ||
+      hasPfcPrioritiesChanged(savedPort, swPort)) {
+    // PfcPriorities can be
+    // - added (2 -> 2,6)
+    // - deleted (2,6 -> 6)
+    // - updated (2,6 -> 2,7)
+    // Clear the existing counters and reinit the new list
+    if (savedPort) {
+      auto pfcPriorities = savedPort->getPfcPriorities();
+      removePortPfcStatsLocked(lockedPortStatsPtr, swPort, pfcPriorities);
+    }
     reinitPortStatsLocked(lockedPortStatsPtr, swPort);
   }
   if (savedPort && hasPfcStatusChangedToDisabled(savedPort, swPort)) {

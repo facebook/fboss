@@ -571,6 +571,10 @@ class TransceiverManager {
     return isExiting_;
   }
 
+  bool isUpgradingFirmware() const {
+    return isUpgradingFirmware_;
+  }
+
   bool isFullyInitialized() const {
     return isFullyInitialized_;
   }
@@ -602,9 +606,13 @@ class TransceiverManager {
   // Determine if transceiver FW requires upgrade.
   // Transceiver has to be present, and the version in the QsfpConfig
   // has to be different from whats already running in HW.
-  bool requiresFirmwareUpgrade(Transceiver& tcvr) const;
+  std::optional<FirmwareUpgradeData> getFirmwareUpgradeData(
+      Transceiver& tcvr) const;
 
-  std::vector<std::string> getPortsRequiringOpticsFwUpgrade() const;
+  std::map<std::string, FirmwareUpgradeData> getPortsRequiringOpticsFwUpgrade()
+      const;
+
+  std::map<std::string, FirmwareUpgradeData> triggerAllOpticsFwUpgrade();
 
  protected:
   /*
@@ -801,7 +809,8 @@ class TransceiverManager {
 
   void triggerAgentConfigChangeEvent();
 
-  void triggerFirmwareUpgradeEvents(std::unordered_set<TransceiverID>& tcvrs);
+  void triggerFirmwareUpgradeEvents(
+      const std::unordered_set<TransceiverID>& tcvrs);
 
   // Update the cached PortStatus of TransceiverToPortInfo using wedge_agent
   // getPortStatus() results
@@ -873,6 +882,10 @@ class TransceiverManager {
   // A global flag to indicate whether the service is exiting.
   // If it is, we should not accept any state update
   std::atomic<bool> isExiting_{false};
+
+  // A global flag to indicate whether the any optics firmware upgrade is in
+  // progress
+  std::atomic<bool> isUpgradingFirmware_{false};
 
   /*
    * Flag that indicates whether the service has been fully initialized.
@@ -975,6 +988,8 @@ class TransceiverManager {
   std::atomic<int> failedOpticsFwUpgradeCount_{0};
   std::atomic<int> exceededTimeLimitFwUpgradeCount_{0};
   std::atomic<int> maxTimeTakenForFwUpgrade_{0};
+
+  folly::Synchronized<std::unordered_set<TransceiverID>> tcvrsForFwUpgrade;
 
   friend class TransceiverStateMachineTest;
 };

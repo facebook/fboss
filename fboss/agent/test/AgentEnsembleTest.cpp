@@ -4,6 +4,7 @@
 #include <folly/gen/Base.h>
 #include <optional>
 #include "fboss/agent/AgentConfig.h"
+#include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/CommonInit.h"
 #include "fboss/agent/HwAsicTable.h"
 #include "fboss/agent/Main.h"
@@ -57,6 +58,8 @@ void AgentEnsembleTest::setupAgentEnsemble() {
 void AgentEnsembleTest::setCmdLineFlagOverrides() const {
   // Looped ports are the common case in tests
   FLAGS_disable_looped_fabric_ports = false;
+  // Set HW agent connection timeout to 120 seconds
+  FLAGS_hw_agent_connection_timeout_ms = 120000;
 }
 
 void AgentEnsembleTest::TearDown() {

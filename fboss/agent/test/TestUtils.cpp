@@ -32,6 +32,7 @@
 #include "fboss/agent/test/HwTestHandle.h"
 #include "fboss/agent/test/MockTunManager.h"
 
+#include "fboss/agent/Constants.h"
 #include "fboss/agent/SwSwitchRouteUpdateWrapper.h"
 #include "fboss/agent/gen-cpp2/switch_config_constants.h"
 #include "fboss/agent/rib/RoutingInformationBase.h"
@@ -164,13 +165,13 @@ std::vector<std::string> getLoopbackIps(int64_t switchIdVal) {
   return {v6, v4};
 }
 
-uint16_t recycleSysPortId(const cfg::DsfNode& node) {
-  return *node.systemPortRange()->minimum() + 1;
-}
-
-cfg::Interface getRecyclePortRif(const cfg::DsfNode& myNode) {
+cfg::Interface getRecyclePortRif(
+    const cfg::DsfNode& myNode,
+    const cfg::SwitchConfig& cfg) {
   cfg::Interface recyclePortRif;
-  recyclePortRif.intfID() = recycleSysPortId(myNode);
+  recyclePortRif.intfID() = static_cast<uint32_t>(getInbandSystemPortID(
+      *cfg.switchSettings()->switchIdToSwitchInfo(),
+      SwitchID(*myNode.switchId())));
   recyclePortRif.type() = cfg::InterfaceType::SYSTEM_PORT;
   for (const auto& address : getLoopbackIps(*myNode.switchId())) {
     recyclePortRif.ipAddresses()->push_back(address);
@@ -179,7 +180,7 @@ cfg::Interface getRecyclePortRif(const cfg::DsfNode& myNode) {
 }
 
 void addRecyclePortRif(const cfg::DsfNode& myNode, cfg::SwitchConfig& cfg) {
-  cfg::Interface recyclePortRif = getRecyclePortRif(myNode);
+  cfg::Interface recyclePortRif = getRecyclePortRif(myNode, cfg);
   cfg.interfaces()->push_back(recyclePortRif);
 }
 
@@ -386,7 +387,10 @@ cfg::SwitchConfig testConfigBImpl() {
       const auto& port = cfg.ports()->at(index);
       cfg::Interface intf;
       auto intfId = getSystemPortID(
-          PortID(*port.logicalID()), switchId2SwitchInfo, switchIndex + 1);
+          PortID(*port.logicalID()),
+          *port.scope(),
+          switchId2SwitchInfo,
+          SwitchID(switchIndex + 1));
       XLOG(INFO) << "Port id : " << *port.logicalID()
                  << ", intf id : " << intfId;
       intf.intfID() = static_cast<int>(intfId);
@@ -411,7 +415,7 @@ cfg::SwitchConfig testConfigBImpl() {
     recyclePort.portType() = cfg::PortType::RECYCLE_PORT;
 
     recyclePorts.push_back(recyclePort);
-    auto recycleRif = getRecyclePortRif(myNode);
+    auto recycleRif = getRecyclePortRif(myNode, cfg);
     recycleIntfs.push_back(recycleRif);
   }
   for (auto recyclePort : recyclePorts) {
@@ -495,6 +499,10 @@ cfg::DsfNode makeDsfNodeCfg(
     dsfNodeCfg.systemPortRange() = sysPortRange;
     dsfNodeCfg.loopbackIps() = getLoopbackIps(switchId);
     dsfNodeCfg.nodeMac() = "02:00:00:00:0F:0B";
+    dsfNodeCfg.localSystemPortOffset() = *sysPortRange.minimum();
+    dsfNodeCfg.globalSystemPortOffset() = *sysPortRange.minimum();
+    dsfNodeCfg.systemPortRanges()->systemPortRanges()->push_back(sysPortRange);
+    dsfNodeCfg.inbandPortId() = kSingleStageInbandPortId;
   }
   dsfNodeCfg.asicType() = asicType;
   dsfNodeCfg.platformType() = type == cfg::DsfNodeType::INTERFACE_NODE
@@ -553,7 +561,7 @@ cfg::SwitchConfig testConfigFabricSwitch(
 
   for (int p = 0; p < kPortCount; ++p) {
     cfg.ports()[p].logicalID() = p + 1;
-    cfg.ports()[p].name() = folly::to<string>("port", p + 1);
+    cfg.ports()[p].name() = folly::to<string>("eth1/", p + 1, "/1");
     cfg.ports()[p].state() = cfg::PortState::ENABLED;
     cfg.ports()[p].speed() = cfg::PortSpeed::TWENTYFIVEG;
     cfg.ports()[p].profileID() =
@@ -1468,6 +1476,13 @@ cfg::SwitchInfo createSwitchInfo(
     systemPortRange.minimum() = *sysPortMin;
     systemPortRange.maximum() = *sysPortMax;
     switchInfo.systemPortRange() = systemPortRange;
+    switchInfo.systemPortRanges()->systemPortRanges()->push_back(
+        systemPortRange);
+    switchInfo.localSystemPortOffset() = *sysPortMin;
+    switchInfo.globalSystemPortOffset() = *sysPortMin;
+  }
+  if (switchType == cfg::SwitchType::VOQ) {
+    switchInfo.inbandPortId() = kSingleStageInbandPortId;
   }
   if (mac) {
     switchInfo.switchMac() = *mac;

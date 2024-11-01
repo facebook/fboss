@@ -17,9 +17,6 @@ class ConfigLib {
   virtual std::string getSensorServiceConfig(
       const std::optional<std::string>& platformName = std::nullopt) const;
 
-  virtual std::string getFbdevdConfig(
-      const std::optional<std::string>& platformName = std::nullopt) const;
-
   virtual std::string getFanServiceConfig(
       const std::optional<std::string>& platformName = std::nullopt) const;
 

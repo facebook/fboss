@@ -7,6 +7,7 @@
 #include "fboss/fsdb/tests/client/FsdbTestClients.h"
 #include "fboss/fsdb/tests/utils/FsdbTestServer.h"
 #include "fboss/lib/CommonUtils.h"
+#include "fboss/lib/thrift_service_client/ConnectionOptions.h"
 
 #include <folly/io/async/ScopedEventBaseThread.h>
 #include <folly/synchronization/Baton.h>
@@ -255,54 +256,53 @@ class FsdbPubSubManagerTest : public ::testing::Test {
     return {std::move(path)};
   }
 
-  void addStatDeltaSubscription(
+  std::string addStatDeltaSubscription(
       FsdbDeltaSubscriber::FsdbOperDeltaUpdateCb operDeltaUpdate,
       SubscriptionStateChangeCb stChangeCb) {
-    pubSubManager_->addStatDeltaSubscription(
+    return pubSubManager_->addStatDeltaSubscription(
         subscriptionPath(),
         stChangeCb,
         operDeltaUpdate,
-        FsdbStreamClient::ServerOptions("::1", fsdbTestServer_->getFsdbPort()));
+        utils::ConnectionOptions("::1", fsdbTestServer_->getFsdbPort()));
   }
-  void addStateDeltaSubscription(
+  std::string addStateDeltaSubscription(
       FsdbDeltaSubscriber::FsdbOperDeltaUpdateCb operDeltaUpdate,
       SubscriptionStateChangeCb stChangeCb) {
-    pubSubManager_->addStateDeltaSubscription(
+    return pubSubManager_->addStateDeltaSubscription(
         subscriptionPath(),
         stChangeCb,
         operDeltaUpdate,
-        FsdbStreamClient::ServerOptions("::1", fsdbTestServer_->getFsdbPort()));
+        utils::ConnectionOptions("::1", fsdbTestServer_->getFsdbPort()));
   }
   void addSubscriptions(
       FsdbDeltaSubscriber::FsdbOperDeltaUpdateCb operDeltaUpdate) {
     addStatDeltaSubscription(operDeltaUpdate, subscrStateChangeCb());
     addStateDeltaSubscription(operDeltaUpdate, subscrStateChangeCb());
   }
-  void addStatPathSubscription(
+  std::string addStatPathSubscription(
       FsdbStateSubscriber::FsdbOperStateUpdateCb operPathUpdate,
       SubscriptionStateChangeCb stChangeCb) {
-    pubSubManager_->addStatPathSubscription(
+    return pubSubManager_->addStatPathSubscription(
         subscriptionPath(),
         stChangeCb,
         operPathUpdate,
-        FsdbStreamClient::ServerOptions("::1", fsdbTestServer_->getFsdbPort()));
+        utils::ConnectionOptions("::1", fsdbTestServer_->getFsdbPort()));
   }
-  void addStatePathSubscription(
+  std::string addStatePathSubscription(
       FsdbStateSubscriber::FsdbOperStateUpdateCb operPathUpdate,
       SubscriptionStateChangeCb stChangeCb) {
-    pubSubManager_->addStatePathSubscription(
+    return pubSubManager_->addStatePathSubscription(
         subscriptionPath(),
         stChangeCb,
         operPathUpdate,
-        FsdbStreamClient::ServerOptions("::1", fsdbTestServer_->getFsdbPort()));
+        utils::ConnectionOptions("::1", fsdbTestServer_->getFsdbPort()));
   }
   void addStatePathSubscriptionWithGrHoldTime(
       FsdbStateSubscriber::FsdbOperStateUpdateCb operPathUpdate,
       SubscriptionStateChangeCb stChangeCb,
       uint32_t grHoldTimeSec) {
     auto subscribeStats = false;
-    ReconnectingThriftClient::ServerOptions serverOpts{
-        "::1", fsdbTestServer_->getFsdbPort()};
+    utils::ConnectionOptions connOpts{"::1", fsdbTestServer_->getFsdbPort()};
     SubscriptionOptions opts{
         pubSubManager_->getClientId(), subscribeStats, grHoldTimeSec};
     pubSubManager_->addStatePathSubscription(
@@ -310,15 +310,14 @@ class FsdbPubSubManagerTest : public ::testing::Test {
         subscriptionPath(),
         stChangeCb,
         operPathUpdate,
-        std::move(serverOpts));
+        std::move(connOpts));
   }
-  void addStateExtDeltaSubscription(
+  std::string addStateExtDeltaSubscription(
       FsdbExtDeltaSubscriber::FsdbOperDeltaUpdateCb operDeltaCb,
       SubscriptionStateChangeCb stChangeCb) {
-    ReconnectingThriftClient::ServerOptions serverOpts{
-        "::1", fsdbTestServer_->getFsdbPort()};
-    pubSubManager_->addStateExtDeltaSubscription(
-        extSubscriptionPaths(), stChangeCb, operDeltaCb, std::move(serverOpts));
+    utils::ConnectionOptions connOpts{"::1", fsdbTestServer_->getFsdbPort()};
+    return pubSubManager_->addStateExtDeltaSubscription(
+        extSubscriptionPaths(), stChangeCb, operDeltaCb, std::move(connOpts));
   }
   void addSubscriptions(
       FsdbStateSubscriber::FsdbOperStateUpdateCb operPathUpdate) {
@@ -469,6 +468,88 @@ TYPED_TEST(FsdbPubSubManagerTest, publishMultipleSubscribersPruneSome) {
   this->publish(makeAgentConfig({{"bar", "baz"}}));
   this->assertQueue(deltas, 2);
   this->assertQueue(states, 4);
+}
+
+TYPED_TEST(FsdbPubSubManagerTest, subscriberAppError) {
+  this->createPublishers();
+  folly::Synchronized<std::vector<OperDelta>> statDeltas, stateDeltas;
+  folly::Synchronized<std::vector<OperState>> statPaths, statePaths;
+  std::map<std::tuple<bool, std::string>, std::string> subKeys;
+  std::map<std::string, bool> exceptionThrown;
+
+  exceptionThrown["StatDelta"] = false;
+  subKeys[std::make_tuple(true, "StatDelta")] = this->addStatDeltaSubscription(
+      [&exceptionThrown](OperDelta&&) {
+        if (!exceptionThrown["StatDelta"]) {
+          exceptionThrown["StatDelta"] = true;
+          throw std::runtime_error("test app exception");
+        }
+      },
+      this->subscrStateChangeCb(statDeltas));
+  exceptionThrown["StateDelta"] = false;
+  subKeys[std::make_tuple(false, "StateDelta")] =
+      this->addStateDeltaSubscription(
+          [&exceptionThrown](OperDelta&&) {
+            if (!exceptionThrown["StateDelta"]) {
+              exceptionThrown["StateDelta"] = true;
+              throw std::runtime_error("test app exception");
+            }
+          },
+          this->subscrStateChangeCb(stateDeltas));
+  exceptionThrown["StatPath"] = false;
+  subKeys[std::make_tuple(true, "StatPath")] = this->addStatPathSubscription(
+      [&exceptionThrown](OperState&&) {
+        if (!exceptionThrown["StatPath"]) {
+          exceptionThrown["StatPath"] = true;
+          throw std::runtime_error("test app exception");
+        }
+      },
+      this->subscrStateChangeCb(statPaths));
+  exceptionThrown["StatePath"] = false;
+  subKeys[std::make_tuple(false, "StatePath")] = this->addStatePathSubscription(
+      [&exceptionThrown](OperState&&) {
+        if (!exceptionThrown["StatePath"]) {
+          exceptionThrown["StatePath"] = true;
+          throw std::runtime_error("test app exception");
+        }
+      },
+      this->subscrStateChangeCb(statePaths));
+
+  // check: no dataCbErrors till publish
+  WITH_RETRIES_N(this->kRetries, {
+    // In tests, we don't start the publisher threads
+    fb303::ThreadCachedServiceData::get()->publishStats();
+    for (auto [sub, key] : subKeys) {
+      auto counterPrefix =
+          this->pubSubManager_->getSubscriberStatsPrefix(std::get<0>(sub), key);
+      EXPECT_EVENTUALLY_EQ(
+          fb303::ServiceData::get()->getCounter(
+              counterPrefix + ".disconnectReason.dataCbError.sum.60"),
+          0);
+    }
+  });
+
+  // Publish
+  this->publish(makePortStats(1));
+  this->publish(makeAgentConfig({{"foo", "bar"}}));
+
+  // check: disconnectReason.dataCbError for all subscription types
+  WITH_RETRIES_N(this->kRetries, {
+    // In tests, we don't start the publisher threads
+    fb303::ThreadCachedServiceData::get()->publishStats();
+    for (auto [sub, key] : subKeys) {
+      auto counterPrefix =
+          this->pubSubManager_->getSubscriberStatsPrefix(std::get<0>(sub), key);
+      EXPECT_EVENTUALLY_EQ(
+          fb303::ServiceData::get()->getCounter(
+              counterPrefix + ".disconnectReason.dataCbError.sum.60"),
+          1);
+    }
+  });
+
+  // Reset pubsub manager while local vector objects are in scope, since
+  // we reference them in state change callbacks
+  this->pubSubManager_.reset();
 }
 
 template <typename TestParam>

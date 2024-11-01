@@ -27,7 +27,8 @@ void CowPublishAndAddTraverseHelper::onPushImpl(
     if (FLAGS_lazyPathStoreCreation) {
       child = lastPathStore->child(newTok);
     } else {
-      child = lastPathStore->getOrCreateChild(newTok);
+      child =
+          lastPathStore->getOrCreateChild(newTok, store_->getPathStoreStats());
     }
     // this assumes currPath has size > 0, which we know because we
     // would have added at least one elem in TraverseHelper::push().

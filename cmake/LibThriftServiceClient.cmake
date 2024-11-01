@@ -5,6 +5,7 @@
 
 add_library(thrift_service_client
   fboss/lib/thrift_service_client/ThriftServiceClient.cpp
+  fboss/lib/thrift_service_client/ConnectionOptions.cpp
   fboss/lib/thrift_service_client/oss/ThriftServiceClient.cpp
 )
 

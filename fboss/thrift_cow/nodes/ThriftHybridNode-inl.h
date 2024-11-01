@@ -23,6 +23,7 @@ template <typename TypeClass, typename TType>
 struct ThriftHybridNode : public thrift_cow::Serializable {
  public:
   using ThriftType = TType;
+  using TC = TypeClass;
   using CowType = HybridNodeType;
   using Self = ThriftHybridNode<TypeClass, TType>;
   using PathIter = typename std::vector<std::string>::const_iterator;
@@ -103,7 +104,10 @@ struct ThriftHybridNode : public thrift_cow::Serializable {
 
 #ifdef ENABLE_DYNAMIC_APIS
   folly::dynamic toFollyDynamic() const {
-    return folly::toDynamic(this->ref());
+    folly::dynamic dyn;
+    facebook::thrift::to_dynamic(
+        dyn, this->ref(), facebook::thrift::dynamic_format::JSON_1);
+    return dyn;
   }
 
   // this would override the underlying thrift object

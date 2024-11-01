@@ -86,6 +86,10 @@ class SwitchState;
 class Interface;
 class SwitchSettings;
 class SwitchIdScopeResolver;
+class PlatformMapping;
+struct AgentConfig;
+class HwAsic;
+class HwSwitchFb303Stats;
 
 constexpr auto kRecyclePortIdOffset = 1;
 
@@ -248,17 +252,21 @@ PortID getPortID(
 
 SystemPortID getSystemPortID(
     const PortID& portId,
-    const std::map<int64_t, cfg::SwitchInfo>& switchToSwitchInfo,
-    int64_t switchId);
-
-SystemPortID getSystemPortID(
-    const PortID& portId,
+    cfg::Scope portScope,
     const std::map<int64_t, cfg::SwitchInfo>& switchToSwitchInfo,
     SwitchID switchId);
 
 SystemPortID getSystemPortID(
     const PortID& portId,
     const std::shared_ptr<SwitchState>& state,
+    SwitchID switchId);
+
+SystemPortID getInbandSystemPortID(
+    const std::shared_ptr<SwitchState>& state,
+    SwitchID switchId);
+
+SystemPortID getInbandSystemPortID(
+    const std::map<int64_t, cfg::SwitchInfo>& switchToSwitchInfo,
     SwitchID switchId);
 
 cfg::Range64 getFirstSwitchSystemPortIdRange(
@@ -268,6 +276,9 @@ std::vector<PortID> getPortsForInterface(
     InterfaceID intf,
     const std::shared_ptr<SwitchState>& state);
 
+bool withinRange(const cfg::SystemPortRanges& ranges, InterfaceID intfId);
+
+bool withinRange(const cfg::SystemPortRanges& ranges, SystemPortID sysPortId);
 /*
  * An NPU switch injects a broadcast message such as neighbor solicitation or
  * advertisement via pipeline lookup. ASIC forwards these messages to all the
@@ -419,7 +430,7 @@ uint32_t getRemotePortOffset(const PlatformType platformType);
 
 std::string runShellCmd(const std::string& cmd);
 
-InterfaceID getRecyclePortIntfID(
+InterfaceID getInbandPortIntfID(
     const std::shared_ptr<SwitchState>& state,
     const SwitchID& switchId);
 
@@ -437,8 +448,12 @@ bool haveParallelLinksToInterfaceNodes(
     const std::vector<SwitchID>& localFabricSwitchIds,
     const std::unordered_map<std::string, std::vector<uint32_t>>&
         switchNameToSwitchIds,
-    SwitchIdScopeResolver& scopeResolver);
+    SwitchIdScopeResolver& scopeResolver,
+    const PlatformMapping* platformMapping);
 
-CpuCosQueueId hwQueueIdToCpuCosQueueId(uint8_t hwQueueId);
+CpuCosQueueId hwQueueIdToCpuCosQueueId(
+    uint8_t hwQueueId,
+    const HwAsic* asic,
+    HwSwitchFb303Stats* hwswitchStats);
 int numFabricLevels(const std::map<int64_t, cfg::DsfNode>& dsfNodes);
 } // namespace facebook::fboss

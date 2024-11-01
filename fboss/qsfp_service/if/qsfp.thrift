@@ -295,7 +295,13 @@ service QsfpService extends phy.FbossCommonPhyCtrl {
     1: fboss.FbossBaseError error,
   );
 
-  list<string> getPortsRequiringOpticsFwUpgrade() throws (
-    1: fboss.FbossBaseError error,
-  );
+  map<
+    string,
+    transceiver.FirmwareUpgradeData
+  > getPortsRequiringOpticsFwUpgrade() throws (1: fboss.FbossBaseError error);
+
+  map<
+    string,
+    transceiver.FirmwareUpgradeData
+  > triggerAllOpticsFwUpgrade() throws (1: fboss.FbossBaseError error);
 }

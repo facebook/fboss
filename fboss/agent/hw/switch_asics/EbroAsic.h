@@ -2,7 +2,6 @@
 
 #pragma once
 
-#include "fboss/agent/FbossError.h"
 #include "fboss/agent/hw/sai/impl/util.h"
 #include "fboss/agent/hw/switch_asics/TajoAsic.h"
 
@@ -57,7 +56,9 @@ class EbroAsic : public TajoAsic {
       cfg::StreamType streamType,
       cfg::PortType /*portType*/) const override;
   uint32_t getMaxLabelStackDepth() const override {
-    return 3;
+    //  sdk > 1.42.8  MAX_LABEL_STACK_SIZE = 9 sai/src/sai_device_params.h
+    //  Remove this once new SDK rolls out
+    return isP4WarmbootEnabled() ? 9 : 3;
   }
   uint64_t getMMUSizeBytes() const override {
     return 108 * 1024 * 1024;

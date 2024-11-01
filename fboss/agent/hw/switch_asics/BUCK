@@ -6,6 +6,7 @@ cpp_library(
     name = "switch_asics",
     srcs = [
         "BroadcomXgsAsic.cpp",
+        "ChenabAsic.cpp",
         "CredoPhyAsic.cpp",
         "EbroAsic.cpp",
         "HwAsic.cpp",
@@ -22,6 +23,7 @@ cpp_library(
     ],
     headers = [
         "BroadcomAsic.h",
+        "ChenabAsic.h",
         "FakeAsic.h",
         "MockAsic.h",
         "TajoAsic.h",

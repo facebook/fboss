@@ -12,38 +12,44 @@
 #include <folly/logging/xlog.h>
 #include <fstream>
 #include <string>
-#include "fboss/agent/FbossError.h"
 #include "fboss/led_service/LedUtils.h"
 #include "fboss/lib/led/gen-cpp2/led_mapping_types.h"
 
-namespace {
-constexpr auto kLedOn = "1";
-constexpr auto kLedOff = "0";
-constexpr auto kLedBrightnessPath = "/brightness";
-constexpr auto kLedTriggerPath = "/trigger";
-constexpr auto kLedDelayOnPath = "/delay_on";
-constexpr auto kLedDelayOffPath = "/delay_off";
-constexpr auto kLedTimerTrigger = "timer";
-constexpr auto kLedBlinkOff = "0";
-constexpr auto kLedBlinkSlow = "1000";
-constexpr auto kLedBlinkFast = "500";
-} // namespace
-
 namespace facebook::fboss {
 
-LedIO::LedIO(LedMapping ledMapping) {
-  id_ = *ledMapping.id();
-  if (auto blue = ledMapping.bluePath()) {
-    bluePath_ = *blue;
-  }
-  if (auto yellow = ledMapping.yellowPath()) {
-    yellowPath_ = *yellow;
-  }
-  if (!bluePath_.has_value() && !yellowPath_.has_value()) {
+LedIO::LedIO(LedMapping ledMapping) : id_(*ledMapping.id()) {
+  if (!ledMapping.bluePath().has_value() ||
+      !ledMapping.yellowPath().has_value()) {
     throw LedIOError(
         fmt::format("No color path set for ID {:d} (0 base)", id_));
   }
+  bluePath_ = ledMapping.bluePath().value();
+  yellowPath_ = ledMapping.yellowPath().value();
+  initMaxBrightness(bluePath_, blueMaxBrightness_);
+  initMaxBrightness(yellowPath_, yellowMaxBrightness_);
   init();
+}
+
+void LedIO::initMaxBrightness(
+    const std::string& path,
+    std::string& maxBrightness) {
+  std::fstream fs;
+  auto maxBrightnessPath = path + kLedMaxBrightnessPath;
+  fs.open(maxBrightnessPath, std::fstream::in);
+  if (fs.is_open()) {
+    fs >> maxBrightness;
+    fs.close();
+  } else {
+    throw LedIOError(fmt::format(
+        "initMaxBrightness() failed to open {} for ID {:d} (0 base)",
+        maxBrightnessPath,
+        id_));
+  }
+  auto value = folly::to<int>(maxBrightness);
+  CHECK((value >= kMinBrightness) && (value <= kMaxBrightness)) << fmt::format(
+      "Value of brightness is not in range {} {}",
+      kMinBrightness,
+      kMaxBrightness);
 }
 
 void LedIO::setLedState(led::LedState ledState) {
@@ -78,20 +84,14 @@ led::LedState LedIO::getLedState() const {
 void LedIO::init() {
   led::LedState ledState =
       utility::constructLedState(led::LedColor::OFF, led::Blink::OFF);
-
   currState_ = ledState;
-  if (bluePath_.has_value()) {
-    blueOff();
-  }
-  if (yellowPath_.has_value()) {
-    yellowOff();
-  }
+  blueOff();
+  yellowOff();
 }
 
 void LedIO::blueOn(led::Blink blink) {
-  CHECK(bluePath_.has_value());
-  setBlink(*bluePath_, blink);
-  setLed(*bluePath_, kLedOn);
+  setBlink(bluePath_, blink);
+  setLed(bluePath_, blueMaxBrightness_);
   XLOG(INFO) << fmt::format(
       "Trace: set LED {:d} (0 base) to Blue and blink {:s}",
       id_,
@@ -99,15 +99,13 @@ void LedIO::blueOn(led::Blink blink) {
 }
 
 void LedIO::blueOff() {
-  CHECK(bluePath_.has_value());
-  setBlink(*bluePath_, led::Blink::OFF);
-  setLed(*bluePath_, kLedOff);
+  setBlink(bluePath_, led::Blink::OFF);
+  setLed(bluePath_, kLedOff);
 }
 
 void LedIO::yellowOn(led::Blink blink) {
-  CHECK(yellowPath_.has_value());
-  setBlink(*yellowPath_, blink);
-  setLed(*yellowPath_, kLedOn);
+  setBlink(yellowPath_, blink);
+  setLed(yellowPath_, yellowMaxBrightness_);
   XLOG(INFO) << fmt::format(
       "Trace: set LED {:d} (0 base) to Yellow and blink {:s}",
       id_,
@@ -115,9 +113,8 @@ void LedIO::yellowOn(led::Blink blink) {
 }
 
 void LedIO::yellowOff() {
-  CHECK(yellowPath_.has_value());
-  setBlink(*yellowPath_, led::Blink::OFF);
-  setLed(*yellowPath_, kLedOff);
+  setBlink(yellowPath_, led::Blink::OFF);
+  setLed(yellowPath_, kLedOff);
 }
 
 void LedIO::setLed(const std::string& ledBasePath, const std::string& ledOp) {

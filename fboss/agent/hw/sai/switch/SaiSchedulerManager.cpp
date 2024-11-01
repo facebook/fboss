@@ -24,11 +24,19 @@ namespace {
 SaiSchedulerTraits::CreateAttributes makeSchedulerAttributes(
     const PortQueue& portQueue) {
   sai_scheduling_type_t type = SAI_SCHEDULING_TYPE_STRICT;
-  uint8_t weight = 0;
+  std::optional<uint8_t> weight;
   if (portQueue.getScheduling() == QueueScheduling::WEIGHTED_ROUND_ROBIN) {
     type = SAI_SCHEDULING_TYPE_DWRR;
     weight = portQueue.getWeight();
   }
+#if defined(BRCM_SAI_SDK_XGS_AND_DNX) || defined(TAJO_SAI_SDK)
+  else {
+    // BRCM SAI returns weight of 1 on warm boot even if create api was invoked
+    // without this, retain old behavior for TAJO SAI in which weight if 0 was
+    // set to 1 otherwise weight given in switch config (only for DWRR)
+    weight = 1;
+  }
+#endif
   uint64_t minBwRate = 0, maxBwRate = 0;
   int32_t meterType = SAI_METER_TYPE_BYTES;
   if (const auto& portQueueRate = portQueue.getPortQueueRate()) {
@@ -73,9 +81,8 @@ SaiSchedulerTraits::CreateAttributes makeSchedulerAttributes(
         break;
     }
   }
-  // weight 0 is invalid
   return SaiSchedulerTraits::CreateAttributes(
-      {type, !weight ? 1 : weight, meterType, minBwRate, maxBwRate});
+      {type, weight, meterType, minBwRate, maxBwRate});
 }
 
 } // namespace

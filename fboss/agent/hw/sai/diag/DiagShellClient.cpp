@@ -177,8 +177,8 @@ class SignalHandler : public AsyncSignalHandler {
 
 int main(int argc, char* argv[]) {
   folly::init(&argc, &argv);
-  facebook::fboss::FbossEventBase streamEvb;
-  facebook::fboss::FbossEventBase stdinEvb;
+  facebook::fboss::FbossEventBase streamEvb{"DiagShellClientStreamEventBase"};
+  facebook::fboss::FbossEventBase stdinEvb{"DiagShellClientStdinEventBase"};
 
   bool stopThread = false;
   // Converts the host to IP address if a hostname is given

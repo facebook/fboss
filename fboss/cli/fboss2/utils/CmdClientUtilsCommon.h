@@ -25,6 +25,11 @@ std::unique_ptr<T> createClient(const HostInfo& hostInfo);
 template <typename T>
 std::unique_ptr<T> createClient(const HostInfo& hostInfo, int switchIndex);
 
+template <typename T>
+std::unique_ptr<T> createClient(
+    const HostInfo& hostInfo,
+    const std::chrono::milliseconds& timeout);
+
 // Some clients do not require info about host info
 template <typename T>
 std::unique_ptr<T> createClient();

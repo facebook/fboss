@@ -45,3 +45,13 @@ cpp_unittest(
         "//fboss/platform/sensor_service:utils",
     ],
 )
+
+cpp_unittest(
+    name = "config_validator_test",
+    srcs = [
+        "ConfigValidatorTest.cpp",
+    ],
+    deps = [
+        "//fboss/platform/sensor_service:config_validator",
+    ],
+)

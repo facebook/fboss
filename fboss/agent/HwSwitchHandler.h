@@ -131,7 +131,7 @@ class HwSwitchHandler {
 
   const SwitchID switchId_;
   const cfg::SwitchInfo info_;
-  FbossEventBase hwSwitchManagerEvb_;
+  FbossEventBase hwSwitchManagerEvb_{"HwSwitchManagerEvb"};
   std::unique_ptr<std::thread> hwSwitchManagerThread_;
   const OperDeltaFilter operDeltaFilter_;
 };

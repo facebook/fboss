@@ -3,9 +3,9 @@
 #include <gtest/gtest.h>
 #include <latch>
 
-#include "fboss/fsdb/client/Client.h"
 #include "fboss/fsdb/tests/utils/FsdbTestServer.h"
 #include "fboss/lib/CommonUtils.h"
+#include "fboss/lib/thrift_service_client/ThriftServiceClient.h"
 
 namespace facebook::fboss::fsdb::test {
 
@@ -21,12 +21,8 @@ class ServiceHandlerTest : public ::testing::Test {
 
   std::unique_ptr<apache::thrift::Client<FsdbService>> createClient(
       folly::EventBase* evb) {
-    return Client::getClient(
-        folly::SocketAddress("::1", getFsdbPort()),
-        std::nullopt,
-        std::nullopt,
-        false /* plaintextClient */,
-        evb);
+    return utils::createFsdbClient(
+        utils::ConnectionOptions("::1", getFsdbPort()), evb);
   }
 
   uint16_t getFsdbPort() const {
@@ -39,6 +35,19 @@ class ServiceHandlerTest : public ::testing::Test {
     OperSubRequest req;
     req.subscriberId() = subId;
     req.path() = operPath;
+    return req;
+  }
+
+  SubRequest createPatchRequest(
+      const std::string& subId,
+      bool forceSubscribe = false) {
+    SubRequest req;
+    RawOperPath p;
+    p.path() = {"agent"};
+    req.paths() = {{0, p}};
+    req.clientId()->client() = FsdbClient::AGENT;
+    req.clientId()->instanceId() = subId;
+    req.forceSubscribe() = forceSubscribe;
     return req;
   }
 
@@ -107,6 +116,20 @@ TEST_F(ServiceHandlerTest, testSubscriberInfo) {
     client->sync_getAllOperSubscriberInfos(subInfos);
     EXPECT_EVENTUALLY_EQ(subInfos.size(), 1);
   });
+}
+
+TEST_F(ServiceHandlerTest, subscribeDup) {
+  folly::EventBase evb;
+  auto client = createClient(&evb);
+  auto sub1 = client->sync_subscribeState(createPatchRequest("test-sub-1"));
+  EXPECT_THROW(
+      client->sync_subscribeState(createPatchRequest("test-sub-1")),
+      fsdb::FsdbException);
+
+  auto sub2 =
+      client->sync_subscribeState(createPatchRequest("test-sub-2", true));
+  EXPECT_NO_THROW(
+      client->sync_subscribeState(createPatchRequest("test-sub-2", true)));
 }
 
 } // namespace facebook::fboss::fsdb::test

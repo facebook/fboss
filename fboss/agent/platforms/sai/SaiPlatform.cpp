@@ -37,6 +37,7 @@
 #include "fboss/agent/platforms/sai/SaiMorgan800ccPlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiTahan800bcPlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiWedge400CPlatformPort.h"
+#include "fboss/agent/platforms/sai/SaiYangraPlatformPort.h"
 #include "fboss/agent/state/Port.h"
 #include "fboss/lib/CommonFileUtils.h"
 #include "fboss/lib/config/PlatformConfigUtils.h"
@@ -258,6 +259,18 @@ std::string SaiPlatform::getHwAsicConfig(
   for (const auto& entry : commonConfigs) {
     addNameValue(entry);
   }
+
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_0) && !defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+  if (getAsic()->isSupported(HwAsic::Feature::EVENTOR_PORT_FOR_SFLOW)) {
+    // Interim workaround for 11.7 GA as this SoC property is needed for
+    // J3AI 11.x but not for 12.x until 12.0.0.3/4.
+    // TODO: While integrating 12.0.0.3/4, these workarounds need to be removed
+    // and instead this SoC property would be added in config directly.
+    nameValStrs.push_back("eventor_sbus_dma_channels.BCM8889X=0,6,0,7");
+    nameValStrs.push_back("custom_feature_shel_arm_enable=1");
+  }
+#endif
+
   /*
    * Single NPU platfroms will not have any npu entries. In such cases,
    * we can directly use the common config.
@@ -351,7 +364,9 @@ void SaiPlatform::initPorts() {
       }
     } else if (platformMode == PlatformType::PLATFORM_MERU400BIU) {
       saiPort = std::make_unique<SaiMeru400biuPlatformPort>(portId, this);
-    } else if (platformMode == PlatformType::PLATFORM_MERU800BIA) {
+    } else if (
+        platformMode == PlatformType::PLATFORM_MERU800BIA ||
+        platformMode == PlatformType::PLATFORM_MERU800BIAB) {
       saiPort = std::make_unique<SaiMeru800biaPlatformPort>(portId, this);
     } else if (platformMode == PlatformType::PLATFORM_MERU400BIA) {
       saiPort = std::make_unique<SaiMeru400biaPlatformPort>(portId, this);
@@ -367,6 +382,8 @@ void SaiPlatform::initPorts() {
       saiPort = std::make_unique<SaiJanga800bicPlatformPort>(portId, this);
     } else if (platformMode == PlatformType::PLATFORM_TAHAN800BC) {
       saiPort = std::make_unique<SaiTahan800bcPlatformPort>(portId, this);
+    } else if (platformMode == PlatformType::PLATFORM_YANGRA) {
+      saiPort = std::make_unique<SaiYangraPlatformPort>(portId, this);
     } else {
       saiPort = std::make_unique<SaiFakePlatformPort>(portId, this);
     }
@@ -440,7 +457,8 @@ std::vector<SaiPlatformPort*> SaiPlatform::getPortsWithTransceiverID(
 SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
     bool mandatoryOnly,
     cfg::SwitchType swType,
-    std::optional<int64_t> swId) {
+    std::optional<int64_t> swId,
+    BootType bootType) {
   SaiSwitchTraits::Attributes::InitSwitch initSwitch(true);
 
   std::optional<SaiSwitchTraits::Attributes::HwInfo> hwInfo = getHwInfo(this);
@@ -587,6 +605,24 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
     delayDropCongThreshold = 1;
   }
 #endif
+  std::optional<
+      SaiSwitchTraits::Attributes::FabricLinkLayerFlowControlThreshold>
+      fabricLLFC;
+#if defined(BRCM_SAI_SDK_DNX) && defined(BRCM_SAI_SDK_GTE_12_0)
+  if (getAsic()->getSwitchType() == cfg::SwitchType::FABRIC &&
+      getAsic()->getFabricNodeRole() == HwAsic::FabricNodeRole::DUAL_STAGE_L1) {
+    CHECK(getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_RAMON3)
+        << " LLFC threshold values for no R3 chips in DUAL_STAGE_L1 role needs to figured out";
+    // Vendor suggested valie
+    constexpr uint32_t kRamon3LlfcThreshold{800};
+    fabricLLFC = std::vector<uint32_t>({kRamon3LlfcThreshold});
+  }
+#endif
+  if (swType == cfg::SwitchType::FABRIC && bootType == BootType::COLD_BOOT) {
+    // FABRIC switches should always start in isolated state until we configure
+    // the switch
+    switchIsolate = true;
+  }
 
   return {
       initSwitch,
@@ -651,6 +687,10 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
 #endif
       std::nullopt, // ReachabilityGroupList
       delayDropCongThreshold, // Delay Drop Cong Threshold
+      fabricLLFC,
+      std::nullopt, // SRAM free percent XOFF threshold
+      std::nullopt, // SRAM free percent XON threshold
+      std::nullopt, // No acls for traps
   };
 }
 

@@ -76,5 +76,7 @@ class CredoPhyAsic : public HwAsic {
       cfg::MMUScalingFactor scalingFactor) const override;
   uint32_t getStaticQueueLimitBytes() const override;
   uint32_t getNumMemoryBuffers() const override;
+  int getMidPriCpuQueueId() const override;
+  int getHiPriCpuQueueId() const override;
 };
 } // namespace facebook::fboss

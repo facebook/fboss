@@ -29,10 +29,12 @@ add_library(agent_hw_test_src
   fboss/agent/test/agent_hw_tests/AgentQueuePerHostL2Tests.cpp
   fboss/agent/test/agent_hw_tests/AgentQueuePerHostTests.cpp
   fboss/agent/test/agent_hw_tests/AgentQueuePerHostRouteTests.cpp
+  fboss/agent/test/agent_hw_tests/AgentRouteTests.cpp
   fboss/agent/test/agent_hw_tests/AgentVoqSwitchTests.cpp
   fboss/agent/test/agent_hw_tests/AgentVoqSwitchInterruptsTests.cpp
   fboss/agent/test/agent_hw_tests/AgentFabricSwitchTests.cpp
   fboss/agent/test/agent_hw_tests/AgentPortBandWidthTests.cpp
+  fboss/agent/test/agent_hw_tests/AgentPortTests.cpp
   fboss/agent/test/agent_hw_tests/AgentPrbsTests.cpp
   fboss/agent/test/agent_hw_tests/AgentAclCounterTests.cpp
   fboss/agent/test/agent_hw_tests/AgentAqmTests.cpp
@@ -65,6 +67,7 @@ target_link_libraries(agent_hw_test_src
   packet
   packet_snooper
   queue_per_host_test_utils
+  multi_port_traffic_test_utils
   trap_packet_utils
   core
   hw_asic_table
@@ -78,6 +81,7 @@ target_link_libraries(agent_hw_test_src
   trunk_utils
   traffic_policy_utils
   olympic_qos_utils
+  pfc_test_utils
   qos_test_utils
   queue_test_utils
   invariant_test_utils
@@ -130,6 +134,8 @@ function(BUILD_SAI_AGENT_HW_TEST SAI_IMPL_NAME SAI_IMPL_ARG)
   add_executable(sai_agent_hw_test-${SAI_IMPL_NAME}
     fboss/agent/test/agent_hw_tests/SaiAgentHwTest.cpp
   )
+
+  add_sai_sdk_dependencies(sai_agent_hw_test-${SAI_IMPL_NAME})
 
   target_link_libraries(sai_agent_hw_test-${SAI_IMPL_NAME}
     -Wl,--whole-archive

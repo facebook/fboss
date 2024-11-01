@@ -8,6 +8,8 @@ function(BUILD_AGENT_ENSEMBLE_SAI_LINK_TEST SAI_IMPL_NAME SAI_IMPL_ARG)
     fboss/agent/test/link_tests/SaiMonoLinkTest.cpp
   )
 
+  add_sai_sdk_dependencies(sai_mono_link_test-${SAI_IMPL_NAME})
+
   target_link_libraries(sai_mono_link_test-${SAI_IMPL_NAME}
     # --whole-archive is needed for gtest to find these tests
     -Wl,--whole-archive
@@ -36,6 +38,8 @@ function(BUILD_AGENT_ENSEMBLE_SAI_LINK_TEST SAI_IMPL_NAME SAI_IMPL_ARG)
   add_executable(sai_multi_link_test-${SAI_IMPL_NAME}
     fboss/agent/test/link_tests/SaiMultiSwitchLinkTest.cpp
   )
+
+  add_sai_sdk_dependencies(sai_multi_link_test-${SAI_IMPL_NAME})
 
   target_link_libraries(sai_multi_link_test-${SAI_IMPL_NAME}
     # --whole-archive is needed for gtest to find these tests

@@ -84,6 +84,14 @@ class AclTable : public ThriftStructNode<AclTable, state::AclTableFields> {
     set<switch_state_tags::qualifiers>(qualifiers);
   }
 
+  auto getUdfGroups() const {
+    return safe_cref<switch_state_tags::udfGroups>();
+  }
+
+  void setUdfGroups(const std::vector<std::string>& udfGroups) {
+    set<switch_state_tags::udfGroups>(udfGroups);
+  }
+
   // Offset applied to dataplane ACL priority. Dataplane ACL
   // entries are given priorites >= 100K and CPU ACL entries
   // priorities < 100K.
