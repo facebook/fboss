@@ -857,10 +857,10 @@ void Selector::select() {
         portToSelection().end(),
         [targetLagID](PortIDToSelection::value_type el) {
           Selection s = el.second;
-          return s.lagID == targetLagID && s.state == SelectionState::STANDBY;
+          return s.lagID == targetLagID;
         });
 
-    if (targetLagMemberCount == minLinkCount_) {
+    if (targetLagMemberCount >= minLinkCount_) {
       auto portsToSignal = getPortsWithSelection(
           Selection(targetLagID, SelectionState::STANDBY));
       controller_.selected(
@@ -944,7 +944,11 @@ void Selector::unselected() {
   auto ports =
       getPortsWithSelection(Selection(myLagID, SelectionState::SELECTED));
 
-  controller_.standby(folly::range(ports.begin(), ports.end()));
+  if (ports.size() < minLinkCount_) {
+    controller_.standby(folly::range(ports.begin(), ports.end()));
+  } else {
+    controller_.standby();
+  }
 }
 
 void Selector::selected() {

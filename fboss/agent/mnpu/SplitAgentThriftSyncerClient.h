@@ -26,6 +26,7 @@
 
 #include "fboss/agent/MultiSwitchThriftHandler.h"
 #include "fboss/lib/CommonThriftUtils.h"
+#include "fboss/lib/thrift_service_client/ConnectionOptions.h"
 
 namespace facebook::fboss {
 
@@ -44,11 +45,11 @@ class SplitAgentThriftClient : public ReconnectingThriftClient {
   ~SplitAgentThriftClient() override;
 
  protected:
-  void connectClient(const ServerOptions& options);
+  void connectClient(const utils::ConnectionOptions& options);
   void resetClient() override;
   apache::thrift::Client<multiswitch::MultiSwitchCtrl>* getThriftClient();
   virtual void startClientService() = 0;
-  void connectToServer(const ServerOptions& options) override;
+  void connectToServer(const utils::ConnectionOptions& options) override;
 #if FOLLY_HAS_COROUTINES
   virtual folly::coro::Task<void> serveStream() = 0;
 #endif

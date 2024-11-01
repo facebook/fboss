@@ -14,7 +14,9 @@ class SdkTests:
         self.sdk_test_config = self.parse_config(config_file)
 
     def parse_config(self, config_file: str):
+        # pyre-fixme[9]: config_file has type `str`; used as `BufferedReader`.
         with open(config_file, "rb") as config_file:
+            # pyre-fixme[16]: `str` has no attribute `read`.
             data = config_file.read()
             return deserialize(
                 structKlass=SdkTestConfig,

@@ -83,7 +83,8 @@
         39,
         41,
         40,
-        42
+        42,
+        45
     ],
     "ramon": [
         1
@@ -339,7 +340,8 @@
         "HGRID_UU_ROUTE_SCALE",
         "TH_ALPM_ROUTE_SCALE",
         "HUNDRED_THOUSAND_ROUTE_SCALE",
-        "PFC"
+        "PFC",
+        "PORT_MTU_ERROR_TRAP"
     ],
     "ramon": [
         "FABRIC"

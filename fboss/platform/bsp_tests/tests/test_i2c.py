@@ -141,6 +141,7 @@ def run_i2c_test_transactions_concurrent(device: I2CDevice, busNum: int) -> None
 def run_i2c_dump_test(device: I2CDevice, busNum: int) -> None:
     if not device.testData:
         return
+    # pyre-fixme[16]: Optional type has no attribute `i2cDumpData`.
     for tc in device.testData.i2cDumpData:
         output = run_cmd(
             [
@@ -161,6 +162,7 @@ def run_i2c_dump_test(device: I2CDevice, busNum: int) -> None:
 def run_i2c_get_test(device: I2CDevice, busNum: int) -> None:
     if not device.testData:
         return
+    # pyre-fixme[16]: Optional type has no attribute `i2cGetData`.
     for tc in device.testData.i2cGetData:
         output = i2cget(str(busNum), device.address, tc.reg)
         assert (
@@ -171,6 +173,7 @@ def run_i2c_get_test(device: I2CDevice, busNum: int) -> None:
 def run_i2c_set_test(device: I2CDevice, busNum: int) -> None:
     if not device.testData:
         return
+    # pyre-fixme[16]: Optional type has no attribute `i2cSetData`.
     for tc in device.testData.i2cSetData:
         original = i2cget(str(busNum), device.address, tc.reg)
 

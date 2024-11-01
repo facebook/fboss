@@ -156,7 +156,8 @@ class SaiPortManager {
   SaiPortSerdesTraits::CreateAttributes serdesAttributesFromSwPinConfigs(
       PortSaiId portSaid,
       const std::vector<phy::PinConfig>& pinConfigs,
-      const std::shared_ptr<SaiPortSerdes>& serdes);
+      const std::shared_ptr<SaiPortSerdes>& serdes,
+      bool zeroPreemphasis = false);
 
   const SaiPortHandle* getPortHandle(PortID swId) const;
   SaiPortHandle* getPortHandle(PortID swId);
@@ -199,6 +200,9 @@ class SaiPortManager {
   void clearQosPolicy(PortID portID);
   void clearQosPolicy(const std::shared_ptr<QosPolicy>& qosPolicy);
   void clearQosPolicy();
+
+  void setTamObject(PortID portId, std::vector<sai_object_id_t> tamObject);
+  void resetTamObject(PortID portId);
 
   std::shared_ptr<MultiSwitchPortMap> reconstructPortsFromStore(
       cfg::SwitchType switchType) const;
@@ -288,6 +292,8 @@ class SaiPortManager {
   bool rxFrequencyRPMSupported() const;
   bool rxSNRSupported() const;
   bool fecCodewordsStatsSupported(PortID portID) const;
+  // TODO(zecheng): Remove this once firmware support is ready
+  void updateConditionalEntropySeed(PortID portID, uint32_t seed) const;
 
  private:
   PortSaiId addPortImpl(const std::shared_ptr<Port>& swPort);
@@ -424,6 +430,9 @@ class SaiPortManager {
   double calculateRate(uint32_t speed);
   void updatePrbsStatsEntryRate(const std::shared_ptr<Port>& swPort);
   void resetCableLength(PortID portId);
+  void createSerdesWithZeroPreemphasis(
+      SaiPortHandle* portHandle,
+      const std::vector<phy::PinConfig>& pinConfigs);
 
   SaiStore* saiStore_;
   SaiManagerTable* managerTable_;

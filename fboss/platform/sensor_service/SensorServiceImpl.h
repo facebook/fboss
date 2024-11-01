@@ -34,20 +34,20 @@ class SensorServiceImpl {
   auto static constexpr kTotalReadFailure = "sensor_read.total.failures";
   auto static constexpr kHasReadFailure = "sensor_read.has.failures";
 
-  explicit SensorServiceImpl();
+  explicit SensorServiceImpl(const SensorConfig& sensorConfig);
   ~SensorServiceImpl();
 
   std::vector<SensorData> getSensorsData(
       const std::vector<std::string>& sensorNames);
   std::map<std::string, SensorData> getAllSensorData();
   void fetchSensorData();
+  std::vector<PmSensor> resolveSensors(const PmUnitSensors& pmUnitSensors);
 
   FsdbSyncer* fsdbSyncer() {
     return fsdbSyncer_.get();
   }
 
  private:
-  std::vector<PmSensor> resolveSensors(const PmUnitSensors& pmUnitSensors);
   SensorData fetchSensorDataImpl(
       const std::string& name,
       const std::string& sysfsPath,

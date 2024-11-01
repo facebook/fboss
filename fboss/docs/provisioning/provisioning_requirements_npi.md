@@ -2,9 +2,9 @@
 ### PE Network Provisioning
 
 
-**Version 0.3.0**
+**Version 0.3.1**
 
-**February 2024**
+**October 2024**
 
 4-5 Grand Canal Quay
 
@@ -246,6 +246,8 @@ There should be no unconventional requirements to boot the kernel, like
 providing the ACPI tables as a binary blob, etc. Those should be defined by the
 BIOS and loaded into the main memory for the OS to consume.
 
+BIOS should, after loss of power, default to ON state when power is reapplied 
+and NOT try to return to "last known state".
 
 ### 7. Weutil support
 

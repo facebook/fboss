@@ -155,6 +155,7 @@ cpp_library(
         ":asic_test_utils",
         ":port_test_utils",
         "//fboss/agent:agent_features",
+        "//fboss/agent:constants",
         "//fboss/agent:core",
         "//fboss/agent:fboss-error",
         "//fboss/agent:fboss-types",

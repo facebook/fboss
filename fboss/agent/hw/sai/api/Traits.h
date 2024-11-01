@@ -174,7 +174,7 @@ class AclEntryField {
  public:
   AclEntryField(){};
   AclEntryField(T dataAndMask) : dataAndMask_(dataAndMask) {}
-  T getDataAndMask() const {
+  const T& getDataAndMask() const {
     return dataAndMask_;
   }
 
@@ -183,8 +183,30 @@ class AclEntryField {
   }
 
   std::string str() const {
-    return folly::to<std::string>(
-        "data: ", dataAndMask_.first, " mask: ", dataAndMask_.second);
+    if constexpr (
+        std::is_same_v<
+            T,
+            std::pair<std::vector<sai_uint8_t>, std::vector<sai_uint8_t>>>) {
+      std::ostringstream retStr;
+
+      if (!dataAndMask_.first.empty()) {
+        retStr << "data: ";
+        std::copy(
+            dataAndMask_.first.begin(),
+            dataAndMask_.first.end(),
+            std::ostream_iterator<int>(retStr, ", "));
+        retStr << "mask: ";
+        std::copy(
+            dataAndMask_.second.begin(),
+            dataAndMask_.second.end(),
+            std::ostream_iterator<int>(retStr, ", "));
+      }
+
+      return retStr.str();
+    } else {
+      return folly::to<std::string>(
+          "data: ", dataAndMask_.first, " mask: ", dataAndMask_.second);
+    }
   }
 
  private:
@@ -232,6 +254,8 @@ using AclEntryFieldIpV4 =
     AclEntryField<std::pair<folly::IPAddressV4, folly::IPAddressV4>>;
 using AclEntryFieldMac =
     AclEntryField<std::pair<folly::MacAddress, folly::MacAddress>>;
+using AclEntryFieldU8List = AclEntryField<
+    std::pair<std::vector<sai_uint8_t>, std::vector<sai_uint8_t>>>;
 
 /*
  * Mask is not needed for sai_object_id_t Acl Entry field.

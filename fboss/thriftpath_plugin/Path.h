@@ -2,10 +2,13 @@
 
 #pragma once
 
+#include "fboss/fsdb/common/PathHelpers.h"
+#include "fboss/fsdb/common/Utils.h"
 #include "fboss/fsdb/if/gen-cpp2/fsdb_oper_types.h"
 
 #include <folly/String.h>
 #include <folly/Unit.h>
+#include <re2/re2.h>
 #include <string>
 
 namespace thriftpath {
@@ -34,41 +37,46 @@ namespace thriftpath {
         std::move(this->extendedTokens_),                           \
         this->hasWildcards_);                                       \
   }
-#define CONTAINER_CHILD_GETTERS(key_type)                                   \
-  Child operator[](key_type token) const& {                                 \
-    const std::string strToken = folly::to<std::string>(token);             \
-    facebook::fboss::fsdb::OperPathElem elem;                               \
-    elem.set_raw(strToken);                                                 \
-    return Child(                                                           \
-        copyAndExtendVec(this->tokens_, strToken),                          \
-        copyAndExtendVec(this->idTokens_, strToken),                        \
-        copyAndExtendVec(this->extendedTokens_, std::move(elem)),           \
-        this->hasWildcards_);                                               \
-  }                                                                         \
-  Child operator[](key_type token)&& {                                      \
-    const std::string strToken = folly::to<std::string>(token);             \
-    this->tokens_.push_back(strToken);                                      \
-    this->idTokens_.push_back(strToken);                                    \
-    facebook::fboss::fsdb::OperPathElem elem;                               \
-    elem.set_raw(strToken);                                                 \
-    this->extendedTokens_.push_back(std::move(elem));                       \
-    return Child(                                                           \
-        std::move(this->tokens_),                                           \
-        std::move(this->idTokens_),                                         \
-        std::move(this->extendedTokens_),                                   \
-        this->hasWildcards_);                                               \
-  }                                                                         \
-  Child operator[](facebook::fboss::fsdb::OperPathElem elem) const& {       \
-    return Child(                                                           \
-        {},                                                                 \
-        {},                                                                 \
-        copyAndExtendVec(this->extendedTokens_, std::move(elem)),           \
-        true /* hasWildcards */);                                           \
-  }                                                                         \
-  Child operator[](facebook::fboss::fsdb::OperPathElem elem)&& {            \
-    this->extendedTokens_.push_back(std::move(elem));                       \
-    return Child(                                                           \
-        {}, {}, std::move(this->extendedTokens_), true /* hasWildcards */); \
+#define CONTAINER_CHILD_GETTERS(key_type)                             \
+  Child operator[](key_type token) const& {                           \
+    const std::string strToken = folly::to<std::string>(token);       \
+    facebook::fboss::fsdb::OperPathElem elem;                         \
+    elem.set_raw(strToken);                                           \
+    return Child(                                                     \
+        copyAndExtendVec(this->tokens_, strToken),                    \
+        copyAndExtendVec(this->idTokens_, strToken),                  \
+        copyAndExtendVec(this->extendedTokens_, std::move(elem)),     \
+        this->hasWildcards_);                                         \
+  }                                                                   \
+  Child operator[](key_type token)&& {                                \
+    const std::string strToken = folly::to<std::string>(token);       \
+    this->tokens_.push_back(strToken);                                \
+    this->idTokens_.push_back(strToken);                              \
+    facebook::fboss::fsdb::OperPathElem elem;                         \
+    elem.set_raw(strToken);                                           \
+    this->extendedTokens_.push_back(std::move(elem));                 \
+    return Child(                                                     \
+        std::move(this->tokens_),                                     \
+        std::move(this->idTokens_),                                   \
+        std::move(this->extendedTokens_),                             \
+        this->hasWildcards_);                                         \
+  }                                                                   \
+  Child operator[](facebook::fboss::fsdb::OperPathElem elem) const& { \
+    return Child(                                                     \
+        copyAndExtendVec(this->tokens_, pathElemToString(elem)),      \
+        copyAndExtendVec(this->idTokens_, pathElemToString(elem)),    \
+        copyAndExtendVec(this->extendedTokens_, std::move(elem)),     \
+        true /* hasWildcards */);                                     \
+  }                                                                   \
+  Child operator[](facebook::fboss::fsdb::OperPathElem elem)&& {      \
+    this->tokens_.push_back(pathElemToString(elem));                  \
+    this->idTokens_.push_back(pathElemToString(elem));                \
+    this->extendedTokens_.push_back(std::move(elem));                 \
+    return Child(                                                     \
+        std::move(this->tokens_),                                     \
+        std::move(this->idTokens_),                                   \
+        std::move(this->extendedTokens_),                             \
+        true /* hasWildcards */);                                     \
   }
 
 class BasePath {
@@ -117,7 +125,28 @@ class BasePath {
   }
 
   bool matchesPath(const std::vector<std::string>& other) const {
-    return other == idTokens_ || other == tokens_;
+    if (other.size() != extendedTokens_.size()) {
+      return false;
+    }
+    using OperPathElem = facebook::fboss::fsdb::OperPathElem;
+    for (int i = 0; i < other.size(); i++) {
+      const auto& elem = extendedTokens_.at(i);
+      const auto& token = other.at(i);
+      if (elem.getType() == OperPathElem::Type::raw) {
+        if (token != idTokens_.at(i) && token != tokens_.at(i)) {
+          // raw token didn't match either id or name token
+          return false;
+        }
+      } else if (elem.getType() == OperPathElem::Type::regex) {
+        if (!re2::RE2::FullMatch(token, *elem.regex_ref())) {
+          return false;
+        }
+      } else if (elem.getType() == OperPathElem::Type::any) {
+        // always match
+      }
+    }
+    // no violations
+    return true;
   }
 
   std::string str() const {
@@ -179,5 +208,7 @@ std::vector<std::string> copyAndExtendVec(
 std::vector<facebook::fboss::fsdb::OperPathElem> copyAndExtendVec(
     const std::vector<facebook::fboss::fsdb::OperPathElem>& parents,
     facebook::fboss::fsdb::OperPathElem last);
+
+std::string pathElemToString(const facebook::fboss::fsdb::OperPathElem& elem);
 
 } // namespace thriftpath

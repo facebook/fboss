@@ -193,21 +193,23 @@ ModbusDevice& Rackmon::getModbusDevice(uint8_t addr) {
 void Rackmon::fullScan() {
   logInfo << "Starting scan of all devices" << std::endl;
   bool atLeastOne = false;
-  for (auto& addr : allPossibleDevAddrs_) {
-    if (isDeviceKnown(addr)) {
-      continue;
-    }
-    for (int i = 0; i < kScanNumRetry; i++) {
+  // Retry the scan loop to ensure we discover any flaky
+  // devices which might have missed the first loop.
+  for (int i = 0; i < kScanNumRetry; i++) {
+    for (const auto& addr : allPossibleDevAddrs_) {
+      if (isDeviceKnown(addr)) {
+        continue;
+      }
       if (reqForceScan_.load() == false) {
         logWarn << "Full scan aborted" << std::endl;
         return;
       }
       if (probe(addr)) {
         atLeastOne = true;
-        break;
       }
     }
   }
+  logInfo << "Finished scan of all devices" << std::endl;
   // When scan is complete, request for a monitor.
   if (atLeastOne) {
     std::shared_lock lk(threadMutex_);

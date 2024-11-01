@@ -17,6 +17,7 @@ add_library(nodebase
 )
 
 target_link_libraries(nodebase
+  switch_config_cpp2
   fboss_error
   fboss_types
   Folly::folly

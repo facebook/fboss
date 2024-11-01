@@ -9,6 +9,7 @@
 #include "fboss/lib/phy/gen-cpp2/phy_types.h"
 
 #include <boost/container/flat_set.hpp>
+#include "fboss/agent/test/link_tests/gen-cpp2/link_test_production_features_types.h"
 
 // TODO Movng these to Linktestutils.h causes linker error. Resolve and move
 // them
@@ -18,6 +19,7 @@ DECLARE_string(volatile_state_dir);
 DECLARE_bool(disable_neighbor_updates);
 DECLARE_bool(link_stress_test);
 DECLARE_bool(enable_macsec);
+DECLARE_bool(list_production_feature);
 
 namespace facebook::fboss {
 
@@ -110,12 +112,17 @@ class LinkTest : public AgentTest {
 
   std::vector<std::pair<PortID, PortID>> getPortPairsForFecErrInj() const;
 
+  void printProductionFeatures() const;
+
  private:
   void programDefaultRoute(
       const boost::container::flat_set<PortDescriptor>& ecmpPorts,
       utility::EcmpSetupTargetedPorts6& ecmp6);
   void initializeCabledPorts();
   void logLinkDbgMessage(std::vector<PortID>& portIDs) const override;
+
+  virtual std::vector<link_test_production_features::LinkTestProductionFeature>
+  getProductionFeatures() const;
 
   std::vector<PortID> cabledPorts_;
   std::vector<PortID> cabledFabricPorts_;
