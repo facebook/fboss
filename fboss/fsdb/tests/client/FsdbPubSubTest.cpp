@@ -5,6 +5,7 @@
 #include "fboss/fsdb/tests/client/FsdbTestClients.h"
 #include "fboss/fsdb/tests/utils/FsdbTestServer.h"
 #include "fboss/lib/CommonUtils.h"
+#include "fboss/lib/thrift_service_client/ConnectionOptions.h"
 
 #include <folly/coro/BlockingWait.h>
 #include <folly/io/async/ScopedEventBaseThread.h>
@@ -107,8 +108,8 @@ class FsdbPubSubTest : public ::testing::Test {
   void setupConnection(
       FsdbStreamClient& pubSub,
       bool updateServerPort = false) {
-    pubSub.setServerOptions(
-        FsdbStreamClient::ServerOptions("::1", fsdbTestServer_->getFsdbPort()),
+    pubSub.setConnectionOptions(
+        utils::ConnectionOptions("::1", fsdbTestServer_->getFsdbPort()),
         updateServerPort);
     WITH_RETRIES_N(kRetries, {
       ASSERT_EVENTUALLY_TRUE(pubSub.isConnectedToServer())
@@ -388,6 +389,9 @@ TYPED_TEST(FsdbPubSubTest, dupSubscriber) {
   // @lint-ignore CLANGTIDY
   std::this_thread::sleep_for(std::chrono::seconds(3));
   EXPECT_THROW({ auto res2 = this->subscribe(req); }, FsdbException);
+
+  req.forceSubscribe() = true;
+  EXPECT_NO_THROW({ auto res2 = this->subscribe(req); });
 }
 
 TYPED_TEST(FsdbPubSubTest, multiplePublishers) {
@@ -656,9 +660,8 @@ TYPED_TEST(FsdbPubSubTest, verifyUnknownPublisherRejected) {
   FLAGS_checkOperOwnership = true;
   FLAGS_enforcePublisherConfig = true;
   auto publisher = this->createPublisher(kUnknownPublisherId);
-  publisher->setServerOptions(
-      FsdbStreamClient::ServerOptions(
-          "::1", this->fsdbTestServer_->getFsdbPort()),
+  publisher->setConnectionOptions(
+      utils::ConnectionOptions("::1", this->fsdbTestServer_->getFsdbPort()),
       false);
   WITH_RETRIES_N(
       this->kRetries, ASSERT_FALSE(publisher->isConnectedToServer()));
@@ -688,9 +691,8 @@ TYPED_TEST(FsdbUnknownPublisherPathTest, verifyUnknownPublisherPathRejected) {
   FLAGS_checkOperOwnership = true;
   FLAGS_enforcePublisherConfig = true;
   auto publisher = this->createPublisher(kPublisherId);
-  publisher->setServerOptions(
-      FsdbStreamClient::ServerOptions(
-          "::1", this->fsdbTestServer_->getFsdbPort()),
+  publisher->setConnectionOptions(
+      utils::ConnectionOptions("::1", this->fsdbTestServer_->getFsdbPort()),
       false);
   WITH_RETRIES_N(
       this->kRetries, ASSERT_FALSE(publisher->isConnectedToServer()));

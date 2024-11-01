@@ -45,6 +45,7 @@ cpp_library(
         "//fboss/agent:utils",
         "//folly:format",
         "//folly:range",
+        "//folly:synchronized",
         "//folly/io/async:async_base",
         "//folly/lang:bits",
         "//folly/logging:logging",

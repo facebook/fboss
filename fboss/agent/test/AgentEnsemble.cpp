@@ -36,6 +36,8 @@ facebook::fboss::PlatformInitFn kPlatformInitFn;
 static std::string kInputConfigFile;
 std::optional<facebook::fboss::cfg::StreamType> kStreamTypeOpt{std::nullopt};
 static const int kMsWaitForStatsRetry = 2000;
+constexpr auto kConfig = "config";
+constexpr auto kMultiSwitch = "multi_switch";
 } // namespace
 
 namespace facebook::fboss {
@@ -53,18 +55,20 @@ void AgentEnsemble::setupEnsemble(
   FLAGS_verify_apply_oper_delta = true;
 
   if (bootType_ == BootType::COLD_BOOT) {
-    auto agentConf =
+    auto inputAgentConfig =
         AgentConfig::fromFile(AgentEnsemble::getInputConfigFile())->thrift;
     if (platformConfigFn) {
-      platformConfigFn(*(agentConf.platform()));
+      platformConfigFn(
+          *(inputAgentConfig.sw()), *(inputAgentConfig.platform()));
     }
     // some platform config may need cold boots. so overwrite the config before
     // creating a switch
-    writeConfig(agentConf, configFile_);
+    writeConfig(inputAgentConfig, configFile_);
   }
+  auto agentConf = AgentConfig::fromFile(configFile_);
+  dumpConfigForHwAgent(agentConf.get());
   overrideConfigFlag(configFile_);
-  createSwitch(
-      AgentConfig::fromFile(configFile_), hwFeaturesDesired, kPlatformInitFn);
+  createSwitch(std::move(agentConf), hwFeaturesDesired, kPlatformInitFn);
 
   for (auto switchId : getSw()->getHwAsicTable()->getSwitchIDs()) {
     HwAsic* asic = getHwAsicTable()->getHwAsicIf(switchId);
@@ -141,16 +145,17 @@ void AgentEnsemble::startAgent(bool failHwCallsOnWarmboot) {
     initializer->initAgent(this, hwWriteBehavior);
   }));
   initializer->initializer()->waitForInitDone();
-  // if cold booting, invoke link toggler
-  if (getSw()->getBootType() != BootType::WARM_BOOT &&
-      linkToggler_ != nullptr) {
-    linkToggler_->applyInitialConfig(initialConfig_);
+
+  if (getSw()->getBootType() == BootType::COLD_BOOT) {
+    if (linkToggler_ != nullptr) {
+      linkToggler_->applyInitialConfig(initialConfig_);
+    }
+    // With link state toggler, initial config is applied with ports down to
+    // later bring up the ports. This causes the config to be written as
+    // loopback mode = None. Write the init config again to have the proper
+    // config.
+    applyNewConfig(initialConfig_);
   }
-  // With link state toggler, initial config is applied with ports down to
-  // later bring up the ports. This causes the config to be written as
-  // loopback mode = None. Write the init config again to have the proper
-  // config.
-  applyNewConfig(initialConfig_);
 }
 
 void AgentEnsemble::writeConfig(const cfg::SwitchConfig& config) {
@@ -603,6 +608,36 @@ AgentEnsemble::getHwAgentTestClient(SwitchID switchId) {
           });
   return std::make_unique<apache::thrift::Client<utility::AgentHwTestCtrl>>(
       std::move(reconnectingChannel));
+}
+
+void AgentEnsemble::dumpConfigForHwAgent(AgentConfig* agentConf) {
+  if (FLAGS_multi_switch ||
+      folly::get_default(
+          *agentConf->thrift.defaultCommandLineArgs(), kMultiSwitch, "") ==
+          "true") {
+    cfg::AgentConfig newAgentConf;
+    std::map<std::string, std::string> defaultCommandLineArgs =
+        *agentConf->thrift.defaultCommandLineArgs();
+    std::vector<gflags::CommandLineFlagInfo> flags;
+    gflags::GetAllFlags(&flags);
+    for (const auto& flag : flags) {
+      // Skip writing flags if 1) default value, and 2) config itself.
+      if (!flag.is_default && flag.name != kConfig) {
+        defaultCommandLineArgs[flag.name] = flag.current_value;
+      }
+    }
+
+    newAgentConf.defaultCommandLineArgs() = defaultCommandLineArgs;
+    newAgentConf.sw() = *agentConf->thrift.sw();
+    newAgentConf.platform() = *agentConf->thrift.platform();
+    auto agentConfig = AgentConfig(newAgentConf);
+    utilCreateDir(AgentDirectoryUtil().agentEnsembleConfigDir());
+    for (const auto& [_, switchInfo] :
+         *newAgentConf.sw()->switchSettings()->switchIdToSwitchInfo()) {
+      agentConfig.dumpConfig(AgentDirectoryUtil().getTestHwAgentConfigFile(
+          *switchInfo.switchIndex()));
+    }
+  }
 }
 
 } // namespace facebook::fboss

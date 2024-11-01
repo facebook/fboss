@@ -4,8 +4,6 @@
 
 #include <folly/logging/xlog.h>
 
-#include "fboss/fsdb/client/Client.h"
-
 namespace facebook::fboss::fsdb {
 
 folly::coro::Task<FsdbStatePublisher::StreamT>

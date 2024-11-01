@@ -39,6 +39,7 @@ add_library(sai_platform
   fboss/agent/platforms/sai/SaiBcmMontblancPlatformPort.cpp
   fboss/agent/platforms/sai/SaiTahan800bcPlatform.cpp
   fboss/agent/platforms/sai/SaiTahan800bcPlatformPort.cpp
+  fboss/agent/platforms/sai/SaiYangraPlatform.cpp
 
   fboss/agent/platforms/sai/oss/SaiBcmMinipackPlatform.cpp
   fboss/agent/platforms/sai/oss/SaiTajoPlatform.cpp
@@ -63,6 +64,7 @@ add_library(sai_platform
   fboss/agent/platforms/sai/oss/SaiMeru400bfuPlatformPort.cpp
   fboss/agent/platforms/sai/oss/SaiMeru800bfaPlatformPort.cpp
   fboss/agent/platforms/sai/oss/SaiMorgan800ccPlatformPort.cpp
+  fboss/agent/platforms/sai/SaiYangraPlatformPort.cpp
 )
 
 target_link_libraries(sai_platform
@@ -94,6 +96,7 @@ target_link_libraries(sai_platform
   meru400bfu_platform_mapping
   meru800bia_platform_mapping
   meru800bfa_platform_mapping
+  yangra_platform_mapping
   montblanc_platform_mapping
   janga800bic_platform_mapping
   tahan800bc_platform_mapping
@@ -114,6 +117,8 @@ function(BUILD_SAI_WEDGE_AGENT SAI_IMPL_NAME SAI_IMPL_ARG)
   add_executable(wedge_agent-${SAI_IMPL_NAME}
     fboss/agent/platforms/sai/wedge_agent.cpp
   )
+
+  add_sai_sdk_dependencies(wedge_agent-${SAI_IMPL_NAME})
 
   target_link_libraries(wedge_agent-${SAI_IMPL_NAME}
     -Wl,--whole-archive
@@ -143,6 +148,8 @@ function(BUILD_SAI_WEDGE_AGENT SAI_IMPL_NAME SAI_IMPL_ARG)
     fboss/agent/platforms/sai/WedgeHwAgent.cpp
     fboss/agent/platforms/sai/oss/WedgeHwAgent.cpp
   )
+
+  add_sai_sdk_dependencies(fboss_hw_agent-${SAI_IMPL_NAME})
 
   target_link_libraries(fboss_hw_agent-${SAI_IMPL_NAME}
     -Wl,--whole-archive

@@ -138,10 +138,13 @@ Interface* Interface::modify(std::shared_ptr<SwitchState>* state) {
     auto id(static_cast<int64_t>(getID()));
     auto switchId2Info = switchSettings->getSwitchIdToSwitchInfo();
     for (const auto& [_, switchInfo] : switchId2Info) {
-      if (switchInfo.systemPortRange().has_value()) {
-        auto sysPortRange = *switchInfo.systemPortRange();
+      for (const auto& sysPortRange :
+           *switchInfo.systemPortRanges()->systemPortRanges()) {
         if (id >= *sysPortRange.minimum() && id <= *sysPortRange.maximum()) {
           isLocal = true;
+          break;
+        }
+        if (isLocal) {
           break;
         }
       }

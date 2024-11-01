@@ -18,6 +18,13 @@
 
 namespace facebook::fboss::thrift_cow {
 
+struct FieldBaseType {};
+
+template <typename T>
+using is_field_type = std::is_base_of<FieldBaseType, std::remove_cvref_t<T>>;
+template <typename T>
+constexpr bool is_field_type_v = is_field_type<T>::value;
+
 namespace detail {
 
 template <typename TC>

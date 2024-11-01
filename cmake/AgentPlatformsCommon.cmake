@@ -44,6 +44,7 @@ target_link_libraries(platform_mapping_utils
   meru400bia_platform_mapping
   meru800bia_platform_mapping
   meru800bfa_platform_mapping
+  yangra_platform_mapping
   janga800bic_platform_mapping
   tahan800bc_platform_mapping
   ${RE2}

@@ -237,8 +237,7 @@ class AgentAqmTest : public AgentHwTest {
       // watermarks for ECN traffic for VoQ switches.
       auto sysPortId = getSystemPortID(
           portId,
-          utility::getFirstNodeIf(getProgrammedState()->getSwitchSettings())
-              ->getSwitchIdToSwitchInfo(),
+          getProgrammedState(),
           scopeResolver().scope(portId).switchId());
       auto sysPortStats = getLatestSysPortStats(sysPortId);
       extractAqmTestStats(sysPortStats, portStats, queueId, stats);

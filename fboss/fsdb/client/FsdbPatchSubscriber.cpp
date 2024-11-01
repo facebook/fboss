@@ -15,6 +15,7 @@ FsdbPatchSubscriberImpl<MessageType, SubUnit, PathElement>::createRequest()
   request.clientId()->instanceId() = clientId();
   RawOperPath path;
   request.paths() = this->subscribePaths();
+  request.forceSubscribe() = this->subscriptionOptions().forceSubscribe_;
   return request;
 }
 
@@ -47,13 +48,24 @@ FsdbPatchSubscriberImpl<MessageType, SubUnit, PathElement>::serveStream(
       XLOG(DBG2) << " Detected cancellation: " << this->clientId();
       break;
     }
-    // even empty change/heartbeat indicates subscription is connected
-    if (this->getSubscriptionState() != SubscriptionState::CONNECTED) {
+    if (!this->subscriptionOptions().requireInitialSyncToMarkConnect_ &&
+        this->getSubscriptionState() != SubscriptionState::CONNECTED) {
       BaseT::updateSubscriptionState(SubscriptionState::CONNECTED);
     }
     switch (message->getType()) {
       case SubscriberMessage::Type::chunk:
-        this->operSubUnitUpdate_(message->move_chunk());
+        if (this->subscriptionOptions().requireInitialSyncToMarkConnect_ &&
+            this->getSubscriptionState() != SubscriptionState::CONNECTED) {
+          BaseT::updateSubscriptionState(SubscriptionState::CONNECTED);
+        }
+        try {
+          this->operSubUnitUpdate_(message->move_chunk());
+        } catch (const std::exception& ex) {
+          FsdbException e;
+          e.message() = folly::exceptionStr(ex);
+          e.errorCode() = FsdbErrorCode::SUBSCRIPTION_DATA_CALLBACK_ERROR;
+          throw e;
+        }
         break;
       case SubscriberMessage::Type::heartbeat:
       case SubscriberMessage::Type::__EMPTY__:

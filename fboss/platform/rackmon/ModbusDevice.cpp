@@ -168,7 +168,8 @@ void ModbusDevice::forceReloadPlan() {
   time_t reloadTime = getCurrentTime();
   for (auto& reg : info_.registerList) {
     forceReloadRegister(reg, reloadTime);
-    RegisterStoreSpan::buildRegisterSpanList(reloadPlan_, reg);
+    RegisterStoreSpan::buildRegisterSpanList(
+        reloadPlan_, reg, registerMap_.maxRegisterSpanLength);
   }
 }
 
@@ -288,7 +289,8 @@ void ModbusDevice::forceReloadRegisters(const ModbusRegisterFilter& filter) {
   std::vector<RegisterStoreSpan> regSpans{};
   for (auto& reg : info_.registerList) {
     if (shouldPickRegister(reg)) {
-      bool added = RegisterStoreSpan::buildRegisterSpanList(regSpans, reg);
+      bool added = RegisterStoreSpan::buildRegisterSpanList(
+          regSpans, reg, registerMap_.maxRegisterSpanLength);
       if (!added) {
         logError << "reload:: Not including register: " << reg.name()
                  << std::endl;

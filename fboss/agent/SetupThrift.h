@@ -21,7 +21,9 @@
 DECLARE_int32(thrift_idle_timeout);
 DECLARE_int32(thrift_task_expire_timeout);
 
+// TODO: remove after netcastle changes are in place
 DECLARE_bool(thrift_test_utils_thrift_handler);
+DECLARE_bool(hw_agent_for_testing);
 
 namespace facebook::fboss {
 

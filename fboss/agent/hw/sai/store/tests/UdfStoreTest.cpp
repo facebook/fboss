@@ -18,12 +18,19 @@ using namespace facebook::fboss;
 
 class UdfStoreTest : public SaiStoreTest {
  public:
-  UdfGroupSaiId createUdfGroup(
+  SaiUdfGroupTraits::CreateAttributes createAttributes(
       sai_udf_group_type_t udfGroupType,
       sai_uint16_t udfGroupLength) {
     SaiUdfGroupTraits::Attributes::Type type{udfGroupType};
     SaiUdfGroupTraits::Attributes::Length length{udfGroupLength};
-    return saiApiTable->udfApi().create<SaiUdfGroupTraits>({type, length}, 0);
+    return {type, length};
+  }
+
+  UdfGroupSaiId createUdfGroup(
+      sai_udf_group_type_t udfGroupType,
+      sai_uint16_t udfGroupLength) {
+    return saiApiTable->udfApi().create<SaiUdfGroupTraits>(
+        createAttributes(udfGroupType, udfGroupLength), 0);
   }
 
   UdfMatchSaiId createUdfMatch(
@@ -54,14 +61,6 @@ class UdfStoreTest : public SaiStoreTest {
     SaiUdfTraits::Attributes::Offset offsetAttr{kUdfOffset()};
     return saiApiTable->udfApi().create<SaiUdfTraits>(
         {udfMatchIdAttr, udfGroupIdAttr, baseAttr, offsetAttr}, 0);
-  }
-
-  SaiUdfGroupTraits::AdapterHostKey udfGroupAdapterHostKey(
-      sai_udf_group_type_t udfGroupType,
-      sai_uint16_t udfGroupLength) {
-    SaiUdfGroupTraits::Attributes::Type type{udfGroupType};
-    SaiUdfGroupTraits::Attributes::Length length{udfGroupLength};
-    return SaiUdfGroupTraits::AdapterHostKey{type, length};
   }
 
   SaiUdfMatchTraits::AdapterHostKey udfMatchAdapterHostKey(
@@ -129,31 +128,52 @@ class UdfStoreTest : public SaiStoreTest {
 };
 
 TEST_F(UdfStoreTest, loadUdfGroup) {
-  auto udfGroupId0 = createUdfGroup(SAI_UDF_GROUP_TYPE_HASH, kUdfGroupLength());
-  auto udfGroupId1 =
-      createUdfGroup(SAI_UDF_GROUP_TYPE_GENERIC, kUdfGroupLength() + 1);
+  auto udfGroupId = createUdfGroup(SAI_UDF_GROUP_TYPE_HASH, kUdfGroupLength());
   SaiStore s(0);
   s.reload();
   auto& store = s.get<SaiUdfGroupTraits>();
 
-  auto k0 = udfGroupAdapterHostKey(SAI_UDF_GROUP_TYPE_HASH, kUdfGroupLength());
-  auto k1 =
-      udfGroupAdapterHostKey(SAI_UDF_GROUP_TYPE_GENERIC, kUdfGroupLength() + 1);
+  SaiUdfGroupTraits::AdapterHostKey k{"udfGroup"};
 
-  EXPECT_EQ(store.get(k0)->adapterKey(), udfGroupId0);
-  EXPECT_EQ(store.get(k1)->adapterKey(), udfGroupId1);
+  EXPECT_EQ(store.get(k)->adapterKey(), udfGroupId);
+}
+
+TEST_F(UdfStoreTest, loadUdfGroup2) {
+  SaiUdfGroupTraits::AdapterHostKey k0{"udfGroup0"};
+  SaiUdfGroupTraits::AdapterHostKey k1{"udfGroup1"};
+
+  SaiStore s(0);
+  auto& store = s.get<SaiUdfGroupTraits>();
+  auto obj0 = store.setObject(
+      k0, createAttributes(SAI_UDF_GROUP_TYPE_HASH, kUdfGroupLength()));
+  auto obj1 = store.setObject(
+      k1, createAttributes(SAI_UDF_GROUP_TYPE_GENERIC, kUdfGroupLength() + 1));
+
+  EXPECT_EQ(store.get(k0)->adapterKey(), obj0->adapterKey());
+  EXPECT_EQ(store.get(k1)->adapterKey(), obj1->adapterKey());
+
+  auto adapterKeys = s.adapterKeysFollyDynamic();
+  auto adapterKeys2AdapterHostKeys =
+      s.adapterKeys2AdapterHostKeysFollyDynamic();
+  SaiStore s1(0);
+  s1.reload(&adapterKeys, &adapterKeys2AdapterHostKeys);
+  auto& store1 = s.get<SaiUdfGroupTraits>();
+
+  EXPECT_EQ(store1.get(k0)->adapterKey(), obj0->adapterKey());
+  EXPECT_EQ(store1.get(k1)->adapterKey(), obj1->adapterKey());
 }
 
 TEST_F(UdfStoreTest, udfGroupCtor) {
   auto udfGroupId = createUdfGroup(SAI_UDF_GROUP_TYPE_HASH, kUdfGroupLength());
-  auto obj = createObj<SaiUdfGroupTraits>(udfGroupId);
+  SaiUdfGroupTraits::AdapterHostKey k{"udfGroup"};
+  auto obj = createObj<SaiUdfGroupTraits>(udfGroupId, k);
   EXPECT_EQ(obj.adapterKey(), udfGroupId);
 }
 
 TEST_F(UdfStoreTest, udfGroupCreateCtor) {
   SaiUdfGroupTraits::CreateAttributes c{
       SAI_UDF_GROUP_TYPE_HASH, kUdfGroupLength()};
-  auto k = udfGroupAdapterHostKey(SAI_UDF_GROUP_TYPE_HASH, kUdfGroupLength());
+  SaiUdfGroupTraits::AdapterHostKey k{"udfGroup"};
   auto obj = createObj<SaiUdfGroupTraits>(k, c, 0);
   EXPECT_EQ(
       GET_OPT_ATTR(UdfGroup, Type, obj.attributes()), SAI_UDF_GROUP_TYPE_HASH);
@@ -223,17 +243,15 @@ TEST_F(UdfStoreTest, toStrUdfMatchStore) {
 TEST_F(UdfStoreTest, loadUdf) {
   auto udfMatchId0 = createUdfMatch(kL2Type(), kL3Type(), kL4DstPort());
   auto udfMatchId1 = createUdfMatch(kL2Type2(), kL3Type2(), kL4DstPort2());
-  auto udfGroupId0 = createUdfGroup(SAI_UDF_GROUP_TYPE_HASH, kUdfGroupLength());
-  auto udfGroupId1 =
-      createUdfGroup(SAI_UDF_GROUP_TYPE_GENERIC, kUdfGroupLength() + 1);
-  auto udfId0 = createUdf(udfMatchId0, udfGroupId0);
-  auto udfId1 = createUdf(udfMatchId1, udfGroupId1);
+  auto udfGroupId = createUdfGroup(SAI_UDF_GROUP_TYPE_HASH, kUdfGroupLength());
+  auto udfId0 = createUdf(udfMatchId0, udfGroupId);
+  auto udfId1 = createUdf(udfMatchId1, udfGroupId);
   SaiStore s(0);
   s.reload();
   auto& store = s.get<SaiUdfTraits>();
 
-  auto k0 = udfAdapterHostKey(udfMatchId0, udfGroupId0);
-  auto k1 = udfAdapterHostKey(udfMatchId1, udfGroupId1);
+  auto k0 = udfAdapterHostKey(udfMatchId0, udfGroupId);
+  auto k1 = udfAdapterHostKey(udfMatchId1, udfGroupId);
 
   EXPECT_EQ(store.get(k0)->adapterKey(), udfId0);
   EXPECT_EQ(store.get(k1)->adapterKey(), udfId1);

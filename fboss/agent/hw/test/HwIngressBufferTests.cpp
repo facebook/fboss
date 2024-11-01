@@ -219,6 +219,67 @@ TEST_F(HwIngressBufferTest, validatePGParamChange) {
   verifyAcrossWarmBoots(setup, verify);
 }
 
+// For each of the below transitions, ensure headroom is programmed
+TEST_F(HwIngressBufferTest, validatePGHeadroomLimitChange) {
+  auto setup = [&]() {
+    // Start with PG0 and PG1 with non-zero headroom
+    setupHelper();
+
+    // Modify PG1 headroom value
+    // This ensure the new value is getting programmed after config update
+    std::map<std::string, std::vector<cfg::PortPgConfig>> portPgConfigMap;
+    auto portPgConfigs = getPortPgConfig(
+        getPlatform()->getAsic()->getPacketBufferUnitSize(), {0}, 0);
+    portPgConfigs.push_back(getPortPgConfig(
+        getPlatform()->getAsic()->getPacketBufferUnitSize(), {1}, 1)[0]);
+    portPgConfigMap["foo"] = portPgConfigs;
+    cfg_.portPgConfigs() = portPgConfigMap;
+    applyNewConfig(cfg_);
+    utility::checkSwHwPgCfgMatch(
+        getHwSwitch(),
+        getProgrammedState()->getPorts()->getNodeIf(
+            PortID(masterLogicalInterfacePortIds()[0])),
+        true /*pfcEnable*/);
+
+    // Make PG1 headroom 0 and add a new PG2 with 0 headroom
+    portPgConfigs = getPortPgConfig(
+        getPlatform()->getAsic()->getPacketBufferUnitSize(), {0}, 0);
+    portPgConfigs.push_back(getPortPgConfig(
+        getPlatform()->getAsic()->getPacketBufferUnitSize(), {1}, 1, false)[0]);
+    portPgConfigs.push_back(getPortPgConfig(
+        getPlatform()->getAsic()->getPacketBufferUnitSize(), {2}, 0, false)[0]);
+    portPgConfigMap["foo"] = portPgConfigs;
+    cfg_.portPgConfigs() = portPgConfigMap;
+    applyNewConfig(cfg_);
+    utility::checkSwHwPgCfgMatch(
+        getHwSwitch(),
+        getProgrammedState()->getPorts()->getNodeIf(
+            PortID(masterLogicalInterfacePortIds()[0])),
+        true /*pfcEnable*/);
+
+    // Remove PG1 and update PG2 headrrom to non-zero
+    // This ensure counters are accurately updated per PG. PFC counters are
+    // are created only for non-zero headroom PGs
+    portPgConfigs = getPortPgConfig(
+        getPlatform()->getAsic()->getPacketBufferUnitSize(), {0}, 0);
+    portPgConfigs.push_back(getPortPgConfig(
+        getPlatform()->getAsic()->getPacketBufferUnitSize(), {2}, 0)[0]);
+    portPgConfigMap["foo"] = portPgConfigs;
+    cfg_.portPgConfigs() = portPgConfigMap;
+    applyNewConfig(cfg_);
+  };
+
+  auto verify = [&]() {
+    utility::checkSwHwPgCfgMatch(
+        getHwSwitch(),
+        getProgrammedState()->getPorts()->getNodeIf(
+            PortID(masterLogicalInterfacePortIds()[0])),
+        true /*pfcEnable*/);
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
+}
+
 // Validate the Pg's pfc mode bit, by default we have been enabling
 // PFC on the port and hence on every PG. Force the port to have no
 // PFC. Validate that Pg's pfc mode is False now.

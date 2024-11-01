@@ -1,0 +1,12 @@
+load("@fbcode_macros//build_defs:cpp_unittest.bzl", "cpp_unittest")
+
+oncall("fboss_agent_push")
+
+cpp_unittest(
+    name = "connection_options_test",
+    srcs = ["ConnectionOptionsTests.cpp"],
+    deps = [
+        "//fboss/fsdb/if:fsdb-cpp2-clients",
+        "//fboss/lib/thrift_service_client:thrift-service-client",
+    ],
+)

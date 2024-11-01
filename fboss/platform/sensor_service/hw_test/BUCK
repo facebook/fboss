@@ -9,10 +9,10 @@ cpp_binary(
     ],
     deps = [
         "fbsource//third-party/googletest:gtest",
-        "//fboss/platform/config_lib:config_lib",
         "//fboss/platform/helpers:init",
         "//fboss/platform/sensor_service:core",
         "//fboss/platform/sensor_service:service",
+        "//fboss/platform/sensor_service:utils",
         "//fboss/platform/sensor_service/if:sensor_service-cpp2-services",
         "//folly/init:init",
         "//thrift/lib/cpp2/protocol:protocol",

@@ -110,6 +110,11 @@ std::optional<sai_attr_id_t> SaiSwitchTraits::Attributes::
   return std::nullopt;
 }
 
+std::optional<sai_attr_id_t>
+SaiSwitchTraits::Attributes::AttributeNoAclsForTrapsWrapper::operator()() {
+  return std::nullopt;
+}
+
 const std::vector<sai_stat_id_t>& SaiSwitchTraits::dramStats() {
   static const std::vector<sai_stat_id_t> stats;
   return stats;
@@ -177,6 +182,20 @@ SaiSwitchTraits::Attributes::AttributeVoqLatencyMaxLevel2Ns::operator()() {
 
 std::optional<sai_attr_id_t>
 SaiSwitchTraits::Attributes::AttributeReachabilityGroupList::operator()() {
+  return std::nullopt;
+}
+std::optional<sai_attr_id_t> SaiSwitchTraits::Attributes::
+    AttributeFabricLinkLayerFlowControlThreshold::operator()() {
+  return std::nullopt;
+}
+
+std::optional<sai_attr_id_t> SaiSwitchTraits::Attributes::
+    AttributeSramFreePercentXoffThWrapper::operator()() {
+  return std::nullopt;
+}
+
+std::optional<sai_attr_id_t> SaiSwitchTraits::Attributes::
+    AttributeSramFreePercentXonThWrapper::operator()() {
   return std::nullopt;
 }
 } // namespace facebook::fboss

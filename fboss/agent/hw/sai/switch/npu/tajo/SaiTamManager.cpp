@@ -76,8 +76,8 @@ SaiTamManager::SaiTamManager(
   std::get<SaiTamEventTraits::Attributes::ActionList>(eventTraits) = actions;
   std::get<SaiTamEventTraits::Attributes::CollectorList>(eventTraits) =
       collectors;
-  std::get<SaiTamEventTraits::Attributes::SwitchEventType>(eventTraits) =
-      eventTypes;
+  std::get<std::optional<SaiTamEventTraits::Attributes::SwitchEventType>>(
+      eventTraits) = eventTypes;
   auto& eventStore = saiStore_->get<SaiTamEventTraits>();
   auto event = eventStore.setObject(eventTraits, eventTraits);
 

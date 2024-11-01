@@ -23,6 +23,7 @@ consistent ABIs for user space software.
 - [2. Terms and Abbreviations](#2-terms-and-abbreviations)
 - [3. Compatible Kernel Versions](#3-compatible-kernel-versions)
 - [4. Common Requirements](#4-common-requirements)
+  - [4.1 Source Code Repository Structure](#41-source-code-repository-structure)
 - [5. The PCIe FPGA Driver](#5-the-pcie-fpga-driver)
   - [5.1 Auxiliary Bus](#51-auxiliary-bus)
   - [5.2 Subdevice (I/O Controller) Creation \& Deletion](#52-subdevice-io-controller-creation--deletion)
@@ -165,6 +166,45 @@ this is to avoid potential log spew.
 10. The BSP must include a bash script named `fbsp-remove.sh` which successfully
 unloads all of the provided kernel modules. This script must be kept up to date
 with any changes made to the BSP.
+11. A file `kmods.json` must be included in the same directory as `fbsp-remove.sh`
+and this file contains a list of kmods (as named in `lsmod`) in the following
+format:
+```
+{
+    "bspKmods": [
+        "kmod_A",
+        "kmod_B",
+    ],
+    "sharedKmods": [
+        "shared_kmod_C",
+        "shared_kmod_D"
+    ]
+}
+```
+`fbsp-remove.sh` must read `kmods.json` and remove `bspKmods` before `sharedKmods`.
+A "shared" kmod is any kmod which other kmods depend upon.
+
+## 4.1 Source Code Repository Structure
+
+Source code shared with Meta must have the following general structure:
+
+```
+/source-repo
+├── kmods
+│ ├── Makefile
+│ ├── module.c
+│ └── ...
+└── rpmbuild
+  └── <vendor>\_bsp_kmods.spec
+```
+
+The source repository must have a top-level directory named "kmods" and another
+named "rpmbuild". The kmods directory must have a `Makefile` which will build
+the bsp kernel modules. Any other structure decisions are left to developers.
+
+The "rpmbuild" directory must have a file name <vendor>\_bsp_kmods.spec which is
+an rpm spec file. This spec file should result in an rpm that conforms to the
+rest of the specifications in this document
 
 
 # 5. The PCIe FPGA Driver

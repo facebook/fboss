@@ -8,6 +8,7 @@
  *
  */
 #include "fboss/agent/mnpu/SplitAgentThriftSyncerClient.h"
+#include "fboss/lib/thrift_service_client/ConnectionOptions.h"
 
 #include <folly/IPAddress.h>
 #include <netinet/in.h>
@@ -42,20 +43,21 @@ SplitAgentThriftClient::SplitAgentThriftClient(
       streamEvbThread_(streamEvbThread),
       serverPort_(serverPort),
       switchId_(switchId) {
-  setServerOptions(ServerOptions("::1", serverPort_));
+  setConnectionOptions(utils::ConnectionOptions("::1", serverPort_));
   scheduleTimeout();
 }
 
 SplitAgentThriftClient::~SplitAgentThriftClient() {}
 
-void SplitAgentThriftClient::connectClient(const ServerOptions& options) {
+void SplitAgentThriftClient::connectClient(
+    const utils::ConnectionOptions& options) {
   auto channel = apache::thrift::PooledRequestChannel::newChannel(
       streamEvbThread_->getEventBase(),
       streamEvbThread_,
       [options = options](folly::EventBase& evb) mutable {
         return apache::thrift::RocketClientChannel::newChannel(
             folly::AsyncSocket::UniquePtr(
-                new folly::AsyncSocket(&evb, options.dstAddr)));
+                new folly::AsyncSocket(&evb, options.getDstAddr())));
       });
 
   multiSwitchClient_.reset(
@@ -63,7 +65,8 @@ void SplitAgentThriftClient::connectClient(const ServerOptions& options) {
           std::move(channel)));
 }
 
-void SplitAgentThriftClient::connectToServer(const ServerOptions& options) {
+void SplitAgentThriftClient::connectToServer(
+    const utils::ConnectionOptions& options) {
   try {
     connectClient(options);
   } catch (const std::exception& ex) {

@@ -41,6 +41,7 @@ class PortApiTest : public ::testing::Test {
 #endif
         std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt,
         std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt,
+        std::nullopt, // TAM object
         std::nullopt, // Ingress Mirror Session
         std::nullopt, // Egress Mirror Session
         std::nullopt, // Ingress Sample Packet
@@ -78,6 +79,9 @@ class PortApiTest : public ::testing::Test {
         std::nullopt, // ARS port load future weight
 #endif
         std::nullopt, // Reachability Group
+        std::nullopt, // CondEntropyRehashEnable
+        std::nullopt, // CondEntropyRehashPeriodUS
+        std::nullopt, // CondEntropyRehashSeed
     };
     return portApi->create<SaiPortTraits>(a, 0);
   }
@@ -110,7 +114,34 @@ class PortApiTest : public ::testing::Test {
         rxDspMode,
         rxAfeTrim,
         rxAcCouplingByPass,
-        rxAfeAdaptiveEnable};
+        rxAfeAdaptiveEnable,
+        std::nullopt, // txDiffEncoderEn
+        std::nullopt, // txDigGain
+        std::nullopt, // txFfeCoeff0
+        std::nullopt, // txFfeCoeff1
+        std::nullopt, // txFfeCoeff2
+        std::nullopt, // txFfeCoeff3
+        std::nullopt, // txFfeCoeff4
+        std::nullopt, // txDriverSwing
+        std::nullopt, // rxInstgBoost1Start
+        std::nullopt, // rxInstgBoost1Step
+        std::nullopt, // rxInstgBoost1Stop
+        std::nullopt, // rxInstgBoost2OrHrStart
+        std::nullopt, // rxInstgBoost2OrHrStep
+        std::nullopt, // rxInstgBoost2OrHrStop
+        std::nullopt, // rxInstgC1Start1p7
+        std::nullopt, // rxInstgC1Step1p7
+        std::nullopt, // rxInstgC1Stop1p7
+        std::nullopt, // rxInstgDfeStart1p7
+        std::nullopt, // rxInstgDfeStep1p7
+        std::nullopt, // rxInstgDfeStop1p7
+        std::nullopt, // rxEnableScanSelection
+        std::nullopt, // rxInstgScanUseSrSettings
+        std::nullopt, // rxCdrCfgOvEn
+        std::nullopt, // rxCdrTdet1stOrdStepOvVal
+        std::nullopt, // rxCdrTdet2ndOrdStepOvVal
+        std::nullopt, // rxCdrTdetFineStepOvVal
+    };
     return portApi->create<SaiPortSerdesTraits>(a, 0 /*switch id*/);
   }
 
