@@ -608,6 +608,10 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
   std::optional<
       SaiSwitchTraits::Attributes::FabricLinkLayerFlowControlThreshold>
       fabricLLFC;
+  std::optional<int32_t> maxSystemPortId;
+  std::optional<int32_t> maxLocalSystemPortId;
+  std::optional<int32_t> maxSystemPorts;
+  std::optional<int32_t> maxVoqs;
 #if defined(BRCM_SAI_SDK_DNX) && defined(BRCM_SAI_SDK_GTE_12_0)
   if (getAsic()->getSwitchType() == cfg::SwitchType::FABRIC &&
       getAsic()->getFabricNodeRole() == HwAsic::FabricNodeRole::DUAL_STAGE_L1) {
@@ -617,6 +621,13 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
     constexpr uint32_t kRamon3LlfcThreshold{800};
     fabricLLFC = std::vector<uint32_t>({kRamon3LlfcThreshold});
   }
+  // TODO: Using the hard coding values for now from single stage system config
+  // to integrate 12.0.0.3. This needs to be fixed properly post
+  // 12.0.0.3 integration. Also, this can be skipped for fabric switches.
+  maxSystemPortId = 6143;
+  maxLocalSystemPortId = -1;
+  maxSystemPorts = 6144;
+  maxVoqs = 6144 * 8;
 #endif
   if (swType == cfg::SwitchType::FABRIC && bootType == BootType::COLD_BOOT) {
     // FABRIC switches should always start in isolated state until we configure
@@ -691,6 +702,10 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
       std::nullopt, // SRAM free percent XOFF threshold
       std::nullopt, // SRAM free percent XON threshold
       std::nullopt, // No acls for traps
+      maxSystemPortId,
+      maxLocalSystemPortId,
+      maxSystemPorts,
+      maxVoqs,
   };
 }
 

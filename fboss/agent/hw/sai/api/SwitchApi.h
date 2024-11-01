@@ -677,7 +677,11 @@ struct SaiSwitchTraits {
       std::optional<Attributes::FabricLinkLayerFlowControlThreshold>,
       std::optional<Attributes::SramFreePercentXoffTh>,
       std::optional<Attributes::SramFreePercentXonTh>,
-      std::optional<Attributes::NoAclsForTraps>>;
+      std::optional<Attributes::NoAclsForTraps>,
+      std::optional<Attributes::MaxSystemPortId>,
+      std::optional<Attributes::MaxLocalSystemPortId>,
+      std::optional<Attributes::MaxSystemPorts>,
+      std::optional<Attributes::MaxVoqs>>;
 
 #if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
   static constexpr std::array<sai_stat_id_t, 3> CounterIdsToRead = {
@@ -812,7 +816,11 @@ SAI_ATTRIBUTE_NAME(Switch, ReachabilityGroupList);
 SAI_ATTRIBUTE_NAME(Switch, FabricLinkLayerFlowControlThreshold);
 SAI_ATTRIBUTE_NAME(Switch, SramFreePercentXoffTh);
 SAI_ATTRIBUTE_NAME(Switch, SramFreePercentXonTh);
-SAI_ATTRIBUTE_NAME(Switch, NoAclsForTraps)
+SAI_ATTRIBUTE_NAME(Switch, NoAclsForTraps);
+SAI_ATTRIBUTE_NAME(Switch, MaxSystemPortId);
+SAI_ATTRIBUTE_NAME(Switch, MaxLocalSystemPortId);
+SAI_ATTRIBUTE_NAME(Switch, MaxSystemPorts);
+SAI_ATTRIBUTE_NAME(Switch, MaxVoqs);
 
 template <>
 struct SaiObjectHasStats<SaiSwitchTraits> : public std::true_type {};

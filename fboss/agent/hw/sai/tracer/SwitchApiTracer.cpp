@@ -127,6 +127,10 @@ void handleExtensionAttributes() {
   SAI_EXT_ATTR_MAP(Switch, SramFreePercentXoffTh);
   SAI_EXT_ATTR_MAP(Switch, SramFreePercentXonTh);
   SAI_EXT_ATTR_MAP(Switch, NoAclsForTraps);
+  SAI_EXT_ATTR_MAP(Switch, MaxSystemPortId);
+  SAI_EXT_ATTR_MAP(Switch, MaxLocalSystemPortId);
+  SAI_EXT_ATTR_MAP(Switch, MaxSystemPorts);
+  SAI_EXT_ATTR_MAP(Switch, MaxVoqs);
 }
 
 } // namespace
