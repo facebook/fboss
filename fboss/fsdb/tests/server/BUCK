@@ -8,8 +8,8 @@ cpp_unittest(
         "ServiceHandlerTest.cpp",
     ],
     deps = [
-        "//fboss/fsdb/client:client",
         "//fboss/fsdb/tests/utils:fsdb_test_server",
         "//fboss/lib:common_utils",
+        "//fboss/lib/thrift_service_client:thrift-service-client",
     ],
 )

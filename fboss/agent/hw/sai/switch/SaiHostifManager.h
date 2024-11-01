@@ -77,8 +77,7 @@ class SaiHostifManager {
       cfg::PacketRxReason trapId,
       uint32_t queueId,
       uint16_t priority);
-  static std::pair<sai_hostif_trap_type_t, sai_packet_action_t>
-  packetReasonToHostifTrap(
+  static std::pair<sai_int32_t, sai_packet_action_t> packetReasonToHostifTrap(
       cfg::PacketRxReason reason,
       const SaiPlatform* platform);
   static SaiHostifTrapTraits::CreateAttributes makeHostifTrapAttributes(

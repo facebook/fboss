@@ -11,6 +11,8 @@
 
 #include "fboss/agent/L2Entry.h"
 
+DECLARE_bool(enable_mac_update_protection);
+
 namespace facebook::fboss {
 
 class SwSwitch;
@@ -22,6 +24,7 @@ class MacTableManager {
   void handleL2LearningUpdate(
       L2Entry l2Entry,
       L2EntryUpdateType l2EntryUpdateType);
+  bool isHwUpdateProtected();
 
  private:
   // Forbidden copy constructor and assignment operator

@@ -68,6 +68,15 @@ const std::vector<cfg::AclTableQualifier> kQualifiers = {
     cfg::AclTableQualifier::SRC_IPV4,
     cfg::AclTableQualifier::DST_IPV4};
 
+const std::string kUdfGroup1 = "udfGroup1";
+const std::string kUdfGroup2 = "udfGroup2";
+const std::string kUdfGroup3 = "udfGroup3";
+
+const std::vector<std::string> kAclUdfGroups = {
+    kUdfGroup1,
+    kUdfGroup2,
+    kUdfGroup3};
+
 namespace {
 
 std::shared_ptr<const AclMap> getAclMapFromState(
@@ -185,10 +194,12 @@ TEST(AclGroup, TestEquality) {
   table1->setAclMap(map1);
   table1->setActionTypes(kActionTypes);
   table1->setQualifiers(kQualifiers);
+  table1->setUdfGroups(kAclUdfGroups);
   auto table2 = std::make_shared<AclTable>(2, kTable1);
   table2->setAclMap(map2);
   table2->setActionTypes(kActionTypes);
   table2->setQualifiers(kQualifiers);
+  table2->setUdfGroups(kAclUdfGroups);
   validateNodeSerialization(*table1);
   validateNodeSerialization(*table2);
 
@@ -292,6 +303,7 @@ TEST(AclGroup, SerializeAclTable) {
   table->setAclMap(map);
   table->setActionTypes(kActionTypes);
   table->setQualifiers(kQualifiers);
+  table->setUdfGroups(kAclUdfGroups);
   validateNodeSerialization(*table);
 
   auto serialized = table->toThrift();
@@ -303,6 +315,7 @@ TEST(AclGroup, SerializeAclTable) {
   EXPECT_EQ(*(tableBack->getAclMap()), *map);
   EXPECT_EQ(tableBack->getActionTypes(), kActionTypes);
   EXPECT_EQ(tableBack->getQualifiers(), kQualifiers);
+  EXPECT_EQ(tableBack->getUdfGroups()->toThrift(), kAclUdfGroups);
 
   // change the priority
   table->setPriority(2);
@@ -317,6 +330,7 @@ TEST(AclGroup, SerializeAclTable) {
   EXPECT_EQ(*(tableBack->getAclMap()), *map);
   EXPECT_EQ(tableBack->getActionTypes(), kActionTypes);
   EXPECT_EQ(tableBack->getQualifiers(), kQualifiers);
+  EXPECT_EQ(tableBack->getUdfGroups()->toThrift(), kAclUdfGroups);
 }
 
 TEST(AclGroup, SerializeAclTableMap) {
@@ -495,6 +509,7 @@ TEST(AclGroup, ApplyConfigColdbootMultipleAclTable) {
   table1->setAclMap(map1);
   table1->setActionTypes(kActionTypes);
   table1->setQualifiers(kQualifiers);
+  table1->setUdfGroups(kAclUdfGroups);
   validateNodeSerialization(*table1);
 
   auto tableMap = make_shared<AclTableMap>();
@@ -520,6 +535,9 @@ TEST(AclGroup, ApplyConfigColdbootMultipleAclTable) {
 
   cfgTable1.qualifiers_ref()->resize(kQualifiers.size());
   cfgTable1.qualifiers_ref() = kQualifiers;
+
+  cfgTable1.udfGroups_ref()->resize(kAclUdfGroups.size());
+  cfgTable1.udfGroups_ref() = kAclUdfGroups;
 
   cfg::SwitchConfig config;
   cfg::AclTableGroup cfgTableGroup;
@@ -579,6 +597,14 @@ TEST(AclGroup, ApplyConfigColdbootMultipleAclTable) {
           ->getTableIf(table1->getID())
           ->getQualifiers(),
       kQualifiers);
+  EXPECT_EQ(
+      stateV1->getAclTableGroups()
+          ->getNodeIf(kAclStage1)
+          ->getAclTableMap()
+          ->getTableIf(table1->getID())
+          ->getUdfGroups()
+          ->toThrift(),
+      kAclUdfGroups);
   EXPECT_EQ(
       *(stateV1->getAclTableGroups()
             ->getNodeIf(kAclStage1)

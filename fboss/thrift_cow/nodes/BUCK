@@ -25,6 +25,7 @@ cpp_library(
         ":serializer",
         "//fatal:fatal",
         "//folly:conv",
+        "//thrift/lib/cpp/util:enum_utils",
         "//thrift/lib/cpp2/reflection:reflection",
     ],
 )

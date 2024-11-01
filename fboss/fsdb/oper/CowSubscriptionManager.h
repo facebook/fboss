@@ -220,7 +220,7 @@ class CowSubscriptionManager
           patchNode.set_val(*buf);
           patchSubscription->offer(std::move(patchNode));
         }
-        store.lookup().add(subscription);
+        store.lookup().add(subscription, store.getPathStoreStats());
         subscription->firstChunkSent();
         // TODO: trim empty path store nodes
         it = subscriptions.erase(it);
@@ -309,7 +309,7 @@ class CowSubscriptionManager
   }
 
   void pruneDeletedPaths(
-      SubscriptionPathStore* lookup,
+      SubscriptionStore& store,
       const std::shared_ptr<Root>& oldRoot,
       const std::shared_ptr<Root>& newRoot) {
     // This helper uses DeltaVisitor to visit all deleted nodes in
@@ -333,13 +333,13 @@ class CowSubscriptionManager
           if (parentStore) {
             auto path = traverser.path();
             auto lastTok = path.back();
-            parentStore->removeChild(lastTok);
+            parentStore->removeChild(lastTok, store.getPathStoreStats());
           }
         }
       }
     };
 
-    CowDeletePathTraverseHelper traverser(lookup);
+    CowDeletePathTraverseHelper traverser(&store.lookup());
 
     thrift_cow::RootDeltaVisitor::visit(
         traverser,

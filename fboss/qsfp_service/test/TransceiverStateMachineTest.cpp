@@ -1567,7 +1567,7 @@ TEST_F(TransceiverStateMachineTest, remediateCmisTransceiverFailed) {
         // Expect updateQsfpData and updateCachedTransceiverInfoLocked to be
         // called from refreshStateMachines() we do in verify() below
         EXPECT_CALL(*mockXcvr, updateQsfpData(true)).Times(1);
-        EXPECT_CALL(*mockXcvr, updateQsfpData(false)).Times(2);
+        EXPECT_CALL(*mockXcvr, updateQsfpData(false)).Times(3);
         EXPECT_CALL(*mockXcvr, updateCachedTransceiverInfoLocked(::testing::_))
             .Times(2)
             .InSequence(s);
@@ -2084,7 +2084,7 @@ TEST_F(TransceiverStateMachineTest, reseatTransceiver) {
       // valid
       MockCmisModule* mockXcvr = static_cast<MockCmisModule*>(xcvr_);
       ::testing::Sequence s;
-      EXPECT_CALL(*mockXcvr, updateQsfpData(false)).Times(2);
+      EXPECT_CALL(*mockXcvr, updateQsfpData(false)).Times(3);
       EXPECT_CALL(*mockXcvr, updateCachedTransceiverInfoLocked(::testing::_))
           .Times(2);
       setProgramCmisModuleExpectation(true);
@@ -2243,7 +2243,12 @@ TEST_F(TransceiverStateMachineTest, upgradeFirmware) {
     auto allStates = getAllStates();
     verifyStateMachine(
         {TransceiverStateMachineState::UPGRADING,
-         TransceiverStateMachineState::INACTIVE},
+         TransceiverStateMachineState::INACTIVE,
+         TransceiverStateMachineState::IPHY_PORTS_PROGRAMMED,
+         TransceiverStateMachineState::XPHY_PORTS_PROGRAMMED,
+         TransceiverStateMachineState::TRANSCEIVER_READY,
+         TransceiverStateMachineState::TRANSCEIVER_PROGRAMMED,
+         TransceiverStateMachineState::ACTIVE},
         TransceiverStateMachineState::DISCOVERED /* expected state */,
         allStates,
         []() {} /* preUpdate */,

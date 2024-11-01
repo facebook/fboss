@@ -154,9 +154,12 @@ struct ChildInvoke {
 
 } // namespace struct_helpers
 
-template <typename TType, typename Derived = ThriftStructResolver<TType>>
-struct ThriftStructFields {
-  using Self = ThriftStructFields<TType, Derived>;
+template <
+    typename TType,
+    typename Derived = ThriftStructResolver<TType, false>,
+    bool EnableHybridStorage = false>
+struct ThriftStructFields : public FieldBaseType {
+  using Self = ThriftStructFields<TType, Derived, EnableHybridStorage>;
   using Info = apache::thrift::reflect_struct<TType>;
   using CowType = FieldsType;
   using ThriftType = TType;
@@ -166,7 +169,8 @@ struct ThriftStructFields {
   using Members = typename Info::members;
 
   // Extracting useful common types out of each member via Traits.h
-  using MemberTypes = fatal::transform<Members, ExtractStructFields<Derived>>;
+  using MemberTypes = fatal::
+      transform<Members, ExtractStructFields<Derived, EnableHybridStorage>>;
 
   // type list of members with SkipThriftCow enabled
   using MemberTypesWithSkipThriftCow =
@@ -178,11 +182,12 @@ struct ThriftStructFields {
 
   template <typename Name>
   constexpr bool isSkipThriftCowEnabled() const {
-    if constexpr (HasSkipThriftCow<Name>::value) {
-      return true;
-    } else {
-      return false;
+    if constexpr (EnableHybridStorage) {
+      if constexpr (HasSkipThriftCow<Name>::value) {
+        return true;
+      }
     }
+    return false;
   }
 
   // This is our ultimate storage type, which is effectively a
@@ -416,16 +421,21 @@ struct ThriftStructFields {
   NamedMemberTypes storage_;
 };
 
-template <typename TType, typename Resolver = ThriftStructResolver<TType>>
-class ThriftStructNode
-    : public NodeBaseT<
-          typename Resolver::type,
-          ThriftStructFields<TType, typename Resolver::type>>,
-      public thrift_cow::Serializable {
+template <
+    typename TType,
+    typename Resolver = ThriftStructResolver<TType, false>,
+    bool EnableHybridStorage = false>
+class ThriftStructNode : public NodeBaseT<
+                             typename Resolver::type,
+                             ThriftStructFields<
+                                 TType,
+                                 typename Resolver::type,
+                                 EnableHybridStorage>>,
+                         public thrift_cow::Serializable {
  public:
-  using Self = ThriftStructNode<TType, Resolver>;
+  using Self = ThriftStructNode<TType, Resolver, EnableHybridStorage>;
   using Derived = typename Resolver::type;
-  using Fields = ThriftStructFields<TType, Derived>;
+  using Fields = ThriftStructFields<TType, Derived, EnableHybridStorage>;
   using ThriftType = typename Fields::ThriftType;
   using BaseT = NodeBaseT<Derived, Fields>;
   using CowType = NodeType;

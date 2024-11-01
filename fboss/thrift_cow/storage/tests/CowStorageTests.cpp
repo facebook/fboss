@@ -15,6 +15,7 @@
 #include "fboss/fsdb/tests/gen-cpp2/thriftpath_test_types.h"
 
 using folly::dynamic;
+using namespace testing;
 
 namespace {
 
@@ -56,8 +57,8 @@ template <typename T>
 struct IsPublishable<T, std::void_t<decltype(std::declval<T>()->publish())>>
     : std::true_type {};
 
-template <typename Root>
-void publishAllNodes(CowStorage<Root>& storage) {
+template <typename Root, typename Node>
+void publishAllNodes(CowStorage<Root, Node>& storage) {
   using namespace facebook::fboss::thrift_cow;
   auto root = storage.root();
   RootRecurseVisitor::visit(
@@ -80,14 +81,40 @@ OperDeltaUnit createEmptyDeltaUnit(std::vector<std::string> path) {
 
 } // namespace
 
-TEST(CowStorageTests, GetThrift) {
+template <bool EnableHybridStorage>
+struct TestParams {
+  static constexpr auto hybridStorage = EnableHybridStorage;
+};
+
+using StorageTestTypes = ::testing::Types<TestParams<false>, TestParams<true>>;
+
+template <typename TestParams>
+class CowStorageTests : public ::testing::Test {
+ public:
+  auto initStorage(auto val) {
+    auto constexpr isHybridStorage = TestParams::hybridStorage;
+    using RootType = std::remove_cvref_t<decltype(val)>;
+    return CowStorage<
+        RootType,
+        facebook::fboss::thrift_cow::ThriftStructNode<
+            RootType,
+            facebook::fboss::thrift_cow::
+                ThriftStructResolver<RootType, isHybridStorage>,
+            isHybridStorage>>(val);
+  }
+};
+
+TYPED_TEST_SUITE(CowStorageTests, StorageTestTypes);
+
+TYPED_TEST(CowStorageTests, GetThrift) {
   using namespace facebook::fboss::fsdb;
 
   thriftpath::RootThriftPath<TestStruct> root;
 
   auto testStruct = facebook::thrift::from_dynamic<TestStruct>(
       createTestDynamic(), facebook::thrift::dynamic_format::JSON_1);
-  auto storage = CowStorage<TestStruct>(testStruct);
+
+  auto storage = this->initStorage(testStruct);
 
   EXPECT_EQ(storage.get(root.tx()).value(), true);
   EXPECT_EQ(storage.get(root.rx()).value(), false);
@@ -97,14 +124,14 @@ TEST(CowStorageTests, GetThrift) {
   EXPECT_EQ(storage.get(root).value(), testStruct);
 }
 
-TEST(CowStorageTests, GetEncoded) {
+TYPED_TEST(CowStorageTests, GetEncoded) {
   using namespace facebook::fboss::fsdb;
 
   thriftpath::RootThriftPath<TestStruct> root;
 
   auto testStruct = facebook::thrift::from_dynamic<TestStruct>(
       createTestDynamic(), facebook::thrift::dynamic_format::JSON_1);
-  auto storage = CowStorage<TestStruct>(testStruct);
+  auto storage = this->initStorage(testStruct);
 
   auto result = storage.get_encoded(root.tx(), OperProtocol::SIMPLE_JSON);
   EXPECT_EQ(
@@ -138,14 +165,14 @@ TEST(CowStorageTests, GetEncoded) {
           OperProtocol::SIMPLE_JSON, testStruct));
 }
 
-TEST(CowStorageTests, GetEncodedMetadata) {
+TYPED_TEST(CowStorageTests, GetEncodedMetadata) {
   using namespace facebook::fboss::fsdb;
 
   thriftpath::RootThriftPath<TestStruct> root;
 
   auto testStruct = facebook::thrift::from_dynamic<TestStruct>(
       createTestDynamic(), facebook::thrift::dynamic_format::JSON_1);
-  auto storage = CowStorage<TestStruct>(testStruct);
+  auto storage = this->initStorage(testStruct);
 
   auto result = storage.get_encoded(root.tx(), OperProtocol::SIMPLE_JSON);
   EXPECT_FALSE(result.hasError());
@@ -184,14 +211,14 @@ TEST(CowStorageTests, GetEncodedMetadata) {
           OperProtocol::SIMPLE_JSON, testStruct2));
 }
 
-TEST(CowStorageTests, SetThrift) {
+TYPED_TEST(CowStorageTests, SetThrift) {
   using namespace facebook::fboss::fsdb;
 
   thriftpath::RootThriftPath<TestStruct> root;
 
   auto testStruct = facebook::thrift::from_dynamic<TestStruct>(
       createTestDynamic(), facebook::thrift::dynamic_format::JSON_1);
-  auto storage = CowStorage<TestStruct>(testStruct);
+  auto storage = this->initStorage(testStruct);
 
   EXPECT_EQ(storage.get(root.tx()).value(), true);
   EXPECT_EQ(storage.get(root.rx()).value(), false);
@@ -218,14 +245,14 @@ TEST(CowStorageTests, SetThrift) {
   EXPECT_EQ(storage.get(root.structMap()[3]).value(), newStructMapMember);
 }
 
-TEST(CowStorageTests, AddDynamic) {
+TYPED_TEST(CowStorageTests, AddDynamic) {
   using namespace facebook::fboss::fsdb;
 
   thriftpath::RootThriftPath<TestStruct> root;
 
   auto testStruct = facebook::thrift::from_dynamic<TestStruct>(
       createTestDynamic(), facebook::thrift::dynamic_format::JSON_1);
-  auto storage = CowStorage<TestStruct>(testStruct);
+  auto storage = this->initStorage(testStruct);
 
   EXPECT_EQ(storage.get(root.tx()).value(), true);
   EXPECT_EQ(storage.get(root.rx()).value(), false);
@@ -234,7 +261,7 @@ TEST(CowStorageTests, AddDynamic) {
       storage.get(root.structMap()[3]).value(), testStruct.structMap()->at(3));
 }
 
-TEST(CowStorageTests, RemoveThrift) {
+TYPED_TEST(CowStorageTests, RemoveThrift) {
   using namespace facebook::fboss::fsdb;
 
   thriftpath::RootThriftPath<TestStruct> root;
@@ -253,7 +280,7 @@ TEST(CowStorageTests, RemoveThrift) {
   (*testStruct.structMap())[2] = member2;
   (*testStruct.structList()) = {member2, member1, member1};
 
-  auto storage = CowStorage<TestStruct>(testStruct);
+  auto storage = this->initStorage(testStruct);
 
   EXPECT_EQ(storage.get(root.tx()).value(), true);
   EXPECT_EQ(storage.get(root.rx()).value(), false);
@@ -288,7 +315,7 @@ TEST(CowStorageTests, RemoveThrift) {
       storage.get(root.structList()[5]).error(), StorageError::INVALID_PATH);
 }
 
-TEST(CowStorageTests, PatchDelta) {
+TYPED_TEST(CowStorageTests, PatchDelta) {
   using namespace facebook::fboss::fsdb;
   using namespace apache::thrift::type_class;
 
@@ -296,7 +323,7 @@ TEST(CowStorageTests, PatchDelta) {
 
   auto testStruct = facebook::thrift::from_dynamic<TestStruct>(
       createTestDynamic(), facebook::thrift::dynamic_format::JSON_1);
-  auto storage = CowStorage<TestStruct>(testStruct);
+  auto storage = this->initStorage(testStruct);
 
   // publish to ensure we can patch published storage
   storage.publish();
@@ -354,10 +381,10 @@ TEST(CowStorageTests, PatchDelta) {
   EXPECT_EQ(storage.get(root.enumMap()[TestEnum::FIRST].min()).value(), 2001);
 }
 
-TEST(CowStorageTests, EncodedExtendedAccessFieldSimple) {
+TYPED_TEST(CowStorageTests, EncodedExtendedAccessFieldSimple) {
   auto testStruct = createTestStructForExtendedTests();
 
-  auto storage = CowStorage<TestStruct>(testStruct);
+  auto storage = this->initStorage(testStruct);
   storage.publish();
   EXPECT_TRUE(storage.isPublished());
 
@@ -372,10 +399,10 @@ TEST(CowStorageTests, EncodedExtendedAccessFieldSimple) {
           OperProtocol::SIMPLE_JSON, true));
 }
 
-TEST(CowStorageTests, EncodedExtendedAccessFieldInContainer) {
+TYPED_TEST(CowStorageTests, EncodedExtendedAccessFieldInContainer) {
   auto testStruct = createTestStructForExtendedTests();
 
-  auto storage = CowStorage<TestStruct>(testStruct);
+  auto storage = this->initStorage(testStruct);
   storage.publish();
   EXPECT_TRUE(storage.isPublished());
 
@@ -390,10 +417,10 @@ TEST(CowStorageTests, EncodedExtendedAccessFieldInContainer) {
   EXPECT_EQ(*got.max(), 200);
 }
 
-TEST(CowStorageTests, EncodedExtendedAccessRegexMap) {
+TYPED_TEST(CowStorageTests, EncodedExtendedAccessRegexMap) {
   auto testStruct = createTestStructForExtendedTests();
 
-  auto storage = CowStorage<TestStruct>(testStruct);
+  auto storage = this->initStorage(testStruct);
   storage.publish();
   EXPECT_TRUE(storage.isPublished());
 
@@ -426,10 +453,10 @@ TEST(CowStorageTests, EncodedExtendedAccessRegexMap) {
   }
 }
 
-TEST(CowStorageTests, EncodedExtendedAccessAnyMap) {
+TYPED_TEST(CowStorageTests, EncodedExtendedAccessAnyMap) {
   auto testStruct = createTestStructForExtendedTests();
 
-  auto storage = CowStorage<TestStruct>(testStruct);
+  auto storage = this->initStorage(testStruct);
   storage.publish();
   EXPECT_TRUE(storage.isPublished());
 
@@ -471,10 +498,10 @@ TEST(CowStorageTests, EncodedExtendedAccessAnyMap) {
   }
 }
 
-TEST(CowStorageTests, EncodedExtendedAccessRegexList) {
+TYPED_TEST(CowStorageTests, EncodedExtendedAccessRegexList) {
   auto testStruct = createTestStructForExtendedTests();
 
-  auto storage = CowStorage<TestStruct>(testStruct);
+  auto storage = this->initStorage(testStruct);
   storage.publish();
   EXPECT_TRUE(storage.isPublished());
 
@@ -506,10 +533,10 @@ TEST(CowStorageTests, EncodedExtendedAccessRegexList) {
   }
 }
 
-TEST(CowStorageTests, EncodedExtendedAccessAnyList) {
+TYPED_TEST(CowStorageTests, EncodedExtendedAccessAnyList) {
   auto testStruct = createTestStructForExtendedTests();
 
-  auto storage = CowStorage<TestStruct>(testStruct);
+  auto storage = this->initStorage(testStruct);
   storage.publish();
   EXPECT_TRUE(storage.isPublished());
 
@@ -542,10 +569,10 @@ TEST(CowStorageTests, EncodedExtendedAccessAnyList) {
   }
 }
 
-TEST(CowStorageTests, EncodedExtendedAccessRegexSet) {
+TYPED_TEST(CowStorageTests, EncodedExtendedAccessRegexSet) {
   auto testStruct = createTestStructForExtendedTests();
 
-  auto storage = CowStorage<TestStruct>(testStruct);
+  auto storage = this->initStorage(testStruct);
   storage.publish();
   EXPECT_TRUE(storage.isPublished());
 
@@ -578,10 +605,10 @@ TEST(CowStorageTests, EncodedExtendedAccessRegexSet) {
   }
 }
 
-TEST(CowStorageTests, EncodedExtendedAccessAnySet) {
+TYPED_TEST(CowStorageTests, EncodedExtendedAccessAnySet) {
   auto testStruct = createTestStructForExtendedTests();
 
-  auto storage = CowStorage<TestStruct>(testStruct);
+  auto storage = this->initStorage(testStruct);
   storage.publish();
   EXPECT_TRUE(storage.isPublished());
 
@@ -614,12 +641,12 @@ TEST(CowStorageTests, EncodedExtendedAccessAnySet) {
   }
 }
 
-TEST(CowStorageTests, PatchRoot) {
+TYPED_TEST(CowStorageTests, PatchRoot) {
   using namespace facebook::fboss::fsdb;
   using namespace facebook::fboss::thrift_cow;
   auto testStructA = createTestStruct();
 
-  auto storage = CowStorage<TestStruct>(testStructA);
+  auto storage = this->initStorage(testStructA);
   // In FSDB we only publish root, but just to test PatchApplier functionality,
   // publish all nodes and make sure we modify itermediate nodes properly
   publishAllNodes(storage);
@@ -648,7 +675,7 @@ TEST(CowStorageTests, PatchRoot) {
   EXPECT_EQ(storage.root()->toThrift(), testStructB);
 
   // reset storage and patch just the one member
-  storage = CowStorage<TestStruct>(testStructA);
+  storage = this->initStorage(testStructA);
   publishAllNodes(storage);
 
   auto memberNodeA = std::make_shared<ThriftStructNode<TestStructSimple>>(
@@ -664,14 +691,15 @@ TEST(CowStorageTests, PatchRoot) {
   storage.patch(std::move(patch));
   using k = thriftpath_test_tags::strings;
   EXPECT_EQ(
-      storage.root()->ref<k::member>()->toThrift(), *testStructB.member());
+      storage.root()->template ref<k::member>()->toThrift(),
+      *testStructB.member());
 }
 
-TEST(SubscribableStorageTests, PatchInvalidDeltaPath) {
+TYPED_TEST(CowStorageTests, PatchInvalidDeltaPath) {
   using namespace facebook::fboss::fsdb;
 
   auto testStructA = createTestStruct();
-  auto storage = CowStorage<TestStruct>(testStructA);
+  auto storage = this->initStorage(testStructA);
 
   OperDelta delta;
   OperDeltaUnit unit;
@@ -689,13 +717,13 @@ TEST(SubscribableStorageTests, PatchInvalidDeltaPath) {
   EXPECT_EQ(storage.patch(delta), StorageError::INVALID_PATH);
 }
 
-TEST(CowStorageTests, PatchEmptyDeltaNonexistentPath) {
+TYPED_TEST(CowStorageTests, PatchEmptyDeltaNonexistentPath) {
   using namespace facebook::fboss::fsdb;
 
   thriftpath::RootThriftPath<TestStruct> root;
 
   auto testStructA = createTestStruct();
-  auto storage = CowStorage<TestStruct>(testStructA);
+  auto storage = this->initStorage(testStructA);
 
   EXPECT_EQ(storage.get(root.mapOfStructs())->size(), 0);
   EXPECT_EQ(storage.get(root.listofStructs())->size(), 0);

@@ -39,8 +39,10 @@ class CmdShowHwObject
           [&hwObjectInfo, queriedHwObjectTypes](
               apache::thrift::Client<facebook::fboss::FbossHwCtrl>& client) {
             std::string hwAgentObjectInfo;
+            // TODO - we look at non cached objects. Add a cli option to
+            // look at cached objects if so desired.
             client.sync_listHwObjects(
-                hwAgentObjectInfo, queriedHwObjectTypes.data(), true);
+                hwAgentObjectInfo, queriedHwObjectTypes.data(), false);
             hwObjectInfo += hwAgentObjectInfo;
           };
       utils::runOnAllHwAgents(hostInfo, hwAgentQueryFn);

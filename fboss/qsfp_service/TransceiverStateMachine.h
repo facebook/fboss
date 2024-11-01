@@ -500,7 +500,12 @@ BOOST_MSM_EUML_TRANSITION_TABLE((
     // May need to remediate transciever if some ports are down
     ACTIVE                 + REMEDIATE_TRANSCEIVER  [tryRemediateTransceiver]  / logStateChanged == XPHY_PORTS_PROGRAMMED,
     INACTIVE               + UPGRADE_FIRMWARE [firmwareUpgradeRequired]        / logStateChanged == UPGRADING,
+    ACTIVE                 + UPGRADE_FIRMWARE [firmwareUpgradeRequired]        / logStateChanged == UPGRADING,
     DISCOVERED             + UPGRADE_FIRMWARE [firmwareUpgradeRequired]        / logStateChanged == UPGRADING,
+    IPHY_PORTS_PROGRAMMED  + UPGRADE_FIRMWARE [firmwareUpgradeRequired]        / logStateChanged == UPGRADING,
+    XPHY_PORTS_PROGRAMMED  + UPGRADE_FIRMWARE [firmwareUpgradeRequired]        / logStateChanged == UPGRADING,
+    TRANSCEIVER_READY      + UPGRADE_FIRMWARE [firmwareUpgradeRequired]        / logStateChanged == UPGRADING,
+    TRANSCEIVER_PROGRAMMED + UPGRADE_FIRMWARE [firmwareUpgradeRequired]        / logStateChanged == UPGRADING,
     UPGRADING              + RESET_TO_DISCOVERED                               / logStateChanged == DISCOVERED
 //  +------------------------------------------------------------------------------------------------------------+
     ), TransceiverTransitionTable)

@@ -41,7 +41,7 @@ struct ExtractTypeClass<
 } // namespace map_helpers
 
 template <typename Traits>
-struct ThriftMapFields {
+struct ThriftMapFields : public FieldBaseType {
   using TypeClass = typename Traits::TC;
   using TType = typename Traits::Type;
   using Self = ThriftMapFields<Traits>;

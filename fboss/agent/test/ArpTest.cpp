@@ -1172,7 +1172,7 @@ TYPED_TEST(ArpTest, FlushEntryWithConcurrentUpdate) {
 
   PortID portID(1);
   // ensure port is up
-  sw->linkStateChanged(portID, true);
+  sw->linkStateChanged(portID, true, cfg::PortType::INTERFACE_PORT);
 
   VlanID vlanID(1);
   std::vector<IPAddressV4> targetIPs;
@@ -1248,7 +1248,7 @@ TYPED_TEST(ArpTest, PortFlapRecover) {
   auto sw = handle->getSw();
 
   // ensure port is up
-  sw->linkStateChanged(PortID(1), true);
+  sw->linkStateChanged(PortID(1), true, cfg::PortType::INTERFACE_PORT);
 
   VlanID vlanID(1);
   IPAddressV4 senderIP = IPAddressV4("10.0.0.1");
@@ -1303,7 +1303,7 @@ TYPED_TEST(ArpTest, PortFlapRecover) {
 
   // send a port down event to the switch for port 1
   EXPECT_STATE_UPDATE_TIMES_ATLEAST(sw, 1);
-  sw->linkStateChanged(PortID(1), false);
+  sw->linkStateChanged(PortID(1), false, cfg::PortType::INTERFACE_PORT);
 
   // purging neighbor entries occurs on the background EVB via NeighorUpdater as
   // a StateObserver.
@@ -1326,7 +1326,7 @@ TYPED_TEST(ArpTest, PortFlapRecover) {
 
   // send a port up event to the switch for port 1
   EXPECT_STATE_UPDATE_TIMES_ATLEAST(sw, 1);
-  sw->linkStateChanged(PortID(1), true);
+  sw->linkStateChanged(PortID(1), true, cfg::PortType::INTERFACE_PORT);
   waitForStateUpdates(sw);
 
   // Receive arp replies for entries on flapped port, port 1

@@ -21,6 +21,16 @@
 
 #include <chrono>
 
+extern "C" {
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
+#ifndef IS_OSS_BRCM_SAI
+#include <experimental/saihostifextensions.h>
+#else
+#include <saihostifextensions.h>
+#endif
+#endif
+}
+
 using namespace std::chrono;
 
 namespace facebook::fboss {
@@ -55,7 +65,7 @@ SaiHostifManager::~SaiHostifManager() {
   store.release();
 }
 
-std::pair<sai_hostif_trap_type_t, sai_packet_action_t>
+std::pair<sai_int32_t, sai_packet_action_t>
 SaiHostifManager::packetReasonToHostifTrap(
     cfg::PacketRxReason reason,
     const SaiPlatform* platform) {
@@ -128,6 +138,11 @@ SaiHostifManager::packetReasonToHostifTrap(
           SAI_HOSTIF_TRAP_TYPE_SAMPLEPACKET, SAI_PACKET_ACTION_TRAP);
     case cfg::PacketRxReason::EAPOL:
       return std::make_pair(SAI_HOSTIF_TRAP_TYPE_EAPOL, SAI_PACKET_ACTION_TRAP);
+    case cfg::PacketRxReason::PORT_MTU_ERROR:
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
+      return std::make_pair(
+          SAI_HOSTIF_TRAP_TYPE_PORT_MTU_ERROR, SAI_PACKET_ACTION_TRAP);
+#endif
     case cfg::PacketRxReason::MPLS_UNKNOWN_LABEL:
     case cfg::PacketRxReason::BPDU:
     case cfg::PacketRxReason::L3_SLOW_PATH:
@@ -144,7 +159,7 @@ SaiHostifManager::makeHostifTrapAttributes(
     HostifTrapGroupSaiId trapGroupId,
     uint16_t priority,
     const SaiPlatform* platform) {
-  sai_hostif_trap_type_t hostifTrapId;
+  sai_int32_t hostifTrapId;
   sai_packet_action_t hostifPacketAction;
   std::tie(hostifTrapId, hostifPacketAction) =
       packetReasonToHostifTrap(trapId, platform);
@@ -476,6 +491,10 @@ SaiHostifManager::getVoqHandle(const SaiQueueConfig& saiQueueConfig) {
 void SaiHostifManager::changeCpuQueue(
     const ControlPlane::PortQueues& oldQueueConfig,
     const ControlPlane::PortQueues& newQueueConfig) {
+  if (platform_->getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_CHENAB) {
+    // Chenab-TODO(pshaikh): no way to configure queues on CPU port
+    return;
+  }
   cpuPortHandle_->configuredQueues.clear();
   cpuPortHandle_->configuredVoqs.clear();
 
@@ -504,7 +523,8 @@ void SaiHostifManager::changeCpuQueue(
             ? *newPortQueue->getScalingFactor()
             : asic->getDefaultScalingFactor(
                   newPortQueue->getStreamType(), true /*cpu port*/));
-    managerTable_->queueManager().changeQueue(queueHandle, *portQueue);
+    managerTable_->queueManager().changeQueue(
+        queueHandle, *portQueue, nullptr /*swPort*/, cfg::PortType::CPU_PORT);
     if (platform_->getAsic()->isSupported(
             HwAsic::Feature::CPU_VOQ_BUFFER_PROFILE)) {
       auto voqHandle = getVoqHandle(saiQueueConfig);
@@ -555,6 +575,10 @@ void SaiHostifManager::loadCpuPortQueues() {
   SaiPortTraits::Attributes::QosQueueList queueListAttribute{queueList};
   auto queueSaiIdList = SaiApiTable::getInstance()->portApi().getAttribute(
       cpuPortHandle_->cpuPortId, queueListAttribute);
+  if (platform_->getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_CHENAB) {
+    // Chenab-TODO(pshaikh): no way to load queues on CPU port
+    return;
+  }
   if (queueSaiIdList.size() == 0) {
     throw FbossError("no queues exist for cpu port ");
   }

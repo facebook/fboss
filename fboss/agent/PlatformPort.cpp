@@ -115,7 +115,6 @@ PlatformPort::getTransceiverPinConfigs(cfg::PortProfileID profileID) const {
 phy::PortPinConfig PlatformPort::getPortXphyPinConfig(
     cfg::PortProfileID profileID) const {
   if (platform_->needTransceiverInfo()) {
-    FbossEventBase evb;
     auto transceiverSpec = getTransceiverInfo();
     if (transceiverSpec) {
       return platform_->getPlatformMapping()->getPortXphyPinConfig(
@@ -249,7 +248,6 @@ const phy::PortProfileConfig PlatformPort::getPortProfileConfig(
 const std::optional<phy::PortProfileConfig>
 PlatformPort::getPortProfileConfigIf(cfg::PortProfileID profileID) const {
   if (platform_->needTransceiverInfo()) {
-    FbossEventBase evb;
     auto transceiverSpec = getTransceiverInfo();
     if (transceiverSpec) {
       return platform_->getPortProfileConfig(PlatformPortProfileConfigMatcher(

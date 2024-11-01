@@ -21,10 +21,18 @@ DEFINE_int32(
     30,
     "Thrift task expire timeout in seconds.");
 
+// TODO: remove after netcastle changes are in place
 DEFINE_bool(
     thrift_test_utils_thrift_handler,
     false,
     "Enable thrift handler for HW tests");
+
+DEFINE_bool(
+    hw_agent_for_testing,
+    false,
+    "Whether to prepare hw agent for testing. This includes "
+    "1) Enable thrift handler for HW tests, "
+    "2) Consume config file created by sw agent with overrides.");
 
 namespace facebook::fboss {
 std::unique_ptr<apache::thrift::ThriftServer> setupThriftServer(

@@ -25,7 +25,7 @@ class SaiMorgan800ccPlatform : public SaiTajoPlatform {
   std::string getHwConfig() override;
   HwAsic* getAsic() const override;
   bool isSerdesApiSupported() const override {
-    return false;
+    return true;
   }
 
  private:

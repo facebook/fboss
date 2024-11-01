@@ -11,6 +11,8 @@
 #include "fboss/agent/state/StateDelta.h"
 #include "fboss/agent/types.h"
 
+DECLARE_bool(janga_single_npu_for_testing);
+
 namespace facebook::fboss {
 class HwAsic;
 class SwitchState;
@@ -66,6 +68,8 @@ class FabricConnectivityManager {
       uint64_t switchId,
       uint64_t baseSwitchId,
       const auto& switchName);
+  std::pair<std::optional<std::string>, std::optional<std::string>>
+  getActualSwitchNameAndPortName(uint64_t switchId, int32_t portId);
 
  private:
   void updateExpectedSwitchIdAndPortIdForPort(PortID portID);

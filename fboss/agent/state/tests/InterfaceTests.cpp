@@ -786,8 +786,9 @@ TEST(Interface, getInterfaceSysPortRangeVoqSwitch) {
   ASSERT_NE(nullptr, stateV1);
   auto multiIntfs = stateV1->getInterfaces();
   auto intf = multiIntfs->cbegin()->second->cbegin()->second;
-  EXPECT_TRUE(
-      stateV1->getAssociatedSystemPortRangeIf(intf->getID()).has_value());
+  EXPECT_FALSE(stateV1->getAssociatedSystemPortRangesIf(intf->getID())
+                   .systemPortRanges()
+                   ->empty());
 }
 
 TEST(Interface, getInterfaceSysPortRange) {
@@ -798,8 +799,9 @@ TEST(Interface, getInterfaceSysPortRange) {
   ASSERT_NE(nullptr, stateV1);
   auto multiIntfs = stateV1->getInterfaces();
   auto intf = multiIntfs->cbegin()->second->cbegin()->second;
-  EXPECT_FALSE(
-      stateV1->getAssociatedSystemPortRangeIf(intf->getID()).has_value());
+  EXPECT_TRUE(stateV1->getAssociatedSystemPortRangesIf(intf->getID())
+                  .systemPortRanges()
+                  ->empty());
 }
 
 TEST(Interface, getInterfacePortsVoqSwitch) {

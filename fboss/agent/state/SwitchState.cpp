@@ -650,26 +650,26 @@ SwitchID SwitchState::getAssociatedSwitchID(PortID portID) const {
   return getSystemPorts()->getNode(*systemPortID)->getSwitchId();
 }
 
-std::optional<cfg::Range64> SwitchState::getAssociatedSystemPortRangeIf(
+cfg::SystemPortRanges SwitchState::getAssociatedSystemPortRangesIf(
     InterfaceID intfID) const {
   auto intf = getInterfaces()->getNodeIf(intfID);
   if (!intf || intf->getType() != cfg::InterfaceType::SYSTEM_PORT) {
-    return std::nullopt;
+    return cfg::SystemPortRanges();
   }
   auto systemPortID = intf->getSystemPortID();
   CHECK(systemPortID.has_value());
   auto switchId = getSystemPorts()->getNode(*systemPortID)->getSwitchId();
   auto dsfNode = getDsfNodes()->getNodeIf(switchId);
-  return dsfNode->getSystemPortRange();
+  return dsfNode->getSystemPortRanges();
 }
 
-std::optional<cfg::Range64> SwitchState::getAssociatedSystemPortRangeIf(
+cfg::SystemPortRanges SwitchState::getAssociatedSystemPortRangesIf(
     PortID portID) const {
   auto port = getPorts()->getNodeIf(portID);
   if (!port || port->getInterfaceIDs().size() != 1) {
-    return std::nullopt;
+    return cfg::SystemPortRanges();
   }
-  return getAssociatedSystemPortRangeIf(port->getInterfaceID());
+  return getAssociatedSystemPortRangesIf(port->getInterfaceID());
 }
 
 std::optional<int> SwitchState::getClusterId(SwitchID switchId) const {

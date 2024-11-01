@@ -3,6 +3,7 @@
 #include "fboss/agent/test/TestEnsembleIf.h"
 
 #include "fboss/agent/Platform.h"
+#include "fboss/agent/Utils.h"
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/SwitchState.h"
 
@@ -67,15 +68,10 @@ std::vector<SystemPortID> TestEnsembleIf::masterLogicalSysPortIds() const {
     }
     auto switchId = asic->getSwitchId();
     CHECK(switchId.has_value());
-    auto sysPortRange = getProgrammedState()
-                            ->getDsfNodes()
-                            ->getNodeIf(SwitchID(*switchId))
-                            ->getSystemPortRange();
-    CHECK(sysPortRange.has_value());
     for (auto port : masterLogicalPortIds({cfg::PortType::INTERFACE_PORT})) {
       if (scopeResolver().scope(port).switchId() == SwitchID(*switchId)) {
-        sysPorts.push_back(
-            SystemPortID(*sysPortRange->minimum() + static_cast<int>(port)));
+        sysPorts.push_back(getSystemPortID(
+            PortID(port), getProgrammedState(), SwitchID(*switchId)));
       }
     }
   }
