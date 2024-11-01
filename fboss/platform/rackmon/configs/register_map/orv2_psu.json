@@ -17,6 +17,7 @@
         }
       }
     ],
+    "max_span_length": 16,
     "registers": [
         {
             "begin": 0,

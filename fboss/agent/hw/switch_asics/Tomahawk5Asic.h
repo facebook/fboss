@@ -84,6 +84,17 @@ class Tomahawk5Asic : public BroadcomXgsAsic {
     // TODO: update numbers if necessary
     return 4096;
   }
+  std::optional<uint32_t> getMaxEcmpGroups() const override {
+    return 4096;
+  }
+  std::optional<uint32_t> getMaxEcmpMembers() const override {
+    // CS00012330051
+    return 32000;
+  }
+  std::optional<uint32_t> getMaxDlbEcmpGroups() const override {
+    // TODO: old TH4 number, update if necessary
+    return 128;
+  }
   uint32_t getStaticQueueLimitBytes() const override {
     // TODO: update numbers if necessary
     return getMMUSizeBytes() / 2;

@@ -488,9 +488,6 @@ TEST(Acl, Icmp) {
   config.acls()[0].proto() = 4;
   EXPECT_THROW(
       publishAndApplyConfig(stateV1, &config, platform.get()), FbossError);
-  config.acls()[0].proto().reset();
-  EXPECT_THROW(
-      publishAndApplyConfig(stateV1, &config, platform.get()), FbossError);
   config.acls()[0].proto() = 58;
   config.acls()[0].icmpType().reset();
   EXPECT_THROW(

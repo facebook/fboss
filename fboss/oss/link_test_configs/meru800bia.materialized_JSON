@@ -7338,6 +7338,56 @@
         "etherType": 34525
       },
       {
+        "icmpType": 133,
+        "name": "cpuPolicing-high-ndp-router-solicit",
+        "actionType": 1,
+        "ttl": {
+          "value": 255,
+          "mask": 255
+        },
+        "etherType": 34525
+      },
+      {
+        "icmpType": 134,
+        "name": "cpuPolicing-high-ndp-router-advertisement",
+        "actionType": 1,
+        "ttl": {
+          "value": 255,
+          "mask": 255
+        },
+        "etherType": 34525
+      },
+      {
+        "icmpType": 135,
+        "name": "cpuPolicing-high-ndp-neighbor-solicit",
+        "actionType": 1,
+        "ttl": {
+          "value": 255,
+          "mask": 255
+        },
+        "etherType": 34525
+      },
+      {
+        "icmpType": 136,
+        "name": "cpuPolicing-high-ndp-neighbor-advertisement",
+        "actionType": 1,
+        "ttl": {
+          "value": 255,
+          "mask": 255
+        },
+        "etherType": 34525
+      },
+      {
+        "icmpType": 137,
+        "name": "cpuPolicing-high-ndp-redirect",
+        "actionType": 1,
+        "ttl": {
+          "value": 255,
+          "mask": 255
+        },
+        "etherType": 34525
+      },
+      {
         "proto": 6,
         "name": "cpuPolicing-high-BGPSrcPort-dstLocalIp4",
         "actionType": 1,
@@ -7549,6 +7599,66 @@
             }
           },
           {
+            "matcher": "cpuPolicing-high-ndp-router-solicit",
+            "action": {
+              "sendToQueue": {
+                "queueId": 7
+              },
+              "toCpuAction": 1,
+              "setTc": {
+                "tcValue": 7
+              }
+            }
+          },
+          {
+            "matcher": "cpuPolicing-high-ndp-router-advertisement",
+            "action": {
+              "sendToQueue": {
+                "queueId": 7
+              },
+              "toCpuAction": 1,
+              "setTc": {
+                "tcValue": 7
+              }
+            }
+          },
+          {
+            "matcher": "cpuPolicing-high-ndp-neighbor-solicit",
+            "action": {
+              "sendToQueue": {
+                "queueId": 7
+              },
+              "toCpuAction": 1,
+              "setTc": {
+                "tcValue": 7
+              }
+            }
+          },
+          {
+            "matcher": "cpuPolicing-high-ndp-neighbor-advertisement",
+            "action": {
+              "sendToQueue": {
+                "queueId": 7
+              },
+              "toCpuAction": 1,
+              "setTc": {
+                "tcValue": 7
+              }
+            }
+          },
+          {
+            "matcher": "cpuPolicing-high-ndp-redirect",
+            "action": {
+              "sendToQueue": {
+                "queueId": 7
+              },
+              "toCpuAction": 1,
+              "setTc": {
+                "tcValue": 7
+              }
+            }
+          },
+          {
             "matcher": "cpuPolicing-high-BGPSrcPort-dstLocalIp4",
             "action": {
               "sendToQueue": {
@@ -7696,10 +7806,6 @@
       },
       "rxReasonToQueueOrderedList": [
         {
-          "rxReason": 8,
-          "queueId": 7
-        },
-        {
           "rxReason": 2,
           "queueId": 3
         },
@@ -7709,10 +7815,6 @@
         },
         {
           "rxReason": 6,
-          "queueId": 0
-        },
-        {
-          "rxReason": 14,
           "queueId": 0
         }
       ]
@@ -7870,9 +7972,6 @@
             "fabric_connectivity_based_on_integrity": "0",
             "fabric_distributed_system_enable": "1",
             "fail_on_unsupported_attribute": "1",
-            "fw_auto_isolation_arm_core_to_use.0": "5",
-            "fw_auto_isolation_image_filename.0": "/tmp/db/jericho3ai_a0/BCM8889X_fi.elf",
-            "fw_auto_isolation_log_filename.0": "/tmp/edk_fi.log",
             "l3_ecmp_max_group_size": "512",
             "lane_to_serdes_map_fabric_lane0.BCM8889X": "rx0:tx5",
             "lane_to_serdes_map_fabric_lane1.BCM8889X": "rx1:tx3",
@@ -8915,7 +9014,7 @@
             "sai_pkt_rx_custom_cfg": "1",
             "sai_pkt_rx_pkt_size": "16512",
             "sai_recycle_port_lane_base": "440",
-            "sai_trigger_linkscan_remote_local_faults": "0",
+            "sai_trigger_linkscan_remote_local_faults": "1",
             "sai_voq_wm_latency_enable": "1",
             "sat_enable.BCM8889X_ADAPTER": "1",
             "soc_family.BCM8889X": "BCM8889X",

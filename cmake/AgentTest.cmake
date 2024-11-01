@@ -110,6 +110,7 @@ target_link_libraries(agent_ensemble_test_lib
   qsfp_service_client
   fboss_config_utils
   agent_ensemble
+  agent_features
   qos_test_utils
   ${GTEST}
   ${LIBGMOCK_LIBRARIES}

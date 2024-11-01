@@ -49,7 +49,7 @@ BENCHMARK(HwTeFlowStatsCollection) {
       };
 
   AgentEnsemblePlatformConfigFn platformConfigFn =
-      [](cfg::PlatformConfig& config) {
+      [](const cfg::SwitchConfig&, cfg::PlatformConfig& config) {
         if (!(config.chip()->getType() == config.chip()->bcm)) {
           return;
         }

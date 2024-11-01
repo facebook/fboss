@@ -203,7 +203,7 @@ TEST_F(ThriftServerTest, setPortDownOnSwitchExit) {
   folly::coro::blockingWait(fbossCtlClient_->co_setPortState(port5, true));
 
   // Bring the port up
-  sw_->linkStateChanged(port5, true);
+  sw_->linkStateChanged(port5, true, cfg::PortType::INTERFACE_PORT);
   WITH_RETRIES({
     auto port = sw_->getState()->getPorts()->getNodeIf(port5);
     EXPECT_EVENTUALLY_TRUE(port->isUp());

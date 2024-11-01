@@ -52,11 +52,18 @@ void FsdbSwitchStateSubscriber::subscribeToState(
       // used by LED manager thread later
       auto newSwitchStateData = apache::thrift::BinarySerializer::deserialize<
           fboss::state::SwitchState>(*contents);
+      auto& swSettings = newSwitchStateData.switchSettingsMap().value();
       auto swPortMaps = newSwitchStateData.portMaps().value();
 
       std::map<short, LedManager::LedSwitchStateUpdate> ledSwitchStateUpdate;
 
       for (auto& [switchStr, oneSwPortMap] : swPortMaps) {
+        bool switchDrained = false;
+        if (swSettings.find(switchStr) != swSettings.end()) {
+          switchDrained =
+              swSettings[switchStr].actualSwitchDrainState().value() ==
+              cfg::SwitchDrainState::DRAINED;
+        }
         for (auto& [onePortId, onePortInfo] : oneSwPortMap) {
           ledSwitchStateUpdate[onePortId].swPortId = onePortId;
           ledSwitchStateUpdate[onePortId].portName =
@@ -72,8 +79,15 @@ void FsdbSwitchStateSubscriber::subscribeToState(
           if (auto activeState = onePortInfo.portActiveState()) {
             ledSwitchStateUpdate[onePortId].activeState = *activeState;
           }
+          // We consider the port drained if either the individual port is
+          // drained or the entire switch is drained. This status is used to set
+          // blink pattern on the LEDs. We blink the LED when
+          // 1) port is inactive (other side, either port or the entire switch,
+          // is drained) 2) local port state is drained (local port is drained)
+          // 3) local switch state is drained (local switch is drained)
           ledSwitchStateUpdate[onePortId].drained =
-              onePortInfo.get_drainState() == cfg::PortDrainState::DRAINED;
+              onePortInfo.get_drainState() == cfg::PortDrainState::DRAINED ||
+              switchDrained;
         }
       }
 

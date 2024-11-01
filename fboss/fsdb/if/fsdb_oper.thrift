@@ -95,6 +95,8 @@ struct OperSubRequest {
   1: OperPath path;
   2: OperProtocol protocol = OperProtocol.BINARY;
   3: fsdb_common.SubscriberId subscriberId;
+  // Forcefully subscribe even if there is already a subscriber with the same SubscriberId
+  4: bool forceSubscribe = false;
 }
 
 struct OperSubInitResponse {}
@@ -104,6 +106,8 @@ struct OperSubRequestExtended {
   1: list<ExtendedOperPath> paths;
   2: OperProtocol protocol = OperProtocol.BINARY;
   3: fsdb_common.SubscriberId subscriberId;
+  // Forcefully subscribe even if there is already a subscriber with the same SubscriberId
+  4: bool forceSubscribe = false;
 }
 
 struct OperSubPathUnit {
@@ -130,7 +134,8 @@ typedef i32 SubscriptionKey
 struct SubRequest {
   1: map<SubscriptionKey, RawOperPath> paths;
   3: fsdb_common.ClientId clientId;
-// TODO: option to request shallow patches?
+  // Forcefully subscribe even if there is already a subscriber with the same SubscriberId
+  4: bool forceSubscribe = false;
 }
 
 struct Patch {

@@ -17,6 +17,8 @@
 #include "fboss/led_service/if/gen-cpp2/LedService.h"
 #include "fboss/qsfp_service/if/gen-cpp2/QsfpService.h"
 
+#include <chrono>
+
 namespace facebook::fboss::utils {
 
 using RunForHwAgentFn = std::function<void(
@@ -27,6 +29,10 @@ using RunForAgentFn =
 
 std::unique_ptr<facebook::fboss::FbossCtrlAsyncClient> createAgentClient(
     const HostInfo& hostInfo);
+
+std::unique_ptr<facebook::fboss::FbossCtrlAsyncClient> createAgentClient(
+    const HostInfo& hostInfo,
+    const std::chrono::milliseconds& timeout);
 
 std::unique_ptr<apache::thrift::Client<FbossCtrl>> createAgentClient(
     const HostInfo& hostInfo,

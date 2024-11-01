@@ -77,7 +77,7 @@ TEST_F(MultiNodeAgentVoqSwitchTest, verifyInbandPing) {
     auto switchId =
         SwitchID(switchSettings->getSwitchIdToSwitchInfo().begin()->first);
     auto recyclePortIntfID =
-        getRecyclePortIntfID(getProgrammedState(), switchId);
+        getInbandPortIntfID(getProgrammedState(), switchId);
     auto recyclePortIntf = folly::to<std::string>("fboss", recyclePortIntfID);
     auto cmd = folly::to<std::string>(
         "/usr/sbin/fping6 -I ", recyclePortIntf, " ", ipAddrsToPing);

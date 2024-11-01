@@ -1819,7 +1819,7 @@ TYPED_TEST(NdpTest, FlushEntryWithConcurrentUpdate) {
 
   PortID portID(1);
   // ensure port is up
-  sw->linkStateChanged(portID, true);
+  sw->linkStateChanged(portID, true, cfg::PortType::INTERFACE_PORT);
 
   VlanID vlanID(5);
   std::vector<IPAddressV6> targetIPs;
@@ -1926,7 +1926,7 @@ TYPED_TEST(NdpTest, PortFlapRecover) {
   this->addRoutes();
 
   // ensure port is up
-  sw->linkStateChanged(PortID(1), true);
+  sw->linkStateChanged(PortID(1), true, cfg::PortType::INTERFACE_PORT);
 
   auto vlanID = VlanID(5);
 
@@ -2110,7 +2110,7 @@ TYPED_TEST(NdpTest, PortFlapRecover) {
   WaitForNdpEntryPending neigbor0Pending(sw, targetIP, vlanID);
   WaitForNdpEntryPending neigbor1Pending(sw, targetIP2, vlanID);
 
-  sw->linkStateChanged(PortID(1), false);
+  sw->linkStateChanged(PortID(1), false, cfg::PortType::INTERFACE_PORT);
 
   // purging neighbor entries occurs on the background EVB via NeighorUpdater as
   // a StateObserver.
@@ -2135,7 +2135,7 @@ TYPED_TEST(NdpTest, PortFlapRecover) {
 
   // send a port up event to the switch for port 1
   EXPECT_STATE_UPDATE_TIMES_ATLEAST(sw, 1);
-  sw->linkStateChanged(PortID(1), true);
+  sw->linkStateChanged(PortID(1), true, cfg::PortType::INTERFACE_PORT);
 
   sendNeighborAdvertisement(
       handle.get(),

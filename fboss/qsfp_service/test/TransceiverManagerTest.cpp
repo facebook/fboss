@@ -71,6 +71,8 @@ TEST_F(TransceiverManagerTest, coldBootTest) {
 TEST_F(TransceiverManagerTest, warmBootTest) {
   // Trigger a graceful exit
   transceiverManager_->gracefulExit();
+  gflags::SetCommandLineOptionWithMode(
+      "can_qsfp_service_warm_boot", "1", gflags::SET_FLAGS_DEFAULT);
   // Check warm boot flag file is created
   EXPECT_TRUE(checkFileExists(warmBootFlagFile));
 

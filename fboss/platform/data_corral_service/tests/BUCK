@@ -25,6 +25,7 @@ cpp_unittest(
     deps = [
         "//fboss/platform/config_lib:config_lib",
         "//fboss/platform/data_corral_service:config_validator",
+        "//folly/logging:logging",
         "//thrift/lib/cpp2/protocol:protocol",
     ],
 )

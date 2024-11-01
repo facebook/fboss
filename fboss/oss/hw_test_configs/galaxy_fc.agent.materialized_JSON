@@ -2,6 +2,7 @@
   "defaultCommandLineArgs": {
     "check_wb_handles": "true",
     "counter_refresh_interval": "0",
+    "enable_acl_table_group": "true",
     "log_variable_name": "true",
     "skip_transceiver_programming": "true"
   },
@@ -46,6 +47,7 @@
       "1": 1,
       "2": 0,
       "3": 0,
+      "4": 0,
       "700": 255,
       "786": 10
     },
@@ -101,7 +103,7 @@
       "exactMatchTableConfigs": [
         
       ],
-      "switchIdToSwitchType": {
+      "switchIdToSwitchType_DEPRECATED": {
         
       },
       "switchDrainState": 0,
@@ -123,6 +125,32 @@
         
       ],
       "needL2EntryForNeighbor": true
+    },
+    "aclTableGroup": {
+      "name": "acl-table-group-ingress",
+      "aclTables": [
+        {
+          "name": "AclTable1",
+          "priority": 0,
+          "aclEntries": [
+            
+          ],
+          "actionTypes": [
+            
+          ],
+          "qualifiers": [
+            
+          ],
+          "udfGroups": [
+            
+          ]
+        }
+      ],
+      "stage": 0
+    },
+    "sdkVersion": {
+      "asicSdk": "sdk",
+      "saiSdk": "sai"
     },
     "dsfNodes": {
       
@@ -268,6 +296,7 @@
           "dport_map_port_97": "50",
           "dport_map_port_98": "51",
           "dport_map_port_99": "52",
+          "host_as_route_disable": "1",
           "ipv6_lpm_128b_enable": "0x1",
           "l2_mem_entries": "0x8000",
           "l2xmsg_mode": "0x1",

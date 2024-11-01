@@ -5,6 +5,7 @@
 #include "fboss/fsdb/client/FsdbStreamClient.h"
 #include "fboss/fsdb/common/Flags.h"
 #include "fboss/lib/CommonUtils.h"
+#include "fboss/lib/thrift_service_client/ConnectionOptions.h"
 
 #include <fb303/ServiceData.h>
 #include <folly/coro/AsyncGenerator.h>
@@ -101,8 +102,8 @@ class StreamClientTest : public ::testing::Test {
 };
 
 TEST_F(StreamClientTest, connectAndCancel) {
-  streamClient_->setServerOptions(
-      FsdbStreamClient::ServerOptions("::1", FLAGS_fsdbPort));
+  streamClient_->setConnectionOptions(
+      utils::ConnectionOptions("::1", FLAGS_fsdbPort));
   auto counterPrefix = streamClient_->getCounterPrefix();
   EXPECT_EQ(counterPrefix, "test_fsdb_client");
   EXPECT_EQ(

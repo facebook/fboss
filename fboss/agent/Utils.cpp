@@ -11,12 +11,12 @@
 
 #include <sys/resource.h>
 #include <sys/syscall.h>
-
 #include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/FsdbHelper.h"
 #include "fboss/agent/SwitchIdScopeResolver.h"
 #include "fboss/agent/SysError.h"
+#include "fboss/agent/hw/HwSwitchFb303Stats.h"
 #include "fboss/agent/state/ArpEntry.h"
 #include "fboss/agent/state/ArpTable.h"
 #include "fboss/agent/state/Interface.h"
@@ -139,7 +139,19 @@ getPlatformMappingForDsfNode(const facebook::fboss::PlatformType platformType) {
   return nullptr;
 }
 
+bool withinRange(const cfg::SystemPortRanges& ranges, int64_t id) {
+  bool inRange{false};
+  for (const auto& sysPortRange : *ranges.systemPortRanges()) {
+    if (id >= *sysPortRange.minimum() && id <= *sysPortRange.maximum()) {
+      inRange = true;
+      break;
+    }
+  }
+  return inRange;
+}
 } // namespace
+  //
+
 void utilCreateDir(folly::StringPiece path) {
   try {
     boost::filesystem::create_directories(path.str());
@@ -388,28 +400,24 @@ PortID getPortID(
 
 SystemPortID getSystemPortID(
     const PortID& portId,
+    cfg::Scope portScope,
     const std::map<int64_t, cfg::SwitchInfo>& switchToSwitchInfo,
-    int64_t switchId) {
-  auto switchInfo = switchToSwitchInfo.find(switchId);
+    SwitchID switchId) {
+  auto switchInfo = switchToSwitchInfo.find(static_cast<int64_t>(switchId));
   if (switchInfo == switchToSwitchInfo.end()) {
     throw FbossError(
         "switchId: ", switchId, " not found in switchToSwitchInfo");
   }
-  auto sysPortRange = switchInfo->second.systemPortRange();
-  CHECK(sysPortRange.has_value());
+  auto offset = portScope == cfg::Scope::GLOBAL
+      ? switchInfo->second.globalSystemPortOffset()
+      : switchInfo->second.localSystemPortOffset();
+  if (!offset.has_value()) {
+    throw FbossError("Global/local offset not set");
+  }
   auto portIdRange = *switchInfo->second.portIdRange();
-  auto systemPortId = static_cast<int64_t>(portId) + *sysPortRange->minimum() -
-      *portIdRange.minimum();
-  CHECK_LE(systemPortId, *sysPortRange->maximum());
+  auto systemPortId =
+      static_cast<int64_t>(portId) + *offset - *portIdRange.minimum();
   return SystemPortID(systemPortId);
-}
-
-SystemPortID getSystemPortID(
-    const PortID& portId,
-    const std::map<int64_t, cfg::SwitchInfo>& switchToSwitchInfo,
-    SwitchID switchId) {
-  return getSystemPortID(
-      portId, switchToSwitchInfo, static_cast<int64_t>(switchId));
 }
 
 SystemPortID getSystemPortID(
@@ -418,11 +426,65 @@ SystemPortID getSystemPortID(
     SwitchID switchId) {
   return getSystemPortID(
       portId,
+      state->getPorts()->getNode(portId)->getScope(),
       state->getSwitchSettings()
           ->getSwitchSettings(
               HwSwitchMatcher(std::unordered_set<SwitchID>({switchId})))
           ->getSwitchIdToSwitchInfo(),
       switchId);
+}
+
+SystemPortID getInbandSystemPortID(
+    const std::shared_ptr<SwitchState>& state,
+    SwitchID switchId) {
+  const auto& switchId2Info = state->getSwitchSettings()
+                                  ->getSwitchSettings(HwSwitchMatcher(
+                                      std::unordered_set<SwitchID>({switchId})))
+                                  ->getSwitchIdToSwitchInfo();
+  auto switchInfoItr = switchId2Info.find(switchId);
+  if (switchInfoItr == switchId2Info.end()) {
+    throw FbossError("Unable to lookup switch info for : ", switchId);
+  }
+  return getInbandSystemPortID(switchId2Info, switchId);
+}
+
+SystemPortID getInbandSystemPortID(
+    const std::map<int64_t, cfg::SwitchInfo>& switchId2Info,
+    SwitchID switchId) {
+  auto switchInfoItr = switchId2Info.find(static_cast<int64_t>(switchId));
+  if (switchInfoItr == switchId2Info.end()) {
+    throw FbossError("Unable to lookup switch info for : ", switchId);
+  }
+  if (!switchInfoItr->second.inbandPortId().has_value()) {
+    throw FbossError("Inband port id not set for: ", switchId);
+  }
+  if (!switchInfoItr->second.globalSystemPortOffset().has_value()) {
+    throw FbossError("Global sys port offset not set for  ", switchId);
+  }
+  /*
+   * We need to derive inband port Ids in 2 scenarios.
+   * Local switchIds - here we can use the generic getSystemPortID functions
+   * which leverages port Id range information (we have that for local
+   * switches). Remote switchIds - here we don't have the remote switch id's
+   * port range. So we can't leverage the generic getSystemPortID function.
+   * Alternatives
+   * 1. Embed inband port id offset (instead of inband port ID)  in the
+   * inbandPortId field in config. Rename the field as inbandPortOffset.
+   * 2. Embed port id range in DsfNode struct.
+   *
+   * 1 is lighter weight and hence used right now.
+   */
+  return SystemPortID(
+      *switchInfoItr->second.globalSystemPortOffset() +
+      *switchInfoItr->second.inbandPortId());
+}
+
+bool withinRange(const cfg::SystemPortRanges& ranges, InterfaceID intfId) {
+  return withinRange(ranges, static_cast<int64_t>(intfId));
+}
+
+bool withinRange(const cfg::SystemPortRanges& ranges, SystemPortID sysPortId) {
+  return withinRange(ranges, static_cast<int64_t>(sysPortId));
 }
 
 cfg::Range64 getFirstSwitchSystemPortIdRange(
@@ -890,6 +952,7 @@ uint32_t getRemotePortOffset(const PlatformType platformType) {
     case PlatformType::PLATFORM_MERU800BFA_P1:
       return 0;
     case PlatformType::PLATFORM_MERU800BIA:
+    case PlatformType::PLATFORM_MERU800BIAB:
     case PlatformType::PLATFORM_JANGA800BIC:
       return 1024;
 
@@ -914,17 +977,18 @@ std::string runShellCmd(const std::string& cmd) {
   return result;
 }
 
-InterfaceID getRecyclePortIntfID(
+InterfaceID getInbandPortIntfID(
     const std::shared_ptr<SwitchState>& state,
     const SwitchID& switchId) {
   auto dsfNode = state->getDsfNodes()->getNodeIf(switchId);
   CHECK(dsfNode);
 
-  auto systemPortRange = dsfNode->getSystemPortRange();
-  CHECK(systemPortRange.has_value());
+  // Inband port is of Global scope by definition
+  auto globalSystemPortOffset = dsfNode->getGlobalSystemPortOffset();
+  CHECK(globalSystemPortOffset.has_value());
 
   auto recyclePortId =
-      InterfaceID(*systemPortRange.value().minimum() + kRecyclePortIdOffset);
+      InterfaceID(*globalSystemPortOffset + kRecyclePortIdOffset);
 
   return recyclePortId;
 }
@@ -981,13 +1045,13 @@ bool haveParallelLinksToInterfaceNodes(
     const std::vector<SwitchID>& localFabricSwitchIds,
     const std::unordered_map<std::string, std::vector<uint32_t>>&
         switchNameToSwitchIds,
-    SwitchIdScopeResolver& scopeResolver) {
+    SwitchIdScopeResolver& scopeResolver,
+    const PlatformMapping* platformMapping) {
   for (const auto& fabricSwitchId : localFabricSwitchIds) {
-    // TODO(zecheng): Update to look at DsfNode layer config once available.
-    // Can be optimized to only look at FDSW layer
-    std::unordered_set<std::string> voqNeighbors;
+    // Determine parallel links on VD level - there are two VDs per R3 ASIC
+    std::unordered_map<int, std::unordered_set<std::string>> vd2VoqNeighbors;
     for (const auto& port : *cfg->ports()) {
-      // Only process ports belonging to the passed switchId
+      // Only process ports belonging to one switchId
       if (scopeResolver.scope(port).has(SwitchID(fabricSwitchId)) &&
           port.expectedNeighborReachability()->size() > 0) {
         auto neighborRemoteSwitchId =
@@ -997,6 +1061,23 @@ bool haveParallelLinksToInterfaceNodes(
         CHECK(neighborDsfNodeIter != cfg->dsfNodes()->end());
         if (*neighborDsfNodeIter->second.type() ==
             cfg::DsfNodeType::INTERFACE_NODE) {
+          CHECK(port.name().has_value());
+          auto localVirtualDeviceId =
+              platformMapping->getVirtualDeviceID(*port.name());
+          if (!localVirtualDeviceId.has_value()) {
+            throw FbossError(
+                "Unable to find virtual device id for port: ",
+                *port.logicalID(),
+                " virtual device");
+          }
+
+          if (vd2VoqNeighbors.find(localVirtualDeviceId.value()) ==
+              vd2VoqNeighbors.end()) {
+            vd2VoqNeighbors.insert(
+                {localVirtualDeviceId.value(),
+                 std::unordered_set<std::string>()});
+          }
+          auto& voqNeighbors = vd2VoqNeighbors[localVirtualDeviceId.value()];
           const auto& [neighborName, _] = getExpectedNeighborAndPortName(port);
           if (voqNeighbors.find(neighborName) != voqNeighbors.end()) {
             return true;
@@ -1009,24 +1090,22 @@ bool haveParallelLinksToInterfaceNodes(
   return false;
 };
 
-CpuCosQueueId hwQueueIdToCpuCosQueueId(uint8_t hwQueueId) {
-  switch (hwQueueId) {
-    case 0:
-      return CpuCosQueueId::LOPRI;
-    case 1:
-      return CpuCosQueueId::DEFAULT;
-    case 2:
-      return CpuCosQueueId::MIDPRI;
-    /* On asics with 8 queues, cosQueue 7 is high priority
-     * bcm has 10 mcast cpu queues and use queue 9 as high priority queue
-     */
-    case 7:
-    case 9:
-      return CpuCosQueueId::HIPRI;
-    default:
-      XLOG(FATAL) << "Got Invalid hwQueueId " << hwQueueId;
-      break;
+CpuCosQueueId hwQueueIdToCpuCosQueueId(
+    uint8_t hwQueueId,
+    const HwAsic* asic,
+    HwSwitchFb303Stats* switchStats) {
+  if (hwQueueId == asic->getHiPriCpuQueueId()) {
+    return CpuCosQueueId::HIPRI;
+  } else if (hwQueueId == asic->getMidPriCpuQueueId()) {
+    return CpuCosQueueId::MIDPRI;
+  } else if (hwQueueId == static_cast<uint8_t>(CpuCosQueueId::LOPRI)) {
+    return CpuCosQueueId::LOPRI;
+  } else if (hwQueueId == static_cast<uint8_t>(CpuCosQueueId::DEFAULT)) {
+    return CpuCosQueueId::DEFAULT;
   }
+  XLOG_EVERY_N(ERR, 10000) << "Got Invalid hwQueueId " << hwQueueId;
+  switchStats->invalidQueueRxPackets();
+  return CpuCosQueueId::LOPRI;
 }
 
 int numFabricLevels(const std::map<int64_t, cfg::DsfNode>& dsfNodes) {

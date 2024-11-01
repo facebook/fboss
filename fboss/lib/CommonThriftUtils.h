@@ -9,6 +9,8 @@
  */
 #pragma once
 
+#include "fboss/lib/thrift_service_client/ConnectionOptions.h"
+
 #include <fb303/ThreadCachedServiceData.h>
 #include <folly/SocketAddress.h>
 #include <folly/coro/AsyncScope.h>
@@ -49,43 +51,6 @@ class ReconnectingThriftClient {
 
   using StreamStateChangeCb = std::function<void(State, State)>;
 
-  enum class Priority : uint8_t { NORMAL, CRITICAL };
-
-  struct ServerOptions {
-    ServerOptions(
-        const std::string& dstIp,
-        uint16_t dstPort,
-        const std::optional<std::string>& deviceName = std::nullopt)
-        : dstAddr(folly::SocketAddress(dstIp, dstPort)),
-          deviceName(deviceName.value_or(dstAddr.getAddressStr())) {}
-
-    ServerOptions(
-        const std::string& dstIp,
-        uint16_t dstPort,
-        const std::string& srcIp,
-        const std::optional<std::string>& deviceName = std::nullopt)
-        : dstAddr(folly::SocketAddress(dstIp, dstPort)),
-          srcAddr(folly::SocketAddress(srcIp, 0)),
-          deviceName(deviceName.value_or(dstAddr.getAddressStr())) {}
-
-    ServerOptions(
-        const std::string& dstIp,
-        uint16_t dstPort,
-        const std::string& srcIp,
-        Priority priority,
-        const std::optional<std::string>& deviceName = std::nullopt)
-        : dstAddr(folly::SocketAddress(dstIp, dstPort)),
-          srcAddr(folly::SocketAddress(srcIp, 0)),
-          priority{priority},
-          deviceName(deviceName.value_or(dstAddr.getAddressStr())) {}
-
-    folly::SocketAddress dstAddr;
-    std::string fsdbPort;
-    std::optional<folly::SocketAddress> srcAddr;
-    std::optional<Priority> priority;
-    std::string deviceName;
-  };
-
   ReconnectingThriftClient(
       const std::string& clientId,
       folly::EventBase* streamEvb,
@@ -109,14 +74,14 @@ class ReconnectingThriftClient {
     return clientId_;
   }
 
-  void setServerOptions(
-      ServerOptions&& options,
+  void setConnectionOptions(
+      utils::ConnectionOptions options,
       bool allowReset = false /* allow reset for use in tests*/);
 
   std::string getServer() const {
-    if (auto serverOptions = serverOptions_.rlock();
-        serverOptions->has_value()) {
-      return (*serverOptions)->dstAddr.getAddressStr();
+    if (auto connectionOptions = connectionOptions_.rlock();
+        connectionOptions->has_value()) {
+      return (*connectionOptions)->getDstAddr().getAddressStr();
     }
     return "";
   }
@@ -133,7 +98,7 @@ class ReconnectingThriftClient {
   std::string getConnectedCounterName() {
     return counterPrefix_ + ".connected";
   }
-  virtual void connectToServer(const ServerOptions& options) = 0;
+  virtual void connectToServer(const utils::ConnectionOptions& options) = 0;
 
   void setGracefulServiceLoopCompletion(const std::function<void()>& cb) {
     auto requested = gracefulServiceLoopCompletionCb_.wlock();
@@ -165,7 +130,8 @@ class ReconnectingThriftClient {
   fb303::TimeseriesWrapper disconnectEvents_;
   fb303::TimeseriesWrapper aggDisconnectEvents_;
   StreamStateChangeCb stateChangeCb_;
-  folly::Synchronized<std::optional<ServerOptions>> serverOptions_;
+  folly::Synchronized<std::optional<utils::ConnectionOptions>>
+      connectionOptions_;
   std::unique_ptr<folly::AsyncTimeout> timer_;
   uint32_t reconnectTimeout_;
   std::string connectionLogStr_;

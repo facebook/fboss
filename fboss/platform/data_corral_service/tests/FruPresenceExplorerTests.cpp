@@ -29,17 +29,29 @@ class FruPresenceExplorerTests : public Test {
     auto fan1 = FruConfig();
     fan1.fruName() = "FAN1";
     fan1.fruType() = "FAN";
-    fan1.presenceSysfsPath() = TemporaryFile().path().string();
+    fan1.presenceDetection() = PresenceDetection();
+    fan1.presenceDetection()->sysfsFileHandle() = SysfsFileHandle();
+    fan1.presenceDetection()->sysfsFileHandle()->presenceFilePath() =
+        TemporaryFile().path().string();
+    fan1.presenceDetection()->sysfsFileHandle()->desiredValue() = 1;
 
     auto fan2 = FruConfig();
     fan2.fruName() = "FAN2";
     fan2.fruType() = "FAN";
-    fan2.presenceSysfsPath() = TemporaryFile().path().string();
+    fan2.presenceDetection() = PresenceDetection();
+    fan2.presenceDetection()->sysfsFileHandle() = SysfsFileHandle();
+    fan2.presenceDetection()->sysfsFileHandle()->presenceFilePath() =
+        TemporaryFile().path().string();
+    fan2.presenceDetection()->sysfsFileHandle()->desiredValue() = 1;
 
     auto pem1 = FruConfig();
     pem1.fruName() = "PEM1";
     pem1.fruType() = "PEM";
-    pem1.presenceSysfsPath() = TemporaryFile().path().string();
+    pem1.presenceDetection() = PresenceDetection();
+    pem1.presenceDetection()->sysfsFileHandle() = SysfsFileHandle();
+    pem1.presenceDetection()->sysfsFileHandle()->presenceFilePath() =
+        TemporaryFile().path().string();
+    pem1.presenceDetection()->sysfsFileHandle()->desiredValue() = 1;
 
     fruConfigs_ = std::vector<FruConfig>{fan1, fan2, pem1};
   }
@@ -53,9 +65,24 @@ class FruPresenceExplorerTests : public Test {
 };
 
 TEST_F(FruPresenceExplorerTests, FrusAllPresent) {
-  EXPECT_TRUE(writeSysfs(*fruConfigs_[0].presenceSysfsPath(), "1"));
-  EXPECT_TRUE(writeSysfs(*fruConfigs_[1].presenceSysfsPath(), "1"));
-  EXPECT_TRUE(writeSysfs(*fruConfigs_[2].presenceSysfsPath(), "1"));
+  EXPECT_TRUE(writeSysfs(
+      *fruConfigs_[0]
+           .presenceDetection()
+           ->sysfsFileHandle()
+           ->presenceFilePath(),
+      "1"));
+  EXPECT_TRUE(writeSysfs(
+      *fruConfigs_[1]
+           .presenceDetection()
+           ->sysfsFileHandle()
+           ->presenceFilePath(),
+      "1"));
+  EXPECT_TRUE(writeSysfs(
+      *fruConfigs_[2]
+           .presenceDetection()
+           ->sysfsFileHandle()
+           ->presenceFilePath(),
+      "1"));
 
   EXPECT_CALL(*mockLedManager_, programFruLed("FAN", true))
       .WillOnce(Return(true));
@@ -69,9 +96,24 @@ TEST_F(FruPresenceExplorerTests, FrusAllPresent) {
 }
 
 TEST_F(FruPresenceExplorerTests, FrusNotAllPresent) {
-  EXPECT_TRUE(writeSysfs(*fruConfigs_[0].presenceSysfsPath(), "0"));
-  EXPECT_TRUE(writeSysfs(*fruConfigs_[1].presenceSysfsPath(), "1"));
-  EXPECT_TRUE(writeSysfs(*fruConfigs_[2].presenceSysfsPath(), "1"));
+  EXPECT_TRUE(writeSysfs(
+      *fruConfigs_[0]
+           .presenceDetection()
+           ->sysfsFileHandle()
+           ->presenceFilePath(),
+      "0"));
+  EXPECT_TRUE(writeSysfs(
+      *fruConfigs_[1]
+           .presenceDetection()
+           ->sysfsFileHandle()
+           ->presenceFilePath(),
+      "1"));
+  EXPECT_TRUE(writeSysfs(
+      *fruConfigs_[2]
+           .presenceDetection()
+           ->sysfsFileHandle()
+           ->presenceFilePath(),
+      "1"));
 
   EXPECT_CALL(*mockLedManager_, programFruLed("FAN", false))
       .WillOnce(Return(true));
@@ -85,9 +127,20 @@ TEST_F(FruPresenceExplorerTests, FrusNotAllPresent) {
 }
 
 TEST_F(FruPresenceExplorerTests, PresenceDetectionFail) {
-  EXPECT_TRUE(writeSysfs(*fruConfigs_[0].presenceSysfsPath(), "1"));
-  fruConfigs_[1].presenceSysfsPath() = "INVALID_PATH";
-  EXPECT_TRUE(writeSysfs(*fruConfigs_[2].presenceSysfsPath(), "1"));
+  EXPECT_TRUE(writeSysfs(
+      *fruConfigs_[0]
+           .presenceDetection()
+           ->sysfsFileHandle()
+           ->presenceFilePath(),
+      "1"));
+  fruConfigs_[1].presenceDetection()->sysfsFileHandle()->presenceFilePath() =
+      "INVALID_PATH";
+  EXPECT_TRUE(writeSysfs(
+      *fruConfigs_[2]
+           .presenceDetection()
+           ->sysfsFileHandle()
+           ->presenceFilePath(),
+      "1"));
 
   EXPECT_CALL(*mockLedManager_, programFruLed("FAN", false))
       .WillOnce(Return(true));
@@ -101,9 +154,24 @@ TEST_F(FruPresenceExplorerTests, PresenceDetectionFail) {
 }
 
 TEST_F(FruPresenceExplorerTests, PresenceDetectionHexadecimal) {
-  EXPECT_TRUE(writeSysfs(*fruConfigs_[0].presenceSysfsPath(), "0x1"));
-  EXPECT_TRUE(writeSysfs(*fruConfigs_[1].presenceSysfsPath(), "0x01"));
-  EXPECT_TRUE(writeSysfs(*fruConfigs_[2].presenceSysfsPath(), "0x001"));
+  EXPECT_TRUE(writeSysfs(
+      *fruConfigs_[0]
+           .presenceDetection()
+           ->sysfsFileHandle()
+           ->presenceFilePath(),
+      "0x1"));
+  EXPECT_TRUE(writeSysfs(
+      *fruConfigs_[1]
+           .presenceDetection()
+           ->sysfsFileHandle()
+           ->presenceFilePath(),
+      "0x01"));
+  EXPECT_TRUE(writeSysfs(
+      *fruConfigs_[2]
+           .presenceDetection()
+           ->sysfsFileHandle()
+           ->presenceFilePath(),
+      "0x001"));
 
   EXPECT_CALL(*mockLedManager_, programFruLed("FAN", true))
       .WillOnce(Return(true));
@@ -117,9 +185,24 @@ TEST_F(FruPresenceExplorerTests, PresenceDetectionHexadecimal) {
 }
 
 TEST_F(FruPresenceExplorerTests, AbsenceDetectionHexadecimal) {
-  EXPECT_TRUE(writeSysfs(*fruConfigs_[0].presenceSysfsPath(), "0x0"));
-  EXPECT_TRUE(writeSysfs(*fruConfigs_[1].presenceSysfsPath(), "0x00"));
-  EXPECT_TRUE(writeSysfs(*fruConfigs_[2].presenceSysfsPath(), "0x000"));
+  EXPECT_TRUE(writeSysfs(
+      *fruConfigs_[0]
+           .presenceDetection()
+           ->sysfsFileHandle()
+           ->presenceFilePath(),
+      "0x0"));
+  EXPECT_TRUE(writeSysfs(
+      *fruConfigs_[1]
+           .presenceDetection()
+           ->sysfsFileHandle()
+           ->presenceFilePath(),
+      "0x00"));
+  EXPECT_TRUE(writeSysfs(
+      *fruConfigs_[2]
+           .presenceDetection()
+           ->sysfsFileHandle()
+           ->presenceFilePath(),
+      "0x000"));
 
   EXPECT_CALL(*mockLedManager_, programFruLed("FAN", false))
       .WillOnce(Return(true));

@@ -20,6 +20,10 @@ class DsfStateUpdaterUtil {
       const std::map<SwitchID, std::shared_ptr<SystemPortMap>>&
           switchId2SystemPorts,
       const std::map<SwitchID, std::shared_ptr<InterfaceMap>>& switchId2Intfs);
+  template <typename TableT>
+  static void updateNeighborEntry(
+      const TableT& oldTable,
+      const TableT& clonedTable);
 };
 
 } // namespace facebook::fboss

@@ -16,8 +16,11 @@
 #include "fboss/cli/fboss2/CmdHandler.h"
 #include "fboss/cli/fboss2/commands/show/ndp/gen-cpp2/model_types.h"
 #include "fboss/cli/fboss2/utils/CmdClientUtils.h"
+#include "fboss/cli/fboss2/utils/Table.h"
 
 namespace facebook::fboss {
+
+using utils::Table;
 
 struct CmdShowNdpTraits : public BaseCommandTraits {
   static constexpr utils::ObjectArgTypeId ObjectArgTypeId =
@@ -54,40 +57,35 @@ class CmdShowNdp : public CmdHandler<CmdShowNdp, CmdShowNdpTraits> {
   }
 
   void printOutput(const RetType& model, std::ostream& out = std::cout) {
-    constexpr auto fmtString =
-        "{:<45}{:<19}{:<12}{:<30}{:<14}{:<9}{:<12}{:<45}{:<21}\n";
-
-    out << fmt::format(
-        fmtString,
-        "IP Address",
-        "MAC Address",
-        "Interface",
-        "VLAN/InterfaceID",
-        "State",
-        "TTL",
-        "CLASSID",
-        "Voq Switch",
-        "Resolved Since");
+    Table table;
+    table.setHeader(
+        {"IP Address",
+         "MAC Address",
+         "Interface",
+         "VLAN/InterfaceID",
+         "State",
+         "TTL",
+         "CLASSID",
+         "Voq Switch",
+         "Resolved Since"});
 
     for (const auto& entry : model.get_ndpEntries()) {
       auto vlan = entry.get_vlanName();
       if (entry.get_vlanID() != ctrl_constants::NO_VLAN()) {
         vlan += folly::to<std::string>(" (", entry.get_vlanID(), ")");
       }
-
-      out << fmt::format(
-          fmtString,
-          entry.get_ip(),
-          entry.get_mac(),
-          entry.get_port(),
-          vlan,
-          entry.get_state(),
-          entry.get_ttl(),
-          entry.get_classID(),
-          entry.get_switchName(),
-          entry.get_resolvedSince());
+      table.addRow(
+          {entry.get_ip(),
+           entry.get_mac(),
+           entry.get_port(),
+           vlan,
+           entry.get_state(),
+           std::to_string(entry.get_ttl()),
+           std::to_string(entry.get_classID()),
+           entry.get_switchName(),
+           entry.get_resolvedSince()});
     }
-    out << std::endl;
+    out << table << std::endl;
   }
 
   RetType createModel(

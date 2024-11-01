@@ -42,7 +42,7 @@
 #include <optional>
 
 #if FOLLY_HAS_COROUTINES
-#include <folly/experimental/coro/BoundedQueue.h>
+#include <folly/coro/BoundedQueue.h>
 #endif
 
 #include <atomic>
@@ -106,6 +106,7 @@ class SwSwitchWarmBootHelper;
 class AgentDirectoryUtil;
 class HwSwitchThriftClientTable;
 class ResourceAccountant;
+class RemoteNeighborUpdater;
 
 inline static const int kHiPriorityBufferSize{1000};
 inline static const int kMidPriorityBufferSize{1000};
@@ -217,6 +218,9 @@ class SwSwitch : public HwSwitchCallback {
     return hwSwitchThriftClientTable_.get();
   }
 
+  ResourceAccountant* getResourceAccountant() const {
+    return resourceAccountant_.get();
+  }
   /*
    * Initialize the switch.
    *
@@ -560,6 +564,7 @@ class SwSwitch : public HwSwitchCallback {
   void linkStateChanged(
       PortID port,
       bool up,
+      cfg::PortType portType,
       std::optional<phy::LinkFaultStatus> iPhyFaultStatus =
           std::nullopt) override;
   void linkActiveStateChanged(
@@ -1189,7 +1194,7 @@ class SwSwitch : public HwSwitchCallback {
    * A thread for performing various background tasks.
    */
   std::unique_ptr<std::thread> backgroundThread_;
-  FbossEventBase backgroundEventBase_;
+  FbossEventBase backgroundEventBase_{"SwSwitchBackgroundEventBase"};
   std::shared_ptr<ThreadHeartbeat> bgThreadHeartbeat_;
 
   /*
@@ -1198,34 +1203,35 @@ class SwSwitch : public HwSwitchCallback {
    * ASIC front panel ports
    */
   std::unique_ptr<std::thread> packetTxThread_;
-  FbossEventBase packetTxEventBase_;
+  FbossEventBase packetTxEventBase_{"SwSwitchPacketTxEventBase"};
   std::shared_ptr<ThreadHeartbeat> packetTxThreadHeartbeat_;
 
   /*
    * A thread for sending packets to the distribution process
    */
   std::shared_ptr<std::thread> pcapDistributionThread_;
-  FbossEventBase pcapDistributionEventBase_;
+  FbossEventBase pcapDistributionEventBase_{
+      "SwSwitchPcapDistributionEventBase"};
 
   /*
    * A thread for processing SwitchState updates.
    */
   std::unique_ptr<std::thread> updateThread_;
-  FbossEventBase updateEventBase_;
+  FbossEventBase updateEventBase_{"SwSwitchUpdateEventBase"};
   std::shared_ptr<ThreadHeartbeat> updThreadHeartbeat_;
 
   /*
    * A thread dedicated to LACP processing.
    */
   std::unique_ptr<std::thread> lacpThread_;
-  FbossEventBase lacpEventBase_;
+  FbossEventBase lacpEventBase_{"SwSwitchLacpEventBase"};
   std::shared_ptr<ThreadHeartbeat> lacpThreadHeartbeat_;
 
   /*
    * A thread dedicated to Arp and Ndp cache entry processing.
    */
   std::unique_ptr<std::thread> neighborCacheThread_;
-  FbossEventBase neighborCacheEventBase_;
+  FbossEventBase neighborCacheEventBase_{"SwSwitchNeighborCacheEventBase"};
   std::shared_ptr<ThreadHeartbeat> neighborCacheThreadHeartbeat_;
 
   /*
@@ -1274,6 +1280,7 @@ class SwSwitch : public HwSwitchCallback {
 
   BootType bootType_{BootType::UNINITIALIZED};
   std::unique_ptr<LldpManager> lldpManager_;
+  std::unique_ptr<RemoteNeighborUpdater> remoteNeighborUpdater_;
   std::unique_ptr<PortUpdateHandler> portUpdateHandler_;
   SwitchFlags flags_{SwitchFlags::DEFAULT};
 

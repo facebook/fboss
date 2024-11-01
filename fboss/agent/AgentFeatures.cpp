@@ -76,6 +76,16 @@ DEFINE_int32(
     1,
     "Number of threads to use for DSF remote stream pool");
 
+DEFINE_int32(
+    dsf_session_conn_timeout_ms,
+    4000,
+    "Socket connection timeout for DSF session");
+
+DEFINE_int32(
+    dsf_session_recv_timeout_ms,
+    12000,
+    "Socket pkt receive timeout for DSF session");
+
 DEFINE_bool(
     set_classid_for_my_subnet_and_ip_routes,
     false,
@@ -130,7 +140,27 @@ DEFINE_bool(
     false,
     "Flag to indicate whether SwSwitch will crash if any hw switch connection is lost. This will be used in tests to ensure all hw agent running.");
 
+// TODO: Need fix for the feature on single link configuration (CS00012375262)
 DEFINE_bool(
-    enable_balanced_intput_mode,
-    true,
+    enable_balanced_input_mode,
+    false,
     "Enable balanced input mode on fabric devices");
+
+DEFINE_int32(
+    hw_agent_connection_timeout_ms,
+    0,
+    "Time to wait for HwSwitch to connect before SwSwitch exits. "
+    "By default, SwSwitch waits forever and hence default value is 0.");
+
+DEFINE_bool(
+    qgroup_guarantee_enable,
+    false,
+    "Enable setting of unicast and multicast queue guaranteed buffer sizes");
+
+DEFINE_bool(skip_buffer_reservation, false, "Enable skip reservation");
+
+// TODO(zecheng): Remove this once firmware support is ready
+DEFINE_bool(
+    conditional_entropy_cpu_seed_test_only,
+    false,
+    "Enable test-only feature for CPU updating conditional entropy seed");

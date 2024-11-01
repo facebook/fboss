@@ -145,6 +145,7 @@ class PlatformMapping {
   void merge(PlatformMapping* mapping);
 
   cfg::PortSpeed getPortMaxSpeed(PortID portID) const;
+  cfg::Scope getPortScope(PortID portID) const;
 
   const std::vector<cfg::PlatformPortConfigOverride>& getPortConfigOverrides()
       const {

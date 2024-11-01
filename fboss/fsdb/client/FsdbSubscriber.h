@@ -83,14 +83,21 @@ struct SubscriptionOptions {
   explicit SubscriptionOptions(
       const std::string& clientId,
       bool subscribeStats = false,
-      uint32_t grHoldTimeSec = 0)
+      uint32_t grHoldTimeSec = 0,
+      // only mark subscription as CONNECTED on initial sync
+      bool requireInitialSyncToMarkConnect = false,
+      bool forceSubscribe = false)
       : clientId_(clientId),
         subscribeStats_(subscribeStats),
-        grHoldTimeSec_(grHoldTimeSec) {}
+        grHoldTimeSec_(grHoldTimeSec),
+        requireInitialSyncToMarkConnect_(requireInitialSyncToMarkConnect),
+        forceSubscribe_(forceSubscribe) {}
 
   const std::string clientId_;
   bool subscribeStats_{false};
   uint32_t grHoldTimeSec_{0};
+  bool requireInitialSyncToMarkConnect_{false};
+  bool forceSubscribe_{false};
 };
 
 struct SubscriptionInfo {
@@ -201,11 +208,13 @@ class FsdbSubscriber : public FsdbSubscriberBase {
       OperSubRequest request;
       request.path() = operPath;
       request.subscriberId() = clientId();
+      request.forceSubscribe() = subscriptionOptions_.forceSubscribe_;
       return request;
     } else if constexpr (std::is_same_v<Paths, std::vector<ExtendedOperPath>>) {
       OperSubRequestExtended request;
       request.paths() = subscribePaths_;
       request.subscriberId() = clientId();
+      request.forceSubscribe() = subscriptionOptions_.forceSubscribe_;
       return request;
     }
   }
@@ -281,6 +290,10 @@ class FsdbSubscriber : public FsdbSubscriberBase {
 
   const Paths& subscribePaths() const {
     return subscribePaths_;
+  }
+
+  const SubscriptionOptions& subscriptionOptions() const {
+    return subscriptionOptions_;
   }
 
   FsdbSubUnitUpdateCb operSubUnitUpdate_;

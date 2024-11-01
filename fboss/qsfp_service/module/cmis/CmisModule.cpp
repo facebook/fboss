@@ -4007,12 +4007,11 @@ bool CmisModule::setTransceiverTxImplLocked(
   return true;
 }
 
-bool CmisModule::upgradeFirmwareLockedImpl(
-    std::unique_ptr<FbossFirmware> fbossFw) const {
+bool CmisModule::upgradeFirmwareLockedImpl(FbossFirmware* fbossFw) const {
   QSFP_LOG(INFO, this) << "Upgrading CMIS Module Firmware";
 
-  auto fwUpgradeObj = std::make_unique<CmisFirmwareUpgrader>(
-      qsfpImpl_, getID(), std::move(fbossFw));
+  auto fwUpgradeObj =
+      std::make_unique<CmisFirmwareUpgrader>(qsfpImpl_, getID(), fbossFw);
 
   bool ret = fwUpgradeObj->cmisModuleFirmwareUpgrade();
   return ret;

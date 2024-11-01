@@ -426,3 +426,14 @@ target_link_libraries(hw_switch_reachability_change_speed
   Folly::folly
   Folly::follybenchmark
 )
+
+add_library(hw_voq_sys_port_programming
+  fboss/agent/hw/benchmarks/HwVoqSysPortProgrammingBenchmark.cpp
+)
+
+target_link_libraries(hw_voq_sys_port_programming
+  voq_test_utils
+  dsf_config_utils
+  Folly::folly
+  Folly::follybenchmark
+)

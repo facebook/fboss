@@ -1,6 +1,7 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
 #include <filesystem>
+#include <ranges>
 
 #include <folly/FileUtil.h>
 #include <folly/testing/TestUtil.h>
@@ -60,9 +61,9 @@ TEST_F(SensorServiceImplTest, fetchAndCheckSensorDataFailure) {
   SensorConfig sensorConfig;
   apache::thrift::SimpleJSONSerializer::deserialize<SensorConfig>(
       sensorConfJson, sensorConfig);
-  for (const auto& [fruName, sensorMap] : *sensorConfig.sensorMapList()) {
-    for (const auto& [sensorName, sensor] : sensorMap) {
-      ASSERT_TRUE(std::filesystem::remove(*sensor.path()));
+  for (const auto& pmUnitSensors : *sensorConfig.pmUnitSensorsList()) {
+    for (const auto& pmSensors : *pmUnitSensors.sensors()) {
+      ASSERT_TRUE(std::filesystem::remove(*pmSensors.sysfsPath()));
     }
   }
 
@@ -85,9 +86,9 @@ TEST_F(SensorServiceImplTest, fetchAndCheckSensorDataSuccesAndThenFailure) {
   SensorConfig sensorConfig;
   apache::thrift::SimpleJSONSerializer::deserialize<SensorConfig>(
       sensorConfJson, sensorConfig);
-  for (const auto& [fruName, sensorMap] : *sensorConfig.sensorMapList()) {
-    for (const auto& [sensorName, sensor] : sensorMap) {
-      ASSERT_TRUE(std::filesystem::remove(*sensor.path()));
+  for (const auto& pmUnitSensors : *sensorConfig.pmUnitSensorsList()) {
+    for (const auto& pmSensors : *pmUnitSensors.sensors()) {
+      ASSERT_TRUE(std::filesystem::remove(*pmSensors.sysfsPath()));
     }
   }
   // Check that sensor value/timestamp are now empty which implies read failed
@@ -95,18 +96,19 @@ TEST_F(SensorServiceImplTest, fetchAndCheckSensorDataSuccesAndThenFailure) {
 }
 
 TEST_F(SensorServiceImplTest, getSomeSensors) {
+  auto mockSensorData = getDefaultMockSensorData();
+  auto mockSensorName = *std::views::keys(mockSensorData).begin();
+
   auto now = Utils::nowInSecs();
   folly::test::TemporaryDirectory tmpDir = folly::test::TemporaryDirectory();
   auto sensorServiceImpl =
       createSensorServiceImplForTest(tmpDir.path().string());
   sensorServiceImpl->fetchSensorData();
-  auto sensorData = sensorServiceImpl->getSensorsData(
-      {"MOCK_FRU_1_SENSOR_1", "BOGUS_SENSOR"});
+  auto sensorData =
+      sensorServiceImpl->getSensorsData({mockSensorName, "BOGUS_SENSOR"});
   EXPECT_EQ(sensorData.size(), 1);
-  EXPECT_EQ(*sensorData[0].name(), "MOCK_FRU_1_SENSOR_1");
-  EXPECT_FLOAT_EQ(
-      *sensorData[0].value(),
-      getDefaultMockSensorData()["MOCK_FRU_1_SENSOR_1"]);
+  EXPECT_EQ(*sensorData[0].name(), mockSensorName);
+  EXPECT_FLOAT_EQ(*sensorData[0].value(), mockSensorData[mockSensorName]);
   EXPECT_GE(*sensorData[0].timeStamp(), now);
 }
 

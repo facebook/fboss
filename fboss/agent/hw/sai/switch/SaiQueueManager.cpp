@@ -302,7 +302,8 @@ void SaiQueueManager::changeQueueDeadlockEnable(
 void SaiQueueManager::changeQueue(
     SaiQueueHandle* queueHandle,
     const PortQueue& newPortQueue,
-    const Port* swPort) {
+    const Port* swPort,
+    const std::optional<cfg::PortType> portType) {
   CHECK(queueHandle);
   auto queueType = GET_ATTR(Queue, Type, queueHandle->queue->attributes());
   if ((queueType != SAI_QUEUE_TYPE_UNICAST_VOQ) &&
@@ -314,7 +315,21 @@ void SaiQueueManager::changeQueue(
   changeQueueEcnWred(queueHandle, newPortQueue);
   if (platform_->getAsic()->isSupported(HwAsic::Feature::BUFFER_POOL) &&
       (queueType != SAI_QUEUE_TYPE_FABRIC_TX)) {
-    if (!swPort || (swPort->getPortType() != cfg::PortType::MANAGEMENT_PORT)) {
+    if (portType && (*portType == cfg::PortType::CPU_PORT) &&
+        platform_->getAsic()->isSupported(
+            HwAsic::Feature::DEDICATED_CPU_BUFFER_POOL)) {
+      // Skip configuring a buffer pool on CPU queues for platforms like
+      // YUBA where a dedicated buffer pool is used for CPU traffic. As
+      // of now, the same buffer pool used for data traffic on all ports
+      // gets attached to CPU queues via the default queue config. Hence
+      // this block is a no-op for now.
+      //
+      // TODO: If there is a need to use any other buffer profile attrs
+      // or configs on CPU queues for such platforms, need to provide an
+      // option to use a dedicated CPU queue config with buffer pool
+      // specified explicitly as the reserved buffer pool.
+    } else if (
+        !swPort || (swPort->getPortType() != cfg::PortType::MANAGEMENT_PORT)) {
       // Unsupported for MANAGEMENT_PORT
       changeQueueBufferProfile(queueHandle, newPortQueue);
     }

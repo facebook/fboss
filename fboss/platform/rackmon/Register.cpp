@@ -271,14 +271,14 @@ RegisterStoreSpan::RegisterStoreSpan(RegisterStore* reg)
       registers_{reg},
       timestamp_(reg->back().timestamp) {}
 
-bool RegisterStoreSpan::addRegister(RegisterStore* reg) {
+bool RegisterStoreSpan::addRegister(RegisterStore* reg, size_t maxSpanLength) {
   if (reg->interval() != interval_) {
     return false;
   }
   if (reg->regAddr() != spanAddress_ + span_.size()) {
     return false;
   }
-  if (span_.size() + reg->length() > kMaxRegisterSpanLength) {
+  if (span_.size() + reg->length() > maxSpanLength) {
     return false;
   }
   span_.resize(span_.size() + reg->length());
@@ -305,13 +305,14 @@ void RegisterStoreSpan::endReloadSpan(time_t reloadTime) {
 
 bool RegisterStoreSpan::buildRegisterSpanList(
     std::vector<RegisterStoreSpan>& list,
-    RegisterStore& reg) {
+    RegisterStore& reg,
+    size_t maxSpanLength) {
   // Drop it from a plan if not enabled.
   if (!reg.isEnabled()) {
     return false;
   }
-  if (!std::any_of(list.begin(), list.end(), [&reg](auto& span) {
-        return span.addRegister(&reg);
+  if (!std::any_of(list.begin(), list.end(), [&reg, maxSpanLength](auto& span) {
+        return span.addRegister(&reg, maxSpanLength);
       })) {
     list.emplace_back(&reg);
   }
@@ -519,6 +520,8 @@ void from_json(const json& j, RegisterMap& m) {
   j.at("name").get_to(m.name);
   m.parity = j.value("parity", Parity::EVEN);
   j.at("baudrate").get_to(m.baudrate);
+  m.maxRegisterSpanLength = j.value(
+      "max_span_length", RegisterStoreSpan::kDefaultMaxRegisterSpanLength);
   std::vector<RegisterDescriptor> tmp;
   j.at("registers").get_to(tmp);
   for (auto& i : tmp) {

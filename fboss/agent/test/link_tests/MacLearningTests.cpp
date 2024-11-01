@@ -31,6 +31,11 @@ class MacLearningTest : public LinkTest {
                << "since changing mode is not fully supported on SAI";
     overrideL2LearningConfig(true, kL2AgeTimer);
   }
+  std::vector<link_test_production_features::LinkTestProductionFeature>
+  getProductionFeatures() const override {
+    return {
+        link_test_production_features::LinkTestProductionFeature::L2_LINK_TEST};
+  }
 
  public:
   void updateL2Aging(int ageout) {

@@ -30,11 +30,39 @@ struct LedConfig {
 //
 // `fruType`: Type of FRU. E.g FAN, PEM, PSU
 //
-// `presenceSysfsPath`: Sysfs  path to detect presence of this FRU.
+// `presenceDetection`: Sysfs path or Gpio line to detect presence of this FRU.
 struct FruConfig {
   1: string fruName;
   2: string fruType;
-  3: string presenceSysfsPath;
+  3: PresenceDetection presenceDetection;
+}
+
+// `presenceFileName`: The path of the file which will contain the presence
+// information.
+//
+// `desiredValue`: The value which will indicate that the device is present.
+struct SysfsFileHandle {
+  1: string presenceFilePath;
+  2: i16 desiredValue;
+}
+
+// `charDevPath`: Filepath of the gpiochip
+//
+// `lineIndex`: The gpio line number which will indicate the presence of the
+// device.
+//
+// `desiredValue`: The value which will indicate that the device is present.
+struct GpioLineHandle {
+  1: string charDevPath;
+  2: i32 lineIndex;
+  3: i16 desiredValue;
+}
+
+// The presence detection can be based on GPIO registers or sysfs paths.  Only
+// one of them should be populated
+struct PresenceDetection {
+  1: optional GpioLineHandle gpioLineHandle;
+  2: optional SysfsFileHandle sysfsFileHandle;
 }
 
 // Main struct to support generic LED programming for presence.

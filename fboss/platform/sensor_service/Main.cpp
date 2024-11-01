@@ -7,6 +7,7 @@
 #include "fboss/platform/helpers/Init.h"
 #include "fboss/platform/sensor_service/Flags.h"
 #include "fboss/platform/sensor_service/SensorServiceThriftHandler.h"
+#include "fboss/platform/sensor_service/Utils.h"
 
 using namespace facebook;
 using namespace facebook::fboss::platform;
@@ -17,7 +18,8 @@ int main(int argc, char** argv) {
 
   helpers::init(&argc, &argv);
 
-  auto serviceImpl = std::make_shared<SensorServiceImpl>();
+  SensorConfig sensorConfig = Utils().getConfig();
+  auto serviceImpl = std::make_shared<SensorServiceImpl>(sensorConfig);
 
   // Fetch sensor data once to warmup
   serviceImpl->fetchSensorData();

@@ -35,6 +35,7 @@ cpp_library(
         "//fboss/agent:switch_config-cpp2-types",
         "//fboss/agent/hw:hardware_stats-cpp2-types",
         "//fboss/agent/hw/switch_asics:switch_asics",
+        "//fboss/agent/packet:packet",
         "//fboss/agent/packet:packet_factory",
         "//fboss/agent/state:state",
         "//fboss/agent/test:test_ensemble_if",
@@ -154,6 +155,7 @@ cpp_library(
         ":asic_test_utils",
         ":port_test_utils",
         "//fboss/agent:agent_features",
+        "//fboss/agent:constants",
         "//fboss/agent:core",
         "//fboss/agent:fboss-error",
         "//fboss/agent:fboss-types",
@@ -451,9 +453,10 @@ cpp_library(
     exported_deps = [
         "fbsource//third-party/googletest:gtest",
         ":acl_test_utils",
-        "//fboss/agent:fboss-types",
         "//fboss/agent:switch_config-cpp2-types",
         "//fboss/agent:utils",
+        "//fboss/agent/hw:hardware_stats-cpp2-types",
+        "//fboss/agent/test:agent_hw_test",
     ],
 )
 
@@ -524,5 +527,22 @@ cpp_library(
         "//fboss/agent:asic_utils",
         "//fboss/agent:switch_config-cpp2-types",
         "//fboss/agent/hw/switch_asics:switch_asics",
+    ],
+)
+
+cpp_library(
+    name = "multi_port_traffic_test_utils",
+    srcs = [
+        "MultiPortTrafficTestUtils.cpp",
+    ],
+    headers = [
+        "MultiPortTrafficTestUtils.h",
+    ],
+    exported_deps = [
+        ":qos_test_utils",
+        "//fboss/agent:utils",
+        "//fboss/agent/state:state_utils",
+        "//fboss/agent/test:agent_hw_test",
+        "//fboss/agent/test:ecmp_helper",
     ],
 )
