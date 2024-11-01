@@ -25,9 +25,41 @@
 #include "fboss/lib/thrift_service_client/ThriftServiceClient.h"
 #include "fboss/qsfp_service/if/gen-cpp2/transceiver_types_custom_protocol.h"
 
+DEFINE_bool(
+    list_production_feature,
+    false,
+    "List production feature needed for every single test.");
+
+namespace {
+int kArgc;
+char** kArgv;
+
+const std::vector<std::string> l1LinkTestNames = {
+    "asicLinkFlap",
+    "getTransceivers",
+    "opticsTxDisableRandomPorts",
+    "opticsTxDisableEnable",
+    "testOpticsRemediation",
+    "qsfpColdbootAfterAgentUp",
+    "fabricLinkHealth",
+    "opticsVdmPerformanceMonitoring",
+    "iPhyInfoTest",
+    "xPhyInfoTest",
+    "verifyIphyFecCounters",
+    "verifyIphyFecBerCounters"};
+
+const std::vector<std::string> l2LinkTestNames = {"trafficRxTx", "ecmpShrink"};
+} // namespace
+
 namespace facebook::fboss {
 
 void AgentEnsembleLinkTest::SetUp() {
+  gflags::ParseCommandLineFlags(&kArgc, &kArgv, false);
+  if (FLAGS_list_production_feature) {
+    printProductionFeatures();
+    GTEST_SKIP() << "Skipping this test because list_production_feature is set";
+    return;
+  }
   AgentEnsembleTest::SetUp();
   initializeCabledPorts();
   // Wait for all the cabled ports to link up before finishing the setup
@@ -37,17 +69,19 @@ void AgentEnsembleLinkTest::SetUp() {
 }
 
 void AgentEnsembleLinkTest::TearDown() {
-  // Expect the qsfp service to be running at the end of the tests
-  auto qsfpServiceClient = utils::createQsfpServiceClient();
-  EXPECT_EQ(
-      facebook::fb303::cpp2::fb_status::ALIVE,
-      qsfpServiceClient.get()->sync_getStatus())
-      << "QSFP Service no longer alive after the test";
-  EXPECT_EQ(
-      QsfpServiceRunState::ACTIVE,
-      qsfpServiceClient.get()->sync_getQsfpServiceRunState())
-      << "QSFP Service run state no longer active after the test";
-  AgentEnsembleTest::TearDown();
+  if (!FLAGS_list_production_feature) {
+    // Expect the qsfp service to be running at the end of the tests
+    auto qsfpServiceClient = utils::createQsfpServiceClient();
+    EXPECT_EQ(
+        facebook::fb303::cpp2::fb_status::ALIVE,
+        qsfpServiceClient.get()->sync_getStatus())
+        << "QSFP Service no longer alive after the test";
+    EXPECT_EQ(
+        QsfpServiceRunState::ACTIVE,
+        qsfpServiceClient.get()->sync_getQsfpServiceRunState())
+        << "QSFP Service run state no longer active after the test";
+    AgentEnsembleTest::TearDown();
+  }
 }
 
 void AgentEnsembleLinkTest::setCmdLineFlagOverrides() const {
@@ -517,12 +551,42 @@ void AgentEnsembleLinkTest::setForceTrafficOverFabric(bool force) {
   });
 }
 
+std::vector<link_test_production_features::LinkTestProductionFeature>
+AgentEnsembleLinkTest::getProductionFeatures() const {
+  const std::string testName =
+      testing::UnitTest::GetInstance()->current_test_info()->name();
+
+  if (std::find(l1LinkTestNames.begin(), l1LinkTestNames.end(), testName) !=
+      l1LinkTestNames.end()) {
+    return {
+        link_test_production_features::LinkTestProductionFeature::L1_LINK_TEST};
+  } else if (
+      std::find(l2LinkTestNames.begin(), l2LinkTestNames.end(), testName) !=
+      l2LinkTestNames.end()) {
+    return {
+        link_test_production_features::LinkTestProductionFeature::L2_LINK_TEST};
+  } else {
+    throw std::runtime_error(
+        "Test type (L1/L2) not specified for this test case");
+  }
+}
+
+void AgentEnsembleLinkTest::printProductionFeatures() const {
+  std::vector<std::string> supportedFeatures;
+  for (const auto& feature : getProductionFeatures()) {
+    supportedFeatures.push_back(apache::thrift::util::enumNameSafe(feature));
+  }
+  std::cout << "Feature List: " << folly::join(",", supportedFeatures) << "\n";
+}
+
 int agentEnsembleLinkTestMain(
     int argc,
     char** argv,
     PlatformInitFn initPlatformFn,
     std::optional<cfg::StreamType> streamType) {
   ::testing::InitGoogleTest(&argc, argv);
+  kArgc = argc;
+  kArgv = argv;
   initAgentEnsembleTest(argc, argv, initPlatformFn, streamType);
   return RUN_ALL_TESTS();
 }

@@ -15,6 +15,8 @@
 
 namespace facebook::fboss::thrift_cow {
 
+struct HybridNodeType;
+
 enum class RecurseVisitMode {
   /*
    * In this mode, we visit every path in the tree, including
@@ -147,6 +149,25 @@ struct RecurseVisitor<apache::thrift::type_class::set<ValueTypeClass>> {
         traverser, node, options, std::forward<Func>(f));
   }
 
+  template <typename NodePtr, typename TraverseHelper, typename Func>
+  static void visit(
+      TraverseHelper& traverser,
+      NodePtr& node,
+      RecurseVisitOptions options,
+      Func&& f)
+      // only enable for HybridNode types
+    requires(std::is_same_v<
+             typename folly::remove_cvref_t<NodePtr>::element_type::CowType,
+             HybridNodeType>)
+  {
+    if (!options.recurseIntoHybridNodes) {
+      rv_detail::invokeVisitorFnHelper(traverser, node, std::forward<Func>(f));
+    } else {
+      throw std::runtime_error(folly::to<std::string>(
+          "RecurseVisitor support for recurseIntoHybridNode in Set not implemented"));
+    }
+  }
+
   template <typename Fields, typename TraverseHelper, typename Func>
   static void visit(
       TraverseHelper& traverser,
@@ -187,6 +208,25 @@ struct RecurseVisitor<apache::thrift::type_class::list<ValueTypeClass>> {
         traverser, node, options, std::forward<Func>(f));
   }
 
+  template <typename NodePtr, typename TraverseHelper, typename Func>
+  static void visit(
+      TraverseHelper& traverser,
+      NodePtr& node,
+      RecurseVisitOptions options,
+      Func&& f)
+      // only enable for HybridNode types
+    requires(std::is_same_v<
+             typename folly::remove_cvref_t<NodePtr>::element_type::CowType,
+             HybridNodeType>)
+  {
+    if (!options.recurseIntoHybridNodes) {
+      rv_detail::invokeVisitorFnHelper(traverser, node, std::forward<Func>(f));
+    } else {
+      throw std::runtime_error(folly::to<std::string>(
+          "RecurseVisitor support for recurseIntoHybridNode in List not implemented"));
+    }
+  }
+
   template <typename Fields, typename TraverseHelper, typename Func>
   static void visit(
       TraverseHelper& traverser,
@@ -225,6 +265,25 @@ struct RecurseVisitor<
   {
     return rv_detail::visitNode<TC>(
         traverser, node, options, std::forward<Func>(f));
+  }
+
+  template <typename NodePtr, typename TraverseHelper, typename Func>
+  static void visit(
+      TraverseHelper& traverser,
+      NodePtr& node,
+      RecurseVisitOptions options,
+      Func&& f)
+      // only enable for HybridNode types
+    requires(std::is_same_v<
+             typename folly::remove_cvref_t<NodePtr>::element_type::CowType,
+             HybridNodeType>)
+  {
+    if (!options.recurseIntoHybridNodes) {
+      rv_detail::invokeVisitorFnHelper(traverser, node, std::forward<Func>(f));
+    } else {
+      throw std::runtime_error(folly::to<std::string>(
+          "RecurseVisitor support for recurseIntoHybridNode in Map not implemented"));
+    }
   }
 
   template <typename Fields, typename TraverseHelper, typename Func>
@@ -273,6 +332,25 @@ struct RecurseVisitor<apache::thrift::type_class::variant> {
   {
     return rv_detail::visitNode<TC>(
         traverser, node, options, std::forward<Func>(f));
+  }
+
+  template <typename NodePtr, typename TraverseHelper, typename Func>
+  static void visit(
+      TraverseHelper& traverser,
+      NodePtr& node,
+      RecurseVisitOptions options,
+      Func&& f)
+      // only enable for HybridNode types
+    requires(std::is_same_v<
+             typename folly::remove_cvref_t<NodePtr>::element_type::CowType,
+             HybridNodeType>)
+  {
+    if (!options.recurseIntoHybridNodes) {
+      rv_detail::invokeVisitorFnHelper(traverser, node, std::forward<Func>(f));
+    } else {
+      throw std::runtime_error(folly::to<std::string>(
+          "RecurseVisitor support for recurseIntoHybridNode in Variant not implemented"));
+    }
   }
 
   template <typename Fields, typename TraverseHelper, typename Func>
@@ -346,6 +424,25 @@ struct RecurseVisitor<apache::thrift::type_class::structure> {
   {
     return rv_detail::visitNode<TC>(
         traverser, node, options, std::forward<Func>(f));
+  }
+
+  template <typename NodePtr, typename TraverseHelper, typename Func>
+  static void visit(
+      TraverseHelper& traverser,
+      NodePtr& node,
+      RecurseVisitOptions options,
+      Func&& f)
+      // only enable for HybridNode types
+    requires(std::is_same_v<
+             typename folly::remove_cvref_t<NodePtr>::element_type::CowType,
+             HybridNodeType>)
+  {
+    if (!options.recurseIntoHybridNodes) {
+      rv_detail::invokeVisitorFnHelper(traverser, node, std::forward<Func>(f));
+    } else {
+      throw std::runtime_error(folly::to<std::string>(
+          "RecurseVisitor support for recurseIntoHybridNode in Struct not implemented"));
+    }
   }
 
   template <typename Fields, typename TraverseHelper, typename Func>

@@ -37,6 +37,7 @@ std::map<int32_t, std::pair<std::string, std::size_t>> _PortMap{
     SAI_ATTR_MAP(Port, Type),
     SAI_ATTR_MAP(Port, InterfaceType),
     SAI_ATTR_MAP(Port, PktTxEnable),
+    SAI_ATTR_MAP(Port, TamObject),
     SAI_ATTR_MAP(Port, SerdesId),
     SAI_ATTR_MAP(Port, IngressMirrorSession),
     SAI_ATTR_MAP(Port, EgressMirrorSession),
@@ -145,6 +146,35 @@ void handleExtensionAttributes() {
   SAI_EXT_ATTR_MAP(Port, CablePropogationDelayNS)
   SAI_EXT_ATTR_MAP(Port, FabricDataCellsFilterStatus)
   SAI_EXT_ATTR_MAP(Port, ReachabilityGroup)
+  SAI_EXT_ATTR_MAP(PortSerdes, TxDiffEncoderEn)
+  SAI_EXT_ATTR_MAP(PortSerdes, TxDigGain)
+  SAI_EXT_ATTR_MAP(PortSerdes, TxFfeCoeff0)
+  SAI_EXT_ATTR_MAP(PortSerdes, TxFfeCoeff1)
+  SAI_EXT_ATTR_MAP(PortSerdes, TxFfeCoeff2)
+  SAI_EXT_ATTR_MAP(PortSerdes, TxFfeCoeff3)
+  SAI_EXT_ATTR_MAP(PortSerdes, TxFfeCoeff4)
+  SAI_EXT_ATTR_MAP(PortSerdes, TxDriverSwing)
+  SAI_EXT_ATTR_MAP(PortSerdes, RxInstgBoost1Start)
+  SAI_EXT_ATTR_MAP(PortSerdes, RxInstgBoost1Step)
+  SAI_EXT_ATTR_MAP(PortSerdes, RxInstgBoost1Stop)
+  SAI_EXT_ATTR_MAP(PortSerdes, RxInstgBoost2OrHrStart)
+  SAI_EXT_ATTR_MAP(PortSerdes, RxInstgBoost2OrHrStep)
+  SAI_EXT_ATTR_MAP(PortSerdes, RxInstgBoost2OrHrStop)
+  SAI_EXT_ATTR_MAP(PortSerdes, RxInstgC1Start1p7)
+  SAI_EXT_ATTR_MAP(PortSerdes, RxInstgC1Step1p7)
+  SAI_EXT_ATTR_MAP(PortSerdes, RxInstgC1Stop1p7)
+  SAI_EXT_ATTR_MAP(PortSerdes, RxInstgDfeStart1p7)
+  SAI_EXT_ATTR_MAP(PortSerdes, RxInstgDfeStep1p7)
+  SAI_EXT_ATTR_MAP(PortSerdes, RxInstgDfeStop1p7)
+  SAI_EXT_ATTR_MAP(PortSerdes, RxEnableScanSelection)
+  SAI_EXT_ATTR_MAP(PortSerdes, RxInstgScanUseSrSettings)
+  SAI_EXT_ATTR_MAP(PortSerdes, RxCdrCfgOvEn)
+  SAI_EXT_ATTR_MAP(PortSerdes, RxCdrTdet1stOrdStepOvVal)
+  SAI_EXT_ATTR_MAP(PortSerdes, RxCdrTdet2ndOrdStepOvVal)
+  SAI_EXT_ATTR_MAP(PortSerdes, RxCdrTdetFineStepOvVal)
+  SAI_EXT_ATTR_MAP(Port, CondEntropyRehashEnable)
+  SAI_EXT_ATTR_MAP(Port, CondEntropyRehashPeriodUS)
+  SAI_EXT_ATTR_MAP(Port, CondEntropyRehashSeed)
 }
 
 } // namespace

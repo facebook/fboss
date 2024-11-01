@@ -44,11 +44,17 @@ BaseSubscription::BaseSubscription(
 }
 
 BaseSubscription::~BaseSubscription() {
+  // subclasses need to call stop since we have virtual method calls queued
+  CHECK(backgroundScope_.isScopeCancellationRequested());
+}
+
+void BaseSubscription::stop() {
   folly::coro::blockingWait(backgroundScope_.cancelAndJoinAsync());
 }
 
 folly::coro::Task<void> BaseSubscription::heartbeatLoop() {
-  while (true) {
+  // make sure to stop loop when we're cancelled
+  while (!backgroundScope_.isScopeCancellationRequested()) {
     co_await folly::coro::sleep(heartbeatInterval_);
     serveHeartbeat();
   }

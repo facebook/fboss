@@ -42,6 +42,20 @@ bool isEqual(
       getChannelId(left) == getChannelId(right) &&
       getChannels(left) == getChannels(right);
 }
+
+// For some reason this flag always evaluates as false if we hardcode the string
+// So return it from a function instead
+const std::string qsfpUtilPrefix() {
+  return FLAGS_multi_npu_platform_mapping
+      ? "wedge_qsfp_util --multi-npu-platform-mapping "
+      : "wedge_qsfp_util ";
+}
+
+const std::vector<std::string> l1LinkTestNames = {"qsfpWarmbootIsHitLess"};
+
+const std::vector<std::string> l2LinkTestNames = {
+    "warmbootIsHitLess",
+    "ptpEnableIsHitless"};
 } // namespace
 
 class AgentEnsembleLinkSanityTestDataPlaneFlood : public AgentEnsembleLinkTest {
@@ -51,6 +65,25 @@ class AgentEnsembleLinkSanityTestDataPlaneFlood : public AgentEnsembleLinkTest {
         << "setup up initial config for sw ttl0 to create dataplane flood";
     setupTtl0ForwardingEnable();
     return AgentEnsembleLinkTest::initialConfig(ensemble);
+  }
+  std::vector<link_test_production_features::LinkTestProductionFeature>
+  getProductionFeatures() const override {
+    const std::string testName =
+        testing::UnitTest::GetInstance()->current_test_info()->name();
+
+    if (std::find(l1LinkTestNames.begin(), l1LinkTestNames.end(), testName) !=
+        l1LinkTestNames.end()) {
+      return {link_test_production_features::LinkTestProductionFeature::
+                  L1_LINK_TEST};
+    } else if (
+        std::find(l2LinkTestNames.begin(), l2LinkTestNames.end(), testName) !=
+        l2LinkTestNames.end()) {
+      return {link_test_production_features::LinkTestProductionFeature::
+                  L2_LINK_TEST};
+    } else {
+      throw std::runtime_error(
+          "Test type (L1/L2) not specified for this test case");
+    }
   }
 };
 
@@ -229,7 +262,7 @@ TEST_F(AgentEnsembleLinkSanityTestDataPlaneFlood, ptpEnableIsHitless) {
 TEST_F(AgentEnsembleLinkTest, opticsTxDisableRandomPorts) {
   auto [opticalPorts, opticalPortNames] = getOpticalCabledPortsAndNames();
   EXPECT_FALSE(opticalPorts.empty())
-      << "opticsTxDisableEnable: Did not detect any optical transceivers";
+      << "opticsTxDisableRandomPorts: Did not detect any optical transceivers";
 
   auto connectedPairPortIds = getConnectedOpticalPortPairWithFeature(
       TransceiverFeature::TX_DISABLE, phy::Side::LINE);
@@ -275,7 +308,7 @@ TEST_F(AgentEnsembleLinkTest, opticsTxDisableRandomPorts) {
 
   // 3. Disable the randomly selected port from step 1
   const std::string txDisableCmd =
-      "wedge_qsfp_util " + disabledPortNames + " --tx_disable";
+      qsfpUtilPrefix() + disabledPortNames + " --tx_disable";
   XLOG(DBG2) << fmt::format(
       "opticsTxDisableRandomPorts: Disabling ports using command: {:s}",
       txDisableCmd);
@@ -287,7 +320,8 @@ TEST_F(AgentEnsembleLinkTest, opticsTxDisableRandomPorts) {
   // 4. Verify all Expected Down ports from step 2 go Down
   EXPECT_NO_THROW(waitForLinkStatus(expectedDownPorts, false));
   XLOG(DBG2) << fmt::format(
-      "opticsTxDisableEnable: link Tx disabled for {:s}", disabledPortNames);
+      "opticsTxDisableRandomPorts: link Tx disabled for {:s}",
+      disabledPortNames);
 
   // 5. Verify thet expected Up ports (all optical ports - expected Down ports)
   // keep
@@ -296,7 +330,7 @@ TEST_F(AgentEnsembleLinkTest, opticsTxDisableRandomPorts) {
 
   // 6. Enable the randomly selected port from step 1
   const std::string txEnableCmd =
-      "wedge_qsfp_util " + disabledPortNames + " --tx_enable";
+      qsfpUtilPrefix() + disabledPortNames + " --tx_enable";
   XLOG(DBG2) << fmt::format(
       "opticsTxDisableRandomPorts: Enabling ports using command: {:s}",
       txEnableCmd);
@@ -308,7 +342,8 @@ TEST_F(AgentEnsembleLinkTest, opticsTxDisableRandomPorts) {
   // 7. Make sure all the ports are Up again
   EXPECT_NO_THROW(waitForLinkStatus(opticalPorts, true));
   XLOG(DBG2) << fmt::format(
-      "opticsTxDisableEnable: link Tx enabled for {:s}", disabledPortNames);
+      "opticsTxDisableRandomPorts: link Tx enabled for {:s}",
+      disabledPortNames);
 }
 
 TEST_F(AgentEnsembleLinkTest, opticsTxDisableEnable) {
@@ -317,7 +352,7 @@ TEST_F(AgentEnsembleLinkTest, opticsTxDisableEnable) {
       << "opticsTxDisableEnable: Did not detect any optical transceivers";
 
   if (!opticalPorts.empty()) {
-    opticalPortNames = "wedge_qsfp_util " + opticalPortNames;
+    opticalPortNames = qsfpUtilPrefix() + opticalPortNames;
     const std::string txDisableCmd = opticalPortNames + "--tx-disable";
 
     XLOG(DBG2) << "opticsTxDisableEnable: About to execute cmd: "
@@ -375,7 +410,7 @@ TEST_F(AgentEnsembleLinkTest, testOpticsRemediation) {
     }
 
     const std::string txDisableCmd =
-        "wedge_qsfp_util " + disabledPortNames + " --tx-disable";
+        qsfpUtilPrefix() + disabledPortNames + " --tx-disable";
     // @lint-ignore CLANGTIDY
     folly::Subprocess(txDisableCmd).waitChecked();
 

@@ -33,20 +33,10 @@ std::shared_ptr<facebook::fboss::SwitchState> updateFibForRemoteConnectedRoutes(
 
 namespace facebook::fboss {
 
-std::shared_ptr<SwitchState> DsfStateUpdaterUtil::getUpdatedState(
-    const std::shared_ptr<SwitchState>& in,
-    const SwitchIdScopeResolver* scopeResolver,
-    RoutingInformationBase* rib,
-    const std::map<SwitchID, std::shared_ptr<SystemPortMap>>&
-        switchId2SystemPorts,
-    const std::map<SwitchID, std::shared_ptr<InterfaceMap>>& switchId2Intfs) {
-  bool changed{false};
-  auto out = in->clone();
-  IntfRouteTable remoteIntfRoutesToAdd;
-  boost::container::
-      flat_map<facebook::fboss::RouterID, std::vector<folly::CIDRNetwork>>
-          remoteIntfRoutesToDel;
-
+template <typename TableT>
+void DsfStateUpdaterUtil::updateNeighborEntry(
+    const TableT& oldTable,
+    const TableT& clonedTable) {
   auto skipProgramming = [&](const auto& nbrEntryIter) -> bool {
     // Local neighbor entry on one DSF node is remote neighbor entry on
     // every other DSF node. Thus, for neighbor entry received from other
@@ -80,31 +70,45 @@ std::shared_ptr<SwitchState> DsfStateUpdaterUtil::getUpdatedState(
           static_cast<int64_t>(std::time(nullptr)));
     } else {
       // Retain the resolved timestamp from the old entry.
-      nbrEntryIter->second->setResolvedSince(
-          oldTable->at(nbrEntryIter->second->getID())->getResolvedSince());
-    }
-  };
-
-  auto updateNeighborEntry = [&](const auto& oldTable,
-                                 const auto& clonedTable) {
-    auto nbrEntryIter = clonedTable->begin();
-    while (nbrEntryIter != clonedTable->end()) {
-      if (skipProgramming(nbrEntryIter)) {
-        XLOG(DBG2) << "Skip programming remote neighbor: "
-                   << nbrEntryIter->second->str();
-        nbrEntryIter = clonedTable->erase(nbrEntryIter);
-      } else {
-        // Entries received from remote are non-Local on current node
-        nbrEntryIter->second->setIsLocal(false);
-        // Entries received from remote always need to be programmed
-        nbrEntryIter->second->setNoHostRoute(false);
-        updateResolvedTimestamp(oldTable, nbrEntryIter);
-        XLOG(DBG2) << "Program remote neighbor: "
-                   << nbrEntryIter->second->str();
-        ++nbrEntryIter;
+      if (std::as_const(*oldTable).find(nbrEntryIter->second->getID()) !=
+          oldTable->cend()) {
+        nbrEntryIter->second->setResolvedSince(
+            oldTable->at(nbrEntryIter->second->getID())->getResolvedSince());
       }
     }
   };
+
+  auto nbrEntryIter = clonedTable->begin();
+  while (nbrEntryIter != clonedTable->end()) {
+    if (skipProgramming(nbrEntryIter)) {
+      XLOG(DBG2) << "Skip programming remote neighbor: "
+                 << nbrEntryIter->second->str();
+      nbrEntryIter = clonedTable->erase(nbrEntryIter);
+    } else {
+      // Entries received from remote are non-Local on current node
+      nbrEntryIter->second->setIsLocal(false);
+      // Entries received from remote always need to be programmed
+      nbrEntryIter->second->setNoHostRoute(false);
+      updateResolvedTimestamp(oldTable, nbrEntryIter);
+      XLOG(DBG2) << "Program remote neighbor: " << nbrEntryIter->second->str();
+      ++nbrEntryIter;
+    }
+  }
+}
+
+std::shared_ptr<SwitchState> DsfStateUpdaterUtil::getUpdatedState(
+    const std::shared_ptr<SwitchState>& in,
+    const SwitchIdScopeResolver* scopeResolver,
+    RoutingInformationBase* rib,
+    const std::map<SwitchID, std::shared_ptr<SystemPortMap>>&
+        switchId2SystemPorts,
+    const std::map<SwitchID, std::shared_ptr<InterfaceMap>>& switchId2Intfs) {
+  bool changed{false};
+  auto out = in->clone();
+  IntfRouteTable remoteIntfRoutesToAdd;
+  boost::container::
+      flat_map<facebook::fboss::RouterID, std::vector<folly::CIDRNetwork>>
+          remoteIntfRoutesToDel;
 
   auto makeRemoteSysPort = [&](const auto& oldNode, const auto& newNode) {
     /*

@@ -51,7 +51,9 @@ void AgentHwTest::SetUp() {
   agentEnsemble_ = createAgentEnsemble(
       initialConfigFn,
       FLAGS_disable_link_toggler /*disableLinkStateToggler*/,
-      platformConfigFn_,
+      [this](const cfg::SwitchConfig& sw, cfg::PlatformConfig& cfg) {
+        applyPlatformConfigOverrides(sw, cfg);
+      },
       (HwSwitch::FeaturesDesired::PACKET_RX_DESIRED |
        HwSwitch::FeaturesDesired::LINKSCAN_DESIRED |
        HwSwitch::FeaturesDesired::TAM_EVENT_NOTIFY_DESIRED),
@@ -90,6 +92,8 @@ void AgentHwTest::setCmdLineFlagOverrides() const {
   FLAGS_detect_wrong_fabric_connections = false;
   // Disable DSF subscription on single-box test
   FLAGS_dsf_subscribe = false;
+  // Set HW agent connection timeout to 120 seconds
+  FLAGS_hw_agent_connection_timeout_ms = 120000;
 }
 
 void AgentHwTest::TearDown() {

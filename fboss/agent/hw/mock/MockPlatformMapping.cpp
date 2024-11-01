@@ -18,6 +18,7 @@ MockPlatformMapping::MockPlatformMapping() : Wedge100PlatformMapping() {
     auto& platformPort = entry.second;
     platformPort.mapping()->attachedCoreId() = 0;
     platformPort.mapping()->attachedCorePortIndex() = 0;
+    platformPort.mapping()->virtualDeviceId() = 0;
   }
 }
 } // namespace facebook::fboss

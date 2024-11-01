@@ -33,6 +33,12 @@ SaiUdfGroupTraits::CreateAttributes SaiUdfManager::udfGroupAttr(
     const std::shared_ptr<UdfGroup> swUdfGroup) const {
   // Type
   auto typeAttr = SaiUdfGroupTraits::Attributes::Type{SAI_UDF_GROUP_TYPE_HASH};
+  // TODO(ravi) ensure config gen include type for hash also for SAI
+  CHECK(swUdfGroup->getUdfGroupType().has_value());
+  cfg::UdfGroupType udfGroupType = swUdfGroup->getUdfGroupType().value();
+  if (udfGroupType == cfg::UdfGroupType::ACL) {
+    typeAttr = SaiUdfGroupTraits::Attributes::Type{SAI_UDF_GROUP_TYPE_GENERIC};
+  }
   // Length
   auto lengthAttr = SaiUdfGroupTraits::Attributes::Length{
       static_cast<sai_uint16_t>(swUdfGroup->getFieldSizeInBytes())};
@@ -74,8 +80,9 @@ UdfGroupSaiId SaiUdfManager::addUdfGroup(
   // Create Sai UDF group
   auto udfGroupCreateAttr = udfGroupAttr(swUdfGroup);
   auto& udfGroupStore = saiStore_->get<SaiUdfGroupTraits>();
+  SaiUdfGroupTraits::AdapterHostKey adapterHostKey{swUdfGroup->getName()};
   auto saiUdfGroup =
-      udfGroupStore.setObject(udfGroupCreateAttr, udfGroupCreateAttr);
+      udfGroupStore.setObject(adapterHostKey, udfGroupCreateAttr);
   auto udfGroupHandle = std::make_unique<SaiUdfGroupHandle>();
   udfGroupHandle->udfGroup = saiUdfGroup;
 

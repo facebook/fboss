@@ -18,6 +18,8 @@
 namespace facebook::fboss::thrift_cow {
 
 struct HybridNodeType;
+struct NodeType;
+struct FieldsType;
 
 namespace pv_detail {
 using PathIter = typename std::vector<std::string>::const_iterator;
@@ -29,17 +31,68 @@ using PathIter = typename std::vector<std::string>::const_iterator;
 // instantiations
 class BasePathVisitorOperator {
  public:
+  template <typename TType>
+  class SerializableReader : public Serializable {
+   public:
+    explicit SerializableReader(TType& node) : node_(node) {}
+
+    folly::IOBuf encodeBuf(fsdb::OperProtocol proto) const override {
+      folly::IOBufQueue queue;
+      switch (proto) {
+        case fsdb::OperProtocol::BINARY:
+          apache::thrift::BinarySerializer::serialize(node_, &queue);
+          break;
+        case fsdb::OperProtocol::COMPACT:
+          apache::thrift::CompactSerializer::serialize(node_, &queue);
+          break;
+        case fsdb::OperProtocol::SIMPLE_JSON:
+          apache::thrift::SimpleJSONSerializer::serialize(node_, &queue);
+          break;
+        default:
+          throw std::runtime_error(folly::to<std::string>(
+              "Unknown protocol: ", static_cast<int>(proto)));
+      }
+      return queue.moveAsValue();
+    }
+
+    void fromEncodedBuf(fsdb::OperProtocol, folly::IOBuf&&) override {}
+
+   private:
+    TType& node_;
+  };
+
   virtual ~BasePathVisitorOperator() = default;
 
   template <typename Node>
   inline void
-  visitTyped(Node& node, pv_detail::PathIter begin, pv_detail::PathIter end) {
+  visitTyped(Node& node, pv_detail::PathIter begin, pv_detail::PathIter end)
+    requires(is_cow_type_v<Node>)
+  {
     if constexpr (std::is_const_v<Node>) {
       cvisit(node, begin, end);
       cvisit(node);
     } else {
       visit(node, begin, end);
       visit(node);
+    }
+  }
+
+  template <typename Node>
+  inline void
+  visitTyped(Node& node, pv_detail::PathIter begin, pv_detail::PathIter end)
+    requires(!is_cow_type_v<Node>)
+  {
+    // supporting only read-only visitation
+    CHECK(visitReadOnly_);
+
+    // Node is not a Serializable, dispatch with wrapper
+    SerializableReader wrapper(node);
+    if constexpr (std::is_const_v<Node>) {
+      cvisit(wrapper, begin, end);
+      cvisit(wrapper);
+    } else {
+      visit(wrapper, begin, end);
+      visit(wrapper);
     }
   }
 
@@ -57,6 +110,8 @@ class BasePathVisitorOperator {
       pv_detail::PathIter /* end */) {}
 
   virtual void cvisit(const Serializable& node) {}
+
+  bool visitReadOnly_ = true;
 };
 
 struct GetEncodedPathVisitorOperator : public BasePathVisitorOperator {
@@ -82,7 +137,9 @@ struct SetEncodedPathVisitorOperator : public BasePathVisitorOperator {
   SetEncodedPathVisitorOperator(
       fsdb::OperProtocol protocol,
       const folly::fbstring& val)
-      : protocol_(protocol), val_(val) {}
+      : protocol_(protocol), val_(val) {
+    visitReadOnly_ = false;
+  }
 
  protected:
   void visit(facebook::fboss::thrift_cow::Serializable& node) override {
@@ -121,9 +178,6 @@ enum class ThriftTraverseResult {
  *
  * This allows a visitor to use the remaining path tokens if needed.
  */
-
-struct NodeType;
-struct FieldsType;
 
 enum class PathVisitMode {
   /*
@@ -247,7 +301,9 @@ struct PathVisitorImpl<apache::thrift::type_class::set<ValueTypeClass>> {
       const PathVisitMode& mode,
       Op& op)
       // only enable for Fields types
-    requires(std::is_same_v<typename Fields::CowType, FieldsType>)
+    requires(
+        is_field_type_v<Fields> &&
+        std::is_same_v<typename Fields::CowType, FieldsType>)
   {
     using ValueTType = typename Fields::ValueTType;
 
@@ -311,7 +367,9 @@ struct PathVisitorImpl<apache::thrift::type_class::list<ValueTypeClass>> {
       const PathVisitMode& mode,
       Op& op)
       // only enable for Fields types
-    requires(std::is_same_v<typename Fields::CowType, FieldsType>)
+    requires(
+        is_field_type_v<Fields> &&
+        std::is_same_v<typename Fields::CowType, FieldsType>)
   {
     // Parse and pop token. Also check for index bound
     auto index = folly::tryTo<size_t>(*begin++);
@@ -351,6 +409,39 @@ struct PathVisitorImpl<
     return pv_detail::visitNode<TC>(node, begin, end, mode, op);
   }
 
+  template <typename Obj, typename Op>
+  static inline ThriftTraverseResult visit(
+      Obj& tObj,
+      pv_detail::PathIter begin,
+      pv_detail::PathIter end,
+      const PathVisitMode& mode,
+      Op& op)
+    requires(!is_cow_type_v<Obj> && !is_field_type_v<Obj>)
+  {
+    try {
+      if (mode == PathVisitMode::FULL || begin == end) {
+        op.visitTyped(tObj, begin, end);
+        if (begin == end) {
+          return ThriftTraverseResult::OK;
+        }
+      }
+      // get the value based on the key
+      using KeyT = typename folly::remove_cvref_t<decltype(tObj)>::key_type;
+      // Get key
+      auto token = *begin++;
+      auto key = folly::tryTo<KeyT>(token);
+      if (!key.hasValue() || tObj.find(key.value()) == tObj.end()) {
+        return ThriftTraverseResult::INVALID_MAP_KEY;
+      }
+      return PathVisitorImpl<MappedTypeClass>::visit(
+          tObj.at(*key), begin, end, mode, op);
+
+    } catch (const std::exception& ex) {
+      XLOG(ERR) << "Exception while traversing path: " << ex.what();
+      return ThriftTraverseResult::VISITOR_EXCEPTION;
+    }
+  }
+
   template <typename Node, typename Op>
   static ThriftTraverseResult visit(
       Node& node,
@@ -362,13 +453,23 @@ struct PathVisitorImpl<
     requires(std::is_same_v<typename Node::CowType, HybridNodeType>)
   {
     try {
-      if (begin == end) {
+      if (mode == PathVisitMode::FULL || begin == end) {
         op.visitTyped(node, begin, end);
-      } else {
-        // TODO: handle traversing thrift objects in hybrid nodes
-        return ThriftTraverseResult::VISITOR_EXCEPTION;
+        if (begin == end) {
+          return ThriftTraverseResult::OK;
+        }
       }
-      return ThriftTraverseResult::OK;
+      // get the value based on the key
+      auto& tObj = node.ref();
+      using KeyT = typename folly::remove_cvref_t<decltype(tObj)>::key_type;
+      // Get key
+      auto token = *begin++;
+      auto key = folly::tryTo<KeyT>(token);
+      if (!key.hasValue() || tObj.find(key.value()) == tObj.end()) {
+        return ThriftTraverseResult::INVALID_MAP_KEY;
+      }
+      return PathVisitorImpl<MappedTypeClass>::visit(
+          tObj.at(*key), begin, end, mode, op);
     } catch (const std::exception& ex) {
       XLOG(ERR) << "Exception while traversing path: " << ex.what();
       return ThriftTraverseResult::VISITOR_EXCEPTION;
@@ -383,7 +484,9 @@ struct PathVisitorImpl<
       const PathVisitMode& mode,
       Op& op)
       // only enable for Fields types
-    requires(std::is_same_v<typename Fields::CowType, FieldsType>)
+    requires(
+        is_field_type_v<Fields> &&
+        std::is_same_v<typename Fields::CowType, FieldsType>)
   {
     using key_type = typename Fields::key_type;
 
@@ -452,7 +555,9 @@ struct PathVisitorImpl<apache::thrift::type_class::variant> {
       const PathVisitMode& mode,
       Op& op)
       // only enable for Fields types
-    requires(std::is_same_v<typename Fields::CowType, FieldsType>)
+    requires(
+        is_field_type_v<Fields> &&
+        std::is_same_v<typename Fields::CowType, FieldsType>)
   {
     using MemberTypes = typename Fields::MemberTypes;
 
@@ -521,6 +626,28 @@ struct PathVisitorImpl<apache::thrift::type_class::structure> {
     return ThriftTraverseResult::VISITOR_EXCEPTION;
   }
 
+  template <typename Obj, typename Op>
+  static inline ThriftTraverseResult visit(
+      Obj& tObj,
+      pv_detail::PathIter begin,
+      pv_detail::PathIter end,
+      const PathVisitMode& mode,
+      Op& op)
+    requires(!is_cow_type_v<Obj> && !is_field_type_v<Obj>)
+  {
+    try {
+      if (begin == end) {
+        op.visitTyped(tObj, begin, end);
+      } else {
+        throw std::runtime_error("not implemented yet");
+      }
+      return ThriftTraverseResult::OK;
+    } catch (const std::exception& ex) {
+      XLOG(ERR) << "Exception while traversing path: " << ex.what();
+      return ThriftTraverseResult::VISITOR_EXCEPTION;
+    }
+  }
+
   template <typename Fields, typename Op>
   static ThriftTraverseResult visit(
       Fields& fields,
@@ -529,7 +656,9 @@ struct PathVisitorImpl<apache::thrift::type_class::structure> {
       const PathVisitMode& mode,
       Op& op)
       // only enable for Fields types
-    requires(std::is_same_v<typename Fields::CowType, FieldsType>)
+    requires(
+        is_field_type_v<Fields> &&
+        std::is_same_v<typename Fields::CowType, FieldsType>)
   {
     using Members = typename Fields::Members;
 
@@ -653,7 +782,9 @@ struct PathVisitor {
       const PathVisitMode& mode,
       pv_detail::LambdaPathVisitorOperator<Func>& op)
       // only enable for Fields types
-    requires(std::is_same_v<typename Fields::CowType, FieldsType>)
+    requires(
+        is_field_type_v<Fields> &&
+        std::is_same_v<typename Fields::CowType, FieldsType>)
   {
     return pv_detail::PathVisitorImpl<TC>::visit(fields, begin, end, mode, op);
   }
@@ -666,7 +797,9 @@ struct PathVisitor {
       const PathVisitMode& mode,
       BasePathVisitorOperator& op)
       // only enable for Fields types
-    requires(std::is_same_v<typename Fields::CowType, FieldsType>)
+    requires(
+        is_field_type_v<Fields> &&
+        std::is_same_v<typename Fields::CowType, FieldsType>)
   {
     return pv_detail::PathVisitorImpl<TC>::visit(fields, begin, end, mode, op);
   }

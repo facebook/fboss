@@ -32,6 +32,10 @@ bool AgentNetWhoAmI::isFdsw() const {
   return false;
 }
 
+bool AgentNetWhoAmI::isSdsw() const {
+  return false;
+}
+
 bool AgentNetWhoAmI::hasRoutingProtocol() const {
   return false;
 }

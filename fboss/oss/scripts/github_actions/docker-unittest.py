@@ -35,8 +35,18 @@ def build_docker_image(docker_dir_path: str):
         f"Attempting to build docker image from {docker_dir_path}/Dockerfile. You can run `sudo tail -f {log_path}` in order to follow along."
     )
     with os.fdopen(fd, "w") as output:
+        dockerfile_path = os.path.join(docker_dir_path, "Dockerfile")
         cp = subprocess.run(
-            ["sudo", "docker", "build", docker_dir_path, "-t", FBOSS_IMAGE_NAME],
+            [
+                "sudo",
+                "docker",
+                "build",
+                ".",
+                "-t",
+                FBOSS_IMAGE_NAME,
+                "-f",
+                dockerfile_path,
+            ],
             stdout=output,
             stderr=subprocess.STDOUT,
         )

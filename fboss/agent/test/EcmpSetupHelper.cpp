@@ -382,15 +382,16 @@ std::optional<InterfaceID> BaseEcmpSetupHelper<AddrT, NextHopT>::getInterface(
     CHECK(intf->getVlanID() == *vlan);
     return intf->getID();
   } else if (port.isPhysicalPort()) {
-    // Look for port RIF
-    auto sysPortRange = state->getAssociatedSystemPortRangeIf(port.phyPortID());
-    if (!sysPortRange.has_value()) {
+    auto sysPortRanges =
+        state->getAssociatedSystemPortRangesIf(port.phyPortID());
+    if (sysPortRanges.systemPortRanges()->empty()) {
       return std::nullopt;
     }
-    auto sysPortBase = *sysPortRange->minimum();
-    SystemPortID sysPortId{// static_cast to avoid spurious narrowing conversion
-                           // compiler warning. PortID is just 16 bits
-                           static_cast<int64_t>(port.intID()) + sysPortBase};
+    // Look for port RIF
+    auto sysPortId = getSystemPortID(
+        port.phyPortID(),
+        state,
+        state->getAssociatedSwitchID(port.phyPortID()));
     if (auto intf = state->getInterfaces()->getNodeIf(
             InterfaceID(static_cast<int>(sysPortId)))) {
       return intf->getID();

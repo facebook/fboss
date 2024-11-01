@@ -432,7 +432,7 @@ class LookupClassUpdaterTest : public ::testing::Test {
   }
 
   void bringPortDown(PortID portID) const {
-    this->sw_->linkStateChanged(portID, false);
+    this->sw_->linkStateChanged(portID, false, cfg::PortType::INTERFACE_PORT);
 
     waitForStateUpdates(this->sw_);
     this->sw_->getNeighborUpdater()->waitForPendingUpdates();

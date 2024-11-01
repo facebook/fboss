@@ -23,32 +23,62 @@
     {
       "fruName": "FAN1",
       "fruType": "FAN",
-      "presenceSysfsPath": "/run/devmap/sensors/FAN_CPLD/fan1_present"
+      "presenceDetection": {
+        "sysfsFileHandle": {
+          "presenceFilePath": "/run/devmap/sensors/FAN_CPLD/fan1_present",
+          "desiredValue": 1
+        }
+      }
     },
     {
       "fruName": "FAN2",
       "fruType": "FAN",
-      "presenceSysfsPath": "/run/devmap/sensors/FAN_CPLD/fan2_present"
+      "presenceDetection": {
+        "sysfsFileHandle": {
+          "presenceFilePath": "/run/devmap/sensors/FAN_CPLD/fan2_present",
+          "desiredValue": 1
+        }
+      }
     },
     {
       "fruName": "FAN3",
       "fruType": "FAN",
-      "presenceSysfsPath": "/run/devmap/sensors/FAN_CPLD/fan3_present"
+      "presenceDetection": {
+        "sysfsFileHandle": {
+          "presenceFilePath": "/run/devmap/sensors/FAN_CPLD/fan3_present",
+          "desiredValue": 1
+        }
+      }
     },
     {
       "fruName": "FAN4",
       "fruType": "FAN",
-      "presenceSysfsPath": "/run/devmap/sensors/FAN_CPLD/fan4_present"
+      "presenceDetection": {
+        "sysfsFileHandle": {
+          "presenceFilePath": "/run/devmap/sensors/FAN_CPLD/fan4_present",
+          "desiredValue": 1
+        }
+      }
     },
     {
       "fruName": "FAN5",
       "fruType": "FAN",
-      "presenceSysfsPath": "/run/devmap/sensors/FAN_CPLD/fan5_present"
+      "presenceDetection": {
+        "sysfsFileHandle": {
+          "presenceFilePath": "/run/devmap/sensors/FAN_CPLD/fan5_present",
+          "desiredValue": 1
+        }
+      }
     },
     {
       "fruName": "PEM1",
       "fruType": "PEM",
-      "presenceSysfsPath": "/run/devmap/fpgas/SCD_FPGA/pem_present"
+      "presenceDetection": {
+        "sysfsFileHandle": {
+          "presenceFilePath": "/run/devmap/fpgas/SCD_FPGA/pem_present",
+          "desiredValue": 1
+        }
+      }
     }
   ]
 }

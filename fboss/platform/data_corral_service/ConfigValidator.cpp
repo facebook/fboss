@@ -50,8 +50,8 @@ bool ConfigValidator::isValidFruConfig(
     XLOG(ERR) << "FruName cannot be empty";
     return false;
   }
-  if (fruConfig.presenceSysfsPath()->empty()) {
-    XLOG(ERR) << "PresenceSysfsPath cannot be empty";
+  if (!isValidPresenceConfig(*fruConfig.presenceDetection())) {
+    XLOG(ERR) << "PresenceDetection is invalid";
     return false;
   }
   return true;
@@ -74,6 +74,48 @@ bool ConfigValidator::isValidFruConfigs(
   for (const auto& fruConfig : fruConfigs) {
     XLOG(INFO) << "Validating the FRU config for fru: " << *fruConfig.fruName();
     if (!isValidFruConfig(fruConfig, fruTypeLedConfigs)) {
+      return false;
+    }
+  }
+  return true;
+}
+
+bool ConfigValidator::isValidPresenceConfig(const PresenceDetection& config) {
+  // Both cannot be present
+  if (config.sysfsFileHandle() && config.gpioLineHandle()) {
+    XLOG(ERR)
+        << "Only one of GpioLineHandle or SysfsFileHandle must be set for PresenceDetection";
+    return false;
+  }
+  if (!config.sysfsFileHandle() && !config.gpioLineHandle()) {
+    XLOG(ERR)
+        << "GpioLineHandle or SysfsFileHandle must be set for PresenceDetection";
+    return false;
+  }
+
+  if (config.sysfsFileHandle()) {
+    if (config.sysfsFileHandle()->presenceFilePath()->empty()) {
+      XLOG(ERR) << "Sysfs path cannot be empty";
+      return false;
+    }
+    if (config.sysfsFileHandle()->desiredValue() < 0) {
+      XLOG(ERR)
+          << "desiredValue for SysfsFileHandle cannot be < 0. Typically 0 or 1";
+      return false;
+    }
+  }
+  if (config.gpioLineHandle()) {
+    if (config.gpioLineHandle()->charDevPath()->empty()) {
+      XLOG(ERR) << "charDevPath for GpioLineHandle cannot be empty";
+      return false;
+    }
+    if (config.gpioLineHandle()->desiredValue() < 0) {
+      XLOG(ERR)
+          << "desiredValue for GpioLineHandle cannot be < 0. Typically 0 or 1";
+      return false;
+    }
+    if (config.gpioLineHandle()->lineIndex() < 0) {
+      XLOG(ERR) << "lineIndex for GpioLineHandle cannot be < 0.";
       return false;
     }
   }

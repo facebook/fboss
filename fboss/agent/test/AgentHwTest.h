@@ -91,10 +91,6 @@ class AgentHwTest : public ::testing::Test {
     verifyAcrossWarmBoots([]() {}, verify, []() {}, []() {});
   }
 
-  void setupPlatformConfig(AgentEnsemblePlatformConfigFn platformConfigFn) {
-    platformConfigFn_ = std::move(platformConfigFn);
-  }
-
   void runForever() const;
   std::shared_ptr<SwitchState> applyNewConfig(const cfg::SwitchConfig& config);
   void applyNewState(StateUpdateFn fn, const std::string& name = "agent-test") {
@@ -206,6 +202,14 @@ class AgentHwTest : public ::testing::Test {
    */
   virtual void setCmdLineFlagOverrides() const;
 
+  /*
+   * For tests to override the platform config. A read-only SwitchConfig is
+   * also provided for the implementation to use.
+   */
+  virtual void applyPlatformConfigOverrides(
+      const cfg::SwitchConfig&,
+      cfg::PlatformConfig&) const {}
+
   SwitchID switchIdForPort(PortID port) const;
   const HwAsic* hwAsicForPort(PortID port) const;
   const HwAsic* hwAsicForSwitch(SwitchID switchID) const;
@@ -236,7 +240,6 @@ class AgentHwTest : public ::testing::Test {
     return true;
   }
 
-  AgentEnsemblePlatformConfigFn platformConfigFn_ = nullptr;
   std::unique_ptr<AgentEnsemble> agentEnsemble_;
 };
 

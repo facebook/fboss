@@ -117,6 +117,8 @@ class AgentNeighborTest : public AgentHwTest {
     if (isIntfNbrTable) {
       features.push_back(
           production_features::ProductionFeature::INTERFACE_NEIGHBOR_TABLE);
+    } else {
+      features.push_back(production_features::ProductionFeature::VLAN);
     }
     if (programToTrunk) {
       features.push_back(production_features::ProductionFeature::LAG);
@@ -257,7 +259,6 @@ class AgentNeighborTest : public AgentHwTest {
           kIntfID(), NeighborT::getNeighborAddress(), *getAgentEnsemble());
       EXPECT_EVENTUALLY_TRUE(neighborInfo.classId().has_value());
       if (neighborInfo.classId().has_value()) {
-        XLOG(INFO) << " GOT CLASSID: " << neighborInfo.classId().value();
         EXPECT_EVENTUALLY_TRUE(
             programToTrunk || classID == neighborInfo.classId().value());
       }
@@ -457,6 +458,10 @@ class AgentNeighborOnMultiplePortsTest : public AgentHwTest {
     return utility::onePortPerInterfaceConfig(
         ensemble.getSw(), ensemble.masterLogicalPortIds());
   }
+  folly::IPAddressV6 neighborIP(PortID port) const {
+    utility::EcmpSetupAnyNPorts6 ecmpHelper6(getProgrammedState());
+    return ecmpHelper6.ip(PortDescriptor(port));
+  }
 
   void oneNeighborPerPortSetup(const std::vector<PortID>& portIds) {
     auto cfg = initialConfig(*getAgentEnsemble());
@@ -477,8 +482,7 @@ class AgentNeighborOnMultiplePortsTest : public AgentHwTest {
       this->applyNewState([&](const std::shared_ptr<SwitchState>& in) {
         utility::EcmpSetupAnyNPorts6 ecmpHelper6(
             in, utility::MacAddressGenerator().get(dstMac.u64NBO() + idx + 1));
-        return ecmpHelper6.resolveNextHops(
-            getProgrammedState(), {PortDescriptor(portIds[idx])});
+        return ecmpHelper6.resolveNextHops(in, {PortDescriptor(portIds[idx])});
       });
     }
 
@@ -532,9 +536,11 @@ TYPED_TEST(AgentNeighborOnMultiplePortsTest, ResolveOnTwoPorts) {
   };
   auto verify = [&]() {
     EXPECT_FALSE(this->isProgrammedToCPU(
-        this->masterLogicalInterfacePortIds()[0], folly::IPAddressV6("1::1")));
+        this->masterLogicalInterfacePortIds()[0],
+        this->neighborIP(this->masterLogicalInterfacePortIds()[0])));
     EXPECT_FALSE(this->isProgrammedToCPU(
-        this->masterLogicalInterfacePortIds()[1], folly::IPAddressV6("2::2")));
+        this->masterLogicalInterfacePortIds()[1],
+        this->neighborIP(this->masterLogicalInterfacePortIds()[1])));
   };
   this->verifyAcrossWarmBoots(setup, verify);
 }

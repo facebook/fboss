@@ -23,6 +23,7 @@ cpp_unittest(
         "ThriftHybridStructNodeTests.cpp",
     ],
     preprocessor_flags = ["-DENABLE_DYNAMIC_APIS"],
+    supports_static_listing = False,
     deps = [
         ":test-cpp2-reflection",
         "//fboss/thrift_cow/nodes:nodes",
@@ -46,6 +47,7 @@ cpp_unittest(
         "ThriftUnionNodeTests.cpp",
     ],
     preprocessor_flags = ["-DENABLE_DYNAMIC_APIS"],
+    supports_static_listing = False,
     deps = [
         ":test-cpp2-reflection",
         "//fboss/agent:switch_config-cpp2-reflection",

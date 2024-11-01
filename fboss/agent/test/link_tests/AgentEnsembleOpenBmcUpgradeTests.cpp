@@ -48,6 +48,12 @@ class AgentEnsembleOpenBmcUpgradeTest : public AgentEnsembleLinkTest {
     });
   }
 
+  std::vector<link_test_production_features::LinkTestProductionFeature>
+  getProductionFeatures() const override {
+    return {
+        link_test_production_features::LinkTestProductionFeature::L1_LINK_TEST};
+  }
+
  protected:
   void openBmcSanityCheck() const {
     XLOG(DBG2) << "Checking ssh access to oob";

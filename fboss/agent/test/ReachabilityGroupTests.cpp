@@ -16,6 +16,7 @@ class ReachabilityGroupTest : public ::testing::Test {
  public:
   void SetUp() override {
     FLAGS_multi_switch = true;
+    fLB::FLAGS_enable_balanced_input_mode = true;
     auto config = initialConfig();
     handle_ = createTestHandle(&config);
     sw_ = handle_->getSw();

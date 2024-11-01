@@ -143,6 +143,8 @@ class Jericho3Asic : public BroadcomAsic {
   std::optional<uint32_t> computePortGroupSkew(
       const std::map<PortID, uint32_t>& portId2cableLen) const override;
   std::vector<std::pair<int, int>> getPortGroups() const;
+  int getMidPriCpuQueueId() const override;
+  int getHiPriCpuQueueId() const override;
 };
 
 } // namespace facebook::fboss

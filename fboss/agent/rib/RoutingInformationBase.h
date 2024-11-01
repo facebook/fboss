@@ -381,7 +381,7 @@ class RoutingInformationBase {
       void* cookie);
 
   std::unique_ptr<std::thread> ribUpdateThread_;
-  FbossEventBase ribUpdateEventBase_;
+  FbossEventBase ribUpdateEventBase_{"RibUpdateEventBase"};
   RibRouteTables ribTables_;
 };
 

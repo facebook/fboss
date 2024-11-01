@@ -426,9 +426,6 @@ struct SlotTypeConfig {
 // this slot. Need not be described if there is no presence detection for this
 // slot
 //
-// TODO: Enhance device presence logic based on SimpleIoDevice definition in
-// fbdevd.thrift
-//
 // `outgoingI2cBusNames`: is the list of the buses from the PmUnit perspective
 // which are going out in the slot.  Refer to Bus Naming Convention above.
 struct SlotConfig {

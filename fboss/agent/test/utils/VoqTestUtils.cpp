@@ -181,46 +181,49 @@ void populateRemoteIntfAndSysPorts(
     std::shared_ptr<SystemPortMap> remoteSysPorts =
         std::make_shared<SystemPortMap>();
     std::shared_ptr<InterfaceMap> remoteRifs = std::make_shared<InterfaceMap>();
-    CHECK(dsfNode.systemPortRange().has_value());
-    const auto minPortID = *dsfNode.systemPortRange()->minimum();
-    const auto maxPortID = *dsfNode.systemPortRange()->maximum();
-    // 0th port for CPU and 1st port for recycle port
-    for (int i = minPortID + kRemoteSysPortOffset; i <= maxPortID; i++) {
-      const SystemPortID remoteSysPortId(i);
-      const InterfaceID remoteIntfId(i);
-      const PortDescriptor portDesc(remoteSysPortId);
-      const std::optional<uint64_t> encapEndx =
-          useEncapIndex ? std::optional<uint64_t>(0x200001 + i) : std::nullopt;
+    CHECK(!dsfNode.systemPortRanges()->systemPortRanges()->empty());
+    for (auto sysPortRange : *dsfNode.systemPortRanges()->systemPortRanges()) {
+      const auto minPortID = *sysPortRange.minimum();
+      const auto maxPortID = *sysPortRange.maximum();
+      // 0th port for CPU and 1st port for recycle port
+      for (int i = minPortID + kRemoteSysPortOffset; i <= maxPortID; i++) {
+        const SystemPortID remoteSysPortId(i);
+        const InterfaceID remoteIntfId(i);
+        const PortDescriptor portDesc(remoteSysPortId);
+        const std::optional<uint64_t> encapEndx = useEncapIndex
+            ? std::optional<uint64_t>(0x200001 + i)
+            : std::nullopt;
 
-      // Use subnet 100+(dsfNodeId/256):(dsfNodeId%256):(localIntfId)::1/64
-      // and 100+(dsfNodeId/256).(dsfNodeId%256).(localIntfId).1/24
-      auto firstOctet = 100 + remoteSwitchId / 256;
-      auto secondOctet = remoteSwitchId % 256;
-      auto thirdOctet = i - minPortID;
-      folly::IPAddressV6 neighborIp(folly::to<std::string>(
-          firstOctet, ":", secondOctet, ":", thirdOctet, "::2"));
-      auto remoteSysPort = makeRemoteSysPort(
-          remoteSysPortId,
-          SwitchID(remoteSwitchId),
-          (i - minPortID - kRemoteSysPortOffset) / kNumPortPerCore,
-          (i - minPortID) % kNumPortPerCore,
-          static_cast<int64_t>(cfg::PortSpeed::FOURHUNDREDG));
-      remoteSysPorts->addSystemPort(remoteSysPort);
+        // Use subnet 100+(dsfNodeId/256):(dsfNodeId%256):(localIntfId)::1/64
+        // and 100+(dsfNodeId/256).(dsfNodeId%256).(localIntfId).1/24
+        auto firstOctet = 100 + remoteSwitchId / 256;
+        auto secondOctet = remoteSwitchId % 256;
+        auto thirdOctet = i - minPortID;
+        folly::IPAddressV6 neighborIp(folly::to<std::string>(
+            firstOctet, ":", secondOctet, ":", thirdOctet, "::2"));
+        auto remoteSysPort = makeRemoteSysPort(
+            remoteSysPortId,
+            SwitchID(remoteSwitchId),
+            (i - minPortID - kRemoteSysPortOffset) / kNumPortPerCore,
+            (i - minPortID) % kNumPortPerCore,
+            static_cast<int64_t>(cfg::PortSpeed::FOURHUNDREDG));
+        remoteSysPorts->addSystemPort(remoteSysPort);
 
-      auto remoteRif = makeRemoteInterface(
-          remoteIntfId,
-          {
-              {folly::IPAddress(folly::to<std::string>(
-                   firstOctet, ":", secondOctet, ":", thirdOctet, "::1")),
-               64},
-              {folly::IPAddress(folly::to<std::string>(
-                   firstOctet, ".", secondOctet, ".", thirdOctet, ".1")),
-               24},
-          });
+        auto remoteRif = makeRemoteInterface(
+            remoteIntfId,
+            {
+                {folly::IPAddress(folly::to<std::string>(
+                     firstOctet, ":", secondOctet, ":", thirdOctet, "::1")),
+                 64},
+                {folly::IPAddress(folly::to<std::string>(
+                     firstOctet, ".", secondOctet, ".", thirdOctet, ".1")),
+                 24},
+            });
 
-      updateRemoteIntfWithNeighbor(
-          remoteRif, remoteIntfId, portDesc, neighborIp, encapEndx);
-      remoteRifs->addNode(remoteRif);
+        updateRemoteIntfWithNeighbor(
+            remoteRif, remoteIntfId, portDesc, neighborIp, encapEndx);
+        remoteRifs->addNode(remoteRif);
+      }
     }
     switchId2SystemPorts[SwitchID(remoteSwitchId)] = remoteSysPorts;
     switchId2Rifs[SwitchID(remoteSwitchId)] = remoteRifs;

@@ -46,6 +46,7 @@ class FakeBufferProfile {
       std::optional<sai_uint64_t> reservedBytes,
       std::optional<sai_buffer_profile_threshold_mode_t> threshMode,
       std::optional<sai_int8_t> dynamicThreshold,
+      std::optional<sai_uint64_t> staticThreshold,
       std::optional<sai_uint64_t> xoffTh,
       std::optional<sai_uint64_t> xonTh,
       std::optional<sai_uint64_t> xonOffsetTh)
@@ -53,6 +54,7 @@ class FakeBufferProfile {
         reservedBytes(reservedBytes),
         threshMode(threshMode),
         dynamicThreshold(dynamicThreshold),
+        staticThreshold(staticThreshold),
         xoffTh(xoffTh),
         xonTh(xonTh),
         xonOffsetTh(xonOffsetTh) {}
@@ -61,6 +63,7 @@ class FakeBufferProfile {
   std::optional<sai_uint64_t> reservedBytes;
   std::optional<sai_buffer_profile_threshold_mode_t> threshMode;
   std::optional<sai_int8_t> dynamicThreshold;
+  std::optional<sai_uint64_t> staticThreshold;
   std::optional<sai_uint64_t> xoffTh;
   std::optional<sai_uint64_t> xonTh;
   std::optional<sai_uint64_t> xonOffsetTh;
