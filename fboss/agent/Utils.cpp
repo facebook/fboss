@@ -139,7 +139,19 @@ getPlatformMappingForDsfNode(const facebook::fboss::PlatformType platformType) {
   return nullptr;
 }
 
+bool withinRange(const cfg::SystemPortRanges& ranges, int64_t id) {
+  bool inRange{false};
+  for (const auto& sysPortRange : *ranges.systemPortRanges()) {
+    if (id >= *sysPortRange.minimum() && id <= *sysPortRange.maximum()) {
+      inRange = true;
+      break;
+    }
+  }
+  return inRange;
+}
 } // namespace
+  //
+
 void utilCreateDir(folly::StringPiece path) {
   try {
     boost::filesystem::create_directories(path.str());
@@ -465,6 +477,14 @@ SystemPortID getInbandSystemPortID(
   return SystemPortID(
       *switchInfoItr->second.globalSystemPortOffset() +
       *switchInfoItr->second.inbandPortId());
+}
+
+bool withinRange(const cfg::SystemPortRanges& ranges, InterfaceID intfId) {
+  return withinRange(ranges, static_cast<int64_t>(intfId));
+}
+
+bool withinRange(const cfg::SystemPortRanges& ranges, SystemPortID sysPortId) {
+  return withinRange(ranges, static_cast<int64_t>(sysPortId));
 }
 
 cfg::Range64 getFirstSwitchSystemPortIdRange(
