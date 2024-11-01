@@ -376,6 +376,7 @@ struct PortInfoThrift {
   29: optional i32 coreId;
   30: optional i32 virtualDeviceId;
   31: switch_config.PortType portType;
+  32: switch_config.Scope scope;
 }
 
 // Port queueing configuration

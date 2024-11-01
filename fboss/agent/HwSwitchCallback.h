@@ -39,6 +39,7 @@ class HwSwitchCallback {
   virtual void linkStateChanged(
       PortID port,
       bool up,
+      cfg::PortType portType,
       std::optional<phy::LinkFaultStatus> iPhyFaultStatus = std::nullopt) = 0;
 
   /*

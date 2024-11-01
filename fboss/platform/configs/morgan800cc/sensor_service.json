@@ -433,7 +433,7 @@
         },
         {
           "name": "CPU_CORE_TEMP_0",
-          "sysfsPath": "/sys/bus/platform/devices/coretemp.0/hwmon/hwmon1/temp1_input",
+          "sysfsPath": "/run/devmap/sensors/CPU_CORE_TEMP/temp1_input",
           "type": 3,
           "thresholds": {
             "upperCriticalVal": 105,
@@ -443,7 +443,7 @@
         },
         {
           "name": "SSD",
-          "sysfsPath": "/sys/block/nvme0n1/device/hwmon0/temp1_input",
+          "sysfsPath": "/run/devmap/sensors/NVME/temp1_input",
           "type": 3,
           "thresholds": {
             "upperCriticalVal": 83,

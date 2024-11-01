@@ -9,6 +9,9 @@ namespace facebook::fboss::fsdb {
 
 class SubscriptionStore {
  public:
+  SubscriptionStore()
+      : initialSyncNeeded_(&pathStoreStats_), lookup_(&pathStoreStats_) {}
+
   virtual ~SubscriptionStore();
 
   void pruneCancelledSubscriptions();
@@ -68,6 +71,25 @@ class SubscriptionStore {
     return lookup_;
   }
 
+  SubscriptionPathStoreTreeStats* getPathStoreStats() {
+    return &pathStoreStats_;
+  }
+
+  size_t numPathStoresRecursive_Expensive() const {
+    return initialSyncNeeded_.numPathStoresRecursive_Expensive() +
+        lookup_.numPathStoresRecursive_Expensive();
+  }
+
+  auto numPathStores() const {
+    return pathStoreStats_.numPathStores;
+  }
+  auto numPathStoreAllocs() const {
+    return pathStoreStats_.numPathStoreAllocs;
+  }
+  auto numPathStoreFrees() const {
+    return pathStoreStats_.numPathStoreFrees;
+  }
+
  private:
   std::vector<std::string> markExtendedSubscriptionsThatNeedPruning();
 
@@ -82,6 +104,9 @@ class SubscriptionStore {
   void registerExtendedSubscription(
       std::string name,
       std::shared_ptr<ExtendedSubscription> subscription);
+
+  // stats for tree<SubscriptionPathStore>
+  SubscriptionPathStoreTreeStats pathStoreStats_;
 
   // owned subscriptions, keyed on name they were registered with
   std::unordered_map<std::string, std::unique_ptr<Subscription>> subscriptions_;

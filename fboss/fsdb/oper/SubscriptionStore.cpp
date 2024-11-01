@@ -12,10 +12,10 @@
 namespace facebook::fboss::fsdb {
 
 SubscriptionStore::~SubscriptionStore() {
-  initialSyncNeeded_.clear();
+  initialSyncNeeded_.clear(&pathStoreStats_);
   initialSyncNeededExtended_.clear();
 
-  lookup_.clear();
+  lookup_.clear(&pathStoreStats_);
   // fully resolved extended subs have a ref to the extended sub
   // make sure to destroy those before destroy the extended sub
   subscriptions_.clear();
@@ -131,7 +131,7 @@ void SubscriptionStore::registerSubscription(
     throw Utils::createFsdbException(
         FsdbErrorCode::ID_ALREADY_EXISTS, name + " already exixts");
   }
-  initialSyncNeeded_.add(rawPtr);
+  initialSyncNeeded_.add(rawPtr, &pathStoreStats_);
 }
 
 void SubscriptionStore::registerExtendedSubscription(

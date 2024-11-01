@@ -19,6 +19,8 @@
 
 namespace facebook::fboss::thrift_cow {
 
+struct HybridNodeType;
+
 /*
  * This visitor takes two ThriftCow objects, finds changed paths and
  * then runs the provided function against any paths that differ
@@ -268,6 +270,29 @@ void visitAddedOrRemovedNode(
 template <typename TC, typename Node, typename TraverseHelper, typename Func>
 void visitAddedOrRemovedNode(
     TraverseHelper& traverser,
+    const std::shared_ptr<Node>& oldNode,
+    const std::shared_ptr<Node>& newNode,
+    const DeltaVisitOptions& options,
+    Func&& f)
+    // only enable for HybridNode types
+  requires(std::is_same_v<typename Node::CowType, HybridNodeType>)
+{
+  if (!options.recurseIntoHybridNodes) {
+    invokeVisitorFnHelper(
+        traverser,
+        oldNode,
+        newNode,
+        DeltaElemTag::MINIMAL,
+        std::forward<Func>(f));
+  } else {
+    throw std::runtime_error(folly::to<std::string>(
+        "DeltaVisitor support for recurseIntoHybridNode not implemented"));
+  }
+}
+
+template <typename TC, typename Node, typename TraverseHelper, typename Func>
+void visitAddedOrRemovedNode(
+    TraverseHelper& traverser,
     const std::optional<Node>& oldNode,
     const std::optional<Node>& newNode,
     const DeltaVisitOptions& /*mode*/,
@@ -355,6 +380,54 @@ struct DeltaVisitor<apache::thrift::type_class::set<ValueTypeClass>> {
 
     return hasDifferences;
   }
+
+  template <typename Fields, typename TraverseHelper, typename Func>
+  static bool visit(
+      TraverseHelper& traverser,
+      const std::shared_ptr<Fields>& oldFields,
+      const std::shared_ptr<Fields>& newFields,
+      const DeltaVisitOptions& options,
+      Func&& f)
+      // only enable for HybridNode types
+    requires(std::is_same_v<typename Fields::CowType, HybridNodeType>)
+  {
+    if (options.recurseIntoHybridNodes) {
+      throw std::runtime_error(folly::to<std::string>(
+          "DeltaVisitor support for recurseIntoHybridNode for Set not implemented"));
+    }
+    bool hasDifferences{false};
+    // if both old and new are non-null, compare contents
+    if ((oldFields != newFields) &&
+        (static_cast<bool>(oldFields) && static_cast<bool>(newFields))) {
+      const auto& oldRef = oldFields->ref();
+      const auto& newRef = newFields->ref();
+      std::set_symmetric_difference(
+          oldRef.begin(),
+          oldRef.end(),
+          newRef.begin(),
+          newRef.end(),
+          boost::make_function_output_iterator([&](const auto& val) {
+            if (!val) {
+              // shouldn't happen...
+              return;
+            }
+            if (oldRef.count(val) && newRef.count(val)) {
+              return;
+            }
+
+            hasDifferences = true;
+          }));
+    }
+    if (hasDifferences) {
+      dv_detail::invokeVisitorFnHelper(
+          traverser,
+          oldFields,
+          newFields,
+          DeltaElemTag::MINIMAL,
+          std::forward<Func>(f));
+    }
+    return hasDifferences;
+  }
 };
 
 /**
@@ -433,6 +506,52 @@ struct DeltaVisitor<apache::thrift::type_class::list<ValueTypeClass>> {
 
     return hasDifferences;
   }
+
+  template <typename Fields, typename TraverseHelper, typename Func>
+  static bool visit(
+      TraverseHelper& traverser,
+      const std::shared_ptr<Fields>& oldFields,
+      const std::shared_ptr<Fields>& newFields,
+      const DeltaVisitOptions& options,
+      Func&& f)
+      // only enable for HybridNode types
+    requires(std::is_same_v<typename Fields::CowType, HybridNodeType>)
+  {
+    if (options.recurseIntoHybridNodes) {
+      throw std::runtime_error(folly::to<std::string>(
+          "DeltaVisitor support for recurseIntoHybridNode for List not implemented"));
+    }
+    bool hasDifferences{false};
+    // if both old and new are non-null, compare contents
+    if ((oldFields != newFields) &&
+        (static_cast<bool>(oldFields) && static_cast<bool>(newFields))) {
+      const auto& oldRef = oldFields->ref();
+      const auto& newRef = newFields->ref();
+
+      int minSize = std::min(oldRef.size(), newRef.size());
+
+      if (oldRef.size() != newRef.size()) { // entries added or removed
+        hasDifferences = true;
+      } else {
+        for (int i = 0; i < minSize; ++i) {
+          const auto& oldElem = oldRef.at(i);
+          const auto& newElem = newRef.at(i);
+          if (oldElem != newElem) {
+            hasDifferences = true;
+          }
+        }
+      }
+    }
+    if (hasDifferences) {
+      dv_detail::invokeVisitorFnHelper(
+          traverser,
+          oldFields,
+          newFields,
+          DeltaElemTag::MINIMAL,
+          std::forward<Func>(f));
+    }
+    return hasDifferences;
+  }
 };
 
 /**
@@ -498,6 +617,53 @@ struct DeltaVisitor<
       }
     }
 
+    return hasDifferences;
+  }
+
+  template <typename Fields, typename TraverseHelper, typename Func>
+  static bool visit(
+      TraverseHelper& traverser,
+      const std::shared_ptr<Fields>& oldFields,
+      const std::shared_ptr<Fields>& newFields,
+      const DeltaVisitOptions& options,
+      Func&& f)
+      // only enable for Fields types
+    requires(std::is_same_v<typename Fields::CowType, HybridNodeType>)
+  {
+    if (options.recurseIntoHybridNodes) {
+      throw std::runtime_error(folly::to<std::string>(
+          "DeltaVisitor support for recurseIntoHybridNode for Map not implemented"));
+    }
+    bool hasDifferences{false};
+    // if both old and new are non-null, compare contents
+    if ((oldFields != newFields) &&
+        (static_cast<bool>(oldFields) && static_cast<bool>(newFields))) {
+      const auto& oldRef = oldFields->ref();
+      const auto& newRef = newFields->ref();
+      // changed entries
+      for (const auto& [key, val] : oldRef) {
+        auto it = newRef.find(key);
+        if (it == newRef.end()) {
+          hasDifferences = true;
+        } else if (val != it->second) {
+          hasDifferences = true;
+        }
+      }
+
+      for (const auto& [key, val] : newRef) {
+        if (oldRef.find(key) == oldRef.end()) {
+          hasDifferences = true;
+        }
+      }
+    }
+    if (hasDifferences) {
+      dv_detail::invokeVisitorFnHelper(
+          traverser,
+          oldFields,
+          newFields,
+          DeltaElemTag::MINIMAL,
+          std::forward<Func>(f));
+    }
     return hasDifferences;
   }
 };
@@ -617,6 +783,41 @@ struct DeltaVisitor<apache::thrift::type_class::variant> {
 
     return hasDifferences;
   }
+
+  template <typename Fields, typename TraverseHelper, typename Func>
+  static bool visit(
+      TraverseHelper& traverser,
+      const std::shared_ptr<Fields>& oldFields,
+      const std::shared_ptr<Fields>& newFields,
+      const DeltaVisitOptions& options,
+      Func&& f)
+      // only enable for Fields types
+    requires(std::is_same_v<typename Fields::CowType, HybridNodeType>)
+  {
+    if (options.recurseIntoHybridNodes) {
+      throw std::runtime_error(folly::to<std::string>(
+          "DeltaVisitor support for recurseIntoHybridNode for Variant not implemented"));
+    }
+    bool hasDifferences{false};
+    // if both old and new are non-null, compare contents
+    if ((oldFields != newFields) &&
+        (static_cast<bool>(oldFields) && static_cast<bool>(newFields))) {
+      const auto& oldRef = oldFields->ref();
+      const auto& newRef = newFields->ref();
+      if (oldRef != newRef) {
+        hasDifferences = true;
+      }
+    }
+    if (hasDifferences) {
+      dv_detail::invokeVisitorFnHelper(
+          traverser,
+          oldFields,
+          newFields,
+          DeltaElemTag::MINIMAL,
+          std::forward<Func>(f));
+    }
+    return hasDifferences;
+  }
 };
 
 /**
@@ -698,6 +899,41 @@ struct DeltaVisitor<apache::thrift::type_class::structure> {
       }
     });
 
+    return hasDifferences;
+  }
+
+  template <typename Fields, typename TraverseHelper, typename Func>
+  static bool visit(
+      TraverseHelper& traverser,
+      const std::shared_ptr<Fields>& oldFields,
+      const std::shared_ptr<Fields>& newFields,
+      const DeltaVisitOptions& options,
+      Func&& f)
+      // only enable for Fields types
+    requires(std::is_same_v<typename Fields::CowType, HybridNodeType>)
+  {
+    if (options.recurseIntoHybridNodes) {
+      throw std::runtime_error(folly::to<std::string>(
+          "DeltaVisitor support for recurseIntoHybridNode for Struct not implemented"));
+    }
+    bool hasDifferences{false};
+    // if both old and new are non-null, compare contents
+    if ((oldFields != newFields) &&
+        (static_cast<bool>(oldFields) && static_cast<bool>(newFields))) {
+      const auto& oldRef = oldFields->ref();
+      const auto& newRef = newFields->ref();
+      if (oldRef != newRef) {
+        hasDifferences = true;
+      }
+    }
+    if (hasDifferences) {
+      dv_detail::invokeVisitorFnHelper(
+          traverser,
+          oldFields,
+          newFields,
+          DeltaElemTag::MINIMAL,
+          std::forward<Func>(f));
+    }
     return hasDifferences;
   }
 };

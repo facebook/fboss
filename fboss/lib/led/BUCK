@@ -26,7 +26,6 @@ cpp_library(
     ],
     exported_deps = [
         ":led_mapping-cpp2-types",
-        "//fboss/agent:fboss-error",
         "//fboss/led_service:led_utils",
         "//fboss/led_service/if:led_structs-cpp2-types",
         "//folly:format",

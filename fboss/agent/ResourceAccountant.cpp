@@ -176,7 +176,7 @@ bool ResourceAccountant::shouldCheckRouteUpdate() const {
   return false;
 }
 
-bool ResourceAccountant::stateChangedImpl(const StateDelta& delta) {
+bool ResourceAccountant::ecmpStateChangedImpl(const StateDelta& delta) {
   if (!checkRouteUpdate_) {
     return true;
   }
@@ -211,7 +211,7 @@ bool ResourceAccountant::stateChangedImpl(const StateDelta& delta) {
 }
 
 bool ResourceAccountant::isValidRouteUpdate(const StateDelta& delta) {
-  bool validRouteUpdate = stateChangedImpl(delta);
+  bool validRouteUpdate = ecmpStateChangedImpl(delta);
 
   if (FLAGS_dlbResourceCheckEnable && FLAGS_flowletSwitchingEnable &&
       checkDlbResource_ && !validRouteUpdate) {
@@ -257,10 +257,6 @@ bool ResourceAccountant::isValidRouteUpdate(const StateDelta& delta) {
   return validRouteUpdate;
 }
 
-void ResourceAccountant::stateChanged(const StateDelta& delta) {
-  stateChangedImpl(delta);
-}
-
 void ResourceAccountant::enableDlbResourceCheck(bool enable) {
   checkDlbResource_ = enable;
 }
@@ -275,4 +271,52 @@ ResourceAccountant::checkAndUpdateEcmpResource<folly::IPAddressV4>(
     const std::shared_ptr<Route<folly::IPAddressV4>>& route,
     bool add);
 
+// calculate new update for l2 entries from the delta
+// check l2Entries_ in the switchState
+// return true if the l2Entries_ are within the limit
+bool ResourceAccountant::l2StateChangedImpl(const StateDelta& delta) {
+  auto processDelta = [&](const auto& deltaMac) {
+    DeltaFunctions::forEachChanged(
+        deltaMac,
+        [&](const auto& /*oldMac*/, const auto& /*newMac*/) {
+          return LoopAction::CONTINUE;
+        },
+        [&](const auto& /*newMac*/) {
+          l2Entries_++;
+          return LoopAction::CONTINUE;
+        },
+        [&](const auto& /*deletedMac*/) {
+          l2Entries_--;
+          return LoopAction::CONTINUE;
+        });
+  };
+
+  for (auto& deltaVlan : delta.getVlansDelta()) {
+    processDelta(deltaVlan.getMacDelta());
+  }
+  if (l2Entries_ > FLAGS_max_l2_entries) {
+    XLOG(ERR) << "Total l2 entries in new switchState: " << l2Entries_
+              << " exceeds the limit: " << FLAGS_max_l2_entries;
+    return false;
+  }
+  return true;
+}
+
+void ResourceAccountant::stateChanged(const StateDelta& delta) {
+  ecmpStateChangedImpl(delta);
+  if (FLAGS_enable_mac_update_protection) {
+    l2StateChangedImpl(delta);
+  }
+}
+
+bool ResourceAccountant::isValidUpdate(const StateDelta& delta) {
+  bool validRouteUpdate = isValidRouteUpdate(delta);
+  bool validL2Update = true;
+
+  if (FLAGS_enable_mac_update_protection) {
+    validL2Update = l2StateChangedImpl(delta);
+  }
+
+  return validRouteUpdate && validL2Update;
+}
 } // namespace facebook::fboss

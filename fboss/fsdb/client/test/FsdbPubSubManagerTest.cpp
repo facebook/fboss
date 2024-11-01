@@ -8,6 +8,7 @@
 #include "fboss/fsdb/client/FsdbPubSubManager.h"
 #include "fboss/fsdb/common/Flags.h"
 #include "fboss/lib/CommonUtils.h"
+#include "fboss/lib/thrift_service_client/ConnectionOptions.h"
 
 #include <folly/coro/AsyncGenerator.h>
 #include <folly/coro/AsyncPipe.h>
@@ -36,7 +37,7 @@ class PubSubManagerTest : public ::testing::Test {
         path,
         subscriptionStateChangeCb,
         operDeltaCb,
-        FsdbStreamClient::ServerOptions(host, FLAGS_fsdbPort));
+        utils::ConnectionOptions(host, FLAGS_fsdbPort));
   }
   void addStatDeltaSubscription(
       const std::vector<std::string>& path,
@@ -45,7 +46,7 @@ class PubSubManagerTest : public ::testing::Test {
         path,
         subscriptionStateChangeCb,
         operDeltaCb,
-        FsdbStreamClient::ServerOptions(host, FLAGS_fsdbPort));
+        utils::ConnectionOptions(host, FLAGS_fsdbPort));
   }
   void addStatePathSubscription(
       const std::vector<std::string>& path,
@@ -54,7 +55,7 @@ class PubSubManagerTest : public ::testing::Test {
         path,
         subscriptionStateChangeCb,
         operStateCb,
-        FsdbStreamClient::ServerOptions(host, FLAGS_fsdbPort));
+        utils::ConnectionOptions(host, FLAGS_fsdbPort));
   }
   void addStatPathSubscription(
       const std::vector<std::string>& path,
@@ -63,7 +64,7 @@ class PubSubManagerTest : public ::testing::Test {
         path,
         subscriptionStateChangeCb,
         operStateCb,
-        FsdbStreamClient::ServerOptions(host, FLAGS_fsdbPort));
+        utils::ConnectionOptions(host, FLAGS_fsdbPort));
   }
   FsdbPubSubManager pubSubManager_{"testMgr"};
 };

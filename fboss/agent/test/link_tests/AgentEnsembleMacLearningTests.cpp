@@ -28,6 +28,12 @@ class AgentEnsembleMacLearningTest : public AgentEnsembleLinkTest {
     return AgentEnsembleLinkTest::initialConfig(ensemble);
   }
 
+  std::vector<link_test_production_features::LinkTestProductionFeature>
+  getProductionFeatures() const override {
+    return {
+        link_test_production_features::LinkTestProductionFeature::L2_LINK_TEST};
+  }
+
  public:
   void updateL2Aging(int ageout) {
     getSw()->updateStateBlocking("update L2 aging", [ageout](auto state) {

@@ -30,6 +30,12 @@ class OpticsFwUpgradeTest : public HwTest {
     // starts later
     gflags::SetCommandLineOptionWithMode(
         "max_concurrent_evb_fw_upgrade", "8", gflags::SET_FLAGS_DEFAULT);
+    gflags::SetCommandLineOptionWithMode(
+        "firmware_upgrade_on_coldboot", "1", gflags::SET_FLAGS_DEFAULT);
+    gflags::SetCommandLineOptionWithMode(
+        "firmware_upgrade_on_link_down", "1", gflags::SET_FLAGS_DEFAULT);
+    gflags::SetCommandLineOptionWithMode(
+        "firmware_upgrade_on_tcvr_insert", "1", gflags::SET_FLAGS_DEFAULT);
     HwTest::SetUp();
     // Revert the max_concurrent_evb_fw_upgrade back to 1 which is the default
     gflags::SetCommandLineOptionWithMode(
@@ -76,6 +82,9 @@ class OpticsFwUpgradeTest : public HwTest {
         tcvrsToTest.push_back(tcvrID);
       }
     }
+
+    CHECK(!tcvrsToTest.empty()) << "No upgradeable transceivers found";
+
     return tcvrsToTest;
   }
 
@@ -241,9 +250,13 @@ TEST_F(OpticsFwUpgradeTest, upgradeOnLinkDown) {
     auto portsForFwUpgrade = getHwQsfpEnsemble()
                                  ->getWedgeManager()
                                  ->getPortsRequiringOpticsFwUpgrade();
+    std::vector<std::string> fwUpgradePorts;
+    for (auto& [portName, _] : portsForFwUpgrade) {
+      fwUpgradePorts.push_back(portName);
+    }
     EXPECT_TRUE(portsForFwUpgrade.empty())
         << "Some modules still require firmware upgrade: " +
-            folly::join(",", portsForFwUpgrade);
+            folly::join(",", fwUpgradePorts);
 
     // During cold boot setup, update the firmware versions in the config
     auto qsfpCfg =
@@ -267,12 +280,9 @@ TEST_F(OpticsFwUpgradeTest, upgradeOnLinkDown) {
     portsForFwUpgrade = getHwQsfpEnsemble()
                             ->getWedgeManager()
                             ->getPortsRequiringOpticsFwUpgrade();
-    // TODO: T193884846 to make sure all machines have upgradeable transceivers
-    // and remove this check.
-    if (!tcvrsToTest.empty()) {
-      EXPECT_FALSE(portsForFwUpgrade.empty())
-          << "No modules requiring firmware upgrade";
-    }
+
+    EXPECT_FALSE(portsForFwUpgrade.empty())
+        << "No modules requiring firmware upgrade";
   };
 
   // Verify function is called for both cold boot and warm boot iterations of
@@ -345,12 +355,6 @@ TEST_F(OpticsFwUpgradeTestNoIPhySetup, noUpgradeOnWarmboot) {
    */
 
   auto tcvrsToTest = transceiversToTest();
-  // TODO: T193884846 to make sure all machines have upgradeable transceivers
-  // and remove this check.
-  if (tcvrsToTest.empty()) {
-    XLOG(INFO) << "Chassis has no upgradeable transceivers";
-    return;
-  }
 
   // Lambda to refresh state machine and return true if all transceivers are in
   // TRANSCEIVER_PROGRAMMED state

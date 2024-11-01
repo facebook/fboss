@@ -12,6 +12,7 @@
 #include <folly/logging/xlog.h>
 #include <memory>
 #include "fboss/agent/AgentConfig.h"
+#include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/Utils.h"
 #include "fboss/agent/hw/bcm/BcmAPI.h"

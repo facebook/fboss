@@ -7,9 +7,25 @@ namespace facebook::fboss::fsdb {
 
 DEFINE_bool(lazyPathStoreCreation, true, "Lazy path store creation");
 
-void SubscriptionPathStore::add(Subscription* subscription) {
+SubscriptionPathStore::SubscriptionPathStore(
+    SubscriptionPathStoreTreeStats* stats) {
+  CHECK(stats);
+  stats->numPathStoreAllocs++;
+  stats->numPathStores++;
+}
+
+void SubscriptionPathStore::freePathStore(
+    SubscriptionPathStoreTreeStats* stats) {
+  CHECK(stats);
+  stats->numPathStoreFrees++;
+  stats->numPathStores--;
+}
+
+void SubscriptionPathStore::add(
+    Subscription* subscription,
+    SubscriptionPathStoreTreeStats* stats) {
   auto path = subscription->path();
-  add(path.begin(), path.end(), subscription);
+  add(stats, path.begin(), path.end(), subscription);
 }
 
 void SubscriptionPathStore::remove(Subscription* subscription) {
@@ -52,7 +68,9 @@ void SubscriptionPathStore::incrementallyResolve(
 
   const auto& key = path.at(idx).raw_ref().value();
   if (auto it = children_.find(key); it == children_.end()) {
-    children_.emplace(key, std::make_shared<SubscriptionPathStore>());
+    children_.emplace(
+        key,
+        std::make_shared<SubscriptionPathStore>(store.getPathStoreStats()));
   }
   pathSoFar.emplace_back(key);
   children_.at(key)->incrementallyResolve(
@@ -79,7 +97,9 @@ void SubscriptionPathStore::processAddedPath(
   bool childStorePresent{true};
   if (auto it = children_.find(key); it == children_.end()) {
     if (!FLAGS_lazyPathStoreCreation) {
-      children_.emplace(key, std::make_shared<SubscriptionPathStore>());
+      children_.emplace(
+          key,
+          std::make_shared<SubscriptionPathStore>(store.getPathStoreStats()));
     } else {
       childStorePresent = false;
     }
@@ -118,7 +138,9 @@ void SubscriptionPathStore::processAddedPath(
       // partial subscription to next wilcard or the end.
       std::vector<std::string> pathSoFar(begin, curr);
       if (!childStorePresent) {
-        children_.emplace(key, std::make_shared<SubscriptionPathStore>());
+        children_.emplace(
+            key,
+            std::make_shared<SubscriptionPathStore>(store.getPathStoreStats()));
         childStorePresent = true;
       }
       children_.at(key)->incrementallyResolve(
@@ -187,18 +209,25 @@ SubscriptionPathStore::child(const std::string& key) const {
 }
 
 SubscriptionPathStore* SubscriptionPathStore::getOrCreateChild(
-    const std::string& key) {
+    const std::string& key,
+    SubscriptionPathStoreTreeStats* stats) {
+  if (auto it2 = children_.find(key); it2 != children_.end()) {
+    return it2->second.get();
+  }
   auto [it, added] =
-      children_.emplace(key, std::make_shared<SubscriptionPathStore>());
+      children_.emplace(key, std::make_shared<SubscriptionPathStore>(stats));
   return it->second.get();
 }
 
-void SubscriptionPathStore::removeChild(const std::string& key) {
+void SubscriptionPathStore::removeChild(
+    const std::string& key,
+    SubscriptionPathStoreTreeStats* stats) {
   if (auto it = children_.find(key); it == children_.end()) {
     return;
   }
   auto child = children_[key];
   CHECK_EQ(children_[key]->numSubsRecursive(), 0);
+  child->freePathStore(stats);
   children_.erase(key);
   return;
 }
@@ -216,6 +245,7 @@ void SubscriptionPathStore::gatherChildren(
 }
 
 void SubscriptionPathStore::add(
+    SubscriptionPathStoreTreeStats* stats,
     PathIter begin,
     PathIter end,
     Subscription* subscription) {
@@ -227,10 +257,10 @@ void SubscriptionPathStore::add(
 
   auto key = *begin++;
   if (auto it = children_.find(key); it == children_.end()) {
-    children_.emplace(key, std::make_shared<SubscriptionPathStore>());
+    children_.emplace(key, std::make_shared<SubscriptionPathStore>(stats));
   }
 
-  children_[key]->add(begin, end, subscription);
+  children_[key]->add(stats, begin, end, subscription);
   incrementCounts(subscription, true);
 }
 
@@ -262,7 +292,10 @@ bool SubscriptionPathStore::remove(
   return false;
 }
 
-void SubscriptionPathStore::clear() {
+void SubscriptionPathStore::clear(SubscriptionPathStoreTreeStats* stats) {
+  for (auto& [_name, child] : children_) {
+    child->freePathStore(stats);
+  }
   children_.clear();
   partiallyResolvedSubs_.clear();
   subscriptions_.clear();

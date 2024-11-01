@@ -6,6 +6,7 @@
 
 #include <fatal/type/enum.h>
 #include <folly/Conv.h>
+#include <thrift/lib/cpp/util/EnumUtils.h>
 #include <thrift/lib/cpp2/reflection/reflection.h>
 
 namespace facebook::fboss::thrift_cow {
@@ -19,7 +20,7 @@ std::optional<KeyT> tryParseKey(const std::string& token) {
                     is_same_v<KeyTC, apache::thrift::type_class::enumeration>) {
     // special handling for enum keyed maps
     KeyT enumKey;
-    if (fatal::enum_traits<KeyT>::try_parse(enumKey, token)) {
+    if (apache::thrift::util::tryParseEnum(token, &enumKey)) {
       return enumKey;
     }
   }

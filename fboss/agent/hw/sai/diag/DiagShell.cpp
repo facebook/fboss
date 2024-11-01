@@ -164,6 +164,7 @@ std::unique_ptr<Repl> DiagShell::makeRepl() const {
     case PlatformType::PLATFORM_DARWIN48V:
     case PlatformType::PLATFORM_MERU400BIU:
     case PlatformType::PLATFORM_MERU800BIA:
+    case PlatformType::PLATFORM_MERU800BIAB:
     case PlatformType::PLATFORM_MERU800BFA:
     case PlatformType::PLATFORM_MERU800BFA_P1:
     case PlatformType::PLATFORM_MERU400BIA:
@@ -189,6 +190,8 @@ std::unique_ptr<Repl> DiagShell::makeRepl() const {
     case PlatformType::PLATFORM_FAKE_WEDGE40:
     case PlatformType::PLATFORM_FAKE_SAI:
       throw FbossError("Shell not supported for fake platforms");
+    case PlatformType::PLATFORM_YANGRA:
+      throw FbossError("Shell still not supported for Yangra platforms");
   }
   CHECK(0) << " Should never get here";
   return nullptr;
@@ -397,6 +400,7 @@ std::string DiagCmdServer::getDelimiterDiagCmd(const std::string& UUID) const {
     case PlatformType::PLATFORM_DARWIN48V:
     case PlatformType::PLATFORM_MERU400BIU:
     case PlatformType::PLATFORM_MERU800BIA:
+    case PlatformType::PLATFORM_MERU800BIAB:
     case PlatformType::PLATFORM_MERU800BFA:
     case PlatformType::PLATFORM_MERU800BFA_P1:
     case PlatformType::PLATFORM_MERU400BIA:
@@ -422,6 +426,8 @@ std::string DiagCmdServer::getDelimiterDiagCmd(const std::string& UUID) const {
     case PlatformType::PLATFORM_FAKE_WEDGE40:
     case PlatformType::PLATFORM_FAKE_SAI:
       throw FbossError("Shell not supported for fake platforms");
+    case PlatformType::PLATFORM_YANGRA:
+      throw FbossError("Shell still not supported for Yangra platforms");
   }
   CHECK(0) << " Should never get here";
   return "";
@@ -445,6 +451,7 @@ std::string& DiagCmdServer::cleanUpOutput(
     case PlatformType::PLATFORM_DARWIN48V:
     case PlatformType::PLATFORM_MERU400BIU:
     case PlatformType::PLATFORM_MERU800BIA:
+    case PlatformType::PLATFORM_MERU800BIAB:
     case PlatformType::PLATFORM_MERU800BFA:
     case PlatformType::PLATFORM_MERU800BFA_P1:
     case PlatformType::PLATFORM_MERU400BIA:
@@ -486,6 +493,8 @@ std::string& DiagCmdServer::cleanUpOutput(
     case PlatformType::PLATFORM_FAKE_WEDGE40:
     case PlatformType::PLATFORM_FAKE_SAI:
       throw FbossError("Shell not supported for fake platforms");
+    case PlatformType::PLATFORM_YANGRA:
+      throw FbossError("Shell still not supported for Yangra platforms");
   }
   CHECK(0) << " Should never get here";
   return output;

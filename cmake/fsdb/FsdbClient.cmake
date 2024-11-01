@@ -8,16 +8,6 @@ include_directories(
     ${GTEST_INCLUDE_DIRS}
 )
 
-add_library(fsdb_client
-  fboss/fsdb/client/Client.cpp
-)
-
-target_link_libraries(fsdb_client
-  fsdb_cpp2
-  Folly::folly
-  thrift_service_client
-)
-
 add_library(fsdb_stream_client
   fboss/fsdb/client/FsdbStreamClient.cpp
 )
@@ -29,7 +19,7 @@ set(fsdb_stream_client_libs
   common_thrift_utils
   fsdb_oper_cpp2
   fsdb_cpp2
-  fsdb_client
+  thrift_service_client
 )
 
 target_link_libraries(fsdb_stream_client ${fsdb_stream_client_libs})

@@ -44,10 +44,10 @@ constexpr int moduleDatapathInitDurationUsec = 5000000;
 CmisFirmwareUpgrader::CmisFirmwareUpgrader(
     TransceiverImpl* bus,
     unsigned int modId,
-    std::unique_ptr<FbossFirmware> fbossFirmware)
-    : bus_(bus), moduleId_(modId), fbossFirmware_(std::move(fbossFirmware)) {
+    FbossFirmware* fbossFirmware)
+    : bus_(bus), moduleId_(modId), fbossFirmware_(fbossFirmware) {
   // Check the FbossFirmware object first
-  if (fbossFirmware_.get() == nullptr) {
+  if (fbossFirmware_ == nullptr) {
     XLOG(ERR) << "FbossFirmware object is null, returning...";
     return;
   }

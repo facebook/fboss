@@ -48,7 +48,7 @@ class CmisFirmwareUpgrader {
   CmisFirmwareUpgrader(
       TransceiverImpl* bus,
       unsigned int modId,
-      std::unique_ptr<FbossFirmware> fbossFirmware);
+      FbossFirmware* fbossFirmware);
 
   // Function to trigger the firmware download to the QSFP module of CMIS type
   bool cmisModuleFirmwareUpgrade();
@@ -60,7 +60,7 @@ class CmisFirmwareUpgrader {
   // module Id for upgrade
   unsigned int moduleId_;
   // FbossFirmware object
-  std::unique_ptr<FbossFirmware> fbossFirmware_;
+  FbossFirmware* fbossFirmware_;
   // Firmware image pointer
   folly::io::Cursor imageCursor_{nullptr};
   // Image IO buffer. This contains the entire firmware image file content

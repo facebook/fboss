@@ -39,8 +39,21 @@ class SubscriptionManagerBase {
     return store_.rlock()->subscriptions().size();
   }
 
+  // Do not use, except for UTs that cross check numPathStores()
+  size_t numPathStoresRecursive_Expensive() const {
+    return store_.rlock()->numPathStoresRecursive_Expensive();
+  }
+
   size_t numPathStores() const {
-    return store_.rlock()->lookup().numPathStores();
+    return store_.rlock()->numPathStores();
+  }
+
+  uint64_t numPathStoreAllocs() const {
+    return store_.rlock()->numPathStoreAllocs();
+  }
+
+  uint64_t numPathStoreFrees() const {
+    return store_.rlock()->numPathStoreFrees();
   }
 
   std::vector<OperSubscriberInfo> getSubscriptions() const;
@@ -116,7 +129,7 @@ class SubscriptionManager : public SubscriptionManagerBase {
       } catch (const std::exception&) {
         XLOG(ERR) << "Exception serving subscriptions...";
       }
-      impl->pruneDeletedPaths(&store->lookup(), oldRoot, newRoot);
+      impl->pruneDeletedPaths(*store, oldRoot, newRoot);
     }
     // Serve new subscriptions after serving existing subscriptions.
     // New subscriptions will get a full object dump on first sync.

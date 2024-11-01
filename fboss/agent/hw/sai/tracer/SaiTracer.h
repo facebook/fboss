@@ -27,6 +27,15 @@
 
 extern "C" {
 #include <sai.h>
+
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_0) && !defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+#include <saiextensions.h>
+#ifndef IS_OSS_BRCM_SAI
+#include <experimental/saiexperimentaltameventaginggroup.h>
+#else
+#include <saiexperimentaltameventaginggroup.h>
+#endif
+#endif
 }
 
 DECLARE_bool(enable_replayer);
@@ -237,6 +246,9 @@ class SaiTracer {
   sai_switch_api_t* switchApi_;
   sai_system_port_api_t* systemPortApi_;
   sai_tam_api_t* tamApi_;
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_0) && !defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+  sai_tam_event_aging_group_api_t* tamEventAgingGroupApi_;
+#endif
   sai_tunnel_api_t* tunnelApi_;
   sai_udf_api_t* udfApi_;
   sai_virtual_router_api_t* virtualRouterApi_;
@@ -408,8 +420,14 @@ class SaiTracer {
       {SAI_OBJECT_TYPE_SCHEDULER_GROUP, "schedulerGroup_"},
       {SAI_OBJECT_TYPE_SWITCH, "switch_"},
       {SAI_OBJECT_TYPE_SYSTEM_PORT, "systemPort_"},
+      {SAI_OBJECT_TYPE_TAM_COLLECTOR, "tamCollector_"},
+      {SAI_OBJECT_TYPE_TAM_TRANSPORT, "tamTransport_"},
       {SAI_OBJECT_TYPE_TAM_REPORT, "tamReport_"},
       {SAI_OBJECT_TYPE_TAM_EVENT_ACTION, "tamEventAction_"},
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_0) && !defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+      {static_cast<sai_object_type_t>(SAI_OBJECT_TYPE_TAM_EVENT_AGING_GROUP),
+          "tamEventAgingGroup_"},
+#endif
       {SAI_OBJECT_TYPE_TAM_EVENT, "tamEvent_"},
       {SAI_OBJECT_TYPE_TAM, "tam_"},
       {SAI_OBJECT_TYPE_TUNNEL, "tunnel_"},
@@ -471,8 +489,14 @@ class SaiTracer {
       {SAI_OBJECT_TYPE_SCHEDULER_GROUP, "scheduler_group_api->"},
       {SAI_OBJECT_TYPE_SWITCH, "switch_api->"},
       {SAI_OBJECT_TYPE_SYSTEM_PORT, "system_port_api->"},
+      {SAI_OBJECT_TYPE_TAM_COLLECTOR, "tam_api->"},
+      {SAI_OBJECT_TYPE_TAM_TRANSPORT, "tam_api->"},
       {SAI_OBJECT_TYPE_TAM_REPORT, "tam_api->"},
       {SAI_OBJECT_TYPE_TAM_EVENT_ACTION, "tam_api->"},
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_0) && !defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+      {static_cast<sai_object_type_t>(SAI_OBJECT_TYPE_TAM_EVENT_AGING_GROUP),
+          "tam_event_aging_group_api->"},
+#endif
       {SAI_OBJECT_TYPE_TAM_EVENT, "tam_api->"},
       {SAI_OBJECT_TYPE_TAM, "tam_api->"},
       {SAI_OBJECT_TYPE_TUNNEL, "tunnel_api->"},
@@ -800,6 +824,19 @@ class SaiTracer {
             #attr_name,                                                     \
             TYPE_INDEX(facebook::fboss::Sai##obj_type##Traits::Attributes:: \
                            attr_name::ExtractSelectionType));               \
+  }
+
+#define SAI_EXT_ATTR_MAP_2(obj_type, obj_sub_type, attr_name)                 \
+  if (facebook::fboss::Sai##obj_sub_type##Traits::Attributes::attr_name::     \
+          AttributeId()()                                                     \
+              .has_value()) {                                                 \
+    _##obj_type##Map[facebook::fboss::Sai##obj_sub_type##Traits::Attributes:: \
+                         attr_name::AttributeId()()                           \
+                             .value()] =                                      \
+        std::make_pair(                                                       \
+            #attr_name,                                                       \
+            TYPE_INDEX(facebook::fboss::Sai##obj_sub_type##Traits::           \
+                           Attributes::attr_name::ExtractSelectionType));     \
   }
 
 #define SET_SAI_REGULAR_ATTRIBUTES(obj_type)                                 \

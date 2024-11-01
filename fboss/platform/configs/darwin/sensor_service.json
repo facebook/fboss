@@ -1,7 +1,7 @@
 {
   "pmUnitSensorsList": [
     {
-      "slotPath": "",
+      "slotPath": "/",
       "pmUnitName": "CPU_CARD",
       "sensors": [
         {
@@ -311,8 +311,8 @@
       ]
     },
     {
-      "slotPath": "",
-      "pmUnitName": "FAN1",
+      "slotPath": "/FAN_SLOT@0",
+      "pmUnitName": "FAN",
       "sensors": [
         {
           "name": "FAN1_RPM",
@@ -322,13 +322,7 @@
             "upperCriticalVal": 25500,
             "lowerCriticalVal": 2600
           }
-        }
-      ]
-    },
-    {
-      "slotPath": "",
-      "pmUnitName": "FAN2",
-      "sensors": [
+        },
         {
           "name": "FAN2_RPM",
           "sysfsPath": "/run/devmap/sensors/FAN_CPLD/fan2_input",
@@ -337,13 +331,7 @@
             "upperCriticalVal": 25500,
             "lowerCriticalVal": 2600
           }
-        }
-      ]
-    },
-    {
-      "slotPath": "",
-      "pmUnitName": "FAN3",
-      "sensors": [
+        },
         {
           "name": "FAN3_RPM",
           "sysfsPath": "/run/devmap/sensors/FAN_CPLD/fan3_input",
@@ -352,13 +340,7 @@
             "upperCriticalVal": 25500,
             "lowerCriticalVal": 2600
           }
-        }
-      ]
-    },
-    {
-      "slotPath": "",
-      "pmUnitName": "FAN4",
-      "sensors": [
+        },
         {
           "name": "FAN4_RPM",
           "sysfsPath": "/run/devmap/sensors/FAN_CPLD/fan4_input",
@@ -367,13 +349,7 @@
             "upperCriticalVal": 25500,
             "lowerCriticalVal": 2600
           }
-        }
-      ]
-    },
-    {
-      "slotPath": "",
-      "pmUnitName": "FAN5",
-      "sensors": [
+        },
         {
           "name": "FAN5_RPM",
           "sysfsPath": "/run/devmap/sensors/FAN_CPLD/fan5_input",
@@ -382,11 +358,20 @@
             "upperCriticalVal": 25500,
             "lowerCriticalVal": 2600
           }
+        },
+        {
+          "name": "FS_FAN_RPM",
+          "sysfsPath": "/run/devmap/sensors/FS_FAN_SLG4F4527/fan1_input",
+          "type": 4,
+          "thresholds": {
+            "upperCriticalVal": 29500,
+            "lowerCriticalVal": 2600
+          }
         }
       ]
     },
     {
-      "slotPath": "",
+      "slotPath": "/SCM_SLOT@0",
       "pmUnitName": "SWITCH_CARD",
       "sensors": [
         {
@@ -446,7 +431,7 @@
       ]
     },
     {
-      "slotPath": "",
+      "slotPath": "/PSU_SLOT@0",
       "pmUnitName": "PEM",
       "sensors": [
         {
@@ -533,21 +518,6 @@
             "upperCriticalVal": 85
           },
           "compute": "@/1000.0"
-        }
-      ]
-    },
-    {
-      "slotPath": "",
-      "pmUnitName": "FanSpiner",
-      "sensors": [
-        {
-          "name": "FS_FAN_RPM",
-          "sysfsPath": "/run/devmap/sensors/FS_FAN_SLG4F4527/fan1_input",
-          "type": 4,
-          "thresholds": {
-            "upperCriticalVal": 29500,
-            "lowerCriticalVal": 2600
-          }
         }
       ]
     }

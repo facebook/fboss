@@ -1,3 +1,4 @@
+#include <folly/logging/xlog.h>
 #include <gtest/gtest.h>
 #include <thrift/lib/cpp2/protocol/Serializer.h>
 
@@ -28,11 +29,28 @@ LedConfig getValidLedConfig() {
   return ledConfig;
 }
 
+PresenceDetection getValidSysfsPresenceDetection() {
+  auto presenceDetection = PresenceDetection();
+  presenceDetection.sysfsFileHandle() = SysfsFileHandle();
+  presenceDetection.sysfsFileHandle()->presenceFilePath() =
+      "/sys/class/present/0";
+  return presenceDetection;
+}
+
+PresenceDetection getValidGpioPresenceDetection() {
+  auto presenceDetection = PresenceDetection();
+  presenceDetection.gpioLineHandle() = GpioLineHandle();
+  presenceDetection.gpioLineHandle()->charDevPath() = "/dev/gpiochip0";
+  presenceDetection.gpioLineHandle()->lineIndex() = 0;
+  presenceDetection.gpioLineHandle()->desiredValue() = 1;
+  return presenceDetection;
+}
+
 FruConfig getValidFruConfig() {
   auto fruConfig = FruConfig();
   fruConfig.fruName() = "fru1";
   fruConfig.fruType() = "type1";
-  fruConfig.presenceSysfsPath() = "/sys/class/present";
+  fruConfig.presenceDetection() = getValidSysfsPresenceDetection();
   return fruConfig;
 }
 
@@ -70,7 +88,13 @@ TEST(ConfigValidatorTest, InvalidFruConfig) {
   EXPECT_FALSE(ConfigValidator().isValid(config));
 
   config = getValidLedManagerConfig();
-  config.fruConfigs()->at(0).presenceSysfsPath() = "";
+  config.fruConfigs()->at(0).presenceDetection() =
+      getValidGpioPresenceDetection();
+  config.fruConfigs()
+      ->at(0)
+      .presenceDetection()
+      ->gpioLineHandle()
+      ->lineIndex() = -1;
   EXPECT_FALSE(ConfigValidator().isValid(config));
 
   config = getValidLedManagerConfig();
@@ -85,6 +109,24 @@ TEST(ConfigValidatorTest, InvalidFruTypeLedConfig) {
   EXPECT_FALSE(ConfigValidator().isValid(config));
 }
 
+TEST(ConfigValidatorTest, InvalidPresenceDetection) {
+  auto config = getValidSysfsPresenceDetection();
+  config.sysfsFileHandle()->presenceFilePath() = "";
+  EXPECT_FALSE(ConfigValidator().isValidPresenceConfig(config));
+
+  config = getValidGpioPresenceDetection();
+  config.gpioLineHandle()->charDevPath() = "";
+  EXPECT_FALSE(ConfigValidator().isValidPresenceConfig(config));
+
+  config = getValidGpioPresenceDetection();
+  config.gpioLineHandle()->desiredValue() = -1;
+  EXPECT_FALSE(ConfigValidator().isValidPresenceConfig(config));
+
+  config = getValidGpioPresenceDetection();
+  config.gpioLineHandle()->lineIndex() = -1;
+  EXPECT_FALSE(ConfigValidator().isValidPresenceConfig(config));
+}
+
 TEST(ConfigValidatorTest, RealConfigsValid) {
   for (const auto& platform :
        {kDarwin,
@@ -94,6 +136,7 @@ TEST(ConfigValidatorTest, RealConfigsValid) {
         kMontblanc,
         kMorgan800cc,
         kTahan800bc}) {
+    XLOG(INFO) << "Validating config for " << platform;
     LedManagerConfig config;
     auto configJson =
         facebook::fboss::platform::ConfigLib().getLedManagerConfig(platform);

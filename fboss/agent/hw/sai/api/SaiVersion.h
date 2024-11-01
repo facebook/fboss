@@ -59,6 +59,7 @@
     defined(SAI_VERSION_11_0_EA_DNX_ODP) ||     \
     defined(SAI_VERSION_11_0_EA_DNX_SIM_ODP) || \
     defined(SAI_VERSION_11_3_0_0_DNX_ODP) ||    \
+    defined(SAI_VERSION_11_7_0_0_DNX_ODP) ||    \
     defined(SAI_VERSION_12_0_EA_DNX_ODP)
 #define BRCM_SAI_SDK_DNX
 #endif
@@ -79,13 +80,15 @@
     defined(SAI_VERSION_11_0_EA_SIM_ODP) ||                              \
     defined(SAI_VERSION_11_0_EA_DNX_ODP) ||                              \
     defined(SAI_VERSION_11_0_EA_DNX_SIM_ODP) ||                          \
-    defined(SAI_VERSION_11_3_0_0_DNX_ODP) || defined(SAI_VERSION_11_3_0_0_ODP)
+    defined(SAI_VERSION_11_3_0_0_DNX_ODP) ||                             \
+    defined(SAI_VERSION_11_3_0_0_ODP) || defined(SAI_VERSION_11_7_0_0_DNX_ODP)
 #define BRCM_SAI_SDK_GTE_11_0
 #endif
 
-#if defined BRCM_SAI_SDK_DNX_GTE_12_0 ||    \
-    defined(SAI_VERSION_11_0_EA_DNX_ODP) || \
-    defined(SAI_VERSION_11_3_0_0_DNX_ODP)
+#if defined BRCM_SAI_SDK_DNX_GTE_12_0 ||     \
+    defined(SAI_VERSION_11_0_EA_DNX_ODP) ||  \
+    defined(SAI_VERSION_11_3_0_0_DNX_ODP) || \
+    defined(SAI_VERSION_11_7_0_0_DNX_ODP)
 #define BRCM_SAI_SDK_DNX_GTE_11_0
 #endif
 
@@ -110,19 +113,19 @@
  *   - TAJO_SDK_GTE_24_4_90: Flags for SDK >= 24.4.90
  *   - TAJO_SDK: Flags for all TAJO SDK
  */
-#if defined(TAJO_SDK_VERSION_24_4_90) || defined(TAJO_SDK_VERSION_24_6_1) || \
-    defined(TAJO_SDK_VERSION_24_7_0) || defined(TAJO_SDK_VERSION_24_8_3001)
+#if defined(TAJO_SDK_VERSION_24_4_90) || defined(TAJO_SDK_VERSION_24_7_0) || \
+    defined(TAJO_SDK_VERSION_24_8_3001) || defined(TAJO_SDK_VERSION_24_10_0)
 #define TAJO_P4_WB_SDK
 #endif
 
-#if defined(TAJO_SDK_VERSION_1_42_8) || defined(TAJO_SDK_VERSION_24_4_90) || \
-    defined(TAJO_SDK_VERSION_24_6_1) || defined(TAJO_SDK_VERSION_24_7_0) ||  \
-    defined(TAJO_SDK_VERSION_24_8_3001)
+#if defined(TAJO_SDK_VERSION_1_42_8) || defined(TAJO_SDK_VERSION_24_4_90) ||   \
+    defined(TAJO_SDK_VERSION_24_7_0) || defined(TAJO_SDK_VERSION_24_8_3001) || \
+    defined(TAJO_SDK_VERSION_24_10_0)
 #define TAJO_SDK_EBRO
 #endif
 
-#if defined(TAJO_SDK_VERSION_24_4_90) || defined(TAJO_SDK_VERSION_24_6_1) || \
-    defined(TAJO_SDK_VERSION_24_7_0) || defined(TAJO_SDK_VERSION_24_8_3001)
+#if defined(TAJO_SDK_VERSION_24_4_90) || defined(TAJO_SDK_VERSION_24_7_0) || \
+    defined(TAJO_SDK_VERSION_24_8_3001) || defined(TAJO_SDK_VERSION_24_10_0)
 #define TAJO_SDK_GTE_24_4_90
 #endif
 

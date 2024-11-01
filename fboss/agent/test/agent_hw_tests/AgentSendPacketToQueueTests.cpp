@@ -7,18 +7,21 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
+#include <folly/IPAddress.h>
 #include "fboss/agent/TxPacket.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
+#include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/packet/PktFactory.h"
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
+#include "fboss/agent/test/utils/AsicUtils.h"
+#include "fboss/agent/test/utils/TrafficPolicyTestUtils.h"
 #include "fboss/lib/CommonUtils.h"
-
-#include <folly/IPAddress.h>
 
 namespace {
 constexpr uint8_t kDefaultQueue = 0;
 constexpr uint8_t kTestingQueue = 7;
+constexpr uint32_t kDscp = 0x24;
 } // namespace
 
 namespace facebook::fboss {
@@ -106,6 +109,84 @@ TEST_F(AgentSendPacketToQueueTest, SendPacketOutOfPortToDefaultUCQueue) {
 
 TEST_F(AgentSendPacketToQueueTest, SendPacketSwitchedToDefaultUCQueue) {
   checkSendPacket(std::nullopt, false);
+}
+
+TEST_F(AgentSendPacketToQueueTest, SendPacketOutOfPortToMCQueue) {
+  auto ensemble = getAgentEnsemble();
+  auto l3Asics = ensemble->getSw()->getHwAsicTable()->getL3Asics();
+  auto asic = utility::checkSameAndGetAsic(l3Asics);
+  auto masterLogicalPortIds = ensemble->masterLogicalPortIds();
+  auto port = masterLogicalPortIds[0];
+
+  auto setup = [=, this]() {
+    // put all ports in the same vlan
+    auto newCfg = utility::oneL3IntfNPortConfig(
+        ensemble->getSw()->getPlatformMapping(),
+        asic,
+        masterLogicalPortIds,
+        ensemble->getSw()->getPlatformSupportsAddRemovePort(),
+        asic->desiredLoopbackModes());
+    applyNewConfig(newCfg);
+  };
+
+  auto verifyFlooding = [=, this]() {
+    auto beforeOutPkts = *getLatestPortStats(port).outMulticastPkts_();
+    WITH_RETRIES({
+      auto afterOutPkts = *getLatestPortStats(port).outMulticastPkts_();
+      XLOG(DBG2) << "afterOutPkts " << afterOutPkts << ", beforeOutPkts "
+                 << beforeOutPkts;
+      EXPECT_EVENTUALLY_GT(afterOutPkts - beforeOutPkts, 10000);
+    });
+  };
+
+  auto verify = [=, this]() {
+    if (getSw()->getBootType() == BootType::WARM_BOOT) {
+      return;
+    }
+    auto vlanId = utility::firstVlanID(getProgrammedState());
+    auto intfMac = utility::getFirstInterfaceMac(getProgrammedState());
+    auto randomMac = folly::MacAddress("01:02:03:04:05:06");
+    // send packets with random dst mac to flood the vlan
+    for (int i = 0; i < 100; i++) {
+      auto pkt = utility::makeUDPTxPacket(
+          getSw(),
+          vlanId,
+          intfMac,
+          randomMac,
+          folly::IPAddressV6("2620:0:1cfe:face:b00c::3"),
+          folly::IPAddressV6("2620:0:1cfe:face:b00c::4"),
+          8000,
+          8001,
+          kDscp << 2);
+      ensemble->sendPacketAsync(
+          std::move(pkt),
+          PortDescriptor(masterLogicalPortIds[0]),
+          std::nullopt);
+    }
+
+    XLOG(DBG2) << "Verify multicast traffic is flooding";
+    verifyFlooding();
+
+    XLOG(DBG2)
+        << "Add ACL to send packet to queue 7. This should only affect unicast traffic but not multicast traffic here";
+    // In S422033, multicast traffic was also send to multicast queue 7, which
+    // does not exist on TH4 and corrupted the asic. This caused parity error
+    // later. All packets are also dropped and no traffic flooding any more.
+    auto newCfg = ensemble->getCurrentConfig();
+    utility::addDscpAclToCfg(asic, &newCfg, "acl1", kDscp);
+    utility::addQueueMatcher(&newCfg, "acl1", kTestingQueue, ensemble->isSai());
+    applyNewConfig(newCfg);
+
+    XLOG(DBG2) << "Wait 10 seconds and verify multicast traffic still flooding";
+    sleep(10);
+    verifyFlooding();
+  };
+
+  auto verifyPostWb = [&]() {
+    XLOG(DBG2) << "Verify multicast traffic still flooding after warmboot";
+    verifyFlooding();
+  };
+  verifyAcrossWarmBoots(setup, verify, []() {}, verifyPostWb);
 }
 
 } // namespace facebook::fboss

@@ -32,10 +32,8 @@
 #include <thread>
 
 DECLARE_bool(mmu_lossless_mode);
-DECLARE_bool(qgroup_guarantee_enable);
 DECLARE_bool(enable_exact_match);
 DECLARE_bool(flowletSwitchingEnable);
-DECLARE_bool(skip_buffer_reservation);
 
 namespace folly {
 class FunctionScheduler;
@@ -181,6 +179,7 @@ class HwSwitchEnsemble : public TestEnsembleIf {
   void linkStateChanged(
       PortID port,
       bool up,
+      cfg::PortType portType,
       std::optional<phy::LinkFaultStatus> iPhyFaultStatus =
           std::nullopt) override;
   void linkActiveStateChanged(

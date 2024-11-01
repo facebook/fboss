@@ -71,18 +71,6 @@ std::string ConfigLib::getSensorServiceConfig(
 #endif
 }
 
-std::string ConfigLib::getFbdevdConfig(
-    const std::optional<std::string>& platformName) const {
-  if (auto configJson = getConfigFromFile()) {
-    return *configJson;
-  }
-#ifndef IS_OSS
-  return configs::fbdevd.at(getPlatformName(platformName));
-#else
-  throw std::runtime_error("config_file must be specified in OSS");
-#endif
-}
-
 std::string ConfigLib::getFanServiceConfig(
     const std::optional<std::string>& platformName) const {
   if (auto configJson = getConfigFromFile()) {

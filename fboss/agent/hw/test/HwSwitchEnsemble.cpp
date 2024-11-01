@@ -52,12 +52,7 @@ DEFINE_int32(
     "Port for thrift server to use (use with --setup_thrift");
 
 DEFINE_bool(mmu_lossless_mode, false, "Enable mmu lossless mode");
-DEFINE_bool(
-    qgroup_guarantee_enable,
-    false,
-    "Enable setting of unicast and multicast queue guaranteed buffer sizes");
 DEFINE_bool(enable_exact_match, false, "enable init of exact match table");
-DEFINE_bool(skip_buffer_reservation, false, "Enable skip reservation");
 
 using namespace std::chrono_literals;
 
@@ -84,7 +79,9 @@ class HwEnsembleMultiSwitchThriftHandler
                          << switchId << " for port " << *linkEvent.port()
                          << " up :" << *linkEvent.up();
               ensemble_->linkStateChanged(
-                  PortID(*linkEvent.port()), *linkEvent.up());
+                  PortID(*linkEvent.port()),
+                  *linkEvent.up(),
+                  *linkEvent.portType());
             }
           }
           co_return true;
@@ -418,6 +415,7 @@ void HwSwitchEnsemble::applyInitialConfig(const cfg::SwitchConfig& initCfg) {
 void HwSwitchEnsemble::linkStateChanged(
     PortID port,
     bool up,
+    cfg::PortType portType,
     std::optional<phy::LinkFaultStatus> /* iPhyFaultStatus */) {
   if (getHwSwitch()->getRunState() < SwitchRunState::INITIALIZED) {
     return;

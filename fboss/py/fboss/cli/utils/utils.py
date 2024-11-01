@@ -203,6 +203,7 @@ def get_vlan_port_map(
         if not port_summary:
             continue
 
+        # pyre-fixme[61]: `root_port` is undefined, or not always defined.
         vlan_port_map[vlan][root_port].append(port_summary)
 
     return vlan_port_map
@@ -318,6 +319,7 @@ def label_forwarding_action_to_str(label_forwarding_action: MplsAction) -> str:
         labels = ": " + str(label_forwarding_action.swapLabel)
     elif label_forwarding_action.action == MplsActionCode.PUSH:
         stack_str = "{{{}}}".format(
+            # pyre-fixme[16]: `Optional` has no attribute `__iter__`.
             ",".join([str(element) for element in label_forwarding_action.pushLabels])
         )
         labels = f": {stack_str}"
@@ -327,11 +329,16 @@ def label_forwarding_action_to_str(label_forwarding_action: MplsAction) -> str:
 
 def nexthop_to_str(
     nexthop: NextHopThrift,
+    # pyre-fixme[9]: vlan_aggregate_port_map has type `Dict[str, str]`; used as `None`.
     vlan_aggregate_port_map: t.Dict[str, str] = None,
+    # pyre-fixme[9]: vlan_port_map has type `DefaultDict[str, DefaultDict[str,
+    #  List[str]]]`; used as `None`.
     vlan_port_map: t.DefaultDict[str, t.DefaultDict[str, t.List[str]]] = None,
 ) -> str:
     weight_str = ""
     via_str = ""
+    # pyre-fixme[6]: For 1st argument expected `MplsAction` but got
+    #  `Optional[MplsAction]`.
     label_str = label_forwarding_action_to_str(nexthop.mplsAction)
 
     if nexthop.weight:
@@ -345,9 +352,11 @@ def nexthop_to_str(
             # For agg ports it's better to display the agg port name,
             # rather than the phy
             if vlan_id in vlan_aggregate_port_map.keys():
+                # pyre-fixme[6]: For 1st argument expected `str` but got `int`.
                 via_str = vlan_aggregate_port_map[vlan_id]
             else:
                 port_names = []
+                # pyre-fixme[6]: For 1st argument expected `str` but got `int`.
                 for ports in vlan_port_map[vlan_id].values():
                     for port in ports:
                         port_names.append(port)

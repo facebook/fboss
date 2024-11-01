@@ -477,11 +477,15 @@ void checkAclEntryAndStatCount(
     }
 
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 2)
-    auto aclCounterNameGot = SaiApiTable::getInstance()->aclApi().getAttribute(
-        AclCounterSaiId(aclCounterIdGot),
-        SaiAclCounterTraits::Attributes::Label());
-    XLOG(DBG2) << "checkAclEntryAndStatCount:: aclCounterNameGot: "
-               << aclCounterNameGot.data();
+    if (hwSwitch->getPlatform()->getAsic()->isSupported(
+            HwAsic::Feature::ACL_COUNTER_LABEL)) {
+      auto aclCounterNameGot =
+          SaiApiTable::getInstance()->aclApi().getAttribute(
+              AclCounterSaiId(aclCounterIdGot),
+              SaiAclCounterTraits::Attributes::Label());
+      XLOG(DBG2) << "checkAclEntryAndStatCount:: aclCounterNameGot: "
+                 << aclCounterNameGot.data();
+    }
 #endif
 
     XLOG(DBG2) << " enablePacketCount: " << enablePacketCount
@@ -525,11 +529,15 @@ void checkAclStat(
 
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 2)
     // Counter name must match what was previously configured
-    auto aclCounterNameGot = SaiApiTable::getInstance()->aclApi().getAttribute(
-        AclCounterSaiId(aclCounterIdGot),
-        SaiAclCounterTraits::Attributes::Label());
-    std::string aclCounterNameGotStr(aclCounterNameGot.data());
-    EXPECT_EQ(statName, aclCounterNameGotStr);
+    if (hw->getPlatform()->getAsic()->isSupported(
+            HwAsic::Feature::ACL_COUNTER_LABEL)) {
+      auto aclCounterNameGot =
+          SaiApiTable::getInstance()->aclApi().getAttribute(
+              AclCounterSaiId(aclCounterIdGot),
+              SaiAclCounterTraits::Attributes::Label());
+      std::string aclCounterNameGotStr(aclCounterNameGot.data());
+      EXPECT_EQ(statName, aclCounterNameGotStr);
+    }
 
     // Verify that only the configured 'types' (byte/packet) of counters are
     // configured.
@@ -611,6 +619,10 @@ void checkAclStatDeleted(
                 SaiAclEntryTraits::Attributes::ActionCounter())
             .getData();
     // Counter name must match what was previously configured
+    if (!hwSwitch->getPlatform()->getAsic()->isSupported(
+            HwAsic::Feature::ACL_COUNTER_LABEL)) {
+      continue;
+    }
     auto aclCounterNameGot = SaiApiTable::getInstance()->aclApi().getAttribute(
         AclCounterSaiId(aclCounterIdGot),
         SaiAclCounterTraits::Attributes::Label());

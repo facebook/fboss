@@ -12,6 +12,7 @@
 
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
+#include "fboss/agent/hw/switch_asics/ChenabAsic.h"
 #include "fboss/agent/hw/switch_asics/EbroAsic.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/hw/switch_asics/Jericho2Asic.h"
@@ -71,8 +72,7 @@ std::vector<std::string> getLoopbackIps(SwitchID switchId);
 cfg::DsfNode dsfNodeConfig(
     const HwAsic& myAsic,
     int64_t otherSwitchId = 4,
-    std::optional<int> systemPortMin = std::nullopt,
-    std::optional<int> systemPortMax = std::nullopt,
+    cfg::SystemPortRanges = cfg::SystemPortRanges(),
     const std::optional<PlatformType> platformType = std::nullopt);
 
 std::vector<cfg::Port>::iterator findCfgPort(
@@ -276,5 +276,15 @@ void configurePortProfile(
     PortID controllingPortID);
 void setupMultipleEgressPoolAndQueueConfigs(
     cfg::SwitchConfig& config,
-    const std::vector<int>& losslessQueueIds);
+    const std::vector<int>& losslessQueueIds,
+    const uint64_t mmuSizeBytes);
+
+bool isSaiConfig(const cfg::SwitchConfig& config);
+
+void modifyPlatformConfig(
+    cfg::PlatformConfig& config,
+    const std::function<void(std::string&)>& modifyYamlFunc,
+    const std::function<void(std::map<std::string, std::string>&)>&
+        modifyMapFunc);
+
 } // namespace facebook::fboss::utility
