@@ -671,8 +671,8 @@
           "sysfsPath": "/run/devmap/sensors/SMB_ISL68226_R3R1_ANLG1/in5_input",
           "type": 1,
           "thresholds": {
-            "upperCriticalVal": 1.44,
-            "lowerCriticalVal": 0.96
+            "upperCriticalVal": 2.16,
+            "lowerCriticalVal": 1.44
           },
           "compute": "@/1000.0"
         },

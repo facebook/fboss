@@ -1,5 +1,7 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 
+#include <folly/MacAddress.h>
+
 #include "fboss/agent/hw/sai/api/TamApi.h"
 #include "fboss/agent/hw/sai/fake/FakeSai.h"
 #include "fboss/agent/hw/sai/store/SaiObject.h"
@@ -36,14 +38,17 @@ class TamStoreTest : public SaiStoreTest {
     return result;
   }
 
-  facebook::fboss::SaiTamTransportTraits::CreateAttributes
-  tamTransportTraits() {
-    SaiTamTransportTraits::CreateAttributes result;
+  facebook::fboss::SaiTamTransportTraits::AdapterHostKey tamTransportTraits() {
+    SaiTamTransportTraits::AdapterHostKey result;
     std::get<SaiTamTransportTraits::Attributes::Type>(result) =
         SAI_TAM_TRANSPORT_TYPE_UDP;
     std::get<SaiTamTransportTraits::Attributes::SrcPort>(result) = 10001;
     std::get<SaiTamTransportTraits::Attributes::DstPort>(result) = 10002;
     std::get<SaiTamTransportTraits::Attributes::Mtu>(result) = 1500;
+    std::get<std::optional<SaiTamTransportTraits::Attributes::SrcMacAddress>>(
+        result) = folly::MacAddress("00:00:00:00:00:01");
+    std::get<std::optional<SaiTamTransportTraits::Attributes::DstMacAddress>>(
+        result) = folly::MacAddress("00:00:00:00:00:02");
     return result;
   }
 
@@ -63,13 +68,30 @@ class TamStoreTest : public SaiStoreTest {
     std::vector<sai_object_id_t> collectors{SAI_NULL_OBJECT_ID};
     std::vector<sai_int32_t> eventTypes{1, 2, 3, 4};
 
+    sai_int32_t deviceId = 0;
+    sai_int32_t eventId = 1;
+    std::vector<sai_object_id_t> extensionsCollectorList{10};
+    std::vector<sai_int32_t> packetDropTypeMmu = {3, 4};
+    sai_object_id_t agingGroup = 20;
+
     SaiTamEventTraits::CreateAttributes result;
     std::get<SaiTamEventTraits::Attributes::Type>(result) =
         SAI_TAM_EVENT_TYPE_PACKET_DROP;
     std::get<SaiTamEventTraits::Attributes::ActionList>(result) = actions;
     std::get<SaiTamEventTraits::Attributes::CollectorList>(result) = collectors;
-    std::get<SaiTamEventTraits::Attributes::SwitchEventType>(result) =
-        eventTypes;
+    std::get<std::optional<SaiTamEventTraits::Attributes::SwitchEventType>>(
+        result) = eventTypes;
+    std::get<std::optional<SaiTamEventTraits::Attributes::DeviceId>>(result) =
+        deviceId;
+    std::get<std::optional<SaiTamEventTraits::Attributes::SwitchEventId>>(
+        result) = eventId;
+    std::get<
+        std::optional<SaiTamEventTraits::Attributes::ExtensionsCollectorList>>(
+        result) = extensionsCollectorList;
+    std::get<std::optional<SaiTamEventTraits::Attributes::PacketDropTypeMmu>>(
+        result) = packetDropTypeMmu;
+    std::get<std::optional<SaiTamEventTraits::Attributes::AgingGroup>>(result) =
+        agingGroup;
 
     return result;
   }
@@ -182,6 +204,18 @@ TEST_F(TamStoreTest, tamCtors) {
       GET_ATTR(TamTransport, Mtu, transportObj.attributes()),
       std::get<SaiTamTransportTraits::Attributes::Mtu>(tamTransportAhk)
           .value());
+  EXPECT_EQ(
+      GET_OPT_ATTR(TamTransport, SrcMacAddress, transportObj.attributes()),
+      std::get<std::optional<SaiTamTransportTraits::Attributes::SrcMacAddress>>(
+          tamTransportAhk)
+          .value()
+          .value());
+  EXPECT_EQ(
+      GET_OPT_ATTR(TamTransport, DstMacAddress, transportObj.attributes()),
+      std::get<std::optional<SaiTamTransportTraits::Attributes::DstMacAddress>>(
+          tamTransportAhk)
+          .value()
+          .value());
 
   auto collectorObjV4 = createObj<SaiTamCollectorTraits>(collectorV4);
   auto tamCollectorAhkV4 = tamCollectorTraits(transport, true /* ipV4 */);
@@ -259,8 +293,10 @@ TEST_F(TamStoreTest, tamCtors) {
       std::get<SaiTamEventTraits::Attributes::CollectorList>(tamEventAhk)
           .value());
   EXPECT_EQ(
-      GET_ATTR(TamEvent, SwitchEventType, eventObj.attributes()),
-      std::get<SaiTamEventTraits::Attributes::SwitchEventType>(tamEventAhk)
+      GET_OPT_ATTR(TamEvent, SwitchEventType, eventObj.attributes()),
+      std::get<std::optional<SaiTamEventTraits::Attributes::SwitchEventType>>(
+          tamEventAhk)
+          .value()
           .value());
 
   auto tamObj = createObj<SaiTamTraits>(tam);
@@ -294,6 +330,18 @@ TEST_F(TamStoreTest, setObject) {
   EXPECT_EQ(
       GET_ATTR(TamTransport, Mtu, transport->attributes()),
       std::get<SaiTamTransportTraits::Attributes::Mtu>(transportAhk).value());
+  EXPECT_EQ(
+      GET_OPT_ATTR(TamTransport, SrcMacAddress, transport->attributes()),
+      std::get<std::optional<SaiTamTransportTraits::Attributes::SrcMacAddress>>(
+          transportAhk)
+          .value()
+          .value());
+  EXPECT_EQ(
+      GET_OPT_ATTR(TamTransport, DstMacAddress, transport->attributes()),
+      std::get<std::optional<SaiTamTransportTraits::Attributes::DstMacAddress>>(
+          transportAhk)
+          .value()
+          .value());
 
   auto collectorAhkV4 =
       tamCollectorTraits(transport->adapterKey(), true /* ipV4 */);
@@ -379,8 +427,10 @@ TEST_F(TamStoreTest, setObject) {
       GET_ATTR(TamEvent, CollectorList, event->attributes()),
       std::get<SaiTamEventTraits::Attributes::CollectorList>(eventAhk).value());
   EXPECT_EQ(
-      GET_ATTR(TamEvent, SwitchEventType, event->attributes()),
-      std::get<SaiTamEventTraits::Attributes::SwitchEventType>(eventAhk)
+      GET_OPT_ATTR(TamEvent, SwitchEventType, event->attributes()),
+      std::get<std::optional<SaiTamEventTraits::Attributes::SwitchEventType>>(
+          eventAhk)
+          .value()
           .value());
 
   auto tamAhk = tamTraits(event->adapterKey());
@@ -424,11 +474,11 @@ TEST_F(TamStoreTest, updateObject) {
   auto tam = s.get<SaiTamTraits>().setObject(tamAhk, tamAhk);
 
   std::vector<sai_int32_t> newEvents = {4, 5, 6};
-  std::get<SaiTamEventTraits::Attributes::SwitchEventType>(eventAhk) =
-      newEvents;
+  std::get<std::optional<SaiTamEventTraits::Attributes::SwitchEventType>>(
+      eventAhk) = newEvents;
   auto updatedEvent = s.get<SaiTamEventTraits>().setObject(eventAhk, eventAhk);
   EXPECT_EQ(
-      GET_ATTR(TamEvent, SwitchEventType, updatedEvent->attributes()),
+      GET_OPT_ATTR(TamEvent, SwitchEventType, updatedEvent->attributes()),
       newEvents);
 
   std::get<SaiTamTransportTraits::Attributes::DstPort>(transportAhk) = 10003;

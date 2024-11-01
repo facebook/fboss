@@ -101,7 +101,9 @@ struct SaiUdfGroupTraits {
   using AdapterKey = UdfGroupSaiId;
   using CreateAttributes =
       std::tuple<std::optional<Attributes::Type>, Attributes::Length>;
-  using AdapterHostKey = CreateAttributes;
+  // there can more than 1 UDF group with same type and length
+  // Use name from switchState as adapterHostKey
+  using AdapterHostKey = std::string;
 };
 
 SAI_ATTRIBUTE_NAME(UdfGroup, Type);

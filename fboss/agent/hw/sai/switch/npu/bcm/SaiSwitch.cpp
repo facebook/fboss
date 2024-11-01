@@ -222,6 +222,8 @@ std::string errorType(sai_switch_error_type_t type) {
       return "SAI_SWITCH_ERROR_TYPE_RQP_PACKET_REASSEMBLY_RCM_ALL_CONTEXTS_TAKEN_DISCARD_ERR";
     case SAI_SWITCH_ERROR_TYPE_RTP_TABLE_CHANGE:
       return "SAI_SWITCH_ERROR_TYPE_RTP_TABLE_CHANGE";
+    case SAI_SWITCH_ERROR_TYPE_FABRIC_AUTO_ISOLATION:
+      return "SAI_SWITCH_ERROR_TYPE_FABRIC_AUTO_ISOLATION";
 #endif
     default:
       break;
@@ -439,6 +441,14 @@ void SaiSwitch::switchEventCallback(
         getSwitchStats()->switchReachabilityChangeCount();
       }
     } break;
+    case SAI_SWITCH_EVENT_TYPE_FABRIC_AUTO_ISOLATE: {
+      // TODO(skhare) Process the callback
+      XLOG(ERR) << "Firmware Isolate callback received"
+                << " error type: " << errorType(eventInfo->error_type)
+                << " is_isolated: " << static_cast<int>(eventInfo->index)
+                << " nof_active_links: " << static_cast<int>(eventInfo->index2);
+      break;
+    }
 #endif
   }
 }

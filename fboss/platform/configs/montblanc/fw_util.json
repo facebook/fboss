@@ -8,7 +8,7 @@
       "postUpgradeCmd": "echo -e '\\x16' | dd of=/dev/port bs=1 seek=$((0xb2)) count=1"
     },
     "iob_fpga": {
-      "getVersionCmd": "iob_fpga_ver=$((`cat /run/devmap/fpgas/MCB_IOB_INFO_ROM/fpga_ver`));echo 0.$iob_fpga_ver",
+      "getVersionCmd": "cat /run/devmap/fpgas/MCB_IOB_INFO_ROM/fw_ver",
       "priority": 2,
       "upgradeCmd": "iob_fpga_filename=$(head -n 1 /home/iob_fpga_filename.txt);flashrom -p linux_spi:dev=/run/devmap/flashes/MCB_SPI_MASTER_1_DEVICE_1;flashrom -p linux_spi:dev=/run/devmap/flashes/MCB_SPI_MASTER_1_DEVICE_1 -w $iob_fpga_filename -c N25Q128..3E",
       "verifyFwCmd": "iob_fpga_filename=$(head -n 1 /home/iob_fpga_filename.txt);flashrom -p linux_spi:dev=/run/devmap/flashes/MCB_SPI_MASTER_1_DEVICE_1;flashrom -p linux_spi:dev=/run/devmap/flashes/MCB_SPI_MASTER_1_DEVICE_1 -v $iob_fpga_filename -c N25Q128..3E",
@@ -16,7 +16,7 @@
     },
     "dom1_fpga": {
       "preUpgradeCmd": "gpioset $(gpiodetect | grep -E 'fboss_iob_pci.gpiochip.*' | awk '{print $1}') 9=1",
-      "getVersionCmd": "dom1_fpga_ver=$((`cat /run/devmap/fpgas/SMB_DOM1_INFO_ROM/fpga_ver`));echo 0.$dom1_fpga_ver",
+      "getVersionCmd": "cat /run/devmap/fpgas/SMB_DOM1_INFO_ROM/fw_ver",
       "priority": 3,
       "upgradeCmd": "dom1_fpga_filename=$(head -n 1 /home/dom1_fpga_filename.txt);flashrom -p linux_spi:dev=/run/devmap/flashes/MCB_SPI_MASTER_2_DEVICE_1 -w $dom1_fpga_filename -c N25Q128..3E",
       "verifyFwCmd": "dom1_fpga_filename=$(head -n 1 /home/dom1_fpga_filename.txt);flashrom -p linux_spi:dev=/run/devmap/flashes/MCB_SPI_MASTER_2_DEVICE_1 -v $dom1_fpga_filename -c N25Q128..3E",
@@ -25,7 +25,7 @@
     },
     "dom2_fpga": {
       "preUpgradeCmd": "gpioset $(gpiodetect | grep -E 'fboss_iob_pci.gpiochip.*' | awk '{print $1}') 10=1",
-      "getVersionCmd": "dom2_fpga_ver=$((`cat /run/devmap/fpgas/SMB_DOM2_INFO_ROM/fpga_ver`));echo 0.$dom2_fpga_ver",
+      "getVersionCmd": "cat /run/devmap/fpgas/SMB_DOM2_INFO_ROM/fw_ver",
       "priority": 4,
       "upgradeCmd": "dom2_fpga_filename=$(head -n 1 /home/dom2_fpga_filename.txt);flashrom -p linux_spi:dev=/run/devmap/flashes/MCB_SPI_MASTER_3_DEVICE_1 -w $dom2_fpga_filename -c N25Q128..3E",
       "verifyFwCmd": "dom2_fpga_filename=$(head -n 1 /home/dom2_fpga_filename.txt);flashrom -p linux_spi:dev=/run/devmap/flashes/MCB_SPI_MASTER_3_DEVICE_1 -v $dom2_fpga_filename -c N25Q128..3E",
@@ -34,7 +34,7 @@
     },
     "mcb_cpld": {
       "preUpgradeCmd": "gpioset $(gpiodetect | grep -E 'fboss_iob_pci.gpiochip.*' | awk '{print $1}') 3=1",
-      "getVersionCmd": "mcb_cpld_ver=$((`cat /run/devmap/cplds/MCB_CPLD/cpld_ver`));mcb_cpld_subver=$((`cat /run/devmap/cplds/MCB_CPLD/cpld_minor_ver`));echo $mcb_cpld_ver'.'$mcb_cpld_subver",
+      "getVersionCmd": "cat /run/devmap/cplds/MCB_CPLD/fw_ver",
       "priority": 5,
       "upgradeCmd": "mcb_cpld_filename=$(head -n 1 /home/mcb_cpld_filename.txt);flashrom -p linux_spi:dev=/run/devmap/flashes/MCB_SPI_MASTER_4_DEVICE_1 -w $mcb_cpld_filename -c W25X20",
       "verifyFwCmd": "mcb_cpld_filename=$(head -n 1 /home/mcb_cpld_filename.txt);flashrom -p linux_spi:dev=/run/devmap/flashes/MCB_SPI_MASTER_4_DEVICE_1 -v $mcb_cpld_filename -c W25X20",
@@ -43,7 +43,7 @@
     },
     "smb_cpld": {
       "preUpgradeCmd": "gpioset $(gpiodetect | grep -E 'fboss_iob_pci.gpiochip.*' | awk '{print $1}') 7=1",
-      "getVersionCmd": "smb_cpld_ver=$((`cat /run/devmap/cplds/SMB_CPLD/cpld_ver`));smb_cpld_subver=$((`cat /run/devmap/cplds/SMB_CPLD/cpld_minor_ver`));echo $smb_cpld_ver'.'$smb_cpld_subver",
+      "getVersionCmd": "cat /run/devmap/cplds/SMB_CPLD/fw_ver",
       "priority": 6,
       "upgradeCmd": "smb_cpld_filename=$(head -n 1 /home/smb_cpld_filename.txt);flashrom -p linux_spi:dev=/run/devmap/flashes/MCB_SPI_MASTER_5_DEVICE_1 -w $smb_cpld_filename -c W25X20",
       "verifyFwCmd": "smb_cpld_filename=$(head -n 1 /home/smb_cpld_filename.txt);flashrom -p linux_spi:dev=/run/devmap/flashes/MCB_SPI_MASTER_5_DEVICE_1 -v $smb_cpld_filename -c W25X20",
@@ -52,7 +52,7 @@
     },
     "scm_cpld": {
       "preUpgradeCmd": "gpioset $(gpiodetect | grep -E 'fboss_iob_pci.gpiochip.*' | awk '{print $1}') 1=1",
-      "getVersionCmd": "scm_cpld_ver=$((`cat /run/devmap/cplds/SCM_CPLD/cpld_ver`));scm_cpld_subver=$((`cat /run/devmap/cplds/SCM_CPLD/cpld_minor_ver`));echo $scm_cpld_ver'.'$scm_cpld_subver",
+      "getVersionCmd": "cat /run/devmap/cplds/SCM_CPLD/fw_ver",
       "priority": 7,
       "upgradeCmd": "scm_cpld_filename=$(head -n 1 /home/scm_cpld_filename.txt);flashrom -p linux_spi:dev=/run/devmap/flashes/MCB_SPI_MASTER_7_DEVICE_1 -w $scm_cpld_filename -c W25X20",
       "verifyFwCmd": "scm_cpld_filename=$(head -n 1 /home/scm_cpld_filename.txt);flashrom -p linux_spi:dev=/run/devmap/flashes/MCB_SPI_MASTER_7_DEVICE_1 -v $scm_cpld_filename -c W25X20",

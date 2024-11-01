@@ -103,6 +103,8 @@ class SaiSwitchManager {
   void setLocalCapsuleSwitchIds(
       const std::map<SwitchID, int>& switchIdToNumCores);
   void setReachabilityGroupList(int reachabilityGroupListSize);
+  void setSramGlobalFreePercentXoffTh(uint8_t sramFreePercentXoffThreshold);
+  void setSramGlobalFreePercentXonTh(uint8_t sramFreePercentXonThreshold);
 
  private:
   void programEcmpLoadBalancerParams(
@@ -163,5 +165,4 @@ void fillHwSwitchCreditStats(
     const folly::F14FastMap<sai_stat_id_t, uint64_t>& counterId2Value,
     HwSwitchCreditStats& hwSwitchCreditStats);
 void publishSwitchWatermarks(HwSwitchWatermarkStats& watermarkStats);
-void switchPreInitSequence(cfg::AsicType asicType);
 } // namespace facebook::fboss

@@ -70,6 +70,7 @@ def convert_address(addr: bytes) -> str:
         return socket.inet_ntop(socket.AF_INET, addr)
     elif len(addr) == 16:
         return socket.inet_ntop(socket.AF_INET6, addr)
+    # pyre-fixme[16]: `str` has no attribute `gdlluivnhbufformat`.
     raise ValueError("bad binary address {0}".gdlluivnhbufformat(repr(addr)))
 
 

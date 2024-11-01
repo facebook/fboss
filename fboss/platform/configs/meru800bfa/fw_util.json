@@ -53,21 +53,21 @@
     },
     "fan_cpld0": {
       "preUpgradeCmd": "echo 1 > /run/devmap/fpgas/MERU_SCM_CPLD/switch_jtag_enable && echo 5 > /run/devmap/cplds/MERU800BFA_SMB_CPLD/jtag_mux_sel",
-      "getVersionCmd": "fan_cpld_ver=$((10#`cat /run/devmap/cplds/FAN0_CPLD/hwmon/hwmon*/cpld_ver`));fan_cpld_subver=$((10#`cat /run/devmap/cplds/FAN0_CPLD/hwmon/hwmon*/cpld_sub_ver`));echo $fan_cpld_ver'.'$fan_cpld_subver",
+      "getVersionCmd": "cat /run/devmap/cplds/FAN0_CPLD/hwmon/hwmon*/fw_ver",
       "priority": 1,
       "upgradeCmd": "fan_cpld_filename=$(head -n 1 /home/fan_cpld0_filename.txt);jam -aprogram -fmeru_fan_cpld -v $fan_cpld_filename",
       "postUpgradeCmd": ""
     },
     "fan_cpld1": {
       "preUpgradeCmd": "echo 1 > /run/devmap/fpgas/MERU_SCM_CPLD/switch_jtag_enable && echo 6 > /run/devmap/cplds/MERU800BFA_SMB_CPLD/jtag_mux_sel",
-      "getVersionCmd": "fan_cpld_ver=$((10#`cat /run/devmap/cplds/FAN1_CPLD/hwmon/hwmon*/cpld_ver`));fan_cpld_subver=$((10#`cat /run/devmap/cplds/FAN1_CPLD/hwmon/hwmon*/cpld_sub_ver`));echo $fan_cpld_ver'.'$fan_cpld_subver",
+      "getVersionCmd": "cat /run/devmap/cplds/FAN1_CPLD/hwmon/hwmon*/fw_ver",
       "priority": 1,
       "upgradeCmd": "fan_cpld_filename=$(head -n 1 /home/fan_cpld1_filename.txt);jam -aprogram -fmeru_fan_cpld -v $fan_cpld_filename",
       "postUpgradeCmd": ""
     },
     "fan_cpld2": {
       "preUpgradeCmd": "echo 1 > /run/devmap/fpgas/MERU_SCM_CPLD/switch_jtag_enable && echo 7 > /run/devmap/cplds/MERU800BFA_SMB_CPLD/jtag_mux_sel",
-      "getVersionCmd": "fan_cpld_ver=$((10#`cat /run/devmap/cplds/FAN2_CPLD/hwmon/hwmon*/cpld_ver`));fan_cpld_subver=$((10#`cat /run/devmap/cplds/FAN2_CPLD/hwmon/hwmon*/cpld_sub_ver`));echo $fan_cpld_ver'.'$fan_cpld_subver",
+      "getVersionCmd": "cat /run/devmap/cplds/FAN2_CPLD/hwmon/hwmon*/fw_ver",
       "priority": 1,
       "upgradeCmd": "fan_cpld_filename=$(head -n 1 /home/fan_cpld2_filename.txt);jam -aprogram -fmeru_fan_cpld -v $fan_cpld_filename",
       "postUpgradeCmd": ""

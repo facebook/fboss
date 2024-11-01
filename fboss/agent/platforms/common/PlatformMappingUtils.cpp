@@ -41,6 +41,7 @@
 #include "fboss/agent/platforms/common/wedge400c/Wedge400CPlatformMapping.h"
 #include "fboss/agent/platforms/common/wedge400c/Wedge400CPlatformUtil.h"
 #include "fboss/agent/platforms/common/yamp/YampPlatformMapping.h"
+#include "fboss/agent/platforms/common/yangra/YangraPlatformMapping.h"
 
 namespace {
 std::vector<int> getFakeSaiControllingPortIDs() {
@@ -148,6 +149,7 @@ std::unique_ptr<PlatformMapping> initPlatformMapping(PlatformType type) {
           ? std::make_unique<Meru400biuPlatformMapping>()
           : std::make_unique<Meru400biuPlatformMapping>(platformMappingStr);
     case PlatformType::PLATFORM_MERU800BIA:
+    case PlatformType::PLATFORM_MERU800BIAB:
       return platformMappingStr.empty()
           ? std::make_unique<Meru800biaPlatformMapping>()
           : std::make_unique<Meru800biaPlatformMapping>(platformMappingStr);
@@ -171,6 +173,10 @@ std::unique_ptr<PlatformMapping> initPlatformMapping(PlatformType type) {
       return platformMappingStr.empty()
           ? std::make_unique<Morgan800ccPlatformMapping>()
           : std::make_unique<Morgan800ccPlatformMapping>(platformMappingStr);
+    case PlatformType::PLATFORM_YANGRA:
+      return platformMappingStr.empty()
+          ? std::make_unique<YangraPlatformMapping>()
+          : std::make_unique<YangraPlatformMapping>(platformMappingStr);
     case PlatformType::PLATFORM_FAKE_SAI: {
       std::vector<int> controllingPorts = getFakeSaiControllingPortIDs();
       return std::make_unique<FakeTestPlatformMapping>(controllingPorts);

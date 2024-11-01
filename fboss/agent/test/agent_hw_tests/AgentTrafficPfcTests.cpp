@@ -2,6 +2,7 @@
 
 #include <folly/MapUtil.h>
 
+#include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/TxPacket.h"
 #include "fboss/agent/packet/PktFactory.h"
 #include "fboss/agent/test/AgentHwTest.h"
@@ -174,13 +175,53 @@ class AgentTrafficPfcTest : public AgentHwTest {
  public:
   void setCmdLineFlagOverrides() const override {
     AgentHwTest::setCmdLineFlagOverrides();
-    // TODO: do the equivalent of FLAGS_mmu_lossless_mode = true;
     /*
      * Makes this flag available so that it can be used in early
      * stages of init to setup common buffer pool for specific
      * asics like Jericho2.
      */
     FLAGS_ingress_egress_buffer_pool_size = kGlobalIngressEgressBufferPoolSize;
+  }
+
+  void applyPlatformConfigOverrides(
+      const cfg::SwitchConfig& sw,
+      cfg::PlatformConfig& config) const override {
+    // These configs only work for Broadcom SDK.
+    if (utility::isSaiConfig(sw)) {
+      return;
+    }
+
+    // Equivalent to FLAGS_mmu_lossless_mode=true in hw tests.
+    utility::modifyPlatformConfig(
+        config,
+        [](std::string& yamlCfg) {
+          std::string toReplace("LOSSY");
+          std::size_t pos = yamlCfg.find(toReplace);
+          if (pos != std::string::npos) {
+            // for TH4 we skip buffer reservation in prod
+            // but it doesn't seem to work for pfc tests which
+            // play around with other variables. For unblocking
+            // skip it for now
+            if (FLAGS_skip_buffer_reservation) {
+              yamlCfg.replace(
+                  pos,
+                  toReplace.length(),
+                  "LOSSY_AND_LOSSLESS\n      SKIP_BUFFER_RESERVATION: 1");
+            } else {
+              yamlCfg.replace(pos, toReplace.length(), "LOSSY_AND_LOSSLESS");
+            }
+          }
+        },
+        [](std::map<std::string, std::string>& cfg) {
+          cfg["mmu_lossless"] = "0x2";
+          cfg["buf.mqueue.guarantee.0"] = "0C";
+          cfg["mmu_config_override"] = "0";
+          cfg["buf.prigroup7.guarantee"] = "0C";
+          if (FLAGS_qgroup_guarantee_enable) {
+            cfg["buf.qgroup.guarantee_mc"] = "0";
+            cfg["buf.qgroup.guarantee"] = "0";
+          }
+        });
   }
 
   cfg::SwitchConfig initialConfig(
@@ -376,8 +417,27 @@ class AgentTrafficPfcTest : public AgentHwTest {
           kLosslessPgIds,
           tcToPgOverride,
           testParams.buffer);
+      auto asic =
+          utility::checkSameAndGetAsic(getAgentEnsemble()->getL3Asics());
       if (isSupportedOnAllAsics(HwAsic::Feature::MULTIPLE_EGRESS_BUFFER_POOL)) {
-        utility::setupMultipleEgressPoolAndQueueConfigs(cfg, kLosslessPgIds);
+        utility::setupMultipleEgressPoolAndQueueConfigs(
+            cfg, kLosslessPgIds, asic->getMMUSizeBytes());
+      }
+      if (asic->getAsicType() == cfg::AsicType::ASIC_TYPE_YUBA) {
+        // For YUBA, lossless queues needs to be configured with static
+        // queue limit equal to the MMU size to ensure its lossless.
+        for (auto& queueConfigs : *cfg.portQueueConfigs()) {
+          for (auto& queueCfg : queueConfigs.second) {
+            if (std::find(
+                    kLosslessPgIds.begin(),
+                    kLosslessPgIds.end(),
+                    *queueCfg.id()) != kLosslessPgIds.end()) {
+              // Given the 1:1 mapping for queueID to PG ID,
+              // this is a lossless queue.
+              queueCfg.sharedBytes() = asic->getMMUSizeBytes();
+            }
+          }
+        }
       }
       applyNewConfig(cfg);
 

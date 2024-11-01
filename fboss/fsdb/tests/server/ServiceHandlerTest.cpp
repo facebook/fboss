@@ -3,9 +3,9 @@
 #include <gtest/gtest.h>
 #include <latch>
 
-#include "fboss/fsdb/client/Client.h"
 #include "fboss/fsdb/tests/utils/FsdbTestServer.h"
 #include "fboss/lib/CommonUtils.h"
+#include "fboss/lib/thrift_service_client/ThriftServiceClient.h"
 
 namespace facebook::fboss::fsdb::test {
 
@@ -21,12 +21,8 @@ class ServiceHandlerTest : public ::testing::Test {
 
   std::unique_ptr<apache::thrift::Client<FsdbService>> createClient(
       folly::EventBase* evb) {
-    return Client::getClient(
-        folly::SocketAddress("::1", getFsdbPort()),
-        std::nullopt,
-        std::nullopt,
-        false /* plaintextClient */,
-        evb);
+    return utils::createFsdbClient(
+        utils::ConnectionOptions("::1", getFsdbPort()), evb);
   }
 
   uint16_t getFsdbPort() const {

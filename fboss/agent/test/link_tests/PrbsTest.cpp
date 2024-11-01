@@ -84,18 +84,21 @@ class PrbsTest : public LinkTest {
  protected:
   void SetUp() override {
     LinkTest::SetUp();
-    waitForLldpOnCabledPorts();
 
-    // Get the list of ports and their components to enable the test on
-    portsToTest_ = getPortsToTest();
-    CHECK(!portsToTest_.empty());
+    if (!IsSkipped()) {
+      waitForLldpOnCabledPorts();
 
-    for (auto testPort : portsToTest_) {
-      XLOG(DBG2) << "Will run the PRBS "
-                 << apache::thrift::util::enumNameSafe(testPort.polynomial)
-                 << " test on "
-                 << apache::thrift::util::enumNameSafe(testPort.component)
-                 << " on " << testPort.portName;
+      // Get the list of ports and their components to enable the test on
+      portsToTest_ = getPortsToTest();
+      CHECK(!portsToTest_.empty());
+
+      for (auto testPort : portsToTest_) {
+        XLOG(DBG2) << "Will run the PRBS "
+                   << apache::thrift::util::enumNameSafe(testPort.polynomial)
+                   << " test on "
+                   << apache::thrift::util::enumNameSafe(testPort.component)
+                   << " on " << testPort.portName;
+      }
     }
   }
 
@@ -578,6 +581,13 @@ class PrbsTest : public LinkTest {
 
 template <MediaInterfaceCode Media, prbs::PrbsPolynomial Polynomial>
 class TransceiverLineToTransceiverLinePrbsTest : public PrbsTest {
+ private:
+  std::vector<link_test_production_features::LinkTestProductionFeature>
+  getProductionFeatures() const override {
+    return {
+        link_test_production_features::LinkTestProductionFeature::L1_LINK_TEST};
+  }
+
  protected:
   std::vector<TestPort> getPortsToTest() override {
     std::vector<TestPort> portsToTest;
@@ -609,6 +619,13 @@ template <
     phy::PortComponent ComponentA,
     prbs::PrbsPolynomial PolynomialZ>
 class PhyToTransceiverSystemPrbsTest : public PrbsTest {
+ private:
+  std::vector<link_test_production_features::LinkTestProductionFeature>
+  getProductionFeatures() const override {
+    return {
+        link_test_production_features::LinkTestProductionFeature::L1_LINK_TEST};
+  }
+
  protected:
   std::vector<TestPort> getPortsToTest() override {
     CHECK(
@@ -638,6 +655,13 @@ class PhyToTransceiverSystemPrbsTest : public PrbsTest {
 
 template <prbs::PrbsPolynomial Polynomial>
 class AsicToAsicPrbsTest : public PrbsTest {
+ private:
+  std::vector<link_test_production_features::LinkTestProductionFeature>
+  getProductionFeatures() const override {
+    return {
+        link_test_production_features::LinkTestProductionFeature::L2_LINK_TEST};
+  }
+
  protected:
   std::vector<TestPort> getPortsToTest() override {
     std::vector<TestPort> portsToTest;

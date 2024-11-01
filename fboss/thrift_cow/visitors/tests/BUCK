@@ -25,10 +25,7 @@ cpp_unittest(
     srcs = [
         "PathVisitorTests.cpp",
     ],
-    preprocessor_flags = [
-        "-DENABLE_DYNAMIC_APIS",
-        # "-D__ENABLE_HYBRID_THRIFT_COW_TESTS__",
-    ],
+    preprocessor_flags = ["-DENABLE_DYNAMIC_APIS"],
     deps = [
         "fbsource//third-party/googletest:gmock",
         ":visitor_test_utils",
@@ -108,7 +105,9 @@ cpp_unittest(
         "PatchBuildApplyTests.cpp",
         "PatchBuilderTests.cpp",
     ],
-    preprocessor_flags = ["-DENABLE_DYNAMIC_APIS"],
+    preprocessor_flags = [
+        "-DENABLE_DYNAMIC_APIS",
+    ],
     deps = [
         ":visitor_test_utils",
         "//fboss/agent:switch_config-cpp2-reflection",

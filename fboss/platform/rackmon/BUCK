@@ -145,6 +145,7 @@ cpp_unittest(
         "tests/RackmonTest.cpp",
         "tests/RegisterDescriptorTest.cpp",
         "tests/RegisterMapTest.cpp",
+        "tests/RegisterSpanTest.cpp",
         "tests/RegisterTest.cpp",
         "tests/RegisterValueTest.cpp",
     ],

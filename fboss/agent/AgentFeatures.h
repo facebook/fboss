@@ -46,6 +46,8 @@ DECLARE_int32(dsf_num_fsdb_stream_threads);
 DECLARE_bool(dsf_subscribe_patch);
 DECLARE_int32(dsf_subscriber_reconnect_thread_heartbeat_ms);
 DECLARE_int32(dsf_subscriber_stream_thread_heartbeat_ms);
+DECLARE_int32(dsf_session_conn_timeout_ms);
+DECLARE_int32(dsf_session_recv_timeout_ms);
 
 DECLARE_bool(set_classid_for_my_subnet_and_ip_routes);
 DECLARE_int32(stat_publish_interval_ms);
@@ -58,5 +60,9 @@ DECLARE_bool(disable_looped_fabric_ports);
 DECLARE_bool(detect_wrong_fabric_connections);
 DECLARE_bool(dsf_edsw_platform_mapping);
 DECLARE_bool(exit_for_any_hw_disconnect);
-DECLARE_bool(enable_balanced_intput_mode);
+DECLARE_bool(enable_balanced_input_mode);
 DECLARE_int32(hw_agent_connection_timeout_ms);
+DECLARE_bool(qgroup_guarantee_enable);
+DECLARE_bool(skip_buffer_reservation);
+// TODO(zecheng): Remove this once firmware support is ready
+DECLARE_bool(conditional_entropy_cpu_seed_test_only);

@@ -65,7 +65,8 @@ class SaiQueueManager {
   void changeQueue(
       SaiQueueHandle* queueHandle,
       const PortQueue& newPortQueue,
-      const Port* swPort = nullptr);
+      const Port* swPort = nullptr,
+      const std::optional<cfg::PortType> portType = std::nullopt);
   void changeQueueBufferProfile(
       SaiQueueHandle* queueHandle,
       const PortQueue& newPortQueue);

@@ -185,13 +185,13 @@ SaiSwitchManager::SaiSwitchManager(
     std::optional<int64_t> switchId)
     : managerTable_(managerTable), platform_(platform) {
   int64_t swId = switchId.value_or(0);
-  switchPreInitSequence(platform->getAsic()->getAsicType());
   if (bootType == BootType::WARM_BOOT) {
     // Extract switch adapter key and create switch only with the mandatory
     // init attribute (warm boot path)
     auto& switchApi = SaiApiTable::getInstance()->switchApi();
     auto newSwitchId = switchApi.create<SaiSwitchTraits>(
-        platform->getSwitchAttributes(true, switchType, switchId), swId);
+        platform->getSwitchAttributes(true, switchType, switchId, bootType),
+        swId);
     // Load all switch attributes
     switch_ = std::make_unique<SaiSwitchObj>(newSwitchId);
     if (switchType != cfg::SwitchType::FABRIC) {
@@ -205,7 +205,7 @@ SaiSwitchManager::SaiSwitchManager(
   } else {
     switch_ = std::make_unique<SaiSwitchObj>(
         std::monostate(),
-        platform->getSwitchAttributes(false, switchType, switchId),
+        platform->getSwitchAttributes(false, switchType, switchId, bootType),
         swId);
 
     const auto& asic = platform_->getAsic();
@@ -1006,6 +1006,24 @@ void SaiSwitchManager::setReachabilityGroupList(int reachabilityGroupListSize) {
     switch_->setOptionalAttribute(
         SaiSwitchTraits::Attributes::ReachabilityGroupList{list});
   }
+#endif
+}
+
+void SaiSwitchManager::setSramGlobalFreePercentXoffTh(
+    uint8_t sramFreePercentXoffThreshold) {
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_0) && !defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+  switch_->setOptionalAttribute(
+      SaiSwitchTraits::Attributes::SramFreePercentXoffTh{
+          sramFreePercentXoffThreshold});
+#endif
+}
+
+void SaiSwitchManager::setSramGlobalFreePercentXonTh(
+    uint8_t sramFreePercentXonThreshold) {
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_0) && !defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+  switch_->setOptionalAttribute(
+      SaiSwitchTraits::Attributes::SramFreePercentXonTh{
+          sramFreePercentXonThreshold});
 #endif
 }
 } // namespace facebook::fboss

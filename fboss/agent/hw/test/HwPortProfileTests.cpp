@@ -95,6 +95,8 @@ class HwPortProfileTest : public HwTest {
         getPlatform()->getAsic()->getAsicType() ==
             cfg::AsicType::ASIC_TYPE_FAKE ||
         getPlatform()->getAsic()->getAsicType() ==
+            cfg::AsicType::ASIC_TYPE_CHENAB ||
+        getPlatform()->getAsic()->getAsicType() ==
             cfg::AsicType::ASIC_TYPE_MOCK) {
       return;
     }

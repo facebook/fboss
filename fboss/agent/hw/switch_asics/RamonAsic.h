@@ -82,6 +82,12 @@ class RamonAsic : public BroadcomAsic {
   FabricNodeRole getFabricNodeRole() const override {
     return fabricNodeRole_;
   }
+  int getMidPriCpuQueueId() const override {
+    throw FbossError("Ramon ASIC does not support cpu queue");
+  }
+  int getHiPriCpuQueueId() const override {
+    throw FbossError("Ramon ASIC does not support cpu queue");
+  }
 
  private:
   FabricNodeRole fabricNodeRole_;

@@ -41,6 +41,7 @@ TEST(RegisterMapTest, JSONCoversion) {
     "address_range": [[160, 191]],
     "probe_register": 104,
     "baudrate": 19200,
+    "max_span_length": 4,
     "registers": [
       {
         "begin": 0,
@@ -67,6 +68,7 @@ TEST(RegisterMapTest, JSONCoversion) {
   EXPECT_EQ(rmap.probeRegister, 104);
   EXPECT_EQ(rmap.baudrate, 19200);
   EXPECT_EQ(rmap.name, "orv2_psu");
+  EXPECT_EQ(rmap.maxRegisterSpanLength, 4);
   EXPECT_EQ(rmap.registerDescriptors.size(), 2);
   EXPECT_EQ(rmap.specialHandlers.size(), 0);
   EXPECT_EQ(rmap.at(0).begin, 0);
@@ -106,6 +108,9 @@ TEST(RegisterMapTest, JSONCoversionBaudrate) {
       rmap.applicableAddresses.range.cbegin(),
       rmap.applicableAddresses.range.cend(),
       [](auto const& ent) { return (ent.first == 160 && ent.second == 191); }));
+  EXPECT_EQ(
+      rmap.maxRegisterSpanLength,
+      RegisterStoreSpan::kDefaultMaxRegisterSpanLength);
   EXPECT_EQ(rmap.probeRegister, 104);
   EXPECT_EQ(rmap.baudrate, 19200);
   EXPECT_EQ(rmap.name, "orv2_psu");

@@ -87,6 +87,7 @@ TEST_F(AgentRouteOverflowTest, overflowRoutes) {
       break;
     case PlatformType::PLATFORM_MERU400BIU:
     case PlatformType::PLATFORM_MERU800BIA:
+    case PlatformType::PLATFORM_MERU800BIAB:
     case PlatformType::PLATFORM_MERU800BFA:
     case PlatformType::PLATFORM_MERU800BFA_P1:
       // No overflow test for MERU400BIU yet
@@ -104,6 +105,9 @@ TEST_F(AgentRouteOverflowTest, overflowRoutes) {
     case PlatformType::PLATFORM_JANGA800BIC:
       break;
     case PlatformType::PLATFORM_TAHAN800BC:
+      break;
+    case PlatformType::PLATFORM_YANGRA:
+      // No overflow test for Yangra
       break;
   }
   if (routeChunks.size() == 0) {

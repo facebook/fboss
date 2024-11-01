@@ -16,6 +16,10 @@ using namespace facebook::fboss::fsdb;
 
 class TestSubscription : public Subscription {
  public:
+  ~TestSubscription() override {
+    stop();
+  }
+
   PubSubType type() const override {
     return PubSubType::PATH;
   }
@@ -43,6 +47,10 @@ class TestSubscription : public Subscription {
 
 class TestDeltaSubscription : public Subscription {
  public:
+  ~TestDeltaSubscription() override {
+    stop();
+  }
+
   PubSubType type() const override {
     return PubSubType::DELTA;
   }
@@ -78,6 +86,10 @@ class TestExtendedSubscription : public ExtendedSubscription {
             std::nullopt,
             nullptr,
             std::chrono::milliseconds(0)) {}
+
+  ~TestExtendedSubscription() override {
+    stop();
+  }
 
   PubSubType type() const override {
     return PubSubType::PATH;
@@ -131,9 +143,10 @@ TEST(SubscriptionPathStoreTests, FindSimple) {
       makeSubscription({"a", "b", "c", "d"}),
       makeSubscription({"a", "b", "c", "d", "e"})};
 
-  SubscriptionPathStore store;
+  SubscriptionPathStoreTreeStats stats;
+  SubscriptionPathStore store(&stats);
   for (const auto& sub : subs) {
-    store.add(sub.get());
+    store.add(sub.get(), &stats);
   }
 
   std::vector<std::string> testPath = {"a", "b", "c"};
@@ -215,7 +228,8 @@ TEST(SubscriptionPathStoreTests, IncrementalResolveExtended) {
   auto extSub4 = std::make_shared<TestExtendedSubscription>(
       ExtSubPathMap{{0, std::move(path5)}});
 
-  SubscriptionPathStore pathStore;
+  SubscriptionPathStoreTreeStats stats;
+  SubscriptionPathStore pathStore(&stats);
   StubSubscriptionStore store;
 
   // seed incremental resolutions of all the subscriptions
@@ -281,9 +295,10 @@ TEST(SubscriptionPathStoreTests, TestRecursiveCounts) {
       makeSubscription({"a", "b", "c", "d", "e"}),
       makeDeltaSubscription({"a", "b", "c", "d", "e"})};
 
-  SubscriptionPathStore store;
+  SubscriptionPathStoreTreeStats stats;
+  SubscriptionPathStore store(&stats);
   for (const auto& sub : subs) {
-    store.add(sub.get());
+    store.add(sub.get(), &stats);
   }
 
   EXPECT_EQ(store.numSubs(), 0);

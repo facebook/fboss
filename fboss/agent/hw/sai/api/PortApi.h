@@ -152,6 +152,11 @@ struct SaiPortTraits {
         SAI_PORT_ATTR_PKT_TX_ENABLE,
         bool,
         SaiBoolDefaultTrue>;
+    using TamObject = SaiAttribute<
+        EnumType,
+        SAI_PORT_ATTR_TAM_OBJECT,
+        std::vector<sai_object_id_t>,
+        SaiObjectIdListDefault>;
     using SerdesId = SaiAttribute<
         EnumType,
         SAI_PORT_ATTR_PORT_SERDES_ID,
@@ -419,6 +424,27 @@ struct SaiPortTraits {
         sai_uint32_t,
         AttributeReachabilityGroup,
         SaiIntDefault<sai_uint32_t>>;
+    struct AttributeCondEntropyRehashEnable {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    using CondEntropyRehashEnable = SaiExtensionAttribute<
+        bool,
+        AttributeCondEntropyRehashEnable,
+        SaiBoolDefaultFalse>;
+    struct AttributeCondEntropyRehashPeriodUS {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    using CondEntropyRehashPeriodUS = SaiExtensionAttribute<
+        sai_uint32_t,
+        AttributeCondEntropyRehashPeriodUS,
+        SaiIntDefault<sai_uint32_t>>;
+    struct AttributeCondEntropyRehashSeed {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    using CondEntropyRehashSeed = SaiExtensionAttribute<
+        sai_uint32_t,
+        AttributeCondEntropyRehashSeed,
+        SaiIntDefault<sai_uint32_t>>;
   };
   using AdapterKey = PortSaiId;
 
@@ -487,6 +513,7 @@ struct SaiPortTraits {
       std::optional<Attributes::DisableTtlDecrement>,
       std::optional<Attributes::InterfaceType>,
       std::optional<Attributes::PktTxEnable>,
+      std::optional<Attributes::TamObject>,
       std::optional<Attributes::IngressMirrorSession>,
       std::optional<Attributes::EgressMirrorSession>,
       std::optional<Attributes::IngressSamplePacketEnable>,
@@ -523,7 +550,10 @@ struct SaiPortTraits {
       std::optional<Attributes::ArsPortLoadPastWeight>,
       std::optional<Attributes::ArsPortLoadFutureWeight>,
 #endif
-      std::optional<Attributes::ReachabilityGroup>>;
+      std::optional<Attributes::ReachabilityGroup>,
+      std::optional<Attributes::CondEntropyRehashEnable>,
+      std::optional<Attributes::CondEntropyRehashPeriodUS>,
+      std::optional<Attributes::CondEntropyRehashSeed>>;
   static constexpr std::array<sai_stat_id_t, 16> CounterIdsToRead = {
       SAI_PORT_STAT_IF_IN_OCTETS,
       SAI_PORT_STAT_IF_IN_UCAST_PKTS,
@@ -600,6 +630,7 @@ SAI_ATTRIBUTE_NAME(Port, QosQueueList)
 SAI_ATTRIBUTE_NAME(Port, Type)
 SAI_ATTRIBUTE_NAME(Port, InterfaceType)
 SAI_ATTRIBUTE_NAME(Port, PktTxEnable)
+SAI_ATTRIBUTE_NAME(Port, TamObject)
 SAI_ATTRIBUTE_NAME(Port, SerdesId)
 SAI_ATTRIBUTE_NAME(Port, IngressMirrorSession)
 SAI_ATTRIBUTE_NAME(Port, EgressMirrorSession)
@@ -674,6 +705,9 @@ SAI_ATTRIBUTE_NAME(Port, ArsPortLoadPastWeight)
 SAI_ATTRIBUTE_NAME(Port, ArsPortLoadFutureWeight)
 #endif
 SAI_ATTRIBUTE_NAME(Port, ReachabilityGroup)
+SAI_ATTRIBUTE_NAME(Port, CondEntropyRehashEnable)
+SAI_ATTRIBUTE_NAME(Port, CondEntropyRehashPeriodUS)
+SAI_ATTRIBUTE_NAME(Port, CondEntropyRehashSeed)
 
 template <>
 struct SaiObjectHasStats<SaiPortTraits> : public std::true_type {};

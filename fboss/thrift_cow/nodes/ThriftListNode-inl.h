@@ -35,7 +35,7 @@ struct ExtractValueTypeClass<apache::thrift::type_class::list<ValueTypeClass>> {
 } // namespace list_helpers
 
 template <typename TypeClass, typename TType>
-struct ThriftListFields {
+struct ThriftListFields : public FieldBaseType {
   using Self = ThriftListFields<TypeClass, TType>;
   using CowType = FieldsType;
   using ThriftType = TType;
