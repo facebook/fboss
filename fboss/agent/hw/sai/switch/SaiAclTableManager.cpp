@@ -1399,8 +1399,14 @@ std::pair<int32_t, int32_t> SaiAclTableManager::getAclResourceUsage() {
   return std::make_pair(aclEntriesFree, aclCountersFree);
 }
 
-std::set<cfg::AclTableQualifier> SaiAclTableManager::getSupportedQualifierSet()
-    const {
+std::set<cfg::AclTableQualifier> SaiAclTableManager::getSupportedQualifierSet(
+    cfg::AclStage stage) const {
+  return getSupportedQualifierSet(
+      SaiAclTableGroupManager::cfgAclStageToSaiAclStage(stage));
+}
+
+std::set<cfg::AclTableQualifier> SaiAclTableManager::getSupportedQualifierSet(
+    sai_acl_stage_t /* aclStage */) const {
   /*
    * Not all the qualifiers are supported by every ASIC.
    * Moreover, different ASICs have different max key widths.

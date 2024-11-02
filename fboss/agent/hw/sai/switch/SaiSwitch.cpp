@@ -3172,7 +3172,8 @@ bool SaiSwitch::isValidStateUpdateLocked(
       });
 
   auto qualifiersSupported =
-      managerTable_->aclTableManager().getSupportedQualifierSet();
+      managerTable_->aclTableManager().getSupportedQualifierSet(
+          cfg::AclStage::INGRESS);
   DeltaFunctions::forEachChanged(
       delta.getAclsDelta(),
       [qualifiersSupported, &isValid](

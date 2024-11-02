@@ -188,7 +188,8 @@ class SaiAclTableManager {
 
   std::pair<int32_t, int32_t> getAclResourceUsage();
 
-  std::set<cfg::AclTableQualifier> getSupportedQualifierSet() const;
+  std::set<cfg::AclTableQualifier> getSupportedQualifierSet(
+      cfg::AclStage stage = cfg::AclStage::INGRESS) const;
 
   void addDefaultAclTable(cfg::AclStage stage);
   void removeDefaultAclTable(cfg::AclStage stage);
@@ -271,6 +272,9 @@ class SaiAclTableManager {
   bool isSameAclCounterAttributes(
       const SaiAclCounterTraits::CreateAttributes& fromStore,
       const SaiAclCounterTraits::CreateAttributes& fromSw);
+
+  std::set<cfg::AclTableQualifier> getSupportedQualifierSet(
+      sai_acl_stage_t aclStage) const;
 
   SaiStore* saiStore_;
   SaiManagerTable* managerTable_;
