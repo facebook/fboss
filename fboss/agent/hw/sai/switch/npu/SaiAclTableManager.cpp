@@ -113,6 +113,7 @@ std::vector<sai_int32_t> SaiAclTableManager::getActionTypeList(
 }
 
 std::set<cfg::AclTableQualifier> SaiAclTableManager::getQualifierSet(
+    sai_acl_stage_t aclStage,
     const std::shared_ptr<AclTable>& addedAclTable) {
   auto aclQualifiers = addedAclTable->getQualifiers();
   /*
@@ -127,7 +128,7 @@ std::set<cfg::AclTableQualifier> SaiAclTableManager::getQualifierSet(
 
     return qualifiers;
   } else {
-    return getSupportedQualifierSet();
+    return getSupportedQualifierSet(aclStage);
   }
 }
 
@@ -141,7 +142,7 @@ std::
 
   auto actionTypeList = getActionTypeList(addedAclTable);
 
-  auto qualifierSet = getQualifierSet(addedAclTable);
+  auto qualifierSet = getQualifierSet(aclStage, addedAclTable);
   auto qualifierExistsFn = [qualifierSet](cfg::AclTableQualifier qualifier) {
     return qualifierSet.find(qualifier) != qualifierSet.end();
   };

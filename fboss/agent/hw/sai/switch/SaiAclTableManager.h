@@ -189,7 +189,7 @@ class SaiAclTableManager {
   std::pair<int32_t, int32_t> getAclResourceUsage();
 
   std::set<cfg::AclTableQualifier> getSupportedQualifierSet(
-      cfg::AclStage stage = cfg::AclStage::INGRESS) const;
+      cfg::AclStage stage) const;
 
   void addDefaultAclTable(cfg::AclStage stage);
   void removeDefaultAclTable(cfg::AclStage stage);
@@ -239,6 +239,7 @@ class SaiAclTableManager {
   std::vector<sai_int32_t> getActionTypeList(
       const std::shared_ptr<AclTable>& addedAclTable);
   std::set<cfg::AclTableQualifier> getQualifierSet(
+      sai_acl_stage_t aclStage,
       const std::shared_ptr<AclTable>& addedAclTable);
 
   std::pair<

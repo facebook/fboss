@@ -58,6 +58,7 @@ std::vector<sai_int32_t> SaiAclTableManager::getActionTypeList(
 }
 
 std::set<cfg::AclTableQualifier> SaiAclTableManager::getQualifierSet(
+    sai_acl_stage_t /*aclStage*/,
     const std::shared_ptr<AclTable>& /* addedAclTable */) {
   return {cfg::AclTableQualifier::DST_MAC, cfg::AclTableQualifier::ETHER_TYPE};
 }

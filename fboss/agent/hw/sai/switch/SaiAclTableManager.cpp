@@ -699,7 +699,10 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
 #endif
   std::optional<SaiAclEntryTraits::Attributes::FieldIpProtocol> fieldIpProtocol{
       std::nullopt};
-  auto qualifierSet = getSupportedQualifierSet();
+
+  auto stage = static_cast<sai_acl_stage_t>(
+      GET_ATTR(AclTable, Stage, aclTableHandle->aclTable->attributes()));
+  auto qualifierSet = getSupportedQualifierSet(stage);
   if (qualifierSet.find(cfg::AclTableQualifier::IP_PROTOCOL) !=
           qualifierSet.end() &&
       matchV4 && addedAclEntry->getProto()) {
