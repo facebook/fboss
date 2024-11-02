@@ -190,8 +190,8 @@ class SaiAclTableManager {
 
   std::set<cfg::AclTableQualifier> getSupportedQualifierSet() const;
 
-  void addDefaultAclTable();
-  void removeDefaultAclTable();
+  void addDefaultAclTable(cfg::AclStage stage);
+  void removeDefaultAclTable(cfg::AclStage stage);
 
   bool isQualifierSupported(
       const std::string& aclTableName,

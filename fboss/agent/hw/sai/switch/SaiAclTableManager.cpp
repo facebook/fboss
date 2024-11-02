@@ -1556,7 +1556,7 @@ std::set<cfg::AclTableQualifier> SaiAclTableManager::getSupportedQualifierSet()
   }
 }
 
-void SaiAclTableManager::addDefaultAclTable() {
+void SaiAclTableManager::addDefaultAclTable(cfg::AclStage stage) {
   if (handles_.find(kAclTable1) != handles_.end()) {
     throw FbossError("default acl table already exists.");
   }
@@ -1565,17 +1565,19 @@ void SaiAclTableManager::addDefaultAclTable() {
   aclTableFields.priority() = 0;
   aclTableFields.id() = kAclTable1;
   auto table1 = std::make_shared<AclTable>(std::move(aclTableFields));
-  addAclTable(table1, cfg::AclStage::INGRESS);
+  addAclTable(table1, stage);
 }
 
-void SaiAclTableManager::removeDefaultAclTable() {
+void SaiAclTableManager::removeDefaultAclTable(cfg::AclStage stage) {
   if (handles_.find(kAclTable1) == handles_.end()) {
     return;
   }
   // remove from acl table group
+  sai_acl_stage_t saiAclStage =
+      SaiAclTableGroupManager::cfgAclStageToSaiAclStage(stage);
   if (platform_->getAsic()->isSupported(HwAsic::Feature::ACL_TABLE_GROUP)) {
     managerTable_->aclTableGroupManager().removeAclTableGroupMember(
-        SAI_ACL_STAGE_INGRESS, kAclTable1);
+        saiAclStage, kAclTable1);
   }
   handles_.erase(kAclTable1);
 }
