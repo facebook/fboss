@@ -107,7 +107,7 @@ AclTableSaiId SaiAclTableManager::addAclTable(
    * addAclTable.
    *
    * After ACL table is added, add it to appropriate ACL group:
-   * managerTable_->switchManager().addTableGroupMember(SAI_ACL_STAGE_INGRESS,
+   * managerTable_->switchManager().addTableGroupMember(aclStage,
    * aclTableSaiId);
    */
 
@@ -150,7 +150,7 @@ AclTableSaiId SaiAclTableManager::addAclTable(
   // Add ACL Table to group based on the stage
   if (platform_->getAsic()->isSupported(HwAsic::Feature::ACL_TABLE_GROUP)) {
     managerTable_->aclTableGroupManager().addAclTableGroupMember(
-        SAI_ACL_STAGE_INGRESS, aclTableSaiId, aclTableName);
+        saiAclStage, aclTableSaiId, aclTableName);
   }
 
   return aclTableSaiId;
@@ -158,13 +158,15 @@ AclTableSaiId SaiAclTableManager::addAclTable(
 
 void SaiAclTableManager::removeAclTable(
     const std::shared_ptr<AclTable>& removedAclTable,
-    cfg::AclStage /*aclStage*/) {
+    cfg::AclStage aclStage) {
+  auto saiAclStage =
+      SaiAclTableGroupManager::cfgAclStageToSaiAclStage(aclStage);
   auto aclTableName = removedAclTable->getID();
 
   // remove from acl table group
   if (hasTableGroups_) {
     managerTable_->aclTableGroupManager().removeAclTableGroupMember(
-        SAI_ACL_STAGE_INGRESS, aclTableName);
+        saiAclStage, aclTableName);
   }
 
   // remove from handles
