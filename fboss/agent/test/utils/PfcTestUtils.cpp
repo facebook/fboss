@@ -90,7 +90,11 @@ void setupPfc(
           ->getHwAsics()
           .cbegin()
           ->second->getSwitchType() == cfg::SwitchType::VOQ) {
-    cfg::CPUTrafficPolicyConfig cpuPolicy;
+    // Start with the current CPU traffic policy, overwrite whats
+    // needed here, leave the rest as is!
+    cfg::CPUTrafficPolicyConfig cpuPolicy = cfg.cpuTrafficPolicy()
+        ? *cfg.cpuTrafficPolicy()
+        : cfg::CPUTrafficPolicyConfig();
     const std::string kCpuQueueingPolicy{"cpuQp"};
     cpuPolicy.trafficPolicy() =
         setupQosPolicy(true /*isCpuQosMap*/, kCpuQueueingPolicy);
