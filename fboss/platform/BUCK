@@ -5,7 +5,6 @@ oncall("fboss_platform")
 
 fbpkg.builder(
     name = "fboss.platform.stack",
-    buck_opts = fbpkg.buck_opts(version = "v2"),
     expire_days = 10,
     override_log_paths = ["fboss/platform"],
     path_actions = {

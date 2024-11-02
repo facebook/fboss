@@ -4,7 +4,6 @@ oncall("fboss_optics_phy")
 
 fbpkg.builder(
     name = "neteng.fboss.led_service",
-    buck_opts = fbpkg.buck_opts(version = "v2"),
     expire_days = 20,
     path_actions = {
         "led_service": "//fboss/led_service:led_service",
@@ -15,7 +14,6 @@ fbpkg.builder(
 
 fbpkg.builder(
     name = "neteng.fboss.led_service.test_artifacts",
-    buck_opts = fbpkg.buck_opts(version = "v2"),
     expire_days = 20,
     path_actions = {
         "led_service_hw_test": "//fboss/led_service/hw_test:led_service_hw_test",
