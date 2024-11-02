@@ -289,6 +289,14 @@ void BcmPortIngressBufferManager::programLosslessMode(
   if (const auto& pgConfigs = port->getPortPgConfigs()) {
     for (const auto& pgConfig : *pgConfigs) {
       if (pgConfig->cref<switch_state_tags::headroomLimitBytes>()) {
+        // This is a disruptive flag. Check if headroomLimit is not zero before
+        // enabling lossless configuration
+        if (FLAGS_fix_lossless_mode_per_pg) {
+          if (pgConfig->cref<switch_state_tags::headroomLimitBytes>()->cref() ==
+              0) {
+            continue;
+          }
+        }
         losslessPgList.insert(pgConfig->cref<switch_state_tags::id>()->cref());
       }
     }

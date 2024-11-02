@@ -164,3 +164,8 @@ DEFINE_bool(
     conditional_entropy_cpu_seed_test_only,
     false,
     "Enable test-only feature for CPU updating conditional entropy seed");
+
+DEFINE_bool(
+    fix_lossless_mode_per_pg,
+    false,
+    "Flag to disruptively update lossless mode per pg");
