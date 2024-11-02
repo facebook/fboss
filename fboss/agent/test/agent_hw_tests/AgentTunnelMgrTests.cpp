@@ -1,5 +1,8 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
-
+#include <sstream>
+#include <string>
+#include "fboss/agent/SwSwitch.h"
+#include "fboss/agent/TunManager.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/test/TestUtils.h"
@@ -19,16 +22,30 @@ class AgentTunnelMgrTest : public AgentHwTest {
   }
 
   // Clear any stale kernel entries
-  void clearKernelEntries() {
+  void clearKernelEntries(std::string intfIp) {
     // Delete the source route rule entries from the kernel
     auto cmd = folly::to<std::string>("ip rule delete table 1");
 
     runShellCmd(cmd);
 
-    // Delete the tunnel address entries from the kernel
-    cmd = folly::to<std::string>("ip link delete fboss2000");
+    // Get the String
+    cmd = folly::to<std::string>("ip addr list | grep ", intfIp);
 
-    runShellCmd(cmd);
+    auto output = runShellCmd(cmd);
+
+    // Break the output string into words
+    std::istringstream iss(output);
+    do {
+      std::string subs;
+      // Get the word from the istringstream
+      iss >> subs;
+      // Delete the matching fboss interface from the kernel
+      if (subs.find("fboss") != std::string::npos) {
+        cmd = folly::to<std::string>("ip link delete ", subs);
+        runShellCmd(cmd);
+        break;
+      }
+    } while (iss);
   }
 
   void checkKernelEntriesRemoved() {
@@ -82,36 +99,45 @@ TEST_F(AgentTunnelMgrTest, checkKernelEntries) {
     auto intfIp = folly::IPAddress::createNetwork(
                       config.interfaces()[0].ipAddresses()[0], -1, false)
                       .first;
+    // Get TunManager pointer
+    auto tunMgr_ = getAgentEnsemble()->getSw()->getTunManager();
+    auto status = tunMgr_->getIntfStatus(
+        getProgrammedState(), (InterfaceID)config.interfaces()[0].get_intfID());
 
-    // Check that the source route rule entries are present in the kernel
-    auto cmd = folly::to<std::string>("ip rule list | grep ", intfIp);
+    // There is a known limitation in the kernel that the source route rule
+    // entries are not created if the interface is not up. So, checking for the
+    // kernel entries if the interface is  up
+    if (status) {
+      // Check that the source route rule entries are present in the kernel
+      auto cmd = folly::to<std::string>("ip rule list | grep ", intfIp);
 
-    auto output = runShellCmd(cmd);
+      auto output = runShellCmd(cmd);
 
-    XLOG(DBG2) << "Cmd: " << cmd;
-    XLOG(DBG2) << "Output: \n" << output;
+      XLOG(DBG2) << "Cmd: " << cmd;
+      XLOG(DBG2) << "Output: \n" << output;
 
-    EXPECT_TRUE(
-        output.find(folly::to<std::string>(intfIp)) != std::string::npos);
+      EXPECT_TRUE(
+          output.find(folly::to<std::string>(intfIp)) != std::string::npos);
 
-    // Check that the tunnel address entries are present in the kernel
-    cmd = folly::to<std::string>("ip addr list | grep ", intfIp);
+      // Check that the tunnel address entries are present in the kernel
+      cmd = folly::to<std::string>("ip addr list | grep ", intfIp);
 
-    output = runShellCmd(cmd);
+      output = runShellCmd(cmd);
 
-    EXPECT_TRUE(
-        output.find(folly::to<std::string>(intfIp)) != std::string::npos);
+      EXPECT_TRUE(
+          output.find(folly::to<std::string>(intfIp)) != std::string::npos);
 
-    // Check that the default route entries are present in the kernel
-    cmd = folly::to<std::string>("ip route list | grep ", intfIp);
+      // Check that the default route entries are present in the kernel
+      cmd = folly::to<std::string>("ip route list | grep ", intfIp);
 
-    output = runShellCmd(cmd);
+      output = runShellCmd(cmd);
 
-    EXPECT_TRUE(
-        output.find(folly::to<std::string>(intfIp)) != std::string::npos);
+      EXPECT_TRUE(
+          output.find(folly::to<std::string>(intfIp)) != std::string::npos);
+    }
 
     // Clear kernel entries
-    clearKernelEntries();
+    clearKernelEntries(folly::to<std::string>(intfIp));
 
     // Check that the kernel entries are removed
     checkKernelEntriesRemoved();

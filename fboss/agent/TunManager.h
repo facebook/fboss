@@ -81,6 +81,11 @@ class TunManager : public StateObserver {
 
   void stopProcessing();
 
+  /**
+   * Get interface status for a given interface
+   */
+  bool getIntfStatus(std::shared_ptr<SwitchState> state, InterfaceID ifID);
+
  private:
   // no copy to assign
   TunManager(const TunManager&) = delete;
