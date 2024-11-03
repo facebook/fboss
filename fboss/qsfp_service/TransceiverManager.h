@@ -601,8 +601,6 @@ class TransceiverManager {
 
   virtual std::unique_ptr<TransceiverI2CApi> getI2CBus() = 0;
 
-  virtual TransceiverI2CApi* i2cBus() = 0;
-
   // Determine if transceiver FW requires upgrade.
   // Transceiver has to be present, and the version in the QsfpConfig
   // has to be different from whats already running in HW.
