@@ -49,7 +49,7 @@ class WedgeQsfp : public TransceiverImpl {
   int writeTransceiver(
       const TransceiverAccessParameter& param,
       const uint8_t* fieldValue,
-      uint64_t delay = post_write_delay_us) override;
+      uint64_t delay = POST_I2C_WRITE_DELAY_US) override;
 
   /* Returns the name for the port */
   folly::StringPiece getName() override;
