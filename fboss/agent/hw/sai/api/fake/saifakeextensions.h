@@ -81,6 +81,7 @@ typedef enum _sai_switch_extensions_attr_t {
   SAI_SWITCH_ATTR_MAX_SYSTEM_PORTS,
   SAI_SWITCH_ATTR_MAX_VOQS,
   SAI_SWITCH_ATTR_FABRIC_CLLFC_TX_CREDIT_TH,
+  SAI_SWITCH_ATTR_VOQ_DRAM_BOUND_TH,
 } sai_switch_extensions_attr_t;
 
 typedef enum _sai_tam_event_extensions_attr_t {

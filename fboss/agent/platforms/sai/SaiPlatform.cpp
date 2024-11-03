@@ -706,6 +706,7 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
       maxSystemPorts,
       maxVoqs,
       std::nullopt, // Fabric CLLFC TX credit threshold
+      std::nullopt, // VOQ DRAM bound threshold
   };
 }
 

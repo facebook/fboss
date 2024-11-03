@@ -339,6 +339,11 @@ std::optional<sai_attr_id_t> SaiSwitchTraits::Attributes::
 }
 
 std::optional<sai_attr_id_t>
+SaiSwitchTraits::Attributes::AttributeVoqDramBoundThWrapper::operator()() {
+  return SAI_SWITCH_ATTR_VOQ_DRAM_BOUND_TH;
+}
+
+std::optional<sai_attr_id_t>
 SaiPortSerdesTraits::Attributes::AttributeTxDiffEncoderEnWrapper::operator()() {
   return SAI_PORT_SERDES_ATTR_EXT_TX_DIFF_ENCODER_EN;
 }

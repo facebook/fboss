@@ -132,6 +132,7 @@ void handleExtensionAttributes() {
   SAI_EXT_ATTR_MAP(Switch, MaxSystemPorts);
   SAI_EXT_ATTR_MAP(Switch, MaxVoqs);
   SAI_EXT_ATTR_MAP(Switch, FabricCllfcTxCreditTh);
+  SAI_EXT_ATTR_MAP(Switch, VoqDramBoundTh);
 }
 
 } // namespace
