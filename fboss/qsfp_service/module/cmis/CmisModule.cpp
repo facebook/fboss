@@ -593,7 +593,8 @@ void CmisModule::readCmisField(
          127,
          sizeof(page),
          static_cast<int>(CmisPages::LOWER)},
-        &page);
+        &page,
+        POST_I2C_WRITE_DELAY_US);
   }
   qsfpImpl_->readTransceiver(
       {TransceiverAccessParameter::ADDR_QSFP, dataOffset, dataLength, dataPage},
@@ -616,11 +617,13 @@ void CmisModule::writeCmisField(
          127,
          sizeof(page),
          static_cast<int>(CmisPages::LOWER)},
-        &page);
+        &page,
+        POST_I2C_WRITE_DELAY_US);
   }
   qsfpImpl_->writeTransceiver(
       {TransceiverAccessParameter::ADDR_QSFP, dataOffset, dataLength, dataPage},
-      data);
+      data,
+      POST_I2C_WRITE_DELAY_US);
 }
 
 FlagLevels CmisModule::getQsfpSensorFlags(CmisField fieldName, int offset) {

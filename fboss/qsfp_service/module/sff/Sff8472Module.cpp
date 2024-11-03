@@ -133,7 +133,9 @@ void Sff8472Module::writeSff8472Field(Sff8472Field field, uint8_t* data) {
   getSfpFieldAddress(
       field, dataPage, dataOffset, dataLength, transceiverI2CAddress);
   qsfpImpl_->writeTransceiver(
-      {transceiverI2CAddress, dataOffset, dataLength}, data);
+      {transceiverI2CAddress, dataOffset, dataLength},
+      data,
+      POST_I2C_WRITE_DELAY_US);
 }
 
 void Sff8472Module::getSfpValue(

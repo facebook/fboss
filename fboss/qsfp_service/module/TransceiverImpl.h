@@ -51,7 +51,7 @@ class TransceiverImpl {
   virtual int writeTransceiver(
       const TransceiverAccessParameter& param,
       const uint8_t* fieldValue,
-      uint64_t delay = POST_I2C_WRITE_DELAY_US) = 0;
+      uint64_t delay) = 0;
 
   /*
    * This function will check if the transceiver is present or not

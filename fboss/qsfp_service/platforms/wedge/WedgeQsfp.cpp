@@ -260,7 +260,8 @@ std::array<uint8_t, 16> WedgeQsfp::getModulePartNo() {
   if (savedPage != page) {
     writeTransceiver(
         {TransceiverAccessParameter::ADDR_QSFP, kCommonModulePageReg, 1},
-        &page);
+        &page,
+        POST_I2C_WRITE_DELAY_US);
   }
 
   readTransceiver(
@@ -269,7 +270,8 @@ std::array<uint8_t, 16> WedgeQsfp::getModulePartNo() {
   if (savedPage != page) {
     writeTransceiver(
         {TransceiverAccessParameter::ADDR_QSFP, kCommonModulePageReg, 1},
-        &savedPage);
+        &savedPage,
+        POST_I2C_WRITE_DELAY_US);
   }
 
   return partNo;

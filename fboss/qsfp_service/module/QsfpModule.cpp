@@ -1159,7 +1159,9 @@ std::unique_ptr<IOBuf> QsfpModule::readTransceiverLocked(
       // When the page is specified, first update byte 127 with the speciied
       // pageId
       qsfpImpl_->writeTransceiver(
-          {TransceiverAccessParameter::ADDR_QSFP, 127, sizeof(page)}, &page);
+          {TransceiverAccessParameter::ADDR_QSFP, 127, sizeof(page)},
+          &page,
+          POST_I2C_WRITE_DELAY_US);
     }
     qsfpImpl_->readTransceiver(
         {TransceiverAccessParameter::ADDR_QSFP, offset, length},
@@ -1211,10 +1213,14 @@ bool QsfpModule::writeTransceiverLocked(
       // When the page is specified, first update byte 127 with the speciied
       // pageId
       qsfpImpl_->writeTransceiver(
-          {TransceiverAccessParameter::ADDR_QSFP, 127, sizeof(page)}, &page);
+          {TransceiverAccessParameter::ADDR_QSFP, 127, sizeof(page)},
+          &page,
+          POST_I2C_WRITE_DELAY_US);
     }
     qsfpImpl_->writeTransceiver(
-        {TransceiverAccessParameter::ADDR_QSFP, offset, sizeof(data)}, &data);
+        {TransceiverAccessParameter::ADDR_QSFP, offset, sizeof(data)},
+        &data,
+        POST_I2C_WRITE_DELAY_US);
   } catch (const std::exception& ex) {
     QSFP_LOG(ERR, this) << "Error writing data: " << ex.what();
     throw;

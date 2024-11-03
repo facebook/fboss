@@ -33,7 +33,7 @@ class FakeTransceiverImpl : public TransceiverImpl {
   int writeTransceiver(
       const TransceiverAccessParameter& param,
       const uint8_t* fieldValue,
-      uint64_t sleep = 0) override;
+      uint64_t sleep) override;
   /* This function detects if a SFP is present on the particular port */
   bool detectTransceiver() override;
   /* Returns the name for the port */
