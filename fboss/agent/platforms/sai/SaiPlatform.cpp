@@ -705,6 +705,7 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
       maxLocalSystemPortId,
       maxSystemPorts,
       maxVoqs,
+      std::nullopt, // Fabric CLLFC TX credit threshold
   };
 }
 
