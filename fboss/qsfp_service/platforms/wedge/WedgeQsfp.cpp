@@ -300,6 +300,16 @@ size_t WedgeQsfp::getI2cLogBufferCapacity() {
   return 0;
 }
 
+void WedgeQsfp::setTcvrInfoInLog(
+    const TransceiverManagementInterface& mgmtIf,
+    const std::set<std::string>& portNames,
+    const std::optional<FirmwareStatus>& status,
+    const std::optional<Vendor>& vendor) {
+  if (logBuffer_) {
+    logBuffer_->setTcvrInfoInLog(mgmtIf, portNames, status, vendor);
+  }
+}
+
 std::pair<size_t, size_t> WedgeQsfp::dumpTransceiverI2cLog() {
   std::pair<size_t, size_t> entries = {0, 0};
   if (logBuffer_) {

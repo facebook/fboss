@@ -8,6 +8,7 @@
 #include <sstream>
 
 #include <folly/FileUtil.h>
+#include <folly/String.h>
 #include <folly/logging/xlog.h>
 
 namespace {
@@ -111,7 +112,12 @@ I2cLogBuffer::I2cLogHeader I2cLogBuffer::dump(
   }
 
   I2cLogHeader retval = {
-      .totalEntries = totalEntries_, .bufferEntries = entries};
+      .mgmtIf = mgmtIf_,
+      .totalEntries = totalEntries_,
+      .bufferEntries = entries,
+      .portNames = portNames_,
+      .fwStatus = fwStatus_,
+      .vendor = vendor_};
   totalEntries_ = head_ = tail_ = 0;
   return retval;
 }
@@ -121,6 +127,26 @@ size_t I2cLogBuffer::getHeader(
     const I2cLogHeader& info) {
   // Format of the log. All printed header lines must be terminated with \n to
   // return the right number of lines in header.
+  if (auto fw = info.fwStatus) {
+    if (fw.value().version().has_value()) {
+      ss << "FW Version: " << *fw.value().get_version();
+    }
+    if (fw.value().dspFwVer().has_value()) {
+      ss << " DSP FW Version: " << *fw.value().get_dspFwVer();
+    }
+    if (fw.value().buildRev().has_value()) {
+      ss << " FW Build Revision: " << *fw.value().get_buildRev();
+    }
+  }
+  if (auto vendor = info.vendor) {
+    ss << " Vendor: " << vendor.value().get_name()
+       << " Part Number: " << vendor.value().get_partNumber()
+       << " Serial Number: " << vendor.value().get_serialNumber();
+  }
+  ss << " Management Interface: "
+     << apache::thrift::util::enumNameSafe(info.mgmtIf);
+  ss << "\n";
+  ss << "Port Names: " << folly::join(", ", info.portNames) << "\n";
   ss << "I2cLogBuffer: Total Entries: " << info.totalEntries
      << " Logged: " << info.bufferEntries << "\n";
   ss << "Between the Operation <Param> and [Data], an 'F' indicates a failure in the transaction.\n";
@@ -322,6 +348,18 @@ std::vector<I2cLogBuffer::I2cReplayEntry> I2cLogBuffer::loadFromLog(
     entries.emplace_back(param, op, data, delay, success);
   }
   return entries;
+}
+
+void I2cLogBuffer::setTcvrInfoInLog(
+    const TransceiverManagementInterface& mgmtIf,
+    const std::set<std::string>& portNames,
+    const std::optional<FirmwareStatus>& status,
+    const std::optional<Vendor>& vendor) {
+  std::lock_guard<std::mutex> g(mutex_);
+  mgmtIf_ = mgmtIf;
+  portNames_ = portNames;
+  fwStatus_ = status;
+  vendor_ = vendor;
 }
 
 } // namespace facebook::fboss

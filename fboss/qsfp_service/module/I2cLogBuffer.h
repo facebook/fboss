@@ -56,8 +56,12 @@ class I2cLogBuffer {
   };
 
   struct I2cLogHeader {
+    TransceiverManagementInterface mgmtIf;
     size_t totalEntries;
     size_t bufferEntries;
+    std::set<std::string> portNames;
+    std::optional<FirmwareStatus> fwStatus;
+    std::optional<Vendor> vendor;
   };
 
   // NOTE: The maximum number of entries is defined in config (qsfp_config.cinc)
@@ -128,6 +132,16 @@ class I2cLogBuffer {
   // to replay the sequence of transactions or test the logging.
   static std::vector<I2cReplayEntry> loadFromLog(std::string logFile);
 
+  // When Transceiver Information is updated (i.e. inserted), Update that
+  // in the Header of the log file.
+  // We will only be setting the info for the very last transceiver plugged
+  // in to avoid potential memory leaks from higher layers.
+  void setTcvrInfoInLog(
+      const TransceiverManagementInterface& mgmtIf,
+      const std::set<std::string>& portNames,
+      const std::optional<FirmwareStatus>& status,
+      const std::optional<Vendor>& vendor);
+
  private:
   std::vector<I2cLogEntry> buffer_;
   const size_t size_;
@@ -137,6 +151,10 @@ class I2cLogBuffer {
   size_t totalEntries_{0};
   std::string logFile_;
   std::mutex mutex_;
+  TransceiverManagementInterface mgmtIf_;
+  std::set<std::string> portNames_;
+  std::optional<FirmwareStatus> fwStatus_;
+  std::optional<Vendor> vendor_;
 
   size_t getSize() {
     // Avoid the tsan errors. size_ is also a const member variable.
