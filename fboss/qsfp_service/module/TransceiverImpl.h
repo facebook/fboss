@@ -25,6 +25,8 @@ namespace facebook {
 namespace fboss {
 
 constexpr uint64_t POST_I2C_WRITE_DELAY_US = 20000;
+constexpr uint64_t POST_I2C_WRITE_DELAY_CDB_US = 5000;
+constexpr uint64_t POST_I2C_WRITE_NO_DELAY_US = 0;
 
 /*
  * This is class is the SFP implementation class

@@ -36,7 +36,6 @@ static constexpr uint8_t kCdbCommandStatusBusyCmdExec = 0x83;
 constexpr int cdbCommandTimeoutUsec = 10000000;
 constexpr int cdbCommandErrorIntervalUsec = 100000;
 constexpr int cdbCommandStatusPollIntervalUsec = 10000;
-constexpr int cdbMemoryWriteDelayUsec = 5000;
 
 // CMIS firmware related register offsets
 constexpr uint8_t kCdbCommandStatusReg = 37;
@@ -65,7 +64,7 @@ void CdbCommandBlock::i2cWriteAndContinue(
     // command run successfully. Some of the optics need this delay
     /* sleep override */
     bus->writeTransceiver(
-        {i2cAddress, offset, length}, buf, cdbMemoryWriteDelayUsec);
+        {i2cAddress, offset, length}, buf, POST_I2C_WRITE_DELAY_CDB_US);
   } catch (const std::exception& e) {
     XLOG(INFO) << "write() raised exception: Sleep for 100ms and continue: "
                << e.what();
@@ -76,7 +75,7 @@ void CdbCommandBlock::i2cWriteAndContinue(
   auto writeTime = std::chrono::steady_clock::now() - startTime;
   memoryWriteTime_ +=
       std::chrono::duration_cast<std::chrono::milliseconds>(writeTime) -
-      std::chrono::milliseconds(cdbMemoryWriteDelayUsec / 1000);
+      std::chrono::milliseconds(POST_I2C_WRITE_DELAY_CDB_US / 1000);
 }
 
 /*
@@ -96,7 +95,7 @@ bool CdbCommandBlock::cmisRunCdbCommand(TransceiverImpl* bus) {
   bus->writeTransceiver(
       {TransceiverAccessParameter::ADDR_QSFP, kPageSelectReg, 1},
       &page,
-      0 /*delay*/);
+      POST_I2C_WRITE_NO_DELAY_US);
 
   // Since we are going to write byte 2 to len-1 in the module CDB memory
   // without interpreting it so let's take uint8_t* pointer here and do it
@@ -572,7 +571,7 @@ void CdbCommandBlock::selectCdbPage(TransceiverImpl* bus) {
   bus->writeTransceiver(
       {TransceiverAccessParameter::ADDR_QSFP, kPageSelectReg, 1},
       &page,
-      0 /*delay*/);
+      POST_I2C_WRITE_NO_DELAY_US);
 }
 
 /*
@@ -589,7 +588,7 @@ void CdbCommandBlock::setMsaPassword(TransceiverImpl* bus, uint32_t msaPw) {
   bus->writeTransceiver(
       {TransceiverAccessParameter::ADDR_QSFP, kModulePasswordEntryReg, 4},
       msaPwArray.data(),
-      0 /*delay*/);
+      POST_I2C_WRITE_NO_DELAY_US);
 }
 
 } // namespace facebook::fboss

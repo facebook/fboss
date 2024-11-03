@@ -105,7 +105,7 @@ bool CmisFirmwareUpgrader::cmisModuleFirmwareDownload(
   bus_->writeTransceiver(
       {TransceiverAccessParameter::ADDR_QSFP, kModulePasswordEntryReg, 4},
       msaPassword_.data(),
-      0 /*delay*/);
+      POST_I2C_WRITE_NO_DELAY_US);
 
   CdbCommandBlock commandBlockBuf;
   CdbCommandBlock* commandBlock = &commandBlockBuf;
@@ -295,7 +295,7 @@ bool CmisFirmwareUpgrader::cmisModuleFirmwareDownload(
   bus_->writeTransceiver(
       {TransceiverAccessParameter::ADDR_QSFP, kModulePasswordEntryReg, 4},
       msaPassword_.data(),
-      0 /*delay*/);
+      POST_I2C_WRITE_NO_DELAY_US);
 
   // Step 5: Issue CDB command: Commit the downloaded firmware
   commandBlock->createCdbCmdFwCommit();
@@ -325,7 +325,7 @@ bool CmisFirmwareUpgrader::cmisModuleFirmwareDownload(
   bus_->writeTransceiver(
       {TransceiverAccessParameter::ADDR_QSFP, kModulePasswordEntryReg, 4},
       msaPassword_.data(),
-      0 /*delay*/);
+      POST_I2C_WRITE_NO_DELAY_US);
 
   // Print IO profiling info
   auto ioTiming = bus_->getI2cTimeProfileMsec();
