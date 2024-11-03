@@ -1710,6 +1710,12 @@ struct SwitchSettings {
   // Once the SRAM free buffers goes above this threshold,
   // specified as a percent of total SRAM buffers, send XON.
   20: optional byte sramGlobalFreePercentXonThreshold;
+  // Fabric side threshold tracking the minimum needed
+  // fifo free space on the peer device fifo.
+  21: optional i16 fabricCllfcTxCreditThreshold;
+  // SRAM2DRAM threshold on VOQ. Single parameter as of now
+  // controlling both bounds and recovery thresholds.
+  22: optional i32 voqDramBoundThreshold;
 }
 
 // Global buffer pool
