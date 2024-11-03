@@ -70,7 +70,7 @@ void I2cLogBuffer::log(
   }
 }
 
-std::pair<size_t, size_t> I2cLogBuffer::dump(
+I2cLogBuffer::I2cLogHeader I2cLogBuffer::dump(
     std::vector<I2cLogEntry>& entriesOut) {
   std::lock_guard<std::mutex> g(mutex_);
 
@@ -110,19 +110,19 @@ std::pair<size_t, size_t> I2cLogBuffer::dump(
     }
   }
 
-  auto retval = std::make_pair(totalEntries_, entries);
+  I2cLogHeader retval = {
+      .totalEntries = totalEntries_, .bufferEntries = entries};
   totalEntries_ = head_ = tail_ = 0;
   return retval;
 }
 
 size_t I2cLogBuffer::getHeader(
     std::stringstream& ss,
-    size_t entries,
-    size_t numContents) {
+    const I2cLogHeader& info) {
   // Format of the log. All printed header lines must be terminated with \n to
   // return the right number of lines in header.
-  ss << "I2cLogBuffer: Total Entries: " << entries << " Logged: " << numContents
-     << "\n";
+  ss << "I2cLogBuffer: Total Entries: " << info.totalEntries
+     << " Logged: " << info.bufferEntries << "\n";
   ss << "Between the Operation <Param> and [Data], an 'F' indicates a failure in the transaction.\n";
   ss << "If the read transaction failed [Data] may not be accurate.\n";
   ss << "mmmuuu: milliseconds microseconds, steadclock_ns: time in ns between log entries \n";
@@ -166,11 +166,11 @@ std::pair<size_t, size_t> I2cLogBuffer::dumpToFile() {
   // right size before the call to dump();
   const size_t size = getSize();
   std::vector<I2cLogEntry> entriesOut(size);
-  auto entries = dump(entriesOut);
+  const auto headerInfo = dump(entriesOut);
   std::stringstream ss;
 
-  auto logCount = entries.second;
-  auto hdrSize = getHeader(ss, entries.first, logCount);
+  auto logCount = headerInfo.bufferEntries;
+  auto hdrSize = getHeader(ss, headerInfo);
 
   TimePointSteady prev;
 
@@ -301,7 +301,8 @@ std::vector<I2cLogBuffer::I2cReplayEntry> I2cLogBuffer::loadFromLog(
   }
 
   std::stringstream ss;
-  auto hdrSize = getHeader(ss, 0, 0);
+  I2cLogHeader header = {};
+  auto hdrSize = getHeader(ss, header);
   for (auto i = 0; i < hdrSize; i++) {
     if (!std::getline(file, line)) {
       XLOG(ERR) << "Failed to read log header from file " << logFile;

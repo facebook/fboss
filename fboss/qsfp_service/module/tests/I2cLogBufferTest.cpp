@@ -68,8 +68,8 @@ TEST_F(I2cLogBufferTest, basic) {
 
   std::vector<I2cLogBuffer::I2cLogEntry> entries;
   auto count = logBuffer.dump(entries);
-  EXPECT_EQ(count.first, kNumElements);
-  EXPECT_EQ(count.second, kNumElements);
+  EXPECT_EQ(count.totalEntries, kNumElements);
+  EXPECT_EQ(count.bufferEntries, kNumElements);
   EXPECT_EQ(entries.size(), kFullBuffer);
   for (int i = 0; i < kNumElements; i++) {
     EXPECT_EQ(entries[i].param.i2cAddress, i);
@@ -79,8 +79,8 @@ TEST_F(I2cLogBufferTest, basic) {
   // Once dumped, the logBuffer will be empty. Another dump
   // will have a count of 0.
   count = logBuffer.dump(entries);
-  EXPECT_EQ(count.first, 0);
-  EXPECT_EQ(count.second, 0);
+  EXPECT_EQ(count.totalEntries, 0);
+  EXPECT_EQ(count.bufferEntries, 0);
 }
 
 TEST_F(I2cLogBufferTest, basicFullBuffer) {
@@ -96,8 +96,8 @@ TEST_F(I2cLogBufferTest, basicFullBuffer) {
   std::vector<I2cLogBuffer::I2cLogEntry> entries;
   auto count = logBuffer.dump(entries);
   // total entries and entries available in log are the same
-  EXPECT_EQ(count.first, kFullBuffer);
-  EXPECT_EQ(count.second, kFullBuffer);
+  EXPECT_EQ(count.totalEntries, kFullBuffer);
+  EXPECT_EQ(count.bufferEntries, kFullBuffer);
   EXPECT_EQ(entries.size(), kFullBuffer);
   for (int i = 0; i < kFullBuffer; i++) {
     EXPECT_EQ(entries[i].param.i2cAddress, i);
@@ -107,8 +107,8 @@ TEST_F(I2cLogBufferTest, basicFullBuffer) {
   // Once dumped, the logBuffer will be empty. Another dump
   // will have a count of 0.
   count = logBuffer.dump(entries);
-  EXPECT_EQ(count.first, 0);
-  EXPECT_EQ(count.second, 0);
+  EXPECT_EQ(count.totalEntries, 0);
+  EXPECT_EQ(count.bufferEntries, 0);
 }
 
 TEST_F(I2cLogBufferTest, basicFullBufferAnd1Element) {
@@ -124,8 +124,8 @@ TEST_F(I2cLogBufferTest, basicFullBufferAnd1Element) {
 
   std::vector<I2cLogBuffer::I2cLogEntry> entries;
   auto count = logBuffer.dump(entries);
-  EXPECT_EQ(count.first, kFullBuffer + 1);
-  EXPECT_EQ(count.second, kFullBuffer);
+  EXPECT_EQ(count.totalEntries, kFullBuffer + 1);
+  EXPECT_EQ(count.bufferEntries, kFullBuffer);
   EXPECT_EQ(entries.size(), kFullBuffer);
   for (int i = 0; i < kFullBuffer; i++) {
     EXPECT_EQ(entries[i].param.i2cAddress, i + 1);
@@ -135,8 +135,8 @@ TEST_F(I2cLogBufferTest, basicFullBufferAnd1Element) {
   // Once dumped, the logBuffer will be empty. Another dump
   // will have a count of 0.
   count = logBuffer.dump(entries);
-  EXPECT_EQ(count.first, 0);
-  EXPECT_EQ(count.second, 0);
+  EXPECT_EQ(count.totalEntries, 0);
+  EXPECT_EQ(count.bufferEntries, 0);
 }
 
 TEST_F(I2cLogBufferTest, testRange) {
@@ -173,10 +173,10 @@ TEST_F(I2cLogBufferTest, testRange) {
       EXPECT_EQ(0, logBuffer.getTotalEntries());
 
       // Expect that total logged elements is number of inserts
-      EXPECT_EQ(count.first, inserts);
+      EXPECT_EQ(count.totalEntries, inserts);
       // Expect that we have the following number of elements:
       //     minimum of the number of logged elements or LogBuffer size
-      EXPECT_EQ(count.second, std::min(inserts, bufferSize));
+      EXPECT_EQ(count.bufferEntries, std::min(inserts, bufferSize));
       // The updated vector size is always the size of the LogBuffer.
       EXPECT_EQ(entries.size(), bufferSize);
       // if the number of inserts is smaller than or equal to bufferSize:
@@ -193,8 +193,8 @@ TEST_F(I2cLogBufferTest, testRange) {
       // Once dumped, the logBuffer will be empty. Another dump
       // will have a count of 0.
       count = logBuffer.dump(entries);
-      EXPECT_EQ(count.first, 0);
-      EXPECT_EQ(count.second, 0);
+      EXPECT_EQ(count.totalEntries, 0);
+      EXPECT_EQ(count.bufferEntries, 0);
     }
   }
 }
@@ -214,8 +214,8 @@ TEST_F(I2cLogBufferTest, testLargeData) {
   }
   std::vector<I2cLogBuffer::I2cLogEntry> entries;
   auto count = logBuffer.dump(entries);
-  EXPECT_EQ(count.first, kFullBuffer);
-  EXPECT_EQ(count.second, kFullBuffer);
+  EXPECT_EQ(count.totalEntries, kFullBuffer);
+  EXPECT_EQ(count.bufferEntries, kFullBuffer);
   EXPECT_EQ(entries.size(), kFullBuffer);
 
   for (int i = 0; i < kFullBuffer; i++) {
@@ -254,8 +254,8 @@ TEST_F(I2cLogBufferTest, testOnlyRead) {
   }
   std::vector<I2cLogBuffer::I2cLogEntry> entries;
   auto count = logBuffer.dump(entries);
-  EXPECT_EQ(count.first, 3);
-  EXPECT_EQ(count.second, 3);
+  EXPECT_EQ(count.totalEntries, 3);
+  EXPECT_EQ(count.bufferEntries, 3);
 }
 
 TEST_F(I2cLogBufferTest, testOnlyWrite) {
@@ -271,8 +271,8 @@ TEST_F(I2cLogBufferTest, testOnlyWrite) {
   }
   std::vector<I2cLogBuffer::I2cLogEntry> entries;
   auto count = logBuffer.dump(entries);
-  EXPECT_EQ(count.first, 4);
-  EXPECT_EQ(count.first, 4);
+  EXPECT_EQ(count.totalEntries, 4);
+  EXPECT_EQ(count.totalEntries, 4);
 }
 
 TEST_F(I2cLogBufferTest, testDisableOnFail) {
@@ -292,8 +292,8 @@ TEST_F(I2cLogBufferTest, testDisableOnFail) {
   // since we have disableOnFail, we stop logging beyond error.
   std::vector<I2cLogBuffer::I2cLogEntry> entries;
   auto count = logBuffer.dump(entries);
-  EXPECT_EQ(count.first, 3);
-  EXPECT_EQ(count.second, 3);
+  EXPECT_EQ(count.totalEntries, 3);
+  EXPECT_EQ(count.bufferEntries, 3);
 }
 
 TEST_F(I2cLogBufferTest, testNoDisableOnFail) {
@@ -313,8 +313,8 @@ TEST_F(I2cLogBufferTest, testNoDisableOnFail) {
   // check that we have 5 elements since we dont disable logging on fail
   std::vector<I2cLogBuffer::I2cLogEntry> entries;
   auto count = logBuffer.dump(entries);
-  EXPECT_EQ(count.first, 5);
-  EXPECT_EQ(count.second, 5);
+  EXPECT_EQ(count.totalEntries, 5);
+  EXPECT_EQ(count.bufferEntries, 5);
 }
 
 TEST_F(I2cLogBufferTest, testEmptyLogFile) {

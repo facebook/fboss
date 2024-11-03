@@ -55,6 +55,11 @@ class I2cLogBuffer {
     I2cLogEntry() : param(TransceiverAccessParameter(0, 0, 0)) {}
   };
 
+  struct I2cLogHeader {
+    size_t totalEntries;
+    size_t bufferEntries;
+  };
+
   // NOTE: The maximum number of entries is defined in config (qsfp_config.cinc)
   static_assert(
       sizeof(I2cLogEntry) < 200,
@@ -99,7 +104,7 @@ class I2cLogBuffer {
   // Returns a pair: total enties logged and number of entries in circular
   // buffer. Total entries logged could be much higher than capacity of circular
   // buffer.
-  std::pair<size_t, size_t> dump(std::vector<I2cLogEntry>& entriesOut);
+  I2cLogHeader dump(std::vector<I2cLogEntry>& entriesOut);
 
   // Get the number of entries logged to the buffer. The size of the
   // buffer can be smaller than total entries logged.
@@ -145,8 +150,7 @@ class I2cLogBuffer {
   void getOptional(std::stringstream& ss, T value);
 
   // Operations to re-construct I2cReplayEntry from a log file.
-  static size_t
-  getHeader(std::stringstream& ss, size_t entries, size_t numContents);
+  static size_t getHeader(std::stringstream& ss, const I2cLogHeader& info);
   static std::string getField(const std::string& line, char left, char right);
   static TransceiverAccessParameter getParam(std::stringstream& ss);
   static I2cLogBuffer::Operation getOp(std::stringstream& ss);
