@@ -32,16 +32,6 @@ const std::map<int64_t, cfg::SwitchInfo> getSwitchInfoFromConfigImpl(
         switchInfo.portIdRange()->maximum() =
             cfg::switch_config_constants::DEFAULT_PORT_ID_RANGE_MAX();
       }
-      if (switchInfo.switchType() == cfg::SwitchType::VOQ &&
-          !switchInfo.systemPortRange()) {
-        auto dsfItr =
-            config->dsfNodes()->find(static_cast<int64_t>(entry.first));
-        if (dsfItr != config->dsfNodes()->end()) {
-          auto localNode = dsfItr->second;
-          CHECK(localNode.systemPortRange().has_value());
-          switchInfo.systemPortRange() = *localNode.systemPortRange();
-        }
-      }
       switchInfoMap.emplace(entry.first, switchInfo);
     }
   }
