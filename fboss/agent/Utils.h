@@ -85,7 +85,6 @@ inline const int kUdfAclRethDmaLenFieldSizeInBytes(2);
 class SwitchState;
 class Interface;
 class SwitchSettings;
-class SwitchIdScopeResolver;
 class PlatformMapping;
 struct AgentConfig;
 class HwAsic;
@@ -442,14 +441,6 @@ int getRemoteSwitchID(
     const cfg::Port& port,
     const std::unordered_map<std::string, std::vector<uint32_t>>&
         switchNameToSwitchIds);
-
-bool haveParallelLinksToInterfaceNodes(
-    const cfg::SwitchConfig* cfg,
-    const std::vector<SwitchID>& localFabricSwitchIds,
-    const std::unordered_map<std::string, std::vector<uint32_t>>&
-        switchNameToSwitchIds,
-    SwitchIdScopeResolver& scopeResolver,
-    const PlatformMapping* platformMapping);
 
 CpuCosQueueId hwQueueIdToCpuCosQueueId(
     uint8_t hwQueueId,

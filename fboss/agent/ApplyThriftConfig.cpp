@@ -101,6 +101,7 @@ using folly::StringPiece;
 using std::make_shared;
 using std::shared_ptr;
 
+using namespace facebook::fboss;
 namespace {
 
 const uint8_t kV6LinkLocalAddrMask{64};
@@ -148,6 +149,55 @@ std::shared_ptr<MultiMap> toMultiSwitchMap(
   return multiMap;
 }
 
+bool haveParallelLinksToInterfaceNodes(
+    const cfg::SwitchConfig* cfg,
+    const std::vector<SwitchID>& localFabricSwitchIds,
+    const std::unordered_map<std::string, std::vector<uint32_t>>&
+        switchNameToSwitchIds,
+    SwitchIdScopeResolver& scopeResolver,
+    const PlatformMapping* platformMapping) {
+  for (const auto& fabricSwitchId : localFabricSwitchIds) {
+    // Determine parallel links on VD level - there are two VDs per R3 ASIC
+    std::unordered_map<int, std::unordered_set<std::string>> vd2VoqNeighbors;
+    for (const auto& port : *cfg->ports()) {
+      // Only process ports belonging to one switchId
+      if (scopeResolver.scope(port).has(SwitchID(fabricSwitchId)) &&
+          port.expectedNeighborReachability()->size() > 0) {
+        auto neighborRemoteSwitchId =
+            getRemoteSwitchID(cfg, port, switchNameToSwitchIds);
+        const auto& neighborDsfNodeIter =
+            cfg->dsfNodes()->find(neighborRemoteSwitchId);
+        CHECK(neighborDsfNodeIter != cfg->dsfNodes()->end());
+        if (*neighborDsfNodeIter->second.type() ==
+            cfg::DsfNodeType::INTERFACE_NODE) {
+          CHECK(port.name().has_value());
+          auto localVirtualDeviceId =
+              platformMapping->getVirtualDeviceID(*port.name());
+          if (!localVirtualDeviceId.has_value()) {
+            throw FbossError(
+                "Unable to find virtual device id for port: ",
+                *port.logicalID(),
+                " virtual device");
+          }
+
+          if (vd2VoqNeighbors.find(localVirtualDeviceId.value()) ==
+              vd2VoqNeighbors.end()) {
+            vd2VoqNeighbors.insert(
+                {localVirtualDeviceId.value(),
+                 std::unordered_set<std::string>()});
+          }
+          auto& voqNeighbors = vd2VoqNeighbors[localVirtualDeviceId.value()];
+          const auto& [neighborName, _] = getExpectedNeighborAndPortName(port);
+          if (voqNeighbors.find(neighborName) != voqNeighbors.end()) {
+            return true;
+          }
+          voqNeighbors.insert(neighborName);
+        }
+      }
+    }
+  }
+  return false;
+};
 } // anonymous namespace
 
 namespace facebook::fboss {
