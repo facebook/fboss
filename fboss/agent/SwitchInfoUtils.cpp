@@ -17,6 +17,20 @@
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 
 namespace facebook::fboss {
+namespace {
+
+bool withinRange(const cfg::SystemPortRanges& ranges, int64_t id) {
+  bool inRange{false};
+  for (const auto& sysPortRange : *ranges.systemPortRanges()) {
+    if (id >= *sysPortRange.minimum() && id <= *sysPortRange.maximum()) {
+      inRange = true;
+      break;
+    }
+  }
+  return inRange;
+}
+} // namespace
+
 const std::map<int64_t, cfg::SwitchInfo> getSwitchInfoFromConfigImpl(
     const cfg::SwitchConfig* config) {
   std::map<int64_t, cfg::SwitchInfo> switchInfoMap;
@@ -96,4 +110,13 @@ const std::optional<cfg::SdkVersion> getSdkVersionFromConfig(
   auto& swConfig = config->thrift.sw().value();
   return getSdkVersionFromConfigImpl(&swConfig);
 }
+
+bool withinRange(const cfg::SystemPortRanges& ranges, InterfaceID intfId) {
+  return withinRange(ranges, static_cast<int64_t>(intfId));
+}
+
+bool withinRange(const cfg::SystemPortRanges& ranges, SystemPortID sysPortId) {
+  return withinRange(ranges, static_cast<int64_t>(sysPortId));
+}
+
 } // namespace facebook::fboss

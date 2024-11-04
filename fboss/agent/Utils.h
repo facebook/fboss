@@ -275,9 +275,6 @@ std::vector<PortID> getPortsForInterface(
     InterfaceID intf,
     const std::shared_ptr<SwitchState>& state);
 
-bool withinRange(const cfg::SystemPortRanges& ranges, InterfaceID intfId);
-
-bool withinRange(const cfg::SystemPortRanges& ranges, SystemPortID sysPortId);
 /*
  * An NPU switch injects a broadcast message such as neighbor solicitation or
  * advertisement via pipeline lookup. ASIC forwards these messages to all the

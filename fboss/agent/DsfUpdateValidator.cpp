@@ -2,7 +2,7 @@
 
 #include "fboss/agent/DsfUpdateValidator.h"
 #include "fboss/agent/DsfStateUpdaterUtil.h"
-#include "fboss/agent/Utils.h"
+#include "fboss/agent/SwitchInfoUtils.h"
 #include "fboss/agent/state/DeltaFunctions.h"
 #include "fboss/agent/state/InterfaceMap.h"
 #include "fboss/agent/state/StateDelta.h"
