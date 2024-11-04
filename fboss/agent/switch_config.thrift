@@ -605,6 +605,7 @@ enum AclStage {
   INGRESS = 0,
   INGRESS_MACSEC = 1,
   EGRESS_MACSEC = 2,
+  EGRESS = 3,
 }
 
 // startdocs_AclTableGroup_struct
