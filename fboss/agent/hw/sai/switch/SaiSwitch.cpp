@@ -1359,6 +1359,26 @@ void SaiSwitch::processSwitchSettingsChangeSansDrainedEntryLocked(
           newSramGlobalXonTh.value_or(0));
     }
   }
+  {
+    const auto oldLinkFlowControlCreditTh =
+        oldSwitchSettings->getLinkFlowControlCreditThreshold();
+    const auto newLinkFlowControlCreditTh =
+        newSwitchSettings->getLinkFlowControlCreditThreshold();
+    if (oldLinkFlowControlCreditTh != newLinkFlowControlCreditTh) {
+      managerTable_->switchManager().setLinkFlowControlCreditTh(
+          newLinkFlowControlCreditTh.value_or(0));
+    }
+  }
+  {
+    const auto oldVoqDramBoundTh =
+        oldSwitchSettings->getVoqDramBoundThreshold();
+    const auto newVoqDramBoundTh =
+        newSwitchSettings->getVoqDramBoundThreshold();
+    if (oldVoqDramBoundTh != newVoqDramBoundTh) {
+      managerTable_->switchManager().setVoqDramBoundTh(
+          newVoqDramBoundTh.value_or(0));
+    }
+  }
 }
 
 template <typename LockPolicyT>

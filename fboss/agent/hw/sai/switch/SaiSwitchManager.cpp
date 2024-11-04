@@ -1026,4 +1026,26 @@ void SaiSwitchManager::setSramGlobalFreePercentXonTh(
           sramFreePercentXonThreshold});
 #endif
 }
+
+void SaiSwitchManager::setLinkFlowControlCreditTh(
+    uint16_t linkFlowControlThreshold) {
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_0) && !defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+  switch_->setOptionalAttribute(
+      SaiSwitchTraits::Attributes::FabricCllfcTxCreditTh{
+          linkFlowControlThreshold});
+#endif
+}
+
+void SaiSwitchManager::setVoqDramBoundTh(uint32_t dramBoundThreshold) {
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_0) && !defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+  // There are 3 different types of rate classes available and
+  // dramBound, upper and lower limits are applied to each of
+  // those. However, in our case, we just need to set the same
+  // DRAM bounds value for all the rate classes.
+  std::vector<uint32_t> dramBounds(6, dramBoundThreshold);
+  switch_->setOptionalAttribute(
+      SaiSwitchTraits::Attributes::VoqDramBoundTh{dramBounds});
+#endif
+}
+
 } // namespace facebook::fboss
