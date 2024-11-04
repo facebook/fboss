@@ -1107,10 +1107,8 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChangedImplLocked(
       // remove default acl table and add a new one. table removal should
       // clear acl entries too
       managerTable_->switchManager().resetIngressAcl();
-      managerTable_->aclTableManager().removeDefaultAclTable(
-          cfg::AclStage::INGRESS);
-      managerTable_->aclTableManager().addDefaultAclTable(
-          cfg::AclStage::INGRESS);
+      managerTable_->aclTableManager().removeDefaultIngressAclTable();
+      managerTable_->aclTableManager().addDefaultIngressAclTable();
       managerTable_->switchManager().setIngressAcl();
     }
 
@@ -2584,8 +2582,7 @@ void SaiSwitch::initStoreAndManagersLocked(
             std::make_shared<AclTableGroup>(cfg::AclStage::INGRESS);
         managerTable_->aclTableGroupManager().addAclTableGroup(aclTableGroup);
 
-        managerTable_->aclTableManager().addDefaultAclTable(
-            cfg::AclStage::INGRESS);
+        managerTable_->aclTableManager().addDefaultIngressAclTable();
       }
     }
 

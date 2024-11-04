@@ -191,8 +191,8 @@ class SaiAclTableManager {
   std::set<cfg::AclTableQualifier> getSupportedQualifierSet(
       cfg::AclStage stage) const;
 
-  void addDefaultAclTable(cfg::AclStage stage);
-  void removeDefaultAclTable(cfg::AclStage stage);
+  void addDefaultIngressAclTable();
+  void removeDefaultIngressAclTable();
 
   bool isQualifierSupported(
       const std::string& aclTableName,
@@ -276,6 +276,9 @@ class SaiAclTableManager {
 
   std::set<cfg::AclTableQualifier> getSupportedQualifierSet(
       sai_acl_stage_t aclStage) const;
+
+  void addDefaultAclTable(cfg::AclStage stage, const std::string& name);
+  void removeDefaultAclTable(cfg::AclStage stage, const std::string& name);
 
   SaiStore* saiStore_;
   SaiManagerTable* managerTable_;

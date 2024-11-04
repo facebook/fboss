@@ -1567,20 +1567,24 @@ std::set<cfg::AclTableQualifier> SaiAclTableManager::getSupportedQualifierSet(
   }
 }
 
-void SaiAclTableManager::addDefaultAclTable(cfg::AclStage stage) {
-  if (handles_.find(kAclTable1) != handles_.end()) {
-    throw FbossError("default acl table already exists.");
+void SaiAclTableManager::addDefaultAclTable(
+    cfg::AclStage stage,
+    const std::string& name) {
+  if (handles_.find(name) != handles_.end()) {
+    throw FbossError("default acl table ", name, " already exists.");
   }
   // TODO(saranicholas): set appropriate table priority
   state::AclTableFields aclTableFields{};
   aclTableFields.priority() = 0;
-  aclTableFields.id() = kAclTable1;
+  aclTableFields.id() = name;
   auto table1 = std::make_shared<AclTable>(std::move(aclTableFields));
   addAclTable(table1, stage);
 }
 
-void SaiAclTableManager::removeDefaultAclTable(cfg::AclStage stage) {
-  if (handles_.find(kAclTable1) == handles_.end()) {
+void SaiAclTableManager::removeDefaultAclTable(
+    cfg::AclStage stage,
+    const std::string& name) {
+  if (handles_.find(name) == handles_.end()) {
     return;
   }
   // remove from acl table group
@@ -1588,7 +1592,7 @@ void SaiAclTableManager::removeDefaultAclTable(cfg::AclStage stage) {
       SaiAclTableGroupManager::cfgAclStageToSaiAclStage(stage);
   if (platform_->getAsic()->isSupported(HwAsic::Feature::ACL_TABLE_GROUP)) {
     managerTable_->aclTableGroupManager().removeAclTableGroupMember(
-        saiAclStage, kAclTable1);
+        saiAclStage, name);
   }
   handles_.erase(kAclTable1);
 }
@@ -1877,5 +1881,12 @@ std::shared_ptr<AclEntry> SaiAclTableManager::reconstructAclEntry(
     const std::string& /*aclEntryName*/,
     int /*priority*/) const {
   throw FbossError("reconstructAclEntry not implemented in SaiAclTableManager");
+}
+
+void SaiAclTableManager::addDefaultIngressAclTable() {
+  addDefaultAclTable(cfg::AclStage::INGRESS, kAclTable1);
+}
+void SaiAclTableManager::removeDefaultIngressAclTable() {
+  removeDefaultAclTable(cfg::AclStage::INGRESS, kAclTable1);
 }
 } // namespace facebook::fboss
