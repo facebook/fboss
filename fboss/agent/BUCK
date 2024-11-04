@@ -617,6 +617,22 @@ cpp_library(
 )
 
 cpp_library(
+    name = "fsdb_adapted_sub_manager",
+    srcs = [
+        "FsdbAdaptedSubManager.cpp",
+    ],
+    headers = [
+        "FsdbAdaptedSubManager.h",
+    ],
+    exported_deps = [
+        "//fboss/agent/state:state",
+        "//fboss/fsdb/client:fsdb_sub_manager",
+        "//fboss/fsdb/if:fsdb_model",
+        "//fboss/thrift_cow/storage:cow_storage",
+    ],
+)
+
+cpp_library(
     name = "core",
     srcs = [
         "AclNexthopHandler.cpp",
@@ -633,7 +649,6 @@ cpp_library(
         "EncapIndexAllocator.cpp",
         "FabricConnectivityManager.cpp",
         "FibHelpers.cpp",
-        "FsdbAdaptedSubManager.cpp",
         "FsdbSyncer.cpp",
         "HwAsicTable.cpp",
         "HwSwitchConnectionStatusTable.cpp",
@@ -721,6 +736,7 @@ cpp_library(
         ":fboss-error",
         ":fboss-event-base",
         ":fboss-types",
+        ":fsdb_adapted_sub_manager",
         ":hw_switch_handler",
         ":hwswitchcallback",
         ":l2learn_event_observer",
