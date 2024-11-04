@@ -4582,6 +4582,28 @@ shared_ptr<SwitchSettings> ThriftConfigApplier::updateSwitchSettings(
     switchSettingsChange = true;
   }
 
+  std::optional<uint16_t> newLinkFlowControlCreditThreshold;
+  if (cfg_->switchSettings()->linkFlowControlCreditThreshold()) {
+    newLinkFlowControlCreditThreshold =
+        *cfg_->switchSettings()->linkFlowControlCreditThreshold();
+  }
+  if (newLinkFlowControlCreditThreshold !=
+      origSwitchSettings->getLinkFlowControlCreditThreshold()) {
+    newSwitchSettings->setLinkFlowControlCreditThreshold(
+        newLinkFlowControlCreditThreshold);
+    switchSettingsChange = true;
+  }
+
+  std::optional<uint32_t> newVoqDramBoundThreshold;
+  if (cfg_->switchSettings()->voqDramBoundThreshold()) {
+    newVoqDramBoundThreshold = *cfg_->switchSettings()->voqDramBoundThreshold();
+  }
+  if (newVoqDramBoundThreshold !=
+      origSwitchSettings->getVoqDramBoundThreshold()) {
+    newSwitchSettings->setVoqDramBoundThreshold(newVoqDramBoundThreshold);
+    switchSettingsChange = true;
+  }
+
   if (origSwitchSettings->getSwitchDrainState() !=
       *cfg_->switchSettings()->switchDrainState()) {
     auto numVoqSwtitches =
