@@ -1181,6 +1181,7 @@ cpp_library(
         ":fboss-error",
         ":fboss-types",
         ":hwswitch_matcher",
+        ":switchinfo_utils",
         "//fboss/agent/state:state",
     ],
     exported_external_deps = [

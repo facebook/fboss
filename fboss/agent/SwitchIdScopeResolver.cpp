@@ -2,6 +2,7 @@
 
 #include "fboss/agent/SwitchIdScopeResolver.h"
 #include "fboss/agent/FbossError.h"
+#include "fboss/agent/SwitchInfoUtils.h"
 #include "fboss/agent/state/AclTableGroup.h"
 #include "fboss/agent/state/AggregatePort.h"
 #include "fboss/agent/state/ForwardingInformationBaseMap.h"
@@ -137,17 +138,11 @@ HwSwitchMatcher SwitchIdScopeResolver::scope(
 }
 
 HwSwitchMatcher SwitchIdScopeResolver::scope(SystemPortID sysPortId) const {
-  auto sysPortInt = static_cast<int64_t>(sysPortId);
   for (const auto& [id, info] : switchIdToSwitchInfo_) {
-    if (!info.systemPortRange().has_value()) {
-      continue;
-    }
-    if (sysPortInt >= *info.systemPortRange()->minimum() &&
-        sysPortInt <= *info.systemPortRange()->maximum()) {
+    if (withinRange(*info.systemPortRanges(), sysPortId)) {
       return HwSwitchMatcher(std::unordered_set<SwitchID>({SwitchID(id)}));
     }
   }
-
   // This is a non local sys port. So it maps to all local voq switchIds
   return voqSwitchMatcher();
 }

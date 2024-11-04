@@ -457,6 +457,7 @@ target_link_libraries(switchid_scope_resolver
   fboss_error
   hwswitch_matcher
   state
+  switchinfo_utils
 )
 
 add_library(hwagent
