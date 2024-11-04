@@ -393,7 +393,7 @@ struct SwitchSettingsFields {
   // SRAM global thresholds to send PFC XOFF/XON
   44: optional byte sramGlobalFreePercentXoffThreshold;
   45: optional byte sramGlobalFreePercentXonThreshold;
-  46: optional i16 fabricCllfcTxCreditThreshold;
+  46: optional i16 linkFlowControlCreditThreshold;
   47: optional i32 voqDramBoundThreshold;
 }
 

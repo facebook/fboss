@@ -1712,7 +1712,7 @@ struct SwitchSettings {
   20: optional byte sramGlobalFreePercentXonThreshold;
   // Fabric side threshold tracking the minimum needed
   // fifo free space on the peer device fifo.
-  21: optional i16 fabricCllfcTxCreditThreshold;
+  21: optional i16 linkFlowControlCreditThreshold;
   // SRAM2DRAM threshold on VOQ. Single parameter as of now
   // controlling both bounds and recovery thresholds.
   22: optional i32 voqDramBoundThreshold;

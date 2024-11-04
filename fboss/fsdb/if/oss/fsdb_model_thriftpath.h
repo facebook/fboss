@@ -3109,7 +3109,7 @@ std::pair<strings::icmpV4UnavailableSrcAddress, ChildThriftPath<::facebook::netw
 std::pair<strings::reachabilityGroupListSize, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
 std::pair<strings::sramGlobalFreePercentXoffThreshold, Child<::std::int8_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::byte_t>>,
 std::pair<strings::sramGlobalFreePercentXonThreshold, Child<::std::int8_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::byte_t>>,
-std::pair<strings::fabricCllfcTxCreditThreshold, Child<::std::int16_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i16_t>>,
+std::pair<strings::linkFlowControlCreditThreshold, Child<::std::int16_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i16_t>>,
 std::pair<strings::voqDramBoundThreshold, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>>;
   using ChildrenById = fatal::tuple<   std::pair<std::integral_constant<apache::thrift::field_id_t, 1>, Child<::facebook::fboss::cfg::L2LearningMode, ::apache::thrift::type_class::enumeration, ::apache::thrift::type::enum_t<::facebook::fboss::cfg::L2LearningMode>>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 2>, Child<bool, ::apache::thrift::type_class::integral, ::apache::thrift::type::bool_t>>,
@@ -3202,7 +3202,7 @@ std::pair<strings::icmpV4UnavailableSrcAddress, std::integral_constant<apache::t
 std::pair<strings::reachabilityGroupListSize, std::integral_constant<apache::thrift::field_id_t, 43>>,
 std::pair<strings::sramGlobalFreePercentXoffThreshold, std::integral_constant<apache::thrift::field_id_t, 44>>,
 std::pair<strings::sramGlobalFreePercentXonThreshold, std::integral_constant<apache::thrift::field_id_t, 45>>,
-std::pair<strings::fabricCllfcTxCreditThreshold, std::integral_constant<apache::thrift::field_id_t, 46>>,
+std::pair<strings::linkFlowControlCreditThreshold, std::integral_constant<apache::thrift::field_id_t, 46>>,
 std::pair<strings::voqDramBoundThreshold, std::integral_constant<apache::thrift::field_id_t, 47>>>::template type_of<Name>;
 
   template <typename Name>
@@ -3253,7 +3253,7 @@ std::pair<strings::voqDramBoundThreshold, std::integral_constant<apache::thrift:
     STRUCT_CHILD_GETTERS(reachabilityGroupListSize, 43);
     STRUCT_CHILD_GETTERS(sramGlobalFreePercentXoffThreshold, 44);
     STRUCT_CHILD_GETTERS(sramGlobalFreePercentXonThreshold, 45);
-    STRUCT_CHILD_GETTERS(fabricCllfcTxCreditThreshold, 46);
+    STRUCT_CHILD_GETTERS(linkFlowControlCreditThreshold, 46);
     STRUCT_CHILD_GETTERS(voqDramBoundThreshold, 47);
 
   template <apache::thrift::field_id_t __id>
@@ -3302,7 +3302,7 @@ std::pair<strings::voqDramBoundThreshold, std::integral_constant<apache::thrift:
     else if constexpr (__id == 43) { return reachabilityGroupListSize(); }
     else if constexpr (__id == 44) { return sramGlobalFreePercentXoffThreshold(); }
     else if constexpr (__id == 45) { return sramGlobalFreePercentXonThreshold(); }
-    else if constexpr (__id == 46) { return fabricCllfcTxCreditThreshold(); }
+    else if constexpr (__id == 46) { return linkFlowControlCreditThreshold(); }
     else if constexpr (__id == 47) { return voqDramBoundThreshold(); }
   }
 
@@ -13082,7 +13082,7 @@ std::pair<strings::metaMacOuis, ChildThriftPath<::std::vector<::std::string>, ::
 std::pair<strings::needL2EntryForNeighbor, Child<bool, ::apache::thrift::type_class::integral, ::apache::thrift::type::bool_t>>,
 std::pair<strings::sramGlobalFreePercentXoffThreshold, Child<::std::int8_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::byte_t>>,
 std::pair<strings::sramGlobalFreePercentXonThreshold, Child<::std::int8_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::byte_t>>,
-std::pair<strings::fabricCllfcTxCreditThreshold, Child<::std::int16_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i16_t>>,
+std::pair<strings::linkFlowControlCreditThreshold, Child<::std::int16_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i16_t>>,
 std::pair<strings::voqDramBoundThreshold, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>>;
   using ChildrenById = fatal::tuple<   std::pair<std::integral_constant<apache::thrift::field_id_t, 1>, Child<::facebook::fboss::cfg::L2LearningMode, ::apache::thrift::type_class::enumeration, ::apache::thrift::type::enum_t<::facebook::fboss::cfg::L2LearningMode>>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 2>, Child<bool, ::apache::thrift::type_class::integral, ::apache::thrift::type::bool_t>>,
@@ -13127,7 +13127,7 @@ std::pair<strings::metaMacOuis, std::integral_constant<apache::thrift::field_id_
 std::pair<strings::needL2EntryForNeighbor, std::integral_constant<apache::thrift::field_id_t, 18>>,
 std::pair<strings::sramGlobalFreePercentXoffThreshold, std::integral_constant<apache::thrift::field_id_t, 19>>,
 std::pair<strings::sramGlobalFreePercentXonThreshold, std::integral_constant<apache::thrift::field_id_t, 20>>,
-std::pair<strings::fabricCllfcTxCreditThreshold, std::integral_constant<apache::thrift::field_id_t, 21>>,
+std::pair<strings::linkFlowControlCreditThreshold, std::integral_constant<apache::thrift::field_id_t, 21>>,
 std::pair<strings::voqDramBoundThreshold, std::integral_constant<apache::thrift::field_id_t, 22>>>::template type_of<Name>;
 
   template <typename Name>
@@ -13154,7 +13154,7 @@ std::pair<strings::voqDramBoundThreshold, std::integral_constant<apache::thrift:
     STRUCT_CHILD_GETTERS(needL2EntryForNeighbor, 18);
     STRUCT_CHILD_GETTERS(sramGlobalFreePercentXoffThreshold, 19);
     STRUCT_CHILD_GETTERS(sramGlobalFreePercentXonThreshold, 20);
-    STRUCT_CHILD_GETTERS(fabricCllfcTxCreditThreshold, 21);
+    STRUCT_CHILD_GETTERS(linkFlowControlCreditThreshold, 21);
     STRUCT_CHILD_GETTERS(voqDramBoundThreshold, 22);
 
   template <apache::thrift::field_id_t __id>
@@ -13179,7 +13179,7 @@ std::pair<strings::voqDramBoundThreshold, std::integral_constant<apache::thrift:
     else if constexpr (__id == 18) { return needL2EntryForNeighbor(); }
     else if constexpr (__id == 19) { return sramGlobalFreePercentXoffThreshold(); }
     else if constexpr (__id == 20) { return sramGlobalFreePercentXonThreshold(); }
-    else if constexpr (__id == 21) { return fabricCllfcTxCreditThreshold(); }
+    else if constexpr (__id == 21) { return linkFlowControlCreditThreshold(); }
     else if constexpr (__id == 22) { return voqDramBoundThreshold(); }
   }
 
