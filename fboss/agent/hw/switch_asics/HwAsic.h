@@ -199,6 +199,7 @@ class HwAsic {
     PORT_MTU_ERROR_TRAP,
     L3_INTF_MTU,
     DEDICATED_CPU_BUFFER_POOL,
+    EGRESS_ACL_TABLE,
   };
 
   enum class AsicMode {

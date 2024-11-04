@@ -198,6 +198,7 @@ bool Jericho3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::L3_MTU_ERROR_TRAP:
     case HwAsic::Feature::L3_INTF_MTU:
     case HwAsic::Feature::DEDICATED_CPU_BUFFER_POOL:
+    case HwAsic::Feature::EGRESS_ACL_TABLE:
       return false;
   }
   return false;

@@ -76,6 +76,7 @@ bool ChenabAsic::isSupportedNonFabric(Feature feature) const {
     case HwAsic::Feature::SAI_TTL0_PACKET_FORWARD_ENABLE:
     case HwAsic::Feature::L3_INTF_MTU:
     case HwAsic::Feature::PORT_MTU_ERROR_TRAP:
+    case HwAsic::Feature::EGRESS_ACL_TABLE:
       return true;
     case HwAsic::Feature::EVENTOR_PORT_FOR_SFLOW:
     case HwAsic::Feature::CPU_VOQ_BUFFER_PROFILE:
