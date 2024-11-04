@@ -8,7 +8,7 @@
   "pwmUpperThreshold": 100,
   "sensors": [
     {
-      "sensorName": "INLET",
+      "sensorName": "SCM_INLET",
       "access": {
         "accessType": "ACCESS_TYPE_THRIFT"
       },
