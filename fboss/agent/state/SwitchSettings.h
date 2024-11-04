@@ -611,6 +611,40 @@ class SwitchSettings
     }
   }
 
+  std::optional<uint16_t> getLinkFlowControlCreditThreshold() const {
+    if (auto linkFlowControlCreditTh =
+            cref<switch_state_tags::linkFlowControlCreditThreshold>()) {
+      return linkFlowControlCreditTh->toThrift();
+    }
+    return std::nullopt;
+  }
+
+  void setLinkFlowControlCreditThreshold(
+      std::optional<uint16_t> linkFlowControlCreditTh) {
+    if (!linkFlowControlCreditTh) {
+      ref<switch_state_tags::linkFlowControlCreditThreshold>().reset();
+    } else {
+      set<switch_state_tags::linkFlowControlCreditThreshold>(
+          *linkFlowControlCreditTh);
+    }
+  }
+
+  std::optional<uint32_t> getVoqDramBoundThreshold() const {
+    if (auto voqDramBoundTh =
+            cref<switch_state_tags::voqDramBoundThreshold>()) {
+      return voqDramBoundTh->toThrift();
+    }
+    return std::nullopt;
+  }
+
+  void setVoqDramBoundThreshold(std::optional<uint32_t> voqDramBoundTh) {
+    if (!voqDramBoundTh) {
+      ref<switch_state_tags::voqDramBoundThreshold>().reset();
+    } else {
+      set<switch_state_tags::voqDramBoundThreshold>(*voqDramBoundTh);
+    }
+  }
+
   SwitchSettings* modify(std::shared_ptr<SwitchState>* state);
 
  private:
