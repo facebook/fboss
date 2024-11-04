@@ -7,7 +7,7 @@
 namespace facebook::fboss::platform::fan_service {
 
 int16_t PidLogic::calculatePwm(float measurement) {
-  float newPwm;
+  float newPwm, pwmDelta{0};
   float minVal = *pidSetting_.setPoint() - *pidSetting_.negHysteresis();
   float maxVal = *pidSetting_.setPoint() + *pidSetting_.posHysteresis();
   std::optional<float> error{};
@@ -21,14 +21,11 @@ int16_t PidLogic::calculatePwm(float measurement) {
   if (error.has_value()) {
     integral_ = integral_ + *error * dT_;
     auto derivative = (*error - lastError_) / dT_;
-    newPwm = (*pidSetting_.kp() * error.value()) +
+    pwmDelta = (*pidSetting_.kp() * error.value()) +
         (*pidSetting_.ki() * integral_) + (*pidSetting_.kd() * derivative);
+    newPwm = lastPwm_ + pwmDelta;
   } else {
     newPwm = lastPwm_;
-  }
-
-  if (measurement <= maxVal) {
-    integral_ = newPwm / *pidSetting_.ki();
   }
 
   if (newPwm < 0) {
@@ -37,11 +34,12 @@ int16_t PidLogic::calculatePwm(float measurement) {
     newPwm = 100;
   }
 
-  XLOG(DBG1) << fmt::format(
-      "Measurement: {}, Error: {}, Last PWM: {}, New PWM: {}",
+  XLOG(DBG2) << fmt::format(
+      "Measurement: {}, Error: {}, Last PWM: {}, PWM Delta: {}, New PWM: {}",
       measurement,
       error.value_or(0),
       lastPwm_,
+      pwmDelta,
       newPwm);
 
   lastPwm_ = newPwm;
