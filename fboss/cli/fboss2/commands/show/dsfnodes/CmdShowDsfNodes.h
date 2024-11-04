@@ -52,7 +52,7 @@ class CmdShowDsfNodes
         "Name",
         "Switch Id",
         "Type",
-        "System port range",
+        "System port ranges",
     });
 
     for (auto const& entry : model.get_dsfNodes()) {
@@ -77,11 +77,13 @@ class CmdShowDsfNodes
       entry.type() =
           (node.type() == cfg::DsfNodeType::INTERFACE_NODE ? "Intf Node"
                                                            : "Fabric Node");
-      if (node.systemPortRange()) {
-        entry.systemPortRange() = folly::sformat(
-            "({}, {})",
-            *node.systemPortRange()->minimum(),
-            *node.systemPortRange()->maximum());
+      std::vector<std::string> ranges;
+      if (node.systemPortRanges()->systemPortRanges()->size()) {
+        for (const auto& range : *node.systemPortRanges()->systemPortRanges()) {
+          ranges.push_back(
+              folly::sformat("({}, {})", *range.minimum(), *range.maximum()));
+        }
+        entry.systemPortRange() = folly::join(", ", ranges);
       } else {
         entry.systemPortRange() = "--";
       }
