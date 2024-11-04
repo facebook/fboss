@@ -452,18 +452,17 @@ cfg::DsfNode dsfNodeConfig(
   dsfNode.switchId() = *otherAsic->getSwitchId();
   dsfNode.name() = folly::sformat("hwTestSwitch{}", *dsfNode.switchId());
   switch (otherAsic->getSwitchType()) {
-    case cfg::SwitchType::VOQ:
+    case cfg::SwitchType::VOQ: {
       dsfNode.type() = cfg::DsfNodeType::INTERFACE_NODE;
       CHECK(otherAsic->getSystemPortRange().has_value());
-      dsfNode.systemPortRange() = *otherAsic->getSystemPortRange();
-      dsfNode.systemPortRanges()->systemPortRanges()->push_back(
-          dsfNode.systemPortRange().value());
+      auto sysPortRange = otherAsic->getSystemPortRange().value();
+      dsfNode.systemPortRanges()->systemPortRanges()->push_back(sysPortRange);
       dsfNode.nodeMac() = kLocalCpuMac().toString();
       dsfNode.loopbackIps() = getLoopbackIps(SwitchID(*dsfNode.switchId()));
-      dsfNode.localSystemPortOffset() = *dsfNode.systemPortRange()->minimum();
-      dsfNode.globalSystemPortOffset() = *dsfNode.systemPortRange()->minimum();
+      dsfNode.localSystemPortOffset() = *sysPortRange.minimum();
+      dsfNode.globalSystemPortOffset() = *sysPortRange.minimum();
       dsfNode.inbandPortId() = kSingleStageInbandPortId;
-      break;
+    } break;
     case cfg::SwitchType::FABRIC:
       dsfNode.type() = cfg::DsfNodeType::FABRIC_NODE;
       break;
