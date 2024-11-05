@@ -46,14 +46,20 @@ std::optional<std::map<int64_t, cfg::DsfNode>> addRemoteIntfNodeCfg(
   const auto& firstDsfNode = dsfNodes.begin()->second;
   CHECK(!firstDsfNode.systemPortRanges()->systemPortRanges()->empty());
   CHECK(firstDsfNode.nodeMac().has_value());
-  auto asic = HwAsic::makeAsic(
-      *firstDsfNode.asicType(),
-      cfg::SwitchType::VOQ,
-      *firstDsfNode.switchId(),
-      0,
-      *firstDsfNode.systemPortRanges()->systemPortRanges()->begin(),
-      folly::MacAddress(*firstDsfNode.nodeMac()),
-      std::nullopt);
+  CHECK(firstDsfNode.localSystemPortOffset().has_value());
+  CHECK(firstDsfNode.globalSystemPortOffset().has_value());
+  CHECK(firstDsfNode.inbandPortId().has_value());
+  cfg::SwitchInfo switchInfo;
+  switchInfo.switchType() = cfg::SwitchType::VOQ;
+  switchInfo.switchIndex() = 0;
+  switchInfo.switchMac() = *firstDsfNode.nodeMac();
+  switchInfo.systemPortRanges() = *firstDsfNode.systemPortRanges();
+  switchInfo.localSystemPortOffset() = *firstDsfNode.localSystemPortOffset();
+  switchInfo.globalSystemPortOffset() = *firstDsfNode.globalSystemPortOffset();
+  switchInfo.inbandPortId() = *firstDsfNode.inbandPortId();
+
+  auto asic =
+      HwAsic::makeAsic(*firstDsfNode.switchId(), switchInfo, std::nullopt);
   int numCores = asic->getNumCores();
   CHECK(
       !numRemoteNodes.has_value() ||
