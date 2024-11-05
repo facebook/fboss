@@ -1812,7 +1812,7 @@ struct DsfNode {
   2: i64 switchId;
   3: DsfNodeType type;
   4: list<string> loopbackIps;
-  5: optional Range64 systemPortRange;
+  5: optional Range64 systemPortRange_DEPRECATED;
   6: optional string nodeMac;
   7: AsicType asicType;
   8: fboss_common.PlatformType platformType;

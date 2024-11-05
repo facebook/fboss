@@ -11029,7 +11029,7 @@ class ChildThriftPath<::facebook::fboss::cfg::DsfNode, ::facebook::fboss::fsdb::
 std::pair<strings::switchId, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
 std::pair<strings::type, Child<::facebook::fboss::cfg::DsfNodeType, ::apache::thrift::type_class::enumeration, ::apache::thrift::type::enum_t<::facebook::fboss::cfg::DsfNodeType>>>,
 std::pair<strings::loopbackIps, ChildThriftPath<::std::vector<::std::string>, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>,
-std::pair<strings::systemPortRange, ChildThriftPath<::facebook::fboss::cfg::Range64, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>,
+std::pair<strings::systemPortRange_DEPRECATED, ChildThriftPath<::facebook::fboss::cfg::Range64, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>,
 std::pair<strings::nodeMac, Child<::std::string, ::apache::thrift::type_class::string, ::apache::thrift::type::string_t>>,
 std::pair<strings::asicType, Child<::facebook::fboss::cfg::AsicType, ::apache::thrift::type_class::enumeration, ::apache::thrift::type::enum_t<::facebook::fboss::cfg::AsicType>>>,
 std::pair<strings::platformType, Child<::facebook::fboss::PlatformType, ::apache::thrift::type_class::enumeration, ::apache::thrift::type::enum_t<::facebook::fboss::PlatformType>>>,
@@ -11058,7 +11058,7 @@ std::pair<strings::inbandPortId, Child<::std::int32_t, ::apache::thrift::type_cl
 std::pair<strings::switchId, std::integral_constant<apache::thrift::field_id_t, 2>>,
 std::pair<strings::type, std::integral_constant<apache::thrift::field_id_t, 3>>,
 std::pair<strings::loopbackIps, std::integral_constant<apache::thrift::field_id_t, 4>>,
-std::pair<strings::systemPortRange, std::integral_constant<apache::thrift::field_id_t, 5>>,
+std::pair<strings::systemPortRange_DEPRECATED, std::integral_constant<apache::thrift::field_id_t, 5>>,
 std::pair<strings::nodeMac, std::integral_constant<apache::thrift::field_id_t, 6>>,
 std::pair<strings::asicType, std::integral_constant<apache::thrift::field_id_t, 7>>,
 std::pair<strings::platformType, std::integral_constant<apache::thrift::field_id_t, 8>>,
@@ -11077,7 +11077,7 @@ std::pair<strings::inbandPortId, std::integral_constant<apache::thrift::field_id
     STRUCT_CHILD_GETTERS(switchId, 2);
     STRUCT_CHILD_GETTERS(type, 3);
     STRUCT_CHILD_GETTERS(loopbackIps, 4);
-    STRUCT_CHILD_GETTERS(systemPortRange, 5);
+    STRUCT_CHILD_GETTERS(systemPortRange_DEPRECATED, 5);
     STRUCT_CHILD_GETTERS(nodeMac, 6);
     STRUCT_CHILD_GETTERS(asicType, 7);
     STRUCT_CHILD_GETTERS(platformType, 8);
@@ -11094,7 +11094,7 @@ std::pair<strings::inbandPortId, std::integral_constant<apache::thrift::field_id
     else if constexpr (__id == 2) { return switchId(); }
     else if constexpr (__id == 3) { return type(); }
     else if constexpr (__id == 4) { return loopbackIps(); }
-    else if constexpr (__id == 5) { return systemPortRange(); }
+    else if constexpr (__id == 5) { return systemPortRange_DEPRECATED(); }
     else if constexpr (__id == 6) { return nodeMac(); }
     else if constexpr (__id == 7) { return asicType(); }
     else if constexpr (__id == 8) { return platformType(); }
