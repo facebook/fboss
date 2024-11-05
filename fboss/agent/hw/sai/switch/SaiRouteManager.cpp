@@ -20,6 +20,7 @@
 #include "fboss/agent/hw/sai/switch/SaiVirtualRouterManager.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 
+#include "fboss/agent/SwitchInfoUtils.h"
 #include "fboss/agent/platforms/sai/SaiPlatform.h"
 
 #include <optional>
@@ -191,10 +192,10 @@ void SaiRouteManager::addOrUpdateRoute(
        * TODO - filter these connected routes in switchstate
        */
       if (platform_->getAsic()->getSwitchType() == cfg::SwitchType::VOQ) {
-        auto systemPortRange = platform_->getAsic()->getSystemPortRange();
-        CHECK(systemPortRange);
-        if (interfaceId < *systemPortRange->minimum() ||
-            interfaceId > *systemPortRange->maximum()) {
+        const auto& systemPortRanges =
+            platform_->getAsic()->getSystemPortRanges();
+        CHECK(!systemPortRanges.systemPortRanges()->empty());
+        if (!withinRange(systemPortRanges, interfaceId)) {
           packetAction = SAI_PACKET_ACTION_DROP;
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
           attributes = SaiRouteTraits::CreateAttributes{
