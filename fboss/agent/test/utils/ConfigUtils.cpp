@@ -365,6 +365,8 @@ void securePortsInConfig(
     }
   }
 }
+// FIXME 2-stage DSF - adapt DSF node config to
+// 2-stage DSF sysport id generation
 cfg::DsfNode dsfNodeConfig(
     const HwAsic& myAsic,
     int64_t otherSwitchId,
@@ -372,8 +374,13 @@ cfg::DsfNode dsfNodeConfig(
     const std::optional<PlatformType> platformType) {
   auto createAsic = [&](const HwAsic& fromAsic, int64_t switchId)
       -> std::pair<std::shared_ptr<HwAsic>, PlatformType> {
-    std::optional<cfg::Range64> systemPortRange;
-    auto fromAsicSystemPortRange = fromAsic.getSystemPortRange();
+    std::optional<cfg::Range64> systemPortRange, fromAsicSystemPortRange;
+    if (fromAsic.getSystemPortRanges().systemPortRanges()->size()) {
+      CHECK_EQ(fromAsic.getSystemPortRanges().systemPortRanges()->size(), 1)
+          << " Multiple sys port ranges per node are not supported yet in tests (TODO)";
+      fromAsicSystemPortRange =
+          *fromAsic.getSystemPortRanges().systemPortRanges()->begin();
+    }
     if (fromAsicSystemPortRange.has_value()) {
       cfg::Range64 range;
       int numCores = fromAsic.getNumCores();
@@ -454,11 +461,13 @@ cfg::DsfNode dsfNodeConfig(
   switch (otherAsic->getSwitchType()) {
     case cfg::SwitchType::VOQ: {
       dsfNode.type() = cfg::DsfNodeType::INTERFACE_NODE;
-      CHECK(otherAsic->getSystemPortRange().has_value());
-      auto sysPortRange = otherAsic->getSystemPortRange().value();
-      dsfNode.systemPortRanges()->systemPortRanges()->push_back(sysPortRange);
+      CHECK_EQ(otherAsic->getSystemPortRanges().systemPortRanges()->size(), 1)
+          << " Multiple sys port ranges per node are not supported yet in tests (TODO)";
+      dsfNode.systemPortRanges() = otherAsic->getSystemPortRanges();
       dsfNode.nodeMac() = kLocalCpuMac().toString();
       dsfNode.loopbackIps() = getLoopbackIps(SwitchID(*dsfNode.switchId()));
+      auto sysPortRange =
+          *otherAsic->getSystemPortRanges().systemPortRanges()->begin();
       dsfNode.localSystemPortOffset() = *sysPortRange.minimum();
       dsfNode.globalSystemPortOffset() = *sysPortRange.minimum();
       dsfNode.inbandPortId() = kSingleStageInbandPortId;
@@ -767,14 +776,16 @@ cfg::SwitchConfig genPortVlanCfg(
         asicType == cfg::AsicType::ASIC_TYPE_YUBA) {
       switchInfo.connectionHandle() = "/dev/uio0";
     }
-    if (asic->getSystemPortRange().has_value()) {
-      switchInfo.systemPortRange() = *asic->getSystemPortRange();
-      switchInfo.systemPortRanges()->systemPortRanges()->push_back(
-          *asic->getSystemPortRange());
-      switchInfo.localSystemPortOffset() =
-          *asic->getSystemPortRange()->minimum();
-      switchInfo.globalSystemPortOffset() =
-          *asic->getSystemPortRange()->minimum();
+    // FIXME 2-stage DSF - adapt DSF node config to
+    // 2-stage DSF sysport id generation
+    if (asic->getSystemPortRanges().systemPortRanges()->size()) {
+      CHECK_EQ(asic->getSystemPortRanges().systemPortRanges()->size(), 1);
+      auto sysPortRange =
+          *asic->getSystemPortRanges().systemPortRanges()->begin();
+      switchInfo.systemPortRange() = sysPortRange;
+      switchInfo.systemPortRanges() = asic->getSystemPortRanges();
+      switchInfo.localSystemPortOffset() = *sysPortRange.minimum();
+      switchInfo.globalSystemPortOffset() = *sysPortRange.minimum();
     }
     if (switchType == cfg::SwitchType::VOQ) {
       switchInfo.inbandPortId() = kSingleStageInbandPortId;
