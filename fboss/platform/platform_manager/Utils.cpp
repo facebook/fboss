@@ -90,9 +90,6 @@ PlatformConfig Utils::getConfig() {
 
 std::pair<std::string, std::string> Utils::parseDevicePath(
     const std::string& devicePath) {
-  if (!ConfigValidator().isValidDevicePath(devicePath)) {
-    throw std::runtime_error(fmt::format("Invalid DevicePath {}", devicePath));
-  }
   std::string slotPath, deviceName;
   CHECK(RE2::FullMatch(devicePath, kPmDeviceParseRe, &slotPath, &deviceName));
   // Remove trailling '/' (e.g /abc/dfg/)

@@ -3,6 +3,14 @@
 #include "fboss/platform/platform_manager/ConfigValidator.h"
 
 #include <folly/logging/xlog.h>
+#include <range/v3/range/conversion.hpp>
+#include <range/v3/view/drop.hpp>
+#include <range/v3/view/filter.hpp>
+#include <range/v3/view/map.hpp>
+#include <range/v3/view/move.hpp>
+#include <range/v3/view/split.hpp>
+#include <range/v3/view/transform.hpp>
+#include <range/v3/view/unique.hpp>
 #include <re2/re2.h>
 
 #include "fboss/platform/platform_manager/I2cAddr.h"
@@ -12,7 +20,8 @@ const re2::RE2 kRpmVersionRegex{"^[0-9]+\\.[0-9]+\\.[0-9]+\\-[0-9]+$"};
 const re2::RE2 kPciIdRegex{"0x[0-9a-f]{4}"};
 const re2::RE2 kPciDevOffsetRegex{"0x[0-9a-f]+"};
 const re2::RE2 kSymlinkRegex{"^/run/devmap/(?P<SymlinkDirs>[a-z0-9-]+)/.+"};
-const re2::RE2 kDevPathRegex{"/([A-Z]+(_[A-Z]+)*_SLOT@[0-9]+/)*\\[.+\\]"};
+const re2::RE2 kDevPathRegex{"(?P<SlotPath>.*)\\[(?P<DeviceName>.+)\\]"};
+const re2::RE2 kSlotPathRegex{"/|(/([A-Z]+_)+SLOT@\\d+)+"};
 const re2::RE2 kInfoRomDevicePrefixRegex{"^fpga_info_(dom|iob|scm|mcb)$"};
 constexpr auto kSymlinkDirs = {
     "eeproms",
@@ -234,10 +243,73 @@ bool ConfigValidator::isValidSymlink(const std::string& symlink) {
   return true;
 }
 
-bool ConfigValidator::isValidDevicePath(const std::string& devicePath) {
-  if (!re2::RE2::FullMatch(devicePath, kDevPathRegex)) {
+bool ConfigValidator::isValidDevicePath(
+    const PlatformConfig& platformConfig,
+    const std::string& devicePath) {
+  std::string slotPath, deviceName;
+  if (!re2::RE2::FullMatch(devicePath, kDevPathRegex, &slotPath, &deviceName)) {
     XLOG(ERR) << fmt::format("Invalid device path {}", devicePath);
     return false;
+  }
+  CHECK_EQ(slotPath.back(), '/');
+  if (slotPath.length() > 1) {
+    slotPath.pop_back();
+  }
+  if (!isValidSlotPath(platformConfig, slotPath)) {
+    return false;
+  }
+  return true;
+}
+
+bool ConfigValidator::isValidSlotPath(
+    const PlatformConfig& platformConfig,
+    const std::string& slotPath) {
+  // Syntactic validation.
+  if (!re2::RE2::FullMatch(slotPath, kSlotPathRegex)) {
+    XLOG(ERR) << fmt::format("Invalid slot path {}", slotPath);
+    return false;
+  }
+
+  // Slot topological validation.
+  // Starting from the root, check for a PmUnit from CurrSlot to NextSlot.
+  for (auto currSlotType{*platformConfig.rootSlotType()};
+       const auto& nextSlotName : slotPath | ranges::views::split('/') |
+           ranges::views::drop(1) | ranges::to<std::vector<std::string>>) {
+    // Find all pmUnits that can be plug into currSlotType.
+    std::vector<PmUnitConfig> pmUnitConfigs = *platformConfig.pmUnitConfigs() |
+        ranges::views::values |
+        ranges::views::filter([&](const auto& pmUnitConfig) {
+          return *pmUnitConfig.pluggedInSlotType() == currSlotType;
+        }) |
+        ranges::to_vector;
+    if (pmUnitConfigs.empty()) {
+      XLOG(ERR) << fmt::format(
+          "Couldn't find PmUnitConfigs that can be plug-into {} in SlotPath {}",
+          currSlotType,
+          slotPath);
+      return false;
+    }
+    // Find PmUnits' outgoingSlotConfig of nextSlotName and their SlotType.
+    auto nextSlotType =
+        pmUnitConfigs | ranges::views::filter([&](const auto& pmUnitConfig) {
+          return pmUnitConfig.outgoingSlotConfigs()->contains(nextSlotName);
+        }) |
+        ranges::views::transform([&](const auto& pmUnitConfig) -> SlotType {
+          return *pmUnitConfig.outgoingSlotConfigs()
+                      ->at(nextSlotName)
+                      .slotType();
+        }) |
+        ranges::views::unique | ranges::to_vector;
+    if (nextSlotType.size() != 1) {
+      XLOG(ERR) << fmt::format(
+          "Invalid SlotName {} in SlotPath {}. Maps to {} SlotConfig(s)",
+          nextSlotName,
+          slotPath,
+          nextSlotType.size());
+      return false;
+    }
+    // Set currSlotType as the nextSlotType
+    currSlotType = nextSlotType.front();
   }
   return true;
 }
@@ -309,7 +381,7 @@ bool ConfigValidator::isValid(const PlatformConfig& config) {
 
   // Validate symbolic links
   for (const auto& [symlink, devicePath] : *config.symbolicLinkToDevicePath()) {
-    if (!isValidSymlink(symlink) || !isValidDevicePath(devicePath)) {
+    if (!isValidSymlink(symlink) || !isValidDevicePath(config, devicePath)) {
       return false;
     }
   }

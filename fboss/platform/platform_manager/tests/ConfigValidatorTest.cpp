@@ -310,18 +310,43 @@ TEST(ConfigValidatorTest, Symlink) {
 }
 
 TEST(ConfigValidatorTest, DevicePath) {
-  EXPECT_FALSE(ConfigValidator().isValidDevicePath("/[]"));
-  EXPECT_FALSE(ConfigValidator().isValidDevicePath("/SCM_SLOT@1/[a"));
-  EXPECT_FALSE(ConfigValidator().isValidDevicePath("/SMB_SLOT@1/SCM_SLOT/[a]"));
-  EXPECT_TRUE(ConfigValidator().isValidDevicePath("/[chassis_eeprom]"));
-  EXPECT_TRUE(ConfigValidator().isValidDevicePath("/SMB_SLOT@0/[MCB_MUX_1]"));
+  PlatformConfig config;
+  // Syntatically incorrect
+  EXPECT_FALSE(ConfigValidator().isValidDevicePath(config, "/SCM_SLOT@1/[a"));
+  EXPECT_FALSE(
+      ConfigValidator().isValidDevicePath(config, "/SMB_SLOT@1/SCM_SLOT/[a]"));
+  EXPECT_FALSE(ConfigValidator().isValidDevicePath(config, "/[]"));
+  EXPECT_FALSE(
+      ConfigValidator().isValidDevicePath(config, "/COME@SCM_SLOT@0/[idprom]"));
+  EXPECT_FALSE(ConfigValidator().isValidDevicePath(
+      config, "/COME_SLOT@SCM_SLOT@0/[SCM_MUX_5]"));
+  // Topologically incorrect.
+  config.rootSlotType() = "MCB_SLOT";
+  PmUnitConfig mcb, jumper, scm;
+  mcb.pluggedInSlotType() = "MCB_SLOT";
+  jumper.pluggedInSlotType() = "JUMPER_SLOT";
+  scm.pluggedInSlotType() = "SCM_SLOT";
+  SlotConfig jumperSlotConfig, scmSlotConfig;
+  jumperSlotConfig.slotType() = "JUMPER_SLOT";
+  scmSlotConfig.slotType() = "SCM_SLOT";
+  mcb.outgoingSlotConfigs() = {
+      {"JUMPER_SLOT@0", jumperSlotConfig}, {"JUMPER_SLOT@1", jumperSlotConfig}};
+  jumper.outgoingSlotConfigs() = {{"SCM_SLOT@0", scmSlotConfig}};
+  config.pmUnitConfigs() = {{"MCB", mcb}, {"JUMPER", jumper}, {"SCM", scm}};
+  EXPECT_FALSE(
+      ConfigValidator().isValidDevicePath(config, "/SMB_SLOT@0/[sensor1]"));
+  EXPECT_FALSE(
+      ConfigValidator().isValidDevicePath(config, "/JUMPER_SLOT@2/[fpga]"));
+  EXPECT_FALSE(ConfigValidator().isValidDevicePath(
+      config, "/JUMPER_SLOT@0/SCM_SLOT@1/[IDPROM]"));
+  // Correct.
+  EXPECT_TRUE(ConfigValidator().isValidDevicePath(config, "/[chassis_eeprom]"));
   EXPECT_TRUE(
-      ConfigValidator().isValidDevicePath("/SMB_SLOT@0/SCM_SLOT@1/[sensor]"));
-  EXPECT_TRUE(ConfigValidator().isValidDevicePath("/SMB_FRU_SLOT@0/[idprom]"));
-  EXPECT_FALSE(
-      ConfigValidator().isValidDevicePath("/COME@SCM_SLOT@0/[idprom]"));
-  EXPECT_FALSE(
-      ConfigValidator().isValidDevicePath("/COME_SLOT@SCM_SLOT@0/[SCM_MUX_5]"));
+      ConfigValidator().isValidDevicePath(config, "/JUMPER_SLOT@0/[sensor]"));
+  EXPECT_TRUE(
+      ConfigValidator().isValidDevicePath(config, "/JUMPER_SLOT@1/[sensor]"));
+  EXPECT_TRUE(ConfigValidator().isValidDevicePath(
+      config, "/JUMPER_SLOT@0/SCM_SLOT@0/[IDPROM]"));
 }
 
 TEST(ConfigValidatorTest, BspRpm) {
