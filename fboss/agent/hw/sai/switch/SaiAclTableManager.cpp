@@ -1409,7 +1409,11 @@ std::set<cfg::AclTableQualifier> SaiAclTableManager::getSupportedQualifierSet(
 }
 
 std::set<cfg::AclTableQualifier> SaiAclTableManager::getSupportedQualifierSet(
-    sai_acl_stage_t /* aclStage */) const {
+    sai_acl_stage_t aclStage) const {
+  if (aclStage == SAI_ACL_STAGE_EGRESS &&
+      platform_->getAsic()->isSupported(HwAsic::Feature::EGRESS_ACL_TABLE)) {
+    throw FbossError("egress acl table is not supported on switch asic");
+  }
   /*
    * Not all the qualifiers are supported by every ASIC.
    * Moreover, different ASICs have different max key widths.
