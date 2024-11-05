@@ -31,9 +31,7 @@ class YubaAsic : public TajoAsic {
             systemPortRange,
             mac,
             sdkVersion,
-            {cfg::SwitchType::NPU,
-             cfg::SwitchType::VOQ,
-             cfg::SwitchType::FABRIC}) {
+            {cfg::SwitchType::NPU}) {
     HwAsic::setDefaultStreamType(cfg::StreamType::UNICAST);
   }
   bool isSupported(Feature feature) const override {
