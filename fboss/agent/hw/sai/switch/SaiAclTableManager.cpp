@@ -1509,22 +1509,28 @@ std::set<cfg::AclTableQualifier> SaiAclTableManager::getSupportedQualifierSet(
     return jericho3Qualifiers;
   } else if (isChenab) {
     /* TODO(pshaikh): review the qualifiers */
-    std::set<cfg::AclTableQualifier> chenabQualifiers = {
-        cfg::AclTableQualifier::SRC_IPV6,
-        cfg::AclTableQualifier::DST_IPV6,
-        cfg::AclTableQualifier::SRC_IPV4,
-        cfg::AclTableQualifier::DST_IPV4,
-        cfg::AclTableQualifier::L4_SRC_PORT,
-        cfg::AclTableQualifier::L4_DST_PORT,
-        cfg::AclTableQualifier::IP_PROTOCOL,
-        cfg::AclTableQualifier::SRC_PORT,
-        cfg::AclTableQualifier::DSCP,
-        cfg::AclTableQualifier::TTL,
-        cfg::AclTableQualifier::OUTER_VLAN,
-        // TODO(pshaikh): Add UDF?
-    };
-
-    return chenabQualifiers;
+    if (aclStage == SAI_ACL_STAGE_INGRESS) {
+      return {
+          cfg::AclTableQualifier::SRC_IPV6,
+          cfg::AclTableQualifier::DST_IPV6,
+          cfg::AclTableQualifier::SRC_IPV4,
+          cfg::AclTableQualifier::DST_IPV4,
+          cfg::AclTableQualifier::L4_SRC_PORT,
+          cfg::AclTableQualifier::L4_DST_PORT,
+          cfg::AclTableQualifier::IP_PROTOCOL,
+          cfg::AclTableQualifier::SRC_PORT,
+          cfg::AclTableQualifier::DSCP,
+          cfg::AclTableQualifier::TTL,
+          cfg::AclTableQualifier::OUTER_VLAN,
+          // TODO(pshaikh): Add UDF?
+      };
+    } else {
+      return {
+          cfg::AclTableQualifier::OUT_PORT,
+          cfg::AclTableQualifier::LOOKUP_CLASS_L2,
+          cfg::AclTableQualifier::LOOKUP_CLASS_ROUTE,
+      };
+    }
   } else {
     std::set<cfg::AclTableQualifier> bcmQualifiers = {
         cfg::AclTableQualifier::SRC_IPV6,
