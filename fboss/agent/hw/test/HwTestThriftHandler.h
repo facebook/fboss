@@ -77,6 +77,11 @@ class HwTestThriftHandler : public AgentHwTestCtrlSvIf {
       int routerID,
       int sizeInSw) override;
 
+  void getEcmpWeights(
+      std::map<::std::int32_t, ::std::int32_t>& weights,
+      std::unique_ptr<CIDRNetwork> prefix,
+      int routerID) override;
+
   void injectFecError(
       std::unique_ptr<std::vector<int>> hwPorts,
       bool injectCorrectable) override;
