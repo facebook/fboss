@@ -23,9 +23,7 @@ class EbroAsic : public TajoAsic {
             systemPortRange,
             mac,
             sdkVersion,
-            {cfg::SwitchType::NPU,
-             cfg::SwitchType::VOQ,
-             cfg::SwitchType::FABRIC}) {
+            {cfg::SwitchType::NPU}) {
     if (sdkVersion.has_value() && sdkVersion->asicSdk().has_value()) {
       currentSdkVersion_ = getAsicSdkVersion(sdkVersion->asicSdk().value());
       auto p4WarmbootSdkVersion = getAsicSdkVersion(p4WarmbootBaseSdk);
