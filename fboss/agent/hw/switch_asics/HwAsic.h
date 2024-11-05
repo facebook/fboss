@@ -236,6 +236,10 @@ class HwAsic {
       std::optional<cfg::Range64> systemPortRange,
       const folly::MacAddress& mac,
       std::optional<cfg::SdkVersion> sdkVersion);
+  static std::unique_ptr<HwAsic> makeAsic(
+      std::optional<int64_t> switchID,
+      cfg::SwitchInfo switchInfo,
+      std::optional<cfg::SdkVersion> sdkVersion);
   virtual bool isSupported(Feature) const = 0;
   virtual cfg::AsicType getAsicType() const = 0;
   std::string getAsicTypeStr() const;

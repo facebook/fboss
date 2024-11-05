@@ -147,6 +147,48 @@ std::unique_ptr<HwAsic> HwAsic::makeAsic(
   };
   throw FbossError("Unexcepted asic type: ", asicType);
 }
+
+std::unique_ptr<HwAsic> HwAsic::makeAsic(
+    std::optional<int64_t> switchId,
+    cfg::SwitchInfo switchInfo,
+    std::optional<cfg::SdkVersion> sdkVersion) {
+  switch (*switchInfo.asicType()) {
+    case cfg::AsicType::ASIC_TYPE_FAKE:
+      return std::make_unique<FakeAsic>(switchId, switchInfo, sdkVersion);
+    case cfg::AsicType::ASIC_TYPE_MOCK:
+      return std::make_unique<MockAsic>(switchId, switchInfo, sdkVersion);
+    case cfg::AsicType::ASIC_TYPE_TRIDENT2:
+      return std::make_unique<Trident2Asic>(switchId, switchInfo, sdkVersion);
+    case cfg::AsicType::ASIC_TYPE_TOMAHAWK:
+      return std::make_unique<TomahawkAsic>(switchId, switchInfo, sdkVersion);
+    case cfg::AsicType::ASIC_TYPE_TOMAHAWK3:
+      return std::make_unique<Tomahawk3Asic>(switchId, switchInfo, sdkVersion);
+    case cfg::AsicType::ASIC_TYPE_TOMAHAWK4:
+      return std::make_unique<Tomahawk4Asic>(switchId, switchInfo, sdkVersion);
+    case cfg::AsicType::ASIC_TYPE_TOMAHAWK5:
+      return std::make_unique<Tomahawk5Asic>(switchId, switchInfo, sdkVersion);
+    case cfg::AsicType::ASIC_TYPE_ELBERT_8DD:
+      return std::make_unique<CredoPhyAsic>(switchId, switchInfo, sdkVersion);
+    case cfg::AsicType::ASIC_TYPE_EBRO:
+      return std::make_unique<EbroAsic>(switchId, switchInfo, sdkVersion);
+    case cfg::AsicType::ASIC_TYPE_YUBA:
+      return std::make_unique<YubaAsic>(switchId, switchInfo, sdkVersion);
+    case cfg::AsicType::ASIC_TYPE_CHENAB:
+      return std::make_unique<ChenabAsic>(switchId, switchInfo, sdkVersion);
+    case cfg::AsicType::ASIC_TYPE_JERICHO2:
+      return std::make_unique<Jericho2Asic>(switchId, switchInfo, sdkVersion);
+    case cfg::AsicType::ASIC_TYPE_JERICHO3:
+      return std::make_unique<Jericho3Asic>(switchId, switchInfo, sdkVersion);
+    case cfg::AsicType::ASIC_TYPE_RAMON:
+      return std::make_unique<RamonAsic>(switchId, switchInfo, sdkVersion);
+    case cfg::AsicType::ASIC_TYPE_RAMON3:
+      return std::make_unique<Ramon3Asic>(switchId, switchInfo, sdkVersion);
+    case cfg::AsicType::ASIC_TYPE_GARONNE:
+    case cfg::AsicType::ASIC_TYPE_SANDIA_PHY:
+      throw FbossError("Unexcepted asic type: ", *switchInfo.asicType());
+  };
+  throw FbossError("Unexcepted asic type: ", *switchInfo.asicType());
+}
 /*
  * Default Content Aware Processor group ID for TeFlows
  */
