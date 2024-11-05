@@ -2130,10 +2130,10 @@ class AgentVoqSwitchFullScaleDsfNodesTest : public AgentVoqSwitchTest {
     });
   }
 
-  boost::container::flat_set<PortDescriptor> getRemoteSysPortDesc() {
+  flat_set<PortDescriptor> getRemoteSysPortDesc() {
     auto remoteSysPorts =
         getProgrammedState()->getRemoteSystemPorts()->getAllNodes();
-    boost::container::flat_set<PortDescriptor> sysPortDescs;
+    flat_set<PortDescriptor> sysPortDescs;
     std::for_each(
         remoteSysPorts->begin(),
         remoteSysPorts->end(),
@@ -2198,20 +2198,29 @@ TEST_F(AgentVoqSwitchFullScaleDsfNodesTest, remoteNeighborWithEcmpGroup) {
     utility::EcmpSetupTargetedPorts6 ecmpHelper(getProgrammedState());
 
     // Resolve remote nhops and get a list of remote sysPort descriptors
-    boost::container::flat_set<PortDescriptor> sysPortDescs =
+    flat_set<PortDescriptor> sysPortDescs =
         utility::resolveRemoteNhops(getAgentEnsemble(), ecmpHelper);
 
+    CHECK(sysPortDescs.size() > kEcmpWidth);
     for (int i = 0; i < getMaxEcmpGroup(); i++) {
       auto prefix = RoutePrefixV6{
           folly::IPAddressV6(folly::to<std::string>(i, "::", i)),
           static_cast<uint8_t>(i == 0 ? 0 : 128)};
       auto routeUpdater = getSw()->getRouteUpdater();
-      ecmpHelper.programRoutes(
-          &routeUpdater,
-          flat_set<PortDescriptor>(
-              std::make_move_iterator(sysPortDescs.begin() + i),
-              std::make_move_iterator(sysPortDescs.begin() + i + kEcmpWidth)),
-          {prefix});
+      auto sysPortStart = (i * kEcmpWidth) % sysPortDescs.size();
+      auto ecmpMemberPorts = flat_set<PortDescriptor>(
+          std::make_move_iterator(sysPortDescs.begin() + sysPortStart),
+          std::make_move_iterator(
+              sysPortDescs.begin() +
+              std::min(sysPortStart + kEcmpWidth, sysPortDescs.size())));
+      // Wrap around and start adding from front of the ports
+      if (ecmpMemberPorts.size() < kEcmpWidth) {
+        ecmpMemberPorts.insert(
+            std::make_move_iterator(sysPortDescs.begin()),
+            std::make_move_iterator(
+                sysPortDescs.begin() + (kEcmpWidth - ecmpMemberPorts.size())));
+      }
+      ecmpHelper.programRoutes(&routeUpdater, ecmpMemberPorts, {prefix});
     }
   };
   auto verify = [&]() {
