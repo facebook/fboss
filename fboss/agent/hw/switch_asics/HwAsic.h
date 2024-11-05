@@ -19,6 +19,12 @@ class HwAsic {
       std::optional<cfg::SdkVersion> sdkVersion = std::nullopt,
       std::unordered_set<cfg::SwitchType> supportedModes = {
           cfg::SwitchType::NPU});
+  HwAsic(
+      std::optional<int64_t> switchId,
+      cfg::SwitchInfo switchInfo,
+      std::optional<cfg::SdkVersion> sdkVersion = std::nullopt,
+      std::unordered_set<cfg::SwitchType> supportedModes = {
+          cfg::SwitchType::NPU});
   enum class Feature {
     SPAN,
     ERSPANv4,

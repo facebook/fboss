@@ -59,6 +59,23 @@ HwAsic::HwAsic(
   }
 }
 
+HwAsic::HwAsic(
+    std::optional<int64_t> switchId,
+    cfg::SwitchInfo switchInfo,
+    std::optional<cfg::SdkVersion> sdkVersion,
+    std::unordered_set<cfg::SwitchType> supportedModes)
+    : switchType_(*switchInfo.switchType()),
+      switchId_(switchId),
+      switchIndex_(*switchInfo.switchIndex()),
+      systemPortRanges_(*switchInfo.systemPortRanges()),
+      sdkVersion_(sdkVersion) {
+  CHECK(switchInfo.switchMac().has_value());
+  asicMac_ = folly::MacAddress(*switchInfo.switchMac());
+  if (supportedModes.find(switchType_) == supportedModes.end()) {
+    throw std::runtime_error(
+        folly::to<std::string>("Unsupported Mode: ", switchType_));
+  }
+}
 /*
  * Default Content Aware Processor group ID for ACLs
  */
