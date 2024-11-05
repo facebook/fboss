@@ -22,16 +22,46 @@ class AgentTunnelMgrTest : public AgentHwTest {
   }
 
   // Clear any stale kernel entries
-  void clearKernelEntries(std::string intfIp) {
-    // Delete the source route rule entries from the kernel
-    auto cmd = folly::to<std::string>("ip rule delete table 1");
+  void clearKernelEntries(const std::string& intfIp) {
+    auto cmd = folly::to<std::string>("ip rule list | grep ", intfIp);
 
-    runShellCmd(cmd);
+    auto output = runShellCmd(cmd);
+
+    // There could be duplicate source route rule entries in the kernel. Clear
+    // all of them.
+    while (output.find(folly::to<std::string>(intfIp)) != std::string::npos) {
+      // Break the output string into words
+      std::istringstream iss(output);
+      std::string word;
+      std::string lastWord;
+
+      while (iss >> word) {
+        lastWord = folly::copy(word);
+      }
+
+      XLOG(DBG2) << "tableId: " << lastWord;
+
+      // Delete the source route rule entries from the kernel
+      cmd = folly::to<std::string>("ip rule delete table ", lastWord);
+
+      runShellCmd(cmd);
+
+      // Get the source route rule entries again
+      cmd = folly::to<std::string>("ip rule list | grep ", intfIp);
+
+      output = runShellCmd(cmd);
+
+      XLOG(DBG2) << "clearKernelEntries Cmd: " << cmd;
+      XLOG(DBG2) << "clearKernelEntries Output: \n" << output;
+    }
 
     // Get the String
     cmd = folly::to<std::string>("ip addr list | grep ", intfIp);
 
-    auto output = runShellCmd(cmd);
+    output = runShellCmd(cmd);
+
+    XLOG(DBG2) << "clearKernelEntries Cmd: " << cmd;
+    XLOG(DBG2) << "clearKernelEntries Output: \n" << output;
 
     // Break the output string into words
     std::istringstream iss(output);
@@ -43,6 +73,7 @@ class AgentTunnelMgrTest : public AgentHwTest {
       if (subs.find("fboss") != std::string::npos) {
         cmd = folly::to<std::string>("ip link delete ", subs);
         runShellCmd(cmd);
+        XLOG(DBG2) << "clearKernelEntries Cmd: " << cmd;
         break;
       }
     } while (iss);
@@ -59,6 +90,9 @@ class AgentTunnelMgrTest : public AgentHwTest {
 
     auto output = runShellCmd(cmd);
 
+    XLOG(DBG2) << "checkKernelEntriesRemoved Cmd: " << cmd;
+    XLOG(DBG2) << "checkKernelEntriesRemoved Output: \n" << output;
+
     EXPECT_TRUE(
         output.find(folly::to<std::string>(intfIp)) == std::string::npos);
 
@@ -67,6 +101,9 @@ class AgentTunnelMgrTest : public AgentHwTest {
 
     output = runShellCmd(cmd);
 
+    XLOG(DBG2) << "checkKernelEntriesRemoved Cmd: " << cmd;
+    XLOG(DBG2) << "checkKernelEntriesRemoved Output: \n" << output;
+
     EXPECT_TRUE(
         output.find(folly::to<std::string>(intfIp)) == std::string::npos);
 
@@ -74,6 +111,9 @@ class AgentTunnelMgrTest : public AgentHwTest {
     cmd = folly::to<std::string>("ip route list | grep ", intfIp);
 
     output = runShellCmd(cmd);
+
+    XLOG(DBG2) << "checkKernelEntriesRemoved Cmd: " << cmd;
+    XLOG(DBG2) << "checkKernelEntriesRemoved Output: \n" << output;
 
     EXPECT_TRUE(
         output.find(folly::to<std::string>(intfIp)) == std::string::npos);
@@ -90,8 +130,8 @@ class AgentTunnelMgrTest : public AgentHwTest {
   }
 };
 
-// Test that the tunnel manager is able to create the source route rule entries,
-// tunnel address entries and default route entries in the kernel
+// Test that the tunnel manager is able to create the source route rule
+// entries, tunnel address entries and default route entries in the kernel
 TEST_F(AgentTunnelMgrTest, checkKernelEntries) {
   auto setup = [=]() {};
   auto verify = [=, this]() {
@@ -99,22 +139,27 @@ TEST_F(AgentTunnelMgrTest, checkKernelEntries) {
     auto intfIp = folly::IPAddress::createNetwork(
                       config.interfaces()[0].ipAddresses()[0], -1, false)
                       .first;
+
+    // Apply the config
+    applyNewConfig(config);
+    waitForStateUpdates(getAgentEnsemble()->getSw());
+
     // Get TunManager pointer
     auto tunMgr_ = getAgentEnsemble()->getSw()->getTunManager();
     auto status = tunMgr_->getIntfStatus(
         getProgrammedState(), (InterfaceID)config.interfaces()[0].get_intfID());
 
     // There is a known limitation in the kernel that the source route rule
-    // entries are not created if the interface is not up. So, checking for the
-    // kernel entries if the interface is  up
+    // entries are not created if the interface is not up. So, checking for
+    // the kernel entries if the interface is  up
     if (status) {
       // Check that the source route rule entries are present in the kernel
       auto cmd = folly::to<std::string>("ip rule list | grep ", intfIp);
 
       auto output = runShellCmd(cmd);
 
-      XLOG(DBG2) << "Cmd: " << cmd;
-      XLOG(DBG2) << "Output: \n" << output;
+      XLOG(DBG2) << "checkKernelEntries Cmd: " << cmd;
+      XLOG(DBG2) << "checkKernelEntries Output: \n" << output;
 
       EXPECT_TRUE(
           output.find(folly::to<std::string>(intfIp)) != std::string::npos);
@@ -124,6 +169,9 @@ TEST_F(AgentTunnelMgrTest, checkKernelEntries) {
 
       output = runShellCmd(cmd);
 
+      XLOG(DBG2) << "checkKernelEntries Cmd: " << cmd;
+      XLOG(DBG2) << "checkKernelEntries Output: \n" << output;
+
       EXPECT_TRUE(
           output.find(folly::to<std::string>(intfIp)) != std::string::npos);
 
@@ -131,6 +179,9 @@ TEST_F(AgentTunnelMgrTest, checkKernelEntries) {
       cmd = folly::to<std::string>("ip route list | grep ", intfIp);
 
       output = runShellCmd(cmd);
+
+      XLOG(DBG2) << "checkKernelEntries Cmd: " << cmd;
+      XLOG(DBG2) << "checkKernelEntries Output:" << output;
 
       EXPECT_TRUE(
           output.find(folly::to<std::string>(intfIp)) != std::string::npos);
