@@ -358,9 +358,7 @@ class HwAsic {
   int16_t getSwitchIndex() const {
     return switchIndex_;
   }
-  std::optional<cfg::Range64> getSystemPortRange() const {
-    return systemPortRange_;
-  }
+  std::optional<cfg::Range64> getSystemPortRange() const;
   const cfg::SystemPortRanges& getSystemPortRanges() const {
     return systemPortRanges_;
   }
@@ -425,7 +423,6 @@ class HwAsic {
   cfg::SwitchType switchType_;
   std::optional<int64_t> switchId_;
   int16_t switchIndex_;
-  std::optional<cfg::Range64> systemPortRange_;
   cfg::SystemPortRanges systemPortRanges_;
   cfg::StreamType defaultStreamType_{cfg::StreamType::ALL};
   folly::MacAddress asicMac_;

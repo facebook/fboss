@@ -48,15 +48,25 @@ HwAsic::HwAsic(
     : switchType_(switchType),
       switchId_(switchId),
       switchIndex_(switchIndex),
-      systemPortRange_(systemPortRange),
       asicMac_(mac),
       sdkVersion_(sdkVersion) {
   if (supportedModes.find(switchType_) == supportedModes.end()) {
     throw std::runtime_error(
         folly::to<std::string>("Unsupported Mode: ", switchType_));
   }
+  if (systemPortRange.has_value()) {
+    systemPortRanges_.systemPortRanges()->push_back(*systemPortRange);
+  }
 }
 
+std::optional<cfg::Range64> HwAsic::getSystemPortRange() const {
+  std::optional<cfg::Range64> sysPortRange;
+  if (systemPortRanges_.systemPortRanges()->size()) {
+    CHECK_EQ(systemPortRanges_.systemPortRanges()->size(), 1);
+    sysPortRange = *systemPortRanges_.systemPortRanges()->begin();
+  }
+  return sysPortRange;
+}
 /*
  * Default Content Aware Processor group ID for ACLs
  */
