@@ -1942,7 +1942,8 @@ void SwSwitch::packetReceived(std::unique_ptr<RxPacket> pkt) noexcept {
     handlePacket(std::move(pkt));
   } catch (const std::exception& ex) {
     portStats(port)->pktError();
-    XLOG(ERR) << "error processing trapped packet: " << folly::exceptionStr(ex);
+    XLOG(ERR) << "error processing trapped packet: " << folly::exceptionStr(ex)
+              << " from port: " << port;
     // Return normally, without letting the exception propagate to our caller.
     return;
   }

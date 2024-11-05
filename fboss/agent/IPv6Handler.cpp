@@ -598,6 +598,12 @@ void IPv6Handler::handleNeighborAdvertisement(
     sw_->portStats(pkt)->pktDropped();
     return;
   }
+  if (pkt->getSrcPort() == PortID(0)) {
+    XLOG(DBG2) << "ignoring IPv6 neighbor advertisement for " << targetIP
+               << " received from cpu port";
+    sw_->portStats(pkt)->pktDropped();
+    return;
+  }
 
   if (!vlanOrIntf) {
     // Hmm, we don't actually have this VLAN configured.
