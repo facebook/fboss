@@ -25,6 +25,18 @@ class RamonAsic : public BroadcomAsic {
             sdkVersion,
             {cfg::SwitchType::FABRIC}),
         fabricNodeRole_(fabricNodeRole) {}
+  RamonAsic(
+      std::optional<int64_t> switchId,
+      cfg::SwitchInfo switchInfo,
+      std::optional<cfg::SdkVersion> sdkVersion = std::nullopt,
+      FabricNodeRole fabricNodeRole = FabricNodeRole::SINGLE_STAGE_L1)
+      : BroadcomAsic(
+            switchId,
+            switchInfo,
+            sdkVersion,
+            {cfg::SwitchType::FABRIC}),
+        fabricNodeRole_(fabricNodeRole) {}
+
   bool isSupported(Feature feature) const override;
   const std::map<cfg::PortType, cfg::PortLoopbackMode>& desiredLoopbackModes()
       const override;

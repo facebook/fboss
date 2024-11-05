@@ -32,6 +32,19 @@ class EbroAsic : public TajoAsic {
       }
     }
   }
+  EbroAsic(
+      std::optional<int64_t> switchId,
+      cfg::SwitchInfo switchInfo,
+      std::optional<cfg::SdkVersion> sdkVersion = std::nullopt)
+      : TajoAsic(switchId, switchInfo, sdkVersion, {cfg::SwitchType::NPU}) {
+    if (sdkVersion.has_value() && sdkVersion->asicSdk().has_value()) {
+      currentSdkVersion_ = getAsicSdkVersion(sdkVersion->asicSdk().value());
+      auto p4WarmbootSdkVersion = getAsicSdkVersion(p4WarmbootBaseSdk);
+      if (currentSdkVersion_ >= p4WarmbootSdkVersion) {
+        HwAsic::setDefaultStreamType(cfg::StreamType::UNICAST);
+      }
+    }
+  }
   bool isSupported(Feature feature) const override {
     return getSwitchType() != cfg::SwitchType::FABRIC
         ? isSupportedNonFabric(feature)

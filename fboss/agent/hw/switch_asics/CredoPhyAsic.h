@@ -23,6 +23,11 @@ class CredoPhyAsic : public HwAsic {
             mac,
             sdkVersion,
             {cfg::SwitchType::PHY}) {}
+  CredoPhyAsic(
+      std::optional<int64_t> switchId,
+      cfg::SwitchInfo switchInfo,
+      std::optional<cfg::SdkVersion> sdkVersion = std::nullopt)
+      : HwAsic(switchId, switchInfo, sdkVersion, {cfg::SwitchType::PHY}) {}
   bool isSupported(Feature feature) const override;
   cfg::AsicType getAsicType() const override {
     return cfg::AsicType::ASIC_TYPE_ELBERT_8DD;

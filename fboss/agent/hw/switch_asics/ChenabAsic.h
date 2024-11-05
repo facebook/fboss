@@ -32,6 +32,12 @@ class ChenabAsic : public HwAsic {
             mac,
             sdkVersion,
             {cfg::SwitchType::NPU}) {}
+  ChenabAsic(
+      std::optional<int64_t> switchId,
+      cfg::SwitchInfo switchInfo,
+      std::optional<cfg::SdkVersion> sdkVersion = std::nullopt)
+      : HwAsic(switchId, switchInfo, sdkVersion, {cfg::SwitchType::NPU}) {}
+
   AsicVendor getAsicVendor() const override;
   std::string getVendor() const override;
   bool isSupported(Feature feature) const override;

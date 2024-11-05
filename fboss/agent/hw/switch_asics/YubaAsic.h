@@ -34,6 +34,13 @@ class YubaAsic : public TajoAsic {
             {cfg::SwitchType::NPU}) {
     HwAsic::setDefaultStreamType(cfg::StreamType::UNICAST);
   }
+  YubaAsic(
+      std::optional<int64_t> switchId,
+      cfg::SwitchInfo switchInfo,
+      std::optional<cfg::SdkVersion> sdkVersion = std::nullopt)
+      : TajoAsic(switchId, switchInfo, sdkVersion, {cfg::SwitchType::NPU}) {
+    HwAsic::setDefaultStreamType(cfg::StreamType::UNICAST);
+  }
   bool isSupported(Feature feature) const override {
     return getSwitchType() != cfg::SwitchType::FABRIC
         ? isSupportedNonFabric(feature)
