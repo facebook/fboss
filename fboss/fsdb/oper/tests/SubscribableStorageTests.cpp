@@ -1087,6 +1087,19 @@ CO_TEST_P(SubscribableStorageTests, SubscribeExtendedPatchUpdate) {
   ret = co_await co_awaitTry(
       folly::coro::timeout(consumeOne(generator), std::chrono::seconds(1)));
   EXPECT_FALSE(ret.hasException());
+
+  // remove value
+  storage.remove(root.stringToStruct()["test1"]);
+  ret = co_await co_awaitTry(
+      folly::coro::timeout(consumeOne(generator), std::chrono::seconds(1)));
+  EXPECT_FALSE(ret.hasException());
+  SubscriberChunk subChunk = *ret->chunk_ref();
+  EXPECT_EQ(subChunk.patchGroups()->size(), 1);
+  EXPECT_EQ(subChunk.patchGroups()->at(0).size(), 1);
+  auto patch = subChunk.patchGroups()->at(0).front();
+  EXPECT_EQ(patch.basePath()->size(), 3);
+  EXPECT_EQ(
+      patch.patch()->getType(), facebook::fboss::thrift_cow::PatchNode::del);
 }
 
 CO_TEST_P(SubscribableStorageTests, SubscribeExtendedPatchMultipleChanges) {
