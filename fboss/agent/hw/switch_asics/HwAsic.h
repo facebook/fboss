@@ -358,7 +358,6 @@ class HwAsic {
   int16_t getSwitchIndex() const {
     return switchIndex_;
   }
-  std::optional<cfg::Range64> getSystemPortRange() const;
   const cfg::SystemPortRanges& getSystemPortRanges() const {
     return systemPortRanges_;
   }

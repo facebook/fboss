@@ -59,14 +59,6 @@ HwAsic::HwAsic(
   }
 }
 
-std::optional<cfg::Range64> HwAsic::getSystemPortRange() const {
-  std::optional<cfg::Range64> sysPortRange;
-  if (systemPortRanges_.systemPortRanges()->size()) {
-    CHECK_EQ(systemPortRanges_.systemPortRanges()->size(), 1);
-    sysPortRange = *systemPortRanges_.systemPortRanges()->begin();
-  }
-  return sysPortRange;
-}
 /*
  * Default Content Aware Processor group ID for ACLs
  */
