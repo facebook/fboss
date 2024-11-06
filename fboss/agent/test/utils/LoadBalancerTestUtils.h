@@ -67,7 +67,8 @@ size_t pumpRoCETraffic(
     uint8_t roceOpcode = kUdfRoceOpcodeAck,
     uint8_t reserved = kRoceReserved,
     std::optional<std::vector<uint8_t>> nextHdr =
-        std::optional<std::vector<uint8_t>>());
+        std::optional<std::vector<uint8_t>>(),
+    bool sameDstQueue = false);
 
 size_t pumpTrafficWithSourceFile(
     AllocatePktFunc allocateFn,
