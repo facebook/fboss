@@ -973,6 +973,10 @@ typedef string PortFlowletConfigName
 
 const i32 DEFAULT_PORT_MTU = 9412;
 
+const string DEFAULT_INGRESS_ACL_TABLE_GROUP = "ingress-ACL-Table-Group";
+
+const string DEFAULT_INGRESS_ACL_TABLE = "AclTable1";
+
 enum PortType {
   INTERFACE_PORT = 0,
   FABRIC_PORT = 1,
