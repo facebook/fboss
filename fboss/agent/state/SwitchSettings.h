@@ -653,6 +653,24 @@ class SwitchSettings
     }
   }
 
+  std::optional<int> getConditionalEntropyRehashPeriodUS() const {
+    if (auto conditionalEntropyRehashPeriodUS =
+            cref<switch_state_tags::conditionalEntropyRehashPeriodUS>()) {
+      return conditionalEntropyRehashPeriodUS->toThrift();
+    }
+    return std::nullopt;
+  }
+
+  void setConditionalEntropyRehashPeriodUS(
+      std::optional<int> conditionalEntropyRehashPeriodUS) {
+    if (!conditionalEntropyRehashPeriodUS) {
+      ref<switch_state_tags::conditionalEntropyRehashPeriodUS>().reset();
+    } else {
+      set<switch_state_tags::conditionalEntropyRehashPeriodUS>(
+          *conditionalEntropyRehashPeriodUS);
+    }
+  }
+
   SwitchSettings* modify(std::shared_ptr<SwitchState>* state);
 
  private:
