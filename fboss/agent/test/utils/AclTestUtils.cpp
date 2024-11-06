@@ -21,7 +21,7 @@ DECLARE_bool(enable_acl_table_group);
 namespace facebook::fboss::utility {
 
 std::string kDefaultAclTable() {
-  return "AclTable1";
+  return cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE();
 }
 
 std::vector<cfg::AclTableQualifier> genAclQualifiersConfig(
@@ -78,8 +78,9 @@ cfg::AclEntry* addAclEntry(
     cfg::AclEntry& acl,
     const std::optional<std::string>& tableName) {
   if (FLAGS_enable_acl_table_group) {
-    auto aclTableName =
-        tableName.has_value() ? tableName.value() : kDefaultAclTable();
+    auto aclTableName = tableName.has_value()
+        ? tableName.value()
+        : cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE();
     int tableNumber = getAclTableIndex(cfg, aclTableName);
     CHECK(cfg->aclTableGroup().has_value());
     cfg->aclTableGroup()->aclTables()[tableNumber].aclEntries()->push_back(acl);
@@ -117,7 +118,8 @@ std::shared_ptr<AclEntry> getAclEntryByName(
   std::shared_ptr<AclEntry> swAcl;
   if (FLAGS_enable_acl_table_group) {
     auto aclMap = state->getAclsForTable(
-        cfg::AclStage::INGRESS, utility::kDefaultAclTable());
+        cfg::AclStage::INGRESS,
+        cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE());
     if (aclMap) {
       swAcl = aclMap->getNodeIf(aclName);
     }
@@ -147,8 +149,9 @@ std::string getAclTableGroupName() {
 std::vector<cfg::AclEntry>& getAcls(
     cfg::SwitchConfig* cfg,
     const std::optional<std::string>& tableName) {
-  auto aclTableName =
-      tableName.has_value() ? tableName.value() : kDefaultAclTable();
+  auto aclTableName = tableName.has_value()
+      ? tableName.value()
+      : cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE();
   if (FLAGS_enable_acl_table_group) {
     CHECK(cfg->aclTableGroup());
     return *cfg->aclTableGroup()
@@ -191,7 +194,12 @@ void addDefaultAclTable(cfg::SwitchConfig& cfg) {
   /* Create default ACL table similar to whats being done in Agent today */
   std::vector<cfg::AclTableQualifier> qualifiers = {};
   std::vector<cfg::AclTableActionType> actions = {};
-  addAclTable(&cfg, kDefaultAclTable(), 0 /* priority */, actions, qualifiers);
+  addAclTable(
+      &cfg,
+      cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE(),
+      0 /* priority */,
+      actions,
+      qualifiers);
 }
 
 cfg::AclTable* addAclTable(
@@ -392,7 +400,9 @@ std::shared_ptr<AclEntry> getAclEntry(
     bool enableAclTableGroup) {
   if (enableAclTableGroup) {
     return state
-        ->getAclsForTable(cfg::AclStage::INGRESS, utility::kDefaultAclTable())
+        ->getAclsForTable(
+            cfg::AclStage::INGRESS,
+            cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE())
         ->getNodeIf(name);
   }
   return state->getAcl(name);

@@ -19,6 +19,8 @@
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/test/TestUtils.h"
 
+#include "fboss/agent/gen-cpp2/switch_config_constants.h"
+
 #include <gtest/gtest.h>
 
 using namespace facebook::fboss;
@@ -40,7 +42,6 @@ const uint8_t kDscpVal4 = 4;
 const std::string kTable1 = "table1";
 const std::string kTable2 = "table2";
 const std::string kTable3 = "table3";
-const std::string kAclTable1 = "AclTable1";
 
 const cfg::AclStage kAclStage1 = cfg::AclStage::INGRESS;
 const cfg::AclStage kAclStage2 = cfg::AclStage::INGRESS_MACSEC;
@@ -80,7 +81,8 @@ namespace {
 
 std::shared_ptr<const AclMap> getAclMapFromState(
     std::shared_ptr<SwitchState> state) {
-  auto aclMap = state->getAclsForTable(kAclStage1, kAclTable1);
+  auto aclMap = state->getAclsForTable(
+      kAclStage1, cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE());
   EXPECT_NE(nullptr, aclMap);
   return aclMap;
 }
@@ -442,7 +444,9 @@ TEST(AclGroup, SerializeMultiSwitchAclTableGroupMap) {
   map1->addEntry(entry2);
   map1->addEntry(entry3);
 
-  auto table1 = std::make_shared<AclTable>(0, kAclTable1);
+  const std::string table1Name =
+      cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE();
+  auto table1 = std::make_shared<AclTable>(0, table1Name);
   table1->setAclMap(map1);
 
   auto tableMap = std::make_shared<AclTableMap>();
