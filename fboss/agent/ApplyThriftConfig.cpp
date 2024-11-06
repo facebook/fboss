@@ -4608,6 +4608,18 @@ shared_ptr<SwitchSettings> ThriftConfigApplier::updateSwitchSettings(
     switchSettingsChange = true;
   }
 
+  std::optional<int> newConditionalEntropyRehashPeriodUS;
+  if (cfg_->switchSettings()->conditionalEntropyRehashPeriodUS()) {
+    newConditionalEntropyRehashPeriodUS =
+        *cfg_->switchSettings()->conditionalEntropyRehashPeriodUS();
+  }
+  if (newConditionalEntropyRehashPeriodUS !=
+      origSwitchSettings->getConditionalEntropyRehashPeriodUS()) {
+    newSwitchSettings->setConditionalEntropyRehashPeriodUS(
+        newConditionalEntropyRehashPeriodUS);
+    switchSettingsChange = true;
+  }
+
   if (origSwitchSettings->getSwitchDrainState() !=
       *cfg_->switchSettings()->switchDrainState()) {
     auto numVoqSwtitches =
