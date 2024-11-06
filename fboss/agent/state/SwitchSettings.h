@@ -192,7 +192,15 @@ class SwitchSettings
   bool vlansSupported() const;
 
   bool isSwitchDrained() const {
-    return getActualSwitchDrainState() == cfg::SwitchDrainState::DRAINED;
+    /*
+     * DRAINED vs. DRAINED_DUE_TO_ASIC_ERROR is a distinction exposed by
+     * SwSwitch to Thrift/CLI to provide additional info about reason for
+     * DRAIN. From the device standpoint, both mean that the device is
+     * DRAINED.
+     */
+    return getActualSwitchDrainState() == cfg::SwitchDrainState::DRAINED ||
+        getActualSwitchDrainState() ==
+        cfg::SwitchDrainState::DRAINED_DUE_TO_ASIC_ERROR;
   }
 
   cfg::SwitchDrainState getSwitchDrainState() const {
