@@ -500,8 +500,6 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
       uint32_t maxCoreCount = 0;
       uint32_t maxSystemCoreCount = 0;
       auto localMac = getLocalMac();
-      const EbroAsic ebro(
-          cfg::SwitchType::VOQ, 0, 0, std::nullopt, localMac, std::nullopt);
       const Jericho2Asic j2(
           cfg::SwitchType::VOQ, 0, 0, std::nullopt, localMac, std::nullopt);
       const Jericho3Asic j3(
@@ -524,8 +522,6 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
             maxCoreCount = std::max(j3.getNumCores(), maxCoreCount);
             maxSystemCoreCount =
                 std::max(maxSystemCoreCount, uint32_t(id + j3.getNumCores()));
-            break;
-          case cfg::AsicType::ASIC_TYPE_EBRO:
             break;
           default:
             throw FbossError("Unexpected asic type: ", *dsfNode.asicType());
