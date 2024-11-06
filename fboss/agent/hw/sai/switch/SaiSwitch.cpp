@@ -2174,21 +2174,23 @@ void SaiSwitch::txReadyStatusChangeCallbackTopHalf(SwitchSaiId switchId) {
     return;
   }
 
-  // When txReadyStatusChangeCallbackBottomHalf runs, it queries for
+  // When txReadyStatusChangeOrFwIsolateCallbackBottomHalf runs, it queries for
   // active/inactive link status of all the links at that time.
-  // Thus, if we txReadyStatusChangeCallbackBottomHalf is already queued for
-  // run, we can skip scheduling another.
-  // Note: txReadyStatusChangeCallbackBottomHalf sets changePending to false
-  // before querying link active/inactive status, so avoid race.
+  // Thus, if we txReadyStatusChangeOrFwIsolateCallbackBottomHalf is already
+  // queued for run, we can skip scheduling another.
+  // Note: txReadyStatusChangeOrFwIsolateCallbackBottomHalf sets changePending
+  // to false before querying link active/inactive status, so avoid race.
   auto changePending = txReadyStatusChangePending_.wlock();
   if (!(*changePending)) {
     *changePending = true;
     txReadyStatusChangeBottomHalfEventBase_.runInFbossEventBaseThread(
-        [this]() mutable { txReadyStatusChangeCallbackBottomHalf(); });
+        [this]() mutable {
+          txReadyStatusChangeOrFwIsolateCallbackBottomHalf();
+        });
   }
 }
 
-void SaiSwitch::txReadyStatusChangeCallbackBottomHalf() {
+void SaiSwitch::txReadyStatusChangeOrFwIsolateCallbackBottomHalf() {
 #if SAI_API_VERSION >= SAI_VERSION(1, 13, 0)
   {
     auto changePending = txReadyStatusChangePending_.wlock();
@@ -2685,7 +2687,7 @@ void SaiSwitch::syncLinkActiveStates() {
   if (platform_->getAsic()->isSupported(HwAsic::Feature::FABRIC_PORTS)) {
     std::lock_guard<std::mutex> lock(saiSwitchMutex_);
     txReadyStatusChangeBottomHalfEventBase_.runInFbossEventBaseThread(
-        [=, this]() { txReadyStatusChangeCallbackBottomHalf(); });
+        [=, this]() { txReadyStatusChangeOrFwIsolateCallbackBottomHalf(); });
   }
 }
 
@@ -2724,7 +2726,7 @@ void SaiSwitch::initTxReadyStatusChangeLocked(
          * callback to guarantee that we don't miss any callbacks and those are
          * always ordered.
          */
-        txReadyStatusChangeCallbackBottomHalf();
+        txReadyStatusChangeOrFwIsolateCallbackBottomHalf();
       });
 #endif
 }
