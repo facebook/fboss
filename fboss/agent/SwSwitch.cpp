@@ -272,11 +272,11 @@ std::string getDrainThresholdStr(
     const SwitchSettings& switchSettings) {
   if (newState == SwitchDrainState::UNDRAINED) {
     auto minLinks = switchSettings.getMinLinksToRemainInVOQDomain();
-    return "drains when active ports is below " +
+    return "drains at < " +
         (minLinks.has_value() ? std::to_string(minLinks.value()) : "N/A") + ")";
   } else {
     auto minLinks = switchSettings.getMinLinksToJoinVOQDomain();
-    return "undrains when active ports is above" +
+    return "undrains at >= " +
         (minLinks.has_value() ? std::to_string(minLinks.value()) : "N/A") + ")";
   }
 }
@@ -2255,10 +2255,16 @@ void SwSwitch::linkActiveStateChangedOrFwIsolated(
       newSwitchSettings->setActualSwitchDrainState(newActualSwitchDrainState);
     }
 
-    XLOG(DBG2) << "Switch state: "
+    XLOG(DBG2) << "SwitchID: " << static_cast<int>(matcher.switchId())
+               << " | FwIsolated: " << (fwIsolated ? "Y" : "N")
+               << " | ActivePortsAtFwIsolate: "
+               << (numActiveFabricPortsAtFwIsolate.has_value()
+                       ? folly::to<std::string>(
+                             numActiveFabricPortsAtFwIsolate.value())
+                       : "--")
+               << " | "
                << getDrainStateChangedStr(getState(), newState, matcher)
-               << " | SwitchIDs: " << matcher.matcherString()
-               << " | Active ports: " << numActiveFabricPorts << "/"
+               << " | ActivePorts: " << numActiveFabricPorts << "/"
                << port2IsActive.size() << " ("
                << getDrainThresholdStr(
                       newActualSwitchDrainState, switchSettings.get())
