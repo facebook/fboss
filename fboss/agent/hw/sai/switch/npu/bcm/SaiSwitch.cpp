@@ -447,6 +447,15 @@ void SaiSwitch::switchEventCallback(
                 << " error type: " << errorType(eventInfo->error_type)
                 << " is_isolated: " << static_cast<int>(eventInfo->index)
                 << " nof_active_links: " << static_cast<int>(eventInfo->index2);
+
+      // We always want to process Firmware Isolte cb and never coalesce it.
+      // Thus, unconditionally queue to for processing regardless of
+      // txReadyStatusChangePending_.
+      txReadyStatusChangeBottomHalfEventBase_.runInFbossEventBaseThread(
+          [this]() mutable {
+            txReadyStatusChangeOrFwIsolateCallbackBottomHalf();
+          });
+
       break;
     }
 #endif
