@@ -1377,6 +1377,18 @@ void SaiSwitch::processSwitchSettingsChangeSansDrainedEntryLocked(
           newVoqDramBoundTh.value_or(0));
     }
   }
+
+  {
+    const auto oldConditionalEntropyRehashPeriodUS =
+        oldSwitchSettings->getConditionalEntropyRehashPeriodUS();
+    const auto newConditionalEntropyRehashPeriodUS =
+        newSwitchSettings->getConditionalEntropyRehashPeriodUS();
+    if (oldConditionalEntropyRehashPeriodUS !=
+        newConditionalEntropyRehashPeriodUS) {
+      managerTable_->switchManager().setConditionalEntropyRehashPeriodUS(
+          newConditionalEntropyRehashPeriodUS.value_or(0));
+    }
+  }
 }
 
 template <typename LockPolicyT>
