@@ -41,14 +41,20 @@ TEST_F(SaiAclTableRecreateTests, AclEntryCount) {
     applyNewConfig(config);
     const auto* saiSwitch = static_cast<const SaiSwitch*>(getHwSwitch());
     const auto& aclTableManager = saiSwitch->managerTable()->aclTableManager();
-    EXPECT_EQ(aclTableManager.aclEntryCount(kAclTable1), 2);
+    EXPECT_EQ(
+        aclTableManager.aclEntryCount(
+            cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE()),
+        2);
   };
   auto verify = [=]() {
     // ensure acl table exists with same number of acl entries after force
     // recreate.
     const auto* saiSwitch = static_cast<const SaiSwitch*>(getHwSwitch());
     const auto& aclTableManager = saiSwitch->managerTable()->aclTableManager();
-    EXPECT_EQ(aclTableManager.aclEntryCount(kAclTable1), 2);
+    EXPECT_EQ(
+        aclTableManager.aclEntryCount(
+            cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE()),
+        2);
   };
   verifyAcrossWarmBoots(setup, verify);
 }

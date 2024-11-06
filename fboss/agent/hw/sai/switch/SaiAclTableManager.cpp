@@ -1604,7 +1604,7 @@ void SaiAclTableManager::removeDefaultAclTable(
     managerTable_->aclTableGroupManager().removeAclTableGroupMember(
         saiAclStage, name);
   }
-  handles_.erase(kAclTable1);
+  handles_.erase(cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE());
 }
 
 bool SaiAclTableManager::isQualifierSupported(
@@ -1770,7 +1770,8 @@ bool SaiAclTableManager::areQualifiersSupported(
 
 bool SaiAclTableManager::areQualifiersSupportedInDefaultAclTable(
     const std::set<cfg::AclTableQualifier>& qualifiers) const {
-  return areQualifiersSupported(kAclTable1, qualifiers);
+  return areQualifiersSupported(
+      cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE(), qualifiers);
 }
 
 void SaiAclTableManager::recreateAclTable(
@@ -1894,9 +1895,13 @@ std::shared_ptr<AclEntry> SaiAclTableManager::reconstructAclEntry(
 }
 
 void SaiAclTableManager::addDefaultIngressAclTable() {
-  addDefaultAclTable(cfg::AclStage::INGRESS, kAclTable1);
+  addDefaultAclTable(
+      cfg::AclStage::INGRESS,
+      cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE());
 }
 void SaiAclTableManager::removeDefaultIngressAclTable() {
-  removeDefaultAclTable(cfg::AclStage::INGRESS, kAclTable1);
+  removeDefaultAclTable(
+      cfg::AclStage::INGRESS,
+      cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE());
 }
 } // namespace facebook::fboss

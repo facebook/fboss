@@ -49,9 +49,11 @@ class AclTableManagerTest : public ManagerTestBase {
 };
 
 TEST_F(AclTableManagerTest, addAclTable) {
-  auto aclTableId = saiManagerTable->aclTableManager()
-                        .getAclTableHandle(kAclTable1)
-                        ->aclTable->adapterKey();
+  auto aclTableId =
+      saiManagerTable->aclTableManager()
+          .getAclTableHandle(
+              cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE())
+          ->aclTable->adapterKey();
   // Acl table is added as part of sai switch init in test setup
   auto stageGot = saiApiTable->aclApi().getAttribute(
       aclTableId, SaiAclTableTraits::Attributes::Stage());
@@ -60,9 +62,11 @@ TEST_F(AclTableManagerTest, addAclTable) {
 
 TEST_F(AclTableManagerTest, addTwoAclTable) {
   // AclTable1 should already be added
-  auto aclTableId = saiManagerTable->aclTableManager()
-                        .getAclTableHandle(kAclTable1)
-                        ->aclTable->adapterKey();
+  auto aclTableId =
+      saiManagerTable->aclTableManager()
+          .getAclTableHandle(
+              cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE())
+          ->aclTable->adapterKey();
   auto table2 = std::make_shared<AclTable>(0, kAclTable2);
   AclTableSaiId aclTableId2 = saiManagerTable->aclTableManager().addAclTable(
       table2, cfg::AclStage::INGRESS);
@@ -79,7 +83,7 @@ TEST_F(AclTableManagerTest, addTwoAclTable) {
 TEST_F(AclTableManagerTest, addDupAclTable) {
   state::AclTableFields fields{};
   fields.priority() = 0;
-  fields.id() = kAclTable1;
+  fields.id() = cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE();
   auto table1 = std::make_shared<AclTable>(std::move(fields));
   EXPECT_THROW(
       saiManagerTable->aclTableManager().addAclTable(
@@ -88,8 +92,8 @@ TEST_F(AclTableManagerTest, addDupAclTable) {
 }
 
 TEST_F(AclTableManagerTest, getAclTable) {
-  auto handle =
-      saiManagerTable->aclTableManager().getAclTableHandle(kAclTable1);
+  auto handle = saiManagerTable->aclTableManager().getAclTableHandle(
+      cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE());
 
   EXPECT_TRUE(handle);
   EXPECT_TRUE(handle->aclTable);
@@ -103,17 +107,19 @@ TEST_F(AclTableManagerTest, checkNonExistentAclTable) {
 }
 
 TEST_F(AclTableManagerTest, addAclEntry) {
-  auto aclTableId = saiManagerTable->aclTableManager()
-                        .getAclTableHandle(kAclTable1)
-                        ->aclTable->adapterKey();
+  auto aclTableId =
+      saiManagerTable->aclTableManager()
+          .getAclTableHandle(
+              cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE())
+          ->aclTable->adapterKey();
 
   auto aclEntry =
       std::make_shared<AclEntry>(kPriority(), std::string("AclEntry1"));
   aclEntry->setDscp(kDscp());
   aclEntry->setActionType(kActionType());
 
-  AclEntrySaiId aclEntryId =
-      saiManagerTable->aclTableManager().addAclEntry(aclEntry, kAclTable1);
+  AclEntrySaiId aclEntryId = saiManagerTable->aclTableManager().addAclEntry(
+      aclEntry, cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE());
 
   auto tableIdGot = saiApiTable->aclApi().getAttribute(
       aclEntryId, SaiAclEntryTraits::Attributes::TableId());
@@ -121,9 +127,11 @@ TEST_F(AclTableManagerTest, addAclEntry) {
 }
 
 TEST_F(AclTableManagerTest, addAclEntryWithCounter) {
-  auto aclTableId = saiManagerTable->aclTableManager()
-                        .getAclTableHandle(kAclTable1)
-                        ->aclTable->adapterKey();
+  auto aclTableId =
+      saiManagerTable->aclTableManager()
+          .getAclTableHandle(
+              cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE())
+          ->aclTable->adapterKey();
 
   auto counter = cfg::TrafficCounter();
   *counter.name() = "stat0.c";
@@ -135,8 +143,8 @@ TEST_F(AclTableManagerTest, addAclEntryWithCounter) {
   aclEntry->setDscp(kDscp());
   aclEntry->setAclAction(action);
 
-  AclEntrySaiId aclEntryId =
-      saiManagerTable->aclTableManager().addAclEntry(aclEntry, kAclTable1);
+  AclEntrySaiId aclEntryId = saiManagerTable->aclTableManager().addAclEntry(
+      aclEntry, cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE());
 
   auto tableIdGot = saiApiTable->aclApi().getAttribute(
       aclEntryId, SaiAclEntryTraits::Attributes::TableId());
@@ -155,17 +163,19 @@ TEST_F(AclTableManagerTest, addAclEntryWithCounter) {
 }
 
 TEST_F(AclTableManagerTest, addTwoAclEntry) {
-  auto aclTableId = saiManagerTable->aclTableManager()
-                        .getAclTableHandle(kAclTable1)
-                        ->aclTable->adapterKey();
+  auto aclTableId =
+      saiManagerTable->aclTableManager()
+          .getAclTableHandle(
+              cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE())
+          ->aclTable->adapterKey();
 
   auto aclEntry =
       std::make_shared<AclEntry>(kPriority(), std::string("AclEntry1"));
   aclEntry->setDscp(kDscp());
   aclEntry->setActionType(kActionType());
 
-  AclEntrySaiId aclEntryId =
-      saiManagerTable->aclTableManager().addAclEntry(aclEntry, kAclTable1);
+  AclEntrySaiId aclEntryId = saiManagerTable->aclTableManager().addAclEntry(
+      aclEntry, cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE());
 
   auto tableIdGot = saiApiTable->aclApi().getAttribute(
       aclEntryId, SaiAclEntryTraits::Attributes::TableId());
@@ -176,8 +186,8 @@ TEST_F(AclTableManagerTest, addTwoAclEntry) {
   aclEntry2->setDscp(kDscp2());
   aclEntry2->setActionType(kActionType());
 
-  AclEntrySaiId aclEntryId2 =
-      saiManagerTable->aclTableManager().addAclEntry(aclEntry2, kAclTable1);
+  AclEntrySaiId aclEntryId2 = saiManagerTable->aclTableManager().addAclEntry(
+      aclEntry2, cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE());
 
   auto tableIdGot2 = saiApiTable->aclApi().getAttribute(
       aclEntryId2, SaiAclEntryTraits::Attributes::TableId());
@@ -190,7 +200,8 @@ TEST_F(AclTableManagerTest, addDupAclEntry) {
   aclEntry->setDscp(kDscp());
   aclEntry->setActionType(kActionType());
 
-  saiManagerTable->aclTableManager().addAclEntry(aclEntry, kAclTable1);
+  saiManagerTable->aclTableManager().addAclEntry(
+      aclEntry, cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE());
 
   auto dupAclEntry =
       std::make_shared<AclEntry>(kPriority(), std::string("AclEntry1"));
@@ -198,7 +209,9 @@ TEST_F(AclTableManagerTest, addDupAclEntry) {
   dupAclEntry->setActionType(cfg::AclActionType::DENY);
 
   EXPECT_THROW(
-      saiManagerTable->aclTableManager().addAclEntry(dupAclEntry, kAclTable1),
+      saiManagerTable->aclTableManager().addAclEntry(
+          dupAclEntry,
+          cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE()),
       FbossError);
 }
 
@@ -208,10 +221,11 @@ TEST_F(AclTableManagerTest, getAclEntry) {
   aclEntry->setDscp(kDscp());
   aclEntry->setActionType(kActionType());
 
-  saiManagerTable->aclTableManager().addAclEntry(aclEntry, kAclTable1);
+  saiManagerTable->aclTableManager().addAclEntry(
+      aclEntry, cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE());
 
-  auto aclTableHandle =
-      saiManagerTable->aclTableManager().getAclTableHandle(kAclTable1);
+  auto aclTableHandle = saiManagerTable->aclTableManager().getAclTableHandle(
+      cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE());
 
   EXPECT_TRUE(aclTableHandle);
   EXPECT_TRUE(aclTableHandle->aclTable);
@@ -224,8 +238,8 @@ TEST_F(AclTableManagerTest, getAclEntry) {
 }
 
 TEST_F(AclTableManagerTest, checkNonExistentAclEntry) {
-  auto aclTableHandle =
-      saiManagerTable->aclTableManager().getAclTableHandle(kAclTable1);
+  auto aclTableHandle = saiManagerTable->aclTableManager().getAclTableHandle(
+      cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE());
 
   EXPECT_TRUE(aclTableHandle);
   EXPECT_TRUE(aclTableHandle->aclTable);
@@ -250,8 +264,8 @@ TEST_F(AclTableManagerTest, aclMirroring) {
   MatchAction matchAction = MatchAction();
   matchAction.setIngressMirror(mirrorId);
   aclEntry->setAclAction(matchAction);
-  AclEntrySaiId aclEntryId =
-      saiManagerTable->aclTableManager().addAclEntry(aclEntry, kAclTable1);
+  AclEntrySaiId aclEntryId = saiManagerTable->aclTableManager().addAclEntry(
+      aclEntry, cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE());
   SaiMirrorHandle* mirrorHandle =
       saiManagerTable->mirrorManager().getMirrorHandle(mirrorId);
   auto gotMirrorSaiIdList = saiApiTable->aclApi().getAttribute(

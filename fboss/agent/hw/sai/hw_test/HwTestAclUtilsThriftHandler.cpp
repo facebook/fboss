@@ -5,6 +5,7 @@
 #include "fboss/agent/hw/sai/switch/SaiAclTableManager.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitch.h"
 
+#include "fboss/agent/gen-cpp2/switch_config_constants.h"
 #include "fboss/agent/test/utils/AclTestUtils.h"
 
 namespace {
@@ -14,8 +15,10 @@ std::string getActualAclTableName(
   // single acl table. Now support multiple tables so can accept table name. If
   // table name not provided we are still using single table, so continue using
   // kAclTable1.
-  return aclTableName.has_value() ? aclTableName.value()
-                                  : facebook::fboss::kAclTable1;
+  return aclTableName.has_value()
+      ? aclTableName.value()
+      : facebook::fboss::cfg::switch_config_constants::
+            DEFAULT_INGRESS_ACL_TABLE();
 }
 } // namespace
 
@@ -39,8 +42,8 @@ int32_t HwTestThriftHandler::getAclTableNumAclEntries(
 }
 
 bool HwTestThriftHandler::isDefaultAclTableEnabled() {
-  return isAclTableEnabled(
-      std::make_unique<std::string>(facebook::fboss::kAclTable1));
+  return isAclTableEnabled(std::make_unique<std::string>(
+      cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE()));
 }
 
 bool HwTestThriftHandler::isAclTableEnabled(std::unique_ptr<std::string> name) {
@@ -85,7 +88,8 @@ bool HwTestThriftHandler::isStatProgrammedInDefaultAclTable(
       std::move(aclEntryNames),
       std::move(counterName),
       std::move(types),
-      std::make_unique<std::string>(facebook::fboss::kAclTable1));
+      std::make_unique<std::string>(
+          cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE()));
 }
 
 bool HwTestThriftHandler::isStatProgrammedInAclTable(

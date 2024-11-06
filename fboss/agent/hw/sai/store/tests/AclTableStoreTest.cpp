@@ -311,7 +311,8 @@ TEST_F(AclTableStoreTest, loadAclTables) {
   s.reload();
   auto& store = s.get<SaiAclTableTraits>();
 
-  SaiAclTableTraits::AdapterHostKey k{"AclTable1"};
+  SaiAclTableTraits::AdapterHostKey k{
+      cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE()};
 
   auto got = store.get(k);
   EXPECT_NE(got, nullptr);
@@ -358,7 +359,8 @@ TEST_P(AclTableStoreParamTest, loadAclCounter) {
 
 TEST_P(AclTableStoreParamTest, aclTableCtorLoad) {
   auto aclTableId = createAclTable(GetParam());
-  auto obj = createObj<SaiAclTableTraits>(aclTableId, "AclTable1");
+  auto obj = createObj<SaiAclTableTraits>(
+      aclTableId, cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE());
   EXPECT_EQ(obj.adapterKey(), aclTableId);
 }
 
@@ -410,7 +412,8 @@ TEST_P(AclTableStoreParamTest, aclTableCtorCreate) {
       true, // ipv6 next header
   };
 
-  SaiAclTableTraits::AdapterHostKey k{"AclTable1"};
+  SaiAclTableTraits::AdapterHostKey k{
+      cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE()};
 
   SaiObject<SaiAclTableTraits> obj = createObj<SaiAclTableTraits>(k, c, 0);
   EXPECT_EQ(GET_ATTR(AclTable, Stage, obj.attributes()), GetParam());

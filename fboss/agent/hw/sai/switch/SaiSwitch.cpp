@@ -1119,7 +1119,7 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChangedImplLocked(
         &SaiAclTableManager::changedAclEntry,
         &SaiAclTableManager::addAclEntry,
         &SaiAclTableManager::removeAclEntry,
-        kAclTable1);
+        cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE());
   }
 
   processPfcWatchdogGlobalDelta(delta, lockPolicy);
@@ -4247,7 +4247,9 @@ std::shared_ptr<MultiSwitchAclMap> SaiSwitch::reconstructMultiSwitchAclMap()
     for (const auto& [name, aclEntry] : std::as_const(*aclMap)) {
       auto reconstructedAclEntry =
           managerTable_->aclTableManager().reconstructAclEntry(
-              kAclTable1, name, aclEntry->getPriority());
+              cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE(),
+              name,
+              aclEntry->getPriority());
       reconstructedMultiSwitchAclMap->addNode(
           reconstructedAclEntry, HwSwitchMatcher(matcher));
     }

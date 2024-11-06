@@ -81,8 +81,8 @@ HwTestPacketTrapEntry::HwTestPacketTrapEntry(
     const uint16_t l4DstPort)
     : hwSwitch_(hwSwitch) {
   auto saiSwitch = static_cast<SaiSwitch*>(hwSwitch_);
-  int priority =
-      saiSwitch->managerTable()->aclTableManager().aclEntryCount(kAclTable1);
+  int priority = saiSwitch->managerTable()->aclTableManager().aclEntryCount(
+      cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE());
 
   auto aclEntry = std::make_shared<AclEntry>(
       priority, std::string("AclEntry" + folly::to<std::string>(priority)));
@@ -92,7 +92,7 @@ HwTestPacketTrapEntry::HwTestPacketTrapEntry(
   aclEntry->setAclAction(matchAction);
 
   saiSwitch->managerTable()->aclTableManager().addAclEntry(
-      aclEntry, kAclTable1);
+      aclEntry, cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE());
   aclEntries_.push_back(aclEntry);
 }
 
@@ -101,11 +101,12 @@ HwTestPacketTrapEntry::HwTestPacketTrapEntry(
     const std::set<PortID>& ports)
     : hwSwitch_(hwSwitch) {
   auto saiSwitch = static_cast<SaiSwitch*>(hwSwitch_);
-  int priority = getNextFreePriority(saiSwitch, kAclTable1);
+  int priority = getNextFreePriority(
+      saiSwitch, cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE());
   for (auto port : ports) {
     auto aclEntry = getTrapAclEntry(true, port, std::nullopt, priority++);
     saiSwitch->managerTable()->aclTableManager().addAclEntry(
-        aclEntry, kAclTable1);
+        aclEntry, cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE());
     aclEntries_.push_back(aclEntry);
   }
 }
@@ -115,11 +116,12 @@ HwTestPacketTrapEntry::HwTestPacketTrapEntry(
     const std::set<folly::CIDRNetwork>& dstPrefixes)
     : hwSwitch_(hwSwitch) {
   auto saiSwitch = static_cast<SaiSwitch*>(hwSwitch_);
-  int priority = getNextFreePriority(saiSwitch, kAclTable1);
+  int priority = getNextFreePriority(
+      saiSwitch, cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE());
   for (const auto& dstPrefix : dstPrefixes) {
     auto aclEntry = getTrapAclEntry(false, std::nullopt, dstPrefix, priority++);
     saiSwitch->managerTable()->aclTableManager().addAclEntry(
-        aclEntry, kAclTable1);
+        aclEntry, cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE());
     aclEntries_.push_back(aclEntry);
   }
 }
@@ -128,7 +130,7 @@ HwTestPacketTrapEntry::~HwTestPacketTrapEntry() {
   auto saiSwitch = static_cast<SaiSwitch*>(hwSwitch_);
   for (const auto& aclEntry : aclEntries_) {
     saiSwitch->managerTable()->aclTableManager().removeAclEntry(
-        aclEntry, kAclTable1);
+        aclEntry, cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE());
   }
 }
 
