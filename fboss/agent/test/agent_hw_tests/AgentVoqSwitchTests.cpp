@@ -313,6 +313,37 @@ class AgentVoqSwitchTest : public AgentHwTest {
     });
   }
 
+  std::vector<PortDescriptor> getInterfacePortSysPortDesc() {
+    auto ports = getProgrammedState()->getPorts()->getAllNodes();
+    std::vector<PortDescriptor> portDescs;
+    std::for_each(
+        ports->begin(),
+        ports->end(),
+        [this, &portDescs](const auto& idAndPort) {
+          const auto port = idAndPort.second;
+          if (port->getPortType() == cfg::PortType::INTERFACE_PORT) {
+            portDescs.push_back(PortDescriptor(getSystemPortID(
+                PortDescriptor(port->getID()), cfg::Scope::GLOBAL)));
+          }
+        });
+    return portDescs;
+  }
+
+  // Resolve and return list of local nhops (only NIF ports)
+  std::vector<PortDescriptor> resolveLocalNhops(
+      utility::EcmpSetupTargetedPorts6& ecmpHelper) {
+    std::vector<PortDescriptor> portDescs = getInterfacePortSysPortDesc();
+
+    applyNewState([&](const std::shared_ptr<SwitchState>& in) {
+      auto out = in->clone();
+      for (const auto& portDesc : portDescs) {
+        out = ecmpHelper.resolveNextHops(out, {portDesc});
+      }
+      return out;
+    });
+    return portDescs;
+  }
+
  private:
   void addCpuTrafficPolicy(
       cfg::SwitchConfig& cfg,
@@ -2093,21 +2124,6 @@ class AgentVoqSwitchFullScaleDsfNodesTest : public AgentVoqSwitchTest {
     return 64;
   }
 
-  // Resolve and return list of local nhops (only NIF ports)
-  std::vector<PortDescriptor> resolveLocalNhops(
-      utility::EcmpSetupTargetedPorts6& ecmpHelper) {
-    std::vector<PortDescriptor> portDescs = getInterfacePortSysPortDesc();
-
-    applyNewState([&](const std::shared_ptr<SwitchState>& in) {
-      auto out = in->clone();
-      for (const auto& portDesc : portDescs) {
-        out = ecmpHelper.resolveNextHops(out, {portDesc});
-      }
-      return out;
-    });
-    return portDescs;
-  }
-
   void setupRemoteIntfAndSysPorts() {
     auto updateDsfStateFn = [this](const std::shared_ptr<SwitchState>& in) {
       std::map<SwitchID, std::shared_ptr<SystemPortMap>> switchId2SystemPorts;
@@ -2142,22 +2158,6 @@ class AgentVoqSwitchFullScaleDsfNodesTest : public AgentVoqSwitchTest {
               PortDescriptor(static_cast<SystemPortID>(idAndPort.first)));
         });
     return sysPortDescs;
-  }
-
-  std::vector<PortDescriptor> getInterfacePortSysPortDesc() {
-    auto ports = getProgrammedState()->getPorts()->getAllNodes();
-    std::vector<PortDescriptor> portDescs;
-    std::for_each(
-        ports->begin(),
-        ports->end(),
-        [this, &portDescs](const auto& idAndPort) {
-          const auto port = idAndPort.second;
-          if (port->getPortType() == cfg::PortType::INTERFACE_PORT) {
-            portDescs.push_back(PortDescriptor(getSystemPortID(
-                PortDescriptor(port->getID()), cfg::Scope::GLOBAL)));
-          }
-        });
-    return portDescs;
   }
 
  protected:
