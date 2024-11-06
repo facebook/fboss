@@ -396,6 +396,8 @@ struct SwitchSettingsFields {
   45: optional byte sramGlobalFreePercentXonThreshold;
   46: optional i16 linkFlowControlCreditThreshold;
   47: optional i32 voqDramBoundThreshold;
+  // Conditional Entropy Rehash Period for VOQ devices
+  48: optional i32 conditionalEntropyRehashPeriodUS;
 }
 
 struct RoutePrefix {

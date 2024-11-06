@@ -1722,6 +1722,8 @@ struct SwitchSettings {
   // SRAM2DRAM threshold on VOQ. Single parameter as of now
   // controlling both bounds and recovery thresholds.
   22: optional i32 voqDramBoundThreshold;
+  // Conditional Entropy Rehash Period for VOQ devices
+  23: optional i32 conditionalEntropyRehashPeriodUS;
 }
 
 // Global buffer pool
