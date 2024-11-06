@@ -829,6 +829,25 @@ size_t getNumActiveFabricPorts(
       });
 }
 
+bool isSwitchErrorFirmwareIsolate(
+    const std::optional<uint32_t>& numActiveFabricPortsAtFwIsolate,
+    const std::shared_ptr<SwitchSettings>& switchSettings) {
+  // This is invoked from Firmware Isolate context, and thus
+  // numActiveFabricPortsAtFwIsolate must always have value
+  CHECK(numActiveFabricPortsAtFwIsolate.has_value());
+
+  // If the Firmware isolated the device even though the number of active
+  // fabric links is more than the min links to remain in the VOQ domain,
+  // then treat it as error. This will be implemented unrecoverable error.
+  //
+  // If min links to remain in the VOQ domain is not set, allow to recover.
+  // In practice, this threshold will always be set.
+  return switchSettings->getMinLinksToRemainInVOQDomain().has_value()
+      ? numActiveFabricPortsAtFwIsolate.value() >
+          switchSettings->getMinLinksToRemainInVOQDomain().value()
+      : false;
+}
+
 /*
  * SwitchDrainState can be modified from configuration.
  * However, some VOQ switch implementations require that the switch must be

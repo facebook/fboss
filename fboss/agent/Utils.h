@@ -409,6 +409,10 @@ size_t getNumActiveFabricPorts(
     const std::shared_ptr<SwitchState>& state,
     const HwSwitchMatcher& matcher);
 
+bool isSwitchErrorFirmwareIsolate(
+    const std::optional<uint32_t>& numActiveFabricPortsAtFwIsolate,
+    const std::shared_ptr<SwitchSettings>& switchSettings);
+
 cfg::SwitchDrainState computeActualSwitchDrainState(
     const std::shared_ptr<SwitchSettings>& switchSettings,
     int numActiveFabricPorts);
