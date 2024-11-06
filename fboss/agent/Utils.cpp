@@ -905,7 +905,16 @@ cfg::SwitchDrainState computeActualSwitchDrainState(
             newSwitchDrainState = cfg::SwitchDrainState::DRAINED;
           }
           break;
+        case cfg::SwitchDrainState::DRAINED_DUE_TO_ASIC_ERROR:
+          // This is not a recoverable drain state.
+          newSwitchDrainState =
+              cfg::SwitchDrainState::DRAINED_DUE_TO_ASIC_ERROR;
+          break;
       }
+      break;
+    case cfg::SwitchDrainState::DRAINED_DUE_TO_ASIC_ERROR:
+      throw FbossError("Valid desired DRAINED states are {DRAINED, UNDRAINED}");
+      break;
   }
 
   return newSwitchDrainState;

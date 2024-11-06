@@ -1529,6 +1529,7 @@ enum L2LearningMode {
 enum SwitchDrainState {
   UNDRAINED = 0,
   DRAINED = 1,
+  DRAINED_DUE_TO_ASIC_ERROR = 2,
 }
 
 /*
