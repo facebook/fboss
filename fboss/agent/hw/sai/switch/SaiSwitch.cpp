@@ -2225,7 +2225,7 @@ void SaiSwitch::txReadyStatusChangeOrFwIsolateCallbackBottomHalf(
     return;
   }
 
-  auto numActiveFabricLinks = 0, numInactiveFabricLinks = 0;
+  auto numActiveFabricPorts = 0, numInactiveFabricPorts = 0;
   std::map<PortID, bool> port2IsActive;
   for (auto tuple : boost::combine(adapterKeys, txReadyStatusesGot)) {
     auto portSaiId = tuple.get<0>();
@@ -2243,16 +2243,16 @@ void SaiSwitch::txReadyStatusChangeOrFwIsolateCallbackBottomHalf(
     port2IsActive[portID] = isActive;
 
     if (isActive) {
-      numActiveFabricLinks++;
+      numActiveFabricPorts++;
     } else {
-      numInactiveFabricLinks++;
+      numInactiveFabricPorts++;
     }
   }
 
   XLOG(DBG2)
-      << "TX Ready status changed callback received:: NumActiveFabricLinks: "
-      << numActiveFabricLinks
-      << " NumInactiveFabricLinks: " << numInactiveFabricLinks;
+      << "TX Ready status changed callback received:: NumActiveFabricPorts: "
+      << numActiveFabricPorts
+      << " NumInactiveFabricPorts: " << numInactiveFabricPorts;
 
   callback_->linkActiveStateChanged(port2IsActive);
 #endif
