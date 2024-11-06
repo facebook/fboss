@@ -2249,10 +2249,16 @@ void SaiSwitch::txReadyStatusChangeOrFwIsolateCallbackBottomHalf(
     }
   }
 
-  XLOG(DBG2)
-      << "TX Ready status changed callback received:: NumActiveFabricPorts: "
-      << numActiveFabricPorts
-      << " NumInactiveFabricPorts: " << numInactiveFabricPorts;
+  std::string logPrefix =
+      fwIsolated ? "Firmware Isolate" : "TX Ready status change";
+  XLOG(DBG2) << logPrefix << " callback received:: NumActiveFabricPorts: "
+             << numActiveFabricPorts
+             << " NumInactiveFabricPorts: " << numInactiveFabricPorts
+             << " NumActiveFabricPortsAtFwIsolate: "
+             << (numActiveFabricPortsAtFwIsolate.has_value()
+                     ? folly::to<std::string>(
+                           numActiveFabricPortsAtFwIsolate.value())
+                     : "--");
 
   callback_->linkActiveStateChanged(port2IsActive);
 #endif
