@@ -1043,22 +1043,26 @@ void ThriftConfigApplier::processUpdatedDsfNodes() {
   auto isInterfaceNode = [](const std::shared_ptr<DsfNode>& node) {
     return node->getType() == cfg::DsfNodeType::INTERFACE_NODE;
   };
-  auto getDsfNodeAsic =
-      [&isInterfaceNode](const std::shared_ptr<DsfNode>& node) {
-        CHECK(isInterfaceNode(node))
-            << " Only expect to be called for Interface nodes";
-        auto mac = node->getMac() ? *node->getMac() : folly::MacAddress();
-        CHECK(!node->getSystemPortRanges().systemPortRanges()->empty());
-        return HwAsic::makeAsic(
-            node->getAsicType(),
-            cfg::SwitchType::VOQ,
-            static_cast<int64_t>(node->getSwitchId()),
-            0, /* dummy switchIndex*/
-            // TODO - get rid of system port range in HwAsic
-            *node->getSystemPortRanges().systemPortRanges()->begin(),
-            mac,
-            std::nullopt);
-      };
+  auto getDsfNodeAsic = [&isInterfaceNode](
+                            const std::shared_ptr<DsfNode>& node) {
+    CHECK(isInterfaceNode(node))
+        << " Only expect to be called for Interface nodes";
+    CHECK(node->getLocalSystemPortOffset().has_value());
+    CHECK(node->getGlobalSystemPortOffset().has_value());
+    CHECK(node->getInbandPortId().has_value());
+    CHECK(node->getMac().has_value());
+    cfg::SwitchInfo switchInfo;
+    switchInfo.asicType() = node->getAsicType();
+    switchInfo.switchType() = cfg::SwitchType::VOQ;
+    switchInfo.switchIndex() = 0; /* dummy switchIndex*/
+    switchInfo.switchMac() = node->getMac()->toString();
+    switchInfo.systemPortRanges() = node->getSystemPortRanges();
+    switchInfo.localSystemPortOffset() = *node->getLocalSystemPortOffset();
+    switchInfo.globalSystemPortOffset() = *node->getGlobalSystemPortOffset();
+    switchInfo.inbandPortId() = *node->getInbandPortId();
+    return HwAsic::makeAsic(
+        static_cast<int64_t>(node->getSwitchId()), switchInfo, std::nullopt);
+  };
   auto processLoopbacks = [&](const std::shared_ptr<DsfNode>& node,
                               const HwAsic* dsfNodeAsic) {
     auto recyclePortId = getInbandSysPortId(node);
