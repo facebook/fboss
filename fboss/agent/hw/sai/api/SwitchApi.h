@@ -576,8 +576,10 @@ struct SaiSwitchTraits {
     struct AttributeNoAclsForTrapsWrapper {
       std::optional<sai_attr_id_t> operator()();
     };
-    using NoAclsForTraps =
-        SaiExtensionAttribute<bool, AttributeNoAclsForTrapsWrapper>;
+    using NoAclsForTraps = SaiExtensionAttribute<
+        bool,
+        AttributeNoAclsForTrapsWrapper,
+        SaiBoolDefaultFalse>;
     struct AttributeMaxSystemPortId {
       std::optional<sai_attr_id_t> operator()();
     };
