@@ -2190,7 +2190,9 @@ void SaiSwitch::txReadyStatusChangeCallbackTopHalf(SwitchSaiId switchId) {
   }
 }
 
-void SaiSwitch::txReadyStatusChangeOrFwIsolateCallbackBottomHalf() {
+void SaiSwitch::txReadyStatusChangeOrFwIsolateCallbackBottomHalf(
+    bool fwIsolated,
+    const std::optional<uint32_t>& numActiveFabricPortsAtFwIsolate) {
 #if SAI_API_VERSION >= SAI_VERSION(1, 13, 0)
   {
     auto changePending = txReadyStatusChangePending_.wlock();

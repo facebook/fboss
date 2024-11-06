@@ -458,8 +458,9 @@ void SaiSwitch::switchEventCallback(
         // Thus, unconditionally queue to for processing regardless of
         // txReadyStatusChangePending_.
         txReadyStatusChangeBottomHalfEventBase_.runInFbossEventBaseThread(
-            [this]() mutable {
-              txReadyStatusChangeOrFwIsolateCallbackBottomHalf();
+            [this, numActiveFabricPorts]() mutable {
+              txReadyStatusChangeOrFwIsolateCallbackBottomHalf(
+                  true /* fwIsolated */, numActiveFabricPorts);
             });
       } else {
         XLOG(ERR) << "Firmware Isolate callback received with invalid info"
