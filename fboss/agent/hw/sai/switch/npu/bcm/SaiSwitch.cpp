@@ -442,19 +442,31 @@ void SaiSwitch::switchEventCallback(
       }
     } break;
     case SAI_SWITCH_EVENT_TYPE_FABRIC_AUTO_ISOLATE: {
-      // TODO(skhare) Process the callback
-      XLOG(ERR) << "Firmware Isolate callback received"
-                << " error type: " << errorType(eventInfo->error_type)
-                << " is_isolated: " << static_cast<int>(eventInfo->index)
-                << " nof_active_links: " << static_cast<int>(eventInfo->index2);
+      auto isIsolated = eventInfo->index;
+      auto numActiveFabricPorts = eventInfo->index2;
+      if (eventInfo->error_type ==
+              SAI_SWITCH_ERROR_TYPE_FABRIC_AUTO_ISOLATION &&
+          isIsolated == 1) {
+        // Firmware is expected issue callback when it isolates the device.
+        // We should never get a callback on unisolate.
+        XLOG(ERR) << "Firmware Isolate callback received"
+                  << " error type: " << errorType(eventInfo->error_type)
+                  << " isIsolated: " << isIsolated
+                  << " numActiveFabricPorts: " << numActiveFabricPorts;
 
-      // We always want to process Firmware Isolte cb and never coalesce it.
-      // Thus, unconditionally queue to for processing regardless of
-      // txReadyStatusChangePending_.
-      txReadyStatusChangeBottomHalfEventBase_.runInFbossEventBaseThread(
-          [this]() mutable {
-            txReadyStatusChangeOrFwIsolateCallbackBottomHalf();
-          });
+        // We always want to process Firmware Isolate cb and never coalesce it.
+        // Thus, unconditionally queue to for processing regardless of
+        // txReadyStatusChangePending_.
+        txReadyStatusChangeBottomHalfEventBase_.runInFbossEventBaseThread(
+            [this]() mutable {
+              txReadyStatusChangeOrFwIsolateCallbackBottomHalf();
+            });
+      } else {
+        XLOG(ERR) << "Firmware Isolate callback received with invalid info"
+                  << " error type: " << errorType(eventInfo->error_type)
+                  << " isIsolated: " << isIsolated
+                  << " numActiveFabricPorts: " << numActiveFabricPorts;
+      }
 
       break;
     }
