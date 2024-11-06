@@ -48,15 +48,6 @@
       },
       "pmUnitName": "JUMPER"
     },
-    "LED_SLOT": {
-      "numOutgoingI2cBuses": 1,
-      "idpromConfig": {
-        "busName": "INCOMING@0",
-        "address": "0x50",
-        "kernelDeviceName": "24c64"
-      },
-      "pmUnitName": "LED"
-    },
     "PSU_SLOT": {
       "numOutgoingI2cBuses": 1,
       "idpromConfig": {
@@ -439,18 +430,6 @@
             "MCB_IOB_I2C_MASTER_16"
           ]
         },
-        "LED_SLOT@0": {
-          "slotType": "LED_SLOT",
-          "outgoingI2cBusNames": [
-            "MCB_IOB_I2C_MASTER_12"
-          ]
-        },
-        "LED_SLOT@1": {
-          "slotType": "LED_SLOT",
-          "outgoingI2cBusNames": [
-            "MCB_IOB_I2C_MASTER_13"
-          ]
-        },
         "PSU_SLOT@0": {
           "slotType": "PSU_SLOT",
           "outgoingI2cBusNames": [
@@ -521,9 +500,6 @@
           "pmUnitScopedName": "PDB_PSU_0X58"
         }
       ]
-    },
-    "LED": {
-      "pluggedInSlotType": "LED_SLOT"
     },
     "SCM": {
       "pluggedInSlotType": "SCM_SLOT",
@@ -3287,8 +3263,6 @@
     "/run/devmap/eeproms/FCB_EEPROM": "/FCB_SLOT@0/[IDPROM]",
     "/run/devmap/eeproms/SMB_EEPROM": "/SMB_SLOT@0/[IDPROM]",
     "/run/devmap/eeproms/SCM_EEPROM": "/JUMPER_SLOT@0/SCM_SLOT@0/[IDPROM]",
-    "/run/devmap/eeproms/LED1_EEPROM": "/LED_SLOT@0/[IDPROM]",
-    "/run/devmap/eeproms/LED2_EEPROM": "/LED_SLOT@1/[IDPROM]",
     "/run/devmap/eeproms/PSU1_EEPROM": "/PSU_SLOT@0/[IDPROM]",
     "/run/devmap/eeproms/PSU2_EEPROM": "/PSU_SLOT@1/[IDPROM]",
     "/run/devmap/eeproms/RUNBMC_EEPROM": "/JUMPER_SLOT@0/SCM_SLOT@0/RUNBMC_SLOT@0/[IDPROM]",
