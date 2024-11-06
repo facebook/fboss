@@ -1157,6 +1157,10 @@ struct Port {
 
   31: Scope scope = Scope.LOCAL;
   32: optional PortQueueConfigName portVoqConfigName;
+
+  /*
+   * DSF Interface node to enable conditional entropy, rotating hash seed periodically to increase entropy.
+   */
   33: bool conditionalEntropyRehash = false;
 }
 

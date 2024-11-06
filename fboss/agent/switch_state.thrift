@@ -134,6 +134,7 @@ struct PortFields {
   52: list<ctrl.PortError> activeErrors;
   53: switch_config.Scope scope = switch_config.Scope.LOCAL;
   54: optional i32 reachabilityGroupId;
+  // DSF Interface node to enable conditional entropy, rotating hash seed periodically to increase entropy.
   55: bool conditionalEntropyRehash = false;
 }
 
