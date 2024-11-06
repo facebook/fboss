@@ -208,4 +208,8 @@ SaiSwitchTraits::Attributes::AttributeVoqDramBoundThWrapper::operator()() {
   return std::nullopt;
 }
 
+std::optional<sai_attr_id_t>
+SaiSwitchTraits::Attributes::AttributeCondEntropyRehashPeriodUS::operator()() {
+  return std::nullopt;
+}
 } // namespace facebook::fboss

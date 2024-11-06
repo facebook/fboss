@@ -385,4 +385,13 @@ SaiSwitchTraits::Attributes::AttributeMaxVoqs::operator()() {
 #endif
   return std::nullopt;
 }
+std::optional<sai_attr_id_t>
+SaiSwitchTraits::Attributes::AttributeCondEntropyRehashPeriodUS::operator()() {
+// TODO(zecheng): Update flag when new 12.0 release has the attribute
+#if defined(SAI_VERSION_11_7_0_0_DNX_ODP)
+  return SAI_SWITCH_ATTR_COND_ENTROPY_REHASH_PERIOD_US;
+#endif
+  return std::nullopt;
+}
+
 } // namespace facebook::fboss

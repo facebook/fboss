@@ -622,6 +622,13 @@ struct SaiSwitchTraits {
         std::vector<sai_uint32_t>,
         AttributeVoqDramBoundThWrapper,
         SaiU32ListDefault>;
+    struct AttributeCondEntropyRehashPeriodUS {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    using CondEntropyRehashPeriodUS = SaiExtensionAttribute<
+        sai_uint32_t,
+        AttributeCondEntropyRehashPeriodUS,
+        SaiIntDefault<sai_uint32_t>>;
   };
   using AdapterKey = SwitchSaiId;
   using AdapterHostKey = std::monostate;
@@ -699,7 +706,8 @@ struct SaiSwitchTraits {
       std::optional<Attributes::MaxSystemPorts>,
       std::optional<Attributes::MaxVoqs>,
       std::optional<Attributes::FabricCllfcTxCreditTh>,
-      std::optional<Attributes::VoqDramBoundTh>>;
+      std::optional<Attributes::VoqDramBoundTh>,
+      std::optional<Attributes::CondEntropyRehashPeriodUS>>;
 
 #if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
   static constexpr std::array<sai_stat_id_t, 3> CounterIdsToRead = {
@@ -841,6 +849,7 @@ SAI_ATTRIBUTE_NAME(Switch, MaxSystemPorts);
 SAI_ATTRIBUTE_NAME(Switch, MaxVoqs);
 SAI_ATTRIBUTE_NAME(Switch, FabricCllfcTxCreditTh);
 SAI_ATTRIBUTE_NAME(Switch, VoqDramBoundTh);
+SAI_ATTRIBUTE_NAME(Switch, CondEntropyRehashPeriodUS)
 
 template <>
 struct SaiObjectHasStats<SaiSwitchTraits> : public std::true_type {};

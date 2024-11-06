@@ -703,6 +703,7 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
       maxVoqs,
       std::nullopt, // Fabric CLLFC TX credit threshold
       std::nullopt, // VOQ DRAM bound threshold
+      std::nullopt, // Conditional Entropy Rehash Period
   };
 }
 

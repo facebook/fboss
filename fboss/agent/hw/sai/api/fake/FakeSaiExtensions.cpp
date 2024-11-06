@@ -344,6 +344,11 @@ SaiSwitchTraits::Attributes::AttributeVoqDramBoundThWrapper::operator()() {
 }
 
 std::optional<sai_attr_id_t>
+SaiSwitchTraits::Attributes::AttributeCondEntropyRehashPeriodUS::operator()() {
+  return SAI_SWITCH_ATTR_COND_ENTROPY_REHASH_PERIOD_US;
+}
+
+std::optional<sai_attr_id_t>
 SaiPortSerdesTraits::Attributes::AttributeTxDiffEncoderEnWrapper::operator()() {
   return SAI_PORT_SERDES_ATTR_EXT_TX_DIFF_ENCODER_EN;
 }
