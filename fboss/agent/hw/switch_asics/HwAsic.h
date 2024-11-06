@@ -229,14 +229,6 @@ class HwAsic {
   };
   virtual ~HwAsic() {}
   static std::unique_ptr<HwAsic> makeAsic(
-      cfg::AsicType asicType,
-      cfg::SwitchType switchType,
-      std::optional<int64_t> switchID,
-      int16_t switchIndex,
-      std::optional<cfg::Range64> systemPortRange,
-      const folly::MacAddress& mac,
-      std::optional<cfg::SdkVersion> sdkVersion);
-  static std::unique_ptr<HwAsic> makeAsic(
       std::optional<int64_t> switchID,
       cfg::SwitchInfo switchInfo,
       std::optional<cfg::SdkVersion> sdkVersion);
