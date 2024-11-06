@@ -436,7 +436,14 @@ void WedgeManager::syncPorts(
 void WedgeManager::updateTransceiverLogInfo(
     const std::vector<TransceiverID>& transceivers) {
   for (auto tcvrID : transceivers) {
-    const auto tcvrInfo = getTransceiverInfo(tcvrID);
+    TransceiverInfo tcvrInfo;
+    try {
+      tcvrInfo = getTransceiverInfo(tcvrID);
+    } catch (const QsfpModuleError&) {
+      XLOG(INFO) << "Failed to update tcvr log info for transceiver: "
+                 << tcvrID;
+      continue;
+    }
     const auto& state = tcvrInfo.tcvrState();
     std::optional<Vendor> vendor = std::nullopt;
     std::optional<FirmwareStatus> fwStatus = std::nullopt;
