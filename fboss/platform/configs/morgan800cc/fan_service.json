@@ -195,7 +195,7 @@
       "zoneType": "ZONE_TYPE_MAX",
       "zoneName": "zone1",
       "sensorNames": [
-        "INLET",
+        "SCM_INLET",
         "QSFP_GROUP_1"
       ],
       "fanNames": [
