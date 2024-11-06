@@ -47,7 +47,6 @@ const cfg::AclStage kAclStage2 = cfg::AclStage::INGRESS_MACSEC;
 
 const std::string kGroup1 = "group1";
 const std::string kGroup2 = "group2";
-const std::string kAclTableGroupName = "ingress-ACL-Table-Group";
 
 const std::string kAcl1a = "acl1a";
 const std::string kAcl1b = "acl1b";
@@ -451,7 +450,8 @@ TEST(AclGroup, SerializeMultiSwitchAclTableGroupMap) {
 
   auto tableGroup = std::make_shared<AclTableGroup>(kAclStage1);
   tableGroup->setAclTableMap(tableMap);
-  tableGroup->setName(kAclTableGroupName);
+  tableGroup->setName(
+      cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE_GROUP());
 
   auto tableGroups = std::make_shared<MultiSwitchAclTableGroupMap>();
   tableGroups->addNode(tableGroup, scope());

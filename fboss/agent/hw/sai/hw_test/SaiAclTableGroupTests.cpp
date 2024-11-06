@@ -742,7 +742,10 @@ TEST_F(SaiAclTableGroupTest, TestAclTableGroupRoundtrip) {
   auto setup = [this]() {
     auto newCfg = initialConfig();
 
-    utility::addAclTableGroup(&newCfg, kAclStage(), "ingress-ACL-Table-Group");
+    utility::addAclTableGroup(
+        &newCfg,
+        kAclStage(),
+        cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE_GROUP());
     utility::addDefaultAclTable(newCfg);
     applyNewConfig(newCfg);
 
