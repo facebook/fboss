@@ -67,3 +67,4 @@ DECLARE_bool(skip_buffer_reservation);
 // TODO(zecheng): Remove this once firmware support is ready
 DECLARE_bool(conditional_entropy_cpu_seed_test_only);
 DECLARE_bool(fix_lossless_mode_per_pg);
+DECLARE_int32(fboss_event_base_queue_limit);

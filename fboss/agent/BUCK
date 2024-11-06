@@ -734,8 +734,8 @@ cpp_library(
         ":constants",
         ":dhcpv4_options_of_interest",
         ":fboss-error",
-        ":fboss-event-base",
         ":fboss-types",
+        ":fboss_event_base",
         ":fsdb_adapted_sub_manager",
         ":hw_switch_handler",
         ":hwswitchcallback",
@@ -890,8 +890,8 @@ cpp_library(
         ":address_utils",
         ":core",
         ":fboss-error",
-        ":fboss-event-base",
         ":fboss-types",
+        ":fboss_event_base",
         ":hw_asic_table",
         ":packet",
         ":stats",
@@ -971,11 +971,12 @@ cpp_library(
 )
 
 cpp_library(
-    name = "fboss-event-base",
+    name = "fboss_event_base",
     headers = [
         "FbossEventBase.h",
     ],
     exported_deps = [
+        ":agent_features",
         "//folly/io/async:async_base",
         "//folly/logging:logging",
     ],
@@ -1026,8 +1027,8 @@ cpp_library(
         ":agent_dir_util",
         ":agent_features",
         ":fboss-error",
-        ":fboss-event-base",
         ":fboss-types",
+        ":fboss_event_base",
         ":load_agent_config",
         ":platform_config-cpp2-types",
         ":switch_config-cpp2-types",
@@ -1234,8 +1235,8 @@ cpp_library(
         "HwSwitchHandler.h",
     ],
     exported_deps = [
-        ":fboss-event-base",
         ":fboss-types",
+        ":fboss_event_base",
         ":hwswitchcallback",
         ":load_agent_config",
         ":switch_config-cpp2-types",

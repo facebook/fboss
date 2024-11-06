@@ -169,3 +169,5 @@ DEFINE_bool(
     fix_lossless_mode_per_pg,
     false,
     "Flag to disruptively update lossless mode per pg");
+
+DEFINE_int32(fboss_event_base_queue_limit, 10000, "FbossEventBase queue limit");

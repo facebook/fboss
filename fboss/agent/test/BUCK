@@ -929,3 +929,13 @@ cpp_library(
         ("boost", None, "boost_container"),
     ],
 )
+
+cpp_unittest(
+    name = "fboss_event_base_test",
+    srcs = [
+        "FbossEventBaseTests.cpp",
+    ],
+    deps = [
+        "//fboss/agent:fboss_event_base",
+    ],
+)
