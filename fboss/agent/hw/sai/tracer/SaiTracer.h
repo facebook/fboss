@@ -313,6 +313,7 @@ class SaiTracer {
       {TYPE_INDEX(std::vector<sai_port_frequency_offset_ppm_values_t>),
        &portFrequencyOffsetPpmListAttr},
       {TYPE_INDEX(std::vector<sai_port_snr_values_t>), &portSnrListAttr},
+      {TYPE_INDEX(AclEntryFieldU8List), &aclEntryFieldU8ListAttr},
 #endif
   };
 
@@ -871,7 +872,12 @@ class SaiTracer {
             SaiTracer::getInstance()->listFuncMap_.find(typeIndex);          \
         if (listFuncMatch != SaiTracer::getInstance()->listFuncMap_.end()) { \
           (*listFuncMatch->second)(                                          \
-              attr_list, i, listCount++, attrLines, rv == 0);                \
+              attr_list, i, listCount, attrLines, rv == 0);                  \
+          if (typeIndex == TYPE_INDEX(AclEntryFieldU8List)) {                \
+            listCount += 2;                                                  \
+          } else {                                                           \
+            listCount++;                                                     \
+          }                                                                  \
           continue;                                                          \
         }                                                                    \
       }

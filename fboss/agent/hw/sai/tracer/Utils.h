@@ -124,6 +124,13 @@ void prbsRxStateAttr(
 
 /* List Types */
 
+void aclEntryFieldU8ListAttr(
+    const sai_attribute_t* attr_list,
+    int i,
+    uint32_t listIndex,
+    std::vector<std::string>& attrLines,
+    bool logEntry = true);
+
 void oidListAttr(
     const sai_attribute_t* attr_list,
     int i,
