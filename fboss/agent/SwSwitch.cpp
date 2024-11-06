@@ -2233,8 +2233,21 @@ void SwSwitch::linkActiveStateChangedOrFwIsolated(
     auto matcher = getScopeResolver()->scope(port2IsActive.cbegin()->first);
     auto switchSettings =
         state->getSwitchSettings()->getNodeIf(matcher.matcherString());
-    auto newActualSwitchDrainState =
-        computeActualSwitchDrainState(switchSettings, numActiveFabricPorts);
+
+    SwitchDrainState newActualSwitchDrainState;
+    if (fwIsolated) {
+      if (isSwitchErrorFirmwareIsolate(
+              numActiveFabricPortsAtFwIsolate, switchSettings)) {
+        newActualSwitchDrainState =
+            cfg::SwitchDrainState::DRAINED_DUE_TO_ASIC_ERROR;
+      } else {
+        newActualSwitchDrainState = cfg::SwitchDrainState::DRAINED;
+      }
+    } else {
+      newActualSwitchDrainState =
+          computeActualSwitchDrainState(switchSettings, numActiveFabricPorts);
+    }
+
     auto currentActualDrainState = switchSettings->getActualSwitchDrainState();
 
     if (newActualSwitchDrainState != currentActualDrainState) {
