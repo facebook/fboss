@@ -2182,7 +2182,9 @@ void SwSwitch::linkStateChanged(
 }
 
 void SwSwitch::linkActiveStateChangedOrFwIsolated(
-    const std::map<PortID, bool>& port2IsActive) {
+    const std::map<PortID, bool>& port2IsActive,
+    bool fwIsolated,
+    const std::optional<uint32_t>& numActiveFabricPortsAtFwIsolate) {
   if (!isFullyInitialized()) {
     XLOG(ERR)
         << "Ignore link active state change event before we are fully initialized...";

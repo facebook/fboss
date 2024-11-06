@@ -47,7 +47,9 @@ class HwSwitchCallback {
    * the link active/inactive status changes on a port or Fw Isolates.
    */
   virtual void linkActiveStateChangedOrFwIsolated(
-      const std::map<PortID, bool>& port2IsActive) = 0;
+      const std::map<PortID, bool>& port2IsActive,
+      bool fwIsolated,
+      const std::optional<uint32_t>& numActiveFabricPortsAtFwIsolate) = 0;
 
   virtual void linkConnectivityChanged(
       const std::map<PortID, multiswitch::FabricConnectivityDelta>&

@@ -2260,7 +2260,8 @@ void SaiSwitch::txReadyStatusChangeOrFwIsolateCallbackBottomHalf(
                            numActiveFabricPortsAtFwIsolate.value())
                      : "--");
 
-  callback_->linkActiveStateChangedOrFwIsolated(port2IsActive);
+  callback_->linkActiveStateChangedOrFwIsolated(
+      port2IsActive, fwIsolated, numActiveFabricPortsAtFwIsolate);
 #endif
 }
 

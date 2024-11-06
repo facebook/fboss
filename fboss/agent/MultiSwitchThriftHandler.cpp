@@ -87,7 +87,17 @@ void MultiSwitchThriftHandler::processLinkActiveState(
        *linkChangeEvent.linkActiveEvents()->port2IsActive()) {
     port2IsActive[PortID(portID)] = isActive;
   }
-  sw_->linkActiveStateChangedOrFwIsolated(port2IsActive);
+
+  auto fwIsolated = *linkChangeEvent.linkActiveEvents()->fwIsolated();
+
+  std::optional<uint32_t> numActiveFabricPortsAtFwIsolate;
+  if (linkChangeEvent.linkActiveEvents()->numActiveFabricPortsAtFwIsolate()) {
+    numActiveFabricPortsAtFwIsolate =
+        *linkChangeEvent.linkActiveEvents()->numActiveFabricPortsAtFwIsolate();
+  }
+
+  sw_->linkActiveStateChangedOrFwIsolated(
+      port2IsActive, fwIsolated, numActiveFabricPortsAtFwIsolate);
 }
 
 void MultiSwitchThriftHandler::processLinkConnectivity(

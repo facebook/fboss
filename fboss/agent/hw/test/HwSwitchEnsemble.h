@@ -80,7 +80,10 @@ class HwSwitchEnsemble : public TestEnsembleIf {
     virtual void packetReceived(RxPacket* pkt) noexcept = 0;
     virtual void linkStateChanged(PortID port, bool up) = 0;
     virtual void linkActiveStateChangedOrFwIsolated(
-        const std::map<PortID, bool>& port2IsActive) = 0;
+        const std::map<PortID, bool>& port2IsActive,
+        bool /* fwIsolated */,
+        const std::optional<
+            uint32_t>& /* numActiveFabricPortsAtFwIsolate */) = 0;
     virtual void linkConnectivityChanged(
         const std::map<PortID, multiswitch::FabricConnectivityDelta>&
             port2OldAndNewConnectivity) = 0;
@@ -183,7 +186,10 @@ class HwSwitchEnsemble : public TestEnsembleIf {
       std::optional<phy::LinkFaultStatus> iPhyFaultStatus =
           std::nullopt) override;
   void linkActiveStateChangedOrFwIsolated(
-      const std::map<PortID, bool>& /*port2IsActive */) override;
+      const std::map<PortID, bool>& /*port2IsActive */,
+      bool /* fwIsolated */,
+      const std::optional<uint32_t>& /* numActiveFabricPortsAtFwIsolate */
+      ) override;
   void linkConnectivityChanged(
       const std::map<PortID, multiswitch::FabricConnectivityDelta>&
       /*port2OldAndNewConnectivity*/) override {
