@@ -388,7 +388,7 @@
         {
           "busName": "MCB_IOB_I2C_MASTER_4",
           "address": "0x12",
-          "kernelDeviceName": "pmbus",
+          "kernelDeviceName": "adm1278",
           "pmUnitScopedName": "MCB_ADM1278_0X12"
         },
         {
@@ -659,7 +659,7 @@
           "busName": "INCOMING@0",
           "address": "0x4a",
           "kernelDeviceName": "adt75",
-          "pmUnitScopedName": "BMC_TMP451_0X4C"
+          "pmUnitScopedName": "BMC_ADT75_0X4C"
         }
       ]
     },
@@ -3137,7 +3137,7 @@
                 "pmUnitScopedName": "SMB_PORT_65_LED1",
                 "deviceName": "port_led",
                 "iobufOffset": "0x1912c",
-                "csrOffset": "0x18000"
+                "csrOffset": "0x19000"
               },
               "portNumber": 65,
               "ledId": 1
