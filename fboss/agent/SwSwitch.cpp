@@ -2268,10 +2268,30 @@ void SwSwitch::linkActiveStateChangedOrFwIsolated(
    *
    * Note: On NIF ports, we never coalesce link up/down updates to ensure
    * expiry of NDP/ARP entries, but that is not applicable for Fabric port.
+   *
+   * But, there is an exception, consider the following scenario:
+   *   - A large number of fabric links flap.
+   *   - These links will transition ACTIVE => INACTIVE => ACTIVE.
+   *   - It is possible that the Firmware may isolate the device.
+   *   - Device is isolated, but SwitchState is UNDRAINED(unisolated)..(0)
+   *   - Firmware cb handling will decide to DRAIN (isolate) the device..(1)
+   *   - Switch active/inactive cb processing may decide to UNDRAIN.. (2)
+   *   - If (1) and (2) are coalesced, SwitchState will remain UNDRAINED and
+   *     the device will be isolated i.e. state (0), not what we want.
+   *
+   * Prevent this by not coalesing state update on Firmware Isolate.
+   *
+   * Firmware Isolate is a rare event, and thus it is OK to not coalesce these
+   * updates.
    */
-  updateState(
-      "Port ActiveState (ACTIVE/INACTIVE) Update",
-      std::move(updateActiveStateFn));
+  if (!fwIsolated) {
+    updateState(
+        "Port ActiveState (ACTIVE/INACTIVE) Update",
+        std::move(updateActiveStateFn));
+  } else {
+    updateStateNoCoalescing(
+        "Fw Isolate Update", std::move(updateActiveStateFn));
+  }
 }
 
 void SwSwitch::switchReachabilityChanged(
