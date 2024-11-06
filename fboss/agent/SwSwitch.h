@@ -567,7 +567,7 @@ class SwSwitch : public HwSwitchCallback {
       cfg::PortType portType,
       std::optional<phy::LinkFaultStatus> iPhyFaultStatus =
           std::nullopt) override;
-  void linkActiveStateChanged(
+  void linkActiveStateChangedOrFwIsolated(
       const std::map<PortID, bool>& port2IsActive) override;
   void linkConnectivityChanged(
       const std::map<PortID, multiswitch::FabricConnectivityDelta>&

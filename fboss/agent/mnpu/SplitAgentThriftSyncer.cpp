@@ -107,7 +107,7 @@ void SplitAgentThriftSyncer::linkStateChanged(
   linkChangeEventSinkClient_->enqueue(std::move(changeEvent));
 }
 
-void SplitAgentThriftSyncer::linkActiveStateChanged(
+void SplitAgentThriftSyncer::linkActiveStateChangedOrFwIsolated(
     const std::map<PortID, bool>& port2IsActive) {
   multiswitch::LinkActiveEvent event;
 

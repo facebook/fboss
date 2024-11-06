@@ -2181,7 +2181,7 @@ void SwSwitch::linkStateChanged(
   }
 }
 
-void SwSwitch::linkActiveStateChanged(
+void SwSwitch::linkActiveStateChangedOrFwIsolated(
     const std::map<PortID, bool>& port2IsActive) {
   if (!isFullyInitialized()) {
     XLOG(ERR)

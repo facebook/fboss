@@ -43,10 +43,10 @@ class HwSwitchCallback {
       std::optional<phy::LinkFaultStatus> iPhyFaultStatus = std::nullopt) = 0;
 
   /*
-   * linkActiveStateChanged() is invoked by the HwSwitch whenever the link
-   * active/inactive status changes on a port.
+   * linkActiveStateChangedOrFwIsolated() is invoked by the HwSwitch whenever
+   * the link active/inactive status changes on a port or Fw Isolates.
    */
-  virtual void linkActiveStateChanged(
+  virtual void linkActiveStateChangedOrFwIsolated(
       const std::map<PortID, bool>& port2IsActive) = 0;
 
   virtual void linkConnectivityChanged(

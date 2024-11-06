@@ -428,7 +428,7 @@ void HwSwitchEnsemble::linkStateChanged(
       [port, up](auto observer) { observer->changeLinkState(port, up); });
 }
 
-void HwSwitchEnsemble::linkActiveStateChanged(
+void HwSwitchEnsemble::linkActiveStateChangedOrFwIsolated(
     const std::map<PortID, bool>& /*port2IsActive */) {
   // TODO
 }

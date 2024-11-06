@@ -33,7 +33,7 @@ class HwTestPacketSnooper : public HwSwitchEnsemble::HwSwitchEventObserverIf {
   void l2LearningUpdateReceived(
       L2Entry /*l2Entry*/,
       L2EntryUpdateType /*l2EntryUpdateType*/) override {}
-  void linkActiveStateChanged(
+  void linkActiveStateChangedOrFwIsolated(
       const std::map<PortID, bool>& /*port2IsActive */) override {}
   void linkConnectivityChanged(
       const std::map<PortID, multiswitch::FabricConnectivityDelta>&

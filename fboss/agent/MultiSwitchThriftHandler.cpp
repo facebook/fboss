@@ -87,7 +87,7 @@ void MultiSwitchThriftHandler::processLinkActiveState(
        *linkChangeEvent.linkActiveEvents()->port2IsActive()) {
     port2IsActive[PortID(portID)] = isActive;
   }
-  sw_->linkActiveStateChanged(port2IsActive);
+  sw_->linkActiveStateChangedOrFwIsolated(port2IsActive);
 }
 
 void MultiSwitchThriftHandler::processLinkConnectivity(
