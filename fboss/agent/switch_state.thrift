@@ -321,6 +321,7 @@ struct ControlPlaneFields {
   1: list<ctrl.PortQueueFields> queues;
   2: list<switch_config.PacketRxReasonToQueue> rxReasonToQueue;
   3: optional string defaultQosPolicy;
+  4: optional list<ctrl.PortQueueFields> voqs;
 }
 
 struct PortFlowletFields {
