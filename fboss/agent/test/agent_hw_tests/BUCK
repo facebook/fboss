@@ -21,6 +21,7 @@ cpp_library(
         "AgentDiagShellStressTests.cpp",
         "AgentDscpMarkingTests.cpp",
         "AgentDscpQueueMappingTests.cpp",
+        "AgentEcmpTests.cpp",
         "AgentEgressForwardingDiscardCounterTests.cpp",
         "AgentEmptyTests.cpp",
         "AgentFabricSwitchTests.cpp",
