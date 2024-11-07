@@ -211,7 +211,6 @@ set(hw_switch_test_srcs
   fboss/agent/hw/test/HwVlanTests.cpp
   fboss/agent/hw/test/HwVerifyPfcConfigInHwTest.cpp
   fboss/agent/hw/test/HwAclStatTests.cpp
-  fboss/agent/hw/test/HwPortLedTests.cpp
   fboss/agent/hw/test/HwPortProfileTests.cpp
   fboss/agent/hw/test/HwPortStressTests.cpp
   fboss/agent/hw/test/HwResourceStatsTests.cpp

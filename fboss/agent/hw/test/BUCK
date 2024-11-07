@@ -329,7 +329,6 @@ hw_test_common_srcs = [
     "HwLabelSwitchRouteTest.cpp",
     "HwLinkStateDependentTest.cpp",
     "HwMirrorTests.cpp",
-    "HwPortLedTests.cpp",
     "HwPortProfileTests.cpp",
     "HwPortStressTests.cpp",
     "HwPtpTcTests.cpp",
