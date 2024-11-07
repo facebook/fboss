@@ -179,6 +179,14 @@ PortQueueFields getPortQueueFields(
 
   return queue;
 }
+template <typename AsicT>
+AsicT makeAsic() {
+  cfg::SwitchInfo switchInfo;
+  switchInfo.switchIndex() = 0;
+  switchInfo.switchType() = cfg::SwitchType::NPU;
+  switchInfo.switchMac() = folly::MacAddress().toString();
+  return AsicT{0, switchInfo};
+}
 } // namespace
 
 namespace facebook::fboss::utility {
@@ -220,9 +228,7 @@ bcm_cosq_stat_t getBcmCosqStatType(
 const PortQueue& getTD2DefaultUCPortQueueSettings() {
   // Since the default queue is constant, we can use static to cache this
   // object here.
-  folly::MacAddress mac;
-  static Trident2Asic asic{
-      cfg::SwitchType::NPU, std::nullopt, 0, std::nullopt, mac};
+  static const auto asic = makeAsic<Trident2Asic>();
   static const PortQueue kPortQueue{getPortQueueFields(
       kDefaultPortQueueId,
       kDefaultPortQueueScheduling,
@@ -244,9 +250,7 @@ const PortQueue& getTD2DefaultUCPortQueueSettings() {
 }
 
 const PortQueue& getTHDefaultUCPortQueueSettings() {
-  folly::MacAddress mac;
-  static TomahawkAsic asic{
-      cfg::SwitchType::NPU, std::nullopt, 0, std::nullopt, mac};
+  static const auto asic = makeAsic<TomahawkAsic>();
   static const PortQueue kPortQueue{getPortQueueFields(
       kDefaultPortQueueId,
       kDefaultPortQueueScheduling,
@@ -268,9 +272,7 @@ const PortQueue& getTHDefaultUCPortQueueSettings() {
 }
 
 const PortQueue& getTH3DefaultUCPortQueueSettings() {
-  folly::MacAddress mac;
-  static Tomahawk3Asic asic{
-      cfg::SwitchType::NPU, std::nullopt, 0, std::nullopt, mac};
+  static const auto asic = makeAsic<Tomahawk3Asic>();
   static const PortQueue kPortQueue{getPortQueueFields(
       kDefaultPortQueueId,
       kDefaultPortQueueScheduling,
@@ -292,9 +294,7 @@ const PortQueue& getTH3DefaultUCPortQueueSettings() {
 }
 
 const PortQueue& getTH4DefaultUCPortQueueSettings() {
-  folly::MacAddress mac;
-  static Tomahawk4Asic asic{
-      cfg::SwitchType::NPU, std::nullopt, 0, std::nullopt, mac};
+  static const auto asic = makeAsic<Tomahawk4Asic>();
   static const PortQueue kPortQueue{getPortQueueFields(
       kDefaultPortQueueId,
       kDefaultPortQueueScheduling,
@@ -316,9 +316,7 @@ const PortQueue& getTH4DefaultUCPortQueueSettings() {
 }
 
 const PortQueue& getTD2DefaultMCPortQueueSettings() {
-  folly::MacAddress mac;
-  static Trident2Asic asic{
-      cfg::SwitchType::NPU, std::nullopt, 0, std::nullopt, mac};
+  static const auto asic = makeAsic<Trident2Asic>();
   static const PortQueue kPortQueue{getPortQueueFields(
       kDefaultPortQueueId,
       kDefaultPortQueueScheduling,
@@ -340,9 +338,7 @@ const PortQueue& getTD2DefaultMCPortQueueSettings() {
 }
 
 const PortQueue& getTHDefaultMCPortQueueSettings() {
-  folly::MacAddress mac;
-  static TomahawkAsic asic{
-      cfg::SwitchType::NPU, std::nullopt, 0, std::nullopt, mac};
+  static const auto asic = makeAsic<TomahawkAsic>();
   static const PortQueue kPortQueue{getPortQueueFields(
       kDefaultPortQueueId,
       kDefaultPortQueueScheduling,
@@ -364,9 +360,7 @@ const PortQueue& getTHDefaultMCPortQueueSettings() {
 }
 
 const PortQueue& getTH3DefaultMCPortQueueSettings() {
-  folly::MacAddress mac;
-  static Tomahawk3Asic asic{
-      cfg::SwitchType::NPU, std::nullopt, 0, std::nullopt, mac};
+  static const auto asic = makeAsic<Tomahawk3Asic>();
   static const PortQueue kPortQueue{getPortQueueFields(
       kDefaultPortQueueId,
       kDefaultPortQueueScheduling,
@@ -388,9 +382,7 @@ const PortQueue& getTH3DefaultMCPortQueueSettings() {
 }
 
 const PortQueue& getTH4DefaultMCPortQueueSettings() {
-  folly::MacAddress mac;
-  static Tomahawk4Asic asic{
-      cfg::SwitchType::NPU, std::nullopt, 0, std::nullopt, mac};
+  static const auto asic = makeAsic<Tomahawk4Asic>();
   static const PortQueue kPortQueue{getPortQueueFields(
       kDefaultPortQueueId,
       kDefaultPortQueueScheduling,
@@ -447,9 +439,7 @@ const PortQueue& getDefaultPortQueueSettings(
 }
 
 const PortQueue& getTD2DefaultMCCPUQueueSettings() {
-  folly::MacAddress mac;
-  static Trident2Asic asic{
-      cfg::SwitchType::NPU, std::nullopt, 0, std::nullopt, mac};
+  static const auto asic = makeAsic<Trident2Asic>();
   static const PortQueue kPortQueue{getPortQueueFields(
       kDefaultPortQueueId,
       kDefaultPortQueueScheduling,
@@ -471,9 +461,7 @@ const PortQueue& getTD2DefaultMCCPUQueueSettings() {
 }
 
 const PortQueue& getTHDefaultMCCPUQueueSettings() {
-  folly::MacAddress mac;
-  static TomahawkAsic asic{
-      cfg::SwitchType::NPU, std::nullopt, 0, std::nullopt, mac};
+  static const auto asic = makeAsic<TomahawkAsic>();
   static const PortQueue kPortQueue{getPortQueueFields(
       kDefaultPortQueueId,
       kDefaultPortQueueScheduling,
@@ -495,9 +483,7 @@ const PortQueue& getTHDefaultMCCPUQueueSettings() {
 }
 
 const PortQueue& getTH3DefaultMCCPUQueueSettings() {
-  folly::MacAddress mac;
-  static Tomahawk3Asic asic{
-      cfg::SwitchType::NPU, std::nullopt, 0, std::nullopt, mac};
+  static const auto asic = makeAsic<Tomahawk3Asic>();
   static const PortQueue kPortQueue{getPortQueueFields(
       kDefaultPortQueueId,
       kDefaultPortQueueScheduling,
@@ -519,9 +505,7 @@ const PortQueue& getTH3DefaultMCCPUQueueSettings() {
 }
 
 const PortQueue& getTH4DefaultMCCPUQueueSettings() {
-  folly::MacAddress mac;
-  static Tomahawk4Asic asic{
-      cfg::SwitchType::NPU, std::nullopt, 0, std::nullopt, mac};
+  static const auto asic = makeAsic<Tomahawk4Asic>();
   static const PortQueue kPortQueue{getPortQueueFields(
       kDefaultPortQueueId,
       kDefaultPortQueueScheduling,
