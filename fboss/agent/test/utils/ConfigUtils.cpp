@@ -374,13 +374,15 @@ cfg::DsfNode dsfNodeConfig(
     const std::optional<PlatformType> platformType) {
   auto createAsic = [&](const HwAsic& fromAsic, int64_t switchId)
       -> std::pair<std::shared_ptr<HwAsic>, PlatformType> {
-    std::optional<cfg::Range64> systemPortRange, fromAsicSystemPortRange;
+    std::optional<cfg::Range64> fromAsicSystemPortRange;
+    cfg::SystemPortRanges sysPortRanges;
     if (fromAsic.getSystemPortRanges().systemPortRanges()->size()) {
       CHECK_EQ(fromAsic.getSystemPortRanges().systemPortRanges()->size(), 1)
           << " Multiple sys port ranges per node are not supported yet in tests (TODO)";
       fromAsicSystemPortRange =
           *fromAsic.getSystemPortRanges().systemPortRanges()->begin();
     }
+    cfg::SwitchInfo switchInfo;
     if (fromAsicSystemPortRange.has_value()) {
       cfg::Range64 range;
       int numCores = fromAsic.getNumCores();
@@ -397,58 +399,42 @@ cfg::DsfNode dsfNodeConfig(
         range.minimum() = kSysPortOffset + switchId * blockSize;
         range.maximum() = *range.minimum() + numCores * blockSize - 1;
       }
-      systemPortRange = range;
+      sysPortRanges.systemPortRanges()->push_back(range);
+      // FIXME 2-stage DSF populate offsets for 2-stage dsf correctly
+      switchInfo.localSystemPortOffset() = *range.minimum();
+      switchInfo.globalSystemPortOffset() = *range.minimum();
+      switchInfo.inbandPortId() = kSingleStageInbandPortId;
     }
     auto localMac = utility::kLocalCpuMac();
+    switchInfo.switchType() = fromAsic.getSwitchType();
+    switchInfo.asicType() = fromAsic.getAsicType();
+    switchInfo.switchIndex() = fromAsic.getSwitchIndex();
+    switchInfo.switchMac() = localMac.toString();
+    switchInfo.systemPortRanges() = sysPortRanges;
     switch (fromAsic.getAsicType()) {
       case cfg::AsicType::ASIC_TYPE_JERICHO2:
         return std::pair(
-            std::make_unique<Jericho2Asic>(
-                fromAsic.getSwitchType(),
-                switchId,
-                fromAsic.getSwitchIndex(),
-                systemPortRange,
-                localMac),
+            std::make_unique<Jericho2Asic>(switchId, switchInfo),
             PlatformType::PLATFORM_MERU400BIU);
       case cfg::AsicType::ASIC_TYPE_JERICHO3: {
         auto fromPlatformType = platformType.has_value()
             ? platformType.value()
             : PlatformType::PLATFORM_MERU800BIA;
         return std::pair(
-            std::make_unique<Jericho3Asic>(
-                fromAsic.getSwitchType(),
-                switchId,
-                fromAsic.getSwitchIndex(),
-                systemPortRange,
-                localMac),
+            std::make_unique<Jericho3Asic>(switchId, switchInfo),
             fromPlatformType);
       }
       case cfg::AsicType::ASIC_TYPE_RAMON:
         return std::pair(
-            std::make_unique<RamonAsic>(
-                fromAsic.getSwitchType(),
-                switchId,
-                fromAsic.getSwitchIndex(),
-                std::nullopt,
-                localMac),
+            std::make_unique<RamonAsic>(switchId, switchInfo),
             PlatformType::PLATFORM_MERU400BFU);
       case cfg::AsicType::ASIC_TYPE_RAMON3:
         return std::pair(
-            std::make_unique<Ramon3Asic>(
-                fromAsic.getSwitchType(),
-                switchId,
-                fromAsic.getSwitchIndex(),
-                std::nullopt,
-                localMac),
+            std::make_unique<Ramon3Asic>(switchId, switchInfo),
             PlatformType::PLATFORM_MERU800BFA);
       case cfg::AsicType::ASIC_TYPE_CHENAB:
         return std::pair(
-            std::make_unique<ChenabAsic>(
-                fromAsic.getSwitchType(),
-                switchId,
-                fromAsic.getSwitchIndex(),
-                std::nullopt,
-                localMac),
+            std::make_unique<ChenabAsic>(switchId, switchInfo),
             PlatformType::PLATFORM_YANGRA);
       default:
         throw FbossError("Unexpected asic type: ", fromAsic.getAsicTypeStr());
