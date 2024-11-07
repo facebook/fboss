@@ -19,52 +19,29 @@ const HwAsic& getHwAsicForAsicType(const cfg::AsicType& asicType) {
    * allows us to use static hwAsic objects here.
    */
   int64_t switchId = 0;
-  int16_t switchIndex = 0;
-  std::optional<cfg::Range64> systemPortRange = std::nullopt;
-  folly::MacAddress mac("02:00:00:00:0F:0B");
+  cfg::SwitchInfo switchInfo;
+  switchInfo.switchMac() = "02:00:00:00:0F:0B";
+  switchInfo.switchIndex() = 0;
 
   switch (asicType) {
     case cfg::AsicType::ASIC_TYPE_JERICHO2: {
-      static Jericho2Asic jericho2Asic{
-          cfg::SwitchType::VOQ,
-          switchId,
-          switchIndex,
-          systemPortRange,
-          mac,
-          std::nullopt};
+      switchInfo.switchType() = cfg::SwitchType::VOQ;
+      static Jericho2Asic jericho2Asic{switchId, switchInfo};
       return jericho2Asic;
     }
     case cfg::AsicType::ASIC_TYPE_JERICHO3: {
-      static Jericho3Asic jericho3Asic{
-          cfg::SwitchType::VOQ,
-          switchId,
-          switchIndex,
-          systemPortRange,
-          mac,
-          std::nullopt};
-
+      switchInfo.switchType() = cfg::SwitchType::VOQ;
+      static Jericho3Asic jericho3Asic{switchId, switchInfo};
       return jericho3Asic;
     }
     case cfg::AsicType::ASIC_TYPE_RAMON: {
-      static RamonAsic ramonAsic{
-          cfg::SwitchType::FABRIC,
-          switchId,
-          switchIndex,
-          systemPortRange,
-          mac,
-          std::nullopt};
-
+      switchInfo.switchType() = cfg::SwitchType::FABRIC;
+      static RamonAsic ramonAsic{switchId, switchInfo};
       return ramonAsic;
     }
     case cfg::AsicType::ASIC_TYPE_RAMON3: {
-      static Ramon3Asic ramon3Asic{
-          cfg::SwitchType::FABRIC,
-          switchId,
-          switchIndex,
-          systemPortRange,
-          mac,
-          std::nullopt};
-
+      switchInfo.switchType() = cfg::SwitchType::FABRIC;
+      static Ramon3Asic ramon3Asic{switchId, switchInfo};
       return ramon3Asic;
     }
     case cfg::AsicType::ASIC_TYPE_FAKE:
