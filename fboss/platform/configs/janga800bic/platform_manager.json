@@ -147,13 +147,13 @@
             },
             {
               "busName": "INCOMING@3",
-              "address": "0x21",
+              "address": "0x2f",
               "kernelDeviceName": "bp4f_mp2891",
               "pmUnitScopedName": "SMB_U337_PMBUS_1"
             },
             {
               "busName": "INCOMING@3",
-              "address": "0x2f",
+              "address": "0x21",
               "kernelDeviceName": "bp4f_mp2891",
               "pmUnitScopedName": "SMB_U177_PMBUS_2"
             },
