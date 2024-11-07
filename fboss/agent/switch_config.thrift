@@ -2111,4 +2111,5 @@ struct SwitchConfig {
   53: optional string icmpV4UnavailableSrcAddress;
   // Overrides the system hostname, useful in ICMP responses
   54: optional string hostname;
+  55: optional list<PortQueue> cpuVoqs;
 }
