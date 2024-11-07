@@ -1728,6 +1728,7 @@ struct SwitchSettings {
   22: optional i32 voqDramBoundThreshold;
   // Conditional Entropy Rehash Period for VOQ devices
   23: optional i32 conditionalEntropyRehashPeriodUS;
+  24: optional string firmwarePath;
 }
 
 // Global buffer pool
