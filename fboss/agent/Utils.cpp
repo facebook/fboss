@@ -378,13 +378,25 @@ PortID getPortID(
     throw FbossError(
         "switchId: ", switchId, " not found in switchToSwitchInfo");
   }
-  auto sysPortRange = switchInfo->second.systemPortRange();
-  CHECK(sysPortRange.has_value());
-  auto portIdRange = switchInfo->second.portIdRange();
-  CHECK(portIdRange.has_value());
-  return PortID(
-      static_cast<int64_t>(sysPortId) - *sysPortRange->minimum() +
-      *portIdRange->minimum());
+  for (const auto& [matcher, ports] : std::as_const(*state->getPorts())) {
+    if (HwSwitchMatcher(matcher).switchId() != switchId) {
+      continue;
+    }
+    for (const auto& [_, port] : std::as_const(*ports)) {
+      if (port->getPortType() == cfg::PortType::FABRIC_PORT) {
+        continue;
+      }
+      if (sysPortId ==
+          getSystemPortID(
+              port->getID(),
+              port->getScope(),
+              switchIdToSwitchInfo,
+              switchId)) {
+        return port->getID();
+      }
+    }
+  }
+  throw FbossError("No port found for sys port: ", sysPortId);
 }
 
 SystemPortID getSystemPortID(
