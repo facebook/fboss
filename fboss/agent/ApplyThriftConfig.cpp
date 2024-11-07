@@ -4782,6 +4782,15 @@ shared_ptr<SwitchSettings> ThriftConfigApplier::updateSwitchSettings(
     }
   }
 
+  std::optional<std::string> newFirmwarePath;
+  if (cfg_->switchSettings()->firmwarePath()) {
+    newFirmwarePath = *cfg_->switchSettings()->firmwarePath();
+  }
+  if (newFirmwarePath != origSwitchSettings->getFirmwarePath()) {
+    newSwitchSettings->setFirmwarePath(newFirmwarePath);
+    switchSettingsChange = true;
+  }
+
   if (switchSettingsChange) {
     return newSwitchSettings;
   }
