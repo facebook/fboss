@@ -528,4 +528,8 @@ SaiSwitchTraits::Attributes::AttributeMaxVoqs::operator()() {
   return SAI_SWITCH_ATTR_MAX_VOQS;
 }
 
+std::optional<sai_attr_id_t>
+SaiPortTraits::Attributes::AttributeShelEnable::operator()() {
+  return std::nullopt;
+}
 } // namespace facebook::fboss

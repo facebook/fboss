@@ -76,6 +76,7 @@ class PortStoreTest : public SaiStoreTest {
         std::nullopt, // CondEntropyRehashEnable
         std::nullopt, // CondEntropyRehashPeriodUS
         std::nullopt, // CondEntropyRehashSeed
+        std::nullopt, // ShelEnable
     };
   }
 

@@ -269,4 +269,14 @@ SaiPortTraits::Attributes::AttributeCondEntropyRehashSeed::operator()() {
   return std::nullopt;
 #endif
 }
+
+std::optional<sai_attr_id_t>
+SaiPortTraits::Attributes::AttributeShelEnable::operator()() {
+// TODO(zecheng): Update flag when new 12.0 release has the attribute
+#if defined(SAI_VERSION_11_7_0_0_DNX_ODP)
+  return SAI_PORT_ATTR_SHEL_ENABLE;
+#else
+  return std::nullopt;
+#endif
+}
 } // namespace facebook::fboss

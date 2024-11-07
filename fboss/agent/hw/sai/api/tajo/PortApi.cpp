@@ -221,4 +221,8 @@ SaiPortTraits::Attributes::AttributeCondEntropyRehashSeed::operator()() {
   return std::nullopt;
 }
 
+std::optional<sai_attr_id_t>
+SaiPortTraits::Attributes::AttributeShelEnable::operator()() {
+  return std::nullopt;
+}
 } // namespace facebook::fboss

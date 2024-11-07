@@ -716,6 +716,7 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
         std::nullopt, // CondEntropyRehashEnable
         std::nullopt, // CondEntropyRehashPeriodUS
         std::nullopt, // CondEntropyRehashSeed
+        std::nullopt, // ShelEnable
     };
   }
   return SaiPortTraits::CreateAttributes{
@@ -788,6 +789,7 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
       condEntropyRehashEnable, // CondEntropyRehashEnable
       std::nullopt, // CondEntropyRehashPeriodUS
       std::nullopt, // CondEntropyRehashSeed
+      std::nullopt, // ShelEnable
   };
 }
 

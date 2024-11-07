@@ -445,6 +445,11 @@ struct SaiPortTraits {
         sai_uint32_t,
         AttributeCondEntropyRehashSeed,
         SaiIntDefault<sai_uint32_t>>;
+    struct AttributeShelEnable {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    using ShelEnable =
+        SaiExtensionAttribute<bool, AttributeShelEnable, SaiBoolDefaultFalse>;
   };
   using AdapterKey = PortSaiId;
 
@@ -553,7 +558,8 @@ struct SaiPortTraits {
       std::optional<Attributes::ReachabilityGroup>,
       std::optional<Attributes::CondEntropyRehashEnable>,
       std::optional<Attributes::CondEntropyRehashPeriodUS>,
-      std::optional<Attributes::CondEntropyRehashSeed>>;
+      std::optional<Attributes::CondEntropyRehashSeed>,
+      std::optional<Attributes::ShelEnable>>;
   static constexpr std::array<sai_stat_id_t, 16> CounterIdsToRead = {
       SAI_PORT_STAT_IF_IN_OCTETS,
       SAI_PORT_STAT_IF_IN_UCAST_PKTS,
@@ -708,6 +714,7 @@ SAI_ATTRIBUTE_NAME(Port, ReachabilityGroup)
 SAI_ATTRIBUTE_NAME(Port, CondEntropyRehashEnable)
 SAI_ATTRIBUTE_NAME(Port, CondEntropyRehashPeriodUS)
 SAI_ATTRIBUTE_NAME(Port, CondEntropyRehashSeed)
+SAI_ATTRIBUTE_NAME(Port, ShelEnable)
 
 template <>
 struct SaiObjectHasStats<SaiPortTraits> : public std::true_type {};
