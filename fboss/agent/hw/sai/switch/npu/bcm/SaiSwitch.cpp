@@ -225,6 +225,10 @@ std::string errorType(sai_switch_error_type_t type) {
     case SAI_SWITCH_ERROR_TYPE_FABRIC_AUTO_ISOLATION:
       return "SAI_SWITCH_ERROR_TYPE_FABRIC_AUTO_ISOLATION";
 #endif
+#if defined(SAI_VERSION_11_7_0_0_DNX_ODP)
+    case SAI_SWITCH_ERROR_TYPE_FIRMWARE_CRASH:
+      return "SAI_SWITCH_ERROR_TYPE_FIRMWARE_CRASH";
+#endif
     default:
       break;
   }

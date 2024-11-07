@@ -191,7 +191,18 @@ void SwitchApi::registerSwitchEventCallback(
         rv, ApiType, "Unable to register parity error switch event callback");
 
     // Register switch events
-#if defined BRCM_SAI_SDK_GTE_11_0
+#if defined(SAI_VERSION_11_7_0_0_DNX_ODP)
+    // SAI_SWITCH_EVENT_TYPE_FIRMWARE_CRASHED is not supported on 12.0 yet
+    std::array<uint32_t, 8> events = {
+        SAI_SWITCH_EVENT_TYPE_PARITY_ERROR,
+        SAI_SWITCH_EVENT_TYPE_STABLE_FULL,
+        SAI_SWITCH_EVENT_TYPE_STABLE_ERROR,
+        SAI_SWITCH_EVENT_TYPE_UNCONTROLLED_SHUTDOWN,
+        SAI_SWITCH_EVENT_TYPE_WARM_BOOT_DOWNGRADE,
+        SAI_SWITCH_EVENT_TYPE_INTERRUPT,
+        SAI_SWITCH_EVENT_TYPE_FABRIC_AUTO_ISOLATE,
+        SAI_SWITCH_EVENT_TYPE_FIRMWARE_CRASHED};
+#elif defined BRCM_SAI_SDK_GTE_11_0
     std::array<uint32_t, 7> events = {
         SAI_SWITCH_EVENT_TYPE_PARITY_ERROR,
         SAI_SWITCH_EVENT_TYPE_STABLE_FULL,
