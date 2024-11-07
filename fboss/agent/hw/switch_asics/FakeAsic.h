@@ -13,23 +13,6 @@ namespace facebook::fboss {
 class FakeAsic : public HwAsic {
  public:
   FakeAsic(
-      cfg::SwitchType switchType,
-      std::optional<int64_t> switchId,
-      int16_t index,
-      std::optional<cfg::Range64> systemPortRange,
-      const folly::MacAddress& mac,
-      std::optional<cfg::SdkVersion> sdkVersion = std::nullopt)
-      : HwAsic(
-            switchType,
-            switchId,
-            index,
-            systemPortRange,
-            mac,
-            sdkVersion,
-            {cfg::SwitchType::NPU,
-             cfg::SwitchType::VOQ,
-             cfg::SwitchType::FABRIC}) {}
-  FakeAsic(
       std::optional<int64_t> switchId,
       cfg::SwitchInfo switchInfo,
       std::optional<cfg::SdkVersion> sdkVersion = std::nullopt)

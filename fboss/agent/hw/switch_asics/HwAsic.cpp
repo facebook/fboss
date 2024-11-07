@@ -38,28 +38,6 @@ constexpr auto kDefaultDropEgressID = 100000;
 namespace facebook::fboss {
 
 HwAsic::HwAsic(
-    cfg::SwitchType switchType,
-    std::optional<int64_t> switchId,
-    int16_t switchIndex,
-    std::optional<cfg::Range64> systemPortRange,
-    const folly::MacAddress& mac,
-    std::optional<cfg::SdkVersion> sdkVersion,
-    std::unordered_set<cfg::SwitchType> supportedModes)
-    : switchType_(switchType),
-      switchId_(switchId),
-      switchIndex_(switchIndex),
-      asicMac_(mac),
-      sdkVersion_(sdkVersion) {
-  if (supportedModes.find(switchType_) == supportedModes.end()) {
-    throw std::runtime_error(
-        folly::to<std::string>("Unsupported Mode: ", switchType_));
-  }
-  if (systemPortRange.has_value()) {
-    systemPortRanges_.systemPortRanges()->push_back(*systemPortRange);
-  }
-}
-
-HwAsic::HwAsic(
     std::optional<int64_t> switchId,
     const cfg::SwitchInfo& switchInfo,
     std::optional<cfg::SdkVersion> sdkVersion,

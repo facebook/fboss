@@ -18,21 +18,6 @@ namespace facebook::fboss {
 class ChenabAsic : public HwAsic {
  public:
   ChenabAsic(
-      cfg::SwitchType type,
-      std::optional<int64_t> id,
-      int16_t index,
-      std::optional<cfg::Range64> systemPortRange,
-      const folly::MacAddress& mac,
-      std::optional<cfg::SdkVersion> sdkVersion = std::nullopt)
-      : HwAsic(
-            type,
-            id,
-            index,
-            systemPortRange,
-            mac,
-            sdkVersion,
-            {cfg::SwitchType::NPU}) {}
-  ChenabAsic(
       std::optional<int64_t> switchId,
       cfg::SwitchInfo switchInfo,
       std::optional<cfg::SdkVersion> sdkVersion = std::nullopt)

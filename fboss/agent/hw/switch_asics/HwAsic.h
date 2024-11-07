@@ -11,15 +11,6 @@ namespace facebook::fboss {
 class HwAsic {
  public:
   HwAsic(
-      cfg::SwitchType switchType,
-      std::optional<int64_t> switchId,
-      int16_t switchIndex,
-      std::optional<cfg::Range64> systemPortRange,
-      const folly::MacAddress& mac,
-      std::optional<cfg::SdkVersion> sdkVersion = std::nullopt,
-      std::unordered_set<cfg::SwitchType> supportedModes = {
-          cfg::SwitchType::NPU});
-  HwAsic(
       std::optional<int64_t> switchId,
       const cfg::SwitchInfo& switchInfo,
       std::optional<cfg::SdkVersion> sdkVersion = std::nullopt,
