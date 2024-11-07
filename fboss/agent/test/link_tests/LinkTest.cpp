@@ -571,6 +571,9 @@ void LinkTest::printProductionFeatures() const {
   for (const auto& feature : getProductionFeatures()) {
     supportedFeatures.push_back(apache::thrift::util::enumNameSafe(feature));
   }
+  if (supportedFeatures.size() == 0) {
+    throw std::runtime_error("No production features found for this Link Test");
+  }
   std::cout << "Feature List: " << folly::join(",", supportedFeatures) << "\n";
 }
 
