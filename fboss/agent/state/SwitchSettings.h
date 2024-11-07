@@ -671,6 +671,21 @@ class SwitchSettings
     }
   }
 
+  std::optional<std::string> getFirmwarePath() const {
+    if (auto firmwarePathToRet = cref<switch_state_tags::firmwarePath>()) {
+      return firmwarePathToRet->toThrift();
+    }
+    return std::nullopt;
+  }
+
+  void setFirmwarePath(const std::optional<std::string>& newFirmwarePath) {
+    if (!newFirmwarePath) {
+      ref<switch_state_tags::firmwarePath>().reset();
+    } else {
+      set<switch_state_tags::firmwarePath>(*newFirmwarePath);
+    }
+  }
+
   SwitchSettings* modify(std::shared_ptr<SwitchState>* state);
 
  private:
