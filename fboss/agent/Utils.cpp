@@ -502,14 +502,16 @@ SystemPortID getInbandSystemPortID(
       *switchInfoItr->second.inbandPortId());
 }
 
+// FIXME 2-stage DSF. First sys port range concep does
+// not apply for 2-stage DSF
 cfg::Range64 getFirstSwitchSystemPortIdRange(
     const std::map<int64_t, cfg::SwitchInfo>& switchToSwitchInfo) {
   for (const auto& [switchId, switchInfo] : switchToSwitchInfo) {
     // Only VOQ switches have system ports
     if (switchInfo.switchType() == cfg::SwitchType::VOQ &&
         switchInfo.switchIndex() == 0) {
-      CHECK(switchInfo.systemPortRange().has_value());
-      return *switchInfo.systemPortRange();
+      CHECK(switchInfo.systemPortRanges()->systemPortRanges()->size());
+      return *switchInfo.systemPortRanges()->systemPortRanges()->begin();
     }
   }
   throw FbossError("No VOQ switch with switchIndex 0 found");
