@@ -48,6 +48,7 @@ cpp_library(
         "AgentPacketSendTests.cpp",
         "AgentPfcTests.cpp",
         "AgentPortBandWidthTests.cpp",
+        "AgentPortLedTests.cpp",
         "AgentPortTests.cpp",
         "AgentPrbsTests.cpp",
         "AgentQueuePerHostL2Tests.cpp",
