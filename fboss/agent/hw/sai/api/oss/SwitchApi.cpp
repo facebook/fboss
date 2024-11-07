@@ -212,4 +212,24 @@ std::optional<sai_attr_id_t>
 SaiSwitchTraits::Attributes::AttributeCondEntropyRehashPeriodUS::operator()() {
   return std::nullopt;
 }
+std::optional<sai_attr_id_t>
+SaiSwitchTraits::Attributes::AttributeShelSrcIp::operator()() {
+  return std::nullopt;
+}
+
+std::optional<sai_attr_id_t>
+SaiSwitchTraits::Attributes::AttributeShelDstIp::operator()() {
+  return std::nullopt;
+}
+
+std::optional<sai_attr_id_t>
+SaiSwitchTraits::Attributes::AttributeShelSrcMac::operator()() {
+  return std::nullopt;
+}
+
+std::optional<sai_attr_id_t>
+SaiSwitchTraits::Attributes::AttributeShelPeriodicInterval::operator()() {
+  return std::nullopt;
+}
+
 } // namespace facebook::fboss

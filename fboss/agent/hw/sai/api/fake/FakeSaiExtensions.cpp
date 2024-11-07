@@ -349,6 +349,26 @@ SaiSwitchTraits::Attributes::AttributeCondEntropyRehashPeriodUS::operator()() {
 }
 
 std::optional<sai_attr_id_t>
+SaiSwitchTraits::Attributes::AttributeShelSrcIp::operator()() {
+  return SAI_SWITCH_ATTR_SHEL_SRC_IP;
+}
+
+std::optional<sai_attr_id_t>
+SaiSwitchTraits::Attributes::AttributeShelDstIp::operator()() {
+  return SAI_SWITCH_ATTR_SHEL_DST_IP;
+}
+
+std::optional<sai_attr_id_t>
+SaiSwitchTraits::Attributes::AttributeShelSrcMac::operator()() {
+  return SAI_SWITCH_ATTR_SHEL_SRC_MAC;
+}
+
+std::optional<sai_attr_id_t>
+SaiSwitchTraits::Attributes::AttributeShelPeriodicInterval::operator()() {
+  return SAI_SWITCH_ATTR_SHEL_PERIODIC_INTERVAL;
+}
+
+std::optional<sai_attr_id_t>
 SaiPortSerdesTraits::Attributes::AttributeTxDiffEncoderEnWrapper::operator()() {
   return SAI_PORT_SERDES_ATTR_EXT_TX_DIFF_ENCODER_EN;
 }

@@ -704,6 +704,10 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
       std::nullopt, // Fabric CLLFC TX credit threshold
       std::nullopt, // VOQ DRAM bound threshold
       std::nullopt, // Conditional Entropy Rehash Period
+      std::nullopt, // Shel Source IP
+      std::nullopt, // Shel Destination IP
+      std::nullopt, // Shel Source MAC
+      std::nullopt, // Shel Periodic Interval
   };
 }
 

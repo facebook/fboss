@@ -405,4 +405,39 @@ SaiSwitchTraits::Attributes::AttributeCondEntropyRehashPeriodUS::operator()() {
   return std::nullopt;
 }
 
+std::optional<sai_attr_id_t>
+SaiSwitchTraits::Attributes::AttributeShelSrcIp::operator()() {
+// TODO(zecheng): Update flag when new 12.0 release has the attribute
+#if defined(SAI_VERSION_11_7_0_0_DNX_ODP)
+  return SAI_SWITCH_ATTR_SHEL_SRC_IP;
+#endif
+  return std::nullopt;
+}
+
+std::optional<sai_attr_id_t>
+SaiSwitchTraits::Attributes::AttributeShelDstIp::operator()() {
+// TODO(zecheng): Update flag when new 12.0 release has the attribute
+#if defined(SAI_VERSION_11_7_0_0_DNX_ODP)
+  return SAI_SWITCH_ATTR_SHEL_DST_IP;
+#endif
+  return std::nullopt;
+}
+
+std::optional<sai_attr_id_t>
+SaiSwitchTraits::Attributes::AttributeShelSrcMac::operator()() {
+// TODO(zecheng): Update flag when new 12.0 release has the attribute
+#if defined(SAI_VERSION_11_7_0_0_DNX_ODP)
+  return SAI_SWITCH_ATTR_SHEL_SRC_MAC;
+#endif
+  return std::nullopt;
+}
+
+std::optional<sai_attr_id_t>
+SaiSwitchTraits::Attributes::AttributeShelPeriodicInterval::operator()() {
+// TODO(zecheng): Update flag when new 12.0 release has the attribute
+#if defined(SAI_VERSION_11_7_0_0_DNX_ODP)
+  return SAI_SWITCH_ATTR_SHEL_PERIODIC_INTERVAL;
+#endif
+  return std::nullopt;
+}
 } // namespace facebook::fboss
