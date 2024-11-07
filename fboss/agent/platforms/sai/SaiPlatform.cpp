@@ -500,10 +500,12 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
       uint32_t maxCoreCount = 0;
       uint32_t maxSystemCoreCount = 0;
       auto localMac = getLocalMac();
-      const Jericho2Asic j2(
-          cfg::SwitchType::VOQ, 0, 0, std::nullopt, localMac, std::nullopt);
-      const Jericho3Asic j3(
-          cfg::SwitchType::VOQ, 0, 0, std::nullopt, localMac, std::nullopt);
+      cfg::SwitchInfo swInfo;
+      swInfo.switchIndex() = 0;
+      swInfo.switchType() = cfg::SwitchType::VOQ;
+      swInfo.switchMac() = localMac.toString();
+      const Jericho2Asic j2(0, swInfo);
+      const Jericho3Asic j3(0, swInfo);
       for (const auto& [id, dsfNode] : *agentCfg->thrift.sw()->dsfNodes()) {
         if (dsfNode.type() != cfg::DsfNodeType::INTERFACE_NODE) {
           continue;
