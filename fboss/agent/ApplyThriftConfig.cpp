@@ -3110,12 +3110,8 @@ std::shared_ptr<AclTableGroupMap> ThriftConfigApplier::updateAclTableGroups() {
         "ACL Table Group must be specified if Multiple ACL Table support is enabled");
   }
 
-  if (cfg_->aclTableGroup()->stage() != cfg::AclStage::INGRESS) {
-    throw FbossError("Only ACL Stage INGRESS is supported");
-  }
-
   auto origAclTableGroup =
-      origAclTableGroups->getNodeIf(cfg::AclStage::INGRESS);
+      origAclTableGroups->getNodeIf(*cfg_->aclTableGroup()->stage());
 
   auto newAclTableGroup = updateAclTableGroup(
       *cfg_->aclTableGroup()->stage(),
