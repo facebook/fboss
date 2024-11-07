@@ -768,7 +768,6 @@ cfg::SwitchConfig genPortVlanCfg(
       CHECK_EQ(asic->getSystemPortRanges().systemPortRanges()->size(), 1);
       auto sysPortRange =
           *asic->getSystemPortRanges().systemPortRanges()->begin();
-      switchInfo.systemPortRange() = sysPortRange;
       switchInfo.systemPortRanges() = asic->getSystemPortRanges();
       switchInfo.localSystemPortOffset() = *sysPortRange.minimum();
       switchInfo.globalSystemPortOffset() = *sysPortRange.minimum();
