@@ -104,6 +104,8 @@ class HwTestThriftHandler : public AgentHwTestCtrlSvIf {
       ::std::vector<::facebook::fboss::utility::PortInfo>& portInfos,
       std::unique_ptr<::std::vector<::std::int32_t>> portIds) override;
 
+  bool verifyPortLedStatus(int portId, bool status) override;
+
  private:
   HwSwitch* hwSwitch_;
 };
