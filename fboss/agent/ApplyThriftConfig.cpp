@@ -402,6 +402,7 @@ class ThriftConfigApplier {
       const std::set<PortDescriptor>& portDescs);
   std::shared_ptr<AclTableGroup> updateAclTableGroup(
       cfg::AclStage aclStage,
+      const cfg::AclTableGroup& cfgAclTableGroup,
       const std::shared_ptr<AclTableGroup>& origAclTableGroup);
   std::shared_ptr<AclTableGroupMap> updateAclTableGroups();
   flat_map<std::string, const cfg::AclEntry*> getAllAclsByName();
@@ -3116,8 +3117,10 @@ std::shared_ptr<AclTableGroupMap> ThriftConfigApplier::updateAclTableGroups() {
   auto origAclTableGroup =
       origAclTableGroups->getNodeIf(cfg::AclStage::INGRESS);
 
-  auto newAclTableGroup =
-      updateAclTableGroup(*cfg_->aclTableGroup()->stage(), origAclTableGroup);
+  auto newAclTableGroup = updateAclTableGroup(
+      *cfg_->aclTableGroup()->stage(),
+      *cfg_->aclTableGroup(),
+      origAclTableGroup);
   auto changed =
       updateMap(&newAclTableGroups, origAclTableGroup, newAclTableGroup);
 
@@ -3130,6 +3133,7 @@ std::shared_ptr<AclTableGroupMap> ThriftConfigApplier::updateAclTableGroups() {
 
 std::shared_ptr<AclTableGroup> ThriftConfigApplier::updateAclTableGroup(
     cfg::AclStage aclStage,
+    const cfg::AclTableGroup& cfgAclTableGroup,
     const std::shared_ptr<AclTableGroup>& origAclTableGroup) {
   auto newAclTableMap = std::make_shared<AclTableMap>();
   bool changed = false;
@@ -3147,7 +3151,7 @@ std::shared_ptr<AclTableGroup> ThriftConfigApplier::updateAclTableGroup(
   }
 
   // For each table in the config, update the table entries and priority
-  for (const auto& aclTable : *cfg_->aclTableGroup()->aclTables()) {
+  for (const auto& aclTable : *cfgAclTableGroup.aclTables()) {
     auto newTable =
         updateAclTable(aclStage, aclTable, &numExistingTablesProcessed);
     if (newTable) {
@@ -3173,9 +3177,9 @@ std::shared_ptr<AclTableGroup> ThriftConfigApplier::updateAclTableGroup(
   }
 
   auto newAclTableGroup =
-      std::make_shared<AclTableGroup>(*cfg_->aclTableGroup()->stage());
+      std::make_shared<AclTableGroup>(*cfgAclTableGroup.stage());
   newAclTableGroup->setAclTableMap(newAclTableMap);
-  newAclTableGroup->setName(*cfg_->aclTableGroup()->name());
+  newAclTableGroup->setName(*cfgAclTableGroup.name());
 
   return newAclTableGroup;
 }
