@@ -61,7 +61,7 @@ HwAsic::HwAsic(
 
 HwAsic::HwAsic(
     std::optional<int64_t> switchId,
-    cfg::SwitchInfo switchInfo,
+    const cfg::SwitchInfo& switchInfo,
     std::optional<cfg::SdkVersion> sdkVersion,
     std::unordered_set<cfg::SwitchType> supportedModes)
     : switchType_(*switchInfo.switchType()),
@@ -89,7 +89,7 @@ int HwAsic::getDefaultACLGroupID() const {
 
 std::unique_ptr<HwAsic> HwAsic::makeAsic(
     std::optional<int64_t> switchId,
-    cfg::SwitchInfo switchInfo,
+    const cfg::SwitchInfo& switchInfo,
     std::optional<cfg::SdkVersion> sdkVersion) {
   switch (*switchInfo.asicType()) {
     case cfg::AsicType::ASIC_TYPE_FAKE:
