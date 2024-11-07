@@ -143,6 +143,9 @@ class AgentEnsemble : public TestEnsembleIf {
       linkToggler_->linkStateChanged(port, up);
     } else if (getSw()->getSwitchRunState() >= SwitchRunState::INITIALIZED) {
       getSw()->linkStateChanged(port, up, portType);
+    } else {
+      XLOG(DBG2) << "Agent Ensemble dropping link state change for port "
+                 << port << " UP:" << up;
     }
   }
 
