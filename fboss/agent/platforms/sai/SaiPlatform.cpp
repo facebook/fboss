@@ -550,13 +550,32 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
 
   std::optional<SaiSwitchTraits::Attributes::FirmwarePathName> firmwarePathName{
       std::nullopt};
-  if (getAsic()->isSupported(HwAsic::Feature::SAI_FIRMWARE_PATH)) {
+
+  const auto switchSettings = config()->thrift.sw()->switchSettings();
+  if (switchSettings->firmwarePath().has_value()) {
     std::vector<int8_t> firmwarePathNameArray;
     std::copy(
-        FLAGS_firmware_path.c_str(),
-        FLAGS_firmware_path.c_str() + FLAGS_firmware_path.size() + 1,
+        switchSettings->firmwarePath().value().c_str(),
+        switchSettings->firmwarePath().value().c_str() +
+            switchSettings->firmwarePath().value().size() + 1,
         std::back_inserter(firmwarePathNameArray));
+
     firmwarePathName = firmwarePathNameArray;
+  } else {
+    // TODO
+    // We plan to migrate all use cases that use firmware path to more
+    // geentalized config driven approach i.e. if-block.
+    // After that migration, we will remove this else-block, HwAsic feature
+    // SAI_FIRWWARE_PATH and FLAGS_firmware_path.
+    // Fallback in the meanwhile.
+    if (getAsic()->isSupported(HwAsic::Feature::SAI_FIRMWARE_PATH)) {
+      std::vector<int8_t> firmwarePathNameArray;
+      std::copy(
+          FLAGS_firmware_path.c_str(),
+          FLAGS_firmware_path.c_str() + FLAGS_firmware_path.size() + 1,
+          std::back_inserter(firmwarePathNameArray));
+      firmwarePathName = firmwarePathNameArray;
+    }
   }
 
   std::optional<SaiSwitchTraits::Attributes::SwitchIsolate> switchIsolate{
