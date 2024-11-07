@@ -476,6 +476,16 @@ void SaiSwitch::switchEventCallback(
       break;
     }
 #endif
+#if defined(SAI_VERSION_11_7_0_0_DNX_ODP)
+    case SAI_SWITCH_EVENT_TYPE_FIRMWARE_CRASHED: {
+      // TODO(skhare) Process this callback
+      XLOG(ERR) << "Firmware Crash callback received: " << " error type: "
+                << errorType(eventInfo->error_type)
+                << " reload reason: " << static_cast<int>(eventInfo->index)
+                << " reload status: " << static_cast<int>(eventInfo->index2);
+      break;
+    }
+#endif
   }
 }
 
