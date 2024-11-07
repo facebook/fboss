@@ -3111,7 +3111,8 @@ std::pair<strings::sramGlobalFreePercentXoffThreshold, Child<::std::int8_t, ::ap
 std::pair<strings::sramGlobalFreePercentXonThreshold, Child<::std::int8_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::byte_t>>,
 std::pair<strings::linkFlowControlCreditThreshold, Child<::std::int16_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i16_t>>,
 std::pair<strings::voqDramBoundThreshold, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
-std::pair<strings::conditionalEntropyRehashPeriodUS, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>>;
+std::pair<strings::conditionalEntropyRehashPeriodUS, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
+std::pair<strings::firmwarePath, Child<::std::string, ::apache::thrift::type_class::string, ::apache::thrift::type::string_t>>>;
   using ChildrenById = fatal::tuple<   std::pair<std::integral_constant<apache::thrift::field_id_t, 1>, Child<::facebook::fboss::cfg::L2LearningMode, ::apache::thrift::type_class::enumeration, ::apache::thrift::type::enum_t<::facebook::fboss::cfg::L2LearningMode>>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 2>, Child<bool, ::apache::thrift::type_class::integral, ::apache::thrift::type::bool_t>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 3>, Child<bool, ::apache::thrift::type_class::integral, ::apache::thrift::type::bool_t>>,
@@ -3158,7 +3159,8 @@ std::pair<strings::conditionalEntropyRehashPeriodUS, Child<::std::int32_t, ::apa
    std::pair<std::integral_constant<apache::thrift::field_id_t, 45>, Child<::std::int8_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::byte_t>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 46>, Child<::std::int16_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i16_t>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 47>, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
-   std::pair<std::integral_constant<apache::thrift::field_id_t, 48>, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>>;
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 48>, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 49>, Child<::std::string, ::apache::thrift::type_class::string, ::apache::thrift::type::string_t>>>;
   template <typename Name>
   using NameToId = fatal::tuple<std::pair<strings::l2LearningMode, std::integral_constant<apache::thrift::field_id_t, 1>>,
 std::pair<strings::qcmEnable, std::integral_constant<apache::thrift::field_id_t, 2>>,
@@ -3206,7 +3208,8 @@ std::pair<strings::sramGlobalFreePercentXoffThreshold, std::integral_constant<ap
 std::pair<strings::sramGlobalFreePercentXonThreshold, std::integral_constant<apache::thrift::field_id_t, 45>>,
 std::pair<strings::linkFlowControlCreditThreshold, std::integral_constant<apache::thrift::field_id_t, 46>>,
 std::pair<strings::voqDramBoundThreshold, std::integral_constant<apache::thrift::field_id_t, 47>>,
-std::pair<strings::conditionalEntropyRehashPeriodUS, std::integral_constant<apache::thrift::field_id_t, 48>>>::template type_of<Name>;
+std::pair<strings::conditionalEntropyRehashPeriodUS, std::integral_constant<apache::thrift::field_id_t, 48>>,
+std::pair<strings::firmwarePath, std::integral_constant<apache::thrift::field_id_t, 49>>>::template type_of<Name>;
 
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
@@ -3259,6 +3262,7 @@ std::pair<strings::conditionalEntropyRehashPeriodUS, std::integral_constant<apac
     STRUCT_CHILD_GETTERS(linkFlowControlCreditThreshold, 46);
     STRUCT_CHILD_GETTERS(voqDramBoundThreshold, 47);
     STRUCT_CHILD_GETTERS(conditionalEntropyRehashPeriodUS, 48);
+    STRUCT_CHILD_GETTERS(firmwarePath, 49);
 
   template <apache::thrift::field_id_t __id>
   auto operator()(const std::integral_constant<apache::thrift::field_id_t, __id>&) {
@@ -3309,6 +3313,7 @@ std::pair<strings::conditionalEntropyRehashPeriodUS, std::integral_constant<apac
     else if constexpr (__id == 46) { return linkFlowControlCreditThreshold(); }
     else if constexpr (__id == 47) { return voqDramBoundThreshold(); }
     else if constexpr (__id == 48) { return conditionalEntropyRehashPeriodUS(); }
+    else if constexpr (__id == 49) { return firmwarePath(); }
   }
 
   template <typename T, T... Values>

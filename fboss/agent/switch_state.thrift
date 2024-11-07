@@ -398,6 +398,7 @@ struct SwitchSettingsFields {
   47: optional i32 voqDramBoundThreshold;
   // Conditional Entropy Rehash Period for VOQ devices
   48: optional i32 conditionalEntropyRehashPeriodUS;
+  49: optional string firmwarePath;
 }
 
 struct RoutePrefix {
