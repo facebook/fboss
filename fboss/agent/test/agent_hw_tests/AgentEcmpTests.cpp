@@ -387,6 +387,108 @@ TEST_F(AgentEcmpTest, UcmpRoutesWithSameNextHopsDifferentWeights) {
   verifyAcrossWarmBoots(setup, verify);
 }
 
+class AgentWideEcmpTest : public AgentEcmpTest {
+  void setCmdLineFlagOverrides() const override {
+    FLAGS_ecmp_width = 512;
+    AgentHwTest::setCmdLineFlagOverrides();
+  }
+  std::vector<production_features::ProductionFeature>
+  getProductionFeaturesVerified() const override {
+    return {
+        production_features::ProductionFeature::L3_FORWARDING,
+        production_features::ProductionFeature::WIDE_ECMP};
+  }
+};
+
+// Wide UCMP underflow test for when total UCMP weight of the group is less
+// than FLAGS_ecmp_width
+TEST_F(AgentWideEcmpTest, WideUcmpUnderflow) {
+  const int numSpineNhops = 5;
+  const int numMeshNhops = 3;
+  std::vector<uint64_t> nhops(numSpineNhops + numMeshNhops);
+  std::vector<uint64_t> normalizedNhops(numSpineNhops + numMeshNhops);
+
+  auto fillNhops = [](auto& nhops, auto& countAndWeights) {
+    auto idx = 0;
+    for (const auto& nhopAndWeight : countAndWeights) {
+      std::fill(
+          nhops.begin() + idx,
+          nhops.begin() + idx + nhopAndWeight.first,
+          nhopAndWeight.second);
+      idx += nhopAndWeight.first;
+    }
+  };
+  // 5 spine nhops of weight 31 and 3 mesh nhops of weight 1
+  const std::vector<std::pair<int, int>> nhopsAndWeightsOriginal = {
+      {5, 31}, {3, 1}};
+  fillNhops(nhops, nhopsAndWeightsOriginal);
+  // normalized weights manually computed to compare against
+  const std::vector<std::pair<int, int>> nhopsAndWeightsNormalized = {
+      {3, 101}, {2, 100}, {3, 3}};
+  fillNhops(normalizedNhops, nhopsAndWeightsNormalized);
+  runSimpleUcmpTest(nhops, normalizedNhops);
+}
+
+class Agent256WideEcmpTest : public AgentWideEcmpTest {
+  void setCmdLineFlagOverrides() const override {
+    FLAGS_ecmp_width = 256;
+    AgentHwTest::setCmdLineFlagOverrides();
+  }
+};
+
+TEST_F(Agent256WideEcmpTest, WideUcmp256WidthUnderflow) {
+  const int numSpineNhops = 5;
+  const int numMeshNhops = 3;
+  std::vector<uint64_t> nhops(numSpineNhops + numMeshNhops);
+  std::vector<uint64_t> normalizedNhops(numSpineNhops + numMeshNhops);
+
+  auto fillNhops = [](auto& nhops, auto& countAndWeights) {
+    auto idx = 0;
+    for (const auto& nhopAndWeight : countAndWeights) {
+      std::fill(
+          nhops.begin() + idx,
+          nhops.begin() + idx + nhopAndWeight.first,
+          nhopAndWeight.second);
+      idx += nhopAndWeight.first;
+    }
+  };
+  // 5 spine nhops of weight 31 and 3 mesh nhops of weight 1
+  const std::vector<std::pair<int, int>> nhopsAndWeightsOriginal = {
+      {5, 31}, {3, 1}};
+  fillNhops(nhops, nhopsAndWeightsOriginal);
+  // normalized weights manually computed to compare against
+  const std::vector<std::pair<int, int>> nhopsAndWeightsNormalized = {
+      {3, 51}, {2, 50}, {3, 1}};
+  fillNhops(normalizedNhops, nhopsAndWeightsNormalized);
+  runSimpleUcmpTest(nhops, normalizedNhops);
+}
+TEST_F(AgentWideEcmpTest, WideUcmpCheckMultipleSlotUnderflow) {
+  const int numSpineNhops = 4;
+  const int numMeshNhops = 4;
+  std::vector<uint64_t> nhops(numSpineNhops + numMeshNhops);
+  std::vector<uint64_t> normalizedNhops(numSpineNhops + numMeshNhops);
+
+  auto fillNhops = [](auto& nhops, auto& countAndWeights) {
+    auto idx = 0;
+    for (const auto& nhopAndWeight : countAndWeights) {
+      std::fill(
+          nhops.begin() + idx,
+          nhops.begin() + idx + nhopAndWeight.first,
+          nhopAndWeight.second);
+      idx += nhopAndWeight.first;
+    }
+  };
+  // normalization should happen for two highest weight nexthops
+  // since the size of highest weight nexthop group(1) is less than underflow
+  const std::vector<std::pair<int, int>> nhopsAndWeightsOriginal = {
+      {1, 200}, {4, 50}, {1, 20}, {2, 1}};
+  fillNhops(nhops, nhopsAndWeightsOriginal);
+  const std::vector<std::pair<int, int>> nhopsAndWeightsNormalized = {
+      {1, 242}, {4, 61}, {1, 24}, {2, 1}};
+  fillNhops(normalizedNhops, nhopsAndWeightsNormalized);
+  runSimpleUcmpTest(nhops, normalizedNhops);
+}
+
 // Test link down in UCMP scenario
 TEST_F(AgentEcmpTest, UcmpL2ResolveAllNhopsInThenLinkDown) {
   utility::EcmpSetupAnyNPorts6 ecmpHelper(getProgrammedState());
