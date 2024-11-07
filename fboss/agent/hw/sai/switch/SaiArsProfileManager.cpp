@@ -82,7 +82,9 @@ void SaiArsProfileManager::addArsProfile(
 
 void SaiArsProfileManager::removeArsProfile(
     const std::shared_ptr<FlowletSwitchingConfig>& flowletSwitchConfig) {
-  arsProfileHandle_.reset();
+  if (arsProfileHandle_->arsProfile) {
+    arsProfileHandle_->arsProfile.reset();
+  }
 }
 
 void SaiArsProfileManager::changeArsProfile(

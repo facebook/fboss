@@ -50,6 +50,7 @@ class SaiArsManager {
       const std::shared_ptr<FlowletSwitchingConfig>& oldFlowletSwitchingConfig,
       const std::shared_ptr<FlowletSwitchingConfig>& newFlowletSwitchingConfig);
   SaiArsHandle* getArsHandle();
+  sai_int32_t cfgSwitchingModeToSai(cfg::SwitchingMode switchingMode) const;
 #endif
 
  private:
