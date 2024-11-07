@@ -76,15 +76,12 @@ MockPlatform::MockPlatform()
 MockPlatform::~MockPlatform() = default;
 
 void MockPlatform::setupAsic(
-    cfg::SwitchType switchType,
     std::optional<int64_t> switchId,
-    int16_t switchIndex,
-    std::optional<cfg::Range64> systemPortRange,
-    folly::MacAddress& mac,
-    std::optional<HwAsic::FabricNodeRole> fabricNodeRole) {
-  asic_ = std::make_unique<MockAsic>(
-      switchType, switchId, switchIndex, systemPortRange, mac);
+    const cfg::SwitchInfo& switchInfo,
+    std::optional<HwAsic::FabricNodeRole> role) {
+  asic_ = std::make_unique<MockAsic>(switchId, switchInfo);
 }
+
 HwSwitch* MockPlatform::getHwSwitch() const {
   return hw_.get();
 }

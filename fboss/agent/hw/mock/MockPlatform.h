@@ -65,12 +65,9 @@ class MockPlatform : public Platform {
 
  private:
   void setupAsic(
-      cfg::SwitchType switchType,
       std::optional<int64_t> switchId,
-      int16_t switchIndex,
-      std::optional<cfg::Range64> systemPortRange,
-      folly::MacAddress& mac,
-      std::optional<HwAsic::FabricNodeRole> fabricNodeRole) override;
+      const cfg::SwitchInfo& switchInfo,
+      std::optional<HwAsic::FabricNodeRole> role) override;
 
   void createTmpDir();
   void cleanupTmpDir();

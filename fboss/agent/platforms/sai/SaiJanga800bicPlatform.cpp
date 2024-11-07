@@ -30,15 +30,11 @@ SaiJanga800bicPlatform::SaiJanga800bicPlatform(
           localMac) {}
 
 void SaiJanga800bicPlatform::setupAsic(
-    cfg::SwitchType switchType,
     std::optional<int64_t> switchId,
-    int16_t switchIndex,
-    std::optional<cfg::Range64> systemPortRange,
-    folly::MacAddress& mac,
+    const cfg::SwitchInfo& switchInfo,
     std::optional<HwAsic::FabricNodeRole> fabricNodeRole) {
   CHECK(!fabricNodeRole.has_value());
-  asic_ = std::make_unique<Jericho3Asic>(
-      switchType, switchId, switchIndex, systemPortRange, mac);
+  asic_ = std::make_unique<Jericho3Asic>(switchId, switchInfo);
 }
 
 HwAsic* SaiJanga800bicPlatform::getAsic() const {
