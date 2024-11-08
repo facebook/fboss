@@ -3105,20 +3105,23 @@ std::shared_ptr<AclTableGroupMap> ThriftConfigApplier::updateAclTableGroups() {
   auto origAclTableGroups = orig_->getAclTableGroups();
   AclTableGroupMap::NodeContainer newAclTableGroups;
 
+  auto updateAclTableGroupsInternal =
+      [this, origAclTableGroups, &newAclTableGroups](
+          const cfg::AclTableGroup& cfgAclTableGroup) {
+        auto origAclTableGroup =
+            origAclTableGroups->getNodeIf(*cfgAclTableGroup.stage());
+        auto newAclTableGroup = updateAclTableGroup(
+            *cfgAclTableGroup.stage(), cfgAclTableGroup, origAclTableGroup);
+        return updateMap(
+            &newAclTableGroups, origAclTableGroup, newAclTableGroup);
+      };
+
   if (!cfg_->aclTableGroup()) {
     throw FbossError(
         "ACL Table Group must be specified if Multiple ACL Table support is enabled");
   }
 
-  auto origAclTableGroup =
-      origAclTableGroups->getNodeIf(*cfg_->aclTableGroup()->stage());
-
-  auto newAclTableGroup = updateAclTableGroup(
-      *cfg_->aclTableGroup()->stage(),
-      *cfg_->aclTableGroup(),
-      origAclTableGroup);
-  auto changed =
-      updateMap(&newAclTableGroups, origAclTableGroup, newAclTableGroup);
+  auto changed = updateAclTableGroupsInternal(*cfg_->aclTableGroup());
 
   if (!changed) {
     return nullptr;
