@@ -198,8 +198,13 @@ void SaiAclTableManager::removeAclEntriesFromTable(
 void SaiAclTableManager::addAclEntriesToTable(
     const std::shared_ptr<AclTable>& aclTable,
     std::shared_ptr<AclMap>& aclMap) {
+  auto newAclMap = aclTable->getAclMap().unwrap();
   for (auto const& iter : std::as_const(*aclMap)) {
     const auto& entry = iter.second;
+    // only re-add the ACL entry if present in new table
+    if (!newAclMap->getEntryIf(entry->getID())) {
+      continue;
+    }
     auto aclEntry = aclMap->getEntry(entry->getID());
     addAclEntry(aclEntry, aclTable->getID());
   }
@@ -1244,8 +1249,8 @@ void SaiAclTableManager::removeAclEntry(
   if (itr == aclTableHandle->aclTableMembers.end()) {
     // an acl entry that uses cpu port as qualifier may not have been created
     // even if it exists in switch state.
-    XLOG(ERR) << "attempted to remove aclEntry which does not exist: ",
-        removedAclEntry->getID();
+    XLOG(ERR) << "attempted to remove aclEntry which does not exist: "
+              << removedAclEntry->getID();
     return;
   }
 
