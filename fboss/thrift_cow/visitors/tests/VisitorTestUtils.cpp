@@ -19,7 +19,10 @@ TestStruct createSimpleTestStruct() {
       "hybridMap", dynamic::object(1, true))(
       "hybridMapOfI32ToStruct",
       dynamic::object(20, dynamic::object("min", 400)("max", 600)))(
-      "hybridMapOfMap", dynamic::object(10, dynamic::object(20, 30)));
+      "hybridMapOfMap", dynamic::object(10, dynamic::object(20, 30)))(
+      "hybridStruct",
+      dynamic::object(
+          "childMap", dynamic::object(10, true)(20, false)(50, false)));
 
   return facebook::thrift::from_dynamic<TestStruct>(
       testDyn, facebook::thrift::dynamic_format::JSON_1);
