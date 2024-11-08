@@ -138,10 +138,10 @@ class AgentEnsemble : public TestEnsembleIf {
       cfg::PortType portType,
       std::optional<phy::LinkFaultStatus> iPhyFaultStatus =
           std::nullopt) override {
-    if (linkToggler_ &&
-        getSw()->getSwitchRunState() >= SwitchRunState::CONFIGURED) {
-      linkToggler_->linkStateChanged(port, up);
-    } else if (getSw()->getSwitchRunState() >= SwitchRunState::INITIALIZED) {
+    if (getSw()->getSwitchRunState() >= SwitchRunState::CONFIGURED) {
+      if (linkToggler_) {
+        linkToggler_->linkStateChanged(port, up);
+      }
       getSw()->linkStateChanged(port, up, portType);
     } else {
       XLOG(DBG2) << "Agent Ensemble dropping link state change for port "
