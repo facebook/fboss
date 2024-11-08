@@ -183,11 +183,14 @@ TEST_F(AgentTunnelMgrTest, checkKernelEntries) {
     auto tunMgr_ = getAgentEnsemble()->getSw()->getTunManager();
     auto status = tunMgr_->getIntfStatus(
         getProgrammedState(), (InterfaceID)config.interfaces()[0].get_intfID());
+    // There could be a race condition where the interface is up, but the
+    // socket is not created. So, checking for the socket existence.
+    auto socketExists = tunMgr_->isValidNlSocket();
 
     // There is a known limitation in the kernel that the source route rule
     // entries are not created if the interface is not up. So, checking for
     // the kernel entries if the interface is  up
-    if (status) {
+    if (status && socketExists) {
       checkKernelEntriesExist(folly::to<std::string>(intfIp));
     }
 
@@ -220,11 +223,14 @@ TEST_F(AgentTunnelMgrTest, changeIpAddress) {
     auto tunMgr_ = getAgentEnsemble()->getSw()->getTunManager();
     auto status = tunMgr_->getIntfStatus(
         getProgrammedState(), (InterfaceID)config.interfaces()[0].get_intfID());
+    // There could be a race condition where the interface is up, but the
+    // socket is not created. So, checking for the socket existence.
+    auto socketExists = tunMgr_->isValidNlSocket();
 
     // There is a known limitation in the kernel that the source route rule
     // entries are not created if the interface is not up. So, checking for
     // the kernel entries if the interface is  up
-    if (status) {
+    if (status && socketExists) {
       checkKernelEntriesExist(folly::to<std::string>(intfIp));
     }
 
