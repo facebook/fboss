@@ -584,15 +584,43 @@ struct PathVisitorImpl<apache::thrift::type_class::structure> {
 
   template <typename Node, typename Op>
   static ThriftTraverseResult
-  visit(Node& /* node */, const VisitImplParams<Op>& params, PathIter cursor)
+  visit(Node& node, const VisitImplParams<Op>& params, PathIter cursor)
       // only enable for HybridNode types
     requires(std::is_same_v<typename Node::CowType, HybridNodeType>)
   {
-    // TODO: implement specialization for hybrid nodes
-    XLOG(ERR) << "Unimplemented visitation for hybrid node: path: "
-              << folly::join("/", params.begin, params.end)
-              << " at: " << (cursor == params.end ? "(end)" : *cursor);
-    return ThriftTraverseResult::VISITOR_EXCEPTION;
+    try {
+      if (params.mode == PathVisitMode::FULL || cursor == params.end) {
+        params.op.visitTyped(
+            *const_cast<std::remove_const_t<Node>*>(&node), cursor, params.end);
+        if (cursor == params.end) {
+          return ThriftTraverseResult::OK;
+        }
+      }
+    } catch (const std::exception& ex) {
+      XLOG(ERR) << "Exception while traversing path: "
+                << folly::join("/", params.begin, params.end)
+                << " at: " << (cursor == params.end ? "(end)" : *cursor)
+                << ", exception: " << ex.what();
+      return ThriftTraverseResult::VISITOR_EXCEPTION;
+    }
+    auto& tObj = node.ref();
+    using T = typename Node::ThriftType;
+    // Get key
+    auto key = *cursor++;
+    // Perform linear search over all members for key
+    ThriftTraverseResult result = ThriftTraverseResult::INVALID_STRUCT_MEMBER;
+    using Members = typename apache::thrift::reflect_struct<T>::members;
+    visitMember<Members>(key, [&](auto indexed) {
+      using member = decltype(fatal::tag_type(indexed));
+      using tc = typename member::type_class;
+      typename member::getter getter;
+
+      // Recurse further
+      auto& child = getter(tObj);
+      result = PathVisitorImpl<tc>::visit(child, params, cursor);
+    });
+
+    return result;
   }
 
   template <typename Obj, typename Op>
@@ -601,12 +629,12 @@ struct PathVisitorImpl<apache::thrift::type_class::structure> {
     requires(!is_cow_type_v<Obj> && !is_field_type_v<Obj>)
   {
     try {
-      if (cursor == params.end) {
+      if (params.mode == PathVisitMode::FULL || cursor == params.end) {
         params.op.visitTyped(tObj, cursor, params.end);
-      } else {
-        throw std::runtime_error("not implemented yet");
+        if (cursor == params.end) {
+          return ThriftTraverseResult::OK;
+        }
       }
-      return ThriftTraverseResult::OK;
     } catch (const std::exception& ex) {
       XLOG(ERR) << "Exception while traversing path: "
                 << folly::join("/", params.begin, params.end)
@@ -614,6 +642,22 @@ struct PathVisitorImpl<apache::thrift::type_class::structure> {
                 << ", exception: " << ex.what();
       return ThriftTraverseResult::VISITOR_EXCEPTION;
     }
+    // Get key
+    auto key = *cursor++;
+    // Perform linear search over all members for key
+    ThriftTraverseResult result = ThriftTraverseResult::INVALID_STRUCT_MEMBER;
+    using Members = typename apache::thrift::reflect_struct<Obj>::members;
+    visitMember<Members>(key, [&](auto indexed) {
+      using member = decltype(fatal::tag_type(indexed));
+      using tc = typename member::type_class;
+      typename member::getter getter;
+
+      // Recurse further
+      auto& child = getter(tObj);
+      result = PathVisitorImpl<tc>::visit(child, params, cursor);
+    });
+
+    return result;
   }
 
   template <typename Fields, typename Op>

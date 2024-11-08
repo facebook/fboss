@@ -184,6 +184,33 @@ TEST(PathVisitorTests, HybridMapStructAccess) {
         *nodeA, path.begin(), path.end(), PathVisitMode::LEAF, processPath);
     EXPECT_EQ(result, ThriftTraverseResult::INVALID_MAP_KEY);
   }
+  // hybridMapOfI32ToStruct/20/min
+  {
+    std::vector<std::string> path = {"hybridMapOfI32ToStruct", "20", "min"};
+    auto result = RootPathVisitor::visit(
+        *nodeA, path.begin(), path.end(), PathVisitMode::LEAF, processPath);
+    EXPECT_EQ(result, ThriftTraverseResult::OK);
+    XLOG(INFO) << folly::toJson(dyn);
+    EXPECT_EQ(dyn.asInt(), 400);
+  }
+
+  // hybridMapOfI32ToStruct/20/max
+  {
+    std::vector<std::string> path = {"hybridMapOfI32ToStruct", "20", "max"};
+    auto result = RootPathVisitor::visit(
+        *nodeA, path.begin(), path.end(), PathVisitMode::LEAF, processPath);
+    EXPECT_EQ(result, ThriftTraverseResult::OK);
+    EXPECT_EQ(dyn.asInt(), 600);
+  }
+
+  // invalid struct member
+  // hybridMapOfI32ToStruct/20/foo
+  {
+    std::vector<std::string> path = {"hybridMapOfI32ToStruct", "20", "foo"};
+    auto result = RootPathVisitor::visit(
+        *nodeA, path.begin(), path.end(), PathVisitMode::LEAF, processPath);
+    EXPECT_EQ(result, ThriftTraverseResult::INVALID_STRUCT_MEMBER);
+  }
 }
 
 TEST(PathVisitorTests, HybridMapOfMapAccess) {
