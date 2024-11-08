@@ -211,6 +211,18 @@ TEST(PathVisitorTests, HybridMapStructAccess) {
         *nodeA, path.begin(), path.end(), PathVisitMode::LEAF, processPath);
     EXPECT_EQ(result, ThriftTraverseResult::INVALID_STRUCT_MEMBER);
   }
+  // FULL visit mode
+  {
+    auto op = GetVisitedPathsOperator();
+    std::vector<std::string> path{"hybridMapOfI32ToStruct", "20", "max"};
+    auto result = RootPathVisitor::visit(
+        *nodeA, path.begin(), path.end(), PathVisitMode::FULL, op);
+    EXPECT_EQ(result, ThriftTraverseResult::OK);
+    EXPECT_THAT(
+        op.getVisited(),
+        ::testing::ContainerEq(std::set<std::string>{
+            "/", "/20/max", "/max", "/hybridMapOfI32ToStruct/20/max"}));
+  }
 }
 
 TEST(PathVisitorTests, HybridMapOfMapAccess) {
