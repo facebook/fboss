@@ -86,7 +86,7 @@ TEST(PathVisitorTests, AccessField) {
 }
 
 TEST(PathVisitorTests, HybridMapPrimitiveAccess) {
-  auto structA = createHybridMapTestStruct();
+  auto structA = createSimpleTestStruct();
 
   auto nodeA = std::make_shared<ThriftStructNode<
       TestStruct,
@@ -131,7 +131,7 @@ TEST(PathVisitorTests, HybridMapPrimitiveAccess) {
   }
 }
 TEST(PathVisitorTests, HybridMapStructAccess) {
-  auto structA = createHybridMapTestStruct();
+  auto structA = createSimpleTestStruct();
 
   auto nodeA = std::make_shared<ThriftStructNode<
       TestStruct,
@@ -214,7 +214,7 @@ TEST(PathVisitorTests, HybridMapStructAccess) {
 }
 
 TEST(PathVisitorTests, HybridMapOfMapAccess) {
-  auto structA = createHybridMapTestStruct();
+  auto structA = createSimpleTestStruct();
 
   auto nodeA = std::make_shared<ThriftStructNode<
       TestStruct,

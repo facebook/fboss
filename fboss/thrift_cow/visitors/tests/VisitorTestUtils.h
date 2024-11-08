@@ -18,8 +18,6 @@ using L4PortRangeMembers =
 
 TestStruct createSimpleTestStruct();
 
-TestStruct createHybridMapTestStruct();
-
 template <typename Node, typename Func>
 inline ThriftTraverseResult visitPath(
     Node& node,
