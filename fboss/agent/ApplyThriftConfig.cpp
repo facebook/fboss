@@ -405,7 +405,8 @@ class ThriftConfigApplier {
       const cfg::AclTableGroup& cfgAclTableGroup,
       const std::shared_ptr<AclTableGroup>& origAclTableGroup);
   std::shared_ptr<AclTableGroupMap> updateAclTableGroups();
-  flat_map<std::string, const cfg::AclEntry*> getAllAclsByName();
+  flat_map<std::string, const cfg::AclEntry*> getAllAclsByName(
+      const cfg::AclTableGroup& cfgAclTableGroup);
   void checkTrafficPolicyAclsExistInConfig(
       const cfg::TrafficPolicyConfig& policy,
       flat_map<std::string, const cfg::AclEntry*> aclByName);
@@ -3116,12 +3117,17 @@ std::shared_ptr<AclTableGroupMap> ThriftConfigApplier::updateAclTableGroups() {
             &newAclTableGroups, origAclTableGroup, newAclTableGroup);
       };
 
-  if (!cfg_->aclTableGroup()) {
+  bool changed = false;
+  if (!cfg_->aclTableGroup() && cfg_->aclTableGroups()->empty()) {
     throw FbossError(
         "ACL Table Group must be specified if Multiple ACL Table support is enabled");
+  } else if (auto cfgAclTableGroup = cfg_->aclTableGroup()) {
+    changed = updateAclTableGroupsInternal(*cfgAclTableGroup);
+  } else {
+    for (const auto& entry : *cfg_->aclTableGroups()) {
+      changed = updateAclTableGroupsInternal(entry);
+    }
   }
-
-  auto changed = updateAclTableGroupsInternal(*cfg_->aclTableGroup());
 
   if (!changed) {
     return nullptr;
@@ -3138,7 +3144,7 @@ std::shared_ptr<AclTableGroup> ThriftConfigApplier::updateAclTableGroup(
   bool changed = false;
   int numExistingTablesProcessed = 0;
 
-  auto aclByName = getAllAclsByName();
+  auto aclByName = getAllAclsByName(cfgAclTableGroup);
   // Check for controlPlane traffic acls
   if (cfg_->cpuTrafficPolicy() && cfg_->cpuTrafficPolicy()->trafficPolicy()) {
     checkTrafficPolicyAclsExistInConfig(
@@ -3184,9 +3190,10 @@ std::shared_ptr<AclTableGroup> ThriftConfigApplier::updateAclTableGroup(
 }
 
 flat_map<std::string, const cfg::AclEntry*>
-ThriftConfigApplier::getAllAclsByName() {
+ThriftConfigApplier::getAllAclsByName(
+    const cfg::AclTableGroup& cfgAclTableGroup) {
   flat_map<std::string, const cfg::AclEntry*> aclByName;
-  for (const auto& aclTable : *cfg_->aclTableGroup()->aclTables()) {
+  for (const auto& aclTable : *cfgAclTableGroup.aclTables()) {
     auto aclEntries = *(aclTable.aclEntries());
     folly::gen::from(aclEntries) |
         folly::gen::map([](const cfg::AclEntry& acl) {
