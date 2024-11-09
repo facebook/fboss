@@ -407,6 +407,15 @@ class HwAsic {
 
   virtual int getMidPriCpuQueueId() const = 0;
   virtual int getHiPriCpuQueueId() const = 0;
+  std::optional<int32_t> getGlobalSystemPortOffset() const {
+    return globalSystemPortOffset_;
+  }
+  std::optional<int32_t> getLocalSystemPortOffset() const {
+    return localSystemPortOffset_;
+  }
+  std::optional<int32_t> getInbandPortId() const {
+    return inbandPortId_;
+  }
 
  protected:
   static cfg::Range64 makeRange(int64_t min, int64_t max);
@@ -419,6 +428,8 @@ class HwAsic {
   cfg::StreamType defaultStreamType_{cfg::StreamType::ALL};
   folly::MacAddress asicMac_;
   std::optional<cfg::SdkVersion> sdkVersion_;
+  std::optional<int32_t> localSystemPortOffset_, globalSystemPortOffset_,
+      inbandPortId_;
 };
 
 } // namespace facebook::fboss

@@ -53,6 +53,15 @@ HwAsic::HwAsic(
     throw std::runtime_error(
         folly::to<std::string>("Unsupported Mode: ", switchType_));
   }
+  if (switchInfo.globalSystemPortOffset()) {
+    globalSystemPortOffset_ = *switchInfo.globalSystemPortOffset();
+  }
+  if (switchInfo.localSystemPortOffset()) {
+    localSystemPortOffset_ = *switchInfo.localSystemPortOffset();
+  }
+  if (switchInfo.inbandPortId()) {
+    inbandPortId_ = *switchInfo.inbandPortId();
+  }
 }
 /*
  * Default Content Aware Processor group ID for ACLs
