@@ -308,6 +308,11 @@ void fillHwPortStats(
         hwPortStats.fabricLinkDownDroppedCells_() = value;
         break;
 #endif
+#if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+      case SAI_PORT_STAT_FAST_LLFC_TRIGGER_STATUS:
+        hwPortStats.linkLayerFlowControlWatermark_() = value;
+        break;
+#endif
       default:
         auto configuredDebugCounters =
             debugCounterManager.getConfiguredDebugStatIds();
