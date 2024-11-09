@@ -403,7 +403,8 @@ cfg::DsfNode dsfNodeConfig(
       // FIXME 2-stage DSF populate offsets for 2-stage dsf correctly
       switchInfo.localSystemPortOffset() = *range.minimum();
       switchInfo.globalSystemPortOffset() = *range.minimum();
-      switchInfo.inbandPortId() = kSingleStageInbandPortId;
+      CHECK(fromAsic.getInbandPortId().has_value());
+      switchInfo.inbandPortId() = *fromAsic.getInbandPortId();
     }
     auto localMac = utility::kLocalCpuMac();
     switchInfo.switchType() = fromAsic.getSwitchType();
