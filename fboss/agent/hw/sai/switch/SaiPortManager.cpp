@@ -1822,6 +1822,14 @@ void SaiPortManager::updateStats(
 
   curPortStats.timestamp_() = now.count();
   handle->port->updateStats(supportedStats(portId), SAI_STATS_MODE_READ);
+#if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+  if (updateWatermarks &&
+      platform_->getAsic()->isSupported(HwAsic::Feature::FAST_LLFC_COUNTER)) {
+    handle->port->updateStats(
+        {SAI_PORT_STAT_FAST_LLFC_TRIGGER_STATUS},
+        SAI_STATS_MODE_READ_AND_CLEAR);
+  }
+#endif
 
   bool updateFecStats = false;
   auto lastFecReadTimeIt = lastFecCounterReadTime_.find(portId);

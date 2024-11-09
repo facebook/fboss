@@ -197,6 +197,7 @@ class HwAsic {
     L3_INTF_MTU,
     DEDICATED_CPU_BUFFER_POOL,
     EGRESS_ACL_TABLE,
+    FAST_LLFC_COUNTER,
   };
 
   enum class AsicMode {
