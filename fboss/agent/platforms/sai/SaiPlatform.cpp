@@ -260,16 +260,6 @@ std::string SaiPlatform::getHwAsicConfig(
     addNameValue(entry);
   }
 
-#if defined(BRCM_SAI_SDK_DNX_GTE_11_0) && !defined(BRCM_SAI_SDK_DNX_GTE_12_0)
-  // Interim workaround for 11.7 GA as this SoC property is needed for
-  // J3AI 11.x but not for 12.x until 12.0.0.4.
-  // TODO: While integrating 12.0.0.4, these workarounds need to be removed
-  // and instead this SoC property would be added in config directly.
-  if (getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO3) {
-    nameValStrs.push_back("custom_feature_shel_arm_enable=1");
-  }
-#endif
-
   /*
    * Single NPU platfroms will not have any npu entries. In such cases,
    * we can directly use the common config.
