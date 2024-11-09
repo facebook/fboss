@@ -448,16 +448,16 @@ cfg::DsfNode dsfNodeConfig(
   switch (otherAsic->getSwitchType()) {
     case cfg::SwitchType::VOQ: {
       dsfNode.type() = cfg::DsfNodeType::INTERFACE_NODE;
-      CHECK_EQ(otherAsic->getSystemPortRanges().systemPortRanges()->size(), 1)
-          << " Multiple sys port ranges per node are not supported yet in tests (TODO)";
       dsfNode.systemPortRanges() = otherAsic->getSystemPortRanges();
       dsfNode.nodeMac() = kLocalCpuMac().toString();
       dsfNode.loopbackIps() = getLoopbackIps(SwitchID(*dsfNode.switchId()));
-      auto sysPortRange =
-          *otherAsic->getSystemPortRanges().systemPortRanges()->begin();
-      dsfNode.localSystemPortOffset() = *sysPortRange.minimum();
-      dsfNode.globalSystemPortOffset() = *sysPortRange.minimum();
-      dsfNode.inbandPortId() = kSingleStageInbandPortId;
+      CHECK(otherAsic->getLocalSystemPortOffset().has_value());
+      CHECK(otherAsic->getGlobalSystemPortOffset().has_value());
+      CHECK(otherAsic->getInbandPortId().has_value());
+      dsfNode.localSystemPortOffset() = *otherAsic->getLocalSystemPortOffset();
+      dsfNode.globalSystemPortOffset() =
+          *otherAsic->getGlobalSystemPortOffset();
+      dsfNode.inbandPortId() = *otherAsic->getInbandPortId();
     } break;
     case cfg::SwitchType::FABRIC:
       dsfNode.type() = cfg::DsfNodeType::FABRIC_NODE;
