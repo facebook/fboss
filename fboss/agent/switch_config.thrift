@@ -560,6 +560,7 @@ enum AclTableActionType {
   MIRROR_INGRESS = 4,
   MIRROR_EGRESS = 5,
   SET_USER_DEFINED_TRAP = 6,
+  DISABLE_ARS_FORWARDING = 7,
 }
 
 enum AclTableQualifier {

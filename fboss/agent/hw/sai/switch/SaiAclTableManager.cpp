@@ -401,6 +401,11 @@ SaiAclTableManager::cfgActionTypeListToSaiActionTypeList(
       case cfg::AclTableActionType::SET_USER_DEFINED_TRAP:
         saiActionType = SAI_ACL_ACTION_TYPE_SET_USER_TRAP_ID;
         break;
+#if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
+      case cfg::AclTableActionType::DISABLE_ARS_FORWARDING:
+        saiActionType = SAI_ACL_ACTION_TYPE_DISABLE_ARS_FORWARDING;
+        break;
+#endif
       default:
         // should return in one of the cases
         throw FbossError("Unsupported Acl Table action type");
