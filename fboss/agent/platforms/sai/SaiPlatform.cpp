@@ -627,13 +627,17 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
     constexpr uint32_t kRamon3LlfcThreshold{800};
     fabricLLFC = std::vector<uint32_t>({kRamon3LlfcThreshold});
   }
-  // TODO: Using the hard coding values for now from single stage system config
-  // to integrate 12.0.0.3. This needs to be fixed properly post
-  // 12.0.0.3 integration. Also, this can be skipped for fabric switches.
-  maxSystemPortId = 6143;
-  maxLocalSystemPortId = -1;
-  maxSystemPorts = 6144;
-  maxVoqs = 6144 * 8;
+  if (FLAGS_dual_stage_rdsw_3q_2q || FLAGS_dual_stage_edsw_3q_2q) {
+    maxSystemPortId = 32515;
+    maxLocalSystemPortId = 5;
+    maxSystemPorts = 21766;
+    maxVoqs = 64512;
+  } else {
+    maxSystemPortId = 6143;
+    maxLocalSystemPortId = -1;
+    maxSystemPorts = 6144;
+    maxVoqs = 6144 * 8;
+  }
 #endif
   if (swType == cfg::SwitchType::FABRIC && bootType == BootType::COLD_BOOT) {
     // FABRIC switches should always start in isolated state until we configure
