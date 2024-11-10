@@ -176,3 +176,8 @@ DEFINE_bool(
     dual_stage_rdsw_3q_2q,
     false,
     "Use platform mapping for dual stage RDSW with 3q and 2q model");
+
+DEFINE_bool(
+    dual_stage_edsw_3q_2q,
+    false,
+    "Use platform mapping for dual stage EDSW with 3q and 2q model");
