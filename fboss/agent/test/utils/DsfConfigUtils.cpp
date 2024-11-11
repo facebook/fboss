@@ -70,9 +70,12 @@ std::optional<std::map<int64_t, cfg::DsfNode>> addRemoteIntfNodeCfg(
   int totalNodes = numRemoteNodes.has_value()
       ? numRemoteNodes.value() + curDsfNodes.size()
       : getDsfNodeCount(*asic);
-  int remoteNodeStart = dsfNodes.rbegin()->first + numCores;
+  auto lastDsfNode = dsfNodes.rbegin()->second;
+  int remoteNodeStart = *lastDsfNode.switchId() + numCores;
+  CHECK(lastDsfNode.systemPortRanges()->systemPortRanges()->size());
   int systemPortMin =
-      getPerNodeSysPorts(*asic, dsfNodes.begin()->first) * curDsfNodes.size();
+      *lastDsfNode.systemPortRanges()->systemPortRanges()->begin()->maximum() +
+      1;
   for (int remoteSwitchId = remoteNodeStart;
        remoteSwitchId < totalNodes * numCores;
        remoteSwitchId += numCores) {
