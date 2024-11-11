@@ -57,7 +57,8 @@ void configureSflowMirror(
     const std::string& mirrorName,
     bool truncate,
     const std::string& destinationIp,
-    uint32_t udpSrcPort = 6343);
+    uint32_t udpSrcPort = 6545,
+    uint32_t udpDstPort = 6343);
 
 void configureSflowSampling(
     cfg::SwitchConfig& config,
