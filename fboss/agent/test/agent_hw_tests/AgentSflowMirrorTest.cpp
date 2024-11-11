@@ -552,7 +552,9 @@ class AgentSflowMirrorWithLineRateTrafficTest
       configSampling(config, 1);
       // PFC buffer configurations to ensure we have lossless traffic
       const std::map<int, int> tcToPgOverride{};
+      // We dont want PFC here, so set global shared threshold to be high
       const utility::PfcBufferParams bufferParams{
+          .globalShared = 20 * 1024 * 1024,
           .scalingFactor = cfg::MMUScalingFactor::ONE};
       utility::setupPfcBuffers(
           getAgentEnsemble(),
@@ -566,11 +568,15 @@ class AgentSflowMirrorWithLineRateTrafficTest
       applyNewConfig(config);
       resolveRouteForMirrorDestination();
       utility::setupEcmpDataplaneLoopOnAllPorts(getAgentEnsemble());
+      // 1. Low rate of the order of 1% of 800G is good enough to saturate the
+      // eventor port, which currently has a max possible rate of ~13Gbps.
+      // 2. For prod, we sample 1 out of 60K packets, hence the rate expected
+      // on eventor port is low, 1/60K of 14.4Tbps ~240Mbps.
       utility::createTrafficOnMultiplePorts(
           getAgentEnsemble(),
           kNumDataTrafficPorts,
           sendPacket,
-          50 /*desiredPctLineRate*/);
+          1 /*desiredPctLineRate*/);
     };
     auto verify = [=, this]() {
       verifySflowEgressPortNotStuck();
