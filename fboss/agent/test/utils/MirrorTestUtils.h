@@ -51,6 +51,7 @@ void addMirrorConfig(
     uint8_t dscp = kDscpDefault);
 
 folly::IPAddress getSflowMirrorDestination(bool isV4);
+folly::IPAddress getSflowMirrorSource();
 
 void configureSflowMirror(
     cfg::SwitchConfig& config,
