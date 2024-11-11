@@ -157,7 +157,10 @@ class AgentSflowMirrorTest : public AgentHwTest {
     return getSw()->getHwLogicalPortId(port);
   }
 
-  PortID getSflowPacketSrcPort(const std::vector<uint8_t>& sflowPayload) {
+  void validateSflowPacketHeader(
+      const std::vector<uint8_t>& sflowPayload,
+      PortID srcPortId) {
+    PortID expectedSrcPortId;
     /*
      * sflow shim format for Tajo:
      *
@@ -177,7 +180,8 @@ class AgentSflowMirrorTest : public AgentHwTest {
     if (asic->getAsicType() == cfg::AsicType::ASIC_TYPE_EBRO ||
         asic->getAsicType() == cfg::AsicType::ASIC_TYPE_YUBA) {
       auto systemPortId = sflowPayload[0] << 8 | sflowPayload[1];
-      return static_cast<PortID>(systemPortId - asic->getSflowPortIDOffset());
+      expectedSrcPortId =
+          static_cast<PortID>(systemPortId - asic->getSflowPortIDOffset());
     } else if (asic->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO3) {
       /*
        * Bytes 68 through 71 carry the ingress ifindex in sflow v5 header
@@ -189,14 +193,16 @@ class AgentSflowMirrorTest : public AgentHwTest {
         systemPortId |=
             static_cast<uint32_t>((sflowPayload[offsetBytesStart + i]) << j);
       }
-      return getPortID(SystemPortID(systemPortId), getProgrammedState());
+      expectedSrcPortId =
+          getPortID(SystemPortID(systemPortId), getProgrammedState());
     } else {
       auto sourcePortOffset = 0;
       if (asic->isSupported(HwAsic::Feature::SFLOW_SHIM_VERSION_FIELD)) {
         sourcePortOffset += 4;
       }
-      return static_cast<PortID>(sflowPayload[sourcePortOffset]);
+      expectedSrcPortId = static_cast<PortID>(sflowPayload[sourcePortOffset]);
     }
+    EXPECT_EQ(expectedSrcPortId, srcPortId);
   }
 
   uint16_t getMirrorTruncateSize() const {
@@ -323,9 +329,9 @@ class AgentSflowMirrorTest : public AgentHwTest {
 
     auto hwLogicalPortId = getHwLogicalPortId(ports[1]);
     if (!hwLogicalPortId) {
-      EXPECT_EQ(getSflowPacketSrcPort(payload), ports[1]);
+      validateSflowPacketHeader(payload, ports[1]);
     } else {
-      EXPECT_EQ(getSflowPacketSrcPort(payload), PortID(*hwLogicalPortId));
+      validateSflowPacketHeader(payload, PortID(*hwLogicalPortId));
     }
 
     if (checkSameAndGetAsic()->getAsicType() != cfg::AsicType::ASIC_TYPE_EBRO &&
