@@ -58,7 +58,6 @@ class AgentSflowMirrorTest : public AgentHwTest {
         ensemble.getSw()->getScopeResolver()->scope(port0).switchId();
     auto asic = ensemble.getSw()->getHwAsicTable()->getHwAsic(port0Switch);
     auto ports = getPortsForSampling(ensemble.masterLogicalPortIds(), asic);
-    this->configureMirror(cfg);
     if (asic->isSupported(HwAsic::Feature::EVENTOR_PORT_FOR_SFLOW)) {
       utility::addEventorVoqConfig(&cfg, cfg::StreamType::UNICAST);
     }
@@ -470,6 +469,7 @@ class AgentSflowMirrorTest : public AgentHwTest {
     auto setup = [=, this]() {
       auto ports = getPortsForSampling();
       auto config = initialConfig(*getAgentEnsemble());
+      configureMirror(config);
       configSampling(config, 1);
       configureTrapAcl(config);
       applyNewConfig(config);
@@ -488,6 +488,7 @@ class AgentSflowMirrorTest : public AgentHwTest {
   void testSampledPacketRate(bool truncate = false) {
     auto setup = [=, this]() {
       auto config = initialConfig(*getAgentEnsemble());
+      configureMirror(config);
       configSampling(config, FLAGS_sflow_test_rate);
       configureTrapAcl(config);
       applyNewConfig(config);
@@ -627,6 +628,7 @@ class AgentSflowMirrorWithLineRateTrafficTest
           allPorts.begin(), allPorts.begin() + kNumDataTrafficPorts);
       std::vector<int> losslessPgIds = {kLosslessPriority};
       auto config = initialConfig(*getAgentEnsemble());
+      configureMirror(config);
       // Configure 1:1 sampling to ensure high rate on mirror egress port
       configSampling(config, 1);
       // PFC buffer configurations to ensure we have lossless traffic
@@ -804,6 +806,7 @@ TEST_F(AgentSflowMirrorTestV4, MoveToV6) {
   // Test to migrate v4 mirror to v6
   auto setup = [=, this]() {
     auto config = initialConfig(*getAgentEnsemble());
+    configureMirror(config);
     configSampling(config, 1);
     configureTrapAcl(config);
     applyNewConfig(config);
@@ -828,6 +831,7 @@ TEST_F(AgentSflowMirrorTestV6, MoveToV4) {
   // Test to migrate v6 mirror to v4
   auto setup = [=, this]() {
     auto config = initialConfig(*getAgentEnsemble());
+    configureMirror(config);
     configSampling(config, 1);
     configureTrapAcl(config);
     applyNewConfig(config);
