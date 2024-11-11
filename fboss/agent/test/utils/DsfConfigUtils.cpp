@@ -21,7 +21,7 @@ constexpr auto kNumRdswSysPort = 44;
 constexpr auto kNumEdswSysPort = 26;
 constexpr auto kJ2NumSysPort = 20;
 
-int getPerNodeSysPorts(const HwAsic& asic, int remoteSwitchId) {
+int getPerNodeSysPortsBlockSize(const HwAsic& asic, int remoteSwitchId) {
   if (asic.getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO2) {
     return kJ2NumSysPort;
   }
@@ -99,7 +99,7 @@ std::optional<std::map<int64_t, cfg::DsfNode>> addRemoteIntfNodeCfg(
     systemPortRange.minimum() =
         getSysPortIdsAllocated(*asic, remoteSwitchId) + 1;
     systemPortRange.maximum() = *systemPortRange.minimum() +
-        getPerNodeSysPorts(*asic, remoteSwitchId) - 1;
+        getPerNodeSysPortsBlockSize(*asic, remoteSwitchId) - 1;
     cfg::SystemPortRanges ranges;
     ranges.systemPortRanges()->push_back(systemPortRange);
     auto remoteDsfNodeCfg = dsfNodeConfig(
