@@ -30,6 +30,24 @@ int getPerNodeSysPorts(const HwAsic& asic, int remoteSwitchId) {
   }
   return kNumEdswSysPort;
 }
+
+int getSysPortIdsAllocated(const HwAsic& asic, int remoteSwitchId) {
+  constexpr auto kSysPortIdsStart = 10;
+  auto portsConsumed = kSysPortIdsStart;
+  auto deviceIndex = remoteSwitchId / asic.getNumCores();
+  if (asic.getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO2) {
+    portsConsumed += deviceIndex * kJ2NumSysPort - 1;
+  } else {
+    CHECK(asic.getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO3);
+    if (deviceIndex < kNumRdsw) {
+      portsConsumed += deviceIndex * kNumRdswSysPort - 1;
+    } else {
+      portsConsumed += kNumRdsw * kNumRdswSysPort +
+          (deviceIndex - kNumRdsw) * kNumEdswSysPort - 1;
+    }
+  }
+  return portsConsumed;
+}
 } // namespace
 
 int getDsfNodeCount(const HwAsic& asic) {
@@ -73,22 +91,20 @@ std::optional<std::map<int64_t, cfg::DsfNode>> addRemoteIntfNodeCfg(
   auto lastDsfNode = dsfNodes.rbegin()->second;
   int remoteNodeStart = *lastDsfNode.switchId() + numCores;
   CHECK(lastDsfNode.systemPortRanges()->systemPortRanges()->size());
-  int systemPortMin =
-      *lastDsfNode.systemPortRanges()->systemPortRanges()->begin()->maximum() +
-      1;
   for (int remoteSwitchId = remoteNodeStart;
        remoteSwitchId < totalNodes * numCores;
        remoteSwitchId += numCores) {
     cfg::Range64 systemPortRange;
-    systemPortRange.minimum() = systemPortMin;
-    systemPortRange.maximum() =
-        systemPortMin + getPerNodeSysPorts(*asic, remoteSwitchId) - 1;
+    // Already allocated + 1
+    systemPortRange.minimum() =
+        getSysPortIdsAllocated(*asic, remoteSwitchId) + 1;
+    systemPortRange.maximum() = *systemPortRange.minimum() +
+        getPerNodeSysPorts(*asic, remoteSwitchId) - 1;
     cfg::SystemPortRanges ranges;
     ranges.systemPortRanges()->push_back(systemPortRange);
     auto remoteDsfNodeCfg = dsfNodeConfig(
         *asic, SwitchID(remoteSwitchId), ranges, *firstDsfNode.platformType());
     dsfNodes.insert({remoteSwitchId, remoteDsfNodeCfg});
-    systemPortMin = *systemPortRange.maximum() + 1;
   }
   return dsfNodes;
 }
