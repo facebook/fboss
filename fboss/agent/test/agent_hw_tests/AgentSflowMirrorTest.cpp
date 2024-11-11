@@ -64,12 +64,24 @@ class AgentSflowMirrorTest : public AgentHwTest {
     return cfg;
   }
 
-  void configureMirror(cfg::SwitchConfig& cfg, bool v4) const {
+  void configureMirror(
+      cfg::SwitchConfig& cfg,
+      bool v4,
+      uint32_t udpSrcPort = 6545,
+      uint32_t udpDstPort = 6343) const {
     utility::configureSflowMirror(
-        cfg, kSflowMirror, false, utility::getSflowMirrorDestination(v4).str());
+        cfg,
+        kSflowMirror,
+        false,
+        utility::getSflowMirrorDestination(v4).str(),
+        udpSrcPort,
+        udpDstPort);
   }
 
-  virtual void configureMirror(cfg::SwitchConfig& cfg) const {
+  virtual void configureMirror(
+      cfg::SwitchConfig& cfg,
+      uint32_t udpSrcPort = 6545,
+      uint32_t udpDstPort = 6343) const {
     configureMirror(cfg, std::is_same_v<AddrT, folly::IPAddressV4>);
   }
 
@@ -483,16 +495,26 @@ class AgentSflowMirrorTruncateTest : public AgentSflowMirrorTest<AddrT> {
     }
   }
 
-  void configureMirror(cfg::SwitchConfig& cfg, bool v4) const {
+  void configureMirror(
+      cfg::SwitchConfig& cfg,
+      bool v4,
+      uint32_t udpSrcPort = 6545,
+      uint32_t udpDstPort = 6343) const {
     utility::configureSflowMirror(
         cfg,
         kSflowMirror,
         true /* truncate */,
-        utility::getSflowMirrorDestination(v4).str());
+        utility::getSflowMirrorDestination(v4).str(),
+        udpSrcPort,
+        udpDstPort);
   }
 
-  virtual void configureMirror(cfg::SwitchConfig& cfg) const override {
-    configureMirror(cfg, std::is_same_v<AddrT, folly::IPAddressV4>);
+  virtual void configureMirror(
+      cfg::SwitchConfig& cfg,
+      uint32_t udpSrcPort = 6545,
+      uint32_t udpDstPort = 6343) const override {
+    configureMirror(
+        cfg, std::is_same_v<AddrT, folly::IPAddressV4>, udpSrcPort, udpDstPort);
   }
 };
 
