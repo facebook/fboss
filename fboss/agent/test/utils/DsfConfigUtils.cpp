@@ -49,6 +49,8 @@ std::optional<std::map<int64_t, cfg::DsfNode>> addRemoteIntfNodeCfg(
   CHECK(firstDsfNode.localSystemPortOffset().has_value());
   CHECK(firstDsfNode.globalSystemPortOffset().has_value());
   CHECK(firstDsfNode.inbandPortId().has_value());
+  CHECK_EQ(*firstDsfNode.switchId(), 0);
+  CHECK(*firstDsfNode.type() == cfg::DsfNodeType::INTERFACE_NODE);
   cfg::SwitchInfo switchInfo;
   switchInfo.asicType() = *firstDsfNode.asicType();
   switchInfo.switchType() = cfg::SwitchType::VOQ;
