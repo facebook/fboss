@@ -187,6 +187,14 @@ std::
 #if !defined(TAJO_SDK) && !defined(BRCM_SAI_SDK_XGS)
       qualifierExistsFn(cfg::AclTableQualifier::IPV6_NEXT_HEADER),
 #endif
+#if SAI_API_VERSION >= SAI_VERSION(1, 14, 0) || \
+    (defined(BRCM_SAI_SDK_GTE_11_0) && defined(BRCM_SAI_SDK_XGS))
+      std::nullopt, // UserDefinedFieldGroupMin0
+      std::nullopt, // UserDefinedFieldGroupMin1
+      std::nullopt, // UserDefinedFieldGroupMin2
+      std::nullopt, // UserDefinedFieldGroupMin3
+      std::nullopt, // UserDefinedFieldGroupMin4
+#endif
   };
 
   SaiAclTableTraits::AdapterHostKey adapterHostKey{addedAclTable->getID()};

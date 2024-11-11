@@ -178,7 +178,9 @@ bool SaiAclTableManager::needsAclTableRecreate(
     const std::shared_ptr<AclTable>& newAclTable) {
   if (oldAclTable->getActionTypes() != newAclTable->getActionTypes() ||
       oldAclTable->getPriority() != newAclTable->getPriority() ||
-      oldAclTable->getQualifiers() != newAclTable->getQualifiers()) {
+      oldAclTable->getQualifiers() != newAclTable->getQualifiers() ||
+      oldAclTable->getUdfGroups()->toThrift() !=
+          newAclTable->getUdfGroups()->toThrift()) {
     XLOG(DBG2) << "Recreating ACL table";
     return true;
   }
@@ -1196,6 +1198,14 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
 #endif
 #if !defined(TAJO_SDK) && !defined(BRCM_SAI_SDK_XGS)
       fieldIpv6NextHeader,
+#endif
+#if SAI_API_VERSION >= SAI_VERSION(1, 14, 0) || \
+    (defined(BRCM_SAI_SDK_GTE_11_0) && defined(BRCM_SAI_SDK_XGS))
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
 #endif
       aclActionPacketAction,
       aclActionCounter,
