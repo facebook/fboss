@@ -28,6 +28,7 @@
 #include "fboss/agent/SflowShimUtils.h"
 
 DEFINE_int32(sflow_test_rate, 90000, "sflow sampling rate for hw test");
+constexpr uint16_t kTimeoutSecs = 10;
 
 const std::string kSflowMirror = "sflow_mirror";
 
@@ -316,7 +317,7 @@ class AgentSflowMirrorTest : public AgentHwTest {
 
     std::optional<std::unique_ptr<folly::IOBuf>> capturedPktBuf;
     WITH_RETRIES({
-      capturedPktBuf = snooper.waitForPacket(10);
+      capturedPktBuf = snooper.waitForPacket(kTimeoutSecs);
       EXPECT_EVENTUALLY_TRUE(capturedPktBuf.has_value());
     });
     folly::io::Cursor capturedPktCursor{capturedPktBuf->get()};
@@ -390,7 +391,7 @@ class AgentSflowMirrorTest : public AgentHwTest {
 
     std::optional<std::unique_ptr<folly::IOBuf>> capturedPktBuf;
     WITH_RETRIES({
-      capturedPktBuf = snooper.waitForPacket(10);
+      capturedPktBuf = snooper.waitForPacket(kTimeoutSecs);
       EXPECT_EVENTUALLY_TRUE(capturedPktBuf.has_value());
     });
     folly::io::Cursor capturedPktCursor{capturedPktBuf->get()};
@@ -494,6 +495,39 @@ class AgentSflowMirrorTest : public AgentHwTest {
     };
     auto verify = [=, this]() { verifySampledPacketRate(); };
     verifyAcrossWarmBoots(setup, verify);
+  }
+
+  void verifySrsPortRandomizationOnSflowPacket(uint16_t numPackets = 10) {
+    auto ports = getPortsForSampling();
+    getAgentEnsemble()->bringDownPorts(
+        std::vector<PortID>(ports.begin() + 2, ports.end()));
+    std::set<uint16_t> l4SrcPorts;
+    for (auto i = 0; i < numPackets; i++) {
+      auto pkt = genPacket(1, 256);
+      auto length = pkt->buf()->length();
+
+      utility::SwSwitchPacketSnooper snooper(getSw(), "snooper");
+      XLOG(DBG2) << "Sending packet through port " << ports[1];
+      getAgentEnsemble()->sendPacketAsync(
+          std::move(pkt), PortDescriptor(ports[1]), std::nullopt);
+
+      std::optional<std::unique_ptr<folly::IOBuf>> capturedPktBuf;
+      WITH_RETRIES({
+        capturedPktBuf = snooper.waitForPacket(kTimeoutSecs);
+        EXPECT_EVENTUALLY_TRUE(capturedPktBuf.has_value());
+      });
+      folly::io::Cursor capturedPktCursor{capturedPktBuf->get()};
+      auto capturedPkt = utility::EthFrame(capturedPktCursor);
+      auto udpHeader = capturedPkt.v6PayLoad()->udpPayload()->header();
+      l4SrcPorts.insert(udpHeader.srcPort);
+      /*
+       * J3 randomize the source based on the time stamp in the asic.
+       * Add a delay to ensure the source ports are different for
+       * every packet that is trapped to CPU with SFLOW header.
+       */
+      sleep(2);
+    }
+    EXPECT_GT(l4SrcPorts.size(), 1);
   }
 
   utility::MacAddressGenerator macGenerator = utility::MacAddressGenerator();
