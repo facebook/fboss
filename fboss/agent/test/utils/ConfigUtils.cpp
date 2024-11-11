@@ -370,7 +370,7 @@ void securePortsInConfig(
 cfg::DsfNode dsfNodeConfig(
     const HwAsic& myAsic,
     int64_t otherSwitchId,
-    cfg::SystemPortRanges sysPortRanges,
+    cfg::SystemPortRanges inputSysPortRanges,
     const std::optional<PlatformType> platformType) {
   auto createAsic = [&](const HwAsic& fromAsic, int64_t switchId)
       -> std::pair<std::shared_ptr<HwAsic>, PlatformType> {
@@ -389,12 +389,12 @@ cfg::DsfNode dsfNodeConfig(
       auto blockSize = (*fromAsicSystemPortRange->maximum() -
                         *fromAsicSystemPortRange->minimum() + 1) /
           numCores;
-      if (sysPortRanges.systemPortRanges()->size()) {
-        CHECK_EQ(sysPortRanges.systemPortRanges()->size(), 1)
+      if (inputSysPortRanges.systemPortRanges()->size()) {
+        CHECK_GE(inputSysPortRanges.systemPortRanges()->size(), 1)
             << " Multiple sys port ranges per node are not supported yet in tests (TODO)";
-        auto firstRange = *sysPortRanges.systemPortRanges()->begin();
-        range.minimum() = kSysPortOffset + *firstRange.minimum();
-        range.maximum() = kSysPortOffset + *firstRange.maximum();
+        auto firstRange = *inputSysPortRanges.systemPortRanges()->begin();
+        range.minimum() = *firstRange.minimum();
+        range.maximum() = *firstRange.maximum();
       } else {
         range.minimum() = kSysPortOffset + switchId * blockSize;
         range.maximum() = *range.minimum() + numCores * blockSize - 1;
