@@ -50,7 +50,7 @@ class ChenabAsic : public HwAsic {
   uint16_t getMirrorTruncateSize() const override;
   uint32_t getMaxWideEcmpSize() const override;
   uint32_t getMaxLagMemberSize() const override;
-  int getSystemPortIDOffset() const override;
+  int getSflowPortIDOffset() const override;
   uint32_t getSflowShimHeaderSize() const override;
   std::optional<uint32_t> getPortSerdesPreemphasis() const override;
   uint32_t getPacketBufferUnitSize() const override;

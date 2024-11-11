@@ -38,7 +38,7 @@ std::optional<SaiPortTraits::Attributes::SystemPortId> getSystemPortId(
   if (platform->getAsic()->getAsicVendor() ==
       HwAsic::AsicVendor::ASIC_VENDOR_TAJO) {
     return std::optional<SaiPortTraits::Attributes::SystemPortId>{
-        portId + platform->getAsic()->getSystemPortIDOffset()};
+        portId + platform->getAsic()->getSflowPortIDOffset()};
   }
   return std::nullopt;
 }

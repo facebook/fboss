@@ -177,7 +177,7 @@ class AgentSflowMirrorTest : public AgentHwTest {
     if (asic->getAsicType() == cfg::AsicType::ASIC_TYPE_EBRO ||
         asic->getAsicType() == cfg::AsicType::ASIC_TYPE_YUBA) {
       auto systemPortId = sflowPayload[0] << 8 | sflowPayload[1];
-      return static_cast<PortID>(systemPortId - asic->getSystemPortIDOffset());
+      return static_cast<PortID>(systemPortId - asic->getSflowPortIDOffset());
     } else if (asic->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO3) {
       /*
        * Bytes 68 through 71 carry the ingress ifindex in sflow v5 header

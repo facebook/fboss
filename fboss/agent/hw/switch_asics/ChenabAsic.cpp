@@ -325,7 +325,7 @@ uint32_t ChenabAsic::getMaxWideEcmpSize() const {
 uint32_t ChenabAsic::getMaxLagMemberSize() const {
   return 512;
 }
-int ChenabAsic::getSystemPortIDOffset() const {
+int ChenabAsic::getSflowPortIDOffset() const {
   return 500;
 }
 uint32_t ChenabAsic::getSflowShimHeaderSize() const {

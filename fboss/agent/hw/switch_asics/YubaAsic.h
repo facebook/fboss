@@ -78,7 +78,7 @@ class YubaAsic : public TajoAsic {
   uint32_t getMaxLagMemberSize() const override {
     return 512;
   }
-  int getSystemPortIDOffset() const override {
+  int getSflowPortIDOffset() const override {
     return 0;
   }
   uint32_t getSflowShimHeaderSize() const override {

@@ -304,7 +304,7 @@ class HwAsic {
    * This will be added to PortID and will be carried in the
    * sflow shim header
    */
-  virtual int getSystemPortIDOffset() const {
+  virtual int getSflowPortIDOffset() const {
     return 0;
   }
 
