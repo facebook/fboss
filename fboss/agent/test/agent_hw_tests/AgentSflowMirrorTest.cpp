@@ -157,6 +157,18 @@ class AgentSflowMirrorTest : public AgentHwTest {
     return getSw()->getHwLogicalPortId(port);
   }
 
+  void verifySflowExporterIp(const std::vector<uint8_t>& sflowPayload) {
+    auto asic = checkSameAndGetAsic();
+    if (asic->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO3) {
+      uint8_t exporterIpBytes[16];
+      for (int i = 0; i < 16; i++) {
+        exporterIpBytes[i] = sflowPayload[i + 8];
+      }
+      auto exporterIp =
+          folly::IPAddressV6::fromBinary(folly::ByteRange(exporterIpBytes, 16));
+      EXPECT_EQ(exporterIp, utility::getSflowMirrorSource());
+    }
+  }
   void validateSflowPacketHeader(
       const std::vector<uint8_t>& sflowPayload,
       PortID srcPortId) {
@@ -195,6 +207,7 @@ class AgentSflowMirrorTest : public AgentHwTest {
       }
       expectedSrcPortId =
           getPortID(SystemPortID(systemPortId), getProgrammedState());
+      verifySflowExporterIp(sflowPayload);
     } else {
       auto sourcePortOffset = 0;
       if (asic->isSupported(HwAsic::Feature::SFLOW_SHIM_VERSION_FIELD)) {
@@ -392,6 +405,10 @@ class AgentSflowMirrorTest : public AgentHwTest {
         capturedPkt.length() - capturedHdrSize,
         getMirrorTruncateSize()); /* TODO: confirm length in CS00010399535 and
                                      CS00012130950 */
+    bool isV4 = std::is_same_v<AddrT, folly::IPAddressV4>;
+    auto udpPayload = isV4 ? capturedPkt.v4PayLoad()->udpPayload()
+                           : capturedPkt.v6PayLoad()->udpPayload();
+    verifySflowExporterIp(udpPayload->payload());
   }
 
   uint64_t getSampleCount(const std::map<PortID, HwPortStats>& stats) {
