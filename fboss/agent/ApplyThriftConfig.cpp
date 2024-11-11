@@ -3118,7 +3118,8 @@ std::shared_ptr<AclTableGroupMap> ThriftConfigApplier::updateAclTableGroups() {
       };
 
   bool changed = false;
-  if (!cfg_->aclTableGroup() && cfg_->aclTableGroups()->empty()) {
+  if (!cfg_->aclTableGroup() &&
+      (!cfg_->aclTableGroups() || cfg_->aclTableGroups()->empty())) {
     throw FbossError(
         "ACL Table Group must be specified if Multiple ACL Table support is enabled");
   } else if (auto cfgAclTableGroup = cfg_->aclTableGroup()) {

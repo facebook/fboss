@@ -2111,5 +2111,5 @@ struct SwitchConfig {
   54: optional string hostname;
   55: optional list<PortQueue> cpuVoqs;
   // list of ACL table groups, prefer this over aclTableGroup, aclTableGroup will be deprecated
-  56: list<AclTableGroup> aclTableGroups;
+  56: optional list<AclTableGroup> aclTableGroups;
 }
