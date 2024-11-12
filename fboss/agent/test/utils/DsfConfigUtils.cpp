@@ -17,39 +17,6 @@ namespace facebook::fboss::utility {
 namespace {
 constexpr auto kNumRdsw = 128;
 constexpr auto kNumEdsw = 16;
-constexpr auto kNumRdswSysPort = 44;
-constexpr auto kNumEdswSysPort = 26;
-constexpr auto kJ2NumSysPort = 20;
-
-int getPerNodeSysPortsBlockSize(const HwAsic& asic, int remoteSwitchId) {
-  if (asic.getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO2) {
-    return kJ2NumSysPort;
-  }
-  if (remoteSwitchId < kNumRdsw * asic.getNumCores()) {
-    return kNumRdswSysPort;
-  }
-  return kNumEdswSysPort;
-}
-
-int getSysPortIdsAllocated(
-    const HwAsic& asic,
-    int remoteSwitchId,
-    int64_t firstSwitchIdMin) {
-  auto portsConsumed = firstSwitchIdMin;
-  auto deviceIndex = remoteSwitchId / asic.getNumCores();
-  if (asic.getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO2) {
-    portsConsumed += deviceIndex * kJ2NumSysPort - 1;
-  } else {
-    CHECK(asic.getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO3);
-    if (deviceIndex < kNumRdsw) {
-      portsConsumed += deviceIndex * kNumRdswSysPort - 1;
-    } else {
-      portsConsumed += kNumRdsw * kNumRdswSysPort +
-          (deviceIndex - kNumRdsw) * kNumEdswSysPort - 1;
-    }
-  }
-  return portsConsumed;
-}
 } // namespace
 
 int getDsfNodeCount(const HwAsic& asic) {
@@ -98,23 +65,8 @@ std::optional<std::map<int64_t, cfg::DsfNode>> addRemoteIntfNodeCfg(
   for (int remoteSwitchId = remoteNodeStart;
        remoteSwitchId < totalNodes * numCores;
        remoteSwitchId += numCores) {
-    cfg::SystemPortRanges ranges;
-    for (const auto& firstNodeRange : firstDsfNodeSysPortRanges) {
-      cfg::Range64 systemPortRange;
-      // Already allocated + 1
-      systemPortRange.minimum() =
-          getSysPortIdsAllocated(
-              *asic, remoteSwitchId, *firstNodeRange.minimum()) +
-          1;
-      systemPortRange.maximum() = *systemPortRange.minimum() +
-          getPerNodeSysPortsBlockSize(*asic, remoteSwitchId) - 1;
-      XLOG(DBG2) << " For switch Id: " << remoteSwitchId
-                 << " allocating range, min: " << *systemPortRange.minimum()
-                 << " : " << " max: " << *systemPortRange.maximum();
-      ranges.systemPortRanges()->push_back(systemPortRange);
-    }
     auto remoteDsfNodeCfg = dsfNodeConfig(
-        *asic, SwitchID(remoteSwitchId), ranges, *firstDsfNode.platformType());
+        *asic, SwitchID(remoteSwitchId), *firstDsfNode.platformType());
     dsfNodes.insert({remoteSwitchId, remoteDsfNodeCfg});
   }
   return dsfNodes;

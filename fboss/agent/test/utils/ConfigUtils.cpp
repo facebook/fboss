@@ -25,8 +25,8 @@
 
 DEFINE_bool(nodeZ, false, "Setup test config as node Z");
 
+using namespace facebook::fboss;
 namespace {
-constexpr auto kSysPortOffset = 10;
 void removePort(
     facebook::fboss::cfg::SwitchConfig& config,
     facebook::fboss::PortID port,
@@ -47,6 +47,40 @@ void removePort(
   } else {
     cfgPort->state() = facebook::fboss::cfg::PortState::DISABLED;
   }
+}
+constexpr auto kNumRdsw = 128;
+constexpr auto kNumRdswSysPort = 44;
+constexpr auto kNumEdswSysPort = 26;
+constexpr auto kJ2NumSysPort = 20;
+
+int getPerNodeSysPortsBlockSize(const HwAsic& asic, int remoteSwitchId) {
+  if (asic.getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO2) {
+    return kJ2NumSysPort;
+  }
+  if (remoteSwitchId < kNumRdsw * asic.getNumCores()) {
+    return kNumRdswSysPort;
+  }
+  return kNumEdswSysPort;
+}
+
+int getSysPortIdsAllocated(
+    const HwAsic& asic,
+    int remoteSwitchId,
+    int64_t firstSwitchIdMin) {
+  auto portsConsumed = firstSwitchIdMin;
+  auto deviceIndex = remoteSwitchId / asic.getNumCores();
+  if (asic.getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO2) {
+    portsConsumed += deviceIndex * kJ2NumSysPort - 1;
+  } else {
+    CHECK(asic.getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO3);
+    if (deviceIndex < kNumRdsw) {
+      portsConsumed += deviceIndex * kNumRdswSysPort - 1;
+    } else {
+      portsConsumed += kNumRdsw * kNumRdswSysPort +
+          (deviceIndex - kNumRdsw) * kNumEdswSysPort - 1;
+    }
+  }
+  return portsConsumed;
 }
 } // namespace
 
@@ -365,44 +399,43 @@ void securePortsInConfig(
     }
   }
 }
-// FIXME 2-stage DSF - adapt DSF node config to
-// 2-stage DSF sysport id generation
+
 cfg::DsfNode dsfNodeConfig(
     const HwAsic& myAsic,
     int64_t otherSwitchId,
-    cfg::SystemPortRanges inputSysPortRanges,
     const std::optional<PlatformType> platformType) {
   auto createAsic = [&](const HwAsic& fromAsic, int64_t switchId)
       -> std::pair<std::shared_ptr<HwAsic>, PlatformType> {
-    std::optional<cfg::Range64> fromAsicSystemPortRange;
     cfg::SystemPortRanges sysPortRanges;
-    if (fromAsic.getSystemPortRanges().systemPortRanges()->size()) {
-      CHECK_EQ(fromAsic.getSystemPortRanges().systemPortRanges()->size(), 1)
-          << " Multiple sys port ranges per node are not supported yet in tests (TODO)";
-      fromAsicSystemPortRange =
-          *fromAsic.getSystemPortRanges().systemPortRanges()->begin();
-    }
     cfg::SwitchInfo switchInfo;
-    if (fromAsicSystemPortRange.has_value()) {
-      cfg::Range64 range;
-      int numCores = fromAsic.getNumCores();
-      auto blockSize = (*fromAsicSystemPortRange->maximum() -
-                        *fromAsicSystemPortRange->minimum() + 1) /
-          numCores;
-      if (inputSysPortRanges.systemPortRanges()->size()) {
-        CHECK_GE(inputSysPortRanges.systemPortRanges()->size(), 1)
-            << " Multiple sys port ranges per node are not supported yet in tests (TODO)";
-        auto firstRange = *inputSysPortRanges.systemPortRanges()->begin();
-        range.minimum() = *firstRange.minimum();
-        range.maximum() = *firstRange.maximum();
-      } else {
-        range.minimum() = kSysPortOffset + switchId * blockSize;
-        range.maximum() = *range.minimum() + numCores * blockSize - 1;
+
+    if (fromAsic.getSystemPortRanges().systemPortRanges()->size()) {
+      CHECK(fromAsic.getSwitchId().has_value());
+      CHECK_EQ(*fromAsic.getSwitchId(), 0)
+          << " For VOQ switches input asic "
+          << " must be of the first VOQ switch";
+      auto firstDsfNodeSysPortRanges =
+          *fromAsic.getSystemPortRanges().systemPortRanges();
+      for (const auto& firstNodeRange : firstDsfNodeSysPortRanges) {
+        cfg::Range64 systemPortRange;
+        // Already allocated + 1
+        systemPortRange.minimum() =
+            getSysPortIdsAllocated(
+                fromAsic, otherSwitchId, *firstNodeRange.minimum()) +
+            1;
+        systemPortRange.maximum() = *systemPortRange.minimum() +
+            getPerNodeSysPortsBlockSize(fromAsic, otherSwitchId) - 1;
+        XLOG(DBG2) << " For switch Id: " << otherSwitchId
+                   << " allocating range, min: " << *systemPortRange.minimum()
+                   << " max: " << *systemPortRange.maximum();
+
+        sysPortRanges.systemPortRanges()->push_back(systemPortRange);
       }
-      sysPortRanges.systemPortRanges()->push_back(range);
       // FIXME 2-stage DSF populate offsets for 2-stage dsf correctly
-      switchInfo.localSystemPortOffset() = *range.minimum();
-      switchInfo.globalSystemPortOffset() = *range.minimum();
+      switchInfo.localSystemPortOffset() =
+          *sysPortRanges.systemPortRanges()->begin()->minimum();
+      switchInfo.globalSystemPortOffset() =
+          *sysPortRanges.systemPortRanges()->begin()->minimum();
       CHECK(fromAsic.getInbandPortId().has_value());
       switchInfo.inbandPortId() = *fromAsic.getInbandPortId();
     }
@@ -892,9 +925,7 @@ void populateSwitchInfo(
     if (hwAsic->getSwitchType() == cfg::SwitchType::VOQ ||
         hwAsic->getSwitchType() == cfg::SwitchType::FABRIC) {
       newDsfNodes.insert(
-          {switchId,
-           dsfNodeConfig(
-               *hwAsic, switchId, cfg::SystemPortRanges(), platformType)});
+          {switchId, dsfNodeConfig(*hwAsic, switchId, platformType)});
     }
   }
   config.switchSettings()->switchIdToSwitchInfo() = newSwitchIdToSwitchInfo;
