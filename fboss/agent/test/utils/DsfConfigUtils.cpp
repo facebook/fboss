@@ -31,9 +31,11 @@ int getPerNodeSysPortsBlockSize(const HwAsic& asic, int remoteSwitchId) {
   return kNumEdswSysPort;
 }
 
-int getSysPortIdsAllocated(const HwAsic& asic, int remoteSwitchId) {
-  constexpr auto kSysPortIdsStart = 10;
-  auto portsConsumed = kSysPortIdsStart;
+int getSysPortIdsAllocated(
+    const HwAsic& asic,
+    int remoteSwitchId,
+    int64_t firstSwitchIdMin) {
+  auto portsConsumed = firstSwitchIdMin;
   auto deviceIndex = remoteSwitchId / asic.getNumCores();
   if (asic.getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO2) {
     portsConsumed += deviceIndex * kJ2NumSysPort - 1;
@@ -90,18 +92,27 @@ std::optional<std::map<int64_t, cfg::DsfNode>> addRemoteIntfNodeCfg(
       : getDsfNodeCount(*asic);
   auto lastDsfNode = dsfNodes.rbegin()->second;
   int remoteNodeStart = *lastDsfNode.switchId() + numCores;
-  CHECK(lastDsfNode.systemPortRanges()->systemPortRanges()->size());
+  auto firstDsfNodeSysPortRanges =
+      *firstDsfNode.systemPortRanges()->systemPortRanges();
+
   for (int remoteSwitchId = remoteNodeStart;
        remoteSwitchId < totalNodes * numCores;
        remoteSwitchId += numCores) {
-    cfg::Range64 systemPortRange;
-    // Already allocated + 1
-    systemPortRange.minimum() =
-        getSysPortIdsAllocated(*asic, remoteSwitchId) + 1;
-    systemPortRange.maximum() = *systemPortRange.minimum() +
-        getPerNodeSysPortsBlockSize(*asic, remoteSwitchId) - 1;
     cfg::SystemPortRanges ranges;
-    ranges.systemPortRanges()->push_back(systemPortRange);
+    for (const auto& firstNodeRange : firstDsfNodeSysPortRanges) {
+      cfg::Range64 systemPortRange;
+      // Already allocated + 1
+      systemPortRange.minimum() =
+          getSysPortIdsAllocated(
+              *asic, remoteSwitchId, *firstNodeRange.minimum()) +
+          1;
+      systemPortRange.maximum() = *systemPortRange.minimum() +
+          getPerNodeSysPortsBlockSize(*asic, remoteSwitchId) - 1;
+      XLOG(DBG2) << " For switch Id: " << remoteSwitchId
+                 << " allocating range, min: " << *systemPortRange.minimum()
+                 << " : " << " max: " << *systemPortRange.maximum();
+      ranges.systemPortRanges()->push_back(systemPortRange);
+    }
     auto remoteDsfNodeCfg = dsfNodeConfig(
         *asic, SwitchID(remoteSwitchId), ranges, *firstDsfNode.platformType());
     dsfNodes.insert({remoteSwitchId, remoteDsfNodeCfg});
