@@ -1,0 +1,50 @@
+load("@fbcode_macros//build_defs:cpp_benchmark.bzl", "cpp_benchmark")
+load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
+
+oncall("fboss_agent_push")
+
+cpp_library(
+    name = "state_generator",
+    srcs = ["StateGenerator.cpp"],
+    headers = [
+        "StateGenerator.h",
+    ],
+    exported_deps = [
+        "//fboss/agent:agent_stats-cpp2-types",
+        "//fboss/agent/hw:hardware_stats-cpp2-types",
+    ],
+)
+
+cpp_library(
+    name = "fsdb_benchmark_helper",
+    srcs = ["FsdbBenchmarkTestHelper.cpp"],
+    headers = [
+        "FsdbBenchmarkTestHelper.h",
+    ],
+    exported_deps = [
+        "//fboss/fsdb/client:fsdb_pub_sub",
+        "//fboss/fsdb/tests/utils:fsdb_test_server",
+        "//folly/synchronization:baton",
+    ],
+)
+
+cpp_benchmark(
+    name = "fsdb_bench_test",
+    srcs = [
+        "FsdbBenchmarksMain.cpp",
+        "VoqCounterScaleBench.cpp",
+    ],
+    deps = [
+        "fbsource//third-party/googletest:gtest",
+        ":fsdb_benchmark_helper",
+        ":state_generator",
+        "//folly:benchmark",
+        "//folly/init:init",
+        "//folly/json:dynamic",
+        "//folly/logging:init",
+        "//folly/logging:logging",
+    ],
+    external_deps = [
+        "gflags",
+    ],
+)
