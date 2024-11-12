@@ -34,8 +34,8 @@ struct GetVisitedPathsOperator : public BasePathVisitorOperator {
   void visit(Node& node, pv_detail::PathIter begin, pv_detail::PathIter end)
     requires(!is_cow_type_v<Node>)
   {
-    SerializableReader dummy(node);
-    visit(dummy, begin, end);
+    SerializableWrapper wrapper(node);
+    visit(wrapper, begin, end);
   }
 
  private:
@@ -375,31 +375,110 @@ TEST(PathVisitorTests, AccessOptional) {
   EXPECT_TRUE(got.empty());
 }
 
-TEST(PathVisitorTests, VisitWithOperators) {
+template <bool EnableHybridStorage>
+struct TestParams {
+  static constexpr auto hybridStorage = EnableHybridStorage;
+};
+
+using StorageTestTypes = ::testing::Types<TestParams<false>, TestParams<true>>;
+
+template <typename TestParams>
+class PathVisitorTests : public ::testing::Test {
+ public:
+  auto initNode(auto val) {
+    using RootType = std::remove_cvref_t<decltype(val)>;
+    return std::make_shared<ThriftStructNode<
+        RootType,
+        ThriftStructResolver<RootType, TestParams::hybridStorage>,
+        TestParams::hybridStorage>>(val);
+  }
+  bool isHybridStorage() {
+    return TestParams::hybridStorage;
+  }
+};
+
+TYPED_TEST_SUITE(PathVisitorTests, StorageTestTypes);
+
+TYPED_TEST(PathVisitorTests, VisitWithOperators) {
   auto structA = createSimpleTestStruct();
   structA.setOfI32() = {1};
 
-  auto nodeA = std::make_shared<ThriftStructNode<TestStruct>>(structA);
+  auto nodeA = this->initNode(structA);
 
-  std::vector<std::string> path{"inlineInt"};
+  {
+    folly::fbstring newVal = "123";
+    SetEncodedPathVisitorOperator setOp(
+        fsdb::OperProtocol::SIMPLE_JSON, newVal);
+    std::vector<std::string> path{"inlineInt"};
 
-  folly::fbstring newVal = "123";
-  SetEncodedPathVisitorOperator setOp(fsdb::OperProtocol::SIMPLE_JSON, newVal);
-  auto result = RootPathVisitor::visit(
-      *nodeA, path.begin(), path.end(), PathVisitMode::LEAF, setOp);
-  EXPECT_EQ(result, ThriftTraverseResult::OK);
+    auto result = RootPathVisitor::visit(
+        *nodeA, path.begin(), path.end(), PathVisitMode::LEAF, setOp);
+    EXPECT_EQ(result, ThriftTraverseResult::OK);
 
-  GetEncodedPathVisitorOperator getOp(fsdb::OperProtocol::SIMPLE_JSON);
-  result = RootPathVisitor::visit(
-      *nodeA, path.begin(), path.end(), PathVisitMode::LEAF, getOp);
-  EXPECT_EQ(result, ThriftTraverseResult::OK);
-  EXPECT_EQ(getOp.val, "123");
+    GetEncodedPathVisitorOperator getOp(fsdb::OperProtocol::SIMPLE_JSON);
+    result = RootPathVisitor::visit(
+        *nodeA, path.begin(), path.end(), PathVisitMode::LEAF, getOp);
+    EXPECT_EQ(result, ThriftTraverseResult::OK);
+    EXPECT_EQ(getOp.val, "123");
+  }
 
-  std::vector<std::string> path2{"setOfI32", "1"};
-  result = RootPathVisitor::visit(
-      *nodeA, path2.begin(), path2.end(), PathVisitMode::LEAF, setOp);
-  // should throw trying to set an immutable node
-  EXPECT_EQ(result, ThriftTraverseResult::VISITOR_EXCEPTION);
+  {
+    folly::fbstring newVal = "123";
+    SetEncodedPathVisitorOperator setOp(
+        fsdb::OperProtocol::SIMPLE_JSON, newVal);
+    std::vector<std::string> path{"setOfI32", "1"};
+    auto result = RootPathVisitor::visit(
+        *nodeA, path.begin(), path.end(), PathVisitMode::LEAF, setOp);
+    // should throw trying to set an immutable node
+    EXPECT_EQ(result, ThriftTraverseResult::VISITOR_EXCEPTION);
+  }
+
+  {
+    folly::fbstring newVal = "123";
+    SetEncodedPathVisitorOperator setOp(
+        fsdb::OperProtocol::SIMPLE_JSON, newVal);
+    std::vector<std::string> path{"mapOfStringToI32", "test1"};
+
+    auto result = RootPathVisitor::visit(
+        *nodeA, path.begin(), path.end(), PathVisitMode::LEAF, setOp);
+    EXPECT_EQ(result, ThriftTraverseResult::OK);
+
+    GetEncodedPathVisitorOperator getOp(fsdb::OperProtocol::SIMPLE_JSON);
+    result = RootPathVisitor::visit(
+        *nodeA, path.begin(), path.end(), PathVisitMode::LEAF, getOp);
+    EXPECT_EQ(result, ThriftTraverseResult::OK);
+    EXPECT_EQ(getOp.val, "123");
+  }
+
+  {
+    using TC = apache::thrift::type_class::structure;
+    std::vector<std::string> path{"mapOfI32ToStruct", "20"};
+
+    cfg::L4PortRange newRange;
+    newRange.min() = 666;
+    newRange.max() = 999;
+    folly::fbstring newVal =
+        serialize<TC>(fsdb::OperProtocol::SIMPLE_JSON, newRange);
+    SetEncodedPathVisitorOperator setOp(
+        fsdb::OperProtocol::SIMPLE_JSON, newVal);
+
+    auto result = RootPathVisitor::visit(
+        *nodeA, path.begin(), path.end(), PathVisitMode::LEAF, setOp);
+    EXPECT_EQ(result, ThriftTraverseResult::OK);
+
+    GetEncodedPathVisitorOperator getOp(fsdb::OperProtocol::SIMPLE_JSON);
+    result = RootPathVisitor::visit(
+        *nodeA, path.begin(), path.end(), PathVisitMode::LEAF, getOp);
+    EXPECT_EQ(result, ThriftTraverseResult::OK);
+    EXPECT_EQ(getOp.val, newVal);
+    auto encoded = *getOp.val;
+    auto buf =
+        folly::IOBuf::wrapBufferAsValue(encoded.data(), encoded.length());
+    auto getStruct = deserializeBuf<TC, cfg::L4PortRange>(
+        fsdb::OperProtocol::SIMPLE_JSON, std::move(buf));
+    EXPECT_EQ(getStruct.min(), 666);
+    EXPECT_EQ(getStruct.max(), 999);
+  }
 }
 
 } // namespace facebook::fboss::thrift_cow::test

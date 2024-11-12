@@ -32,9 +32,11 @@ using PathIter = typename std::vector<std::string>::const_iterator;
 class BasePathVisitorOperator {
  public:
   template <typename TType>
-  class SerializableReader : public Serializable {
+  class SerializableWrapper : public Serializable {
+    using TC = apache::thrift::type_class::structure;
+
    public:
-    explicit SerializableReader(TType& node) : node_(node) {}
+    explicit SerializableWrapper(TType& node) : node_(node) {}
 
     folly::IOBuf encodeBuf(fsdb::OperProtocol proto) const override {
       folly::IOBufQueue queue;
@@ -55,7 +57,10 @@ class BasePathVisitorOperator {
       return queue.moveAsValue();
     }
 
-    void fromEncodedBuf(fsdb::OperProtocol, folly::IOBuf&&) override {}
+    void fromEncodedBuf(fsdb::OperProtocol proto, folly::IOBuf&& encoded)
+        override {
+      node_ = deserializeBuf<TC, TType>(proto, std::move(encoded));
+    }
 
    private:
     TType& node_;
@@ -82,11 +87,8 @@ class BasePathVisitorOperator {
   visitTyped(Node& node, pv_detail::PathIter begin, pv_detail::PathIter end)
     requires(!is_cow_type_v<Node>)
   {
-    // supporting only read-only visitation
-    CHECK(visitReadOnly_);
-
     // Node is not a Serializable, dispatch with wrapper
-    SerializableReader wrapper(node);
+    SerializableWrapper wrapper(node);
     if constexpr (std::is_const_v<Node>) {
       cvisit(wrapper, begin, end);
       cvisit(wrapper);
@@ -110,8 +112,6 @@ class BasePathVisitorOperator {
       pv_detail::PathIter /* end */) {}
 
   virtual void cvisit(const Serializable& node) {}
-
-  bool visitReadOnly_ = true;
 };
 
 struct GetEncodedPathVisitorOperator : public BasePathVisitorOperator {
@@ -137,9 +137,7 @@ struct SetEncodedPathVisitorOperator : public BasePathVisitorOperator {
   SetEncodedPathVisitorOperator(
       fsdb::OperProtocol protocol,
       const folly::fbstring& val)
-      : protocol_(protocol), val_(val) {
-    visitReadOnly_ = false;
-  }
+      : protocol_(protocol), val_(val) {}
 
  protected:
   void visit(facebook::fboss::thrift_cow::Serializable& node) override {
@@ -171,7 +169,8 @@ enum class ThriftTraverseResult {
 };
 
 /*
- * invokeVisitorFnHelper allows us to support two different visitor signatures:
+ * invokeVisitorFnHelper allows us to support two different visitor
+ * signatures:
  *
  * 1. f(node)
  * 2. f(node, begin, end)
@@ -724,9 +723,10 @@ struct PathVisitorImpl {
     if (params.mode == PathVisitMode::FULL || cursor == params.end) {
       try {
         // unfortunately its tough to get full const correctness for primitive
-        // types since we don't enforce whether or not lambdas or operators take
-        // a const param. Here we cast away the const and rely on primitive
-        // node's functions throwing an exception if the node is immutable.
+        // types since we don't enforce whether or not lambdas or operators
+        // take a const param. Here we cast away the const and rely on
+        // primitive node's functions throwing an exception if the node is
+        // immutable.
         params.op.visitTyped(
             *const_cast<std::remove_const_t<Node>*>(&node), cursor, params.end);
         if (cursor == params.end) {
