@@ -43032,7 +43032,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "numLanes": 1,
           "modulation": 2,
           "fec": 545,
-          "medium": 2,
+          "medium": 3,
           "interfaceType": 41
         }
       }
@@ -43047,7 +43047,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "numLanes": 4,
           "modulation": 2,
           "fec": 11,
-          "medium": 2,
+          "medium": 3,
           "interfaceType": 21
         }
       }
@@ -43062,7 +43062,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "numLanes": 8,
           "modulation": 2,
           "fec": 11,
-          "medium": 2,
+          "medium": 3,
           "interfaceType": 23
         }
       }
@@ -43092,7 +43092,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "numLanes": 1,
           "modulation": 2,
           "fec": 11,
-          "medium": 2,
+          "medium": 3,
           "interfaceType": 41
         }
       }
@@ -43152,7 +43152,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "numLanes": 4,
           "modulation": 1,
           "fec": 528,
-          "medium": 2,
+          "medium": 3,
           "interfaceType": 21
         }
       }
@@ -71672,7 +71672,7 @@ constexpr auto kJsonDsfJ3ScaleTestPlatformMappingStr = R"(
           "numLanes": 1,
           "modulation": 2,
           "fec": 545,
-          "medium": 2,
+          "medium": 3,
           "interfaceType": 41
         }
       }
@@ -71687,7 +71687,7 @@ constexpr auto kJsonDsfJ3ScaleTestPlatformMappingStr = R"(
           "numLanes": 4,
           "modulation": 2,
           "fec": 11,
-          "medium": 2,
+          "medium": 3,
           "interfaceType": 21
         }
       }
@@ -71717,7 +71717,7 @@ constexpr auto kJsonDsfJ3ScaleTestPlatformMappingStr = R"(
           "numLanes": 1,
           "modulation": 2,
           "fec": 11,
-          "medium": 2,
+          "medium": 3,
           "interfaceType": 41
         }
       }
@@ -71732,7 +71732,7 @@ constexpr auto kJsonDsfJ3ScaleTestPlatformMappingStr = R"(
           "numLanes": 1,
           "modulation": 2,
           "fec": 11,
-          "medium": 2,
+          "medium": 3,
           "interfaceType": 41
         }
       }
@@ -71777,7 +71777,7 @@ constexpr auto kJsonDsfJ3ScaleTestPlatformMappingStr = R"(
           "numLanes": 4,
           "modulation": 1,
           "fec": 528,
-          "medium": 2,
+          "medium": 3,
           "interfaceType": 21
         }
       }
@@ -97402,7 +97402,7 @@ constexpr auto kJsonEdswPlatformMappingStr = R"(
           "numLanes": 1,
           "modulation": 2,
           "fec": 545,
-          "medium": 2,
+          "medium": 3,
           "interfaceType": 41
         }
       }
@@ -97417,7 +97417,7 @@ constexpr auto kJsonEdswPlatformMappingStr = R"(
           "numLanes": 8,
           "modulation": 2,
           "fec": 11,
-          "medium": 2,
+          "medium": 3,
           "interfaceType": 23
         }
       }
@@ -97447,7 +97447,7 @@ constexpr auto kJsonEdswPlatformMappingStr = R"(
           "numLanes": 1,
           "modulation": 2,
           "fec": 11,
-          "medium": 2,
+          "medium": 3,
           "interfaceType": 41
         }
       }
@@ -97492,7 +97492,7 @@ constexpr auto kJsonEdswPlatformMappingStr = R"(
           "numLanes": 4,
           "modulation": 1,
           "fec": 528,
-          "medium": 2,
+          "medium": 3,
           "interfaceType": 21
         }
       }
@@ -140520,7 +140520,7 @@ constexpr auto kJsonDualStageRdsw3q2qPlatformMappingStr = R"(
           "numLanes": 1,
           "modulation": 2,
           "fec": 545,
-          "medium": 2,
+          "medium": 3,
           "interfaceType": 41
         }
       }
@@ -140535,7 +140535,7 @@ constexpr auto kJsonDualStageRdsw3q2qPlatformMappingStr = R"(
           "numLanes": 4,
           "modulation": 2,
           "fec": 11,
-          "medium": 2,
+          "medium": 3,
           "interfaceType": 21
         }
       }
@@ -140550,7 +140550,7 @@ constexpr auto kJsonDualStageRdsw3q2qPlatformMappingStr = R"(
           "numLanes": 8,
           "modulation": 2,
           "fec": 11,
-          "medium": 2,
+          "medium": 3,
           "interfaceType": 23
         }
       }
@@ -140580,7 +140580,7 @@ constexpr auto kJsonDualStageRdsw3q2qPlatformMappingStr = R"(
           "numLanes": 1,
           "modulation": 2,
           "fec": 11,
-          "medium": 2,
+          "medium": 3,
           "interfaceType": 41
         }
       }
@@ -140640,7 +140640,7 @@ constexpr auto kJsonDualStageRdsw3q2qPlatformMappingStr = R"(
           "numLanes": 4,
           "modulation": 1,
           "fec": 528,
-          "medium": 2,
+          "medium": 3,
           "interfaceType": 21
         }
       }
