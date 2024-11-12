@@ -400,6 +400,14 @@ void securePortsInConfig(
   }
 }
 
+int getMaxRdsw() {
+  return isDualStage3Q2QMode() ? 512 : 128;
+}
+
+int getMaxEdsw() {
+  return isDualStage3Q2QMode() ? 128 : 16;
+}
+
 cfg::DsfNode dsfNodeConfig(
     const HwAsic& myAsic,
     int64_t otherSwitchId,

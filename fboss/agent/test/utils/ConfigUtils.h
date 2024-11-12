@@ -69,6 +69,9 @@ bool isEnabledPortWithSubnet(
 
 std::vector<std::string> getLoopbackIps(SwitchID switchId);
 
+int getMaxRdsw();
+int getMaxEdsw();
+
 cfg::DsfNode dsfNodeConfig(
     const HwAsic& myAsic,
     int64_t otherSwitchId = 4,

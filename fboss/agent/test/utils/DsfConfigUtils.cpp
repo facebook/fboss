@@ -15,16 +15,12 @@
 namespace facebook::fboss::utility {
 
 namespace {
-constexpr auto kNumRdsw = 128;
-constexpr auto kNumEdsw = 16;
-} // namespace
 
-int getDsfNodeCount(const HwAsic& asic) {
-  return asic.getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO2
-      ? kNumRdsw
-      : kNumRdsw + kNumEdsw;
+int getDsfInterfaceNodeCount() {
+  return getMaxRdsw() + getMaxEdsw();
 }
 
+} // namespace
 std::optional<std::map<int64_t, cfg::DsfNode>> addRemoteIntfNodeCfg(
     const std::map<int64_t, cfg::DsfNode>& curDsfNodes,
     std::optional<int> numRemoteNodes) {
@@ -53,10 +49,10 @@ std::optional<std::map<int64_t, cfg::DsfNode>> addRemoteIntfNodeCfg(
   int numCores = asic->getNumCores();
   CHECK(
       !numRemoteNodes.has_value() ||
-      numRemoteNodes.value() < getDsfNodeCount(*asic));
+      numRemoteNodes.value() < getDsfInterfaceNodeCount());
   int totalNodes = numRemoteNodes.has_value()
       ? numRemoteNodes.value() + curDsfNodes.size()
-      : getDsfNodeCount(*asic);
+      : getDsfInterfaceNodeCount();
   auto lastDsfNode = dsfNodes.rbegin()->second;
   int remoteNodeStart = *lastDsfNode.switchId() + numCores;
   auto firstDsfNodeSysPortRanges =
