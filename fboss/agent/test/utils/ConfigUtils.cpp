@@ -796,18 +796,15 @@ cfg::SwitchConfig genPortVlanCfg(
         asicType == cfg::AsicType::ASIC_TYPE_YUBA) {
       switchInfo.connectionHandle() = "/dev/uio0";
     }
-    // FIXME 2-stage DSF - adapt DSF node config to
-    // 2-stage DSF sysport id generation
-    if (asic->getSystemPortRanges().systemPortRanges()->size()) {
-      CHECK_EQ(asic->getSystemPortRanges().systemPortRanges()->size(), 1);
-      auto sysPortRange =
-          *asic->getSystemPortRanges().systemPortRanges()->begin();
-      switchInfo.systemPortRanges() = asic->getSystemPortRanges();
-      switchInfo.localSystemPortOffset() = *sysPortRange.minimum();
-      switchInfo.globalSystemPortOffset() = *sysPortRange.minimum();
+    switchInfo.systemPortRanges() = asic->getSystemPortRanges();
+    if (asic->getLocalSystemPortOffset().has_value()) {
+      switchInfo.localSystemPortOffset() = *asic->getLocalSystemPortOffset();
     }
-    if (switchType == cfg::SwitchType::VOQ) {
-      switchInfo.inbandPortId() = kSingleStageInbandPortId;
+    if (asic->getGlobalSystemPortOffset().has_value()) {
+      switchInfo.globalSystemPortOffset() = *asic->getGlobalSystemPortOffset();
+    }
+    if (asic->getInbandPortId().has_value()) {
+      switchInfo.inbandPortId() = *asic->getInbandPortId();
     }
     defaultSwitchIdToSwitchInfo.insert({SwitchID(switchId), switchInfo});
     populateSwitchInfo(
