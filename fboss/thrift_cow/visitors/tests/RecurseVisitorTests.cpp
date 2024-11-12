@@ -182,6 +182,8 @@ TYPED_TEST(RecurseVisitorTests, TestLeafRecurse) {
        testDyn["mapOfEnumToStruct"][3]["invert"]}};
 
   std::map<std::vector<std::string>, folly::dynamic> hybridNodes = {
+      {{"mapOfStringToI32"}, testDyn["mapOfStringToI32"]},
+      {{"mapOfI32ToStruct"}, testDyn["mapOfI32ToStruct"]},
       {{"hybridMap"}, testDyn["hybridMap"]},
       {{"hybridMapOfI32ToStruct"}, testDyn["hybridMapOfI32ToStruct"]},
       {{"hybridMapOfMap"}, testDyn["hybridMapOfMap"]},
@@ -224,6 +226,8 @@ TYPED_TEST(RecurseVisitorTests, TestLeafRecurse) {
       {{"15", "3", "3"}, testDyn["mapOfEnumToStruct"][3]["invert"]}};
 
   hybridNodes = {
+      {{"13"}, testDyn["mapOfStringToI32"]},
+      {{"14"}, testDyn["mapOfI32ToStruct"]},
       {{"27"}, testDyn["hybridMap"]},
       {{"28"}, testDyn["hybridList"]},
       {{"29"}, testDyn["hybridSet"]},

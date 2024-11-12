@@ -47,8 +47,10 @@ struct TestStruct {
   10: list<list<switch_config.L4PortRange>> listOfListOfStructs;
   11: map<i32, i32> mapOfI32ToI32;
   12: map<TestEnum, i32> mapOfEnumToI32;
-  13: map<string, i32> mapOfStringToI32;
-  14: map<i32, switch_config.L4PortRange> mapOfI32ToStruct;
+  13: map<string, i32> mapOfStringToI32 (allow_skip_thrift_cow = true);
+  14: map<i32, switch_config.L4PortRange> mapOfI32ToStruct (
+    allow_skip_thrift_cow = true,
+  );
   15: map<TestEnum, switch_config.L4PortRange> mapOfEnumToStruct;
   16: map<string, switch_config.L4PortRange> mapOfStringToStruct;
   17: map<i32, list<switch_config.L4PortRange>> mapOfI32ToListOfStructs;
