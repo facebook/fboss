@@ -50,6 +50,7 @@ TEST_F(AgentRouteOverflowTest, overflowRoutes) {
     case PlatformType::PLATFORM_MINIPACK:
     case PlatformType::PLATFORM_YAMP:
     case PlatformType::PLATFORM_DARWIN:
+    case PlatformType::PLATFORM_DARWIN48V:
       /*
        * A route distribution 200,000 /128 does overflow the ASIC tables
        * but it takes 15min to generate, program and clean up such a
