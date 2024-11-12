@@ -10,6 +10,7 @@
 #include "fboss/agent/packet/PktFactory.h"
 #include "fboss/agent/packet/PktUtil.h"
 
+#include "fboss/agent/packet/UDPDatagram.h"
 #include "fboss/agent/test/AgentEnsemble.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/ResourceLibUtil.h"
@@ -337,9 +338,10 @@ class AgentSflowMirrorTest : public AgentHwTest {
     }
     auto delta = capturedPkt.length() - payloadLength;
     EXPECT_LE(delta, getSflowPacketHeaderLength(!isV4));
-    auto payload = isV4 ? capturedPkt.v4PayLoad()->udpPayload()->payload()
-                        : capturedPkt.v6PayLoad()->udpPayload()->payload();
-
+    auto udpPayload = isV4 ? capturedPkt.v4PayLoad()->udpPayload()
+                           : capturedPkt.v6PayLoad()->udpPayload();
+    auto payload = udpPayload->payload();
+    EXPECT_EQ(udpPayload->header().csum, 0);
     auto hwLogicalPortId = getHwLogicalPortId(ports[1]);
     if (!hwLogicalPortId) {
       validateSflowPacketHeader(payload, ports[1]);
@@ -409,6 +411,7 @@ class AgentSflowMirrorTest : public AgentHwTest {
     auto udpPayload = isV4 ? capturedPkt.v4PayLoad()->udpPayload()
                            : capturedPkt.v6PayLoad()->udpPayload();
     verifySflowExporterIp(udpPayload->payload());
+    EXPECT_EQ(udpPayload->header().csum, 0);
   }
 
   uint64_t getSampleCount(const std::map<PortID, HwPortStats>& stats) {
