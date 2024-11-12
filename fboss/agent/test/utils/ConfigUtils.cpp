@@ -51,12 +51,8 @@ void removePort(
 }
 constexpr auto kNumRdswSysPort = 44;
 constexpr auto kNumEdswSysPort = 26;
-constexpr auto kJ2NumSysPort = 20;
 
 int getPerNodeSysPortsBlockSize(const HwAsic& asic, int remoteSwitchId) {
-  if (asic.getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO2) {
-    return kJ2NumSysPort;
-  }
   if (remoteSwitchId < getMaxRdsw() * asic.getNumCores()) {
     return kNumRdswSysPort;
   }
@@ -69,16 +65,12 @@ int getSysPortIdsAllocated(
     int64_t firstSwitchIdMin) {
   auto portsConsumed = firstSwitchIdMin;
   auto deviceIndex = remoteSwitchId / asic.getNumCores();
-  if (asic.getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO2) {
-    portsConsumed += deviceIndex * kJ2NumSysPort - 1;
+  CHECK(asic.getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO3);
+  if (deviceIndex < getMaxRdsw()) {
+    portsConsumed += deviceIndex * kNumRdswSysPort - 1;
   } else {
-    CHECK(asic.getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO3);
-    if (deviceIndex < getMaxRdsw()) {
-      portsConsumed += deviceIndex * kNumRdswSysPort - 1;
-    } else {
-      portsConsumed += getMaxRdsw() * kNumRdswSysPort +
-          (deviceIndex - getMaxRdsw()) * kNumEdswSysPort - 1;
-    }
+    portsConsumed += getMaxRdsw() * kNumRdswSysPort +
+        (deviceIndex - getMaxRdsw()) * kNumEdswSysPort - 1;
   }
   return portsConsumed;
 }
