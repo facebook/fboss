@@ -83,6 +83,15 @@ inline cfg::PortDescriptor getNeighborPortDescriptor(
 } // namespace ncachehelpers
 
 template <typename NTable>
+bool NeighborCacheImpl<NTable>::isHwUpdateProtected() {
+  // this API return true if the platform supports hw protection,
+  // for this we are using transactionsSupported() API
+  // and return true for SAI switches, failure protection uses transactions
+  // support in HW switch which is available only in SAI switches
+  return sw_->getHwSwitchHandler()->transactionsSupported();
+}
+
+template <typename NTable>
 void NeighborCacheImpl<NTable>::programEntry(Entry* entry) {
   SwSwitch::StateUpdateFn updateFn;
 
