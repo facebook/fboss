@@ -49,14 +49,23 @@ void removePort(
     cfgPort->state() = facebook::fboss::cfg::PortState::DISABLED;
   }
 }
-constexpr auto kNumRdswSysPort = 44;
-constexpr auto kNumEdswSysPort = 26;
+
+int getRdswSysPortBlockSize() {
+  // For dual stage 3/2q mode, sys ports are allocated in 2 blocks of 28 while
+  // for single state we allocate a single block of 44
+  return isDualStage3Q2QMode() ? 28 : 44;
+}
+int getEdswSysPortBlockSize() {
+  // For dual stage 3/2q mode, sys ports are allocated in 2 blocks of 14 while
+  // for single state we allocate a single block of 26
+  return isDualStage3Q2QMode() ? 14 : 26;
+}
 
 int getPerNodeSysPortsBlockSize(const HwAsic& asic, int remoteSwitchId) {
   if (remoteSwitchId < getMaxRdsw() * asic.getNumCores()) {
-    return kNumRdswSysPort;
+    return getRdswSysPortBlockSize();
   }
-  return kNumEdswSysPort;
+  return getEdswSysPortBlockSize();
 }
 
 int getSysPortIdsAllocated(
@@ -67,10 +76,10 @@ int getSysPortIdsAllocated(
   auto deviceIndex = remoteSwitchId / asic.getNumCores();
   CHECK(asic.getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO3);
   if (deviceIndex < getMaxRdsw()) {
-    portsConsumed += deviceIndex * kNumRdswSysPort - 1;
+    portsConsumed += deviceIndex * getRdswSysPortBlockSize() - 1;
   } else {
-    portsConsumed += getMaxRdsw() * kNumRdswSysPort +
-        (deviceIndex - getMaxRdsw()) * kNumEdswSysPort - 1;
+    portsConsumed += getMaxRdsw() * getRdswSysPortBlockSize() +
+        (deviceIndex - getMaxRdsw()) * getEdswSysPortBlockSize() - 1;
   }
   return portsConsumed;
 }
