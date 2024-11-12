@@ -406,6 +406,13 @@ int getMaxEdsw() {
   return isDualStage3Q2QMode() ? 128 : 16;
 }
 
+int getLocalSystemPortOffset(const cfg::SystemPortRanges& ranges) {
+  // For 2q/3q mode, local sys port offset is -32K
+  // FIXME 2-stage-MTIA, offsets may be higher for 2nd ASIC
+  return isDualStage3Q2QMode() ? -32 * 1024
+                               : *ranges.systemPortRanges()->begin()->minimum();
+}
+
 cfg::DsfNode dsfNodeConfig(
     const HwAsic& myAsic,
     int64_t otherSwitchId,
@@ -437,9 +444,8 @@ cfg::DsfNode dsfNodeConfig(
 
         sysPortRanges.systemPortRanges()->push_back(systemPortRange);
       }
-      // FIXME 2-stage DSF populate offsets for 2-stage dsf correctly
       switchInfo.localSystemPortOffset() =
-          *sysPortRanges.systemPortRanges()->begin()->minimum();
+          getLocalSystemPortOffset(sysPortRanges);
       switchInfo.globalSystemPortOffset() =
           *sysPortRanges.systemPortRanges()->begin()->minimum();
       CHECK(fromAsic.getInbandPortId().has_value());
