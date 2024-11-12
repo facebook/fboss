@@ -502,6 +502,13 @@ TEST_P(AgentTrafficPfcGenTest, verifyPfc) {
   const int trafficClass = kLosslessTrafficClass;
   const int pfcPriority = kLosslessPriority;
   TrafficTestParams trafficParams = GetParam();
+  auto asicType = utility::checkSameAndGetAsic(getAgentEnsemble()->getL3Asics())
+                      ->getAsicType();
+  if (asicType == cfg::AsicType::ASIC_TYPE_JERICHO2 ||
+      asicType == cfg::AsicType::ASIC_TYPE_JERICHO3) {
+    // Keep smaller global pool size
+    trafficParams.buffer.globalShared = kGlobalSharedBytes;
+  }
   runTestWithCfg(trafficClass, pfcPriority, {}, trafficParams);
 }
 
