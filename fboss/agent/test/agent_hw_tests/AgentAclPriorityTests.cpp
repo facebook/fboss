@@ -26,9 +26,9 @@ using namespace facebook::fboss::utility;
 void addAclEntry(cfg::SwitchConfig& cfg, cfg::AclEntry* acl) {
   if (FLAGS_enable_acl_table_group) {
     int tableNumber = getAclTableIndex(&cfg, utility::kDefaultAclTable());
-    auto* aclTableGroup = utility::getAclTableGroup(cfg);
-    if (aclTableGroup) {
-      aclTableGroup->aclTables()[tableNumber].aclEntries()->push_back(*acl);
+    if (cfg.aclTableGroup()) {
+      cfg.aclTableGroup()->aclTables()[tableNumber].aclEntries()->push_back(
+          *acl);
     }
   } else {
     cfg.acls()->push_back(*acl);
@@ -168,8 +168,7 @@ TEST_F(AgentAclPriorityTest, AclNameChange) {
     this->addDenyPortAcl(newCfg, "A");
     this->applyNewConfig(newCfg);
     if (FLAGS_enable_acl_table_group) {
-      auto* aclTableGroup = utility::getAclTableGroup(newCfg);
-      *aclTableGroup
+      *newCfg.aclTableGroup()
            ->aclTables()[utility::getAclTableIndex(
                &newCfg, utility::kDefaultAclTable())]
            .aclEntries()
