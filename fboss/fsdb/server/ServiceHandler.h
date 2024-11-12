@@ -203,6 +203,12 @@ class ServiceHandler : public FsdbServiceSvIf,
     return activePublishers_.copy();
   }
 
+  void setThriftServer(std::shared_ptr<apache::thrift::ThriftServer> server) {
+    server_ = server;
+  }
+
+  void preStart(const folly::SocketAddress* /*address*/) override;
+
  private:
   void registerSubscription(
       const OperSubscriberInfo& info,
@@ -300,6 +306,7 @@ class ServiceHandler : public FsdbServiceSvIf,
 
   folly::Synchronized<ActiveSubscriptions> activeSubscriptions_;
   folly::Synchronized<ActivePublishers> activePublishers_;
+  std::shared_ptr<apache::thrift::ThriftServer> server_;
 };
 
 } // namespace facebook::fboss::fsdb

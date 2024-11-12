@@ -10,6 +10,11 @@ DEFINE_int32(
 // current default 5908 is in conflict with VNC ports, need to
 // eventually migrate to 5958
 DEFINE_int32(migrated_fsdbPort, 5958, "New FSDB thrift server port migrate to");
+// Only FBOSS DSF subscriber is using this fsdbPort_high_priority port
+DEFINE_int32(
+    fsdbPort_high_priority,
+    5957,
+    "FSDB thrift server port connected using high priority tos=0xc0");
 DEFINE_bool(publish_stats_to_fsdb, false, "Whether to publish stats to fsdb");
 DEFINE_bool(
     publish_state_to_fsdb,
