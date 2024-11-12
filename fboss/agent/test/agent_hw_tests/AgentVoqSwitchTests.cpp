@@ -2124,28 +2124,6 @@ class AgentVoqSwitchFullScaleDsfNodesTest : public AgentVoqSwitchTest {
     return 64;
   }
 
-  void setupRemoteIntfAndSysPorts() {
-    auto updateDsfStateFn = [this](const std::shared_ptr<SwitchState>& in) {
-      std::map<SwitchID, std::shared_ptr<SystemPortMap>> switchId2SystemPorts;
-      std::map<SwitchID, std::shared_ptr<InterfaceMap>> switchId2Rifs;
-      utility::populateRemoteIntfAndSysPorts(
-          switchId2SystemPorts,
-          switchId2Rifs,
-          getSw()->getConfig(),
-          isSupportedOnAllAsics(HwAsic::Feature::RESERVED_ENCAP_INDEX_RANGE));
-      return DsfStateUpdaterUtil::getUpdatedState(
-          in,
-          getSw()->getScopeResolver(),
-          getSw()->getRib(),
-          switchId2SystemPorts,
-          switchId2Rifs);
-    };
-    getSw()->getRib()->updateStateInRibThread([this, updateDsfStateFn]() {
-      getSw()->updateStateWithHwFailureProtection(
-          folly::sformat("Update state for node: {}", 0), updateDsfStateFn);
-    });
-  }
-
   flat_set<PortDescriptor> getRemoteSysPortDesc() {
     auto remoteSysPorts =
         getProgrammedState()->getRemoteSystemPorts()->getAllNodes();
@@ -2186,7 +2164,11 @@ class AgentVoqSwitchFullScaleDsfNodesWithFabricPortsTest
 };
 
 TEST_F(AgentVoqSwitchFullScaleDsfNodesTest, systemPortScaleTest) {
-  auto setup = [this]() { setupRemoteIntfAndSysPorts(); };
+  auto setup = [this]() {
+    utility::setupRemoteIntfAndSysPorts(
+        getSw(),
+        isSupportedOnAllAsics(HwAsic::Feature::RESERVED_ENCAP_INDEX_RANGE));
+  };
   verifyAcrossWarmBoots(setup, [] {});
 }
 
@@ -2194,7 +2176,9 @@ TEST_F(AgentVoqSwitchFullScaleDsfNodesTest, remoteNeighborWithEcmpGroup) {
   const auto kEcmpWidth = getMaxEcmpWidth();
   const auto kMaxDeviation = 25;
   auto setup = [&]() {
-    setupRemoteIntfAndSysPorts();
+    utility::setupRemoteIntfAndSysPorts(
+        getSw(),
+        isSupportedOnAllAsics(HwAsic::Feature::RESERVED_ENCAP_INDEX_RANGE));
     utility::EcmpSetupTargetedPorts6 ecmpHelper(getProgrammedState());
 
     // Resolve remote nhops and get a list of remote sysPort descriptors
@@ -2270,7 +2254,9 @@ TEST_F(AgentVoqSwitchFullScaleDsfNodesTest, remoteAndLocalLoadBalance) {
   const auto kEcmpWidth = 16;
   const auto kMaxDeviation = 25;
   auto setup = [&]() {
-    setupRemoteIntfAndSysPorts();
+    utility::setupRemoteIntfAndSysPorts(
+        getSw(),
+        isSupportedOnAllAsics(HwAsic::Feature::RESERVED_ENCAP_INDEX_RANGE));
     utility::EcmpSetupTargetedPorts6 ecmpHelper(getProgrammedState());
 
     // Resolve remote and local nhops and get a list of sysPort descriptors
@@ -2350,7 +2336,9 @@ TEST_F(AgentVoqSwitchFullScaleDsfNodesTest, stressProgramEcmpRoutes) {
   const auto routeScale = 5;
   const auto numIterations = 20;
   auto setup = [&]() {
-    setupRemoteIntfAndSysPorts();
+    utility::setupRemoteIntfAndSysPorts(
+        getSw(),
+        isSupportedOnAllAsics(HwAsic::Feature::RESERVED_ENCAP_INDEX_RANGE));
     utility::EcmpSetupTargetedPorts6 ecmpHelper(getProgrammedState());
 
     // Resolve remote nhops and get a list of remote sysPort descriptors
@@ -2493,7 +2481,11 @@ TEST_F(AgentVoqSwitchLineRateTest, creditsDeleted) {
 TEST_F(
     AgentVoqSwitchFullScaleDsfNodesWithFabricPortsTest,
     failUpdateAtFullSysPortScale) {
-  auto setup = [this]() { setupRemoteIntfAndSysPorts(); };
+  auto setup = [this]() {
+    utility::setupRemoteIntfAndSysPorts(
+        getSw(),
+        isSupportedOnAllAsics(HwAsic::Feature::RESERVED_ENCAP_INDEX_RANGE));
+  };
   auto verify = [this]() {
     getSw()->getRib()->updateStateInRibThread([this]() {
       EXPECT_THROW(
