@@ -25,7 +25,8 @@
 
 DEFINE_bool(nodeZ, false, "Setup test config as node Z");
 
-using namespace facebook::fboss;
+namespace facebook::fboss::utility {
+
 namespace {
 void removePort(
     facebook::fboss::cfg::SwitchConfig& config,
@@ -48,7 +49,6 @@ void removePort(
     cfgPort->state() = facebook::fboss::cfg::PortState::DISABLED;
   }
 }
-constexpr auto kNumRdsw = 128;
 constexpr auto kNumRdswSysPort = 44;
 constexpr auto kNumEdswSysPort = 26;
 constexpr auto kJ2NumSysPort = 20;
@@ -57,7 +57,7 @@ int getPerNodeSysPortsBlockSize(const HwAsic& asic, int remoteSwitchId) {
   if (asic.getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO2) {
     return kJ2NumSysPort;
   }
-  if (remoteSwitchId < kNumRdsw * asic.getNumCores()) {
+  if (remoteSwitchId < getMaxRdsw() * asic.getNumCores()) {
     return kNumRdswSysPort;
   }
   return kNumEdswSysPort;
@@ -73,19 +73,16 @@ int getSysPortIdsAllocated(
     portsConsumed += deviceIndex * kJ2NumSysPort - 1;
   } else {
     CHECK(asic.getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO3);
-    if (deviceIndex < kNumRdsw) {
+    if (deviceIndex < getMaxRdsw()) {
       portsConsumed += deviceIndex * kNumRdswSysPort - 1;
     } else {
-      portsConsumed += kNumRdsw * kNumRdswSysPort +
-          (deviceIndex - kNumRdsw) * kNumEdswSysPort - 1;
+      portsConsumed += getMaxRdsw() * kNumRdswSysPort +
+          (deviceIndex - getMaxRdsw()) * kNumEdswSysPort - 1;
     }
   }
   return portsConsumed;
 }
 } // namespace
-
-namespace facebook::fboss::utility {
-
 folly::MacAddress kLocalCpuMac() {
   static const folly::MacAddress kLocalMac(
       FLAGS_nodeZ ? "02:00:00:00:00:02" : "02:00:00:00:00:01");
