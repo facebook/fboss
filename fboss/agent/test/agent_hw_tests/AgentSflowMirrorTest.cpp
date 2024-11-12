@@ -505,8 +505,6 @@ class AgentSflowMirrorTest : public AgentHwTest {
     std::set<uint16_t> l4SrcPorts;
     for (auto i = 0; i < numPackets; i++) {
       auto pkt = genPacket(1, 256);
-      auto length = pkt->buf()->length();
-
       utility::SwSwitchPacketSnooper snooper(getSw(), "snooper");
       XLOG(DBG2) << "Sending packet through port " << ports[1];
       getAgentEnsemble()->sendPacketAsync(
@@ -850,5 +848,20 @@ TEST_F(AgentSflowMirrorTestV6, MoveToV4) {
   };
   verifyAcrossWarmBoots(
       setup, verify, setupPostWb, [=, this]() { verifySampledPacket(true); });
+}
+
+TEST_F(AgentSflowMirrorTestV6, verifyL4SrcPortRandomization) {
+  auto setup = [=, this]() {
+    auto config = initialConfig(*getAgentEnsemble());
+    configureMirror(config, false, 0);
+    configSampling(config, 1);
+    configureTrapAcl(config);
+    applyNewConfig(config);
+    resolveRouteForMirrorDestination();
+  };
+  auto verify = [=, this]() {
+    this->verifySrsPortRandomizationOnSflowPacket();
+  };
+  verifyAcrossWarmBoots(setup, verify);
 }
 } // namespace facebook::fboss
