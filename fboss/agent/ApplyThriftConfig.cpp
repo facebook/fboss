@@ -4891,6 +4891,7 @@ shared_ptr<MultiControlPlane> ThriftConfigApplier::updateControlPlane() {
 
   // check whether queue setting changed
   QueueConfig newQueues;
+  QueueConfig newVoqs;
   auto switchIds = scopeResolver_.scope(origCPU).switchIds();
   CHECK(scopeResolver_.hasL3());
   CHECK_GT(switchIds.size(), 0);
@@ -4905,6 +4906,15 @@ shared_ptr<MultiControlPlane> ThriftConfigApplier::updateControlPlane() {
         qosMap);
     newQueues.insert(
         newQueues.begin(), tmpPortQueues.begin(), tmpPortQueues.end());
+    if (cfg_->cpuVoqs()) {
+      auto tmpPortVoqs = updatePortQueues(
+          origCPU->getVoqsConfig(),
+          *cfg_->cpuVoqs(),
+          asic->getDefaultNumPortQueues(streamType, cfg::PortType::CPU_PORT),
+          streamType,
+          qosMap);
+      newVoqs.insert(newVoqs.begin(), tmpPortVoqs.begin(), tmpPortVoqs.end());
+    }
   }
   bool queuesUnchanged = false;
   if (origCPU->getQueues()->size() > 0) {
@@ -4917,13 +4927,25 @@ shared_ptr<MultiControlPlane> ThriftConfigApplier::updateControlPlane() {
       }
     }
   }
+  bool voqsUnchanged = (newVoqs.size() == origCPU->getVoqs()->size());
+  if (origCPU->getVoqs()->size() > 0) {
+    /* on cold boot original queues are 0 */
+    for (int i = 0; i < newVoqs.size() && voqsUnchanged; i++) {
+      if (*(newVoqs.at(i)) != *(origCPU->getVoqs()->at(i))) {
+        voqsUnchanged = false;
+        break;
+      }
+    }
+  }
 
-  if (queuesUnchanged && qosPolicyUnchanged && rxReasonToQueueUnchanged) {
+  if (queuesUnchanged && voqsUnchanged && qosPolicyUnchanged &&
+      rxReasonToQueueUnchanged) {
     return nullptr;
   }
 
   auto newCPU = origCPU->clone();
   newCPU->resetQueues(newQueues);
+  newCPU->resetVoqs(newVoqs);
   newCPU->resetQosPolicy(qosPolicy);
   newCPU->resetRxReasonToQueue(newRxReasonToQueue);
   auto newMultiSwitchControlPlane = std::make_shared<MultiControlPlane>();
