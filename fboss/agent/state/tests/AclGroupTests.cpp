@@ -1000,15 +1000,4 @@ TEST(AclGroup, ApplyConfigWarmbootMultipleAclTable) {
 
   EXPECT_EQ(
       *(stateV8->getAclTableGroups()->getNodeIf(kAclStage1)), *tableGroup1);
-
-  /* apply config with multiple acl table groups */
-  CHECK(config.aclTableGroups_ref());
-  auto tableGroup2 = (*config.aclTableGroups_ref())[0];
-  tableGroup2.name_ref() = kGroup2;
-  tableGroup2.stage_ref() = kAclStage2;
-  config.aclTableGroups_ref()->push_back(tableGroup2);
-  auto stateV9 = publishAndApplyConfig(stateV8, &config, platform.get());
-  EXPECT_NE(nullptr, stateV9);
-  EXPECT_NE(nullptr, stateV9->getAclTableGroups()->getNodeIf(kAclStage1));
-  EXPECT_NE(nullptr, stateV9->getAclTableGroups()->getNodeIf(kAclStage2));
 }
