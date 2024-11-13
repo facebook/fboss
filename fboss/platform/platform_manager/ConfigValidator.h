@@ -23,6 +23,10 @@ class ConfigValidator {
   bool isValidSlotPath(
       const PlatformConfig& platformConfig,
       const std::string& slotPath);
+  bool isValidDeviceName(
+      const PlatformConfig& platformConfig,
+      const std::string& slotPath,
+      const std::string& deviceName);
   bool isValidSymlink(const std::string& symlink);
   bool isValidPresenceDetection(const PresenceDetection& presenceDetection);
   bool isValidSpiDeviceConfigs(

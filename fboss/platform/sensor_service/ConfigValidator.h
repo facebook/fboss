@@ -10,7 +10,7 @@ class ConfigValidator {
   bool isValid(const sensor_config::SensorConfig& sensorConfig);
   bool isValidPmUnitSensors(
       const sensor_config::PmUnitSensors& PmUnitSensors,
-      std::unordered_set<std::string>& usedSlotPaths);
+      std::unordered_set<std::pair<std::string, std::string>>& usedSlotPaths);
   bool isValidPmSensor(
       const sensor_config::PmSensor& pmSensor,
       std::unordered_set<std::string>& usedSensorNames);

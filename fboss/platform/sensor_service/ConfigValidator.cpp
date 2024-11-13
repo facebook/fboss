@@ -15,7 +15,7 @@ const re2::RE2 kSlotPathRe = "/|(/([A-Z]+_)+SLOT@\\d+)+";
 } // namespace
 
 bool ConfigValidator::isValid(const SensorConfig& sensorConfig) {
-  for (std::unordered_set<std::string> usedSlotPaths;
+  for (std::unordered_set<std::pair<std::string, std::string>> usedSlotPaths;
        const auto& pmUnitSensors : *sensorConfig.pmUnitSensorsList()) {
     if (!isValidPmUnitSensors(pmUnitSensors, usedSlotPaths)) {
       return false;
@@ -26,7 +26,7 @@ bool ConfigValidator::isValid(const SensorConfig& sensorConfig) {
 
 bool ConfigValidator::isValidPmUnitSensors(
     const PmUnitSensors& pmUnitSensors,
-    std::unordered_set<std::string>& usedSlotPaths) {
+    std::unordered_set<std::pair<std::string, std::string>>& usedSlotPaths) {
   if (pmUnitSensors.slotPath()->empty()) {
     XLOG(ERR) << "SlotPath in PmUnitSensor must be non-empty";
     return false;
@@ -34,12 +34,16 @@ bool ConfigValidator::isValidPmUnitSensors(
   if (!isValidSlotPath(*pmUnitSensors.slotPath())) {
     return false;
   }
-  if (usedSlotPaths.contains(*pmUnitSensors.slotPath())) {
+  if (usedSlotPaths.contains(
+          {*pmUnitSensors.slotPath(), *pmUnitSensors.pmUnitName()})) {
     XLOG(ERR) << fmt::format(
-        "SlotPath {} is a duplicate", *pmUnitSensors.slotPath());
+        "(SlotPath {}, PmUnitName {}) is a duplicate",
+        *pmUnitSensors.slotPath(),
+        *pmUnitSensors.pmUnitName());
     return false;
   }
-  usedSlotPaths.emplace(*pmUnitSensors.slotPath());
+  usedSlotPaths.insert(
+      {*pmUnitSensors.slotPath(), *pmUnitSensors.pmUnitName()});
   for (std::unordered_set<std::string> usedSensorNames;
        const auto& pmSensor : *pmUnitSensors.sensors()) {
     if (!isValidPmSensor(pmSensor, usedSensorNames)) {

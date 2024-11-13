@@ -21,6 +21,8 @@ using namespace facebook::fboss;
 
 class AclApiTest : public ::testing::Test {
  public:
+  using UdfGroupData =
+      std::pair<std::vector<sai_uint8_t>, std::vector<sai_uint8_t>>;
   void SetUp() override {
     fs = FakeSai::getInstance();
     sai_api_initialize(0, nullptr);
@@ -247,6 +249,32 @@ class AclApiTest : public ::testing::Test {
     return std::make_pair(17, 0xFF);
   }
 
+  sai_object_id_t kUserDefinedFieldGroup0() const {
+    return 100;
+  }
+
+  sai_object_id_t kUserDefinedFieldGroup1() const {
+    return 101;
+  }
+
+  sai_object_id_t kUserDefinedFieldGroup2() const {
+    return 102;
+  }
+
+  sai_object_id_t kUserDefinedFieldGroup3() const {
+    return 103;
+  }
+
+  sai_object_id_t kUserDefinedFieldGroup4() const {
+    return 104;
+  }
+
+  UdfGroupData kUDFGroupData() const {
+    std::vector<sai_uint8_t> data = {0x11, 0x22};
+    std::vector<sai_uint8_t> mask = {0xFF, 0xFF};
+    return std::make_pair(std::move(data), std::move(mask));
+  }
+
   sai_uint32_t kPacketAction() const {
     return SAI_PACKET_ACTION_DROP;
   }
@@ -372,6 +400,11 @@ class AclApiTest : public ::testing::Test {
             true, // outer vlan id
             true, // bth opcode
             true, // ipv6 next header
+            kUserDefinedFieldGroup0(), // udf group 0
+            kUserDefinedFieldGroup1(), // udf group 1
+            kUserDefinedFieldGroup2(), // udf group 2
+            kUserDefinedFieldGroup3(), // udf group 3
+            kUserDefinedFieldGroup4(), // udf group 4
         },
         kSwitchID());
   }
@@ -456,6 +489,16 @@ class AclApiTest : public ::testing::Test {
         AclEntryFieldU8(kBthOpcode())};
     SaiAclEntryTraits::Attributes::FieldIpv6NextHeader
         aclFieldIpv6NextHeaderAttribute{AclEntryFieldU8(kIpv6NextHeader())};
+    SaiAclEntryTraits::Attributes::UserDefinedFieldGroupMin0
+        aclUserDefinedGroup0{AclEntryFieldU8List{kUDFGroupData()}};
+    SaiAclEntryTraits::Attributes::UserDefinedFieldGroupMin1
+        aclUserDefinedGroup1{AclEntryFieldU8List{kUDFGroupData()}};
+    SaiAclEntryTraits::Attributes::UserDefinedFieldGroupMin2
+        aclUserDefinedGroup2{AclEntryFieldU8List{kUDFGroupData()}};
+    SaiAclEntryTraits::Attributes::UserDefinedFieldGroupMin3
+        aclUserDefinedGroup3{AclEntryFieldU8List{kUDFGroupData()}};
+    SaiAclEntryTraits::Attributes::UserDefinedFieldGroupMin4
+        aclUserDefinedGroup4{AclEntryFieldU8List{kUDFGroupData()}};
     SaiAclEntryTraits::Attributes::ActionPacketAction aclActionPacketAction{
         AclEntryActionU32(kPacketAction())};
     SaiAclEntryTraits::Attributes::ActionCounter aclActionCounter{
@@ -507,6 +550,11 @@ class AclApiTest : public ::testing::Test {
          aclFieldOuterVlanIdAttribute,
          aclFieldBthOpcodeAttribute,
          aclFieldIpv6NextHeaderAttribute,
+         aclUserDefinedGroup0,
+         aclUserDefinedGroup1,
+         aclUserDefinedGroup2,
+         aclUserDefinedGroup3,
+         aclUserDefinedGroup4,
          aclActionPacketAction,
          aclActionCounter,
          aclActionSetTC,
@@ -639,6 +687,11 @@ class AclApiTest : public ::testing::Test {
       const std::pair<sai_uint16_t, sai_uint16_t>& outerVlanId,
       const std::pair<sai_uint8_t, sai_uint8_t>& bthOpcode,
       const std::pair<sai_uint8_t, sai_uint8_t>& ipv6NextHeader,
+      const UdfGroupData& udfGroupData0,
+      const UdfGroupData& udfGroupData1,
+      const UdfGroupData& udfGroupData2,
+      const UdfGroupData& udfGroupData3,
+      const UdfGroupData& udfGroupData4,
       sai_uint32_t packetAction,
       sai_object_id_t counter,
       sai_uint8_t setTC,
@@ -706,6 +759,16 @@ class AclApiTest : public ::testing::Test {
         aclEntryId, SaiAclEntryTraits::Attributes::FieldBthOpcode());
     auto aclFieldIpv6NextHeaderGot = aclApi->getAttribute(
         aclEntryId, SaiAclEntryTraits::Attributes::FieldIpv6NextHeader());
+    auto aclUdfGroupData0Got = aclApi->getAttribute(
+        aclEntryId, SaiAclEntryTraits::Attributes::UserDefinedFieldGroupMin0());
+    auto aclUdfGroupData1Got = aclApi->getAttribute(
+        aclEntryId, SaiAclEntryTraits::Attributes::UserDefinedFieldGroupMin1());
+    auto aclUdfGroupData2Got = aclApi->getAttribute(
+        aclEntryId, SaiAclEntryTraits::Attributes::UserDefinedFieldGroupMin2());
+    auto aclUdfGroupData3Got = aclApi->getAttribute(
+        aclEntryId, SaiAclEntryTraits::Attributes::UserDefinedFieldGroupMin3());
+    auto aclUdfGroupData4Got = aclApi->getAttribute(
+        aclEntryId, SaiAclEntryTraits::Attributes::UserDefinedFieldGroupMin4());
 
     auto aclActionPacketActionGot = aclApi->getAttribute(
         aclEntryId, SaiAclEntryTraits::Attributes::ActionPacketAction());
@@ -757,6 +820,11 @@ class AclApiTest : public ::testing::Test {
     EXPECT_EQ(aclFieldOuterVlanIdGot.getDataAndMask(), outerVlanId);
     EXPECT_EQ(aclFieldBthOpcodeGot.getDataAndMask(), bthOpcode);
     EXPECT_EQ(aclFieldIpv6NextHeaderGot.getDataAndMask(), ipv6NextHeader);
+    EXPECT_EQ(aclUdfGroupData0Got.getDataAndMask(), udfGroupData0);
+    EXPECT_EQ(aclUdfGroupData1Got.getDataAndMask(), udfGroupData1);
+    EXPECT_EQ(aclUdfGroupData2Got.getDataAndMask(), udfGroupData2);
+    EXPECT_EQ(aclUdfGroupData3Got.getDataAndMask(), udfGroupData3);
+    EXPECT_EQ(aclUdfGroupData4Got.getDataAndMask(), udfGroupData4);
 
     EXPECT_EQ(aclActionPacketActionGot.getData(), packetAction);
     EXPECT_EQ(aclActionCounterGot.getData(), counter);
@@ -913,6 +981,16 @@ TEST_F(AclApiTest, getAclTableAttribute) {
       aclTableId, SaiAclTableTraits::Attributes::FieldRouteDstUserMeta());
   auto aclTableFieldNeighborDstUserMetaGot = aclApi->getAttribute(
       aclTableId, SaiAclTableTraits::Attributes::FieldNeighborDstUserMeta());
+  auto aclTableUserDefinedFieldGroup0 = aclApi->getAttribute(
+      aclTableId, SaiAclTableTraits::Attributes::UserDefinedFieldGroupMin0());
+  auto aclTableUserDefinedFieldGroup1 = aclApi->getAttribute(
+      aclTableId, SaiAclTableTraits::Attributes::UserDefinedFieldGroupMin1());
+  auto aclTableUserDefinedFieldGroup2 = aclApi->getAttribute(
+      aclTableId, SaiAclTableTraits::Attributes::UserDefinedFieldGroupMin2());
+  auto aclTableUserDefinedFieldGroup3 = aclApi->getAttribute(
+      aclTableId, SaiAclTableTraits::Attributes::UserDefinedFieldGroupMin3());
+  auto aclTableUserDefinedFieldGroup4 = aclApi->getAttribute(
+      aclTableId, SaiAclTableTraits::Attributes::UserDefinedFieldGroupMin4());
 
   EXPECT_EQ(aclTableStageGot, SAI_ACL_STAGE_INGRESS);
   EXPECT_EQ(aclTableBindPointTypeListGot.size(), 1);
@@ -944,6 +1022,11 @@ TEST_F(AclApiTest, getAclTableAttribute) {
   EXPECT_EQ(aclTableFieldFdbDstUserMetaGot, true);
   EXPECT_EQ(aclTableFieldRouteDstUserMetaGot, true);
   EXPECT_EQ(aclTableFieldNeighborDstUserMetaGot, true);
+  EXPECT_EQ(aclTableUserDefinedFieldGroup0, kUserDefinedFieldGroup0());
+  EXPECT_EQ(aclTableUserDefinedFieldGroup1, kUserDefinedFieldGroup1());
+  EXPECT_EQ(aclTableUserDefinedFieldGroup2, kUserDefinedFieldGroup2());
+  EXPECT_EQ(aclTableUserDefinedFieldGroup3, kUserDefinedFieldGroup3());
+  EXPECT_EQ(aclTableUserDefinedFieldGroup4, kUserDefinedFieldGroup4());
 }
 
 TEST_F(AclApiTest, getAclEntryAttribute) {
@@ -982,6 +1065,11 @@ TEST_F(AclApiTest, getAclEntryAttribute) {
       kOuterVlanId(),
       kBthOpcode(),
       kIpv6NextHeader(),
+      kUDFGroupData(),
+      kUDFGroupData(),
+      kUDFGroupData(),
+      kUDFGroupData(),
+      kUDFGroupData(),
       kPacketAction(),
       kCounter(),
       kSetTC(),
@@ -1168,6 +1256,16 @@ TEST_F(AclApiTest, setAclEntryAttribute) {
       AclEntryFieldU8(kBthOpcode())};
   SaiAclEntryTraits::Attributes::FieldIpv6NextHeader aclFieldIpv6NextHeader{
       AclEntryFieldU8(kIpv6NextHeader())};
+  SaiAclEntryTraits::Attributes::UserDefinedFieldGroupMin0 aclUserDefinedGroup0{
+      AclEntryFieldU8List{kUDFGroupData()}};
+  SaiAclEntryTraits::Attributes::UserDefinedFieldGroupMin1 aclUserDefinedGroup1{
+      AclEntryFieldU8List{kUDFGroupData()}};
+  SaiAclEntryTraits::Attributes::UserDefinedFieldGroupMin2 aclUserDefinedGroup2{
+      AclEntryFieldU8List{kUDFGroupData()}};
+  SaiAclEntryTraits::Attributes::UserDefinedFieldGroupMin3 aclUserDefinedGroup3{
+      AclEntryFieldU8List{kUDFGroupData()}};
+  SaiAclEntryTraits::Attributes::UserDefinedFieldGroupMin4 aclUserDefinedGroup4{
+      AclEntryFieldU8List{kUDFGroupData()}};
 
   SaiAclEntryTraits::Attributes::ActionPacketAction aclActionPacketAction2{
       AclEntryActionU32(kPacketAction2())};
@@ -1217,6 +1315,11 @@ TEST_F(AclApiTest, setAclEntryAttribute) {
   aclApi->setAttribute(aclEntryId, aclFieldOuterVlanId);
   aclApi->setAttribute(aclEntryId, aclFieldBthOpcode);
   aclApi->setAttribute(aclEntryId, aclFieldIpv6NextHeader);
+  aclApi->setAttribute(aclEntryId, aclUserDefinedGroup0);
+  aclApi->setAttribute(aclEntryId, aclUserDefinedGroup1);
+  aclApi->setAttribute(aclEntryId, aclUserDefinedGroup2);
+  aclApi->setAttribute(aclEntryId, aclUserDefinedGroup3);
+  aclApi->setAttribute(aclEntryId, aclUserDefinedGroup4);
   aclApi->setAttribute(aclEntryId, aclActionPacketAction2);
   aclApi->setAttribute(aclEntryId, aclActionCounter2);
   aclApi->setAttribute(aclEntryId, aclActionSetTC2);
@@ -1256,6 +1359,11 @@ TEST_F(AclApiTest, setAclEntryAttribute) {
       kOuterVlanId(),
       kBthOpcode(),
       kIpv6NextHeader(),
+      kUDFGroupData(),
+      kUDFGroupData(),
+      kUDFGroupData(),
+      kUDFGroupData(),
+      kUDFGroupData(),
       kPacketAction2(),
       kCounter2(),
       kSetTC2(),

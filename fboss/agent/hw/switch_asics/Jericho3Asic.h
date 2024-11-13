@@ -10,21 +10,6 @@ namespace facebook::fboss {
 class Jericho3Asic : public BroadcomAsic {
  public:
   Jericho3Asic(
-      cfg::SwitchType type,
-      std::optional<int64_t> id,
-      int16_t index,
-      std::optional<cfg::Range64> systemPortRange,
-      const folly::MacAddress& mac,
-      std::optional<cfg::SdkVersion> sdkVersion = std::nullopt)
-      : BroadcomAsic(
-            type,
-            id,
-            index,
-            systemPortRange,
-            mac,
-            sdkVersion,
-            {cfg::SwitchType::VOQ}) {}
-  Jericho3Asic(
       std::optional<int64_t> switchId,
       cfg::SwitchInfo switchInfo,
       std::optional<cfg::SdkVersion> sdkVersion = std::nullopt)

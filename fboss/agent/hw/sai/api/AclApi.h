@@ -197,6 +197,38 @@ struct SaiAclTableTraits {
     using FieldIpv6NextHeader =
         SaiAttribute<EnumType, SAI_ACL_TABLE_ATTR_FIELD_IPV6_NEXT_HEADER, bool>;
 #endif
+#if SAI_API_VERSION >= SAI_VERSION(1, 14, 0) || \
+    (defined(BRCM_SAI_SDK_GTE_11_0) && defined(BRCM_SAI_SDK_XGS))
+    using UserDefinedFieldGroupMin0 = SaiAttribute<
+        EnumType,
+        SAI_ACL_TABLE_ATTR_USER_DEFINED_FIELD_GROUP_MIN,
+        sai_object_id_t,
+        SaiObjectIdDefault>;
+    using UserDefinedFieldGroupMin1 = SaiAttribute<
+        EnumType,
+        static_cast<sai_acl_table_attr_t>(
+            SAI_ACL_TABLE_ATTR_USER_DEFINED_FIELD_GROUP_MIN + 1),
+        sai_object_id_t,
+        SaiObjectIdDefault>;
+    using UserDefinedFieldGroupMin2 = SaiAttribute<
+        EnumType,
+        static_cast<sai_acl_table_attr_t>(
+            SAI_ACL_TABLE_ATTR_USER_DEFINED_FIELD_GROUP_MIN + 2),
+        sai_object_id_t,
+        SaiObjectIdDefault>;
+    using UserDefinedFieldGroupMin3 = SaiAttribute<
+        EnumType,
+        static_cast<sai_acl_table_attr_t>(
+            SAI_ACL_TABLE_ATTR_USER_DEFINED_FIELD_GROUP_MIN + 3),
+        sai_object_id_t,
+        SaiObjectIdDefault>;
+    using UserDefinedFieldGroupMin4 = SaiAttribute<
+        EnumType,
+        static_cast<sai_acl_table_attr_t>(
+            SAI_ACL_TABLE_ATTR_USER_DEFINED_FIELD_GROUP_MIN + 4),
+        sai_object_id_t,
+        SaiObjectIdDefault>;
+#endif
   };
 
   using AdapterKey = AclTableSaiId;
@@ -235,6 +267,15 @@ struct SaiAclTableTraits {
 #if !defined(TAJO_SDK) && !defined(BRCM_SAI_SDK_XGS)
       ,
       std::optional<Attributes::FieldIpv6NextHeader>
+#endif
+#if SAI_API_VERSION >= SAI_VERSION(1, 14, 0) || \
+    (defined(BRCM_SAI_SDK_GTE_11_0) && defined(BRCM_SAI_SDK_XGS))
+      ,
+      std::optional<Attributes::UserDefinedFieldGroupMin0>,
+      std::optional<Attributes::UserDefinedFieldGroupMin1>,
+      std::optional<Attributes::UserDefinedFieldGroupMin2>,
+      std::optional<Attributes::UserDefinedFieldGroupMin3>,
+      std::optional<Attributes::UserDefinedFieldGroupMin4>
 #endif
       >;
 
@@ -276,6 +317,14 @@ SAI_ATTRIBUTE_NAME(AclTable, FieldBthOpcode);
 #endif
 #if !defined(TAJO_SDK) && !defined(BRCM_SAI_SDK_XGS)
 SAI_ATTRIBUTE_NAME(AclTable, FieldIpv6NextHeader);
+#endif
+#if SAI_API_VERSION >= SAI_VERSION(1, 14, 0) || \
+    (defined(BRCM_SAI_SDK_GTE_11_0) && defined(BRCM_SAI_SDK_XGS))
+SAI_ATTRIBUTE_NAME(AclTable, UserDefinedFieldGroupMin0);
+SAI_ATTRIBUTE_NAME(AclTable, UserDefinedFieldGroupMin1);
+SAI_ATTRIBUTE_NAME(AclTable, UserDefinedFieldGroupMin2);
+SAI_ATTRIBUTE_NAME(AclTable, UserDefinedFieldGroupMin3);
+SAI_ATTRIBUTE_NAME(AclTable, UserDefinedFieldGroupMin4);
 #endif
 
 struct SaiAclEntryTraits {
@@ -404,6 +453,33 @@ struct SaiAclEntryTraits {
         SAI_ACL_ENTRY_ATTR_FIELD_IPV6_NEXT_HEADER,
         AclEntryFieldU8>;
 #endif
+#if SAI_API_VERSION >= SAI_VERSION(1, 14, 0) || \
+    (defined(BRCM_SAI_SDK_GTE_11_0) && defined(BRCM_SAI_SDK_XGS))
+    using UserDefinedFieldGroupMin0 = SaiAttribute<
+        EnumType,
+        SAI_ACL_ENTRY_ATTR_USER_DEFINED_FIELD_GROUP_MIN,
+        AclEntryFieldU8List>;
+    using UserDefinedFieldGroupMin1 = SaiAttribute<
+        EnumType,
+        static_cast<sai_acl_entry_attr_t>(
+            SAI_ACL_ENTRY_ATTR_USER_DEFINED_FIELD_GROUP_MIN + 1),
+        AclEntryFieldU8List>;
+    using UserDefinedFieldGroupMin2 = SaiAttribute<
+        EnumType,
+        static_cast<sai_acl_entry_attr_t>(
+            SAI_ACL_ENTRY_ATTR_USER_DEFINED_FIELD_GROUP_MIN + 2),
+        AclEntryFieldU8List>;
+    using UserDefinedFieldGroupMin3 = SaiAttribute<
+        EnumType,
+        static_cast<sai_acl_entry_attr_t>(
+            SAI_ACL_ENTRY_ATTR_USER_DEFINED_FIELD_GROUP_MIN + 3),
+        AclEntryFieldU8List>;
+    using UserDefinedFieldGroupMin4 = SaiAttribute<
+        EnumType,
+        static_cast<sai_acl_entry_attr_t>(
+            SAI_ACL_ENTRY_ATTR_USER_DEFINED_FIELD_GROUP_MIN + 4),
+        AclEntryFieldU8List>;
+#endif
     using ActionPacketAction = SaiAttribute<
         EnumType,
         SAI_ACL_ENTRY_ATTR_ACTION_PACKET_ACTION,
@@ -485,6 +561,14 @@ struct SaiAclEntryTraits {
 #if !defined(TAJO_SDK) && !defined(BRCM_SAI_SDK_XGS)
       std::optional<Attributes::FieldIpv6NextHeader>,
 #endif
+#if SAI_API_VERSION >= SAI_VERSION(1, 14, 0) || \
+    (defined(BRCM_SAI_SDK_GTE_11_0) && defined(BRCM_SAI_SDK_XGS))
+      std::optional<Attributes::UserDefinedFieldGroupMin0>,
+      std::optional<Attributes::UserDefinedFieldGroupMin1>,
+      std::optional<Attributes::UserDefinedFieldGroupMin2>,
+      std::optional<Attributes::UserDefinedFieldGroupMin3>,
+      std::optional<Attributes::UserDefinedFieldGroupMin4>,
+#endif
       std::optional<Attributes::ActionPacketAction>,
       std::optional<Attributes::ActionCounter>,
       std::optional<Attributes::ActionSetTC>,
@@ -535,6 +619,14 @@ SAI_ATTRIBUTE_NAME(AclEntry, FieldBthOpcode);
 #endif
 #if !defined(TAJO_SDK) && !defined(BRCM_SAI_SDK_XGS)
 SAI_ATTRIBUTE_NAME(AclEntry, FieldIpv6NextHeader);
+#endif
+#if SAI_API_VERSION >= SAI_VERSION(1, 14, 0) || \
+    (defined(BRCM_SAI_SDK_GTE_11_0) && defined(BRCM_SAI_SDK_XGS))
+SAI_ATTRIBUTE_NAME(AclEntry, UserDefinedFieldGroupMin0);
+SAI_ATTRIBUTE_NAME(AclEntry, UserDefinedFieldGroupMin1);
+SAI_ATTRIBUTE_NAME(AclEntry, UserDefinedFieldGroupMin2);
+SAI_ATTRIBUTE_NAME(AclEntry, UserDefinedFieldGroupMin3);
+SAI_ATTRIBUTE_NAME(AclEntry, UserDefinedFieldGroupMin4);
 #endif
 SAI_ATTRIBUTE_NAME(AclEntry, ActionPacketAction);
 SAI_ATTRIBUTE_NAME(AclEntry, ActionCounter);

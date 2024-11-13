@@ -9,6 +9,8 @@
  */
 
 #include "fboss/agent/test/utils/VoqTestUtils.h"
+#include "fboss/agent/DsfStateUpdaterUtil.h"
+#include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/test/TestEnsembleIf.h"
 
@@ -300,6 +302,29 @@ boost::container::flat_set<PortDescriptor> resolveRemoteNhops(
         in, sysPortDescs, false, getDummyEncapIndex(ensemble));
   });
   return sysPortDescs;
+}
+
+void setupRemoteIntfAndSysPorts(SwSwitch* swSwitch, bool useEncapIndex) {
+  auto updateDsfStateFn =
+      [swSwitch, useEncapIndex](const std::shared_ptr<SwitchState>& in) {
+        std::map<SwitchID, std::shared_ptr<SystemPortMap>> switchId2SystemPorts;
+        std::map<SwitchID, std::shared_ptr<InterfaceMap>> switchId2Rifs;
+        utility::populateRemoteIntfAndSysPorts(
+            switchId2SystemPorts,
+            switchId2Rifs,
+            swSwitch->getConfig(),
+            useEncapIndex);
+        return DsfStateUpdaterUtil::getUpdatedState(
+            in,
+            swSwitch->getScopeResolver(),
+            swSwitch->getRib(),
+            switchId2SystemPorts,
+            switchId2Rifs);
+      };
+  swSwitch->getRib()->updateStateInRibThread([swSwitch, updateDsfStateFn]() {
+    swSwitch->updateStateWithHwFailureProtection(
+        folly::sformat("Update state for node: {}", 0), updateDsfStateFn);
+  });
 }
 
 } // namespace facebook::fboss::utility

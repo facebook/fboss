@@ -675,6 +675,10 @@ boost::container::flat_map<InterfaceID, bool> TunManager::getInterfaceStatus(
   return statusMap;
 }
 
+bool TunManager::isValidNlSocket() {
+  return sock_ ? true : false;
+}
+
 bool TunManager::getIntfStatus(
     std::shared_ptr<SwitchState> state,
     InterfaceID ifID) {

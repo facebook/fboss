@@ -378,13 +378,25 @@ PortID getPortID(
     throw FbossError(
         "switchId: ", switchId, " not found in switchToSwitchInfo");
   }
-  auto sysPortRange = switchInfo->second.systemPortRange();
-  CHECK(sysPortRange.has_value());
-  auto portIdRange = switchInfo->second.portIdRange();
-  CHECK(portIdRange.has_value());
-  return PortID(
-      static_cast<int64_t>(sysPortId) - *sysPortRange->minimum() +
-      *portIdRange->minimum());
+  for (const auto& [matcher, ports] : std::as_const(*state->getPorts())) {
+    if (HwSwitchMatcher(matcher).switchId() != switchId) {
+      continue;
+    }
+    for (const auto& [_, port] : std::as_const(*ports)) {
+      if (port->getPortType() == cfg::PortType::FABRIC_PORT) {
+        continue;
+      }
+      if (sysPortId ==
+          getSystemPortID(
+              port->getID(),
+              port->getScope(),
+              switchIdToSwitchInfo,
+              switchId)) {
+        return port->getID();
+      }
+    }
+  }
+  throw FbossError("No port found for sys port: ", sysPortId);
 }
 
 SystemPortID getSystemPortID(
@@ -490,14 +502,16 @@ SystemPortID getInbandSystemPortID(
       *switchInfoItr->second.inbandPortId());
 }
 
+// FIXME 2-stage DSF. First sys port range concep does
+// not apply for 2-stage DSF
 cfg::Range64 getFirstSwitchSystemPortIdRange(
     const std::map<int64_t, cfg::SwitchInfo>& switchToSwitchInfo) {
   for (const auto& [switchId, switchInfo] : switchToSwitchInfo) {
     // Only VOQ switches have system ports
     if (switchInfo.switchType() == cfg::SwitchType::VOQ &&
         switchInfo.switchIndex() == 0) {
-      CHECK(switchInfo.systemPortRange().has_value());
-      return *switchInfo.systemPortRange();
+      CHECK(switchInfo.systemPortRanges()->systemPortRanges()->size());
+      return *switchInfo.systemPortRanges()->systemPortRanges()->begin();
     }
   }
   throw FbossError("No VOQ switch with switchIndex 0 found");

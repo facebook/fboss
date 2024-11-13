@@ -56,6 +56,14 @@ std::map<int32_t, std::pair<std::string, std::size_t>> _AclTableMap{
 #if !defined(TAJO_SDK) && !defined(BRCM_SAI_SDK_XGS)
     SAI_ATTR_MAP(AclTable, FieldIpv6NextHeader),
 #endif
+#if SAI_API_VERSION >= SAI_VERSION(1, 14, 0) || \
+    (defined(BRCM_SAI_SDK_GTE_11_0) && defined(BRCM_SAI_SDK_XGS))
+    SAI_ATTR_MAP(AclTable, UserDefinedFieldGroupMin0),
+    SAI_ATTR_MAP(AclTable, UserDefinedFieldGroupMin1),
+    SAI_ATTR_MAP(AclTable, UserDefinedFieldGroupMin2),
+    SAI_ATTR_MAP(AclTable, UserDefinedFieldGroupMin3),
+    SAI_ATTR_MAP(AclTable, UserDefinedFieldGroupMin4),
+#endif
 };
 
 std::map<int32_t, std::pair<std::string, std::size_t>> _AclCounterMap{
@@ -115,6 +123,14 @@ std::map<int32_t, std::pair<std::string, std::size_t>> _AclEntryMap{
 #endif
 #if !defined(TAJO_SDK) && !defined(BRCM_SAI_SDK_XGS)
     SAI_ATTR_MAP(AclEntry, FieldIpv6NextHeader),
+#endif
+#if SAI_API_VERSION >= SAI_VERSION(1, 14, 0) || \
+    (defined(BRCM_SAI_SDK_GTE_11_0) && defined(BRCM_SAI_SDK_XGS))
+    SAI_ATTR_MAP(AclEntry, UserDefinedFieldGroupMin0),
+    SAI_ATTR_MAP(AclEntry, UserDefinedFieldGroupMin1),
+    SAI_ATTR_MAP(AclEntry, UserDefinedFieldGroupMin2),
+    SAI_ATTR_MAP(AclEntry, UserDefinedFieldGroupMin3),
+    SAI_ATTR_MAP(AclEntry, UserDefinedFieldGroupMin4),
 #endif
     SAI_ATTR_MAP(AclEntry, ActionPacketAction),
     SAI_ATTR_MAP(AclEntry, ActionCounter),

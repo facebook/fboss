@@ -260,16 +260,6 @@ std::string SaiPlatform::getHwAsicConfig(
     addNameValue(entry);
   }
 
-#if defined(BRCM_SAI_SDK_DNX_GTE_11_0) && !defined(BRCM_SAI_SDK_DNX_GTE_12_0)
-  // Interim workaround for 11.7 GA as this SoC property is needed for
-  // J3AI 11.x but not for 12.x until 12.0.0.4.
-  // TODO: While integrating 12.0.0.4, these workarounds need to be removed
-  // and instead this SoC property would be added in config directly.
-  if (getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO3) {
-    nameValStrs.push_back("custom_feature_shel_arm_enable=1");
-  }
-#endif
-
   /*
    * Single NPU platfroms will not have any npu entries. In such cases,
    * we can directly use the common config.
@@ -500,10 +490,12 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
       uint32_t maxCoreCount = 0;
       uint32_t maxSystemCoreCount = 0;
       auto localMac = getLocalMac();
-      const Jericho2Asic j2(
-          cfg::SwitchType::VOQ, 0, 0, std::nullopt, localMac, std::nullopt);
-      const Jericho3Asic j3(
-          cfg::SwitchType::VOQ, 0, 0, std::nullopt, localMac, std::nullopt);
+      cfg::SwitchInfo swInfo;
+      swInfo.switchIndex() = 0;
+      swInfo.switchType() = cfg::SwitchType::VOQ;
+      swInfo.switchMac() = localMac.toString();
+      const Jericho2Asic j2(0, swInfo);
+      const Jericho3Asic j3(0, swInfo);
       for (const auto& [id, dsfNode] : *agentCfg->thrift.sw()->dsfNodes()) {
         if (dsfNode.type() != cfg::DsfNodeType::INTERFACE_NODE) {
           continue;
@@ -635,13 +627,17 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
     constexpr uint32_t kRamon3LlfcThreshold{800};
     fabricLLFC = std::vector<uint32_t>({kRamon3LlfcThreshold});
   }
-  // TODO: Using the hard coding values for now from single stage system config
-  // to integrate 12.0.0.3. This needs to be fixed properly post
-  // 12.0.0.3 integration. Also, this can be skipped for fabric switches.
-  maxSystemPortId = 6143;
-  maxLocalSystemPortId = -1;
-  maxSystemPorts = 6144;
-  maxVoqs = 6144 * 8;
+  if (isDualStage3Q2QMode()) {
+    maxSystemPortId = 32515;
+    maxLocalSystemPortId = 5;
+    maxSystemPorts = 21766;
+    maxVoqs = 64512;
+  } else {
+    maxSystemPortId = 6143;
+    maxLocalSystemPortId = -1;
+    maxSystemPorts = 6144;
+    maxVoqs = 6144 * 8;
+  }
 #endif
   if (swType == cfg::SwitchType::FABRIC && bootType == BootType::COLD_BOOT) {
     // FABRIC switches should always start in isolated state until we configure

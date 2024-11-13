@@ -184,6 +184,7 @@ bool Tomahawk3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::PORT_MTU_ERROR_TRAP:
     case HwAsic::Feature::DEDICATED_CPU_BUFFER_POOL:
     case HwAsic::Feature::EGRESS_ACL_TABLE:
+    case HwAsic::Feature::FAST_LLFC_COUNTER:
       return false;
   }
   return false;

@@ -165,12 +165,20 @@ class SaiAclTableGroupTest : public HwTest {
     return "table1_counter_acl2";
   }
 
+  std::string kTable1CounterAcl3() const {
+    return "table1_counter_acl3";
+  }
+
   std::string kTable1Counter1Name() const {
     return "table1_counter1";
   }
 
   std::string kTable1Counter2Name() const {
     return "table1_counter2";
+  }
+
+  std::string kTable1Counter3Name() const {
+    return "table1_counter3";
   }
 
   std::string kTable2CounterAcl1() const {
@@ -218,7 +226,7 @@ class SaiAclTableGroupTest : public HwTest {
        * This field is used to modify the properties of the ACL table.
        * This will force a recreate of the acl table during delta processing.
        */
-      qualifiers.push_back(cfg::AclTableQualifier::OUT_PORT);
+      qualifiers.push_back(cfg::AclTableQualifier::OUTER_VLAN);
     }
 
     // Table 1: For QPH and Dscp Acl.
@@ -305,12 +313,16 @@ class SaiAclTableGroupTest : public HwTest {
       const std::string& aclTableName,
       const std::string& aclEntryName,
       const std::string& counterName,
-      uint8_t dscp) {
+      uint8_t dscp,
+      bool addVlan = false) {
     std::vector<cfg::CounterType> counterTypes{cfg::CounterType::PACKETS};
     auto* counterAcl = utility::addAcl(
         cfg, aclEntryName, cfg::AclActionType::PERMIT, aclTableName);
     utility::addAclStat(cfg, aclEntryName, counterName, counterTypes);
     counterAcl->dscp() = dscp;
+    if (addVlan) {
+      counterAcl->vlanID() = 2000;
+    }
   }
 
   void addCounterAclsToQphTable(cfg::SwitchConfig* cfg) {
@@ -394,7 +406,18 @@ class SaiAclTableGroupTest : public HwTest {
         table2EntryCount);
   }
 
-  void verifyAclEntryModificationTestHelper(bool addQualifierDuringWarmboot) {
+  // This helper has dual functionality and performs canary on/off
+  //
+  // The first argument indicates canary on or off. canaryOn=True would add an
+  // ACL entry (and qualifier depending on the 2nd argument) post warmboot
+  // and vice-versa for false
+  //
+  // The 2nd argument adds an ACL qualifier when moving between canary phases
+  //  - When canaryOn, qualifier=true would add a qualifier post warmboot
+  //  - when canaryOff, qualifier=true would add a qualifier pre warmboot
+  void verifyAclEntryModificationTestHelper(
+      bool canaryOn,
+      bool addRemoveAclQualifier) {
     ASSERT_TRUE(isSupported());
 
     auto setup = [this]() {
@@ -418,7 +441,7 @@ class SaiAclTableGroupTest : public HwTest {
     };
 
     auto setupPostWarmboot = [=, this]() {
-      auto newCfg = getMultiAclConfig(addQualifierDuringWarmboot);
+      auto newCfg = getMultiAclConfig(addRemoveAclQualifier);
       // Add Dscp acl to table 1 post warmboot
       utility::addDscpAclEntryWithCounter(
           &newCfg, kQphDscpTable(), this->getHwSwitchEnsemble()->isSai());
@@ -446,15 +469,29 @@ class SaiAclTableGroupTest : public HwTest {
           kTable2CounterAcl1(),
           kTable2Counter1Name(),
           4);
+      // add an ACL entry in table 1 using the new qualifier
+      addCounterAclToAclTable(
+          &newCfg,
+          kQphDscpTable(),
+          kTable1CounterAcl3(),
+          kTable1Counter3Name(),
+          3,
+          addRemoveAclQualifier /* addVlan */);
       applyNewConfig(newCfg);
     };
 
     auto verifyPostWarmboot = [=, this]() {
       verifyAclEntryTestHelper(
-          37 /* table1EntryCount*/, 3 /* table1EntryCount*/);
+          38 /* table1EntryCount*/, 3 /* table1EntryCount*/);
     };
 
-    verifyAcrossWarmBoots(setup, verify, setupPostWarmboot, verifyPostWarmboot);
+    if (canaryOn) {
+      verifyAcrossWarmBoots(
+          setup, verify, setupPostWarmboot, verifyPostWarmboot);
+    } else {
+      verifyAcrossWarmBoots(
+          setupPostWarmboot, verifyPostWarmboot, setup, verify);
+    }
   }
 };
 
@@ -810,7 +847,7 @@ TEST_F(SaiAclTableGroupTest, RepositionAclEntriesPostWarmboot) {
  * Verify that all entries are present.
  */
 TEST_F(SaiAclTableGroupTest, AddAclEntriesToAclTablesPostWarmboot) {
-  verifyAclEntryModificationTestHelper(false);
+  verifyAclEntryModificationTestHelper(true, false);
 }
 
 /*
@@ -822,6 +859,18 @@ TEST_F(SaiAclTableGroupTest, AddAclEntriesToAclTablesPostWarmboot) {
 TEST_F(
     SaiAclTableGroupTest,
     AddAclEntriesAndQualifiersToAclTablesPostWarmboot) {
-  verifyAclEntryModificationTestHelper(true);
+  verifyAclEntryModificationTestHelper(true, true);
+}
+
+// only ACL entry removed, no change to table
+TEST_F(SaiAclTableGroupTest, RemoveAclEntriesFromAclTablesPostWarmboot) {
+  verifyAclEntryModificationTestHelper(false, false);
+}
+
+// ACL entry is removed and table is modified
+TEST_F(
+    SaiAclTableGroupTest,
+    RemoveAclEntriesAndQualifiersFromAclTablesPostWarmboot) {
+  verifyAclEntryModificationTestHelper(false, true);
 }
 } // namespace facebook::fboss

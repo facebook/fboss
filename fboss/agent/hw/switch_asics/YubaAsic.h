@@ -18,23 +18,6 @@ namespace facebook::fboss {
 class YubaAsic : public TajoAsic {
  public:
   YubaAsic(
-      cfg::SwitchType type,
-      std::optional<int64_t> id,
-      int16_t index,
-      std::optional<cfg::Range64> systemPortRange,
-      const folly::MacAddress& mac,
-      std::optional<cfg::SdkVersion> sdkVersion = std::nullopt)
-      : TajoAsic(
-            type,
-            id,
-            index,
-            systemPortRange,
-            mac,
-            sdkVersion,
-            {cfg::SwitchType::NPU}) {
-    HwAsic::setDefaultStreamType(cfg::StreamType::UNICAST);
-  }
-  YubaAsic(
       std::optional<int64_t> switchId,
       cfg::SwitchInfo switchInfo,
       std::optional<cfg::SdkVersion> sdkVersion = std::nullopt)
@@ -95,7 +78,7 @@ class YubaAsic : public TajoAsic {
   uint32_t getMaxLagMemberSize() const override {
     return 512;
   }
-  int getSystemPortIDOffset() const override {
+  int getSflowPortIDOffset() const override {
     return 0;
   }
   uint32_t getSflowShimHeaderSize() const override {

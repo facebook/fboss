@@ -195,6 +195,7 @@ bool ChenabAsic::isSupportedNonFabric(Feature feature) const {
     case HwAsic::Feature::INGRESS_PRIORITY_GROUP_SHARED_WATERMARK:
     case HwAsic::Feature::MULTIPLE_EGRESS_BUFFER_POOL:
     case HwAsic::Feature::ENABLE_DELAY_DROP_CONGESTION_THRESHOLD:
+    case HwAsic::Feature::FAST_LLFC_COUNTER:
       return false;
   }
   return false;
@@ -324,7 +325,7 @@ uint32_t ChenabAsic::getMaxWideEcmpSize() const {
 uint32_t ChenabAsic::getMaxLagMemberSize() const {
   return 512;
 }
-int ChenabAsic::getSystemPortIDOffset() const {
+int ChenabAsic::getSflowPortIDOffset() const {
   return 500;
 }
 uint32_t ChenabAsic::getSflowShimHeaderSize() const {

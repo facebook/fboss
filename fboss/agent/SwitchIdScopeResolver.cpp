@@ -84,10 +84,11 @@ const HwSwitchMatcher& SwitchIdScopeResolver::voqSwitchMatcher() const {
 
 HwSwitchMatcher SwitchIdScopeResolver::scope(PortID portId) const {
   for (const auto& switchIdAndSwitchInfo : switchIdToSwitchInfo_) {
-    if (portId >=
-            PortID(*switchIdAndSwitchInfo.second.portIdRange()->minimum()) &&
-        portId <=
-            PortID(*switchIdAndSwitchInfo.second.portIdRange()->maximum())) {
+    auto switchInfo = switchIdAndSwitchInfo.second;
+    if (static_cast<int64_t>(portId) >=
+            *switchIdAndSwitchInfo.second.portIdRange()->minimum() &&
+        static_cast<int64_t>(portId) <=
+            *switchIdAndSwitchInfo.second.portIdRange()->maximum()) {
       return HwSwitchMatcher(std::unordered_set<SwitchID>(
           {SwitchID(switchIdAndSwitchInfo.first)}));
     }

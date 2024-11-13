@@ -16,26 +16,16 @@ TestStruct createSimpleTestStruct() {
       dynamic::object("3", dynamic::object("min", 100)("max", 200)))(
       "mapOfI32ToI32", dynamic::object(1, 1))(
       "cowMap", dynamic::object(1, true))(
-      "hybridMap", dynamic::object(1, true));
-
-  return facebook::thrift::from_dynamic<TestStruct>(
-      testDyn, facebook::thrift::dynamic_format::JSON_1);
-}
-
-TestStruct createHybridMapTestStruct() {
-  using folly::dynamic;
-  dynamic testDyn = dynamic::object("inlineBool", true)("inlineInt", 54)(
-      "inlineString", "testname")("optionalString", "bla")(
-      "inlineStruct", dynamic::object("min", 10)("max", 20))(
-      "inlineVariant", dynamic::object("inlineInt", 99))(
-      "mapOfEnumToStruct",
-      dynamic::object("3", dynamic::object("min", 100)("max", 200)))(
-      "mapOfI32ToI32", dynamic::object(1, 1))(
-      "cowMap", dynamic::object(1, true))(
       "hybridMap", dynamic::object(1, true))(
       "hybridMapOfI32ToStruct",
       dynamic::object(20, dynamic::object("min", 400)("max", 600)))(
-      "hybridMapOfMap", dynamic::object(10, dynamic::object(20, 30)));
+      "hybridMapOfMap", dynamic::object(10, dynamic::object(20, 30)))(
+      "hybridStruct",
+      dynamic::object(
+          "childMap", dynamic::object(10, true)(20, false)(50, false)))(
+      "mapOfStringToI32", dynamic::object("test1", 1)("test2", 2))(
+      "mapOfI32ToStruct",
+      dynamic::object(20, dynamic::object("min", 400)("max", 600)));
 
   return facebook::thrift::from_dynamic<TestStruct>(
       testDyn, facebook::thrift::dynamic_format::JSON_1);

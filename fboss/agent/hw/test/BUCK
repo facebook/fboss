@@ -1,5 +1,9 @@
 load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
 load("@fbcode_macros//build_defs:cpp_unittest.bzl", "cpp_unittest")
+load(
+    "@fbsource//arvr/tools/build_defs:embed_resources.bzl",
+    "embed_resources",
+)
 
 oncall("fboss_agent_push")
 
@@ -353,6 +357,7 @@ hw_test_common_srcs = [
 ]
 
 hw_test_asic_only_srcs = hw_test_common_srcs + [
+    "HwAsicDefaultProgrammingTests.cpp",
     "HwParityErrorTest.cpp",
     "dataplane_tests/facebook/HwAlpmStressTests.cpp",
 ]
@@ -377,6 +382,17 @@ hw_dataplane_test_srcs = [
     "dataplane_tests/HwRouteStatTests.cpp",
 ]
 
+embed_resources(
+    name = "golden_data",
+    add_map = True,
+    header_path = "fboss/agent/hw/test",
+    namespace = None,
+    resources = glob(["golden/**/*.csv"]),
+    visibility = [
+        "PUBLIC",
+    ],
+)
+
 cpp_library(
     name = "hw_switch_test",
     srcs = hw_test_asic_only_srcs + hw_dataplane_test_srcs,
@@ -385,6 +401,7 @@ cpp_library(
     exported_deps = [
         "fbsource//third-party/googletest:gtest",
         ":config_factory",
+        ":golden_data",
         ":hw_copp_utils",
         ":hw_packet_utils",
         ":hw_pfc_utils",
@@ -468,6 +485,7 @@ cpp_library(
         "//folly:random",
         "//folly:range",
         "//folly:singleton",
+        "//folly:string",
         "//folly:utility",
         "//folly/container:array",
         "//folly/io:iobuf",
@@ -475,6 +493,7 @@ cpp_library(
         "//folly/logging:logging",
     ],
     exported_external_deps = [
+        "re2",
         ("boost", None, "boost_container"),
     ],
 )

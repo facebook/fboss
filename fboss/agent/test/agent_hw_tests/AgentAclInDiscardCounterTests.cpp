@@ -24,10 +24,6 @@ class AgentAclInDiscardsCounterTest : public AgentHwTest {
   cfg::SwitchConfig initialConfig(
       const AgentEnsemble& ensemble) const override {
     auto cfg = AgentHwTest::initialConfig(ensemble);
-    // Add ACL Table group before adding any ACLs
-    utility::addAclTableGroup(
-        &cfg, cfg::AclStage::INGRESS, utility::getAclTableGroupName());
-    utility::addDefaultAclTable(cfg);
     auto* acl = utility::addAcl(&cfg, "block all", cfg::AclActionType::DENY);
     acl->dstIp() = "::/0";
     return cfg;

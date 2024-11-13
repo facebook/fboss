@@ -21,6 +21,7 @@ namespace fboss {
 
 static std::map<Ethernet10GComplianceCode, MediaInterfaceCode>
     mediaInterfaceMapping = {
+        {Ethernet10GComplianceCode::CR_10G, MediaInterfaceCode::CR_10G},
         {Ethernet10GComplianceCode::LR_10G, MediaInterfaceCode::LR_10G},
         {Ethernet10GComplianceCode::SR_10G, MediaInterfaceCode::SR_10G},
 };
@@ -285,6 +286,7 @@ TransmitterTechnology Sff8472Module::getQsfpTransmitterTechnology() const {
     case MediaInterfaceCode::LR_10G:
       return TransmitterTechnology::OPTICAL;
     case MediaInterfaceCode::BASE_T_10G:
+    case MediaInterfaceCode::CR_10G:
       return TransmitterTechnology::COPPER;
     default:
       return TransmitterTechnology::UNKNOWN;

@@ -60,7 +60,7 @@ class CmdShowDsfNodes
           *entry.name(),
           folly::to<std::string>(*entry.switchId()),
           *entry.type(),
-          *entry.systemPortRange(),
+          *entry.systemPortRanges(),
       });
     }
     out << table << std::endl;
@@ -83,9 +83,9 @@ class CmdShowDsfNodes
           ranges.push_back(
               folly::sformat("({}, {})", *range.minimum(), *range.maximum()));
         }
-        entry.systemPortRange() = folly::join(", ", ranges);
+        entry.systemPortRanges() = folly::join(", ", ranges);
       } else {
-        entry.systemPortRange() = "--";
+        entry.systemPortRanges() = "--";
       }
       model.dsfNodes()->push_back(entry);
     }

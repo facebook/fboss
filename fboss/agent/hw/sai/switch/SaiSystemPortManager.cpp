@@ -97,8 +97,10 @@ SaiSystemPortManager::attributesFromSwSystemPort(
     qosTcToQueueMap =
         SaiSystemPortTraits::Attributes::QosTcToQueueMap{qosMapId};
   }
+  std::optional<SaiSystemPortTraits::Attributes::ShelPktDstEnable>
+      shelPktDstEnable = std::nullopt;
   return SaiSystemPortTraits::CreateAttributes{
-      config, true /*enabled*/, qosTcToQueueMap};
+      config, true /*enabled*/, qosTcToQueueMap, shelPktDstEnable};
 }
 
 SystemPortSaiId SaiSystemPortManager::addSystemPort(

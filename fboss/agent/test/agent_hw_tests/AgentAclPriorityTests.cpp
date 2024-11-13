@@ -61,11 +61,6 @@ class AgentAclPriorityTest : public AgentHwTest {
         ensemble.getSw(),
         ensemble.masterLogicalPortIds(),
         true /*interfaceHasSubnet*/);
-    if (FLAGS_enable_acl_table_group) {
-      utility::addAclTableGroup(
-          &cfg, cfg::AclStage::INGRESS, utility::getAclTableGroupName());
-      utility::addDefaultAclTable(cfg);
-    }
     return cfg;
   }
 

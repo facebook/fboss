@@ -175,7 +175,6 @@ cpp_library(
         "HwBasePortFb303Stats.cpp",
         "HwPortFb303Stats.cpp",
         "HwSysPortFb303Stats.cpp",
-        "facebook/HwBasePortFb303Stats.cpp",
     ],
     exported_deps = [
         ":counter_utils",

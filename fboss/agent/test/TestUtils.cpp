@@ -1477,7 +1477,6 @@ cfg::SwitchInfo createSwitchInfo(
     cfg::Range64 systemPortRange;
     systemPortRange.minimum() = *sysPortMin;
     systemPortRange.maximum() = *sysPortMax;
-    switchInfo.systemPortRange() = systemPortRange;
     switchInfo.systemPortRanges()->systemPortRanges()->push_back(
         systemPortRange);
     switchInfo.localSystemPortOffset() = *sysPortMin;

@@ -560,6 +560,7 @@ enum AclTableActionType {
   MIRROR_INGRESS = 4,
   MIRROR_EGRESS = 5,
   SET_USER_DEFINED_TRAP = 6,
+  DISABLE_ARS_FORWARDING = 7,
 }
 
 enum AclTableQualifier {
@@ -1638,7 +1639,7 @@ struct SwitchInfo {
   // local switch identifier
   3: i16 switchIndex;
   4: Range64 portIdRange;
-  5: optional Range64 systemPortRange;
+  5: optional Range64 systemPortRange_DEPRECATED;
   6: optional string switchMac;
   7: optional string connectionHandle;
   8: SystemPortRanges systemPortRanges;
@@ -2093,9 +2094,6 @@ struct SwitchConfig {
   42: optional QcmConfig qcmConfig;
   43: optional map<PortPgConfigName, list<PortPgConfig>> portPgConfigs;
   44: optional map<BufferPoolConfigName, BufferPoolConfig> bufferPoolConfigs;
-  // aclTableGroup does not need to be a list at this point, as we only expect to
-  // support a single group for the foreseeable future. This could be changed to
-  // list<AclTableGroup> later if the need arises to support multiple groups.
   45: optional AclTableGroup aclTableGroup;
   // agent sdk versions
   46: optional SdkVersion sdkVersion;
@@ -2112,4 +2110,6 @@ struct SwitchConfig {
   // Overrides the system hostname, useful in ICMP responses
   54: optional string hostname;
   55: optional list<PortQueue> cpuVoqs;
+  // list of ACL table groups, prefer this over aclTableGroup, aclTableGroup will be deprecated
+  56: optional list<AclTableGroup> aclTableGroups;
 }

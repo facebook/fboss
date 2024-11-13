@@ -43,7 +43,6 @@ target_link_libraries(ioctl_smbus_eeprom_reader
 )
 
 target_link_libraries(weutil_lib
-  product_info
   platform_utils
   Folly::folly
   weutil_config_cpp2

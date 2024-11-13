@@ -42,11 +42,17 @@ TEST(ConfigValidatorTest, SlotPaths) {
   EXPECT_FALSE(ConfigValidator().isValidSlotPath("/BCB_SLOT@0FAN_SLOT@1"));
   // Can't have a trailing /
   EXPECT_FALSE(ConfigValidator().isValidSlotPath("/BCB_SLOT@0/"));
-  // Duplicate
+  // Valid (SlotPath,PmUnitName) pairing.
   SensorConfig config;
   PmUnitSensors pmUnitSensors1, pmUnitSensors2;
   pmUnitSensors1.slotPath() = "/BCB_SLOT@0";
+  pmUnitSensors1.pmUnitName() = "BCB";
   pmUnitSensors2.slotPath() = "/BCB_SLOT@0";
+  pmUnitSensors2.pmUnitName() = "BCB2";
+  config.pmUnitSensorsList() = {pmUnitSensors1, pmUnitSensors2};
+  EXPECT_TRUE(ConfigValidator().isValid(config));
+  // Duplicate (SlotPath, PmUnitName) pairing
+  pmUnitSensors2.pmUnitName() = "BCB";
   config.pmUnitSensorsList() = {pmUnitSensors1, pmUnitSensors2};
   EXPECT_FALSE(ConfigValidator().isValid(config));
 }

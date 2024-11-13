@@ -69,10 +69,12 @@ bool isEnabledPortWithSubnet(
 
 std::vector<std::string> getLoopbackIps(SwitchID switchId);
 
+int getMaxRdsw();
+int getMaxEdsw();
+
 cfg::DsfNode dsfNodeConfig(
     const HwAsic& myAsic,
     int64_t otherSwitchId = 4,
-    cfg::SystemPortRanges = cfg::SystemPortRanges(),
     const std::optional<PlatformType> platformType = std::nullopt);
 
 std::vector<cfg::Port>::iterator findCfgPort(

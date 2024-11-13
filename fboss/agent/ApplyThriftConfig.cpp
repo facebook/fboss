@@ -402,9 +402,11 @@ class ThriftConfigApplier {
       const std::set<PortDescriptor>& portDescs);
   std::shared_ptr<AclTableGroup> updateAclTableGroup(
       cfg::AclStage aclStage,
+      const cfg::AclTableGroup& cfgAclTableGroup,
       const std::shared_ptr<AclTableGroup>& origAclTableGroup);
   std::shared_ptr<AclTableGroupMap> updateAclTableGroups();
-  flat_map<std::string, const cfg::AclEntry*> getAllAclsByName();
+  flat_map<std::string, const cfg::AclEntry*> getAllAclsByName(
+      const cfg::AclTableGroup& cfgAclTableGroup);
   void checkTrafficPolicyAclsExistInConfig(
       const cfg::TrafficPolicyConfig& policy,
       flat_map<std::string, const cfg::AclEntry*> aclByName);
@@ -3104,22 +3106,29 @@ std::shared_ptr<AclTableGroupMap> ThriftConfigApplier::updateAclTableGroups() {
   auto origAclTableGroups = orig_->getAclTableGroups();
   AclTableGroupMap::NodeContainer newAclTableGroups;
 
-  if (!cfg_->aclTableGroup()) {
+  auto updateAclTableGroupsInternal =
+      [this, origAclTableGroups, &newAclTableGroups](
+          const cfg::AclTableGroup& cfgAclTableGroup) {
+        auto origAclTableGroup =
+            origAclTableGroups->getNodeIf(*cfgAclTableGroup.stage());
+        auto newAclTableGroup = updateAclTableGroup(
+            *cfgAclTableGroup.stage(), cfgAclTableGroup, origAclTableGroup);
+        return updateMap(
+            &newAclTableGroups, origAclTableGroup, newAclTableGroup);
+      };
+
+  bool changed = false;
+  if (!cfg_->aclTableGroup() &&
+      (!cfg_->aclTableGroups() || cfg_->aclTableGroups()->empty())) {
     throw FbossError(
         "ACL Table Group must be specified if Multiple ACL Table support is enabled");
+  } else if (auto cfgAclTableGroup = cfg_->aclTableGroup()) {
+    changed = updateAclTableGroupsInternal(*cfgAclTableGroup);
+  } else {
+    for (const auto& entry : *cfg_->aclTableGroups()) {
+      changed = updateAclTableGroupsInternal(entry);
+    }
   }
-
-  if (cfg_->aclTableGroup()->stage() != cfg::AclStage::INGRESS) {
-    throw FbossError("Only ACL Stage INGRESS is supported");
-  }
-
-  auto origAclTableGroup =
-      origAclTableGroups->getNodeIf(cfg::AclStage::INGRESS);
-
-  auto newAclTableGroup =
-      updateAclTableGroup(*cfg_->aclTableGroup()->stage(), origAclTableGroup);
-  auto changed =
-      updateMap(&newAclTableGroups, origAclTableGroup, newAclTableGroup);
 
   if (!changed) {
     return nullptr;
@@ -3130,12 +3139,13 @@ std::shared_ptr<AclTableGroupMap> ThriftConfigApplier::updateAclTableGroups() {
 
 std::shared_ptr<AclTableGroup> ThriftConfigApplier::updateAclTableGroup(
     cfg::AclStage aclStage,
+    const cfg::AclTableGroup& cfgAclTableGroup,
     const std::shared_ptr<AclTableGroup>& origAclTableGroup) {
   auto newAclTableMap = std::make_shared<AclTableMap>();
   bool changed = false;
   int numExistingTablesProcessed = 0;
 
-  auto aclByName = getAllAclsByName();
+  auto aclByName = getAllAclsByName(cfgAclTableGroup);
   // Check for controlPlane traffic acls
   if (cfg_->cpuTrafficPolicy() && cfg_->cpuTrafficPolicy()->trafficPolicy()) {
     checkTrafficPolicyAclsExistInConfig(
@@ -3147,7 +3157,7 @@ std::shared_ptr<AclTableGroup> ThriftConfigApplier::updateAclTableGroup(
   }
 
   // For each table in the config, update the table entries and priority
-  for (const auto& aclTable : *cfg_->aclTableGroup()->aclTables()) {
+  for (const auto& aclTable : *cfgAclTableGroup.aclTables()) {
     auto newTable =
         updateAclTable(aclStage, aclTable, &numExistingTablesProcessed);
     if (newTable) {
@@ -3173,17 +3183,18 @@ std::shared_ptr<AclTableGroup> ThriftConfigApplier::updateAclTableGroup(
   }
 
   auto newAclTableGroup =
-      std::make_shared<AclTableGroup>(*cfg_->aclTableGroup()->stage());
+      std::make_shared<AclTableGroup>(*cfgAclTableGroup.stage());
   newAclTableGroup->setAclTableMap(newAclTableMap);
-  newAclTableGroup->setName(*cfg_->aclTableGroup()->name());
+  newAclTableGroup->setName(*cfgAclTableGroup.name());
 
   return newAclTableGroup;
 }
 
 flat_map<std::string, const cfg::AclEntry*>
-ThriftConfigApplier::getAllAclsByName() {
+ThriftConfigApplier::getAllAclsByName(
+    const cfg::AclTableGroup& cfgAclTableGroup) {
   flat_map<std::string, const cfg::AclEntry*> aclByName;
-  for (const auto& aclTable : *cfg_->aclTableGroup()->aclTables()) {
+  for (const auto& aclTable : *cfgAclTableGroup.aclTables()) {
     auto aclEntries = *(aclTable.aclEntries());
     folly::gen::from(aclEntries) |
         folly::gen::map([](const cfg::AclEntry& acl) {
@@ -4880,6 +4891,7 @@ shared_ptr<MultiControlPlane> ThriftConfigApplier::updateControlPlane() {
 
   // check whether queue setting changed
   QueueConfig newQueues;
+  QueueConfig newVoqs;
   auto switchIds = scopeResolver_.scope(origCPU).switchIds();
   CHECK(scopeResolver_.hasL3());
   CHECK_GT(switchIds.size(), 0);
@@ -4894,6 +4906,15 @@ shared_ptr<MultiControlPlane> ThriftConfigApplier::updateControlPlane() {
         qosMap);
     newQueues.insert(
         newQueues.begin(), tmpPortQueues.begin(), tmpPortQueues.end());
+    if (cfg_->cpuVoqs()) {
+      auto tmpPortVoqs = updatePortQueues(
+          origCPU->getVoqsConfig(),
+          *cfg_->cpuVoqs(),
+          asic->getDefaultNumPortQueues(streamType, cfg::PortType::CPU_PORT),
+          streamType,
+          qosMap);
+      newVoqs.insert(newVoqs.begin(), tmpPortVoqs.begin(), tmpPortVoqs.end());
+    }
   }
   bool queuesUnchanged = false;
   if (origCPU->getQueues()->size() > 0) {
@@ -4906,13 +4927,25 @@ shared_ptr<MultiControlPlane> ThriftConfigApplier::updateControlPlane() {
       }
     }
   }
+  bool voqsUnchanged = (newVoqs.size() == origCPU->getVoqs()->size());
+  if (origCPU->getVoqs()->size() > 0) {
+    /* on cold boot original queues are 0 */
+    for (int i = 0; i < newVoqs.size() && voqsUnchanged; i++) {
+      if (*(newVoqs.at(i)) != *(origCPU->getVoqs()->at(i))) {
+        voqsUnchanged = false;
+        break;
+      }
+    }
+  }
 
-  if (queuesUnchanged && qosPolicyUnchanged && rxReasonToQueueUnchanged) {
+  if (queuesUnchanged && voqsUnchanged && qosPolicyUnchanged &&
+      rxReasonToQueueUnchanged) {
     return nullptr;
   }
 
   auto newCPU = origCPU->clone();
   newCPU->resetQueues(newQueues);
+  newCPU->resetVoqs(newVoqs);
   newCPU->resetQosPolicy(qosPolicy);
   newCPU->resetRxReasonToQueue(newRxReasonToQueue);
   auto newMultiSwitchControlPlane = std::make_shared<MultiControlPlane>();

@@ -340,23 +340,25 @@ bool isStateDeltaEmpty(const StateDelta& stateDelta) {
       [&empty, &stateDelta](auto* child, auto name) {
         using ChildType = std::decay_t<std::remove_pointer_t<decltype(child)>>;
         using Name = std::decay_t<decltype(name)>;
-        bool isEmpty = true;
-        if constexpr (
-            std::is_same_v<Name, switch_state_tags::switchSettingsMap> ||
-            std::is_same_v<Name, switch_state_tags::controlPlaneMap>) {
-          isEmpty = (DeltaFunctions::isEmpty(ThriftMapDelta<ChildType>(
-              stateDelta.oldState()->get<Name>().get(),
-              stateDelta.newState()->get<Name>().get())));
-        } else {
-          isEmpty = (DeltaFunctions::isEmpty(MultiSwitchMapDelta<ChildType>(
-              stateDelta.oldState()->get<Name>().get(),
-              stateDelta.newState()->get<Name>().get())));
+        if constexpr (thrift_cow::ResolveMemberType<ChildType, Name>::value) {
+          bool isEmpty = true;
+          if constexpr (
+              std::is_same_v<Name, switch_state_tags::switchSettingsMap> ||
+              std::is_same_v<Name, switch_state_tags::controlPlaneMap>) {
+            isEmpty = (DeltaFunctions::isEmpty(ThriftMapDelta<ChildType>(
+                stateDelta.oldState()->get<Name>().get(),
+                stateDelta.newState()->get<Name>().get())));
+          } else {
+            isEmpty = (DeltaFunctions::isEmpty(MultiSwitchMapDelta<ChildType>(
+                stateDelta.oldState()->get<Name>().get(),
+                stateDelta.newState()->get<Name>().get())));
+          }
+          if (!isEmpty) {
+            XLOG(INFO) << "Delta for " << utility::TagName<Name>::value()
+                       << " is not empty";
+          }
+          empty &= isEmpty;
         }
-        if (!isEmpty) {
-          XLOG(INFO) << "Delta for " << utility::TagName<Name>::value()
-                     << " is not empty";
-        }
-        empty &= isEmpty;
       });
   return empty;
 }
