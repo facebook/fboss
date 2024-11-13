@@ -30,9 +30,10 @@ compatible with the past versions.
 - There must not be any gap between the TLV entries.
 - The `type` field is always **one byte**.
 - The `length` field is always **one byte**. It contains the size of the
-  corresponding `value` field.
+  corresponding `value` field. The value of the `length` field cannot be 0.
 - The CRC field must be the **last entry**. The other TLV entries can be in any
   order.
+- Each field can appear no more than once in the content.
 - The below table only lists the Mandatory fields from the Meta software teams.
   Please check with Meta Manufacturing & Quality team to ensure other Mandatory
   fields are taken care of.
