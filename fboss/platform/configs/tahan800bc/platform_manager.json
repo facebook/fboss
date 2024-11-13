@@ -19,7 +19,7 @@
         "address": "0x56",
         "kernelDeviceName": "24c64"
       },
-      "pmUnitName": "SMB"
+      "pmUnitName": "SMB_FRU"
     },
     "RUNBMC_SLOT": {
       "numOutgoingI2cBuses": 1,
@@ -104,7 +104,7 @@
         "productSubVersion": 2
       }
     ],
-    "SMB": [
+    "SMB_FRU": [
       {
         "pmUnitConfig": {
           "pluggedInSlotType": "SMB_FRU_SLOT",
@@ -1748,7 +1748,7 @@
         }
       }
     },
-    "SMB": {
+    "SMB_FRU": {
       "pluggedInSlotType": "SMB_FRU_SLOT",
       "i2cDeviceConfigs": [
         {

@@ -1138,7 +1138,7 @@
     },
     {
       "slotPath": "/SMB_FRU_SLOT@0",
-      "pmUnitName": "SMB",
+      "pmUnitName": "SMB_FRU",
       "sensors": [],
       "versionedSensors": [
         {
