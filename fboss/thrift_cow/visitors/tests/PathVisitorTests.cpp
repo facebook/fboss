@@ -42,10 +42,34 @@ struct GetVisitedPathsOperator : public BasePathVisitorOperator {
   std::set<std::string> visited;
 };
 
-TEST(PathVisitorTests, AccessField) {
+template <bool EnableHybridStorage>
+struct TestParams {
+  static constexpr auto hybridStorage = EnableHybridStorage;
+};
+
+using StorageTestTypes = ::testing::Types<TestParams<false>, TestParams<true>>;
+
+template <typename TestParams>
+class PathVisitorTests : public ::testing::Test {
+ public:
+  auto initNode(auto val) {
+    using RootType = std::remove_cvref_t<decltype(val)>;
+    return std::make_shared<ThriftStructNode<
+        RootType,
+        ThriftStructResolver<RootType, TestParams::hybridStorage>,
+        TestParams::hybridStorage>>(val);
+  }
+  bool isHybridStorage() {
+    return TestParams::hybridStorage;
+  }
+};
+
+TYPED_TEST_SUITE(PathVisitorTests, StorageTestTypes);
+
+TYPED_TEST(PathVisitorTests, AccessField) {
   auto structA = createSimpleTestStruct();
 
-  auto nodeA = std::make_shared<ThriftStructNode<TestStruct>>(structA);
+  auto nodeA = this->initNode(structA);
   folly::dynamic dyn;
   auto processPath = pvlambda([&dyn](auto& node, auto begin, auto end) {
     EXPECT_EQ(begin, end);
@@ -54,7 +78,8 @@ TEST(PathVisitorTests, AccessField) {
                       std::remove_cvref_t<decltype(node)>>) {
       dyn = node.toFollyDynamic();
     } else {
-      FAIL() << "unexpected non-cow visit";
+      facebook::thrift::to_dynamic(
+          dyn, node, facebook::thrift::dynamic_format::JSON_1);
     }
   });
   std::vector<std::string> path{"inlineInt"};
@@ -83,6 +108,13 @@ TEST(PathVisitorTests, AccessField) {
       *nodeA, path.begin(), path.end(), PathVisitMode::LEAF, processPath);
   EXPECT_EQ(result, ThriftTraverseResult::OK);
   EXPECT_TRUE(dyn.asBool());
+
+  // mapOfI32ToStruct/20/min
+  path = {"mapOfI32ToStruct", "20", "min"};
+  result = RootPathVisitor::visit(
+      *nodeA, path.begin(), path.end(), PathVisitMode::LEAF, processPath);
+  EXPECT_EQ(result, ThriftTraverseResult::OK);
+  EXPECT_EQ(400, dyn.asInt());
 }
 
 TEST(PathVisitorTests, HybridMapPrimitiveAccess) {
@@ -374,30 +406,6 @@ TEST(PathVisitorTests, AccessOptional) {
   EXPECT_EQ(result, ThriftTraverseResult::NON_EXISTENT_NODE);
   EXPECT_TRUE(got.empty());
 }
-
-template <bool EnableHybridStorage>
-struct TestParams {
-  static constexpr auto hybridStorage = EnableHybridStorage;
-};
-
-using StorageTestTypes = ::testing::Types<TestParams<false>, TestParams<true>>;
-
-template <typename TestParams>
-class PathVisitorTests : public ::testing::Test {
- public:
-  auto initNode(auto val) {
-    using RootType = std::remove_cvref_t<decltype(val)>;
-    return std::make_shared<ThriftStructNode<
-        RootType,
-        ThriftStructResolver<RootType, TestParams::hybridStorage>,
-        TestParams::hybridStorage>>(val);
-  }
-  bool isHybridStorage() {
-    return TestParams::hybridStorage;
-  }
-};
-
-TYPED_TEST_SUITE(PathVisitorTests, StorageTestTypes);
 
 TYPED_TEST(PathVisitorTests, VisitWithOperators) {
   auto structA = createSimpleTestStruct();
