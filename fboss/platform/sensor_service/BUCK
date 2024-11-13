@@ -168,6 +168,8 @@ cpp_binary(
     srcs = [
         "SensorServicePlainTextClient.cpp",
     ],
+    default_strip_mode = "full",
+    strip_mode = "full",
     deps = [
         "//fboss/platform/helpers:init",
         "//fboss/platform/sensor_service/if:sensor_service-cpp2-clients",
