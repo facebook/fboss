@@ -189,7 +189,10 @@ void PlatformExplorer::explore() {
   publishFirmwareVersions();
   auto explorationStatus = concludeExploration();
   fb303::fbData->setCounter(
-      kExplorationFail, explorationStatus == ExplorationStatus::FAILED);
+      kExplorationFail,
+      explorationStatus != ExplorationStatus::SUCCEEDED &&
+          explorationStatus !=
+              ExplorationStatus::SUCCEEDED_WITH_EXPECTED_ERRORS);
   updatePmStatus(createPmStatus(
       explorationStatus,
       std::chrono::duration_cast<std::chrono::seconds>(
