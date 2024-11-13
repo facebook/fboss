@@ -56,7 +56,7 @@ EepromContents expectedContentsV4 = {
 };
 
 // Based on the Spec for V5 EEPROM:
-// https://docs.google.com/document/d/1KX6q2mHSjFU2-eDt5HGidWSRXm5vFfAaZvdOG890eXY
+// https://github.com/facebook/fboss/blob/main/fboss/docs/meta_eeprom_format_v5.md
 EepromData eepromV5 = {
     0xfb, 0xfb, 0x05, 0xff, 0x01, 0x0d, 0x46, 0x49, 0x52, 0x53, 0x54, 0x5f,
     0x53, 0x51, 0x55, 0x45, 0x45, 0x5a, 0x45, 0x02, 0x08, 0x32, 0x30, 0x31,
@@ -107,7 +107,7 @@ EepromContents expectedContentsV5 = {
     {"CRC16", "0xd5c6 (CRC Matched)"},
 };
 
-// EEORM V5 with wrong CRC Programmed (same as the one above, but last 2 bytes
+// EEPROM V5 with wrong CRC Programmed (same as the one above, but last 2 bytes
 // have wrong CRC value programmed.)
 EepromData eepromV5WrongCrc = {
     0xfb, 0xfb, 0x05, 0xff, 0x01, 0x0d, 0x46, 0x49, 0x52, 0x53, 0x54, 0x5f,
