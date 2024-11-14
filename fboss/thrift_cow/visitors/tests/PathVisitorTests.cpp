@@ -363,9 +363,9 @@ TYPED_TEST(PathVisitorTests, AccessFieldInContainer) {
   EXPECT_EQ(*got.max(), 200);
 }
 
-TEST(PathVisitorTests, TraversalModeFull) {
+TYPED_TEST(PathVisitorTests, TraversalModeFull) {
   auto structA = createSimpleTestStruct();
-  auto nodeA = std::make_shared<ThriftStructNode<TestStruct>>(structA);
+  auto nodeA = this->initNode(structA);
 
   auto op = GetVisitedPathsOperator();
   std::vector<std::string> path{"mapOfEnumToStruct", "3"};
