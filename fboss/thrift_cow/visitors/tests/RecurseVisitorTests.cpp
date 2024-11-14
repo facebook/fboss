@@ -100,6 +100,7 @@ TYPED_TEST(RecurseVisitorTests, TestFullRecurse) {
       {{"hybridSet"}, dynamic::array()},
       {{"hybridUnion"}, dynamic::object()},
       {{"hybridStruct"}, testDyn["hybridStruct"]},
+      {{"mapOfEnumToStruct"}, testDyn["mapOfEnumToStruct"]},
       {{"inlineBool"}, testDyn["inlineBool"]},
       {{"inlineInt"}, testDyn["inlineInt"]},
       {{"inlineString"}, testDyn["inlineString"]},
@@ -111,14 +112,6 @@ TYPED_TEST(RecurseVisitorTests, TestFullRecurse) {
       {{"inlineStruct", "invert"}, false},
       {{"inlineVariant"}, testDyn["inlineVariant"]},
       {{"inlineVariant", "inlineInt"}, testDyn["inlineVariant"]["inlineInt"]},
-      {{"mapOfEnumToStruct"}, testDyn["mapOfEnumToStruct"]},
-      {{"mapOfEnumToStruct", "3"}, testDyn["mapOfEnumToStruct"][3]},
-      {{"mapOfEnumToStruct", "3", "min"},
-       testDyn["mapOfEnumToStruct"][3]["min"]},
-      {{"mapOfEnumToStruct", "3", "max"},
-       testDyn["mapOfEnumToStruct"][3]["max"]},
-      {{"mapOfEnumToStruct", "3", "invert"},
-       testDyn["mapOfEnumToStruct"][3]["invert"]},
       {{"listOfListOfPrimitives"}, dynamic::array()},
       {{"listOfListOfStructs"}, dynamic::array()},
       {{"listOfPrimitives"}, dynamic::array()},
@@ -136,7 +129,15 @@ TYPED_TEST(RecurseVisitorTests, TestFullRecurse) {
       {{"mapB"}, dynamic::object()}};
 
   std::map<std::vector<std::string>, folly::dynamic> hybridLeaves = {
-      {{"hybridStruct", "childMap"}, testDyn["hybridStruct"]["childMap"]}};
+      {{"hybridStruct", "childMap"}, testDyn["hybridStruct"]["childMap"]},
+      {{"mapOfEnumToStruct"}, testDyn["mapOfEnumToStruct"]},
+      {{"mapOfEnumToStruct", "3"}, testDyn["mapOfEnumToStruct"][3]},
+      {{"mapOfEnumToStruct", "3", "min"},
+       testDyn["mapOfEnumToStruct"][3]["min"]},
+      {{"mapOfEnumToStruct", "3", "max"},
+       testDyn["mapOfEnumToStruct"][3]["max"]},
+      {{"mapOfEnumToStruct", "3", "invert"},
+       testDyn["mapOfEnumToStruct"][3]["invert"]}};
 
   if (!this->isHybridStorage()) {
     for (const auto& entry : hybridLeaves) {
@@ -173,7 +174,9 @@ TYPED_TEST(RecurseVisitorTests, TestLeafRecurse) {
       {{"inlineStruct", "min"}, 10},
       {{"inlineStruct", "max"}, 20},
       {{"inlineStruct", "invert"}, false},
-      {{"inlineVariant", "inlineInt"}, testDyn["inlineVariant"]["inlineInt"]},
+      {{"inlineVariant", "inlineInt"}, testDyn["inlineVariant"]["inlineInt"]}};
+
+  std::map<std::vector<std::string>, folly::dynamic> hybridDeepLeaves = {
       {{"mapOfEnumToStruct", "3", "min"},
        testDyn["mapOfEnumToStruct"][3]["min"]},
       {{"mapOfEnumToStruct", "3", "max"},
@@ -184,6 +187,7 @@ TYPED_TEST(RecurseVisitorTests, TestLeafRecurse) {
   std::map<std::vector<std::string>, folly::dynamic> hybridNodes = {
       {{"mapOfStringToI32"}, testDyn["mapOfStringToI32"]},
       {{"mapOfI32ToStruct"}, testDyn["mapOfI32ToStruct"]},
+      {{"mapOfEnumToStruct"}, testDyn["mapOfEnumToStruct"]},
       {{"hybridMap"}, testDyn["hybridMap"]},
       {{"hybridMapOfI32ToStruct"}, testDyn["hybridMapOfI32ToStruct"]},
       {{"hybridMapOfMap"}, testDyn["hybridMapOfMap"]},
@@ -194,6 +198,10 @@ TYPED_TEST(RecurseVisitorTests, TestLeafRecurse) {
 
   if (this->isHybridStorage()) {
     for (const auto& entry : hybridNodes) {
+      expected.insert(entry);
+    }
+  } else {
+    for (const auto& entry : hybridDeepLeaves) {
       expected.insert(entry);
     }
   }
@@ -220,7 +228,9 @@ TYPED_TEST(RecurseVisitorTests, TestLeafRecurse) {
       {{"4", "1"}, 10},
       {{"4", "2"}, 20},
       {{"4", "3"}, false},
-      {{"21", "2"}, testDyn["inlineVariant"]["inlineInt"]},
+      {{"21", "2"}, testDyn["inlineVariant"]["inlineInt"]}};
+
+  hybridDeepLeaves = {
       {{"15", "3", "1"}, testDyn["mapOfEnumToStruct"][3]["min"]},
       {{"15", "3", "2"}, testDyn["mapOfEnumToStruct"][3]["max"]},
       {{"15", "3", "3"}, testDyn["mapOfEnumToStruct"][3]["invert"]}};
@@ -228,6 +238,7 @@ TYPED_TEST(RecurseVisitorTests, TestLeafRecurse) {
   hybridNodes = {
       {{"13"}, testDyn["mapOfStringToI32"]},
       {{"14"}, testDyn["mapOfI32ToStruct"]},
+      {{"15"}, testDyn["mapOfEnumToStruct"]},
       {{"27"}, testDyn["hybridMap"]},
       {{"28"}, testDyn["hybridList"]},
       {{"29"}, testDyn["hybridSet"]},
@@ -238,6 +249,10 @@ TYPED_TEST(RecurseVisitorTests, TestLeafRecurse) {
 
   if (this->isHybridStorage()) {
     for (const auto& entry : hybridNodes) {
+      expected.insert(entry);
+    }
+  } else {
+    for (const auto& entry : hybridDeepLeaves) {
       expected.insert(entry);
     }
   }

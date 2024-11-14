@@ -51,7 +51,9 @@ struct TestStruct {
   14: map<i32, switch_config.L4PortRange> mapOfI32ToStruct (
     allow_skip_thrift_cow = true,
   );
-  15: map<TestEnum, switch_config.L4PortRange> mapOfEnumToStruct;
+  15: map<TestEnum, switch_config.L4PortRange> mapOfEnumToStruct (
+    allow_skip_thrift_cow = true,
+  );
   16: map<string, switch_config.L4PortRange> mapOfStringToStruct;
   17: map<i32, list<switch_config.L4PortRange>> mapOfI32ToListOfStructs;
   18: set<i32> setOfI32;
