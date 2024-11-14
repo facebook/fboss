@@ -1,9 +1,7 @@
 # **Meta FBOSS EEPROM Format v5**
 
-All Field Replaceable Unit (FRU) ID EEPROMs must follow the format below. This
-replaces the Meta FBOSS EEPROM Format V4. The major changes in this format are
-adoption of big-endian format, and flexibility to program multiple MAC addresses
-for different purposes.
+All Field Replaceable Unit (FRU) ID EEPROMs must follow the format below. EEPROM
+Format V5 is replaced by EEPROM Format V6 for all new platforms.
 
 ## **Conventions:**
 
@@ -100,7 +98,7 @@ and can be used as the reference to check the correctness of the algorithm.
 **Raw EEPROM BLOB:**
 
 ```
-[root@devserver ~]$ hexdump -C Juice=Juice
+[root@devserver ~]$ cat eeprom_file | hexdump -C
 00000000  fb fb 05 ff 01 0d 46 49  52 53 54 5f 53 51 55 45  |......FIRST_SQUE|
 00000010  45 5a 45 02 08 32 30 31  32 33 34 35 36 03 08 53  |EZE..20123456..S|
 00000020  59 53 41 31 32 33 34 04  0c 50 43 42 41 31 32 33  |YSA1234..PCBA123|
@@ -123,8 +121,8 @@ and can be used as the reference to check the correctness of the algorithm.
 **Output after parsing :**
 
 ```
-[root@devserver ~]# ./weutil --path /v5_eeprom 2>/dev/null
-Wedge EEPROM : /v5_eeprom
+[root@devserver ~]# ./weutil --path eeprom_file
+Version: 5
 Product Name: FIRST_SQUEEZE
 Product Part Number: 20123456
 System Assembly Part Number: SYSA1234
