@@ -328,7 +328,7 @@ TEST(PathVisitorTests, HybridMapOfMapAccess) {
   }
 }
 
-TEST(PathVisitorTests, AccessFieldInContainer) {
+TYPED_TEST(PathVisitorTests, AccessFieldInContainer) {
   auto structA = createSimpleTestStruct();
   auto nodeA = std::make_shared<ThriftStructNode<TestStruct>>(structA);
 
@@ -340,7 +340,8 @@ TEST(PathVisitorTests, AccessFieldInContainer) {
                       std::remove_cvref_t<decltype(node)>>) {
       dyn = node.toFollyDynamic();
     } else {
-      FAIL() << "unexpected non-cow visit";
+      facebook::thrift::to_dynamic(
+          dyn, node, facebook::thrift::dynamic_format::JSON_1);
     }
   });
   std::vector<std::string> path{"mapOfEnumToStruct", "3"};
