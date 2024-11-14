@@ -97609,12 +97609,12 @@ constexpr auto kJsonDualStageRdsw3q2qPlatformMappingStr = R"(
     "4": {
         "mapping": {
           "id": 4,
-          "name": "evt1/1/506",
+          "name": "evt1/1/504",
           "controllingPort": 4,
           "pins": [
             {
               "a": {
-                "chip": "NPU-J3_EVT-slot1/chip1/core506",
+                "chip": "NPU-J3_EVT-slot1/chip1/core504",
                 "lane": 0
               }
             }
@@ -97631,7 +97631,7 @@ constexpr auto kJsonDualStageRdsw3q2qPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J3_EVT-slot1/chip1/core506",
+                      "chip": "NPU-J3_EVT-slot1/chip1/core504",
                       "lane": 0
                     }
                   }
@@ -140279,9 +140279,9 @@ constexpr auto kJsonDualStageRdsw3q2qPlatformMappingStr = R"(
       "physicalID": 445
     },
     {
-      "name": "NPU-J3_EVT-slot1/chip1/core506",
+      "name": "NPU-J3_EVT-slot1/chip1/core504",
       "type": 1,
-      "physicalID": 506
+      "physicalID": 504
     },
     {
       "name": "TRANSCEIVER-OSFP-slot1/chip1",
