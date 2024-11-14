@@ -317,6 +317,20 @@ struct MirrorFields {
   15: optional i32 samplingRate;
 }
 
+struct MirrorOnDropReportFields {
+  1: string name;
+  2: i32 mirrorPortId;
+  3: Address.BinaryAddress localSrcIp; // Populated at runtime
+  4: i16 localSrcPort;
+  5: Address.BinaryAddress collectorIp;
+  6: i16 collectorPort;
+  7: i16 mtu;
+  8: i16 truncateSize;
+  9: byte dscp;
+  10: optional i32 agingIntervalUsecs;
+  11: string switchMac; // Populated at runtime
+}
+
 struct ControlPlaneFields {
   1: list<ctrl.PortQueueFields> queues;
   2: list<switch_config.PacketRxReasonToQueue> rxReasonToQueue;
@@ -654,6 +668,10 @@ struct SwitchState {
   118: map<SwitchIdList, map<i32, InterfaceFields>> interfaceMaps;
   119: map<SwitchIdList, map<i64, switch_config.DsfNode>> dsfNodesMap;
   120: map<SwitchIdList, map<string, PortFlowletFields>> portFlowletCfgMaps;
+  121: map<
+    SwitchIdList,
+    map<string, MirrorOnDropReportFields>
+  > mirrorOnDropReportMaps;
   // Remote object maps
   600: map<SwitchIdList, map<i64, SystemPortFields>> remoteSystemPortMaps;
   601: map<SwitchIdList, map<i32, InterfaceFields>> remoteInterfaceMaps;
