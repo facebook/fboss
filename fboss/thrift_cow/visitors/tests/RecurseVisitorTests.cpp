@@ -187,6 +187,10 @@ TYPED_TEST(RecurseVisitorTests, TestLeafRecurse) {
   std::map<std::vector<std::string>, folly::dynamic> hybridNodes = {
       {{"mapOfStringToI32"}, testDyn["mapOfStringToI32"]},
       {{"mapOfI32ToStruct"}, testDyn["mapOfI32ToStruct"]},
+      {{"mapOfEnumToI32"}, testDyn["mapOfEnumToI32"]},
+      {{"mapOfI32ToI32"}, testDyn["mapOfI32ToI32"]},
+      // {{"mapOfI32ToListOfStructs"}, testDyn["mapOfI32ToListOfStructs"]},
+      // {{"mapOfI32ToSetOfString"}, testDyn["mapOfI32ToSetOfString"]},
       {{"mapOfEnumToStruct"}, testDyn["mapOfEnumToStruct"]},
       {{"hybridMap"}, testDyn["hybridMap"]},
       {{"hybridMapOfI32ToStruct"}, testDyn["hybridMapOfI32ToStruct"]},
@@ -236,16 +240,21 @@ TYPED_TEST(RecurseVisitorTests, TestLeafRecurse) {
       {{"15", "3", "3"}, testDyn["mapOfEnumToStruct"][3]["invert"]}};
 
   hybridNodes = {
+      {{"11"}, testDyn["mapOfI32ToI32"]},
+      {{"12"}, testDyn["mapOfEnumToI32"]},
       {{"13"}, testDyn["mapOfStringToI32"]},
       {{"14"}, testDyn["mapOfI32ToStruct"]},
       {{"15"}, testDyn["mapOfEnumToStruct"]},
+      // {{"17"}, testDyn["mapOfI32ToListOfStructs"]},
       {{"27"}, testDyn["hybridMap"]},
       {{"28"}, testDyn["hybridList"]},
       {{"29"}, testDyn["hybridSet"]},
       {{"30"}, testDyn["hybridUnion"]},
       {{"31"}, testDyn["hybridStruct"]},
       {{"32"}, testDyn["hybridMapOfI32ToStruct"]},
-      {{"33"}, testDyn["hybridMapOfMap"]}};
+      {{"33"}, testDyn["hybridMapOfMap"]},
+      // {{"34"}, testDyn["mapOfI32ToSetOfString"]}
+  };
 
   if (this->isHybridStorage()) {
     for (const auto& entry : hybridNodes) {
