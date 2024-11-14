@@ -1605,7 +1605,7 @@
     "/run/devmap/sensors/PSU2_PMBUS": "/SMB_SLOT@0/PSU_SLOT@1/[PSU_PMBUS]"
   },
   "bspKmodsRpmName": "arista_bsp_kmods",
-  "bspKmodsRpmVersion": "0.7.4-1",
+  "bspKmodsRpmVersion": "0.7.6-1",
   "bspKmodsToReload": [
     "scd-xcvr",
     "scd-spi",
