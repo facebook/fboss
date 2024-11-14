@@ -142,7 +142,7 @@ std::optional<cfg::TrafficCounter> getAclTrafficCounter(
   return std::nullopt;
 }
 
-std::string getAclTableGroupName() {
+std::string kDefaultAclTableGroupName() {
   return "acl-table-group-ingress";
 }
 

@@ -43,7 +43,7 @@ class AgentAclScaleTest : public AgentHwTest {
         ensemble.masterLogicalPortIds(),
         true /*interfaceHasSubnet*/);
     utility::addAclTableGroup(
-        &cfg, cfg::AclStage::INGRESS, utility::getAclTableGroupName());
+        &cfg, cfg::AclStage::INGRESS, utility::kDefaultAclTableGroupName());
     return cfg;
   }
 

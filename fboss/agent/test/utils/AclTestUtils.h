@@ -60,7 +60,7 @@ std::optional<cfg::TrafficCounter> getAclTrafficCounter(
     const std::shared_ptr<SwitchState> state,
     const std::string& aclName);
 
-std::string getAclTableGroupName();
+std::string kDefaultAclTableGroupName();
 
 std::vector<cfg::AclEntry>& getAcls(
     cfg::SwitchConfig* cfg,

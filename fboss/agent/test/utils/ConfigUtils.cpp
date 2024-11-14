@@ -762,7 +762,7 @@ cfg::SwitchConfig genPortVlanCfg(
   cfg::SwitchConfig config;
   if (FLAGS_enable_acl_table_group) {
     utility::addAclTableGroup(
-        &config, cfg::AclStage::INGRESS, utility::getAclTableGroupName());
+        &config, cfg::AclStage::INGRESS, utility::kDefaultAclTableGroupName());
     utility::addDefaultAclTable(config);
   }
   if (switchIdToSwitchInfo.has_value() && hwAsicTable.has_value()) {
