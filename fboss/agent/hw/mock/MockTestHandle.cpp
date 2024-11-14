@@ -10,7 +10,6 @@
 #include "fboss/agent/hw/mock/MockTestHandle.h"
 
 #include <folly/io/IOBuf.h>
-#include <gmock/gmock.h>
 
 #include "fboss/agent/hw/mock/MockRxPacket.h"
 
