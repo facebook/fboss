@@ -5,7 +5,6 @@
 
 #include <fboss/lib/LogThriftCall.h>
 #include <folly/coro/BlockingWait.h>
-#include <folly/coro/Timeout.h>
 #include <folly/logging/xlog.h>
 #include <thrift/lib/cpp2/server/Cpp2Worker.h>
 #include "fboss/fsdb/common/Flags.h"

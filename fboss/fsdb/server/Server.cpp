@@ -13,8 +13,6 @@
 #include "fboss/fsdb/server/ServiceHandler.h"
 #include "fboss/fsdb/server/ThriftAcceptor.h"
 
-#include <signal.h>
-
 using namespace std::chrono_literals; // @donotremove
 
 DEFINE_bool(readConfigFile, true, "Whether config file should be read");
