@@ -11,7 +11,6 @@
 
 #include "fboss/cli/fboss2/commands/set/port/state/CmdSetPortState.h"
 #include "fboss/cli/fboss2/test/CmdHandlerTestBase.h"
-#include "nettools/common/TestUtils.h"
 
 using namespace ::testing;
 

@@ -6,8 +6,6 @@
 #include "fboss/cli/fboss2/commands/show/interface/status/CmdShowInterfaceStatus.h"
 #include "fboss/cli/fboss2/commands/show/interface/status/gen-cpp2/model_types.h"
 #include "fboss/cli/fboss2/test/CmdHandlerTestBase.h"
-#include "fboss/cli/fboss2/utils/CmdClientUtils.h"
-#include "nettools/common/TestUtils.h"
 
 using namespace ::testing;
 

@@ -119,7 +119,6 @@ cpp_unittest(
         "//folly:network_address",
         "//folly/json:dynamic",
         "//neteng/fboss/bgp/if:bgp_thrift-cpp2-services",
-        "//neteng/fboss/bgp/if:bgp_thrift-cpp2-types",
         "//nettools/common:TestUtils",
     ],
     external_deps = [("boost", None, "boost_algorithm")],
