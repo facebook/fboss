@@ -140002,7 +140002,7 @@ constexpr auto kJsonDualStageRdsw3q2qPlatformMappingStr = R"(
             }
           ],
           "portType": 5,
-          "attachedCoreId": 1,
+          "attachedCoreId": 2,
           "attachedCorePortIndex": 18,
           "virtualDeviceId": 0,
           "scope": 0
