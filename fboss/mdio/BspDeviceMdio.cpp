@@ -11,17 +11,9 @@
 #include <fcntl.h>
 #include <folly/Format.h>
 #include <folly/Range.h>
-#include <folly/lang/Bits.h>
 #include <folly/logging/xlog.h>
-#include <gflags/gflags.h>
-#include <linux/mdio.h>
-#include <linux/mii.h>
-#include <linux/sockios.h>
-#include <net/if.h>
 #include <sys/ioctl.h>
-#include <algorithm>
 #include <cerrno>
-#include <chrono>
 #include <cstdint>
 #include "fboss/mdio/MdioError.h"
 

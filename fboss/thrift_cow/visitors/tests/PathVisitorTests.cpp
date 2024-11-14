@@ -11,7 +11,6 @@
 #include <thrift/lib/cpp2/folly_dynamic/folly_dynamic.h>
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/thrift_cow/nodes/Types.h"
-#include "fboss/thrift_cow/nodes/tests/gen-cpp2/test_fatal_types.h"
 
 namespace facebook::fboss::thrift_cow::test {
 

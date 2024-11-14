@@ -3,7 +3,6 @@
 #include "fboss/lib/thrift_service_client/ThriftServiceClient.h"
 #include "fboss/qsfp_service/platforms/wedge/WedgeManager.h" // @manual=//fboss/qsfp_service/platforms/wedge:wedge-platform-default
 #include "fboss/qsfp_service/platforms/wedge/WedgeManagerInit.h" // @manual=//fboss/qsfp_service/platforms/wedge:wedge-platform-default
-#include "fboss/util/qsfp/QsfpServiceDetector.h"
 #include "fboss/util/qsfp/QsfpUtilContainer.h"
 #include "fboss/util/qsfp/QsfpUtilTx.h"
 #include "fboss/util/wedge_qsfp_util.h"
