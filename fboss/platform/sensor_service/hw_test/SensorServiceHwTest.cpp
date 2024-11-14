@@ -11,7 +11,6 @@
 #include "fboss/platform/sensor_service/hw_test/SensorServiceHwTest.h"
 
 #include <folly/init/Init.h>
-#include <thrift/lib/cpp2/protocol/Serializer.h>
 #include <thrift/lib/cpp2/util/ScopedServerInterfaceThread.h>
 
 #include "fboss/platform/helpers/Init.h"

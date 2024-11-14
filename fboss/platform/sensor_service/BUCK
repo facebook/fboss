@@ -123,7 +123,6 @@ cpp_binary(
         "//fb303:logging",
         "//fboss/platform/helpers:init",
         "//folly/executors:function_scheduler",
-        "//folly/logging:init",
     ],
 )
 
