@@ -37,6 +37,7 @@ target_link_libraries(sensor_service_utils
   platform_name_lib
   platform_manager_service_cpp2
   platform_manager_config_cpp2
+  platform_manager_config_validator
   ${RE2}
 )
 
@@ -54,6 +55,7 @@ add_library(sensor_service_lib
 target_link_libraries(sensor_service_lib
   log_thrift_call
   platform_config_lib
+  platform_manager_config_validator
   platform_name_lib
   platform_utils
   sensor_service_utils
