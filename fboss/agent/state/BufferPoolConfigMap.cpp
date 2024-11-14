@@ -20,6 +20,6 @@ MultiSwitchBufferPoolCfgMap* MultiSwitchBufferPoolCfgMap::modify(
   return SwitchState::modify<switch_state_tags::bufferPoolCfgMaps>(state);
 }
 
-template class ThriftMapNode<BufferPoolCfgMap, BufferPoolCfgMapTraits>;
+template struct ThriftMapNode<BufferPoolCfgMap, BufferPoolCfgMapTraits>;
 
 } // namespace facebook::fboss

@@ -9,7 +9,7 @@
 namespace facebook::fboss {
 
 class AgentNetWhoAmI;
-class AgentConfig;
+struct AgentConfig;
 
 template <typename T>
 class AgentWrapperTest : public ::testing::Test {

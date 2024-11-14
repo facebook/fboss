@@ -87,6 +87,6 @@ bool SwitchSettings::vlansSupported() const {
   return !getSwitchIdsOfType(cfg::SwitchType::NPU).empty();
 }
 
-template class ThriftStructNode<SwitchSettings, state::SwitchSettingsFields>;
+template struct ThriftStructNode<SwitchSettings, state::SwitchSettingsFields>;
 
 } // namespace facebook::fboss

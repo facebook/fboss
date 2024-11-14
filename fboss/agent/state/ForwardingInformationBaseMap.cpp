@@ -101,7 +101,7 @@ MultiSwitchForwardingInformationBaseMap::getRouteCount() const {
   return std::make_pair(v4Count, v6Count);
 }
 
-template class ThriftMapNode<
+template struct ThriftMapNode<
     ForwardingInformationBaseMap,
     ForwardingInformationBaseMapTraits>;
 

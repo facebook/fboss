@@ -81,6 +81,6 @@ void Vlan::addPort(PortID id, bool tagged) {
   ref<switch_state_tags::ports>()->emplace(id, tagged);
 }
 
-template class ThriftStructNode<Vlan, state::VlanFields>;
+template struct ThriftStructNode<Vlan, state::VlanFields>;
 
 } // namespace facebook::fboss

@@ -846,6 +846,6 @@ template MultiSwitchPortFlowletCfgMap* SwitchState::modify<
 template MultiSwitchDsfNodeMap* SwitchState::modify<
     switch_state_tags::dsfNodesMap>(std::shared_ptr<SwitchState>*);
 
-template class ThriftStructNode<SwitchState, state::SwitchState>;
+template struct ThriftStructNode<SwitchState, state::SwitchState>;
 
 } // namespace facebook::fboss

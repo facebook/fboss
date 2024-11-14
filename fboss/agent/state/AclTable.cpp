@@ -40,6 +40,6 @@ std::shared_ptr<AclTable> AclTable::createDefaultAclTableFromThrift(
   return std::make_shared<AclTable>(data);
 }
 
-template class ThriftStructNode<AclTable, state::AclTableFields>;
+template struct ThriftStructNode<AclTable, state::AclTableFields>;
 
 } // namespace facebook::fboss

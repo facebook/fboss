@@ -11,6 +11,6 @@
 
 namespace facebook::fboss {
 
-template class ThriftStructNode<SystemPort, state::SystemPortFields>;
+template struct ThriftStructNode<SystemPort, state::SystemPortFields>;
 
 } // namespace facebook::fboss
