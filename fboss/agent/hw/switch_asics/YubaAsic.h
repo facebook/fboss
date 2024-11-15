@@ -99,6 +99,12 @@ class YubaAsic : public TajoAsic {
   uint32_t getMaxEcmpSize() const override {
     return 512;
   }
+  std::optional<uint32_t> getMaxEcmpGroups() const override {
+    return 1024;
+  }
+  std::optional<uint32_t> getMaxEcmpMembers() const override {
+    return 32768;
+  }
   uint32_t getNumCores() const override {
     return 12;
   }
