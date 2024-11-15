@@ -13,7 +13,6 @@
 #include "fboss/agent/DsfSubscriber.h"
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/SwitchStats.h"
-#include "fboss/agent/SwitchStatsObserver.h"
 #include "fboss/agent/state/Interface.h"
 #include "fboss/agent/test/CounterCache.h"
 #include "fboss/agent/test/HwTestHandle.h"

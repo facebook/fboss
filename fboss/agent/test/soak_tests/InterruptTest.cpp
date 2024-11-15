@@ -2,13 +2,9 @@
 
 #include "fboss/agent/test/soak_tests/InterruptTest.h"
 
-#include <chrono>
 #include <thread>
 
-#include <gflags/gflags.h>
-
 #include "fboss/agent/SwSwitch.h"
-#include "fboss/agent/SwitchStats.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
 #include "fboss/agent/hw/test/LoadBalancerUtils.h"
@@ -17,8 +13,6 @@
 #include "fboss/agent/test/CounterCache.h"
 
 #include "common/process/Process.h"
-
-#include <folly/IPAddress.h>
 
 namespace facebook::fboss {
 

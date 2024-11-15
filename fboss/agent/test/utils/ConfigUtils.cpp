@@ -12,7 +12,6 @@
 #include <memory>
 
 #include "fboss/agent/AgentFeatures.h"
-#include "fboss/agent/Constants.h"
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/test/TestEnsembleIf.h"

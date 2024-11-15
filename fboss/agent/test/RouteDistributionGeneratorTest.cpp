@@ -16,8 +16,6 @@
 #include "fboss/agent/test/RouteGeneratorTestUtils.h"
 #include "fboss/agent/test/TestUtils.h"
 
-#include <gflags/gflags.h>
-
 namespace facebook::fboss {
 
 TEST(RouteDistributionGeneratorsTest, v4AndV6DistributionSingleChunk) {

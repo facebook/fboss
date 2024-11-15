@@ -9,9 +9,6 @@
  */
 #include "fboss/agent/test/TestUtils.h"
 
-#include <boost/cast.hpp>
-#include <thrift/lib/cpp2/protocol/Serializer.h>
-
 #include "fboss/agent/AgentConfig.h"
 #include "fboss/agent/ApplyThriftConfig.h"
 #include "fboss/agent/RxPacket.h"
@@ -41,8 +38,6 @@
 
 #include <folly/Memory.h>
 #include <folly/container/Enumerate.h>
-#include <folly/json/json.h>
-#include <folly/logging/Init.h>
 #include <chrono>
 #include <memory>
 #include <optional>

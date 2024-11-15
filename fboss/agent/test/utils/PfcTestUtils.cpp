@@ -6,8 +6,6 @@
 #include "fboss/agent/hw/gen-cpp2/hardware_stats_types.h"
 #include "fboss/agent/test/utils/AclTestUtils.h"
 
-#include <gtest/gtest.h>
-
 namespace facebook::fboss::utility {
 
 namespace {

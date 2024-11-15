@@ -14,9 +14,7 @@
 #include "fboss/agent/LookupClassRouteUpdater.h"
 #include "fboss/agent/NeighborUpdater.h"
 #include "fboss/agent/SwSwitchRouteUpdateWrapper.h"
-#include "fboss/agent/state/Port.h"
 
-#include "fboss/agent/state/Vlan.h"
 #include "fboss/agent/test/HwTestHandle.h"
 #include "fboss/agent/test/TestUtils.h"
 

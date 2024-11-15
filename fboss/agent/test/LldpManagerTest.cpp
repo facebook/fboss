@@ -13,7 +13,6 @@
 #include <folly/io/Cursor.h>
 #include <folly/io/IOBuf.h>
 #include <folly/logging/xlog.h>
-#include <limits.h>
 #include "fboss/agent/ArpHandler.h"
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/SwSwitch.h"
@@ -21,13 +20,11 @@
 #include "fboss/agent/TxPacket.h"
 #include "fboss/agent/hw/mock/MockHwSwitch.h"
 #include "fboss/agent/hw/mock/MockPlatform.h"
-#include "fboss/agent/hw/mock/MockRxPacket.h"
 #include "fboss/agent/packet/PktUtil.h"
 #include "fboss/agent/test/CounterCache.h"
 #include "fboss/agent/test/HwTestHandle.h"
 #include "fboss/agent/test/TestUtils.h"
 
-#include <boost/cast.hpp>
 #include <gtest/gtest.h>
 #include "gmock/gmock.h"
 

@@ -21,7 +21,6 @@
 #include "fboss/agent/AddressUtil.h"
 #include "fboss/agent/if/gen-cpp2/common_types.h"
 
-#include <folly/logging/xlog.h>
 #include <gtest/gtest.h>
 #include <optional>
 

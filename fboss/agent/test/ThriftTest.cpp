@@ -29,7 +29,6 @@
 
 #include <folly/IPAddress.h>
 #include <gtest/gtest.h>
-#include <thrift/lib/cpp/util/EnumUtils.h>
 
 using namespace facebook::fboss;
 using namespace facebook::stats;
