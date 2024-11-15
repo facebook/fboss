@@ -4,13 +4,18 @@
 # cmake/FooBar.cmake
 
 add_library(link_tests
+  fboss/agent/test/link_tests/DependencyTest.cpp
   fboss/agent/test/link_tests/EmptyLinkTest.cpp
+  fboss/agent/test/link_tests/LacpSanityTests.cpp
+  fboss/agent/test/link_tests/LinkSanityTests.cpp
   fboss/agent/test/link_tests/LinkTest.cpp
   fboss/agent/test/link_tests/LinkTestUtils.cpp
-  fboss/agent/test/link_tests/LinkSanityTests.cpp
-  fboss/agent/test/link_tests/PtpTests.cpp
+  fboss/agent/test/link_tests/MacLearningTests.cpp
   fboss/agent/test/link_tests/OpticsTest.cpp
-  fboss/agent/test/link_tests/LacpSanityTests.cpp
+  fboss/agent/test/link_tests/PhyInfoTest.cpp
+  fboss/agent/test/link_tests/PrbsTest.cpp
+  fboss/agent/test/link_tests/PtpTests.cpp
+  fboss/agent/test/link_tests/SpeedChangeTest.cpp
 )
 
 target_link_libraries(link_tests
