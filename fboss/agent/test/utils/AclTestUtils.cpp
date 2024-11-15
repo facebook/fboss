@@ -74,11 +74,8 @@ int getAclTableIndex(
 cfg::AclEntry* addAclEntry(
     cfg::SwitchConfig* cfg,
     cfg::AclEntry& acl,
-    const std::optional<std::string>& tableName) {
+    const std::string& aclTableName) {
   if (FLAGS_enable_acl_table_group) {
-    auto aclTableName = tableName.has_value()
-        ? tableName.value()
-        : cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE();
     auto aclTableGroup = getAclTableGroup(*cfg);
     int tableNumber =
         getAclTableIndex(cfg, aclTableName, *aclTableGroup->name());
@@ -100,7 +97,10 @@ cfg::AclEntry* addAcl(
   *acl.name() = aclName;
   *acl.actionType() = aclActionType;
 
-  return addAclEntry(cfg, acl, tableName);
+  if (!tableName) {
+    return addAclEntry(cfg, acl, kDefaultAclTable());
+  }
+  return addAclEntry(cfg, acl, *tableName);
 }
 
 void addEtherTypeToAcl(

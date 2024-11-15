@@ -32,7 +32,7 @@ std::string kDefaultAclTable();
 cfg::AclEntry* addAclEntry(
     cfg::SwitchConfig* cfg,
     cfg::AclEntry& acl,
-    const std::optional<std::string>& tableName);
+    const std::string& tableName);
 
 cfg::AclEntry* addAcl(
     cfg::SwitchConfig* cfg,

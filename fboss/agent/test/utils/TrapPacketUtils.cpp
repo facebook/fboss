@@ -10,7 +10,7 @@ void addTrapPacketAcl(cfg::SwitchConfig* config, PortID port) {
   entry.name() = folly::to<std::string>("trap-packet-", port);
   entry.srcPort() = port;
   entry.actionType() = cfg::AclActionType::PERMIT;
-  utility::addAclEntry(config, entry, std::nullopt);
+  utility::addAclEntry(config, entry, utility::kDefaultAclTable());
 
   cfg::MatchAction action;
   action.sendToQueue() = cfg::QueueMatchAction();
@@ -56,7 +56,7 @@ void addTrapPacketAcl(
   entry.name() = folly::to<std::string>("trap-", prefix.first.str());
   entry.dstIp() = prefix.first.str();
   entry.actionType() = cfg::AclActionType::PERMIT;
-  utility::addAclEntry(config, entry, std::nullopt);
+  utility::addAclEntry(config, entry, utility::kDefaultAclTable());
 
   cfg::MatchAction action;
   action.sendToQueue() = cfg::QueueMatchAction();
@@ -100,7 +100,7 @@ void addTrapPacketAcl(cfg::SwitchConfig* config, uint16_t l4DstPort) {
   entry.name() = folly::to<std::string>("trap-packet-", l4DstPort);
   entry.l4DstPort() = l4DstPort;
   entry.actionType() = cfg::AclActionType::PERMIT;
-  utility::addAclEntry(config, entry, std::nullopt);
+  utility::addAclEntry(config, entry, utility::kDefaultAclTable());
 
   cfg::MatchAction action;
   action.sendToQueue() = cfg::QueueMatchAction();
