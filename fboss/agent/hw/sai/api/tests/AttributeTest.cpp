@@ -10,8 +10,6 @@
 #include "fboss/agent/hw/sai/api/LoggingUtil.h"
 #include "fboss/agent/hw/sai/api/SaiAttribute.h"
 
-#include <folly/logging/xlog.h>
-
 #include <fmt/format.h>
 #include <fmt/ranges.h>
 #include <gtest/gtest.h>

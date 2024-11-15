@@ -13,14 +13,10 @@
 #include "fboss/agent/hw/test/HwLinkStateDependentTest.h"
 #include "fboss/agent/hw/test/HwTestCoppUtils.h"
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
-#include "fboss/agent/hw/test/HwTestPortUtils.h"
-#include "fboss/agent/packet/EthHdr.h"
 #include "fboss/agent/test/ResourceLibUtil.h"
 #include "fboss/agent/test/TrunkUtils.h"
-#include "folly/Utility.h"
 
 #include <folly/IPAddress.h>
-#include <folly/container/Array.h>
 #include <thread>
 
 using namespace std::chrono_literals;

@@ -8,7 +8,6 @@
  *
  */
 #include "fboss/agent/hw/sai/fake/FakeSaiHostif.h"
-#include "fboss/agent/hw/sai/api/SaiVersion.h"
 #include "fboss/agent/hw/sai/fake/FakeSai.h"
 
 #include <folly/logging/xlog.h>

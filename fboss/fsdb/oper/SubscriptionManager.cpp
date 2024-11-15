@@ -3,9 +3,6 @@
 #include "fboss/fsdb/oper/SubscriptionManager.h"
 #include "fboss/fsdb/oper/SubscriptionMetadataServer.h"
 
-#include <folly/String.h>
-#include <folly/logging/xlog.h>
-
 namespace facebook::fboss::fsdb {
 
 void SubscriptionManagerBase::registerExtendedSubscription(

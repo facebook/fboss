@@ -25,7 +25,6 @@
 
 #include <folly/IPAddress.h>
 #include <gtest/gtest.h>
-#include <thrift/lib/cpp/util/EnumUtils.h>
 #include "fboss/agent/test/MultiSwitchTestServer.h"
 
 #include <folly/coro/GtestHelpers.h>

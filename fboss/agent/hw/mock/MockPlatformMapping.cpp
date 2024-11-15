@@ -9,8 +9,6 @@
  */
 #include "fboss/agent/hw/mock/MockPlatformMapping.h"
 
-#include <gmock/gmock.h>
-
 namespace facebook::fboss {
 
 MockPlatformMapping::MockPlatformMapping() : Wedge100PlatformMapping() {

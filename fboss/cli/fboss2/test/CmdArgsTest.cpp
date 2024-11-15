@@ -7,7 +7,6 @@
 #include <stdexcept>
 #include <string>
 #include <tuple>
-#include <variant>
 #include <vector>
 
 using namespace ::testing;

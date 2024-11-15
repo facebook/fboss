@@ -244,6 +244,16 @@ SaiSflowMirrorTraits::Attributes::AttributeTcBufferLimit::operator()() {
 }
 
 std::optional<sai_attr_id_t>
+SaiLocalMirrorTraits::Attributes::AttributeTcBufferLimit::operator()() {
+  return std::nullopt;
+}
+
+std::optional<sai_attr_id_t> SaiEnhancedRemoteMirrorTraits::Attributes::
+    AttributeTcBufferLimit::operator()() {
+  return std::nullopt;
+}
+
+std::optional<sai_attr_id_t>
 SaiSwitchTraits::Attributes::AttributeNoAclsForTrapsWrapper::operator()() {
   return std::nullopt;
 }

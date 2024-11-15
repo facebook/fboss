@@ -4,6 +4,6 @@
 
 namespace facebook::fboss {
 
-template class ThriftStructNode<IpTunnel, state::IpTunnelFields>;
+template struct ThriftStructNode<IpTunnel, state::IpTunnelFields>;
 
 } // namespace facebook::fboss

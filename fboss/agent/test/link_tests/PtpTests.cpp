@@ -4,17 +4,14 @@
 #include <gtest/gtest.h>
 #include "fboss/agent/PlatformPort.h"
 #include "fboss/agent/SwSwitch.h"
-#include "fboss/agent/hw/test/HwTestEcmpUtils.h"
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
 #include "fboss/agent/packet/PTPHeader.h"
-#include "fboss/agent/packet/PktUtil.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/test/link_tests/LinkTest.h"
 #include "fboss/agent/test/link_tests/LinkTestUtils.h"
 #include "fboss/agent/test/utils/PacketSnooper.h"
 #include "fboss/agent/test/utils/PacketTestUtils.h"
 #include "fboss/agent/test/utils/TrapPacketUtils.h"
-#include "fboss/lib/CommonUtils.h"
 
 #include "common/process/Process.h"
 

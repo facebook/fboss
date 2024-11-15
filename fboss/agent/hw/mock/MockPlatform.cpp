@@ -12,12 +12,10 @@
 #include <folly/Memory.h>
 #include "fboss/agent/Platform.h"
 #include "fboss/agent/SysError.h"
-#include "fboss/agent/ThriftHandler.h"
 #include "fboss/agent/hw/mock/MockHwSwitch.h"
 #include "fboss/agent/hw/mock/MockPlatformMapping.h"
 #include "fboss/agent/hw/mock/MockPlatformPort.h"
 #include "fboss/agent/hw/mock/MockTestHandle.h"
-#include "fboss/agent/test/HwTestHandle.h"
 #include "fboss/lib/platforms/PlatformProductInfo.h"
 
 #include <gmock/gmock.h>

@@ -62,5 +62,5 @@ TransceiverSpec::toPlatformPortConfigOverrideFactor() const {
   return factor;
 }
 
-template class ThriftStructNode<TransceiverSpec, state::TransceiverSpecFields>;
+template struct ThriftStructNode<TransceiverSpec, state::TransceiverSpecFields>;
 } // namespace facebook::fboss

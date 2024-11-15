@@ -4,8 +4,6 @@
 #include "fboss/agent/RxPacket.h"
 #include "fboss/agent/packet/PktUtil.h"
 
-#include <folly/logging/xlog.h>
-
 namespace facebook::fboss {
 
 HwTestPacketSnooper::HwTestPacketSnooper(

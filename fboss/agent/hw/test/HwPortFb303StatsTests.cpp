@@ -10,7 +10,6 @@
 
 #include "fboss/agent/hw/HwPortFb303Stats.h"
 #include "fboss/agent/hw/StatsConstants.h"
-#include "fboss/agent/hw/gen-cpp2/hardware_stats_constants.h"
 
 #include <fb303/ServiceData.h>
 #include <folly/logging/xlog.h>

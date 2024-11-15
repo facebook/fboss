@@ -13,7 +13,6 @@ extern "C" {
 }
 
 #include <folly/logging/xlog.h>
-#include "fboss/agent/Constants.h"
 #include "fboss/agent/hw/bcm/BcmError.h"
 #include "fboss/agent/hw/bcm/BcmPlatform.h"
 #include "fboss/agent/hw/bcm/BcmRouteCounter.h"

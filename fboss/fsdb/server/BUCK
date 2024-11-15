@@ -48,7 +48,6 @@ cpp_library(
         "//folly:synchronized",
         "//folly/container:f14_hash",
         "//folly/coro:blocking_wait",
-        "//folly/coro:timeout",
         "//folly/io/async:scoped_event_base_thread",
         "//folly/logging:logging",
         "//thrift/lib/cpp/server:server_event_handler",

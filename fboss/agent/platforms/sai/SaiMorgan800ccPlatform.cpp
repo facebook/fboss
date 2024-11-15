@@ -12,8 +12,6 @@
 #include "fboss/agent/hw/switch_asics/YubaAsic.h"
 #include "fboss/agent/platforms/common/morgan800cc/Morgan800ccPlatformMapping.h"
 
-#include <algorithm>
-
 namespace facebook::fboss {
 
 SaiMorgan800ccPlatform::SaiMorgan800ccPlatform(

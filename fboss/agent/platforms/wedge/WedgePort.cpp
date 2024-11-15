@@ -10,12 +10,9 @@
 
 #include "fboss/agent/platforms/wedge/WedgePort.h"
 
-#include <folly/futures/Future.h>
 #include <folly/gen/Base.h>
 #include <folly/io/async/EventBase.h>
-#include <folly/io/async/EventBaseManager.h>
 
-#include "fboss/agent/FbossError.h"
 #include "fboss/agent/HwSwitch.h"
 #include "fboss/agent/hw/bcm/BcmPortGroup.h"
 #include "fboss/agent/platforms/wedge/WedgePlatform.h"

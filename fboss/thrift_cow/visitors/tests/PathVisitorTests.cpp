@@ -11,7 +11,6 @@
 #include <thrift/lib/cpp2/folly_dynamic/folly_dynamic.h>
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/thrift_cow/nodes/Types.h"
-#include "fboss/thrift_cow/nodes/tests/gen-cpp2/test_fatal_types.h"
 
 namespace facebook::fboss::thrift_cow::test {
 
@@ -328,7 +327,7 @@ TEST(PathVisitorTests, HybridMapOfMapAccess) {
   }
 }
 
-TEST(PathVisitorTests, AccessFieldInContainer) {
+TYPED_TEST(PathVisitorTests, AccessFieldInContainer) {
   auto structA = createSimpleTestStruct();
   auto nodeA = std::make_shared<ThriftStructNode<TestStruct>>(structA);
 
@@ -340,7 +339,8 @@ TEST(PathVisitorTests, AccessFieldInContainer) {
                       std::remove_cvref_t<decltype(node)>>) {
       dyn = node.toFollyDynamic();
     } else {
-      FAIL() << "unexpected non-cow visit";
+      facebook::thrift::to_dynamic(
+          dyn, node, facebook::thrift::dynamic_format::JSON_1);
     }
   });
   std::vector<std::string> path{"mapOfEnumToStruct", "3"};
@@ -362,9 +362,9 @@ TEST(PathVisitorTests, AccessFieldInContainer) {
   EXPECT_EQ(*got.max(), 200);
 }
 
-TEST(PathVisitorTests, TraversalModeFull) {
+TYPED_TEST(PathVisitorTests, TraversalModeFull) {
   auto structA = createSimpleTestStruct();
-  auto nodeA = std::make_shared<ThriftStructNode<TestStruct>>(structA);
+  auto nodeA = this->initNode(structA);
 
   auto op = GetVisitedPathsOperator();
   std::vector<std::string> path{"mapOfEnumToStruct", "3"};

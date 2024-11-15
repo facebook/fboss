@@ -25,8 +25,14 @@ namespace facebook::fboss {
 
 SaiMirrorHandle::SaiMirror SaiMirrorManager::addNodeSpan(
     sai_object_id_t monitorPort) {
+  std::optional<SaiLocalMirrorTraits::Attributes::TcBufferLimit> tcBufferLimit;
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
+  // TODO: Fix this to be picked up from eventor VoQ config.
+  // For now, defaulting to 1M.
+  tcBufferLimit = 1000000;
+#endif
   SaiLocalMirrorTraits::AdapterHostKey k{
-      SAI_MIRROR_SESSION_TYPE_LOCAL, monitorPort};
+      SAI_MIRROR_SESSION_TYPE_LOCAL, monitorPort, tcBufferLimit};
   SaiLocalMirrorTraits::CreateAttributes attributes = k;
   auto& store = saiStore_->get<SaiLocalMirrorTraits>();
   return store.setObject(k, attributes);
@@ -39,6 +45,13 @@ SaiMirrorHandle::SaiMirror SaiMirrorManager::addNodeErSpan(
   auto headerVersion = mirrorTunnel.srcIp.isV4() ? 4 : 6;
   auto truncateSize =
       mirror->getTruncate() ? platform_->getAsic()->getMirrorTruncateSize() : 0;
+  std::optional<SaiEnhancedRemoteMirrorTraits::Attributes::TcBufferLimit>
+      tcBufferLimit;
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
+  // TODO: Fix this to be picked up from eventor VoQ config.
+  // For now, defaulting to 1M.
+  tcBufferLimit = 1000000;
+#endif
   SaiEnhancedRemoteMirrorTraits::CreateAttributes attributes{
       SAI_MIRROR_SESSION_TYPE_ENHANCED_REMOTE,
       monitorPort,
@@ -52,7 +65,8 @@ SaiMirrorHandle::SaiMirror SaiMirrorManager::addNodeErSpan(
       headerVersion,
       mirrorTunnel.ttl,
       truncateSize,
-      mirror->getSamplingRate()};
+      mirror->getSamplingRate(),
+      tcBufferLimit};
   SaiEnhancedRemoteMirrorTraits::AdapterHostKey k{
       SAI_MIRROR_SESSION_TYPE_ENHANCED_REMOTE,
       monitorPort,

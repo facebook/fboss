@@ -306,6 +306,13 @@ struct HwSwitchCreditStats {
   1: optional i64 deletedCreditBytes;
 }
 
+struct HwSwitchEgressCellErrorStats {
+  1: i64 rqpFabricCellCorruption;
+  2: i64 rqpNonFabricCellCorruption;
+  3: i64 rqpNonFabricCellMissing;
+  4: i64 rqpParityError;
+}
+
 struct HwSwitchFb303GlobalStats {
   1: i64 tx_pkt_allocated;
   2: i64 tx_pkt_freed;
@@ -349,6 +356,10 @@ struct HwSwitchFb303GlobalStats {
   27: optional i64 dram_blocked_time_ns;
   28: optional i64 deleted_credit_bytes;
   29: optional i64 vsq_resource_exhaustion_drops;
+  30: optional i64 rqp_fabric_cell_corruption;
+  31: optional i64 rqp_non_fabric_cell_corruption;
+  32: optional i64 rqp_non_fabric_cell_missing;
+  33: optional i64 rqp_parity_error;
 }
 
 struct HwFlowletStats {

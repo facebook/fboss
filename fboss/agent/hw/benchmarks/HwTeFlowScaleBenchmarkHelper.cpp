@@ -9,12 +9,8 @@
  */
 
 #include "fboss/agent/hw/benchmarks/HwTeFlowScaleBenchmarkHelper.h"
-#include "fboss/agent/Platform.h"
-#include "fboss/agent/SwitchStats.h"
 #include "fboss/agent/benchmarks/AgentBenchmarks.h"
-#include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwSwitchEnsemble.h"
-#include "fboss/agent/hw/test/HwSwitchEnsembleFactory.h"
 #include "fboss/agent/hw/test/HwTeFlowTestUtils.h"
 #include "fboss/agent/hw/test/HwTestTeFlowUtils.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
@@ -22,7 +18,6 @@
 
 #include <folly/Benchmark.h>
 #include <folly/IPAddress.h>
-#include <folly/logging/xlog.h>
 
 DEFINE_int32(teflow_scale_entries, 9216, "Teflow scale entries");
 

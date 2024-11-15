@@ -8,15 +8,15 @@
  *
  */
 
-#if defined(SAI_VERSION_11_3_0_0_DNX_ODP) || \
-    defined(SAI_VERSION_11_7_0_0_DNX_ODP)
+#include "fboss/agent/hw/sai/tracer/TamEventAgingGroupApiTracer.h" // NOLINT(facebook-unused-include-check)
 
-#include "fboss/agent/hw/sai/tracer/TamEventAgingGroupApiTracer.h"
 #include <typeindex>
 #include <utility>
 
 #include "fboss/agent/hw/sai/api/TamEventAgingGroupApi.h"
 #include "fboss/agent/hw/sai/tracer/Utils.h"
+
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_0) && !defined(BRCM_SAI_SDK_DNX_GTE_12_0)
 
 using folly::to;
 

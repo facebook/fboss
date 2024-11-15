@@ -2,7 +2,6 @@
 
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/state/AggregatePort.h"
-#include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/test/TrunkUtils.h"
 #include "fboss/agent/test/link_tests/AgentEnsembleLinkTest.h"

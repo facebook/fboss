@@ -29,7 +29,6 @@
 
 #include <folly/IPAddress.h>
 #include <gtest/gtest.h>
-#include <thrift/lib/cpp/util/EnumUtils.h>
 
 using namespace facebook::fboss;
 using namespace facebook::stats;
@@ -638,7 +637,7 @@ TYPED_TEST(ThriftTestAllSwitchTypes, getAclTableGroup) {
     tableGroup.aclTables()->push_back(createAclTable(1));
     tableGroup.aclTables()->push_back(createAclTable(2));
 
-    config.aclTableGroup() = tableGroup;
+    config.aclTableGroups() = {tableGroup};
     this->sw_->applyConfig("New config with acl table group", config);
     auto state = this->sw_->getState();
     handler.getAclTableGroup(aclTables);

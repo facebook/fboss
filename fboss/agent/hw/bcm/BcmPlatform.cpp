@@ -15,7 +15,6 @@
 
 #include "fboss/agent/SysError.h"
 #include "fboss/agent/hw/bcm/BcmAPI.h"
-#include "fboss/agent/hw/bcm/BcmConfig.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 
 DEFINE_bool(

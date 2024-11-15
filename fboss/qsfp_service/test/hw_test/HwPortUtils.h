@@ -21,7 +21,7 @@ namespace facebook::fboss {
 
 class HwQsfpEnsemble;
 class PhyManager;
-class AgentConfig;
+struct AgentConfig;
 
 namespace phy {
 struct PhyPortConfig;

@@ -55,7 +55,7 @@ ForwardingInformationBaseContainer* ForwardingInformationBaseContainer::modify(
   return rtn;
 }
 
-template class ThriftStructNode<
+template struct ThriftStructNode<
     ForwardingInformationBaseContainer,
     state::FibContainerFields>;
 

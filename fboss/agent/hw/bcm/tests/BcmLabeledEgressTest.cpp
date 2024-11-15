@@ -6,7 +6,6 @@
 #include "fboss/agent/hw/bcm/BcmEgressManager.h"
 #include "fboss/agent/hw/bcm/BcmHost.h"
 #include "fboss/agent/hw/bcm/BcmIntf.h"
-#include "fboss/agent/hw/bcm/BcmLabeledTunnel.h"
 #include "fboss/agent/hw/bcm/BcmLabeledTunnelEgress.h"
 #include "fboss/agent/hw/bcm/BcmPortTable.h"
 #include "fboss/agent/hw/bcm/tests/BcmTest.h"

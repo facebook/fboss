@@ -17,10 +17,6 @@
 #include "fboss/agent/test/HwTestHandle.h"
 #include "fboss/agent/test/TestUtils.h"
 
-#include <folly/IPAddressV4.h>
-#include <folly/IPAddressV6.h>
-#include <folly/MacAddress.h>
-
 #include <algorithm>
 
 using namespace facebook::fboss;

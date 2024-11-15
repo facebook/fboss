@@ -185,3 +185,8 @@ DEFINE_bool(
 bool isDualStage3Q2QMode() {
   return FLAGS_dual_stage_rdsw_3q_2q || FLAGS_dual_stage_edsw_3q_2q;
 }
+
+DEFINE_bool(
+    enable_hw_update_protection,
+    false,
+    "Enable Neighbor/MAC table hw update failure protection");

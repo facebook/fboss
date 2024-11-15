@@ -11,7 +11,6 @@
 #include "fboss/agent/platforms/sai/SaiBcmElbertPlatform.h"
 #include "fboss/agent/platforms/common/elbert/ElbertPlatformMapping.h"
 
-#include <cstdio>
 #include <cstring>
 namespace facebook::fboss {
 

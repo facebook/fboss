@@ -22,7 +22,6 @@ cpp_binary(
         "//fboss/platform/sensor_service/if:sensor_service-cpp2-types",
         "//fboss/qsfp_service/lib:qsfp-service-client",
         "//folly/executors:function_scheduler",
-        "//folly/logging:init",
         "//folly/logging:logging",
         "//thrift/lib/cpp2/protocol:protocol",
     ],

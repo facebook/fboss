@@ -9,7 +9,6 @@
  */
 #include "fboss/agent/hw/bcm/BcmControlPlaneQueueManager.h"
 
-#include <folly/logging/xlog.h>
 #include <thrift/lib/cpp/util/EnumUtils.h>
 
 #include "fboss/agent/hw/StatsConstants.h"
@@ -21,7 +20,6 @@
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 
 extern "C" {
-#include <bcm/cosq.h>
 #include <bcm/types.h>
 }
 

@@ -10,7 +10,6 @@
 
 #include "fboss/qsfp_service/platforms/wedge/WedgeQsfp.h"
 #include <folly/Conv.h>
-#include <folly/Memory.h>
 #include <folly/Random.h>
 #include <folly/ScopeGuard.h>
 

@@ -21,9 +21,7 @@
 #include "fboss/agent/test/ResourceLibUtil.h"
 
 #include <folly/IPAddress.h>
-extern "C" {
-#include <bcm/l3.h>
-}
+extern "C" {}
 
 using folly::CIDRNetwork;
 using folly::IPAddress;

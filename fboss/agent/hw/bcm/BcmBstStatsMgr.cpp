@@ -18,9 +18,7 @@
 #include "fboss/agent/hw/bcm/BcmPortTable.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 
-extern "C" {
-#include <bcm/field.h>
-}
+extern "C" {}
 
 namespace facebook::fboss {
 

@@ -8,6 +8,7 @@ namespace facebook::fboss::platform::platform_manager {
 
 class ConfigValidator {
  public:
+  virtual ~ConfigValidator() = default;
   bool isValid(const PlatformConfig& platformConfig);
   bool isValidPmUnitConfig(
       const std::map<std::string, SlotTypeConfig>& slotTypeConfigs,
@@ -20,7 +21,7 @@ class ConfigValidator {
   bool isValidDevicePath(
       const PlatformConfig& platformConfig,
       const std::string& devicePath);
-  bool isValidSlotPath(
+  virtual bool isValidSlotPath(
       const PlatformConfig& platformConfig,
       const std::string& slotPath);
   bool isValidDeviceName(

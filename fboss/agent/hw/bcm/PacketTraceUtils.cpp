@@ -9,11 +9,9 @@
 #include "fboss/agent/hw/bcm/BcmPortTable.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 #include "fboss/agent/hw/bcm/gen-cpp2/packettrace_types.h"
-#include "fboss/agent/state/Interface.h"
 
 extern "C" {
 #include <bcm/l3.h>
-#include <bcm/port.h>
 }
 
 namespace {

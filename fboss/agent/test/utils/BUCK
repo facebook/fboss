@@ -504,6 +504,7 @@ cpp_library(
     ],
     exported_deps = [
         ":dsf_config_utils",
+        "//fboss/agent:core",
         "//fboss/agent:fboss-types",
         "//fboss/agent:switch_config-cpp2-types",
         "//fboss/agent:switchid_scope_resolver",

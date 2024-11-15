@@ -17,9 +17,7 @@
 #include "fboss/agent/state/SwitchState.h"
 
 #include <folly/IPAddress.h>
-extern "C" {
-#include <bcm/l3.h>
-}
+extern "C" {}
 
 using folly::IPAddressV4;
 using folly::IPAddressV6;

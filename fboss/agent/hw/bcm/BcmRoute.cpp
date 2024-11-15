@@ -17,7 +17,6 @@ extern "C" {
 #include <folly/IPAddressV4.h>
 #include <folly/IPAddressV6.h>
 #include <folly/logging/xlog.h>
-#include "fboss/agent/Constants.h"
 #include "fboss/agent/hw/bcm/BcmError.h"
 #include "fboss/agent/hw/bcm/BcmIntf.h"
 #include "fboss/agent/hw/bcm/BcmMultiPathNextHop.h"

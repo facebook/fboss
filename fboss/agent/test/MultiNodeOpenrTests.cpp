@@ -10,10 +10,7 @@
 
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwTestCoppUtils.h"
-#include "fboss/agent/state/Interface.h"
-#include "fboss/agent/state/StateUtils.h"
 #include "fboss/agent/state/SwitchState.h"
-#include "fboss/agent/state/Vlan.h"
 #include "fboss/agent/test/MultiNodeTest.h"
 #include "fboss/agent/test/TestUtils.h"
 #include "fboss/lib/CommonUtils.h"

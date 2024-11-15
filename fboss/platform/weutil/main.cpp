@@ -11,7 +11,6 @@
 
 #include "fboss/platform/helpers/InitCli.h"
 #include "fboss/platform/weutil/Weutil.h"
-#include "fboss/platform/weutil/WeutilDarwin.h"
 
 using namespace facebook::fboss::platform;
 using namespace facebook::fboss;

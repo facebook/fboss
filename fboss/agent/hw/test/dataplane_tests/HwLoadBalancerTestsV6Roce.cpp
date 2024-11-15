@@ -10,7 +10,6 @@
 
 #include "fboss/agent/hw/test/dataplane_tests/HwLoadBalancerTests.h"
 
-#include "fboss/agent/Platform.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
 

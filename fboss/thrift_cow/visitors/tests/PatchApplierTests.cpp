@@ -7,7 +7,6 @@
 #include <fboss/thrift_cow/visitors/PatchApplier.h>
 #include <fboss/thrift_cow/visitors/tests/VisitorTestUtils.h>
 #include "fboss/thrift_cow/nodes/Types.h"
-#include "fboss/thrift_cow/nodes/tests/gen-cpp2/test_fatal_types.h"
 #include "fboss/thrift_cow/nodes/tests/gen-cpp2/test_types.h"
 
 using k = facebook::fboss::test_tags::strings;

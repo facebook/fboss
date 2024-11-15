@@ -13,7 +13,6 @@
 #include "fboss/agent/hw/switch_asics/Tomahawk5Asic.h"
 #include "fboss/agent/platforms/common/tahan800bc/Tahan800bcPlatformMapping.h"
 
-#include <cstdio>
 #include <cstring>
 namespace facebook::fboss {
 

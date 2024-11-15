@@ -11,7 +11,6 @@
 #include "fboss/agent/hw/sai/fake/FakeSaiVlan.h"
 #include "fboss/agent/hw/sai/fake/FakeSai.h"
 
-#include <folly/logging/xlog.h>
 #include <optional>
 
 using facebook::fboss::FakeSai;

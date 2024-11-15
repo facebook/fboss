@@ -12,7 +12,6 @@
 #include "fboss/agent/SetupThrift.h"
 #include "fboss/agent/hw/sai/switch/SaiAclTableManager.h"
 #include "fboss/agent/hw/sai/switch/SaiLagManager.h"
-#include "fboss/agent/hw/sai/switch/SaiPortManager.h"
 
 #include <folly/io/async/AsyncSignalHandler.h>
 #include "fboss/agent/hw/sai/diag/SaiRepl.h"
@@ -22,11 +21,8 @@
 #include "fboss/agent/test/LinkStateToggler.h"
 
 #include "fboss/agent/HwSwitch.h"
-#include "fboss/agent/SwitchStats.h"
 
 #include <folly/gen/Base.h>
-
-#include <boost/container/flat_set.hpp>
 
 #include <csignal>
 #include <memory>

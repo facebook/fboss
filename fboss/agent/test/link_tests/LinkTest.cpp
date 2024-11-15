@@ -20,12 +20,10 @@
 #include "fboss/agent/test/link_tests/LinkTestUtils.h"
 #include "fboss/agent/test/utils/CoppTestUtils.h"
 #include "fboss/agent/test/utils/QosTestUtils.h"
-#include "fboss/lib/CommonFileUtils.h"
 #include "fboss/lib/CommonUtils.h"
 #include "fboss/lib/config/PlatformConfigUtils.h"
 #include "fboss/lib/phy/gen-cpp2/phy_types_custom_protocol.h"
 #include "fboss/lib/thrift_service_client/ThriftServiceClient.h"
-#include "fboss/qsfp_service/if/gen-cpp2/transceiver_types_custom_protocol.h"
 
 DEFINE_bool(
     list_production_feature,

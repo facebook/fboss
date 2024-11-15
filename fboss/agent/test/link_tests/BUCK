@@ -59,7 +59,6 @@ cpp_library(
         "//fboss/agent/hw/test:hw_test_port_utils",
         "//fboss/agent/hw/test:load_balancer_utils",
         "//fboss/agent/packet:packet",
-        "//fboss/agent/packet:pktutil",
         "//fboss/agent/platforms/common:platform_mapping",
         "//fboss/agent/state:state",
         "//fboss/agent/state:state_utils",

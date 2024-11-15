@@ -33,6 +33,7 @@
 #include "fboss/agent/SwitchIdScopeResolver.h"
 #include "fboss/agent/SwitchInfoUtils.h"
 #include "fboss/agent/Utils.h"
+#include "fboss/agent/VoqUtils.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/if/gen-cpp2/mpls_types.h"
 #include "fboss/agent/platforms/common/PlatformMapping.h"
@@ -1006,7 +1007,11 @@ void ThriftConfigApplier::processUpdatedDsfNodes() {
             asicCore = 1;
             break;
           case cfg::AsicType::ASIC_TYPE_JERICHO3:
-            asicCore = 441;
+            if (isDualStage3Q2QMode()) {
+              asicCore = 447;
+            } else {
+              asicCore = 441;
+            }
             break;
           case cfg::AsicType::ASIC_TYPE_CHENAB:
           case cfg::AsicType::ASIC_TYPE_TRIDENT2:
@@ -1136,9 +1141,9 @@ void ThriftConfigApplier::processUpdatedDsfNodes() {
     const auto& recyclePortInfo = dsfNodeAsic->getRecyclePortInfo();
     sysPort->setCoreIndex(recyclePortInfo.coreId);
     sysPort->setCorePortIndex(recyclePortInfo.corePortIndex);
-    sysPort->setSpeedMbps(recyclePortInfo.speedMbps); // 10G
-    // TODO(daiweix): do not hardcode 8
-    sysPort->setNumVoqs(8);
+    sysPort->setSpeedMbps(recyclePortInfo.speedMbps);
+    sysPort->setNumVoqs(
+        getNumVoqs(cfg::PortType::RECYCLE_PORT, cfg::Scope::GLOBAL));
     sysPort->setScope(cfg::Scope::GLOBAL);
     // TODO(daiweix): use voq config of rcy ports, hardcode rcy portID 1 for now
     sysPort->resetPortQueues(getVoqConfig(PortID(1)));
@@ -1610,9 +1615,6 @@ void ThriftConfigApplier::updateVlanInterfaces(const Interface* intf) {
 shared_ptr<SystemPortMap> ThriftConfigApplier::updateSystemPorts(
     const std::shared_ptr<MultiSwitchPortMap>& ports,
     const std::shared_ptr<MultiSwitchSettings>& multiSwitchSettings) {
-  // TODO(daiweix): do not hardcode 8
-  const auto kNumVoqs = 8;
-
   static const std::set<cfg::PortType> kCreateSysPortsFor = {
       cfg::PortType::INTERFACE_PORT,
       cfg::PortType::RECYCLE_PORT,
@@ -1651,7 +1653,8 @@ shared_ptr<SystemPortMap> ThriftConfigApplier::updateSystemPorts(
       sysPort->setCorePortIndex(
           platformPort.mapping()->attachedCorePortIndex().value());
       sysPort->setSpeedMbps(static_cast<int>(port.second->getSpeed()));
-      sysPort->setNumVoqs(kNumVoqs);
+      sysPort->setNumVoqs(
+          getNumVoqs(port.second->getPortType(), port.second->getScope()));
       sysPort->setQosPolicy(port.second->getQosPolicy());
       sysPort->resetPortQueues(getVoqConfig(port.second->getID()));
       // TODO(daiweix): remove this CHECK_EQ after verifying scope config is
@@ -3144,7 +3147,6 @@ std::shared_ptr<AclTableGroup> ThriftConfigApplier::updateAclTableGroup(
   auto newAclTableMap = std::make_shared<AclTableMap>();
   bool changed = false;
   int numExistingTablesProcessed = 0;
-
   auto aclByName = getAllAclsByName(cfgAclTableGroup);
   // Check for controlPlane traffic acls
   if (cfg_->cpuTrafficPolicy() && cfg_->cpuTrafficPolicy()->trafficPolicy()) {

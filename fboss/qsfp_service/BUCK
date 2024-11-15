@@ -76,7 +76,6 @@ cpp_library(
         "//fb303:thread_cached_service_data",
         "//fboss/qsfp_service/if:transceiver-cpp2-types",
         "//folly/logging:logging",
-        "//servicerouter/client/cpp2:cpp2",
     ],
 )
 
@@ -91,14 +90,11 @@ cpp_library(
     exported_deps = [
         ":stats-helper",
         ":transceiver-manager",
-        "//common/network:util",
         "//common/time:time",
         "//fb303:thread_cached_service_data",
         "//fboss/qsfp_service/if:transceiver-cpp2-types",
-        "//folly:memory",
         "//folly/io/async:async_base",
         "//folly/logging:logging",
-        "//servicerouter/client/cpp2:cpp2",
     ],
 )
 
@@ -123,7 +119,6 @@ cpp_library(
         "//fb303:thread_cached_service_data",
         "//fboss/agent:fboss-error",
         "//fboss/agent:fboss-types",
-        "//fboss/agent:load_agent_config",
         "//fboss/agent:platform_config-cpp2-types",
         "//fboss/agent:switch_config-cpp2-types",
         "//fboss/agent:utils",

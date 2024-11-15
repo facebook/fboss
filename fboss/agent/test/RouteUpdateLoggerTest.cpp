@@ -16,7 +16,6 @@
 #include "fboss/agent/state/StateDelta.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/test/HwTestHandle.h"
-#include "fboss/agent/test/TestUtils.h"
 
 #include <gtest/gtest.h>
 #include <memory>
