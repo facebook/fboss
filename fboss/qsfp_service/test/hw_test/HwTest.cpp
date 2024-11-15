@@ -16,7 +16,6 @@
 #include "fboss/lib/CommonUtils.h"
 #include "fboss/lib/fpga/MultiPimPlatformSystemContainer.h"
 #include "fboss/lib/phy/PhyManager.h"
-#include "fboss/lib/platforms/PlatformProductInfo.h"
 #include "fboss/qsfp_service/QsfpServer.h"
 #include "fboss/qsfp_service/test/hw_test/HwPortUtils.h"
 #include "fboss/qsfp_service/test/hw_test/HwQsfpEnsemble.h"

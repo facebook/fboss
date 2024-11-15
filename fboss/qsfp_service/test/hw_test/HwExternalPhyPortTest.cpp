@@ -13,8 +13,6 @@
 #include "fboss/qsfp_service/test/hw_test/HwPortUtils.h"
 #include "fboss/qsfp_service/test/hw_test/HwQsfpEnsemble.h"
 
-#include <fmt/format.h>
-
 namespace facebook::fboss {
 std::string HwExternalPhyPortTest::neededFeatureNames() const {
   std::stringstream ss;

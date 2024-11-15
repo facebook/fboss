@@ -10,7 +10,6 @@
 #include "fboss/qsfp_service/test/QsfpServiceTest.h"
 
 #include <folly/Singleton.h>
-#include <folly/logging/xlog.h>
 
 #include "common/init/Init.h"
 
