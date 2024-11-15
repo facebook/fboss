@@ -1649,6 +1649,8 @@ struct ExactMatchTableConfig {
 const i16 DEFAULT_FLOWLET_TABLE_SIZE = 4096;
 const i64 DEFAULT_PORT_ID_RANGE_MIN = 0;
 const i64 DEFAULT_PORT_ID_RANGE_MAX = 2047;
+const i64 DEFAULT_DUAL_STAGE_3Q_2Q_PORT_ID_RANGE_MIN = 0;
+const i64 DEFAULT_DUAL_STAGE_3Q_2Q_PORT_ID_RANGE_MAX = 65536;
 
 struct SystemPortRanges {
   1: list<Range64> systemPortRanges;
