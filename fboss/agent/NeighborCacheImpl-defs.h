@@ -89,7 +89,9 @@ bool NeighborCacheImpl<NTable>::isHwUpdateProtected() {
   // for this we are using transactionsSupported() API
   // and return true for SAI switches, failure protection uses transactions
   // support in HW switch which is available only in SAI switches
-  return sw_->getHwSwitchHandler()->transactionsSupported();
+  return (
+      FLAGS_enable_hw_update_protection &&
+      sw_->getHwSwitchHandler()->transactionsSupported());
 }
 
 template <typename NTable>
