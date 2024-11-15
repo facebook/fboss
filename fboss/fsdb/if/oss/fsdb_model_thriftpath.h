@@ -4843,10 +4843,10 @@ class ChildThriftPath<::facebook::fboss::state::MirrorOnDropReportFields, ::face
   >;
   using Children = fatal::tuple<std::pair<strings::name, Child<::std::string, ::apache::thrift::type_class::string, ::apache::thrift::type::string_t>>,
 std::pair<strings::mirrorPortId, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
-std::pair<strings::collectorSrcIp, ChildThriftPath<::facebook::network::thrift::BinaryAddress, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>,
-std::pair<strings::collectorDstIp, ChildThriftPath<::facebook::network::thrift::BinaryAddress, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>,
-std::pair<strings::collectorSrcPort, Child<::std::int16_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i16_t>>,
-std::pair<strings::collectorDstPort, Child<::std::int16_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i16_t>>,
+std::pair<strings::localSrcIp, ChildThriftPath<::facebook::network::thrift::BinaryAddress, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>,
+std::pair<strings::localSrcPort, Child<::std::int16_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i16_t>>,
+std::pair<strings::collectorIp, ChildThriftPath<::facebook::network::thrift::BinaryAddress, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>,
+std::pair<strings::collectorPort, Child<::std::int16_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i16_t>>,
 std::pair<strings::mtu, Child<::std::int16_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i16_t>>,
 std::pair<strings::truncateSize, Child<::std::int16_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i16_t>>,
 std::pair<strings::dscp, Child<::std::int8_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::byte_t>>,
@@ -4855,8 +4855,8 @@ std::pair<strings::switchMac, Child<::std::string, ::apache::thrift::type_class:
   using ChildrenById = fatal::tuple<   std::pair<std::integral_constant<apache::thrift::field_id_t, 1>, Child<::std::string, ::apache::thrift::type_class::string, ::apache::thrift::type::string_t>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 2>, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 3>, ChildThriftPath<::facebook::network::thrift::BinaryAddress, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>,
-   std::pair<std::integral_constant<apache::thrift::field_id_t, 4>, ChildThriftPath<::facebook::network::thrift::BinaryAddress, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>,
-   std::pair<std::integral_constant<apache::thrift::field_id_t, 5>, Child<::std::int16_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i16_t>>,
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 4>, Child<::std::int16_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i16_t>>,
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 5>, ChildThriftPath<::facebook::network::thrift::BinaryAddress, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 6>, Child<::std::int16_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i16_t>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 7>, Child<::std::int16_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i16_t>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 8>, Child<::std::int16_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i16_t>>,
@@ -4866,10 +4866,10 @@ std::pair<strings::switchMac, Child<::std::string, ::apache::thrift::type_class:
   template <typename Name>
   using NameToId = fatal::tuple<std::pair<strings::name, std::integral_constant<apache::thrift::field_id_t, 1>>,
 std::pair<strings::mirrorPortId, std::integral_constant<apache::thrift::field_id_t, 2>>,
-std::pair<strings::collectorSrcIp, std::integral_constant<apache::thrift::field_id_t, 3>>,
-std::pair<strings::collectorDstIp, std::integral_constant<apache::thrift::field_id_t, 4>>,
-std::pair<strings::collectorSrcPort, std::integral_constant<apache::thrift::field_id_t, 5>>,
-std::pair<strings::collectorDstPort, std::integral_constant<apache::thrift::field_id_t, 6>>,
+std::pair<strings::localSrcIp, std::integral_constant<apache::thrift::field_id_t, 3>>,
+std::pair<strings::localSrcPort, std::integral_constant<apache::thrift::field_id_t, 4>>,
+std::pair<strings::collectorIp, std::integral_constant<apache::thrift::field_id_t, 5>>,
+std::pair<strings::collectorPort, std::integral_constant<apache::thrift::field_id_t, 6>>,
 std::pair<strings::mtu, std::integral_constant<apache::thrift::field_id_t, 7>>,
 std::pair<strings::truncateSize, std::integral_constant<apache::thrift::field_id_t, 8>>,
 std::pair<strings::dscp, std::integral_constant<apache::thrift::field_id_t, 9>>,
@@ -4882,10 +4882,10 @@ std::pair<strings::switchMac, std::integral_constant<apache::thrift::field_id_t,
   
     STRUCT_CHILD_GETTERS(name, 1);
     STRUCT_CHILD_GETTERS(mirrorPortId, 2);
-    STRUCT_CHILD_GETTERS(collectorSrcIp, 3);
-    STRUCT_CHILD_GETTERS(collectorDstIp, 4);
-    STRUCT_CHILD_GETTERS(collectorSrcPort, 5);
-    STRUCT_CHILD_GETTERS(collectorDstPort, 6);
+    STRUCT_CHILD_GETTERS(localSrcIp, 3);
+    STRUCT_CHILD_GETTERS(localSrcPort, 4);
+    STRUCT_CHILD_GETTERS(collectorIp, 5);
+    STRUCT_CHILD_GETTERS(collectorPort, 6);
     STRUCT_CHILD_GETTERS(mtu, 7);
     STRUCT_CHILD_GETTERS(truncateSize, 8);
     STRUCT_CHILD_GETTERS(dscp, 9);
@@ -4896,10 +4896,10 @@ std::pair<strings::switchMac, std::integral_constant<apache::thrift::field_id_t,
   auto operator()(const std::integral_constant<apache::thrift::field_id_t, __id>&) {
     if constexpr (__id == 1) { return name(); }
     else if constexpr (__id == 2) { return mirrorPortId(); }
-    else if constexpr (__id == 3) { return collectorSrcIp(); }
-    else if constexpr (__id == 4) { return collectorDstIp(); }
-    else if constexpr (__id == 5) { return collectorSrcPort(); }
-    else if constexpr (__id == 6) { return collectorDstPort(); }
+    else if constexpr (__id == 3) { return localSrcIp(); }
+    else if constexpr (__id == 4) { return localSrcPort(); }
+    else if constexpr (__id == 5) { return collectorIp(); }
+    else if constexpr (__id == 6) { return collectorPort(); }
     else if constexpr (__id == 7) { return mtu(); }
     else if constexpr (__id == 8) { return truncateSize(); }
     else if constexpr (__id == 9) { return dscp(); }
@@ -8517,17 +8517,17 @@ class ChildThriftPath<::facebook::fboss::cfg::MirrorOnDropReport, ::facebook::fb
   >;
   using Children = fatal::tuple<std::pair<strings::name, Child<::std::string, ::apache::thrift::type_class::string, ::apache::thrift::type::string_t>>,
 std::pair<strings::mirrorPortId, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
-std::pair<strings::collectorDstIp, Child<::std::string, ::apache::thrift::type_class::string, ::apache::thrift::type::string_t>>,
-std::pair<strings::collectorSrcPort, Child<::std::int16_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i16_t>>,
-std::pair<strings::collectorDstPort, Child<::std::int16_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i16_t>>,
+std::pair<strings::localSrcPort, Child<::std::int16_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i16_t>>,
+std::pair<strings::collectorIp, Child<::std::string, ::apache::thrift::type_class::string, ::apache::thrift::type::string_t>>,
+std::pair<strings::collectorPort, Child<::std::int16_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i16_t>>,
 std::pair<strings::mtu, Child<::std::int16_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i16_t>>,
 std::pair<strings::truncateSize, Child<::std::int16_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i16_t>>,
 std::pair<strings::dscp, Child<::std::int8_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::byte_t>>,
 std::pair<strings::agingIntervalUsecs, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>>;
   using ChildrenById = fatal::tuple<   std::pair<std::integral_constant<apache::thrift::field_id_t, 1>, Child<::std::string, ::apache::thrift::type_class::string, ::apache::thrift::type::string_t>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 2>, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
-   std::pair<std::integral_constant<apache::thrift::field_id_t, 3>, Child<::std::string, ::apache::thrift::type_class::string, ::apache::thrift::type::string_t>>,
-   std::pair<std::integral_constant<apache::thrift::field_id_t, 4>, Child<::std::int16_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i16_t>>,
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 3>, Child<::std::int16_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i16_t>>,
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 4>, Child<::std::string, ::apache::thrift::type_class::string, ::apache::thrift::type::string_t>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 5>, Child<::std::int16_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i16_t>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 6>, Child<::std::int16_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i16_t>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 7>, Child<::std::int16_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i16_t>>,
@@ -8536,9 +8536,9 @@ std::pair<strings::agingIntervalUsecs, Child<::std::int32_t, ::apache::thrift::t
   template <typename Name>
   using NameToId = fatal::tuple<std::pair<strings::name, std::integral_constant<apache::thrift::field_id_t, 1>>,
 std::pair<strings::mirrorPortId, std::integral_constant<apache::thrift::field_id_t, 2>>,
-std::pair<strings::collectorDstIp, std::integral_constant<apache::thrift::field_id_t, 3>>,
-std::pair<strings::collectorSrcPort, std::integral_constant<apache::thrift::field_id_t, 4>>,
-std::pair<strings::collectorDstPort, std::integral_constant<apache::thrift::field_id_t, 5>>,
+std::pair<strings::localSrcPort, std::integral_constant<apache::thrift::field_id_t, 3>>,
+std::pair<strings::collectorIp, std::integral_constant<apache::thrift::field_id_t, 4>>,
+std::pair<strings::collectorPort, std::integral_constant<apache::thrift::field_id_t, 5>>,
 std::pair<strings::mtu, std::integral_constant<apache::thrift::field_id_t, 6>>,
 std::pair<strings::truncateSize, std::integral_constant<apache::thrift::field_id_t, 7>>,
 std::pair<strings::dscp, std::integral_constant<apache::thrift::field_id_t, 8>>,
@@ -8550,9 +8550,9 @@ std::pair<strings::agingIntervalUsecs, std::integral_constant<apache::thrift::fi
   
     STRUCT_CHILD_GETTERS(name, 1);
     STRUCT_CHILD_GETTERS(mirrorPortId, 2);
-    STRUCT_CHILD_GETTERS(collectorDstIp, 3);
-    STRUCT_CHILD_GETTERS(collectorSrcPort, 4);
-    STRUCT_CHILD_GETTERS(collectorDstPort, 5);
+    STRUCT_CHILD_GETTERS(localSrcPort, 3);
+    STRUCT_CHILD_GETTERS(collectorIp, 4);
+    STRUCT_CHILD_GETTERS(collectorPort, 5);
     STRUCT_CHILD_GETTERS(mtu, 6);
     STRUCT_CHILD_GETTERS(truncateSize, 7);
     STRUCT_CHILD_GETTERS(dscp, 8);
@@ -8562,9 +8562,9 @@ std::pair<strings::agingIntervalUsecs, std::integral_constant<apache::thrift::fi
   auto operator()(const std::integral_constant<apache::thrift::field_id_t, __id>&) {
     if constexpr (__id == 1) { return name(); }
     else if constexpr (__id == 2) { return mirrorPortId(); }
-    else if constexpr (__id == 3) { return collectorDstIp(); }
-    else if constexpr (__id == 4) { return collectorSrcPort(); }
-    else if constexpr (__id == 5) { return collectorDstPort(); }
+    else if constexpr (__id == 3) { return localSrcPort(); }
+    else if constexpr (__id == 4) { return collectorIp(); }
+    else if constexpr (__id == 5) { return collectorPort(); }
     else if constexpr (__id == 6) { return mtu(); }
     else if constexpr (__id == 7) { return truncateSize(); }
     else if constexpr (__id == 8) { return dscp(); }
