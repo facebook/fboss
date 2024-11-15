@@ -393,6 +393,20 @@ cpp_library(
 )
 
 cpp_library(
+    name = "voq_utils",
+    srcs = [
+        "VoqUtils.cpp",
+    ],
+    headers = [
+        "VoqUtils.h",
+    ],
+    exported_deps = [
+        ":agent_features",
+        ":switch_config-cpp2-types",
+    ],
+)
+
+cpp_library(
     name = "address_utils",
     headers = [
         "AddressUtil.h",
@@ -758,6 +772,7 @@ cpp_library(
         ":switchid_scope_resolver",
         ":switchinfo_utils",
         ":utils",
+        ":voq_utils",
         "//common/fbwhoami:fb_who_am_i",
         "//common/network:util",
         "//common/stats:macros",
