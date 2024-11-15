@@ -17,7 +17,7 @@ compatible with the past versions.
 | Offset (byte) | Length (bytes) | Value  | Description                |
 | :-----------: | :------------: | ------ | -------------------------- |
 |       0       |       2        | 0xFBFB | Magic word                 |
-|       2       |       1        | 0x5    | Meta EEPROM Format Version |
+|       2       |       1        | 0x6    | Meta EEPROM Format Version |
 |       3       |       1        | 0XFF   | Reserved for future use    |
 
 ## **Body:**
