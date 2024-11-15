@@ -79,6 +79,18 @@
             }
           ]
       },
+      "QDD-400G-XDR4": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "2.1"
+            },
+            {
+              "fwType": 2,
+              "version": "0.0"
+            }
+          ]
+      },
       "SPTSHP3CLCKS": {
           "versions": [
             {
