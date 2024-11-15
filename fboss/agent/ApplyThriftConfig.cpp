@@ -1007,7 +1007,11 @@ void ThriftConfigApplier::processUpdatedDsfNodes() {
             asicCore = 1;
             break;
           case cfg::AsicType::ASIC_TYPE_JERICHO3:
-            asicCore = 441;
+            if (isDualStage3Q2QMode()) {
+              asicCore = 447;
+            } else {
+              asicCore = 441;
+            }
             break;
           case cfg::AsicType::ASIC_TYPE_CHENAB:
           case cfg::AsicType::ASIC_TYPE_TRIDENT2:
