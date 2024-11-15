@@ -13,9 +13,7 @@
 #include "fboss/agent/hw/bcm/BcmError.h"
 #include "fboss/agent/hw/bcm/BcmPortQueueManager.h"
 #include "fboss/agent/hw/bcm/BcmQosMapEntry.h"
-#include "fboss/agent/hw/bcm/BcmQosPolicy.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
-#include "fboss/agent/state/QosPolicy.h"
 
 extern "C" {
 #include <bcm/qos.h>

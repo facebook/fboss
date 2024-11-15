@@ -23,8 +23,6 @@
 
 #include "fboss/lib/config/PlatformConfigUtils.h"
 
-#include <boost/container/flat_map.hpp>
-
 #include <thrift/lib/cpp/util/EnumUtils.h>
 
 extern "C" {

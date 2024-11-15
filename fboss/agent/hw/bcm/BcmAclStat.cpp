@@ -16,10 +16,6 @@
 #include "fboss/agent/hw/bcm/BcmIngressFieldProcessorFlexCounter.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 #include "fboss/agent/hw/bcm/BcmWarmBootCache.h"
-#include "fboss/agent/state/AclEntry.h"
-
-#include <boost/container/flat_map.hpp>
-#include <thrift/lib/cpp/util/EnumUtils.h>
 
 extern "C" {
 #include <bcm/field.h>
