@@ -10,6 +10,7 @@ add_library(link_tests
   fboss/agent/test/link_tests/LinkSanityTests.cpp
   fboss/agent/test/link_tests/PtpTests.cpp
   fboss/agent/test/link_tests/OpticsTest.cpp
+  fboss/agent/test/link_tests/LacpSanityTests.cpp
 )
 
 target_link_libraries(link_tests
@@ -29,6 +30,7 @@ target_link_libraries(link_tests
   packet_snooper
   pkt_test_utils
   link_test_production_features_cpp2
+  trunk_utils
   ${GTEST}
   ${LIBGMOCK_LIBRARIES}
 )
