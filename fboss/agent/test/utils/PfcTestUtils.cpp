@@ -6,8 +6,6 @@
 #include "fboss/agent/hw/gen-cpp2/hardware_stats_types.h"
 #include "fboss/agent/test/utils/AclTestUtils.h"
 
-#include <gtest/gtest.h>
-
 namespace facebook::fboss::utility {
 
 namespace {
@@ -208,6 +206,15 @@ void setupPfcBuffers(
   setupBufferPoolConfig(
       bufferPoolCfgMap, buffer.globalShared, buffer.globalHeadroom);
   cfg.bufferPoolConfigs() = std::move(bufferPoolCfgMap);
+  if (ensemble->getHwAsicTable()
+          ->getHwAsics()
+          .cbegin()
+          ->second->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO3) {
+    // For J3, set the SRAM global PFC thresholds as well
+    cfg.switchSettings()->sramGlobalFreePercentXoffThreshold() = 10;
+    cfg.switchSettings()->sramGlobalFreePercentXonThreshold() = 20;
+    cfg.switchSettings()->linkFlowControlCreditThreshold() = 99;
+  }
 }
 
 void addPuntPfcPacketAcl(cfg::SwitchConfig& cfg, uint16_t queueId) {

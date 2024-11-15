@@ -6,6 +6,7 @@
 #include "fboss/agent/hw/sai/api/PortApi.h"
 #include "fboss/agent/hw/sai/api/QueueApi.h"
 #include "fboss/agent/hw/sai/api/SwitchApi.h"
+#include "fboss/agent/hw/sai/api/SystemPortApi.h"
 #include "fboss/agent/hw/sai/api/TamApi.h"
 
 extern "C" {
@@ -243,6 +244,16 @@ SaiSflowMirrorTraits::Attributes::AttributeTcBufferLimit::operator()() {
 }
 
 std::optional<sai_attr_id_t>
+SaiLocalMirrorTraits::Attributes::AttributeTcBufferLimit::operator()() {
+  return std::nullopt;
+}
+
+std::optional<sai_attr_id_t> SaiEnhancedRemoteMirrorTraits::Attributes::
+    AttributeTcBufferLimit::operator()() {
+  return std::nullopt;
+}
+
+std::optional<sai_attr_id_t>
 SaiSwitchTraits::Attributes::AttributeNoAclsForTrapsWrapper::operator()() {
   return std::nullopt;
 }
@@ -341,6 +352,31 @@ std::optional<sai_attr_id_t> SaiSwitchTraits::Attributes::
 std::optional<sai_attr_id_t>
 SaiSwitchTraits::Attributes::AttributeVoqDramBoundThWrapper::operator()() {
   return SAI_SWITCH_ATTR_VOQ_DRAM_BOUND_TH;
+}
+
+std::optional<sai_attr_id_t>
+SaiSwitchTraits::Attributes::AttributeCondEntropyRehashPeriodUS::operator()() {
+  return SAI_SWITCH_ATTR_COND_ENTROPY_REHASH_PERIOD_US;
+}
+
+std::optional<sai_attr_id_t>
+SaiSwitchTraits::Attributes::AttributeShelSrcIp::operator()() {
+  return SAI_SWITCH_ATTR_SHEL_SRC_IP;
+}
+
+std::optional<sai_attr_id_t>
+SaiSwitchTraits::Attributes::AttributeShelDstIp::operator()() {
+  return SAI_SWITCH_ATTR_SHEL_DST_IP;
+}
+
+std::optional<sai_attr_id_t>
+SaiSwitchTraits::Attributes::AttributeShelSrcMac::operator()() {
+  return SAI_SWITCH_ATTR_SHEL_SRC_MAC;
+}
+
+std::optional<sai_attr_id_t>
+SaiSwitchTraits::Attributes::AttributeShelPeriodicInterval::operator()() {
+  return SAI_SWITCH_ATTR_SHEL_PERIODIC_INTERVAL;
 }
 
 std::optional<sai_attr_id_t>
@@ -503,4 +539,13 @@ SaiSwitchTraits::Attributes::AttributeMaxVoqs::operator()() {
   return SAI_SWITCH_ATTR_MAX_VOQS;
 }
 
+std::optional<sai_attr_id_t>
+SaiPortTraits::Attributes::AttributeShelEnable::operator()() {
+  return std::nullopt;
+}
+
+std::optional<sai_attr_id_t>
+SaiSystemPortTraits::Attributes::AttributeShelPktDstEnable::operator()() {
+  return std::nullopt;
+}
 } // namespace facebook::fboss

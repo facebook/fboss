@@ -11,6 +11,7 @@
 #include <folly/Conv.h>
 #include <thrift/lib/cpp/util/EnumUtils.h>
 #include <memory>
+#include "fboss/agent/gen-cpp2/switch_config_constants.h"
 #include "fboss/agent/state/AclEntry.h"
 #include "fboss/agent/state/NodeBase-defs.h"
 #include "fboss/agent/state/StateUtils.h"
@@ -21,7 +22,6 @@ using folly::IPAddress;
 namespace {
 // Same Priority and name as the default table created */
 constexpr auto kAclTablePriority = 0;
-constexpr auto kAclTable1 = "AclTable1";
 } // namespace
 
 namespace facebook::fboss {
@@ -35,11 +35,11 @@ std::shared_ptr<AclTable> AclTable::createDefaultAclTableFromThrift(
     std::map<std::string, state::AclEntryFields> const& thriftMap) {
   state::AclTableFields data{};
   data.priority() = kAclTablePriority;
-  data.id() = kAclTable1;
+  data.id() = cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE();
   data.aclMap() = thriftMap;
   return std::make_shared<AclTable>(data);
 }
 
-template class ThriftStructNode<AclTable, state::AclTableFields>;
+template struct ThriftStructNode<AclTable, state::AclTableFields>;
 
 } // namespace facebook::fboss

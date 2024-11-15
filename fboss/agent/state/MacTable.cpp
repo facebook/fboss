@@ -63,5 +63,5 @@ void MacTable::updateEntry(
   updateNode(entry);
 }
 
-template class ThriftMapNode<MacTable, MacTableTraits>;
+template struct ThriftMapNode<MacTable, MacTableTraits>;
 } // namespace facebook::fboss

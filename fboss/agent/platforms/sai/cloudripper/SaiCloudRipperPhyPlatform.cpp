@@ -83,15 +83,11 @@ SaiCloudRipperPhyPlatform::SaiCloudRipperPhyPlatform(
               folly::to<std::string>(phyId_))) {}
 
 void SaiCloudRipperPhyPlatform::setupAsic(
-    cfg::SwitchType switchType,
     std::optional<int64_t> switchId,
-    int16_t switchIndex,
-    std::optional<cfg::Range64> systemPortRange,
-    folly::MacAddress& mac,
+    const cfg::SwitchInfo& switchInfo,
     std::optional<HwAsic::FabricNodeRole> fabricNodeRole) {
   CHECK(!fabricNodeRole.has_value());
-  asic_ = std::make_unique<CredoPhyAsic>(
-      switchType, switchId, switchIndex, systemPortRange, mac);
+  asic_ = std::make_unique<CredoPhyAsic>(switchId, switchInfo);
 }
 
 SaiCloudRipperPhyPlatform::~SaiCloudRipperPhyPlatform() {}

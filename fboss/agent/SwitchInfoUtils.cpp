@@ -17,6 +17,20 @@
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 
 namespace facebook::fboss {
+namespace {
+
+bool withinRange(const cfg::SystemPortRanges& ranges, int64_t id) {
+  bool inRange{false};
+  for (const auto& sysPortRange : *ranges.systemPortRanges()) {
+    if (id >= *sysPortRange.minimum() && id <= *sysPortRange.maximum()) {
+      inRange = true;
+      break;
+    }
+  }
+  return inRange;
+}
+} // namespace
+
 const std::map<int64_t, cfg::SwitchInfo> getSwitchInfoFromConfigImpl(
     const cfg::SwitchConfig* config) {
   std::map<int64_t, cfg::SwitchInfo> switchInfoMap;
@@ -31,16 +45,6 @@ const std::map<int64_t, cfg::SwitchInfo> getSwitchInfoFromConfigImpl(
             cfg::switch_config_constants::DEFAULT_PORT_ID_RANGE_MIN();
         switchInfo.portIdRange()->maximum() =
             cfg::switch_config_constants::DEFAULT_PORT_ID_RANGE_MAX();
-      }
-      if (switchInfo.switchType() == cfg::SwitchType::VOQ &&
-          !switchInfo.systemPortRange()) {
-        auto dsfItr =
-            config->dsfNodes()->find(static_cast<int64_t>(entry.first));
-        if (dsfItr != config->dsfNodes()->end()) {
-          auto localNode = dsfItr->second;
-          CHECK(localNode.systemPortRange().has_value());
-          switchInfo.systemPortRange() = *localNode.systemPortRange();
-        }
       }
       switchInfoMap.emplace(entry.first, switchInfo);
     }
@@ -106,4 +110,13 @@ const std::optional<cfg::SdkVersion> getSdkVersionFromConfig(
   auto& swConfig = config->thrift.sw().value();
   return getSdkVersionFromConfigImpl(&swConfig);
 }
+
+bool withinRange(const cfg::SystemPortRanges& ranges, InterfaceID intfId) {
+  return withinRange(ranges, static_cast<int64_t>(intfId));
+}
+
+bool withinRange(const cfg::SystemPortRanges& ranges, SystemPortID sysPortId) {
+  return withinRange(ranges, static_cast<int64_t>(sysPortId));
+}
+
 } // namespace facebook::fboss

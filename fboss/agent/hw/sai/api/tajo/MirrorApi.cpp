@@ -9,4 +9,14 @@ SaiSflowMirrorTraits::Attributes::AttributeTcBufferLimit::operator()() {
   return std::nullopt;
 }
 
+std::optional<sai_attr_id_t> SaiEnhancedRemoteMirrorTraits::Attributes::
+    AttributeTcBufferLimit::operator()() {
+  return std::nullopt;
+}
+
+std::optional<sai_attr_id_t>
+SaiLocalMirrorTraits::Attributes::AttributeTcBufferLimit::operator()() {
+  return std::nullopt;
+}
+
 } // namespace facebook::fboss

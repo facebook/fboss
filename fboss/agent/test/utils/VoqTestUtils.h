@@ -11,6 +11,7 @@
 
 namespace facebook::fboss {
 class TestEnsembleIf;
+class SwSwitch;
 
 namespace utility {
 
@@ -58,6 +59,8 @@ void populateRemoteIntfAndSysPorts(
     std::map<SwitchID, std::shared_ptr<InterfaceMap>>& switchId2Rifs,
     const cfg::SwitchConfig& config,
     bool useEncapIndex);
+
+void setupRemoteIntfAndSysPorts(SwSwitch* swSwitch, bool useEncapIndex);
 
 } // namespace utility
 } // namespace facebook::fboss

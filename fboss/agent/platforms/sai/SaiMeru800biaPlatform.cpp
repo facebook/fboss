@@ -29,15 +29,11 @@ SaiMeru800biaPlatform::SaiMeru800biaPlatform(
           localMac) {}
 
 void SaiMeru800biaPlatform::setupAsic(
-    cfg::SwitchType switchType,
     std::optional<int64_t> switchId,
-    int16_t switchIndex,
-    std::optional<cfg::Range64> systemPortRange,
-    folly::MacAddress& mac,
+    const cfg::SwitchInfo& switchInfo,
     std::optional<HwAsic::FabricNodeRole> fabricNodeRole) {
   CHECK(!fabricNodeRole.has_value());
-  asic_ = std::make_unique<Jericho3Asic>(
-      switchType, switchId, switchIndex, systemPortRange, mac);
+  asic_ = std::make_unique<Jericho3Asic>(switchId, switchInfo);
 }
 
 HwAsic* SaiMeru800biaPlatform::getAsic() const {
@@ -48,6 +44,9 @@ std::vector<sai_system_port_config_t>
 SaiMeru800biaPlatform::getInternalSystemPortConfig() const {
   CHECK(asic_) << " Asic must be set before getting sys port info";
   CHECK(asic_->getSwitchId()) << " Switch Id must be set before sys port info";
+  if (isDualStage3Q2QMode()) {
+    return {{0, static_cast<uint32_t>(*asic_->getSwitchId()), 1, 16, 10000, 3}};
+  }
   return {{0, static_cast<uint32_t>(*asic_->getSwitchId()), 0, 0, 10000, 8}};
 }
 SaiMeru800biaPlatform::~SaiMeru800biaPlatform() = default;

@@ -4,6 +4,7 @@
 #include "fboss/agent/hw/sai/switch/SaiSwitch.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/hw/test/HwTestThriftHandler.h"
+#include "fboss/agent/platforms/common/utils/Wedge100LedUtils.h"
 
 #include "folly/testing/TestUtil.h"
 
@@ -90,6 +91,24 @@ void HwTestThriftHandler::getPortInfo(
     portInfos.push_back(portInfo);
   }
   return;
+}
+
+bool HwTestThriftHandler::verifyPortLedStatus(int portId, bool status) {
+  SaiPlatform* platform = static_cast<SaiPlatform*>(hwSwitch_->getPlatform());
+  SaiPlatformPort* platformPort = platform->getPort(PortID(portId));
+  uint32_t currentVal = platformPort->getCurrentLedState();
+  uint32_t expectedVal = 0;
+  switch (platform->getType()) {
+    case PlatformType::PLATFORM_WEDGE100: {
+      expectedVal = static_cast<uint32_t>(Wedge100LedUtils::getExpectedLEDState(
+          platform->getLaneCount(platformPort->getCurrentProfile()),
+          status,
+          status));
+      return currentVal == expectedVal;
+    }
+    default:
+      throw FbossError("Unsupported platform type");
+  }
 }
 
 } // namespace utility

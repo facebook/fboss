@@ -11,8 +11,6 @@
 #include "fboss/agent/hw/sai/api/FdbApi.h"
 #include "fboss/agent/Constants.h"
 
-#include <boost/functional/hash.hpp>
-
 #include <functional>
 
 namespace {

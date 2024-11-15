@@ -3,7 +3,6 @@
 #include "fboss/agent/test/AgentEnsemble.h"
 
 #include "fboss/agent/AgentConfig.h"
-#include "fboss/agent/SwitchStats.h"
 #include "fboss/agent/Utils.h"
 
 #include "fboss/agent/CommonInit.h"

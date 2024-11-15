@@ -9,7 +9,6 @@
  */
 #include "fboss/agent/test/RouteDistributionGenerator.h"
 
-#include "fboss/agent/FbossError.h"
 #include "fboss/agent/Utils.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 

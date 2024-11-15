@@ -10,6 +10,7 @@
 #pragma once
 
 #include "fboss/agent/FbossError.h"
+#include "fboss/agent/gen-cpp2/switch_config_constants.h"
 #include "fboss/agent/hw/sai/api/AclApi.h"
 #include "fboss/agent/hw/sai/api/AdapterKeySerializers.h"
 #include "fboss/agent/hw/sai/api/LagApi.h"
@@ -437,7 +438,10 @@ class SaiObjectStore {
         if constexpr (std::is_same_v<ObjectTraits, SaiAclTableTraits>) {
           // TODO(pshaikh): hack to allow warm boot from version which doesn't
           // save ahk
-          return ObjectType(key, SaiAclTableTraits::AdapterHostKey{kAclTable1});
+          return ObjectType(
+              key,
+              SaiAclTableTraits::AdapterHostKey{
+                  cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE()});
         }
         if constexpr (std::is_same_v<ObjectTraits, SaiNextHopGroupTraits>) {
           // a special handling has been added to deal with next hop group to

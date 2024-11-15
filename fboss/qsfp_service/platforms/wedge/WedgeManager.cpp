@@ -18,9 +18,7 @@
 
 #include <fb303/ThreadCachedServiceData.h>
 
-#include <folly/FileUtil.h>
 #include <folly/gen/Base.h>
-#include <folly/json/json.h>
 #include <folly/logging/xlog.h>
 #include <thrift/lib/cpp/util/EnumUtils.h>
 #include <chrono>
@@ -436,7 +434,14 @@ void WedgeManager::syncPorts(
 void WedgeManager::updateTransceiverLogInfo(
     const std::vector<TransceiverID>& transceivers) {
   for (auto tcvrID : transceivers) {
-    const auto tcvrInfo = getTransceiverInfo(tcvrID);
+    TransceiverInfo tcvrInfo;
+    try {
+      tcvrInfo = getTransceiverInfo(tcvrID);
+    } catch (const QsfpModuleError&) {
+      XLOG(INFO) << "Failed to update tcvr log info for transceiver: "
+                 << tcvrID;
+      continue;
+    }
     const auto& state = tcvrInfo.tcvrState();
     std::optional<Vendor> vendor = std::nullopt;
     std::optional<FirmwareStatus> fwStatus = std::nullopt;

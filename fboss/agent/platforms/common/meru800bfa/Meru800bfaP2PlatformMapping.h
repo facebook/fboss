@@ -49940,7 +49940,7 @@ constexpr auto kJsonSingleNpuP2PlatformMappingStr = R"(
           "numLanes": 1,
           "modulation": 2,
           "fec": 544,
-          "medium": 2,
+          "medium": 3,
           "interfaceType": 41
         }
       }
@@ -49970,7 +49970,7 @@ constexpr auto kJsonSingleNpuP2PlatformMappingStr = R"(
           "numLanes": 1,
           "modulation": 2,
           "fec": 545,
-          "medium": 2,
+          "medium": 3,
           "interfaceType": 41
         }
       }
@@ -148557,7 +148557,7 @@ constexpr auto kJsonMultiNpuP2PlatformMappingStr = R"(
           "numLanes": 1,
           "modulation": 2,
           "fec": 544,
-          "medium": 2,
+          "medium": 3,
           "interfaceType": 41
         }
       }
@@ -148587,7 +148587,7 @@ constexpr auto kJsonMultiNpuP2PlatformMappingStr = R"(
           "numLanes": 1,
           "modulation": 2,
           "fec": 545,
-          "medium": 2,
+          "medium": 3,
           "interfaceType": 41
         }
       }

@@ -24,7 +24,7 @@ namespace facebook::fboss {
 
 class AggregatePort;
 class LacpController;
-class LacpServicerIf;
+struct LacpServicerIf;
 
 /*
  * See IEEE 802.3AD-2000 43.4.3 for an overview of each state machine

@@ -103,6 +103,7 @@ cpp_library(
     ],
     exported_deps = [
         "fbsource//third-party/fmt:fmt",
+        "//fboss/platform/platform_manager:config_validator",
         "//fboss/platform/sensor_service/if:sensor_config-cpp2-types",
         "//folly/logging:logging",
     ],
@@ -122,7 +123,6 @@ cpp_binary(
         "//fb303:logging",
         "//fboss/platform/helpers:init",
         "//folly/executors:function_scheduler",
-        "//folly/logging:init",
     ],
 )
 
@@ -168,6 +168,8 @@ cpp_binary(
     srcs = [
         "SensorServicePlainTextClient.cpp",
     ],
+    default_strip_mode = "full",
+    strip_mode = "full",
     deps = [
         "//fboss/platform/helpers:init",
         "//fboss/platform/sensor_service/if:sensor_service-cpp2-clients",

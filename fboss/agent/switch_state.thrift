@@ -134,6 +134,7 @@ struct PortFields {
   52: list<ctrl.PortError> activeErrors;
   53: switch_config.Scope scope = switch_config.Scope.LOCAL;
   54: optional i32 reachabilityGroupId;
+  // DSF Interface node to enable conditional entropy, rotating hash seed periodically to increase entropy.
   55: bool conditionalEntropyRehash = false;
 }
 
@@ -316,10 +317,25 @@ struct MirrorFields {
   15: optional i32 samplingRate;
 }
 
+struct MirrorOnDropReportFields {
+  1: string name;
+  2: i32 mirrorPortId;
+  3: Address.BinaryAddress localSrcIp; // Populated at runtime
+  4: i16 localSrcPort;
+  5: Address.BinaryAddress collectorIp;
+  6: i16 collectorPort;
+  7: i16 mtu;
+  8: i16 truncateSize;
+  9: byte dscp;
+  10: optional i32 agingIntervalUsecs;
+  11: string switchMac; // Populated at runtime
+}
+
 struct ControlPlaneFields {
   1: list<ctrl.PortQueueFields> queues;
   2: list<switch_config.PacketRxReasonToQueue> rxReasonToQueue;
   3: optional string defaultQosPolicy;
+  4: list<ctrl.PortQueueFields> voqs;
 }
 
 struct PortFlowletFields {
@@ -393,8 +409,11 @@ struct SwitchSettingsFields {
   // SRAM global thresholds to send PFC XOFF/XON
   44: optional byte sramGlobalFreePercentXoffThreshold;
   45: optional byte sramGlobalFreePercentXonThreshold;
-  46: optional i16 fabricCllfcTxCreditThreshold;
+  46: optional i16 linkFlowControlCreditThreshold;
   47: optional i32 voqDramBoundThreshold;
+  // Conditional Entropy Rehash Period for VOQ devices
+  48: optional i32 conditionalEntropyRehashPeriodUS;
+  49: optional string firmwarePath;
 }
 
 struct RoutePrefix {
@@ -649,6 +668,10 @@ struct SwitchState {
   118: map<SwitchIdList, map<i32, InterfaceFields>> interfaceMaps;
   119: map<SwitchIdList, map<i64, switch_config.DsfNode>> dsfNodesMap;
   120: map<SwitchIdList, map<string, PortFlowletFields>> portFlowletCfgMaps;
+  121: map<
+    SwitchIdList,
+    map<string, MirrorOnDropReportFields>
+  > mirrorOnDropReportMaps;
   // Remote object maps
   600: map<SwitchIdList, map<i64, SystemPortFields>> remoteSystemPortMaps;
   601: map<SwitchIdList, map<i32, InterfaceFields>> remoteInterfaceMaps;

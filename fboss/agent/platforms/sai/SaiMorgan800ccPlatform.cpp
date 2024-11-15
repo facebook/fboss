@@ -12,8 +12,6 @@
 #include "fboss/agent/hw/switch_asics/YubaAsic.h"
 #include "fboss/agent/platforms/common/morgan800cc/Morgan800ccPlatformMapping.h"
 
-#include <algorithm>
-
 namespace facebook::fboss {
 
 SaiMorgan800ccPlatform::SaiMorgan800ccPlatform(
@@ -29,15 +27,11 @@ SaiMorgan800ccPlatform::SaiMorgan800ccPlatform(
           localMac) {}
 
 void SaiMorgan800ccPlatform::setupAsic(
-    cfg::SwitchType switchType,
     std::optional<int64_t> switchId,
-    int16_t switchIndex,
-    std::optional<cfg::Range64> systemPortRange,
-    folly::MacAddress& mac,
+    const cfg::SwitchInfo& switchInfo,
     std::optional<HwAsic::FabricNodeRole> fabricNodeRole) {
   CHECK(!fabricNodeRole.has_value());
-  asic_ = std::make_unique<YubaAsic>(
-      switchType, switchId, switchIndex, systemPortRange, mac);
+  asic_ = std::make_unique<YubaAsic>(switchId, switchInfo);
   asic_->setDefaultStreamType(cfg::StreamType::UNICAST);
 }
 

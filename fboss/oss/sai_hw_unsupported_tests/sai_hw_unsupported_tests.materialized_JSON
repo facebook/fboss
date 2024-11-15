@@ -53,6 +53,9 @@
           "test_name_regex": "HwAclCounterTest/[01].VerifyCounterBumpOnBthOpcodeHitFrontPanel$"
         },
         {
+          "test_name_regex": "HwAsicDefaultProgrammingTest.*$"
+        },
+        {
           "test_name_regex": "warm_boot.*"
         },
         {
@@ -188,6 +191,9 @@
         },
         {
           "test_name_regex": "HwAclCounterTest/[01].VerifyCounterBumpOnBthOpcodeHitFrontPanel$"
+        },
+        {
+          "test_name_regex": "HwAsicDefaultProgrammingTest.*$"
         },
         {
           "test_name_regex": "warm_boot.*"
@@ -327,6 +333,9 @@
           "test_name_regex": "HwAclCounterTest/[01].VerifyCounterBumpOnBthOpcodeHitFrontPanel$"
         },
         {
+          "test_name_regex": "HwAsicDefaultProgrammingTest.*$"
+        },
+        {
           "test_name_regex": "HwRouteScaleTest.anticipatedRouteScaleGenerator$"
         },
         {
@@ -393,6 +402,9 @@
         },
         {
           "test_name_regex": "HwAclCounterTest/[01].VerifyCounterBumpOnBthOpcodeHitFrontPanel$"
+        },
+        {
+          "test_name_regex": "HwAsicDefaultProgrammingTest.*$"
         }
     ],
     "brcm/10.2.0.0_odp/10.2.0.0_odp/tomahawk4": [
@@ -446,6 +458,9 @@
         },
         {
           "test_name_regex": "HwAclCounterTest/[01].VerifyCounterBumpOnBthOpcodeHitFrontPanel$"
+        },
+        {
+          "test_name_regex": "HwAsicDefaultProgrammingTest.*$"
         }
     ],
     "brcm/10.2.0.0_odp/10.2.0.0_odp/tomahawk5": [
@@ -499,9 +514,245 @@
         },
         {
           "test_name_regex": "HwAclCounterTest/[01].VerifyCounterBumpOnBthOpcodeHitFrontPanel$"
+        },
+        {
+          "test_name_regex": "HwAsicDefaultProgrammingTest.*$"
         }
     ],
     "brcm/11.3.0.0_dnx_odp/11.3.0.0_dnx_odp/jericho3": [
+        {
+          "test_name_regex": "HwFlowletAclCounterTest.*$"
+        },
+        {
+          "test_name_regex": "HwFlowletSwitching.*$"
+        },
+        {
+          "test_name_regex": "HwEcmpFlowletSwitching.*$"
+        },
+        {
+          "test_name_regex": "HwLoadBalancerTestV6Flowlet.*$"
+        },
+        {
+          "test_name_regex": "HwLoadBalancerTestV6EcmpToFlowlet.*$"
+        },
+        {
+          "test_name_regex": "AgentFlowletSwitchingTest.*$"
+        },
+        {
+          "test_name_regex": "HwTeFlowTest.*$"
+        },
+        {
+          "test_name_regex": "HwTeFlowTrafficTest.*$"
+        },
+        {
+          "test_name_regex": "HwUdfAcl.*$"
+        },
+        {
+          "test_name_regex": "HwEcmpTest.Ucmp.*"
+        },
+        {
+          "test_name_regex": "HwLoadBalancerTestV[46].*Ucmp.*"
+        },
+        {
+          "test_name_regex": "HwVlanTest.VlanApplyConfig"
+        },
+        {
+          "test_name_regex": "HwPacketFloodTest.*"
+        },
+        {
+          "test_name_regex": "HwPacketSendTest.ArpRequestToFrontPanelPortSwitched"
+        },
+        {
+          "test_name_regex": "HwPacketSendReceiveLagTest.LacpPacketReceiveSrcPort"
+        },
+        {
+          "test_name_regex": "HwTrunkLoadBalancerTest.*"
+        },
+        {
+          "test_name_regex": "HwNeighborTest/[1357].*"
+        },
+        {
+          "test_name_regex": "HwHashTrunk.*"
+        },
+        {
+          "test_name_regex": "HwEcmpTrunkTest.*"
+        },
+        {
+          "test_name_regex": "HwTrunkTest.*"
+        },
+        {
+          "test_name_regex": "HwFlexPortTest.*"
+        },
+        {
+          "test_name_regex": "HwCoppTest/1.*"
+        },
+        {
+          "test_name_regex": "HwRouteCounterOverflowTest.*"
+        },
+        {
+          "test_name_regex": "HwRouteStatTest.*"
+        },
+        {
+          "test_name_regex": "HwPortBandwidthTest.*"
+        },
+        {
+          "test_name_regex": "HwMPLSTest/[01].*"
+        },
+        {
+          "test_name_regex": "HwLabelSwitchRouteTest/[01].*"
+        },
+        {
+          "test_name_regex": "HwLabelEdgeRouteTest/[01].*"
+        },
+        {
+          "test_name_regex": "HwRouteScaleTest.turboFabricScaleTest"
+        },
+        {
+          "test_name_regex": "HwLoadBalancerTestsV[46]InMplsPhp.*"
+        },
+        {
+          "test_name_regex": "HwLoadBalancerTestsV[46]InMplsSwap.*"
+        },
+        {
+          "test_name_regex": "HwLoadBalancerTestV[46]ToMpls.*"
+        },
+        {
+          "test_name_regex": "HwLabelSwitchRouteTest/[01].*"
+        },
+        {
+          "test_name_regex": "HwLabelEdgeRouteTest/[01].*"
+        },
+        {
+          "test_name_regex": "HwTest_PROFILE*"
+        },
+        {
+          "test_name_regex": "HwFlexPortTest.*"
+        },
+        {
+          "test_name_regex": "HwMacLearningAndNeighborResolutionTest.*"
+        },
+        {
+          "test_name_regex": "HwMacSwLearningModeTest.*"
+        },
+        {
+          "test_name_regex": "HwMacLearningTest.*"
+        },
+        {
+          "test_name_regex": "HwMacLearningMacMoveTest.*"
+        },
+        {
+          "test_name_regex": "HwMacLearningStaticEntriesTest.*"
+        },
+        {
+          "test_name_regex": "HwMacLearningAndMyStationInteractionTest.*"
+        },
+        {
+          "test_name_regex": "HwMacLearningBatchEntriesTest.*"
+        },
+        {
+          "test_name_regex": "HwL2ClassIDTest.*"
+        },
+        {
+          "test_name_regex": "HwQueuePerHostL2Test.*"
+        },
+        {
+          "test_name_regex": "HwAclQualifierTest/[01].*VlanID*"
+        },
+        {
+          "test_name_regex": "HwAclQualifierTest.*VlanID*"
+        },
+        {
+          "test_name_regex": "HwPtpTcTest.*"
+        },
+        {
+          "test_name_regex": "HwIpInIpTunnelTest.*"
+        },
+        {
+          "test_name_regex": "HwNeighborTest/[01234567].ResolvePendingEntryThenChangeLookupClass"
+        },
+        {
+          "test_name_regex": "HwQueuePerHostRouteTest/[01].*"
+        },
+        {
+          "test_name_regex": "HwQueuePerHostTest/[0123].*"
+        },
+        {
+          "test_name_regex": "SaiQPHRollbackTest.*"
+        },
+        {
+          "test_name_regex": "HwRouteTest/[01].VerifyClassID*"
+        },
+        {
+          "test_name_regex": "HwRouteTest/[01].StaticIp2MplsRoutes"
+        },
+        {
+          "test_name_regex": "HwRouteTest/[01].VerifyClassIdWithNhopResolutionFlap"
+        },
+        {
+          "test_name_regex": "HwAclQualifierTest/[01].*LookupClass*"
+        },
+        {
+          "test_name_regex": "HwAclQualifierTest.*LookupClass*"
+        },
+        {
+          "test_name_regex": "HwFabricSwitchTest.*"
+        },
+        {
+          "test_name_regex": "HwProdInvariantsRswStrictPriorityTest.verifyInvariants"
+        },
+        {
+          "test_name_regex": "HwProdInvariantsRswTest.verifyInvariants"
+        },
+        {
+          "test_name_regex": "HwPortLedTest.*"
+        },
+        {
+          "test_name_regex": "HwUdfTest.*"
+        },
+        {
+          "test_name_regex": "HwL3Test.*"
+        },
+        {
+          "test_name_regex": "HwMmuTuningTest.*"
+        },
+        {
+          "test_name_regex": "HwFabricSwitchTest.*"
+        },
+        {
+          "test_name_regex": "HwDscpMarkingTest.*"
+        },
+        {
+          "test_name_regex": "HwProdInvariants.*"
+        },
+        {
+          "test_name_regex": "HwAqmTest.verifyPerQueueWredDropStats"
+        },
+        {
+          "test_name_regex": "HwAqmTest.verifyWredThreshold"
+        },
+        {
+          "test_name_regex": "HwSflowMirrorTest.*"
+        },
+        {
+          "test_name_regex": "HwSflowTest.*"
+        },
+        {
+          "test_name_regex": "HwMirrorTest/[01].*"
+        },
+        {
+          "test_name_regex": "HwSplitAgentCallbackTest.*"
+        },
+        {
+          "test_name_regex": "HwIngressBufferTest.validatePGQueueChanges$"
+        },
+        {
+          "test_name_regex": "HwInPauseFloodTest.*$"
+        },
+        {
+          "test_name_regex": "HwLoadBalancerNegativeTestV6RoCE.*$"
+        }
+    ],
+    "brcm/11.7.0.0_dnx_odp/11.7.0.0_dnx_odp/jericho3": [
         {
           "test_name_regex": "HwFlowletAclCounterTest.*$"
         },
@@ -999,6 +1250,9 @@
           "test_name_regex": "HwLoadBalancerTestV[46].Ucmp.*$"
         },
         {
+          "test_name_regex": "HwAsicDefaultProgrammingTest.*$"
+        },
+        {
           "test_name_regex": "HwInPauseFloodTest.*$"
         }
     ],
@@ -1053,6 +1307,9 @@
         },
         {
           "test_name_regex": "HwAclCounterTest/[01].VerifyCounterBumpOnBthOpcodeHitFrontPanel$"
+        },
+        {
+          "test_name_regex": "HwAsicDefaultProgrammingTest.*$"
         },
         {
           "test_name_regex": "HwRouteScaleTest.anticipatedRouteScaleGenerator$"
@@ -1121,6 +1378,9 @@
         },
         {
           "test_name_regex": "HwAclCounterTest/[01].VerifyCounterBumpOnBthOpcodeHitFrontPanel$"
+        },
+        {
+          "test_name_regex": "HwAsicDefaultProgrammingTest.*$"
         }
     ],
     "brcm/8.2.0.0_odp/8.2.0.0_odp/tomahawk4": [
@@ -1174,6 +1434,9 @@
         },
         {
           "test_name_regex": "HwAclCounterTest/[01].VerifyCounterBumpOnBthOpcodeHitFrontPanel$"
+        },
+        {
+          "test_name_regex": "HwAsicDefaultProgrammingTest.*$"
         }
     ],
     "brcm/8.2.0.0_odp/9.2.0.0_odp/tomahawk": [
@@ -1227,6 +1490,9 @@
         },
         {
           "test_name_regex": "HwAclCounterTest/[01].VerifyCounterBumpOnBthOpcodeHitFrontPanel$"
+        },
+        {
+          "test_name_regex": "HwAsicDefaultProgrammingTest.*$"
         },
         {
           "test_name_regex": "HwRouteScaleTest.anticipatedRouteScaleGenerator$"
@@ -1295,6 +1561,9 @@
         },
         {
           "test_name_regex": "HwAclCounterTest/[01].VerifyCounterBumpOnBthOpcodeHitFrontPanel$"
+        },
+        {
+          "test_name_regex": "HwAsicDefaultProgrammingTest.*$"
         }
     ],
     "brcm/8.2.0.0_odp/9.2.0.0_odp/tomahawk4": [
@@ -1348,6 +1617,9 @@
         },
         {
           "test_name_regex": "HwAclCounterTest/[01].VerifyCounterBumpOnBthOpcodeHitFrontPanel$"
+        },
+        {
+          "test_name_regex": "HwAsicDefaultProgrammingTest.*$"
         }
     ],
     "brcm/8.2.0.0_sim_odp/8.2.0.0_sim_odp/tomahawk4/simulator": [
@@ -1401,6 +1673,9 @@
         },
         {
           "test_name_regex": "HwAclCounterTest/[01].VerifyCounterBumpOnBthOpcodeHitFrontPanel$"
+        },
+        {
+          "test_name_regex": "HwAsicDefaultProgrammingTest.*$"
         },
         {
           "test_name_regex": "warm_boot.*"
@@ -1540,6 +1815,9 @@
           "test_name_regex": "HwAclCounterTest/[01].VerifyCounterBumpOnBthOpcodeHitFrontPanel$"
         },
         {
+          "test_name_regex": "HwAsicDefaultProgrammingTest.*$"
+        },
+        {
           "test_name_regex": "HwRouteScaleTest.anticipatedRouteScaleGenerator$"
         },
         {
@@ -1606,6 +1884,9 @@
         },
         {
           "test_name_regex": "HwAclCounterTest/[01].VerifyCounterBumpOnBthOpcodeHitFrontPanel$"
+        },
+        {
+          "test_name_regex": "HwAsicDefaultProgrammingTest.*$"
         }
     ],
     "brcm/9.2.0.0_odp/9.2.0.0_odp/tomahawk4": [
@@ -1659,6 +1940,9 @@
         },
         {
           "test_name_regex": "HwAclCounterTest/[01].VerifyCounterBumpOnBthOpcodeHitFrontPanel$"
+        },
+        {
+          "test_name_regex": "HwAsicDefaultProgrammingTest.*$"
         }
     ],
     "leaba/1.42.8/1.42.8/gibraltar": [
@@ -1742,6 +2026,9 @@
         },
         {
           "test_name_regex": "HwAclCounterTest/[01].*$"
+        },
+        {
+          "test_name_regex": "HwAsicDefaultProgrammingTest.*$"
         }
     ],
     "leaba/1.42.8/1.42.8/simulator": [
@@ -1795,6 +2082,9 @@
         },
         {
           "test_name_regex": "HwAclCounterTest/[01].VerifyCounterBumpOnBthOpcodeHitFrontPanel$"
+        },
+        {
+          "test_name_regex": "HwAsicDefaultProgrammingTest.*$"
         }
     ],
     "leaba/1.65.1/1.65.1/gibraltar": [
@@ -1848,6 +2138,9 @@
         },
         {
           "test_name_regex": "HwAclCounterTest/[01].VerifyCounterBumpOnBthOpcodeHitFrontPanel$"
+        },
+        {
+          "test_name_regex": "HwAsicDefaultProgrammingTest.*$"
         }
     ],
     "leaba/1.68.0/1.68.0/graphene200/simulator": [
@@ -1901,6 +2194,9 @@
         },
         {
           "test_name_regex": "HwAclCounterTest/[01].VerifyCounterBumpOnBthOpcodeHitFrontPanel$"
+        },
+        {
+          "test_name_regex": "HwAsicDefaultProgrammingTest.*$"
         }
     ],
     "leaba/24.4.90/24.4.90/gibraltar": [
@@ -1954,6 +2250,9 @@
         },
         {
           "test_name_regex": "HwAclCounterTest/[01].VerifyCounterBumpOnBthOpcodeHitFrontPanel$"
+        },
+        {
+          "test_name_regex": "HwAsicDefaultProgrammingTest.*$"
         }
     ],
     "leaba/24.4.90_yuba/24.4.90_yuba/graphene200": [
@@ -2007,6 +2306,9 @@
         },
         {
           "test_name_regex": "HwAclCounterTest/[01].VerifyCounterBumpOnBthOpcodeHitFrontPanel$"
+        },
+        {
+          "test_name_regex": "HwAsicDefaultProgrammingTest.*$"
         }
     ],
     "leaba/24.8.3001/24.8.3001/gibraltar": [
@@ -2060,6 +2362,9 @@
         },
         {
           "test_name_regex": "HwAclCounterTest/[01].VerifyCounterBumpOnBthOpcodeHitFrontPanel$"
+        },
+        {
+          "test_name_regex": "HwAsicDefaultProgrammingTest.*$"
         }
     ]
   }

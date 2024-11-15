@@ -9,22 +9,17 @@ namespace facebook::fboss {
 class RamonAsic : public BroadcomAsic {
  public:
   RamonAsic(
-      cfg::SwitchType type,
-      std::optional<int64_t> id,
-      int16_t index,
-      std::optional<cfg::Range64> systemPortRange,
-      const folly::MacAddress& mac,
+      std::optional<int64_t> switchId,
+      cfg::SwitchInfo switchInfo,
       std::optional<cfg::SdkVersion> sdkVersion = std::nullopt,
       FabricNodeRole fabricNodeRole = FabricNodeRole::SINGLE_STAGE_L1)
       : BroadcomAsic(
-            type,
-            id,
-            index,
-            systemPortRange,
-            mac,
+            switchId,
+            switchInfo,
             sdkVersion,
             {cfg::SwitchType::FABRIC}),
         fabricNodeRole_(fabricNodeRole) {}
+
   bool isSupported(Feature feature) const override;
   const std::map<cfg::PortType, cfg::PortLoopbackMode>& desiredLoopbackModes()
       const override;

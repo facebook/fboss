@@ -9,19 +9,13 @@ namespace facebook::fboss {
 class Ramon3Asic : public BroadcomAsic {
  public:
   Ramon3Asic(
-      cfg::SwitchType type,
-      std::optional<int64_t> id,
-      int16_t index,
-      std::optional<cfg::Range64> systemPortRange,
-      const folly::MacAddress& mac,
+      std::optional<int64_t> switchId,
+      cfg::SwitchInfo switchInfo,
       std::optional<cfg::SdkVersion> sdkVersion = std::nullopt,
       FabricNodeRole fabricNodeRole = FabricNodeRole::SINGLE_STAGE_L1)
       : BroadcomAsic(
-            type,
-            id,
-            index,
-            systemPortRange,
-            mac,
+            switchId,
+            switchInfo,
             sdkVersion,
             {cfg::SwitchType::FABRIC}),
         fabricNodeRole_(fabricNodeRole) {}

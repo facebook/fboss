@@ -29,21 +29,12 @@ SaiMeru400bfuPlatform::SaiMeru400bfuPlatform(
           localMac) {}
 
 void SaiMeru400bfuPlatform::setupAsic(
-    cfg::SwitchType switchType,
     std::optional<int64_t> switchId,
-    int16_t switchIndex,
-    std::optional<cfg::Range64> systemPortRange,
-    folly::MacAddress& mac,
+    const cfg::SwitchInfo& switchInfo,
     std::optional<HwAsic::FabricNodeRole> fabricNodeRole) {
   CHECK(fabricNodeRole.has_value());
   asic_ = std::make_unique<RamonAsic>(
-      switchType,
-      switchId,
-      switchIndex,
-      systemPortRange,
-      mac,
-      std::nullopt,
-      *fabricNodeRole);
+      switchId, switchInfo, std::nullopt, *fabricNodeRole);
 }
 
 HwAsic* SaiMeru400bfuPlatform::getAsic() const {

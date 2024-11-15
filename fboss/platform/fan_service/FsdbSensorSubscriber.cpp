@@ -9,7 +9,6 @@
 
 #include "common/time/Time.h"
 #include "fboss/fsdb/client/FsdbPubSubManager.h"
-#include "fboss/fsdb/common/Flags.h"
 #include "fboss/fsdb/if/gen-cpp2/fsdb_oper_types.h"
 #include "fboss/platform/sensor_service/if/gen-cpp2/sensor_service_types.h"
 

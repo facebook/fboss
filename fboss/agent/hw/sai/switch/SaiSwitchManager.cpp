@@ -1011,7 +1011,7 @@ void SaiSwitchManager::setReachabilityGroupList(int reachabilityGroupListSize) {
 
 void SaiSwitchManager::setSramGlobalFreePercentXoffTh(
     uint8_t sramFreePercentXoffThreshold) {
-#if defined(BRCM_SAI_SDK_DNX_GTE_11_0) && !defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
   switch_->setOptionalAttribute(
       SaiSwitchTraits::Attributes::SramFreePercentXoffTh{
           sramFreePercentXoffThreshold});
@@ -1020,10 +1020,42 @@ void SaiSwitchManager::setSramGlobalFreePercentXoffTh(
 
 void SaiSwitchManager::setSramGlobalFreePercentXonTh(
     uint8_t sramFreePercentXonThreshold) {
-#if defined(BRCM_SAI_SDK_DNX_GTE_11_0) && !defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
   switch_->setOptionalAttribute(
       SaiSwitchTraits::Attributes::SramFreePercentXonTh{
           sramFreePercentXonThreshold});
 #endif
 }
+
+void SaiSwitchManager::setLinkFlowControlCreditTh(
+    uint16_t linkFlowControlThreshold) {
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
+  switch_->setOptionalAttribute(
+      SaiSwitchTraits::Attributes::FabricCllfcTxCreditTh{
+          linkFlowControlThreshold});
+#endif
+}
+
+void SaiSwitchManager::setVoqDramBoundTh(uint32_t dramBoundThreshold) {
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_0) && !defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+  // There are 3 different types of rate classes available and
+  // dramBound, upper and lower limits are applied to each of
+  // those. However, in our case, we just need to set the same
+  // DRAM bounds value for all the rate classes.
+  std::vector<uint32_t> dramBounds(6, dramBoundThreshold);
+  switch_->setOptionalAttribute(
+      SaiSwitchTraits::Attributes::VoqDramBoundTh{dramBounds});
+#endif
+}
+
+void SaiSwitchManager::setConditionalEntropyRehashPeriodUS(
+    int conditionalEntropyRehashPeriodUS) {
+  // TODO(zecheng): Update flag when new 12.0 release has the attribute
+#if defined(SAI_VERSION_11_7_0_0_DNX_ODP)
+  switch_->setOptionalAttribute(
+      SaiSwitchTraits::Attributes::CondEntropyRehashPeriodUS{
+          conditionalEntropyRehashPeriodUS});
+#endif
+}
+
 } // namespace facebook::fboss

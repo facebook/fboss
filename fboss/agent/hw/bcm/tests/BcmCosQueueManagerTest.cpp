@@ -11,8 +11,6 @@
 
 #include "fboss/agent/hw/bcm/tests/BcmCosQueueManagerTest.h"
 
-#include "fboss/agent/platforms/tests/utils/BcmTestPlatform.h"
-
 #include <folly/logging/xlog.h>
 
 using namespace facebook::fboss;

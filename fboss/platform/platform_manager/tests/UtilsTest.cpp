@@ -1,7 +1,5 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
-#include <stdexcept>
-
 #include <gtest/gtest.h>
 
 #include "fboss/platform/platform_manager/Utils.h"
@@ -27,7 +25,7 @@ TEST(UtilsTest, ParseDevicePath) {
   EXPECT_EQ(
       makeDevicePathPair("/MCB_SLOT@0/SMB_SLOT@11", "SMB_IOB_I2C_1"),
       Utils().parseDevicePath("/MCB_SLOT@0/SMB_SLOT@11/[SMB_IOB_I2C_1]"));
-  EXPECT_THROW(Utils().parseDevicePath("ABCDE/[abc]"), std::runtime_error);
-  EXPECT_THROW(Utils().parseDevicePath("/MCB_SLOT/[abc]"), std::runtime_error);
-  EXPECT_THROW(Utils().parseDevicePath("/MCB_SLOT@1/[]"), std::runtime_error);
+  EXPECT_NO_THROW(Utils().parseDevicePath("ABCDE/[abc]"));
+  EXPECT_NO_THROW(Utils().parseDevicePath("/MCB_SLOT/[abc]"));
+  EXPECT_NO_THROW(Utils().parseDevicePath("/MCB_SLOT@1/[]"));
 }

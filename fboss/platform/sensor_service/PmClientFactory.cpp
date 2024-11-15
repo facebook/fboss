@@ -2,7 +2,6 @@
 
 #include "fboss/platform/sensor_service/PmClientFactory.h"
 
-#include <fmt/format.h>
 #include <folly/io/async/AsyncSSLSocket.h>
 #include <folly/io/async/SSLOptions.h>
 #include <folly/logging/xlog.h>

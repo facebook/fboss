@@ -14,6 +14,6 @@ void UdfGroupMap::addUdfGroup(const std::shared_ptr<UdfGroup>& udfGroup) {
   return addNode(udfGroup);
 }
 
-template class ThriftMapNode<UdfGroupMap, UdfGroupMapTraits>;
+template struct ThriftMapNode<UdfGroupMap, UdfGroupMapTraits>;
 
 } // namespace facebook::fboss

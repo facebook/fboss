@@ -109,10 +109,18 @@ std::optional<VersionedPmSensor> Utils::resolveVersionedSensors(
 
 SensorConfig Utils::getConfig() {
   auto platformName = helpers::PlatformNameLib().getPlatformName();
-  SensorConfig sensorConfig;
-  apache::thrift::SimpleJSONSerializer::deserialize<SensorConfig>(
-      ConfigLib().getSensorServiceConfig(platformName), sensorConfig);
-  if (!ConfigValidator().isValid(sensorConfig)) {
+  SensorConfig sensorConfig =
+      apache::thrift::SimpleJSONSerializer::deserialize<SensorConfig>(
+          ConfigLib().getSensorServiceConfig(platformName));
+  std::optional<platform_manager::PlatformConfig> platformConfig{std::nullopt};
+  // TODO(T207042263) Enable cross-service config validation for Darwin
+  // once Darwin onboards PM.
+  if (platformName != "DARWIN") {
+    platformConfig = apache::thrift::SimpleJSONSerializer::deserialize<
+        platform_manager::PlatformConfig>(
+        ConfigLib().getPlatformManagerConfig(platformName));
+  }
+  if (!ConfigValidator().isValid(sensorConfig, platformConfig)) {
     throw std::runtime_error("Invalid sensor config");
   }
   return sensorConfig;

@@ -1174,7 +1174,9 @@ void ThriftHandler::getAclTableGroup(AclTableThrift& aclTableEntry) {
   } else {
     std::vector<AclEntryThrift> aclTable;
     getAclTable(aclTable);
-    aclTableEntry.aclTableEntries_ref()["AclTable1"] = std::move(aclTable);
+    aclTableEntry.aclTableEntries_ref()
+        [cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE()] =
+        std::move(aclTable);
   }
 }
 

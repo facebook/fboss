@@ -105,6 +105,10 @@ class SaiSwitchManager {
   void setReachabilityGroupList(int reachabilityGroupListSize);
   void setSramGlobalFreePercentXoffTh(uint8_t sramFreePercentXoffThreshold);
   void setSramGlobalFreePercentXonTh(uint8_t sramFreePercentXonThreshold);
+  void setLinkFlowControlCreditTh(uint16_t linkFlowControlThreshold);
+  void setVoqDramBoundTh(uint32_t dramBoundThreshold);
+  void setConditionalEntropyRehashPeriodUS(
+      int conditionalEntropyRehashPeriodUS);
 
  private:
   void programEcmpLoadBalancerParams(

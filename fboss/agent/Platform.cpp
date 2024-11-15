@@ -94,37 +94,27 @@ void Platform::init(
   setConfig(std::move(config));
   auto macStr = getPlatformAttribute(cfg::PlatformAttributes::MAC);
   const auto switchSettings = *config_->thrift.sw()->switchSettings();
-  std::optional<int64_t> switchId;
-  std::optional<cfg::Range64> systemPortRange;
-  auto switchType{cfg::SwitchType::NPU};
 
   auto getSwitchInfo = [&switchSettings](int64_t switchIndex) {
-    for (const auto& switchInfo : *switchSettings.switchIdToSwitchInfo()) {
-      if (switchInfo.second.switchIndex() == switchIndex) {
-        return switchInfo;
+    for (const auto& [switchId, switchInfo] :
+         *switchSettings.switchIdToSwitchInfo()) {
+      if (switchInfo.switchIndex() == switchIndex) {
+        return std::make_pair(switchId, switchInfo);
       }
     }
     throw FbossError("No SwitchInfo found for switchIndex", switchIndex);
   };
 
   std::optional<HwAsic::FabricNodeRole> fabricNodeRole;
+  std::optional<int64_t> switchId;
+  cfg::SwitchInfo switchInfo;
+  switchInfo.switchType() = cfg::SwitchType::NPU;
   if (switchSettings.switchIdToSwitchInfo()->size()) {
-    auto switchInfo = getSwitchInfo(switchIndex);
-    switchId = std::optional<int64_t>(switchInfo.first);
-    switchType = *switchInfo.second.switchType();
-    if (switchType == cfg::SwitchType::VOQ) {
-      const auto& dsfNodesConfig = *config_->thrift.sw()->dsfNodes();
-      const auto& dsfNodeConfig = dsfNodesConfig.find(*switchId);
-      if (dsfNodeConfig != dsfNodesConfig.end() &&
-          !dsfNodeConfig->second.systemPortRanges()
-               ->systemPortRanges()
-               ->empty()) {
-        // FIXME[2-stage DSF] Pass SystemPortRanges to ASIC
-        systemPortRange = *dsfNodeConfig->second.systemPortRanges()
-                               ->systemPortRanges()
-                               ->begin();
-      }
-    } else if (switchType == cfg::SwitchType::FABRIC) {
+    auto switchIdAndInfo = getSwitchInfo(switchIndex);
+    switchId = switchIdAndInfo.first;
+    switchInfo = switchIdAndInfo.second;
+    auto switchType = *switchInfo.switchType();
+    if (switchType == cfg::SwitchType::FABRIC) {
       fabricNodeRole = HwAsic::FabricNodeRole::SINGLE_STAGE_L1;
       const auto& dsfNodesConfig = *config_->thrift.sw()->dsfNodes();
       const auto& dsfNodeConfig = dsfNodesConfig.find(*switchId);
@@ -141,8 +131,8 @@ void Platform::init(
         }
       }
     }
-    if (switchInfo.second.switchMac()) {
-      macStr = *switchInfo.second.switchMac();
+    if (switchInfo.switchMac()) {
+      macStr = *switchInfo.switchMac();
     }
   }
 
@@ -151,17 +141,12 @@ void Platform::init(
     XLOG(DBG2) << " Setting platform mac to: " << macStr.value();
     localMac_ = folly::MacAddress(*macStr);
   }
+  switchInfo.switchMac() = localMac_.toString();
 
   XLOG(DBG2) << "Initializing Platform with switch ID: " << switchId.value_or(0)
              << " switch Index: " << switchIndex;
 
-  setupAsic(
-      switchType,
-      switchId,
-      switchIndex,
-      systemPortRange,
-      localMac_,
-      fabricNodeRole);
+  setupAsic(switchId, switchInfo, fabricNodeRole);
   initImpl(hwFeaturesDesired);
   // We should always initPorts() here instead of leaving the hw/ to call
   initPorts();

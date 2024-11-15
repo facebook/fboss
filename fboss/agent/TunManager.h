@@ -86,6 +86,8 @@ class TunManager : public StateObserver {
    */
   bool getIntfStatus(std::shared_ptr<SwitchState> state, InterfaceID ifID);
 
+  bool isValidNlSocket();
+
  private:
   // no copy to assign
   TunManager(const TunManager&) = delete;

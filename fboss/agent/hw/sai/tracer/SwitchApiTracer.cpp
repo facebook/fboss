@@ -133,6 +133,11 @@ void handleExtensionAttributes() {
   SAI_EXT_ATTR_MAP(Switch, MaxVoqs);
   SAI_EXT_ATTR_MAP(Switch, FabricCllfcTxCreditTh);
   SAI_EXT_ATTR_MAP(Switch, VoqDramBoundTh);
+  SAI_EXT_ATTR_MAP(Switch, CondEntropyRehashPeriodUS);
+  SAI_EXT_ATTR_MAP(Switch, ShelSrcIp);
+  SAI_EXT_ATTR_MAP(Switch, ShelDstIp);
+  SAI_EXT_ATTR_MAP(Switch, ShelSrcMac);
+  SAI_EXT_ATTR_MAP(Switch, ShelPeriodicInterval);
 }
 
 } // namespace

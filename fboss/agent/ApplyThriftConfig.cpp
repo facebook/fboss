@@ -33,6 +33,7 @@
 #include "fboss/agent/SwitchIdScopeResolver.h"
 #include "fboss/agent/SwitchInfoUtils.h"
 #include "fboss/agent/Utils.h"
+#include "fboss/agent/VoqUtils.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/if/gen-cpp2/mpls_types.h"
 #include "fboss/agent/platforms/common/PlatformMapping.h"
@@ -101,6 +102,7 @@ using folly::StringPiece;
 using std::make_shared;
 using std::shared_ptr;
 
+using namespace facebook::fboss;
 namespace {
 
 const uint8_t kV6LinkLocalAddrMask{64};
@@ -148,6 +150,55 @@ std::shared_ptr<MultiMap> toMultiSwitchMap(
   return multiMap;
 }
 
+bool haveParallelLinksToInterfaceNodes(
+    const cfg::SwitchConfig* cfg,
+    const std::vector<SwitchID>& localFabricSwitchIds,
+    const std::unordered_map<std::string, std::vector<uint32_t>>&
+        switchNameToSwitchIds,
+    SwitchIdScopeResolver& scopeResolver,
+    const PlatformMapping* platformMapping) {
+  for (const auto& fabricSwitchId : localFabricSwitchIds) {
+    // Determine parallel links on VD level - there are two VDs per R3 ASIC
+    std::unordered_map<int, std::unordered_set<std::string>> vd2VoqNeighbors;
+    for (const auto& port : *cfg->ports()) {
+      // Only process ports belonging to one switchId
+      if (scopeResolver.scope(port).has(SwitchID(fabricSwitchId)) &&
+          port.expectedNeighborReachability()->size() > 0) {
+        auto neighborRemoteSwitchId =
+            getRemoteSwitchID(cfg, port, switchNameToSwitchIds);
+        const auto& neighborDsfNodeIter =
+            cfg->dsfNodes()->find(neighborRemoteSwitchId);
+        CHECK(neighborDsfNodeIter != cfg->dsfNodes()->end());
+        if (*neighborDsfNodeIter->second.type() ==
+            cfg::DsfNodeType::INTERFACE_NODE) {
+          CHECK(port.name().has_value());
+          auto localVirtualDeviceId =
+              platformMapping->getVirtualDeviceID(*port.name());
+          if (!localVirtualDeviceId.has_value()) {
+            throw FbossError(
+                "Unable to find virtual device id for port: ",
+                *port.logicalID(),
+                " virtual device");
+          }
+
+          if (vd2VoqNeighbors.find(localVirtualDeviceId.value()) ==
+              vd2VoqNeighbors.end()) {
+            vd2VoqNeighbors.insert(
+                {localVirtualDeviceId.value(),
+                 std::unordered_set<std::string>()});
+          }
+          auto& voqNeighbors = vd2VoqNeighbors[localVirtualDeviceId.value()];
+          const auto& [neighborName, _] = getExpectedNeighborAndPortName(port);
+          if (voqNeighbors.find(neighborName) != voqNeighbors.end()) {
+            return true;
+          }
+          voqNeighbors.insert(neighborName);
+        }
+      }
+    }
+  }
+  return false;
+};
 } // anonymous namespace
 
 namespace facebook::fboss {
@@ -352,9 +403,11 @@ class ThriftConfigApplier {
       const std::set<PortDescriptor>& portDescs);
   std::shared_ptr<AclTableGroup> updateAclTableGroup(
       cfg::AclStage aclStage,
+      const cfg::AclTableGroup& cfgAclTableGroup,
       const std::shared_ptr<AclTableGroup>& origAclTableGroup);
   std::shared_ptr<AclTableGroupMap> updateAclTableGroups();
-  flat_map<std::string, const cfg::AclEntry*> getAllAclsByName();
+  flat_map<std::string, const cfg::AclEntry*> getAllAclsByName(
+      const cfg::AclTableGroup& cfgAclTableGroup);
   void checkTrafficPolicyAclsExistInConfig(
       const cfg::TrafficPolicyConfig& policy,
       flat_map<std::string, const cfg::AclEntry*> aclByName);
@@ -954,7 +1007,11 @@ void ThriftConfigApplier::processUpdatedDsfNodes() {
             asicCore = 1;
             break;
           case cfg::AsicType::ASIC_TYPE_JERICHO3:
-            asicCore = 441;
+            if (isDualStage3Q2QMode()) {
+              asicCore = 447;
+            } else {
+              asicCore = 441;
+            }
             break;
           case cfg::AsicType::ASIC_TYPE_CHENAB:
           case cfg::AsicType::ASIC_TYPE_TRIDENT2:
@@ -993,22 +1050,26 @@ void ThriftConfigApplier::processUpdatedDsfNodes() {
   auto isInterfaceNode = [](const std::shared_ptr<DsfNode>& node) {
     return node->getType() == cfg::DsfNodeType::INTERFACE_NODE;
   };
-  auto getDsfNodeAsic =
-      [&isInterfaceNode](const std::shared_ptr<DsfNode>& node) {
-        CHECK(isInterfaceNode(node))
-            << " Only expect to be called for Interface nodes";
-        auto mac = node->getMac() ? *node->getMac() : folly::MacAddress();
-        CHECK(!node->getSystemPortRanges().systemPortRanges()->empty());
-        return HwAsic::makeAsic(
-            node->getAsicType(),
-            cfg::SwitchType::VOQ,
-            static_cast<int64_t>(node->getSwitchId()),
-            0, /* dummy switchIndex*/
-            // TODO - get rid of system port range in HwAsic
-            *node->getSystemPortRanges().systemPortRanges()->begin(),
-            mac,
-            std::nullopt);
-      };
+  auto getDsfNodeAsic = [&isInterfaceNode](
+                            const std::shared_ptr<DsfNode>& node) {
+    CHECK(isInterfaceNode(node))
+        << " Only expect to be called for Interface nodes";
+    CHECK(node->getLocalSystemPortOffset().has_value());
+    CHECK(node->getGlobalSystemPortOffset().has_value());
+    CHECK(node->getInbandPortId().has_value());
+    CHECK(node->getMac().has_value());
+    cfg::SwitchInfo switchInfo;
+    switchInfo.asicType() = node->getAsicType();
+    switchInfo.switchType() = cfg::SwitchType::VOQ;
+    switchInfo.switchIndex() = 0; /* dummy switchIndex*/
+    switchInfo.switchMac() = node->getMac()->toString();
+    switchInfo.systemPortRanges() = node->getSystemPortRanges();
+    switchInfo.localSystemPortOffset() = *node->getLocalSystemPortOffset();
+    switchInfo.globalSystemPortOffset() = *node->getGlobalSystemPortOffset();
+    switchInfo.inbandPortId() = *node->getInbandPortId();
+    return HwAsic::makeAsic(
+        static_cast<int64_t>(node->getSwitchId()), switchInfo, std::nullopt);
+  };
   auto processLoopbacks = [&](const std::shared_ptr<DsfNode>& node,
                               const HwAsic* dsfNodeAsic) {
     auto recyclePortId = getInbandSysPortId(node);
@@ -1080,9 +1141,9 @@ void ThriftConfigApplier::processUpdatedDsfNodes() {
     const auto& recyclePortInfo = dsfNodeAsic->getRecyclePortInfo();
     sysPort->setCoreIndex(recyclePortInfo.coreId);
     sysPort->setCorePortIndex(recyclePortInfo.corePortIndex);
-    sysPort->setSpeedMbps(recyclePortInfo.speedMbps); // 10G
-    // TODO(daiweix): do not hardcode 8
-    sysPort->setNumVoqs(8);
+    sysPort->setSpeedMbps(recyclePortInfo.speedMbps);
+    sysPort->setNumVoqs(
+        getNumVoqs(cfg::PortType::RECYCLE_PORT, cfg::Scope::GLOBAL));
     sysPort->setScope(cfg::Scope::GLOBAL);
     // TODO(daiweix): use voq config of rcy ports, hardcode rcy portID 1 for now
     sysPort->resetPortQueues(getVoqConfig(PortID(1)));
@@ -1554,9 +1615,6 @@ void ThriftConfigApplier::updateVlanInterfaces(const Interface* intf) {
 shared_ptr<SystemPortMap> ThriftConfigApplier::updateSystemPorts(
     const std::shared_ptr<MultiSwitchPortMap>& ports,
     const std::shared_ptr<MultiSwitchSettings>& multiSwitchSettings) {
-  // TODO(daiweix): do not hardcode 8
-  const auto kNumVoqs = 8;
-
   static const std::set<cfg::PortType> kCreateSysPortsFor = {
       cfg::PortType::INTERFACE_PORT,
       cfg::PortType::RECYCLE_PORT,
@@ -1595,7 +1653,8 @@ shared_ptr<SystemPortMap> ThriftConfigApplier::updateSystemPorts(
       sysPort->setCorePortIndex(
           platformPort.mapping()->attachedCorePortIndex().value());
       sysPort->setSpeedMbps(static_cast<int>(port.second->getSpeed()));
-      sysPort->setNumVoqs(kNumVoqs);
+      sysPort->setNumVoqs(
+          getNumVoqs(port.second->getPortType(), port.second->getScope()));
       sysPort->setQosPolicy(port.second->getQosPolicy());
       sysPort->resetPortQueues(getVoqConfig(port.second->getID()));
       // TODO(daiweix): remove this CHECK_EQ after verifying scope config is
@@ -3050,22 +3109,29 @@ std::shared_ptr<AclTableGroupMap> ThriftConfigApplier::updateAclTableGroups() {
   auto origAclTableGroups = orig_->getAclTableGroups();
   AclTableGroupMap::NodeContainer newAclTableGroups;
 
-  if (!cfg_->aclTableGroup()) {
+  auto updateAclTableGroupsInternal =
+      [this, origAclTableGroups, &newAclTableGroups](
+          const cfg::AclTableGroup& cfgAclTableGroup) {
+        auto origAclTableGroup =
+            origAclTableGroups->getNodeIf(*cfgAclTableGroup.stage());
+        auto newAclTableGroup = updateAclTableGroup(
+            *cfgAclTableGroup.stage(), cfgAclTableGroup, origAclTableGroup);
+        return updateMap(
+            &newAclTableGroups, origAclTableGroup, newAclTableGroup);
+      };
+
+  bool changed = false;
+  if (!cfg_->aclTableGroup() &&
+      (!cfg_->aclTableGroups() || cfg_->aclTableGroups()->empty())) {
     throw FbossError(
         "ACL Table Group must be specified if Multiple ACL Table support is enabled");
+  } else if (auto cfgAclTableGroup = cfg_->aclTableGroup()) {
+    changed = updateAclTableGroupsInternal(*cfgAclTableGroup);
+  } else {
+    for (const auto& entry : *cfg_->aclTableGroups()) {
+      changed = updateAclTableGroupsInternal(entry);
+    }
   }
-
-  if (cfg_->aclTableGroup()->stage() != cfg::AclStage::INGRESS) {
-    throw FbossError("Only ACL Stage INGRESS is supported");
-  }
-
-  auto origAclTableGroup =
-      origAclTableGroups->getNodeIf(cfg::AclStage::INGRESS);
-
-  auto newAclTableGroup =
-      updateAclTableGroup(*cfg_->aclTableGroup()->stage(), origAclTableGroup);
-  auto changed =
-      updateMap(&newAclTableGroups, origAclTableGroup, newAclTableGroup);
 
   if (!changed) {
     return nullptr;
@@ -3076,12 +3142,12 @@ std::shared_ptr<AclTableGroupMap> ThriftConfigApplier::updateAclTableGroups() {
 
 std::shared_ptr<AclTableGroup> ThriftConfigApplier::updateAclTableGroup(
     cfg::AclStage aclStage,
+    const cfg::AclTableGroup& cfgAclTableGroup,
     const std::shared_ptr<AclTableGroup>& origAclTableGroup) {
   auto newAclTableMap = std::make_shared<AclTableMap>();
   bool changed = false;
   int numExistingTablesProcessed = 0;
-
-  auto aclByName = getAllAclsByName();
+  auto aclByName = getAllAclsByName(cfgAclTableGroup);
   // Check for controlPlane traffic acls
   if (cfg_->cpuTrafficPolicy() && cfg_->cpuTrafficPolicy()->trafficPolicy()) {
     checkTrafficPolicyAclsExistInConfig(
@@ -3093,7 +3159,7 @@ std::shared_ptr<AclTableGroup> ThriftConfigApplier::updateAclTableGroup(
   }
 
   // For each table in the config, update the table entries and priority
-  for (const auto& aclTable : *cfg_->aclTableGroup()->aclTables()) {
+  for (const auto& aclTable : *cfgAclTableGroup.aclTables()) {
     auto newTable =
         updateAclTable(aclStage, aclTable, &numExistingTablesProcessed);
     if (newTable) {
@@ -3119,17 +3185,18 @@ std::shared_ptr<AclTableGroup> ThriftConfigApplier::updateAclTableGroup(
   }
 
   auto newAclTableGroup =
-      std::make_shared<AclTableGroup>(*cfg_->aclTableGroup()->stage());
+      std::make_shared<AclTableGroup>(*cfgAclTableGroup.stage());
   newAclTableGroup->setAclTableMap(newAclTableMap);
-  newAclTableGroup->setName(*cfg_->aclTableGroup()->name());
+  newAclTableGroup->setName(*cfgAclTableGroup.name());
 
   return newAclTableGroup;
 }
 
 flat_map<std::string, const cfg::AclEntry*>
-ThriftConfigApplier::getAllAclsByName() {
+ThriftConfigApplier::getAllAclsByName(
+    const cfg::AclTableGroup& cfgAclTableGroup) {
   flat_map<std::string, const cfg::AclEntry*> aclByName;
-  for (const auto& aclTable : *cfg_->aclTableGroup()->aclTables()) {
+  for (const auto& aclTable : *cfgAclTableGroup.aclTables()) {
     auto aclEntries = *(aclTable.aclEntries());
     folly::gen::from(aclEntries) |
         folly::gen::map([](const cfg::AclEntry& acl) {
@@ -4532,6 +4599,40 @@ shared_ptr<SwitchSettings> ThriftConfigApplier::updateSwitchSettings(
     switchSettingsChange = true;
   }
 
+  std::optional<uint16_t> newLinkFlowControlCreditThreshold;
+  if (cfg_->switchSettings()->linkFlowControlCreditThreshold()) {
+    newLinkFlowControlCreditThreshold =
+        *cfg_->switchSettings()->linkFlowControlCreditThreshold();
+  }
+  if (newLinkFlowControlCreditThreshold !=
+      origSwitchSettings->getLinkFlowControlCreditThreshold()) {
+    newSwitchSettings->setLinkFlowControlCreditThreshold(
+        newLinkFlowControlCreditThreshold);
+    switchSettingsChange = true;
+  }
+
+  std::optional<uint32_t> newVoqDramBoundThreshold;
+  if (cfg_->switchSettings()->voqDramBoundThreshold()) {
+    newVoqDramBoundThreshold = *cfg_->switchSettings()->voqDramBoundThreshold();
+  }
+  if (newVoqDramBoundThreshold !=
+      origSwitchSettings->getVoqDramBoundThreshold()) {
+    newSwitchSettings->setVoqDramBoundThreshold(newVoqDramBoundThreshold);
+    switchSettingsChange = true;
+  }
+
+  std::optional<int> newConditionalEntropyRehashPeriodUS;
+  if (cfg_->switchSettings()->conditionalEntropyRehashPeriodUS()) {
+    newConditionalEntropyRehashPeriodUS =
+        *cfg_->switchSettings()->conditionalEntropyRehashPeriodUS();
+  }
+  if (newConditionalEntropyRehashPeriodUS !=
+      origSwitchSettings->getConditionalEntropyRehashPeriodUS()) {
+    newSwitchSettings->setConditionalEntropyRehashPeriodUS(
+        newConditionalEntropyRehashPeriodUS);
+    switchSettingsChange = true;
+  }
+
   if (origSwitchSettings->getSwitchDrainState() !=
       *cfg_->switchSettings()->switchDrainState()) {
     auto numVoqSwtitches =
@@ -4694,6 +4795,15 @@ shared_ptr<SwitchSettings> ThriftConfigApplier::updateSwitchSettings(
     }
   }
 
+  std::optional<std::string> newFirmwarePath;
+  if (cfg_->switchSettings()->firmwarePath()) {
+    newFirmwarePath = *cfg_->switchSettings()->firmwarePath();
+  }
+  if (newFirmwarePath != origSwitchSettings->getFirmwarePath()) {
+    newSwitchSettings->setFirmwarePath(newFirmwarePath);
+    switchSettingsChange = true;
+  }
+
   if (switchSettingsChange) {
     return newSwitchSettings;
   }
@@ -4783,6 +4893,7 @@ shared_ptr<MultiControlPlane> ThriftConfigApplier::updateControlPlane() {
 
   // check whether queue setting changed
   QueueConfig newQueues;
+  QueueConfig newVoqs;
   auto switchIds = scopeResolver_.scope(origCPU).switchIds();
   CHECK(scopeResolver_.hasL3());
   CHECK_GT(switchIds.size(), 0);
@@ -4797,6 +4908,15 @@ shared_ptr<MultiControlPlane> ThriftConfigApplier::updateControlPlane() {
         qosMap);
     newQueues.insert(
         newQueues.begin(), tmpPortQueues.begin(), tmpPortQueues.end());
+    if (cfg_->cpuVoqs()) {
+      auto tmpPortVoqs = updatePortQueues(
+          origCPU->getVoqsConfig(),
+          *cfg_->cpuVoqs(),
+          asic->getDefaultNumPortQueues(streamType, cfg::PortType::CPU_PORT),
+          streamType,
+          qosMap);
+      newVoqs.insert(newVoqs.begin(), tmpPortVoqs.begin(), tmpPortVoqs.end());
+    }
   }
   bool queuesUnchanged = false;
   if (origCPU->getQueues()->size() > 0) {
@@ -4809,13 +4929,25 @@ shared_ptr<MultiControlPlane> ThriftConfigApplier::updateControlPlane() {
       }
     }
   }
+  bool voqsUnchanged = (newVoqs.size() == origCPU->getVoqs()->size());
+  if (origCPU->getVoqs()->size() > 0) {
+    /* on cold boot original queues are 0 */
+    for (int i = 0; i < newVoqs.size() && voqsUnchanged; i++) {
+      if (*(newVoqs.at(i)) != *(origCPU->getVoqs()->at(i))) {
+        voqsUnchanged = false;
+        break;
+      }
+    }
+  }
 
-  if (queuesUnchanged && qosPolicyUnchanged && rxReasonToQueueUnchanged) {
+  if (queuesUnchanged && voqsUnchanged && qosPolicyUnchanged &&
+      rxReasonToQueueUnchanged) {
     return nullptr;
   }
 
   auto newCPU = origCPU->clone();
   newCPU->resetQueues(newQueues);
+  newCPU->resetVoqs(newVoqs);
   newCPU->resetQosPolicy(qosPolicy);
   newCPU->resetRxReasonToQueue(newRxReasonToQueue);
   auto newMultiSwitchControlPlane = std::make_shared<MultiControlPlane>();

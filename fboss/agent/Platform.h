@@ -34,7 +34,7 @@ struct AgentConfig;
 class HwSwitch;
 class SwSwitch;
 class ThriftHandler;
-struct ProductInfo;
+class ProductInfo;
 class HwSwitchWarmBootHelper;
 class PlatformProductInfo;
 class HwSwitchCallback;
@@ -269,11 +269,8 @@ class Platform {
    */
   virtual void initImpl(uint32_t hwFeaturesDesired) = 0;
   virtual void setupAsic(
-      cfg::SwitchType switchType,
       std::optional<int64_t> switchId,
-      int16_t switchIndex,
-      std::optional<cfg::Range64> systemPortRange,
-      folly::MacAddress& mac,
+      const cfg::SwitchInfo& switchInfo,
       std::optional<HwAsic::FabricNodeRole> role) = 0;
 
   std::unique_ptr<AgentConfig> config_;

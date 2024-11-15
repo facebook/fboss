@@ -55,6 +55,10 @@ void HwTestThriftHandler::getPortInfo(
   return;
 }
 
+bool HwTestThriftHandler::verifyPortLedStatus(int /*portId*/, bool /*status*/) {
+  return true;
+}
+
 } // namespace utility
 } // namespace fboss
 } // namespace facebook

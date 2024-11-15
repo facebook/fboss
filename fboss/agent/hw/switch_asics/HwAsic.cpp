@@ -38,25 +38,31 @@ constexpr auto kDefaultDropEgressID = 100000;
 namespace facebook::fboss {
 
 HwAsic::HwAsic(
-    cfg::SwitchType switchType,
     std::optional<int64_t> switchId,
-    int16_t switchIndex,
-    std::optional<cfg::Range64> systemPortRange,
-    const folly::MacAddress& mac,
+    const cfg::SwitchInfo& switchInfo,
     std::optional<cfg::SdkVersion> sdkVersion,
     std::unordered_set<cfg::SwitchType> supportedModes)
-    : switchType_(switchType),
+    : switchType_(*switchInfo.switchType()),
       switchId_(switchId),
-      switchIndex_(switchIndex),
-      systemPortRange_(systemPortRange),
-      asicMac_(mac),
+      switchIndex_(*switchInfo.switchIndex()),
+      systemPortRanges_(*switchInfo.systemPortRanges()),
       sdkVersion_(sdkVersion) {
+  CHECK(switchInfo.switchMac().has_value());
+  asicMac_ = folly::MacAddress(*switchInfo.switchMac());
   if (supportedModes.find(switchType_) == supportedModes.end()) {
     throw std::runtime_error(
         folly::to<std::string>("Unsupported Mode: ", switchType_));
   }
+  if (switchInfo.globalSystemPortOffset()) {
+    globalSystemPortOffset_ = *switchInfo.globalSystemPortOffset();
+  }
+  if (switchInfo.localSystemPortOffset()) {
+    localSystemPortOffset_ = *switchInfo.localSystemPortOffset();
+  }
+  if (switchInfo.inbandPortId()) {
+    inbandPortId_ = *switchInfo.inbandPortId();
+  }
 }
-
 /*
  * Default Content Aware Processor group ID for ACLs
  */
@@ -69,64 +75,45 @@ int HwAsic::getDefaultACLGroupID() const {
 }
 
 std::unique_ptr<HwAsic> HwAsic::makeAsic(
-    cfg::AsicType asicType,
-    cfg::SwitchType switchType,
     std::optional<int64_t> switchId,
-    int16_t switchIndex,
-    std::optional<cfg::Range64> systemPortRange,
-    const folly::MacAddress& mac,
+    const cfg::SwitchInfo& switchInfo,
     std::optional<cfg::SdkVersion> sdkVersion) {
-  switch (asicType) {
+  switch (*switchInfo.asicType()) {
     case cfg::AsicType::ASIC_TYPE_FAKE:
-      return std::make_unique<FakeAsic>(
-          switchType, switchId, switchIndex, systemPortRange, mac, sdkVersion);
+      return std::make_unique<FakeAsic>(switchId, switchInfo, sdkVersion);
     case cfg::AsicType::ASIC_TYPE_MOCK:
-      return std::make_unique<MockAsic>(
-          switchType, switchId, switchIndex, systemPortRange, mac, sdkVersion);
+      return std::make_unique<MockAsic>(switchId, switchInfo, sdkVersion);
     case cfg::AsicType::ASIC_TYPE_TRIDENT2:
-      return std::make_unique<Trident2Asic>(
-          switchType, switchId, switchIndex, systemPortRange, mac, sdkVersion);
+      return std::make_unique<Trident2Asic>(switchId, switchInfo, sdkVersion);
     case cfg::AsicType::ASIC_TYPE_TOMAHAWK:
-      return std::make_unique<TomahawkAsic>(
-          switchType, switchId, switchIndex, systemPortRange, mac, sdkVersion);
+      return std::make_unique<TomahawkAsic>(switchId, switchInfo, sdkVersion);
     case cfg::AsicType::ASIC_TYPE_TOMAHAWK3:
-      return std::make_unique<Tomahawk3Asic>(
-          switchType, switchId, switchIndex, systemPortRange, mac, sdkVersion);
+      return std::make_unique<Tomahawk3Asic>(switchId, switchInfo, sdkVersion);
     case cfg::AsicType::ASIC_TYPE_TOMAHAWK4:
-      return std::make_unique<Tomahawk4Asic>(
-          switchType, switchId, switchIndex, systemPortRange, mac, sdkVersion);
+      return std::make_unique<Tomahawk4Asic>(switchId, switchInfo, sdkVersion);
     case cfg::AsicType::ASIC_TYPE_TOMAHAWK5:
-      return std::make_unique<Tomahawk5Asic>(
-          switchType, switchId, switchIndex, systemPortRange, mac, sdkVersion);
+      return std::make_unique<Tomahawk5Asic>(switchId, switchInfo, sdkVersion);
     case cfg::AsicType::ASIC_TYPE_ELBERT_8DD:
-      return std::make_unique<CredoPhyAsic>(
-          switchType, switchId, switchIndex, systemPortRange, mac, sdkVersion);
+      return std::make_unique<CredoPhyAsic>(switchId, switchInfo, sdkVersion);
     case cfg::AsicType::ASIC_TYPE_EBRO:
-      return std::make_unique<EbroAsic>(
-          switchType, switchId, switchIndex, systemPortRange, mac, sdkVersion);
+      return std::make_unique<EbroAsic>(switchId, switchInfo, sdkVersion);
     case cfg::AsicType::ASIC_TYPE_YUBA:
-      return std::make_unique<YubaAsic>(
-          switchType, switchId, switchIndex, systemPortRange, mac, sdkVersion);
+      return std::make_unique<YubaAsic>(switchId, switchInfo, sdkVersion);
     case cfg::AsicType::ASIC_TYPE_CHENAB:
-      return std::make_unique<ChenabAsic>(
-          switchType, switchId, switchIndex, systemPortRange, mac, sdkVersion);
+      return std::make_unique<ChenabAsic>(switchId, switchInfo, sdkVersion);
     case cfg::AsicType::ASIC_TYPE_JERICHO2:
-      return std::make_unique<Jericho2Asic>(
-          switchType, switchId, switchIndex, systemPortRange, mac, sdkVersion);
+      return std::make_unique<Jericho2Asic>(switchId, switchInfo, sdkVersion);
     case cfg::AsicType::ASIC_TYPE_JERICHO3:
-      return std::make_unique<Jericho3Asic>(
-          switchType, switchId, switchIndex, systemPortRange, mac, sdkVersion);
+      return std::make_unique<Jericho3Asic>(switchId, switchInfo, sdkVersion);
     case cfg::AsicType::ASIC_TYPE_RAMON:
-      return std::make_unique<RamonAsic>(
-          switchType, switchId, switchIndex, systemPortRange, mac, sdkVersion);
+      return std::make_unique<RamonAsic>(switchId, switchInfo, sdkVersion);
     case cfg::AsicType::ASIC_TYPE_RAMON3:
-      return std::make_unique<Ramon3Asic>(
-          switchType, switchId, switchIndex, systemPortRange, mac, sdkVersion);
+      return std::make_unique<Ramon3Asic>(switchId, switchInfo, sdkVersion);
     case cfg::AsicType::ASIC_TYPE_GARONNE:
     case cfg::AsicType::ASIC_TYPE_SANDIA_PHY:
-      throw FbossError("Unexcepted asic type: ", asicType);
+      throw FbossError("Unexcepted asic type: ", *switchInfo.asicType());
   };
-  throw FbossError("Unexcepted asic type: ", asicType);
+  throw FbossError("Unexcepted asic type: ", *switchInfo.asicType());
 }
 /*
  * Default Content Aware Processor group ID for TeFlows

@@ -67,5 +67,5 @@ void UdfGroup::setUdfPacketMatcherIds(
   set<switch_config_tags::udfPacketMatcherIds>(matcherIds);
 }
 
-template class ThriftStructNode<UdfGroup, cfg::UdfGroup>;
+template struct ThriftStructNode<UdfGroup, cfg::UdfGroup>;
 } // namespace facebook::fboss

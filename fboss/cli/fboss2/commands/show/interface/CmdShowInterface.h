@@ -115,12 +115,17 @@ class CmdShowInterface
     populateVlanToMtu(vlanToMtu, intfDetails);
     populateVlanToPrefixes(vlanToPrefixes, intfDetails);
 
-    int32_t minSystemPort = 0;
+    std::optional<int32_t> localSysPortOffset, globalSysPortOffset;
     for (const auto& idAndNode : dsfNodes) {
       const auto& node = idAndNode.second;
       if (utils::removeFbDomains(hostInfo.getName()) ==
           utils::removeFbDomains(*node.name())) {
-        minSystemPort = *node.systemPortRange()->minimum();
+        if (node.localSystemPortOffset().has_value()) {
+          localSysPortOffset = *node.localSystemPortOffset();
+        }
+        if (node.globalSystemPortOffset().has_value()) {
+          globalSysPortOffset = *node.globalSystemPortOffset();
+        }
         break;
       }
     }
@@ -151,8 +156,13 @@ class CmdShowInterface
           }
         }
 
-        if (dsfNodes.size() > 0) {
-          int systemPortId = minSystemPort + portId;
+        if (localSysPortOffset.has_value() && globalSysPortOffset.has_value()) {
+          // TODO factor in portId range for this switchId. Needed for
+          // multi-asic systems
+          int systemPortId =
+              (portInfo.scope() == cfg::Scope::GLOBAL ? *globalSysPortOffset
+                                                      : *localSysPortOffset) +
+              portId;
           ifModel.systemPortId() = systemPortId;
 
           // Extract IP addresses for DSF switches

@@ -17,11 +17,9 @@
 #include "fboss/lib/FunctionCallTimeReporter.h"
 
 #include "fboss/agent/benchmarks/AgentBenchmarks.h"
-#include "fboss/agent/hw/switch_asics/HwAsic.h"
 
 #include <folly/Benchmark.h>
 #include <folly/IPAddress.h>
-#include <folly/logging/xlog.h>
 
 DEFINE_int32(teflow_em_entries, 10000, "TEFlow EM entries");
 DEFINE_int32(fsdb_connect_timeout, 60, "FSDB connect timeout in seconds");

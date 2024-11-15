@@ -14,7 +14,6 @@
 #include <folly/coro/BlockingWait.h>
 #include <folly/io/async/ScopedEventBaseThread.h>
 
-#include <thrift/lib/cpp2/protocol/Serializer.h>
 namespace {
 constexpr auto kPublisherId = "fsdb_test_publisher";
 const std::vector<std::string> kPublishRoot{"agent"};

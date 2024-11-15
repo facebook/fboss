@@ -47,7 +47,7 @@ MultiSwitchAclMap* MultiSwitchAclMap::modify(
   return ptr;
 }
 
-template class ThriftMapNode<AclMap, AclMapTraits>;
+template struct ThriftMapNode<AclMap, AclMapTraits>;
 FBOSS_INSTANTIATE_NODE_MAP(PrioAclMap, PrioAclMapTraits);
 
 template class NodeMapDelta<

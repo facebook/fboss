@@ -72,5 +72,5 @@ MultiSwitchSystemPortMap* MultiSwitchSystemPortMap::modify(
   }
 }
 
-template class ThriftMapNode<SystemPortMap, SystemPortMapTraits>;
+template struct ThriftMapNode<SystemPortMap, SystemPortMapTraits>;
 } // namespace facebook::fboss

@@ -35,11 +35,8 @@ class SaiBcmMinipackPlatform : public SaiBcmPlatform {
 
  private:
   void setupAsic(
-      cfg::SwitchType switchType,
       std::optional<int64_t> switchId,
-      int16_t switchIndex,
-      std::optional<cfg::Range64> systemPortRange,
-      folly::MacAddress& mac,
+      const cfg::SwitchInfo& switchInfo,
       std::optional<HwAsic::FabricNodeRole> fabricNodeRole) override;
   std::unique_ptr<Tomahawk3Asic> asic_;
 };

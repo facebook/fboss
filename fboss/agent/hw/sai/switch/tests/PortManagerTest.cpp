@@ -172,6 +172,7 @@ class PortManagerTest : public ManagerTestBase {
         std::nullopt, // CondEntropyRehashEnable
         std::nullopt, // CondEntropyRehashPeriodUS
         std::nullopt, // CondEntropyRehashSeed
+        std::nullopt, // ShelEnable
     };
     return portApi.create<SaiPortTraits>(a, 0);
   }

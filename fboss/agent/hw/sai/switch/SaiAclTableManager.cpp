@@ -178,7 +178,9 @@ bool SaiAclTableManager::needsAclTableRecreate(
     const std::shared_ptr<AclTable>& newAclTable) {
   if (oldAclTable->getActionTypes() != newAclTable->getActionTypes() ||
       oldAclTable->getPriority() != newAclTable->getPriority() ||
-      oldAclTable->getQualifiers() != newAclTable->getQualifiers()) {
+      oldAclTable->getQualifiers() != newAclTable->getQualifiers() ||
+      oldAclTable->getUdfGroups()->toThrift() !=
+          newAclTable->getUdfGroups()->toThrift()) {
     XLOG(DBG2) << "Recreating ACL table";
     return true;
   }
@@ -198,8 +200,13 @@ void SaiAclTableManager::removeAclEntriesFromTable(
 void SaiAclTableManager::addAclEntriesToTable(
     const std::shared_ptr<AclTable>& aclTable,
     std::shared_ptr<AclMap>& aclMap) {
+  auto newAclMap = aclTable->getAclMap().unwrap();
   for (auto const& iter : std::as_const(*aclMap)) {
     const auto& entry = iter.second;
+    // only re-add the ACL entry if present in new table
+    if (!newAclMap->getEntryIf(entry->getID())) {
+      continue;
+    }
     auto aclEntry = aclMap->getEntry(entry->getID());
     addAclEntry(aclEntry, aclTable->getID());
   }
@@ -396,6 +403,11 @@ SaiAclTableManager::cfgActionTypeListToSaiActionTypeList(
       case cfg::AclTableActionType::SET_USER_DEFINED_TRAP:
         saiActionType = SAI_ACL_ACTION_TYPE_SET_USER_TRAP_ID;
         break;
+#if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
+      case cfg::AclTableActionType::DISABLE_ARS_FORWARDING:
+        saiActionType = SAI_ACL_ACTION_TYPE_DISABLE_ARS_FORWARDING;
+        break;
+#endif
       default:
         // should return in one of the cases
         throw FbossError("Unsupported Acl Table action type");
@@ -1187,6 +1199,16 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
 #if !defined(TAJO_SDK) && !defined(BRCM_SAI_SDK_XGS)
       fieldIpv6NextHeader,
 #endif
+#if (                                                                  \
+    (SAI_API_VERSION >= SAI_VERSION(1, 14, 0) ||                       \
+     (defined(BRCM_SAI_SDK_GTE_11_0) && defined(BRCM_SAI_SDK_XGS))) && \
+    !defined(TAJO_SDK))
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+#endif
       aclActionPacketAction,
       aclActionCounter,
       aclActionSetTC,
@@ -1244,8 +1266,8 @@ void SaiAclTableManager::removeAclEntry(
   if (itr == aclTableHandle->aclTableMembers.end()) {
     // an acl entry that uses cpu port as qualifier may not have been created
     // even if it exists in switch state.
-    XLOG(ERR) << "attempted to remove aclEntry which does not exist: ",
-        removedAclEntry->getID();
+    XLOG(ERR) << "attempted to remove aclEntry which does not exist: "
+              << removedAclEntry->getID();
     return;
   }
 
@@ -1409,7 +1431,11 @@ std::set<cfg::AclTableQualifier> SaiAclTableManager::getSupportedQualifierSet(
 }
 
 std::set<cfg::AclTableQualifier> SaiAclTableManager::getSupportedQualifierSet(
-    sai_acl_stage_t /* aclStage */) const {
+    sai_acl_stage_t aclStage) const {
+  if (aclStage == SAI_ACL_STAGE_EGRESS &&
+      platform_->getAsic()->isSupported(HwAsic::Feature::EGRESS_ACL_TABLE)) {
+    throw FbossError("egress acl table is not supported on switch asic");
+  }
   /*
    * Not all the qualifiers are supported by every ASIC.
    * Moreover, different ASICs have different max key widths.
@@ -1505,22 +1531,28 @@ std::set<cfg::AclTableQualifier> SaiAclTableManager::getSupportedQualifierSet(
     return jericho3Qualifiers;
   } else if (isChenab) {
     /* TODO(pshaikh): review the qualifiers */
-    std::set<cfg::AclTableQualifier> chenabQualifiers = {
-        cfg::AclTableQualifier::SRC_IPV6,
-        cfg::AclTableQualifier::DST_IPV6,
-        cfg::AclTableQualifier::SRC_IPV4,
-        cfg::AclTableQualifier::DST_IPV4,
-        cfg::AclTableQualifier::L4_SRC_PORT,
-        cfg::AclTableQualifier::L4_DST_PORT,
-        cfg::AclTableQualifier::IP_PROTOCOL,
-        cfg::AclTableQualifier::SRC_PORT,
-        cfg::AclTableQualifier::DSCP,
-        cfg::AclTableQualifier::TTL,
-        cfg::AclTableQualifier::OUTER_VLAN,
-        // TODO(pshaikh): Add UDF?
-    };
-
-    return chenabQualifiers;
+    if (aclStage == SAI_ACL_STAGE_INGRESS) {
+      return {
+          cfg::AclTableQualifier::SRC_IPV6,
+          cfg::AclTableQualifier::DST_IPV6,
+          cfg::AclTableQualifier::SRC_IPV4,
+          cfg::AclTableQualifier::DST_IPV4,
+          cfg::AclTableQualifier::L4_SRC_PORT,
+          cfg::AclTableQualifier::L4_DST_PORT,
+          cfg::AclTableQualifier::IP_PROTOCOL,
+          cfg::AclTableQualifier::SRC_PORT,
+          cfg::AclTableQualifier::DSCP,
+          cfg::AclTableQualifier::TTL,
+          cfg::AclTableQualifier::OUTER_VLAN,
+          // TODO(pshaikh): Add UDF?
+      };
+    } else {
+      return {
+          cfg::AclTableQualifier::OUT_PORT,
+          cfg::AclTableQualifier::LOOKUP_CLASS_L2,
+          cfg::AclTableQualifier::LOOKUP_CLASS_ROUTE,
+      };
+    }
   } else {
     std::set<cfg::AclTableQualifier> bcmQualifiers = {
         cfg::AclTableQualifier::SRC_IPV6,
@@ -1567,20 +1599,24 @@ std::set<cfg::AclTableQualifier> SaiAclTableManager::getSupportedQualifierSet(
   }
 }
 
-void SaiAclTableManager::addDefaultAclTable(cfg::AclStage stage) {
-  if (handles_.find(kAclTable1) != handles_.end()) {
-    throw FbossError("default acl table already exists.");
+void SaiAclTableManager::addDefaultAclTable(
+    cfg::AclStage stage,
+    const std::string& name) {
+  if (handles_.find(name) != handles_.end()) {
+    throw FbossError("default acl table ", name, " already exists.");
   }
   // TODO(saranicholas): set appropriate table priority
   state::AclTableFields aclTableFields{};
   aclTableFields.priority() = 0;
-  aclTableFields.id() = kAclTable1;
+  aclTableFields.id() = name;
   auto table1 = std::make_shared<AclTable>(std::move(aclTableFields));
   addAclTable(table1, stage);
 }
 
-void SaiAclTableManager::removeDefaultAclTable(cfg::AclStage stage) {
-  if (handles_.find(kAclTable1) == handles_.end()) {
+void SaiAclTableManager::removeDefaultAclTable(
+    cfg::AclStage stage,
+    const std::string& name) {
+  if (handles_.find(name) == handles_.end()) {
     return;
   }
   // remove from acl table group
@@ -1588,9 +1624,9 @@ void SaiAclTableManager::removeDefaultAclTable(cfg::AclStage stage) {
       SaiAclTableGroupManager::cfgAclStageToSaiAclStage(stage);
   if (platform_->getAsic()->isSupported(HwAsic::Feature::ACL_TABLE_GROUP)) {
     managerTable_->aclTableGroupManager().removeAclTableGroupMember(
-        saiAclStage, kAclTable1);
+        saiAclStage, name);
   }
-  handles_.erase(kAclTable1);
+  handles_.erase(cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE());
 }
 
 bool SaiAclTableManager::isQualifierSupported(
@@ -1756,7 +1792,8 @@ bool SaiAclTableManager::areQualifiersSupported(
 
 bool SaiAclTableManager::areQualifiersSupportedInDefaultAclTable(
     const std::set<cfg::AclTableQualifier>& qualifiers) const {
-  return areQualifiersSupported(kAclTable1, qualifiers);
+  return areQualifiersSupported(
+      cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE(), qualifiers);
 }
 
 void SaiAclTableManager::recreateAclTable(
@@ -1877,5 +1914,16 @@ std::shared_ptr<AclEntry> SaiAclTableManager::reconstructAclEntry(
     const std::string& /*aclEntryName*/,
     int /*priority*/) const {
   throw FbossError("reconstructAclEntry not implemented in SaiAclTableManager");
+}
+
+void SaiAclTableManager::addDefaultIngressAclTable() {
+  addDefaultAclTable(
+      cfg::AclStage::INGRESS,
+      cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE());
+}
+void SaiAclTableManager::removeDefaultIngressAclTable() {
+  removeDefaultAclTable(
+      cfg::AclStage::INGRESS,
+      cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE());
 }
 } // namespace facebook::fboss

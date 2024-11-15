@@ -437,7 +437,8 @@ size_t pumpRoCETraffic(
     int packetCount,
     uint8_t roceOpcode,
     uint8_t reserved,
-    std::optional<std::vector<uint8_t>> nxtHdr) {
+    std::optional<std::vector<uint8_t>> nxtHdr,
+    bool sameDstQueue) {
   folly::MacAddress srcMac(
       srcMacAddr.has_value() ? *srcMacAddr
                              : MacAddressGenerator().get(dstMac.u64HBO() + 1));
@@ -456,7 +457,7 @@ size_t pumpRoCETraffic(
 
     // vary dst queues pair ids ONLY in the RoCE pkt
     // to verify that we can hash on it
-    int dstQueueIds = i;
+    int dstQueueIds = sameDstQueue ? 0 : i;
     // since dst queue pair id is in the middle of the packet
     // we need to keep front/end payload which doesn't vary
     rocePayload.push_back((dstQueueIds & 0x00ff0000) >> 16);

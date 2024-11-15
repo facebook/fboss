@@ -7,7 +7,6 @@
 #include "fboss/agent/hw/test/HwSwitchEnsemble.h"
 
 #include "fboss/agent/hw/sai/api/SwitchApi.h"
-#include "fboss/agent/hw/sai/api/TamApi.h"
 
 namespace facebook::fboss {
 namespace {

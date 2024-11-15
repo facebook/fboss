@@ -15,29 +15,12 @@
 namespace facebook::fboss::utility {
 
 namespace {
-constexpr auto kNumRdsw = 128;
-constexpr auto kNumEdsw = 16;
-constexpr auto kNumRdswSysPort = 44;
-constexpr auto kNumEdswSysPort = 26;
-constexpr auto kJ2NumSysPort = 20;
 
-int getPerNodeSysPorts(const HwAsic& asic, int remoteSwitchId) {
-  if (asic.getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO2) {
-    return kJ2NumSysPort;
-  }
-  if (remoteSwitchId < kNumRdsw * asic.getNumCores()) {
-    return kNumRdswSysPort;
-  }
-  return kNumEdswSysPort;
+int getDsfInterfaceNodeCount() {
+  return getMaxRdsw() + getMaxEdsw();
 }
+
 } // namespace
-
-int getDsfNodeCount(const HwAsic& asic) {
-  return asic.getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO2
-      ? kNumRdsw
-      : kNumRdsw + kNumEdsw;
-}
-
 std::optional<std::map<int64_t, cfg::DsfNode>> addRemoteIntfNodeCfg(
     const std::map<int64_t, cfg::DsfNode>& curDsfNodes,
     std::optional<int> numRemoteNodes) {
@@ -46,37 +29,41 @@ std::optional<std::map<int64_t, cfg::DsfNode>> addRemoteIntfNodeCfg(
   const auto& firstDsfNode = dsfNodes.begin()->second;
   CHECK(!firstDsfNode.systemPortRanges()->systemPortRanges()->empty());
   CHECK(firstDsfNode.nodeMac().has_value());
-  auto asic = HwAsic::makeAsic(
-      *firstDsfNode.asicType(),
-      cfg::SwitchType::VOQ,
-      *firstDsfNode.switchId(),
-      0,
-      *firstDsfNode.systemPortRanges()->systemPortRanges()->begin(),
-      folly::MacAddress(*firstDsfNode.nodeMac()),
-      std::nullopt);
+  CHECK(firstDsfNode.localSystemPortOffset().has_value());
+  CHECK(firstDsfNode.globalSystemPortOffset().has_value());
+  CHECK(firstDsfNode.inbandPortId().has_value());
+  CHECK_EQ(*firstDsfNode.switchId(), 0);
+  CHECK(*firstDsfNode.type() == cfg::DsfNodeType::INTERFACE_NODE);
+  cfg::SwitchInfo switchInfo;
+  switchInfo.asicType() = *firstDsfNode.asicType();
+  switchInfo.switchType() = cfg::SwitchType::VOQ;
+  switchInfo.switchIndex() = 0;
+  switchInfo.switchMac() = *firstDsfNode.nodeMac();
+  switchInfo.systemPortRanges() = *firstDsfNode.systemPortRanges();
+  switchInfo.localSystemPortOffset() = *firstDsfNode.localSystemPortOffset();
+  switchInfo.globalSystemPortOffset() = *firstDsfNode.globalSystemPortOffset();
+  switchInfo.inbandPortId() = *firstDsfNode.inbandPortId();
+
+  auto asic =
+      HwAsic::makeAsic(*firstDsfNode.switchId(), switchInfo, std::nullopt);
   int numCores = asic->getNumCores();
   CHECK(
       !numRemoteNodes.has_value() ||
-      numRemoteNodes.value() < getDsfNodeCount(*asic));
+      numRemoteNodes.value() < getDsfInterfaceNodeCount());
   int totalNodes = numRemoteNodes.has_value()
       ? numRemoteNodes.value() + curDsfNodes.size()
-      : getDsfNodeCount(*asic);
-  int remoteNodeStart = dsfNodes.rbegin()->first + numCores;
-  int systemPortMin =
-      getPerNodeSysPorts(*asic, dsfNodes.begin()->first) * curDsfNodes.size();
+      : getDsfInterfaceNodeCount();
+  auto lastDsfNode = dsfNodes.rbegin()->second;
+  int remoteNodeStart = *lastDsfNode.switchId() + numCores;
+  auto firstDsfNodeSysPortRanges =
+      *firstDsfNode.systemPortRanges()->systemPortRanges();
+
   for (int remoteSwitchId = remoteNodeStart;
        remoteSwitchId < totalNodes * numCores;
        remoteSwitchId += numCores) {
-    cfg::Range64 systemPortRange;
-    systemPortRange.minimum() = systemPortMin;
-    systemPortRange.maximum() =
-        systemPortMin + getPerNodeSysPorts(*asic, remoteSwitchId) - 1;
-    cfg::SystemPortRanges ranges;
-    ranges.systemPortRanges()->push_back(systemPortRange);
     auto remoteDsfNodeCfg = dsfNodeConfig(
-        *asic, SwitchID(remoteSwitchId), ranges, *firstDsfNode.platformType());
+        *asic, SwitchID(remoteSwitchId), *firstDsfNode.platformType());
     dsfNodes.insert({remoteSwitchId, remoteDsfNodeCfg});
-    systemPortMin = *systemPortRange.maximum() + 1;
   }
   return dsfNodes;
 }

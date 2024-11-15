@@ -10,7 +10,6 @@
 #include "fboss/agent/platforms/wedge/WedgePlatform.h"
 
 #include <folly/Memory.h>
-#include <folly/logging/xlog.h>
 
 #include "fboss/agent/SysError.h"
 #include "fboss/agent/hw/bcm/BcmAPI.h"
@@ -23,12 +22,9 @@
 #include "fboss/agent/platforms/wedge/WedgePort.h"
 #include "fboss/agent/platforms/wedge/WedgePortMapping.h"
 #include "fboss/agent/state/Port.h"
-#include "fboss/agent/state/SwitchState.h"
 #include "fboss/lib/platforms/PlatformProductInfo.h"
 #include "fboss/lib/usb/UsbError.h"
 #include "fboss/lib/usb/WedgeI2CBus.h"
-
-#include <future>
 
 DEFINE_string(
     fabric_location,

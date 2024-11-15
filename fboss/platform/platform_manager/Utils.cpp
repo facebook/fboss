@@ -47,14 +47,6 @@ void verifyPlatformNameMatches(
     return;
   }
 
-#ifndef IS_OSS
-  if (platformNameFromBios == "NOT SPECIFIED") {
-    XLOG(ERR)
-        << "Platform name is not specified in BIOS. Skipping comparison with config.";
-    return;
-  }
-#endif
-
   XLOGF(
       FATAL,
       "Platform name in config does not match the inferred platform name from "
@@ -90,9 +82,6 @@ PlatformConfig Utils::getConfig() {
 
 std::pair<std::string, std::string> Utils::parseDevicePath(
     const std::string& devicePath) {
-  if (!ConfigValidator().isValidDevicePath(devicePath)) {
-    throw std::runtime_error(fmt::format("Invalid DevicePath {}", devicePath));
-  }
   std::string slotPath, deviceName;
   CHECK(RE2::FullMatch(devicePath, kPmDeviceParseRe, &slotPath, &deviceName));
   // Remove trailling '/' (e.g /abc/dfg/)

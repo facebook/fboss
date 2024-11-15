@@ -174,6 +174,7 @@ target_link_libraries(agent_hw_test_thrift_handler
   agent_hw_test_ctrl_cpp2
   sai_ecmp_utils
   diag_shell
+  wedge_led_utils
 )
 
 

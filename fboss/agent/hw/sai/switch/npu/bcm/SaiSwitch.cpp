@@ -225,6 +225,10 @@ std::string errorType(sai_switch_error_type_t type) {
     case SAI_SWITCH_ERROR_TYPE_FABRIC_AUTO_ISOLATION:
       return "SAI_SWITCH_ERROR_TYPE_FABRIC_AUTO_ISOLATION";
 #endif
+#if defined(SAI_VERSION_11_7_0_0_DNX_ODP)
+    case SAI_SWITCH_ERROR_TYPE_FIRMWARE_CRASH:
+      return "SAI_SWITCH_ERROR_TYPE_FIRMWARE_CRASH";
+#endif
     default:
       break;
   }
@@ -442,11 +446,43 @@ void SaiSwitch::switchEventCallback(
       }
     } break;
     case SAI_SWITCH_EVENT_TYPE_FABRIC_AUTO_ISOLATE: {
-      // TODO(skhare) Process the callback
-      XLOG(ERR) << "Firmware Isolate callback received"
-                << " error type: " << errorType(eventInfo->error_type)
-                << " is_isolated: " << static_cast<int>(eventInfo->index)
-                << " nof_active_links: " << static_cast<int>(eventInfo->index2);
+      auto isIsolated = eventInfo->index;
+      auto numActiveFabricPorts = eventInfo->index2;
+      if (eventInfo->error_type ==
+              SAI_SWITCH_ERROR_TYPE_FABRIC_AUTO_ISOLATION &&
+          isIsolated == 1) {
+        // Firmware is expected issue callback when it isolates the device.
+        // We should never get a callback on unisolate.
+        XLOG(ERR) << "Firmware Isolate callback received"
+                  << " error type: " << errorType(eventInfo->error_type)
+                  << " isIsolated: " << isIsolated
+                  << " numActiveFabricPorts: " << numActiveFabricPorts;
+
+        // We always want to process Firmware Isolate cb and never coalesce it.
+        // Thus, unconditionally queue to for processing regardless of
+        // txReadyStatusChangePending_.
+        txReadyStatusChangeBottomHalfEventBase_.runInFbossEventBaseThread(
+            [this, numActiveFabricPorts]() mutable {
+              txReadyStatusChangeOrFwIsolateCallbackBottomHalf(
+                  true /* fwIsolated */, numActiveFabricPorts);
+            });
+      } else {
+        XLOG(ERR) << "Firmware Isolate callback received with invalid info"
+                  << " error type: " << errorType(eventInfo->error_type)
+                  << " isIsolated: " << isIsolated
+                  << " numActiveFabricPorts: " << numActiveFabricPorts;
+      }
+
+      break;
+    }
+#endif
+#if defined(SAI_VERSION_11_7_0_0_DNX_ODP)
+    case SAI_SWITCH_EVENT_TYPE_FIRMWARE_CRASHED: {
+      // TODO(skhare) Process this callback
+      XLOG(ERR) << "Firmware Crash callback received: " << " error type: "
+                << errorType(eventInfo->error_type)
+                << " reload reason: " << static_cast<int>(eventInfo->index)
+                << " reload status: " << static_cast<int>(eventInfo->index2);
       break;
     }
 #endif

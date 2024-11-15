@@ -386,7 +386,10 @@ class SaiSwitch : public HwSwitch {
 
   void linkStateChangedCallbackBottomHalf(
       std::vector<sai_port_oper_status_notification_t> data);
-  void txReadyStatusChangeCallbackBottomHalf();
+  void txReadyStatusChangeOrFwIsolateCallbackBottomHalf(
+      bool fwIsolated = false,
+      const std::optional<uint32_t>& numActiveFabricPortsAtFwIsolate =
+          std::nullopt);
   void switchReachabilityChangeBottomHalf();
   std::set<PortID> getFabricReachabilityPortIds(
       const std::vector<sai_object_id_t>& switchIdAndFabricPortSaiIds) const;

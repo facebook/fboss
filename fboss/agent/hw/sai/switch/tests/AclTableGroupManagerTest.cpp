@@ -72,9 +72,11 @@ TEST_F(AclTableGroupManagerTest, checkNonExistentAclTableGroup) {
 }
 
 TEST_F(AclTableGroupManagerTest, addAclTableGroupMember) {
-  auto aclTableId = saiManagerTable->aclTableManager()
-                        .getAclTableHandle(kAclTable1)
-                        ->aclTable->adapterKey();
+  auto aclTableId =
+      saiManagerTable->aclTableManager()
+          .getAclTableHandle(
+              cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE())
+          ->aclTable->adapterKey();
   auto aclTableGroupHandle =
       saiManagerTable->aclTableGroupManager().getAclTableGroupHandle(
           SAI_ACL_STAGE_INGRESS);
@@ -83,7 +85,8 @@ TEST_F(AclTableGroupManagerTest, addAclTableGroupMember) {
 
   auto aclTableGroupMemberHandle =
       saiManagerTable->aclTableGroupManager().getAclTableGroupMemberHandle(
-          aclTableGroupHandle, kAclTable1);
+          aclTableGroupHandle,
+          cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE());
   EXPECT_TRUE(aclTableGroupMemberHandle);
   EXPECT_TRUE(aclTableGroupMemberHandle->aclTableGroupMember);
 
@@ -122,12 +125,16 @@ TEST_F(AclTableGroupManagerTest, addTwoAclTableGroupMember) {
 }
 
 TEST_F(AclTableGroupManagerTest, addDupAclTableGroupMember) {
-  auto aclTableId = saiManagerTable->aclTableManager()
-                        .getAclTableHandle(kAclTable1)
-                        ->aclTable->adapterKey();
+  auto aclTableId =
+      saiManagerTable->aclTableManager()
+          .getAclTableHandle(
+              cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE())
+          ->aclTable->adapterKey();
   EXPECT_THROW(
       saiManagerTable->aclTableGroupManager().addAclTableGroupMember(
-          SAI_ACL_STAGE_INGRESS, aclTableId, kAclTable1),
+          SAI_ACL_STAGE_INGRESS,
+          aclTableId,
+          cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE()),
       FbossError);
 }
 

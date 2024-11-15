@@ -8,16 +8,29 @@
 
 namespace facebook::fboss::platform::sensor_service {
 using namespace sensor_config;
-namespace {
-// For more info, see below
-// https://github.com/facebook/fboss/blob/main/fboss/platform/platform_manager/platform_manager_config.thrift#L73
-const re2::RE2 kSlotPathRe = "/|(/([A-Z]+_)+SLOT@\\d+)+";
-} // namespace
 
-bool ConfigValidator::isValid(const SensorConfig& sensorConfig) {
-  for (std::unordered_set<std::string> usedSlotPaths;
+ConfigValidator::ConfigValidator(
+    const std::shared_ptr<platform_manager::ConfigValidator>& pmConfigValidator)
+    : pmConfigValidator_(pmConfigValidator) {}
+
+bool ConfigValidator::isValid(
+    const SensorConfig& sensorConfig,
+    const std::optional<platform_manager::PlatformConfig>& platformConfig) {
+  for (std::unordered_set<std::pair<std::string, std::string>> usedSlotPaths;
        const auto& pmUnitSensors : *sensorConfig.pmUnitSensorsList()) {
     if (!isValidPmUnitSensors(pmUnitSensors, usedSlotPaths)) {
+      return false;
+    }
+  }
+  // This is Darwin if platformConfig=std::nullopt
+  // Until it onboards PM, we can't cross-validate against PM.
+  if (!platformConfig) {
+    return true;
+  }
+  // Cross-validation agains platform_manager::ConfigValidator.
+  for (const auto& pmUnitSensors : *sensorConfig.pmUnitSensorsList()) {
+    if (!pmConfigValidator_->isValidSlotPath(
+            *platformConfig, *pmUnitSensors.slotPath())) {
       return false;
     }
   }
@@ -26,20 +39,17 @@ bool ConfigValidator::isValid(const SensorConfig& sensorConfig) {
 
 bool ConfigValidator::isValidPmUnitSensors(
     const PmUnitSensors& pmUnitSensors,
-    std::unordered_set<std::string>& usedSlotPaths) {
-  if (pmUnitSensors.slotPath()->empty()) {
-    XLOG(ERR) << "SlotPath in PmUnitSensor must be non-empty";
-    return false;
-  }
-  if (!isValidSlotPath(*pmUnitSensors.slotPath())) {
-    return false;
-  }
-  if (usedSlotPaths.contains(*pmUnitSensors.slotPath())) {
+    std::unordered_set<std::pair<std::string, std::string>>& usedSlotPaths) {
+  if (usedSlotPaths.contains(
+          {*pmUnitSensors.slotPath(), *pmUnitSensors.pmUnitName()})) {
     XLOG(ERR) << fmt::format(
-        "SlotPath {} is a duplicate", *pmUnitSensors.slotPath());
+        "(SlotPath {}, PmUnitName {}) is a duplicate",
+        *pmUnitSensors.slotPath(),
+        *pmUnitSensors.pmUnitName());
     return false;
   }
-  usedSlotPaths.emplace(*pmUnitSensors.slotPath());
+  usedSlotPaths.insert(
+      {*pmUnitSensors.slotPath(), *pmUnitSensors.pmUnitName()});
   for (std::unordered_set<std::string> usedSensorNames;
        const auto& pmSensor : *pmUnitSensors.sensors()) {
     if (!isValidPmSensor(pmSensor, usedSensorNames)) {
@@ -67,13 +77,4 @@ bool ConfigValidator::isValidPmSensor(
   }
   return true;
 }
-
-bool ConfigValidator::isValidSlotPath(const std::string& slotPath) {
-  if (!re2::RE2::FullMatch(slotPath, kSlotPathRe)) {
-    XLOG(ERR) << fmt::format("SlotPath {} is invalid", slotPath);
-    return false;
-  }
-  return true;
-}
-
 } // namespace facebook::fboss::platform::sensor_service

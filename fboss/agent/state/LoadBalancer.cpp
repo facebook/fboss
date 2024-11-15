@@ -99,6 +99,6 @@ std::shared_ptr<LoadBalancer> LoadBalancer::fromThrift(
   return std::make_shared<LoadBalancer>(fields);
 }
 
-template class ThriftStructNode<LoadBalancer, state::LoadBalancerFields>;
+template struct ThriftStructNode<LoadBalancer, state::LoadBalancerFields>;
 
 } // namespace facebook::fboss

@@ -202,21 +202,30 @@ bool QsfpModule::upgradeFirmwareLocked(
                           << " : Still continuing with firmware upgrade";
     }
 
-    // Step 2: First ensure the module is out of lower mode
-    TransceiverSettings settings = getTransceiverSettingsInfo();
-    setPowerOverrideIfSupportedLocked(*settings.powerControl());
-
-    // Step 3: Mark the module dirty so that we can refresh the entire cache
-    // later
-    dirty_ = true;
-
-    // Step 4: Upgrade Firmware
     for (auto& fw : fwList) {
+      // Step 2: First ensure the module is out of lower mode
+      TransceiverSettings settings = getTransceiverSettingsInfo();
+      setPowerOverrideIfSupportedLocked(*settings.powerControl());
+
+      // Step 3: Mark the module dirty so that we can refresh the entire cache
+      // later
+      dirty_ = true;
+
+      // Step 4: Upgrade Firmware
       fwUpgradeResult &= upgradeFirmwareLockedImpl(fw.get());
+
+      // Step 5: Trigger a hard reset of the transceiver to kick start the new
+      // firmware
+      triggerModuleReset();
+      // If there are more than 1 firmware to update on the optic (for modules
+      // that have separate MCU and DSP firmwares), then update the cache in
+      // preparation for the next upgrade. The sleep here is for the module to
+      // recover after the previous hard reset
+      // @lint-ignore CLANGTIDY facebook-hte-BadCall-sleep
+      sleep(5);
+      updateQsfpData(true);
     }
 
-    // Trigger a hard reset of the transceiver to kick start the new firmware
-    triggerModuleReset();
     // End of Firmware Upgrade
     return fwUpgradeResult;
   };
@@ -226,12 +235,7 @@ bool QsfpModule::upgradeFirmwareLocked(
   while (upgradeAttempts <= kAllowedFwUpgradeAttempts) {
     finalFwUpgradeResult = fwUpgradeFn();
     if (!finalFwUpgradeResult && upgradeAttempts < kAllowedFwUpgradeAttempts) {
-      // Sleep 5 seconds so that the module recovers after it is reset
-      // @lint-ignore CLANGTIDY facebook-hte-BadCall-sleep
-      sleep(5);
-      // Refresh the cache to get the latest state of the module after the
-      // module was reset after a failed FW upgrade
-      updateQsfpData(true);
+      // fwUpgradeFn will wait 5 seconds internally when re-trying.
       upgradeAttempts++;
     } else {
       break;
@@ -327,6 +331,7 @@ unsigned int QsfpModule::numHostLanes() const {
     case MediaInterfaceCode::LR_10G:
     case MediaInterfaceCode::SR_10G:
     case MediaInterfaceCode::BASE_T_10G:
+    case MediaInterfaceCode::CR_10G:
       return 1;
     case MediaInterfaceCode::CWDM4_100G:
     case MediaInterfaceCode::CR4_100G:
@@ -355,6 +360,7 @@ unsigned int QsfpModule::numMediaLanes() const {
     case MediaInterfaceCode::SR_10G:
     case MediaInterfaceCode::FR1_100G:
     case MediaInterfaceCode::BASE_T_10G:
+    case MediaInterfaceCode::CR_10G:
       return 1;
     case MediaInterfaceCode::CWDM4_100G:
     case MediaInterfaceCode::CR4_100G:

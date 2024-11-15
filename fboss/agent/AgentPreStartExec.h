@@ -7,7 +7,7 @@
 namespace facebook::fboss {
 
 class AgentDirectoryUtil;
-class AgentConfig;
+struct AgentConfig;
 class AgentCommandExecutor;
 class AgentNetWhoAmI;
 

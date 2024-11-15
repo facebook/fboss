@@ -460,6 +460,14 @@ class SwitchStats : public boost::noncopyable {
     return getCumulativeValue(macTableUpdateFailure_);
   }
 
+  void neighborTableUpdateFailure() {
+    neighborTableUpdateFailure_.addValue(1);
+  }
+
+  int getNeighborTableUpdateFailure() const {
+    return getCumulativeValue(neighborTableUpdateFailure_);
+  }
+
   void hiPriPktsReceived() {
     hiPriPktsReceived_.addValue(1);
   }
@@ -1031,6 +1039,7 @@ class SwitchStats : public boost::noncopyable {
 
   // TODO: delete this once multi_switch becomes default
   TLTimeseries multiSwitchStatus_;
+  TLTimeseries neighborTableUpdateFailure_;
 
   TLTimeseries macTableUpdateFailure_;
 

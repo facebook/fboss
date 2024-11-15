@@ -192,7 +192,15 @@ class SwitchSettings
   bool vlansSupported() const;
 
   bool isSwitchDrained() const {
-    return getActualSwitchDrainState() == cfg::SwitchDrainState::DRAINED;
+    /*
+     * DRAINED vs. DRAINED_DUE_TO_ASIC_ERROR is a distinction exposed by
+     * SwSwitch to Thrift/CLI to provide additional info about reason for
+     * DRAIN. From the device standpoint, both mean that the device is
+     * DRAINED.
+     */
+    return getActualSwitchDrainState() == cfg::SwitchDrainState::DRAINED ||
+        getActualSwitchDrainState() ==
+        cfg::SwitchDrainState::DRAINED_DUE_TO_ASIC_ERROR;
   }
 
   cfg::SwitchDrainState getSwitchDrainState() const {
@@ -608,6 +616,73 @@ class SwitchSettings
     } else {
       set<switch_state_tags::sramGlobalFreePercentXonThreshold>(
           *sramGlobalFreePercentXonTh);
+    }
+  }
+
+  std::optional<uint16_t> getLinkFlowControlCreditThreshold() const {
+    if (auto linkFlowControlCreditTh =
+            cref<switch_state_tags::linkFlowControlCreditThreshold>()) {
+      return linkFlowControlCreditTh->toThrift();
+    }
+    return std::nullopt;
+  }
+
+  void setLinkFlowControlCreditThreshold(
+      std::optional<uint16_t> linkFlowControlCreditTh) {
+    if (!linkFlowControlCreditTh) {
+      ref<switch_state_tags::linkFlowControlCreditThreshold>().reset();
+    } else {
+      set<switch_state_tags::linkFlowControlCreditThreshold>(
+          *linkFlowControlCreditTh);
+    }
+  }
+
+  std::optional<uint32_t> getVoqDramBoundThreshold() const {
+    if (auto voqDramBoundTh =
+            cref<switch_state_tags::voqDramBoundThreshold>()) {
+      return voqDramBoundTh->toThrift();
+    }
+    return std::nullopt;
+  }
+
+  void setVoqDramBoundThreshold(std::optional<uint32_t> voqDramBoundTh) {
+    if (!voqDramBoundTh) {
+      ref<switch_state_tags::voqDramBoundThreshold>().reset();
+    } else {
+      set<switch_state_tags::voqDramBoundThreshold>(*voqDramBoundTh);
+    }
+  }
+
+  std::optional<int> getConditionalEntropyRehashPeriodUS() const {
+    if (auto conditionalEntropyRehashPeriodUS =
+            cref<switch_state_tags::conditionalEntropyRehashPeriodUS>()) {
+      return conditionalEntropyRehashPeriodUS->toThrift();
+    }
+    return std::nullopt;
+  }
+
+  void setConditionalEntropyRehashPeriodUS(
+      std::optional<int> conditionalEntropyRehashPeriodUS) {
+    if (!conditionalEntropyRehashPeriodUS) {
+      ref<switch_state_tags::conditionalEntropyRehashPeriodUS>().reset();
+    } else {
+      set<switch_state_tags::conditionalEntropyRehashPeriodUS>(
+          *conditionalEntropyRehashPeriodUS);
+    }
+  }
+
+  std::optional<std::string> getFirmwarePath() const {
+    if (auto firmwarePathToRet = cref<switch_state_tags::firmwarePath>()) {
+      return firmwarePathToRet->toThrift();
+    }
+    return std::nullopt;
+  }
+
+  void setFirmwarePath(const std::optional<std::string>& newFirmwarePath) {
+    if (!newFirmwarePath) {
+      ref<switch_state_tags::firmwarePath>().reset();
+    } else {
+      set<switch_state_tags::firmwarePath>(*newFirmwarePath);
     }
   }
 

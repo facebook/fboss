@@ -21,7 +21,6 @@
 
 #include <folly/Benchmark.h>
 #include <folly/IPAddress.h>
-#include <folly/logging/xlog.h>
 
 namespace facebook::fboss {
 

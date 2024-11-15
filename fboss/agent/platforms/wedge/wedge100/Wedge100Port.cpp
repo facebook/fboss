@@ -10,7 +10,6 @@
 #include "fboss/agent/platforms/wedge/wedge100/Wedge100Port.h"
 
 #include "fboss/agent/platforms/wedge/wedge100/Wedge100Platform.h"
-#include "fboss/lib/phy/gen-cpp2/phy_types.h"
 
 namespace facebook::fboss {
 

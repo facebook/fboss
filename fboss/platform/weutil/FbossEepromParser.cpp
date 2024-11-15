@@ -113,6 +113,35 @@ const std::vector<EepromFieldEntry> kFieldDictionaryV5 = {
     {250, "CRC16", FIELD_BE_HEX, 2, VARIABLE},
 };
 
+const std::vector<EepromFieldEntry> kFieldDictionaryV6 = {
+    {0, "NA", FIELD_LE_UINT, -1, -1}, // TypeCode 0 is reserved
+    {1, "Product Name", FIELD_STRING, VARIABLE, VARIABLE},
+    {2, "Product Part Number", FIELD_STRING, VARIABLE, VARIABLE},
+    {3, "System Assembly Part Number", FIELD_STRING, 8, VARIABLE},
+    {4, "Meta PCBA Part Number", FIELD_STRING, 12, VARIABLE},
+    {5, "Meta PCB Part Number", FIELD_STRING, 12, VARIABLE},
+    {6, "ODM/JDM PCBA Part Number", FIELD_STRING, VARIABLE, VARIABLE},
+    {7, "ODM/JDM PCBA Serial Number", FIELD_STRING, VARIABLE, VARIABLE},
+    {8, "Product Production State", FIELD_BE_UINT, 1, VARIABLE},
+    {9, "Product Version", FIELD_BE_UINT, 1, VARIABLE},
+    {10, "Product Sub-Version", FIELD_BE_UINT, 1, VARIABLE},
+    {11, "Product Serial Number", FIELD_STRING, VARIABLE, VARIABLE},
+    {12, "System Manufacturer", FIELD_STRING, VARIABLE, VARIABLE},
+    {13, "System Manufacturing Date", FIELD_STRING, 8, VARIABLE},
+    {14, "PCB Manufacturer", FIELD_STRING, VARIABLE, VARIABLE},
+    {15, "Assembled At", FIELD_STRING, VARIABLE, VARIABLE},
+    {16, "EEPROM location on Fabric", FIELD_STRING, VARIABLE, VARIABLE},
+    {17, "X86 CPU MAC", FIELD_V5_MAC, 8, VARIABLE},
+    {18, "BMC MAC", FIELD_V5_MAC, 8, VARIABLE},
+    {19, "Switch ASIC MAC", FIELD_V5_MAC, 8, VARIABLE},
+    {20, "META Reserved MAC", FIELD_V5_MAC, 8, VARIABLE},
+    {21, "RMA", FIELD_BE_UINT, 1, VARIABLE},
+    {101, "Vendor Defined Field 1", FIELD_BE_HEX, VARIABLE, VARIABLE},
+    {102, "Vendor Defined Field 2", FIELD_BE_HEX, VARIABLE, VARIABLE},
+    {103, "Vendor Defined Field 3", FIELD_BE_HEX, VARIABLE, VARIABLE},
+    {250, "CRC16", FIELD_BE_HEX, 2, VARIABLE},
+};
+
 // Header size in EEPROM. First two bytes are 0xFBFB followed
 // by a byte specifying the EEPROM version and one byte of 0xFF
 constexpr int kHeaderSize = 4;
@@ -131,6 +160,10 @@ std::vector<EepromFieldEntry> getEepromFieldDict(int version) {
       break;
     case 5:
       return kFieldDictionaryV5;
+      break;
+    case 6:
+      return kFieldDictionaryV6;
+      break;
     default:
       throw std::runtime_error(
           "Invalid EEPROM version : " + std::to_string(version));
@@ -177,6 +210,7 @@ FbossEepromParser::getContents() {
       break;
     case 4:
     case 5:
+    case 6:
       parsedValue = parseEepromBlobTLV(
           eepromVer, buffer, std::min(readCount, kMaxEepromSize));
       break;

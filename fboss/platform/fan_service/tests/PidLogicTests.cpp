@@ -19,10 +19,10 @@ TEST(PIDLogicTest, Basic) {
   pidSetting.posHysteresis() = 0;
 
   // CASE 1: The read value is lower than setPoint, and the previous target PWM
-  //         is too high. PWM should go down. (60 -> 0)
+  //         is too high. PWM should go down. (60 -> 35)
   auto pidLogic1 = PidLogic(pidSetting, 5);
   pidLogic1.updateLastPwm(60);
-  EXPECT_EQ(pidLogic1.calculatePwm(50), 0);
+  EXPECT_EQ(pidLogic1.calculatePwm(50), 35);
   EXPECT_EQ(pidLogic1.getLastError(), 8);
 
   // CASE 2: The read value is within desired range.
@@ -33,17 +33,16 @@ TEST(PIDLogicTest, Basic) {
   EXPECT_EQ(pidLogic2.getLastError(), 0);
 
   // CASE 3: The read value is higher than setPoint, and the current target PWM
-  //         is too low. PWM should go up a bit. (30 -> 24)
+  //         is too low. PWM should go up a bit. (30 -> 54)
   auto pidLogic3 = PidLogic(pidSetting, 5);
   pidLogic3.updateLastPwm(30);
-  EXPECT_EQ(pidLogic3.calculatePwm(68), 24);
+  EXPECT_EQ(pidLogic3.calculatePwm(68), 54);
   EXPECT_EQ(pidLogic3.getLastError(), -8);
 
-  // CASE 4: Though read value is higher than setPoint, the current target PWM
-  //         is overly high. PWM should go down. (99 -> 24)
+  // CASE 4: Read value is higher than setPoint, PWM should go up (99 -> 100)
   auto pidLogic4 = PidLogic(pidSetting, 5);
   pidLogic4.updateLastPwm(99);
-  EXPECT_EQ(pidLogic4.calculatePwm(68), 24);
+  EXPECT_EQ(pidLogic4.calculatePwm(68), 100);
   EXPECT_EQ(pidLogic4.getLastError(), -8);
 }
 

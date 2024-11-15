@@ -15,7 +15,6 @@
 #include "fboss/agent/hw/bcm/BcmPortTable.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 #include "fboss/agent/hw/bcm/tests/BcmSwitchEnsemble.h"
-#include "fboss/agent/state/Port.h"
 #include "fboss/agent/test/TestEnsembleIf.h"
 
 #include <memory>

@@ -10,7 +10,6 @@
 #include "fboss/qsfp_service/test/hw_test/HwTest.h"
 
 #include "fboss/agent/AgentConfig.h"
-#include "fboss/agent/platforms/common/PlatformMapping.h"
 
 #include <folly/logging/xlog.h>
 #include "fboss/lib/CommonUtils.h"

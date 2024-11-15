@@ -138,5 +138,5 @@ std::optional<int> DsfNode::getGlobalSystemPortOffset() const {
   }
   return ret;
 }
-template class ThriftStructNode<DsfNode, cfg::DsfNode>;
+template struct ThriftStructNode<DsfNode, cfg::DsfNode>;
 } // namespace facebook::fboss

@@ -11,9 +11,10 @@
 #include <folly/IPAddress.h>
 #include "fboss/agent/test/EcmpSetupHelper.h"
 
-#include "fboss/agent/hw/test/ConfigFactory.h"
-#include "fboss/agent/hw/test/HwLinkStateDependentTest.h"
-#include "fboss/agent/hw/test/HwTestEcmpUtils.h"
+#include "fboss/agent/test/AgentHwTest.h"
+#include "fboss/agent/test/utils/AsicUtils.h"
+#include "fboss/agent/test/utils/ConfigUtils.h"
+#include "fboss/lib/CommonUtils.h"
 
 DECLARE_bool(intf_nbr_tables);
 
@@ -25,10 +26,11 @@ facebook::fboss::RoutePrefixV6 kRoute2{
     folly::IPAddressV6{"2803:6080:d038:3063::"},
     64};
 folly::CIDRNetwork kRoute2Prefix{folly::IPAddress("2803:6080:d038:3063::"), 64};
+const auto numNeighborEntries = 2;
 } // namespace
 namespace facebook::fboss {
 
-class HwEcmpTest : public HwLinkStateDependentTest {
+class AgentEcmpTest : public AgentHwTest {
  protected:
   std::vector<NextHopWeight> swSwitchWeights_ = {
       ECMP_WEIGHT,
@@ -50,47 +52,54 @@ class HwEcmpTest : public HwLinkStateDependentTest {
       UCMP_DEFAULT_WEIGHT};
   const RouterID kRid{0};
   static constexpr auto kNumNextHops{8};
-  std::unique_ptr<utility::EcmpSetupAnyNPorts<folly::IPAddressV6>> ecmpHelper_;
-  void SetUp() override {
-    HwLinkStateDependentTest::SetUp();
-    ecmpHelper_ = std::make_unique<utility::EcmpSetupAnyNPorts6>(
-        getProgrammedState(), kRid);
-  }
-  cfg::SwitchConfig initialConfig() const override {
+  cfg::SwitchConfig initialConfig(
+      const AgentEnsemble& ensemble) const override {
     return utility::onePortPerInterfaceConfig(
-        getHwSwitch(),
-        masterLogicalPortIds(),
-        getAsic()->desiredLoopbackModes());
+        ensemble.getSw(),
+        ensemble.masterLogicalPortIds(),
+        true /*interfaceHasSubnet*/);
+  }
+
+  std::vector<production_features::ProductionFeature>
+  getProductionFeaturesVerified() const override {
+    return {production_features::ProductionFeature::L3_FORWARDING};
   }
 
   void resolveNhops(int numNhops) {
-    applyNewState(ecmpHelper_->resolveNextHops(getProgrammedState(), numNhops));
+    utility::EcmpSetupAnyNPorts6 ecmpHelper(getProgrammedState());
+    applyNewState([&](const std::shared_ptr<SwitchState>& in) {
+      return ecmpHelper.resolveNextHops(in, numNhops);
+    });
   }
   void resolveNhops(const std::vector<PortDescriptor>& portDescs) {
-    applyNewState(ecmpHelper_->resolveNextHops(
-        getProgrammedState(),
-        flat_set<PortDescriptor>(portDescs.begin(), portDescs.end())));
+    utility::EcmpSetupAnyNPorts6 ecmpHelper(getProgrammedState());
+    applyNewState([&](const std::shared_ptr<SwitchState>& in) {
+      return ecmpHelper.resolveNextHops(
+          in, flat_set<PortDescriptor>(portDescs.begin(), portDescs.end()));
+    });
   }
   void unresolveNhops(int numNhops) {
-    applyNewState(
-        ecmpHelper_->unresolveNextHops(getProgrammedState(), numNhops));
+    utility::EcmpSetupAnyNPorts6 ecmpHelper(getProgrammedState());
+    applyNewState([&](const std::shared_ptr<SwitchState>& in) {
+      return ecmpHelper.unresolveNextHops(in, numNhops);
+    });
   }
   void unresolveNhops(const std::vector<PortDescriptor>& portDescs) {
-    applyNewState(ecmpHelper_->unresolveNextHops(
-        getProgrammedState(),
-        flat_set<PortDescriptor>(portDescs.begin(), portDescs.end())));
+    utility::EcmpSetupAnyNPorts6 ecmpHelper(getProgrammedState());
+    applyNewState([&](const std::shared_ptr<SwitchState>& in) {
+      return ecmpHelper.unresolveNextHops(
+          in, flat_set<PortDescriptor>(portDescs.begin(), portDescs.end()));
+    });
   }
   void programRouteWithUnresolvedNhops(int numNhops = kNumNextHops) {
-    ecmpHelper_->programRoutes(
-        getRouteUpdater(),
+    utility::EcmpSetupAnyNPorts6 ecmpHelper(getProgrammedState());
+    auto wrapper = getSw()->getRouteUpdater();
+    ecmpHelper.programRoutes(
+        &wrapper,
         numNhops,
         {kDefaultRoute},
         std::vector<NextHopWeight>(
             swSwitchWeights_.begin(), swSwitchWeights_.begin() + numNhops));
-  }
-  int getEcmpSizeInHw(int sizeInSw = kNumNextHops) const {
-    return utility::getEcmpSizeInHw(
-        getHwSwitch(), kDefaultRoutePrefix, kRid, sizeInSw);
   }
   void runSimpleUcmpTest(
       const std::vector<NextHopWeight>& swWs,
@@ -101,9 +110,33 @@ class HwEcmpTest : public HwLinkStateDependentTest {
   void verifyResolvedUcmp(
       const folly::CIDRNetwork& routePrefix,
       const std::vector<NextHopWeight>& hwWs);
+
+ protected:
+  std::map<int32_t, int32_t> getEcmpWeightsInHw() const {
+    auto switchId = getSw()
+                        ->getScopeResolver()
+                        ->scope(masterLogicalPortIds()[0])
+                        .switchId();
+    auto client = getAgentEnsemble()->getHwAgentTestClient(switchId);
+    facebook::fboss::utility::CIDRNetwork cidr;
+    cidr.IPAddress() = "::";
+    cidr.mask() = 0;
+    std::map<int32_t, int32_t> ecmpWeights;
+    client->sync_getEcmpWeights(ecmpWeights, cidr, 0);
+    return ecmpWeights;
+  }
+
+  int getEcmpSizeInHw(int sizeInSw = kNumNextHops) const {
+    auto ecmpWeights = getEcmpWeightsInHw();
+    int ecmpSize = 0;
+    for (auto& [_, weight] : ecmpWeights) {
+      ecmpSize += weight;
+    }
+    return ecmpSize;
+  }
 };
 
-void HwEcmpTest::programResolvedUcmp(
+void AgentEcmpTest::programResolvedUcmp(
     const std::vector<NextHopWeight>& swWs,
     const std::vector<NextHopWeight>& hwWs) {
   EXPECT_EQ(swWs.size(), hwWs.size());
@@ -116,33 +149,41 @@ void HwEcmpTest::programResolvedUcmp(
   resolveNhops(swWs.size());
 }
 
-void HwEcmpTest::verifyResolvedUcmp(
+void AgentEcmpTest::verifyResolvedUcmp(
     const folly::CIDRNetwork& routePrefix,
     const std::vector<NextHopWeight>& hwWs) {
-  auto pathsInHw = utility::getEcmpMembersInHw(
-      getHwSwitch(), routePrefix, kRid, FLAGS_ecmp_width);
-  auto pathsInHwCount = pathsInHw.size();
-  EXPECT_LE(pathsInHwCount, FLAGS_ecmp_width);
+  auto switchId =
+      getSw()->getScopeResolver()->scope(masterLogicalPortIds()[0]).switchId();
+  auto client = getAgentEnsemble()->getHwAgentTestClient(switchId);
+  facebook::fboss::utility::CIDRNetwork cidr;
+  cidr.IPAddress() = routePrefix.first.str();
+  cidr.mask() = routePrefix.second;
+  WITH_RETRIES({
+    std::map<int32_t, int32_t> pathsInHw;
+    client->sync_getEcmpWeights(pathsInHw, cidr, kRid);
+    auto pathsInHwCount = pathsInHw.size();
+    EXPECT_EVENTUALLY_LE(pathsInHwCount, FLAGS_ecmp_width);
 
-  std::set<uint64_t> uniquePaths(pathsInHw.begin(), pathsInHw.end());
-  // This check assumes that egress ids grow as you add more egresses
-  // That assumption could prove incorrect, in which case we would
-  // need to map ips to egresses, somehow.
-  auto expectedCountIter = hwWs.begin();
-  for (const auto& path : uniquePaths) {
-    auto pathWeight =
-        utility::getEcmpMemberWeight(getHwSwitch(), pathsInHw, path);
-    EXPECT_EQ(pathWeight, *expectedCountIter);
-    expectedCountIter++;
-  }
-  auto totalHwWeight =
-      std::accumulate(hwWs.begin(), hwWs.end(), NextHopWeight(0));
-  auto totalWeightInHw =
-      utility::getTotalEcmpMemberWeight(getHwSwitch(), pathsInHw);
-  EXPECT_EQ(totalHwWeight, totalWeightInHw);
+    // This check assumes that egress ids grow as you add more egresses
+    // That assumption could prove incorrect, in which case we would
+    // need to map ips to egresses, somehow.
+    auto expectedCountIter = hwWs.begin();
+    for (const auto& [member, pathWeight] : pathsInHw) {
+      XLOG(DBG2) << "member: " << member << " pathWeight: " << pathWeight;
+      EXPECT_EVENTUALLY_EQ(pathWeight, *expectedCountIter);
+      expectedCountIter++;
+    }
+    auto totalHwWeight =
+        std::accumulate(hwWs.begin(), hwWs.end(), NextHopWeight(0));
+    auto totalWeightInHw = 0;
+    for (auto& [_, weight] : pathsInHw) {
+      totalWeightInHw += weight;
+    }
+    EXPECT_EVENTUALLY_EQ(totalHwWeight, totalWeightInHw);
+  });
 }
 
-void HwEcmpTest::runSimpleUcmpTest(
+void AgentEcmpTest::runSimpleUcmpTest(
     const std::vector<NextHopWeight>& swWs,
     const std::vector<NextHopWeight>& hwWs) {
   EXPECT_EQ(swWs.size(), hwWs.size());
@@ -154,14 +195,7 @@ void HwEcmpTest::runSimpleUcmpTest(
   verifyAcrossWarmBoots(setup, verify);
 }
 
-class HwWideEcmpTest : public HwEcmpTest {
-  void SetUp() override {
-    FLAGS_ecmp_width = 512;
-    HwEcmpTest::SetUp();
-  }
-};
-
-class HwEcmpTestWithWBWrites : public HwEcmpTest {
+class AgentEcmpTestWithWBWrites : public AgentEcmpTest {
  public:
   bool failHwCallsOnWarmboot() const override {
     return false;
@@ -169,31 +203,35 @@ class HwEcmpTestWithWBWrites : public HwEcmpTest {
 };
 
 // WB is expected to create next hop/group corresponding to port brought down
-TEST_F(HwEcmpTestWithWBWrites, L2ResolveOneNhopThenLinkDownThenUp) {
+TEST_F(AgentEcmpTestWithWBWrites, L2ResolveOneNhopThenLinkDownThenUp) {
   auto setup = [=, this]() {
     programRouteWithUnresolvedNhops();
     resolveNhops(1);
 
-    EXPECT_EQ(1, getEcmpSizeInHw());
-
-    auto nhop = ecmpHelper_->nhop(0);
-    bringDownPort(nhop.portDesc.phyPortID());
+    WITH_RETRIES({ EXPECT_EVENTUALLY_EQ(1, getEcmpSizeInHw()); });
   };
 
   auto verify = [=, this]() {
     // ECMP shrunk on port down
-    EXPECT_EQ(0, getEcmpSizeInHw());
+    WITH_RETRIES({
+      utility::EcmpSetupAnyNPorts6 ecmpHelper(this->getProgrammedState());
+      auto nhop = ecmpHelper.nhop(0);
+      bringDownPort(nhop.portDesc.phyPortID());
+      EXPECT_EVENTUALLY_EQ(0, getEcmpSizeInHw());
+    });
   };
 
   auto setupPostWarmboot = [=, this]() {
-    auto nhop = ecmpHelper_->nhop(0);
+    utility::EcmpSetupAnyNPorts6 ecmpHelper(this->getProgrammedState());
+    auto nhop = ecmpHelper.nhop(0);
     bringUpPort(nhop.portDesc.phyPortID());
   };
 
   auto verifyPostWarmboot = [=, this]() {
-    auto nhop = ecmpHelper_->nhop(0);
+    utility::EcmpSetupAnyNPorts6 ecmpHelper(this->getProgrammedState());
+    auto nhop = ecmpHelper.nhop(0);
     // ECMP stays shrunk on port up
-    EXPECT_EQ(0, getEcmpSizeInHw());
+    WITH_RETRIES({ EXPECT_EVENTUALLY_EQ(0, getEcmpSizeInHw()); });
 
     // Bring port back down so we can warmboot more than once. This is
     // necessary because verify() and verifyPostWarmboot() assume that the
@@ -205,46 +243,48 @@ TEST_F(HwEcmpTestWithWBWrites, L2ResolveOneNhopThenLinkDownThenUp) {
   verifyAcrossWarmBoots(setup, verify, setupPostWarmboot, verifyPostWarmboot);
 }
 
-TEST_F(HwEcmpTest, ecmpToDropToEcmp) {
+TEST_F(AgentEcmpTest, ecmpToDropToEcmp) {
   /*
    * Mimic a scenario where all links flap and the routes (including
    * default route) get withdrawn and then peerings comeback one by one
    * and expand the ECMP group
    */
   auto constexpr kEcmpWidthForTest = 4;
+  utility::EcmpSetupAnyNPorts6 ecmpHelper(this->getProgrammedState());
   // Program ECMP route
-  resolveNeigborAndProgramRoutes(*ecmpHelper_, kEcmpWidthForTest);
-  EXPECT_EQ(kEcmpWidthForTest, getEcmpSizeInHw());
+  resolveNeigborAndProgramRoutes(ecmpHelper, kEcmpWidthForTest);
+  WITH_RETRIES({ EXPECT_EVENTUALLY_EQ(kEcmpWidthForTest, getEcmpSizeInHw()); });
+
   // Mimic neighbor entries going away and route getting removed. Since
   // this is the default route, it actually does not go away but transitions
   // to drop.
-  applyNewState(
-      ecmpHelper_->unresolveNextHops(getProgrammedState(), kEcmpWidthForTest));
-  EXPECT_EQ(0, getEcmpSizeInHw());
-  ecmpHelper_->unprogramRoutes(getRouteUpdater());
+  unresolveNhops(kEcmpWidthForTest);
+  WITH_RETRIES({ EXPECT_EVENTUALLY_EQ(0, getEcmpSizeInHw()); });
+  auto wrapper = getSw()->getRouteUpdater();
+  ecmpHelper.unprogramRoutes(&wrapper);
   // Bring the route back, but mimic learning it from peers one by one first
-  applyNewState(
-      ecmpHelper_->resolveNextHops(getProgrammedState(), kEcmpWidthForTest));
+  resolveNhops(kEcmpWidthForTest);
   for (auto i = 0; i < kEcmpWidthForTest; ++i) {
-    ecmpHelper_->programRoutes(getRouteUpdater(), i + 1);
+    ecmpHelper.programRoutes(&wrapper, i + 1);
     if (i) {
-      EXPECT_EQ(i + 1, getEcmpSizeInHw());
+      WITH_RETRIES({ EXPECT_EVENTUALLY_EQ(i + 1, getEcmpSizeInHw()); });
     }
   }
 }
 
-TEST_F(HwEcmpTest, L2ResolveOneNhopThenLinkDownThenUpThenL2ResolveNhop) {
+TEST_F(AgentEcmpTest, L2ResolveOneNhopThenLinkDownThenUpThenL2ResolveNhop) {
   auto setup = [=, this]() {
     programRouteWithUnresolvedNhops();
-    auto nhop = ecmpHelper_->nhop(0);
+    utility::EcmpSetupAnyNPorts6 ecmpHelper(getProgrammedState());
+    auto nhop = ecmpHelper.nhop(0);
     resolveNhops(1);
-    EXPECT_EQ(1, getEcmpSizeInHw());
+    WITH_RETRIES({ EXPECT_EVENTUALLY_EQ(1, getEcmpSizeInHw()); });
     bringDownPort(nhop.portDesc.phyPortID());
     // ECMP shrunk on port down
-    EXPECT_EQ(0, getEcmpSizeInHw());
+    WITH_RETRIES({ EXPECT_EVENTUALLY_EQ(0, getEcmpSizeInHw()); });
     bringUpPort(nhop.portDesc.phyPortID());
     // ECMP stays shrunk on port up
-    EXPECT_EQ(0, getEcmpSizeInHw());
+    WITH_RETRIES({ EXPECT_EVENTUALLY_EQ(0, getEcmpSizeInHw()); });
     // Re resolve nhop1
     unresolveNhops(1);
     resolveNhops(1);
@@ -258,13 +298,15 @@ TEST_F(HwEcmpTest, L2ResolveOneNhopThenLinkDownThenUpThenL2ResolveNhop) {
   verifyAcrossWarmBoots(setup, verify);
 }
 
-TEST_F(HwEcmpTest, L2UnresolvedNhopsECMPInHWEmpty) {
+TEST_F(AgentEcmpTest, L2UnresolvedNhopsECMPInHWEmpty) {
   auto setup = [=, this]() { programRouteWithUnresolvedNhops(); };
-  auto verify = [=, this]() { EXPECT_EQ(0, getEcmpSizeInHw()); };
+  auto verify = [=, this]() {
+    WITH_RETRIES({ EXPECT_EVENTUALLY_EQ(0, getEcmpSizeInHw()); });
+  };
   verifyAcrossWarmBoots(setup, verify);
 }
 
-TEST_F(HwEcmpTest, UcmpOverflowZero) {
+TEST_F(AgentEcmpTest, UcmpOverflowZero) {
   std::vector<NextHopWeight> swWs, hwWs;
   if (FLAGS_ecmp_width == 64) {
     // default ecmp_width for td2 and tomahawk
@@ -280,7 +322,7 @@ TEST_F(HwEcmpTest, UcmpOverflowZero) {
   }
   runSimpleUcmpTest(swWs, hwWs);
 }
-TEST_F(HwEcmpTest, UcmpOverflowZeroNotEnoughToRoundUp) {
+TEST_F(AgentEcmpTest, UcmpOverflowZeroNotEnoughToRoundUp) {
   std::vector<NextHopWeight> swWs, hwWs;
   if (FLAGS_ecmp_width == 64) {
     // default ecmp_width for td2 and tomahawk
@@ -297,7 +339,7 @@ TEST_F(HwEcmpTest, UcmpOverflowZeroNotEnoughToRoundUp) {
   runSimpleUcmpTest(swWs, hwWs);
 }
 
-TEST_F(HwEcmpTest, UcmpRoutesWithSameNextHopsDifferentWeights) {
+TEST_F(AgentEcmpTest, UcmpRoutesWithSameNextHopsDifferentWeights) {
   std::vector<NextHopWeight> swWs, hwWs;
 
   if (FLAGS_ecmp_width == 64) {
@@ -319,16 +361,18 @@ TEST_F(HwEcmpTest, UcmpRoutesWithSameNextHopsDifferentWeights) {
   EXPECT_EQ(swWs.size(), hwWs.size());
   EXPECT_LE(swWs.size(), kNumNextHops);
   auto setup = [this, &swWs, &swWs2]() {
+    utility::EcmpSetupAnyNPorts6 ecmpHelper(getProgrammedState());
     auto nHops = swWs.size();
-    ecmpHelper_->programRoutes(
-        getRouteUpdater(),
+    auto wrapper = getSw()->getRouteUpdater();
+    ecmpHelper.programRoutes(
+        &wrapper,
         nHops,
         {kDefaultRoute},
         std::vector<NextHopWeight>(swWs.begin(), swWs.begin() + nHops));
 
     auto nHops2 = swWs2.size();
-    ecmpHelper_->programRoutes(
-        getRouteUpdater(),
+    ecmpHelper.programRoutes(
+        &wrapper,
         nHops2,
         {kRoute2},
         std::vector<NextHopWeight>(swWs2.begin(), swWs2.begin() + nHops2));
@@ -343,22 +387,26 @@ TEST_F(HwEcmpTest, UcmpRoutesWithSameNextHopsDifferentWeights) {
   verifyAcrossWarmBoots(setup, verify);
 }
 
+class AgentWideEcmpTest : public AgentEcmpTest {
+  void setCmdLineFlagOverrides() const override {
+    FLAGS_ecmp_width = 512;
+    AgentHwTest::setCmdLineFlagOverrides();
+  }
+  std::vector<production_features::ProductionFeature>
+  getProductionFeaturesVerified() const override {
+    return {
+        production_features::ProductionFeature::L3_FORWARDING,
+        production_features::ProductionFeature::WIDE_ECMP};
+  }
+};
+
 // Wide UCMP underflow test for when total UCMP weight of the group is less
 // than FLAGS_ecmp_width
-TEST_F(HwWideEcmpTest, WideUcmpUnderflow) {
+TEST_F(AgentWideEcmpTest, WideUcmpUnderflow) {
   const int numSpineNhops = 5;
   const int numMeshNhops = 3;
   std::vector<uint64_t> nhops(numSpineNhops + numMeshNhops);
   std::vector<uint64_t> normalizedNhops(numSpineNhops + numMeshNhops);
-
-  // skip unsupported platforms
-  if (!getHwSwitch()->getPlatform()->getAsic()->isSupported(
-          HwAsic::Feature::WIDE_ECMP)) {
-#if defined(GTEST_SKIP)
-    GTEST_SKIP();
-#endif
-    return;
-  }
 
   auto fillNhops = [](auto& nhops, auto& countAndWeights) {
     auto idx = 0;
@@ -381,22 +429,19 @@ TEST_F(HwWideEcmpTest, WideUcmpUnderflow) {
   runSimpleUcmpTest(nhops, normalizedNhops);
 }
 
-TEST_F(HwWideEcmpTest, WideUcmp256WidthUnderflow) {
+class Agent256WideEcmpTest : public AgentWideEcmpTest {
+  void setCmdLineFlagOverrides() const override {
+    FLAGS_ecmp_width = 256;
+    AgentHwTest::setCmdLineFlagOverrides();
+  }
+};
+
+TEST_F(Agent256WideEcmpTest, WideUcmp256WidthUnderflow) {
   const int numSpineNhops = 5;
   const int numMeshNhops = 3;
   std::vector<uint64_t> nhops(numSpineNhops + numMeshNhops);
   std::vector<uint64_t> normalizedNhops(numSpineNhops + numMeshNhops);
 
-  // skip unsupported platforms
-  if (!getHwSwitch()->getPlatform()->getAsic()->isSupported(
-          HwAsic::Feature::WIDE_ECMP)) {
-#if defined(GTEST_SKIP)
-    GTEST_SKIP();
-#endif
-    return;
-  }
-
-  FLAGS_ecmp_width = 256;
   auto fillNhops = [](auto& nhops, auto& countAndWeights) {
     auto idx = 0;
     for (const auto& nhopAndWeight : countAndWeights) {
@@ -417,20 +462,11 @@ TEST_F(HwWideEcmpTest, WideUcmp256WidthUnderflow) {
   fillNhops(normalizedNhops, nhopsAndWeightsNormalized);
   runSimpleUcmpTest(nhops, normalizedNhops);
 }
-TEST_F(HwWideEcmpTest, WideUcmpCheckMultipleSlotUnderflow) {
+TEST_F(AgentWideEcmpTest, WideUcmpCheckMultipleSlotUnderflow) {
   const int numSpineNhops = 4;
   const int numMeshNhops = 4;
   std::vector<uint64_t> nhops(numSpineNhops + numMeshNhops);
   std::vector<uint64_t> normalizedNhops(numSpineNhops + numMeshNhops);
-
-  // skip unsupported platforms
-  if (!getHwSwitch()->getPlatform()->getAsic()->isSupported(
-          HwAsic::Feature::WIDE_ECMP)) {
-#if defined(GTEST_SKIP)
-    GTEST_SKIP();
-#endif
-    return;
-  }
 
   auto fillNhops = [](auto& nhops, auto& countAndWeights) {
     auto idx = 0;
@@ -454,40 +490,31 @@ TEST_F(HwWideEcmpTest, WideUcmpCheckMultipleSlotUnderflow) {
 }
 
 // Test link down in UCMP scenario
-TEST_F(HwEcmpTest, UcmpL2ResolveAllNhopsInThenLinkDown) {
+TEST_F(AgentEcmpTest, UcmpL2ResolveAllNhopsInThenLinkDown) {
+  utility::EcmpSetupAnyNPorts6 ecmpHelper(getProgrammedState());
   programResolvedUcmp({3, 1, 1, 1, 1, 1, 1, 1}, {3, 1, 1, 1, 1, 1, 1, 1});
-  bringDownPort(ecmpHelper_->nhop(0).portDesc.phyPortID());
-  auto pathsInHwCount = utility::getEcmpSizeInHw(
-      getHwSwitch(), kDefaultRoutePrefix, kRid, FLAGS_ecmp_width);
-  EXPECT_EQ(7, pathsInHwCount);
+  bringDownPort(ecmpHelper.nhop(0).portDesc.phyPortID());
+  WITH_RETRIES({
+    auto pathsInHwCount = getEcmpSizeInHw();
+    EXPECT_EVENTUALLY_EQ(7, pathsInHwCount);
+  });
 }
 
 // Test link flap in UCMP scenario
-TEST_F(HwEcmpTest, UcmpL2ResolveBothNhopsInThenLinkFlap) {
+TEST_F(AgentEcmpTest, UcmpL2ResolveBothNhopsInThenLinkFlap) {
+  utility::EcmpSetupAnyNPorts6 ecmpHelper(getProgrammedState());
   programResolvedUcmp({3, 1, 1, 1, 1, 1, 1, 1}, {3, 1, 1, 1, 1, 1, 1, 1});
-  auto nhop = ecmpHelper_->nhop(0);
+  auto nhop = ecmpHelper.nhop(0);
   bringDownPort(nhop.portDesc.phyPortID());
 
-  auto pathsInHw0 = utility::getEcmpMembersInHw(
-      getHwSwitch(), kDefaultRoutePrefix, kRid, FLAGS_ecmp_width);
-  auto totalWeightInHw0 =
-      utility::getTotalEcmpMemberWeight(getHwSwitch(), pathsInHw0);
-  EXPECT_EQ(7, totalWeightInHw0);
+  WITH_RETRIES({ EXPECT_EVENTUALLY_EQ(7, getEcmpSizeInHw()); });
 
   bringUpPort(nhop.portDesc.phyPortID());
-  auto pathsInHw1 = utility::getEcmpMembersInHw(
-      getHwSwitch(), kDefaultRoutePrefix, kRid, FLAGS_ecmp_width);
-  auto totalWeightInHw1 =
-      utility::getTotalEcmpMemberWeight(getHwSwitch(), pathsInHw1);
-  EXPECT_EQ(7, totalWeightInHw1);
+  WITH_RETRIES({ EXPECT_EVENTUALLY_EQ(7, getEcmpSizeInHw()); });
 
   unresolveNhops(1);
   resolveNhops(1);
-  auto pathsInHw2 = utility::getEcmpMembersInHw(
-      getHwSwitch(), kDefaultRoutePrefix, kRid, FLAGS_ecmp_width);
-  auto totalWeightInHw2 =
-      utility::getTotalEcmpMemberWeight(getHwSwitch(), pathsInHw2);
-  EXPECT_EQ(10, totalWeightInHw2);
+  WITH_RETRIES({ EXPECT_EVENTUALLY_EQ(10, getEcmpSizeInHw()); });
 }
 
 template <bool enableIntfNbrTable>
@@ -499,12 +526,23 @@ using NeighborTableTypes =
     ::testing::Types<EnableIntfNbrTable<false>, EnableIntfNbrTable<true>>;
 
 template <typename EnableIntfNbrTableT>
-class HwEcmpNeighborTest : public HwEcmpTest {
+class AgentEcmpNeighborTest : public AgentEcmpTest {
   static auto constexpr intfNbrTable = EnableIntfNbrTableT::intfNbrTable;
 
   void SetUp() override {
     FLAGS_intf_nbr_tables = isIntfNbrTable();
-    HwEcmpTest::SetUp();
+    AgentEcmpTest::SetUp();
+  }
+
+  std::vector<production_features::ProductionFeature>
+  getProductionFeaturesVerified() const override {
+    if (intfNbrTable) {
+      return {
+          production_features::ProductionFeature::L3_FORWARDING,
+          production_features::ProductionFeature::INTERFACE_NEIGHBOR_TABLE};
+    } else {
+      return {production_features::ProductionFeature::L3_FORWARDING};
+    }
   }
 
  public:
@@ -513,7 +551,9 @@ class HwEcmpNeighborTest : public HwEcmpTest {
   }
 
   auto getNdpTable(PortDescriptor port, std::shared_ptr<SwitchState>& state) {
-    auto switchType = getSwitchType();
+    const auto switchType =
+        utility::checkSameAndGetAsic(getAgentEnsemble()->getL3Asics())
+            ->getSwitchType();
 
     if (isIntfNbrTable() || switchType == cfg::SwitchType::VOQ) {
       auto portId = port.phyPortID();
@@ -522,7 +562,8 @@ class HwEcmpNeighborTest : public HwEcmpTest {
       return state->getInterfaces()->getNode(intfId)->getNdpTable()->modify(
           intfId, &state);
     } else if (switchType == cfg::SwitchType::NPU) {
-      auto vlanId = ecmpHelper_->getVlan(port, getProgrammedState());
+      utility::EcmpSetupAnyNPorts6 ecmpHelper(getProgrammedState());
+      auto vlanId = ecmpHelper.getVlan(port, getProgrammedState());
       return state->getVlans()->getNode(*vlanId)->getNdpTable()->modify(
           *vlanId, &state);
     }
@@ -531,46 +572,51 @@ class HwEcmpNeighborTest : public HwEcmpTest {
   }
 };
 
-TYPED_TEST_SUITE(HwEcmpNeighborTest, NeighborTableTypes);
+TYPED_TEST_SUITE(AgentEcmpNeighborTest, NeighborTableTypes);
 
-TYPED_TEST(HwEcmpNeighborTest, ResolvePendingResolveNexthop) {
+TYPED_TEST(AgentEcmpNeighborTest, ResolvePendingResolveNexthop) {
   auto setup = [=, this]() {
-    this->resolveNhops(2);
+    this->resolveNhops(numNeighborEntries);
     std::map<PortDescriptor, std::shared_ptr<NdpEntry>> entries;
+    utility::EcmpSetupAnyNPorts6 ecmpHelper(this->getProgrammedState());
 
     // mark neighbors connected over ports pending
-    auto state0 = this->getProgrammedState();
-    for (auto i = 0; i < 2; i++) {
-      const auto& ecmpNextHop = this->ecmpHelper_->nhop(i);
-      auto port = ecmpNextHop.portDesc;
-      auto ntable = this->getNdpTable(port, state0);
-      auto entry = ntable->getEntry(ecmpNextHop.ip);
-      auto intfId = entry->getIntfID();
-      ntable->removeEntry(ecmpNextHop.ip);
-      ntable->addPendingEntry(ecmpNextHop.ip, intfId);
-      entries[port] = std::move(entry);
-    }
-    this->applyNewState(state0);
+    this->applyNewState([&](const std::shared_ptr<SwitchState>& in) {
+      auto state = in->clone();
+      for (auto i = 0; i < numNeighborEntries; i++) {
+        const auto& ecmpNextHop = ecmpHelper.nhop(i);
+        auto port = ecmpNextHop.portDesc;
+        auto ntable = this->getNdpTable(port, state);
+        auto entry = ntable->getEntry(ecmpNextHop.ip);
+        auto intfId = entry->getIntfID();
+        ntable->removeEntry(ecmpNextHop.ip);
+        ntable->addPendingEntry(ecmpNextHop.ip, intfId);
+        entries[port] = std::move(entry);
+      }
+      return state;
+    });
 
     // mark neighbors connected over ports reachable
-    auto state1 = this->getProgrammedState();
-    for (auto i = 0; i < 2; i++) {
-      const auto& ecmpNextHop = this->ecmpHelper_->nhop(i);
-      auto port = ecmpNextHop.portDesc;
-      auto ntable = this->getNdpTable(port, state1);
-      auto entry = entries[port];
-      ntable->updateEntry(NeighborEntryFields<folly::IPAddressV6>::fromThrift(
-          entry->toThrift()));
-    }
-    this->applyNewState(state1);
-    this->ecmpHelper_->programRoutes(this->getRouteUpdater(), 2);
+    this->applyNewState([&](const std::shared_ptr<SwitchState>& in) {
+      auto state = in->clone();
+      for (auto i = 0; i < numNeighborEntries; i++) {
+        const auto& ecmpNextHop = ecmpHelper.nhop(i);
+        auto port = ecmpNextHop.portDesc;
+        auto ntable = this->getNdpTable(port, state);
+        auto entry = entries[port];
+        ntable->updateEntry(NeighborEntryFields<folly::IPAddressV6>::fromThrift(
+            entry->toThrift()));
+      }
+      return state;
+    });
+    auto wrapper = this->getSw()->getRouteUpdater();
+    ecmpHelper.programRoutes(&wrapper, 2);
   };
   auto verify = [=, this]() {
     /* ecmp is resolved */
-    EXPECT_EQ(
-        utility::getEcmpSizeInHw(
-            this->getHwSwitch(), kDefaultRoutePrefix, this->kRid, 2),
-        2);
+    WITH_RETRIES({
+      EXPECT_EVENTUALLY_EQ(this->getEcmpSizeInHw(numNeighborEntries), 2);
+    });
   };
   this->verifyAcrossWarmBoots(setup, verify);
 }

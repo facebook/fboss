@@ -161,6 +161,6 @@ Interface* Interface::modify(std::shared_ptr<SwitchState>* state) {
   return ptr;
 }
 
-template class ThriftStructNode<Interface, state::InterfaceFields>;
+template struct ThriftStructNode<Interface, state::InterfaceFields>;
 
 } // namespace facebook::fboss

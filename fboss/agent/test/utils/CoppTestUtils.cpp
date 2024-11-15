@@ -306,7 +306,8 @@ void setDefaultCpuTrafficPolicyConfig(
   auto cpuAcls = utility::defaultCpuAcls(hwAsic, config, isSai);
 
   for (int i = 0; i < cpuAcls.size(); i++) {
-    utility::addAclEntry(&config, cpuAcls[i].first, std::nullopt);
+    utility::addAclEntry(
+        &config, cpuAcls[i].first, utility::kDefaultAclTable());
   }
 
   // prepare cpu traffic config

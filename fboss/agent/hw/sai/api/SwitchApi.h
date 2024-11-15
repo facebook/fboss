@@ -576,8 +576,10 @@ struct SaiSwitchTraits {
     struct AttributeNoAclsForTrapsWrapper {
       std::optional<sai_attr_id_t> operator()();
     };
-    using NoAclsForTraps =
-        SaiExtensionAttribute<bool, AttributeNoAclsForTrapsWrapper>;
+    using NoAclsForTraps = SaiExtensionAttribute<
+        bool,
+        AttributeNoAclsForTrapsWrapper,
+        SaiBoolDefaultFalse>;
     struct AttributeMaxSystemPortId {
       std::optional<sai_attr_id_t> operator()();
     };
@@ -620,6 +622,41 @@ struct SaiSwitchTraits {
         std::vector<sai_uint32_t>,
         AttributeVoqDramBoundThWrapper,
         SaiU32ListDefault>;
+    struct AttributeCondEntropyRehashPeriodUS {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    using CondEntropyRehashPeriodUS = SaiExtensionAttribute<
+        sai_uint32_t,
+        AttributeCondEntropyRehashPeriodUS,
+        SaiIntDefault<sai_uint32_t>>;
+    struct AttributeShelSrcIp {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    using ShelSrcIp = SaiExtensionAttribute<
+        folly::IPAddress,
+        AttributeShelSrcIp,
+        SaiIpAddressDefault>;
+    struct AttributeShelDstIp {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    using ShelDstIp = SaiExtensionAttribute<
+        folly::IPAddress,
+        AttributeShelDstIp,
+        SaiIpAddressDefault>;
+    struct AttributeShelSrcMac {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    using ShelSrcMac = SaiExtensionAttribute<
+        folly::MacAddress,
+        AttributeShelSrcMac,
+        SaiMacAddressDefault>;
+    struct AttributeShelPeriodicInterval {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    using ShelPeriodicInterval = SaiExtensionAttribute<
+        sai_uint32_t,
+        AttributeShelPeriodicInterval,
+        SaiIntDefault<sai_uint32_t>>;
   };
   using AdapterKey = SwitchSaiId;
   using AdapterHostKey = std::monostate;
@@ -697,7 +734,12 @@ struct SaiSwitchTraits {
       std::optional<Attributes::MaxSystemPorts>,
       std::optional<Attributes::MaxVoqs>,
       std::optional<Attributes::FabricCllfcTxCreditTh>,
-      std::optional<Attributes::VoqDramBoundTh>>;
+      std::optional<Attributes::VoqDramBoundTh>,
+      std::optional<Attributes::CondEntropyRehashPeriodUS>,
+      std::optional<Attributes::ShelSrcIp>,
+      std::optional<Attributes::ShelDstIp>,
+      std::optional<Attributes::ShelSrcMac>,
+      std::optional<Attributes::ShelPeriodicInterval>>;
 
 #if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
   static constexpr std::array<sai_stat_id_t, 3> CounterIdsToRead = {
@@ -819,12 +861,12 @@ SAI_ATTRIBUTE_NAME(Switch, FabricRemoteReachablePortList)
 SAI_ATTRIBUTE_NAME(Switch, RouteNoImplicitMetaData)
 SAI_ATTRIBUTE_NAME(Switch, RouteAllowImplicitMetaData)
 SAI_ATTRIBUTE_NAME(Switch, MultiStageLocalSwitchIds)
-SAI_ATTRIBUTE_NAME(Switch, VoqLatencyMinLocalNs);
-SAI_ATTRIBUTE_NAME(Switch, VoqLatencyMaxLocalNs);
-SAI_ATTRIBUTE_NAME(Switch, VoqLatencyMinLevel1Ns);
-SAI_ATTRIBUTE_NAME(Switch, VoqLatencyMaxLevel1Ns);
-SAI_ATTRIBUTE_NAME(Switch, VoqLatencyMinLevel2Ns);
-SAI_ATTRIBUTE_NAME(Switch, VoqLatencyMaxLevel2Ns);
+SAI_ATTRIBUTE_NAME(Switch, VoqLatencyMinLocalNs)
+SAI_ATTRIBUTE_NAME(Switch, VoqLatencyMaxLocalNs)
+SAI_ATTRIBUTE_NAME(Switch, VoqLatencyMinLevel1Ns)
+SAI_ATTRIBUTE_NAME(Switch, VoqLatencyMaxLevel1Ns)
+SAI_ATTRIBUTE_NAME(Switch, VoqLatencyMinLevel2Ns)
+SAI_ATTRIBUTE_NAME(Switch, VoqLatencyMaxLevel2Ns)
 #if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
 SAI_ATTRIBUTE_NAME(Switch, ArsProfile)
 #endif
@@ -839,6 +881,11 @@ SAI_ATTRIBUTE_NAME(Switch, MaxSystemPorts);
 SAI_ATTRIBUTE_NAME(Switch, MaxVoqs);
 SAI_ATTRIBUTE_NAME(Switch, FabricCllfcTxCreditTh);
 SAI_ATTRIBUTE_NAME(Switch, VoqDramBoundTh);
+SAI_ATTRIBUTE_NAME(Switch, CondEntropyRehashPeriodUS)
+SAI_ATTRIBUTE_NAME(Switch, ShelSrcIp)
+SAI_ATTRIBUTE_NAME(Switch, ShelDstIp)
+SAI_ATTRIBUTE_NAME(Switch, ShelSrcMac)
+SAI_ATTRIBUTE_NAME(Switch, ShelPeriodicInterval)
 
 template <>
 struct SaiObjectHasStats<SaiSwitchTraits> : public std::true_type {};

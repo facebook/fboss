@@ -9,7 +9,6 @@
  */
 
 #include "fboss/agent/hw/bcm/BcmAddressFBConvertors.h"
-#include "fboss/agent/hw/bcm/tests/BcmUnitTestUtils.h"
 
 #include <folly/IPAddress.h>
 #include <folly/MacAddress.h>

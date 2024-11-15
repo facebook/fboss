@@ -12,8 +12,6 @@
 
 #include "fboss/agent/Constants.h"
 
-#include <boost/functional/hash.hpp>
-
 #include <functional>
 
 namespace {

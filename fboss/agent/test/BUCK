@@ -87,7 +87,6 @@ cpp_unittest(
         "//fboss/agent:core",
         "//fboss/agent:fboss-error",
         "//fboss/agent:fboss-types",
-        "//fboss/agent:fsdb_helper",
         "//fboss/agent:gtest_defs",
         "//fboss/agent:handler",
         "//fboss/agent:hw_asic_table",
@@ -129,14 +128,12 @@ cpp_unittest(
         "//folly/io:iobuf",
         "//folly/logging:logging",
         "//folly/portability:gtest",
-        "//thrift/lib/cpp/util:enum_utils",
         "//thrift/lib/cpp2/async:pooled_request_channel",
         "//thrift/lib/cpp2/async:server_stream",
         "//thrift/lib/cpp2/protocol:protocol",
         "//thrift/lib/cpp2/util:util",
     ],
     external_deps = [
-        "boost",
         "gflags",
         ("boost", None, "boost_range"),
     ],
@@ -212,12 +209,8 @@ cpp_library(
         "//folly:network_address",
         "//folly:range",
         "//folly/container:enumerate",
-        "//folly/json:dynamic",
-        "//folly/logging:init",
         "//folly/synchronization:baton",
-        "//thrift/lib/cpp2/protocol:protocol",
     ],
-    exported_external_deps = ["boost"],
 )
 
 cpp_library(
@@ -295,7 +288,6 @@ cpp_library(
         ":ecmp_helper",
         ":resourcelibutil",
         "//fboss/agent:core",
-        "//fboss/agent:fboss-error",
         "//fboss/agent:fboss-types",
         "//fboss/agent:utils",
         "//fboss/agent/if:ctrl-cpp2-types",
@@ -320,9 +312,6 @@ cpp_unittest(
         ":utils",
         "//fboss/agent:apply_thrift_config",
         "//fboss/agent/hw/mock:mock",
-    ],
-    external_deps = [
-        "gflags",
     ],
 )
 
@@ -366,9 +355,6 @@ cpp_unittest(
         ":route_scale_gen",
         ":utils",
         "//fboss/agent/hw/mock:mock",
-    ],
-    external_deps = [
-        "gflags",
     ],
 )
 
@@ -495,7 +481,6 @@ cpp_library(
         "//fboss/agent:agent_config-cpp2-types",
         "//fboss/agent:load_agent_config",
         "//fboss/agent:switch_config-cpp2-types",
-        "//fboss/agent:switchid_scope_resolver",
         "//fboss/agent/hw/switch_asics:switch_asics",
         "//fboss/agent/hw/test:config_factory",
         "//fboss/agent/state:state",
@@ -611,11 +596,9 @@ cpp_library(
     undefined_symbols = True,
     exported_deps = [
         ":multinode_tests_base",
-        ":resourcelibutil",
         "//fboss/agent/hw/test:config_factory",
         "//fboss/agent/hw/test:load_balancer_utils",
         "//fboss/agent/test/link_tests:macsec_test_utils",
-        "//fboss/facebook/mka_service/mka_module:mka_structs",
         "//fboss/lib:common_utils",
         "//fboss/mka_service/if/facebook:mka_config-cpp2-types",
         "//fboss/mka_service/if/facebook:mka_service_thrift-cpp2-services",
@@ -648,7 +631,6 @@ cpp_library(
         "//fboss/agent:main-common",
         "//fboss/agent:packet",
         "//fboss/agent:platform_config-cpp2-types",
-        "//fboss/agent:stats",
         "//fboss/agent:sw_agent_initializer",
         "//fboss/agent:sw_switch_warmboot_helper",
         "//fboss/agent:switch_config-cpp2-types",
@@ -724,7 +706,6 @@ cpp_library(
     exported_deps = [
         "//fboss/agent:hw_asic_table",
         "//fboss/agent:hw_switch",
-        "//fboss/agent:platform_base",
         "//fboss/agent:switch_config-cpp2-types",
         "//fboss/agent:utils",
         "//fboss/agent/state:state",
@@ -927,5 +908,15 @@ cpp_library(
     ],
     exported_external_deps = [
         ("boost", None, "boost_container"),
+    ],
+)
+
+cpp_unittest(
+    name = "fboss_event_base_test",
+    srcs = [
+        "FbossEventBaseTests.cpp",
+    ],
+    deps = [
+        "//fboss/agent:fboss_event_base",
     ],
 )

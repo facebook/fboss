@@ -48,7 +48,6 @@ cpp_library(
         "//fboss/agent:packet",
         "//fboss/agent/packet:packet",
         "//fboss/agent/packet:pktutil",
-        "//folly:memory",
         "//folly:range",
         "//folly/io:iobuf",
     ],

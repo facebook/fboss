@@ -7,14 +7,12 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
+#pragma once
 
-#include "fboss/agent/hw/HwBasePortFb303Stats.h"
+#include "fboss/agent/gen-cpp2/switch_config_types.h"
 
 namespace facebook::fboss {
 
-void HwBasePortFb303Stats::updateQueueWatermarkStats(
-    const std::map<int16_t, int64_t>&
-    /*queueWatermarks*/) const {}
-void HwBasePortFb303Stats::updateEgressGvoqWatermarkStats(
-    const std::map<int16_t, int64_t>& /*gvoqWatermarks*/) const {}
+int getNumVoqs(cfg::PortType portType, cfg::Scope portScope);
+
 } // namespace facebook::fboss

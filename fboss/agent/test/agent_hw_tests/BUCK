@@ -21,6 +21,7 @@ cpp_library(
         "AgentDiagShellStressTests.cpp",
         "AgentDscpMarkingTests.cpp",
         "AgentDscpQueueMappingTests.cpp",
+        "AgentEcmpTests.cpp",
         "AgentEgressForwardingDiscardCounterTests.cpp",
         "AgentEmptyTests.cpp",
         "AgentFabricSwitchTests.cpp",
@@ -47,6 +48,7 @@ cpp_library(
         "AgentPacketSendTests.cpp",
         "AgentPfcTests.cpp",
         "AgentPortBandWidthTests.cpp",
+        "AgentPortLedTests.cpp",
         "AgentPortTests.cpp",
         "AgentPrbsTests.cpp",
         "AgentQueuePerHostL2Tests.cpp",
@@ -243,7 +245,6 @@ cpp_library(
         "//fboss/agent/test/utils:acl_test_utils",
         "//fboss/agent/test/utils:asic_test_utils",
         "//fboss/agent/test/utils:scale_test_utils",
-        "//fboss/lib:common_utils",
         "//folly:network_address",
     ],
 )

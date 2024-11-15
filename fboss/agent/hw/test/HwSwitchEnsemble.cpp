@@ -428,8 +428,10 @@ void HwSwitchEnsemble::linkStateChanged(
       [port, up](auto observer) { observer->changeLinkState(port, up); });
 }
 
-void HwSwitchEnsemble::linkActiveStateChanged(
-    const std::map<PortID, bool>& /*port2IsActive */) {
+void HwSwitchEnsemble::linkActiveStateChangedOrFwIsolated(
+    const std::map<PortID, bool>& /*port2IsActive */,
+    bool /* fwIsolated */,
+    const std::optional<uint32_t>& /* numActiveFabricPortsAtFwIsolate */) {
   // TODO
 }
 

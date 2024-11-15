@@ -9,6 +9,8 @@
  */
 
 #include "fboss/agent/test/utils/VoqTestUtils.h"
+#include "fboss/agent/DsfStateUpdaterUtil.h"
+#include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/test/TestEnsembleIf.h"
 
@@ -20,6 +22,8 @@ constexpr auto kNumPortPerCore = 10;
 // 7: mgm port, 8-43 front panel nif
 constexpr auto kRemoteSysPortOffset = 7;
 constexpr auto kNumVoq = 8;
+constexpr auto kNumRdswSysPort = 44;
+constexpr auto kNumEdswSysPort = 26;
 
 std::shared_ptr<SystemPort> makeRemoteSysPort(
     SystemPortID portId,
@@ -185,7 +189,9 @@ void populateRemoteIntfAndSysPorts(
     for (auto sysPortRange : *dsfNode.systemPortRanges()->systemPortRanges()) {
       const auto minPortID = *sysPortRange.minimum();
       const auto maxPortID = *sysPortRange.maximum();
-      // 0th port for CPU and 1st port for recycle port
+      // TODO(zecheng): Update num of ports for dual stage
+      const auto numPorts = maxPortID - minPortID + 1;
+      CHECK(numPorts == kNumRdswSysPort || numPorts == kNumEdswSysPort);
       for (int i = minPortID + kRemoteSysPortOffset; i <= maxPortID; i++) {
         const SystemPortID remoteSysPortId(i);
         const InterfaceID remoteIntfId(i);
@@ -201,12 +207,16 @@ void populateRemoteIntfAndSysPorts(
         auto thirdOctet = i - minPortID;
         folly::IPAddressV6 neighborIp(folly::to<std::string>(
             firstOctet, ":", secondOctet, ":", thirdOctet, "::2"));
+        auto portSpeed = i == minPortID + kRemoteSysPortOffset
+            ? cfg::PortSpeed::HUNDREDG
+            : numPorts == kNumRdswSysPort ? cfg::PortSpeed::FOURHUNDREDG
+                                          : cfg::PortSpeed::EIGHTHUNDREDG;
         auto remoteSysPort = makeRemoteSysPort(
             remoteSysPortId,
             SwitchID(remoteSwitchId),
             (i - minPortID - kRemoteSysPortOffset) / kNumPortPerCore,
             (i - minPortID) % kNumPortPerCore,
-            static_cast<int64_t>(cfg::PortSpeed::FOURHUNDREDG));
+            static_cast<int64_t>(portSpeed));
         remoteSysPorts->addSystemPort(remoteSysPort);
 
         auto remoteRif = makeRemoteInterface(
@@ -292,6 +302,29 @@ boost::container::flat_set<PortDescriptor> resolveRemoteNhops(
         in, sysPortDescs, false, getDummyEncapIndex(ensemble));
   });
   return sysPortDescs;
+}
+
+void setupRemoteIntfAndSysPorts(SwSwitch* swSwitch, bool useEncapIndex) {
+  auto updateDsfStateFn =
+      [swSwitch, useEncapIndex](const std::shared_ptr<SwitchState>& in) {
+        std::map<SwitchID, std::shared_ptr<SystemPortMap>> switchId2SystemPorts;
+        std::map<SwitchID, std::shared_ptr<InterfaceMap>> switchId2Rifs;
+        utility::populateRemoteIntfAndSysPorts(
+            switchId2SystemPorts,
+            switchId2Rifs,
+            swSwitch->getConfig(),
+            useEncapIndex);
+        return DsfStateUpdaterUtil::getUpdatedState(
+            in,
+            swSwitch->getScopeResolver(),
+            swSwitch->getRib(),
+            switchId2SystemPorts,
+            switchId2Rifs);
+      };
+  swSwitch->getRib()->updateStateInRibThread([swSwitch, updateDsfStateFn]() {
+    swSwitch->updateStateWithHwFailureProtection(
+        folly::sformat("Update state for node: {}", 0), updateDsfStateFn);
+  });
 }
 
 } // namespace facebook::fboss::utility

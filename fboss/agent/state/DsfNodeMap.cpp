@@ -12,5 +12,5 @@ MultiSwitchDsfNodeMap* MultiSwitchDsfNodeMap::modify(
   return SwitchState::modify<switch_state_tags::dsfNodesMap>(state);
 }
 
-template class ThriftMapNode<DsfNodeMap, DsfNodeMapTraits>;
+template struct ThriftMapNode<DsfNodeMap, DsfNodeMapTraits>;
 } // namespace facebook::fboss

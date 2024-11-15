@@ -8,5 +8,5 @@ struct DsfNodeEntry {
   1: string name;
   2: i64 switchId;
   3: string type;
-  4: string systemPortRange;
+  4: string systemPortRanges;
 }

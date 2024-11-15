@@ -38,7 +38,7 @@ class MirrorApiTest : public ::testing::Test {
 
   MirrorSaiId createLocalMirror(const sai_object_id_t portId) const {
     return mirrorApi->create<SaiLocalMirrorTraits>(
-        {SAI_MIRROR_SESSION_TYPE_LOCAL, portId}, 0);
+        {SAI_MIRROR_SESSION_TYPE_LOCAL, portId, std::nullopt}, 0);
   }
 
   MirrorSaiId createEnhancedRemoteMirror(
@@ -66,7 +66,8 @@ class MirrorApiTest : public ::testing::Test {
          ipHeaderVersion,
          ttl,
          truncateSize,
-         samplingRate},
+         samplingRate,
+         std::nullopt},
         0);
   }
 

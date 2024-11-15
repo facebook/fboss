@@ -205,6 +205,6 @@ MultiTeFlowTable* MultiTeFlowTable::modify(
   return ptr;
 }
 
-template class ThriftMapNode<TeFlowTable, TeFlowTableThriftTraits>;
+template struct ThriftMapNode<TeFlowTable, TeFlowTableThriftTraits>;
 
 } // namespace facebook::fboss

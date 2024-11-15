@@ -265,6 +265,23 @@ add_library(hw_rx_slow_path_rate
   fboss/agent/hw/benchmarks/HwRxSlowPathBenchmark.cpp
 )
 
+add_library(hw_rx_slow_path_arp_rate
+  fboss/agent/hw/benchmarks/HwRxSlowPathArpBenchmark.cpp
+)
+
+target_link_libraries(hw_rx_slow_path_arp_rate
+  config_factory
+  pkt_factory
+  copp_test_utils
+  hw_asic_utils
+  hw_copp_utils
+  hw_test_acl_utils
+  mono_agent_ensemble
+  mono_agent_benchmarks
+  Folly::folly
+  Folly::follybenchmark
+)
+
 target_link_libraries(hw_rx_slow_path_rate
   config_factory
   copp_test_utils

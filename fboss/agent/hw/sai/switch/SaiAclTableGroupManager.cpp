@@ -33,6 +33,8 @@ sai_acl_stage_t SaiAclTableGroupManager::cfgAclStageToSaiAclStage(
       return SAI_ACL_STAGE_INGRESS_MACSEC;
     case cfg::AclStage::EGRESS_MACSEC:
       return SAI_ACL_STAGE_EGRESS_MACSEC;
+    case cfg::AclStage::EGRESS:
+      return SAI_ACL_STAGE_EGRESS;
   }
 
   // should return in one of the cases

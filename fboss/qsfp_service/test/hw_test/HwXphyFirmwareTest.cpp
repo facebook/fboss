@@ -12,7 +12,6 @@
 #include "fboss/agent/platforms/common/PlatformMapping.h"
 #include "fboss/lib/phy/ExternalPhy.h"
 #include "fboss/lib/phy/PhyManager.h"
-#include "fboss/lib/platforms/PlatformMode.h"
 #include "fboss/qsfp_service/test/hw_test/HwQsfpEnsemble.h"
 
 #include <folly/logging/xlog.h>

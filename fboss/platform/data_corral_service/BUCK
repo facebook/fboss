@@ -32,7 +32,6 @@ cpp_library(
         "//fboss/lib:common_file_utils",
         "//fboss/platform/data_corral_service/if:led_manager-cpp2-types",
         "//fboss/platform/platform_manager:utils",
-        "//folly:string",
         "//folly/logging:logging",
     ],
 )
@@ -63,7 +62,6 @@ cpp_binary(
         "//fboss/platform/helpers:init",
         "//fboss/platform/helpers:platform_name_lib",
         "//folly/executors:function_scheduler",
-        "//folly/logging:init",
         "//thrift/lib/cpp2/protocol:protocol",
     ],
     external_deps = [

@@ -12,12 +12,10 @@
 #include <folly/Memory.h>
 #include "fboss/agent/Platform.h"
 #include "fboss/agent/SysError.h"
-#include "fboss/agent/ThriftHandler.h"
 #include "fboss/agent/hw/mock/MockHwSwitch.h"
 #include "fboss/agent/hw/mock/MockPlatformMapping.h"
 #include "fboss/agent/hw/mock/MockPlatformPort.h"
 #include "fboss/agent/hw/mock/MockTestHandle.h"
-#include "fboss/agent/test/HwTestHandle.h"
 #include "fboss/lib/platforms/PlatformProductInfo.h"
 
 #include <gmock/gmock.h>
@@ -76,15 +74,12 @@ MockPlatform::MockPlatform()
 MockPlatform::~MockPlatform() = default;
 
 void MockPlatform::setupAsic(
-    cfg::SwitchType switchType,
     std::optional<int64_t> switchId,
-    int16_t switchIndex,
-    std::optional<cfg::Range64> systemPortRange,
-    folly::MacAddress& mac,
-    std::optional<HwAsic::FabricNodeRole> fabricNodeRole) {
-  asic_ = std::make_unique<MockAsic>(
-      switchType, switchId, switchIndex, systemPortRange, mac);
+    const cfg::SwitchInfo& switchInfo,
+    std::optional<HwAsic::FabricNodeRole> role) {
+  asic_ = std::make_unique<MockAsic>(switchId, switchInfo);
 }
+
 HwSwitch* MockPlatform::getHwSwitch() const {
   return hw_.get();
 }

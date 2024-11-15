@@ -9,9 +9,6 @@
  */
 #include "fboss/agent/test/TestUtils.h"
 
-#include <boost/cast.hpp>
-#include <thrift/lib/cpp2/protocol/Serializer.h>
-
 #include "fboss/agent/AgentConfig.h"
 #include "fboss/agent/ApplyThriftConfig.h"
 #include "fboss/agent/RxPacket.h"
@@ -41,8 +38,6 @@
 
 #include <folly/Memory.h>
 #include <folly/container/Enumerate.h>
-#include <folly/json/json.h>
-#include <folly/logging/Init.h>
 #include <chrono>
 #include <memory>
 #include <optional>
@@ -271,7 +266,10 @@ cfg::SwitchConfig testConfigAImpl(bool isMhnic, cfg::SwitchType switchType) {
       cfg::DsfNode myNode = makeDsfNodeCfg(kVoqSwitchIdBegin);
       cfg.dsfNodes()->insert({*myNode.switchId(), myNode});
       cfg.interfaces()->resize(kPortCount);
-      CHECK(myNode.systemPortRange().has_value());
+      CHECK(!myNode.systemPortRanges()->systemPortRanges()->empty());
+      CHECK_EQ(myNode.systemPortRanges()->systemPortRanges()->size(), 1);
+      auto sysPortRange =
+          *myNode.systemPortRanges()->systemPortRanges()->begin();
       cfg.switchSettings()->switchIdToSwitchInfo() = {std::make_pair(
           kVoqSwitchIdBegin,
           createSwitchInfo(
@@ -282,13 +280,12 @@ cfg::SwitchConfig testConfigAImpl(bool isMhnic, cfg::SwitchType switchType) {
               cfg::switch_config_constants::
                   DEFAULT_PORT_ID_RANGE_MAX(), /* port id range max */
               0, /* switchIndex */
-              *myNode.systemPortRange()->minimum(),
-              *myNode.systemPortRange()->maximum(),
+              *sysPortRange.minimum(),
+              *sysPortRange.maximum(),
               "02:00:00:00:0F:0B", /* switchMac */
               "68:00" /* connection handle */))};
       for (auto i = 0; i < kPortCount; ++i) {
-        auto intfId =
-            *cfg.ports()[i].logicalID() + *myNode.systemPortRange()->minimum();
+        auto intfId = *cfg.ports()[i].logicalID() + *sysPortRange.minimum();
         cfg.interfaces()[i].intfID() = intfId;
         cfg.interfaces()[i].routerID() = 0;
         cfg.interfaces()[i].type() = cfg::InterfaceType::SYSTEM_PORT;
@@ -359,9 +356,10 @@ cfg::SwitchConfig testConfigBImpl() {
     auto switchId = switchIndex + 1;
     cfg::DsfNode myNode = makeDsfNodeCfg(switchId);
     cfg.dsfNodes()->insert({*myNode.switchId(), myNode});
-    CHECK(myNode.systemPortRange().has_value());
     auto minPort = (switchIndex == 0) ? 0 : 16;
     auto maxPort = (switchIndex == 0) ? 12 : 28;
+    CHECK(!myNode.systemPortRanges()->systemPortRanges()->empty());
+    auto sysPortRange = *myNode.systemPortRanges()->systemPortRanges()->begin();
     cfg.switchSettings()->switchIdToSwitchInfo()->emplace(std::make_pair(
         switchId,
         createSwitchInfo(
@@ -370,8 +368,8 @@ cfg::SwitchConfig testConfigBImpl() {
             minPort, /* port id range min */
             maxPort, /* port id range max */
             switchIndex, /* switchIndex */
-            *myNode.systemPortRange()->minimum(),
-            *myNode.systemPortRange()->maximum(),
+            *sysPortRange.minimum(),
+            *sysPortRange.maximum(),
             "02:00:00:00:0F:0B", /* switchMac */
             "68:00" /* connection handle */)));
   }
@@ -496,7 +494,6 @@ cfg::DsfNode makeDsfNodeCfg(
     cfg::Range64 sysPortRange;
     sysPortRange.minimum() = switchId * kBlockSize;
     sysPortRange.maximum() = switchId * kBlockSize + kBlockSize;
-    dsfNodeCfg.systemPortRange() = sysPortRange;
     dsfNodeCfg.loopbackIps() = getLoopbackIps(switchId);
     dsfNodeCfg.nodeMac() = "02:00:00:00:0F:0B";
     dsfNodeCfg.localSystemPortOffset() = *sysPortRange.minimum();
@@ -1475,7 +1472,6 @@ cfg::SwitchInfo createSwitchInfo(
     cfg::Range64 systemPortRange;
     systemPortRange.minimum() = *sysPortMin;
     systemPortRange.maximum() = *sysPortMax;
-    switchInfo.systemPortRange() = systemPortRange;
     switchInfo.systemPortRanges()->systemPortRanges()->push_back(
         systemPortRange);
     switchInfo.localSystemPortOffset() = *sysPortMin;

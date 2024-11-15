@@ -394,15 +394,6 @@ class AgentTrafficPfcTest : public AgentHwTest {
     std::vector<PortID> portIds = portIdsForTest();
 
     auto setup = [&]() {
-      for (auto [switchId, asic] : this->getAsics()) {
-        if ((asic->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO2) ||
-            (asic->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO3)) {
-          // Keep low scaling factor so that headroom usage is attempted
-          // for Jericho family of ASICs.
-          testParams.buffer.scalingFactor = cfg::MMUScalingFactor::ONE_32768TH;
-        }
-      }
-
       // Setup PFC
       auto cfg = getAgentEnsemble()->getCurrentConfig();
       std::vector<PortID> portIdsToConfigure = portIds;
@@ -511,6 +502,13 @@ TEST_P(AgentTrafficPfcGenTest, verifyPfc) {
   const int trafficClass = kLosslessTrafficClass;
   const int pfcPriority = kLosslessPriority;
   TrafficTestParams trafficParams = GetParam();
+  auto asicType = utility::checkSameAndGetAsic(getAgentEnsemble()->getL3Asics())
+                      ->getAsicType();
+  if (asicType == cfg::AsicType::ASIC_TYPE_JERICHO2 ||
+      asicType == cfg::AsicType::ASIC_TYPE_JERICHO3) {
+    // Keep smaller global pool size
+    trafficParams.buffer.globalShared = kGlobalSharedBytes;
+  }
   runTestWithCfg(trafficClass, pfcPriority, {}, trafficParams);
 }
 
@@ -537,11 +535,7 @@ TEST_F(AgentTrafficPfcTest, verifyPfcWithMapChanges_1) {
 TEST_F(AgentTrafficPfcTest, verifyBufferPoolWatermarks) {
   const int trafficClass = kLosslessTrafficClass;
   const int pfcPriority = kLosslessPriority;
-  cfg::MMUScalingFactor scalingFactor =
-      utility::checkSameAndGetAsic(getAgentEnsemble()->getL3Asics())
-              ->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO2
-      ? cfg::MMUScalingFactor::ONE_32768TH
-      : cfg::MMUScalingFactor::ONE_64TH;
+  cfg::MMUScalingFactor scalingFactor = cfg::MMUScalingFactor::ONE_64TH;
   runTestWithCfg(
       trafficClass,
       pfcPriority,
