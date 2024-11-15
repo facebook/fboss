@@ -2,7 +2,6 @@
 
 #include "fboss/agent/hw/sai/switch/SaiTamManager.h"
 
-#include "fboss/agent/hw/sai/api/SwitchApi.h"
 #include "fboss/agent/hw/sai/store/SaiStore.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"

@@ -20,7 +20,6 @@
 #include "fboss/agent/hw/sai/switch/SaiSystemPortManager.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/platforms/sai/SaiPlatform.h"
-#include "fboss/agent/state/SwitchState.h"
 
 namespace facebook::fboss {
 

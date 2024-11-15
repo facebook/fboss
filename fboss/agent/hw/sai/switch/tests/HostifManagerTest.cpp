@@ -13,8 +13,6 @@
 #include "fboss/agent/state/StateDelta.h"
 #include "fboss/agent/state/SwitchState.h"
 
-#include <mutex>
-
 using namespace facebook::fboss;
 
 namespace {
