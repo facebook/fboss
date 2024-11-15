@@ -478,10 +478,6 @@ cfg::DsfNode dsfNodeConfig(
         return std::pair(
             std::make_unique<Ramon3Asic>(switchId, switchInfo),
             PlatformType::PLATFORM_MERU800BFA);
-      case cfg::AsicType::ASIC_TYPE_CHENAB:
-        return std::pair(
-            std::make_unique<ChenabAsic>(switchId, switchInfo),
-            PlatformType::PLATFORM_YANGRA);
       default:
         throw FbossError("Unexpected asic type: ", fromAsic.getAsicTypeStr());
     }
