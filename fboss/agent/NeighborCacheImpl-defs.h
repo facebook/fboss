@@ -113,9 +113,16 @@ void NeighborCacheImpl<NTable>::programEntry(Entry* entry) {
           "Programming entry is not supported for switch type: ", switchType);
   }
 
-  sw_->updateState(
-      folly::to<std::string>("add neighbor ", entry->getFields().ip),
-      std::move(updateFn));
+  if (isHwUpdateProtected()) {
+    sw_->updateStateWithHwFailureProtection(
+        folly::to<std::string>(
+            "add neighbor with hw protection failure ", entry->getFields().ip),
+        std::move(updateFn));
+  } else {
+    sw_->updateState(
+        folly::to<std::string>("add neighbor ", entry->getFields().ip),
+        std::move(updateFn));
+  }
 }
 
 template <typename NTable>
@@ -308,9 +315,17 @@ void NeighborCacheImpl<NTable>::programPendingEntry(
           "Programming entry is not supported for switch type: ", switchType);
   }
 
-  sw_->updateStateNoCoalescing(
-      folly::to<std::string>("add pending entry ", entry->getFields().ip),
-      std::move(updateFn));
+  if (isHwUpdateProtected()) {
+    sw_->updateStateWithHwFailureProtection(
+        folly::to<std::string>("add pending entry ", entry->getFields().ip),
+        std::move(updateFn));
+  } else {
+    sw_->updateStateNoCoalescing(
+        folly::to<std::string>(
+            "add pending entry with hw failure protection ",
+            entry->getFields().ip),
+        std::move(updateFn));
+  }
 }
 
 template <typename NTable>
@@ -733,7 +748,13 @@ void NeighborCacheImpl<NTable>::flushEntry(AddressType ip, bool* flushed) {
   if (flushed) {
     // need a blocking state update if the caller wants to know if an entry
     // was actually flushed
-    sw_->updateStateBlocking("flush neighbor entry", std::move(updateFn));
+    if (isHwUpdateProtected()) {
+      sw_->updateStateWithHwFailureProtection(
+          "flush neighbor entry with hw failure protection",
+          std::move(updateFn));
+    } else {
+      sw_->updateStateBlocking("flush neighbor entry", std::move(updateFn));
+    }
   } else {
     sw_->updateState("remove neighbor entry: " + ip.str(), std::move(updateFn));
   }
