@@ -435,75 +435,55 @@ cfg::DsfNode dsfNodeConfig(
     }
     throw FbossError("Unexpected asic type: ", asic.getAsicTypeStr());
   };
-  auto getSwitchInfo = [&](const HwAsic& fromAsic) {
+  auto getSystemPortRanges = [](const HwAsic& fromAsic, int64_t otherSwitchId) {
     cfg::SystemPortRanges sysPortRanges;
-    cfg::SwitchInfo switchInfo;
+    CHECK(fromAsic.getSystemPortRanges().systemPortRanges()->size());
+    CHECK(fromAsic.getSwitchId().has_value());
+    CHECK_EQ(*fromAsic.getSwitchId(), 0) << " For VOQ switches input asic "
+                                         << " must be of the first VOQ switch";
+    auto firstDsfNodeSysPortRanges =
+        *fromAsic.getSystemPortRanges().systemPortRanges();
+    for (const auto& firstNodeRange : firstDsfNodeSysPortRanges) {
+      cfg::Range64 systemPortRange;
+      // Already allocated + 1
+      systemPortRange.minimum() =
+          getSysPortIdsAllocated(
+              fromAsic, otherSwitchId, *firstNodeRange.minimum()) +
+          1;
+      systemPortRange.maximum() = *systemPortRange.minimum() +
+          getPerNodeSysPortsBlockSize(fromAsic, otherSwitchId) - 1;
+      XLOG(DBG2) << " For switch Id: " << otherSwitchId
+                 << " allocating range, min: " << *systemPortRange.minimum()
+                 << " max: " << *systemPortRange.maximum();
 
-    if (fromAsic.getSystemPortRanges().systemPortRanges()->size()) {
-      CHECK(fromAsic.getSwitchId().has_value());
-      CHECK_EQ(*fromAsic.getSwitchId(), 0)
-          << " For VOQ switches input asic "
-          << " must be of the first VOQ switch";
-      auto firstDsfNodeSysPortRanges =
-          *fromAsic.getSystemPortRanges().systemPortRanges();
-      for (const auto& firstNodeRange : firstDsfNodeSysPortRanges) {
-        cfg::Range64 systemPortRange;
-        // Already allocated + 1
-        systemPortRange.minimum() =
-            getSysPortIdsAllocated(
-                fromAsic, otherSwitchId, *firstNodeRange.minimum()) +
-            1;
-        systemPortRange.maximum() = *systemPortRange.minimum() +
-            getPerNodeSysPortsBlockSize(fromAsic, otherSwitchId) - 1;
-        XLOG(DBG2) << " For switch Id: " << otherSwitchId
-                   << " allocating range, min: " << *systemPortRange.minimum()
-                   << " max: " << *systemPortRange.maximum();
-
-        sysPortRanges.systemPortRanges()->push_back(systemPortRange);
-      }
-      switchInfo.localSystemPortOffset() =
-          getLocalSystemPortOffset(sysPortRanges);
-      switchInfo.globalSystemPortOffset() =
-          *sysPortRanges.systemPortRanges()->begin()->minimum();
-      CHECK(fromAsic.getInbandPortId().has_value());
-      switchInfo.inbandPortId() = *fromAsic.getInbandPortId();
+      sysPortRanges.systemPortRanges()->push_back(systemPortRange);
     }
-    auto localMac = utility::kLocalCpuMac();
-    switchInfo.switchType() = fromAsic.getSwitchType();
-    switchInfo.asicType() = fromAsic.getAsicType();
-    switchInfo.switchIndex() = fromAsic.getSwitchIndex();
-    switchInfo.switchMac() = localMac.toString();
-    switchInfo.systemPortRanges() = sysPortRanges;
-    return switchInfo;
+    return sysPortRanges;
   };
-  auto otherSwitchInfo = getSwitchInfo(myAsic);
   cfg::DsfNode dsfNode;
   dsfNode.switchId() = otherSwitchId;
   dsfNode.name() = folly::sformat("hwTestSwitch{}", *dsfNode.switchId());
-  switch (*otherSwitchInfo.switchType()) {
+  switch (myAsic.getSwitchType()) {
     case cfg::SwitchType::VOQ: {
       dsfNode.type() = cfg::DsfNodeType::INTERFACE_NODE;
-      dsfNode.systemPortRanges() = *otherSwitchInfo.systemPortRanges();
+      auto sysPortRanges = getSystemPortRanges(myAsic, otherSwitchId);
+      dsfNode.systemPortRanges() = sysPortRanges;
+      dsfNode.localSystemPortOffset() = getLocalSystemPortOffset(sysPortRanges);
+      dsfNode.globalSystemPortOffset() =
+          *sysPortRanges.systemPortRanges()->begin()->minimum();
+      CHECK(myAsic.getInbandPortId().has_value());
+      dsfNode.inbandPortId() = *myAsic.getInbandPortId();
       dsfNode.nodeMac() = kLocalCpuMac().toString();
       dsfNode.loopbackIps() = getLoopbackIps(SwitchID(*dsfNode.switchId()));
-      CHECK(otherSwitchInfo.localSystemPortOffset().has_value());
-      CHECK(otherSwitchInfo.globalSystemPortOffset().has_value());
-      CHECK(otherSwitchInfo.inbandPortId().has_value());
-      dsfNode.localSystemPortOffset() =
-          *otherSwitchInfo.localSystemPortOffset();
-      dsfNode.globalSystemPortOffset() =
-          *otherSwitchInfo.globalSystemPortOffset();
-      dsfNode.inbandPortId() = *otherSwitchInfo.inbandPortId();
     } break;
     case cfg::SwitchType::FABRIC:
       dsfNode.type() = cfg::DsfNodeType::FABRIC_NODE;
       break;
     case cfg::SwitchType::NPU:
     case cfg::SwitchType::PHY:
-      throw FbossError(
-          "Unexpected switch type: ", *otherSwitchInfo.switchType());
+      throw FbossError("Unexpected switch type: ", myAsic.getSwitchType());
   }
-  dsfNode.asicType() = *otherSwitchInfo.asicType();
+  dsfNode.asicType() = myAsic.getAsicType();
   dsfNode.platformType() = getPlatformType(myAsic, platformType);
   return dsfNode;
 }
