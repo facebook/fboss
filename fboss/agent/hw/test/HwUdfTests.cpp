@@ -12,7 +12,6 @@
 #include "fboss/agent/hw/test/HwTestAclUtils.h"
 #include "fboss/agent/hw/test/HwTestCoppUtils.h"
 #include "fboss/agent/hw/test/HwTestUdfUtils.h"
-#include "fboss/agent/hw/test/LoadBalancerUtils.h"
 
 namespace facebook::fboss {
 

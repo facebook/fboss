@@ -5,7 +5,6 @@
 #include "fboss/agent/hw/mock/MockHwSwitch.h"
 #include "fboss/agent/hw/mock/MockPlatform.h"
 #include "fboss/agent/packet/EthFrame.h"
-#include "fboss/agent/packet/PktFactory.h"
 #include "fboss/agent/packet/PktUtil.h"
 #include "fboss/agent/packet/UDPHeader.h"
 #include "fboss/agent/test/TestUtils.h"

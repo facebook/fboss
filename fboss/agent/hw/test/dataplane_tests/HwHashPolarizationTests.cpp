@@ -18,7 +18,6 @@
 #include "fboss/agent/RxPacket.h"
 #include "fboss/agent/packet/PktFactory.h"
 #include "fboss/agent/packet/PktUtil.h"
-#include "fboss/agent/state/LoadBalancer.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 
 #include "fboss/agent/hw/test/HwHashPolarizationTestUtils.h"

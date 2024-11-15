@@ -11,9 +11,7 @@
 #include "fboss/agent/hw/test/dataplane_tests/HwTestAqmUtils.h"
 #include <gtest/gtest.h>
 #include "fboss/agent/hw/test/ConfigFactory.h"
-#include "fboss/agent/hw/test/HwTestPortUtils.h"
 #include "fboss/agent/test/utils/AqmTestUtils.h"
-#include "fboss/lib/CommonUtils.h"
 
 namespace facebook::fboss::utility {
 

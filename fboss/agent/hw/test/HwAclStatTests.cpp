@@ -9,20 +9,12 @@
  */
 #include "fboss/agent/hw/test/HwTest.h"
 
-#include <folly/Random.h>
-#include "fboss/agent/ApplyThriftConfig.h"
-#include "fboss/agent/FbossError.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
-#include "fboss/agent/hw/CounterUtils.h"
 #include "fboss/agent/hw/test/HwTestAclUtils.h"
 #include "fboss/agent/hw/test/HwTestCoppUtils.h"
-#include "fboss/agent/state/StateDelta.h"
 #include "fboss/agent/state/SwitchState.h"
-#include "fboss/agent/test/utils/QueuePerHostTestUtils.h"
 
 #include "fboss/agent/hw/test/ConfigFactory.h"
-
-#include <fb303/ServiceData.h>
 
 namespace facebook::fboss {
 
