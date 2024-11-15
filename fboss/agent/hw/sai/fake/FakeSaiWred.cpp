@@ -10,8 +10,6 @@
 #include "fboss/agent/hw/sai/fake/FakeSaiWred.h"
 #include "fboss/agent/hw/sai/fake/FakeSai.h"
 
-#include <folly/logging/xlog.h>
-
 using facebook::fboss::FakeSai;
 
 sai_status_t set_wred_attribute_fn(
