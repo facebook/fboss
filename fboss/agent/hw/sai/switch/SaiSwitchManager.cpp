@@ -1029,7 +1029,7 @@ void SaiSwitchManager::setSramGlobalFreePercentXonTh(
 
 void SaiSwitchManager::setLinkFlowControlCreditTh(
     uint16_t linkFlowControlThreshold) {
-#if defined(BRCM_SAI_SDK_DNX_GTE_11_0) && !defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
   switch_->setOptionalAttribute(
       SaiSwitchTraits::Attributes::FabricCllfcTxCreditTh{
           linkFlowControlThreshold});

@@ -215,6 +215,7 @@ void setupPfcBuffers(
     // For J3, set the SRAM global PFC thresholds as well
     cfg.switchSettings()->sramGlobalFreePercentXoffThreshold() = 10;
     cfg.switchSettings()->sramGlobalFreePercentXonThreshold() = 20;
+    cfg.switchSettings()->linkFlowControlCreditThreshold() = 99;
   }
 }
 

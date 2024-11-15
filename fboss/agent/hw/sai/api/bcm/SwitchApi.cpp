@@ -92,8 +92,7 @@ std::optional<sai_attr_id_t> SaiSwitchTraits::Attributes::
 
 std::optional<sai_attr_id_t> SaiSwitchTraits::Attributes::
     AttributeFabricCllfcTxCreditThWrapper::operator()() {
-// TODO: Support is not yet available in 12.0
-#if defined(BRCM_SAI_SDK_DNX_GTE_11_0) && !defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
   return SAI_SWITCH_ATTR_FABRIC_CLLFC_TX_CREDIT_TH;
 #else
   return std::nullopt;
