@@ -13,6 +13,7 @@
 
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/Utils.h"
+#include "fboss/agent/VoqUtils.h"
 #include "fboss/agent/hw/HwSysPortFb303Stats.h"
 #include "fboss/agent/hw/gen-cpp2/hardware_stats_constants.h"
 #include "fboss/agent/hw/sai/store/SaiStore.h"
@@ -369,7 +370,8 @@ std::shared_ptr<SystemPortMap> SaiSystemPortManager::constructSystemPorts(
       sysPort->setCoreIndex(*platformPort->getAttachedCoreId());
       sysPort->setCorePortIndex(*platformPort->getCorePortIndex());
       sysPort->setSpeedMbps(static_cast<int>(port.second->getSpeed()));
-      sysPort->setNumVoqs(8);
+      sysPort->setNumVoqs(
+          getNumVoqs(port.second->getPortType(), port.second->getScope()));
       sysPort->setScope(platformPort->getScope());
       sysPort->setQosPolicy(port.second->getQosPolicy());
       sysPortMap->addSystemPort(std::move(sysPort));
