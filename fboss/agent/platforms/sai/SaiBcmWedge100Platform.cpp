@@ -14,7 +14,6 @@
 #include "fboss/agent/platforms/common/utils/Wedge100LedUtils.h"
 #include "fboss/agent/platforms/common/wedge100/Wedge100PlatformMapping.h"
 
-#include <cstdio>
 #include <cstring>
 namespace facebook::fboss {
 
