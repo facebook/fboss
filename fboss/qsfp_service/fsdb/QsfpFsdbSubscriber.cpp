@@ -4,7 +4,6 @@
 #include <folly/logging/xlog.h>
 #include <thrift/lib/cpp2/protocol/Serializer.h>
 #include "fboss/fsdb/client/FsdbPubSubManager.h"
-#include "fboss/fsdb/common/Flags.h"
 #include "fboss/fsdb/if/FsdbModel.h"
 #include "fboss/fsdb/if/gen-cpp2/fsdb_oper_types.h"
 #include "fboss/qsfp_service/TransceiverManager.h"
