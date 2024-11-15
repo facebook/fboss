@@ -3963,6 +3963,96 @@
               "sysfsPath": "/run/devmap/sensors/SMB_U177_PMBUS_2/power1_input",
               "type": 0,
               "compute": "@/1000000.0"
+            },
+            {
+              "name": "SMB_U68_TMP422_J3_A_TEMPDIODE_NIF1",
+              "sysfsPath": "/run/devmap/sensors/SMB_U68_TMP422/temp2_input",
+              "type": 3,
+              "thresholds": {
+                "maxAlarmVal": 110
+              },
+              "compute": "@/1000.0"
+            },
+            {
+              "name": "SMB_U68_TMP422_J3_A_TEMPDIODE_HBM_PHY0",
+              "sysfsPath": "/run/devmap/sensors/SMB_U68_TMP422/temp3_input",
+              "type": 3,
+              "thresholds": {
+                "maxAlarmVal": 110
+              },
+              "compute": "@/1000.0"
+            },
+            {
+              "name": "SMB_U150_TMP422_J3_A_TEMPDIODE_FAB1",
+              "sysfsPath": "/run/devmap/sensors/SMB_U150_TMP422/temp2_input",
+              "type": 3,
+              "thresholds": {
+                "maxAlarmVal": 110
+              },
+              "compute": "@/1000.0"
+            },
+            {
+              "name": "SMB_U150_TMP422_J3_A_TEMPDIODE_HBM_PHY2",
+              "sysfsPath": "/run/devmap/sensors/SMB_U150_TMP422/temp3_input",
+              "type": 3,
+              "thresholds": {
+                "maxAlarmVal": 110
+              },
+              "compute": "@/1000.0"
+            },
+            {
+              "name": "SMB_U351_TMP422_J3_B_TEMPDIODE_PADS",
+              "sysfsPath": "/run/devmap/sensors/SMB_U351_TMP422/temp2_input",
+              "type": 3,
+              "thresholds": {
+                "maxAlarmVal": 110
+              },
+              "compute": "@/1000.0"
+            },
+            {
+              "name": "SMB_U351_TMP422_J3_B_TEMPDIODE_NIF0",
+              "sysfsPath": "/run/devmap/sensors/SMB_U351_TMP422/temp3_input",
+              "type": 3,
+              "thresholds": {
+                "maxAlarmVal": 110
+              },
+              "compute": "@/1000.0"
+            },
+            {
+              "name": "SMB_U352_TMP422_J3_B_TEMPDIODE_NIF1",
+              "sysfsPath": "/run/devmap/sensors/SMB_U352_TMP422/temp2_input",
+              "type": 3,
+              "thresholds": {
+                "maxAlarmVal": 110
+              },
+              "compute": "@/1000.0"
+            },
+            {
+              "name": "SMB_U352_TMP422_J3_B_TEMPDIODE_HBM_PHY0",
+              "sysfsPath": "/run/devmap/sensors/SMB_U352_TMP422/temp3_input",
+              "type": 3,
+              "thresholds": {
+                "maxAlarmVal": 110
+              },
+              "compute": "@/1000.0"
+            },
+            {
+              "name": "SMB_U152_TMP422_J3_B_TEMPDIODE_FAB1",
+              "sysfsPath": "/run/devmap/sensors/SMB_U152_TMP422/temp2_input",
+              "type": 3,
+              "thresholds": {
+                "maxAlarmVal": 110
+              },
+              "compute": "@/1000.0"
+            },
+            {
+              "name": "SMB_U152_TMP422_J3_B_TEMPDIODE_HBM_PHY2",
+              "sysfsPath": "/run/devmap/sensors/SMB_U152_TMP422/temp3_input",
+              "type": 3,
+              "thresholds": {
+                "maxAlarmVal": 110
+              },
+              "compute": "@/1000.0"
             }
           ],
           "productProductionState": 2,
