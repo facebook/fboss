@@ -417,8 +417,8 @@ cfg::DsfNode dsfNodeConfig(
     const HwAsic& myAsic,
     int64_t otherSwitchId,
     const std::optional<PlatformType> platformType) {
-  auto createAsic = [&](const HwAsic& fromAsic, int64_t switchId)
-      -> std::pair<std::shared_ptr<HwAsic>, PlatformType> {
+  auto getSwitchInfoAndPlatformType =
+      [&](const HwAsic& fromAsic) -> std::pair<cfg::SwitchInfo, PlatformType> {
     cfg::SystemPortRanges sysPortRanges;
     cfg::SwitchInfo switchInfo;
 
@@ -457,57 +457,52 @@ cfg::DsfNode dsfNodeConfig(
     switchInfo.switchIndex() = fromAsic.getSwitchIndex();
     switchInfo.switchMac() = localMac.toString();
     switchInfo.systemPortRanges() = sysPortRanges;
+    if (platformType.has_value()) {
+      return std::make_pair(switchInfo, *platformType);
+    }
     switch (fromAsic.getAsicType()) {
       case cfg::AsicType::ASIC_TYPE_JERICHO2:
-        return std::pair(
-            std::make_unique<Jericho2Asic>(switchId, switchInfo),
-            PlatformType::PLATFORM_MERU400BIU);
-      case cfg::AsicType::ASIC_TYPE_JERICHO3: {
-        auto fromPlatformType = platformType.has_value()
-            ? platformType.value()
-            : PlatformType::PLATFORM_MERU800BIA;
-        return std::pair(
-            std::make_unique<Jericho3Asic>(switchId, switchInfo),
-            fromPlatformType);
-      }
+        return std::pair(switchInfo, PlatformType::PLATFORM_MERU400BIU);
+      case cfg::AsicType::ASIC_TYPE_JERICHO3:
+        return std::pair(switchInfo, PlatformType::PLATFORM_MERU800BIA);
       case cfg::AsicType::ASIC_TYPE_RAMON:
-        return std::pair(
-            std::make_unique<RamonAsic>(switchId, switchInfo),
-            PlatformType::PLATFORM_MERU400BFU);
+        return std::pair(switchInfo, PlatformType::PLATFORM_MERU400BFU);
       case cfg::AsicType::ASIC_TYPE_RAMON3:
-        return std::pair(
-            std::make_unique<Ramon3Asic>(switchId, switchInfo),
-            PlatformType::PLATFORM_MERU800BFA);
+        return std::pair(switchInfo, PlatformType::PLATFORM_MERU800BFA);
       default:
-        throw FbossError("Unexpected asic type: ", fromAsic.getAsicTypeStr());
+        break;
     }
+    throw FbossError("Unexpected asic type: ", fromAsic.getAsicTypeStr());
   };
-  auto [otherAsic, otherPlatformType] = createAsic(myAsic, otherSwitchId);
+  auto [otherSwitchInfo, otherPlatformType] =
+      getSwitchInfoAndPlatformType(myAsic);
   cfg::DsfNode dsfNode;
-  dsfNode.switchId() = *otherAsic->getSwitchId();
+  dsfNode.switchId() = otherSwitchId;
   dsfNode.name() = folly::sformat("hwTestSwitch{}", *dsfNode.switchId());
-  switch (otherAsic->getSwitchType()) {
+  switch (*otherSwitchInfo.switchType()) {
     case cfg::SwitchType::VOQ: {
       dsfNode.type() = cfg::DsfNodeType::INTERFACE_NODE;
-      dsfNode.systemPortRanges() = otherAsic->getSystemPortRanges();
+      dsfNode.systemPortRanges() = *otherSwitchInfo.systemPortRanges();
       dsfNode.nodeMac() = kLocalCpuMac().toString();
       dsfNode.loopbackIps() = getLoopbackIps(SwitchID(*dsfNode.switchId()));
-      CHECK(otherAsic->getLocalSystemPortOffset().has_value());
-      CHECK(otherAsic->getGlobalSystemPortOffset().has_value());
-      CHECK(otherAsic->getInbandPortId().has_value());
-      dsfNode.localSystemPortOffset() = *otherAsic->getLocalSystemPortOffset();
+      CHECK(otherSwitchInfo.localSystemPortOffset().has_value());
+      CHECK(otherSwitchInfo.globalSystemPortOffset().has_value());
+      CHECK(otherSwitchInfo.inbandPortId().has_value());
+      dsfNode.localSystemPortOffset() =
+          *otherSwitchInfo.localSystemPortOffset();
       dsfNode.globalSystemPortOffset() =
-          *otherAsic->getGlobalSystemPortOffset();
-      dsfNode.inbandPortId() = *otherAsic->getInbandPortId();
+          *otherSwitchInfo.globalSystemPortOffset();
+      dsfNode.inbandPortId() = *otherSwitchInfo.inbandPortId();
     } break;
     case cfg::SwitchType::FABRIC:
       dsfNode.type() = cfg::DsfNodeType::FABRIC_NODE;
       break;
     case cfg::SwitchType::NPU:
     case cfg::SwitchType::PHY:
-      throw FbossError("Unexpected switch type: ", otherAsic->getSwitchType());
+      throw FbossError(
+          "Unexpected switch type: ", *otherSwitchInfo.switchType());
   }
-  dsfNode.asicType() = otherAsic->getAsicType();
+  dsfNode.asicType() = *otherSwitchInfo.asicType();
   dsfNode.platformType() = otherPlatformType;
   return dsfNode;
 }
