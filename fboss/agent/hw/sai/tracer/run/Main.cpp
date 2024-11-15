@@ -10,9 +10,7 @@
 
 #include "fboss/agent/hw/sai/tracer/run/SaiLog.h"
 
-extern "C" {
-#include <sai.h>
-}
+extern "C" {}
 
 int main() {
   facebook::fboss::run_trace();
