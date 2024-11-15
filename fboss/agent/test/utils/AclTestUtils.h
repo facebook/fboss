@@ -50,7 +50,8 @@ std::vector<cfg::AclTableQualifier> genAclQualifiersConfig(
 
 int getAclTableIndex(
     cfg::SwitchConfig* cfg,
-    const std::optional<std::string>& tableName);
+    const std::string& tableName,
+    const std::string& tableGroupName);
 
 std::shared_ptr<AclEntry> getAclEntryByName(
     const std::shared_ptr<SwitchState> state,

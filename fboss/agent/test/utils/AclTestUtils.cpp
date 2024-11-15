@@ -49,27 +49,24 @@ std::vector<cfg::AclTableQualifier> genAclQualifiersConfig(
 
 int getAclTableIndex(
     cfg::SwitchConfig* cfg,
-    const std::optional<std::string>& tableName) {
-  auto aclTableGroup = getAclTableGroup(*cfg);
+    const std::string& tableName,
+    const std::string& tableGroupName) {
+  auto aclTableGroup = getAclTableGroup(*cfg, tableGroupName);
   if (!aclTableGroup) {
     throw FbossError(
         "Multiple acl tables flag enabled but config leaves aclTableGroup empty");
-  }
-  if (!tableName.has_value()) {
-    throw FbossError(
-        "Multiple acl tables flag enabled but no acl table name provided for add/delAcl()");
   }
   int tableIndex;
   std::vector<cfg::AclTable> aclTables = *aclTableGroup->aclTables();
   std::vector<cfg::AclTable>::iterator it = std::find_if(
       aclTables.begin(), aclTables.end(), [&](cfg::AclTable const& aclTable) {
-        return *aclTable.name() == tableName.value();
+        return *aclTable.name() == tableName;
       });
   if (it != aclTables.end()) {
     tableIndex = std::distance(aclTables.begin(), it);
   } else {
     throw FbossError(
-        "Table with name ", tableName.value(), " does not exist in config");
+        "Table with name ", tableName, " does not exist in config");
   }
   return tableIndex;
 }
@@ -82,8 +79,9 @@ cfg::AclEntry* addAclEntry(
     auto aclTableName = tableName.has_value()
         ? tableName.value()
         : cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE();
-    int tableNumber = getAclTableIndex(cfg, aclTableName);
     auto aclTableGroup = getAclTableGroup(*cfg);
+    int tableNumber =
+        getAclTableIndex(cfg, aclTableName, *aclTableGroup->name());
     CHECK(aclTableGroup);
     aclTableGroup->aclTables()[tableNumber].aclEntries()->push_back(acl);
     return &aclTableGroup->aclTables()[tableNumber].aclEntries()->back();
@@ -157,7 +155,9 @@ std::vector<cfg::AclEntry>& getAcls(
   if (FLAGS_enable_acl_table_group) {
     auto* aclTableGroup = getAclTableGroup(*cfg);
     CHECK(aclTableGroup);
-    return *aclTableGroup->aclTables()[getAclTableIndex(cfg, aclTableName)]
+    return *aclTableGroup
+                ->aclTables()[getAclTableIndex(
+                    cfg, aclTableName, *aclTableGroup->name())]
                 .aclEntries();
   }
   return *cfg->acls();
