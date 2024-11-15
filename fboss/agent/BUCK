@@ -597,6 +597,7 @@ cpp_library(
         ":switchid_scope_resolver",
         ":switchinfo_utils",
         ":utils",
+        ":voq_utils",
         "//fboss/agent/hw/switch_asics:switch_asics",
         "//fboss/agent/if:mpls-cpp2-types",
         "//fboss/agent/platforms/common:platform_mapping",
