@@ -143,4 +143,9 @@ std::shared_ptr<AclEntry> getAclEntry(
     const std::string& name,
     bool enableAclTableGroup);
 
+cfg::AclTableGroup* FOLLY_NULLABLE
+getAclTableGroup(cfg::SwitchConfig& config, const std::string& name);
+
+cfg::AclTableGroup* FOLLY_NULLABLE getAclTableGroup(cfg::SwitchConfig& config);
+
 } // namespace facebook::fboss::utility

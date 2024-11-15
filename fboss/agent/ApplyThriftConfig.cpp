@@ -3144,7 +3144,6 @@ std::shared_ptr<AclTableGroup> ThriftConfigApplier::updateAclTableGroup(
   auto newAclTableMap = std::make_shared<AclTableMap>();
   bool changed = false;
   int numExistingTablesProcessed = 0;
-
   auto aclByName = getAllAclsByName(cfgAclTableGroup);
   // Check for controlPlane traffic acls
   if (cfg_->cpuTrafficPolicy() && cfg_->cpuTrafficPolicy()->trafficPolicy()) {
