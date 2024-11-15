@@ -9,14 +9,8 @@
  */
 #include "fboss/agent/hw/test/HwTestCoppUtils.h"
 
-#include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/hw/bcm/BcmControlPlane.h"
-#include "fboss/agent/hw/bcm/BcmFieldProcessorUtils.h"
-#include "fboss/agent/hw/bcm/BcmPlatform.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
-
-#include "fboss/agent/FbossError.h"
-#include "fboss/agent/LacpTypes.h"
 
 namespace facebook::fboss::utility {
 

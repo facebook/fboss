@@ -11,7 +11,6 @@
 
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/hw/test/HwSwitchEnsemble.h"
-#include "fboss/agent/state/Port.h"
 
 namespace facebook::fboss {
 

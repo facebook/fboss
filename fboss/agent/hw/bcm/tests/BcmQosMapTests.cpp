@@ -9,7 +9,6 @@
  */
 #include "fboss/agent/hw/bcm/BcmQosPolicy.h"
 #include "fboss/agent/hw/bcm/tests/BcmTest.h"
-#include "fboss/agent/platforms/tests/utils/BcmTestPlatform.h"
 
 #include "fboss/agent/ApplyThriftConfig.h"
 #include "fboss/agent/hw/bcm/BcmError.h"
@@ -19,7 +18,6 @@
 
 extern "C" {
 #include <bcm/cosq.h>
-#include <bcm/error.h>
 #include <bcm/qos.h>
 }
 

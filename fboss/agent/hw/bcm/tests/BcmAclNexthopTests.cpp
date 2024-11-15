@@ -19,7 +19,6 @@
 #include "fboss/agent/hw/bcm/tests/BcmTest.h"
 #include "fboss/agent/hw/bcm/tests/BcmTestUtils.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
-#include "fboss/agent/state/StateDelta.h"
 #include "fboss/agent/state/SwitchState.h"
 
 extern "C" {

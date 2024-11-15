@@ -8,9 +8,7 @@
 
 #include "fboss/agent/hw/test/ConfigFactory.h"
 
-extern "C" {
-#include <bcm/l3.h>
-}
+extern "C" {}
 
 namespace facebook::fboss {
 
