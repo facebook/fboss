@@ -11,7 +11,6 @@
 #include "fboss/agent/test/utils/VoqTestUtils.h"
 #include "fboss/agent/DsfStateUpdaterUtil.h"
 #include "fboss/agent/SwSwitch.h"
-#include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/test/TestEnsembleIf.h"
 
 namespace facebook::fboss::utility {
@@ -327,4 +326,54 @@ void setupRemoteIntfAndSysPorts(SwSwitch* swSwitch, bool useEncapIndex) {
   });
 }
 
+std::vector<cfg::PortQueue> getDefaultNifVoqCfg() {
+  std::vector<cfg::PortQueue> voqs;
+
+  cfg::PortQueue defaultQueue;
+  defaultQueue.id() = 0;
+  defaultQueue.name() = "default";
+  defaultQueue.streamType() = cfg::StreamType::UNICAST;
+  defaultQueue.scheduling() = cfg::QueueScheduling::INTERNAL;
+  voqs.push_back(defaultQueue);
+
+  cfg::PortQueue rdmaQueue;
+  rdmaQueue.id() = 2;
+  rdmaQueue.name() = "rdma";
+  rdmaQueue.streamType() = cfg::StreamType::UNICAST;
+  rdmaQueue.scheduling() = cfg::QueueScheduling::INTERNAL;
+  voqs.push_back(rdmaQueue);
+
+  cfg::PortQueue monitoringQueue;
+  monitoringQueue.id() = 6;
+  monitoringQueue.name() = "monitoring";
+  monitoringQueue.streamType() = cfg::StreamType::UNICAST;
+  monitoringQueue.scheduling() = cfg::QueueScheduling::INTERNAL;
+  voqs.push_back(monitoringQueue);
+
+  cfg::PortQueue ncQueue;
+  ncQueue.id() = 7;
+  ncQueue.name() = "nc";
+  ncQueue.streamType() = cfg::StreamType::UNICAST;
+  ncQueue.scheduling() = cfg::QueueScheduling::INTERNAL;
+  voqs.push_back(ncQueue);
+
+  return voqs;
+}
+
+std::vector<cfg::PortQueue> getDefaultVoqCfg(cfg::PortType portType) {
+  switch (portType) {
+    case cfg::PortType::INTERFACE_PORT:
+      return getDefaultNifVoqCfg();
+    case cfg::PortType::CPU_PORT:
+    case cfg::PortType::MANAGEMENT_PORT:
+    case cfg::PortType::RECYCLE_PORT:
+    case cfg::PortType::EVENTOR_PORT:
+      XLOG(FATAL) << " TODO";
+      break;
+    case cfg::PortType::FABRIC_PORT:
+      XLOG(FATAL) << " No VOQ configs for fabric ports";
+      break;
+  }
+  throw FbossError("Unsupported port type: ", portType);
+}
 } // namespace facebook::fboss::utility

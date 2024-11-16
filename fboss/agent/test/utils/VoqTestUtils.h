@@ -6,7 +6,6 @@
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
-#include "fboss/agent/test/utils/DsfConfigUtils.h"
 #include "fboss/agent/types.h"
 
 namespace facebook::fboss {
@@ -62,5 +61,6 @@ void populateRemoteIntfAndSysPorts(
 
 void setupRemoteIntfAndSysPorts(SwSwitch* swSwitch, bool useEncapIndex);
 
+std::vector<cfg::PortQueue> getDefaultVoqCfg(cfg::PortType portType);
 } // namespace utility
 } // namespace facebook::fboss

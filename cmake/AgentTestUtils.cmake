@@ -106,6 +106,7 @@ add_library(config_utils
 target_link_libraries(config_utils
   agent_features
   asic_test_utils
+  voq_test_utils
   fboss_types
   Folly::folly
   platform_mapping
@@ -402,8 +403,6 @@ add_library(voq_test_utils
 )
 
 target_link_libraries(voq_test_utils
-  dsf_config_utils
-  config_factory
   fboss_types
   switchid_scope_resolver
   switch_config_cpp2

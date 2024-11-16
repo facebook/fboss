@@ -18,6 +18,7 @@
 #include "fboss/agent/test/utils/AclTestUtils.h"
 #include "fboss/agent/test/utils/AsicUtils.h"
 #include "fboss/agent/test/utils/PortTestUtils.h"
+#include "fboss/agent/test/utils/VoqTestUtils.h"
 #include "fboss/lib/config/PlatformConfigUtils.h"
 
 #include <folly/Format.h>
@@ -91,40 +92,6 @@ folly::MacAddress kLocalCpuMac() {
 
 std::string getLocalCpuMacStr() {
   return kLocalCpuMac().toString();
-}
-
-std::vector<cfg::PortQueue> getDefaultVoqCfg() {
-  std::vector<cfg::PortQueue> voqs;
-
-  cfg::PortQueue defaultQueue;
-  defaultQueue.id() = 0;
-  defaultQueue.name() = "default";
-  defaultQueue.streamType() = cfg::StreamType::UNICAST;
-  defaultQueue.scheduling() = cfg::QueueScheduling::INTERNAL;
-  voqs.push_back(defaultQueue);
-
-  cfg::PortQueue rdmaQueue;
-  rdmaQueue.id() = 2;
-  rdmaQueue.name() = "rdma";
-  rdmaQueue.streamType() = cfg::StreamType::UNICAST;
-  rdmaQueue.scheduling() = cfg::QueueScheduling::INTERNAL;
-  voqs.push_back(rdmaQueue);
-
-  cfg::PortQueue monitoringQueue;
-  monitoringQueue.id() = 6;
-  monitoringQueue.name() = "monitoring";
-  monitoringQueue.streamType() = cfg::StreamType::UNICAST;
-  monitoringQueue.scheduling() = cfg::QueueScheduling::INTERNAL;
-  voqs.push_back(monitoringQueue);
-
-  cfg::PortQueue ncQueue;
-  ncQueue.id() = 7;
-  ncQueue.name() = "nc";
-  ncQueue.streamType() = cfg::StreamType::UNICAST;
-  ncQueue.scheduling() = cfg::QueueScheduling::INTERNAL;
-  voqs.push_back(ncQueue);
-
-  return voqs;
 }
 
 const std::map<cfg::PortType, cfg::PortLoopbackMode>& kDefaultLoopbackMap() {
@@ -792,7 +759,7 @@ cfg::SwitchConfig genPortVlanCfg(
   auto switchType = asic->getSwitchType();
   // VOQ config
   if (switchType == cfg::SwitchType::VOQ) {
-    config.defaultVoqConfig() = getDefaultVoqCfg();
+    config.defaultVoqConfig() = getDefaultVoqCfg(cfg::PortType::INTERFACE_PORT);
   }
 
   // Use getPortToDefaultProfileIDMap() to genetate the default config instead

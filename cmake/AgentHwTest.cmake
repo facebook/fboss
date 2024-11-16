@@ -270,6 +270,7 @@ target_link_libraries(hw_switch_test
   config_utils
   aqm_test_utils
   copp_test_utils
+  dsf_config_utils
   dscp_marking_utils
   ecmp_dataplane_test_util
   hw_packet_utils

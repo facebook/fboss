@@ -20,6 +20,7 @@
 #include "fboss/agent/hw/test/HwTestProdConfigUtils.h"
 #include "fboss/agent/test/RouteDistributionGenerator.h"
 #include "fboss/agent/test/RouteScaleGenerators.h"
+#include "fboss/agent/test/utils/DsfConfigUtils.h"
 #include "fboss/agent/test/utils/FabricTestUtils.h"
 #include "fboss/agent/test/utils/VoqTestUtils.h"
 

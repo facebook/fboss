@@ -103,6 +103,7 @@ target_link_libraries(agent_hw_test_src
   sflow_shim_utils
   pktutil
   mirror_test_utils
+  dsf_config_utils
   voq_test_utils
   fib_updater
 )
