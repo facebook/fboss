@@ -34,7 +34,10 @@ TestStruct createTestStruct() {
       "mapOfStringToI32", dynamic::object)(
       "listOfPrimitives", dynamic::array())("setOfI32", dynamic::array())(
       "mapOfI32ToListOfStructs", dynamic::object())(
-      "hybridMapOfMap", dynamic::object());
+      "hybridMapOfMap", dynamic::object())(
+      "hybridStruct",
+      dynamic::object("strMap", dynamic::object())(
+          "structMap", dynamic::object()));
 
   for (int i = 0; i <= 20; ++i) {
     testDyn["mapOfStringToI32"][fmt::format("test{}", i)] = i;
@@ -47,6 +50,9 @@ TestStruct createTestStruct() {
     dynamic innerMap = dynamic::object();
     innerMap[i * 10] = i * 100;
     testDyn["hybridMapOfMap"][i] = std::move(innerMap);
+    testDyn["hybridStruct"]["strMap"][fmt::format("test{}", i)] = i;
+    testDyn["hybridStruct"]["structMap"][fmt::format("test{}", i)] =
+        dynamic::object("min", i)("max", i + 10);
   }
 
   return facebook::thrift::from_dynamic<TestStruct>(
@@ -448,4 +454,90 @@ TEST(ExtendedPathVisitorTests, AccessAnySet) {
   RootExtendedPathVisitor::visit(
       *nodeA, path.path()->begin(), path.path()->end(), options, processPath);
   EXPECT_THAT(visited, ::testing::ContainerEq(expected));
+}
+
+TYPED_TEST(ExtendedPathVisitorTests, HybridStructAccess) {
+  auto structA = createTestStruct();
+  auto nodeA = this->initNode(structA);
+
+  std::set<std::pair<std::vector<std::string>, folly::dynamic>> visited;
+  auto processPath = [&visited](auto&& path, auto&& node) {
+    if constexpr (is_cow_type_v<decltype(node)>) {
+      visited.emplace(std::make_pair(path, node.toFollyDynamic()));
+    } else {
+      folly::dynamic out;
+      facebook::thrift::to_dynamic(
+          out, node, facebook::thrift::dynamic_format::JSON_1);
+      visited.emplace(std::make_pair(path, out));
+    }
+  };
+  // hybridStruct/strMap/.*
+  {
+    auto path = ext_path_builder::raw("hybridStruct").raw("strMap").any().get();
+    std::set<std::pair<std::vector<std::string>, folly::dynamic>> expected = {
+        {{"hybridStruct", "strMap", "test0"}, 0},
+        {{"hybridStruct", "strMap", "test1"}, 1},
+        {{"hybridStruct", "strMap", "test2"}, 2},
+        {{"hybridStruct", "strMap", "test3"}, 3},
+        {{"hybridStruct", "strMap", "test4"}, 4},
+        {{"hybridStruct", "strMap", "test5"}, 5},
+        {{"hybridStruct", "strMap", "test6"}, 6},
+        {{"hybridStruct", "strMap", "test7"}, 7},
+        {{"hybridStruct", "strMap", "test8"}, 8},
+        {{"hybridStruct", "strMap", "test9"}, 9},
+        {{"hybridStruct", "strMap", "test10"}, 10},
+        {{"hybridStruct", "strMap", "test11"}, 11},
+        {{"hybridStruct", "strMap", "test12"}, 12},
+        {{"hybridStruct", "strMap", "test13"}, 13},
+        {{"hybridStruct", "strMap", "test14"}, 14},
+        {{"hybridStruct", "strMap", "test15"}, 15},
+        {{"hybridStruct", "strMap", "test16"}, 16},
+        {{"hybridStruct", "strMap", "test17"}, 17},
+        {{"hybridStruct", "strMap", "test18"}, 18},
+        {{"hybridStruct", "strMap", "test19"}, 19},
+        {{"hybridStruct", "strMap", "test20"}, 20},
+    };
+
+    ExtPathVisitorOptions options;
+    RootExtendedPathVisitor::visit(
+        *nodeA, path.path()->begin(), path.path()->end(), options, processPath);
+    EXPECT_THAT(visited, ::testing::ContainerEq(expected));
+  }
+  // hybridStruct/strMap/.*
+  {
+    auto path = ext_path_builder::raw("hybridStruct")
+                    .raw("structMap")
+                    .any()
+                    .raw("min")
+                    .get();
+    std::set<std::pair<std::vector<std::string>, folly::dynamic>> expected = {
+        {{"hybridStruct", "structMap", "test0", "min"}, 0},
+        {{"hybridStruct", "structMap", "test1", "min"}, 1},
+        {{"hybridStruct", "structMap", "test2", "min"}, 2},
+        {{"hybridStruct", "structMap", "test3", "min"}, 3},
+        {{"hybridStruct", "structMap", "test4", "min"}, 4},
+        {{"hybridStruct", "structMap", "test5", "min"}, 5},
+        {{"hybridStruct", "structMap", "test6", "min"}, 6},
+        {{"hybridStruct", "structMap", "test7", "min"}, 7},
+        {{"hybridStruct", "structMap", "test8", "min"}, 8},
+        {{"hybridStruct", "structMap", "test9", "min"}, 9},
+        {{"hybridStruct", "structMap", "test10", "min"}, 10},
+        {{"hybridStruct", "structMap", "test11", "min"}, 11},
+        {{"hybridStruct", "structMap", "test12", "min"}, 12},
+        {{"hybridStruct", "structMap", "test13", "min"}, 13},
+        {{"hybridStruct", "structMap", "test14", "min"}, 14},
+        {{"hybridStruct", "structMap", "test15", "min"}, 15},
+        {{"hybridStruct", "structMap", "test16", "min"}, 16},
+        {{"hybridStruct", "structMap", "test17", "min"}, 17},
+        {{"hybridStruct", "structMap", "test18", "min"}, 18},
+        {{"hybridStruct", "structMap", "test19", "min"}, 19},
+        {{"hybridStruct", "structMap", "test20", "min"}, 20},
+    };
+
+    ExtPathVisitorOptions options;
+    visited.clear();
+    RootExtendedPathVisitor::visit(
+        *nodeA, path.path()->begin(), path.path()->end(), options, processPath);
+    EXPECT_THAT(visited, ::testing::ContainerEq(expected));
+  }
 }

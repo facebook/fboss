@@ -41,7 +41,9 @@ folly::dynamic createTestDynamic() {
       "mapB", dynamic::object())("cowMap", dynamic::object())(
       "hybridMap", dynamic::object())("hybridList", dynamic::array())(
       "hybridSet", dynamic::array())("hybridUnion", dynamic::object())(
-      "hybridStruct", dynamic::object("childMap", dynamic::object()))(
+      "hybridStruct",
+      dynamic::object("childMap", dynamic::object())(
+          "strMap", dynamic::object())("structMap", dynamic::object()))(
       "hybridMapOfI32ToStruct", dynamic::object())(
       "hybridMapOfMap", dynamic::object());
 }
@@ -142,6 +144,8 @@ TYPED_TEST(RecurseVisitorTests, TestFullRecurse) {
 
   std::map<std::vector<std::string>, folly::dynamic> hybridDeepLeaves = {
       {{"hybridStruct", "childMap"}, testDyn["hybridStruct"]["childMap"]},
+      {{"hybridStruct", "strMap"}, testDyn["hybridStruct"]["strMap"]},
+      {{"hybridStruct", "structMap"}, testDyn["hybridStruct"]["structMap"]},
       {{"mapOfEnumToStruct"}, testDyn["mapOfEnumToStruct"]},
       {{"mapOfEnumToStruct", "3"}, testDyn["mapOfEnumToStruct"][3]},
       {{"mapOfEnumToStruct", "3", "min"},

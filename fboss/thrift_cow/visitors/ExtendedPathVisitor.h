@@ -523,7 +523,36 @@ struct ExtendedPathVisitor<apache::thrift::type_class::structure> {
       Func&& f)
     requires(!is_cow_type_v<Node> && !is_field_type_v<Node>)
   {
-    throw std::runtime_error("Sructure: not implemented yet");
+    using Members = typename apache::thrift::reflect_struct<Node>::members;
+
+    const auto& elem = *begin++;
+    auto raw = elem.raw_ref();
+    if (!raw) {
+      // Error! wildcards not supported for enum or struct
+      return;
+    }
+
+    // Perform trie search over all members for key
+    visitMember<Members>(*raw, [&](auto indexed) {
+      using member = decltype(fatal::tag_type(indexed));
+      using name = typename member::name;
+      using tc = typename member::type_class;
+      typename member::getter getter;
+
+      // Recurse further
+      auto& child = getter(node);
+
+      std::string memberName = options.outputIdPaths
+          ? folly::to<std::string>(member::id::value)
+          : std::string(fatal::z_data<name>(), fatal::size<name>::value);
+
+      path.push_back(std::move(memberName));
+
+      ExtendedPathVisitor<tc>::visit(
+          path, child, begin, end, options, std::forward<Func>(f));
+
+      path.pop_back();
+    });
   }
 
   template <typename Node, typename Func>
@@ -536,7 +565,38 @@ struct ExtendedPathVisitor<apache::thrift::type_class::structure> {
       Func&& f)
     requires(std::is_same_v<typename Node::CowType, HybridNodeType>)
   {
-    throw std::runtime_error("Sructure: not implemented yet");
+    auto& tObj = node.ref();
+    using T = typename Node::ThriftType;
+    using Members = typename apache::thrift::reflect_struct<T>::members;
+
+    const auto& elem = *begin++;
+    auto raw = elem.raw_ref();
+    if (!raw) {
+      // Error! wildcards not supported for enum or struct
+      return;
+    }
+
+    // Perform trie search over all members for key
+    visitMember<Members>(*raw, [&](auto indexed) {
+      using member = decltype(fatal::tag_type(indexed));
+      using name = typename member::name;
+      using tc = typename member::type_class;
+      typename member::getter getter;
+
+      // Recurse further
+      auto& child = getter(tObj);
+
+      std::string memberName = options.outputIdPaths
+          ? folly::to<std::string>(member::id::value)
+          : std::string(fatal::z_data<name>(), fatal::size<name>::value);
+
+      path.push_back(std::move(memberName));
+
+      ExtendedPathVisitor<tc>::visit(
+          path, child, begin, end, options, std::forward<Func>(f));
+
+      path.pop_back();
+    });
   }
 
   template <typename Fields, typename Func>

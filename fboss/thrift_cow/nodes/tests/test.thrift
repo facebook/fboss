@@ -32,6 +32,8 @@ union TestUnion {
 
 struct ChildStruct {
   1: map<i32, bool> childMap;
+  2: map<string, i32> strMap;
+  3: map<string, switch_config.L4PortRange> structMap;
 }
 
 struct TestStruct {
