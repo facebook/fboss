@@ -64,6 +64,7 @@ class I2cLogBuffer {
     std::set<std::string> portNames;
     std::optional<FirmwareStatus> fwStatus;
     std::optional<Vendor> vendor;
+    std::chrono::microseconds duration;
   };
 
   // NOTE: The maximum number of entries is defined in config (qsfp_config.cinc)

@@ -82,6 +82,8 @@ I2cLogBuffer::I2cLogHeader I2cLogBuffer::dump(
     std::vector<I2cLogEntry>& entriesOut) {
   std::lock_guard<std::mutex> g(mutex_);
 
+  auto start = std::chrono::high_resolution_clock::now();
+
   if (entriesOut.size() != size_) {
     entriesOut.resize(size_);
   }
@@ -118,13 +120,17 @@ I2cLogBuffer::I2cLogHeader I2cLogBuffer::dump(
     }
   }
 
+  auto end = std::chrono::high_resolution_clock::now();
+  auto copyTime =
+      std::chrono::duration_cast<std::chrono::microseconds>(end - start);
   I2cLogHeader retval = {
       .mgmtIf = mgmtIf_,
       .totalEntries = totalEntries_,
       .bufferEntries = entries,
       .portNames = portNames_,
       .fwStatus = fwStatus_,
-      .vendor = vendor_};
+      .vendor = vendor_,
+      .duration = copyTime};
   totalEntries_ = head_ = tail_ = 0;
   return retval;
 }
@@ -155,7 +161,8 @@ size_t I2cLogBuffer::getHeader(
   ss << "\n";
   ss << "Port Names: " << folly::join(" ", info.portNames) << "\n";
   ss << "I2cLogBuffer: Total Entries: " << info.totalEntries
-     << " Logged: " << info.bufferEntries << "\n";
+     << " Logged: " << info.bufferEntries
+     << " Copy Lock Time: " << info.duration.count() << " us\n";
   ss << "Between the Operation <Param> and [Data], an 'F' indicates a failure in the transaction.\n";
   ss << "If the read transaction failed [Data] may not be accurate.\n";
   ss << "mmmuuu: milliseconds microseconds, steadclock_ns: time in ns between log entries \n";
