@@ -82,7 +82,7 @@ WedgeQsfp::~WedgeQsfp() {}
 int WedgeQsfp::readTransceiver(
     const TransceiverAccessParameter& param,
     uint8_t* fieldValue,
-    const int /*field*/) {
+    const int field) {
   auto offset = param.offset;
   auto len = param.len;
   ioStatsRecorder_.recordReadAttempted();
@@ -100,14 +100,18 @@ int WedgeQsfp::readTransceiver(
     generateIOErrorForTest("readTransceiver()");
     threadSafeI2CBus_->moduleRead(module_ + 1, param, fieldValue);
     if (logBuffer_) {
-      logBuffer_->log(param, fieldValue, I2cLogBuffer::Operation::Read);
+      logBuffer_->log(param, field, fieldValue, I2cLogBuffer::Operation::Read);
     }
   } catch (const std::exception& ex) {
     XLOG(ERR) << "Read from transceiver " << module_ << " at offset " << offset
               << " with length " << len << " failed: " << ex.what();
     if (logBuffer_) {
       logBuffer_->log(
-          param, fieldValue, I2cLogBuffer::Operation::Read, /*success*/ false);
+          param,
+          field,
+          fieldValue,
+          I2cLogBuffer::Operation::Read,
+          /*success*/ false);
     }
     throw;
   }
@@ -118,7 +122,7 @@ int WedgeQsfp::writeTransceiver(
     const TransceiverAccessParameter& param,
     const uint8_t* fieldValue,
     uint64_t delay,
-    const int /*field*/) {
+    const int field) {
   auto offset = param.offset;
   auto len = param.len;
   ioStatsRecorder_.recordWriteAttempted();
@@ -136,7 +140,7 @@ int WedgeQsfp::writeTransceiver(
     generateIOErrorForTest("writeTransceiver()");
     threadSafeI2CBus_->moduleWrite(module_ + 1, param, fieldValue);
     if (logBuffer_) {
-      logBuffer_->log(param, fieldValue, I2cLogBuffer::Operation::Write);
+      logBuffer_->log(param, field, fieldValue, I2cLogBuffer::Operation::Write);
     }
     // Intel transceiver require some delay for every write.
     // So in the case of writing succeeded, we wait for 20ms.
@@ -148,7 +152,11 @@ int WedgeQsfp::writeTransceiver(
               << " failed: " << folly::exceptionStr(ex);
     if (logBuffer_) {
       logBuffer_->log(
-          param, fieldValue, I2cLogBuffer::Operation::Write, /*success*/ false);
+          param,
+          field,
+          fieldValue,
+          I2cLogBuffer::Operation::Write,
+          /*success*/ false);
     }
     throw;
   }
