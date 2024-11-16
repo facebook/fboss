@@ -318,7 +318,7 @@ TEST_F(AgentTunnelMgrTest, checkKernelIPv6Entries) {
   verifyAcrossWarmBoots(setup, verify);
 }
 
-// Test that the tunnel manager is able to handle ip address change of the
+// Test that the tunnel manager is able to handle ipv4 address change of the
 // interface
 TEST_F(AgentTunnelMgrTest, changeIPv4Address) {
   auto setup = [=]() {};
@@ -367,6 +367,69 @@ TEST_F(AgentTunnelMgrTest, changeIPv4Address) {
     // address change. So, passing false for checkRouteEntry.
     if (status) {
       checkKernelEntriesExist(folly::to<std::string>(intfIPv4), true, false);
+    }
+
+    // Clear kernel entries
+    clearKernelEntries(
+        folly::to<std::string>(intfIPv4), folly::to<std::string>(intfIPv6));
+
+    // Check that the kernel entries are removed
+    checkKernelEntriesRemoved(
+        folly::to<std::string>(intfIPv4), folly::to<std::string>(intfIPv6));
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
+}
+
+// Test that the tunnel manager is able to handle ipv6 address change of the
+// interface
+TEST_F(AgentTunnelMgrTest, changeIPv6Address) {
+  auto setup = [=]() {};
+  auto verify = [=, this]() {
+    auto config = initialConfig(*getAgentEnsemble());
+
+    // Apply the config
+    applyNewConfig(config);
+    waitForStateUpdates(getAgentEnsemble()->getSw());
+
+    auto intfIPv4 = folly::IPAddress::createNetwork(
+                        config.interfaces()[0].ipAddresses()[0], -1, false)
+                        .first;
+
+    auto intfIPv6 = folly::IPAddress::createNetwork(
+                        config.interfaces()[0].ipAddresses()[1], -1, false)
+                        .first;
+
+    // Get TunManager pointer
+    auto tunMgr_ = getAgentEnsemble()->getSw()->getTunManager();
+    auto status = tunMgr_->getIntfStatus(
+        getProgrammedState(), (InterfaceID)config.interfaces()[0].get_intfID());
+    // There could be a race condition where the interface is up, but the
+    // socket is not created. So, checking for the socket existence.
+    auto socketExists = tunMgr_->isValidNlSocket();
+
+    // There is a known limitation in the kernel that the source route rule
+    // entries are not created if the interface is not up. So, checking for
+    // the kernel entries if the interface is  up
+    if (status && socketExists) {
+      checkKernelEntriesExist(folly::to<std::string>(intfIPv6), false);
+    }
+
+    // change ipv6 address of the interface
+    config.interfaces()[0].ipAddresses()[1] = "2::/128";
+
+    // Apply the config
+    applyNewConfig(config);
+    waitForStateUpdates(getAgentEnsemble()->getSw());
+
+    intfIPv6 = folly::IPAddress::createNetwork(
+                   config.interfaces()[0].ipAddresses()[1], -1, false)
+                   .first;
+
+    // Route entries installation is currently not consistent after the ip
+    // address change. So, passing false for checkRouteEntry.
+    if (status) {
+      checkKernelEntriesExist(folly::to<std::string>(intfIPv6), false, false);
     }
 
     // Clear kernel entries
