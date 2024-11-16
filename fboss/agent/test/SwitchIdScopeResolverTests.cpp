@@ -116,6 +116,20 @@ TYPED_TEST(SwitchIdScopeResolverTest, mirrorScope) {
   }
 }
 
+TYPED_TEST(SwitchIdScopeResolverTest, mirrorOnDropReportScope) {
+  cfg::MirrorOnDropReport report;
+  report.mirrorPortId() = 6;
+  auto shared = std::make_shared<MirrorOnDropReport>();
+  shared->setMirrorPortId(PortID(6));
+
+  if (this->isFabric()) {
+    return;
+  } else {
+    this->expectSwitchId(report);
+    this->expectSwitchId(shared);
+  }
+}
+
 TYPED_TEST(SwitchIdScopeResolverTest, dsfNodeScope) {
   this->expectAll(cfg::DsfNode{});
   this->expectAll(std::shared_ptr<DsfNode>());
