@@ -22,6 +22,7 @@
 #include "fboss/qsfp_service/StatsPublisher.h"
 #include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
 #include "fboss/qsfp_service/module/TransceiverImpl.h"
+#include "fboss/qsfp_service/module/cmis/gen-cpp2/cmis_types.h"
 
 DEFINE_int32(
     qsfp_data_refresh_interval,
@@ -1167,11 +1168,13 @@ std::unique_ptr<IOBuf> QsfpModule::readTransceiverLocked(
       qsfpImpl_->writeTransceiver(
           {TransceiverAccessParameter::ADDR_QSFP, 127, sizeof(page)},
           &page,
-          POST_I2C_WRITE_DELAY_US);
+          POST_I2C_WRITE_DELAY_US,
+          CAST_TO_INT(CmisField::PAGE_CHANGE)); // common enum to all tcvr types
     }
     qsfpImpl_->readTransceiver(
         {TransceiverAccessParameter::ADDR_QSFP, offset, length},
-        iobuf->writableData());
+        iobuf->writableData(),
+        CAST_TO_INT(CmisField::RAW)); // common enum to all tcvr types
     // Mark the valid data in the buffer
     iobuf->append(length);
   } catch (const std::exception& ex) {
@@ -1221,12 +1224,14 @@ bool QsfpModule::writeTransceiverLocked(
       qsfpImpl_->writeTransceiver(
           {TransceiverAccessParameter::ADDR_QSFP, 127, sizeof(page)},
           &page,
-          POST_I2C_WRITE_DELAY_US);
+          POST_I2C_WRITE_DELAY_US,
+          CAST_TO_INT(CmisField::PAGE_CHANGE)); // common enum to all tcvr types
     }
     qsfpImpl_->writeTransceiver(
         {TransceiverAccessParameter::ADDR_QSFP, offset, sizeof(data)},
         &data,
-        POST_I2C_WRITE_DELAY_US);
+        POST_I2C_WRITE_DELAY_US,
+        CAST_TO_INT(CmisField::RAW)); // common enum to all tcvr types
   } catch (const std::exception& ex) {
     QSFP_LOG(ERR, this) << "Error writing data: " << ex.what();
     throw;

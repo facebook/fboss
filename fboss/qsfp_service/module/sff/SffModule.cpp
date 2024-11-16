@@ -199,7 +199,7 @@ void SffModule::readSffField(
     bool skipPageChange) {
   int dataLength, dataPage, dataOffset;
   getQsfpFieldAddress(field, dataPage, dataOffset, dataLength);
-  readField(dataPage, dataOffset, dataLength, data, skipPageChange);
+  readField(field, dataPage, dataOffset, dataLength, data, skipPageChange);
 }
 
 void SffModule::writeSffField(
@@ -208,10 +208,11 @@ void SffModule::writeSffField(
     bool skipPageChange) {
   int dataLength, dataPage, dataOffset;
   getQsfpFieldAddress(field, dataPage, dataOffset, dataLength);
-  writeField(dataPage, dataOffset, dataLength, data, skipPageChange);
+  writeField(field, dataPage, dataOffset, dataLength, data, skipPageChange);
 }
 
 void SffModule::readField(
+    SffField field,
     int dataPage,
     int dataOffset,
     int dataLength,
@@ -225,13 +226,17 @@ void SffModule::readField(
     qsfpImpl_->writeTransceiver(
         {TransceiverAccessParameter::ADDR_QSFP, 127, sizeof(page)},
         &page,
-        POST_I2C_WRITE_DELAY_US);
+        POST_I2C_WRITE_DELAY_US,
+        CAST_TO_INT(SffField::PAGE_CHANGE));
   }
   qsfpImpl_->readTransceiver(
-      {TransceiverAccessParameter::ADDR_QSFP, dataOffset, dataLength}, data);
+      {TransceiverAccessParameter::ADDR_QSFP, dataOffset, dataLength},
+      data,
+      CAST_TO_INT(field));
 }
 
 void SffModule::writeField(
+    SffField field,
     int dataPage,
     int dataOffset,
     int dataLength,
@@ -245,12 +250,14 @@ void SffModule::writeField(
     qsfpImpl_->writeTransceiver(
         {TransceiverAccessParameter::ADDR_QSFP, 127, sizeof(page)},
         &page,
-        POST_I2C_WRITE_DELAY_US);
+        POST_I2C_WRITE_DELAY_US,
+        CAST_TO_INT(SffField::PAGE_CHANGE));
   }
   qsfpImpl_->writeTransceiver(
       {TransceiverAccessParameter::ADDR_QSFP, dataOffset, dataLength},
       data,
-      POST_I2C_WRITE_DELAY_US);
+      POST_I2C_WRITE_DELAY_US,
+      CAST_TO_INT(field));
 }
 
 FlagLevels SffModule::getQsfpSensorFlags(SffField fieldName) {

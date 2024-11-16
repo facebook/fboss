@@ -316,12 +316,14 @@ class SffModule : public QsfpModule {
    * application code. These just help the readSffField/writeSffField to make
    * the appropriate read/writeTransceiver calls. */
   void readField(
+      SffField field,
       int dataPage,
       int dataOffset,
       int dataLength,
       uint8_t* data,
       bool skipPageChange);
   void writeField(
+      SffField field,
       int dataPage,
       int dataOffset,
       int dataLength,

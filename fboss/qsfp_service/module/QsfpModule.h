@@ -33,6 +33,8 @@
 #define QSFP_LOG_IF(level, cond, tcvr) \
   XLOG_IF(level, cond) << "Transceiver " << tcvr->getNameString() << ": "
 
+#define CAST_TO_INT(FIELD) static_cast<int>((FIELD))
+
 namespace facebook {
 namespace fboss {
 
