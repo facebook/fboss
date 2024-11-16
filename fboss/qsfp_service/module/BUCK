@@ -23,6 +23,10 @@ cpp_library(
         "cmis/CmisFieldInfo.h",
         "cmis/CmisModule.h",
         "facebook/SffFr1FieldInfo.h",
+        "sff/Sff8472FieldInfo.h",
+        "sff/Sff8472Module.h",
+        "sff/SffFieldInfo.h",
+        "sff/SffModule.h",
     ],
     exported_deps = [
         ":firmware_upgrader",
@@ -45,6 +49,7 @@ cpp_library(
         "//fboss/qsfp_service/lib:qsfp-config-parser-helper",
         "//fboss/qsfp_service/lib:qsfp-service-client",
         "//fboss/qsfp_service/module/cmis:cmis-cpp2-types",
+        "//fboss/qsfp_service/module/sff:sff-cpp2-types",
         "//folly:synchronized",
         "//folly/executors:function_scheduler",
         "//folly/futures:core",

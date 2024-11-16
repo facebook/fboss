@@ -391,6 +391,13 @@ add_fbthrift_cpp_library(
     reflection
 )
 add_fbthrift_cpp_library(
+  sff_cpp2
+  fboss/qsfp_service/module/sff/sff.thrift
+  OPTIONS
+    json
+    reflection
+)
+add_fbthrift_cpp_library(
   sensor_service_stats_cpp2
   fboss/platform/sensor_service/sensor_service_stats.thrift
   OPTIONS
