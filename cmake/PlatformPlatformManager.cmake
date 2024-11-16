@@ -71,9 +71,17 @@ add_library(platform_manager_utils
 )
 
 target_link_libraries(platform_manager_utils
+  gpiod_line
+  Folly::folly
+)
+
+add_library(platform_manager_config_utils
+  fboss/platform/platform_manager/ConfigUtils.cpp
+)
+
+target_link_libraries(platform_manager_config_utils
   platform_manager_config_validator
   platform_manager_config_cpp2
-  gpiod_line
   platform_config_lib
   platform_name_lib
   Folly::folly
@@ -156,6 +164,7 @@ add_executable(platform_manager
   fboss/platform/platform_manager/Utils.cpp
   fboss/platform/platform_manager/PresenceChecker.cpp
   fboss/platform/platform_manager/ExplorationErrorMap.cpp
+  fboss/platform/platform_manager/ConfigUtils.cpp
 )
 
 target_link_libraries(platform_manager
@@ -164,6 +173,7 @@ target_link_libraries(platform_manager
   platform_fs_utils
   platform_name_lib
   platform_utils
+  platform_manager_config_utils
   platform_manager_config_cpp2
   platform_manager_presence_cpp2
   platform_manager_service_cpp2
