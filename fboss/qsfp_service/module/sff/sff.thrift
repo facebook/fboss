@@ -6,6 +6,23 @@ namespace py3 neteng.fboss
 namespace py.asyncio neteng.fboss.asyncio.sff
 
 enum SffField {
+  // First 10 Fields reserved for fields common between
+  // cmis/sff/sff8472
+  // Raw Read/Write.
+  RAW = 0,
+  // Field associated with CDB Command
+  CDB_COMMAND = 1,
+  // Field associated with FW upgrade
+  FW_UPGRADE = 2,
+  // Page Change
+  PAGE_CHANGE = 3,
+  // Management Interface
+  MGMT_INTERFACE = 4,
+  // Part Number Operations
+  PART_NUM = 5,
+  // Firmware Version
+  FW_VERSION = 6,
+
   // Fields for entire page reads
   PAGE_LOWER = 11,
   PAGE_UPPER0 = 12,
