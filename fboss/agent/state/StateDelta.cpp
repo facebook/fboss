@@ -234,6 +234,13 @@ MultiSwitchMapDelta<MultiSwitchMirrorMap> StateDelta::getMirrorsDelta() const {
       old_->getMirrors().get(), new_->getMirrors().get());
 }
 
+MultiSwitchMapDelta<MultiSwitchMirrorOnDropReportMap>
+StateDelta::getMirrorOnDropReportsDelta() const {
+  return MultiSwitchMapDelta<MultiSwitchMirrorOnDropReportMap>(
+      old_->getMirrorOnDropReports().get(),
+      new_->getMirrorOnDropReports().get());
+}
+
 MultiSwitchMapDelta<MultiSwitchTransceiverMap>
 StateDelta::getTransceiversDelta() const {
   return MultiSwitchMapDelta<MultiSwitchTransceiverMap>(

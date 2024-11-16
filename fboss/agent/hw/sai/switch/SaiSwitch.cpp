@@ -1056,6 +1056,14 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChangedImplLocked(
       &SaiMirrorManager::removeMirror);
 
   processDelta(
+      delta.getMirrorOnDropReportsDelta(),
+      managerTable_->tamManager(),
+      lockPolicy,
+      &SaiTamManager::changeMirrorOnDropReport,
+      &SaiTamManager::addMirrorOnDropReport,
+      &SaiTamManager::removeMirrorOnDropReport);
+
+  processDelta(
       delta.getIpTunnelsDelta(),
       managerTable_->tunnelManager(),
       lockPolicy,

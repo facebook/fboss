@@ -30,6 +30,7 @@
 #include "fboss/agent/state/LoadBalancerMap.h"
 #include "fboss/agent/state/Mirror.h"
 #include "fboss/agent/state/MirrorMap.h"
+#include "fboss/agent/state/MirrorOnDropReportMap.h"
 #include "fboss/agent/state/NodeMapDelta.h"
 #include "fboss/agent/state/PortMap.h"
 #include "fboss/agent/state/QosPolicyMap.h"
@@ -94,6 +95,8 @@ class StateDelta {
   ThriftMapDelta<UdfGroupMap> getUdfGroupDelta() const;
 
   MultiSwitchMapDelta<MultiSwitchMirrorMap> getMirrorsDelta() const;
+  MultiSwitchMapDelta<MultiSwitchMirrorOnDropReportMap>
+  getMirrorOnDropReportsDelta() const;
 
   MultiSwitchMapDelta<MultiSwitchTransceiverMap> getTransceiversDelta() const;
   MultiSwitchForwardingInformationBaseMapDelta getFibsDelta() const;
