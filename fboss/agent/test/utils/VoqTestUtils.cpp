@@ -9,6 +9,7 @@
  */
 
 #include "fboss/agent/test/utils/VoqTestUtils.h"
+#include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/DsfStateUpdaterUtil.h"
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/test/TestEnsembleIf.h"
@@ -328,34 +329,56 @@ void setupRemoteIntfAndSysPorts(SwSwitch* swSwitch, bool useEncapIndex) {
 
 std::vector<cfg::PortQueue> getDefaultNifVoqCfg() {
   std::vector<cfg::PortQueue> voqs;
+  if (isDualStage3Q2QMode()) {
+    cfg::PortQueue rdmaQueue;
+    rdmaQueue.id() = 0;
+    rdmaQueue.name() = "rdma";
+    rdmaQueue.streamType() = cfg::StreamType::UNICAST;
+    rdmaQueue.scheduling() = cfg::QueueScheduling::INTERNAL;
+    voqs.push_back(rdmaQueue);
 
-  cfg::PortQueue defaultQueue;
-  defaultQueue.id() = 0;
-  defaultQueue.name() = "default";
-  defaultQueue.streamType() = cfg::StreamType::UNICAST;
-  defaultQueue.scheduling() = cfg::QueueScheduling::INTERNAL;
-  voqs.push_back(defaultQueue);
+    cfg::PortQueue monitoringQueue;
+    monitoringQueue.id() = 1;
+    monitoringQueue.name() = "monitoring";
+    monitoringQueue.streamType() = cfg::StreamType::UNICAST;
+    monitoringQueue.scheduling() = cfg::QueueScheduling::INTERNAL;
+    voqs.push_back(monitoringQueue);
 
-  cfg::PortQueue rdmaQueue;
-  rdmaQueue.id() = 2;
-  rdmaQueue.name() = "rdma";
-  rdmaQueue.streamType() = cfg::StreamType::UNICAST;
-  rdmaQueue.scheduling() = cfg::QueueScheduling::INTERNAL;
-  voqs.push_back(rdmaQueue);
+    cfg::PortQueue ncQueue;
+    ncQueue.id() = 2;
+    ncQueue.name() = "nc";
+    ncQueue.streamType() = cfg::StreamType::UNICAST;
+    ncQueue.scheduling() = cfg::QueueScheduling::INTERNAL;
+    voqs.push_back(ncQueue);
+  } else {
+    cfg::PortQueue defaultQueue;
+    defaultQueue.id() = 0;
+    defaultQueue.name() = "default";
+    defaultQueue.streamType() = cfg::StreamType::UNICAST;
+    defaultQueue.scheduling() = cfg::QueueScheduling::INTERNAL;
+    voqs.push_back(defaultQueue);
 
-  cfg::PortQueue monitoringQueue;
-  monitoringQueue.id() = 6;
-  monitoringQueue.name() = "monitoring";
-  monitoringQueue.streamType() = cfg::StreamType::UNICAST;
-  monitoringQueue.scheduling() = cfg::QueueScheduling::INTERNAL;
-  voqs.push_back(monitoringQueue);
+    cfg::PortQueue rdmaQueue;
+    rdmaQueue.id() = 2;
+    rdmaQueue.name() = "rdma";
+    rdmaQueue.streamType() = cfg::StreamType::UNICAST;
+    rdmaQueue.scheduling() = cfg::QueueScheduling::INTERNAL;
+    voqs.push_back(rdmaQueue);
 
-  cfg::PortQueue ncQueue;
-  ncQueue.id() = 7;
-  ncQueue.name() = "nc";
-  ncQueue.streamType() = cfg::StreamType::UNICAST;
-  ncQueue.scheduling() = cfg::QueueScheduling::INTERNAL;
-  voqs.push_back(ncQueue);
+    cfg::PortQueue monitoringQueue;
+    monitoringQueue.id() = 6;
+    monitoringQueue.name() = "monitoring";
+    monitoringQueue.streamType() = cfg::StreamType::UNICAST;
+    monitoringQueue.scheduling() = cfg::QueueScheduling::INTERNAL;
+    voqs.push_back(monitoringQueue);
+
+    cfg::PortQueue ncQueue;
+    ncQueue.id() = 7;
+    ncQueue.name() = "nc";
+    ncQueue.streamType() = cfg::StreamType::UNICAST;
+    ncQueue.scheduling() = cfg::QueueScheduling::INTERNAL;
+    voqs.push_back(ncQueue);
+  }
 
   return voqs;
 }

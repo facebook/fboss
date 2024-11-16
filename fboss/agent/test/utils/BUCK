@@ -502,6 +502,7 @@ cpp_library(
         "VoqTestUtils.h",
     ],
     exported_deps = [
+        "//fboss/agent:agent_features",
         "//fboss/agent:core",
         "//fboss/agent:fboss-types",
         "//fboss/agent:switch_config-cpp2-types",
