@@ -32,6 +32,7 @@ folly::dynamic createTestDynamic() {
       "listOfPrimitives", dynamic::array())("listOfStructs", dynamic::array())(
       "mapOfEnumToI32", dynamic::object())("mapOfI32ToI32", dynamic::object())(
       "mapOfI32ToListOfStructs", dynamic::object())(
+      "mapOfI32ToSetOfString", dynamic::object())(
       "mapOfI32ToStruct", dynamic::object())(
       "mapOfStringToI32", dynamic::object())(
       "mapOfStringToStruct", dynamic::object())("setOfEnum", dynamic::array())(
@@ -126,6 +127,7 @@ TYPED_TEST(RecurseVisitorTests, TestFullRecurse) {
       {{"mapOfEnumToI32"}, dynamic::object()},
       {{"mapOfI32ToI32"}, dynamic::object()},
       {{"mapOfI32ToListOfStructs"}, dynamic::object()},
+      {{"mapOfI32ToSetOfString"}, dynamic::object()},
       {{"mapOfI32ToStruct"}, dynamic::object()},
       {{"mapOfStringToI32"}, dynamic::object()},
       {{"mapOfStringToStruct"}, dynamic::object()},
@@ -211,7 +213,7 @@ TYPED_TEST(RecurseVisitorTests, TestLeafRecurse) {
       {{"mapOfEnumToI32"}, testDyn["mapOfEnumToI32"]},
       {{"mapOfI32ToI32"}, testDyn["mapOfI32ToI32"]},
       {{"mapOfI32ToListOfStructs"}, testDyn["mapOfI32ToListOfStructs"]},
-      // {{"mapOfI32ToSetOfString"}, testDyn["mapOfI32ToSetOfString"]},
+      {{"mapOfI32ToSetOfString"}, testDyn["mapOfI32ToSetOfString"]},
       {{"mapOfEnumToStruct", "3"}, testDyn["mapOfEnumToStruct"][3]},
       {{"hybridMap"}, testDyn["hybridMap"]},
       {{"hybridMapOfI32ToStruct"}, testDyn["hybridMapOfI32ToStruct"]},
@@ -274,8 +276,7 @@ TYPED_TEST(RecurseVisitorTests, TestLeafRecurse) {
       {{"31"}, testDyn["hybridStruct"]},
       {{"32"}, testDyn["hybridMapOfI32ToStruct"]},
       {{"33"}, testDyn["hybridMapOfMap"]},
-      // {{"34"}, testDyn["mapOfI32ToSetOfString"]}
-  };
+      {{"34"}, testDyn["mapOfI32ToSetOfString"]}};
 
   if (this->isHybridStorage()) {
     for (const auto& entry : hybridNodes) {

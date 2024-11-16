@@ -77,7 +77,9 @@ struct TestStruct {
     allow_skip_thrift_cow = true,
   );
   33: map<i32, map<i32, i32>> hybridMapOfMap (allow_skip_thrift_cow = true);
-// 34: map<i32, set<string>> mapOfI32ToSetOfString; // (allow_skip_thrift_cow = true);
+  34: map<i32, set<string>> mapOfI32ToSetOfString (
+    allow_skip_thrift_cow = true,
+  );
 }
 
 struct ParentTestStruct {

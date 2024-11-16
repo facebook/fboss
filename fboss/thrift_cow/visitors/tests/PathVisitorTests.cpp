@@ -121,6 +121,19 @@ TYPED_TEST(PathVisitorTests, AccessField) {
       *nodeA, path.begin(), path.end(), PathVisitMode::LEAF, processPath);
   EXPECT_EQ(result, ThriftTraverseResult::OK);
   EXPECT_EQ(100, dyn.asInt());
+
+  // mapOfI32ToSetOfString
+  path = {"mapOfI32ToSetOfString", "20", "test1"};
+  result = RootPathVisitor::visit(
+      *nodeA, path.begin(), path.end(), PathVisitMode::LEAF, processPath);
+  EXPECT_EQ(result, ThriftTraverseResult::OK);
+  EXPECT_EQ("test1", dyn.asString());
+
+  // mapOfI32ToSetOfString invalid
+  path = {"mapOfI32ToSetOfString", "20", "invalid_entry"};
+  result = RootPathVisitor::visit(
+      *nodeA, path.begin(), path.end(), PathVisitMode::LEAF, processPath);
+  EXPECT_EQ(result, ThriftTraverseResult::NON_EXISTENT_NODE);
 }
 
 TEST(PathVisitorTests, HybridMapPrimitiveAccess) {
@@ -336,7 +349,10 @@ TEST(PathVisitorTests, HybridMapOfMapAccess) {
 
 TYPED_TEST(PathVisitorTests, AccessFieldInContainer) {
   auto structA = createSimpleTestStruct();
-  auto nodeA = std::make_shared<ThriftStructNode<TestStruct>>(structA);
+  auto nodeA = std::make_shared<ThriftStructNode<
+      TestStruct,
+      ThriftStructResolver<TestStruct, true>,
+      true>>(structA);
 
   folly::dynamic dyn;
   auto processPath = pvlambda([&dyn](auto& node, auto begin, auto end) {
@@ -540,6 +556,23 @@ TYPED_TEST(PathVisitorTests, VisitWithOperators) {
         fsdb::OperProtocol::SIMPLE_JSON, std::move(buf));
     EXPECT_EQ(getStruct.min(), 666);
     EXPECT_EQ(getStruct.max(), 999);
+  }
+
+  {
+    using TC = apache::thrift::type_class::structure;
+    std::vector<std::string> path{"mapOfI32ToSetOfString", "20", "test1"};
+
+    GetEncodedPathVisitorOperator getOp(fsdb::OperProtocol::SIMPLE_JSON);
+    auto result = RootPathVisitor::visit(
+        *nodeA, path.begin(), path.end(), PathVisitMode::LEAF, getOp);
+    EXPECT_EQ(result, ThriftTraverseResult::OK);
+
+    auto encoded = *getOp.val;
+    auto buf =
+        folly::IOBuf::wrapBufferAsValue(encoded.data(), encoded.length());
+    auto getStruct = deserializeBuf<TC, std::string>(
+        fsdb::OperProtocol::SIMPLE_JSON, std::move(buf));
+    EXPECT_EQ(getStruct, "test1");
   }
 }
 
