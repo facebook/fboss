@@ -61,6 +61,11 @@ void populateRemoteIntfAndSysPorts(
 
 void setupRemoteIntfAndSysPorts(SwSwitch* swSwitch, bool useEncapIndex);
 
-std::vector<cfg::PortQueue> getDefaultVoqCfg(cfg::PortType portType);
+struct QueueConfigAndName {
+  std::string name;
+  std::vector<cfg::PortQueue> queueConfig;
+};
+std::optional<QueueConfigAndName> getNameAndDefaultVoqCfg(
+    cfg::PortType portType);
 } // namespace utility
 } // namespace facebook::fboss

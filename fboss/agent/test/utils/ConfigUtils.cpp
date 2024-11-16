@@ -759,7 +759,10 @@ cfg::SwitchConfig genPortVlanCfg(
   auto switchType = asic->getSwitchType();
   // VOQ config
   if (switchType == cfg::SwitchType::VOQ) {
-    config.defaultVoqConfig() = getDefaultVoqCfg(cfg::PortType::INTERFACE_PORT);
+    auto nameAndDefaultVoqCfg =
+        getNameAndDefaultVoqCfg(cfg::PortType::INTERFACE_PORT);
+    CHECK(nameAndDefaultVoqCfg.has_value());
+    config.defaultVoqConfig() = nameAndDefaultVoqCfg->queueConfig;
   }
 
   // Use getPortToDefaultProfileIDMap() to genetate the default config instead
