@@ -137,7 +137,49 @@ std::vector<cfg::PortQueue> getDefaultNifVoqCfg() {
     ncQueue.scheduling() = cfg::QueueScheduling::INTERNAL;
     voqs.push_back(ncQueue);
   }
+  return voqs;
+}
 
+std::vector<cfg::PortQueue> get2VoqCfg() {
+  std::vector<cfg::PortQueue> voqs;
+  cfg::PortQueue lowQueue;
+  lowQueue.id() = 0;
+  lowQueue.name() = "low";
+  lowQueue.streamType() = cfg::StreamType::UNICAST;
+  lowQueue.scheduling() = cfg::QueueScheduling::INTERNAL;
+  voqs.push_back(lowQueue);
+
+  cfg::PortQueue highQueue;
+  highQueue.id() = 1;
+  highQueue.name() = "high";
+  highQueue.streamType() = cfg::StreamType::UNICAST;
+  highQueue.scheduling() = cfg::QueueScheduling::INTERNAL;
+  voqs.push_back(highQueue);
+  return voqs;
+}
+
+std::vector<cfg::PortQueue> get3VoqCfg() {
+  std::vector<cfg::PortQueue> voqs;
+  cfg::PortQueue lowQueue;
+  lowQueue.id() = 0;
+  lowQueue.name() = "low";
+  lowQueue.streamType() = cfg::StreamType::UNICAST;
+  lowQueue.scheduling() = cfg::QueueScheduling::INTERNAL;
+  voqs.push_back(lowQueue);
+
+  cfg::PortQueue midQueue;
+  midQueue.id() = 1;
+  midQueue.name() = "mid";
+  midQueue.streamType() = cfg::StreamType::UNICAST;
+  midQueue.scheduling() = cfg::QueueScheduling::INTERNAL;
+  voqs.push_back(midQueue);
+
+  cfg::PortQueue highQueue;
+  highQueue.id() = 2;
+  highQueue.name() = "high";
+  highQueue.streamType() = cfg::StreamType::UNICAST;
+  highQueue.scheduling() = cfg::QueueScheduling::INTERNAL;
+  voqs.push_back(highQueue);
   return voqs;
 }
 } // namespace
@@ -389,15 +431,21 @@ std::optional<QueueConfigAndName> getNameAndDefaultVoqCfg(
     case cfg::PortType::INTERFACE_PORT:
       return QueueConfigAndName{"defaultVoqCofig", getDefaultNifVoqCfg()};
     case cfg::PortType::CPU_PORT:
+      if (isDualStage3Q2QMode()) {
+        return QueueConfigAndName{"3VoqConfig", get3VoqCfg()};
+      }
+      break;
     case cfg::PortType::MANAGEMENT_PORT:
     case cfg::PortType::RECYCLE_PORT:
     case cfg::PortType::EVENTOR_PORT:
-      XLOG(FATAL) << " TODO";
+      if (isDualStage3Q2QMode()) {
+        return QueueConfigAndName{"2VoqConfig", get2VoqCfg()};
+      }
       break;
     case cfg::PortType::FABRIC_PORT:
       XLOG(FATAL) << " No VOQ configs for fabric ports";
       break;
   }
-  throw FbossError("Unsupported port type: ", portType);
+  return std::nullopt;
 }
 } // namespace facebook::fboss::utility
