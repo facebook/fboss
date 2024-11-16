@@ -819,6 +819,15 @@ cfg::SwitchConfig genPortVlanCfg(
       portCfg->state() = cfg::PortState::ENABLED;
       portCfg->ingressVlan() = port2vlan.find(portID)->second;
       portCfg->maxFrameSize() = kPortMTU;
+      if (switchType == cfg::SwitchType::VOQ &&
+          *portCfg->portType() != cfg::PortType::INTERFACE_PORT) {
+        auto nameAndVoqConfig = getNameAndDefaultVoqCfg(*portCfg->portType());
+        if (nameAndVoqConfig.has_value()) {
+          config.portQueueConfigs()[nameAndVoqConfig->name] =
+              nameAndVoqConfig->queueConfig;
+          portCfg->portVoqConfigName() = nameAndVoqConfig->name;
+        }
+      }
     }
     portCfg->routable() = true;
     portCfg->parserType() = cfg::ParserType::L3;
