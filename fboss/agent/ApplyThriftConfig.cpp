@@ -3835,7 +3835,10 @@ std::shared_ptr<InterfaceMap> ThriftConfigApplier::updateInterfaces() {
       auto sysPort =
           new_->getSystemPorts()->getNode(SystemPortID(*interfaceCfg.intfID()));
       auto dsfNode = cfg_->dsfNodes()->find(sysPort->getSwitchId())->second;
-      if (!withinRange(
+      // TODO - [2-stage DSF] Consider adding local sys port ranges
+      // to DsfNodeConfig as well.
+      if (interfaceCfg.scope() == cfg::Scope::GLOBAL &&
+          !withinRange(
               *dsfNode.systemPortRanges(),
               InterfaceID(*interfaceCfg.intfID()))) {
         throw FbossError(
