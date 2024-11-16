@@ -102,4 +102,5 @@ service AgentHwTestCtrl {
   // port utils
   list<PortInfo> getPortInfo(1: list<i32> portIds);
   bool verifyPortLedStatus(1: i32 port, 2: bool status);
+  bool verifyPGSettings(1: i32 port, 2: bool pfcEnabled);
 }
