@@ -746,11 +746,15 @@ class AgentSflowMirrorWithLineRateTrafficTest
         getProgrammedState(),
         SwitchID(*checkSameAndGetAsic()->getSwitchId()));
     WITH_RETRIES({
-      auto latestStats = getLatestSysPortStats(eventorSysPortId);
-      auto watermarkBytes = latestStats.queueWatermarkBytes_()->at(0);
+      auto latestSysPortStats = getLatestSysPortStats(eventorSysPortId);
+      auto watermarkBytes = latestSysPortStats.queueWatermarkBytes_()->at(0);
       EXPECT_EVENTUALLY_GT(watermarkBytes, 0);
       EXPECT_LT(watermarkBytes, maxExpectedQueueLimitBytes);
-      EXPECT_EVENTUALLY_GT(latestStats.queueOutDiscardBytes_()->at(0), 0);
+      // Now, ingress congestion discards will be seen on input ports
+      // with line rate traffic. Pick one of the ports with line rate
+      // traffic and look for ingress congestion discards.
+      auto latestPortStats = getLatestPortStats(getPortsForSampling()[0]);
+      EXPECT_EVENTUALLY_GT(*latestPortStats.inCongestionDiscards_(), 0);
     });
   }
 };
