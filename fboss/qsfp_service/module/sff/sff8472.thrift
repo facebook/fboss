@@ -6,6 +6,23 @@ namespace py3 neteng.fboss
 namespace py.asyncio neteng.fboss.asyncio.sff8472
 
 enum Sff8472Field {
+  // First 10 Fields reserved for fields common between
+  // cmis/sff/sff8472
+  // Raw Read/write.
+  RAW = 0,
+  // Field associated with CDB Command
+  CDB_COMMAND = 1,
+  // Field associated with FW upgrade
+  FW_UPGRADE = 2,
+  // Page Change
+  PAGE_CHANGE = 3,
+  // Management Interface
+  MGMT_INTERFACE = 4,
+  // Part Number Operations
+  PART_NUM = 5,
+  // Firmware Version
+  FW_VERSION = 6,
+
   IDENTIFIER = 11, // Type of Transceiver
   ETHERNET_10G_COMPLIANCE_CODE = 12, // 10G Ethernet Compliance codes
 
