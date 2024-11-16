@@ -280,30 +280,29 @@ std::pair<size_t, size_t> I2cLogBuffer::dumpToFile() {
   return std::make_pair(hdrSize, logCount);
 }
 
-TransceiverAccessParameter I2cLogBuffer::getParam(std::stringstream& ss) {
+TransceiverAccessParameter I2cLogBuffer::getParam(const std::string& str) {
   TransceiverAccessParameter param(0, 0, 0);
-  std::string token;
-  ss >> token;
-  if (token != kEmptyOptional) {
-    param.i2cAddress = folly::to<uint8_t>(token);
+  std::vector<std::string> fields;
+  folly::split(' ', str, fields, true);
+  if (fields.size() < kNumParamFields) {
+    throw std::out_of_range("Invalie param fields:" + str);
   }
-  ss >> token;
-  if (token != kEmptyOptional) {
-    param.page = folly::to<uint8_t>(token);
+  if (fields.at(0) != kEmptyOptional) {
+    param.i2cAddress = folly::to<uint8_t>(fields.at(0));
+  };
+  if (fields.at(1) != kEmptyOptional) {
+    param.page = folly::to<int>(fields.at(1));
   }
-  ss >> token;
-  if (token != kEmptyOptional) {
-    param.bank = folly::to<uint8_t>(token);
+  if (fields.at(2) != kEmptyOptional) {
+    param.bank = folly::to<int>(fields.at(2));
   }
-  ss >> param.offset;
-  ss >> param.len;
+  param.offset = folly::to<int>(fields.at(3));
+  param.len = folly::to<int>(fields.at(4));
   return param;
 }
 
-I2cLogBuffer::Operation I2cLogBuffer::getOp(std::stringstream& ss) {
-  char c;
-  ss >> c;
-  switch (c) {
+I2cLogBuffer::Operation I2cLogBuffer::getOp(const char op) {
+  switch (op) {
     case 'R':
       return Operation::Read;
       break;
@@ -311,7 +310,7 @@ I2cLogBuffer::Operation I2cLogBuffer::getOp(std::stringstream& ss) {
       return Operation::Write;
       break;
     default:
-      throw std::invalid_argument(fmt::format("Invalid Operation :{}", c));
+      throw std::invalid_argument(fmt::format("Invalid Operation :{}", op));
       break;
   }
 }
@@ -379,10 +378,10 @@ std::vector<I2cLogBuffer::I2cReplayEntry> I2cLogBuffer::loadFromLog(
   }
 
   while (std::getline(file, line)) {
-    ss = std::stringstream(getField(line, '<', '>'));
-    auto param = getParam(ss);
-    auto op = getOp(ss);
-    auto str = getField(line, '[', ']');
+    auto str = getField(line, '<', '>');
+    auto param = getParam(str);
+    auto op = getOp(str.back());
+    str = getField(line, '[', ']');
     auto data = getData(str);
     auto delay = getDelay(line);
     str = getField(line, '>', '[');

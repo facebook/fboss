@@ -31,6 +31,9 @@ namespace facebook::fboss {
 constexpr int kMaxI2clogDataSize = 128;
 constexpr size_t kI2cFieldNameLength = 16;
 
+// Number of address fields in TransceiverAccessParameter
+constexpr int kNumParamFields = 5;
+
 class I2cLogBuffer {
   using TimePointSteady = std::chrono::steady_clock::time_point;
   using TimePointSystem = std::chrono::system_clock::time_point;
@@ -176,8 +179,8 @@ class I2cLogBuffer {
   // Operations to re-construct I2cReplayEntry from a log file.
   static size_t getHeader(std::stringstream& ss, const I2cLogHeader& info);
   static std::string getField(const std::string& line, char left, char right);
-  static TransceiverAccessParameter getParam(std::stringstream& ss);
-  static I2cLogBuffer::Operation getOp(std::stringstream& ss);
+  static TransceiverAccessParameter getParam(const std::string& str);
+  static I2cLogBuffer::Operation getOp(const char op);
   static std::array<uint8_t, kMaxI2clogDataSize> getData(std::string str);
   static uint64_t getDelay(const std::string& str);
   static bool getSuccess(const std::string& str);
