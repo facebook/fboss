@@ -384,6 +384,13 @@ add_fbthrift_cpp_library(
     transceiver_cpp2
 )
 add_fbthrift_cpp_library(
+  cmis_cpp2
+  fboss/qsfp_service/module/cmis/cmis.thrift
+  OPTIONS
+    json
+    reflection
+)
+add_fbthrift_cpp_library(
   sensor_service_stats_cpp2
   fboss/platform/sensor_service/sensor_service_stats.thrift
   OPTIONS

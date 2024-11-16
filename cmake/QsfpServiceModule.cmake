@@ -9,6 +9,7 @@ add_library(firmware_upgrader
 )
 
 target_link_libraries(firmware_upgrader
+  cmis_cpp2
   Folly::folly
   transceiver_cpp2
   firmware_storage
