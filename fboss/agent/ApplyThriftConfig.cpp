@@ -56,6 +56,8 @@
 #include "fboss/agent/state/IpTunnelMap.h"
 #include "fboss/agent/state/LabelForwardingInformationBase.h"
 #include "fboss/agent/state/Mirror.h"
+#include "fboss/agent/state/MirrorOnDropReport.h"
+#include "fboss/agent/state/MirrorOnDropReportMap.h"
 #include "fboss/agent/state/NdpResponseTable.h"
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/PortFlowletConfig.h"
@@ -507,6 +509,13 @@ class ThriftConfigApplier {
   std::shared_ptr<ForwardingInformationBaseMap>
   updateForwardingInformationBaseContainers();
 
+  std::shared_ptr<MirrorOnDropReportMap> updateMirrorOnDropReports();
+  std::shared_ptr<MirrorOnDropReport> createMirrorOnDropReport(
+      const cfg::MirrorOnDropReport* config);
+  std::shared_ptr<MirrorOnDropReport> updateMirrorOnDropReport(
+      const std::shared_ptr<MirrorOnDropReport>& orig,
+      const cfg::MirrorOnDropReport* config);
+
   std::shared_ptr<LabelForwardingEntry> createLabelForwardingEntry(
       MplsLabel label,
       LabelNextHopEntry::Action action,
@@ -804,6 +813,17 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
     if (newCollectors) {
       new_->resetSflowCollectors(toMultiSwitchMap<MultiSwitchSflowCollectorMap>(
           newCollectors, scopeResolver_));
+      changed = true;
+    }
+  }
+
+  // MirrorOnDrop must come after interfaces, since it looks up interface IPs.
+  {
+    auto newMirrorOnDropReports = updateMirrorOnDropReports();
+    if (newMirrorOnDropReports) {
+      new_->resetMirrorOnDropReports(
+          toMultiSwitchMap<MultiSwitchMirrorOnDropReportMap>(
+              newMirrorOnDropReports, scopeResolver_));
       changed = true;
     }
   }
@@ -5266,6 +5286,97 @@ std::shared_ptr<Mirror> ThriftConfigApplier::updateMirror(
     return nullptr;
   }
   return newMirror;
+}
+
+std::shared_ptr<MirrorOnDropReportMap>
+ThriftConfigApplier::updateMirrorOnDropReports() {
+  const auto& origReports = orig_->getMirrorOnDropReports();
+  auto newReports = std::make_shared<MirrorOnDropReportMap>();
+
+  bool changed = false;
+  size_t numExistingProcessed = 0;
+  for (const auto& config : *cfg_->mirrorOnDropReports()) {
+    auto origReport = origReports->getNodeIf(*config.name());
+    std::shared_ptr<MirrorOnDropReport> newReport;
+    if (origReport) {
+      newReport = updateMirrorOnDropReport(origReport, &config);
+      ++numExistingProcessed;
+    } else {
+      newReport = createMirrorOnDropReport(&config);
+    }
+    changed |= updateThriftMapNode(newReports.get(), origReport, newReport);
+  }
+
+  if (numExistingProcessed != origReports->numNodes()) {
+    // Some existing MirrorOnDropReports were removed.
+    CHECK_LT(numExistingProcessed, origReports->numNodes());
+    changed = true;
+  }
+
+  if (!changed) {
+    return nullptr;
+  }
+
+  auto newReportWithSwitchIds = std::make_shared<MirrorOnDropReportMap>();
+  for (auto& switchIdAndSwitchInfo :
+       *cfg_->switchSettings()->switchIdToSwitchInfo()) {
+    if (switchIdAndSwitchInfo.second.switchType() != cfg::SwitchType::VOQ &&
+        switchIdAndSwitchInfo.second.switchType() != cfg::SwitchType::NPU) {
+      continue;
+    }
+    for (auto& mapEntry : std::as_const(*newReports)) {
+      auto newReport = mapEntry.second->clone();
+      newReportWithSwitchIds->insert(mapEntry.first, std::move(newReport));
+    }
+  }
+
+  return newReportWithSwitchIds;
+}
+
+std::shared_ptr<MirrorOnDropReport>
+ThriftConfigApplier::createMirrorOnDropReport(
+    const cfg::MirrorOnDropReport* config) {
+  auto switchId = getAnyVoqSwitchId();
+  if (!switchId.has_value()) {
+    throw FbossError("No VOQ switchId found");
+  }
+  auto systemPortId = getInbandSystemPortID(new_, *switchId);
+
+  // Find an IP address of the switch.
+  auto collectorIp = folly::IPAddress(*config->collectorIp());
+  auto localSrcIp = collectorIp.isV4()
+      ? folly::IPAddress(getSwitchIntfIP(new_, InterfaceID(systemPortId)))
+      : folly::IPAddress(getSwitchIntfIPv6(new_, InterfaceID(systemPortId)));
+
+  uint8_t dscp = *config->dscp();
+  std::optional<int32_t> agingIntervalUsecs;
+  if (config->agingIntervalUsecs().has_value()) {
+    agingIntervalUsecs = config->agingIntervalUsecs().value();
+  }
+
+  return std::make_shared<MirrorOnDropReport>(
+      *config->name(),
+      PortID(*config->mirrorPortId()),
+      localSrcIp,
+      *config->localSrcPort(),
+      collectorIp,
+      *config->collectorPort(),
+      *config->mtu(),
+      *config->truncateSize(),
+      dscp,
+      agingIntervalUsecs,
+      getLocalMacAddress().toString());
+}
+
+std::shared_ptr<MirrorOnDropReport>
+ThriftConfigApplier::updateMirrorOnDropReport(
+    const std::shared_ptr<MirrorOnDropReport>& orig,
+    const cfg::MirrorOnDropReport* config) {
+  auto newReport = createMirrorOnDropReport(config);
+  if (*newReport == *orig) {
+    return nullptr;
+  }
+  return newReport;
 }
 
 std::shared_ptr<ForwardingInformationBaseMap>
