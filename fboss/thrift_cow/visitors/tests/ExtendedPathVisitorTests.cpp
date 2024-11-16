@@ -33,7 +33,8 @@ TestStruct createTestStruct() {
       dynamic::object("3", dynamic::object("min", 100)("max", 200)))(
       "mapOfStringToI32", dynamic::object)(
       "listOfPrimitives", dynamic::array())("setOfI32", dynamic::array())(
-      "mapOfI32ToListOfStructs", dynamic::object());
+      "mapOfI32ToListOfStructs", dynamic::object())(
+      "hybridMapOfMap", dynamic::object());
 
   for (int i = 0; i <= 20; ++i) {
     testDyn["mapOfStringToI32"][fmt::format("test{}", i)] = i;
@@ -43,6 +44,9 @@ TestStruct createTestStruct() {
         dynamic::array(
             dynamic::object("min", 1)("max", 2),
             dynamic::object("min", 3)("max", 4));
+    dynamic innerMap = dynamic::object();
+    innerMap[i * 10] = i * 100;
+    testDyn["hybridMapOfMap"][i] = std::move(innerMap);
   }
 
   return facebook::thrift::from_dynamic<TestStruct>(
@@ -130,13 +134,44 @@ TEST(ExtendedPathVisitorTests, AccessOptional) {
   EXPECT_TRUE(got.empty());
 }
 
-TEST(ExtendedPathVisitorTests, AccessRegexMap) {
+template <bool EnableHybridStorage>
+struct TestParams {
+  static constexpr auto hybridStorage = EnableHybridStorage;
+};
+
+using StorageTestTypes = ::testing::Types<TestParams<false>, TestParams<true>>;
+
+template <typename TestParams>
+class ExtendedPathVisitorTests : public ::testing::Test {
+ public:
+  auto initNode(auto val) {
+    using RootType = std::remove_cvref_t<decltype(val)>;
+    return std::make_shared<ThriftStructNode<
+        RootType,
+        ThriftStructResolver<RootType, TestParams::hybridStorage>,
+        TestParams::hybridStorage>>(val);
+  }
+  bool isHybridStorage() {
+    return TestParams::hybridStorage;
+  }
+};
+
+TYPED_TEST_SUITE(ExtendedPathVisitorTests, StorageTestTypes);
+
+TYPED_TEST(ExtendedPathVisitorTests, AccessRegexMap) {
   auto structA = createTestStruct();
-  auto nodeA = std::make_shared<ThriftStructNode<TestStruct>>(structA);
+  auto nodeA = this->initNode(structA);
 
   std::set<std::pair<std::vector<std::string>, folly::dynamic>> visited;
   auto processPath = [&visited](auto&& path, auto&& node) {
-    visited.emplace(std::make_pair(path, node.toFollyDynamic()));
+    if constexpr (is_cow_type_v<decltype(node)>) {
+      visited.emplace(std::make_pair(path, node.toFollyDynamic()));
+    } else {
+      folly::dynamic out;
+      facebook::thrift::to_dynamic(
+          out, node, facebook::thrift::dynamic_format::JSON_1);
+      visited.emplace(std::make_pair(path, out));
+    }
   };
 
   auto path = ext_path_builder::raw("mapOfStringToI32").regex("test1.*").get();
@@ -158,6 +193,11 @@ TEST(ExtendedPathVisitorTests, AccessRegexMap) {
   RootExtendedPathVisitor::visit(
       *nodeA, path.path()->begin(), path.path()->end(), options, processPath);
   EXPECT_THAT(visited, ::testing::ContainerEq(expected));
+
+  if (this->isHybridStorage()) {
+    // TODO: list and struct not implemented yet for hybrid storage
+    return;
+  }
 
   auto path2 = ext_path_builder::raw("mapOfI32ToListOfStructs")
                    .regex("1.*")
@@ -195,13 +235,20 @@ TEST(ExtendedPathVisitorTests, AccessRegexMap) {
   EXPECT_THAT(visited, ::testing::ContainerEq(expected2));
 }
 
-TEST(ExtendedPathVisitorTests, AccessAnyMap) {
+TYPED_TEST(ExtendedPathVisitorTests, AccessAnyMap) {
   auto structA = createTestStruct();
-  auto nodeA = std::make_shared<ThriftStructNode<TestStruct>>(structA);
+  auto nodeA = this->initNode(structA);
 
   std::set<std::pair<std::vector<std::string>, folly::dynamic>> visited;
   auto processPath = [&visited](auto&& path, auto&& node) {
-    visited.emplace(std::make_pair(path, node.toFollyDynamic()));
+    if constexpr (is_cow_type_v<decltype(node)>) {
+      visited.emplace(std::make_pair(path, node.toFollyDynamic()));
+    } else {
+      folly::dynamic out;
+      facebook::thrift::to_dynamic(
+          out, node, facebook::thrift::dynamic_format::JSON_1);
+      visited.emplace(std::make_pair(path, out));
+    }
   };
 
   auto path = ext_path_builder::raw("mapOfStringToI32").any().get();
@@ -227,6 +274,54 @@ TEST(ExtendedPathVisitorTests, AccessAnyMap) {
       {{"mapOfStringToI32", "test18"}, 18},
       {{"mapOfStringToI32", "test19"}, 19},
       {{"mapOfStringToI32", "test20"}, 20},
+  };
+
+  ExtPathVisitorOptions options;
+  RootExtendedPathVisitor::visit(
+      *nodeA, path.path()->begin(), path.path()->end(), options, processPath);
+  EXPECT_THAT(visited, ::testing::ContainerEq(expected));
+}
+
+TYPED_TEST(ExtendedPathVisitorTests, AccessDeepMap) {
+  auto structA = createTestStruct();
+  auto nodeA = this->initNode(structA);
+
+  std::set<std::pair<std::vector<std::string>, folly::dynamic>> visited;
+  auto processPath = [&visited](auto&& path, auto&& node) {
+    if constexpr (is_cow_type_v<decltype(node)>) {
+      visited.emplace(std::make_pair(path, node.toFollyDynamic()));
+    } else {
+      folly::dynamic out;
+      facebook::thrift::to_dynamic(
+          out, node, facebook::thrift::dynamic_format::JSON_1);
+      visited.emplace(std::make_pair(path, out));
+    }
+  };
+
+  auto path = ext_path_builder::raw("hybridMapOfMap").any().any().get();
+  std::set<std::pair<std::vector<std::string>, folly::dynamic>> expected = {
+      {{"hybridMapOfMap", "0", "0"}, 0},
+      {{"hybridMapOfMap", "1", "10"}, 100},
+      {{"hybridMapOfMap", "2", "20"}, 200},
+      {{"hybridMapOfMap", "3", "30"}, 300},
+      {{"hybridMapOfMap", "4", "40"}, 400},
+      {{"hybridMapOfMap", "5", "50"}, 500},
+      {{"hybridMapOfMap", "6", "60"}, 600},
+      {{"hybridMapOfMap", "7", "70"}, 700},
+      {{"hybridMapOfMap", "8", "80"}, 800},
+      {{"hybridMapOfMap", "9", "90"}, 900},
+      {{"hybridMapOfMap", "10", "100"}, 1000},
+      {{"hybridMapOfMap", "11", "110"}, 1100},
+      {{"hybridMapOfMap", "12", "120"}, 1200},
+      {{"hybridMapOfMap", "13", "130"}, 1300},
+      {{"hybridMapOfMap", "14", "140"}, 1400},
+      {{"hybridMapOfMap", "15", "150"}, 1500},
+      {{"hybridMapOfMap", "16", "160"}, 1600},
+      {{"hybridMapOfMap", "17", "170"}, 1700},
+      {{"hybridMapOfMap", "18", "180"}, 1800},
+      {{"hybridMapOfMap", "19", "190"}, 1900},
+      {{"hybridMapOfMap", "20", "200"}, 2000},
+
   };
 
   ExtPathVisitorOptions options;
