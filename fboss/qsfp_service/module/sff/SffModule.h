@@ -19,7 +19,6 @@ enum class SffPages : int {
 };
 
 enum class SffField;
-enum class SffFr1Field;
 
 class SffModule : public QsfpModule {
  public:
@@ -308,14 +307,10 @@ class SffModule : public QsfpModule {
   void readSffField(SffField field, uint8_t* data, bool skipPageChange = false);
   void
   writeSffField(SffField field, uint8_t* data, bool skipPageChange = false);
-  void readSffFr1Field(
-      SffFr1Field field,
-      uint8_t* data,
-      bool skipPageChange = false);
-  void writeSffFr1Field(
-      SffFr1Field field,
-      uint8_t* data,
-      bool skipPageChange = false);
+  void
+  readSffFr1Field(SffField field, uint8_t* data, bool skipPageChange = false);
+  void
+  writeSffFr1Field(SffField field, uint8_t* data, bool skipPageChange = false);
 
   /* readField and writeField are not intended to be used directly in the
    * application code. These just help the readSffField/writeSffField to make
