@@ -54,11 +54,12 @@ class AgentSflowMirrorTest : public AgentHwTest {
         ensemble.masterLogicalPortIds(),
         true /*interfaceHasSubnet*/);
 
-    auto port0 = ensemble.masterLogicalPortIds()[0];
+    auto port0 = ensemble.masterLogicalInterfacePortIds()[0];
     auto port0Switch =
         ensemble.getSw()->getScopeResolver()->scope(port0).switchId();
     auto asic = ensemble.getSw()->getHwAsicTable()->getHwAsic(port0Switch);
-    auto ports = getPortsForSampling(ensemble.masterLogicalPortIds(), asic);
+    auto ports =
+        getPortsForSampling(ensemble.masterLogicalInterfacePortIds(), asic);
     if (asic->isSupported(HwAsic::Feature::EVENTOR_PORT_FOR_SFLOW)) {
       utility::addEventorVoqConfig(&cfg, cfg::StreamType::UNICAST);
     }
@@ -89,7 +90,7 @@ class AgentSflowMirrorTest : public AgentHwTest {
   void configureTrapAcl(cfg::SwitchConfig& cfg, bool isV4) const {
     return checkSameAndGetAsic()->isSupported(
                HwAsic::Feature::SAI_ACL_ENTRY_SRC_PORT_QUALIFIER)
-        ? utility::configureTrapAcl(cfg, getNonSflowSampledInterfacePorts())
+        ? utility::configureTrapAcl(cfg, getNonSflowSampledInterfacePort())
         : utility::configureTrapAcl(cfg, isV4);
   }
 
@@ -98,10 +99,10 @@ class AgentSflowMirrorTest : public AgentHwTest {
     configureTrapAcl(cfg, isV4);
   }
 
-  PortID getNonSflowSampledInterfacePorts() const {
+  PortID getNonSflowSampledInterfacePort() const {
     return checkSameAndGetAsic()->isSupported(HwAsic::Feature::MANAGEMENT_PORT)
         ? masterLogicalPortIds({cfg::PortType::MANAGEMENT_PORT})[0]
-        : getPortsForSampling()[0];
+        : masterLogicalInterfacePortIds()[0];
   }
 
   cfg::PortType getNonSflowSampledInterfacePortType() const {
@@ -111,10 +112,21 @@ class AgentSflowMirrorTest : public AgentHwTest {
   }
 
   std::vector<PortID> getPortsForSampling() const {
-    auto portIds = masterLogicalPortIds({cfg::PortType::INTERFACE_PORT});
-    auto switchID = switchIdForPort(portIds[0]);
+    auto allIntfPorts = masterLogicalInterfacePortIds();
+    auto nonSampledPort = getNonSflowSampledInterfacePort();
+    // Ports with sampling enabled are all interface ports except any
+    // on which we are sending the sampled packets out!
+    std::vector<PortID> sampledPorts;
+    std::copy_if(
+        allIntfPorts.begin(),
+        allIntfPorts.end(),
+        std::back_inserter(sampledPorts),
+        [nonSampledPort](const auto& portId) {
+          return portId != nonSampledPort;
+        });
+    auto switchID = switchIdForPort(allIntfPorts[0]);
     auto asic = getSw()->getHwAsicTable()->getHwAsic(switchID);
-    return getPortsForSampling(portIds, asic);
+    return getPortsForSampling(sampledPorts, asic);
   }
 
   std::vector<PortID> getPortsForSampling(
@@ -131,18 +143,9 @@ class AgentSflowMirrorTest : public AgentHwTest {
     return ports;
   }
 
-  void configSampling(
-      cfg::SwitchConfig& config,
-      const std::vector<PortID>& ports,
-      int sampleRate) const {
-    std::vector<PortID> samplePorts(ports.begin() + 1, ports.end());
-    utility::configureSflowSampling(
-        config, kSflowMirror, samplePorts, sampleRate);
-  }
-
   void configSampling(cfg::SwitchConfig& config, int sampleRate) {
     auto ports = getPortsForSampling();
-    configSampling(config, ports, sampleRate);
+    utility::configureSflowSampling(config, kSflowMirror, ports, sampleRate);
   }
 
   const HwAsic* checkSameAndGetAsic() const {
@@ -225,7 +228,7 @@ class AgentSflowMirrorTest : public AgentHwTest {
 
   template <typename T = AddrT>
   void resolveRouteForMirrorDestinationImpl() {
-    const auto mirrorDestinationPort = getNonSflowSampledInterfacePorts();
+    const auto mirrorDestinationPort = getNonSflowSampledInterfacePort();
     boost::container::flat_set<PortDescriptor> nhopPorts{
         PortDescriptor(mirrorDestinationPort)};
 
@@ -696,7 +699,7 @@ class AgentSflowMirrorWithLineRateTrafficTest
   }
 
   void verifySflowEgressPortNotStuck() {
-    auto portId = getNonSflowSampledInterfacePorts();
+    auto portId = getNonSflowSampledInterfacePort();
     // Expect atleast 1Gbps of mirror traffic!
     const uint64_t kDesiredMirroredTrafficRate{1000000000};
     EXPECT_NO_THROW(getAgentEnsemble()->waitForSpecificRateOnPort(
