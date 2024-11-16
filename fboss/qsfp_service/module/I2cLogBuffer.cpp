@@ -167,7 +167,7 @@ size_t I2cLogBuffer::getHeader(
   ss << "If the read transaction failed [Data] may not be accurate.\n";
   ss << "mmmuuu: milliseconds microseconds, steadclock_ns: time in ns between log entries \n";
   ss << "Header format: \n";
-  ss << "Month D HH:MM:SS.mmmuuu FIELD_NAME <i2c_address  offset  len  page  bank  op> F [data]  steadyclock_ns"
+  ss << "Month D HH:MM:SS.mmmuuu FIELD_NAME <i2c_address page bank offset len op> F [data]  steadyclock_ns"
      << "\n";
 
   auto str = ss.str();
@@ -247,10 +247,10 @@ std::pair<size_t, size_t> I2cLogBuffer::dumpToFile() {
     ss << " <";
     auto& param = entry.param;
     getOptional(ss, param.i2cAddress);
-    ss << std::setfill(' ') << std::setw(3) << param.offset << " ";
-    ss << std::setfill(' ') << std::setw(3) << param.len << " ";
     getOptional(ss, param.page);
     getOptional(ss, param.bank);
+    ss << std::setfill(' ') << std::setw(3) << param.offset << " ";
+    ss << std::setfill(' ') << std::setw(3) << param.len << " ";
     ss << (entry.op == Operation::Read ? "R" : "W");
     ss << "> ";
     if (entry.success) {
@@ -287,8 +287,6 @@ TransceiverAccessParameter I2cLogBuffer::getParam(std::stringstream& ss) {
   if (token != kEmptyOptional) {
     param.i2cAddress = folly::to<uint8_t>(token);
   }
-  ss >> param.offset;
-  ss >> param.len;
   ss >> token;
   if (token != kEmptyOptional) {
     param.page = folly::to<uint8_t>(token);
@@ -297,6 +295,8 @@ TransceiverAccessParameter I2cLogBuffer::getParam(std::stringstream& ss) {
   if (token != kEmptyOptional) {
     param.bank = folly::to<uint8_t>(token);
   }
+  ss >> param.offset;
+  ss >> param.len;
   return param;
 }
 
