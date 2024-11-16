@@ -239,7 +239,31 @@ std::unordered_map<PortID, cfg::PortProfileID> getSafeProfileIDs(
       throw FbossError("Can't find safe profiles for ports:", portSetStr);
     }
 
+    auto asicType = asic->getAsicType();
+
     auto bestSpeed = cfg::PortSpeed::DEFAULT;
+    if (asicType == cfg::AsicType::ASIC_TYPE_JERICHO3 &&
+        FLAGS_dual_stage_rdsw_3q_2q) {
+      // When using dual_stage_rdsw_3q_2q mapping. Pick NIF port
+      // speed to be 400G, since that's what we have in chip config
+      // and J3 does not support dynamic port speed change yet.
+      auto portId = group.first;
+      auto platPortItr = platformMapping->getPlatformPorts().find(portId);
+      if (platPortItr == platformMapping->getPlatformPorts().end()) {
+        throw FbossError("Can't find platform port for:", portId);
+      }
+      switch (*platPortItr->second.mapping()->portType()) {
+        case cfg::PortType::INTERFACE_PORT:
+          bestSpeed = cfg::PortSpeed::FOURHUNDREDG;
+          break;
+        case cfg::PortType::FABRIC_PORT:
+        case cfg::PortType::MANAGEMENT_PORT:
+        case cfg::PortType::RECYCLE_PORT:
+        case cfg::PortType::EVENTOR_PORT:
+        case cfg::PortType::CPU_PORT:
+          break;
+      }
+    }
 
     auto bestProfile = cfg::PortProfileID::PROFILE_DEFAULT;
     // If bestSpeed is default - pick the largest speed from the safe profiles
