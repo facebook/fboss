@@ -15,6 +15,7 @@ target_link_libraries(firmware_upgrader
   firmware_storage
   fboss_i2c_lib
   sff_cpp2
+  sff8472_cpp2
 )
 
 add_library(qsfp_module STATIC

@@ -50,6 +50,7 @@ cpp_library(
         "//fboss/qsfp_service/lib:qsfp-service-client",
         "//fboss/qsfp_service/module/cmis:cmis-cpp2-types",
         "//fboss/qsfp_service/module/sff:sff-cpp2-types",
+        "//fboss/qsfp_service/module/sff:sff8472-cpp2-types",
         "//folly:synchronized",
         "//folly/executors:function_scheduler",
         "//folly/futures:core",
@@ -115,6 +116,7 @@ cpp_library(
         "//fboss/lib/usb:transceiver_access_parameter",
         "//fboss/qsfp_service/if:config-cpp2-types",
         "//folly:file_util",
+        "//folly:string",
         "//folly/logging:logging",
     ],
 )
