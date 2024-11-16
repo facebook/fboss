@@ -44,17 +44,18 @@ void I2cLogBuffer::log(
   std::lock_guard<std::mutex> g(mutex_);
   if ((op == Operation::Read && config_.readLog().value()) ||
       (op == Operation::Write && config_.writeLog().value())) {
-    buffer_[head_].steadyTime = std::chrono::steady_clock::now();
-    buffer_[head_].systemTime = std::chrono::system_clock::now();
-    buffer_[head_].param = param;
+    auto& bufferHead = buffer_[head_];
+    bufferHead.steadyTime = std::chrono::steady_clock::now();
+    bufferHead.systemTime = std::chrono::system_clock::now();
+    bufferHead.param = param;
     const size_t len = std::min(param.len, kMaxI2clogDataSize);
-    auto& bufferData = buffer_[head_].data;
+    auto& bufferData = bufferHead.data;
     std::copy(data, data + len, bufferData.begin());
     if (len < kMaxI2clogDataSize) {
       std::fill(bufferData.begin() + len, bufferData.end(), 0);
     }
-    buffer_[head_].op = op;
-    buffer_[head_].success = success;
+    bufferHead.op = op;
+    bufferHead.success = success;
 
     // Let tail track the oldest entry.
     if ((head_ == tail_) && (totalEntries_ != 0)) {
@@ -201,24 +202,25 @@ std::pair<size_t, size_t> I2cLogBuffer::dumpToFile() {
   TimePointSteady prev;
 
   for (size_t i = 0; i < logCount; i++) {
-    getEntryTime(ss, entriesOut[i].systemTime);
+    auto& entry = entriesOut[i];
+    getEntryTime(ss, entry.systemTime);
     ss << " <";
-    auto& param = entriesOut[i].param;
+    auto& param = entry.param;
     getOptional(ss, param.i2cAddress);
     ss << std::setfill(' ') << std::setw(3) << param.offset << " ";
     ss << std::setfill(' ') << std::setw(3) << param.len << " ";
     getOptional(ss, param.page);
     getOptional(ss, param.bank);
-    ss << (entriesOut[i].op == Operation::Read ? "R" : "W");
+    ss << (entry.op == Operation::Read ? "R" : "W");
     ss << "> ";
-    if (entriesOut[i].success) {
+    if (entry.success) {
       ss << " ";
     } else {
       ss << "F";
     }
     ss << " [";
 
-    for (auto& data : entriesOut[i].data) {
+    for (auto& data : entry.data) {
       ss << std::hex << std::setfill('0') << std::setw(2) << (uint16_t)data;
     }
     ss << "] ";
@@ -228,10 +230,10 @@ std::pair<size_t, size_t> I2cLogBuffer::dumpToFile() {
       ss << 0;
     } else {
       ss << std::chrono::duration_cast<std::chrono::nanoseconds>(
-                entriesOut[i].steadyTime - prev)
+                entry.steadyTime - prev)
                 .count();
     }
-    prev = entriesOut[i].steadyTime;
+    prev = entry.steadyTime;
     ss << std::endl;
   }
   folly::writeFile(ss.str(), logFile_.c_str());
