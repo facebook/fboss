@@ -96,15 +96,19 @@ class AgentTunnelMgrTest : public AgentHwTest {
     } while (iss);
   }
 
-  void checkKernelEntriesRemoved(
+  void checkIpKernelEntriesRemoved(
       const std::string& intfIp,
       bool isIPv4 = true) {
     // Check that the source route rule entries are not present in the kernel
     std::string cmd;
+    // ipv6 address can match with other ipv6 addresses e.g. 1:: can match with
+    // 1::1. So, adding a space before and after the address to avoid matching
+    // with other addresses
+    std::string searchIntfIp = " " + intfIp + " ";
     if (isIPv4) {
-      cmd = folly::to<std::string>("ip rule list | grep ", intfIp);
+      cmd = folly::to<std::string>("ip rule list | grep ", searchIntfIp);
     } else {
-      cmd = folly::to<std::string>("ip -6 rule list | grep ", intfIp);
+      cmd = folly::to<std::string>("ip -6 rule list | grep ", searchIntfIp);
     }
 
     auto output = runShellCmd(cmd);
@@ -113,13 +117,14 @@ class AgentTunnelMgrTest : public AgentHwTest {
     XLOG(DBG2) << "checkKernelEntriesRemoved Output: \n" << output;
 
     EXPECT_TRUE(
-        output.find(folly::to<std::string>(intfIp)) == std::string::npos);
+        output.find(folly::to<std::string>(searchIntfIp)) == std::string::npos);
 
+    searchIntfIp = " " + intfIp + "/";
     // Check that the tunnel address entries are not present in the kernel
     if (isIPv4) {
-      cmd = folly::to<std::string>("ip addr list | grep ", intfIp);
+      cmd = folly::to<std::string>("ip addr list | grep ", searchIntfIp);
     } else {
-      cmd = folly::to<std::string>("ip -6 addr list | grep ", intfIp);
+      cmd = folly::to<std::string>("ip -6 addr list | grep ", searchIntfIp);
     }
 
     output = runShellCmd(cmd);
@@ -128,13 +133,17 @@ class AgentTunnelMgrTest : public AgentHwTest {
     XLOG(DBG2) << "checkKernelEntriesRemoved Output: \n" << output;
 
     EXPECT_TRUE(
-        output.find(folly::to<std::string>(intfIp)) == std::string::npos);
+        output.find(folly::to<std::string>(searchIntfIp)) == std::string::npos);
 
     // Check that the route entries are not present in the kernel
     if (isIPv4) {
-      cmd = folly::to<std::string>("ip route list | grep ", intfIp);
+      searchIntfIp = intfIp;
+      cmd = folly::to<std::string>(
+          "ip route list | grep ", searchIntfIp, " | grep fboss");
     } else {
-      cmd = folly::to<std::string>("ip -6 route list | grep ", intfIp);
+      searchIntfIp = intfIp + "/";
+      cmd = folly::to<std::string>(
+          "ip -6 route list | grep ", searchIntfIp, " | grep fboss");
     }
 
     output = runShellCmd(cmd);
@@ -143,7 +152,7 @@ class AgentTunnelMgrTest : public AgentHwTest {
     XLOG(DBG2) << "checkKernelEntriesRemoved Output: \n" << output;
 
     EXPECT_TRUE(
-        output.find(folly::to<std::string>(intfIp)) == std::string::npos);
+        output.find(folly::to<std::string>(searchIntfIp)) == std::string::npos);
   }
 
   // Check that the kernel entries are present in the kernel
@@ -154,10 +163,11 @@ class AgentTunnelMgrTest : public AgentHwTest {
     // Check that the source route rule entries are present in the kernel
 
     std::string cmd;
+    std::string searchIntfIp = " " + intfIp + " ";
     if (isIPv4) {
-      cmd = folly::to<std::string>("ip rule list | grep ", intfIp);
+      cmd = folly::to<std::string>("ip rule list | grep ", searchIntfIp);
     } else {
-      cmd = folly::to<std::string>("ip -6 rule list | grep ", intfIp);
+      cmd = folly::to<std::string>("ip -6 rule list | grep ", searchIntfIp);
     }
 
     auto output = runShellCmd(cmd);
@@ -166,13 +176,14 @@ class AgentTunnelMgrTest : public AgentHwTest {
     XLOG(DBG2) << "checkKernelEntriesExist Output: \n" << output;
 
     EXPECT_TRUE(
-        output.find(folly::to<std::string>(intfIp)) != std::string::npos);
+        output.find(folly::to<std::string>(searchIntfIp)) != std::string::npos);
 
+    searchIntfIp = " " + intfIp + "/";
     if (isIPv4) {
       // Check that the tunnel address entries are present in the kernel
-      cmd = folly::to<std::string>("ip addr list | grep ", intfIp);
+      cmd = folly::to<std::string>("ip addr list | grep ", searchIntfIp);
     } else {
-      cmd = folly::to<std::string>("ip -6 addr list | grep ", intfIp);
+      cmd = folly::to<std::string>("ip -6 addr list | grep ", searchIntfIp);
     }
 
     output = runShellCmd(cmd);
@@ -181,14 +192,18 @@ class AgentTunnelMgrTest : public AgentHwTest {
     XLOG(DBG2) << "checkKernelEntriesExist Output: \n" << output;
 
     EXPECT_TRUE(
-        output.find(folly::to<std::string>(intfIp)) != std::string::npos);
+        output.find(folly::to<std::string>(searchIntfIp)) != std::string::npos);
 
     if (checkRouteEntry) {
       // Check that the route entries are present in the kernel
       if (isIPv4) {
-        cmd = folly::to<std::string>("ip route list | grep ", intfIp);
+        searchIntfIp = intfIp;
+        cmd = folly::to<std::string>(
+            "ip route list | grep ", searchIntfIp, " | grep fboss");
       } else {
-        cmd = folly::to<std::string>("ip -6 route list | grep ", intfIp);
+        searchIntfIp = intfIp + "/";
+        cmd = folly::to<std::string>(
+            "ip -6 route list | grep ", searchIntfIp, " | grep fboss");
       }
 
       output = runShellCmd(cmd);
@@ -197,7 +212,8 @@ class AgentTunnelMgrTest : public AgentHwTest {
       XLOG(DBG2) << "checkKernelEntriesExist Output:" << output;
 
       EXPECT_TRUE(
-          output.find(folly::to<std::string>(intfIp)) != std::string::npos);
+          output.find(folly::to<std::string>(searchIntfIp)) !=
+          std::string::npos);
     }
   }
 
@@ -211,8 +227,8 @@ class AgentTunnelMgrTest : public AgentHwTest {
   void checkKernelEntriesRemoved(
       const std::string& intfIPv4,
       const std::string& intfIPv6) {
-    checkKernelEntriesRemoved(intfIPv4, true);
-    checkKernelEntriesRemoved(intfIPv6, false);
+    checkIpKernelEntriesRemoved(intfIPv4, true);
+    checkIpKernelEntriesRemoved(intfIPv6, false);
   }
 
   cfg::SwitchConfig initialConfig(
