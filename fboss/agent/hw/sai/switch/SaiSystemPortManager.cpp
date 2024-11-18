@@ -244,6 +244,11 @@ void SaiSystemPortManager::changeSystemPort(
         oldSystemPort->getPortQueues()->impl(),
         newSystemPort->getPortQueues()->impl());
     changeQosPolicy(oldSystemPort, newSystemPort);
+
+    if (oldSystemPort->getShelDestinationEnabled() !=
+        newSystemPort->getShelDestinationEnabled()) {
+      handle->systemPort->setAttributes(newAttributes);
+    }
   }
 }
 
