@@ -487,6 +487,11 @@ void SaiSwitch::switchEventCallback(
     }
     // TODO(zecheng): Update flag when new 12.0 release has the attribute
     case SAI_SWITCH_EVENT_TYPE_REMOTE_LINK_CHANGE:
+      auto isUp = eventInfo->index;
+      auto sysPortId = eventInfo->index2;
+      XLOG(DBG2) << "[SHEL] Received remote link change event: " << "isUp: "
+                 << static_cast<int>(isUp)
+                 << " sysPortId: " << static_cast<int>(sysPortId);
       // TODO(zecheng): Handle and log remote link change
       break;
 #endif
