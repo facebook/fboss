@@ -698,8 +698,7 @@ struct PathVisitorImpl<apache::thrift::type_class::structure> {
   {
     try {
       if (params.mode == PathVisitMode::FULL || cursor == params.end) {
-        params.op.visitTyped(
-            *const_cast<std::remove_const_t<Node>*>(&node), cursor, params.end);
+        params.op.visitTyped(node, cursor, params.end);
         if (cursor == params.end) {
           return ThriftTraverseResult::OK;
         }
