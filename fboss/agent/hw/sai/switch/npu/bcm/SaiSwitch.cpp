@@ -485,6 +485,10 @@ void SaiSwitch::switchEventCallback(
                 << " reload status: " << static_cast<int>(eventInfo->index2);
       break;
     }
+    // TODO(zecheng): Update flag when new 12.0 release has the attribute
+    case SAI_SWITCH_EVENT_TYPE_REMOTE_LINK_CHANGE:
+      // TODO(zecheng): Handle and log remote link change
+      break;
 #endif
   }
 }
