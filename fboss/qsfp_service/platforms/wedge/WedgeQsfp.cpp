@@ -18,6 +18,8 @@
 #include "fboss/qsfp_service/TransceiverManager.h"
 #include "fboss/qsfp_service/module/QsfpModule.h"
 
+#include "fboss/qsfp_service/module/cmis/gen-cpp2/cmis_types.h"
+
 using namespace facebook::fboss;
 using folly::MutableByteRange;
 using folly::StringPiece;
@@ -79,7 +81,8 @@ WedgeQsfp::~WedgeQsfp() {}
 
 int WedgeQsfp::readTransceiver(
     const TransceiverAccessParameter& param,
-    uint8_t* fieldValue) {
+    uint8_t* fieldValue,
+    const int field) {
   auto offset = param.offset;
   auto len = param.len;
   ioStatsRecorder_.recordReadAttempted();
@@ -97,14 +100,18 @@ int WedgeQsfp::readTransceiver(
     generateIOErrorForTest("readTransceiver()");
     threadSafeI2CBus_->moduleRead(module_ + 1, param, fieldValue);
     if (logBuffer_) {
-      logBuffer_->log(param, fieldValue, I2cLogBuffer::Operation::Read);
+      logBuffer_->log(param, field, fieldValue, I2cLogBuffer::Operation::Read);
     }
   } catch (const std::exception& ex) {
     XLOG(ERR) << "Read from transceiver " << module_ << " at offset " << offset
               << " with length " << len << " failed: " << ex.what();
     if (logBuffer_) {
       logBuffer_->log(
-          param, fieldValue, I2cLogBuffer::Operation::Read, /*success*/ false);
+          param,
+          field,
+          fieldValue,
+          I2cLogBuffer::Operation::Read,
+          /*success*/ false);
     }
     throw;
   }
@@ -114,7 +121,8 @@ int WedgeQsfp::readTransceiver(
 int WedgeQsfp::writeTransceiver(
     const TransceiverAccessParameter& param,
     const uint8_t* fieldValue,
-    uint64_t delay) {
+    uint64_t delay,
+    const int field) {
   auto offset = param.offset;
   auto len = param.len;
   ioStatsRecorder_.recordWriteAttempted();
@@ -132,7 +140,7 @@ int WedgeQsfp::writeTransceiver(
     generateIOErrorForTest("writeTransceiver()");
     threadSafeI2CBus_->moduleWrite(module_ + 1, param, fieldValue);
     if (logBuffer_) {
-      logBuffer_->log(param, fieldValue, I2cLogBuffer::Operation::Write);
+      logBuffer_->log(param, field, fieldValue, I2cLogBuffer::Operation::Write);
     }
     // Intel transceiver require some delay for every write.
     // So in the case of writing succeeded, we wait for 20ms.
@@ -144,7 +152,11 @@ int WedgeQsfp::writeTransceiver(
               << " failed: " << folly::exceptionStr(ex);
     if (logBuffer_) {
       logBuffer_->log(
-          param, fieldValue, I2cLogBuffer::Operation::Write, /*success*/ false);
+          param,
+          field,
+          fieldValue,
+          I2cLogBuffer::Operation::Write,
+          /*success*/ false);
     }
     throw;
   }
@@ -188,7 +200,10 @@ TransceiverManagementInterface WedgeQsfp::getTransceiverManagementInterface() {
   for (int i = 0; i < kNumInterfaceDetectionRetries; ++i) {
     try {
       readTransceiver(
-          {TransceiverAccessParameter::ADDR_QSFP, 0, 1}, buf.data());
+          {TransceiverAccessParameter::ADDR_QSFP, 0, 1},
+          buf.data(),
+          // common enum to all tcvr types
+          CAST_TO_INT(CmisField::MGMT_INTERFACE));
       XLOG(DBG3) << folly::sformat(
           "Transceiver {:d}  identifier: {:#x}", module_, buf[0]);
       TransceiverManagementInterface modInterfaceType =
@@ -255,22 +270,30 @@ std::array<uint8_t, 16> WedgeQsfp::getModulePartNo() {
   // SFF module. Restore the page in the end
   readTransceiver(
       {TransceiverAccessParameter::ADDR_QSFP, kCommonModulePageReg, 1},
-      &savedPage);
+      &savedPage,
+      // common enum to all tcvr types
+      CAST_TO_INT(CmisField::PART_NUM));
   if (savedPage != page) {
     writeTransceiver(
         {TransceiverAccessParameter::ADDR_QSFP, kCommonModulePageReg, 1},
         &page,
-        POST_I2C_WRITE_DELAY_US);
+        POST_I2C_WRITE_DELAY_US,
+        // common enum to all tcvr types
+        CAST_TO_INT(CmisField::PART_NUM));
   }
 
   readTransceiver(
       {TransceiverAccessParameter::ADDR_QSFP, partNoRegOffset, 16},
-      partNo.data());
+      partNo.data(),
+      // common enum to all tcvr types
+      CAST_TO_INT(CmisField::PART_NUM));
   if (savedPage != page) {
     writeTransceiver(
         {TransceiverAccessParameter::ADDR_QSFP, kCommonModulePageReg, 1},
         &savedPage,
-        POST_I2C_WRITE_DELAY_US);
+        POST_I2C_WRITE_DELAY_US,
+        // common enum to all tcvr types
+        CAST_TO_INT(CmisField::PART_NUM));
   }
 
   return partNo;
@@ -288,7 +311,9 @@ std::array<uint8_t, 2> WedgeQsfp::getFirmwareVer() {
   // Read 2 byte firmware version from base page reg 39-40 for CMIS module
   readTransceiver(
       {TransceiverAccessParameter::ADDR_QSFP, kCommonModuleFwVerReg, 2},
-      fwVer.data());
+      fwVer.data(),
+      // common enum to all tcvr types
+      CAST_TO_INT(CmisField::FW_VERSION));
   return fwVer;
 }
 

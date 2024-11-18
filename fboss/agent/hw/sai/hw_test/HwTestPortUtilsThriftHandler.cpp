@@ -111,6 +111,119 @@ bool HwTestThriftHandler::verifyPortLedStatus(int portId, bool status) {
   }
 }
 
+bool HwTestThriftHandler::verifyPGSettings(int portId, bool pfcEnabled) {
+  auto swPort = hwSwitch_->getProgrammedState()->getPorts()->getNodeIf(portId);
+  auto swPgConfig = swPort->getPortPgConfigs();
+
+  auto portHandle = static_cast<const SaiSwitch*>(hwSwitch_)
+                        ->managerTable()
+                        ->portManager()
+                        .getPortHandle(PortID(swPort->getID()));
+  // Ensure that both SW and HW has the same number of PG IDs
+  if (portHandle->configuredIngressPriorityGroups.size() !=
+      swPort->getPortPgConfigs()->size()) {
+    XLOG(DBG2) << "Number of PGs mismatch for port " << swPort->getName()
+               << " hw size: "
+               << portHandle->configuredIngressPriorityGroups.size()
+               << " sw size: " << swPort->getPortPgConfigs()->size();
+    return false;
+  }
+  for (const auto& pgConfig : std::as_const(*swPgConfig)) {
+    auto id = pgConfig->cref<switch_state_tags::id>()->cref();
+    auto iter = portHandle->configuredIngressPriorityGroups.find(
+        static_cast<IngressPriorityGroupID>(id));
+    if (iter == portHandle->configuredIngressPriorityGroups.end()) {
+      XLOG(DBG2) << "Priority group config canot be found for PG id " << id
+                 << " on port " << swPort->getName();
+      return false;
+    }
+    auto bufferProfile = iter->second.bufferProfile;
+    if (pgConfig->cref<switch_state_tags::resumeOffsetBytes>()->cref() !=
+        SaiApiTable::getInstance()->bufferApi().getAttribute(
+            bufferProfile->adapterKey(),
+            SaiBufferProfileTraits::Attributes::XonOffsetTh{})) {
+      XLOG(DBG2) << "Resume offset mismatch for pg " << id;
+      return false;
+    }
+    if (pgConfig->cref<switch_state_tags::minLimitBytes>()->cref() !=
+        SaiApiTable::getInstance()->bufferApi().getAttribute(
+            bufferProfile->adapterKey(),
+            SaiBufferProfileTraits::Attributes::ReservedBytes{})) {
+      XLOG(DBG2) << "Min limit mismatch for pg " << id;
+      return false;
+    }
+    if (pgConfig->cref<switch_state_tags::minLimitBytes>()->cref() !=
+        SaiApiTable::getInstance()->bufferApi().getAttribute(
+            bufferProfile->adapterKey(),
+            SaiBufferProfileTraits::Attributes::ReservedBytes{})) {
+      XLOG(DBG2) << "Min limit mismatch for pg " << id;
+      return false;
+    }
+    if (auto pgHdrmOpt =
+            pgConfig->cref<switch_state_tags::headroomLimitBytes>()) {
+      if (pgHdrmOpt->cref() !=
+          SaiApiTable::getInstance()->bufferApi().getAttribute(
+              bufferProfile->adapterKey(),
+              SaiBufferProfileTraits::Attributes::XoffTh{})) {
+        XLOG(DBG2) << "Headroom mismatch for pg " << id;
+        return false;
+      }
+    }
+
+    // Buffer pool configs
+    const auto bufferPool =
+        pgConfig->cref<switch_state_tags::bufferPoolConfig>();
+    if (bufferPool->cref<common_if_tags::headroomBytes>()->cref() *
+            static_cast<const SaiSwitch*>(hwSwitch_)
+                ->getPlatform()
+                ->getAsic()
+                ->getNumMemoryBuffers() !=
+        SaiApiTable::getInstance()->bufferApi().getAttribute(
+            static_cast<const SaiSwitch*>(hwSwitch_)
+                ->managerTable()
+                ->bufferManager()
+                .getIngressBufferPoolHandle()
+                ->bufferPool->adapterKey(),
+            SaiBufferPoolTraits::Attributes::XoffSize{})) {
+      XLOG(DBG2) << "Headroom mismatch for buffer pool";
+      return false;
+    }
+
+    // Port PFC configurations
+    if (SaiApiTable::getInstance()->portApi().getAttribute(
+            portHandle->port->adapterKey(),
+            SaiPortTraits::Attributes::PriorityFlowControlMode{}) ==
+        SAI_PORT_PRIORITY_FLOW_CONTROL_MODE_COMBINED) {
+      auto hwPfcEnabled = SaiApiTable::getInstance()->portApi().getAttribute(
+                              portHandle->port->adapterKey(),
+                              SaiPortTraits::Attributes::PriorityFlowControl{})
+          ? 1
+          : 0;
+      if (hwPfcEnabled != pfcEnabled) {
+        XLOG(DBG2) << "PFC mismatch for port " << swPort->getName();
+        return false;
+      }
+    } else {
+#if !defined(TAJO_SDK)
+      auto hwPfcEnabled =
+          SaiApiTable::getInstance()->portApi().getAttribute(
+              portHandle->port->adapterKey(),
+              SaiPortTraits::Attributes::PriorityFlowControlTx{})
+          ? 1
+          : 0;
+      if (hwPfcEnabled != pfcEnabled) {
+        XLOG(DBG2) << "PFC mismatch for port " << swPort->getName();
+        return false;
+      }
+#else
+      XLOG(DBG2) << "Flow control mode SEPARATE unsupported!";
+      return false;
+#endif
+    }
+  }
+  return true;
+}
+
 } // namespace utility
 } // namespace fboss
 } // namespace facebook

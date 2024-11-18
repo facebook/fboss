@@ -40,7 +40,7 @@ void MockTransceiverI2CApi::moduleRead(
     }
   } else if (const auto tcvrItor = overridenTransceivers_.find(module);
              tcvrItor != overridenTransceivers_.end()) {
-    tcvrItor->second->readTransceiver(param, buf);
+    tcvrItor->second->readTransceiver(param, buf, 0);
   } else {
     XLOG(ERR)
         << "moduleRead(module=" << module << ", i2cAddress=" << i2cAddress

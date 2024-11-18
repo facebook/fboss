@@ -224,7 +224,7 @@ struct RecurseVisitor<apache::thrift::type_class::list<ValueTypeClass>> {
     }
     auto& tObj = node->ref();
     bool visitIntermediate = options.mode == RecurseVisitMode::FULL ||
-        options.mode == RecurseVisitMode::UNPUBLISHED || tObj.empty();
+        options.mode == RecurseVisitMode::UNPUBLISHED;
     if (visitIntermediate &&
         options.order == RecurseVisitOrder::PARENTS_FIRST) {
       rv_detail::invokeVisitorFnHelper(traverser, node, std::forward<Func>(f));
@@ -299,7 +299,7 @@ struct RecurseVisitor<
     }
     auto& tObj = node->ref();
     bool visitIntermediate = options.mode == RecurseVisitMode::FULL ||
-        options.mode == RecurseVisitMode::UNPUBLISHED || tObj.empty();
+        options.mode == RecurseVisitMode::UNPUBLISHED;
     if (visitIntermediate &&
         options.order == RecurseVisitOrder::PARENTS_FIRST) {
       rv_detail::invokeVisitorFnHelper(traverser, node, std::forward<Func>(f));

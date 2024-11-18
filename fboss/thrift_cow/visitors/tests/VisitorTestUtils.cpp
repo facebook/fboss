@@ -25,7 +25,12 @@ TestStruct createSimpleTestStruct() {
           "childMap", dynamic::object(10, true)(20, false)(50, false)))(
       "mapOfStringToI32", dynamic::object("test1", 1)("test2", 2))(
       "mapOfI32ToStruct",
-      dynamic::object(20, dynamic::object("min", 400)("max", 600)));
+      dynamic::object(20, dynamic::object("min", 400)("max", 600)))(
+      "mapOfI32ToListOfStructs",
+      dynamic::object(
+          20, dynamic::array(dynamic::object("min", 100)("max", 200))))(
+      "mapOfI32ToSetOfString",
+      dynamic::object(20, dynamic::array("test1", "test2")));
 
   return facebook::thrift::from_dynamic<TestStruct>(
       testDyn, facebook::thrift::dynamic_format::JSON_1);

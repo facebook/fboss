@@ -18,6 +18,7 @@
 #include "fboss/agent/test/utils/AclTestUtils.h"
 #include "fboss/agent/test/utils/AsicUtils.h"
 #include "fboss/agent/test/utils/PortTestUtils.h"
+#include "fboss/agent/test/utils/VoqTestUtils.h"
 #include "fboss/lib/config/PlatformConfigUtils.h"
 
 #include <folly/Format.h>
@@ -91,40 +92,6 @@ folly::MacAddress kLocalCpuMac() {
 
 std::string getLocalCpuMacStr() {
   return kLocalCpuMac().toString();
-}
-
-std::vector<cfg::PortQueue> getDefaultVoqCfg() {
-  std::vector<cfg::PortQueue> voqs;
-
-  cfg::PortQueue defaultQueue;
-  defaultQueue.id() = 0;
-  defaultQueue.name() = "default";
-  defaultQueue.streamType() = cfg::StreamType::UNICAST;
-  defaultQueue.scheduling() = cfg::QueueScheduling::INTERNAL;
-  voqs.push_back(defaultQueue);
-
-  cfg::PortQueue rdmaQueue;
-  rdmaQueue.id() = 2;
-  rdmaQueue.name() = "rdma";
-  rdmaQueue.streamType() = cfg::StreamType::UNICAST;
-  rdmaQueue.scheduling() = cfg::QueueScheduling::INTERNAL;
-  voqs.push_back(rdmaQueue);
-
-  cfg::PortQueue monitoringQueue;
-  monitoringQueue.id() = 6;
-  monitoringQueue.name() = "monitoring";
-  monitoringQueue.streamType() = cfg::StreamType::UNICAST;
-  monitoringQueue.scheduling() = cfg::QueueScheduling::INTERNAL;
-  voqs.push_back(monitoringQueue);
-
-  cfg::PortQueue ncQueue;
-  ncQueue.id() = 7;
-  ncQueue.name() = "nc";
-  ncQueue.streamType() = cfg::StreamType::UNICAST;
-  ncQueue.scheduling() = cfg::QueueScheduling::INTERNAL;
-  voqs.push_back(ncQueue);
-
-  return voqs;
 }
 
 const std::map<cfg::PortType, cfg::PortLoopbackMode>& kDefaultLoopbackMap() {
@@ -240,13 +207,13 @@ std::unordered_map<PortID, cfg::PortProfileID> getSafeProfileIDs(
     }
 
     auto asicType = asic->getAsicType();
-    bool isJericho2 = asicType == cfg::AsicType::ASIC_TYPE_JERICHO2;
 
     auto bestSpeed = cfg::PortSpeed::DEFAULT;
-    if (isJericho2) {
-      // For J2c we always want to choose the following
-      // speeds since that's what we have in hw chip config
-      // and J2c does not support dynamic port speed change yet.
+    if (asicType == cfg::AsicType::ASIC_TYPE_JERICHO3 &&
+        FLAGS_dual_stage_rdsw_3q_2q) {
+      // When using dual_stage_rdsw_3q_2q mapping. Pick NIF port
+      // speed to be 400G, since that's what we have in chip config
+      // and J3 does not support dynamic port speed change yet.
       auto portId = group.first;
       auto platPortItr = platformMapping->getPlatformPorts().find(portId);
       if (platPortItr == platformMapping->getPlatformPorts().end()) {
@@ -254,16 +221,12 @@ std::unordered_map<PortID, cfg::PortProfileID> getSafeProfileIDs(
       }
       switch (*platPortItr->second.mapping()->portType()) {
         case cfg::PortType::INTERFACE_PORT:
-        case cfg::PortType::MANAGEMENT_PORT:
-          bestSpeed = getDefaultInterfaceSpeed(asicType);
+          bestSpeed = cfg::PortSpeed::FOURHUNDREDG;
           break;
         case cfg::PortType::FABRIC_PORT:
-          bestSpeed = getDefaultFabricSpeed(asicType);
-          break;
+        case cfg::PortType::MANAGEMENT_PORT:
         case cfg::PortType::RECYCLE_PORT:
         case cfg::PortType::EVENTOR_PORT:
-          bestSpeed = cfg::PortSpeed::XG;
-          break;
         case cfg::PortType::CPU_PORT:
           break;
       }
@@ -796,7 +759,10 @@ cfg::SwitchConfig genPortVlanCfg(
   auto switchType = asic->getSwitchType();
   // VOQ config
   if (switchType == cfg::SwitchType::VOQ) {
-    config.defaultVoqConfig() = getDefaultVoqCfg();
+    auto nameAndDefaultVoqCfg =
+        getNameAndDefaultVoqCfg(cfg::PortType::INTERFACE_PORT);
+    CHECK(nameAndDefaultVoqCfg.has_value());
+    config.defaultVoqConfig() = nameAndDefaultVoqCfg->queueConfig;
   }
 
   // Use getPortToDefaultProfileIDMap() to genetate the default config instead
@@ -853,6 +819,15 @@ cfg::SwitchConfig genPortVlanCfg(
       portCfg->state() = cfg::PortState::ENABLED;
       portCfg->ingressVlan() = port2vlan.find(portID)->second;
       portCfg->maxFrameSize() = kPortMTU;
+      if (switchType == cfg::SwitchType::VOQ &&
+          *portCfg->portType() != cfg::PortType::INTERFACE_PORT) {
+        auto nameAndVoqConfig = getNameAndDefaultVoqCfg(*portCfg->portType());
+        if (nameAndVoqConfig.has_value()) {
+          config.portQueueConfigs()[nameAndVoqConfig->name] =
+              nameAndVoqConfig->queueConfig;
+          portCfg->portVoqConfigName() = nameAndVoqConfig->name;
+        }
+      }
     }
     portCfg->routable() = true;
     portCfg->parserType() = cfg::ParserType::L3;

@@ -107,3 +107,19 @@ time ./build/fbcode_builder/getdeps.py build --allow-system-packages \
 --extra-cmake-defines='{"CMAKE_BUILD_TYPE": "MinSizeRel", "CMAKE_CXX_STANDARD": "20"}' \
 --scratch-path /var/FBOSS/tmp_bld_dir fboss
 ```
+
+### Build Options
+
+#### Limiting the build to a specific target
+
+You can limit the build to a specific target by using the `--cmake-target` flag.
+Buildable targets can be found by examining the cmake scripts in the repository.
+Any buildable target will be specified in the cmake scripts either by 
+`add_executable` or `add_library`. Example command below:
+
+```
+
+time ./build/fbcode_builder/getdeps.py build --allow-system-packages \
+--extra-cmake-defines='{"CMAKE_BUILD_TYPE": "MinSizeRel", "CMAKE_CXX_STANDARD": "20"}' \
+--scratch-path /var/FBOSS/tmp_bld_dir --cmake-target qsfp_service fboss
+```

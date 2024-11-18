@@ -310,7 +310,6 @@ cpp_library(
 
 hw_test_common_srcs = [
     "HwVerifyPfcConfigInHwTest.cpp",
-    "HwIngressBufferTests.cpp",
     "HwAclStatTests.cpp",
     "HwTestFabricUtils.cpp",
     "HwFlexPortTests.cpp",

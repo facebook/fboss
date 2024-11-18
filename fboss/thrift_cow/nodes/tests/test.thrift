@@ -32,6 +32,8 @@ union TestUnion {
 
 struct ChildStruct {
   1: map<i32, bool> childMap;
+  2: map<string, i32> strMap;
+  3: map<string, switch_config.L4PortRange> structMap;
 }
 
 struct TestStruct {
@@ -55,7 +57,9 @@ struct TestStruct {
     allow_skip_thrift_cow = true,
   );
   16: map<string, switch_config.L4PortRange> mapOfStringToStruct;
-  17: map<i32, list<switch_config.L4PortRange>> mapOfI32ToListOfStructs; // (allow_skip_thrift_cow = true);
+  17: map<i32, list<switch_config.L4PortRange>> mapOfI32ToListOfStructs (
+    allow_skip_thrift_cow = true,
+  );
   18: set<i32> setOfI32;
   19: set<TestEnum> setOfEnum;
   20: set<string> setOfString;
@@ -75,7 +79,9 @@ struct TestStruct {
     allow_skip_thrift_cow = true,
   );
   33: map<i32, map<i32, i32>> hybridMapOfMap (allow_skip_thrift_cow = true);
-// 34: map<i32, set<string>> mapOfI32ToSetOfString; // (allow_skip_thrift_cow = true);
+  34: map<i32, set<string>> mapOfI32ToSetOfString (
+    allow_skip_thrift_cow = true,
+  );
 }
 
 struct ParentTestStruct {

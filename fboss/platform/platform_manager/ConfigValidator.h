@@ -24,7 +24,7 @@ class ConfigValidator {
   virtual bool isValidSlotPath(
       const PlatformConfig& platformConfig,
       const std::string& slotPath);
-  bool isValidDeviceName(
+  virtual bool isValidDeviceName(
       const PlatformConfig& platformConfig,
       const std::string& slotPath,
       const std::string& deviceName);

@@ -114,6 +114,26 @@ TYPED_TEST(PathVisitorTests, AccessField) {
       *nodeA, path.begin(), path.end(), PathVisitMode::LEAF, processPath);
   EXPECT_EQ(result, ThriftTraverseResult::OK);
   EXPECT_EQ(400, dyn.asInt());
+
+  // mapOfI32ToListOfStructs
+  path = {"mapOfI32ToListOfStructs", "20", "0", "min"};
+  result = RootPathVisitor::visit(
+      *nodeA, path.begin(), path.end(), PathVisitMode::LEAF, processPath);
+  EXPECT_EQ(result, ThriftTraverseResult::OK);
+  EXPECT_EQ(100, dyn.asInt());
+
+  // mapOfI32ToSetOfString
+  path = {"mapOfI32ToSetOfString", "20", "test1"};
+  result = RootPathVisitor::visit(
+      *nodeA, path.begin(), path.end(), PathVisitMode::LEAF, processPath);
+  EXPECT_EQ(result, ThriftTraverseResult::OK);
+  EXPECT_EQ("test1", dyn.asString());
+
+  // mapOfI32ToSetOfString invalid
+  path = {"mapOfI32ToSetOfString", "20", "invalid_entry"};
+  result = RootPathVisitor::visit(
+      *nodeA, path.begin(), path.end(), PathVisitMode::LEAF, processPath);
+  EXPECT_EQ(result, ThriftTraverseResult::NON_EXISTENT_NODE);
 }
 
 TEST(PathVisitorTests, HybridMapPrimitiveAccess) {
@@ -329,7 +349,10 @@ TEST(PathVisitorTests, HybridMapOfMapAccess) {
 
 TYPED_TEST(PathVisitorTests, AccessFieldInContainer) {
   auto structA = createSimpleTestStruct();
-  auto nodeA = std::make_shared<ThriftStructNode<TestStruct>>(structA);
+  auto nodeA = std::make_shared<ThriftStructNode<
+      TestStruct,
+      ThriftStructResolver<TestStruct, true>,
+      true>>(structA);
 
   folly::dynamic dyn;
   auto processPath = pvlambda([&dyn](auto& node, auto begin, auto end) {
@@ -366,15 +389,32 @@ TYPED_TEST(PathVisitorTests, TraversalModeFull) {
   auto structA = createSimpleTestStruct();
   auto nodeA = this->initNode(structA);
 
-  auto op = GetVisitedPathsOperator();
-  std::vector<std::string> path{"mapOfEnumToStruct", "3"};
-  auto result = RootPathVisitor::visit(
-      *nodeA, path.begin(), path.end(), PathVisitMode::FULL, op);
-  EXPECT_EQ(result, ThriftTraverseResult::OK);
-  EXPECT_THAT(
-      op.getVisited(),
-      ::testing::ContainerEq(
-          std::set<std::string>{"/", "/3", "/mapOfEnumToStruct/3"}));
+  {
+    auto op = GetVisitedPathsOperator();
+    std::vector<std::string> path{"mapOfEnumToStruct", "3"};
+    auto result = RootPathVisitor::visit(
+        *nodeA, path.begin(), path.end(), PathVisitMode::FULL, op);
+    EXPECT_EQ(result, ThriftTraverseResult::OK);
+    EXPECT_THAT(
+        op.getVisited(),
+        ::testing::ContainerEq(
+            std::set<std::string>{"/", "/3", "/mapOfEnumToStruct/3"}));
+  }
+  {
+    auto op = GetVisitedPathsOperator();
+    std::vector<std::string> path{"mapOfI32ToListOfStructs", "20", "0", "min"};
+    auto result = RootPathVisitor::visit(
+        *nodeA, path.begin(), path.end(), PathVisitMode::FULL, op);
+    EXPECT_EQ(result, ThriftTraverseResult::OK);
+    EXPECT_THAT(
+        op.getVisited(),
+        ::testing::ContainerEq(std::set<std::string>{
+            "/",
+            "/min",
+            "/0/min",
+            "/20/0/min",
+            "/mapOfI32ToListOfStructs/20/0/min"}));
+  }
 }
 
 TEST(PathVisitorTests, AccessOptional) {
@@ -486,6 +526,53 @@ TYPED_TEST(PathVisitorTests, VisitWithOperators) {
         fsdb::OperProtocol::SIMPLE_JSON, std::move(buf));
     EXPECT_EQ(getStruct.min(), 666);
     EXPECT_EQ(getStruct.max(), 999);
+  }
+
+  {
+    using TC = apache::thrift::type_class::structure;
+    std::vector<std::string> path{"mapOfI32ToListOfStructs", "20", "0"};
+
+    cfg::L4PortRange newRange;
+    newRange.min() = 666;
+    newRange.max() = 999;
+    folly::fbstring newVal =
+        serialize<TC>(fsdb::OperProtocol::SIMPLE_JSON, newRange);
+    SetEncodedPathVisitorOperator setOp(
+        fsdb::OperProtocol::SIMPLE_JSON, newVal);
+
+    auto result = RootPathVisitor::visit(
+        *nodeA, path.begin(), path.end(), PathVisitMode::LEAF, setOp);
+    EXPECT_EQ(result, ThriftTraverseResult::OK);
+
+    GetEncodedPathVisitorOperator getOp(fsdb::OperProtocol::SIMPLE_JSON);
+    result = RootPathVisitor::visit(
+        *nodeA, path.begin(), path.end(), PathVisitMode::LEAF, getOp);
+    EXPECT_EQ(result, ThriftTraverseResult::OK);
+    EXPECT_EQ(getOp.val, newVal);
+    auto encoded = *getOp.val;
+    auto buf =
+        folly::IOBuf::wrapBufferAsValue(encoded.data(), encoded.length());
+    auto getStruct = deserializeBuf<TC, cfg::L4PortRange>(
+        fsdb::OperProtocol::SIMPLE_JSON, std::move(buf));
+    EXPECT_EQ(getStruct.min(), 666);
+    EXPECT_EQ(getStruct.max(), 999);
+  }
+
+  {
+    using TC = apache::thrift::type_class::structure;
+    std::vector<std::string> path{"mapOfI32ToSetOfString", "20", "test1"};
+
+    GetEncodedPathVisitorOperator getOp(fsdb::OperProtocol::SIMPLE_JSON);
+    auto result = RootPathVisitor::visit(
+        *nodeA, path.begin(), path.end(), PathVisitMode::LEAF, getOp);
+    EXPECT_EQ(result, ThriftTraverseResult::OK);
+
+    auto encoded = *getOp.val;
+    auto buf =
+        folly::IOBuf::wrapBufferAsValue(encoded.data(), encoded.length());
+    auto getStruct = deserializeBuf<TC, std::string>(
+        fsdb::OperProtocol::SIMPLE_JSON, std::move(buf));
+    EXPECT_EQ(getStruct, "test1");
   }
 }
 

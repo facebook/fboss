@@ -10,6 +10,7 @@
 
 #include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
 #include "fboss/qsfp_service/module/QsfpFieldInfo.h"
+#include "fboss/qsfp_service/module/sff/gen-cpp2/sff8472_types.h"
 
 /*
  * Parse transceiver data fields, as outlined in various documents
@@ -20,32 +21,6 @@ namespace facebook {
 namespace fboss {
 
 enum class Sff8472Pages;
-
-enum class Sff8472Field {
-  IDENTIFIER, // Type of Transceiver
-  ETHERNET_10G_COMPLIANCE_CODE, // 10G Ethernet Compliance codes
-
-  ALARM_WARNING_THRESHOLDS,
-  TEMPERATURE,
-  VCC,
-  CHANNEL_TX_BIAS,
-  CHANNEL_TX_PWR,
-  CHANNEL_RX_PWR,
-  STATUS_AND_CONTROL_BITS,
-  ALARM_WARNING_FLAGS,
-
-  EXTENDED_SPEC_COMPLIANCE_CODE,
-  VENDOR_NAME,
-  VENDOR_OUI,
-  VENDOR_PART_NUMBER,
-  VENDOR_REVISION_NUMBER,
-  VENDOR_SERIAL_NUMBER,
-  VENDOR_MFG_DATE,
-  DOM_TYPE,
-
-  PAGE_LOWER_A0,
-  PAGE_LOWER_A2,
-};
 
 enum FieldMasks : uint8_t {
   RX_LOS_MASK = 1 << 1,

@@ -29,6 +29,10 @@ namespace facebook::fboss {
  */
 
 constexpr int kMaxI2clogDataSize = 128;
+constexpr size_t kI2cFieldNameLength = 16;
+
+// Number of address fields in TransceiverAccessParameter
+constexpr int kNumParamFields = 5;
 
 class I2cLogBuffer {
   using TimePointSteady = std::chrono::steady_clock::time_point;
@@ -47,6 +51,7 @@ class I2cLogBuffer {
     TimePointSteady steadyTime;
     TimePointSystem systemTime;
     TransceiverAccessParameter param;
+    int field;
     std::array<uint8_t, kMaxI2clogDataSize> data;
     Operation op;
     bool success{true};
@@ -62,6 +67,7 @@ class I2cLogBuffer {
     std::set<std::string> portNames;
     std::optional<FirmwareStatus> fwStatus;
     std::optional<Vendor> vendor;
+    std::chrono::microseconds duration;
   };
 
   // NOTE: The maximum number of entries is defined in config (qsfp_config.cinc)
@@ -93,6 +99,7 @@ class I2cLogBuffer {
   // Insert a log entry into the buffer.
   void log(
       const TransceiverAccessParameter& param,
+      const int field,
       const uint8_t* data,
       Operation op,
       bool success = true);
@@ -151,7 +158,8 @@ class I2cLogBuffer {
   size_t totalEntries_{0};
   std::string logFile_;
   std::mutex mutex_;
-  TransceiverManagementInterface mgmtIf_;
+  TransceiverManagementInterface mgmtIf_ =
+      TransceiverManagementInterface::UNKNOWN;
   std::set<std::string> portNames_;
   std::optional<FirmwareStatus> fwStatus_;
   std::optional<Vendor> vendor_;
@@ -163,6 +171,7 @@ class I2cLogBuffer {
   }
 
   void getEntryTime(std::stringstream& ss, const TimePointSystem& time_point);
+  void getFieldName(std::stringstream& ss, const int field);
 
   template <typename T>
   void getOptional(std::stringstream& ss, T value);
@@ -170,8 +179,8 @@ class I2cLogBuffer {
   // Operations to re-construct I2cReplayEntry from a log file.
   static size_t getHeader(std::stringstream& ss, const I2cLogHeader& info);
   static std::string getField(const std::string& line, char left, char right);
-  static TransceiverAccessParameter getParam(std::stringstream& ss);
-  static I2cLogBuffer::Operation getOp(std::stringstream& ss);
+  static TransceiverAccessParameter getParam(const std::string& str);
+  static I2cLogBuffer::Operation getOp(const char op);
   static std::array<uint8_t, kMaxI2clogDataSize> getData(std::string str);
   static uint64_t getDelay(const std::string& str);
   static bool getSuccess(const std::string& str);
