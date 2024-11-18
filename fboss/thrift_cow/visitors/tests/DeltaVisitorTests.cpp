@@ -119,12 +119,12 @@ TYPED_TEST(DeltaVisitorTests, ChangeOneFieldInContainer) {
 
   PathTagSet expected;
   expected.emplace(std::make_pair("/", DeltaElemTag::NOT_MINIMAL));
+  expected.emplace(
+      std::make_pair("/mapOfEnumToStruct", DeltaElemTag::NOT_MINIMAL));
   if (this->isHybridStorage()) {
     expected.emplace(
-        std::make_pair("/mapOfEnumToStruct", DeltaElemTag::MINIMAL));
+        std::make_pair("/mapOfEnumToStruct/3", DeltaElemTag::MINIMAL));
   } else {
-    expected.emplace(
-        std::make_pair("/mapOfEnumToStruct", DeltaElemTag::NOT_MINIMAL));
     expected.emplace(
         std::make_pair("/mapOfEnumToStruct/3", DeltaElemTag::NOT_MINIMAL));
     expected.emplace(
@@ -151,7 +151,7 @@ TYPED_TEST(DeltaVisitorTests, ChangeOneFieldInContainer) {
   expected.clear();
   if (this->isHybridStorage()) {
     expected.emplace(
-        std::make_pair("/mapOfEnumToStruct", DeltaElemTag::MINIMAL));
+        std::make_pair("/mapOfEnumToStruct/3", DeltaElemTag::MINIMAL));
   } else {
     expected.emplace(
         std::make_pair("/mapOfEnumToStruct/3/min", DeltaElemTag::MINIMAL));
@@ -226,15 +226,10 @@ TYPED_TEST(DeltaVisitorTests, AddToMap) {
 
   PathTagSet expected;
   expected.emplace(std::make_pair("/", DeltaElemTag::NOT_MINIMAL));
-  if (this->isHybridStorage()) {
-    expected.emplace(
-        std::make_pair("/mapOfEnumToStruct", DeltaElemTag::MINIMAL));
-  } else {
-    expected.emplace(
-        std::make_pair("/mapOfEnumToStruct", DeltaElemTag::NOT_MINIMAL));
-    expected.emplace(
-        std::make_pair("/mapOfEnumToStruct/1", DeltaElemTag::MINIMAL));
-  }
+  expected.emplace(
+      std::make_pair("/mapOfEnumToStruct", DeltaElemTag::NOT_MINIMAL));
+  expected.emplace(
+      std::make_pair("/mapOfEnumToStruct/1", DeltaElemTag::MINIMAL));
 
   PathTagSet differingPaths;
   auto processChange = [&](const std::vector<std::string>& path,
@@ -252,13 +247,8 @@ TYPED_TEST(DeltaVisitorTests, AddToMap) {
   // Test MINIMAL mode
   differingPaths.clear();
   expected.clear();
-  if (this->isHybridStorage()) {
-    expected.emplace(
-        std::make_pair("/mapOfEnumToStruct", DeltaElemTag::MINIMAL));
-  } else {
-    expected.emplace(
-        std::make_pair("/mapOfEnumToStruct/1", DeltaElemTag::MINIMAL));
-  }
+  expected.emplace(
+      std::make_pair("/mapOfEnumToStruct/1", DeltaElemTag::MINIMAL));
 
   result = RootDeltaVisitor::visit(
       nodeA, nodeB, DeltaVisitOptions(DeltaVisitMode::MINIMAL), processChange);
@@ -269,14 +259,11 @@ TYPED_TEST(DeltaVisitorTests, AddToMap) {
   differingPaths.clear();
   expected.clear();
   expected.emplace(std::make_pair("/", DeltaElemTag::NOT_MINIMAL));
-  if (this->isHybridStorage()) {
-    expected.emplace(
-        std::make_pair("/mapOfEnumToStruct", DeltaElemTag::MINIMAL));
-  } else {
-    expected.emplace(
-        std::make_pair("/mapOfEnumToStruct", DeltaElemTag::NOT_MINIMAL));
-    expected.emplace(
-        std::make_pair("/mapOfEnumToStruct/1", DeltaElemTag::MINIMAL));
+  expected.emplace(
+      std::make_pair("/mapOfEnumToStruct", DeltaElemTag::NOT_MINIMAL));
+  expected.emplace(
+      std::make_pair("/mapOfEnumToStruct/1", DeltaElemTag::MINIMAL));
+  if (!this->isHybridStorage()) {
     expected.emplace(
         std::make_pair("/mapOfEnumToStruct/1/min", DeltaElemTag::NOT_MINIMAL));
     expected.emplace(
@@ -312,12 +299,12 @@ TYPED_TEST(DeltaVisitorTests, UpdateMap) {
 
   PathTagSet expected;
   expected.emplace(std::make_pair("/", DeltaElemTag::NOT_MINIMAL));
+  expected.emplace(
+      std::make_pair("/mapOfEnumToStruct", DeltaElemTag::NOT_MINIMAL));
   if (this->isHybridStorage()) {
     expected.emplace(
-        std::make_pair("/mapOfEnumToStruct", DeltaElemTag::MINIMAL));
+        std::make_pair("/mapOfEnumToStruct/1", DeltaElemTag::MINIMAL));
   } else {
-    expected.emplace(
-        std::make_pair("/mapOfEnumToStruct", DeltaElemTag::NOT_MINIMAL));
     expected.emplace(
         std::make_pair("/mapOfEnumToStruct/1", DeltaElemTag::NOT_MINIMAL));
     expected.emplace(
@@ -344,7 +331,7 @@ TYPED_TEST(DeltaVisitorTests, UpdateMap) {
   expected.clear();
   if (this->isHybridStorage()) {
     expected.emplace(
-        std::make_pair("/mapOfEnumToStruct", DeltaElemTag::MINIMAL));
+        std::make_pair("/mapOfEnumToStruct/1", DeltaElemTag::MINIMAL));
   } else {
     expected.emplace(
         std::make_pair("/mapOfEnumToStruct/1/min", DeltaElemTag::MINIMAL));
@@ -361,7 +348,7 @@ TYPED_TEST(DeltaVisitorTests, UpdateMap) {
   differingPaths.clear();
   expected.clear();
   if (this->isHybridStorage()) {
-    expected.emplace(std::make_pair("/15", DeltaElemTag::MINIMAL));
+    expected.emplace(std::make_pair("/15/1", DeltaElemTag::MINIMAL));
   } else {
     expected.emplace(std::make_pair("/15/1/1", DeltaElemTag::MINIMAL));
     expected.emplace(std::make_pair("/15/1/2", DeltaElemTag::MINIMAL));
@@ -381,12 +368,12 @@ TYPED_TEST(DeltaVisitorTests, UpdateMap) {
   differingPaths.clear();
   expected.clear();
   expected.emplace(std::make_pair("/", DeltaElemTag::NOT_MINIMAL));
+  expected.emplace(
+      std::make_pair("/mapOfEnumToStruct", DeltaElemTag::NOT_MINIMAL));
   if (this->isHybridStorage()) {
     expected.emplace(
-        std::make_pair("/mapOfEnumToStruct", DeltaElemTag::MINIMAL));
+        std::make_pair("/mapOfEnumToStruct/1", DeltaElemTag::MINIMAL));
   } else {
-    expected.emplace(
-        std::make_pair("/mapOfEnumToStruct", DeltaElemTag::NOT_MINIMAL));
     expected.emplace(
         std::make_pair("/mapOfEnumToStruct/1", DeltaElemTag::NOT_MINIMAL));
     expected.emplace(
@@ -411,15 +398,10 @@ TYPED_TEST(DeltaVisitorTests, DeleteFromMap) {
 
   PathTagSet expected;
   expected.emplace(std::make_pair("/", DeltaElemTag::NOT_MINIMAL));
-  if (this->isHybridStorage()) {
-    expected.emplace(
-        std::make_pair("/mapOfEnumToStruct", DeltaElemTag::MINIMAL));
-  } else {
-    expected.emplace(
-        std::make_pair("/mapOfEnumToStruct", DeltaElemTag::NOT_MINIMAL));
-    expected.emplace(
-        std::make_pair("/mapOfEnumToStruct/3", DeltaElemTag::MINIMAL));
-  }
+  expected.emplace(
+      std::make_pair("/mapOfEnumToStruct", DeltaElemTag::NOT_MINIMAL));
+  expected.emplace(
+      std::make_pair("/mapOfEnumToStruct/3", DeltaElemTag::MINIMAL));
 
   PathTagSet differingPaths;
   auto processChange = [&](const std::vector<std::string>& path,
@@ -437,13 +419,8 @@ TYPED_TEST(DeltaVisitorTests, DeleteFromMap) {
   // Test MINIMAL mode
   differingPaths.clear();
   expected.clear();
-  if (this->isHybridStorage()) {
-    expected.emplace(
-        std::make_pair("/mapOfEnumToStruct", DeltaElemTag::MINIMAL));
-  } else {
-    expected.emplace(
-        std::make_pair("/mapOfEnumToStruct/3", DeltaElemTag::MINIMAL));
-  }
+  expected.emplace(
+      std::make_pair("/mapOfEnumToStruct/3", DeltaElemTag::MINIMAL));
 
   result = RootDeltaVisitor::visit(
       nodeA, nodeB, DeltaVisitOptions(DeltaVisitMode::MINIMAL), processChange);
@@ -454,14 +431,11 @@ TYPED_TEST(DeltaVisitorTests, DeleteFromMap) {
   differingPaths.clear();
   expected.clear();
   expected.emplace(std::make_pair("/", DeltaElemTag::NOT_MINIMAL));
-  if (this->isHybridStorage()) {
-    expected.emplace(
-        std::make_pair("/mapOfEnumToStruct", DeltaElemTag::MINIMAL));
-  } else {
-    expected.emplace(
-        std::make_pair("/mapOfEnumToStruct", DeltaElemTag::NOT_MINIMAL));
-    expected.emplace(
-        std::make_pair("/mapOfEnumToStruct/3", DeltaElemTag::MINIMAL));
+  expected.emplace(
+      std::make_pair("/mapOfEnumToStruct", DeltaElemTag::NOT_MINIMAL));
+  expected.emplace(
+      std::make_pair("/mapOfEnumToStruct/3", DeltaElemTag::MINIMAL));
+  if (!this->isHybridStorage()) {
     expected.emplace(
         std::make_pair("/mapOfEnumToStruct/3/min", DeltaElemTag::NOT_MINIMAL));
     expected.emplace(
