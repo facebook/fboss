@@ -623,6 +623,14 @@ class AgentSflowMirrorOnTrunkTest : public AgentSflowMirrorTruncateTest<AddrT> {
 class AgentSflowMirrorWithLineRateTrafficTest
     : public AgentSflowMirrorTruncateTest<folly::IPAddressV6> {
  public:
+  std::vector<production_features::ProductionFeature>
+  getProductionFeaturesVerified() const override {
+    auto productionFeatures = AgentSflowMirrorTruncateTest<
+        folly::IPAddressV6>::getProductionFeaturesVerified();
+    productionFeatures.push_back(
+        production_features::ProductionFeature::LINERATE_SFLOW);
+    return productionFeatures;
+  }
   static const int kLosslessPriority{2};
   void testSflowEgressCongestion() {
     constexpr int kNumDataTrafficPorts{6};
