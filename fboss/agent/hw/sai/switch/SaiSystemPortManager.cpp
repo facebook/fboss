@@ -77,7 +77,8 @@ SaiSystemPortManager::~SaiSystemPortManager() {}
 
 SaiSystemPortTraits::CreateAttributes
 SaiSystemPortManager::attributesFromSwSystemPort(
-    const std::shared_ptr<SystemPort>& swSystemPort) const {
+    const std::shared_ptr<SystemPort>& swSystemPort,
+    bool shel) const {
   sai_system_port_config_t config{
       .port_id = static_cast<uint32_t>(swSystemPort->getID()),
       .attached_switch_id = static_cast<uint32_t>(swSystemPort->getSwitchId()),
@@ -100,7 +101,7 @@ SaiSystemPortManager::attributesFromSwSystemPort(
   }
   std::optional<SaiSystemPortTraits::Attributes::ShelPktDstEnable>
       shelPktDstEnable = std::nullopt;
-  if (swSystemPort->getShelDestinationEnabled()) {
+  if (shel && swSystemPort->getShelDestinationEnabled()) {
     shelPktDstEnable = true;
   }
   return SaiSystemPortTraits::CreateAttributes{
@@ -117,8 +118,10 @@ SystemPortSaiId SaiSystemPortManager::addSystemPort(
         " SAI id: ",
         systemPortHandle->systemPort->adapterKey());
   }
+  // TODO(zecheng): Create system port with shel dst enable is not supported yet
+  // (CS00012377244). To workaround, set this attribute after create.
   SaiSystemPortTraits::CreateAttributes attributes =
-      attributesFromSwSystemPort(swSystemPort);
+      attributesFromSwSystemPort(swSystemPort, false /* shel */);
 
   portStats_.emplace(
       swSystemPort->getID(),
@@ -133,6 +136,12 @@ SystemPortSaiId SaiSystemPortManager::addSystemPort(
       GET_ATTR(SystemPort, ConfigInfo, attributes)};
   auto saiSystemPort = systemPortStore.setObject(
       systemPortKey, attributes, swSystemPort->getID());
+  // Workaround to set shel destination enable
+  if (swSystemPort->getShelDestinationEnabled()) {
+    SaiSystemPortTraits::CreateAttributes attributesWithShel =
+        attributesFromSwSystemPort(swSystemPort, true /* shel */);
+    saiSystemPort->setAttributes(attributesWithShel);
+  }
   handle->systemPort = saiSystemPort;
   loadQueues(*handle, swSystemPort);
   handles_.emplace(swSystemPort->getID(), std::move(handle));
@@ -222,7 +231,8 @@ void SaiSystemPortManager::changeSystemPort(
     const std::shared_ptr<SystemPort>& newSystemPort) {
   CHECK_EQ(oldSystemPort->getID(), newSystemPort->getID());
   auto handle = getSystemPortHandleImpl(newSystemPort->getID());
-  auto newAttributes = attributesFromSwSystemPort(newSystemPort);
+  auto newAttributes =
+      attributesFromSwSystemPort(newSystemPort, true /* shel */);
   if (createOnlyAttributesChanged(
           handle->systemPort->attributes(), newAttributes)) {
     removeSystemPort(oldSystemPort);

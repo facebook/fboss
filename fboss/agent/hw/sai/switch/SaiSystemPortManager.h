@@ -103,7 +103,8 @@ class SaiSystemPortManager {
       SaiSystemPortHandle& sysPortHandle,
       const std::shared_ptr<SystemPort>& swSystemPort);
   SaiSystemPortTraits::CreateAttributes attributesFromSwSystemPort(
-      const std::shared_ptr<SystemPort>& swSystemPort) const;
+      const std::shared_ptr<SystemPort>& swSystemPort,
+      bool shel = false) const;
   SaiQueueHandle* FOLLY_NULLABLE
   getQueueHandle(SystemPortID swId, const SaiQueueConfig& saiQueueConfig) const;
   void changeQueue(
