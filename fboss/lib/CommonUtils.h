@@ -211,5 +211,8 @@ void runAndRemoveScript(
     const std::vector<std::string>& args = {});
 void runShellCommand(const std::string& command, bool throwOnError = true);
 void runCommand(const std::vector<std::string>& argv, bool throwOnError = true);
+void runCommandWithRetries(
+    const std::vector<std::string>& argv,
+    const std::chrono::milliseconds& ms = std::chrono::milliseconds(500));
 
 } // namespace facebook::fboss
