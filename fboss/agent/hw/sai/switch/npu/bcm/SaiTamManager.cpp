@@ -7,7 +7,7 @@
 #include "fboss/agent/hw/sai/switch/SaiPortManager.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
 
-#if defined(BRCM_SAI_SDK_DNX_GTE_11_0) && !defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
 extern "C" {
 #ifndef IS_OSS_BRCM_SAI
 #include <experimental/saiexperimentaltameventaginggroup.h>
@@ -115,7 +115,7 @@ SaiTamManager::SaiTamManager(
 
 void SaiTamManager::addMirrorOnDropReport(
     const std::shared_ptr<MirrorOnDropReport>& report) {
-#if defined(BRCM_SAI_SDK_DNX_GTE_11_0) && !defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
   // Create report
   auto& reportStore = saiStore_->get<SaiTamReportTraits>();
   auto reportTraits =
