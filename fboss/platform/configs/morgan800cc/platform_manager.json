@@ -377,13 +377,13 @@
           "busName": "MCB_IOB_I2C_MASTER_14",
           "address": "0x26",
           "kernelDeviceName": "ltc2497",
-          "pmUnitScopedName": "FAN0_LTC2497_0X4C"
+          "pmUnitScopedName": "FCB0_LTC2497_0X4C"
         },
         {
           "busName": "MCB_IOB_I2C_MASTER_15",
           "address": "0x26",
           "kernelDeviceName": "ltc2497",
-          "pmUnitScopedName": "FAN1_LTC2497_0X4C"
+          "pmUnitScopedName": "FCB1_LTC2497_0X4C"
         },
         {
           "busName": "MCB_IOB_I2C_MASTER_4",
@@ -3365,8 +3365,8 @@
     "/run/devmap/sensors/MCB_LTC2979_0X60": "/[MCB_LTC2979_0X60]",
     "/run/devmap/sensors/MCB_LTC2979_0X61": "/[MCB_LTC2979_0X61]",
     "/run/devmap/sensors/MCB_ADM1278_0X12": "/[MCB_ADM1278_0X12]",
-    "/run/devmap/sensors/FAN0_LTC2497_0X4C": "/[FAN0_LTC2497_0X4C]",
-    "/run/devmap/sensors/FAN1_LTC2497_0X4C": "/[FAN1_LTC2497_0X4C]",
+    "/run/devmap/sensors/FCB0_LTC2497_0X4C": "/[FCB0_LTC2497_0X4C]",
+    "/run/devmap/sensors/FCB1_LTC2497_0X4C": "/[FCB1_LTC2497_0X4C]",
     "/run/devmap/sensors/MCB_FAN_PWM": "/[MCB_FAN_PWM]",
     "/run/devmap/sensors/SCM_LTC2497_0X14": "/JUMPER_SLOT@0/SCM_SLOT@0/[SCM_LTC2497_0X14]",
     "/run/devmap/sensors/SCM_TMP451_0X4C": "/JUMPER_SLOT@0/SCM_SLOT@0/[SCM_TMP451_0X4C]",
