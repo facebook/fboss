@@ -134,7 +134,10 @@ Interface* Interface::modify(std::shared_ptr<SwitchState>* state) {
       ? (*state)->getSwitchSettings()->cbegin()->second
       : std::make_shared<SwitchSettings>();
 
-  if (getType() == cfg::InterfaceType::SYSTEM_PORT) {
+  if (getType() == cfg::InterfaceType::SYSTEM_PORT &&
+      getScope() == cfg::Scope::GLOBAL) {
+    // For global system port RIFs, look whether these fall
+    // in my sysport ranges. If so, the RIF is local
     auto id(static_cast<int64_t>(getID()));
     auto switchId2Info = switchSettings->getSwitchIdToSwitchInfo();
     for (const auto& [_, switchInfo] : switchId2Info) {
@@ -144,12 +147,13 @@ Interface* Interface::modify(std::shared_ptr<SwitchState>* state) {
           isLocal = true;
           break;
         }
-        if (isLocal) {
-          break;
-        }
+      }
+      if (isLocal) {
+        break;
       }
     }
   } else {
+    // VLAN based rifs, or rifs with local scope are always local
     isLocal = true;
   }
   auto interfaces = isLocal ? (*state)->getInterfaces()->modify(state)
