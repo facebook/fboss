@@ -102,6 +102,7 @@ class SaiHostifManager {
   void updateStats(bool updateWatermarks = false);
   HwPortStats getCpuPortStats() const;
   QueueConfig getQueueSettings() const;
+  QueueConfig getVoqSettings() const;
   const HwCpuFb303Stats& getCpuFb303Stats() const {
     return cpuStats_;
   }

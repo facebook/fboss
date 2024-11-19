@@ -2393,6 +2393,8 @@ std::shared_ptr<SwitchState> SaiSwitch::getColdBootSwitchState() {
     auto cpu = std::make_shared<ControlPlane>();
     auto cpuQueues = managerTable_->hostifManager().getQueueSettings();
     cpu->resetQueues(cpuQueues);
+    auto cpuVoqs = managerTable_->hostifManager().getVoqSettings();
+    cpu->resetVoqs(cpuVoqs);
     auto multiSwitchControlPlane = std::make_shared<MultiControlPlane>();
     multiSwitchControlPlane->addNode(
         scopeResolver->scope(cpu).matcherString(), cpu);
