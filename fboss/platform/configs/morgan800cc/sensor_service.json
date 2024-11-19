@@ -175,7 +175,7 @@
           "compute": "@/1000*0.2078"
         },
         {
-          "name": "FAN0_FCB0",
+          "name": "FAN1_FCB0",
           "sysfsPath": "/run/devmap/sensors/FCB0_LTC2497_0X4C/in_voltage5_raw",
           "type": 2,
           "thresholds": {
@@ -185,7 +185,7 @@
           "compute": "@/1000*0.2670288"
         },
         {
-          "name": "FAN1_FCB0",
+          "name": "FAN2_FCB0",
           "sysfsPath": "/run/devmap/sensors/FCB0_LTC2497_0X4C/in_voltage6_raw",
           "type": 2,
           "thresholds": {
@@ -195,7 +195,7 @@
           "compute": "@/1000*0.2670288"
         },
         {
-          "name": "FAN2_FCB0",
+          "name": "FAN3_FCB0",
           "sysfsPath": "/run/devmap/sensors/FCB0_LTC2497_0X4C/in_voltage7_raw",
           "type": 2,
           "thresholds": {
@@ -205,7 +205,7 @@
           "compute": "@/1000*0.2670288"
         },
         {
-          "name": "FAN3_FCB0",
+          "name": "FAN4_FCB0",
           "sysfsPath": "/run/devmap/sensors/FCB0_LTC2497_0X4C/in_voltage8_raw",
           "type": 2,
           "thresholds": {
@@ -235,7 +235,7 @@
           "compute": "@/1000*0.2078"
         },
         {
-          "name": "FAN0_FCB1",
+          "name": "FAN1_FCB1",
           "sysfsPath": "/run/devmap/sensors/FCB1_LTC2497_0X4C/in_voltage5_raw",
           "type": 2,
           "thresholds": {
@@ -245,7 +245,7 @@
           "compute": "@/1000*0.2670288"
         },
         {
-          "name": "FAN1_FCB1",
+          "name": "FAN2_FCB1",
           "sysfsPath": "/run/devmap/sensors/FCB1_LTC2497_0X4C/in_voltage6_raw",
           "type": 2,
           "thresholds": {
@@ -255,7 +255,7 @@
           "compute": "@/1000*0.2670288"
         },
         {
-          "name": "FAN2_FCB1",
+          "name": "FAN3_FCB1",
           "sysfsPath": "/run/devmap/sensors/FCB1_LTC2497_0X4C/in_voltage7_raw",
           "type": 2,
           "thresholds": {
@@ -265,7 +265,7 @@
           "compute": "@/1000*0.2670288"
         },
         {
-          "name": "FAN3_FCB1",
+          "name": "FAN4_FCB1",
           "sysfsPath": "/run/devmap/sensors/FCB1_LTC2497_0X4C/in_voltage8_raw",
           "type": 2,
           "thresholds": {
@@ -273,6 +273,86 @@
             "lowerCriticalVal": 0.1
           },
           "compute": "@/1000*0.2670288"
+        },
+        {
+          "name": "FAN1_RPM",
+          "sysfsPath": "/run/devmap/sensors/MCB_FAN_PWM/fan1_input",
+          "type": 4
+        },
+        {
+          "name": "FAN2_RPM",
+          "sysfsPath": "/run/devmap/sensors/MCB_FAN_PWM/fan2_input",
+          "type": 4
+        },
+        {
+          "name": "FAN3_RPM",
+          "sysfsPath": "/run/devmap/sensors/MCB_FAN_PWM/fan3_input",
+          "type": 4
+        },
+        {
+          "name": "FAN4_RPM",
+          "sysfsPath": "/run/devmap/sensors/MCB_FAN_PWM/fan4_input",
+          "type": 4
+        },
+        {
+          "name": "FAN5_RPM",
+          "sysfsPath": "/run/devmap/sensors/MCB_FAN_PWM/fan5_input",
+          "type": 4
+        },
+        {
+          "name": "FAN6_RPM",
+          "sysfsPath": "/run/devmap/sensors/MCB_FAN_PWM/fan6_input",
+          "type": 4
+        },
+        {
+          "name": "FAN7_RPM",
+          "sysfsPath": "/run/devmap/sensors/MCB_FAN_PWM/fan7_input",
+          "type": 4
+        },
+        {
+          "name": "FAN8_RPM",
+          "sysfsPath": "/run/devmap/sensors/MCB_FAN_PWM/fan8_input",
+          "type": 4
+        },
+        {
+          "name": "FAN9_RPM",
+          "sysfsPath": "/run/devmap/sensors/MCB_FAN_PWM/fan9_input",
+          "type": 4
+        },
+        {
+          "name": "FAN10_RPM",
+          "sysfsPath": "/run/devmap/sensors/MCB_FAN_PWM/fan10_input",
+          "type": 4
+        },
+        {
+          "name": "FAN11_RPM",
+          "sysfsPath": "/run/devmap/sensors/MCB_FAN_PWM/fan11_input",
+          "type": 4
+        },
+        {
+          "name": "FAN12_RPM",
+          "sysfsPath": "/run/devmap/sensors/MCB_FAN_PWM/fan12_input",
+          "type": 4
+        },
+        {
+          "name": "FAN13_RPM",
+          "sysfsPath": "/run/devmap/sensors/MCB_FAN_PWM/fan13_input",
+          "type": 4
+        },
+        {
+          "name": "FAN14_RPM",
+          "sysfsPath": "/run/devmap/sensors/MCB_FAN_PWM/fan14_input",
+          "type": 4
+        },
+        {
+          "name": "FAN15_RPM",
+          "sysfsPath": "/run/devmap/sensors/MCB_FAN_PWM/fan15_input",
+          "type": 4
+        },
+        {
+          "name": "FAN16_RPM",
+          "sysfsPath": "/run/devmap/sensors/MCB_FAN_PWM/fan16_input",
+          "type": 4
         }
       ]
     },
