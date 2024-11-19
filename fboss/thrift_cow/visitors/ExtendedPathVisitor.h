@@ -230,7 +230,20 @@ struct ExtendedPathVisitor<apache::thrift::type_class::list<ValueTypeClass>> {
       Func&& f)
     requires(std::is_same_v<typename Node::CowType, HybridNodeType>)
   {
-    throw std::runtime_error("List: not implemented yet");
+    const auto& tObj = node.ref();
+    const auto& elem = *begin++;
+    for (int i = 0; i < tObj.size(); ++i) {
+      auto matching =
+          epv_detail::matchingToken<apache::thrift::type_class::integral>(
+              i, elem);
+      if (matching) {
+        path.push_back(*matching);
+
+        ExtendedPathVisitor<ValueTypeClass>::visit(
+            path, tObj.at(i), begin, end, options, std::forward<Func>(f));
+        path.pop_back();
+      }
+    }
   }
 
   template <typename Node, typename Func>
@@ -243,7 +256,19 @@ struct ExtendedPathVisitor<apache::thrift::type_class::list<ValueTypeClass>> {
       Func&& f)
     requires(!is_cow_type_v<Node> && !is_field_type_v<Node>)
   {
-    throw std::runtime_error("List: not implemented yet");
+    const auto& elem = *begin++;
+    for (int i = 0; i < node.size(); ++i) {
+      auto matching =
+          epv_detail::matchingToken<apache::thrift::type_class::integral>(
+              i, elem);
+      if (matching) {
+        path.push_back(*matching);
+
+        ExtendedPathVisitor<ValueTypeClass>::visit(
+            path, node.at(i), begin, end, options, std::forward<Func>(f));
+        path.pop_back();
+      }
+    }
   }
 
   template <typename Fields, typename Func>
