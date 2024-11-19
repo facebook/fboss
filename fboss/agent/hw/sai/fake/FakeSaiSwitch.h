@@ -282,6 +282,14 @@ class FakeSwitch {
     return pfcDlrPacketAction_;
   }
 
+  void setTamObjectId(sai_object_id_t objectId) {
+    tamObjectId_ = objectId;
+  }
+
+  sai_object_id_t getTamObjectId() const {
+    return tamObjectId_;
+  }
+
   sai_object_id_t id;
 
   sai_status_t setLed(const sai_attribute_t* attr);
@@ -334,6 +342,7 @@ class FakeSwitch {
   bool creditWatchDogEnable_{true};
   uint32_t creditWatchDogMs_{500};
   sai_packet_action_t pfcDlrPacketAction_{SAI_PACKET_ACTION_DROP};
+  sai_object_id_t tamObjectId_{SAI_NULL_OBJECT_ID};
 };
 
 using FakeSwitchManager = FakeManager<sai_object_id_t, FakeSwitch>;

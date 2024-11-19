@@ -33,8 +33,8 @@ struct SaiTamHandle {
 #endif
   std::vector<std::shared_ptr<SaiTamEvent>> events;
   std::shared_ptr<SaiTam> tam;
+  PortID portId;
   SaiManagerTable* managerTable;
-  ~SaiTamHandle();
 };
 class SaiTamManager {
  public:
@@ -49,6 +49,7 @@ class SaiTamManager {
   void changeMirrorOnDropReport(
       const std::shared_ptr<MirrorOnDropReport>& oldReport,
       const std::shared_ptr<MirrorOnDropReport>& newReport);
+  std::vector<PortID> getAllMirrorOnDropPortIds();
 
   const SaiTamHandle* getTamHandle(const std::string& name) const {
     return tamHandles_.contains(name) ? tamHandles_.at(name).get() : nullptr;

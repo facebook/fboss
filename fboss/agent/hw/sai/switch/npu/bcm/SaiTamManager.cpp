@@ -107,10 +107,6 @@ const std::map<int, std::vector<sai_int32_t>> kDropProfiles = {
 
 namespace facebook::fboss {
 
-SaiTamHandle::~SaiTamHandle() {
-  managerTable->switchManager().resetTamObject();
-}
-
 SaiTamManager::SaiTamManager(
     SaiStore* saiStore,
     SaiManagerTable* managerTable,
@@ -221,6 +217,7 @@ void SaiTamManager::addMirrorOnDropReport(
   tamHandle->agingGroups = agingGroups;
   tamHandle->events = events;
   tamHandle->tam = tam;
+  tamHandle->portId = report->getMirrorPortId();
   tamHandles_.emplace(report->getID(), std::move(tamHandle));
 #endif
 }
@@ -235,6 +232,14 @@ void SaiTamManager::changeMirrorOnDropReport(
     const std::shared_ptr<MirrorOnDropReport>& newReport) {
   removeMirrorOnDropReport(oldReport);
   addMirrorOnDropReport(newReport);
+}
+
+std::vector<PortID> SaiTamManager::getAllMirrorOnDropPortIds() {
+  std::vector<PortID> portIds;
+  for (const auto& [_, tamHandle] : tamHandles_) {
+    portIds.push_back(tamHandle->portId);
+  }
+  return portIds;
 }
 
 } // namespace facebook::fboss
