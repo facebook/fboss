@@ -70,6 +70,7 @@ PortID MirrorManagerImpl<AddrT>::getEventorPortForSflowMirror(
 template <typename AddrT>
 std::shared_ptr<Mirror> MirrorManagerImpl<AddrT>::updateMirror(
     const std::shared_ptr<Mirror>& mirror) {
+  bool isV4 = std::is_same_v<AddrT, folly::IPAddressV4>;
   const AddrT destinationIp =
       getIPAddress<AddrT>(mirror->getDestinationIp().value());
   const auto state = sw_->getState();
@@ -91,6 +92,10 @@ std::shared_ptr<Mirror> MirrorManagerImpl<AddrT>::updateMirror(
   newMirror->setSwitchId(mirror->getSwitchId());
 
   for (const auto& nexthop : nexthops) {
+    // Dont consider nextHops that do not match incoming Address family
+    if (isV4 != nexthop.addr().isV4()) {
+      continue;
+    }
     const auto entry =
         resolveMirrorNextHopNeighbor(state, mirror, destinationIp, nexthop);
 
