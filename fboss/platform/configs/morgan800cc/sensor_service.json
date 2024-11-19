@@ -153,6 +153,206 @@
             "lowerCriticalVal": 11.04
           },
           "compute": "@/1000"
+        },
+        {
+          "name": "MCB_FCB0_P3_3V",
+          "sysfsPath": "/run/devmap/sensors/FCB0_LTC2497_0X4C/in_voltage1_raw",
+          "type": 1,
+          "thresholds": {
+            "upperCriticalVal": 3.55,
+            "lowerCriticalVal": 2.937
+          },
+          "compute": "@/1000*0.05735"
+        },
+        {
+          "name": "MCB_FCB0_P12V",
+          "sysfsPath": "/run/devmap/sensors/FCB0_LTC2497_0X4C/in_voltage4_raw",
+          "type": 1,
+          "thresholds": {
+            "upperCriticalVal": 14.4,
+            "lowerCriticalVal": 9.6
+          },
+          "compute": "@/1000*0.2078"
+        },
+        {
+          "name": "FAN1_FCB0",
+          "sysfsPath": "/run/devmap/sensors/FCB0_LTC2497_0X4C/in_voltage5_raw",
+          "type": 2,
+          "thresholds": {
+            "upperCriticalVal": 10,
+            "lowerCriticalVal": 0.1
+          },
+          "compute": "@/1000*0.2670288"
+        },
+        {
+          "name": "FAN2_FCB0",
+          "sysfsPath": "/run/devmap/sensors/FCB0_LTC2497_0X4C/in_voltage6_raw",
+          "type": 2,
+          "thresholds": {
+            "upperCriticalVal": 10,
+            "lowerCriticalVal": 0.1
+          },
+          "compute": "@/1000*0.2670288"
+        },
+        {
+          "name": "FAN3_FCB0",
+          "sysfsPath": "/run/devmap/sensors/FCB0_LTC2497_0X4C/in_voltage7_raw",
+          "type": 2,
+          "thresholds": {
+            "upperCriticalVal": 10,
+            "lowerCriticalVal": 0.1
+          },
+          "compute": "@/1000*0.2670288"
+        },
+        {
+          "name": "FAN4_FCB0",
+          "sysfsPath": "/run/devmap/sensors/FCB0_LTC2497_0X4C/in_voltage8_raw",
+          "type": 2,
+          "thresholds": {
+            "upperCriticalVal": 10,
+            "lowerCriticalVal": 0.1
+          },
+          "compute": "@/1000*0.2670288"
+        },
+        {
+          "name": "MCB_FCB1_P3_3V",
+          "sysfsPath": "/run/devmap/sensors/FCB1_LTC2497_0X4C/in_voltage1_raw",
+          "type": 1,
+          "thresholds": {
+            "upperCriticalVal": 3.55,
+            "lowerCriticalVal": 2.937
+          },
+          "compute": "@/1000*0.05735"
+        },
+        {
+          "name": "MCB_FCB1_P12V",
+          "sysfsPath": "/run/devmap/sensors/FCB1_LTC2497_0X4C/in_voltage4_raw",
+          "type": 1,
+          "thresholds": {
+            "upperCriticalVal": 14.4,
+            "lowerCriticalVal": 9.6
+          },
+          "compute": "@/1000*0.2078"
+        },
+        {
+          "name": "FAN1_FCB1",
+          "sysfsPath": "/run/devmap/sensors/FCB1_LTC2497_0X4C/in_voltage5_raw",
+          "type": 2,
+          "thresholds": {
+            "upperCriticalVal": 10,
+            "lowerCriticalVal": 0.1
+          },
+          "compute": "@/1000*0.2670288"
+        },
+        {
+          "name": "FAN2_FCB1",
+          "sysfsPath": "/run/devmap/sensors/FCB1_LTC2497_0X4C/in_voltage6_raw",
+          "type": 2,
+          "thresholds": {
+            "upperCriticalVal": 10,
+            "lowerCriticalVal": 0.1
+          },
+          "compute": "@/1000*0.2670288"
+        },
+        {
+          "name": "FAN3_FCB1",
+          "sysfsPath": "/run/devmap/sensors/FCB1_LTC2497_0X4C/in_voltage7_raw",
+          "type": 2,
+          "thresholds": {
+            "upperCriticalVal": 10,
+            "lowerCriticalVal": 0.1
+          },
+          "compute": "@/1000*0.2670288"
+        },
+        {
+          "name": "FAN4_FCB1",
+          "sysfsPath": "/run/devmap/sensors/FCB1_LTC2497_0X4C/in_voltage8_raw",
+          "type": 2,
+          "thresholds": {
+            "upperCriticalVal": 10,
+            "lowerCriticalVal": 0.1
+          },
+          "compute": "@/1000*0.2670288"
+        },
+        {
+          "name": "FAN1_RPM",
+          "sysfsPath": "/run/devmap/sensors/MCB_FAN_PWM/fan1_input",
+          "type": 4
+        },
+        {
+          "name": "FAN2_RPM",
+          "sysfsPath": "/run/devmap/sensors/MCB_FAN_PWM/fan2_input",
+          "type": 4
+        },
+        {
+          "name": "FAN3_RPM",
+          "sysfsPath": "/run/devmap/sensors/MCB_FAN_PWM/fan3_input",
+          "type": 4
+        },
+        {
+          "name": "FAN4_RPM",
+          "sysfsPath": "/run/devmap/sensors/MCB_FAN_PWM/fan4_input",
+          "type": 4
+        },
+        {
+          "name": "FAN5_RPM",
+          "sysfsPath": "/run/devmap/sensors/MCB_FAN_PWM/fan5_input",
+          "type": 4
+        },
+        {
+          "name": "FAN6_RPM",
+          "sysfsPath": "/run/devmap/sensors/MCB_FAN_PWM/fan6_input",
+          "type": 4
+        },
+        {
+          "name": "FAN7_RPM",
+          "sysfsPath": "/run/devmap/sensors/MCB_FAN_PWM/fan7_input",
+          "type": 4
+        },
+        {
+          "name": "FAN8_RPM",
+          "sysfsPath": "/run/devmap/sensors/MCB_FAN_PWM/fan8_input",
+          "type": 4
+        },
+        {
+          "name": "FAN9_RPM",
+          "sysfsPath": "/run/devmap/sensors/MCB_FAN_PWM/fan9_input",
+          "type": 4
+        },
+        {
+          "name": "FAN10_RPM",
+          "sysfsPath": "/run/devmap/sensors/MCB_FAN_PWM/fan10_input",
+          "type": 4
+        },
+        {
+          "name": "FAN11_RPM",
+          "sysfsPath": "/run/devmap/sensors/MCB_FAN_PWM/fan11_input",
+          "type": 4
+        },
+        {
+          "name": "FAN12_RPM",
+          "sysfsPath": "/run/devmap/sensors/MCB_FAN_PWM/fan12_input",
+          "type": 4
+        },
+        {
+          "name": "FAN13_RPM",
+          "sysfsPath": "/run/devmap/sensors/MCB_FAN_PWM/fan13_input",
+          "type": 4
+        },
+        {
+          "name": "FAN14_RPM",
+          "sysfsPath": "/run/devmap/sensors/MCB_FAN_PWM/fan14_input",
+          "type": 4
+        },
+        {
+          "name": "FAN15_RPM",
+          "sysfsPath": "/run/devmap/sensors/MCB_FAN_PWM/fan15_input",
+          "type": 4
+        },
+        {
+          "name": "FAN16_RPM",
+          "sysfsPath": "/run/devmap/sensors/MCB_FAN_PWM/fan16_input",
+          "type": 4
         }
       ]
     },
@@ -497,7 +697,7 @@
           "compute": "@/1000"
         },
         {
-          "name": "SMB_NP_IFG_VDDI1",
+          "name": "SMB_NP_IFG_VDDI",
           "sysfsPath": "/run/devmap/sensors/SMB_LTC3888-1_0X53/in2_input",
           "type": 1,
           "thresholds": {
@@ -507,7 +707,7 @@
           "compute": "@/1000"
         },
         {
-          "name": "SMB_NP_IFG_VDDI1_K0INT",
+          "name": "SMB_NP_IFG_VDDI_K0INT",
           "sysfsPath": "/run/devmap/sensors/SMB_LTC3888-1_0X53/temp1_input",
           "type": 3,
           "thresholds": {
@@ -517,7 +717,7 @@
           "compute": "@/1000"
         },
         {
-          "name": "SMB_NP_IFG_VDDI1_K0EXT",
+          "name": "SMB_NP_IFG_VDDI_K0EXT",
           "sysfsPath": "/run/devmap/sensors/SMB_LTC3888-1_0X53/temp2_input",
           "type": 3,
           "thresholds": {
@@ -882,7 +1082,7 @@
           "type": 1,
           "thresholds": {
             "upperCriticalVal": 14.4,
-            "lowerCriticalVal": 9
+            "lowerCriticalVal": 9.6
           },
           "compute": "@/1000"
         },
@@ -1029,143 +1229,16 @@
       ]
     },
     {
-      "slotPath": "/",
-      "pmUnitName": "FAN0",
-      "sensors": [
-        {
-          "name": "FAN0_FCB0_P3_3V",
-          "sysfsPath": "/run/devmap/sensors/FAN0_LTC2497_0X4C/in_voltage1_raw",
-          "type": 1,
-          "thresholds": {
-            "upperCriticalVal": 3.55,
-            "lowerCriticalVal": 2.937
-          },
-          "compute": "@/1000*0.05735"
-        },
-        {
-          "name": "FAN0_FCB0_P12V",
-          "sysfsPath": "/run/devmap/sensors/FAN0_LTC2497_0X4C/in_voltage4_raw",
-          "type": 1,
-          "thresholds": {
-            "upperCriticalVal": 14.4,
-            "lowerCriticalVal": 9.6
-          },
-          "compute": "@/1000*0.2078"
-        },
-        {
-          "name": "FAN0_FCB0_FAN0",
-          "sysfsPath": "/run/devmap/sensors/FAN0_LTC2497_0X4C/in_voltage5_raw",
-          "type": 2,
-          "thresholds": {
-            "upperCriticalVal": 10,
-            "lowerCriticalVal": 0.1
-          },
-          "compute": "@/1000*0.2670288"
-        },
-        {
-          "name": "FAN0_FCB0_FAN1",
-          "sysfsPath": "/run/devmap/sensors/FAN0_LTC2497_0X4C/in_voltage6_raw",
-          "type": 2,
-          "thresholds": {
-            "upperCriticalVal": 10,
-            "lowerCriticalVal": 0.1
-          },
-          "compute": "@/1000*0.2670288"
-        },
-        {
-          "name": "FAN0_FCB0_FAN2",
-          "sysfsPath": "/run/devmap/sensors/FAN0_LTC2497_0X4C/in_voltage7_raw",
-          "type": 2,
-          "thresholds": {
-            "upperCriticalVal": 10,
-            "lowerCriticalVal": 0.1
-          },
-          "compute": "@/1000*0.2670288"
-        },
-        {
-          "name": "FAN0_FCB0_FAN3",
-          "sysfsPath": "/run/devmap/sensors/FAN0_LTC2497_0X4C/in_voltage8_raw",
-          "type": 2,
-          "thresholds": {
-            "upperCriticalVal": 10,
-            "lowerCriticalVal": 0.1
-          },
-          "compute": "@/1000*0.2670288"
-        }
-      ]
-    },
-    {
-      "slotPath": "/",
-      "pmUnitName": "FAN1",
-      "sensors": [
-        {
-          "name": "FAN1_FCB1_P3_3V",
-          "sysfsPath": "/run/devmap/sensors/FAN1_LTC2497_0X4C/in_voltage1_raw",
-          "type": 1,
-          "thresholds": {
-            "upperCriticalVal": 3.55,
-            "lowerCriticalVal": 2.937
-          },
-          "compute": "@/1000*0.05735"
-        },
-        {
-          "name": "FAN1_FCB1_P12V",
-          "sysfsPath": "/run/devmap/sensors/FAN1_LTC2497_0X4C/in_voltage4_raw",
-          "type": 1,
-          "thresholds": {
-            "upperCriticalVal": 14.4,
-            "lowerCriticalVal": 9.6
-          },
-          "compute": "@/1000*0.2078"
-        },
-        {
-          "name": "FAN1_FCB1_FAN0",
-          "sysfsPath": "/run/devmap/sensors/FAN1_LTC2497_0X4C/in_voltage5_raw",
-          "type": 2,
-          "thresholds": {
-            "upperCriticalVal": 10,
-            "lowerCriticalVal": 0.1
-          },
-          "compute": "@/1000*0.2670288"
-        },
-        {
-          "name": "FAN1_FCB1_FAN1",
-          "sysfsPath": "/run/devmap/sensors/FAN1_LTC2497_0X4C/in_voltage6_raw",
-          "type": 2,
-          "thresholds": {
-            "upperCriticalVal": 10,
-            "lowerCriticalVal": 0.1
-          },
-          "compute": "@/1000*0.2670288"
-        },
-        {
-          "name": "FAN1_FCB1_FAN2",
-          "sysfsPath": "/run/devmap/sensors/FAN1_LTC2497_0X4C/in_voltage7_raw",
-          "type": 2,
-          "thresholds": {
-            "upperCriticalVal": 10,
-            "lowerCriticalVal": 0.1
-          },
-          "compute": "@/1000*0.2670288"
-        },
-        {
-          "name": "FAN1_FCB1_FAN3",
-          "sysfsPath": "/run/devmap/sensors/FAN1_LTC2497_0X4C/in_voltage8_raw",
-          "type": 2,
-          "thresholds": {
-            "upperCriticalVal": 10,
-            "lowerCriticalVal": 0.1
-          },
-          "compute": "@/1000*0.2670288"
-        }
-      ]
+      "slotPath": "/JUMPER_SLOT@0/SCM_SLOT@0/RUNBMC_SLOT@0",
+      "pmUnitName": "RUNBMC",
+      "sensors": []
     },
     {
       "slotPath": "/PSU_SLOT@0",
-      "pmUnitName": "PDB0",
+      "pmUnitName": "PSU",
       "sensors": [
         {
-          "name": "PDB0_PSU0_VIN",
+          "name": "PSU0_VIN",
           "sysfsPath": "/run/devmap/sensors/PDB0_PSU_0X58/in1_input",
           "type": 1,
           "thresholds": {
@@ -1175,7 +1248,7 @@
           "compute": "@/1000"
         },
         {
-          "name": "PDB0_PSU0_IIN",
+          "name": "PSU0_IIN",
           "sysfsPath": "/run/devmap/sensors/PDB0_PSU_0X58/curr1_input",
           "type": 2,
           "thresholds": {
@@ -1185,7 +1258,7 @@
           "compute": "@/1000"
         },
         {
-          "name": "PDB0_PSU0_VOUT_MN",
+          "name": "PSU0_VOUT_MN",
           "sysfsPath": "/run/devmap/sensors/PDB0_PSU_0X58/in2_input",
           "type": 1,
           "thresholds": {
@@ -1195,7 +1268,7 @@
           "compute": "@/1000"
         },
         {
-          "name": "PDB0_PSU0_IOUT_MN",
+          "name": "PSU0_IOUT_MN",
           "sysfsPath": "/run/devmap/sensors/PDB0_PSU_0X58/curr2_input",
           "type": 2,
           "thresholds": {
@@ -1205,7 +1278,7 @@
           "compute": "@/1000"
         },
         {
-          "name": "PDB0_PSU0_POUT_MN",
+          "name": "PSU0_POUT_MN",
           "sysfsPath": "/run/devmap/sensors/PDB0_PSU_0X58/power2_input",
           "type": 0,
           "thresholds": {
@@ -1215,13 +1288,13 @@
           "compute": "@/1000000"
         },
         {
-          "name": "PDB0_PSU0_PIN_MN",
+          "name": "PSU0_PIN_MN",
           "sysfsPath": "/run/devmap/sensors/PDB0_PSU_0X58/power1_input",
           "type": 0,
           "compute": "@/1000000"
         },
         {
-          "name": "PDB0_PSU0_TMP1_MN",
+          "name": "PSU0_TMP1_MN",
           "sysfsPath": "/run/devmap/sensors/PDB0_PSU_0X58/temp1_input",
           "type": 3,
           "thresholds": {
@@ -1231,7 +1304,7 @@
           "compute": "@/1000"
         },
         {
-          "name": "PDB0_PSU0_TMP2_MN",
+          "name": "PSU0_TMP2_MN",
           "sysfsPath": "/run/devmap/sensors/PDB0_PSU_0X58/temp2_input",
           "type": 3,
           "thresholds": {
@@ -1241,7 +1314,7 @@
           "compute": "@/1000"
         },
         {
-          "name": "PDB0_PSU0_TMP3_MN",
+          "name": "PSU0_TMP3_MN",
           "sysfsPath": "/run/devmap/sensors/PDB0_PSU_0X58/temp3_input",
           "type": 3,
           "thresholds": {
@@ -1254,10 +1327,10 @@
     },
     {
       "slotPath": "/PSU_SLOT@1",
-      "pmUnitName": "PDB1",
+      "pmUnitName": "PSU",
       "sensors": [
         {
-          "name": "PDB1_PSU1_VIN",
+          "name": "PSU1_VIN",
           "sysfsPath": "/run/devmap/sensors/PDB1_PSU_0X58/in1_input",
           "type": 1,
           "thresholds": {
@@ -1267,7 +1340,7 @@
           "compute": "@/1000"
         },
         {
-          "name": "PDB1_PSU1_IIN",
+          "name": "PSU1_IIN",
           "sysfsPath": "/run/devmap/sensors/PDB1_PSU_0X58/curr1_input",
           "type": 2,
           "thresholds": {
@@ -1277,7 +1350,7 @@
           "compute": "@/1000"
         },
         {
-          "name": "PDB1_PSU1_VOUT_MN",
+          "name": "PSU1_VOUT_MN",
           "sysfsPath": "/run/devmap/sensors/PDB1_PSU_0X58/in2_input",
           "type": 1,
           "thresholds": {
@@ -1287,7 +1360,7 @@
           "compute": "@/1000"
         },
         {
-          "name": "PDB1_PSU1_IOUT_MN",
+          "name": "PSU1_IOUT_MN",
           "sysfsPath": "/run/devmap/sensors/PDB1_PSU_0X58/curr2_input",
           "type": 2,
           "thresholds": {
@@ -1297,7 +1370,7 @@
           "compute": "@/1000"
         },
         {
-          "name": "PDB1_PSU1_POUT_MN",
+          "name": "PSU1_POUT_MN",
           "sysfsPath": "/run/devmap/sensors/PDB1_PSU_0X58/power2_input",
           "type": 0,
           "thresholds": {
@@ -1307,13 +1380,13 @@
           "compute": "@/1000000"
         },
         {
-          "name": "PDB1_PSU1_PIN_MN",
+          "name": "PSU1_PIN_MN",
           "sysfsPath": "/run/devmap/sensors/PDB1_PSU_0X58/power1_input",
           "type": 0,
           "compute": "@/1000000"
         },
         {
-          "name": "PDB1_PSU1_TMP1_MN",
+          "name": "PSU1_TMP1_MN",
           "sysfsPath": "/run/devmap/sensors/PDB1_PSU_0X58/temp1_input",
           "type": 3,
           "thresholds": {
@@ -1323,7 +1396,7 @@
           "compute": "@/1000"
         },
         {
-          "name": "PDB1_PSU1_TMP2_MN",
+          "name": "PSU1_TMP2_MN",
           "sysfsPath": "/run/devmap/sensors/PDB1_PSU_0X58/temp2_input",
           "type": 3,
           "thresholds": {
@@ -1333,7 +1406,7 @@
           "compute": "@/1000"
         },
         {
-          "name": "PDB1_PSU1_TMP3_MN",
+          "name": "PSU1_TMP3_MN",
           "sysfsPath": "/run/devmap/sensors/PDB1_PSU_0X58/temp3_input",
           "type": 3,
           "thresholds": {
