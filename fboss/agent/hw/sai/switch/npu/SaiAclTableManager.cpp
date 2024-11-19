@@ -108,6 +108,12 @@ std::vector<sai_int32_t> SaiAclTableManager::getActionTypeList(
         FLAGS_sai_user_defined_trap) {
       actionTypeList.push_back(SAI_ACL_ACTION_TYPE_SET_USER_TRAP_ID);
     }
+#if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
+    if (platform_->getAsic()->isSupported(HwAsic::Feature::FLOWLET) &&
+        FLAGS_flowletSwitchingEnable) {
+      actionTypeList.push_back(SAI_ACL_ACTION_TYPE_DISABLE_ARS_FORWARDING);
+    }
+#endif
     return actionTypeList;
   }
 }
@@ -180,6 +186,16 @@ std::
 #endif
 #if !defined(TAJO_SDK) && !defined(BRCM_SAI_SDK_XGS)
       qualifierExistsFn(cfg::AclTableQualifier::IPV6_NEXT_HEADER),
+#endif
+#if (                                                                  \
+    (SAI_API_VERSION >= SAI_VERSION(1, 14, 0) ||                       \
+     (defined(BRCM_SAI_SDK_GTE_11_0) && defined(BRCM_SAI_SDK_XGS))) && \
+    !defined(TAJO_SDK))
+      std::nullopt, // UserDefinedFieldGroupMin0
+      std::nullopt, // UserDefinedFieldGroupMin1
+      std::nullopt, // UserDefinedFieldGroupMin2
+      std::nullopt, // UserDefinedFieldGroupMin3
+      std::nullopt, // UserDefinedFieldGroupMin4
 #endif
   };
 

@@ -9,7 +9,6 @@
 #include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
 
 #include "fboss/agent/FbossError.h"
-#include "fboss/agent/state/DeltaFunctions.h"
 #include "fboss/agent/state/LabelForwardingAction.h"
 
 namespace {

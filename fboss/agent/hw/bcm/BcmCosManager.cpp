@@ -9,18 +9,13 @@
  */
 #include "fboss/agent/hw/bcm/BcmCosManager.h"
 
-#include <gflags/gflags.h>
-
 #include "fboss/agent/hw/bcm/BcmControlPlane.h"
 #include "fboss/agent/hw/bcm/BcmError.h"
-#include "fboss/agent/hw/bcm/BcmPlatform.h"
 #include "fboss/agent/hw/bcm/BcmPortTable.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 
 extern "C" {
 #include <bcm/cosq.h>
-#include <bcm/field.h>
-#include <bcm/rx.h>
 #include <bcm/switch.h>
 #include <bcm/types.h>
 }

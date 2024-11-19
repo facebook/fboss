@@ -10,12 +10,8 @@
 #include "fboss/agent/hw/sai/api/AddressUtil.h"
 
 #include <folly/String.h>
-#include <folly/logging/xlog.h>
 
 #include <gtest/gtest.h>
-
-#include <limits>
-#include <vector>
 
 using namespace facebook::fboss;
 

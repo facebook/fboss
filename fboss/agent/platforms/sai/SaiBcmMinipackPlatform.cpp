@@ -12,7 +12,6 @@
 
 #include "fboss/agent/hw/switch_asics/Tomahawk3Asic.h"
 
-#include <cstdio>
 #include <cstring>
 namespace facebook::fboss {
 

@@ -11,15 +11,6 @@ namespace facebook::fboss {
 class HwAsic {
  public:
   HwAsic(
-      cfg::SwitchType switchType,
-      std::optional<int64_t> switchId,
-      int16_t switchIndex,
-      std::optional<cfg::Range64> systemPortRange,
-      const folly::MacAddress& mac,
-      std::optional<cfg::SdkVersion> sdkVersion = std::nullopt,
-      std::unordered_set<cfg::SwitchType> supportedModes = {
-          cfg::SwitchType::NPU});
-  HwAsic(
       std::optional<int64_t> switchId,
       const cfg::SwitchInfo& switchInfo,
       std::optional<cfg::SdkVersion> sdkVersion = std::nullopt,
@@ -206,6 +197,7 @@ class HwAsic {
     L3_INTF_MTU,
     DEDICATED_CPU_BUFFER_POOL,
     EGRESS_ACL_TABLE,
+    FAST_LLFC_COUNTER,
   };
 
   enum class AsicMode {
@@ -312,7 +304,7 @@ class HwAsic {
    * This will be added to PortID and will be carried in the
    * sflow shim header
    */
-  virtual int getSystemPortIDOffset() const {
+  virtual int getSflowPortIDOffset() const {
     return 0;
   }
 
@@ -416,6 +408,15 @@ class HwAsic {
 
   virtual int getMidPriCpuQueueId() const = 0;
   virtual int getHiPriCpuQueueId() const = 0;
+  std::optional<int32_t> getGlobalSystemPortOffset() const {
+    return globalSystemPortOffset_;
+  }
+  std::optional<int32_t> getLocalSystemPortOffset() const {
+    return localSystemPortOffset_;
+  }
+  std::optional<int32_t> getInbandPortId() const {
+    return inbandPortId_;
+  }
 
  protected:
   static cfg::Range64 makeRange(int64_t min, int64_t max);
@@ -428,6 +429,8 @@ class HwAsic {
   cfg::StreamType defaultStreamType_{cfg::StreamType::ALL};
   folly::MacAddress asicMac_;
   std::optional<cfg::SdkVersion> sdkVersion_;
+  std::optional<int32_t> localSystemPortOffset_, globalSystemPortOffset_,
+      inbandPortId_;
 };
 
 } // namespace facebook::fboss

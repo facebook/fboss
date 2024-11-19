@@ -18,7 +18,6 @@
 
 #include "fboss/agent/hw/test/HwSwitchEnsemble.h"
 
-#include <folly/logging/xlog.h>
 #include <memory>
 
 namespace facebook::fboss {

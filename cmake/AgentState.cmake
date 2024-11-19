@@ -67,6 +67,8 @@ add_library(state
   fboss/agent/state/MatchAction.cpp
   fboss/agent/state/Mirror.cpp
   fboss/agent/state/MirrorMap.cpp
+  fboss/agent/state/MirrorOnDropReport.cpp
+  fboss/agent/state/MirrorOnDropReportMap.cpp
   fboss/agent/state/NdpEntry.cpp
   fboss/agent/state/NdpResponseEntry.cpp
   fboss/agent/state/NdpResponseTable.cpp

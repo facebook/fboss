@@ -97,6 +97,16 @@ target_link_libraries(switchinfo_utils
   agent_config_cpp2
 )
 
+add_library(voq_utils
+  fboss/agent/VoqUtils.cpp
+)
+
+target_link_libraries(voq_utils
+  Folly::folly
+  switch_config_cpp2
+  agent_features
+)
+
 target_link_libraries(address_utils
   network_address_cpp2
   Folly::folly
@@ -255,6 +265,7 @@ set(core_libs
   switchinfo_utils
   stats
   utils
+  voq_utils
   asic_utils
   fb303::fb303
   capture

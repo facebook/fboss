@@ -8,7 +8,6 @@
 #include "fboss/cli/fboss2/utils/CmdClientUtils.h"
 
 #include "fboss/cli/fboss2/test/CmdHandlerTestBase.h"
-#include "nettools/common/TestUtils.h"
 
 using namespace ::testing;
 

@@ -11,8 +11,6 @@
 #include "fboss/agent/hw/test/dataplane_tests/HwTestQosUtils.h"
 #include "fboss/agent/hw/test/HwSwitchEnsemble.h"
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
-#include "fboss/agent/state/Interface.h"
-#include "fboss/agent/state/SwitchState.h"
 #include "fboss/lib/CommonUtils.h"
 
 #include <folly/logging/xlog.h>

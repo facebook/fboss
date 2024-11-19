@@ -8,7 +8,6 @@
  *
  */
 #include "fboss/agent/hw/sai/api/NeighborApi.h"
-#include "fboss/agent/hw/sai/api/MplsApi.h"
 #include "fboss/agent/hw/sai/fake/FakeSai.h"
 
 #include <folly/IPAddress.h>

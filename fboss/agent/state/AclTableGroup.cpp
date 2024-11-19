@@ -28,5 +28,5 @@ AclTableGroup::createDefaultAclTableGroupFromThrift(
   return std::make_shared<AclTableGroup>(data);
 }
 
-template class ThriftStructNode<AclTableGroup, state::AclTableGroupFields>;
+template struct ThriftStructNode<AclTableGroup, state::AclTableGroupFields>;
 } // namespace facebook::fboss

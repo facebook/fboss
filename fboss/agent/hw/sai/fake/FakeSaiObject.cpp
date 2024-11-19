@@ -9,10 +9,7 @@
  */
 
 #include "fboss/agent/hw/sai/api/AddressUtil.h"
-#include "fboss/agent/hw/sai/api/SaiVersion.h"
 #include "fboss/agent/hw/sai/fake/FakeSai.h"
-
-#include <folly/logging/xlog.h>
 
 sai_status_t sai_get_object_count(
     sai_object_id_t /* switch_id */,

@@ -14,7 +14,6 @@
 #include "fboss/agent/hw/bcm/BcmExactMatchUtils.h"
 #include "fboss/agent/hw/bcm/BcmFieldProcessorUtils.h"
 #include "fboss/agent/hw/bcm/BcmMultiPathNextHop.h"
-#include "fboss/agent/hw/bcm/BcmPlatform.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 #include "fboss/agent/hw/bcm/BcmTeFlowTable.h"
 #include "fboss/agent/hw/bcm/BcmWarmBootCache.h"

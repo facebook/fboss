@@ -2,7 +2,7 @@
   "pmUnitSensorsList": [
     {
       "slotPath": "/PDB_SLOT@0",
-      "pmUnitName": "PDB_CARD",
+      "pmUnitName": "PDB",
       "sensors": [
         {
           "name": "PDB_INLET_LM75_TEMP",
@@ -1576,7 +1576,7 @@
     },
     {
       "slotPath": "/COME_SLOT@0",
-      "pmUnitName": "COME_CARD",
+      "pmUnitName": "NETLAKE",
       "sensors": [
         {
           "name": "COMe_PU4_XDPE15284_PVCCIN_VIN",
@@ -1966,7 +1966,7 @@
     },
     {
       "slotPath": "/RUNBMC_SLOT@0",
-      "pmUnitName": "BMC_CARD",
+      "pmUnitName": "MINERVA_BMC",
       "sensors": [
         {
           "name": "BMC_U9_Thermal_Sensor_TMP1075_TEMP",

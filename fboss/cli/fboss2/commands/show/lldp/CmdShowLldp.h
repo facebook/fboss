@@ -192,7 +192,10 @@ class CmdShowLldp : public CmdHandler<CmdShowLldp, CmdShowLldpTraits> {
     }
     const RE2 fsw_regex("^fsw.*");
     if (RE2::FullMatch(portDescription, fsw_regex)) {
-      return results[0] + "." + results[1];
+      results.clear();
+      folly::split(":", portDescription, results);
+      // Prints as fsw001.p062.f01.vll3
+      return results[0];
     }
     const RE2 ctsw_regex("^ctsw.*");
     if (RE2::FullMatch(portDescription, ctsw_regex)) {

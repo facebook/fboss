@@ -128,6 +128,27 @@ TEST(ConfigValidatorTest, SlotConfig) {
   EXPECT_TRUE(ConfigValidator().isValidSlotConfig(slotConfig));
 }
 
+TEST(ConfigValidatorTest, OutgoingSlotConfig) {
+  std::map<std::string, SlotTypeConfig> slotTypeConfigs = {
+      {"MCB_SLOT", SlotTypeConfig()}};
+  PmUnitConfig pmUnitConfig;
+  pmUnitConfig.pluggedInSlotType() = "MCB_SLOT";
+  SlotConfig smbSlotConfig;
+  smbSlotConfig.slotType() = "SMB_SLOT";
+  // Valid OutgoingSlotConfig
+  pmUnitConfig.outgoingSlotConfigs() = {{"SMB_SLOT@0", smbSlotConfig}};
+  EXPECT_TRUE(
+      ConfigValidator().isValidPmUnitConfig(slotTypeConfigs, pmUnitConfig));
+  // Invalid SlotName format
+  pmUnitConfig.outgoingSlotConfigs() = {{"SMB_SLOT", smbSlotConfig}};
+  EXPECT_FALSE(
+      ConfigValidator().isValidPmUnitConfig(slotTypeConfigs, pmUnitConfig));
+  // Invalid unmatching SlotType; expect SMB_SLOT but has SCM_SLOT.
+  pmUnitConfig.outgoingSlotConfigs() = {{"SCM_SLOT@0", smbSlotConfig}};
+  EXPECT_FALSE(
+      ConfigValidator().isValidPmUnitConfig(slotTypeConfigs, pmUnitConfig));
+}
+
 TEST(ConfigValidatorTest, PresenceDetection) {
   auto presenceDetection = PresenceDetection();
   EXPECT_FALSE(ConfigValidator().isValidPresenceDetection(presenceDetection));
@@ -311,7 +332,39 @@ TEST(ConfigValidatorTest, Symlink) {
 
 TEST(ConfigValidatorTest, DevicePath) {
   PlatformConfig config;
-  // Syntatically incorrect
+  config.rootSlotType() = "MCB_SLOT";
+  config.rootPmUnitName() = "MCB";
+  PmUnitConfig mcb, jumper, scm;
+  // Define PmUnit's SlotType
+  mcb.pluggedInSlotType() = "MCB_SLOT";
+  jumper.pluggedInSlotType() = "JUMPER_SLOT";
+  scm.pluggedInSlotType() = "SCM_SLOT";
+  // Define SlotConfig's SlotType
+  SlotConfig jumperSlotConfig, scmSlotConfig;
+  jumperSlotConfig.slotType() = "JUMPER_SLOT";
+  scmSlotConfig.slotType() = "SCM_SLOT";
+  // Define outgoingSlotConfigs
+  mcb.outgoingSlotConfigs() = {
+      {"JUMPER_SLOT@0", jumperSlotConfig}, {"JUMPER_SLOT@1", jumperSlotConfig}};
+  jumper.outgoingSlotConfigs() = {{"SCM_SLOT@0", scmSlotConfig}};
+  // Define devices
+  I2cDeviceConfig mcbMux;
+  mcbMux.pmUnitScopedName() = "MCB_MUX_A";
+  mcb.i2cDeviceConfigs() = {mcbMux};
+  EmbeddedSensorConfig jumperNvme;
+  jumperNvme.pmUnitScopedName() = "NVME";
+  jumper.embeddedSensorConfigs() = {jumperNvme};
+  PciDeviceConfig scmPci;
+  FpgaIpBlockConfig gpioChipFpgaIpBlock;
+  gpioChipFpgaIpBlock.pmUnitScopedName() = "SCM_FPGA_GPIO_1";
+  scmPci.gpioChipConfigs() = {gpioChipFpgaIpBlock};
+  LedCtrlConfig scmLedCtrl;
+  scmLedCtrl.fpgaIpBlockConfig() = FpgaIpBlockConfig();
+  scmLedCtrl.fpgaIpBlockConfig()->pmUnitScopedName() = "SCM_SYS_LED";
+  scmPci.ledCtrlConfigs() = {scmLedCtrl};
+  scm.pciDeviceConfigs() = {scmPci};
+  config.pmUnitConfigs() = {{"MCB", mcb}, {"JUMPER", jumper}, {"SCM", scm}};
+  // Case-1 Syntatically incorrect
   EXPECT_FALSE(ConfigValidator().isValidDevicePath(config, "/SCM_SLOT@1/[a"));
   EXPECT_FALSE(
       ConfigValidator().isValidDevicePath(config, "/SMB_SLOT@1/SCM_SLOT/[a]"));
@@ -320,33 +373,29 @@ TEST(ConfigValidatorTest, DevicePath) {
       ConfigValidator().isValidDevicePath(config, "/COME@SCM_SLOT@0/[idprom]"));
   EXPECT_FALSE(ConfigValidator().isValidDevicePath(
       config, "/COME_SLOT@SCM_SLOT@0/[SCM_MUX_5]"));
-  // Topologically incorrect.
-  config.rootSlotType() = "MCB_SLOT";
-  PmUnitConfig mcb, jumper, scm;
-  mcb.pluggedInSlotType() = "MCB_SLOT";
-  jumper.pluggedInSlotType() = "JUMPER_SLOT";
-  scm.pluggedInSlotType() = "SCM_SLOT";
-  SlotConfig jumperSlotConfig, scmSlotConfig;
-  jumperSlotConfig.slotType() = "JUMPER_SLOT";
-  scmSlotConfig.slotType() = "SCM_SLOT";
-  mcb.outgoingSlotConfigs() = {
-      {"JUMPER_SLOT@0", jumperSlotConfig}, {"JUMPER_SLOT@1", jumperSlotConfig}};
-  jumper.outgoingSlotConfigs() = {{"SCM_SLOT@0", scmSlotConfig}};
-  config.pmUnitConfigs() = {{"MCB", mcb}, {"JUMPER", jumper}, {"SCM", scm}};
+  // Case-2 Topologically incorrect SlotPath
   EXPECT_FALSE(
       ConfigValidator().isValidDevicePath(config, "/SMB_SLOT@0/[sensor1]"));
   EXPECT_FALSE(
       ConfigValidator().isValidDevicePath(config, "/JUMPER_SLOT@2/[fpga]"));
   EXPECT_FALSE(ConfigValidator().isValidDevicePath(
       config, "/JUMPER_SLOT@0/SCM_SLOT@1/[IDPROM]"));
-  // Correct.
-  EXPECT_TRUE(ConfigValidator().isValidDevicePath(config, "/[chassis_eeprom]"));
-  EXPECT_TRUE(
-      ConfigValidator().isValidDevicePath(config, "/JUMPER_SLOT@0/[sensor]"));
-  EXPECT_TRUE(
-      ConfigValidator().isValidDevicePath(config, "/JUMPER_SLOT@1/[sensor]"));
-  EXPECT_TRUE(ConfigValidator().isValidDevicePath(
+  // Case-4 Topologically correct SlotPath, incorrect DeviceName
+  EXPECT_FALSE(ConfigValidator().isValidDevicePath(config, "/[sensor1]"));
+  EXPECT_FALSE(
+      ConfigValidator().isValidDevicePath(config, "/JUMPER_SLOT@0/[fpga]"));
+  EXPECT_FALSE(ConfigValidator().isValidDevicePath(
       config, "/JUMPER_SLOT@0/SCM_SLOT@0/[IDPROM]"));
+  // Case-5 Corrects
+  EXPECT_TRUE(ConfigValidator().isValidDevicePath(config, "/[MCB_MUX_A]"));
+  EXPECT_TRUE(
+      ConfigValidator().isValidDevicePath(config, "/JUMPER_SLOT@0/[NVME]"));
+  EXPECT_TRUE(
+      ConfigValidator().isValidDevicePath(config, "/JUMPER_SLOT@1/[NVME]"));
+  EXPECT_TRUE(ConfigValidator().isValidDevicePath(
+      config, "/JUMPER_SLOT@0/SCM_SLOT@0/[SCM_SYS_LED]"));
+  EXPECT_TRUE(ConfigValidator().isValidDevicePath(
+      config, "/JUMPER_SLOT@0/SCM_SLOT@0/[SCM_FPGA_GPIO_1]"));
 }
 
 TEST(ConfigValidatorTest, BspRpm) {
@@ -354,4 +403,21 @@ TEST(ConfigValidatorTest, BspRpm) {
   EXPECT_FALSE(ConfigValidator().isValidBspKmodsRpmVersion("5.4.6"));
   EXPECT_TRUE(ConfigValidator().isValidBspKmodsRpmVersion("5.4.6-1"));
   EXPECT_TRUE(ConfigValidator().isValidBspKmodsRpmVersion("11.44.63-14"));
+}
+
+TEST(ConfigValidatorTest, PmUnitName) {
+  PlatformConfig config;
+  config.rootSlotType() = "MCB_SLOT";
+  // Invalid missing PmUnitConfig definition
+  EXPECT_FALSE(
+      ConfigValidator().isValidPmUnitName(config, "/SCM_SLOT@0", "SCM"));
+  // Define PmUnitConfig for SCM
+  PmUnitConfig scmConfig;
+  scmConfig.pluggedInSlotType() = "SCM_SLOT";
+  config.pmUnitConfigs() = {{"SCM", scmConfig}};
+  // Invalid unmatching SlotType MCB_SLOT vs SCM_SLOT
+  EXPECT_FALSE(ConfigValidator().isValidPmUnitName(config, "/", "SCM"));
+  // Valid PmUnitName
+  EXPECT_TRUE(
+      ConfigValidator().isValidPmUnitName(config, "/SCM_SLOT@0", "SCM"));
 }

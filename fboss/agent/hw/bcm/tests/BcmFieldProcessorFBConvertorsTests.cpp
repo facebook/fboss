@@ -15,7 +15,6 @@
 #include "fboss/agent/FbossError.h"
 
 #include "fboss/agent/hw/bcm/BcmFieldProcessorFBConvertors.h"
-#include "fboss/agent/hw/bcm/tests/BcmUnitTestUtils.h"
 
 extern "C" {
 #include <bcm/field.h>

@@ -21,10 +21,6 @@ HwAsicTable::HwAsicTable(
         switchInfo.switchMac() = folly::MacAddress().toString();
       }
     }
-    std::optional<cfg::Range64> systemPortRange;
-    if (switchIdAndSwitchInfo.second.systemPortRange().has_value()) {
-      systemPortRange = *switchIdAndSwitchInfo.second.systemPortRange();
-    }
     hwAsics_.emplace(
         SwitchID(switchIdAndSwitchInfo.first),
         HwAsic::makeAsic(switchIdAndSwitchInfo.first, switchInfo, sdkVersion));

@@ -2,9 +2,7 @@
 
 #include "fboss/agent/test/TestEnsembleIf.h"
 
-#include "fboss/agent/Platform.h"
 #include "fboss/agent/Utils.h"
-#include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/SwitchState.h"
 
 #include <folly/gen/Base.h>

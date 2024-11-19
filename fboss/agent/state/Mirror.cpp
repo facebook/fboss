@@ -188,6 +188,6 @@ std::optional<uint32_t> Mirror::getSamplingRate() const {
   return std::nullopt;
 }
 
-template class ThriftStructNode<Mirror, state::MirrorFields>;
+template struct ThriftStructNode<Mirror, state::MirrorFields>;
 
 } // namespace facebook::fboss

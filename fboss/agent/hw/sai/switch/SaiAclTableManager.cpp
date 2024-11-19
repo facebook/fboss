@@ -178,7 +178,9 @@ bool SaiAclTableManager::needsAclTableRecreate(
     const std::shared_ptr<AclTable>& newAclTable) {
   if (oldAclTable->getActionTypes() != newAclTable->getActionTypes() ||
       oldAclTable->getPriority() != newAclTable->getPriority() ||
-      oldAclTable->getQualifiers() != newAclTable->getQualifiers()) {
+      oldAclTable->getQualifiers() != newAclTable->getQualifiers() ||
+      oldAclTable->getUdfGroups()->toThrift() !=
+          newAclTable->getUdfGroups()->toThrift()) {
     XLOG(DBG2) << "Recreating ACL table";
     return true;
   }
@@ -198,8 +200,13 @@ void SaiAclTableManager::removeAclEntriesFromTable(
 void SaiAclTableManager::addAclEntriesToTable(
     const std::shared_ptr<AclTable>& aclTable,
     std::shared_ptr<AclMap>& aclMap) {
+  auto newAclMap = aclTable->getAclMap().unwrap();
   for (auto const& iter : std::as_const(*aclMap)) {
     const auto& entry = iter.second;
+    // only re-add the ACL entry if present in new table
+    if (!newAclMap->getEntryIf(entry->getID())) {
+      continue;
+    }
     auto aclEntry = aclMap->getEntry(entry->getID());
     addAclEntry(aclEntry, aclTable->getID());
   }
@@ -396,6 +403,11 @@ SaiAclTableManager::cfgActionTypeListToSaiActionTypeList(
       case cfg::AclTableActionType::SET_USER_DEFINED_TRAP:
         saiActionType = SAI_ACL_ACTION_TYPE_SET_USER_TRAP_ID;
         break;
+#if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
+      case cfg::AclTableActionType::DISABLE_ARS_FORWARDING:
+        saiActionType = SAI_ACL_ACTION_TYPE_DISABLE_ARS_FORWARDING;
+        break;
+#endif
       default:
         // should return in one of the cases
         throw FbossError("Unsupported Acl Table action type");
@@ -1187,6 +1199,16 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
 #if !defined(TAJO_SDK) && !defined(BRCM_SAI_SDK_XGS)
       fieldIpv6NextHeader,
 #endif
+#if (                                                                  \
+    (SAI_API_VERSION >= SAI_VERSION(1, 14, 0) ||                       \
+     (defined(BRCM_SAI_SDK_GTE_11_0) && defined(BRCM_SAI_SDK_XGS))) && \
+    !defined(TAJO_SDK))
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+#endif
       aclActionPacketAction,
       aclActionCounter,
       aclActionSetTC,
@@ -1244,8 +1266,8 @@ void SaiAclTableManager::removeAclEntry(
   if (itr == aclTableHandle->aclTableMembers.end()) {
     // an acl entry that uses cpu port as qualifier may not have been created
     // even if it exists in switch state.
-    XLOG(ERR) << "attempted to remove aclEntry which does not exist: ",
-        removedAclEntry->getID();
+    XLOG(ERR) << "attempted to remove aclEntry which does not exist: "
+              << removedAclEntry->getID();
     return;
   }
 

@@ -2,11 +2,8 @@
 
 #include "fboss/qsfp_service/test/hw_test/HwTest.h"
 
-#include "fboss/agent/platforms/common/PlatformMapping.h"
-
 #include "fboss/qsfp_service/test/hw_test/HwPortUtils.h"
 #include "fboss/qsfp_service/test/hw_test/HwQsfpEnsemble.h"
-#include "thrift/lib/cpp/util/EnumUtils.h"
 
 #include <folly/gen/Base.h>
 #include <folly/portability/Filesystem.h>

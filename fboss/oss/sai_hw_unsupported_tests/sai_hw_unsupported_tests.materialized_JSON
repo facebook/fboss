@@ -53,6 +53,9 @@
           "test_name_regex": "HwAclCounterTest/[01].VerifyCounterBumpOnBthOpcodeHitFrontPanel$"
         },
         {
+          "test_name_regex": "HwAsicDefaultProgrammingTest.*$"
+        },
+        {
           "test_name_regex": "warm_boot.*"
         },
         {
@@ -188,6 +191,9 @@
         },
         {
           "test_name_regex": "HwAclCounterTest/[01].VerifyCounterBumpOnBthOpcodeHitFrontPanel$"
+        },
+        {
+          "test_name_regex": "HwAsicDefaultProgrammingTest.*$"
         },
         {
           "test_name_regex": "warm_boot.*"
@@ -327,6 +333,9 @@
           "test_name_regex": "HwAclCounterTest/[01].VerifyCounterBumpOnBthOpcodeHitFrontPanel$"
         },
         {
+          "test_name_regex": "HwAsicDefaultProgrammingTest.*$"
+        },
+        {
           "test_name_regex": "HwRouteScaleTest.anticipatedRouteScaleGenerator$"
         },
         {
@@ -393,6 +402,9 @@
         },
         {
           "test_name_regex": "HwAclCounterTest/[01].VerifyCounterBumpOnBthOpcodeHitFrontPanel$"
+        },
+        {
+          "test_name_regex": "HwAsicDefaultProgrammingTest.*$"
         }
     ],
     "brcm/10.2.0.0_odp/10.2.0.0_odp/tomahawk4": [
@@ -446,6 +458,9 @@
         },
         {
           "test_name_regex": "HwAclCounterTest/[01].VerifyCounterBumpOnBthOpcodeHitFrontPanel$"
+        },
+        {
+          "test_name_regex": "HwAsicDefaultProgrammingTest.*$"
         }
     ],
     "brcm/10.2.0.0_odp/10.2.0.0_odp/tomahawk5": [
@@ -499,6 +514,9 @@
         },
         {
           "test_name_regex": "HwAclCounterTest/[01].VerifyCounterBumpOnBthOpcodeHitFrontPanel$"
+        },
+        {
+          "test_name_regex": "HwAsicDefaultProgrammingTest.*$"
         }
     ],
     "brcm/11.3.0.0_dnx_odp/11.3.0.0_dnx_odp/jericho3": [
@@ -1232,6 +1250,9 @@
           "test_name_regex": "HwLoadBalancerTestV[46].Ucmp.*$"
         },
         {
+          "test_name_regex": "HwAsicDefaultProgrammingTest.*$"
+        },
+        {
           "test_name_regex": "HwInPauseFloodTest.*$"
         }
     ],
@@ -1286,6 +1307,9 @@
         },
         {
           "test_name_regex": "HwAclCounterTest/[01].VerifyCounterBumpOnBthOpcodeHitFrontPanel$"
+        },
+        {
+          "test_name_regex": "HwAsicDefaultProgrammingTest.*$"
         },
         {
           "test_name_regex": "HwRouteScaleTest.anticipatedRouteScaleGenerator$"
@@ -1354,6 +1378,9 @@
         },
         {
           "test_name_regex": "HwAclCounterTest/[01].VerifyCounterBumpOnBthOpcodeHitFrontPanel$"
+        },
+        {
+          "test_name_regex": "HwAsicDefaultProgrammingTest.*$"
         }
     ],
     "brcm/8.2.0.0_odp/8.2.0.0_odp/tomahawk4": [
@@ -1407,6 +1434,9 @@
         },
         {
           "test_name_regex": "HwAclCounterTest/[01].VerifyCounterBumpOnBthOpcodeHitFrontPanel$"
+        },
+        {
+          "test_name_regex": "HwAsicDefaultProgrammingTest.*$"
         }
     ],
     "brcm/8.2.0.0_odp/9.2.0.0_odp/tomahawk": [
@@ -1460,6 +1490,9 @@
         },
         {
           "test_name_regex": "HwAclCounterTest/[01].VerifyCounterBumpOnBthOpcodeHitFrontPanel$"
+        },
+        {
+          "test_name_regex": "HwAsicDefaultProgrammingTest.*$"
         },
         {
           "test_name_regex": "HwRouteScaleTest.anticipatedRouteScaleGenerator$"
@@ -1528,6 +1561,9 @@
         },
         {
           "test_name_regex": "HwAclCounterTest/[01].VerifyCounterBumpOnBthOpcodeHitFrontPanel$"
+        },
+        {
+          "test_name_regex": "HwAsicDefaultProgrammingTest.*$"
         }
     ],
     "brcm/8.2.0.0_odp/9.2.0.0_odp/tomahawk4": [
@@ -1581,6 +1617,9 @@
         },
         {
           "test_name_regex": "HwAclCounterTest/[01].VerifyCounterBumpOnBthOpcodeHitFrontPanel$"
+        },
+        {
+          "test_name_regex": "HwAsicDefaultProgrammingTest.*$"
         }
     ],
     "brcm/8.2.0.0_sim_odp/8.2.0.0_sim_odp/tomahawk4/simulator": [
@@ -1634,6 +1673,9 @@
         },
         {
           "test_name_regex": "HwAclCounterTest/[01].VerifyCounterBumpOnBthOpcodeHitFrontPanel$"
+        },
+        {
+          "test_name_regex": "HwAsicDefaultProgrammingTest.*$"
         },
         {
           "test_name_regex": "warm_boot.*"
@@ -1773,6 +1815,9 @@
           "test_name_regex": "HwAclCounterTest/[01].VerifyCounterBumpOnBthOpcodeHitFrontPanel$"
         },
         {
+          "test_name_regex": "HwAsicDefaultProgrammingTest.*$"
+        },
+        {
           "test_name_regex": "HwRouteScaleTest.anticipatedRouteScaleGenerator$"
         },
         {
@@ -1839,6 +1884,9 @@
         },
         {
           "test_name_regex": "HwAclCounterTest/[01].VerifyCounterBumpOnBthOpcodeHitFrontPanel$"
+        },
+        {
+          "test_name_regex": "HwAsicDefaultProgrammingTest.*$"
         }
     ],
     "brcm/9.2.0.0_odp/9.2.0.0_odp/tomahawk4": [
@@ -1892,6 +1940,9 @@
         },
         {
           "test_name_regex": "HwAclCounterTest/[01].VerifyCounterBumpOnBthOpcodeHitFrontPanel$"
+        },
+        {
+          "test_name_regex": "HwAsicDefaultProgrammingTest.*$"
         }
     ],
     "leaba/1.42.8/1.42.8/gibraltar": [
@@ -1975,6 +2026,9 @@
         },
         {
           "test_name_regex": "HwAclCounterTest/[01].*$"
+        },
+        {
+          "test_name_regex": "HwAsicDefaultProgrammingTest.*$"
         }
     ],
     "leaba/1.42.8/1.42.8/simulator": [
@@ -2028,6 +2082,9 @@
         },
         {
           "test_name_regex": "HwAclCounterTest/[01].VerifyCounterBumpOnBthOpcodeHitFrontPanel$"
+        },
+        {
+          "test_name_regex": "HwAsicDefaultProgrammingTest.*$"
         }
     ],
     "leaba/1.65.1/1.65.1/gibraltar": [
@@ -2081,6 +2138,9 @@
         },
         {
           "test_name_regex": "HwAclCounterTest/[01].VerifyCounterBumpOnBthOpcodeHitFrontPanel$"
+        },
+        {
+          "test_name_regex": "HwAsicDefaultProgrammingTest.*$"
         }
     ],
     "leaba/1.68.0/1.68.0/graphene200/simulator": [
@@ -2134,6 +2194,9 @@
         },
         {
           "test_name_regex": "HwAclCounterTest/[01].VerifyCounterBumpOnBthOpcodeHitFrontPanel$"
+        },
+        {
+          "test_name_regex": "HwAsicDefaultProgrammingTest.*$"
         }
     ],
     "leaba/24.4.90/24.4.90/gibraltar": [
@@ -2187,6 +2250,9 @@
         },
         {
           "test_name_regex": "HwAclCounterTest/[01].VerifyCounterBumpOnBthOpcodeHitFrontPanel$"
+        },
+        {
+          "test_name_regex": "HwAsicDefaultProgrammingTest.*$"
         }
     ],
     "leaba/24.4.90_yuba/24.4.90_yuba/graphene200": [
@@ -2240,6 +2306,9 @@
         },
         {
           "test_name_regex": "HwAclCounterTest/[01].VerifyCounterBumpOnBthOpcodeHitFrontPanel$"
+        },
+        {
+          "test_name_regex": "HwAsicDefaultProgrammingTest.*$"
         }
     ],
     "leaba/24.8.3001/24.8.3001/gibraltar": [
@@ -2293,6 +2362,9 @@
         },
         {
           "test_name_regex": "HwAclCounterTest/[01].VerifyCounterBumpOnBthOpcodeHitFrontPanel$"
+        },
+        {
+          "test_name_regex": "HwAsicDefaultProgrammingTest.*$"
         }
     ]
   }

@@ -144,7 +144,6 @@ cpp_binary(
         "//fboss/fsdb/if:fsdb-cpp2-services",
         "//fboss/fsdb/if:fsdb_common-cpp2-types",
         "//fboss/fsdb/if:fsdb_model",
-        "//fboss/thrift_cow/nodes:serializer",
         "//folly:file_util",
         "//folly:string",
         "//folly/coro:blocking_wait",

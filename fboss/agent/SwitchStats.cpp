@@ -354,6 +354,11 @@ SwitchStats::SwitchStats(ThreadLocalStatsMap* map, int numSwitches)
           RATE),
       loPriPktsDropped_(map, kCounterPrefix + "lo_pri_pkts_dropped", SUM, RATE),
       multiSwitchStatus_(map, kCounterPrefix + "multi_switch", SUM, RATE),
+      neighborTableUpdateFailure_(
+          map,
+          kCounterPrefix + "neighbor_table_update_failure",
+          SUM,
+          RATE),
       macTableUpdateFailure_(
           map,
           kCounterPrefix + "mac_table_update_failure",

@@ -12,7 +12,6 @@
 #include "fboss/agent/hw/bcm/BcmCosQueueCounterType.h"
 #include "fboss/agent/hw/bcm/BcmCosQueueManagerUtils.h"
 #include "fboss/agent/hw/bcm/BcmError.h"
-#include "fboss/agent/hw/bcm/BcmSdkVer.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 

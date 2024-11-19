@@ -14,7 +14,6 @@
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/ResourceLibUtil.h"
 #include "fboss/agent/test/utils/AclTestUtils.h"
-#include "fboss/agent/test/utils/AsicUtils.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/test/utils/LoadBalancerTestUtils.h"
 #include "fboss/lib/CommonUtils.h"
@@ -68,16 +67,10 @@ class AgentAclCounterTest : public AgentHwTest {
   }
   cfg::SwitchConfig initialConfig(
       const AgentEnsemble& ensemble) const override {
-    auto cfg = utility::onePortPerInterfaceConfig(
+    return utility::onePortPerInterfaceConfig(
         ensemble.getSw(),
         ensemble.masterLogicalPortIds(),
         true /*interfaceHasSubnet*/);
-    if (FLAGS_enable_acl_table_group) {
-      utility::addAclTableGroup(
-          &cfg, cfg::AclStage::INGRESS, utility::getAclTableGroupName());
-      utility::addDefaultAclTable(cfg);
-    }
-    return cfg;
   }
 
   std::string getAclName(AclType aclType) const {

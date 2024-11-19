@@ -1056,6 +1056,14 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChangedImplLocked(
       &SaiMirrorManager::removeMirror);
 
   processDelta(
+      delta.getMirrorOnDropReportsDelta(),
+      managerTable_->tamManager(),
+      lockPolicy,
+      &SaiTamManager::changeMirrorOnDropReport,
+      &SaiTamManager::addMirrorOnDropReport,
+      &SaiTamManager::removeMirrorOnDropReport);
+
+  processDelta(
       delta.getIpTunnelsDelta(),
       managerTable_->tunnelManager(),
       lockPolicy,
@@ -2385,6 +2393,8 @@ std::shared_ptr<SwitchState> SaiSwitch::getColdBootSwitchState() {
     auto cpu = std::make_shared<ControlPlane>();
     auto cpuQueues = managerTable_->hostifManager().getQueueSettings();
     cpu->resetQueues(cpuQueues);
+    auto cpuVoqs = managerTable_->hostifManager().getVoqSettings();
+    cpu->resetVoqs(cpuVoqs);
     auto multiSwitchControlPlane = std::make_shared<MultiControlPlane>();
     multiSwitchControlPlane->addNode(
         scopeResolver->scope(cpu).matcherString(), cpu);
@@ -2500,13 +2510,12 @@ HwInitResult SaiSwitch::initLocked(
       adapterKeys2AdapterHostKeysJson.get());
   if (bootType_ != BootType::WARM_BOOT) {
     if (getSwitchType() == cfg::SwitchType::FABRIC) {
-      // 11.0 is not honoring isolate attribute during fabric switch create
-      // We still want the switch to be isolated before we start enabling ports
-      // after cold boot. This is tracked in CS00012372888.
-      // TODO: get rid of this call once CS00012372888 is resolved
       auto& switchApi = SaiApiTable::getInstance()->switchApi();
-      switchApi.setAttribute(
-          saiSwitchId_, SaiSwitchTraits::Attributes::SwitchIsolate{true});
+      auto isolated = switchApi.getAttribute(
+          saiSwitchId_, SaiSwitchTraits::Attributes::SwitchIsolate{});
+      XLOG(DBG2) << " Fabric switch on cold boot came up isolated : "
+                 << (isolated ? "yes" : "no");
+      CHECK(isolated);
     }
     ret.switchState = getColdBootSwitchState();
     ret.switchState->publish();

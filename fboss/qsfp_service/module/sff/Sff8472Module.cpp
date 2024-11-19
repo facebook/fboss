@@ -21,6 +21,7 @@ namespace fboss {
 
 static std::map<Ethernet10GComplianceCode, MediaInterfaceCode>
     mediaInterfaceMapping = {
+        {Ethernet10GComplianceCode::CR_10G, MediaInterfaceCode::CR_10G},
         {Ethernet10GComplianceCode::LR_10G, MediaInterfaceCode::LR_10G},
         {Ethernet10GComplianceCode::SR_10G, MediaInterfaceCode::SR_10G},
 };
@@ -124,7 +125,9 @@ void Sff8472Module::readSff8472Field(Sff8472Field field, uint8_t* data) {
   getSfpFieldAddress(
       field, dataPage, dataOffset, dataLength, transceiverI2CAddress);
   qsfpImpl_->readTransceiver(
-      {transceiverI2CAddress, dataOffset, dataLength}, data);
+      {transceiverI2CAddress, dataOffset, dataLength},
+      data,
+      CAST_TO_INT(field));
 }
 
 void Sff8472Module::writeSff8472Field(Sff8472Field field, uint8_t* data) {
@@ -135,7 +138,8 @@ void Sff8472Module::writeSff8472Field(Sff8472Field field, uint8_t* data) {
   qsfpImpl_->writeTransceiver(
       {transceiverI2CAddress, dataOffset, dataLength},
       data,
-      POST_I2C_WRITE_DELAY_US);
+      POST_I2C_WRITE_DELAY_US,
+      CAST_TO_INT(field));
 }
 
 void Sff8472Module::getSfpValue(
@@ -285,6 +289,7 @@ TransmitterTechnology Sff8472Module::getQsfpTransmitterTechnology() const {
     case MediaInterfaceCode::LR_10G:
       return TransmitterTechnology::OPTICAL;
     case MediaInterfaceCode::BASE_T_10G:
+    case MediaInterfaceCode::CR_10G:
       return TransmitterTechnology::COPPER;
     default:
       return TransmitterTechnology::UNKNOWN;

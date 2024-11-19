@@ -8,16 +8,11 @@
  *
  */
 #include "fboss/agent/hw/test/HwTestCoppUtils.h"
-#include <vector>
 
-#include "fboss/agent/FbossError.h"
 #include "fboss/agent/HwSwitch.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
-#include "fboss/agent/hw/test/HwTestAclUtils.h"
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
-#include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/SwitchState.h"
-#include "fboss/agent/test/ResourceLibUtil.h"
 
 #include "fboss/agent/test/utils/CoppTestUtils.h"
 

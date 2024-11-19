@@ -7,7 +7,6 @@
 #include "fboss/agent/hw/test/HwTestTamUtils.h"
 #include "fboss/lib/CommonUtils.h"
 
-#include <fb303/ServiceData.h>
 #include <fb303/ThreadCachedServiceData.h>
 
 namespace facebook::fboss {

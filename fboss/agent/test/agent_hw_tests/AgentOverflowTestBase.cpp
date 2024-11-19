@@ -4,7 +4,6 @@
 
 #include "fboss/agent/TxPacket.h"
 #include "fboss/agent/hw/test/ProdConfigFactory.h"
-#include "fboss/agent/test/utils/AsicUtils.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/test/utils/CoppTestUtils.h"
 #include "fboss/agent/test/utils/EcmpDataPlaneTestUtil.h"

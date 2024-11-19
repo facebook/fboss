@@ -60,7 +60,7 @@ BENCHMARK(RxSlowPathArpBenchmark) {
         asic->desiredLoopbackModes());
 
     utility::addAclTableGroup(
-        &config, cfg::AclStage::INGRESS, utility::getAclTableGroupName());
+        &config, cfg::AclStage::INGRESS, utility::kDefaultAclTableGroupName());
     utility::addDefaultAclTable(config);
     // We don't want to set queue rate that limits the number of rx pkts
     utility::addCpuQueueConfig(

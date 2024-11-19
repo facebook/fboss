@@ -23,7 +23,7 @@ extern "C" {
 
 namespace facebook::fboss {
 
-class PortID;
+struct PortID;
 class BcmSwitch;
 
 class BcmCosManager {

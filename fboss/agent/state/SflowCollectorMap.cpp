@@ -15,7 +15,7 @@
 
 namespace facebook::fboss {
 
-template class ThriftMapNode<SflowCollectorMap, SflowCollectorMapTraits>;
+template struct ThriftMapNode<SflowCollectorMap, SflowCollectorMapTraits>;
 
 MultiSwitchSflowCollectorMap* MultiSwitchSflowCollectorMap::modify(
     std::shared_ptr<SwitchState>* state) {

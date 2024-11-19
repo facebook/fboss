@@ -14,8 +14,6 @@
 #include "fboss/agent/test/RouteGeneratorTestUtils.h"
 #include "fboss/agent/test/TestUtils.h"
 
-#include <gflags/gflags.h>
-
 namespace {
 auto constexpr kChunkSize = 4000;
 } // namespace

@@ -15,7 +15,6 @@
 #include "fboss/agent/hw/sai/switch/SaiNeighborManager.h"
 #include "fboss/agent/hw/sai/switch/tests/ManagerTestBase.h"
 #include "fboss/agent/state/ArpEntry.h"
-#include "fboss/agent/state/NdpEntry.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/types.h"
 

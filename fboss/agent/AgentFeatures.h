@@ -68,3 +68,8 @@ DECLARE_bool(skip_buffer_reservation);
 DECLARE_bool(conditional_entropy_cpu_seed_test_only);
 DECLARE_bool(fix_lossless_mode_per_pg);
 DECLARE_int32(fboss_event_base_queue_limit);
+DECLARE_bool(dual_stage_rdsw_3q_2q);
+DECLARE_bool(dual_stage_edsw_3q_2q);
+
+bool isDualStage3Q2QMode();
+DECLARE_bool(enable_hw_update_protection);

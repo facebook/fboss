@@ -12,21 +12,22 @@
 #include <memory>
 
 #include "fboss/agent/AgentFeatures.h"
-#include "fboss/agent/Constants.h"
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/test/TestEnsembleIf.h"
 #include "fboss/agent/test/utils/AclTestUtils.h"
 #include "fboss/agent/test/utils/AsicUtils.h"
 #include "fboss/agent/test/utils/PortTestUtils.h"
+#include "fboss/agent/test/utils/VoqTestUtils.h"
 #include "fboss/lib/config/PlatformConfigUtils.h"
 
 #include <folly/Format.h>
 
 DEFINE_bool(nodeZ, false, "Setup test config as node Z");
 
+namespace facebook::fboss::utility {
+
 namespace {
-constexpr auto kSysPortOffset = 10;
 void removePort(
     facebook::fboss::cfg::SwitchConfig& config,
     facebook::fboss::PortID port,
@@ -48,10 +49,41 @@ void removePort(
     cfgPort->state() = facebook::fboss::cfg::PortState::DISABLED;
   }
 }
+
+int getRdswSysPortBlockSize() {
+  // For dual stage 3/2q mode, sys ports are allocated in 2 blocks of 28 while
+  // for single state we allocate a single block of 44
+  return isDualStage3Q2QMode() ? 28 : 44;
+}
+int getEdswSysPortBlockSize() {
+  // For dual stage 3/2q mode, sys ports are allocated in 2 blocks of 14 while
+  // for single state we allocate a single block of 26
+  return isDualStage3Q2QMode() ? 14 : 26;
+}
+
+int getPerNodeSysPortsBlockSize(const HwAsic& asic, int remoteSwitchId) {
+  if (remoteSwitchId < getMaxRdsw() * asic.getNumCores()) {
+    return getRdswSysPortBlockSize();
+  }
+  return getEdswSysPortBlockSize();
+}
+
+int getSysPortIdsAllocated(
+    const HwAsic& asic,
+    int remoteSwitchId,
+    int64_t firstSwitchIdMin) {
+  auto portsConsumed = firstSwitchIdMin;
+  auto deviceIndex = remoteSwitchId / asic.getNumCores();
+  CHECK(asic.getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO3);
+  if (deviceIndex < getMaxRdsw()) {
+    portsConsumed += deviceIndex * getRdswSysPortBlockSize() - 1;
+  } else {
+    portsConsumed += getMaxRdsw() * getRdswSysPortBlockSize() +
+        (deviceIndex - getMaxRdsw()) * getEdswSysPortBlockSize() - 1;
+  }
+  return portsConsumed;
+}
 } // namespace
-
-namespace facebook::fboss::utility {
-
 folly::MacAddress kLocalCpuMac() {
   static const folly::MacAddress kLocalMac(
       FLAGS_nodeZ ? "02:00:00:00:00:02" : "02:00:00:00:00:01");
@@ -60,40 +92,6 @@ folly::MacAddress kLocalCpuMac() {
 
 std::string getLocalCpuMacStr() {
   return kLocalCpuMac().toString();
-}
-
-std::vector<cfg::PortQueue> getDefaultVoqCfg() {
-  std::vector<cfg::PortQueue> voqs;
-
-  cfg::PortQueue defaultQueue;
-  defaultQueue.id() = 0;
-  defaultQueue.name() = "default";
-  defaultQueue.streamType() = cfg::StreamType::UNICAST;
-  defaultQueue.scheduling() = cfg::QueueScheduling::INTERNAL;
-  voqs.push_back(defaultQueue);
-
-  cfg::PortQueue rdmaQueue;
-  rdmaQueue.id() = 2;
-  rdmaQueue.name() = "rdma";
-  rdmaQueue.streamType() = cfg::StreamType::UNICAST;
-  rdmaQueue.scheduling() = cfg::QueueScheduling::INTERNAL;
-  voqs.push_back(rdmaQueue);
-
-  cfg::PortQueue monitoringQueue;
-  monitoringQueue.id() = 6;
-  monitoringQueue.name() = "monitoring";
-  monitoringQueue.streamType() = cfg::StreamType::UNICAST;
-  monitoringQueue.scheduling() = cfg::QueueScheduling::INTERNAL;
-  voqs.push_back(monitoringQueue);
-
-  cfg::PortQueue ncQueue;
-  ncQueue.id() = 7;
-  ncQueue.name() = "nc";
-  ncQueue.streamType() = cfg::StreamType::UNICAST;
-  ncQueue.scheduling() = cfg::QueueScheduling::INTERNAL;
-  voqs.push_back(ncQueue);
-
-  return voqs;
 }
 
 const std::map<cfg::PortType, cfg::PortLoopbackMode>& kDefaultLoopbackMap() {
@@ -209,13 +207,13 @@ std::unordered_map<PortID, cfg::PortProfileID> getSafeProfileIDs(
     }
 
     auto asicType = asic->getAsicType();
-    bool isJericho2 = asicType == cfg::AsicType::ASIC_TYPE_JERICHO2;
 
     auto bestSpeed = cfg::PortSpeed::DEFAULT;
-    if (isJericho2) {
-      // For J2c we always want to choose the following
-      // speeds since that's what we have in hw chip config
-      // and J2c does not support dynamic port speed change yet.
+    if (asicType == cfg::AsicType::ASIC_TYPE_JERICHO3 &&
+        FLAGS_dual_stage_rdsw_3q_2q) {
+      // When using dual_stage_rdsw_3q_2q mapping. Pick NIF port
+      // speed to be 400G, since that's what we have in chip config
+      // and J3 does not support dynamic port speed change yet.
       auto portId = group.first;
       auto platPortItr = platformMapping->getPlatformPorts().find(portId);
       if (platPortItr == platformMapping->getPlatformPorts().end()) {
@@ -223,16 +221,12 @@ std::unordered_map<PortID, cfg::PortProfileID> getSafeProfileIDs(
       }
       switch (*platPortItr->second.mapping()->portType()) {
         case cfg::PortType::INTERFACE_PORT:
-        case cfg::PortType::MANAGEMENT_PORT:
-          bestSpeed = getDefaultInterfaceSpeed(asicType);
+          bestSpeed = cfg::PortSpeed::FOURHUNDREDG;
           break;
         case cfg::PortType::FABRIC_PORT:
-          bestSpeed = getDefaultFabricSpeed(asicType);
-          break;
+        case cfg::PortType::MANAGEMENT_PORT:
         case cfg::PortType::RECYCLE_PORT:
         case cfg::PortType::EVENTOR_PORT:
-          bestSpeed = cfg::PortSpeed::XG;
-          break;
         case cfg::PortType::CPU_PORT:
           break;
       }
@@ -365,122 +359,94 @@ void securePortsInConfig(
     }
   }
 }
-// FIXME 2-stage DSF - adapt DSF node config to
-// 2-stage DSF sysport id generation
+
+int getMaxRdsw() {
+  return isDualStage3Q2QMode() ? 512 : 128;
+}
+
+int getMaxEdsw() {
+  return isDualStage3Q2QMode() ? 128 : 16;
+}
+
+int getLocalSystemPortOffset(const cfg::SystemPortRanges& ranges) {
+  // For 2q/3q mode, local sys port offset is -32K
+  // FIXME 2-stage-MTIA, offsets may be higher for 2nd ASIC
+  return isDualStage3Q2QMode() ? -32 * 1024
+                               : *ranges.systemPortRanges()->begin()->minimum();
+}
+
 cfg::DsfNode dsfNodeConfig(
     const HwAsic& myAsic,
     int64_t otherSwitchId,
-    cfg::SystemPortRanges sysPortRanges,
     const std::optional<PlatformType> platformType) {
-  auto createAsic = [&](const HwAsic& fromAsic, int64_t switchId)
-      -> std::pair<std::shared_ptr<HwAsic>, PlatformType> {
-    std::optional<cfg::Range64> systemPortRange, fromAsicSystemPortRange;
-    if (fromAsic.getSystemPortRanges().systemPortRanges()->size()) {
-      CHECK_EQ(fromAsic.getSystemPortRanges().systemPortRanges()->size(), 1)
-          << " Multiple sys port ranges per node are not supported yet in tests (TODO)";
-      fromAsicSystemPortRange =
-          *fromAsic.getSystemPortRanges().systemPortRanges()->begin();
+  auto getPlatformType = [](const auto& asic, auto& platformType) {
+    if (platformType.has_value()) {
+      return *platformType;
     }
-    if (fromAsicSystemPortRange.has_value()) {
-      cfg::Range64 range;
-      int numCores = fromAsic.getNumCores();
-      auto blockSize = (*fromAsicSystemPortRange->maximum() -
-                        *fromAsicSystemPortRange->minimum() + 1) /
-          numCores;
-      if (sysPortRanges.systemPortRanges()->size()) {
-        CHECK_EQ(sysPortRanges.systemPortRanges()->size(), 1)
-            << " Multiple sys port ranges per node are not supported yet in tests (TODO)";
-        auto firstRange = *sysPortRanges.systemPortRanges()->begin();
-        range.minimum() = kSysPortOffset + *firstRange.minimum();
-        range.maximum() = kSysPortOffset + *firstRange.maximum();
-      } else {
-        range.minimum() = kSysPortOffset + switchId * blockSize;
-        range.maximum() = *range.minimum() + numCores * blockSize - 1;
-      }
-      systemPortRange = range;
-    }
-    auto localMac = utility::kLocalCpuMac();
-    switch (fromAsic.getAsicType()) {
+    switch (asic.getAsicType()) {
       case cfg::AsicType::ASIC_TYPE_JERICHO2:
-        return std::pair(
-            std::make_unique<Jericho2Asic>(
-                fromAsic.getSwitchType(),
-                switchId,
-                fromAsic.getSwitchIndex(),
-                systemPortRange,
-                localMac),
-            PlatformType::PLATFORM_MERU400BIU);
-      case cfg::AsicType::ASIC_TYPE_JERICHO3: {
-        auto fromPlatformType = platformType.has_value()
-            ? platformType.value()
-            : PlatformType::PLATFORM_MERU800BIA;
-        return std::pair(
-            std::make_unique<Jericho3Asic>(
-                fromAsic.getSwitchType(),
-                switchId,
-                fromAsic.getSwitchIndex(),
-                systemPortRange,
-                localMac),
-            fromPlatformType);
-      }
+        return PlatformType::PLATFORM_MERU400BIU;
+      case cfg::AsicType::ASIC_TYPE_JERICHO3:
+        return PlatformType::PLATFORM_MERU800BIA;
       case cfg::AsicType::ASIC_TYPE_RAMON:
-        return std::pair(
-            std::make_unique<RamonAsic>(
-                fromAsic.getSwitchType(),
-                switchId,
-                fromAsic.getSwitchIndex(),
-                std::nullopt,
-                localMac),
-            PlatformType::PLATFORM_MERU400BFU);
+        return PlatformType::PLATFORM_MERU400BFU;
       case cfg::AsicType::ASIC_TYPE_RAMON3:
-        return std::pair(
-            std::make_unique<Ramon3Asic>(
-                fromAsic.getSwitchType(),
-                switchId,
-                fromAsic.getSwitchIndex(),
-                std::nullopt,
-                localMac),
-            PlatformType::PLATFORM_MERU800BFA);
-      case cfg::AsicType::ASIC_TYPE_CHENAB:
-        return std::pair(
-            std::make_unique<ChenabAsic>(
-                fromAsic.getSwitchType(),
-                switchId,
-                fromAsic.getSwitchIndex(),
-                std::nullopt,
-                localMac),
-            PlatformType::PLATFORM_YANGRA);
+        return PlatformType::PLATFORM_MERU800BFA;
       default:
-        throw FbossError("Unexpected asic type: ", fromAsic.getAsicTypeStr());
+        break;
     }
+    throw FbossError("Unexpected asic type: ", asic.getAsicTypeStr());
   };
-  auto [otherAsic, otherPlatformType] = createAsic(myAsic, otherSwitchId);
+  auto getSystemPortRanges = [](const HwAsic& fromAsic, int64_t otherSwitchId) {
+    cfg::SystemPortRanges sysPortRanges;
+    CHECK(fromAsic.getSystemPortRanges().systemPortRanges()->size());
+    CHECK(fromAsic.getSwitchId().has_value());
+    CHECK_EQ(*fromAsic.getSwitchId(), 0) << " For VOQ switches input asic "
+                                         << " must be of the first VOQ switch";
+    auto firstDsfNodeSysPortRanges =
+        *fromAsic.getSystemPortRanges().systemPortRanges();
+    for (const auto& firstNodeRange : firstDsfNodeSysPortRanges) {
+      cfg::Range64 systemPortRange;
+      // Already allocated + 1
+      systemPortRange.minimum() =
+          getSysPortIdsAllocated(
+              fromAsic, otherSwitchId, *firstNodeRange.minimum()) +
+          1;
+      systemPortRange.maximum() = *systemPortRange.minimum() +
+          getPerNodeSysPortsBlockSize(fromAsic, otherSwitchId) - 1;
+      XLOG(DBG2) << " For switch Id: " << otherSwitchId
+                 << " allocating range, min: " << *systemPortRange.minimum()
+                 << " max: " << *systemPortRange.maximum();
+
+      sysPortRanges.systemPortRanges()->push_back(systemPortRange);
+    }
+    return sysPortRanges;
+  };
   cfg::DsfNode dsfNode;
-  dsfNode.switchId() = *otherAsic->getSwitchId();
+  dsfNode.switchId() = otherSwitchId;
   dsfNode.name() = folly::sformat("hwTestSwitch{}", *dsfNode.switchId());
-  switch (otherAsic->getSwitchType()) {
+  switch (myAsic.getSwitchType()) {
     case cfg::SwitchType::VOQ: {
       dsfNode.type() = cfg::DsfNodeType::INTERFACE_NODE;
-      CHECK_EQ(otherAsic->getSystemPortRanges().systemPortRanges()->size(), 1)
-          << " Multiple sys port ranges per node are not supported yet in tests (TODO)";
-      dsfNode.systemPortRanges() = otherAsic->getSystemPortRanges();
+      auto sysPortRanges = getSystemPortRanges(myAsic, otherSwitchId);
+      dsfNode.systemPortRanges() = sysPortRanges;
+      dsfNode.localSystemPortOffset() = getLocalSystemPortOffset(sysPortRanges);
+      dsfNode.globalSystemPortOffset() =
+          *sysPortRanges.systemPortRanges()->begin()->minimum();
+      CHECK(myAsic.getInbandPortId().has_value());
+      dsfNode.inbandPortId() = *myAsic.getInbandPortId();
       dsfNode.nodeMac() = kLocalCpuMac().toString();
       dsfNode.loopbackIps() = getLoopbackIps(SwitchID(*dsfNode.switchId()));
-      auto sysPortRange =
-          *otherAsic->getSystemPortRanges().systemPortRanges()->begin();
-      dsfNode.localSystemPortOffset() = *sysPortRange.minimum();
-      dsfNode.globalSystemPortOffset() = *sysPortRange.minimum();
-      dsfNode.inbandPortId() = kSingleStageInbandPortId;
     } break;
     case cfg::SwitchType::FABRIC:
       dsfNode.type() = cfg::DsfNodeType::FABRIC_NODE;
       break;
     case cfg::SwitchType::NPU:
     case cfg::SwitchType::PHY:
-      throw FbossError("Unexpected switch type: ", otherAsic->getSwitchType());
+      throw FbossError("Unexpected switch type: ", myAsic.getSwitchType());
   }
-  dsfNode.asicType() = otherAsic->getAsicType();
-  dsfNode.platformType() = otherPlatformType;
+  dsfNode.asicType() = myAsic.getAsicType();
+  dsfNode.platformType() = getPlatformType(myAsic, platformType);
   return dsfNode;
 }
 
@@ -730,7 +696,7 @@ cfg::SwitchConfig genPortVlanCfg(
   cfg::SwitchConfig config;
   if (FLAGS_enable_acl_table_group) {
     utility::addAclTableGroup(
-        &config, cfg::AclStage::INGRESS, utility::getAclTableGroupName());
+        &config, cfg::AclStage::INGRESS, utility::kDefaultAclTableGroupName());
     utility::addDefaultAclTable(config);
   }
   if (switchIdToSwitchInfo.has_value() && hwAsicTable.has_value()) {
@@ -776,19 +742,15 @@ cfg::SwitchConfig genPortVlanCfg(
         asicType == cfg::AsicType::ASIC_TYPE_YUBA) {
       switchInfo.connectionHandle() = "/dev/uio0";
     }
-    // FIXME 2-stage DSF - adapt DSF node config to
-    // 2-stage DSF sysport id generation
-    if (asic->getSystemPortRanges().systemPortRanges()->size()) {
-      CHECK_EQ(asic->getSystemPortRanges().systemPortRanges()->size(), 1);
-      auto sysPortRange =
-          *asic->getSystemPortRanges().systemPortRanges()->begin();
-      switchInfo.systemPortRange() = sysPortRange;
-      switchInfo.systemPortRanges() = asic->getSystemPortRanges();
-      switchInfo.localSystemPortOffset() = *sysPortRange.minimum();
-      switchInfo.globalSystemPortOffset() = *sysPortRange.minimum();
+    switchInfo.systemPortRanges() = asic->getSystemPortRanges();
+    if (asic->getLocalSystemPortOffset().has_value()) {
+      switchInfo.localSystemPortOffset() = *asic->getLocalSystemPortOffset();
     }
-    if (switchType == cfg::SwitchType::VOQ) {
-      switchInfo.inbandPortId() = kSingleStageInbandPortId;
+    if (asic->getGlobalSystemPortOffset().has_value()) {
+      switchInfo.globalSystemPortOffset() = *asic->getGlobalSystemPortOffset();
+    }
+    if (asic->getInbandPortId().has_value()) {
+      switchInfo.inbandPortId() = *asic->getInbandPortId();
     }
     defaultSwitchIdToSwitchInfo.insert({SwitchID(switchId), switchInfo});
     populateSwitchInfo(
@@ -797,7 +759,10 @@ cfg::SwitchConfig genPortVlanCfg(
   auto switchType = asic->getSwitchType();
   // VOQ config
   if (switchType == cfg::SwitchType::VOQ) {
-    config.defaultVoqConfig() = getDefaultVoqCfg();
+    auto nameAndDefaultVoqCfg =
+        getNameAndDefaultVoqCfg(cfg::PortType::INTERFACE_PORT);
+    CHECK(nameAndDefaultVoqCfg.has_value());
+    config.defaultVoqConfig() = nameAndDefaultVoqCfg->queueConfig;
   }
 
   // Use getPortToDefaultProfileIDMap() to genetate the default config instead
@@ -854,6 +819,15 @@ cfg::SwitchConfig genPortVlanCfg(
       portCfg->state() = cfg::PortState::ENABLED;
       portCfg->ingressVlan() = port2vlan.find(portID)->second;
       portCfg->maxFrameSize() = kPortMTU;
+      if (switchType == cfg::SwitchType::VOQ &&
+          *portCfg->portType() != cfg::PortType::INTERFACE_PORT) {
+        auto nameAndVoqConfig = getNameAndDefaultVoqCfg(*portCfg->portType());
+        if (nameAndVoqConfig.has_value()) {
+          config.portQueueConfigs()[nameAndVoqConfig->name] =
+              nameAndVoqConfig->queueConfig;
+          portCfg->portVoqConfigName() = nameAndVoqConfig->name;
+        }
+      }
     }
     portCfg->routable() = true;
     portCfg->parserType() = cfg::ParserType::L3;
@@ -906,9 +880,7 @@ void populateSwitchInfo(
     if (hwAsic->getSwitchType() == cfg::SwitchType::VOQ ||
         hwAsic->getSwitchType() == cfg::SwitchType::FABRIC) {
       newDsfNodes.insert(
-          {switchId,
-           dsfNodeConfig(
-               *hwAsic, switchId, cfg::SystemPortRanges(), platformType)});
+          {switchId, dsfNodeConfig(*hwAsic, switchId, platformType)});
     }
   }
   config.switchSettings()->switchIdToSwitchInfo() = newSwitchIdToSwitchInfo;

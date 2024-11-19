@@ -41,7 +41,8 @@ class TransceiverImpl {
    */
   virtual int readTransceiver(
       const TransceiverAccessParameter& param,
-      uint8_t* fieldValue) = 0;
+      uint8_t* fieldValue,
+      const int field) = 0;
 
   /*
    * Write to a tranceiver with a specific delay post write.
@@ -53,7 +54,8 @@ class TransceiverImpl {
   virtual int writeTransceiver(
       const TransceiverAccessParameter& param,
       const uint8_t* fieldValue,
-      uint64_t delay) = 0;
+      uint64_t delay,
+      const int field) = 0;
 
   /*
    * This function will check if the transceiver is present or not

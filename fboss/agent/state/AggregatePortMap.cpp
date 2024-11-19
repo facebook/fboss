@@ -47,6 +47,6 @@ MultiSwitchAggregatePortMap::getAggregatePortForPort(PortID port) const {
   return nullptr;
 }
 
-template class ThriftMapNode<AggregatePortMap, AggregatePortMapTraits>;
+template struct ThriftMapNode<AggregatePortMap, AggregatePortMapTraits>;
 
 } // namespace facebook::fboss

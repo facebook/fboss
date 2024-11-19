@@ -10,7 +10,6 @@
 #include "fboss/qsfp_service/test/hw_test/HwTest.h"
 
 #include "fboss/lib/CommonUtils.h"
-#include "fboss/lib/config/PlatformConfigUtils.h"
 #include "fboss/qsfp_service/module/QsfpModule.h"
 #include "fboss/qsfp_service/platforms/wedge/WedgeManager.h"
 #include "fboss/qsfp_service/test/hw_test/HwPortUtils.h"

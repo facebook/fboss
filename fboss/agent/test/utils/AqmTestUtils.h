@@ -16,7 +16,7 @@ namespace facebook::fboss {
 class HwAsic;
 class HwPortStats;
 class TestEnsembleIf;
-class PortID;
+struct PortID;
 
 namespace utility {
 int getRoundedBufferThreshold(

@@ -196,7 +196,7 @@ struct SaiHostifUserDefinedTrapDefaultPriority {
 
 struct SaiIpAddressDefault {
   folly::IPAddress operator()() const {
-    return folly::IPAddress{};
+    return folly::IPAddressV6("::");
   }
 };
 

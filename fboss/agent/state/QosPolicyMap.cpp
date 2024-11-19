@@ -24,6 +24,6 @@ MultiSwitchQosPolicyMap* MultiSwitchQosPolicyMap::modify(
   return SwitchState::modify<switch_state_tags::qosPolicyMaps>(state);
 }
 
-template class ThriftMapNode<QosPolicyMap, QosPolicyMapTraits>;
+template struct ThriftMapNode<QosPolicyMap, QosPolicyMapTraits>;
 
 } // namespace facebook::fboss

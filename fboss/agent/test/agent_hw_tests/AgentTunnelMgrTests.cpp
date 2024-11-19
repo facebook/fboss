@@ -22,8 +22,13 @@ class AgentTunnelMgrTest : public AgentHwTest {
   }
 
   // Clear any stale kernel entries
-  void clearKernelEntries(const std::string& intfIp) {
-    auto cmd = folly::to<std::string>("ip rule list | grep ", intfIp);
+  void clearKernelEntries(const std::string& intfIp, bool isIPv4 = true) {
+    std::string cmd;
+    if (isIPv4) {
+      cmd = folly::to<std::string>("ip rule list | grep ", intfIp);
+    } else {
+      cmd = folly::to<std::string>("ip -6 rule list | grep ", intfIp);
+    }
 
     auto output = runShellCmd(cmd);
 
@@ -42,12 +47,20 @@ class AgentTunnelMgrTest : public AgentHwTest {
       XLOG(DBG2) << "tableId: " << lastWord;
 
       // Delete the source route rule entries from the kernel
-      cmd = folly::to<std::string>("ip rule delete table ", lastWord);
+      if (isIPv4) {
+        cmd = folly::to<std::string>("ip rule delete table ", lastWord);
+      } else {
+        cmd = folly::to<std::string>("ip -6 rule delete table ", lastWord);
+      }
 
       runShellCmd(cmd);
 
-      // Get the source route rule entries again
-      cmd = folly::to<std::string>("ip rule list | grep ", intfIp);
+      if (isIPv4) {
+        // Get the source route rule entries again
+        cmd = folly::to<std::string>("ip rule list | grep ", intfIp);
+      } else {
+        cmd = folly::to<std::string>("ip -6 rule list | grep ", intfIp);
+      }
 
       output = runShellCmd(cmd);
 
@@ -56,7 +69,11 @@ class AgentTunnelMgrTest : public AgentHwTest {
     }
 
     // Get the String
-    cmd = folly::to<std::string>("ip addr list | grep ", intfIp);
+    if (isIPv4) {
+      cmd = folly::to<std::string>("ip addr list | grep ", intfIp);
+    } else {
+      cmd = folly::to<std::string>("ip -6 addr list | grep ", intfIp);
+    }
 
     output = runShellCmd(cmd);
 
@@ -79,9 +96,20 @@ class AgentTunnelMgrTest : public AgentHwTest {
     } while (iss);
   }
 
-  void checkKernelEntriesRemoved(const std::string& intfIp) {
+  void checkIpKernelEntriesRemoved(
+      const std::string& intfIp,
+      bool isIPv4 = true) {
     // Check that the source route rule entries are not present in the kernel
-    auto cmd = folly::to<std::string>("ip rule list | grep ", intfIp);
+    std::string cmd;
+    // ipv6 address can match with other ipv6 addresses e.g. 1:: can match with
+    // 1::1. So, adding a space before and after the address to avoid matching
+    // with other addresses
+    std::string searchIntfIp = " " + intfIp + " ";
+    if (isIPv4) {
+      cmd = folly::to<std::string>("ip rule list | grep ", searchIntfIp);
+    } else {
+      cmd = folly::to<std::string>("ip -6 rule list | grep ", searchIntfIp);
+    }
 
     auto output = runShellCmd(cmd);
 
@@ -89,10 +117,15 @@ class AgentTunnelMgrTest : public AgentHwTest {
     XLOG(DBG2) << "checkKernelEntriesRemoved Output: \n" << output;
 
     EXPECT_TRUE(
-        output.find(folly::to<std::string>(intfIp)) == std::string::npos);
+        output.find(folly::to<std::string>(searchIntfIp)) == std::string::npos);
 
+    searchIntfIp = " " + intfIp + "/";
     // Check that the tunnel address entries are not present in the kernel
-    cmd = folly::to<std::string>("ip addr list | grep ", intfIp);
+    if (isIPv4) {
+      cmd = folly::to<std::string>("ip addr list | grep ", searchIntfIp);
+    } else {
+      cmd = folly::to<std::string>("ip -6 addr list | grep ", searchIntfIp);
+    }
 
     output = runShellCmd(cmd);
 
@@ -100,10 +133,18 @@ class AgentTunnelMgrTest : public AgentHwTest {
     XLOG(DBG2) << "checkKernelEntriesRemoved Output: \n" << output;
 
     EXPECT_TRUE(
-        output.find(folly::to<std::string>(intfIp)) == std::string::npos);
+        output.find(folly::to<std::string>(searchIntfIp)) == std::string::npos);
 
     // Check that the route entries are not present in the kernel
-    cmd = folly::to<std::string>("ip route list | grep ", intfIp);
+    if (isIPv4) {
+      searchIntfIp = intfIp;
+      cmd = folly::to<std::string>(
+          "ip route list | grep ", searchIntfIp, " | grep fboss");
+    } else {
+      searchIntfIp = intfIp + "/";
+      cmd = folly::to<std::string>(
+          "ip -6 route list | grep ", searchIntfIp, " | grep fboss");
+    }
 
     output = runShellCmd(cmd);
 
@@ -111,47 +152,83 @@ class AgentTunnelMgrTest : public AgentHwTest {
     XLOG(DBG2) << "checkKernelEntriesRemoved Output: \n" << output;
 
     EXPECT_TRUE(
-        output.find(folly::to<std::string>(intfIp)) == std::string::npos);
+        output.find(folly::to<std::string>(searchIntfIp)) == std::string::npos);
   }
 
   // Check that the kernel entries are present in the kernel
   void checkKernelEntriesExist(
       const std::string& intfIp,
+      bool isIPv4 = true,
       bool checkRouteEntry = true) {
     // Check that the source route rule entries are present in the kernel
-    auto cmd = folly::to<std::string>("ip rule list | grep ", intfIp);
+
+    std::string cmd;
+    std::string searchIntfIp = " " + intfIp + " ";
+    if (isIPv4) {
+      cmd = folly::to<std::string>("ip rule list | grep ", searchIntfIp);
+    } else {
+      cmd = folly::to<std::string>("ip -6 rule list | grep ", searchIntfIp);
+    }
 
     auto output = runShellCmd(cmd);
 
-    XLOG(DBG2) << "checkKernelEntries Cmd: " << cmd;
-    XLOG(DBG2) << "checkKernelEntries Output: \n" << output;
+    XLOG(DBG2) << "checkKernelEntriesExist Cmd: " << cmd;
+    XLOG(DBG2) << "checkKernelEntriesExist Output: \n" << output;
 
     EXPECT_TRUE(
-        output.find(folly::to<std::string>(intfIp)) != std::string::npos);
+        output.find(folly::to<std::string>(searchIntfIp)) != std::string::npos);
 
-    // Check that the tunnel address entries are present in the kernel
-    cmd = folly::to<std::string>("ip addr list | grep ", intfIp);
+    searchIntfIp = " " + intfIp + "/";
+    if (isIPv4) {
+      // Check that the tunnel address entries are present in the kernel
+      cmd = folly::to<std::string>("ip addr list | grep ", searchIntfIp);
+    } else {
+      cmd = folly::to<std::string>("ip -6 addr list | grep ", searchIntfIp);
+    }
 
     output = runShellCmd(cmd);
 
-    XLOG(DBG2) << "checkKernelEntries Cmd: " << cmd;
-    XLOG(DBG2) << "checkKernelEntries Output: \n" << output;
+    XLOG(DBG2) << "checkKernelEntriesExist Cmd: " << cmd;
+    XLOG(DBG2) << "checkKernelEntriesExist Output: \n" << output;
 
     EXPECT_TRUE(
-        output.find(folly::to<std::string>(intfIp)) != std::string::npos);
+        output.find(folly::to<std::string>(searchIntfIp)) != std::string::npos);
 
     if (checkRouteEntry) {
       // Check that the route entries are present in the kernel
-      cmd = folly::to<std::string>("ip route list | grep ", intfIp);
+      if (isIPv4) {
+        searchIntfIp = intfIp;
+        cmd = folly::to<std::string>(
+            "ip route list | grep ", searchIntfIp, " | grep fboss");
+      } else {
+        searchIntfIp = intfIp + "/";
+        cmd = folly::to<std::string>(
+            "ip -6 route list | grep ", searchIntfIp, " | grep fboss");
+      }
 
       output = runShellCmd(cmd);
 
-      XLOG(DBG2) << "checkKernelEntries Cmd: " << cmd;
-      XLOG(DBG2) << "checkKernelEntries Output:" << output;
+      XLOG(DBG2) << "checkKernelEntriesExist Cmd: " << cmd;
+      XLOG(DBG2) << "checkKernelEntriesExist Output:" << output;
 
       EXPECT_TRUE(
-          output.find(folly::to<std::string>(intfIp)) != std::string::npos);
+          output.find(folly::to<std::string>(searchIntfIp)) !=
+          std::string::npos);
     }
+  }
+
+  void clearKernelEntries(
+      const std::string& intfIPv4,
+      const std::string& intfIPv6) {
+    clearKernelEntries(intfIPv4, true);
+    clearKernelEntries(intfIPv6, false);
+  }
+
+  void checkKernelEntriesRemoved(
+      const std::string& intfIPv4,
+      const std::string& intfIPv6) {
+    checkIpKernelEntriesRemoved(intfIPv4, true);
+    checkIpKernelEntriesRemoved(intfIPv6, false);
   }
 
   cfg::SwitchConfig initialConfig(
@@ -166,14 +243,19 @@ class AgentTunnelMgrTest : public AgentHwTest {
 };
 
 // Test that the tunnel manager is able to create the source route rule
-// entries, tunnel address entries and default route entries in the kernel
-TEST_F(AgentTunnelMgrTest, checkKernelEntries) {
+// entries, tunnel address entries and default route entries for IPv4 in the
+// kernel
+TEST_F(AgentTunnelMgrTest, checkKernelIPv4Entries) {
   auto setup = [=]() {};
   auto verify = [=, this]() {
     auto config = initialConfig(*getAgentEnsemble());
-    auto intfIp = folly::IPAddress::createNetwork(
-                      config.interfaces()[0].ipAddresses()[0], -1, false)
-                      .first;
+    auto intfIPv4 = folly::IPAddress::createNetwork(
+                        config.interfaces()[0].ipAddresses()[0], -1, false)
+                        .first;
+
+    auto intfIPv6 = folly::IPAddress::createNetwork(
+                        config.interfaces()[0].ipAddresses()[1], -1, false)
+                        .first;
 
     // Apply the config
     applyNewConfig(config);
@@ -183,27 +265,78 @@ TEST_F(AgentTunnelMgrTest, checkKernelEntries) {
     auto tunMgr_ = getAgentEnsemble()->getSw()->getTunManager();
     auto status = tunMgr_->getIntfStatus(
         getProgrammedState(), (InterfaceID)config.interfaces()[0].get_intfID());
+    // There could be a race condition where the interface is up, but the
+    // socket is not created. So, checking for the socket existence.
+    auto socketExists = tunMgr_->isValidNlSocket();
 
     // There is a known limitation in the kernel that the source route rule
     // entries are not created if the interface is not up. So, checking for
     // the kernel entries if the interface is  up
-    if (status) {
-      checkKernelEntriesExist(folly::to<std::string>(intfIp));
+    if (status && socketExists) {
+      checkKernelEntriesExist(folly::to<std::string>(intfIPv4));
     }
 
     // Clear kernel entries
-    clearKernelEntries(folly::to<std::string>(intfIp));
+    clearKernelEntries(
+        folly::to<std::string>(intfIPv4), folly::to<std::string>(intfIPv6));
 
     // Check that the kernel entries are removed
-    checkKernelEntriesRemoved(folly::to<std::string>(intfIp));
+    checkKernelEntriesRemoved(
+        folly::to<std::string>(intfIPv4), folly::to<std::string>(intfIPv6));
   };
 
   verifyAcrossWarmBoots(setup, verify);
 }
 
-// Test that the tunnel manager is able to handle ip address change of the
+// Test that the tunnel manager is able to create the source route rule
+// entries, tunnel address entries and default route entries for IPv6 in the
+// kernel
+TEST_F(AgentTunnelMgrTest, checkKernelIPv6Entries) {
+  auto setup = [=]() {};
+  auto verify = [=, this]() {
+    auto config = initialConfig(*getAgentEnsemble());
+    auto intfIPv4 = folly::IPAddress::createNetwork(
+                        config.interfaces()[0].ipAddresses()[0], -1, false)
+                        .first;
+
+    auto intfIPv6 = folly::IPAddress::createNetwork(
+                        config.interfaces()[0].ipAddresses()[1], -1, false)
+                        .first;
+
+    // Apply the config
+    applyNewConfig(config);
+    waitForStateUpdates(getAgentEnsemble()->getSw());
+
+    // Get TunManager pointer
+    auto tunMgr_ = getAgentEnsemble()->getSw()->getTunManager();
+    auto status = tunMgr_->getIntfStatus(
+        getProgrammedState(), (InterfaceID)config.interfaces()[0].get_intfID());
+    // There could be a race condition where the interface is up, but the
+    // socket is not created. So, checking for the socket existence.
+    auto socketExists = tunMgr_->isValidNlSocket();
+
+    // There is a known limitation in the kernel that the source route rule
+    // entries are not created if the interface is not up. So, checking for
+    // the kernel entries if the interface is  up
+    if (status && socketExists) {
+      checkKernelEntriesExist(folly::to<std::string>(intfIPv6), false, true);
+    }
+
+    // Clear kernel entries
+    clearKernelEntries(
+        folly::to<std::string>(intfIPv4), folly::to<std::string>(intfIPv6));
+
+    // Check that the kernel entries are removed
+    checkKernelEntriesRemoved(
+        folly::to<std::string>(intfIPv4), folly::to<std::string>(intfIPv6));
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
+}
+
+// Test that the tunnel manager is able to handle ipv4 address change of the
 // interface
-TEST_F(AgentTunnelMgrTest, changeIpAddress) {
+TEST_F(AgentTunnelMgrTest, changeIPv4Address) {
   auto setup = [=]() {};
   auto verify = [=, this]() {
     auto config = initialConfig(*getAgentEnsemble());
@@ -212,45 +345,116 @@ TEST_F(AgentTunnelMgrTest, changeIpAddress) {
     applyNewConfig(config);
     waitForStateUpdates(getAgentEnsemble()->getSw());
 
-    auto intfIp = folly::IPAddress::createNetwork(
-                      config.interfaces()[0].ipAddresses()[0], -1, false)
-                      .first;
+    auto intfIPv4 = folly::IPAddress::createNetwork(
+                        config.interfaces()[0].ipAddresses()[0], -1, false)
+                        .first;
+
+    auto intfIPv6 = folly::IPAddress::createNetwork(
+                        config.interfaces()[0].ipAddresses()[1], -1, false)
+                        .first;
 
     // Get TunManager pointer
     auto tunMgr_ = getAgentEnsemble()->getSw()->getTunManager();
     auto status = tunMgr_->getIntfStatus(
         getProgrammedState(), (InterfaceID)config.interfaces()[0].get_intfID());
+    // There could be a race condition where the interface is up, but the
+    // socket is not created. So, checking for the socket existence.
+    auto socketExists = tunMgr_->isValidNlSocket();
 
     // There is a known limitation in the kernel that the source route rule
     // entries are not created if the interface is not up. So, checking for
     // the kernel entries if the interface is  up
-    if (status) {
-      checkKernelEntriesExist(folly::to<std::string>(intfIp));
+    if (status && socketExists) {
+      checkKernelEntriesExist(folly::to<std::string>(intfIPv4), true, true);
     }
 
     // change ip address of the interface
     config.interfaces()[0].ipAddresses()[0] = "2.2.2.2/32";
+
+    // Apply the config
+    applyNewConfig(config);
+    waitForStateUpdates(getAgentEnsemble()->getSw());
+
+    intfIPv4 = folly::IPAddress::createNetwork(
+                   config.interfaces()[0].ipAddresses()[0], -1, false)
+                   .first;
+
+    // Route entries installation is currently not consistent after the ip
+    // address change. So, passing false for checkRouteEntry.
+    if (status) {
+      checkKernelEntriesExist(folly::to<std::string>(intfIPv4), true, false);
+    }
+
+    // Clear kernel entries
+    clearKernelEntries(
+        folly::to<std::string>(intfIPv4), folly::to<std::string>(intfIPv6));
+
+    // Check that the kernel entries are removed
+    checkKernelEntriesRemoved(
+        folly::to<std::string>(intfIPv4), folly::to<std::string>(intfIPv6));
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
+}
+
+// Test that the tunnel manager is able to handle ipv6 address change of the
+// interface
+TEST_F(AgentTunnelMgrTest, changeIPv6Address) {
+  auto setup = [=]() {};
+  auto verify = [=, this]() {
+    auto config = initialConfig(*getAgentEnsemble());
+
+    // Apply the config
+    applyNewConfig(config);
+    waitForStateUpdates(getAgentEnsemble()->getSw());
+
+    auto intfIPv4 = folly::IPAddress::createNetwork(
+                        config.interfaces()[0].ipAddresses()[0], -1, false)
+                        .first;
+
+    auto intfIPv6 = folly::IPAddress::createNetwork(
+                        config.interfaces()[0].ipAddresses()[1], -1, false)
+                        .first;
+
+    // Get TunManager pointer
+    auto tunMgr_ = getAgentEnsemble()->getSw()->getTunManager();
+    auto status = tunMgr_->getIntfStatus(
+        getProgrammedState(), (InterfaceID)config.interfaces()[0].get_intfID());
+    // There could be a race condition where the interface is up, but the
+    // socket is not created. So, checking for the socket existence.
+    auto socketExists = tunMgr_->isValidNlSocket();
+
+    // There is a known limitation in the kernel that the source route rule
+    // entries are not created if the interface is not up. So, checking for
+    // the kernel entries if the interface is  up
+    if (status && socketExists) {
+      checkKernelEntriesExist(folly::to<std::string>(intfIPv6), false);
+    }
+
+    // change ipv6 address of the interface
     config.interfaces()[0].ipAddresses()[1] = "2::/128";
 
     // Apply the config
     applyNewConfig(config);
     waitForStateUpdates(getAgentEnsemble()->getSw());
 
-    intfIp = folly::IPAddress::createNetwork(
-                 config.interfaces()[0].ipAddresses()[0], -1, false)
-                 .first;
+    intfIPv6 = folly::IPAddress::createNetwork(
+                   config.interfaces()[0].ipAddresses()[1], -1, false)
+                   .first;
 
     // Route entries installation is currently not consistent after the ip
     // address change. So, passing false for checkRouteEntry.
     if (status) {
-      checkKernelEntriesExist(folly::to<std::string>(intfIp), false);
+      checkKernelEntriesExist(folly::to<std::string>(intfIPv6), false, false);
     }
 
     // Clear kernel entries
-    clearKernelEntries(folly::to<std::string>(intfIp));
+    clearKernelEntries(
+        folly::to<std::string>(intfIPv4), folly::to<std::string>(intfIPv6));
 
     // Check that the kernel entries are removed
-    checkKernelEntriesRemoved(folly::to<std::string>(intfIp));
+    checkKernelEntriesRemoved(
+        folly::to<std::string>(intfIPv4), folly::to<std::string>(intfIPv6));
   };
 
   verifyAcrossWarmBoots(setup, verify);

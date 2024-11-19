@@ -5,7 +5,6 @@
 #include "fboss/agent/test/EcmpSetupHelper.h"
 
 #include "fboss/agent/hw/sai/switch/SaiNextHopGroupManager.h"
-#include "fboss/agent/hw/sai/switch/SaiPortManager.h"
 #include "fboss/agent/hw/sai/switch/SaiRouteManager.h"
 #include "fboss/agent/hw/sai/switch/SaiVirtualRouterManager.h"
 

@@ -44,6 +44,9 @@ std::vector<sai_system_port_config_t>
 SaiMeru800biaPlatform::getInternalSystemPortConfig() const {
   CHECK(asic_) << " Asic must be set before getting sys port info";
   CHECK(asic_->getSwitchId()) << " Switch Id must be set before sys port info";
+  if (isDualStage3Q2QMode()) {
+    return {{0, static_cast<uint32_t>(*asic_->getSwitchId()), 1, 16, 10000, 3}};
+  }
   return {{0, static_cast<uint32_t>(*asic_->getSwitchId()), 0, 0, 10000, 8}};
 }
 SaiMeru800biaPlatform::~SaiMeru800biaPlatform() = default;

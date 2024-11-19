@@ -12,7 +12,6 @@
 
 #include "fboss/agent/L2Entry.h"
 #include "fboss/agent/ResourceAccountant.h"
-#include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/state/Vlan.h"
 #include "fboss/agent/test/HwTestHandle.h"

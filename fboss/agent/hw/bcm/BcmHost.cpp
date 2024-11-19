@@ -13,15 +13,12 @@
 #include <string>
 
 #include <folly/logging/xlog.h>
-#include "fboss/agent/Constants.h"
 #include "fboss/agent/hw/bcm/BcmAclEntry.h"
 #include "fboss/agent/hw/bcm/BcmClassIDUtil.h"
 #include "fboss/agent/hw/bcm/BcmEgress.h"
 #include "fboss/agent/hw/bcm/BcmEgressManager.h"
 #include "fboss/agent/hw/bcm/BcmError.h"
-#include "fboss/agent/hw/bcm/BcmIntf.h"
 #include "fboss/agent/hw/bcm/BcmMultiPathNextHop.h"
-#include "fboss/agent/hw/bcm/BcmNextHop.h"
 #include "fboss/agent/hw/bcm/BcmPort.h"
 #include "fboss/agent/hw/bcm/BcmPortTable.h"
 #include "fboss/agent/hw/bcm/BcmRoute.h"
@@ -29,7 +26,6 @@
 #include "fboss/agent/hw/bcm/BcmTrunkTable.h"
 #include "fboss/agent/hw/bcm/BcmWarmBootCache.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
-#include "fboss/agent/state/Interface.h"
 
 extern "C" {
 #include <bcm/l3.h>

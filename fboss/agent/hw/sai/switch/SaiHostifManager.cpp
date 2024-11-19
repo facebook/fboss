@@ -9,6 +9,7 @@
  */
 
 #include "fboss/agent/hw/sai/switch/SaiHostifManager.h"
+#include "fboss/agent/VoqUtils.h"
 #include "fboss/agent/hw/sai/store/SaiStore.h"
 #include "fboss/agent/hw/sai/switch/ConcurrentIndices.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
@@ -686,6 +687,25 @@ QueueConfig SaiHostifManager::getQueueSettings() const {
         return portQueue->getID() < maxCpuQueues;
       });
   return filteredQueueConfig;
+}
+
+QueueConfig SaiHostifManager::getVoqSettings() const {
+  if (!cpuPortHandle_) {
+    return QueueConfig{};
+  }
+  auto voqConfig =
+      managerTable_->queueManager().getQueueSettings(cpuPortHandle_->voqs);
+  auto maxCpuVoqs = getNumVoqs(cfg::PortType::CPU_PORT, cfg::Scope::LOCAL);
+  QueueConfig filteredVoqConfig;
+  // Prepare voq config only upto max CPU voqs
+  std::copy_if(
+      voqConfig.begin(),
+      voqConfig.end(),
+      std::back_inserter(filteredVoqConfig),
+      [maxCpuVoqs](const auto& portVoq) {
+        return portVoq->getID() < maxCpuVoqs;
+      });
+  return filteredVoqConfig;
 }
 
 SaiHostifTrapHandle* SaiHostifManager::getHostifTrapHandleImpl(

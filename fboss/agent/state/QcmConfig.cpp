@@ -16,6 +16,6 @@
 
 namespace facebook::fboss {
 
-template class ThriftStructNode<QcmCfg, state::QcmCfgFields>;
+template struct ThriftStructNode<QcmCfg, state::QcmCfgFields>;
 
 } // namespace facebook::fboss

@@ -46,6 +46,7 @@ void validateInterfaceAndMedium(
           {TransmitterTechnology::OPTICAL,
            {
                phy::InterfaceType::SR,
+               phy::InterfaceType::SR2,
                phy::InterfaceType::SR4,
                phy::InterfaceType::SR8,
                // Choice for optical profiles in

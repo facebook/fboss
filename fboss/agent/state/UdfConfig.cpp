@@ -13,5 +13,5 @@
 
 namespace facebook::fboss {
 
-template class ThriftStructNode<UdfConfig, cfg::UdfConfig>;
+template struct ThriftStructNode<UdfConfig, cfg::UdfConfig>;
 } // namespace facebook::fboss

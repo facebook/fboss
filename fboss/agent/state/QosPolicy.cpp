@@ -46,6 +46,6 @@ ExpMap::ExpMap(std::vector<cfg::ExpQosMap> cfg) {
   }
 }
 
-template class ThriftStructNode<QosPolicy, state::QosPolicyFields>;
+template struct ThriftStructNode<QosPolicy, state::QosPolicyFields>;
 
 } // namespace facebook::fboss

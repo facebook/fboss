@@ -28,6 +28,14 @@ folly::IPAddress getSflowMirrorDestination(bool isV4) {
               : folly::IPAddress("2401:101:101::101");
 }
 
+folly::IPAddress getSflowMirrorSource() {
+  /*
+   * This is the source IP for sflow mirror packets.
+   * We will be supporting only v6 on future platforms.
+   */
+  return folly::IPAddress("2401::100");
+}
+
 /*
  * This configures a local/erspan mirror session.
  * Adds a tunnel config if the mirrorname is erspan.
@@ -78,13 +86,15 @@ void configureSflowMirror(
     const std::string& mirrorName,
     bool truncate,
     const std::string& destinationIp,
+    uint32_t udpSrcPort,
     uint32_t udpDstPort) {
   cfg::SflowTunnel sflowTunnel;
   sflowTunnel.ip() = destinationIp;
-  sflowTunnel.udpSrcPort() = 6545;
+  sflowTunnel.udpSrcPort() = udpSrcPort;
   sflowTunnel.udpDstPort() = udpDstPort;
 
   cfg::MirrorTunnel tunnel;
+  tunnel.srcIp() = getSflowMirrorSource().str();
   tunnel.sflowTunnel() = sflowTunnel;
 
   cfg::MirrorDestination destination;

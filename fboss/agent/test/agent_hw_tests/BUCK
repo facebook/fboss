@@ -31,6 +31,7 @@ cpp_library(
         "AgentHwAclStatTests.cpp",
         "AgentInNullRouteDiscardsTest.cpp",
         "AgentInTrapDiscardsTest.cpp",
+        "AgentIngressBufferTests.cpp",
         "AgentJumboFramesTests.cpp",
         "AgentL3ForwardingTests.cpp",
         "AgentL4PortBlackholingTests.cpp",
@@ -245,7 +246,6 @@ cpp_library(
         "//fboss/agent/test/utils:acl_test_utils",
         "//fboss/agent/test/utils:asic_test_utils",
         "//fboss/agent/test/utils:scale_test_utils",
-        "//fboss/lib:common_utils",
         "//folly:network_address",
     ],
 )

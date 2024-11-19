@@ -15,6 +15,6 @@ void UdfPacketMatcherMap::addUdfPacketMatcher(
   return addNode(udfPacketMatcher);
 }
 
-template class ThriftMapNode<UdfPacketMatcherMap, UdfPacketMatcherMapTraits>;
+template struct ThriftMapNode<UdfPacketMatcherMap, UdfPacketMatcherMapTraits>;
 
 } // namespace facebook::fboss

@@ -19,7 +19,6 @@
 #include "fboss/agent/benchmarks/AgentBenchmarks.h"
 
 #include <folly/Benchmark.h>
-#include <folly/logging/xlog.h>
 
 namespace facebook::fboss {
 

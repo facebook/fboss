@@ -105,6 +105,7 @@ class HwTestThriftHandler : public AgentHwTestCtrlSvIf {
       std::unique_ptr<::std::vector<::std::int32_t>> portIds) override;
 
   bool verifyPortLedStatus(int portId, bool status) override;
+  bool verifyPGSettings(int portId, bool pfcEnabled) override;
 
  private:
   HwSwitch* hwSwitch_;

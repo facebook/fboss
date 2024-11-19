@@ -6,7 +6,6 @@
 #include "fboss/cli/fboss2/commands/show/mirror/CmdShowMirror.h"
 #include "fboss/cli/fboss2/commands/show/mirror/gen-cpp2/model_types.h"
 #include "fboss/cli/fboss2/test/CmdHandlerTestBase.h"
-#include "fboss/cli/fboss2/utils/CmdClientUtils.h"
 #include "nettools/common/TestUtils.h"
 
 using namespace ::testing;

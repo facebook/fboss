@@ -36,7 +36,7 @@ class MirrorStoreTest : public SaiStoreTest {
 
   MirrorSaiId createLocalMirror(int portId) {
     SaiLocalMirrorTraits::CreateAttributes c{
-        SAI_MIRROR_SESSION_TYPE_LOCAL, portId};
+        SAI_MIRROR_SESSION_TYPE_LOCAL, portId, std::nullopt};
     return saiApiTable->mirrorApi().create<SaiLocalMirrorTraits>(c, 0);
   }
 
@@ -51,7 +51,8 @@ class MirrorStoreTest : public SaiStoreTest {
       folly::MacAddress& dstMac,
       uint8_t ipHeaderVersion,
       uint16_t greProtocol,
-      uint32_t samplingRate) {
+      uint32_t samplingRate,
+      std::optional<uint32_t> tcBufferLimit) {
     return saiApiTable->mirrorApi().create<SaiEnhancedRemoteMirrorTraits>(
         {SAI_MIRROR_SESSION_TYPE_ENHANCED_REMOTE,
          portId,
@@ -65,7 +66,8 @@ class MirrorStoreTest : public SaiStoreTest {
          greProtocol,
          ttl,
          truncateSize,
-         samplingRate},
+         samplingRate,
+         tcBufferLimit},
         0);
   }
 };
@@ -73,14 +75,15 @@ class MirrorStoreTest : public SaiStoreTest {
 TEST_F(MirrorStoreTest, loadMirrorSessions) {
   auto mirrorId1 = createLocalMirror(0);
   auto mirrorId2 = createEnhancedRemoteMirror(
-      1, 16, 240, 255, srcIp, dstIp, srcMac, dstMac, 4, 2148, 0);
+      1, 16, 240, 255, srcIp, dstIp, srcMac, dstMac, 4, 2148, 0, std::nullopt);
 
   SaiStore s(0);
   s.reload();
   auto& store1 = s.get<SaiLocalMirrorTraits>();
   auto& store2 = s.get<SaiEnhancedRemoteMirrorTraits>();
 
-  SaiLocalMirrorTraits::AdapterHostKey k1{SAI_MIRROR_SESSION_TYPE_LOCAL, 0};
+  SaiLocalMirrorTraits::AdapterHostKey k1{
+      SAI_MIRROR_SESSION_TYPE_LOCAL, 0, std::nullopt};
   SaiEnhancedRemoteMirrorTraits::AdapterHostKey k2{
       SAI_MIRROR_SESSION_TYPE_ENHANCED_REMOTE, 1, srcIp, dstIp};
   auto got1 = store1.get(k1);
@@ -99,8 +102,10 @@ TEST_F(MirrorStoreTest, mirrorLoadCtor) {
 }
 
 TEST_F(MirrorStoreTest, mirrorCreateCtor) {
-  SaiLocalMirrorTraits::AdapterHostKey k{SAI_MIRROR_SESSION_TYPE_LOCAL, 0};
-  SaiLocalMirrorTraits::CreateAttributes c{SAI_MIRROR_SESSION_TYPE_LOCAL, 0};
+  SaiLocalMirrorTraits::AdapterHostKey k{
+      SAI_MIRROR_SESSION_TYPE_LOCAL, 0, std::nullopt};
+  SaiLocalMirrorTraits::CreateAttributes c{
+      SAI_MIRROR_SESSION_TYPE_LOCAL, 0, std::nullopt};
   auto obj = createObj<SaiLocalMirrorTraits>(k, c, 0);
   EXPECT_EQ(
       GET_ATTR(LocalMirror, Type, obj.attributes()),
@@ -114,7 +119,7 @@ TEST_F(MirrorStoreTest, localSpanSerDeser) {
 
 TEST_F(MirrorStoreTest, erSpanSerDeser) {
   auto mirrorId = createEnhancedRemoteMirror(
-      2, 16, 220, 255, srcIp, dstIp, srcMac, dstMac, 4, 2200, 0);
+      2, 16, 220, 255, srcIp, dstIp, srcMac, dstMac, 4, 2200, 0, std::nullopt);
   verifyAdapterKeySerDeser<SaiEnhancedRemoteMirrorTraits>({mirrorId});
 }
 
@@ -122,6 +127,6 @@ TEST_F(MirrorStoreTest, toStr) {
   std::ignore = createLocalMirror(0);
   verifyToStr<SaiLocalMirrorTraits>();
   std::ignore = createEnhancedRemoteMirror(
-      20, 16, 220, 180, srcIp, dstIp, srcMac, dstMac, 4, 2200, 0);
+      20, 16, 220, 180, srcIp, dstIp, srcMac, dstMac, 4, 2200, 0, std::nullopt);
   verifyToStr<SaiEnhancedRemoteMirrorTraits>();
 }

@@ -25,7 +25,8 @@ bool FakeTransceiverImpl::detectTransceiver() {
 
 int FakeTransceiverImpl::readTransceiver(
     const TransceiverAccessParameter& param,
-    uint8_t* fieldValue) {
+    uint8_t* fieldValue,
+    const int /*field*/) {
   int read = 0;
   CHECK(param.i2cAddress.has_value());
   auto dataAddress = *(param.i2cAddress);
@@ -62,7 +63,8 @@ int FakeTransceiverImpl::readTransceiver(
 int FakeTransceiverImpl::writeTransceiver(
     const TransceiverAccessParameter& param,
     const uint8_t* fieldValue,
-    uint64_t /*unused*/) {
+    uint64_t /*unused*/,
+    const int /*field*/) {
   CHECK(param.i2cAddress.has_value());
   auto dataAddress = *(param.i2cAddress);
   auto offset = param.offset;

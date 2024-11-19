@@ -7,7 +7,6 @@
 #include <range/v3/view/drop.hpp>
 #include <range/v3/view/filter.hpp>
 #include <range/v3/view/map.hpp>
-#include <range/v3/view/move.hpp>
 #include <range/v3/view/split.hpp>
 #include <range/v3/view/transform.hpp>
 #include <range/v3/view/unique.hpp>
@@ -15,14 +14,17 @@
 
 #include "fboss/platform/platform_manager/I2cAddr.h"
 
+namespace facebook::fboss::platform::platform_manager {
 namespace {
 const re2::RE2 kRpmVersionRegex{"^[0-9]+\\.[0-9]+\\.[0-9]+\\-[0-9]+$"};
 const re2::RE2 kPciIdRegex{"0x[0-9a-f]{4}"};
 const re2::RE2 kPciDevOffsetRegex{"0x[0-9a-f]+"};
 const re2::RE2 kSymlinkRegex{"^/run/devmap/(?P<SymlinkDirs>[a-z0-9-]+)/.+"};
 const re2::RE2 kDevPathRegex{"(?P<SlotPath>.*)\\[(?P<DeviceName>.+)\\]"};
+const re2::RE2 kSlotNameRegex{"(?P<SlotType>.([A-Z]+_)+SLOT)@\\d+"};
 const re2::RE2 kSlotPathRegex{"/|(/([A-Z]+_)+SLOT@\\d+)+"};
 const re2::RE2 kInfoRomDevicePrefixRegex{"^fpga_info_(dom|iob|scm|mcb)$"};
+const re2::RE2 kI2cAdapterNameRegex{"(?P<PmUnitScopedName>.+)@(?P<Num>\\d+)"};
 constexpr auto kSymlinkDirs = {
     "eeproms",
     "sensors",
@@ -48,13 +50,106 @@ constexpr auto kSpiDevModaliases = {
     "em3581",
     "si3210"};
 constexpr auto kXcvrDeviceName = "xcvr_ctrl";
-} // namespace
-
-namespace facebook::fboss::platform::platform_manager {
 
 bool containsLower(const std::string& s) {
   return std::any_of(s.begin(), s.end(), ::islower);
 }
+
+// Tokenize the SlotPath by delimiter '/'
+std::vector<std::string> split(const std::string& slotPath) {
+  return slotPath | ranges::views::split('/') | ranges::views::drop(1) |
+      ranges::to<std::vector<std::string>>;
+}
+
+// Returns all PmUnitConfigs that has the given slotType.
+std::vector<PmUnitConfig> getPmUnitConfigsBySlotType(
+    const PlatformConfig& platformConfig,
+    const SlotType& slotType) {
+  return *platformConfig.pmUnitConfigs() | ranges::views::values |
+      ranges::views::filter([&](const auto& pmUnitConfig) {
+        return *pmUnitConfig.pluggedInSlotType() == slotType;
+      }) |
+      ranges::to_vector;
+}
+
+std::optional<SlotType> extractSlotType(const std::string& slotName) {
+  SlotType slotType;
+  if (!re2::RE2::FullMatch(slotName, kSlotNameRegex, &slotType)) {
+    return std::nullopt;
+  }
+  return slotType;
+}
+
+std::optional<SlotType> resolveSlotType(
+    const PlatformConfig& platformConfig,
+    const std::string& slotPath) {
+  std::optional<SlotType> slotType;
+  if (slotPath == "/") {
+    return *platformConfig.rootSlotType();
+  }
+  const auto lastSlotName = std::move(split(slotPath).back());
+  // Find the SlotType of the lastSlotName.
+  return extractSlotType(lastSlotName);
+}
+
+template <typename T>
+  requires requires(T t) {
+    { *t.pmUnitScopedName() } -> std::convertible_to<std::string>;
+  }
+bool hasDeviceName(const T& deviceConfig, const std::string& deviceName) {
+  return *deviceConfig.pmUnitScopedName() == deviceName;
+}
+
+template <typename T>
+  requires requires(T t) {
+    { *t.fpgaIpBlockConfig() } -> std::convertible_to<FpgaIpBlockConfig>;
+  }
+bool hasDeviceName(const T& deviceConfig, const std::string& deviceName) {
+  return hasDeviceName(*deviceConfig.fpgaIpBlockConfig(), deviceName);
+}
+
+bool hasDeviceName(
+    const I2cAdapterConfig& deviceConfig,
+    const std::string& deviceName) {
+  std::string pmUnitScopedName, adapterNum;
+  if (!re2::RE2::FullMatch(
+          deviceName, kI2cAdapterNameRegex, &pmUnitScopedName, &adapterNum)) {
+    return hasDeviceName(*deviceConfig.fpgaIpBlockConfig(), deviceName);
+  }
+  return hasDeviceName(*deviceConfig.fpgaIpBlockConfig(), pmUnitScopedName) &&
+      0 <= stoi(adapterNum) &&
+      stoi(adapterNum) < *deviceConfig.numberOfAdapters();
+}
+
+template <typename T>
+bool hasDeviceName(
+    const std::vector<T>& deviceConfigs,
+    const std::string& deviceName) {
+  for (const auto& deviceConfig : deviceConfigs) {
+    if (hasDeviceName(deviceConfig, deviceName)) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasDeviceName(
+    const std::vector<SpiMasterConfig>& deviceConfigs,
+    const std::string& deviceName) {
+  for (const auto& deviceConfig : deviceConfigs) {
+    if (hasDeviceName(*deviceConfig.fpgaIpBlockConfig(), deviceName) ||
+        hasDeviceName(*deviceConfig.spiDeviceConfigs(), deviceName)) {
+      return true;
+    }
+  }
+  return false;
+}
+
+template <typename... Ts>
+bool isDeviceMatch(const std::string& deviceName, Ts&&... deviceConfigs) {
+  return (hasDeviceName(deviceConfigs, deviceName) || ...);
+}
+} // namespace
 
 bool ConfigValidator::isValidSlotTypeConfig(
     const SlotTypeConfig& slotTypeConfig) {
@@ -255,7 +350,8 @@ bool ConfigValidator::isValidDevicePath(
   if (slotPath.length() > 1) {
     slotPath.pop_back();
   }
-  if (!isValidSlotPath(platformConfig, slotPath)) {
+  if (!isValidSlotPath(platformConfig, slotPath) ||
+      !isValidDeviceName(platformConfig, slotPath, deviceName)) {
     return false;
   }
   return true;
@@ -266,22 +362,18 @@ bool ConfigValidator::isValidSlotPath(
     const std::string& slotPath) {
   // Syntactic validation.
   if (!re2::RE2::FullMatch(slotPath, kSlotPathRegex)) {
-    XLOG(ERR) << fmt::format("Invalid slot path {}", slotPath);
+    XLOG(ERR) << fmt::format("Invalid SlotPath format {}", slotPath);
     return false;
   }
 
   // Slot topological validation.
   // Starting from the root, check for a PmUnit from CurrSlot to NextSlot.
-  for (auto currSlotType{*platformConfig.rootSlotType()};
-       const auto& nextSlotName : slotPath | ranges::views::split('/') |
-           ranges::views::drop(1) | ranges::to<std::vector<std::string>>) {
+  auto slotNames = split(slotPath);
+  auto currSlotType = *platformConfig.rootSlotType();
+  for (const auto& nextSlotName : slotNames) {
     // Find all pmUnits that can be plug into currSlotType.
-    std::vector<PmUnitConfig> pmUnitConfigs = *platformConfig.pmUnitConfigs() |
-        ranges::views::values |
-        ranges::views::filter([&](const auto& pmUnitConfig) {
-          return *pmUnitConfig.pluggedInSlotType() == currSlotType;
-        }) |
-        ranges::to_vector;
+    auto pmUnitConfigs =
+        getPmUnitConfigsBySlotType(platformConfig, currSlotType);
     if (pmUnitConfigs.empty()) {
       XLOG(ERR) << fmt::format(
           "Couldn't find PmUnitConfigs that can be plug-into {} in SlotPath {}",
@@ -289,7 +381,8 @@ bool ConfigValidator::isValidSlotPath(
           slotPath);
       return false;
     }
-    // Find PmUnits' outgoingSlotConfig of nextSlotName and their SlotType.
+    // Find next SlotType from the found PmUnits' outgoingSlotConfig of
+    // nextSlotName to verify that PmUnit sits between CurrSlot and NextSlot.
     auto nextSlotType =
         pmUnitConfigs | ranges::views::filter([&](const auto& pmUnitConfig) {
           return pmUnitConfig.outgoingSlotConfigs()->contains(nextSlotName);
@@ -302,16 +395,73 @@ bool ConfigValidator::isValidSlotPath(
         ranges::views::unique | ranges::to_vector;
     if (nextSlotType.size() != 1) {
       XLOG(ERR) << fmt::format(
-          "Invalid SlotName {} in SlotPath {}. Maps to {} SlotConfig(s)",
+          "Invalid SlotName {}. It maps to {} SlotConfig(s)",
           nextSlotName,
-          slotPath,
           nextSlotType.size());
       return false;
     }
-    // Set currSlotType as the nextSlotType
     currSlotType = nextSlotType.front();
   }
   return true;
+}
+
+bool ConfigValidator::isValidDeviceName(
+    const PlatformConfig& platformConfig,
+    const std::string& slotPath,
+    const std::string& deviceName) {
+  auto slotType = resolveSlotType(platformConfig, slotPath);
+  CHECK(slotType) << "SlotType must be nonnull";
+  // If the device is IDPROM, search from the SlotTypeConfigs.
+  if (deviceName == "IDPROM") {
+    if (!platformConfig.slotTypeConfigs()->contains(*slotType)) {
+      XLOG(ERR) << fmt::format(
+          "Found no SlotTypeConfig for SlotType {}", *slotType);
+      return false;
+    }
+    const auto& slotTypeConfig =
+        platformConfig.slotTypeConfigs()->at(*slotType);
+    if (!slotTypeConfig.idpromConfig()) {
+      XLOG(ERR) << fmt::format(
+          "Unexpected IDPROM at SlotPath {}. IdpromConfig is not defined at {}",
+          slotPath,
+          *slotType);
+      return false;
+    }
+    return true;
+  }
+  // Otherwise, find all plugable PmUnitConfigs to the last Slot of the
+  // SlotPath. eagerly check if any has the given deviceName in its device
+  // configurations.
+  for (const auto& pmUnitConfig :
+       getPmUnitConfigsBySlotType(platformConfig, *slotType)) {
+    if (isDeviceMatch(
+            deviceName,
+            *pmUnitConfig.pciDeviceConfigs(),
+            *pmUnitConfig.i2cDeviceConfigs(),
+            *pmUnitConfig.embeddedSensorConfigs())) {
+      return true;
+    }
+    for (const auto& pciDeviceConfig : *pmUnitConfig.pciDeviceConfigs()) {
+      if (isDeviceMatch(
+              deviceName,
+              *pciDeviceConfig.i2cAdapterConfigs(),
+              *pciDeviceConfig.spiMasterConfigs(),
+              *pciDeviceConfig.fanTachoPwmConfigs(),
+              *pciDeviceConfig.ledCtrlConfigs(),
+              *pciDeviceConfig.xcvrCtrlConfigs(),
+              *pciDeviceConfig.spiMasterConfigs(),
+              *pciDeviceConfig.gpioChipConfigs(),
+              *pciDeviceConfig.watchdogConfigs(),
+              *pciDeviceConfig.infoRomConfigs(),
+              *pciDeviceConfig.miscCtrlConfigs())) {
+        return true;
+      }
+    }
+  }
+  // Couldn't find the matching deviceName.
+  XLOG(ERR) << fmt::format(
+      "Invalid DeviceName {} at SlotPath {}", deviceName, slotPath);
+  return false;
 }
 
 bool ConfigValidator::isValid(const PlatformConfig& config) {
@@ -418,7 +568,21 @@ bool ConfigValidator::isValidPmUnitConfig(
   }
 
   // Validate SlotConfigs
-  for (const auto& [_, slotConfig] : *pmUnitConfig.outgoingSlotConfigs()) {
+  for (const auto& [slotName, slotConfig] :
+       *pmUnitConfig.outgoingSlotConfigs()) {
+    auto slotType = extractSlotType(slotName);
+    if (!slotType) {
+      XLOG(ERR) << fmt::format(
+          "Invalid SlotName format {}. Must follow <SlotType>@<Num>", slotName);
+      return false;
+    }
+    if (*slotType != *slotConfig.slotType()) {
+      XLOG(ERR) << fmt::format(
+          "SlotName must contain the SlotType {} instead contains {}",
+          *slotConfig.slotType(),
+          *slotType);
+      return false;
+    }
     if (!isValidSlotConfig(slotConfig)) {
       return false;
     }
@@ -542,6 +706,27 @@ bool ConfigValidator::isValidBspKmodsRpmVersion(
   if (!re2::RE2::FullMatch(bspKmodsRpmVersion, kRpmVersionRegex)) {
     XLOG(ERR) << fmt::format(
         "Invalid BspKmodsRpmVersion : {}", bspKmodsRpmVersion);
+    return false;
+  }
+  return true;
+}
+
+bool ConfigValidator::isValidPmUnitName(
+    const PlatformConfig& platformConfig,
+    const std::string& slotPath,
+    const std::string& pmUnitName) {
+  if (!platformConfig.pmUnitConfigs()->contains(pmUnitName)) {
+    XLOG(ERR) << fmt::format("Undefined PmUnitConfig for {}", pmUnitName);
+    return false;
+  }
+  const auto& pmUnitConfig = platformConfig.pmUnitConfigs()->at(pmUnitName);
+  const auto slotType = resolveSlotType(platformConfig, slotPath);
+  if (!slotType || *slotType != *pmUnitConfig.pluggedInSlotType()) {
+    XLOG(ERR) << fmt::format(
+        "Unexpected SlotType {} for PmUnit {}. Expected SlotType {} ",
+        *slotType,
+        pmUnitName,
+        *pmUnitConfig.pluggedInSlotType());
     return false;
   }
   return true;

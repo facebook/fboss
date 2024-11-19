@@ -40,13 +40,15 @@ class WedgeQsfp : public TransceiverImpl {
   /* This function is used to read the SFP EEprom */
   int readTransceiver(
       const TransceiverAccessParameter& param,
-      uint8_t* fieldValue) override;
+      uint8_t* fieldValue,
+      const int field) override;
 
   /* write to the eeprom (usually to change the page setting) */
   int writeTransceiver(
       const TransceiverAccessParameter& param,
       const uint8_t* fieldValue,
-      uint64_t delay) override;
+      uint64_t delay,
+      const int field) override;
 
   /* Returns the name for the port */
   folly::StringPiece getName() override;

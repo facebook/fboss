@@ -10,8 +10,6 @@
 #include "fboss/agent/hw/sai/switch/SaiNextHopManager.h"
 #include "fboss/agent/hw/sai/switch/tests/ManagerTestBase.h"
 
-#include "fboss/agent/state/RouteNextHop.h"
-
 using namespace facebook::fboss;
 
 class NextHopManagerTest : public ManagerTestBase {

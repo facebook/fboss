@@ -17,12 +17,8 @@
 #include "fboss/agent/hw/bcm/BcmError.h"
 #include "fboss/agent/hw/bcm/BcmIntf.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
-#include "fboss/agent/platforms/tests/utils/BcmTestPlatform.h"
 #include "fboss/agent/state/Interface.h"
-#include "fboss/agent/state/StateDelta.h"
 #include "fboss/agent/state/SwitchState.h"
-#include "fboss/agent/state/Vlan.h"
-#include "fboss/agent/state/VlanMap.h"
 
 #include "fboss/agent/hw/test/ConfigFactory.h"
 

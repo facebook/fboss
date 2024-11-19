@@ -190,6 +190,7 @@ bool YubaAsic::isSupportedNonFabric(Feature feature) const {
     case HwAsic::Feature::ENABLE_DELAY_DROP_CONGESTION_THRESHOLD:
     case HwAsic::Feature::PORT_MTU_ERROR_TRAP:
     case HwAsic::Feature::EGRESS_ACL_TABLE:
+    case HwAsic::Feature::FAST_LLFC_COUNTER:
       return false;
   }
   return false;

@@ -17,7 +17,6 @@
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/packet/Ethertype.h"
 #include "fboss/agent/state/PortDescriptor.h"
-#include "fboss/agent/state/StateDelta.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"

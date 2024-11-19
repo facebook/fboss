@@ -6,7 +6,6 @@
 #include "fboss/agent/hw/sai/switch/SaiSwitch.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwTestAclUtils.h"
-#include "fboss/agent/platforms/sai/SaiPlatform.h"
 
 namespace facebook::fboss {
 

@@ -13,7 +13,6 @@
 #include "fboss/agent/hw/switch_asics/Tomahawk3Asic.h"
 #include "fboss/agent/platforms/common/minipack/MinipackPlatformMapping.h"
 
-#include <cstdio>
 #include <cstring>
 namespace facebook::fboss {
 

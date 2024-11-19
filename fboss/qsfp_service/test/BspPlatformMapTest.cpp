@@ -2,12 +2,10 @@
 
 #include <folly/testing/TestUtil.h>
 #include <gtest/gtest.h>
-#include "fboss/lib/CommonFileUtils.h"
 #include "fboss/lib/bsp/meru400bfu/Meru400bfuBspPlatformMapping.h"
 #include "fboss/lib/bsp/meru400bia/Meru400biaBspPlatformMapping.h"
 #include "fboss/lib/bsp/meru400biu/Meru400biuBspPlatformMapping.h"
 #include "fboss/lib/bsp/montblanc/MontblancBspPlatformMapping.h"
-#include "fboss/qsfp_service/platforms/wedge/tests/MockWedgeManager.h"
 
 namespace facebook::fboss {
 

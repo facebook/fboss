@@ -8,6 +8,7 @@
 #include "fboss/agent/state/ForwardingInformationBaseMap.h"
 #include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/LabelForwardingEntry.h"
+#include "fboss/agent/state/MirrorOnDropReport.h"
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/PortDescriptor.h"
 #include "fboss/agent/state/SflowCollector.h"
@@ -84,10 +85,11 @@ const HwSwitchMatcher& SwitchIdScopeResolver::voqSwitchMatcher() const {
 
 HwSwitchMatcher SwitchIdScopeResolver::scope(PortID portId) const {
   for (const auto& switchIdAndSwitchInfo : switchIdToSwitchInfo_) {
-    if (portId >=
-            PortID(*switchIdAndSwitchInfo.second.portIdRange()->minimum()) &&
-        portId <=
-            PortID(*switchIdAndSwitchInfo.second.portIdRange()->maximum())) {
+    auto switchInfo = switchIdAndSwitchInfo.second;
+    if (static_cast<int64_t>(portId) >=
+            *switchIdAndSwitchInfo.second.portIdRange()->minimum() &&
+        static_cast<int64_t>(portId) <=
+            *switchIdAndSwitchInfo.second.portIdRange()->maximum()) {
       return HwSwitchMatcher(std::unordered_set<SwitchID>(
           {SwitchID(switchIdAndSwitchInfo.first)}));
     }
@@ -317,6 +319,16 @@ HwSwitchMatcher SwitchIdScopeResolver::scope(
   std::unordered_set<SwitchID> switchIds;
   switchIds.insert(SwitchID(mirror->getSwitchId()));
   return HwSwitchMatcher(switchIds);
+}
+
+HwSwitchMatcher SwitchIdScopeResolver::scope(
+    const cfg::MirrorOnDropReport& report) const {
+  return scope(PortID(report.get_mirrorPortId()));
+}
+
+HwSwitchMatcher SwitchIdScopeResolver::scope(
+    const std::shared_ptr<MirrorOnDropReport>& report) const {
+  return scope(PortID(report->getMirrorPortId()));
 }
 
 } // namespace facebook::fboss

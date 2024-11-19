@@ -208,10 +208,23 @@ class AclTableStoreTest : public SaiStoreTest {
     return 0;
   }
 
+  sai_object_id_t kUdfGroupId() const {
+    return 1;
+  }
+
+  std::pair<std::vector<sai_uint8_t>, std::vector<sai_uint8_t>> kUdfGroupData()
+      const {
+    std::vector<sai_uint8_t> data = {0x11, 0x22};
+    std::vector<sai_uint8_t> mask = {0xFF, 0xFF};
+    return std::make_pair(std::move(data), std::move(mask));
+  }
+
   AclTableSaiId createAclTable(sai_int32_t stage) const {
     return saiApiTable->aclApi().create<SaiAclTableTraits>(
         {
-            stage, kBindPointTypeList(), kActionTypeList(),
+            stage,
+            kBindPointTypeList(),
+            kActionTypeList(),
             true, // srcIpv6
             true, // dstIpv6
             true, // srcIpv4
@@ -238,6 +251,11 @@ class AclTableStoreTest : public SaiStoreTest {
             true, // outer vlan id
             true, // bth opcode
             true, // ipv6 next header
+            kUdfGroupId(), // udf group 0
+            kUdfGroupId() + 1, // udf group 1
+            kUdfGroupId() + 2, // udf group 2
+            kUdfGroupId() + 3, // udf group 3
+            kUdfGroupId() + 4, // udf group 4
         },
         0);
   }
@@ -275,6 +293,11 @@ class AclTableStoreTest : public SaiStoreTest {
             AclEntryFieldU16(this->kOuterVlanId()),
             AclEntryFieldU8(this->kBthOpcode()),
             AclEntryFieldU8(this->kIpv6NextHeader()),
+            AclEntryFieldU8List(this->kUdfGroupData()),
+            AclEntryFieldU8List(this->kUdfGroupData()),
+            AclEntryFieldU8List(this->kUdfGroupData()),
+            AclEntryFieldU8List(this->kUdfGroupData()),
+            AclEntryFieldU8List(this->kUdfGroupData()),
             AclEntryActionU32(this->kPacketAction()),
             AclEntryActionSaiObjectIdT(this->kCounter()),
             AclEntryActionU8(this->kSetTC()),
@@ -383,7 +406,9 @@ TEST_P(AclTableStoreParamTest, aclCounterLoadCtor) {
 
 TEST_P(AclTableStoreParamTest, aclTableCtorCreate) {
   SaiAclTableTraits::CreateAttributes c{
-      GetParam(), this->kBindPointTypeList(), this->kActionTypeList(),
+      GetParam(),
+      this->kBindPointTypeList(),
+      this->kActionTypeList(),
       true, // srcIpv6
       true, // dstIpv6
       true, // srcIpv4
@@ -410,6 +435,11 @@ TEST_P(AclTableStoreParamTest, aclTableCtorCreate) {
       true, // outer vlan id
       true, // bth opcode
       true, // ipv6 next header
+      kUdfGroupId(), // udf group 0
+      kUdfGroupId() + 1, // udf group 1
+      kUdfGroupId() + 2, // udf group 2
+      kUdfGroupId() + 3, // udf group 3
+      kUdfGroupId() + 4, // udf group 4
   };
 
   SaiAclTableTraits::AdapterHostKey k{
@@ -454,6 +484,11 @@ TEST_P(AclTableStoreParamTest, AclEntryCreateCtor) {
       this->kOuterVlanId(),
       this->kBthOpcode(),
       this->kIpv6NextHeader(),
+      this->kUdfGroupData(),
+      this->kUdfGroupData(),
+      this->kUdfGroupData(),
+      this->kUdfGroupData(),
+      this->kUdfGroupData(),
       this->kPacketAction(),
       this->kCounter(),
       this->kSetTC(),

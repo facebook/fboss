@@ -8,9 +8,8 @@
  *
  */
 #include <folly/logging/xlog.h>
-#include "fboss/agent/hw/test/ConfigFactory.h"
-#include "fboss/agent/hw/test/HwTest.h"
-#include "fboss/agent/hw/test/HwTestPfcUtils.h"
+#include "fboss/agent/test/AgentHwTest.h"
+#include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/types.h"
 
 using namespace facebook::fboss;
@@ -88,26 +87,39 @@ cfg::BufferPoolConfig getBufferPoolConfig(
 
 namespace facebook::fboss {
 
-class HwIngressBufferTest : public HwTest {
+class AgentIngressBufferTest : public AgentHwTest {
  protected:
-  void SetUp() override {
+  void setCmdLineFlagOverrides() const override {
     FLAGS_fix_lossless_mode_per_pg = true;
-    HwTest::SetUp();
+    AgentHwTest::setCmdLineFlagOverrides();
   }
-  cfg::SwitchConfig initialConfig() const {
+  cfg::SwitchConfig initialConfig(
+      const AgentEnsemble& ensemble) const override {
     return utility::onePortPerInterfaceConfig(
-        getHwSwitch(), masterLogicalPortIds());
+        ensemble.getSw(),
+        ensemble.masterLogicalPortIds(),
+        true /*interfaceHasSubnet*/);
   }
 
-  void setupGlobalBuffer(cfg::SwitchConfig& cfg, bool useLargeHwValues) {
+  std::vector<production_features::ProductionFeature>
+  getProductionFeaturesVerified() const override {
+    return {production_features::ProductionFeature::PFC};
+  }
+
+  void setupGlobalBuffer(
+      cfg::SwitchConfig& cfg,
+      bool useLargeHwValues,
+      PortID portId) {
     std::map<std::string, cfg::BufferPoolConfig> bufferPoolCfgMap;
     cfg::BufferPoolConfig bufferPoolConfig;
+    auto switchId = getSw()->getScopeResolver()->scope(portId).switchId();
+    auto asic = getSw()->getHwAsicTable()->getHwAsic(switchId);
+
     if (useLargeHwValues) {
-      bufferPoolConfig = getBufferPoolHighDefaultConfig(
-          getPlatform()->getAsic()->getPacketBufferUnitSize());
+      bufferPoolConfig =
+          getBufferPoolHighDefaultConfig(asic->getPacketBufferUnitSize());
     } else {
-      bufferPoolConfig = getBufferPoolConfig(
-          getPlatform()->getAsic()->getPacketBufferUnitSize());
+      bufferPoolConfig = getBufferPoolConfig(asic->getPacketBufferUnitSize());
     }
 
     bufferPoolCfgMap.insert(
@@ -115,14 +127,19 @@ class HwIngressBufferTest : public HwTest {
     cfg.bufferPoolConfigs() = std::move(bufferPoolCfgMap);
   }
 
-  void setupPgBuffers(cfg::SwitchConfig& cfg, const bool enableHeadroom) {
+  void setupPgBuffers(
+      cfg::SwitchConfig& cfg,
+      const bool enableHeadroom,
+      PortID portId) {
     std::map<std::string, std::vector<cfg::PortPgConfig>> portPgConfigMap;
+    auto switchId = getSw()->getScopeResolver()->scope(portId).switchId();
+    auto asic = getSw()->getHwAsicTable()->getHwAsic(switchId);
     portPgConfigMap["foo"] = getPortPgConfig(
-        getPlatform()->getAsic()->getPacketBufferUnitSize(),
+        asic->getPacketBufferUnitSize(),
         {0, 1},
         0 /* delta value */,
         enableHeadroom);
-    cfg.portPgConfigs() = portPgConfigMap;
+    cfg.portPgConfigs() = std::move(portPgConfigMap);
   }
 
   void
@@ -133,21 +150,22 @@ class HwIngressBufferTest : public HwTest {
     pfc.portPgConfigName() = "foo";
     pfc.tx() = pfcEnable;
     pfc.rx() = pfcEnable;
-    portCfg->pfc() = pfc;
+    portCfg->pfc() = std::move(pfc);
   }
 
   void setupHelper(
       bool enableHeadroom = true,
       bool pfcEnable = true,
       bool enableHighBufferValues = false) {
-    auto cfg = initialConfig();
+    auto cfg = initialConfig(*getAgentEnsemble());
 
+    auto portId = masterLogicalInterfacePortIds()[0];
     // setup PFC
-    setupPfc(cfg, masterLogicalInterfacePortIds()[0], pfcEnable);
+    setupPfc(cfg, portId, pfcEnable);
     // setup pgConfig
-    setupPgBuffers(cfg, enableHeadroom);
+    setupPgBuffers(cfg, enableHeadroom, portId);
     // setup bufferPool
-    setupGlobalBuffer(cfg, enableHighBufferValues);
+    setupGlobalBuffer(cfg, enableHighBufferValues, portId);
     applyNewConfig(cfg);
     cfg_ = cfg;
   }
@@ -156,21 +174,26 @@ class HwIngressBufferTest : public HwTest {
     setupHelper(true, true, true /* enable high buffer defaults */);
   }
 
+  bool checkSwHwPgCfgMatch(PortID portId, bool pfcEnabled) {
+    auto client = getAgentEnsemble()->getHwAgentTestClient(
+        getSw()->getScopeResolver()->scope(portId).switchId());
+    return client->sync_verifyPGSettings(portId, pfcEnabled);
+  }
+
   cfg::SwitchConfig cfg_;
 };
 
 // Create PG config, associate with PFC config
 // validate that SDK programming is as per the cfg
 // Read back from HW (using SDK calls) and validate
-TEST_F(HwIngressBufferTest, validateConfig) {
+TEST_F(AgentIngressBufferTest, validateConfig) {
   auto setup = [=, this]() { setupHelper(); };
 
   auto verify = [&]() {
-    utility::checkSwHwPgCfgMatch(
-        getHwSwitch(),
-        getProgrammedState()->getPorts()->getNodeIf(
-            PortID(masterLogicalInterfacePortIds()[0])),
-        true /*pfcEnable*/);
+    WITH_RETRIES({
+      EXPECT_EVENTUALLY_TRUE(checkSwHwPgCfgMatch(
+          masterLogicalInterfacePortIds()[0], true /*pfcEnable*/));
+    });
   };
 
   verifyAcrossWarmBoots(setup, verify);
@@ -179,26 +202,27 @@ TEST_F(HwIngressBufferTest, validateConfig) {
 // Create PG, Ingress pool config, associate with PFC config.
 // Modify the ingress pool params only and ensure that it is
 // getting re-programmed
-TEST_F(HwIngressBufferTest, validateIngressPoolParamChange) {
+TEST_F(AgentIngressBufferTest, validateIngressPoolParamChange) {
   auto setup = [&]() {
     setupHelper();
+    auto portId = masterLogicalInterfacePortIds()[0];
+    auto switchId = getSw()->getScopeResolver()->scope(portId).switchId();
+    auto asic = getSw()->getHwAsicTable()->getHwAsic(switchId);
     // setup bufferPool
     std::map<std::string, cfg::BufferPoolConfig> bufferPoolCfgMap;
     bufferPoolCfgMap.insert(make_pair(
         static_cast<std::string>(kBufferPoolName),
-        getBufferPoolConfig(
-            getPlatform()->getAsic()->getPacketBufferUnitSize(), 1)));
+        getBufferPoolConfig(asic->getPacketBufferUnitSize(), 1)));
     cfg_.bufferPoolConfigs() = bufferPoolCfgMap;
     // update one PG, and see ifs reflected in the HW
     applyNewConfig(cfg_);
   };
 
   auto verify = [&]() {
-    utility::checkSwHwPgCfgMatch(
-        getHwSwitch(),
-        getProgrammedState()->getPorts()->getNodeIf(
-            PortID(masterLogicalInterfacePortIds()[0])),
-        true /*pfcEnable*/);
+    WITH_RETRIES({
+      EXPECT_EVENTUALLY_TRUE(checkSwHwPgCfgMatch(
+          masterLogicalInterfacePortIds()[0], true /*pfcEnable*/));
+    });
   };
 
   verifyAcrossWarmBoots(setup, verify);
@@ -206,30 +230,32 @@ TEST_F(HwIngressBufferTest, validateIngressPoolParamChange) {
 
 // Create PG config, associate with PFC config. Modify the PG
 // config params and ensure that its getting re-programmed.
-TEST_F(HwIngressBufferTest, validatePGParamChange) {
+TEST_F(AgentIngressBufferTest, validatePGParamChange) {
   auto setup = [&]() {
     setupHelper();
     // update one PG, and see ifs reflected in the HW
     std::map<std::string, std::vector<cfg::PortPgConfig>> portPgConfigMap;
-    portPgConfigMap["foo"] = getPortPgConfig(
-        getPlatform()->getAsic()->getPacketBufferUnitSize(), {0, 1}, 1);
+    auto portId = masterLogicalInterfacePortIds()[0];
+    auto switchId = getSw()->getScopeResolver()->scope(portId).switchId();
+    auto asic = getSw()->getHwAsicTable()->getHwAsic(switchId);
+    portPgConfigMap["foo"] =
+        getPortPgConfig(asic->getPacketBufferUnitSize(), {0, 1}, 1);
     cfg_.portPgConfigs() = portPgConfigMap;
     applyNewConfig(cfg_);
   };
 
   auto verify = [&]() {
-    utility::checkSwHwPgCfgMatch(
-        getHwSwitch(),
-        getProgrammedState()->getPorts()->getNodeIf(
-            PortID(masterLogicalInterfacePortIds()[0])),
-        true /*pfcEnable*/);
+    WITH_RETRIES({
+      EXPECT_EVENTUALLY_TRUE(checkSwHwPgCfgMatch(
+          masterLogicalInterfacePortIds()[0], true /*pfcEnable*/));
+    });
   };
 
   verifyAcrossWarmBoots(setup, verify);
 }
 
 // For each of the below transitions, ensure headroom is programmed
-TEST_F(HwIngressBufferTest, validatePGHeadroomLimitChange) {
+TEST_F(AgentIngressBufferTest, validatePGHeadroomLimitChange) {
   auto setup = [&]() {
     // Start with PG0 and PG1 with non-zero headroom
     setupHelper();
@@ -238,58 +264,46 @@ TEST_F(HwIngressBufferTest, validatePGHeadroomLimitChange) {
     // This ensure the new value is getting programmed after config update
     // For both PGs, they will be created in lossless mode
     std::map<std::string, std::vector<cfg::PortPgConfig>> portPgConfigMap;
-    auto portPgConfigs = getPortPgConfig(
-        getPlatform()->getAsic()->getPacketBufferUnitSize(), {0}, 0);
-    portPgConfigs.push_back(getPortPgConfig(
-        getPlatform()->getAsic()->getPacketBufferUnitSize(), {1}, 1)[0]);
+    auto portId = masterLogicalInterfacePortIds()[0];
+    auto switchId = getSw()->getScopeResolver()->scope(portId).switchId();
+    auto asic = getSw()->getHwAsicTable()->getHwAsic(switchId);
+    auto portPgConfigs =
+        getPortPgConfig(asic->getPacketBufferUnitSize(), {0}, 0);
+    portPgConfigs.push_back(
+        getPortPgConfig(asic->getPacketBufferUnitSize(), {1}, 1)[0]);
     portPgConfigMap["foo"] = portPgConfigs;
     cfg_.portPgConfigs() = portPgConfigMap;
     applyNewConfig(cfg_);
-    utility::checkSwHwPgCfgMatch(
-        getHwSwitch(),
-        getProgrammedState()->getPorts()->getNodeIf(
-            PortID(masterLogicalInterfacePortIds()[0])),
-        true /*pfcEnable*/);
+    checkSwHwPgCfgMatch(masterLogicalInterfacePortIds()[0], true /*pfcEnable*/);
 
     // Remove PG1 headroom field and add a new PG2 with no headroom field
     // both cases, PG1 and PG2 should be created in lossy mode
-    portPgConfigs = getPortPgConfig(
-        getPlatform()->getAsic()->getPacketBufferUnitSize(), {0}, 0);
-    portPgConfigs.push_back(getPortPgConfig(
-        getPlatform()->getAsic()->getPacketBufferUnitSize(), {1}, 1, false)[0]);
-    portPgConfigs.push_back(getPortPgConfig(
-        getPlatform()->getAsic()->getPacketBufferUnitSize(), {2}, 0, false)[0]);
+    portPgConfigs = getPortPgConfig(asic->getPacketBufferUnitSize(), {0}, 0);
+    portPgConfigs.push_back(
+        getPortPgConfig(asic->getPacketBufferUnitSize(), {1}, 1, false)[0]);
+    portPgConfigs.push_back(
+        getPortPgConfig(asic->getPacketBufferUnitSize(), {2}, 0, false)[0]);
     portPgConfigMap["foo"] = portPgConfigs;
     cfg_.portPgConfigs() = portPgConfigMap;
     applyNewConfig(cfg_);
-    utility::checkSwHwPgCfgMatch(
-        getHwSwitch(),
-        getProgrammedState()->getPorts()->getNodeIf(
-            PortID(masterLogicalInterfacePortIds()[0])),
-        true /*pfcEnable*/);
+    checkSwHwPgCfgMatch(masterLogicalInterfacePortIds()[0], true /*pfcEnable*/);
 
     // Remove PG1 and update PG2 headroom to non-zero
     // This ensure counters are accurately updated per PG. PFC counters are
     // are created only for non-zero headroom PGs
     // Also ensures, PG2 is updated to lossless mode.
-    portPgConfigs = getPortPgConfig(
-        getPlatform()->getAsic()->getPacketBufferUnitSize(), {0}, 0);
-    portPgConfigs.push_back(getPortPgConfig(
-        getPlatform()->getAsic()->getPacketBufferUnitSize(), {2}, 0)[0]);
+    portPgConfigs = getPortPgConfig(asic->getPacketBufferUnitSize(), {0}, 0);
+    portPgConfigs.push_back(
+        getPortPgConfig(asic->getPacketBufferUnitSize(), {2}, 0)[0]);
     portPgConfigMap["foo"] = portPgConfigs;
     cfg_.portPgConfigs() = portPgConfigMap;
     applyNewConfig(cfg_);
-    utility::checkSwHwPgCfgMatch(
-        getHwSwitch(),
-        getProgrammedState()->getPorts()->getNodeIf(
-            PortID(masterLogicalInterfacePortIds()[0])),
-        true /*pfcEnable*/);
+    checkSwHwPgCfgMatch(masterLogicalInterfacePortIds()[0], true /*pfcEnable*/);
 
     // Make PG2 headroom value 0. This also make PG2 lossy
-    portPgConfigs = getPortPgConfig(
-        getPlatform()->getAsic()->getPacketBufferUnitSize(), {0}, 0);
+    portPgConfigs = getPortPgConfig(asic->getPacketBufferUnitSize(), {0}, 0);
     portPgConfigs.push_back(getPortPgConfig(
-        getPlatform()->getAsic()->getPacketBufferUnitSize(),
+        asic->getPacketBufferUnitSize(),
         {2},
         0,
         true, /* enableHeadroom */
@@ -300,11 +314,10 @@ TEST_F(HwIngressBufferTest, validatePGHeadroomLimitChange) {
   };
 
   auto verify = [&]() {
-    utility::checkSwHwPgCfgMatch(
-        getHwSwitch(),
-        getProgrammedState()->getPorts()->getNodeIf(
-            PortID(masterLogicalInterfacePortIds()[0])),
-        true /*pfcEnable*/);
+    WITH_RETRIES({
+      EXPECT_EVENTUALLY_TRUE(checkSwHwPgCfgMatch(
+          masterLogicalInterfacePortIds()[0], true /*pfcEnable*/));
+    });
   };
 
   verifyAcrossWarmBoots(setup, verify);
@@ -313,16 +326,15 @@ TEST_F(HwIngressBufferTest, validatePGHeadroomLimitChange) {
 // Validate the Pg's pfc mode bit, by default we have been enabling
 // PFC on the port and hence on every PG. Force the port to have no
 // PFC. Validate that Pg's pfc mode is False now.
-TEST_F(HwIngressBufferTest, validatePgNoPfc) {
+TEST_F(AgentIngressBufferTest, validatePgNoPfc) {
   auto setup = [&]() {
     setupHelper(true /* enable headroom */, false /* pfc */);
   };
   auto verify = [&]() {
-    utility::checkSwHwPgCfgMatch(
-        getHwSwitch(),
-        getProgrammedState()->getPorts()->getNodeIf(
-            PortID(masterLogicalInterfacePortIds()[0])),
-        false /*pfcEnable*/);
+    WITH_RETRIES({
+      EXPECT_EVENTUALLY_TRUE(checkSwHwPgCfgMatch(
+          masterLogicalInterfacePortIds()[0], false /*pfcEnable*/));
+    });
   };
 
   verifyAcrossWarmBoots(setup, verify);
@@ -333,14 +345,13 @@ TEST_F(HwIngressBufferTest, validatePgNoPfc) {
 // programming higher values and logic has been added to program what
 // ever buffer value is lower than programmed first to workaround the
 // sdk error.
-TEST_F(HwIngressBufferTest, validateHighBufferValues) {
+TEST_F(AgentIngressBufferTest, validateHighBufferValues) {
   auto setup = [&]() { setupHelperWithHighBufferValues(); };
   auto verify = [&]() {
-    utility::checkSwHwPgCfgMatch(
-        getHwSwitch(),
-        getProgrammedState()->getPorts()->getNodeIf(
-            PortID(masterLogicalInterfacePortIds()[0])),
-        true /*pfcEnable*/);
+    WITH_RETRIES({
+      EXPECT_EVENTUALLY_TRUE(checkSwHwPgCfgMatch(
+          masterLogicalInterfacePortIds()[0], true /*pfcEnable*/));
+    });
   };
   verifyAcrossWarmBoots(setup, verify);
 }
@@ -348,17 +359,16 @@ TEST_F(HwIngressBufferTest, validateHighBufferValues) {
 // Create PG config, associate with PFC config. Do not create headroom
 // cfg, PGs should be in lossy mode now; validate that SDK programming
 // is as per cfg.
-TEST_F(HwIngressBufferTest, validateLossyMode) {
+TEST_F(AgentIngressBufferTest, validateLossyMode) {
   auto setup = [&]() {
     setupHelper(false /* enable headroom */, false /* pfcEnable */);
   };
 
   auto verify = [&]() {
-    utility::checkSwHwPgCfgMatch(
-        getHwSwitch(),
-        getProgrammedState()->getPorts()->getNodeIf(
-            PortID(masterLogicalInterfacePortIds()[0])),
-        false /* pfcEnable */);
+    WITH_RETRIES({
+      EXPECT_EVENTUALLY_TRUE(checkSwHwPgCfgMatch(
+          masterLogicalInterfacePortIds()[0], false /* pfcEnable */));
+    });
   };
 
   verifyAcrossWarmBoots(setup, verify);
@@ -366,26 +376,25 @@ TEST_F(HwIngressBufferTest, validateLossyMode) {
 
 // Create PG config, associate with PFC config. Modify the PG queue
 // config params and ensure that its getting re-programmed.
-TEST_F(HwIngressBufferTest, validatePGQueueChanges) {
+TEST_F(AgentIngressBufferTest, validatePGQueueChanges) {
   auto setup = [&]() {
     setupHelper();
     // update one PG, and see ifs reflected in the HW
     std::map<std::string, std::vector<cfg::PortPgConfig>> portPgConfigMap;
+    auto portId = masterLogicalInterfacePortIds()[0];
+    auto switchId = getSw()->getScopeResolver()->scope(portId).switchId();
+    auto asic = getSw()->getHwAsicTable()->getHwAsic(switchId);
     portPgConfigMap["foo"] = getPortPgConfig(
-        getPlatform()->getAsic()->getPacketBufferUnitSize(),
-        {1},
-        0,
-        true /* enableHeadroom */);
+        asic->getPacketBufferUnitSize(), {1}, 0, true /* enableHeadroom */);
     cfg_.portPgConfigs() = portPgConfigMap;
     applyNewConfig(cfg_);
   };
 
   auto verify = [&]() {
-    utility::checkSwHwPgCfgMatch(
-        getHwSwitch(),
-        getProgrammedState()->getPort(
-            PortID(masterLogicalInterfacePortIds()[0])),
-        true /*pfcEnable*/);
+    WITH_RETRIES({
+      EXPECT_EVENTUALLY_TRUE(checkSwHwPgCfgMatch(
+          masterLogicalInterfacePortIds()[0], true /*pfcEnable*/));
+    });
   };
 
   verifyAcrossWarmBoots(setup, verify);

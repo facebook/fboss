@@ -37,7 +37,7 @@ class SwSwitch;
 class Vlan;
 class SwitchState;
 class AclEntry;
-struct LinkNeighbor;
+class LinkNeighbor;
 
 class ThriftHandler : virtual public FbossCtrlSvIf,
                       public fb303::FacebookBase2 {

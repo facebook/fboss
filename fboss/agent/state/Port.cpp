@@ -101,6 +101,6 @@ void Port::removeError(PortError error) {
   set<switch_state_tags::activeErrors>(errors);
 }
 
-template class ThriftStructNode<Port, state::PortFields>;
+template struct ThriftStructNode<Port, state::PortFields>;
 
 } // namespace facebook::fboss

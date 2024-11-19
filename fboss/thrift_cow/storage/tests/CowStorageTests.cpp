@@ -11,7 +11,6 @@
 #include <thrift/lib/cpp2/folly_dynamic/folly_dynamic.h>
 #include "fboss/fsdb/oper/ExtendedPathBuilder.h"
 #include "fboss/fsdb/tests/gen-cpp2-thriftpath/thriftpath_test.h" // @manual=//fboss/fsdb/tests:thriftpath_test_thrift-cpp2-thriftpath
-#include "fboss/fsdb/tests/gen-cpp2/thriftpath_test_fatal_types.h"
 #include "fboss/fsdb/tests/gen-cpp2/thriftpath_test_types.h"
 
 using folly::dynamic;
