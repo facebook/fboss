@@ -43,7 +43,7 @@ struct TestStruct {
   4: switch_config.L4PortRange inlineStruct;
   5: optional i32 optionalInt;
   6: optional switch_config.L4PortRange optionalStruct;
-  7: list<i32> listOfPrimitives;
+  7: list<i32> listOfPrimitives (allow_skip_thrift_cow = true);
   8: list<switch_config.L4PortRange> listOfStructs;
   9: list<list<i32>> listOfListOfPrimitives;
   10: list<list<switch_config.L4PortRange>> listOfListOfStructs;

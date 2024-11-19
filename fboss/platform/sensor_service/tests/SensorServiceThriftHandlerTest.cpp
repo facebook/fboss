@@ -6,7 +6,7 @@
 #include <gtest/gtest.h>
 
 #include "fboss/platform/sensor_service/SensorServiceThriftHandler.h"
-#include "fboss/platform/sensor_service/test/TestUtils.h"
+#include "fboss/platform/sensor_service/tests/TestUtils.h"
 
 namespace facebook::fboss::platform::sensor_service {
 

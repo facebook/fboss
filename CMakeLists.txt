@@ -842,7 +842,7 @@ if (GITHUB_ACTIONS_BUILD)
     weutil_crc16_ccitt_test
     weutil_fboss_eeprom_parser_test
     sensor_service_sw_test
-    sensor_service_utils_tests
+    sensor_service_utils_test
     rackmon_test
     fan_service_sw_test
     data_corral_service_hw_test

@@ -15,8 +15,6 @@ extern "C" {
 
 namespace facebook::fboss {
 
-SaiTamHandle::~SaiTamHandle() {}
-
 SaiTamManager::SaiTamManager(
     SaiStore* saiStore,
     SaiManagerTable* managerTable,
@@ -108,5 +106,9 @@ void SaiTamManager::removeMirrorOnDropReport(
 void SaiTamManager::changeMirrorOnDropReport(
     const std::shared_ptr<MirrorOnDropReport>& /* oldReport */,
     const std::shared_ptr<MirrorOnDropReport>& /* newReport */) {}
+
+std::vector<PortID> SaiTamManager::getAllMirrorOnDropPortIds() {
+  return {};
+}
 
 } // namespace facebook::fboss

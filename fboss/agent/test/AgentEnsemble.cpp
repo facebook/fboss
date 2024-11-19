@@ -87,6 +87,17 @@ void AgentEnsemble::setupEnsemble(
                 ->portType() != cfg::PortType::FABRIC_PORT) {
       masterLogicalPortIds_.push_back(port.first);
       auto switchId = getSw()->getScopeResolver()->scope(port.first).switchId();
+      if (getHwAsicTable()->getHwAsicIf(switchId)->getAsicType() ==
+              cfg::AsicType::ASIC_TYPE_JERICHO3 &&
+          FLAGS_dual_stage_rdsw_3q_2q) {
+        // When using dual_stage_rdsw_3q_2q mapping, consider all ports to have
+        // 400G NIF ports
+        for (const auto& subPort : port.second) {
+          if (subPort != port.first) {
+            masterLogicalPortIds_.push_back(subPort);
+          }
+        }
+      }
       switchId2PortIds_[switchId].push_back(port.first);
     }
   }

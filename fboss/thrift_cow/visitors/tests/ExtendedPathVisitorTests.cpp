@@ -200,11 +200,6 @@ TYPED_TEST(ExtendedPathVisitorTests, AccessRegexMap) {
       *nodeA, path.path()->begin(), path.path()->end(), options, processPath);
   EXPECT_THAT(visited, ::testing::ContainerEq(expected));
 
-  if (this->isHybridStorage()) {
-    // TODO: list and struct not implemented yet for hybrid storage
-    return;
-  }
-
   auto path2 = ext_path_builder::raw("mapOfI32ToListOfStructs")
                    .regex("1.*")
                    .regex(".*")
@@ -336,13 +331,19 @@ TYPED_TEST(ExtendedPathVisitorTests, AccessDeepMap) {
   EXPECT_THAT(visited, ::testing::ContainerEq(expected));
 }
 
-TEST(ExtendedPathVisitorTests, AccessRegexList) {
+TYPED_TEST(ExtendedPathVisitorTests, AccessRegexList) {
   auto structA = createTestStruct();
-  auto nodeA = std::make_shared<ThriftStructNode<TestStruct>>(structA);
-
+  auto nodeA = this->initNode(structA);
   std::set<std::pair<std::vector<std::string>, folly::dynamic>> visited;
   auto processPath = [&visited](auto&& path, auto&& node) {
-    visited.emplace(std::make_pair(path, node.toFollyDynamic()));
+    if constexpr (is_cow_type_v<decltype(node)>) {
+      visited.emplace(std::make_pair(path, node.toFollyDynamic()));
+    } else {
+      folly::dynamic out;
+      facebook::thrift::to_dynamic(
+          out, node, facebook::thrift::dynamic_format::JSON_1);
+      visited.emplace(std::make_pair(path, out));
+    }
   };
 
   auto path = ext_path_builder::raw("listOfPrimitives").regex("1.*").get();
@@ -366,13 +367,20 @@ TEST(ExtendedPathVisitorTests, AccessRegexList) {
   EXPECT_THAT(visited, ::testing::ContainerEq(expected));
 }
 
-TEST(ExtendedPathVisitorTests, AccessAnyList) {
+TYPED_TEST(ExtendedPathVisitorTests, AccessAnyList) {
   auto structA = createTestStruct();
-  auto nodeA = std::make_shared<ThriftStructNode<TestStruct>>(structA);
+  auto nodeA = this->initNode(structA);
 
   std::set<std::pair<std::vector<std::string>, folly::dynamic>> visited;
   auto processPath = [&visited](auto&& path, auto&& node) {
-    visited.emplace(std::make_pair(path, node.toFollyDynamic()));
+    if constexpr (is_cow_type_v<decltype(node)>) {
+      visited.emplace(std::make_pair(path, node.toFollyDynamic()));
+    } else {
+      folly::dynamic out;
+      facebook::thrift::to_dynamic(
+          out, node, facebook::thrift::dynamic_format::JSON_1);
+      visited.emplace(std::make_pair(path, out));
+    }
   };
 
   auto path = ext_path_builder::raw("listOfPrimitives").any().get();

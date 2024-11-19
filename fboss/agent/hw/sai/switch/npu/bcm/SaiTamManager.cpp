@@ -7,7 +7,7 @@
 #include "fboss/agent/hw/sai/switch/SaiPortManager.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
 
-#if defined(BRCM_SAI_SDK_DNX_GTE_11_0) && !defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
 extern "C" {
 #ifndef IS_OSS_BRCM_SAI
 #include <experimental/saiexperimentaltameventaginggroup.h>
@@ -107,10 +107,6 @@ const std::map<int, std::vector<sai_int32_t>> kDropProfiles = {
 
 namespace facebook::fboss {
 
-SaiTamHandle::~SaiTamHandle() {
-  managerTable->switchManager().resetTamObject();
-}
-
 SaiTamManager::SaiTamManager(
     SaiStore* saiStore,
     SaiManagerTable* managerTable,
@@ -119,7 +115,7 @@ SaiTamManager::SaiTamManager(
 
 void SaiTamManager::addMirrorOnDropReport(
     const std::shared_ptr<MirrorOnDropReport>& report) {
-#if defined(BRCM_SAI_SDK_DNX_GTE_11_0) && !defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
   // Create report
   auto& reportStore = saiStore_->get<SaiTamReportTraits>();
   auto reportTraits =
@@ -221,6 +217,7 @@ void SaiTamManager::addMirrorOnDropReport(
   tamHandle->agingGroups = agingGroups;
   tamHandle->events = events;
   tamHandle->tam = tam;
+  tamHandle->portId = report->getMirrorPortId();
   tamHandles_.emplace(report->getID(), std::move(tamHandle));
 #endif
 }
@@ -235,6 +232,14 @@ void SaiTamManager::changeMirrorOnDropReport(
     const std::shared_ptr<MirrorOnDropReport>& newReport) {
   removeMirrorOnDropReport(oldReport);
   addMirrorOnDropReport(newReport);
+}
+
+std::vector<PortID> SaiTamManager::getAllMirrorOnDropPortIds() {
+  std::vector<PortID> portIds;
+  for (const auto& [_, tamHandle] : tamHandles_) {
+    portIds.push_back(tamHandle->portId);
+  }
+  return portIds;
 }
 
 } // namespace facebook::fboss

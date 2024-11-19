@@ -4,7 +4,7 @@
 
 #include "fboss/agent/hw/sai/tracer/SaiTracer.h"
 
-#if defined(BRCM_SAI_SDK_DNX_GTE_11_0) && !defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
 
 extern "C" {
 #include <sai.h>
