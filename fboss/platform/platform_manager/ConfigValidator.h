@@ -21,13 +21,6 @@ class ConfigValidator {
   bool isValidDevicePath(
       const PlatformConfig& platformConfig,
       const std::string& devicePath);
-  virtual bool isValidSlotPath(
-      const PlatformConfig& platformConfig,
-      const std::string& slotPath);
-  virtual bool isValidDeviceName(
-      const PlatformConfig& platformConfig,
-      const std::string& slotPath,
-      const std::string& deviceName);
   bool isValidSymlink(const std::string& symlink);
   bool isValidPresenceDetection(const PresenceDetection& presenceDetection);
   bool isValidSpiDeviceConfigs(
@@ -36,6 +29,19 @@ class ConfigValidator {
   bool isValidVersionedPmConfigs(
       const std::map<std::string, std::vector<VersionedPmUnitConfig>>&
           versionedPmUnitConfigs);
+
+  // Used by other platform services config validation.
+  virtual bool isValidSlotPath(
+      const PlatformConfig& platformConfig,
+      const std::string& slotPath);
+  virtual bool isValidDeviceName(
+      const PlatformConfig& platformConfig,
+      const std::string& slotPath,
+      const std::string& deviceName);
+  virtual bool isValidPmUnitName(
+      const PlatformConfig& platformConfig,
+      const std::string& slotPath,
+      const std::string& pmUnitName);
 };
 
 } // namespace facebook::fboss::platform::platform_manager

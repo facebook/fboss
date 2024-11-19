@@ -87,6 +87,12 @@ bool ConfigValidator::isPmValidPmUnitSensorList(
             platformConfig, *pmUnitSensors.slotPath())) {
       return false;
     }
+    if (!pmConfigValidator_->isValidPmUnitName(
+            platformConfig,
+            *pmUnitSensors.slotPath(),
+            *pmUnitSensors.pmUnitName())) {
+      return false;
+    }
     if (!isPmValidPmSensors(
             platformConfig,
             *pmUnitSensors.slotPath(),

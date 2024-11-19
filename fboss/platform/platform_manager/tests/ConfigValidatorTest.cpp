@@ -404,3 +404,20 @@ TEST(ConfigValidatorTest, BspRpm) {
   EXPECT_TRUE(ConfigValidator().isValidBspKmodsRpmVersion("5.4.6-1"));
   EXPECT_TRUE(ConfigValidator().isValidBspKmodsRpmVersion("11.44.63-14"));
 }
+
+TEST(ConfigValidatorTest, PmUnitName) {
+  PlatformConfig config;
+  config.rootSlotType() = "MCB_SLOT";
+  // Invalid missing PmUnitConfig definition
+  EXPECT_FALSE(
+      ConfigValidator().isValidPmUnitName(config, "/SCM_SLOT@0", "SCM"));
+  // Define PmUnitConfig for SCM
+  PmUnitConfig scmConfig;
+  scmConfig.pluggedInSlotType() = "SCM_SLOT";
+  config.pmUnitConfigs() = {{"SCM", scmConfig}};
+  // Invalid unmatching SlotType MCB_SLOT vs SCM_SLOT
+  EXPECT_FALSE(ConfigValidator().isValidPmUnitName(config, "/", "SCM"));
+  // Valid PmUnitName
+  EXPECT_TRUE(
+      ConfigValidator().isValidPmUnitName(config, "/SCM_SLOT@0", "SCM"));
+}

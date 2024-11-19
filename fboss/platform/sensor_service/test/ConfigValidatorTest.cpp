@@ -30,6 +30,12 @@ class MockPmConfigValidator : public platform_manager::ConfigValidator {
       (const platform_manager::PlatformConfig&,
        const std::string&,
        const std::string&));
+  MOCK_METHOD(
+      bool,
+      isValidPmUnitName,
+      (const platform_manager::PlatformConfig&,
+       const std::string&,
+       const std::string&));
 };
 
 class ConfigValidatorTest : public testing::Test {
@@ -56,6 +62,9 @@ TEST_F(ConfigValidatorTest, ValidConfig) {
       {"/run/devmap/sensors/CPU_CORE_TEMP", "/[CPU_CORE_TEMP]"},
       {"/run/devmap/sensors/BCB_FAN_CPLD", "/BCB_SLOT@0/[BCB_FAN_CPLD]"}};
   EXPECT_CALL(*mockPmConfigValidator_, isValidSlotPath(_, _))
+      .Times(2 /* # of PmUnitSensors*/)
+      .WillRepeatedly(Return(true));
+  EXPECT_CALL(*mockPmConfigValidator_, isValidPmUnitName(_, _, _))
       .Times(2 /* # of PmUnitSensors*/)
       .WillRepeatedly(Return(true));
   EXPECT_CALL(*mockPmConfigValidator_, isValidDeviceName(_, _, _))
@@ -109,11 +118,26 @@ TEST_F(ConfigValidatorTest, PmValidPmUnitSensors) {
       *mockPmConfigValidator_, isValidSlotPath(platformConfig_, "/BCB_SLOT@0"))
       .Times(2)
       .WillRepeatedly(Return(true));
+  EXPECT_CALL(
+      *mockPmConfigValidator_,
+      isValidPmUnitName(platformConfig_, "/BCB_SLOT@0", _))
+      .Times(2)
+      .WillRepeatedly(Return(true));
   EXPECT_TRUE(configValidator_.isPmValidPmUnitSensorList(
       platformConfig_, {pmUnitSensors1, pmUnitSensors2}));
   // Invalid PmUnitSensors -- Invalid SlotPath
   EXPECT_CALL(
       *mockPmConfigValidator_, isValidSlotPath(platformConfig_, "/BCB_SLOT@0"))
+      .WillOnce(Return(false));
+  EXPECT_FALSE(configValidator_.isPmValidPmUnitSensorList(
+      platformConfig_, {pmUnitSensors1, pmUnitSensors2}));
+  // Invalid PmUnitSensors -- Invalid PmUnitName
+  EXPECT_CALL(
+      *mockPmConfigValidator_, isValidSlotPath(platformConfig_, "/BCB_SLOT@0"))
+      .WillOnce(Return(true));
+  EXPECT_CALL(
+      *mockPmConfigValidator_,
+      isValidPmUnitName(platformConfig_, "/BCB_SLOT@0", _))
       .WillOnce(Return(false));
   EXPECT_FALSE(configValidator_.isPmValidPmUnitSensorList(
       platformConfig_, {pmUnitSensors1, pmUnitSensors2}));

@@ -55,6 +55,12 @@ bool containsLower(const std::string& s) {
   return std::any_of(s.begin(), s.end(), ::islower);
 }
 
+// Tokenize the SlotPath by delimiter '/'
+std::vector<std::string> split(const std::string& slotPath) {
+  return slotPath | ranges::views::split('/') | ranges::views::drop(1) |
+      ranges::to<std::vector<std::string>>;
+}
+
 // Returns all PmUnitConfigs that has the given slotType.
 std::vector<PmUnitConfig> getPmUnitConfigsBySlotType(
     const PlatformConfig& platformConfig,
@@ -72,6 +78,18 @@ std::optional<SlotType> extractSlotType(const std::string& slotName) {
     return std::nullopt;
   }
   return slotType;
+}
+
+std::optional<SlotType> resolveSlotType(
+    const PlatformConfig& platformConfig,
+    const std::string& slotPath) {
+  std::optional<SlotType> slotType;
+  if (slotPath == "/") {
+    return *platformConfig.rootSlotType();
+  }
+  const auto lastSlotName = std::move(split(slotPath).back());
+  // Find the SlotType of the lastSlotName.
+  return extractSlotType(lastSlotName);
 }
 
 template <typename T>
@@ -350,9 +368,9 @@ bool ConfigValidator::isValidSlotPath(
 
   // Slot topological validation.
   // Starting from the root, check for a PmUnit from CurrSlot to NextSlot.
-  for (auto currSlotType{*platformConfig.rootSlotType()};
-       const auto& nextSlotName : slotPath | ranges::views::split('/') |
-           ranges::views::drop(1) | ranges::to<std::vector<std::string>>) {
+  auto slotNames = split(slotPath);
+  auto currSlotType = *platformConfig.rootSlotType();
+  for (const auto& nextSlotName : slotNames) {
     // Find all pmUnits that can be plug into currSlotType.
     auto pmUnitConfigs =
         getPmUnitConfigsBySlotType(platformConfig, currSlotType);
@@ -391,17 +409,7 @@ bool ConfigValidator::isValidDeviceName(
     const PlatformConfig& platformConfig,
     const std::string& slotPath,
     const std::string& deviceName) {
-  // Find the SlotType of the lastSlotName.
-  std::optional<SlotType> slotType;
-  const auto lastSlotName = std::move((slotPath | ranges::views::split('/') |
-                                       ranges::to<std::vector<std::string>>)
-                                          .back());
-  if (lastSlotName.empty()) {
-    slotType = *platformConfig.rootSlotType();
-  } else {
-    // Find the SlotType of the lastSlotName.
-    slotType = extractSlotType(lastSlotName);
-  }
+  auto slotType = resolveSlotType(platformConfig, slotPath);
   CHECK(slotType) << "SlotType must be nonnull";
   // If the device is IDPROM, search from the SlotTypeConfigs.
   if (deviceName == "IDPROM") {
@@ -698,6 +706,27 @@ bool ConfigValidator::isValidBspKmodsRpmVersion(
   if (!re2::RE2::FullMatch(bspKmodsRpmVersion, kRpmVersionRegex)) {
     XLOG(ERR) << fmt::format(
         "Invalid BspKmodsRpmVersion : {}", bspKmodsRpmVersion);
+    return false;
+  }
+  return true;
+}
+
+bool ConfigValidator::isValidPmUnitName(
+    const PlatformConfig& platformConfig,
+    const std::string& slotPath,
+    const std::string& pmUnitName) {
+  if (!platformConfig.pmUnitConfigs()->contains(pmUnitName)) {
+    XLOG(ERR) << fmt::format("Undefined PmUnitConfig for {}", pmUnitName);
+    return false;
+  }
+  const auto& pmUnitConfig = platformConfig.pmUnitConfigs()->at(pmUnitName);
+  const auto slotType = resolveSlotType(platformConfig, slotPath);
+  if (!slotType || *slotType != *pmUnitConfig.pluggedInSlotType()) {
+    XLOG(ERR) << fmt::format(
+        "Unexpected SlotType {} for PmUnit {}. Expected SlotType {} ",
+        *slotType,
+        pmUnitName,
+        *pmUnitConfig.pluggedInSlotType());
     return false;
   }
   return true;
