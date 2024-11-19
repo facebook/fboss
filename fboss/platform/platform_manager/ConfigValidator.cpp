@@ -21,6 +21,7 @@ const re2::RE2 kPciIdRegex{"0x[0-9a-f]{4}"};
 const re2::RE2 kPciDevOffsetRegex{"0x[0-9a-f]+"};
 const re2::RE2 kSymlinkRegex{"^/run/devmap/(?P<SymlinkDirs>[a-z0-9-]+)/.+"};
 const re2::RE2 kDevPathRegex{"(?P<SlotPath>.*)\\[(?P<DeviceName>.+)\\]"};
+const re2::RE2 kSlotNameRegex{"(?P<SlotType>.([A-Z]+_)+SLOT)@\\d+"};
 const re2::RE2 kSlotPathRegex{"/|(/([A-Z]+_)+SLOT@\\d+)+"};
 const re2::RE2 kInfoRomDevicePrefixRegex{"^fpga_info_(dom|iob|scm|mcb)$"};
 const re2::RE2 kI2cAdapterNameRegex{"(?P<PmUnitScopedName>.+)@(?P<Num>\\d+)"};
@@ -65,27 +66,12 @@ std::vector<PmUnitConfig> getPmUnitConfigsBySlotType(
       ranges::to_vector;
 }
 
-// Returns the outgoing SlotType from the given pmUnitConfigs that matches
-// slotName.
-std::optional<SlotType> findSlotType(
-    const std::vector<PmUnitConfig>& pmUnitConfigs,
-    const std::string& slotName) {
-  auto slotType =
-      pmUnitConfigs | ranges::views::filter([&](const auto& pmUnitConfig) {
-        return pmUnitConfig.outgoingSlotConfigs()->contains(slotName);
-      }) |
-      ranges::views::transform([&](const auto& pmUnitConfig) -> SlotType {
-        return *pmUnitConfig.outgoingSlotConfigs()->at(slotName).slotType();
-      }) |
-      ranges::views::unique | ranges::to_vector;
-  if (slotType.size() != 1) {
-    XLOG(ERR) << fmt::format(
-        "Invalid SlotName {}. It maps to {} SlotConfig(s)",
-        slotName,
-        slotType.size());
+std::optional<SlotType> extractSlotType(const std::string& slotName) {
+  SlotType slotType;
+  if (!re2::RE2::FullMatch(slotName, kSlotNameRegex, &slotType)) {
     return std::nullopt;
   }
-  return slotType.front();
+  return slotType;
 }
 
 template <typename T>
@@ -379,13 +365,24 @@ bool ConfigValidator::isValidSlotPath(
     }
     // Find next SlotType from the found PmUnits' outgoingSlotConfig of
     // nextSlotName to verify that PmUnit sits between CurrSlot and NextSlot.
-    auto nextSlotType = findSlotType(pmUnitConfigs, nextSlotName);
-    if (!nextSlotType) {
+    auto nextSlotType =
+        pmUnitConfigs | ranges::views::filter([&](const auto& pmUnitConfig) {
+          return pmUnitConfig.outgoingSlotConfigs()->contains(nextSlotName);
+        }) |
+        ranges::views::transform([&](const auto& pmUnitConfig) -> SlotType {
+          return *pmUnitConfig.outgoingSlotConfigs()
+                      ->at(nextSlotName)
+                      .slotType();
+        }) |
+        ranges::views::unique | ranges::to_vector;
+    if (nextSlotType.size() != 1) {
       XLOG(ERR) << fmt::format(
-          "Invalid SlotName {} in SlotPath {}", nextSlotName, slotPath);
+          "Invalid SlotName {}. It maps to {} SlotConfig(s)",
+          nextSlotName,
+          nextSlotType.size());
       return false;
     }
-    currSlotType = *nextSlotType;
+    currSlotType = nextSlotType.front();
   }
   return true;
 }
@@ -402,10 +399,8 @@ bool ConfigValidator::isValidDeviceName(
   if (lastSlotName.empty()) {
     slotType = *platformConfig.rootSlotType();
   } else {
-    // Find the SlotType based on lastSlotName from every PmUnitConfig.
-    auto allPmUnitConfigs = *platformConfig.pmUnitConfigs() |
-        ranges::view::values | ranges::to_vector;
-    slotType = findSlotType(allPmUnitConfigs, lastSlotName);
+    // Find the SlotType of the lastSlotName.
+    slotType = extractSlotType(lastSlotName);
   }
   CHECK(slotType) << "SlotType must be nonnull";
   // If the device is IDPROM, search from the SlotTypeConfigs.
@@ -565,7 +560,21 @@ bool ConfigValidator::isValidPmUnitConfig(
   }
 
   // Validate SlotConfigs
-  for (const auto& [_, slotConfig] : *pmUnitConfig.outgoingSlotConfigs()) {
+  for (const auto& [slotName, slotConfig] :
+       *pmUnitConfig.outgoingSlotConfigs()) {
+    auto slotType = extractSlotType(slotName);
+    if (!slotType) {
+      XLOG(ERR) << fmt::format(
+          "Invalid SlotName format {}. Must follow <SlotType>@<Num>", slotName);
+      return false;
+    }
+    if (*slotType != *slotConfig.slotType()) {
+      XLOG(ERR) << fmt::format(
+          "SlotName must contain the SlotType {} instead contains {}",
+          *slotConfig.slotType(),
+          *slotType);
+      return false;
+    }
     if (!isValidSlotConfig(slotConfig)) {
       return false;
     }

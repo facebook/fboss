@@ -128,6 +128,27 @@ TEST(ConfigValidatorTest, SlotConfig) {
   EXPECT_TRUE(ConfigValidator().isValidSlotConfig(slotConfig));
 }
 
+TEST(ConfigValidatorTest, OutgoingSlotConfig) {
+  std::map<std::string, SlotTypeConfig> slotTypeConfigs = {
+      {"MCB_SLOT", SlotTypeConfig()}};
+  PmUnitConfig pmUnitConfig;
+  pmUnitConfig.pluggedInSlotType() = "MCB_SLOT";
+  SlotConfig smbSlotConfig;
+  smbSlotConfig.slotType() = "SMB_SLOT";
+  // Valid OutgoingSlotConfig
+  pmUnitConfig.outgoingSlotConfigs() = {{"SMB_SLOT@0", smbSlotConfig}};
+  EXPECT_TRUE(
+      ConfigValidator().isValidPmUnitConfig(slotTypeConfigs, pmUnitConfig));
+  // Invalid SlotName format
+  pmUnitConfig.outgoingSlotConfigs() = {{"SMB_SLOT", smbSlotConfig}};
+  EXPECT_FALSE(
+      ConfigValidator().isValidPmUnitConfig(slotTypeConfigs, pmUnitConfig));
+  // Invalid unmatching SlotType; expect SMB_SLOT but has SCM_SLOT.
+  pmUnitConfig.outgoingSlotConfigs() = {{"SCM_SLOT@0", smbSlotConfig}};
+  EXPECT_FALSE(
+      ConfigValidator().isValidPmUnitConfig(slotTypeConfigs, pmUnitConfig));
+}
+
 TEST(ConfigValidatorTest, PresenceDetection) {
   auto presenceDetection = PresenceDetection();
   EXPECT_FALSE(ConfigValidator().isValidPresenceDetection(presenceDetection));
