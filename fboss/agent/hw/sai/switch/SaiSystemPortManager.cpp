@@ -101,9 +101,11 @@ SaiSystemPortManager::attributesFromSwSystemPort(
   }
   std::optional<SaiSystemPortTraits::Attributes::ShelPktDstEnable>
       shelPktDstEnable = std::nullopt;
+#if defined(SAI_VERSION_11_7_0_0_DNX_ODP)
   if (shel && swSystemPort->getShelDestinationEnabled()) {
     shelPktDstEnable = true;
   }
+#endif
   return SaiSystemPortTraits::CreateAttributes{
       config, true /*enabled*/, qosTcToQueueMap, shelPktDstEnable};
 }
