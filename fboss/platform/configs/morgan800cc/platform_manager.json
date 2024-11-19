@@ -3467,7 +3467,7 @@
     "/run/devmap/watchdogs/MCB_FAN_WD": "/[MCB_FAN_WD]"
   },
   "bspKmodsRpmName": "cisco_bsp_kmods",
-  "bspKmodsRpmVersion": "0.1.19-1",
+  "bspKmodsRpmVersion": "1.0.1-2",
   "bspKmodsToReload": [
     "cisco_fpga_pci",
     "cisco_fpga_spi",
