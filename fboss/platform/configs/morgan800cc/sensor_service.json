@@ -275,82 +275,82 @@
           "compute": "@/1000*0.2670288"
         },
         {
-          "name": "FAN1_RPM",
+          "name": "FAN1_F_RPM",
           "sysfsPath": "/run/devmap/sensors/MCB_FAN_PWM/fan1_input",
           "type": 4
         },
         {
-          "name": "FAN2_RPM",
+          "name": "FAN1_R_RPM",
           "sysfsPath": "/run/devmap/sensors/MCB_FAN_PWM/fan2_input",
           "type": 4
         },
         {
-          "name": "FAN3_RPM",
+          "name": "FAN2_F_RPM",
           "sysfsPath": "/run/devmap/sensors/MCB_FAN_PWM/fan3_input",
           "type": 4
         },
         {
-          "name": "FAN4_RPM",
+          "name": "FAN2_R_RPM",
           "sysfsPath": "/run/devmap/sensors/MCB_FAN_PWM/fan4_input",
           "type": 4
         },
         {
-          "name": "FAN5_RPM",
+          "name": "FAN3_F_RPM",
           "sysfsPath": "/run/devmap/sensors/MCB_FAN_PWM/fan5_input",
           "type": 4
         },
         {
-          "name": "FAN6_RPM",
+          "name": "FAN3_R_RPM",
           "sysfsPath": "/run/devmap/sensors/MCB_FAN_PWM/fan6_input",
           "type": 4
         },
         {
-          "name": "FAN7_RPM",
+          "name": "FAN4_F_RPM",
           "sysfsPath": "/run/devmap/sensors/MCB_FAN_PWM/fan7_input",
           "type": 4
         },
         {
-          "name": "FAN8_RPM",
+          "name": "FAN4_R_RPM",
           "sysfsPath": "/run/devmap/sensors/MCB_FAN_PWM/fan8_input",
           "type": 4
         },
         {
-          "name": "FAN9_RPM",
+          "name": "FAN5_F_RPM",
           "sysfsPath": "/run/devmap/sensors/MCB_FAN_PWM/fan9_input",
           "type": 4
         },
         {
-          "name": "FAN10_RPM",
+          "name": "FAN5_R_RPM",
           "sysfsPath": "/run/devmap/sensors/MCB_FAN_PWM/fan10_input",
           "type": 4
         },
         {
-          "name": "FAN11_RPM",
+          "name": "FAN6_F_RPM",
           "sysfsPath": "/run/devmap/sensors/MCB_FAN_PWM/fan11_input",
           "type": 4
         },
         {
-          "name": "FAN12_RPM",
+          "name": "FAN6_R_RPM",
           "sysfsPath": "/run/devmap/sensors/MCB_FAN_PWM/fan12_input",
           "type": 4
         },
         {
-          "name": "FAN13_RPM",
+          "name": "FAN7_F_RPM",
           "sysfsPath": "/run/devmap/sensors/MCB_FAN_PWM/fan13_input",
           "type": 4
         },
         {
-          "name": "FAN14_RPM",
+          "name": "FAN7_R_RPM",
           "sysfsPath": "/run/devmap/sensors/MCB_FAN_PWM/fan14_input",
           "type": 4
         },
         {
-          "name": "FAN15_RPM",
+          "name": "FAN8_F_RPM",
           "sysfsPath": "/run/devmap/sensors/MCB_FAN_PWM/fan15_input",
           "type": 4
         },
         {
-          "name": "FAN16_RPM",
+          "name": "FAN8_R_RPM",
           "sysfsPath": "/run/devmap/sensors/MCB_FAN_PWM/fan16_input",
           "type": 4
         }
