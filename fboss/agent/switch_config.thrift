@@ -993,6 +993,8 @@ typedef string BufferPoolConfigName
 
 typedef string PortFlowletConfigName
 
+typedef string FirmwareName
+
 const i32 DEFAULT_PORT_MTU = 9412;
 
 const string DEFAULT_INGRESS_ACL_TABLE_GROUP = "ingress-ACL-Table-Group";
@@ -1656,6 +1658,18 @@ struct SystemPortRanges {
   1: list<Range64> systemPortRanges;
 }
 
+enum FirmwareLoadType {
+  FIRMWARE_LOAD_TYPE_START = 0,
+  FIRMWARE_LOAD_TYPE_STOP = 1,
+}
+
+struct FirmwareInfo {
+  1: i32 coreToUse;
+  2: string path;
+  3: string logPath;
+  4: FirmwareLoadType firmwareLoadType;
+}
+
 struct SwitchInfo {
   1: SwitchType switchType;
   2: AsicType asicType;
@@ -1677,6 +1691,7 @@ struct SwitchInfo {
   // as part of config for other nodes to bootstrap
   // communication to this node
   11: optional i32 inbandPortId;
+  12: map<FirmwareName, FirmwareInfo> firmwareNameToFirmwareInfo;
 }
 
 /*
