@@ -176,6 +176,11 @@ HwSwitchFb303Stats::HwSwitchFb303Stats(
           getCounterPrefix() + vendor + ".aligner.errors",
           SUM,
           RATE),
+      reassemblyErrors_(
+          map,
+          getCounterPrefix() + vendor + ".reassembly.errors",
+          SUM,
+          RATE),
       forwardingQueueProcessorErrors_(
           map,
           getCounterPrefix() + vendor + ".forwardingQueueProcessor.errors",
@@ -339,6 +344,10 @@ int64_t HwSwitchFb303Stats::getAlignerErrors() const {
   return getCumulativeValue(alignerErrors_);
 }
 
+int64_t HwSwitchFb303Stats::getReassemblyErrors() const {
+  return getCumulativeValue(reassemblyErrors_);
+}
+
 int64_t HwSwitchFb303Stats::getForwardingQueueProcessorErrors() const {
   return getCumulativeValue(forwardingQueueProcessorErrors_);
 }
@@ -401,6 +410,7 @@ HwAsicErrors HwSwitchFb303Stats::getHwAsicErrors() const {
   asicErrors.alignerErrors() = getAlignerErrors();
   asicErrors.forwardingQueueProcessorErrors() =
       getForwardingQueueProcessorErrors();
+  asicErrors.reassemblyErrors() = getReassemblyErrors();
   asicErrors.allReassemblyContextsTaken() =
       getAllReassemblyContextsTakenError();
   return asicErrors;
