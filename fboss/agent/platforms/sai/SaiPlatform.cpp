@@ -123,6 +123,18 @@ SaiSwitchTraits::Attributes::HwInfo getHwInfo(SaiPlatform* platform) {
   }
   return connectionHandle;
 }
+
+const auto& getFirmwareForSwitch(
+    const auto& switchIdToSwitchInfo,
+    int64_t switchId) {
+  auto iter = switchIdToSwitchInfo.value().find(switchId);
+  if (iter == switchIdToSwitchInfo.value().end()) {
+    throw FbossError("SwitchId not found: ", switchId);
+  }
+
+  return *iter->second.firmwareNameToFirmwareInfo();
+}
+
 } // namespace
 
 namespace facebook::fboss {
