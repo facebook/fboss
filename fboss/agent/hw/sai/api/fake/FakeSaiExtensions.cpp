@@ -294,6 +294,12 @@ const std::vector<sai_stat_id_t>& SaiQueueTraits::egressGvoqWatermarkBytes() {
   return stats;
 }
 
+const std::vector<sai_stat_id_t>&
+SaiSwitchTraits::sramMinBufferWatermarkBytes() {
+  static const std::vector<sai_stat_id_t> stats;
+  return stats;
+}
+
 std::optional<sai_attr_id_t>
 SaiSwitchTraits::Attributes::AttributeVoqLatencyMinLocalNs::operator()() {
   return SAI_SWITCH_ATTR_VOQ_LATENCY_MIN_LOCAL;
