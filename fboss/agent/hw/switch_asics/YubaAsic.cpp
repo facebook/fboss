@@ -191,6 +191,7 @@ bool YubaAsic::isSupportedNonFabric(Feature feature) const {
     case HwAsic::Feature::PORT_MTU_ERROR_TRAP:
     case HwAsic::Feature::EGRESS_ACL_TABLE:
     case HwAsic::Feature::FAST_LLFC_COUNTER:
+    case HwAsic::Feature::INGRESS_SRAM_MIN_BUFFER_WATERMARK:
       return false;
   }
   return false;

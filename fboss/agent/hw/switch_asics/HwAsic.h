@@ -198,6 +198,7 @@ class HwAsic {
     DEDICATED_CPU_BUFFER_POOL,
     EGRESS_ACL_TABLE,
     FAST_LLFC_COUNTER,
+    INGRESS_SRAM_MIN_BUFFER_WATERMARK,
   };
 
   enum class AsicMode {
