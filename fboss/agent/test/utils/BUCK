@@ -33,6 +33,7 @@ cpp_library(
         "//fboss/agent:hw_switch",
         "//fboss/agent:packet",
         "//fboss/agent:switch_config-cpp2-types",
+        "//fboss/agent:voq_utils",
         "//fboss/agent/hw:hardware_stats-cpp2-types",
         "//fboss/agent/hw/switch_asics:switch_asics",
         "//fboss/agent/packet:packet",
@@ -107,12 +108,13 @@ cpp_library(
     ],
     headers = ["OlympicTestUtils.h"],
     exported_deps = [
-        "fbcode//fboss/agent:fboss-error",
-        "fbcode//fboss/agent:switch_config-cpp2-types",
-        "fbcode//fboss/agent:utils",
-        "fbcode//fboss/agent/hw/switch_asics:switch_asics",
-        "fbcode//fboss/agent/test/utils:asic_test_utils",
-        "fbcode//fboss/agent/test/utils:traffic_policy_utils",
+        ":asic_test_utils",
+        ":traffic_policy_utils",
+        "//fboss/agent:agent_features",
+        "//fboss/agent:fboss-error",
+        "//fboss/agent:switch_config-cpp2-types",
+        "//fboss/agent:utils",
+        "//fboss/agent/hw/switch_asics:switch_asics",
     ],
 )
 

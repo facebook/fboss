@@ -7,7 +7,9 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
+
 #include "fboss/agent/test/utils/OlympicTestUtils.h"
+#include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/Utils.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
@@ -268,6 +270,21 @@ cfg::ActiveQueueManagement kGetWredConfig(
   wredAQM.detection()->linear_ref() = wredLQCD;
   wredAQM.behavior() = cfg::QueueCongestionBehavior::EARLY_DROP;
   return wredAQM;
+}
+
+int getTrafficClassToCpuVoqId(const HwAsic* hwAsic, int trafficClass) {
+  if (hwAsic->isSupported(HwAsic::Feature::VOQ) && isDualStage3Q2QQos()) {
+    if (trafficClass == 7) {
+      // tc 7 -> high queue 2
+      return 2;
+    } else if (trafficClass == 3) {
+      // tc 3 -> mid queue 1
+      return 1;
+    }
+    // all other tc -> low queue 0
+    return 0;
+  }
+  return trafficClass;
 }
 
 int getTrafficClassToCpuEgressQueueId(const HwAsic* hwAsic, int trafficClass) {
@@ -764,6 +781,10 @@ void addQosMapsHelper(
     for (int q = 0; q <= kOlympicHighestSPQueueId; q++) {
       cpuQosMap.trafficClassToQueueId()->emplace(
           q, getTrafficClassToCpuEgressQueueId(hwAsic, q));
+    }
+    for (int q = 0; q <= kOlympicHighestSPQueueId; q++) {
+      cpuQosMap.trafficClassToVoqId()->emplace(
+          q, getTrafficClassToCpuVoqId(hwAsic, q));
     }
     cfg.qosPolicies()->resize(2);
     *cfg.qosPolicies()[1].name() = cpuQosPolicyName;

@@ -14,6 +14,7 @@
 #include "fboss/agent/LldpManager.h"
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/TxPacket.h"
+#include "fboss/agent/VoqUtils.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/packet/ICMPHdr.h"
 #include "fboss/agent/packet/PktFactory.h"
@@ -296,6 +297,36 @@ void addCpuQueueConfig(
   cpuQueues.push_back(queue9);
 
   *config.cpuQueues() = cpuQueues;
+
+  if (hwAsic->isSupported(HwAsic::Feature::VOQ)) {
+    std::vector<cfg::PortQueue> cpuVoqs;
+    cfg::PortQueue voq0;
+    voq0.id() = kCoppLowPriQueueId;
+    voq0.name() = "cpuVoq-low";
+    voq0.streamType() = getCpuDefaultStreamType(hwAsic);
+    voq0.scheduling() = cfg::QueueScheduling::INTERNAL;
+    voq0.maxDynamicSharedBytes() = kDnxCoppLowMaxDynamicSharedBytes;
+    cpuVoqs.push_back(voq0);
+
+    cfg::PortQueue voq1;
+    voq1.id() = isDualStage3Q2QQos() ? 1 : getCoppMidPriQueueId({hwAsic});
+    voq1.name() = "cpuVoq-mid";
+    voq1.streamType() = getCpuDefaultStreamType(hwAsic);
+    voq1.scheduling() = cfg::QueueScheduling::INTERNAL;
+    voq1.maxDynamicSharedBytes() = kDnxCoppMidMaxDynamicSharedBytes;
+    cpuVoqs.push_back(voq1);
+
+    cfg::PortQueue voq2;
+    voq2.id() = isDualStage3Q2QQos()
+        ? 2
+        : getNumVoqs(cfg::PortType::CPU_PORT, cfg::Scope::LOCAL) - 1;
+    voq2.name() = "cpuVoq-high";
+    voq2.streamType() = getCpuDefaultStreamType(hwAsic);
+    voq2.scheduling() = cfg::QueueScheduling::INTERNAL;
+    cpuVoqs.push_back(voq2);
+
+    config.cpuVoqs() = cpuVoqs;
+  }
 }
 
 void setDefaultCpuTrafficPolicyConfig(

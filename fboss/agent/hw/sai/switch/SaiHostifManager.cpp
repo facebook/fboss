@@ -539,11 +539,18 @@ void SaiHostifManager::changeCpuVoq(
           *newPortVoq->getMaxDynamicSharedBytes());
     }
     CHECK_NOTNULL(voqHandle);
+    XLOG(DBG2) << "set maxDynamicSharedBytes "
+               << (portVoq->getMaxDynamicSharedBytes().has_value()
+                       ? folly::to<std::string>(static_cast<int>(
+                             portVoq->getMaxDynamicSharedBytes().value()))
+                       : "None")
+               << " for cpu voq " << portVoq->getID();
     managerTable_->queueManager().changeQueue(voqHandle, *portVoq);
     if (newPortVoq->getName().has_value()) {
       auto voqName = *newPortVoq->getName();
       cpuSysPortStats_.queueChanged(newPortVoq->getID(), voqName);
       CHECK_NOTNULL(voqHandle);
+      XLOG(DBG2) << "add configured cpu voq " << newPortVoq->getID();
       cpuPortHandle_->configuredVoqs.push_back(voqHandle);
     }
   }
@@ -557,6 +564,7 @@ void SaiHostifManager::changeCpuVoq(
     // Voq Remove
     if (portVoqIter == newVoqConfig->cend()) {
       cpuSysPortStats_.queueRemoved(oldPortVoq->getID());
+      XLOG(DBG2) << "remove configured cpu voq " << oldPortVoq->getID();
     }
   }
 }

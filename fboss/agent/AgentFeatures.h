@@ -70,6 +70,8 @@ DECLARE_bool(fix_lossless_mode_per_pg);
 DECLARE_int32(fboss_event_base_queue_limit);
 DECLARE_bool(dual_stage_rdsw_3q_2q);
 DECLARE_bool(dual_stage_edsw_3q_2q);
+DECLARE_bool(dual_stage_3q_2q_qos);
 
 bool isDualStage3Q2QMode();
+bool isDualStage3Q2QQos();
 DECLARE_bool(enable_hw_update_protection);
