@@ -112,15 +112,7 @@ SensorConfig Utils::getConfig() {
   SensorConfig sensorConfig =
       apache::thrift::SimpleJSONSerializer::deserialize<SensorConfig>(
           ConfigLib().getSensorServiceConfig(platformName));
-  std::optional<platform_manager::PlatformConfig> platformConfig{std::nullopt};
-  // TODO(T207042263) Enable cross-service config validation for Darwin
-  // once Darwin onboards PM.
-  if (platformName != "DARWIN") {
-    platformConfig = apache::thrift::SimpleJSONSerializer::deserialize<
-        platform_manager::PlatformConfig>(
-        ConfigLib().getPlatformManagerConfig(platformName));
-  }
-  if (!ConfigValidator().isValid(sensorConfig, platformConfig)) {
+  if (!ConfigValidator().isValid(sensorConfig, std::nullopt)) {
     throw std::runtime_error("Invalid sensor config");
   }
   return sensorConfig;
