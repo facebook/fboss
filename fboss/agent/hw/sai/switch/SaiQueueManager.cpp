@@ -245,7 +245,8 @@ void SaiQueueManager::changeQueueBufferProfile(
 
 void SaiQueueManager::changeQueueScheduler(
     SaiQueueHandle* queueHandle,
-    const PortQueue& newPortQueue) {
+    const PortQueue& newPortQueue,
+    const Port* swPort) {
   std::shared_ptr<SaiScheduler> newScheduler;
   if (newPortQueue.getScheduling() != cfg::QueueScheduling::INTERNAL) {
     newScheduler =
@@ -256,6 +257,16 @@ void SaiQueueManager::changeQueueScheduler(
     queueHandle->queue->setOptionalAttribute(
         SaiQueueTraits::Attributes::SchedulerProfileId(
             newScheduler ? newScheduler->adapterKey() : SAI_NULL_OBJECT_ID));
+    if (platform_->getAsic()->getAsicType() ==
+        cfg::AsicType::ASIC_TYPE_CHENAB) {
+      // Signal to SAI to use non-hierarchial QoS by setting the parent
+      // scheduler node to the port.
+      auto portHandle =
+          managerTable_->portManager().getPortHandle(swPort->getID());
+      queueHandle->queue->setOptionalAttribute(
+          SaiQueueTraits::Attributes::ParentSchedulerNode(
+              portHandle->port->adapterKey()));
+    }
     // Update scheduler reference after we have set the queue
     // scheduler attribute, else if this is the last queue
     // referring to this scheduler, we will try to delete it
@@ -309,7 +320,7 @@ void SaiQueueManager::changeQueue(
   if ((queueType != SAI_QUEUE_TYPE_UNICAST_VOQ) &&
       (queueType != SAI_QUEUE_TYPE_MULTICAST_VOQ)) {
     if (platform_->getAsic()->isSupported(HwAsic::Feature::L3_QOS)) {
-      changeQueueScheduler(queueHandle, newPortQueue);
+      changeQueueScheduler(queueHandle, newPortQueue, swPort);
     }
   }
   changeQueueEcnWred(queueHandle, newPortQueue);
