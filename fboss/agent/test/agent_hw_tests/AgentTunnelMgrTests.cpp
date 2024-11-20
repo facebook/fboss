@@ -459,4 +459,89 @@ TEST_F(AgentTunnelMgrTest, changeIPv6Address) {
 
   verifyAcrossWarmBoots(setup, verify);
 }
+
+// Test to check if there are no duplicate kernel entries created
+TEST_F(AgentTunnelMgrTest, checkDuplicateEntries) {
+  auto setup = [=]() {};
+  auto verify = [=, this]() {
+    auto config = initialConfig(*getAgentEnsemble());
+
+    // Apply the config
+    applyNewConfig(config);
+    waitForStateUpdates(getAgentEnsemble()->getSw());
+
+    auto intfIPv4 = folly::IPAddress::createNetwork(
+                        config.interfaces()[0].ipAddresses()[0], -1, false)
+                        .first;
+
+    auto intfIPv6 = folly::IPAddress::createNetwork(
+                        config.interfaces()[0].ipAddresses()[1], -1, false)
+                        .first;
+
+    // Get TunManager pointer
+    auto tunMgr_ = getAgentEnsemble()->getSw()->getTunManager();
+    auto status = tunMgr_->getIntfStatus(
+        getProgrammedState(), (InterfaceID)config.interfaces()[0].get_intfID());
+    // There could be a race condition where the interface is up, but the
+    // socket is not created. So, checking for the socket existence.
+    auto socketExists = tunMgr_->isValidNlSocket();
+
+    // There is a known limitation in the kernel that the source route rule
+    // entries are not created if the interface is not up. So, checking for
+    // the kernel entries if the interface is  up
+    if (status && socketExists) {
+      checkKernelEntriesExist(folly::to<std::string>(intfIPv6), false);
+    }
+
+    // Applying the same config again
+    // Made change in TunManager to reprogram source route rule upon interface
+    // up. Noticed duplicate entry for 1.1.1.1 and 1:: for source route rule.
+
+    // Applying same ipv4 and ipv6 address on the interface
+    config.interfaces()[0].ipAddresses()[0] = "1.1.1.1/32";
+    config.interfaces()[0].ipAddresses()[1] = "1::/128";
+
+    // Apply the config
+    applyNewConfig(config);
+
+    // change ipv4 and ipv6 address of the interface
+    config.interfaces()[0].ipAddresses()[0] = "2.2.2.2/32";
+    config.interfaces()[0].ipAddresses()[1] = "2::/128";
+
+    // Apply the config
+    applyNewConfig(config);
+    waitForStateUpdates(getAgentEnsemble()->getSw());
+
+    auto intfIPv6New = folly::IPAddress::createNetwork(
+                           config.interfaces()[0].ipAddresses()[1], -1, false)
+                           .first;
+    auto intfIPv4New = folly::IPAddress::createNetwork(
+                           config.interfaces()[0].ipAddresses()[0], -1, false)
+                           .first;
+
+    // Route entries installation is currently not consistent after the ip
+    // address change. So, passing false for checkRouteEntry.
+    if (status) {
+      // If source route rule is added again for the same IP address, it would
+      // create duplicate entries.
+      checkKernelEntriesRemoved(
+          folly::to<std::string>(intfIPv4), folly::to<std::string>(intfIPv6));
+      checkKernelEntriesExist(folly::to<std::string>(intfIPv4New), true, false);
+      checkKernelEntriesExist(
+          folly::to<std::string>(intfIPv6New), false, false);
+    }
+
+    // Clear kernel entries
+    clearKernelEntries(
+        folly::to<std::string>(intfIPv4New),
+        folly::to<std::string>(intfIPv6New));
+
+    // Check that the kernel entries are removed
+    checkKernelEntriesRemoved(
+        folly::to<std::string>(intfIPv4New),
+        folly::to<std::string>(intfIPv6New));
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
+}
 } // namespace facebook::fboss
