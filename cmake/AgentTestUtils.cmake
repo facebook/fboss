@@ -139,6 +139,17 @@ target_link_libraries(qos_test_utils
   Folly::folly
 )
 
+add_library(trunk_test_utils
+  fboss/agent/test/utils/TrunkTestUtils.cpp
+)
+
+target_link_libraries(trunk_test_utils
+  agent_hw_test_ctrl_cpp2
+  fboss_types
+  state
+  agent_ensemble
+)
+
 add_library(l2learn_observer_util
   fboss/agent/test/utils/L2LearningUpdateObserverUtil.cpp
 )

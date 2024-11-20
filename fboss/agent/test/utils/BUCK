@@ -134,6 +134,20 @@ cpp_library(
 )
 
 cpp_library(
+    name = "trunk_test_utils",
+    srcs = [
+        "TrunkTestUtils.cpp",
+    ],
+    headers = ["TrunkTestUtils.h"],
+    exported_deps = [
+        "//fboss/agent:fboss-types",
+        "//fboss/agent/if:agent_hw_test_ctrl-cpp2-services",
+        "//fboss/agent/state:state",
+        "//fboss/agent/test:agent_ensemble",
+    ],
+)
+
+cpp_library(
     name = "mac_test_utils",
     srcs = [
         "MacTestUtils.cpp",
