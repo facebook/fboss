@@ -767,6 +767,10 @@ cfg::SwitchConfig genPortVlanCfg(
         getNameAndDefaultVoqCfg(cfg::PortType::INTERFACE_PORT);
     CHECK(nameAndDefaultVoqCfg.has_value());
     config.defaultVoqConfig() = nameAndDefaultVoqCfg->queueConfig;
+    auto cpuVoqConfigAndName = getNameAndDefaultVoqCfg(cfg::PortType::CPU_PORT);
+    if (cpuVoqConfigAndName) {
+      config.cpuVoqs() = cpuVoqConfigAndName->queueConfig;
+    }
   }
 
   // Use getPortToDefaultProfileIDMap() to genetate the default config instead
