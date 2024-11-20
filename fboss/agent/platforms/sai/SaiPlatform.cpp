@@ -582,6 +582,65 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
     }
   }
 
+  std::optional<SaiSwitchTraits::Attributes::FirmwareCoreToUse>
+      firmwareCoreToUse{std::nullopt};
+  std::optional<SaiSwitchTraits::Attributes::FirmwareLogFile> firmwareLogFile{
+      std::nullopt};
+  std::optional<SaiSwitchTraits::Attributes::FirmwareLoadType> firmwareLoadType{
+      std::nullopt};
+
+#if defined(SAI_VERSION_11_7_0_0_DNX_ODP)
+  if (swId.has_value()) {
+    const auto& firmwareNameToFirmwareInfo = getFirmwareForSwitch(
+        switchSettings->switchIdToSwitchInfo(), swId.value());
+
+    if (firmwareNameToFirmwareInfo.size() != 0) {
+      if (firmwareNameToFirmwareInfo.size() > 1) {
+        throw FbossError("Setting only one firmware is supported today");
+      }
+      auto [firmwareName, firmwareInfo] = *firmwareNameToFirmwareInfo.begin();
+      XLOG(DBG2) << "FirmwareName: " << firmwareName
+                 << " coreToUse: " << *firmwareInfo.coreToUse()
+                 << " path: " << *firmwareInfo.path()
+                 << " logPath: " << *firmwareInfo.logPath()
+                 << " firmwareLoadType: "
+                 << apache::thrift::util::enumNameSafe(
+                        *firmwareInfo.firmwareLoadType());
+
+      // Set Core
+      firmwareCoreToUse = *firmwareInfo.coreToUse();
+
+      // Set firmware path
+      std::string firmwarePath = *firmwareInfo.path();
+      std::vector<int8_t> firmwarePathNameArray;
+      std::copy(
+          firmwarePath.c_str(),
+          firmwarePath.c_str() + firmwarePath.size() + 1,
+          std::back_inserter(firmwarePathNameArray));
+      firmwarePathName = firmwarePathNameArray;
+
+      // Set firmware log path
+      std::string firmwareLogPath = *firmwareInfo.logPath();
+      std::vector<int8_t> firmwareLogPathArray;
+      std::copy(
+          firmwareLogPath.c_str(),
+          firmwareLogPath.c_str() + firmwareLogPath.size() + 1,
+          std::back_inserter(firmwareLogPathArray));
+      firmwareLogFile = firmwareLogPathArray;
+
+      // Set firmware load type
+      switch (*firmwareInfo.firmwareLoadType()) {
+        case cfg::FirmwareLoadType::FIRMWARE_LOAD_TYPE_START:
+          firmwareLoadType = SAI_SWITCH_FIRMWARE_LOAD_TYPE_AUTO;
+          break;
+        case cfg::FirmwareLoadType::FIRMWARE_LOAD_TYPE_STOP:
+          firmwareLoadType = SAI_SWITCH_FIRMWARE_LOAD_TYPE_STOP;
+          break;
+      }
+    }
+  }
+#endif
+
   std::optional<SaiSwitchTraits::Attributes::SwitchIsolate> switchIsolate{
       std::nullopt};
   if (getAsic()->isSupported(HwAsic::Feature::LINK_INACTIVE_BASED_ISOLATE)) {
@@ -681,11 +740,11 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
       std::nullopt, // tam object list
       useEcnThresholds,
       std::nullopt, // counter refresh interval
-      std::nullopt, // Firmware core to use
+      firmwareCoreToUse,
       firmwarePathName, // Firmware path name
-      std::nullopt,
+      firmwareLogFile, // Firmware log file
       std::nullopt, // Firmware load method
-      std::nullopt, // Firmware load type
+      firmwareLoadType, // Firmware load type
       std::nullopt, // Hardware access bus
       std::nullopt, // Platform context
       std::nullopt, // Switch profile id
