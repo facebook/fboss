@@ -669,6 +669,7 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
       std::nullopt, // tam object list
       useEcnThresholds,
       std::nullopt, // counter refresh interval
+      std::nullopt, // Firmware core to use
       firmwarePathName, // Firmware path name
       std::nullopt, // Firmware load method
       std::nullopt, // Firmware load type

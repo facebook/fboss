@@ -138,6 +138,7 @@ void handleExtensionAttributes() {
   SAI_EXT_ATTR_MAP(Switch, ShelDstIp);
   SAI_EXT_ATTR_MAP(Switch, ShelSrcMac);
   SAI_EXT_ATTR_MAP(Switch, ShelPeriodicInterval);
+  SAI_EXT_ATTR_MAP(Switch, FirmwareCoreToUse);
 }
 
 } // namespace

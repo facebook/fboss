@@ -554,4 +554,10 @@ std::optional<sai_attr_id_t>
 SaiSystemPortTraits::Attributes::AttributeShelPktDstEnable::operator()() {
   return std::nullopt;
 }
+
+std::optional<sai_attr_id_t>
+SaiSwitchTraits::Attributes::AttributeFirmwareCoreTouse::operator()() {
+  return SAI_SWITCH_ATTR_FIRMWARE_CORE_TO_USE;
+}
+
 } // namespace facebook::fboss
