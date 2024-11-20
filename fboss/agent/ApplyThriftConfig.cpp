@@ -4936,10 +4936,11 @@ shared_ptr<MultiControlPlane> ThriftConfigApplier::updateControlPlane() {
     newQueues.insert(
         newQueues.begin(), tmpPortQueues.begin(), tmpPortQueues.end());
     if (cfg_->cpuVoqs()) {
+      std::vector<cfg::PortQueue> cfgCpuVoqs = *cfg_->cpuVoqs();
       auto tmpPortVoqs = updatePortQueues(
           origCPU->getVoqsConfig(),
-          *cfg_->cpuVoqs(),
-          asic->getDefaultNumPortQueues(streamType, cfg::PortType::CPU_PORT),
+          cfgCpuVoqs,
+          getNumVoqs(cfg::PortType::CPU_PORT, cfg::Scope::LOCAL),
           streamType,
           qosMap);
       newVoqs.insert(newVoqs.begin(), tmpPortVoqs.begin(), tmpPortVoqs.end());

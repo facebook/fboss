@@ -713,7 +713,7 @@ void setPortQueueSharedBytes(cfg::PortQueue& queue, bool isSai) {
 void setPortQueueMaxDynamicSharedBytes(
     cfg::PortQueue& queue,
     const HwAsic* hwAsic) {
-  if (hwAsic->isSupported(HwAsic::Feature::CPU_VOQ_BUFFER_PROFILE)) {
+  if (hwAsic->isSupported(HwAsic::Feature::VOQ)) {
     if (queue.id() == kCoppLowPriQueueId) {
       queue.maxDynamicSharedBytes() = kDnxCoppLowMaxDynamicSharedBytes;
     } else if (queue.id() == getCoppMidPriQueueId({hwAsic})) {

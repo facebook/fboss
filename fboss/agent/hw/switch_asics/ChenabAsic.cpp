@@ -79,7 +79,6 @@ bool ChenabAsic::isSupportedNonFabric(Feature feature) const {
     case HwAsic::Feature::EGRESS_ACL_TABLE:
       return true;
     case HwAsic::Feature::EVENTOR_PORT_FOR_SFLOW:
-    case HwAsic::Feature::CPU_VOQ_BUFFER_PROFILE:
     case HwAsic::Feature::SAI_ECMP_HASH_ALGORITHM:
     case HwAsic::Feature::SWITCH_REACHABILITY_CHANGE_NOTIFY:
     case HwAsic::Feature::CABLE_PROPOGATION_DELAY:

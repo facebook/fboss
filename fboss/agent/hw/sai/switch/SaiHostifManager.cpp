@@ -409,6 +409,31 @@ void SaiHostifManager::processQueueDelta(
   changeCpuQueue(oldQueues, newQueues);
 }
 
+void SaiHostifManager::processVoqDelta(
+    const DeltaValue<ControlPlane>& controlPlaneDelta) {
+  const auto& newVoqs =
+      controlPlaneDelta.getNew()->cref<switch_state_tags::voqs>();
+  if (!platform_->getAsic()->isSupported(HwAsic::Feature::VOQ) &&
+      !newVoqs->empty()) {
+    throw FbossError(
+        "Got non-empty cpu voq state on platform not supporting VOQ");
+  }
+  if (newVoqs->empty() &&
+      platform_->getAsic()->isSupported(HwAsic::Feature::VOQ)) {
+    // TODO(daiweix): remove this if clause after populating cpu voq
+    // configs everywhere. For now, use the same voq config from egq
+    const auto& oldQueues =
+        controlPlaneDelta.getOld()->cref<switch_state_tags::queues>();
+    const auto& newQueues =
+        controlPlaneDelta.getNew()->cref<switch_state_tags::queues>();
+    changeCpuVoq(oldQueues, newQueues);
+  } else {
+    const auto& oldVoqs =
+        controlPlaneDelta.getOld()->cref<switch_state_tags::voqs>();
+    changeCpuVoq(oldVoqs, newVoqs);
+  }
+}
+
 void SaiHostifManager::processHostifDelta(
     const ThriftMapDelta<MultiControlPlane>& multiSwitchControlPlaneDelta) {
   DeltaFunctions::forEachChanged(
@@ -443,6 +468,7 @@ void SaiHostifManager::processHostifEntryDelta(
   // corresponding sai queue oid for cpu port ?
   processRxReasonToQueueDelta(controlPlaneDelta);
   processQueueDelta(controlPlaneDelta);
+  processVoqDelta(controlPlaneDelta);
   processQosDelta(controlPlaneDelta);
 }
 SaiQueueHandle* SaiHostifManager::getQueueHandleImpl(
@@ -489,6 +515,52 @@ SaiHostifManager::getVoqHandle(const SaiQueueConfig& saiQueueConfig) {
   return getVoqHandleImpl(saiQueueConfig);
 }
 
+void SaiHostifManager::changeCpuVoq(
+    const ControlPlane::PortQueues& oldVoqConfig,
+    const ControlPlane::PortQueues& newVoqConfig) {
+  cpuPortHandle_->configuredVoqs.clear();
+
+  auto maxCpuVoqs = getNumVoqs(cfg::PortType::CPU_PORT, cfg::Scope::LOCAL);
+  for (const auto& newPortVoq : std::as_const(*newVoqConfig)) {
+    // Voq create or update
+    if (newPortVoq->getID() > maxCpuVoqs) {
+      throw FbossError(
+          "Voq ID : ",
+          newPortVoq->getID(),
+          " exceeds max supported CPU queues: ",
+          maxCpuVoqs);
+    }
+    SaiQueueConfig saiVoqConfig =
+        std::make_pair(newPortVoq->getID(), newPortVoq->getStreamType());
+    auto portVoq = newPortVoq->clone();
+    auto voqHandle = getVoqHandle(saiVoqConfig);
+    if (newPortVoq->getMaxDynamicSharedBytes()) {
+      portVoq->setMaxDynamicSharedBytes(
+          *newPortVoq->getMaxDynamicSharedBytes());
+    }
+    CHECK_NOTNULL(voqHandle);
+    managerTable_->queueManager().changeQueue(voqHandle, *portVoq);
+    if (newPortVoq->getName().has_value()) {
+      auto voqName = *newPortVoq->getName();
+      cpuSysPortStats_.queueChanged(newPortVoq->getID(), voqName);
+      CHECK_NOTNULL(voqHandle);
+      cpuPortHandle_->configuredVoqs.push_back(voqHandle);
+    }
+  }
+  for (const auto& oldPortVoq : std::as_const(*oldVoqConfig)) {
+    auto portVoqIter = std::find_if(
+        newVoqConfig->cbegin(),
+        newVoqConfig->cend(),
+        [&](const std::shared_ptr<PortQueue> portVoq) {
+          return portVoq->getID() == oldPortVoq->getID();
+        });
+    // Voq Remove
+    if (portVoqIter == newVoqConfig->cend()) {
+      cpuSysPortStats_.queueRemoved(oldPortVoq->getID());
+    }
+  }
+}
+
 void SaiHostifManager::changeCpuQueue(
     const ControlPlane::PortQueues& oldQueueConfig,
     const ControlPlane::PortQueues& newQueueConfig) {
@@ -497,7 +569,6 @@ void SaiHostifManager::changeCpuQueue(
     return;
   }
   cpuPortHandle_->configuredQueues.clear();
-  cpuPortHandle_->configuredVoqs.clear();
 
   const auto asic = platform_->getAsic();
   auto maxCpuQueues = getMaxCpuQueues();
@@ -526,27 +597,10 @@ void SaiHostifManager::changeCpuQueue(
                   newPortQueue->getStreamType(), true /*cpu port*/));
     managerTable_->queueManager().changeQueue(
         queueHandle, *portQueue, nullptr /*swPort*/, cfg::PortType::CPU_PORT);
-    if (platform_->getAsic()->isSupported(
-            HwAsic::Feature::CPU_VOQ_BUFFER_PROFILE)) {
-      auto voqHandle = getVoqHandle(saiQueueConfig);
-      if (newPortQueue->getMaxDynamicSharedBytes()) {
-        portQueue->setMaxDynamicSharedBytes(
-            *newPortQueue->getMaxDynamicSharedBytes());
-      }
-      CHECK_NOTNULL(voqHandle);
-      managerTable_->queueManager().changeQueue(voqHandle, *portQueue);
-    }
     if (newPortQueue->getName().has_value()) {
       auto queueName = *newPortQueue->getName();
       cpuStats_.queueChanged(newPortQueue->getID(), queueName);
       cpuPortHandle_->configuredQueues.push_back(queueHandle);
-      if (platform_->getAsic()->isSupported(
-              HwAsic::Feature::CPU_VOQ_BUFFER_PROFILE)) {
-        auto voqHandle = getVoqHandle(saiQueueConfig);
-        cpuSysPortStats_.queueChanged(newPortQueue->getID(), queueName);
-        CHECK_NOTNULL(voqHandle);
-        cpuPortHandle_->configuredVoqs.push_back(voqHandle);
-      }
     }
   }
   for (const auto& oldPortQueue : std::as_const(*oldQueueConfig)) {
@@ -562,10 +616,6 @@ void SaiHostifManager::changeCpuQueue(
           std::make_pair(oldPortQueue->getID(), oldPortQueue->getStreamType());
       cpuPortHandle_->queues.erase(saiQueueConfig);
       cpuStats_.queueRemoved(oldPortQueue->getID());
-      if (platform_->getAsic()->isSupported(
-              HwAsic::Feature::CPU_VOQ_BUFFER_PROFILE)) {
-        cpuSysPortStats_.queueRemoved(oldPortQueue->getID());
-      }
     }
   }
 }
@@ -646,8 +696,7 @@ void SaiHostifManager::updateStats(bool updateWatermarks) {
           cpuQueueStats.queueWatermarkBytes_()->at(queueId2Name.first));
     }
   }
-  if (platform_->getAsic()->isSupported(
-          HwAsic::Feature::CPU_VOQ_BUFFER_PROFILE)) {
+  if (platform_->getAsic()->isSupported(HwAsic::Feature::VOQ)) {
     const auto& prevPortStats = cpuSysPortStats_.portStats();
     HwSysPortStats curPortStats{prevPortStats};
     managerTable_->queueManager().updateStats(
