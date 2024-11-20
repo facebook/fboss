@@ -39,6 +39,7 @@ class ChenabAsic : public HwAsic {
       cfg::PortType /*portType*/) const override;
   uint32_t getMaxLabelStackDepth() const override;
   uint64_t getMMUSizeBytes() const override;
+  uint64_t getSramSizeBytes() const override;
   uint32_t getMaxMirrors() const override;
   uint64_t getDefaultReservedBytes(
       cfg::StreamType /*streamType*/,

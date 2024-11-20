@@ -29,6 +29,10 @@ class Tomahawk3Asic : public BroadcomXgsAsic {
   uint64_t getMMUSizeBytes() const override {
     return 64 * 1024 * 1024;
   }
+  uint64_t getSramSizeBytes() const override {
+    // No HBM!
+    return getMMUSizeBytes();
+  }
   uint32_t getMMUCellSize() const {
     return 254;
   }

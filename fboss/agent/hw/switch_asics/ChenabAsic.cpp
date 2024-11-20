@@ -296,6 +296,11 @@ uint32_t ChenabAsic::getMaxLabelStackDepth() const {
 uint64_t ChenabAsic::getMMUSizeBytes() const {
   return 420000; // return 108 * 1024 * 1024;
 }
+uint64_t ChenabAsic::getSramSizeBytes() const {
+  // No HBM!
+  return getMMUSizeBytes();
+}
+
 uint32_t ChenabAsic::getMaxMirrors() const {
   // TODO - verify this
   return 4;

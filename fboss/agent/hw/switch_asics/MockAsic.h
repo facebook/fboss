@@ -88,6 +88,10 @@ class MockAsic : public HwAsic {
     // Fake MMU size
     return 64 * 1024 * 1024;
   }
+  uint64_t getSramSizeBytes() const override {
+    // No HBM!
+    return getMMUSizeBytes();
+  }
   uint32_t getMaxMirrors() const override {
     return 4;
   }

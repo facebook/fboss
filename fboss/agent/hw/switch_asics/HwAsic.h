@@ -408,6 +408,8 @@ class HwAsic {
 
   virtual int getMidPriCpuQueueId() const = 0;
   virtual int getHiPriCpuQueueId() const = 0;
+
+  virtual uint64_t getSramSizeBytes() const = 0;
   std::optional<int32_t> getGlobalSystemPortOffset() const {
     return globalSystemPortOffset_;
   }
