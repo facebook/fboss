@@ -230,6 +230,7 @@ struct HwAsicErrors {
   8: optional i64 alignerErrors;
   9: optional i64 forwardingQueueProcessorErrors;
   10: optional i64 allReassemblyContextsTaken;
+  11: optional i64 reassemblyErrors;
 }
 
 struct HwTeFlowStats {
