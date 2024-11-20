@@ -671,6 +671,7 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
       std::nullopt, // counter refresh interval
       std::nullopt, // Firmware core to use
       firmwarePathName, // Firmware path name
+      std::nullopt,
       std::nullopt, // Firmware load method
       std::nullopt, // Firmware load type
       std::nullopt, // Hardware access bus

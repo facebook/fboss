@@ -290,6 +290,13 @@ struct SaiSwitchTraits {
         SAI_SWITCH_ATTR_FIRMWARE_PATH_NAME,
         std::vector<sai_int8_t>,
         SaiS8ListDefault>;
+    struct AttributeFirmwareLogFile {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    using FirmwareLogFile = SaiExtensionAttribute<
+        std::vector<sai_int8_t>,
+        AttributeFirmwareLogFile,
+        SaiS8ListDefault>;
     using FirmwareLoadMethod = SaiAttribute<
         EnumType,
         SAI_SWITCH_ATTR_FIRMWARE_LOAD_METHOD,
@@ -693,6 +700,7 @@ struct SaiSwitchTraits {
       std::optional<Attributes::CounterRefreshInterval>,
       std::optional<Attributes::FirmwareCoreToUse>,
       std::optional<Attributes::FirmwarePathName>,
+      std::optional<Attributes::FirmwareLogFile>,
       std::optional<Attributes::FirmwareLoadMethod>,
       std::optional<Attributes::FirmwareLoadType>,
       std::optional<Attributes::HardwareAccessBus>,
@@ -833,6 +841,7 @@ SAI_ATTRIBUTE_NAME(Switch, CounterRefreshInterval)
 
 SAI_ATTRIBUTE_NAME(Switch, FirmwareCoreToUse)
 SAI_ATTRIBUTE_NAME(Switch, FirmwarePathName)
+SAI_ATTRIBUTE_NAME(Switch, FirmwareLogFile)
 SAI_ATTRIBUTE_NAME(Switch, FirmwareLoadMethod)
 SAI_ATTRIBUTE_NAME(Switch, FirmwareLoadType)
 SAI_ATTRIBUTE_NAME(Switch, HardwareAccessBus)

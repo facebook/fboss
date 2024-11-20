@@ -460,4 +460,13 @@ SaiSwitchTraits::Attributes::AttributeFirmwareCoreTouse::operator()() {
   return std::nullopt;
 }
 
+std::optional<sai_attr_id_t>
+SaiSwitchTraits::Attributes::AttributeFirmwareLogFile::operator()() {
+// TODO(skhare): Update when 12.x supports this attribute
+#if defined(SAI_VERSION_11_7_0_0_DNX_ODP)
+  return SAI_SWITCH_ATTR_FIRMWARE_LOG_FILE;
+#endif
+  return std::nullopt;
+}
+
 } // namespace facebook::fboss

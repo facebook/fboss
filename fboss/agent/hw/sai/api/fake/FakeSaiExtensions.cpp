@@ -560,4 +560,9 @@ SaiSwitchTraits::Attributes::AttributeFirmwareCoreTouse::operator()() {
   return SAI_SWITCH_ATTR_FIRMWARE_CORE_TO_USE;
 }
 
+std::optional<sai_attr_id_t>
+SaiSwitchTraits::Attributes::AttributeFirmwareLogFile::operator()() {
+  return SAI_SWITCH_ATTR_FIRMWARE_LOG_FILE;
+}
+
 } // namespace facebook::fboss

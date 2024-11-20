@@ -88,6 +88,7 @@ typedef enum _sai_switch_extensions_attr_t {
   SAI_SWITCH_ATTR_SHEL_SRC_MAC,
   SAI_SWITCH_ATTR_SHEL_PERIODIC_INTERVAL,
   SAI_SWITCH_ATTR_FIRMWARE_CORE_TO_USE,
+  SAI_SWITCH_ATTR_FIRMWARE_LOG_FILE,
 } sai_switch_extensions_attr_t;
 
 typedef enum _sai_tam_event_extensions_attr_t {
