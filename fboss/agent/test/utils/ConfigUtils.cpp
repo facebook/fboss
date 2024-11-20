@@ -431,8 +431,12 @@ cfg::DsfNode dsfNodeConfig(
       auto sysPortRanges = getSystemPortRanges(myAsic, otherSwitchId);
       dsfNode.systemPortRanges() = sysPortRanges;
       dsfNode.localSystemPortOffset() = getLocalSystemPortOffset(sysPortRanges);
-      dsfNode.globalSystemPortOffset() =
-          *sysPortRanges.systemPortRanges()->begin()->minimum();
+      // In single-stage sys port ranges, 0th port is reserved for CPU.
+      // For dual stage, no implicit reservation for 0th port, hence offset
+      // should be 1 less.
+      dsfNode.globalSystemPortOffset() = isDualStage3Q2QMode()
+          ? *sysPortRanges.systemPortRanges()->begin()->minimum() - 1
+          : *sysPortRanges.systemPortRanges()->begin()->minimum();
       CHECK(myAsic.getInbandPortId().has_value());
       dsfNode.inbandPortId() = *myAsic.getInbandPortId();
       dsfNode.nodeMac() = kLocalCpuMac().toString();
