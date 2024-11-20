@@ -1113,6 +1113,13 @@ TEST_F(AgentVoqSwitchTest, sendPacketCpuAndFrontPanel) {
       int64_t afterQueueOutPkts = 0, afterQueueOutBytes = 0;
       int64_t beforeVoQOutBytes = 0, afterVoQOutBytes = 0;
       int64_t egressCoreWatermarkBytes = 0;
+      // Get SRAM size per core as thats the highest possible free SRAM
+      const uint64_t kSramSize =
+          utility::checkSameAndGetAsic(getAgentEnsemble()->getL3Asics())
+              ->getSramSizeBytes() /
+          utility::checkSameAndGetAsic(getAgentEnsemble()->getL3Asics())
+              ->getNumCores();
+      int64_t sramMinBufferWatermarkBytes = kSramSize + 1;
 
       if (isSupportedOnAllAsics(HwAsic::Feature::L3_QOS)) {
         auto beforeAllQueueOut = getAllQueueOutPktsBytes();
@@ -1174,6 +1181,13 @@ TEST_F(AgentVoqSwitchTest, sendPacketCpuAndFrontPanel) {
                 egressCoreWatermarkBytes +=
                     switchWatermarksIter.second.egressCoreBufferWatermarkBytes()
                         .value();
+                if (switchWatermarksIter.second.sramMinBufferWatermarkBytes()
+                        .has_value()) {
+                  sramMinBufferWatermarkBytes = std::min(
+                      sramMinBufferWatermarkBytes,
+                      *switchWatermarksIter.second
+                           .sramMinBufferWatermarkBytes());
+                }
               }
             }
             XLOG(DBG2) << "Verifying: "
@@ -1198,7 +1212,9 @@ TEST_F(AgentVoqSwitchTest, sendPacketCpuAndFrontPanel) {
                        << " afterFrontPanelBytes: " << afterFrontPanelOutBytes
                        << " afterRecyclePkts: " << afterRecyclePkts
                        << " egressCoreWatermarkBytes: "
-                       << egressCoreWatermarkBytes;
+                       << egressCoreWatermarkBytes
+                       << " sramMinBufferWatermarkBytes: "
+                       << sramMinBufferWatermarkBytes;
 
             EXPECT_EVENTUALLY_EQ(afterOutPkts - 1, beforeOutPkts);
             int extraByteOffset = 0;
@@ -1247,6 +1263,10 @@ TEST_F(AgentVoqSwitchTest, sendPacketCpuAndFrontPanel) {
             if (isSupportedOnAllAsics(
                     HwAsic::Feature::EGRESS_CORE_BUFFER_WATERMARK)) {
               EXPECT_EVENTUALLY_GT(egressCoreWatermarkBytes, 0);
+            }
+            if (isSupportedOnAllAsics(
+                    HwAsic::Feature::INGRESS_SRAM_MIN_BUFFER_WATERMARK)) {
+              EXPECT_EVENTUALLY_LE(sramMinBufferWatermarkBytes, kSramSize);
             }
           });
     };
