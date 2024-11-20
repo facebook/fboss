@@ -818,6 +818,13 @@ const std::vector<sai_stat_id_t>& SaiSwitchManager::supportedWatermarkStats()
         SaiSwitchTraits::egressCoreBufferWatermarkBytes().begin(),
         SaiSwitchTraits::egressCoreBufferWatermarkBytes().end());
   }
+  if (platform_->getAsic()->isSupported(
+          HwAsic::Feature::INGRESS_SRAM_MIN_BUFFER_WATERMARK)) {
+    stats.insert(
+        stats.end(),
+        SaiSwitchTraits::sramMinBufferWatermarkBytes().begin(),
+        SaiSwitchTraits::sramMinBufferWatermarkBytes().end());
+  }
   return stats;
 }
 
