@@ -4,6 +4,8 @@
 
 #include "fboss/agent/hw/bcm/BcmError.h"
 #include "fboss/agent/hw/bcm/BcmPortTable.h"
+#include "fboss/agent/hw/bcm/BcmTrunkTable.h"
+#include "fboss/agent/hw/bcm/tests/BcmTrunkUtils.h"
 
 extern "C" {
 #include <bcm/port.h>
@@ -145,6 +147,64 @@ bool HwTestThriftHandler::verifyPGSettings(int portId, bool pfcEnabled) {
       return false;
     }
     i++;
+  }
+  return true;
+}
+
+void HwTestThriftHandler::getAggPortInfo(
+    ::std::vector<::facebook::fboss::utility::AggPortInfo>& aggPortInfos,
+    std::unique_ptr<::std::vector<::std::int32_t>> aggPortIds) {
+  auto bcmSwitch = static_cast<const BcmSwitch*>(hwSwitch_);
+  auto trunkTable = bcmSwitch->getTrunkTable();
+  auto aggPortTable = hwSwitch_->getProgrammedState()->getAggregatePorts();
+  for (const auto& portId : *aggPortIds) {
+    AggPortInfo aggPortInfo;
+    AggregatePortID aggPortId = AggregatePortID(portId);
+    auto aggPort = aggPortTable->getNodeIf(aggPortId);
+    try {
+      trunkTable->getBcmTrunkId(aggPortId);
+      aggPortInfo.isPresent() = true;
+      aggPortInfo.numActiveMembers() = utility::getBcmTrunkMemberCount(
+          0,
+          trunkTable->getBcmTrunkId(aggPortId),
+          aggPort->sortedSubports().size());
+      aggPortInfo.numMembers() = aggPort->sortedSubports().size();
+
+    } catch (const std::exception& e) {
+      XLOG(DBG2) << "Lag handle not found for port " << aggPortId;
+      aggPortInfo.isPresent() = false;
+    }
+    aggPortInfos.push_back(aggPortInfo);
+  }
+  return;
+}
+
+int HwTestThriftHandler::getNumAggPorts() {
+  auto bcmSwitch = static_cast<const BcmSwitch*>(hwSwitch_);
+  return bcmSwitch->getTrunkTable()->numTrunkPorts();
+}
+
+bool HwTestThriftHandler::verifyPktFromAggPort(int aggPortId) {
+  AggregatePortID aggregatePortID(aggPortId);
+  auto bcmSwitch = static_cast<const BcmSwitch*>(hwSwitch_);
+  bool usePktIO = bcmSwitch->usePKTIO();
+  BcmPacketT bcmPacket;
+  bcm_pkt_t bcmPkt;
+  auto bcmTrunkId = bcmSwitch->getTrunkTable()->getBcmTrunkId(aggregatePortID);
+  bcmPacket.usePktIO = usePktIO;
+  if (!usePktIO) {
+    bcmPacket.ptrUnion.pkt = &bcmPkt;
+    BCM_PKT_ONE_BUF_SETUP(&bcmPkt, nullptr, 0);
+    bcmPkt.src_trunk = bcmTrunkId;
+    bcmPkt.flags |= BCM_PKT_F_TRUNK;
+    bcmPkt.unit = 0;
+    FbBcmRxPacket fbRxPkt(bcmPacket, bcmSwitch);
+    if (!fbRxPkt.isFromAggregatePort()) {
+      return false;
+    }
+    if (fbRxPkt.getSrcAggregatePort() != aggregatePortID) {
+      return false;
+    }
   }
   return true;
 }

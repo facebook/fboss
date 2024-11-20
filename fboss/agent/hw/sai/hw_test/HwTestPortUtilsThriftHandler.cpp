@@ -1,6 +1,7 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
 #include "fboss/agent/hw/sai/diag/DiagShell.h"
+#include "fboss/agent/hw/sai/switch/SaiLagManager.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitch.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/hw/test/HwTestThriftHandler.h"
@@ -222,6 +223,49 @@ bool HwTestThriftHandler::verifyPGSettings(int portId, bool pfcEnabled) {
     }
   }
   return true;
+}
+
+void HwTestThriftHandler::getAggPortInfo(
+    ::std::vector<::facebook::fboss::utility::AggPortInfo>& aggPortInfos,
+    std::unique_ptr<::std::vector<::std::int32_t>> aggPortIds) {
+  auto saiSwitch = static_cast<const SaiSwitch*>(hwSwitch_);
+  auto& lagManager = saiSwitch->managerTable()->lagManager();
+  for (const auto& portId : *aggPortIds) {
+    AggPortInfo aggPortInfo;
+    AggregatePortID aggPortId = AggregatePortID(portId);
+    try {
+      lagManager.getLagHandle(aggPortId);
+      aggPortInfo.isPresent() = true;
+      aggPortInfo.numMembers() = lagManager.getLagMemberCount(aggPortId);
+      aggPortInfo.numActiveMembers() =
+          lagManager.getActiveMemberCount(aggPortId);
+
+    } catch (const std::exception& e) {
+      XLOG(DBG2) << "Lag handle not found for port " << aggPortId;
+      aggPortInfo.isPresent() = false;
+    }
+    aggPortInfos.push_back(aggPortInfo);
+  }
+  return;
+}
+
+int HwTestThriftHandler::getNumAggPorts() {
+  auto saiSwitch = static_cast<const SaiSwitch*>(hwSwitch_);
+  return saiSwitch->managerTable()->lagManager().getLagCount();
+}
+
+bool HwTestThriftHandler::verifyPktFromAggPort(int aggPortId) {
+  std::array<char, 8> data{};
+  // TODO (T159867926): Set the right queue ID once the vendor
+  // set the right queue ID in the rx callback.
+  auto rxPacket = std::make_unique<SaiRxPacket>(
+      data.size(),
+      data.data(),
+      AggregatePortID(aggPortId),
+      VlanID(1),
+      cfg::PacketRxReason::UNMATCHED,
+      0 /* queue Id */);
+  return rxPacket->isFromAggregatePort();
 }
 
 } // namespace utility

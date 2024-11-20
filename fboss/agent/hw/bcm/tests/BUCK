@@ -606,6 +606,7 @@ cpp_library(
     ],
     undefined_symbols = "True",  # The sai/bcm implementations will define some functions
     exported_deps = [
+        ":bcm_trunk_utils",
         "//fboss/agent:fboss-types",
         "//fboss/agent:hw_switch",
         "//fboss/agent/hw/bcm:bcm",
