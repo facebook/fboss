@@ -1,13 +1,9 @@
 // (c) Facebook, Inc. and its affiliates. Confidential and proprietary.
 
 #include "fboss/lib/CommonFileUtils.h"
-#include <boost/filesystem/operations.hpp>
 #include <folly/logging/xlog.h>
 #include <folly/testing/TestUtil.h>
 #include <gtest/gtest.h>
-#include "fboss/agent/SysError.h"
-
-#include <fcntl.h>
 
 namespace facebook::fboss {
 
