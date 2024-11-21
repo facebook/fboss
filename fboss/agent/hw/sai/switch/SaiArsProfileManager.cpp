@@ -32,7 +32,7 @@ SaiArsProfileManager::SaiArsProfileManager(
 SaiArsProfileTraits::CreateAttributes SaiArsProfileManager::createAttributes(
     const std::shared_ptr<FlowletSwitchingConfig>& flowletSwitchConfig) {
   auto samplingInterval = flowletSwitchConfig->getDynamicSampleRate();
-  sai_uint32_t randomSeed = 0x5555;
+  sai_uint32_t randomSeed = kArsRandomSeed;
   auto portLoadPastWeight = flowletSwitchConfig->getDynamicEgressLoadExponent();
   auto portLoadFutureWeight = flowletSwitchConfig->getDynamicQueueExponent();
   auto portLoadExponent =

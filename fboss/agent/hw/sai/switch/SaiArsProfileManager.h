@@ -40,6 +40,7 @@ class SaiArsProfileManager {
       SaiStore* saiStore,
       SaiManagerTable* managerTable,
       const SaiPlatform* platform);
+  static auto constexpr kArsRandomSeed = 0x5555;
 #if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
   void addArsProfile(
       const std::shared_ptr<FlowletSwitchingConfig>& flowletSwitchingConfig);
