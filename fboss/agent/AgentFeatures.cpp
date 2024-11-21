@@ -199,3 +199,8 @@ DEFINE_bool(
     enable_hw_update_protection,
     false,
     "Enable Neighbor/MAC table hw update failure protection");
+
+DEFINE_bool(
+    fw_drained_unrecoverable_error,
+    false,
+    "Enable or disable whether firmware drained(isolation) can be unrecoverable error");

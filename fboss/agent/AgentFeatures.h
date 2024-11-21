@@ -75,3 +75,5 @@ DECLARE_bool(dual_stage_3q_2q_qos);
 bool isDualStage3Q2QMode();
 bool isDualStage3Q2QQos();
 DECLARE_bool(enable_hw_update_protection);
+
+DECLARE_bool(fw_drained_unrecoverable_error);
