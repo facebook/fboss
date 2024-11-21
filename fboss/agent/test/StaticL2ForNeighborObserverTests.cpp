@@ -14,7 +14,6 @@
 #include "fboss/agent/L2Entry.h"
 #include "fboss/agent/NeighborUpdater.h"
 #include "fboss/agent/StaticL2ForNeighborObserver.h"
-#include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/Vlan.h"
 #include "fboss/agent/test/HwTestHandle.h"
 #include "fboss/agent/test/TestUtils.h"

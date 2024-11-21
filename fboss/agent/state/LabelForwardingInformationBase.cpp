@@ -45,7 +45,7 @@ MultiLabelForwardingInformationBase::modify(
   return SwitchState::modify<switch_state_tags::labelFibMap>(state);
 }
 
-template class ThriftMapNode<
+template struct ThriftMapNode<
     LabelForwardingInformationBase,
     LabelForwardingInformationBaseTraits>;
 

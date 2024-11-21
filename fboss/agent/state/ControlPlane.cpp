@@ -51,6 +51,6 @@ MultiControlPlane* MultiControlPlane::modify(
   return ptr;
 }
 
-template class ThriftStructNode<ControlPlane, state::ControlPlaneFields>;
+template struct ThriftStructNode<ControlPlane, state::ControlPlaneFields>;
 
 } // namespace facebook::fboss

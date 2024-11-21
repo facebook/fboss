@@ -33,7 +33,11 @@ TestStruct createTestStruct() {
       dynamic::object("3", dynamic::object("min", 100)("max", 200)))(
       "mapOfStringToI32", dynamic::object)(
       "listOfPrimitives", dynamic::array())("setOfI32", dynamic::array())(
-      "mapOfI32ToListOfStructs", dynamic::object());
+      "mapOfI32ToListOfStructs", dynamic::object())(
+      "hybridMapOfMap", dynamic::object())(
+      "hybridStruct",
+      dynamic::object("strMap", dynamic::object())(
+          "structMap", dynamic::object()));
 
   for (int i = 0; i <= 20; ++i) {
     testDyn["mapOfStringToI32"][fmt::format("test{}", i)] = i;
@@ -43,6 +47,12 @@ TestStruct createTestStruct() {
         dynamic::array(
             dynamic::object("min", 1)("max", 2),
             dynamic::object("min", 3)("max", 4));
+    dynamic innerMap = dynamic::object();
+    innerMap[i * 10] = i * 100;
+    testDyn["hybridMapOfMap"][i] = std::move(innerMap);
+    testDyn["hybridStruct"]["strMap"][fmt::format("test{}", i)] = i;
+    testDyn["hybridStruct"]["structMap"][fmt::format("test{}", i)] =
+        dynamic::object("min", i)("max", i + 10);
   }
 
   return facebook::thrift::from_dynamic<TestStruct>(
@@ -130,13 +140,44 @@ TEST(ExtendedPathVisitorTests, AccessOptional) {
   EXPECT_TRUE(got.empty());
 }
 
-TEST(ExtendedPathVisitorTests, AccessRegexMap) {
+template <bool EnableHybridStorage>
+struct TestParams {
+  static constexpr auto hybridStorage = EnableHybridStorage;
+};
+
+using StorageTestTypes = ::testing::Types<TestParams<false>, TestParams<true>>;
+
+template <typename TestParams>
+class ExtendedPathVisitorTests : public ::testing::Test {
+ public:
+  auto initNode(auto val) {
+    using RootType = std::remove_cvref_t<decltype(val)>;
+    return std::make_shared<ThriftStructNode<
+        RootType,
+        ThriftStructResolver<RootType, TestParams::hybridStorage>,
+        TestParams::hybridStorage>>(val);
+  }
+  bool isHybridStorage() {
+    return TestParams::hybridStorage;
+  }
+};
+
+TYPED_TEST_SUITE(ExtendedPathVisitorTests, StorageTestTypes);
+
+TYPED_TEST(ExtendedPathVisitorTests, AccessRegexMap) {
   auto structA = createTestStruct();
-  auto nodeA = std::make_shared<ThriftStructNode<TestStruct>>(structA);
+  auto nodeA = this->initNode(structA);
 
   std::set<std::pair<std::vector<std::string>, folly::dynamic>> visited;
   auto processPath = [&visited](auto&& path, auto&& node) {
-    visited.emplace(std::make_pair(path, node.toFollyDynamic()));
+    if constexpr (is_cow_type_v<decltype(node)>) {
+      visited.emplace(std::make_pair(path, node.toFollyDynamic()));
+    } else {
+      folly::dynamic out;
+      facebook::thrift::to_dynamic(
+          out, node, facebook::thrift::dynamic_format::JSON_1);
+      visited.emplace(std::make_pair(path, out));
+    }
   };
 
   auto path = ext_path_builder::raw("mapOfStringToI32").regex("test1.*").get();
@@ -195,13 +236,20 @@ TEST(ExtendedPathVisitorTests, AccessRegexMap) {
   EXPECT_THAT(visited, ::testing::ContainerEq(expected2));
 }
 
-TEST(ExtendedPathVisitorTests, AccessAnyMap) {
+TYPED_TEST(ExtendedPathVisitorTests, AccessAnyMap) {
   auto structA = createTestStruct();
-  auto nodeA = std::make_shared<ThriftStructNode<TestStruct>>(structA);
+  auto nodeA = this->initNode(structA);
 
   std::set<std::pair<std::vector<std::string>, folly::dynamic>> visited;
   auto processPath = [&visited](auto&& path, auto&& node) {
-    visited.emplace(std::make_pair(path, node.toFollyDynamic()));
+    if constexpr (is_cow_type_v<decltype(node)>) {
+      visited.emplace(std::make_pair(path, node.toFollyDynamic()));
+    } else {
+      folly::dynamic out;
+      facebook::thrift::to_dynamic(
+          out, node, facebook::thrift::dynamic_format::JSON_1);
+      visited.emplace(std::make_pair(path, out));
+    }
   };
 
   auto path = ext_path_builder::raw("mapOfStringToI32").any().get();
@@ -235,13 +283,67 @@ TEST(ExtendedPathVisitorTests, AccessAnyMap) {
   EXPECT_THAT(visited, ::testing::ContainerEq(expected));
 }
 
-TEST(ExtendedPathVisitorTests, AccessRegexList) {
+TYPED_TEST(ExtendedPathVisitorTests, AccessDeepMap) {
   auto structA = createTestStruct();
-  auto nodeA = std::make_shared<ThriftStructNode<TestStruct>>(structA);
+  auto nodeA = this->initNode(structA);
 
   std::set<std::pair<std::vector<std::string>, folly::dynamic>> visited;
   auto processPath = [&visited](auto&& path, auto&& node) {
-    visited.emplace(std::make_pair(path, node.toFollyDynamic()));
+    if constexpr (is_cow_type_v<decltype(node)>) {
+      visited.emplace(std::make_pair(path, node.toFollyDynamic()));
+    } else {
+      folly::dynamic out;
+      facebook::thrift::to_dynamic(
+          out, node, facebook::thrift::dynamic_format::JSON_1);
+      visited.emplace(std::make_pair(path, out));
+    }
+  };
+
+  auto path = ext_path_builder::raw("hybridMapOfMap").any().any().get();
+  std::set<std::pair<std::vector<std::string>, folly::dynamic>> expected = {
+      {{"hybridMapOfMap", "0", "0"}, 0},
+      {{"hybridMapOfMap", "1", "10"}, 100},
+      {{"hybridMapOfMap", "2", "20"}, 200},
+      {{"hybridMapOfMap", "3", "30"}, 300},
+      {{"hybridMapOfMap", "4", "40"}, 400},
+      {{"hybridMapOfMap", "5", "50"}, 500},
+      {{"hybridMapOfMap", "6", "60"}, 600},
+      {{"hybridMapOfMap", "7", "70"}, 700},
+      {{"hybridMapOfMap", "8", "80"}, 800},
+      {{"hybridMapOfMap", "9", "90"}, 900},
+      {{"hybridMapOfMap", "10", "100"}, 1000},
+      {{"hybridMapOfMap", "11", "110"}, 1100},
+      {{"hybridMapOfMap", "12", "120"}, 1200},
+      {{"hybridMapOfMap", "13", "130"}, 1300},
+      {{"hybridMapOfMap", "14", "140"}, 1400},
+      {{"hybridMapOfMap", "15", "150"}, 1500},
+      {{"hybridMapOfMap", "16", "160"}, 1600},
+      {{"hybridMapOfMap", "17", "170"}, 1700},
+      {{"hybridMapOfMap", "18", "180"}, 1800},
+      {{"hybridMapOfMap", "19", "190"}, 1900},
+      {{"hybridMapOfMap", "20", "200"}, 2000},
+
+  };
+
+  ExtPathVisitorOptions options;
+  RootExtendedPathVisitor::visit(
+      *nodeA, path.path()->begin(), path.path()->end(), options, processPath);
+  EXPECT_THAT(visited, ::testing::ContainerEq(expected));
+}
+
+TYPED_TEST(ExtendedPathVisitorTests, AccessRegexList) {
+  auto structA = createTestStruct();
+  auto nodeA = this->initNode(structA);
+  std::set<std::pair<std::vector<std::string>, folly::dynamic>> visited;
+  auto processPath = [&visited](auto&& path, auto&& node) {
+    if constexpr (is_cow_type_v<decltype(node)>) {
+      visited.emplace(std::make_pair(path, node.toFollyDynamic()));
+    } else {
+      folly::dynamic out;
+      facebook::thrift::to_dynamic(
+          out, node, facebook::thrift::dynamic_format::JSON_1);
+      visited.emplace(std::make_pair(path, out));
+    }
   };
 
   auto path = ext_path_builder::raw("listOfPrimitives").regex("1.*").get();
@@ -265,13 +367,20 @@ TEST(ExtendedPathVisitorTests, AccessRegexList) {
   EXPECT_THAT(visited, ::testing::ContainerEq(expected));
 }
 
-TEST(ExtendedPathVisitorTests, AccessAnyList) {
+TYPED_TEST(ExtendedPathVisitorTests, AccessAnyList) {
   auto structA = createTestStruct();
-  auto nodeA = std::make_shared<ThriftStructNode<TestStruct>>(structA);
+  auto nodeA = this->initNode(structA);
 
   std::set<std::pair<std::vector<std::string>, folly::dynamic>> visited;
   auto processPath = [&visited](auto&& path, auto&& node) {
-    visited.emplace(std::make_pair(path, node.toFollyDynamic()));
+    if constexpr (is_cow_type_v<decltype(node)>) {
+      visited.emplace(std::make_pair(path, node.toFollyDynamic()));
+    } else {
+      folly::dynamic out;
+      facebook::thrift::to_dynamic(
+          out, node, facebook::thrift::dynamic_format::JSON_1);
+      visited.emplace(std::make_pair(path, out));
+    }
   };
 
   auto path = ext_path_builder::raw("listOfPrimitives").any().get();
@@ -353,4 +462,90 @@ TEST(ExtendedPathVisitorTests, AccessAnySet) {
   RootExtendedPathVisitor::visit(
       *nodeA, path.path()->begin(), path.path()->end(), options, processPath);
   EXPECT_THAT(visited, ::testing::ContainerEq(expected));
+}
+
+TYPED_TEST(ExtendedPathVisitorTests, HybridStructAccess) {
+  auto structA = createTestStruct();
+  auto nodeA = this->initNode(structA);
+
+  std::set<std::pair<std::vector<std::string>, folly::dynamic>> visited;
+  auto processPath = [&visited](auto&& path, auto&& node) {
+    if constexpr (is_cow_type_v<decltype(node)>) {
+      visited.emplace(std::make_pair(path, node.toFollyDynamic()));
+    } else {
+      folly::dynamic out;
+      facebook::thrift::to_dynamic(
+          out, node, facebook::thrift::dynamic_format::JSON_1);
+      visited.emplace(std::make_pair(path, out));
+    }
+  };
+  // hybridStruct/strMap/.*
+  {
+    auto path = ext_path_builder::raw("hybridStruct").raw("strMap").any().get();
+    std::set<std::pair<std::vector<std::string>, folly::dynamic>> expected = {
+        {{"hybridStruct", "strMap", "test0"}, 0},
+        {{"hybridStruct", "strMap", "test1"}, 1},
+        {{"hybridStruct", "strMap", "test2"}, 2},
+        {{"hybridStruct", "strMap", "test3"}, 3},
+        {{"hybridStruct", "strMap", "test4"}, 4},
+        {{"hybridStruct", "strMap", "test5"}, 5},
+        {{"hybridStruct", "strMap", "test6"}, 6},
+        {{"hybridStruct", "strMap", "test7"}, 7},
+        {{"hybridStruct", "strMap", "test8"}, 8},
+        {{"hybridStruct", "strMap", "test9"}, 9},
+        {{"hybridStruct", "strMap", "test10"}, 10},
+        {{"hybridStruct", "strMap", "test11"}, 11},
+        {{"hybridStruct", "strMap", "test12"}, 12},
+        {{"hybridStruct", "strMap", "test13"}, 13},
+        {{"hybridStruct", "strMap", "test14"}, 14},
+        {{"hybridStruct", "strMap", "test15"}, 15},
+        {{"hybridStruct", "strMap", "test16"}, 16},
+        {{"hybridStruct", "strMap", "test17"}, 17},
+        {{"hybridStruct", "strMap", "test18"}, 18},
+        {{"hybridStruct", "strMap", "test19"}, 19},
+        {{"hybridStruct", "strMap", "test20"}, 20},
+    };
+
+    ExtPathVisitorOptions options;
+    RootExtendedPathVisitor::visit(
+        *nodeA, path.path()->begin(), path.path()->end(), options, processPath);
+    EXPECT_THAT(visited, ::testing::ContainerEq(expected));
+  }
+  // hybridStruct/strMap/.*
+  {
+    auto path = ext_path_builder::raw("hybridStruct")
+                    .raw("structMap")
+                    .any()
+                    .raw("min")
+                    .get();
+    std::set<std::pair<std::vector<std::string>, folly::dynamic>> expected = {
+        {{"hybridStruct", "structMap", "test0", "min"}, 0},
+        {{"hybridStruct", "structMap", "test1", "min"}, 1},
+        {{"hybridStruct", "structMap", "test2", "min"}, 2},
+        {{"hybridStruct", "structMap", "test3", "min"}, 3},
+        {{"hybridStruct", "structMap", "test4", "min"}, 4},
+        {{"hybridStruct", "structMap", "test5", "min"}, 5},
+        {{"hybridStruct", "structMap", "test6", "min"}, 6},
+        {{"hybridStruct", "structMap", "test7", "min"}, 7},
+        {{"hybridStruct", "structMap", "test8", "min"}, 8},
+        {{"hybridStruct", "structMap", "test9", "min"}, 9},
+        {{"hybridStruct", "structMap", "test10", "min"}, 10},
+        {{"hybridStruct", "structMap", "test11", "min"}, 11},
+        {{"hybridStruct", "structMap", "test12", "min"}, 12},
+        {{"hybridStruct", "structMap", "test13", "min"}, 13},
+        {{"hybridStruct", "structMap", "test14", "min"}, 14},
+        {{"hybridStruct", "structMap", "test15", "min"}, 15},
+        {{"hybridStruct", "structMap", "test16", "min"}, 16},
+        {{"hybridStruct", "structMap", "test17", "min"}, 17},
+        {{"hybridStruct", "structMap", "test18", "min"}, 18},
+        {{"hybridStruct", "structMap", "test19", "min"}, 19},
+        {{"hybridStruct", "structMap", "test20", "min"}, 20},
+    };
+
+    ExtPathVisitorOptions options;
+    visited.clear();
+    RootExtendedPathVisitor::visit(
+        *nodeA, path.path()->begin(), path.path()->end(), options, processPath);
+    EXPECT_THAT(visited, ::testing::ContainerEq(expected));
+  }
 }

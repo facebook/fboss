@@ -11,7 +11,6 @@
 
 #include "fboss/agent/hw/CounterUtils.h"
 #include "fboss/agent/hw/HwTrunkCounters.h"
-#include "fboss/agent/hw/StatsConstants.h"
 #include "fboss/agent/hw/bcm/BcmPortTable.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 

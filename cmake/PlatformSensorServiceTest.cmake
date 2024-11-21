@@ -4,9 +4,9 @@
 # cmake/FooBar.cmake
 
 add_executable(sensor_service_sw_test
-  fboss/platform/sensor_service/test/SensorServiceImplTest.cpp
-  fboss/platform/sensor_service/test/SensorServiceThriftHandlerTest.cpp
-  fboss/platform/sensor_service/test/TestUtils.cpp
+  fboss/platform/sensor_service/tests/SensorServiceImplTest.cpp
+  fboss/platform/sensor_service/tests/SensorServiceThriftHandlerTest.cpp
+  fboss/platform/sensor_service/tests/TestUtils.cpp
 )
 
 target_link_libraries(sensor_service_sw_test
@@ -18,11 +18,11 @@ target_link_libraries(sensor_service_sw_test
 
 install(TARGETS sensor_service_sw_test)
 
-add_executable(sensor_service_utils_tests
-  fboss/platform/sensor_service/test/UtilsTest.cpp
+add_executable(sensor_service_utils_test
+  fboss/platform/sensor_service/tests/UtilsTest.cpp
 )
 
-target_link_libraries(sensor_service_utils_tests
+target_link_libraries(sensor_service_utils_test
   sensor_service_utils
   ${GTEST}
   ${LIBGMOCK_LIBRARIES}

@@ -13,7 +13,7 @@
 
 namespace facebook::fboss {
 
-template class ThriftStructNode<
+template struct ThriftStructNode<
     FlowletSwitchingConfig,
     cfg::FlowletSwitchingConfig>;
 } // namespace facebook::fboss

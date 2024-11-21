@@ -8,6 +8,7 @@
 #include "fboss/agent/state/ForwardingInformationBaseMap.h"
 #include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/LabelForwardingEntry.h"
+#include "fboss/agent/state/MirrorOnDropReport.h"
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/PortDescriptor.h"
 #include "fboss/agent/state/SflowCollector.h"
@@ -318,6 +319,16 @@ HwSwitchMatcher SwitchIdScopeResolver::scope(
   std::unordered_set<SwitchID> switchIds;
   switchIds.insert(SwitchID(mirror->getSwitchId()));
   return HwSwitchMatcher(switchIds);
+}
+
+HwSwitchMatcher SwitchIdScopeResolver::scope(
+    const cfg::MirrorOnDropReport& report) const {
+  return scope(PortID(report.get_mirrorPortId()));
+}
+
+HwSwitchMatcher SwitchIdScopeResolver::scope(
+    const std::shared_ptr<MirrorOnDropReport>& report) const {
+  return scope(PortID(report->getMirrorPortId()));
 }
 
 } // namespace facebook::fboss

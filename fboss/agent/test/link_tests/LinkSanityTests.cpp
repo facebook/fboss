@@ -13,8 +13,6 @@
 #include "fboss/agent/test/link_tests/LinkTestUtils.h"
 #include "fboss/lib/CommonUtils.h"
 
-#include "fboss/agent/platforms/common/PlatformMapping.h"
-
 using namespace ::testing;
 using namespace facebook::fboss;
 

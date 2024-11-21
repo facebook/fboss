@@ -23,6 +23,7 @@ using std::shared_ptr;
 
 namespace {
 constexpr auto kNumCPUQueues = MockAsic::kDefaultNumPortQueues;
+constexpr auto kNumCPUVoqs = 8;
 
 HwSwitchMatcher scope() {
   return HwSwitchMatcher{std::unordered_set<SwitchID>{SwitchID(0)}};
@@ -87,6 +88,60 @@ std::vector<cfg::PortQueue> getConfigCPUQueues() {
   return cpuQueues;
 }
 
+QueueConfig gen2Stage3q2qCPUVoqs() {
+  QueueConfig voqs;
+  shared_ptr<PortQueue> high = make_shared<PortQueue>(static_cast<uint8_t>(2));
+  high->setName("cpuVoq-high");
+  high->setStreamType(cfg::StreamType::MULTICAST);
+  high->setScheduling(cfg::QueueScheduling::INTERNAL);
+  voqs.push_back(high);
+
+  shared_ptr<PortQueue> mid = make_shared<PortQueue>(static_cast<uint8_t>(1));
+  mid->setName("cpuVoq-mid");
+  mid->setStreamType(cfg::StreamType::MULTICAST);
+  mid->setScheduling(cfg::QueueScheduling::INTERNAL);
+  mid->setMaxDynamicSharedBytes(20 * 1024 * 1024);
+  voqs.push_back(mid);
+
+  shared_ptr<PortQueue> low = make_shared<PortQueue>(static_cast<uint8_t>(0));
+  low->setName("cpuVoq-low");
+  low->setStreamType(cfg::StreamType::MULTICAST);
+  low->setScheduling(cfg::QueueScheduling::INTERNAL);
+  low->setMaxDynamicSharedBytes(20 * 1024 * 1024);
+  voqs.push_back(low);
+
+  return voqs;
+}
+
+std::vector<cfg::PortQueue> get2Stage3q2qCPUVoqs() {
+  std::vector<cfg::PortQueue> cpuVoqs;
+
+  cfg::PortQueue high;
+  *high.id() = 2;
+  high.name() = "cpuVoq-high";
+  *high.streamType() = cfg::StreamType::MULTICAST;
+  *high.scheduling() = cfg::QueueScheduling::INTERNAL;
+  cpuVoqs.push_back(high);
+
+  cfg::PortQueue mid;
+  *mid.id() = 1;
+  mid.name() = "cpuVoq-mid";
+  *mid.streamType() = cfg::StreamType::MULTICAST;
+  *mid.scheduling() = cfg::QueueScheduling::INTERNAL;
+  mid.maxDynamicSharedBytes() = 20 * 1024 * 1024;
+  cpuVoqs.push_back(mid);
+
+  cfg::PortQueue low;
+  *low.id() = 0;
+  low.name() = "cpuVoq-low";
+  *low.streamType() = cfg::StreamType::MULTICAST;
+  *low.scheduling() = cfg::QueueScheduling::INTERNAL;
+  low.maxDynamicSharedBytes() = 20 * 1024 * 1024;
+  cpuVoqs.push_back(low);
+
+  return cpuVoqs;
+}
+
 QueueConfig genCPUQueues() {
   QueueConfig queues;
   shared_ptr<PortQueue> high = make_shared<PortQueue>(static_cast<uint8_t>(9));
@@ -134,6 +189,16 @@ boost::container::flat_map<int, shared_ptr<PortQueue>> getCPUQueuesMap() {
     queueMap.emplace(queue->getID(), queue);
   }
   return queueMap;
+}
+
+boost::container::flat_map<int, shared_ptr<PortQueue>>
+get2Stage3q2qCPUVoqsMap() {
+  QueueConfig voqs = gen2Stage3q2qCPUVoqs();
+  boost::container::flat_map<int, shared_ptr<PortQueue>> voqMap;
+  for (const auto& voq : voqs) {
+    voqMap.emplace(voq->getID(), voq);
+  }
+  return voqMap;
 }
 
 shared_ptr<MultiControlPlane> generateControlPlane() {
@@ -219,8 +284,10 @@ TEST(ControlPlane, applyDefaultConfig) {
 
   // apply default cpu 4 queues settings
   auto cfgCpuQueues = getConfigCPUQueues();
+  auto cfgCpuVoqs = get2Stage3q2qCPUVoqs();
   cfg::SwitchConfig config;
   *config.cpuQueues() = cfgCpuQueues;
+  config.cpuVoqs() = cfgCpuVoqs;
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   EXPECT_NE(nullptr, stateV1);
 
@@ -238,6 +305,21 @@ TEST(ControlPlane, applyDefaultConfig) {
       } else {
         auto& cpuQueue = cpu4QueuesMap.find(queue->getID())->second;
         EXPECT_TRUE(*cpuQueue == *queue);
+      }
+    }
+    auto newVoqs = entry.second->getVoqs();
+    // it should always generate all queues
+    EXPECT_EQ(newVoqs->size(), kNumCPUVoqs);
+    auto cpu4VoqsMap = get2Stage3q2qCPUVoqsMap();
+    for (const auto& voq : std::as_const(*newVoqs)) {
+      if (cpu4VoqsMap.find(voq->getID()) == cpu4VoqsMap.end()) {
+        // if it's not one of those 3 voqs, it should have default value
+        auto unconfiguredVoq = std::make_shared<PortQueue>(voq->getID());
+        unconfiguredVoq->setStreamType(cfg::StreamType::MULTICAST);
+        EXPECT_TRUE(*unconfiguredVoq == *voq);
+      } else {
+        auto& cpuVoq = cpu4VoqsMap.find(voq->getID())->second;
+        EXPECT_TRUE(*cpuVoq == *voq);
       }
     }
   }

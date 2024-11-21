@@ -9,7 +9,6 @@
  */
 #include "fboss/agent/hw/mock/MockRxPacket.h"
 
-#include <folly/Memory.h>
 #include <folly/io/Cursor.h>
 #include <folly/io/IOBuf.h>
 #include "fboss/agent/packet/PktUtil.h"

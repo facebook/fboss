@@ -11,7 +11,7 @@
 #include "fboss/platform/config_lib/ConfigLib.h"
 #include "fboss/platform/sensor_service/SensorServiceImpl.h"
 #include "fboss/platform/sensor_service/Utils.h"
-#include "fboss/platform/sensor_service/test/TestUtils.h"
+#include "fboss/platform/sensor_service/tests/TestUtils.h"
 
 using namespace facebook::fboss::platform::sensor_service;
 

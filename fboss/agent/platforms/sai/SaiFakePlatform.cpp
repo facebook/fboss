@@ -15,7 +15,6 @@
 
 #include "fboss/agent/hw/test/ConfigFactory.h"
 
-#include <cstdio>
 #include <cstring>
 namespace {
 std::vector<int> getControllingPortIDs() {

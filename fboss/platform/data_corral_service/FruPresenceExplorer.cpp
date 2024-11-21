@@ -4,7 +4,6 @@
 
 #include <fb303/ServiceData.h>
 #include <fmt/format.h>
-#include <folly/String.h>
 #include <folly/logging/xlog.h>
 
 #include "fboss/lib/CommonFileUtils.h"

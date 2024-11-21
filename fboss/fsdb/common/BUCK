@@ -30,7 +30,6 @@ cpp_library(
         "Utils.h",
     ],
     exported_deps = [
-        "fbsource//third-party/fmt:fmt",
         "//fboss/fsdb/if:fsdb_common-cpp2-types",
         "//fboss/fsdb/if:fsdb_oper-cpp2-types",
         "//fboss/thrift_cow/storage:cow_storage",

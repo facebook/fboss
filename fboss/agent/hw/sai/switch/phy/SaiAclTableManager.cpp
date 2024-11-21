@@ -107,8 +107,10 @@ std::
       std::nullopt, // fieldOuterVlanId
       std::nullopt, // fieldBthOpcode
       std::nullopt, // fieldIpv6NextHeader
-#if SAI_API_VERSION >= SAI_VERSION(1, 14, 0) || \
-    (defined(BRCM_SAI_SDK_GTE_11_0) && defined(BRCM_SAI_SDK_XGS))
+#if (                                                                  \
+    (SAI_API_VERSION >= SAI_VERSION(1, 14, 0) ||                       \
+     (defined(BRCM_SAI_SDK_GTE_11_0) && defined(BRCM_SAI_SDK_XGS))) && \
+    !defined(TAJO_SDK))
       std::nullopt, // UserDefinedFieldGroupMin0
       std::nullopt, // UserDefinedFieldGroupMin1
       std::nullopt, // UserDefinedFieldGroupMin2

@@ -10,7 +10,6 @@
 #include "fboss/agent/hw/bcm/BcmFlexCounter.h"
 
 #include "fboss/agent/hw/bcm/BcmError.h"
-#include "fboss/agent/hw/bcm/BcmSdkVer.h"
 
 extern "C" {
 #include <bcm/flexctr.h>

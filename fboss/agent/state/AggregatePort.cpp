@@ -173,6 +173,6 @@ bool AggregatePort::isUp() const {
   return forwardingSubportCount() >= getMinimumLinkCount();
 }
 
-template class ThriftStructNode<AggregatePort, state::AggregatePortFields>;
+template struct ThriftStructNode<AggregatePort, state::AggregatePortFields>;
 
 } // namespace facebook::fboss

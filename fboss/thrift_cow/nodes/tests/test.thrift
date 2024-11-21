@@ -32,6 +32,8 @@ union TestUnion {
 
 struct ChildStruct {
   1: map<i32, bool> childMap;
+  2: map<string, i32> strMap;
+  3: map<string, switch_config.L4PortRange> structMap;
 }
 
 struct TestStruct {
@@ -41,19 +43,23 @@ struct TestStruct {
   4: switch_config.L4PortRange inlineStruct;
   5: optional i32 optionalInt;
   6: optional switch_config.L4PortRange optionalStruct;
-  7: list<i32> listOfPrimitives;
+  7: list<i32> listOfPrimitives (allow_skip_thrift_cow = true);
   8: list<switch_config.L4PortRange> listOfStructs;
   9: list<list<i32>> listOfListOfPrimitives;
   10: list<list<switch_config.L4PortRange>> listOfListOfStructs;
-  11: map<i32, i32> mapOfI32ToI32;
-  12: map<TestEnum, i32> mapOfEnumToI32;
+  11: map<i32, i32> mapOfI32ToI32 (allow_skip_thrift_cow = true);
+  12: map<TestEnum, i32> mapOfEnumToI32 (allow_skip_thrift_cow = true);
   13: map<string, i32> mapOfStringToI32 (allow_skip_thrift_cow = true);
   14: map<i32, switch_config.L4PortRange> mapOfI32ToStruct (
     allow_skip_thrift_cow = true,
   );
-  15: map<TestEnum, switch_config.L4PortRange> mapOfEnumToStruct;
+  15: map<TestEnum, switch_config.L4PortRange> mapOfEnumToStruct (
+    allow_skip_thrift_cow = true,
+  );
   16: map<string, switch_config.L4PortRange> mapOfStringToStruct;
-  17: map<i32, list<switch_config.L4PortRange>> mapOfI32ToListOfStructs;
+  17: map<i32, list<switch_config.L4PortRange>> mapOfI32ToListOfStructs (
+    allow_skip_thrift_cow = true,
+  );
   18: set<i32> setOfI32;
   19: set<TestEnum> setOfEnum;
   20: set<string> setOfString;
@@ -73,6 +79,9 @@ struct TestStruct {
     allow_skip_thrift_cow = true,
   );
   33: map<i32, map<i32, i32>> hybridMapOfMap (allow_skip_thrift_cow = true);
+  34: map<i32, set<string>> mapOfI32ToSetOfString (
+    allow_skip_thrift_cow = true,
+  );
 }
 
 struct ParentTestStruct {

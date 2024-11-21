@@ -9,8 +9,6 @@
  */
 #include "fboss/agent/hw/bcm/BcmEgress.h"
 
-#include "fboss/agent/Constants.h"
-#include "fboss/agent/Utils.h"
 #include "fboss/agent/hw/bcm/BcmEcmpUtils.h"
 #include "fboss/agent/hw/bcm/BcmEgressManager.h"
 #include "fboss/agent/hw/bcm/BcmError.h"

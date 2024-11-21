@@ -2,7 +2,6 @@
 
 #include "fboss/agent/test/AgentIntegrationTestBase.h"
 #include "fboss/agent/AgentConfig.h"
-#include "fboss/agent/SwitchIdScopeResolver.h"
 #include "fboss/agent/gen-cpp2/agent_config_types.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"

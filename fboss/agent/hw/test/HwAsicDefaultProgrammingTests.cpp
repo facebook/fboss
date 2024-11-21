@@ -62,17 +62,19 @@ class HwAsicDefaultProgrammingTest : public HwTest {
             kQueries = {
                 {cfg::AsicType::ASIC_TYPE_JERICHO3,
                  {
+                     {"mem", "CGM_PB_VSQ_RJCT_MASK"},
                      {"mem", "CGM_VOQ_DRAM_BOUND_PRMS"},
                      {"mem", "CGM_VOQ_DRAM_RECOVERY_PRMS"},
-                     {"mem", "CGM_VSQF_FC_PRMS"},
                      {"mem", "CGM_VSQE_RJCT_PRMS"},
-                     {"mem", "CGM_PB_VSQ_RJCT_MASK"},
+                     {"mem", "CGM_VSQF_FC_PRMS"},
+                     {"mem", "CGM_VSQF_RJCT_PRMS"},
                      {"mem", "IPS_CRBAL_TH"},
                      {"mem", "IPS_EMPTY_Q_CRBAL_TH"},
                      {"mem", "IPS_QSIZE_TH"},
                      {"mem", "SCH_DEVICE_RATE_MEMORY_DRM"},
                      {"mem", "SCH_SHARED_DEVICE_RATE_SHARED_DRM"},
 
+                     {"reg", "CGM_TOTAL_SRAM_RSRC_FLOW_CONTROL_THS"},
                      {"reg", "CIG_RCI_CONFIGS"},
                      {"reg", "CIG_RCI_CORE_MAPPING"},
                      {"reg", "CIG_RCI_DEVICE_MAPPING"},
@@ -80,6 +82,8 @@ class HwAsicDefaultProgrammingTest : public HwTest {
                      {"reg", "CIG_RCI_FDA_OUT_TOTAL_TH"},
                      {"reg", "FDA_OFM_CORE_FIFO_CONFIG_CORE"},
                      {"reg", "FDTS_FDT_SHAPER_CONFIGURATIONS"},
+                     {"reg", "FMAC_LINK_LEVEL_FLOW_CONTROL_CONFIGURATIONS"},
+                     {"reg", "RQP_RQP_AGING_CONFIG"},
 
                      // This is not stable, it differs from run to run:
                      // - FDT_LOAD_BALANCING_SWITCH_CONFIGURATION
@@ -106,7 +110,7 @@ class HwAsicDefaultProgrammingTest : public HwTest {
       std::string line;
       while (std::getline(iss, line)) {
         // Example: CIG_RCI_CONFIGS.CIG0[0x103]=0x5140e101f407d081ac
-        static const re2::RE2 pattern("([a-zA-Z0-9_\\.\\[\\]]+)\\s*[:=](.*)");
+        static const re2::RE2 pattern("([a-zA-Z0-9_()\\.\\[\\]]+)\\s*[:=](.*)");
         std::string key, value;
         if (re2::RE2::FullMatch(line, pattern, &key, &value)) {
           ret[type + ":" + key] = folly::trimWhitespace(value);

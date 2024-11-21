@@ -146,6 +146,12 @@ SaiSwitchTraits::egressCoreBufferWatermarkBytes() {
   return stats;
 }
 
+const std::vector<sai_stat_id_t>&
+SaiSwitchTraits::sramMinBufferWatermarkBytes() {
+  static const std::vector<sai_stat_id_t> stats;
+  return stats;
+}
+
 void SwitchApi::registerSwitchEventCallback(
     SwitchSaiId /*id*/,
     void* /*switch_event_cb*/) const {}
@@ -253,4 +259,15 @@ std::optional<sai_attr_id_t>
 SaiSwitchTraits::Attributes::AttributeShelPeriodicInterval::operator()() {
   return std::nullopt;
 }
+
+std::optional<sai_attr_id_t>
+SaiSwitchTraits::Attributes::AttributeFirmwareCoreTouse::operator()() {
+  return std::nullopt;
+}
+
+std::optional<sai_attr_id_t>
+SaiSwitchTraits::Attributes::AttributeFirmwareLogFile::operator()() {
+  return std::nullopt;
+}
+
 } // namespace facebook::fboss

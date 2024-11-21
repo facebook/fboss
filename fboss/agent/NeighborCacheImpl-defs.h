@@ -17,6 +17,7 @@
 #include <list>
 #include "fboss/agent/ArpHandler.h"
 #include "fboss/agent/EncapIndexAllocator.h"
+#include "fboss/agent/FbossHwUpdateError.h"
 #include "fboss/agent/HwAsicTable.h"
 #include "fboss/agent/IPv6Handler.h"
 #include "fboss/agent/NeighborCacheImpl.h"
@@ -88,7 +89,9 @@ bool NeighborCacheImpl<NTable>::isHwUpdateProtected() {
   // for this we are using transactionsSupported() API
   // and return true for SAI switches, failure protection uses transactions
   // support in HW switch which is available only in SAI switches
-  return sw_->getHwSwitchHandler()->transactionsSupported();
+  return (
+      FLAGS_enable_hw_update_protection &&
+      sw_->getHwSwitchHandler()->transactionsSupported());
 }
 
 template <typename NTable>
@@ -113,9 +116,22 @@ void NeighborCacheImpl<NTable>::programEntry(Entry* entry) {
           "Programming entry is not supported for switch type: ", switchType);
   }
 
-  sw_->updateState(
-      folly::to<std::string>("add neighbor ", entry->getFields().ip),
-      std::move(updateFn));
+  if (isHwUpdateProtected()) {
+    try {
+      sw_->updateStateWithHwFailureProtection(
+          folly::to<std::string>(
+              "add neighbor with hw protection failure ",
+              entry->getFields().ip),
+          std::move(updateFn));
+    } catch (const FbossHwUpdateError& e) {
+      XLOG(ERR) << "Failed to program neighbor entry: " << e.what();
+      sw_->stats()->neighborTableUpdateFailure();
+    }
+  } else {
+    sw_->updateState(
+        folly::to<std::string>("add neighbor ", entry->getFields().ip),
+        std::move(updateFn));
+  }
 }
 
 template <typename NTable>
@@ -308,9 +324,22 @@ void NeighborCacheImpl<NTable>::programPendingEntry(
           "Programming entry is not supported for switch type: ", switchType);
   }
 
-  sw_->updateStateNoCoalescing(
-      folly::to<std::string>("add pending entry ", entry->getFields().ip),
-      std::move(updateFn));
+  if (isHwUpdateProtected()) {
+    try {
+      sw_->updateStateWithHwFailureProtection(
+          folly::to<std::string>(
+              "add pending entry with hw failure protection ",
+              entry->getFields().ip),
+          std::move(updateFn));
+    } catch (const FbossHwUpdateError& e) {
+      XLOG(ERR) << "Failed to program pending entry: " << e.what();
+      sw_->stats()->neighborTableUpdateFailure();
+    }
+  } else {
+    sw_->updateStateNoCoalescing(
+        folly::to<std::string>("add pending entry ", entry->getFields().ip),
+        std::move(updateFn));
+  }
 }
 
 template <typename NTable>
@@ -733,7 +762,18 @@ void NeighborCacheImpl<NTable>::flushEntry(AddressType ip, bool* flushed) {
   if (flushed) {
     // need a blocking state update if the caller wants to know if an entry
     // was actually flushed
-    sw_->updateStateBlocking("flush neighbor entry", std::move(updateFn));
+    if (isHwUpdateProtected()) {
+      try {
+        sw_->updateStateWithHwFailureProtection(
+            "flush neighbor entry with hw failure protection",
+            std::move(updateFn));
+      } catch (const FbossHwUpdateError& e) {
+        XLOG(ERR) << "Failed to program flush neighbor entry: " << e.what();
+        sw_->stats()->neighborTableUpdateFailure();
+      }
+    } else {
+      sw_->updateStateBlocking("flush neighbor entry", std::move(updateFn));
+    }
   } else {
     sw_->updateState("remove neighbor entry: " + ip.str(), std::move(updateFn));
   }

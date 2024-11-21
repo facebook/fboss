@@ -109,10 +109,10 @@ std::optional<VersionedPmSensor> Utils::resolveVersionedSensors(
 
 SensorConfig Utils::getConfig() {
   auto platformName = helpers::PlatformNameLib().getPlatformName();
-  SensorConfig sensorConfig;
-  apache::thrift::SimpleJSONSerializer::deserialize<SensorConfig>(
-      ConfigLib().getSensorServiceConfig(platformName), sensorConfig);
-  if (!ConfigValidator().isValid(sensorConfig)) {
+  SensorConfig sensorConfig =
+      apache::thrift::SimpleJSONSerializer::deserialize<SensorConfig>(
+          ConfigLib().getSensorServiceConfig(platformName));
+  if (!ConfigValidator().isValid(sensorConfig, std::nullopt)) {
     throw std::runtime_error("Invalid sensor config");
   }
   return sensorConfig;

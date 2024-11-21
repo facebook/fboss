@@ -16,7 +16,6 @@
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 
-#include <fb303/ServiceData.h>
 #include <folly/logging/xlog.h>
 #include <array>
 #include "fboss/agent/hw/gen-cpp2/hardware_stats_constants.h"

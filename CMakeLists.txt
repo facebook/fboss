@@ -384,6 +384,27 @@ add_fbthrift_cpp_library(
     transceiver_cpp2
 )
 add_fbthrift_cpp_library(
+  cmis_cpp2
+  fboss/qsfp_service/module/cmis/cmis.thrift
+  OPTIONS
+    json
+    reflection
+)
+add_fbthrift_cpp_library(
+  sff_cpp2
+  fboss/qsfp_service/module/sff/sff.thrift
+  OPTIONS
+    json
+    reflection
+)
+add_fbthrift_cpp_library(
+  sff8472_cpp2
+  fboss/qsfp_service/module/sff/sff8472.thrift
+  OPTIONS
+    json
+    reflection
+)
+add_fbthrift_cpp_library(
   sensor_service_stats_cpp2
   fboss/platform/sensor_service/sensor_service_stats.thrift
   OPTIONS
@@ -821,7 +842,7 @@ if (GITHUB_ACTIONS_BUILD)
     weutil_crc16_ccitt_test
     weutil_fboss_eeprom_parser_test
     sensor_service_sw_test
-    sensor_service_utils_tests
+    sensor_service_utils_test
     rackmon_test
     fan_service_sw_test
     data_corral_service_hw_test

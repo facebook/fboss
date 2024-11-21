@@ -59,6 +59,9 @@ void fillHwSwitchWatermarkStats(
       case SAI_SWITCH_STAT_DEVICE_EGRESS_DB_WM:
         hwSwitchWatermarkStats.egressCoreBufferWatermarkBytes() = value;
         break;
+      case SAI_SWITCH_STAT_ING_MIN_SRAM_BUFFER_BYTES:
+        hwSwitchWatermarkStats.sramMinBufferWatermarkBytes() = value;
+        break;
 #endif
       default:
         throw FbossError("Got unexpected switch counter id: ", counterId);

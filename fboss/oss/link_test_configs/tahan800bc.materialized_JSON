@@ -43,7 +43,8 @@
           
         ],
         "drainState": 0,
-        "scope": 0
+        "scope": 0,
+        "conditionalEntropyRehash": false
       },
       {
         "logicalID": 2,
@@ -78,7 +79,8 @@
           
         ],
         "drainState": 0,
-        "scope": 0
+        "scope": 0,
+        "conditionalEntropyRehash": false
       },
       {
         "logicalID": 3,
@@ -113,7 +115,8 @@
           
         ],
         "drainState": 0,
-        "scope": 0
+        "scope": 0,
+        "conditionalEntropyRehash": false
       },
       {
         "logicalID": 4,
@@ -148,7 +151,8 @@
           
         ],
         "drainState": 0,
-        "scope": 0
+        "scope": 0,
+        "conditionalEntropyRehash": false
       },
       {
         "logicalID": 5,
@@ -183,7 +187,8 @@
           
         ],
         "drainState": 0,
-        "scope": 0
+        "scope": 0,
+        "conditionalEntropyRehash": false
       },
       {
         "logicalID": 6,
@@ -218,7 +223,8 @@
           
         ],
         "drainState": 0,
-        "scope": 0
+        "scope": 0,
+        "conditionalEntropyRehash": false
       },
       {
         "logicalID": 7,
@@ -253,7 +259,8 @@
           
         ],
         "drainState": 0,
-        "scope": 0
+        "scope": 0,
+        "conditionalEntropyRehash": false
       },
       {
         "logicalID": 8,
@@ -288,7 +295,8 @@
           
         ],
         "drainState": 0,
-        "scope": 0
+        "scope": 0,
+        "conditionalEntropyRehash": false
       },
       {
         "logicalID": 9,
@@ -323,7 +331,8 @@
           
         ],
         "drainState": 0,
-        "scope": 0
+        "scope": 0,
+        "conditionalEntropyRehash": false
       },
       {
         "logicalID": 10,
@@ -358,7 +367,8 @@
           
         ],
         "drainState": 0,
-        "scope": 0
+        "scope": 0,
+        "conditionalEntropyRehash": false
       },
       {
         "logicalID": 11,
@@ -393,7 +403,8 @@
           
         ],
         "drainState": 0,
-        "scope": 0
+        "scope": 0,
+        "conditionalEntropyRehash": false
       },
       {
         "logicalID": 12,
@@ -428,7 +439,8 @@
           
         ],
         "drainState": 0,
-        "scope": 0
+        "scope": 0,
+        "conditionalEntropyRehash": false
       },
       {
         "logicalID": 13,
@@ -463,7 +475,8 @@
           
         ],
         "drainState": 0,
-        "scope": 0
+        "scope": 0,
+        "conditionalEntropyRehash": false
       },
       {
         "logicalID": 14,
@@ -498,7 +511,8 @@
           
         ],
         "drainState": 0,
-        "scope": 0
+        "scope": 0,
+        "conditionalEntropyRehash": false
       },
       {
         "logicalID": 15,
@@ -533,7 +547,8 @@
           
         ],
         "drainState": 0,
-        "scope": 0
+        "scope": 0,
+        "conditionalEntropyRehash": false
       },
       {
         "logicalID": 16,
@@ -568,7 +583,8 @@
           
         ],
         "drainState": 0,
-        "scope": 0
+        "scope": 0,
+        "conditionalEntropyRehash": false
       },
       {
         "logicalID": 17,
@@ -603,7 +619,8 @@
           
         ],
         "drainState": 0,
-        "scope": 0
+        "scope": 0,
+        "conditionalEntropyRehash": false
       },
       {
         "logicalID": 18,
@@ -638,7 +655,8 @@
           
         ],
         "drainState": 0,
-        "scope": 0
+        "scope": 0,
+        "conditionalEntropyRehash": false
       },
       {
         "logicalID": 19,
@@ -673,7 +691,8 @@
           
         ],
         "drainState": 0,
-        "scope": 0
+        "scope": 0,
+        "conditionalEntropyRehash": false
       },
       {
         "logicalID": 20,
@@ -708,7 +727,8 @@
           
         ],
         "drainState": 0,
-        "scope": 0
+        "scope": 0,
+        "conditionalEntropyRehash": false
       },
       {
         "logicalID": 21,
@@ -743,7 +763,8 @@
           
         ],
         "drainState": 0,
-        "scope": 0
+        "scope": 0,
+        "conditionalEntropyRehash": false
       },
       {
         "logicalID": 22,
@@ -778,7 +799,8 @@
           
         ],
         "drainState": 0,
-        "scope": 0
+        "scope": 0,
+        "conditionalEntropyRehash": false
       },
       {
         "logicalID": 23,
@@ -813,7 +835,8 @@
           
         ],
         "drainState": 0,
-        "scope": 0
+        "scope": 0,
+        "conditionalEntropyRehash": false
       },
       {
         "logicalID": 24,
@@ -848,7 +871,8 @@
           
         ],
         "drainState": 0,
-        "scope": 0
+        "scope": 0,
+        "conditionalEntropyRehash": false
       },
       {
         "logicalID": 25,
@@ -883,7 +907,8 @@
           
         ],
         "drainState": 0,
-        "scope": 0
+        "scope": 0,
+        "conditionalEntropyRehash": false
       },
       {
         "logicalID": 26,
@@ -918,7 +943,8 @@
           
         ],
         "drainState": 0,
-        "scope": 0
+        "scope": 0,
+        "conditionalEntropyRehash": false
       },
       {
         "logicalID": 27,
@@ -953,7 +979,8 @@
           
         ],
         "drainState": 0,
-        "scope": 0
+        "scope": 0,
+        "conditionalEntropyRehash": false
       },
       {
         "logicalID": 28,
@@ -988,7 +1015,8 @@
           
         ],
         "drainState": 0,
-        "scope": 0
+        "scope": 0,
+        "conditionalEntropyRehash": false
       },
       {
         "logicalID": 29,
@@ -1023,7 +1051,8 @@
           
         ],
         "drainState": 0,
-        "scope": 0
+        "scope": 0,
+        "conditionalEntropyRehash": false
       },
       {
         "logicalID": 30,
@@ -1058,7 +1087,8 @@
           
         ],
         "drainState": 0,
-        "scope": 0
+        "scope": 0,
+        "conditionalEntropyRehash": false
       },
       {
         "logicalID": 31,
@@ -1093,7 +1123,8 @@
           
         ],
         "drainState": 0,
-        "scope": 0
+        "scope": 0,
+        "conditionalEntropyRehash": false
       },
       {
         "logicalID": 32,
@@ -1128,7 +1159,8 @@
           
         ],
         "drainState": 0,
-        "scope": 0
+        "scope": 0,
+        "conditionalEntropyRehash": false
       },
       {
         "logicalID": 33,
@@ -1163,7 +1195,8 @@
           
         ],
         "drainState": 0,
-        "scope": 0
+        "scope": 0,
+        "conditionalEntropyRehash": false
       },
       {
         "logicalID": 34,
@@ -1198,7 +1231,8 @@
           
         ],
         "drainState": 0,
-        "scope": 0
+        "scope": 0,
+        "conditionalEntropyRehash": false
       },
       {
         "logicalID": 35,
@@ -1233,7 +1267,8 @@
           
         ],
         "drainState": 0,
-        "scope": 0
+        "scope": 0,
+        "conditionalEntropyRehash": false
       },
       {
         "logicalID": 36,
@@ -1268,7 +1303,8 @@
           
         ],
         "drainState": 0,
-        "scope": 0
+        "scope": 0,
+        "conditionalEntropyRehash": false
       },
       {
         "logicalID": 37,
@@ -1303,7 +1339,8 @@
           
         ],
         "drainState": 0,
-        "scope": 0
+        "scope": 0,
+        "conditionalEntropyRehash": false
       },
       {
         "logicalID": 38,
@@ -1338,7 +1375,8 @@
           
         ],
         "drainState": 0,
-        "scope": 0
+        "scope": 0,
+        "conditionalEntropyRehash": false
       },
       {
         "logicalID": 39,
@@ -1373,7 +1411,8 @@
           
         ],
         "drainState": 0,
-        "scope": 0
+        "scope": 0,
+        "conditionalEntropyRehash": false
       },
       {
         "logicalID": 40,
@@ -1408,7 +1447,8 @@
           
         ],
         "drainState": 0,
-        "scope": 0
+        "scope": 0,
+        "conditionalEntropyRehash": false
       },
       {
         "logicalID": 41,
@@ -1443,7 +1483,8 @@
           
         ],
         "drainState": 0,
-        "scope": 0
+        "scope": 0,
+        "conditionalEntropyRehash": false
       },
       {
         "logicalID": 42,
@@ -1478,7 +1519,8 @@
           
         ],
         "drainState": 0,
-        "scope": 0
+        "scope": 0,
+        "conditionalEntropyRehash": false
       },
       {
         "logicalID": 43,
@@ -1513,7 +1555,8 @@
           
         ],
         "drainState": 0,
-        "scope": 0
+        "scope": 0,
+        "conditionalEntropyRehash": false
       },
       {
         "logicalID": 44,
@@ -1548,7 +1591,8 @@
           
         ],
         "drainState": 0,
-        "scope": 0
+        "scope": 0,
+        "conditionalEntropyRehash": false
       },
       {
         "logicalID": 45,
@@ -1583,7 +1627,8 @@
           
         ],
         "drainState": 0,
-        "scope": 0
+        "scope": 0,
+        "conditionalEntropyRehash": false
       },
       {
         "logicalID": 46,
@@ -1618,7 +1663,8 @@
           
         ],
         "drainState": 0,
-        "scope": 0
+        "scope": 0,
+        "conditionalEntropyRehash": false
       },
       {
         "logicalID": 47,
@@ -1653,7 +1699,8 @@
           
         ],
         "drainState": 0,
-        "scope": 0
+        "scope": 0,
+        "conditionalEntropyRehash": false
       },
       {
         "logicalID": 48,
@@ -1688,7 +1735,8 @@
           
         ],
         "drainState": 0,
-        "scope": 0
+        "scope": 0,
+        "conditionalEntropyRehash": false
       },
       {
         "logicalID": 49,
@@ -1723,7 +1771,8 @@
           
         ],
         "drainState": 0,
-        "scope": 0
+        "scope": 0,
+        "conditionalEntropyRehash": false
       },
       {
         "logicalID": 50,
@@ -1758,7 +1807,8 @@
           
         ],
         "drainState": 0,
-        "scope": 0
+        "scope": 0,
+        "conditionalEntropyRehash": false
       },
       {
         "logicalID": 51,
@@ -1793,7 +1843,8 @@
           
         ],
         "drainState": 0,
-        "scope": 0
+        "scope": 0,
+        "conditionalEntropyRehash": false
       },
       {
         "logicalID": 52,
@@ -1828,7 +1879,8 @@
           
         ],
         "drainState": 0,
-        "scope": 0
+        "scope": 0,
+        "conditionalEntropyRehash": false
       },
       {
         "logicalID": 53,
@@ -1863,7 +1915,8 @@
           
         ],
         "drainState": 0,
-        "scope": 0
+        "scope": 0,
+        "conditionalEntropyRehash": false
       },
       {
         "logicalID": 54,
@@ -1898,7 +1951,8 @@
           
         ],
         "drainState": 0,
-        "scope": 0
+        "scope": 0,
+        "conditionalEntropyRehash": false
       },
       {
         "logicalID": 55,
@@ -1933,7 +1987,8 @@
           
         ],
         "drainState": 0,
-        "scope": 0
+        "scope": 0,
+        "conditionalEntropyRehash": false
       },
       {
         "logicalID": 56,
@@ -1968,7 +2023,8 @@
           
         ],
         "drainState": 0,
-        "scope": 0
+        "scope": 0,
+        "conditionalEntropyRehash": false
       },
       {
         "logicalID": 57,
@@ -2003,7 +2059,8 @@
           
         ],
         "drainState": 0,
-        "scope": 0
+        "scope": 0,
+        "conditionalEntropyRehash": false
       },
       {
         "logicalID": 58,
@@ -2038,7 +2095,8 @@
           
         ],
         "drainState": 0,
-        "scope": 0
+        "scope": 0,
+        "conditionalEntropyRehash": false
       },
       {
         "logicalID": 59,
@@ -2073,7 +2131,8 @@
           
         ],
         "drainState": 0,
-        "scope": 0
+        "scope": 0,
+        "conditionalEntropyRehash": false
       },
       {
         "logicalID": 60,
@@ -2108,7 +2167,8 @@
           
         ],
         "drainState": 0,
-        "scope": 0
+        "scope": 0,
+        "conditionalEntropyRehash": false
       },
       {
         "logicalID": 61,
@@ -2143,7 +2203,8 @@
           
         ],
         "drainState": 0,
-        "scope": 0
+        "scope": 0,
+        "conditionalEntropyRehash": false
       },
       {
         "logicalID": 62,
@@ -2178,7 +2239,8 @@
           
         ],
         "drainState": 0,
-        "scope": 0
+        "scope": 0,
+        "conditionalEntropyRehash": false
       },
       {
         "logicalID": 63,
@@ -2213,7 +2275,8 @@
           
         ],
         "drainState": 0,
-        "scope": 0
+        "scope": 0,
+        "conditionalEntropyRehash": false
       },
       {
         "logicalID": 64,
@@ -2248,7 +2311,8 @@
           
         ],
         "drainState": 0,
-        "scope": 0
+        "scope": 0,
+        "conditionalEntropyRehash": false
       },
       {
         "logicalID": 65,
@@ -2283,7 +2347,8 @@
           
         ],
         "drainState": 0,
-        "scope": 0
+        "scope": 0,
+        "conditionalEntropyRehash": false
       },
       {
         "logicalID": 66,
@@ -2318,7 +2383,8 @@
           
         ],
         "drainState": 0,
-        "scope": 0
+        "scope": 0,
+        "conditionalEntropyRehash": false
       },
       {
         "logicalID": 67,
@@ -2353,7 +2419,8 @@
           
         ],
         "drainState": 0,
-        "scope": 0
+        "scope": 0,
+        "conditionalEntropyRehash": false
       },
       {
         "logicalID": 68,
@@ -2388,7 +2455,8 @@
           
         ],
         "drainState": 0,
-        "scope": 0
+        "scope": 0,
+        "conditionalEntropyRehash": false
       },
       {
         "logicalID": 69,
@@ -2423,7 +2491,8 @@
           
         ],
         "drainState": 0,
-        "scope": 0
+        "scope": 0,
+        "conditionalEntropyRehash": false
       },
       {
         "logicalID": 70,
@@ -2458,7 +2527,8 @@
           
         ],
         "drainState": 0,
-        "scope": 0
+        "scope": 0,
+        "conditionalEntropyRehash": false
       },
       {
         "logicalID": 71,
@@ -2493,7 +2563,8 @@
           
         ],
         "drainState": 0,
-        "scope": 0
+        "scope": 0,
+        "conditionalEntropyRehash": false
       },
       {
         "logicalID": 72,
@@ -2528,7 +2599,8 @@
           
         ],
         "drainState": 0,
-        "scope": 0
+        "scope": 0,
+        "conditionalEntropyRehash": false
       },
       {
         "logicalID": 73,
@@ -2563,7 +2635,8 @@
           
         ],
         "drainState": 0,
-        "scope": 0
+        "scope": 0,
+        "conditionalEntropyRehash": false
       },
       {
         "logicalID": 74,
@@ -2598,7 +2671,8 @@
           
         ],
         "drainState": 0,
-        "scope": 0
+        "scope": 0,
+        "conditionalEntropyRehash": false
       },
       {
         "logicalID": 75,
@@ -2633,7 +2707,8 @@
           
         ],
         "drainState": 0,
-        "scope": 0
+        "scope": 0,
+        "conditionalEntropyRehash": false
       },
       {
         "logicalID": 76,
@@ -2668,7 +2743,8 @@
           
         ],
         "drainState": 0,
-        "scope": 0
+        "scope": 0,
+        "conditionalEntropyRehash": false
       },
       {
         "logicalID": 77,
@@ -2703,7 +2779,8 @@
           
         ],
         "drainState": 0,
-        "scope": 0
+        "scope": 0,
+        "conditionalEntropyRehash": false
       },
       {
         "logicalID": 78,
@@ -2738,7 +2815,8 @@
           
         ],
         "drainState": 0,
-        "scope": 0
+        "scope": 0,
+        "conditionalEntropyRehash": false
       },
       {
         "logicalID": 79,
@@ -2773,7 +2851,8 @@
           
         ],
         "drainState": 0,
-        "scope": 0
+        "scope": 0,
+        "conditionalEntropyRehash": false
       },
       {
         "logicalID": 80,
@@ -2808,7 +2887,8 @@
           
         ],
         "drainState": 0,
-        "scope": 0
+        "scope": 0,
+        "conditionalEntropyRehash": false
       },
       {
         "logicalID": 81,
@@ -2843,7 +2923,8 @@
           
         ],
         "drainState": 0,
-        "scope": 0
+        "scope": 0,
+        "conditionalEntropyRehash": false
       },
       {
         "logicalID": 82,
@@ -2878,7 +2959,8 @@
           
         ],
         "drainState": 0,
-        "scope": 0
+        "scope": 0,
+        "conditionalEntropyRehash": false
       },
       {
         "logicalID": 83,
@@ -2913,7 +2995,8 @@
           
         ],
         "drainState": 0,
-        "scope": 0
+        "scope": 0,
+        "conditionalEntropyRehash": false
       },
       {
         "logicalID": 84,
@@ -2948,7 +3031,8 @@
           
         ],
         "drainState": 0,
-        "scope": 0
+        "scope": 0,
+        "conditionalEntropyRehash": false
       },
       {
         "logicalID": 85,
@@ -2983,7 +3067,8 @@
           
         ],
         "drainState": 0,
-        "scope": 0
+        "scope": 0,
+        "conditionalEntropyRehash": false
       },
       {
         "logicalID": 86,
@@ -3018,7 +3103,8 @@
           
         ],
         "drainState": 0,
-        "scope": 0
+        "scope": 0,
+        "conditionalEntropyRehash": false
       },
       {
         "logicalID": 87,
@@ -3053,7 +3139,8 @@
           
         ],
         "drainState": 0,
-        "scope": 0
+        "scope": 0,
+        "conditionalEntropyRehash": false
       },
       {
         "logicalID": 88,
@@ -3088,7 +3175,8 @@
           
         ],
         "drainState": 0,
-        "scope": 0
+        "scope": 0,
+        "conditionalEntropyRehash": false
       },
       {
         "logicalID": 89,
@@ -3123,7 +3211,8 @@
           
         ],
         "drainState": 0,
-        "scope": 0
+        "scope": 0,
+        "conditionalEntropyRehash": false
       },
       {
         "logicalID": 90,
@@ -3158,7 +3247,8 @@
           
         ],
         "drainState": 0,
-        "scope": 0
+        "scope": 0,
+        "conditionalEntropyRehash": false
       },
       {
         "logicalID": 91,
@@ -3193,7 +3283,8 @@
           
         ],
         "drainState": 0,
-        "scope": 0
+        "scope": 0,
+        "conditionalEntropyRehash": false
       },
       {
         "logicalID": 92,
@@ -3228,7 +3319,8 @@
           
         ],
         "drainState": 0,
-        "scope": 0
+        "scope": 0,
+        "conditionalEntropyRehash": false
       },
       {
         "logicalID": 93,
@@ -3263,7 +3355,8 @@
           
         ],
         "drainState": 0,
-        "scope": 0
+        "scope": 0,
+        "conditionalEntropyRehash": false
       },
       {
         "logicalID": 94,
@@ -3298,7 +3391,8 @@
           
         ],
         "drainState": 0,
-        "scope": 0
+        "scope": 0,
+        "conditionalEntropyRehash": false
       },
       {
         "logicalID": 95,
@@ -3333,7 +3427,8 @@
           
         ],
         "drainState": 0,
-        "scope": 0
+        "scope": 0,
+        "conditionalEntropyRehash": false
       },
       {
         "logicalID": 96,
@@ -3368,7 +3463,8 @@
           
         ],
         "drainState": 0,
-        "scope": 0
+        "scope": 0,
+        "conditionalEntropyRehash": false
       },
       {
         "logicalID": 97,
@@ -3403,7 +3499,8 @@
           
         ],
         "drainState": 0,
-        "scope": 0
+        "scope": 0,
+        "conditionalEntropyRehash": false
       }
     ],
     "vlans": [
@@ -6378,6 +6475,7 @@
       "1": 1,
       "2": 0,
       "3": 0,
+      "4": 0,
       "700": 255,
       "786": 10
     },
@@ -6745,7 +6843,7 @@
       "exactMatchTableConfigs": [
         
       ],
-      "switchIdToSwitchType": {
+      "switchIdToSwitchType_DEPRECATED": {
         
       },
       "switchDrainState": 0,

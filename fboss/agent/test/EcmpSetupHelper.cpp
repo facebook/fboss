@@ -485,8 +485,8 @@ void EcmpSetupTargetedPorts<IPAddrT>::computeNextHops(
       // of subnet.
       lastOctet = (lastOctet + offset) % 255;
     }
-    // Fail if we go to 255 at the last octet
-    CHECK_GT(255, lastOctet);
+    // Fail if we go >255 at the last octet
+    CHECK_GE(255, lastOctet);
     bytes[bytes.size() - 1] = static_cast<uint8_t>(lastOctet);
     BaseEcmpSetupHelperT::nhops_.push_back(EcmpNextHopT(
         IPAddrT(bytes),

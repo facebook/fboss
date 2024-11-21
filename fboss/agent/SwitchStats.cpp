@@ -363,6 +363,11 @@ SwitchStats::SwitchStats(ThreadLocalStatsMap* map, int numSwitches)
           map,
           kCounterPrefix + "mac_table_update_failure",
           SUM,
+          RATE),
+      fwDrainedWithHighNumActiveFabricLinks_(
+          map,
+          kCounterPrefix + "fw_drained_with_high_num_active_fabric_links",
+          SUM,
           RATE)
 
 {
@@ -700,4 +705,13 @@ void SwitchStats::failedDsfSubscription(
   auto counter = failedDsfSubscriptionByPeerSwitchName_.find(peerName);
   counter->second.incrementValue(value);
 }
+
+void SwitchStats::setDrainState(
+    int16_t switchIndex,
+    cfg::SwitchDrainState drainState) {
+  auto drainStateCounter =
+      folly::to<std::string>("switch.", switchIndex, ".drain_state");
+  fb303::fbData->setCounter(drainStateCounter, static_cast<int>(drainState));
+}
+
 } // namespace facebook::fboss

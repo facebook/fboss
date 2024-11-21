@@ -13,6 +13,7 @@
 
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/Utils.h"
+#include "fboss/agent/VoqUtils.h"
 #include "fboss/agent/hw/HwSysPortFb303Stats.h"
 #include "fboss/agent/hw/gen-cpp2/hardware_stats_constants.h"
 #include "fboss/agent/hw/sai/store/SaiStore.h"
@@ -76,7 +77,8 @@ SaiSystemPortManager::~SaiSystemPortManager() {}
 
 SaiSystemPortTraits::CreateAttributes
 SaiSystemPortManager::attributesFromSwSystemPort(
-    const std::shared_ptr<SystemPort>& swSystemPort) const {
+    const std::shared_ptr<SystemPort>& swSystemPort,
+    bool shel) const {
   sai_system_port_config_t config{
       .port_id = static_cast<uint32_t>(swSystemPort->getID()),
       .attached_switch_id = static_cast<uint32_t>(swSystemPort->getSwitchId()),
@@ -99,6 +101,11 @@ SaiSystemPortManager::attributesFromSwSystemPort(
   }
   std::optional<SaiSystemPortTraits::Attributes::ShelPktDstEnable>
       shelPktDstEnable = std::nullopt;
+#if defined(SAI_VERSION_11_7_0_0_DNX_ODP)
+  if (shel && swSystemPort->getShelDestinationEnabled()) {
+    shelPktDstEnable = true;
+  }
+#endif
   return SaiSystemPortTraits::CreateAttributes{
       config, true /*enabled*/, qosTcToQueueMap, shelPktDstEnable};
 }
@@ -113,8 +120,10 @@ SystemPortSaiId SaiSystemPortManager::addSystemPort(
         " SAI id: ",
         systemPortHandle->systemPort->adapterKey());
   }
+  // TODO(zecheng): Create system port with shel dst enable is not supported yet
+  // (CS00012377244). To workaround, set this attribute after create.
   SaiSystemPortTraits::CreateAttributes attributes =
-      attributesFromSwSystemPort(swSystemPort);
+      attributesFromSwSystemPort(swSystemPort, false /* shel */);
 
   portStats_.emplace(
       swSystemPort->getID(),
@@ -129,6 +138,12 @@ SystemPortSaiId SaiSystemPortManager::addSystemPort(
       GET_ATTR(SystemPort, ConfigInfo, attributes)};
   auto saiSystemPort = systemPortStore.setObject(
       systemPortKey, attributes, swSystemPort->getID());
+  // Workaround to set shel destination enable
+  if (swSystemPort->getShelDestinationEnabled()) {
+    SaiSystemPortTraits::CreateAttributes attributesWithShel =
+        attributesFromSwSystemPort(swSystemPort, true /* shel */);
+    saiSystemPort->setAttributes(attributesWithShel);
+  }
   handle->systemPort = saiSystemPort;
   loadQueues(*handle, swSystemPort);
   handles_.emplace(swSystemPort->getID(), std::move(handle));
@@ -218,7 +233,8 @@ void SaiSystemPortManager::changeSystemPort(
     const std::shared_ptr<SystemPort>& newSystemPort) {
   CHECK_EQ(oldSystemPort->getID(), newSystemPort->getID());
   auto handle = getSystemPortHandleImpl(newSystemPort->getID());
-  auto newAttributes = attributesFromSwSystemPort(newSystemPort);
+  auto newAttributes =
+      attributesFromSwSystemPort(newSystemPort, true /* shel */);
   if (createOnlyAttributesChanged(
           handle->systemPort->attributes(), newAttributes)) {
     removeSystemPort(oldSystemPort);
@@ -240,6 +256,11 @@ void SaiSystemPortManager::changeSystemPort(
         oldSystemPort->getPortQueues()->impl(),
         newSystemPort->getPortQueues()->impl());
     changeQosPolicy(oldSystemPort, newSystemPort);
+
+    if (oldSystemPort->getShelDestinationEnabled() !=
+        newSystemPort->getShelDestinationEnabled()) {
+      handle->systemPort->setAttributes(newAttributes);
+    }
   }
 }
 
@@ -369,7 +390,8 @@ std::shared_ptr<SystemPortMap> SaiSystemPortManager::constructSystemPorts(
       sysPort->setCoreIndex(*platformPort->getAttachedCoreId());
       sysPort->setCorePortIndex(*platformPort->getCorePortIndex());
       sysPort->setSpeedMbps(static_cast<int>(port.second->getSpeed()));
-      sysPort->setNumVoqs(8);
+      sysPort->setNumVoqs(
+          getNumVoqs(port.second->getPortType(), port.second->getScope()));
       sysPort->setScope(platformPort->getScope());
       sysPort->setQosPolicy(port.second->getQosPolicy());
       sysPortMap->addSystemPort(std::move(sysPort));

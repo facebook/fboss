@@ -6,14 +6,10 @@
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
 #include "fboss/agent/hw/test/LoadBalancerUtils.h"
-#include "fboss/agent/state/AggregatePort.h"
-#include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/test/link_tests/LinkTest.h"
 #include "fboss/agent/test/utils/QosTestUtils.h"
-
-#include "fboss/lib/CommonFileUtils.h"
 
 using namespace ::testing;
 using namespace facebook::fboss;

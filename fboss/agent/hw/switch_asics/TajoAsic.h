@@ -19,6 +19,10 @@ class TajoAsic : public HwAsic {
   uint64_t getMMUSizeBytes() const override {
     return 108 * 1024 * 1024;
   }
+  uint64_t getSramSizeBytes() const override {
+    // No HBM!
+    return getMMUSizeBytes();
+  }
   uint32_t getMaxMirrors() const override {
     // TODO - verify this
     return 4;

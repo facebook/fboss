@@ -12,8 +12,6 @@
 
 #include "fboss/agent/hw/sai/api/AddressUtil.h"
 
-#include <folly/logging/xlog.h>
-
 using facebook::fboss::FakeSai;
 using facebook::fboss::FakeVirtualRouter;
 

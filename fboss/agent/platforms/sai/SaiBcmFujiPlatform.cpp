@@ -11,7 +11,6 @@
 #include "fboss/agent/platforms/sai/SaiBcmFujiPlatform.h"
 #include "fboss/agent/platforms/common/fuji/FujiPlatformMapping.h"
 
-#include <cstdio>
 #include <cstring>
 namespace facebook::fboss {
 

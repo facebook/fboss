@@ -23,5 +23,5 @@ SflowCollector::SflowCollector(std::string ip, uint16_t port) {
   ref<switch_state_tags::address>()->ref<switch_state_tags::port>() = port;
 }
 
-template class ThriftStructNode<SflowCollector, state::SflowCollectorFields>;
+template struct ThriftStructNode<SflowCollector, state::SflowCollectorFields>;
 } // namespace facebook::fboss

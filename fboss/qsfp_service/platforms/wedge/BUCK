@@ -30,7 +30,6 @@ cpp_library(
         "//fboss/qsfp_service/module:i2c_log_buffer",
         "//fboss/qsfp_service/module:qsfp-module",
         "//folly:conv",
-        "//folly:memory",
         "//folly:random",
         "//folly:range",
         "//folly:scope_guard",

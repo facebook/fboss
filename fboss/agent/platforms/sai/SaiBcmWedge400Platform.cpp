@@ -10,7 +10,6 @@
 
 #include "fboss/agent/platforms/sai/SaiBcmWedge400Platform.h"
 
-#include <cstdio>
 #include <cstring>
 #include "fboss/agent/hw/switch_asics/Tomahawk3Asic.h"
 #include "fboss/agent/platforms/common/wedge400/Wedge400GrandTetonPlatformMapping.h"

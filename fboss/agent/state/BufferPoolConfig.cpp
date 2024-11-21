@@ -12,6 +12,6 @@
 
 namespace facebook::fboss {
 
-template class ThriftStructNode<BufferPoolCfg, BufferPoolFields>;
+template struct ThriftStructNode<BufferPoolCfg, BufferPoolFields>;
 
 } // namespace facebook::fboss

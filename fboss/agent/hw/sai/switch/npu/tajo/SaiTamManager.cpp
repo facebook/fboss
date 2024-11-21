@@ -15,16 +15,11 @@ extern "C" {
 
 namespace facebook::fboss {
 
-SaiTamHandle::~SaiTamHandle() {}
-
 SaiTamManager::SaiTamManager(
     SaiStore* saiStore,
     SaiManagerTable* managerTable,
     SaiPlatform* platform)
-    : saiStore_(saiStore),
-      managerTable_(managerTable),
-      platform_(platform),
-      tamHandle_(std::make_unique<SaiTamHandle>()) {
+    : saiStore_(saiStore), managerTable_(managerTable), platform_(platform) {
   if (!platform_->getAsic()->isSupported(
           HwAsic::Feature::TELEMETRY_AND_MONITORING)) {
     return;
@@ -90,13 +85,30 @@ SaiTamManager::SaiTamManager(
   auto& tamStore = saiStore_->get<SaiTamTraits>();
   auto tam = tamStore.setObject(tamTraits, tamTraits);
 
-  tamHandle_->report = report;
-  tamHandle_->action = action;
-  tamHandle_->event = event;
-  tamHandle_->tam = tam;
-  tamHandle_->managerTable = managerTable_;
+  auto tamHandle = std::make_unique<SaiTamHandle>();
+  tamHandle->report = report;
+  tamHandle->action = action;
+  tamHandle->events.push_back(event);
+  tamHandle->tam = tam;
+  tamHandle->managerTable = managerTable_;
   // associate TAM with switch
-  managerTable_->switchManager().setTamObject({tamHandle_->tam->adapterKey()});
+  managerTable_->switchManager().setTamObject({tamHandle->tam->adapterKey()});
+
+  tamHandles_.emplace("default", std::move(tamHandle));
+}
+
+void SaiTamManager::addMirrorOnDropReport(
+    const std::shared_ptr<MirrorOnDropReport>& /* report */) {}
+
+void SaiTamManager::removeMirrorOnDropReport(
+    const std::shared_ptr<MirrorOnDropReport>& /* report */) {}
+
+void SaiTamManager::changeMirrorOnDropReport(
+    const std::shared_ptr<MirrorOnDropReport>& /* oldReport */,
+    const std::shared_ptr<MirrorOnDropReport>& /* newReport */) {}
+
+std::vector<PortID> SaiTamManager::getAllMirrorOnDropPortIds() {
+  return {};
 }
 
 } // namespace facebook::fboss

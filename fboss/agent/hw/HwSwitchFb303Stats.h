@@ -80,6 +80,9 @@ class HwSwitchFb303Stats {
   void allReassemblyContextsTaken() {
     allReassemblyContextsTaken_.addValue(1);
   }
+  void reassemblyError() {
+    reassemblyErrors_.addValue(1);
+  }
   void hwInitializedTime(uint64_t ms) {
     hwInitializedTimeMs_.addValue(ms);
   }
@@ -163,6 +166,7 @@ class HwSwitchFb303Stats {
   int64_t getItppErrors() const;
   int64_t getEpniErrors() const;
   int64_t getAlignerErrors() const;
+  int64_t getReassemblyErrors() const;
   int64_t getForwardingQueueProcessorErrors() const;
   int64_t getAllReassemblyContextsTakenError() const;
 
@@ -247,6 +251,7 @@ class HwSwitchFb303Stats {
   TLTimeseries itppErrors_;
   TLTimeseries epniErrors_;
   TLTimeseries alignerErrors_;
+  TLTimeseries reassemblyErrors_;
   TLTimeseries forwardingQueueProcessorErrors_;
   TLTimeseries allReassemblyContextsTaken_;
   TLTimeseries hwInitializedTimeMs_;

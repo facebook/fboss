@@ -13,8 +13,6 @@
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/state/Mirror.h"
 
-#include <boost/container/flat_map.hpp>
-
 #include <folly/MacAddress.h>
 #include <folly/logging/xlog.h>
 #include <optional>

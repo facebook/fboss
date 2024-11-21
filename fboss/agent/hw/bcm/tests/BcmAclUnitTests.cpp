@@ -14,7 +14,6 @@
 #include "fboss/agent/hw/bcm/BcmAddressFBConvertors.h"
 #include "fboss/agent/hw/bcm/BcmError.h"
 #include "fboss/agent/hw/bcm/BcmFieldProcessorUtils.h"
-#include "fboss/agent/types.h"
 
 using facebook::fboss::utility::isBcmQualFieldStateSame;
 using facebook::fboss::utility::isBcmQualFieldWithMaskStateSame;

@@ -178,7 +178,6 @@ bool Jericho2Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::FABRIC_LINK_DOWN_CELL_DROP_COUNTER:
     case HwAsic::Feature::CRC_ERROR_DETECT:
     case HwAsic::Feature::EVENTOR_PORT_FOR_SFLOW:
-    case HwAsic::Feature::CPU_VOQ_BUFFER_PROFILE:
     case HwAsic::Feature::SWITCH_REACHABILITY_CHANGE_NOTIFY:
     case HwAsic::Feature::CABLE_PROPOGATION_DELAY:
     case HwAsic::Feature::DATA_CELL_FILTER:
@@ -196,6 +195,7 @@ bool Jericho2Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::DEDICATED_CPU_BUFFER_POOL:
     case HwAsic::Feature::EGRESS_ACL_TABLE:
     case HwAsic::Feature::FAST_LLFC_COUNTER:
+    case HwAsic::Feature::INGRESS_SRAM_MIN_BUFFER_WATERMARK:
       return false;
   }
   return false;

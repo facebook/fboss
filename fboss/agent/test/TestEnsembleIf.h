@@ -62,7 +62,7 @@ class TestEnsembleIf : public HwSwitchCallback {
   size_t getMinPktsForLineRate(const PortID& port) {
     auto portSpeed =
         getProgrammedState()->getPorts()->getNodeIf(port)->getSpeed();
-    return (portSpeed > cfg::PortSpeed::HUNDREDG ? 1000 : 100);
+    return (portSpeed > cfg::PortSpeed::HUNDREDG ? 10000 : 100);
   }
 
   virtual void applyNewState(

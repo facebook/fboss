@@ -41,6 +41,6 @@ std::shared_ptr<AclMap> AclTableMap::getDefaultAclTableMap(
   }
 }
 
-template class ThriftMapNode<AclTableMap, AclTableMapTraits>;
+template struct ThriftMapNode<AclTableMap, AclTableMapTraits>;
 
 } // namespace facebook::fboss

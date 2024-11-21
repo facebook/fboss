@@ -288,17 +288,80 @@ struct PathVisitorImpl<apache::thrift::type_class::set<ValueTypeClass>> {
     return pv_detail::visitNode<TC>(node, params, cursor);
   }
 
+  template <typename Obj, typename Op>
+  static inline ThriftTraverseResult
+  visit(Obj& tObj, const VisitImplParams<Op>& params, PathIter cursor)
+    requires(!is_cow_type_v<Obj> && !is_field_type_v<Obj>)
+  {
+    try {
+      if (params.mode == PathVisitMode::FULL || cursor == params.end) {
+        params.op.visitTyped(tObj, cursor, params.end);
+        if (cursor == params.end) {
+          return ThriftTraverseResult::OK;
+        }
+      }
+    } catch (const std::exception& ex) {
+      XLOG(ERR) << "Exception while traversing path: "
+                << folly::join("/", params.begin, params.end)
+                << " at: " << (cursor == params.end ? "(end)" : *cursor)
+                << ", exception: " << ex.what();
+      return ThriftTraverseResult::VISITOR_EXCEPTION;
+    }
+    using ValueTType = typename Obj::value_type;
+
+    // Get value
+    auto token = *cursor++;
+
+    if (auto value = tryParseKey<ValueTType, ValueTypeClass>(token)) {
+      if (auto it = tObj.find(*value); it != tObj.end()) {
+        // Recurse further
+        return PathVisitorImpl<ValueTypeClass>::visit(*it, params, cursor);
+      } else {
+        return ThriftTraverseResult::NON_EXISTENT_NODE;
+      }
+    }
+    // if we get here, we must have a malformed value
+    return ThriftTraverseResult::INVALID_SET_MEMBER;
+  }
+
   template <typename Node, typename Op>
-  static ThriftTraverseResult
-  visit(Node& /* node */, const VisitImplParams<Op>& params, PathIter cursor)
+  static ThriftTraverseResult visit(
+      Node& node /* node */,
+      const VisitImplParams<Op>& params,
+      PathIter cursor)
       // only enable for HybridNode types
     requires(std::is_same_v<typename Node::CowType, HybridNodeType>)
   {
-    // TODO: implement specialization for hybrid nodes
-    XLOG(ERR) << "Unimplemented visitation for hybrid node: path: "
-              << folly::join("/", params.begin, params.end)
-              << " at: " << (cursor == params.end ? "(end)" : *cursor);
-    return ThriftTraverseResult::VISITOR_EXCEPTION;
+    try {
+      if (params.mode == PathVisitMode::FULL || cursor == params.end) {
+        params.op.visitTyped(node, cursor, params.end);
+        if (cursor == params.end) {
+          return ThriftTraverseResult::OK;
+        }
+      }
+    } catch (const std::exception& ex) {
+      XLOG(ERR) << "Exception while traversing path: "
+                << folly::join("/", params.begin, params.end)
+                << " at: " << (cursor == params.end ? "(end)" : *cursor)
+                << ", exception: " << ex.what();
+      return ThriftTraverseResult::VISITOR_EXCEPTION;
+    }
+    auto& tObj = node.ref();
+    using ValueTType = typename Node::ThriftType::value_type;
+
+    // Get value
+    auto token = *cursor++;
+
+    if (auto value = tryParseKey<ValueTType, ValueTypeClass>(token)) {
+      if (auto it = tObj.find(*value); it != tObj.end()) {
+        // Recurse further
+        return PathVisitorImpl<ValueTypeClass>::visit(*it, params, cursor);
+      } else {
+        return ThriftTraverseResult::NON_EXISTENT_NODE;
+      }
+    }
+    // if we get here, we must have a malformed value
+    return ThriftTraverseResult::INVALID_SET_MEMBER;
   }
 
   template <typename Fields, typename Op>
@@ -344,17 +407,63 @@ struct PathVisitorImpl<apache::thrift::type_class::list<ValueTypeClass>> {
     return pv_detail::visitNode<TC>(node, params, cursor);
   }
 
+  template <typename Obj, typename Op>
+  static inline ThriftTraverseResult
+  visit(Obj& tObj, const VisitImplParams<Op>& params, PathIter cursor)
+    requires(!is_cow_type_v<Obj> && !is_field_type_v<Obj>)
+  {
+    try {
+      if (params.mode == PathVisitMode::FULL || cursor == params.end) {
+        params.op.visitTyped(tObj, cursor, params.end);
+        if (cursor == params.end) {
+          return ThriftTraverseResult::OK;
+        }
+      }
+    } catch (const std::exception& ex) {
+      XLOG(ERR) << "Exception while traversing path: "
+                << folly::join("/", params.begin, params.end)
+                << " at: " << (cursor == params.end ? "(end)" : *cursor)
+                << ", exception: " << ex.what();
+      return ThriftTraverseResult::VISITOR_EXCEPTION;
+    }
+    // Parse and pop token. Also check for index bound
+    auto index = folly::tryTo<size_t>(*cursor++);
+    if (index.hasError() || index.value() >= tObj.size()) {
+      return ThriftTraverseResult::INVALID_ARRAY_INDEX;
+    }
+    return PathVisitorImpl<ValueTypeClass>::visit(
+        tObj.at(index.value()), params, cursor);
+  }
+
   template <typename Node, typename Op>
   static ThriftTraverseResult
-  visit(Node& /* node */, const VisitImplParams<Op>& params, PathIter cursor)
+  visit(Node& node, const VisitImplParams<Op>& params, PathIter cursor)
       // only enable for HybridNode types
     requires(std::is_same_v<typename Node::CowType, HybridNodeType>)
   {
-    // TODO: implement specialization for hybrid nodes
-    XLOG(ERR) << "Unimplemented visitation for hybrid node: path: "
-              << folly::join("/", params.begin, params.end)
-              << " at: " << (cursor == params.end ? "(end)" : *cursor);
-    return ThriftTraverseResult::VISITOR_EXCEPTION;
+    try {
+      if (params.mode == PathVisitMode::FULL || cursor == params.end) {
+        params.op.visitTyped(node, cursor, params.end);
+        if (cursor == params.end) {
+          return ThriftTraverseResult::OK;
+        }
+      }
+    } catch (const std::exception& ex) {
+      XLOG(ERR) << "Exception while traversing path: "
+                << folly::join("/", params.begin, params.end)
+                << " at: " << (cursor == params.end ? "(end)" : *cursor)
+                << ", exception: " << ex.what();
+      return ThriftTraverseResult::VISITOR_EXCEPTION;
+    }
+    // get the value based on the key
+    auto& tObj = node.ref();
+    // Parse and pop token. Also check for index bound
+    auto index = folly::tryTo<size_t>(*cursor++);
+    if (index.hasError() || index.value() >= tObj.size()) {
+      return ThriftTraverseResult::INVALID_ARRAY_INDEX;
+    }
+    return PathVisitorImpl<ValueTypeClass>::visit(
+        tObj.at(index.value()), params, cursor);
   }
 
   template <typename Fields, typename Op>
@@ -589,8 +698,7 @@ struct PathVisitorImpl<apache::thrift::type_class::structure> {
   {
     try {
       if (params.mode == PathVisitMode::FULL || cursor == params.end) {
-        params.op.visitTyped(
-            *const_cast<std::remove_const_t<Node>*>(&node), cursor, params.end);
+        params.op.visitTyped(node, cursor, params.end);
         if (cursor == params.end) {
           return ThriftTraverseResult::OK;
         }

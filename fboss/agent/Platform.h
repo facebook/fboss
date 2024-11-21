@@ -34,7 +34,7 @@ struct AgentConfig;
 class HwSwitch;
 class SwSwitch;
 class ThriftHandler;
-struct ProductInfo;
+class ProductInfo;
 class HwSwitchWarmBootHelper;
 class PlatformProductInfo;
 class HwSwitchCallback;

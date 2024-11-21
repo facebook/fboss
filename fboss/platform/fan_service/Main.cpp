@@ -8,7 +8,6 @@
 #include <folly/executors/FunctionScheduler.h>
 #include <thrift/lib/cpp2/protocol/Serializer.h>
 
-#include <folly/logging/Init.h>
 #include <folly/logging/xlog.h>
 #include <gflags/gflags.h>
 

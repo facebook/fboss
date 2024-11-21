@@ -106,6 +106,7 @@ add_library(config_utils
 target_link_libraries(config_utils
   agent_features
   asic_test_utils
+  voq_test_utils
   fboss_types
   Folly::folly
   platform_mapping
@@ -136,6 +137,17 @@ target_link_libraries(qos_test_utils
   state
   test_ensemble_if
   Folly::folly
+)
+
+add_library(trunk_test_utils
+  fboss/agent/test/utils/TrunkTestUtils.cpp
+)
+
+target_link_libraries(trunk_test_utils
+  agent_hw_test_ctrl_cpp2
+  fboss_types
+  state
+  agent_ensemble
 )
 
 add_library(l2learn_observer_util
@@ -402,8 +414,6 @@ add_library(voq_test_utils
 )
 
 target_link_libraries(voq_test_utils
-  dsf_config_utils
-  config_factory
   fboss_types
   switchid_scope_resolver
   switch_config_cpp2

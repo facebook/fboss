@@ -5,7 +5,7 @@
 #include <thrift/lib/cpp2/protocol/Serializer.h>
 
 #include "fboss/platform/config_lib/ConfigLib.h"
-#include "fboss/platform/sensor_service/test/TestUtils.h"
+#include "fboss/platform/sensor_service/tests/TestUtils.h"
 
 using namespace facebook::fboss::platform::sensor_service;
 

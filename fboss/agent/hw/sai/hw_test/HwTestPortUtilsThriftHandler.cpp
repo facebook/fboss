@@ -1,6 +1,7 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
 #include "fboss/agent/hw/sai/diag/DiagShell.h"
+#include "fboss/agent/hw/sai/switch/SaiLagManager.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitch.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/hw/test/HwTestThriftHandler.h"
@@ -109,6 +110,162 @@ bool HwTestThriftHandler::verifyPortLedStatus(int portId, bool status) {
     default:
       throw FbossError("Unsupported platform type");
   }
+}
+
+bool HwTestThriftHandler::verifyPGSettings(int portId, bool pfcEnabled) {
+  auto swPort = hwSwitch_->getProgrammedState()->getPorts()->getNodeIf(portId);
+  auto swPgConfig = swPort->getPortPgConfigs();
+
+  auto portHandle = static_cast<const SaiSwitch*>(hwSwitch_)
+                        ->managerTable()
+                        ->portManager()
+                        .getPortHandle(PortID(swPort->getID()));
+  // Ensure that both SW and HW has the same number of PG IDs
+  if (portHandle->configuredIngressPriorityGroups.size() !=
+      swPort->getPortPgConfigs()->size()) {
+    XLOG(DBG2) << "Number of PGs mismatch for port " << swPort->getName()
+               << " hw size: "
+               << portHandle->configuredIngressPriorityGroups.size()
+               << " sw size: " << swPort->getPortPgConfigs()->size();
+    return false;
+  }
+  for (const auto& pgConfig : std::as_const(*swPgConfig)) {
+    auto id = pgConfig->cref<switch_state_tags::id>()->cref();
+    auto iter = portHandle->configuredIngressPriorityGroups.find(
+        static_cast<IngressPriorityGroupID>(id));
+    if (iter == portHandle->configuredIngressPriorityGroups.end()) {
+      XLOG(DBG2) << "Priority group config canot be found for PG id " << id
+                 << " on port " << swPort->getName();
+      return false;
+    }
+    auto bufferProfile = iter->second.bufferProfile;
+    if (pgConfig->cref<switch_state_tags::resumeOffsetBytes>()->cref() !=
+        SaiApiTable::getInstance()->bufferApi().getAttribute(
+            bufferProfile->adapterKey(),
+            SaiBufferProfileTraits::Attributes::XonOffsetTh{})) {
+      XLOG(DBG2) << "Resume offset mismatch for pg " << id;
+      return false;
+    }
+    if (pgConfig->cref<switch_state_tags::minLimitBytes>()->cref() !=
+        SaiApiTable::getInstance()->bufferApi().getAttribute(
+            bufferProfile->adapterKey(),
+            SaiBufferProfileTraits::Attributes::ReservedBytes{})) {
+      XLOG(DBG2) << "Min limit mismatch for pg " << id;
+      return false;
+    }
+    if (pgConfig->cref<switch_state_tags::minLimitBytes>()->cref() !=
+        SaiApiTable::getInstance()->bufferApi().getAttribute(
+            bufferProfile->adapterKey(),
+            SaiBufferProfileTraits::Attributes::ReservedBytes{})) {
+      XLOG(DBG2) << "Min limit mismatch for pg " << id;
+      return false;
+    }
+    if (auto pgHdrmOpt =
+            pgConfig->cref<switch_state_tags::headroomLimitBytes>()) {
+      if (pgHdrmOpt->cref() !=
+          SaiApiTable::getInstance()->bufferApi().getAttribute(
+              bufferProfile->adapterKey(),
+              SaiBufferProfileTraits::Attributes::XoffTh{})) {
+        XLOG(DBG2) << "Headroom mismatch for pg " << id;
+        return false;
+      }
+    }
+
+    // Buffer pool configs
+    const auto bufferPool =
+        pgConfig->cref<switch_state_tags::bufferPoolConfig>();
+    if (bufferPool->cref<common_if_tags::headroomBytes>()->cref() *
+            static_cast<const SaiSwitch*>(hwSwitch_)
+                ->getPlatform()
+                ->getAsic()
+                ->getNumMemoryBuffers() !=
+        SaiApiTable::getInstance()->bufferApi().getAttribute(
+            static_cast<const SaiSwitch*>(hwSwitch_)
+                ->managerTable()
+                ->bufferManager()
+                .getIngressBufferPoolHandle()
+                ->bufferPool->adapterKey(),
+            SaiBufferPoolTraits::Attributes::XoffSize{})) {
+      XLOG(DBG2) << "Headroom mismatch for buffer pool";
+      return false;
+    }
+
+    // Port PFC configurations
+    if (SaiApiTable::getInstance()->portApi().getAttribute(
+            portHandle->port->adapterKey(),
+            SaiPortTraits::Attributes::PriorityFlowControlMode{}) ==
+        SAI_PORT_PRIORITY_FLOW_CONTROL_MODE_COMBINED) {
+      auto hwPfcEnabled = SaiApiTable::getInstance()->portApi().getAttribute(
+                              portHandle->port->adapterKey(),
+                              SaiPortTraits::Attributes::PriorityFlowControl{})
+          ? 1
+          : 0;
+      if (hwPfcEnabled != pfcEnabled) {
+        XLOG(DBG2) << "PFC mismatch for port " << swPort->getName();
+        return false;
+      }
+    } else {
+#if !defined(TAJO_SDK)
+      auto hwPfcEnabled =
+          SaiApiTable::getInstance()->portApi().getAttribute(
+              portHandle->port->adapterKey(),
+              SaiPortTraits::Attributes::PriorityFlowControlTx{})
+          ? 1
+          : 0;
+      if (hwPfcEnabled != pfcEnabled) {
+        XLOG(DBG2) << "PFC mismatch for port " << swPort->getName();
+        return false;
+      }
+#else
+      XLOG(DBG2) << "Flow control mode SEPARATE unsupported!";
+      return false;
+#endif
+    }
+  }
+  return true;
+}
+
+void HwTestThriftHandler::getAggPortInfo(
+    ::std::vector<::facebook::fboss::utility::AggPortInfo>& aggPortInfos,
+    std::unique_ptr<::std::vector<::std::int32_t>> aggPortIds) {
+  auto saiSwitch = static_cast<const SaiSwitch*>(hwSwitch_);
+  auto& lagManager = saiSwitch->managerTable()->lagManager();
+  for (const auto& portId : *aggPortIds) {
+    AggPortInfo aggPortInfo;
+    AggregatePortID aggPortId = AggregatePortID(portId);
+    try {
+      lagManager.getLagHandle(aggPortId);
+      aggPortInfo.isPresent() = true;
+      aggPortInfo.numMembers() = lagManager.getLagMemberCount(aggPortId);
+      aggPortInfo.numActiveMembers() =
+          lagManager.getActiveMemberCount(aggPortId);
+
+    } catch (const std::exception& e) {
+      XLOG(DBG2) << "Lag handle not found for port " << aggPortId;
+      aggPortInfo.isPresent() = false;
+    }
+    aggPortInfos.push_back(aggPortInfo);
+  }
+  return;
+}
+
+int HwTestThriftHandler::getNumAggPorts() {
+  auto saiSwitch = static_cast<const SaiSwitch*>(hwSwitch_);
+  return saiSwitch->managerTable()->lagManager().getLagCount();
+}
+
+bool HwTestThriftHandler::verifyPktFromAggPort(int aggPortId) {
+  std::array<char, 8> data{};
+  // TODO (T159867926): Set the right queue ID once the vendor
+  // set the right queue ID in the rx callback.
+  auto rxPacket = std::make_unique<SaiRxPacket>(
+      data.size(),
+      data.data(),
+      AggregatePortID(aggPortId),
+      VlanID(1),
+      cfg::PacketRxReason::UNMATCHED,
+      0 /* queue Id */);
+  return rxPacket->isFromAggregatePort();
 }
 
 } // namespace utility

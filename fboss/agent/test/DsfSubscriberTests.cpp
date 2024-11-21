@@ -16,11 +16,9 @@
 #include "fboss/agent/test/TestUtils.h"
 #include "fboss/fsdb/if/FsdbModel.h" // @manual
 
-#include <folly/logging/xlog.h>
 #include <gtest/gtest.h>
 #include <optional>
 
-#include <thrift/lib/cpp2/protocol/Serializer.h>
 #include "fboss/agent/HwSwitchMatcher.h"
 
 using namespace facebook::fboss;

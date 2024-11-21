@@ -7,12 +7,7 @@
 #include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
 #include "fboss/agent/hw/sai/switch/tests/ManagerTestBase.h"
 
-#include "fboss/agent/state/StateDelta.h"
 #include "fboss/agent/state/SwitchState.h"
-
-#include <folly/Singleton.h>
-
-#include <mutex>
 
 namespace facebook::fboss {
 

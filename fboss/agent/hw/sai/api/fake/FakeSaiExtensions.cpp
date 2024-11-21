@@ -244,6 +244,16 @@ SaiSflowMirrorTraits::Attributes::AttributeTcBufferLimit::operator()() {
 }
 
 std::optional<sai_attr_id_t>
+SaiLocalMirrorTraits::Attributes::AttributeTcBufferLimit::operator()() {
+  return std::nullopt;
+}
+
+std::optional<sai_attr_id_t> SaiEnhancedRemoteMirrorTraits::Attributes::
+    AttributeTcBufferLimit::operator()() {
+  return std::nullopt;
+}
+
+std::optional<sai_attr_id_t>
 SaiSwitchTraits::Attributes::AttributeNoAclsForTrapsWrapper::operator()() {
   return std::nullopt;
 }
@@ -280,6 +290,12 @@ SaiSwitchTraits::egressCoreBufferWatermarkBytes() {
 }
 
 const std::vector<sai_stat_id_t>& SaiQueueTraits::egressGvoqWatermarkBytes() {
+  static const std::vector<sai_stat_id_t> stats;
+  return stats;
+}
+
+const std::vector<sai_stat_id_t>&
+SaiSwitchTraits::sramMinBufferWatermarkBytes() {
   static const std::vector<sai_stat_id_t> stats;
   return stats;
 }
@@ -538,4 +554,15 @@ std::optional<sai_attr_id_t>
 SaiSystemPortTraits::Attributes::AttributeShelPktDstEnable::operator()() {
   return std::nullopt;
 }
+
+std::optional<sai_attr_id_t>
+SaiSwitchTraits::Attributes::AttributeFirmwareCoreTouse::operator()() {
+  return SAI_SWITCH_ATTR_FIRMWARE_CORE_TO_USE;
+}
+
+std::optional<sai_attr_id_t>
+SaiSwitchTraits::Attributes::AttributeFirmwareLogFile::operator()() {
+  return SAI_SWITCH_ATTR_FIRMWARE_LOG_FILE;
+}
+
 } // namespace facebook::fboss

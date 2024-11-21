@@ -174,7 +174,6 @@ class HwAsic {
     FABRIC_LINK_DOWN_CELL_DROP_COUNTER,
     CRC_ERROR_DETECT,
     EVENTOR_PORT_FOR_SFLOW,
-    CPU_VOQ_BUFFER_PROFILE,
     SAI_ECMP_HASH_ALGORITHM,
     SWITCH_REACHABILITY_CHANGE_NOTIFY,
     CABLE_PROPOGATION_DELAY,
@@ -198,6 +197,7 @@ class HwAsic {
     DEDICATED_CPU_BUFFER_POOL,
     EGRESS_ACL_TABLE,
     FAST_LLFC_COUNTER,
+    INGRESS_SRAM_MIN_BUFFER_WATERMARK,
   };
 
   enum class AsicMode {
@@ -408,6 +408,8 @@ class HwAsic {
 
   virtual int getMidPriCpuQueueId() const = 0;
   virtual int getHiPriCpuQueueId() const = 0;
+
+  virtual uint64_t getSramSizeBytes() const = 0;
   std::optional<int32_t> getGlobalSystemPortOffset() const {
     return globalSystemPortOffset_;
   }

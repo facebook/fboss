@@ -16,9 +16,7 @@
 
 #include <vector>
 
-extern "C" {
-#include <bcm/port.h>
-}
+extern "C" {}
 namespace {
 std::vector<bcm_vlan_data_t> getVlans(
     const facebook::fboss::HwSwitch* hwSwitch) {

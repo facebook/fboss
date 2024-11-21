@@ -278,10 +278,24 @@ struct SaiSwitchTraits {
         SAI_SWITCH_ATTR_ECN_ECT_THRESHOLD_ENABLE,
         bool,
         SaiBoolDefaultFalse>;
+    struct AttributeFirmwareCoreTouse {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    using FirmwareCoreToUse = SaiExtensionAttribute<
+        sai_uint8_t,
+        AttributeFirmwareCoreTouse,
+        SaiIntDefault<sai_uint8_t>>;
     using FirmwarePathName = SaiAttribute<
         EnumType,
         SAI_SWITCH_ATTR_FIRMWARE_PATH_NAME,
         std::vector<sai_int8_t>,
+        SaiS8ListDefault>;
+    struct AttributeFirmwareLogFile {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    using FirmwareLogFile = SaiExtensionAttribute<
+        std::vector<sai_int8_t>,
+        AttributeFirmwareLogFile,
         SaiS8ListDefault>;
     using FirmwareLoadMethod = SaiAttribute<
         EnumType,
@@ -684,7 +698,9 @@ struct SaiSwitchTraits {
       std::optional<Attributes::TamObject>,
       std::optional<Attributes::UseEcnThresholds>,
       std::optional<Attributes::CounterRefreshInterval>,
+      std::optional<Attributes::FirmwareCoreToUse>,
       std::optional<Attributes::FirmwarePathName>,
+      std::optional<Attributes::FirmwareLogFile>,
       std::optional<Attributes::FirmwareLoadMethod>,
       std::optional<Attributes::FirmwareLoadType>,
       std::optional<Attributes::HardwareAccessBus>,
@@ -760,6 +776,7 @@ struct SaiSwitchTraits {
   static const std::vector<sai_stat_id_t>& dramBlockTime();
   static const std::vector<sai_stat_id_t>& egressCoreBufferWatermarkBytes();
   static const std::vector<sai_stat_id_t>& deletedCredits();
+  static const std::vector<sai_stat_id_t>& sramMinBufferWatermarkBytes();
 };
 
 SAI_ATTRIBUTE_NAME(Switch, InitSwitch)
@@ -822,7 +839,9 @@ SAI_ATTRIBUTE_NAME(Switch, UseEcnThresholds)
 SAI_ATTRIBUTE_NAME(Switch, EgressPoolAvaialableSize)
 SAI_ATTRIBUTE_NAME(Switch, CounterRefreshInterval)
 
+SAI_ATTRIBUTE_NAME(Switch, FirmwareCoreToUse)
 SAI_ATTRIBUTE_NAME(Switch, FirmwarePathName)
+SAI_ATTRIBUTE_NAME(Switch, FirmwareLogFile)
 SAI_ATTRIBUTE_NAME(Switch, FirmwareLoadMethod)
 SAI_ATTRIBUTE_NAME(Switch, FirmwareLoadType)
 SAI_ATTRIBUTE_NAME(Switch, HardwareAccessBus)

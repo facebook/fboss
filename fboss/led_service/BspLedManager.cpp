@@ -4,8 +4,6 @@
 #include <optional>
 #include "fboss/agent/EnumUtils.h"
 #include "fboss/lib/CommonFileUtils.h"
-#include "fboss/lib/CommonPortUtils.h"
-#include "fboss/lib/bsp/BspGenericSystemContainer.h"
 
 namespace facebook::fboss {
 

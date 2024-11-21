@@ -86,7 +86,7 @@
 extern "C" {
 #include <sai.h>
 
-#if defined(BRCM_SAI_SDK_DNX_GTE_11_0) && !defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
 #include <saiextensions.h>
 #ifndef IS_OSS_BRCM_SAI
 #include <experimental/saiexperimentaltameventaginggroup.h>
@@ -1054,6 +1054,14 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChangedImplLocked(
       &SaiMirrorManager::changeMirror,
       &SaiMirrorManager::addNode,
       &SaiMirrorManager::removeMirror);
+
+  processDelta(
+      delta.getMirrorOnDropReportsDelta(),
+      managerTable_->tamManager(),
+      lockPolicy,
+      &SaiTamManager::changeMirrorOnDropReport,
+      &SaiTamManager::addMirrorOnDropReport,
+      &SaiTamManager::removeMirrorOnDropReport);
 
   processDelta(
       delta.getIpTunnelsDelta(),
@@ -2385,6 +2393,8 @@ std::shared_ptr<SwitchState> SaiSwitch::getColdBootSwitchState() {
     auto cpu = std::make_shared<ControlPlane>();
     auto cpuQueues = managerTable_->hostifManager().getQueueSettings();
     cpu->resetQueues(cpuQueues);
+    auto cpuVoqs = managerTable_->hostifManager().getVoqSettings();
+    cpu->resetVoqs(cpuVoqs);
     auto multiSwitchControlPlane = std::make_shared<MultiControlPlane>();
     multiSwitchControlPlane->addNode(
         scopeResolver->scope(cpu).matcherString(), cpu);
@@ -3873,7 +3883,7 @@ std::string SaiSwitch::listObjects(
         objTypes.push_back(SAI_OBJECT_TYPE_TAM_TRANSPORT);
         objTypes.push_back(SAI_OBJECT_TYPE_TAM_REPORT);
         objTypes.push_back(SAI_OBJECT_TYPE_TAM_EVENT_ACTION);
-#if defined(BRCM_SAI_SDK_DNX_GTE_11_0) && !defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
         objTypes.push_back(static_cast<sai_object_type_t>(
             SAI_OBJECT_TYPE_TAM_EVENT_AGING_GROUP));
 #endif

@@ -205,6 +205,10 @@ class SaiAclTableGroupTest : public HwTest {
     return "table2_counter3";
   }
 
+  std::string kAclTableGroup() const {
+    return "Ingress Table Group";
+  }
+
   void addQphDscpAclTable(
       cfg::SwitchConfig* newCfg,
       bool addExtraQualifier = false) {
@@ -252,7 +256,7 @@ class SaiAclTableGroupTest : public HwTest {
   }
 
   void addTwoAclTables(cfg::SwitchConfig* newCfg) {
-    utility::addAclTableGroup(newCfg, kAclStage(), "Ingress Table Group");
+    utility::addAclTableGroup(newCfg, kAclStage(), kAclTableGroup());
 
     // Table 1: Create QPH and DSCP ACLs in the same table.
     addQphDscpAclTableWithEntry(newCfg);
@@ -289,12 +293,12 @@ class SaiAclTableGroupTest : public HwTest {
 
     switch (tableAdd) {
       case tableAddType::table1:
-        utility::addAclTableGroup(&newCfg, kAclStage(), "Ingress Table Group");
+        utility::addAclTableGroup(&newCfg, kAclStage(), kAclTableGroup());
         // Add Table 1: Create QPH and DSCP ACLs in the same table.
         addQphDscpAclTableWithEntry(&newCfg);
         break;
       case tableAddType::table2:
-        utility::addAclTableGroup(&newCfg, kAclStage(), "Ingress Table Group");
+        utility::addAclTableGroup(&newCfg, kAclStage(), kAclTableGroup());
         // Add Table 2: TtlTable
         utility::addTtlAclTable(&newCfg, 2 /* priority */);
         break;
@@ -384,7 +388,7 @@ class SaiAclTableGroupTest : public HwTest {
   cfg::SwitchConfig getMultiAclConfig(bool addExtraQualifier = false) {
     auto newCfg = initialConfig();
 
-    utility::addAclTableGroup(&newCfg, kAclStage(), "Ingress Table Group");
+    utility::addAclTableGroup(&newCfg, kAclStage(), kAclTableGroup());
     addQphDscpAclTable(&newCfg, addExtraQualifier);
     utility::addQueuePerHostAclEntry(
         &newCfg, kQphDscpTable(), getHwSwitchEnsemble()->isSai());
@@ -501,7 +505,7 @@ TEST_F(SaiAclTableGroupTest, SingleAclTableGroup) {
   auto setup = [this]() {
     auto newCfg = initialConfig();
 
-    utility::addAclTableGroup(&newCfg, kAclStage(), "Ingress Table Group");
+    utility::addAclTableGroup(&newCfg, kAclStage(), kAclTableGroup());
 
     applyNewConfig(newCfg);
   };
@@ -519,7 +523,7 @@ TEST_F(SaiAclTableGroupTest, MultipleTablesNoEntries) {
   auto setup = [this]() {
     auto newCfg = initialConfig();
 
-    utility::addAclTableGroup(&newCfg, kAclStage(), "Ingress Table Group");
+    utility::addAclTableGroup(&newCfg, kAclStage(), kAclTableGroup());
     addAclTable1(newCfg);
     addAclTable2(newCfg);
 
@@ -541,7 +545,7 @@ TEST_F(SaiAclTableGroupTest, MultipleTablesWithEntries) {
   auto setup = [this]() {
     auto newCfg = initialConfig();
 
-    utility::addAclTableGroup(&newCfg, kAclStage(), "Ingress Table Group");
+    utility::addAclTableGroup(&newCfg, kAclStage(), kAclTableGroup());
     addAclTable1(newCfg);
     addAclTable1Entry1(newCfg, kAclTable1());
     addAclTable2(newCfg);
@@ -561,7 +565,7 @@ TEST_F(SaiAclTableGroupTest, AddTablesThenEntries) {
   auto setup = [this]() {
     auto newCfg = initialConfig();
 
-    utility::addAclTableGroup(&newCfg, kAclStage(), "Ingress Table Group");
+    utility::addAclTableGroup(&newCfg, kAclStage(), kAclTableGroup());
     addAclTable1(newCfg);
     addAclTable2(newCfg);
     applyNewConfig(newCfg);
@@ -582,7 +586,7 @@ TEST_F(SaiAclTableGroupTest, RemoveAclTable) {
   auto setup = [this]() {
     auto newCfg = initialConfig();
 
-    utility::addAclTableGroup(&newCfg, kAclStage(), "Ingress Table Group");
+    utility::addAclTableGroup(&newCfg, kAclStage(), kAclTableGroup());
     addAclTable1(newCfg);
     addAclTable1Entry1(newCfg, kAclTable1());
     addAclTable2(newCfg);
@@ -803,7 +807,7 @@ TEST_F(SaiAclTableGroupTest, RepositionAclEntriesPostWarmboot) {
   auto setup = [this]() {
     auto newCfg = initialConfig();
 
-    utility::addAclTableGroup(&newCfg, kAclStage(), "Ingress Table Group");
+    utility::addAclTableGroup(&newCfg, kAclStage(), kAclTableGroup());
     addAclTable1(newCfg);
     addAclTable2(newCfg);
     addDefaultCounterAclsToTable(newCfg, false);
@@ -822,7 +826,7 @@ TEST_F(SaiAclTableGroupTest, RepositionAclEntriesPostWarmboot) {
   auto setupPostWarmboot = [=, this]() {
     auto newCfg = initialConfig();
 
-    utility::addAclTableGroup(&newCfg, kAclStage(), "Ingress Table Group");
+    utility::addAclTableGroup(&newCfg, kAclStage(), kAclTableGroup());
     addAclTable1(newCfg);
     addAclTable2(newCfg);
     addDefaultCounterAclsToTable(newCfg, true);

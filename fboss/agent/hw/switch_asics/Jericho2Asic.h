@@ -39,6 +39,12 @@ class Jericho2Asic : public BroadcomAsic {
     // OBM+HBM is available to user of the total ~8G.
     return uint64_t(6) * 1024 * 1024 * 1024;
   }
+
+  uint64_t getSramSizeBytes() const override {
+    // 64MB
+    return 64 * 1024 * 1024;
+  }
+
   uint32_t getMMUCellSize() const {
     return 254;
   }

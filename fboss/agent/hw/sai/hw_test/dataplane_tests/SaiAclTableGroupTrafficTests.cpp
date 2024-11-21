@@ -56,7 +56,7 @@ class SaiAclTableGroupTrafficTest : public HwLinkStateDependentTest {
         getAsic()->desiredLoopbackModes());
 
     utility::addAclTableGroup(
-        &cfg, cfg::AclStage::INGRESS, utility::getAclTableGroupName());
+        &cfg, cfg::AclStage::INGRESS, utility::kDefaultAclTableGroupName());
 
     return cfg;
   }

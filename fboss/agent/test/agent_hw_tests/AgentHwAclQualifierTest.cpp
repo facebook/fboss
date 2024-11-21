@@ -211,7 +211,9 @@ class AgentHwAclQualifierTest : public AgentHwTest {
     auto newCfg = initialConfig(*getAgentEnsemble());
     if (FLAGS_enable_acl_table_group) {
       utility::addAclTableGroup(
-          &newCfg, cfg::AclStage::INGRESS, utility::getAclTableGroupName());
+          &newCfg,
+          cfg::AclStage::INGRESS,
+          utility::kDefaultAclTableGroupName());
       std::vector<cfg::AclTableActionType> actions = {};
       std::vector<cfg::AclTableQualifier> qualifiers = addQualifiers
           ? utility::genAclQualifiersConfig(this->getAsicType())
