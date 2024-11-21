@@ -240,7 +240,7 @@ class CowSubscriptionManager
       for (auto& [_, subscription] : store.subscriptions()) {
         if (metadataServer.ready(subscription->publisherTreeRoot()) &&
             subscription->needsFirstChunk()) {
-          subscription->serveHeartbeat();
+          subscription->sendEmptyInitialChunk();
           subscription->firstChunkSent();
         }
       }

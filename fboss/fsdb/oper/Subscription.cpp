@@ -388,6 +388,10 @@ void PatchSubscription::allPublishersGone(
   // No-op as we expect the extended subscription to send the hangup message
 }
 
+void PatchSubscription::sendEmptyInitialChunk() {
+  subscription_.serveHeartbeat();
+}
+
 void PatchSubscription::serveHeartbeat() {
   // No-op as we expect the extended subscription to send the heartbeat
 }
