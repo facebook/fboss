@@ -2238,8 +2238,12 @@ void SwSwitch::linkActiveStateChangedOrFwIsolated(
     if (fwIsolated) {
       if (isSwitchErrorFirmwareIsolate(
               numActiveFabricPortsAtFwIsolate, switchSettings)) {
-        newActualSwitchDrainState =
-            cfg::SwitchDrainState::DRAINED_DUE_TO_ASIC_ERROR;
+        if (FLAGS_fw_drained_unrecoverable_error) {
+          newActualSwitchDrainState =
+              cfg::SwitchDrainState::DRAINED_DUE_TO_ASIC_ERROR;
+        } else {
+          newActualSwitchDrainState = cfg::SwitchDrainState::DRAINED;
+        }
       } else {
         newActualSwitchDrainState = cfg::SwitchDrainState::DRAINED;
       }
