@@ -125,6 +125,7 @@ class DsfSubscriptionTest : public ::testing::Test {
     handle_ = createTestHandle(&config);
     sw_ = handle_->getSw();
     fsdbTestServer_ = std::make_unique<fsdb::test::FsdbTestServer>();
+    FLAGS_fsdbPort_high_priority = fsdbTestServer_->getFsdbPort();
     FLAGS_fsdbPort = fsdbTestServer_->getFsdbPort();
     pubSub_ = std::make_unique<fsdb::FsdbPubSubManager>("test-client");
     streamConnectPool_ = std::make_unique<folly::IOThreadPoolExecutor>(
