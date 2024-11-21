@@ -67,6 +67,7 @@ cpp_library(
         "//fboss/platform/config_lib:config_lib",
         "//fboss/platform/helpers:platform_name_lib",
         "//fboss/platform/sensor_service/if:sensor_config-cpp2-types",
+        "//folly/logging:logging",
     ],
     exported_external_deps = [
         "re2",

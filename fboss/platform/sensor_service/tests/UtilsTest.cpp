@@ -60,12 +60,15 @@ TEST_F(UtilsTests, PmUnitInfoFetcherTest) {
   // Case-0: Empty version config
   EXPECT_EQ(
       Utils().resolveVersionedSensors(fetcher_, slotPath_, {}), std::nullopt);
-  // Case-1: Non existence PmUnitInfo (e.g no IDPROM)
+  // Case-1: Fail to fetch PmUnitInfo
   EXPECT_CALL(fetcher_, fetch(_)).WillOnce(Return(std::nullopt));
-  EXPECT_EQ(
-      Utils().resolveVersionedSensors(
-          fetcher_, slotPath_, {createVersionedPmSensor(1, 1, 2)}),
-      std::nullopt);
+  resolvedVersionedSensor = Utils().resolveVersionedSensors(
+      fetcher_,
+      slotPath_,
+      {createVersionedPmSensor(1, 1, 2), createVersionedPmSensor(2, 0, 1)});
+  EXPECT_NE(resolvedVersionedSensor, std::nullopt);
+  EXPECT_TRUE(
+      isEqual(*resolvedVersionedSensor, createVersionedPmSensor(2, 0, 1)));
   // Case-2: Non-matching VersionedPmSensor
   EXPECT_CALL(fetcher_, fetch(_))
       .WillOnce(Return(std::array<int16_t, 3>{1, 0, 20}));
@@ -92,7 +95,7 @@ TEST_F(UtilsTests, PmUnitInfoFetcherTest) {
       isEqual(*resolvedVersionedSensor, createVersionedPmSensor(1, 1, 4)));
   // Case-4: Matching Unordered VersionedPmSensors
   EXPECT_CALL(fetcher_, fetch(_))
-      .WillOnce(Return(std::array<int16_t, 3>{3, 1, 20}));
+      .WillOnce(Return(std::array<int16_t, 3>{2, 4, 10}));
   resolvedVersionedSensor = Utils().resolveVersionedSensors(
       fetcher_,
       slotPath_,
@@ -101,6 +104,6 @@ TEST_F(UtilsTests, PmUnitInfoFetcherTest) {
        createVersionedPmSensor(2, 3, 20)});
   EXPECT_NE(resolvedVersionedSensor, std::nullopt);
   EXPECT_TRUE(
-      isEqual(*resolvedVersionedSensor, createVersionedPmSensor(3, 1, 20)));
+      isEqual(*resolvedVersionedSensor, createVersionedPmSensor(2, 3, 20)));
 }
 } // namespace facebook::fboss::platform::sensor_service
