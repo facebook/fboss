@@ -497,6 +497,8 @@ class SwitchStats : public boost::noncopyable {
   }
   void setFabricOverdrainPct(int16_t switchIndex, int16_t overdrainPct);
 
+  void setDrainState(int16_t switchIndex, cfg::SwitchDrainState drainState);
+
   void hwAgentConnectionStatus(int switchIndex, bool connected) {
     CHECK_LT(switchIndex, hwAgentConnectionStatus_.size());
     hwAgentConnectionStatus_[switchIndex].incrementValue(connected ? 1 : -1);
