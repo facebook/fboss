@@ -460,6 +460,10 @@ class SwitchStats : public boost::noncopyable {
     return getCumulativeValue(macTableUpdateFailure_);
   }
 
+  void fwDrainedWithHighNumActiveFabricLinks() {
+    fwDrainedWithHighNumActiveFabricLinks_.addValue(1);
+  }
+
   void neighborTableUpdateFailure() {
     neighborTableUpdateFailure_.addValue(1);
   }
@@ -1042,6 +1046,8 @@ class SwitchStats : public boost::noncopyable {
   TLTimeseries neighborTableUpdateFailure_;
 
   TLTimeseries macTableUpdateFailure_;
+
+  TLTimeseries fwDrainedWithHighNumActiveFabricLinks_;
 
   std::vector<TLCounter> hwAgentConnectionStatus_;
   std::vector<TLTimeseries> hwAgentUpdateTimeouts_;

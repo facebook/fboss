@@ -363,6 +363,11 @@ SwitchStats::SwitchStats(ThreadLocalStatsMap* map, int numSwitches)
           map,
           kCounterPrefix + "mac_table_update_failure",
           SUM,
+          RATE),
+      fwDrainedWithHighNumActiveFabricLinks_(
+          map,
+          kCounterPrefix + "fw_drained_with_high_num_active_fabric_links",
+          SUM,
           RATE)
 
 {
