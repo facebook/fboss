@@ -1,6 +1,6 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
-#include "fboss/platform/fan_service/Utils.h"
+#include "fboss/platform/fan_service/ConfigValidator.h"
 
 #include <folly/logging/xlog.h>
 
@@ -40,7 +40,7 @@ std::unordered_set<std::string> sensorPwmCalcTypes = {
 } // namespace
 
 namespace facebook::fboss::platform::fan_service {
-bool Utils::isValidConfig(const FanServiceConfig& config) {
+bool ConfigValidator::isValid(const FanServiceConfig& config) {
   if (config.controlInterval()) {
     if (*config.controlInterval()->pwmUpdateInterval() <= 0) {
       XLOG(ERR) << "Invalid pwm update interval: "

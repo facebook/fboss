@@ -6,9 +6,9 @@
 
 namespace facebook::fboss::platform::fan_service {
 
-class Utils {
+class ConfigValidator {
  public:
-  bool isValidConfig(const FanServiceConfig& config);
+  bool isValid(const FanServiceConfig& config);
 };
 
 } // namespace facebook::fboss::platform::fan_service

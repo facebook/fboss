@@ -13,8 +13,8 @@ cpp_binary(
         "DataFetcher.h",
     ],
     deps = [
+        ":config_validator",
         ":core",
-        ":utils",
         "//fb303:logging",
         "//fboss/platform/config_lib:config_lib",
         "//fboss/platform/helpers:init",
@@ -31,9 +31,9 @@ cpp_binary(
 )
 
 cpp_library(
-    name = "utils",
+    name = "config_validator",
     srcs = [
-        "Utils.cpp",
+        "ConfigValidator.cpp",
     ],
     exported_deps = [
         "//fboss/platform/fan_service/if:fan_service-cpp2-types",
