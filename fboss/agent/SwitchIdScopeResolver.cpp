@@ -192,8 +192,7 @@ HwSwitchMatcher SwitchIdScopeResolver::scope(
       return scope(
           state->getVlans()->getNode(VlanID(static_cast<int>(intf->getID()))));
     case cfg::InterfaceType::PORT:
-      // TODO(Chenab): Support port router interface
-      break;
+      return scope(intf->getPortID());
   }
   throw FbossError(
       "Unexpected interface type: ", static_cast<int>(intf->getType()));
@@ -229,8 +228,26 @@ HwSwitchMatcher SwitchIdScopeResolver::scope(
       }
       return scope(std::make_shared<Vlan>(&*vitr, vlanMembers));
     }
-    case cfg::InterfaceType::PORT:
-      break;
+    case cfg::InterfaceType::PORT: {
+      auto itr = std::find_if(
+          cfg.interfaces()->cbegin(),
+          cfg.interfaces()->cend(),
+          [interfaceId](const auto& intf) {
+            return InterfaceID(*intf.intfID()) == interfaceId;
+          });
+      if (itr == cfg.interfaces()->cend()) {
+        throw FbossError("No interface found for : ", interfaceId);
+      }
+      auto pitr = std::find_if(
+          cfg.ports()->cbegin(), cfg.ports()->cend(), [itr](const auto& port) {
+            return *port.logicalID() == *(itr->portID());
+          });
+      if (pitr == cfg.ports()->cend()) {
+        throw FbossError("No port found for : ", interfaceId);
+      }
+      const auto& port = *pitr;
+      return scope(PortID(*port.logicalID()));
+    }
   }
   throw FbossError("Unexpected interface type: ", static_cast<int>(type));
 }
