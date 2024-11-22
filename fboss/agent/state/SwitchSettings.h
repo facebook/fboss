@@ -565,24 +565,6 @@ class SwitchSettings
     }
   }
 
-  std::optional<int32_t> getReachabilityGroupListSize() const {
-    if (auto reachabilityGroupListSize =
-            cref<switch_state_tags::reachabilityGroupListSize_DEPRECATED>()) {
-      return reachabilityGroupListSize->toThrift();
-    }
-    return std::nullopt;
-  }
-
-  void setReachabilityGroupListSize(
-      std::optional<int32_t> reachabilityGroupListSize) {
-    if (!reachabilityGroupListSize) {
-      ref<switch_state_tags::reachabilityGroupListSize_DEPRECATED>().reset();
-    } else {
-      set<switch_state_tags::reachabilityGroupListSize_DEPRECATED>(
-          *reachabilityGroupListSize);
-    }
-  }
-
   std::optional<uint8_t> getSramGlobalFreePercentXoffThreshold() const {
     if (auto sramGlobalFreePercentXoffTh =
             cref<switch_state_tags::sramGlobalFreePercentXoffThreshold>()) {
