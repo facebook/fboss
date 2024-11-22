@@ -686,6 +686,18 @@ class SwitchSettings
     }
   }
 
+  std::vector<int> getReachabilityGroups() const {
+    if (auto reachabilityGroups =
+            cref<switch_state_tags::reachabilityGroups>()) {
+      return reachabilityGroups->toThrift();
+    }
+    return std::vector<int>();
+  }
+
+  void setReachabilityGroups(const std::vector<int>& reachabilityGroups) {
+    set<switch_state_tags::reachabilityGroups>(reachabilityGroups);
+  }
+
   SwitchSettings* modify(std::shared_ptr<SwitchState>* state);
 
  private:
