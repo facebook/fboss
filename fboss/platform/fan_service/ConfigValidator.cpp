@@ -34,7 +34,6 @@ std::unordered_set<std::string> opticAggregationTypes = {
 
 std::unordered_set<std::string> sensorPwmCalcTypes = {
     constants::SENSOR_PWM_CALC_TYPE_FOUR_LINEAR_TABLE(),
-    constants::SENSOR_PWM_CALC_TYPE_INCREMENT_PID(),
     constants::SENSOR_PWM_CALC_TYPE_PID()};
 
 } // namespace
@@ -78,20 +77,7 @@ bool ConfigValidator::isValid(const FanServiceConfig& config) {
   }
 
   for (const auto& fan : *config.fans()) {
-    if (fan.rpmSysfsPath()->empty()) {
-      XLOG(ERR) << "rpmSysfsPath cannot be empty";
-      return false;
-    }
-    if (fan.pwmSysfsPath()->empty()) {
-      XLOG(ERR) << "pwmSysfsPath cannot be empty";
-      return false;
-    }
-    if (fan.presenceSysfsPath() && fan.presenceGpio()) {
-      XLOG(ERR) << "Both presenceSysfsPath and presenceGpio cannot be set";
-      return false;
-    }
-    if (!fan.presenceSysfsPath() && !fan.presenceGpio()) {
-      XLOG(ERR) << "Either presenceSysfsPath or presenceGpio must be set";
+    if (!isValidFanConfig(fan)) {
       return false;
     }
   }
@@ -104,35 +90,74 @@ bool ConfigValidator::isValid(const FanServiceConfig& config) {
   }
 
   for (const auto& optic : *config.optics()) {
+    if (!isValidOpticConfig(optic)) {
+      return false;
+    }
+  }
+
+  XLOG(INFO) << "The config is valid";
+  return true;
+}
+
+bool ConfigValidator::isValidFanConfig(const Fan& fan) {
+  if (fan.rpmSysfsPath()->empty()) {
+    XLOG(ERR) << "rpmSysfsPath cannot be empty";
+    return false;
+  }
+  if (fan.pwmSysfsPath()->empty()) {
+    XLOG(ERR) << "pwmSysfsPath cannot be empty";
+    return false;
+  }
+  if (fan.presenceSysfsPath() && fan.presenceGpio()) {
+    XLOG(ERR) << "Both presenceSysfsPath and presenceGpio cannot be set";
+    return false;
+  }
+  if (!fan.presenceSysfsPath() && !fan.presenceGpio()) {
+    XLOG(ERR) << "Either presenceSysfsPath or presenceGpio must be set";
+    return false;
+  }
+  return true;
+}
+
+bool ConfigValidator::isValidOpticConfig(const Optic& optic) {
+  if (optic.opticName()->empty()) {
+    XLOG(ERR) << "opticName cannot be empty";
+    return false;
+  }
+
+  if (!opticAggregationTypes.count(*optic.aggregationType())) {
+    XLOG(ERR) << "Invalid optic aggregation type: " << *optic.aggregationType();
+    return false;
+  }
+
+  if (*optic.aggregationType() == constants::OPTIC_AGGREGATION_TYPE_PID()) {
+    if (optic.pidSettings()->empty()) {
+      XLOG(ERR) << "PID settings cannot be empty for optic aggregation type: "
+                << *optic.aggregationType();
+      return false;
+    }
+    for (const auto& [opticType, pidSetting] : *optic.pidSettings()) {
+      if (!opticTypes.count(opticType)) {
+        XLOG(ERR) << "Invalid optic type: " << opticType;
+        return false;
+      }
+    }
+  }
+
+  if (*optic.aggregationType() == constants::OPTIC_AGGREGATION_TYPE_MAX()) {
+    if (optic.tempToPwmMaps()->empty()) {
+      XLOG(ERR)
+          << "tempToPwmMaps settings cannot be empty for optic aggregation type: "
+          << *optic.aggregationType();
+      return false;
+    }
     for (const auto& [opticType, tempToPwmMap] : *optic.tempToPwmMaps()) {
       if (!opticTypes.count(opticType)) {
         XLOG(ERR) << "Invalid optic type: " << opticType;
         return false;
       }
     }
-    if (!opticAggregationTypes.count(*optic.aggregationType())) {
-      XLOG(ERR) << "Invalid optic aggregation type: "
-                << *optic.aggregationType();
-      return false;
-    }
-    if (*optic.aggregationType() == constants::OPTIC_AGGREGATION_TYPE_PID()) {
-      if (optic.pidSettings()->empty()) {
-        XLOG(ERR) << "PID settings cannot be empty for optic aggregation type: "
-                  << *optic.aggregationType();
-        return false;
-      }
-    } else if (
-        *optic.aggregationType() == constants::OPTIC_AGGREGATION_TYPE_MAX()) {
-      if (optic.tempToPwmMaps()->empty()) {
-        XLOG(ERR)
-            << "tempToPwmMaps settings cannot be empty for optic aggregation type: "
-            << *optic.aggregationType();
-        return false;
-      }
-    }
   }
-
-  XLOG(INFO) << "The config is valid";
   return true;
 }
 
