@@ -567,7 +567,7 @@ class SwitchSettings
 
   std::optional<int32_t> getReachabilityGroupListSize() const {
     if (auto reachabilityGroupListSize =
-            cref<switch_state_tags::reachabilityGroupListSize>()) {
+            cref<switch_state_tags::reachabilityGroupListSize_DEPRECATED>()) {
       return reachabilityGroupListSize->toThrift();
     }
     return std::nullopt;
@@ -576,9 +576,9 @@ class SwitchSettings
   void setReachabilityGroupListSize(
       std::optional<int32_t> reachabilityGroupListSize) {
     if (!reachabilityGroupListSize) {
-      ref<switch_state_tags::reachabilityGroupListSize>().reset();
+      ref<switch_state_tags::reachabilityGroupListSize_DEPRECATED>().reset();
     } else {
-      set<switch_state_tags::reachabilityGroupListSize>(
+      set<switch_state_tags::reachabilityGroupListSize_DEPRECATED>(
           *reachabilityGroupListSize);
     }
   }

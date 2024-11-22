@@ -3043,7 +3043,7 @@ std::pair<strings::creditWatchdog, Child<bool, ::apache::thrift::type_class::int
 std::pair<strings::forceEcmpDynamicMemberUp, Child<bool, ::apache::thrift::type_class::integral, ::apache::thrift::type::bool_t>>,
 std::pair<strings::hostname, Child<::std::string, ::apache::thrift::type_class::string, ::apache::thrift::type::string_t>>,
 std::pair<strings::icmpV4UnavailableSrcAddress, ChildThriftPath<::facebook::network::thrift::BinaryAddress, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>,
-std::pair<strings::reachabilityGroupListSize, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
+std::pair<strings::reachabilityGroupListSize_DEPRECATED, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
 std::pair<strings::sramGlobalFreePercentXoffThreshold, Child<::std::int8_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::byte_t>>,
 std::pair<strings::sramGlobalFreePercentXonThreshold, Child<::std::int8_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::byte_t>>,
 std::pair<strings::linkFlowControlCreditThreshold, Child<::std::int16_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i16_t>>,
@@ -3142,7 +3142,7 @@ std::pair<strings::creditWatchdog, std::integral_constant<apache::thrift::field_
 std::pair<strings::forceEcmpDynamicMemberUp, std::integral_constant<apache::thrift::field_id_t, 40>>,
 std::pair<strings::hostname, std::integral_constant<apache::thrift::field_id_t, 41>>,
 std::pair<strings::icmpV4UnavailableSrcAddress, std::integral_constant<apache::thrift::field_id_t, 42>>,
-std::pair<strings::reachabilityGroupListSize, std::integral_constant<apache::thrift::field_id_t, 43>>,
+std::pair<strings::reachabilityGroupListSize_DEPRECATED, std::integral_constant<apache::thrift::field_id_t, 43>>,
 std::pair<strings::sramGlobalFreePercentXoffThreshold, std::integral_constant<apache::thrift::field_id_t, 44>>,
 std::pair<strings::sramGlobalFreePercentXonThreshold, std::integral_constant<apache::thrift::field_id_t, 45>>,
 std::pair<strings::linkFlowControlCreditThreshold, std::integral_constant<apache::thrift::field_id_t, 46>>,
@@ -3196,7 +3196,7 @@ std::pair<strings::reachabilityGroups, std::integral_constant<apache::thrift::fi
     STRUCT_CHILD_GETTERS(forceEcmpDynamicMemberUp, 40);
     STRUCT_CHILD_GETTERS(hostname, 41);
     STRUCT_CHILD_GETTERS(icmpV4UnavailableSrcAddress, 42);
-    STRUCT_CHILD_GETTERS(reachabilityGroupListSize, 43);
+    STRUCT_CHILD_GETTERS(reachabilityGroupListSize_DEPRECATED, 43);
     STRUCT_CHILD_GETTERS(sramGlobalFreePercentXoffThreshold, 44);
     STRUCT_CHILD_GETTERS(sramGlobalFreePercentXonThreshold, 45);
     STRUCT_CHILD_GETTERS(linkFlowControlCreditThreshold, 46);
@@ -3248,7 +3248,7 @@ std::pair<strings::reachabilityGroups, std::integral_constant<apache::thrift::fi
     else if constexpr (__id == 40) { return forceEcmpDynamicMemberUp(); }
     else if constexpr (__id == 41) { return hostname(); }
     else if constexpr (__id == 42) { return icmpV4UnavailableSrcAddress(); }
-    else if constexpr (__id == 43) { return reachabilityGroupListSize(); }
+    else if constexpr (__id == 43) { return reachabilityGroupListSize_DEPRECATED(); }
     else if constexpr (__id == 44) { return sramGlobalFreePercentXoffThreshold(); }
     else if constexpr (__id == 45) { return sramGlobalFreePercentXonThreshold(); }
     else if constexpr (__id == 46) { return linkFlowControlCreditThreshold(); }
