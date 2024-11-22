@@ -1870,6 +1870,10 @@ void SaiSwitch::updatePcsInfo(
             *lastPhyInfo.state()->timeCollected(), /* timeDeltaInSeconds */
         fecMode, /* operational FecMode */
         speed /* operational Speed */);
+    utility::updateFecTail(
+        rsFec, /* current RsFecInfo to update */
+        lastRsFec /* previous RsFecInfo */
+    );
     pcsStats.rsFec() = rsFec;
     sideStats.pcs() = pcsStats;
   }
