@@ -825,6 +825,12 @@ const std::vector<sai_stat_id_t>& SaiSwitchManager::supportedWatermarkStats()
         SaiSwitchTraits::sramMinBufferWatermarkBytes().begin(),
         SaiSwitchTraits::sramMinBufferWatermarkBytes().end());
   }
+  if (platform_->getAsic()->isSupported(HwAsic::Feature::FDR_FIFO_WATERMARK)) {
+    stats.insert(
+        stats.end(),
+        SaiSwitchTraits::fdrFifoWatermarkBytes().begin(),
+        SaiSwitchTraits::fdrFifoWatermarkBytes().end());
+  }
   return stats;
 }
 
