@@ -183,6 +183,17 @@ SaiSwitchTraits::sramMinBufferWatermarkBytes() {
   return stats;
 }
 
+const std::vector<sai_stat_id_t>& SaiSwitchTraits::fdrFifoWatermarkBytes() {
+// TODO: Support is not yet available in 12.0
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_0) && !defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+  static const std::vector<sai_stat_id_t> stats{
+      SAI_SWITCH_STAT_FDR_RX_QUEUE_WM_LEVEL};
+#else
+  static const std::vector<sai_stat_id_t> stats;
+#endif
+  return stats;
+}
+
 void SwitchApi::registerSwitchEventCallback(
     SwitchSaiId id,
     void* switch_event_cb) const {
