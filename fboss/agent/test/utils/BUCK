@@ -110,6 +110,7 @@ cpp_library(
     exported_deps = [
         ":asic_test_utils",
         ":traffic_policy_utils",
+        ":voq_test_utils",
         "//fboss/agent:agent_features",
         "//fboss/agent:fboss-error",
         "//fboss/agent:switch_config-cpp2-types",

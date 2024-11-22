@@ -87,7 +87,7 @@ void updateRemoteIntfWithNeighbor(
 
 std::vector<cfg::PortQueue> getDefaultNifVoqCfg() {
   std::vector<cfg::PortQueue> voqs;
-  if (isDualStage3Q2QMode()) {
+  if (isDualStage3Q2QQos()) {
     cfg::PortQueue rdmaQueue;
     rdmaQueue.id() = 0;
     rdmaQueue.name() = "rdma";
