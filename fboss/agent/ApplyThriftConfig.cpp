@@ -1226,11 +1226,7 @@ void ThriftConfigApplier::processReachabilityGroup(
     const std::vector<SwitchID>& localFabricSwitchIds) {
   std::unordered_map<std::string, std::vector<uint32_t>> switchNameToSwitchIds;
 
-  // TODO(zecheng): Update to look at DsfNode layer config once available.
-
-  // To determine if Dsf cluster is single stage:
-  // If there's more than one clusterIds in dsfNode map, it's in multi-stage.
-  std::unordered_set<int> clusterIds;
+  bool isSingleStageCluster = true;
   for (const auto& [_, dsfNodeMap] : std::as_const(*new_->getDsfNodes())) {
     for (const auto& [_, dsfNode] : std::as_const(*dsfNodeMap)) {
       std::string nodeName = dsfNode->getName();
@@ -1240,12 +1236,11 @@ void ThriftConfigApplier::processReachabilityGroup(
       } else {
         switchNameToSwitchIds[nodeName] = {dsfNode->getID()};
       }
-      if (auto clusterId = dsfNode->getClusterId()) {
-        clusterIds.insert(*clusterId);
+      if (auto fabricLevel = dsfNode->getFabricLevel()) {
+        isSingleStageCluster &= (fabricLevel.value() < 2);
       }
     }
   }
-  bool isSingleStageCluster = clusterIds.size() <= 1;
 
   auto updateReachabilityGroupListSize =
       [&](const auto fabricSwitchId, const auto reachabilityGroupListSize) {
