@@ -103,6 +103,7 @@ RouterInterfaceSaiId SaiRouterInterfaceManager::addOrUpdateVlanRouterInterface(
 RouterInterfaceSaiId SaiRouterInterfaceManager::addOrUpdatePortRouterInterface(
     const std::shared_ptr<Interface>& swInterface,
     bool isLocal) {
+  // TODO: Add support for port router interface
   CHECK(swInterface->getType() == cfg::InterfaceType::SYSTEM_PORT);
   // compute the virtual router id for this router interface
   RouterID routerId = swInterface->getRouterID();
@@ -190,6 +191,8 @@ RouterInterfaceSaiId SaiRouterInterfaceManager::addOrUpdateRouterInterface(
       return addOrUpdateVlanRouterInterface(swInterface, isLocal);
     case cfg::InterfaceType::SYSTEM_PORT:
       return addOrUpdatePortRouterInterface(swInterface, isLocal);
+    case cfg::InterfaceType::PORT:
+      throw FbossError("Port router interface is not yet supported");
   }
   // Should never get here
   throw FbossError("Unknown interface type: ", swInterface->getType());

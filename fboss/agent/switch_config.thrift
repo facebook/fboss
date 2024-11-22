@@ -1362,6 +1362,7 @@ struct NdpConfig {
 enum InterfaceType {
   VLAN = 1,
   SYSTEM_PORT = 2,
+  PORT = 3,
 }
 
 enum AsicType {
@@ -1442,6 +1443,9 @@ struct Interface {
   14: optional map<string, string> dhcpRelayOverridesV4;
   15: optional map<string, string> dhcpRelayOverridesV6;
   16: Scope scope = Scope.LOCAL;
+
+  /* valid only for port type of interface */
+  17: optional i32 portID;
 }
 
 struct StaticRouteWithNextHops {

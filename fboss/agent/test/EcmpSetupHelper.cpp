@@ -334,6 +334,9 @@ BaseEcmpSetupHelper<AddrT, NextHopT>::resolveNextHop(
     case cfg::InterfaceType::SYSTEM_PORT:
       return resolvePortRifNextHop(
           inputState, nhop, intf, useLinkLocal, encapIdx);
+    case cfg::InterfaceType::PORT:
+      // TODO(Chenab): Support port router interface
+      break;
   }
   CHECK(false) << " Unhandled interface type: ";
   return nullptr;
@@ -352,6 +355,9 @@ BaseEcmpSetupHelper<AddrT, NextHopT>::unresolveNextHop(
       return unresolveVlanRifNextHop(inputState, nhop, intf, useLinkLocal);
     case cfg::InterfaceType::SYSTEM_PORT:
       return unresolvePortRifNextHop(inputState, nhop, intf, useLinkLocal);
+    case cfg::InterfaceType::PORT:
+      // TODO(Chenab): Support port router interface
+      break;
   }
   CHECK(false) << " Unhandled interface type: ";
   return nullptr;

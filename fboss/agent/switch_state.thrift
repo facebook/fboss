@@ -542,6 +542,9 @@ struct InterfaceFields {
    */
   21: optional common.LivenessStatus remoteIntfLivenessStatus;
   22: switch_config.Scope scope = switch_config.Scope.LOCAL;
+
+  /* applicable only for port type of interface */
+  23: optional i32 portId;
 }
 
 enum LacpState {

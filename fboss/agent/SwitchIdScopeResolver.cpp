@@ -191,6 +191,9 @@ HwSwitchMatcher SwitchIdScopeResolver::scope(
     case cfg::InterfaceType::VLAN:
       return scope(
           state->getVlans()->getNode(VlanID(static_cast<int>(intf->getID()))));
+    case cfg::InterfaceType::PORT:
+      // TODO(Chenab): Support port router interface
+      break;
   }
   throw FbossError(
       "Unexpected interface type: ", static_cast<int>(intf->getType()));
@@ -226,6 +229,8 @@ HwSwitchMatcher SwitchIdScopeResolver::scope(
       }
       return scope(std::make_shared<Vlan>(&*vitr, vlanMembers));
     }
+    case cfg::InterfaceType::PORT:
+      break;
   }
   throw FbossError("Unexpected interface type: ", static_cast<int>(type));
 }

@@ -3709,7 +3709,8 @@ std::pair<strings::dhcpRelayOverridesV4, ChildThriftPath<::std::map<::std::strin
 std::pair<strings::dhcpRelayOverridesV6, ChildThriftPath<::std::map<::std::string, ::std::string>, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>,
 std::pair<strings::remoteIntfType, Child<::facebook::fboss::RemoteInterfaceType, ::apache::thrift::type_class::enumeration, ::apache::thrift::type::enum_t<::facebook::fboss::RemoteInterfaceType>>>,
 std::pair<strings::remoteIntfLivenessStatus, Child<::facebook::fboss::LivenessStatus, ::apache::thrift::type_class::enumeration, ::apache::thrift::type::enum_t<::facebook::fboss::LivenessStatus>>>,
-std::pair<strings::scope, Child<::facebook::fboss::cfg::Scope, ::apache::thrift::type_class::enumeration, ::apache::thrift::type::enum_t<::facebook::fboss::cfg::Scope>>>>;
+std::pair<strings::scope, Child<::facebook::fboss::cfg::Scope, ::apache::thrift::type_class::enumeration, ::apache::thrift::type::enum_t<::facebook::fboss::cfg::Scope>>>,
+std::pair<strings::portId, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>>;
   using ChildrenById = fatal::tuple<   std::pair<std::integral_constant<apache::thrift::field_id_t, 1>, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 2>, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 3>, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
@@ -3731,7 +3732,8 @@ std::pair<strings::scope, Child<::facebook::fboss::cfg::Scope, ::apache::thrift:
    std::pair<std::integral_constant<apache::thrift::field_id_t, 19>, ChildThriftPath<::std::map<::std::string, ::std::string>, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 20>, Child<::facebook::fboss::RemoteInterfaceType, ::apache::thrift::type_class::enumeration, ::apache::thrift::type::enum_t<::facebook::fboss::RemoteInterfaceType>>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 21>, Child<::facebook::fboss::LivenessStatus, ::apache::thrift::type_class::enumeration, ::apache::thrift::type::enum_t<::facebook::fboss::LivenessStatus>>>,
-   std::pair<std::integral_constant<apache::thrift::field_id_t, 22>, Child<::facebook::fboss::cfg::Scope, ::apache::thrift::type_class::enumeration, ::apache::thrift::type::enum_t<::facebook::fboss::cfg::Scope>>>>;
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 22>, Child<::facebook::fboss::cfg::Scope, ::apache::thrift::type_class::enumeration, ::apache::thrift::type::enum_t<::facebook::fboss::cfg::Scope>>>,
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 23>, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>>;
   template <typename Name>
   using NameToId = fatal::tuple<std::pair<strings::interfaceId, std::integral_constant<apache::thrift::field_id_t, 1>>,
 std::pair<strings::routerId, std::integral_constant<apache::thrift::field_id_t, 2>>,
@@ -3754,7 +3756,8 @@ std::pair<strings::dhcpRelayOverridesV4, std::integral_constant<apache::thrift::
 std::pair<strings::dhcpRelayOverridesV6, std::integral_constant<apache::thrift::field_id_t, 19>>,
 std::pair<strings::remoteIntfType, std::integral_constant<apache::thrift::field_id_t, 20>>,
 std::pair<strings::remoteIntfLivenessStatus, std::integral_constant<apache::thrift::field_id_t, 21>>,
-std::pair<strings::scope, std::integral_constant<apache::thrift::field_id_t, 22>>>::template type_of<Name>;
+std::pair<strings::scope, std::integral_constant<apache::thrift::field_id_t, 22>>,
+std::pair<strings::portId, std::integral_constant<apache::thrift::field_id_t, 23>>>::template type_of<Name>;
 
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
@@ -3782,6 +3785,7 @@ std::pair<strings::scope, std::integral_constant<apache::thrift::field_id_t, 22>
     STRUCT_CHILD_GETTERS(remoteIntfType, 20);
     STRUCT_CHILD_GETTERS(remoteIntfLivenessStatus, 21);
     STRUCT_CHILD_GETTERS(scope, 22);
+    STRUCT_CHILD_GETTERS(portId, 23);
 
   template <apache::thrift::field_id_t __id>
   auto operator()(const std::integral_constant<apache::thrift::field_id_t, __id>&) {
@@ -3807,6 +3811,7 @@ std::pair<strings::scope, std::integral_constant<apache::thrift::field_id_t, 22>
     else if constexpr (__id == 20) { return remoteIntfType(); }
     else if constexpr (__id == 21) { return remoteIntfLivenessStatus(); }
     else if constexpr (__id == 22) { return scope(); }
+    else if constexpr (__id == 23) { return portId(); }
   }
 
   template <typename T, T... Values>
@@ -16125,7 +16130,8 @@ std::pair<strings::dhcpRelayAddressV4, Child<::std::string, ::apache::thrift::ty
 std::pair<strings::dhcpRelayAddressV6, Child<::std::string, ::apache::thrift::type_class::string, ::apache::thrift::type::string_t>>,
 std::pair<strings::dhcpRelayOverridesV4, ChildThriftPath<::std::map<::std::string, ::std::string>, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>,
 std::pair<strings::dhcpRelayOverridesV6, ChildThriftPath<::std::map<::std::string, ::std::string>, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>,
-std::pair<strings::scope, Child<::facebook::fboss::cfg::Scope, ::apache::thrift::type_class::enumeration, ::apache::thrift::type::enum_t<::facebook::fboss::cfg::Scope>>>>;
+std::pair<strings::scope, Child<::facebook::fboss::cfg::Scope, ::apache::thrift::type_class::enumeration, ::apache::thrift::type::enum_t<::facebook::fboss::cfg::Scope>>>,
+std::pair<strings::portID, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>>;
   using ChildrenById = fatal::tuple<   std::pair<std::integral_constant<apache::thrift::field_id_t, 1>, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 2>, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 3>, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
@@ -16141,7 +16147,8 @@ std::pair<strings::scope, Child<::facebook::fboss::cfg::Scope, ::apache::thrift:
    std::pair<std::integral_constant<apache::thrift::field_id_t, 13>, Child<::std::string, ::apache::thrift::type_class::string, ::apache::thrift::type::string_t>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 14>, ChildThriftPath<::std::map<::std::string, ::std::string>, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 15>, ChildThriftPath<::std::map<::std::string, ::std::string>, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>,
-   std::pair<std::integral_constant<apache::thrift::field_id_t, 16>, Child<::facebook::fboss::cfg::Scope, ::apache::thrift::type_class::enumeration, ::apache::thrift::type::enum_t<::facebook::fboss::cfg::Scope>>>>;
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 16>, Child<::facebook::fboss::cfg::Scope, ::apache::thrift::type_class::enumeration, ::apache::thrift::type::enum_t<::facebook::fboss::cfg::Scope>>>,
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 17>, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>>;
   template <typename Name>
   using NameToId = fatal::tuple<std::pair<strings::intfID, std::integral_constant<apache::thrift::field_id_t, 1>>,
 std::pair<strings::routerID, std::integral_constant<apache::thrift::field_id_t, 2>>,
@@ -16158,7 +16165,8 @@ std::pair<strings::dhcpRelayAddressV4, std::integral_constant<apache::thrift::fi
 std::pair<strings::dhcpRelayAddressV6, std::integral_constant<apache::thrift::field_id_t, 13>>,
 std::pair<strings::dhcpRelayOverridesV4, std::integral_constant<apache::thrift::field_id_t, 14>>,
 std::pair<strings::dhcpRelayOverridesV6, std::integral_constant<apache::thrift::field_id_t, 15>>,
-std::pair<strings::scope, std::integral_constant<apache::thrift::field_id_t, 16>>>::template type_of<Name>;
+std::pair<strings::scope, std::integral_constant<apache::thrift::field_id_t, 16>>,
+std::pair<strings::portID, std::integral_constant<apache::thrift::field_id_t, 17>>>::template type_of<Name>;
 
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
@@ -16180,6 +16188,7 @@ std::pair<strings::scope, std::integral_constant<apache::thrift::field_id_t, 16>
     STRUCT_CHILD_GETTERS(dhcpRelayOverridesV4, 14);
     STRUCT_CHILD_GETTERS(dhcpRelayOverridesV6, 15);
     STRUCT_CHILD_GETTERS(scope, 16);
+    STRUCT_CHILD_GETTERS(portID, 17);
 
   template <apache::thrift::field_id_t __id>
   auto operator()(const std::integral_constant<apache::thrift::field_id_t, __id>&) {
@@ -16199,6 +16208,7 @@ std::pair<strings::scope, std::integral_constant<apache::thrift::field_id_t, 16>
     else if constexpr (__id == 14) { return dhcpRelayOverridesV4(); }
     else if constexpr (__id == 15) { return dhcpRelayOverridesV6(); }
     else if constexpr (__id == 16) { return scope(); }
+    else if constexpr (__id == 17) { return portID(); }
   }
 
   template <typename T, T... Values>

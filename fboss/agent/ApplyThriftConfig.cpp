@@ -3851,6 +3851,10 @@ std::shared_ptr<InterfaceMap> ThriftConfigApplier::updateInterfaces() {
       }
       CHECK_EQ((int)sysPort->getScope(), (int)(*interfaceCfg.scope()));
     }
+    if (interfaceCfg.type() == cfg::InterfaceType::PORT) {
+      // TODO(Chenab): Support port router interface
+      throw FbossError("Port router interface is not supported yet");
+    }
     if (origIntf) {
       newIntf = updateInterface(origIntf, &interfaceCfg, newAddrs);
       ++numExistingProcessed;

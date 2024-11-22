@@ -632,6 +632,7 @@ cfg::SwitchConfig multiplePortsPerIntfConfig(
     addInterface(
         vlans[i],
         vlans[i],
+        // TODO(Chenab): Support port router interface
         cfg::InterfaceType::VLAN,
         setInterfaceMac,
         interfaceHasSubnet,
@@ -1054,6 +1055,7 @@ cfg::SwitchConfig twoL3IntfConfig(
     intf.mtu() = 9000;
     intf.routerID() = 0;
     intf.type() = switchType == cfg::SwitchType::NPU
+        // TODO(Chenab): Support port router interface
         ? cfg::InterfaceType::VLAN
         : cfg::InterfaceType::SYSTEM_PORT;
     if (switchType == cfg::SwitchType::VOQ) {
