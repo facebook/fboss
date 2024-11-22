@@ -344,6 +344,12 @@ void accumulateGlobalCpuStats(
   }
 }
 
+DEFINE_dynamic_quantile_stat(
+    port_fec_tail,
+    "port.{}.fecTail",
+    facebook::fb303::ExportTypeConsts::kNone,
+    std::array<double, 1>{{1.0}});
+
 void updatePhyFb303Stats(
     const std::map<facebook::fboss::PortID, facebook::fboss::phy::PhyInfo>&
         phyInfoMap) {
@@ -372,6 +378,9 @@ void updatePhyFb303Stats(
         }
         facebook::fb303::fbData->setCounter(
             "port." + phyState.get_name() + ".preFecBerLog", preFECBerForFb303);
+        if (auto fecTail = fec->fecTail()) {
+          STATS_port_fec_tail.addValue(*fecTail, phyState.get_name());
+        }
       }
     }
   }
