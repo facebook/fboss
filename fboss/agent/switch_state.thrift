@@ -414,6 +414,7 @@ struct SwitchSettingsFields {
   // Conditional Entropy Rehash Period for VOQ devices
   48: optional i32 conditionalEntropyRehashPeriodUS;
   49: optional string firmwarePath;
+  50: list<i32> reachabilityGroups = [];
 }
 
 struct RoutePrefix {
