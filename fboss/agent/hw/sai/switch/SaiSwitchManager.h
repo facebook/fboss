@@ -102,7 +102,7 @@ class SaiSwitchManager {
   }
   void setLocalCapsuleSwitchIds(
       const std::map<SwitchID, int>& switchIdToNumCores);
-  void setReachabilityGroupList(int reachabilityGroupListSize);
+  void setReachabilityGroupList(const std::vector<int>& reachabilityGroups);
   void setSramGlobalFreePercentXoffTh(uint8_t sramFreePercentXoffThreshold);
   void setSramGlobalFreePercentXonTh(uint8_t sramFreePercentXonThreshold);
   void setLinkFlowControlCreditTh(uint16_t linkFlowControlThreshold);

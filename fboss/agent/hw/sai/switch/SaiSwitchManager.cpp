@@ -1009,16 +1009,14 @@ void SaiSwitchManager::setLocalCapsuleSwitchIds(
       SaiSwitchTraits::Attributes::MultiStageLocalSwitchIds{values});
 }
 
-void SaiSwitchManager::setReachabilityGroupList(int reachabilityGroupListSize) {
+void SaiSwitchManager::setReachabilityGroupList(
+    const std::vector<int>& reachabilityGroups) {
 #if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
-  if (reachabilityGroupListSize > 0) {
-    std::vector<uint32_t> list;
-    for (int i = 0; i < reachabilityGroupListSize; i++) {
-      list.push_back(i + 1);
-    }
-    switch_->setOptionalAttribute(
-        SaiSwitchTraits::Attributes::ReachabilityGroupList{list});
-  }
+  std::vector<uint32_t> groupList(
+      reachabilityGroups.begin(), reachabilityGroups.end());
+  std::sort(groupList.begin(), groupList.end());
+  switch_->setOptionalAttribute(
+      SaiSwitchTraits::Attributes::ReachabilityGroupList{groupList});
 #endif
 }
 
