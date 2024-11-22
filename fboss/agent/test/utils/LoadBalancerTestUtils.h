@@ -178,6 +178,7 @@ bool isLoadBalanced(
       portStats, std::vector<NextHopWeight>(), maxDeviationPct);
 }
 
+inline const int kScalingFactorSai(10);
 inline const int kScalingFactor(100);
 inline const int kLoadWeight(70);
 inline const int kQueueWeight(30);
@@ -194,6 +195,7 @@ cfg::UdfConfig addUdfFlowletAclConfig();
 cfg::UdfConfig addUdfHashAclConfig();
 
 cfg::FlowletSwitchingConfig getDefaultFlowletSwitchingConfig(
+    bool isSai,
     cfg::SwitchingMode switchingMode = cfg::SwitchingMode::FLOWLET_QUALITY);
 void addFlowletAcl(
     cfg::SwitchConfig& cfg,
@@ -203,6 +205,7 @@ void addFlowletAcl(
 void addFlowletConfigs(
     cfg::SwitchConfig& cfg,
     const std::vector<PortID>& ports,
+    bool isSai = false,
     cfg::SwitchingMode switchingMode = cfg::SwitchingMode::FLOWLET_QUALITY);
 
 cfg::LoadBalancer getTrunkHalfHashConfig(
