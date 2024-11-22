@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 
+# pyre-unsafe
+
 # Run as python3 find_files_not_in_fboss.py
 #
 #

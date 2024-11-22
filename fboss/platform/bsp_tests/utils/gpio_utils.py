@@ -1,3 +1,4 @@
+# pyre-unsafe
 import re
 from dataclasses import dataclass
 from typing import List, Optional
