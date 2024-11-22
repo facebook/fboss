@@ -360,7 +360,6 @@ class ThriftStructNodeTestSuite : public ::testing::Test {
 
 TYPED_TEST_SUITE(ThriftStructNodeTestSuite, StorageTestTypes);
 
-// no annotation
 TYPED_TEST(ThriftStructNodeTestSuite, ThriftStructNodeModifyTest) {
   using Param = typename TestFixture::T;
   constexpr bool enableHybridStorage = Param::hybridStorage;
@@ -372,6 +371,7 @@ TYPED_TEST(ThriftStructNodeTestSuite, ThriftStructNodeModifyTest) {
   data.inlineInt() = 123;
   data.inlineString() = "HelloThere";
   data.inlineStruct() = std::move(portRange);
+  data.mapOfStringToI32() = {{"test1", 1}};
 
   auto node = this->initNode(data);
   static_assert(!std::is_same_v<
@@ -397,6 +397,12 @@ TYPED_TEST(ThriftStructNodeTestSuite, ThriftStructNodeModifyTest) {
                 typename decltype(node->template get<
                                   k::inlineStruct>())::element_type::CowType,
                 HybridNodeType>);
+
+  static_assert(
+      std::is_same_v<
+          typename decltype(node->template get<
+                            k::mapOfStringToI32>())::element_type::CowType,
+          HybridNodeType> == enableHybridStorage);
 
   if constexpr (!enableHybridStorage) {
     ASSERT_FALSE(node->isPublished());
