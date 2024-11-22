@@ -272,6 +272,7 @@ struct HwSwitchWatermarkStats {
   6: map<string, i64> globalSharedWatermarkBytes;
   7: optional i64 egressCoreBufferWatermarkBytes;
   8: optional i64 sramMinBufferWatermarkBytes;
+  9: optional i64 fdrFifoWatermarkBytes;
 }
 
 struct CpuPortStats {

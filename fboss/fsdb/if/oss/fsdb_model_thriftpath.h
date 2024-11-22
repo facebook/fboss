@@ -20035,7 +20035,8 @@ std::pair<strings::deviceWatermarkBytes, Child<::std::int64_t, ::apache::thrift:
 std::pair<strings::globalHeadroomWatermarkBytes, ChildThriftPath<::std::map<::std::string, ::std::int64_t>, ::facebook::fboss::fsdb::FsdbOperStatsRoot, Self>>,
 std::pair<strings::globalSharedWatermarkBytes, ChildThriftPath<::std::map<::std::string, ::std::int64_t>, ::facebook::fboss::fsdb::FsdbOperStatsRoot, Self>>,
 std::pair<strings::egressCoreBufferWatermarkBytes, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
-std::pair<strings::sramMinBufferWatermarkBytes, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>>;
+std::pair<strings::sramMinBufferWatermarkBytes, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
+std::pair<strings::fdrFifoWatermarkBytes, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>>;
   using ChildrenById = fatal::tuple<   std::pair<std::integral_constant<apache::thrift::field_id_t, 1>, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 2>, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 3>, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
@@ -20043,7 +20044,8 @@ std::pair<strings::sramMinBufferWatermarkBytes, Child<::std::int64_t, ::apache::
    std::pair<std::integral_constant<apache::thrift::field_id_t, 5>, ChildThriftPath<::std::map<::std::string, ::std::int64_t>, ::facebook::fboss::fsdb::FsdbOperStatsRoot, Self>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 6>, ChildThriftPath<::std::map<::std::string, ::std::int64_t>, ::facebook::fboss::fsdb::FsdbOperStatsRoot, Self>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 7>, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
-   std::pair<std::integral_constant<apache::thrift::field_id_t, 8>, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>>;
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 8>, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 9>, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>>;
   template <typename Name>
   using NameToId = fatal::tuple<std::pair<strings::fdrRciWatermarkBytes, std::integral_constant<apache::thrift::field_id_t, 1>>,
 std::pair<strings::coreRciWatermarkBytes, std::integral_constant<apache::thrift::field_id_t, 2>>,
@@ -20052,7 +20054,8 @@ std::pair<strings::deviceWatermarkBytes, std::integral_constant<apache::thrift::
 std::pair<strings::globalHeadroomWatermarkBytes, std::integral_constant<apache::thrift::field_id_t, 5>>,
 std::pair<strings::globalSharedWatermarkBytes, std::integral_constant<apache::thrift::field_id_t, 6>>,
 std::pair<strings::egressCoreBufferWatermarkBytes, std::integral_constant<apache::thrift::field_id_t, 7>>,
-std::pair<strings::sramMinBufferWatermarkBytes, std::integral_constant<apache::thrift::field_id_t, 8>>>::template type_of<Name>;
+std::pair<strings::sramMinBufferWatermarkBytes, std::integral_constant<apache::thrift::field_id_t, 8>>,
+std::pair<strings::fdrFifoWatermarkBytes, std::integral_constant<apache::thrift::field_id_t, 9>>>::template type_of<Name>;
 
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
@@ -20066,6 +20069,7 @@ std::pair<strings::sramMinBufferWatermarkBytes, std::integral_constant<apache::t
     STRUCT_CHILD_GETTERS(globalSharedWatermarkBytes, 6);
     STRUCT_CHILD_GETTERS(egressCoreBufferWatermarkBytes, 7);
     STRUCT_CHILD_GETTERS(sramMinBufferWatermarkBytes, 8);
+    STRUCT_CHILD_GETTERS(fdrFifoWatermarkBytes, 9);
 
   template <apache::thrift::field_id_t __id>
   auto operator()(const std::integral_constant<apache::thrift::field_id_t, __id>&) {
@@ -20077,6 +20081,7 @@ std::pair<strings::sramMinBufferWatermarkBytes, std::integral_constant<apache::t
     else if constexpr (__id == 6) { return globalSharedWatermarkBytes(); }
     else if constexpr (__id == 7) { return egressCoreBufferWatermarkBytes(); }
     else if constexpr (__id == 8) { return sramMinBufferWatermarkBytes(); }
+    else if constexpr (__id == 9) { return fdrFifoWatermarkBytes(); }
   }
 
   template <typename T, T... Values>
