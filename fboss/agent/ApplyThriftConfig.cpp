@@ -1241,24 +1241,29 @@ void ThriftConfigApplier::processReachabilityGroup(
     }
   }
 
-  auto updateReachabilityGroupListSize =
-      [&](const auto fabricSwitchId, const auto reachabilityGroupListSize) {
-        auto matcher = HwSwitchMatcher(std::unordered_set<SwitchID>(
-            {static_cast<SwitchID>(fabricSwitchId)}));
-        if (new_->getSwitchSettings()
-                ->getNodeIf(matcher.matcherString())
-                ->getReachabilityGroupListSize() != reachabilityGroupListSize) {
-          auto newMultiSwitchSettings = new_->getSwitchSettings()->clone();
-          auto newSwitchSettings =
-              newMultiSwitchSettings->getNodeIf(matcher.matcherString())
-                  ->clone();
-          newSwitchSettings->setReachabilityGroupListSize(
-              reachabilityGroupListSize);
-          newMultiSwitchSettings->updateNode(
-              matcher.matcherString(), newSwitchSettings);
-          new_->resetSwitchSettings(newMultiSwitchSettings);
-        }
-      };
+  auto updateReachabilityGroups = [&](const auto fabricSwitchId,
+                                      const auto&
+                                          destinationId2ReachabilityGroup) {
+    std::vector<int> reachabilityGroups;
+    for (const auto& [_, groupId] : destinationId2ReachabilityGroup) {
+      reachabilityGroups.push_back(groupId);
+    }
+
+    auto matcher = HwSwitchMatcher(
+        std::unordered_set<SwitchID>({static_cast<SwitchID>(fabricSwitchId)}));
+    auto currReachabilityGroups = new_->getSwitchSettings()
+                                      ->getNodeIf(matcher.matcherString())
+                                      ->getReachabilityGroups();
+    if (currReachabilityGroups != reachabilityGroups) {
+      auto newMultiSwitchSettings = new_->getSwitchSettings()->clone();
+      auto newSwitchSettings =
+          newMultiSwitchSettings->getNodeIf(matcher.matcherString())->clone();
+      newSwitchSettings->setReachabilityGroups(reachabilityGroups);
+      newMultiSwitchSettings->updateNode(
+          matcher.matcherString(), newSwitchSettings);
+      new_->resetSwitchSettings(newMultiSwitchSettings);
+    }
+  };
 
   bool parallelVoqLinks = haveParallelLinksToInterfaceNodes(
       cfg_,
@@ -1320,8 +1325,7 @@ void ThriftConfigApplier::processReachabilityGroup(
           newPort->setReachabilityGroupId(reachabilityGroupId);
         }
       }
-      updateReachabilityGroupListSize(
-          fabricSwitchId, destinationId2ReachabilityGroup.size());
+      updateReachabilityGroups(fabricSwitchId, destinationId2ReachabilityGroup);
     }
   }
 }

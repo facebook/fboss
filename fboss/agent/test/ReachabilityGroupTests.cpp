@@ -32,15 +32,7 @@ class ReachabilityGroupTest : public ::testing::Test {
     const auto& state = sw_->getState();
     for (const auto& [_, switchSettings] :
          std::as_const(*state->getSwitchSettings())) {
-      if (expectedSize > 0) {
-        EXPECT_TRUE(switchSettings->getReachabilityGroupListSize().has_value());
-        EXPECT_EQ(
-            switchSettings->getReachabilityGroupListSize().value(),
-            expectedSize);
-      } else {
-        EXPECT_FALSE(
-            switchSettings->getReachabilityGroupListSize().has_value());
-      }
+      EXPECT_EQ(switchSettings->getReachabilityGroups().size(), expectedSize);
     }
   }
 
