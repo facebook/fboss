@@ -373,7 +373,6 @@ void SaiPhyManager::programOnePort(
     // Get phy platform
     auto globalPhyID = getGlobalXphyIDbyPortIDLocked(wLockedCache);
     auto saiPlatform = getSaiPlatform(globalPhyID);
-    auto saiSwitch = static_cast<SaiSwitch*>(saiPlatform->getHwSwitch());
     const auto& desiredPhyPortConfig =
         getDesiredPhyPortConfig(portId, portProfileId, transceiverInfo);
 
@@ -588,8 +587,6 @@ void SaiPhyManager::setSaiPortLoopbackState(
   auto saiPlatform = getSaiPlatform(globalPhyID);
   auto saiSwitch = static_cast<SaiSwitch*>(saiPlatform->getHwSwitch());
 
-  auto switchId = saiSwitch->getSaiSwitchId();
-
   // Get port handle and then get port attributes
   auto portHandle =
       saiSwitch->managerTable()->portManager().getPortHandle(swPort);
@@ -626,8 +623,6 @@ void SaiPhyManager::setSaiPortAdminState(
   auto globalPhyID = getGlobalXphyIDbyPortID(swPort);
   auto saiPlatform = getSaiPlatform(globalPhyID);
   auto saiSwitch = static_cast<SaiSwitch*>(saiPlatform->getHwSwitch());
-
-  auto switchId = saiSwitch->getSaiSwitchId();
 
   // Get port handle and then get port attributes
   auto portHandle =
@@ -1071,7 +1066,6 @@ void SaiPhyManager::xphyPortStateToggle(PortID swPort, phy::Side side) {
   }
 
   auto saiSwitch = static_cast<SaiSwitch*>(saiPlatform->getHwSwitch());
-  auto switchId = saiSwitch->getSaiSwitchId();
 
   // Get port handle and then get port adapter key (SAI object id)
   auto portHandle =
