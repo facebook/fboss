@@ -1227,18 +1227,17 @@ void ThriftConfigApplier::processReachabilityGroup(
   std::unordered_map<std::string, std::vector<uint32_t>> switchNameToSwitchIds;
 
   bool isSingleStageCluster = true;
-  for (const auto& [_, dsfNodeMap] : std::as_const(*new_->getDsfNodes())) {
-    for (const auto& [_, dsfNode] : std::as_const(*dsfNodeMap)) {
-      std::string nodeName = dsfNode->getName();
-      auto iter = switchNameToSwitchIds.find(nodeName);
-      if (iter != switchNameToSwitchIds.end()) {
-        iter->second.push_back(dsfNode->getID());
-      } else {
-        switchNameToSwitchIds[nodeName] = {dsfNode->getID()};
-      }
-      if (auto fabricLevel = dsfNode->getFabricLevel()) {
-        isSingleStageCluster &= (fabricLevel.value() < 2);
-      }
+  for (const auto& [_, dsfNode] : *cfg_->dsfNodes()) {
+    std::string nodeName = *dsfNode.name();
+    auto iter = switchNameToSwitchIds.find(nodeName);
+    if (iter != switchNameToSwitchIds.end()) {
+      iter->second.push_back(*dsfNode.switchId());
+    } else {
+      switchNameToSwitchIds[nodeName] = {
+          static_cast<uint32_t>(*dsfNode.switchId())};
+    }
+    if (auto fabricLevel = dsfNode.fabricLevel()) {
+      isSingleStageCluster &= (fabricLevel.value() < 2);
     }
   }
 
