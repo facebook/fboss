@@ -277,82 +277,146 @@
         {
           "name": "FAN1_F_RPM",
           "sysfsPath": "/run/devmap/sensors/MCB_FAN_PWM/fan1_input",
-          "type": 4
+          "type": 4,
+          "thresholds": {
+            "upperCriticalVal": 20700,
+            "lowerCriticalVal": 3245
+          }
         },
         {
           "name": "FAN1_R_RPM",
           "sysfsPath": "/run/devmap/sensors/MCB_FAN_PWM/fan2_input",
-          "type": 4
+          "type": 4,
+          "thresholds": {
+            "upperCriticalVal": 20700,
+            "lowerCriticalVal": 3245
+          }
         },
         {
           "name": "FAN2_F_RPM",
           "sysfsPath": "/run/devmap/sensors/MCB_FAN_PWM/fan3_input",
-          "type": 4
+          "type": 4,
+          "thresholds": {
+            "upperCriticalVal": 20700,
+            "lowerCriticalVal": 3245
+          }
         },
         {
           "name": "FAN2_R_RPM",
           "sysfsPath": "/run/devmap/sensors/MCB_FAN_PWM/fan4_input",
-          "type": 4
+          "type": 4,
+          "thresholds": {
+            "upperCriticalVal": 20700,
+            "lowerCriticalVal": 3245
+          }
         },
         {
           "name": "FAN3_F_RPM",
           "sysfsPath": "/run/devmap/sensors/MCB_FAN_PWM/fan5_input",
-          "type": 4
+          "type": 4,
+          "thresholds": {
+            "upperCriticalVal": 20700,
+            "lowerCriticalVal": 3245
+          }
         },
         {
           "name": "FAN3_R_RPM",
           "sysfsPath": "/run/devmap/sensors/MCB_FAN_PWM/fan6_input",
-          "type": 4
+          "type": 4,
+          "thresholds": {
+            "upperCriticalVal": 20700,
+            "lowerCriticalVal": 3245
+          }
         },
         {
           "name": "FAN4_F_RPM",
           "sysfsPath": "/run/devmap/sensors/MCB_FAN_PWM/fan7_input",
-          "type": 4
+          "type": 4,
+          "thresholds": {
+            "upperCriticalVal": 20700,
+            "lowerCriticalVal": 3245
+          }
         },
         {
           "name": "FAN4_R_RPM",
           "sysfsPath": "/run/devmap/sensors/MCB_FAN_PWM/fan8_input",
-          "type": 4
+          "type": 4,
+          "thresholds": {
+            "upperCriticalVal": 20700,
+            "lowerCriticalVal": 3245
+          }
         },
         {
           "name": "FAN5_F_RPM",
           "sysfsPath": "/run/devmap/sensors/MCB_FAN_PWM/fan9_input",
-          "type": 4
+          "type": 4,
+          "thresholds": {
+            "upperCriticalVal": 20700,
+            "lowerCriticalVal": 3245
+          }
         },
         {
           "name": "FAN5_R_RPM",
           "sysfsPath": "/run/devmap/sensors/MCB_FAN_PWM/fan10_input",
-          "type": 4
+          "type": 4,
+          "thresholds": {
+            "upperCriticalVal": 20700,
+            "lowerCriticalVal": 3245
+          }
         },
         {
           "name": "FAN6_F_RPM",
           "sysfsPath": "/run/devmap/sensors/MCB_FAN_PWM/fan11_input",
-          "type": 4
+          "type": 4,
+          "thresholds": {
+            "upperCriticalVal": 20700,
+            "lowerCriticalVal": 3245
+          }
         },
         {
           "name": "FAN6_R_RPM",
           "sysfsPath": "/run/devmap/sensors/MCB_FAN_PWM/fan12_input",
-          "type": 4
+          "type": 4,
+          "thresholds": {
+            "upperCriticalVal": 20700,
+            "lowerCriticalVal": 3245
+          }
         },
         {
           "name": "FAN7_F_RPM",
           "sysfsPath": "/run/devmap/sensors/MCB_FAN_PWM/fan13_input",
-          "type": 4
+          "type": 4,
+          "thresholds": {
+            "upperCriticalVal": 20700,
+            "lowerCriticalVal": 3245
+          }
         },
         {
           "name": "FAN7_R_RPM",
           "sysfsPath": "/run/devmap/sensors/MCB_FAN_PWM/fan14_input",
-          "type": 4
+          "type": 4,
+          "thresholds": {
+            "upperCriticalVal": 20700,
+            "lowerCriticalVal": 3245
+          }
         },
         {
           "name": "FAN8_F_RPM",
           "sysfsPath": "/run/devmap/sensors/MCB_FAN_PWM/fan15_input",
-          "type": 4
+          "type": 4,
+          "thresholds": {
+            "upperCriticalVal": 20700,
+            "lowerCriticalVal": 3245
+          }
         },
         {
           "name": "FAN8_R_RPM",
           "sysfsPath": "/run/devmap/sensors/MCB_FAN_PWM/fan16_input",
-          "type": 4
+          "type": 4,
+          "thresholds": {
+            "upperCriticalVal": 20700,
+            "lowerCriticalVal": 3245
+          }
         }
       ]
     },

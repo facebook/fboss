@@ -9,8 +9,6 @@
  */
 #include "fboss/lib/AlertLogger.h"
 
-#include <folly/logging/xlog.h>
-
 namespace facebook::fboss {
 
 // Prefix for fboss alert tag

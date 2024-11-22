@@ -1165,7 +1165,6 @@ void ThriftConfigApplier::processUpdatedDsfNodes() {
     sysPort->setNumVoqs(
         getNumVoqs(cfg::PortType::RECYCLE_PORT, cfg::Scope::GLOBAL));
     sysPort->setScope(cfg::Scope::GLOBAL);
-    sysPort->setShelDestinationEnabled(true);
     // TODO(daiweix): use voq config of rcy ports, hardcode rcy portID 1 for now
     sysPort->resetPortQueues(getVoqConfig(PortID(1)));
     if (auto cpuTrafficPolicy = cfg_->cpuTrafficPolicy()) {
@@ -1684,9 +1683,6 @@ shared_ptr<SystemPortMap> ThriftConfigApplier::updateSystemPorts(
           (int)platformPort.mapping()->scope().value(),
           (int)port.second->getScope());
       sysPort->setScope(port.second->getScope());
-      sysPort->setShelDestinationEnabled(
-          port.second->getPortType() == cfg::PortType::RECYCLE_PORT &&
-          port.second->getScope() == cfg::Scope::GLOBAL);
       sysPorts->addSystemPort(std::move(sysPort));
     }
   }
@@ -5159,6 +5155,16 @@ std::shared_ptr<Mirror> ThriftConfigApplier::createMirror(
      */
     throw FbossError(
         "Must provide either egressPort or tunnel with endpoint ip for mirror");
+  }
+
+  for (auto& switchIdAndSwitchInfo :
+       *cfg_->switchSettings()->switchIdToSwitchInfo()) {
+    if (switchIdAndSwitchInfo.second.asicType() ==
+            cfg::AsicType::ASIC_TYPE_JERICHO3 &&
+        !mirrorConfig->get_truncate()) {
+      throw FbossError(
+          "Jericho3 asic must have truncation enabled on mirror sessions");
+    }
   }
 
   std::optional<PortID> mirrorEgressPort;

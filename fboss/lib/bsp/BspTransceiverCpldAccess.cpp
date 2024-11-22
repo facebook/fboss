@@ -2,18 +2,11 @@
 
 #include "fboss/lib/bsp/BspTransceiverCpldAccess.h"
 
-#include <fcntl.h>
 #include <folly/Format.h>
 #include <folly/Range.h>
-#include <folly/lang/Bits.h>
 #include <folly/logging/xlog.h>
-#include <gflags/gflags.h>
-#include <linux/i2c-dev.h>
-#include <linux/i2c.h>
 #include <stdint.h>
-#include <sys/ioctl.h>
 #include "fboss/lib/CommonFileUtils.h"
-#include "fboss/lib/bsp/BspTransceiverAccess.h"
 #include "fboss/lib/bsp/gen-cpp2/bsp_platform_mapping_types.h"
 
 namespace facebook {

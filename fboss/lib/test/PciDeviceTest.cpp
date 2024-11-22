@@ -11,7 +11,6 @@
 #include <folly/Singleton.h>
 #include <glog/logging.h>
 #include <gtest/gtest.h>
-#include <stdexcept>
 
 extern "C" {
 #include <pciaccess.h>

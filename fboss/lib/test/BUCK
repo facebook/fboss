@@ -169,7 +169,6 @@ cpp_unittest(
         "CommonPortUtilsTest.cpp",
     ],
     deps = [
-        "//fboss/agent:fboss-error",
         "//fboss/lib:common_file_utils",
         "//fboss/lib:common_port_utils",
         "//folly:format",
@@ -179,6 +178,5 @@ cpp_unittest(
     ],
     external_deps = [
         "glog",
-        ("boost", None, "boost_filesystem"),
     ],
 )
