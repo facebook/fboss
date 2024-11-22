@@ -28,6 +28,11 @@ class ConfigValidator {
       const platform_manager::PlatformConfig& platformConfig,
       const std::string& pmUnitSensorsSlotPath,
       const std::vector<sensor_config::PmSensor>& pmSensors);
+  bool isPmValidVersionedPmSensors(
+      const platform_manager::PlatformConfig& platformConfig,
+      const std::string& slotPath,
+      const std::string& pmUnitName,
+      const std::vector<sensor_config::VersionedPmSensor>& versionedPmSensors);
 
  private:
   const std::shared_ptr<platform_manager::ConfigValidator> pmConfigValidator_;
