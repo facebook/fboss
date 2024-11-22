@@ -431,6 +431,7 @@ struct RsFecInfo {
   // Map of symbol error to number of codewords with that many symbol errors.
   // Stores cumulative counts
   5: map<i16, i64> codewordStats;
+  6: optional i16 fecTail;
 }
 
 struct PmdInfo {
