@@ -1037,13 +1037,23 @@ TEST_F(AgentVoqSwitchWithFabricPortsTest, fdrCellDrops) {
             std::vector<uint8_t>(1024, 0xff));
       }
     };
+    int64_t fdrFifoWatermark = 0;
     int64_t fdrCellDrops = 0;
     WITH_RETRIES({
       sendPkts();
+      for (const auto& switchWatermarksIter : getAllSwitchWatermarkStats()) {
+        if (switchWatermarksIter.second.fdrFifoWatermarkBytes().has_value()) {
+          fdrFifoWatermark +=
+              switchWatermarksIter.second.fdrFifoWatermarkBytes().value();
+        }
+      }
+      EXPECT_EVENTUALLY_GT(fdrFifoWatermark, 0);
       fdrCellDrops = *getAggregatedSwitchDropStats().fdrCellDrops();
       // TLTimeseries value > 0
       EXPECT_EVENTUALLY_GT(fdrCellDrops, 0);
     });
+    XLOG(DBG0) << "FDR fifo watermark: " << fdrFifoWatermark
+               << ", FDR cell drops: " << fdrCellDrops;
     // Assert that we don't spuriously increment fdrCellDrops on every drop
     // stats. This would happen if we treated a stat as clear on read, while
     // in HW it was cumulative
