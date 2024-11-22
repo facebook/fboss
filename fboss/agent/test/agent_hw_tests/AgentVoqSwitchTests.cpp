@@ -1191,13 +1191,12 @@ TEST_F(AgentVoqSwitchTest, sendPacketCpuAndFrontPanel) {
                 egressCoreWatermarkBytes +=
                     switchWatermarksIter.second.egressCoreBufferWatermarkBytes()
                         .value();
-                if (switchWatermarksIter.second.sramMinBufferWatermarkBytes()
-                        .has_value()) {
-                  sramMinBufferWatermarkBytes = std::min(
-                      sramMinBufferWatermarkBytes,
-                      *switchWatermarksIter.second
-                           .sramMinBufferWatermarkBytes());
-                }
+              }
+              if (switchWatermarksIter.second.sramMinBufferWatermarkBytes()
+                      .has_value()) {
+                sramMinBufferWatermarkBytes = std::min(
+                    sramMinBufferWatermarkBytes,
+                    *switchWatermarksIter.second.sramMinBufferWatermarkBytes());
               }
             }
             XLOG(DBG2) << "Verifying: "
