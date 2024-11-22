@@ -198,6 +198,7 @@ class HwAsic {
     EGRESS_ACL_TABLE,
     FAST_LLFC_COUNTER,
     INGRESS_SRAM_MIN_BUFFER_WATERMARK,
+    FDR_FIFO_WATERMARK,
   };
 
   enum class AsicMode {
