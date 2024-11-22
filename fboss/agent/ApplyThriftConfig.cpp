@@ -1271,6 +1271,12 @@ void ThriftConfigApplier::processReachabilityGroup(
     auto newPortMap = new_->getPorts()->modify(&new_);
     for (const auto& fabricSwitchId : localFabricSwitchIds) {
       std::unordered_map<int, int> destinationId2ReachabilityGroup;
+
+      // For reachability groups with parallel links, use index 1-128.
+      // Else use index for single link groups in range 129-256
+      int nextParallelLinkGroup = 1;
+      int nextSingleLinkGroup = 129;
+
       for (const auto& portCfg : *cfg_->ports()) {
         if (scopeResolver_.scope(portCfg).has(SwitchID(fabricSwitchId)) &&
             portCfg.expectedNeighborReachability()->size() > 0) {
@@ -1280,26 +1286,24 @@ void ThriftConfigApplier::processReachabilityGroup(
               new_->getDsfNodes()->getNode(neighborRemoteSwitchId);
 
           int destinationId;
-          // For parallel VOQ links, assign links reaching the same VOQ
-          // switch.
-          if (parallelVoqLinks &&
-              neighborDsfNode->getType() == cfg::DsfNodeType::INTERFACE_NODE) {
+          if (neighborDsfNode->getType() == cfg::DsfNodeType::INTERFACE_NODE) {
             destinationId = neighborRemoteSwitchId;
-          } else if (neighborDsfNode->getClusterId() == std::nullopt) {
-            // Assign links based on cluster ID. Note that in dual stage,
-            // FE2 has no cluster ID: use -1 for grouping purpose.
-            CHECK_EQ(
-                static_cast<int>(cfg::DsfNodeType::FABRIC_NODE),
-                static_cast<int>(neighborDsfNode->getType()));
-            destinationId = -1;
           } else {
-            destinationId = neighborDsfNode->getClusterId().value();
+            // Fabric node links: assign links based on cluster ID. Note that in
+            // dual stage, FE2 has no cluster ID: use -1 for grouping purpose.
+            destinationId = neighborDsfNode->getClusterId().value_or(-1);
           }
+          bool singleLinkGroup =
+              neighborDsfNode->getType() == cfg::DsfNodeType::INTERFACE_NODE &&
+              !parallelVoqLinks;
+          int& nextGroupId =
+              singleLinkGroup ? nextSingleLinkGroup : nextParallelLinkGroup;
 
           auto [it, inserted] = destinationId2ReachabilityGroup.insert(
-              {destinationId, destinationId2ReachabilityGroup.size() + 1});
+              {destinationId, nextGroupId});
           auto reachabilityGroupId = it->second;
           if (inserted) {
+            nextGroupId++;
             XLOG(DBG2) << "Create new reachability group "
                        << reachabilityGroupId << " towards node "
                        << neighborDsfNode->getName() << " with switchId "
