@@ -77,7 +77,8 @@ class AgentSflowMirrorTest : public AgentHwTest {
         false,
         utility::getSflowMirrorDestination(v4).str(),
         udpSrcPort,
-        udpDstPort);
+        udpDstPort,
+        v4);
   }
 
   virtual void configureMirror(
@@ -170,7 +171,7 @@ class AgentSflowMirrorTest : public AgentHwTest {
       }
       auto exporterIp =
           folly::IPAddressV6::fromBinary(folly::ByteRange(exporterIpBytes, 16));
-      EXPECT_EQ(exporterIp, utility::getSflowMirrorSource());
+      EXPECT_EQ(exporterIp, utility::getSflowMirrorSource(false /* isV4 */));
     }
   }
   void validateSflowPacketHeader(
@@ -568,7 +569,8 @@ class AgentSflowMirrorTruncateTest : public AgentSflowMirrorTest<AddrT> {
         true /* truncate */,
         utility::getSflowMirrorDestination(v4).str(),
         udpSrcPort,
-        udpDstPort);
+        udpDstPort,
+        v4);
   }
 
   virtual void configureMirror(
