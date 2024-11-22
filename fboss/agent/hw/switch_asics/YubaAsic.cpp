@@ -89,6 +89,7 @@ bool YubaAsic::isSupportedNonFabric(Feature feature) const {
     case HwAsic::Feature::MULTIPLE_EGRESS_BUFFER_POOL:
     case HwAsic::Feature::L3_INTF_MTU:
     case HwAsic::Feature::DEDICATED_CPU_BUFFER_POOL:
+    case HwAsic::Feature::SAI_FEC_CORRECTED_BITS:
       return true;
     case HwAsic::Feature::ACL_BYTE_COUNTER:
     case HwAsic::Feature::SAI_MPLS_LABEL_LOOKUP_FAIL_COUNTER:
@@ -162,7 +163,6 @@ bool YubaAsic::isSupportedNonFabric(Feature feature) const {
     case HwAsic::Feature::SAI_USER_DEFINED_TRAP:
     case HwAsic::Feature::CREDIT_WATCHDOG:
     case HwAsic::Feature::ECMP_DLB_OFFSET:
-    case HwAsic::Feature::SAI_FEC_CORRECTED_BITS:
     case HwAsic::Feature::LINK_INACTIVE_BASED_ISOLATE:
     case HwAsic::Feature::RX_SNR:
     case HwAsic::Feature::MANAGEMENT_PORT:
