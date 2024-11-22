@@ -47,3 +47,28 @@ TEST(ConfigValidatorTest, OpticConfig) {
   optic.pidSettings() = {{"OPTIC_TYPE_100_GENERIC", PidSetting()}};
   EXPECT_TRUE(ConfigValidator().isValidOpticConfig(optic));
 }
+
+TEST(ConfigValidatorTest, ZoneConfig) {
+  auto zone = Zone();
+  EXPECT_FALSE(ConfigValidator().isValidZoneConfig(zone, {}, {}, {}));
+  zone.zoneName() = "ZONE_0";
+  zone.zoneType() = constants::ZONE_TYPE_MAX();
+  EXPECT_TRUE(ConfigValidator().isValidZoneConfig(zone, {}, {}, {}));
+  zone.fanNames() = {"FAN_0"};
+  auto fan = Fan();
+  fan.fanName() = "FAN_1";
+  EXPECT_FALSE(ConfigValidator().isValidZoneConfig(zone, {fan}, {}, {}));
+  fan.fanName() = "FAN_0";
+  EXPECT_TRUE(ConfigValidator().isValidZoneConfig(zone, {fan}, {}, {}));
+  zone.sensorNames() = {"SENSOR_0"};
+  EXPECT_FALSE(ConfigValidator().isValidZoneConfig(zone, {fan}, {}, {}));
+  auto sensor = Sensor();
+  sensor.sensorName() = "SENSOR_0";
+  EXPECT_TRUE(ConfigValidator().isValidZoneConfig(zone, {fan}, {sensor}, {}));
+  zone.sensorNames() = {"SENSOR_0", "OPTIC_0"};
+  EXPECT_FALSE(ConfigValidator().isValidZoneConfig(zone, {fan}, {sensor}, {}));
+  auto optic = Optic();
+  optic.opticName() = "OPTIC_0";
+  EXPECT_TRUE(
+      ConfigValidator().isValidZoneConfig(zone, {fan}, {sensor}, {optic}));
+}

@@ -3,6 +3,8 @@
 #include "fboss/platform/fan_service/ConfigValidator.h"
 
 #include <folly/logging/xlog.h>
+#include <range/v3/range/conversion.hpp>
+#include <range/v3/view/transform.hpp>
 
 #include "fboss/platform/fan_service/if/gen-cpp2/fan_service_config_constants.h"
 #include "fboss/platform/fan_service/if/gen-cpp2/fan_service_config_types.h"
@@ -83,8 +85,8 @@ bool ConfigValidator::isValid(const FanServiceConfig& config) {
   }
 
   for (const auto& zone : *config.zones()) {
-    if (!zoneTypes.count(*zone.zoneType())) {
-      XLOG(ERR) << "Invalid zone type: " << *zone.zoneType();
+    if (!isValidZoneConfig(
+            zone, *config.fans(), *config.sensors(), *config.optics())) {
       return false;
     }
   }
@@ -161,4 +163,47 @@ bool ConfigValidator::isValidOpticConfig(const Optic& optic) {
   return true;
 }
 
+bool ConfigValidator::isValidZoneConfig(
+    const Zone& zone,
+    const std::vector<Fan>& fans,
+    const std::vector<Sensor>& sensors,
+    const std::vector<Optic>& optics) {
+  if (zone.zoneName()->empty()) {
+    XLOG(ERR) << "zoneName cannot be empty";
+    return false;
+  }
+  if (!zoneTypes.count(*zone.zoneType())) {
+    XLOG(ERR) << "Invalid zone type: " << *zone.zoneType();
+    return false;
+  }
+  auto validFanNames = fans |
+      ranges::views::transform([](const auto& fan) { return *fan.fanName(); }) |
+      ranges::to<std::unordered_set>;
+  auto validSensorNames = sensors |
+      ranges::views::transform([](const auto& sensor) {
+                            return *sensor.sensorName();
+                          }) |
+      ranges::to<std::unordered_set>;
+  auto validOpticNames = optics |
+      ranges::views::transform([](const auto& optic) {
+                           return *optic.opticName();
+                         }) |
+      ranges::to<std::unordered_set>;
+  for (const auto& fanName : *zone.fanNames()) {
+    if (!validFanNames.count(fanName)) {
+      XLOG(ERR) << fmt::format(
+          "Invalid fan name: {} in Zone: {}", fanName, *zone.zoneName());
+      return false;
+    }
+  }
+  for (const auto& sensorName : *zone.sensorNames()) {
+    if (!validSensorNames.count(sensorName) &&
+        !validOpticNames.count(sensorName)) {
+      XLOG(ERR) << fmt::format(
+          "Invalid sensor name: {} in Zone: {}", sensorName, *zone.zoneName());
+      return false;
+    }
+  }
+  return true;
+}
 } // namespace facebook::fboss::platform::fan_service

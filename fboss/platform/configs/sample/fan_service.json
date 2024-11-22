@@ -181,8 +181,7 @@
         "SC_TH3_DIODE1_TEMP"
       ],
       "fanNames": [
-        "fan_5",
-        "fan_6"
+        "fan_5"
       ],
       "slope": 3
     },
