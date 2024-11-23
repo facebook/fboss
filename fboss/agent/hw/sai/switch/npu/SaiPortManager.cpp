@@ -445,6 +445,8 @@ void SaiPortManager::attributesFromSaiStore(
       port->attributes(),
       attributes,
       SaiPortTraits::Attributes::QosPfcPriorityToQueueMap{});
+  getAndSetAttribute(
+      port->attributes(), attributes, SaiPortTraits::Attributes::TamObject{});
   if (platform_->getAsic()->isSupported(
           HwAsic::Feature::PORT_TTL_DECREMENT_DISABLE)) {
     getAndSetAttribute(
