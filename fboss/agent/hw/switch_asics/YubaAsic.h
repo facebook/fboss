@@ -69,6 +69,8 @@ class YubaAsic : public TajoAsic {
     // Concept of scaling factor does not apply returning the same value TH3
     return cfg::MMUScalingFactor::TWO;
   }
+  const std::map<cfg::PortType, cfg::PortLoopbackMode>& desiredLoopbackModes()
+      const override;
   int getMaxNumLogicalPorts() const override {
     // 256 physical lanes + cpu
     return 257;

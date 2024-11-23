@@ -249,6 +249,16 @@ std::set<cfg::StreamType> YubaAsic::getQueueStreamTypes(
   throw FbossError(
       "ASIC does not support:", apache::thrift::util::enumNameSafe(portType));
 }
+
+const std::map<cfg::PortType, cfg::PortLoopbackMode>&
+YubaAsic::desiredLoopbackModes() const {
+  static const std::map<cfg::PortType, cfg::PortLoopbackMode> kLoopbackMode = {
+      {cfg::PortType::INTERFACE_PORT, cfg::PortLoopbackMode::MAC},
+      {cfg::PortType::MANAGEMENT_PORT, cfg::PortLoopbackMode::NONE},
+  };
+  return kLoopbackMode;
+}
+
 cfg::Range64 YubaAsic::getReservedEncapIndexRange() const {
   if (getSwitchType() == cfg::SwitchType::VOQ) {
     // Reserved range worked out with vendor. These ids
