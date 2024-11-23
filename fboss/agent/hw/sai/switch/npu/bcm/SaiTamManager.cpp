@@ -174,6 +174,8 @@ void SaiTamManager::addMirrorOnDropReport(
     std::get<SaiTamEventTraits::Attributes::Type>(eventTraits) =
         SAI_TAM_EVENT_TYPE_PACKET_DROP_STATEFUL;
     std::get<SaiTamEventTraits::Attributes::ActionList>(eventTraits) = actions;
+    std::get<std::optional<SaiTamEventTraits::Attributes::DeviceId>>(
+        eventTraits) = 0; // specify 0 explcitily so that round trip works
     std::get<std::optional<SaiTamEventTraits::Attributes::SwitchEventId>>(
         eventTraits) = eventId;
     std::get<
