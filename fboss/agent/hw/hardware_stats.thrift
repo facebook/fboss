@@ -297,6 +297,10 @@ struct HwSwitchDropStats {
   11: optional i64 ingressPacketPipelineRejectDrops;
   12: optional i64 corruptedCellPacketIntegrityDrops;
   13: optional i64 missingCellPacketIntegrityDrops;
+  14: optional i64 rqpFabricCellCorruptionDrops;
+  15: optional i64 rqpNonFabricCellCorruptionDrops;
+  16: optional i64 rqpNonFabricCellMissingDrops;
+  17: optional i64 rqpParityErrorDrops;
 }
 
 struct HwSwitchDramStats {
@@ -307,13 +311,6 @@ struct HwSwitchDramStats {
 
 struct HwSwitchCreditStats {
   1: optional i64 deletedCreditBytes;
-}
-
-struct HwSwitchEgressCellErrorStats {
-  1: i64 rqpFabricCellCorruption;
-  2: i64 rqpNonFabricCellCorruption;
-  3: i64 rqpNonFabricCellMissing;
-  4: i64 rqpParityError;
 }
 
 struct HwSwitchFb303GlobalStats {
