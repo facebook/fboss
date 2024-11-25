@@ -32,23 +32,20 @@ class CowStorage : public Storage<Root, CowStorage<Root, Node>> {
   using ExtPath = typename Base::ExtPath;
   using ExtPathIter = typename Base::ExtPathIter;
 
-  template <
-      typename T,
-      std::enable_if_t<std::is_same_v<std::decay_t<T>, Root>, bool> = true>
+  template <typename T>
   explicit CowStorage(T&& root)
+    requires(std::is_same_v<std::decay_t<T>, Root>)
       : root_(std::make_shared<StorageImpl>(std::forward<T>(root))) {}
 
-  template <
-      typename T,
-      std::enable_if_t<std::is_same_v<std::decay_t<T>, Root>, bool> = true>
-  explicit CowStorage(std::shared_ptr<T> root) : root_(root) {}
+  template <typename T>
+  explicit CowStorage(std::shared_ptr<T> root)
+    requires(std::is_same_v<std::decay_t<T>, Root>)
+      : root_(root) {}
 
-  template <
-      typename T,
-      std::enable_if_t<
-          std::is_same_v<std::decay_t<T>, std::shared_ptr<StorageImpl>>,
-          bool> = true>
-  explicit CowStorage(T&& storage) : root_(std::forward<T>(storage)) {}
+  template <typename T>
+  explicit CowStorage(T&& storage)
+    requires(std::is_same_v<std::decay_t<T>, std::shared_ptr<StorageImpl>>)
+      : root_(std::forward<T>(storage)) {}
 
   bool isPublished_impl() {
     return root_->isPublished();
