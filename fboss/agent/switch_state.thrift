@@ -329,6 +329,7 @@ struct MirrorOnDropReportFields {
   9: byte dscp;
   10: optional i32 agingIntervalUsecs;
   11: string switchMac; // Populated at runtime
+  12: string firstInterfaceMac; // Populated at runtime
 }
 
 struct ControlPlaneFields {

@@ -127,7 +127,7 @@ void SaiTamManager::addMirrorOnDropReport(
       report->getCollectorPort(),
       report->getMtu(),
       folly::MacAddress(report->getSwitchMac()),
-      folly::MacAddress("02:00:00:00:00:01"), // TODO: use getFirstInterfaceMac
+      folly::MacAddress(report->getFirstInterfaceMac()),
   };
   auto transport = transportStore.setObject(transportTraits, transportTraits);
 

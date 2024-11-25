@@ -5385,7 +5385,8 @@ ThriftConfigApplier::createMirrorOnDropReport(
       *config->truncateSize(),
       dscp,
       agingIntervalUsecs,
-      getLocalMacAddress().toString());
+      getLocalMacAddress().toString(),
+      utility::getFirstInterfaceMac(new_).toString());
 }
 
 std::shared_ptr<MirrorOnDropReport>

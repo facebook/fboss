@@ -48,6 +48,7 @@ TEST_F(MirrorOnDropReportTest, CreateReportV4) {
   EXPECT_EQ(report->getID(), "mod-1");
   EXPECT_TRUE(report->getLocalSrcIp().isV4());
   EXPECT_FALSE(report->getSwitchMac().empty());
+  EXPECT_FALSE(report->getFirstInterfaceMac().empty());
 }
 
 TEST_F(MirrorOnDropReportTest, CreateReportV6) {
@@ -60,6 +61,7 @@ TEST_F(MirrorOnDropReportTest, CreateReportV6) {
   EXPECT_EQ(report->getID(), "mod-1");
   EXPECT_TRUE(report->getLocalSrcIp().isV6());
   EXPECT_FALSE(report->getSwitchMac().empty());
+  EXPECT_FALSE(report->getFirstInterfaceMac().empty());
 }
 
 } // namespace facebook::fboss

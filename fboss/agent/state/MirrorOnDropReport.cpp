@@ -21,7 +21,8 @@ MirrorOnDropReport::MirrorOnDropReport(
     int16_t truncateSize,
     uint8_t dscp,
     std::optional<int32_t> agingIntervalUsecs,
-    std::string switchMac)
+    std::string switchMac,
+    std::string firstInterfaceMac)
     : ThriftStructNode<MirrorOnDropReport, state::MirrorOnDropReportFields>() {
   set<switch_state_tags::name>(name);
   set<switch_state_tags::mirrorPortId>(mirrorPortId);
@@ -36,6 +37,7 @@ MirrorOnDropReport::MirrorOnDropReport(
     set<switch_state_tags::agingIntervalUsecs>(agingIntervalUsecs.value());
   }
   set<switch_state_tags::switchMac>(switchMac);
+  set<switch_state_tags::firstInterfaceMac>(firstInterfaceMac);
 }
 
 std::string MirrorOnDropReport::getID() const {
@@ -88,6 +90,10 @@ std::optional<uint32_t> MirrorOnDropReport::getAgingIntervalUsecs() const {
 
 std::string MirrorOnDropReport::getSwitchMac() const {
   return get<switch_state_tags::switchMac>()->cref();
+}
+
+std::string MirrorOnDropReport::getFirstInterfaceMac() const {
+  return get<switch_state_tags::firstInterfaceMac>()->cref();
 }
 
 template struct ThriftStructNode<

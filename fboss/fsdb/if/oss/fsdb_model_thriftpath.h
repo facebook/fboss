@@ -4866,7 +4866,8 @@ std::pair<strings::mtu, Child<::std::int16_t, ::apache::thrift::type_class::inte
 std::pair<strings::truncateSize, Child<::std::int16_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i16_t>>,
 std::pair<strings::dscp, Child<::std::int8_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::byte_t>>,
 std::pair<strings::agingIntervalUsecs, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
-std::pair<strings::switchMac, Child<::std::string, ::apache::thrift::type_class::string, ::apache::thrift::type::string_t>>>;
+std::pair<strings::switchMac, Child<::std::string, ::apache::thrift::type_class::string, ::apache::thrift::type::string_t>>,
+std::pair<strings::firstInterfaceMac, Child<::std::string, ::apache::thrift::type_class::string, ::apache::thrift::type::string_t>>>;
   using ChildrenById = fatal::tuple<   std::pair<std::integral_constant<apache::thrift::field_id_t, 1>, Child<::std::string, ::apache::thrift::type_class::string, ::apache::thrift::type::string_t>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 2>, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 3>, ChildThriftPath<::facebook::network::thrift::BinaryAddress, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>,
@@ -4877,7 +4878,8 @@ std::pair<strings::switchMac, Child<::std::string, ::apache::thrift::type_class:
    std::pair<std::integral_constant<apache::thrift::field_id_t, 8>, Child<::std::int16_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i16_t>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 9>, Child<::std::int8_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::byte_t>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 10>, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
-   std::pair<std::integral_constant<apache::thrift::field_id_t, 11>, Child<::std::string, ::apache::thrift::type_class::string, ::apache::thrift::type::string_t>>>;
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 11>, Child<::std::string, ::apache::thrift::type_class::string, ::apache::thrift::type::string_t>>,
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 12>, Child<::std::string, ::apache::thrift::type_class::string, ::apache::thrift::type::string_t>>>;
   template <typename Name>
   using NameToId = fatal::tuple<std::pair<strings::name, std::integral_constant<apache::thrift::field_id_t, 1>>,
 std::pair<strings::mirrorPortId, std::integral_constant<apache::thrift::field_id_t, 2>>,
@@ -4889,7 +4891,8 @@ std::pair<strings::mtu, std::integral_constant<apache::thrift::field_id_t, 7>>,
 std::pair<strings::truncateSize, std::integral_constant<apache::thrift::field_id_t, 8>>,
 std::pair<strings::dscp, std::integral_constant<apache::thrift::field_id_t, 9>>,
 std::pair<strings::agingIntervalUsecs, std::integral_constant<apache::thrift::field_id_t, 10>>,
-std::pair<strings::switchMac, std::integral_constant<apache::thrift::field_id_t, 11>>>::template type_of<Name>;
+std::pair<strings::switchMac, std::integral_constant<apache::thrift::field_id_t, 11>>,
+std::pair<strings::firstInterfaceMac, std::integral_constant<apache::thrift::field_id_t, 12>>>::template type_of<Name>;
 
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
@@ -4906,6 +4909,7 @@ std::pair<strings::switchMac, std::integral_constant<apache::thrift::field_id_t,
     STRUCT_CHILD_GETTERS(dscp, 9);
     STRUCT_CHILD_GETTERS(agingIntervalUsecs, 10);
     STRUCT_CHILD_GETTERS(switchMac, 11);
+    STRUCT_CHILD_GETTERS(firstInterfaceMac, 12);
 
   template <apache::thrift::field_id_t __id>
   auto operator()(const std::integral_constant<apache::thrift::field_id_t, __id>&) {
@@ -4920,6 +4924,7 @@ std::pair<strings::switchMac, std::integral_constant<apache::thrift::field_id_t,
     else if constexpr (__id == 9) { return dscp(); }
     else if constexpr (__id == 10) { return agingIntervalUsecs(); }
     else if constexpr (__id == 11) { return switchMac(); }
+    else if constexpr (__id == 12) { return firstInterfaceMac(); }
   }
 
   template <typename T, T... Values>
