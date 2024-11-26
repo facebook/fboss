@@ -484,12 +484,7 @@ void PlatformExplorer::explorePciDevices(
     const std::vector<PciDeviceConfig>& pciDeviceConfigs) {
   for (const auto& pciDeviceConfig : pciDeviceConfigs) {
     try {
-      auto pciDevice = PciDevice(
-          *pciDeviceConfig.pmUnitScopedName(),
-          *pciDeviceConfig.vendorId(),
-          *pciDeviceConfig.deviceId(),
-          *pciDeviceConfig.subSystemVendorId(),
-          *pciDeviceConfig.subSystemDeviceId());
+      auto pciDevice = PciDevice(pciDeviceConfig);
       auto charDevPath = pciDevice.charDevPath();
       auto instId =
           getFpgaInstanceId(slotPath, *pciDeviceConfig.pmUnitScopedName());

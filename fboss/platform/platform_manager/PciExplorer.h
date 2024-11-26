@@ -11,22 +11,22 @@ namespace facebook::fboss::platform::platform_manager {
 
 struct PciDevice {
  public:
-  PciDevice(
-      const std::string& name,
-      const std::string& vendorId,
-      const std::string& deviceId,
-      const std::string& subSystemVendorId,
-      const std::string& subSystemDeviceId);
+  explicit PciDevice(const PciDeviceConfig& pciDevConfig);
   std::string sysfsPath() const;
   std::string charDevPath() const;
 
  private:
+  std::string name_{};
   std::string vendorId_{};
   std::string deviceId_{};
   std::string subSystemVendorId_{};
   std::string subSystemDeviceId_{};
   std::string charDevPath_{};
   std::string sysfsPath_{};
+
+  void checkSysfsReadiness(void);
+  void bindDriver(const std::string& desiredDriver);
+  void checkCharDevReadiness(void);
 };
 
 class PciExplorer {
