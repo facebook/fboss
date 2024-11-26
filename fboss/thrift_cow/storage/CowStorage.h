@@ -27,7 +27,6 @@ class CowStorage : public Storage<Root, CowStorage<Root, Node>> {
   using Base = Storage<Root, CowStorage<Root, Node>>;
   using RootT = Root;
   using StorageImpl = Node;
-  using Self = CowStorage<Root>;
   using PathIter = typename Base::PathIter;
   using ExtPath = typename Base::ExtPath;
   using ExtPathIter = typename Base::ExtPathIter;
@@ -243,13 +242,17 @@ class CowStorage : public Storage<Root, CowStorage<Root, Node>> {
   std::shared_ptr<StorageImpl> root_;
 };
 
-template <typename Root>
-bool operator==(const CowStorage<Root>& first, const CowStorage<Root>& second) {
+template <typename Root, typename Node>
+bool operator==(
+    const CowStorage<Root, Node>& first,
+    const CowStorage<Root, Node>& second) {
   return first.root() == second.root();
 }
 
-template <typename Root>
-bool operator!=(const CowStorage<Root>& first, const CowStorage<Root>& second) {
+template <typename Root, typename Node>
+bool operator!=(
+    const CowStorage<Root, Node>& first,
+    const CowStorage<Root, Node>& second) {
   return first.root() != second.root();
 }
 
