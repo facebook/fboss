@@ -96,6 +96,7 @@ bool Jericho3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::FAST_LLFC_COUNTER:
     case HwAsic::Feature::INGRESS_SRAM_MIN_BUFFER_WATERMARK:
     case HwAsic::Feature::FDR_FIFO_WATERMARK:
+    case HwAsic::Feature::EGRESS_CELL_ERROR_STATS:
       return true;
     // Features not expected to work on SIM
     case HwAsic::Feature::SHARED_INGRESS_EGRESS_BUFFER_POOL:
