@@ -52,8 +52,8 @@ struct ThriftMapFields : public FieldBaseType {
   using ValueTypeClass =
       typename map_helpers::ExtractTypeClass<TypeClass>::value_type;
   using ValueTType = typename TType::mapped_type;
-  using ValueTraits =
-      typename Traits::template ConvertToNodeTraits<ValueTypeClass, ValueTType>;
+  using ValueTraits = typename Traits::
+      template ConvertToNodeTraits<std::false_type, ValueTypeClass, ValueTType>;
   using key_type = typename TType::key_type;
   using value_type = typename ValueTraits::type;
   using StorageType =
