@@ -550,6 +550,13 @@ class ThriftStructNode : public NodeBaseT<
           auto clonedChild = child->clone();
           child.swap(clonedChild);
         }
+      } else if constexpr (
+          EnableHybridStorage &&
+          Fields::template HasSkipThriftCow<Name>::value) {
+        using UnderlyingType =
+            typename Fields::template TypeFor<Name>::element_type;
+        auto clonedChild = std::make_shared<UnderlyingType>(child->ref());
+        child.swap(clonedChild);
       }
     } else if (construct) {
       this->template constructMember<Name>();
@@ -594,7 +601,12 @@ class ThriftStructNode : public NodeBaseT<
           return;
         }
         auto tok = *begin;
-        node.modify(tok);
+        if constexpr (std::is_same_v<
+                          typename folly::remove_cvref_t<
+                              decltype(node)>::CowType,
+                          NodeType>) {
+          node.modify(tok);
+        }
       });
 
       result =

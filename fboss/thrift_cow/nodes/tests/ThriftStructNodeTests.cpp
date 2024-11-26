@@ -422,11 +422,21 @@ TYPED_TEST(ThriftStructNodeTestSuite, ThriftStructNodeModifyTest) {
   data.inlineInt() = 123;
   data.inlineString() = "HelloThere";
   data.inlineStruct() = std::move(portRange);
+  data.mapOfStringToI32() = {{"test1", 1}};
 
   auto node = this->initNode(data);
 
   ASSERT_FALSE(node->isPublished());
   ASSERT_FALSE(node->template cref<k::inlineStruct>()->isPublished());
+
+  auto oldNode = node->template ref<k::mapOfStringToI32>();
+  auto newNode = node->template modify<k::mapOfStringToI32>();
+  // do a ptr comparison to make sure the node is cloned
+  // if node is cow node, then it will not be cloned if it is not published
+  // so only check if hybrid storage is enabled
+  if constexpr (enableHybridStorage) {
+    EXPECT_NE(newNode, oldNode);
+  }
 
   node->publish();
   ASSERT_TRUE(node->isPublished());
