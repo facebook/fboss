@@ -768,6 +768,35 @@ const std::vector<sai_stat_id_t>& SaiSwitchManager::supportedDropStats() const {
   return stats;
 }
 
+const std::vector<sai_stat_id_t>& SaiSwitchManager::supportedErrorStats()
+    const {
+  static std::vector<sai_stat_id_t> stats;
+  if (stats.size()) {
+    // initialized
+    return stats;
+  }
+  if (platform_->getAsic()->isSupported(
+          HwAsic::Feature::EGRESS_CELL_ERROR_STATS)) {
+    stats.insert(
+        stats.end(),
+        SaiSwitchTraits::egressFabricCellError().begin(),
+        SaiSwitchTraits::egressFabricCellError().end());
+    stats.insert(
+        stats.end(),
+        SaiSwitchTraits::egressNonFabricCellError().begin(),
+        SaiSwitchTraits::egressNonFabricCellError().end());
+    stats.insert(
+        stats.end(),
+        SaiSwitchTraits::egressNonFabricCellUnpackError().begin(),
+        SaiSwitchTraits::egressNonFabricCellUnpackError().end());
+    stats.insert(
+        stats.end(),
+        SaiSwitchTraits::egressParityCellError().begin(),
+        SaiSwitchTraits::egressParityCellError().end());
+  }
+  return stats;
+}
+
 const std::vector<sai_stat_id_t>& SaiSwitchManager::supportedDramStats() const {
   static std::vector<sai_stat_id_t> stats;
   if (stats.size()) {
@@ -919,6 +948,28 @@ void SaiSwitchManager::updateStats(bool updateWatermarks) {
     switchDropStats_.ingressPacketPipelineRejectDrops() =
         switchDropStats_.ingressPacketPipelineRejectDrops().value_or(0) +
         dropStats.ingressPacketPipelineRejectDrops().value_or(0);
+  }
+  auto errorDropStats = supportedErrorStats();
+  if (errorDropStats.size()) {
+    switch_->updateStats(errorDropStats, SAI_STATS_MODE_READ);
+    HwSwitchDropStats errorStats;
+    // Fill error stats and update drops stats
+    fillHwSwitchErrorStats(switch_->getStats(errorDropStats), errorStats);
+    switchDropStats_.rqpFabricCellCorruptionDrops() =
+        switchDropStats_.rqpFabricCellCorruptionDrops().value_or(0) +
+        errorStats.rqpFabricCellCorruptionDrops().value_or(0);
+    switchDropStats_.rqpNonFabricCellCorruptionDrops() =
+        switchDropStats_.rqpNonFabricCellCorruptionDrops().value_or(0) +
+        errorStats.rqpNonFabricCellCorruptionDrops().value_or(0);
+    switchDropStats_.rqpNonFabricCellMissingDrops() =
+        switchDropStats_.rqpNonFabricCellMissingDrops().value_or(0) +
+        errorStats.rqpNonFabricCellMissingDrops().value_or(0);
+    switchDropStats_.rqpParityErrorDrops() =
+        switchDropStats_.rqpParityErrorDrops().value_or(0) +
+        errorStats.rqpParityErrorDrops().value_or(0);
+  }
+
+  if (switchDropStats.size() || errorDropStats.size()) {
     platform_->getHwSwitch()->getSwitchStats()->update(switchDropStats_);
   }
   auto switchDramStats = supportedDramStats();

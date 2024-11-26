@@ -91,4 +91,30 @@ void fillHwSwitchCreditStats(
     }
   }
 }
+
+void fillHwSwitchErrorStats(
+    const folly::F14FastMap<sai_stat_id_t, uint64_t>& counterId2Value,
+    HwSwitchDropStats& dropStats) {
+  for (auto counterIdAndValue : counterId2Value) {
+    auto [counterId, value] = counterIdAndValue;
+    switch (counterId) {
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
+      case SAI_SWITCH_STAT_EGRESS_FABRIC_CELL_ERROR:
+        dropStats.rqpFabricCellCorruptionDrops() = value;
+        break;
+      case SAI_SWITCH_STAT_EGRESS_NON_FABRIC_CELL_ERROR:
+        dropStats.rqpNonFabricCellCorruptionDrops() = value;
+        break;
+      case SAI_SWITCH_STAT_EGRESS_CUP_NON_FABRIC_CELL_ERROR:
+        dropStats.rqpNonFabricCellMissingDrops() = value;
+        break;
+      case SAI_SWITCH_STAT_EGRESS_PARITY_CELL_ERROR:
+        dropStats.rqpParityErrorDrops() = value;
+        break;
+#endif
+      default:
+        throw FbossError("Got unexpected switch counter id: ", counterId);
+    }
+  }
+}
 } // namespace facebook::fboss

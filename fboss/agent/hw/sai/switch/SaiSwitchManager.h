@@ -137,6 +137,7 @@ class SaiSwitchManager {
   const std::vector<sai_stat_id_t>& supportedDramStats() const;
   const std::vector<sai_stat_id_t>& supportedWatermarkStats() const;
   const std::vector<sai_stat_id_t>& supportedCreditStats() const;
+  const std::vector<sai_stat_id_t>& supportedErrorStats() const;
   const HwSwitchWatermarkStats getHwSwitchWatermarkStats() const;
   SaiManagerTable* managerTable_;
   const SaiPlatform* platform_;
@@ -168,5 +169,8 @@ void fillHwSwitchWatermarkStats(
 void fillHwSwitchCreditStats(
     const folly::F14FastMap<sai_stat_id_t, uint64_t>& counterId2Value,
     HwSwitchCreditStats& hwSwitchCreditStats);
+void fillHwSwitchErrorStats(
+    const folly::F14FastMap<sai_stat_id_t, uint64_t>& counterId2Value,
+    HwSwitchDropStats& switchDropStats);
 void publishSwitchWatermarks(HwSwitchWatermarkStats& watermarkStats);
 } // namespace facebook::fboss
