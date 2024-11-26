@@ -194,6 +194,47 @@ const std::vector<sai_stat_id_t>& SaiSwitchTraits::fdrFifoWatermarkBytes() {
   return stats;
 }
 
+const std::vector<sai_stat_id_t>& SaiSwitchTraits::egressFabricCellError() {
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
+  static const std::vector<sai_stat_id_t> stats{
+      SAI_SWITCH_STAT_EGRESS_FABRIC_CELL_ERROR};
+#else
+  static const std::vector<sai_stat_id_t> stats;
+#endif
+  return stats;
+}
+
+const std::vector<sai_stat_id_t>& SaiSwitchTraits::egressNonFabricCellError() {
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
+  static const std::vector<sai_stat_id_t> stats{
+      SAI_SWITCH_STAT_EGRESS_NON_FABRIC_CELL_ERROR};
+#else
+  static const std::vector<sai_stat_id_t> stats;
+#endif
+  return stats;
+}
+
+const std::vector<sai_stat_id_t>&
+SaiSwitchTraits::egressNonFabricCellUnpackError() {
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
+  static const std::vector<sai_stat_id_t> stats{
+      SAI_SWITCH_STAT_EGRESS_CUP_NON_FABRIC_CELL_ERROR};
+#else
+  static const std::vector<sai_stat_id_t> stats;
+#endif
+  return stats;
+}
+
+const std::vector<sai_stat_id_t>& SaiSwitchTraits::egressParityCellError() {
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
+  static const std::vector<sai_stat_id_t> stats{
+      SAI_SWITCH_STAT_EGRESS_PARITY_CELL_ERROR};
+#else
+  static const std::vector<sai_stat_id_t> stats;
+#endif
+  return stats;
+}
+
 void SwitchApi::registerSwitchEventCallback(
     SwitchSaiId id,
     void* switch_event_cb) const {
