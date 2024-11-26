@@ -11,7 +11,7 @@
 namespace facebook::fboss {
 
 MirrorOnDropReport::MirrorOnDropReport(
-    std::string name,
+    const std::string& name,
     PortID mirrorPortId,
     folly::IPAddress localSrcIp,
     int16_t localSrcPort,

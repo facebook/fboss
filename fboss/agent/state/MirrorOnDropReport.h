@@ -22,7 +22,7 @@ class MirrorOnDropReport : public ThriftStructNode<
       ThriftStructNode<MirrorOnDropReport, state::MirrorOnDropReportFields>;
 
   MirrorOnDropReport(
-      std::string name,
+      const std::string& name,
       PortID mirrorPortId,
       folly::IPAddress localSrcIp,
       int16_t localSrcPort,
