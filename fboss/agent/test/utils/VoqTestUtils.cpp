@@ -22,6 +22,7 @@ constexpr auto kNumPortPerCore = 10;
 // 7: mgm port, 8-43 front panel nif
 constexpr auto kRemoteSysPortOffset = 7;
 constexpr auto kNumVoq = 8;
+constexpr auto k3q2qNumVoq = 3;
 constexpr auto kNumRdswSysPort = 44;
 constexpr auto kNumEdswSysPort = 26;
 
@@ -36,7 +37,8 @@ std::shared_ptr<SystemPort> makeRemoteSysPort(
   remoteSysPort->setName(folly::to<std::string>(
       "hwTestSwitch", remoteSwitchId, ":eth/", portId, "/1"));
   remoteSysPort->setSwitchId(remoteSwitchId);
-  remoteSysPort->setNumVoqs(kNumVoq);
+  // TODO(zecheng): NIF MGMT port for 3q2q mode should have 2 VOQ
+  remoteSysPort->setNumVoqs(isDualStage3Q2QMode() ? k3q2qNumVoq : kNumVoq);
   remoteSysPort->setCoreIndex(coreIndex);
   remoteSysPort->setCorePortIndex(corePortIndex);
   remoteSysPort->setSpeedMbps(speed);
