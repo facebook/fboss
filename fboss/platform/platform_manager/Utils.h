@@ -4,18 +4,13 @@
 
 #include <chrono>
 #include <functional>
-#include <optional>
 #include <string>
-
-#include "fboss/platform/platform_manager/gen-cpp2/platform_manager_config_types.h"
 
 namespace facebook::fboss::platform::platform_manager {
 
 class Utils {
  public:
   virtual ~Utils() = default;
-  PlatformConfig getConfig();
-
   // Extract (SlotPath, DeviceName) from DevicePath.
   // Returns a pair of (SlotPath, DeviceName). Throws if DevicePath is invalid.
   // Eg: /MCB_SLOT@0/[IDPROM] will return std::pair("/MCB_SLOT@0", "IDPROM")

@@ -16,7 +16,6 @@
 
 #include "configerator/structs/neteng/fboss/bgp/gen-cpp2/bgp_config_types.h"
 #include "neteng/fboss/bgp/if/gen-cpp2/TBgpService.h"
-#include "neteng/fboss/bgp/if/gen-cpp2/bgp_thrift_types.h"
 
 using namespace ::testing;
 using namespace facebook::neteng::fboss::bgp::thrift;

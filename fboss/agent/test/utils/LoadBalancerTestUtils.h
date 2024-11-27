@@ -67,7 +67,8 @@ size_t pumpRoCETraffic(
     uint8_t roceOpcode = kUdfRoceOpcodeAck,
     uint8_t reserved = kRoceReserved,
     std::optional<std::vector<uint8_t>> nextHdr =
-        std::optional<std::vector<uint8_t>>());
+        std::optional<std::vector<uint8_t>>(),
+    bool sameDstQueue = false);
 
 size_t pumpTrafficWithSourceFile(
     AllocatePktFunc allocateFn,
@@ -177,6 +178,7 @@ bool isLoadBalanced(
       portStats, std::vector<NextHopWeight>(), maxDeviationPct);
 }
 
+inline const int kScalingFactorSai(10);
 inline const int kScalingFactor(100);
 inline const int kLoadWeight(70);
 inline const int kQueueWeight(30);
@@ -193,6 +195,7 @@ cfg::UdfConfig addUdfFlowletAclConfig();
 cfg::UdfConfig addUdfHashAclConfig();
 
 cfg::FlowletSwitchingConfig getDefaultFlowletSwitchingConfig(
+    bool isSai,
     cfg::SwitchingMode switchingMode = cfg::SwitchingMode::FLOWLET_QUALITY);
 void addFlowletAcl(
     cfg::SwitchConfig& cfg,
@@ -202,6 +205,7 @@ void addFlowletAcl(
 void addFlowletConfigs(
     cfg::SwitchConfig& cfg,
     const std::vector<PortID>& ports,
+    bool isSai = false,
     cfg::SwitchingMode switchingMode = cfg::SwitchingMode::FLOWLET_QUALITY);
 
 cfg::LoadBalancer getTrunkHalfHashConfig(

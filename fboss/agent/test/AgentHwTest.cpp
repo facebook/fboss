@@ -194,12 +194,6 @@ cfg::SwitchConfig AgentHwTest::initialConfig(
       ensemble.getSw(),
       ensemble.masterLogicalPortIds(),
       true /*interfaceHasSubnet*/);
-
-  if (FLAGS_enable_acl_table_group) {
-    utility::addAclTableGroup(
-        &config, cfg::AclStage::INGRESS, utility::getAclTableGroupName());
-    utility::addDefaultAclTable(config);
-  }
   return config;
 }
 

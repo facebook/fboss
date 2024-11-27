@@ -9,7 +9,6 @@
  */
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/hw/sai/switch/tests/ManagerTestBase.h"
-#include "fboss/agent/state/StateDelta.h"
 #include "fboss/agent/state/SwitchSettings.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/test/TestUtils.h"

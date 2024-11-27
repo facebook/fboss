@@ -173,6 +173,7 @@ find_package(fizz CONFIG REQUIRED)
 find_package(fmt CONFIG REQUIRED)
 find_package(wangle CONFIG REQUIRED)
 find_package(FBThrift CONFIG REQUIRED)
+find_package(range-v3 REQUIRED)
 include_directories(${FB303_INCLUDE_DIR})
 find_path(FATAL_INCLUDE_DIR NAMES fatal/portability.h)
 include_directories(${FATAL_INCLUDE_DIR})
@@ -381,6 +382,27 @@ add_fbthrift_cpp_library(
     hardware_stats_cpp2
     phy_cpp2
     transceiver_cpp2
+)
+add_fbthrift_cpp_library(
+  cmis_cpp2
+  fboss/qsfp_service/module/cmis/cmis.thrift
+  OPTIONS
+    json
+    reflection
+)
+add_fbthrift_cpp_library(
+  sff_cpp2
+  fboss/qsfp_service/module/sff/sff.thrift
+  OPTIONS
+    json
+    reflection
+)
+add_fbthrift_cpp_library(
+  sff8472_cpp2
+  fboss/qsfp_service/module/sff/sff8472.thrift
+  OPTIONS
+    json
+    reflection
 )
 add_fbthrift_cpp_library(
   sensor_service_stats_cpp2
@@ -703,6 +725,10 @@ find_library(LIBGPIOD gpiod)
 find_path(LIBGPIOD_INCLUDE_DIR NAMES gpiod.h)
 include_directories(${LIBGPIOD_INCLUDE_DIR})
 
+find_library(SYSTEMD systemd)
+find_path(SYSTEMD_INCLUDE_DIR NAMES systemd/sd-daemon.h)
+include_directories(${SYSTEMD_INCLUDE_DIR})
+
 # Unit Testing
 add_definitions (-DIS_OSS=true)
 find_package(Threads REQUIRED)
@@ -816,7 +842,7 @@ if (GITHUB_ACTIONS_BUILD)
     weutil_crc16_ccitt_test
     weutil_fboss_eeprom_parser_test
     sensor_service_sw_test
-    sensor_service_utils_tests
+    sensor_service_utils_test
     rackmon_test
     fan_service_sw_test
     data_corral_service_hw_test

@@ -675,6 +675,18 @@ boost::container::flat_map<InterfaceID, bool> TunManager::getInterfaceStatus(
   return statusMap;
 }
 
+bool TunManager::isValidNlSocket() {
+  return sock_ ? true : false;
+}
+
+bool TunManager::getIntfStatus(
+    std::shared_ptr<SwitchState> state,
+    InterfaceID ifID) {
+  // Get interface status map
+  auto intfStatusMap = getInterfaceStatus(state);
+  return folly::get_default(intfStatusMap, ifID, false);
+}
+
 void TunManager::forceInitialSync() {
   evb_->runInFbossEventBaseThread([this]() {
     if (numSyncs_ == 0) {

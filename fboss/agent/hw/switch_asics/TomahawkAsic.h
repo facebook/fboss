@@ -29,6 +29,10 @@ class TomahawkAsic : public BroadcomXgsAsic {
   uint64_t getMMUSizeBytes() const override {
     return 16 * 1024 * 1024;
   }
+  uint64_t getSramSizeBytes() const override {
+    // No HBM!
+    return getMMUSizeBytes();
+  }
   uint64_t getDefaultReservedBytes(
       cfg::StreamType /*streamType*/,
       cfg::PortType portType) const override {

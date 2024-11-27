@@ -20,7 +20,6 @@
 #include "fboss/agent/hw/bcm/BcmRoute.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 #include "fboss/agent/hw/bcm/BcmTrunkTable.h"
-#include "fboss/agent/platforms/tests/utils/BcmTestPlatform.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 
 #include "fboss/agent/hw/test/ConfigFactory.h"
@@ -31,12 +30,10 @@
 #include <boost/container/flat_set.hpp>
 
 #include <memory>
-#include <numeric>
 #include <set>
 
 extern "C" {
 #include <bcm/l3.h>
-#include <bcm/port.h>
 }
 
 DECLARE_uint32(ecmp_width);

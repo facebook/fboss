@@ -214,16 +214,56 @@ std::string errorType(sai_switch_error_type_t type) {
       return "SAI_SWITCH_ERROR_TYPE_FQP_ECC_ECC_1B_ERR_INT";
     case SAI_SWITCH_ERROR_TYPE_FQP_ECC_ECC_2B_ERR_INT:
       return "SAI_SWITCH_ERROR_TYPE_FQP_ECC_ECC_2B_ERR_INT";
-
+    // Reassembly errors
+    case SAI_SWITCH_ERROR_TYPE_RQP_PACKET_REASSEMBLY_CDC_PKT_SIZE_ERR:
+      return "SAI_SWITCH_ERROR_TYPE_RQP_PACKET_REASSEMBLY_CDC_PKT_SIZE_ERR";
+    case SAI_SWITCH_ERROR_TYPE_RQP_PACKET_REASSEMBLY_CDC_FRAG_NUM_ZERO_ERR:
+      return "SAI_SWITCH_ERROR_TYPE_RQP_PACKET_REASSEMBLY_CDC_FRAG_NUM_ZERO_ERR";
+    case SAI_SWITCH_ERROR_TYPE_RQP_PACKET_REASSEMBLY_CDC_PCP_LOC_NOT_IN_CELL_ERR:
+      return "SAI_SWITCH_ERROR_TYPE_RQP_PACKET_REASSEMBLY_CDC_PCP_LOC_NOT_IN_CELL_ERR";
+    case SAI_SWITCH_ERROR_TYPE_RQP_PACKET_REASSEMBLY_CDC_FDR_ERR:
+      return "SAI_SWITCH_ERROR_TYPE_RQP_PACKET_REASSEMBLY_CDC_FDR_ERR";
+    case SAI_SWITCH_ERROR_TYPE_RQP_PACKET_REASSEMBLY_CDC_PAIR_FRAG_NUM_ERR:
+      return "SAI_SWITCH_ERROR_TYPE_RQP_PACKET_REASSEMBLY_CDC_PAIR_FRAG_NUM_ERR";
+    case SAI_SWITCH_ERROR_TYPE_RQP_PACKET_REASSEMBLY_CDC_CELL_0_LAST_EOP_PSIZE_ERR:
+      return "SAI_SWITCH_ERROR_TYPE_RQP_PACKET_REASSEMBLY_CDC_CELL_0_LAST_EOP_PSIZE_ERR";
+    case SAI_SWITCH_ERROR_TYPE_RQP_PACKET_REASSEMBLY_CDC_SOP_CELL_SIZE_ERR:
+      return "SAI_SWITCH_ERROR_TYPE_RQP_PACKET_REASSEMBLY_CDC_SOP_CELL_SIZE_ERR";
+    case SAI_SWITCH_ERROR_TYPE_RQP_PACKET_REASSEMBLY_CDC_SOP_CELL_OVERSIZE_ERR:
+      return "SAI_SWITCH_ERROR_TYPE_RQP_PACKET_REASSEMBLY_CDC_SOP_CELL_OVERSIZE_ERR";
+    case SAI_SWITCH_ERROR_TYPE_RQP_PACKET_REASSEMBLY_CUP_MISSING_SOP_ERR:
+      return "SAI_SWITCH_ERROR_TYPE_RQP_PACKET_REASSEMBLY_CUP_MISSING_SOP_ERR";
+    case SAI_SWITCH_ERROR_TYPE_RQP_PACKET_REASSEMBLY_CUP_MISSING_EOP_ERR:
+      return "SAI_SWITCH_ERROR_TYPE_RQP_PACKET_REASSEMBLY_CUP_MISSING_EOP_ERR";
+    case SAI_SWITCH_ERROR_TYPE_RQP_PACKET_REASSEMBLY_CUP_MISSING_CELL_ERR:
+      return "SAI_SWITCH_ERROR_TYPE_RQP_PACKET_REASSEMBLY_CUP_MISSING_CELL_ERR";
+    case SAI_SWITCH_ERROR_TYPE_RQP_PACKET_REASSEMBLY_CUP_PKT_SIZE_MISMATCH_ERR:
+      return "SAI_SWITCH_ERROR_TYPE_RQP_PACKET_REASSEMBLY_CUP_PKT_SIZE_MISMATCH_ERR";
+    case SAI_SWITCH_ERROR_TYPE_RQP_PACKET_REASSEMBLY_CUP_MOP_CELL_SIZE_ERR:
+      return "SAI_SWITCH_ERROR_TYPE_RQP_PACKET_REASSEMBLY_CUP_MOP_CELL_SIZE_ERR";
+    case SAI_SWITCH_ERROR_TYPE_RQP_PACKET_REASSEMBLY_CUP_CELL_0_LAST_EOP_PSIZE_ERR:
+      return "SAI_SWITCH_ERROR_TYPE_RQP_PACKET_REASSEMBLY_CUP_CELL_0_LAST_EOP_PSIZE_ERR";
+    case SAI_SWITCH_ERROR_TYPE_RQP_PACKET_REASSEMBLY_CRC_ERR:
+      return "SAI_SWITCH_ERROR_TYPE_RQP_PACKET_REASSEMBLY_CRC_ERR";
     // All reassembly context taken
     case SAI_SWITCH_ERROR_TYPE_RQP_PACKET_REASSEMBLY_RCM_ALL_CONTEXTS_TAKEN_ERR:
       return "SAI_SWITCH_ERROR_TYPE_RQP_PACKET_REASSEMBLY_RCM_ALL_CONTEXTS_TAKEN_ERR";
     case SAI_SWITCH_ERROR_TYPE_RQP_PACKET_REASSEMBLY_RCM_ALL_CONTEXTS_TAKEN_DISCARD_ERR:
       return "SAI_SWITCH_ERROR_TYPE_RQP_PACKET_REASSEMBLY_RCM_ALL_CONTEXTS_TAKEN_DISCARD_ERR";
+    case SAI_SWITCH_ERROR_TYPE_RQP_PACKET_REASSEMBLY_RCM_DYNAMIC_MISSING_SOP_ERR:
+      return "SAI_SWITCH_ERROR_TYPE_RQP_PACKET_REASSEMBLY_RCM_DYNAMIC_MISSING_SOP_ERR";
+    case SAI_SWITCH_ERROR_TYPE_RQP_PACKET_REASSEMBLY_RCM_STATIC_MISS_CONFIG_ERR:
+      return "SAI_SWITCH_ERROR_TYPE_RQP_PACKET_REASSEMBLY_RCM_STATIC_MISS_CONFIG_ERR";
+    case SAI_SWITCH_ERROR_TYPE_RQP_PACKET_REASSEMBLY_RCM_FABRIC_PTP_PKT_ERR:
+      return "SAI_SWITCH_ERROR_TYPE_RQP_PACKET_REASSEMBLY_RCM_FABRIC_PTP_PKT_ERR";
     case SAI_SWITCH_ERROR_TYPE_RTP_TABLE_CHANGE:
       return "SAI_SWITCH_ERROR_TYPE_RTP_TABLE_CHANGE";
     case SAI_SWITCH_ERROR_TYPE_FABRIC_AUTO_ISOLATION:
       return "SAI_SWITCH_ERROR_TYPE_FABRIC_AUTO_ISOLATION";
+#endif
+#if defined(SAI_VERSION_11_7_0_0_DNX_ODP)
+    case SAI_SWITCH_ERROR_TYPE_FIRMWARE_CRASH:
+      return "SAI_SWITCH_ERROR_TYPE_FIRMWARE_CRASH";
 #endif
     default:
       break;
@@ -345,6 +385,35 @@ bool isFqpError(sai_switch_error_type_t type) {
   return false;
 }
 
+bool isReassemblyError(sai_switch_error_type_t type) {
+  switch (type) {
+    case SAI_SWITCH_ERROR_TYPE_RQP_PACKET_REASSEMBLY_CDC_PKT_SIZE_ERR:
+    case SAI_SWITCH_ERROR_TYPE_RQP_PACKET_REASSEMBLY_CDC_FRAG_NUM_ZERO_ERR:
+    case SAI_SWITCH_ERROR_TYPE_RQP_PACKET_REASSEMBLY_CDC_PCP_LOC_NOT_IN_CELL_ERR:
+    case SAI_SWITCH_ERROR_TYPE_RQP_PACKET_REASSEMBLY_CDC_FDR_ERR:
+    case SAI_SWITCH_ERROR_TYPE_RQP_PACKET_REASSEMBLY_CDC_PAIR_FRAG_NUM_ERR:
+    case SAI_SWITCH_ERROR_TYPE_RQP_PACKET_REASSEMBLY_CDC_CELL_0_LAST_EOP_PSIZE_ERR:
+    case SAI_SWITCH_ERROR_TYPE_RQP_PACKET_REASSEMBLY_CDC_SOP_CELL_SIZE_ERR:
+    case SAI_SWITCH_ERROR_TYPE_RQP_PACKET_REASSEMBLY_CDC_SOP_CELL_OVERSIZE_ERR:
+    case SAI_SWITCH_ERROR_TYPE_RQP_PACKET_REASSEMBLY_CUP_MISSING_SOP_ERR:
+    case SAI_SWITCH_ERROR_TYPE_RQP_PACKET_REASSEMBLY_CUP_MISSING_EOP_ERR:
+    case SAI_SWITCH_ERROR_TYPE_RQP_PACKET_REASSEMBLY_CUP_MISSING_CELL_ERR:
+    case SAI_SWITCH_ERROR_TYPE_RQP_PACKET_REASSEMBLY_CUP_PKT_SIZE_MISMATCH_ERR:
+    case SAI_SWITCH_ERROR_TYPE_RQP_PACKET_REASSEMBLY_CUP_MOP_CELL_SIZE_ERR:
+    case SAI_SWITCH_ERROR_TYPE_RQP_PACKET_REASSEMBLY_CUP_CELL_0_LAST_EOP_PSIZE_ERR:
+    case SAI_SWITCH_ERROR_TYPE_RQP_PACKET_REASSEMBLY_CRC_ERR:
+    case SAI_SWITCH_ERROR_TYPE_RQP_PACKET_REASSEMBLY_RCM_ALL_CONTEXTS_TAKEN_ERR:
+    case SAI_SWITCH_ERROR_TYPE_RQP_PACKET_REASSEMBLY_RCM_ALL_CONTEXTS_TAKEN_DISCARD_ERR:
+    case SAI_SWITCH_ERROR_TYPE_RQP_PACKET_REASSEMBLY_RCM_DYNAMIC_MISSING_SOP_ERR:
+    case SAI_SWITCH_ERROR_TYPE_RQP_PACKET_REASSEMBLY_RCM_STATIC_MISS_CONFIG_ERR:
+    case SAI_SWITCH_ERROR_TYPE_RQP_PACKET_REASSEMBLY_RCM_FABRIC_PTP_PKT_ERR:
+      return true;
+    default:
+      break;
+  }
+  return false;
+}
+
 bool allReassemblyContextsTakenError(sai_switch_error_type_t type) {
   switch (type) {
     case SAI_SWITCH_ERROR_TYPE_RQP_PACKET_REASSEMBLY_RCM_ALL_CONTEXTS_TAKEN_ERR:
@@ -411,12 +480,14 @@ void SaiSwitch::switchEventCallback(
       auto epniError = isEpniError(eventInfo->error_type);
       auto alignerError = isAlignerErrorType(eventInfo->error_type);
       auto fqpError = isFqpError(eventInfo->error_type);
+      auto reassemblyError = isReassemblyError(eventInfo->error_type);
       auto allReassemblyContextsTaken =
           allReassemblyContextsTakenError(eventInfo->error_type);
       auto rtpTableChanged = rtpTableChangedEvent(eventInfo->error_type);
       XLOG(ERR) << " Got interrupt event, is IRE: " << ireError
                 << " is ITPP: " << itppError << " is EPNI: " << epniError
                 << " is Aligner: " << alignerError << " is FQP: " << fqpError
+                << " is Reassembly: " << reassemblyError
                 << " all reassembly context taken: "
                 << allReassemblyContextsTaken
                 << " rtp table changed: " << rtpTableChanged;
@@ -430,6 +501,8 @@ void SaiSwitch::switchEventCallback(
         getSwitchStats()->alignerError();
       } else if (fqpError) {
         getSwitchStats()->forwardingQueueProcessorError();
+      } else if (reassemblyError) {
+        getSwitchStats()->reassemblyError();
       } else if (allReassemblyContextsTaken) {
         getSwitchStats()->allReassemblyContextsTaken();
       } else if (rtpTableChanged) {
@@ -442,13 +515,54 @@ void SaiSwitch::switchEventCallback(
       }
     } break;
     case SAI_SWITCH_EVENT_TYPE_FABRIC_AUTO_ISOLATE: {
-      // TODO(skhare) Process the callback
-      XLOG(ERR) << "Firmware Isolate callback received"
-                << " error type: " << errorType(eventInfo->error_type)
-                << " is_isolated: " << static_cast<int>(eventInfo->index)
-                << " nof_active_links: " << static_cast<int>(eventInfo->index2);
+      auto isIsolated = eventInfo->index;
+      auto numActiveFabricPorts = eventInfo->index2;
+      if (eventInfo->error_type ==
+              SAI_SWITCH_ERROR_TYPE_FABRIC_AUTO_ISOLATION &&
+          isIsolated == 1) {
+        // Firmware is expected issue callback when it isolates the device.
+        // We should never get a callback on unisolate.
+        XLOG(ERR) << "Firmware Isolate callback received"
+                  << " error type: " << errorType(eventInfo->error_type)
+                  << " isIsolated: " << isIsolated
+                  << " numActiveFabricPorts: " << numActiveFabricPorts;
+
+        // We always want to process Firmware Isolate cb and never coalesce it.
+        // Thus, unconditionally queue to for processing regardless of
+        // txReadyStatusChangePending_.
+        txReadyStatusChangeBottomHalfEventBase_.runInFbossEventBaseThread(
+            [this, numActiveFabricPorts]() mutable {
+              txReadyStatusChangeOrFwIsolateCallbackBottomHalf(
+                  true /* fwIsolated */, numActiveFabricPorts);
+            });
+      } else {
+        XLOG(ERR) << "Firmware Isolate callback received with invalid info"
+                  << " error type: " << errorType(eventInfo->error_type)
+                  << " isIsolated: " << isIsolated
+                  << " numActiveFabricPorts: " << numActiveFabricPorts;
+      }
+
       break;
     }
+#endif
+#if defined(SAI_VERSION_11_7_0_0_DNX_ODP)
+    case SAI_SWITCH_EVENT_TYPE_FIRMWARE_CRASHED: {
+      // TODO(skhare) Process this callback
+      XLOG(ERR) << "Firmware Crash callback received: " << " error type: "
+                << errorType(eventInfo->error_type)
+                << " reload reason: " << static_cast<int>(eventInfo->index)
+                << " reload status: " << static_cast<int>(eventInfo->index2);
+      break;
+    }
+    // TODO(zecheng): Update flag when new 12.0 release has the attribute
+    case SAI_SWITCH_EVENT_TYPE_REMOTE_LINK_CHANGE:
+      auto isUp = eventInfo->index;
+      auto sysPortId = eventInfo->index2;
+      XLOG(DBG2) << "[SHEL] Received remote link change event: " << "isUp: "
+                 << static_cast<int>(isUp)
+                 << " sysPortId: " << static_cast<int>(sysPortId);
+      // TODO(zecheng): Handle and log remote link change
+      break;
 #endif
   }
 }

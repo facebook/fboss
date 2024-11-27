@@ -20,7 +20,7 @@ namespace facebook::fboss {
 
 class SwSwitch;
 class RxPacket;
-class UDPHeader;
+struct UDPHeader;
 struct DHCPv6Packet;
 class TxPacket;
 class IPv6Hdr;

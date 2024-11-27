@@ -11,24 +11,15 @@
 
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
-#include "fboss/agent/hw/switch_asics/EbroAsic.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
-#include "fboss/agent/hw/switch_asics/Jericho2Asic.h"
-#include "fboss/agent/hw/switch_asics/Jericho3Asic.h"
-#include "fboss/agent/hw/switch_asics/Ramon3Asic.h"
-#include "fboss/agent/hw/switch_asics/RamonAsic.h"
 #include "fboss/agent/hw/test/HwPortUtils.h"
 #include "fboss/agent/hw/test/HwSwitchEnsemble.h"
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/PortMap.h"
 #include "fboss/agent/test/utils/AsicUtils.h"
-#include "fboss/agent/test/utils/PortTestUtils.h"
 #include "fboss/lib/config/PlatformConfigUtils.h"
-#include "fboss/lib/platforms/PlatformMode.h"
 
-#include <folly/Format.h>
 #include <folly/logging/xlog.h>
-#include <thrift/lib/cpp/util/EnumUtils.h>
 
 using namespace facebook::fboss;
 using namespace facebook::fboss::utility;

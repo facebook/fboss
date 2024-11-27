@@ -49,13 +49,14 @@ struct ThriftMapResolver {
     using type = CppType;                                         \
   };
 
-template <typename TType>
-using ResolvedType = typename ThriftStructResolver<TType>::type;
+template <typename TType, bool EnableHybridStorage>
+using ResolvedType =
+    typename ThriftStructResolver<TType, EnableHybridStorage>::type;
 
 template <typename Traits>
 using ResolvedMapType = typename ThriftMapResolver<Traits>::type;
 
-template <typename TC, typename TType>
+template <bool EnableHybridStorage, typename TC, typename TType>
 struct ConvertToNodeTraits {
   // we put primitives in optionals so that access patterns are the
   // same for all node types. Either will get std::optional<Field> or
@@ -66,11 +67,16 @@ struct ConvertToNodeTraits {
   using isChild = std::false_type;
 };
 
-template <typename TType>
-struct ConvertToNodeTraits<apache::thrift::type_class::structure, TType> {
-  using default_type =
-      ThriftStructNode<TType, ThriftStructResolver<TType>, false>;
-  using struct_type = ResolvedType<TType>;
+template <bool EnableHybridStorage, typename TType>
+struct ConvertToNodeTraits<
+    EnableHybridStorage,
+    apache::thrift::type_class::structure,
+    TType> {
+  using default_type = ThriftStructNode<
+      TType,
+      ThriftStructResolver<TType, EnableHybridStorage>,
+      EnableHybridStorage>;
+  using struct_type = ResolvedType<TType, EnableHybridStorage>;
   static_assert(
       std::is_base_of_v<default_type, struct_type>,
       "Resolved type needs to be a subclass of ThriftStructNode");
@@ -82,44 +88,65 @@ struct ConvertToNodeTraits<apache::thrift::type_class::structure, TType> {
   using isChild = std::true_type;
 };
 
-template <typename TType>
-struct ConvertToNodeTraits<apache::thrift::type_class::variant, TType> {
+template <bool EnableHybridStorage, typename TType>
+struct ConvertToNodeTraits<
+    EnableHybridStorage,
+    apache::thrift::type_class::variant,
+    TType> {
   using type = std::shared_ptr<ThriftUnionNode<TType>>;
   using isChild = std::true_type;
 };
 
-template <typename ValueT, typename TType>
-struct ConvertToNodeTraits<apache::thrift::type_class::list<ValueT>, TType> {
+template <bool EnableHybridStorage, typename ValueT, typename TType>
+struct ConvertToNodeTraits<
+    EnableHybridStorage,
+    apache::thrift::type_class::list<ValueT>,
+    TType> {
   using type = std::shared_ptr<
       ThriftListNode<apache::thrift::type_class::list<ValueT>, TType>>;
   using isChild = std::true_type;
 };
 
+template <bool EnableHybridStorage>
+using bool_constant = std::integral_constant<bool, EnableHybridStorage>;
+
 template <
+    bool EnableHybridStorage,
     typename TypeClass,
     typename TType,
-    template <typename...> typename ConvertToNodeTraitsT = ConvertToNodeTraits>
+    template <bool, typename...> typename ConvertToNodeTraitsT =
+        ConvertToNodeTraits>
 struct ThriftMapTraits {
   using TC = TypeClass;
   using Type = TType;
   using KeyType = typename TType::key_type;
   using KeyCompare = std::less<KeyType>;
-  template <typename... T>
-  using ConvertToNodeTraits = ConvertToNodeTraitsT<T...>;
+  using EnableHybridStorageT = bool_constant<EnableHybridStorage>;
+  template <typename EnableHybridStorageT, typename... T>
+  using ConvertToNodeTraits = ConvertToNodeTraitsT<EnableHybridStorage, T...>;
 };
 
-template <typename KeyT, typename ValueT, typename TType>
+template <
+    bool EnableHybridStorage,
+    typename KeyT,
+    typename ValueT,
+    typename TType>
 struct ConvertToNodeTraits<
+    EnableHybridStorage,
     apache::thrift::type_class::map<KeyT, ValueT>,
     TType> {
   using type_class = apache::thrift::type_class::map<KeyT, ValueT>;
-  using map_type = ResolvedMapType<ThriftMapTraits<type_class, TType>>;
+  using map_type =
+      ResolvedMapType<ThriftMapTraits<EnableHybridStorage, type_class, TType>>;
   using type = std::shared_ptr<map_type>;
   using isChild = std::true_type;
 };
 
-template <typename ValueT, typename TType>
-struct ConvertToNodeTraits<apache::thrift::type_class::set<ValueT>, TType> {
+template <bool EnableHybridStorage, typename ValueT, typename TType>
+struct ConvertToNodeTraits<
+    EnableHybridStorage,
+    apache::thrift::type_class::set<ValueT>,
+    TType> {
   using type = std::shared_ptr<
       ThriftSetNode<apache::thrift::type_class::set<ValueT>, TType>>;
   using isChild = std::true_type;
@@ -170,10 +197,10 @@ struct read_annotation_allow_skip_thrift_cow<
       fatal_true>::value;
 };
 
-template <typename Derived, typename Member, bool EnableHybridStorage = false>
+template <typename Derived, typename Member, bool EnableHybridStorage>
 struct StructMemberTraits {
   using member = Member;
-  using traits = StructMemberTraits<Derived, Member>;
+  using traits = StructMemberTraits<Derived, Member, EnableHybridStorage>;
   using name = typename Member::name;
   using ttype = typename Member::type;
   using tc = typename Member::type_class;
@@ -187,11 +214,11 @@ struct StructMemberTraits {
   using default_type = std::conditional_t<
       allowSkipThriftCow,
       typename std::shared_ptr<ThriftHybridNode<tc, ttype>>,
-      typename ConvertToNodeTraits<tc, ttype>::type>;
+      typename ConvertToNodeTraits<EnableHybridStorage, tc, ttype>::type>;
   using isChild = std::conditional_t<
       allowSkipThriftCow,
       std::false_type,
-      typename ConvertToNodeTraits<tc, ttype>::isChild>;
+      typename ConvertToNodeTraits<EnableHybridStorage, tc, ttype>::isChild>;
 
   // if the member type is overriden, use the overriden type.
   using type = std::conditional_t<
@@ -200,22 +227,24 @@ struct StructMemberTraits {
       default_type>;
 };
 
-template <typename Derived, bool EnableHybridStorage = false>
+template <typename Derived, bool EnableHybridStorage>
 struct ExtractStructFields {
   template <typename T>
   using apply = StructMemberTraits<Derived, T, EnableHybridStorage>;
 };
 
-template <typename Member>
+template <typename Member, bool EnableHybridStorage = false>
 struct UnionMemberTraits {
   using member = Member;
-  using traits = UnionMemberTraits<Member>;
+  using traits = UnionMemberTraits<Member, EnableHybridStorage>;
   using name = typename Member::metadata::name;
   using id = typename Member::metadata::id;
   using ttype = typename Member::type;
   using tc = typename Member::metadata::type_class;
-  using type = typename ConvertToNodeTraits<tc, ttype>::type;
-  using isChild = typename ConvertToNodeTraits<tc, ttype>::isChild;
+  using type =
+      typename ConvertToNodeTraits<EnableHybridStorage, tc, ttype>::type;
+  using isChild =
+      typename ConvertToNodeTraits<EnableHybridStorage, tc, ttype>::isChild;
 };
 
 struct ExtractUnionFields {

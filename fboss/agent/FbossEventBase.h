@@ -9,12 +9,13 @@
  */
 #pragma once
 
+#include "fboss/agent/AgentFeatures.h"
+
 #include <folly/io/async/EventBase.h>
 #include <folly/logging/xlog.h>
 #include <string>
 
 namespace facebook::fboss {
-
 class FbossEventBase : public folly::EventBase {
  public:
   explicit FbossEventBase(const std::string& name) : eventBaseName_(name) {}
@@ -23,6 +24,12 @@ class FbossEventBase : public folly::EventBase {
     if (!isRunning()) {
       XLOG(ERR) << "runInFbossEventBaseThread to non-running " << eventBaseName_
                 << " FbossEventBase.";
+    }
+    if (getNotificationQueueSize() >= FLAGS_fboss_event_base_queue_limit) {
+      XLOG(ERR) << "Stop enqueuing to " << eventBaseName_
+                << ". Queue size greater than limit "
+                << FLAGS_fboss_event_base_queue_limit;
+      return;
     }
     runInEventBaseThread(std::move(fn));
   }
@@ -37,6 +44,12 @@ class FbossEventBase : public folly::EventBase {
       XLOG(ERR) << "runInFbossEventBaseThreadAndWait for non-running "
                 << eventBaseName_ << " FbossEventBase.";
     }
+    if (getNotificationQueueSize() >= FLAGS_fboss_event_base_queue_limit) {
+      XLOG(ERR) << "Stop enqueuing to " << eventBaseName_
+                << ". Queue size greater than limit "
+                << FLAGS_fboss_event_base_queue_limit;
+      return;
+    }
     runInEventBaseThreadAndWait(std::move(fn));
   }
 
@@ -45,6 +58,12 @@ class FbossEventBase : public folly::EventBase {
       XLOG(ERR)
           << "runImmediatelyOrRunInFbossEventBaseThreadAndWait for non-running "
           << eventBaseName_ << " FbossEventBase.";
+    }
+    if (getNotificationQueueSize() >= FLAGS_fboss_event_base_queue_limit) {
+      XLOG(ERR) << "Stop enqueuing to " << eventBaseName_
+                << ". Queue size greater than limit "
+                << FLAGS_fboss_event_base_queue_limit;
+      return;
     }
     runImmediatelyOrRunInEventBaseThreadAndWait(std::move(fn));
   }

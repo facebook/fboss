@@ -433,6 +433,9 @@ class SaiPortManager {
   void createSerdesWithZeroPreemphasis(
       SaiPortHandle* portHandle,
       const std::vector<phy::PinConfig>& pinConfigs);
+  void changePortFlowletConfig(
+      const std::shared_ptr<Port>& oldPort,
+      const std::shared_ptr<Port>& newPort);
 
   SaiStore* saiStore_;
   SaiManagerTable* managerTable_;

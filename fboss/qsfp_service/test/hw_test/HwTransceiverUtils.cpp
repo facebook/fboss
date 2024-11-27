@@ -140,6 +140,7 @@ void HwTransceiverUtils::verifyPortNameToLaneMap(
       case MediaInterfaceCode::LR_10G:
       case MediaInterfaceCode::SR_10G:
       case MediaInterfaceCode::BASE_T_10G:
+      case MediaInterfaceCode::CR_10G:
         expectedMediaLanes = {0};
         break;
       case MediaInterfaceCode::UNKNOWN:
@@ -361,11 +362,15 @@ void HwTransceiverUtils::verify10gProfile(
   EXPECT_EQ(*tcvrState.transceiver(), TransceiverType::SFP);
 
   for (const auto& mediaId : mediaInterfaces) {
-    EXPECT_EQ(
-        *mediaId.media()->ethernet10GComplianceCode_ref(),
-        Ethernet10GComplianceCode::LR_10G);
+    EXPECT_TRUE(
+        *mediaId.media()->ethernet10GComplianceCode_ref() ==
+            Ethernet10GComplianceCode::LR_10G ||
+        *mediaId.media()->ethernet10GComplianceCode_ref() ==
+            Ethernet10GComplianceCode::CR_10G);
 
-    EXPECT_EQ(*mediaId.code(), MediaInterfaceCode::LR_10G);
+    EXPECT_TRUE(
+        *mediaId.code() == MediaInterfaceCode::LR_10G ||
+        *mediaId.code() == MediaInterfaceCode::CR_10G);
   }
 }
 

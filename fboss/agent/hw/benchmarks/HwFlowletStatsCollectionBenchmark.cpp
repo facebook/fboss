@@ -43,7 +43,8 @@ BENCHMARK(HwFlowletStatsCollection) {
         auto config =
             utility::onePortPerInterfaceConfig(ensemble.getSw(), ports);
         config.udfConfig() = utility::addUdfFlowletAclConfig();
-        utility::addFlowletConfigs(config, ensemble.masterLogicalPortIds());
+        utility::addFlowletConfigs(
+            config, ensemble.masterLogicalPortIds(), ensemble.isSai());
         utility::addFlowletAcl(config);
         return config;
       };

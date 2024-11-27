@@ -30,15 +30,11 @@ Wedge40Platform::Wedge40Platform(
           localMac) {}
 
 void Wedge40Platform::setupAsic(
-    cfg::SwitchType switchType,
     std::optional<int64_t> switchId,
-    int16_t switchIndex,
-    std::optional<cfg::Range64> systemPortRange,
-    folly::MacAddress& mac,
+    const cfg::SwitchInfo& switchInfo,
     std::optional<HwAsic::FabricNodeRole> fabricNodeRole) {
   CHECK(!fabricNodeRole.has_value());
-  asic_ = std::make_unique<Trident2Asic>(
-      switchType, switchId, switchIndex, systemPortRange, mac);
+  asic_ = std::make_unique<Trident2Asic>(switchId, switchInfo);
 }
 
 std::unique_ptr<WedgePortMapping> Wedge40Platform::createPortMapping() {

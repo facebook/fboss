@@ -11,16 +11,13 @@
 #include "fboss/agent/test/AgentHwTest.h"
 
 #include "fboss/agent/packet/PktFactory.h"
-#include "fboss/lib/CommonUtils.h"
 
 #include "fboss/agent/test/gen-cpp2/production_features_types.h"
 
-#include "fboss/agent/packet/EthHdr.h"
 #include "fboss/agent/packet/IPv4Hdr.h"
 #include "fboss/agent/packet/IPv6Hdr.h"
 #include "fboss/agent/packet/UDPHeader.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
-#include "fboss/lib/CommonUtils.h"
 
 #include <folly/IPAddress.h>
 #include "fboss/agent/TxPacket.h"

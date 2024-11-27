@@ -13,7 +13,6 @@
 #include "fboss/cli/fboss2/commands/show/interface/traffic/CmdShowInterfaceTraffic.h"
 #include "fboss/cli/fboss2/commands/show/interface/traffic/gen-cpp2/model_types.h"
 #include "fboss/cli/fboss2/test/CmdHandlerTestBase.h"
-#include "nettools/common/TestUtils.h"
 
 using namespace ::testing;
 

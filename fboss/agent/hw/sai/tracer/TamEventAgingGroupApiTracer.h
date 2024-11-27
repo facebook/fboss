@@ -2,10 +2,9 @@
 
 #pragma once
 
-#if defined(SAI_VERSION_11_3_0_0_DNX_ODP) || \
-    defined(SAI_VERSION_11_7_0_0_DNX_ODP)
-
 #include "fboss/agent/hw/sai/tracer/SaiTracer.h"
+
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
 
 extern "C" {
 #include <sai.h>

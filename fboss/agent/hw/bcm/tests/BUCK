@@ -24,10 +24,8 @@ cpp_library(
         "//common/fb303/cpp:fb303",
         "//fboss/agent:fboss-error",
         "//fboss/agent/hw/bcm:bcm",
-        "//fboss/agent/hw/bcm:bcm_sdk_ver",
         "//fboss/agent/hw/bcm/tests/facebook:if-cpp2-services",
         "//folly:string",
-        "//folly/logging:logging",
         "//thrift/lib/cpp/server:server_event_handler",
     ],
 )
@@ -64,7 +62,6 @@ cpp_library(
         "//fboss/agent/hw/test:config_factory",
         "//fboss/agent/hw/test:hw_switch_ensemble_factory",
         "//fboss/agent/platforms/tests/utils:bcm_test_platforms",
-        "//fboss/agent/state:state",
         "//fboss/agent/test:linkstate_toggler",
         "//fboss/agent/test:test_ensemble_if",
         "//folly/logging:logging",
@@ -82,7 +79,6 @@ cpp_library(
     exported_deps = [
         ":bcm_switch_ensemble",
         "//fboss/agent/hw/bcm:bcm",
-        "//fboss/agent/state:state",
         "//fboss/agent/test:linkstate_toggler",
         "//fboss/agent/test:test_ensemble_if",
     ],
@@ -207,9 +203,6 @@ cpp_library(
     ],
     link_whole = True,
     exported_deps = [
-        "//fboss/agent:fboss-error",
-        "//fboss/agent:lacp_types",
-        "//fboss/agent:switch_config-cpp2-types",
         "//fboss/agent/hw/bcm:bcm",
         "//fboss/agent/hw/test:hw_copp_utils",
     ],
@@ -249,7 +242,6 @@ cpp_unittest(
         "BcmAddressFBConvertorsTests.cpp",
     ],
     deps = [
-        ":bcm_unittest_utils",
         "//fboss/agent/hw/bcm:bcmaddress_fb_convertors",
         "//folly:network_address",
         "//folly:range",
@@ -484,7 +476,6 @@ cpp_unittest(
         "BcmCosQueueFBConvertorsTests.cpp",
     ],
     deps = [
-        ":bcm_unittest_utils",
         "//fboss/agent:fboss-error",
         "//fboss/agent/hw/bcm:bcm_cosqueue_fb_convertors",
     ],
@@ -517,7 +508,6 @@ cpp_unittest(
         "BcmLabelSwitchingUtilsTests.cpp",
     ],
     deps = [
-        ":bcm_unittest_utils",
         "//fboss/agent/hw/bcm:bcm_mpls_utils",
     ],
 )
@@ -528,7 +518,6 @@ cpp_unittest(
         "BcmFieldProcessorFBConvertorsTests.cpp",
     ],
     deps = [
-        ":bcm_unittest_utils",
         "//fboss/agent:fboss-error",
         "//fboss/agent/hw/bcm:bcm_fieldprocessor_fb_convertors",
     ],
@@ -542,9 +531,6 @@ cpp_unittest(
     name = "sdk_test",
     srcs = [
         "GPort.cpp",
-    ],
-    deps = [
-        ":bcm_unittest_utils",
     ],
     external_deps = [
         "glog",
@@ -620,6 +606,7 @@ cpp_library(
     ],
     undefined_symbols = "True",  # The sai/bcm implementations will define some functions
     exported_deps = [
+        ":bcm_trunk_utils",
         "//fboss/agent:fboss-types",
         "//fboss/agent:hw_switch",
         "//fboss/agent/hw/bcm:bcm",

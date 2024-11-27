@@ -13,7 +13,6 @@
 #include "fboss/agent/hw/switch_asics/Tomahawk3Asic.h"
 #include "fboss/agent/platforms/common/yamp/YampPlatformMapping.h"
 
-#include <cstdio>
 #include <cstring>
 namespace facebook::fboss {
 
@@ -27,15 +26,11 @@ SaiBcmYampPlatform::SaiBcmYampPlatform(
           localMac) {}
 
 void SaiBcmYampPlatform::setupAsic(
-    cfg::SwitchType switchType,
     std::optional<int64_t> switchId,
-    int16_t switchIndex,
-    std::optional<cfg::Range64> systemPortRange,
-    folly::MacAddress& mac,
+    const cfg::SwitchInfo& switchInfo,
     std::optional<HwAsic::FabricNodeRole> fabricNodeRole) {
   CHECK(!fabricNodeRole.has_value());
-  asic_ = std::make_unique<Tomahawk3Asic>(
-      switchType, switchId, switchIndex, systemPortRange, mac);
+  asic_ = std::make_unique<Tomahawk3Asic>(switchId, switchInfo);
 }
 
 HwAsic* SaiBcmYampPlatform::getAsic() const {

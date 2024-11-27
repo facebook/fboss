@@ -76,6 +76,7 @@ struct HwPortStats {
   37: map<i16, i64> fecCodewords_ = {};
   38: optional i64 pqpErrorEgressDroppedPackets_;
   39: optional i64 fabricLinkDownDroppedCells_;
+  40: optional i64 linkLayerFlowControlWatermark_;
 
   // seconds from epoch
   50: i64 timestamp_ = STAT_UNINITIALIZED;
@@ -229,6 +230,7 @@ struct HwAsicErrors {
   8: optional i64 alignerErrors;
   9: optional i64 forwardingQueueProcessorErrors;
   10: optional i64 allReassemblyContextsTaken;
+  11: optional i64 reassemblyErrors;
 }
 
 struct HwTeFlowStats {
@@ -269,6 +271,8 @@ struct HwSwitchWatermarkStats {
   5: map<string, i64> globalHeadroomWatermarkBytes;
   6: map<string, i64> globalSharedWatermarkBytes;
   7: optional i64 egressCoreBufferWatermarkBytes;
+  8: optional i64 sramMinBufferWatermarkBytes;
+  9: optional i64 fdrFifoWatermarkBytes;
 }
 
 struct CpuPortStats {
@@ -293,6 +297,10 @@ struct HwSwitchDropStats {
   11: optional i64 ingressPacketPipelineRejectDrops;
   12: optional i64 corruptedCellPacketIntegrityDrops;
   13: optional i64 missingCellPacketIntegrityDrops;
+  14: optional i64 rqpFabricCellCorruptionDrops;
+  15: optional i64 rqpNonFabricCellCorruptionDrops;
+  16: optional i64 rqpNonFabricCellMissingDrops;
+  17: optional i64 rqpParityErrorDrops;
 }
 
 struct HwSwitchDramStats {
@@ -348,6 +356,10 @@ struct HwSwitchFb303GlobalStats {
   27: optional i64 dram_blocked_time_ns;
   28: optional i64 deleted_credit_bytes;
   29: optional i64 vsq_resource_exhaustion_drops;
+  30: optional i64 rqp_fabric_cell_corruption;
+  31: optional i64 rqp_non_fabric_cell_corruption;
+  32: optional i64 rqp_non_fabric_cell_missing;
+  33: optional i64 rqp_parity_error;
 }
 
 struct HwFlowletStats {

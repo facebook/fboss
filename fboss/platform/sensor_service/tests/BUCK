@@ -1,0 +1,58 @@
+load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
+load("@fbcode_macros//build_defs:cpp_unittest.bzl", "cpp_unittest")
+
+oncall("fboss_platform")
+
+cpp_library(
+    name = "utils",
+    srcs = [
+        "TestUtils.cpp",
+    ],
+    exported_deps = [
+        "//fboss/platform/config_lib:config_lib",
+        "//fboss/platform/sensor_service:service",
+        "//folly:file_util",
+        "//folly/json:dynamic",
+        "//thrift/lib/cpp2/protocol:protocol",
+    ],
+)
+
+cpp_unittest(
+    name = "sensor_service_sw_test",
+    srcs = [
+        "SensorServiceImplTest.cpp",
+        "SensorServiceThriftHandlerTest.cpp",
+    ],
+    deps = [
+        ":utils",
+        "//fboss/platform/config_lib:config_lib",
+        "//fboss/platform/sensor_service:core",
+        "//fboss/platform/sensor_service:service",
+        "//fboss/platform/sensor_service:utils",
+        "//folly:file_util",
+        "//folly/testing:test_util",
+        "//thrift/lib/cpp2/protocol:protocol",
+    ],
+)
+
+cpp_unittest(
+    name = "utils_tests",
+    srcs = [
+        "UtilsTest.cpp",
+    ],
+    deps = [
+        "fbsource//third-party/googletest:gmock",
+        "//fboss/platform/sensor_service:utils",
+    ],
+)
+
+cpp_unittest(
+    name = "config_validator_test",
+    srcs = [
+        "ConfigValidatorTest.cpp",
+    ],
+    deps = [
+        "fbsource//third-party/googletest:gmock",
+        "//fboss/platform/sensor_service:config_validator",
+    ],
+)

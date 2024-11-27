@@ -20,6 +20,7 @@ int fsdbMain(int argc, char** argv) {
 
   auto handler = createThriftHandler(fsdbConfig);
   auto server = createThriftServer(fsdbConfig, handler);
+  handler->setThriftServer(server);
   startThriftServer(server, handler);
   return 0;
 }

@@ -47,6 +47,6 @@ MultiSwitchLoadBalancerMap* MultiSwitchLoadBalancerMap::modify(
   return ptr;
 }
 
-template class ThriftMapNode<LoadBalancerMap, LoadBalancerMapTraits>;
+template struct ThriftMapNode<LoadBalancerMap, LoadBalancerMapTraits>;
 
 } // namespace facebook::fboss

@@ -16,11 +16,11 @@
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwSwitchEnsemble.h"
 #include "fboss/agent/test/AgentEnsemble.h"
+#include "fboss/agent/test/utils/DsfConfigUtils.h"
 #include "fboss/agent/test/utils/VoqTestUtils.h"
 
 #include <folly/Benchmark.h>
 #include <folly/IPAddress.h>
-#include <folly/logging/xlog.h>
 
 namespace facebook::fboss {
 

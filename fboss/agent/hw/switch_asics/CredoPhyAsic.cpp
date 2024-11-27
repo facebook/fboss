@@ -56,6 +56,9 @@ uint32_t CredoPhyAsic::getMaxLabelStackDepth() const {
 uint64_t CredoPhyAsic::getMMUSizeBytes() const {
   throw FbossError("CredoPhyAsic doesn't support MMU feature");
 };
+uint64_t CredoPhyAsic::getSramSizeBytes() const {
+  throw FbossError("CredoPhyAsic doesn't support MMU feature");
+}
 int CredoPhyAsic::getMaxNumLogicalPorts() const {
   throw FbossError("CredoPhyAsic doesn't support logical ports feature");
 }

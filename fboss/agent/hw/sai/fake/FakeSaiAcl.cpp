@@ -837,6 +837,24 @@ sai_status_t set_acl_entry_attribute_fn(
   return res;
 }
 
+sai_status_t acl_entry_copy_attr_to_u8list(
+    std::vector<sai_uint8_t>& data,
+    std::vector<sai_uint8_t>& mask,
+    sai_acl_field_data_t* aclfield) {
+  if (aclfield->data.u8list.count < data.size() ||
+      aclfield->mask.u8list.count < mask.size()) {
+    aclfield->data.u8list.count = data.size();
+    aclfield->mask.u8list.count = mask.size();
+    return SAI_STATUS_BUFFER_OVERFLOW;
+  }
+  aclfield->enable = true;
+  aclfield->data.u8list.count = data.size();
+  aclfield->mask.u8list.count = mask.size();
+  aclfield->data.u8list.list = data.data();
+  aclfield->mask.u8list.list = mask.data();
+  return SAI_STATUS_SUCCESS;
+}
+
 sai_status_t get_acl_entry_attribute_fn(
     sai_object_id_t acl_entry_id,
     uint32_t attr_count,
@@ -1011,65 +1029,30 @@ sai_status_t get_acl_entry_attribute_fn(
         attr_list[i].value.aclfield.mask.u8 = aclEntry.fieldIpv6NextHeaderMask;
         break;
       case SAI_ACL_ENTRY_ATTR_USER_DEFINED_FIELD_GROUP_MIN:
-        attr_list[i].value.aclfield.enable =
-            aclEntry.userDefinedFieldGroupMinEnable;
-        attr_list[i].value.aclfield.data.u8list.count =
-            aclEntry.userDefinedFieldGroupMinData.size();
-        attr_list[i].value.aclfield.mask.u8list.count =
-            aclEntry.userDefinedFieldGroupMinMask.size();
-        attr_list[i].value.aclfield.data.u8list.list =
-            aclEntry.userDefinedFieldGroupMinData.data();
-        attr_list[i].value.aclfield.mask.u8list.list =
-            aclEntry.userDefinedFieldGroupMinMask.data();
-        break;
+        return acl_entry_copy_attr_to_u8list(
+            aclEntry.userDefinedFieldGroupMinData,
+            aclEntry.userDefinedFieldGroupMinMask,
+            &attr_list[i].value.aclfield);
       case (SAI_ACL_ENTRY_ATTR_USER_DEFINED_FIELD_GROUP_MIN + 1):
-        attr_list[i].value.aclfield.enable =
-            aclEntry.userDefinedFieldGroupMin1Enable;
-        attr_list[i].value.aclfield.data.u8list.count =
-            aclEntry.userDefinedFieldGroupMin1Data.size();
-        attr_list[i].value.aclfield.mask.u8list.count =
-            aclEntry.userDefinedFieldGroupMin1Mask.size();
-        attr_list[i].value.aclfield.data.u8list.list =
-            aclEntry.userDefinedFieldGroupMin1Data.data();
-        attr_list[i].value.aclfield.mask.u8list.list =
-            aclEntry.userDefinedFieldGroupMin1Mask.data();
-        break;
+        return acl_entry_copy_attr_to_u8list(
+            aclEntry.userDefinedFieldGroupMin1Data,
+            aclEntry.userDefinedFieldGroupMin1Mask,
+            &attr_list[i].value.aclfield);
       case (SAI_ACL_ENTRY_ATTR_USER_DEFINED_FIELD_GROUP_MIN + 2):
-        attr_list[i].value.aclfield.enable =
-            aclEntry.userDefinedFieldGroupMin2Enable;
-        attr_list[i].value.aclfield.data.u8list.count =
-            aclEntry.userDefinedFieldGroupMin2Data.size();
-        attr_list[i].value.aclfield.mask.u8list.count =
-            aclEntry.userDefinedFieldGroupMin2Mask.size();
-        attr_list[i].value.aclfield.data.u8list.list =
-            aclEntry.userDefinedFieldGroupMin2Data.data();
-        attr_list[i].value.aclfield.mask.u8list.list =
-            aclEntry.userDefinedFieldGroupMin2Mask.data();
-        break;
+        return acl_entry_copy_attr_to_u8list(
+            aclEntry.userDefinedFieldGroupMin2Data,
+            aclEntry.userDefinedFieldGroupMin2Mask,
+            &attr_list[i].value.aclfield);
       case (SAI_ACL_ENTRY_ATTR_USER_DEFINED_FIELD_GROUP_MIN + 3):
-        attr_list[i].value.aclfield.enable =
-            aclEntry.userDefinedFieldGroupMin3Enable;
-        attr_list[i].value.aclfield.data.u8list.count =
-            aclEntry.userDefinedFieldGroupMin3Data.size();
-        attr_list[i].value.aclfield.mask.u8list.count =
-            aclEntry.userDefinedFieldGroupMin3Mask.size();
-        attr_list[i].value.aclfield.data.u8list.list =
-            aclEntry.userDefinedFieldGroupMin3Data.data();
-        attr_list[i].value.aclfield.mask.u8list.list =
-            aclEntry.userDefinedFieldGroupMin3Mask.data();
-        break;
+        return acl_entry_copy_attr_to_u8list(
+            aclEntry.userDefinedFieldGroupMin3Data,
+            aclEntry.userDefinedFieldGroupMin3Mask,
+            &attr_list[i].value.aclfield);
       case (SAI_ACL_ENTRY_ATTR_USER_DEFINED_FIELD_GROUP_MIN + 4):
-        attr_list[i].value.aclfield.enable =
-            aclEntry.userDefinedFieldGroupMin4Enable;
-        attr_list[i].value.aclfield.data.u8list.count =
-            aclEntry.userDefinedFieldGroupMin4Data.size();
-        attr_list[i].value.aclfield.mask.u8list.count =
-            aclEntry.userDefinedFieldGroupMin4Mask.size();
-        attr_list[i].value.aclfield.data.u8list.list =
-            aclEntry.userDefinedFieldGroupMin4Data.data();
-        attr_list[i].value.aclfield.mask.u8list.list =
-            aclEntry.userDefinedFieldGroupMin4Mask.data();
-        break;
+        return acl_entry_copy_attr_to_u8list(
+            aclEntry.userDefinedFieldGroupMin4Data,
+            aclEntry.userDefinedFieldGroupMin4Mask,
+            &attr_list[i].value.aclfield);
 
       case SAI_ACL_ENTRY_ATTR_ACTION_PACKET_ACTION:
         attr_list[i].value.aclaction.enable = aclEntry.actionPacketActionEnable;

@@ -264,6 +264,7 @@ TEST(Interface, RemoteInterfaceModify) {
 
   HwSwitchMatcher scope(std::unordered_set<SwitchID>({SwitchID{1}}));
   auto sysPort1 = makeSysPort("olympic", 1001, 100);
+  sysPort1->setScope(cfg::Scope::GLOBAL);
   remoteSysPorts->addNode(sysPort1, scope);
   auto remoteInterfaces = stateV1->getRemoteInterfaces()->modify(&stateV1);
   InterfaceID kIntf(1001);
@@ -277,6 +278,7 @@ TEST(Interface, RemoteInterfaceModify) {
       false,
       false,
       cfg::InterfaceType::SYSTEM_PORT);
+  rif->setScope(cfg::Scope::GLOBAL);
 
   remoteInterfaces->addNode(rif, scope);
   stateV1->publish();

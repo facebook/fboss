@@ -1,3 +1,4 @@
+# pyre-unsafe
 import pytest
 
 import sensors

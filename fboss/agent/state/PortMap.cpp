@@ -45,6 +45,6 @@ MultiSwitchPortMap* MultiSwitchPortMap::modify(
   return SwitchState::modify<switch_state_tags::portMaps>(state);
 }
 
-template class ThriftMapNode<PortMap, PortMapTraits>;
+template struct ThriftMapNode<PortMap, PortMapTraits>;
 
 } // namespace facebook::fboss

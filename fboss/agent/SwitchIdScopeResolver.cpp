@@ -2,11 +2,13 @@
 
 #include "fboss/agent/SwitchIdScopeResolver.h"
 #include "fboss/agent/FbossError.h"
+#include "fboss/agent/SwitchInfoUtils.h"
 #include "fboss/agent/state/AclTableGroup.h"
 #include "fboss/agent/state/AggregatePort.h"
 #include "fboss/agent/state/ForwardingInformationBaseMap.h"
 #include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/LabelForwardingEntry.h"
+#include "fboss/agent/state/MirrorOnDropReport.h"
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/PortDescriptor.h"
 #include "fboss/agent/state/SflowCollector.h"
@@ -83,10 +85,11 @@ const HwSwitchMatcher& SwitchIdScopeResolver::voqSwitchMatcher() const {
 
 HwSwitchMatcher SwitchIdScopeResolver::scope(PortID portId) const {
   for (const auto& switchIdAndSwitchInfo : switchIdToSwitchInfo_) {
-    if (portId >=
-            PortID(*switchIdAndSwitchInfo.second.portIdRange()->minimum()) &&
-        portId <=
-            PortID(*switchIdAndSwitchInfo.second.portIdRange()->maximum())) {
+    auto switchInfo = switchIdAndSwitchInfo.second;
+    if (static_cast<int64_t>(portId) >=
+            *switchIdAndSwitchInfo.second.portIdRange()->minimum() &&
+        static_cast<int64_t>(portId) <=
+            *switchIdAndSwitchInfo.second.portIdRange()->maximum()) {
       return HwSwitchMatcher(std::unordered_set<SwitchID>(
           {SwitchID(switchIdAndSwitchInfo.first)}));
     }
@@ -137,17 +140,11 @@ HwSwitchMatcher SwitchIdScopeResolver::scope(
 }
 
 HwSwitchMatcher SwitchIdScopeResolver::scope(SystemPortID sysPortId) const {
-  auto sysPortInt = static_cast<int64_t>(sysPortId);
   for (const auto& [id, info] : switchIdToSwitchInfo_) {
-    if (!info.systemPortRange().has_value()) {
-      continue;
-    }
-    if (sysPortInt >= *info.systemPortRange()->minimum() &&
-        sysPortInt <= *info.systemPortRange()->maximum()) {
+    if (withinRange(*info.systemPortRanges(), sysPortId)) {
       return HwSwitchMatcher(std::unordered_set<SwitchID>({SwitchID(id)}));
     }
   }
-
   // This is a non local sys port. So it maps to all local voq switchIds
   return voqSwitchMatcher();
 }
@@ -194,6 +191,8 @@ HwSwitchMatcher SwitchIdScopeResolver::scope(
     case cfg::InterfaceType::VLAN:
       return scope(
           state->getVlans()->getNode(VlanID(static_cast<int>(intf->getID()))));
+    case cfg::InterfaceType::PORT:
+      return scope(intf->getPortID());
   }
   throw FbossError(
       "Unexpected interface type: ", static_cast<int>(intf->getType()));
@@ -228,6 +227,26 @@ HwSwitchMatcher SwitchIdScopeResolver::scope(
         }
       }
       return scope(std::make_shared<Vlan>(&*vitr, vlanMembers));
+    }
+    case cfg::InterfaceType::PORT: {
+      auto itr = std::find_if(
+          cfg.interfaces()->cbegin(),
+          cfg.interfaces()->cend(),
+          [interfaceId](const auto& intf) {
+            return InterfaceID(*intf.intfID()) == interfaceId;
+          });
+      if (itr == cfg.interfaces()->cend()) {
+        throw FbossError("No interface found for : ", interfaceId);
+      }
+      auto pitr = std::find_if(
+          cfg.ports()->cbegin(), cfg.ports()->cend(), [itr](const auto& port) {
+            return *port.logicalID() == *(itr->portID());
+          });
+      if (pitr == cfg.ports()->cend()) {
+        throw FbossError("No port found for : ", interfaceId);
+      }
+      const auto& port = *pitr;
+      return scope(PortID(*port.logicalID()));
     }
   }
   throw FbossError("Unexpected interface type: ", static_cast<int>(type));
@@ -322,6 +341,16 @@ HwSwitchMatcher SwitchIdScopeResolver::scope(
   std::unordered_set<SwitchID> switchIds;
   switchIds.insert(SwitchID(mirror->getSwitchId()));
   return HwSwitchMatcher(switchIds);
+}
+
+HwSwitchMatcher SwitchIdScopeResolver::scope(
+    const cfg::MirrorOnDropReport& report) const {
+  return scope(PortID(report.get_mirrorPortId()));
+}
+
+HwSwitchMatcher SwitchIdScopeResolver::scope(
+    const std::shared_ptr<MirrorOnDropReport>& report) const {
+  return scope(PortID(report->getMirrorPortId()));
 }
 
 } // namespace facebook::fboss

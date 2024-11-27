@@ -15,9 +15,9 @@
 namespace facebook::fboss {
 class SwSwitch;
 class TestEnsembleIf;
-class PortID;
+struct PortID;
 class HwAsic;
-class SwitchID;
+struct SwitchID;
 class PortDescriptor;
 
 namespace utility {

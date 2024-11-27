@@ -307,4 +307,8 @@ inline folly::StringPiece constexpr kCableLengthMeters() {
 inline folly::StringPiece constexpr kDataCellsFilterOn() {
   return "data_cells_filter_on";
 }
+
+inline folly::StringPiece constexpr kLinkLayerFlowControlWatermark() {
+  return "link_layer_flow_control_watermark";
+}
 } // namespace facebook::fboss

@@ -13,7 +13,6 @@
 #include "fboss/agent/test/utils/PacketSnooper.h"
 #include "fboss/agent/test/utils/PacketTestUtils.h"
 #include "fboss/agent/test/utils/TrapPacketUtils.h"
-#include "fboss/lib/CommonUtils.h"
 
 #include "common/process/Process.h"
 

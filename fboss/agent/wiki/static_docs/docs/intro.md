@@ -37,7 +37,7 @@ Also, now that this is set up with some magic fb internal plugins, there is no n
 # Static Docs: Contributing
 
 ## Contributing through Code
-All our wiki pages are hosted under ~/fbsource/fbcode/fboss/agent/wiki/static_docs/docs/. 
+All our wiki pages are hosted under ~/fbsource/fbcode/fboss/agent/wiki/static_docs/docs/.
 * Depending on where you want the wiki to be placed under in the sidebar, choose the appropriate folder
 * Once selected, create a new MDX file under the directory for OSS page or under fb/ for closed source page
 * Once you created the new MDX page, refer to the instructions below to setup your devserver to view the changes
@@ -104,11 +104,6 @@ yarn
 Compile the documentation and start a local development server:
 ```bash
 yarn start
-```
-
-If you want to use `npm` to deploy and serve your content instead of `yarn`, run:
-```bash
-npm run serve
 ```
 
 You can preview the pages at http://localhost:3000.

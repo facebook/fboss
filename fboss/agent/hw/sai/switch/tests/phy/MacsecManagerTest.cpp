@@ -11,6 +11,7 @@
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/hw/sai/api/Types.h"
 #include "fboss/agent/hw/sai/store/SaiStore.h"
+#include "fboss/agent/hw/sai/switch/SaiAclTableGroupManager.h"
 #include "fboss/agent/hw/sai/switch/SaiAclTableManager.h"
 #include "fboss/agent/hw/sai/switch/SaiMacsecManager.h"
 #include "fboss/agent/hw/sai/switch/tests/ManagerTestBase.h"
@@ -112,6 +113,10 @@ class MacsecManagerTest : public ManagerTestBase {
         rxSak1.keyIdHex()->begin(),
         rxSak1.keyIdHex()->end(),
         rxSecureAssocAuthKey.data());
+    saiManagerTable->aclTableGroupManager().addAclTableGroup(
+        std::make_shared<AclTableGroup>(cfg::AclStage::INGRESS_MACSEC));
+    saiManagerTable->aclTableGroupManager().addAclTableGroup(
+        std::make_shared<AclTableGroup>(cfg::AclStage::EGRESS_MACSEC));
   }
 
   TestPort p0;

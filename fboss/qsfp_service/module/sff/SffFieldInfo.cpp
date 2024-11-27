@@ -8,7 +8,6 @@
  */
 
 #include "fboss/qsfp_service/module/sff/SffFieldInfo.h"
-#include "fboss/agent/FbossError.h"
 
 /*
  * Parse transceiver data fields, as outlined in various documents

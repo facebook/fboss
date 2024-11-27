@@ -115,7 +115,8 @@
         36,
         37,
         41,
-        44
+        44,
+        46
     ],
     "tomahawk3": [
         2,
@@ -372,7 +373,8 @@
         "RSW_ROUTE_SCALE",
         "FSW_ROUTE_SCALE",
         "TH_ALPM_ROUTE_SCALE",
-        "VLAN"
+        "VLAN",
+        "LED_PROGRAMMING"
     ],
     "tomahawk3": [
         "CPU_RX_TX",

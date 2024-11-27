@@ -134,6 +134,7 @@ SAI_ATTRIBUTE_NAME(ArsProfile, PortLoadCurrent)
 SAI_ATTRIBUTE_NAME(ArsProfile, PortLoadExponent)
 SAI_ATTRIBUTE_NAME(ArsProfile, LoadCurrentMinVal)
 SAI_ATTRIBUTE_NAME(ArsProfile, LoadCurrentMaxVal)
+SAI_ATTRIBUTE_NAME(ArsProfile, MaxFlows)
 
 class ArsProfileApi : public SaiApi<ArsProfileApi> {
  public:

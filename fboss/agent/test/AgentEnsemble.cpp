@@ -3,7 +3,6 @@
 #include "fboss/agent/test/AgentEnsemble.h"
 
 #include "fboss/agent/AgentConfig.h"
-#include "fboss/agent/SwitchStats.h"
 #include "fboss/agent/Utils.h"
 
 #include "fboss/agent/CommonInit.h"
@@ -118,7 +117,7 @@ void AgentEnsemble::setupEnsemble(
   }
   startAgent(failHwCallsOnWarmboot);
 
-  for (const auto& switchId : getSw()->getSwitchInfoTable().getSwitchIDs()) {
+  for (const auto& switchId : getSw()->getSwitchInfoTable().getL3SwitchIDs()) {
     ensureHwSwitchConnected(switchId);
   }
 }

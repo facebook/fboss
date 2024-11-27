@@ -127,6 +127,7 @@ class NeighborCacheImpl {
   std::optional<NeighborEntryThrift> getCacheData(AddressType ip) const;
 
  private:
+  bool isHwUpdateProtected();
   // These are used to program entries into the SwitchState
   void programEntry(Entry* entry);
   void

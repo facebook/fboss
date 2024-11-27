@@ -16,7 +16,6 @@ cpp_binary(
         "//fboss/qsfp_service/platforms/wedge:wedge-platform-credo-0.7.2",
         "//folly:singleton",
         "//folly/executors:function_scheduler",
-        "//folly/logging:logging",
         "//thrift/lib/cpp2:server",
     ],
 )
@@ -66,12 +65,10 @@ cpp_unittest(
         "BspPlatformMapTest.cpp",
     ],
     deps = [
-        "//fboss/lib:common_file_utils",
         "//fboss/lib/bsp/meru400bfu:meru400bfu_bsp",
         "//fboss/lib/bsp/meru400bia:meru400bia_bsp",
         "//fboss/lib/bsp/meru400biu:meru400biu_bsp",
         "//fboss/lib/bsp/montblanc:montblanc_bsp",
-        "//fboss/qsfp_service/platforms/wedge/tests:mock-wedge-manager",
         "//folly/testing:test_util",
     ],
 )

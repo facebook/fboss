@@ -27,7 +27,6 @@
 extern "C" {
 #include <bcm/l3.h>
 #include <bcm/mpls.h>
-#include <bcm/port.h>
 }
 
 namespace facebook::fboss {

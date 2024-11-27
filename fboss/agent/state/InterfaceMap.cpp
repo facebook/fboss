@@ -136,6 +136,6 @@ const std::shared_ptr<Interface> MultiSwitchInterfaceMap::getInterface(
   }
   throw FbossError("No interface with ip : ", ip);
 }
-template class ThriftMapNode<InterfaceMap, InterfaceMapTraits>;
+template struct ThriftMapNode<InterfaceMap, InterfaceMapTraits>;
 
 } // namespace facebook::fboss

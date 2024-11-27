@@ -10,11 +10,13 @@ add_library(agent_hw_test_src
   fboss/agent/test/agent_hw_tests/AgentDscpQueueMappingTests.cpp
   fboss/agent/test/agent_hw_tests/AgentDeepPacketInspectionTests.cpp
   fboss/agent/test/agent_hw_tests/AgentDiagShellStressTests.cpp
+  fboss/agent/test/agent_hw_tests/AgentEcmpTests.cpp
   fboss/agent/test/agent_hw_tests/AgentEmptyTests.cpp
   fboss/agent/test/agent_hw_tests/AgentEgressForwardingDiscardCounterTests.cpp
   fboss/agent/test/agent_hw_tests/AgentRouteOverDifferentAddressFamilyNhopTests.cpp
   fboss/agent/test/agent_hw_tests/AgentAclInDiscardCounterTests.cpp
   fboss/agent/test/agent_hw_tests/AgentJumboFramesTests.cpp
+  fboss/agent/test/agent_hw_tests/AgentIngressBufferTests.cpp
   fboss/agent/test/agent_hw_tests/AgentInNullRouteDiscardsTest.cpp
   fboss/agent/test/agent_hw_tests/AgentInTrapDiscardsTest.cpp
   fboss/agent/test/agent_hw_tests/AgentPacketSendTests.cpp
@@ -34,6 +36,7 @@ add_library(agent_hw_test_src
   fboss/agent/test/agent_hw_tests/AgentVoqSwitchInterruptsTests.cpp
   fboss/agent/test/agent_hw_tests/AgentFabricSwitchTests.cpp
   fboss/agent/test/agent_hw_tests/AgentPortBandWidthTests.cpp
+  fboss/agent/test/agent_hw_tests/AgentPortLedTests.cpp
   fboss/agent/test/agent_hw_tests/AgentPortTests.cpp
   fboss/agent/test/agent_hw_tests/AgentPrbsTests.cpp
   fboss/agent/test/agent_hw_tests/AgentAclCounterTests.cpp
@@ -47,6 +50,7 @@ add_library(agent_hw_test_src
   fboss/agent/test/agent_hw_tests/AgentSflowMirrorTest.cpp
   fboss/agent/test/agent_hw_tests/AgentAclPriorityTests.cpp
   fboss/agent/test/agent_hw_tests/AgentTrunkLoadBalancerTests.cpp
+  fboss/agent/test/agent_hw_tests/AgentTrunkTests.cpp
   fboss/agent/test/agent_hw_tests/AgentRxReasonTests.cpp
   fboss/agent/test/agent_hw_tests/AgentRouteScaleTests.cpp
   fboss/agent/test/agent_hw_tests/MultiNodeAgentVoqSwitchTests.cpp
@@ -92,6 +96,7 @@ target_link_libraries(agent_hw_test_src
   route_scale_gen
   route_test_utils
   switch_asics
+  trunk_test_utils
   resourcelibutil
   load_balancer_test_utils
   l2learn_observer_util
@@ -101,6 +106,7 @@ target_link_libraries(agent_hw_test_src
   sflow_shim_utils
   pktutil
   mirror_test_utils
+  dsf_config_utils
   voq_test_utils
   fib_updater
 )

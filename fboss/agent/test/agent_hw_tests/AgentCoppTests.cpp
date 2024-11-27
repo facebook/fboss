@@ -1827,7 +1827,7 @@ TEST_F(AgentCoppQosTest, HighVsLowerPriorityCpuQueueTrafficPrioritization) {
         kHigherPriorityPacketCount,
         midPriorityCoppQueueStatsAfter - midPriorityCoppQueueStatsBefore);
 
-    if (asic->isSupported(HwAsic::Feature::CPU_VOQ_BUFFER_PROFILE)) {
+    if (asic->isSupported(HwAsic::Feature::VOQ)) {
       // check watermark of low priority voq should reach max shared buffer size
       const double kVariance = 0.01;
       auto watermarkBytesLow = utility::getDnxCoppMaxDynamicSharedBytes(

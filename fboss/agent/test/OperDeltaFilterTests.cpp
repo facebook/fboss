@@ -6,7 +6,6 @@ using namespace ::testing;
 
 #include "fboss/agent/Utils.h"
 
-#include "fboss/agent/FsdbHelper.h"
 #include "fboss/agent/test/HwTestHandle.h"
 #include "fboss/agent/test/RouteScaleGenerators.h"
 #include "fboss/agent/test/TestUtils.h"

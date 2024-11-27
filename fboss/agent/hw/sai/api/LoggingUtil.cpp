@@ -17,7 +17,7 @@
 #include <folly/Format.h>
 
 extern "C" {
-#if defined(BRCM_SAI_SDK_DNX_GTE_11_0) && !defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
 #include <saiextensions.h>
 #ifndef IS_OSS_BRCM_SAI
 #include <experimental/saiexperimentaltameventaginggroup.h>
@@ -30,7 +30,7 @@ extern "C" {
 namespace facebook::fboss {
 
 folly::StringPiece saiApiTypeToString(sai_api_t apiType) {
-#if defined(BRCM_SAI_SDK_DNX_GTE_11_0) && !defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
   if (UNLIKELY(apiType >= SAI_API_MAX)) {
     switch (static_cast<sai_api_extensions_t>(apiType)) {
       case SAI_API_TAM_EVENT_AGING_GROUP:
@@ -149,11 +149,11 @@ folly::StringPiece saiApiTypeToString(sai_api_t apiType) {
 }
 
 folly::StringPiece saiObjectTypeToString(sai_object_type_t objectType) {
-#if defined(BRCM_SAI_SDK_DNX_GTE_11_0) && !defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
   if (UNLIKELY(objectType >= SAI_OBJECT_TYPE_MAX)) {
     switch (static_cast<sai_object_type_extensions_t>(objectType)) {
       case SAI_OBJECT_TYPE_TAM_EVENT_AGING_GROUP:
-        return "event-aging-group";
+        return "tam-event-aging-group";
       default:
         throw FbossError("object type extension invalid: ", objectType);
     }

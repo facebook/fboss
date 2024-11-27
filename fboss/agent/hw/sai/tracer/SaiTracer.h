@@ -28,7 +28,7 @@
 extern "C" {
 #include <sai.h>
 
-#if defined(BRCM_SAI_SDK_DNX_GTE_11_0) && !defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
 #include <saiextensions.h>
 #ifndef IS_OSS_BRCM_SAI
 #include <experimental/saiexperimentaltameventaginggroup.h>
@@ -246,7 +246,7 @@ class SaiTracer {
   sai_switch_api_t* switchApi_;
   sai_system_port_api_t* systemPortApi_;
   sai_tam_api_t* tamApi_;
-#if defined(BRCM_SAI_SDK_DNX_GTE_11_0) && !defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
   sai_tam_event_aging_group_api_t* tamEventAgingGroupApi_;
 #endif
   sai_tunnel_api_t* tunnelApi_;
@@ -313,6 +313,7 @@ class SaiTracer {
       {TYPE_INDEX(std::vector<sai_port_frequency_offset_ppm_values_t>),
        &portFrequencyOffsetPpmListAttr},
       {TYPE_INDEX(std::vector<sai_port_snr_values_t>), &portSnrListAttr},
+      {TYPE_INDEX(AclEntryFieldU8List), &aclEntryFieldU8ListAttr},
 #endif
   };
 
@@ -424,7 +425,7 @@ class SaiTracer {
       {SAI_OBJECT_TYPE_TAM_TRANSPORT, "tamTransport_"},
       {SAI_OBJECT_TYPE_TAM_REPORT, "tamReport_"},
       {SAI_OBJECT_TYPE_TAM_EVENT_ACTION, "tamEventAction_"},
-#if defined(BRCM_SAI_SDK_DNX_GTE_11_0) && !defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
       {static_cast<sai_object_type_t>(SAI_OBJECT_TYPE_TAM_EVENT_AGING_GROUP),
           "tamEventAgingGroup_"},
 #endif
@@ -493,7 +494,7 @@ class SaiTracer {
       {SAI_OBJECT_TYPE_TAM_TRANSPORT, "tam_api->"},
       {SAI_OBJECT_TYPE_TAM_REPORT, "tam_api->"},
       {SAI_OBJECT_TYPE_TAM_EVENT_ACTION, "tam_api->"},
-#if defined(BRCM_SAI_SDK_DNX_GTE_11_0) && !defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
       {static_cast<sai_object_type_t>(SAI_OBJECT_TYPE_TAM_EVENT_AGING_GROUP),
           "tam_event_aging_group_api->"},
 #endif
@@ -871,7 +872,12 @@ class SaiTracer {
             SaiTracer::getInstance()->listFuncMap_.find(typeIndex);          \
         if (listFuncMatch != SaiTracer::getInstance()->listFuncMap_.end()) { \
           (*listFuncMatch->second)(                                          \
-              attr_list, i, listCount++, attrLines, rv == 0);                \
+              attr_list, i, listCount, attrLines, rv == 0);                  \
+          if (typeIndex == TYPE_INDEX(AclEntryFieldU8List)) {                \
+            listCount += 2;                                                  \
+          } else {                                                           \
+            listCount++;                                                     \
+          }                                                                  \
           continue;                                                          \
         }                                                                    \
       }

@@ -8,7 +8,6 @@
  */
 
 #include "fboss/qsfp_service/module/cmis/CmisFieldInfo.h"
-#include "fboss/agent/FbossError.h"
 
 /*
  * Parse transceiver data fields, as outlined in

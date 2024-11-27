@@ -272,11 +272,11 @@ std::string getDrainThresholdStr(
     const SwitchSettings& switchSettings) {
   if (newState == SwitchDrainState::UNDRAINED) {
     auto minLinks = switchSettings.getMinLinksToRemainInVOQDomain();
-    return "drains when active ports is below " +
+    return "drains at < " +
         (minLinks.has_value() ? std::to_string(minLinks.value()) : "N/A") + ")";
   } else {
     auto minLinks = switchSettings.getMinLinksToJoinVOQDomain();
-    return "undrains when active ports is above" +
+    return "undrains at >= " +
         (minLinks.has_value() ? std::to_string(minLinks.value()) : "N/A") + ")";
   }
 }
@@ -344,6 +344,12 @@ void accumulateGlobalCpuStats(
   }
 }
 
+DEFINE_dynamic_quantile_stat(
+    port_fec_tail,
+    "port.{}.fecTail",
+    facebook::fb303::ExportTypeConsts::kNone,
+    std::array<double, 1>{{1.0}});
+
 void updatePhyFb303Stats(
     const std::map<facebook::fboss::PortID, facebook::fboss::phy::PhyInfo>&
         phyInfoMap) {
@@ -372,6 +378,9 @@ void updatePhyFb303Stats(
         }
         facebook::fb303::fbData->setCounter(
             "port." + phyState.get_name() + ".preFecBerLog", preFECBerForFb303);
+        if (auto fecTail = fec->fecTail()) {
+          STATS_port_fec_tail.addValue(*fecTail, phyState.get_name());
+        }
       }
     }
   }
@@ -1942,7 +1951,8 @@ void SwSwitch::packetReceived(std::unique_ptr<RxPacket> pkt) noexcept {
     handlePacket(std::move(pkt));
   } catch (const std::exception& ex) {
     portStats(port)->pktError();
-    XLOG(ERR) << "error processing trapped packet: " << folly::exceptionStr(ex);
+    XLOG(ERR) << "error processing trapped packet: " << folly::exceptionStr(ex)
+              << " from port: " << port;
     // Return normally, without letting the exception propagate to our caller.
     return;
   }
@@ -2180,8 +2190,10 @@ void SwSwitch::linkStateChanged(
   }
 }
 
-void SwSwitch::linkActiveStateChanged(
-    const std::map<PortID, bool>& port2IsActive) {
+void SwSwitch::linkActiveStateChangedOrFwIsolated(
+    const std::map<PortID, bool>& port2IsActive,
+    bool fwIsolated,
+    const std::optional<uint32_t>& numActiveFabricPortsAtFwIsolate) {
   if (!isFullyInitialized()) {
     XLOG(ERR)
         << "Ignore link active state change event before we are fully initialized...";
@@ -2230,19 +2242,44 @@ void SwSwitch::linkActiveStateChanged(
     auto matcher = getScopeResolver()->scope(port2IsActive.cbegin()->first);
     auto switchSettings =
         state->getSwitchSettings()->getNodeIf(matcher.matcherString());
-    auto newActualSwitchDrainState =
-        computeActualSwitchDrainState(switchSettings, numActiveFabricPorts);
+
+    SwitchDrainState newActualSwitchDrainState;
+    if (fwIsolated) {
+      if (isSwitchErrorFirmwareIsolate(
+              numActiveFabricPortsAtFwIsolate, switchSettings)) {
+        stats()->fwDrainedWithHighNumActiveFabricLinks();
+        if (FLAGS_fw_drained_unrecoverable_error) {
+          newActualSwitchDrainState =
+              cfg::SwitchDrainState::DRAINED_DUE_TO_ASIC_ERROR;
+        } else {
+          newActualSwitchDrainState = cfg::SwitchDrainState::DRAINED;
+        }
+      } else {
+        newActualSwitchDrainState = cfg::SwitchDrainState::DRAINED;
+      }
+    } else {
+      newActualSwitchDrainState =
+          computeActualSwitchDrainState(switchSettings, numActiveFabricPorts);
+    }
+
     auto currentActualDrainState = switchSettings->getActualSwitchDrainState();
 
     if (newActualSwitchDrainState != currentActualDrainState) {
+      stats()->setDrainState(matcher.switchId(), newActualSwitchDrainState);
       auto newSwitchSettings = switchSettings->modify(&newState);
       newSwitchSettings->setActualSwitchDrainState(newActualSwitchDrainState);
     }
 
-    XLOG(DBG2) << "Switch state: "
+    XLOG(DBG2) << "SwitchID: " << static_cast<int>(matcher.switchId())
+               << " | FwIsolated: " << (fwIsolated ? "Y" : "N")
+               << " | ActivePortsAtFwIsolate: "
+               << (numActiveFabricPortsAtFwIsolate.has_value()
+                       ? folly::to<std::string>(
+                             numActiveFabricPortsAtFwIsolate.value())
+                       : "--")
+               << " | "
                << getDrainStateChangedStr(getState(), newState, matcher)
-               << " | SwitchIDs: " << matcher.matcherString()
-               << " | Active ports: " << numActiveFabricPorts << "/"
+               << " | ActivePorts: " << numActiveFabricPorts << "/"
                << port2IsActive.size() << " ("
                << getDrainThresholdStr(
                       newActualSwitchDrainState, switchSettings.get())
@@ -2265,10 +2302,30 @@ void SwSwitch::linkActiveStateChanged(
    *
    * Note: On NIF ports, we never coalesce link up/down updates to ensure
    * expiry of NDP/ARP entries, but that is not applicable for Fabric port.
+   *
+   * But, there is an exception, consider the following scenario:
+   *   - A large number of fabric links flap.
+   *   - These links will transition ACTIVE => INACTIVE => ACTIVE.
+   *   - It is possible that the Firmware may isolate the device.
+   *   - Device is isolated, but SwitchState is UNDRAINED(unisolated)..(0)
+   *   - Firmware cb handling will decide to DRAIN (isolate) the device..(1)
+   *   - Switch active/inactive cb processing may decide to UNDRAIN.. (2)
+   *   - If (1) and (2) are coalesced, SwitchState will remain UNDRAINED and
+   *     the device will be isolated i.e. state (0), not what we want.
+   *
+   * Prevent this by not coalesing state update on Firmware Isolate.
+   *
+   * Firmware Isolate is a rare event, and thus it is OK to not coalesce these
+   * updates.
    */
-  updateState(
-      "Port ActiveState (ACTIVE/INACTIVE) Update",
-      std::move(updateActiveStateFn));
+  if (!fwIsolated) {
+    updateState(
+        "Port ActiveState (ACTIVE/INACTIVE) Update",
+        std::move(updateActiveStateFn));
+  } else {
+    updateStateNoCoalescing(
+        "Fw Isolate Update", std::move(updateActiveStateFn));
+  }
 }
 
 void SwSwitch::switchReachabilityChanged(

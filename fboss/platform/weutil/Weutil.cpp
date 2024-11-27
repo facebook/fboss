@@ -1,12 +1,9 @@
 // (c) Facebook, Inc. and its affiliates. Confidential and proprietary.
 #include "fboss/platform/weutil/Weutil.h"
-#include "fboss/platform/weutil/IoctlSmbusEepromReader.h"
 
 #include <folly/logging/xlog.h>
 #include <thrift/lib/cpp2/protocol/Serializer.h>
 
-#include "fboss/lib/platforms/PlatformMode.h"
-#include "fboss/lib/platforms/PlatformProductInfo.h"
 #include "fboss/platform/config_lib/ConfigLib.h"
 #include "fboss/platform/helpers/PlatformNameLib.h"
 #include "fboss/platform/weutil/WeutilDarwin.h"
@@ -55,16 +52,6 @@ weutil_config::FruEepromConfig getFruEepromConfig(
   return itr->second;
 }
 
-std::optional<PlatformType> getPlatformType() {
-  try {
-    facebook::fboss::PlatformProductInfo prodInfo{FLAGS_fruid_filepath};
-    prodInfo.initialize();
-    return prodInfo.getType();
-  } catch (std::exception& e) {
-    XLOG(ERR) << "Failed to get platform type: " << e.what();
-    return std::nullopt;
-  }
-}
 } // namespace
 
 std::vector<std::string> getEepromPaths() {
@@ -87,18 +74,18 @@ std::unique_ptr<WeutilInterface> createWeUtilIntf(
     const std::string& eepromName,
     const std::string& eepromPath,
     const int eepromOffset) {
-  auto platform = getPlatformType();
-
+  auto platformName = helpers::PlatformNameLib().getPlatformName();
+  bool isDarwin = platformName && *platformName == "DARWIN";
   // When path is specified, read from it directly. For platform bringup, we can
   // use the --path and --offset options without a valid config.
   if (!eepromPath.empty()) {
-    if (platform && platform.value() == PlatformType::PLATFORM_DARWIN) {
+    if (isDarwin) {
       return std::make_unique<WeutilDarwin>(eepromPath);
     } else {
       return std::make_unique<WeutilImpl>(eepromPath, eepromOffset);
     }
   }
-  if (!platform) {
+  if (!platformName) {
     throw std::runtime_error(
         "Unable to determine platform type. Use the --path option");
   }
@@ -110,7 +97,7 @@ std::unique_ptr<WeutilInterface> createWeUtilIntf(
   } else {
     fruEepromConfig = getFruEepromConfig(eepromName, thriftConfig);
   }
-  if (platform.value() == PlatformType::PLATFORM_DARWIN) {
+  if (isDarwin) {
     return std::make_unique<WeutilDarwin>(*fruEepromConfig.path());
   } else {
     return std::make_unique<WeutilImpl>(

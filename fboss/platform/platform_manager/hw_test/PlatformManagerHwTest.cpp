@@ -7,9 +7,9 @@
 #include <thrift/lib/cpp2/util/ScopedServerInterfaceThread.h>
 
 #include "fboss/platform/helpers/Init.h"
+#include "fboss/platform/platform_manager/ConfigUtils.h"
 #include "fboss/platform/platform_manager/PkgManager.h"
 #include "fboss/platform/platform_manager/PlatformManagerHandler.h"
-#include "fboss/platform/platform_manager/Utils.h"
 
 namespace facebook::fboss::platform::platform_manager {
 namespace {
@@ -57,7 +57,7 @@ class PlatformManagerHwTest : public ::testing::Test {
   }
 
  private:
-  PlatformConfig platformConfig_{Utils().getConfig()};
+  PlatformConfig platformConfig_{ConfigUtils().getConfig()};
   PkgManager pkgManager_{platformConfig_};
   CustomPlatformExplorer platformExplorer_{platformConfig_};
   std::unique_ptr<apache::thrift::Client<PlatformManagerService>> pmClient_{

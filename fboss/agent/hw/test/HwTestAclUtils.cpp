@@ -9,9 +9,6 @@
  */
 
 #include "fboss/agent/hw/test/HwTestAclUtils.h"
-#include <memory>
-#include "fboss/agent/hw/switch_asics/HwAsic.h"
-#include "fboss/agent/test/utils/AclTestUtils.h"
 
 #include "fboss/agent/state/SwitchState.h"
 

@@ -1,3 +1,4 @@
+# pyre-unsafe
 import fcntl
 import os
 from typing import Dict, List

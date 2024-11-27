@@ -14,7 +14,6 @@
 #include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/FsdbHelper.h"
-#include "fboss/agent/SwitchIdScopeResolver.h"
 #include "fboss/agent/SysError.h"
 #include "fboss/agent/hw/HwSwitchFb303Stats.h"
 #include "fboss/agent/state/ArpEntry.h"
@@ -139,16 +138,6 @@ getPlatformMappingForDsfNode(const facebook::fboss::PlatformType platformType) {
   return nullptr;
 }
 
-bool withinRange(const cfg::SystemPortRanges& ranges, int64_t id) {
-  bool inRange{false};
-  for (const auto& sysPortRange : *ranges.systemPortRanges()) {
-    if (id >= *sysPortRange.minimum() && id <= *sysPortRange.maximum()) {
-      inRange = true;
-      break;
-    }
-  }
-  return inRange;
-}
 } // namespace
   //
 
@@ -389,13 +378,25 @@ PortID getPortID(
     throw FbossError(
         "switchId: ", switchId, " not found in switchToSwitchInfo");
   }
-  auto sysPortRange = switchInfo->second.systemPortRange();
-  CHECK(sysPortRange.has_value());
-  auto portIdRange = switchInfo->second.portIdRange();
-  CHECK(portIdRange.has_value());
-  return PortID(
-      static_cast<int64_t>(sysPortId) - *sysPortRange->minimum() +
-      *portIdRange->minimum());
+  for (const auto& [matcher, ports] : std::as_const(*state->getPorts())) {
+    if (HwSwitchMatcher(matcher).switchId() != switchId) {
+      continue;
+    }
+    for (const auto& [_, port] : std::as_const(*ports)) {
+      if (port->getPortType() == cfg::PortType::FABRIC_PORT) {
+        continue;
+      }
+      if (sysPortId ==
+          getSystemPortID(
+              port->getID(),
+              port->getScope(),
+              switchIdToSwitchInfo,
+              switchId)) {
+        return port->getID();
+      }
+    }
+  }
+  throw FbossError("No port found for sys port: ", sysPortId);
 }
 
 SystemPortID getSystemPortID(
@@ -414,6 +415,28 @@ SystemPortID getSystemPortID(
   if (!offset.has_value()) {
     throw FbossError("Global/local offset not set");
   }
+  /*
+   * System port is 1:1 with every interface and recycle port.
+   * Interface is 1:1 with system port.
+   * InterfaceID is chosen to be the same as systemPortID. Thus:
+   * For multi ASIC switches, the the port ID range minimum must
+   * taken into account while computing the interface or system port
+   * IDs
+   *
+   * For eg:
+   *
+   * ----------------------------------------------
+   * |   config        |   asic 0   |   asic 1    |
+   * ----------------------------------------------
+   * | sys port range  |   100-199  |  200-299    |
+   * ----------------------------------------------
+   * | port range      |   0-2047   | 2048-4096   |
+   * ----------------------------------------------
+   *
+   * Interface of recycle port on asic 1 is 201.
+   * Port ID of a recycle port in platform mapping will be 2049
+   * Interface ID of recycle port = 200 + 2049 - 2048 = 201
+   */
   auto portIdRange = *switchInfo->second.portIdRange();
   auto systemPortId =
       static_cast<int64_t>(portId) + *offset - *portIdRange.minimum();
@@ -479,22 +502,16 @@ SystemPortID getInbandSystemPortID(
       *switchInfoItr->second.inbandPortId());
 }
 
-bool withinRange(const cfg::SystemPortRanges& ranges, InterfaceID intfId) {
-  return withinRange(ranges, static_cast<int64_t>(intfId));
-}
-
-bool withinRange(const cfg::SystemPortRanges& ranges, SystemPortID sysPortId) {
-  return withinRange(ranges, static_cast<int64_t>(sysPortId));
-}
-
+// FIXME 2-stage DSF. First sys port range concep does
+// not apply for 2-stage DSF
 cfg::Range64 getFirstSwitchSystemPortIdRange(
     const std::map<int64_t, cfg::SwitchInfo>& switchToSwitchInfo) {
   for (const auto& [switchId, switchInfo] : switchToSwitchInfo) {
     // Only VOQ switches have system ports
     if (switchInfo.switchType() == cfg::SwitchType::VOQ &&
         switchInfo.switchIndex() == 0) {
-      CHECK(switchInfo.systemPortRange().has_value());
-      return *switchInfo.systemPortRange();
+      CHECK(switchInfo.systemPortRanges()->systemPortRanges()->size());
+      return *switchInfo.systemPortRanges()->systemPortRanges()->begin();
     }
   }
   throw FbossError("No VOQ switch with switchIndex 0 found");
@@ -520,6 +537,9 @@ std::vector<PortID> getPortsForInterface(
     } break;
     case cfg::InterfaceType::SYSTEM_PORT:
       ports.push_back(getPortID(intf->getSystemPortID().value(), state));
+      break;
+    case cfg::InterfaceType::PORT:
+      // TODO(Chenab): Support port router interface
       break;
   }
   return ports;
@@ -681,6 +701,9 @@ std::shared_ptr<NeighborEntryT> getNeighborEntryForIP(
       entry = getNeighborEntryForIPAndIntf<NeighborEntryT>(intf, ipAddr);
       break;
     }
+    case cfg::InterfaceType::PORT:
+      // TODO(Chenab): Support port router interface
+      break;
   }
 
   return entry;
@@ -826,6 +849,25 @@ size_t getNumActiveFabricPorts(
       });
 }
 
+bool isSwitchErrorFirmwareIsolate(
+    const std::optional<uint32_t>& numActiveFabricPortsAtFwIsolate,
+    const std::shared_ptr<SwitchSettings>& switchSettings) {
+  // This is invoked from Firmware Isolate context, and thus
+  // numActiveFabricPortsAtFwIsolate must always have value
+  CHECK(numActiveFabricPortsAtFwIsolate.has_value());
+
+  // If the Firmware isolated the device even though the number of active
+  // fabric links is more than the min links to remain in the VOQ domain,
+  // then treat it as error. This will be implemented unrecoverable error.
+  //
+  // If min links to remain in the VOQ domain is not set, allow to recover.
+  // In practice, this threshold will always be set.
+  return switchSettings->getMinLinksToRemainInVOQDomain().has_value()
+      ? numActiveFabricPortsAtFwIsolate.value() >
+          switchSettings->getMinLinksToRemainInVOQDomain().value()
+      : false;
+}
+
 /*
  * SwitchDrainState can be modified from configuration.
  * However, some VOQ switch implementations require that the switch must be
@@ -883,7 +925,16 @@ cfg::SwitchDrainState computeActualSwitchDrainState(
             newSwitchDrainState = cfg::SwitchDrainState::DRAINED;
           }
           break;
+        case cfg::SwitchDrainState::DRAINED_DUE_TO_ASIC_ERROR:
+          // This is not a recoverable drain state.
+          newSwitchDrainState =
+              cfg::SwitchDrainState::DRAINED_DUE_TO_ASIC_ERROR;
+          break;
       }
+      break;
+    case cfg::SwitchDrainState::DRAINED_DUE_TO_ASIC_ERROR:
+      throw FbossError("Valid desired DRAINED states are {DRAINED, UNDRAINED}");
+      break;
   }
 
   return newSwitchDrainState;
@@ -1038,56 +1089,6 @@ int getRemoteSwitchID(
       (virtualDeviceId.value() / numVirtualDevices) * numVirtualDevices;
 
   return remoteSwitchId;
-};
-
-bool haveParallelLinksToInterfaceNodes(
-    const cfg::SwitchConfig* cfg,
-    const std::vector<SwitchID>& localFabricSwitchIds,
-    const std::unordered_map<std::string, std::vector<uint32_t>>&
-        switchNameToSwitchIds,
-    SwitchIdScopeResolver& scopeResolver,
-    const PlatformMapping* platformMapping) {
-  for (const auto& fabricSwitchId : localFabricSwitchIds) {
-    // Determine parallel links on VD level - there are two VDs per R3 ASIC
-    std::unordered_map<int, std::unordered_set<std::string>> vd2VoqNeighbors;
-    for (const auto& port : *cfg->ports()) {
-      // Only process ports belonging to one switchId
-      if (scopeResolver.scope(port).has(SwitchID(fabricSwitchId)) &&
-          port.expectedNeighborReachability()->size() > 0) {
-        auto neighborRemoteSwitchId =
-            getRemoteSwitchID(cfg, port, switchNameToSwitchIds);
-        const auto& neighborDsfNodeIter =
-            cfg->dsfNodes()->find(neighborRemoteSwitchId);
-        CHECK(neighborDsfNodeIter != cfg->dsfNodes()->end());
-        if (*neighborDsfNodeIter->second.type() ==
-            cfg::DsfNodeType::INTERFACE_NODE) {
-          CHECK(port.name().has_value());
-          auto localVirtualDeviceId =
-              platformMapping->getVirtualDeviceID(*port.name());
-          if (!localVirtualDeviceId.has_value()) {
-            throw FbossError(
-                "Unable to find virtual device id for port: ",
-                *port.logicalID(),
-                " virtual device");
-          }
-
-          if (vd2VoqNeighbors.find(localVirtualDeviceId.value()) ==
-              vd2VoqNeighbors.end()) {
-            vd2VoqNeighbors.insert(
-                {localVirtualDeviceId.value(),
-                 std::unordered_set<std::string>()});
-          }
-          auto& voqNeighbors = vd2VoqNeighbors[localVirtualDeviceId.value()];
-          const auto& [neighborName, _] = getExpectedNeighborAndPortName(port);
-          if (voqNeighbors.find(neighborName) != voqNeighbors.end()) {
-            return true;
-          }
-          voqNeighbors.insert(neighborName);
-        }
-      }
-    }
-  }
-  return false;
 };
 
 CpuCosQueueId hwQueueIdToCpuCosQueueId(

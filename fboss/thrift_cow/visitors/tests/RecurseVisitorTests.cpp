@@ -32,6 +32,7 @@ folly::dynamic createTestDynamic() {
       "listOfPrimitives", dynamic::array())("listOfStructs", dynamic::array())(
       "mapOfEnumToI32", dynamic::object())("mapOfI32ToI32", dynamic::object())(
       "mapOfI32ToListOfStructs", dynamic::object())(
+      "mapOfI32ToSetOfString", dynamic::object())(
       "mapOfI32ToStruct", dynamic::object())(
       "mapOfStringToI32", dynamic::object())(
       "mapOfStringToStruct", dynamic::object())("setOfEnum", dynamic::array())(
@@ -40,7 +41,9 @@ folly::dynamic createTestDynamic() {
       "mapB", dynamic::object())("cowMap", dynamic::object())(
       "hybridMap", dynamic::object())("hybridList", dynamic::array())(
       "hybridSet", dynamic::array())("hybridUnion", dynamic::object())(
-      "hybridStruct", dynamic::object("childMap", dynamic::object()))(
+      "hybridStruct",
+      dynamic::object("childMap", dynamic::object())(
+          "strMap", dynamic::object())("structMap", dynamic::object()))(
       "hybridMapOfI32ToStruct", dynamic::object())(
       "hybridMapOfMap", dynamic::object());
 }
@@ -84,7 +87,14 @@ TYPED_TEST(RecurseVisitorTests, TestFullRecurse) {
   std::map<std::vector<std::string>, folly::dynamic> visited;
   auto processPath = [&visited](
                          const std::vector<std::string>& path, auto&& node) {
-    visited.emplace(std::make_pair(path, node->toFollyDynamic()));
+    folly::dynamic dyn;
+    if constexpr (is_cow_type_v<decltype(*node)>) {
+      dyn = node->toFollyDynamic();
+    } else {
+      facebook::thrift::to_dynamic(
+          dyn, *node, facebook::thrift::dynamic_format::JSON_1);
+    }
+    visited.emplace(path, dyn);
   };
 
   RootRecurseVisitor::visit(
@@ -100,6 +110,7 @@ TYPED_TEST(RecurseVisitorTests, TestFullRecurse) {
       {{"hybridSet"}, dynamic::array()},
       {{"hybridUnion"}, dynamic::object()},
       {{"hybridStruct"}, testDyn["hybridStruct"]},
+      {{"mapOfEnumToStruct"}, testDyn["mapOfEnumToStruct"]},
       {{"inlineBool"}, testDyn["inlineBool"]},
       {{"inlineInt"}, testDyn["inlineInt"]},
       {{"inlineString"}, testDyn["inlineString"]},
@@ -111,14 +122,6 @@ TYPED_TEST(RecurseVisitorTests, TestFullRecurse) {
       {{"inlineStruct", "invert"}, false},
       {{"inlineVariant"}, testDyn["inlineVariant"]},
       {{"inlineVariant", "inlineInt"}, testDyn["inlineVariant"]["inlineInt"]},
-      {{"mapOfEnumToStruct"}, testDyn["mapOfEnumToStruct"]},
-      {{"mapOfEnumToStruct", "3"}, testDyn["mapOfEnumToStruct"][3]},
-      {{"mapOfEnumToStruct", "3", "min"},
-       testDyn["mapOfEnumToStruct"][3]["min"]},
-      {{"mapOfEnumToStruct", "3", "max"},
-       testDyn["mapOfEnumToStruct"][3]["max"]},
-      {{"mapOfEnumToStruct", "3", "invert"},
-       testDyn["mapOfEnumToStruct"][3]["invert"]},
       {{"listOfListOfPrimitives"}, dynamic::array()},
       {{"listOfListOfStructs"}, dynamic::array()},
       {{"listOfPrimitives"}, dynamic::array()},
@@ -126,6 +129,7 @@ TYPED_TEST(RecurseVisitorTests, TestFullRecurse) {
       {{"mapOfEnumToI32"}, dynamic::object()},
       {{"mapOfI32ToI32"}, dynamic::object()},
       {{"mapOfI32ToListOfStructs"}, dynamic::object()},
+      {{"mapOfI32ToSetOfString"}, dynamic::object()},
       {{"mapOfI32ToStruct"}, dynamic::object()},
       {{"mapOfStringToI32"}, dynamic::object()},
       {{"mapOfStringToStruct"}, dynamic::object()},
@@ -135,11 +139,28 @@ TYPED_TEST(RecurseVisitorTests, TestFullRecurse) {
       {{"mapA"}, dynamic::object()},
       {{"mapB"}, dynamic::object()}};
 
-  std::map<std::vector<std::string>, folly::dynamic> hybridLeaves = {
-      {{"hybridStruct", "childMap"}, testDyn["hybridStruct"]["childMap"]}};
+  std::map<std::vector<std::string>, folly::dynamic> hybridNodes = {
+      {{"mapOfEnumToStruct", "3"}, testDyn["mapOfEnumToStruct"][3]}};
 
-  if (!this->isHybridStorage()) {
-    for (const auto& entry : hybridLeaves) {
+  std::map<std::vector<std::string>, folly::dynamic> hybridDeepLeaves = {
+      {{"hybridStruct", "childMap"}, testDyn["hybridStruct"]["childMap"]},
+      {{"hybridStruct", "strMap"}, testDyn["hybridStruct"]["strMap"]},
+      {{"hybridStruct", "structMap"}, testDyn["hybridStruct"]["structMap"]},
+      {{"mapOfEnumToStruct"}, testDyn["mapOfEnumToStruct"]},
+      {{"mapOfEnumToStruct", "3"}, testDyn["mapOfEnumToStruct"][3]},
+      {{"mapOfEnumToStruct", "3", "min"},
+       testDyn["mapOfEnumToStruct"][3]["min"]},
+      {{"mapOfEnumToStruct", "3", "max"},
+       testDyn["mapOfEnumToStruct"][3]["max"]},
+      {{"mapOfEnumToStruct", "3", "invert"},
+       testDyn["mapOfEnumToStruct"][3]["invert"]}};
+
+  if (this->isHybridStorage()) {
+    for (const auto& entry : hybridNodes) {
+      expected.insert(entry);
+    }
+  } else {
+    for (const auto& entry : hybridDeepLeaves) {
       expected.insert(entry);
     }
   }
@@ -159,7 +180,14 @@ TYPED_TEST(RecurseVisitorTests, TestLeafRecurse) {
   std::map<std::vector<std::string>, folly::dynamic> visited;
   auto processPath = [&visited](
                          const std::vector<std::string>& path, auto&& node) {
-    visited.emplace(std::make_pair(path, node->toFollyDynamic()));
+    folly::dynamic dyn;
+    if constexpr (is_cow_type_v<decltype(*node)>) {
+      dyn = node->toFollyDynamic();
+    } else {
+      facebook::thrift::to_dynamic(
+          dyn, *node, facebook::thrift::dynamic_format::JSON_1);
+    }
+    visited.emplace(path, dyn);
   };
 
   RootRecurseVisitor::visit(nodeA, RecurseVisitMode::LEAVES, processPath);
@@ -173,7 +201,9 @@ TYPED_TEST(RecurseVisitorTests, TestLeafRecurse) {
       {{"inlineStruct", "min"}, 10},
       {{"inlineStruct", "max"}, 20},
       {{"inlineStruct", "invert"}, false},
-      {{"inlineVariant", "inlineInt"}, testDyn["inlineVariant"]["inlineInt"]},
+      {{"inlineVariant", "inlineInt"}, testDyn["inlineVariant"]["inlineInt"]}};
+
+  std::map<std::vector<std::string>, folly::dynamic> hybridDeepLeaves = {
       {{"mapOfEnumToStruct", "3", "min"},
        testDyn["mapOfEnumToStruct"][3]["min"]},
       {{"mapOfEnumToStruct", "3", "max"},
@@ -182,16 +212,17 @@ TYPED_TEST(RecurseVisitorTests, TestLeafRecurse) {
        testDyn["mapOfEnumToStruct"][3]["invert"]}};
 
   std::map<std::vector<std::string>, folly::dynamic> hybridNodes = {
-      {{"hybridMap"}, testDyn["hybridMap"]},
-      {{"hybridMapOfI32ToStruct"}, testDyn["hybridMapOfI32ToStruct"]},
-      {{"hybridMapOfMap"}, testDyn["hybridMapOfMap"]},
-      {{"hybridList"}, testDyn["hybridList"]},
+      {{"mapOfEnumToStruct", "3"}, testDyn["mapOfEnumToStruct"][3]},
       {{"hybridSet"}, testDyn["hybridSet"]},
       {{"hybridUnion"}, testDyn["hybridUnion"]},
       {{"hybridStruct"}, testDyn["hybridStruct"]}};
 
   if (this->isHybridStorage()) {
     for (const auto& entry : hybridNodes) {
+      expected.insert(entry);
+    }
+  } else {
+    for (const auto& entry : hybridDeepLeaves) {
       expected.insert(entry);
     }
   }
@@ -218,22 +249,25 @@ TYPED_TEST(RecurseVisitorTests, TestLeafRecurse) {
       {{"4", "1"}, 10},
       {{"4", "2"}, 20},
       {{"4", "3"}, false},
-      {{"21", "2"}, testDyn["inlineVariant"]["inlineInt"]},
+      {{"21", "2"}, testDyn["inlineVariant"]["inlineInt"]}};
+
+  hybridDeepLeaves = {
       {{"15", "3", "1"}, testDyn["mapOfEnumToStruct"][3]["min"]},
       {{"15", "3", "2"}, testDyn["mapOfEnumToStruct"][3]["max"]},
       {{"15", "3", "3"}, testDyn["mapOfEnumToStruct"][3]["invert"]}};
 
   hybridNodes = {
-      {{"27"}, testDyn["hybridMap"]},
-      {{"28"}, testDyn["hybridList"]},
+      {{"15", "3"}, testDyn["mapOfEnumToStruct"][3]},
       {{"29"}, testDyn["hybridSet"]},
       {{"30"}, testDyn["hybridUnion"]},
-      {{"31"}, testDyn["hybridStruct"]},
-      {{"32"}, testDyn["hybridMapOfI32ToStruct"]},
-      {{"33"}, testDyn["hybridMapOfMap"]}};
+      {{"31"}, testDyn["hybridStruct"]}};
 
   if (this->isHybridStorage()) {
     for (const auto& entry : hybridNodes) {
+      expected.insert(entry);
+    }
+  } else {
+    for (const auto& entry : hybridDeepLeaves) {
       expected.insert(entry);
     }
   }

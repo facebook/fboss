@@ -194,7 +194,6 @@ TEST_F(WedgeManagerTest, moduleNotPresentTest) {
     auto synchronizedTransceivers =
         transceiverManager_->getSynchronizedTransceivers().rlock();
     for (const auto& trans : *synchronizedTransceivers) {
-      QsfpModule* qsfp = dynamic_cast<QsfpModule*>(trans.second.get());
       // id is 0 based here
       EXPECT_EQ(
           transceiverManager_->getCurrentState(TransceiverID(trans.first)),

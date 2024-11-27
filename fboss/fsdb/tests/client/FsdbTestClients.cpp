@@ -2,7 +2,6 @@
 
 #include "fboss/fsdb/tests/client/FsdbTestClients.h"
 #include <gtest/gtest.h>
-#include "fboss/fsdb/if/FsdbModel.h"
 
 #include <folly/logging/xlog.h>
 #include <thrift/lib/cpp2/protocol/Serializer.h>

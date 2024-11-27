@@ -101,16 +101,17 @@ TEST_F(AgentPfcTest, verifyPfcCounters) {
   verifyAcrossWarmBoots(setup, verify);
 }
 
-TEST_F(AgentPfcTest, verifyPfcLoopback) {
-  // TODO: Investigate if this can be extended to other ASICs
-  if (utility::checkSameAndGetAsic(getAgentEnsemble()->getL3Asics())
-          ->getAsicType() != cfg::AsicType::ASIC_TYPE_JERICHO3) {
-#if defined(GTEST_SKIP)
-    GTEST_SKIP();
-#endif
-    return;
+class AgentPfcCaptureTest : public AgentPfcTest {
+  std::vector<production_features::ProductionFeature>
+  getProductionFeaturesVerified() const override {
+    return {
+        production_features::ProductionFeature::PFC,
+        production_features::ProductionFeature::PFC_CAPTURE,
+    };
   }
+};
 
+TEST_F(AgentPfcCaptureTest, verifyPfcLoopback) {
   std::vector<PortID> portIds = {masterLogicalInterfacePortIds()[0]};
   std::vector<int> losslessPgIds = {2};
 

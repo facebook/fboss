@@ -28,7 +28,7 @@ add_library(fan_service_lib
   fboss/platform/fan_service/FsdbSensorSubscriber.cpp
   fboss/platform/fan_service/PidLogic.cpp
   fboss/platform/fan_service/SensorData.cpp
-  fboss/platform/fan_service/Utils.cpp
+  fboss/platform/fan_service/ConfigValidator.cpp
   fboss/platform/fan_service/oss/FsdbSensorSubscriber.cpp
   fboss/platform/fan_service/oss/DataFetcher.cpp
 )
@@ -52,6 +52,7 @@ target_link_libraries(fan_service_lib
   fsdb_stream_client
   fsdb_pub_sub
   fsdb_flags
+  range-v3
 )
 
 add_executable(fan_service

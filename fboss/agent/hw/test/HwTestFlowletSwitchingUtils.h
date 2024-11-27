@@ -39,7 +39,8 @@ bool verifyEcmpForNonFlowlet(
 bool validatePortFlowletQuality(
     const facebook::fboss::HwSwitch* hw,
     const PortID& portId,
-    const cfg::PortFlowletConfig& portFlowletCfg);
+    const cfg::PortFlowletConfig& portFlowletCfg,
+    bool enable = true);
 
 bool validateFlowletSwitchingDisabled(const facebook::fboss::HwSwitch* hw);
 

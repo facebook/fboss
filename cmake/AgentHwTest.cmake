@@ -194,10 +194,8 @@ add_fbthrift_cpp_library(
 )
 
 set(hw_switch_test_srcs
-  fboss/agent/hw/test/HwEcmpTests.cpp
   fboss/agent/hw/test/HwTestFabricUtils.cpp
   fboss/agent/hw/test/HwFlexPortTests.cpp
-  fboss/agent/hw/test/HwIngressBufferTests.cpp
   fboss/agent/hw/test/HwEcmpTrunkTests.cpp
   fboss/agent/hw/test/HwLabelEdgeRouteTest.cpp
   fboss/agent/hw/test/HwLabelSwitchRouteTest.cpp
@@ -212,7 +210,6 @@ set(hw_switch_test_srcs
   fboss/agent/hw/test/HwVlanTests.cpp
   fboss/agent/hw/test/HwVerifyPfcConfigInHwTest.cpp
   fboss/agent/hw/test/HwAclStatTests.cpp
-  fboss/agent/hw/test/HwPortLedTests.cpp
   fboss/agent/hw/test/HwPortProfileTests.cpp
   fboss/agent/hw/test/HwPortStressTests.cpp
   fboss/agent/hw/test/HwResourceStatsTests.cpp
@@ -229,6 +226,7 @@ set(hw_switch_test_srcs
   fboss/agent/hw/test/dataplane_tests/HwMPLSTests.cpp
   fboss/agent/hw/test/dataplane_tests/HwLoadBalancerTests.cpp
   fboss/agent/hw/test/dataplane_tests/HwTeFlowTrafficTests.cpp
+  fboss/agent/hw/test/dataplane_tests/HwTrafficPfcTests.cpp
   fboss/agent/hw/test/dataplane_tests/HwProdInvariantHelper.cpp
   fboss/agent/hw/test/dataplane_tests/HwProdInvariantTests.cpp
   fboss/agent/hw/test/dataplane_tests/HwPacketSendTests.cpp
@@ -272,6 +270,7 @@ target_link_libraries(hw_switch_test
   config_utils
   aqm_test_utils
   copp_test_utils
+  dsf_config_utils
   dscp_marking_utils
   ecmp_dataplane_test_util
   hw_packet_utils

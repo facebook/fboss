@@ -12,30 +12,18 @@ HwAsicTable::HwAsicTable(
     const std::map<int64_t, cfg::SwitchInfo>& switchIdToSwitchInfo,
     std::optional<cfg::SdkVersion> sdkVersion) {
   for (const auto& switchIdAndSwitchInfo : switchIdToSwitchInfo) {
-    folly::MacAddress mac;
-    if (switchIdAndSwitchInfo.second.switchMac()) {
-      mac = folly::MacAddress(*switchIdAndSwitchInfo.second.switchMac());
-    } else {
+    auto switchInfo = switchIdAndSwitchInfo.second;
+    if (!switchInfo.switchMac()) {
       try {
-        mac = getLocalMacAddress();
+        switchInfo.switchMac() = getLocalMacAddress().toString();
       } catch (const std::exception&) {
         // Expected when fake bcm tests run without config
+        switchInfo.switchMac() = folly::MacAddress().toString();
       }
-    }
-    std::optional<cfg::Range64> systemPortRange;
-    if (switchIdAndSwitchInfo.second.systemPortRange().has_value()) {
-      systemPortRange = *switchIdAndSwitchInfo.second.systemPortRange();
     }
     hwAsics_.emplace(
         SwitchID(switchIdAndSwitchInfo.first),
-        HwAsic::makeAsic(
-            *switchIdAndSwitchInfo.second.asicType(),
-            *switchIdAndSwitchInfo.second.switchType(),
-            switchIdAndSwitchInfo.first,
-            *switchIdAndSwitchInfo.second.switchIndex(),
-            systemPortRange,
-            mac,
-            sdkVersion));
+        HwAsic::makeAsic(switchIdAndSwitchInfo.first, switchInfo, sdkVersion));
   }
 }
 

@@ -11,7 +11,6 @@
 #include "fboss/fsdb/if/gen-cpp2/FsdbService.h"
 #include "fboss/fsdb/if/gen-cpp2/fsdb_common_constants.h"
 #include "fboss/fsdb/if/gen-cpp2/fsdb_common_types.h"
-#include "fboss/thrift_cow/nodes/Serializer.h"
 #include "servicerouter/client/cpp2/ServiceRouter.h"
 
 using namespace facebook::fboss::fsdb;

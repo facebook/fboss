@@ -75,7 +75,8 @@ class SaiQueueManager {
       const PortQueue& newPortQueue);
   void changeQueueScheduler(
       SaiQueueHandle* queueHandle,
-      const PortQueue& newPortQueue);
+      const PortQueue& newPortQueue,
+      const Port* swPort);
   void changeQueueDeadlockEnable(
       SaiQueueHandle* queueHandle,
       const Port* swPort);

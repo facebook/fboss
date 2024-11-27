@@ -2,7 +2,6 @@
 #include "Device.h"
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
-#include <chrono>
 #include <fstream>
 #include <thread>
 #include "TempDir.h"

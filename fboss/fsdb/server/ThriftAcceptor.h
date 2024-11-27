@@ -5,18 +5,7 @@
 #include <folly/logging/xlog.h>
 #include <thrift/lib/cpp2/server/Cpp2Worker.h>
 #include <wangle/acceptor/SharedSSLContextManager.h>
-
-/**
- * Default value sourced from Cfgr "neteng/qosdb/cos_utility_maps"
- *   dscpToClassOfServiceMap.ClassOfService.NC : 48
- * Rationale: In DSF clusters fsdb is a Tier 0 service required for
- * bringing up network control plane and needs to be up with minimal
- * dependencies. Therefore, sourcing the const in fbcode instead of
- * a runtime configerator read.
- *
- * 8-bit TOS = 6-bit DSCP followed by 2-bit ECN
- */
-const uint8_t kTosForClassOfServiceNC = 48 << 2;
+#include "fboss/fsdb/if/gen-cpp2/fsdb_common_constants.h"
 
 namespace folly {
 class EventBase;
@@ -134,7 +123,9 @@ class FsdbThriftAcceptorFactory final
           auto rc = folly::netops::getsockopt(
               netsocket, IPPROTO_IPV6, IPV6_TCLASS, &tos, &optsize);
           if (rc == 0) {
-            if (tos == kTosForClassOfServiceNC) {
+            // TODO(daiweix): also block connections to fsdbPort_high_priority
+            // port if not in trusted subnets
+            if (tos == fsdb_common_constants::kTosForClassOfServiceNC()) {
               XLOG(INFO) << "Reject connection with TOS(" << tos
                          << ") from clientIp: " << clientIp.str()
                          << ", not in trustedSubnets";

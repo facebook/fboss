@@ -56,6 +56,9 @@ enum ProductionFeature {
   UDF_WR_IMMEDIATE_ACL = 43,
   VLAN = 44,
   PORT_MTU_ERROR_TRAP = 45,
+  LED_PROGRAMMING = 46,
+  PFC_CAPTURE = 47,
+  LINERATE_SFLOW = 48,
   # production feature which is present on all platforms, keep it at the end
   HW_SWITCH = 65536,
 }

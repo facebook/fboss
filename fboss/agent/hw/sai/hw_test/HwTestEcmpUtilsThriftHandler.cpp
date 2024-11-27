@@ -19,6 +19,26 @@ int HwTestThriftHandler::getHwEcmpSize(
   return getEcmpMembersInHw(hwSwitch_, ecmpPrefix, rid, sizeInSw).size();
 }
 
+void HwTestThriftHandler::getEcmpWeights(
+    std::map<::std::int32_t, ::std::int32_t>& weights,
+    std::unique_ptr<CIDRNetwork> prefix,
+    int routerID) {
+  folly::CIDRNetwork ecmpPrefix = std::make_pair(
+      folly::IPAddress(prefix->IPAddress_ref().value()),
+      prefix->mask_ref().value());
+  facebook::fboss::RouterID rid =
+      static_cast<facebook::fboss::RouterID>(routerID);
+  auto members =
+      getEcmpMembersInHw(hwSwitch_, ecmpPrefix, rid, FLAGS_ecmp_width);
+  int index = 0;
+  for (auto member : members) {
+    weights.insert(
+        std::make_pair(index, getEcmpMemberWeight(hwSwitch_, members, member)));
+    index++;
+  }
+  return;
+}
+
 } // namespace utility
 } // namespace fboss
 } // namespace facebook

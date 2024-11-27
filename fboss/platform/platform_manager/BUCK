@@ -46,6 +46,7 @@ cpp_library(
         "ConfigValidator.cpp",
     ],
     exported_deps = [
+        "fbsource//third-party/range-v3:range-v3",
         ":i2c_misc",
         ":platform_manager_config-cpp2-types",
         "//folly/logging:logging",
@@ -165,18 +166,27 @@ cpp_library(
         "Utils.cpp",
     ],
     exported_deps = [
-        ":config_validator",
-        ":platform_manager_config-cpp2-types",
         "//fboss/lib:gpiod_line",
-        "//fboss/platform/config_lib:config_lib",
-        "//fboss/platform/helpers:platform_name_lib",
-        "//folly:file_util",
         "//folly/logging:logging",
-        "//thrift/lib/cpp2/protocol:protocol",
     ],
     exported_external_deps = [
         "re2",
         ("libgpiod", None, "gpiod"),
+    ],
+)
+
+cpp_library(
+    name = "config_utils",
+    srcs = [
+        "ConfigUtils.cpp",
+    ],
+    exported_deps = [
+        ":config_validator",
+        ":platform_manager_config-cpp2-types",
+        "//fboss/platform/config_lib:config_lib",
+        "//fboss/platform/helpers:platform_name_lib",
+        "//folly/logging:logging",
+        "//thrift/lib/cpp2/protocol:protocol",
     ],
 )
 
@@ -220,6 +230,7 @@ cpp_binary(
         "Main.cpp",
     ],
     deps = [
+        ":config_utils",
         ":pkg_manager",
         ":platform_manager_handler",
         "//fb303:logging",

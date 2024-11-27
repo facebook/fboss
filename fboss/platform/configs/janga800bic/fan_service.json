@@ -2,7 +2,7 @@
   "pwmBoostOnNumDeadFan": 1,
   "pwmBoostOnNumDeadSensor": 0,
   "pwmBoostOnNoQsfpAfterInSec": 55,
-  "pwmBoostValue": 75,
+  "pwmBoostValue": 100,
   "pwmTransitionValue": 50,
   "pwmLowerThreshold": 30,
   "pwmUpperThreshold": 100,

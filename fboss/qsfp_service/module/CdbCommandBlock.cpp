@@ -9,6 +9,8 @@
 
 #include "fboss/qsfp_service/module/TransceiverImpl.h"
 
+#include "fboss/qsfp_service/module/cmis/gen-cpp2/cmis_types.h"
+
 namespace facebook::fboss {
 
 // CDB command definitions
@@ -36,7 +38,6 @@ static constexpr uint8_t kCdbCommandStatusBusyCmdExec = 0x83;
 constexpr int cdbCommandTimeoutUsec = 10000000;
 constexpr int cdbCommandErrorIntervalUsec = 100000;
 constexpr int cdbCommandStatusPollIntervalUsec = 10000;
-constexpr int cdbMemoryWriteDelayUsec = 5000;
 
 // CMIS firmware related register offsets
 constexpr uint8_t kCdbCommandStatusReg = 37;
@@ -45,6 +46,9 @@ constexpr uint8_t kPageSelectReg = 127;
 constexpr uint8_t kCdbCommandMsbReg = 128;
 constexpr uint8_t kCdbCommandLsbReg = 129;
 constexpr uint8_t kCdbRlplLengthReg = 134;
+
+// CMIS command
+constexpr int kCmisCommand = static_cast<int>(CmisField::CDB_COMMAND);
 
 /*
  * i2cWriteAndContinue
@@ -65,7 +69,10 @@ void CdbCommandBlock::i2cWriteAndContinue(
     // command run successfully. Some of the optics need this delay
     /* sleep override */
     bus->writeTransceiver(
-        {i2cAddress, offset, length}, buf, cdbMemoryWriteDelayUsec);
+        {i2cAddress, offset, length},
+        buf,
+        POST_I2C_WRITE_DELAY_CDB_US,
+        kCmisCommand);
   } catch (const std::exception& e) {
     XLOG(INFO) << "write() raised exception: Sleep for 100ms and continue: "
                << e.what();
@@ -76,7 +83,7 @@ void CdbCommandBlock::i2cWriteAndContinue(
   auto writeTime = std::chrono::steady_clock::now() - startTime;
   memoryWriteTime_ +=
       std::chrono::duration_cast<std::chrono::milliseconds>(writeTime) -
-      std::chrono::milliseconds(cdbMemoryWriteDelayUsec / 1000);
+      std::chrono::milliseconds(POST_I2C_WRITE_DELAY_CDB_US / 1000);
 }
 
 /*
@@ -96,7 +103,8 @@ bool CdbCommandBlock::cmisRunCdbCommand(TransceiverImpl* bus) {
   bus->writeTransceiver(
       {TransceiverAccessParameter::ADDR_QSFP, kPageSelectReg, 1},
       &page,
-      0 /*delay*/);
+      POST_I2C_WRITE_NO_DELAY_US,
+      kCmisCommand);
 
   // Since we are going to write byte 2 to len-1 in the module CDB memory
   // without interpreting it so let's take uint8_t* pointer here and do it
@@ -168,7 +176,8 @@ bool CdbCommandBlock::cmisRunCdbCommand(TransceiverImpl* bus) {
     try {
       bus->readTransceiver(
           {TransceiverAccessParameter::ADDR_QSFP, kCdbCommandStatusReg, 1},
-          &status);
+          &status,
+          kCmisCommand);
     } catch (const std::exception&) {
       XLOG(INFO) << folly::sformat(
           "cmisRunCdbCommand Mod{:d}: read status raised exception: Sleep for 100ms and continue",
@@ -214,21 +223,22 @@ bool CdbCommandBlock::cmisRunCdbCommand(TransceiverImpl* bus) {
 
   bus->readTransceiver(
       {TransceiverAccessParameter::ADDR_QSFP, kCdbRlplLengthReg, 1},
-      &this->cdbFields_.cdbRlplLength);
+      &this->cdbFields_.cdbRlplLength,
+      kCmisCommand);
 
   auto i2cReadWithRetry = [&](uint8_t i2cAddress,
                               int offset,
                               int length,
                               uint8_t* buf) {
     try {
-      bus->readTransceiver({i2cAddress, offset, length}, buf);
+      bus->readTransceiver({i2cAddress, offset, length}, buf, kCmisCommand);
     } catch (const std::exception&) {
       XLOG(INFO) << folly::sformat(
           "cmisRunCdbCommand Mod{:d}: read generic raised exception: Sleep for 100ms and retry",
           bus->getNum());
       /* sleep override */
       usleep(cdbCommandErrorIntervalUsec);
-      bus->readTransceiver({i2cAddress, offset, length}, buf);
+      bus->readTransceiver({i2cAddress, offset, length}, buf, kCmisCommand);
     }
   };
 
@@ -572,7 +582,8 @@ void CdbCommandBlock::selectCdbPage(TransceiverImpl* bus) {
   bus->writeTransceiver(
       {TransceiverAccessParameter::ADDR_QSFP, kPageSelectReg, 1},
       &page,
-      0 /*delay*/);
+      POST_I2C_WRITE_NO_DELAY_US,
+      kCmisCommand);
 }
 
 /*
@@ -589,7 +600,8 @@ void CdbCommandBlock::setMsaPassword(TransceiverImpl* bus, uint32_t msaPw) {
   bus->writeTransceiver(
       {TransceiverAccessParameter::ADDR_QSFP, kModulePasswordEntryReg, 4},
       msaPwArray.data(),
-      0 /*delay*/);
+      POST_I2C_WRITE_NO_DELAY_US,
+      kCmisCommand);
 }
 
 } // namespace facebook::fboss

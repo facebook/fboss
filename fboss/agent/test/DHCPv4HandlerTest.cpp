@@ -20,16 +20,13 @@
 #include "fboss/agent/TxPacket.h"
 #include "fboss/agent/hw/mock/MockHwSwitch.h"
 #include "fboss/agent/hw/mock/MockPlatform.h"
-#include "fboss/agent/hw/mock/MockRxPacket.h"
 #include "fboss/agent/packet/DHCPv4Packet.h"
 #include "fboss/agent/packet/EthHdr.h"
 #include "fboss/agent/packet/Ethertype.h"
 #include "fboss/agent/packet/IPv4Hdr.h"
 #include "fboss/agent/packet/PktUtil.h"
 #include "fboss/agent/packet/UDPHeader.h"
-#include "fboss/agent/state/ArpEntry.h"
 #include "fboss/agent/state/ArpResponseTable.h"
-#include "fboss/agent/state/ArpTable.h"
 #include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/state/Vlan.h"
@@ -38,7 +35,6 @@
 #include "fboss/agent/test/HwTestHandle.h"
 #include "fboss/agent/test/TestUtils.h"
 
-#include <boost/cast.hpp>
 #include <gtest/gtest.h>
 
 using namespace facebook::fboss;

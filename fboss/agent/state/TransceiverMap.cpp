@@ -24,6 +24,6 @@ MultiSwitchTransceiverMap* MultiSwitchTransceiverMap::modify(
   return SwitchState::modify<switch_state_tags::transceiverMaps>(state);
 }
 
-template class ThriftMapNode<TransceiverMap, TransceiverMapTraits>;
+template struct ThriftMapNode<TransceiverMap, TransceiverMapTraits>;
 
 } // namespace facebook::fboss

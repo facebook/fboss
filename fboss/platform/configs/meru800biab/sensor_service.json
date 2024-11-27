@@ -425,7 +425,7 @@
     },
     {
       "slotPath": "/SMB_SLOT@0/PSU_SLOT@0",
-      "pmUnitName": "PSU1",
+      "pmUnitName": "PSU",
       "sensors": [
         {
           "name": "PSU1_VIN",
@@ -519,7 +519,7 @@
     },
     {
       "slotPath": "/SMB_SLOT@0/PSU_SLOT@1",
-      "pmUnitName": "PSU2",
+      "pmUnitName": "PSU",
       "sensors": [
         {
           "name": "PSU2_VIN",

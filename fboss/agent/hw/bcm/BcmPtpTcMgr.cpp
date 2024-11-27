@@ -15,7 +15,6 @@
 #include "fboss/agent/hw/bcm/BcmFieldProcessorUtils.h"
 #include "fboss/agent/hw/bcm/BcmPlatform.h"
 #include "fboss/agent/hw/bcm/BcmPortTable.h"
-#include "fboss/agent/state/SwitchState.h"
 
 extern "C" {
 #include <bcm/switch.h>

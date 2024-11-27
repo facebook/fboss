@@ -26,6 +26,8 @@ struct LinkEvent {
 
 struct LinkActiveEvent {
   1: map<i32, bool> port2IsActive;
+  2: bool fwIsolated;
+  3: optional i32 numActiveFabricPortsAtFwIsolate;
 }
 
 struct FabricConnectivityDelta {

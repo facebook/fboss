@@ -1,3 +1,4 @@
+# pyre-unsafe
 import pytest
 
 from fboss.platform.bsp_tests.utils.kmod_utils import (

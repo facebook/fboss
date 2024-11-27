@@ -19,7 +19,6 @@
 
 #include "fboss/agent/hw/bcm/tests/BcmSwitchEnsemble.h"
 #include "fboss/agent/hw/test/HwSwitchEnsemble.h"
-#include "fboss/lib/platforms/PlatformMode.h"
 
 extern "C" {
 #include <bcm/port.h>

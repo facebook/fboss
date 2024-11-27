@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 # Copyright (C) 2004-present Facebook. All Rights Reserved
 
+# pyre-unsafe
+
 import contextlib
 import socket
 from argparse import ArgumentParser

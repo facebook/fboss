@@ -160,6 +160,7 @@ int hwAgentMain(
 
   if (FLAGS_thrift_test_utils_thrift_handler || FLAGS_hw_agent_for_testing) {
     config = getConfigFileForTesting(FLAGS_switchIndex);
+    initFlagDefaults(*config->thrift.defaultCommandLineArgs());
   }
 
   auto hwAgent = std::make_unique<HwAgent>(

@@ -11,7 +11,6 @@
 #include "fboss/lib/fpga/MinipackSystemContainer.h"
 
 #include <folly/container/Enumerate.h>
-#include <folly/logging/xlog.h>
 
 namespace facebook::fboss {
 Minipack16QI2CBus::Minipack16QI2CBus() {

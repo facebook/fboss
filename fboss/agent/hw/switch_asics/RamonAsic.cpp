@@ -83,6 +83,9 @@ uint32_t RamonAsic::getMaxLabelStackDepth() const {
 uint64_t RamonAsic::getMMUSizeBytes() const {
   throw FbossError("Ramon doesn't support MMU feature");
 };
+uint64_t RamonAsic::getSramSizeBytes() const {
+  throw FbossError("Ramon doesn't support MMU feature");
+};
 int RamonAsic::getMaxNumLogicalPorts() const {
   throw FbossError("Ramon doesn't support logical ports feature");
 }

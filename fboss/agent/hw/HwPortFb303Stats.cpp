@@ -52,6 +52,7 @@ HwPortFb303Stats::kPortMonotonicCounterStatKeys() const {
       kOutForwardingDiscards(),
       kPqpErrorEgressDroppedPackets(),
       kFabricLinkDownDroppedCells(),
+      kLinkLayerFlowControlWatermark(),
   };
   return kPortKeys;
 }
@@ -223,6 +224,12 @@ void HwPortFb303Stats::updateStats(
     fb303::fbData->setCounter(
         statName(kDataCellsFilterOn(), portName()),
         *curPortStats.dataCellsFilterOn() ? 1 : 0);
+  }
+  if (curPortStats.linkLayerFlowControlWatermark_().has_value()) {
+    updateStat(
+        timeRetrieved_,
+        kLinkLayerFlowControlWatermark(),
+        *curPortStats.linkLayerFlowControlWatermark_());
   }
 
   // Update queue stats

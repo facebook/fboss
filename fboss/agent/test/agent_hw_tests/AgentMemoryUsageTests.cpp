@@ -50,9 +50,8 @@ class AgentMemoryUsageTest : public AgentHwTest {
 
 TEST_F(AgentMemoryUsageTest, MeasureStatsCollection) {
   if (!folly::usingJEMalloc()) {
-#ifdef GTEST_SKIP
-    GTEST_SKIP() << "This test only works with jemalloc";
-#endif
+    // Don't use GTEST_SKIP() because it messes up our stats.
+    XLOG(INFO) << "Skipping test because jemalloc is not enabled";
     return;
   }
 

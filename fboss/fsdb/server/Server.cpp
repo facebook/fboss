@@ -13,8 +13,6 @@
 #include "fboss/fsdb/server/ServiceHandler.h"
 #include "fboss/fsdb/server/ThriftAcceptor.h"
 
-#include <signal.h>
-
 using namespace std::chrono_literals; // @donotremove
 
 DEFINE_bool(readConfigFile, true, "Whether config file should be read");
@@ -126,7 +124,10 @@ std::shared_ptr<apache::thrift::ThriftServer> createThriftServer(
   auto server = std::make_shared<apache::thrift::ThriftServer>();
   server->setInterface(handler);
   std::vector<folly::SocketAddress> addresses;
-  for (auto port : {FLAGS_fsdbPort, FLAGS_migrated_fsdbPort}) {
+  for (auto port :
+       {FLAGS_fsdbPort_high_priority,
+        FLAGS_migrated_fsdbPort,
+        FLAGS_fsdbPort}) {
     folly::SocketAddress address;
     address.setFromLocalPort(port);
     addresses.push_back(address);
@@ -141,6 +142,7 @@ std::shared_ptr<apache::thrift::ThriftServer> createThriftServer(
   server->setSSLPolicy(getThriftServerSSLPolicy());
   server->setQueueTimeout(
       std::chrono::milliseconds(FLAGS_fsdb_queue_timeout_ms));
+  server->addServerEventHandler(handler);
   if (FLAGS_enable_thrift_acceptor) {
     auto trustedSubnets =
         getTrustedSubnets(fsdbConfig->getThrift().get_trustedSubnets());

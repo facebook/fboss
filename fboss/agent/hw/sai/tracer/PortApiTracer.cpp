@@ -175,6 +175,7 @@ void handleExtensionAttributes() {
   SAI_EXT_ATTR_MAP(Port, CondEntropyRehashEnable)
   SAI_EXT_ATTR_MAP(Port, CondEntropyRehashPeriodUS)
   SAI_EXT_ATTR_MAP(Port, CondEntropyRehashSeed)
+  SAI_EXT_ATTR_MAP(Port, ShelEnable)
 }
 
 } // namespace

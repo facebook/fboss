@@ -40,7 +40,7 @@ class HwResourceStatsTest : public HwLinkStateDependentTest {
         getHwSwitch(), masterLogicalPortIds());
     if (FLAGS_enable_acl_table_group) {
       utility::addAclTableGroup(
-          &cfg, cfg::AclStage::INGRESS, utility::getAclTableGroupName());
+          &cfg, cfg::AclStage::INGRESS, utility::kDefaultAclTableGroupName());
       utility::addDefaultAclTable(cfg);
     }
     return cfg;

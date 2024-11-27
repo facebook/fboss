@@ -62,5 +62,5 @@ void UdfPacketMatcher::setUdfL4DstPort(std::optional<int> port) {
   }
 }
 
-template class ThriftStructNode<UdfPacketMatcher, cfg::UdfPacketMatcher>;
+template struct ThriftStructNode<UdfPacketMatcher, cfg::UdfPacketMatcher>;
 } // namespace facebook::fboss

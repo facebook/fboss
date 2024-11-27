@@ -146,9 +146,6 @@ class AgentMirroringTest : public AgentHwTest {
       const std::string& mirrorName) const {
     auto trafficPort = getTrafficPort(ensemble);
     std::string aclEntryName = kMirrorAcl;
-    utility::addAclTableGroup(
-        cfg, cfg::AclStage::INGRESS, utility::getAclTableGroupName());
-    utility::addDefaultAclTable(*cfg);
     auto aclEntry = cfg::AclEntry();
     aclEntry.name() = aclEntryName;
     aclEntry.actionType() = cfg::AclActionType::PERMIT;

@@ -15,7 +15,6 @@
 
 #include "fboss/agent/hw/test/ConfigFactory.h"
 
-#include <cstdio>
 #include <cstring>
 namespace {
 std::vector<int> getControllingPortIDs() {
@@ -43,14 +42,10 @@ SaiFakePlatform::SaiFakePlatform(
 }
 
 void SaiFakePlatform::setupAsic(
-    cfg::SwitchType switchType,
     std::optional<int64_t> switchId,
-    int16_t switchIndex,
-    std::optional<cfg::Range64> systemPortRange,
-    folly::MacAddress& mac,
+    const cfg::SwitchInfo& switchInfo,
     std::optional<HwAsic::FabricNodeRole> fabricNodeRole) {
-  asic_ = std::make_unique<FakeAsic>(
-      switchType, switchId, switchIndex, systemPortRange, mac);
+  asic_ = std::make_unique<FakeAsic>(switchId, switchInfo);
 }
 
 std::string SaiFakePlatform::getHwConfig() {

@@ -14,7 +14,7 @@
 
 namespace facebook::fboss {
 
-class AgentConfig;
+struct AgentConfig;
 class Platform;
 class WedgePlatform;
 class PlatformProductInfo;

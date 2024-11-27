@@ -1,3 +1,4 @@
+# pyre-unsafe
 import shutil
 from typing import List
 

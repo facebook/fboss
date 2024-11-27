@@ -11,14 +11,12 @@
 #include "fboss/agent/SysError.h"
 #include "fboss/agent/hw/test/HwTest.h"
 
-#include "fboss/agent/ApplyThriftConfig.h"
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/SwitchState.h"
 
 #include "fboss/agent/hw/test/ConfigFactory.h"
 
 #include <folly/FileUtil.h>
-#include <folly/json/dynamic.h>
 
 DEFINE_string(
     replay_switch_state_file,

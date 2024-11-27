@@ -181,11 +181,9 @@ class WedgeManager : public TransceiverManager {
 
   virtual std::unique_ptr<TransceiverI2CApi> getI2CBus() override;
 
-  virtual TransceiverI2CApi* i2cBus() override {
-    return wedgeI2cBus_.get();
-  }
-
-  void updateTransceiverMap();
+  // Return the list of newly added transceivers
+  // (detected plugged in) after a refresh cycle.
+  std::vector<TransceiverID> updateTransceiverMap();
 
   // thread safe handle to access bus
   std::unique_ptr<TransceiverI2CApi> wedgeI2cBus_;
@@ -199,6 +197,8 @@ class WedgeManager : public TransceiverManager {
   void initQsfpImplMap();
 
  private:
+  void updateTransceiverLogInfo(const std::vector<TransceiverID>& tcvrs);
+
   // Forbidden copy constructor and assignment operator
   WedgeManager(WedgeManager const&) = delete;
   WedgeManager& operator=(WedgeManager const&) = delete;

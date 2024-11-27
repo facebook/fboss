@@ -7,12 +7,6 @@
     "SMB": {
       "path": "/run/devmap/eeproms/SMB_EEPROM"
     },
-    "LED1": {
-      "path": "/run/devmap/eeproms/LED1_EEPROM"
-    },
-    "LED2": {
-      "path": "/run/devmap/eeproms/LED2_EEPROM"
-    },
     "PDB1": {
       "path": "/run/devmap/eeproms/PDB1_EEPROM"
     },

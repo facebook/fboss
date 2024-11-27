@@ -16,6 +16,24 @@
 #include <fb303/ServiceData.h>
 #include <folly/logging/xlog.h>
 
+#include "common/stats/DynamicStats.h"
+
+namespace {
+
+DEFINE_dynamic_quantile_stat(
+    buffer_watermark_ucast,
+    "buffer_watermark_ucast.{}.{}.{}",
+    facebook::fb303::ExportTypeConsts::kNone,
+    std::array<double, 1>{{1.0}});
+
+DEFINE_dynamic_quantile_stat(
+    egress_gvoq_watermark,
+    "egress_gvoq_watermark.{}.{}.{}",
+    facebook::fb303::ExportTypeConsts::kNone,
+    std::array<double, 1>{{1.0}});
+
+} // unnamed namespace
+
 namespace facebook::fboss {
 
 std::string HwBasePortFb303Stats::statName(
@@ -154,7 +172,6 @@ void HwBasePortFb303Stats::queueChanged(
 }
 
 void HwBasePortFb303Stats::queueRemoved(int queueId) {
-  auto qitr = queueId2Name_.find(queueId);
   for (auto statKey : kQueueMonotonicCounterStatKeys()) {
     portCounters_.removeStat(
         statName(statKey, portName_, queueId, queueId2Name_[queueId]));
@@ -224,5 +241,31 @@ void HwBasePortFb303Stats::updateStat(
     PfcPriority priority,
     int64_t val) {
   portCounters_.updateStat(now, statName(statKey, portName_, priority), val);
+}
+
+void HwBasePortFb303Stats::updateQueueWatermarkStats(
+    const std::map<int16_t, int64_t>& queueWatermarks) const {
+  for (const auto& [queueId, queueName] : queueId2Name_) {
+    auto watermarkItr = queueWatermarks.find(queueId);
+    CHECK(watermarkItr != queueWatermarks.end());
+    STATS_buffer_watermark_ucast.addValue(
+        watermarkItr->second,
+        portName_,
+        folly::to<std::string>("queue", queueId),
+        queueName);
+  }
+}
+
+void HwBasePortFb303Stats::updateEgressGvoqWatermarkStats(
+    const std::map<int16_t, int64_t>& gvoqWatermarks) const {
+  for (const auto& [queueId, queueName] : queueId2Name_) {
+    auto watermarkItr = gvoqWatermarks.find(queueId);
+    CHECK(watermarkItr != gvoqWatermarks.end());
+    STATS_egress_gvoq_watermark.addValue(
+        watermarkItr->second,
+        portName_,
+        folly::to<std::string>("queue", queueId),
+        queueName);
+  }
 }
 } // namespace facebook::fboss

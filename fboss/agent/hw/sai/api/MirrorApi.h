@@ -40,9 +40,16 @@ struct SaiMirrorTraits<SAI_MIRROR_SESSION_TYPE_LOCAL> {
         EnumType,
         SAI_MIRROR_SESSION_ATTR_MONITOR_PORT,
         SaiObjectIdT>;
+    struct AttributeTcBufferLimit {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    using TcBufferLimit =
+        SaiExtensionAttribute<sai_uint32_t, AttributeTcBufferLimit>;
   };
-  using CreateAttributes =
-      std::tuple<Attributes::Type, Attributes::MonitorPort>;
+  using CreateAttributes = std::tuple<
+      Attributes::Type,
+      Attributes::MonitorPort,
+      std::optional<typename Attributes::TcBufferLimit>>;
   using AdapterHostKey = CreateAttributes;
 };
 
@@ -96,6 +103,11 @@ struct SaiMirrorTraits<SAI_MIRROR_SESSION_TYPE_ENHANCED_REMOTE> {
         EnumType,
         SAI_MIRROR_SESSION_ATTR_SAMPLE_RATE,
         sai_uint32_t>;
+    struct AttributeTcBufferLimit {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    using TcBufferLimit =
+        SaiExtensionAttribute<sai_uint32_t, AttributeTcBufferLimit>;
   };
   using CreateAttributes = std::tuple<
       Attributes::Type,
@@ -110,7 +122,8 @@ struct SaiMirrorTraits<SAI_MIRROR_SESSION_TYPE_ENHANCED_REMOTE> {
       Attributes::IpHeaderVersion,
       std::optional<Attributes::Ttl>,
       std::optional<Attributes::TruncateSize>,
-      std::optional<Attributes::SampleRate>>;
+      std::optional<Attributes::SampleRate>,
+      std::optional<typename Attributes::TcBufferLimit>>;
   using AdapterHostKey = std::tuple<
       Attributes::Type,
       Attributes::MonitorPort,
@@ -241,6 +254,7 @@ using SaiMirrorTraits = ConditionObjectTraits<
 using SaiMirrorAdapterHostKey = typename SaiMirrorTraits::AdapterHostKey;
 using SaiMirrorAdaptertKey = typename SaiMirrorTraits::AdapterKey<MirrorSaiId>;
 
+SAI_ATTRIBUTE_NAME(LocalMirror, TcBufferLimit)
 SAI_ATTRIBUTE_NAME(EnhancedRemoteMirror, Type)
 SAI_ATTRIBUTE_NAME(EnhancedRemoteMirror, MonitorPort)
 SAI_ATTRIBUTE_NAME(EnhancedRemoteMirror, TruncateSize)
@@ -254,6 +268,7 @@ SAI_ATTRIBUTE_NAME(EnhancedRemoteMirror, SrcMacAddress)
 SAI_ATTRIBUTE_NAME(EnhancedRemoteMirror, DstMacAddress)
 SAI_ATTRIBUTE_NAME(EnhancedRemoteMirror, IpHeaderVersion)
 SAI_ATTRIBUTE_NAME(EnhancedRemoteMirror, SampleRate)
+SAI_ATTRIBUTE_NAME(EnhancedRemoteMirror, TcBufferLimit)
 SAI_ATTRIBUTE_NAME(SflowMirror, UdpSrcPort)
 SAI_ATTRIBUTE_NAME(SflowMirror, UdpDstPort)
 SAI_ATTRIBUTE_NAME(SflowMirror, TcBufferLimit)

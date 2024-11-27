@@ -9,11 +9,9 @@
  */
 #include "fboss/agent/test/TestPacketFactory.h"
 
-#include <folly/IPAddress.h>
 #include <folly/IPAddressV4.h>
 #include <folly/IPAddressV6.h>
 #include <folly/MacAddress.h>
-#include <folly/MoveWrapper.h>
 #include <folly/String.h>
 #include <folly/io/IOBuf.h>
 #include "fboss/agent/IPv4Handler.h"

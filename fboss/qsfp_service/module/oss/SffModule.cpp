@@ -57,12 +57,12 @@ const std::optional<phy::PrbsStats> SffModule::getPortPrbsStatsOverrideLocked(
 }
 
 void SffModule::readSffFr1Field(
-    SffFr1Field /* field */,
+    SffField /* field */,
     uint8_t* /* data */,
     bool /* skipPageChange */) {};
 
 void SffModule::writeSffFr1Field(
-    SffFr1Field /* field */,
+    SffField /* field */,
     uint8_t* /* data */,
     bool /* skipPageChange */) {};
 } // namespace fboss
