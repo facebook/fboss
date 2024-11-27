@@ -680,6 +680,26 @@ class SwitchSettings
     set<switch_state_tags::reachabilityGroups>(reachabilityGroups);
   }
 
+  std::optional<cfg::SelfHealingEcmpLagConfig> getSelfHealingEcmpLagConfig()
+      const {
+    if (auto selfHealingEcmpLagConfig =
+            cref<switch_state_tags::selfHealingEcmpLagConfig>()) {
+      return selfHealingEcmpLagConfig->toThrift();
+    }
+    return std::nullopt;
+  }
+
+  void setSelfHealingEcmpLagConfig(
+      const std::optional<cfg::SelfHealingEcmpLagConfig>&
+          selfHealingEcmpLagConfig) {
+    if (!selfHealingEcmpLagConfig) {
+      ref<switch_state_tags::selfHealingEcmpLagConfig>().reset();
+    } else {
+      set<switch_state_tags::selfHealingEcmpLagConfig>(
+          selfHealingEcmpLagConfig.value());
+    }
+  }
+
   SwitchSettings* modify(std::shared_ptr<SwitchState>* state);
 
  private:
