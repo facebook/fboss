@@ -380,6 +380,7 @@ class HwAsic {
     uint32_t coreId;
     uint32_t corePortIndex;
     uint32_t speedMbps;
+    uint32_t inbandPortId;
   };
 
   std::optional<cfg::SdkVersion> getSdkVersion() const {

@@ -298,19 +298,22 @@ HwAsic::RecyclePortInfo Jericho3Asic::getRecyclePortInfo(
     return {
         .coreId = 2,
         .corePortIndex = 6,
-        .speedMbps = 100000 // 100G
+        .speedMbps = 100000, // 100G
+        .inbandPortId = 10,
     };
   } else if (isDualStage3Q2QMode()) {
     return {
         .coreId = 0,
         .corePortIndex = 13,
-        .speedMbps = 100000 // 100G
+        .speedMbps = 100000, // 100G
+        .inbandPortId = 16391,
     };
   }
   return {
       .coreId = 2,
       .corePortIndex = 2,
-      .speedMbps = 100000 // 100G
+      .speedMbps = 100000, // 100G
+      .inbandPortId = 1,
   };
 }
 

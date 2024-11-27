@@ -1163,6 +1163,7 @@ void ThriftConfigApplier::processUpdatedDsfNodes() {
         isDualStage3Q2QMode() && node->getClusterId() >= k2StageEdgePodClusterId
             ? HwAsic::InterfaceNodeRole::DUAL_STAGE_EDGE_NODE
             : HwAsic::InterfaceNodeRole::IN_CLUSTER_NODE);
+    CHECK_EQ(recyclePortInfo.inbandPortId, *node->getInbandPortId());
     sysPort->setCoreIndex(recyclePortInfo.coreId);
     sysPort->setCorePortIndex(recyclePortInfo.corePortIndex);
     sysPort->setSpeedMbps(recyclePortInfo.speedMbps);

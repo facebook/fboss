@@ -201,7 +201,8 @@ class MockAsic : public HwAsic {
     return {
         .coreId = 0,
         .corePortIndex = 1,
-        .speedMbps = 10000 // 10G
+        .speedMbps = 10000, // 10G
+        .inbandPortId = 1,
     };
   }
   uint32_t getNumMemoryBuffers() const override {

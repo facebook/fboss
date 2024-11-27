@@ -288,7 +288,8 @@ HwAsic::RecyclePortInfo Jericho2Asic::getRecyclePortInfo(
   return {
       .coreId = 0,
       .corePortIndex = 1,
-      .speedMbps = 10000 // 10G
+      .speedMbps = 10000, // 10G
+      .inbandPortId = 1,
   };
 }
 
