@@ -9,12 +9,16 @@
  */
 
 #include "fboss/agent/test/utils/DsfConfigUtils.h"
+#include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
 
 namespace facebook::fboss::utility {
 
 namespace {
+
+constexpr auto kRdswPerCluster = 128;
+constexpr auto k2StageEdgePodClusterId = 201;
 
 int getDsfInterfaceNodeCount() {
   return getMaxRdsw() + getMaxEdsw();
@@ -61,8 +65,19 @@ std::optional<std::map<int64_t, cfg::DsfNode>> addRemoteIntfNodeCfg(
   for (int remoteSwitchId = remoteNodeStart;
        remoteSwitchId < totalNodes * numCores;
        remoteSwitchId += numCores) {
+    std::optional<int> clusterId;
+    if (isDualStage3Q2QMode()) {
+      if (remoteSwitchId < getMaxRdsw() * numCores) {
+        clusterId = remoteSwitchId / numCores / kRdswPerCluster;
+      } else {
+        clusterId = k2StageEdgePodClusterId;
+      }
+    }
     auto remoteDsfNodeCfg = dsfNodeConfig(
-        *asic, SwitchID(remoteSwitchId), *firstDsfNode.platformType());
+        *asic,
+        SwitchID(remoteSwitchId),
+        *firstDsfNode.platformType(),
+        clusterId);
     dsfNodes.insert({remoteSwitchId, remoteDsfNodeCfg});
   }
   return dsfNodes;

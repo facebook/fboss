@@ -378,7 +378,8 @@ int getLocalSystemPortOffset(const cfg::SystemPortRanges& ranges) {
 cfg::DsfNode dsfNodeConfig(
     const HwAsic& myAsic,
     int64_t otherSwitchId,
-    const std::optional<PlatformType> platformType) {
+    const std::optional<PlatformType> platformType,
+    const std::optional<int> clusterId) {
   auto getPlatformType = [](const auto& asic, auto& platformType) {
     if (platformType.has_value()) {
       return *platformType;
@@ -451,6 +452,9 @@ cfg::DsfNode dsfNodeConfig(
   }
   dsfNode.asicType() = myAsic.getAsicType();
   dsfNode.platformType() = getPlatformType(myAsic, platformType);
+  if (clusterId.has_value()) {
+    dsfNode.clusterId() = clusterId.value();
+  }
   return dsfNode;
 }
 

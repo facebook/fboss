@@ -75,7 +75,8 @@ int getMaxEdsw();
 cfg::DsfNode dsfNodeConfig(
     const HwAsic& myAsic,
     int64_t otherSwitchId = 4,
-    const std::optional<PlatformType> platformType = std::nullopt);
+    const std::optional<PlatformType> platformType = std::nullopt,
+    const std::optional<int> clusterId = std::nullopt);
 
 std::vector<cfg::Port>::iterator findCfgPort(
     cfg::SwitchConfig& cfg,
