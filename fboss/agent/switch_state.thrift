@@ -136,6 +136,7 @@ struct PortFields {
   54: optional i32 reachabilityGroupId;
   // DSF Interface node to enable conditional entropy, rotating hash seed periodically to increase entropy.
   55: bool conditionalEntropyRehash = false;
+  56: bool selfHealingECMPLagEnable = false;
 }
 
 typedef ctrl.SystemPortThrift SystemPortFields
@@ -416,6 +417,7 @@ struct SwitchSettingsFields {
   48: optional i32 conditionalEntropyRehashPeriodUS;
   49: optional string firmwarePath;
   50: list<i32> reachabilityGroups = [];
+  51: optional switch_config.SelfHealingEcmpLagConfig selfHealingEcmpLagConfig;
 }
 
 struct RoutePrefix {
