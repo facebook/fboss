@@ -59,6 +59,8 @@ enum ProductionFeature {
   LED_PROGRAMMING = 46,
   PFC_CAPTURE = 47,
   LINERATE_SFLOW = 48,
+  MIRROR_ON_DROP = 49,
+  PAUSE = 50,
   # production feature which is present on all platforms, keep it at the end
   HW_SWITCH = 65536,
 }
