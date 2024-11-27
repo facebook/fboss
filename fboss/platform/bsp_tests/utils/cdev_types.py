@@ -1,3 +1,4 @@
+# pyre-unsafe
 import ctypes
 from dataclasses import dataclass, field
 from enum import Enum

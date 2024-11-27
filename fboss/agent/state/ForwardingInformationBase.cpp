@@ -66,10 +66,10 @@ void ForwardingInformationBase<AddressT>::setDisableTTLDecrement(
   }
 }
 
-template class ThriftMapNode<
+template struct ThriftMapNode<
     ForwardingInformationBase<folly::IPAddressV4>,
     ForwardingInformationBaseTraits<folly::IPAddressV4>>;
-template class ThriftMapNode<
+template struct ThriftMapNode<
     ForwardingInformationBase<folly::IPAddressV6>,
     ForwardingInformationBaseTraits<folly::IPAddressV6>>;
 template class ForwardingInformationBase<folly::IPAddressV4>;

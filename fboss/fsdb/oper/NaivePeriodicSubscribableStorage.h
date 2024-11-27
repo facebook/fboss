@@ -303,8 +303,16 @@ NaivePeriodicSubscribableStorage<Storage, SubscribeManager>::convertPath(
       : path;
 }
 
-template <typename Root>
+template <typename Root, bool EnableHybridStorage = false>
 using NaivePeriodicSubscribableCowStorage = NaivePeriodicSubscribableStorage<
-    CowStorage<Root>,
-    CowSubscriptionManager<thrift_cow::ThriftStructNode<Root>>>;
+    CowStorage<
+        Root,
+        thrift_cow::ThriftStructNode<
+            Root,
+            thrift_cow::ThriftStructResolver<Root, EnableHybridStorage>,
+            EnableHybridStorage>>,
+    CowSubscriptionManager<thrift_cow::ThriftStructNode<
+        Root,
+        thrift_cow::ThriftStructResolver<Root, EnableHybridStorage>,
+        EnableHybridStorage>>>;
 } // namespace facebook::fboss::fsdb

@@ -28,6 +28,10 @@ class PlatformExplorer {
   auto static constexpr kFirmwareVersion = "{}.firmware_version";
   auto static constexpr kGroupedFirmwareVersion = "{}.firmware_version.{}";
 
+  auto static constexpr kFwVerErrorFileNotFound = "ERROR_FILE_NOT_FOUND";
+  auto static constexpr kFwVerErrorEmptyFile = "ERROR_EMPTY_FILE";
+  auto static constexpr kFwVerErrorInvalidString = "ERROR_INVALID_STRING";
+
   explicit PlatformExplorer(
       const PlatformConfig& config,
       const std::shared_ptr<PlatformFsUtils> platformFsUtils =

@@ -14,9 +14,10 @@
     - [2.2.3 SPI Controller (spi\_master)](#223-spi-controller-spi_master)
     - [2.2.4 GPIO Controller (gpiochip)](#224-gpio-controller-gpiochip)
     - [2.2.5 HWMON and PMBUS Device](#225-hwmon-and-pmbus-device)
-    - [2.2.6 Fan Watchdog (watchdog\_fan)](#226-fan-watchdog-watchdog_fan)
-    - [2.2.7 Transceiver Controller (xcvr\_ctrl)](#227-transceiver-controller-xcvr_ctrl)
-    - [2.2.8 LED](#228-led)
+    - [2.2.6 Fan Controller (fan\_ctrl)](#226-fan-controller-fan_ctrl)
+    - [2.2.7 Fan Watchdog (watchdog\_fan)](#227-fan-watchdog-watchdog_fan)
+    - [2.2.8 Transceiver Controller (xcvr\_ctrl)](#228-transceiver-controller-xcvr_ctrl)
+    - [2.2.9 LED](#229-led)
 
 
 # 1. Device References
@@ -55,15 +56,11 @@ header file.
 
 The FPGA Info driver exports the following sysfs files:
 
-* `fpga_ver`
+* `fw_ver`
   * **Type**: unsigned integer
-  * **Description**: This file reports the FPGA's major firmware version.
+  * **Description**: This file reports the FPGA's firmware version in the format `"%u.%u\n", major_ver, minor_ver`
   * **Read/Write**: RO
 
-* `fpga_sub_ver`
-  * **Type**: unsigned integer
-  * **Description**: This file reports the FPGA's minor firmware version.
-  * **Read/Write**: RO
 
 ### 2.2.2 I2C Controller (i2c_master)
 
@@ -143,7 +140,20 @@ defines all the details:
 
 * [kernel.org/doc/Documentation/hwmon/sysfs-interface](https://www.kernel.org/doc/Documentation/hwmon/sysfs-interface)
 
-### 2.2.6 Fan Watchdog (watchdog_fan)
+
+### 2.2.6 Fan Controller (fan_ctrl)
+
+**Interface:**
+
+Fan control devices shall be implemented as hwmon devices and as such will follow the hwmon sysfs interface generally.
+
+**Behavior:**
+
+In cases where a fan is not present, all writes and reads to/from that fan must fail. For example, reading the RPM from a fan
+which is not present should not return 0 or some other "bad" value, but rather the operation must return an error code.
+
+
+### 2.2.7 Fan Watchdog (watchdog_fan)
 
 **Interface:**
 
@@ -155,7 +165,7 @@ FBOSS Watchdog devices support `start`, `stop`, `ping` and `set_timeout`
 operations.
 
 
-### 2.2.7 Transceiver Controller (xcvr_ctrl)
+### 2.2.8 Transceiver Controller (xcvr_ctrl)
 
 **Interface:**
 
@@ -177,7 +187,7 @@ The `xcvr_ctrl` driver exports following sysfs entries for each transceiver port
   * **Read/Write**: RO
 
 
-### 2.2.8 LED
+### 2.2.9 LED
 
 LEDs are accessed via their original sysfs paths since they are non-dynamic. No
 symlinks are created by PlatformManager. All leds are found at `/sys/class/leds/`

@@ -12,7 +12,6 @@
 
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/hw/bcm/BcmError.h"
-#include "fboss/agent/platforms/common/PlatformMapping.h"
 
 #include <folly/logging/xlog.h>
 #include <thrift/lib/cpp/util/EnumUtils.h>

@@ -5,6 +5,7 @@
 #include "neteng/netwhoami/lib/cpp/Recover.h"
 
 namespace facebook::fboss {
+
 std::optional<facebook::netwhoami::NetWhoAmI> getNetWhoAmI(
     const HostInfo& hostInfo) {
   try {
@@ -21,4 +22,10 @@ std::optional<facebook::netwhoami::NetWhoAmI> getNetWhoAmI(
     return std::nullopt;
   }
 }
+
+bool isDsfRole(Role role) {
+  return role == Role::FDSW || role == Role::SDSW || role == Role::EDSW ||
+      role == Role::RDSW;
+}
+
 } // namespace facebook::fboss

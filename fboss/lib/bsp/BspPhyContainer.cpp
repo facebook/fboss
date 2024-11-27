@@ -1,7 +1,6 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
 #include "fboss/lib/bsp/BspPhyContainer.h"
-#include "fboss/lib/bsp/BspPlatformMapping.h"
 #include "fboss/lib/bsp/gen-cpp2/bsp_platform_mapping_types.h"
 
 namespace facebook {

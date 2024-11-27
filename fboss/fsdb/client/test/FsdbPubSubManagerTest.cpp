@@ -10,13 +10,10 @@
 #include "fboss/lib/CommonUtils.h"
 #include "fboss/lib/thrift_service_client/ConnectionOptions.h"
 
-#include <folly/coro/AsyncGenerator.h>
 #include <folly/coro/AsyncPipe.h>
 #include <folly/io/async/ScopedEventBaseThread.h>
-#include <folly/logging/xlog.h>
 
 #include <algorithm>
-#include <atomic>
 
 namespace facebook::fboss::fsdb {
 void stateChangeCb(

@@ -104,6 +104,10 @@ class Subscription : public BaseSubscription {
     return needsFirstChunk_;
   }
 
+  virtual void sendEmptyInitialChunk() {
+    serveHeartbeat();
+  }
+
   void firstChunkSent() {
     needsFirstChunk_ = false;
   }
@@ -579,6 +583,8 @@ class PatchSubscription : public Subscription, private boost::noncopyable {
   void offer(thrift_cow::PatchNode node);
 
   void serveHeartbeat() override;
+
+  void sendEmptyInitialChunk() override;
 
   void flush(const SubscriptionMetadataServer& metadataServer) override;
 

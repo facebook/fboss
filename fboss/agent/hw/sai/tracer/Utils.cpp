@@ -247,6 +247,62 @@ void aclEntryFieldMacAttr(
   }
 }
 
+void aclEntryFieldU8ListAttr(
+    const sai_attribute_t* attr_list,
+    int i,
+    uint32_t listIndex,
+    vector<string>& attrLines,
+    bool logEntry) {
+  uint32_t listLimit = SaiTracer::getInstance()->checkListCount(
+      listIndex + 1,
+      sizeof(sai_uint32_t),
+      attr_list[i].value.aclfield.data.u8list.count);
+
+  string prefix = to<string>("s_a", "[", i, "].value.aclfield.");
+  attrLines.push_back(
+      to<string>(prefix, "enable=", attr_list[i].value.aclfield.enable));
+
+  prefix = to<string>("s_a", "[", i, "].value.aclfield.data.u8list.");
+  attrLines.push_back(to<string>(
+      prefix, "count=", attr_list[i].value.aclfield.data.u8list.count));
+  if (logEntry && attr_list[i].value.aclfield.data.u8list.list) {
+    attrLines.push_back(
+        to<string>(prefix, "list=(sai_uint8_t*)(list_", listIndex, ")"));
+    for (int j = 0;
+         j < std::min(attr_list[i].value.aclfield.data.u8list.count, listLimit);
+         ++j) {
+      attrLines.push_back(to<string>(
+          prefix,
+          "list[",
+          j,
+          "]=",
+          attr_list[i].value.aclfield.data.u8list.list[j]));
+    }
+  } else {
+    attrLines.push_back(to<string>(prefix, "list=NULL"));
+  }
+
+  prefix = to<string>("s_a", "[", i, "].value.aclfield.mask.u8list.");
+  attrLines.push_back(to<string>(
+      prefix, "count=", attr_list[i].value.aclfield.mask.u8list.count));
+  if (logEntry && attr_list[i].value.aclfield.mask.u8list.list) {
+    attrLines.push_back(
+        to<string>(prefix, "list=(sai_uint8_t*)(list_", listIndex + 1, ")"));
+    for (int j = 0;
+         j < std::min(attr_list[i].value.aclfield.mask.u8list.count, listLimit);
+         ++j) {
+      attrLines.push_back(to<string>(
+          prefix,
+          "list[",
+          j,
+          "]=",
+          attr_list[i].value.aclfield.mask.u8list.list[j]));
+    }
+  } else {
+    attrLines.push_back(to<string>(prefix, "list=NULL"));
+  }
+}
+
 void systemPortConfigAttr(
     const sai_attribute_t* attr_list,
     int i,

@@ -415,6 +415,7 @@ class BcmPort {
   fb303::ExportedHistogramMapImpl::LockableHistogram outPktLengths_;
 
   int codewordErrorsPage_{0};
+  std::map<short, long> codewordStats_;
 
   folly::Synchronized<std::shared_ptr<Port>> programmedSettings_;
 

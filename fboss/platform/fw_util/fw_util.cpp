@@ -1,7 +1,5 @@
 //  Copyright 2021-present Facebook. All Rights Reserved.
 
-#include <sysexits.h>
-
 #include <folly/logging/xlog.h>
 
 #include "fboss/platform/fw_util/Flags.h"

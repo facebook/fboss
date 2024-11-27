@@ -52,6 +52,7 @@ struct SaiRouterInterfaceHandle {
               return cfg::InterfaceType::VLAN;
             },
             [](const std::shared_ptr<SaiPortRouterInterface>& handle) {
+              // TODO(Chenab): Support port router interface
               return cfg::InterfaceType::SYSTEM_PORT;
             }),
         routerInterface);

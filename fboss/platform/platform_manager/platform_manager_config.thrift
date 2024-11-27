@@ -376,6 +376,11 @@ struct LedCtrlConfig {
 // `subSystemDeviceId`: PCIe Sub System Device ID, and it must be a 4-digit
 // hexadecimal value, such as “0011”
 //
+// `desiredDriver`: The desired driver to support the device. The (optional)
+// field allows the platform_manager to pass the device ID to the desired
+// driver at run time (via "new_id" sysfs file), when the device ID cannot be
+// included in the driver's static compiled-in ID table.
+//
 // The remaining fields are configs per controller block in the FPGA
 //
 // TODO: Add MDIO support
@@ -394,6 +399,7 @@ struct PciDeviceConfig {
   12: list<XcvrCtrlConfig> xcvrCtrlConfigs;
   13: list<FpgaIpBlockConfig> infoRomConfigs;
   14: list<FpgaIpBlockConfig> miscCtrlConfigs;
+  15: optional string desiredDriver;
 }
 
 // These are the PmUnit slot types. Examples: "PIM_SLOT", "PSU_SLOT" and

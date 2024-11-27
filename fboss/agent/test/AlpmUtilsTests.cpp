@@ -11,7 +11,6 @@
 #include <gtest/gtest.h>
 
 #include "fboss/agent/AlpmUtils.h"
-#include "fboss/agent/GtestDefs.h"
 #include "fboss/agent/state/Route.h"
 
 #include "fboss/agent/state/RouteTypes.h"

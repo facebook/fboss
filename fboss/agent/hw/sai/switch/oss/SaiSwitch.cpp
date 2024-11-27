@@ -2,9 +2,6 @@
 
 #include "fboss/agent/hw/sai/switch/SaiSwitch.h"
 
-#include "fboss/agent/LockPolicy.h"
-#include "fboss/agent/state/StateDelta.h"
-
 namespace facebook::fboss {
 void SaiSwitch::tamEventCallback(
     sai_object_id_t /*tam_event_id*/,

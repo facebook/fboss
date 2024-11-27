@@ -50,7 +50,6 @@ cpp_unittest(
     supports_static_listing = False,
     deps = [
         ":test-cpp2-reflection",
-        "//fboss/agent:switch_config-cpp2-reflection",
         "//fboss/agent/state:nodebase",
         "//fboss/fsdb/if:fsdb_oper-cpp2-types",
         "//fboss/thrift_cow/nodes:nodes",

@@ -13,11 +13,9 @@
 #include <thrift/lib/cpp2/protocol/Serializer.h>
 #include <thrift/lib/cpp2/reflection/reflection.h>
 #include <thrift/lib/cpp2/reflection/testing.h>
-#include "fboss/agent/gen-cpp2/switch_config_fatal_types.h"
 #include "fboss/fsdb/if/gen-cpp2/fsdb_oper_types.h"
 #include "fboss/thrift_cow/nodes/Serializer.h"
 #include "fboss/thrift_cow/nodes/Types.h"
-#include "fboss/thrift_cow/nodes/tests/gen-cpp2/test_fatal_types.h"
 
 #include <gtest/gtest.h>
 #include <type_traits>
@@ -336,14 +334,36 @@ TEST(ThriftStructNodeTests, ThriftStructNodeClone) {
   ASSERT_TRUE(newNode->template cref<k::inlineStruct>()->isPublished());
 }
 
-template <typename T>
-class ThriftStructNodeTestSuite : public ::testing::Test {};
-
-TYPED_TEST_SUITE_P(ThriftStructNodeTestSuite);
-
-// no annotation
 template <bool EnableHybridStorage>
-void thriftStructNodeModify() {
+struct TestParams {
+  static constexpr auto hybridStorage = EnableHybridStorage;
+};
+
+using StorageTestTypes = ::testing::Types<TestParams<false>, TestParams<true>>;
+
+template <typename TestParams>
+class ThriftStructNodeTestSuite : public ::testing::Test {
+ public:
+  using T = TestParams;
+
+  auto initNode(auto val) {
+    using RootType = std::remove_cvref_t<decltype(val)>;
+    return std::make_shared<ThriftStructNode<
+        RootType,
+        ThriftStructResolver<RootType, TestParams::hybridStorage>,
+        TestParams::hybridStorage>>(val);
+  }
+  constexpr bool isHybridStorage() {
+    return TestParams::hybridStorage;
+  }
+};
+
+TYPED_TEST_SUITE(ThriftStructNodeTestSuite, StorageTestTypes);
+
+TYPED_TEST(ThriftStructNodeTestSuite, NodeTypeTest) {
+  using Param = typename TestFixture::T;
+  constexpr bool enableHybridStorage = Param::hybridStorage;
+
   auto portRange = buildPortRange(100, 999);
 
   TestStruct data;
@@ -351,78 +371,108 @@ void thriftStructNodeModify() {
   data.inlineInt() = 123;
   data.inlineString() = "HelloThere";
   data.inlineStruct() = std::move(portRange);
+  data.mapOfStringToI32() = {{"test1", 1}};
+  data.hybridStruct() = ChildStruct();
 
-  auto node = std::make_shared<ThriftStructNode<
-      TestStruct,
-      ThriftStructResolver<TestStruct, EnableHybridStorage>,
-      EnableHybridStorage>>(data);
+  auto node = this->initNode(data);
+  node->publish();
+
+  // root is not hybrid node
   static_assert(!std::is_same_v<
                 typename decltype(node)::element_type::CowType,
                 HybridNodeType>);
-  ASSERT_FALSE(node->isPublished());
-  if constexpr (!EnableHybridStorage) {
-    ASSERT_FALSE(node->template cref<k::inlineStruct>()->isPublished());
-  }
 
-  node->publish();
-  ASSERT_TRUE(node->isPublished());
-  if constexpr (!EnableHybridStorage) {
-    ASSERT_TRUE(node->template cref<k::inlineStruct>()->isPublished());
-  }
-
-  ThriftStructNode<
-      TestStruct,
-      ThriftStructResolver<TestStruct, EnableHybridStorage>,
-      EnableHybridStorage>::modify(&node, "inlineStruct");
-
+  // check fields that are not annotated, should never be hybrid
   static_assert(!std::is_same_v<
                 typename decltype(node->template get<
                                   k::inlineStruct>())::element_type::CowType,
                 HybridNodeType>);
+  static_assert(
+      !std::is_same_v<
+          typename folly::remove_cvref_t<
+              decltype(node->template get<k::inlineInt>().value())>::CowType,
+          HybridNodeType>);
+  static_assert(
+      !std::is_same_v<
+          typename folly::remove_cvref_t<
+              decltype(node->template get<k::inlineString>().value())>::CowType,
+          HybridNodeType>);
 
-  if constexpr (!EnableHybridStorage) {
-    ASSERT_FALSE(node->isPublished());
-    ASSERT_FALSE(node->template cref<k::inlineStruct>()->isPublished());
+  // check fields that are annotated, should be hybrid if enabled
+  static_assert(
+      std::is_same_v<
+          typename decltype(node->template get<
+                            k::mapOfStringToI32>())::element_type::CowType,
+          HybridNodeType> == enableHybridStorage);
+  static_assert(
+      std::is_same_v<
+          typename decltype(node->template get<
+                            k::hybridStruct>())::element_type::CowType,
+          HybridNodeType> == enableHybridStorage);
+}
+
+TYPED_TEST(ThriftStructNodeTestSuite, ThriftStructNodeModifyTest) {
+  using Param = typename TestFixture::T;
+  constexpr bool enableHybridStorage = Param::hybridStorage;
+
+  auto portRange = buildPortRange(100, 999);
+
+  TestStruct data;
+  data.inlineBool() = true;
+  data.inlineInt() = 123;
+  data.inlineString() = "HelloThere";
+  data.inlineStruct() = std::move(portRange);
+  data.mapOfStringToI32() = {{"test1", 1}};
+
+  auto node = this->initNode(data);
+
+  ASSERT_FALSE(node->isPublished());
+  ASSERT_FALSE(node->template cref<k::inlineStruct>()->isPublished());
+
+  auto oldNode = node->template ref<k::mapOfStringToI32>();
+  auto newNode = node->template modify<k::mapOfStringToI32>();
+  // do a ptr comparison to make sure the node is cloned
+  // if node is cow node, then it will not be cloned if it is not published
+  // so only check if hybrid storage is enabled
+  if constexpr (enableHybridStorage) {
+    EXPECT_NE(newNode, oldNode);
   }
+
+  node->publish();
+  ASSERT_TRUE(node->isPublished());
+  ASSERT_TRUE(node->template cref<k::inlineStruct>()->isPublished());
+
+  ThriftStructNode<
+      TestStruct,
+      ThriftStructResolver<TestStruct, enableHybridStorage>,
+      enableHybridStorage>::modify(&node, "inlineStruct");
+
+  ASSERT_FALSE(node->isPublished());
+  ASSERT_FALSE(node->template cref<k::inlineStruct>()->isPublished());
 
   // now try modifying a missing optional field
   ASSERT_FALSE(node->template isSet<k::optionalString>());
   ThriftStructNode<
       TestStruct,
-      ThriftStructResolver<TestStruct, EnableHybridStorage>,
-      EnableHybridStorage>::modify(&node, "optionalString");
+      ThriftStructResolver<TestStruct, enableHybridStorage>,
+      enableHybridStorage>::modify(&node, "optionalString");
   ASSERT_TRUE(node->template isSet<k::optionalString>());
 
-  static_assert(!std::is_same_v<
-                typename folly::remove_cvref_t<
-                    decltype(node->template get<k::optionalString>()
-                                 .value())>::CowType,
-                HybridNodeType>);
-
-  node = std::make_shared<ThriftStructNode<
-      TestStruct,
-      ThriftStructResolver<TestStruct, EnableHybridStorage>,
-      EnableHybridStorage>>(data);
+  node = this->initNode(data);
   node->publish();
   auto& inLineBool = ThriftStructNode<
       TestStruct,
-      ThriftStructResolver<TestStruct, EnableHybridStorage>,
-      EnableHybridStorage>::template modify<k::inlineBool>(&node);
+      ThriftStructResolver<TestStruct, enableHybridStorage>,
+      enableHybridStorage>::template modify<k::inlineBool>(&node);
   EXPECT_FALSE(node->isPublished());
   inLineBool->set(false);
 
   auto& optionalStruct1 = ThriftStructNode<
       TestStruct,
-      ThriftStructResolver<TestStruct, EnableHybridStorage>,
-      EnableHybridStorage>::template modify<k::optionalStruct>(&node);
+      ThriftStructResolver<TestStruct, enableHybridStorage>,
+      enableHybridStorage>::template modify<k::optionalStruct>(&node);
   EXPECT_FALSE(optionalStruct1->isPublished());
   optionalStruct1->fromThrift(buildPortRange(1, 10));
-
-  static_assert(!std::is_same_v<
-                typename folly::remove_cvref_t<
-                    decltype(node->template get<k::optionalStruct>())>::
-                    element_type::CowType,
-                HybridNodeType>);
 
   node->publish();
   EXPECT_TRUE(node->isPublished());
@@ -439,22 +489,6 @@ void thriftStructNodeModify() {
   auto obj2 = node->toThrift();
   EXPECT_FALSE(obj2.optionalStruct().has_value());
 }
-
-TYPED_TEST_P(ThriftStructNodeTestSuite, ThriftStructNodeModify) {
-  // non-annotated fields
-  thriftStructNodeModify<false>();
-  thriftStructNodeModify<true>();
-  // TODO: annotated fields
-}
-
-using EnableHybridStorageTypes = testing::Types<bool>;
-
-REGISTER_TYPED_TEST_SUITE_P(ThriftStructNodeTestSuite, ThriftStructNodeModify);
-
-INSTANTIATE_TYPED_TEST_SUITE_P(
-    ThriftStructNodeTest,
-    ThriftStructNodeTestSuite,
-    EnableHybridStorageTypes);
 
 TEST(ThriftStructNodeTests, ThriftStructNodeRemove) {
   auto portRange = buildPortRange(100, 999);

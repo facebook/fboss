@@ -24,7 +24,8 @@
 
 namespace facebook::fboss::platform::platform_manager {
 namespace {
-constexpr auto kTotalFailures = "total_failures";
+constexpr auto kTotalFailures = "platform_explorer.total_failures";
+constexpr auto kExplorationFail = "platform_explorer.exploration_fail";
 constexpr auto kRootSlotPath = "/";
 
 std::string getSlotPath(
@@ -59,7 +60,7 @@ std::optional<std::filesystem::path> pathExistsOr(
 // control characters, the string returned corresponds to an error.
 //
 // The version string is NOT parsed into integers, however, we will attempt to
-// verify it matches XXX.YYY(.ZZZ) format and emit a WARN log if it does not.
+// verify it matches XXX.YYY(.ZZZ) format and log if it does not.
 std::string readVersionString(
     const std::string& path,
     const facebook::fboss::platform::PlatformFsUtils* platformFsUtils) {
@@ -79,7 +80,7 @@ std::string readVersionString(
   const auto versionString = versionFileContent.value();
   if (versionString.empty()) {
     XLOGF(ERR, "Empty firmware version file {}", path);
-    return "ERROR_EMPTY_FILE";
+    return PlatformExplorer::kFwVerErrorEmptyFile;
   }
   if (folly::hasSpaceOrCntrlSymbols(versionString)) {
     XLOGF(
@@ -87,10 +88,12 @@ std::string readVersionString(
         "Firmware version string \"{}\" from file {} contains whitespace or control characters.",
         versionString,
         path);
-    return "ERROR_INVALID_STRING";
+    return PlatformExplorer::kFwVerErrorInvalidString;
   }
   // These names are for ease of reference. Neither semver nor any other
   // interpretation is enforced in fw_ver.
+  // TODO: Revisit this when expanding coverage of fw_ver standardization,
+  // e.g. if we include EEPROMs or similar without XXX.YYY.ZZZ versions.
   int major = 0;
   int minor = 0;
   int patch = 0;
@@ -99,45 +102,12 @@ std::string readVersionString(
       re2::RE2::FullMatch(versionString, kFwVerXYPattern, &major, &minor);
   if (!match) {
     XLOGF(
-        WARN,
-        "Firmware version string {} from file {} does not match XXX.YYY.ZZZ format. This may be OK if it's an expected checksum.",
+        ERR,
+        "Firmware version \"{}\" from file {} is not in XXX.YYY.ZZZ format.",
         versionString,
         path);
   }
   return versionString;
-}
-
-// Read a singular version number from the file at given path. If there is any
-// error reading the file, log and return a default of 0. The version number
-// must be the first non-whitespace substring, but the file may contain
-// additional non-numeric data after the version (e.g. human-readable comments).
-// TODO: Handle info_rom cases (by standardizing them away, if possible).
-int readVersionNumber(
-    const std::string& path,
-    const PlatformFsUtils* platformFsUtils) {
-  const auto versionFileContent = platformFsUtils->getStringFileContent(path);
-  if (!versionFileContent) {
-    // This log is necessary to distinguish read error vs reading "0".
-    XLOGF(
-        ERR,
-        "Failed to open firmware version file {}: {}",
-        path,
-        folly::errnoStr(errno));
-    return 0;
-  }
-  // Note: stoi infers base (e.g. 0xF) when 0 is passed as the base argument as
-  // below. It also discards leading whitespace, and stops at non-digits.
-  try {
-    int version = stoi(versionFileContent.value(), nullptr, 0);
-    return version;
-  } catch (const std::exception& ex) {
-    XLOGF(
-        ERR,
-        "Failed to parse firmware version from file {}: {}",
-        path,
-        folly::exceptionStr(ex));
-    return 0;
-  }
 }
 
 PlatformManagerStatus createPmStatus(
@@ -187,6 +157,11 @@ void PlatformExplorer::explore() {
   }
   publishFirmwareVersions();
   auto explorationStatus = concludeExploration();
+  fb303::fbData->setCounter(
+      kExplorationFail,
+      explorationStatus != ExplorationStatus::SUCCEEDED &&
+          explorationStatus !=
+              ExplorationStatus::SUCCEEDED_WITH_EXPECTED_ERRORS);
   updatePmStatus(createPmStatus(
       explorationStatus,
       std::chrono::duration_cast<std::chrono::seconds>(
@@ -478,12 +453,7 @@ void PlatformExplorer::explorePciDevices(
     const std::vector<PciDeviceConfig>& pciDeviceConfigs) {
   for (const auto& pciDeviceConfig : pciDeviceConfigs) {
     try {
-      auto pciDevice = PciDevice(
-          *pciDeviceConfig.pmUnitScopedName(),
-          *pciDeviceConfig.vendorId(),
-          *pciDeviceConfig.deviceId(),
-          *pciDeviceConfig.subSystemVendorId(),
-          *pciDeviceConfig.subSystemDeviceId());
+      auto pciDevice = PciDevice(pciDeviceConfig);
       auto charDevPath = pciDevice.charDevPath();
       auto instId =
           getFpgaInstanceId(slotPath, *pciDeviceConfig.pmUnitScopedName());
@@ -683,12 +653,9 @@ ExplorationStatus PlatformExplorer::concludeExploration() {
 void PlatformExplorer::publishFirmwareVersions() {
   for (const auto& [linkPath, _] :
        *platformConfig_.symbolicLinkToDevicePath()) {
-    auto deviceType = "";
-    if (linkPath.starts_with("/run/devmap/cplds")) {
-      deviceType = "cpld";
-    } else if (linkPath.starts_with("/run/devmap/fpgas")) {
-      deviceType = "fpga";
-    } else {
+    // TODO: Replace fpgas with inforoms when updating configs.
+    if (!linkPath.starts_with("/run/devmap/cplds") &&
+        !linkPath.starts_with("/run/devmap/fpgas")) {
       continue;
     }
     std::vector<folly::StringPiece> linkPathParts;
@@ -714,28 +681,11 @@ void PlatformExplorer::publishFirmwareVersions() {
         std::filesystem::path(linkPath) / "fw_ver",
         std::filesystem::path(linkPathHwmon) / "fw_ver",
         platformFsUtils_.get());
-    std::optional<std::filesystem::path> verFilePath = pathExistsOr(
-        std::filesystem::path(linkPath) / fmt::format("{}_ver", deviceType),
-        std::filesystem::path(linkPathHwmon) /
-            fmt::format("{}_ver", deviceType),
-        platformFsUtils_.get());
-    std::optional<std::filesystem::path> subVerFilePath = pathExistsOr(
-        std::filesystem::path(linkPath) / fmt::format("{}_sub_ver", deviceType),
-        std::filesystem::path(linkPathHwmon) /
-            fmt::format("{}_sub_ver", deviceType),
-        platformFsUtils_.get());
     if (fwVerFilePath.has_value()) {
       versionString =
           readVersionString(fwVerFilePath.value(), platformFsUtils_.get());
-    } else if (verFilePath.has_value() || subVerFilePath.has_value()) {
-      const int version =
-          readVersionNumber(verFilePath.value(), platformFsUtils_.get());
-      const int subversion =
-          readVersionNumber(subVerFilePath.value(), platformFsUtils_.get());
-
-      versionString = fmt::format("{}.{}", version, subversion);
     } else {
-      versionString = "ERROR_FILE_NOT_FOUND";
+      versionString = PlatformExplorer::kFwVerErrorFileNotFound;
     }
 
     XLOGF(

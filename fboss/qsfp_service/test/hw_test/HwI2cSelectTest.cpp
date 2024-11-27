@@ -2,11 +2,8 @@
 
 #include "fboss/qsfp_service/test/hw_test/HwTest.h"
 
-#include "fboss/agent/platforms/common/PlatformMapping.h"
-
 #include "fboss/qsfp_service/test/hw_test/HwPortUtils.h"
 #include "fboss/qsfp_service/test/hw_test/HwQsfpEnsemble.h"
-#include "thrift/lib/cpp/util/EnumUtils.h"
 
 #include <folly/gen/Base.h>
 #include <folly/logging/xlog.h>
@@ -77,11 +74,11 @@ TEST_F(HwTest, i2cUniqueSerialNumbers) {
 
       auto transmitterTech =
           *(transceiverInfo[tcvrId].tcvrState()->cable()->transmitterTech());
-      EXPECT_TRUE(TransmitterTechnology::COPPER == transmitterTech);
+      EXPECT_EQ(TransmitterTechnology::COPPER, transmitterTech);
 
       transmitterTech = *(
           transceiverInfo[neighborId].tcvrState()->cable()->transmitterTech());
-      EXPECT_TRUE(TransmitterTechnology::COPPER == transmitterTech);
+      EXPECT_EQ(TransmitterTechnology::COPPER, transmitterTech);
     }
   }
 }

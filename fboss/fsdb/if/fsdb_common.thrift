@@ -14,6 +14,18 @@ const string kFsdbStatsFanOutNativeStatsPrefix = "fsdb.statsFanOut.";
 
 const i32 PORT = 5908;
 
+/**
+ * Default value sourced from Cfgr "neteng/qosdb/cos_utility_maps"
+ *   dscpToClassOfServiceMap.ClassOfService.NC : 48
+ * Rationale: In DSF clusters fsdb is a Tier 0 service required for
+ * bringing up network control plane and needs to be up with minimal
+ * dependencies. Therefore, sourcing the const in fbcode instead of
+ * a runtime configerator read.
+ *
+ * 8-bit TOS = 6-bit DSCP followed by 2-bit ECN
+ */
+const i32 kTosForClassOfServiceNC = 0xc0;
+
 // NOTE: keep in sync with fb303::ExportType
 enum ExportType {
   SUM = 0,

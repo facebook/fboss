@@ -29,5 +29,5 @@ MultiSwitchIpTunnelMap* MultiSwitchIpTunnelMap::modify(
   return SwitchState::modify<switch_state_tags::ipTunnelMaps>(state);
 }
 
-template class ThriftMapNode<IpTunnelMap, IpTunnelMapTraits>;
+template struct ThriftMapNode<IpTunnelMap, IpTunnelMapTraits>;
 } // namespace facebook::fboss

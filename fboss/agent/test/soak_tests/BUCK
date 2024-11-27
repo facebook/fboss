@@ -14,7 +14,6 @@ cpp_library(
     exported_deps = [
         "//common/process:process",
         "//fboss/agent:core",
-        "//fboss/agent:stats",
         "//fboss/agent/hw/test:config_factory",
         "//fboss/agent/hw/test:hw_packet_utils",
         "//fboss/agent/hw/test:load_balancer_utils",
@@ -22,7 +21,6 @@ cpp_library(
         "//fboss/agent/state:state_utils",
         "//fboss/agent/test:agent_test",
         "//fboss/agent/test:utils",
-        "//folly:network_address",
     ],
     exported_external_deps = [
         "gflags",

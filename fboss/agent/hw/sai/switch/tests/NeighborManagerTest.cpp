@@ -15,7 +15,6 @@
 #include "fboss/agent/hw/sai/switch/SaiNeighborManager.h"
 #include "fboss/agent/hw/sai/switch/tests/ManagerTestBase.h"
 #include "fboss/agent/state/ArpEntry.h"
-#include "fboss/agent/state/NdpEntry.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/types.h"
 
@@ -87,6 +86,8 @@ class NeighborManagerTest : public ManagerTestBase {
       case cfg::InterfaceType::SYSTEM_PORT:
         EXPECT_EQ(saiNeighborHandle->fdbEntry, nullptr);
         break;
+      case cfg::InterfaceType::PORT:
+        throw FbossError("Port type of router interface is not supported yet");
     }
   }
 

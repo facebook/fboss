@@ -240,20 +240,30 @@ cfg::UdfConfig addUdfHashAclConfig(void) {
 }
 
 cfg::FlowletSwitchingConfig getDefaultFlowletSwitchingConfig(
+    bool isSai,
     cfg::SwitchingMode switchingMode) {
   cfg::FlowletSwitchingConfig flowletCfg;
   flowletCfg.inactivityIntervalUsecs() = 16;
   flowletCfg.flowletTableSize() = 2048;
   // set the egress load and queue exponent to zero for DLB engine
   // to do load balancing across all the links better with single stream
-  flowletCfg.dynamicEgressLoadExponent() = 0;
-  flowletCfg.dynamicQueueExponent() = 0;
+  // SAI has exponents 1 based while native BCM is 0 based
+  // SAI has sample rate in msec while native BCM is number of ticks
+  if (isSai) {
+    flowletCfg.dynamicEgressLoadExponent() = 1;
+    flowletCfg.dynamicQueueExponent() = 1;
+    flowletCfg.dynamicPhysicalQueueExponent() = 5;
+    flowletCfg.dynamicSampleRate() = 1;
+  } else {
+    flowletCfg.dynamicEgressLoadExponent() = 0;
+    flowletCfg.dynamicQueueExponent() = 0;
+    flowletCfg.dynamicPhysicalQueueExponent() = 4;
+    flowletCfg.dynamicSampleRate() = 1000000;
+  }
   flowletCfg.dynamicQueueMinThresholdBytes() = 1000;
   flowletCfg.dynamicQueueMaxThresholdBytes() = 10000;
-  flowletCfg.dynamicSampleRate() = 1000000;
   flowletCfg.dynamicEgressMinThresholdBytes() = 1000;
   flowletCfg.dynamicEgressMaxThresholdBytes() = 10000;
-  flowletCfg.dynamicPhysicalQueueExponent() = 4;
   flowletCfg.switchingMode() = switchingMode;
   return flowletCfg;
 }
@@ -287,14 +297,19 @@ void addFlowletAcl(
 void addFlowletConfigs(
     cfg::SwitchConfig& cfg,
     const std::vector<PortID>& ports,
+    bool isSai,
     cfg::SwitchingMode switchingMode) {
   cfg::FlowletSwitchingConfig flowletCfg =
-      utility::getDefaultFlowletSwitchingConfig(switchingMode);
+      utility::getDefaultFlowletSwitchingConfig(isSai, switchingMode);
   cfg.flowletSwitchingConfig() = flowletCfg;
 
   std::map<std::string, cfg::PortFlowletConfig> portFlowletCfgMap;
   cfg::PortFlowletConfig portFlowletConfig;
-  portFlowletConfig.scalingFactor() = kScalingFactor;
+  if (isSai) {
+    portFlowletConfig.scalingFactor() = kScalingFactorSai;
+  } else {
+    portFlowletConfig.scalingFactor() = kScalingFactor;
+  }
   portFlowletConfig.loadWeight() = kLoadWeight;
   portFlowletConfig.queueWeight() = kQueueWeight;
   portFlowletCfgMap.insert(std::make_pair("default", portFlowletConfig));
@@ -437,7 +452,8 @@ size_t pumpRoCETraffic(
     int packetCount,
     uint8_t roceOpcode,
     uint8_t reserved,
-    std::optional<std::vector<uint8_t>> nxtHdr) {
+    std::optional<std::vector<uint8_t>> nxtHdr,
+    bool sameDstQueue) {
   folly::MacAddress srcMac(
       srcMacAddr.has_value() ? *srcMacAddr
                              : MacAddressGenerator().get(dstMac.u64HBO() + 1));
@@ -456,7 +472,7 @@ size_t pumpRoCETraffic(
 
     // vary dst queues pair ids ONLY in the RoCE pkt
     // to verify that we can hash on it
-    int dstQueueIds = i;
+    int dstQueueIds = sameDstQueue ? 0 : i;
     // since dst queue pair id is in the middle of the packet
     // we need to keep front/end payload which doesn't vary
     rocePayload.push_back((dstQueueIds & 0x00ff0000) >> 16);

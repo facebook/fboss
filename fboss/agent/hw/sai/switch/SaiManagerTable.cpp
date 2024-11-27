@@ -198,6 +198,11 @@ void SaiManagerTable::reset(bool skipSwitchManager) {
   hostifManager_.reset();
   wredManager_.reset();
 
+// CSP CS00011823810
+#if !defined(BRCM_SAI_SDK_XGS_AND_DNX)
+  tamManager_.reset();
+#endif
+
   // ports may be referenced in acls, reset ports after acls
   systemPortManager_.reset();
   portManager_.reset();
@@ -206,10 +211,6 @@ void SaiManagerTable::reset(bool skipSwitchManager) {
   qosMapManager_.reset();
   bufferManager_.reset();
 
-  // CSP CS00011823810
-#if !defined(BRCM_SAI_SDK_XGS_AND_DNX)
-  tamManager_.reset();
-#endif
   tunnelManager_.reset();
   queueManager_.reset();
   routeManager_.reset();

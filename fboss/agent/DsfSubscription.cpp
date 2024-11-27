@@ -26,7 +26,7 @@ utils::ConnectionOptions getConnectionOptions(
   //  dstPort = FSDB port
   //  srcIP = self inband IP
   //  tos = NC
-  return utils::ConnectionOptions(dstIP, FLAGS_fsdbPort)
+  return utils::ConnectionOptions(dstIP, FLAGS_fsdbPort_high_priority)
       .setSrcAddr(srcIP)
       .setPreferEncrypted(false)
       .setTrafficClass(utils::ConnectionOptions::TrafficClass::NC)

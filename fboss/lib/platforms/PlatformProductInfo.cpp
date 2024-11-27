@@ -133,7 +133,8 @@ void PlatformProductInfo::initMode() {
         modelName.find("ASY-92493-104") == 0 ||
         modelName.find("ASY-92458-104") == 0 ||
         modelName.find("DCS-DL-7700R4C-38PE-AC-F") == 0 ||
-        modelName.find("DCS-DL-7700R4C-38PE-DC-F") == 0) {
+        modelName.find("DCS-DL-7700R4C-38PE-DC-F") == 0 ||
+        modelName.find("DCS-DL-7700R4C-38PE-B-F") == 0) {
       type_ = PlatformType::PLATFORM_MERU800BIA;
     } else if (
         modelName.find("Meru800biab") == 0 ||

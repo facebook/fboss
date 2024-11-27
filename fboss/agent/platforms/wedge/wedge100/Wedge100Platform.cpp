@@ -18,13 +18,9 @@
 #include "fboss/agent/platforms/wedge/wedge100/Wedge100Port.h"
 #include "fboss/lib/platforms/PlatformProductInfo.h"
 #include "fboss/lib/usb/Wedge100I2CBus.h"
-#include "fboss/qsfp_service/platforms/wedge/WedgeI2CBusLock.h"
 
-#include <folly/Memory.h>
 #include <folly/Range.h>
 #include <folly/logging/xlog.h>
-
-#include <chrono>
 
 namespace facebook::fboss {
 

@@ -8,7 +8,6 @@
 #include "fboss/fsdb/common/PathHelpers.h"
 #include "fboss/lib/thrift_service_client/ConnectionOptions.h"
 
-#include <folly/String.h>
 #include <folly/logging/xlog.h>
 #include <string>
 

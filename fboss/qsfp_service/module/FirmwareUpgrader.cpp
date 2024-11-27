@@ -16,6 +16,8 @@
 
 #include "fboss/qsfp_service/module/TransceiverImpl.h"
 
+#include "fboss/qsfp_service/module/cmis/gen-cpp2/cmis_types.h"
+
 using folly::MutableByteRange;
 using folly::StringPiece;
 using std::make_pair;
@@ -31,6 +33,9 @@ constexpr uint8_t kfirmwareVersionReg = 39;
 constexpr uint8_t kModulePasswordEntryReg = 122;
 
 constexpr int moduleDatapathInitDurationUsec = 5000000;
+
+// CMIS FW Upgrade
+constexpr int kFwUpgrade = static_cast<int>(CmisField::FW_UPGRADE);
 
 /*
  * CmisFirmwareUpgrader
@@ -105,7 +110,8 @@ bool CmisFirmwareUpgrader::cmisModuleFirmwareDownload(
   bus_->writeTransceiver(
       {TransceiverAccessParameter::ADDR_QSFP, kModulePasswordEntryReg, 4},
       msaPassword_.data(),
-      0 /*delay*/);
+      POST_I2C_WRITE_NO_DELAY_US,
+      kFwUpgrade);
 
   CdbCommandBlock commandBlockBuf;
   CdbCommandBlock* commandBlock = &commandBlockBuf;
@@ -152,7 +158,17 @@ bool CmisFirmwareUpgrader::cmisModuleFirmwareDownload(
 
     // Check if EPL memory is supported
     if (commandBlock->getCdbLplFlatMemory()[5] == 0x10 ||
-        commandBlock->getCdbLplFlatMemory()[5] == 0x11) {
+        commandBlock->getCdbLplFlatMemory()[5] == 0x11 ||
+        commandBlock->getCdbLplFlatMemory()[5] == 0x3) {
+      /* Per the spec, the valid values for this register (page 9F, offset 141)
+       * are 00h: Both LPL and EPL are not supported 01h: LPL supported 10h: EPL
+       * supported 11h: Both LPL and EPL are supported Certain vendors (vendor
+       * for 400G-XDR4 GEN1 modules) have incorrectly advertised their
+       * capability as 0x3 instead of 0x11. As a workaround, also check for 0x3
+       * to see if EPL is supported or not. We don't expect any other vendor to
+       * have it incorrectly advertised as 0x3, thus it should be safe to add
+       * this additional check as a workaround for this vendor
+       */
       eplSupported = true;
       XLOG(INFO) << folly::sformat(
           "cmisModuleFirmwareDownload: Mod{:d} will use EPL memory for firmware download",
@@ -295,7 +311,8 @@ bool CmisFirmwareUpgrader::cmisModuleFirmwareDownload(
   bus_->writeTransceiver(
       {TransceiverAccessParameter::ADDR_QSFP, kModulePasswordEntryReg, 4},
       msaPassword_.data(),
-      0 /*delay*/);
+      POST_I2C_WRITE_NO_DELAY_US,
+      kFwUpgrade);
 
   // Step 5: Issue CDB command: Commit the downloaded firmware
   commandBlock->createCdbCmdFwCommit();
@@ -325,7 +342,8 @@ bool CmisFirmwareUpgrader::cmisModuleFirmwareDownload(
   bus_->writeTransceiver(
       {TransceiverAccessParameter::ADDR_QSFP, kModulePasswordEntryReg, 4},
       msaPassword_.data(),
-      0 /*delay*/);
+      POST_I2C_WRITE_NO_DELAY_US,
+      kFwUpgrade);
 
   // Print IO profiling info
   auto ioTiming = bus_->getI2cTimeProfileMsec();
@@ -359,6 +377,20 @@ bool CmisFirmwareUpgrader::cmisModuleFirmwareUpgrade() {
   // Call the firmware download operation with this image content
   result = cmisModuleFirmwareDownload(
       imageCursor_.data(), imageCursor_.totalLength());
+  // Always revert the MSA password at the end. Certain commands like releasing
+  // low power don't work when certain modules (like xdr4) are still in the CDB
+  // mode which is the mode that's activated when the msa password is written
+  // during firmware upgrade
+  std::array<uint8_t, 4> msaPassword_;
+  msaPassword_[0] = 0;
+  msaPassword_[1] = 0;
+  msaPassword_[2] = 0;
+  msaPassword_[3] = 0;
+  bus_->writeTransceiver(
+      {TransceiverAccessParameter::ADDR_QSFP, kModulePasswordEntryReg, 4},
+      msaPassword_.data(),
+      POST_I2C_WRITE_NO_DELAY_US,
+      kFwUpgrade);
   if (!result) {
     // If the download failed then print the message and return. No need
     // to do any recovery here
@@ -372,7 +404,8 @@ bool CmisFirmwareUpgrader::cmisModuleFirmwareUpgrade() {
   // Find out the current version running on module
   bus_->readTransceiver(
       {TransceiverAccessParameter::ADDR_QSFP, kfirmwareVersionReg, 2},
-      versionNumber.data());
+      versionNumber.data(),
+      kFwUpgrade);
   XLOG(INFO) << folly::sformat(
       "cmisModuleFirmwareUpgrade: Mod{:d}: Module Active Firmware Revision now: {:d}.{:d}",
       moduleId_,

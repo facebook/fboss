@@ -369,6 +369,27 @@ struct Mirror {
   5: optional i32 samplingRate;
 }
 
+struct MirrorOnDropReport {
+  1: string name;
+  /*
+   * Possible options as below:
+   * 1. Recycle port: MOD packets will be injected back into the pipeline via recycle port.
+   * 2. Eventor port: MOD packets will be injected back into the pipeline via eventor port. Provides the option to pack multiple MOD packets.
+   * 3. Front panel Ethernet port: MOD packets will be forwarded out of the specified port.
+   */
+  2: i32 mirrorPortId;
+  // Source IP will be populated based on switch IP at runtime, so not configurable.
+  3: i16 localSrcPort;
+  4: string collectorIp;
+  5: i16 collectorPort;
+  6: i16 mtu;
+  // Contents of the dropped packet will be truncated when mirroring.
+  7: i16 truncateSize = 128;
+  8: byte dscp = 0;
+  // At most one mirrored packet will be sent per port/PG/VOQ within an interval. Granularity is not configurable as of now.
+  9: optional i32 agingIntervalUsecs;
+}
+
 /**
  * The action for an access control entry
  */
@@ -560,6 +581,7 @@ enum AclTableActionType {
   MIRROR_INGRESS = 4,
   MIRROR_EGRESS = 5,
   SET_USER_DEFINED_TRAP = 6,
+  DISABLE_ARS_FORWARDING = 7,
 }
 
 enum AclTableQualifier {
@@ -605,6 +627,7 @@ enum AclStage {
   INGRESS = 0,
   INGRESS_MACSEC = 1,
   EGRESS_MACSEC = 2,
+  EGRESS = 3,
 }
 
 // startdocs_AclTableGroup_struct
@@ -970,7 +993,13 @@ typedef string BufferPoolConfigName
 
 typedef string PortFlowletConfigName
 
+typedef string FirmwareName
+
 const i32 DEFAULT_PORT_MTU = 9412;
+
+const string DEFAULT_INGRESS_ACL_TABLE_GROUP = "ingress-ACL-Table-Group";
+
+const string DEFAULT_INGRESS_ACL_TABLE = "AclTable1";
 
 enum PortType {
   INTERFACE_PORT = 0,
@@ -1156,7 +1185,16 @@ struct Port {
 
   31: Scope scope = Scope.LOCAL;
   32: optional PortQueueConfigName portVoqConfigName;
+
+  /*
+   * DSF Interface node to enable conditional entropy, rotating hash seed periodically to increase entropy.
+   */
   33: bool conditionalEntropyRehash = false;
+
+  /*
+   * DSF Interface node to enable SHEL messages - port UP/DOWN notification to other interface nodes.
+   */
+  34: optional bool selfHealingECMPLagEnable;
 }
 
 enum LacpPortRate {
@@ -1329,6 +1367,7 @@ struct NdpConfig {
 enum InterfaceType {
   VLAN = 1,
   SYSTEM_PORT = 2,
+  PORT = 3,
 }
 
 enum AsicType {
@@ -1409,6 +1448,9 @@ struct Interface {
   14: optional map<string, string> dhcpRelayOverridesV4;
   15: optional map<string, string> dhcpRelayOverridesV6;
   16: Scope scope = Scope.LOCAL;
+
+  /* valid only for port type of interface */
+  17: optional i32 portID;
 }
 
 struct StaticRouteWithNextHops {
@@ -1528,6 +1570,7 @@ enum L2LearningMode {
 enum SwitchDrainState {
   UNDRAINED = 0,
   DRAINED = 1,
+  DRAINED_DUE_TO_ASIC_ERROR = 2,
 }
 
 /*
@@ -1617,9 +1660,29 @@ struct ExactMatchTableConfig {
 const i16 DEFAULT_FLOWLET_TABLE_SIZE = 4096;
 const i64 DEFAULT_PORT_ID_RANGE_MIN = 0;
 const i64 DEFAULT_PORT_ID_RANGE_MAX = 2047;
+const i64 DEFAULT_DUAL_STAGE_3Q_2Q_PORT_ID_RANGE_MIN = 0;
+const i64 DEFAULT_DUAL_STAGE_3Q_2Q_PORT_ID_RANGE_MAX = 65536;
 
 struct SystemPortRanges {
   1: list<Range64> systemPortRanges;
+}
+
+enum FirmwareLoadType {
+  FIRMWARE_LOAD_TYPE_START = 0,
+  FIRMWARE_LOAD_TYPE_STOP = 1,
+}
+
+struct FirmwareInfo {
+  1: i32 coreToUse;
+  2: string path;
+  3: string logPath;
+  4: FirmwareLoadType firmwareLoadType;
+}
+
+struct SelfHealingEcmpLagConfig {
+  1: string shelSrcIp;
+  2: string shelDstIp;
+  3: i32 shelPeriodicIntervalMS;
 }
 
 struct SwitchInfo {
@@ -1628,7 +1691,7 @@ struct SwitchInfo {
   // local switch identifier
   3: i16 switchIndex;
   4: Range64 portIdRange;
-  5: optional Range64 systemPortRange;
+  5: optional Range64 systemPortRange_DEPRECATED;
   6: optional string switchMac;
   7: optional string connectionHandle;
   8: SystemPortRanges systemPortRanges;
@@ -1643,6 +1706,7 @@ struct SwitchInfo {
   // as part of config for other nodes to bootstrap
   // communication to this node
   11: optional i32 inbandPortId;
+  12: map<FirmwareName, FirmwareInfo> firmwareNameToFirmwareInfo;
 }
 
 /*
@@ -1710,6 +1774,17 @@ struct SwitchSettings {
   // Once the SRAM free buffers goes above this threshold,
   // specified as a percent of total SRAM buffers, send XON.
   20: optional byte sramGlobalFreePercentXonThreshold;
+  // Fabric side threshold tracking the minimum needed
+  // fifo free space on the peer device fifo.
+  21: optional i16 linkFlowControlCreditThreshold;
+  // SRAM2DRAM threshold on VOQ. Single parameter as of now
+  // controlling both bounds and recovery thresholds.
+  22: optional i32 voqDramBoundThreshold;
+  // Conditional Entropy Rehash Period for VOQ devices
+  23: optional i32 conditionalEntropyRehashPeriodUS;
+  24: optional string firmwarePath;
+  // SHEL attributes to configure 1. SHEL message SrcIP, 2. DstIp, and 3. Interval for SHEL periodic messages
+  25: optional SelfHealingEcmpLagConfig selfHealingEcmpLagConfig;
 }
 
 // Global buffer pool
@@ -1805,7 +1880,7 @@ struct DsfNode {
   2: i64 switchId;
   3: DsfNodeType type;
   4: list<string> loopbackIps;
-  5: optional Range64 systemPortRange;
+  5: optional Range64 systemPortRange_DEPRECATED;
   6: optional string nodeMac;
   7: AsicType asicType;
   8: fboss_common.PlatformType platformType;
@@ -2074,9 +2149,6 @@ struct SwitchConfig {
   42: optional QcmConfig qcmConfig;
   43: optional map<PortPgConfigName, list<PortPgConfig>> portPgConfigs;
   44: optional map<BufferPoolConfigName, BufferPoolConfig> bufferPoolConfigs;
-  // aclTableGroup does not need to be a list at this point, as we only expect to
-  // support a single group for the foreseeable future. This could be changed to
-  // list<AclTableGroup> later if the need arises to support multiple groups.
   45: optional AclTableGroup aclTableGroup;
   // agent sdk versions
   46: optional SdkVersion sdkVersion;
@@ -2092,4 +2164,8 @@ struct SwitchConfig {
   53: optional string icmpV4UnavailableSrcAddress;
   // Overrides the system hostname, useful in ICMP responses
   54: optional string hostname;
+  55: optional list<PortQueue> cpuVoqs;
+  // list of ACL table groups, prefer this over aclTableGroup, aclTableGroup will be deprecated
+  56: optional list<AclTableGroup> aclTableGroups;
+  57: list<MirrorOnDropReport> mirrorOnDropReports = [];
 }

@@ -372,7 +372,7 @@ class SaiObject {
   folly::dynamic adapterHostKeyToFollyDynamic();
 
   static typename SaiObjectTraits::AdapterHostKey follyDynamicToAdapterHostKey(
-      folly::dynamic);
+      const folly::dynamic&);
 
   void setIgnoreMissingInHwOnDelete(bool ignore) {
     ignoreMissingInHwOnDelete_ = ignore;

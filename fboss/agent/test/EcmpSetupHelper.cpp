@@ -334,6 +334,9 @@ BaseEcmpSetupHelper<AddrT, NextHopT>::resolveNextHop(
     case cfg::InterfaceType::SYSTEM_PORT:
       return resolvePortRifNextHop(
           inputState, nhop, intf, useLinkLocal, encapIdx);
+    case cfg::InterfaceType::PORT:
+      // TODO(Chenab): Support port router interface
+      break;
   }
   CHECK(false) << " Unhandled interface type: ";
   return nullptr;
@@ -352,6 +355,9 @@ BaseEcmpSetupHelper<AddrT, NextHopT>::unresolveNextHop(
       return unresolveVlanRifNextHop(inputState, nhop, intf, useLinkLocal);
     case cfg::InterfaceType::SYSTEM_PORT:
       return unresolvePortRifNextHop(inputState, nhop, intf, useLinkLocal);
+    case cfg::InterfaceType::PORT:
+      // TODO(Chenab): Support port router interface
+      break;
   }
   CHECK(false) << " Unhandled interface type: ";
   return nullptr;
@@ -485,8 +491,8 @@ void EcmpSetupTargetedPorts<IPAddrT>::computeNextHops(
       // of subnet.
       lastOctet = (lastOctet + offset) % 255;
     }
-    // Fail if we go to 255 at the last octet
-    CHECK_GT(255, lastOctet);
+    // Fail if we go >255 at the last octet
+    CHECK_GE(255, lastOctet);
     bytes[bytes.size() - 1] = static_cast<uint8_t>(lastOctet);
     BaseEcmpSetupHelperT::nhops_.push_back(EcmpNextHopT(
         IPAddrT(bytes),

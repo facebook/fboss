@@ -2,7 +2,6 @@
 #include "fboss/util/wedge_qsfp_util.h"
 
 #include "fboss/lib/usb/GalaxyI2CBus.h"
-#include "fboss/lib/usb/Wedge100I2CBus.h"
 #include "fboss/lib/usb/WedgeI2CBus.h"
 
 #include "fboss/qsfp_service/module/QsfpModule.h"
@@ -21,7 +20,6 @@
 #include <folly/Exception.h>
 #include <folly/FileUtil.h>
 #include <folly/Memory.h>
-#include <folly/init/Init.h>
 #include <folly/io/async/EventBase.h>
 #include <gflags/gflags.h>
 #include <glog/logging.h>

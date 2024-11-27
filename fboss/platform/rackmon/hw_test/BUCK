@@ -24,7 +24,6 @@ cpp_binary(
         "//thrift/lib/cpp2/util:util",
     ],
     external_deps = [
-        "gflags",
         "glog",
     ],
 )

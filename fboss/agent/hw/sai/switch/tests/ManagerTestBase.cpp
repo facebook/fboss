@@ -376,6 +376,9 @@ InterfaceID ManagerTestBase::getIntfID(int id, cfg::InterfaceType type) const {
       return InterfaceID(id);
     case cfg::InterfaceType::SYSTEM_PORT:
       return InterfaceID(getSysPortId(id));
+    case cfg::InterfaceType::PORT:
+      // TODO(Chenab): Support port router interface
+      break;
   }
   XLOG(FATAL) << "Unhandled interface type";
 }
@@ -504,6 +507,10 @@ std::shared_ptr<ArpEntry> ManagerTestBase::resolveArp(
         arpEntry->getMac(),
         SAI_FDB_ENTRY_TYPE_STATIC,
         metadata);
+  }
+  if (intfType == cfg::InterfaceType::PORT) {
+    // TODO(Chenab): Support port router interface
+    throw FbossError("Port type of router interface is not supported");
   }
   return arpEntry;
 }

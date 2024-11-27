@@ -153,6 +153,26 @@ HwSwitchFb303Stats::HwSwitchFb303Stats(
           getCounterPrefix() + "deleted_credit_bytes",
           SUM,
           RATE),
+      rqpFabricCellCorruptionDrops_(
+          map,
+          getCounterPrefix() + "rqp_fabric_cell_corruption_drops",
+          SUM,
+          RATE),
+      rqpNonFabricCellCorruptionDrops_(
+          map,
+          getCounterPrefix() + "rqp_non_fabric_cell_corruption_drops",
+          SUM,
+          RATE),
+      rqpNonFabricCellMissingDrops_(
+          map,
+          getCounterPrefix() + "rqp_non_fabric_cell_missing_drops",
+          SUM,
+          RATE),
+      rqpParityErrorDrops_(
+          map,
+          getCounterPrefix() + "rqp_parity_error_drops",
+          SUM,
+          RATE),
       fabricReachabilityMissingCount_(
           map,
           getCounterPrefix() + "fabric_reachability_missing"),
@@ -174,6 +194,11 @@ HwSwitchFb303Stats::HwSwitchFb303Stats(
       alignerErrors_(
           map,
           getCounterPrefix() + vendor + ".aligner.errors",
+          SUM,
+          RATE),
+      reassemblyErrors_(
+          map,
+          getCounterPrefix() + vendor + ".reassembly.errors",
           SUM,
           RATE),
       forwardingQueueProcessorErrors_(
@@ -286,6 +311,27 @@ void HwSwitchFb303Stats::update(const HwSwitchDropStats& dropStats) {
         *dropStats.missingCellPacketIntegrityDrops() -
         currentDropStats_.missingCellPacketIntegrityDrops().value_or(0));
   }
+  if (dropStats.rqpFabricCellCorruptionDrops().has_value()) {
+    rqpFabricCellCorruptionDrops_.addValue(
+        *dropStats.rqpFabricCellCorruptionDrops() -
+        currentDropStats_.rqpFabricCellCorruptionDrops().value_or(0));
+  }
+  if (dropStats.rqpNonFabricCellCorruptionDrops().has_value()) {
+    rqpNonFabricCellCorruptionDrops_.addValue(
+        *dropStats.rqpNonFabricCellCorruptionDrops() -
+        currentDropStats_.rqpNonFabricCellCorruptionDrops().value_or(0));
+  }
+  if (dropStats.rqpNonFabricCellMissingDrops().has_value()) {
+    rqpNonFabricCellMissingDrops_.addValue(
+        *dropStats.rqpNonFabricCellMissingDrops() -
+        currentDropStats_.rqpNonFabricCellMissingDrops().value_or(0));
+  }
+  if (dropStats.rqpParityErrorDrops().has_value()) {
+    rqpParityErrorDrops_.addValue(
+        *dropStats.rqpParityErrorDrops() -
+        currentDropStats_.rqpParityErrorDrops().value_or(0));
+  }
+
   currentDropStats_ = dropStats;
 }
 
@@ -337,6 +383,10 @@ int64_t HwSwitchFb303Stats::getEpniErrors() const {
 
 int64_t HwSwitchFb303Stats::getAlignerErrors() const {
   return getCumulativeValue(alignerErrors_);
+}
+
+int64_t HwSwitchFb303Stats::getReassemblyErrors() const {
+  return getCumulativeValue(reassemblyErrors_);
 }
 
 int64_t HwSwitchFb303Stats::getForwardingQueueProcessorErrors() const {
@@ -401,6 +451,7 @@ HwAsicErrors HwSwitchFb303Stats::getHwAsicErrors() const {
   asicErrors.alignerErrors() = getAlignerErrors();
   asicErrors.forwardingQueueProcessorErrors() =
       getForwardingQueueProcessorErrors();
+  asicErrors.reassemblyErrors() = getReassemblyErrors();
   asicErrors.allReassemblyContextsTaken() =
       getAllReassemblyContextsTakenError();
   return asicErrors;

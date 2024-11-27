@@ -146,6 +146,6 @@ AclEntry::AclEntry(int priority, std::string&& name) {
   set<switch_state_tags::name>(std::move(name));
 }
 
-template class ThriftStructNode<AclEntry, state::AclEntryFields>;
+template struct ThriftStructNode<AclEntry, state::AclEntryFields>;
 
 } // namespace facebook::fboss

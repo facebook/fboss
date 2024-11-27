@@ -16,11 +16,9 @@
 #include <folly/FileUtil.h>
 #include <folly/Range.h>
 #include <folly/ScopeGuard.h>
-#include <folly/SocketAddress.h>
 #include <folly/init/Init.h>
 #include <folly/io/async/AsyncSignalHandler.h>
 #include <folly/io/async/EventBase.h>
-#include <folly/io/async/EventBaseManager.h>
 #include "fboss/agent/hw/sai/diag/DiagShellClient.h"
 
 #include <netdb.h>

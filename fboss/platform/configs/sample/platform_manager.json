@@ -118,7 +118,7 @@
     },
     "SMB": {
       "pluggedInSlotType": "SMB_SLOT",
-      "pciDevices": [
+      "pciDeviceConfigs": [
         {
           "pmUnitScopedName": "SMB_IOB",
           "vendorId": "0x1132",
@@ -209,7 +209,7 @@
           "pmUnitScopedName": "YOLO_SENSOR2"
         }
       ],
-      "pciDevices": [
+      "pciDeviceConfigs": [
         {
           "pmUnitScopedName": "DOM_FPGA",
           "vendorId": "0x1132",
@@ -308,7 +308,7 @@
     "CPU@1"
   ],
   "symbolicLinkToDevicePath": {
-    "/run/devmap/eeproms/CHASSIS_EEPROM": "/SMB_SLOT@0/[chassis_eeprom]",
+    "/run/devmap/eeproms/CHASSIS_EEPROM": "/SMB_SLOT@0/[CHASSIS_EEPROM]",
     "/run/devmap/eeproms/SCM_EEPROM": "/[IDPROM]",
     "/run/devmap/eeproms/SMB_EEPROM": "/SMB_SLOT@0/[IDPROM]",
     "/run/devmap/eeproms/YOLO_MAX_EEPROM": "/SMB_SLOT@0/YOLO_SLOT@0/[IDPROM]",
@@ -316,13 +316,13 @@
     "/run/devmap/eeproms/PSU2_EEPROM": "/SMB_SLOT@0/YOLO_SLOT@0/PSU_SLOT@1/[IDPROM]",
     "/run/devmap/eeproms/PIM0_EEPROM": "/SMB_SLOT@0/YOLO_SLOT@0/PIM_SLOT@0/[IDPROM]",
     "/run/devmap/eeproms/PIM1_EEPROM": "/SMB_SLOT@0/YOLO_SLOT@0/PIM_SLOT@1/[IDPROM]",
-    "/run/devmap/sensors/SMB_INLET_SENSOR": "/SMB_SLOT@0/[inlet_sensor]",
-    "/run/devmap/sensors/SMB_OUTLET_SENSOR": "/SMB_SLOT@0/[outlet_sensor]",
-    "/run/devmap/sensors/ASIC_SENSOR": "/SMB_SLOT@0/[asic_sensor]",
-    "/run/devmap/sensors/YOLO_SENSOR1": "/SMB_SLOT@0/YOLO_SLOT@0/[yolo_sensor1]",
-    "/run/devmap/sensors/YOLO_SENSOR2": "/SMB_SLOT@0/YOLO_SLOT@0/[yolo_sensor2]",
-    "/run/devmap/sensors/PSU1_2GH_SENSOR": "/SMB_SLOT@0/YOLO_SLOT@0/PSU_SLOT@0/[psu_2gh_sensor]",
-    "/run/devmap/sensors/PSU2_2GH_SENSOR": "/SMB_SLOT@0/YOLO_SLOT@0/PSU_SLOT@1/[psu_2gh_sensor]",
+    "/run/devmap/sensors/SMB_INLET_SENSOR": "/SMB_SLOT@0/[INLET_SENSOR]",
+    "/run/devmap/sensors/SMB_OUTLET_SENSOR": "/SMB_SLOT@0/[OUTLET_SENSOR]",
+    "/run/devmap/sensors/ASIC_SENSOR": "/SMB_SLOT@0/[ASIC_SENSOR]",
+    "/run/devmap/sensors/YOLO_SENSOR1": "/SMB_SLOT@0/YOLO_SLOT@0/[YOLO_SENSOR1]",
+    "/run/devmap/sensors/YOLO_SENSOR2": "/SMB_SLOT@0/YOLO_SLOT@0/[YOLO_SENSOR2]",
+    "/run/devmap/sensors/PSU1_2GH_SENSOR": "/SMB_SLOT@0/YOLO_SLOT@0/PSU_SLOT@0/[PSU_2GH_SENSOR]",
+    "/run/devmap/sensors/PSU2_2GH_SENSOR": "/SMB_SLOT@0/YOLO_SLOT@0/PSU_SLOT@1/[PSU_2GH_SENSOR]",
     "/run/devmap/fpgas/SCM_IOB": "/[SCM_IOB]",
     "/run/devmap/fpgas/SMB_IOB": "/SMB_SLOT@0/[SMB_IOB]",
     "/run/devmap/fpgas/DOM_FPGA": "/SMB_SLOT@0/YOLO_SLOT@0/[DOM_FPGA]",

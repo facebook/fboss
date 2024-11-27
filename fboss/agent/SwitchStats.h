@@ -460,6 +460,18 @@ class SwitchStats : public boost::noncopyable {
     return getCumulativeValue(macTableUpdateFailure_);
   }
 
+  void fwDrainedWithHighNumActiveFabricLinks() {
+    fwDrainedWithHighNumActiveFabricLinks_.addValue(1);
+  }
+
+  void neighborTableUpdateFailure() {
+    neighborTableUpdateFailure_.addValue(1);
+  }
+
+  int getNeighborTableUpdateFailure() const {
+    return getCumulativeValue(neighborTableUpdateFailure_);
+  }
+
   void hiPriPktsReceived() {
     hiPriPktsReceived_.addValue(1);
   }
@@ -484,6 +496,8 @@ class SwitchStats : public boost::noncopyable {
     switchConfiguredMs_.addValue(ms);
   }
   void setFabricOverdrainPct(int16_t switchIndex, int16_t overdrainPct);
+
+  void setDrainState(int16_t switchIndex, cfg::SwitchDrainState drainState);
 
   void hwAgentConnectionStatus(int switchIndex, bool connected) {
     CHECK_LT(switchIndex, hwAgentConnectionStatus_.size());
@@ -1031,8 +1045,11 @@ class SwitchStats : public boost::noncopyable {
 
   // TODO: delete this once multi_switch becomes default
   TLTimeseries multiSwitchStatus_;
+  TLTimeseries neighborTableUpdateFailure_;
 
   TLTimeseries macTableUpdateFailure_;
+
+  TLTimeseries fwDrainedWithHighNumActiveFabricLinks_;
 
   std::vector<TLCounter> hwAgentConnectionStatus_;
   std::vector<TLTimeseries> hwAgentUpdateTimeouts_;

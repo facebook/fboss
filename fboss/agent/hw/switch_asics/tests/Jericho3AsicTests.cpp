@@ -22,12 +22,12 @@ class Jericho3AsicTest : public ::testing::Test {
     cfg::Range64 sysPortRange;
     sysPortRange.minimum() = 100;
     sysPortRange.maximum() = 144;
-    asic_ = std::make_unique<Jericho3Asic>(
-        cfg::SwitchType::VOQ,
-        0,
-        0,
-        sysPortRange,
-        folly::MacAddress("02:00:00:00:0F:0B"));
+    cfg::SwitchInfo switchInfo;
+    switchInfo.systemPortRanges()->systemPortRanges()->push_back(sysPortRange);
+    switchInfo.switchType() = cfg::SwitchType::VOQ;
+    switchInfo.switchMac() = "02:00:00:00:0F:0B";
+    switchInfo.switchIndex() = 0;
+    asic_ = std::make_unique<Jericho3Asic>(0, switchInfo);
   }
   std::unique_ptr<Jericho3Asic> asic_;
 };

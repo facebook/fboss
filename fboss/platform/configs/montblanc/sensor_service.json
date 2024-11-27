@@ -5,6 +5,46 @@
       "pmUnitName": "MINIPACK3_MCB",
       "sensors": [
         {
+          "name": "SMB_LEFT_U51_TEMP",
+          "sysfsPath": "/run/devmap/sensors/SMB_TSENSOR5/temp1_input",
+          "type": 3,
+          "thresholds": {
+            "upperCriticalVal": 85,
+            "maxAlarmVal": 80
+          },
+          "compute": "@/1000"
+        },
+        {
+          "name": "SMB_OUTLET_U57_TEMP",
+          "sysfsPath": "/run/devmap/sensors/SMB_TSENSOR2/temp1_input",
+          "type": 3,
+          "thresholds": {
+            "upperCriticalVal": 95,
+            "maxAlarmVal": 90
+          },
+          "compute": "@/1000"
+        },
+        {
+          "name": "SMB_BEHIND_TH5_U39_TEMP",
+          "sysfsPath": "/run/devmap/sensors/SMB_TSENSOR3/temp1_input",
+          "type": 3,
+          "thresholds": {
+            "upperCriticalVal": 95,
+            "maxAlarmVal": 90
+          },
+          "compute": "@/1000"
+        },
+        {
+          "name": "SMB_RIGHT_U182_TEMP",
+          "sysfsPath": "/run/devmap/sensors/SMB_TSENSOR6/temp1_input",
+          "type": 3,
+          "thresholds": {
+            "upperCriticalVal": 85,
+            "maxAlarmVal": 80
+          },
+          "compute": "@/1000"
+        },
+        {
           "name": "CPU_UNCORE_TEMP",
           "sysfsPath": "/run/devmap/sensors/CPU_CORE_TEMP/temp1_input",
           "type": 3,
@@ -598,26 +638,6 @@
       "slotPath": "/SCM_SLOT@0/COMESE_SLOT@0",
       "pmUnitName": "NETLAKE",
       "sensors": [
-        {
-          "name": "COME_U18_INLET_SENSOR_TMP75_TEMP",
-          "sysfsPath": "/run/devmap/sensors/COME_TSENSOR1/temp1_input",
-          "type": 3,
-          "thresholds": {
-            "maxAlarmVal": 60,
-            "upperCriticalVal": 65
-          },
-          "compute": "@/1000"
-        },
-        {
-          "name": "COME_U39_OUTLET_SENSOR_TMP75_TEMP",
-          "sysfsPath": "/run/devmap/sensors/COME_TSENSOR2/temp1_input",
-          "type": 3,
-          "thresholds": {
-            "maxAlarmVal": 60,
-            "upperCriticalVal": 65
-          },
-          "compute": "@/1000"
-        },
         {
           "name": "COME_PU31_TDA38640_PVNN_PCH_VIN",
           "sysfsPath": "/run/devmap/sensors/COME_VOLTAGE_MONITOR1/in1_input",
@@ -1389,6 +1409,26 @@
       "pmUnitName": "MINIPACK3_SCM",
       "sensors": [
         {
+          "name": "COME_U18_INLET_SENSOR_TMP75_TEMP",
+          "sysfsPath": "/run/devmap/sensors/COME_TSENSOR1/temp1_input",
+          "type": 3,
+          "thresholds": {
+            "maxAlarmVal": 60,
+            "upperCriticalVal": 65
+          },
+          "compute": "@/1000"
+        },
+        {
+          "name": "COME_U39_OUTLET_SENSOR_TMP75_TEMP",
+          "sysfsPath": "/run/devmap/sensors/COME_TSENSOR2/temp1_input",
+          "type": 3,
+          "thresholds": {
+            "maxAlarmVal": 60,
+            "upperCriticalVal": 65
+          },
+          "compute": "@/1000"
+        },
+        {
           "name": "SCM_M2_SSD_TEMP",
           "sysfsPath": "/run/devmap/sensors/SCM_M2_SSD_TEMP/temp1_input",
           "type": 3,
@@ -1669,46 +1709,6 @@
       "slotPath": "/SMB_SLOT@0",
       "pmUnitName": "MINIPACK3_SMB",
       "sensors": [
-        {
-          "name": "SMB_LEFT_U51_TEMP",
-          "sysfsPath": "/run/devmap/sensors/SMB_TSENSOR5/temp1_input",
-          "type": 3,
-          "thresholds": {
-            "upperCriticalVal": 85,
-            "maxAlarmVal": 80
-          },
-          "compute": "@/1000"
-        },
-        {
-          "name": "SMB_OUTLET_U57_TEMP",
-          "sysfsPath": "/run/devmap/sensors/SMB_TSENSOR2/temp1_input",
-          "type": 3,
-          "thresholds": {
-            "upperCriticalVal": 95,
-            "maxAlarmVal": 90
-          },
-          "compute": "@/1000"
-        },
-        {
-          "name": "SMB_BEHIND_TH5_U39_TEMP",
-          "sysfsPath": "/run/devmap/sensors/SMB_TSENSOR3/temp1_input",
-          "type": 3,
-          "thresholds": {
-            "upperCriticalVal": 95,
-            "maxAlarmVal": 90
-          },
-          "compute": "@/1000"
-        },
-        {
-          "name": "SMB_RIGHT_U182_TEMP",
-          "sysfsPath": "/run/devmap/sensors/SMB_TSENSOR6/temp1_input",
-          "type": 3,
-          "thresholds": {
-            "upperCriticalVal": 85,
-            "maxAlarmVal": 80
-          },
-          "compute": "@/1000"
-        },
         {
           "name": "SMB_XP3R3V_CLK",
           "sysfsPath": "/run/devmap/sensors/SMB_VOLTAGE_MONITOR1/in0_input",

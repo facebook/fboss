@@ -1,9 +1,6 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
 #include "fboss/fsdb/common/Utils.h"
-#include <fmt/format.h>
-#include <folly/String.h>
-#include <folly/logging/xlog.h>
 #include <folly/system/ThreadName.h>
 #include <sstream>
 

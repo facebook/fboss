@@ -7,12 +7,15 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
+
 #include "fboss/agent/test/utils/OlympicTestUtils.h"
+#include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/Utils.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/test/utils/AsicUtils.h"
 #include "fboss/agent/test/utils/TrafficPolicyTestUtils.h"
+#include "fboss/agent/test/utils/VoqTestUtils.h"
 
 namespace facebook::fboss::utility {
 
@@ -270,6 +273,52 @@ cfg::ActiveQueueManagement kGetWredConfig(
   return wredAQM;
 }
 
+int getTrafficClassToVoqId(const HwAsic* hwAsic, int trafficClass) {
+  if (hwAsic->isSupported(HwAsic::Feature::VOQ) && isDualStage3Q2QQos()) {
+    if (trafficClass == 7) {
+      // tc 7 -> nc voq 2
+      return 2;
+    } else if (trafficClass == 2) {
+      // tc 2 -> rdma voq 0
+      return 0;
+    }
+    // all other tc -> default voq 1
+    return 1;
+  }
+  return trafficClass;
+}
+
+int getTrafficClassToCpuVoqId(const HwAsic* hwAsic, int trafficClass) {
+  if (hwAsic->isSupported(HwAsic::Feature::VOQ) && isDualStage3Q2QQos()) {
+    if (trafficClass == 7) {
+      // tc 7 -> high queue 2
+      return 2;
+    } else if (trafficClass == 3) {
+      // tc 3 -> mid queue 1
+      return 1;
+    }
+    // all other tc -> low queue 0
+    return 0;
+  }
+  return trafficClass;
+}
+
+int getTrafficClassToEgressQueueId(const HwAsic* hwAsic, int trafficClass) {
+  if (isDualStage3Q2QQos()) {
+    if (trafficClass == 7) {
+      // tc 7 -> nc egq 7
+      return 7;
+    } else if (trafficClass == 2) {
+      // tc 2 -> rdma egq 2
+      return 2;
+    }
+    // all other tc -> default egq 6
+    return 6;
+  }
+  // same one-to-one tc to queue mapping for other platforms
+  return trafficClass;
+}
+
 int getTrafficClassToCpuEgressQueueId(const HwAsic* hwAsic, int trafficClass) {
   if (hwAsic->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO3) {
     // Jericho3 only has two egress queues for cpu port and recycle port
@@ -348,9 +397,9 @@ void addQueueWredConfig(
 
 void addNetworkAIQueueConfig(
     cfg::SwitchConfig* config,
-    cfg::StreamType streamType) {
+    cfg::StreamType streamType,
+    const HwAsic* hwAsic) {
   std::vector<cfg::PortQueue> portQueues;
-
   cfg::PortQueue queue0;
   queue0.id() = getNetworkAIQueueId(NetworkAIQueueType::RDMA);
   queue0.name() = "queue2.rdma";
@@ -379,9 +428,13 @@ void addNetworkAIQueueConfig(
   queue3.scheduling() = cfg::QueueScheduling::STRICT_PRIORITY;
   portQueues.push_back(queue3);
 
-  config->portQueueConfigs()["queue_config"] = portQueues;
-  for (auto& port : *config->ports()) {
-    port.portQueueConfigName() = "queue_config";
+  config->defaultPortQueues() = portQueues;
+
+  if (hwAsic->getSwitchType() == cfg::SwitchType::VOQ) {
+    auto nameAndDefaultVoqCfg =
+        getNameAndDefaultVoqCfg(cfg::PortType::INTERFACE_PORT);
+    CHECK(nameAndDefaultVoqCfg.has_value());
+    config->defaultVoqConfig() = nameAndDefaultVoqCfg->queueConfig;
   }
 }
 
@@ -744,8 +797,9 @@ void addQosMapsHelper(
   }
   std::map<int16_t, int16_t> tc2Voq;
   for (int q = 0; q <= kOlympicHighestSPQueueId; q++) {
-    tc2Voq.emplace(q, q);
-    qosMap.trafficClassToQueueId()->emplace(q, q);
+    tc2Voq.emplace(q, getTrafficClassToVoqId(hwAsic, q));
+    qosMap.trafficClassToQueueId()->emplace(
+        q, getTrafficClassToEgressQueueId(hwAsic, q));
   }
   if (hwAsic->isSupported(HwAsic::Feature::VOQ)) {
     qosMap.trafficClassToVoqId() = std::move(tc2Voq);
@@ -764,6 +818,10 @@ void addQosMapsHelper(
     for (int q = 0; q <= kOlympicHighestSPQueueId; q++) {
       cpuQosMap.trafficClassToQueueId()->emplace(
           q, getTrafficClassToCpuEgressQueueId(hwAsic, q));
+    }
+    for (int q = 0; q <= kOlympicHighestSPQueueId; q++) {
+      cpuQosMap.trafficClassToVoqId()->emplace(
+          q, getTrafficClassToCpuVoqId(hwAsic, q));
     }
     cfg.qosPolicies()->resize(2);
     *cfg.qosPolicies()[1].name() = cpuQosPolicyName;

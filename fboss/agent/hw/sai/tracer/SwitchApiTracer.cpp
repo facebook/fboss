@@ -127,6 +127,19 @@ void handleExtensionAttributes() {
   SAI_EXT_ATTR_MAP(Switch, SramFreePercentXoffTh);
   SAI_EXT_ATTR_MAP(Switch, SramFreePercentXonTh);
   SAI_EXT_ATTR_MAP(Switch, NoAclsForTraps);
+  SAI_EXT_ATTR_MAP(Switch, MaxSystemPortId);
+  SAI_EXT_ATTR_MAP(Switch, MaxLocalSystemPortId);
+  SAI_EXT_ATTR_MAP(Switch, MaxSystemPorts);
+  SAI_EXT_ATTR_MAP(Switch, MaxVoqs);
+  SAI_EXT_ATTR_MAP(Switch, FabricCllfcTxCreditTh);
+  SAI_EXT_ATTR_MAP(Switch, VoqDramBoundTh);
+  SAI_EXT_ATTR_MAP(Switch, CondEntropyRehashPeriodUS);
+  SAI_EXT_ATTR_MAP(Switch, ShelSrcIp);
+  SAI_EXT_ATTR_MAP(Switch, ShelDstIp);
+  SAI_EXT_ATTR_MAP(Switch, ShelSrcMac);
+  SAI_EXT_ATTR_MAP(Switch, ShelPeriodicInterval);
+  SAI_EXT_ATTR_MAP(Switch, FirmwareCoreToUse);
+  SAI_EXT_ATTR_MAP(Switch, FirmwareLogFile);
 }
 
 } // namespace

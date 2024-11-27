@@ -1633,6 +1633,9 @@
           "test_name_regex": "HwMacsecTest.*$"
         },
         {
+          "test_name_regex": "PhyIOTest.phyIOStats$"
+        },
+        {
           "test_name_regex": "HwTest_PROFILE_DEFAULT.TestProfile$"
         },
         {
@@ -1789,6 +1792,9 @@
         },
         {
           "test_name_regex": "HwMacsecTest.*$"
+        },
+        {
+          "test_name_regex": "PhyIOTest.phyIOStats$"
         },
         {
           "test_name_regex": "HwTest_PROFILE_DEFAULT.TestProfile$"
@@ -3998,6 +4004,9 @@
           "test_name_regex": "HwPortPrbsTest_LINE_PAM4.*$"
         },
         {
+          "test_name_regex": "HwTest.cmisPageChange$"
+        },
+        {
           "test_name_regex": "HwTest_PROFILE_DEFAULT.TestProfile$"
         },
         {
@@ -4240,9 +4249,6 @@
           "test_name_regex": "HwTest_PROFILE_100G_4_NRZ_RS528_COPPER.TestProfile$"
         },
         {
-          "test_name_regex": "HwTest_PROFILE_100G_4_NRZ_RS528_OPTICAL.TestProfile$"
-        },
-        {
           "test_name_regex": "HwTest_PROFILE_200G_4_PAM4_RS544X2N_COPPER.TestProfile$"
         },
         {
@@ -4411,9 +4417,6 @@
         },
         {
           "test_name_regex": "HwTest_PROFILE_100G_4_NRZ_RS528_COPPER.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_100G_4_NRZ_RS528_OPTICAL.TestProfile$"
         },
         {
           "test_name_regex": "HwTest_PROFILE_200G_4_PAM4_RS544X2N_COPPER.TestProfile$"
@@ -5600,9 +5603,6 @@
           "test_name_regex": "HwTest_PROFILE_400G_8_PAM4_RS544X2N.TestProfile$"
         },
         {
-          "test_name_regex": "HwTest_PROFILE_10G_1_NRZ_NOFEC_COPPER.TestProfile$"
-        },
-        {
           "test_name_regex": "HwTest_PROFILE_20G_2_NRZ_NOFEC_COPPER.TestProfile$"
         },
         {
@@ -5756,9 +5756,6 @@
         },
         {
           "test_name_regex": "HwTest_PROFILE_400G_8_PAM4_RS544X2N.TestProfile$"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE_10G_1_NRZ_NOFEC_COPPER.TestProfile$"
         },
         {
           "test_name_regex": "HwTest_PROFILE_20G_2_NRZ_NOFEC_COPPER.TestProfile$"

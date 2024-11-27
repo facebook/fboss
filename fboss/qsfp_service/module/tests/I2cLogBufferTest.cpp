@@ -12,8 +12,11 @@
 
 #include "fboss/lib/usb/TransceiverAccessParameter.h"
 #include "fboss/qsfp_service/module/I2cLogBuffer.h"
+#include "fboss/qsfp_service/module/cmis/gen-cpp2/cmis_types.h"
 
 namespace facebook::fboss {
+
+constexpr int kField = static_cast<int>(CmisField::RAW);
 
 namespace {
 constexpr size_t kFullBuffer = 10;
@@ -50,6 +53,37 @@ class I2cLogBufferTest : public ::testing::Test {
     return I2cLogBuffer(config, kLogFile_);
   }
 
+  // Check that the log file contains the port names and the field names.
+  void checkLogFileContainsWords(
+      const std::string& fileName,
+      const std::set<std::string>& ports,
+      const std::array<CmisField, kFullBuffer>& fields) {
+    std::ifstream file(fileName);
+    CHECK(file.is_open());
+    std::unordered_set<std::string> expectedWords{ports.begin(), ports.end()};
+    for (const auto& field : fields) {
+      // Expect field name up to kI2cFieldNameLength characters.
+      expectedWords.insert(apache::thrift::util::enumNameSafe(field).substr(
+          0, kI2cFieldNameLength));
+    }
+    // Check that we have unique words.
+    CHECK_EQ(expectedWords.size(), ports.size() + fields.size());
+
+    std::unordered_set<std::string> logWords;
+    std::string line;
+    while (std::getline(file, line)) {
+      std::istringstream iss(line);
+      std::string word;
+      while (iss >> word) {
+        logWords.insert(word);
+      }
+    }
+    for (auto& word : expectedWords) {
+      EXPECT_TRUE(logWords.find(word) != logWords.end())
+          << "Word " << word << " Not Found In Log";
+    }
+  }
+
   std::vector<uint8_t> data_;
   TransceiverAccessParameter param_;
 };
@@ -63,13 +97,13 @@ TEST_F(I2cLogBufferTest, basic) {
   for (int i = 0; i < kNumElements; i++) {
     data_[0] = i;
     param_.i2cAddress = i;
-    logBuffer.log(param_, data_.data(), I2cLogBuffer::Operation::Read);
+    logBuffer.log(param_, kField, data_.data(), I2cLogBuffer::Operation::Read);
   }
 
   std::vector<I2cLogBuffer::I2cLogEntry> entries;
   auto count = logBuffer.dump(entries);
-  EXPECT_EQ(count.first, kNumElements);
-  EXPECT_EQ(count.second, kNumElements);
+  EXPECT_EQ(count.totalEntries, kNumElements);
+  EXPECT_EQ(count.bufferEntries, kNumElements);
   EXPECT_EQ(entries.size(), kFullBuffer);
   for (int i = 0; i < kNumElements; i++) {
     EXPECT_EQ(entries[i].param.i2cAddress, i);
@@ -79,8 +113,8 @@ TEST_F(I2cLogBufferTest, basic) {
   // Once dumped, the logBuffer will be empty. Another dump
   // will have a count of 0.
   count = logBuffer.dump(entries);
-  EXPECT_EQ(count.first, 0);
-  EXPECT_EQ(count.second, 0);
+  EXPECT_EQ(count.totalEntries, 0);
+  EXPECT_EQ(count.bufferEntries, 0);
 }
 
 TEST_F(I2cLogBufferTest, basicFullBuffer) {
@@ -90,14 +124,14 @@ TEST_F(I2cLogBufferTest, basicFullBuffer) {
   for (int i = 0; i < kFullBuffer; i++) {
     data_[0] = i;
     param_.i2cAddress = i;
-    logBuffer.log(param_, data_.data(), I2cLogBuffer::Operation::Read);
+    logBuffer.log(param_, kField, data_.data(), I2cLogBuffer::Operation::Read);
   }
 
   std::vector<I2cLogBuffer::I2cLogEntry> entries;
   auto count = logBuffer.dump(entries);
   // total entries and entries available in log are the same
-  EXPECT_EQ(count.first, kFullBuffer);
-  EXPECT_EQ(count.second, kFullBuffer);
+  EXPECT_EQ(count.totalEntries, kFullBuffer);
+  EXPECT_EQ(count.bufferEntries, kFullBuffer);
   EXPECT_EQ(entries.size(), kFullBuffer);
   for (int i = 0; i < kFullBuffer; i++) {
     EXPECT_EQ(entries[i].param.i2cAddress, i);
@@ -107,8 +141,8 @@ TEST_F(I2cLogBufferTest, basicFullBuffer) {
   // Once dumped, the logBuffer will be empty. Another dump
   // will have a count of 0.
   count = logBuffer.dump(entries);
-  EXPECT_EQ(count.first, 0);
-  EXPECT_EQ(count.second, 0);
+  EXPECT_EQ(count.totalEntries, 0);
+  EXPECT_EQ(count.bufferEntries, 0);
 }
 
 TEST_F(I2cLogBufferTest, basicFullBufferAnd1Element) {
@@ -119,13 +153,13 @@ TEST_F(I2cLogBufferTest, basicFullBufferAnd1Element) {
   for (int i = 0; i < kNumElements; i++) {
     data_[0] = i;
     param_.i2cAddress = i;
-    logBuffer.log(param_, data_.data(), I2cLogBuffer::Operation::Read);
+    logBuffer.log(param_, kField, data_.data(), I2cLogBuffer::Operation::Read);
   }
 
   std::vector<I2cLogBuffer::I2cLogEntry> entries;
   auto count = logBuffer.dump(entries);
-  EXPECT_EQ(count.first, kFullBuffer + 1);
-  EXPECT_EQ(count.second, kFullBuffer);
+  EXPECT_EQ(count.totalEntries, kFullBuffer + 1);
+  EXPECT_EQ(count.bufferEntries, kFullBuffer);
   EXPECT_EQ(entries.size(), kFullBuffer);
   for (int i = 0; i < kFullBuffer; i++) {
     EXPECT_EQ(entries[i].param.i2cAddress, i + 1);
@@ -135,8 +169,8 @@ TEST_F(I2cLogBufferTest, basicFullBufferAnd1Element) {
   // Once dumped, the logBuffer will be empty. Another dump
   // will have a count of 0.
   count = logBuffer.dump(entries);
-  EXPECT_EQ(count.first, 0);
-  EXPECT_EQ(count.second, 0);
+  EXPECT_EQ(count.totalEntries, 0);
+  EXPECT_EQ(count.bufferEntries, 0);
 }
 
 TEST_F(I2cLogBufferTest, testRange) {
@@ -160,7 +194,8 @@ TEST_F(I2cLogBufferTest, testRange) {
       for (int i = 0; i < inserts; i++) {
         data_[0] = i;
         param_.i2cAddress = i;
-        logBuffer.log(param_, data_.data(), I2cLogBuffer::Operation::Write);
+        logBuffer.log(
+            param_, kField, data_.data(), I2cLogBuffer::Operation::Write);
       }
       std::vector<I2cLogBuffer::I2cLogEntry> entries;
 
@@ -173,10 +208,10 @@ TEST_F(I2cLogBufferTest, testRange) {
       EXPECT_EQ(0, logBuffer.getTotalEntries());
 
       // Expect that total logged elements is number of inserts
-      EXPECT_EQ(count.first, inserts);
+      EXPECT_EQ(count.totalEntries, inserts);
       // Expect that we have the following number of elements:
       //     minimum of the number of logged elements or LogBuffer size
-      EXPECT_EQ(count.second, std::min(inserts, bufferSize));
+      EXPECT_EQ(count.bufferEntries, std::min(inserts, bufferSize));
       // The updated vector size is always the size of the LogBuffer.
       EXPECT_EQ(entries.size(), bufferSize);
       // if the number of inserts is smaller than or equal to bufferSize:
@@ -193,8 +228,8 @@ TEST_F(I2cLogBufferTest, testRange) {
       // Once dumped, the logBuffer will be empty. Another dump
       // will have a count of 0.
       count = logBuffer.dump(entries);
-      EXPECT_EQ(count.first, 0);
-      EXPECT_EQ(count.second, 0);
+      EXPECT_EQ(count.totalEntries, 0);
+      EXPECT_EQ(count.bufferEntries, 0);
     }
   }
 }
@@ -210,12 +245,13 @@ TEST_F(I2cLogBufferTest, testLargeData) {
 
   // insert kFullBuffer elements
   for (int i = 0; i < kFullBuffer; i++) {
-    logBuffer.log(param, largeData.data(), I2cLogBuffer::Operation::Read);
+    logBuffer.log(
+        param, kField, largeData.data(), I2cLogBuffer::Operation::Read);
   }
   std::vector<I2cLogBuffer::I2cLogEntry> entries;
   auto count = logBuffer.dump(entries);
-  EXPECT_EQ(count.first, kFullBuffer);
-  EXPECT_EQ(count.second, kFullBuffer);
+  EXPECT_EQ(count.totalEntries, kFullBuffer);
+  EXPECT_EQ(count.bufferEntries, kFullBuffer);
   EXPECT_EQ(entries.size(), kFullBuffer);
 
   for (int i = 0; i < kFullBuffer; i++) {
@@ -237,7 +273,7 @@ TEST_F(I2cLogBufferTest, edgeCases) {
   I2cLogBuffer logBuffer = createBuffer(kFullBuffer);
   // nullptr data
   EXPECT_THROW(
-      logBuffer.log(param_, nullptr, I2cLogBuffer::Operation::Read),
+      logBuffer.log(param_, kField, nullptr, I2cLogBuffer::Operation::Read),
       std::invalid_argument);
 }
 
@@ -246,16 +282,16 @@ TEST_F(I2cLogBufferTest, testOnlyRead) {
       createBuffer(kFullBuffer, /*read*/ true, /*write*/ false);
   // insert 3 elements Read
   for (int i = 0; i < 3; i++) {
-    logBuffer.log(param_, data_.data(), I2cLogBuffer::Operation::Read);
+    logBuffer.log(param_, kField, data_.data(), I2cLogBuffer::Operation::Read);
   }
   // insert 4 elements write (should not log)
   for (int i = 0; i < 4; i++) {
-    logBuffer.log(param_, data_.data(), I2cLogBuffer::Operation::Write);
+    logBuffer.log(param_, kField, data_.data(), I2cLogBuffer::Operation::Write);
   }
   std::vector<I2cLogBuffer::I2cLogEntry> entries;
   auto count = logBuffer.dump(entries);
-  EXPECT_EQ(count.first, 3);
-  EXPECT_EQ(count.second, 3);
+  EXPECT_EQ(count.totalEntries, 3);
+  EXPECT_EQ(count.bufferEntries, 3);
 }
 
 TEST_F(I2cLogBufferTest, testOnlyWrite) {
@@ -263,37 +299,38 @@ TEST_F(I2cLogBufferTest, testOnlyWrite) {
       createBuffer(kFullBuffer, /*read*/ false, /*write*/ true);
   // insert 3 elements Read (should not log)
   for (int i = 0; i < 3; i++) {
-    logBuffer.log(param_, data_.data(), I2cLogBuffer::Operation::Read);
+    logBuffer.log(param_, kField, data_.data(), I2cLogBuffer::Operation::Read);
   }
   // insert 4 elements write
   for (int i = 0; i < 4; i++) {
-    logBuffer.log(param_, data_.data(), I2cLogBuffer::Operation::Write);
+    logBuffer.log(param_, kField, data_.data(), I2cLogBuffer::Operation::Write);
   }
   std::vector<I2cLogBuffer::I2cLogEntry> entries;
   auto count = logBuffer.dump(entries);
-  EXPECT_EQ(count.first, 4);
-  EXPECT_EQ(count.first, 4);
+  EXPECT_EQ(count.totalEntries, 4);
+  EXPECT_EQ(count.totalEntries, 4);
 }
 
 TEST_F(I2cLogBufferTest, testDisableOnFail) {
   I2cLogBuffer logBuffer = createBuffer(
       kFullBuffer, /*read*/ true, /*write*/ true, /*disableOnFail*/ true);
   // insert 1 elements Read
-  logBuffer.log(param_, data_.data(), I2cLogBuffer::Operation::Read);
+  logBuffer.log(param_, kField, data_.data(), I2cLogBuffer::Operation::Read);
   // insert 1 elements write
-  logBuffer.log(param_, data_.data(), I2cLogBuffer::Operation::Write);
+  logBuffer.log(param_, kField, data_.data(), I2cLogBuffer::Operation::Write);
   // Transaction failure resulting in a fail log.
-  logBuffer.log(param_, data_.data(), I2cLogBuffer::Operation::Write, false);
+  logBuffer.log(
+      param_, kField, data_.data(), I2cLogBuffer::Operation::Write, false);
   // insert 1 element Read (should not log)
-  logBuffer.log(param_, data_.data(), I2cLogBuffer::Operation::Read);
+  logBuffer.log(param_, kField, data_.data(), I2cLogBuffer::Operation::Read);
   // insert 1 element write (should not log)
-  logBuffer.log(param_, data_.data(), I2cLogBuffer::Operation::Write);
+  logBuffer.log(param_, kField, data_.data(), I2cLogBuffer::Operation::Write);
   // check that we have 3 elements (including the one that failed).
   // since we have disableOnFail, we stop logging beyond error.
   std::vector<I2cLogBuffer::I2cLogEntry> entries;
   auto count = logBuffer.dump(entries);
-  EXPECT_EQ(count.first, 3);
-  EXPECT_EQ(count.second, 3);
+  EXPECT_EQ(count.totalEntries, 3);
+  EXPECT_EQ(count.bufferEntries, 3);
 }
 
 TEST_F(I2cLogBufferTest, testNoDisableOnFail) {
@@ -301,20 +338,21 @@ TEST_F(I2cLogBufferTest, testNoDisableOnFail) {
   I2cLogBuffer logBuffer = createBuffer(
       kFullBuffer, /*read*/ true, /*write*/ true, /*disableOnFail*/ false);
   // insert 1 elements Read
-  logBuffer.log(param_, data_.data(), I2cLogBuffer::Operation::Read);
+  logBuffer.log(param_, kField, data_.data(), I2cLogBuffer::Operation::Read);
   // insert 1 elements write
-  logBuffer.log(param_, data_.data(), I2cLogBuffer::Operation::Write);
+  logBuffer.log(param_, kField, data_.data(), I2cLogBuffer::Operation::Write);
   // Transaction failure resulting in a fail log.
-  logBuffer.log(param_, data_.data(), I2cLogBuffer::Operation::Read, false);
+  logBuffer.log(
+      param_, kField, data_.data(), I2cLogBuffer::Operation::Read, false);
   // insert 1 element Read
-  logBuffer.log(param_, data_.data(), I2cLogBuffer::Operation::Read);
+  logBuffer.log(param_, kField, data_.data(), I2cLogBuffer::Operation::Read);
   // insert 1 element write
-  logBuffer.log(param_, data_.data(), I2cLogBuffer::Operation::Write);
+  logBuffer.log(param_, kField, data_.data(), I2cLogBuffer::Operation::Write);
   // check that we have 5 elements since we dont disable logging on fail
   std::vector<I2cLogBuffer::I2cLogEntry> entries;
   auto count = logBuffer.dump(entries);
-  EXPECT_EQ(count.first, 5);
-  EXPECT_EQ(count.second, 5);
+  EXPECT_EQ(count.totalEntries, 5);
+  EXPECT_EQ(count.bufferEntries, 5);
 }
 
 TEST_F(I2cLogBufferTest, testEmptyLogFile) {
@@ -340,7 +378,7 @@ TEST_F(I2cLogBufferTest, testLogFile) {
   for (int i = 0; i < kFullBuffer; i++) {
     data_[0] = i;
     param_.i2cAddress = i;
-    logBuffer.log(param_, data_.data(), I2cLogBuffer::Operation::Read);
+    logBuffer.log(param_, kField, data_.data(), I2cLogBuffer::Operation::Read);
   }
 
   auto ret = logBuffer.dumpToFile();
@@ -375,7 +413,8 @@ TEST_F(I2cLogBufferTest, testReplayBasic) {
       allData[i][j] = i;
     }
     param_.i2cAddress = i;
-    logBuffer.log(param_, allData[i].data(), I2cLogBuffer::Operation::Write);
+    logBuffer.log(
+        param_, kField, allData[i].data(), I2cLogBuffer::Operation::Write);
   }
 
   logBuffer.dumpToFile();
@@ -384,6 +423,66 @@ TEST_F(I2cLogBufferTest, testReplayBasic) {
 
   EXPECT_EQ(replayEntries.size(), kFullBuffer);
 
+  for (int i = 0; i < kFullBuffer; i++) {
+    EXPECT_EQ(replayEntries[i].param.i2cAddress, i);
+    EXPECT_EQ(replayEntries[i].param.offset, param_.offset);
+    EXPECT_EQ(replayEntries[i].param.len, param_.len);
+    EXPECT_EQ(replayEntries[i].param.page, param_.page);
+    EXPECT_EQ(replayEntries[i].param.bank, param_.bank);
+    EXPECT_EQ(replayEntries[i].op, I2cLogBuffer::Operation::Write);
+    for (int j = 0; j < replayEntries[i].param.len; j++) {
+      EXPECT_EQ(replayEntries[i].data[j], allData[i][j]);
+    }
+  }
+}
+
+TEST_F(I2cLogBufferTest, testReplayBasicWithCmisFieldNames) {
+  I2cLogBuffer logBuffer = createBuffer(kFullBuffer);
+
+  // insert kFullBuffer elements
+  std::vector<std::array<uint8_t, kMaxI2clogDataSize>> allData(kFullBuffer);
+  for (int i = 0; i < kFullBuffer; i++) {
+    for (int j = 0; j < param_.len; j++) {
+      // fill data
+      allData[i][j] = i;
+    }
+  }
+
+  // Now Set the Transceiver Type to CMIS and check that the field (0) for the
+  // I2C Write is RAW based on enum.
+  std::set<std::string> ports = {"eth1/1/1", "eth1/1/5"};
+  logBuffer.setTcvrInfoInLog(
+      TransceiverManagementInterface::CMIS, ports, std::nullopt, std::nullopt);
+
+  std::array<CmisField, kFullBuffer> fields = {
+      CmisField::RAW,
+      CmisField::CDB_COMMAND,
+      CmisField::FW_UPGRADE,
+      CmisField::PAGE_CHANGE,
+      CmisField::MGMT_INTERFACE,
+      CmisField::PART_NUM,
+      CmisField::FW_VERSION,
+      CmisField::PAGE_LOWER,
+      CmisField::IDENTIFIER,
+      CmisField::REVISION_COMPLIANCE};
+
+  for (int i = 0; i < kFullBuffer; i++) {
+    param_.i2cAddress = i;
+    logBuffer.log(
+        param_,
+        static_cast<int>(fields[i]),
+        allData[i].data(),
+        I2cLogBuffer::Operation::Write);
+  }
+  logBuffer.dumpToFile();
+
+  // Check that the log file contains the port names and the field names.
+  checkLogFileContainsWords(kLogFile_, ports, fields);
+
+  auto replayEntries = I2cLogBuffer::loadFromLog(kLogFile_);
+  EXPECT_EQ(replayEntries.size(), kFullBuffer);
+
+  // Check replay entries are accurate.
   for (int i = 0; i < kFullBuffer; i++) {
     EXPECT_EQ(replayEntries[i].param.i2cAddress, i);
     EXPECT_EQ(replayEntries[i].param.offset, param_.offset);
@@ -435,7 +534,7 @@ TEST_F(I2cLogBufferTest, testReplayScenarios) {
       }
       // Make odd transactions fail, to check replay data will be identical.
       bool success = (i % 2 == 0) ? true : false;
-      logBuffer.log(allParam[i], allData[i].data(), allOps[i], success);
+      logBuffer.log(allParam[i], kField, allData[i].data(), allOps[i], success);
     }
 
     logBuffer.dumpToFile();

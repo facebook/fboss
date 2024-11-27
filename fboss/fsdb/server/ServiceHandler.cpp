@@ -5,8 +5,9 @@
 
 #include <fboss/lib/LogThriftCall.h>
 #include <folly/coro/BlockingWait.h>
-#include <folly/coro/Timeout.h>
 #include <folly/logging/xlog.h>
+#include <thrift/lib/cpp2/server/Cpp2Worker.h>
+#include "fboss/fsdb/common/Flags.h"
 #include "fboss/fsdb/if/gen-cpp2/fsdb_common_constants.h"
 #include "fboss/fsdb/oper/PathValidator.h"
 #include "folly/CancellationToken.h"
@@ -16,6 +17,12 @@
 #include <iterator>
 
 using namespace std::chrono_literals; // @donotremove
+
+namespace apache {
+namespace thrift {
+class ThriftServer;
+} // namespace thrift
+} // namespace apache
 
 DEFINE_int32(metricsTtl_s, 1 * 12 * 3600 /* twelve hours */, "TTL for metrics");
 
@@ -1392,6 +1399,25 @@ void ServiceHandler::validateOperPublishPermissions(
       throw;
     }
     return;
+  }
+}
+
+void ServiceHandler::preStart(const folly::SocketAddress* /*address*/) {
+  if (!server_) {
+    return;
+  }
+  for (auto& socket : server_->getSockets()) {
+    folly::SocketAddress socketAddress = socket->getAddress();
+    int port = socketAddress.getPort();
+    if (port == FLAGS_fsdbPort_high_priority) {
+      // set tos = 0xc0, wherein dscp=48 (network control)
+      int tos = fsdb_common_constants::kTosForClassOfServiceNC();
+      XLOG(INFO) << "set port " << port << " to tos=0xc0";
+      socklen_t optsize = sizeof(tos);
+      folly::NetworkSocket netsocket = socket->getNetworkSocket();
+      folly::netops::setsockopt(
+          netsocket, IPPROTO_IPV6, IPV6_TCLASS, &tos, optsize);
+    }
   }
 }
 

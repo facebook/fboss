@@ -8,20 +8,8 @@
  *
  */
 #include "fboss/agent/state/AclTableGroup.h"
-#include <folly/Conv.h>
-#include <thrift/lib/cpp/util/EnumUtils.h>
-#include "fboss/agent/state/AclEntry.h"
-#include "fboss/agent/state/AclTable.h"
-#include "fboss/agent/state/AclTableMap.h"
-#include "fboss/agent/state/NodeBase-defs.h"
-#include "fboss/agent/state/StateUtils.h"
 
-using apache::thrift::TEnumTraits;
-using folly::IPAddress;
-
-namespace {
-constexpr auto kAclTableGroupName = "ingress-ACL-Table-Group";
-} // namespace
+#include "fboss/agent/gen-cpp2/switch_config_constants.h"
 
 namespace facebook::fboss {
 
@@ -35,10 +23,10 @@ AclTableGroup::createDefaultAclTableGroupFromThrift(
   auto aclTableMap = AclTableMap::createDefaultAclTableMapFromThrift(aclMap);
   state::AclTableGroupFields data{};
   data.stage() = cfg::AclStage::INGRESS;
-  data.name() = kAclTableGroupName;
+  data.name() = cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE_GROUP();
   data.aclTableMap() = aclTableMap->toThrift();
   return std::make_shared<AclTableGroup>(data);
 }
 
-template class ThriftStructNode<AclTableGroup, state::AclTableGroupFields>;
+template struct ThriftStructNode<AclTableGroup, state::AclTableGroupFields>;
 } // namespace facebook::fboss

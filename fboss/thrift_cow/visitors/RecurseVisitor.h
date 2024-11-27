@@ -46,15 +46,15 @@ struct RecurseVisitOptions {
       RecurseVisitMode mode,
       RecurseVisitOrder order,
       bool outputIdPaths = false,
-      bool recurseIntoHybridNodes = false)
+      bool hybridNodeDeepTraversal = false)
       : mode(mode),
         order(order),
         outputIdPaths(outputIdPaths),
-        recurseIntoHybridNodes(recurseIntoHybridNodes) {}
+        hybridNodeDeepTraversal(hybridNodeDeepTraversal) {}
   RecurseVisitMode mode;
   RecurseVisitOrder order;
   bool outputIdPaths;
-  bool recurseIntoHybridNodes;
+  bool hybridNodeDeepTraversal;
 };
 
 template <typename>
@@ -160,12 +160,11 @@ struct RecurseVisitor<apache::thrift::type_class::set<ValueTypeClass>> {
              typename folly::remove_cvref_t<NodePtr>::element_type::CowType,
              HybridNodeType>)
   {
-    if (!options.recurseIntoHybridNodes) {
-      rv_detail::invokeVisitorFnHelper(traverser, node, std::forward<Func>(f));
-    } else {
+    if (options.hybridNodeDeepTraversal) {
       throw std::runtime_error(folly::to<std::string>(
-          "RecurseVisitor support for recurseIntoHybridNode in Set not implemented"));
+          "RecurseVisitor support for hybridNodeDeepTraversal in Set not implemented"));
     }
+    rv_detail::invokeVisitorFnHelper(traverser, node, std::forward<Func>(f));
   }
 
   template <typename Fields, typename TraverseHelper, typename Func>
@@ -219,11 +218,27 @@ struct RecurseVisitor<apache::thrift::type_class::list<ValueTypeClass>> {
              typename folly::remove_cvref_t<NodePtr>::element_type::CowType,
              HybridNodeType>)
   {
-    if (!options.recurseIntoHybridNodes) {
-      rv_detail::invokeVisitorFnHelper(traverser, node, std::forward<Func>(f));
-    } else {
+    if (options.hybridNodeDeepTraversal) {
       throw std::runtime_error(folly::to<std::string>(
-          "RecurseVisitor support for recurseIntoHybridNode in List not implemented"));
+          "RecurseVisitor support for hybridNodeDeepTraversal in List not implemented"));
+    }
+    auto& tObj = node->ref();
+    bool visitIntermediate = options.mode == RecurseVisitMode::FULL ||
+        options.mode == RecurseVisitMode::UNPUBLISHED;
+    if (visitIntermediate &&
+        options.order == RecurseVisitOrder::PARENTS_FIRST) {
+      rv_detail::invokeVisitorFnHelper(traverser, node, std::forward<Func>(f));
+    }
+    // visit list elements
+    for (int i = 0; i < tObj.size(); ++i) {
+      traverser.push(folly::to<std::string>(i), TCType<ValueTypeClass>);
+      rv_detail::invokeVisitorFnHelper(
+          traverser, &tObj.at(i), std::forward<Func>(f));
+      traverser.pop(TCType<ValueTypeClass>);
+    }
+    if (visitIntermediate &&
+        options.order == RecurseVisitOrder::CHILDREN_FIRST) {
+      rv_detail::invokeVisitorFnHelper(traverser, node, std::forward<Func>(f));
     }
   }
 
@@ -278,11 +293,36 @@ struct RecurseVisitor<
              typename folly::remove_cvref_t<NodePtr>::element_type::CowType,
              HybridNodeType>)
   {
-    if (!options.recurseIntoHybridNodes) {
-      rv_detail::invokeVisitorFnHelper(traverser, node, std::forward<Func>(f));
-    } else {
+    if (options.hybridNodeDeepTraversal) {
       throw std::runtime_error(folly::to<std::string>(
-          "RecurseVisitor support for recurseIntoHybridNode in Map not implemented"));
+          "RecurseVisitor support for hybridNodeDeepTraversal in Map not implemented"));
+    }
+    auto& tObj = node->ref();
+    bool visitIntermediate = options.mode == RecurseVisitMode::FULL ||
+        options.mode == RecurseVisitMode::UNPUBLISHED;
+    if (visitIntermediate &&
+        options.order == RecurseVisitOrder::PARENTS_FIRST) {
+      rv_detail::invokeVisitorFnHelper(traverser, node, std::forward<Func>(f));
+    }
+    // visit map entries
+    if constexpr (std::is_const_v<NodePtr>) {
+      for (const auto& [key, val] : tObj) {
+        traverser.push(folly::to<std::string>(key), TCType<MappedTypeClass>);
+        rv_detail::invokeVisitorFnHelper(
+            traverser, &val, std::forward<Func>(f));
+        traverser.pop(TCType<MappedTypeClass>);
+      }
+    } else {
+      for (auto& [key, val] : tObj) {
+        traverser.push(folly::to<std::string>(key), TCType<MappedTypeClass>);
+        rv_detail::invokeVisitorFnHelper(
+            traverser, &val, std::forward<Func>(f));
+        traverser.pop(TCType<MappedTypeClass>);
+      }
+    }
+    if (visitIntermediate &&
+        options.order == RecurseVisitOrder::CHILDREN_FIRST) {
+      rv_detail::invokeVisitorFnHelper(traverser, node, std::forward<Func>(f));
     }
   }
 
@@ -345,12 +385,11 @@ struct RecurseVisitor<apache::thrift::type_class::variant> {
              typename folly::remove_cvref_t<NodePtr>::element_type::CowType,
              HybridNodeType>)
   {
-    if (!options.recurseIntoHybridNodes) {
-      rv_detail::invokeVisitorFnHelper(traverser, node, std::forward<Func>(f));
-    } else {
+    if (options.hybridNodeDeepTraversal) {
       throw std::runtime_error(folly::to<std::string>(
-          "RecurseVisitor support for recurseIntoHybridNode in Variant not implemented"));
+          "RecurseVisitor support for hybridNodeDeepTraversal in Variant not implemented"));
     }
+    rv_detail::invokeVisitorFnHelper(traverser, node, std::forward<Func>(f));
   }
 
   template <typename Fields, typename TraverseHelper, typename Func>
@@ -437,12 +476,11 @@ struct RecurseVisitor<apache::thrift::type_class::structure> {
              typename folly::remove_cvref_t<NodePtr>::element_type::CowType,
              HybridNodeType>)
   {
-    if (!options.recurseIntoHybridNodes) {
-      rv_detail::invokeVisitorFnHelper(traverser, node, std::forward<Func>(f));
-    } else {
+    if (options.hybridNodeDeepTraversal) {
       throw std::runtime_error(folly::to<std::string>(
-          "RecurseVisitor support for recurseIntoHybridNode in Struct not implemented"));
+          "RecurseVisitor support for hybridNodeDeepTraversal in Struct not implemented"));
     }
+    rv_detail::invokeVisitorFnHelper(traverser, node, std::forward<Func>(f));
   }
 
   template <typename Fields, typename TraverseHelper, typename Func>

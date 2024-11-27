@@ -19,8 +19,8 @@ namespace facebook::fboss {
 
 class SwSwitch;
 class RxPacket;
-class UDPHeader;
-class DHCPv4Packet;
+struct UDPHeader;
+struct DHCPv4Packet;
 class TxPacket;
 class IPv4Hdr;
 

@@ -12,11 +12,9 @@
 
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
-#include "fboss/lib/platforms/PlatformMode.h"
 
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwTestCoppUtils.h"
-#include "fboss/agent/hw/test/LoadBalancerUtils.h"
 #include "fboss/agent/hw/test/dataplane_tests/HwTestPfcUtils.h"
 #include "fboss/agent/test/utils/DscpMarkingUtils.h"
 #include "fboss/agent/test/utils/OlympicTestUtils.h"
@@ -58,7 +56,7 @@ void addNetworkAIQosToConfig(cfg::SwitchConfig& config, const HwAsic* hwAsic) {
   auto streamType =
       *hwAsic->getQueueStreamTypes(cfg::PortType::INTERFACE_PORT).begin();
   // queue configuration is different
-  addNetworkAIQueueConfig(&config, streamType);
+  addNetworkAIQueueConfig(&config, streamType, hwAsic);
 }
 
 void addNetworkAIQosToConfig(

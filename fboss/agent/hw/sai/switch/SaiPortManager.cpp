@@ -134,13 +134,23 @@ void fillHwPortStats(
   bool isEtherStatsSupported =
       platform->getAsic()->isSupported(HwAsic::Feature::SAI_PORT_ETHER_STATS);
   auto updateInUcastPkts = [&hwPortStats, &portType](uint64_t value) {
-    if (portType == cfg::PortType::RECYCLE_PORT) {
-      // RECYCLE port ucast pkts is clear on read on all
+    if (portType == cfg::PortType::RECYCLE_PORT ||
+        portType == cfg::PortType::EVENTOR_PORT) {
+      // RECYCLE/EVENTOR port ucast pkts is clear on read on all
       // platforms that have rcy ports
       setUninitializedStatsToZero(*hwPortStats.inUnicastPkts_());
       hwPortStats.inUnicastPkts_() = *hwPortStats.inUnicastPkts_() + value;
     } else {
       hwPortStats.inUnicastPkts_() = value;
+    }
+  };
+  auto updateOutUcastPkts = [&hwPortStats, &portType](uint64_t value) {
+    if (portType == cfg::PortType::EVENTOR_PORT) {
+      // EVENTOR port ucast pkts is clear on read
+      setUninitializedStatsToZero(*hwPortStats.outUnicastPkts_());
+      hwPortStats.outUnicastPkts_() = *hwPortStats.outUnicastPkts_() + value;
+    } else {
+      hwPortStats.outUnicastPkts_() = value;
     }
   };
   for (auto counterIdAndValue : counterId2Value) {
@@ -186,13 +196,13 @@ void fillHwPortStats(
         if (!isEtherStatsSupported) {
           // when port ether stats is supported, skip updating as ether
           // counterpart stats will populate them
-          hwPortStats.outUnicastPkts_() = value;
+          updateOutUcastPkts(value);
         }
         break;
       case SAI_PORT_STAT_ETHER_STATS_TX_NO_ERRORS:
         if (isEtherStatsSupported) {
           // when port ether stats is supported, update
-          hwPortStats.outUnicastPkts_() = value;
+          updateOutUcastPkts(value);
         }
         break;
       case SAI_PORT_STAT_IF_OUT_MULTICAST_PKTS:
@@ -306,6 +316,11 @@ void fillHwPortStats(
 #if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
       case SAI_PORT_STAT_IF_IN_LINK_DOWN_CELL_DROP:
         hwPortStats.fabricLinkDownDroppedCells_() = value;
+        break;
+#endif
+#if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+      case SAI_PORT_STAT_FAST_LLFC_TRIGGER_STATUS:
+        hwPortStats.linkLayerFlowControlWatermark_() = value;
         break;
 #endif
       default:
@@ -1822,6 +1837,14 @@ void SaiPortManager::updateStats(
 
   curPortStats.timestamp_() = now.count();
   handle->port->updateStats(supportedStats(portId), SAI_STATS_MODE_READ);
+#if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+  if (updateWatermarks &&
+      platform_->getAsic()->isSupported(HwAsic::Feature::FAST_LLFC_COUNTER)) {
+    handle->port->updateStats(
+        {SAI_PORT_STAT_FAST_LLFC_TRIGGER_STATUS},
+        SAI_STATS_MODE_READ_AND_CLEAR);
+  }
+#endif
 
   bool updateFecStats = false;
   auto lastFecReadTimeIt = lastFecCounterReadTime_.find(portId);
@@ -2976,5 +2999,62 @@ void SaiPortManager::updateConditionalEntropySeed(PortID portID, uint32_t seed)
   portHandle->port->setOptionalAttribute(
       SaiPortTraits::Attributes::CondEntropyRehashSeed{seed});
 #endif
+}
+
+void SaiPortManager::changePortFlowletConfig(
+    const std::shared_ptr<Port>& oldPort,
+    const std::shared_ptr<Port>& newPort) {
+  if (!FLAGS_flowletSwitchingEnable ||
+      !platform_->getAsic()->isSupported(HwAsic::Feature::FLOWLET)) {
+    return;
+  }
+
+  auto portHandle = getPortHandle(newPort->getID());
+  if (!portHandle) {
+    throw FbossError(
+        "Cannot change flowlet cfg on non existent port: ", newPort->getID());
+  }
+
+  if (oldPort->getPortFlowletConfig() != newPort->getPortFlowletConfig()) {
+#if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
+    // SaiPortTraits::Attributes::ArsEnable arsEnable{false};
+    bool arsEnable = false;
+    uint16_t scalingFactor = 0;
+    uint16_t loadPastWeight = 0;
+    uint16_t loadFutureWeight = 0;
+    auto newPortFlowletCfg = newPort->getPortFlowletConfig();
+    if (newPortFlowletCfg.has_value()) {
+      /*
+       * Sum of old and new weights cannot go beyond 100
+       * This is not a problem with native impl since both weights are applied
+       * with a single API call. An example transtion is
+       * Load  : 60 -> 70
+       * Queue : 40 -> 30
+       * (70 + 40) > 100
+       * Reset both the weights in the SDK once and re-apply new values below
+       */
+      portHandle->port->setOptionalAttribute(
+          SaiPortTraits::Attributes::ArsPortLoadPastWeight{0});
+      portHandle->port->setOptionalAttribute(
+          SaiPortTraits::Attributes::ArsPortLoadFutureWeight{0});
+
+      auto newPortFlowletCfgPtr = newPortFlowletCfg.value();
+      arsEnable = true;
+      scalingFactor = newPortFlowletCfgPtr->getScalingFactor();
+      loadPastWeight = newPortFlowletCfgPtr->getLoadWeight();
+      loadFutureWeight = newPortFlowletCfgPtr->getQueueWeight();
+    }
+    portHandle->port->setOptionalAttribute(
+        SaiPortTraits::Attributes::ArsEnable{arsEnable});
+    portHandle->port->setOptionalAttribute(
+        SaiPortTraits::Attributes::ArsPortLoadScalingFactor{scalingFactor});
+    portHandle->port->setOptionalAttribute(
+        SaiPortTraits::Attributes::ArsPortLoadPastWeight{loadPastWeight});
+    portHandle->port->setOptionalAttribute(
+        SaiPortTraits::Attributes::ArsPortLoadFutureWeight{loadFutureWeight});
+#endif
+  } else {
+    XLOG(DBG4) << "Port flowlet setting unchanged for " << newPort->getName();
+  }
 }
 } // namespace facebook::fboss

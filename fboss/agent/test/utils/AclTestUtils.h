@@ -32,7 +32,7 @@ std::string kDefaultAclTable();
 cfg::AclEntry* addAclEntry(
     cfg::SwitchConfig* cfg,
     cfg::AclEntry& acl,
-    const std::optional<std::string>& tableName);
+    const std::string& tableName);
 
 cfg::AclEntry* addAcl(
     cfg::SwitchConfig* cfg,
@@ -50,7 +50,8 @@ std::vector<cfg::AclTableQualifier> genAclQualifiersConfig(
 
 int getAclTableIndex(
     cfg::SwitchConfig* cfg,
-    const std::optional<std::string>& tableName);
+    const std::string& tableName,
+    const std::string& tableGroupName);
 
 std::shared_ptr<AclEntry> getAclEntryByName(
     const std::shared_ptr<SwitchState> state,
@@ -60,7 +61,7 @@ std::optional<cfg::TrafficCounter> getAclTrafficCounter(
     const std::shared_ptr<SwitchState> state,
     const std::string& aclName);
 
-std::string getAclTableGroupName();
+std::string kDefaultAclTableGroupName();
 
 std::vector<cfg::AclEntry>& getAcls(
     cfg::SwitchConfig* cfg,
@@ -142,5 +143,10 @@ std::shared_ptr<AclEntry> getAclEntry(
     const std::shared_ptr<SwitchState>& state,
     const std::string& name,
     bool enableAclTableGroup);
+
+cfg::AclTableGroup* FOLLY_NULLABLE
+getAclTableGroup(cfg::SwitchConfig& config, const std::string& name);
+
+cfg::AclTableGroup* FOLLY_NULLABLE getAclTableGroup(cfg::SwitchConfig& config);
 
 } // namespace facebook::fboss::utility

@@ -36,6 +36,6 @@ std::shared_ptr<MultiSwitchMirrorMap> MultiSwitchMirrorMap::fromThrift(
   return mnpuMap;
 }
 
-template class ThriftMapNode<MirrorMap, MirrorMapTraits>;
+template struct ThriftMapNode<MirrorMap, MirrorMapTraits>;
 
 } // namespace facebook::fboss

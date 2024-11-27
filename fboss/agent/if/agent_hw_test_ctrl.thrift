@@ -36,6 +36,12 @@ struct PortInfo {
   1: i32 loopbackMode;
 }
 
+struct AggPortInfo {
+  1: bool isPresent;
+  2: i32 numMembers;
+  3: i32 numActiveMembers;
+}
+
 service AgentHwTestCtrl {
   // acl utils begin
   i32 getDefaultAclTableNumAclEntries();
@@ -78,6 +84,7 @@ service AgentHwTestCtrl {
   NeighborInfo getNeighborInfo(1: ctrl.IfAndIP neighbor);
 
   i32 getHwEcmpSize(1: CIDRNetwork prefix, 2: i32 routerID, 3: i32 sizeInSw);
+  map<i32, i32> getEcmpWeights(1: CIDRNetwork prefix, 2: i32 routerID);
 
   void injectFecError(1: list<i32> hwPorts, 2: bool injectCorrectable);
 
@@ -100,4 +107,10 @@ service AgentHwTestCtrl {
 
   // port utils
   list<PortInfo> getPortInfo(1: list<i32> portIds);
+  bool verifyPortLedStatus(1: i32 port, 2: bool status);
+  bool verifyPGSettings(1: i32 port, 2: bool pfcEnabled);
+
+  list<AggPortInfo> getAggPortInfo(1: list<i32> aggPortIds);
+  i32 getNumAggPorts();
+  bool verifyPktFromAggPort(1: i32 aggPortId);
 }

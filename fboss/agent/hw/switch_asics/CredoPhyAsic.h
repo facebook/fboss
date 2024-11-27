@@ -9,20 +9,10 @@ namespace facebook::fboss {
 class CredoPhyAsic : public HwAsic {
  public:
   CredoPhyAsic(
-      cfg::SwitchType type,
-      std::optional<int64_t> id,
-      int16_t index,
-      std::optional<cfg::Range64> systemPortRange,
-      const folly::MacAddress& mac,
+      std::optional<int64_t> switchId,
+      cfg::SwitchInfo switchInfo,
       std::optional<cfg::SdkVersion> sdkVersion = std::nullopt)
-      : HwAsic(
-            type,
-            id,
-            index,
-            systemPortRange,
-            mac,
-            sdkVersion,
-            {cfg::SwitchType::PHY}) {}
+      : HwAsic(switchId, switchInfo, sdkVersion, {cfg::SwitchType::PHY}) {}
   bool isSupported(Feature feature) const override;
   cfg::AsicType getAsicType() const override {
     return cfg::AsicType::ASIC_TYPE_ELBERT_8DD;
@@ -46,6 +36,7 @@ class CredoPhyAsic : public HwAsic {
       cfg::PortType portType) const override;
   uint32_t getMaxLabelStackDepth() const override;
   uint64_t getMMUSizeBytes() const override;
+  uint64_t getSramSizeBytes() const override;
   uint32_t getMaxMirrors() const override;
   uint64_t getDefaultReservedBytes(
       cfg::StreamType streamType,

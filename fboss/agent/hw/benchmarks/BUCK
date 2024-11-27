@@ -28,6 +28,23 @@ agent_benchmark_lib(
     ],
 )
 
+agent_benchmark_lib(
+    name = "hw_rx_slow_path_arp_rate",
+    srcs = ["HwRxSlowPathArpBenchmark.cpp"],
+    extra_deps = [
+        "//fboss/agent:core",
+        "//fboss/agent:packet",
+        "//fboss/agent/hw/switch_asics:switch_asics",
+        "//fboss/agent/packet:packet_factory",
+        "//fboss/agent/test/utils:acl_test_utils",
+        "//fboss/agent/test/utils:copp_test_utils",
+        "//fboss/agent/test/utils:qos_test_utils",
+        "//fboss/agent/test/utils:asic_test_utils",
+        "//folly:network_address",
+        "//folly/init:init",
+    ],
+)
+
 cpp_library(
     name = "hw_route_scale_benchmark_helpers",
     headers = [
@@ -44,6 +61,7 @@ cpp_library(
         "//fboss/agent/test:agent_ensemble",
         "//fboss/agent/test:ecmp_helper",
         "//fboss/agent/test:resourcelibutil",
+        "//fboss/agent/test/utils:dsf_config_utils",
         "//fboss/agent/test/utils:fabric_test_utils",
         "//fboss/agent/test/utils:voq_test_utils",
         "//fboss/lib:function_call_time_reporter",
@@ -163,17 +181,15 @@ cpp_library(
         "//fboss/agent/hw/test:config_factory",
         "//fboss/agent/hw/test:hw_copp_utils",
         "//fboss/agent/hw/test:hw_switch_ensemble_factory",
-        "//fboss/agent/hw/test:load_balancer_utils",
         "//fboss/agent/hw/test:prod_config_utils",
         "//fboss/agent/test:agent_ensemble",
         "//fboss/agent/test:route_distribution_gen",
         "//fboss/agent/test:route_scale_gen",
+        "//fboss/agent/test/utils:dsf_config_utils",
         "//fboss/agent/test/utils:fabric_test_utils",
         "//fboss/agent/test/utils:voq_test_utils",
         "//fboss/lib:function_call_time_reporter",
-        "//fboss/lib/platforms:platform_mode",
         "//folly:benchmark",
-        "//folly/logging:logging",
     ],
 )
 
@@ -293,8 +309,6 @@ cpp_library(
     srcs = ["HwTeFlowScaleBenchmarkHelper.cpp"],
     undefined_symbols = True,
     exported_deps = [
-        "//fboss/agent:platform_base",
-        "//fboss/agent:stats",
         "//fboss/agent:switch_config-cpp2-types",
         "//fboss/agent/benchmarks:mono_agent_benchmarks",
         "//fboss/agent/hw/test:config_factory",
@@ -305,7 +319,6 @@ cpp_library(
         "//fboss/lib:function_call_time_reporter",
         "//folly:benchmark",
         "//folly:network_address",
-        "//folly/logging:logging",
     ],
 )
 
@@ -372,7 +385,10 @@ agent_benchmark_lib(
 
 agent_benchmark_lib(
     name = "hw_switch_reachability_change_speed",
-    srcs = ["HwSwitchReachabilityChangeBenchmark.cpp"],
+    srcs = [
+        "HwSwitchReachabilityChangeBenchmarkHelper.cpp",
+        "HwSwitchReachabilityChangeVoqBenchmark.cpp",
+    ],
     extra_deps = [
         "//fboss/agent/hw/test:hw_switch_ensemble_factory",
         "//fboss/agent/hw/test:hw_test_thrift_handler_h",

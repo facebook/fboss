@@ -11,7 +11,6 @@
 #include "fboss/cli/fboss2/commands/show/arp/CmdShowArp.h"
 #include "fboss/cli/fboss2/commands/show/arp/gen-cpp2/model_types.h"
 #include "fboss/cli/fboss2/test/CmdHandlerTestBase.h"
-#include "fboss/cli/fboss2/utils/CmdClientUtils.h"
 
 using namespace ::testing;
 

@@ -8,6 +8,7 @@
 #include <fb303/ServiceData.h>
 
 #include "fboss/platform/helpers/Init.h"
+#include "fboss/platform/platform_manager/ConfigUtils.h"
 #include "fboss/platform/platform_manager/PkgManager.h"
 #include "fboss/platform/platform_manager/PlatformManagerHandler.h"
 
@@ -45,7 +46,7 @@ int main(int argc, char** argv) {
   fb303::registerFollyLoggingOptionHandlers();
   helpers::init(&argc, &argv);
 
-  auto config = Utils().getConfig();
+  auto config = ConfigUtils().getConfig();
 
   PkgManager pkgManager(config);
   pkgManager.processAll();

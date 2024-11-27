@@ -12,10 +12,6 @@
 #include "fboss/agent/hw/sai/switch/SaiHostifManager.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitch.h"
-#include "fboss/agent/hw/switch_asics/HwAsic.h"
-
-#include "fboss/agent/SwitchStats.h"
-#include "fboss/agent/state/ControlPlane.h"
 
 namespace facebook::fboss {
 

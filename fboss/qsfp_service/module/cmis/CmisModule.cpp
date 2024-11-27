@@ -13,7 +13,6 @@
 #include "fboss/lib/platforms/PlatformMode.h"
 #include "fboss/lib/usb/TransceiverI2CApi.h"
 #include "fboss/qsfp_service/StatsPublisher.h"
-#include "fboss/qsfp_service/TransceiverManager.h"
 #include "fboss/qsfp_service/if/gen-cpp2/qsfp_service_config_types.h"
 #include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
 #include "fboss/qsfp_service/lib/QsfpConfigParserHelper.h"
@@ -593,11 +592,14 @@ void CmisModule::readCmisField(
          127,
          sizeof(page),
          static_cast<int>(CmisPages::LOWER)},
-        &page);
+        &page,
+        POST_I2C_WRITE_DELAY_US,
+        CAST_TO_INT(CmisField::PAGE_CHANGE));
   }
   qsfpImpl_->readTransceiver(
       {TransceiverAccessParameter::ADDR_QSFP, dataOffset, dataLength, dataPage},
-      data);
+      data,
+      CAST_TO_INT(field));
 }
 
 void CmisModule::writeCmisField(
@@ -616,11 +618,15 @@ void CmisModule::writeCmisField(
          127,
          sizeof(page),
          static_cast<int>(CmisPages::LOWER)},
-        &page);
+        &page,
+        POST_I2C_WRITE_DELAY_US,
+        CAST_TO_INT(CmisField::PAGE_CHANGE));
   }
   qsfpImpl_->writeTransceiver(
       {TransceiverAccessParameter::ADDR_QSFP, dataOffset, dataLength, dataPage},
-      data);
+      data,
+      POST_I2C_WRITE_DELAY_US,
+      CAST_TO_INT(field));
 }
 
 FlagLevels CmisModule::getQsfpSensorFlags(CmisField fieldName, int offset) {

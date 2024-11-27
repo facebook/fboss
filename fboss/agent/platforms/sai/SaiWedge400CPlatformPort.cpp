@@ -10,8 +10,6 @@
 #include "fboss/agent/platforms/sai/SaiWedge400CPlatformPort.h"
 #include "fboss/agent/platforms/common/utils/Wedge400LedUtils.h"
 
-#include <folly/Conv.h>
-
 DEFINE_bool(skip_led_programming, false, "Skip programming LED");
 
 namespace facebook::fboss {

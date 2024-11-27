@@ -489,31 +489,8 @@ bool FabricConnectivityManager::isConnectivityInfoMismatch(
   return false;
 }
 
-bool FabricConnectivityManager::isConnectivityInfoMismatch(
-    const PortID& portId) {
-  const auto& iter = currentNeighborConnectivity_.find(portId);
-  if (iter != currentNeighborConnectivity_.end()) {
-    const auto& endpoint = iter->second;
-    return isConnectivityInfoMismatch(endpoint);
-  }
-
-  // no mismatch
-  return false;
-}
-
-// Detect missing info. Points to configuration issue where expected
-// connectivity info is not populated.
 bool FabricConnectivityManager::isConnectivityInfoMissing(
-    const PortID& portId) {
-  const auto& iter = currentNeighborConnectivity_.find(portId);
-  if (iter == currentNeighborConnectivity_.end()) {
-    // specific port is missing from the reachability DB and
-    // also switch state (else we would have added it during addPort).
-    // So no connectivity is expected here
-    return false;
-  }
-
-  const auto& endpoint = iter->second;
+    const FabricEndpoint& endpoint) {
   if (!*endpoint.isAttached()) {
     // endpoint not attached, points to cabling connectivity issues
     // unless in cfg also we don't expect it to be present
@@ -539,6 +516,34 @@ bool FabricConnectivityManager::isConnectivityInfoMissing(
 
   // nothing missing
   return false;
+}
+
+bool FabricConnectivityManager::isConnectivityInfoMismatch(
+    const PortID& portId) {
+  const auto& iter = currentNeighborConnectivity_.find(portId);
+  if (iter != currentNeighborConnectivity_.end()) {
+    const auto& endpoint = iter->second;
+    return isConnectivityInfoMismatch(endpoint);
+  }
+
+  // no mismatch
+  return false;
+}
+
+// Detect missing info. Points to configuration issue where expected
+// connectivity info is not populated.
+bool FabricConnectivityManager::isConnectivityInfoMissing(
+    const PortID& portId) {
+  const auto& iter = currentNeighborConnectivity_.find(portId);
+  if (iter == currentNeighborConnectivity_.end()) {
+    // specific port is missing from the reachability DB and
+    // also switch state (else we would have added it during addPort).
+    // So no connectivity is expected here
+    return false;
+  }
+
+  const auto& endpoint = iter->second;
+  return isConnectivityInfoMissing(endpoint);
 }
 
 const std::map<PortID, FabricEndpoint>&

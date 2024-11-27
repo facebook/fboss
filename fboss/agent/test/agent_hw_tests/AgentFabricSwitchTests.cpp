@@ -522,6 +522,7 @@ class AgentBalancedInputModeTest : public AgentFabricSwitchTest {
     AgentFabricSwitchTest::setCmdLineFlagOverrides();
     FLAGS_disable_looped_fabric_ports = false;
     FLAGS_detect_wrong_fabric_connections = false;
+    FLAGS_enable_balanced_input_mode = true;
   }
 };
 

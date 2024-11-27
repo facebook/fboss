@@ -11,10 +11,6 @@
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
 
 #include <folly/Range.h>
-#include <folly/String.h>
-#include <folly/io/Cursor.h>
-#include <folly/io/IOBuf.h>
-#include <folly/logging/xlog.h>
 
 #include "common/logging/logging.h"
 
@@ -22,10 +18,7 @@
 #include "fboss/agent/LldpManager.h"
 #include "fboss/agent/packet/PktFactory.h"
 #include "fboss/agent/packet/UDPHeader.h"
-#include "fboss/agent/state/Interface.h"
-#include "fboss/agent/state/StateUtils.h"
 #include "fboss/agent/state/SwitchState.h"
-#include "fboss/agent/state/Vlan.h"
 
 #include "fboss/agent/test/ResourceLibUtil.h"
 #include "fboss/agent/test/TestUtils.h"

@@ -8,7 +8,6 @@
  *
  */
 #include "fboss/agent/platforms/sai/SaiFakePlatformPort.h"
-#include "fboss/agent/platforms/sai/SaiPlatform.h"
 
 namespace facebook::fboss {
 

@@ -42,15 +42,11 @@ FakeBcmTestPlatform::FakeBcmTestPlatform()
 }
 
 void FakeBcmTestPlatform::setupAsic(
-    cfg::SwitchType switchType,
     std::optional<int64_t> switchId,
-    int16_t switchIndex,
-    std::optional<cfg::Range64> systemPortRange,
-    folly::MacAddress& mac,
+    const cfg::SwitchInfo& switchInfo,
     std::optional<HwAsic::FabricNodeRole> fabricNodeRole) {
   CHECK(!fabricNodeRole.has_value());
-  asic_ = std::make_unique<FakeAsic>(
-      switchType, switchId, switchIndex, systemPortRange, mac);
+  asic_ = std::make_unique<FakeAsic>(switchId, switchInfo);
 }
 
 FakeBcmTestPlatform::~FakeBcmTestPlatform() {}

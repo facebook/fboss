@@ -10,7 +10,6 @@
 
 #include "fboss/agent/hw/HwPortFb303Stats.h"
 #include "fboss/agent/hw/StatsConstants.h"
-#include "fboss/agent/hw/gen-cpp2/hardware_stats_constants.h"
 
 #include <fb303/ServiceData.h>
 #include <folly/logging/xlog.h>
@@ -137,6 +136,7 @@ HwPortStats getInitedStats() {
       {{0, 100}, {1, 10}, {2, 1}}, // fecCodewords
       26, // pqpErrorEgressDroppedPackets_
       27, // fabricLinkDownDroppedCells_
+      28, // linkLayerFlowControlWatermark_
       0, // timestamp
       "test", // portName
       macsecStats,

@@ -25,7 +25,7 @@ SaiAclTableGroupManager::SaiAclTableGroupManager(
     : saiStore_(saiStore), managerTable_(managerTable), platform_(platform) {}
 
 sai_acl_stage_t SaiAclTableGroupManager::cfgAclStageToSaiAclStage(
-    cfg::AclStage aclStage) const {
+    cfg::AclStage aclStage) {
   switch (aclStage) {
     case cfg::AclStage::INGRESS:
       return SAI_ACL_STAGE_INGRESS;
@@ -33,6 +33,8 @@ sai_acl_stage_t SaiAclTableGroupManager::cfgAclStageToSaiAclStage(
       return SAI_ACL_STAGE_INGRESS_MACSEC;
     case cfg::AclStage::EGRESS_MACSEC:
       return SAI_ACL_STAGE_EGRESS_MACSEC;
+    case cfg::AclStage::EGRESS:
+      return SAI_ACL_STAGE_EGRESS;
   }
 
   // should return in one of the cases

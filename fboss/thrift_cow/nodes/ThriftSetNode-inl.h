@@ -153,12 +153,11 @@ struct ThriftSetFields : public FieldBaseType {
   }
 
   template <typename T = Self>
-  auto remove(const ValueTType& value)
-      -> std::enable_if_t<
-          !std::is_same_v<
-              typename T::ValueTypeClass,
-              apache::thrift::type_class::string>,
-          bool> {
+  bool remove(const ValueTType& value)
+    requires(!std::is_same_v<
+             typename T::ValueTypeClass,
+             apache::thrift::type_class::string>)
+  {
     return erase(value);
   }
 
@@ -358,12 +357,11 @@ class ThriftSetNode : public NodeBaseT<
   }
 
   template <typename T = Fields>
-  auto remove(const ValueTType& value)
-      -> std::enable_if_t<
-          !std::is_same_v<
-              typename T::ValueTypeClass,
-              apache::thrift::type_class::string>,
-          bool> {
+  bool remove(const ValueTType& value)
+    requires(!std::is_same_v<
+             typename T::ValueTypeClass,
+             apache::thrift::type_class::string>)
+  {
     // TODO: better handling of set<string> tc so we don't need
     // special impl remove fn
     return this->writableFields()->remove(value);

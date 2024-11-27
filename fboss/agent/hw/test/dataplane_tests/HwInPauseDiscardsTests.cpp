@@ -14,7 +14,6 @@
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 
-#include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/PortMap.h"
 #include "fboss/agent/state/SwitchState.h"

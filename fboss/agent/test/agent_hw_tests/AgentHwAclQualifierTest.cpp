@@ -13,6 +13,7 @@ enum class QualifierType : uint8_t {
   LOOKUPCLASS_L2,
   LOOKUPCLASS_NEIGHBOR,
   LOOKUPCLASS_ROUTE,
+  LOOKUPCLASS_IGNORE,
 };
 
 template <typename T, typename U>
@@ -104,6 +105,8 @@ namespace facebook::fboss {
 
 class AgentHwAclQualifierTest : public AgentHwTest {
  public:
+  bool addQualifiers = false;
+
   std::vector<production_features::ProductionFeature>
   getProductionFeaturesVerified() const override {
     if (!FLAGS_enable_acl_table_group) {
@@ -202,8 +205,26 @@ class AgentHwAclQualifierTest : public AgentHwTest {
   void aclSetupHelper(
       bool isIpV4,
       QualifierType lookupClassType,
+      bool addQualifiers = false,
       SwitchID switchID = SwitchID(0)) {
+    this->addQualifiers = addQualifiers;
     auto newCfg = initialConfig(*getAgentEnsemble());
+    if (FLAGS_enable_acl_table_group) {
+      utility::addAclTableGroup(
+          &newCfg,
+          cfg::AclStage::INGRESS,
+          utility::kDefaultAclTableGroupName());
+      std::vector<cfg::AclTableActionType> actions = {};
+      std::vector<cfg::AclTableQualifier> qualifiers = addQualifiers
+          ? utility::genAclQualifiersConfig(this->getAsicType())
+          : std::vector<cfg::AclTableQualifier>();
+      utility::addAclTable(
+          &newCfg,
+          utility::kDefaultAclTable(),
+          0 /* priority */,
+          actions,
+          qualifiers);
+    }
     auto* acl = utility::addAcl(&newCfg, kAclName(), cfg::AclActionType::DENY);
 
     if (isIpV4) {
@@ -232,6 +253,9 @@ class AgentHwAclQualifierTest : public AgentHwTest {
             true,
             isIpV4 ? cfg::AclLookupClass::DST_CLASS_L3_LOCAL_1
                    : cfg::AclLookupClass::DST_CLASS_L3_LOCAL_2);
+        break;
+      case QualifierType::LOOKUPCLASS_IGNORE:
+        // This case is here exactly to not do anything
         break;
       default:
         CHECK(false);
@@ -595,4 +619,35 @@ TEST_F(AgentHwAclQualifierTest, AclIp6LookupClassRoute) {
 
   this->verifyAcrossWarmBoots(setup, verify);
 }
+
+// canary on for qualifiers from default to coop
+TEST_F(AgentHwAclQualifierTest, AclQualifiersCanaryOn) {
+  auto setup = [=, this]() {
+    this->aclSetupHelper(true, QualifierType::LOOKUPCLASS_IGNORE, false);
+  };
+
+  auto verify = [=, this]() { this->aclVerifyHelper(); };
+
+  auto setupPostWarmboot = [=, this]() {
+    this->aclSetupHelper(true, QualifierType::LOOKUPCLASS_IGNORE, true);
+  };
+
+  this->verifyAcrossWarmBoots(setup, verify, setupPostWarmboot, []() {});
+}
+
+// canary off for qualifiers from coop to default
+TEST_F(AgentHwAclQualifierTest, AclQualifiersCanaryOff) {
+  auto setup = [=, this]() {
+    this->aclSetupHelper(true, QualifierType::LOOKUPCLASS_IGNORE, true);
+  };
+
+  auto verify = [=, this]() { this->aclVerifyHelper(); };
+
+  auto setupPostWarmboot = [=, this]() {
+    this->aclSetupHelper(true, QualifierType::LOOKUPCLASS_IGNORE, false);
+  };
+
+  this->verifyAcrossWarmBoots(setup, verify, setupPostWarmboot, []() {});
+}
+
 } // namespace facebook::fboss

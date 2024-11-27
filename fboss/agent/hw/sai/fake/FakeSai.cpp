@@ -12,8 +12,6 @@
 #include <folly/FileUtil.h>
 #include <folly/Singleton.h>
 
-#include <folly/logging/xlog.h>
-
 namespace {
 struct singleton_tag_type {};
 } // namespace

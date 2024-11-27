@@ -31,11 +31,8 @@ SaiCloudRipperPlatform::SaiCloudRipperPlatform(
           localMac) {}
 
 void SaiCloudRipperPlatform::setupAsic(
-    cfg::SwitchType switchType,
     std::optional<int64_t> switchId,
-    int16_t switchIndex,
-    std::optional<cfg::Range64> systemPortRange,
-    folly::MacAddress& mac,
+    const cfg::SwitchInfo& switchInfo,
     std::optional<HwAsic::FabricNodeRole> fabricNodeRole) {
   CHECK(!fabricNodeRole.has_value());
   std::optional<cfg::SdkVersion> sdkVersion;
@@ -54,8 +51,7 @@ void SaiCloudRipperPlatform::setupAsic(
     sdkVersion->asicSdk() = "24.4.90";
   }
 #endif
-  asic_ = std::make_unique<EbroAsic>(
-      switchType, switchId, switchIndex, systemPortRange, mac, sdkVersion);
+  asic_ = std::make_unique<EbroAsic>(switchId, switchInfo, sdkVersion);
 }
 
 HwAsic* SaiCloudRipperPlatform::getAsic() const {

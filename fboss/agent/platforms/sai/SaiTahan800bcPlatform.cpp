@@ -13,7 +13,6 @@
 #include "fboss/agent/hw/switch_asics/Tomahawk5Asic.h"
 #include "fboss/agent/platforms/common/tahan800bc/Tahan800bcPlatformMapping.h"
 
-#include <cstdio>
 #include <cstring>
 namespace facebook::fboss {
 
@@ -29,15 +28,11 @@ SaiTahan800bcPlatform::SaiTahan800bcPlatform(
           localMac) {}
 
 void SaiTahan800bcPlatform::setupAsic(
-    cfg::SwitchType switchType,
     std::optional<int64_t> switchId,
-    int16_t switchIndex,
-    std::optional<cfg::Range64> systemPortRange,
-    folly::MacAddress& mac,
+    const cfg::SwitchInfo& switchInfo,
     std::optional<HwAsic::FabricNodeRole> fabricNodeRole) {
   CHECK(!fabricNodeRole.has_value());
-  asic_ = std::make_unique<Tomahawk5Asic>(
-      switchType, switchId, switchIndex, systemPortRange, mac);
+  asic_ = std::make_unique<Tomahawk5Asic>(switchId, switchInfo);
 }
 
 HwAsic* SaiTahan800bcPlatform::getAsic() const {

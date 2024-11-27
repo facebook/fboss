@@ -182,11 +182,10 @@ struct ThriftStructFields : public FieldBaseType {
 
   template <typename Name>
   constexpr bool isSkipThriftCowEnabled() const {
-    if constexpr (EnableHybridStorage) {
-      if constexpr (HasSkipThriftCow<Name>::value) {
-        return true;
-      }
+    if constexpr (EnableHybridStorage && HasSkipThriftCow<Name>::value) {
+      return true;
     }
+
     return false;
   }
 
@@ -550,6 +549,13 @@ class ThriftStructNode : public NodeBaseT<
           auto clonedChild = child->clone();
           child.swap(clonedChild);
         }
+      } else if constexpr (
+          EnableHybridStorage &&
+          Fields::template HasSkipThriftCow<Name>::value) {
+        using UnderlyingType =
+            typename Fields::template TypeFor<Name>::element_type;
+        auto clonedChild = std::make_shared<UnderlyingType>(child->ref());
+        child.swap(clonedChild);
       }
     } else if (construct) {
       this->template constructMember<Name>();
@@ -594,7 +600,14 @@ class ThriftStructNode : public NodeBaseT<
           return;
         }
         auto tok = *begin;
-        node.modify(tok);
+        if constexpr (thrift_cow::is_cow_type_v<decltype(node)>) {
+          if constexpr (std::is_same_v<
+                            typename folly::remove_cvref_t<
+                                decltype(node)>::CowType,
+                            NodeType>) {
+            node.modify(tok);
+          }
+        }
       });
 
       result =

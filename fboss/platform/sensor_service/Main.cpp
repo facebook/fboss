@@ -2,7 +2,6 @@
 // All Rights Reserved.
 #include <fb303/FollyLoggingHandler.h>
 #include <folly/executors/FunctionScheduler.h>
-#include <folly/logging/Init.h>
 
 #include "fboss/platform/helpers/Init.h"
 #include "fboss/platform/sensor_service/Flags.h"

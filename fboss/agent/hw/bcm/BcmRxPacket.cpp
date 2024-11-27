@@ -146,7 +146,6 @@ FbBcmRxPacket::FbBcmRxPacket(
   } else { // PKTIO
 #ifdef INCLUDE_PKTIO
     bcm_pktio_pkt_t* pkt = bcmPacket.ptrUnion.pktioPkt;
-    bcm_pktio_fid_support_t support;
     uint32 val;
 
     auto rv = bcm_pktio_pmd_field_get(

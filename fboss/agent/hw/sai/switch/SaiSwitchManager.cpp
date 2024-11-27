@@ -768,6 +768,35 @@ const std::vector<sai_stat_id_t>& SaiSwitchManager::supportedDropStats() const {
   return stats;
 }
 
+const std::vector<sai_stat_id_t>& SaiSwitchManager::supportedErrorStats()
+    const {
+  static std::vector<sai_stat_id_t> stats;
+  if (stats.size()) {
+    // initialized
+    return stats;
+  }
+  if (platform_->getAsic()->isSupported(
+          HwAsic::Feature::EGRESS_CELL_ERROR_STATS)) {
+    stats.insert(
+        stats.end(),
+        SaiSwitchTraits::egressFabricCellError().begin(),
+        SaiSwitchTraits::egressFabricCellError().end());
+    stats.insert(
+        stats.end(),
+        SaiSwitchTraits::egressNonFabricCellError().begin(),
+        SaiSwitchTraits::egressNonFabricCellError().end());
+    stats.insert(
+        stats.end(),
+        SaiSwitchTraits::egressNonFabricCellUnpackError().begin(),
+        SaiSwitchTraits::egressNonFabricCellUnpackError().end());
+    stats.insert(
+        stats.end(),
+        SaiSwitchTraits::egressParityCellError().begin(),
+        SaiSwitchTraits::egressParityCellError().end());
+  }
+  return stats;
+}
+
 const std::vector<sai_stat_id_t>& SaiSwitchManager::supportedDramStats() const {
   static std::vector<sai_stat_id_t> stats;
   if (stats.size()) {
@@ -817,6 +846,19 @@ const std::vector<sai_stat_id_t>& SaiSwitchManager::supportedWatermarkStats()
         stats.end(),
         SaiSwitchTraits::egressCoreBufferWatermarkBytes().begin(),
         SaiSwitchTraits::egressCoreBufferWatermarkBytes().end());
+  }
+  if (platform_->getAsic()->isSupported(
+          HwAsic::Feature::INGRESS_SRAM_MIN_BUFFER_WATERMARK)) {
+    stats.insert(
+        stats.end(),
+        SaiSwitchTraits::sramMinBufferWatermarkBytes().begin(),
+        SaiSwitchTraits::sramMinBufferWatermarkBytes().end());
+  }
+  if (platform_->getAsic()->isSupported(HwAsic::Feature::FDR_FIFO_WATERMARK)) {
+    stats.insert(
+        stats.end(),
+        SaiSwitchTraits::fdrFifoWatermarkBytes().begin(),
+        SaiSwitchTraits::fdrFifoWatermarkBytes().end());
   }
   return stats;
 }
@@ -906,6 +948,28 @@ void SaiSwitchManager::updateStats(bool updateWatermarks) {
     switchDropStats_.ingressPacketPipelineRejectDrops() =
         switchDropStats_.ingressPacketPipelineRejectDrops().value_or(0) +
         dropStats.ingressPacketPipelineRejectDrops().value_or(0);
+  }
+  auto errorDropStats = supportedErrorStats();
+  if (errorDropStats.size()) {
+    switch_->updateStats(errorDropStats, SAI_STATS_MODE_READ);
+    HwSwitchDropStats errorStats;
+    // Fill error stats and update drops stats
+    fillHwSwitchErrorStats(switch_->getStats(errorDropStats), errorStats);
+    switchDropStats_.rqpFabricCellCorruptionDrops() =
+        switchDropStats_.rqpFabricCellCorruptionDrops().value_or(0) +
+        errorStats.rqpFabricCellCorruptionDrops().value_or(0);
+    switchDropStats_.rqpNonFabricCellCorruptionDrops() =
+        switchDropStats_.rqpNonFabricCellCorruptionDrops().value_or(0) +
+        errorStats.rqpNonFabricCellCorruptionDrops().value_or(0);
+    switchDropStats_.rqpNonFabricCellMissingDrops() =
+        switchDropStats_.rqpNonFabricCellMissingDrops().value_or(0) +
+        errorStats.rqpNonFabricCellMissingDrops().value_or(0);
+    switchDropStats_.rqpParityErrorDrops() =
+        switchDropStats_.rqpParityErrorDrops().value_or(0) +
+        errorStats.rqpParityErrorDrops().value_or(0);
+  }
+
+  if (switchDropStats.size() || errorDropStats.size()) {
     platform_->getHwSwitch()->getSwitchStats()->update(switchDropStats_);
   }
   auto switchDramStats = supportedDramStats();
@@ -996,22 +1060,20 @@ void SaiSwitchManager::setLocalCapsuleSwitchIds(
       SaiSwitchTraits::Attributes::MultiStageLocalSwitchIds{values});
 }
 
-void SaiSwitchManager::setReachabilityGroupList(int reachabilityGroupListSize) {
+void SaiSwitchManager::setReachabilityGroupList(
+    const std::vector<int>& reachabilityGroups) {
 #if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
-  if (reachabilityGroupListSize > 0) {
-    std::vector<uint32_t> list;
-    for (int i = 0; i < reachabilityGroupListSize; i++) {
-      list.push_back(i + 1);
-    }
-    switch_->setOptionalAttribute(
-        SaiSwitchTraits::Attributes::ReachabilityGroupList{list});
-  }
+  std::vector<uint32_t> groupList(
+      reachabilityGroups.begin(), reachabilityGroups.end());
+  std::sort(groupList.begin(), groupList.end());
+  switch_->setOptionalAttribute(
+      SaiSwitchTraits::Attributes::ReachabilityGroupList{groupList});
 #endif
 }
 
 void SaiSwitchManager::setSramGlobalFreePercentXoffTh(
     uint8_t sramFreePercentXoffThreshold) {
-#if defined(BRCM_SAI_SDK_DNX_GTE_11_0) && !defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
   switch_->setOptionalAttribute(
       SaiSwitchTraits::Attributes::SramFreePercentXoffTh{
           sramFreePercentXoffThreshold});
@@ -1020,10 +1082,42 @@ void SaiSwitchManager::setSramGlobalFreePercentXoffTh(
 
 void SaiSwitchManager::setSramGlobalFreePercentXonTh(
     uint8_t sramFreePercentXonThreshold) {
-#if defined(BRCM_SAI_SDK_DNX_GTE_11_0) && !defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
   switch_->setOptionalAttribute(
       SaiSwitchTraits::Attributes::SramFreePercentXonTh{
           sramFreePercentXonThreshold});
 #endif
 }
+
+void SaiSwitchManager::setLinkFlowControlCreditTh(
+    uint16_t linkFlowControlThreshold) {
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
+  switch_->setOptionalAttribute(
+      SaiSwitchTraits::Attributes::FabricCllfcTxCreditTh{
+          linkFlowControlThreshold});
+#endif
+}
+
+void SaiSwitchManager::setVoqDramBoundTh(uint32_t dramBoundThreshold) {
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_0) && !defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+  // There are 3 different types of rate classes available and
+  // dramBound, upper and lower limits are applied to each of
+  // those. However, in our case, we just need to set the same
+  // DRAM bounds value for all the rate classes.
+  std::vector<uint32_t> dramBounds(6, dramBoundThreshold);
+  switch_->setOptionalAttribute(
+      SaiSwitchTraits::Attributes::VoqDramBoundTh{dramBounds});
+#endif
+}
+
+void SaiSwitchManager::setConditionalEntropyRehashPeriodUS(
+    int conditionalEntropyRehashPeriodUS) {
+  // TODO(zecheng): Update flag when new 12.0 release has the attribute
+#if defined(SAI_VERSION_11_7_0_0_DNX_ODP)
+  switch_->setOptionalAttribute(
+      SaiSwitchTraits::Attributes::CondEntropyRehashPeriodUS{
+          conditionalEntropyRehashPeriodUS});
+#endif
+}
+
 } // namespace facebook::fboss

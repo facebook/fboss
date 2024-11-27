@@ -6,11 +6,11 @@
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
-#include "fboss/agent/test/utils/DsfConfigUtils.h"
 #include "fboss/agent/types.h"
 
 namespace facebook::fboss {
 class TestEnsembleIf;
+class SwSwitch;
 
 namespace utility {
 
@@ -59,5 +59,13 @@ void populateRemoteIntfAndSysPorts(
     const cfg::SwitchConfig& config,
     bool useEncapIndex);
 
+void setupRemoteIntfAndSysPorts(SwSwitch* swSwitch, bool useEncapIndex);
+
+struct QueueConfigAndName {
+  std::string name;
+  std::vector<cfg::PortQueue> queueConfig;
+};
+std::optional<QueueConfigAndName> getNameAndDefaultVoqCfg(
+    cfg::PortType portType);
 } // namespace utility
 } // namespace facebook::fboss

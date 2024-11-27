@@ -6,6 +6,7 @@
 #include "fboss/agent/hw/sai/api/PortApi.h"
 #include "fboss/agent/hw/sai/api/QueueApi.h"
 #include "fboss/agent/hw/sai/api/SwitchApi.h"
+#include "fboss/agent/hw/sai/api/SystemPortApi.h"
 #include "fboss/agent/hw/sai/api/TamApi.h"
 
 extern "C" {
@@ -243,6 +244,16 @@ SaiSflowMirrorTraits::Attributes::AttributeTcBufferLimit::operator()() {
 }
 
 std::optional<sai_attr_id_t>
+SaiLocalMirrorTraits::Attributes::AttributeTcBufferLimit::operator()() {
+  return std::nullopt;
+}
+
+std::optional<sai_attr_id_t> SaiEnhancedRemoteMirrorTraits::Attributes::
+    AttributeTcBufferLimit::operator()() {
+  return std::nullopt;
+}
+
+std::optional<sai_attr_id_t>
 SaiSwitchTraits::Attributes::AttributeNoAclsForTrapsWrapper::operator()() {
   return std::nullopt;
 }
@@ -279,6 +290,38 @@ SaiSwitchTraits::egressCoreBufferWatermarkBytes() {
 }
 
 const std::vector<sai_stat_id_t>& SaiQueueTraits::egressGvoqWatermarkBytes() {
+  static const std::vector<sai_stat_id_t> stats;
+  return stats;
+}
+
+const std::vector<sai_stat_id_t>&
+SaiSwitchTraits::sramMinBufferWatermarkBytes() {
+  static const std::vector<sai_stat_id_t> stats;
+  return stats;
+}
+
+const std::vector<sai_stat_id_t>& SaiSwitchTraits::fdrFifoWatermarkBytes() {
+  static const std::vector<sai_stat_id_t> stats;
+  return stats;
+}
+
+const std::vector<sai_stat_id_t>& SaiSwitchTraits::egressFabricCellError() {
+  static const std::vector<sai_stat_id_t> stats;
+  return stats;
+}
+
+const std::vector<sai_stat_id_t>& SaiSwitchTraits::egressNonFabricCellError() {
+  static const std::vector<sai_stat_id_t> stats;
+  return stats;
+}
+
+const std::vector<sai_stat_id_t>&
+SaiSwitchTraits::egressNonFabricCellUnpackError() {
+  static const std::vector<sai_stat_id_t> stats;
+  return stats;
+}
+
+const std::vector<sai_stat_id_t>& SaiSwitchTraits::egressParityCellError() {
   static const std::vector<sai_stat_id_t> stats;
   return stats;
 }
@@ -331,6 +374,41 @@ std::optional<sai_attr_id_t> SaiSwitchTraits::Attributes::
 std::optional<sai_attr_id_t> SaiSwitchTraits::Attributes::
     AttributeSramFreePercentXonThWrapper::operator()() {
   return SAI_SWITCH_ATTR_SRAM_FREE_PERCENT_XON_TH;
+}
+
+std::optional<sai_attr_id_t> SaiSwitchTraits::Attributes::
+    AttributeFabricCllfcTxCreditThWrapper::operator()() {
+  return SAI_SWITCH_ATTR_FABRIC_CLLFC_TX_CREDIT_TH;
+}
+
+std::optional<sai_attr_id_t>
+SaiSwitchTraits::Attributes::AttributeVoqDramBoundThWrapper::operator()() {
+  return SAI_SWITCH_ATTR_VOQ_DRAM_BOUND_TH;
+}
+
+std::optional<sai_attr_id_t>
+SaiSwitchTraits::Attributes::AttributeCondEntropyRehashPeriodUS::operator()() {
+  return SAI_SWITCH_ATTR_COND_ENTROPY_REHASH_PERIOD_US;
+}
+
+std::optional<sai_attr_id_t>
+SaiSwitchTraits::Attributes::AttributeShelSrcIp::operator()() {
+  return SAI_SWITCH_ATTR_SHEL_SRC_IP;
+}
+
+std::optional<sai_attr_id_t>
+SaiSwitchTraits::Attributes::AttributeShelDstIp::operator()() {
+  return SAI_SWITCH_ATTR_SHEL_DST_IP;
+}
+
+std::optional<sai_attr_id_t>
+SaiSwitchTraits::Attributes::AttributeShelSrcMac::operator()() {
+  return SAI_SWITCH_ATTR_SHEL_SRC_MAC;
+}
+
+std::optional<sai_attr_id_t>
+SaiSwitchTraits::Attributes::AttributeShelPeriodicInterval::operator()() {
+  return SAI_SWITCH_ATTR_SHEL_PERIODIC_INTERVAL;
 }
 
 std::optional<sai_attr_id_t>
@@ -472,4 +550,45 @@ std::optional<sai_attr_id_t>
 SaiPortTraits::Attributes::AttributeCondEntropyRehashSeed::operator()() {
   return std::nullopt;
 }
+
+std::optional<sai_attr_id_t>
+SaiSwitchTraits::Attributes::AttributeMaxSystemPortId::operator()() {
+  return SAI_SWITCH_ATTR_MAX_SYSTEM_PORT_ID;
+}
+
+std::optional<sai_attr_id_t>
+SaiSwitchTraits::Attributes::AttributeMaxLocalSystemPortId::operator()() {
+  return SAI_SWITCH_ATTR_MAX_LOCAL_SYSTEM_PORT_ID;
+}
+
+std::optional<sai_attr_id_t>
+SaiSwitchTraits::Attributes::AttributeMaxSystemPorts::operator()() {
+  return SAI_SWITCH_ATTR_MAX_SYSTEM_PORTS;
+}
+
+std::optional<sai_attr_id_t>
+SaiSwitchTraits::Attributes::AttributeMaxVoqs::operator()() {
+  return SAI_SWITCH_ATTR_MAX_VOQS;
+}
+
+std::optional<sai_attr_id_t>
+SaiPortTraits::Attributes::AttributeShelEnable::operator()() {
+  return std::nullopt;
+}
+
+std::optional<sai_attr_id_t>
+SaiSystemPortTraits::Attributes::AttributeShelPktDstEnable::operator()() {
+  return std::nullopt;
+}
+
+std::optional<sai_attr_id_t>
+SaiSwitchTraits::Attributes::AttributeFirmwareCoreTouse::operator()() {
+  return SAI_SWITCH_ATTR_FIRMWARE_CORE_TO_USE;
+}
+
+std::optional<sai_attr_id_t>
+SaiSwitchTraits::Attributes::AttributeFirmwareLogFile::operator()() {
+  return SAI_SWITCH_ATTR_FIRMWARE_LOG_FILE;
+}
+
 } // namespace facebook::fboss

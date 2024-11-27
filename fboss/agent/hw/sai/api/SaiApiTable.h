@@ -128,7 +128,7 @@ class SaiApiTable {
 
   const TamApi& tamApi() const;
 
-#if defined(BRCM_SAI_SDK_DNX_GTE_11_0) && !defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
   const TamEventAgingGroupApi& tamEventAgingGroupApi() const;
 #endif
 
@@ -190,7 +190,7 @@ class SaiApiTable {
       std::unique_ptr<VlanApi>,
       std::unique_ptr<WredApi>,
       std::unique_ptr<TamApi>,
-#if defined(BRCM_SAI_SDK_DNX_GTE_11_0) && !defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
       std::unique_ptr<TamEventAgingGroupApi>,
 #endif
       std::unique_ptr<TunnelApi>,

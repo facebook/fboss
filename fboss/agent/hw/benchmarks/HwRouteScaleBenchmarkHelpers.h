@@ -16,6 +16,7 @@
 #include "fboss/agent/hw/test/HwSwitchEnsemble.h"
 #include "fboss/agent/hw/test/HwSwitchEnsembleFactory.h"
 #include "fboss/agent/hw/test/HwSwitchEnsembleRouteUpdateWrapper.h"
+#include "fboss/agent/test/utils/DsfConfigUtils.h"
 #include "fboss/agent/test/utils/FabricTestUtils.h"
 #include "fboss/agent/test/utils/VoqTestUtils.h"
 

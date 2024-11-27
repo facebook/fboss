@@ -21,7 +21,6 @@
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/platforms/sai/SaiPlatform.h"
 #include "fboss/agent/state/ArpEntry.h"
-#include "fboss/agent/state/DeltaFunctions.h"
 #include "fboss/agent/state/NdpEntry.h"
 #include "folly/IPAddress.h"
 
@@ -247,6 +246,9 @@ SaiNeighborEntry::SaiNeighborEntry(
           isLocal,
           noHostRoute);
       break;
+    case cfg::InterfaceType::PORT:
+      // TODO(Chenab): Support port router interface
+      throw FbossError("Port router interface is not yet supported");
   }
 }
 

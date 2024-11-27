@@ -59,7 +59,6 @@ cpp_library(
         "//fboss/agent/hw/test:hw_test_port_utils",
         "//fboss/agent/hw/test:load_balancer_utils",
         "//fboss/agent/packet:packet",
-        "//fboss/agent/packet:pktutil",
         "//fboss/agent/platforms/common:platform_mapping",
         "//fboss/agent/state:state",
         "//fboss/agent/state:state_utils",
@@ -352,6 +351,34 @@ cpp_library(
             "//fboss/agent/hw/bcm/tests:bcm_qos_utils",
             "//fboss/agent/platforms/wedge:platform",
             "//fboss/agent/test/link_tests:link_tests",
+        ],
+        external_deps = [
+            "gflags",
+            "glog",
+        ],
+    )
+    for sdk in BCM_SDKS
+]
+
+[
+    cpp_binary(
+        name = "agent_ensemble_bcm_link_test{}".format(to_impl_suffix(sdk)),
+        srcs = [
+            "AgentEnsembleBcmLinkTest.cpp",
+        ],
+        linker_flags = [
+            "--export-dynamic",
+            "--unresolved-symbols=ignore-all",
+        ],
+        versions = to_versions(sdk),
+        deps = [
+            "fbsource//third-party/googletest:gtest",
+            "//fboss/agent:main-bcm",
+            "//fboss/agent/hw/bcm/tests:agent_hw_test_thrift_handler",
+            "//fboss/agent/hw/bcm/tests:bcm_ecmp_utils",
+            "//fboss/agent/platforms/wedge:platform",
+            "//fboss/agent/test:mono_agent_ensemble",
+            "//fboss/agent/test/link_tests:agent_ensemble_link_tests",
         ],
         external_deps = [
             "gflags",

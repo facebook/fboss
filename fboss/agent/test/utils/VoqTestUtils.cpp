@@ -9,7 +9,9 @@
  */
 
 #include "fboss/agent/test/utils/VoqTestUtils.h"
-#include "fboss/agent/hw/test/ConfigFactory.h"
+#include "fboss/agent/AgentFeatures.h"
+#include "fboss/agent/DsfStateUpdaterUtil.h"
+#include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/test/TestEnsembleIf.h"
 
 namespace facebook::fboss::utility {
@@ -20,6 +22,9 @@ constexpr auto kNumPortPerCore = 10;
 // 7: mgm port, 8-43 front panel nif
 constexpr auto kRemoteSysPortOffset = 7;
 constexpr auto kNumVoq = 8;
+constexpr auto k3q2qNumVoq = 3;
+constexpr auto kNumRdswSysPort = 44;
+constexpr auto kNumEdswSysPort = 26;
 
 std::shared_ptr<SystemPort> makeRemoteSysPort(
     SystemPortID portId,
@@ -32,7 +37,8 @@ std::shared_ptr<SystemPort> makeRemoteSysPort(
   remoteSysPort->setName(folly::to<std::string>(
       "hwTestSwitch", remoteSwitchId, ":eth/", portId, "/1"));
   remoteSysPort->setSwitchId(remoteSwitchId);
-  remoteSysPort->setNumVoqs(kNumVoq);
+  // TODO(zecheng): NIF MGMT port for 3q2q mode should have 2 VOQ
+  remoteSysPort->setNumVoqs(isDualStage3Q2QMode() ? k3q2qNumVoq : kNumVoq);
   remoteSysPort->setCoreIndex(coreIndex);
   remoteSysPort->setCorePortIndex(corePortIndex);
   remoteSysPort->setSpeedMbps(speed);
@@ -79,6 +85,114 @@ void updateRemoteIntfWithNeighbor(
   ndp.isLocal() = false;
   ndpTable->emplace(neighborIp.str(), std::move(ndp));
   remoteIntf->setNdpTable(ndpTable->toThrift());
+}
+
+std::vector<cfg::PortQueue> getDefaultNifVoqCfg() {
+  std::vector<cfg::PortQueue> voqs;
+  if (isDualStage3Q2QQos()) {
+    cfg::PortQueue rdmaQueue;
+    rdmaQueue.id() = 0;
+    rdmaQueue.name() = "rdma";
+    rdmaQueue.streamType() = cfg::StreamType::UNICAST;
+    rdmaQueue.scheduling() = cfg::QueueScheduling::INTERNAL;
+    voqs.push_back(rdmaQueue);
+
+    cfg::PortQueue monitoringQueue;
+    monitoringQueue.id() = 1;
+    monitoringQueue.name() = "monitoring";
+    monitoringQueue.streamType() = cfg::StreamType::UNICAST;
+    monitoringQueue.scheduling() = cfg::QueueScheduling::INTERNAL;
+    voqs.push_back(monitoringQueue);
+
+    cfg::PortQueue ncQueue;
+    ncQueue.id() = 2;
+    ncQueue.name() = "nc";
+    ncQueue.streamType() = cfg::StreamType::UNICAST;
+    ncQueue.scheduling() = cfg::QueueScheduling::INTERNAL;
+    voqs.push_back(ncQueue);
+  } else {
+    cfg::PortQueue defaultQueue;
+    defaultQueue.id() = 0;
+    defaultQueue.name() = "default";
+    defaultQueue.streamType() = cfg::StreamType::UNICAST;
+    defaultQueue.scheduling() = cfg::QueueScheduling::INTERNAL;
+    voqs.push_back(defaultQueue);
+
+    cfg::PortQueue rdmaQueue;
+    rdmaQueue.id() = 2;
+    rdmaQueue.name() = "rdma";
+    rdmaQueue.streamType() = cfg::StreamType::UNICAST;
+    rdmaQueue.scheduling() = cfg::QueueScheduling::INTERNAL;
+    voqs.push_back(rdmaQueue);
+
+    cfg::PortQueue monitoringQueue;
+    monitoringQueue.id() = 6;
+    monitoringQueue.name() = "monitoring";
+    monitoringQueue.streamType() = cfg::StreamType::UNICAST;
+    monitoringQueue.scheduling() = cfg::QueueScheduling::INTERNAL;
+    voqs.push_back(monitoringQueue);
+
+    cfg::PortQueue ncQueue;
+    ncQueue.id() = 7;
+    ncQueue.name() = "nc";
+    ncQueue.streamType() = cfg::StreamType::UNICAST;
+    ncQueue.scheduling() = cfg::QueueScheduling::INTERNAL;
+    voqs.push_back(ncQueue);
+  }
+  return voqs;
+}
+
+std::vector<cfg::PortQueue> get2VoqCfg() {
+  std::vector<cfg::PortQueue> voqs;
+  cfg::PortQueue lowQueue;
+  lowQueue.id() = 0;
+  lowQueue.name() = "low";
+  lowQueue.streamType() = cfg::StreamType::UNICAST;
+  lowQueue.scheduling() = cfg::QueueScheduling::INTERNAL;
+  voqs.push_back(lowQueue);
+
+  cfg::PortQueue highQueue;
+  highQueue.id() = 1;
+  highQueue.name() = "high";
+  highQueue.streamType() = cfg::StreamType::UNICAST;
+  highQueue.scheduling() = cfg::QueueScheduling::INTERNAL;
+  voqs.push_back(highQueue);
+  return voqs;
+}
+
+std::vector<cfg::PortQueue> get3VoqCfg() {
+  std::vector<cfg::PortQueue> voqs;
+  cfg::PortQueue lowQueue;
+  lowQueue.id() = 0;
+  lowQueue.name() = "low";
+  lowQueue.streamType() = cfg::StreamType::UNICAST;
+  lowQueue.scheduling() = cfg::QueueScheduling::INTERNAL;
+  voqs.push_back(lowQueue);
+
+  cfg::PortQueue midQueue;
+  midQueue.id() = 1;
+  midQueue.name() = "mid";
+  midQueue.streamType() = cfg::StreamType::UNICAST;
+  midQueue.scheduling() = cfg::QueueScheduling::INTERNAL;
+  voqs.push_back(midQueue);
+
+  cfg::PortQueue highQueue;
+  highQueue.id() = 2;
+  highQueue.name() = "high";
+  highQueue.streamType() = cfg::StreamType::UNICAST;
+  highQueue.scheduling() = cfg::QueueScheduling::INTERNAL;
+  voqs.push_back(highQueue);
+  return voqs;
+}
+
+std::shared_ptr<PortQueue> makeSwitchStateVoq(const cfg::PortQueue& cfgQueue) {
+  auto queue =
+      std::make_shared<PortQueue>(static_cast<uint8_t>(cfgQueue.id().value()));
+  queue->setStreamType(cfgQueue.streamType().value());
+  queue->setScheduling(cfgQueue.scheduling().value());
+  queue->setName(cfgQueue.name().value());
+  queue->setScalingFactor(cfg::MMUScalingFactor::ONE_32768TH);
+  return queue;
 }
 } // namespace
 
@@ -185,7 +299,9 @@ void populateRemoteIntfAndSysPorts(
     for (auto sysPortRange : *dsfNode.systemPortRanges()->systemPortRanges()) {
       const auto minPortID = *sysPortRange.minimum();
       const auto maxPortID = *sysPortRange.maximum();
-      // 0th port for CPU and 1st port for recycle port
+      // TODO(zecheng): Update num of ports for dual stage
+      const auto numPorts = maxPortID - minPortID + 1;
+      CHECK(numPorts == kNumRdswSysPort || numPorts == kNumEdswSysPort);
       for (int i = minPortID + kRemoteSysPortOffset; i <= maxPortID; i++) {
         const SystemPortID remoteSysPortId(i);
         const InterfaceID remoteIntfId(i);
@@ -201,12 +317,16 @@ void populateRemoteIntfAndSysPorts(
         auto thirdOctet = i - minPortID;
         folly::IPAddressV6 neighborIp(folly::to<std::string>(
             firstOctet, ":", secondOctet, ":", thirdOctet, "::2"));
+        auto portSpeed = i == minPortID + kRemoteSysPortOffset
+            ? cfg::PortSpeed::HUNDREDG
+            : numPorts == kNumRdswSysPort ? cfg::PortSpeed::FOURHUNDREDG
+                                          : cfg::PortSpeed::EIGHTHUNDREDG;
         auto remoteSysPort = makeRemoteSysPort(
             remoteSysPortId,
             SwitchID(remoteSwitchId),
             (i - minPortID - kRemoteSysPortOffset) / kNumPortPerCore,
             (i - minPortID) % kNumPortPerCore,
-            static_cast<int64_t>(cfg::PortSpeed::FOURHUNDREDG));
+            static_cast<int64_t>(portSpeed));
         remoteSysPorts->addSystemPort(remoteSysPort);
 
         auto remoteRif = makeRemoteInterface(
@@ -232,35 +352,13 @@ void populateRemoteIntfAndSysPorts(
 
 QueueConfig getDefaultVoqConfig() {
   QueueConfig queueCfg;
-
-  auto defaultQueue = std::make_shared<PortQueue>(static_cast<uint8_t>(0));
-  defaultQueue->setStreamType(cfg::StreamType::UNICAST);
-  defaultQueue->setScheduling(cfg::QueueScheduling::INTERNAL);
-  defaultQueue->setName("default");
-  defaultQueue->setScalingFactor(cfg::MMUScalingFactor::ONE_32768TH);
-  queueCfg.push_back(defaultQueue);
-
-  auto rdmaQueue = std::make_shared<PortQueue>(static_cast<uint8_t>(2));
-  rdmaQueue->setStreamType(cfg::StreamType::UNICAST);
-  rdmaQueue->setScheduling(cfg::QueueScheduling::INTERNAL);
-  rdmaQueue->setName("rdma");
-  defaultQueue->setScalingFactor(cfg::MMUScalingFactor::ONE_32768TH);
-  queueCfg.push_back(rdmaQueue);
-
-  auto monitoringQueue = std::make_shared<PortQueue>(static_cast<uint8_t>(6));
-  monitoringQueue->setStreamType(cfg::StreamType::UNICAST);
-  monitoringQueue->setScheduling(cfg::QueueScheduling::INTERNAL);
-  monitoringQueue->setName("monitoring");
-  defaultQueue->setScalingFactor(cfg::MMUScalingFactor::ONE_32768TH);
-  queueCfg.push_back(monitoringQueue);
-
-  auto ncQueue = std::make_shared<PortQueue>(static_cast<uint8_t>(7));
-  ncQueue->setStreamType(cfg::StreamType::UNICAST);
-  ncQueue->setScheduling(cfg::QueueScheduling::INTERNAL);
-  ncQueue->setName("nc");
-  defaultQueue->setScalingFactor(cfg::MMUScalingFactor::ONE_32768TH);
-  queueCfg.push_back(ncQueue);
-
+  // TODO: One port should be mgt port with 2 queues in 3Q2Q mode
+  auto nameAndDefaultVoq =
+      getNameAndDefaultVoqCfg(cfg::PortType::INTERFACE_PORT);
+  CHECK(nameAndDefaultVoq);
+  for (const auto& cfgQueue : nameAndDefaultVoq.value().queueConfig) {
+    queueCfg.push_back(makeSwitchStateVoq(cfgQueue));
+  }
   return queueCfg;
 }
 
@@ -294,4 +392,50 @@ boost::container::flat_set<PortDescriptor> resolveRemoteNhops(
   return sysPortDescs;
 }
 
+void setupRemoteIntfAndSysPorts(SwSwitch* swSwitch, bool useEncapIndex) {
+  auto updateDsfStateFn =
+      [swSwitch, useEncapIndex](const std::shared_ptr<SwitchState>& in) {
+        std::map<SwitchID, std::shared_ptr<SystemPortMap>> switchId2SystemPorts;
+        std::map<SwitchID, std::shared_ptr<InterfaceMap>> switchId2Rifs;
+        utility::populateRemoteIntfAndSysPorts(
+            switchId2SystemPorts,
+            switchId2Rifs,
+            swSwitch->getConfig(),
+            useEncapIndex);
+        return DsfStateUpdaterUtil::getUpdatedState(
+            in,
+            swSwitch->getScopeResolver(),
+            swSwitch->getRib(),
+            switchId2SystemPorts,
+            switchId2Rifs);
+      };
+  swSwitch->getRib()->updateStateInRibThread([swSwitch, updateDsfStateFn]() {
+    swSwitch->updateStateWithHwFailureProtection(
+        folly::sformat("Update state for node: {}", 0), updateDsfStateFn);
+  });
+}
+
+std::optional<QueueConfigAndName> getNameAndDefaultVoqCfg(
+    cfg::PortType portType) {
+  switch (portType) {
+    case cfg::PortType::INTERFACE_PORT:
+      return QueueConfigAndName{"defaultVoqCofig", getDefaultNifVoqCfg()};
+    case cfg::PortType::CPU_PORT:
+      if (isDualStage3Q2QMode()) {
+        return QueueConfigAndName{"3VoqConfig", get3VoqCfg()};
+      }
+      break;
+    case cfg::PortType::MANAGEMENT_PORT:
+    case cfg::PortType::RECYCLE_PORT:
+    case cfg::PortType::EVENTOR_PORT:
+      if (isDualStage3Q2QMode()) {
+        return QueueConfigAndName{"2VoqConfig", get2VoqCfg()};
+      }
+      break;
+    case cfg::PortType::FABRIC_PORT:
+      XLOG(FATAL) << " No VOQ configs for fabric ports";
+      break;
+  }
+  return std::nullopt;
+}
 } // namespace facebook::fboss::utility

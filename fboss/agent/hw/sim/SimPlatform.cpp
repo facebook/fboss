@@ -16,8 +16,6 @@
 #include "fboss/agent/hw/sim/SimSwitch.h"
 #include "fboss/lib/platforms/PlatformProductInfo.h"
 
-#include <folly/Memory.h>
-
 using std::make_unique;
 using std::unique_ptr;
 

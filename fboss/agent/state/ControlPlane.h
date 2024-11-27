@@ -56,6 +56,17 @@ class ControlPlane
     set<switch_state_tags::queues>(std::move(queuesThrift));
   }
 
+  const auto& getVoqs() const {
+    return cref<switch_state_tags::voqs>();
+  }
+  void resetVoqs(QueueConfig& voqs) {
+    std::vector<PortQueueFields> voqsThrift{};
+    for (const auto& voq : voqs) {
+      voqsThrift.push_back(voq->toThrift());
+    }
+    set<switch_state_tags::voqs>(std::move(voqsThrift));
+  }
+
   const auto& getRxReasonToQueue() const {
     return cref<switch_state_tags::rxReasonToQueue>();
   }
@@ -78,6 +89,11 @@ class ControlPlane
   const QueueConfig& getQueuesConfig() const {
     const auto& queues = getQueues();
     return queues->impl();
+  }
+
+  const QueueConfig& getVoqsConfig() const {
+    const auto& voqs = getVoqs();
+    return voqs->impl();
   }
 
   static cfg::PacketRxReasonToQueue makeRxReasonToQueueEntry(

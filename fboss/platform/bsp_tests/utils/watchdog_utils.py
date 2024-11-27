@@ -1,3 +1,4 @@
+# pyre-unsafe
 import ctypes
 import fcntl
 import glob

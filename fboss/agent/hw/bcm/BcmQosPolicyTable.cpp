@@ -13,7 +13,6 @@
 #include "fboss/agent/hw/bcm/BcmPortQueueManager.h"
 #include "fboss/agent/hw/bcm/BcmQosPolicy.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
-#include "fboss/agent/hw/bcm/types.h"
 
 namespace facebook::fboss {
 

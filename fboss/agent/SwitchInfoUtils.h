@@ -40,4 +40,7 @@ const std::optional<cfg::SdkVersion> getSdkVersionFromConfig();
 const std::optional<cfg::SdkVersion> getSdkVersionFromConfig(
     const AgentConfig* config);
 
+bool withinRange(const cfg::SystemPortRanges& ranges, InterfaceID intfId);
+
+bool withinRange(const cfg::SystemPortRanges& ranges, SystemPortID sysPortId);
 } // namespace facebook::fboss

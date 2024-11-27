@@ -10,20 +10,11 @@ namespace facebook::fboss {
 class Jericho3Asic : public BroadcomAsic {
  public:
   Jericho3Asic(
-      cfg::SwitchType type,
-      std::optional<int64_t> id,
-      int16_t index,
-      std::optional<cfg::Range64> systemPortRange,
-      const folly::MacAddress& mac,
+      std::optional<int64_t> switchId,
+      cfg::SwitchInfo switchInfo,
       std::optional<cfg::SdkVersion> sdkVersion = std::nullopt)
-      : BroadcomAsic(
-            type,
-            id,
-            index,
-            systemPortRange,
-            mac,
-            sdkVersion,
-            {cfg::SwitchType::VOQ}) {}
+      : BroadcomAsic(switchId, switchInfo, sdkVersion, {cfg::SwitchType::VOQ}) {
+  }
   bool isSupported(Feature) const override;
   const std::map<cfg::PortType, cfg::PortLoopbackMode>& desiredLoopbackModes()
       const override;
@@ -53,6 +44,12 @@ class Jericho3Asic : public BroadcomAsic {
     // the total OBM+HBM is available to user of the total ~16G.
     return uint64_t(12) * 1024 * 1024 * 1024;
   }
+
+  uint64_t getSramSizeBytes() const override {
+    // 128MB
+    return 128 * 1024 * 1024;
+  }
+
   uint32_t getMMUCellSize() const {
     return 254;
   }
@@ -121,7 +118,8 @@ class Jericho3Asic : public BroadcomAsic {
     return true;
   }
   cfg::Range64 getReservedEncapIndexRange() const override;
-  HwAsic::RecyclePortInfo getRecyclePortInfo() const override;
+  HwAsic::RecyclePortInfo getRecyclePortInfo(
+      InterfaceNodeRole intfRole) const override;
   uint32_t getNumMemoryBuffers() const override {
     return 3;
   }

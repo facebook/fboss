@@ -164,3 +164,43 @@ DEFINE_bool(
     conditional_entropy_cpu_seed_test_only,
     false,
     "Enable test-only feature for CPU updating conditional entropy seed");
+
+DEFINE_bool(
+    fix_lossless_mode_per_pg,
+    false,
+    "Flag to disruptively update lossless mode per pg");
+
+DEFINE_int32(fboss_event_base_queue_limit, 10000, "FbossEventBase queue limit");
+
+DEFINE_bool(
+    dual_stage_rdsw_3q_2q,
+    false,
+    "Use platform mapping for dual stage RDSW with 3q and 2q model");
+
+DEFINE_bool(
+    dual_stage_edsw_3q_2q,
+    false,
+    "Use platform mapping for dual stage EDSW with 3q and 2q model");
+
+DEFINE_bool(
+    dual_stage_3q_2q_qos,
+    false,
+    "Use qos setting for dual stage 3q and 2q model");
+
+bool isDualStage3Q2QMode() {
+  return FLAGS_dual_stage_rdsw_3q_2q || FLAGS_dual_stage_edsw_3q_2q;
+}
+
+bool isDualStage3Q2QQos() {
+  return isDualStage3Q2QMode() || FLAGS_dual_stage_3q_2q_qos;
+}
+
+DEFINE_bool(
+    enable_hw_update_protection,
+    false,
+    "Enable Neighbor/MAC table hw update failure protection");
+
+DEFINE_bool(
+    fw_drained_unrecoverable_error,
+    false,
+    "Enable or disable whether firmware drained(isolation) can be unrecoverable error");

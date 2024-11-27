@@ -439,12 +439,16 @@ void BcmPort::reinitPortFdrStats(const std::shared_ptr<Port>& swPort) {
           statName(getFdrStatsKey(i), portName),
           fb303::ExportTypeConsts::kSumRate);
     }
+    codewordStats_[i] = 0;
   }
 
   // In case max errors got reduced due to FEC mode changes
   while (fdrStats_.size() > fecMaxErrors) {
     fdrStats_.pop_back();
   }
+  std::erase_if(codewordStats_, [fecMaxErrors](auto& kv) {
+    return kv.first > fecMaxErrors;
+  });
 }
 
 BcmPort::BcmPort(BcmSwitch* hw, bcm_port_t port, BcmPlatformPort* platformPort)
@@ -1219,6 +1223,11 @@ phy::PhyInfo BcmPort::updateIPhyInfo() {
           lastRsFec = *lastFec;
         }
       }
+      if (hw_->getPlatform()->getAsic()->isSupported(
+              HwAsic::Feature::FEC_DIAG_COUNTERS)) {
+        rsFec.codewordStats() = codewordStats_;
+        utility::updateFecTail(rsFec, lastRsFec);
+      }
       std::optional<uint64_t> correctedBitsFromHw;
 #if defined(BCM_SDK_VERSION_GTE_6_5_26)
       if (hw_->getPlatform()->getAsic()->isSupported(
@@ -1625,6 +1634,7 @@ void BcmPort::updateFdrStats(__attribute__((unused)) std::chrono::seconds now) {
 
   for (int i = 0; i < kCodewordErrorsPageSize; ++i) {
     fdrStats_[i].incrementValue(now, increments[i]);
+    codewordStats_[i] += increments[i];
   }
 
   if (pages > 1) {
@@ -2011,6 +2021,7 @@ void BcmPort::disableStatCollection() {
           HwAsic::Feature::FEC_DIAG_COUNTERS)) {
     fdrStatConfigure(unit_, port_, false);
     fdrStats_.clear();
+    codewordStats_.clear();
   }
 
   destroyAllPortStatsLocked(lockedPortStatsPtr);

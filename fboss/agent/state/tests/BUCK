@@ -23,6 +23,7 @@ cpp_unittest(
         "MacEntryTests.cpp",
         "MacTableTests.cpp",
         "MapDeltaTests.cpp",
+        "MirrorOnDropReportTests.cpp",
         "MirrorTests.cpp",
         "MultiSwitchMapDeltaTests.cpp",
         "NeighborTests.cpp",

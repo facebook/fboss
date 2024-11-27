@@ -50,39 +50,24 @@ fbiob_aux_data getAuxData(
 
 namespace facebook::fboss::platform::platform_manager {
 
-PciDevice::PciDevice(
-    const std::string& name,
-    const std::string& vendorId,
-    const std::string& deviceId,
-    const std::string& subSystemVendorId,
-    const std::string& subSystemDeviceId) {
-  charDevPath_ = fmt::format(
-      "/dev/fbiob_{}.{}.{}.{}",
-      std::string(vendorId, 2, 4),
-      std::string(deviceId, 2, 4),
-      std::string(subSystemVendorId, 2, 4),
-      std::string(subSystemDeviceId, 2, 4));
+PciDevice::PciDevice(const PciDeviceConfig& pciDeviceConfig)
+    : name_(*pciDeviceConfig.pmUnitScopedName()),
+      vendorId_(*pciDeviceConfig.vendorId()),
+      deviceId_(*pciDeviceConfig.deviceId()),
+      subSystemVendorId_(*pciDeviceConfig.subSystemVendorId()),
+      subSystemDeviceId_(*pciDeviceConfig.subSystemDeviceId()) {
+  checkSysfsReadiness();
 
-  if (!Utils().checkDeviceReadiness(
-          [&charDevPath_ = charDevPath_]() -> bool {
-            return fs::exists(charDevPath_);
-          },
-          fmt::format(
-              "No character device found at {} for {}. Waiting for at most {}s",
-              charDevPath_,
-              name,
-              kPciWaitSecs.count()))) {
-    throw std::runtime_error(fmt::format(
-        "No character device found at {} for {}. This could either mean the "
-        "FPGA does not show up as PCI device (see lspci output), or the kmods "
-        "are not setting up the character device for the PCI device at {}.",
-        charDevPath_,
-        name,
-        charDevPath_));
+  // Note: bindDriver() needs to be called after checkSysfsReadiness() but
+  // before checkCharDevReadiness().
+  if (pciDeviceConfig.desiredDriver()) {
+    bindDriver(*pciDeviceConfig.desiredDriver());
   }
-  XLOG(INFO) << fmt::format(
-      "Found character device {} for {}", charDevPath_, name);
 
+  checkCharDevReadiness();
+}
+
+void PciDevice::checkSysfsReadiness() {
   for (const auto& dirEntry : fs::directory_iterator("/sys/bus/pci/devices")) {
     std::string vendor, device, subSystemVendor, subSystemDevice;
     auto deviceFilePath = dirEntry.path() / "device";
@@ -103,25 +88,99 @@ PciDevice::PciDevice(
       XLOG(ERR) << "Failed to read subsystem_device file from "
                 << dirEntry.path();
     }
-    if (folly::trimWhitespace(vendor).str() == vendorId &&
-        folly::trimWhitespace(device).str() == deviceId &&
-        folly::trimWhitespace(subSystemVendor).str() == subSystemVendorId &&
-        folly::trimWhitespace(subSystemDevice).str() == subSystemDeviceId) {
+    if (folly::trimWhitespace(vendor).str() == vendorId_ &&
+        folly::trimWhitespace(device).str() == deviceId_ &&
+        folly::trimWhitespace(subSystemVendor).str() == subSystemVendorId_ &&
+        folly::trimWhitespace(subSystemDevice).str() == subSystemDeviceId_) {
       sysfsPath_ = dirEntry.path().string();
       XLOG(INFO) << fmt::format(
-          "Found sysfs path {} for device {}", sysfsPath_, name);
+          "Found sysfs path {} for device {}", sysfsPath_, name_);
+      break;
     }
   }
   if (sysfsPath_.empty()) {
     throw std::runtime_error(fmt::format(
         "No sysfs path found for {} with vendorId: {}, deviceId: {}, "
         "subSystemVendorId: {}, subSystemDeviceId: {}",
-        name,
-        vendorId,
-        deviceId,
-        subSystemVendorId,
-        subSystemDeviceId));
+        name_,
+        vendorId_,
+        deviceId_,
+        subSystemVendorId_,
+        subSystemDeviceId_));
   }
+}
+
+void PciDevice::bindDriver(const std::string& desiredDriver) {
+  // Don't do anything if a driver is already attached to the device: it
+  // usually happens when the device ID was already passed to "new_id"
+  // in the previous platform_manager runs.
+  // TODO:
+  //   - what if the driver is different from "desiredDriver"? Shall we
+  //     fail gracefully in this case? Or force detaching the driver and
+  //     attach it to the desired one? Let's make decision when we hit
+  //     the issue in the future.
+  auto curDriver = fmt::format("{}/driver", sysfsPath_);
+  if (fs::exists(curDriver)) {
+    XLOG(INFO) << fmt::format(
+        "Device {} already has a driver. Skipped manual driver binding", name_);
+    return;
+  }
+
+  auto desiredDriverPath =
+      fmt::format("/sys/bus/pci/drivers/{}", desiredDriver);
+  if (!fs::exists(desiredDriverPath)) {
+    throw std::runtime_error(fmt::format(
+        "Failed to bind driver {} to device {}: {} does not exist",
+        desiredDriver,
+        name_,
+        desiredDriverPath));
+  }
+
+  // Add PCI device ID to the driver's "new_id" file. Check below doc for
+  // details:
+  // https://www.kernel.org/doc/Documentation/ABI/testing/sysfs-bus-pci
+  auto pciDevId = fmt::format(
+      "{} {} {} {}",
+      std::string(vendorId_, 2, 4),
+      std::string(deviceId_, 2, 4),
+      std::string(subSystemVendorId_, 2, 4),
+      std::string(subSystemDeviceId_, 2, 4));
+  XLOG(INFO) << fmt::format(
+      "Pass {} device ID <{}> to {} driver's ID table",
+      name_,
+      pciDevId,
+      desiredDriver);
+  auto cmd = fmt::format("echo {} > {}/new_id", pciDevId, desiredDriverPath);
+  PlatformUtils().execCommand(cmd);
+}
+
+void PciDevice::checkCharDevReadiness() {
+  charDevPath_ = fmt::format(
+      "/dev/fbiob_{}.{}.{}.{}",
+      std::string(vendorId_, 2, 4),
+      std::string(deviceId_, 2, 4),
+      std::string(subSystemVendorId_, 2, 4),
+      std::string(subSystemDeviceId_, 2, 4));
+
+  if (!Utils().checkDeviceReadiness(
+          [&charDevPath_ = charDevPath_]() -> bool {
+            return fs::exists(charDevPath_);
+          },
+          fmt::format(
+              "No character device found at {} for {}. Waiting for at most {}s",
+              charDevPath_,
+              name_,
+              kPciWaitSecs.count()))) {
+    throw std::runtime_error(fmt::format(
+        "No character device found at {} for {}. This could either mean the "
+        "FPGA does not show up as PCI device (see lspci output), or the kmods "
+        "are not setting up the character device for the PCI device at {}.",
+        charDevPath_,
+        name_,
+        charDevPath_));
+  }
+  XLOG(INFO) << fmt::format(
+      "Found character device {} for {}", charDevPath_, name_);
 }
 
 std::string PciDevice::sysfsPath() const {

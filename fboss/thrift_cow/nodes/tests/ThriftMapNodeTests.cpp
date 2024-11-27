@@ -10,14 +10,11 @@
 
 #include <fboss/thrift_cow/visitors/tests/VisitorTestUtils.h>
 #include <thrift/lib/cpp2/folly_dynamic/folly_dynamic.h>
-#include <thrift/lib/cpp2/protocol/Serializer.h>
 #include <thrift/lib/cpp2/reflection/reflection.h>
 #include <thrift/lib/cpp2/reflection/testing.h>
-#include "fboss/agent/gen-cpp2/switch_config_fatal_types.h"
 #include "fboss/fsdb/if/gen-cpp2/fsdb_oper_types.h"
 #include "fboss/thrift_cow/nodes/Serializer.h"
 #include "fboss/thrift_cow/nodes/Types.h"
-#include "fboss/thrift_cow/nodes/tests/gen-cpp2/test_fatal_types.h"
 
 #include "fboss/agent/state/DeltaFunctions.h"
 #include "fboss/agent/state/MapDelta.h"
@@ -44,6 +41,7 @@ cfg::L4PortRange buildPortRange(int min, int max) {
 
 TEST(ThriftMapNodeTests, ThriftMapFieldsPrimitivesSimple) {
   ThriftMapFields<ThriftMapTraits<
+      false,
       apache::thrift::type_class::map<
           apache::thrift::type_class::integral,
           apache::thrift::type_class::integral>,
@@ -54,6 +52,7 @@ TEST(ThriftMapNodeTests, ThriftMapFieldsPrimitivesSimple) {
 
 TEST(ThriftMapNodeTests, ThriftMapFieldsPrimitivesGetSet) {
   ThriftMapFields<ThriftMapTraits<
+      false,
       apache::thrift::type_class::map<
           apache::thrift::type_class::integral,
           apache::thrift::type_class::integral>,
@@ -70,6 +69,7 @@ TEST(ThriftMapNodeTests, ThriftMapFieldsPrimitivesGetSet) {
 TEST(ThriftMapNodeTests, ThriftMapFieldsPrimitivesConstructFromThrift) {
   std::unordered_map<int, int> data = {{1, 2}, {5, 99}};
   ThriftMapFields<ThriftMapTraits<
+      false,
       apache::thrift::type_class::map<
           apache::thrift::type_class::integral,
           apache::thrift::type_class::integral>,
@@ -85,6 +85,7 @@ TEST(ThriftMapNodeTests, ThriftMapFieldsPrimitivesConstructFromThrift) {
 
 TEST(ThriftMapNodeTests, ThriftMapFieldsStructsSimple) {
   ThriftMapFields<ThriftMapTraits<
+      false,
       apache::thrift::type_class::map<
           apache::thrift::type_class::enumeration,
           apache::thrift::type_class::structure>,
@@ -95,6 +96,7 @@ TEST(ThriftMapNodeTests, ThriftMapFieldsStructsSimple) {
 
 TEST(ThriftMapNodeTests, ThriftMapFieldsStructsGetSet) {
   ThriftMapFields<ThriftMapTraits<
+      false,
       apache::thrift::type_class::map<
           apache::thrift::type_class::enumeration,
           apache::thrift::type_class::structure>,
@@ -121,6 +123,7 @@ TEST(ThriftMapNodeTests, ThriftMapFieldsStructsConstructFromThrift) {
       {TestEnum::FIRST, buildPortRange(100, 999)},
       {TestEnum::SECOND, buildPortRange(1000, 9999)}};
   ThriftMapFields<ThriftMapTraits<
+      false,
       apache::thrift::type_class::map<
           apache::thrift::type_class::enumeration,
           apache::thrift::type_class::structure>,
@@ -136,6 +139,7 @@ TEST(ThriftMapNodeTests, ThriftMapFieldsStructsConstructFromThrift) {
 
 TEST(ThriftMapNodeTests, ThriftMapNodePrimitivesSimple) {
   ThriftMapNode<ThriftMapTraits<
+      false,
       apache::thrift::type_class::map<
           apache::thrift::type_class::integral,
           apache::thrift::type_class::integral>,
@@ -146,6 +150,7 @@ TEST(ThriftMapNodeTests, ThriftMapNodePrimitivesSimple) {
 
 TEST(ThriftMapNodeTests, ThriftMapNodePrimitivesGetSet) {
   ThriftMapNode<ThriftMapTraits<
+      false,
       apache::thrift::type_class::map<
           apache::thrift::type_class::integral,
           apache::thrift::type_class::integral>,
@@ -162,6 +167,7 @@ TEST(ThriftMapNodeTests, ThriftMapNodePrimitivesGetSet) {
 TEST(ThriftMapNodeTests, ThriftMapNodePrimitivesConstructFromThrift) {
   std::unordered_map<int, int> data = {{1, 2}, {5, 99}};
   ThriftMapNode<ThriftMapTraits<
+      false,
       apache::thrift::type_class::map<
           apache::thrift::type_class::integral,
           apache::thrift::type_class::integral>,
@@ -178,6 +184,7 @@ TEST(ThriftMapNodeTests, ThriftMapNodePrimitivesConstructFromThrift) {
 TEST(ThriftMapNodeTests, ThriftMapNodePrimitivesVisit) {
   std::unordered_map<int, int> data = {{1, 2}, {5, 99}};
   ThriftMapNode<ThriftMapTraits<
+      false,
       apache::thrift::type_class::map<
           apache::thrift::type_class::integral,
           apache::thrift::type_class::integral>,
@@ -205,6 +212,7 @@ TEST(ThriftMapNodeTests, ThriftMapNodePrimitivesVisit) {
 TEST(ThriftMapNodeTests, ThriftMapNodePrimitivesVisitMutable) {
   std::unordered_map<int, int> data = {{1, 2}, {5, 99}};
   ThriftMapNode<ThriftMapTraits<
+      false,
       apache::thrift::type_class::map<
           apache::thrift::type_class::integral,
           apache::thrift::type_class::integral>,
@@ -240,6 +248,7 @@ TEST(ThriftMapNodeTests, ThriftMapNodePrimitivesVisitMutable) {
 
 TEST(ThriftMapNodeTests, ThriftMapNodePrimitivesClone) {
   using TestNodeType = ThriftMapNode<ThriftMapTraits<
+      false,
       apache::thrift::type_class::map<
           apache::thrift::type_class::integral,
           apache::thrift::type_class::integral>,
@@ -261,6 +270,7 @@ TEST(ThriftMapNodeTests, ThriftMapNodePrimitivesClone) {
 
 TEST(ThriftMapNodeTests, ThriftMapNodePrimitivesModify) {
   using TestNodeType = ThriftMapNode<ThriftMapTraits<
+      false,
       apache::thrift::type_class::map<
           apache::thrift::type_class::integral,
           apache::thrift::type_class::integral>,
@@ -290,6 +300,7 @@ TEST(ThriftMapNodeTests, ThriftMapNodePrimitivesModify) {
 
 TEST(ThriftMapNodeTests, ThriftMapNodePrimitivesRemove) {
   using TestNodeType = ThriftMapNode<ThriftMapTraits<
+      false,
       apache::thrift::type_class::map<
           apache::thrift::type_class::integral,
           apache::thrift::type_class::integral>,
@@ -325,6 +336,7 @@ TEST(ThriftMapNodeTests, ThriftMapNodePrimitivesRemove) {
 
 TEST(ThriftMapNodeTests, ThriftMapNodeStructsSimple) {
   ThriftMapNode<ThriftMapTraits<
+      false,
       apache::thrift::type_class::map<
           apache::thrift::type_class::enumeration,
           apache::thrift::type_class::structure>,
@@ -335,6 +347,7 @@ TEST(ThriftMapNodeTests, ThriftMapNodeStructsSimple) {
 
 TEST(ThriftMapNodeTests, ThriftMapNodeStructsGetSet) {
   ThriftMapNode<ThriftMapTraits<
+      false,
       apache::thrift::type_class::map<
           apache::thrift::type_class::enumeration,
           apache::thrift::type_class::structure>,
@@ -361,6 +374,7 @@ TEST(ThriftMapNodeTests, ThriftMapNodeStructsConstructFromThrift) {
       {TestEnum::FIRST, buildPortRange(100, 999)},
       {TestEnum::SECOND, buildPortRange(1000, 9999)}};
   ThriftMapNode<ThriftMapTraits<
+      false,
       apache::thrift::type_class::map<
           apache::thrift::type_class::enumeration,
           apache::thrift::type_class::structure>,
@@ -379,6 +393,7 @@ TEST(ThriftMapNodeTests, ThriftMapNodeStructsVisit) {
       {TestEnum::FIRST, buildPortRange(100, 999)},
       {TestEnum::SECOND, buildPortRange(1000, 9999)}};
   ThriftMapNode<ThriftMapTraits<
+      false,
       apache::thrift::type_class::map<
           apache::thrift::type_class::enumeration,
           apache::thrift::type_class::structure>,
@@ -456,6 +471,7 @@ TEST(ThriftMapNodeTests, ThriftMapNodeStructsVisitMutable) {
       {TestEnum::FIRST, buildPortRange(100, 999)},
       {TestEnum::SECOND, buildPortRange(1000, 9999)}};
   ThriftMapNode<ThriftMapTraits<
+      false,
       apache::thrift::type_class::map<
           apache::thrift::type_class::enumeration,
           apache::thrift::type_class::structure>,
@@ -521,6 +537,7 @@ TEST(ThriftMapNodeTests, ThriftMapNodeStructsVisitMutable) {
 
 TEST(ThriftMapNodeTests, ThriftMapNodeStructsClone) {
   using TestNodeType = ThriftMapNode<ThriftMapTraits<
+      false,
       apache::thrift::type_class::map<
           apache::thrift::type_class::enumeration,
           apache::thrift::type_class::structure>,
@@ -547,6 +564,7 @@ TEST(ThriftMapNodeTests, ThriftMapNodeStructsClone) {
 
 TEST(ThriftMapNodeTests, ThriftMapNodeStructsModify) {
   using TestNodeType = ThriftMapNode<ThriftMapTraits<
+      false,
       apache::thrift::type_class::map<
           apache::thrift::type_class::enumeration,
           apache::thrift::type_class::structure>,
@@ -593,6 +611,7 @@ TEST(ThriftMapNodeTests, ThriftMapNodeStructsModify) {
 
 TEST(ThriftMapNodeTests, MapDelta) {
   using Map = ThriftMapNode<ThriftMapTraits<
+      false,
       apache::thrift::type_class::map<
           apache::thrift::type_class::enumeration,
           apache::thrift::type_class::structure>,

@@ -29,7 +29,8 @@ SaiArsManager::SaiArsManager(
 }
 
 #if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
-sai_int32_t cfgSwitchingModeToSai(cfg::SwitchingMode switchingMode) {
+sai_int32_t SaiArsManager::cfgSwitchingModeToSai(
+    cfg::SwitchingMode switchingMode) const {
   switch (switchingMode) {
     case cfg::SwitchingMode::FLOWLET_QUALITY:
       return SAI_ARS_MODE_FLOWLET_QUALITY;
@@ -55,7 +56,9 @@ void SaiArsManager::addArs(
 
 void SaiArsManager::removeArs(
     const std::shared_ptr<FlowletSwitchingConfig>& flowletSwitchConfig) {
-  arsHandle_.reset();
+  if (arsHandle_->ars) {
+    arsHandle_->ars.reset();
+  }
 }
 
 void SaiArsManager::changeArs(

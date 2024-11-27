@@ -11,7 +11,6 @@
 #include "fboss/cli/fboss2/commands/show/port/CmdShowPort.h"
 #include "fboss/cli/fboss2/gen-cpp2/cli_types.h"
 #include "fboss/cli/fboss2/test/CmdHandlerTestBase.h"
-#include "nettools/common/TestUtils.h"
 
 using namespace ::testing;
 namespace facebook::fboss {
