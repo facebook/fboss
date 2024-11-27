@@ -24,9 +24,9 @@ struct PciDevice {
   std::string charDevPath_{};
   std::string sysfsPath_{};
 
-  void checkSysfsReadiness(void);
+  void checkSysfsReadiness();
   void bindDriver(const std::string& desiredDriver);
-  void checkCharDevReadiness(void);
+  void checkCharDevReadiness();
 };
 
 class PciExplorer {

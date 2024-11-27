@@ -67,7 +67,7 @@ PciDevice::PciDevice(const PciDeviceConfig& pciDeviceConfig)
   checkCharDevReadiness();
 }
 
-void PciDevice::checkSysfsReadiness(void) {
+void PciDevice::checkSysfsReadiness() {
   for (const auto& dirEntry : fs::directory_iterator("/sys/bus/pci/devices")) {
     std::string vendor, device, subSystemVendor, subSystemDevice;
     auto deviceFilePath = dirEntry.path() / "device";
@@ -139,19 +139,22 @@ void PciDevice::bindDriver(const std::string& desiredDriver) {
   // Add PCI device ID to the driver's "new_id" file. Check below doc for
   // details:
   // https://www.kernel.org/doc/Documentation/ABI/testing/sysfs-bus-pci
-  XLOG(INFO) << fmt::format(
-      "Pass {} device ID to {} driver's ID table", name_, desiredDriver);
-  auto cmd = fmt::format(
-      "echo {} {} {} {} > {}/new_id",
+  auto pciDevId = fmt::format(
+      "{} {} {} {}",
       std::string(vendorId_, 2, 4),
       std::string(deviceId_, 2, 4),
       std::string(subSystemVendorId_, 2, 4),
-      std::string(subSystemDeviceId_, 2, 4),
-      desiredDriverPath);
+      std::string(subSystemDeviceId_, 2, 4));
+  XLOG(INFO) << fmt::format(
+      "Pass {} device ID <{}> to {} driver's ID table",
+      name_,
+      pciDevId,
+      desiredDriver);
+  auto cmd = fmt::format("echo {} > {}/new_id", pciDevId, desiredDriverPath);
   PlatformUtils().execCommand(cmd);
 }
 
-void PciDevice::checkCharDevReadiness(void) {
+void PciDevice::checkCharDevReadiness() {
   charDevPath_ = fmt::format(
       "/dev/fbiob_{}.{}.{}.{}",
       std::string(vendorId_, 2, 4),
