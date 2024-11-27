@@ -204,7 +204,8 @@ class FakeAsic : public HwAsic {
   cfg::Range64 getReservedEncapIndexRange() const override {
     return makeRange(1000, 2000);
   }
-  HwAsic::RecyclePortInfo getRecyclePortInfo() const override {
+  HwAsic::RecyclePortInfo getRecyclePortInfo(
+      InterfaceNodeRole /* intfRole */) const override {
     return {
         .coreId = 0,
         .corePortIndex = 1,

@@ -108,6 +108,7 @@ using namespace facebook::fboss;
 namespace {
 
 const uint8_t kV6LinkLocalAddrMask{64};
+constexpr auto kEdswClusterIdStart = 200;
 
 // Only one buffer pool is supported systemwide. Variable to track the name
 // and validate during a config change.
@@ -1158,7 +1159,10 @@ void ThriftConfigApplier::processUpdatedDsfNodes() {
         std::make_optional(RemoteSystemPortType::STATIC_ENTRY));
     sysPort->setSwitchId(node->getSwitchId());
     sysPort->setName(getRecyclePortName(node));
-    const auto& recyclePortInfo = dsfNodeAsic->getRecyclePortInfo();
+    const auto& recyclePortInfo = dsfNodeAsic->getRecyclePortInfo(
+        isDualStage3Q2QMode() && node->getClusterId() >= kEdswClusterIdStart
+            ? HwAsic::InterfaceNodeRole::DUAL_STAGE_EDGE_NODE
+            : HwAsic::InterfaceNodeRole::IN_CLUSTER_NODE);
     sysPort->setCoreIndex(recyclePortInfo.coreId);
     sysPort->setCorePortIndex(recyclePortInfo.corePortIndex);
     sysPort->setSpeedMbps(recyclePortInfo.speedMbps);

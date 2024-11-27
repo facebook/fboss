@@ -283,7 +283,8 @@ cfg::Range64 Jericho2Asic::getReservedEncapIndexRange() const {
   return makeRange(0x200000, 0x300000);
 }
 
-HwAsic::RecyclePortInfo Jericho2Asic::getRecyclePortInfo() const {
+HwAsic::RecyclePortInfo Jericho2Asic::getRecyclePortInfo(
+    InterfaceNodeRole /* intfRole */) const {
   return {
       .coreId = 0,
       .corePortIndex = 1,

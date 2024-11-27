@@ -221,6 +221,10 @@ class HwAsic {
     DUAL_STAGE_L1,
     DUAL_STAGE_L2,
   };
+  enum InterfaceNodeRole {
+    IN_CLUSTER_NODE,
+    DUAL_STAGE_EDGE_NODE,
+  };
   virtual ~HwAsic() {}
   static std::unique_ptr<HwAsic> makeAsic(
       std::optional<int64_t> switchID,
@@ -382,7 +386,8 @@ class HwAsic {
     return sdkVersion_;
   }
 
-  virtual RecyclePortInfo getRecyclePortInfo() const;
+  virtual RecyclePortInfo getRecyclePortInfo(
+      InterfaceNodeRole /* intfRole */) const;
   cfg::PortLoopbackMode getDesiredLoopbackMode(
       cfg::PortType portType = cfg::PortType::INTERFACE_PORT) const;
 
