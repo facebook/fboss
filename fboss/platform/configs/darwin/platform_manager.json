@@ -221,7 +221,15 @@
           ],
           "spiMasterConfigs": [],
           "ledCtrlConfigs": [],
-          "xcvrCtrlConfigs": []
+          "xcvrCtrlConfigs": [],
+          "infoRomConfigs": [
+            {
+              "pmUnitScopedName": "ROOK_CPU_CPLD_INFO_ROM",
+              "deviceName": "fpga_info_iob",
+              "csrOffset": "0x0000"
+            }
+          ],
+          "desiredDriver": "scd"
         },
         {
           "pmUnitScopedName": "SCD_FPGA",
@@ -294,6 +302,13 @@
             }
           ],
           "xcvrCtrlConfigs": [],
+          "infoRomConfigs": [
+            {
+              "pmUnitScopedName": "SCD_FPGA_INFO_ROM",
+              "deviceName": "fpga_info_iob",
+              "csrOffset": "0x0000"
+            }
+          ],
           "miscCtrlConfigs": [
             {
               "pmUnitScopedName": "SCD_WDT1",
@@ -382,7 +397,9 @@
   ],
   "symbolicLinkToDevicePath": {
     "/run/devmap/cplds/ROOK_CPU_CPLD": "/[ROOK_CPU_CPLD]",
+    "/run/devmap/cplds/ROOK_CPU_CPLD_INFO_ROM": "/[ROOK_CPU_CPLD_INFO_ROM]",
     "/run/devmap/fpgas/SCD_FPGA": "/[SCD_FPGA]",
+    "/run/devmap/fpgas/SCD_FPGA_INFO_ROM": "/[SCD_FPGA_INFO_ROM]",
     "/run/devmap/i2c-busses/ROOK_SMBUS0_CH0": "/[ROOK_SMBUS0@0]",
     "/run/devmap/i2c-busses/ROOK_SMBUS0_CH1": "/[ROOK_SMBUS0@1]",
     "/run/devmap/i2c-busses/ROOK_SMBUS0_CH2": "/[ROOK_SMBUS0@2]",
@@ -440,13 +457,14 @@
     "/run/devmap/sensors/PEM_TEMP_MAX6658": "/PEM_SLOT@0/[PEM_TEMP_MAX6658]"
   },
   "bspKmodsRpmName": "arista_bsp_kmods",
-  "bspKmodsRpmVersion": "0.7.5-1",
+  "bspKmodsRpmVersion": "0.7.6-1",
   "bspKmodsToReload": [
     "scd",
     "scd-leds",
     "scd-smbus",
     "scd-spi",
     "scd-watchdog-darwin",
+    "scd-info",
     "rook-fan-cpld",
     "blackhawk-cpld",
     "aslg4f4527",
