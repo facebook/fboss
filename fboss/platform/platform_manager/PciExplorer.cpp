@@ -95,6 +95,7 @@ void PciDevice::checkSysfsReadiness(void) {
       sysfsPath_ = dirEntry.path().string();
       XLOG(INFO) << fmt::format(
           "Found sysfs path {} for device {}", sysfsPath_, name_);
+      break;
     }
   }
   if (sysfsPath_.empty()) {
