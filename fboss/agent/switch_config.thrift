@@ -1190,6 +1190,11 @@ struct Port {
    * DSF Interface node to enable conditional entropy, rotating hash seed periodically to increase entropy.
    */
   33: bool conditionalEntropyRehash = false;
+
+  /*
+   * DSF Interface node to enable SHEL messages - port UP/DOWN notification to other interface nodes.
+   */
+  34: optional bool selfHealingECMPLagEnable;
 }
 
 enum LacpPortRate {
@@ -1674,6 +1679,12 @@ struct FirmwareInfo {
   4: FirmwareLoadType firmwareLoadType;
 }
 
+struct SelfHealingEcmpLagConfig {
+  1: string shelSrcIp;
+  2: string shelDstIp;
+  3: i32 shelPeriodicIntervalMS;
+}
+
 struct SwitchInfo {
   1: SwitchType switchType;
   2: AsicType asicType;
@@ -1772,6 +1783,8 @@ struct SwitchSettings {
   // Conditional Entropy Rehash Period for VOQ devices
   23: optional i32 conditionalEntropyRehashPeriodUS;
   24: optional string firmwarePath;
+  // SHEL attributes to configure 1. SHEL message SrcIP, 2. DstIp, and 3. Interval for SHEL periodic messages
+  25: optional SelfHealingEcmpLagConfig selfHealingEcmpLagConfig;
 }
 
 // Global buffer pool
