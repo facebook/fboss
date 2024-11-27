@@ -48,9 +48,30 @@ std::optional<std::map<int64_t, cfg::DsfNode>> addRemoteIntfNodeCfg(
   switchInfo.globalSystemPortOffset() = *firstDsfNode.globalSystemPortOffset();
   switchInfo.inbandPortId() = *firstDsfNode.inbandPortId();
 
-  auto asic =
+  auto myAsic =
       HwAsic::makeAsic(*firstDsfNode.switchId(), switchInfo, std::nullopt);
-  int numCores = asic->getNumCores();
+
+  std::unique_ptr<HwAsic> dualStageRdswAsic, dualStageEdswAsic;
+  // Update inbandPortId based on InterfaceNodeRole
+  if (isDualStage3Q2QMode()) {
+    cfg::SwitchInfo dualStageRdswInfo = switchInfo;
+    dualStageRdswInfo.inbandPortId() =
+        myAsic->getRecyclePortInfo(HwAsic::InterfaceNodeRole::IN_CLUSTER_NODE)
+            .inbandPortId;
+    dualStageRdswAsic = HwAsic::makeAsic(
+        *firstDsfNode.switchId(), dualStageRdswInfo, std::nullopt);
+
+    cfg::SwitchInfo dualStageEdswInfo = switchInfo;
+    dualStageEdswInfo.inbandPortId() =
+        myAsic
+            ->getRecyclePortInfo(
+                HwAsic::InterfaceNodeRole::DUAL_STAGE_EDGE_NODE)
+            .inbandPortId;
+    dualStageEdswAsic = HwAsic::makeAsic(
+        *firstDsfNode.switchId(), dualStageEdswInfo, std::nullopt);
+  }
+
+  int numCores = myAsic->getNumCores();
   CHECK(
       !numRemoteNodes.has_value() ||
       numRemoteNodes.value() < getDsfInterfaceNodeCount());
@@ -66,15 +87,20 @@ std::optional<std::map<int64_t, cfg::DsfNode>> addRemoteIntfNodeCfg(
        remoteSwitchId < totalNodes * numCores;
        remoteSwitchId += numCores) {
     std::optional<int> clusterId;
+    HwAsic& hwAsic = *myAsic;
     if (isDualStage3Q2QMode()) {
       if (remoteSwitchId < getMaxRdsw() * numCores) {
         clusterId = remoteSwitchId / numCores / kRdswPerCluster;
+        CHECK(dualStageRdswAsic);
+        hwAsic = *dualStageRdswAsic;
       } else {
         clusterId = k2StageEdgePodClusterId;
+        CHECK(dualStageEdswAsic);
+        hwAsic = *dualStageEdswAsic;
       }
     }
     auto remoteDsfNodeCfg = dsfNodeConfig(
-        *asic,
+        hwAsic,
         SwitchID(remoteSwitchId),
         *firstDsfNode.platformType(),
         clusterId);
