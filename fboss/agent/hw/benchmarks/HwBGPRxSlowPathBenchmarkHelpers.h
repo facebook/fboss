@@ -5,6 +5,7 @@
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/RouteScaleGenerators.h"
 #include "fboss/agent/test/utils/CoppTestUtils.h"
+#include "fboss/agent/test/utils/PortFlapHelper.h"
 #include "fboss/agent/test/utils/QosTestUtils.h"
 #include "fboss/agent/test/utils/StressTestUtils.h"
 
@@ -63,6 +64,18 @@ void rxSlowPathBGPRouteChangeBenchmark(BgpRxMode mode) {
   std::this_thread::sleep_for(std::chrono::seconds(kBurnIntevalInSeconds));
   // start baseline BGP benchmark test
   constexpr uint8_t kCpuQueue = 0;
+  // start port flap
+  std::unique_ptr<PortFlapHelper> portFlapHelper;
+  if (mode == routeProgrammingWithPortFlap) {
+    // first 4 ECMP port, skip the traffic port
+    CHECK_GE(ensemble->masterLogicalInterfacePortIds().size(), 5);
+    std::vector<PortID> portToFlap;
+    for (auto i = 0; i < 4; i++) {
+      portToFlap.push_back(ensemble->masterLogicalInterfacePortIds()[1 + i]);
+    }
+    portFlapHelper =
+        std::make_unique<PortFlapHelper>(ensemble.get(), portToFlap);
+  }
   std::map<int, CpuPortStats> cpuStatsBefore;
   ensemble->getSw()->getAllCpuPortStats(cpuStatsBefore);
   auto statsBefore = cpuStatsBefore[0];
@@ -70,6 +83,11 @@ void rxSlowPathBGPRouteChangeBenchmark(BgpRxMode mode) {
       *statsBefore.portStats_(), kCpuQueue);
   auto timeBefore = std::chrono::steady_clock::now();
   CHECK_NE(pktsBefore, 0);
+
+  if (mode == routeProgrammingWithPortFlap) {
+    CHECK(portFlapHelper);
+    portFlapHelper->startPortFlap();
+  }
 
   auto [bgpRouteAddWorstCaseLookupMsecs, bgpRouteAddWorstCaseBulkLookupMsecs] =
       routeChangeLookupStresser<utility::FSWRouteScaleGenerator>(
@@ -90,6 +108,11 @@ void rxSlowPathBGPRouteChangeBenchmark(BgpRxMode mode) {
       (static_cast<double>(bytesAfter - bytesBefore) /
        durationMillseconds.count()) *
       1000;
+
+  if (mode == routeProgrammingWithPortFlap) {
+    CHECK(portFlapHelper);
+    portFlapHelper->stopPortFlap();
+  }
 
   if (FLAGS_json) {
     folly::dynamic cpuRxRateJson = folly::dynamic::object;

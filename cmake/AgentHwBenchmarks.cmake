@@ -297,6 +297,7 @@ target_link_libraries(hw_bgp_rx_slow_path_rate
   copp_test_utils
   qos_test_utils
   stress_test_utils
+  port_flap_helper
 )
 
 target_link_libraries(hw_rx_slow_path_rate
