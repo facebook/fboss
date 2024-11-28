@@ -439,3 +439,16 @@ add_library(port_flap_helper
 target_link_libraries(port_flap_helper
   agent_ensemble
 )
+
+add_library(stress_test_utils
+  fboss/agent/test/utils/StressTestUtils.cpp
+)
+
+target_link_libraries(stress_test_utils
+  route_scale_gen
+  mono_agent_benchmarks
+  agent_ensemble
+  function_call_time_reporter
+  Folly::folly
+  Folly::follybenchmark
+)

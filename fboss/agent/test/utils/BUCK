@@ -575,3 +575,20 @@ cpp_library(
         "//fboss/agent/test:agent_ensemble",
     ],
 )
+
+cpp_library(
+    name = "stress_test_utils",
+    srcs = [
+        "StressTestUtils.cpp",
+    ],
+    headers = [
+        "StressTestUtils.h",
+    ],
+    exported_deps = [
+        "//fboss/agent/benchmarks:mono_agent_benchmarks",
+        "//fboss/agent/test:agent_ensemble",
+        "//fboss/agent/test:route_scale_gen",
+        "//fboss/lib:function_call_time_reporter",
+        "//folly:benchmark",
+    ],
+)
