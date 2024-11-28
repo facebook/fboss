@@ -937,7 +937,7 @@
       ]
     },
     {
-      "slotPath": "BCB_SLOT@0",
+      "slotPath": "/BCB_SLOT@0",
       "pmUnitName": "BCB",
       "sensors": [
         {
