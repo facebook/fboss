@@ -42,6 +42,14 @@ cpp_library(
         "//fboss/agent/test:route_scale_gen",
         "//fboss/agent/test/utils:copp_test_utils",
         "//fboss/agent/test/utils:qos_test_utils",
+        "//fboss/agent/test/utils:stress_test_utils",
+    ],
+)
+
+agent_benchmark_lib(
+    name = "hw_bgp_rx_slow_path_rate",
+    srcs = ["HwBGPRxSlowPathBenchmark.cpp"],
+    extra_deps = [
     ],
 )
 

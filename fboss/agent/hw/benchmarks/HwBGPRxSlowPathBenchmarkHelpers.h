@@ -6,6 +6,7 @@
 #include "fboss/agent/test/RouteScaleGenerators.h"
 #include "fboss/agent/test/utils/CoppTestUtils.h"
 #include "fboss/agent/test/utils/QosTestUtils.h"
+#include "fboss/agent/test/utils/StressTestUtils.h"
 
 namespace {
 const std::string kDstIp = "2620:0:1cfe:face:b00c::4";
