@@ -64,42 +64,38 @@ struct Serializer {
   using Writer = typename Serializers::Writer;
   using TSerializer = apache::thrift::Serializer<Reader, Writer>;
 
-  template <
-      typename TC,
-      typename TType,
-      std::enable_if_t<detail::tc_is_struct_or_union<TC>, bool> = true>
-  static folly::fbstring serialize(const TType& ttype) {
+  template <typename TC, typename TType>
+  static folly::fbstring serialize(const TType& ttype)
+    requires(detail::tc_is_struct_or_union<TC>)
+  {
     folly::fbstring encoded;
     TSerializer::serialize(ttype, &encoded);
     encoded.shrink_to_fit();
     return encoded;
   }
 
-  template <
-      typename TC,
-      typename TType,
-      std::enable_if_t<!detail::tc_is_struct_or_union<TC>, bool> = true>
-  static folly::fbstring serialize(const TType& ttype) {
+  template <typename TC, typename TType>
+  static folly::fbstring serialize(const TType& ttype)
+    requires(!detail::tc_is_struct_or_union<TC>)
+  {
     auto str = serializeBuf<TC>(ttype).moveToFbString();
     str.shrink_to_fit();
     return str;
   }
 
-  template <
-      typename TC,
-      typename TType,
-      std::enable_if_t<detail::tc_is_struct_or_union<TC>, bool> = true>
-  static folly::IOBuf serializeBuf(const TType& ttype) {
+  template <typename TC, typename TType>
+  static folly::IOBuf serializeBuf(const TType& ttype)
+    requires(detail::tc_is_struct_or_union<TC>)
+  {
     folly::IOBufQueue queue;
     TSerializer::serialize(ttype, &queue);
     return queue.moveAsValue();
   }
 
-  template <
-      typename TC,
-      typename TType,
-      std::enable_if_t<!detail::tc_is_struct_or_union<TC>, bool> = true>
-  static folly::IOBuf serializeBuf(const TType& ttype) {
+  template <typename TC, typename TType>
+  static folly::IOBuf serializeBuf(const TType& ttype)
+    requires(!detail::tc_is_struct_or_union<TC>)
+  {
     folly::IOBufQueue queue;
     Writer writer;
     writer.setOutput(&queue);
@@ -108,19 +104,17 @@ struct Serializer {
     return queue.moveAsValue();
   }
 
-  template <
-      typename TC,
-      typename TType,
-      std::enable_if_t<detail::tc_is_struct_or_union<TC>, bool> = true>
-  static TType deserialize(const folly::fbstring& encoded) {
+  template <typename TC, typename TType>
+  static TType deserialize(const folly::fbstring& encoded)
+    requires(detail::tc_is_struct_or_union<TC>)
+  {
     return TSerializer::template deserialize<TType>(encoded.toStdString());
   }
 
-  template <
-      typename TC,
-      typename TType,
-      std::enable_if_t<!detail::tc_is_struct_or_union<TC>, bool> = true>
-  static TType deserialize(const folly::fbstring& encoded) {
+  template <typename TC, typename TType>
+  static TType deserialize(const folly::fbstring& encoded)
+    requires(!detail::tc_is_struct_or_union<TC>)
+  {
     Reader reader;
     auto buf = folly::IOBuf::copyBuffer(encoded.data(), encoded.length());
     reader.setInput(buf.get());
@@ -130,19 +124,17 @@ struct Serializer {
     return recovered;
   }
 
-  template <
-      typename TC,
-      typename TType,
-      std::enable_if_t<detail::tc_is_struct_or_union<TC>, bool> = true>
-  static TType deserializeBuf(folly::IOBuf&& buf) {
+  template <typename TC, typename TType>
+  static TType deserializeBuf(folly::IOBuf&& buf)
+    requires(detail::tc_is_struct_or_union<TC>)
+  {
     return TSerializer::template deserialize<TType>(&buf);
   }
 
-  template <
-      typename TC,
-      typename TType,
-      std::enable_if_t<!detail::tc_is_struct_or_union<TC>, bool> = true>
-  static TType deserializeBuf(folly::IOBuf&& buf) {
+  template <typename TC, typename TType>
+  static TType deserializeBuf(folly::IOBuf&& buf)
+    requires(!detail::tc_is_struct_or_union<TC>)
+  {
     Reader reader;
     reader.setInput(&buf);
     TType recovered;

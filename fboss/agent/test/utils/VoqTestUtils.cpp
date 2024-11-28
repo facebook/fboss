@@ -22,6 +22,7 @@ constexpr auto kNumPortPerCore = 10;
 // 7: mgm port, 8-43 front panel nif
 constexpr auto kRemoteSysPortOffset = 7;
 constexpr auto kNumVoq = 8;
+constexpr auto k3q2qNumVoq = 3;
 constexpr auto kNumRdswSysPort = 44;
 constexpr auto kNumEdswSysPort = 26;
 
@@ -36,7 +37,8 @@ std::shared_ptr<SystemPort> makeRemoteSysPort(
   remoteSysPort->setName(folly::to<std::string>(
       "hwTestSwitch", remoteSwitchId, ":eth/", portId, "/1"));
   remoteSysPort->setSwitchId(remoteSwitchId);
-  remoteSysPort->setNumVoqs(kNumVoq);
+  // TODO(zecheng): NIF MGMT port for 3q2q mode should have 2 VOQ
+  remoteSysPort->setNumVoqs(isDualStage3Q2QMode() ? k3q2qNumVoq : kNumVoq);
   remoteSysPort->setCoreIndex(coreIndex);
   remoteSysPort->setCorePortIndex(corePortIndex);
   remoteSysPort->setSpeedMbps(speed);
@@ -87,7 +89,7 @@ void updateRemoteIntfWithNeighbor(
 
 std::vector<cfg::PortQueue> getDefaultNifVoqCfg() {
   std::vector<cfg::PortQueue> voqs;
-  if (isDualStage3Q2QMode()) {
+  if (isDualStage3Q2QQos()) {
     cfg::PortQueue rdmaQueue;
     rdmaQueue.id() = 0;
     rdmaQueue.name() = "rdma";
@@ -181,6 +183,16 @@ std::vector<cfg::PortQueue> get3VoqCfg() {
   highQueue.scheduling() = cfg::QueueScheduling::INTERNAL;
   voqs.push_back(highQueue);
   return voqs;
+}
+
+std::shared_ptr<PortQueue> makeSwitchStateVoq(const cfg::PortQueue& cfgQueue) {
+  auto queue =
+      std::make_shared<PortQueue>(static_cast<uint8_t>(cfgQueue.id().value()));
+  queue->setStreamType(cfgQueue.streamType().value());
+  queue->setScheduling(cfgQueue.scheduling().value());
+  queue->setName(cfgQueue.name().value());
+  queue->setScalingFactor(cfg::MMUScalingFactor::ONE_32768TH);
+  return queue;
 }
 } // namespace
 
@@ -340,35 +352,13 @@ void populateRemoteIntfAndSysPorts(
 
 QueueConfig getDefaultVoqConfig() {
   QueueConfig queueCfg;
-
-  auto defaultQueue = std::make_shared<PortQueue>(static_cast<uint8_t>(0));
-  defaultQueue->setStreamType(cfg::StreamType::UNICAST);
-  defaultQueue->setScheduling(cfg::QueueScheduling::INTERNAL);
-  defaultQueue->setName("default");
-  defaultQueue->setScalingFactor(cfg::MMUScalingFactor::ONE_32768TH);
-  queueCfg.push_back(defaultQueue);
-
-  auto rdmaQueue = std::make_shared<PortQueue>(static_cast<uint8_t>(2));
-  rdmaQueue->setStreamType(cfg::StreamType::UNICAST);
-  rdmaQueue->setScheduling(cfg::QueueScheduling::INTERNAL);
-  rdmaQueue->setName("rdma");
-  defaultQueue->setScalingFactor(cfg::MMUScalingFactor::ONE_32768TH);
-  queueCfg.push_back(rdmaQueue);
-
-  auto monitoringQueue = std::make_shared<PortQueue>(static_cast<uint8_t>(6));
-  monitoringQueue->setStreamType(cfg::StreamType::UNICAST);
-  monitoringQueue->setScheduling(cfg::QueueScheduling::INTERNAL);
-  monitoringQueue->setName("monitoring");
-  defaultQueue->setScalingFactor(cfg::MMUScalingFactor::ONE_32768TH);
-  queueCfg.push_back(monitoringQueue);
-
-  auto ncQueue = std::make_shared<PortQueue>(static_cast<uint8_t>(7));
-  ncQueue->setStreamType(cfg::StreamType::UNICAST);
-  ncQueue->setScheduling(cfg::QueueScheduling::INTERNAL);
-  ncQueue->setName("nc");
-  defaultQueue->setScalingFactor(cfg::MMUScalingFactor::ONE_32768TH);
-  queueCfg.push_back(ncQueue);
-
+  // TODO: One port should be mgt port with 2 queues in 3Q2Q mode
+  auto nameAndDefaultVoq =
+      getNameAndDefaultVoqCfg(cfg::PortType::INTERFACE_PORT);
+  CHECK(nameAndDefaultVoq);
+  for (const auto& cfgQueue : nameAndDefaultVoq.value().queueConfig) {
+    queueCfg.push_back(makeSwitchStateVoq(cfgQueue));
+  }
   return queueCfg;
 }
 

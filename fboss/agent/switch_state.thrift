@@ -136,6 +136,7 @@ struct PortFields {
   54: optional i32 reachabilityGroupId;
   // DSF Interface node to enable conditional entropy, rotating hash seed periodically to increase entropy.
   55: bool conditionalEntropyRehash = false;
+  56: bool selfHealingECMPLagEnable = false;
 }
 
 typedef ctrl.SystemPortThrift SystemPortFields
@@ -329,6 +330,7 @@ struct MirrorOnDropReportFields {
   9: byte dscp;
   10: optional i32 agingIntervalUsecs;
   11: string switchMac; // Populated at runtime
+  12: string firstInterfaceMac; // Populated at runtime
 }
 
 struct ControlPlaneFields {
@@ -405,7 +407,7 @@ struct SwitchSettingsFields {
   // When there's no IPv4 addresses configured, what address to use to source IPv4 ICMP packets from.
   42: Address.BinaryAddress icmpV4UnavailableSrcAddress;
   // Switch property of reachability group size, for the use of input balanced mode.
-  43: optional i32 reachabilityGroupListSize;
+  43: optional i32 reachabilityGroupListSize_DEPRECATED;
   // SRAM global thresholds to send PFC XOFF/XON
   44: optional byte sramGlobalFreePercentXoffThreshold;
   45: optional byte sramGlobalFreePercentXonThreshold;
@@ -414,6 +416,8 @@ struct SwitchSettingsFields {
   // Conditional Entropy Rehash Period for VOQ devices
   48: optional i32 conditionalEntropyRehashPeriodUS;
   49: optional string firmwarePath;
+  50: list<i32> reachabilityGroups = [];
+  51: optional switch_config.SelfHealingEcmpLagConfig selfHealingEcmpLagConfig;
 }
 
 struct RoutePrefix {
@@ -541,6 +545,9 @@ struct InterfaceFields {
    */
   21: optional common.LivenessStatus remoteIntfLivenessStatus;
   22: switch_config.Scope scope = switch_config.Scope.LOCAL;
+
+  /* applicable only for port type of interface */
+  23: optional i32 portId;
 }
 
 enum LacpState {

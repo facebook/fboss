@@ -150,7 +150,8 @@ cfg::Range64 HwAsic::getReservedEncapIndexRange() const {
       "Reserved encap idx range unimplemented for: ", getAsicTypeStr());
 }
 
-HwAsic::RecyclePortInfo HwAsic::getRecyclePortInfo() const {
+HwAsic::RecyclePortInfo HwAsic::getRecyclePortInfo(
+    InterfaceNodeRole /* intfRole */) const {
   throw FbossError("Recycle port info unimplemented for: ", getAsicTypeStr());
 }
 

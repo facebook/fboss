@@ -777,6 +777,11 @@ struct SaiSwitchTraits {
   static const std::vector<sai_stat_id_t>& egressCoreBufferWatermarkBytes();
   static const std::vector<sai_stat_id_t>& deletedCredits();
   static const std::vector<sai_stat_id_t>& sramMinBufferWatermarkBytes();
+  static const std::vector<sai_stat_id_t>& fdrFifoWatermarkBytes();
+  static const std::vector<sai_stat_id_t>& egressFabricCellError();
+  static const std::vector<sai_stat_id_t>& egressNonFabricCellError();
+  static const std::vector<sai_stat_id_t>& egressNonFabricCellUnpackError();
+  static const std::vector<sai_stat_id_t>& egressParityCellError();
 };
 
 SAI_ATTRIBUTE_NAME(Switch, InitSwitch)

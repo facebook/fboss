@@ -560,7 +560,8 @@ class AgentFlowletSwitchingTest : public AgentAclCounterTestBase {
         ensemble.getSw(),
         ensemble.masterLogicalPortIds(),
         true /*interfaceHasSubnet*/);
-    utility::addFlowletConfigs(cfg, ensemble.masterLogicalPortIds());
+    utility::addFlowletConfigs(
+        cfg, ensemble.masterLogicalPortIds(), ensemble.isSai());
     return cfg;
   }
 
@@ -608,7 +609,8 @@ class AgentFlowletMirrorTest : public AgentFlowletSwitchingTest {
         ensemble.getSw(),
         ensemble.masterLogicalPortIds(),
         true /*interfaceHasSubnet*/);
-    utility::addFlowletConfigs(cfg, ensemble.masterLogicalPortIds());
+    utility::addFlowletConfigs(
+        cfg, ensemble.masterLogicalPortIds(), ensemble.isSai());
     addAclAndStat(&cfg, AclType::UDF_NAK);
     // overwrite existing traffic policy which only has a counter action
     // It is added in addAclAndStat above

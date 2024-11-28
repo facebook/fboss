@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 
+# pyre-unsafe
+
 # Run as python3 fboss/util/run_sai_replayer_audit.py
 #
 #

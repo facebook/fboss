@@ -108,6 +108,7 @@ using namespace facebook::fboss;
 namespace {
 
 const uint8_t kV6LinkLocalAddrMask{64};
+constexpr auto k2StageEdgePodClusterId = 200;
 
 // Only one buffer pool is supported systemwide. Variable to track the name
 // and validate during a config change.
@@ -1158,7 +1159,11 @@ void ThriftConfigApplier::processUpdatedDsfNodes() {
         std::make_optional(RemoteSystemPortType::STATIC_ENTRY));
     sysPort->setSwitchId(node->getSwitchId());
     sysPort->setName(getRecyclePortName(node));
-    const auto& recyclePortInfo = dsfNodeAsic->getRecyclePortInfo();
+    const auto& recyclePortInfo = dsfNodeAsic->getRecyclePortInfo(
+        isDualStage3Q2QMode() && node->getClusterId() >= k2StageEdgePodClusterId
+            ? HwAsic::InterfaceNodeRole::DUAL_STAGE_EDGE_NODE
+            : HwAsic::InterfaceNodeRole::IN_CLUSTER_NODE);
+    CHECK_EQ(recyclePortInfo.inbandPortId, *node->getInbandPortId());
     sysPort->setCoreIndex(recyclePortInfo.coreId);
     sysPort->setCorePortIndex(recyclePortInfo.corePortIndex);
     sysPort->setSpeedMbps(recyclePortInfo.speedMbps);
@@ -1226,45 +1231,44 @@ void ThriftConfigApplier::processReachabilityGroup(
     const std::vector<SwitchID>& localFabricSwitchIds) {
   std::unordered_map<std::string, std::vector<uint32_t>> switchNameToSwitchIds;
 
-  // TODO(zecheng): Update to look at DsfNode layer config once available.
-
-  // To determine if Dsf cluster is single stage:
-  // If there's more than one clusterIds in dsfNode map, it's in multi-stage.
-  std::unordered_set<int> clusterIds;
-  for (const auto& [_, dsfNodeMap] : std::as_const(*new_->getDsfNodes())) {
-    for (const auto& [_, dsfNode] : std::as_const(*dsfNodeMap)) {
-      std::string nodeName = dsfNode->getName();
-      auto iter = switchNameToSwitchIds.find(nodeName);
-      if (iter != switchNameToSwitchIds.end()) {
-        iter->second.push_back(dsfNode->getID());
-      } else {
-        switchNameToSwitchIds[nodeName] = {dsfNode->getID()};
-      }
-      if (auto clusterId = dsfNode->getClusterId()) {
-        clusterIds.insert(*clusterId);
-      }
+  bool isSingleStageCluster = true;
+  for (const auto& [_, dsfNode] : *cfg_->dsfNodes()) {
+    std::string nodeName = *dsfNode.name();
+    auto iter = switchNameToSwitchIds.find(nodeName);
+    if (iter != switchNameToSwitchIds.end()) {
+      iter->second.push_back(*dsfNode.switchId());
+    } else {
+      switchNameToSwitchIds[nodeName] = {
+          static_cast<uint32_t>(*dsfNode.switchId())};
+    }
+    if (auto fabricLevel = dsfNode.fabricLevel()) {
+      isSingleStageCluster &= (fabricLevel.value() < 2);
     }
   }
-  bool isSingleStageCluster = clusterIds.size() <= 1;
 
-  auto updateReachabilityGroupListSize =
-      [&](const auto fabricSwitchId, const auto reachabilityGroupListSize) {
-        auto matcher = HwSwitchMatcher(std::unordered_set<SwitchID>(
-            {static_cast<SwitchID>(fabricSwitchId)}));
-        if (new_->getSwitchSettings()
-                ->getNodeIf(matcher.matcherString())
-                ->getReachabilityGroupListSize() != reachabilityGroupListSize) {
-          auto newMultiSwitchSettings = new_->getSwitchSettings()->clone();
-          auto newSwitchSettings =
-              newMultiSwitchSettings->getNodeIf(matcher.matcherString())
-                  ->clone();
-          newSwitchSettings->setReachabilityGroupListSize(
-              reachabilityGroupListSize);
-          newMultiSwitchSettings->updateNode(
-              matcher.matcherString(), newSwitchSettings);
-          new_->resetSwitchSettings(newMultiSwitchSettings);
-        }
-      };
+  auto updateReachabilityGroups = [&](const auto fabricSwitchId,
+                                      const auto&
+                                          destinationId2ReachabilityGroup) {
+    std::vector<int> reachabilityGroups;
+    for (const auto& [_, groupId] : destinationId2ReachabilityGroup) {
+      reachabilityGroups.push_back(groupId);
+    }
+
+    auto matcher = HwSwitchMatcher(
+        std::unordered_set<SwitchID>({static_cast<SwitchID>(fabricSwitchId)}));
+    auto currReachabilityGroups = new_->getSwitchSettings()
+                                      ->getNodeIf(matcher.matcherString())
+                                      ->getReachabilityGroups();
+    if (currReachabilityGroups != reachabilityGroups) {
+      auto newMultiSwitchSettings = new_->getSwitchSettings()->clone();
+      auto newSwitchSettings =
+          newMultiSwitchSettings->getNodeIf(matcher.matcherString())->clone();
+      newSwitchSettings->setReachabilityGroups(reachabilityGroups);
+      newMultiSwitchSettings->updateNode(
+          matcher.matcherString(), newSwitchSettings);
+      new_->resetSwitchSettings(newMultiSwitchSettings);
+    }
+  };
 
   bool parallelVoqLinks = haveParallelLinksToInterfaceNodes(
       cfg_,
@@ -1277,6 +1281,12 @@ void ThriftConfigApplier::processReachabilityGroup(
     auto newPortMap = new_->getPorts()->modify(&new_);
     for (const auto& fabricSwitchId : localFabricSwitchIds) {
       std::unordered_map<int, int> destinationId2ReachabilityGroup;
+
+      // For reachability groups with parallel links, use index 1-128.
+      // Else use index for single link groups in range 129-256
+      int nextParallelLinkGroup = 1;
+      int nextSingleLinkGroup = 129;
+
       for (const auto& portCfg : *cfg_->ports()) {
         if (scopeResolver_.scope(portCfg).has(SwitchID(fabricSwitchId)) &&
             portCfg.expectedNeighborReachability()->size() > 0) {
@@ -1286,26 +1296,24 @@ void ThriftConfigApplier::processReachabilityGroup(
               new_->getDsfNodes()->getNode(neighborRemoteSwitchId);
 
           int destinationId;
-          // For parallel VOQ links, assign links reaching the same VOQ
-          // switch.
-          if (parallelVoqLinks &&
-              neighborDsfNode->getType() == cfg::DsfNodeType::INTERFACE_NODE) {
+          if (neighborDsfNode->getType() == cfg::DsfNodeType::INTERFACE_NODE) {
             destinationId = neighborRemoteSwitchId;
-          } else if (neighborDsfNode->getClusterId() == std::nullopt) {
-            // Assign links based on cluster ID. Note that in dual stage,
-            // FE2 has no cluster ID: use -1 for grouping purpose.
-            CHECK_EQ(
-                static_cast<int>(cfg::DsfNodeType::FABRIC_NODE),
-                static_cast<int>(neighborDsfNode->getType()));
-            destinationId = -1;
           } else {
-            destinationId = neighborDsfNode->getClusterId().value();
+            // Fabric node links: assign links based on cluster ID. Note that in
+            // dual stage, FE2 has no cluster ID: use -1 for grouping purpose.
+            destinationId = neighborDsfNode->getClusterId().value_or(-1);
           }
+          bool singleLinkGroup =
+              neighborDsfNode->getType() == cfg::DsfNodeType::INTERFACE_NODE &&
+              !parallelVoqLinks;
+          int& nextGroupId =
+              singleLinkGroup ? nextSingleLinkGroup : nextParallelLinkGroup;
 
           auto [it, inserted] = destinationId2ReachabilityGroup.insert(
-              {destinationId, destinationId2ReachabilityGroup.size() + 1});
+              {destinationId, nextGroupId});
           auto reachabilityGroupId = it->second;
           if (inserted) {
+            nextGroupId++;
             XLOG(DBG2) << "Create new reachability group "
                        << reachabilityGroupId << " towards node "
                        << neighborDsfNode->getName() << " with switchId "
@@ -1322,8 +1330,7 @@ void ThriftConfigApplier::processReachabilityGroup(
           newPort->setReachabilityGroupId(reachabilityGroupId);
         }
       }
-      updateReachabilityGroupListSize(
-          fabricSwitchId, destinationId2ReachabilityGroup.size());
+      updateReachabilityGroups(fabricSwitchId, destinationId2ReachabilityGroup);
     }
   }
 }
@@ -3849,6 +3856,10 @@ std::shared_ptr<InterfaceMap> ThriftConfigApplier::updateInterfaces() {
       }
       CHECK_EQ((int)sysPort->getScope(), (int)(*interfaceCfg.scope()));
     }
+    if (interfaceCfg.type() == cfg::InterfaceType::PORT) {
+      // TODO(Chenab): Support port router interface
+      throw FbossError("Port router interface is not supported yet");
+    }
     if (origIntf) {
       newIntf = updateInterface(origIntf, &interfaceCfg, newAddrs);
       ++numExistingProcessed;
@@ -5379,7 +5390,8 @@ ThriftConfigApplier::createMirrorOnDropReport(
       *config->truncateSize(),
       dscp,
       agingIntervalUsecs,
-      getLocalMacAddress().toString());
+      getLocalMacAddress().toString(),
+      utility::getFirstInterfaceMac(new_).toString());
 }
 
 std::shared_ptr<MirrorOnDropReport>

@@ -106,12 +106,7 @@ std::string DevicePathResolver::resolvePciDevicePath(
   }
   const auto [slotPath, deviceName] = Utils().parseDevicePath(devicePath);
   auto pciDeviceConfig = getPciDeviceConfig(slotPath, deviceName);
-  auto pciDevice = PciDevice(
-      *pciDeviceConfig.pmUnitScopedName(),
-      *pciDeviceConfig.vendorId(),
-      *pciDeviceConfig.deviceId(),
-      *pciDeviceConfig.subSystemVendorId(),
-      *pciDeviceConfig.subSystemDeviceId());
+  auto pciDevice = PciDevice(pciDeviceConfig);
   if (!fs::exists(pciDevice.sysfsPath())) {
     throw std::runtime_error(
         fmt::format("{} is not plugged-in to the platform", deviceName));
@@ -147,12 +142,7 @@ std::optional<std::string> DevicePathResolver::resolvePresencePath(
         return *pciDeviceConfig.pmUnitScopedName() == deviceNameCopy;
       });
   if (pciDeviceConfig != pmUnitConfig.pciDeviceConfigs()->end()) {
-    auto pciDevice = PciDevice(
-        *pciDeviceConfig->pmUnitScopedName(),
-        *pciDeviceConfig->vendorId(),
-        *pciDeviceConfig->deviceId(),
-        *pciDeviceConfig->subSystemVendorId(),
-        *pciDeviceConfig->subSystemDeviceId());
+    auto pciDevice = PciDevice(*pciDeviceConfig);
     auto targetPath = std::filesystem::path(pciDevice.sysfsPath());
     return targetPath / presenceFileName;
   }

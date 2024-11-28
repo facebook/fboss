@@ -360,6 +360,57 @@ class ThriftStructNodeTestSuite : public ::testing::Test {
 
 TYPED_TEST_SUITE(ThriftStructNodeTestSuite, StorageTestTypes);
 
+TYPED_TEST(ThriftStructNodeTestSuite, NodeTypeTest) {
+  using Param = typename TestFixture::T;
+  constexpr bool enableHybridStorage = Param::hybridStorage;
+
+  auto portRange = buildPortRange(100, 999);
+
+  TestStruct data;
+  data.inlineBool() = true;
+  data.inlineInt() = 123;
+  data.inlineString() = "HelloThere";
+  data.inlineStruct() = std::move(portRange);
+  data.mapOfStringToI32() = {{"test1", 1}};
+  data.hybridStruct() = ChildStruct();
+
+  auto node = this->initNode(data);
+  node->publish();
+
+  // root is not hybrid node
+  static_assert(!std::is_same_v<
+                typename decltype(node)::element_type::CowType,
+                HybridNodeType>);
+
+  // check fields that are not annotated, should never be hybrid
+  static_assert(!std::is_same_v<
+                typename decltype(node->template get<
+                                  k::inlineStruct>())::element_type::CowType,
+                HybridNodeType>);
+  static_assert(
+      !std::is_same_v<
+          typename folly::remove_cvref_t<
+              decltype(node->template get<k::inlineInt>().value())>::CowType,
+          HybridNodeType>);
+  static_assert(
+      !std::is_same_v<
+          typename folly::remove_cvref_t<
+              decltype(node->template get<k::inlineString>().value())>::CowType,
+          HybridNodeType>);
+
+  // check fields that are annotated, should be hybrid if enabled
+  static_assert(
+      std::is_same_v<
+          typename decltype(node->template get<
+                            k::mapOfStringToI32>())::element_type::CowType,
+          HybridNodeType> == enableHybridStorage);
+  static_assert(
+      std::is_same_v<
+          typename decltype(node->template get<
+                            k::hybridStruct>())::element_type::CowType,
+          HybridNodeType> == enableHybridStorage);
+}
+
 TYPED_TEST(ThriftStructNodeTestSuite, ThriftStructNodeModifyTest) {
   using Param = typename TestFixture::T;
   constexpr bool enableHybridStorage = Param::hybridStorage;
@@ -374,40 +425,30 @@ TYPED_TEST(ThriftStructNodeTestSuite, ThriftStructNodeModifyTest) {
   data.mapOfStringToI32() = {{"test1", 1}};
 
   auto node = this->initNode(data);
-  static_assert(!std::is_same_v<
-                typename decltype(node)::element_type::CowType,
-                HybridNodeType>);
+
   ASSERT_FALSE(node->isPublished());
-  if (!this->isHybridStorage()) {
-    ASSERT_FALSE(node->template cref<k::inlineStruct>()->isPublished());
+  ASSERT_FALSE(node->template cref<k::inlineStruct>()->isPublished());
+
+  auto oldNode = node->template ref<k::mapOfStringToI32>();
+  auto newNode = node->template modify<k::mapOfStringToI32>();
+  // do a ptr comparison to make sure the node is cloned
+  // if node is cow node, then it will not be cloned if it is not published
+  // so only check if hybrid storage is enabled
+  if constexpr (enableHybridStorage) {
+    EXPECT_NE(newNode, oldNode);
   }
 
   node->publish();
   ASSERT_TRUE(node->isPublished());
-  if constexpr (!enableHybridStorage) {
-    ASSERT_TRUE(node->template cref<k::inlineStruct>()->isPublished());
-  }
+  ASSERT_TRUE(node->template cref<k::inlineStruct>()->isPublished());
 
   ThriftStructNode<
       TestStruct,
       ThriftStructResolver<TestStruct, enableHybridStorage>,
       enableHybridStorage>::modify(&node, "inlineStruct");
 
-  static_assert(!std::is_same_v<
-                typename decltype(node->template get<
-                                  k::inlineStruct>())::element_type::CowType,
-                HybridNodeType>);
-
-  static_assert(
-      std::is_same_v<
-          typename decltype(node->template get<
-                            k::mapOfStringToI32>())::element_type::CowType,
-          HybridNodeType> == enableHybridStorage);
-
-  if constexpr (!enableHybridStorage) {
-    ASSERT_FALSE(node->isPublished());
-    ASSERT_FALSE(node->template cref<k::inlineStruct>()->isPublished());
-  }
+  ASSERT_FALSE(node->isPublished());
+  ASSERT_FALSE(node->template cref<k::inlineStruct>()->isPublished());
 
   // now try modifying a missing optional field
   ASSERT_FALSE(node->template isSet<k::optionalString>());
@@ -416,12 +457,6 @@ TYPED_TEST(ThriftStructNodeTestSuite, ThriftStructNodeModifyTest) {
       ThriftStructResolver<TestStruct, enableHybridStorage>,
       enableHybridStorage>::modify(&node, "optionalString");
   ASSERT_TRUE(node->template isSet<k::optionalString>());
-
-  static_assert(!std::is_same_v<
-                typename folly::remove_cvref_t<
-                    decltype(node->template get<k::optionalString>()
-                                 .value())>::CowType,
-                HybridNodeType>);
 
   node = this->initNode(data);
   node->publish();
@@ -438,12 +473,6 @@ TYPED_TEST(ThriftStructNodeTestSuite, ThriftStructNodeModifyTest) {
       enableHybridStorage>::template modify<k::optionalStruct>(&node);
   EXPECT_FALSE(optionalStruct1->isPublished());
   optionalStruct1->fromThrift(buildPortRange(1, 10));
-
-  static_assert(!std::is_same_v<
-                typename folly::remove_cvref_t<
-                    decltype(node->template get<k::optionalStruct>())>::
-                    element_type::CowType,
-                HybridNodeType>);
 
   node->publish();
   EXPECT_TRUE(node->isPublished());

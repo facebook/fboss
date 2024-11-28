@@ -172,7 +172,6 @@ void HwBasePortFb303Stats::queueChanged(
 }
 
 void HwBasePortFb303Stats::queueRemoved(int queueId) {
-  auto qitr = queueId2Name_.find(queueId);
   for (auto statKey : kQueueMonotonicCounterStatKeys()) {
     portCounters_.removeStat(
         statName(statKey, portName_, queueId, queueId2Name_[queueId]));

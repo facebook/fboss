@@ -2,6 +2,7 @@
 
 #include "fboss/agent/hw/switch_asics/Jericho3Asic.h"
 #include <thrift/lib/cpp/util/EnumUtils.h>
+#include "fboss/agent/AgentFeatures.h"
 
 namespace {
 static constexpr int kDefaultMidPriCpuQueueId = 3;
@@ -95,6 +96,8 @@ bool Jericho3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::PORT_MTU_ERROR_TRAP:
     case HwAsic::Feature::FAST_LLFC_COUNTER:
     case HwAsic::Feature::INGRESS_SRAM_MIN_BUFFER_WATERMARK:
+    case HwAsic::Feature::FDR_FIFO_WATERMARK:
+    case HwAsic::Feature::EGRESS_CELL_ERROR_STATS:
       return true;
     // Features not expected to work on SIM
     case HwAsic::Feature::SHARED_INGRESS_EGRESS_BUFFER_POOL:
@@ -288,11 +291,29 @@ cfg::Range64 Jericho3Asic::getReservedEncapIndexRange() const {
   return makeRange(0x200000, 0x300000);
 }
 
-HwAsic::RecyclePortInfo Jericho3Asic::getRecyclePortInfo() const {
+HwAsic::RecyclePortInfo Jericho3Asic::getRecyclePortInfo(
+    InterfaceNodeRole intfRole) const {
+  if (intfRole == InterfaceNodeRole::DUAL_STAGE_EDGE_NODE) {
+    CHECK(isDualStage3Q2QMode());
+    return {
+        .coreId = 2,
+        .corePortIndex = 6,
+        .speedMbps = 100000, // 100G
+        .inbandPortId = 10,
+    };
+  } else if (isDualStage3Q2QMode()) {
+    return {
+        .coreId = 0,
+        .corePortIndex = 13,
+        .speedMbps = 100000, // 100G
+        .inbandPortId = 16391,
+    };
+  }
   return {
       .coreId = 2,
       .corePortIndex = 2,
-      .speedMbps = 100000 // 100G
+      .speedMbps = 100000, // 100G
+      .inbandPortId = 1,
   };
 }
 

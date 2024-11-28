@@ -565,8 +565,12 @@ cfg::SwitchConfig testConfigFabricSwitch(
         cfg::PortProfileID::PROFILE_25G_1_NRZ_CL74_COPPER;
     cfg.ports()[p].portType() = cfg::PortType::FABRIC_PORT;
   }
-  auto myNode =
-      makeDsfNodeCfg(kFabricSwitchIdBegin, cfg::DsfNodeType::FABRIC_NODE);
+  auto myNode = makeDsfNodeCfg(
+      kFabricSwitchIdBegin,
+      cfg::DsfNodeType::FABRIC_NODE,
+      std::nullopt,
+      cfg::AsicType::ASIC_TYPE_RAMON3,
+      fabricLevel);
   cfg.dsfNodes()->insert({*myNode.switchId(), myNode});
 
   auto nextFabricSwitchId = kFabricSwitchIdBegin + switchIdGap;
@@ -583,9 +587,14 @@ cfg::SwitchConfig testConfigFabricSwitch(
       if (fabricLevel == 2) {
         clusterId = i + 1;
         remoteFabricLevel = 1;
-      } else if (i >= dualStageNeighborLevel2FabricNodes.value()) {
-        clusterId = 1;
-        remoteFabricLevel = 2;
+      } else {
+        if (i < dualStageNeighborLevel2FabricNodes.value()) {
+          // Fabric nodes
+          remoteFabricLevel = 2;
+        } else {
+          // Interface nodes
+          clusterId = 1;
+        }
       }
     }
 

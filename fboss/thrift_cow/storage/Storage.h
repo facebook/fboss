@@ -38,11 +38,10 @@ class Storage {
     static_cast<Derived*>(this)->publish_impl();
   }
 
-  template <
-      typename Path,
-      typename =
-          std::enable_if_t<std::is_same_v<typename Path::RootT, Root>, void>>
-  Result<typename Path::DataT> get(const Path& path) const {
+  template <typename Path>
+  Result<typename Path::DataT> get(const Path& path) const
+    requires(std::is_same_v<typename Path::RootT, Root>)
+  {
     return this->template get<typename Path::DataT>(path.begin(), path.end());
   }
   template <typename T>
@@ -54,11 +53,10 @@ class Storage {
     return static_cast<Derived const*>(this)->template get_impl<T>(begin, end);
   }
 
-  template <
-      typename Path,
-      typename =
-          std::enable_if_t<std::is_same_v<typename Path::RootT, Root>, void>>
-  Result<OperState> get_encoded(const Path& path, OperProtocol protocol) const {
+  template <typename Path>
+  Result<OperState> get_encoded(const Path& path, OperProtocol protocol) const
+    requires(std::is_same_v<typename Path::RootT, Root>)
+  {
     return this->get_encoded(path.begin(), path.end(), protocol);
   }
   Result<OperState> get_encoded(const ConcretePath& path, OperProtocol protocol)
@@ -79,13 +77,10 @@ class Storage {
         begin, end, protocol);
   }
 
-  template <
-      typename Path,
-      typename =
-          std::enable_if_t<std::is_same_v<typename Path::RootT, Root>, void>>
-  std::optional<StorageError> set(
-      const Path& path,
-      typename Path::DataT value) {
+  template <typename Path>
+  std::optional<StorageError> set(const Path& path, typename Path::DataT value)
+    requires(std::is_same_v<typename Path::RootT, Root>)
+  {
     return this->set(path.begin(), path.end(), std::move(value));
   }
 
@@ -99,13 +94,12 @@ class Storage {
         begin, end, std::forward<T>(value));
   }
 
-  template <
-      typename Path,
-      typename =
-          std::enable_if_t<std::is_same_v<typename Path::RootT, Root>, void>>
+  template <typename Path>
   std::optional<StorageError> set_encoded(
       const Path& path,
-      const OperState& state) {
+      const OperState& state)
+    requires(std::is_same_v<typename Path::RootT, Root>)
+  {
     return this->set_encoded(path.begin(), path.end(), state);
   }
   std::optional<StorageError> set_encoded(
@@ -130,13 +124,12 @@ class Storage {
     return static_cast<Derived*>(this)->patch_impl(state);
   }
 
-  template <
-      typename Path,
-      typename =
-          std::enable_if_t<std::is_same_v<typename Path::RootT, Root>, void>>
+  template <typename Path>
   std::optional<StorageError> add_encoded(
       const Path& path,
-      const OperState& state) {
+      const OperState& state)
+    requires(std::is_same_v<typename Path::RootT, Root>)
+  {
     return this->add_encoded(path.begin(), path.end(), state);
   }
   std::optional<StorageError> add_encoded(
@@ -149,11 +142,10 @@ class Storage {
     return static_cast<Derived*>(this)->add_encoded_impl(begin, end, state);
   }
 
-  template <
-      typename Path,
-      typename =
-          std::enable_if_t<std::is_same_v<typename Path::RootT, Root>, void>>
-  std::optional<StorageError> remove(const Path& path) {
+  template <typename Path>
+  std::optional<StorageError> remove(const Path& path)
+    requires(std::is_same_v<typename Path::RootT, Root>)
+  {
     return this->remove(path.begin(), path.end());
   }
 

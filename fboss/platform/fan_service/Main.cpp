@@ -12,9 +12,9 @@
 #include <gflags/gflags.h>
 
 #include "fboss/platform/config_lib/ConfigLib.h"
+#include "fboss/platform/fan_service/ConfigValidator.h"
 #include "fboss/platform/fan_service/ControlLogic.h"
 #include "fboss/platform/fan_service/FanServiceHandler.h"
-#include "fboss/platform/fan_service/Utils.h"
 #include "fboss/platform/helpers/Init.h"
 #include "fboss/platform/helpers/PlatformNameLib.h"
 
@@ -40,7 +40,7 @@ int main(int argc, char** argv) {
           fanServiceConfJson);
   XLOG(INFO) << apache::thrift::SimpleJSONSerializer::serialize<std::string>(
       config);
-  if (!Utils().isValidConfig(config)) {
+  if (!ConfigValidator().isValid(config)) {
     XLOG(ERR) << "Invalid config! Aborting...";
     throw std::runtime_error("Invalid Config.  Aborting...");
   }

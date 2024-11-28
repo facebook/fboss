@@ -378,7 +378,8 @@ int getLocalSystemPortOffset(const cfg::SystemPortRanges& ranges) {
 cfg::DsfNode dsfNodeConfig(
     const HwAsic& myAsic,
     int64_t otherSwitchId,
-    const std::optional<PlatformType> platformType) {
+    const std::optional<PlatformType> platformType,
+    const std::optional<int> clusterId) {
   auto getPlatformType = [](const auto& asic, auto& platformType) {
     if (platformType.has_value()) {
       return *platformType;
@@ -451,6 +452,9 @@ cfg::DsfNode dsfNodeConfig(
   }
   dsfNode.asicType() = myAsic.getAsicType();
   dsfNode.platformType() = getPlatformType(myAsic, platformType);
+  if (clusterId.has_value()) {
+    dsfNode.clusterId() = clusterId.value();
+  }
   return dsfNode;
 }
 
@@ -632,6 +636,7 @@ cfg::SwitchConfig multiplePortsPerIntfConfig(
     addInterface(
         vlans[i],
         vlans[i],
+        // TODO(Chenab): Support port router interface
         cfg::InterfaceType::VLAN,
         setInterfaceMac,
         interfaceHasSubnet,
@@ -1054,6 +1059,7 @@ cfg::SwitchConfig twoL3IntfConfig(
     intf.mtu() = 9000;
     intf.routerID() = 0;
     intf.type() = switchType == cfg::SwitchType::NPU
+        // TODO(Chenab): Support port router interface
         ? cfg::InterfaceType::VLAN
         : cfg::InterfaceType::SYSTEM_PORT;
     if (switchType == cfg::SwitchType::VOQ) {

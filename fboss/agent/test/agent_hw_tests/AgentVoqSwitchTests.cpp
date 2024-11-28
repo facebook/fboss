@@ -1037,13 +1037,23 @@ TEST_F(AgentVoqSwitchWithFabricPortsTest, fdrCellDrops) {
             std::vector<uint8_t>(1024, 0xff));
       }
     };
+    int64_t fdrFifoWatermark = 0;
     int64_t fdrCellDrops = 0;
     WITH_RETRIES({
       sendPkts();
+      for (const auto& switchWatermarksIter : getAllSwitchWatermarkStats()) {
+        if (switchWatermarksIter.second.fdrFifoWatermarkBytes().has_value()) {
+          fdrFifoWatermark +=
+              switchWatermarksIter.second.fdrFifoWatermarkBytes().value();
+        }
+      }
+      EXPECT_EVENTUALLY_GT(fdrFifoWatermark, 0);
       fdrCellDrops = *getAggregatedSwitchDropStats().fdrCellDrops();
       // TLTimeseries value > 0
       EXPECT_EVENTUALLY_GT(fdrCellDrops, 0);
     });
+    XLOG(DBG0) << "FDR fifo watermark: " << fdrFifoWatermark
+               << ", FDR cell drops: " << fdrCellDrops;
     // Assert that we don't spuriously increment fdrCellDrops on every drop
     // stats. This would happen if we treated a stat as clear on read, while
     // in HW it was cumulative
@@ -1181,13 +1191,12 @@ TEST_F(AgentVoqSwitchTest, sendPacketCpuAndFrontPanel) {
                 egressCoreWatermarkBytes +=
                     switchWatermarksIter.second.egressCoreBufferWatermarkBytes()
                         .value();
-                if (switchWatermarksIter.second.sramMinBufferWatermarkBytes()
-                        .has_value()) {
-                  sramMinBufferWatermarkBytes = std::min(
-                      sramMinBufferWatermarkBytes,
-                      *switchWatermarksIter.second
-                           .sramMinBufferWatermarkBytes());
-                }
+              }
+              if (switchWatermarksIter.second.sramMinBufferWatermarkBytes()
+                      .has_value()) {
+                sramMinBufferWatermarkBytes = std::min(
+                    sramMinBufferWatermarkBytes,
+                    *switchWatermarksIter.second.sramMinBufferWatermarkBytes());
               }
             }
             XLOG(DBG2) << "Verifying: "
@@ -1633,8 +1642,13 @@ TEST_F(AgentVoqSwitchWithMultipleDsfNodesTest, remoteSystemPort) {
                  << " after sysPortsFree: " << afterSysPortsFree
                  << " voqsFree: " << afterVoqsFree;
       EXPECT_EVENTUALLY_EQ(beforeSysPortsFree - 1, afterSysPortsFree);
-      // 8 VOQs allocated per sys port
-      EXPECT_EVENTUALLY_EQ(beforeVoqsFree - 8, afterVoqsFree);
+      // 8 VOQs allocated per sys port for single stage
+      // 4 VOQs allocated per sys port for dual stage - 3 VOQs for the system
+      // port itself (since it's <16k port), and 1 VOQ for the 16k+ port. Please
+      // see 3Q2Q mode VOQ allocation for more details.
+      EXPECT_EVENTUALLY_EQ(
+          isDualStage3Q2QMode() ? beforeVoqsFree - 4 : beforeVoqsFree - 8,
+          afterVoqsFree);
     });
   };
   verifyAcrossWarmBoots(setup, [] {});

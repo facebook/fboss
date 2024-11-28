@@ -385,7 +385,10 @@ agent_benchmark_lib(
 
 agent_benchmark_lib(
     name = "hw_switch_reachability_change_speed",
-    srcs = ["HwSwitchReachabilityChangeBenchmark.cpp"],
+    srcs = [
+        "HwSwitchReachabilityChangeBenchmarkHelper.cpp",
+        "HwSwitchReachabilityChangeVoqBenchmark.cpp",
+    ],
     extra_deps = [
         "//fboss/agent/hw/test:hw_switch_ensemble_factory",
         "//fboss/agent/hw/test:hw_test_thrift_handler_h",

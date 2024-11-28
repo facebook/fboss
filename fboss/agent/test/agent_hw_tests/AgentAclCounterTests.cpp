@@ -737,7 +737,8 @@ class AgentFlowletAclCounterTest : public AgentAclCounterTest {
         true /*interfaceHasSubnet*/);
     cfg.udfConfig() = utility::addUdfAclConfig(
         utility::kUdfOffsetBthOpcode | utility::kUdfOffsetBthReserved);
-    utility::addFlowletConfigs(cfg, ensemble.masterLogicalPortIds());
+    utility::addFlowletConfigs(
+        cfg, ensemble.masterLogicalPortIds(), ensemble.isSai());
     return cfg;
   }
 

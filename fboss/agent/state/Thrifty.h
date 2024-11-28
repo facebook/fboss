@@ -298,6 +298,7 @@ struct ThriftMultiSwitchMapNodeTraits {
   template <typename...>
   struct ValueTraits {
     using default_type = thrift_cow::ThriftMapNode<thrift_cow::ThriftMapTraits<
+        false,
         typename MAP::Traits::TC,
         typename MAP::Traits::Type>>;
     using map_type = MAP;

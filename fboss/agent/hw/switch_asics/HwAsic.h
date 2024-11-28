@@ -198,6 +198,8 @@ class HwAsic {
     EGRESS_ACL_TABLE,
     FAST_LLFC_COUNTER,
     INGRESS_SRAM_MIN_BUFFER_WATERMARK,
+    FDR_FIFO_WATERMARK,
+    EGRESS_CELL_ERROR_STATS,
   };
 
   enum class AsicMode {
@@ -218,6 +220,10 @@ class HwAsic {
     SINGLE_STAGE_L1,
     DUAL_STAGE_L1,
     DUAL_STAGE_L2,
+  };
+  enum InterfaceNodeRole {
+    IN_CLUSTER_NODE,
+    DUAL_STAGE_EDGE_NODE,
   };
   virtual ~HwAsic() {}
   static std::unique_ptr<HwAsic> makeAsic(
@@ -374,13 +380,15 @@ class HwAsic {
     uint32_t coreId;
     uint32_t corePortIndex;
     uint32_t speedMbps;
+    uint32_t inbandPortId;
   };
 
   std::optional<cfg::SdkVersion> getSdkVersion() const {
     return sdkVersion_;
   }
 
-  virtual RecyclePortInfo getRecyclePortInfo() const;
+  virtual RecyclePortInfo getRecyclePortInfo(
+      InterfaceNodeRole /* intfRole */) const;
   cfg::PortLoopbackMode getDesiredLoopbackMode(
       cfg::PortType portType = cfg::PortType::INTERFACE_PORT) const;
 

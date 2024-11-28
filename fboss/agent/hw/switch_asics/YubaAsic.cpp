@@ -89,6 +89,7 @@ bool YubaAsic::isSupportedNonFabric(Feature feature) const {
     case HwAsic::Feature::MULTIPLE_EGRESS_BUFFER_POOL:
     case HwAsic::Feature::L3_INTF_MTU:
     case HwAsic::Feature::DEDICATED_CPU_BUFFER_POOL:
+    case HwAsic::Feature::SAI_FEC_CORRECTED_BITS:
       return true;
     case HwAsic::Feature::ACL_BYTE_COUNTER:
     case HwAsic::Feature::SAI_MPLS_LABEL_LOOKUP_FAIL_COUNTER:
@@ -162,7 +163,6 @@ bool YubaAsic::isSupportedNonFabric(Feature feature) const {
     case HwAsic::Feature::SAI_USER_DEFINED_TRAP:
     case HwAsic::Feature::CREDIT_WATCHDOG:
     case HwAsic::Feature::ECMP_DLB_OFFSET:
-    case HwAsic::Feature::SAI_FEC_CORRECTED_BITS:
     case HwAsic::Feature::LINK_INACTIVE_BASED_ISOLATE:
     case HwAsic::Feature::RX_SNR:
     case HwAsic::Feature::MANAGEMENT_PORT:
@@ -191,6 +191,8 @@ bool YubaAsic::isSupportedNonFabric(Feature feature) const {
     case HwAsic::Feature::EGRESS_ACL_TABLE:
     case HwAsic::Feature::FAST_LLFC_COUNTER:
     case HwAsic::Feature::INGRESS_SRAM_MIN_BUFFER_WATERMARK:
+    case HwAsic::Feature::FDR_FIFO_WATERMARK:
+    case HwAsic::Feature::EGRESS_CELL_ERROR_STATS:
       return false;
   }
   return false;
@@ -248,6 +250,16 @@ std::set<cfg::StreamType> YubaAsic::getQueueStreamTypes(
   throw FbossError(
       "ASIC does not support:", apache::thrift::util::enumNameSafe(portType));
 }
+
+const std::map<cfg::PortType, cfg::PortLoopbackMode>&
+YubaAsic::desiredLoopbackModes() const {
+  static const std::map<cfg::PortType, cfg::PortLoopbackMode> kLoopbackMode = {
+      {cfg::PortType::INTERFACE_PORT, cfg::PortLoopbackMode::MAC},
+      {cfg::PortType::MANAGEMENT_PORT, cfg::PortLoopbackMode::NONE},
+  };
+  return kLoopbackMode;
+}
+
 cfg::Range64 YubaAsic::getReservedEncapIndexRange() const {
   if (getSwitchType() == cfg::SwitchType::VOQ) {
     // Reserved range worked out with vendor. These ids

@@ -49,15 +49,33 @@ class ConfigValidatorTest : public testing::Test {
 };
 
 TEST_F(ConfigValidatorTest, ValidConfig) {
+  // Sensor Config set up
   auto config = SensorConfig();
   PmUnitSensors pmUnitSensors1, pmUnitSensors2;
   pmUnitSensors1.slotPath() = "/";
+  pmUnitSensors1.pmUnitName() = "MCB";
   pmUnitSensors1.sensors() = {
       createPmSensor("sensor1", "/run/devmap/sensors/CPU_CORE_TEMP/input1")};
   pmUnitSensors2.slotPath() = "/BCB_SLOT@0";
+  pmUnitSensors2.pmUnitName() = "BCB";
   pmUnitSensors2.sensors() = {
       createPmSensor("sensor2", "/run/devmap/sensors/BCB_FAN_CPLD/pwm3")};
+  VersionedPmSensor versionedSensors2;
+  versionedSensors2.sensors() = {
+      createPmSensor("sensor3", "/run/devmap/sensors/BCB_FAN_CPLD/pwm4")};
+  pmUnitSensors2.versionedSensors() = {versionedSensors2};
   config.pmUnitSensorsList() = {pmUnitSensors1, pmUnitSensors2};
+  // PM config set up
+  platform_manager::SlotTypeConfig bcbSlotTypeConfig;
+  bcbSlotTypeConfig.idpromConfig() = platform_manager::IdpromConfig();
+  platformConfig_.slotTypeConfigs() = {
+      {"MCB_SLOT", platform_manager::SlotTypeConfig()},
+      {"BCB_SLOT", bcbSlotTypeConfig}};
+  platform_manager::PmUnitConfig mcbPmUnitConfig, bcbPmUnitConfig;
+  mcbPmUnitConfig.pluggedInSlotType() = "MCB_SLOT";
+  bcbPmUnitConfig.pluggedInSlotType() = "BCB_SLOT";
+  platformConfig_.pmUnitConfigs() = {
+      {"MCB", mcbPmUnitConfig}, {"BCB", bcbPmUnitConfig}};
   platformConfig_.symbolicLinkToDevicePath() = {
       {"/run/devmap/sensors/CPU_CORE_TEMP", "/[CPU_CORE_TEMP]"},
       {"/run/devmap/sensors/BCB_FAN_CPLD", "/BCB_SLOT@0/[BCB_FAN_CPLD]"}};
@@ -68,10 +86,11 @@ TEST_F(ConfigValidatorTest, ValidConfig) {
       .Times(2 /* # of PmUnitSensors*/)
       .WillRepeatedly(Return(true));
   EXPECT_CALL(*mockPmConfigValidator_, isValidDeviceName(_, _, _))
-      .Times(2 /* # of PmUnitSensors*/)
+      .Times(3 /* # of PmSensors*/)
       .WillRepeatedly(Return(true));
   EXPECT_TRUE(configValidator_.isValid(config, platformConfig_));
 }
+
 TEST_F(ConfigValidatorTest, ValidConfigForDarwin) {
   EXPECT_CALL(*mockPmConfigValidator_, isValidSlotPath(_, _)).Times(0);
   auto config = SensorConfig();
@@ -189,4 +208,24 @@ TEST_F(ConfigValidatorTest, PmValidPmSensors) {
       .WillRepeatedly(Return(true));
   EXPECT_TRUE(configValidator_.isPmValidPmSensors(
       platformConfig_, slotPath, pmSensors));
+}
+
+TEST_F(ConfigValidatorTest, PmValidVersionedPmSensors) {
+  platform_manager::SlotTypeConfig bcbSlotTypeConfig;
+  bcbSlotTypeConfig.idpromConfig() = platform_manager::IdpromConfig();
+  platformConfig_.slotTypeConfigs() = {
+      {"MCB_SLOT", platform_manager::SlotTypeConfig()},
+      {"BCB_SLOT", bcbSlotTypeConfig}};
+  platform_manager::PmUnitConfig mcbPmUnitConfig, bcbPmUnitConfig;
+  mcbPmUnitConfig.pluggedInSlotType() = "MCB_SLOT";
+  bcbPmUnitConfig.pluggedInSlotType() = "BCB_SLOT";
+  platformConfig_.pmUnitConfigs() = {
+      {"MCB", mcbPmUnitConfig}, {"BCB", bcbPmUnitConfig}};
+
+  // Invalid VersionedPmSensors -- Defined for PmUnit without IDPROM
+  EXPECT_FALSE(configValidator_.isPmValidVersionedPmSensors(
+      platformConfig_, "/", "MCB", {VersionedPmSensor()}));
+  // Valid VersionedPmSensors
+  EXPECT_TRUE(configValidator_.isPmValidVersionedPmSensors(
+      platformConfig_, "/BCB_SLOT@0", "BCB", {VersionedPmSensor()}));
 }

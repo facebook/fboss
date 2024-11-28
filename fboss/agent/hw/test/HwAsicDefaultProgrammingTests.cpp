@@ -50,7 +50,10 @@ class HwAsicDefaultProgrammingTest : public HwTest {
     std::string line;
     while (std::getline(iss, line)) {
       std::string type, key, value;
-      folly::split(',', line, type, key, value);
+      // <false> means putting all remaining parts into the last field.
+      if (!folly::split<false>(',', line, type, key, value)) {
+        throw std::invalid_argument("Failed to parse: " + line);
+      }
       ret[type + ":" + key] = folly::trimWhitespace(value);
     }
     return ret;
@@ -99,9 +102,11 @@ class HwAsicDefaultProgrammingTest : public HwTest {
     for (const auto& [type, var] : queries->second) {
       std::string cmd;
       if (type == "mem") {
-        cmd = "dump raw " + var + "\n";
+        // Dump in the standard format instead of the raw format so that we can
+        // filter out the ECC bits, also it's easier to inspect for diffs.
+        cmd = "dump " + var + "\n";
       } else if (type == "reg") {
-        cmd = "getreg raw " + var + "\n";
+        cmd = "getreg " + var + "\n";
       }
 
       getHwSwitchEnsemble()->runDiagCommand(cmd, diagOut);
@@ -109,10 +114,21 @@ class HwAsicDefaultProgrammingTest : public HwTest {
       std::istringstream iss(diagOut);
       std::string line;
       while (std::getline(iss, line)) {
-        // Example: CIG_RCI_CONFIGS.CIG0[0x103]=0x5140e101f407d081ac
-        static const re2::RE2 pattern("([a-zA-Z0-9_()\\.\\[\\]]+)\\s*[:=](.*)");
+        // mem example:
+        // CGM_PB_VSQ_RJCT_MASK.CGM0[0]: <VOQ_RJCT_MASK=0x3ff,
+        //   VSQ_RJCT_MASK=0xffffff, GLBL_RJCT_MASK=0xf>
+
+        // reg example:
+        // FDTS_FDT_SHAPER_CONFIGURATIONS.FDTS0[0x104]=0x500a0006428080a4176004e601:
+        //   <FABRIC_SHAPER_EN=1, AUTO_DOC_NAME_23=0x27300,
+        //   ...,
+        //   FDT_SHAPER_CONFIGURATIONS_FIELD_6=0x14>
+        static const re2::RE2 pattern(
+            "([a-zA-Z0-9_()\\.\\[\\]]+)\\s*[:=]\\s*(.*)");
         std::string key, value;
         if (re2::RE2::FullMatch(line, pattern, &key, &value)) {
+          static const re2::RE2 eccPattern(", ECC=[x0-9a-fA-F]+");
+          re2::RE2::Replace(&value, eccPattern, "");
           ret[type + ":" + key] = folly::trimWhitespace(value);
         } else {
           // Ignored any junk echoed by the diag shell.
@@ -126,33 +142,39 @@ class HwAsicDefaultProgrammingTest : public HwTest {
 };
 
 TEST_F(HwAsicDefaultProgrammingTest, verifyDefaultProgramming) {
-  auto golden = loadGoldenData(getAsicType());
-  auto fetched = fetchData(getAsicType());
+  auto setup = [&]() {};
 
-  // Do a manual comparison in order to emit better error messages.
-  for (const auto& [key, goldenValue] : golden) {
-    auto fetchedValue = fetched.find(key);
-    if (fetchedValue != fetched.end()) {
-      EXPECT_EQ(fetchedValue->second, goldenValue) << "Diff in key: " << key;
-    } else {
-      ADD_FAILURE() << "Missing key in fetched data: " << key << "="
-                    << goldenValue;
-    }
-  }
-  for (const auto& [key, fetchedValue] : fetched) {
-    EXPECT_TRUE(golden.contains(key))
-        << "Extra key in fetched data: " << key << "=" << fetchedValue;
-  }
+  auto verify = [&]() {
+    auto golden = loadGoldenData(getAsicType());
+    auto fetched = fetchData(getAsicType());
 
-  // Dump golden data if requested.
-  if (!FLAGS_dump_golden_data.empty()) {
-    std::ofstream ofs(FLAGS_dump_golden_data);
-    for (const auto& [key, value] : fetched) {
-      std::string type, var;
-      folly::split(':', key, type, var);
-      ofs << type << "," << var << "," << value << "\n";
+    // Do a manual comparison in order to emit better error messages.
+    for (const auto& [key, goldenValue] : golden) {
+      auto fetchedValue = fetched.find(key);
+      if (fetchedValue != fetched.end()) {
+        EXPECT_EQ(fetchedValue->second, goldenValue) << "Diff in key: " << key;
+      } else {
+        ADD_FAILURE() << "Missing key in fetched data: " << key << "="
+                      << goldenValue;
+      }
     }
-  }
+    for (const auto& [key, fetchedValue] : fetched) {
+      EXPECT_TRUE(golden.contains(key))
+          << "Extra key in fetched data: " << key << " = " << fetchedValue;
+    }
+
+    // Dump golden data if requested.
+    if (!FLAGS_dump_golden_data.empty()) {
+      std::ofstream ofs(FLAGS_dump_golden_data);
+      for (const auto& [key, value] : fetched) {
+        std::string type, var;
+        folly::split(':', key, type, var);
+        ofs << type << "," << var << "," << value << "\n";
+      }
+    }
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
 }
 
 } // namespace facebook::fboss

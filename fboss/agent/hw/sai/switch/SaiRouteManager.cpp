@@ -167,9 +167,19 @@ void SaiRouteManager::addOrUpdateRoute(
   std::shared_ptr<SaiCounterHandle> counterHandle;
   if (newRoute->getClassID()) {
     metadata = static_cast<sai_uint32_t>(newRoute->getClassID().value());
+#if defined(BRCM_SAI_SDK_XGS)
+    // TODO(daiweix): remove this #if defined(BRCM_SAI_SDK_XGS) after
+    // support classid_for_unresolved_routes feature on XGS and
+    // explicitly program default class id value 0 if not specified.
+    // For now, keep the old behavior.
   } else if (oldRoute && oldRoute->getClassID()) {
     metadata = 0;
   }
+#else
+  } else {
+    metadata = 0;
+  }
+#endif
   counterHandle = getCounterHandleForRoute(newRoute, oldRoute, counterID);
 
   if (fwd.getAction() == RouteForwardAction::NEXTHOPS) {
@@ -726,6 +736,29 @@ template <typename NextHopTraitsT>
 void ManagedRouteNextHop<NextHopTraitsT>::setMetadata(
     std::optional<SaiRouteTraits::Attributes::Metadata> metadata) {
   metadata_ = metadata;
+}
+
+template <typename NextHopTraitsT>
+ManagedRouteNextHop<NextHopTraitsT>::~ManagedRouteNextHop() {
+  auto route = routeManager_->getRouteObject(routeKey_);
+  if (!route || !routeMetadataSupported_) {
+    return;
+  }
+  auto& api = SaiApiTable::getInstance()->routeApi();
+  SaiRouteTraits::Attributes::Metadata currentMetadata = routeMetadataSupported_
+      ? api.getAttribute(
+            route->adapterKey(), SaiRouteTraits::Attributes::Metadata{})
+      : 0;
+  auto attributes = route->attributes();
+  auto& metadata =
+      std::get<std::optional<SaiRouteTraits::Attributes::Metadata>>(attributes);
+  metadata = metadata_;
+  route->setAttributes(attributes);
+  updateMetadata(currentMetadata);
+  XLOG(DBG2) << "ManagedRouteNextHop beforeDestroy: " << routeKey_.toString()
+             << " metadata: "
+             << (metadata.has_value() ? std::to_string(metadata.value().value())
+                                      : "None");
 }
 
 template class ManagedRouteNextHop<SaiIpNextHopTraits>;

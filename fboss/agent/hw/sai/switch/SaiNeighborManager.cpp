@@ -246,6 +246,9 @@ SaiNeighborEntry::SaiNeighborEntry(
           isLocal,
           noHostRoute);
       break;
+    case cfg::InterfaceType::PORT:
+      // TODO(Chenab): Support port router interface
+      throw FbossError("Port router interface is not yet supported");
   }
 }
 

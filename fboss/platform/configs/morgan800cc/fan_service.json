@@ -162,7 +162,7 @@
   ],
   "optics": [
     {
-      "opticsName": "qsfp_group_1",
+      "opticName": "qsfp_group_1",
       "access": {
         "accessType": "ACCESS_TYPE_QSFP"
       },
@@ -173,33 +173,33 @@
           "kp": -2,
           "ki": 0,
           "kd": -0.33,
-          "setPoint": 70.0,
-          "posHysteresis": 0.0,
-          "negHysteresis": 2.0
+          "setPoint": 70,
+          "posHysteresis": 0,
+          "negHysteresis": 2
         },
         "OPTIC_TYPE_400_GENERIC": {
           "kp": -2,
           "ki": 0,
           "kd": -0.33,
-          "setPoint": 70.0,
-          "posHysteresis": 0.0,
-          "negHysteresis": 2.0
+          "setPoint": 70,
+          "posHysteresis": 0,
+          "negHysteresis": 2
         },
         "OPTIC_TYPE_200_GENERIC": {
           "kp": -2,
           "ki": 0,
           "kd": -0.33,
-          "setPoint": 70.0,
-          "posHysteresis": 0.0,
-          "negHysteresis": 2.0
+          "setPoint": 70,
+          "posHysteresis": 0,
+          "negHysteresis": 2
         },
         "OPTIC_TYPE_100_GENERIC": {
           "kp": -2,
           "ki": 0,
           "kd": -0.33,
-          "setPoint": 70.0,
-          "posHysteresis": 0.0,
-          "negHysteresis": 2.0
+          "setPoint": 70,
+          "posHysteresis": 0,
+          "negHysteresis": 2
         }
       }
     }

@@ -196,6 +196,8 @@ bool Jericho2Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::EGRESS_ACL_TABLE:
     case HwAsic::Feature::FAST_LLFC_COUNTER:
     case HwAsic::Feature::INGRESS_SRAM_MIN_BUFFER_WATERMARK:
+    case HwAsic::Feature::FDR_FIFO_WATERMARK:
+    case HwAsic::Feature::EGRESS_CELL_ERROR_STATS:
       return false;
   }
   return false;
@@ -281,11 +283,13 @@ cfg::Range64 Jericho2Asic::getReservedEncapIndexRange() const {
   return makeRange(0x200000, 0x300000);
 }
 
-HwAsic::RecyclePortInfo Jericho2Asic::getRecyclePortInfo() const {
+HwAsic::RecyclePortInfo Jericho2Asic::getRecyclePortInfo(
+    InterfaceNodeRole /* intfRole */) const {
   return {
       .coreId = 0,
       .corePortIndex = 1,
-      .speedMbps = 10000 // 10G
+      .speedMbps = 10000, // 10G
+      .inbandPortId = 1,
   };
 }
 

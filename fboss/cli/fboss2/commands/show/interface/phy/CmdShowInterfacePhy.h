@@ -174,6 +174,11 @@ class CmdShowInterfacePhy
           std::ostringstream outStringStream;
           outStringStream << *rsFec->preFECBer();
           rsFecTable.addRow({prefix + "Pre-FEC BER", outStringStream.str()});
+          if (rsFec->fecTail().has_value()) {
+            rsFecTable.addRow(
+                {prefix + "FEC Tail",
+                 std::to_string(rsFec->fecTail().value())});
+          }
           hasRsFecData = true;
           if (!rsFec->codewordStats()->empty()) {
             rsFecCodewordStatsTable.setHeader(

@@ -153,7 +153,7 @@ folly::StringPiece saiObjectTypeToString(sai_object_type_t objectType) {
   if (UNLIKELY(objectType >= SAI_OBJECT_TYPE_MAX)) {
     switch (static_cast<sai_object_type_extensions_t>(objectType)) {
       case SAI_OBJECT_TYPE_TAM_EVENT_AGING_GROUP:
-        return "event-aging-group";
+        return "tam-event-aging-group";
       default:
         throw FbossError("object type extension invalid: ", objectType);
     }

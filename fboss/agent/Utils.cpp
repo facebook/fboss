@@ -538,6 +538,9 @@ std::vector<PortID> getPortsForInterface(
     case cfg::InterfaceType::SYSTEM_PORT:
       ports.push_back(getPortID(intf->getSystemPortID().value(), state));
       break;
+    case cfg::InterfaceType::PORT:
+      // TODO(Chenab): Support port router interface
+      break;
   }
   return ports;
 }
@@ -698,6 +701,9 @@ std::shared_ptr<NeighborEntryT> getNeighborEntryForIP(
       entry = getNeighborEntryForIPAndIntf<NeighborEntryT>(intf, ipAddr);
       break;
     }
+    case cfg::InterfaceType::PORT:
+      // TODO(Chenab): Support port router interface
+      break;
   }
 
   return entry;

@@ -472,6 +472,22 @@ class Interface : public ThriftStructNode<Interface, state::InterfaceFields> {
         getRemoteInterfaceType().value() == RemoteInterfaceType::STATIC_ENTRY;
   }
 
+  void setPortID(PortID port) {
+    set<switch_state_tags::portId>(port);
+  }
+
+  PortID getPortID() const {
+    CHECK(getType() == cfg::InterfaceType::PORT);
+    return PortID(get<switch_state_tags::portId>()->cref());
+  }
+
+  std::optional<PortID> getPortIDf() const {
+    if (getType() == cfg::InterfaceType::PORT) {
+      return getPortID();
+    }
+    return std::nullopt;
+  }
+
   /*
    * Inherit the constructors required for clone().
    * This needs to be public, as std::make_shared requires

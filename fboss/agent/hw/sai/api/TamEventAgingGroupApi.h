@@ -45,9 +45,6 @@ struct SaiTamEventAgingGroupTraits {
   using AdapterHostKey = std::tuple<Attributes::Type, Attributes::AgingTime>;
   using CreateAttributes = AdapterHostKey;
 };
-// Workaround for CS00012373477: sai_get_object_count() INVALID_PARAMETER
-template <>
-struct GetObjectKeySupported<SaiTamEventAgingGroupTraits> : std::false_type {};
 
 SAI_ATTRIBUTE_NAME(TamEventAgingGroup, Type)
 SAI_ATTRIBUTE_NAME(TamEventAgingGroup, AgingTime)

@@ -1,3 +1,4 @@
+# pyre-unsafe
 import glob
 import os
 from typing import Dict, Optional

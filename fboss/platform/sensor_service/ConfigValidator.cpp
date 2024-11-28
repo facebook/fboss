@@ -54,6 +54,11 @@ bool ConfigValidator::isValidPmUnitSensorsList(
     if (!isValidPmSensors(*pmUnitSensors.sensors())) {
       return false;
     }
+    for (const auto& versionedPmSensor : *pmUnitSensors.versionedSensors()) {
+      if (!isValidPmSensors(*versionedPmSensor.sensors())) {
+        return false;
+      }
+    }
   }
   return true;
 }
@@ -99,6 +104,14 @@ bool ConfigValidator::isPmValidPmUnitSensorList(
             *pmUnitSensors.sensors())) {
       return false;
     }
+    if (!pmUnitSensors.versionedSensors()->empty() &&
+        !isPmValidVersionedPmSensors(
+            platformConfig,
+            *pmUnitSensors.slotPath(),
+            *pmUnitSensors.pmUnitName(),
+            *pmUnitSensors.versionedSensors())) {
+      return false;
+    }
   }
   return true;
 }
@@ -133,6 +146,31 @@ bool ConfigValidator::isPmValidPmSensors(
     }
     if (!pmConfigValidator_->isValidDeviceName(
             platformConfig, pmUnitSensorsSlotPath, deviceName)) {
+      return false;
+    }
+  }
+  return true;
+}
+
+bool ConfigValidator::isPmValidVersionedPmSensors(
+    const platform_manager::PlatformConfig& platformConfig,
+    const std::string& slotPath,
+    const std::string& pmUnitName,
+    const std::vector<VersionedPmSensor>& versionedPmSensors) {
+  const auto& pmUnitConfig = platformConfig.pmUnitConfigs()->at(pmUnitName);
+  const auto& slotTypeConfig =
+      platformConfig.slotTypeConfigs()->at(*pmUnitConfig.pluggedInSlotType());
+  if (!slotTypeConfig.idpromConfig() && !versionedPmSensors.empty()) {
+    XLOG(ERR) << fmt::format(
+        "Unexpected VersionedSensors definition for PmUnit {} at {} "
+        "where IDPROM is not present.",
+        pmUnitName,
+        slotPath);
+    return false;
+  }
+  for (const auto& versionedPmSensor : versionedPmSensors) {
+    if (!isPmValidPmSensors(
+            platformConfig, slotPath, *versionedPmSensor.sensors())) {
       return false;
     }
   }

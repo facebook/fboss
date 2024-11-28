@@ -118,7 +118,8 @@ class Jericho3Asic : public BroadcomAsic {
     return true;
   }
   cfg::Range64 getReservedEncapIndexRange() const override;
-  HwAsic::RecyclePortInfo getRecyclePortInfo() const override;
+  HwAsic::RecyclePortInfo getRecyclePortInfo(
+      InterfaceNodeRole intfRole) const override;
   uint32_t getNumMemoryBuffers() const override {
     return 3;
   }

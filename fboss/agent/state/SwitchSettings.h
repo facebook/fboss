@@ -565,24 +565,6 @@ class SwitchSettings
     }
   }
 
-  std::optional<int32_t> getReachabilityGroupListSize() const {
-    if (auto reachabilityGroupListSize =
-            cref<switch_state_tags::reachabilityGroupListSize>()) {
-      return reachabilityGroupListSize->toThrift();
-    }
-    return std::nullopt;
-  }
-
-  void setReachabilityGroupListSize(
-      std::optional<int32_t> reachabilityGroupListSize) {
-    if (!reachabilityGroupListSize) {
-      ref<switch_state_tags::reachabilityGroupListSize>().reset();
-    } else {
-      set<switch_state_tags::reachabilityGroupListSize>(
-          *reachabilityGroupListSize);
-    }
-  }
-
   std::optional<uint8_t> getSramGlobalFreePercentXoffThreshold() const {
     if (auto sramGlobalFreePercentXoffTh =
             cref<switch_state_tags::sramGlobalFreePercentXoffThreshold>()) {
@@ -683,6 +665,38 @@ class SwitchSettings
       ref<switch_state_tags::firmwarePath>().reset();
     } else {
       set<switch_state_tags::firmwarePath>(*newFirmwarePath);
+    }
+  }
+
+  std::vector<int> getReachabilityGroups() const {
+    if (auto reachabilityGroups =
+            cref<switch_state_tags::reachabilityGroups>()) {
+      return reachabilityGroups->toThrift();
+    }
+    return std::vector<int>();
+  }
+
+  void setReachabilityGroups(const std::vector<int>& reachabilityGroups) {
+    set<switch_state_tags::reachabilityGroups>(reachabilityGroups);
+  }
+
+  std::optional<cfg::SelfHealingEcmpLagConfig> getSelfHealingEcmpLagConfig()
+      const {
+    if (auto selfHealingEcmpLagConfig =
+            cref<switch_state_tags::selfHealingEcmpLagConfig>()) {
+      return selfHealingEcmpLagConfig->toThrift();
+    }
+    return std::nullopt;
+  }
+
+  void setSelfHealingEcmpLagConfig(
+      const std::optional<cfg::SelfHealingEcmpLagConfig>&
+          selfHealingEcmpLagConfig) {
+    if (!selfHealingEcmpLagConfig) {
+      ref<switch_state_tags::selfHealingEcmpLagConfig>().reset();
+    } else {
+      set<switch_state_tags::selfHealingEcmpLagConfig>(
+          selfHealingEcmpLagConfig.value());
     }
   }
 

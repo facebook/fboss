@@ -45,13 +45,12 @@ class SubscribableStorage {
     static_cast<Impl*>(this)->stop_impl();
   }
 
-  template <
-      typename Path,
-      typename =
-          std::enable_if_t<std::is_same_v<typename Path::RootT, RootT>, void>>
+  template <typename Path>
   folly::coro::AsyncGenerator<DeltaValue<typename Path::DataT>&&> subscribe(
       SubscriberId subscriber,
-      Path&& path) {
+      Path&& path)
+    requires(std::is_same_v<typename Path::RootT, RootT>)
+  {
     return this->template subscribe<typename Path::DataT, typename Path::TC>(
         subscriber, path.begin(), path.end());
   }
@@ -69,15 +68,11 @@ class SubscribableStorage {
         subscriber, begin, end);
   }
 
-  template <
-      typename Path,
-      typename = std::enable_if_t<
-          std::is_same_v<typename folly::remove_cvref_t<Path>::RootT, RootT>,
-          void>>
-  folly::coro::AsyncGenerator<DeltaValue<OperState>&&> subscribe_encoded(
-      SubscriberId subscriber,
-      Path&& path,
-      OperProtocol protocol) {
+  template <typename Path>
+  folly::coro::AsyncGenerator<DeltaValue<OperState>&&>
+  subscribe_encoded(SubscriberId subscriber, Path&& path, OperProtocol protocol)
+    requires(std::is_same_v<typename folly::remove_cvref_t<Path>::RootT, RootT>)
+  {
     return this->subscribe_encoded(
         subscriber, path.begin(), path.end(), protocol);
   }
@@ -106,13 +101,11 @@ class SubscribableStorage {
         subscriber, std::move(paths), protocol);
   }
 
-  template <
-      typename Path,
-      typename = std::enable_if_t<
-          std::is_same_v<typename folly::remove_cvref_t<Path>::RootT, RootT>,
-          void>>
+  template <typename Path>
   folly::coro::AsyncGenerator<OperDelta&&>
-  subscribe_delta(SubscriberId subscriber, Path&& path, OperProtocol protocol) {
+  subscribe_delta(SubscriberId subscriber, Path&& path, OperProtocol protocol)
+    requires(std::is_same_v<typename folly::remove_cvref_t<Path>::RootT, RootT>)
+  {
     return this->subscribe_delta(
         subscriber, path.begin(), path.end(), protocol);
   }
@@ -141,14 +134,12 @@ class SubscribableStorage {
         subscriber, std::move(paths), protocol);
   }
 
-  template <
-      typename Path,
-      typename = std::enable_if_t<
-          std::is_same_v<typename folly::remove_cvref_t<Path>::RootT, RootT>,
-          void>>
+  template <typename Path>
   folly::coro::AsyncGenerator<SubscriberMessage&&> subscribe_patch(
       SubscriberId subscriber,
-      Path&& path) {
+      Path&& path)
+    requires(std::is_same_v<typename folly::remove_cvref_t<Path>::RootT, RootT>)
+  {
     return this->subscribe_patch(subscriber, path.begin(), path.end());
   }
   folly::coro::AsyncGenerator<SubscriberMessage&&> subscribe_patch(
@@ -184,11 +175,10 @@ class SubscribableStorage {
 
   // wrapper calls to underlying storage
 
-  template <
-      typename Path,
-      typename =
-          std::enable_if_t<std::is_same_v<typename Path::RootT, RootT>, void>>
-  Result<typename Path::DataT> get(const Path& path) const {
+  template <typename Path>
+  Result<typename Path::DataT> get(const Path& path) const
+    requires(std::is_same_v<typename Path::RootT, RootT>)
+  {
     return this->template get<typename Path::DataT>(path.begin(), path.end());
   }
   template <typename T>
@@ -200,11 +190,10 @@ class SubscribableStorage {
     return static_cast<Impl const*>(this)->template get_impl<T>(begin, end);
   }
 
-  template <
-      typename Path,
-      typename =
-          std::enable_if_t<std::is_same_v<typename Path::RootT, Root>, void>>
-  Result<OperState> get_encoded(const Path& path, OperProtocol protocol) const {
+  template <typename Path>
+  Result<OperState> get_encoded(const Path& path, OperProtocol protocol) const
+    requires(std::is_same_v<typename Path::RootT, Root>)
+  {
     return this->get_encoded(path.begin(), path.end(), protocol);
   }
   Result<OperState> get_encoded(const ConcretePath& path, OperProtocol protocol)
@@ -225,13 +214,10 @@ class SubscribableStorage {
         begin, end, protocol);
   }
 
-  template <
-      typename Path,
-      typename =
-          std::enable_if_t<std::is_same_v<typename Path::RootT, RootT>, void>>
-  std::optional<StorageError> set(
-      const Path& path,
-      typename Path::DataT value) {
+  template <typename Path>
+  std::optional<StorageError> set(const Path& path, typename Path::DataT value)
+    requires(std::is_same_v<typename Path::RootT, RootT>)
+  {
     return this->set(path.begin(), path.end(), std::move(value));
   }
 
@@ -245,13 +231,12 @@ class SubscribableStorage {
         begin, end, std::forward<T>(value));
   }
 
-  template <
-      typename Path,
-      typename =
-          std::enable_if_t<std::is_same_v<typename Path::RootT, Root>, void>>
+  template <typename Path>
   std::optional<StorageError> set_encoded(
       const Path& path,
-      const OperState& state) {
+      const OperState& state)
+    requires(std::is_same_v<typename Path::RootT, Root>)
+  {
     return this->set_encoded(path.begin(), path.end(), state);
   }
   std::optional<StorageError> set_encoded(
@@ -264,11 +249,10 @@ class SubscribableStorage {
     return static_cast<Impl*>(this)->set_encoded_impl(begin, end, state);
   }
 
-  template <
-      typename Path,
-      typename =
-          std::enable_if_t<std::is_same_v<typename Path::RootT, RootT>, void>>
-  void remove(const Path& path) {
+  template <typename Path>
+  void remove(const Path& path)
+    requires(std::is_same_v<typename Path::RootT, RootT>)
+  {
     this->remove(path.begin(), path.end());
   }
   void remove(const ConcretePath& path) {

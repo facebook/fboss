@@ -598,5 +598,6 @@ TEST_F(RouterInterfaceManagerTest, adapterKeyAndTypePortRouterInterface) {
       saiManagerTable->routerInterfaceManager().addLocalRouterInterface(
           swInterface);
   checkAdapterKey(saiId, swInterface->getID());
+  // TODO(Chenab): Support port router interface
   checkType(saiId, swInterface->getID(), cfg::InterfaceType::SYSTEM_PORT);
 }

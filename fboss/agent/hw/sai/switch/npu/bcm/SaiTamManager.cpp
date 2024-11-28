@@ -19,88 +19,79 @@ extern "C" {
 }
 
 namespace {
-constexpr int kDefaultAgingIntervalUsecs = 10000;
+// Must be less than BRCM_SAI_DNX_MOD_MAX_SUPP_AGE_TIME (776 on J3).
+constexpr int kDefaultAgingIntervalUsecs = 500;
+
+// TODO(maxgg): split into multiple profiles once CS00012378634 is fixed.
+// Using ID 6 for now, for better visibility in packet dumps.
 const std::map<int, std::vector<sai_int32_t>> kDropProfiles = {
-    // TODO(maxgg): enable all profiles once CS00012378634 is fixed
-    // {0, // Global resources
-    //  {
-    //      SAI_PACKET_DROP_TYPE_MMU_GLOBAL_DRAM_BDBS,
-    //      SAI_PACKET_DROP_TYPE_MMU_GLOBAL_SRAM_BUFFERS,
-    //      SAI_PACKET_DROP_TYPE_MMU_GLOBAL_SRAM_PDBS,
-    //  }},
-    // {1, // VOQ resources
-    //  {
-    //      SAI_PACKET_DROP_TYPE_MMU_VOQ_SRAM_PDS_TOTAL_FREE_SHARED,
-    //      SAI_PACKET_DROP_TYPE_MMU_VOQ_SRAM_PDS_SHARED_MAX_SIZE,
-    //      SAI_PACKET_DROP_TYPE_MMU_VOQ_SRAM_BUFFERS_TOTAL_FREE_SHARED,
-    //      SAI_PACKET_DROP_TYPE_MMU_VOQ_SRAM_BUFFERS_SHARED_MAX_SIZE,
-    //      SAI_PACKET_DROP_TYPE_MMU_VOQ_WORDS_TOTAL_FREE_SHARED,
-    //      SAI_PACKET_DROP_TYPE_MMU_VOQ_WORDS_SHARED_MAX_SIZE,
-    //  }},
-    // {2, // VOQ DRAM block
-    //  {
-    //      SAI_PACKET_DROP_TYPE_MMU_VOQ_DRAM_BLOCK,
-    //  }},
-    // {3, // VSQ resources
-    //  {
-    //      SAI_PACKET_DROP_TYPE_MMU_PB_VSQ_SRAM_PDS_TOTAL_FREE_SHARED,
-    //      SAI_PACKET_DROP_TYPE_MMU_PB_VSQ_SRAM_PDS_SHARED_MAX_SIZE,
-    //      SAI_PACKET_DROP_TYPE_MMU_PB_VSQ_SRAM_BUFFERS_TOTAL_FREE_SHARED,
-    //      SAI_PACKET_DROP_TYPE_MMU_PB_VSQ_SRAM_BUFFERS_SHARED_MAX_SIZE,
-    //      SAI_PACKET_DROP_TYPE_MMU_PB_VSQ_WORDS_TOTAL_FREE_SHARED,
-    //      SAI_PACKET_DROP_TYPE_MMU_PB_VSQ_WORDS_SHARED_MAX_SIZE,
-    //  }},
-    // {4, // VSQ D resources
-    //  {
-    //      SAI_PACKET_DROP_TYPE_MMU_VSQ_D_SRAM_PDS_SHARED_MAX_SIZE,
-    //      SAI_PACKET_DROP_TYPE_MMU_VSQ_D_SRAM_BUFFERS_SHARED_MAX_SIZE,
-    //      SAI_PACKET_DROP_TYPE_MMU_VSQ_D_WORDS_SHARED_MAX_SIZE,
-    //  }},
-    // {5, // Queue resolution
-    //  {
-    //      SAI_PACKET_DROP_TYPE_MMU_QUEUE_NUM_RESOLUTION_ERROR,
-    //      SAI_PACKET_DROP_TYPE_MMU_QUEUE_NUM_NOT_VALID,
-    //  }},
-    {6, // Packet processing
+    {6,
      {
+         // 0 - Global resources
+         SAI_PACKET_DROP_TYPE_MMU_GLOBAL_DRAM_BDBS,
+         SAI_PACKET_DROP_TYPE_MMU_GLOBAL_SRAM_BUFFERS,
+         SAI_PACKET_DROP_TYPE_MMU_GLOBAL_SRAM_PDBS,
+
+         // 1 - VOQ resources
+         SAI_PACKET_DROP_TYPE_MMU_VOQ_SRAM_PDS_TOTAL_FREE_SHARED,
+         SAI_PACKET_DROP_TYPE_MMU_VOQ_SRAM_PDS_SHARED_MAX_SIZE,
+         SAI_PACKET_DROP_TYPE_MMU_VOQ_SRAM_BUFFERS_TOTAL_FREE_SHARED,
+         SAI_PACKET_DROP_TYPE_MMU_VOQ_SRAM_BUFFERS_SHARED_MAX_SIZE,
+         SAI_PACKET_DROP_TYPE_MMU_VOQ_WORDS_TOTAL_FREE_SHARED,
+         SAI_PACKET_DROP_TYPE_MMU_VOQ_WORDS_SHARED_MAX_SIZE,
+         SAI_PACKET_DROP_TYPE_MMU_VOQ_DRAM_BLOCK,
+
+         // 2 - VSQ resources
+         SAI_PACKET_DROP_TYPE_MMU_PB_VSQ_SRAM_PDS_TOTAL_FREE_SHARED,
+         SAI_PACKET_DROP_TYPE_MMU_PB_VSQ_SRAM_PDS_SHARED_MAX_SIZE,
+         SAI_PACKET_DROP_TYPE_MMU_PB_VSQ_SRAM_BUFFERS_TOTAL_FREE_SHARED,
+         SAI_PACKET_DROP_TYPE_MMU_PB_VSQ_SRAM_BUFFERS_SHARED_MAX_SIZE,
+         SAI_PACKET_DROP_TYPE_MMU_PB_VSQ_WORDS_TOTAL_FREE_SHARED,
+         SAI_PACKET_DROP_TYPE_MMU_PB_VSQ_WORDS_SHARED_MAX_SIZE,
+
+         // 3 - VSQ D resources
+         SAI_PACKET_DROP_TYPE_MMU_VSQ_D_SRAM_PDS_SHARED_MAX_SIZE,
+         SAI_PACKET_DROP_TYPE_MMU_VSQ_D_SRAM_BUFFERS_SHARED_MAX_SIZE,
+         SAI_PACKET_DROP_TYPE_MMU_VSQ_D_WORDS_SHARED_MAX_SIZE,
+
+         // 4 - Queue and packet processing
+         SAI_PACKET_DROP_TYPE_MMU_QUEUE_NUM_RESOLUTION_ERROR,
+         SAI_PACKET_DROP_TYPE_MMU_QUEUE_NUM_NOT_VALID,
          SAI_PACKET_DROP_TYPE_MMU_PP_ERROR,
+
+         // 5 - Misc
+         SAI_PACKET_DROP_TYPE_MMU_ITPP_DELTA_ERROR,
+         SAI_PACKET_DROP_TYPE_MMU_DROP_PRECEDENCE_LEVEL,
+         SAI_PACKET_DROP_TYPE_MMU_SRAM_RESOURCE_ERROR,
+         SAI_PACKET_DROP_TYPE_MMU_EXTERNAL_ERROR,
+         SAI_PACKET_DROP_TYPE_MMU_MACSEC_ERROR,
+         SAI_PACKET_DROP_TYPE_MMU_TAR_FIFO_FULL,
+         SAI_PACKET_DROP_TYPE_MMU_PACKET_SIZE_ERROR,
+
+         // 6 - Unexpected reasons
+         SAI_PACKET_DROP_TYPE_MMU_LAG_REMOTE,
+         SAI_PACKET_DROP_TYPE_MMU_LAG_PROTECTION,
+         SAI_PACKET_DROP_TYPE_MMU_LATENCY,
+         SAI_PACKET_DROP_TYPE_MMU_MULTICAST_REPLICATION_ERROR,
+         SAI_PACKET_DROP_TYPE_MMU_MULTICAST_FIFO_FULL,
+         SAI_PACKET_DROP_TYPE_MMU_VOQ_SYSTEM_RED,
+         SAI_PACKET_DROP_TYPE_MMU_VOQ_WRED,
+         SAI_PACKET_DROP_TYPE_MMU_VSQ_F_WRED,
+         SAI_PACKET_DROP_TYPE_MMU_VSQ_E_WRED,
+         SAI_PACKET_DROP_TYPE_MMU_VSQ_C_SRAM_PDS_SHARED_MAX_SIZE,
+         SAI_PACKET_DROP_TYPE_MMU_VSQ_B_SRAM_PDS_SHARED_MAX_SIZE,
+         SAI_PACKET_DROP_TYPE_MMU_VSQ_A_SRAM_PDS_SHARED_MAX_SIZE,
+         SAI_PACKET_DROP_TYPE_MMU_VSQ_C_SRAM_BUFFERS_SHARED_MAX_SIZE,
+         SAI_PACKET_DROP_TYPE_MMU_VSQ_B_SRAM_BUFFERS_SHARED_MAX_SIZE,
+         SAI_PACKET_DROP_TYPE_MMU_VSQ_A_SRAM_BUFFERS_SHARED_MAX_SIZE,
+         SAI_PACKET_DROP_TYPE_MMU_VSQ_C_WORDS_SHARED_MAX_SIZE,
+         SAI_PACKET_DROP_TYPE_MMU_VSQ_B_WORDS_SHARED_MAX_SIZE,
+         SAI_PACKET_DROP_TYPE_MMU_VSQ_A_WORDS_SHARED_MAX_SIZE,
+         SAI_PACKET_DROP_TYPE_MMU_VSQ_D_WRED,
+         SAI_PACKET_DROP_TYPE_MMU_VSQ_C_WRED,
+         SAI_PACKET_DROP_TYPE_MMU_VSQ_B_WRED,
+         SAI_PACKET_DROP_TYPE_MMU_VSQ_A_WRED,
      }},
-    // {7, // Misc
-    //  {
-    //      SAI_PACKET_DROP_TYPE_MMU_ITPP_DELTA_ERROR,
-    //
-    //      // These should go to event ID 8 once CS00012376944 is fixed
-    //      SAI_PACKET_DROP_TYPE_MMU_DROP_PRECEDENCE_LEVEL,
-    //      SAI_PACKET_DROP_TYPE_MMU_SRAM_RESOURCE_ERROR,
-    //      SAI_PACKET_DROP_TYPE_MMU_EXTERNAL_ERROR,
-    //      SAI_PACKET_DROP_TYPE_MMU_MACSEC_ERROR,
-    //      SAI_PACKET_DROP_TYPE_MMU_TAR_FIFO_FULL,
-    //      SAI_PACKET_DROP_TYPE_MMU_PACKET_SIZE_ERROR,
-    //
-    //      // These should go to event ID 9 once CS00012376944 is fixed
-    //      SAI_PACKET_DROP_TYPE_MMU_LAG_REMOTE,
-    //      SAI_PACKET_DROP_TYPE_MMU_LAG_PROTECTION,
-    //      SAI_PACKET_DROP_TYPE_MMU_LATENCY,
-    //      SAI_PACKET_DROP_TYPE_MMU_MULTICAST_REPLICATION_ERROR,
-    //      SAI_PACKET_DROP_TYPE_MMU_MULTICAST_FIFO_FULL,
-    //      SAI_PACKET_DROP_TYPE_MMU_VOQ_SYSTEM_RED,
-    //      SAI_PACKET_DROP_TYPE_MMU_VOQ_WRED,
-    //      SAI_PACKET_DROP_TYPE_MMU_VSQ_F_WRED,
-    //      SAI_PACKET_DROP_TYPE_MMU_VSQ_E_WRED,
-    //      SAI_PACKET_DROP_TYPE_MMU_VSQ_C_SRAM_PDS_SHARED_MAX_SIZE,
-    //      SAI_PACKET_DROP_TYPE_MMU_VSQ_B_SRAM_PDS_SHARED_MAX_SIZE,
-    //      SAI_PACKET_DROP_TYPE_MMU_VSQ_A_SRAM_PDS_SHARED_MAX_SIZE,
-    //      SAI_PACKET_DROP_TYPE_MMU_VSQ_C_SRAM_BUFFERS_SHARED_MAX_SIZE,
-    //      SAI_PACKET_DROP_TYPE_MMU_VSQ_B_SRAM_BUFFERS_SHARED_MAX_SIZE,
-    //      SAI_PACKET_DROP_TYPE_MMU_VSQ_A_SRAM_BUFFERS_SHARED_MAX_SIZE,
-    //      SAI_PACKET_DROP_TYPE_MMU_VSQ_C_WORDS_SHARED_MAX_SIZE,
-    //      SAI_PACKET_DROP_TYPE_MMU_VSQ_B_WORDS_SHARED_MAX_SIZE,
-    //      SAI_PACKET_DROP_TYPE_MMU_VSQ_A_WORDS_SHARED_MAX_SIZE,
-    //      SAI_PACKET_DROP_TYPE_MMU_VSQ_D_WRED,
-    //      SAI_PACKET_DROP_TYPE_MMU_VSQ_C_WRED,
-    //      SAI_PACKET_DROP_TYPE_MMU_VSQ_B_WRED,
-    //      SAI_PACKET_DROP_TYPE_MMU_VSQ_A_WRED,
-    //  }},
 };
 } // namespace
 #endif
@@ -136,7 +127,7 @@ void SaiTamManager::addMirrorOnDropReport(
       report->getCollectorPort(),
       report->getMtu(),
       folly::MacAddress(report->getSwitchMac()),
-      folly::MacAddress("02:00:00:00:00:01"), // TODO: use getFirstInterfaceMac
+      folly::MacAddress(report->getFirstInterfaceMac()),
   };
   auto transport = transportStore.setObject(transportTraits, transportTraits);
 
@@ -174,6 +165,8 @@ void SaiTamManager::addMirrorOnDropReport(
     std::get<SaiTamEventTraits::Attributes::Type>(eventTraits) =
         SAI_TAM_EVENT_TYPE_PACKET_DROP_STATEFUL;
     std::get<SaiTamEventTraits::Attributes::ActionList>(eventTraits) = actions;
+    std::get<std::optional<SaiTamEventTraits::Attributes::DeviceId>>(
+        eventTraits) = 0; // specify 0 explcitily so that round trip works
     std::get<std::optional<SaiTamEventTraits::Attributes::SwitchEventId>>(
         eventTraits) = eventId;
     std::get<
@@ -187,8 +180,8 @@ void SaiTamManager::addMirrorOnDropReport(
     auto event = eventStore.setObject(eventTraits, eventTraits);
     events.push_back(event);
     eventIds.push_back(event->adapterKey());
-    XLOG(DBG4) << "Created event 0x" << std::hex << event->adapterKey()
-               << " with aging group 0x" << std::hex << agingGroupKey;
+    +XLOG(INFO) << "Created event ID " << eventId << " with tam event "
+                << event->adapterKey() << " and aging group " << agingGroupKey;
   }
 
   // Create tam
@@ -201,7 +194,7 @@ void SaiTamManager::addMirrorOnDropReport(
   auto tam = tamStore.setObject(tamTraits, tamTraits);
 
   // Associate TAM with port
-  XLOG(DBG3) << "Associating TAM object with port "
+  XLOG(INFO) << "Associating TAM object with port "
              << report->getMirrorPortId();
   managerTable_->portManager().setTamObject(
       PortID(report->getMirrorPortId()), {tam->adapterKey()});

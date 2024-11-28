@@ -45,6 +45,7 @@ void validateInterfaceAndMedium(
           {TransmitterTechnology::OPTICAL,
            {
                phy::InterfaceType::SR,
+               phy::InterfaceType::SR2,
                phy::InterfaceType::SR4,
                phy::InterfaceType::SR8,
                // Choice for optical profiles in
@@ -63,10 +64,13 @@ void validateInterfaceAndMedium(
            }},
           {TransmitterTechnology::BACKPLANE,
            {
+               phy::InterfaceType::CR4,
                phy::InterfaceType::KR,
                phy::InterfaceType::KR2,
                phy::InterfaceType::KR4,
                phy::InterfaceType::KR8,
+               phy::InterfaceType::SR4, // Used on J3 serdes
+               phy::InterfaceType::SR8, // Used on J3 serdes
                // Results in backplane medium in
                // BcmPortUtils::getDesiredPhyLaneConfig
                phy::InterfaceType::CAUI4_C2C,

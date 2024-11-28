@@ -8,6 +8,8 @@
 #  of patent rights can be found in the PATENTS file in the same directory.
 #
 
+# pyre-unsafe
+
 import collections
 import itertools
 import time

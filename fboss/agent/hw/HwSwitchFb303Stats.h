@@ -241,6 +241,11 @@ class HwSwitchFb303Stats {
   TLTimeseries dramBlockedTimeNsec_;
   // Credit stats
   TLTimeseries deletedCreditBytes_;
+  // RQP errors
+  TLTimeseries rqpFabricCellCorruptionDrops_;
+  TLTimeseries rqpNonFabricCellCorruptionDrops_;
+  TLTimeseries rqpNonFabricCellMissingDrops_;
+  TLTimeseries rqpParityErrorDrops_;
   // fabric reachability errors
   TLCounter fabricReachabilityMissingCount_;
   TLCounter fabricReachabilityMismatchCount_;

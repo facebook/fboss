@@ -23,6 +23,8 @@ void updateCorrectedBitsAndPreFECBer(
     phy::FecMode fecMode,
     cfg::PortSpeed speed);
 
+void updateFecTail(phy::RsFecInfo& fecInfo, const phy::RsFecInfo& oldRsFecInfo);
+
 void updateSignalDetectChangedCount(
     int changedCount,
     int lane,

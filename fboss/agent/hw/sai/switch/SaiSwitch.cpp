@@ -1338,11 +1338,10 @@ void SaiSwitch::processSwitchSettingsChangeSansDrainedEntryLocked(
   }
 
   {
-    const auto oldVal = oldSwitchSettings->getReachabilityGroupListSize();
-    const auto newVal = newSwitchSettings->getReachabilityGroupListSize();
+    auto oldVal = oldSwitchSettings->getReachabilityGroups();
+    auto newVal = newSwitchSettings->getReachabilityGroups();
     if (oldVal != newVal) {
-      managerTable_->switchManager().setReachabilityGroupList(
-          newVal.has_value() ? newVal.value() : 0);
+      managerTable_->switchManager().setReachabilityGroupList(newVal);
     }
   }
 
@@ -1871,6 +1870,10 @@ void SaiSwitch::updatePcsInfo(
             *lastPhyInfo.state()->timeCollected(), /* timeDeltaInSeconds */
         fecMode, /* operational FecMode */
         speed /* operational Speed */);
+    utility::updateFecTail(
+        rsFec, /* current RsFecInfo to update */
+        lastRsFec /* previous RsFecInfo */
+    );
     pcsStats.rsFec() = rsFec;
     sideStats.pcs() = pcsStats;
   }

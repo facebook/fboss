@@ -305,3 +305,26 @@ TYPED_TEST(SwitchIdScopeResolverTest, SwitchTypeScope) {
   EXPECT_EQ(switchTypeMatcher.size(), 4);
   EXPECT_THROW(resolver.scope(cfg::SwitchType::PHY), FbossError);
 }
+
+TYPED_TEST(SwitchIdScopeResolverTest, portIntfScope) {
+  cfg::Port port;
+  port.logicalID() = 1;
+  cfg::Interface intf;
+  intf.type() = cfg::InterfaceType::PORT;
+  intf.intfID() = 6001;
+  intf.portID() = 1;
+
+  cfg::SwitchConfig cfg{};
+  cfg.ports()->resize(1);
+  cfg.ports()[0] = port;
+
+  cfg.interfaces()->resize(1);
+  cfg.interfaces()[0] = intf;
+
+  const auto& resolver = this->scopeResolver();
+  auto matcher1 = resolver.scope(PortID(1));
+  auto matcher2 =
+      resolver.scope(cfg::InterfaceType::PORT, InterfaceID(6001), cfg);
+
+  EXPECT_EQ(matcher1, matcher2);
+}
