@@ -1,9 +1,21 @@
 #include "fboss/agent/test/utils/StressTestUtils.h"
 #include "fboss/agent/benchmarks/AgentBenchmarks.h"
+#include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/test/RouteScaleGenerators.h"
+#include "fboss/agent/test/utils/AclTestUtils.h"
+#include "fboss/agent/test/utils/CoppTestUtils.h"
+#include "fboss/agent/test/utils/TrapPacketUtils.h"
 #include "fboss/lib/FunctionCallTimeReporter.h"
 
 #include <folly/Benchmark.h>
+
+#include "fboss/agent/IPv6Handler.h"
+
+namespace {
+const std::string kDstIp = "2620:0:1cfe:face:b00c::4";
+// at least 4 ports to support ECMP
+const int kEcmpWidth = 8;
+}; // namespace
 
 namespace facebook::fboss::utility {
 
@@ -140,5 +152,46 @@ template std::tuple<double, double> routeChangeLookupStresser<
     utility::FSWRouteScaleGenerator>(AgentEnsemble* ensemble);
 template void resolveNhopForRouteGenerator<FSWRouteScaleGenerator>(
     AgentEnsemble* ensemble);
+
+cfg::SwitchConfig bgpRxBenchmarkConfig(const AgentEnsemble& ensemble) {
+  FLAGS_sai_user_defined_trap = true;
+  CHECK_GE(
+      ensemble.masterLogicalPortIds({cfg::PortType::INTERFACE_PORT}).size(), 1);
+
+  std::vector<PortID> ports;
+  // ECMP needs at least 4 data interfaces
+  for (auto i = 0; i < kEcmpWidth; i++)
+    ports.push_back(ensemble.masterLogicalInterfacePortIds()[i]);
+
+  // For J2 and J3, initialize recycle port as well to allow l3 lookup on
+  // recycle port
+  if (ensemble.getSw()->getHwAsicTable()->isFeatureSupportedOnAllAsic(
+          HwAsic::Feature::CPU_TX_VIA_RECYCLE_PORT)) {
+    ports.push_back(
+        ensemble.masterLogicalPortIds({cfg::PortType::RECYCLE_PORT})[0]);
+  }
+  auto config = utility::onePortPerInterfaceConfig(ensemble.getSw(), ports);
+  utility::addAclTableGroup(
+      &config, cfg::AclStage::INGRESS, utility::kDefaultAclTableGroupName());
+  utility::addDefaultAclTable(config);
+  // We don't want to set queue rate that limits the number of rx pkts
+  utility::addCpuQueueConfig(
+      config,
+      ensemble.getL3Asics(),
+      ensemble.isSai(),
+      /* setQueueRate */ false);
+  auto trapDstIp = folly::CIDRNetwork{kDstIp, 128};
+  utility::addTrapPacketAcl(&config, trapDstIp);
+
+  // Since J2 and J3 does not support disabling TLL on port, create TRAP to
+  // forward TTL=0 packet. Also not send icmp time exceeded packet, since CPU
+  // will trap TTL=0 packet.
+  if (ensemble.getSw()->getHwAsicTable()->isFeatureSupportedOnAllAsic(
+          HwAsic::Feature::CPU_TX_VIA_RECYCLE_PORT)) {
+    FLAGS_send_icmp_time_exceeded = false;
+    utility::setTTLZeroCpuConfig(ensemble.getL3Asics(), config);
+  }
+  return config;
+}
 
 } // namespace facebook::fboss::utility

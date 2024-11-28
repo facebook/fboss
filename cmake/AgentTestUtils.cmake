@@ -451,4 +451,9 @@ target_link_libraries(stress_test_utils
   function_call_time_reporter
   Folly::folly
   Folly::follybenchmark
+  acl_test_utils
+  copp_test_utils
+  trap_packet_utils
+  core
+  config_factory
 )

@@ -7,4 +7,7 @@ void resolveNhopForRouteGenerator(AgentEnsemble* ensemble);
 
 template <typename RouteScaleGeneratorT>
 std::tuple<double, double> routeChangeLookupStresser(AgentEnsemble* ensemble);
+
+cfg::SwitchConfig bgpRxBenchmarkConfig(const AgentEnsemble& ensemble);
+
 } // namespace facebook::fboss::utility

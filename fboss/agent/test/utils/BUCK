@@ -585,7 +585,12 @@ cpp_library(
         "StressTestUtils.h",
     ],
     exported_deps = [
+        ":acl_test_utils",
+        ":copp_test_utils",
+        ":trap_packet_utils",
+        "//fboss/agent:core",
         "//fboss/agent/benchmarks:mono_agent_benchmarks",
+        "//fboss/agent/hw/test:config_factory",
         "//fboss/agent/test:agent_ensemble",
         "//fboss/agent/test:route_scale_gen",
         "//fboss/lib:function_call_time_reporter",
