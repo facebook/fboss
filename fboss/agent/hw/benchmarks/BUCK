@@ -28,6 +28,23 @@ agent_benchmark_lib(
     ],
 )
 
+cpp_library(
+    name = "hw_bgp_rx_slow_benchmark_helpers",
+    headers = [
+        "HwBGPRxSlowPathBenchmarkHelpers.h",
+    ],
+    exported_deps = [
+        "//fboss/agent:packet",
+        "//fboss/agent/benchmarks:mono_agent_benchmarks",
+        "//fboss/agent/packet:packet_factory",
+        "//fboss/agent/test:agent_ensemble",
+        "//fboss/agent/test:ecmp_helper",
+        "//fboss/agent/test:route_scale_gen",
+        "//fboss/agent/test/utils:copp_test_utils",
+        "//fboss/agent/test/utils:qos_test_utils",
+    ],
+)
+
 agent_benchmark_lib(
     name = "hw_rx_slow_path_arp_rate",
     srcs = ["HwRxSlowPathArpBenchmark.cpp"],
