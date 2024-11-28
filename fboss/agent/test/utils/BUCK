@@ -562,3 +562,16 @@ cpp_library(
         "//fboss/agent/test:ecmp_helper",
     ],
 )
+
+cpp_library(
+    name = "port_flap_helper",
+    srcs = [
+        "PortFlapHelper.cpp",
+    ],
+    headers = [
+        "PortFlapHelper.h",
+    ],
+    exported_deps = [
+        "//fboss/agent/test:agent_ensemble",
+    ],
+)
