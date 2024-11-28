@@ -84,12 +84,13 @@ cpp_unittest(
 )
 
 cpp_unittest(
-    name = "exploration_error_map_test",
+    name = "exploration_summary_test",
     srcs = [
-        "ExplorationErrorMapTest.cpp",
+        "ExplorationSummaryTest.cpp",
     ],
     deps = [
         "fbsource//third-party/googletest:gmock",
+        "//fb303:service_data",
         "//fboss/platform/platform_manager:platform_explorer",
     ],
 )

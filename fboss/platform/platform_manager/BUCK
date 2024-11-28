@@ -135,7 +135,7 @@ cpp_library(
 cpp_library(
     name = "platform_explorer",
     srcs = [
-        "ExplorationErrorMap.cpp",
+        "ExplorationSummary.cpp",
         "PlatformExplorer.cpp",
     ],
     exported_deps = [

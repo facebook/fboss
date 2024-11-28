@@ -24,8 +24,6 @@
 
 namespace facebook::fboss::platform::platform_manager {
 namespace {
-constexpr auto kTotalFailures = "platform_explorer.total_failures";
-constexpr auto kExplorationFail = "platform_explorer.exploration_fail";
 constexpr auto kRootSlotPath = "/";
 
 std::string getSlotPath(
@@ -134,7 +132,7 @@ PlatformExplorer::PlatformExplorer(
       dataStore_(platformConfig_),
       devicePathResolver_(dataStore_),
       presenceChecker_(devicePathResolver_),
-      explorationErrMap_(platformConfig_, dataStore_),
+      explorationSummary_(platformConfig_, dataStore_),
       platformFsUtils_(platformFsUtils) {
   updatePmStatus(createPmStatus(ExplorationStatus::UNSTARTED));
 }
@@ -156,12 +154,7 @@ void PlatformExplorer::explore() {
     createDeviceSymLink(linkPath, devicePath);
   }
   publishFirmwareVersions();
-  auto explorationStatus = concludeExploration();
-  fb303::fbData->setCounter(
-      kExplorationFail,
-      explorationStatus != ExplorationStatus::SUCCEEDED &&
-          explorationStatus !=
-              ExplorationStatus::SUCCEEDED_WITH_EXPECTED_ERRORS);
+  auto explorationStatus = explorationSummary_.summarize();
   updatePmStatus(createPmStatus(
       explorationStatus,
       std::chrono::duration_cast<std::chrono::seconds>(
@@ -301,7 +294,8 @@ std::optional<std::string> PlatformExplorer::getPmUnitNameFromSlot(
             *idpromConfig.address(),
             e.what());
         XLOG(ERR) << errMsg;
-        explorationErrMap_.add(slotPath, "IDPROM", errMsg);
+        explorationSummary_.addError(
+            ExplorationErrorType::IDPROM_READ, slotPath, "IDPROM", errMsg);
       }
     } else {
       createI2cDevice(
@@ -344,7 +338,8 @@ std::optional<std::string> PlatformExplorer::getPmUnitNameFromSlot(
           slotPath,
           e.what());
       XLOG(ERR) << errMsg;
-      explorationErrMap_.add(slotPath, "IDPROM", errMsg);
+      explorationSummary_.addError(
+          ExplorationErrorType::IDPROM_READ, slotPath, "IDPROM", errMsg);
     }
     if (pmUnitNameInEeprom) {
       XLOG(INFO) << fmt::format(
@@ -442,8 +437,11 @@ void PlatformExplorer::exploreI2cDevices(
           slotPath,
           ex.what());
       XLOG(ERR) << errMsg;
-      explorationErrMap_.add(
-          slotPath, *i2cDeviceConfig.pmUnitScopedName(), errMsg);
+      explorationSummary_.addError(
+          ExplorationErrorType::I2C_DEVICE_EXPLORE,
+          slotPath,
+          *i2cDeviceConfig.pmUnitScopedName(),
+          errMsg);
     }
   }
 }
@@ -543,8 +541,11 @@ void PlatformExplorer::explorePciDevices(
           slotPath,
           ex.what());
       XLOG(ERR) << errMsg;
-      explorationErrMap_.add(
-          slotPath, *pciDeviceConfig.pmUnitScopedName(), errMsg);
+      explorationSummary_.addError(
+          ExplorationErrorType::PCI_DEVICE_EXPLORE,
+          slotPath,
+          *pciDeviceConfig.pmUnitScopedName(),
+          errMsg);
     }
   }
 }
@@ -605,7 +606,8 @@ void PlatformExplorer::createDeviceSymLink(
         devicePath,
         ex.what());
     XLOG(ERR) << errMsg;
-    explorationErrMap_.add(devicePath, errMsg);
+    explorationSummary_.addError(
+        ExplorationErrorType::RUN_DEVMAP_SYMLINK, devicePath, errMsg);
     return;
   }
   XLOG(INFO) << fmt::format(
@@ -618,35 +620,6 @@ void PlatformExplorer::createDeviceSymLink(
   if (exitStatus != 0) {
     XLOG(ERR) << fmt::format("Failed to run command ({})", cmd);
     return;
-  }
-}
-
-ExplorationStatus PlatformExplorer::concludeExploration() {
-  XLOG(INFO) << fmt::format(
-      "Concluding {} exploration...", *platformConfig_.platformName());
-  for (const auto& [devicePath, errorMessages] : explorationErrMap_) {
-    auto [slotPath, deviceName] = Utils().parseDevicePath(devicePath);
-    XLOG(INFO) << fmt::format(
-        "{} Failures in Device {} for PmUnit {} at SlotPath {}",
-        errorMessages.isExpected() ? "Expected" : "Unexpected",
-        deviceName,
-        dataStore_.hasPmUnit(slotPath)
-            ? *dataStore_.getPmUnitInfo(slotPath).name()
-            : "<ABSENT>",
-        slotPath);
-    int i = 1;
-    for (const auto& errMsg : errorMessages.getMessages()) {
-      XLOG(INFO) << fmt::format("{}. {}", i++, errMsg);
-    }
-  }
-  fb303::fbData->setCounter(kTotalFailures, explorationErrMap_.size());
-  if (explorationErrMap_.empty()) {
-    return ExplorationStatus::SUCCEEDED;
-  } else if (
-      explorationErrMap_.size() == explorationErrMap_.numExpectedErrors()) {
-    return ExplorationStatus::SUCCEEDED_WITH_EXPECTED_ERRORS;
-  } else {
-    return ExplorationStatus::FAILED;
   }
 }
 
@@ -720,7 +693,8 @@ void PlatformExplorer::setupI2cDevice(
     i2cExplorer_.setupI2cDevice(busNum, addr, initRegSettings);
   } catch (const std::exception& ex) {
     XLOG(ERR) << ex.what();
-    explorationErrMap_.add(devicePath, ex.what());
+    explorationSummary_.addError(
+        ExplorationErrorType::I2C_DEVICE_REG_INIT, devicePath, ex.what());
   }
 }
 
@@ -737,7 +711,8 @@ void PlatformExplorer::createI2cDevice(
         devicePath, i2cExplorer_.getDeviceI2cPath(busNum, addr));
   } catch (const std::exception& ex) {
     XLOG(ERR) << ex.what();
-    explorationErrMap_.add(devicePath, ex.what());
+    explorationSummary_.addError(
+        ExplorationErrorType::I2C_DEVICE_CREATE, devicePath, ex.what());
   }
 }
 } // namespace facebook::fboss::platform::platform_manager
