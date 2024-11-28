@@ -19,6 +19,8 @@ void rxSlowPathBGPRouteChangeBenchmark(BgpRxMode mode) {
   auto ensemble = createAgentEnsemble(
       bgpRxBenchmarkConfig, false /*disableLinkStateToggler*/);
 
+  resolveNhopForRouteGenerator<utility::FSWRouteScaleGenerator>(ensemble.get());
+
   // capture packet exiting port 0 (entering due to loopback)
   auto dstMac = utility::getFirstInterfaceMac(ensemble->getProgrammedState());
   auto ecmpHelper =
@@ -68,7 +70,11 @@ void rxSlowPathBGPRouteChangeBenchmark(BgpRxMode mode) {
       *statsBefore.portStats_(), kCpuQueue);
   auto timeBefore = std::chrono::steady_clock::now();
   CHECK_NE(pktsBefore, 0);
-  std::this_thread::sleep_for(std::chrono::seconds(kBurnIntevalInSeconds));
+
+  auto [bgpRouteAddWorstCaseLookupMsecs, bgpRouteAddWorstCaseBulkLookupMsecs] =
+      routeChangeLookupStresser<utility::FSWRouteScaleGenerator>(
+          ensemble.get());
+
   std::map<int, CpuPortStats> cpuStatsAfter;
   ensemble->getSw()->getAllCpuPortStats(cpuStatsAfter);
   auto statsAfter = cpuStatsAfter[0];
@@ -95,6 +101,10 @@ void rxSlowPathBGPRouteChangeBenchmark(BgpRxMode mode) {
                << " interval ms: " << durationMillseconds.count()
                << " pps: " << bgpRouteAddPPS
                << " bytes per sec: " << bgpRouteAddBytesPerSec;
+    XLOG(DBG2) << " BGP route add worst case lookup msecs: "
+               << bgpRouteAddWorstCaseLookupMsecs
+               << " BGP route add worst case bulk lookup msecs: "
+               << bgpRouteAddWorstCaseBulkLookupMsecs;
   }
 }
 
