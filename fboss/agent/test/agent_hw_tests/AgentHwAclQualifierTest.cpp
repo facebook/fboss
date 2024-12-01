@@ -396,11 +396,18 @@ TEST_F(AgentHwAclQualifierTest, AclRemove) {
     auto& ensemble = *getAgentEnsemble();
     auto newCfg = initialConfig(ensemble);
     auto l3Asics = ensemble.getSw()->getHwAsicTable()->getL3Asics();
+    auto asic = utility::checkSameAndGetAsic(l3Asics);
 
     auto* acl0 = utility::addAcl(&newCfg, "acl0", cfg::AclActionType::DENY);
     acl0->proto() = 6;
+    if (asic->isSupported(HwAsic::Feature::ACL_ENTRY_ETHER_TYPE)) {
+      acl0->etherType() = cfg::EtherType::IPv6;
+    }
     auto* acl1 = utility::addAcl(&newCfg, "acl1", cfg::AclActionType::DENY);
     acl1->proto() = 58;
+    if (asic->isSupported(HwAsic::Feature::ACL_ENTRY_ETHER_TYPE)) {
+      acl1->etherType() = cfg::EtherType::IPv6;
+    }
     applyNewConfig(newCfg);
 
     utility::delAcl(&newCfg, "acl0");
@@ -537,8 +544,13 @@ TEST_F(AgentHwAclQualifierTest, AclIp6Qualifiers) {
   auto setup = [=, this]() {
     auto& ensemble = *getAgentEnsemble();
     auto newCfg = initialConfig(ensemble);
+    auto l3Asics = ensemble.getL3Asics();
+    auto asic = utility::checkSameAndGetAsic(l3Asics);
 
     auto* acl = utility::addAcl(&newCfg, "ip6", cfg::AclActionType::DENY);
+    if (asic->isSupported(HwAsic::Feature::ACL_ENTRY_ETHER_TYPE)) {
+      acl->etherType() = cfg::EtherType::IPv6;
+    }
 
     configureIp6QualifiersHelper(acl);
     applyNewConfig(newCfg);
