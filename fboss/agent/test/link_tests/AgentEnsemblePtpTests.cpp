@@ -10,6 +10,7 @@
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/test/link_tests/AgentEnsembleLinkTest.h"
 #include "fboss/agent/test/link_tests/LinkTestUtils.h"
+#include "fboss/agent/test/utils/AsicUtils.h"
 #include "fboss/agent/test/utils/PacketSnooper.h"
 #include "fboss/agent/test/utils/PacketTestUtils.h"
 #include "fboss/agent/test/utils/TrapPacketUtils.h"
@@ -179,7 +180,8 @@ class AgentEnsemblePtpTests : public AgentEnsembleLinkTest {
 
   void trapPackets(const folly::CIDRNetwork& prefix) {
     cfg::SwitchConfig cfg = getSw()->getConfig();
-    utility::addTrapPacketAcl(&cfg, prefix);
+    auto asic = utility::checkSameAndGetAsic(getAgentEnsemble()->getL3Asics());
+    utility::addTrapPacketAcl(asic, &cfg, prefix);
     getSw()->applyConfig("trapPackets", cfg);
   }
 

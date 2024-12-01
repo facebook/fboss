@@ -150,7 +150,9 @@ class HwMPLSTest : public HwLinkStateDependentTest {
         getHwSwitchEnsemble()->getL3Asics(),
         getHwSwitchEnsemble()->isSai());
 
-    utility::addTrapPacketAcl(&config, masterLogicalPortIds()[0]);
+    auto asic =
+        utility::checkSameAndGetAsic(getHwSwitchEnsemble()->getL3Asics());
+    utility::addTrapPacketAcl(asic, &config, masterLogicalPortIds()[0]);
     return config;
   }
 

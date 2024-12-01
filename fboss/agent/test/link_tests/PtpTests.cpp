@@ -177,7 +177,8 @@ class PtpTests : public LinkTest {
 
   void trapPackets(const folly::CIDRNetwork& prefix) {
     cfg::SwitchConfig cfg = sw()->getConfig();
-    utility::addTrapPacketAcl(&cfg, prefix);
+    auto asic = platform()->getHwSwitch()->getPlatform()->getAsic();
+    utility::addTrapPacketAcl(asic, &cfg, prefix);
     sw()->applyConfig("trapPackets", cfg);
   }
 

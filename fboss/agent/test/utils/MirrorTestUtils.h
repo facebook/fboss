@@ -68,7 +68,10 @@ void configureSflowSampling(
     const std::vector<PortID>& ports,
     int sampleRate);
 
-void configureTrapAcl(cfg::SwitchConfig& config, bool isV4);
-void configureTrapAcl(cfg::SwitchConfig& config, PortID portId);
+void configureTrapAcl(const HwAsic* asic, cfg::SwitchConfig& config, bool isV4);
+void configureTrapAcl(
+    const HwAsic* asic,
+    cfg::SwitchConfig& config,
+    PortID portId);
 
 } // namespace facebook::fboss::utility

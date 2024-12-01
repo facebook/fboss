@@ -1426,7 +1426,7 @@ class AgentCoppQosTest : public AgentHwTest {
     addCustomCpuQueueConfig(cfg, ensemble.getL3Asics());
     utility::setTTLZeroCpuConfig(ensemble.getL3Asics(), cfg);
     auto prefix = folly::CIDRNetwork{kIpForLowPriorityQueue, 128};
-    utility::addTrapPacketAcl(&cfg, prefix);
+    utility::addTrapPacketAcl(asic, &cfg, prefix);
     return cfg;
   }
 

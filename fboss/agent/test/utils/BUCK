@@ -274,6 +274,7 @@ cpp_library(
         ":acl_test_utils",
         "//fboss/agent:fboss-types",
         "//fboss/agent:switch_config-cpp2-types",
+        "//fboss/agent/hw/switch_asics:switch_asics",
         "//folly:network_address",
     ],
 )
@@ -540,6 +541,7 @@ cpp_library(
     ],
     exported_deps = [
         ":config_utils",
+        "//fboss/agent:agent_features",
         "//fboss/agent:asic_utils",
         "//fboss/agent:switch_config-cpp2-types",
         "//fboss/agent/hw/switch_asics:switch_asics",
