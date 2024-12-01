@@ -288,6 +288,8 @@ sai_acl_ip_type_t SaiAclTableManager::cfgIpTypeToSaiIpType(
       return SAI_ACL_IP_TYPE_ARP_REQUEST;
     case cfg::IpType::ARP_REPLY:
       return SAI_ACL_IP_TYPE_ARP_REPLY;
+    case cfg::IpType::NON_IP:
+      return SAI_ACL_IP_TYPE_NON_IP;
   }
   // should return in one of the cases
   throw FbossError("Unsupported IP Type option");

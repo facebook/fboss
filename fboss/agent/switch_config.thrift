@@ -225,6 +225,7 @@ enum IpType {
   IP6 = 3,
   ARP_REQUEST = 4,
   ARP_REPLY = 5,
+  NON_IP = 6,
 }
 
 enum EtherType {
