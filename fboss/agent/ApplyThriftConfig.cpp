@@ -4850,6 +4850,19 @@ shared_ptr<SwitchSettings> ThriftConfigApplier::updateSwitchSettings(
     switchSettingsChange = true;
   }
 
+  {
+    // SelfHealingEcmpLag switch configurations
+    std::optional<cfg::SelfHealingEcmpLagConfig> newSwitchShelConfig;
+    if (cfg_->switchSettings()->selfHealingEcmpLagConfig()) {
+      newSwitchShelConfig = *cfg_->switchSettings()->selfHealingEcmpLagConfig();
+    }
+    if (newSwitchShelConfig !=
+        origSwitchSettings->getSelfHealingEcmpLagConfig()) {
+      newSwitchSettings->setSelfHealingEcmpLagConfig(newSwitchShelConfig);
+      switchSettingsChange = true;
+    }
+  }
+
   if (switchSettingsChange) {
     return newSwitchSettings;
   }
