@@ -65,6 +65,7 @@ cpp_library(
         "AgentStateReconstructionTests.cpp",
         "AgentSwitchStateReplayTest.cpp",
         "AgentSwitchStatsTxCounterTests.cpp",
+        "AgentTrafficPauseTests.cpp",
         "AgentTrafficPfcTests.cpp",
         "AgentTrunkLoadBalancerTests.cpp",
         "AgentTrunkTests.cpp",
