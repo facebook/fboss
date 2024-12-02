@@ -2405,7 +2405,10 @@ TEST_F(AgentVoqSwitchFullScaleDsfNodesTest, stressProgramEcmpRoutes) {
 
 TEST_F(AgentVoqSwitchLineRateTest, dramBlockedTime) {
   auto setup = [=, this]() {
-    constexpr int kNumberOfPortsForDramBlock{6};
+    // Use just one port for the dramBlockedTime test
+    // Note: If more than 3 ports are used, then traffic wouldn't
+    // reach line rate which is a prerequisite for this test
+    constexpr int kNumberOfPortsForDramBlock{1};
     setupEcmpDataplaneLoopOnAllPorts();
     createTrafficOnMultiplePorts(kNumberOfPortsForDramBlock);
   };
