@@ -1526,11 +1526,6 @@ std::shared_ptr<Port> SaiPortManager::swPortFromAttributes(
 #endif
   port->setScope(platform_->getPlatformMapping()->getPortScope(port->getID()));
 
-// TODO(zecheng): Update flag when new 12.0 release has the attribute
-#if defined(BRCM_SAI_SDK_DNX_GTE_11_0) && !defined(BRCM_SAI_SDK_DNX_GTE_12_0)
-  port->setReachabilityGroupId(
-      GET_OPT_ATTR(Port, CondEntropyRehashEnable, attributes));
-#endif
   return port;
 }
 
