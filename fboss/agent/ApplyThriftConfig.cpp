@@ -2505,7 +2505,9 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
       portFlowletConfigUnchanged &&
       newFlowletConfigName == orig->getFlowletConfigName() &&
       *portConf->conditionalEntropyRehash() ==
-          orig->getConditionalEntropyRehash()) {
+          orig->getConditionalEntropyRehash() &&
+      portConf->selfHealingECMPLagEnable().value_or(false) ==
+          orig->getSelfHealingECMPLagEnable()) {
     return nullptr;
   }
 
@@ -2549,6 +2551,16 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
   newPort->setPortFlowletConfig(portFlowletCfg);
   newPort->setScope(*portConf->scope());
   newPort->setConditionalEntropyRehash(*portConf->conditionalEntropyRehash());
+  if (auto selfHealingECMPLagEnable = portConf->selfHealingECMPLagEnable()) {
+    if (*selfHealingECMPLagEnable &&
+        !cfg_->switchSettings()->selfHealingEcmpLagConfig().has_value()) {
+      throw FbossError(
+          "Switch selfHealingEcmpLagConfig needs to be enabled for port ",
+          newPort->getName(),
+          " to have selfHealingEcmpLag enable");
+    }
+    newPort->setSelfHealingECMPLagEnable(*selfHealingECMPLagEnable);
+  }
   return newPort;
 }
 
