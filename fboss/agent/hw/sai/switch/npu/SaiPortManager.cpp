@@ -661,6 +661,11 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
 #if defined(BRCM_SAI_SDK_DNX_GTE_11_0) && !defined(BRCM_SAI_SDK_DNX_GTE_12_0)
   condEntropyRehashEnable = swPort->getConditionalEntropyRehash();
 #endif
+  std::optional<SaiPortTraits::Attributes::ShelEnable> shelEnable{};
+#if defined(SAI_VERSION_11_7_0_0_DNX_ODP)
+  shelEnable = SaiPortTraits::Attributes::ShelEnable{
+      swPort->getSelfHealingECMPLagEnable()};
+#endif
 
   if (basicAttributeOnly) {
     return SaiPortTraits::CreateAttributes{
@@ -799,10 +804,10 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
       arsPortLoadFutureWeight, // ARS port load future weight
 #endif
       reachabilityGroup,
-      condEntropyRehashEnable, // CondEntropyRehashEnable
+      condEntropyRehashEnable,
       std::nullopt, // CondEntropyRehashPeriodUS
       std::nullopt, // CondEntropyRehashSeed
-      std::nullopt, // ShelEnable
+      shelEnable,
   };
 }
 
