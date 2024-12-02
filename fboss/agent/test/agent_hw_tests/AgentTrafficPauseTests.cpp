@@ -146,4 +146,51 @@ class AgentTrafficPauseTest : public AgentHwTest {
     verifyAcrossWarmBoots(setup, verify);
   }
 };
+TEST_F(AgentTrafficPauseTest, verifyPauseRxOnly) {
+  // Enable pause RX alone
+  cfg::PortPause pauseCfg;
+  pauseCfg.tx() = false;
+  pauseCfg.rx() = true;
+  // Pause should slow down traffic significantly, lets say eventual
+  // rate should be less than 80% line rate!
+  auto rateChecker = [this](uint64_t rate, const PortID& portId) {
+    auto eightyPctLineRate =
+        static_cast<uint64_t>(
+            getProgrammedState()->getPorts()->getNodeIf(portId)->getSpeed()) *
+        1000 * 1000 * 0.8;
+    return rate && rate < eightyPctLineRate;
+  };
+  validateTrafficWithPause(pauseCfg, rateChecker);
+}
+TEST_F(AgentTrafficPauseTest, verifyPauseTxOnly) {
+  // Enable pause TX alone
+  cfg::PortPause pauseCfg;
+  pauseCfg.tx() = true;
+  pauseCfg.rx() = false;
+  // Pause should have no impact on traffic given only TX is enabled
+  auto rateChecker = [this](uint64_t rate, const PortID& portId) {
+    auto lineRate =
+        static_cast<uint64_t>(
+            getProgrammedState()->getPorts()->getNodeIf(portId)->getSpeed()) *
+        1000 * 1000;
+    return rate >= lineRate;
+  };
+  validateTrafficWithPause(pauseCfg, rateChecker);
+}
+TEST_F(AgentTrafficPauseTest, verifyPauseRxTx) {
+  // Enable both RX and TX pause
+  cfg::PortPause pauseCfg;
+  pauseCfg.tx() = true;
+  pauseCfg.rx() = true;
+  // Pause should slow down traffic significantly, lets say eventual
+  // rate should be less than 80% line rate!
+  auto rateChecker = [this](uint64_t rate, const PortID& portId) {
+    auto eightyPctLineRate =
+        static_cast<uint64_t>(
+            getProgrammedState()->getPorts()->getNodeIf(portId)->getSpeed()) *
+        1000 * 1000 * 0.8;
+    return rate && rate < eightyPctLineRate;
+  };
+  validateTrafficWithPause(pauseCfg, rateChecker);
+}
 } // namespace facebook::fboss
