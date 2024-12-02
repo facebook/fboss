@@ -8,6 +8,7 @@
 #include "fboss/agent/packet/ArpHdr.h"
 #include "fboss/agent/packet/EthHdr.h"
 #include "fboss/agent/packet/PTPHeader.h"
+#include "fboss/agent/packet/SflowStructs.h"
 
 #include <optional>
 
@@ -433,6 +434,58 @@ std::unique_ptr<TxPacket> makeTCPTxPacket(
       payload);
 }
 
-} // namespace utility
+std::unique_ptr<facebook::fboss::TxPacket> makeSflowV5Packet(
+    const AllocatePktFn& allocator,
+    std::optional<VlanID> vlan,
+    folly::MacAddress srcMac,
+    folly::MacAddress dstMac,
+    const folly::IPAddress& srcIp,
+    const folly::IPAddress& dstIp,
+    uint16_t srcPort,
+    uint16_t dstPort,
+    uint8_t trafficClass,
+    uint8_t hopLimit,
+    uint32_t ingressInterface,
+    uint32_t egressInterface,
+    uint32_t samplingRate,
+    bool computeChecksum,
+    std::optional<std::vector<uint8_t>> payload);
 
+template <typename SwitchT>
+std::unique_ptr<facebook::fboss::TxPacket> makeSflowV5Packet(
+    const SwitchT* switchT,
+    std::optional<VlanID> vlan,
+    folly::MacAddress srcMac,
+    folly::MacAddress dstMac,
+    const folly::IPAddress& srcIp,
+    const folly::IPAddress& dstIp,
+    uint16_t srcPort,
+    uint16_t dstPort,
+    uint8_t trafficClass,
+    uint8_t hopLimit,
+    uint32_t ingressInterface,
+    uint32_t egressInterface,
+    uint32_t samplingRate,
+    bool computeChecksum,
+    std::optional<std::vector<uint8_t>> payload =
+        std::optional<std::vector<uint8_t>>()) {
+  return makeSflowV5Packet(
+      makeAllocator(switchT),
+      vlan,
+      srcMac,
+      dstMac,
+      srcIp,
+      dstIp,
+      srcPort,
+      dstPort,
+      trafficClass,
+      hopLimit,
+      ingressInterface,
+      egressInterface,
+      samplingRate,
+      computeChecksum,
+      payload);
+}
+
+} // namespace utility
 } // namespace facebook::fboss
