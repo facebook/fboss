@@ -95,6 +95,55 @@ class AgentTrafficPauseTest : public AgentHwTest {
   getProductionFeaturesVerified() const override {
     return {production_features::ProductionFeature::PAUSE};
   }
-};
 
+  void validateTrafficWithPause(
+      cfg::PortPause& pauseCfg,
+      std::function<bool(uint64_t, PortID)> rateChecker) {
+    const PortID kPortId{masterLogicalInterfacePortIds()[0]};
+    auto setup = [&]() {
+      auto cfg = getAgentEnsemble()->getCurrentConfig();
+      auto portCfg = std::find_if(
+          cfg.ports()->begin(), cfg.ports()->end(), [&kPortId](auto& port) {
+            return PortID(*port.logicalID()) == kPortId;
+          });
+      portCfg->pause() = std::move(pauseCfg);
+      applyNewConfig(cfg);
+      setupEcmpTraffic(kPortId);
+    };
+    auto verify = [&]() {
+      pumpTraffic(kPortId);
+      getAgentEnsemble()->waitForLineRateOnPort(kPortId);
+      auto curPortStats = getLatestPortStats(kPortId);
+      // Now that we have line rate traffic, send pause
+      // which should break the traffic loop
+      XLOG(DBG0)
+          << "Traffic on port reached line rate, now send back to back PAUSE!";
+      std::atomic<bool> keepTxingPauseFrames{true};
+      std::unique_ptr<std::thread> pauseTxThread =
+          std::make_unique<std::thread>(
+              [this, &keepTxingPauseFrames, &kPortId]() {
+                initThread("PauseFramesTransmitThread");
+                while (keepTxingPauseFrames) {
+                  this->sendPauseFrames(kPortId, 1000);
+                }
+              });
+      HwPortStats prevPortStats{};
+      WITH_RETRIES({
+        curPortStats = getLatestPortStats(kPortId);
+        auto rate =
+            getAgentEnsemble()->getTrafficRate(prevPortStats, curPortStats, 1);
+        // Update prev stats for the next iteration
+        prevPortStats = curPortStats;
+        XLOG(DBG0) << "Current rate is : " << rate
+                   << " bps, pause frames received: "
+                   << curPortStats.inPause_().value();
+        EXPECT_EVENTUALLY_TRUE(rateChecker(rate, kPortId));
+      });
+      keepTxingPauseFrames = false;
+      pauseTxThread->join();
+      pauseTxThread.reset();
+    };
+    verifyAcrossWarmBoots(setup, verify);
+  }
+};
 } // namespace facebook::fboss
