@@ -187,6 +187,10 @@ void FabricConnectivityManager::updateExpectedSwitchIdAndPortIdForPort(
   }
 
   auto baseSwitchId = *it->second.begin();
+  if (switchIdToDsfNode_.find(baseSwitchId) == switchIdToDsfNode_.end()) {
+    XLOG(WARN) << "no dsf node for switch id " << baseSwitchId;
+    return;
+  }
   const auto platformMapping = getPlatformMappingForDsfNode(
       switchIdToDsfNode_[baseSwitchId]->getPlatformType());
 
