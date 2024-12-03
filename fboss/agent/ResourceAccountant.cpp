@@ -304,7 +304,7 @@ bool ResourceAccountant::l2StateChangedImpl(const StateDelta& delta) {
 
 void ResourceAccountant::stateChanged(const StateDelta& delta) {
   ecmpStateChangedImpl(delta);
-  if (FLAGS_enable_mac_update_protection) {
+  if (FLAGS_enable_hw_update_protection) {
     l2StateChangedImpl(delta);
   }
 }
@@ -313,7 +313,7 @@ bool ResourceAccountant::isValidUpdate(const StateDelta& delta) {
   bool validRouteUpdate = isValidRouteUpdate(delta);
   bool validL2Update = true;
 
-  if (FLAGS_enable_mac_update_protection) {
+  if (FLAGS_enable_hw_update_protection) {
     validL2Update = l2StateChangedImpl(delta);
   }
 

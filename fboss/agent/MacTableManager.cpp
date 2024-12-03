@@ -9,6 +9,7 @@
  */
 #include "fboss/agent/MacTableManager.h"
 
+#include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/FbossHwUpdateError.h"
 #include "fboss/agent/L2Entry.h"
 #include "fboss/agent/MacTableUtils.h"
@@ -35,7 +36,7 @@ void MacTableManager::handleL2LearningUpdate(
         return MacTableUtils::updateMacTable(state, l2Entry, l2EntryUpdateType);
       };
 
-  if (FLAGS_enable_mac_update_protection && isHwUpdateProtected()) {
+  if (FLAGS_enable_hw_update_protection && isHwUpdateProtected()) {
     try {
       sw_->updateStateWithHwFailureProtection(
           folly::to<std::string>(
