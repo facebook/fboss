@@ -75,8 +75,12 @@ inline std::string subscriptionStateToString(SubscriptionState state) {
       std::to_string(static_cast<int>(state)));
 }
 
-using SubscriptionStateChangeCb =
-    std::function<void(SubscriptionState, SubscriptionState)>;
+// Only for Patch subscriptions, on SubscriptionState::CONNECTED, the
+// callback will include bool indicating whether the initial sync has
+// data or not. This is useful for the caller to know whether to
+// expect data callback on initialSync.
+using SubscriptionStateChangeCb = std::function<
+    void(SubscriptionState, SubscriptionState, std::optional<bool>)>;
 
 struct SubscriptionOptions {
   SubscriptionOptions() = default;
@@ -221,7 +225,9 @@ class FsdbSubscriber : public FsdbSubscriberBase {
   SubscriptionState getSubscriptionState() const {
     return *subscriptionState_.rlock();
   }
-  void updateSubscriptionState(SubscriptionState newState) {
+  void updateSubscriptionState(
+      SubscriptionState newState,
+      std::optional<bool> initialSyncHasData = std::nullopt) {
     auto locked = subscriptionState_.wlock();
     auto oldState = *locked;
     if (oldState == newState) {
@@ -233,7 +239,8 @@ class FsdbSubscriber : public FsdbSubscriberBase {
       cancelStaleStateTimeout();
     }
     if (subscriptionStateChangeCb_.has_value()) {
-      subscriptionStateChangeCb_.value()(oldState, newState);
+      subscriptionStateChangeCb_.value()(
+          oldState, newState, initialSyncHasData);
     }
   }
   void handleConnectionState(State oldState, State newState) {

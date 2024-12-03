@@ -132,7 +132,8 @@ void DsfSubscription::stop() {
 void DsfSubscription::setupSubscription() {
   auto subscriptionStateCb = [this](
                                  fsdb::SubscriptionState oldState,
-                                 fsdb::SubscriptionState newState) {
+                                 fsdb::SubscriptionState newState,
+                                 std::optional<bool> /*initialSyncHasData*/) {
     handleFsdbSubscriptionStateUpdate(oldState, newState);
   };
   if (FLAGS_dsf_subscribe_patch) {
@@ -173,7 +174,8 @@ void DsfSubscription::setupSubscription() {
         getAllSubscribePaths(localNodeName_, localIp_),
         [this](
             fsdb::SubscriptionState oldState,
-            fsdb::SubscriptionState newState) {
+            fsdb::SubscriptionState newState,
+            std::optional<bool> /*initialSyncHasData*/) {
           handleFsdbSubscriptionStateUpdate(oldState, newState);
         },
         [this](fsdb::OperSubPathUnit&& operStateUnit) {

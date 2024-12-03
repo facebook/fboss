@@ -44,7 +44,8 @@ void FsdbSwitchStateSubscriber::subscribeToState(
   }
 
   auto stateCb = [](fsdb::SubscriptionState /*old*/,
-                    fsdb::SubscriptionState /*new*/) {};
+                    fsdb::SubscriptionState /*new*/,
+                    std::optional<bool> /*initialSyncHasData*/) {};
   auto dataCb = [=](fsdb::OperState&& state) {
     if (auto contents = state.contents()) {
       // Deserialize the FSDB update to switch state struct. This will be

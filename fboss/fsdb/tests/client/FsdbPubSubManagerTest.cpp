@@ -81,16 +81,19 @@ class FsdbPubSubManagerTest : public ::testing::Test {
     };
   }
   SubscriptionStateChangeCb subscrStateChangeCb() {
-    return
-        [this](SubscriptionState /*oldState*/, SubscriptionState /*newState*/) {
-        };
+    return [this](
+               SubscriptionState /*oldState*/,
+               SubscriptionState /*newState*/,
+               std::optional<bool> /*initialSyncHasData*/) {};
   }
   template <typename SubUnit>
   SubscriptionStateChangeCb subscrStateChangeCb(
       folly::Synchronized<std::vector<SubUnit>>& subUnits,
       std::optional<std::function<void()>> onDisconnect = std::nullopt) {
     return [this, &onDisconnect, &subUnits](
-               SubscriptionState /*oldState*/, SubscriptionState newState) {
+               SubscriptionState /*oldState*/,
+               SubscriptionState newState,
+               std::optional<bool> /*initialSyncHasData*/) {
       if (onDisconnect.has_value() && isDisconnected(newState)) {
         onDisconnect.value()();
       }
@@ -114,7 +117,10 @@ class FsdbPubSubManagerTest : public ::testing::Test {
   }
 
   SubscriptionStateChangeCb subscriptionStateChangeCb() {
-    return [this](SubscriptionState /*oldState*/, SubscriptionState newState) {
+    return [this](
+               SubscriptionState /*oldState*/,
+               SubscriptionState newState,
+               std::optional<bool> /*initialSyncHasData*/) {
       auto state = subscriptionState_.wlock();
       *state = newState;
     };

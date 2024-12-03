@@ -15,7 +15,8 @@ void QsfpFsdbSubscriber::subscribeToSwitchStatePortMap(
     TransceiverManager* tcvrManager) {
   auto path = getSwitchStatePortMapPath();
   auto stateCb = [](fsdb::SubscriptionState /*old*/,
-                    fsdb::SubscriptionState /*new*/) {};
+                    fsdb::SubscriptionState /*new*/,
+                    std::optional<bool> /*initialSyncHasData*/) {};
   auto dataCb = [=](fsdb::OperState&& state) {
     if (auto contents = state.contents()) {
       using TC = apache::thrift::type_class::map<

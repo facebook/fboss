@@ -28,7 +28,8 @@ void FsdbSensorSubscriber::subscribeToStatsOrState(
     bool stats,
     std::atomic<uint64_t>& lastUpdateTime) {
   auto stateCb = [](fsdb::SubscriptionState /*old*/,
-                    fsdb::SubscriptionState /*new*/) {};
+                    fsdb::SubscriptionState /*new*/,
+                    std::optional<bool> /*initialSyncHasData*/) {};
   auto dataCb = [&](fsdb::OperState&& state) {
     storage.withWLock([&](auto& locked) {
       if (auto metadata = state.metadata()) {

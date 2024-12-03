@@ -23,7 +23,8 @@ class TestSubscription {
         pathStr_(path.str()) {
     auto clientStateChange =
         [](facebook::fboss::fsdb::SubscriptionState /* old */,
-           facebook::fboss::fsdb::SubscriptionState /* new */) {};
+           facebook::fboss::fsdb::SubscriptionState /* new */,
+           std::optional<bool> /*initialSyncHasData*/) {};
     auto dataUpdate = [&](facebook::fboss::fsdb::OperState state) {
       if (auto contents = state.contents()) {
         auto obj =

@@ -48,15 +48,16 @@ FsdbPatchSubscriberImpl<MessageType, SubUnit, PathElement>::serveStream(
       XLOG(DBG2) << " Detected cancellation: " << this->clientId();
       break;
     }
+    bool hasData = (message->getType() == SubscriberMessage::Type::chunk);
     if (!this->subscriptionOptions().requireInitialSyncToMarkConnect_ &&
         this->getSubscriptionState() != SubscriptionState::CONNECTED) {
-      BaseT::updateSubscriptionState(SubscriptionState::CONNECTED);
+      BaseT::updateSubscriptionState(SubscriptionState::CONNECTED, hasData);
     }
     switch (message->getType()) {
       case SubscriberMessage::Type::chunk:
         if (this->subscriptionOptions().requireInitialSyncToMarkConnect_ &&
             this->getSubscriptionState() != SubscriptionState::CONNECTED) {
-          BaseT::updateSubscriptionState(SubscriptionState::CONNECTED);
+          BaseT::updateSubscriptionState(SubscriptionState::CONNECTED, hasData);
         }
         try {
           this->operSubUnitUpdate_(message->move_chunk());
