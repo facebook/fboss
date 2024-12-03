@@ -286,7 +286,7 @@ void populateRemoteIntfAndSysPorts(
     std::map<SwitchID, std::shared_ptr<InterfaceMap>>& switchId2Rifs,
     const cfg::SwitchConfig& config,
     bool useEncapIndex) {
-  for (const auto& [remoteSwitchId, dsfNode] : *config.dsfNodes()) {
+  for (const auto& [remoteSwitchId, remoteDsfNode] : *config.dsfNodes()) {
     if ((*config.switchSettings())
             .switchIdToSwitchInfo()
             ->contains(remoteSwitchId)) {
@@ -295,56 +295,64 @@ void populateRemoteIntfAndSysPorts(
     std::shared_ptr<SystemPortMap> remoteSysPorts =
         std::make_shared<SystemPortMap>();
     std::shared_ptr<InterfaceMap> remoteRifs = std::make_shared<InterfaceMap>();
-    CHECK(!dsfNode.systemPortRanges()->systemPortRanges()->empty());
-    for (auto sysPortRange : *dsfNode.systemPortRanges()->systemPortRanges()) {
-      const auto minPortID = *sysPortRange.minimum();
-      const auto maxPortID = *sysPortRange.maximum();
-      // TODO(zecheng): Update num of ports for dual stage
-      const auto numPorts = maxPortID - minPortID + 1;
-      CHECK(numPorts == kNumRdswSysPort || numPorts == kNumEdswSysPort);
-      for (int i = minPortID + kRemoteSysPortOffset; i <= maxPortID; i++) {
-        const SystemPortID remoteSysPortId(i);
-        const InterfaceID remoteIntfId(i);
-        const PortDescriptor portDesc(remoteSysPortId);
-        const std::optional<uint64_t> encapEndx = useEncapIndex
-            ? std::optional<uint64_t>(0x200001 + i)
-            : std::nullopt;
+    CHECK(!remoteDsfNode.systemPortRanges()->systemPortRanges()->empty());
 
-        // Use subnet 100+(dsfNodeId/256):(dsfNodeId%256):(localIntfId)::1/64
-        // and 100+(dsfNodeId/256).(dsfNodeId%256).(localIntfId).1/24
-        auto firstOctet = 100 + remoteSwitchId / 256;
-        auto secondOctet = remoteSwitchId % 256;
-        auto thirdOctet = i - minPortID;
-        folly::IPAddressV6 neighborIp(folly::to<std::string>(
-            firstOctet, ":", secondOctet, ":", thirdOctet, "::2"));
-        auto portSpeed = i == minPortID + kRemoteSysPortOffset
-            ? cfg::PortSpeed::HUNDREDG
-            : numPorts == kNumRdswSysPort ? cfg::PortSpeed::FOURHUNDREDG
-                                          : cfg::PortSpeed::EIGHTHUNDREDG;
-        auto remoteSysPort = makeRemoteSysPort(
-            remoteSysPortId,
-            SwitchID(remoteSwitchId),
-            (i - minPortID - kRemoteSysPortOffset) / kNumPortPerCore,
-            (i - minPortID) % kNumPortPerCore,
-            static_cast<int64_t>(portSpeed));
-        remoteSysPorts->addSystemPort(remoteSysPort);
+    auto addSingleStageSysPort = [&remoteSysPorts, &remoteRifs, useEncapIndex](
+                                     const auto& dsfNode,
+                                     const auto& switchId) {
+      for (auto sysPortRange :
+           *dsfNode.systemPortRanges()->systemPortRanges()) {
+        const auto minPortID = *sysPortRange.minimum();
+        const auto maxPortID = *sysPortRange.maximum();
+        const auto numPorts = maxPortID - minPortID + 1;
+        CHECK(numPorts == kNumRdswSysPort || numPorts == kNumEdswSysPort);
+        for (int i = minPortID + kRemoteSysPortOffset; i <= maxPortID; i++) {
+          const SystemPortID remoteSysPortId(i);
+          const InterfaceID remoteIntfId(i);
+          const PortDescriptor portDesc(remoteSysPortId);
+          const std::optional<uint64_t> encapEndx = useEncapIndex
+              ? std::optional<uint64_t>(0x200001 + i)
+              : std::nullopt;
 
-        auto remoteRif = makeRemoteInterface(
-            remoteIntfId,
-            {
-                {folly::IPAddress(folly::to<std::string>(
-                     firstOctet, ":", secondOctet, ":", thirdOctet, "::1")),
-                 64},
-                {folly::IPAddress(folly::to<std::string>(
-                     firstOctet, ".", secondOctet, ".", thirdOctet, ".1")),
-                 24},
-            });
+          // Use subnet 100+(dsfNodeId/256):(dsfNodeId%256):(localIntfId)::1/64
+          // and 100+(dsfNodeId/256).(dsfNodeId%256).(localIntfId).1/24
+          auto firstOctet = 100 + switchId / 256;
+          auto secondOctet = switchId % 256;
+          auto thirdOctet = i - minPortID;
+          folly::IPAddressV6 neighborIp(folly::to<std::string>(
+              firstOctet, ":", secondOctet, ":", thirdOctet, "::2"));
+          auto portSpeed = i == minPortID + kRemoteSysPortOffset
+              ? cfg::PortSpeed::HUNDREDG
+              : numPorts == kNumRdswSysPort ? cfg::PortSpeed::FOURHUNDREDG
+                                            : cfg::PortSpeed::EIGHTHUNDREDG;
+          auto remoteSysPort = makeRemoteSysPort(
+              remoteSysPortId,
+              SwitchID(switchId),
+              (i - minPortID - kRemoteSysPortOffset) / kNumPortPerCore,
+              (i - minPortID) % kNumPortPerCore,
+              static_cast<int64_t>(portSpeed));
+          remoteSysPorts->addSystemPort(remoteSysPort);
 
-        updateRemoteIntfWithNeighbor(
-            remoteRif, remoteIntfId, portDesc, neighborIp, encapEndx);
-        remoteRifs->addNode(remoteRif);
+          auto remoteRif = makeRemoteInterface(
+              remoteIntfId,
+              {
+                  {folly::IPAddress(folly::to<std::string>(
+                       firstOctet, ":", secondOctet, ":", thirdOctet, "::1")),
+                   64},
+                  {folly::IPAddress(folly::to<std::string>(
+                       firstOctet, ".", secondOctet, ".", thirdOctet, ".1")),
+                   24},
+              });
+
+          updateRemoteIntfWithNeighbor(
+              remoteRif, remoteIntfId, portDesc, neighborIp, encapEndx);
+          remoteRifs->addNode(remoteRif);
+        }
       }
-    }
+    };
+
+    addSingleStageSysPort(remoteDsfNode, remoteSwitchId);
+
     switchId2SystemPorts[SwitchID(remoteSwitchId)] = remoteSysPorts;
     switchId2Rifs[SwitchID(remoteSwitchId)] = remoteRifs;
   }
