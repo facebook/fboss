@@ -271,6 +271,14 @@ SystemPortID getInbandSystemPortID(
 cfg::Range64 getFirstSwitchSystemPortIdRange(
     const std::map<int64_t, cfg::SwitchInfo>& switchToSwitchInfo);
 
+cfg::Range64 getCoveringSysPortRange(
+    InterfaceID intf,
+    const std::map<int64_t, cfg::SwitchInfo>& switchIdToSwitchInfo);
+
+cfg::Range64 getCoveringSysPortRange(
+    SystemPortID intf,
+    const std::map<int64_t, cfg::SwitchInfo>& switchIdToSwitchInfo);
+
 std::vector<PortID> getPortsForInterface(
     InterfaceID intf,
     const std::shared_ptr<SwitchState>& state);
