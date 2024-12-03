@@ -469,7 +469,7 @@ const PortQueue& getTHDefaultMCCPUQueueSettings() {
       kDefaultPortQueueWeight,
       asic.getDefaultReservedBytes(
           cfg::StreamType::MULTICAST, cfg::PortType::CPU_PORT),
-      std::nullopt,
+      bcmAlphaToCfgAlpha(kDefaultPortQueueAlpha),
       std::nullopt,
       kDefaultTHPortQueueSharedBytes,
       kPortQueueNoAqm,
@@ -491,7 +491,7 @@ const PortQueue& getTH3DefaultMCCPUQueueSettings() {
       kDefaultPortQueueWeight,
       asic.getDefaultReservedBytes(
           cfg::StreamType::MULTICAST, cfg::PortType::CPU_PORT),
-      std::nullopt,
+      bcmAlphaToCfgAlpha(kDefaultPortQueueAlpha),
       std::nullopt,
       kDefaultTH3PortQueueSharedBytes,
       kPortQueueNoAqm,
@@ -513,7 +513,7 @@ const PortQueue& getTH4DefaultMCCPUQueueSettings() {
       kDefaultPortQueueWeight,
       asic.getDefaultReservedBytes(
           cfg::StreamType::MULTICAST, cfg::PortType::CPU_PORT),
-      std::nullopt,
+      bcmAlphaToCfgAlpha(kDefaultPortQueueAlpha),
       std::nullopt,
       kDefaultTH4PortQueueSharedBytes,
       kPortQueueNoAqm,

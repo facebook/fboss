@@ -170,6 +170,20 @@ class BcmCosQueueManager {
       bcm_cos_queue_t cosQ,
       const PortQueue& queue);
 
+  bool isEgressDynamicSharedEnabled(
+      cfg::StreamType streamType,
+      bcm_gport_t gport,
+      bcm_cos_queue_t cosQ) const;
+  void programEgressDynamicSharedEnabled(
+      cfg::StreamType streamType,
+      bcm_gport_t gport,
+      bcm_cos_queue_t cosQ) const;
+
+  void getAlpha(bcm_gport_t gport, bcm_cos_queue_t cosQ, PortQueue* queue)
+      const;
+  void
+  programAlpha(bcm_gport_t gport, bcm_cos_queue_t cosQ, const PortQueue& queue);
+
   void updateNamedQueue(const PortQueue& queue);
 
   virtual const PortQueue& getDefaultQueueSettings(

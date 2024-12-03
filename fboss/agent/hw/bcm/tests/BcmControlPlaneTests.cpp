@@ -184,6 +184,7 @@ TEST_F(BcmControlPlaneTest, ChangeCPULowQueueSettings) {
     auto& lowQueue = cfg.cpuQueues()->at(cfg.cpuQueues()->size() - 1);
     lowQueue.portQueueRate() = cfg::PortQueueRate();
     lowQueue.portQueueRate()->pktsPerSec_ref() = utility::getRange(0, 1000);
+    lowQueue.scalingFactor() = cfg::MMUScalingFactor::ONE_8TH;
 
     applyNewConfig(cfg);
   };
@@ -209,6 +210,8 @@ TEST_F(BcmControlPlaneTest, ChangeCPULowQueueSettings) {
     EXPECT_EQ(portQueueRate.getType(), cfg::PortQueueRate::Type::pktsPerSec);
     EXPECT_EQ(portQueueRate.get_pktsPerSec().minimum(), 0);
     EXPECT_EQ(portQueueRate.get_pktsPerSec().maximum(), 1000);
+
+    EXPECT_EQ(lowQ->getScalingFactor(), cfg::MMUScalingFactor::ONE_8TH);
 
     // other queues shouldn't be affected
     for (int i = 1; i < swQueuesAfter.size(); i++) {

@@ -116,6 +116,11 @@ std::unique_ptr<PortQueue> BcmControlPlaneQueueManager::getCurrentQueueSettings(
   getReservedBytes(portGport_, cosQ, queue.get());
   getSharedBytes(portGport_, cosQ, queue.get());
 
+  if (hw_->getPlatform()->getType() != PlatformType::PLATFORM_FAKE_WEDGE40) {
+    auto queueGport = getQueueGPort(streamType, cosQ);
+    getAlpha(queueGport, cosQ, queue.get());
+  }
+
   getBandwidth(portGport_, cosQ, queue.get());
   return queue;
 }
@@ -130,6 +135,10 @@ void BcmControlPlaneQueueManager::program(const PortQueue& queue) {
   programReservedBytes(portGport_, cosQ, queue);
   programSharedBytes(portGport_, cosQ, queue);
   programBandwidth(portGport_, cosQ, queue);
+  if (hw_->getPlatform()->getType() != PlatformType::PLATFORM_FAKE_WEDGE40) {
+    auto queueGport = getQueueGPort(queue.getStreamType(), cosQ);
+    programAlpha(queueGport, cosQ, queue);
+  }
 }
 
 std::pair<bcm_gport_t, bcm_cos_queue_t>
