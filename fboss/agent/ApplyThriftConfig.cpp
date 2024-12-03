@@ -980,11 +980,17 @@ QueueConfig ThriftConfigApplier::getVoqConfig(PortID portId) {
 void ThriftConfigApplier::processUpdatedDsfNodes() {
   bool hasVoqSwitch = false;
   std::unordered_set<SwitchID> localSwitchIds;
+  std::unordered_set<int> localInbandPortIds;
 
   for (auto& [matcherString, switchSettings] :
        std::as_const(*new_->getSwitchSettings())) {
     auto localSwitchId = HwSwitchMatcher(matcherString).switchId();
     localSwitchIds.insert(localSwitchId);
+    auto switchInfo =
+        switchSettings->getSwitchIdToSwitchInfo().find(localSwitchId)->second;
+    if (switchInfo.inbandPortId().has_value()) {
+      localInbandPortIds.insert(switchInfo.inbandPortId().value());
+    }
 
     auto origDsfNode = orig_->getDsfNodes()->getNodeIf(localSwitchId);
     if (origDsfNode &&
@@ -999,6 +1005,10 @@ void ThriftConfigApplier::processUpdatedDsfNodes() {
     }
   }
 
+  PortID localInbandPortId(1);
+  if (!localInbandPortIds.empty()) {
+    localInbandPortId = PortID(*localInbandPortIds.begin());
+  }
   // On VOQ switches, DSF nodes in the SwitchState are consumed by the DSF
   // subscriber to subscribe to every other VOQ switch. Thus, process DSF
   // nodes if at least one of the switchIDs is for VOQ switch.
@@ -1169,13 +1179,15 @@ void ThriftConfigApplier::processUpdatedDsfNodes() {
     sysPort->setSpeedMbps(recyclePortInfo.speedMbps);
     sysPort->setNumVoqs(
         getNumVoqs(cfg::PortType::RECYCLE_PORT, cfg::Scope::GLOBAL));
+
     sysPort->setScope(cfg::Scope::GLOBAL);
-    // TODO(daiweix): use voq config of rcy ports, hardcode rcy portID 1 for now
-    sysPort->resetPortQueues(getVoqConfig(PortID(1)));
-    if (auto cpuTrafficPolicy = cfg_->cpuTrafficPolicy()) {
-      if (auto trafficPolicy = cpuTrafficPolicy->trafficPolicy()) {
-        if (auto defaultQosPolicy = trafficPolicy->defaultQosPolicy()) {
-          sysPort->setQosPolicy(*defaultQosPolicy);
+    sysPort->resetPortQueues(getVoqConfig(localInbandPortId));
+    if (auto dataPlaneTrafficPolicy = cfg_->dataPlaneTrafficPolicy()) {
+      if (auto portIdToQosPolicy =
+              dataPlaneTrafficPolicy->portIdToQosPolicy()) {
+        auto qosPolicyItr = portIdToQosPolicy->find(localInbandPortId);
+        if (qosPolicyItr != portIdToQosPolicy->end()) {
+          sysPort->setQosPolicy(qosPolicyItr->second);
         }
       }
     }
