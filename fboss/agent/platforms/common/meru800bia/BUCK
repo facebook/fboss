@@ -9,6 +9,7 @@ cpp_library(
     ],
     exported_deps = [
         "//fboss/agent:agent_features",
+        "//fboss/agent/hw/switch_asics:switch_asics",
         "//fboss/agent/platforms/common:platform_mapping",
     ],
 )
