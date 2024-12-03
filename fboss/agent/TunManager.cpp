@@ -286,9 +286,18 @@ int TunManager::getTableIdForVoq(InterfaceID ifID) const {
   // In practice, [firstSwitchSysPortMin, lastSwitchSysPortUsed] range is <<
   // 253. Moreover, getTableID asserts that the computed ID is <= 253
 
-  auto firstSwitchSysPortRange = getFirstSwitchSystemPortIdRange(
+  const auto& switchIdToSwitchInfo =
       utility::getFirstNodeIf(sw_->getState()->getSwitchSettings())
-          ->getSwitchIdToSwitchInfo());
+          ->getSwitchIdToSwitchInfo();
+  if (isDualStage3Q2QMode()) {
+    if (switchIdToSwitchInfo.size() > 1) {
+      throw FbossError(
+          "No Tun intf support for - multi asic support for 2 stage scale setup");
+      // TODO
+    }
+  }
+  auto firstSwitchSysPortRange =
+      getFirstSwitchSystemPortIdRange(switchIdToSwitchInfo);
   return ifID - *firstSwitchSysPortRange.minimum();
 }
 
