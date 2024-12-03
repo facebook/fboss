@@ -1120,4 +1120,25 @@ void SaiSwitchManager::setConditionalEntropyRehashPeriodUS(
 #endif
 }
 
+void SaiSwitchManager::setShelConfig(
+    const std::optional<cfg::SelfHealingEcmpLagConfig>& shelConfig) {
+  if (shelConfig.has_value()) {
+    switch_->setOptionalAttribute(
+        SaiSwitchTraits::Attributes::ShelSrcMac{platform_->getLocalMac()});
+    switch_->setOptionalAttribute(SaiSwitchTraits::Attributes::ShelSrcIp{
+        folly::IPAddressV6(*shelConfig.value().shelSrcIp())});
+    switch_->setOptionalAttribute(SaiSwitchTraits::Attributes::ShelDstIp{
+        folly::IPAddressV6(*shelConfig.value().shelDstIp())});
+    switch_->setOptionalAttribute(
+        SaiSwitchTraits::Attributes::ShelPeriodicInterval{static_cast<uint32_t>(
+            *shelConfig.value().shelPeriodicIntervalMS())});
+  } else {
+    switch_->setOptionalAttribute(SaiSwitchTraits::Attributes::ShelSrcMac{});
+    switch_->setOptionalAttribute(SaiSwitchTraits::Attributes::ShelSrcIp{});
+    switch_->setOptionalAttribute(SaiSwitchTraits::Attributes::ShelDstIp{});
+    switch_->setOptionalAttribute(
+        SaiSwitchTraits::Attributes::ShelPeriodicInterval{0});
+  }
+}
+
 } // namespace facebook::fboss

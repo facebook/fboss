@@ -109,6 +109,8 @@ class SaiSwitchManager {
   void setVoqDramBoundTh(uint32_t dramBoundThreshold);
   void setConditionalEntropyRehashPeriodUS(
       int conditionalEntropyRehashPeriodUS);
+  void setShelConfig(
+      const std::optional<cfg::SelfHealingEcmpLagConfig>& shelConfig);
 
  private:
   void programEcmpLoadBalancerParams(
