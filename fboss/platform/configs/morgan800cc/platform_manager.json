@@ -446,89 +446,7 @@
           "slotType": "FCB_SLOT",
           "outgoingI2cBusNames": [
             "MCB_MUX_A@0"
-          ],
-          "outgoingSlotConfigs": {
-            "FANTRAY_SLOT@0": {
-              "slotType": "FANTRAY_SLOT",
-              "presenceDetection": {
-                "sysfsFileHandle": {
-                  "devicePath": "/[MCB_FAN_PWM]",
-                  "presenceFileName": "fan1_presence",
-                  "desiredValue": 1
-                }
-              }
-            },
-            "FANTRAY_SLOT@1": {
-              "slotType": "FANTRAY_SLOT",
-              "presenceDetection": {
-                "sysfsFileHandle": {
-                  "devicePath": "/[MCB_FAN_PWM]",
-                  "presenceFileName": "fan2_presence",
-                  "desiredValue": 1
-                }
-              }
-            },
-            "FANTRAY_SLOT@2": {
-              "slotType": "FANTRAY_SLOT",
-              "presenceDetection": {
-                "sysfsFileHandle": {
-                  "devicePath": "/[MCB_FAN_PWM]",
-                  "presenceFileName": "fan3_presence",
-                  "desiredValue": 1
-                }
-              }
-            },
-            "FANTRAY_SLOT@3": {
-              "slotType": "FANTRAY_SLOT",
-              "presenceDetection": {
-                "sysfsFileHandle": {
-                  "devicePath": "/[MCB_FAN_PWM]",
-                  "presenceFileName": "fan4_presence",
-                  "desiredValue": 1
-                }
-              }
-            },
-            "FANTRAY_SLOT@4": {
-              "slotType": "FANTRAY_SLOT",
-              "presenceDetection": {
-                "sysfsFileHandle": {
-                  "devicePath": "/[MCB_FAN_PWM]",
-                  "presenceFileName": "fan5_presence",
-                  "desiredValue": 1
-                }
-              }
-            },
-            "FANTRAY_SLOT@5": {
-              "slotType": "FANTRAY_SLOT",
-              "presenceDetection": {
-                "sysfsFileHandle": {
-                  "devicePath": "/[MCB_FAN_PWM]",
-                  "presenceFileName": "fan6_presence",
-                  "desiredValue": 1
-                }
-              }
-            },
-            "FANTRAY_SLOT@6": {
-              "slotType": "FANTRAY_SLOT",
-              "presenceDetection": {
-                "sysfsFileHandle": {
-                  "devicePath": "/[MCB_FAN_PWM]",
-                  "presenceFileName": "fan7_presence",
-                  "desiredValue": 1
-                }
-              }
-            },
-            "FANTRAY_SLOT@7": {
-              "slotType": "FANTRAY_SLOT",
-              "presenceDetection": {
-                "sysfsFileHandle": {
-                  "devicePath": "/[MCB_FAN_PWM]",
-                  "presenceFileName": "fan8_presence",
-                  "desiredValue": 1
-                }
-              }
-            }
-          }
+          ]
         },
         "SMB_SLOT@0": {
           "slotType": "SMB_SLOT",
@@ -567,7 +485,92 @@
       }
     },
     "MORGAN800CC": {
-      "pluggedInSlotType": "FCB_SLOT"
+      "pluggedInSlotType": "FCB_SLOT",
+      "outgoingSlotConfigs": {
+        "FANTRAY_SLOT@0": {
+          "slotType": "FANTRAY_SLOT",
+          "presenceDetection": {
+            "sysfsFileHandle": {
+              "devicePath": "/[MCB_FAN_PWM]",
+              "presenceFileName": "fan1_presence",
+              "desiredValue": 1
+            }
+          }
+        },
+        "FANTRAY_SLOT@1": {
+          "slotType": "FANTRAY_SLOT",
+          "presenceDetection": {
+            "sysfsFileHandle": {
+              "devicePath": "/[MCB_FAN_PWM]",
+              "presenceFileName": "fan2_presence",
+              "desiredValue": 1
+            }
+          }
+        },
+        "FANTRAY_SLOT@2": {
+          "slotType": "FANTRAY_SLOT",
+          "presenceDetection": {
+            "sysfsFileHandle": {
+              "devicePath": "/[MCB_FAN_PWM]",
+              "presenceFileName": "fan3_presence",
+              "desiredValue": 1
+            }
+          }
+        },
+        "FANTRAY_SLOT@3": {
+          "slotType": "FANTRAY_SLOT",
+          "presenceDetection": {
+            "sysfsFileHandle": {
+              "devicePath": "/[MCB_FAN_PWM]",
+              "presenceFileName": "fan4_presence",
+              "desiredValue": 1
+            }
+          }
+        },
+        "FANTRAY_SLOT@4": {
+          "slotType": "FANTRAY_SLOT",
+          "presenceDetection": {
+            "sysfsFileHandle": {
+              "devicePath": "/[MCB_FAN_PWM]",
+              "presenceFileName": "fan5_presence",
+              "desiredValue": 1
+            }
+          }
+        },
+        "FANTRAY_SLOT@5": {
+          "slotType": "FANTRAY_SLOT",
+          "presenceDetection": {
+            "sysfsFileHandle": {
+              "devicePath": "/[MCB_FAN_PWM]",
+              "presenceFileName": "fan6_presence",
+              "desiredValue": 1
+            }
+          }
+        },
+        "FANTRAY_SLOT@6": {
+          "slotType": "FANTRAY_SLOT",
+          "presenceDetection": {
+            "sysfsFileHandle": {
+              "devicePath": "/[MCB_FAN_PWM]",
+              "presenceFileName": "fan7_presence",
+              "desiredValue": 1
+            }
+          }
+        },
+        "FANTRAY_SLOT@7": {
+          "slotType": "FANTRAY_SLOT",
+          "presenceDetection": {
+            "sysfsFileHandle": {
+              "devicePath": "/[MCB_FAN_PWM]",
+              "presenceFileName": "fan8_presence",
+              "desiredValue": 1
+            }
+          }
+        }
+      }
+    },
+    "FAN": {
+      "pluggedInSlotType": "FANTRAY_SLOT"
     },
     "PDB": {
       "pluggedInSlotType": "PDB_SLOT"
