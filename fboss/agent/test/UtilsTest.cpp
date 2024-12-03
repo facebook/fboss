@@ -106,3 +106,48 @@ TEST_F(UtilsTest, numFabricLevelsL2Dsf) {
            2)});
   EXPECT_EQ(numFabricLevels(dsfNodes), 2);
 }
+
+TEST_F(UtilsTest, coveringSysPortRange) {
+  cfg::SwitchInfo switchInfo;
+  cfg::Range64 lowerRange, higherRange;
+  lowerRange.minimum() = 100;
+  lowerRange.maximum() = 200;
+  higherRange.minimum() = 16100;
+  higherRange.maximum() = 16200;
+  cfg::SystemPortRanges ranges;
+  ranges.systemPortRanges()->push_back(lowerRange);
+  ranges.systemPortRanges()->push_back(higherRange);
+  switchInfo.systemPortRanges() = ranges;
+  std::map<int64_t, cfg::SwitchInfo> switchIdToInfo{{1, switchInfo}};
+  auto expectInLowerRange = [&](int64_t id) {
+    EXPECT_EQ(
+        getCoveringSysPortRange(InterfaceID(id), switchIdToInfo), lowerRange);
+
+    EXPECT_EQ(
+        getCoveringSysPortRange(SystemPortID(id), switchIdToInfo), lowerRange);
+  };
+  auto expectInHigherRange = [&](int64_t id) {
+    EXPECT_EQ(
+        getCoveringSysPortRange(InterfaceID(id), switchIdToInfo), higherRange);
+
+    EXPECT_EQ(
+        getCoveringSysPortRange(SystemPortID(id), switchIdToInfo), higherRange);
+  };
+  auto expectThrow = [&](int64_t id) {
+    EXPECT_THROW(
+        getCoveringSysPortRange(InterfaceID(id), switchIdToInfo), FbossError);
+
+    EXPECT_THROW(
+        getCoveringSysPortRange(SystemPortID(id), switchIdToInfo), FbossError);
+  };
+  expectInLowerRange(100);
+  expectInLowerRange(110);
+  expectInLowerRange(200);
+  expectThrow(99);
+  expectThrow(299);
+  expectInHigherRange(16100);
+  expectInHigherRange(16110);
+  expectInHigherRange(16200);
+  expectThrow(15099);
+  expectThrow(17299);
+}
