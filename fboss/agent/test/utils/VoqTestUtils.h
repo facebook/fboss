@@ -4,6 +4,7 @@
 
 #include "fboss/agent/SwitchIdScopeResolver.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
+#include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/types.h"
@@ -20,7 +21,10 @@ std::shared_ptr<SwitchState> addRemoteSysPort(
     SystemPortID portId,
     SwitchID remoteSwitchId,
     int coreIndex = 0,
-    int corePortIndex = 1);
+    int corePortIndex = 1,
+    HwAsic::InterfaceNodeRole intfRole =
+        HwAsic::InterfaceNodeRole::IN_CLUSTER_NODE,
+    cfg::PortType portType = cfg::PortType::INTERFACE_PORT);
 
 std::shared_ptr<SwitchState> removeRemoteSysPort(
     std::shared_ptr<SwitchState> currState,

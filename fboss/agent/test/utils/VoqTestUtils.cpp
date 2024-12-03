@@ -23,8 +23,6 @@ constexpr auto kNumPortPerCore = 10;
 // 0: CPU port, 1: gloabl rcy port, 2-5: local recycle port, 6: eventor port,
 // 7: mgm port, 8-43 front panel nif
 constexpr auto kRemoteSysPortOffset = 7;
-constexpr auto kNumVoq = 8;
-constexpr auto k3q2qNumVoq = 3;
 constexpr auto kNumRdswSysPort = 44;
 constexpr auto kNumEdswSysPort = 26;
 
@@ -33,14 +31,15 @@ std::shared_ptr<SystemPort> makeRemoteSysPort(
     SwitchID remoteSwitchId,
     int coreIndex,
     int corePortIndex,
-    int64_t speed) {
+    int64_t speed,
+    HwAsic::InterfaceNodeRole intfRole,
+    cfg::PortType portType) {
   auto remoteSysPort = std::make_shared<SystemPort>(portId);
   auto voqConfig = getDefaultVoqConfig();
   remoteSysPort->setName(folly::to<std::string>(
       "hwTestSwitch", remoteSwitchId, ":eth/", portId, "/1"));
   remoteSysPort->setSwitchId(remoteSwitchId);
-  // TODO(zecheng): NIF MGMT port for 3q2q mode should have 2 VOQ
-  remoteSysPort->setNumVoqs(isDualStage3Q2QMode() ? k3q2qNumVoq : kNumVoq);
+  remoteSysPort->setNumVoqs(getRemotePortNumVoqs(intfRole, portType));
   remoteSysPort->setCoreIndex(coreIndex);
   remoteSysPort->setCorePortIndex(corePortIndex);
   remoteSysPort->setSpeedMbps(speed);
@@ -204,7 +203,9 @@ std::shared_ptr<SwitchState> addRemoteSysPort(
     SystemPortID portId,
     SwitchID remoteSwitchId,
     int coreIndex,
-    int corePortIndex) {
+    int corePortIndex,
+    HwAsic::InterfaceNodeRole intfRole,
+    cfg::PortType portType) {
   auto newState = currState->clone();
   const auto& localPorts = newState->getSystemPorts()->cbegin()->second;
   auto localPort = localPorts->cbegin()->second;
@@ -214,7 +215,9 @@ std::shared_ptr<SwitchState> addRemoteSysPort(
       remoteSwitchId,
       coreIndex,
       corePortIndex,
-      localPort->getSpeedMbps());
+      localPort->getSpeedMbps(),
+      intfRole,
+      portType);
   remoteSystemPorts->addNode(remoteSysPort, scopeResolver.scope(remoteSysPort));
   return newState;
 }
@@ -332,7 +335,9 @@ void populateRemoteIntfAndSysPorts(
               SwitchID(switchId),
               (i - minPortID - kRemoteSysPortOffset) / kNumPortPerCore,
               (i - minPortID) % kNumPortPerCore,
-              static_cast<int64_t>(portSpeed));
+              static_cast<int64_t>(portSpeed),
+              HwAsic::InterfaceNodeRole::IN_CLUSTER_NODE,
+              cfg::PortType::INTERFACE_PORT);
           remoteSysPorts->addSystemPort(remoteSysPort);
 
           auto remoteRif = makeRemoteInterface(
@@ -404,7 +409,11 @@ void populateRemoteIntfAndSysPorts(
               SwitchID(switchId),
               *mapping.attachedCoreId(),
               *mapping.attachedCorePortIndex(),
-              static_cast<int64_t>(portSpeed));
+              static_cast<int64_t>(portSpeed),
+              *dsfNode.clusterId() >= k2StageEdgePodClusterId
+                  ? HwAsic::InterfaceNodeRole::DUAL_STAGE_EDGE_NODE
+                  : HwAsic::InterfaceNodeRole::IN_CLUSTER_NODE,
+              *mapping.portType());
           remoteSysPorts->addSystemPort(remoteSysPort);
 
           auto remoteRif = makeRemoteInterface(
