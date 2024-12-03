@@ -18,11 +18,17 @@ TestStruct createSimpleTestStruct() {
       "cowMap", dynamic::object(1, true))(
       "hybridMap", dynamic::object(1, true))(
       "hybridMapOfI32ToStruct",
-      dynamic::object(20, dynamic::object("min", 400)("max", 600)))(
+      dynamic::object(
+          20,
+          dynamic::object("childMap", dynamic::object())("leafI32", 0)(
+              "listOfStruct", dynamic::array())("strMap", dynamic::object())(
+              "structMap", dynamic::object())))(
       "hybridMapOfMap", dynamic::object(10, dynamic::object(20, 30)))(
       "hybridStruct",
       dynamic::object(
-          "childMap", dynamic::object(10, true)(20, false)(50, false)))(
+          "childMap", dynamic::object(10, true)(20, false)(50, false))(
+          "leafI32", 0)("listOfStruct", dynamic::array())(
+          "strMap", dynamic::object())("structMap", dynamic::object()))(
       "mapOfStringToI32", dynamic::object("test1", 1)("test2", 2))(
       "mapOfI32ToStruct",
       dynamic::object(20, dynamic::object("min", 400)("max", 600)))(
