@@ -407,6 +407,7 @@ target_link_libraries(dsf_config_utils
   config_utils
   switch_config_cpp2
   switch_asics
+  voq_utils
 )
 
 add_library(voq_test_utils

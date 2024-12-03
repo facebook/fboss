@@ -13,6 +13,8 @@
 
 namespace facebook::fboss {
 
+constexpr auto k2StageEdgePodClusterId = 200;
+
 int getNumVoqs(cfg::PortType portType, cfg::Scope portScope);
 
 } // namespace facebook::fboss

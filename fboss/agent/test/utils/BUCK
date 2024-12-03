@@ -544,6 +544,7 @@ cpp_library(
         "//fboss/agent:agent_features",
         "//fboss/agent:asic_utils",
         "//fboss/agent:switch_config-cpp2-types",
+        "//fboss/agent:voq_utils",
         "//fboss/agent/hw/switch_asics:switch_asics",
     ],
 )
