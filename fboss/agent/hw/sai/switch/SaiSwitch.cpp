@@ -1396,6 +1396,14 @@ void SaiSwitch::processSwitchSettingsChangeSansDrainedEntryLocked(
           newConditionalEntropyRehashPeriodUS.value_or(0));
     }
   }
+
+  {
+    const auto oldShelConfig = oldSwitchSettings->getSelfHealingEcmpLagConfig();
+    const auto newShelConfig = newSwitchSettings->getSelfHealingEcmpLagConfig();
+    if (oldShelConfig != newShelConfig) {
+      managerTable_->switchManager().setShelConfig(newShelConfig);
+    }
+  }
 }
 
 template <typename LockPolicyT>
