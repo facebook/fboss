@@ -1168,16 +1168,17 @@ void ThriftConfigApplier::processUpdatedDsfNodes() {
         std::make_optional(RemoteSystemPortType::STATIC_ENTRY));
     sysPort->setSwitchId(node->getSwitchId());
     sysPort->setName(getRecyclePortName(node));
-    const auto& recyclePortInfo = dsfNodeAsic->getRecyclePortInfo(
+    const auto intfRole =
         isDualStage3Q2QMode() && node->getClusterId() >= k2StageEdgePodClusterId
-            ? HwAsic::InterfaceNodeRole::DUAL_STAGE_EDGE_NODE
-            : HwAsic::InterfaceNodeRole::IN_CLUSTER_NODE);
+        ? HwAsic::InterfaceNodeRole::DUAL_STAGE_EDGE_NODE
+        : HwAsic::InterfaceNodeRole::IN_CLUSTER_NODE;
+    const auto& recyclePortInfo = dsfNodeAsic->getRecyclePortInfo(intfRole);
     CHECK_EQ(recyclePortInfo.inbandPortId, *node->getInbandPortId());
     sysPort->setCoreIndex(recyclePortInfo.coreId);
     sysPort->setCorePortIndex(recyclePortInfo.corePortIndex);
     sysPort->setSpeedMbps(recyclePortInfo.speedMbps);
     sysPort->setNumVoqs(
-        getLocalPortNumVoqs(cfg::PortType::RECYCLE_PORT, cfg::Scope::GLOBAL));
+        getRemotePortNumVoqs(intfRole, cfg::PortType::RECYCLE_PORT));
 
     sysPort->setScope(cfg::Scope::GLOBAL);
     sysPort->resetPortQueues(getVoqConfig(localInbandPortId));
