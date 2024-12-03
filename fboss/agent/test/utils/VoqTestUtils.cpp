@@ -12,6 +12,8 @@
 #include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/DsfStateUpdaterUtil.h"
 #include "fboss/agent/SwSwitch.h"
+#include "fboss/agent/VoqUtils.h"
+#include "fboss/agent/platforms/common/meru800bia/Meru800biaPlatformMapping.h"
 #include "fboss/agent/test/TestEnsembleIf.h"
 
 namespace facebook::fboss::utility {
@@ -351,7 +353,83 @@ void populateRemoteIntfAndSysPorts(
       }
     };
 
-    addSingleStageSysPort(remoteDsfNode, remoteSwitchId);
+    auto addDualStageSysPort = [&remoteSysPorts, &remoteRifs, useEncapIndex](
+                                   const auto& dsfNode, const auto& switchId) {
+      CHECK_EQ(dsfNode.systemPortRanges()->systemPortRanges()->size(), 2);
+      // TODO(zecheng): Initialize correct global offset for DsfNode
+      const auto globalOffset = dsfNode.systemPortRanges()
+                                    ->systemPortRanges()
+                                    ->at(0)
+                                    .minimum()
+                                    .value() -
+          1;
+      static const auto rdswPlatformMapping =
+          Meru800biaPlatformMapping(HwAsic::InterfaceNodeRole::IN_CLUSTER_NODE);
+      static const auto edswPlatformMapping = Meru800biaPlatformMapping(
+          HwAsic::InterfaceNodeRole::DUAL_STAGE_EDGE_NODE);
+      const auto& platformMapping =
+          *dsfNode.clusterId() >= k2StageEdgePodClusterId ? edswPlatformMapping
+                                                          : rdswPlatformMapping;
+
+      for (const auto& [portID, platformPort] :
+           platformMapping.getPlatformPorts()) {
+        auto mapping = *platformPort.mapping();
+        if (*mapping.scope() == cfg::Scope::GLOBAL &&
+            (*mapping.portType() == cfg::PortType::INTERFACE_PORT ||
+             *mapping.portType() == cfg::PortType::MANAGEMENT_PORT)) {
+          const auto remoteSysPortId =
+              static_cast<SystemPortID>(portID + globalOffset);
+          const auto remoteIntfId = static_cast<InterfaceID>(remoteSysPortId);
+          const PortDescriptor portDesc(remoteSysPortId);
+          const std::optional<uint64_t> encapEndx = useEncapIndex
+              ? std::optional<uint64_t>(0x200001 + portID)
+              : std::nullopt;
+
+          // Use subnet
+          // 100+(dsfNodeId/256):(dsfNodeId%256):(localIntfId%256)::1/64 and
+          // 100+(dsfNodeId/256).(dsfNodeId%256).(localIntfId%256).1/24
+          auto firstOctet = 100 + switchId / 256;
+          auto secondOctet = switchId % 256;
+          // For >16K ports, use the second half of 128 range in the octet.
+          auto thirdOctet = portID < 256 ? portID : (portID + 128) % 256;
+          folly::IPAddressV6 neighborIp(folly::to<std::string>(
+              firstOctet, ":", secondOctet, ":", thirdOctet, "::2"));
+          auto portSpeed = *mapping.portType() == cfg::PortType::MANAGEMENT_PORT
+              ? cfg::PortSpeed::HUNDREDG
+              : (*dsfNode.clusterId() >= k2StageEdgePodClusterId
+                     ? cfg::PortSpeed::EIGHTHUNDREDG
+                     : cfg::PortSpeed::FOURHUNDREDG);
+          auto remoteSysPort = makeRemoteSysPort(
+              remoteSysPortId,
+              SwitchID(switchId),
+              *mapping.attachedCoreId(),
+              *mapping.attachedCorePortIndex(),
+              static_cast<int64_t>(portSpeed));
+          remoteSysPorts->addSystemPort(remoteSysPort);
+
+          auto remoteRif = makeRemoteInterface(
+              remoteIntfId,
+              {
+                  {folly::IPAddress(folly::to<std::string>(
+                       firstOctet, ":", secondOctet, ":", thirdOctet, "::1")),
+                   64},
+                  {folly::IPAddress(folly::to<std::string>(
+                       firstOctet, ".", secondOctet, ".", thirdOctet, ".1")),
+                   24},
+              });
+
+          updateRemoteIntfWithNeighbor(
+              remoteRif, remoteIntfId, portDesc, neighborIp, encapEndx);
+          remoteRifs->addNode(remoteRif);
+        }
+      }
+    };
+
+    if (isDualStage3Q2QMode()) {
+      addDualStageSysPort(remoteDsfNode, remoteSwitchId);
+    } else {
+      addSingleStageSysPort(remoteDsfNode, remoteSwitchId);
+    }
 
     switchId2SystemPorts[SwitchID(remoteSwitchId)] = remoteSysPorts;
     switchId2Rifs[SwitchID(remoteSwitchId)] = remoteRifs;
