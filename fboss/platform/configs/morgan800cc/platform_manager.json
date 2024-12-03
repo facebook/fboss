@@ -438,7 +438,7 @@
           "presenceDetection": {
             "gpioLineHandle": {
               "devicePath": "/[MCB_MCB_GPIO]",
-              "ineIndex": 48,
+              "lineIndex": 48,
               "desiredValue": 1
             }
           }
