@@ -520,7 +520,8 @@ void SaiHostifManager::changeCpuVoq(
     const ControlPlane::PortQueues& newVoqConfig) {
   cpuPortHandle_->configuredVoqs.clear();
 
-  auto maxCpuVoqs = getNumVoqs(cfg::PortType::CPU_PORT, cfg::Scope::LOCAL);
+  auto maxCpuVoqs =
+      getLocalPortNumVoqs(cfg::PortType::CPU_PORT, cfg::Scope::LOCAL);
   for (const auto& newPortVoq : std::as_const(*newVoqConfig)) {
     // Voq create or update
     if (newPortVoq->getID() > maxCpuVoqs) {
@@ -752,7 +753,8 @@ QueueConfig SaiHostifManager::getVoqSettings() const {
   }
   auto voqConfig =
       managerTable_->queueManager().getQueueSettings(cpuPortHandle_->voqs);
-  auto maxCpuVoqs = getNumVoqs(cfg::PortType::CPU_PORT, cfg::Scope::LOCAL);
+  auto maxCpuVoqs =
+      getLocalPortNumVoqs(cfg::PortType::CPU_PORT, cfg::Scope::LOCAL);
   QueueConfig filteredVoqConfig;
   // Prepare voq config only upto max CPU voqs
   std::copy_if(

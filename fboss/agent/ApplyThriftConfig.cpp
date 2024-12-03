@@ -1177,7 +1177,7 @@ void ThriftConfigApplier::processUpdatedDsfNodes() {
     sysPort->setCorePortIndex(recyclePortInfo.corePortIndex);
     sysPort->setSpeedMbps(recyclePortInfo.speedMbps);
     sysPort->setNumVoqs(
-        getNumVoqs(cfg::PortType::RECYCLE_PORT, cfg::Scope::GLOBAL));
+        getLocalPortNumVoqs(cfg::PortType::RECYCLE_PORT, cfg::Scope::GLOBAL));
 
     sysPort->setScope(cfg::Scope::GLOBAL);
     sysPort->resetPortQueues(getVoqConfig(localInbandPortId));
@@ -1691,8 +1691,8 @@ shared_ptr<SystemPortMap> ThriftConfigApplier::updateSystemPorts(
       sysPort->setCorePortIndex(
           platformPort.mapping()->attachedCorePortIndex().value());
       sysPort->setSpeedMbps(static_cast<int>(port.second->getSpeed()));
-      sysPort->setNumVoqs(
-          getNumVoqs(port.second->getPortType(), port.second->getScope()));
+      sysPort->setNumVoqs(getLocalPortNumVoqs(
+          port.second->getPortType(), port.second->getScope()));
       sysPort->setQosPolicy(port.second->getQosPolicy());
       sysPort->resetPortQueues(getVoqConfig(port.second->getID()));
       // TODO(daiweix): remove this CHECK_EQ after verifying scope config is
@@ -4983,7 +4983,7 @@ shared_ptr<MultiControlPlane> ThriftConfigApplier::updateControlPlane() {
       auto tmpPortVoqs = updatePortQueues(
           origCPU->getVoqsConfig(),
           cfgCpuVoqs,
-          getNumVoqs(cfg::PortType::CPU_PORT, cfg::Scope::LOCAL),
+          getLocalPortNumVoqs(cfg::PortType::CPU_PORT, cfg::Scope::LOCAL),
           streamType,
           qosMap);
       newVoqs.insert(newVoqs.begin(), tmpPortVoqs.begin(), tmpPortVoqs.end());

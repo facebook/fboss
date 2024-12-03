@@ -14,7 +14,7 @@
 
 namespace facebook::fboss {
 
-int getNumVoqs(cfg::PortType portType, cfg::Scope portScope) {
+int getLocalPortNumVoqs(cfg::PortType portType, cfg::Scope portScope) {
   if (!isDualStage3Q2QMode()) {
     return 8;
   }

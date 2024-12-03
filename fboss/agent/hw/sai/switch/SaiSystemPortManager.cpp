@@ -380,8 +380,8 @@ std::shared_ptr<SystemPortMap> SaiSystemPortManager::constructSystemPorts(
       sysPort->setCoreIndex(*platformPort->getAttachedCoreId());
       sysPort->setCorePortIndex(*platformPort->getCorePortIndex());
       sysPort->setSpeedMbps(static_cast<int>(port.second->getSpeed()));
-      sysPort->setNumVoqs(
-          getNumVoqs(port.second->getPortType(), port.second->getScope()));
+      sysPort->setNumVoqs(getLocalPortNumVoqs(
+          port.second->getPortType(), port.second->getScope()));
       sysPort->setScope(platformPort->getScope());
       sysPort->setQosPolicy(port.second->getQosPolicy());
       sysPortMap->addSystemPort(std::move(sysPort));

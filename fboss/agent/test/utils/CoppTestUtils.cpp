@@ -319,7 +319,7 @@ void addCpuQueueConfig(
     cfg::PortQueue voq2;
     voq2.id() = isDualStage3Q2QQos()
         ? 2
-        : getNumVoqs(cfg::PortType::CPU_PORT, cfg::Scope::LOCAL) - 1;
+        : getLocalPortNumVoqs(cfg::PortType::CPU_PORT, cfg::Scope::LOCAL) - 1;
     voq2.name() = "cpuVoq-high";
     voq2.streamType() = getCpuDefaultStreamType(hwAsic);
     voq2.scheduling() = cfg::QueueScheduling::INTERNAL;
