@@ -152,4 +152,26 @@ void addTrapPacketAcl(
   config->cpuTrafficPolicy() = cpuTrafficPolicy;
 }
 
+void addTrapPacketAcl(cfg::SwitchConfig* config, folly::MacAddress mac) {
+  cfg::AclEntry entry;
+  entry.name() = folly::to<std::string>("trap-packet-", mac.toString());
+  entry.dstMac() = mac.toString();
+  entry.actionType() = cfg::AclActionType::PERMIT;
+  utility::addAclEntry(config, entry, utility::kDefaultAclTable());
+
+  cfg::MatchToAction matchToAction;
+  matchToAction.matcher() = *entry.name();
+  cfg::MatchAction& action = matchToAction.action().ensure();
+  action.toCpuAction() = cfg::ToCpuAction::TRAP;
+  action.sendToQueue().ensure().queueId() = 0;
+  action.setTc().ensure().tcValue() = 0;
+  config->cpuTrafficPolicy()
+      .ensure()
+      .trafficPolicy()
+      .ensure()
+      .matchToAction()
+      .ensure()
+      .push_back(matchToAction);
+}
+
 } // namespace facebook::fboss::utility

@@ -7,6 +7,7 @@
 #include "fboss/agent/types.h"
 
 #include <folly/IPAddress.h>
+#include <folly/MacAddress.h>
 
 #include <set>
 
@@ -32,5 +33,6 @@ void addTrapPacketAcl(
     const HwAsic* asic,
     cfg::SwitchConfig* config,
     uint16_t l4DstPort);
+void addTrapPacketAcl(cfg::SwitchConfig* config, folly::MacAddress mac);
 
 } // namespace facebook::fboss::utility
