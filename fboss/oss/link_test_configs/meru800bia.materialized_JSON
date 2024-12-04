@@ -8139,6 +8139,28 @@
     },
     "defaultVoqConfig": [
       
+    ],
+    "cpuVoqs": [
+      {
+        "id": 7,
+        "streamType": 0,
+        "scheduling": 1000,
+        "name": "cpuVoq-high"
+      },
+      {
+        "id": 3,
+        "streamType": 0,
+        "scheduling": 1000,
+        "name": "cpuVoq-mid",
+        "maxDynamicSharedBytes": 20971520
+      },
+      {
+        "id": 0,
+        "streamType": 0,
+        "scheduling": 1000,
+        "name": "cpuVoq-low",
+        "maxDynamicSharedBytes": 20971520
+      }
     ]
   },
   "platform": {
