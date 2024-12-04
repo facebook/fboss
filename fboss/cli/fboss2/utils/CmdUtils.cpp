@@ -376,4 +376,23 @@ cfg::SwitchType getSwitchType(
   return switchType;
 }
 
+std::map<std::string, FabricEndpoint> getFabricEndpoints(
+    const HostInfo& hostInfo) {
+  std::map<std::string, FabricEndpoint> entries;
+  if (utils::isFbossFeatureEnabled(hostInfo.getName(), "multi_switch")) {
+    auto hwAgentQueryFn =
+        [&entries](
+            apache::thrift::Client<facebook::fboss::FbossHwCtrl>& client) {
+          std::map<std::string, FabricEndpoint> hwagentEntries;
+          client.sync_getHwFabricConnectivity(hwagentEntries);
+          entries.merge(hwagentEntries);
+        };
+    utils::runOnAllHwAgents(hostInfo, hwAgentQueryFn);
+  } else {
+    utils::createClient<apache::thrift::Client<FbossCtrl>>(hostInfo)
+        ->sync_getFabricConnectivity(entries);
+  }
+  return entries;
+}
+
 } // namespace facebook::fboss::utils

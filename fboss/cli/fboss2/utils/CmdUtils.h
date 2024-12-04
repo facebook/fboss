@@ -472,4 +472,7 @@ Table::StyledCell styledFecTail(int tail);
 cfg::SwitchType getSwitchType(
     std::map<int64_t, cfg::SwitchInfo> switchIdToSwitchInfo);
 
+std::map<std::string, FabricEndpoint> getFabricEndpoints(
+    const HostInfo& hostInfo);
+
 } // namespace facebook::fboss::utils
