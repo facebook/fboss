@@ -94,8 +94,10 @@ class SaiUdfManager {
   }
 
  private:
-  uint8_t cfgL4MatchTypeToSai(cfg::UdfMatchL4Type cfgType) const;
-  uint16_t cfgL3MatchTypeToSai(cfg::UdfMatchL3Type cfgType) const;
+  std::pair<uint8_t, uint8_t> cfgL4MatchTypeToSai(
+      cfg::UdfMatchL4Type cfgType) const;
+  std::pair<uint16_t, uint16_t> cfgL3MatchTypeToSai(
+      cfg::UdfMatchL3Type cfgType) const;
   sai_udf_base_t cfgBaseToSai(cfg::UdfBaseHeaderType cfgType) const;
 
   UdfMatchHandles udfMatchHandles_;
