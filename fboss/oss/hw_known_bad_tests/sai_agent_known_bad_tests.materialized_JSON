@@ -3770,6 +3770,15 @@
           "test_name_regex": "AgentPacketSendTest.ArpRequestToFrontPanelPortSwitched$"
         },
         {
+          "test_name_regex": "AgentEgressPortErspanMirroringTest*"
+        },
+        {
+          "test_name_regex": "AgentEgressPortSpanMirroringTest*"
+        },
+        {
+          "test_name_regex": "AgentIngressPortErspanMirroringTest*"
+        },
+        {
           "test_name_regex": "AgentAclCounterTest/0.VerifyCounterBumpOnL4DstportHitFrontPanel$"
         },
         {
@@ -4265,6 +4274,15 @@
         },
         {
           "test_name_regex": "AgentPacketSendTest.ArpRequestToFrontPanelPortSwitched$"
+        },
+        {
+          "test_name_regex": "AgentEgressPortErspanMirroringTest*"
+        },
+        {
+          "test_name_regex": "AgentEgressPortSpanMirroringTest*"
+        },
+        {
+          "test_name_regex": "AgentIngressPortErspanMirroringTest*"
         },
         {
           "test_name_regex": "AgentAclCounterTest/0.VerifyCounterBumpOnL4DstportHitFrontPanel$"
@@ -6029,6 +6047,15 @@
           "test_name_regex": "AgentPacketSendTest.ArpRequestToFrontPanelPortSwitched$"
         },
         {
+          "test_name_regex": "AgentEgressPortErspanMirroringTest*"
+        },
+        {
+          "test_name_regex": "AgentEgressPortSpanMirroringTest*"
+        },
+        {
+          "test_name_regex": "AgentIngressPortErspanMirroringTest*"
+        },
+        {
           "test_name_regex": "AgentAclCounterTest/0.VerifyCounterBumpOnL4DstportHitFrontPanel$"
         },
         {
@@ -6524,6 +6551,15 @@
         },
         {
           "test_name_regex": "AgentPacketSendTest.ArpRequestToFrontPanelPortSwitched$"
+        },
+        {
+          "test_name_regex": "AgentEgressPortErspanMirroringTest*"
+        },
+        {
+          "test_name_regex": "AgentEgressPortSpanMirroringTest*"
+        },
+        {
+          "test_name_regex": "AgentIngressPortErspanMirroringTest*"
         },
         {
           "test_name_regex": "AgentAclCounterTest/0.VerifyCounterBumpOnL4DstportHitFrontPanel$"
@@ -10127,6 +10163,9 @@
           "test_name_regex": "AgentAqmWredDropTest.verifyWredDrop$"
         },
         {
+          "test_name_regex": "AgentTrafficPauseTest.verifyPauseRxOnly$"
+        },
+        {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentSflowMirrorWithLineRateTrafficTest.VerifySflowEgressCongestion$"
         },
         {
@@ -10394,6 +10433,9 @@
         },
         {
           "test_name_regex": "AgentAqmWredDropTest.verifyWredDrop$"
+        },
+        {
+          "test_name_regex": "AgentTrafficPauseTest.verifyPauseRxOnly$"
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentSflowMirrorWithLineRateTrafficTest.VerifySflowEgressCongestion$"
@@ -10686,6 +10728,9 @@
           "test_name_regex": "AgentAqmWredDropTest.verifyWredDrop$"
         },
         {
+          "test_name_regex": "AgentTrafficPauseTest.verifyPauseRxOnly$"
+        },
+        {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentSflowMirrorWithLineRateTrafficTest.VerifySflowEgressCongestion$"
         },
         {
@@ -10935,6 +10980,9 @@
         },
         {
           "test_name_regex": "AgentAqmWredDropTest.verifyWredDrop$"
+        },
+        {
+          "test_name_regex": "AgentTrafficPauseTest.verifyPauseRxOnly$"
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentSflowMirrorWithLineRateTrafficTest.VerifySflowEgressCongestion$"
