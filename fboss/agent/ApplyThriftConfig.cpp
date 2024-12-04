@@ -1181,6 +1181,9 @@ void ThriftConfigApplier::processUpdatedDsfNodes() {
         getRemotePortNumVoqs(intfRole, cfg::PortType::RECYCLE_PORT));
 
     sysPort->setScope(cfg::Scope::GLOBAL);
+    if (cfg_->switchSettings()->selfHealingEcmpLagConfig().has_value()) {
+      sysPort->setShelDestinationEnabled(true);
+    }
     sysPort->resetPortQueues(getVoqConfig(localInbandPortId));
     if (auto dataPlaneTrafficPolicy = cfg_->dataPlaneTrafficPolicy()) {
       if (auto portIdToQosPolicy =
@@ -1702,6 +1705,11 @@ shared_ptr<SystemPortMap> ThriftConfigApplier::updateSystemPorts(
           (int)platformPort.mapping()->scope().value(),
           (int)port.second->getScope());
       sysPort->setScope(port.second->getScope());
+      if (cfg_->switchSettings()->selfHealingEcmpLagConfig().has_value()) {
+        sysPort->setShelDestinationEnabled(
+            port.second->getPortType() == cfg::PortType::RECYCLE_PORT &&
+            port.second->getScope() == cfg::Scope::GLOBAL);
+      }
       sysPorts->addSystemPort(std::move(sysPort));
     }
   }
