@@ -257,7 +257,8 @@ void BcmSwitchEnsemble::init(
       PlatformType::PLATFORM_MINIPACK,
       PlatformType::PLATFORM_YAMP,
       PlatformType::PLATFORM_WEDGE400,
-      PlatformType::PLATFORM_DARWIN};
+      PlatformType::PLATFORM_DARWIN,
+      PlatformType::PLATFORM_DARWIN48V};
   std::unordered_set<PlatformType> th4BcmPlatforms = {
       PlatformType::PLATFORM_FUJI, PlatformType::PLATFORM_ELBERT};
   bool th3Platform = false;

@@ -107,6 +107,7 @@ uint16_t uplinksCountFromSwitch(PlatformType mode) {
     case PM::PLATFORM_GALAXY_LC:
     case PM::PLATFORM_GALAXY_FC:
     case PM::PLATFORM_DARWIN:
+    case PM::PLATFORM_DARWIN48V:
     case PM::PLATFORM_MONTBLANC:
       return 4;
     default:
