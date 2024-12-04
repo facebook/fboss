@@ -48,6 +48,7 @@ class FakeAsic : public HwAsic {
       case HwAsic::Feature::ANY_TRAP_DROP_COUNTER:
       case HwAsic::Feature::LINK_ACTIVE_INACTIVE_NOTIFY:
       case HwAsic::Feature::PORT_MTU_ERROR_TRAP:
+      case HwAsic::Feature::NO_RX_REASON_TRAP:
         return false;
 
       default:

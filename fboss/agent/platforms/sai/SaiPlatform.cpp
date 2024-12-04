@@ -716,6 +716,14 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
     switchIsolate = true;
   }
 
+  std::optional<SaiSwitchTraits::Attributes::NoAclsForTraps> noAclsForTraps{
+      std::nullopt};
+  if (getAsic()->isSupported(HwAsic::Feature::NO_RX_REASON_TRAP)) {
+#if defined(BRCM_SAI_SDK_DNX) && defined(BRCM_SAI_SDK_GTE_12_0)
+    noAclsForTraps = true;
+#endif
+  }
+
   return {
       initSwitch,
       hwInfo, // hardware info
@@ -784,7 +792,7 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
       fabricLLFC,
       std::nullopt, // SRAM free percent XOFF threshold
       std::nullopt, // SRAM free percent XON threshold
-      std::nullopt, // No acls for traps
+      noAclsForTraps, // No acls for traps
       maxSystemPortId,
       maxLocalSystemPortId,
       maxSystemPorts,
