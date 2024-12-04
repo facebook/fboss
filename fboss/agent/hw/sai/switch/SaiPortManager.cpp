@@ -1966,11 +1966,15 @@ void SaiPortManager::updateStats(
       platform_->getAsic()->isSupported(HwAsic::Feature::DATA_CELL_FILTER)) {
     std::optional<SaiPortTraits::Attributes::FabricDataCellsFilterStatus>
         attrT = SaiPortTraits::Attributes::FabricDataCellsFilterStatus{};
-    curPortStats.dataCellsFilterOn() =
+
+    auto dataCelllsFilterOn =
         SaiApiTable::getInstance()->portApi().getAttribute(
-            handle->port->adapterKey(), attrT)
-        ? true
-        : false;
+            handle->port->adapterKey(), attrT);
+    if (dataCelllsFilterOn.has_value() && dataCelllsFilterOn.value() == true) {
+      curPortStats.dataCellsFilterOn() = true;
+    } else {
+      curPortStats.dataCellsFilterOn() = false;
+    }
   }
   portStats_[portId]->updateStats(curPortStats, now);
   auto lastPrbsRxStateReadTimeIt = lastPrbsRxStateReadTime_.find(portId);
