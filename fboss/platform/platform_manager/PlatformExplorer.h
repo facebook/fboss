@@ -24,6 +24,7 @@ class PlatformExplorer {
   auto static constexpr kFwVerXYPatternStr = R"((\d{1,3})\.(\d{1,3}))";
   auto static constexpr kFwVerXYZPatternStr =
       R"((\d{1,3})\.(\d{1,3})\.(\d{1,3}))";
+  auto static constexpr kFwVerValidCharsPatternStr = R"([a-zA-Z0-9\.\-_]+)";
 
   auto static constexpr kFirmwareVersion = "{}.firmware_version";
   auto static constexpr kGroupedFirmwareVersion = "{}.firmware_version.{}";

@@ -66,6 +66,8 @@ std::string readVersionString(
       re2::RE2(PlatformExplorer::kFwVerXYPatternStr);
   static const re2::RE2 kFwVerXYZPattern =
       re2::RE2(PlatformExplorer::kFwVerXYZPatternStr);
+  static const re2::RE2 kFwVerValidCharsPattern =
+      re2::RE2(PlatformExplorer::kFwVerValidCharsPatternStr);
   const auto versionFileContent = platformFsUtils->getStringFileContent(path);
   if (!versionFileContent) {
     XLOGF(
@@ -75,15 +77,23 @@ std::string readVersionString(
         folly::errnoStr(errno));
     return fmt::format("ERROR_FILE_{}", errno);
   }
-  const auto versionString = versionFileContent.value();
+  const auto& versionString = versionFileContent.value();
   if (versionString.empty()) {
     XLOGF(ERR, "Empty firmware version file {}", path);
     return PlatformExplorer::kFwVerErrorEmptyFile;
   }
-  if (folly::hasSpaceOrCntrlSymbols(versionString)) {
+  if (versionString.length() > 64) {
     XLOGF(
         ERR,
-        "Firmware version string \"{}\" from file {} contains whitespace or control characters.",
+        "Firmware version \"{}\" from file {} is longer than 64 characters.",
+        versionString,
+        path);
+    return PlatformExplorer::kFwVerErrorInvalidString;
+  }
+  if (!re2::RE2::FullMatch(versionString, kFwVerValidCharsPattern)) {
+    XLOGF(
+        ERR,
+        "Firmware version \"{}\" from file {} contains invalid characters.",
         versionString,
         path);
     return PlatformExplorer::kFwVerErrorInvalidString;
