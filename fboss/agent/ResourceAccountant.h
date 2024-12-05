@@ -17,7 +17,6 @@
 #include <gtest/gtest.h>
 
 DECLARE_int32(max_l2_entries);
-
 namespace facebook::fboss {
 
 class ResourceAccountant {
