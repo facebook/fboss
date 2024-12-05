@@ -2031,8 +2031,9 @@
   },
   "bspKmodsRpmName": "fboss_bsp_kmods",
   "bspKmodsRpmVersion": "2.4.0-1",
-  "upstreamKmodsToLoad": [
+  "requiredKmodsToLoad": [
     "i2c_i801",
-    "spidev"
+    "spidev",
+    "fboss_iob_pci"
   ]
 }

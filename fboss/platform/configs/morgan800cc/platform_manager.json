@@ -3567,8 +3567,10 @@
   },
   "bspKmodsRpmName": "cisco_bsp_kmods",
   "bspKmodsRpmVersion": "1.0.1-2",
-  "upstreamKmodsToLoad": [
+  "requiredKmodsToLoad": [
     "spidev",
-    "i2c_i801"
+    "i2c_i801",
+    "cisco_fpga_pci",
+    "cisco_fpga_i2c_ext"
   ]
 }

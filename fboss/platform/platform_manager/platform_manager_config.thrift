@@ -541,7 +541,7 @@ struct PlatformConfig {
   // Name and version of the rpm containing the BSP kmods for this platform
   21: string bspKmodsRpmName;
   22: string bspKmodsRpmVersion;
-  // Specify the list of non-bsp kmods which are used by the system. They are
-  // only loaded and never unloaded.
-  25: list<string> upstreamKmodsToLoad;
+
+  // Specify the list of kmods which are required to be loaded before PM exploration.
+  25: list<string> requiredKmodsToLoad;
 }

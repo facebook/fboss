@@ -64,14 +64,13 @@ void PkgManager::processAll() const {
         kBspKmodsRpmName, "Not managing BSP package");
   }
 
-  loadUpstreamKmods();
   // BSP management
   // If new rpm is installed, PkgManager unload first to prevent kmods leak.
   // After install, PkgManager loads kmods.
   if (FLAGS_local_rpm_path.size()) {
     unloadBspKmods();
     processLocalRpms();
-    loadBSPKmods();
+    loadRequiredKmods();
     return;
   }
   if (FLAGS_enable_pkg_mgmnt) {
@@ -81,7 +80,7 @@ void PkgManager::processAll() const {
           "BSP Kmods {} is not installed", bspKmodsRpmName);
       unloadBspKmods();
       processRpms();
-      loadBSPKmods();
+      loadRequiredKmods();
       return;
     }
     XLOG(INFO) << fmt::format(
@@ -92,7 +91,7 @@ void PkgManager::processAll() const {
   if (FLAGS_reload_kmods) {
     unloadBspKmods();
   }
-  loadBSPKmods();
+  loadRequiredKmods();
 }
 
 void PkgManager::processRpms() const {
@@ -105,32 +104,6 @@ void PkgManager::processRpms() const {
 
 void PkgManager::processLocalRpms() const {
   installLocalRpm(3 /* maxAttempts */);
-}
-
-void PkgManager::loadBSPKmods() const {
-  std::string keyword{};
-  re2::RE2::FullMatch(
-      *platformConfig_.bspKmodsRpmName(), kBspRpmNameRe, &keyword);
-  std::string bspKmodsFilePath =
-      fmt::format(kBspKmodsFilePath, keyword, getHostKernelVersion());
-  std::string jsonBspKmodsFile;
-  if (!folly::readFile(bspKmodsFilePath.c_str(), jsonBspKmodsFile)) {
-    throw std::runtime_error(fmt::format(
-        "Failed to load kmods. Reason: Failed to read {}; ", bspKmodsFilePath));
-  }
-  BspKmodsFile bspKmodsFile;
-  apache::thrift::SimpleJSONSerializer::deserialize<BspKmodsFile>(
-      jsonBspKmodsFile, bspKmodsFile);
-  XLOG(INFO) << fmt::format(
-      "Loading {} shared kernel modules", bspKmodsFile.sharedKmods()->size());
-  for (int i = 0; i < bspKmodsFile.sharedKmods()->size(); ++i) {
-    loadKmod((*bspKmodsFile.sharedKmods())[i]);
-  }
-  XLOG(INFO) << fmt::format(
-      "Loading {} kernel modules", bspKmodsFile.bspKmods()->size());
-  for (int i = 0; i < bspKmodsFile.bspKmods()->size(); ++i) {
-    loadKmod((*bspKmodsFile.bspKmods())[i]);
-  }
 }
 
 void PkgManager::unloadBspKmods() const {
@@ -181,12 +154,12 @@ void PkgManager::unloadBspKmods() const {
   }
 }
 
-void PkgManager::loadUpstreamKmods() const {
+void PkgManager::loadRequiredKmods() const {
   XLOG(INFO) << fmt::format(
-      "Loading {} upstream kernel modules",
-      platformConfig_.upstreamKmodsToLoad()->size());
-  for (int i = 0; i < platformConfig_.upstreamKmodsToLoad()->size(); ++i) {
-    loadKmod((*platformConfig_.upstreamKmodsToLoad())[i]);
+      "Loading {} required kernel modules",
+      platformConfig_.requiredKmodsToLoad()->size());
+  for (int i = 0; i < platformConfig_.requiredKmodsToLoad()->size(); ++i) {
+    loadKmod((*platformConfig_.requiredKmodsToLoad())[i]);
   }
 }
 
