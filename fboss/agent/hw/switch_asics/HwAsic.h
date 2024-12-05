@@ -338,6 +338,17 @@ class HwAsic {
     return std::nullopt;
   }
 
+  //  SAI implementaion doen not support attribute
+  //  SAI_SWITCH_ATTR_L3_NEIGHBOR_TABLE_SIZE yet, so decided to add these
+  //  functions to return max neighbot table size
+  virtual std::optional<uint32_t> getMaxNdpTableSize() const {
+    return std::nullopt;
+  }
+
+  virtual std::optional<uint32_t> getMaxArpTableSize() const {
+    return std::nullopt;
+  }
+
   virtual bool scalingFactorBasedDynamicThresholdSupported() const = 0;
 
   virtual int getBufferDynThreshFromScalingFactor(

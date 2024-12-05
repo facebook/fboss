@@ -152,6 +152,12 @@ class FakeAsic : public HwAsic {
   std::optional<uint32_t> getMaxEcmpMembers() const override {
     return 128;
   }
+  std::optional<uint32_t> getMaxNdpTableSize() const override {
+    return 8192;
+  }
+  std::optional<uint32_t> getMaxArpTableSize() const override {
+    return 8192;
+  }
   AsicVendor getAsicVendor() const override {
     return HwAsic::AsicVendor::ASIC_VENDOR_FAKE;
   }

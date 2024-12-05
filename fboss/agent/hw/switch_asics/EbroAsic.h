@@ -117,6 +117,12 @@ class EbroAsic : public TajoAsic {
     // MAX_NEXT_HOP_GROUP_MEMBERS = 32768
     return 32768;
   }
+  std::optional<uint32_t> getMaxNdpTableSize() const override {
+    return 88465;
+  }
+  std::optional<uint32_t> getMaxArpTableSize() const override {
+    return 176881;
+  }
   uint32_t getNumCores() const override {
     return 12;
   }

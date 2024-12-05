@@ -94,6 +94,13 @@ class Tomahawk3Asic : public BroadcomXgsAsic {
     // Max ACL entries per ACL table
     return 256;
   }
+  std::optional<uint32_t> getMaxNdpTableSize() const override {
+    return 8192;
+  }
+
+  std::optional<uint32_t> getMaxArpTableSize() const override {
+    return 16384;
+  }
 };
 
 } // namespace facebook::fboss
