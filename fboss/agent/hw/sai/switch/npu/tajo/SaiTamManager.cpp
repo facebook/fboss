@@ -111,4 +111,6 @@ std::vector<PortID> SaiTamManager::getAllMirrorOnDropPortIds() {
   return {};
 }
 
+void SaiTamManager::updateTamObjectOnSwitchAndPort(PortID /* portId */) {}
+
 } // namespace facebook::fboss

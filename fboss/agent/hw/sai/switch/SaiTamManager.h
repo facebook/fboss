@@ -63,6 +63,8 @@ class SaiTamManager {
   }
 
  private:
+  void updateTamObjectOnSwitchAndPort(PortID portId);
+
   SaiStore* saiStore_;
   SaiManagerTable* managerTable_;
   SaiPlatform* platform_;

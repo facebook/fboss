@@ -107,6 +107,8 @@ SaiTamManager::SaiTamManager(
 void SaiTamManager::addMirrorOnDropReport(
     const std::shared_ptr<MirrorOnDropReport>& report) {
 #if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
+  XLOG(INFO) << "Creating MirrorOnDropReport " << report->getID();
+
   // Create report
   auto& reportStore = saiStore_->get<SaiTamReportTraits>();
   auto reportTraits =
@@ -180,8 +182,8 @@ void SaiTamManager::addMirrorOnDropReport(
     auto event = eventStore.setObject(eventTraits, eventTraits);
     events.push_back(event);
     eventIds.push_back(event->adapterKey());
-    +XLOG(INFO) << "Created event ID " << eventId << " with tam event "
-                << event->adapterKey() << " and aging group " << agingGroupKey;
+    XLOG(INFO) << "Created event ID " << eventId << " with tam event "
+               << event->adapterKey() << " and aging group " << agingGroupKey;
   }
 
   // Create tam
@@ -193,15 +195,6 @@ void SaiTamManager::addMirrorOnDropReport(
   auto& tamStore = saiStore_->get<SaiTamTraits>();
   auto tam = tamStore.setObject(tamTraits, tamTraits);
 
-  // Associate TAM with port
-  XLOG(INFO) << "Associating TAM object with port "
-             << report->getMirrorPortId();
-  managerTable_->portManager().setTamObject(
-      PortID(report->getMirrorPortId()), {tam->adapterKey()});
-
-  // Associate TAM with switch
-  managerTable_->switchManager().setTamObject({tam->adapterKey()});
-
   auto tamHandle = std::make_unique<SaiTamHandle>();
   tamHandle->report = reportObj;
   tamHandle->action = action;
@@ -212,12 +205,24 @@ void SaiTamManager::addMirrorOnDropReport(
   tamHandle->tam = tam;
   tamHandle->portId = report->getMirrorPortId();
   tamHandles_.emplace(report->getID(), std::move(tamHandle));
+
+  // Associate TAM with port
+  XLOG(INFO) << "Associating TAM object " << tam->adapterKey()
+             << " with switch and port " << report->getMirrorPortId();
+  updateTamObjectOnSwitchAndPort(report->getMirrorPortId());
 #endif
 }
 
 void SaiTamManager::removeMirrorOnDropReport(
     const std::shared_ptr<MirrorOnDropReport>& report) {
+  XLOG(INFO) << "Removing MirrorOnDropReport " << report->getID();
+  auto handle = std::move(tamHandles_[report->getID()]);
   tamHandles_.erase(report->getID());
+
+  // Unbind the TAM object from port and switch before letting it destruct.
+  XLOG(INFO) << "Unassociating TAM object " << handle->tam->adapterKey()
+             << " from switch and port " << report->getMirrorPortId();
+  updateTamObjectOnSwitchAndPort(handle->portId);
 }
 
 void SaiTamManager::changeMirrorOnDropReport(
@@ -233,6 +238,19 @@ std::vector<PortID> SaiTamManager::getAllMirrorOnDropPortIds() {
     portIds.push_back(tamHandle->portId);
   }
   return portIds;
+}
+
+void SaiTamManager::updateTamObjectOnSwitchAndPort(PortID portId) {
+  std::vector<sai_object_id_t> portTamIds;
+  std::vector<sai_object_id_t> switchTamIds;
+  for (const auto& [_, tamHandle] : tamHandles_) {
+    if (tamHandle->portId == portId) {
+      portTamIds.push_back(tamHandle->tam->adapterKey());
+    }
+    switchTamIds.push_back(tamHandle->tam->adapterKey());
+  }
+  managerTable_->portManager().setTamObject(portId, portTamIds);
+  managerTable_->switchManager().setTamObject(switchTamIds);
 }
 
 } // namespace facebook::fboss
