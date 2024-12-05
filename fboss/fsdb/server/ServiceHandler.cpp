@@ -34,8 +34,8 @@ DEFINE_bool(
 DEFINE_bool(trackMetadata, true, "Enable metadata tracking");
 
 DEFINE_int32(
-    statsSubscriptionServe_s,
-    10,
+    statsSubscriptionServe_ms,
+    10000,
     "Interval at which stats subscriptions are served");
 
 DEFINE_int32(
@@ -258,7 +258,7 @@ ServiceHandler::ServiceHandler(
       operStatsStorage_(
           {},
           NaivePeriodicSubscribableStorageBase::StorageParams(
-              std::chrono::seconds(FLAGS_statsSubscriptionServe_s),
+              std::chrono::milliseconds(FLAGS_statsSubscriptionServe_ms),
               std::chrono::seconds(FLAGS_statsSubscriptionHeartbeat_s),
               FLAGS_trackMetadata,
               "fsdb",

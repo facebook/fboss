@@ -14,11 +14,20 @@
 namespace facebook::fboss::fsdb::test {
 class FsdbTestServer {
  public:
-  FsdbTestServer(uint16_t port = 0)
-      : FsdbTestServer(std::make_unique<FsdbConfig>(), port) {}
+  FsdbTestServer(
+      uint16_t port = 0,
+      uint32_t stateSubscriptionServe_ms = 50,
+      uint32_t statsSubscriptionServe_ms = 1000)
+      : FsdbTestServer(
+            std::make_unique<FsdbConfig>(),
+            port,
+            stateSubscriptionServe_ms,
+            statsSubscriptionServe_ms) {}
   explicit FsdbTestServer(
       std::shared_ptr<FsdbConfig> config,
-      uint16_t port = 0);
+      uint16_t port = 0,
+      uint32_t stateSubscriptionServe_ms = 50,
+      uint32_t statsSubscriptionServe_ms = 1000);
   ~FsdbTestServer();
 
   uint16_t getFsdbPort() const {
