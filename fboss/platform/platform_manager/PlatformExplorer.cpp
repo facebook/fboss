@@ -129,6 +129,7 @@ PlatformExplorer::PlatformExplorer(
     const PlatformConfig& config,
     const std::shared_ptr<PlatformFsUtils> platformFsUtils)
     : platformConfig_(config),
+      pciExplorer_(platformFsUtils),
       dataStore_(platformConfig_),
       devicePathResolver_(dataStore_),
       presenceChecker_(devicePathResolver_),
@@ -451,7 +452,7 @@ void PlatformExplorer::explorePciDevices(
     const std::vector<PciDeviceConfig>& pciDeviceConfigs) {
   for (const auto& pciDeviceConfig : pciDeviceConfigs) {
     try {
-      auto pciDevice = PciDevice(pciDeviceConfig);
+      auto pciDevice = PciDevice(pciDeviceConfig, platformFsUtils_);
       auto charDevPath = pciDevice.charDevPath();
       auto instId =
           getFpgaInstanceId(slotPath, *pciDeviceConfig.pmUnitScopedName());

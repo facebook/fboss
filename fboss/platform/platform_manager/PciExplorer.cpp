@@ -10,6 +10,7 @@
 #include <folly/String.h>
 #include <folly/logging/xlog.h>
 
+#include "fboss/platform/helpers/PlatformFsUtils.h"
 #include "fboss/platform/platform_manager/I2cExplorer.h"
 #include "fboss/platform/platform_manager/Utils.h"
 
@@ -50,12 +51,15 @@ fbiob_aux_data getAuxData(
 
 namespace facebook::fboss::platform::platform_manager {
 
-PciDevice::PciDevice(const PciDeviceConfig& pciDeviceConfig)
+PciDevice::PciDevice(
+    const PciDeviceConfig& pciDeviceConfig,
+    const std::shared_ptr<PlatformFsUtils> platformFsUtils)
     : name_(*pciDeviceConfig.pmUnitScopedName()),
       vendorId_(*pciDeviceConfig.vendorId()),
       deviceId_(*pciDeviceConfig.deviceId()),
       subSystemVendorId_(*pciDeviceConfig.subSystemVendorId()),
-      subSystemDeviceId_(*pciDeviceConfig.subSystemDeviceId()) {
+      subSystemDeviceId_(*pciDeviceConfig.subSystemDeviceId()),
+      platformFsUtils_(std::move(platformFsUtils)) {
   checkSysfsReadiness();
 
   // Note: bindDriver() needs to be called after checkSysfsReadiness() but
@@ -126,14 +130,13 @@ void PciDevice::bindDriver(const std::string& desiredDriver) {
     return;
   }
 
-  auto desiredDriverPath =
-      fmt::format("/sys/bus/pci/drivers/{}", desiredDriver);
+  fs::path desiredDriverPath = fs::path("/sys/bus/pci/drivers") / desiredDriver;
   if (!fs::exists(desiredDriverPath)) {
     throw std::runtime_error(fmt::format(
         "Failed to bind driver {} to device {}: {} does not exist",
         desiredDriver,
         name_,
-        desiredDriverPath));
+        desiredDriverPath.string()));
   }
 
   // Add PCI device ID to the driver's "new_id" file. Check below doc for
@@ -150,8 +153,7 @@ void PciDevice::bindDriver(const std::string& desiredDriver) {
       name_,
       pciDevId,
       desiredDriver);
-  auto cmd = fmt::format("echo {} > {}/new_id", pciDevId, desiredDriverPath);
-  PlatformUtils().execCommand(cmd);
+  platformFsUtils_->writeStringToFile(pciDevId, desiredDriverPath / "new_id");
 }
 
 void PciDevice::checkCharDevReadiness() {
@@ -190,6 +192,9 @@ std::string PciDevice::sysfsPath() const {
 std::string PciDevice::charDevPath() const {
   return charDevPath_;
 }
+
+PciExplorer::PciExplorer(const std::shared_ptr<PlatformFsUtils> platformFsUtils)
+    : platformFsUtils_(std::move(platformFsUtils)) {}
 
 std::vector<uint16_t> PciExplorer::createI2cAdapter(
     const PciDevice& pciDevice,
@@ -490,11 +495,12 @@ std::map<std::string, std::string> PciExplorer::getSpiDeviceCharDevPaths(
         // For more details on the two commands:
         // https://github.com/torvalds/linux/blob/master/Documentation/spi/spidev.rst#device-creation-driver-binding
         // Overriding driver of the SpiDevice so spidev doesn't fail to probe.
-        PlatformUtils().execCommand(fmt::format(
-            "echo spidev > /sys/bus/spi/devices/{}/driver_override", spiDevId));
+        platformFsUtils_->writeStringToFile(
+            "spidev",
+            fs::path("/sys/bus/spi/devices") / spiDevId / "driver_override");
         // Bind SpiDevice to spidev driver in order to create its char device.
-        PlatformUtils().execCommand(fmt::format(
-            "echo {} > /sys/bus/spi/drivers/spidev/bind", spiDevId));
+        platformFsUtils_->writeStringToFile(
+            spiDevId, "/sys/bus/spi/drivers/spidev/bind");
         XLOG(INFO) << fmt::format(
             "Completed binding SpiDevice {} to {} for SpiController {}",
             spiDevId,
