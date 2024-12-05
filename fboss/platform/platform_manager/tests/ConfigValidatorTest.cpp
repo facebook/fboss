@@ -57,7 +57,7 @@ TEST(ConfigValidatorTest, InvalidRootSlotType) {
   auto config = PlatformConfig();
   config.platformName() = "MERU400BIU";
   config.rootSlotType() = "SCM_SLOT";
-  config.bspKmodsRpmName() = "sample_bsp_rpm";
+  config.bspKmodsRpmName() = "sample_bsp_kmods";
   config.bspKmodsRpmVersion() = "1.0.0-4";
   EXPECT_FALSE(ConfigValidator().isValid(config));
 }
@@ -70,7 +70,7 @@ TEST(ConfigValidatorTest, ValidConfig) {
   auto pmUnitConfig = PmUnitConfig();
   pmUnitConfig.pluggedInSlotType() = "SCM_SLOT";
   config.pmUnitConfigs() = {{"FAN_TRAY", pmUnitConfig}};
-  config.bspKmodsRpmName() = "sample_bsp_rpm";
+  config.bspKmodsRpmName() = "sample_bsp_kmods";
   config.bspKmodsRpmVersion() = "1.0.0-4";
   EXPECT_TRUE(ConfigValidator().isValid(config));
 }
@@ -80,7 +80,7 @@ TEST(ConfigValidatorTest, InvalidVersionedPmUnitConfigs) {
   config.platformName() = "MERU400BIU";
   config.rootSlotType() = "SCM_SLOT";
   config.slotTypeConfigs() = {{"SCM_SLOT", getValidSlotTypeConfig()}};
-  config.bspKmodsRpmName() = "sample_bsp_rpm";
+  config.bspKmodsRpmName() = "sample_bsp_kmods";
   config.bspKmodsRpmVersion() = "1.0.0-4";
   config.versionedPmUnitConfigs() = {{"FAN_TRAY", {}}};
   EXPECT_FALSE(ConfigValidator().isValid(config));
@@ -95,7 +95,7 @@ TEST(ConfigValidatorTest, ValidVersionedPmUnitConfigs) {
   config.platformName() = "MERU400BIU";
   config.rootSlotType() = "SCM_SLOT";
   config.slotTypeConfigs() = {{"SCM_SLOT", getValidSlotTypeConfig()}};
-  config.bspKmodsRpmName() = "sample_bsp_rpm";
+  config.bspKmodsRpmName() = "sample_bsp_kmods";
   config.bspKmodsRpmVersion() = "1.0.0-4";
   auto versionedPmUnitConfig = VersionedPmUnitConfig();
   versionedPmUnitConfig.pmUnitConfig()->pluggedInSlotType() = "SCM_SLOT";
@@ -403,6 +403,10 @@ TEST(ConfigValidatorTest, BspRpm) {
   EXPECT_FALSE(ConfigValidator().isValidBspKmodsRpmVersion("5.4.6"));
   EXPECT_TRUE(ConfigValidator().isValidBspKmodsRpmVersion("5.4.6-1"));
   EXPECT_TRUE(ConfigValidator().isValidBspKmodsRpmVersion("11.44.63-14"));
+  EXPECT_FALSE(ConfigValidator().isValidBspKmodsRpmName(""));
+  EXPECT_FALSE(ConfigValidator().isValidBspKmodsRpmName("fboss_bsp_kmod"));
+  EXPECT_FALSE(ConfigValidator().isValidBspKmodsRpmName("invalid"));
+  EXPECT_TRUE(ConfigValidator().isValidBspKmodsRpmName("fboss_bsp_kmods"));
 }
 
 TEST(ConfigValidatorTest, PmUnitName) {

@@ -128,8 +128,13 @@ cpp_library(
         ":platform_manager_config-cpp2-types",
         "//fb303:service_data",
         "//fboss/platform/helpers:platform_utils",
+        "//folly:file_util",
         "//folly:string",
         "//folly/logging:logging",
+        "//thrift/lib/cpp2/protocol:protocol",
+    ],
+    exported_external_deps = [
+        "re2",
     ],
 )
 

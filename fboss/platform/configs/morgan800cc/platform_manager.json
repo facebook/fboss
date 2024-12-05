@@ -3567,23 +3567,6 @@
   },
   "bspKmodsRpmName": "cisco_bsp_kmods",
   "bspKmodsRpmVersion": "1.0.1-2",
-  "bspKmodsToReload": [
-    "cisco_fpga_pci",
-    "cisco_fpga_spi",
-    "cisco_fpga_i2c_smb",
-    "cisco_fpga_i2c_ext",
-    "cisco_fpga_xcvr",
-    "cisco_fpga_info",
-    "cisco_fpga_fanpwm",
-    "cisco_fpga_gled",
-    "cisco_fpga_gpio",
-    "cisco_fpga_wd",
-    "bp4c_lm90"
-  ],
-  "sharedKmodsToReload": [
-    "cisco_meta",
-    "cisco_util"
-  ],
   "upstreamKmodsToLoad": [
     "spidev",
     "i2c_i801"

@@ -16,22 +16,26 @@ class PkgManager {
   virtual ~PkgManager() = default;
   void processAll() const;
   // Returns true if the rpm is newly installed, false otherwise.
-  virtual bool processRpms() const;
-  virtual void processKmods() const;
+  virtual void processRpms() const;
   virtual void processLocalRpms() const;
   virtual void loadBSPKmods() const;
+  virtual void unloadBspKmods() const;
   virtual void loadUpstreamKmods() const;
   std::string getKmodsRpmName() const;
   std::string getKmodsRpmBaseWithKernelName() const;
 
+ protected:
+  virtual bool isRpmInstalled(const std::string& rpmFullName) const;
+
  private:
   void loadKmod(const std::string& moduleName) const;
   void unloadKmod(const std::string& moduleName) const;
-  bool isRpmInstalled(const std::string& rpmFullName) const;
   void installRpm(const std::string& rpmFullName, int maxAttempts) const;
   void removeOldRpms(const std::string& rpmBaseName) const;
   void runDepmod() const;
   void installLocalRpm(int maxAttempts) const;
+  std::vector<std::string> getInstalledRpms(
+      const std::string& rpmBaseName) const;
 
   const PlatformConfig& platformConfig_;
 };
