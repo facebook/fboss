@@ -32,6 +32,12 @@ ModbusDeviceType typeFromString(const std::string& str) {
   if (str == "ORV2_PSU") {
     return ModbusDeviceType::ORV2_PSU;
   }
+  if (str == "ORV3_PSU") {
+    return ModbusDeviceType::ORV3_PSU;
+  }
+  if (str == "ORV3_BBU") {
+    return ModbusDeviceType::ORV3_BBU;
+  }
   throw std::runtime_error("Unknown PSU: " + str);
 }
 
@@ -39,6 +45,10 @@ std::string typeToString(ModbusDeviceType type) {
   switch (type) {
     case ModbusDeviceType::ORV2_PSU:
       return "ORV2_PSU";
+    case ModbusDeviceType::ORV3_PSU:
+      return "ORV3_PSU";
+    case ModbusDeviceType::ORV3_BBU:
+      return "ORV3_BBU";
     default:
       break;
   }
