@@ -9,13 +9,16 @@ const thriftpath::RootThriftPath<facebook::fboss::fsdb::FsdbOperStateRoot>
 const thriftpath::RootThriftPath<facebook::fboss::fsdb::FsdbOperStatsRoot>
     statsRoot;
 const std::vector<std::string> kPublishRoot{"agent"};
+const uint32_t kStateServeIntervalMs = 50;
+const uint32_t kStatsServeIntervalMs = 50;
 
 } // anonymous namespace
 
 namespace facebook::fboss::fsdb::test {
 
 void FsdbBenchmarkTestHelper::setup() {
-  fsdbTestServer_ = std::make_unique<fsdb::test::FsdbTestServer>();
+  fsdbTestServer_ = std::make_unique<fsdb::test::FsdbTestServer>(
+      0, kStateServeIntervalMs, kStatsServeIntervalMs);
   FLAGS_fsdbPort = fsdbTestServer_->getFsdbPort();
   const std::string clientId = "agent";
   pubsubMgr_ = std::make_unique<fsdb::FsdbPubSubManager>(clientId);
@@ -76,6 +79,31 @@ FsdbBenchmarkTestHelper::getPublisherRootMetadata(bool isStats) {
 
 std::vector<std::string> FsdbBenchmarkTestHelper::getAgentStatsPath() {
   return statsRoot.agent().tokens();
+}
+
+void FsdbBenchmarkTestHelper::addSubscription(
+    const fsdb::FsdbStateSubscriber::FsdbOperStateUpdateCb& stateUpdateCb) {
+  auto stateChangeCb = [this](
+                           fsdb::SubscriptionState /*oldState*/,
+                           fsdb::SubscriptionState newState,
+                           std::optional<bool> /*initialSyncHasData*/) {
+    if (newState == fsdb::SubscriptionState::CONNECTED) {
+      subscriptionConnected_.store(true);
+    } else {
+      subscriptionConnected_.store(false);
+    }
+  };
+  // agent is Path publisher for stats
+  pubsubMgr_->addStatPathSubscription(
+      getAgentStatsPath(), stateChangeCb, stateUpdateCb);
+}
+
+bool FsdbBenchmarkTestHelper::isSubscriptionConnected() {
+  return subscriptionConnected_.load();
+}
+
+void FsdbBenchmarkTestHelper::removeSubscription() {
+  pubsubMgr_->removeStatPathSubscription(getAgentStatsPath());
 }
 
 } // namespace facebook::fboss::fsdb::test
