@@ -2,13 +2,13 @@
 # (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
 """
-   Helper script for building and running the BSP Mapping script generation.
+Helper script for building and running the BSP Mapping script generation.
 
-   This should be run from the root of the FBOSS repository.
+This should be run from the root of the FBOSS repository.
 
-   Sample invocation:
+Sample invocation:
 
-      [~/src/fboss-repo]$ ./fboss/lib/bsp/bspmapping/run-helper.py
+   [~/src/fboss-repo]$ ./fboss/lib/bsp/bspmapping/run-helper.py
 """
 
 import os
