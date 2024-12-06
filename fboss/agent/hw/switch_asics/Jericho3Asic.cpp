@@ -98,6 +98,7 @@ bool Jericho3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::INGRESS_SRAM_MIN_BUFFER_WATERMARK:
     case HwAsic::Feature::FDR_FIFO_WATERMARK:
     case HwAsic::Feature::EGRESS_CELL_ERROR_STATS:
+    case HwAsic::Feature::ECMP_MEMBER_WIDTH_INTROSPECTION:
       return true;
     // Features not expected to work on SIM
     case HwAsic::Feature::SHARED_INGRESS_EGRESS_BUFFER_POOL:
@@ -149,7 +150,6 @@ bool Jericho3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::SAI_MPLS_LABEL_LOOKUP_FAIL_COUNTER:
     case HwAsic::Feature::EXACT_MATCH:
     case HwAsic::Feature::RX_FREQUENCY_PPM:
-    case HwAsic::Feature::ECMP_MEMBER_WIDTH_INTROSPECTION:
     case HwAsic::Feature::SAI_FIRMWARE_PATH:
     // On Jericho3 ASIC we don't create any vlans but rather
     // associate RIFs directly with ports. Hence no bridge port
