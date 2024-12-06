@@ -559,7 +559,12 @@ SaiBufferProfileTraits::CreateAttributes SaiBufferManager::profileCreateAttrs(
 #endif
       0,
       0,
-      0,
+#if defined(CHENAB_SAI_SDK)
+      // Do not set xonOffset for Chenab as it is not supported
+      std::nullopt, // XonOffsetTh
+#else
+      0, // XonOffsetTh
+#endif
       sharedFadtMaxTh,
       sharedFadtMinTh,
       sramFadtMaxTh,
@@ -619,10 +624,16 @@ SaiBufferManager::ingressProfileCreateAttrs(
     xoffTh = *config.headroomLimitBytes();
   }
   SaiBufferProfileTraits::Attributes::XonTh xonTh{0}; // Not configured!
-  SaiBufferProfileTraits::Attributes::XonOffsetTh xonOffsetTh{0};
+  std::optional<SaiBufferProfileTraits::Attributes::XonOffsetTh> xonOffsetTh{};
   if (config.resumeOffsetBytes()) {
     xonOffsetTh = *config.resumeOffsetBytes();
   }
+#if !defined(CHENAB_SDK)
+  else {
+    xonOffsetTh = 0;
+  }
+#endif
+
   std::optional<SaiBufferProfileTraits::Attributes::SharedFadtMaxTh>
       sharedFadtMaxTh;
   std::optional<SaiBufferProfileTraits::Attributes::SharedFadtMinTh>
