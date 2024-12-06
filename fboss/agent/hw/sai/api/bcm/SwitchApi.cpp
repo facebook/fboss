@@ -101,8 +101,7 @@ std::optional<sai_attr_id_t> SaiSwitchTraits::Attributes::
 
 std::optional<sai_attr_id_t>
 SaiSwitchTraits::Attributes::AttributeVoqDramBoundThWrapper::operator()() {
-// TODO: Support is not yet available in 12.0
-#if defined(BRCM_SAI_SDK_DNX_GTE_11_0) && !defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
   return SAI_SWITCH_ATTR_VOQ_DRAM_BOUND_TH;
 #else
   return std::nullopt;
@@ -184,8 +183,7 @@ SaiSwitchTraits::sramMinBufferWatermarkBytes() {
 }
 
 const std::vector<sai_stat_id_t>& SaiSwitchTraits::fdrFifoWatermarkBytes() {
-// TODO: Support is not yet available in 12.0
-#if defined(BRCM_SAI_SDK_DNX_GTE_11_0) && !defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
   static const std::vector<sai_stat_id_t> stats{
       SAI_SWITCH_STAT_FDR_RX_QUEUE_WM_LEVEL};
 #else

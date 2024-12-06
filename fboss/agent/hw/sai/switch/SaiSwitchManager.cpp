@@ -1099,7 +1099,7 @@ void SaiSwitchManager::setLinkFlowControlCreditTh(
 }
 
 void SaiSwitchManager::setVoqDramBoundTh(uint32_t dramBoundThreshold) {
-#if defined(BRCM_SAI_SDK_DNX_GTE_11_0) && !defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
   // There are 3 different types of rate classes available and
   // dramBound, upper and lower limits are applied to each of
   // those. However, in our case, we just need to set the same
