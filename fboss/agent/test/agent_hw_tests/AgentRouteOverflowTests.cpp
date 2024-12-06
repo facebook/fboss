@@ -108,7 +108,7 @@ TEST_F(AgentRouteOverflowTest, overflowRoutes) {
     case PlatformType::PLATFORM_TAHAN800BC:
       break;
     case PlatformType::PLATFORM_YANGRA:
-      // No overflow test for Yangra
+      XLOG(WARNING) << " No overflow test for YANGRA yet";
       break;
   }
   if (routeChunks.size() == 0) {
