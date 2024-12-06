@@ -458,8 +458,7 @@ SaiSwitchTraits::Attributes::AttributeMaxVoqs::operator()() {
 }
 std::optional<sai_attr_id_t>
 SaiSwitchTraits::Attributes::AttributeCondEntropyRehashPeriodUS::operator()() {
-// TODO(zecheng): Update flag when new 12.0 release has the attribute
-#if defined(SAI_VERSION_11_7_0_0_DNX_ODP)
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
   return SAI_SWITCH_ATTR_COND_ENTROPY_REHASH_PERIOD_US;
 #endif
   return std::nullopt;

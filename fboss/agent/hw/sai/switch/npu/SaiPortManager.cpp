@@ -657,8 +657,7 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
 
   std::optional<SaiPortTraits::Attributes::CondEntropyRehashEnable>
       condEntropyRehashEnable{};
-// TODO(zecheng): Update flag when new 12.0 release has the attribute
-#if defined(BRCM_SAI_SDK_DNX_GTE_11_0) && !defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
   condEntropyRehashEnable = swPort->getConditionalEntropyRehash();
 #endif
   std::optional<SaiPortTraits::Attributes::ShelEnable> shelEnable{};
