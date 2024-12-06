@@ -16,6 +16,10 @@ FsdbPatchSubscriberImpl<MessageType, SubUnit, PathElement>::createRequest()
   RawOperPath path;
   request.paths() = this->subscribePaths();
   request.forceSubscribe() = this->subscriptionOptions().forceSubscribe_;
+  if (this->subscriptionOptions().heartbeatInterval_.has_value()) {
+    request.heartbeatInterval() =
+        this->subscriptionOptions().heartbeatInterval_.value();
+  }
   return request;
 }
 
