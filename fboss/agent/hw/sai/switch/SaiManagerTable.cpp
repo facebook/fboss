@@ -111,10 +111,7 @@ void SaiManagerTable::createSaiTableManagers(
   lagManager_ = std::make_unique<SaiLagManager>(
       saiStore, this, platform, concurrentIndices);
   wredManager_ = std::make_unique<SaiWredManager>(saiStore, this, platform);
-  // CSP CS00011823810
-#if !defined(BRCM_SAI_SDK_XGS_AND_DNX) || defined(BRCM_SAI_SDK_DNX_GTE_11_0)
   tamManager_ = std::make_unique<SaiTamManager>(saiStore, this, platform);
-#endif
   tunnelManager_ = std::make_unique<SaiTunnelManager>(saiStore, this, platform);
   teFlowEntryManager_ =
       std::make_unique<UnsupportedFeatureManager>("EM entries");
@@ -205,11 +202,7 @@ void SaiManagerTable::reset(bool skipSwitchManager) {
   }
   switchManager_->resetTamObject();
 #endif
-
-// CSP CS00011823810
-#if !defined(BRCM_SAI_SDK_XGS_AND_DNX) || defined(BRCM_SAI_SDK_DNX_GTE_11_0)
   tamManager_.reset();
-#endif
 
   // ports may be referenced in acls, reset ports after acls
   systemPortManager_.reset();
