@@ -386,6 +386,75 @@ TYPED_TEST(SubscribableStorageTests, SubscribePatchHeartbeat) {
   EXPECT_EQ(msg.getType(), SubscriberMessage::Type::heartbeat);
 }
 
+TYPED_TEST(SubscribableStorageTests, SubscribeHeartbeatConfigured) {
+  FLAGS_serveHeartbeats = true;
+  auto storage = this->initStorage(this->testStruct);
+  storage.setConvertToIDPaths(true);
+  storage.start();
+
+  SubscriptionStorageParams params1(std::chrono::seconds(2));
+  SubscriptionStorageParams params2(std::chrono::seconds(10));
+
+  auto generator1 = storage.subscribe_patch(kSubscriber, this->root, params1);
+  auto generator2 = storage.subscribe_patch(kSubscriber, this->root, params2);
+
+  auto msg1 = folly::coro::blockingWait(
+      folly::coro::timeout(consumeOne(generator1), std::chrono::seconds(20)));
+  // first message is initial sync
+  EXPECT_EQ(msg1.getType(), SubscriberMessage::Type::chunk);
+  // Should recv heartbeat every 2 seconds. Allow leeway incase previous
+  // heartbeat was just sent
+  msg1 = folly::coro::blockingWait(
+      folly::coro::timeout(consumeOne(generator1), std::chrono::seconds(3)));
+  EXPECT_EQ(msg1.getType(), SubscriberMessage::Type::heartbeat);
+
+  // First sync post subscription setup
+  auto msg2 = folly::coro::blockingWait(
+      folly::coro::timeout(consumeOne(generator2), std::chrono::seconds(5)));
+
+  // Heartbeat configured for 10 seconds, so we should not see one within 8
+  try {
+    msg2 = folly::coro::blockingWait(
+        folly::coro::timeout(consumeOne(generator2), std::chrono::seconds(3)));
+  } catch (const std::exception& ex) {
+    EXPECT_EQ(typeid(ex), typeid(folly::FutureTimeout));
+  }
+}
+
+TYPED_TEST(SubscribableStorageTests, SubscribeHeartbeatNotReceived) {
+  FLAGS_serveHeartbeats = true;
+  auto storage = this->initStorage(this->testStruct);
+  storage.setConvertToIDPaths(true);
+  storage.start();
+
+  SubscriptionStorageParams params(std::chrono::seconds(30));
+
+  auto generator1 = storage.subscribe_patch(kSubscriber, this->root, params);
+  // Keep default subscription hearbeat interval of 5 seconds
+  auto generator2 = storage.subscribe_patch(kSubscriber, this->root);
+
+  auto msg1 = folly::coro::blockingWait(
+      folly::coro::timeout(consumeOne(generator1), std::chrono::seconds(20)));
+  // first message is initial sync
+  EXPECT_EQ(msg1.getType(), SubscriberMessage::Type::chunk);
+  // Should not receive any heartbeat
+  try {
+    msg1 = folly::coro::blockingWait(
+        folly::coro::timeout(consumeOne(generator1), std::chrono::seconds(20)));
+  } catch (const std::exception& ex) {
+    EXPECT_EQ(typeid(ex), typeid(folly::FutureTimeout));
+  }
+  // First sync post subscription setup
+  auto msg2 = folly::coro::blockingWait(
+      folly::coro::timeout(consumeOne(generator2), std::chrono::seconds(5)));
+
+  // Should recv heartbeat every 5 seconds(default interval). Allow leeway
+  // incase previous heartbeat was just sent
+  msg2 = folly::coro::blockingWait(
+      folly::coro::timeout(consumeOne(generator2), std::chrono::seconds(6)));
+  EXPECT_EQ(msg2.getType(), SubscriberMessage::Type::heartbeat);
+}
+
 TYPED_TEST(SubscribableStorageTests, SubscribeDeltaUpdate) {
   auto storage = this->initStorage(this->testStruct);
   storage.start();
