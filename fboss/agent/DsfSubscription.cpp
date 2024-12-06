@@ -13,6 +13,11 @@
 #include "fboss/thrift_cow/nodes/Serializer.h"
 #include "fboss/util/Logging.h"
 
+DEFINE_int32(
+    dsf_subscription_chunk_timeout,
+    15,
+    "Chunk timeout in seconds for DSF FSDB subscriptions");
+
 using namespace facebook::fboss;
 namespace {
 const thriftpath::RootThriftPath<facebook::fboss::fsdb::FsdbOperStateRoot>
@@ -136,6 +141,7 @@ void DsfSubscription::setupSubscription() {
                                  std::optional<bool> /*initialSyncHasData*/) {
     handleFsdbSubscriptionStateUpdate(oldState, newState);
   };
+  FLAGS_fsdb_state_chunk_timeout = FLAGS_dsf_subscription_chunk_timeout;
   if (FLAGS_dsf_subscribe_patch) {
     auto remoteEndpoint = makeRemoteEndpoint(localNodeName_, localIp_);
     auto sysPortPathKey = subMgr_->addPath(getSystemPortsPath());
