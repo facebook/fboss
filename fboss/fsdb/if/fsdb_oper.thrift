@@ -97,6 +97,7 @@ struct OperSubRequest {
   3: fsdb_common.SubscriberId subscriberId;
   // Forcefully subscribe even if there is already a subscriber with the same SubscriberId
   4: bool forceSubscribe = false;
+  5: optional i64 heartbeatInterval;
 }
 
 struct OperSubInitResponse {}
@@ -108,6 +109,7 @@ struct OperSubRequestExtended {
   3: fsdb_common.SubscriberId subscriberId;
   // Forcefully subscribe even if there is already a subscriber with the same SubscriberId
   4: bool forceSubscribe = false;
+  5: optional i64 heartbeatInterval;
 }
 
 struct OperSubPathUnit {
@@ -136,6 +138,7 @@ struct SubRequest {
   3: fsdb_common.ClientId clientId;
   // Forcefully subscribe even if there is already a subscriber with the same SubscriberId
   4: bool forceSubscribe = false;
+  5: optional i64 heartbeatInterval;
 }
 
 struct Patch {
