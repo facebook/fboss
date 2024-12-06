@@ -75,9 +75,10 @@ bool ChenabAsic::isSupportedNonFabric(Feature feature) const {
     case HwAsic::Feature::RESOURCE_USAGE_STATS:
     case HwAsic::Feature::SAI_TTL0_PACKET_FORWARD_ENABLE:
     case HwAsic::Feature::L3_INTF_MTU:
-    case HwAsic::Feature::PORT_MTU_ERROR_TRAP:
     case HwAsic::Feature::EGRESS_ACL_TABLE:
+    case HwAsic::Feature::SAI_USER_DEFINED_TRAP:
       return true;
+    case HwAsic::Feature::PORT_MTU_ERROR_TRAP:
     case HwAsic::Feature::EVENTOR_PORT_FOR_SFLOW:
     case HwAsic::Feature::SAI_ECMP_HASH_ALGORITHM:
     case HwAsic::Feature::SWITCH_REACHABILITY_CHANGE_NOTIFY:
@@ -171,7 +172,6 @@ bool ChenabAsic::isSupportedNonFabric(Feature feature) const {
     case HwAsic::Feature::FLOWLET_PORT_ATTRIBUTES:
     case HwAsic::Feature::P4_WARMBOOT:
     case HwAsic::Feature::SAI_EAPOL_TRAP:
-    case HwAsic::Feature::SAI_USER_DEFINED_TRAP:
     case HwAsic::Feature::CREDIT_WATCHDOG:
     case HwAsic::Feature::ECMP_DLB_OFFSET:
     case HwAsic::Feature::SAI_FEC_CORRECTED_BITS:
