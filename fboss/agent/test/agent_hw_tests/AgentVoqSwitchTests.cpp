@@ -39,28 +39,14 @@ class AgentVoqSwitchTest : public AgentHwTest {
       const AgentEnsemble& ensemble) const override {
     // Increase the query timeout to be 5sec
     FLAGS_hwswitch_query_timeout = 5000;
-    // Before m-mpu agent test, use first Asic for initialization.
-    auto switchIds = ensemble.getSw()->getHwAsicTable()->getSwitchIDs();
-    CHECK_GE(switchIds.size(), 1);
-    auto asic =
-        ensemble.getSw()->getHwAsicTable()->getHwAsic(*switchIds.cbegin());
     auto config = utility::onePortPerInterfaceConfig(
         ensemble.getSw(),
         ensemble.masterLogicalPortIds(),
         true /*interfaceHasSubnet*/);
-    const auto& cpuStreamTypes =
-        asic->getQueueStreamTypes(cfg::PortType::CPU_PORT);
-    for (const auto& cpuStreamType : cpuStreamTypes) {
-      if (asic->getDefaultNumPortQueues(
-              cpuStreamType, cfg::PortType::CPU_PORT)) {
-        // cpu queues supported
-        auto l3Asics = ensemble.getSw()->getHwAsicTable()->getL3Asics();
-        addCpuTrafficPolicy(config, l3Asics);
-        utility::addCpuQueueConfig(config, l3Asics, ensemble.isSai());
-        break;
-      }
-    }
     utility::addNetworkAIQosMaps(config, ensemble.getL3Asics());
+    utility::setDefaultCpuTrafficPolicyConfig(
+        config, ensemble.getL3Asics(), ensemble.isSai());
+    utility::addCpuQueueConfig(config, ensemble.getL3Asics(), ensemble.isSai());
     return config;
   }
 
@@ -342,34 +328,6 @@ class AgentVoqSwitchTest : public AgentHwTest {
       return out;
     });
     return portDescs;
-  }
-
- private:
-  void addCpuTrafficPolicy(
-      cfg::SwitchConfig& cfg,
-      std::vector<const HwAsic*>& l3Asics) const {
-    cfg::CPUTrafficPolicyConfig cpuConfig;
-    std::vector<cfg::PacketRxReasonToQueue> rxReasonToQueues;
-    std::vector<std::pair<cfg::PacketRxReason, uint16_t>>
-        rxReasonToQueueMappings = {
-            std::pair(
-                cfg::PacketRxReason::BGP,
-                utility::getCoppHighPriQueueId(l3Asics)),
-            std::pair(
-                cfg::PacketRxReason::BGPV6,
-                utility::getCoppHighPriQueueId(l3Asics)),
-            std::pair(
-                cfg::PacketRxReason::CPU_IS_NHOP,
-                utility::getCoppMidPriQueueId(l3Asics)),
-        };
-    for (auto rxEntry : rxReasonToQueueMappings) {
-      auto rxReasonToQueue = cfg::PacketRxReasonToQueue();
-      rxReasonToQueue.rxReason() = rxEntry.first;
-      rxReasonToQueue.queueId() = rxEntry.second;
-      rxReasonToQueues.push_back(rxReasonToQueue);
-    }
-    cpuConfig.rxReasonToQueueOrderedList() = rxReasonToQueues;
-    cfg.cpuTrafficPolicy() = cpuConfig;
   }
 };
 
