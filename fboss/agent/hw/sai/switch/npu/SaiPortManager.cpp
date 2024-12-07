@@ -635,7 +635,7 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
   auto portPfcInfo = getPortPfcAttributes(swPort);
 
 #if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
-  std::optional<SaiPortTraits::Attributes::ArsEnable> arsEnable = false;
+  std::optional<SaiPortTraits::Attributes::ArsEnable> arsEnable = std::nullopt;
   std::optional<SaiPortTraits::Attributes::ArsPortLoadScalingFactor>
       arsPortLoadScalingFactor = std::nullopt;
   std::optional<SaiPortTraits::Attributes::ArsPortLoadPastWeight>
