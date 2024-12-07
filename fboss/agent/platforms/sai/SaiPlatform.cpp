@@ -704,7 +704,7 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
     maxSystemPortId = 32515;
     maxLocalSystemPortId = 5;
     maxSystemPorts = 21766;
-    maxVoqs = 64512;
+    maxVoqs = 64536;
   } else {
     maxSystemPortId = 6143;
     maxLocalSystemPortId = -1;
