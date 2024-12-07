@@ -1166,9 +1166,13 @@ cfg::MatchAction getToQueueActionForSai(
     const std::optional<cfg::ToCpuAction> toCpuAction) {
   cfg::MatchAction action;
   if (FLAGS_sai_user_defined_trap) {
-    cfg::UserDefinedTrapAction userDefinedTrap;
-    userDefinedTrap.queueId() = queueId;
-    action.userDefinedTrap() = userDefinedTrap;
+    if (toCpuAction.has_value()) {
+      // if toCpuAction is null, then its forward by default, so don't add a
+      // user defined trap as packet neither copied nor trapped to CPU
+      cfg::UserDefinedTrapAction userDefinedTrap;
+      userDefinedTrap.queueId() = queueId;
+      action.userDefinedTrap() = userDefinedTrap;
+    }
     // assume tc i maps to queue i for all i on sai switches
     cfg::SetTcAction setTc;
     setTc.tcValue() = queueId;
