@@ -458,6 +458,16 @@ void SaiPortManager::attributesFromSaiStore(
       SaiPortTraits::Attributes::QosPfcPriorityToQueueMap{});
   getAndSetAttribute(
       port->attributes(), attributes, SaiPortTraits::Attributes::TamObject{});
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 2)
+  getAndSetAttribute(
+      port->attributes(),
+      attributes,
+      SaiPortTraits::Attributes::PfcTcDldInterval{});
+  getAndSetAttribute(
+      port->attributes(),
+      attributes,
+      SaiPortTraits::Attributes::PfcTcDlrInterval{});
+#endif
   if (platform_->getAsic()->isSupported(
           HwAsic::Feature::PORT_TTL_DECREMENT_DISABLE)) {
     getAndSetAttribute(

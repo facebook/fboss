@@ -576,12 +576,17 @@ class AgentTrafficPfcWatchdogTest : public AgentTrafficPfcTest {
     cfg::PfcWatchdog pfcWatchdog;
     if (enable) {
       pfcWatchdog.recoveryAction() = cfg::PfcWatchdogRecoveryAction::NO_DROP;
+      // Configure values that works for specific HW, include ASIC type checks
+      // if needed, given some HW has limitations on the specific values that
+      // can be programmed and we need to ensure that the configured value here
+      // is in sync with what is in SAI/SDK to avoid a reprogramming attempt
+      // during warmboot.
       if (canTriggerPfcDeadlockDetectionWithTraffic()) {
         pfcWatchdog.recoveryTimeMsecs() = 10;
         pfcWatchdog.detectionTimeMsecs() = 1;
       } else {
         pfcWatchdog.recoveryTimeMsecs() = 1000;
-        pfcWatchdog.detectionTimeMsecs() = 200;
+        pfcWatchdog.detectionTimeMsecs() = 198;
       }
     }
 
