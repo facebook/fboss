@@ -1475,14 +1475,24 @@ TEST_F(AgentVoqSwitchTest, dramEnqueueDequeueBytes) {
 TEST_F(AgentVoqSwitchTest, verifyQueueLatencyWatermark) {
   utility::EcmpSetupAnyNPorts6 ecmpHelper(getProgrammedState());
   const auto kPort = ecmpHelper.ecmpPortDescriptorAt(0);
-  auto setup = [this, kPort]() {
+  const uint64_t kLocalVoqMaxExpectedLatencyNsec{10000};
+  const uint64_t kRemoteL1VoqMaxExpectedLatencyNsec{100000};
+  const uint64_t kRemoteL2VoqMaxExpectedLatencyNsec{100000};
+  const uint64_t kOutOfBoundsLatencyNsec{2147483647};
+  auto setup = [&]() {
+    auto cfg = initialConfig(*getAgentEnsemble());
+    cfg.switchSettings()->localVoqMaxExpectedLatencyNsec() =
+        kLocalVoqMaxExpectedLatencyNsec;
+    cfg.switchSettings()->remoteL1VoqMaxExpectedLatencyNsec() =
+        kRemoteL1VoqMaxExpectedLatencyNsec;
+    cfg.switchSettings()->remoteL2VoqMaxExpectedLatencyNsec() =
+        kRemoteL2VoqMaxExpectedLatencyNsec;
+    cfg.switchSettings()->voqOutOfBoundsLatencyNsec() = kOutOfBoundsLatencyNsec;
+    applyNewConfig(cfg);
     addRemoveNeighbor(kPort, true /* add neighbor*/);
   };
 
-  auto verify = [this, kPort, &ecmpHelper]() {
-    // Disable both port TX and credit watchdog
-    utility::setCreditWatchdogAndPortTx(
-        getAgentEnsemble(), kPort.phyPortID(), false);
+  auto verify = [&]() {
     auto queueId{0};
     auto dscpForQueue =
         utility::kOlympicQueueToDscp().find(queueId)->second.at(0);
@@ -1495,19 +1505,36 @@ TEST_F(AgentVoqSwitchTest, verifyQueueLatencyWatermark) {
             dscpForQueue);
       }
     };
+    auto waitForQueueLatencyWatermark =
+        [this, &kPort, &queueId](uint64_t expectedLatencyWatermarkNsec) {
+          uint64_t queueLatencyWatermarkNsec;
+          WITH_RETRIES({
+            queueLatencyWatermarkNsec =
+                getLatestSysPortStats(
+                    getSystemPortID(kPort, cfg::Scope::GLOBAL))
+                    .queueLatencyWatermarkNsec_()[queueId];
+            XLOG(DBG2) << "Port: " << kPort.phyPortID()
+                       << " voq queueId: " << queueId
+                       << " latency watermark: " << queueLatencyWatermarkNsec
+                       << " nsec";
+            EXPECT_EVENTUALLY_EQ(
+                queueLatencyWatermarkNsec, expectedLatencyWatermarkNsec);
+          });
+        };
+    // Disable both port TX and credit watchdog
+    utility::setCreditWatchdogAndPortTx(
+        getAgentEnsemble(), kPort.phyPortID(), false);
+    // Send packets and let it sit in the VoQ
     sendPkts();
     sleep(1);
     // Enable port TX
     utility::setPortTx(getAgentEnsemble(), kPort.phyPortID(), true);
-    WITH_RETRIES({
-      auto queueLatencyWatermarkNsec =
-          *getLatestSysPortStats(getSystemPortID(kPort, cfg::Scope::GLOBAL))
-               .queueLatencyWatermarkNsec_();
-      XLOG(DBG2) << "Port: " << kPort.phyPortID() << " voq queueId: " << queueId
-                 << " latency watermark: " << queueLatencyWatermarkNsec[queueId]
-                 << " nsec";
-      EXPECT_EVENTUALLY_GT(queueLatencyWatermarkNsec[queueId], 5000);
-    });
+    // VoQ latency exceeded the configured max latency
+    waitForQueueLatencyWatermark(kOutOfBoundsLatencyNsec);
+    // Now, send packets without any delays
+    sendPkts();
+    // VoQ latency is less than max expected for local VoQ
+    waitForQueueLatencyWatermark(kLocalVoqMaxExpectedLatencyNsec);
   };
   verifyAcrossWarmBoots(setup, verify);
 }
