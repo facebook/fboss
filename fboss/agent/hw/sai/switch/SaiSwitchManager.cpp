@@ -1140,4 +1140,43 @@ void SaiSwitchManager::setShelConfig(
   }
 }
 
+void SaiSwitchManager::setLocalVoqMaxExpectedLatency(
+    int localVoqMaxExpectedLatencyNsec) {
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
+  switch_->setOptionalAttribute(
+      SaiSwitchTraits::Attributes::VoqLatencyMinLocalNs{
+          localVoqMaxExpectedLatencyNsec});
+#endif
+}
+
+void SaiSwitchManager::setRemoteL1VoqMaxExpectedLatency(
+    int remoteL1VoqMaxExpectedLatencyNsec) {
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
+  switch_->setOptionalAttribute(
+      SaiSwitchTraits::Attributes::VoqLatencyMinLevel1Ns{
+          remoteL1VoqMaxExpectedLatencyNsec});
+#endif
+}
+
+void SaiSwitchManager::setRemoteL2VoqMaxExpectedLatency(
+    int remoteL2VoqMaxExpectedLatencyNsec) {
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
+  switch_->setOptionalAttribute(
+      SaiSwitchTraits::Attributes::VoqLatencyMinLevel2Ns{
+          remoteL2VoqMaxExpectedLatencyNsec});
+#endif
+}
+
+void SaiSwitchManager::setVoqOutOfBoundsLatency(int voqOutOfBoundsLatency) {
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
+  switch_->setOptionalAttribute(
+      SaiSwitchTraits::Attributes::VoqLatencyMaxLocalNs{voqOutOfBoundsLatency});
+  switch_->setOptionalAttribute(
+      SaiSwitchTraits::Attributes::VoqLatencyMaxLevel1Ns{
+          voqOutOfBoundsLatency});
+  switch_->setOptionalAttribute(
+      SaiSwitchTraits::Attributes::VoqLatencyMaxLevel2Ns{
+          voqOutOfBoundsLatency});
+#endif
+}
 } // namespace facebook::fboss

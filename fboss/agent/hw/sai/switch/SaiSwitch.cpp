@@ -1404,6 +1404,52 @@ void SaiSwitch::processSwitchSettingsChangeSansDrainedEntryLocked(
       managerTable_->switchManager().setShelConfig(newShelConfig);
     }
   }
+
+  {
+    const auto oldLocalVoqMaxExpectedLatencyNs =
+        oldSwitchSettings->getLocalVoqMaxExpectedLatencyNsec();
+    const auto newLocalVoqMaxExpectedLatencyNs =
+        newSwitchSettings->getLocalVoqMaxExpectedLatencyNsec();
+    if (oldLocalVoqMaxExpectedLatencyNs != newLocalVoqMaxExpectedLatencyNs) {
+      managerTable_->switchManager().setLocalVoqMaxExpectedLatency(
+          newLocalVoqMaxExpectedLatencyNs.value_or(0));
+    }
+  }
+
+  {
+    const auto oldRemoteL1VoqMaxExpectedLatencyNs =
+        oldSwitchSettings->getRemoteL1VoqMaxExpectedLatencyNsec();
+    const auto newRemoteL1VoqMaxExpectedLatencyNs =
+        newSwitchSettings->getRemoteL1VoqMaxExpectedLatencyNsec();
+    if (oldRemoteL1VoqMaxExpectedLatencyNs !=
+        newRemoteL1VoqMaxExpectedLatencyNs) {
+      managerTable_->switchManager().setRemoteL1VoqMaxExpectedLatency(
+          newRemoteL1VoqMaxExpectedLatencyNs.value_or(0));
+    }
+  }
+
+  {
+    const auto oldRemoteL2VoqMaxExpectedLatencyNs =
+        oldSwitchSettings->getRemoteL2VoqMaxExpectedLatencyNsec();
+    const auto newRemoteL2VoqMaxExpectedLatencyNs =
+        newSwitchSettings->getRemoteL2VoqMaxExpectedLatencyNsec();
+    if (oldRemoteL2VoqMaxExpectedLatencyNs !=
+        newRemoteL2VoqMaxExpectedLatencyNs) {
+      managerTable_->switchManager().setRemoteL2VoqMaxExpectedLatency(
+          newRemoteL2VoqMaxExpectedLatencyNs.value_or(0));
+    }
+  }
+
+  {
+    const auto oldVoqOutOfBoundsLatencyNs =
+        oldSwitchSettings->getVoqOutOfBoundsLatencyNsec();
+    const auto newVoqOutOfBoundsLatencyNs =
+        newSwitchSettings->getVoqOutOfBoundsLatencyNsec();
+    if (oldVoqOutOfBoundsLatencyNs != newVoqOutOfBoundsLatencyNs) {
+      managerTable_->switchManager().setVoqOutOfBoundsLatency(
+          newVoqOutOfBoundsLatencyNs.value_or(0));
+    }
+  }
 }
 
 template <typename LockPolicyT>
