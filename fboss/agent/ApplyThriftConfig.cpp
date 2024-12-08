@@ -4699,6 +4699,54 @@ shared_ptr<SwitchSettings> ThriftConfigApplier::updateSwitchSettings(
     switchSettingsChange = true;
   }
 
+  std::optional<int32_t> newLocalVoqMaxExpectedLatencyNsec;
+  if (cfg_->switchSettings()->localVoqMaxExpectedLatencyNsec()) {
+    newLocalVoqMaxExpectedLatencyNsec =
+        *cfg_->switchSettings()->localVoqMaxExpectedLatencyNsec();
+  }
+  if (newLocalVoqMaxExpectedLatencyNsec !=
+      origSwitchSettings->getLocalVoqMaxExpectedLatencyNsec()) {
+    newSwitchSettings->setLocalVoqMaxExpectedLatencyNsec(
+        newLocalVoqMaxExpectedLatencyNsec);
+    switchSettingsChange = true;
+  }
+
+  std::optional<int32_t> newRemoteL1VoqMaxExpectedLatencyNsec;
+  if (cfg_->switchSettings()->remoteL1VoqMaxExpectedLatencyNsec()) {
+    newRemoteL1VoqMaxExpectedLatencyNsec =
+        *cfg_->switchSettings()->remoteL1VoqMaxExpectedLatencyNsec();
+  }
+  if (newRemoteL1VoqMaxExpectedLatencyNsec !=
+      origSwitchSettings->getRemoteL1VoqMaxExpectedLatencyNsec()) {
+    newSwitchSettings->setRemoteL1VoqMaxExpectedLatencyNsec(
+        newRemoteL1VoqMaxExpectedLatencyNsec);
+    switchSettingsChange = true;
+  }
+
+  std::optional<int32_t> newRemoteL2VoqMaxExpectedLatencyNsec;
+  if (cfg_->switchSettings()->remoteL2VoqMaxExpectedLatencyNsec()) {
+    newRemoteL2VoqMaxExpectedLatencyNsec =
+        *cfg_->switchSettings()->remoteL2VoqMaxExpectedLatencyNsec();
+  }
+  if (newRemoteL2VoqMaxExpectedLatencyNsec !=
+      origSwitchSettings->getRemoteL2VoqMaxExpectedLatencyNsec()) {
+    newSwitchSettings->setRemoteL2VoqMaxExpectedLatencyNsec(
+        newRemoteL2VoqMaxExpectedLatencyNsec);
+    switchSettingsChange = true;
+  }
+
+  std::optional<int32_t> newVoqOutOfBoundsLatencyNsec;
+  if (cfg_->switchSettings()->voqOutOfBoundsLatencyNsec()) {
+    newVoqOutOfBoundsLatencyNsec =
+        *cfg_->switchSettings()->voqOutOfBoundsLatencyNsec();
+  }
+  if (newVoqOutOfBoundsLatencyNsec !=
+      origSwitchSettings->getVoqOutOfBoundsLatencyNsec()) {
+    newSwitchSettings->setVoqOutOfBoundsLatencyNsec(
+        newVoqOutOfBoundsLatencyNsec);
+    switchSettingsChange = true;
+  }
+
   if (origSwitchSettings->getSwitchDrainState() !=
       *cfg_->switchSettings()->switchDrainState()) {
     auto numVoqSwtitches =
