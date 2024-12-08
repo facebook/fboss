@@ -700,6 +700,78 @@ class SwitchSettings
     }
   }
 
+  std::optional<int32_t> getLocalVoqMaxExpectedLatencyNsec() const {
+    if (auto localVoqMaxExpectedLatencyNs =
+            cref<switch_state_tags::localVoqMaxExpectedLatencyNsec>()) {
+      return localVoqMaxExpectedLatencyNs->toThrift();
+    }
+    return std::nullopt;
+  }
+
+  void setLocalVoqMaxExpectedLatencyNsec(
+      std::optional<int32_t> localVoqMaxExpectedLatencyNs) {
+    if (!localVoqMaxExpectedLatencyNs) {
+      ref<switch_state_tags::localVoqMaxExpectedLatencyNsec>().reset();
+    } else {
+      set<switch_state_tags::localVoqMaxExpectedLatencyNsec>(
+          *localVoqMaxExpectedLatencyNs);
+    }
+  }
+
+  std::optional<int32_t> getRemoteL1VoqMaxExpectedLatencyNsec() const {
+    if (auto remoteL1VoqMaxExpectedLatencyNs =
+            cref<switch_state_tags::remoteL1VoqMaxExpectedLatencyNsec>()) {
+      return remoteL1VoqMaxExpectedLatencyNs->toThrift();
+    }
+    return std::nullopt;
+  }
+
+  void setRemoteL1VoqMaxExpectedLatencyNsec(
+      std::optional<int32_t> remoteL1VoqMaxExpectedLatencyNs) {
+    if (!remoteL1VoqMaxExpectedLatencyNs) {
+      ref<switch_state_tags::remoteL1VoqMaxExpectedLatencyNsec>().reset();
+    } else {
+      set<switch_state_tags::remoteL1VoqMaxExpectedLatencyNsec>(
+          *remoteL1VoqMaxExpectedLatencyNs);
+    }
+  }
+
+  std::optional<int32_t> getRemoteL2VoqMaxExpectedLatencyNsec() const {
+    if (auto remoteL2VoqMaxExpectedLatencyNs =
+            cref<switch_state_tags::remoteL2VoqMaxExpectedLatencyNsec>()) {
+      return remoteL2VoqMaxExpectedLatencyNs->toThrift();
+    }
+    return std::nullopt;
+  }
+
+  void setRemoteL2VoqMaxExpectedLatencyNsec(
+      std::optional<int32_t> remoteL2VoqMaxExpectedLatencyNs) {
+    if (!remoteL2VoqMaxExpectedLatencyNs) {
+      ref<switch_state_tags::remoteL2VoqMaxExpectedLatencyNsec>().reset();
+    } else {
+      set<switch_state_tags::remoteL2VoqMaxExpectedLatencyNsec>(
+          *remoteL2VoqMaxExpectedLatencyNs);
+    }
+  }
+
+  std::optional<int32_t> getVoqOutOfBoundsLatencyNsec() const {
+    if (auto voqOutOfBoundsLatencyNs =
+            cref<switch_state_tags::voqOutOfBoundsLatencyNsec>()) {
+      return voqOutOfBoundsLatencyNs->toThrift();
+    }
+    return std::nullopt;
+  }
+
+  void setVoqOutOfBoundsLatencyNsec(
+      std::optional<int32_t> voqOutOfBoundsLatencyNs) {
+    if (!voqOutOfBoundsLatencyNs) {
+      ref<switch_state_tags::voqOutOfBoundsLatencyNsec>().reset();
+    } else {
+      set<switch_state_tags::voqOutOfBoundsLatencyNsec>(
+          *voqOutOfBoundsLatencyNs);
+    }
+  }
+
   SwitchSettings* modify(std::shared_ptr<SwitchState>* state);
 
  private:
