@@ -106,6 +106,8 @@ class SaiQueueManager {
   const std::vector<sai_stat_id_t>& supportedNonWatermarkCounterIdsRead(
       int queueType,
       SaiQueueHandle* queueHandle) const;
+  const std::vector<sai_stat_id_t>&
+  supportedVoqWatermarkCounterIdsReadAndClear() const;
 
   const std::vector<sai_stat_id_t>& egressQueueNonWatermarkCounterIdsRead(
       int queueType) const;
