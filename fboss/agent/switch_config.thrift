@@ -1786,6 +1786,14 @@ struct SwitchSettings {
   24: optional string firmwarePath;
   // SHEL attributes to configure 1. SHEL message SrcIP, 2. DstIp, and 3. Interval for SHEL periodic messages
   25: optional SelfHealingEcmpLagConfig selfHealingEcmpLagConfig;
+  // Specify the maximum expected latency for local, remote l1,
+  // remote l2 VOQs. Any latency exceeding the specified latency
+  // will be flagged in the VoQ latency watermark counters with
+  // the out of bounds latency value configured.
+  26: optional i32 localVoqMaxExpectedLatencyNsec;
+  27: optional i32 remoteL1VoqMaxExpectedLatencyNsec;
+  28: optional i32 remoteL2VoqMaxExpectedLatencyNsec;
+  29: optional i32 voqOutOfBoundsLatencyNsec;
 }
 
 // Global buffer pool
