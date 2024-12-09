@@ -370,6 +370,21 @@ struct Mirror {
   5: optional i32 samplingRate;
 }
 
+/*
+ * Aggregation of mirror-on-drop reasons. The exact drop reasons corresponding to each
+ * enum is platform-specific and is converted in the platform-specific SaiTamManagers.
+ */
+enum MirrorOnDropReasonAggregation {
+  UNEXPECTED_REASON_DISCARDS = 0,
+
+  INGRESS_MISC_DISCARDS = 1,
+  INGRESS_PACKET_PROCESSING_DISCARDS = 2,
+  INGRESS_QUEUE_RESOLUTION_DISCARDS = 3,
+  INGRESS_SOURCE_CONGESTION_DISCARDS = 4, // e.g. VSQ
+  INGRESS_DESTINATION_CONGESTION_DISCARDS = 5, // e.g. VOQ
+  INGRESS_GLOBAL_CONGESTION_DISCARDS = 6,
+}
+
 struct MirrorOnDropReport {
   1: string name;
   /*
@@ -389,6 +404,8 @@ struct MirrorOnDropReport {
   8: byte dscp = 0;
   // At most one mirrored packet will be sent per port/PG/VOQ within an interval. Granularity is not configurable as of now.
   9: optional i32 agingIntervalUsecs;
+  // Mapping from drop ID / event ID to groups of reasons.
+  10: map<byte, list<MirrorOnDropReasonAggregation>> eventIdToDropReasons;
 }
 
 /**

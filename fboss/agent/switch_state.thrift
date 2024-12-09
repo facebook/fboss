@@ -331,6 +331,10 @@ struct MirrorOnDropReportFields {
   10: optional i32 agingIntervalUsecs;
   11: string switchMac; // Populated at runtime
   12: string firstInterfaceMac; // Populated at runtime
+  13: map<
+    byte,
+    list<switch_config.MirrorOnDropReasonAggregation>
+  > eventIdToDropReasons;
 }
 
 struct ControlPlaneFields {
