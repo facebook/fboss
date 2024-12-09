@@ -261,7 +261,7 @@ std::string errorType(sai_switch_error_type_t type) {
     case SAI_SWITCH_ERROR_TYPE_FABRIC_AUTO_ISOLATION:
       return "SAI_SWITCH_ERROR_TYPE_FABRIC_AUTO_ISOLATION";
 #endif
-#if defined(SAI_VERSION_11_7_0_0_DNX_ODP)
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_7)
     case SAI_SWITCH_ERROR_TYPE_FIRMWARE_CRASH:
       return "SAI_SWITCH_ERROR_TYPE_FIRMWARE_CRASH";
 #endif
@@ -545,7 +545,7 @@ void SaiSwitch::switchEventCallback(
       break;
     }
 #endif
-#if defined(SAI_VERSION_11_7_0_0_DNX_ODP)
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_7)
     case SAI_SWITCH_EVENT_TYPE_FIRMWARE_CRASHED: {
       // TODO(skhare) Process this callback
       XLOG(ERR) << "Firmware Crash callback received: " << " error type: "
@@ -554,6 +554,8 @@ void SaiSwitch::switchEventCallback(
                 << " reload status: " << static_cast<int>(eventInfo->index2);
       break;
     }
+#endif
+#if defined(SAI_VERSION_11_7_0_0_DNX_ODP)
     // TODO(zecheng): Update flag when new 12.0 release has the attribute
     case SAI_SWITCH_EVENT_TYPE_REMOTE_LINK_CHANGE:
       auto isUp = eventInfo->index;

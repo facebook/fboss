@@ -591,7 +591,7 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
   std::optional<SaiSwitchTraits::Attributes::FirmwareLoadType> firmwareLoadType{
       std::nullopt};
 
-#if defined(SAI_VERSION_11_7_0_0_DNX_ODP)
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_7)
   if (swId.has_value()) {
     const auto& firmwareNameToFirmwareInfo = getFirmwareForSwitch(
         switchSettings->switchIdToSwitchInfo(), swId.value());
