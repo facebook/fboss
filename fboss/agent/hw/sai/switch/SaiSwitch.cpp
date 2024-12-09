@@ -976,6 +976,21 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChangedImplLocked(
   }
 
 #if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
+  // UDF groups are processed prior to load balancer and ACL tables
+  // Both require UDF groups to be created before referencing them
+  processAddedDelta(
+      delta.getUdfPacketMatcherDelta(),
+      managerTable_->udfManager(),
+      lockPolicy,
+      &SaiUdfManager::addUdfMatch);
+  processAddedDelta(
+      delta.getUdfGroupDelta(),
+      managerTable_->udfManager(),
+      lockPolicy,
+      &SaiUdfManager::addUdfGroup);
+#endif
+
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
   if (platform_->getAsic()->isSupported(HwAsic::Feature::SAI_UDF_HASH)) {
     // There're several constraints for load balancer and Udf objects.
     // 1. Udf Match needs to be processed before Udf Group (create, remove and
@@ -987,16 +1002,6 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChangedImplLocked(
     // 4. In the case of changing load balancer: a. new Udf group needs to be
     // created, b. Load balancer starts to use new Udf group, c. Remove old
     // Udf group.
-    processAddedDelta(
-        delta.getUdfPacketMatcherDelta(),
-        managerTable_->udfManager(),
-        lockPolicy,
-        &SaiUdfManager::addUdfMatch);
-    processAddedDelta(
-        delta.getUdfGroupDelta(),
-        managerTable_->udfManager(),
-        lockPolicy,
-        &SaiUdfManager::addUdfGroup);
     processAddedDelta(
         delta.getLoadBalancersDelta(),
         managerTable_->switchManager(),
@@ -1014,16 +1019,6 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChangedImplLocked(
         managerTable_->switchManager(),
         lockPolicy,
         &SaiSwitchManager::removeLoadBalancer);
-    processRemovedDelta(
-        delta.getUdfPacketMatcherDelta(),
-        managerTable_->udfManager(),
-        lockPolicy,
-        &SaiUdfManager::removeUdfMatch);
-    processRemovedDelta(
-        delta.getUdfGroupDelta(),
-        managerTable_->udfManager(),
-        lockPolicy,
-        &SaiUdfManager::removeUdfGroup);
   } else {
     processDelta(
         delta.getLoadBalancersDelta(),
@@ -1129,6 +1124,20 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChangedImplLocked(
         &SaiAclTableManager::removeAclEntry,
         cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE());
   }
+
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
+  // ACLs are done processing. Remove UDF groups not required
+  processRemovedDelta(
+      delta.getUdfPacketMatcherDelta(),
+      managerTable_->udfManager(),
+      lockPolicy,
+      &SaiUdfManager::removeUdfMatch);
+  processRemovedDelta(
+      delta.getUdfGroupDelta(),
+      managerTable_->udfManager(),
+      lockPolicy,
+      &SaiUdfManager::removeUdfGroup);
+#endif
 
   processPfcWatchdogGlobalDelta(delta, lockPolicy);
 
