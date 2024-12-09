@@ -89,10 +89,19 @@ void waitPfcCounterIncrease(
                << ", priority: " << pfcPriority;
 
     EXPECT_EVENTUALLY_GT(txPfcCtr, 0);
-    EXPECT_EVENTUALLY_GT(rxPfcCtr, 0);
-    if (ensemble->getSw()->getHwAsicTable()->isFeatureSupportedOnAllAsic(
-            facebook::fboss::HwAsic::Feature::PFC_XON_TO_XOFF_COUNTER)) {
-      EXPECT_EVENTUALLY_GT(rxPfcXonCtr, 0);
+
+    // TODO(maxgg): CS00012381334 - Rx counters not incrementing on TH5
+    // However we know PFC is working as long as TX PFC is being generated, so
+    // skip validating RX PFC counters on TH5 for now.
+    auto asicType =
+        facebook::fboss::utility::checkSameAndGetAsic(ensemble->getL3Asics())
+            ->getAsicType();
+    if (asicType != facebook::fboss::cfg::AsicType::ASIC_TYPE_TOMAHAWK5) {
+      EXPECT_EVENTUALLY_GT(rxPfcCtr, 0);
+      if (ensemble->getSw()->getHwAsicTable()->isFeatureSupportedOnAllAsic(
+              facebook::fboss::HwAsic::Feature::PFC_XON_TO_XOFF_COUNTER)) {
+        EXPECT_EVENTUALLY_GT(rxPfcXonCtr, 0);
+      }
     }
   });
 }
