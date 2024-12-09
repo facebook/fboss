@@ -3353,7 +3353,8 @@ bool SaiSwitch::sendPacketSwitchedSync(std::unique_ptr<TxPacket> pkt) noexcept {
   XLOG(DBG6) << PktUtil::hexDump(cursor);
   SaiTxPacketTraits::Attributes::TxType txType(
       SAI_HOSTIF_TX_TYPE_PIPELINE_LOOKUP);
-  SaiTxPacketTraits::TxAttributes attributes{txType, 0, std::nullopt};
+  SaiTxPacketTraits::TxAttributes attributes{
+      txType, std::nullopt, std::nullopt};
   SaiHostifApiPacket txPacket{
       reinterpret_cast<void*>(pkt->buf()->writableData()),
       pkt->buf()->length()};
