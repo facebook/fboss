@@ -1899,9 +1899,9 @@ class LookupClassUpdaterWarmbootWithQueuePerPhysicalHostTest
         cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0);
 
     auto matcher = HwSwitchMatcher(std::unordered_set<SwitchID>({SwitchID(0)}));
-    auto switchSettings = newState->getSwitchSettings()
-                              ->getNode(matcher.matcherString())
-                              ->modify(&newState);
+    newState->getSwitchSettings()
+        ->getNode(matcher.matcherString())
+        ->modify(&newState);
 
     this->handle_ = createTestHandle(newState);
     this->sw_ = this->handle_->getSw();
