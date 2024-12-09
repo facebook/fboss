@@ -85,6 +85,19 @@ void assertMaxBufferPoolSize(const SaiPlatform* platform) {
   }
 }
 
+void fixThresholds(
+    std::optional<SaiBufferProfileTraits::Attributes::SharedStaticThreshold>&
+        staticThreshold,
+    std::optional<SaiBufferProfileTraits::Attributes::SharedDynamicThreshold>&
+        dynamicThreshold,
+    const SaiBufferProfileTraits::Attributes::ThresholdMode& mode) {
+  if (mode == SAI_BUFFER_POOL_THRESHOLD_MODE_DYNAMIC) {
+    staticThreshold = std::nullopt;
+  } else {
+    dynamicThreshold = std::nullopt;
+  }
+}
+
 } // namespace
 
 const std::string kDefaultEgressBufferPoolName{"default"};
@@ -510,8 +523,10 @@ SaiBufferProfileTraits::CreateAttributes SaiBufferManager::profileCreateAttrs(
   }
   SaiBufferProfileTraits::Attributes::ThresholdMode mode{
       SAI_BUFFER_PROFILE_THRESHOLD_MODE_DYNAMIC};
-  SaiBufferProfileTraits::Attributes::SharedDynamicThreshold dynThresh{0};
-  SaiBufferProfileTraits::Attributes::SharedStaticThreshold staticThresh{0};
+  std::optional<SaiBufferProfileTraits::Attributes::SharedDynamicThreshold>
+      dynThresh{0};
+  std::optional<SaiBufferProfileTraits::Attributes::SharedStaticThreshold>
+      staticThresh{0};
   if (queue.getSharedBytes()) {
     // If staticBytes is explicitly set, then apply the queue limit!
     staticThresh = queue.getSharedBytes().value();
@@ -521,6 +536,9 @@ SaiBufferProfileTraits::CreateAttributes SaiBufferManager::profileCreateAttrs(
       queue.getScalingFactor()) {
     dynThresh = platform_->getAsic()->getBufferDynThreshFromScalingFactor(
         queue.getScalingFactor().value());
+  }
+  if (platform_->getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_CHENAB) {
+    fixThresholds(staticThresh, dynThresh, mode);
   }
   std::optional<SaiBufferProfileTraits::Attributes::SharedFadtMaxTh>
       sharedFadtMaxTh;
@@ -611,8 +629,13 @@ SaiBufferManager::ingressProfileCreateAttrs(
       *config.minLimitBytes();
   SaiBufferProfileTraits::Attributes::ThresholdMode mode{
       SAI_BUFFER_PROFILE_THRESHOLD_MODE_DYNAMIC};
-  SaiBufferProfileTraits::Attributes::SharedDynamicThreshold dynThresh{0};
-  SaiBufferProfileTraits::Attributes::SharedStaticThreshold staticThresh{0};
+  std::optional<SaiBufferProfileTraits::Attributes::SharedDynamicThreshold>
+      dynThresh{0};
+  std::optional<SaiBufferProfileTraits::Attributes::SharedStaticThreshold>
+      staticThresh{0};
+  if (platform_->getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_CHENAB) {
+    fixThresholds(staticThresh, dynThresh, mode);
+  }
   if (config.scalingFactor() &&
       platform_->getAsic()->scalingFactorBasedDynamicThresholdSupported()) {
     // If scalingFactor is specified, configure the same!
