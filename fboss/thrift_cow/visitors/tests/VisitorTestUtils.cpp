@@ -22,7 +22,8 @@ TestStruct createSimpleTestStruct() {
           20,
           dynamic::object("childMap", dynamic::object())("leafI32", 0)(
               "listOfStruct", dynamic::array())("strMap", dynamic::object())(
-              "structMap", dynamic::object())))(
+              "structMap",
+              dynamic::object("30", dynamic::object("min", 100)("max", 200)))))(
       "hybridMapOfMap", dynamic::object(10, dynamic::object(20, 30)))(
       "hybridStruct",
       dynamic::object(
