@@ -299,7 +299,6 @@ void verifyAddNeighborEntry(
   auto host2ip = IPAddressV6("face:b00c:0:21::2");
   auto host2mac = MacAddress("fa:ce:b0:0c:21:02");
   auto host2port = PortDescriptor(PortID(1));
-  auto host2intf = InterfaceID(21);
 
   addNeighborEntry<VlanOrIntfT, NdpTable>(
       &state2, &host2ip, &host2mac, &host2VlanOrIntf, &host2port);
@@ -676,10 +675,6 @@ void verifyModifyArpTableMultipleTimes(
   // state1
   //  ... add host1 to vlan21
   // state2
-
-  auto host1ip = IPAddressV4("10.0.21.1");
-  auto host1mac = MacAddress("fa:ce:b0:0c:21:01");
-  auto host1port = PortDescriptor(PortID(1));
 
   auto arp1 = getVlansOrIntfs<VlanOrIntfT>(state1)
                   ->getNode(host1VlanOrIntf)
