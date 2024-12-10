@@ -491,7 +491,6 @@ TEST_F(QsfpModuleTest, verifyLaneToPortMapping) {
 TEST_F(QsfpModuleTest, getFirmwareUpgradeData) {
   qsfp_->overrideVendorPN(getFakePartNumber());
 
-  const QsfpConfig* qsfp_config = transceiverManager_->getQsfpConfig();
   // Test empty fw status
   transceiverManager_->refreshStateMachines();
   qsfp_->useActualGetTransceiverInfo();

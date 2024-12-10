@@ -39,9 +39,9 @@ TEST(PciDevice, StaleDevice) {
   CHECK_EQ(pciDevice.isGood(), true);
   pciDevice.close();
   EXPECT_THROW(
-      { auto bar0 = pciDevice.getMemoryRegionAddress(); }, std::exception);
+      { std::ignore = pciDevice.getMemoryRegionAddress(); }, std::exception);
   EXPECT_THROW(
-      { auto barSize0 = pciDevice.getMemoryRegionSize(); }, std::exception);
+      { std::ignore = pciDevice.getMemoryRegionSize(); }, std::exception);
 }
 
 TEST(PciDevice, TwoDevices) {
@@ -57,7 +57,7 @@ TEST(PciDevice, TwoDevices) {
 
   // Close first device and access second
   pciDevice1.close();
-  EXPECT_NO_THROW({ auto barSize0 = pciDevice2.getMemoryRegionSize(); });
+  EXPECT_NO_THROW({ std::ignore = pciDevice2.getMemoryRegionSize(); });
 
   // Close second device
   EXPECT_NO_THROW(pciDevice2.close());
