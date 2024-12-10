@@ -136,6 +136,69 @@ TYPED_TEST(PathVisitorTests, AccessField) {
   EXPECT_EQ(result, ThriftTraverseResult::NON_EXISTENT_NODE);
 }
 
+TYPED_TEST(PathVisitorTests, AccessAtHybridNodeTest) {
+  RootTestStruct root;
+  ParentTestStruct parent;
+  auto testStruct = createSimpleTestStruct();
+  parent.mapOfI32ToMapOfStruct() = {{3, {{"4", std::move(testStruct)}}}};
+  root.mapOfI32ToMapOfStruct() = {{1, {{"2", std::move(parent)}}}};
+
+  auto nodeA = this->initNode(root);
+  folly::dynamic dyn;
+  auto processPath = pvlambda([&dyn](auto& node, auto begin, auto end) {
+    EXPECT_EQ(begin, end);
+    if constexpr (std::is_base_of_v<
+                      Serializable,
+                      std::remove_cvref_t<decltype(node)>>) {
+      dyn = node.toFollyDynamic();
+    } else {
+      facebook::thrift::to_dynamic(
+          dyn, node, facebook::thrift::dynamic_format::JSON_1);
+    }
+  });
+
+  // Thrift path terminating at HybridNode - Access
+  std::vector<std::string> path{
+      "mapOfI32ToMapOfStruct",
+      "1",
+      "2",
+      "mapOfI32ToMapOfStruct",
+      "3",
+      "4",
+      "hybridMapOfI32ToStruct"};
+  auto result = RootPathVisitor::visit(
+      *nodeA, path.begin(), path.end(), PathVisitMode::LEAF, processPath);
+  EXPECT_EQ(result, ThriftTraverseResult::OK);
+  EXPECT_NE(dyn.find(20), dyn.items().end());
+  ChildStruct got = facebook::thrift::from_dynamic<ChildStruct>(
+      dyn[20], facebook::thrift::dynamic_format::JSON_1);
+  EXPECT_EQ(got.leafI32(), 0);
+
+  // Thrift path terminating at HybridNode - Set
+  using TC = apache::thrift::type_class::map<
+      apache::thrift::type_class::integral,
+      apache::thrift::type_class::structure>;
+
+  std::map<int32_t, ChildStruct> newMap;
+  ChildStruct newChild;
+  newChild.leafI32() = 100;
+  newMap.emplace(30, std::move(newChild));
+  folly::fbstring newVal =
+      serialize<TC>(fsdb::OperProtocol::SIMPLE_JSON, newMap);
+  SetEncodedPathVisitorOperator setOp(fsdb::OperProtocol::SIMPLE_JSON, newVal);
+
+  result = RootPathVisitor::visit(
+      *nodeA, path.begin(), path.end(), PathVisitMode::LEAF, setOp);
+  EXPECT_EQ(result, ThriftTraverseResult::OK);
+
+  // Thrift path terminating at HybridNode - Get
+  GetEncodedPathVisitorOperator getOp(fsdb::OperProtocol::SIMPLE_JSON);
+  result = RootPathVisitor::visit(
+      *nodeA, path.begin(), path.end(), PathVisitMode::LEAF, getOp);
+  EXPECT_EQ(result, ThriftTraverseResult::OK);
+  EXPECT_EQ(getOp.val, newVal);
+}
+
 TYPED_TEST(PathVisitorTests, AccessFieldInContainer) {
   auto structA = createSimpleTestStruct();
   auto nodeA = std::make_shared<ThriftStructNode<
