@@ -689,6 +689,11 @@ void SaiHostifManager::loadCpuPort() {
 }
 
 void SaiHostifManager::updateStats(bool updateWatermarks) {
+  if (updateWatermarks &&
+      !platform_->getAsic()->isSupported(
+          HwAsic::Feature::CPU_QUEUE_WATERMARK_STATS)) {
+    throw FbossError("Watermarks are not supported on CPU queues");
+  }
   auto now = duration_cast<seconds>(system_clock::now().time_since_epoch());
   HwPortStats cpuQueueStats;
   managerTable_->queueManager().updateStats(
