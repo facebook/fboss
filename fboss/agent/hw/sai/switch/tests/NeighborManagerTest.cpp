@@ -83,11 +83,10 @@ class NeighborManagerTest : public ManagerTestBase {
       case cfg::InterfaceType::VLAN:
         EXPECT_TRUE(saiNeighborHandle->fdbEntry);
         break;
+      case cfg::InterfaceType::PORT:
       case cfg::InterfaceType::SYSTEM_PORT:
         EXPECT_EQ(saiNeighborHandle->fdbEntry, nullptr);
         break;
-      case cfg::InterfaceType::PORT:
-        throw FbossError("Port type of router interface is not supported yet");
     }
   }
 
