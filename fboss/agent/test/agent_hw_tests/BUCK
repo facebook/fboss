@@ -29,6 +29,7 @@ cpp_library(
         "AgentHwAclMatchActionsTest.cpp",
         "AgentHwAclQualifierTest.cpp",
         "AgentHwAclStatTests.cpp",
+        "AgentHwResourceStatsTests.cpp",
         "AgentInNullRouteDiscardsTest.cpp",
         "AgentInTrapDiscardsTest.cpp",
         "AgentIngressBufferTests.cpp",
