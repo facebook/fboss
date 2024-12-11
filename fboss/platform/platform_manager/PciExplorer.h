@@ -3,7 +3,6 @@
 #pragma once
 
 #include <re2/re2.h>
-#include "fboss/platform/helpers/PlatformFsUtils.h"
 
 #include "fboss/platform/platform_manager/gen-cpp2/platform_manager_config_types.h"
 #include "fboss/platform/platform_manager/uapi/fbiob-ioctl.h"
@@ -12,10 +11,7 @@ namespace facebook::fboss::platform::platform_manager {
 
 struct PciDevice {
  public:
-  explicit PciDevice(
-      const PciDeviceConfig& pciDevConfig,
-      const std::shared_ptr<PlatformFsUtils> platformFsUtils =
-          std::make_shared<PlatformFsUtils>());
+  explicit PciDevice(const PciDeviceConfig& pciDevConfig);
   std::string sysfsPath() const;
   std::string charDevPath() const;
 
@@ -27,7 +23,6 @@ struct PciDevice {
   std::string subSystemDeviceId_{};
   std::string charDevPath_{};
   std::string sysfsPath_{};
-  const std::shared_ptr<PlatformFsUtils> platformFsUtils_;
 
   void checkSysfsReadiness();
   void bindDriver(const std::string& desiredDriver);
@@ -36,9 +31,6 @@ struct PciDevice {
 
 class PciExplorer {
  public:
-  explicit PciExplorer(
-      const std::shared_ptr<PlatformFsUtils> platformFsUtils =
-          std::make_shared<PlatformFsUtils>());
   // Create the I2C Adapter based on the given i2cAdapterConfig residing
   // at the given PciDevice path. It returns the the kernel assigned i2c bus
   // number(s) for the created adapter(s). Throw std::runtime_error on failure.
@@ -127,8 +119,6 @@ class PciExplorer {
       uint32_t instanceId);
 
  private:
-  const std::shared_ptr<PlatformFsUtils> platformFsUtils_;
-
   std::vector<uint16_t> getI2cAdapterBusNums(
       const PciDevice& pciDevice,
       const I2cAdapterConfig& i2cAdapterConfig,

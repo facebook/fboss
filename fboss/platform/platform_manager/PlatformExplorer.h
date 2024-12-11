@@ -112,7 +112,7 @@ class PlatformExplorer {
 
   PlatformConfig platformConfig_{};
   I2cExplorer i2cExplorer_{};
-  PciExplorer pciExplorer_;
+  PciExplorer pciExplorer_{};
   CachedFbossEepromParser eepromParser_{};
   DataStore dataStore_;
   DevicePathResolver devicePathResolver_;
