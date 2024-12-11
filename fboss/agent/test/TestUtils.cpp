@@ -657,6 +657,33 @@ cfg::SwitchConfig testConfigAWithLookupClasses() {
   return testConfigAImpl(true, cfg::SwitchType::NPU);
 }
 
+cfg::SwitchConfig testConfigAWithPortInterfaces() {
+  auto config = testConfigA(cfg::SwitchType::NPU);
+
+  config.vlans()->clear();
+  config.interfaces()->clear();
+  config.vlanPorts()->clear();
+
+  for (auto& port : *config.ports()) {
+    cfg::Interface intf;
+    intf.intfID() = 6000 + *(port.logicalID());
+    intf.vlanID() = 0;
+    intf.portID() = *port.logicalID();
+    intf.routerID() = 0;
+    intf.type() = cfg::InterfaceType::PORT;
+    intf.name() = folly::sformat("fboss{}", *intf.intfID());
+    intf.mtu() = 9000;
+    intf.mac() = "00:02:00:00:00:55";
+    intf.ipAddresses()->resize(2);
+    intf.ipAddresses()[0] =
+        folly::sformat("2601:db00:2110:30{:02x}::1/64", *port.logicalID());
+    intf.ipAddresses()[1] = folly::sformat("100.0.{}.1/24", *port.logicalID());
+
+    config.interfaces()->push_back(intf);
+  }
+  return config;
+}
+
 shared_ptr<SwitchState> bringAllPortsUp(const shared_ptr<SwitchState>& in) {
   return setAllPortState(in, true);
 }

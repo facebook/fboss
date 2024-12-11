@@ -327,4 +327,18 @@ TYPED_TEST(SwitchIdScopeResolverTest, portIntfScope) {
       resolver.scope(cfg::InterfaceType::PORT, InterfaceID(6001), cfg);
 
   EXPECT_EQ(matcher1, matcher2);
+
+  if (this->switchType == cfg::SwitchType::NPU) {
+    auto config = testConfigAWithPortInterfaces();
+    this->addMirrorConfig(&config);
+    this->sw_->applyConfig("applyConfig", config);
+    auto state = this->sw_->getState();
+    auto intf6001 = state->getInterfaces()->getNode(InterfaceID(6001));
+
+    auto matcher3 = resolver.scope(intf6001, state);
+    EXPECT_EQ(matcher3, matcher1);
+
+    auto matcher4 = resolver.scope(intf6001, cfg);
+    EXPECT_EQ(matcher3, matcher4);
+  }
 }

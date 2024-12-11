@@ -3889,8 +3889,13 @@ std::shared_ptr<InterfaceMap> ThriftConfigApplier::updateInterfaces() {
       CHECK_EQ((int)sysPort->getScope(), (int)(*interfaceCfg.scope()));
     }
     if (interfaceCfg.type() == cfg::InterfaceType::PORT) {
-      // TODO(Chenab): Support port router interface
-      throw FbossError("Port router interface is not supported yet");
+      if (auto port = interfaceCfg.portID()) {
+        if (!new_->getPorts()->getNodeIf(PortID(*port))) {
+          throw FbossError("Port router interface config invalid port");
+        }
+      } else {
+        throw FbossError("Port router interface config missing port");
+      }
     }
     if (origIntf) {
       newIntf = updateInterface(origIntf, &interfaceCfg, newAddrs);
@@ -3986,6 +3991,9 @@ shared_ptr<Interface> ThriftConfigApplier::createInterface(
       std::optional<RemoteInterfaceType>(std::nullopt),
       std::optional<LivenessStatus>(std::nullopt),
       *config->scope());
+  if (auto port = config->portID()) {
+    intf->setPortID(PortID(*port));
+  }
   updateNeighborResponseTablesForIntfs(intf.get(), addrs);
   updateDhcpOverrides(intf.get(), config);
   intf->setAddresses(addrs);
@@ -4038,12 +4046,16 @@ shared_ptr<Interface> ThriftConfigApplier::updateInterface(
   bool changed_neighbor_table =
       updateNeighborResponseTablesForIntfs(newIntf.get(), addrs);
   bool changed_dhcp_overrides = updateDhcpOverrides(newIntf.get(), config);
+  std::optional<PortID> cfgPort{};
+  if (auto portID = config->portID()) {
+    cfgPort = PortID(*portID);
+  }
 
   if (orig->getRouterID() == RouterID(*config->routerID()) &&
       (!orig->getVlanIDIf().has_value() ||
        orig->getVlanIDIf().value() == VlanID(*config->vlanID())) &&
-      orig->getName() == name && orig->getMac() == mac &&
-      orig->getAddressesCopy() == addrs &&
+      (orig->getPortIDf() == cfgPort) && orig->getName() == name &&
+      orig->getMac() == mac && orig->getAddressesCopy() == addrs &&
       orig->getNdpConfig()->toThrift() == ndp && orig->getMtu() == mtu &&
       orig->isVirtual() == *config->isVirtual() &&
       orig->isStateSyncDisabled() == *config->isStateSyncDisabled() &&
@@ -4058,6 +4070,13 @@ shared_ptr<Interface> ThriftConfigApplier::updateInterface(
   newIntf->setType(*config->type());
   if (newIntf->getType() == cfg::InterfaceType::VLAN) {
     newIntf->setVlanID(VlanID(*config->vlanID()));
+  }
+  if (auto portID = config->portID()) {
+    if (newIntf->getType() != cfg::InterfaceType::PORT) {
+      throw FbossError(
+          "Router interface ", newIntf->getID(), " is not of of type port");
+    }
+    newIntf->setPortID(PortID(*portID));
   }
   newIntf->setName(name);
   newIntf->setMac(mac);
