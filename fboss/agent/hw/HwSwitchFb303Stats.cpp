@@ -466,8 +466,6 @@ HwAsicErrors HwSwitchFb303Stats::getHwAsicErrors() const {
   asicErrors.forwardingQueueProcessorErrors() =
       getForwardingQueueProcessorErrors();
   asicErrors.reassemblyErrors() = getReassemblyErrors();
-  asicErrors.eccErrors() = getEccErrors();
-  asicErrors.fifoOverflowErrors() = getFifoOverflowErrors();
   asicErrors.allReassemblyContextsTaken() =
       getAllReassemblyContextsTakenError();
   return asicErrors;
