@@ -872,7 +872,7 @@ TEST(Interface, getInterfacePortsVoqSwitch) {
   EXPECT_EQ(getPortsForInterface(intf->getID(), stateV1).size(), 1);
 }
 
-TEST(Interface, getInterfacePorts) {
+TEST(Interface, getVlanInterfacePorts) {
   auto platform = createMockPlatform();
   auto stateV0 = std::make_shared<SwitchState>();
   auto config = testConfigA();
@@ -881,6 +881,17 @@ TEST(Interface, getInterfacePorts) {
   auto multiIntfs = stateV1->getInterfaces();
   auto intf = multiIntfs->cbegin()->second->cbegin()->second;
   EXPECT_EQ(getPortsForInterface(intf->getID(), stateV1).size(), 11);
+}
+
+TEST(Interface, getPortInterfacePorts) {
+  auto platform = createMockPlatform();
+  auto stateV0 = std::make_shared<SwitchState>();
+  auto config = testConfigAWithPortInterfaces();
+  auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
+  ASSERT_NE(nullptr, stateV1);
+  auto multiIntfs = stateV1->getInterfaces();
+  auto intf = multiIntfs->cbegin()->second->cbegin()->second;
+  EXPECT_EQ(getPortsForInterface(intf->getID(), stateV1).size(), 1);
 }
 
 TEST(Interface, modify) {
