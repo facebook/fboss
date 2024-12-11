@@ -86,8 +86,11 @@ class HwSwitchFb303Stats {
   void eccError() {
     eccErrors_.addValue(1);
   }
-  void fifoOverflowError() {
-    fifoOverflowErrors_.addValue(1);
+  void fdrFifoOverflowError() {
+    fdrFifoOverflowErrors_.addValue(1);
+  }
+  void fdaFifoOverflowError() {
+    fdaFifoOverflowErrors_.addValue(1);
   }
   void hwInitializedTime(uint64_t ms) {
     hwInitializedTimeMs_.addValue(ms);
@@ -174,7 +177,8 @@ class HwSwitchFb303Stats {
   int64_t getAlignerErrors() const;
   int64_t getReassemblyErrors() const;
   int64_t getEccErrors() const;
-  int64_t getFifoOverflowErrors() const;
+  int64_t getFdrFifoOverflowErrors() const;
+  int64_t getFdaFifoOverflowErrors() const;
   int64_t getForwardingQueueProcessorErrors() const;
   int64_t getAllReassemblyContextsTakenError() const;
 
@@ -266,7 +270,8 @@ class HwSwitchFb303Stats {
   TLTimeseries alignerErrors_;
   TLTimeseries reassemblyErrors_;
   TLTimeseries eccErrors_;
-  TLTimeseries fifoOverflowErrors_;
+  TLTimeseries fdrFifoOverflowErrors_;
+  TLTimeseries fdaFifoOverflowErrors_;
   TLTimeseries forwardingQueueProcessorErrors_;
   TLTimeseries allReassemblyContextsTaken_;
   TLTimeseries hwInitializedTimeMs_;
