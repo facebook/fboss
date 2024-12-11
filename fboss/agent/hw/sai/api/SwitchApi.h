@@ -671,6 +671,14 @@ struct SaiSwitchTraits {
         sai_uint32_t,
         AttributeShelPeriodicInterval,
         SaiIntDefault<sai_uint32_t>>;
+
+    struct AttributeMaxSwitchId {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    using MaxSwitchId = SaiExtensionAttribute<
+        sai_uint32_t,
+        AttributeMaxSwitchId,
+        SaiIntDefault<sai_uint32_t>>;
   };
   using AdapterKey = SwitchSaiId;
   using AdapterHostKey = std::monostate;

@@ -591,4 +591,8 @@ SaiSwitchTraits::Attributes::AttributeFirmwareLogFile::operator()() {
   return SAI_SWITCH_ATTR_FIRMWARE_LOG_FILE;
 }
 
+std::optional<sai_attr_id_t>
+SaiSwitchTraits::Attributes::AttributeMaxSwitchId::operator()() {
+  return SAI_SWITCH_ATTR_MAX_SWITCH_ID;
+}
 } // namespace facebook::fboss
