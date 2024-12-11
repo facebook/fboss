@@ -41,22 +41,13 @@ struct SaiRouterInterfaceHandle {
       std::shared_ptr<SaiVlanRouterInterface>,
       std::shared_ptr<SaiPortRouterInterface>>;
   SaiRouterInterface routerInterface;
+  SaiRouterInterfaceHandle(cfg::InterfaceType type) : intfType(type) {}
   RouterInterfaceSaiId adapterKey() const {
     return std::visit(
         [](auto& handle) { return handle->adapterKey(); }, routerInterface);
   }
   cfg::InterfaceType type() const {
-    return std::visit(
-        folly::overload(
-            [](const std::shared_ptr<SaiVlanRouterInterface>& handle) {
-              return cfg::InterfaceType::VLAN;
-            },
-            [](const std::shared_ptr<SaiPortRouterInterface>& handle) {
-              // TODO(Chenab): Support port router interface
-              return cfg::InterfaceType::SYSTEM_PORT;
-            }),
-        routerInterface);
-    CHECK(false) << " Unhandled interface type: ";
+    return intfType;
   }
   void setLocal(bool isLocal) {
     isLocalRif = isLocal;
@@ -66,6 +57,7 @@ struct SaiRouterInterfaceHandle {
   }
   std::vector<std::shared_ptr<SaiRoute>> toMeRoutes;
   bool isLocalRif{true};
+  cfg::InterfaceType intfType{cfg::InterfaceType::VLAN};
 };
 
 class SaiRouterInterfaceManager {
@@ -126,6 +118,10 @@ class SaiRouterInterfaceManager {
       bool isLocal);
   SaiRouterInterfaceHandle* getRouterInterfaceHandleImpl(
       const InterfaceID& swId) const;
+  SaiPortRouterInterfaceTraits::Attributes::PortId getPortId(
+      const std::shared_ptr<Interface>& swInterface);
+  SaiPortRouterInterfaceTraits::Attributes::PortId getSystemPortId(
+      const std::shared_ptr<Interface>& swInterface);
 
   SaiStore* saiStore_;
   SaiManagerTable* managerTable_;
