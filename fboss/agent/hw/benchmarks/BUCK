@@ -35,7 +35,7 @@ cpp_library(
     ],
     exported_deps = [
         "//fboss/agent:packet",
-        "//fboss/agent/benchmarks:mono_agent_benchmarks",
+        "//fboss/agent/benchmarks:agent_benchmarks_h",  # @manual
         "//fboss/agent/packet:packet_factory",
         "//fboss/agent/test:agent_ensemble",
         "//fboss/agent/test:ecmp_helper",
@@ -81,7 +81,7 @@ cpp_library(
         "//fboss/agent:core",
         "//fboss/agent:hw_switch",
         "//fboss/agent:utils",
-        "//fboss/agent/benchmarks:mono_agent_benchmarks",
+        "//fboss/agent/benchmarks:agent_benchmarks_h",  # @manual
         "//fboss/agent/hw/test:config_factory",
         "//fboss/agent/hw/test:hw_switch_ensemble_factory",
         "//fboss/agent/test:agent_ensemble",
