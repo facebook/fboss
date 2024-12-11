@@ -574,34 +574,41 @@ void SaiSwitch::switchEventCallback(
     uint32_t event_type) {
   const sai_switch_ser_log_info_t* eventInfo =
       static_cast<const sai_switch_ser_log_info_t*>(buffer);
-  std::stringstream sstream;
-  sstream << "received switch event: " << eventName(event_type)
-          << ", event info(";
-  bool correctible = true;
-  if (eventInfo) {
-    sstream << "correction type=" << correctionType(eventInfo->correction_type)
-            << ", flags=" << std::hex << eventInfo->flags;
-    correctible =
-        (eventInfo->correction_type !=
-         SAI_SWITCH_CORRECTION_TYPE_FAIL_TO_CORRECT);
-    sstream << ", error type=" << errorType(eventInfo->error_type);
-  }
-  sstream << ")";
-  XLOG(WARNING) << sstream.str();
+  auto logEventDetails = [&event_type, &eventInfo]() {
+    std::stringstream sstream;
+    sstream << "received switch event: " << eventName(event_type)
+            << ", event info(";
+    if (eventInfo) {
+      sstream << "correction type="
+              << correctionType(eventInfo->correction_type)
+              << ", flags=" << std::hex << eventInfo->flags;
+      sstream << ", error type=" << errorType(eventInfo->error_type);
+    }
+    sstream << ")";
+    XLOG(WARNING) << sstream.str();
+  };
   switch (event_type) {
     case SAI_SWITCH_EVENT_TYPE_STABLE_FULL:
     case SAI_SWITCH_EVENT_TYPE_STABLE_ERROR:
     case SAI_SWITCH_EVENT_TYPE_UNCONTROLLED_SHUTDOWN:
     case SAI_SWITCH_EVENT_TYPE_WARM_BOOT_DOWNGRADE:
+      logEventDetails();
       getSwitchStats()->asicError();
       break;
-    case SAI_SWITCH_EVENT_TYPE_PARITY_ERROR:
+    case SAI_SWITCH_EVENT_TYPE_PARITY_ERROR: {
+      logEventDetails();
+      bool correctible = true;
+      if (eventInfo) {
+        correctible =
+            (eventInfo->correction_type !=
+             SAI_SWITCH_CORRECTION_TYPE_FAIL_TO_CORRECT);
+      }
       if (correctible) {
         getSwitchStats()->corrParityError();
       } else {
         getSwitchStats()->uncorrParityError();
       }
-      break;
+    } break;
 #if defined BRCM_SAI_SDK_GTE_11_0
     case SAI_SWITCH_EVENT_TYPE_INTERRUPT: {
       auto ireError = isIreErrorType(eventInfo->error_type);
@@ -616,15 +623,7 @@ void SaiSwitch::switchEventCallback(
       auto fdrFifoOverflowError = isFdrFifoOverflowError(eventInfo->error_type);
       auto fdaFifoOverflowError = isFdaFifoOverflowError(eventInfo->error_type);
       auto rtpTableChanged = rtpTableChangedEvent(eventInfo->error_type);
-      XLOG(ERR) << " Got interrupt event, is IRE: " << ireError
-                << " is ITPP: " << itppError << " is EPNI: " << epniError
-                << " is Aligner: " << alignerError << " is FQP: " << fqpError
-                << " is Reassembly: " << reassemblyError
-                << " all reassembly context taken: "
-                << allReassemblyContextsTaken << " is ECC: " << eccError
-                << " is FDR FIFO overflow: " << fdrFifoOverflowError
-                << " is FDA FIFO overflow: " << fdaFifoOverflowError
-                << " rtp table changed: " << rtpTableChanged;
+      XLOG(ERR) << "ERROR INTERRUPT: " << errorType(eventInfo->error_type);
       if (ireError) {
         getSwitchStats()->ireError();
       }
