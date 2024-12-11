@@ -201,7 +201,6 @@ HwSwitchFb303Stats::HwSwitchFb303Stats(
           getCounterPrefix() + vendor + ".reassembly.errors",
           SUM,
           RATE),
-      eccErrors_(map, getCounterPrefix() + vendor + ".ecc.errors", SUM, RATE),
       fdrFifoOverflowErrors_(
           map,
           getCounterPrefix() + vendor + ".fdr.fifo_overflow.errors",
@@ -398,10 +397,6 @@ int64_t HwSwitchFb303Stats::getAlignerErrors() const {
 
 int64_t HwSwitchFb303Stats::getReassemblyErrors() const {
   return getCumulativeValue(reassemblyErrors_);
-}
-
-int64_t HwSwitchFb303Stats::getEccErrors() const {
-  return getCumulativeValue(eccErrors_);
 }
 
 int64_t HwSwitchFb303Stats::getFdrFifoOverflowErrors() const {
