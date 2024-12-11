@@ -173,7 +173,7 @@ std::
       qualifierExistsFn(cfg::AclTableQualifier::DST_IPV4),
       qualifierExistsFn(cfg::AclTableQualifier::L4_SRC_PORT),
       qualifierExistsFn(cfg::AclTableQualifier::L4_DST_PORT),
-      qualifierExistsFn(cfg::AclTableQualifier::IP_PROTOCOL),
+      qualifierExistsFn(cfg::AclTableQualifier::IP_PROTOCOL_NUMBER),
       qualifierExistsFn(cfg::AclTableQualifier::TCP_FLAGS),
       qualifierExistsFn(cfg::AclTableQualifier::SRC_PORT),
       qualifierExistsFn(cfg::AclTableQualifier::OUT_PORT),

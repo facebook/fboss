@@ -609,7 +609,7 @@ enum AclTableQualifier {
   DST_IPV4 = 3,
   L4_SRC_PORT = 4,
   L4_DST_PORT = 5,
-  IP_PROTOCOL = 6,
+  IP_PROTOCOL_NUMBER = 6,
   TCP_FLAGS = 7,
   SRC_PORT = 8,
   OUT_PORT = 9,

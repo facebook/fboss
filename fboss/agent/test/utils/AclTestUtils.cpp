@@ -33,7 +33,7 @@ std::vector<cfg::AclTableQualifier> genAclQualifiersConfig(
       cfg::AclTableQualifier::DST_IPV4,
       cfg::AclTableQualifier::L4_SRC_PORT,
       cfg::AclTableQualifier::L4_DST_PORT,
-      cfg::AclTableQualifier::IP_PROTOCOL,
+      cfg::AclTableQualifier::IP_PROTOCOL_NUMBER,
       cfg::AclTableQualifier::DSCP,
       cfg::AclTableQualifier::TTL,
       cfg::AclTableQualifier::ICMPV4_TYPE,

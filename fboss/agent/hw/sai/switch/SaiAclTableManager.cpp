@@ -808,7 +808,7 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
   auto stage = static_cast<sai_acl_stage_t>(
       GET_ATTR(AclTable, Stage, aclTableHandle->aclTable->attributes()));
   auto qualifierSet = getSupportedQualifierSet(stage);
-  if (qualifierSet.find(cfg::AclTableQualifier::IP_PROTOCOL) !=
+  if (qualifierSet.find(cfg::AclTableQualifier::IP_PROTOCOL_NUMBER) !=
           qualifierSet.end() &&
       matchV4 && addedAclEntry->getProto()) {
     fieldIpProtocol = SaiAclEntryTraits::Attributes::FieldIpProtocol{
@@ -1585,7 +1585,7 @@ std::set<cfg::AclTableQualifier> SaiAclTableManager::getSupportedQualifierSet(
         cfg::AclTableQualifier::DST_IPV6,
         cfg::AclTableQualifier::SRC_IPV4,
         cfg::AclTableQualifier::DST_IPV4,
-        cfg::AclTableQualifier::IP_PROTOCOL,
+        cfg::AclTableQualifier::IP_PROTOCOL_NUMBER,
         cfg::AclTableQualifier::DSCP,
         cfg::AclTableQualifier::IP_TYPE,
         cfg::AclTableQualifier::TTL,
@@ -1621,7 +1621,7 @@ std::set<cfg::AclTableQualifier> SaiAclTableManager::getSupportedQualifierSet(
         cfg::AclTableQualifier::DST_IPV6,
         cfg::AclTableQualifier::SRC_PORT,
         cfg::AclTableQualifier::DSCP,
-        cfg::AclTableQualifier::IP_PROTOCOL,
+        cfg::AclTableQualifier::IP_PROTOCOL_NUMBER,
         cfg::AclTableQualifier::IP_TYPE,
         cfg::AclTableQualifier::TTL,
     };
@@ -1636,7 +1636,7 @@ std::set<cfg::AclTableQualifier> SaiAclTableManager::getSupportedQualifierSet(
         cfg::AclTableQualifier::SRC_PORT,
         cfg::AclTableQualifier::DSCP,
         cfg::AclTableQualifier::TTL,
-        cfg::AclTableQualifier::IP_PROTOCOL,
+        cfg::AclTableQualifier::IP_PROTOCOL_NUMBER,
         cfg::AclTableQualifier::IPV6_NEXT_HEADER,
         cfg::AclTableQualifier::IP_TYPE,
         cfg::AclTableQualifier::LOOKUP_CLASS_NEIGHBOR,
@@ -1660,7 +1660,7 @@ std::set<cfg::AclTableQualifier> SaiAclTableManager::getSupportedQualifierSet(
           cfg::AclTableQualifier::DST_IPV4,
           cfg::AclTableQualifier::L4_SRC_PORT,
           cfg::AclTableQualifier::L4_DST_PORT,
-          cfg::AclTableQualifier::IP_PROTOCOL,
+          cfg::AclTableQualifier::IP_PROTOCOL_NUMBER,
           cfg::AclTableQualifier::SRC_PORT,
           cfg::AclTableQualifier::DSCP,
           cfg::AclTableQualifier::TTL,
@@ -1682,7 +1682,7 @@ std::set<cfg::AclTableQualifier> SaiAclTableManager::getSupportedQualifierSet(
         cfg::AclTableQualifier::DST_IPV4,
         cfg::AclTableQualifier::L4_SRC_PORT,
         cfg::AclTableQualifier::L4_DST_PORT,
-        cfg::AclTableQualifier::IP_PROTOCOL,
+        cfg::AclTableQualifier::IP_PROTOCOL_NUMBER,
         cfg::AclTableQualifier::TCP_FLAGS,
         cfg::AclTableQualifier::SRC_PORT,
         cfg::AclTableQualifier::OUT_PORT,
@@ -1794,7 +1794,7 @@ bool SaiAclTableManager::isQualifierSupported(
           std::get<
               std::optional<SaiAclTableTraits::Attributes::FieldL4DstPort>>(
               attributes));
-    case cfg::AclTableQualifier::IP_PROTOCOL:
+    case cfg::AclTableQualifier::IP_PROTOCOL_NUMBER:
       return hasField(
           std::get<
               std::optional<SaiAclTableTraits::Attributes::FieldIpProtocol>>(
