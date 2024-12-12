@@ -18,6 +18,8 @@ enum class ExplorationErrorType {
   RUN_DEVMAP_SYMLINK,
   PCI_DEVICE_EXPLORE,
   IDPROM_READ,
+  SLOT_PM_UNIT_ABSENCE,
+  SLOT_PRESENCE_CHECK,
   // Need this for ExplorationErrorType size at compile time.
   SIZE
 };
@@ -46,6 +48,10 @@ constexpr const char* toExplorationErrorTypeStr(
       return "pci_device_explore";
     case ExplorationErrorType::IDPROM_READ:
       return "idprom_read";
+    case ExplorationErrorType::SLOT_PM_UNIT_ABSENCE:
+      return "slot_pm_unit_absence";
+    case ExplorationErrorType::SLOT_PRESENCE_CHECK:
+      return "slot_presence_check";
     case ExplorationErrorType::SIZE:
       throw std::invalid_argument("Do not use ExplorationErrorType::SIZE");
   }

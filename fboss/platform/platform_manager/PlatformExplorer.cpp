@@ -229,15 +229,30 @@ void PlatformExplorer::exploreSlot(
   // condition is satisfied
   if (const auto presenceDetection = slotConfig.presenceDetection()) {
     try {
-      if (!presenceChecker_.isPresent(
-              presenceDetection.value(), childSlotPath)) {
+      auto isPmUnitPresent =
+          presenceChecker_.isPresent(presenceDetection.value(), childSlotPath);
+      if (!isPmUnitPresent) {
+        auto errMsg = fmt::format(
+            "Skipping exploring Slot {} at {}. No PmUnit in the Slot",
+            slotName,
+            childSlotPath);
+        XLOG(ERR) << errMsg;
+        explorationSummary_.addError(
+            ExplorationErrorType::SLOT_PM_UNIT_ABSENCE,
+            Utils().createDevicePath(childSlotPath, "<ABSENT>"),
+            errMsg);
         return;
       }
     } catch (const std::exception& ex) {
-      XLOG(ERR) << fmt::format(
-          "Error checking for presence in slotpath {}: {}",
+      auto errMsg = fmt::format(
+          "Error checking for presence in SlotPath {}: {}",
           slotName,
           ex.what());
+      XLOG(ERR) << errMsg;
+      explorationSummary_.addError(
+          ExplorationErrorType::SLOT_PRESENCE_CHECK,
+          Utils().createDevicePath(childSlotPath, "<ABSENT>"),
+          errMsg);
       return;
     }
   }
