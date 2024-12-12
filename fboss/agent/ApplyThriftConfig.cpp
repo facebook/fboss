@@ -5503,7 +5503,8 @@ ThriftConfigApplier::createMirrorOnDropReport(
       dscp,
       agingIntervalUsecs,
       getLocalMacAddress().toString(),
-      utility::getFirstInterfaceMac(new_).toString());
+      utility::getFirstInterfaceMac(new_).toString(),
+      *config->eventIdToDropReasons());
 }
 
 std::shared_ptr<MirrorOnDropReport>
