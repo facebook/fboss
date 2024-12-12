@@ -68,6 +68,9 @@ class AgentMirrorOnDropTest : public AgentHwTest {
   // MOD settings
   const int kTruncateSize = 128;
 
+  // MOD constants. TODO: update after CS00012377720 closure
+  const int kRouteMissingTrapID = 0x1EF9;
+
   std::string portDesc(PortID portId) {
     const auto& cfg = getAgentEnsemble()->getCurrentConfig();
     for (const auto& port : *cfg.ports()) {
@@ -276,13 +279,14 @@ TEST_F(AgentMirrorOnDropTest, PacketProcessingError) {
   XLOG(DBG3) << "Injection port: " << portDesc(injectionPortId);
   XLOG(DBG3) << "Collector port: " << portDesc(collectorPortId);
 
+  const int kEventId = 1;
   auto setup = [&]() {
     auto config = getAgentEnsemble()->getCurrentConfig();
     setupMirrorOnDrop(
         &config,
         mirrorPortId,
         kCollectorIp_,
-        {{1,
+        {{kEventId,
           {cfg::MirrorOnDropReasonAggregation::
                INGRESS_PACKET_PROCESSING_DISCARDS}}});
     utility::addTrapPacketAcl(&config, kCollectorNextHopMac_);
@@ -305,9 +309,65 @@ TEST_F(AgentMirrorOnDropTest, PacketProcessingError) {
         validateMirrorOnDropPacket(
             frameRx->get(),
             pkt->buf(),
-            1 /*eventId*/,
+            kEventId,
             makeSSPA(injectionPortId),
-            makeTrapDSPA(0x1EF9), // TODO: update after CS00012377720 closure
+            makeTrapDSPA(kRouteMissingTrapID),
+            0 /*payloadOffset*/);
+      }
+    });
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
+}
+
+TEST_F(AgentMirrorOnDropTest, MultipleEventIDs) {
+  auto mirrorPortId = masterLogicalPortIds({cfg::PortType::RECYCLE_PORT})[0];
+  auto injectionPortId = masterLogicalInterfacePortIds()[0];
+  auto collectorPortId = masterLogicalInterfacePortIds()[1];
+  XLOG(DBG3) << "MoD port: " << portDesc(mirrorPortId);
+  XLOG(DBG3) << "Injection port: " << portDesc(injectionPortId);
+  XLOG(DBG3) << "Collector port: " << portDesc(collectorPortId);
+
+  const int kEventId = 1; // event ID for PP drops
+  auto setup = [&]() {
+    auto config = getAgentEnsemble()->getCurrentConfig();
+    setupMirrorOnDrop(
+        &config,
+        mirrorPortId,
+        kCollectorIp_,
+        // Sandwich PP drops between other reasons and see if it still works
+        {{0,
+          {cfg::MirrorOnDropReasonAggregation::
+               INGRESS_SOURCE_CONGESTION_DISCARDS}},
+         {1,
+          {cfg::MirrorOnDropReasonAggregation::
+               INGRESS_PACKET_PROCESSING_DISCARDS}},
+         {2,
+          {cfg::MirrorOnDropReasonAggregation::
+               INGRESS_DESTINATION_CONGESTION_DISCARDS}}});
+    utility::addTrapPacketAcl(&config, kCollectorNextHopMac_);
+    applyNewConfig(config);
+
+    setupEcmpTraffic(collectorPortId, kCollectorIp_, kCollectorNextHopMac_);
+  };
+
+  auto verify = [&]() {
+    utility::SwSwitchPacketSnooper snooper(getSw(), "snooper");
+    auto pkt = sendPackets(1, injectionPortId, kDropDestIp);
+
+    WITH_RETRIES_N(3, {
+      XLOG(DBG3) << "Waiting for mirror packet...";
+      auto frameRx = snooper.waitForPacket(1);
+      EXPECT_EVENTUALLY_TRUE(frameRx.has_value());
+
+      if (frameRx.has_value()) {
+        XLOG(DBG3) << PktUtil::hexDump(frameRx->get());
+        validateMirrorOnDropPacket(
+            frameRx->get(),
+            pkt->buf(),
+            kEventId,
+            makeSSPA(injectionPortId),
+            makeTrapDSPA(kRouteMissingTrapID),
             0 /*payloadOffset*/);
       }
     });
