@@ -2,7 +2,6 @@
 import argparse
 import os
 from dataclasses import dataclass
-from typing import List
 
 import pytest
 from dataclasses_json import dataclass_json

@@ -1,6 +1,5 @@
 # pyre-unsafe
 import shutil
-from typing import List
 
 from fboss.platform.bsp_tests.utils.cmd_utils import check_cmd, run_cmd
 
