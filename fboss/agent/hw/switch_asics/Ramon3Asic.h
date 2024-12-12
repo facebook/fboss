@@ -39,6 +39,12 @@ class Ramon3Asic : public BroadcomAsic {
     return cfg::PortSpeed::FOURHUNDREDG;
   }
 
+  uint32_t getMaxSwitchId() const override {
+    // Even though J3 HW can support switchIds upto 8K.
+    // Due to a bug in reachability table update logic,
+    // we can use only 4K out of that 8K range
+    return 4 * 1024;
+  }
   std::set<cfg::StreamType> getQueueStreamTypes(
       cfg::PortType portType) const override;
   int getDefaultNumPortQueues(

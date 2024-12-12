@@ -155,6 +155,10 @@ HwAsic::RecyclePortInfo HwAsic::getRecyclePortInfo(
   throw FbossError("Recycle port info unimplemented for: ", getAsicTypeStr());
 }
 
+uint32_t HwAsic::getMaxSwitchId() const {
+  throw FbossError("Max switchId unimplemented for: ", getAsicTypeStr());
+}
+
 cfg::Range64 HwAsic::makeRange(int64_t min, int64_t max) {
   cfg::Range64 kRange;
   kRange.minimum() = min;

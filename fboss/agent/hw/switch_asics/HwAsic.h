@@ -439,6 +439,7 @@ class HwAsic {
   std::optional<int32_t> getInbandPortId() const {
     return inbandPortId_;
   }
+  virtual uint32_t getMaxSwitchId() const;
 
  protected:
   static cfg::Range64 makeRange(int64_t min, int64_t max);

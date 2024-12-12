@@ -50,6 +50,12 @@ class Jericho3Asic : public BroadcomAsic {
     return 128 * 1024 * 1024;
   }
 
+  uint32_t getMaxSwitchId() const override {
+    // Even though J3 HW can support switchIds upto 8K.
+    // Due to a bug in reachability table update logic,
+    // we can use only 4K out of that 8K range
+    return 4 * 1024;
+  }
   uint32_t getMMUCellSize() const {
     return 254;
   }
