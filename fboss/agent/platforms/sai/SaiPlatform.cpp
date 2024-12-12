@@ -701,6 +701,7 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
     constexpr uint32_t kRamon3LlfcThreshold{800};
     fabricLLFC = std::vector<uint32_t>({kRamon3LlfcThreshold});
   }
+  maxSwitchId = getAsic()->getMaxSwitchId();
   if (isDualStage3Q2QMode()) {
     maxSystemPortId = 32515;
     maxLocalSystemPortId = 5;
