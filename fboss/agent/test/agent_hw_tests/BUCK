@@ -41,6 +41,7 @@ cpp_library(
         "AgentMacLearningAndNeighborResolutionTests.cpp",
         "AgentMacLearningTests.cpp",
         "AgentMemoryUsageTests.cpp",
+        "AgentMirrorOnDropTests.cpp",
         "AgentMirroringTests.cpp",
         "AgentMmuTuningTests.cpp",
         "AgentNeighborTests.cpp",
