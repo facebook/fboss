@@ -691,6 +691,7 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
   std::optional<int32_t> maxLocalSystemPortId;
   std::optional<int32_t> maxSystemPorts;
   std::optional<int32_t> maxVoqs;
+  std::optional<int32_t> maxSwitchId;
 #if defined(BRCM_SAI_SDK_DNX) && defined(BRCM_SAI_SDK_GTE_12_0)
   if (getAsic()->getSwitchType() == cfg::SwitchType::FABRIC &&
       getAsic()->getFabricNodeRole() == HwAsic::FabricNodeRole::DUAL_STAGE_L1) {
@@ -806,6 +807,7 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
       std::nullopt, // Shel Destination IP
       std::nullopt, // Shel Source MAC
       std::nullopt, // Shel Periodic Interval
+      maxSwitchId // Max switch Id
   };
 }
 

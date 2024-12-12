@@ -763,7 +763,8 @@ struct SaiSwitchTraits {
       std::optional<Attributes::ShelSrcIp>,
       std::optional<Attributes::ShelDstIp>,
       std::optional<Attributes::ShelSrcMac>,
-      std::optional<Attributes::ShelPeriodicInterval>>;
+      std::optional<Attributes::ShelPeriodicInterval>,
+      std::optional<Attributes::MaxSwitchId>>;
 
 #if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
   static constexpr std::array<sai_stat_id_t, 3> CounterIdsToRead = {
@@ -870,6 +871,7 @@ SAI_ATTRIBUTE_NAME(Switch, SysPortConfigList)
 SAI_ATTRIBUTE_NAME(Switch, SwitchType)
 SAI_ATTRIBUTE_NAME(Switch, RegisterReadFn)
 SAI_ATTRIBUTE_NAME(Switch, RegisterWriteFn)
+SAI_ATTRIBUTE_NAME(Switch, MaxSwitchId)
 
 SAI_ATTRIBUTE_NAME(Switch, HwEccErrorInitiate)
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 2)
