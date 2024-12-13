@@ -393,7 +393,9 @@ class SaiPortManager {
       const std::shared_ptr<Port>& newPort);
   void removePfcWatchdog(const std::shared_ptr<Port>& swPort);
   void setPortType(PortID portId, cfg::PortType portType);
-  void programPfcBuffers(const std::shared_ptr<Port>& swPort);
+  void changePfcBuffers(
+      std::shared_ptr<Port> oldPort,
+      std::shared_ptr<Port> newPort);
   void removePfcBuffers(const std::shared_ptr<Port>& swPort);
   sai_port_prbs_config_t getSaiPortPrbsConfig(bool enabled) const;
   void initAsicPrbsStats(const std::shared_ptr<Port>& swPort);

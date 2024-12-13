@@ -896,18 +896,23 @@ SaiPortManager::getIngressPriorityGroupSaiIds(
   return ingressPgSaiIds;
 }
 
-void SaiPortManager::programPfcBuffers(const std::shared_ptr<Port>& swPort) {
+void SaiPortManager::changePfcBuffers(
+    std::shared_ptr<Port> oldPort,
+    std::shared_ptr<Port> newPort) {
   if (!platform_->getAsic()->isSupported(HwAsic::Feature::BUFFER_POOL)) {
     return;
   }
-  SaiPortHandle* portHandle = getPortHandle(swPort->getID());
-  const auto& portPgCfgs = swPort->getPortPgConfigs();
-  if (portPgCfgs) {
-    const auto& ingressPgSaiIds = getIngressPriorityGroupSaiIds(swPort);
+  SaiPortHandle* portHandle = getPortHandle(newPort->getID());
+  auto& configuredIpgs = portHandle->configuredIngressPriorityGroups;
+
+  const auto& newPortPgCfgs = newPort->getPortPgConfigs();
+  std::set<int> programmedPgIds;
+  if (newPortPgCfgs) {
+    const auto& ingressPgSaiIds = getIngressPriorityGroupSaiIds(newPort);
     auto ingressPriorityGroupHandles =
         managerTable_->bufferManager().loadIngressPriorityGroups(
             ingressPgSaiIds);
-    for (const auto& portPgCfg : *portPgCfgs) {
+    for (const auto& portPgCfg : *newPortPgCfgs) {
       // THRIFT_COPY
       auto portPgCfgThrift = portPgCfg->toThrift();
       auto pgId = *portPgCfgThrift.id();
@@ -918,10 +923,32 @@ void SaiPortManager::programPfcBuffers(const std::shared_ptr<Port>& swPort) {
           ingressPriorityGroupHandles[pgId]->ingressPriorityGroup,
           bufferProfile);
       // Keep track of ingressPriorityGroupHandle and bufferProfile per PG ID
-      portHandle
-          ->configuredIngressPriorityGroups[static_cast<IngressPriorityGroupID>(
-              pgId)] = SaiIngressPriorityGroupHandleAndProfile{
-          std::move(ingressPriorityGroupHandles[pgId]), bufferProfile};
+      configuredIpgs[static_cast<IngressPriorityGroupID>(pgId)] =
+          SaiIngressPriorityGroupHandleAndProfile{
+              std::move(ingressPriorityGroupHandles[pgId]), bufferProfile};
+      programmedPgIds.insert(pgId);
+    }
+  }
+
+  // Delete removed buffer profiles.
+  if (oldPort != nullptr) {
+    const auto& oldPortPgCfgs = oldPort->getPortPgConfigs();
+    if (oldPortPgCfgs) {
+      for (const auto& portPgCfg : *oldPortPgCfgs) {
+        // THRIFT_COPY
+        auto portPgCfgThrift = portPgCfg->toThrift();
+        auto pgId = *portPgCfgThrift.id();
+        if (programmedPgIds.find(pgId) == programmedPgIds.end()) {
+          auto ipgInfo =
+              configuredIpgs.find(static_cast<IngressPriorityGroupID>(pgId));
+          if (ipgInfo != configuredIpgs.end()) {
+            managerTable_->bufferManager().setIngressPriorityGroupBufferProfile(
+                ipgInfo->second.pgHandle->ingressPriorityGroup,
+                std::nullptr_t());
+            configuredIpgs.erase(ipgInfo);
+          }
+        }
+      }
     }
   }
 }
