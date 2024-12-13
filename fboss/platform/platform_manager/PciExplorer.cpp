@@ -339,18 +339,20 @@ void PciExplorer::create(
   // 2. PciSubDevice driver binding failure (checkDeviceReadiness =
   // false).
   if (ret < 0) {
-    throw std::runtime_error(fmt::format(
-        "Failed to create new device {} in {} using {}. "
-        "Args - deviceName: {} instanceId: {}, "
-        "csrOffset: {:#04x}, iobufOffset: {:#04x}, error: {}",
-        *fpgaIpBlockConfig.pmUnitScopedName(),
-        pciDevice.sysfsPath(),
-        pciDevice.charDevPath(),
-        *fpgaIpBlockConfig.deviceName(),
-        auxData.id.id,
-        auxData.csr_offset,
-        auxData.iobuf_offset,
-        folly::errnoStr(savedErrno)));
+    throw PciSubDeviceRuntimeError(
+        fmt::format(
+            "Failed to create new device {} in {} using {}. "
+            "Args - deviceName: {} instanceId: {}, "
+            "csrOffset: {:#04x}, iobufOffset: {:#04x}, error: {}",
+            *fpgaIpBlockConfig.pmUnitScopedName(),
+            pciDevice.sysfsPath(),
+            pciDevice.charDevPath(),
+            *fpgaIpBlockConfig.deviceName(),
+            auxData.id.id,
+            auxData.csr_offset,
+            auxData.iobuf_offset,
+            folly::errnoStr(savedErrno)),
+        *fpgaIpBlockConfig.pmUnitScopedName());
   }
   if (!Utils().checkDeviceReadiness(
           [&]() -> bool {
@@ -365,17 +367,19 @@ void PciExplorer::create(
               auxData.id.id,
               pciDevice.sysfsPath(),
               kPciWaitSecs.count()))) {
-    throw std::runtime_error(fmt::format(
-        "Failed to initialize device {} in {} using {}. "
-        "Args - deviceName: {} instanceId: {}, "
-        "csrOffset: {:#04x}, iobufOffset: {:#04x}",
-        *fpgaIpBlockConfig.pmUnitScopedName(),
-        pciDevice.sysfsPath(),
-        pciDevice.charDevPath(),
-        *fpgaIpBlockConfig.deviceName(),
-        auxData.id.id,
-        auxData.csr_offset,
-        auxData.iobuf_offset));
+    throw PciSubDeviceRuntimeError(
+        fmt::format(
+            "Failed to initialize device {} in {} using {}. "
+            "Args - deviceName: {} instanceId: {}, "
+            "csrOffset: {:#04x}, iobufOffset: {:#04x}",
+            *fpgaIpBlockConfig.pmUnitScopedName(),
+            pciDevice.sysfsPath(),
+            pciDevice.charDevPath(),
+            *fpgaIpBlockConfig.deviceName(),
+            auxData.id.id,
+            auxData.csr_offset,
+            auxData.iobuf_offset),
+        *fpgaIpBlockConfig.pmUnitScopedName());
   }
 
   XLOG(INFO) << fmt::format(
@@ -405,8 +409,10 @@ std::vector<uint16_t> PciExplorer::getI2cAdapterBusNums(
     }
   }
   if (fpgaI2cDir.path().empty()) {
-    throw std::runtime_error(fmt::format(
-        "Could not find FPGA I2C directory ending with {}", expectedEnding));
+    throw PciSubDeviceRuntimeError(
+        fmt::format(
+            "Could not find FPGA I2C directory ending with {}", expectedEnding),
+        *i2cAdapterConfig.fpgaIpBlockConfig()->pmUnitScopedName());
   }
   if (*i2cAdapterConfig.numberOfAdapters() > 1) {
     // If more than 1 bus exists for this i2c master, then we have to use the
@@ -417,8 +423,10 @@ std::vector<uint16_t> PciExplorer::getI2cAdapterBusNums(
       auto channelFile =
           fpgaI2cDir.path() / fmt::format("channel-{}", channelNum);
       if (!fs::exists(channelFile) || !fs::is_symlink(channelFile)) {
-        throw std::runtime_error(fmt::format(
-            "{} does not exist or not a symlink.", channelFile.string()));
+        throw PciSubDeviceRuntimeError(
+            fmt::format(
+                "{} does not exist or not a symlink.", channelFile.string()),
+            *i2cAdapterConfig.fpgaIpBlockConfig()->pmUnitScopedName());
       }
       busNumbers.push_back(I2cExplorer().extractBusNumFromPath(
           fs::read_symlink(channelFile).filename()));
@@ -435,8 +443,10 @@ std::vector<uint16_t> PciExplorer::getI2cAdapterBusNums(
         return {I2cExplorer().extractBusNumFromPath(childDirEntry.path())};
       }
     }
-    throw std::runtime_error(fmt::format(
-        "Could not find any I2C buses in {}", fpgaI2cDir.path().string()));
+    throw PciSubDeviceRuntimeError(
+        fmt::format(
+            "Could not find any I2C buses in {}", fpgaI2cDir.path().string()),
+        *i2cAdapterConfig.fpgaIpBlockConfig()->pmUnitScopedName());
   }
 }
 
@@ -463,16 +473,20 @@ std::map<std::string, std::string> PciExplorer::getSpiDeviceCharDevPaths(
     }
   }
   if (spiMasterPath.empty()) {
-    throw std::runtime_error(fmt::format(
-        "Could not find any directory ending with {} in {}",
-        expectedEnding,
-        pciDevice.sysfsPath()));
+    throw PciSubDeviceRuntimeError(
+        fmt::format(
+            "Could not find any directory ending with {} in {}",
+            expectedEnding,
+            pciDevice.sysfsPath()),
+        *spiMasterConfig.fpgaIpBlockConfig()->pmUnitScopedName());
   }
   if (!fs::exists(spiMasterPath)) {
-    throw std::runtime_error(fmt::format(
-        "Could not find matching SpiController in {}. InstanceId: {}",
-        spiMasterPath,
-        instanceId));
+    throw PciSubDeviceRuntimeError(
+        fmt::format(
+            "Could not find matching SpiController in {}. InstanceId: {}",
+            spiMasterPath,
+            instanceId),
+        *spiMasterConfig.fpgaIpBlockConfig()->pmUnitScopedName());
   }
   std::map<std::string, std::string> spiCharDevPaths;
   for (const auto& dirEntry : fs::directory_iterator(spiMasterPath)) {
@@ -514,12 +528,14 @@ std::map<std::string, std::string> PciExplorer::getSpiDeviceCharDevPaths(
             return *spiDeviceConfig.chipSelect() == chipSelect;
           });
       if (itr == spiMasterConfig.spiDeviceConfigs()->end()) {
-        throw std::runtime_error(fmt::format(
-            "Unexpected SpiDevice created at {}. \
-             No matching SpiDeviceConfig defined with ChipSelect {} for SpiController {}",
-            childDirEntry.path().string(),
-            chipSelect,
-            *spiMasterConfig.fpgaIpBlockConfig()->pmUnitScopedName()));
+        throw PciSubDeviceRuntimeError(
+            fmt::format(
+                "Unexpected SpiDevice created at {}. \
+                No matching SpiDeviceConfig defined with ChipSelect {} for SpiController {}",
+                childDirEntry.path().string(),
+                chipSelect,
+                *spiMasterConfig.fpgaIpBlockConfig()->pmUnitScopedName()),
+            *spiMasterConfig.fpgaIpBlockConfig()->pmUnitScopedName());
       }
       spiCharDevPaths[*itr->pmUnitScopedName()] = spiCharDevPath;
     }
@@ -539,10 +555,12 @@ std::string PciExplorer::getGpioChipCharDevPath(
       return Utils().resolveGpioChipCharDevPath(dirEntry.path().string());
     }
   }
-  throw std::runtime_error(fmt::format(
-      "Couldn't derive GpioChip char device path in ",
-      *fpgaIpBlockConfig.pmUnitScopedName(),
-      pciDevice.sysfsPath()));
+  throw PciSubDeviceRuntimeError(
+      fmt::format(
+          "Couldn't derive GpioChip {} CharDevPath in {}",
+          *fpgaIpBlockConfig.pmUnitScopedName(),
+          pciDevice.sysfsPath()),
+      *fpgaIpBlockConfig.pmUnitScopedName());
 }
 
 std::string PciExplorer::getInfoRomSysfsPath(
@@ -550,10 +568,12 @@ std::string PciExplorer::getInfoRomSysfsPath(
     uint32_t instanceId) {
   const auto auxDevSysfsPath = "/sys/bus/auxiliary/devices";
   if (!fs::exists(auxDevSysfsPath)) {
-    throw std::runtime_error(fmt::format(
-        "Unable to find InfoRom sysfs path for {}. Reason: '{}' path doesn't exist.",
-        *infoRomConfig.pmUnitScopedName(),
-        auxDevSysfsPath));
+    throw PciSubDeviceRuntimeError(
+        fmt::format(
+            "Unable to find InfoRom sysfs path for {}. Reason: '{}' path doesn't exist.",
+            *infoRomConfig.pmUnitScopedName(),
+            auxDevSysfsPath),
+        *infoRomConfig.pmUnitScopedName());
   }
   std::string expectedEnding =
       fmt::format(".{}.{}", *infoRomConfig.deviceName(), instanceId);
@@ -562,10 +582,12 @@ std::string PciExplorer::getInfoRomSysfsPath(
       return dirEntry.path().string();
     }
   }
-  throw std::runtime_error(fmt::format(
-      "Couldn't find InfoRom {} sysfs path under {}",
-      *infoRomConfig.pmUnitScopedName(),
-      auxDevSysfsPath));
+  throw PciSubDeviceRuntimeError(
+      fmt::format(
+          "Couldn't find InfoRom {} sysfs path under {}",
+          *infoRomConfig.pmUnitScopedName(),
+          auxDevSysfsPath),
+      *infoRomConfig.pmUnitScopedName());
 }
 
 std::string PciExplorer::getWatchDogCharDevPath(
@@ -587,10 +609,12 @@ std::string PciExplorer::getWatchDogCharDevPath(
       return Utils().resolveWatchdogCharDevPath(dirEntry.path().string());
     }
   }
-  throw std::runtime_error(fmt::format(
-      "Could not find any directory ending with {} in {}",
-      expectedEnding,
-      pciDevice.sysfsPath()));
+  throw PciSubDeviceRuntimeError(
+      fmt::format(
+          "Could not find any directory ending with {} in {}",
+          expectedEnding,
+          pciDevice.sysfsPath()),
+      *fpgaIpBlockConfig.pmUnitScopedName());
 }
 
 std::string PciExplorer::getFanPwmCtrlSysfsPath(
@@ -604,10 +628,12 @@ std::string PciExplorer::getFanPwmCtrlSysfsPath(
       return dirEntry.path();
     }
   }
-  throw std::runtime_error(fmt::format(
-      "Could not find any directory ending with {} in {}",
-      expectedEnding,
-      pciDevice.sysfsPath()));
+  throw PciSubDeviceRuntimeError(
+      fmt::format(
+          "Could not find any directory ending with {} in {}",
+          expectedEnding,
+          pciDevice.sysfsPath()),
+      *fpgaIpBlockConfig.pmUnitScopedName());
 }
 
 std::string PciExplorer::getXcvrCtrlSysfsPath(
@@ -621,10 +647,12 @@ std::string PciExplorer::getXcvrCtrlSysfsPath(
       return dirEntry.path().string();
     }
   }
-  throw std::runtime_error(fmt::format(
-      "Couldn't find XcvrCtrl {} under {}",
-      *fpgaIpBlockConfig.deviceName(),
-      pciDevice.sysfsPath()));
+  throw PciSubDeviceRuntimeError(
+      fmt::format(
+          "Couldn't find XcvrCtrl {} under {}",
+          *fpgaIpBlockConfig.deviceName(),
+          pciDevice.sysfsPath()),
+      *fpgaIpBlockConfig.pmUnitScopedName());
 }
 
 bool PciExplorer::isPciSubDeviceReady(

@@ -109,6 +109,11 @@ class PlatformExplorer {
       const std::string& deviceName,
       uint16_t busNum,
       const I2cAddr& addr);
+  template <typename T>
+  void createPciSubDevices(
+      const std::string& slotPath,
+      const std::vector<T>& pciSubDeviceConfigs,
+      auto&& deviceCreationLambda);
 
   PlatformConfig platformConfig_{};
   I2cExplorer i2cExplorer_{};

@@ -8,6 +8,19 @@
 #include "fboss/platform/platform_manager/uapi/fbiob-ioctl.h"
 
 namespace facebook::fboss::platform::platform_manager {
+class PciSubDeviceRuntimeError : public std::runtime_error {
+ public:
+  explicit PciSubDeviceRuntimeError(
+      const std::string& msg,
+      const std::string& pmUnitScopedName)
+      : std::runtime_error(msg), pmUnitScopedName_(pmUnitScopedName) {}
+  std::string getPmUnitScopedName() {
+    return pmUnitScopedName_;
+  }
+
+ private:
+  std::string pmUnitScopedName_;
+};
 
 struct PciDevice {
  public:
