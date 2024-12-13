@@ -7,13 +7,20 @@
 
 using namespace ::testing;
 namespace facebook::fboss::platform::platform_manager {
+class MockSystemInterface : public package_manager::SystemInterface {
+ public:
+  explicit MockSystemInterface() : package_manager::SystemInterface() {}
+  MOCK_METHOD(bool, isRpmInstalled, (const std::string&), (const));
+};
 class MockPkgManager : public PkgManager {
  public:
-  explicit MockPkgManager(const PlatformConfig& config) : PkgManager(config) {}
+  explicit MockPkgManager(
+      const PlatformConfig& config,
+      const std::shared_ptr<package_manager::SystemInterface>& systemInterface)
+      : PkgManager(config, systemInterface) {}
   MOCK_METHOD(void, processRpms, (), (const));
   MOCK_METHOD(void, processLocalRpms, (), (const));
   MOCK_METHOD(void, unloadBspKmods, (), (const));
-  MOCK_METHOD(bool, isRpmInstalled, (const std::string&), (const));
   MOCK_METHOD(void, loadRequiredKmods, (), (const));
 };
 
@@ -23,7 +30,9 @@ class PkgManagerTest : public testing::Test {
     FLAGS_local_rpm_path = "";
   }
   PlatformConfig platformConfig_;
-  MockPkgManager mockPkgManager_{platformConfig_};
+  std::shared_ptr<MockSystemInterface> mockSystemInterface_{
+      std::make_shared<MockSystemInterface>()};
+  MockPkgManager mockPkgManager_{platformConfig_, mockSystemInterface_};
 };
 
 TEST_F(PkgManagerTest, EnablePkgMgmnt) {
@@ -34,7 +43,8 @@ TEST_F(PkgManagerTest, EnablePkgMgmnt) {
   // Case 1: When new rpm installed
   {
     InSequence seq;
-    EXPECT_CALL(mockPkgManager_, isRpmInstalled(_)).WillOnce(Return(false));
+    EXPECT_CALL(*mockSystemInterface_, isRpmInstalled(_))
+        .WillOnce(Return(false));
     EXPECT_CALL(mockPkgManager_, unloadBspKmods()).Times(1);
     EXPECT_CALL(mockPkgManager_, processRpms()).Times(1);
     EXPECT_CALL(mockPkgManager_, loadRequiredKmods()).Times(1);
@@ -43,7 +53,8 @@ TEST_F(PkgManagerTest, EnablePkgMgmnt) {
   // Case 2: When rpm is already installed
   {
     InSequence seq;
-    EXPECT_CALL(mockPkgManager_, isRpmInstalled(_)).WillOnce(Return(true));
+    EXPECT_CALL(*mockSystemInterface_, isRpmInstalled(_))
+        .WillOnce(Return(true));
     EXPECT_CALL(mockPkgManager_, loadRequiredKmods()).Times(1);
   }
   EXPECT_CALL(mockPkgManager_, unloadBspKmods()).Times(0);
@@ -59,7 +70,8 @@ TEST_F(PkgManagerTest, EnablePkgMgmntWithReloadKmods) {
   // Case 1: When new rpm installed and expect to reload kmods once.
   {
     InSequence seq;
-    EXPECT_CALL(mockPkgManager_, isRpmInstalled(_)).WillOnce(Return(false));
+    EXPECT_CALL(*mockSystemInterface_, isRpmInstalled(_))
+        .WillOnce(Return(false));
     EXPECT_CALL(mockPkgManager_, unloadBspKmods()).Times(1);
     EXPECT_CALL(mockPkgManager_, processRpms()).Times(1);
     EXPECT_CALL(mockPkgManager_, loadRequiredKmods()).Times(1);
@@ -69,7 +81,8 @@ TEST_F(PkgManagerTest, EnablePkgMgmntWithReloadKmods) {
   // once because of FLAGS_reload_kmods being true.
   {
     InSequence seq;
-    EXPECT_CALL(mockPkgManager_, isRpmInstalled(_)).WillOnce(Return(true));
+    EXPECT_CALL(*mockSystemInterface_, isRpmInstalled(_))
+        .WillOnce(Return(true));
     EXPECT_CALL(mockPkgManager_, unloadBspKmods()).Times(1);
     EXPECT_CALL(mockPkgManager_, loadRequiredKmods()).Times(1);
   }
@@ -82,7 +95,7 @@ TEST_F(PkgManagerTest, DisablePkgMgmnt) {
   FLAGS_reload_kmods = false;
 
   EXPECT_CALL(mockPkgManager_, processLocalRpms()).Times(0);
-  EXPECT_CALL(mockPkgManager_, isRpmInstalled(_)).Times(0);
+  EXPECT_CALL(*mockSystemInterface_, isRpmInstalled(_)).Times(0);
   EXPECT_CALL(mockPkgManager_, unloadBspKmods()).Times(0);
   EXPECT_CALL(mockPkgManager_, processRpms()).Times(0);
   EXPECT_CALL(mockPkgManager_, loadRequiredKmods()).Times(1);
@@ -94,7 +107,7 @@ TEST_F(PkgManagerTest, DisablePkgMgmntWithReloadKmods) {
   FLAGS_reload_kmods = true;
 
   EXPECT_CALL(mockPkgManager_, processLocalRpms()).Times(0);
-  EXPECT_CALL(mockPkgManager_, isRpmInstalled(_)).Times(0);
+  EXPECT_CALL(*mockSystemInterface_, isRpmInstalled(_)).Times(0);
   EXPECT_CALL(mockPkgManager_, processRpms()).Times(0);
   {
     InSequence seq;
