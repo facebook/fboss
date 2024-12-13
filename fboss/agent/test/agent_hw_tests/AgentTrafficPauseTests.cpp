@@ -6,6 +6,7 @@
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/test/utils/CoppTestUtils.h"
+#include "fboss/agent/test/utils/MultiPortTrafficTestUtils.h"
 #include "fboss/agent/test/utils/OlympicTestUtils.h"
 #include "fboss/agent/test/utils/QosTestUtils.h"
 
@@ -13,9 +14,6 @@ namespace facebook::fboss {
 
 class AgentTrafficPauseTest : public AgentHwTest {
  public:
-  const folly::IPAddressV6 kDestIp{
-      folly::IPAddressV6("2620:0:1cfe:face:b00c::4")};
-
   cfg::SwitchConfig initialConfig(
       const AgentEnsemble& ensemble) const override {
     auto config = utility::onePortPerInterfaceConfig(
@@ -24,25 +22,6 @@ class AgentTrafficPauseTest : public AgentHwTest {
         true /*interfaceHasSubnet*/);
     utility::setTTLZeroCpuConfig(ensemble.getL3Asics(), config);
     return config;
-  }
-
-  void setupEcmpTraffic(const PortID& portId) {
-    utility::EcmpSetupTargetedPorts6 ecmpHelper{
-        getProgrammedState(),
-        utility::getFirstInterfaceMac(getProgrammedState())};
-
-    const PortDescriptor port(portId);
-    RoutePrefixV6 route{kDestIp, 128};
-
-    applyNewState([&](const std::shared_ptr<SwitchState>& state) {
-      return ecmpHelper.resolveNextHops(state, {port});
-    });
-
-    auto routeUpdater = getSw()->getRouteUpdater();
-    ecmpHelper.programRoutes(&routeUpdater, {port}, {route});
-
-    utility::ttlDecrementHandlingForLoopbackTraffic(
-        getAgentEnsemble(), ecmpHelper.getRouterId(), ecmpHelper.nhop(port));
   }
 
   void sendPauseFrames(const PortID& portId, const int count) {
@@ -67,33 +46,32 @@ class AgentTrafficPauseTest : public AgentHwTest {
     }
   }
 
-  void pumpTraffic(const PortID& portId) {
-    auto vlanId = utility::firstVlanID(getProgrammedState());
-    auto intfMac = utility::getFirstInterfaceMac(getProgrammedState());
-    auto dscp = utility::kOlympicQueueToDscp().at(0).front();
-    auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
-    for (int i = 0; i < getAgentEnsemble()->getMinPktsForLineRate(portId);
-         i++) {
-      auto txPacket = utility::makeUDPTxPacket(
-          getSw(),
-          vlanId,
-          srcMac,
-          intfMac,
-          folly::IPAddressV6("2620:0:1cfe:face:b00c::3"),
-          kDestIp,
-          8000,
-          8001,
-          dscp << 2,
-          255,
-          std::vector<uint8_t>(2000, 0xff));
-      getAgentEnsemble()->sendPacketAsync(
-          std::move(txPacket), PortDescriptor(portId), std::nullopt);
-    }
-  }
-
   std::vector<production_features::ProductionFeature>
   getProductionFeaturesVerified() const override {
     return {production_features::ProductionFeature::PAUSE};
+  }
+
+  static void sendPacket(
+      AgentEnsemble* ensemble,
+      const folly::IPAddressV6& destIpv6Addr) {
+    auto vlanId = utility::firstVlanID(ensemble->getProgrammedState());
+    auto intfMac =
+        utility::getFirstInterfaceMac(ensemble->getProgrammedState());
+    auto dscp = utility::kOlympicQueueToDscp().at(0).front();
+    auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
+    auto txPacket = utility::makeUDPTxPacket(
+        ensemble->getSw(),
+        vlanId,
+        srcMac,
+        intfMac,
+        folly::IPAddressV6("2620:0:1cfe:face:b00c::3"),
+        destIpv6Addr,
+        8000,
+        8001,
+        dscp << 2,
+        255,
+        std::vector<uint8_t>(2000, 0xff));
+    ensemble->getSw()->sendPacketSwitchedAsync(std::move(txPacket));
   }
 
   void validateTrafficWithPause(
@@ -108,14 +86,14 @@ class AgentTrafficPauseTest : public AgentHwTest {
           });
       portCfg->pause() = std::move(pauseCfg);
       applyNewConfig(cfg);
-      setupEcmpTraffic(kPortId);
+      utility::setupEcmpDataplaneLoopOnAllPorts(getAgentEnsemble());
     };
     auto verify = [&]() {
-      pumpTraffic(kPortId);
-      getAgentEnsemble()->waitForLineRateOnPort(kPortId);
+      utility::createTrafficOnMultiplePorts(
+          getAgentEnsemble(), 1, sendPacket, 99 /*desiredPctLineRate*/);
       auto curPortStats = getLatestPortStats(kPortId);
-      // Now that we have line rate traffic, send pause
-      // which should break the traffic loop
+      // Now that we have line rate traffic, send pause which
+      // should reduce the traffic rate below line rate.
       XLOG(DBG0)
           << "Traffic on port reached line rate, now send back to back PAUSE!";
       std::atomic<bool> keepTxingPauseFrames{true};
