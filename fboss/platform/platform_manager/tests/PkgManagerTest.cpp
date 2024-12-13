@@ -2,6 +2,7 @@
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
+#include <thrift/lib/cpp2/protocol/Serializer.h>
 
 #include "fboss/platform/platform_manager/PkgManager.h"
 
@@ -11,6 +12,18 @@ class MockSystemInterface : public package_manager::SystemInterface {
  public:
   explicit MockSystemInterface() : package_manager::SystemInterface() {}
   MOCK_METHOD(bool, isRpmInstalled, (const std::string&), (const));
+  MOCK_METHOD(
+      std::vector<std::string>,
+      getInstalledRpms,
+      (const std::string&),
+      (const));
+  MOCK_METHOD(int, removeRpms, (const std::vector<std::string>&), (const));
+  MOCK_METHOD(int, installRpm, (const std::string&), (const));
+  MOCK_METHOD(int, depmod, (), (const));
+  MOCK_METHOD(std::string, lsmod, (), (const));
+  MOCK_METHOD(bool, unloadKmod, (const std::string&), (const));
+  MOCK_METHOD(bool, loadKmod, (const std::string&), (const));
+  MOCK_METHOD(std::string, getHostKernelVersion, (), (const));
 };
 class MockPkgManager : public PkgManager {
  public:
@@ -23,16 +36,43 @@ class MockPkgManager : public PkgManager {
   MOCK_METHOD(void, unloadBspKmods, (), (const));
   MOCK_METHOD(void, loadRequiredKmods, (), (const));
 };
+class MockPlatformFsUtils : public PlatformFsUtils {
+ public:
+  MOCK_METHOD(
+      std::optional<std::string>,
+      getStringFileContent,
+      (const std::filesystem::path& path),
+      (const));
+};
 
 class PkgManagerTest : public testing::Test {
  public:
   void SetUp() override {
     FLAGS_local_rpm_path = "";
+    platformConfig_.bspKmodsRpmName() = "fboss_bsp_kmods";
+    platformConfig_.bspKmodsRpmVersion() = "11.44.63-14";
+    platformConfig_.requiredKmodsToLoad() = {"fboss_iob_pci", "spidev"};
+
+    bspKmodsFile_.bspKmods() = {"fboss_iob_pci", "fboss_iob_spi"};
+    bspKmodsFile_.sharedKmods() = {"scd"};
+    jsonBspKmodsFile_ =
+        apache::thrift::SimpleJSONSerializer::serialize<std::string>(
+            bspKmodsFile_);
   }
+  std::string jsonBspKmodsFile_;
+  BspKmodsFile bspKmodsFile_;
   PlatformConfig platformConfig_;
   std::shared_ptr<MockSystemInterface> mockSystemInterface_{
       std::make_shared<MockSystemInterface>()};
+  std::shared_ptr<MockPlatformFsUtils> mockPlatformFsUtils_{
+      std::make_shared<MockPlatformFsUtils>()};
+  // For testing high level flow in PkgManager::processAll
   MockPkgManager mockPkgManager_{platformConfig_, mockSystemInterface_};
+  // For testing individual member functions such as PkgManager::unloadBspKmods
+  PkgManager pkgManager_{
+      platformConfig_,
+      mockSystemInterface_,
+      mockPlatformFsUtils_};
 };
 
 TEST_F(PkgManagerTest, EnablePkgMgmnt) {
@@ -115,5 +155,168 @@ TEST_F(PkgManagerTest, DisablePkgMgmntWithReloadKmods) {
     EXPECT_CALL(mockPkgManager_, loadRequiredKmods()).Times(1);
   }
   EXPECT_NO_THROW(mockPkgManager_.processAll());
+}
+
+TEST_F(PkgManagerTest, processRpms) {
+  EXPECT_CALL(*mockSystemInterface_, getHostKernelVersion())
+      .WillRepeatedly(Return("6.4.3-0_fbk1_755_ga25447393a1d"));
+  // No installed rpms
+  EXPECT_CALL(
+      *mockSystemInterface_,
+      getInstalledRpms(fmt::format(
+          "{}-6.4.3-0_fbk1_755_ga25447393a1d",
+          *platformConfig_.bspKmodsRpmName())))
+      .WillOnce(Return(std::vector<std::string>{}));
+  EXPECT_CALL(*mockSystemInterface_, removeRpms(_)).Times(0);
+  EXPECT_CALL(
+      *mockSystemInterface_,
+      installRpm(fmt::format(
+          "{}-6.4.3-0_fbk1_755_ga25447393a1d-{}",
+          *platformConfig_.bspKmodsRpmName(),
+          *platformConfig_.bspKmodsRpmVersion())))
+      .WillOnce(Return(0));
+  EXPECT_CALL(*mockSystemInterface_, depmod()).WillOnce(Return(0));
+  EXPECT_NO_THROW(pkgManager_.processRpms());
+  // Installed rpms
+  EXPECT_CALL(
+      *mockSystemInterface_,
+      getInstalledRpms(fmt::format(
+          "{}-6.4.3-0_fbk1_755_ga25447393a1d",
+          *platformConfig_.bspKmodsRpmName())))
+      .WillOnce(Return(std::vector<std::string>{
+          "fboss_bsp_kmods-6.4.3-0_fbk1_755_ga25447393a1d-2.4.0-1"}));
+  EXPECT_CALL(
+      *mockSystemInterface_,
+      removeRpms(std::vector<std::string>{
+          "fboss_bsp_kmods-6.4.3-0_fbk1_755_ga25447393a1d-2.4.0-1"}))
+      .WillOnce(Return(0));
+  EXPECT_CALL(
+      *mockSystemInterface_,
+      installRpm(fmt::format(
+          "{}-6.4.3-0_fbk1_755_ga25447393a1d-{}",
+          *platformConfig_.bspKmodsRpmName(),
+          *platformConfig_.bspKmodsRpmVersion())))
+      .WillOnce(Return(0));
+  EXPECT_CALL(*mockSystemInterface_, depmod()).WillOnce(Return(0));
+  EXPECT_NO_THROW(pkgManager_.processRpms());
+  // Remove installed rpms failed.
+  EXPECT_CALL(
+      *mockSystemInterface_,
+      getInstalledRpms(fmt::format(
+          "{}-6.4.3-0_fbk1_755_ga25447393a1d",
+          *platformConfig_.bspKmodsRpmName())))
+      .WillOnce(Return(std::vector<std::string>{
+          "fboss_bsp_kmods-6.4.3-0_fbk1_755_ga25447393a1d-2.4.0-1"}));
+  EXPECT_CALL(
+      *mockSystemInterface_,
+      removeRpms(std::vector<std::string>{
+          "fboss_bsp_kmods-6.4.3-0_fbk1_755_ga25447393a1d-2.4.0-1"}))
+      .WillOnce(Return(1));
+  EXPECT_THROW(pkgManager_.processRpms(), std::runtime_error);
+  // depmod failed
+  EXPECT_CALL(
+      *mockSystemInterface_,
+      getInstalledRpms(fmt::format(
+          "{}-6.4.3-0_fbk1_755_ga25447393a1d",
+          *platformConfig_.bspKmodsRpmName())))
+      .WillOnce(Return(std::vector<std::string>{}));
+  EXPECT_CALL(
+      *mockSystemInterface_,
+      removeRpms(std::vector<std::string>{
+          "fboss_bsp_kmods-6.4.3-0_fbk1_755_ga25447393a1d-2.4.0-1"}))
+      .Times(0);
+  EXPECT_CALL(
+      *mockSystemInterface_,
+      installRpm(fmt::format(
+          "{}-6.4.3-0_fbk1_755_ga25447393a1d-{}",
+          *platformConfig_.bspKmodsRpmName(),
+          *platformConfig_.bspKmodsRpmVersion())))
+      .WillOnce(Return(0));
+  EXPECT_CALL(*mockSystemInterface_, depmod()).WillOnce(Return(1));
+  EXPECT_NO_THROW(pkgManager_.processRpms());
+  // Rpm install failed
+  EXPECT_CALL(
+      *mockSystemInterface_,
+      getInstalledRpms(fmt::format(
+          "{}-6.4.3-0_fbk1_755_ga25447393a1d",
+          *platformConfig_.bspKmodsRpmName())))
+      .WillOnce(Return(std::vector<std::string>{}));
+  EXPECT_CALL(
+      *mockSystemInterface_,
+      removeRpms(std::vector<std::string>{
+          "fboss_bsp_kmods-6.4.3-0_fbk1_755_ga25447393a1d-2.4.0-1"}))
+      .Times(0);
+  EXPECT_CALL(
+      *mockSystemInterface_,
+      installRpm(fmt::format(
+          "{}-6.4.3-0_fbk1_755_ga25447393a1d-{}",
+          *platformConfig_.bspKmodsRpmName(),
+          *platformConfig_.bspKmodsRpmVersion())))
+      .Times(3)
+      .WillRepeatedly(Return(1));
+  EXPECT_THROW(pkgManager_.processRpms(), std::runtime_error);
+}
+
+TEST_F(PkgManagerTest, unloadBspKmods) {
+  EXPECT_CALL(*mockSystemInterface_, getHostKernelVersion())
+      .WillRepeatedly(Return("6.4.3-0_fbk1_755_ga25447393a1d"));
+  // No kmods.json and no old rpms
+  EXPECT_CALL(*mockPlatformFsUtils_, getStringFileContent(_))
+      .WillOnce(Return(std::nullopt));
+  EXPECT_CALL(
+      *mockSystemInterface_,
+      getInstalledRpms(fmt::format(
+          "{}-6.4.3-0_fbk1_755_ga25447393a1d",
+          *platformConfig_.bspKmodsRpmName())))
+      .WillOnce(Return(std::vector<std::string>{}));
+  EXPECT_CALL(*mockSystemInterface_, lsmod()).Times(0);
+  EXPECT_NO_THROW(pkgManager_.unloadBspKmods());
+  // No kmods.json when it should exist
+  EXPECT_CALL(*mockPlatformFsUtils_, getStringFileContent(_))
+      .WillOnce(Return(std::nullopt));
+  EXPECT_CALL(
+      *mockSystemInterface_,
+      getInstalledRpms(fmt::format(
+          "{}-6.4.3-0_fbk1_755_ga25447393a1d",
+          *platformConfig_.bspKmodsRpmName())))
+      .WillOnce(Return(std::vector<std::string>{
+          "fboss_bsp_kmods-6.4.3-0_fbk1_755_ga25447393a1d-2.4.0-1"}));
+  EXPECT_THROW(pkgManager_.unloadBspKmods(), std::runtime_error);
+  // kmods.json exist and all kmods are loaded
+  EXPECT_CALL(*mockPlatformFsUtils_, getStringFileContent(_))
+      .WillOnce(Return(jsonBspKmodsFile_));
+  EXPECT_CALL(*mockSystemInterface_, lsmod())
+      .WillOnce(
+          Return(jsonBspKmodsFile_ /*any string containing kmods works*/));
+  EXPECT_CALL(*mockSystemInterface_, unloadKmod(_))
+      .Times(
+          bspKmodsFile_.sharedKmods()->size() +
+          bspKmodsFile_.bspKmods()->size())
+      .WillRepeatedly(Return(true));
+  EXPECT_NO_THROW(pkgManager_.unloadBspKmods());
+  // kmods.json exists but unload fails
+  EXPECT_CALL(*mockPlatformFsUtils_, getStringFileContent(_))
+      .WillOnce(Return(jsonBspKmodsFile_));
+  EXPECT_CALL(*mockSystemInterface_, lsmod())
+      .WillOnce(Return(jsonBspKmodsFile_));
+  EXPECT_CALL(*mockSystemInterface_, unloadKmod(_)).WillOnce(Return(false));
+  EXPECT_THROW(pkgManager_.unloadBspKmods(), std::runtime_error);
+  // kmods.json exist and all kmods aren't loaded
+  EXPECT_CALL(*mockPlatformFsUtils_, getStringFileContent(_))
+      .WillOnce(Return(jsonBspKmodsFile_));
+  EXPECT_CALL(*mockSystemInterface_, lsmod()).WillOnce(Return(""));
+  EXPECT_CALL(*mockSystemInterface_, unloadKmod(_)).Times(0);
+  EXPECT_NO_THROW(pkgManager_.unloadBspKmods());
+}
+
+TEST_F(PkgManagerTest, loadRequiredKmods) {
+  // Load kmods from PlatformManagerConfig::loadRequiredKmods
+  EXPECT_CALL(*mockSystemInterface_, loadKmod(_))
+      .Times(platformConfig_.requiredKmodsToLoad()->size())
+      .WillRepeatedly(Return(true));
+  EXPECT_NO_THROW(pkgManager_.loadRequiredKmods());
+  // Load kmods fail
+  EXPECT_CALL(*mockSystemInterface_, loadKmod(_)).WillOnce(Return(false));
+  EXPECT_THROW(pkgManager_.loadRequiredKmods(), std::runtime_error);
 }
 }; // namespace facebook::fboss::platform::platform_manager

@@ -24,7 +24,7 @@ class SystemInterface {
   virtual int removeRpms(const std::vector<std::string>& installedRpms) const;
   virtual std::string lsmod() const;
   virtual bool isRpmInstalled(const std::string& rpmFullName) const;
-  std::string getHostKernelVersion() const;
+  virtual std::string getHostKernelVersion() const;
   int installLocalRpm() const;
 };
 } // namespace package_manager

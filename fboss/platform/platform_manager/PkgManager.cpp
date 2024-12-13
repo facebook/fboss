@@ -187,8 +187,8 @@ void PkgManager::processAll() const {
 
 void PkgManager::processRpms() const {
   int exitStatus{0};
-  auto bspKmodsRpmName = getKmodsRpmName();
-  if (auto installedRpms = systemInterface_->getInstalledRpms(bspKmodsRpmName);
+  if (auto installedRpms =
+          systemInterface_->getInstalledRpms(getKmodsRpmBaseWithKernelName());
       !installedRpms.empty()) {
     XLOG(INFO) << fmt::format(
         "Removing old rpms: {}", folly::join(", ", installedRpms));
@@ -202,6 +202,7 @@ void PkgManager::processRpms() const {
   } else {
     XLOG(INFO) << "Skipping removing old rpms. Reason: No rpms installed.";
   }
+  auto bspKmodsRpmName = getKmodsRpmName();
   for (auto [success, attempt] = std::pair{false, 0}; attempt < 3 && !success;
        attempt++) {
     XLOG(INFO) << fmt::format(
