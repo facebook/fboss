@@ -1,5 +1,6 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
+#include <fb303/ServiceData.h>
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 #include <thrift/lib/cpp2/protocol/Serializer.h>
@@ -177,6 +178,8 @@ TEST_F(PkgManagerTest, processRpms) {
       .WillOnce(Return(0));
   EXPECT_CALL(*mockSystemInterface_, depmod()).WillOnce(Return(0));
   EXPECT_NO_THROW(pkgManager_.processRpms());
+  EXPECT_EQ(
+      facebook::fb303::fbData->getCounter(PkgManager::kProcessRpmFailure), 0);
   // Installed rpms
   EXPECT_CALL(
       *mockSystemInterface_,
@@ -199,6 +202,8 @@ TEST_F(PkgManagerTest, processRpms) {
       .WillOnce(Return(0));
   EXPECT_CALL(*mockSystemInterface_, depmod()).WillOnce(Return(0));
   EXPECT_NO_THROW(pkgManager_.processRpms());
+  EXPECT_EQ(
+      facebook::fb303::fbData->getCounter(PkgManager::kProcessRpmFailure), 0);
   // Remove installed rpms failed.
   EXPECT_CALL(
       *mockSystemInterface_,
@@ -213,6 +218,8 @@ TEST_F(PkgManagerTest, processRpms) {
           "fboss_bsp_kmods-6.4.3-0_fbk1_755_ga25447393a1d-2.4.0-1"}))
       .WillOnce(Return(1));
   EXPECT_THROW(pkgManager_.processRpms(), std::runtime_error);
+  EXPECT_EQ(
+      facebook::fb303::fbData->getCounter(PkgManager::kProcessRpmFailure), 1);
   // depmod failed
   EXPECT_CALL(
       *mockSystemInterface_,
@@ -234,6 +241,8 @@ TEST_F(PkgManagerTest, processRpms) {
       .WillOnce(Return(0));
   EXPECT_CALL(*mockSystemInterface_, depmod()).WillOnce(Return(1));
   EXPECT_NO_THROW(pkgManager_.processRpms());
+  EXPECT_EQ(
+      facebook::fb303::fbData->getCounter(PkgManager::kProcessRpmFailure), 0);
   // Rpm install failed
   EXPECT_CALL(
       *mockSystemInterface_,
@@ -255,6 +264,8 @@ TEST_F(PkgManagerTest, processRpms) {
       .Times(3)
       .WillRepeatedly(Return(1));
   EXPECT_THROW(pkgManager_.processRpms(), std::runtime_error);
+  EXPECT_EQ(
+      facebook::fb303::fbData->getCounter(PkgManager::kProcessRpmFailure), 1);
 }
 
 TEST_F(PkgManagerTest, unloadBspKmods) {
@@ -271,6 +282,8 @@ TEST_F(PkgManagerTest, unloadBspKmods) {
       .WillOnce(Return(std::vector<std::string>{}));
   EXPECT_CALL(*mockSystemInterface_, lsmod()).Times(0);
   EXPECT_NO_THROW(pkgManager_.unloadBspKmods());
+  EXPECT_EQ(
+      facebook::fb303::fbData->getCounter(PkgManager::kUnloadKmodsFailure), 0);
   // No kmods.json when it should exist
   EXPECT_CALL(*mockPlatformFsUtils_, getStringFileContent(_))
       .WillOnce(Return(std::nullopt));
@@ -282,6 +295,8 @@ TEST_F(PkgManagerTest, unloadBspKmods) {
       .WillOnce(Return(std::vector<std::string>{
           "fboss_bsp_kmods-6.4.3-0_fbk1_755_ga25447393a1d-2.4.0-1"}));
   EXPECT_THROW(pkgManager_.unloadBspKmods(), std::runtime_error);
+  EXPECT_EQ(
+      facebook::fb303::fbData->getCounter(PkgManager::kUnloadKmodsFailure), 1);
   // kmods.json exist and all kmods are loaded
   EXPECT_CALL(*mockPlatformFsUtils_, getStringFileContent(_))
       .WillOnce(Return(jsonBspKmodsFile_));
@@ -294,6 +309,8 @@ TEST_F(PkgManagerTest, unloadBspKmods) {
           bspKmodsFile_.bspKmods()->size())
       .WillRepeatedly(Return(true));
   EXPECT_NO_THROW(pkgManager_.unloadBspKmods());
+  EXPECT_EQ(
+      facebook::fb303::fbData->getCounter(PkgManager::kUnloadKmodsFailure), 0);
   // kmods.json exists but unload fails
   EXPECT_CALL(*mockPlatformFsUtils_, getStringFileContent(_))
       .WillOnce(Return(jsonBspKmodsFile_));
@@ -301,12 +318,16 @@ TEST_F(PkgManagerTest, unloadBspKmods) {
       .WillOnce(Return(jsonBspKmodsFile_));
   EXPECT_CALL(*mockSystemInterface_, unloadKmod(_)).WillOnce(Return(false));
   EXPECT_THROW(pkgManager_.unloadBspKmods(), std::runtime_error);
+  EXPECT_EQ(
+      facebook::fb303::fbData->getCounter(PkgManager::kUnloadKmodsFailure), 1);
   // kmods.json exist and all kmods aren't loaded
   EXPECT_CALL(*mockPlatformFsUtils_, getStringFileContent(_))
       .WillOnce(Return(jsonBspKmodsFile_));
   EXPECT_CALL(*mockSystemInterface_, lsmod()).WillOnce(Return(""));
   EXPECT_CALL(*mockSystemInterface_, unloadKmod(_)).Times(0);
   EXPECT_NO_THROW(pkgManager_.unloadBspKmods());
+  EXPECT_EQ(
+      facebook::fb303::fbData->getCounter(PkgManager::kUnloadKmodsFailure), 0);
 }
 
 TEST_F(PkgManagerTest, loadRequiredKmods) {
@@ -315,8 +336,12 @@ TEST_F(PkgManagerTest, loadRequiredKmods) {
       .Times(platformConfig_.requiredKmodsToLoad()->size())
       .WillRepeatedly(Return(true));
   EXPECT_NO_THROW(pkgManager_.loadRequiredKmods());
+  EXPECT_EQ(
+      facebook::fb303::fbData->getCounter(PkgManager::kLoadKmodsFailure), 0);
   // Load kmods fail
   EXPECT_CALL(*mockSystemInterface_, loadKmod(_)).WillOnce(Return(false));
   EXPECT_THROW(pkgManager_.loadRequiredKmods(), std::runtime_error);
+  EXPECT_EQ(
+      facebook::fb303::fbData->getCounter(PkgManager::kLoadKmodsFailure), 1);
 }
 }; // namespace facebook::fboss::platform::platform_manager

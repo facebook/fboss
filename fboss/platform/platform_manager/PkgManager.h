@@ -31,6 +31,16 @@ class SystemInterface {
 
 class PkgManager {
  public:
+  // ODS Counters
+  constexpr static auto kProcessAllFailure =
+      "package_manager.process_all_failure";
+  constexpr static auto kLoadKmodsFailure =
+      "package_manager.load_kmods_failure";
+  constexpr static auto kUnloadKmodsFailure =
+      "package_manager.unload_kmods_failure";
+  constexpr static auto kProcessRpmFailure =
+      "package_manager.process_rpm_failure";
+
   explicit PkgManager(
       const PlatformConfig& config,
       const std::shared_ptr<package_manager::SystemInterface>& systemInterface =

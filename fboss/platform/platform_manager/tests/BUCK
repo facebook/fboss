@@ -102,6 +102,7 @@ cpp_unittest(
     ],
     deps = [
         "fbsource//third-party/googletest:gmock",
+        "//fb303:service_data",
         "//fboss/platform/platform_manager:pkg_manager",
         "//thrift/lib/cpp2/protocol:protocol",
     ],

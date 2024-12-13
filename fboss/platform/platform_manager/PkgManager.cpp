@@ -141,6 +141,13 @@ PkgManager::PkgManager(
       platformFsUtils_(platformFsUtils) {}
 
 void PkgManager::processAll() const {
+  SCOPE_SUCCESS {
+    fb303::fbData->setCounter(kProcessAllFailure, 0);
+  };
+  SCOPE_FAIL {
+    fb303::fbData->setCounter(kProcessAllFailure, 1);
+  };
+
   if (FLAGS_local_rpm_path.size()) {
     fb303::fbData->setExportedValue(
         kBspKmodsRpmName, "local_rpm: " + FLAGS_local_rpm_path);
@@ -186,6 +193,13 @@ void PkgManager::processAll() const {
 }
 
 void PkgManager::processRpms() const {
+  SCOPE_SUCCESS {
+    fb303::fbData->setCounter(kProcessRpmFailure, 0);
+  };
+  SCOPE_FAIL {
+    fb303::fbData->setCounter(kProcessRpmFailure, 1);
+  };
+
   int exitStatus{0};
   if (auto installedRpms =
           systemInterface_->getInstalledRpms(getKmodsRpmBaseWithKernelName());
@@ -242,6 +256,13 @@ void PkgManager::processLocalRpms() const {
 }
 
 void PkgManager::unloadBspKmods() const {
+  SCOPE_SUCCESS {
+    fb303::fbData->setCounter(kUnloadKmodsFailure, 0);
+  };
+  SCOPE_FAIL {
+    fb303::fbData->setCounter(kUnloadKmodsFailure, 1);
+  };
+
   std::string keyword{};
   re2::RE2::FullMatch(
       *platformConfig_.bspKmodsRpmName(), kBspRpmNameRe, &keyword);
@@ -305,10 +326,12 @@ void PkgManager::loadRequiredKmods() const {
   for (const auto& requiredKmod : *platformConfig_.requiredKmodsToLoad()) {
     XLOG(INFO) << fmt::format("Loading {}", requiredKmod);
     if (!systemInterface_->loadKmod(requiredKmod)) {
+      fb303::fbData->setCounter(kLoadKmodsFailure, 1);
       throw std::runtime_error(
           fmt::format("Failed to load ({})", requiredKmod));
     }
   }
+  fb303::fbData->setCounter(kLoadKmodsFailure, 0);
 }
 
 std::string PkgManager::getKmodsRpmName() const {
