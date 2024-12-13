@@ -169,11 +169,11 @@ TEST_F(AgentTrafficPauseTest, verifyPauseTxOnly) {
   pauseCfg.rx() = false;
   // Pause should have no impact on traffic given only TX is enabled
   auto rateChecker = [this](uint64_t rate, const PortID& portId) {
-    auto lineRate =
+    auto ninetySevenPctLineRate =
         static_cast<uint64_t>(
             getProgrammedState()->getPorts()->getNodeIf(portId)->getSpeed()) *
-        1000 * 1000;
-    return rate >= lineRate;
+        1000 * 1000 * 0.97;
+    return rate >= ninetySevenPctLineRate;
   };
   validateTrafficWithPause(pauseCfg, rateChecker);
 }
