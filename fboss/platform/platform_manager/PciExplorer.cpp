@@ -499,45 +499,70 @@ std::map<std::string, std::string> PciExplorer::getSpiDeviceCharDevPaths(
       if (!re2::RE2::FullMatch(spiDevId, kSpiDevIdRe, &busNum, &chipSelect)) {
         continue;
       }
-      auto spiCharDevPath = fmt::format("/dev/spidev{}.{}", busNum, chipSelect);
-      if (!fs::exists(spiCharDevPath)) {
-        // For more details on the two commands:
-        // https://github.com/torvalds/linux/blob/master/Documentation/spi/spidev.rst#device-creation-driver-binding
-        // Overriding driver of the SpiDevice so spidev doesn't fail to probe.
-        PlatformUtils().execCommand(fmt::format(
-            "echo spidev > /sys/bus/spi/devices/{}/driver_override", spiDevId));
-        // Bind SpiDevice to spidev driver in order to create its char device.
-        PlatformUtils().execCommand(fmt::format(
-            "echo {} > /sys/bus/spi/drivers/spidev/bind", spiDevId));
-        XLOG(INFO) << fmt::format(
-            "Completed binding SpiDevice {} to {} for SpiController {}",
-            spiDevId,
-            spiCharDevPath,
-            *spiMasterConfig.fpgaIpBlockConfig()->pmUnitScopedName());
-      } else {
-        XLOG(INFO) << fmt::format(
-            "{} already exists. Skipping binding SpiDevice {} for SpiController {}",
-            spiCharDevPath,
-            spiDevId,
-            *spiMasterConfig.fpgaIpBlockConfig()->pmUnitScopedName());
-      }
-      auto itr = std::find_if(
+      // Find corresponding SpiDeviceConfig
+      auto spiDeviceConfigItr = std::find_if(
           spiMasterConfig.spiDeviceConfigs()->begin(),
           spiMasterConfig.spiDeviceConfigs()->end(),
           [chipSelect](auto spiDeviceConfig) {
             return *spiDeviceConfig.chipSelect() == chipSelect;
           });
-      if (itr == spiMasterConfig.spiDeviceConfigs()->end()) {
+      if (spiDeviceConfigItr == spiMasterConfig.spiDeviceConfigs()->end()) {
         throw PciSubDeviceRuntimeError(
             fmt::format(
                 "Unexpected SpiDevice created at {}. \
-                No matching SpiDeviceConfig defined with ChipSelect {} for SpiController {}",
+                No matching SpiDeviceConfig defined with ChipSelect {} for SpiDevice {}",
                 childDirEntry.path().string(),
                 chipSelect,
-                *spiMasterConfig.fpgaIpBlockConfig()->pmUnitScopedName()),
-            *spiMasterConfig.fpgaIpBlockConfig()->pmUnitScopedName());
+                *spiDeviceConfigItr->pmUnitScopedName()),
+            *spiDeviceConfigItr->pmUnitScopedName());
       }
-      spiCharDevPaths[*itr->pmUnitScopedName()] = spiCharDevPath;
+      auto spiCharDevPath = fmt::format("/dev/spidev{}.{}", busNum, chipSelect);
+      if (!fs::exists(spiCharDevPath)) {
+        // For more details on the two commands:
+        // https://github.com/torvalds/linux/blob/master/Documentation/spi/spidev.rst#device-creation-driver-binding
+        // Overriding driver of the SpiDevice so spidev doesn't fail to probe.
+        auto overrideDriver =
+            PlatformUtils()
+                .execCommand(fmt::format(
+                    "echo spidev > /sys/bus/spi/devices/{}/driver_override",
+                    spiDevId))
+                .first == 0;
+        if (!overrideDriver) {
+          throw PciSubDeviceRuntimeError(
+              fmt::format(
+                  "Failed overridng SpiDriver spidev to /sys/bus/spi/devices/{}/driver_override "
+                  "for SpiDevice {}",
+                  spiDevId,
+                  *spiDeviceConfigItr->pmUnitScopedName()),
+              *spiDeviceConfigItr->pmUnitScopedName());
+        }
+        // Bind SpiDevice to spidev driver in order to create its char device.
+        auto bindSpiDev =
+            PlatformUtils()
+                .execCommand(fmt::format(
+                    "echo {} > /sys/bus/spi/drivers/spidev/bind", spiDevId))
+                .first == 0;
+        if (!bindSpiDev) {
+          throw PciSubDeviceRuntimeError(
+              fmt::format(
+                  "Failed binding SpiDevice {} to /sys/bus/spi/drivers/spidev/bind for SpiDevice {}",
+                  spiDevId,
+                  *spiDeviceConfigItr->pmUnitScopedName()),
+              *spiDeviceConfigItr->pmUnitScopedName());
+        }
+        XLOG(INFO) << fmt::format(
+            "Completed initializing SpiDevice {} as {} for SpiDevice {}",
+            spiDevId,
+            spiCharDevPath,
+            *spiDeviceConfigItr->pmUnitScopedName());
+      } else {
+        XLOG(INFO) << fmt::format(
+            "{} already exists. Skipping binding SpiDevice {} for SpiDevice {}",
+            spiCharDevPath,
+            spiDevId,
+            *spiDeviceConfigItr->pmUnitScopedName());
+      }
+      spiCharDevPaths[*spiDeviceConfigItr->pmUnitScopedName()] = spiCharDevPath;
     }
   }
   return spiCharDevPaths;
