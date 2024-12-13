@@ -3,7 +3,6 @@ import concurrent.futures
 import os
 import re
 from collections import defaultdict
-from typing import Dict, List
 
 import pytest
 
@@ -29,7 +28,7 @@ def test_cdev_is_created(platform_fpgas) -> None:
 
 
 def test_i2c_adapter_names(fpga_with_adapters) -> None:
-    for fpga, adapter in fpga_with_adapters:
+    for _, adapter in fpga_with_adapters:
         pattern = r"i2c_master(_.+)?"
         assert re.search(
             pattern, adapter.auxDevice.deviceName

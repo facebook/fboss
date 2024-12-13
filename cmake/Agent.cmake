@@ -105,6 +105,7 @@ target_link_libraries(voq_utils
   Folly::folly
   switch_config_cpp2
   agent_features
+  switch_asics
 )
 
 target_link_libraries(address_utils

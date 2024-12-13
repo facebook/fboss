@@ -241,6 +241,10 @@ class ServiceHandler : public FsdbServiceSvIf,
       std::unique_ptr<OperSubRequestExtended> request,
       bool isStats);
 
+  folly::coro::AsyncGenerator<SubscriberMessage&&> makePatchStreamGenerator(
+      std::unique_ptr<SubRequest> request,
+      bool isStats);
+
   folly::coro::AsyncGenerator<std::vector<TaggedOperDelta>&&>
   makeExtendedDeltaStreamGenerator(
       std::unique_ptr<OperSubRequestExtended> request,

@@ -49,6 +49,7 @@ add_library(agent_hw_test_src
   fboss/agent/test/agent_hw_tests/AgentMmuTuningTests.cpp
   fboss/agent/test/agent_hw_tests/AgentSflowMirrorTest.cpp
   fboss/agent/test/agent_hw_tests/AgentAclPriorityTests.cpp
+  fboss/agent/test/agent_hw_tests/AgentTrafficPauseTests.cpp
   fboss/agent/test/agent_hw_tests/AgentTrunkLoadBalancerTests.cpp
   fboss/agent/test/agent_hw_tests/AgentTrunkTests.cpp
   fboss/agent/test/agent_hw_tests/AgentRxReasonTests.cpp
@@ -57,6 +58,7 @@ add_library(agent_hw_test_src
   fboss/agent/test/agent_hw_tests/AgentHwAclMatchActionsTest.cpp
   fboss/agent/test/agent_hw_tests/AgentHwAclQualifierTest.cpp
   fboss/agent/test/agent_hw_tests/AgentHwAclStatTests.cpp
+  fboss/agent/test/agent_hw_tests/AgentHwResourceStatsTests.cpp
 )
 
 target_link_libraries(agent_hw_test_src

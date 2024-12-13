@@ -201,6 +201,16 @@ HwSwitchFb303Stats::HwSwitchFb303Stats(
           getCounterPrefix() + vendor + ".reassembly.errors",
           SUM,
           RATE),
+      fdrFifoOverflowErrors_(
+          map,
+          getCounterPrefix() + vendor + ".fdr.fifo_overflow.errors",
+          SUM,
+          RATE),
+      fdaFifoOverflowErrors_(
+          map,
+          getCounterPrefix() + vendor + ".fda.fifo_overflow.errors",
+          SUM,
+          RATE),
       forwardingQueueProcessorErrors_(
           map,
           getCounterPrefix() + vendor + ".forwardingQueueProcessor.errors",
@@ -389,6 +399,14 @@ int64_t HwSwitchFb303Stats::getReassemblyErrors() const {
   return getCumulativeValue(reassemblyErrors_);
 }
 
+int64_t HwSwitchFb303Stats::getFdrFifoOverflowErrors() const {
+  return getCumulativeValue(fdrFifoOverflowErrors_);
+}
+
+int64_t HwSwitchFb303Stats::getFdaFifoOverflowErrors() const {
+  return getCumulativeValue(fdaFifoOverflowErrors_);
+}
+
 int64_t HwSwitchFb303Stats::getForwardingQueueProcessorErrors() const {
   return getCumulativeValue(forwardingQueueProcessorErrors_);
 }
@@ -452,6 +470,8 @@ HwAsicErrors HwSwitchFb303Stats::getHwAsicErrors() const {
   asicErrors.forwardingQueueProcessorErrors() =
       getForwardingQueueProcessorErrors();
   asicErrors.reassemblyErrors() = getReassemblyErrors();
+  asicErrors.fdrFifoOverflowErrors() = getFdrFifoOverflowErrors();
+  asicErrors.fdaFifoOverflowErrors() = getFdaFifoOverflowErrors();
   asicErrors.allReassemblyContextsTaken() =
       getAllReassemblyContextsTakenError();
   return asicErrors;

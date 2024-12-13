@@ -204,3 +204,8 @@ DEFINE_bool(
     fw_drained_unrecoverable_error,
     false,
     "Enable or disable whether firmware drained(isolation) can be unrecoverable error");
+
+DEFINE_int32(
+    neighbhor_resource_percentage,
+    75,
+    "Percentage of neighbor resources (out of 100) allowed to use before ResourceAccountant rejects the update.");

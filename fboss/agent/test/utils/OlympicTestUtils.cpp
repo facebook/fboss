@@ -842,16 +842,12 @@ void addQosMapsHelper(
 
   if (hwAsic->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO3) {
     // also apply cpu qos policy for recycle port
-    // TODO(daiweix): properly set qos policy for rcy/mgmt ports
-    // based on port type/scope
-    int kMaxRecyclePort = 6;
-    for (const auto& switchInfo :
-         *cfg.switchSettings()->switchIdToSwitchInfo()) {
-      int basePortId = *switchInfo.second.portIdRange()->minimum();
-      for (int rcyPortId = basePortId + kRecyclePortIdOffset;
-           rcyPortId <= basePortId + kMaxRecyclePort;
-           rcyPortId++) {
-        overrideQosPolicy(&cfg, rcyPortId, cpuQosPolicyName);
+    for (const auto& port : *cfg.ports()) {
+      if (*port.portType() == cfg::PortType::RECYCLE_PORT ||
+          *port.portType() == cfg::PortType::EVENTOR_PORT) {
+        XLOG(DBG2) << "override and use rcy qos policy for port "
+                   << *port.logicalID();
+        overrideQosPolicy(&cfg, *port.logicalID(), cpuQosPolicyName);
       }
     }
   }

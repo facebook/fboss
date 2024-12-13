@@ -52,7 +52,8 @@ SaiWredTraits::CreateAttributes SaiWredManager::profileCreateAttrs(
       std::get<std::optional<Attributes::EcnGreenMaxThreshold>>(attrs);
 #if !defined(BRCM_SAI_SDK_XGS_AND_DNX)
   std::tie(greenMin, greenMax, greenDropProbability, ecnGreenMin, ecnGreenMax) =
-      std::make_tuple(0, 0, kDefaultDropProbability, 0, 0);
+      std::make_tuple(
+          0, 0, kDefaultDropProbability, std::nullopt, std::nullopt);
 #endif
   for (const auto& aqm : std::as_const(*queue.getAqms())) {
     // THRIFT_COPY

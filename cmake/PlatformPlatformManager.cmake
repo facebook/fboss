@@ -122,7 +122,7 @@ target_link_libraries(platform_manager_device_path_resolver
 
 add_library(platform_manager_platform_explorer
   fboss/platform/platform_manager/PlatformExplorer.cpp
-  fboss/platform/platform_manager/ExplorationErrorMap.cpp
+  fboss/platform/platform_manager/ExplorationSummary.cpp
 )
 
 target_link_libraries(platform_manager_platform_explorer
@@ -164,7 +164,7 @@ add_executable(platform_manager
   fboss/platform/platform_manager/DevicePathResolver.cpp
   fboss/platform/platform_manager/Utils.cpp
   fboss/platform/platform_manager/PresenceChecker.cpp
-  fboss/platform/platform_manager/ExplorationErrorMap.cpp
+  fboss/platform/platform_manager/ExplorationSummary.cpp
   fboss/platform/platform_manager/ConfigUtils.cpp
 )
 

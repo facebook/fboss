@@ -34,6 +34,9 @@ struct ChildStruct {
   1: map<i32, bool> childMap;
   2: map<string, i32> strMap;
   3: map<string, switch_config.L4PortRange> structMap;
+  4: list<switch_config.L4PortRange> listOfStruct;
+  5: i32 leafI32;
+  6: optional TestEnum optionalEnum;
 }
 
 struct TestStruct {
@@ -75,7 +78,10 @@ struct TestStruct {
   29: set<i32> hybridSet (allow_skip_thrift_cow = true);
   30: TestUnion hybridUnion (allow_skip_thrift_cow = true);
   31: ChildStruct hybridStruct (allow_skip_thrift_cow = true);
-  32: map<i32, switch_config.L4PortRange> hybridMapOfI32ToStruct (
+  // hybridMapOfI32ToStruct is crafted to cover deeper accesses inside HybridNode, with
+  // paths that terminate at primitive leaves, intermediate containers (list, map, struct)
+  // in UTs for various visitors: PathVisitor, RecurseVisitor, DeltaVisitor
+  32: map<i32, ChildStruct> hybridMapOfI32ToStruct (
     allow_skip_thrift_cow = true,
   );
   33: map<i32, map<i32, i32>> hybridMapOfMap (allow_skip_thrift_cow = true);
@@ -84,7 +90,20 @@ struct TestStruct {
   );
 }
 
+// structs declared to mimic deeper Thrift path accesses
 struct ParentTestStruct {
+  1: TestStruct childStruct;
+  2: map<i32, map<string, TestStruct>> mapOfI32ToMapOfStruct;
+}
+
+struct RootTestStruct {
+  1: map<i32, map<string, ParentTestStruct>> mapOfI32ToMapOfStruct;
+  2: list<ParentTestStruct> listOfStruct;
+  3: ParentTestStruct inlineStruct;
+}
+
+// structs declared exclusively for testing Thrift annotations.
+struct TestStructForAnnotation1 {
   1: TestStruct childStruct;
 } (random_annotation)
 

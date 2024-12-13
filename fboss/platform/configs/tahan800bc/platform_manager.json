@@ -1,9 +1,9 @@
 {
   "platformName": "tahan800bc",
   "rootPmUnitName": "TAHAN",
-  "rootSlotType": "SMB_SLOT",
+  "rootSlotType": "TAHAN_SLOT",
   "slotTypeConfigs": {
-    "SMB_SLOT": {
+    "TAHAN_SLOT": {
       "numOutgoingI2cBuses": 0,
       "idpromConfig": {
         "busName": "SMBus I801 adapter at 5000",
@@ -11,6 +11,15 @@
         "kernelDeviceName": "24c02"
       },
       "pmUnitName": "TAHAN"
+    },
+    "SMB_FRU_SLOT": {
+      "numOutgoingI2cBuses": 4,
+      "idpromConfig": {
+        "busName": "INCOMING@1",
+        "address": "0x56",
+        "kernelDeviceName": "24c64"
+      },
+      "pmUnitName": "SMB_FRU"
     },
     "RUNBMC_SLOT": {
       "numOutgoingI2cBuses": 1,
@@ -33,6 +42,10 @@
     "PDB_SLOT": {
       "numOutgoingI2cBuses": 1,
       "pmUnitName": "PDB"
+    },
+    "BCB_SLOT": {
+      "numOutgoingI2cBuses": 2,
+      "pmUnitName": "BCB"
     }
   },
   "i2cAdaptersFromCpu": [
@@ -90,11 +103,51 @@
         },
         "productSubVersion": 2
       }
+    ],
+    "SMB_FRU": [
+      {
+        "pmUnitConfig": {
+          "pluggedInSlotType": "SMB_FRU_SLOT",
+          "i2cDeviceConfigs": [
+            {
+              "busName": "INCOMING@0",
+              "address": "0x21",
+              "kernelDeviceName": "bp4f_mp2891",
+              "pmUnitScopedName": "SMB_U122_PMBUS_1"
+            },
+            {
+              "busName": "INCOMING@2",
+              "address": "0x7e",
+              "kernelDeviceName": "mp2975",
+              "pmUnitScopedName": "SMB_U20_XDPE12284_1"
+            },
+            {
+              "busName": "INCOMING@2",
+              "address": "0x7d",
+              "kernelDeviceName": "mp2975",
+              "pmUnitScopedName": "SMB_U86_XDPE12284_2"
+            },
+            {
+              "busName": "INCOMING@3",
+              "address": "0x7a",
+              "kernelDeviceName": "mp2975",
+              "pmUnitScopedName": "SMB_U229_XDPE12284_1"
+            },
+            {
+              "busName": "INCOMING@3",
+              "address": "0x7b",
+              "kernelDeviceName": "mp2975",
+              "pmUnitScopedName": "SMB_U92_XDPE12284_2"
+            }
+          ]
+        },
+        "productSubVersion": 10
+      }
     ]
   },
   "pmUnitConfigs": {
     "TAHAN": {
-      "pluggedInSlotType": "SMB_SLOT",
+      "pluggedInSlotType": "TAHAN_SLOT",
       "embeddedSensorConfigs": [
         {
           "pmUnitScopedName": "CPU_CORE_TEMP",
@@ -1533,49 +1586,6 @@
       ],
       "i2cDeviceConfigs": [
         {
-          "busName": "SMB_IOB_I2C_MASTER_1",
-          "address": "0x5e",
-          "kernelDeviceName": "bp4f_max31790",
-          "pmUnitScopedName": "SMB_BCB_FAN_CPLD"
-        },
-        {
-          "busName": "SMB_IOB_I2C_MASTER_1",
-          "address": "0x16",
-          "kernelDeviceName": "mtia_fan_watchdog",
-          "pmUnitScopedName": "BCB_FAN_WATCHDOG",
-          "isWatchdog": true
-        },
-        {
-          "busName": "SMB_IOB_I2C_MASTER_4",
-          "address": "0x76",
-          "kernelDeviceName": "pmbus",
-          "pmUnitScopedName": "SMB_U122_PMBUS_1"
-        },
-        {
-          "busName": "SMB_IOB_I2C_MASTER_11",
-          "address": "0x68",
-          "kernelDeviceName": "bp4f_xdpe12284",
-          "pmUnitScopedName": "SMB_U20_XDPE12284_1"
-        },
-        {
-          "busName": "SMB_IOB_I2C_MASTER_11",
-          "address": "0x6a",
-          "kernelDeviceName": "bp4f_xdpe12284",
-          "pmUnitScopedName": "SMB_U86_XDPE12284_2"
-        },
-        {
-          "busName": "SMB_IOB_I2C_MASTER_12",
-          "address": "0x72",
-          "kernelDeviceName": "bp4f_xdpe12284",
-          "pmUnitScopedName": "SMB_U229_XDPE12284_1"
-        },
-        {
-          "busName": "SMB_IOB_I2C_MASTER_12",
-          "address": "0x70",
-          "kernelDeviceName": "bp4f_xdpe12284",
-          "pmUnitScopedName": "SMB_U92_XDPE12284_2"
-        },
-        {
           "busName": "SMB_IOB_I2C_MASTER_13",
           "address": "0x48",
           "kernelDeviceName": "lm75b",
@@ -1604,12 +1614,6 @@
           "address": "0x49",
           "kernelDeviceName": "lm75b",
           "pmUnitScopedName": "SMB_U57_LM75B_2"
-        },
-        {
-          "busName": "SMB_IOB_I2C_MASTER_19",
-          "address": "0x5e",
-          "kernelDeviceName": "bp4f_max31790",
-          "pmUnitScopedName": "SMB_BCB_FAN_CPLD_2"
         },
         {
           "busName": "SMB_IOB_I2C_MASTER_21",
@@ -1649,7 +1653,9 @@
           "initRegSettings": [
             {
               "regOffset": 11,
-              "ioBuf": [2]
+              "ioBuf": [
+                2
+              ]
             }
           ]
         },
@@ -1661,7 +1667,9 @@
           "initRegSettings": [
             {
               "regOffset": 11,
-              "ioBuf": [2]
+              "ioBuf": [
+                2
+              ]
             }
           ]
         },
@@ -1700,12 +1708,6 @@
           "address": "0x60",
           "kernelDeviceName": "mtia_pwrcpld",
           "pmUnitScopedName": "PWR_CPLD"
-        },
-        {
-          "busName": "SMB_IOB_I2C_MASTER_9",
-          "address": "0x56",
-          "kernelDeviceName": "24c64",
-          "pmUnitScopedName": "SMB_EEPROM"
         }
       ],
       "outgoingSlotConfigs": {
@@ -1722,13 +1724,64 @@
             "SMB_IOB_I2C_MASTER_24"
           ]
         },
+        "BCB_SLOT@0": {
+          "slotType": "BCB_SLOT",
+          "outgoingI2cBusNames": [
+            "SMB_IOB_I2C_MASTER_1",
+            "SMB_IOB_I2C_MASTER_19"
+          ]
+        },
         "PDB_SLOT@0": {
           "slotType": "PDB_SLOT",
           "outgoingI2cBusNames": [
             "SMB_IOB_I2C_MASTER_22"
           ]
+        },
+        "SMB_FRU_SLOT@0": {
+          "slotType": "SMB_FRU_SLOT",
+          "outgoingI2cBusNames": [
+            "SMB_IOB_I2C_MASTER_4",
+            "SMB_IOB_I2C_MASTER_9",
+            "SMB_IOB_I2C_MASTER_11",
+            "SMB_IOB_I2C_MASTER_12"
+          ]
         }
       }
+    },
+    "SMB_FRU": {
+      "pluggedInSlotType": "SMB_FRU_SLOT",
+      "i2cDeviceConfigs": [
+        {
+          "busName": "INCOMING@0",
+          "address": "0x76",
+          "kernelDeviceName": "pmbus",
+          "pmUnitScopedName": "SMB_U122_PMBUS_1"
+        },
+        {
+          "busName": "INCOMING@2",
+          "address": "0x68",
+          "kernelDeviceName": "bp4f_xdpe12284",
+          "pmUnitScopedName": "SMB_U20_XDPE12284_1"
+        },
+        {
+          "busName": "INCOMING@2",
+          "address": "0x6a",
+          "kernelDeviceName": "bp4f_xdpe12284",
+          "pmUnitScopedName": "SMB_U86_XDPE12284_2"
+        },
+        {
+          "busName": "INCOMING@3",
+          "address": "0x72",
+          "kernelDeviceName": "bp4f_xdpe12284",
+          "pmUnitScopedName": "SMB_U229_XDPE12284_1"
+        },
+        {
+          "busName": "INCOMING@3",
+          "address": "0x70",
+          "kernelDeviceName": "bp4f_xdpe12284",
+          "pmUnitScopedName": "SMB_U92_XDPE12284_2"
+        }
+      ]
     },
     "MINERVA_BMC": {
       "pluggedInSlotType": "RUNBMC_SLOT",
@@ -1810,24 +1863,40 @@
           "pmUnitScopedName": "PDB_PMBUS_2"
         }
       ]
+    },
+    "BCB": {
+      "pluggedInSlotType": "BCB_SLOT",
+      "i2cDeviceConfigs": [
+        {
+          "busName": "INCOMING@0",
+          "address": "0x5e",
+          "kernelDeviceName": "bp4f_max31790",
+          "pmUnitScopedName": "SMB_BCB_FAN_CPLD"
+        },
+        {
+          "busName": "INCOMING@1",
+          "address": "0x5e",
+          "kernelDeviceName": "bp4f_max31790",
+          "pmUnitScopedName": "SMB_BCB_FAN_CPLD_2"
+        }
+      ]
     }
   },
   "symbolicLinkToDevicePath": {
     "/run/devmap/eeproms/COME_EEPROM": "/[IDPROM]",
     "/run/devmap/eeproms/COME_FRU": "/COME_SLOT@0/[IDPROM]",
-    "/run/devmap/eeproms/SMB_EEPROM": "/[SMB_EEPROM]",
+    "/run/devmap/eeproms/SMB_EEPROM": "/SMB_FRU_SLOT@0/[IDPROM]",
     "/run/devmap/eeproms/RUNBMC_EEPROM": "/RUNBMC_SLOT@0/[IDPROM]",
     "/run/devmap/sensors/CPU_CORE_TEMP": "/[CPU_CORE_TEMP]",
     "/run/devmap/sensors/SMB_E1S_SSD_TEMP": "/[SMB_E1S_SSD_TEMP]",
-    "/run/devmap/sensors/SMB_BCB_FAN_CPLD": "/[SMB_BCB_FAN_CPLD]",
-    "/run/devmap/sensors/SMB_BCB_FAN_CPLD_2": "/[SMB_BCB_FAN_CPLD_2]",
-    "/run/devmap/watchdogs/BCB_FAN_WATCHDOG": "/[BCB_FAN_WATCHDOG]",
+    "/run/devmap/sensors/SMB_BCB_FAN_CPLD": "/BCB_SLOT@0/[SMB_BCB_FAN_CPLD]",
+    "/run/devmap/sensors/SMB_BCB_FAN_CPLD_2": "/BCB_SLOT@0/[SMB_BCB_FAN_CPLD_2]",
     "/run/devmap/sensors/BMC_U9_THERMAL_SENSOR": "/RUNBMC_SLOT@0/[BMC_U9_THERMAL_SENSOR]",
-    "/run/devmap/sensors/SMB_U122_PMBUS_1": "/[SMB_U122_PMBUS_1]",
-    "/run/devmap/sensors/SMB_U20_XDPE12284_1": "/[SMB_U20_XDPE12284_1]",
-    "/run/devmap/sensors/SMB_U86_XDPE12284_2": "/[SMB_U86_XDPE12284_2]",
-    "/run/devmap/sensors/SMB_U229_XDPE12284_1": "/[SMB_U229_XDPE12284_1]",
-    "/run/devmap/sensors/SMB_U92_XDPE12284_2": "/[SMB_U92_XDPE12284_2]",
+    "/run/devmap/sensors/SMB_U122_PMBUS_1": "/SMB_FRU_SLOT@0/[SMB_U122_PMBUS_1]",
+    "/run/devmap/sensors/SMB_U20_XDPE12284_1": "/SMB_FRU_SLOT@0/[SMB_U20_XDPE12284_1]",
+    "/run/devmap/sensors/SMB_U86_XDPE12284_2": "/SMB_FRU_SLOT@0/[SMB_U86_XDPE12284_2]",
+    "/run/devmap/sensors/SMB_U229_XDPE12284_1": "/SMB_FRU_SLOT@0/[SMB_U229_XDPE12284_1]",
+    "/run/devmap/sensors/SMB_U92_XDPE12284_2": "/SMB_FRU_SLOT@0/[SMB_U92_XDPE12284_2]",
     "/run/devmap/sensors/SMB_U327_TPS25990_COME": "/[SMB_U327_TPS25990_COME]",
     "/run/devmap/sensors/SMB_U69_LM75B_1": "/[SMB_U69_LM75B_1]",
     "/run/devmap/sensors/SMB_U67_LM75B_2": "/[SMB_U67_LM75B_2]",
@@ -1962,27 +2031,9 @@
   },
   "bspKmodsRpmName": "fboss_bsp_kmods",
   "bspKmodsRpmVersion": "2.4.0-1",
-  "bspKmodsToReload": [
-    "bp4f_max31790",
-    "bp4f_tda38640",
-    "bp4f_xdpe12284",
-    "bp4f_xdpe152c4",
-    "fboss_iob_gpio",
-    "fboss_iob_i2c",
-    "fboss_iob_info",
-    "fboss_iob_led",
-    "fboss_iob_pci",
-    "fboss_iob_spi",
-    "fboss_iob_xcvr",
-    "mtia_fan_watchdog",
-    "mtia_pwrcpld",
-    "mtia_smbcpld",
-    "tahan_smbcpld",
-    "tps25990"
-  ],
-  "sharedKmodsToReload": [],
-  "upstreamKmodsToLoad": [
+  "requiredKmodsToLoad": [
     "i2c_i801",
-    "spidev"
+    "spidev",
+    "fboss_iob_pci"
   ]
 }

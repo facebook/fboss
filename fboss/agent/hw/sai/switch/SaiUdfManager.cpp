@@ -49,12 +49,12 @@ SaiUdfMatchTraits::CreateAttributes SaiUdfManager::udfMatchAttr(
     const std::shared_ptr<UdfPacketMatcher> swUdfMatch) const {
   // L2 Match Type - match l3 protocol
   auto l2MatchType = cfgL3MatchTypeToSai(swUdfMatch->getUdfl3PktType());
-  auto l2MatchAttr = SaiUdfMatchTraits::Attributes::L2Type{
-      AclEntryFieldU16(std::make_pair(l2MatchType, kMaskAny))};
+  auto l2MatchAttr =
+      SaiUdfMatchTraits::Attributes::L2Type{AclEntryFieldU16(l2MatchType)};
   // L3 Match Type - match l4 protocol
   auto l3MatchType = cfgL4MatchTypeToSai(swUdfMatch->getUdfl4PktType());
-  auto l3MatchAttr = SaiUdfMatchTraits::Attributes::L3Type{AclEntryFieldU8(
-      std::make_pair(l3MatchType, static_cast<uint8_t>(kMaskAny)))};
+  auto l3MatchAttr =
+      SaiUdfMatchTraits::Attributes::L3Type{AclEntryFieldU8(l3MatchType)};
 #if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
   // L4 Dst Port
   auto l4DstPortAttr = SaiUdfMatchTraits::Attributes::L4DstPortType{
@@ -160,26 +160,36 @@ void SaiUdfManager::removeUdfMatch(
   udfMatchHandles_.erase(swUdfMatch->getName());
 }
 
-uint8_t SaiUdfManager::cfgL4MatchTypeToSai(cfg::UdfMatchL4Type cfgType) const {
+std::pair<uint8_t, uint8_t> SaiUdfManager::cfgL4MatchTypeToSai(
+    cfg::UdfMatchL4Type cfgType) const {
   switch (cfgType) {
     case cfg::UdfMatchL4Type::UDF_L4_PKT_TYPE_ANY:
-      return 0;
+      return std::make_pair(0, kMaskDontCare);
     case cfg::UdfMatchL4Type::UDF_L4_PKT_TYPE_UDP:
-      return static_cast<uint8_t>(IP_PROTO::IP_PROTO_UDP);
+      return std::make_pair(
+          static_cast<uint8_t>(IP_PROTO::IP_PROTO_UDP),
+          static_cast<uint8_t>(kMaskAny));
     case cfg::UdfMatchL4Type::UDF_L4_PKT_TYPE_TCP:
-      return static_cast<uint8_t>(IP_PROTO::IP_PROTO_TCP);
+      return std::make_pair(
+          static_cast<uint8_t>(IP_PROTO::IP_PROTO_TCP),
+          static_cast<uint8_t>(kMaskAny));
   }
   throw FbossError("Invalid udf l2 match type: ", cfgType);
 }
 
-uint16_t SaiUdfManager::cfgL3MatchTypeToSai(cfg::UdfMatchL3Type cfgType) const {
+std::pair<uint16_t, uint16_t> SaiUdfManager::cfgL3MatchTypeToSai(
+    cfg::UdfMatchL3Type cfgType) const {
   switch (cfgType) {
     case cfg::UdfMatchL3Type::UDF_L3_PKT_TYPE_ANY:
-      return 0;
+      return std::make_pair(0, kMaskDontCare);
     case cfg::UdfMatchL3Type::UDF_L3_PKT_TYPE_IPV4:
-      return static_cast<uint16_t>(ETHERTYPE::ETHERTYPE_IPV4);
+      return std::make_pair(
+          static_cast<uint16_t>(ETHERTYPE::ETHERTYPE_IPV4),
+          static_cast<uint16_t>(kMaskAny));
     case cfg::UdfMatchL3Type::UDF_L3_PKT_TYPE_IPV6:
-      return static_cast<uint16_t>(ETHERTYPE::ETHERTYPE_IPV6);
+      return std::make_pair(
+          static_cast<uint16_t>(ETHERTYPE::ETHERTYPE_IPV6),
+          static_cast<uint16_t>(kMaskAny));
   }
   throw FbossError("Invalid udf l3 match type: ", cfgType);
 }

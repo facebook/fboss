@@ -31,10 +31,8 @@ using PathIter = typename std::vector<std::string>::const_iterator;
 // instantiations
 class BasePathVisitorOperator {
  public:
-  template <typename TType>
+  template <typename TC, typename TType>
   class SerializableWrapper : public Serializable {
-    using TC = apache::thrift::type_class::structure;
-
    public:
     explicit SerializableWrapper(TType& node) : node_(node) {}
 
@@ -68,7 +66,7 @@ class BasePathVisitorOperator {
 
   virtual ~BasePathVisitorOperator() = default;
 
-  template <typename Node>
+  template <typename TC, typename Node>
   inline void
   visitTyped(Node& node, pv_detail::PathIter begin, pv_detail::PathIter end)
     requires(is_cow_type_v<Node>)
@@ -82,13 +80,13 @@ class BasePathVisitorOperator {
     }
   }
 
-  template <typename Node>
+  template <typename TC, typename Node>
   inline void
   visitTyped(Node& node, pv_detail::PathIter begin, pv_detail::PathIter end)
     requires(!is_cow_type_v<Node>)
   {
     // Node is not a Serializable, dispatch with wrapper
-    SerializableWrapper wrapper(node);
+    SerializableWrapper<TC, Node> wrapper(node);
     if constexpr (std::is_const_v<Node>) {
       cvisit(wrapper, begin, end);
       cvisit(wrapper);
@@ -221,7 +219,7 @@ template <typename Func>
 struct LambdaPathVisitorOperator {
   explicit LambdaPathVisitorOperator(Func&& f) : f_(std::forward<Func>(f)) {}
 
-  template <typename Node>
+  template <typename TC, typename Node>
   inline auto
   visitTyped(Node& node, pv_detail::PathIter begin, pv_detail::PathIter end)
       -> std::invoke_result_t<
@@ -232,7 +230,7 @@ struct LambdaPathVisitorOperator {
     return f_(node, begin, end);
   }
 
-  template <typename Node>
+  template <typename TC, typename Node>
   inline auto visitTyped(
       Node& node,
       pv_detail::PathIter /* begin */,
@@ -252,7 +250,7 @@ visitNode(Node& node, const VisitImplParams<Op>& params, PathIter cursor)
 {
   if (params.mode == PathVisitMode::FULL || cursor == params.end) {
     try {
-      params.op.visitTyped(node, cursor, params.end);
+      params.op.template visitTyped<TC, Node>(node, cursor, params.end);
       if (cursor == params.end) {
         return ThriftTraverseResult::OK;
       }
@@ -295,7 +293,7 @@ struct PathVisitorImpl<apache::thrift::type_class::set<ValueTypeClass>> {
   {
     try {
       if (params.mode == PathVisitMode::FULL || cursor == params.end) {
-        params.op.visitTyped(tObj, cursor, params.end);
+        params.op.template visitTyped<TC, Obj>(tObj, cursor, params.end);
         if (cursor == params.end) {
           return ThriftTraverseResult::OK;
         }
@@ -334,7 +332,7 @@ struct PathVisitorImpl<apache::thrift::type_class::set<ValueTypeClass>> {
   {
     try {
       if (params.mode == PathVisitMode::FULL || cursor == params.end) {
-        params.op.visitTyped(node, cursor, params.end);
+        params.op.template visitTyped<TC, Node>(node, cursor, params.end);
         if (cursor == params.end) {
           return ThriftTraverseResult::OK;
         }
@@ -414,7 +412,7 @@ struct PathVisitorImpl<apache::thrift::type_class::list<ValueTypeClass>> {
   {
     try {
       if (params.mode == PathVisitMode::FULL || cursor == params.end) {
-        params.op.visitTyped(tObj, cursor, params.end);
+        params.op.template visitTyped<TC, Obj>(tObj, cursor, params.end);
         if (cursor == params.end) {
           return ThriftTraverseResult::OK;
         }
@@ -443,7 +441,7 @@ struct PathVisitorImpl<apache::thrift::type_class::list<ValueTypeClass>> {
   {
     try {
       if (params.mode == PathVisitMode::FULL || cursor == params.end) {
-        params.op.visitTyped(node, cursor, params.end);
+        params.op.template visitTyped<TC, Node>(node, cursor, params.end);
         if (cursor == params.end) {
           return ThriftTraverseResult::OK;
         }
@@ -515,7 +513,7 @@ struct PathVisitorImpl<
   {
     try {
       if (params.mode == PathVisitMode::FULL || cursor == params.end) {
-        params.op.visitTyped(tObj, cursor, params.end);
+        params.op.template visitTyped<TC, Obj>(tObj, cursor, params.end);
         if (cursor == params.end) {
           return ThriftTraverseResult::OK;
         }
@@ -547,7 +545,7 @@ struct PathVisitorImpl<
   {
     try {
       if (params.mode == PathVisitMode::FULL || cursor == params.end) {
-        params.op.visitTyped(node, cursor, params.end);
+        params.op.template visitTyped<TC, Node>(node, cursor, params.end);
         if (cursor == params.end) {
           return ThriftTraverseResult::OK;
         }
@@ -698,7 +696,7 @@ struct PathVisitorImpl<apache::thrift::type_class::structure> {
   {
     try {
       if (params.mode == PathVisitMode::FULL || cursor == params.end) {
-        params.op.visitTyped(node, cursor, params.end);
+        params.op.template visitTyped<TC, Node>(node, cursor, params.end);
         if (cursor == params.end) {
           return ThriftTraverseResult::OK;
         }
@@ -737,7 +735,7 @@ struct PathVisitorImpl<apache::thrift::type_class::structure> {
   {
     try {
       if (params.mode == PathVisitMode::FULL || cursor == params.end) {
-        params.op.visitTyped(tObj, cursor, params.end);
+        params.op.template visitTyped<TC, Obj>(tObj, cursor, params.end);
         if (cursor == params.end) {
           return ThriftTraverseResult::OK;
         }
@@ -835,7 +833,9 @@ struct PathVisitorImpl {
         // take a const param. Here we cast away the const and rely on
         // primitive node's functions throwing an exception if the node is
         // immutable.
-        params.op.visitTyped(
+        params.op.template visitTyped<
+            std::remove_const_t<TC>,
+            std::remove_const_t<Node>>(
             *const_cast<std::remove_const_t<Node>*>(&node), cursor, params.end);
         if (cursor == params.end) {
           return ThriftTraverseResult::OK;

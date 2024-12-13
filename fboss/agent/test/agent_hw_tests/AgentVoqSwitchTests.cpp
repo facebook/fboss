@@ -39,28 +39,14 @@ class AgentVoqSwitchTest : public AgentHwTest {
       const AgentEnsemble& ensemble) const override {
     // Increase the query timeout to be 5sec
     FLAGS_hwswitch_query_timeout = 5000;
-    // Before m-mpu agent test, use first Asic for initialization.
-    auto switchIds = ensemble.getSw()->getHwAsicTable()->getSwitchIDs();
-    CHECK_GE(switchIds.size(), 1);
-    auto asic =
-        ensemble.getSw()->getHwAsicTable()->getHwAsic(*switchIds.cbegin());
     auto config = utility::onePortPerInterfaceConfig(
         ensemble.getSw(),
         ensemble.masterLogicalPortIds(),
         true /*interfaceHasSubnet*/);
-    const auto& cpuStreamTypes =
-        asic->getQueueStreamTypes(cfg::PortType::CPU_PORT);
-    for (const auto& cpuStreamType : cpuStreamTypes) {
-      if (asic->getDefaultNumPortQueues(
-              cpuStreamType, cfg::PortType::CPU_PORT)) {
-        // cpu queues supported
-        auto l3Asics = ensemble.getSw()->getHwAsicTable()->getL3Asics();
-        addCpuTrafficPolicy(config, l3Asics);
-        utility::addCpuQueueConfig(config, l3Asics, ensemble.isSai());
-        break;
-      }
-    }
     utility::addNetworkAIQosMaps(config, ensemble.getL3Asics());
+    utility::setDefaultCpuTrafficPolicyConfig(
+        config, ensemble.getL3Asics(), ensemble.isSai());
+    utility::addCpuQueueConfig(config, ensemble.getL3Asics(), ensemble.isSai());
     return config;
   }
 
@@ -342,34 +328,6 @@ class AgentVoqSwitchTest : public AgentHwTest {
       return out;
     });
     return portDescs;
-  }
-
- private:
-  void addCpuTrafficPolicy(
-      cfg::SwitchConfig& cfg,
-      std::vector<const HwAsic*>& l3Asics) const {
-    cfg::CPUTrafficPolicyConfig cpuConfig;
-    std::vector<cfg::PacketRxReasonToQueue> rxReasonToQueues;
-    std::vector<std::pair<cfg::PacketRxReason, uint16_t>>
-        rxReasonToQueueMappings = {
-            std::pair(
-                cfg::PacketRxReason::BGP,
-                utility::getCoppHighPriQueueId(l3Asics)),
-            std::pair(
-                cfg::PacketRxReason::BGPV6,
-                utility::getCoppHighPriQueueId(l3Asics)),
-            std::pair(
-                cfg::PacketRxReason::CPU_IS_NHOP,
-                utility::getCoppMidPriQueueId(l3Asics)),
-        };
-    for (auto rxEntry : rxReasonToQueueMappings) {
-      auto rxReasonToQueue = cfg::PacketRxReasonToQueue();
-      rxReasonToQueue.rxReason() = rxEntry.first;
-      rxReasonToQueue.queueId() = rxEntry.second;
-      rxReasonToQueues.push_back(rxReasonToQueue);
-    }
-    cpuConfig.rxReasonToQueueOrderedList() = rxReasonToQueues;
-    cfg.cpuTrafficPolicy() = cpuConfig;
   }
 };
 
@@ -1292,7 +1250,9 @@ TEST_F(AgentVoqSwitchTest, trapPktsOnPort) {
   const auto kPort = ecmpHelper.ecmpPortDescriptorAt(0);
   auto setup = [this, kPort, &ecmpHelper]() {
     auto cfg = initialConfig(*getAgentEnsemble());
-    utility::addTrapPacketAcl(&cfg, kPort.phyPortID());
+    auto l3Asics = getAgentEnsemble()->getL3Asics();
+    auto asic = utility::checkSameAndGetAsic(l3Asics);
+    utility::addTrapPacketAcl(asic, &cfg, kPort.phyPortID());
     applyNewConfig(cfg);
     applyNewState([=](const std::shared_ptr<SwitchState>& in) {
       return ecmpHelper.resolveNextHops(in, {kPort});
@@ -1515,14 +1475,24 @@ TEST_F(AgentVoqSwitchTest, dramEnqueueDequeueBytes) {
 TEST_F(AgentVoqSwitchTest, verifyQueueLatencyWatermark) {
   utility::EcmpSetupAnyNPorts6 ecmpHelper(getProgrammedState());
   const auto kPort = ecmpHelper.ecmpPortDescriptorAt(0);
-  auto setup = [this, kPort]() {
+  const uint64_t kLocalVoqMaxExpectedLatencyNsec{10000};
+  const uint64_t kRemoteL1VoqMaxExpectedLatencyNsec{100000};
+  const uint64_t kRemoteL2VoqMaxExpectedLatencyNsec{100000};
+  const uint64_t kOutOfBoundsLatencyNsec{2147483647};
+  auto setup = [&]() {
+    auto cfg = initialConfig(*getAgentEnsemble());
+    cfg.switchSettings()->localVoqMaxExpectedLatencyNsec() =
+        kLocalVoqMaxExpectedLatencyNsec;
+    cfg.switchSettings()->remoteL1VoqMaxExpectedLatencyNsec() =
+        kRemoteL1VoqMaxExpectedLatencyNsec;
+    cfg.switchSettings()->remoteL2VoqMaxExpectedLatencyNsec() =
+        kRemoteL2VoqMaxExpectedLatencyNsec;
+    cfg.switchSettings()->voqOutOfBoundsLatencyNsec() = kOutOfBoundsLatencyNsec;
+    applyNewConfig(cfg);
     addRemoveNeighbor(kPort, true /* add neighbor*/);
   };
 
-  auto verify = [this, kPort, &ecmpHelper]() {
-    // Disable both port TX and credit watchdog
-    utility::setCreditWatchdogAndPortTx(
-        getAgentEnsemble(), kPort.phyPortID(), false);
+  auto verify = [&]() {
     auto queueId{0};
     auto dscpForQueue =
         utility::kOlympicQueueToDscp().find(queueId)->second.at(0);
@@ -1535,19 +1505,36 @@ TEST_F(AgentVoqSwitchTest, verifyQueueLatencyWatermark) {
             dscpForQueue);
       }
     };
+    auto waitForQueueLatencyWatermark =
+        [this, &kPort, &queueId](uint64_t expectedLatencyWatermarkNsec) {
+          uint64_t queueLatencyWatermarkNsec;
+          WITH_RETRIES({
+            queueLatencyWatermarkNsec =
+                getLatestSysPortStats(
+                    getSystemPortID(kPort, cfg::Scope::GLOBAL))
+                    .queueLatencyWatermarkNsec_()[queueId];
+            XLOG(DBG2) << "Port: " << kPort.phyPortID()
+                       << " voq queueId: " << queueId
+                       << " latency watermark: " << queueLatencyWatermarkNsec
+                       << " nsec";
+            EXPECT_EVENTUALLY_EQ(
+                queueLatencyWatermarkNsec, expectedLatencyWatermarkNsec);
+          });
+        };
+    // Disable both port TX and credit watchdog
+    utility::setCreditWatchdogAndPortTx(
+        getAgentEnsemble(), kPort.phyPortID(), false);
+    // Send packets and let it sit in the VoQ
     sendPkts();
     sleep(1);
     // Enable port TX
     utility::setPortTx(getAgentEnsemble(), kPort.phyPortID(), true);
-    WITH_RETRIES({
-      auto queueLatencyWatermarkNsec =
-          *getLatestSysPortStats(getSystemPortID(kPort, cfg::Scope::GLOBAL))
-               .queueLatencyWatermarkNsec_();
-      XLOG(DBG2) << "Port: " << kPort.phyPortID() << " voq queueId: " << queueId
-                 << " latency watermark: " << queueLatencyWatermarkNsec[queueId]
-                 << " nsec";
-      EXPECT_EVENTUALLY_GT(queueLatencyWatermarkNsec[queueId], 5000);
-    });
+    // VoQ latency exceeded the configured max latency
+    waitForQueueLatencyWatermark(kOutOfBoundsLatencyNsec);
+    // Now, send packets without any delays
+    sendPkts();
+    // VoQ latency is less than max expected for local VoQ
+    waitForQueueLatencyWatermark(kLocalVoqMaxExpectedLatencyNsec);
   };
   verifyAcrossWarmBoots(setup, verify);
 }
@@ -2403,7 +2390,10 @@ TEST_F(AgentVoqSwitchFullScaleDsfNodesTest, stressProgramEcmpRoutes) {
 
 TEST_F(AgentVoqSwitchLineRateTest, dramBlockedTime) {
   auto setup = [=, this]() {
-    constexpr int kNumberOfPortsForDramBlock{6};
+    // Use just one port for the dramBlockedTime test
+    // Note: If more than 3 ports are used, then traffic wouldn't
+    // reach line rate which is a prerequisite for this test
+    constexpr int kNumberOfPortsForDramBlock{1};
     setupEcmpDataplaneLoopOnAllPorts();
     createTrafficOnMultiplePorts(kNumberOfPortsForDramBlock);
   };
@@ -2660,4 +2650,45 @@ TEST_F(AgentVoqSwitchConditionalEntropyTest, verifyLoadBalancing) {
   };
   verifyAcrossWarmBoots(setup, verify);
 }
+
+class AgentVoqShelSwitchTest : public AgentVoqSwitchWithMultipleDsfNodesTest {
+ public:
+  cfg::SwitchConfig initialConfig(
+      const AgentEnsemble& ensemble) const override {
+    auto config =
+        AgentVoqSwitchWithMultipleDsfNodesTest::initialConfig(ensemble);
+    cfg::SelfHealingEcmpLagConfig shelConfig;
+    shelConfig.shelSrcIp() = "2222::1";
+    shelConfig.shelDstIp() = "2222::2";
+    shelConfig.shelPeriodicIntervalMS() = 5000;
+    config.switchSettings()->selfHealingEcmpLagConfig() = shelConfig;
+    return config;
+  }
+};
+
+TEST_F(AgentVoqShelSwitchTest, init) {
+  auto setup = [this]() {
+    auto config = initialConfig(*getAgentEnsemble());
+    // Enable Conditional Entropy on Interface Ports
+    for (auto& port : *config.ports()) {
+      if (port.portType() == cfg::PortType::INTERFACE_PORT) {
+        port.selfHealingECMPLagEnable() = true;
+      }
+    }
+    applyNewConfig(config);
+  };
+
+  auto verify = [this]() {
+    auto state = getProgrammedState();
+    for (const auto& portMap : std::as_const(*state->getPorts())) {
+      for (const auto& port : std::as_const(*portMap.second)) {
+        if (port.second->getPortType() == cfg::PortType::INTERFACE_PORT) {
+          EXPECT_TRUE(port.second->getSelfHealingECMPLagEnable());
+        }
+      }
+    }
+  };
+  verifyAcrossWarmBoots(setup, verify);
+}
+
 } // namespace facebook::fboss

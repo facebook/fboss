@@ -110,14 +110,20 @@ void configureSflowMirror(
   config.mirrors()->push_back(mirror);
 }
 
-void configureTrapAcl(cfg::SwitchConfig& config, bool isV4) {
+void configureTrapAcl(
+    const HwAsic* asic,
+    cfg::SwitchConfig& config,
+    bool isV4) {
   folly::CIDRNetwork cidr{
       getSflowMirrorDestination(isV4).str(), (isV4 ? 32 : 128)};
-  utility::addTrapPacketAcl(&config, cidr);
+  utility::addTrapPacketAcl(asic, &config, cidr);
 }
 
-void configureTrapAcl(cfg::SwitchConfig& config, PortID portId) {
-  utility::addTrapPacketAcl(&config, portId);
+void configureTrapAcl(
+    const HwAsic* asic,
+    cfg::SwitchConfig& config,
+    PortID portId) {
+  utility::addTrapPacketAcl(asic, &config, portId);
 }
 
 void configureSflowSampling(

@@ -356,7 +356,9 @@ TYPED_TEST(FsdbSubManagerTest, restartPublisher) {
   std::optional<SubscriptionState> lastStateSeen;
   auto subscriber = this->createSubscriber("test", this->root().agent());
   auto boundData = subscriber->subscribeBound(
-      [&](auto, auto newState) { lastStateSeen = newState; });
+      [&](auto, auto newState, std::optional<bool> /*initialSyncHasData*/) {
+        lastStateSeen = newState;
+      });
 
   WITH_RETRIES({
     ASSERT_EVENTUALLY_TRUE(this->isSubscribed("test"));
@@ -385,7 +387,9 @@ TYPED_TEST(FsdbSubManagerTest, verifyGR) {
       this->createSubscriber("test", this->root().agent(), 3 /* grHoldTimer */);
   subscriber->subscribe(
       [&](auto update) { numUpdates++; },
-      [&](auto, auto newState) { lastStateSeen = newState; });
+      [&](auto, auto newState, std::optional<bool> /*initialSyncHasData*/) {
+        lastStateSeen = newState;
+      });
   WITH_RETRIES({
     ASSERT_EVENTUALLY_EQ(lastStateSeen, SubscriptionState::CONNECTED);
     ASSERT_EVENTUALLY_EQ(numUpdates, 1);

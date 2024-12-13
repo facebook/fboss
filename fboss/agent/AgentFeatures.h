@@ -77,3 +77,4 @@ bool isDualStage3Q2QQos();
 DECLARE_bool(enable_hw_update_protection);
 
 DECLARE_bool(fw_drained_unrecoverable_error);
+DECLARE_int32(neighbhor_resource_percentage);

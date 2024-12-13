@@ -101,8 +101,7 @@ std::optional<sai_attr_id_t> SaiSwitchTraits::Attributes::
 
 std::optional<sai_attr_id_t>
 SaiSwitchTraits::Attributes::AttributeVoqDramBoundThWrapper::operator()() {
-// TODO: Support is not yet available in 12.0
-#if defined(BRCM_SAI_SDK_DNX_GTE_11_0) && !defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
   return SAI_SWITCH_ATTR_VOQ_DRAM_BOUND_TH;
 #else
   return std::nullopt;
@@ -184,8 +183,7 @@ SaiSwitchTraits::sramMinBufferWatermarkBytes() {
 }
 
 const std::vector<sai_stat_id_t>& SaiSwitchTraits::fdrFifoWatermarkBytes() {
-// TODO: Support is not yet available in 12.0
-#if defined(BRCM_SAI_SDK_DNX_GTE_11_0) && !defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
   static const std::vector<sai_stat_id_t> stats{
       SAI_SWITCH_STAT_FDR_RX_QUEUE_WM_LEVEL};
 #else
@@ -251,9 +249,8 @@ void SwitchApi::registerSwitchEventCallback(
         rv, ApiType, "Unable to register parity error switch event callback");
 
     // Register switch events
-// TODO(zecheng): Update flag when new 12.0 release has the attribute
+    // TODO(zecheng): Update flag when new 12.0 release has the attribute
 #if defined(SAI_VERSION_11_7_0_0_DNX_ODP)
-    // SAI_SWITCH_EVENT_TYPE_FIRMWARE_CRASHED is not supported on 12.0 yet
     std::array<uint32_t, 9> events = {
         SAI_SWITCH_EVENT_TYPE_PARITY_ERROR,
         SAI_SWITCH_EVENT_TYPE_STABLE_FULL,
@@ -264,6 +261,16 @@ void SwitchApi::registerSwitchEventCallback(
         SAI_SWITCH_EVENT_TYPE_FABRIC_AUTO_ISOLATE,
         SAI_SWITCH_EVENT_TYPE_FIRMWARE_CRASHED,
         SAI_SWITCH_EVENT_TYPE_REMOTE_LINK_CHANGE};
+#elif defined(SAI_VERSION_12_0_EA_DNX_ODP)
+    std::array<uint32_t, 8> events = {
+        SAI_SWITCH_EVENT_TYPE_PARITY_ERROR,
+        SAI_SWITCH_EVENT_TYPE_STABLE_FULL,
+        SAI_SWITCH_EVENT_TYPE_STABLE_ERROR,
+        SAI_SWITCH_EVENT_TYPE_UNCONTROLLED_SHUTDOWN,
+        SAI_SWITCH_EVENT_TYPE_WARM_BOOT_DOWNGRADE,
+        SAI_SWITCH_EVENT_TYPE_INTERRUPT,
+        SAI_SWITCH_EVENT_TYPE_FABRIC_AUTO_ISOLATE,
+        SAI_SWITCH_EVENT_TYPE_FIRMWARE_CRASHED};
 #elif defined BRCM_SAI_SDK_GTE_11_0
     std::array<uint32_t, 7> events = {
         SAI_SWITCH_EVENT_TYPE_PARITY_ERROR,
@@ -460,8 +467,7 @@ SaiSwitchTraits::Attributes::AttributeMaxVoqs::operator()() {
 }
 std::optional<sai_attr_id_t>
 SaiSwitchTraits::Attributes::AttributeCondEntropyRehashPeriodUS::operator()() {
-// TODO(zecheng): Update flag when new 12.0 release has the attribute
-#if defined(SAI_VERSION_11_7_0_0_DNX_ODP)
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
   return SAI_SWITCH_ATTR_COND_ENTROPY_REHASH_PERIOD_US;
 #endif
   return std::nullopt;
@@ -505,8 +511,7 @@ SaiSwitchTraits::Attributes::AttributeShelPeriodicInterval::operator()() {
 
 std::optional<sai_attr_id_t>
 SaiSwitchTraits::Attributes::AttributeFirmwareCoreTouse::operator()() {
-// TODO(skhare): Update when 12.x supports this attribute
-#if defined(SAI_VERSION_11_7_0_0_DNX_ODP)
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_7)
   return SAI_SWITCH_ATTR_FIRMWARE_CORE_TO_USE;
 #endif
   return std::nullopt;
@@ -514,9 +519,16 @@ SaiSwitchTraits::Attributes::AttributeFirmwareCoreTouse::operator()() {
 
 std::optional<sai_attr_id_t>
 SaiSwitchTraits::Attributes::AttributeFirmwareLogFile::operator()() {
-// TODO(skhare): Update when 12.x supports this attribute
-#if defined(SAI_VERSION_11_7_0_0_DNX_ODP)
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_7)
   return SAI_SWITCH_ATTR_FIRMWARE_LOG_FILE;
+#endif
+  return std::nullopt;
+}
+
+std::optional<sai_attr_id_t>
+SaiSwitchTraits::Attributes::AttributeMaxSwitchId::operator()() {
+#if defined(BRCM_SAI_SDK_DNX) && defined(BRCM_SAI_SDK_GTE_12_0)
+  return SAI_SWITCH_ATTR_MAX_SWITCH_ID;
 #endif
   return std::nullopt;
 }

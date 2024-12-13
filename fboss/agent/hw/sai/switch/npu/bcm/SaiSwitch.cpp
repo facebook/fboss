@@ -260,8 +260,68 @@ std::string errorType(sai_switch_error_type_t type) {
       return "SAI_SWITCH_ERROR_TYPE_RTP_TABLE_CHANGE";
     case SAI_SWITCH_ERROR_TYPE_FABRIC_AUTO_ISOLATION:
       return "SAI_SWITCH_ERROR_TYPE_FABRIC_AUTO_ISOLATION";
-#endif
 #if defined(SAI_VERSION_11_7_0_0_DNX_ODP)
+    // TODO: Fix the 11.7 specific check added. Currently support is not
+    // available in 12.0 or 11.3, hence using the 11.7 specific check.
+    // ECC errors
+    case SAI_SWITCH_ERROR_TYPE_FDA_ECC_ECC_2B_ERR_INT:
+      return "SAI_SWITCH_ERROR_TYPE_FDA_ECC_ECC_2B_ERR_INT";
+    case SAI_SWITCH_ERROR_TYPE_FDR_ECC_ECC_2B_ERR_INT:
+      return "SAI_SWITCH_ERROR_TYPE_FDR_ECC_ECC_2B_ERR_INT";
+    case SAI_SWITCH_ERROR_TYPE_FMAC_ECC_ECC_2B_ERR_INT:
+      return "SAI_SWITCH_ERROR_TYPE_FMAC_ECC_ECC_2B_ERR_INT";
+    case SAI_SWITCH_ERROR_TYPE_FCR_ECC_ECC_2B_ERR_INT:
+      return "SAI_SWITCH_ERROR_TYPE_FCR_ECC_ECC_2B_ERR_INT";
+    case SAI_SWITCH_ERROR_TYPE_FCT_ECC_ECC_2B_ERR_INT:
+      return "SAI_SWITCH_ERROR_TYPE_FCT_ECC_ECC_2B_ERR_INT";
+    case SAI_SWITCH_ERROR_TYPE_FDT_ECC_ECC_2B_ERR_INT:
+      return "SAI_SWITCH_ERROR_TYPE_FDT_ECC_ECC_2B_ERR_INT";
+    // FIFO overflow errors
+    case SAI_SWITCH_ERROR_TYPE_FDA_P_0_OFM_FIFO_OVFLW_DROP_INT:
+      return "SAI_SWITCH_ERROR_TYPE_FDA_P_0_OFM_FIFO_OVFLW_DROP_INT";
+    case SAI_SWITCH_ERROR_TYPE_FDA_P_1_OFM_FIFO_OVFLW_DROP_INT:
+      return "SAI_SWITCH_ERROR_TYPE_FDA_P_1_OFM_FIFO_OVFLW_DROP_INT";
+    case SAI_SWITCH_ERROR_TYPE_FDA_FAB_FIF_P_1_RXI_0_OVERFLOW_INT:
+      return "SAI_SWITCH_ERROR_TYPE_FDA_FAB_FIF_P_1_RXI_0_OVERFLOW_INT";
+    case SAI_SWITCH_ERROR_TYPE_FDA_FDA_IPTCTRL_0_LUC_OVERFLOW_INT:
+      return "SAI_SWITCH_ERROR_TYPE_FDA_FDA_IPTCTRL_0_LUC_OVERFLOW_INT";
+    case SAI_SWITCH_ERROR_TYPE_FDA_FDA_IPTCTRL_1_LUC_OVERFLOW_INT:
+      return "SAI_SWITCH_ERROR_TYPE_FDA_FDA_IPTCTRL_1_LUC_OVERFLOW_INT";
+    case SAI_SWITCH_ERROR_TYPE_FDA_FDA_IPTCTRL_2_LUC_OVERFLOW_INT:
+      return "SAI_SWITCH_ERROR_TYPE_FDA_FDA_IPTCTRL_2_LUC_OVERFLOW_INT";
+    case SAI_SWITCH_ERROR_TYPE_FDA_FDA_IPTCTRL_3_LUC_OVERFLOW_INT:
+      return "SAI_SWITCH_ERROR_TYPE_FDA_FDA_IPTCTRL_3_LUC_OVERFLOW_INT";
+    case SAI_SWITCH_ERROR_TYPE_FDA_FDA_IPTCTRL_0_MMC_OVERFLOW_INT:
+      return "SAI_SWITCH_ERROR_TYPE_FDA_FDA_IPTCTRL_0_MMC_OVERFLOW_INT";
+    case SAI_SWITCH_ERROR_TYPE_FDA_FDA_IPTCTRL_1_MMC_OVERFLOW_INT:
+      return "SAI_SWITCH_ERROR_TYPE_FDA_FDA_IPTCTRL_1_MMC_OVERFLOW_INT";
+    case SAI_SWITCH_ERROR_TYPE_FDA_FDA_IPTCTRL_2_MMC_OVERFLOW_INT:
+      return "SAI_SWITCH_ERROR_TYPE_FDA_FDA_IPTCTRL_2_MMC_OVERFLOW_INT";
+    case SAI_SWITCH_ERROR_TYPE_FDA_FDA_IPTCTRL_3_MMC_OVERFLOW_INT:
+      return "SAI_SWITCH_ERROR_TYPE_FDA_FDA_IPTCTRL_3_MMC_OVERFLOW_INT";
+    case SAI_SWITCH_ERROR_TYPE_FDR_FDR_P_1_MAC_0_P_1_IFM_OVERFLOW_BY_MFIFO_MAC_0:
+      return "SAI_SWITCH_ERROR_TYPE_FDR_FDR_P_1_MAC_0_P_1_IFM_OVERFLOW_BY_MFIFO_MAC_0";
+    case SAI_SWITCH_ERROR_TYPE_FDR_FDR_P_2_MAC_0_P_2_IFM_OVERFLOW_BY_MFIFO_MAC_0:
+      return "SAI_SWITCH_ERROR_TYPE_FDR_FDR_P_2_MAC_0_P_2_IFM_OVERFLOW_BY_MFIFO_MAC_0";
+    case SAI_SWITCH_ERROR_TYPE_FDR_FDR_P_1_MAC_1_P_1_IFM_OVERFLOW_BY_MFIFO_MAC_1:
+      return "SAI_SWITCH_ERROR_TYPE_FDR_FDR_P_1_MAC_1_P_1_IFM_OVERFLOW_BY_MFIFO_MAC_1";
+    case SAI_SWITCH_ERROR_TYPE_FDR_FDR_P_2_MAC_1_P_2_IFM_OVERFLOW_BY_MFIFO_MAC_1:
+      return "SAI_SWITCH_ERROR_TYPE_FDR_FDR_P_2_MAC_1_P_2_IFM_OVERFLOW_BY_MFIFO_MAC_1";
+    case SAI_SWITCH_ERROR_TYPE_FDR_FDR_P_1_MAC_2_P_1_IFM_OVERFLOW_BY_MFIFO_MAC_2:
+      return "SAI_SWITCH_ERROR_TYPE_FDR_FDR_P_1_MAC_2_P_1_IFM_OVERFLOW_BY_MFIFO_MAC_2";
+    case SAI_SWITCH_ERROR_TYPE_FDR_FDR_P_2_MAC_2_P_2_IFM_OVERFLOW_BY_MFIFO_MAC_2:
+      return "SAI_SWITCH_ERROR_TYPE_FDR_FDR_P_2_MAC_2_P_2_IFM_OVERFLOW_BY_MFIFO_MAC_2";
+    case SAI_SWITCH_ERROR_TYPE_FDR_FDR_P_1_MAC_3_P_1_IFM_OVERFLOW_BY_MFIFO_MAC_3:
+      return "SAI_SWITCH_ERROR_TYPE_FDR_FDR_P_1_MAC_3_P_1_IFM_OVERFLOW_BY_MFIFO_MAC_3";
+    case SAI_SWITCH_ERROR_TYPE_FDR_FDR_P_2_MAC_3_P_2_IFM_OVERFLOW_BY_MFIFO_MAC_3:
+      return "SAI_SWITCH_ERROR_TYPE_FDR_FDR_P_2_MAC_3_P_2_IFM_OVERFLOW_BY_MFIFO_MAC_3";
+    case SAI_SWITCH_ERROR_TYPE_FDR_FDR_P_1_MAC_4_P_1_IFM_OVERFLOW_BY_MFIFO_MAC_4:
+      return "SAI_SWITCH_ERROR_TYPE_FDR_FDR_P_1_MAC_4_P_1_IFM_OVERFLOW_BY_MFIFO_MAC_4";
+    case SAI_SWITCH_ERROR_TYPE_FDR_FDR_P_2_MAC_4_P_2_IFM_OVERFLOW_BY_MFIFO_MAC_4:
+      return "SAI_SWITCH_ERROR_TYPE_FDR_FDR_P_2_MAC_4_P_2_IFM_OVERFLOW_BY_MFIFO_MAC_4";
+#endif // BRCM_SAI_SDK_DNX_GTE_12_0
+#endif
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_7)
     case SAI_SWITCH_ERROR_TYPE_FIRMWARE_CRASH:
       return "SAI_SWITCH_ERROR_TYPE_FIRMWARE_CRASH";
 #endif
@@ -425,6 +485,75 @@ bool allReassemblyContextsTakenError(sai_switch_error_type_t type) {
   return false;
 }
 
+bool isEccError(sai_switch_error_type_t type) {
+  switch (type) {
+    case SAI_SWITCH_ERROR_TYPE_ALIGNER_ECC_ECC_2B_ERR_INT:
+    case SAI_SWITCH_ERROR_TYPE_EPNI_ECC_ECC_2B_ERR_INT:
+    case SAI_SWITCH_ERROR_TYPE_FQP_ECC_ECC_2B_ERR_INT:
+#if defined(SAI_VERSION_11_7_0_0_DNX_ODP)
+    // TODO: Fix the 11.7 specific check added. Currently support is not
+    // available in 12.0 or 11.3, hence using the 11.7 specific check.
+    case SAI_SWITCH_ERROR_TYPE_FDA_ECC_ECC_2B_ERR_INT:
+    case SAI_SWITCH_ERROR_TYPE_FDR_ECC_ECC_2B_ERR_INT:
+    case SAI_SWITCH_ERROR_TYPE_FMAC_ECC_ECC_2B_ERR_INT:
+    case SAI_SWITCH_ERROR_TYPE_FCR_ECC_ECC_2B_ERR_INT:
+    case SAI_SWITCH_ERROR_TYPE_FCT_ECC_ECC_2B_ERR_INT:
+    case SAI_SWITCH_ERROR_TYPE_FDT_ECC_ECC_2B_ERR_INT:
+#endif
+      return true;
+    default:
+      break;
+  }
+  return false;
+}
+
+bool isFdaFifoOverflowError(sai_switch_error_type_t type) {
+#if defined(SAI_VERSION_11_7_0_0_DNX_ODP)
+  // TODO: Fix the 11.7 specific check added. Currently support is not
+  // available in 12.0 or 11.3, hence using the 11.7 specific check.
+  switch (type) {
+    case SAI_SWITCH_ERROR_TYPE_FDA_P_0_OFM_FIFO_OVFLW_DROP_INT:
+    case SAI_SWITCH_ERROR_TYPE_FDA_P_1_OFM_FIFO_OVFLW_DROP_INT:
+    case SAI_SWITCH_ERROR_TYPE_FDA_FAB_FIF_P_1_RXI_0_OVERFLOW_INT:
+    case SAI_SWITCH_ERROR_TYPE_FDA_FDA_IPTCTRL_0_LUC_OVERFLOW_INT:
+    case SAI_SWITCH_ERROR_TYPE_FDA_FDA_IPTCTRL_1_LUC_OVERFLOW_INT:
+    case SAI_SWITCH_ERROR_TYPE_FDA_FDA_IPTCTRL_2_LUC_OVERFLOW_INT:
+    case SAI_SWITCH_ERROR_TYPE_FDA_FDA_IPTCTRL_3_LUC_OVERFLOW_INT:
+    case SAI_SWITCH_ERROR_TYPE_FDA_FDA_IPTCTRL_0_MMC_OVERFLOW_INT:
+    case SAI_SWITCH_ERROR_TYPE_FDA_FDA_IPTCTRL_1_MMC_OVERFLOW_INT:
+    case SAI_SWITCH_ERROR_TYPE_FDA_FDA_IPTCTRL_2_MMC_OVERFLOW_INT:
+    case SAI_SWITCH_ERROR_TYPE_FDA_FDA_IPTCTRL_3_MMC_OVERFLOW_INT:
+      return true;
+    default:
+      break;
+  }
+#endif
+  return false;
+}
+
+bool isFdrFifoOverflowError(sai_switch_error_type_t type) {
+#if defined(SAI_VERSION_11_7_0_0_DNX_ODP)
+  // TODO: Fix the 11.7 specific check added. Currently support is not
+  // available in 12.0 or 11.3, hence using the 11.7 specific check.
+  switch (type) {
+    case SAI_SWITCH_ERROR_TYPE_FDR_FDR_P_1_MAC_0_P_1_IFM_OVERFLOW_BY_MFIFO_MAC_0:
+    case SAI_SWITCH_ERROR_TYPE_FDR_FDR_P_2_MAC_0_P_2_IFM_OVERFLOW_BY_MFIFO_MAC_0:
+    case SAI_SWITCH_ERROR_TYPE_FDR_FDR_P_1_MAC_1_P_1_IFM_OVERFLOW_BY_MFIFO_MAC_1:
+    case SAI_SWITCH_ERROR_TYPE_FDR_FDR_P_2_MAC_1_P_2_IFM_OVERFLOW_BY_MFIFO_MAC_1:
+    case SAI_SWITCH_ERROR_TYPE_FDR_FDR_P_1_MAC_2_P_1_IFM_OVERFLOW_BY_MFIFO_MAC_2:
+    case SAI_SWITCH_ERROR_TYPE_FDR_FDR_P_2_MAC_2_P_2_IFM_OVERFLOW_BY_MFIFO_MAC_2:
+    case SAI_SWITCH_ERROR_TYPE_FDR_FDR_P_1_MAC_3_P_1_IFM_OVERFLOW_BY_MFIFO_MAC_3:
+    case SAI_SWITCH_ERROR_TYPE_FDR_FDR_P_2_MAC_3_P_2_IFM_OVERFLOW_BY_MFIFO_MAC_3:
+    case SAI_SWITCH_ERROR_TYPE_FDR_FDR_P_1_MAC_4_P_1_IFM_OVERFLOW_BY_MFIFO_MAC_4:
+    case SAI_SWITCH_ERROR_TYPE_FDR_FDR_P_2_MAC_4_P_2_IFM_OVERFLOW_BY_MFIFO_MAC_4:
+      return true;
+    default:
+      break;
+  }
+#endif
+  return false;
+}
+
 bool rtpTableChangedEvent(sai_switch_error_type_t type) {
   if (type == SAI_SWITCH_ERROR_TYPE_RTP_TABLE_CHANGE) {
     return true;
@@ -445,34 +574,41 @@ void SaiSwitch::switchEventCallback(
     uint32_t event_type) {
   const sai_switch_ser_log_info_t* eventInfo =
       static_cast<const sai_switch_ser_log_info_t*>(buffer);
-  std::stringstream sstream;
-  sstream << "received switch event: " << eventName(event_type)
-          << ", event info(";
-  bool correctible = true;
-  if (eventInfo) {
-    sstream << "correction type=" << correctionType(eventInfo->correction_type)
-            << ", flags=" << std::hex << eventInfo->flags;
-    correctible =
-        (eventInfo->correction_type !=
-         SAI_SWITCH_CORRECTION_TYPE_FAIL_TO_CORRECT);
-    sstream << ", error type=" << errorType(eventInfo->error_type);
-  }
-  sstream << ")";
-  XLOG(WARNING) << sstream.str();
+  auto logEventDetails = [&event_type, &eventInfo]() {
+    std::stringstream sstream;
+    sstream << "received switch event: " << eventName(event_type)
+            << ", event info(";
+    if (eventInfo) {
+      sstream << "correction type="
+              << correctionType(eventInfo->correction_type)
+              << ", flags=" << std::hex << eventInfo->flags;
+      sstream << ", error type=" << errorType(eventInfo->error_type);
+    }
+    sstream << ")";
+    XLOG(WARNING) << sstream.str();
+  };
   switch (event_type) {
     case SAI_SWITCH_EVENT_TYPE_STABLE_FULL:
     case SAI_SWITCH_EVENT_TYPE_STABLE_ERROR:
     case SAI_SWITCH_EVENT_TYPE_UNCONTROLLED_SHUTDOWN:
     case SAI_SWITCH_EVENT_TYPE_WARM_BOOT_DOWNGRADE:
+      logEventDetails();
       getSwitchStats()->asicError();
       break;
-    case SAI_SWITCH_EVENT_TYPE_PARITY_ERROR:
+    case SAI_SWITCH_EVENT_TYPE_PARITY_ERROR: {
+      logEventDetails();
+      bool correctible = true;
+      if (eventInfo) {
+        correctible =
+            (eventInfo->correction_type !=
+             SAI_SWITCH_CORRECTION_TYPE_FAIL_TO_CORRECT);
+      }
       if (correctible) {
         getSwitchStats()->corrParityError();
       } else {
         getSwitchStats()->uncorrParityError();
       }
-      break;
+    } break;
 #if defined BRCM_SAI_SDK_GTE_11_0
     case SAI_SWITCH_EVENT_TYPE_INTERRUPT: {
       auto ireError = isIreErrorType(eventInfo->error_type);
@@ -483,29 +619,44 @@ void SaiSwitch::switchEventCallback(
       auto reassemblyError = isReassemblyError(eventInfo->error_type);
       auto allReassemblyContextsTaken =
           allReassemblyContextsTakenError(eventInfo->error_type);
+      auto eccError = isEccError(eventInfo->error_type);
+      auto fdrFifoOverflowError = isFdrFifoOverflowError(eventInfo->error_type);
+      auto fdaFifoOverflowError = isFdaFifoOverflowError(eventInfo->error_type);
       auto rtpTableChanged = rtpTableChangedEvent(eventInfo->error_type);
-      XLOG(ERR) << " Got interrupt event, is IRE: " << ireError
-                << " is ITPP: " << itppError << " is EPNI: " << epniError
-                << " is Aligner: " << alignerError << " is FQP: " << fqpError
-                << " is Reassembly: " << reassemblyError
-                << " all reassembly context taken: "
-                << allReassemblyContextsTaken
-                << " rtp table changed: " << rtpTableChanged;
+      XLOG(ERR) << "ERROR INTERRUPT: " << errorType(eventInfo->error_type);
       if (ireError) {
         getSwitchStats()->ireError();
-      } else if (itppError) {
+      }
+      if (itppError) {
         getSwitchStats()->itppError();
-      } else if (epniError) {
+      }
+      if (epniError) {
         getSwitchStats()->epniError();
-      } else if (alignerError) {
+      }
+      if (alignerError) {
         getSwitchStats()->alignerError();
-      } else if (fqpError) {
+      }
+      if (fqpError) {
         getSwitchStats()->forwardingQueueProcessorError();
-      } else if (reassemblyError) {
+      }
+      if (reassemblyError) {
         getSwitchStats()->reassemblyError();
-      } else if (allReassemblyContextsTaken) {
+      }
+      if (allReassemblyContextsTaken) {
         getSwitchStats()->allReassemblyContextsTaken();
-      } else if (rtpTableChanged) {
+      }
+      if (eccError) {
+        // ECC error indicates an error in the ASIC block and only 2bit
+        // errors are tracked, which translates to uncorrectable errors.
+        getSwitchStats()->uncorrParityError();
+      }
+      if (fdrFifoOverflowError) {
+        getSwitchStats()->fdrFifoOverflowError();
+      }
+      if (fdaFifoOverflowError) {
+        getSwitchStats()->fdaFifoOverflowError();
+      }
+      if (rtpTableChanged) {
         // RTP table change notification is vendor specific, this
         // means a change in switch reachability over fabric!
         // Initiate processing for RTP table change, ie. invoke
@@ -545,7 +696,7 @@ void SaiSwitch::switchEventCallback(
       break;
     }
 #endif
-#if defined(SAI_VERSION_11_7_0_0_DNX_ODP)
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_7)
     case SAI_SWITCH_EVENT_TYPE_FIRMWARE_CRASHED: {
       // TODO(skhare) Process this callback
       XLOG(ERR) << "Firmware Crash callback received: " << " error type: "
@@ -554,6 +705,8 @@ void SaiSwitch::switchEventCallback(
                 << " reload status: " << static_cast<int>(eventInfo->index2);
       break;
     }
+#endif
+#if defined(SAI_VERSION_11_7_0_0_DNX_ODP)
     // TODO(zecheng): Update flag when new 12.0 release has the attribute
     case SAI_SWITCH_EVENT_TYPE_REMOTE_LINK_CHANGE:
       auto isUp = eventInfo->index;

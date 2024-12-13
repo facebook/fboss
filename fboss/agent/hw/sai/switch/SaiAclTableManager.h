@@ -38,6 +38,33 @@ using SaiAclTable = SaiObject<SaiAclTableTraits>;
 using SaiAclEntry = SaiObject<SaiAclEntryTraits>;
 using SaiAclCounter = SaiObject<SaiAclCounterTraits>;
 
+#if (                                                                  \
+    (SAI_API_VERSION >= SAI_VERSION(1, 14, 0) ||                       \
+     (defined(BRCM_SAI_SDK_GTE_11_0) && defined(BRCM_SAI_SDK_XGS))) && \
+    !defined(TAJO_SDK))
+using AclTableUdfGroup0 =
+    SaiAclTableTraits::Attributes::UserDefinedFieldGroupMin0;
+using AclTableUdfGroup1 =
+    SaiAclTableTraits::Attributes::UserDefinedFieldGroupMin1;
+using AclTableUdfGroup2 =
+    SaiAclTableTraits::Attributes::UserDefinedFieldGroupMin2;
+using AclTableUdfGroup3 =
+    SaiAclTableTraits::Attributes::UserDefinedFieldGroupMin3;
+using AclTableUdfGroup4 =
+    SaiAclTableTraits::Attributes::UserDefinedFieldGroupMin4;
+
+using AclEntryUdfGroup0 =
+    SaiAclEntryTraits::Attributes::UserDefinedFieldGroupMin0;
+using AclEntryUdfGroup1 =
+    SaiAclEntryTraits::Attributes::UserDefinedFieldGroupMin1;
+using AclEntryUdfGroup2 =
+    SaiAclEntryTraits::Attributes::UserDefinedFieldGroupMin2;
+using AclEntryUdfGroup3 =
+    SaiAclEntryTraits::Attributes::UserDefinedFieldGroupMin3;
+using AclEntryUdfGroup4 =
+    SaiAclEntryTraits::Attributes::UserDefinedFieldGroupMin4;
+#endif
+
 struct SaiAclEntryHandle {
   /*
    * In FBOSS implementation, an ACL counter is always associated with single
@@ -82,6 +109,8 @@ class SaiAclTableManager {
    * Thus, match all mask is  0b111111 i.e. 0x3F.
    */
   static auto constexpr kDscpMask = 0x3F;
+
+  static auto constexpr kMaxUdfGroups = 5;
 
   /*
    * L4 Src/Dst Port Mask.
@@ -138,6 +167,19 @@ class SaiAclTableManager {
   SaiAclTableHandle* FOLLY_NULLABLE
   getAclTableHandle(const std::string& aclTableName);
 
+#if (                                                                  \
+    (SAI_API_VERSION >= SAI_VERSION(1, 14, 0) ||                       \
+     (defined(BRCM_SAI_SDK_GTE_11_0) && defined(BRCM_SAI_SDK_XGS))) && \
+    !defined(TAJO_SDK))
+  void updateUdfGroupAttributes(
+      const std::shared_ptr<AclEntry>& addedAclEntry,
+      const std::string& aclTableName,
+      std::optional<AclEntryUdfGroup0>& udfGroup0,
+      std::optional<AclEntryUdfGroup1>& udfGroup1,
+      std::optional<AclEntryUdfGroup2>& udfGroup2,
+      std::optional<AclEntryUdfGroup3>& udfGroup3,
+      std::optional<AclEntryUdfGroup4>& udfGroup4);
+#endif
   AclEntrySaiId addAclEntry(
       const std::shared_ptr<AclEntry>& addedAclEntry,
       const std::string& aclTableName);

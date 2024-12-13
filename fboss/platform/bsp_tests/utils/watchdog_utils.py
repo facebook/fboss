@@ -4,7 +4,6 @@ import fcntl
 import glob
 import os
 import struct
-from typing import Set
 
 from ioctl_opt import IOR, IOWR
 

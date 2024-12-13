@@ -138,6 +138,20 @@ getPlatformMappingForDsfNode(const facebook::fboss::PlatformType platformType) {
   return nullptr;
 }
 
+cfg::Range64 getCoveringSysPortRange(
+    int64_t id,
+    const std::map<int64_t, cfg::SwitchInfo>& switchIdToSwitchInfo) {
+  for (const auto& [_, switchInfo] : switchIdToSwitchInfo) {
+    for (const auto& sysPortRange :
+         *switchInfo.systemPortRanges()->systemPortRanges()) {
+      if (id >= sysPortRange.minimum() && id <= sysPortRange.maximum()) {
+        return sysPortRange;
+      }
+    }
+  }
+  throw FbossError("Id: ", id, " not witihin any local sys port range");
+}
+
 } // namespace
   //
 
@@ -517,6 +531,20 @@ cfg::Range64 getFirstSwitchSystemPortIdRange(
   throw FbossError("No VOQ switch with switchIndex 0 found");
 }
 
+cfg::Range64 getCoveringSysPortRange(
+    InterfaceID intf,
+    const std::map<int64_t, cfg::SwitchInfo>& switchIdToSwitchInfo) {
+  return getCoveringSysPortRange(
+      static_cast<int64_t>(intf), switchIdToSwitchInfo);
+}
+
+cfg::Range64 getCoveringSysPortRange(
+    SystemPortID sysportId,
+    const std::map<int64_t, cfg::SwitchInfo>& switchIdToSwitchInfo) {
+  return getCoveringSysPortRange(
+      static_cast<int64_t>(sysportId), switchIdToSwitchInfo);
+}
+
 std::vector<PortID> getPortsForInterface(
     InterfaceID intfId,
     const std::shared_ptr<SwitchState>& state) {
@@ -539,7 +567,7 @@ std::vector<PortID> getPortsForInterface(
       ports.push_back(getPortID(intf->getSystemPortID().value(), state));
       break;
     case cfg::InterfaceType::PORT:
-      // TODO(Chenab): Support port router interface
+      ports.push_back(intf->getPortID());
       break;
   }
   return ports;
@@ -697,13 +725,11 @@ std::shared_ptr<NeighborEntryT> getNeighborEntryForIP(
       }
       break;
     }
+    case cfg::InterfaceType::PORT:
     case cfg::InterfaceType::SYSTEM_PORT: {
       entry = getNeighborEntryForIPAndIntf<NeighborEntryT>(intf, ipAddr);
       break;
     }
-    case cfg::InterfaceType::PORT:
-      // TODO(Chenab): Support port router interface
-      break;
   }
 
   return entry;

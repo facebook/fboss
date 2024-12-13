@@ -8,6 +8,7 @@
  *
  */
 
+#include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/FbossHwUpdateError.h"
 #include "fboss/agent/MacTableManager.h"
 #include "fboss/agent/MacTableUtils.h"
@@ -1211,7 +1212,7 @@ class AgentMacOverFlowTest : public AgentMacLearningBatchEntriesTest {
     // set mac l2 entry limit to 10000 to bypass resourceAccountant check
     FLAGS_max_l2_entries = 10000;
     // to enable mac update protection
-    FLAGS_enable_mac_update_protection = true;
+    FLAGS_enable_hw_update_protection = true;
     return cfg;
   }
 

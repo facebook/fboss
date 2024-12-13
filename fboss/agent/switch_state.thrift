@@ -331,6 +331,10 @@ struct MirrorOnDropReportFields {
   10: optional i32 agingIntervalUsecs;
   11: string switchMac; // Populated at runtime
   12: string firstInterfaceMac; // Populated at runtime
+  13: map<
+    byte,
+    list<switch_config.MirrorOnDropReasonAggregation>
+  > eventIdToDropReasons;
 }
 
 struct ControlPlaneFields {
@@ -418,6 +422,14 @@ struct SwitchSettingsFields {
   49: optional string firmwarePath;
   50: list<i32> reachabilityGroups = [];
   51: optional switch_config.SelfHealingEcmpLagConfig selfHealingEcmpLagConfig;
+  // Specify the maximum expected latency for local, remote l1,
+  // remote l2 VOQs. Any latency exceeding the specified latency
+  // will be flagged in the VoQ latency watermark counters with
+  // the out of bounds latency value configured.
+  52: optional i32 localVoqMaxExpectedLatencyNsec;
+  53: optional i32 remoteL1VoqMaxExpectedLatencyNsec;
+  54: optional i32 remoteL2VoqMaxExpectedLatencyNsec;
+  55: optional i32 voqOutOfBoundsLatencyNsec;
 }
 
 struct RoutePrefix {

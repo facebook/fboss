@@ -81,16 +81,19 @@ class FsdbPubSubManagerTest : public ::testing::Test {
     };
   }
   SubscriptionStateChangeCb subscrStateChangeCb() {
-    return
-        [this](SubscriptionState /*oldState*/, SubscriptionState /*newState*/) {
-        };
+    return [this](
+               SubscriptionState /*oldState*/,
+               SubscriptionState /*newState*/,
+               std::optional<bool> /*initialSyncHasData*/) {};
   }
   template <typename SubUnit>
   SubscriptionStateChangeCb subscrStateChangeCb(
       folly::Synchronized<std::vector<SubUnit>>& subUnits,
       std::optional<std::function<void()>> onDisconnect = std::nullopt) {
     return [this, &onDisconnect, &subUnits](
-               SubscriptionState /*oldState*/, SubscriptionState newState) {
+               SubscriptionState /*oldState*/,
+               SubscriptionState newState,
+               std::optional<bool> /*initialSyncHasData*/) {
       if (onDisconnect.has_value() && isDisconnected(newState)) {
         onDisconnect.value()();
       }
@@ -114,7 +117,10 @@ class FsdbPubSubManagerTest : public ::testing::Test {
   }
 
   SubscriptionStateChangeCb subscriptionStateChangeCb() {
-    return [this](SubscriptionState /*oldState*/, SubscriptionState newState) {
+    return [this](
+               SubscriptionState /*oldState*/,
+               SubscriptionState newState,
+               std::optional<bool> /*initialSyncHasData*/) {
       auto state = subscriptionState_.wlock();
       *state = newState;
     };
@@ -297,6 +303,18 @@ class FsdbPubSubManagerTest : public ::testing::Test {
         operPathUpdate,
         utils::ConnectionOptions("::1", fsdbTestServer_->getFsdbPort()));
   }
+  std::string addStatePatchSubscription(
+      const std::vector<std::string> path,
+      FsdbPatchSubscriber::FsdbOperPatchUpdateCb operPatchUpdate,
+      SubscriptionStateChangeCb stChangeCb) {
+    fsdb::RawOperPath p;
+    p.path() = path;
+    return pubSubManager_->addStatePatchSubscription(
+        {{42, p}},
+        stChangeCb,
+        operPatchUpdate,
+        utils::ConnectionOptions("::1", fsdbTestServer_->getFsdbPort()));
+  }
   void addStatePathSubscriptionWithGrHoldTime(
       FsdbStateSubscriber::FsdbOperStateUpdateCb operPathUpdate,
       SubscriptionStateChangeCb stChangeCb,
@@ -336,6 +354,12 @@ class FsdbPubSubManagerTest : public ::testing::Test {
       folly::Synchronized<std::vector<OperSubDeltaUnit>>& deltas) {
     return [&deltas](OperSubDeltaUnit&& delta) {
       deltas.wlock()->push_back(delta);
+    };
+  }
+  FsdbPatchSubscriber::FsdbOperPatchUpdateCb makePatchUpdateCb(
+      folly::Synchronized<std::vector<SubscriberChunk>>& patches) {
+    return [&patches](SubscriberChunk&& patch) {
+      patches.wlock()->push_back(patch);
     };
   }
 
@@ -727,6 +751,54 @@ TYPED_TEST(FsdbPubSubManagerTest, pubSubExtDelta) {
   // Initial sync only after first publish
   this->publishAndVerifyConfig({{"foo", "bar"}});
   WITH_RETRIES(ASSERT_EVENTUALLY_EQ(deltas.rlock()->size(), 1));
+}
+
+template <typename TestParam>
+class FsdbPubSubManagerPatchApiTest : public FsdbPubSubManagerTest<TestParam> {
+};
+
+using PatchApiTestTypes = ::testing::Types<PatchPubSubForState>;
+
+TYPED_TEST_SUITE(FsdbPubSubManagerPatchApiTest, PatchApiTestTypes);
+
+TYPED_TEST(FsdbPubSubManagerPatchApiTest, verifyEmptyInitialResponse) {
+  folly::Synchronized<std::vector<SubscriberChunk>> received;
+  bool initialResponseReceived = false;
+  bool isDataExpected;
+  auto streamStateCb = [&](SubscriptionState /*oldState*/,
+                           SubscriptionState newState,
+                           std::optional<bool> initialSyncHasData) {
+    if (newState == SubscriptionState::CONNECTED) {
+      EXPECT_TRUE(initialSyncHasData.has_value());
+      EXPECT_EQ(initialSyncHasData.value(), isDataExpected);
+      initialResponseReceived = true;
+    }
+  };
+  this->createPublishers();
+  this->publishAndVerifyConfig({{"foo", "bar"}});
+
+  // subscribe for path that is not published
+  isDataExpected = false;
+  this->addStatePatchSubscription(
+      {"agent", "fsdbSubscriptions", "foo"},
+      this->makePatchUpdateCb(received),
+      streamStateCb);
+  WITH_RETRIES_N(
+      this->kRetries, { EXPECT_EVENTUALLY_TRUE(initialResponseReceived); });
+  EXPECT_EQ(received.rlock()->size(), 0);
+
+  // Subscribe for published path
+  isDataExpected = true;
+  this->pubSubManager_->removeStatePatchSubscription(
+      this->subscriptionPath(), "::1");
+  initialResponseReceived = false;
+  this->addStatePatchSubscription(
+      kPublishRoot, this->makePatchUpdateCb(received), streamStateCb);
+  WITH_RETRIES_N(
+      this->kRetries, { EXPECT_EVENTUALLY_TRUE(initialResponseReceived); });
+  // check for initial chunk
+  WITH_RETRIES_N(
+      this->kRetries, { ASSERT_EVENTUALLY_EQ(received.rlock()->size(), 1); });
 }
 
 } // namespace facebook::fboss::fsdb::test

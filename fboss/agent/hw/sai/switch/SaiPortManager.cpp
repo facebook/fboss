@@ -1526,11 +1526,11 @@ std::shared_ptr<Port> SaiPortManager::swPortFromAttributes(
 #endif
   port->setScope(platform_->getPlatformMapping()->getPortScope(port->getID()));
 
-// TODO(zecheng): Update flag when new 12.0 release has the attribute
-#if defined(BRCM_SAI_SDK_DNX_GTE_11_0) && !defined(BRCM_SAI_SDK_DNX_GTE_12_0)
-  port->setReachabilityGroupId(
-      GET_OPT_ATTR(Port, CondEntropyRehashEnable, attributes));
+#if defined(SAI_VERSION_11_7_0_0_DNX_ODP)
+  auto shelEnable = GET_OPT_ATTR(Port, ShelEnable, attributes);
+  port->setSelfHealingECMPLagEnable(shelEnable);
 #endif
+
   return port;
 }
 
@@ -1826,6 +1826,7 @@ void SaiPortManager::updateStats(
   // All stats start with a unitialized (-1) value. If there are no in
   // discards (first collection) we will just report that -1 as the monotonic
   // counter. Instead set it to 0 if uninintialized
+  setUninitializedStatsToZero(*curPortStats.inCongestionDiscards_());
   setUninitializedStatsToZero(*curPortStats.inDiscards_());
   setUninitializedStatsToZero(*curPortStats.fecCorrectableErrors());
   setUninitializedStatsToZero(*curPortStats.fecUncorrectableErrors());
@@ -1966,11 +1967,15 @@ void SaiPortManager::updateStats(
       platform_->getAsic()->isSupported(HwAsic::Feature::DATA_CELL_FILTER)) {
     std::optional<SaiPortTraits::Attributes::FabricDataCellsFilterStatus>
         attrT = SaiPortTraits::Attributes::FabricDataCellsFilterStatus{};
-    curPortStats.dataCellsFilterOn() =
+
+    auto dataCelllsFilterOn =
         SaiApiTable::getInstance()->portApi().getAttribute(
-            handle->port->adapterKey(), attrT)
-        ? true
-        : false;
+            handle->port->adapterKey(), attrT);
+    if (dataCelllsFilterOn.has_value() && dataCelllsFilterOn.value() == true) {
+      curPortStats.dataCellsFilterOn() = true;
+    } else {
+      curPortStats.dataCellsFilterOn() = false;
+    }
   }
   portStats_[portId]->updateStats(curPortStats, now);
   auto lastPrbsRxStateReadTimeIt = lastPrbsRxStateReadTime_.find(portId);

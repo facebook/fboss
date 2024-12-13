@@ -490,6 +490,53 @@ TYPED_TEST(ThriftStructNodeTestSuite, ThriftStructNodeModifyTest) {
   EXPECT_FALSE(obj2.optionalStruct().has_value());
 }
 
+TYPED_TEST(ThriftStructNodeTestSuite, ThriftStructNodeModifyPathTest) {
+  using Param = typename TestFixture::T;
+  constexpr bool enableHybridStorage = Param::hybridStorage;
+
+  RootTestStruct root;
+  ParentTestStruct parent;
+  root.mapOfI32ToMapOfStruct() = {{1, {{"2", std::move(parent)}}}};
+  auto node = this->initNode(root);
+
+  std::vector<std::string> path{
+      "mapOfI32ToMapOfStruct",
+      "1",
+      "2",
+      "mapOfI32ToMapOfStruct",
+      "3",
+      "4",
+      "hybridMapOfI32ToStruct"};
+  folly::dynamic dyn;
+  auto processPath = pvlambda([&dyn](auto& node, auto begin, auto end) {
+    EXPECT_EQ(begin, end);
+    if constexpr (std::is_base_of_v<
+                      Serializable,
+                      std::remove_cvref_t<decltype(node)>>) {
+      dyn = node.toFollyDynamic();
+    } else {
+      facebook::thrift::to_dynamic(
+          dyn, node, facebook::thrift::dynamic_format::JSON_1);
+    }
+  });
+  // non-existent node
+  auto visitResult = RootPathVisitor::visit(
+      *node, path.begin(), path.end(), PathVisitMode::LEAF, processPath);
+  EXPECT_EQ(visitResult, ThriftTraverseResult::NON_EXISTENT_NODE);
+
+  // create node
+  auto result = ThriftStructNode<
+      RootTestStruct,
+      ThriftStructResolver<RootTestStruct, enableHybridStorage>,
+      enableHybridStorage>::modifyPath(&node, path.begin(), path.end());
+  EXPECT_EQ(result, ThriftTraverseResult::OK);
+
+  // node exists now
+  visitResult = RootPathVisitor::visit(
+      *node, path.begin(), path.end(), PathVisitMode::LEAF, processPath);
+  EXPECT_EQ(visitResult, ThriftTraverseResult::OK);
+}
+
 TEST(ThriftStructNodeTests, ThriftStructNodeRemove) {
   auto portRange = buildPortRange(100, 999);
 

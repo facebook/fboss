@@ -17,9 +17,6 @@
 #include <gtest/gtest.h>
 
 DECLARE_int32(max_l2_entries);
-
-DECLARE_bool(enable_mac_update_protection);
-
 namespace facebook::fboss {
 
 class ResourceAccountant {

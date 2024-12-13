@@ -14,7 +14,7 @@
 
 namespace facebook::fboss {
 
-int getNumVoqs(cfg::PortType portType, cfg::Scope portScope) {
+int getLocalPortNumVoqs(cfg::PortType portType, cfg::Scope portScope) {
   if (!isDualStage3Q2QMode()) {
     return 8;
   }
@@ -28,5 +28,22 @@ int getNumVoqs(cfg::PortType portType, cfg::Scope portScope) {
     return 2;
   }
   return 3;
+}
+
+int getRemotePortNumVoqs(
+    HwAsic::InterfaceNodeRole intfRole,
+    cfg::PortType portType) {
+  if (intfRole == HwAsic::InterfaceNodeRole::DUAL_STAGE_EDGE_NODE) {
+    CHECK(isDualStage3Q2QMode());
+    return 3;
+  }
+  if (isDualStage3Q2QMode()) {
+    if (portType == cfg::PortType::MANAGEMENT_PORT ||
+        portType == cfg::PortType::RECYCLE_PORT) {
+      return 2;
+    }
+    return 3;
+  }
+  return 8;
 }
 } // namespace facebook::fboss

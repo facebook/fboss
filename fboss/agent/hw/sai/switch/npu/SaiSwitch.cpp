@@ -108,7 +108,10 @@ void SaiSwitch::updateStatsImpl() {
   }
   if (platform_->getAsic()->isSupported(HwAsic::Feature::CPU_PORT)) {
     std::lock_guard<std::mutex> locked(saiSwitchMutex_);
-    managerTable_->hostifManager().updateStats(updateWatermarks);
+    managerTable_->hostifManager().updateStats(
+        updateWatermarks &&
+        getPlatform()->getAsic()->isSupported(
+            HwAsic::Feature::CPU_QUEUE_WATERMARK_STATS));
   }
 
   {

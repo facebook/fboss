@@ -75,8 +75,12 @@ inline std::string subscriptionStateToString(SubscriptionState state) {
       std::to_string(static_cast<int>(state)));
 }
 
-using SubscriptionStateChangeCb =
-    std::function<void(SubscriptionState, SubscriptionState)>;
+// Only for Patch subscriptions, on SubscriptionState::CONNECTED, the
+// callback will include bool indicating whether the initial sync has
+// data or not. This is useful for the caller to know whether to
+// expect data callback on initialSync.
+using SubscriptionStateChangeCb = std::function<
+    void(SubscriptionState, SubscriptionState, std::optional<bool>)>;
 
 struct SubscriptionOptions {
   SubscriptionOptions() = default;
@@ -86,18 +90,24 @@ struct SubscriptionOptions {
       uint32_t grHoldTimeSec = 0,
       // only mark subscription as CONNECTED on initial sync
       bool requireInitialSyncToMarkConnect = false,
-      bool forceSubscribe = false)
+      bool forceSubscribe = false,
+      std::optional<int64_t> heartbeatInterval = std::nullopt)
       : clientId_(clientId),
         subscribeStats_(subscribeStats),
         grHoldTimeSec_(grHoldTimeSec),
         requireInitialSyncToMarkConnect_(requireInitialSyncToMarkConnect),
-        forceSubscribe_(forceSubscribe) {}
+        forceSubscribe_(forceSubscribe) {
+    if (heartbeatInterval.has_value()) {
+      heartbeatInterval_ = heartbeatInterval.value();
+    }
+  }
 
   const std::string clientId_;
   bool subscribeStats_{false};
   uint32_t grHoldTimeSec_{0};
   bool requireInitialSyncToMarkConnect_{false};
   bool forceSubscribe_{false};
+  std::optional<int32_t> heartbeatInterval_{std::nullopt};
 };
 
 struct SubscriptionInfo {
@@ -209,19 +219,29 @@ class FsdbSubscriber : public FsdbSubscriberBase {
       request.path() = operPath;
       request.subscriberId() = clientId();
       request.forceSubscribe() = subscriptionOptions_.forceSubscribe_;
+      if (subscriptionOptions_.heartbeatInterval_.has_value()) {
+        request.heartbeatInterval() =
+            subscriptionOptions_.heartbeatInterval_.value();
+      }
       return request;
     } else if constexpr (std::is_same_v<Paths, std::vector<ExtendedOperPath>>) {
       OperSubRequestExtended request;
       request.paths() = subscribePaths_;
       request.subscriberId() = clientId();
       request.forceSubscribe() = subscriptionOptions_.forceSubscribe_;
+      if (subscriptionOptions_.heartbeatInterval_.has_value()) {
+        request.heartbeatInterval() =
+            subscriptionOptions_.heartbeatInterval_.value();
+      }
       return request;
     }
   }
   SubscriptionState getSubscriptionState() const {
     return *subscriptionState_.rlock();
   }
-  void updateSubscriptionState(SubscriptionState newState) {
+  void updateSubscriptionState(
+      SubscriptionState newState,
+      std::optional<bool> initialSyncHasData = std::nullopt) {
     auto locked = subscriptionState_.wlock();
     auto oldState = *locked;
     if (oldState == newState) {
@@ -233,7 +253,8 @@ class FsdbSubscriber : public FsdbSubscriberBase {
       cancelStaleStateTimeout();
     }
     if (subscriptionStateChangeCb_.has_value()) {
-      subscriptionStateChangeCb_.value()(oldState, newState);
+      subscriptionStateChangeCb_.value()(
+          oldState, newState, initialSyncHasData);
     }
   }
   void handleConnectionState(State oldState, State newState) {

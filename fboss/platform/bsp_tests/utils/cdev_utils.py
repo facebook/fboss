@@ -1,7 +1,6 @@
 # pyre-unsafe
 import fcntl
 import os
-from typing import Dict, List
 
 from fboss.platform.bsp_tests.utils.cdev_types import (
     AuxDevice,

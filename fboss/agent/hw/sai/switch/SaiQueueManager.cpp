@@ -427,13 +427,6 @@ SaiQueueManager::voqNonWatermarkCounterIdsRead(
           SaiQueueTraits::VoqWatchDogDeleteCounterIdsToRead.begin(),
           SaiQueueTraits::VoqWatchDogDeleteCounterIdsToRead.end());
     }
-    if (platform_->getAsic()->isSupported(
-            HwAsic::Feature::VOQ_LATENCY_WATERMARK_BIN)) {
-      baseCounterIds.insert(
-          baseCounterIds.end(),
-          SaiQueueTraits::VoqLatencyWatermarkCounterIdsToRead.begin(),
-          SaiQueueTraits::VoqLatencyWatermarkCounterIdsToRead.end());
-    }
     basePlusWredCounterIds.resize(
         baseCounterIds.size() + SaiQueueTraits::WredCounterIdsToRead.size());
     std::set_union(
@@ -496,6 +489,25 @@ SaiQueueManager::egressQueueNonWatermarkCounterIdsRead(int queueType) const {
 }
 
 const std::vector<sai_stat_id_t>&
+SaiQueueManager::supportedVoqWatermarkCounterIdsReadAndClear() const {
+  static std::vector<sai_stat_id_t> voqWatermarkStats{};
+  if (voqWatermarkStats.empty()) {
+    voqWatermarkStats.insert(
+        voqWatermarkStats.end(),
+        SaiQueueTraits::WatermarkByteCounterIdsToReadAndClear.begin(),
+        SaiQueueTraits::WatermarkByteCounterIdsToReadAndClear.end());
+    if (platform_->getAsic()->isSupported(
+            HwAsic::Feature::VOQ_LATENCY_WATERMARK_BIN)) {
+      voqWatermarkStats.insert(
+          voqWatermarkStats.end(),
+          SaiQueueTraits::VoqLatencyWatermarkCounterIdsToRead.begin(),
+          SaiQueueTraits::VoqLatencyWatermarkCounterIdsToRead.end());
+    }
+  }
+  return voqWatermarkStats;
+}
+
+const std::vector<sai_stat_id_t>&
 SaiQueueManager::supportedWatermarkCounterIdsReadAndClear(int queueType) const {
   if (queueType == SAI_QUEUE_TYPE_FABRIC_TX) {
     static const std::vector<sai_stat_id_t> kFabricQueueWatermarksStats{
@@ -503,6 +515,7 @@ SaiQueueManager::supportedWatermarkCounterIdsReadAndClear(int queueType) const {
         SaiQueueTraits::WatermarkLevelCounterIdsToReadAndClear.end()};
     return kFabricQueueWatermarksStats;
   }
+
   static std::vector<sai_stat_id_t> watermarkStats{};
   if (watermarkStats.empty()) {
     watermarkStats.insert(
@@ -591,9 +604,6 @@ void SaiQueueManager::updateStats(
   static std::vector<sai_stat_id_t> nonWatermarkStatsReadAndClear(
       SaiQueueTraits::VoqNonWatermarkCounterIdsToReadAndClear.begin(),
       SaiQueueTraits::VoqNonWatermarkCounterIdsToReadAndClear.end());
-  static std::vector<sai_stat_id_t> watermarkStatsReadAndClear(
-      SaiQueueTraits::WatermarkByteCounterIdsToReadAndClear.begin(),
-      SaiQueueTraits::WatermarkByteCounterIdsToReadAndClear.end());
   for (auto queueHandle : queueHandles) {
     auto queueType = GET_ATTR(Queue, Type, queueHandle->queue->attributes());
     if (updateVoqStats) {
@@ -605,7 +615,8 @@ void SaiQueueManager::updateStats(
     }
     if (updateWatermarks) {
       queueHandle->queue->updateStats(
-          watermarkStatsReadAndClear, SAI_STATS_MODE_READ_AND_CLEAR);
+          supportedVoqWatermarkCounterIdsReadAndClear(),
+          SAI_STATS_MODE_READ_AND_CLEAR);
     }
     const auto& counters = queueHandle->queue->getStats();
     auto queueId = SaiApiTable::getInstance()->queueApi().getAttribute(

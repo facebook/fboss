@@ -143,6 +143,7 @@ bcm_field_IpType_t cfgIpTypeToBcmIpType(cfg::IpType cfgIpType) {
       return bcmFieldIpTypeIpv6;
     case cfg::IpType::ARP_REQUEST:
     case cfg::IpType::ARP_REPLY:
+    case cfg::IpType::NON_IP:
       break;
   }
   // should return in one of the cases

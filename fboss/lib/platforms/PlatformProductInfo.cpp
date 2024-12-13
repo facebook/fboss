@@ -79,6 +79,8 @@ void PlatformProductInfo::initMode() {
     } else if (
         modelName.find("Wedge400") == 0 || modelName.find("WEDGE400") == 0) {
       type_ = PlatformType::PLATFORM_WEDGE400;
+    } else if (modelName.find("DARWIN48V") == 0) {
+      type_ = PlatformType::PLATFORM_DARWIN48V;
     } else if (
         modelName.find("Darwin") == 0 || modelName.find("DARWIN") == 0 ||
         modelName.find("DCS-7060") == 0 || modelName.find("Rackhawk") == 0) {
@@ -134,7 +136,14 @@ void PlatformProductInfo::initMode() {
         modelName.find("ASY-92458-104") == 0 ||
         modelName.find("DCS-DL-7700R4C-38PE-AC-F") == 0 ||
         modelName.find("DCS-DL-7700R4C-38PE-DC-F") == 0 ||
-        modelName.find("DCS-DL-7700R4C-38PE-B-F") == 0) {
+        modelName.find("DCS-DL-7700R4C-38PE-B-F") == 0 ||
+        modelName.find("DCS-7700R4C-38PE-DC-F") == 0 ||
+        modelName.find("DCS-DES-VIPER-ORV3") == 0 ||
+        modelName.find("DCS-DES-VIPER-AC") == 0 ||
+        modelName.find("DCS-DES-VIPER-ORV3N") == 0 ||
+        modelName.find("DCS-7700R4C-38PE-DC-F-RV3") == 0 ||
+        modelName.find("DCS-7700R4C-38PE-DC-F") == 0 ||
+        modelName.find("DCS-7700R4C-38PE-F") == 0) {
       type_ = PlatformType::PLATFORM_MERU800BIA;
     } else if (
         modelName.find("Meru800biab") == 0 ||
@@ -148,7 +157,10 @@ void PlatformProductInfo::initMode() {
         modelName.find("Meru800bfa") == 0 ||
         modelName.find("MERU800BFA") == 0 ||
         modelName.find("ASY-57651-102") == 0 ||
-        modelName.find("DCS-DS-7720R4-128PE-AC-F") == 0) {
+        modelName.find("DCS-DS-7720R4-128PE-AC-F") == 0 ||
+        modelName.find("DCS-DEC-WHISTLER-AC") == 0 ||
+        modelName.find("DCS-DEC-WHISTLER-DC") == 0 ||
+        modelName.find("DCS-7720R4-128PE") == 0) {
       type_ = PlatformType::PLATFORM_MERU800BFA;
     } else if (
         modelName.find("MORGAN800CC") == 0 ||

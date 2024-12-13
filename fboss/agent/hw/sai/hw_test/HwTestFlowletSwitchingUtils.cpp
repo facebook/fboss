@@ -103,9 +103,8 @@ void verifyPortArsAttributes(
     PortSaiId portSaiId,
     const cfg::PortFlowletConfig& cfg,
     bool enable) {
-  auto& portApi = SaiApiTable::getInstance()->portApi();
-
 #if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
+  auto& portApi = SaiApiTable::getInstance()->portApi();
   auto arsEnable =
       portApi.getAttribute(portSaiId, SaiPortTraits::Attributes::ArsEnable());
   EXPECT_EQ(enable, arsEnable);
@@ -124,11 +123,10 @@ void verifyPortArsAttributes(
 bool validateFlowletSwitchingEnabled(
     const HwSwitch* hw,
     const cfg::FlowletSwitchingConfig& flowletCfg) {
+#if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
   const auto saiSwitch = static_cast<const SaiSwitch*>(hw);
   SwitchSaiId switchId =
       saiSwitch->managerTable()->switchManager().getSwitchSaiId();
-
-#if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
   auto arsProfileId = SaiApiTable::getInstance()->switchApi().getAttribute(
       switchId, SaiSwitchTraits::Attributes::ArsProfile());
 
@@ -157,11 +155,11 @@ bool verifyEcmpForFlowletSwitching(
     const cfg::FlowletSwitchingConfig& flowletCfg,
     const cfg::PortFlowletConfig& cfg,
     const bool flowletEnable) {
-  const auto saiSwitch = static_cast<const SaiSwitch*>(hw);
-  auto nextHopGroupSaiId = getNextHopGroupSaiId(saiSwitch, ip);
   bool isVerified = true;
 
 #if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
+  const auto saiSwitch = static_cast<const SaiSwitch*>(hw);
+  auto nextHopGroupSaiId = getNextHopGroupSaiId(saiSwitch, ip);
   auto arsId = SaiApiTable::getInstance()->nextHopGroupApi().getAttribute(
       nextHopGroupSaiId, SaiNextHopGroupTraits::Attributes::ArsObjectId());
 
@@ -182,11 +180,11 @@ bool verifyEcmpForNonFlowlet(
     const HwSwitch* hw,
     const folly::CIDRNetwork& ip,
     const bool flowletEnable) {
-  const auto saiSwitch = static_cast<const SaiSwitch*>(hw);
-  auto nextHopGroupSaiId = getNextHopGroupSaiId(saiSwitch, ip);
   bool isVerified = true;
 
 #if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
+  const auto saiSwitch = static_cast<const SaiSwitch*>(hw);
+  auto nextHopGroupSaiId = getNextHopGroupSaiId(saiSwitch, ip);
   auto arsId = SaiApiTable::getInstance()->nextHopGroupApi().getAttribute(
       nextHopGroupSaiId, SaiNextHopGroupTraits::Attributes::ArsObjectId());
 
@@ -214,11 +212,11 @@ bool validatePortFlowletQuality(
 }
 
 bool validateFlowletSwitchingDisabled(const HwSwitch* hw) {
+#if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
   const auto saiSwitch = static_cast<const SaiSwitch*>(hw);
   SwitchSaiId switchId =
       saiSwitch->managerTable()->switchManager().getSwitchSaiId();
 
-#if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
   auto arsProfileId = SaiApiTable::getInstance()->switchApi().getAttribute(
       switchId, SaiSwitchTraits::Attributes::ArsProfile());
 

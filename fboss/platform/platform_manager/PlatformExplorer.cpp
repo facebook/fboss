@@ -24,8 +24,6 @@
 
 namespace facebook::fboss::platform::platform_manager {
 namespace {
-constexpr auto kTotalFailures = "platform_explorer.total_failures";
-constexpr auto kExplorationFail = "platform_explorer.exploration_fail";
 constexpr auto kRootSlotPath = "/";
 
 std::string getSlotPath(
@@ -68,6 +66,8 @@ std::string readVersionString(
       re2::RE2(PlatformExplorer::kFwVerXYPatternStr);
   static const re2::RE2 kFwVerXYZPattern =
       re2::RE2(PlatformExplorer::kFwVerXYZPatternStr);
+  static const re2::RE2 kFwVerValidCharsPattern =
+      re2::RE2(PlatformExplorer::kFwVerValidCharsPatternStr);
   const auto versionFileContent = platformFsUtils->getStringFileContent(path);
   if (!versionFileContent) {
     XLOGF(
@@ -77,15 +77,23 @@ std::string readVersionString(
         folly::errnoStr(errno));
     return fmt::format("ERROR_FILE_{}", errno);
   }
-  const auto versionString = versionFileContent.value();
+  const auto& versionString = versionFileContent.value();
   if (versionString.empty()) {
     XLOGF(ERR, "Empty firmware version file {}", path);
     return PlatformExplorer::kFwVerErrorEmptyFile;
   }
-  if (folly::hasSpaceOrCntrlSymbols(versionString)) {
+  if (versionString.length() > 64) {
     XLOGF(
         ERR,
-        "Firmware version string \"{}\" from file {} contains whitespace or control characters.",
+        "Firmware version \"{}\" from file {} is longer than 64 characters.",
+        versionString,
+        path);
+    return PlatformExplorer::kFwVerErrorInvalidString;
+  }
+  if (!re2::RE2::FullMatch(versionString, kFwVerValidCharsPattern)) {
+    XLOGF(
+        ERR,
+        "Firmware version \"{}\" from file {} contains invalid characters.",
         versionString,
         path);
     return PlatformExplorer::kFwVerErrorInvalidString;
@@ -134,7 +142,7 @@ PlatformExplorer::PlatformExplorer(
       dataStore_(platformConfig_),
       devicePathResolver_(dataStore_),
       presenceChecker_(devicePathResolver_),
-      explorationErrMap_(platformConfig_, dataStore_),
+      explorationSummary_(platformConfig_, dataStore_),
       platformFsUtils_(platformFsUtils) {
   updatePmStatus(createPmStatus(ExplorationStatus::UNSTARTED));
 }
@@ -156,12 +164,7 @@ void PlatformExplorer::explore() {
     createDeviceSymLink(linkPath, devicePath);
   }
   publishFirmwareVersions();
-  auto explorationStatus = concludeExploration();
-  fb303::fbData->setCounter(
-      kExplorationFail,
-      explorationStatus != ExplorationStatus::SUCCEEDED &&
-          explorationStatus !=
-              ExplorationStatus::SUCCEEDED_WITH_EXPECTED_ERRORS);
+  auto explorationStatus = explorationSummary_.summarize();
   updatePmStatus(createPmStatus(
       explorationStatus,
       std::chrono::duration_cast<std::chrono::seconds>(
@@ -226,15 +229,30 @@ void PlatformExplorer::exploreSlot(
   // condition is satisfied
   if (const auto presenceDetection = slotConfig.presenceDetection()) {
     try {
-      if (!presenceChecker_.isPresent(
-              presenceDetection.value(), childSlotPath)) {
+      auto isPmUnitPresent =
+          presenceChecker_.isPresent(presenceDetection.value(), childSlotPath);
+      if (!isPmUnitPresent) {
+        auto errMsg = fmt::format(
+            "Skipping exploring Slot {} at {}. No PmUnit in the Slot",
+            slotName,
+            childSlotPath);
+        XLOG(ERR) << errMsg;
+        explorationSummary_.addError(
+            ExplorationErrorType::SLOT_PM_UNIT_ABSENCE,
+            Utils().createDevicePath(childSlotPath, "<ABSENT>"),
+            errMsg);
         return;
       }
     } catch (const std::exception& ex) {
-      XLOG(ERR) << fmt::format(
-          "Error checking for presence in slotpath {}: {}",
+      auto errMsg = fmt::format(
+          "Error checking for presence in SlotPath {}: {}",
           slotName,
           ex.what());
+      XLOG(ERR) << errMsg;
+      explorationSummary_.addError(
+          ExplorationErrorType::SLOT_PRESENCE_CHECK,
+          Utils().createDevicePath(childSlotPath, "<ABSENT>"),
+          errMsg);
       return;
     }
   }
@@ -301,7 +319,8 @@ std::optional<std::string> PlatformExplorer::getPmUnitNameFromSlot(
             *idpromConfig.address(),
             e.what());
         XLOG(ERR) << errMsg;
-        explorationErrMap_.add(slotPath, "IDPROM", errMsg);
+        explorationSummary_.addError(
+            ExplorationErrorType::IDPROM_READ, slotPath, "IDPROM", errMsg);
       }
     } else {
       createI2cDevice(
@@ -344,7 +363,8 @@ std::optional<std::string> PlatformExplorer::getPmUnitNameFromSlot(
           slotPath,
           e.what());
       XLOG(ERR) << errMsg;
-      explorationErrMap_.add(slotPath, "IDPROM", errMsg);
+      explorationSummary_.addError(
+          ExplorationErrorType::IDPROM_READ, slotPath, "IDPROM", errMsg);
     }
     if (pmUnitNameInEeprom) {
       XLOG(INFO) << fmt::format(
@@ -442,8 +462,11 @@ void PlatformExplorer::exploreI2cDevices(
           slotPath,
           ex.what());
       XLOG(ERR) << errMsg;
-      explorationErrMap_.add(
-          slotPath, *i2cDeviceConfig.pmUnitScopedName(), errMsg);
+      explorationSummary_.addError(
+          ExplorationErrorType::I2C_DEVICE_EXPLORE,
+          slotPath,
+          *i2cDeviceConfig.pmUnitScopedName(),
+          errMsg);
     }
   }
 }
@@ -543,8 +566,11 @@ void PlatformExplorer::explorePciDevices(
           slotPath,
           ex.what());
       XLOG(ERR) << errMsg;
-      explorationErrMap_.add(
-          slotPath, *pciDeviceConfig.pmUnitScopedName(), errMsg);
+      explorationSummary_.addError(
+          ExplorationErrorType::PCI_DEVICE_EXPLORE,
+          slotPath,
+          *pciDeviceConfig.pmUnitScopedName(),
+          errMsg);
     }
   }
 }
@@ -605,7 +631,8 @@ void PlatformExplorer::createDeviceSymLink(
         devicePath,
         ex.what());
     XLOG(ERR) << errMsg;
-    explorationErrMap_.add(devicePath, errMsg);
+    explorationSummary_.addError(
+        ExplorationErrorType::RUN_DEVMAP_SYMLINK, devicePath, errMsg);
     return;
   }
   XLOG(INFO) << fmt::format(
@@ -618,35 +645,6 @@ void PlatformExplorer::createDeviceSymLink(
   if (exitStatus != 0) {
     XLOG(ERR) << fmt::format("Failed to run command ({})", cmd);
     return;
-  }
-}
-
-ExplorationStatus PlatformExplorer::concludeExploration() {
-  XLOG(INFO) << fmt::format(
-      "Concluding {} exploration...", *platformConfig_.platformName());
-  for (const auto& [devicePath, errorMessages] : explorationErrMap_) {
-    auto [slotPath, deviceName] = Utils().parseDevicePath(devicePath);
-    XLOG(INFO) << fmt::format(
-        "{} Failures in Device {} for PmUnit {} at SlotPath {}",
-        errorMessages.isExpected() ? "Expected" : "Unexpected",
-        deviceName,
-        dataStore_.hasPmUnit(slotPath)
-            ? *dataStore_.getPmUnitInfo(slotPath).name()
-            : "<ABSENT>",
-        slotPath);
-    int i = 1;
-    for (const auto& errMsg : errorMessages.getMessages()) {
-      XLOG(INFO) << fmt::format("{}. {}", i++, errMsg);
-    }
-  }
-  fb303::fbData->setCounter(kTotalFailures, explorationErrMap_.size());
-  if (explorationErrMap_.empty()) {
-    return ExplorationStatus::SUCCEEDED;
-  } else if (
-      explorationErrMap_.size() == explorationErrMap_.numExpectedErrors()) {
-    return ExplorationStatus::SUCCEEDED_WITH_EXPECTED_ERRORS;
-  } else {
-    return ExplorationStatus::FAILED;
   }
 }
 
@@ -720,7 +718,8 @@ void PlatformExplorer::setupI2cDevice(
     i2cExplorer_.setupI2cDevice(busNum, addr, initRegSettings);
   } catch (const std::exception& ex) {
     XLOG(ERR) << ex.what();
-    explorationErrMap_.add(devicePath, ex.what());
+    explorationSummary_.addError(
+        ExplorationErrorType::I2C_DEVICE_REG_INIT, devicePath, ex.what());
   }
 }
 
@@ -737,7 +736,8 @@ void PlatformExplorer::createI2cDevice(
         devicePath, i2cExplorer_.getDeviceI2cPath(busNum, addr));
   } catch (const std::exception& ex) {
     XLOG(ERR) << ex.what();
-    explorationErrMap_.add(devicePath, ex.what());
+    explorationSummary_.addError(
+        ExplorationErrorType::I2C_DEVICE_CREATE, devicePath, ex.what());
   }
 }
 } // namespace facebook::fboss::platform::platform_manager

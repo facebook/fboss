@@ -25,6 +25,7 @@ const re2::RE2 kSlotNameRegex{"(?P<SlotType>.([A-Z]+_)+SLOT)@\\d+"};
 const re2::RE2 kSlotPathRegex{"/|(/([A-Z]+_)+SLOT@\\d+)+"};
 const re2::RE2 kInfoRomDevicePrefixRegex{"^fpga_info_(dom|iob|scm|mcb)$"};
 const re2::RE2 kI2cAdapterNameRegex{"(?P<PmUnitScopedName>.+)@(?P<Num>\\d+)"};
+const re2::RE2 kRpmNameRegex{"(?P<KEYWORD>[a-z]+)_bsp_kmods"};
 constexpr auto kSymlinkDirs = {
     "eeproms",
     "sensors",
@@ -540,6 +541,10 @@ bool ConfigValidator::isValid(const PlatformConfig& config) {
     return false;
   }
 
+  if (!isValidBspKmodsRpmName(*config.bspKmodsRpmName())) {
+    return false;
+  }
+
   return true;
 }
 
@@ -727,6 +732,20 @@ bool ConfigValidator::isValidPmUnitName(
         *slotType,
         pmUnitName,
         *pmUnitConfig.pluggedInSlotType());
+    return false;
+  }
+  return true;
+}
+
+bool ConfigValidator::isValidBspKmodsRpmName(
+    const std::string& bspKmodsRpmName) {
+  if (bspKmodsRpmName.empty()) {
+    XLOG(ERR) << "BspKmodsRpmName cannot be empty";
+    return false;
+  }
+  std::string keyword{};
+  if (!re2::RE2::FullMatch(bspKmodsRpmName, kRpmNameRegex, &keyword)) {
+    XLOG(ERR) << fmt::format("Invalid BspKmodsRpmName : {}", bspKmodsRpmName);
     return false;
   }
   return true;

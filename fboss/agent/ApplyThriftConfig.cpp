@@ -108,7 +108,6 @@ using namespace facebook::fboss;
 namespace {
 
 const uint8_t kV6LinkLocalAddrMask{64};
-constexpr auto k2StageEdgePodClusterId = 200;
 
 // Only one buffer pool is supported systemwide. Variable to track the name
 // and validate during a config change.
@@ -980,11 +979,17 @@ QueueConfig ThriftConfigApplier::getVoqConfig(PortID portId) {
 void ThriftConfigApplier::processUpdatedDsfNodes() {
   bool hasVoqSwitch = false;
   std::unordered_set<SwitchID> localSwitchIds;
+  std::unordered_set<int> localInbandPortIds;
 
   for (auto& [matcherString, switchSettings] :
        std::as_const(*new_->getSwitchSettings())) {
     auto localSwitchId = HwSwitchMatcher(matcherString).switchId();
     localSwitchIds.insert(localSwitchId);
+    auto switchInfo =
+        switchSettings->getSwitchIdToSwitchInfo().find(localSwitchId)->second;
+    if (switchInfo.inbandPortId().has_value()) {
+      localInbandPortIds.insert(switchInfo.inbandPortId().value());
+    }
 
     auto origDsfNode = orig_->getDsfNodes()->getNodeIf(localSwitchId);
     if (origDsfNode &&
@@ -999,6 +1004,10 @@ void ThriftConfigApplier::processUpdatedDsfNodes() {
     }
   }
 
+  PortID localInbandPortId(1);
+  if (!localInbandPortIds.empty()) {
+    localInbandPortId = PortID(*localInbandPortIds.begin());
+  }
   // On VOQ switches, DSF nodes in the SwitchState are consumed by the DSF
   // subscriber to subscribe to every other VOQ switch. Thus, process DSF
   // nodes if at least one of the switchIDs is for VOQ switch.
@@ -1159,23 +1168,29 @@ void ThriftConfigApplier::processUpdatedDsfNodes() {
         std::make_optional(RemoteSystemPortType::STATIC_ENTRY));
     sysPort->setSwitchId(node->getSwitchId());
     sysPort->setName(getRecyclePortName(node));
-    const auto& recyclePortInfo = dsfNodeAsic->getRecyclePortInfo(
+    const auto intfRole =
         isDualStage3Q2QMode() && node->getClusterId() >= k2StageEdgePodClusterId
-            ? HwAsic::InterfaceNodeRole::DUAL_STAGE_EDGE_NODE
-            : HwAsic::InterfaceNodeRole::IN_CLUSTER_NODE);
+        ? HwAsic::InterfaceNodeRole::DUAL_STAGE_EDGE_NODE
+        : HwAsic::InterfaceNodeRole::IN_CLUSTER_NODE;
+    const auto& recyclePortInfo = dsfNodeAsic->getRecyclePortInfo(intfRole);
     CHECK_EQ(recyclePortInfo.inbandPortId, *node->getInbandPortId());
     sysPort->setCoreIndex(recyclePortInfo.coreId);
     sysPort->setCorePortIndex(recyclePortInfo.corePortIndex);
     sysPort->setSpeedMbps(recyclePortInfo.speedMbps);
     sysPort->setNumVoqs(
-        getNumVoqs(cfg::PortType::RECYCLE_PORT, cfg::Scope::GLOBAL));
+        getRemotePortNumVoqs(intfRole, cfg::PortType::RECYCLE_PORT));
+
     sysPort->setScope(cfg::Scope::GLOBAL);
-    // TODO(daiweix): use voq config of rcy ports, hardcode rcy portID 1 for now
-    sysPort->resetPortQueues(getVoqConfig(PortID(1)));
-    if (auto cpuTrafficPolicy = cfg_->cpuTrafficPolicy()) {
-      if (auto trafficPolicy = cpuTrafficPolicy->trafficPolicy()) {
-        if (auto defaultQosPolicy = trafficPolicy->defaultQosPolicy()) {
-          sysPort->setQosPolicy(*defaultQosPolicy);
+    if (cfg_->switchSettings()->selfHealingEcmpLagConfig().has_value()) {
+      sysPort->setShelDestinationEnabled(true);
+    }
+    sysPort->resetPortQueues(getVoqConfig(localInbandPortId));
+    if (auto dataPlaneTrafficPolicy = cfg_->dataPlaneTrafficPolicy()) {
+      if (auto portIdToQosPolicy =
+              dataPlaneTrafficPolicy->portIdToQosPolicy()) {
+        auto qosPolicyItr = portIdToQosPolicy->find(localInbandPortId);
+        if (qosPolicyItr != portIdToQosPolicy->end()) {
+          sysPort->setQosPolicy(qosPolicyItr->second);
         }
       }
     }
@@ -1680,8 +1695,8 @@ shared_ptr<SystemPortMap> ThriftConfigApplier::updateSystemPorts(
       sysPort->setCorePortIndex(
           platformPort.mapping()->attachedCorePortIndex().value());
       sysPort->setSpeedMbps(static_cast<int>(port.second->getSpeed()));
-      sysPort->setNumVoqs(
-          getNumVoqs(port.second->getPortType(), port.second->getScope()));
+      sysPort->setNumVoqs(getLocalPortNumVoqs(
+          port.second->getPortType(), port.second->getScope()));
       sysPort->setQosPolicy(port.second->getQosPolicy());
       sysPort->resetPortQueues(getVoqConfig(port.second->getID()));
       // TODO(daiweix): remove this CHECK_EQ after verifying scope config is
@@ -1690,6 +1705,11 @@ shared_ptr<SystemPortMap> ThriftConfigApplier::updateSystemPorts(
           (int)platformPort.mapping()->scope().value(),
           (int)port.second->getScope());
       sysPort->setScope(port.second->getScope());
+      if (cfg_->switchSettings()->selfHealingEcmpLagConfig().has_value()) {
+        sysPort->setShelDestinationEnabled(
+            port.second->getPortType() == cfg::PortType::RECYCLE_PORT &&
+            port.second->getScope() == cfg::Scope::GLOBAL);
+      }
       sysPorts->addSystemPort(std::move(sysPort));
     }
   }
@@ -2505,7 +2525,9 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
       portFlowletConfigUnchanged &&
       newFlowletConfigName == orig->getFlowletConfigName() &&
       *portConf->conditionalEntropyRehash() ==
-          orig->getConditionalEntropyRehash()) {
+          orig->getConditionalEntropyRehash() &&
+      portConf->selfHealingECMPLagEnable().value_or(false) ==
+          orig->getSelfHealingECMPLagEnable()) {
     return nullptr;
   }
 
@@ -2549,6 +2571,16 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
   newPort->setPortFlowletConfig(portFlowletCfg);
   newPort->setScope(*portConf->scope());
   newPort->setConditionalEntropyRehash(*portConf->conditionalEntropyRehash());
+  if (auto selfHealingECMPLagEnable = portConf->selfHealingECMPLagEnable()) {
+    if (*selfHealingECMPLagEnable &&
+        !cfg_->switchSettings()->selfHealingEcmpLagConfig().has_value()) {
+      throw FbossError(
+          "Switch selfHealingEcmpLagConfig needs to be enabled for port ",
+          newPort->getName(),
+          " to have selfHealingEcmpLag enable");
+    }
+    newPort->setSelfHealingECMPLagEnable(*selfHealingECMPLagEnable);
+  }
   return newPort;
 }
 
@@ -3857,8 +3889,13 @@ std::shared_ptr<InterfaceMap> ThriftConfigApplier::updateInterfaces() {
       CHECK_EQ((int)sysPort->getScope(), (int)(*interfaceCfg.scope()));
     }
     if (interfaceCfg.type() == cfg::InterfaceType::PORT) {
-      // TODO(Chenab): Support port router interface
-      throw FbossError("Port router interface is not supported yet");
+      if (auto port = interfaceCfg.portID()) {
+        if (!new_->getPorts()->getNodeIf(PortID(*port))) {
+          throw FbossError("Port router interface config invalid port");
+        }
+      } else {
+        throw FbossError("Port router interface config missing port");
+      }
     }
     if (origIntf) {
       newIntf = updateInterface(origIntf, &interfaceCfg, newAddrs);
@@ -3954,6 +3991,9 @@ shared_ptr<Interface> ThriftConfigApplier::createInterface(
       std::optional<RemoteInterfaceType>(std::nullopt),
       std::optional<LivenessStatus>(std::nullopt),
       *config->scope());
+  if (auto port = config->portID()) {
+    intf->setPortID(PortID(*port));
+  }
   updateNeighborResponseTablesForIntfs(intf.get(), addrs);
   updateDhcpOverrides(intf.get(), config);
   intf->setAddresses(addrs);
@@ -4006,12 +4046,16 @@ shared_ptr<Interface> ThriftConfigApplier::updateInterface(
   bool changed_neighbor_table =
       updateNeighborResponseTablesForIntfs(newIntf.get(), addrs);
   bool changed_dhcp_overrides = updateDhcpOverrides(newIntf.get(), config);
+  std::optional<PortID> cfgPort{};
+  if (auto portID = config->portID()) {
+    cfgPort = PortID(*portID);
+  }
 
   if (orig->getRouterID() == RouterID(*config->routerID()) &&
       (!orig->getVlanIDIf().has_value() ||
        orig->getVlanIDIf().value() == VlanID(*config->vlanID())) &&
-      orig->getName() == name && orig->getMac() == mac &&
-      orig->getAddressesCopy() == addrs &&
+      (orig->getPortIDf() == cfgPort) && orig->getName() == name &&
+      orig->getMac() == mac && orig->getAddressesCopy() == addrs &&
       orig->getNdpConfig()->toThrift() == ndp && orig->getMtu() == mtu &&
       orig->isVirtual() == *config->isVirtual() &&
       orig->isStateSyncDisabled() == *config->isStateSyncDisabled() &&
@@ -4026,6 +4070,13 @@ shared_ptr<Interface> ThriftConfigApplier::updateInterface(
   newIntf->setType(*config->type());
   if (newIntf->getType() == cfg::InterfaceType::VLAN) {
     newIntf->setVlanID(VlanID(*config->vlanID()));
+  }
+  if (auto portID = config->portID()) {
+    if (newIntf->getType() != cfg::InterfaceType::PORT) {
+      throw FbossError(
+          "Router interface ", newIntf->getID(), " is not of of type port");
+    }
+    newIntf->setPortID(PortID(*portID));
   }
   newIntf->setName(name);
   newIntf->setMac(mac);
@@ -4667,6 +4718,54 @@ shared_ptr<SwitchSettings> ThriftConfigApplier::updateSwitchSettings(
     switchSettingsChange = true;
   }
 
+  std::optional<int32_t> newLocalVoqMaxExpectedLatencyNsec;
+  if (cfg_->switchSettings()->localVoqMaxExpectedLatencyNsec()) {
+    newLocalVoqMaxExpectedLatencyNsec =
+        *cfg_->switchSettings()->localVoqMaxExpectedLatencyNsec();
+  }
+  if (newLocalVoqMaxExpectedLatencyNsec !=
+      origSwitchSettings->getLocalVoqMaxExpectedLatencyNsec()) {
+    newSwitchSettings->setLocalVoqMaxExpectedLatencyNsec(
+        newLocalVoqMaxExpectedLatencyNsec);
+    switchSettingsChange = true;
+  }
+
+  std::optional<int32_t> newRemoteL1VoqMaxExpectedLatencyNsec;
+  if (cfg_->switchSettings()->remoteL1VoqMaxExpectedLatencyNsec()) {
+    newRemoteL1VoqMaxExpectedLatencyNsec =
+        *cfg_->switchSettings()->remoteL1VoqMaxExpectedLatencyNsec();
+  }
+  if (newRemoteL1VoqMaxExpectedLatencyNsec !=
+      origSwitchSettings->getRemoteL1VoqMaxExpectedLatencyNsec()) {
+    newSwitchSettings->setRemoteL1VoqMaxExpectedLatencyNsec(
+        newRemoteL1VoqMaxExpectedLatencyNsec);
+    switchSettingsChange = true;
+  }
+
+  std::optional<int32_t> newRemoteL2VoqMaxExpectedLatencyNsec;
+  if (cfg_->switchSettings()->remoteL2VoqMaxExpectedLatencyNsec()) {
+    newRemoteL2VoqMaxExpectedLatencyNsec =
+        *cfg_->switchSettings()->remoteL2VoqMaxExpectedLatencyNsec();
+  }
+  if (newRemoteL2VoqMaxExpectedLatencyNsec !=
+      origSwitchSettings->getRemoteL2VoqMaxExpectedLatencyNsec()) {
+    newSwitchSettings->setRemoteL2VoqMaxExpectedLatencyNsec(
+        newRemoteL2VoqMaxExpectedLatencyNsec);
+    switchSettingsChange = true;
+  }
+
+  std::optional<int32_t> newVoqOutOfBoundsLatencyNsec;
+  if (cfg_->switchSettings()->voqOutOfBoundsLatencyNsec()) {
+    newVoqOutOfBoundsLatencyNsec =
+        *cfg_->switchSettings()->voqOutOfBoundsLatencyNsec();
+  }
+  if (newVoqOutOfBoundsLatencyNsec !=
+      origSwitchSettings->getVoqOutOfBoundsLatencyNsec()) {
+    newSwitchSettings->setVoqOutOfBoundsLatencyNsec(
+        newVoqOutOfBoundsLatencyNsec);
+    switchSettingsChange = true;
+  }
+
   if (origSwitchSettings->getSwitchDrainState() !=
       *cfg_->switchSettings()->switchDrainState()) {
     auto numVoqSwtitches =
@@ -4838,6 +4937,19 @@ shared_ptr<SwitchSettings> ThriftConfigApplier::updateSwitchSettings(
     switchSettingsChange = true;
   }
 
+  {
+    // SelfHealingEcmpLag switch configurations
+    std::optional<cfg::SelfHealingEcmpLagConfig> newSwitchShelConfig;
+    if (cfg_->switchSettings()->selfHealingEcmpLagConfig()) {
+      newSwitchShelConfig = *cfg_->switchSettings()->selfHealingEcmpLagConfig();
+    }
+    if (newSwitchShelConfig !=
+        origSwitchSettings->getSelfHealingEcmpLagConfig()) {
+      newSwitchSettings->setSelfHealingEcmpLagConfig(newSwitchShelConfig);
+      switchSettingsChange = true;
+    }
+  }
+
   if (switchSettingsChange) {
     return newSwitchSettings;
   }
@@ -4947,7 +5059,7 @@ shared_ptr<MultiControlPlane> ThriftConfigApplier::updateControlPlane() {
       auto tmpPortVoqs = updatePortQueues(
           origCPU->getVoqsConfig(),
           cfgCpuVoqs,
-          getNumVoqs(cfg::PortType::CPU_PORT, cfg::Scope::LOCAL),
+          getLocalPortNumVoqs(cfg::PortType::CPU_PORT, cfg::Scope::LOCAL),
           streamType,
           qosMap);
       newVoqs.insert(newVoqs.begin(), tmpPortVoqs.begin(), tmpPortVoqs.end());
@@ -5391,7 +5503,8 @@ ThriftConfigApplier::createMirrorOnDropReport(
       dscp,
       agingIntervalUsecs,
       getLocalMacAddress().toString(),
-      utility::getFirstInterfaceMac(new_).toString());
+      utility::getFirstInterfaceMac(new_).toString(),
+      *config->eventIdToDropReasons());
 }
 
 std::shared_ptr<MirrorOnDropReport>

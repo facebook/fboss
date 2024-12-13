@@ -520,7 +520,8 @@ void SaiHostifManager::changeCpuVoq(
     const ControlPlane::PortQueues& newVoqConfig) {
   cpuPortHandle_->configuredVoqs.clear();
 
-  auto maxCpuVoqs = getNumVoqs(cfg::PortType::CPU_PORT, cfg::Scope::LOCAL);
+  auto maxCpuVoqs =
+      getLocalPortNumVoqs(cfg::PortType::CPU_PORT, cfg::Scope::LOCAL);
   for (const auto& newPortVoq : std::as_const(*newVoqConfig)) {
     // Voq create or update
     if (newPortVoq->getID() > maxCpuVoqs) {
@@ -634,10 +635,6 @@ void SaiHostifManager::loadCpuPortQueues() {
   SaiPortTraits::Attributes::QosQueueList queueListAttribute{queueList};
   auto queueSaiIdList = SaiApiTable::getInstance()->portApi().getAttribute(
       cpuPortHandle_->cpuPortId, queueListAttribute);
-  if (platform_->getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_CHENAB) {
-    // Chenab-TODO(pshaikh): no way to load queues on CPU port
-    return;
-  }
   if (queueSaiIdList.size() == 0) {
     throw FbossError("no queues exist for cpu port ");
   }
@@ -692,6 +689,11 @@ void SaiHostifManager::loadCpuPort() {
 }
 
 void SaiHostifManager::updateStats(bool updateWatermarks) {
+  if (updateWatermarks &&
+      !platform_->getAsic()->isSupported(
+          HwAsic::Feature::CPU_QUEUE_WATERMARK_STATS)) {
+    throw FbossError("Watermarks are not supported on CPU queues");
+  }
   auto now = duration_cast<seconds>(system_clock::now().time_since_epoch());
   HwPortStats cpuQueueStats;
   managerTable_->queueManager().updateStats(
@@ -752,7 +754,8 @@ QueueConfig SaiHostifManager::getVoqSettings() const {
   }
   auto voqConfig =
       managerTable_->queueManager().getQueueSettings(cpuPortHandle_->voqs);
-  auto maxCpuVoqs = getNumVoqs(cfg::PortType::CPU_PORT, cfg::Scope::LOCAL);
+  auto maxCpuVoqs =
+      getLocalPortNumVoqs(cfg::PortType::CPU_PORT, cfg::Scope::LOCAL);
   QueueConfig filteredVoqConfig;
   // Prepare voq config only upto max CPU voqs
   std::copy_if(

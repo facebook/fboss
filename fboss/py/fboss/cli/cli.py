@@ -850,7 +850,6 @@ def add_modules(main_func):
 
 
 if __name__ == "__main__":
-
     # -- Add sub-commands to "Main" -- #
     add_modules(main)
 

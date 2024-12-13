@@ -146,6 +146,12 @@ class MockAsic : public HwAsic {
   std::optional<uint32_t> getMaxDlbEcmpGroups() const override {
     return 4;
   }
+  std::optional<uint32_t> getMaxNdpTableSize() const override {
+    return 8;
+  }
+  std::optional<uint32_t> getMaxArpTableSize() const override {
+    return 8;
+  }
   AsicVendor getAsicVendor() const override {
     return HwAsic::AsicVendor::ASIC_VENDOR_MOCK;
   }

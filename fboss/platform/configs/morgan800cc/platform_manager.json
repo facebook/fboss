@@ -434,13 +434,27 @@
           "slotType": "PSU_SLOT",
           "outgoingI2cBusNames": [
             "MCB_IOB_I2C_MASTER_1"
-          ]
+          ],
+          "presenceDetection": {
+            "gpioLineHandle": {
+              "devicePath": "/[MCB_MCB_GPIO]",
+              "lineIndex": 48,
+              "desiredValue": 1
+            }
+          }
         },
         "PSU_SLOT@1": {
           "slotType": "PSU_SLOT",
           "outgoingI2cBusNames": [
             "MCB_IOB_I2C_MASTER_2"
-          ]
+          ],
+          "presenceDetection": {
+            "gpioLineHandle": {
+              "devicePath": "/[MCB_MCB_GPIO]",
+              "lineIndex": 52,
+              "desiredValue": 1
+            }
+          }
         },
         "FCB_SLOT@0": {
           "slotType": "FCB_SLOT",
@@ -485,7 +499,92 @@
       }
     },
     "MORGAN800CC": {
-      "pluggedInSlotType": "FCB_SLOT"
+      "pluggedInSlotType": "FCB_SLOT",
+      "outgoingSlotConfigs": {
+        "FANTRAY_SLOT@0": {
+          "slotType": "FANTRAY_SLOT",
+          "presenceDetection": {
+            "sysfsFileHandle": {
+              "devicePath": "/[MCB_FAN_PWM]",
+              "presenceFileName": "fan1_presence",
+              "desiredValue": 1
+            }
+          }
+        },
+        "FANTRAY_SLOT@1": {
+          "slotType": "FANTRAY_SLOT",
+          "presenceDetection": {
+            "sysfsFileHandle": {
+              "devicePath": "/[MCB_FAN_PWM]",
+              "presenceFileName": "fan2_presence",
+              "desiredValue": 1
+            }
+          }
+        },
+        "FANTRAY_SLOT@2": {
+          "slotType": "FANTRAY_SLOT",
+          "presenceDetection": {
+            "sysfsFileHandle": {
+              "devicePath": "/[MCB_FAN_PWM]",
+              "presenceFileName": "fan3_presence",
+              "desiredValue": 1
+            }
+          }
+        },
+        "FANTRAY_SLOT@3": {
+          "slotType": "FANTRAY_SLOT",
+          "presenceDetection": {
+            "sysfsFileHandle": {
+              "devicePath": "/[MCB_FAN_PWM]",
+              "presenceFileName": "fan4_presence",
+              "desiredValue": 1
+            }
+          }
+        },
+        "FANTRAY_SLOT@4": {
+          "slotType": "FANTRAY_SLOT",
+          "presenceDetection": {
+            "sysfsFileHandle": {
+              "devicePath": "/[MCB_FAN_PWM]",
+              "presenceFileName": "fan5_presence",
+              "desiredValue": 1
+            }
+          }
+        },
+        "FANTRAY_SLOT@5": {
+          "slotType": "FANTRAY_SLOT",
+          "presenceDetection": {
+            "sysfsFileHandle": {
+              "devicePath": "/[MCB_FAN_PWM]",
+              "presenceFileName": "fan6_presence",
+              "desiredValue": 1
+            }
+          }
+        },
+        "FANTRAY_SLOT@6": {
+          "slotType": "FANTRAY_SLOT",
+          "presenceDetection": {
+            "sysfsFileHandle": {
+              "devicePath": "/[MCB_FAN_PWM]",
+              "presenceFileName": "fan7_presence",
+              "desiredValue": 1
+            }
+          }
+        },
+        "FANTRAY_SLOT@7": {
+          "slotType": "FANTRAY_SLOT",
+          "presenceDetection": {
+            "sysfsFileHandle": {
+              "devicePath": "/[MCB_FAN_PWM]",
+              "presenceFileName": "fan8_presence",
+              "desiredValue": 1
+            }
+          }
+        }
+      }
+    },
+    "FAN": {
+      "pluggedInSlotType": "FANTRAY_SLOT"
     },
     "PDB": {
       "pluggedInSlotType": "PDB_SLOT"
@@ -3468,25 +3567,10 @@
   },
   "bspKmodsRpmName": "cisco_bsp_kmods",
   "bspKmodsRpmVersion": "1.0.1-2",
-  "bspKmodsToReload": [
-    "cisco_fpga_pci",
-    "cisco_fpga_spi",
-    "cisco_fpga_i2c_smb",
-    "cisco_fpga_i2c_ext",
-    "cisco_fpga_xcvr",
-    "cisco_fpga_info",
-    "cisco_fpga_fanpwm",
-    "cisco_fpga_gled",
-    "cisco_fpga_gpio",
-    "cisco_fpga_wd",
-    "bp4c_lm90"
-  ],
-  "sharedKmodsToReload": [
-    "cisco_meta",
-    "cisco_util"
-  ],
-  "upstreamKmodsToLoad": [
+  "requiredKmodsToLoad": [
     "spidev",
-    "i2c_i801"
+    "i2c_i801",
+    "cisco_fpga_pci",
+    "cisco_fpga_i2c_ext"
   ]
 }

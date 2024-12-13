@@ -11,6 +11,7 @@
 #include "fboss/agent/test/utils/DsfConfigUtils.h"
 #include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/AsicUtils.h"
+#include "fboss/agent/VoqUtils.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
 
 namespace facebook::fboss::utility {
@@ -18,7 +19,6 @@ namespace facebook::fboss::utility {
 namespace {
 
 constexpr auto kRdswPerCluster = 128;
-constexpr auto k2StageEdgePodClusterId = 201;
 
 int getDsfInterfaceNodeCount() {
   return getMaxRdsw() + getMaxEdsw();

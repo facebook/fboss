@@ -289,8 +289,14 @@ NaivePeriodicSubscribableStorageBase::subscribe_encoded_impl(
     SubscriberId subscriber,
     PathIter begin,
     PathIter end,
-    OperProtocol protocol) {
+    OperProtocol protocol,
+    std::optional<SubscriptionStorageParams> subscriptionParams) {
   auto path = convertPath(ConcretePath(begin, end));
+  auto heartbeatInterval = params_.subscriptionHeartbeatInterval_;
+  if (subscriptionParams &&
+      subscriptionParams->heartbeatInterval_.has_value()) {
+    heartbeatInterval = subscriptionParams->heartbeatInterval_.value();
+  }
   auto [gen, subscription] = PathSubscription::create(
       std::move(subscriber),
       path.begin(),
@@ -298,7 +304,7 @@ NaivePeriodicSubscribableStorageBase::subscribe_encoded_impl(
       protocol,
       getPublisherRoot(path.begin(), path.end()),
       heartbeatThread_ ? heartbeatThread_->getEventBase() : nullptr,
-      params_.subscriptionHeartbeatInterval_);
+      heartbeatInterval);
   subMgr().registerSubscription(std::move(subscription));
   return std::move(gen);
 }
@@ -308,8 +314,14 @@ NaivePeriodicSubscribableStorageBase::subscribe_delta_impl(
     SubscriberId subscriber,
     PathIter begin,
     PathIter end,
-    OperProtocol protocol) {
+    OperProtocol protocol,
+    std::optional<SubscriptionStorageParams> subscriptionParams) {
   auto path = convertPath(ConcretePath(begin, end));
+  auto heartbeatInterval = params_.subscriptionHeartbeatInterval_;
+  if (subscriptionParams &&
+      subscriptionParams->heartbeatInterval_.has_value()) {
+    heartbeatInterval = subscriptionParams->heartbeatInterval_.value();
+  }
   auto [gen, subscription] = DeltaSubscription::create(
       std::move(subscriber),
       path.begin(),
@@ -317,7 +329,7 @@ NaivePeriodicSubscribableStorageBase::subscribe_delta_impl(
       protocol,
       getPublisherRoot(path.begin(), path.end()),
       heartbeatThread_ ? heartbeatThread_->getEventBase() : nullptr,
-      params_.subscriptionHeartbeatInterval_);
+      heartbeatInterval);
   subMgr().registerSubscription(std::move(subscription));
   return std::move(gen);
 }
@@ -326,8 +338,14 @@ folly::coro::AsyncGenerator<std::vector<DeltaValue<TaggedOperState>>&&>
 NaivePeriodicSubscribableStorageBase::subscribe_encoded_extended_impl(
     SubscriberId subscriber,
     std::vector<ExtendedOperPath> paths,
-    OperProtocol protocol) {
+    OperProtocol protocol,
+    std::optional<SubscriptionStorageParams> subscriptionParams) {
   paths = convertExtPaths(paths);
+  auto heartbeatInterval = params_.subscriptionHeartbeatInterval_;
+  if (subscriptionParams &&
+      subscriptionParams->heartbeatInterval_.has_value()) {
+    heartbeatInterval = subscriptionParams->heartbeatInterval_.value();
+  }
   auto publisherRoot = getPublisherRoot(paths);
   auto [gen, subscription] = ExtendedPathSubscription::create(
       std::move(subscriber),
@@ -335,7 +353,7 @@ NaivePeriodicSubscribableStorageBase::subscribe_encoded_extended_impl(
       std::move(publisherRoot),
       protocol,
       heartbeatThread_ ? heartbeatThread_->getEventBase() : nullptr,
-      params_.subscriptionHeartbeatInterval_);
+      heartbeatInterval);
   subMgr().registerExtendedSubscription(std::move(subscription));
   return std::move(gen);
 }
@@ -344,8 +362,14 @@ folly::coro::AsyncGenerator<std::vector<TaggedOperDelta>&&>
 NaivePeriodicSubscribableStorageBase::subscribe_delta_extended_impl(
     SubscriberId subscriber,
     std::vector<ExtendedOperPath> paths,
-    OperProtocol protocol) {
+    OperProtocol protocol,
+    std::optional<SubscriptionStorageParams> subscriptionParams) {
   paths = convertExtPaths(paths);
+  auto heartbeatInterval = params_.subscriptionHeartbeatInterval_;
+  if (subscriptionParams &&
+      subscriptionParams->heartbeatInterval_.has_value()) {
+    heartbeatInterval = subscriptionParams->heartbeatInterval_.value();
+  }
   auto publisherRoot = getPublisherRoot(paths);
   auto [gen, subscription] = ExtendedDeltaSubscription::create(
       std::move(subscriber),
@@ -353,7 +377,7 @@ NaivePeriodicSubscribableStorageBase::subscribe_delta_extended_impl(
       std::move(publisherRoot),
       protocol,
       heartbeatThread_ ? heartbeatThread_->getEventBase() : nullptr,
-      params_.subscriptionHeartbeatInterval_);
+      heartbeatInterval);
   subMgr().registerExtendedSubscription(std::move(subscription));
   return std::move(gen);
 }
@@ -361,10 +385,16 @@ NaivePeriodicSubscribableStorageBase::subscribe_delta_extended_impl(
 folly::coro::AsyncGenerator<SubscriberMessage&&>
 NaivePeriodicSubscribableStorageBase::subscribe_patch_impl(
     SubscriberId subscriber,
-    std::map<SubscriptionKey, RawOperPath> rawPaths) {
+    std::map<SubscriptionKey, RawOperPath> rawPaths,
+    std::optional<SubscriptionStorageParams> subscriptionParams) {
   for (auto& [key, path] : rawPaths) {
     auto convertedPath = convertPath(std::move(*path.path()));
     path.path() = std::move(convertedPath);
+  }
+  auto heartbeatInterval = params_.subscriptionHeartbeatInterval_;
+  if (subscriptionParams &&
+      subscriptionParams->heartbeatInterval_.has_value()) {
+    heartbeatInterval = subscriptionParams->heartbeatInterval_.value();
   }
   auto root = getPublisherRoot(rawPaths);
   auto [gen, subscription] = ExtendedPatchSubscription::create(
@@ -373,7 +403,7 @@ NaivePeriodicSubscribableStorageBase::subscribe_patch_impl(
       patchOperProtocol_,
       std::move(root),
       heartbeatThread_ ? heartbeatThread_->getEventBase() : nullptr,
-      params_.subscriptionHeartbeatInterval_);
+      heartbeatInterval);
   subMgr().registerExtendedSubscription(std::move(subscription));
   return std::move(gen);
 }
@@ -381,10 +411,16 @@ NaivePeriodicSubscribableStorageBase::subscribe_patch_impl(
 folly::coro::AsyncGenerator<SubscriberMessage&&>
 NaivePeriodicSubscribableStorageBase::subscribe_patch_extended_impl(
     SubscriberId subscriber,
-    std::map<SubscriptionKey, ExtendedOperPath> paths) {
+    std::map<SubscriptionKey, ExtendedOperPath> paths,
+    std::optional<SubscriptionStorageParams> subscriptionParams) {
   for (auto& [key, path] : paths) {
     auto convertedPath = convertPath(std::move(*path.path()));
     path.path() = std::move(convertedPath);
+  }
+  auto heartbeatInterval = params_.subscriptionHeartbeatInterval_;
+  if (subscriptionParams &&
+      subscriptionParams->heartbeatInterval_.has_value()) {
+    heartbeatInterval = subscriptionParams->heartbeatInterval_.value();
   }
   auto root = getPublisherRoot(paths);
   auto [gen, subscription] = ExtendedPatchSubscription::create(
@@ -393,7 +429,7 @@ NaivePeriodicSubscribableStorageBase::subscribe_patch_extended_impl(
       patchOperProtocol_,
       std::move(root),
       heartbeatThread_ ? heartbeatThread_->getEventBase() : nullptr,
-      params_.subscriptionHeartbeatInterval_);
+      heartbeatInterval);
   subMgr().registerExtendedSubscription(std::move(subscription));
   return std::move(gen);
 }

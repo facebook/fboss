@@ -225,6 +225,7 @@ enum IpType {
   IP6 = 3,
   ARP_REQUEST = 4,
   ARP_REPLY = 5,
+  NON_IP = 6,
 }
 
 enum EtherType {
@@ -369,6 +370,21 @@ struct Mirror {
   5: optional i32 samplingRate;
 }
 
+/*
+ * Aggregation of mirror-on-drop reasons. The exact drop reasons corresponding to each
+ * enum is platform-specific and is converted in the platform-specific SaiTamManagers.
+ */
+enum MirrorOnDropReasonAggregation {
+  UNEXPECTED_REASON_DISCARDS = 0,
+
+  INGRESS_MISC_DISCARDS = 1,
+  INGRESS_PACKET_PROCESSING_DISCARDS = 2,
+  INGRESS_QUEUE_RESOLUTION_DISCARDS = 3,
+  INGRESS_SOURCE_CONGESTION_DISCARDS = 4, // e.g. VSQ
+  INGRESS_DESTINATION_CONGESTION_DISCARDS = 5, // e.g. VOQ
+  INGRESS_GLOBAL_CONGESTION_DISCARDS = 6,
+}
+
 struct MirrorOnDropReport {
   1: string name;
   /*
@@ -388,6 +404,8 @@ struct MirrorOnDropReport {
   8: byte dscp = 0;
   // At most one mirrored packet will be sent per port/PG/VOQ within an interval. Granularity is not configurable as of now.
   9: optional i32 agingIntervalUsecs;
+  // Mapping from drop ID / event ID to groups of reasons.
+  10: map<byte, list<MirrorOnDropReasonAggregation>> eventIdToDropReasons;
 }
 
 /**
@@ -591,7 +609,7 @@ enum AclTableQualifier {
   DST_IPV4 = 3,
   L4_SRC_PORT = 4,
   L4_DST_PORT = 5,
-  IP_PROTOCOL = 6,
+  IP_PROTOCOL_NUMBER = 6,
   TCP_FLAGS = 7,
   SRC_PORT = 8,
   OUT_PORT = 9,
@@ -1785,6 +1803,14 @@ struct SwitchSettings {
   24: optional string firmwarePath;
   // SHEL attributes to configure 1. SHEL message SrcIP, 2. DstIp, and 3. Interval for SHEL periodic messages
   25: optional SelfHealingEcmpLagConfig selfHealingEcmpLagConfig;
+  // Specify the maximum expected latency for local, remote l1,
+  // remote l2 VOQs. Any latency exceeding the specified latency
+  // will be flagged in the VoQ latency watermark counters with
+  // the out of bounds latency value configured.
+  26: optional i32 localVoqMaxExpectedLatencyNsec;
+  27: optional i32 remoteL1VoqMaxExpectedLatencyNsec;
+  28: optional i32 remoteL2VoqMaxExpectedLatencyNsec;
+  29: optional i32 voqOutOfBoundsLatencyNsec;
 }
 
 // Global buffer pool

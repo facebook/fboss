@@ -89,10 +89,19 @@ void waitPfcCounterIncrease(
                << ", priority: " << pfcPriority;
 
     EXPECT_EVENTUALLY_GT(txPfcCtr, 0);
-    EXPECT_EVENTUALLY_GT(rxPfcCtr, 0);
-    if (ensemble->getSw()->getHwAsicTable()->isFeatureSupportedOnAllAsic(
-            facebook::fboss::HwAsic::Feature::PFC_XON_TO_XOFF_COUNTER)) {
-      EXPECT_EVENTUALLY_GT(rxPfcXonCtr, 0);
+
+    // TODO(maxgg): CS00012381334 - Rx counters not incrementing on TH5
+    // However we know PFC is working as long as TX PFC is being generated, so
+    // skip validating RX PFC counters on TH5 for now.
+    auto asicType =
+        facebook::fboss::utility::checkSameAndGetAsic(ensemble->getL3Asics())
+            ->getAsicType();
+    if (asicType != facebook::fboss::cfg::AsicType::ASIC_TYPE_TOMAHAWK5) {
+      EXPECT_EVENTUALLY_GT(rxPfcCtr, 0);
+      if (ensemble->getSw()->getHwAsicTable()->isFeatureSupportedOnAllAsic(
+              facebook::fboss::HwAsic::Feature::PFC_XON_TO_XOFF_COUNTER)) {
+        EXPECT_EVENTUALLY_GT(rxPfcXonCtr, 0);
+      }
     }
   });
 }
@@ -576,12 +585,17 @@ class AgentTrafficPfcWatchdogTest : public AgentTrafficPfcTest {
     cfg::PfcWatchdog pfcWatchdog;
     if (enable) {
       pfcWatchdog.recoveryAction() = cfg::PfcWatchdogRecoveryAction::NO_DROP;
+      // Configure values that works for specific HW, include ASIC type checks
+      // if needed, given some HW has limitations on the specific values that
+      // can be programmed and we need to ensure that the configured value here
+      // is in sync with what is in SAI/SDK to avoid a reprogramming attempt
+      // during warmboot.
       if (canTriggerPfcDeadlockDetectionWithTraffic()) {
         pfcWatchdog.recoveryTimeMsecs() = 10;
         pfcWatchdog.detectionTimeMsecs() = 1;
       } else {
         pfcWatchdog.recoveryTimeMsecs() = 1000;
-        pfcWatchdog.detectionTimeMsecs() = 200;
+        pfcWatchdog.detectionTimeMsecs() = 198;
       }
     }
 

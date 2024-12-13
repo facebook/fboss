@@ -1,5 +1,4 @@
 # pyre-unsafe
-from typing import List, Tuple
 
 import pytest
 from fboss.platform.bsp_tests.test_runner import FpgaSpec

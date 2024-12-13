@@ -22,7 +22,9 @@ MirrorOnDropReport::MirrorOnDropReport(
     uint8_t dscp,
     std::optional<int32_t> agingIntervalUsecs,
     std::string switchMac,
-    std::string firstInterfaceMac)
+    std::string firstInterfaceMac,
+    std::map<int8_t, std::vector<cfg::MirrorOnDropReasonAggregation>>
+        eventIdToDropReasons)
     : ThriftStructNode<MirrorOnDropReport, state::MirrorOnDropReportFields>() {
   set<switch_state_tags::name>(name);
   set<switch_state_tags::mirrorPortId>(mirrorPortId);
@@ -38,6 +40,7 @@ MirrorOnDropReport::MirrorOnDropReport(
   }
   set<switch_state_tags::switchMac>(switchMac);
   set<switch_state_tags::firstInterfaceMac>(firstInterfaceMac);
+  set<switch_state_tags::eventIdToDropReasons>(eventIdToDropReasons);
 }
 
 std::string MirrorOnDropReport::getID() const {
@@ -94,6 +97,11 @@ std::string MirrorOnDropReport::getSwitchMac() const {
 
 std::string MirrorOnDropReport::getFirstInterfaceMac() const {
   return get<switch_state_tags::firstInterfaceMac>()->cref();
+}
+
+std::map<int8_t, std::vector<cfg::MirrorOnDropReasonAggregation>>
+MirrorOnDropReport::getEventIdToDropReasonAggregations() const {
+  return get<switch_state_tags::eventIdToDropReasons>()->toThrift();
 }
 
 template struct ThriftStructNode<

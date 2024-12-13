@@ -33,6 +33,8 @@ class SensorServiceImpl {
   auto static constexpr kReadTotal = "sensor_read.total";
   auto static constexpr kTotalReadFailure = "sensor_read.total.failures";
   auto static constexpr kHasReadFailure = "sensor_read.has.failures";
+  auto static constexpr kCriticalThresholdViolation =
+      "sensor_read.sensor_{}.type_{}.critical_threshold_violation";
 
   explicit SensorServiceImpl(const SensorConfig& sensorConfig);
   ~SensorServiceImpl();

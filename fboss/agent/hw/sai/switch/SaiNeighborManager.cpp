@@ -236,6 +236,7 @@ SaiNeighborEntry::SaiNeighborEntry(
           subscriber);
       neighbor_ = subscriber;
     } break;
+    case cfg::InterfaceType::PORT:
     case cfg::InterfaceType::SYSTEM_PORT:
       neighbor_ = std::make_shared<PortRifNeighbor>(
           manager,
@@ -244,11 +245,9 @@ SaiNeighborEntry::SaiNeighborEntry(
           metadata,
           encapIndex,
           isLocal,
-          noHostRoute);
+          noHostRoute,
+          intfType);
       break;
-    case cfg::InterfaceType::PORT:
-      // TODO(Chenab): Support port router interface
-      throw FbossError("Port router interface is not yet supported");
   }
 }
 
@@ -258,8 +257,8 @@ cfg::InterfaceType SaiNeighborEntry::getRifType() const {
           [](const std::shared_ptr<ManagedVlanRifNeighbor>& /*handle*/) {
             return cfg::InterfaceType::VLAN;
           },
-          [](const std::shared_ptr<PortRifNeighbor>& /*handle*/) {
-            return cfg::InterfaceType::SYSTEM_PORT;
+          [](const std::shared_ptr<PortRifNeighbor>& handle) {
+            return handle->getRifType();
           }),
       neighbor_);
   CHECK(false) << " Unknown neighbor rif type: ";
@@ -273,10 +272,12 @@ PortRifNeighbor::PortRifNeighbor(
     std::optional<sai_uint32_t> metadata,
     std::optional<sai_uint32_t> encapIndex,
     bool isLocal,
-    std::optional<bool> noHostRoute)
+    std::optional<bool> noHostRoute,
+    cfg::InterfaceType intfType)
     : manager_(manager),
       saiPortAndIntf_(saiPortAndIntf),
-      handle_(std::make_unique<SaiNeighborHandle>()) {
+      handle_(std::make_unique<SaiNeighborHandle>()),
+      intfType_(intfType) {
   const auto& ip = std::get<folly::IPAddress>(intfIDAndIpAndMac);
   auto rifSaiId = std::get<RouterInterfaceSaiId>(saiPortAndIntf);
   auto adapterHostKey = SaiNeighborTraits::NeighborEntry(

@@ -4,6 +4,7 @@
 #include "fboss/agent/packet/PktFactory.h"
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
+#include "fboss/agent/test/utils/AsicUtils.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/test/utils/OlympicTestUtils.h"
 #include "fboss/agent/test/utils/PacketSnooper.h"
@@ -24,7 +25,8 @@ class AgentDeepPacketInspectionTest : public AgentHwTest {
     auto config = AgentHwTest::initialConfig(ensemble);
     auto port = ensemble.masterLogicalInterfacePortIds()[0];
     utility::addOlympicQosMaps(config, ensemble.getL3Asics());
-    utility::addTrapPacketAcl(&config, port);
+    auto asic = utility::checkSameAndGetAsic(ensemble.getL3Asics());
+    utility::addTrapPacketAcl(asic, &config, port);
     return config;
   }
 

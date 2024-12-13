@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include "fboss/fsdb/oper/SubscribableStorage.h"
 #include "fboss/fsdb/oper/SubscriptionManager.h"
 #include "fboss/fsdb/oper/SubscriptionMetadataServer.h"
 #include "fboss/fsdb/server/FsdbOperTreeMetadataTracker.h"
@@ -112,34 +113,46 @@ class NaivePeriodicSubscribableStorageBase {
       SubscriberId subscriber,
       PathIter begin,
       PathIter end,
-      OperProtocol protocol);
+      OperProtocol protocol,
+      std::optional<SubscriptionStorageParams> subscriptionParams =
+          std::nullopt);
 
   folly::coro::AsyncGenerator<OperDelta&&> subscribe_delta_impl(
       SubscriberId subscriber,
       PathIter begin,
       PathIter end,
-      OperProtocol protocol);
+      OperProtocol protocol,
+      std::optional<SubscriptionStorageParams> subscriptionParams =
+          std::nullopt);
 
   folly::coro::AsyncGenerator<std::vector<DeltaValue<TaggedOperState>>&&>
   subscribe_encoded_extended_impl(
       SubscriberId subscriber,
       std::vector<ExtendedOperPath> paths,
-      OperProtocol protocol);
+      OperProtocol protocol,
+      std::optional<SubscriptionStorageParams> subscriptionParams =
+          std::nullopt);
 
   folly::coro::AsyncGenerator<std::vector<TaggedOperDelta>&&>
   subscribe_delta_extended_impl(
       SubscriberId subscriber,
       std::vector<ExtendedOperPath> paths,
-      OperProtocol protocol);
+      OperProtocol protocol,
+      std::optional<SubscriptionStorageParams> subscriptionParams =
+          std::nullopt);
 
   folly::coro::AsyncGenerator<SubscriberMessage&&> subscribe_patch_impl(
       SubscriberId subscriber,
-      std::map<SubscriptionKey, RawOperPath> rawPaths);
+      std::map<SubscriptionKey, RawOperPath> rawPaths,
+      std::optional<SubscriptionStorageParams> subscriptionParams =
+          std::nullopt);
 
   folly::coro::AsyncGenerator<SubscriberMessage&&>
   subscribe_patch_extended_impl(
       SubscriberId subscriber,
-      std::map<SubscriptionKey, ExtendedOperPath> paths);
+      std::map<SubscriptionKey, ExtendedOperPath> paths,
+      std::optional<SubscriptionStorageParams> subscriptionParams =
+          std::nullopt);
 
   size_t numSubscriptions() const {
     return subMgr().numSubscriptions();

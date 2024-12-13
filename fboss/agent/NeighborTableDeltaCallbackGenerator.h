@@ -108,7 +108,7 @@ class NeighborTableDeltaCallbackGenerator {
       VlanID vlanID;
       if constexpr (std::is_same_v<MapDeltaT, MultiSwitchInterfaceMapDelta>) {
         // Lookup VLAN corresponding to the interface
-        vlanID = newEntry->getVlanID();
+        vlanID = newEntry->getVlanIDHelper();
       } else {
         vlanID = newEntry->getID();
       }

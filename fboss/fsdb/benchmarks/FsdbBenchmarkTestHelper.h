@@ -25,6 +25,10 @@ class FsdbBenchmarkTestHelper {
   fsdb::test::FsdbTestServer& testServer() {
     return *fsdbTestServer_;
   }
+  void addSubscription(
+      const fsdb::FsdbStateSubscriber::FsdbOperStateUpdateCb& stateUpdateCb);
+  void removeSubscription();
+  bool isSubscriptionConnected();
 
  private:
   std::vector<std::string> getAgentStatsPath();
@@ -33,6 +37,7 @@ class FsdbBenchmarkTestHelper {
   std::unique_ptr<fsdb::FsdbPubSubManager> pubsubMgr_;
   folly::Baton<> publisherConnected_;
   std::atomic_bool readyForPublishing_ = false;
+  std::atomic_bool subscriptionConnected_ = false;
 };
 
 } // namespace facebook::fboss::fsdb::test

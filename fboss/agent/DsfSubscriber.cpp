@@ -11,6 +11,11 @@
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/state/SystemPortMap.h"
 
+DEFINE_int64(
+    dsf_subscription_heartbeat_interval_s,
+    2,
+    "Frequency of FSDB server heartbeats");
+
 using namespace facebook::fboss;
 namespace {
 
@@ -136,7 +141,8 @@ void DsfSubscriber::stateUpdated(const StateDelta& stateDelta) {
           false /* subscribeStats */,
           FLAGS_dsf_gr_hold_time,
           true /* requireInitialSyncToMarkConnect */,
-          true /* forceSubscribe */};
+          true /* forceSubscribe */,
+          FLAGS_dsf_subscription_heartbeat_interval_s /* heartbeatInterval */};
       auto subscriptionsWlock = subscriptions_.wlock();
       if (subscriptionsWlock->find(remoteEndpoint) !=
           subscriptionsWlock->end()) {

@@ -274,6 +274,7 @@ cpp_library(
         ":acl_test_utils",
         "//fboss/agent:fboss-types",
         "//fboss/agent:switch_config-cpp2-types",
+        "//fboss/agent/hw/switch_asics:switch_asics",
         "//folly:network_address",
     ],
 )
@@ -524,6 +525,9 @@ cpp_library(
         "//fboss/agent:fboss-types",
         "//fboss/agent:switch_config-cpp2-types",
         "//fboss/agent:switchid_scope_resolver",
+        "//fboss/agent:voq_utils",
+        "//fboss/agent/hw/switch_asics:switch_asics",
+        "//fboss/agent/platforms/common/meru800bia:meru800bia_platform_mapping",
         "//fboss/agent/state:state",
         "//fboss/agent/test:ecmp_helper",
         "//fboss/agent/test:test_ensemble_if",
@@ -540,8 +544,10 @@ cpp_library(
     ],
     exported_deps = [
         ":config_utils",
+        "//fboss/agent:agent_features",
         "//fboss/agent:asic_utils",
         "//fboss/agent:switch_config-cpp2-types",
+        "//fboss/agent:voq_utils",
         "//fboss/agent/hw/switch_asics:switch_asics",
     ],
 )
@@ -560,5 +566,40 @@ cpp_library(
         "//fboss/agent/state:state_utils",
         "//fboss/agent/test:agent_hw_test",
         "//fboss/agent/test:ecmp_helper",
+    ],
+)
+
+cpp_library(
+    name = "port_flap_helper",
+    srcs = [
+        "PortFlapHelper.cpp",
+    ],
+    headers = [
+        "PortFlapHelper.h",
+    ],
+    exported_deps = [
+        "//fboss/agent/test:agent_ensemble",
+    ],
+)
+
+cpp_library(
+    name = "stress_test_utils",
+    srcs = [
+        "StressTestUtils.cpp",
+    ],
+    headers = [
+        "StressTestUtils.h",
+    ],
+    exported_deps = [
+        ":acl_test_utils",
+        ":copp_test_utils",
+        ":trap_packet_utils",
+        "//fboss/agent:core",
+        "//fboss/agent/benchmarks:agent_benchmarks_h",  # @manual
+        "//fboss/agent/hw/test:config_factory",
+        "//fboss/agent/test:agent_ensemble",
+        "//fboss/agent/test:route_scale_gen",
+        "//fboss/lib:function_call_time_reporter",
+        "//folly:benchmark",
     ],
 )

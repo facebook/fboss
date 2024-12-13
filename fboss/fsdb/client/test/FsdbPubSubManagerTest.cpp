@@ -21,7 +21,8 @@ void stateChangeCb(
     FsdbStreamClient::State /*new*/) {}
 void subscriptionStateChangeCb(
     SubscriptionState /*old*/,
-    SubscriptionState /*new*/) {}
+    SubscriptionState /*new*/,
+    std::optional<bool> /*initialSyncHasData*/) {}
 void operDeltaCb(OperDelta /*delta*/) {}
 void operStateCb(OperState /*state*/) {}
 

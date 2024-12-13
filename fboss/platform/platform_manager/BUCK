@@ -126,16 +126,22 @@ cpp_library(
     exported_deps = [
         ":platform_manager_config-cpp2-types",
         "//fb303:service_data",
+        "//fboss/platform/helpers:platform_fs_utils",
         "//fboss/platform/helpers:platform_utils",
+        "//folly:file_util",
         "//folly:string",
         "//folly/logging:logging",
+        "//thrift/lib/cpp2/protocol:protocol",
+    ],
+    exported_external_deps = [
+        "re2",
     ],
 )
 
 cpp_library(
     name = "platform_explorer",
     srcs = [
-        "ExplorationErrorMap.cpp",
+        "ExplorationSummary.cpp",
         "PlatformExplorer.cpp",
     ],
     exported_deps = [

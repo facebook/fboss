@@ -83,7 +83,10 @@ class TestFsdbSubscriber : public PubSubT::SubscriberT {
               publishedQueue_.wlock()->emplace_back(std::move(unit));
             },
             subscribeStats,
-            [this](SubscriptionState /*oldState*/, SubscriptionState newState) {
+            [this](
+                SubscriptionState /*oldState*/,
+                SubscriptionState newState,
+                std::optional<bool> /*initialSyncHasData*/) {
               if (newState != SubscriptionState::CONNECTED) {
                 XLOG(DBG2) << " Subscriber: " << this->clientId()
                            << " not connected";

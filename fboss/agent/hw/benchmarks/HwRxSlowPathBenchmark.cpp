@@ -65,7 +65,8 @@ BENCHMARK(RxSlowPathBenchmark) {
         ensemble.isSai(),
         /* setQueueRate */ false);
     auto trapDstIp = folly::CIDRNetwork{kDstIp, 128};
-    utility::addTrapPacketAcl(&config, trapDstIp);
+    auto asic = utility::checkSameAndGetAsic(ensemble.getL3Asics());
+    utility::addTrapPacketAcl(asic, &config, trapDstIp);
 
     // Since J2 and J3 does not support disabling TLL on port, create TRAP to
     // forward TTL=0 packet. Also not send icmp time exceeded packet, since CPU

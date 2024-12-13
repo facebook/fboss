@@ -15,6 +15,7 @@
 #include "fboss/agent/hw/sai/switch/SaiMirrorManager.h"
 #include "fboss/agent/hw/sai/switch/SaiPortManager.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
+#include "fboss/agent/hw/sai/switch/SaiUdfManager.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/platforms/sai/SaiPlatform.h"
 
@@ -153,6 +154,15 @@ std::
     return qualifierSet.find(qualifier) != qualifierSet.end();
   };
 
+  std::vector<std::optional<sai_object_id_t>> udfGroupIds(
+      SaiAclTableManager::kMaxUdfGroups, std::nullopt);
+  int i = 0;
+  auto udfGroupSaiIds = managerTable_->udfManager().getUdfGroupIds(
+      addedAclTable->getUdfGroups()->toThrift());
+  for (const auto udfGroupSaiId : udfGroupSaiIds) {
+    udfGroupIds[i++] = udfGroupSaiId;
+  }
+
   SaiAclTableTraits::CreateAttributes attributes{
       tableStage,
       bindPointList,
@@ -163,7 +173,7 @@ std::
       qualifierExistsFn(cfg::AclTableQualifier::DST_IPV4),
       qualifierExistsFn(cfg::AclTableQualifier::L4_SRC_PORT),
       qualifierExistsFn(cfg::AclTableQualifier::L4_DST_PORT),
-      qualifierExistsFn(cfg::AclTableQualifier::IP_PROTOCOL),
+      qualifierExistsFn(cfg::AclTableQualifier::IP_PROTOCOL_NUMBER),
       qualifierExistsFn(cfg::AclTableQualifier::TCP_FLAGS),
       qualifierExistsFn(cfg::AclTableQualifier::SRC_PORT),
       qualifierExistsFn(cfg::AclTableQualifier::OUT_PORT),
@@ -191,11 +201,11 @@ std::
     (SAI_API_VERSION >= SAI_VERSION(1, 14, 0) ||                       \
      (defined(BRCM_SAI_SDK_GTE_11_0) && defined(BRCM_SAI_SDK_XGS))) && \
     !defined(TAJO_SDK))
-      std::nullopt, // UserDefinedFieldGroupMin0
-      std::nullopt, // UserDefinedFieldGroupMin1
-      std::nullopt, // UserDefinedFieldGroupMin2
-      std::nullopt, // UserDefinedFieldGroupMin3
-      std::nullopt, // UserDefinedFieldGroupMin4
+      udfGroupIds[0], // UserDefinedFieldGroupMin0
+      udfGroupIds[1], // UserDefinedFieldGroupMin1
+      udfGroupIds[2], // UserDefinedFieldGroupMin2
+      udfGroupIds[3], // UserDefinedFieldGroupMin3
+      udfGroupIds[4], // UserDefinedFieldGroupMin4
 #endif
   };
 

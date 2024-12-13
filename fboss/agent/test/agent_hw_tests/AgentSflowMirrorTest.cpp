@@ -89,10 +89,11 @@ class AgentSflowMirrorTest : public AgentHwTest {
   }
 
   void configureTrapAcl(cfg::SwitchConfig& cfg, bool isV4) const {
-    return checkSameAndGetAsic()->isSupported(
-               HwAsic::Feature::SAI_ACL_ENTRY_SRC_PORT_QUALIFIER)
-        ? utility::configureTrapAcl(cfg, getNonSflowSampledInterfacePort())
-        : utility::configureTrapAcl(cfg, isV4);
+    auto asic = checkSameAndGetAsic();
+    return asic->isSupported(HwAsic::Feature::SAI_ACL_ENTRY_SRC_PORT_QUALIFIER)
+        ? utility::configureTrapAcl(
+              asic, cfg, getNonSflowSampledInterfacePort())
+        : utility::configureTrapAcl(asic, cfg, isV4);
   }
 
   void configureTrapAcl(cfg::SwitchConfig& cfg) const {

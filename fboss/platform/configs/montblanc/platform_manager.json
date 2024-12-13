@@ -3616,27 +3616,9 @@
   },
   "bspKmodsRpmName": "fboss_bsp_kmods",
   "bspKmodsRpmVersion": "2.4.0-1",
-  "bspKmodsToReload": [
-    "bp4f_lm25066",
-    "bp4f_tda38640",
-    "bp4f_xdpe12284",
-    "bp4f_xdpe152c4",
-    "fboss_iob_gpio",
-    "fboss_iob_i2c",
-    "fboss_iob_info",
-    "fboss_iob_led",
-    "fboss_iob_pci",
-    "fboss_iob_spi",
-    "fboss_iob_xcvr",
-    "mp3_fancpld",
-    "mp3_mcbcpld",
-    "mp3_scmcpld",
-    "mp3_smbcpld",
-    "tps25990"
-  ],
-  "sharedKmodsToReload": [],
-  "upstreamKmodsToLoad": [
+  "requiredKmodsToLoad": [
     "i2c_i801",
-    "spidev"
+    "spidev",
+    "fboss_iob_pci"
   ]
 }

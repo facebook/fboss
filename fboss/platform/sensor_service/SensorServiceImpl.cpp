@@ -30,6 +30,30 @@ DEFINE_int32(
     "Interval at which stats subscriptions are served");
 
 namespace facebook::fboss::platform::sensor_service {
+namespace {
+void monitorSensorValue(const SensorData& sensorData) {
+  // Don't monitor if thresholds aren't defined to prevent false data.
+  if (!sensorData.thresholds()->upperCriticalVal() &&
+      !sensorData.thresholds()->lowerCriticalVal()) {
+    return;
+  }
+  // Skip reporting if there's no sensor value.
+  if (!sensorData.value()) {
+    return;
+  }
+  // At least one of upperCriticalVal or lowerCriticalVal exist.
+  bool thresholdViolation = *sensorData.value() >
+          sensorData.thresholds()->upperCriticalVal().value_or(INT_MAX) ||
+      *sensorData.value() <
+          sensorData.thresholds()->lowerCriticalVal().value_or(INT_MIN);
+  fb303::fbData->setCounter(
+      fmt::format(
+          SensorServiceImpl::kCriticalThresholdViolation,
+          *sensorData.name(),
+          apache::thrift::util::enumNameSafe(*sensorData.sensorType())),
+      thresholdViolation);
+}
+} // namespace
 
 SensorServiceImpl::SensorServiceImpl(const SensorConfig& sensorConfig)
     : sensorConfig_(sensorConfig) {
@@ -168,6 +192,7 @@ SensorData SensorServiceImpl::fetchSensorDataImpl(
   }
   sensorData.thresholds() = thresholds ? *thresholds : Thresholds();
   sensorData.sensorType() = sensorType;
+  monitorSensorValue(sensorData);
   return sensorData;
 }
 

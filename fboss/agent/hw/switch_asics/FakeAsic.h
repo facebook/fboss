@@ -48,6 +48,7 @@ class FakeAsic : public HwAsic {
       case HwAsic::Feature::ANY_TRAP_DROP_COUNTER:
       case HwAsic::Feature::LINK_ACTIVE_INACTIVE_NOTIFY:
       case HwAsic::Feature::PORT_MTU_ERROR_TRAP:
+      case HwAsic::Feature::NO_RX_REASON_TRAP:
         return false;
 
       default:
@@ -150,6 +151,12 @@ class FakeAsic : public HwAsic {
   }
   std::optional<uint32_t> getMaxEcmpMembers() const override {
     return 128;
+  }
+  std::optional<uint32_t> getMaxNdpTableSize() const override {
+    return 8192;
+  }
+  std::optional<uint32_t> getMaxArpTableSize() const override {
+    return 8192;
   }
   AsicVendor getAsicVendor() const override {
     return HwAsic::AsicVendor::ASIC_VENDOR_FAKE;

@@ -21,6 +21,7 @@ extern "C" {
 #include <folly/MapUtil.h>
 #include <folly/lang/CString.h>
 #include <folly/logging/xlog.h>
+#include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/NlError.h"
 #include "fboss/agent/RxPacket.h"
 #include "fboss/agent/SwSwitch.h"
@@ -286,9 +287,50 @@ int TunManager::getTableIdForVoq(InterfaceID ifID) const {
   // In practice, [firstSwitchSysPortMin, lastSwitchSysPortUsed] range is <<
   // 253. Moreover, getTableID asserts that the computed ID is <= 253
 
-  auto firstSwitchSysPortRange = getFirstSwitchSystemPortIdRange(
+  const auto& switchIdToSwitchInfo =
       utility::getFirstNodeIf(sw_->getState()->getSwitchSettings())
-          ->getSwitchIdToSwitchInfo());
+          ->getSwitchIdToSwitchInfo();
+  if (isDualStage3Q2QMode()) {
+    if (switchIdToSwitchInfo.size() > 1) {
+      throw FbossError(
+          "No Tun intf support for - multi asic support for 2 stage scale setup");
+    }
+    auto intf = sw_->getState()->getInterfaces()->getNode(ifID);
+    auto constexpr kLocalIntfTableStart = 1;
+    auto constexpr kLower16KIntfTableStart = 25;
+    auto constexpr kHigher16KIntfTableStart = 125;
+    if (intf->getScope() == cfg::Scope::LOCAL) {
+      auto tableId = kLocalIntfTableStart + ifID;
+      CHECK(
+          tableId >= kLocalIntfTableStart && tableId < kLower16KIntfTableStart)
+          << "Local interface IDs must be in range 1-24";
+      return tableId;
+    }
+    auto sysPortRange = getCoveringSysPortRange(ifID, switchIdToSwitchInfo);
+    auto offset = ifID - *sysPortRange.minimum();
+    if (*sysPortRange.minimum() < 16 * 1024) {
+      // lower 16K range
+      auto tableId = kLower16KIntfTableStart + offset;
+      CHECK(
+          tableId >= kLower16KIntfTableStart &&
+          tableId < kHigher16KIntfTableStart)
+          << " Lower 16K range RIF table IDs should be within ["
+          << kLocalIntfTableStart << ", " << kHigher16KIntfTableStart << ")";
+      return tableId;
+    } else {
+      // Higher 16K range
+      auto tableId = kHigher16KIntfTableStart + offset;
+      CHECK(
+          tableId >= kHigher16KIntfTableStart &&
+          tableId < kHigher16KIntfTableStart + 100)
+          << " Higher 16K range RIF table IDs should be within ["
+          << kHigher16KIntfTableStart << ", " << kHigher16KIntfTableStart + 100
+          << ")";
+      return tableId;
+    }
+  }
+  auto firstSwitchSysPortRange =
+      getFirstSwitchSystemPortIdRange(switchIdToSwitchInfo);
   return ifID - *firstSwitchSysPortRange.minimum();
 }
 

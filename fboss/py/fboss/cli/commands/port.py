@@ -28,7 +28,6 @@ from thrift.transport.TTransport import TTransportException
 
 class PortDetailsCmd(cmds.FbossCmd):
     def run(self, ports, show_down=True):
-
         with self._create_agent_client() as client:
             try:
                 resp = client.getAllPortInfo()

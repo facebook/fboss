@@ -10,9 +10,15 @@
 #pragma once
 
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
+#include "fboss/agent/hw/switch_asics/HwAsic.h"
 
 namespace facebook::fboss {
 
-int getNumVoqs(cfg::PortType portType, cfg::Scope portScope);
+constexpr auto k2StageEdgePodClusterId = 200;
+
+int getLocalPortNumVoqs(cfg::PortType portType, cfg::Scope portScope);
+int getRemotePortNumVoqs(
+    HwAsic::InterfaceNodeRole intfRole,
+    cfg::PortType portType);
 
 } // namespace facebook::fboss

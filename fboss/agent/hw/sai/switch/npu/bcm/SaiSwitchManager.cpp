@@ -62,12 +62,9 @@ void fillHwSwitchWatermarkStats(
       case SAI_SWITCH_STAT_ING_MIN_SRAM_BUFFER_BYTES:
         hwSwitchWatermarkStats.sramMinBufferWatermarkBytes() = value;
         break;
-#if !defined(BRCM_SAI_SDK_DNX_GTE_12_0)
-        // TODO: Support is not yet available in 12.0
       case SAI_SWITCH_STAT_FDR_RX_QUEUE_WM_LEVEL:
         hwSwitchWatermarkStats.fdrFifoWatermarkBytes() = value;
         break;
-#endif
 #endif
       default:
         throw FbossError("Got unexpected switch counter id: ", counterId);

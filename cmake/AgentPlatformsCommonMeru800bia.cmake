@@ -9,4 +9,5 @@ add_library(meru800bia_platform_mapping
 
 target_link_libraries(meru800bia_platform_mapping
   platform_mapping
+  switch_asics
 )

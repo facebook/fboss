@@ -90,9 +90,9 @@ std::string toStr(const FabricEndpoint& endpoint) {
   ss << " Attached: " << *endpoint.isAttached() << std::endl;
   if (*endpoint.isAttached()) {
     ss << " Remote switch, id: " << *endpoint.switchId()
-       << " name:" << endpoint.switchName().value_or("--") << std::endl;
+       << " name: " << endpoint.switchName().value_or("--") << std::endl;
     ss << " Remote port, id: " << *endpoint.portId()
-       << " name:" << endpoint.portName().value_or("--") << std::endl;
+       << " name: " << endpoint.portName().value_or("--") << std::endl;
     ss << " Switch Type: "
        << apache::thrift::util::enumNameSafe(*endpoint.switchType())
        << std::endl;
@@ -187,6 +187,10 @@ void FabricConnectivityManager::updateExpectedSwitchIdAndPortIdForPort(
   }
 
   auto baseSwitchId = *it->second.begin();
+  if (switchIdToDsfNode_.find(baseSwitchId) == switchIdToDsfNode_.end()) {
+    XLOG(WARN) << "no dsf node for switch id " << baseSwitchId;
+    return;
+  }
   const auto platformMapping = getPlatformMappingForDsfNode(
       switchIdToDsfNode_[baseSwitchId]->getPlatformType());
 

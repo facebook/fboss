@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 
 """
-    Scan every word in the SAI Spec for all SAI symbols of interest => Set1.
-    Scan every word in the FBOSS SAI API code for all SAI symbols of interest => Set2.
-    Print intersection of Set1 and Set2.
+Scan every word in the SAI Spec for all SAI symbols of interest => Set1.
+Scan every word in the FBOSS SAI API code for all SAI symbols of interest => Set2.
+Print intersection of Set1 and Set2.
 
-    Sample invocation:
+Sample invocation:
 
-    fboss/util/find_sai_spec_symbols_in_fboss.py $HOME/local/github/sai.git/inc $HOME/fbsource/fbcode/fboss/agent/hw/sai/api
+fboss/util/find_sai_spec_symbols_in_fboss.py $HOME/local/github/sai.git/inc $HOME/fbsource/fbcode/fboss/agent/hw/sai/api
 """
 
 import argparse

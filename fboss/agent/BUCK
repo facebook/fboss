@@ -403,6 +403,7 @@ cpp_library(
     exported_deps = [
         ":agent_features",
         ":switch_config-cpp2-types",
+        "//fboss/agent/hw/switch_asics:switch_asics",
     ],
 )
 

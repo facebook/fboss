@@ -34,8 +34,8 @@ DEFINE_bool(
 DEFINE_bool(trackMetadata, true, "Enable metadata tracking");
 
 DEFINE_int32(
-    statsSubscriptionServe_s,
-    10,
+    statsSubscriptionServe_ms,
+    10000,
     "Interval at which stats subscriptions are served");
 
 DEFINE_int32(
@@ -258,7 +258,7 @@ ServiceHandler::ServiceHandler(
       operStatsStorage_(
           {},
           NaivePeriodicSubscribableStorageBase::StorageParams(
-              std::chrono::seconds(FLAGS_statsSubscriptionServe_s),
+              std::chrono::milliseconds(FLAGS_statsSubscriptionServe_ms),
               std::chrono::seconds(FLAGS_statsSubscriptionHeartbeat_s),
               FLAGS_trackMetadata,
               "fsdb",
@@ -755,30 +755,66 @@ folly::coro::AsyncGenerator<DeltaValue<OperState>&&>
 ServiceHandler::makeStateStreamGenerator(
     std::unique_ptr<OperSubRequest> request,
     bool isStats) {
+  SubscriptionStorageParams subscriptionParams;
+  if (request->heartbeatInterval().has_value()) {
+    subscriptionParams.heartbeatInterval_ =
+        std::chrono::seconds(request->heartbeatInterval().value());
+  }
+
   return isStats ? operStatsStorage_.subscribe_encoded(
                        *request->subscriberId(),
                        request->path()->raw()->begin(),
                        request->path()->raw()->end(),
-                       *request->protocol())
+                       *request->protocol(),
+                       subscriptionParams)
                  : operStorage_.subscribe_encoded(
                        *request->subscriberId(),
                        request->path()->raw()->begin(),
                        request->path()->raw()->end(),
-                       *request->protocol());
+                       *request->protocol(),
+                       subscriptionParams);
 }
 
 folly::coro::AsyncGenerator<std::vector<DeltaValue<TaggedOperState>>&&>
 ServiceHandler::makeExtendedStateStreamGenerator(
     std::unique_ptr<OperSubRequestExtended> request,
     bool isStats) {
+  SubscriptionStorageParams subscriptionParams;
+  if (request->heartbeatInterval().has_value()) {
+    subscriptionParams.heartbeatInterval_ =
+        std::chrono::seconds(request->heartbeatInterval().value());
+  }
+
   return isStats ? operStatsStorage_.subscribe_encoded_extended(
                        *request->subscriberId(),
                        std::move(*request->paths()),
-                       *request->protocol())
+                       *request->protocol(),
+                       subscriptionParams)
                  : operStorage_.subscribe_encoded_extended(
                        *request->subscriberId(),
                        std::move(*request->paths()),
-                       *request->protocol());
+                       *request->protocol(),
+                       subscriptionParams);
+}
+
+folly::coro::AsyncGenerator<SubscriberMessage&&>
+ServiceHandler::makePatchStreamGenerator(
+    std::unique_ptr<SubRequest> request,
+    bool isStats) {
+  SubscriptionStorageParams subscriptionParams;
+  if (request->heartbeatInterval().has_value()) {
+    subscriptionParams.heartbeatInterval_ =
+        std::chrono::seconds(request->heartbeatInterval().value());
+  }
+
+  return isStats ? operStatsStorage_.subscribe_patch(
+                       *request->clientId()->instanceId(),
+                       *request->paths(),
+                       subscriptionParams)
+                 : operStorage_.subscribe_patch(
+                       *request->clientId()->instanceId(),
+                       *request->paths(),
+                       subscriptionParams);
 }
 
 folly::coro::Task<
@@ -860,27 +896,46 @@ folly::coro::AsyncGenerator<OperDelta&&>
 ServiceHandler::makeDeltaStreamGenerator(
     std::unique_ptr<OperSubRequest> request,
     bool isStats) {
+  SubscriptionStorageParams subscriptionParams;
+  if (request->heartbeatInterval().has_value()) {
+    subscriptionParams.heartbeatInterval_ =
+        std::chrono::seconds(request->heartbeatInterval().value());
+  }
+
   return isStats ? operStatsStorage_.subscribe_delta(
                        *request->subscriberId(),
                        request->path()->raw()->begin(),
                        request->path()->raw()->end(),
-                       *request->protocol())
+                       *request->protocol(),
+                       subscriptionParams)
                  : operStorage_.subscribe_delta(
                        *request->subscriberId(),
                        request->path()->raw()->begin(),
                        request->path()->raw()->end(),
-                       *request->protocol());
+                       *request->protocol(),
+                       subscriptionParams);
 }
 
 folly::coro::AsyncGenerator<std::vector<TaggedOperDelta>&&>
 ServiceHandler::makeExtendedDeltaStreamGenerator(
     std::unique_ptr<OperSubRequestExtended> request,
     bool isStats) {
-  return isStats
-      ? operStatsStorage_.subscribe_delta_extended(
-            *request->subscriberId(), *request->paths(), *request->protocol())
-      : operStorage_.subscribe_delta_extended(
-            *request->subscriberId(), *request->paths(), *request->protocol());
+  SubscriptionStorageParams subscriptionParams;
+  if (request->heartbeatInterval().has_value()) {
+    subscriptionParams.heartbeatInterval_ =
+        std::chrono::seconds(request->heartbeatInterval().value());
+  }
+
+  return isStats ? operStatsStorage_.subscribe_delta_extended(
+                       *request->subscriberId(),
+                       *request->paths(),
+                       *request->protocol(),
+                       subscriptionParams)
+                 : operStorage_.subscribe_delta_extended(
+                       *request->subscriberId(),
+                       *request->paths(),
+                       *request->protocol(),
+                       subscriptionParams);
 }
 
 folly::coro::Task<
@@ -1127,8 +1182,7 @@ ServiceHandler::co_subscribeState(std::unique_ptr<SubRequest> request) {
        request = std::move(request),
        cleanupSubscriber = std::move(cleanupSubscriber)]() mutable
       -> folly::coro::AsyncGenerator<SubscriberMessage&&> {
-        return operStorage_.subscribe_patch(
-            *request->clientId()->instanceId(), *request->paths());
+        return makePatchStreamGenerator(std::move(request), false);
       });
   co_return {{}, std::move(stream)};
 }
@@ -1150,8 +1204,7 @@ ServiceHandler::co_subscribeStats(std::unique_ptr<SubRequest> request) {
        request = std::move(request),
        cleanupSubscriber = std::move(cleanupSubscriber)]() mutable
       -> folly::coro::AsyncGenerator<SubscriberMessage&&> {
-        return operStatsStorage_.subscribe_patch(
-            *request->clientId()->instanceId(), *request->paths());
+        return makePatchStreamGenerator(std::move(request), true);
       });
   co_return {{}, std::move(stream)};
 }

@@ -976,6 +976,21 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChangedImplLocked(
   }
 
 #if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
+  // UDF groups are processed prior to load balancer and ACL tables
+  // Both require UDF groups to be created before referencing them
+  processAddedDelta(
+      delta.getUdfPacketMatcherDelta(),
+      managerTable_->udfManager(),
+      lockPolicy,
+      &SaiUdfManager::addUdfMatch);
+  processAddedDelta(
+      delta.getUdfGroupDelta(),
+      managerTable_->udfManager(),
+      lockPolicy,
+      &SaiUdfManager::addUdfGroup);
+#endif
+
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
   if (platform_->getAsic()->isSupported(HwAsic::Feature::SAI_UDF_HASH)) {
     // There're several constraints for load balancer and Udf objects.
     // 1. Udf Match needs to be processed before Udf Group (create, remove and
@@ -987,16 +1002,6 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChangedImplLocked(
     // 4. In the case of changing load balancer: a. new Udf group needs to be
     // created, b. Load balancer starts to use new Udf group, c. Remove old
     // Udf group.
-    processAddedDelta(
-        delta.getUdfPacketMatcherDelta(),
-        managerTable_->udfManager(),
-        lockPolicy,
-        &SaiUdfManager::addUdfMatch);
-    processAddedDelta(
-        delta.getUdfGroupDelta(),
-        managerTable_->udfManager(),
-        lockPolicy,
-        &SaiUdfManager::addUdfGroup);
     processAddedDelta(
         delta.getLoadBalancersDelta(),
         managerTable_->switchManager(),
@@ -1014,16 +1019,6 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChangedImplLocked(
         managerTable_->switchManager(),
         lockPolicy,
         &SaiSwitchManager::removeLoadBalancer);
-    processRemovedDelta(
-        delta.getUdfPacketMatcherDelta(),
-        managerTable_->udfManager(),
-        lockPolicy,
-        &SaiUdfManager::removeUdfMatch);
-    processRemovedDelta(
-        delta.getUdfGroupDelta(),
-        managerTable_->udfManager(),
-        lockPolicy,
-        &SaiUdfManager::removeUdfGroup);
   } else {
     processDelta(
         delta.getLoadBalancersDelta(),
@@ -1129,6 +1124,20 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChangedImplLocked(
         &SaiAclTableManager::removeAclEntry,
         cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE());
   }
+
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
+  // ACLs are done processing. Remove UDF groups not required
+  processRemovedDelta(
+      delta.getUdfPacketMatcherDelta(),
+      managerTable_->udfManager(),
+      lockPolicy,
+      &SaiUdfManager::removeUdfMatch);
+  processRemovedDelta(
+      delta.getUdfGroupDelta(),
+      managerTable_->udfManager(),
+      lockPolicy,
+      &SaiUdfManager::removeUdfGroup);
+#endif
 
   processPfcWatchdogGlobalDelta(delta, lockPolicy);
 
@@ -1394,6 +1403,60 @@ void SaiSwitch::processSwitchSettingsChangeSansDrainedEntryLocked(
         newConditionalEntropyRehashPeriodUS) {
       managerTable_->switchManager().setConditionalEntropyRehashPeriodUS(
           newConditionalEntropyRehashPeriodUS.value_or(0));
+    }
+  }
+
+  {
+    const auto oldShelConfig = oldSwitchSettings->getSelfHealingEcmpLagConfig();
+    const auto newShelConfig = newSwitchSettings->getSelfHealingEcmpLagConfig();
+    if (oldShelConfig != newShelConfig) {
+      managerTable_->switchManager().setShelConfig(newShelConfig);
+    }
+  }
+
+  {
+    const auto oldLocalVoqMaxExpectedLatencyNs =
+        oldSwitchSettings->getLocalVoqMaxExpectedLatencyNsec();
+    const auto newLocalVoqMaxExpectedLatencyNs =
+        newSwitchSettings->getLocalVoqMaxExpectedLatencyNsec();
+    if (oldLocalVoqMaxExpectedLatencyNs != newLocalVoqMaxExpectedLatencyNs) {
+      managerTable_->switchManager().setLocalVoqMaxExpectedLatency(
+          newLocalVoqMaxExpectedLatencyNs.value_or(0));
+    }
+  }
+
+  {
+    const auto oldRemoteL1VoqMaxExpectedLatencyNs =
+        oldSwitchSettings->getRemoteL1VoqMaxExpectedLatencyNsec();
+    const auto newRemoteL1VoqMaxExpectedLatencyNs =
+        newSwitchSettings->getRemoteL1VoqMaxExpectedLatencyNsec();
+    if (oldRemoteL1VoqMaxExpectedLatencyNs !=
+        newRemoteL1VoqMaxExpectedLatencyNs) {
+      managerTable_->switchManager().setRemoteL1VoqMaxExpectedLatency(
+          newRemoteL1VoqMaxExpectedLatencyNs.value_or(0));
+    }
+  }
+
+  {
+    const auto oldRemoteL2VoqMaxExpectedLatencyNs =
+        oldSwitchSettings->getRemoteL2VoqMaxExpectedLatencyNsec();
+    const auto newRemoteL2VoqMaxExpectedLatencyNs =
+        newSwitchSettings->getRemoteL2VoqMaxExpectedLatencyNsec();
+    if (oldRemoteL2VoqMaxExpectedLatencyNs !=
+        newRemoteL2VoqMaxExpectedLatencyNs) {
+      managerTable_->switchManager().setRemoteL2VoqMaxExpectedLatency(
+          newRemoteL2VoqMaxExpectedLatencyNs.value_or(0));
+    }
+  }
+
+  {
+    const auto oldVoqOutOfBoundsLatencyNs =
+        oldSwitchSettings->getVoqOutOfBoundsLatencyNsec();
+    const auto newVoqOutOfBoundsLatencyNs =
+        newSwitchSettings->getVoqOutOfBoundsLatencyNsec();
+    if (oldVoqOutOfBoundsLatencyNs != newVoqOutOfBoundsLatencyNs) {
+      managerTable_->switchManager().setVoqOutOfBoundsLatency(
+          newVoqOutOfBoundsLatencyNs.value_or(0));
     }
   }
 }
@@ -3299,7 +3362,8 @@ bool SaiSwitch::sendPacketSwitchedSync(std::unique_ptr<TxPacket> pkt) noexcept {
   XLOG(DBG6) << PktUtil::hexDump(cursor);
   SaiTxPacketTraits::Attributes::TxType txType(
       SAI_HOSTIF_TX_TYPE_PIPELINE_LOOKUP);
-  SaiTxPacketTraits::TxAttributes attributes{txType, 0, std::nullopt};
+  SaiTxPacketTraits::TxAttributes attributes{
+      txType, std::nullopt, std::nullopt};
   SaiHostifApiPacket txPacket{
       reinterpret_cast<void*>(pkt->buf()->writableData()),
       pkt->buf()->length()};

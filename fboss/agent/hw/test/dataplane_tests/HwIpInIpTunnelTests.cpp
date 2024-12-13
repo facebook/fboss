@@ -24,7 +24,8 @@ class HwIpInIpTunnelTest : public HwLinkStateDependentTest {
     auto cfg{this->initialConfig()};
     addTunnelConfig(cfg);
     this->applyNewConfig(cfg);
-    utility::addTrapPacketAcl(&cfg, masterLogicalPortIds()[0]);
+    auto asic = getHwSwitch()->getPlatform()->getAsic();
+    utility::addTrapPacketAcl(asic, &cfg, masterLogicalPortIds()[0]);
     this->applyNewConfig(cfg);
     utility::EcmpSetupAnyNPorts6 ecmpHelper(
         getProgrammedState(), getPlatform()->getLocalMac());

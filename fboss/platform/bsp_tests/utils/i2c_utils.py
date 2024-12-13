@@ -2,7 +2,6 @@
 import os
 import subprocess
 from collections import namedtuple
-from typing import List, Set, Tuple
 
 from fboss.platform.bsp_tests.utils.cdev_types import FpgaSpec, I2CAdapter, I2CDevice
 from fboss.platform.bsp_tests.utils.cdev_utils import create_new_device

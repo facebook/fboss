@@ -346,7 +346,9 @@ void SaiPlatform::initPorts() {
         platformMode == PlatformType::PLATFORM_WEDGE400 ||
         platformMode == PlatformType::PLATFORM_WEDGE400_GRANDTETON) {
       saiPort = std::make_unique<SaiBcmWedge400PlatformPort>(portId, this);
-    } else if (platformMode == PlatformType::PLATFORM_DARWIN) {
+    } else if (
+        platformMode == PlatformType::PLATFORM_DARWIN ||
+        platformMode == PlatformType::PLATFORM_DARWIN48V) {
       saiPort = std::make_unique<SaiBcmDarwinPlatformPort>(portId, this);
     } else if (platformMode == PlatformType::PLATFORM_MINIPACK) {
       saiPort = std::make_unique<SaiBcmMinipackPlatformPort>(portId, this);
@@ -589,7 +591,7 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
   std::optional<SaiSwitchTraits::Attributes::FirmwareLoadType> firmwareLoadType{
       std::nullopt};
 
-#if defined(SAI_VERSION_11_7_0_0_DNX_ODP)
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_7)
   if (swId.has_value()) {
     const auto& firmwareNameToFirmwareInfo = getFirmwareForSwitch(
         switchSettings->switchIdToSwitchInfo(), swId.value());
@@ -689,6 +691,7 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
   std::optional<int32_t> maxLocalSystemPortId;
   std::optional<int32_t> maxSystemPorts;
   std::optional<int32_t> maxVoqs;
+  std::optional<int32_t> maxSwitchId;
 #if defined(BRCM_SAI_SDK_DNX) && defined(BRCM_SAI_SDK_GTE_12_0)
   if (getAsic()->getSwitchType() == cfg::SwitchType::FABRIC &&
       getAsic()->getFabricNodeRole() == HwAsic::FabricNodeRole::DUAL_STAGE_L1) {
@@ -698,11 +701,12 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
     constexpr uint32_t kRamon3LlfcThreshold{800};
     fabricLLFC = std::vector<uint32_t>({kRamon3LlfcThreshold});
   }
+  maxSwitchId = getAsic()->getMaxSwitchId();
   if (isDualStage3Q2QMode()) {
     maxSystemPortId = 32515;
     maxLocalSystemPortId = 5;
     maxSystemPorts = 21766;
-    maxVoqs = 64512;
+    maxVoqs = 64536;
   } else {
     maxSystemPortId = 6143;
     maxLocalSystemPortId = -1;
@@ -714,6 +718,14 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
     // FABRIC switches should always start in isolated state until we configure
     // the switch
     switchIsolate = true;
+  }
+
+  std::optional<SaiSwitchTraits::Attributes::NoAclsForTraps> noAclsForTraps{
+      std::nullopt};
+  if (getAsic()->isSupported(HwAsic::Feature::NO_RX_REASON_TRAP)) {
+#if defined(BRCM_SAI_SDK_DNX) && defined(BRCM_SAI_SDK_GTE_12_0)
+    noAclsForTraps = true;
+#endif
   }
 
   return {
@@ -784,7 +796,7 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
       fabricLLFC,
       std::nullopt, // SRAM free percent XOFF threshold
       std::nullopt, // SRAM free percent XON threshold
-      std::nullopt, // No acls for traps
+      noAclsForTraps, // No acls for traps
       maxSystemPortId,
       maxLocalSystemPortId,
       maxSystemPorts,
@@ -796,6 +808,7 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
       std::nullopt, // Shel Destination IP
       std::nullopt, // Shel Source MAC
       std::nullopt, // Shel Periodic Interval
+      maxSwitchId // Max switch Id
   };
 }
 

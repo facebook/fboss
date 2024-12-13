@@ -127,7 +127,14 @@ class Interface : public ThriftStructNode<Interface, state::InterfaceFields> {
     // untagged packets. During this transition, we will use VlanID 0 to
     // populate SwitchState/Neighbor cache etc. data structures. Once the
     // wedge_agent changes are complete, we will no longer need this function.
-    return getType() == cfg::InterfaceType::VLAN ? getVlanID() : VlanID(0);
+    switch (getType()) {
+      case cfg::InterfaceType::VLAN:
+        return getVlanID();
+      case cfg::InterfaceType::PORT:
+      case cfg::InterfaceType::SYSTEM_PORT:
+        return VlanID(0);
+    }
+    throw FbossError("interface type is unknown type");
   }
 
   Interface* modify(std::shared_ptr<SwitchState>* state);

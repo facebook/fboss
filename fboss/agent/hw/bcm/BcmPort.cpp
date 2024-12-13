@@ -1788,7 +1788,7 @@ void BcmPort::updateInCongestionDiscardStats(
     std::chrono::seconds now,
     uint64_t* portStatVal) {
   *portStatVal = 0;
-  auto rv = bcm_cosq_stat_get(
+  auto rv = bcm_cosq_stat_sync_get(
       hw_->getUnit(),
       getBcmGport(),
       -1,

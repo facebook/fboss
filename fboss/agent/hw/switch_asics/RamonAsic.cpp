@@ -24,6 +24,7 @@ bool RamonAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::TELEMETRY_AND_MONITORING:
     case HwAsic::Feature::SAI_PORT_SERDES_PROGRAMMING:
     case HwAsic::Feature::SAI_ECMP_HASH_ALGORITHM:
+    case HwAsic::Feature::CPU_QUEUE_WATERMARK_STATS:
       return true;
     default:
       return false;

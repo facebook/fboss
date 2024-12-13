@@ -407,6 +407,7 @@ target_link_libraries(dsf_config_utils
   config_utils
   switch_config_cpp2
   switch_asics
+  voq_utils
 )
 
 add_library(voq_test_utils
@@ -430,4 +431,30 @@ target_link_libraries(multi_port_traffic_test_utils
   qos_test_utils
   state
   ecmp_helper
+)
+
+add_library(port_flap_helper
+  fboss/agent/test/utils/PortFlapHelper.cpp
+)
+
+target_link_libraries(port_flap_helper
+  agent_ensemble
+)
+
+add_library(stress_test_utils
+  fboss/agent/test/utils/StressTestUtils.cpp
+)
+
+target_link_libraries(stress_test_utils
+  route_scale_gen
+  mono_agent_benchmarks
+  agent_ensemble
+  function_call_time_reporter
+  Folly::folly
+  Folly::follybenchmark
+  acl_test_utils
+  copp_test_utils
+  trap_packet_utils
+  core
+  config_factory
 )

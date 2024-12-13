@@ -249,7 +249,7 @@ class AgentFabricSwitchSelfLoopTest : public AgentFabricSwitchTest {
   }
   void verifyState(cfg::PortState desiredState, std::vector<PortID>& ports)
       const {
-    WITH_RETRIES({
+    WITH_RETRIES_N(120, {
       if (desiredState == cfg::PortState::DISABLED) {
         auto numPorts = ports.size();
         auto switch2SwitchStats = getSw()->getHwSwitchStatsExpensive();
@@ -306,7 +306,13 @@ class AgentFabricSwitchSelfLoopTest : public AgentFabricSwitchTest {
   void setCmdLineFlagOverrides() const override {
     AgentFabricSwitchTest::setCmdLineFlagOverrides();
     FLAGS_disable_looped_fabric_ports = true;
-    FLAGS_detect_wrong_fabric_connections = true;
+    /*
+     * Ideally we would have liked to test with
+     * FLAGS_detect_wrong_fabric_connections = true;
+     * as well. However, with soc property that this flag
+     * turns on cannot set internal loopback mode on
+     * fabric ports.  Hence the need to keep this disabled
+     */
   }
 };
 
@@ -315,9 +321,9 @@ TEST_F(AgentFabricSwitchSelfLoopTest, selfLoopDetection) {
     auto allPorts = getProgrammedState()->getPorts()->getAllNodes();
     // Since switch is drained, ports should stay enabled
     verifyState(cfg::PortState::ENABLED, *allPorts);
-    // Regardless of drain state, data filter should be turned on
-    // upon detecting a loop
-    checkDataCellFilter(true /*expectFilterOn*/);
+    // Data filter should be turned off since we never enabled
+    // wrong_fabric_connections
+    checkDataCellFilter(false /*expectFilterOn*/);
     // Undrain
     setSwitchDrainState(getSw()->getConfig(), cfg::SwitchDrainState::UNDRAINED);
   };
@@ -346,9 +352,9 @@ TEST_F(AgentFabricSwitchSelfLoopTest, portDrained) {
     auto portsToCheck = getProgrammedState()->getPorts()->getAllNodes();
     // Since switch is drained, ports should stay enabled
     verifyState(cfg::PortState::ENABLED, *portsToCheck);
-    // Regardless of drain state, data filter should be turned on
-    // upon detecting a loop
-    checkDataCellFilter(true /*expectFilterOn*/);
+    // Data filter should be turned off since we never enabled
+    // wrong_fabric_connections
+    checkDataCellFilter(false /*expectFilterOn*/);
     // Undrain
     setSwitchDrainState(newCfg, cfg::SwitchDrainState::UNDRAINED);
   };
@@ -359,11 +365,9 @@ TEST_F(AgentFabricSwitchSelfLoopTest, portDrained) {
       portsToCheck->removeNode(port);
     }
     verifyState(cfg::PortState::DISABLED, *portsToCheck);
-    // ENABLED, but drained ports should still detect wrong connection
-    // and have filter on. For disabled ports, we stop collecting stats,
-    // so filter status is not updated.
-    checkDataCellFilter(
-        true, std::vector<PortID>(drainedPorts.begin(), drainedPorts.end()));
+    // Data filter should be turned off since we never enabled
+    // wrong_fabric_connections
+    checkDataCellFilter(false /*expectFilterOn*/);
     // Verify that global drops are zero
     auto switch2SwitchStats = getSw()->getHwSwitchStatsExpensive();
     for (const auto& [_, switchStats] : switch2SwitchStats) {
