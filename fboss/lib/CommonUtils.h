@@ -95,7 +95,8 @@ inline int64_t getCumulativeValue(const StatT& stat, bool hasSumSuffix = true) {
         std::this_thread::sleep_for(sleepTime);                         \
       }                                                                 \
       /* Only switch to hard test on last retry */                      \
-      bool WITH_RETRIES_softTest = WITH_RETRIES_tries != maxRetries;    \
+      [[maybe_unused]] bool WITH_RETRIES_softTest =                     \
+          WITH_RETRIES_tries != maxRetries;                             \
       bool WITH_RETRIES_pass = true;                                    \
       /* _ASSERT_EVENTUALLY and _EXPECT_EVENTUALLY will read            \
        * WITH_RETRIES_softTest to decide how to assert.                 \
