@@ -1,13 +1,13 @@
 {
   "fwConfigs" : {
     "bios" : {
-      "preUpgradeCmd" : "printf 'A00000:FFFFFF normal\n400000:9EFFFF fallback\n9FA000:9FEFFF aboot_conf\n000000:FFFFFF total\n001000:01EFFF prefdl' > /home/bios_spi_layout;flashrom -p internal 2>&1 > /home/flashrom-output.txt; grep -w 'MX25L12805D' /home/flashrom-output.txt && echo 'MX25L12805D' > /home/chip.txt || grep 'N25Q128..3E' /home/flashrom-output.txt && echo 'N25Q128..3E' > /home/chip.txt || echo '****** error finding chip ****** ...'",
+      "preUpgradeCmd" : "dd if=/dev/zero of=/home/aboot_conf.bin bs=4096 count=4096 && printf 'BOOT_METHOD1=SVBWNl9QWEU=\nBOOT_METHOD2=TE9DQUw=\nBOOT_METHOD3=QVJJU1RB\nBOOT_METHOD4=UkVCT09U\nDMI_BOARD_NAME=REFSV0lONDhW\n' | dd of=/home/aboot_conf.bin bs=4096 seek=2554 conv=notrunc && printf 'A00000:FFFFFF normal\n400000:9EFFFF fallback\n9FA000:9FEFFF aboot_conf\n000000:FFFFFF total\n001000:01EFFF prefdl' > /home/bios_spi_layout;flashrom -p internal 2>&1 > /home/flashrom-output.txt; ( grep -w 'MX25L12805D' /home/flashrom-output.txt && echo 'MX25L12805D' > /home/chip.txt ) || ( grep 'N25Q128..3E' /home/flashrom-output.txt && echo 'N25Q128..3E' > /home/chip.txt ) || echo '****** error finding chip ****** ...'",
       "getVersionCmd" : "cat /sys/devices/virtual/dmi/id/bios_version | cut -d ':' -f 2 | cut -d '-' -f 3",
       "priority" : 1,
-      "upgradeCmd" : "chip=$(head -n 1 /home/chip.txt); bios_filename=$(head -n 1 /home/bios_filename.txt); flashrom -p internal -c $chip -l /home/bios_spi_layout -i normal -i fallback -i aboot_conf --noverify-all -w $bios_filename",
-      "postUpgradeCmd" : "chip=$(head -n 1 /home/chip.txt); bios_filename=$(head -n 1 /home/bios_filename.txt); flashrom -p internal -c $chip -l /home/bios_spi_layout -i normal -i fallback -i aboot_conf --noverify-all -v $bios_filename",
-      "verifyFwCmd" : "chip=$(head -n 1 /home/chip.txt); bios_filename=$(head -n 1 /home/bios_filename.txt); flashrom -p internal -c $chip -l /home/bios_spi_layout -i normal -i fallback -i aboot_conf --noverify-all -v $bios_filename",
-      "readFwCmd" : "chip=$(head -n 1 /home/chip.txt); bios_filename=$(head -n 1 /home/bios_filename.txt); flashrom -p internal -c $chip -l /home/bios_spi_layout -i normal -i fallback -i aboot_conf --noverify-all -r $bios_filename",
+      "upgradeCmd" : "chip=$(head -n 1 /home/chip.txt); bios_filename=$(head -n 1 /home/bios_filename.txt); flashrom -p internal -c $chip -l /home/bios_spi_layout -i normal -i fallback --noverify-all -w $bios_filename && flashrom -p internal -c $chip -l /home/bios_spi_layout -i aboot_conf --noverify-all -w /home/aboot_conf.bin",
+      "postUpgradeCmd" : "chip=$(head -n 1 /home/chip.txt); bios_filename=$(head -n 1 /home/bios_filename.txt); flashrom -p internal -c $chip -l /home/bios_spi_layout -i normal -i fallback --noverify-all -v $bios_filename && flashrom -p internal -c $chip -l /home/bios_spi_layout -i aboot_conf --noverify-all -v /home/aboot_conf.bin",
+      "verifyFwCmd" : "chip=$(head -n 1 /home/chip.txt); bios_filename=$(head -n 1 /home/bios_filename.txt); flashrom -p internal -c $chip -l /home/bios_spi_layout -i normal -i fallback --noverify-all -v $bios_filename && flashrom -p internal -c $chip -l /home/bios_spi_layout -i aboot_conf --noverify-all -v /home/aboot_conf.bin",
+      "readFwCmd" : "chip=$(head -n 1 /home/chip.txt); bios_filename=$(head -n 1 /home/bios_filename.txt); flashrom -p internal -c $chip -l /home/bios_spi_layout -i normal -i fallback --noverify-all -r $bios_filename",
       "sha1sum" : "f821367de316fdcd28bdaae64a83d9d0876aeebe"
     },
     "cpu_cpld" : {
