@@ -297,7 +297,8 @@ uint32_t ChenabAsic::getMaxLabelStackDepth() const {
   return 3;
 }
 uint64_t ChenabAsic::getMMUSizeBytes() const {
-  return 420000; // return 108 * 1024 * 1024;
+  // Egress buffer pool size for Chenab Asics is 150MB
+  return 150 * 1024 * 1024;
 }
 uint64_t ChenabAsic::getSramSizeBytes() const {
   // No HBM!
