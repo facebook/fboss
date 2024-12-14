@@ -441,6 +441,10 @@ class HwAsic {
   }
   virtual uint32_t getMaxSwitchId() const;
 
+  virtual uint16_t getGreProtocol() const {
+    return 0x88be;
+  }
+
  protected:
   static cfg::Range64 makeRange(int64_t min, int64_t max);
 

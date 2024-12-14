@@ -61,6 +61,7 @@ class ChenabAsic : public HwAsic {
   uint32_t getNumCores() const override;
   uint32_t getStaticQueueLimitBytes() const override;
   uint32_t getNumMemoryBuffers() const override;
+  uint16_t getGreProtocol() const override;
   cfg::Range64 getReservedEncapIndexRange() const override;
   int getMidPriCpuQueueId() const override;
   int getHiPriCpuQueueId() const override;

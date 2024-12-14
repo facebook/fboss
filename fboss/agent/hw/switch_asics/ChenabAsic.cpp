@@ -363,6 +363,9 @@ uint32_t ChenabAsic::getStaticQueueLimitBytes() const {
 uint32_t ChenabAsic::getNumMemoryBuffers() const {
   return 1;
 }
+uint16_t ChenabAsic::getGreProtocol() const {
+  return 0x8949;
+}
 int ChenabAsic::getMidPriCpuQueueId() const {
   return kDefaultMidPriCpuQueueId;
 }
