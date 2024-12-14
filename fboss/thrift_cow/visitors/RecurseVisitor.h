@@ -297,9 +297,12 @@ struct RecurseVisitor<
       throw std::runtime_error(folly::to<std::string>(
           "RecurseVisitor support for hybridNodeDeepTraversal in Map not implemented"));
     }
+    if (options.mode == RecurseVisitMode::UNPUBLISHED) {
+      rv_detail::invokeVisitorFnHelper(traverser, node, std::forward<Func>(f));
+      return;
+    }
     auto& tObj = node->ref();
-    bool visitIntermediate = options.mode == RecurseVisitMode::FULL ||
-        options.mode == RecurseVisitMode::UNPUBLISHED;
+    bool visitIntermediate = options.mode == RecurseVisitMode::FULL;
     if (visitIntermediate &&
         options.order == RecurseVisitOrder::PARENTS_FIRST) {
       rv_detail::invokeVisitorFnHelper(traverser, node, std::forward<Func>(f));
