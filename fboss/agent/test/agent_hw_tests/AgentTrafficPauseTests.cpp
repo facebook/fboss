@@ -91,7 +91,6 @@ class AgentTrafficPauseTest : public AgentHwTest {
     auto verify = [&]() {
       utility::createTrafficOnMultiplePorts(
           getAgentEnsemble(), 1, sendPacket, 99 /*desiredPctLineRate*/);
-      auto curPortStats = getLatestPortStats(kPortId);
       // Now that we have line rate traffic, send pause which
       // should reduce the traffic rate below line rate.
       XLOG(DBG0)
@@ -105,16 +104,22 @@ class AgentTrafficPauseTest : public AgentHwTest {
                   this->sendPauseFrames(kPortId, 1000);
                 }
               });
-      HwPortStats prevPortStats{};
+      std::optional<HwPortStats> prevPortStats;
+      HwPortStats curPortStats{};
       WITH_RETRIES({
         curPortStats = getLatestPortStats(kPortId);
+        if (!prevPortStats.has_value()) {
+          // Rate calculation wont be accurate
+          prevPortStats = curPortStats;
+          continue;
+        }
         auto rate =
-            getAgentEnsemble()->getTrafficRate(prevPortStats, curPortStats, 1);
-        // Update prev stats for the next iteration
-        prevPortStats = curPortStats;
-        XLOG(DBG0) << "Current rate is : " << rate
+            getAgentEnsemble()->getTrafficRate(*prevPortStats, curPortStats, 1);
+        XLOG(DBG0) << "Port " << kPortId << ", current rate is : " << rate
                    << " bps, pause frames received: "
                    << curPortStats.inPause_().value();
+        // Update prev stats for the next iteration
+        prevPortStats = curPortStats;
         EXPECT_EVENTUALLY_TRUE(rateChecker(rate, kPortId));
       });
       keepTxingPauseFrames = false;
