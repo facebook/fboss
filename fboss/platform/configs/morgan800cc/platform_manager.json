@@ -374,18 +374,6 @@
       ],
       "i2cDeviceConfigs": [
         {
-          "busName": "MCB_IOB_I2C_MASTER_14",
-          "address": "0x26",
-          "kernelDeviceName": "ltc2497",
-          "pmUnitScopedName": "FCB0_LTC2497_0X4C"
-        },
-        {
-          "busName": "MCB_IOB_I2C_MASTER_15",
-          "address": "0x26",
-          "kernelDeviceName": "ltc2497",
-          "pmUnitScopedName": "FCB1_LTC2497_0X4C"
-        },
-        {
           "busName": "MCB_IOB_I2C_MASTER_4",
           "address": "0x12",
           "kernelDeviceName": "adm1278",
@@ -459,7 +447,9 @@
         "FCB_SLOT@0": {
           "slotType": "FCB_SLOT",
           "outgoingI2cBusNames": [
-            "MCB_MUX_A@0"
+            "MCB_MUX_A@0",
+            "MCB_IOB_I2C_MASTER_14",
+            "MCB_IOB_I2C_MASTER_15"
           ]
         },
         "SMB_SLOT@0": {
@@ -500,6 +490,20 @@
     },
     "MORGAN800CC": {
       "pluggedInSlotType": "FCB_SLOT",
+      "i2cDeviceConfigs": [
+        {
+          "busName": "INCOMING@1",
+          "address": "0x26",
+          "kernelDeviceName": "ltc2497",
+          "pmUnitScopedName": "FCB0_LTC2497_0X4C"
+        },
+        {
+          "busName": "INCOMING@2",
+          "address": "0x26",
+          "kernelDeviceName": "ltc2497",
+          "pmUnitScopedName": "FCB1_LTC2497_0X4C"
+        }
+      ],
       "outgoingSlotConfigs": {
         "FANTRAY_SLOT@0": {
           "slotType": "FANTRAY_SLOT",
@@ -3464,8 +3468,8 @@
     "/run/devmap/sensors/MCB_LTC2979_0X60": "/[MCB_LTC2979_0X60]",
     "/run/devmap/sensors/MCB_LTC2979_0X61": "/[MCB_LTC2979_0X61]",
     "/run/devmap/sensors/MCB_ADM1278_0X12": "/[MCB_ADM1278_0X12]",
-    "/run/devmap/sensors/FCB0_LTC2497_0X4C": "/[FCB0_LTC2497_0X4C]",
-    "/run/devmap/sensors/FCB1_LTC2497_0X4C": "/[FCB1_LTC2497_0X4C]",
+    "/run/devmap/sensors/FCB0_LTC2497_0X4C": "/FCB_SLOT@0/[FCB0_LTC2497_0X4C]",
+    "/run/devmap/sensors/FCB1_LTC2497_0X4C": "/FCB_SLOT@0/[FCB1_LTC2497_0X4C]",
     "/run/devmap/sensors/MCB_FAN_PWM": "/[MCB_FAN_PWM]",
     "/run/devmap/sensors/SCM_LTC2497_0X14": "/JUMPER_SLOT@0/SCM_SLOT@0/[SCM_LTC2497_0X14]",
     "/run/devmap/sensors/SCM_TMP451_0X4C": "/JUMPER_SLOT@0/SCM_SLOT@0/[SCM_TMP451_0X4C]",
