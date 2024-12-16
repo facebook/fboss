@@ -37,7 +37,7 @@ class AgentFabricLinkTest : public AgentEnsembleLinkTest {
   }
 };
 
-TEST_F(AgentFabricLinkTest, linkActiveStatus) {
+TEST_F(AgentFabricLinkTest, linkActiveAndLoopStatus) {
   auto checkActiveStatus = [this]() {
     WITH_RETRIES({
       for (const auto& portId : getCabledFabricPorts()) {
@@ -48,13 +48,39 @@ TEST_F(AgentFabricLinkTest, linkActiveStatus) {
         auto isDrained = port->isDrained() || peerPort->isDrained();
         auto expectedActiveState = isDrained ? PortFields::ActiveState::INACTIVE
                                              : PortFields::ActiveState::ACTIVE;
+        XLOG(DBG2) << " On port: " << port->getName() << " checking state: "
+                   << (expectedActiveState == PortFields::ActiveState::ACTIVE
+                           ? "ACTIVE"
+                           : "INACTIVE");
         EXPECT_EVENTUALLY_TRUE(port->getActiveState().has_value());
         EXPECT_EVENTUALLY_EQ(
             port->getActiveState().value(), expectedActiveState);
       }
     });
   };
-  auto setup = [this, checkActiveStatus]() {
+  auto checkLoopStatus = [this]() {
+    std::vector<PortID> fabricPortsToCheck;
+    for (const auto& portId : getCabledFabricPorts()) {
+      auto portSwitchId = getSw()->getScopeResolver()->scope(portId).switchId();
+      auto portAsic = getSw()->getHwAsicTable()->getHwAsic(portSwitchId);
+      if (portAsic->getSwitchType() == cfg::SwitchType::FABRIC) {
+        fabricPortsToCheck.push_back(portId);
+      }
+    }
+    if (fabricPortsToCheck.empty()) {
+      return;
+    }
+    WITH_RETRIES({
+      auto portStats = getPortStats(fabricPortsToCheck);
+      for (const auto& [portId, stats] : portStats) {
+        XLOG(DBG2) << " Checking data cell filter ON for port: " << portId;
+        EXPECT_EVENTUALLY_TRUE(stats.dataCellsFilterOn().has_value());
+        EXPECT_EVENTUALLY_EQ(*stats.dataCellsFilterOn(), true);
+      }
+    });
+  };
+  auto setup = [this, checkActiveStatus, checkLoopStatus]() {
+    checkLoopStatus();
     checkActiveStatus();
     auto connectedPairs = getConnectedPairs();
     for (const auto& portPair : getConnectedPairs()) {
@@ -72,6 +98,9 @@ TEST_F(AgentFabricLinkTest, linkActiveStatus) {
       }
     }
   };
-  auto verify = [checkActiveStatus]() { checkActiveStatus(); };
+  auto verify = [checkActiveStatus, checkLoopStatus]() {
+    checkLoopStatus();
+    checkActiveStatus();
+  };
   verifyAcrossWarmBoots(setup, verify);
 }
