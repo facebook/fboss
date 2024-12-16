@@ -429,7 +429,10 @@ SaiBufferManager::supportedIngressPriorityGroupWatermarkStats() const {
       SaiIngressPriorityGroupTraits::CounterIdsToReadAndClear.end());
   if (platform_->getAsic()->isSupported(
           HwAsic::Feature::INGRESS_PRIORITY_GROUP_SHARED_WATERMARK)) {
+    // For XGS, this is only supported >= 10.0.
+#if !defined(BRCM_SAI_SDK_XGS) || defined(BRCM_SAI_SDK_GTE_10_0)
     stats.emplace_back(SAI_INGRESS_PRIORITY_GROUP_STAT_SHARED_WATERMARK_BYTES);
+#endif
   }
   if (platform_->getAsic()->isSupported(
           HwAsic::Feature::INGRESS_PRIORITY_GROUP_HEADROOM_WATERMARK)) {
