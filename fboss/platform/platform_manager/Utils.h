@@ -35,7 +35,7 @@ class Utils {
   bool checkDeviceReadiness(
       std::function<bool()>&& isDeviceReadyFunc,
       const std::string& onWaitMsg,
-      std::chrono::seconds maxWaitSecs = std::chrono::seconds(1));
+      std::chrono::seconds maxWaitSecs);
 
   virtual int getGpioLineValue(const std::string& charDevPath, int lineIndex)
       const;

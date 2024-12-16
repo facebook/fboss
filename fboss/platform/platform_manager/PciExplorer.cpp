@@ -170,7 +170,8 @@ void PciDevice::checkCharDevReadiness() {
               "No character device found at {} for {}. Waiting for at most {}s",
               charDevPath_,
               name_,
-              kPciWaitSecs.count()))) {
+              kPciWaitSecs.count()),
+          kPciWaitSecs)) {
     throw std::runtime_error(fmt::format(
         "No character device found at {} for {}. This could either mean the "
         "FPGA does not show up as PCI device (see lspci output), or the kmods "
@@ -361,12 +362,13 @@ void PciExplorer::create(
           },
           fmt::format(
               "PciSubDevice {} with deviceName {} and instId {} is not yet initialized "
-              "at {}. Waiting for at most {}",
+              "at {}. Waiting for at most {}s",
               *fpgaIpBlockConfig.pmUnitScopedName(),
               *fpgaIpBlockConfig.deviceName(),
               auxData.id.id,
               pciDevice.sysfsPath(),
-              kPciWaitSecs.count()))) {
+              kPciWaitSecs.count()),
+          kPciWaitSecs)) {
     throw PciSubDeviceRuntimeError(
         fmt::format(
             "Failed to initialize device {} in {} using {}. "
