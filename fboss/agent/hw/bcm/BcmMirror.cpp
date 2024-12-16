@@ -27,6 +27,7 @@ int getMirrorFlags(const std::optional<facebook::fboss::MirrorTunnel>& tunnel) {
   }
   return BCM_MIRROR_DEST_TUNNEL_IP_GRE;
 }
+const uint16_t kGreProtocol = 0x88be;
 } // namespace
 namespace facebook::fboss {
 
@@ -70,7 +71,7 @@ BcmMirrorDestination::BcmMirrorDestination(
                << "/" << mirrorTunnel.dstMac << ")";
 
   } else {
-    mirror_destination.gre_protocol = mirrorTunnel.greProtocol;
+    mirror_destination.gre_protocol = kGreProtocol;
     mirror_destination.flags = BCM_MIRROR_DEST_TUNNEL_IP_GRE;
     XLOG(DBG2) << "ERSPAN(I) tunnel: source(" << mirrorTunnel.srcIp << "/"
                << mirrorTunnel.srcMac << "), destination(" << mirrorTunnel.dstIp

@@ -45,6 +45,7 @@ SaiMirrorHandle::SaiMirror SaiMirrorManager::addNodeErSpan(
   auto headerVersion = mirrorTunnel.srcIp.isV4() ? 4 : 6;
   auto truncateSize =
       mirror->getTruncate() ? platform_->getAsic()->getMirrorTruncateSize() : 0;
+  auto greProtocol = platform_->getAsic()->getGreProtocol();
   std::optional<SaiEnhancedRemoteMirrorTraits::Attributes::TcBufferLimit>
       tcBufferLimit;
 #if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
@@ -61,7 +62,7 @@ SaiMirrorHandle::SaiMirror SaiMirrorManager::addNodeErSpan(
       mirrorTunnel.dstIp,
       mirrorTunnel.srcMac,
       mirrorTunnel.dstMac,
-      mirrorTunnel.greProtocol,
+      greProtocol,
       headerVersion,
       mirrorTunnel.ttl,
       truncateSize,
