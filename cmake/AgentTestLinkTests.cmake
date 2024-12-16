@@ -54,6 +54,7 @@ add_library(agent_ensemble_link_tests
   fboss/agent/test/link_tests/AgentEnsembleDependencyTest.cpp
   fboss/agent/test/link_tests/AgentEnsembleLinkSanityTests.cpp
   fboss/agent/test/link_tests/AgentEnsemblePhyInfoTest.cpp
+  fboss/agent/test/link_tests/AgentEnsembleFabricLinkTests.cpp
 )
 
 target_link_libraries(agent_ensemble_link_tests
