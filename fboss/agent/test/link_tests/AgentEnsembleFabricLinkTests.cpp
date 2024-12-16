@@ -46,8 +46,16 @@ TEST_F(AgentFabricLinkTest, linkActiveAndLoopStatus) {
         CHECK(peerPortId.has_value());
         auto peerPort = getSw()->getState()->getPort(peerPortId.value());
         auto isDrained = port->isDrained() || peerPort->isDrained();
-        auto expectedActiveState = isDrained ? PortFields::ActiveState::INACTIVE
-                                             : PortFields::ActiveState::ACTIVE;
+        auto portSwitchId =
+            getSw()->getScopeResolver()->scope(portId).switchId();
+        auto portAsic = getSw()->getHwAsicTable()->getHwAsic(portSwitchId);
+        auto expectedActiveState = PortFields::ActiveState::ACTIVE;
+        if (portAsic->getSwitchType() == cfg::SwitchType::FABRIC || isDrained) {
+          // Drained ports will be INACTIVE
+          // On fabric switches, wrong connectivity detection will make port
+          // INACTIVE
+          expectedActiveState = PortFields::ActiveState::INACTIVE;
+        }
         XLOG(DBG2) << " On port: " << port->getName() << " checking state: "
                    << (expectedActiveState == PortFields::ActiveState::ACTIVE
                            ? "ACTIVE"
