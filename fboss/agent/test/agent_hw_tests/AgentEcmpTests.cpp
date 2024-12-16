@@ -529,9 +529,9 @@ template <typename EnableIntfNbrTableT>
 class AgentEcmpNeighborTest : public AgentEcmpTest {
   static auto constexpr intfNbrTable = EnableIntfNbrTableT::intfNbrTable;
 
-  void SetUp() override {
+  void setCmdLineFlagOverrides() const override {
     FLAGS_intf_nbr_tables = isIntfNbrTable();
-    AgentEcmpTest::SetUp();
+    AgentHwTest::setCmdLineFlagOverrides();
   }
 
   std::vector<production_features::ProductionFeature>
