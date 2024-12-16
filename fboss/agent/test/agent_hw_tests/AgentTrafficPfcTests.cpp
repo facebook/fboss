@@ -264,6 +264,21 @@ class AgentTrafficPfcTest : public AgentHwTest {
   }
 
  protected:
+  cfg::MMUScalingFactor getDefaultMmuScalingFactor() {
+    auto asicType =
+        utility::checkSameAndGetAsic(getAgentEnsemble()->getL3Asics())
+            ->getAsicType();
+    switch (asicType) {
+      case cfg::AsicType::ASIC_TYPE_TOMAHAWK3:
+      case cfg::AsicType::ASIC_TYPE_TOMAHAWK4:
+      case cfg::AsicType::ASIC_TYPE_TOMAHAWK5:
+        return cfg::MMUScalingFactor::ONE_HALF;
+
+      default:
+        return cfg::MMUScalingFactor::ONE_128TH;
+    }
+  }
+
   void setupEcmpTraffic(const std::vector<PortID>& portIds) {
     utility::EcmpSetupTargetedPorts6 ecmpHelper{
         getProgrammedState(), getIntfMac()};
@@ -393,8 +408,8 @@ class AgentTrafficPfcTest : public AgentHwTest {
   void runTestWithCfg(
       const int trafficClass,
       const int pfcPriority,
-      const std::map<int, int>& tcToPgOverride = {},
-      TrafficTestParams testParams = TrafficTestParams{},
+      const std::map<int, int>& tcToPgOverride,
+      TrafficTestParams testParams,
       std::function<void(
           AgentEnsemble* ensemble,
           const int pri,
@@ -409,6 +424,9 @@ class AgentTrafficPfcTest : public AgentHwTest {
       if (testParams.scale) {
         // Apply PFC config to all ports
         portIdsToConfigure = masterLogicalInterfacePortIds();
+      }
+      if (!testParams.buffer.scalingFactor.has_value()) {
+        testParams.buffer.scalingFactor = getDefaultMmuScalingFactor();
       }
       utility::setupPfcBuffers(
           getAgentEnsemble(),
@@ -448,6 +466,10 @@ class AgentTrafficPfcTest : public AgentHwTest {
     };
     auto verifyCommon = [&](bool postWb) {
       pumpTraffic(trafficClass);
+      // Sleep for a bit before validation, so that the test will fail if
+      // traffic doesn't actually build up, instead of passing by luck.
+      // NOLINTNEXTLINE(facebook-hte-BadCall-sleep)
+      sleep(2);
       // check counters are as expected
       validateCounterFn(getAgentEnsemble(), pfcPriority, portIds);
       if (testParams.expectDrop) {
@@ -493,15 +515,11 @@ INSTANTIATE_TEST_SUITE_P(
             .scale = true},
         TrafficTestParams{
             .name = "WithZeroPgHeadRoomCfg",
-            .buffer =
-                PfcBufferParams{.pgHeadroom = 0, .scalingFactor = std::nullopt},
+            .buffer = PfcBufferParams{.pgHeadroom = 0},
             .expectDrop = true},
         TrafficTestParams{
             .name = "WithZeroGlobalHeadRoomCfg",
-            .buffer =
-                PfcBufferParams{
-                    .globalHeadroom = 0,
-                    .scalingFactor = std::nullopt},
+            .buffer = PfcBufferParams{.globalHeadroom = 0},
             .expectDrop = true}),
     [](const ::testing::TestParamInfo<TrafficTestParams>& info) {
       return info.param.name;
@@ -528,7 +546,11 @@ TEST_P(AgentTrafficPfcGenTest, verifyPfc) {
 TEST_F(AgentTrafficPfcTest, verifyPfcWithMapChanges_0) {
   const int trafficClass = kLosslessTrafficClass;
   const int pfcPriority = 3;
-  runTestWithCfg(trafficClass, pfcPriority, {{trafficClass, pfcPriority}});
+  runTestWithCfg(
+      trafficClass,
+      pfcPriority,
+      {{trafficClass, pfcPriority}},
+      TrafficTestParams{});
 }
 
 // intent of this test is to send traffic so that it maps to
@@ -538,19 +560,21 @@ TEST_F(AgentTrafficPfcTest, verifyPfcWithMapChanges_0) {
 TEST_F(AgentTrafficPfcTest, verifyPfcWithMapChanges_1) {
   const int trafficClass = 7;
   const int pfcPriority = kLosslessPriority;
-  runTestWithCfg(trafficClass, pfcPriority, {{trafficClass, pfcPriority}});
+  runTestWithCfg(
+      trafficClass,
+      pfcPriority,
+      {{trafficClass, pfcPriority}},
+      TrafficTestParams{});
 }
 
 TEST_F(AgentTrafficPfcTest, verifyBufferPoolWatermarks) {
   const int trafficClass = kLosslessTrafficClass;
   const int pfcPriority = kLosslessPriority;
-  cfg::MMUScalingFactor scalingFactor = cfg::MMUScalingFactor::ONE_64TH;
   runTestWithCfg(
       trafficClass,
       pfcPriority,
       {},
-      TrafficTestParams{
-          .buffer = PfcBufferParams{.scalingFactor = scalingFactor}},
+      TrafficTestParams{},
       validateBufferPoolWatermarkCounters);
 }
 
@@ -561,8 +585,7 @@ TEST_F(AgentTrafficPfcTest, verifyIngressPriorityGroupWatermarks) {
       trafficClass,
       pfcPriority,
       {},
-      TrafficTestParams{
-          .buffer = PfcBufferParams{.scalingFactor = std::nullopt}},
+      TrafficTestParams{},
       validateIngressPriorityGroupWatermarkCounters);
 }
 
@@ -576,7 +599,7 @@ class AgentTrafficPfcWatchdogTest : public AgentTrafficPfcTest {
         portIds,
         kLosslessPgIds,
         {},
-        PfcBufferParams{});
+        PfcBufferParams{.scalingFactor = cfg::MMUScalingFactor::ONE_128TH});
     applyNewConfig(cfg);
     setupEcmpTraffic(portIds);
   }
