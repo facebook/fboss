@@ -30,6 +30,8 @@ DEFINE_bool(
     "Setup platform once and exit. If set to false, setup platform once "
     "and run thrift service.");
 
+DEFINE_bool(run_netos, false, "Setup platform manager to run with netos.");
+
 void sdNotifyReady() {
   if (auto rc = sd_notify(0, "READY=1"); rc < 0) {
     XLOG(WARNING) << "Failed to send READY signal to systemd: "
@@ -61,16 +63,16 @@ int main(int argc, char** argv) {
 
   // When systemd starts PlatformManager, it sets the below env in PM
   // environment. This is a path to Unix domain socket at /run/systemd/notify.
-  // Ideally, we can use sd_notify in systemd/sd-daemon.h since it does the
-  // check for us, if we can get OSS build to work.
-  const auto notifySocketEnv{"NOTIFY_SOCKET"};
-  if (std::getenv(notifySocketEnv)) {
-    sdNotifyReady();
-  } else {
-    XLOG(WARNING) << fmt::format(
-        "Skipping sd_notify since ${} is not set which does not "
-        "imply systemd execution.",
-        notifySocketEnv);
+  if (!FLAGS_run_netos) {
+    const auto notifySocketEnv{"NOTIFY_SOCKET"};
+    if (std::getenv(notifySocketEnv)) {
+      sdNotifyReady();
+    } else {
+      XLOG(WARNING) << fmt::format(
+          "Skipping sd_notify since ${} is not set which does not "
+          "imply systemd execution.",
+          notifySocketEnv);
+    }
   }
 
   XLOG(INFO) << "Running PlatformManager thrift service...";
