@@ -104,24 +104,26 @@ TEST(LinkConnectivityProcessorTest, processMissingNeighbor) {
   endpoint.portName() = "portName";
   endpoint.expectedPortName() = "portName";
 
-  // When
-  std::shared_ptr<SwitchState> result = LinkConnectivityProcessor::process(
-      *sw->getScopeResolver(),
-      *sw->getHwAsicTable(),
-      state,
-      makeConnectivity(endpoint, portID));
+  // When neighbor is missing
+  {
+    std::shared_ptr<SwitchState> result = LinkConnectivityProcessor::process(
+        *sw->getScopeResolver(),
+        *sw->getHwAsicTable(),
+        state,
+        makeConnectivity(endpoint, portID));
 
-  // Then
-  auto port = result->getPorts()->getNodeIf(portID);
-  CHECK(port);
-  CHECK(port->getLedPortExternalState());
-  CHECK(port->getLedPortExternalState().has_value());
-  EXPECT_EQ(
-      port->getLedPortExternalState().value(),
-      PortLedExternalState::CABLING_ERROR);
-  EXPECT_EQ(port->getActiveErrors().size(), 1);
-  EXPECT_EQ(
-      port->getActiveErrors().at(0), PortError::MISSING_EXPECTED_NEIGHBOR);
+    // Then
+    auto port = result->getPorts()->getNodeIf(portID);
+    CHECK(port);
+    CHECK(port->getLedPortExternalState());
+    CHECK(port->getLedPortExternalState().has_value());
+    EXPECT_EQ(
+        port->getLedPortExternalState().value(),
+        PortLedExternalState::CABLING_ERROR);
+    EXPECT_EQ(port->getActiveErrors().size(), 1);
+    EXPECT_EQ(
+        port->getActiveErrors().at(0), PortError::MISSING_EXPECTED_NEIGHBOR);
+  }
 }
 
 TEST(LinkConnectivityProcessorTest, processMismatchedNeighbor) {
@@ -144,23 +146,25 @@ TEST(LinkConnectivityProcessorTest, processMismatchedNeighbor) {
   auto endpoint = createFabricEndpoint(getSwitchId(switchType), portID);
   endpoint.switchName() = "mismatchedSwitchName";
 
-  // When
-  std::shared_ptr<SwitchState> result = LinkConnectivityProcessor::process(
-      *sw->getScopeResolver(),
-      *sw->getHwAsicTable(),
-      state,
-      makeConnectivity(endpoint, portID));
+  // When neighbor is mismatched
+  {
+    std::shared_ptr<SwitchState> result = LinkConnectivityProcessor::process(
+        *sw->getScopeResolver(),
+        *sw->getHwAsicTable(),
+        state,
+        makeConnectivity(endpoint, portID));
 
-  // Then
-  auto port = result->getPorts()->getNodeIf(portID);
-  CHECK(port);
-  CHECK(port->getLedPortExternalState());
-  CHECK(port->getLedPortExternalState().has_value());
-  EXPECT_EQ(
-      port->getLedPortExternalState().value(),
-      PortLedExternalState::CABLING_ERROR);
-  EXPECT_EQ(port->getActiveErrors().size(), 1);
-  EXPECT_EQ(port->getActiveErrors().at(0), PortError::MISMATCHED_NEIGHBOR);
+    // Then
+    auto port = result->getPorts()->getNodeIf(portID);
+    CHECK(port);
+    CHECK(port->getLedPortExternalState());
+    CHECK(port->getLedPortExternalState().has_value());
+    EXPECT_EQ(
+        port->getLedPortExternalState().value(),
+        PortLedExternalState::CABLING_ERROR);
+    EXPECT_EQ(port->getActiveErrors().size(), 1);
+    EXPECT_EQ(port->getActiveErrors().at(0), PortError::MISMATCHED_NEIGHBOR);
+  }
 }
 
 } // namespace
