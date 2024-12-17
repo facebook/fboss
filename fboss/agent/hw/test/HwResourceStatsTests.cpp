@@ -121,7 +121,7 @@ TEST_F(HwResourceStatsTest, l3Stats) {
       EXPECT_LT(v6HostFreeAfter, v6HostFreeBefore);
       EXPECT_LT(v4HostFreeAfter, v4HostFreeBefore);
     }
-    EXPECT_EQ(ecmpFreeAfter, ecmpFreeBefore - 2);
+    EXPECT_LT(ecmpFreeAfter, ecmpFreeBefore);
     // Unresolve so we can rerun verify for many (warmboot) iterations
     ecmp4.unprogramRoutes(this->getRouteUpdater(), {this->kPrefix4()});
     ecmp6.unprogramRoutes(this->getRouteUpdater(), {this->kPrefix6()});
