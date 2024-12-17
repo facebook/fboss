@@ -282,7 +282,7 @@ class AgentCoppTest : public AgentHwTest {
     auto intfMac = utility::getFirstInterfaceMac(getProgrammedState());
     // arbit
     const auto srcIp =
-        folly::IPAddress(dstIpAddress.isV4() ? "1.1.1.2" : "1::10");
+        folly::IPAddress(dstIpAddress.isV4() ? "1.0.0.11" : "1::11");
     auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
     auto txPacket = utility::makeUDPTxPacket(
         getSw(),
@@ -1343,8 +1343,8 @@ TYPED_TEST(AgentCoppTest, DhcpPacketToMidPriQ) {
   auto setup = [=, this]() { this->setup(); };
 
   auto verify = [=, this]() {
-    std::array<folly::IPAddress, 2> randomSrcIP{
-        folly::IPAddress("1.1.1.10"), folly::IPAddress("1::10")};
+    std::array<folly::IPAddress, 2> dstIP{
+        folly::IPAddress("1.0.0.10"), folly::IPAddress("1::10")};
     std::array<std::pair<int, int>, 2> dhcpPortPairs{
         std::make_pair(67, 68), std::make_pair(546, 547)};
     for (int i = 0; i < 2; i++) {
@@ -1356,14 +1356,14 @@ TYPED_TEST(AgentCoppTest, DhcpPacketToMidPriQ) {
         this->sendUdpPktAndVerify(
             utility::getCoppMidPriQueueId(
                 this->getAgentEnsemble()->getL3Asics()),
-            randomSrcIP[i],
+            dstIP[i],
             l4SrcPort,
             l4DstPort,
             true /* expectPktTrap */,
             255 /* TTL */,
             true /* send out of port */);
         XLOG(DBG0) << "Sending packet with src port " << l4SrcPort
-                   << " dst port " << l4DstPort << " IP: " << randomSrcIP[i];
+                   << " dst port " << l4DstPort << ", dst IP: " << dstIP[i];
       }
     }
   };
