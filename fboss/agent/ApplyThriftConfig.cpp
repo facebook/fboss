@@ -152,16 +152,24 @@ std::shared_ptr<MultiMap> toMultiSwitchMap(
   return multiMap;
 }
 
-bool haveParallelLinksToInterfaceNodes(
+bool checkParallelLinksToInterfaceNodes(
     const cfg::SwitchConfig* cfg,
     const std::vector<SwitchID>& localFabricSwitchIds,
     const std::unordered_map<std::string, std::vector<uint32_t>>&
         switchNameToSwitchIds,
     SwitchIdScopeResolver& scopeResolver,
     const PlatformMapping* platformMapping) {
+  bool hasParallelLinks = false;
+  // Determine parallel links on VD level - there are two VDs per R3 ASIC
+  // For each VD, we store neighbor2PortIDs
+
+  std::unordered_map<
+      int, // VD
+      std::unordered_map< // neighbor2PortIDs
+          std::string,
+          std::unordered_set<int>>>
+      vd2VoqNeighbors;
   for (const auto& fabricSwitchId : localFabricSwitchIds) {
-    // Determine parallel links on VD level - there are two VDs per R3 ASIC
-    std::unordered_map<int, std::unordered_set<std::string>> vd2VoqNeighbors;
     for (const auto& port : *cfg->ports()) {
       // Only process ports belonging to one switchId
       if (scopeResolver.scope(port).has(SwitchID(fabricSwitchId)) &&
@@ -185,22 +193,35 @@ bool haveParallelLinksToInterfaceNodes(
 
           if (vd2VoqNeighbors.find(localVirtualDeviceId.value()) ==
               vd2VoqNeighbors.end()) {
-            vd2VoqNeighbors.insert(
-                {localVirtualDeviceId.value(),
-                 std::unordered_set<std::string>()});
+            vd2VoqNeighbors.insert({localVirtualDeviceId.value(), {}});
           }
-          auto& voqNeighbors = vd2VoqNeighbors[localVirtualDeviceId.value()];
           const auto& [neighborName, _] = getExpectedNeighborAndPortName(port);
-          if (voqNeighbors.find(neighborName) != voqNeighbors.end()) {
-            return true;
+          auto& voqNeighbors = vd2VoqNeighbors[localVirtualDeviceId.value()];
+          auto iter = voqNeighbors.find(neighborName);
+          if (iter != voqNeighbors.end()) {
+            iter->second.insert(*port.logicalID());
+            hasParallelLinks = true;
+          } else {
+            voqNeighbors.insert({neighborName, {*port.logicalID()}});
           }
-          voqNeighbors.insert(neighborName);
         }
       }
     }
   }
-  return false;
-};
+  // Enforce interface node neighbors all have either single link or parallel
+  // links
+  for (const auto& [_, neighbor2PortIDs] : vd2VoqNeighbors) {
+    for (const auto& [neighbor, neighborPorts] : neighbor2PortIDs) {
+      if (hasParallelLinks && neighborPorts.size() == 1) {
+        throw FbossError(
+            "Expect parallel links to interface node facing neighbor per VD. However, ",
+            neighbor,
+            " has only 1 link");
+      }
+    }
+  }
+  return hasParallelLinks;
+}
 } // anonymous namespace
 
 namespace facebook::fboss {
@@ -1285,7 +1306,7 @@ void ThriftConfigApplier::processReachabilityGroup(
     }
   };
 
-  bool parallelVoqLinks = haveParallelLinksToInterfaceNodes(
+  bool parallelVoqLinks = checkParallelLinksToInterfaceNodes(
       cfg_,
       localFabricSwitchIds,
       switchNameToSwitchIds,
