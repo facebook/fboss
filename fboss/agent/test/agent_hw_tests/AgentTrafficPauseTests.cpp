@@ -74,40 +74,77 @@ class AgentTrafficPauseTest : public AgentHwTest {
     ensemble->getSw()->sendPacketSwitchedAsync(std::move(txPacket));
   }
 
+  // Ensure that ports which dont have pause received can
+  // still operate at line rate.
+  void validateLineRateOnNonPausePorts(
+      const std::vector<PortID>& portsWithLineRateTraffic) {
+    for (const auto& portId : portsWithLineRateTraffic) {
+      std::optional<HwPortStats> beforePortStats;
+      uint64_t ninetySevenPctLineRate =
+          static_cast<uint64_t>(
+              getProgrammedState()->getPorts()->getNodeIf(portId)->getSpeed()) *
+          1000 * 1000 * 0.97;
+      int iteration{0};
+      WITH_RETRIES_N_TIMED(4, std::chrono::milliseconds(2000), {
+        auto afterPortStats = getLatestPortStats(portId);
+        if (!beforePortStats.has_value()) {
+          // Skip first iteration as rate computation wont be accurate!
+          beforePortStats = afterPortStats;
+          continue;
+        }
+        auto trafficRate = getAgentEnsemble()->getTrafficRate(
+            *beforePortStats,
+            afterPortStats,
+            2 /*secondsBetweenStatsCollection*/);
+        XLOG(DBG0) << "Iteration: " << iteration++ << ", port ID: " << portId
+                   << ", expected 97% line rate : " << ninetySevenPctLineRate
+                   << " bps, observed traffic rate: " << trafficRate << " bps";
+        EXPECT_EVENTUALLY_GT(trafficRate, ninetySevenPctLineRate);
+        beforePortStats = afterPortStats;
+      });
+    }
+  }
+
   void validateTrafficWithPause(
-      cfg::PortPause& pauseCfg,
+      const cfg::PortPause& pauseCfg,
       std::function<bool(uint64_t, PortID)> rateChecker) {
-    const PortID kPortId{masterLogicalInterfacePortIds()[0]};
+    const PortID kPausedPortId{masterLogicalInterfacePortIds()[0]};
     auto setup = [&]() {
       auto cfg = getAgentEnsemble()->getCurrentConfig();
-      auto portCfg = std::find_if(
-          cfg.ports()->begin(), cfg.ports()->end(), [&kPortId](auto& port) {
-            return PortID(*port.logicalID()) == kPortId;
-          });
-      portCfg->pause() = std::move(pauseCfg);
+      // Enable the same Pause configs on all ports
+      for (auto& port : *cfg.ports()) {
+        if (port.portType() == cfg::PortType::INTERFACE_PORT) {
+          port.pause() = pauseCfg;
+        }
+      }
+
       applyNewConfig(cfg);
       utility::setupEcmpDataplaneLoopOnAllPorts(getAgentEnsemble());
     };
     auto verify = [&]() {
+      const int kNumPortsWithLineRateTraffic{5};
       utility::createTrafficOnMultiplePorts(
-          getAgentEnsemble(), 1, sendPacket, 99 /*desiredPctLineRate*/);
+          getAgentEnsemble(),
+          kNumPortsWithLineRateTraffic,
+          sendPacket,
+          99 /*desiredPctLineRate*/);
       // Now that we have line rate traffic, send pause which
       // should reduce the traffic rate below line rate.
       XLOG(DBG0)
-          << "Traffic on port reached line rate, now send back to back PAUSE!";
+          << "Traffic on ports reached line rate, now send back to back PAUSE!";
       std::atomic<bool> keepTxingPauseFrames{true};
       std::unique_ptr<std::thread> pauseTxThread =
           std::make_unique<std::thread>(
-              [this, &keepTxingPauseFrames, &kPortId]() {
+              [this, &keepTxingPauseFrames, &kPausedPortId]() {
                 initThread("PauseFramesTransmitThread");
                 while (keepTxingPauseFrames) {
-                  this->sendPauseFrames(kPortId, 1000);
+                  this->sendPauseFrames(kPausedPortId, 1000);
                 }
               });
       std::optional<HwPortStats> prevPortStats;
       HwPortStats curPortStats{};
       WITH_RETRIES({
-        curPortStats = getLatestPortStats(kPortId);
+        curPortStats = getLatestPortStats(kPausedPortId);
         if (!prevPortStats.has_value()) {
           // Rate calculation wont be accurate
           prevPortStats = curPortStats;
@@ -115,13 +152,24 @@ class AgentTrafficPauseTest : public AgentHwTest {
         }
         auto rate =
             getAgentEnsemble()->getTrafficRate(*prevPortStats, curPortStats, 1);
-        XLOG(DBG0) << "Port " << kPortId << ", current rate is : " << rate
+        XLOG(DBG0) << "Port " << kPausedPortId << ", current rate is : " << rate
                    << " bps, pause frames received: "
                    << curPortStats.inPause_().value();
         // Update prev stats for the next iteration
         prevPortStats = curPortStats;
-        EXPECT_EVENTUALLY_TRUE(rateChecker(rate, kPortId));
+        EXPECT_EVENTUALLY_TRUE(rateChecker(rate, kPausedPortId));
       });
+      // Make sure that ports without pause sees line rate traffic always
+      auto allPorts{masterLogicalInterfacePortIds()};
+      std::vector<PortID> lineRateTrafficPorts;
+      std::copy_if(
+          allPorts.begin(),
+          allPorts.begin() + kNumPortsWithLineRateTraffic,
+          std::back_inserter(lineRateTrafficPorts),
+          [kPausedPortId](const PortID& portId) {
+            return portId != kPausedPortId;
+          });
+      validateLineRateOnNonPausePorts(lineRateTrafficPorts);
       keepTxingPauseFrames = false;
       pauseTxThread->join();
       pauseTxThread.reset();
