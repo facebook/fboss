@@ -464,7 +464,8 @@ cfg::SwitchConfig onePortPerInterfaceConfig(
     bool interfaceHasSubnet,
     bool setInterfaceMac,
     int baseIntfId,
-    bool enableFabricPorts) {
+    bool enableFabricPorts,
+    cfg::InterfaceType intfType) {
   std::vector<const HwAsic*> asics;
   auto switchIds = swSwitch->getHwAsicTable()->getSwitchIDs();
   for (const auto& switchId : switchIds) {
@@ -484,7 +485,8 @@ cfg::SwitchConfig onePortPerInterfaceConfig(
       // Use SwitchInfo from --config if SwSwitch is provided
       swSwitch->getSwitchInfoTable().getSwitchIdToSwitchInfo(),
       swSwitch->getHwAsicTable()->getHwAsics(),
-      swSwitch->getPlatformType());
+      swSwitch->getPlatformType(),
+      intfType);
 }
 
 cfg::SwitchConfig onePortPerInterfaceConfig(
@@ -500,7 +502,8 @@ cfg::SwitchConfig onePortPerInterfaceConfig(
     const std::optional<std::map<SwitchID, cfg::SwitchInfo>>&
         switchIdToSwitchInfo,
     const std::optional<std::map<SwitchID, const HwAsic*>>& hwAsicTable,
-    const std::optional<PlatformType> platformType) {
+    const std::optional<PlatformType> platformType,
+    cfg::InterfaceType intfType) {
   return multiplePortsPerIntfConfig(
       platformMapping,
       asic,
@@ -514,7 +517,8 @@ cfg::SwitchConfig onePortPerInterfaceConfig(
       enableFabricPorts,
       switchIdToSwitchInfo,
       hwAsicTable,
-      platformType);
+      platformType,
+      intfType);
 }
 
 cfg::SwitchConfig onePortPerInterfaceConfig(
@@ -523,7 +527,8 @@ cfg::SwitchConfig onePortPerInterfaceConfig(
     bool interfaceHasSubnet,
     bool setInterfaceMac,
     int baseIntfId,
-    bool enableFabricPorts) {
+    bool enableFabricPorts,
+    cfg::InterfaceType intfType) {
   auto platformMapping = ensemble->getPlatformMapping();
   auto switchIds = ensemble->getHwAsicTable()->getSwitchIDs();
   CHECK_GE(switchIds.size(), 1);
@@ -539,7 +544,11 @@ cfg::SwitchConfig onePortPerInterfaceConfig(
       interfaceHasSubnet,
       setInterfaceMac,
       baseIntfId,
-      enableFabricPorts);
+      enableFabricPorts,
+      std::nullopt, // switchIdToSwitchInfo
+      std::nullopt, // hwAsicTable
+      std::nullopt, // platformType
+      intfType);
 }
 
 cfg::SwitchConfig multiplePortsPerIntfConfig(
@@ -556,7 +565,8 @@ cfg::SwitchConfig multiplePortsPerIntfConfig(
     const std::optional<std::map<SwitchID, cfg::SwitchInfo>>&
         switchIdToSwitchInfo,
     const std::optional<std::map<SwitchID, const HwAsic*>>& hwAsicTable,
-    const std::optional<PlatformType> platformType) {
+    const std::optional<PlatformType> platformType,
+    cfg::InterfaceType intfType) {
   std::map<PortID, VlanID> port2vlan;
   std::vector<VlanID> vlans;
   std::vector<PortID> vlanPorts;
@@ -636,8 +646,7 @@ cfg::SwitchConfig multiplePortsPerIntfConfig(
     addInterface(
         vlans[i],
         vlans[i],
-        // TODO(Chenab): Support port router interface
-        cfg::InterfaceType::VLAN,
+        intfType,
         setInterfaceMac,
         interfaceHasSubnet,
         std::nullopt,
@@ -956,6 +965,7 @@ cfg::SwitchConfig oneL3IntfNPortConfig(
   config.interfaces()->resize(1);
   config.interfaces()[0].intfID() = baseVlanId;
   config.interfaces()[0].vlanID() = baseVlanId;
+  config.interfaces()[0].type() = cfg::InterfaceType::VLAN;
   *config.interfaces()[0].routerID() = 0;
   if (setInterfaceMac) {
     config.interfaces()[0].mac() = getLocalCpuMacStr();
@@ -975,14 +985,16 @@ cfg::SwitchConfig twoL3IntfConfig(
     SwSwitch* swSwitch,
     PortID port1,
     PortID port2,
-    const std::map<cfg::PortType, cfg::PortLoopbackMode>& lbModeMap) {
+    const std::map<cfg::PortType, cfg::PortLoopbackMode>& lbModeMap,
+    cfg::InterfaceType intfType) {
   return twoL3IntfConfig(
       swSwitch->getPlatformMapping(),
       swSwitch->getHwAsicTable()->getL3Asics(),
       swSwitch->getPlatformSupportsAddRemovePort(),
       port1,
       port2,
-      lbModeMap);
+      lbModeMap,
+      intfType);
 }
 
 cfg::SwitchConfig twoL3IntfConfig(
@@ -991,7 +1003,8 @@ cfg::SwitchConfig twoL3IntfConfig(
     bool supportsAddRemovePort,
     PortID port1,
     PortID port2,
-    const std::map<cfg::PortType, cfg::PortLoopbackMode>& lbModeMap) {
+    const std::map<cfg::PortType, cfg::PortLoopbackMode>& lbModeMap,
+    cfg::InterfaceType intfType) {
   auto asic = checkSameAndGetAsic(asics);
   std::map<PortID, VlanID> port2vlan;
   std::vector<PortID> ports{port1, port2};
@@ -1058,9 +1071,13 @@ cfg::SwitchConfig twoL3IntfConfig(
     intf.mac() = getLocalCpuMacStr();
     intf.mtu() = 9000;
     intf.routerID() = 0;
+    if (switchType == cfg::SwitchType::NPU) {
+      if (intfType == cfg::InterfaceType::SYSTEM_PORT) {
+        throw FbossError("System port not supported for NPU switch type");
+      }
+    }
     intf.type() = switchType == cfg::SwitchType::NPU
-        // TODO(Chenab): Support port router interface
-        ? cfg::InterfaceType::VLAN
+        ? intfType
         : cfg::InterfaceType::SYSTEM_PORT;
     if (switchType == cfg::SwitchType::VOQ) {
       auto portScope =

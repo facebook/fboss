@@ -99,7 +99,8 @@ cfg::SwitchConfig onePortPerInterfaceConfig(
     bool interfaceHasSubnet = true,
     bool setInterfaceMac = true,
     int baseIntfId = kBaseVlanId,
-    bool enableFabricPorts = false);
+    bool enableFabricPorts = false,
+    cfg::InterfaceType intfType = cfg::InterfaceType::VLAN);
 
 cfg::SwitchConfig onePortPerInterfaceConfig(
     const PlatformMapping* platformMapping,
@@ -115,7 +116,8 @@ cfg::SwitchConfig onePortPerInterfaceConfig(
         switchIdToSwitchInfo = std::nullopt,
     const std::optional<std::map<SwitchID, const HwAsic*>>& hwAsicTable =
         std::nullopt,
-    const std::optional<PlatformType> platformType = std::nullopt);
+    const std::optional<PlatformType> platformType = std::nullopt,
+    cfg::InterfaceType intfType = cfg::InterfaceType::VLAN);
 
 cfg::SwitchConfig onePortPerInterfaceConfig(
     const TestEnsembleIf* ensemble,
@@ -123,7 +125,8 @@ cfg::SwitchConfig onePortPerInterfaceConfig(
     bool interfaceHasSubnet = true,
     bool setInterfaceMac = true,
     int baseIntfId = kBaseVlanId,
-    bool enableFabricPorts = false);
+    bool enableFabricPorts = false,
+    cfg::InterfaceType intfType = cfg::InterfaceType::VLAN);
 
 cfg::SwitchConfig
 oneL3IntfTwoPortConfig(const SwSwitch* sw, PortID port1, PortID port2);
@@ -165,7 +168,8 @@ cfg::SwitchConfig multiplePortsPerIntfConfig(
         switchIdToSwitchInfo = std::nullopt,
     const std::optional<std::map<SwitchID, const HwAsic*>>& hwAsicTable =
         std::nullopt,
-    const std::optional<PlatformType> platformType = std::nullopt);
+    const std::optional<PlatformType> platformType = std::nullopt,
+    cfg::InterfaceType intfType = cfg::InterfaceType::VLAN);
 
 cfg::SwitchConfig genPortVlanCfg(
     const PlatformMapping* platformMapping,
@@ -194,7 +198,8 @@ cfg::SwitchConfig twoL3IntfConfig(
     PortID port1,
     PortID port2,
     const std::map<cfg::PortType, cfg::PortLoopbackMode>& lbModeMap =
-        kDefaultLoopbackMap());
+        kDefaultLoopbackMap(),
+    cfg::InterfaceType intfType = cfg::InterfaceType::VLAN);
 cfg::SwitchConfig twoL3IntfConfig(
     const PlatformMapping* platformMapping,
     const std::vector<const HwAsic*>& asics,
@@ -202,7 +207,8 @@ cfg::SwitchConfig twoL3IntfConfig(
     PortID port1,
     PortID port2,
     const std::map<cfg::PortType, cfg::PortLoopbackMode>& lbModeMap =
-        kDefaultLoopbackMap());
+        kDefaultLoopbackMap(),
+    cfg::InterfaceType intfType = cfg::InterfaceType::VLAN);
 void addMatcher(
     cfg::SwitchConfig* config,
     const std::string& matcherName,
