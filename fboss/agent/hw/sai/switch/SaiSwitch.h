@@ -553,6 +553,14 @@ class SaiSwitch : public HwSwitch {
   void initialStateApplied() override;
 
   template <typename LockPolicyT>
+  void processFlowletSwitchingConfigDelta(
+      const StateDelta& delta,
+      const LockPolicyT& lockPolicy);
+  void processFlowletSwitchingConfigDeltaLocked(
+      const StateDelta& delta,
+      const std::lock_guard<std::mutex>& lock);
+
+  template <typename LockPolicyT>
   void processPfcWatchdogGlobalDelta(
       const StateDelta& delta,
       const LockPolicyT& lockPolicy);

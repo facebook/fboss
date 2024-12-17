@@ -677,8 +677,7 @@ void SaiSwitchManager::setArsProfile(
 
 void SaiSwitchManager::resetArsProfile() {
 #if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
-  if (FLAGS_flowletSwitchingEnable &&
-      platform_->getAsic()->isSupported(HwAsic::Feature::FLOWLET)) {
+  if (FLAGS_flowletSwitchingEnable) {
     switch_->setOptionalAttribute(
         SaiSwitchTraits::Attributes::ArsProfile{SAI_NULL_OBJECT_ID});
   }

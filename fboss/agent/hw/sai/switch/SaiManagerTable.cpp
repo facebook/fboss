@@ -175,6 +175,7 @@ void SaiManagerTable::reset(bool skipSwitchManager) {
   switchManager_->resetQosMaps();
   samplePacketManager_.reset();
 
+  switchManager_->resetArsProfile();
   arsProfileManager_.reset();
   arsManager_.reset();
 
