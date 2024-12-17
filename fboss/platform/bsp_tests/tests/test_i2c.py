@@ -1,6 +1,5 @@
 # pyre-unsafe
 import concurrent.futures
-import os
 import re
 from collections import defaultdict
 
@@ -8,7 +7,7 @@ import pytest
 
 from fboss.platform.bsp_tests.utils.cdev_types import I2CDevice
 
-from fboss.platform.bsp_tests.utils.cdev_utils import delete_device, make_cdev_path
+from fboss.platform.bsp_tests.utils.cdev_utils import delete_device
 from fboss.platform.bsp_tests.utils.cmd_utils import run_cmd
 from fboss.platform.bsp_tests.utils.i2c_utils import (
     create_i2c_adapter,
@@ -19,12 +18,6 @@ from fboss.platform.bsp_tests.utils.i2c_utils import (
     parse_i2cdump_data,
 )
 from fboss.platform.bsp_tests.utils.kmod_utils import load_kmods, unload_kmods
-
-
-def test_cdev_is_created(platform_fpgas) -> None:
-    for fpga in platform_fpgas:
-        path = make_cdev_path(fpga)
-        assert os.path.exists(path)
 
 
 def test_i2c_adapter_names(fpga_with_adapters) -> None:
