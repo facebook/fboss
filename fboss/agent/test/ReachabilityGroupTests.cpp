@@ -317,4 +317,15 @@ TEST_F(ReachabilityGroupSingleStageFdswTest, changeNumParallelLinks) {
   }
 }
 
+TEST_F(
+    ReachabilityGroupDualStageFdswNoParallelIntfLinkTest,
+    invalidIntfLinkConfig) {
+  // Have last two ports facing the same neighbor - this is incorrect interface
+  // link setting for balanced input mode.
+  auto newConfig = initialConfig();
+  auto numPorts = newConfig.ports()->size();
+  (*newConfig.ports())[numPorts - 1].expectedNeighborReachability() =
+      *(*newConfig.ports())[numPorts - 2].expectedNeighborReachability();
+  EXPECT_THROW(sw_->applyConfig("Invalid config", newConfig), FbossError);
+}
 } // namespace facebook::fboss
