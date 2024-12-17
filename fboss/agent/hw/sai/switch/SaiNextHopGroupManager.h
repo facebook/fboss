@@ -12,9 +12,12 @@
 
 #include "fboss/agent/hw/sai/api/NextHopGroupApi.h"
 
+#include "fboss/agent/hw/sai/api/ArsApi.h"
 #include "fboss/agent/hw/sai/api/NextHopApi.h"
 #include "fboss/agent/hw/sai/store/SaiObject.h"
+#include "fboss/agent/hw/sai/switch/SaiArsManager.h"
 #include "fboss/agent/hw/sai/switch/SaiNextHopManager.h"
+#include "fboss/agent/state/FlowletSwitchingConfig.h"
 #include "fboss/agent/state/RouteNextHop.h"
 #include "fboss/agent/state/RouteNextHopEntry.h"
 #include "fboss/agent/types.h"
@@ -31,6 +34,7 @@
 
 namespace facebook::fboss {
 
+class SaiArsManager;
 class SaiManagerTable;
 class SaiPlatform;
 class SaiNextHopGroupManager;
@@ -186,6 +190,9 @@ class SaiNextHopGroupManager {
       const typename SaiNextHopGroupMemberTraits::AdapterHostKey& key);
 
   std::string listManagedObjects() const;
+
+  void updateArsModeAll(
+      const std::shared_ptr<FlowletSwitchingConfig>& newFlowletConfig);
 
  private:
   bool isFixedWidthNextHopGroup(
