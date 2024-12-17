@@ -1,4 +1,4 @@
-# pyre-unsafe
+# pyre-strict
 import argparse
 import os
 from dataclasses import dataclass
@@ -30,7 +30,7 @@ class RuntimeConfig:
 PLATFORMS = ["meru800bia", "meru800bfa"]
 
 
-def parse_args():
+def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument("--platform", type=str, default="", choices=PLATFORMS)
     parser.add_argument("--config-file", type=str)
@@ -44,7 +44,7 @@ def parse_args():
     return parser.parse_args()
 
 
-def main():
+def main() -> None:
     args = parse_args()
 
     # Some args exposed to pytest for use in fixt res

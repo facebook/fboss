@@ -1,7 +1,10 @@
-# pyre-unsafe
+# pyre-strict
 import pytest
 
 import sensors
+
+from fboss.platform.bsp_tests.test_runner import FpgaSpec
+from fboss.platform.bsp_tests.utils.cdev_types import I2CAdapter
 
 from fboss.platform.bsp_tests.utils.cdev_utils import delete_device
 from fboss.platform.bsp_tests.utils.cmd_utils import check_cmd
@@ -12,13 +15,13 @@ from fboss.platform.bsp_tests.utils.i2c_utils import (
 
 
 @pytest.fixture(scope="session")
-def install_sensors():
+def install_sensors() -> None:
     # TODO: Remove this once `sensors` is installed on lab
     # devices by default
     check_cmd(["dnf", "install", "lm_sensors", "-y"])
 
 
-def test_hwmon_sensors(fpga_with_adapters, install_sensors) -> None:
+def test_hwmon_sensors(fpga_with_adapters: list[tuple[FpgaSpec, I2CAdapter]]) -> None:
     for fpga, adapter in fpga_with_adapters:
         for i2cdevice in adapter.i2cDevices:
             if not i2cdevice.hwmonTestData:

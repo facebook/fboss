@@ -1,20 +1,37 @@
-# pyre-unsafe
+# pyre-strict
 import ctypes
 from dataclasses import dataclass, field
 from enum import Enum
 
+from typing import Type, Union
+
 from dataclasses_json import dataclass_json
+
+FieldType = list[
+    tuple[
+        str,
+        Type[
+            Union[
+                ctypes.Array,
+                ctypes.c_uint32,
+                ctypes.c_uint16,
+                ctypes.c_int,
+                ctypes.c_uint,
+            ]
+        ],
+    ]
+]
 
 
 class fbiob_i2c_data(ctypes.Structure):
-    _fields_ = [
+    _fields_: FieldType = [
         ("bus_freq_hz", ctypes.c_uint32),
         ("num_channels", ctypes.c_uint32),
     ]
 
 
 class spi_dev_info(ctypes.Structure):
-    _fields_ = [
+    _fields_: FieldType = [
         ("modalias", ctypes.c_char * 255),
         ("max_speed_hz", ctypes.c_uint32),
         ("chip_select", ctypes.c_uint16),
@@ -22,33 +39,33 @@ class spi_dev_info(ctypes.Structure):
 
 
 class fbiob_spi_data(ctypes.Structure):
-    _fields_ = [
+    _fields_: FieldType = [
         ("num_spidevs", ctypes.c_uint),
         ("spidevs", spi_dev_info * 1),  # FBIOB_SPIDEV_MAX is 1
     ]
 
 
 class fbiob_led_data(ctypes.Structure):
-    _fields_ = [
+    _fields_: FieldType = [
         ("port_num", ctypes.c_int),
         ("led_idx", ctypes.c_int),
     ]
 
 
 class fbiob_xcvr_data(ctypes.Structure):
-    _fields_ = [
+    _fields_: FieldType = [
         ("port_num", ctypes.c_uint32),
     ]
 
 
 class fbiob_fan_data(ctypes.Structure):
-    _fields_ = [
+    _fields_: FieldType = [
         ("num_fans", ctypes.c_uint32),
     ]
 
 
 class fbiob_aux_id(ctypes.Structure):
-    _fields_ = [
+    _fields_: FieldType = [
         ("name", ctypes.c_char * 255),
         ("id", ctypes.c_uint32),
     ]
@@ -241,7 +258,7 @@ class FpgaSpec:
     auxDevices: list[AuxDevice] = field(default_factory=list)
 
 
-def print_fields(obj, indent=0):
+def print_fields(obj: ctypes.Structure, indent: int = 0) -> None:
     for field_name, field_type in obj._fields_:
         value = getattr(obj, field_name)
         if issubclass(field_type, (ctypes.Structure, ctypes.Union)):

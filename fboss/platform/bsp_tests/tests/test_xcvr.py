@@ -1,9 +1,10 @@
-# pyre-unsafe
+# pyre-strict
 import glob
 import os
 
 import pytest
 
+from fboss.platform.bsp_tests.test_runner import RuntimeConfig
 from fboss.platform.bsp_tests.utils.cdev_types import AuxDevice, FpgaSpec
 from fboss.platform.bsp_tests.utils.cdev_utils import (
     create_new_device,
@@ -12,13 +13,15 @@ from fboss.platform.bsp_tests.utils.cdev_utils import (
 )
 
 
-def test_xcvr_names(platform_fpgas) -> None:
+def test_xcvr_names(platform_fpgas: list[FpgaSpec]) -> None:
     for fpga in platform_fpgas:
         for xcvr in fpga.xcvrCtrls:
             assert xcvr.deviceName == "xcvr_ctrl"
 
 
-def test_xcvr_creates_sysfs_files(platform_fpgas, platform_config) -> None:
+def test_xcvr_creates_sysfs_files(
+    platform_fpgas: list[FpgaSpec], platform_config: RuntimeConfig
+) -> None:
     platform = platform_config.platform
     if platform == "meru800bfa" or platform == "meru800bia":
         # pyre-fixme[29]: `_WithException[typing.Any,

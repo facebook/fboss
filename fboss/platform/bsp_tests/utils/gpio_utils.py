@@ -1,4 +1,4 @@
-# pyre-unsafe
+# pyre-strict
 import re
 from dataclasses import dataclass
 

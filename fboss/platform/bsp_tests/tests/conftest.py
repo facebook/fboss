@@ -1,4 +1,5 @@
 # pyre-unsafe
+# pytest fixtures are way too complicated to typecheck properly with pyre
 import os
 
 from pathlib import Path
