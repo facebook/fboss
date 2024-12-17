@@ -595,4 +595,10 @@ std::optional<sai_attr_id_t>
 SaiSwitchTraits::Attributes::AttributeMaxSwitchId::operator()() {
   return SAI_SWITCH_ATTR_MAX_SWITCH_ID;
 }
+
+std::optional<sai_attr_id_t>
+SaiSwitchTraits::Attributes::AttributeArsAvailableFlows::operator()() {
+  return std::nullopt;
+}
+
 } // namespace facebook::fboss

@@ -533,4 +533,12 @@ SaiSwitchTraits::Attributes::AttributeMaxSwitchId::operator()() {
   return std::nullopt;
 }
 
+std::optional<sai_attr_id_t>
+SaiSwitchTraits::Attributes::AttributeArsAvailableFlows::operator()() {
+#if defined(BRCM_SAI_SDK_XGS) && defined(BRCM_SAI_SDK_GTE_11_0)
+  return SAI_SWITCH_ATTR_ARS_AVAILABLE_FLOWS;
+#endif
+  return std::nullopt;
+}
+
 } // namespace facebook::fboss
