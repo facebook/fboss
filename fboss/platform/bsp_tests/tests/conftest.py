@@ -1,11 +1,21 @@
 # pyre-unsafe
 import os
+
 from pathlib import Path
 
 import pytest
-from fboss.platform.bsp_tests.test_runner import Config, FpgaSpec, PLATFORMS
+from fboss.platform.bsp_tests.test_runner import (
+    Config,
+    FpgaSpec,
+    PLATFORMS,
+    RuntimeConfig,
+)
 from fboss.platform.bsp_tests.utils.cdev_types import I2CAdapter
-from fboss.platform.bsp_tests.utils.kmod_utils import fbsp_remove, load_kmods
+from fboss.platform.bsp_tests.utils.kmod_utils import (
+    fbsp_remove,
+    load_kmods,
+    read_kmods,
+)
 
 
 def pytest_configure(config):
@@ -40,7 +50,15 @@ def platform_config(request):
 
     with open(Path(config_file_path)) as f:
         json_string = f.read()
-    return Config.from_json(json_string)
+
+    conf = Config.from_json(json_string)
+    kmods = read_kmods(conf.vendor)
+
+    runtime_conf: RuntimeConfig = RuntimeConfig(
+        conf.platform, conf.vendor, conf.fpgas, kmods
+    )
+
+    return runtime_conf
 
 
 @pytest.fixture(scope="session")
@@ -59,11 +77,11 @@ def load_modules(platform_config):
 
 
 @pytest.fixture(scope="module", autouse=True)
-def clean_modules():
+def clean_modules(platform_config):
     # Ensures a clean running environment (e.g. no lingering devices)
     # for each test
     try:
-        fbsp_remove()
+        fbsp_remove(platform_config.vendor)
     except Exception:
         # Ignore errors if fbsp-remove.sh is not present, will fail
         # the specific test for this

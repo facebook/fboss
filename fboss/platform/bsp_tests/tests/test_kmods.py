@@ -26,6 +26,9 @@ def test_kmod_load_unload_stress(platform_config) -> None:
 
 def test_fbsp_remove(platform_config) -> None:
     load_kmods(platform_config.kmods)
-    assert fbsp_remove()
+    try:
+        fbsp_remove(platform_config.vendor)
+    except Exception as e:
+        pytest.fail(f"Unexpected exception {e}")
     loaded_kmods = get_loaded_kmods(platform_config.kmods)
     assert len(loaded_kmods) == 0

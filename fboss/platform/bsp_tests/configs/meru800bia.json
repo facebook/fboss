@@ -1,13 +1,6 @@
 {
     "platform": "meru800bia",
-    "kmods": [
-        "scd",
-        "scd_spi",
-        "scd_leds",
-        "scd_xcvr",
-        "scd_smbus",
-        "dsf_fan_cpld"
-    ],
+    "vendor": "arista",
     "fpgas": [
         {
             "name": "SMB_FPGA",

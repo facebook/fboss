@@ -25,6 +25,7 @@ python_binary(
         "fbsource//third-party/pypi/pysensors:pysensors",
         "fbsource//third-party/pypi/pytest:pytest",
         ":bsp_test_utils",
+        "//fboss/platform/platform_manager:platform_manager_config-py3-types",
     ],
 )
 
@@ -34,5 +35,7 @@ python_library(
     deps = [
         "fbsource//third-party/pypi/dataclasses-json:dataclasses-json",
         "fbsource//third-party/pypi/ioctl-opt:ioctl-opt",
+        "//fboss/platform/platform_manager:platform_manager_config-py3-types",
+        "//thrift/lib/py3:types",
     ],
 )

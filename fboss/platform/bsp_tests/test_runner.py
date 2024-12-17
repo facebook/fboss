@@ -7,14 +7,24 @@ import pytest
 from dataclasses_json import dataclass_json
 
 from fboss.platform.bsp_tests.utils.cdev_types import FpgaSpec
+from fboss.platform.platform_manager.platform_manager_config.types import BspKmodsFile
 
 
 @dataclass_json
 @dataclass
 class Config:
     platform: str
-    kmods: list[str]
+    vendor: str
     fpgas: list[FpgaSpec]
+
+
+@dataclass_json
+@dataclass
+class RuntimeConfig:
+    platform: str
+    vendor: str
+    fpgas: list[FpgaSpec]
+    kmods: BspKmodsFile
 
 
 PLATFORMS = ["meru800bia", "meru800bfa"]
