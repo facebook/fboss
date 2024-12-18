@@ -1,6 +1,7 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
 #include "fboss/fsdb/benchmarks/FsdbBenchmarkTestHelper.h"
+#include "fboss/thrift_cow/nodes/Types.h"
 
 namespace {
 
@@ -15,13 +16,22 @@ const uint32_t kStatsServeIntervalMs = 50;
 } // anonymous namespace
 
 namespace facebook::fboss::fsdb::test {
+using FsdbOperStateRootMembers =
+    apache::thrift::reflect_struct<FsdbOperStateRoot>::member;
 
-void FsdbBenchmarkTestHelper::setup() {
+void FsdbBenchmarkTestHelper::setup(int32_t numSubscriptions) {
   fsdbTestServer_ = std::make_unique<fsdb::test::FsdbTestServer>(
       0, kStateServeIntervalMs, kStatsServeIntervalMs);
   FLAGS_fsdbPort = fsdbTestServer_->getFsdbPort();
-  const std::string clientId = "agent";
-  pubsubMgr_ = std::make_unique<fsdb::FsdbPubSubManager>(clientId);
+  for (int i = 0; i < numSubscriptions; i++) {
+    const std::string clientId = folly::to<std::string>("agent_", i);
+    pubsubMgrs_.push_back(std::make_unique<fsdb::FsdbPubSubManager>(clientId));
+    std::vector<std::atomic_bool> subs(numSubscriptions);
+    for (auto& sub : subs) {
+      sub = false;
+    }
+    subscriptionConnected_ = std::move(subs);
+  }
 }
 
 void FsdbBenchmarkTestHelper::publishPath(
@@ -33,10 +43,30 @@ void FsdbBenchmarkTestHelper::publishPath(
   state.protocol() = fsdb::OperProtocol::BINARY;
   state.metadata() = fsdb::OperMetadata();
   state.metadata()->lastConfirmedAt() = stamp;
-  pubsubMgr_->publishStat(std::move(state));
+  pubsubMgrs_.at(0)->publishStat(std::move(state));
 }
 
-void FsdbBenchmarkTestHelper::startPublisher() {
+void FsdbBenchmarkTestHelper::publishStatePatch(
+    const state::SwitchState& state,
+    uint64_t stamp) {
+  AgentData agentData;
+  agentData.switchState() = state;
+
+  auto prevState = std::make_shared<thrift_cow::ThriftStructNode<AgentData>>();
+  auto switchState =
+      std::make_shared<thrift_cow::ThriftStructNode<AgentData>>(agentData);
+  auto basePath = {
+      folly::to<std::string>(FsdbOperStateRootMembers::agent::id::value)};
+
+  auto patch =
+      thrift_cow::PatchBuilder::build(prevState, switchState, basePath);
+
+  patch.metadata() = fsdb::OperMetadata();
+  patch.metadata()->lastConfirmedAt() = stamp;
+  pubsubMgrs_.at(0)->publishState(std::move(patch));
+}
+
+void FsdbBenchmarkTestHelper::startPublisher(bool stats) {
   auto stateChangeCb = [this](
                            fsdb::FsdbStreamClient::State /* oldState */,
                            fsdb::FsdbStreamClient::State newState) {
@@ -47,9 +77,16 @@ void FsdbBenchmarkTestHelper::startPublisher() {
       readyForPublishing_.store(false);
     }
   };
-  // agent is Path publisher for stats
-  pubsubMgr_->createStatPathPublisher(
-      getAgentStatsPath(), std::move(stateChangeCb));
+
+  if (stats) {
+    // agent is Path publisher for stats
+    pubsubMgrs_.at(0)->createStatPathPublisher(
+        getAgentStatsPath(), std::move(stateChangeCb));
+  } else {
+    // Create patch publisher for agent state since DFS uses patch
+    pubsubMgrs_.at(0)->createStatePatchPublisher(
+        kPublishRoot, std::move(stateChangeCb));
+  }
 }
 
 void FsdbBenchmarkTestHelper::waitForPublisherConnected() {
@@ -58,15 +95,17 @@ void FsdbBenchmarkTestHelper::waitForPublisherConnected() {
 
 void FsdbBenchmarkTestHelper::stopPublisher(bool gr) {
   readyForPublishing_.store(false);
-  pubsubMgr_->removeStatPathPublisher(gr);
+  pubsubMgrs_.at(0)->removeStatPathPublisher(gr);
 }
 
 void FsdbBenchmarkTestHelper::TearDown() {
   fsdbTestServer_.reset();
-  if (pubsubMgr_) {
+  if (!pubsubMgrs_.empty()) {
     stopPublisher();
     CHECK(!readyForPublishing_.load());
-    pubsubMgr_.reset();
+    for (auto& pubsubMgr : pubsubMgrs_) {
+      pubsubMgr.reset();
+    }
   }
 }
 
@@ -88,22 +127,55 @@ void FsdbBenchmarkTestHelper::addSubscription(
                            fsdb::SubscriptionState newState,
                            std::optional<bool> /*initialSyncHasData*/) {
     if (newState == fsdb::SubscriptionState::CONNECTED) {
-      subscriptionConnected_.store(true);
+      subscriptionConnected_.at(0).store(true);
     } else {
-      subscriptionConnected_.store(false);
+      subscriptionConnected_.at(0).store(false);
     }
   };
+
   // agent is Path publisher for stats
-  pubsubMgr_->addStatPathSubscription(
+  pubsubMgrs_.at(0)->addStatPathSubscription(
       getAgentStatsPath(), stateChangeCb, stateUpdateCb);
 }
 
-bool FsdbBenchmarkTestHelper::isSubscriptionConnected() {
-  return subscriptionConnected_.load();
+void FsdbBenchmarkTestHelper::addStatePatchSubscription(
+    const fsdb::FsdbPatchSubscriber::FsdbOperPatchUpdateCb& stateUpdateCb,
+    int32_t subscriberID) {
+  auto stateChangeCb = [this, subscriberID](
+                           fsdb::SubscriptionState /*oldState*/,
+                           fsdb::SubscriptionState newState,
+                           std::optional<bool> /*initialSyncHasData*/) {
+    if (newState == fsdb::SubscriptionState::CONNECTED) {
+      subscriptionConnected_.at(subscriberID).store(true);
+    } else {
+      subscriptionConnected_.at(subscriberID).store(false);
+    }
+  };
+
+  fsdb::RawOperPath p;
+  p.path() = kPublishRoot;
+  // Create patch publisher for agent state since DFS uses patch
+  pubsubMgrs_.at(subscriberID)
+      ->addStatePatchSubscription(
+          {{subscriberID, p}},
+          stateChangeCb,
+          stateUpdateCb,
+          utils::ConnectionOptions("::1", fsdbTestServer_->getFsdbPort()));
 }
 
-void FsdbBenchmarkTestHelper::removeSubscription() {
-  pubsubMgr_->removeStatPathSubscription(getAgentStatsPath());
+bool FsdbBenchmarkTestHelper::isSubscriptionConnected(int32_t subscriberId) {
+  return subscriptionConnected_.at(subscriberId).load();
+}
+
+void FsdbBenchmarkTestHelper::removeSubscription(
+    bool stats,
+    int32_t subscriberID) {
+  if (stats) {
+    pubsubMgrs_.at(0)->removeStatPathSubscription(getAgentStatsPath());
+  } else {
+    pubsubMgrs_.at(subscriberID)
+        ->removeStatePatchSubscription(kPublishRoot, "::1");
+  }
 }
 
 } // namespace facebook::fboss::fsdb::test

@@ -27,6 +27,7 @@ cpp_library(
     exported_deps = [
         "//fboss/fsdb/client:fsdb_pub_sub",
         "//fboss/fsdb/tests/utils:fsdb_test_server",
+        "//fboss/thrift_cow/nodes:nodes",
         "//folly/synchronization:baton",
     ],
 )
