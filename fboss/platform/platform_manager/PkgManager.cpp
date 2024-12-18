@@ -176,8 +176,17 @@ void PkgManager::processAll() const {
     if (!systemInterface_->isRpmInstalled(bspKmodsRpmName)) {
       XLOG(INFO) << fmt::format(
           "BSP Kmods {} is not installed", bspKmodsRpmName);
+      // Unload old kmods from previous BSP installation to prevent old kmods
+      // from binding to devices. This relies of old kmods being listed in
+      // kmods.json file.
       unloadBspKmods();
+      // Install desired rpm
       processRpms();
+      // In cases where kmods.json from previous BSP installation is absent
+      // (like provisioning, where this is the first run of PM), the kmods might
+      // be present in the initramfs
+      unloadBspKmods();
+      // Load required kmods from PM config.
       loadRequiredKmods();
       return;
     }
