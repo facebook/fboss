@@ -47,6 +47,8 @@ class CowStorageMgr {
    */
   void updateState(std::unique_ptr<CowStateUpdate<Root>> update) {
     pendingUpdates_.wlock()->push_back(*update.release());
+    XLOG(DBG2) << "[FSDB] # Pending updates "
+               << pendingUpdates_.rlock()->size();
     updateEvbThread_.getEventBase()->runInEventBaseThread(
         handlePendingUpdatesHelper, this);
   }
