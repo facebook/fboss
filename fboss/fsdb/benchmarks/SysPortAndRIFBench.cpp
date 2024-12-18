@@ -14,6 +14,10 @@ DEFINE_int32(n_switchIDs, 1, "number of NPUs in a device");
 DEFINE_int32(n_cluster_size, 700, "number of Devices in a cluster");
 DEFINE_int32(n_system_ports, 43, "number of System Ports per device");
 DEFINE_int32(n_sysports_to_add, 10, "number of System Ports to add per update");
+DEFINE_int32(
+    n_neighbor_tables,
+    10,
+    "number of Neighbor Tables to update per device");
 
 namespace facebook::fboss::fsdb::test {
 
@@ -144,6 +148,62 @@ BENCHMARK(FsdbUpdateSysPortsAndRIFs) {
 
   // Add new sys ports to the switch state
   StateGenerator::updateSysPorts(state.get(), FLAGS_n_sysports_to_add);
+  // benchmark test: update state and wait for N subscribers to receive it
+  suspender.dismiss();
+  helper.publishStatePatch(*state, 1);
+
+  updateReceived.wait(); // Wait until latch counter is zero
+  suspender.rehire();
+
+  for (auto& thread : threads) {
+    thread.join();
+  }
+  for (int i = 0; i < numPeerDevices; i++) {
+    helper.removeSubscription(false, i);
+  }
+  helper.TearDown();
+}
+
+BENCHMARK(FsdbUpdateNeighborTable) {
+  const int numPeerDevices =
+      FLAGS_n_cluster_size - 1; // publish to cluster size - 1 devices
+  folly::Latch updateReceived(numPeerDevices);
+
+  folly::BenchmarkSuspender suspender;
+
+  // setup FsdbTestServer
+  FsdbBenchmarkTestHelper helper;
+  helper.setup(numPeerDevices);
+
+  // start publisher and publish initial empty stats
+  helper.startPublisher(false /* stats*/);
+
+  auto state = std::make_shared<state::SwitchState>();
+  StateGenerator::fillSwitchState(
+      state.get(), FLAGS_n_switchIDs, FLAGS_n_system_ports);
+  helper.publishStatePatch(*state, 0);
+  helper.waitForPublisherConnected();
+
+  std::vector<std::thread> threads;
+  // Spawn numPeerDevices subscribers
+  for (int i = 0; i < numPeerDevices; i++) {
+    threads.emplace_back([&, i] {
+      fsdb::FsdbPatchSubscriber::FsdbOperPatchUpdateCb subscriptionCb =
+          [&](SubscriberChunk&& patch) {
+            for (const auto& [key, patches] : *patch.patchGroups()) {
+              auto timestampVal =
+                  patches[0].metadata()->lastConfirmedAt().value();
+              if (timestampVal == 1) {
+                updateReceived.count_down(); // Decrement update latch counter
+              }
+            }
+          };
+      helper.addStatePatchSubscription(subscriptionCb, i);
+    });
+  }
+
+  // Add new sys ports to the switch state
+  StateGenerator::updateNeighborTables(state.get(), FLAGS_n_neighbor_tables);
   // benchmark test: update state and wait for N subscribers to receive it
   suspender.dismiss();
   helper.publishStatePatch(*state, 1);
