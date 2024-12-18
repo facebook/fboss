@@ -113,4 +113,7 @@ service AgentHwTestCtrl {
   list<AggPortInfo> getAggPortInfo(1: list<i32> aggPortIds);
   i32 getNumAggPorts();
   bool verifyPktFromAggPort(1: i32 aggPortId);
+
+  //tam utils
+  void triggerParityError();
 }
