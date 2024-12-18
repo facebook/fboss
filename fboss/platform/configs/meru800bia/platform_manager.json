@@ -110,7 +110,7 @@
             {
               "pmUnitScopedName": "SCM_FPGA_INFO_ROM",
               "deviceName": "fpga_info_iob",
-              "csrOffset": "0x0000"
+              "csrOffset": "0x100"
             }
           ]
         }
@@ -1461,7 +1461,7 @@
             {
               "pmUnitScopedName": "SMB_FPGA_INFO_ROM",
               "deviceName": "fpga_info_iob",
-              "csrOffset": "0x0000"
+              "csrOffset": "0x100"
             }
           ]
         }
@@ -1621,7 +1621,7 @@
     "/run/devmap/sensors/PSU2_PMBUS": "/SMB_SLOT@0/PSU_SLOT@1/[PSU_PMBUS]"
   },
   "bspKmodsRpmName": "arista_bsp_kmods",
-  "bspKmodsRpmVersion": "0.7.6-1",
+  "bspKmodsRpmVersion": "0.7.7-1",
   "requiredKmodsToLoad": [
     "spidev",
     "i2c_i801",
