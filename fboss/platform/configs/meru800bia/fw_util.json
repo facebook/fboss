@@ -11,14 +11,14 @@
     },
     "scm_cpld": {
       "preUpgradeCmd": "",
-      "getVersionCmd": "cat /run/devmap/fpgas/MERU_SCM_CPLD/fw_ver",
+      "getVersionCmd": "cat /run/devmap/fpgas/MERU_SCM_CPLD_INFO_ROM/fw_ver",
       "priority": 3,
       "upgradeCmd": "cpu_cpld_filename=$(head -n 1 /home/scm_cpld_filename.txt);jam -aprogram -fmeru_cpu_cpld -v $cpu_cpld_filename",
       "postUpgradeCmd": ""
     },
     "smb_fpga": {
       "preUpgradeCmd": "printf '0:3FFFFF image' > /home/smb_fpga_layout;modprobe spidev;fpga_spidev=$(echo $(ls /run/devmap/fpgas/MERU800BIA_SMB_FPGA/*spi*/spi_master/spi* | grep spi*.*) | cut -c 4-);echo 'spidev' > /sys/bus/spi/devices/spi$fpga_spidev/driver_override;echo spi$fpga_spidev > /sys/bus/spi/drivers/spidev/bind;flashrom -p linux_spi:dev=/dev/spidev$fpga_spidev > /home/flashrom_output;(grep 'MT25QL256' /home/flashrom_output && echo 'MT25QL256' > /home/flash_chip_name) || (grep 'MX25L25635F' /home/flashrom_output && echo 'MX25L25635F/MX25L25645G' > /home/flash_chip_name) || echo 'NONE' > /home/flash_chip_name",
-      "getVersionCmd": "cat /run/devmap/fpgas/MERU800BIA_SMB_FPGA/fw_ver",
+      "getVersionCmd": "cat /run/devmap/fpgas/MERU800BIA_SMB_FPGA_INFO_ROM/fw_ver",
       "priority": 2,
       "upgradeCmd": "smb_fpga_binary_name=$(head -n 1 /home/smb_fpga_filename.txt);fpga_spidev=$(echo $(ls /run/devmap/fpgas/MERU800BIA_SMB_FPGA/*spi*/spi_master/spi* | grep spi*.*) | cut -c 4-);chip=$(head -n 1 /home/flash_chip_name);if [ $chip = 'NONE' ];then cmd_chip_option='' cmd_chip_name='';else cmd_chip_option='-c' cmd_chip_name=$chip;fi;flashrom -p linux_spi:dev=/dev/spidev$fpga_spidev $cmd_chip_option $cmd_chip_name -l /home/smb_fpga_layout -i image -w $smb_fpga_binary_name",
       "postUpgradeCmd": "rm /home/smb_fpga_layout; rm /home/flash_chip_name"
