@@ -112,6 +112,8 @@ class HwTestThriftHandler : public AgentHwTestCtrlSvIf {
   int getNumAggPorts() override;
   bool verifyPktFromAggPort(int aggPortId) override;
 
+  void triggerParityError() override;
+
  private:
   HwSwitch* hwSwitch_;
 };

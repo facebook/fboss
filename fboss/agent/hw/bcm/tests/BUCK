@@ -599,6 +599,7 @@ cpp_library(
         "HwTestNeighborUtilsThriftHandler.cpp",
         "HwTestPortUtilsThriftHandler.cpp",
         "HwTestRouteUtilsThriftHandler.cpp",
+        "HwTestTamUtilsThriftHandler.cpp",
         "HwTestThriftHandler.cpp",
         "HwTestVoqSwitchUtilsThriftHandler.cpp",
     ],
