@@ -14,6 +14,7 @@
 #include "fboss/agent/test/EcmpSetupHelper.h"
 
 #include <folly/IPAddress.h>
+#include <gtest/gtest.h>
 
 namespace facebook::fboss {
 
@@ -101,6 +102,13 @@ class HwSflowTest : public HwLinkStateDependentTest {
       }
       EXPECT_EQ(expectedSampledPackets, sampledPackets);
     };
+    if (!getHwSwitch()->getPlatform()->getAsic()->isSupported(
+            HwAsic::Feature::SFLOWv6)) {
+#if defined(GTEST_SKIP)
+      GTEST_SKIP();
+#endif
+      return;
+    }
     verifyAcrossWarmBoots(setup, verify);
   }
 
