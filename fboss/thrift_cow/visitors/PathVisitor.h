@@ -31,39 +31,6 @@ using PathIter = typename std::vector<std::string>::const_iterator;
 // instantiations
 class BasePathVisitorOperator {
  public:
-  template <typename TC, typename TType>
-  class SerializableWrapper : public Serializable {
-   public:
-    explicit SerializableWrapper(TType& node) : node_(node) {}
-
-    folly::IOBuf encodeBuf(fsdb::OperProtocol proto) const override {
-      folly::IOBufQueue queue;
-      switch (proto) {
-        case fsdb::OperProtocol::BINARY:
-          apache::thrift::BinarySerializer::serialize(node_, &queue);
-          break;
-        case fsdb::OperProtocol::COMPACT:
-          apache::thrift::CompactSerializer::serialize(node_, &queue);
-          break;
-        case fsdb::OperProtocol::SIMPLE_JSON:
-          apache::thrift::SimpleJSONSerializer::serialize(node_, &queue);
-          break;
-        default:
-          throw std::runtime_error(folly::to<std::string>(
-              "Unknown protocol: ", static_cast<int>(proto)));
-      }
-      return queue.moveAsValue();
-    }
-
-    void fromEncodedBuf(fsdb::OperProtocol proto, folly::IOBuf&& encoded)
-        override {
-      node_ = deserializeBuf<TC, TType>(proto, std::move(encoded));
-    }
-
-   private:
-    TType& node_;
-  };
-
   virtual ~BasePathVisitorOperator() = default;
 
   template <typename TC, typename Node>
