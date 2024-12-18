@@ -167,6 +167,20 @@ bool FsdbBenchmarkTestHelper::isSubscriptionConnected(int32_t subscriberId) {
   return subscriptionConnected_.at(subscriberId).load();
 }
 
+void FsdbBenchmarkTestHelper::waitForAllSubscribersConnected(
+    int32_t numSubscribers) {
+  if (numSubscribers > subscriptionConnected_.size()) {
+    throw std::runtime_error(
+        "Waiting on more subscribers than number of subscribers created");
+  }
+  for (int i = 0; i < numSubscribers; i++) {
+    while (!isSubscriptionConnected(i)) {
+      std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    }
+  }
+  return;
+}
+
 void FsdbBenchmarkTestHelper::removeSubscription(
     bool stats,
     int32_t subscriberID) {

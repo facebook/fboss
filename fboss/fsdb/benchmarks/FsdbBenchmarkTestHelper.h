@@ -33,6 +33,7 @@ class FsdbBenchmarkTestHelper {
       int32_t subscriberID);
   void removeSubscription(bool stats = true, int32_t subscriberID = 0);
   bool isSubscriptionConnected(int32_t subscriberID = 0);
+  void waitForAllSubscribersConnected(int32_t numSubscribers = 1);
 
  private:
   std::vector<std::string> getAgentStatsPath();
