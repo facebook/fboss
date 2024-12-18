@@ -171,6 +171,41 @@ void StateGenerator::updateSysPorts(
   }
 }
 
+void StateGenerator::updateNeighborTables(
+    state::SwitchState* state,
+    int numNeighborsToAdd) {
+  auto numSwitchIds = state->systemPortMaps()->size();
+  for (int switchId = 0; switchId < numSwitchIds; ++switchId) {
+    auto& interfaceMap =
+        state->interfaceMaps()->at(folly::to<std::string>(switchId));
+    // Get existing number of interface entries present and add it to
+    // numInterfaces so sys port and RIF contains entry for total number of
+    // interfaces
+    auto numInterfaces = interfaceMap.size();
+    for (int interfaceId = 0; interfaceId < numInterfaces; ++interfaceId) {
+      auto arpTable = interfaceMap.at(interfaceId).arpTable();
+      auto ndpTable = interfaceMap.at(interfaceId).ndpTable();
+      auto arpResponseTable = interfaceMap.at(interfaceId).arpResponseTable();
+      auto ndpResponseTable = interfaceMap.at(interfaceId).ndpResponseTable();
+
+      for (int neighborId = numInterfaces;
+           neighborId < (numInterfaces + numNeighborsToAdd);
+           ++neighborId) {
+        auto address =
+            folly::to<std::string>("2401:db00:e206:550::", neighborId);
+        arpTable->emplace(
+            address, fillNeighborEntryFields(address, neighborId));
+        ndpTable->emplace(
+            address, fillNeighborEntryFields(address, neighborId));
+        arpResponseTable->emplace(
+            address, fillNeighborResponseEntryFields(address, neighborId));
+        ndpResponseTable->emplace(
+            address, fillNeighborResponseEntryFields(address, neighborId));
+      }
+    }
+  }
+}
+
 void StateGenerator::fillVoqStats(
     AgentStats* stats,
     int nSysPorts,

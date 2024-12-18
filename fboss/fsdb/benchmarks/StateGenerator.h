@@ -22,6 +22,9 @@ class StateGenerator {
       int numSwitches,
       int numInterfaces);
   static void updateSysPorts(state::SwitchState* state, int numInterfacesToAdd);
+  static void updateNeighborTables(
+      state::SwitchState* state,
+      int numNeighborsToAdd);
 };
 
 } // namespace facebook::fboss::fsdb::test
