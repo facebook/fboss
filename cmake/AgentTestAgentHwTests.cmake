@@ -59,6 +59,7 @@ add_library(agent_hw_test_src
   fboss/agent/test/agent_hw_tests/AgentHwAclQualifierTest.cpp
   fboss/agent/test/agent_hw_tests/AgentHwAclStatTests.cpp
   fboss/agent/test/agent_hw_tests/AgentHwResourceStatsTests.cpp
+  fboss/agent/test/agent_hw_tests/AgentHwParityErrorTests.cpp
 )
 
 target_link_libraries(agent_hw_test_src
