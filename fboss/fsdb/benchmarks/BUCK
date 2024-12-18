@@ -11,7 +11,10 @@ cpp_library(
     ],
     exported_deps = [
         "//fboss/agent:agent_stats-cpp2-types",
+        "//fboss/agent:switch_config-cpp2-types",
+        "//fboss/agent:switch_state-cpp2-types",
         "//fboss/agent/hw:hardware_stats-cpp2-types",
+        "//fboss/agent/if:ctrl-cpp2-services",
     ],
 )
 

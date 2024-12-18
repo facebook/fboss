@@ -3,6 +3,8 @@
 #pragma once
 
 #include "fboss/agent/gen-cpp2/agent_stats_types.h"
+#include "fboss/agent/gen-cpp2/switch_config_types.h"
+#include "fboss/agent/gen-cpp2/switch_state_types.h"
 
 namespace facebook::fboss::fsdb::test {
 
@@ -14,6 +16,11 @@ class StateGenerator {
       int nVoqsPerSysPort,
       int value = 1);
   static void updateVoqStats(AgentStats* stats, int increment = 1);
+
+  static void fillSwitchState(
+      state::SwitchState* state,
+      int numSwitches,
+      int numInterfaces);
 };
 
 } // namespace facebook::fboss::fsdb::test

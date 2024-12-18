@@ -2,8 +2,149 @@
 
 #include "fboss/fsdb/benchmarks/StateGenerator.h"
 #include "fboss/agent/hw/gen-cpp2/hardware_stats_types.h"
+#include "fboss/agent/if/gen-cpp2/FbossCtrl.h"
 
 namespace facebook::fboss::fsdb::test {
+state::SystemPortFields fillSystemPortMap(int switchId, int portId) {
+  state::SystemPortFields sysPortFields;
+  sysPortFields.portId() = portId;
+  sysPortFields.switchId() = switchId;
+  sysPortFields.portName() =
+      folly::to<std::string>("abcd123.a123.a123.abc1:", portId);
+  sysPortFields.coreIndex() = 0;
+  sysPortFields.corePortIndex() = 0;
+  sysPortFields.speedMbps() = 100000;
+  sysPortFields.numVoqs() = 8;
+  sysPortFields.enabled_DEPRECATED() = true;
+  sysPortFields.qosPolicy() = "defaultQosPolicy";
+  sysPortFields.scope() = cfg::Scope::LOCAL;
+  sysPortFields.shelDestinationEnabled() = false;
+
+  std::vector<PortQueueFields> portQueueFields;
+  for (int queueId = 0; queueId < 8; ++queueId) {
+    PortQueueFields portQueueFieldsEntry;
+    portQueueFieldsEntry.id() = queueId;
+    portQueueFieldsEntry.weight() = 0;
+    portQueueFieldsEntry.streamType() = "UNICAST";
+    portQueueFieldsEntry.scheduling() = "INTERNAL";
+    portQueueFieldsEntry.name() = "test";
+    portQueueFieldsEntry.maxDynamicSharedBytes() = 20971520;
+  }
+  sysPortFields.queues() = portQueueFields;
+
+  return sysPortFields;
+}
+
+state::NeighborEntryFields fillNeighborEntryFields(
+    const std::string& address,
+    int interfaceId) {
+  state::NeighborEntryFields neighborEntryFields;
+  neighborEntryFields.ipaddress() = address;
+  neighborEntryFields.mac() = "00:00:00:00:00:00";
+  cfg::PortDescriptor portDescriptor;
+  portDescriptor.portId() = interfaceId;
+  portDescriptor.portType() = cfg::PortDescriptorType::SystemPort;
+  neighborEntryFields.portId() = portDescriptor;
+  neighborEntryFields.interfaceId() = interfaceId;
+  neighborEntryFields.state() = state::NeighborState::Reachable;
+  neighborEntryFields.isLocal() = true;
+  neighborEntryFields.type() = state::NeighborEntryType::DYNAMIC_ENTRY;
+  neighborEntryFields.resolvedSince() = 1234567899;
+  neighborEntryFields.noHostRoute() = true;
+
+  return neighborEntryFields;
+}
+
+state::NeighborResponseEntryFields fillNeighborResponseEntryFields(
+    const std::string& address,
+    int interfaceId) {
+  state::NeighborResponseEntryFields neighborResponseEntryFields;
+  neighborResponseEntryFields.ipAddress() = address;
+  neighborResponseEntryFields.mac() = "00:00:00:00:00:00";
+  neighborResponseEntryFields.interfaceId() = interfaceId;
+  return neighborResponseEntryFields;
+}
+
+cfg::NdpConfig fillNdpConfig() {
+  cfg::NdpConfig ndpConfig;
+  ndpConfig.routerAdvertisementSeconds() = 0;
+  ndpConfig.curHopLimit() = 255;
+  ndpConfig.routerLifetime() = 1800;
+  ndpConfig.prefixValidLifetimeSeconds() = 2592000;
+  ndpConfig.prefixPreferredLifetimeSeconds() = 604800;
+  ndpConfig.routerAdvertisementManagedBit() = false;
+  ndpConfig.routerAdvertisementOtherBit() = false;
+
+  return ndpConfig;
+}
+
+state::InterfaceFields fillInterfaceMap(int portId, int numInterfaces) {
+  state::InterfaceFields interfaceFields;
+  interfaceFields.interfaceId() = portId;
+  interfaceFields.routerId() = 0;
+  interfaceFields.vlanId() = 0;
+  interfaceFields.name() = folly::to<std::string>("interface ", portId);
+  interfaceFields.mac() = 796855659067998208;
+  interfaceFields.mtu() = 9000;
+  interfaceFields.isVirtual() = false;
+  interfaceFields.isStateSyncDisabled() = false;
+  interfaceFields.type() = cfg::InterfaceType::SYSTEM_PORT;
+  interfaceFields.dhcpV4Relay() = "0.0.0.0";
+  interfaceFields.dhcpV6Relay() = "::";
+  interfaceFields.scope() = cfg::Scope::LOCAL;
+  interfaceFields.portId() = portId;
+  interfaceFields.ndpConfig() = fillNdpConfig();
+
+  std::map<std::string, int16_t> intfAddresses;
+  std::map<std::string, state::NeighborEntryFields> arpTable;
+  std::map<std::string, state::NeighborEntryFields> ndpTable;
+  std::map<std::string, state::NeighborResponseEntryFields> arpResponseTable;
+  std::map<std::string, state::NeighborResponseEntryFields> ndpResponseTable;
+
+  for (int interfaceId = 0; interfaceId < numInterfaces; ++interfaceId) {
+    auto address = folly::to<std::string>("2401:db00:e206:550::", interfaceId);
+    intfAddresses.emplace(address, 128);
+    arpTable.emplace(address, fillNeighborEntryFields(address, interfaceId));
+    ndpTable.emplace(address, fillNeighborEntryFields(address, interfaceId));
+    arpResponseTable.emplace(
+        address, fillNeighborResponseEntryFields(address, interfaceId));
+    ndpResponseTable.emplace(
+        address, fillNeighborResponseEntryFields(address, interfaceId));
+  }
+
+  interfaceFields.addresses() = intfAddresses;
+  interfaceFields.arpTable() = arpTable;
+  interfaceFields.ndpTable() = ndpTable;
+  interfaceFields.arpResponseTable() = arpResponseTable;
+  interfaceFields.ndpResponseTable() = ndpResponseTable;
+
+  return interfaceFields;
+}
+
+void StateGenerator::fillSwitchState(
+    state::SwitchState* state,
+    int numSwitches,
+    int numInterfaces) {
+  std::map<std::string, std::map<int64_t, state::SystemPortFields>>
+      systemPortMaps;
+  std::map<std::string, std::map<int32_t, state::InterfaceFields>>
+      interfaceMaps;
+
+  for (int switchId = 0; switchId < numSwitches; ++switchId) {
+    std::map<int64_t, state::SystemPortFields> systemPortMap;
+    std::map<int32_t, state::InterfaceFields> interfaceMap;
+    for (int systemPortId = 0; systemPortId < numInterfaces; ++systemPortId) {
+      systemPortMap.emplace(
+          systemPortId, fillSystemPortMap(switchId, systemPortId));
+      interfaceMap.emplace(
+          systemPortId, fillInterfaceMap(systemPortId, numInterfaces));
+    }
+    systemPortMaps.emplace(folly::to<std::string>(switchId), systemPortMap);
+    interfaceMaps.emplace(folly::to<std::string>(switchId), interfaceMap);
+  }
+  state->systemPortMaps() = systemPortMaps;
+  state->interfaceMaps() = interfaceMaps;
+}
 
 void StateGenerator::fillVoqStats(
     AgentStats* stats,
