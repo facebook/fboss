@@ -596,7 +596,15 @@
           "busName": "INCOMING@0",
           "address": "0x58",
           "kernelDeviceName": "pmbus",
-          "pmUnitScopedName": "PDB_PSU_0X58"
+          "pmUnitScopedName": "PDB_PSU_0X58",
+          "initRegSettings": [
+            {
+              "regOffset": 0,
+              "ioBuf": [
+                0
+              ]
+            }
+          ]
         }
       ]
     },
