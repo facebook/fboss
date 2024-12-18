@@ -146,6 +146,31 @@ void StateGenerator::fillSwitchState(
   state->interfaceMaps() = interfaceMaps;
 }
 
+// Update switch state by adding entries to systemPortMaps and interfaceMaps
+void StateGenerator::updateSysPorts(
+    state::SwitchState* state,
+    int numInterfacesToAdd) {
+  auto numSwitchIds = state->systemPortMaps()->size();
+  for (int switchId = 0; switchId < numSwitchIds; ++switchId) {
+    auto& systemPortMap =
+        state->systemPortMaps()->at(folly::to<std::string>(switchId));
+    auto& interfaceMap =
+        state->interfaceMaps()->at(folly::to<std::string>(switchId));
+    // Get existing number of interface entries present and add it to
+    // numInterfaces so sys port and RIF contains entry for total number of
+    // interfaces
+    auto numInterfaces = systemPortMap.size();
+    auto totalInterfaces = numInterfaces + numInterfacesToAdd;
+    for (int systemPortId = numInterfaces; systemPortId < totalInterfaces;
+         ++systemPortId) {
+      systemPortMap.emplace(
+          systemPortId, fillSystemPortMap(switchId, systemPortId));
+      interfaceMap.emplace(
+          systemPortId, fillInterfaceMap(systemPortId, totalInterfaces));
+    }
+  }
+}
+
 void StateGenerator::fillVoqStats(
     AgentStats* stats,
     int nSysPorts,
