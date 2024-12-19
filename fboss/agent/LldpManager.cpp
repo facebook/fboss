@@ -109,8 +109,8 @@ void LldpManager::handlePacket(
              << " port=" << neighbor->humanReadablePortId()
              << " name=" << neighbor->getSystemName();
 
-  auto port = sw_->getState()->getPorts()->getNodeIf(pkt->getSrcPort());
-  PortID pid = pkt->getSrcPort();
+  auto pid = pkt->getSrcPort();
+  auto port = sw_->getState()->getPorts()->getNodeIf(pid);
 
   XLOG(DBG4) << "Port " << pid << ", local name: " << port->getName()
              << ", local desc: " << port->getDescription()
@@ -169,9 +169,9 @@ void LldpManager::sendLldpOnAllPorts() {
   // send lldp frames through all the ports here.
   std::shared_ptr<SwitchState> state = sw_->getState();
   for (const auto& portMap : std::as_const(*state->getPorts())) {
-    for (const auto& port : std::as_const(*portMap.second)) {
+    for (const auto& [_, port] : std::as_const(*portMap.second)) {
       bool sendLldp = false;
-      switch (port.second->getPortType()) {
+      switch (port->getPortType()) {
         case cfg::PortType::INTERFACE_PORT:
         case cfg::PortType::MANAGEMENT_PORT:
           sendLldp = true;
@@ -182,10 +182,10 @@ void LldpManager::sendLldpOnAllPorts() {
         case cfg::PortType::EVENTOR_PORT:
           break;
       }
-      if (sendLldp && port.second->isPortUp()) {
-        sendLldpInfo(port.second);
+      if (sendLldp && port->isPortUp()) {
+        sendLldpInfo(port);
       } else {
-        XLOG(DBG5) << "Skipping LLDP send on port: " << port.second->getID();
+        XLOG(DBG5) << "Skipping LLDP send on port: " << port->getID();
       }
     }
   }
