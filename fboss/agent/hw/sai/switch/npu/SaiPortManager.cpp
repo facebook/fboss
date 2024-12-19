@@ -746,6 +746,12 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
         std::nullopt, // ShelEnable
     };
   }
+  std::optional<SaiPortTraits::Attributes::PortVlanId> vlanIdAttr{vlanId};
+  if (vlanId == 0) {
+    // vlan ID with value 0 is invalid
+    vlanIdAttr.reset();
+  }
+
   return SaiPortTraits::CreateAttributes{
 #if defined(BRCM_SAI_SDK_DNX)
       getPortTypeFromCfg(swPort->getPortType()),
@@ -768,7 +774,7 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
 #endif
       mediaType,
       globalFlowControlMode,
-      vlanId,
+      vlanIdAttr,
       mtu,
       std::nullopt,
       std::nullopt,

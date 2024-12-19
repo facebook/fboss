@@ -474,6 +474,10 @@ TEST_F(PortManagerTest, attributesFromSwPort) {
 
 TEST_F(PortManagerTest, swPortFromAttributes) {
   std::shared_ptr<Port> swPort = makePort(p0);
+  if (swPort->getIngressVlan() == VlanID(0)) {
+    // TODO: manager test base class to not set ingress vlan to 0
+    swPort->setIngressVlan(VlanID(1)); // vlan 0 is invalid
+  }
   auto& portMgr = saiManagerTable->portManager();
   portMgr.addPort(swPort);
   auto attrs = portMgr.attributesFromSwPort(swPort);
