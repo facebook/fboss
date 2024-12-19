@@ -458,7 +458,7 @@ cfg::DsfNode dsfNodeConfig(
   return dsfNode;
 }
 
-cfg::SwitchConfig onePortPerInterfaceConfig(
+cfg::SwitchConfig onePortPerInterfaceConfigImpl(
     const SwSwitch* swSwitch,
     const std::vector<PortID>& ports,
     bool interfaceHasSubnet,
@@ -472,7 +472,7 @@ cfg::SwitchConfig onePortPerInterfaceConfig(
     asics.push_back(swSwitch->getHwAsicTable()->getHwAsic(switchId));
   }
   auto asic = checkSameAndGetAsic(asics);
-  return onePortPerInterfaceConfig(
+  return onePortPerInterfaceConfigImpl(
       swSwitch->getPlatformMapping(),
       asic,
       ports,
@@ -489,7 +489,7 @@ cfg::SwitchConfig onePortPerInterfaceConfig(
       intfType);
 }
 
-cfg::SwitchConfig onePortPerInterfaceConfig(
+cfg::SwitchConfig onePortPerInterfaceConfigImpl(
     const PlatformMapping* platformMapping,
     const HwAsic* asic,
     const std::vector<PortID>& ports,
@@ -521,7 +521,7 @@ cfg::SwitchConfig onePortPerInterfaceConfig(
       intfType);
 }
 
-cfg::SwitchConfig onePortPerInterfaceConfig(
+cfg::SwitchConfig onePortPerInterfaceConfigImpl(
     const TestEnsembleIf* ensemble,
     const std::vector<PortID>& ports,
     bool interfaceHasSubnet,
@@ -535,7 +535,7 @@ cfg::SwitchConfig onePortPerInterfaceConfig(
   auto asic = ensemble->getHwAsicTable()->getHwAsic(*switchIds.cbegin());
   auto supportsAddRemovePort = ensemble->supportsAddRemovePort();
 
-  return onePortPerInterfaceConfig(
+  return onePortPerInterfaceConfigImpl(
       platformMapping,
       asic,
       ports,
@@ -1438,6 +1438,70 @@ void modifyPlatformConfig(
       modifyMapFunc(common.mutable_config());
     }
   }
+}
+
+cfg::SwitchConfig onePortPerInterfaceConfig(
+    const SwSwitch* swSwitch,
+    const std::vector<PortID>& ports,
+    bool interfaceHasSubnet,
+    bool setInterfaceMac,
+    int baseIntfId,
+    bool enableFabricPorts) {
+  return onePortPerInterfaceConfigImpl(
+      swSwitch,
+      ports,
+      interfaceHasSubnet,
+      setInterfaceMac,
+      baseIntfId,
+      enableFabricPorts,
+      cfg::InterfaceType::VLAN);
+}
+
+cfg::SwitchConfig onePortPerInterfaceConfig(
+    const PlatformMapping* platformMapping,
+    const HwAsic* asic,
+    const std::vector<PortID>& ports,
+    bool supportsAddRemovePort,
+    const std::map<cfg::PortType, cfg::PortLoopbackMode>& lbModeMap,
+    bool interfaceHasSubnet,
+    bool setInterfaceMac,
+    int baseIntfId,
+    bool enableFabricPorts,
+    const std::optional<std::map<SwitchID, cfg::SwitchInfo>>&
+        switchIdToSwitchInfo,
+    const std::optional<std::map<SwitchID, const HwAsic*>>& hwAsicTable,
+    const std::optional<PlatformType> platformType) {
+  return onePortPerInterfaceConfigImpl(
+      platformMapping,
+      asic,
+      ports,
+      supportsAddRemovePort,
+      lbModeMap,
+      interfaceHasSubnet,
+      setInterfaceMac,
+      baseIntfId,
+      enableFabricPorts,
+      switchIdToSwitchInfo,
+      hwAsicTable,
+      platformType,
+      cfg::InterfaceType::VLAN);
+}
+
+cfg::SwitchConfig onePortPerInterfaceConfig(
+    const TestEnsembleIf* ensemble,
+    const std::vector<PortID>& ports,
+    bool interfaceHasSubnet,
+    bool setInterfaceMac,
+    int baseIntfId,
+    bool enableFabricPorts) {
+  return onePortPerInterfaceConfigImpl(
+      ensemble,
+      ports,
+      interfaceHasSubnet,
+      setInterfaceMac,
+      baseIntfId,
+      enableFabricPorts,
+      cfg::InterfaceType::VLAN);
 }
 
 } // namespace facebook::fboss::utility

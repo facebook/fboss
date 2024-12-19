@@ -93,14 +93,47 @@ std::unordered_map<PortID, cfg::PortProfileID> getSafeProfileIDs(
     bool supportsAddRemovePort,
     std::optional<std::vector<PortID>> masterLogicalPortIds = std::nullopt);
 
+cfg::SwitchConfig onePortPerInterfaceConfigImpl(
+    const SwSwitch* swSwitch,
+    const std::vector<PortID>& ports,
+    bool interfaceHasSubnet,
+    bool setInterfaceMac,
+    int baseIntfId,
+    bool enableFabricPorts,
+    cfg::InterfaceType intfType);
+
+cfg::SwitchConfig onePortPerInterfaceConfigImpl(
+    const PlatformMapping* platformMapping,
+    const HwAsic* asic,
+    const std::vector<PortID>& ports,
+    bool supportsAddRemovePort,
+    const std::map<cfg::PortType, cfg::PortLoopbackMode>& lbModeMap,
+    bool interfaceHasSubnet,
+    bool setInterfaceMac,
+    int baseIntfId,
+    bool enableFabricPorts,
+    const std::optional<std::map<SwitchID, cfg::SwitchInfo>>&
+        switchIdToSwitchInfo,
+    const std::optional<std::map<SwitchID, const HwAsic*>>& hwAsicTable,
+    const std::optional<PlatformType> platformType,
+    cfg::InterfaceType intfType);
+
+cfg::SwitchConfig onePortPerInterfaceConfigImpl(
+    const TestEnsembleIf* ensemble,
+    const std::vector<PortID>& ports,
+    bool interfaceHasSubnet,
+    bool setInterfaceMac,
+    int baseIntfId,
+    bool enableFabricPorts,
+    cfg::InterfaceType intfType);
+
 cfg::SwitchConfig onePortPerInterfaceConfig(
     const SwSwitch* swSwitch,
     const std::vector<PortID>& ports,
     bool interfaceHasSubnet = true,
     bool setInterfaceMac = true,
     int baseIntfId = kBaseVlanId,
-    bool enableFabricPorts = false,
-    cfg::InterfaceType intfType = cfg::InterfaceType::VLAN);
+    bool enableFabricPorts = false);
 
 cfg::SwitchConfig onePortPerInterfaceConfig(
     const PlatformMapping* platformMapping,
@@ -116,8 +149,7 @@ cfg::SwitchConfig onePortPerInterfaceConfig(
         switchIdToSwitchInfo = std::nullopt,
     const std::optional<std::map<SwitchID, const HwAsic*>>& hwAsicTable =
         std::nullopt,
-    const std::optional<PlatformType> platformType = std::nullopt,
-    cfg::InterfaceType intfType = cfg::InterfaceType::VLAN);
+    const std::optional<PlatformType> platformType = std::nullopt);
 
 cfg::SwitchConfig onePortPerInterfaceConfig(
     const TestEnsembleIf* ensemble,
@@ -125,8 +157,7 @@ cfg::SwitchConfig onePortPerInterfaceConfig(
     bool interfaceHasSubnet = true,
     bool setInterfaceMac = true,
     int baseIntfId = kBaseVlanId,
-    bool enableFabricPorts = false,
-    cfg::InterfaceType intfType = cfg::InterfaceType::VLAN);
+    bool enableFabricPorts = false);
 
 cfg::SwitchConfig
 oneL3IntfTwoPortConfig(const SwSwitch* sw, PortID port1, PortID port2);
