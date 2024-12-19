@@ -64,7 +64,7 @@ SaiNextHopGroupManager::incRefOrAddNextHopGroup(
 
 #if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
   std::optional<SaiNextHopGroupTraits::Attributes::ArsObjectId> arsObjectId{
-      SAI_NULL_OBJECT_ID};
+      std::nullopt};
   if (FLAGS_flowletSwitchingEnable &&
       platform_->getAsic()->isSupported(HwAsic::Feature::FLOWLET)) {
     auto arsHandlePtr = managerTable_->arsManager().getArsHandle();
