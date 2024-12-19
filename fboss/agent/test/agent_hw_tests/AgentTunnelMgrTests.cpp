@@ -512,76 +512,91 @@ TEST_F(AgentTunnelMgrTest, checkDuplicateEntries) {
     applyNewConfig(config);
     waitForStateUpdates(getAgentEnsemble()->getSw());
 
-    auto intfIPv4 = folly::IPAddress::createNetwork(
-                        config.interfaces()[0].ipAddresses()[0], -1, false)
-                        .first;
+    std::string intfIPv4;
+    std::string intfIPv6;
+    for (int i = 0; i < config.interfaces()->size(); i++) {
+      for (int j = 0; j < config.interfaces()[i].ipAddresses()->size(); j++) {
+        std::string intfIP = folly::to<std::string>(
+            folly::IPAddress::createNetwork(
+                config.interfaces()[i].ipAddresses()[j], -1, false)
+                .first);
 
-    auto intfIPv6 = folly::IPAddress::createNetwork(
-                        config.interfaces()[0].ipAddresses()[1], -1, false)
-                        .first;
+        if (intfIP.find("::") != std::string::npos) {
+          intfIPv6 = std::move(intfIP);
+        } else {
+          intfIPv4 = std::move(intfIP);
+        }
+      }
 
-    // Get TunManager pointer
-    auto tunMgr_ = getAgentEnsemble()->getSw()->getTunManager();
-    auto status = tunMgr_->getIntfStatus(
-        getProgrammedState(), (InterfaceID)config.interfaces()[0].get_intfID());
-    // There could be a race condition where the interface is up, but the
-    // socket is not created. So, checking for the socket existence.
-    auto socketExists = tunMgr_->isValidNlSocket();
+      // Get TunManager pointer
+      auto tunMgr_ = getAgentEnsemble()->getSw()->getTunManager();
+      auto status = tunMgr_->getIntfStatus(
+          getProgrammedState(),
+          (InterfaceID)config.interfaces()[i].intfID().value());
+      // There could be a race condition where the interface is up, but the
+      // socket is not created. So, checking for the socket existence.
+      auto socketExists = tunMgr_->isValidNlSocket();
 
-    // There is a known limitation in the kernel that the source route rule
-    // entries are not created if the interface is not up. So, checking for
-    // the kernel entries if the interface is  up
-    if (status && socketExists) {
-      checkKernelEntriesExist(folly::to<std::string>(intfIPv6), false);
-    }
+      // There is a known limitation in the kernel that the source route rule
+      // entries are not created if the interface is not up. So, checking for
+      // the kernel entries if the interface is  up
+      if (status && socketExists) {
+        checkKernelEntriesExist(folly::to<std::string>(intfIPv6), false);
+      }
 
-    // Applying the same config again
-    // Made change in TunManager to reprogram source route rule upon interface
-    // up. Noticed duplicate entry for 1.1.1.1 and 1:: for source route rule.
+      // Applying the same config again
+      // Made change in TunManager to reprogram source route rule upon interface
+      // up. Noticed duplicate entry for 1.1.1.1 and 1:: for source route rule.
 
-    // Applying same ipv4 and ipv6 address on the interface
-    config.interfaces()[0].ipAddresses()[0] = "1.1.1.1/32";
-    config.interfaces()[0].ipAddresses()[1] = "1::/128";
+      // Applying same ipv4 and ipv6 address on the interface
 
-    // Apply the config
-    applyNewConfig(config);
+      // Apply the config
+      applyNewConfig(config);
 
-    // change ipv4 and ipv6 address of the interface
-    config.interfaces()[0].ipAddresses()[0] = "2.2.2.2/32";
-    config.interfaces()[0].ipAddresses()[1] = "2::/128";
+      std::string intfIPv4New;
+      std::string intfIPv6New;
+      // change ipv4 and ipv6 address of the interface
+      for (int j = 0; j < config.interfaces()[i].ipAddresses()->size(); j++) {
+        auto ipDecimal = folly::sformat("{}", i + 10);
+        if (config.interfaces()[i].ipAddresses()[j].find("::") ==
+            std::string::npos) {
+          config.interfaces()[i].ipAddresses()[j] =
+              folly::sformat("{}.2.2.2/24", ipDecimal);
+          intfIPv4New = folly::sformat("{}.2.2.2", ipDecimal);
+        } else {
+          config.interfaces()[i].ipAddresses()[j] =
+              folly::sformat("{}::2/64", ipDecimal);
+          intfIPv6New = folly::sformat("{}::2", ipDecimal);
+        }
+      }
 
-    // Apply the config
-    applyNewConfig(config);
-    waitForStateUpdates(getAgentEnsemble()->getSw());
+      // Apply the config
+      applyNewConfig(config);
+      waitForStateUpdates(getAgentEnsemble()->getSw());
 
-    auto intfIPv6New = folly::IPAddress::createNetwork(
-                           config.interfaces()[0].ipAddresses()[1], -1, false)
-                           .first;
-    auto intfIPv4New = folly::IPAddress::createNetwork(
-                           config.interfaces()[0].ipAddresses()[0], -1, false)
-                           .first;
+      // Route entries installation is currently not consistent after the ip
+      // address change. So, passing false for checkRouteEntry.
+      if (status) {
+        // If source route rule is added again for the same IP address, it
+        // would create duplicate entries.
+        checkKernelEntriesRemoved(
+            folly::to<std::string>(intfIPv4), folly::to<std::string>(intfIPv6));
+        checkKernelEntriesExist(
+            folly::to<std::string>(intfIPv4New), true, false);
+        checkKernelEntriesExist(
+            folly::to<std::string>(intfIPv6New), false, false);
+      }
 
-    // Route entries installation is currently not consistent after the ip
-    // address change. So, passing false for checkRouteEntry.
-    if (status) {
-      // If source route rule is added again for the same IP address, it would
-      // create duplicate entries.
+      // Clear kernel entries
+      clearKernelEntries(
+          folly::to<std::string>(intfIPv4New),
+          folly::to<std::string>(intfIPv6New));
+
+      // Check that the kernel entries are removed
       checkKernelEntriesRemoved(
-          folly::to<std::string>(intfIPv4), folly::to<std::string>(intfIPv6));
-      checkKernelEntriesExist(folly::to<std::string>(intfIPv4New), true, false);
-      checkKernelEntriesExist(
-          folly::to<std::string>(intfIPv6New), false, false);
+          folly::to<std::string>(intfIPv4New),
+          folly::to<std::string>(intfIPv6New));
     }
-
-    // Clear kernel entries
-    clearKernelEntries(
-        folly::to<std::string>(intfIPv4New),
-        folly::to<std::string>(intfIPv6New));
-
-    // Check that the kernel entries are removed
-    checkKernelEntriesRemoved(
-        folly::to<std::string>(intfIPv4New),
-        folly::to<std::string>(intfIPv6New));
   };
 
   verifyAcrossWarmBoots(setup, verify);
