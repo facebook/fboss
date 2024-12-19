@@ -55,13 +55,15 @@ TYPED_TEST(DeltaVisitorTests, ChangeOneField) {
   auto nodeB = this->initNode(structB);
 
   PathTagSet differingPaths;
-  auto processChange = [&](const std::vector<std::string>& path,
+  auto processChange = [&](SimpleTraverseHelper& traverser,
                            auto&& /*oldValue*/,
                            auto&& /*newValue*/,
                            auto&& tag) {
-    differingPaths.emplace(std::make_pair("/" + folly::join('/', path), tag));
+    differingPaths.emplace(
+        std::make_pair("/" + folly::join('/', traverser.path()), tag));
   };
 
+  thrift_cow::SimpleTraverseHelper traverser;
   auto result = RootDeltaVisitor::visit(
       nodeA, nodeB, DeltaVisitOptions(DeltaVisitMode::PARENTS), processChange);
   EXPECT_EQ(result, true);
@@ -135,13 +137,15 @@ TYPED_TEST(DeltaVisitorTests, ChangeOneFieldInContainer) {
   auto nodeB = this->initNode(structB);
 
   PathTagSet differingPaths;
-  auto processChange = [&](const std::vector<std::string>& path,
+  auto processChange = [&](SimpleTraverseHelper& traverser,
                            auto&& /*oldValue*/,
                            auto&& /*newValue*/,
                            auto&& tag) {
-    differingPaths.emplace(std::make_pair("/" + folly::join('/', path), tag));
+    differingPaths.emplace(
+        std::make_pair("/" + folly::join('/', traverser.path()), tag));
   };
 
+  thrift_cow::SimpleTraverseHelper traverser;
   auto result = RootDeltaVisitor::visit(
       nodeA, nodeB, DeltaVisitOptions(DeltaVisitMode::PARENTS), processChange);
   EXPECT_EQ(result, true);
@@ -172,13 +176,15 @@ TYPED_TEST(DeltaVisitorTests, SetOptional) {
   auto nodeB = this->initNode(structB);
 
   PathTagSet differingPaths;
-  auto processChange = [&](const std::vector<std::string>& path,
+  auto processChange = [&](SimpleTraverseHelper& traverser,
                            auto&& /*oldValue*/,
                            auto&& /*newValue*/,
                            auto&& tag) {
-    differingPaths.emplace(std::make_pair("/" + folly::join('/', path), tag));
+    differingPaths.emplace(
+        std::make_pair("/" + folly::join('/', traverser.path()), tag));
   };
 
+  thrift_cow::SimpleTraverseHelper traverser;
   auto result = RootDeltaVisitor::visit(
       nodeA, nodeB, DeltaVisitOptions(DeltaVisitMode::PARENTS), processChange);
   EXPECT_EQ(result, true);
@@ -232,13 +238,15 @@ TYPED_TEST(DeltaVisitorTests, AddToMap) {
       std::make_pair("/mapOfEnumToStruct/1", DeltaElemTag::MINIMAL));
 
   PathTagSet differingPaths;
-  auto processChange = [&](const std::vector<std::string>& path,
+  auto processChange = [&](SimpleTraverseHelper& traverser,
                            auto&& /*oldValue*/,
                            auto&& /*newValue*/,
                            auto&& tag) {
-    differingPaths.emplace(std::make_pair("/" + folly::join('/', path), tag));
+    differingPaths.emplace(
+        std::make_pair("/" + folly::join('/', traverser.path()), tag));
   };
 
+  thrift_cow::SimpleTraverseHelper traverser;
   auto result = RootDeltaVisitor::visit(
       nodeA, nodeB, DeltaVisitOptions(DeltaVisitMode::PARENTS), processChange);
   EXPECT_EQ(result, true);
@@ -314,13 +322,15 @@ TYPED_TEST(DeltaVisitorTests, UpdateMap) {
   }
 
   PathTagSet differingPaths;
-  auto processChange = [&](const std::vector<std::string>& path,
+  auto processChange = [&](SimpleTraverseHelper& traverser,
                            auto&& /*oldValue*/,
                            auto&& /*newValue*/,
                            auto&& tag) {
-    differingPaths.emplace(std::make_pair("/" + folly::join('/', path), tag));
+    differingPaths.emplace(
+        std::make_pair("/" + folly::join('/', traverser.path()), tag));
   };
 
+  thrift_cow::SimpleTraverseHelper traverser;
   auto result = RootDeltaVisitor::visit(
       nodeA, nodeB, DeltaVisitOptions(DeltaVisitMode::PARENTS), processChange);
   EXPECT_EQ(result, true);
@@ -404,13 +414,15 @@ TYPED_TEST(DeltaVisitorTests, DeleteFromMap) {
       std::make_pair("/mapOfEnumToStruct/3", DeltaElemTag::MINIMAL));
 
   PathTagSet differingPaths;
-  auto processChange = [&](const std::vector<std::string>& path,
+  auto processChange = [&](SimpleTraverseHelper& traverser,
                            auto&& /*oldValue*/,
                            auto&& /*newValue*/,
                            auto&& tag) {
-    differingPaths.emplace(std::make_pair("/" + folly::join('/', path), tag));
+    differingPaths.emplace(
+        std::make_pair("/" + folly::join('/', traverser.path()), tag));
   };
 
+  thrift_cow::SimpleTraverseHelper traverser;
   auto result = RootDeltaVisitor::visit(
       nodeA, nodeB, DeltaVisitOptions(DeltaVisitMode::PARENTS), processChange);
   EXPECT_EQ(result, true);
@@ -462,13 +474,15 @@ TYPED_TEST(DeltaVisitorTests, AddToList) {
   auto nodeB = this->initNode(structB);
 
   PathTagSet differingPaths;
-  auto processChange = [&](const std::vector<std::string>& path,
+  auto processChange = [&](SimpleTraverseHelper& traverser,
                            auto&& /*oldValue*/,
                            auto&& /*newValue*/,
                            auto&& tag) {
-    differingPaths.emplace(std::make_pair("/" + folly::join('/', path), tag));
+    differingPaths.emplace(
+        std::make_pair("/" + folly::join('/', traverser.path()), tag));
   };
 
+  thrift_cow::SimpleTraverseHelper traverser;
   auto result = RootDeltaVisitor::visit(
       nodeA, nodeB, DeltaVisitOptions(DeltaVisitMode::PARENTS), processChange);
   EXPECT_EQ(result, true);
@@ -520,13 +534,15 @@ TYPED_TEST(DeltaVisitorTests, DeleteFromList) {
   auto nodeB = this->initNode(structB);
 
   PathTagSet differingPaths;
-  auto processChange = [&](const std::vector<std::string>& path,
+  auto processChange = [&](SimpleTraverseHelper& traverser,
                            auto&& /*oldValue*/,
                            auto&& /*newValue*/,
                            auto&& tag) {
-    differingPaths.emplace(std::make_pair("/" + folly::join('/', path), tag));
+    differingPaths.emplace(
+        std::make_pair("/" + folly::join('/', traverser.path()), tag));
   };
 
+  thrift_cow::SimpleTraverseHelper traverser;
   auto result = RootDeltaVisitor::visit(
       nodeB, nodeA, DeltaVisitOptions(DeltaVisitMode::PARENTS), processChange);
   EXPECT_EQ(result, true);
@@ -575,13 +591,15 @@ TYPED_TEST(DeltaVisitorTests, EditVariantField) {
   auto nodeB = this->initNode(structB);
 
   PathTagSet differingPaths;
-  auto processChange = [&](const std::vector<std::string>& path,
+  auto processChange = [&](SimpleTraverseHelper& traverser,
                            auto&& /*oldValue*/,
                            auto&& /*newValue*/,
                            auto&& tag) {
-    differingPaths.emplace(std::make_pair("/" + folly::join('/', path), tag));
+    differingPaths.emplace(
+        std::make_pair("/" + folly::join('/', traverser.path()), tag));
   };
 
+  thrift_cow::SimpleTraverseHelper traverser;
   auto result = RootDeltaVisitor::visit(
       nodeA, nodeB, DeltaVisitOptions(DeltaVisitMode::PARENTS), processChange);
   EXPECT_EQ(result, true);
@@ -644,13 +662,15 @@ TYPED_TEST(DeltaVisitorTests, SwitchVariantField) {
   auto nodeB = this->initNode(structB);
 
   PathTagSet differingPaths;
-  auto processChange = [&](const std::vector<std::string>& path,
+  auto processChange = [&](SimpleTraverseHelper& traverser,
                            auto&& /*oldValue*/,
                            auto&& /*newValue*/,
                            auto&& tag) {
-    differingPaths.emplace(std::make_pair("/" + folly::join('/', path), tag));
+    differingPaths.emplace(
+        std::make_pair("/" + folly::join('/', traverser.path()), tag));
   };
 
+  thrift_cow::SimpleTraverseHelper traverser;
   auto result = RootDeltaVisitor::visit(
       nodeA, nodeB, DeltaVisitOptions(DeltaVisitMode::PARENTS), processChange);
   EXPECT_EQ(result, true);
@@ -703,13 +723,15 @@ TYPED_TEST(DeltaVisitorTests, SwitchVariantFieldToStruct) {
   auto nodeB = this->initNode(structB);
 
   PathTagSet differingPaths;
-  auto processChange = [&](const std::vector<std::string>& path,
+  auto processChange = [&](SimpleTraverseHelper& traverser,
                            auto&& /*oldValue*/,
                            auto&& /*newValue*/,
                            auto&& tag) {
-    differingPaths.emplace(std::make_pair("/" + folly::join('/', path), tag));
+    differingPaths.emplace(
+        std::make_pair("/" + folly::join('/', traverser.path()), tag));
   };
 
+  thrift_cow::SimpleTraverseHelper traverser;
   auto result = RootDeltaVisitor::visit(
       nodeA, nodeB, DeltaVisitOptions(DeltaVisitMode::PARENTS), processChange);
   EXPECT_EQ(result, true);

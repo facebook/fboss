@@ -105,14 +105,8 @@ struct DeltaVisitOptions {
 namespace dv_detail {
 
 /*
- * invokeVisitorFnHelper allows us to support two different visitor
- * signatures:
- *
- * 1. f(traverser, ...)
- * 2. f(path, ...)
- *
- * This allows a visitor to leverage a stateful TraverseHelper if
- * desired in the visit function.
+ * invokeVisitorFnHelper allows us to support different visitor
+ * signatures if needed
  */
 
 template <typename Node, typename TraverseHelper, typename Func>
@@ -121,30 +115,8 @@ auto invokeVisitorFnHelper(
     const Node& oldNode,
     const Node& newNode,
     DeltaElemTag deltaElemTag,
-    Func&& f)
-    -> std::invoke_result_t<
-        Func,
-        TraverseHelper&,
-        const Node&,
-        const Node&,
-        DeltaElemTag> {
+    Func&& f) {
   return f(traverser, oldNode, newNode, deltaElemTag);
-}
-
-template <typename Node, typename TraverseHelper, typename Func>
-auto invokeVisitorFnHelper(
-    TraverseHelper& traverser,
-    const Node& oldNode,
-    const Node& newNode,
-    DeltaElemTag deltaElemTag,
-    Func&& f)
-    -> std::invoke_result_t<
-        Func,
-        const std::vector<std::string>&,
-        const Node&,
-        const Node&,
-        DeltaElemTag> {
-  return f(traverser.path(), oldNode, newNode, deltaElemTag);
 }
 
 template <typename TC, typename Node, typename TraverseHelper, typename Func>
