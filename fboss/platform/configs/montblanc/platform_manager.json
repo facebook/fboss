@@ -91,7 +91,7 @@
         "address": "0x51",
         "kernelDeviceName": "24c02"
       },
-      "pmUnitName": "3_V_3_L_CARD"
+      "pmUnitName": "MINIPACK3_3V3_L"
     },
     "OPTICR_SLOT": {
       "numOutgoingI2cBuses": 1,
@@ -100,7 +100,7 @@
         "address": "0x51",
         "kernelDeviceName": "24c02"
       },
-      "pmUnitName": "3_V_3_R_CARD"
+      "pmUnitName": "MINIPACK3_3V3_R"
     }
   },
   "i2cAdaptersFromCpu": [
@@ -148,7 +148,7 @@
         "productSubVersion": 2
       }
     ],
-    "3_V_3_L_CARD": [
+    "MINIPACK3_3V3_L": [
       {
         "pmUnitConfig": {
           "pluggedInSlotType": "OPTICL_SLOT",
@@ -170,7 +170,7 @@
         "productSubVersion": 10
       }
     ],
-    "3_V_3_R_CARD": [
+    "MINIPACK3_3V3_R": [
       {
         "pmUnitConfig": {
           "pluggedInSlotType": "OPTICR_SLOT",
@@ -3339,7 +3339,7 @@
         }
       ]
     },
-    "3_V_3_L_CARD": {
+    "MINIPACK3_3V3_L": {
       "pluggedInSlotType": "OPTICL_SLOT",
       "i2cDeviceConfigs": [
         {
@@ -3356,7 +3356,7 @@
         }
       ]
     },
-    "3_V_3_R_CARD": {
+    "MINIPACK3_3V3_R": {
       "pluggedInSlotType": "OPTICR_SLOT",
       "i2cDeviceConfigs": [
         {
