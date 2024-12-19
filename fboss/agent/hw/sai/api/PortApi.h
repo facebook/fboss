@@ -121,7 +121,7 @@ struct SaiPortTraits {
         EnumType,
         SAI_PORT_ATTR_PORT_VLAN_ID,
         sai_uint16_t,
-        SaiIntDefault<sai_uint16_t>>;
+        SaiVlanIdDefault>;
     using Mtu = SaiAttribute<
         EnumType,
         SAI_PORT_ATTR_MTU,
