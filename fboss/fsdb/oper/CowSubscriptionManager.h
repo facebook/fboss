@@ -287,7 +287,7 @@ class CowSubscriptionManager
       std::shared_ptr<Root>& root) {
     // this helper recurses through all unpublished paths and ensures
     // that we tell SubscriptionPathStore of any new paths.
-    auto processPath = [&](const std::vector<std::string>& /*path*/,
+    auto processPath = [&](CowPublishAndAddTraverseHelper& /*traverser*/,
                            auto&& node) mutable {
       if constexpr (is_shared_ptr_v<folly::remove_cvref_t<decltype(node)>>) {
         // skip publish on HybridNode.

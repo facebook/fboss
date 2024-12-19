@@ -64,7 +64,7 @@ void publishAllNodes(CowStorage<Root, Node>& storage) {
       root,
       RecurseVisitOptions(
           RecurseVisitMode::FULL, RecurseVisitOrder::CHILDREN_FIRST, true),
-      [](const std::vector<std::string>& /*path*/, auto&& node) {
+      [](SimpleTraverseHelper& /*traverser*/, auto&& node) {
         if constexpr (IsPublishable<decltype(node)>::value) {
           node->publish();
         }

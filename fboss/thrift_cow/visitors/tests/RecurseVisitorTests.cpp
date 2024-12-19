@@ -86,8 +86,7 @@ TYPED_TEST(RecurseVisitorTests, TestFullRecurse) {
 
   auto nodeA = this->initNode(structA);
   std::map<std::vector<std::string>, folly::dynamic> visited;
-  auto processPath = [&visited](
-                         const std::vector<std::string>& path, auto&& node) {
+  auto processPath = [&visited](SimpleTraverseHelper& traverser, auto&& node) {
     folly::dynamic dyn;
     if constexpr (is_cow_type_v<decltype(*node)>) {
       dyn = node->toFollyDynamic();
@@ -95,11 +94,16 @@ TYPED_TEST(RecurseVisitorTests, TestFullRecurse) {
       facebook::thrift::to_dynamic(
           dyn, *node, facebook::thrift::dynamic_format::JSON_1);
     }
-    visited.emplace(path, dyn);
+    visited.emplace(traverser.path(), dyn);
   };
 
+  SimpleTraverseHelper traverser;
   RootRecurseVisitor::visit(
-      nodeA, RecurseVisitMode::FULL, std::move(processPath));
+      traverser,
+      nodeA,
+      RecurseVisitOptions(
+          RecurseVisitMode::FULL, RecurseVisitOrder::PARENTS_FIRST),
+      std::move(processPath));
 
   std::map<std::vector<std::string>, folly::dynamic> expected = {
       {{}, testDyn},
@@ -186,8 +190,7 @@ TYPED_TEST(RecurseVisitorTests, TestLeafRecurse) {
 
   auto nodeA = this->initNode(structA);
   std::map<std::vector<std::string>, folly::dynamic> visited;
-  auto processPath = [&visited](
-                         const std::vector<std::string>& path, auto&& node) {
+  auto processPath = [&visited](SimpleTraverseHelper& traverser, auto&& node) {
     folly::dynamic dyn;
     if constexpr (is_cow_type_v<decltype(*node)>) {
       dyn = node->toFollyDynamic();
@@ -195,10 +198,16 @@ TYPED_TEST(RecurseVisitorTests, TestLeafRecurse) {
       facebook::thrift::to_dynamic(
           dyn, *node, facebook::thrift::dynamic_format::JSON_1);
     }
-    visited.emplace(path, dyn);
+    visited.emplace(traverser.path(), dyn);
   };
 
-  RootRecurseVisitor::visit(nodeA, RecurseVisitMode::LEAVES, processPath);
+  SimpleTraverseHelper traverser;
+  RootRecurseVisitor::visit(
+      traverser,
+      nodeA,
+      RecurseVisitOptions(
+          RecurseVisitMode::LEAVES, RecurseVisitOrder::PARENTS_FIRST),
+      processPath);
 
   std::map<std::vector<std::string>, folly::dynamic> expected = {
       {{"inlineBool"}, testDyn["inlineBool"]},
@@ -248,6 +257,7 @@ TYPED_TEST(RecurseVisitorTests, TestLeafRecurse) {
 
   visited.clear();
   RootRecurseVisitor::visit(
+      traverser,
       nodeA,
       RecurseVisitOptions(
           RecurseVisitMode::LEAVES, RecurseVisitOrder::PARENTS_FIRST, true),
