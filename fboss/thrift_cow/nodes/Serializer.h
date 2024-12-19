@@ -10,7 +10,9 @@
 
 #pragma once
 
+#include <folly/DynamicConverter.h>
 #include <folly/io/IOBufQueue.h>
+#include <thrift/lib/cpp2/folly_dynamic/folly_dynamic.h>
 #include <thrift/lib/cpp2/protocol/Serializer.h>
 #include <thrift/lib/cpp2/protocol/detail/protocol_methods.h>
 #include <utility>
@@ -230,6 +232,8 @@ struct Serializable {
   virtual void fromEncodedBuf(
       fsdb::OperProtocol proto,
       folly::IOBuf&& encoded) = 0;
+
+  virtual folly::dynamic toFollyDynamic() const = 0;
 };
 
 template <typename TC, typename TType>
@@ -260,6 +264,19 @@ class SerializableWrapper : public Serializable {
       override {
     node_ = deserializeBuf<TC, TType>(proto, std::move(encoded));
   }
+
+#ifdef ENABLE_DYNAMIC_APIS
+  folly::dynamic toFollyDynamic() const override {
+    folly::dynamic dyn;
+    facebook::thrift::to_dynamic(
+        dyn, node_, facebook::thrift::dynamic_format::JSON_1);
+    return dyn;
+  }
+#else
+  folly::dynamic toFollyDynamic() const override {
+    return {};
+  }
+#endif
 
  private:
   TType& node_;

@@ -94,10 +94,14 @@ class ThriftPrimitiveNode : public thrift_cow::Serializable {
 
 #ifdef ENABLE_DYNAMIC_APIS
 
-  folly::dynamic toFollyDynamic() const {
+  virtual folly::dynamic toFollyDynamic() const override {
     folly::dynamic out;
-    facebook::thrift::to_dynamic(
-        out, toThrift(), facebook::thrift::dynamic_format::JSON_1);
+    if constexpr (std::is_same_v<ThriftType, folly::basic_fbstring<char>>) {
+      out = folly::dynamic(obj_.c_str());
+    } else {
+      facebook::thrift::to_dynamic(
+          out, toThrift(), facebook::thrift::dynamic_format::JSON_1);
+    }
     return out;
   }
 
@@ -116,6 +120,10 @@ class ThriftPrimitiveNode : public thrift_cow::Serializable {
     requires(T::immutable)
   {
     throwImmutableException();
+  }
+#else
+  virtual folly::dynamic toFollyDynamic() const override {
+    return {};
   }
 #endif
 
