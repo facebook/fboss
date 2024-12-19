@@ -226,7 +226,7 @@ TEST(ThriftStructNodeTests, ThriftStructNodeVisit) {
   ThriftStructNode<TestStruct> node(data);
 
   folly::dynamic out;
-  auto f = [&out](auto& node) {
+  auto f = [&out](auto& node, auto /*begin*/, auto /*end*/) {
     if constexpr (std::is_base_of_v<
                       Serializable,
                       std::remove_cvref_t<decltype(node)>>) {
@@ -269,7 +269,7 @@ TEST(ThriftStructNodeTests, ThriftStructNodeVisitMutable) {
   ThriftStructNode<TestStruct> node(data);
 
   folly::dynamic toWrite, out;
-  auto write = [&toWrite](auto& node) {
+  auto write = [&toWrite](auto& node, auto /*begin*/, auto /*end*/) {
     if constexpr (std::is_base_of_v<
                       Serializable,
                       std::remove_cvref_t<decltype(node)>>) {
@@ -278,7 +278,7 @@ TEST(ThriftStructNodeTests, ThriftStructNodeVisitMutable) {
       FAIL() << "unexpected non-cow visit";
     }
   };
-  auto read = [&out](auto& node) {
+  auto read = [&out](auto& node, auto /*begin*/, auto /*end*/) {
     if constexpr (std::is_base_of_v<
                       Serializable,
                       std::remove_cvref_t<decltype(node)>>) {

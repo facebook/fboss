@@ -346,7 +346,7 @@ TEST(PatchApplierTests, FailPatchingSetEntry) {
   std::vector<std::string> path = {
       folly::to<std::string>(TestStructMembers::setOfI32::id::value), "1"};
   bool visited = false;
-  auto process = [&](auto& node) {
+  auto process = [&](auto& node, auto /*begin*/, auto /*end*/) {
     EXPECT_FALSE(visited);
     visited = true;
     if constexpr (is_cow_type_v<decltype(node)>) {

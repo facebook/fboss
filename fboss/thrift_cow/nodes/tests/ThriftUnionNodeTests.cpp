@@ -151,7 +151,9 @@ TEST(ThriftUnionNodeTests, ThriftUnionNodeVisit) {
   ThriftUnionNode<TestUnion> fields(data);
 
   folly::dynamic out;
-  auto f = [&out](auto& node) { out = node.toFollyDynamic(); };
+  auto f = [&out](auto& node, auto /*begin*/, auto /*end*/) {
+    out = node.toFollyDynamic();
+  };
 
   std::vector<std::string> path = {"inlineBool"};
   auto result = visitPath(fields, path.begin(), path.end(), f);

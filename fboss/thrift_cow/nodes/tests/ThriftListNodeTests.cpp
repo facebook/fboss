@@ -163,7 +163,9 @@ TEST(ThriftListNodeTests, ThriftListNodePrimitivesVisit) {
       fields(data);
 
   folly::dynamic out;
-  auto f = [&out](auto& node) { out = node.toFollyDynamic(); };
+  auto f = [&out](auto& node, auto /*begin*/, auto /*end*/) {
+    out = node.toFollyDynamic();
+  };
 
   std::vector<std::string> path = {"0"};
   auto result = visitPath(fields, path.begin(), path.end(), f);
@@ -188,8 +190,12 @@ TEST(ThriftListNodeTests, ThriftListNodePrimitivesVisitMutable) {
       fields(data);
 
   folly::dynamic toWrite, out;
-  auto write = [&toWrite](auto& node) { node.fromFollyDynamic(toWrite); };
-  auto read = [&out](auto& node) { out = node.toFollyDynamic(); };
+  auto write = [&toWrite](auto& node, auto /*begin*/, auto /*end*/) {
+    node.fromFollyDynamic(toWrite);
+  };
+  auto read = [&out](auto& node, auto /*begin*/, auto /*end*/) {
+    out = node.toFollyDynamic();
+  };
 
   std::vector<std::string> path = {"0"};
   auto result = visitPath(fields, path.begin(), path.end(), read);
@@ -357,7 +363,9 @@ TEST(ThriftListNodeTests, ThriftListNodeStructsVisit) {
       fields(data);
 
   folly::dynamic out;
-  auto f = [&out](auto& node) { out = node.toFollyDynamic(); };
+  auto f = [&out](auto& node, auto /*begin*/, auto /*end*/) {
+    out = node.toFollyDynamic();
+  };
 
   std::vector<std::string> path = {"0"};
   auto result = visitPath(fields, path.begin(), path.end(), f);
@@ -398,8 +406,12 @@ TEST(ThriftListNodeTests, ThriftListNodeStructsVisitMutable) {
       fields(data);
 
   folly::dynamic toWrite, out;
-  auto write = [&toWrite](auto& node) { node.fromFollyDynamic(toWrite); };
-  auto read = [&out](auto& node) { out = node.toFollyDynamic(); };
+  auto write = [&toWrite](auto& node, auto /*begin*/, auto /*end*/) {
+    node.fromFollyDynamic(toWrite);
+  };
+  auto read = [&out](auto& node, auto /*begin*/, auto /*end*/) {
+    out = node.toFollyDynamic();
+  };
 
   std::vector<std::string> path = {"0"};
   auto result = visitPath(fields, path.begin(), path.end(), read);
