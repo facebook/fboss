@@ -1,4 +1,4 @@
-load("//fboss/build/fbpkg.bzl", "fboss_fbpkg_builder")
+load("//fboss/build:fbpkg.bzl", "fboss_fbpkg_builder")
 
 oncall("fboss_agent_push")
 
