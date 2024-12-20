@@ -48,6 +48,7 @@ void routeAddDelBenchmarker(bool measureAdd) {
   folly::BenchmarkSuspender suspender;
   AgentEnsembleSwitchConfigFn initialConfigFn =
       [](const AgentEnsemble& ensemble) {
+        FLAGS_enable_route_resource_protection = false;
         return utility::onePortPerInterfaceConfig(
             ensemble.getSw(), ensemble.masterLogicalPortIds());
       };

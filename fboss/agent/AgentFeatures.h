@@ -78,3 +78,4 @@ DECLARE_bool(enable_hw_update_protection);
 
 DECLARE_bool(fw_drained_unrecoverable_error);
 DECLARE_int32(neighbhor_resource_percentage);
+DECLARE_bool(enable_route_resource_protection);

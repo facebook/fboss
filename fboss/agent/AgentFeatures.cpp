@@ -209,3 +209,8 @@ DEFINE_int32(
     neighbhor_resource_percentage,
     75,
     "Percentage of neighbor resources (out of 100) allowed to use before ResourceAccountant rejects the update.");
+
+DEFINE_bool(
+    enable_route_resource_protection,
+    true,
+    "Enable route resource protection for Resource Accountant");

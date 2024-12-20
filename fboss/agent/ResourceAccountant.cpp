@@ -167,6 +167,9 @@ bool ResourceAccountant::checkAndUpdateEcmpResource(
 }
 
 bool ResourceAccountant::shouldCheckRouteUpdate() const {
+  if (!FLAGS_enable_route_resource_protection) {
+    return false;
+  }
   for (const auto& [_, hwAsic] : asicTable_->getHwAsics()) {
     if (hwAsic->getMaxEcmpGroups().has_value() ||
         hwAsic->getMaxEcmpMembers().has_value() ||
@@ -200,7 +203,7 @@ bool ResourceAccountant::checkAndUpdateRouteResource(bool add) {
 }
 
 bool ResourceAccountant::ecmpStateChangedImpl(const StateDelta& delta) {
-  if (!checkRouteUpdate_) {
+  if (!checkRouteUpdate_ || !FLAGS_enable_route_resource_protection) {
     return true;
   }
   bool validRouteUpdate = true;

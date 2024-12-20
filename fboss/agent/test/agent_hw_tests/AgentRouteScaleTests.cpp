@@ -54,6 +54,11 @@ class AgentRouteScaleTest : public AgentHwTest {
     auto verify = [] {};
     verifyAcrossWarmBoots(setup, verify);
   }
+
+ private:
+  void setCmdLineFlagOverrides() const override {
+    FLAGS_enable_route_resource_protection = false;
+  }
 };
 
 class AgentRswRouteScaleTest : public AgentRouteScaleTest {
