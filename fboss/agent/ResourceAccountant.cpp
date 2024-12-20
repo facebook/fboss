@@ -205,23 +205,21 @@ bool ResourceAccountant::routeAndEcmpStateChangedImpl(const StateDelta& delta) {
   bool validRouteUpdate = true;
 
   auto processRoutesDelta = [&](const auto& routesDelta) {
+    DeltaFunctions::forEachRemoved(routesDelta, [&](const auto& delRoute) {
+      validRouteUpdate &= checkAndUpdateEcmpResource(delRoute, false /* add */);
+      validRouteUpdate &= checkAndUpdateRouteResource(false /* add */);
+    });
+
     DeltaFunctions::forEachChanged(
-        routesDelta,
-        [&](const auto& oldRoute, const auto& newRoute) {
+        routesDelta, [&](const auto& oldRoute, const auto& newRoute) {
           validRouteUpdate &= checkAndUpdateEcmpResource(newRoute, true);
           validRouteUpdate &= checkAndUpdateEcmpResource(oldRoute, false);
-          return LoopAction::CONTINUE;
-        },
-        [&](const auto& newRoute) {
-          validRouteUpdate &= checkAndUpdateEcmpResource(newRoute, true);
-          validRouteUpdate &= checkAndUpdateRouteResource(true);
-          return LoopAction::CONTINUE;
-        },
-        [&](const auto& delRoute) {
-          validRouteUpdate &= checkAndUpdateEcmpResource(delRoute, false);
-          validRouteUpdate &= checkAndUpdateRouteResource(false);
-          return LoopAction::CONTINUE;
         });
+
+    DeltaFunctions::forEachAdded(routesDelta, [&](const auto& newRoute) {
+      validRouteUpdate &= checkAndUpdateEcmpResource(newRoute, true /* add */);
+      validRouteUpdate &= checkAndUpdateRouteResource(true /* add */);
+    });
   };
 
   for (const auto& routeDelta : delta.getFibsDelta()) {
