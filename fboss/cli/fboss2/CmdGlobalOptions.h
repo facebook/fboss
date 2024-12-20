@@ -403,6 +403,10 @@ class CmdGlobalOptions {
     return qsfpThriftPort_;
   }
 
+  int getLedThriftPort() const {
+    return ledThriftPort_;
+  }
+
   int getBgpThriftPort() const {
     return bgpThriftPort_;
   }
@@ -540,6 +544,7 @@ class CmdGlobalOptions {
   int agentThriftPort_{5909};
   std::vector<int> hwAgentThriftPort_{5931, 5932};
   int qsfpThriftPort_{5910};
+  int ledThriftPort_{5930};
   int bgpThriftPort_{6909};
   int smcThriftPort_{1421};
   int bgpStreamThriftPort_{6910};
