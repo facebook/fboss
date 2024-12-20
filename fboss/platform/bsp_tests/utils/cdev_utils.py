@@ -2,7 +2,7 @@
 import fcntl
 import os
 
-from fboss.platform.bsp_tests.utils.cdev_types import (
+from fboss.platform.bsp_tests.cdev_types import (
     AuxDevice,
     fbiob_aux_data,
     FpgaSpec,

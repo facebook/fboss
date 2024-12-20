@@ -3,7 +3,7 @@ import os
 import subprocess
 from typing import NamedTuple
 
-from fboss.platform.bsp_tests.utils.cdev_types import FpgaSpec, I2CAdapter, I2CDevice
+from fboss.platform.bsp_tests.cdev_types import FpgaSpec, I2CAdapter, I2CDevice
 from fboss.platform.bsp_tests.utils.cdev_utils import create_new_device
 from fboss.platform.bsp_tests.utils.cmd_utils import run_cmd
 

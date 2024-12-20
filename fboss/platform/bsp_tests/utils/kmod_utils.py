@@ -17,11 +17,9 @@ def read_kmods(vendor_name: str) -> BspKmodsFile:
     with open(kmod_path, "r") as f:
         json_data = json.load(f)
 
-    bspKmodsFile = deserialize(
+    return deserialize(
         BspKmodsFile, json.dumps(json_data).encode("utf-8"), protocol=Protocol.JSON
     )
-
-    return bspKmodsFile
 
 
 def load_kmods(kmods: BspKmodsFile) -> None:

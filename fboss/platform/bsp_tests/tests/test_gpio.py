@@ -1,9 +1,9 @@
 # pyre-strict
 
 import pytest
-from fboss.platform.bsp_tests.test_runner import FpgaSpec, RuntimeConfig
 
-from fboss.platform.bsp_tests.utils.cdev_types import I2CAdapter
+from fboss.platform.bsp_tests.cdev_types import I2CAdapter
+from fboss.platform.bsp_tests.config import FpgaSpec, RuntimeConfig
 from fboss.platform.bsp_tests.utils.cdev_utils import delete_device
 from fboss.platform.bsp_tests.utils.gpio_utils import gpiodetect, gpioget, gpioinfo
 from fboss.platform.bsp_tests.utils.i2c_utils import (

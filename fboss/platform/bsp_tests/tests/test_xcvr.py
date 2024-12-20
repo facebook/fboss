@@ -3,9 +3,9 @@ import glob
 import os
 
 import pytest
+from fboss.platform.bsp_tests.cdev_types import AuxDevice, FpgaSpec
 
-from fboss.platform.bsp_tests.test_runner import RuntimeConfig
-from fboss.platform.bsp_tests.utils.cdev_types import AuxDevice, FpgaSpec
+from fboss.platform.bsp_tests.config import RuntimeConfig
 from fboss.platform.bsp_tests.utils.cdev_utils import (
     create_new_device,
     delete_device,

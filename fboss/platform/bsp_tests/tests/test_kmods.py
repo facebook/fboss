@@ -1,7 +1,7 @@
 # pyre-strict
 import pytest
 
-from fboss.platform.bsp_tests.test_runner import RuntimeConfig
+from fboss.platform.bsp_tests.config import RuntimeConfig
 
 from fboss.platform.bsp_tests.utils.kmod_utils import (
     fbsp_remove,

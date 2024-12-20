@@ -2,9 +2,9 @@
 import pytest
 
 import sensors
+from fboss.platform.bsp_tests.cdev_types import I2CAdapter
 
-from fboss.platform.bsp_tests.test_runner import FpgaSpec
-from fboss.platform.bsp_tests.utils.cdev_types import I2CAdapter
+from fboss.platform.bsp_tests.config import FpgaSpec
 
 from fboss.platform.bsp_tests.utils.cdev_utils import delete_device
 from fboss.platform.bsp_tests.utils.cmd_utils import check_cmd

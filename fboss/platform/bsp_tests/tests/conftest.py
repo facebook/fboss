@@ -5,13 +5,9 @@ import os
 from pathlib import Path
 
 import pytest
-from fboss.platform.bsp_tests.test_runner import (
-    Config,
-    FpgaSpec,
-    PLATFORMS,
-    RuntimeConfig,
-)
-from fboss.platform.bsp_tests.utils.cdev_types import I2CAdapter
+from fboss.platform.bsp_tests.cdev_types import FpgaSpec, I2CAdapter
+from fboss.platform.bsp_tests.config import ConfigLib, TestConfig
+from fboss.platform.bsp_tests.test_runner import PLATFORMS
 from fboss.platform.bsp_tests.utils.kmod_utils import (
     fbsp_remove,
     load_kmods,
@@ -27,6 +23,7 @@ def pytest_addoption(parser):
     parser.addoption("--config_file", action="store", default=None)
     parser.addoption("--install_dir", action="store", default="")
     parser.addoption("--config_subdir", action="store", default="configs")
+    parser.addoption("--pm-config-dir", action="store", default="")
     parser.addoption("--platform", action="store", default=None)
     parser.addoption("--tests-subdir", type=str, default="tests")
 
@@ -38,6 +35,9 @@ def platform_config(request):
     config_file = request.config.getoption("config_file")
     install_dir = request.config.getoption("install_dir")
     config_subdir = request.config.getoption("config_subdir")
+    pm_config_dir = request.config.getoption("pm-config-dir")
+
+    configLib = ConfigLib(pm_config_dir)
 
     config_file_path = ""
     if config_file:
@@ -48,16 +48,13 @@ def platform_config(request):
                 f"Unknown platform '{platform}'. Available platforms are {PLATFORMS}"
             )
         config_file_path = os.path.join(install_dir, config_subdir, f"{platform}.json")
-
     with open(Path(config_file_path)) as f:
         json_string = f.read()
 
-    conf = Config.from_json(json_string)
-    kmods = read_kmods(conf.vendor)
+    test_conf = TestConfig.from_json(json_string)
+    kmods = read_kmods(test_conf.vendor)
 
-    runtime_conf: RuntimeConfig = RuntimeConfig(
-        conf.platform, conf.vendor, conf.fpgas, kmods
-    )
+    runtime_conf = configLib.build_runtime_config(test_conf, kmods)
 
     return runtime_conf
 

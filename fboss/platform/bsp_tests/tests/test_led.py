@@ -4,7 +4,7 @@ import os
 
 import pytest
 
-from fboss.platform.bsp_tests.utils.cdev_types import LedTestData
+from fboss.platform.bsp_tests.cdev_types import LedTestData
 from fboss.platform.bsp_tests.utils.cdev_utils import create_new_device, delete_device
 from fboss.platform.bsp_tests.utils.i2c_utils import (
     create_i2c_adapter,

@@ -5,7 +5,7 @@ from time import sleep
 
 import pytest
 
-from fboss.platform.bsp_tests.utils.cdev_types import (
+from fboss.platform.bsp_tests.cdev_types import (
     FpgaSpec,
     get_empty_aux_data,
     get_invalid_aux_data,
