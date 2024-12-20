@@ -471,6 +471,10 @@ void SaiSwitch::processLinkStateChangeDelta(
 }
 
 bool SaiSwitch::transactionsSupported() const {
+  if (platform_->getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_CHENAB) {
+    // TODO: fix rollback on chenab
+    return false;
+  }
   return true;
 }
 
