@@ -271,8 +271,7 @@ SaiPortTraits::Attributes::AttributeCondEntropyRehashSeed::operator()() {
 
 std::optional<sai_attr_id_t>
 SaiPortTraits::Attributes::AttributeShelEnable::operator()() {
-// TODO(zecheng): Update flag when new 12.0 release has the attribute
-#if defined(SAI_VERSION_11_7_0_0_DNX_ODP)
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
   return SAI_PORT_ATTR_SHEL_ENABLE;
 #else
   return std::nullopt;

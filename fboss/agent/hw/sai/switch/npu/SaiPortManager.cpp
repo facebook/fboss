@@ -671,7 +671,7 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
   condEntropyRehashEnable = swPort->getConditionalEntropyRehash();
 #endif
   std::optional<SaiPortTraits::Attributes::ShelEnable> shelEnable{};
-#if defined(SAI_VERSION_11_7_0_0_DNX_ODP)
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
   shelEnable = SaiPortTraits::Attributes::ShelEnable{
       swPort->getSelfHealingECMPLagEnable()};
 #endif

@@ -100,7 +100,7 @@ SaiSystemPortManager::attributesFromSwSystemPort(
   }
   std::optional<SaiSystemPortTraits::Attributes::ShelPktDstEnable>
       shelPktDstEnable = std::nullopt;
-#if defined(SAI_VERSION_11_7_0_0_DNX_ODP)
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
   if (swSystemPort->getShelDestinationEnabled()) {
     shelPktDstEnable = true;
   }

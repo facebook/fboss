@@ -705,10 +705,7 @@ void SaiSwitch::switchEventCallback(
                 << " reload status: " << static_cast<int>(eventInfo->index2);
       break;
     }
-#endif
-#if defined(SAI_VERSION_11_7_0_0_DNX_ODP)
-    // TODO(zecheng): Update flag when new 12.0 release has the attribute
-    case SAI_SWITCH_EVENT_TYPE_REMOTE_LINK_CHANGE:
+    case SAI_SWITCH_EVENT_TYPE_REMOTE_LINK_CHANGE: {
       auto isUp = eventInfo->index;
       auto sysPortId = eventInfo->index2;
       XLOG(DBG2) << "[SHEL] Received remote link change event: " << "isUp: "
@@ -716,6 +713,7 @@ void SaiSwitch::switchEventCallback(
                  << " sysPortId: " << static_cast<int>(sysPortId);
       // TODO(zecheng): Handle and log remote link change
       break;
+    }
 #endif
   }
 }
