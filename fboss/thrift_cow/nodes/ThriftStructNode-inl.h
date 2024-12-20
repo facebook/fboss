@@ -600,13 +600,11 @@ class ThriftStructNode : public NodeBaseT<
           return;
         }
         auto tok = *begin;
-        if constexpr (thrift_cow::is_cow_type_v<decltype(node)>) {
-          if constexpr (std::is_same_v<
-                            typename folly::remove_cvref_t<
-                                decltype(node)>::CowType,
-                            NodeType>) {
-            node.modify(tok);
-          }
+        if constexpr (std::is_same_v<
+                          typename folly::remove_cvref_t<
+                              decltype(node)>::CowType,
+                          NodeType>) {
+          node.modify(tok);
         }
       });
 

@@ -236,9 +236,12 @@ struct Serializable {
   virtual folly::dynamic toFollyDynamic() const = 0;
 };
 
+struct ThriftObject {};
+
 template <typename TC, typename TType>
 class SerializableWrapper : public Serializable {
  public:
+  using CowType = ThriftObject;
   explicit SerializableWrapper(TType& node) : node_(node) {}
 
   folly::IOBuf encodeBuf(fsdb::OperProtocol proto) const override {

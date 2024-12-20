@@ -510,14 +510,7 @@ TYPED_TEST(ThriftStructNodeTestSuite, ThriftStructNodeModifyPathTest) {
   folly::dynamic dyn;
   auto processPath = pvlambda([&dyn](auto& node, auto begin, auto end) {
     EXPECT_EQ(begin, end);
-    if constexpr (std::is_base_of_v<
-                      Serializable,
-                      std::remove_cvref_t<decltype(node)>>) {
-      dyn = node.toFollyDynamic();
-    } else {
-      facebook::thrift::to_dynamic(
-          dyn, node, facebook::thrift::dynamic_format::JSON_1);
-    }
+    dyn = node.toFollyDynamic();
   });
   // non-existent node
   auto visitResult = RootPathVisitor::visit(

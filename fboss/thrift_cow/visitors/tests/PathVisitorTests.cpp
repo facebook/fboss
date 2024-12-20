@@ -70,16 +70,9 @@ TYPED_TEST(PathVisitorTests, AccessField) {
 
   auto nodeA = this->initNode(structA);
   folly::dynamic dyn;
-  auto processPath = pvlambda([&dyn](auto& node, auto begin, auto end) {
+  auto processPath = pvlambda([&dyn](const auto& node, auto begin, auto end) {
     EXPECT_EQ(begin, end);
-    if constexpr (std::is_base_of_v<
-                      Serializable,
-                      std::remove_cvref_t<decltype(node)>>) {
-      dyn = node.toFollyDynamic();
-    } else {
-      facebook::thrift::to_dynamic(
-          dyn, node, facebook::thrift::dynamic_format::JSON_1);
-    }
+    dyn = node.toFollyDynamic();
   });
   std::vector<std::string> path{"inlineInt"};
   auto result = RootPathVisitor::visit(
@@ -145,16 +138,9 @@ TYPED_TEST(PathVisitorTests, AccessAtHybridNodeTest) {
 
   auto nodeA = this->initNode(root);
   folly::dynamic dyn;
-  auto processPath = pvlambda([&dyn](auto& node, auto begin, auto end) {
+  auto processPath = pvlambda([&dyn](Serializable& node, auto begin, auto end) {
     EXPECT_EQ(begin, end);
-    if constexpr (std::is_base_of_v<
-                      Serializable,
-                      std::remove_cvref_t<decltype(node)>>) {
-      dyn = node.toFollyDynamic();
-    } else {
-      facebook::thrift::to_dynamic(
-          dyn, node, facebook::thrift::dynamic_format::JSON_1);
-    }
+    dyn = node.toFollyDynamic();
   });
 
   // Thrift path terminating at HybridNode - Access
@@ -210,14 +196,7 @@ TYPED_TEST(PathVisitorTests, AccessAtHybridThriftContainerTest) {
   folly::dynamic dyn;
   auto processPath = pvlambda([&dyn](auto& node, auto begin, auto end) {
     EXPECT_EQ(begin, end);
-    if constexpr (std::is_base_of_v<
-                      Serializable,
-                      std::remove_cvref_t<decltype(node)>>) {
-      dyn = node.toFollyDynamic();
-    } else {
-      facebook::thrift::to_dynamic(
-          dyn, node, facebook::thrift::dynamic_format::JSON_1);
-    }
+    dyn = node.toFollyDynamic();
   });
 
   // Thrift path at thrift container under HybridNode - Access
@@ -277,14 +256,7 @@ TYPED_TEST(PathVisitorTests, AccessAtHybridThriftContainerKeyTest) {
   folly::dynamic dyn;
   auto processPath = pvlambda([&dyn](auto& node, auto begin, auto end) {
     EXPECT_EQ(begin, end);
-    if constexpr (std::is_base_of_v<
-                      Serializable,
-                      std::remove_cvref_t<decltype(node)>>) {
-      dyn = node.toFollyDynamic();
-    } else {
-      facebook::thrift::to_dynamic(
-          dyn, node, facebook::thrift::dynamic_format::JSON_1);
-    }
+    dyn = node.toFollyDynamic();
   });
 
   // Thrift path at thrift container key under HybridNode - Access
@@ -339,14 +311,7 @@ TYPED_TEST(PathVisitorTests, AccessFieldInContainer) {
   folly::dynamic dyn;
   auto processPath = pvlambda([&dyn](auto& node, auto begin, auto end) {
     EXPECT_EQ(begin, end);
-    if constexpr (std::is_base_of_v<
-                      Serializable,
-                      std::remove_cvref_t<decltype(node)>>) {
-      dyn = node.toFollyDynamic();
-    } else {
-      facebook::thrift::to_dynamic(
-          dyn, node, facebook::thrift::dynamic_format::JSON_1);
-    }
+    dyn = node.toFollyDynamic();
   });
   std::vector<std::string> path{"mapOfEnumToStruct", "3"};
   auto result = RootPathVisitor::visit(
@@ -406,13 +371,7 @@ TEST(PathVisitorTests, AccessOptional) {
   std::string got;
   auto processPath = pvlambda([&got](auto& node, auto begin, auto end) {
     EXPECT_EQ(begin, end);
-    if constexpr (std::is_base_of_v<
-                      Serializable,
-                      std::remove_cvref_t<decltype(node)>>) {
-      got = node.toFollyDynamic().asString();
-    } else {
-      FAIL() << "unexpected non-cow visit";
-    }
+    got = node.toFollyDynamic().asString();
   });
   std::vector<std::string> path{"optionalString"};
   auto result = RootPathVisitor::visit(

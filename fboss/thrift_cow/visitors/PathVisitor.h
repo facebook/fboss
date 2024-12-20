@@ -188,8 +188,20 @@ struct LambdaPathVisitorOperator {
 
   template <typename TC, typename Node>
   inline auto
-  visitTyped(Node& node, pv_detail::PathIter begin, pv_detail::PathIter end) {
+  visitTyped(Node& node, pv_detail::PathIter begin, pv_detail::PathIter end)
+    requires(is_cow_type_v<Node>)
+  {
     return f_(node, begin, end);
+  }
+
+  template <typename TC, typename Node>
+  inline auto
+  visitTyped(Node& node, pv_detail::PathIter begin, pv_detail::PathIter end)
+    requires(!is_cow_type_v<Node>)
+  {
+    // Node is not a Serializable, dispatch with wrapper
+    SerializableWrapper<TC, Node> wrapper(node);
+    return f_(wrapper, begin, end);
   }
 
  private:
