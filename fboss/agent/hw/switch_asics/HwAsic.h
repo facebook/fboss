@@ -338,6 +338,11 @@ class HwAsic {
   virtual std::optional<uint32_t> getMaxDlbEcmpGroups() const {
     return std::nullopt;
   }
+  // TODO(zecheng): Define more specific limits for v4/v6 routes with different
+  // mask lengths
+  virtual std::optional<uint32_t> getMaxRoutes() const {
+    return 75000;
+  }
 
   //  SAI implementaion doen not support attribute
   //  SAI_SWITCH_ATTR_L3_NEIGHBOR_TABLE_SIZE yet, so decided to add these
