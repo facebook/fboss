@@ -692,6 +692,9 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
   std::optional<int32_t> maxSystemPorts;
   std::optional<int32_t> maxVoqs;
   std::optional<int32_t> maxSwitchId;
+#if defined(BRCM_SAI_SDK_DNX) && defined(BRCM_SAI_SDK_GTE_11_0)
+  maxSwitchId = getAsic()->getMaxSwitchId();
+#endif
 #if defined(BRCM_SAI_SDK_DNX) && defined(BRCM_SAI_SDK_GTE_12_0)
   if (getAsic()->getSwitchType() == cfg::SwitchType::FABRIC &&
       getAsic()->getFabricNodeRole() == HwAsic::FabricNodeRole::DUAL_STAGE_L1) {
@@ -701,7 +704,6 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
     constexpr uint32_t kRamon3LlfcThreshold{800};
     fabricLLFC = std::vector<uint32_t>({kRamon3LlfcThreshold});
   }
-  maxSwitchId = getAsic()->getMaxSwitchId();
   if (isDualStage3Q2QMode()) {
     maxSystemPortId = 32515;
     maxLocalSystemPortId = 5;
