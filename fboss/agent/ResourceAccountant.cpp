@@ -265,13 +265,18 @@ bool ResourceAccountant::isValidRouteUpdate(const StateDelta& delta) {
 
   if (!validRouteUpdate) {
     XLOG(WARNING)
-        << "Invalid route update - exceeding ECMP resource limits. New state consumes "
-        << ecmpMemberUsage_ << " ECMP members and " << ecmpGroupRefMap_.size()
-        << " ECMP groups.";
+        << "Invalid route update - exceeding route or ECMP resource limits. New state consumes "
+        << routeUsage_ << " routes, " << ecmpMemberUsage_
+        << " ECMP members and " << ecmpGroupRefMap_.size() << " ECMP groups.";
     for (const auto& [switchId, hwAsic] : asicTable_->getHwAsics()) {
       const auto ecmpGroupLimit = hwAsic->getMaxEcmpGroups();
       const auto ecmpMemberLimit = hwAsic->getMaxEcmpMembers();
+      const auto routeLimit = hwAsic->getMaxRoutes();
       XLOG(WARNING) << "ECMP resource limits for Switch " << switchId
+                    << ": max routes="
+                    << (routeLimit.has_value()
+                            ? folly::to<std::string>(routeLimit.value())
+                            : "None")
                     << ": max ECMP groups="
                     << (ecmpGroupLimit.has_value()
                             ? folly::to<std::string>(ecmpGroupLimit.value())
