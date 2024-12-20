@@ -203,7 +203,7 @@ SaiSwitchManager::SaiSwitchManager(
           platform->getDefaultMacAgingTime()});
     }
     if (switchType == cfg::SwitchType::VOQ) {
-#if defined(BRCM_SAI_SDK_DNX) && defined(BRCM_SAI_SDK_GTE_12_0)
+#if defined(BRCM_SAI_SDK_DNX) && defined(BRCM_SAI_SDK_GTE_11_0)
       // We learnt of the need to set a non-default max switch id on J3 only
       // later. And we incorporated it in create switch attributes.
       // However, BRCM-SAI does not look at create switch attributes on
