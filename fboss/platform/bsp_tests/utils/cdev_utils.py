@@ -53,6 +53,12 @@ def make_cdev_path(fpga: FpgaSpec) -> str:
     return f"/dev/fbiob_{vendor}.{device}.{subsystemVendor}.{subsystemDevice}"
 
 
+def make_fpga_name(fpga: FpgaSpec) -> str:
+    return ".".join(
+        [fpga.vendorId, fpga.deviceId, fpga.subSystemVendorId, fpga.subSystemDeviceId]
+    )
+
+
 def find_fpga_dirs(fpgas: list[FpgaSpec]) -> dict[str, str]:
     ret: dict[str, str] = {}
     for fpga in fpgas:
@@ -63,7 +69,7 @@ def find_fpga_dirs(fpgas: list[FpgaSpec]) -> dict[str, str]:
                 continue
             if check_files_for_fpga(fpga, subdir_path):
                 found = True
-                ret[fpga.name] = subdir_path
+                ret[make_fpga_name(fpga)] = subdir_path
                 break
         if not found:
             raise Exception(f"Could not find dir for fpga {fpga}")

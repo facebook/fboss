@@ -24,9 +24,9 @@ def test_watchdog_start(fpga_with_adapters: list[tuple[FpgaSpec, I2CAdapter]]) -
         newAdapters, baseBusNum = create_i2c_adapter(fpga, adapter)
         try:
             for device in adapter.i2cDevices:
-                if not device.watchdogTestData:
+                if not device.testData or not device.testData.watchdogTestData:
                     continue
-                testData = device.watchdogTestData
+                testData = device.testData.watchdogTestData
                 existingWdts = get_watchdogs()
                 busNum = baseBusNum + device.channel
                 create_i2c_device(device, busNum)
@@ -48,9 +48,9 @@ def test_watchdog_ping(fpga_with_adapters: list[tuple[FpgaSpec, I2CAdapter]]) ->
         newAdapters, baseBusNum = create_i2c_adapter(fpga, adapter)
         try:
             for device in adapter.i2cDevices:
-                if not device.watchdogTestData:
+                if not device.testData or not device.testData.watchdogTestData:
                     continue
-                testData = device.watchdogTestData
+                testData = device.testData.watchdogTestData
                 existingWdts = get_watchdogs()
                 busNum = baseBusNum + device.channel
                 create_i2c_device(device, busNum)
@@ -72,7 +72,7 @@ def test_watchdog_set_timeout(platform_fpgas: list[FpgaSpec]) -> None:
             newAdapters, baseBusNum = create_i2c_adapter(fpga, adapter)
             try:
                 for device in adapter.i2cDevices:
-                    if not device.watchdogTestData:
+                    if not device.testData or not device.testData.watchdogTestData:
                         continue
                     existingWdts = get_watchdogs()
                     busNum = baseBusNum + device.channel
@@ -104,9 +104,9 @@ def test_watchdog_magic_close(
         newAdapters, baseBusNum = create_i2c_adapter(fpga, adapter)
         try:
             for device in adapter.i2cDevices:
-                if not device.watchdogTestData:
+                if not device.testData or not device.testData.watchdogTestData:
                     continue
-                testData = device.watchdogTestData
+                testData = device.testData.watchdogTestData
                 existingWdts = get_watchdogs()
                 busNum = baseBusNum + device.channel
                 create_i2c_device(device, busNum)
@@ -133,9 +133,9 @@ def test_watchdog_driver_unload(
         newAdapters, baseBusNum = create_i2c_adapter(fpga, adapter, id)
         id += 1
         for device in adapter.i2cDevices:
-            if not device.watchdogTestData:
+            if not device.testData or not device.testData.watchdogTestData:
                 continue
-            expected_wdts += device.watchdogTestData.numWatchdogs
+            expected_wdts += device.testData.watchdogTestData.numWatchdogs
             busNum = baseBusNum + device.channel
             create_i2c_device(device, busNum)
     new_wdts = get_watchdogs() - existing_wdts

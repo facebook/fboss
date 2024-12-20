@@ -233,6 +233,7 @@ def test_looped_transactions(
     """
     for fpga, adapter in fpga_with_adapters:
         # if any of the i2cDevices has testData
+        # TODO: Don't  need testData  to test
         if not any(device.testData for device in adapter.i2cDevices):
             continue
         newAdapters, adapterBaseBusNum = create_i2c_adapter(fpga, adapter)

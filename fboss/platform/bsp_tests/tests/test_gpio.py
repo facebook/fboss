@@ -20,9 +20,9 @@ def test_gpio_is_detectable(
         newAdapters, baseBusNum = create_i2c_adapter(fpga, adapter)
         try:
             for device in adapter.i2cDevices:
-                if not device.gpioTestData:
+                if not device.testData or not device.testData.gpioTestData:
                     continue
-                testData = device.gpioTestData
+                testData = device.testData.gpioTestData
                 busNum = baseBusNum + device.channel
                 create_i2c_device(device, busNum)
                 expectedLabel = f"{busNum}-{device.address[2:].zfill(4)}"
@@ -40,9 +40,9 @@ def test_gpio_info(fpga_with_adapters: list[tuple[FpgaSpec, I2CAdapter]]) -> Non
         newAdapters, baseBusNum = create_i2c_adapter(fpga, adapter)
         try:
             for device in adapter.i2cDevices:
-                if not device.gpioTestData:
+                if not device.testData or not device.testData.gpioTestData:
                     continue
-                testData = device.gpioTestData
+                testData = device.testData.gpioTestData
                 busNum = baseBusNum + device.channel
                 create_i2c_device(device, busNum)
                 expectedLabel = f"{busNum}-{device.address[2:].zfill(4)}"
@@ -69,9 +69,9 @@ def test_gpio_get(fpga_with_adapters: list[tuple[FpgaSpec, I2CAdapter]]) -> None
         newAdapters, baseBusNum = create_i2c_adapter(fpga, adapter)
         try:
             for device in adapter.i2cDevices:
-                if device.gpioTestData is None:
+                if not device.testData or not device.testData.gpioTestData:
                     continue
-                testData = device.gpioTestData
+                testData = device.testData.gpioTestData
                 busNum = baseBusNum + device.channel
                 create_i2c_device(device, busNum)
                 expectedLabel = f"{busNum}-{device.address[2:].zfill(4)}"
@@ -106,7 +106,7 @@ def test_driver_unload(
                 id += 1
                 adaptersToUnload.append((fpga, adapter, id))
                 for device in adapter.i2cDevices:
-                    if not device.gpioTestData:
+                    if not device.testData or not device.testData.gpioTestData:
                         continue
                     create_i2c_device(device, baseBusNum + device.channel)
         except Exception:

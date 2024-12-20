@@ -1,4 +1,4 @@
-# pyre-strict
+# pyre-unsafe
 import subprocess
 
 from typing import Union
@@ -7,15 +7,15 @@ from typing import Union
 def run_cmd(
     cmd: Union[str, list[str]],
     **kwargs,  # pyre-ignore kwargs
-) -> subprocess.Result:  # pyre-ignore Result (subprocess doesn't implement typing)
+):  # pyre-ignore Result (subprocess doesn't implement typing)
     result = subprocess.run(cmd, capture_output=True, **kwargs)
     return result
 
 
-def check_cmd(cmd: Union[str, list[str]], **kwargs) -> None:  # pyre-ignore kwargs
+def check_cmd(cmd: Union[str, list[str]], **kwargs) -> None:
     result = subprocess.run(cmd, capture_output=True, **kwargs)
     ret_code = result.returncode
-    stdout = result.stdout.decode("utf-8")  # pyre-ignore stdout is bytes
+    stdout = result.stdout.decode("utf-8")  # pyre-ignore
     stderr = result.stderr.decode("utf-8")
 
     if ret_code != 0:

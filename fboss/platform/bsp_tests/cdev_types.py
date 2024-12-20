@@ -219,11 +219,8 @@ class LedTestData:
 
 @dataclass_json
 @dataclass
-class I2CDevice:
-    channel: int
-    deviceName: str
-    address: str
-    testData: I2CTestData | None = None
+class DeviceTestData:
+    i2cTestData: I2CTestData | None = None
     hwmonTestData: HwmonTestData | None = None
     gpioTestData: GpioTestData | None = None
     watchdogTestData: WatchdogTestData | None = None
@@ -232,7 +229,18 @@ class I2CDevice:
 
 @dataclass_json
 @dataclass
+class I2CDevice:
+    pmUnitScopedName: str
+    channel: int
+    deviceName: str
+    address: str
+    testData: DeviceTestData | None = None
+
+
+@dataclass_json
+@dataclass
 class I2CAdapter:
+    pmUnitScopedName: str
     auxDevice: AuxDevice
     i2cDevices: list[I2CDevice] = field(default_factory=list)
 
@@ -247,7 +255,6 @@ class LedCtrlInfo:
 @dataclass_json
 @dataclass
 class FpgaSpec:
-    name: str
     vendorId: str
     deviceId: str
     subSystemVendorId: str

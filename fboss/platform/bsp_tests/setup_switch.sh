@@ -50,3 +50,5 @@ fi
 hostname=${POSITIONAL_ARGS[0]}
 
 rsync -vzr "$HOME"/fbsource/fbcode/fboss/platform/bsp_tests "root@$hostname:/tmp/"
+
+rsync -vzr "$HOME"/fbsource/fbcode/fboss/platform/configs "root@$hostname:/tmp/"
