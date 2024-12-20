@@ -40,7 +40,7 @@
           "versions": [
             {
               "fwType": 1,
-              "version": "3.1"
+              "version": "3.2"
             }
           ]
       },
@@ -196,7 +196,7 @@
           "versions": [
             {
               "fwType": 1,
-              "version": "36.194"
+              "version": "36.242"
             }
           ]
       },
@@ -204,7 +204,7 @@
           "versions": [
             {
               "fwType": 1,
-              "version": "36.194"
+              "version": "36.242"
             }
           ]
       },
@@ -212,7 +212,15 @@
           "versions": [
             {
               "fwType": 1,
-              "version": "103.244"
+              "version": "103.133"
+            }
+          ]
+      },
+      "T-OL8CNT-NFL": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "103.133"
             }
           ]
       }
