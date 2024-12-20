@@ -33,7 +33,7 @@ class ResourceAccountant {
   bool checkEcmpResource(bool intermediateState) const;
   bool checkDlbResource(uint32_t resourcePercentage) const;
   bool checkRouteResource() const;
-  bool ecmpStateChangedImpl(const StateDelta& delta);
+  bool routeAndEcmpStateChangedImpl(const StateDelta& delta);
   bool shouldCheckRouteUpdate() const;
   bool isEcmp(const RouteNextHopEntry& fwd) const;
   int computeWeightedEcmpMemberCount(

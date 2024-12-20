@@ -202,7 +202,7 @@ bool ResourceAccountant::checkAndUpdateRouteResource(bool add) {
   return true;
 }
 
-bool ResourceAccountant::ecmpStateChangedImpl(const StateDelta& delta) {
+bool ResourceAccountant::routeAndEcmpStateChangedImpl(const StateDelta& delta) {
   if (!checkRouteUpdate_ || !FLAGS_enable_route_resource_protection) {
     return true;
   }
@@ -218,10 +218,12 @@ bool ResourceAccountant::ecmpStateChangedImpl(const StateDelta& delta) {
         },
         [&](const auto& newRoute) {
           validRouteUpdate &= checkAndUpdateEcmpResource(newRoute, true);
+          validRouteUpdate &= checkAndUpdateRouteResource(true);
           return LoopAction::CONTINUE;
         },
         [&](const auto& delRoute) {
           validRouteUpdate &= checkAndUpdateEcmpResource(delRoute, false);
+          validRouteUpdate &= checkAndUpdateRouteResource(false);
           return LoopAction::CONTINUE;
         });
   };
@@ -237,7 +239,7 @@ bool ResourceAccountant::ecmpStateChangedImpl(const StateDelta& delta) {
 }
 
 bool ResourceAccountant::isValidRouteUpdate(const StateDelta& delta) {
-  bool validRouteUpdate = ecmpStateChangedImpl(delta);
+  bool validRouteUpdate = routeAndEcmpStateChangedImpl(delta);
 
   if (FLAGS_dlbResourceCheckEnable && FLAGS_flowletSwitchingEnable &&
       checkDlbResource_ && !validRouteUpdate) {
@@ -329,7 +331,7 @@ bool ResourceAccountant::l2StateChangedImpl(const StateDelta& delta) {
 }
 
 void ResourceAccountant::stateChanged(const StateDelta& delta) {
-  ecmpStateChangedImpl(delta);
+  routeAndEcmpStateChangedImpl(delta);
   if (FLAGS_enable_hw_update_protection) {
     l2StateChangedImpl(delta);
   }
