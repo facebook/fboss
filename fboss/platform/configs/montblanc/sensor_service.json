@@ -4246,7 +4246,7 @@
     },
     {
       "slotPath": "/SMB_SLOT@0/OPTICL_SLOT@0",
-      "pmUnitName": "3_V_3_L_CARD",
+      "pmUnitName": "MINIPACK3_3V3_L",
       "sensors": [
         {
           "name": "SMB_3V3_L_U8_TEMP",
@@ -4601,7 +4601,7 @@
     },
     {
       "slotPath": "/SMB_SLOT@0/OPTICR_SLOT@0",
-      "pmUnitName": "3_V_3_R_CARD",
+      "pmUnitName": "MINIPACK3_3V3_R",
       "sensors": [
         {
           "name": "SMB_3V3_R_U8_TEMP",
