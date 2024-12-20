@@ -9,5 +9,5 @@ add_library(platform_config_lib
 
 target_link_libraries(platform_config_lib
   Folly::folly
-  product_info
+  platform_name_lib
 )

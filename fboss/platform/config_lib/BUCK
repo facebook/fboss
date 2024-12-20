@@ -43,8 +43,7 @@ cpp_library(
         ":config_generator_h[GeneratedConfig.h]",
     ],
     exported_deps = [
-        "//fboss/lib/platforms:platform_mode",
-        "//fboss/lib/platforms:product-info",
+        "//fboss/platform/helpers:platform_name_lib",
         "//folly:file_util",
         "//folly/logging:logging",
     ],

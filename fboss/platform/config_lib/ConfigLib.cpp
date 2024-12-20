@@ -4,8 +4,7 @@
 #include <folly/FileUtil.h>
 #include <folly/logging/xlog.h>
 
-#include "fboss/lib/platforms/PlatformMode.h"
-#include "fboss/lib/platforms/PlatformProductInfo.h"
+#include "fboss/platform/helpers/PlatformNameLib.h"
 
 #ifndef IS_OSS
 #include "fboss/platform/config_lib/GeneratedConfig.h"
@@ -23,19 +22,9 @@ namespace {
 
 #ifndef IS_OSS
 std::string getPlatformName(const std::optional<std::string>& platformName) {
-  if (platformName) {
-    std::string platformNameLowerCase = *platformName;
-    std::transform(
-        platformNameLowerCase.begin(),
-        platformNameLowerCase.end(),
-        platformNameLowerCase.begin(),
-        ::tolower);
-    return platformNameLowerCase;
-  }
-  facebook::fboss::PlatformProductInfo productInfo(FLAGS_fruid_filepath);
-  productInfo.initialize();
-  auto platform = productInfo.getType();
-  auto platformStr = toString(platform);
+  auto platformStr = platformName
+      ? *platformName
+      : *helpers::PlatformNameLib().getPlatformName();
   std::transform(
       platformStr.begin(), platformStr.end(), platformStr.begin(), ::tolower);
   XLOG(INFO) << "The inferred platform is " << platformStr;
