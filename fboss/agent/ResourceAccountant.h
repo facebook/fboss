@@ -45,6 +45,8 @@ class ResourceAccountant {
       const std::shared_ptr<Route<AddrT>>& route,
       bool add);
 
+  bool checkAndUpdateRouteResource(bool add);
+
   bool l2StateChangedImpl(const StateDelta& delta);
 
   std::map<RouteNextHopEntry::NextHopSet, uint32_t> ecmpGroupRefMap_;

@@ -187,6 +187,18 @@ bool ResourceAccountant::checkRouteResource() const {
   return true;
 }
 
+bool ResourceAccountant::checkAndUpdateRouteResource(bool add) {
+  // Staring with the simpliest computation - treat all routes the same.
+  // We will graually evolve this to be more accurate (e.g. v4 /32, v4 </32,
+  // v6/64 etc.).
+  if (add) {
+    routeUsage_++;
+    return checkRouteResource();
+  }
+  routeUsage_--;
+  return true;
+}
+
 bool ResourceAccountant::ecmpStateChangedImpl(const StateDelta& delta) {
   if (!checkRouteUpdate_) {
     return true;
