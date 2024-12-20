@@ -9,9 +9,9 @@ using namespace ::testing;
 using namespace facebook::fboss;
 
 namespace {
-const std::vector<std::string> l1LinkTestNames = {""};
+const std::vector<std::string> l1LinkTestNames = {};
 
-const std::vector<std::string> l2LinkTestNames = {"undrainedLinkActive"};
+const std::vector<std::string> l2LinkTestNames = {"linkActiveAndLoopStatus"};
 } // namespace
 
 class AgentFabricLinkTest : public AgentEnsembleLinkTest {
