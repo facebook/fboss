@@ -135,9 +135,10 @@ void LldpManager::handlePacket(
       auto newState = state->clone();
       auto newPort = state->getPorts()->getNodeIf(pid)->modify(&newState);
       newPort->setLedPortExternalState(PortLedExternalState::CABLING_ERROR);
+      newPort->addError(PortError::MISMATCHED_NEIGHBOR);
       return newState;
     };
-    sw_->updateState("set port LED state from lldp", updateFn);
+    sw_->updateState("set port error and LED state from lldp", updateFn);
   } else {
     // clear the cabling error led state if needed
     if (port->getLedPortExternalState().has_value() &&
