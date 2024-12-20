@@ -169,11 +169,22 @@ bool ResourceAccountant::checkAndUpdateEcmpResource(
 bool ResourceAccountant::shouldCheckRouteUpdate() const {
   for (const auto& [_, hwAsic] : asicTable_->getHwAsics()) {
     if (hwAsic->getMaxEcmpGroups().has_value() ||
-        hwAsic->getMaxEcmpMembers().has_value()) {
+        hwAsic->getMaxEcmpMembers().has_value() ||
+        hwAsic->getMaxRoutes().has_value()) {
       return true;
     }
   }
   return false;
+}
+
+bool ResourceAccountant::checkRouteResource() const {
+  for (const auto& [_, hwAsic] : asicTable_->getHwAsics()) {
+    const auto routeLimit = hwAsic->getMaxRoutes();
+    if (routeLimit.has_value() && routeUsage_ > routeLimit.value()) {
+      return false;
+    }
+  }
+  return true;
 }
 
 bool ResourceAccountant::ecmpStateChangedImpl(const StateDelta& delta) {

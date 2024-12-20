@@ -32,6 +32,7 @@ class ResourceAccountant {
   int getMemberCountForEcmpGroup(const RouteNextHopEntry& fwd) const;
   bool checkEcmpResource(bool intermediateState) const;
   bool checkDlbResource(uint32_t resourcePercentage) const;
+  bool checkRouteResource() const;
   bool ecmpStateChangedImpl(const StateDelta& delta);
   bool shouldCheckRouteUpdate() const;
   bool isEcmp(const RouteNextHopEntry& fwd) const;
@@ -46,7 +47,6 @@ class ResourceAccountant {
 
   bool l2StateChangedImpl(const StateDelta& delta);
 
-  uint32_t ecmpMemberUsage_{0};
   std::map<RouteNextHopEntry::NextHopSet, uint32_t> ecmpGroupRefMap_;
 
   const HwAsicTable* asicTable_;
@@ -54,6 +54,8 @@ class ResourceAccountant {
   bool checkRouteUpdate_;
   bool checkDlbResource_{true};
   int32_t l2Entries_{0};
+  uint32_t ecmpMemberUsage_{0};
+  uint32_t routeUsage_{0};
 
   FRIEND_TEST(ResourceAccountantTest, getMemberCountForEcmpGroup);
   FRIEND_TEST(ResourceAccountantTest, checkDlbResource);
