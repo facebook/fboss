@@ -413,6 +413,7 @@ agent_benchmark_lib(
     name = "hw_switch_reachability_change_speed",
     srcs = [
         "HwSwitchReachabilityChangeBenchmarkHelper.cpp",
+        "HwSwitchReachabilityChangeFabricBenchmark.cpp",
         "HwSwitchReachabilityChangeVoqBenchmark.cpp",
     ],
     extra_deps = [

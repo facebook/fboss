@@ -453,6 +453,7 @@ target_link_libraries(hw_voq_scale_route_del_speed
 
 add_library(hw_switch_reachability_change_speed
   fboss/agent/hw/benchmarks/HwSwitchReachabilityChangeBenchmarkHelper.cpp
+  fboss/agent/hw/benchmarks/HwSwitchReachabilityChangeFabricBenchmark.cpp
   fboss/agent/hw/benchmarks/HwSwitchReachabilityChangeVoqBenchmark.cpp
 )
 

@@ -47,6 +47,22 @@ void switchReachabilityChangeBenchmarkHelper(cfg::SwitchType switchType) {
         config.dsfNodes() = *utility::addRemoteIntfNodeCfg(*config.dsfNodes());
         return config;
       };
+  AgentEnsembleSwitchConfigFn fabricInitialConfig =
+      [](const AgentEnsemble& ensemble) {
+        FLAGS_hide_fabric_ports = false;
+        FLAGS_disable_looped_fabric_ports = false;
+        FLAGS_detect_wrong_fabric_connections = false;
+        auto config = utility::onePortPerInterfaceConfig(
+            ensemble.getSw(),
+            ensemble.masterLogicalPortIds(),
+            false /*interfaceHasSubnet*/,
+            false /*setInterfaceMac*/,
+            utility::kBaseVlanId,
+            true /*enable fabric ports*/);
+        utility::populatePortExpectedNeighborsToSelf(
+            ensemble.masterLogicalPortIds(), config);
+        return config;
+      };
   std::unique_ptr<AgentEnsemble> ensemble{};
   switch (switchType) {
     case cfg::SwitchType::VOQ: {
@@ -76,7 +92,9 @@ void switchReachabilityChangeBenchmarkHelper(cfg::SwitchType switchType) {
       });
     } break;
     case cfg::SwitchType::FABRIC:
-    // TODO: Support to be added!
+      ensemble = createAgentEnsemble(
+          fabricInitialConfig, false /*disableLinkStateToggler*/);
+      break;
     case cfg::SwitchType::NPU:
     case cfg::SwitchType::PHY:
       throw FbossError(
