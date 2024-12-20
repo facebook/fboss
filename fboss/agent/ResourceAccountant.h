@@ -32,7 +32,6 @@ class ResourceAccountant {
   int getMemberCountForEcmpGroup(const RouteNextHopEntry& fwd) const;
   bool checkEcmpResource(bool intermediateState) const;
   bool checkDlbResource(uint32_t resourcePercentage) const;
-  bool checkRouteResource() const;
   bool routeAndEcmpStateChangedImpl(const StateDelta& delta);
   bool shouldCheckRouteUpdate() const;
   bool isEcmp(const RouteNextHopEntry& fwd) const;
