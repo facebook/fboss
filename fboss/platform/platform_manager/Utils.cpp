@@ -21,6 +21,7 @@ const std::string kGpioChip = "gpiochip";
 
 const re2::RE2 kWatchdogNameRe{"watchdog(\\d+)"};
 const std::string kWatchdog = "watchdog";
+constexpr auto kWatchdogDevCreationWaitSecs = std::chrono::seconds(5);
 } // namespace
 
 namespace facebook::fboss::platform::platform_manager {
@@ -76,7 +77,12 @@ std::string Utils::resolveWatchdogCharDevPath(const std::string& sysfsPath) {
   }
 
   fs::path watchdogDir = fs::path(sysfsPath) / "watchdog";
-  if (!fs::exists(watchdogDir)) {
+  if (!Utils().checkDeviceReadiness(
+          [&]() -> bool { return fs::exists(watchdogDir); },
+          fmt::format(
+              "Watchdog CharDevPath is not created. Waited for at most {}s",
+              kWatchdogDevCreationWaitSecs.count()),
+          kWatchdogDevCreationWaitSecs)) {
     throw std::runtime_error(fmt::format(
         "{}. Reason: Couldn't find watchdog directory under {}",
         failMsg,
