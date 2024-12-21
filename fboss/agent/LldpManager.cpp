@@ -32,37 +32,39 @@ using folly::StringPiece;
 using folly::io::RWPrivateCursor;
 using std::shared_ptr;
 
-/**
- * False if the given LLDP tag has an Expected value configured, and
- * the value received was not as expected.
- *
- * True otherwise.
+namespace {
+
+/*
+ * Checks if the tag is present in the LLDP config, and if the received value
+ * matches the expected value.
  */
-bool checkTag(
+LldpValidationResult checkTag(
     facebook::fboss::PortID id,
     const facebook::fboss::Port::LLDPValidations& lldpmap,
     facebook::fboss::cfg::LLDPTag tag,
     const std::string& val) {
   auto res = lldpmap.find(tag);
-
   if (res == lldpmap.end()) {
-    XLOG(DBG4) << "Port " << id << ": " << std::to_string(static_cast<int>(tag))
-               << ": Not present in config";
-    return true;
+    XLOG(WARNING) << "Port " << id << ": "
+                  << std::to_string(static_cast<int>(tag))
+                  << ": Not present in config";
+    return LldpValidationResult::MISSING;
   }
 
   auto expect = res->second;
   if (val.find(expect) != std::string::npos) {
     XLOG(DBG4) << "Port " << id << std::to_string(static_cast<int>(tag))
                << ", matches: \"" << expect << "\", got: \"" << val << "\"";
-    return true;
+    return LldpValidationResult::SUCCESS;
   }
 
   XLOG(WARNING) << "Port " << id << ", LLDP tag "
                 << std::to_string(static_cast<int>(tag)) << ", expected: \""
                 << expect << "\", got: \"" << val << "\"";
-  return false;
+  return LldpValidationResult::MISMATCH;
 }
+
+} // namespace
 
 namespace facebook::fboss {
 
@@ -119,16 +121,12 @@ void LldpManager::handlePacket(
              << ", LLDP dsc: " << neighbor->getPortDescription();
 
   auto lldpmap = port->getLLDPValidations();
-  if (!(checkTag(
-            pid,
-            lldpmap,
-            cfg::LLDPTag::SYSTEM_NAME,
-            neighbor->getSystemName()) &&
-        checkTag(
-            pid,
-            lldpmap,
-            cfg::LLDPTag::PORT,
-            neighbor->humanReadablePortId()))) {
+  auto systemNameValidation = checkTag(
+      pid, lldpmap, cfg::LLDPTag::SYSTEM_NAME, neighbor->getSystemName());
+  auto portIdValidation = checkTag(
+      pid, lldpmap, cfg::LLDPTag::PORT, neighbor->humanReadablePortId());
+  if (systemNameValidation == LldpValidationResult::MISMATCH ||
+      portIdValidation == LldpValidationResult::MISMATCH) {
     sw_->stats()->LldpValidateMisMatch();
     XLOG(DBG4) << "LLDP expected/recvd value mismatch!";
     auto updateFn = [pid](const shared_ptr<SwitchState>& state) {
