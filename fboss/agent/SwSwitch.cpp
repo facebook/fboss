@@ -1616,6 +1616,7 @@ void SwSwitch::handlePendingUpdates() {
         updates.begin(), pendingUpdates_, pendingUpdates_.begin(), iter);
     pendingUpdateQueueLength = pendingUpdates_.size();
   }
+  stats()->pendingStateUpdateCount(pendingUpdateQueueLength);
 
   // handlePendingUpdates() is invoked once for each update, but a previous
   // call might have already processed everything.  If we don't have anything
