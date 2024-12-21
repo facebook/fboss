@@ -35,6 +35,20 @@ std::shared_ptr<SwitchState> LinkConnectivityProcessor::process(
         newPort->setLedPortExternalState(desiredLedState);
         changed = true;
       };
+  auto setPortErrors =
+      [&out, &changed](PortID portId, const std::set<PortError> updatedErrors) {
+        auto port = out->getPorts()->getNodeIf(portId);
+        auto activeErrorsVec = port->getActiveErrors();
+        auto activeErrors =
+            std::set(activeErrorsVec.begin(), activeErrorsVec.end());
+        if (updatedErrors == activeErrors) {
+          return;
+        }
+
+        changed = true;
+        port->modify(&out)->setActiveErrors(updatedErrors);
+      };
+
   for (const auto& [portId, connectivityDelta] : port2ConnectivityDelta) {
     auto port = in->getPorts()->getNodeIf(portId);
     if (!port) {
@@ -43,12 +57,14 @@ std::shared_ptr<SwitchState> LinkConnectivityProcessor::process(
     }
     XLOG(DBG2) << "Connectivity changed for port " << port->getName()
                << ". Delta: " << connectivityDelta;
+
+    auto portErrors = out->getPorts()->getNodeIf(portId)->getActiveErrors();
+    auto updatedPortErrors = std::set(portErrors.begin(), portErrors.end());
     auto newConnectivity = connectivityDelta.newConnectivity();
     if (newConnectivity.has_value() && *newConnectivity->isAttached()) {
       auto localBaseSwitchId = scopeResolver.scope(portId).switchId();
       auto localPortAsic = asicTable.getHwAsic(localBaseSwitchId);
       auto connectedSwitchId = SwitchID(*newConnectivity->switchId());
-      auto outPort = out->getPorts()->getNodeIf(portId)->modify(&out);
 
       if (connectedSwitchId >= localBaseSwitchId &&
           connectedSwitchId < SwitchID(
@@ -65,18 +81,25 @@ std::shared_ptr<SwitchState> LinkConnectivityProcessor::process(
       } else if (FabricConnectivityManager::isConnectivityInfoMissing(
                      *newConnectivity)) {
         setPortLedState(portId, PortLedExternalState::CABLING_ERROR);
-        outPort->addError(PortError::MISSING_EXPECTED_NEIGHBOR);
+        updatedPortErrors.emplace(PortError::MISSING_EXPECTED_NEIGHBOR);
       } else if (FabricConnectivityManager::isConnectivityInfoMismatch(
                      *newConnectivity)) {
         setPortLedState(portId, PortLedExternalState::CABLING_ERROR);
-        outPort->addError(PortError::MISMATCHED_NEIGHBOR);
+        updatedPortErrors.emplace(PortError::MISMATCHED_NEIGHBOR);
       } else {
+        updatedPortErrors.erase(PortError::MISMATCHED_NEIGHBOR);
+        updatedPortErrors.erase(PortError::MISSING_EXPECTED_NEIGHBOR);
         setPortLedState(portId, PortLedExternalState::NONE);
       }
     } else {
+      updatedPortErrors.erase(PortError::MISMATCHED_NEIGHBOR);
+      updatedPortErrors.erase(PortError::MISSING_EXPECTED_NEIGHBOR);
       setPortLedState(portId, PortLedExternalState::NONE);
     }
+
+    setPortErrors(portId, updatedPortErrors);
   }
+
   return changed ? out : std::shared_ptr<SwitchState>();
 }
 } // namespace facebook::fboss

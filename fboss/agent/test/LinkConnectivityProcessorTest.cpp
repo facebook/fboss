@@ -124,6 +124,25 @@ TEST(LinkConnectivityProcessorTest, processMissingNeighbor) {
     EXPECT_EQ(
         port->getActiveErrors().at(0), PortError::MISSING_EXPECTED_NEIGHBOR);
   }
+
+  // When neighbor is restored
+  endpoint.expectedSwitchId() = getSwitchId(switchType);
+  {
+    std::shared_ptr<SwitchState> result = LinkConnectivityProcessor::process(
+        *sw->getScopeResolver(),
+        *sw->getHwAsicTable(),
+        state,
+        makeConnectivity(endpoint, portID));
+
+    // Then error should be cleared
+    auto port = result->getPorts()->getNodeIf(portID);
+    CHECK(port);
+    CHECK(port->getLedPortExternalState());
+    CHECK(port->getLedPortExternalState().has_value());
+    EXPECT_EQ(
+        port->getLedPortExternalState().value(), PortLedExternalState::NONE);
+    EXPECT_EQ(port->getActiveErrors().size(), 0);
+  }
 }
 
 TEST(LinkConnectivityProcessorTest, processMismatchedNeighbor) {
@@ -144,6 +163,7 @@ TEST(LinkConnectivityProcessorTest, processMismatchedNeighbor) {
   // Prepare port and endpoint
   auto portID = PortID(1);
   auto endpoint = createFabricEndpoint(getSwitchId(switchType), portID);
+  auto endpointCorrectSwitchName = endpoint.switchName().value();
   endpoint.switchName() = "mismatchedSwitchName";
 
   // When neighbor is mismatched
@@ -164,6 +184,25 @@ TEST(LinkConnectivityProcessorTest, processMismatchedNeighbor) {
         PortLedExternalState::CABLING_ERROR);
     EXPECT_EQ(port->getActiveErrors().size(), 1);
     EXPECT_EQ(port->getActiveErrors().at(0), PortError::MISMATCHED_NEIGHBOR);
+  }
+
+  // When port is fixed
+  endpoint.switchName() = endpointCorrectSwitchName;
+  {
+    std::shared_ptr<SwitchState> result = LinkConnectivityProcessor::process(
+        *sw->getScopeResolver(),
+        *sw->getHwAsicTable(),
+        state,
+        makeConnectivity(endpoint, portID));
+
+    // Then error should be cleared
+    auto port = result->getPorts()->getNodeIf(portID);
+    CHECK(port);
+    CHECK(port->getLedPortExternalState());
+    CHECK(port->getLedPortExternalState().has_value());
+    EXPECT_EQ(
+        port->getLedPortExternalState().value(), PortLedExternalState::NONE);
+    EXPECT_EQ(port->getActiveErrors().size(), 0);
   }
 }
 
