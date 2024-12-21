@@ -207,7 +207,7 @@ TEST_F(QosMapManagerTest, addPortQos) {
   auto port = std::make_shared<Port>(std::move(portFields));
   port->setQosPolicy("qos");
   switchState->getPorts()->addNode(port, scopeResolver().scope(port));
-  EXPECT_FALSE(saiPlatform->getHwSwitch()->isValidStateUpdate(
+  EXPECT_TRUE(saiPlatform->getHwSwitch()->isValidStateUpdate(
       StateDelta(std::make_shared<SwitchState>(), switchState)));
 }
 
@@ -235,6 +235,6 @@ TEST_F(QosMapManagerTest, changAddsPortQos) {
   auto newSwitchSettings = switchSettings->modify(&newState);
   newSwitchSettings->setDefaultDataPlaneQosPolicy(nullptr);
   newPort->setQosPolicy("qos");
-  EXPECT_FALSE(saiPlatform->getHwSwitch()->isValidStateUpdate(
+  EXPECT_TRUE(saiPlatform->getHwSwitch()->isValidStateUpdate(
       StateDelta(oldState, newState)));
 }

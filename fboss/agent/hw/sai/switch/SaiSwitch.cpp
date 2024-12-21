@@ -3241,20 +3241,6 @@ bool SaiSwitch::isValidStateUpdateLocked(
      */
   }
 
-  auto qosDelta = delta.getQosPoliciesDelta();
-
-  // Default QoS policy is stored at
-  // switchSettings::defaultDataPlaneQosPolicy. qosDelta.getNew()->numNodes()
-  // gives the number of non-default QoS policies stored at qosPolicyMaps in
-  // SwitchState. Only J3 needs non-default Qos policy for control plane right
-  // now.
-  if (getSwitchType() != cfg::SwitchType::VOQ &&
-      qosDelta.getNew()->numNodes() > 0) {
-    XLOG(ERR)
-        << "Only default data plane qos policy is supported on non-VOQ switch type";
-    return false;
-  }
-
   if (delta.oldState()->getSwitchSettings()->size() &&
       delta.newState()->getSwitchSettings()->empty()) {
     throw FbossError("Switch settings cannot be removed from SwitchState");
