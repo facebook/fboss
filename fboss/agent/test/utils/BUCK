@@ -473,7 +473,7 @@ cpp_library(
         "//fboss/agent:switch_config-cpp2-types",
         "//fboss/agent:utils",
         "//fboss/agent/hw:hardware_stats-cpp2-types",
-        "//fboss/agent/test:agent_hw_test",
+        "//fboss/agent/test:agent_ensemble",
     ],
 )
 

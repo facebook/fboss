@@ -209,7 +209,8 @@ cfg::AclTable* addAclTable(
     const std::string& aclTableName,
     const int aclTablePriority,
     const std::vector<cfg::AclTableActionType>& actionTypes,
-    const std::vector<cfg::AclTableQualifier>& qualifiers) {
+    const std::vector<cfg::AclTableQualifier>& qualifiers,
+    const std::vector<std::string>& udfGroups) {
   auto aclTableGroup = getAclTableGroup(*cfg);
   if (!aclTableGroup) {
     throw FbossError(
@@ -221,6 +222,7 @@ cfg::AclTable* addAclTable(
   aclTable.priority() = aclTablePriority;
   aclTable.actionTypes() = actionTypes;
   aclTable.qualifiers() = qualifiers;
+  aclTable.udfGroups() = udfGroups;
 
   aclTableGroup->aclTables()->push_back(aclTable);
   return &aclTableGroup->aclTables()->back();
