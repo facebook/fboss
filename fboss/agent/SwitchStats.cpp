@@ -245,6 +245,13 @@ SwitchStats::SwitchStats(ThreadLocalStatsMap* map, int numSwitches)
           0,
           200,
           AVG),
+      pendingStateUpdateCount_(
+          map,
+          kCounterPrefix + "pending_state_update_count",
+          1,
+          0,
+          10000,
+          AVG),
       linkStateChange_(map, kCounterPrefix + "link_state.flap", SUM),
       linkActiveStateChange_(
           map,

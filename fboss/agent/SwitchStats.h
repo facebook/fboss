@@ -333,6 +333,10 @@ class SwitchStats : public boost::noncopyable {
     maxNumOfPhysicalHostsPerQueue_.addValue(value);
   }
 
+  void pendingStateUpdateCount(int value) {
+    pendingStateUpdateCount_.addValue(value);
+  }
+
   void linkStateChange() {
     linkStateChange_.addValue(1);
   }
@@ -946,6 +950,10 @@ class SwitchStats : public boost::noncopyable {
    * should be 0 or 1, alert when >=2
    */
   TLHistogram maxNumOfPhysicalHostsPerQueue_;
+  /**
+   * Number of state updates queued in state update queue
+   */
+  TLHistogram pendingStateUpdateCount_;
 
   /**
    * Link state up/down change count
