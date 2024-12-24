@@ -28,7 +28,8 @@
         39,
         41,
         40,
-        44
+        44,
+        50
     ],
     "jericho2": [
         2,
@@ -160,7 +161,8 @@
         39,
         40,
         42,
-        44
+        44,
+        50
     ],
     "tomahawk4": [
         2,
@@ -196,7 +198,8 @@
         40,
         42,
         43,
-        44
+        44,
+        50
     ],
     "tomahawk5": [
         2,
@@ -212,6 +215,7 @@
         14,
         16,
         17,
+        19,
         20,
         21,
         22,
@@ -230,7 +234,8 @@
         39,
         40,
         42,
-        44
+        44,
+        50
     ],
     "yuba": [
         2,
@@ -261,7 +266,8 @@
         7,
         25,
         42,
-        44
+        44,
+        50
     ]
   },
   "asicToFeatureNames": {
@@ -293,7 +299,8 @@
         "HGRID_UU_ROUTE_SCALE",
         "TH_ALPM_ROUTE_SCALE",
         "HUNDRED_THOUSAND_ROUTE_SCALE",
-        "VLAN"
+        "VLAN",
+        "PAUSE"
     ],
     "jericho2": [
         "CPU_RX_TX",
@@ -425,7 +432,8 @@
         "HGRID_UU_ROUTE_SCALE",
         "HUNDRED_THOUSAND_ROUTE_SCALE",
         "PFC",
-        "VLAN"
+        "VLAN",
+        "PAUSE"
     ],
     "tomahawk4": [
         "CPU_RX_TX",
@@ -461,7 +469,8 @@
         "HUNDRED_THOUSAND_ROUTE_SCALE",
         "PFC",
         "UDF_WR_IMMEDIATE_ACL",
-        "VLAN"
+        "VLAN",
+        "PAUSE"
     ],
     "tomahawk5": [
         "CPU_RX_TX",
@@ -477,6 +486,7 @@
         "LAG_LOAD_BALANCER",
         "SINGLE_ACL_TABLE",
         "MULTI_ACL_TABLE",
+        "DLB",
         "ECN",
         "WRED",
         "QUEUE_PER_HOST",
@@ -495,7 +505,8 @@
         "HGRID_UU_ROUTE_SCALE",
         "HUNDRED_THOUSAND_ROUTE_SCALE",
         "PFC",
-        "VLAN"
+        "VLAN",
+        "PAUSE"
     ],
     "yuba": [
         "CPU_RX_TX",
@@ -526,7 +537,8 @@
         "PRBS",
         "MAC_LEARNING",
         "PFC",
-        "VLAN"
+        "VLAN",
+        "PAUSE"
     ]
   }
 }
