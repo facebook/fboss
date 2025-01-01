@@ -41,15 +41,6 @@ bool MultiSwitchHwSwitchHandler::sendPacketSwitchedAsync(
 
 bool MultiSwitchHwSwitchHandler::transactionsSupported(
     std::optional<cfg::SdkVersion> sdkVersion) const {
-  if (auto asicTable = sw_->getHwAsicTable()) {
-    for (const auto& [_, asic] : asicTable->getHwAsics()) {
-      // TODO(CHENAB-SDK): fix rollback on chenab
-      if (asic->getAsicType() == cfg::AsicType::ASIC_TYPE_CHENAB) {
-        return false;
-      }
-    }
-  }
-
   if (sdkVersion.has_value() && sdkVersion.value().saiSdk().has_value()) {
     return true;
   }
