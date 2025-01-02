@@ -218,7 +218,9 @@ struct Serializable {
   virtual ~Serializable() = default;
 
   folly::fbstring encode(fsdb::OperProtocol proto) const {
-    return encodeBuf(proto).moveToFbString();
+    auto str = encodeBuf(proto).moveToFbString();
+    str.shrink_to_fit();
+    return str;
   }
 
   virtual folly::IOBuf encodeBuf(fsdb::OperProtocol proto) const = 0;
