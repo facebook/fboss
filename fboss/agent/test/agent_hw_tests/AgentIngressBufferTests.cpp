@@ -199,35 +199,6 @@ TEST_F(AgentIngressBufferTest, validateConfig) {
   verifyAcrossWarmBoots(setup, verify);
 }
 
-// Create PG, Ingress pool config, associate with PFC config.
-// Modify the ingress pool params only and ensure that it is
-// getting re-programmed
-TEST_F(AgentIngressBufferTest, validateIngressPoolParamChange) {
-  auto setup = [&]() {
-    setupHelper();
-    auto portId = masterLogicalInterfacePortIds()[0];
-    auto switchId = getSw()->getScopeResolver()->scope(portId).switchId();
-    auto asic = getSw()->getHwAsicTable()->getHwAsic(switchId);
-    // setup bufferPool
-    std::map<std::string, cfg::BufferPoolConfig> bufferPoolCfgMap;
-    bufferPoolCfgMap.insert(make_pair(
-        static_cast<std::string>(kBufferPoolName),
-        getBufferPoolConfig(asic->getPacketBufferUnitSize(), 1)));
-    cfg_.bufferPoolConfigs() = bufferPoolCfgMap;
-    // update one PG, and see ifs reflected in the HW
-    applyNewConfig(cfg_);
-  };
-
-  auto verify = [&]() {
-    WITH_RETRIES({
-      EXPECT_EVENTUALLY_TRUE(checkSwHwPgCfgMatch(
-          masterLogicalInterfacePortIds()[0], true /*pfcEnable*/));
-    });
-  };
-
-  verifyAcrossWarmBoots(setup, verify);
-}
-
 // Create PG config, associate with PFC config. Modify the PG
 // config params and ensure that its getting re-programmed.
 TEST_F(AgentIngressBufferTest, validatePGParamChange) {
@@ -387,6 +358,45 @@ TEST_F(AgentIngressBufferTest, validatePGQueueChanges) {
     portPgConfigMap["foo"] = getPortPgConfig(
         asic->getPacketBufferUnitSize(), {1}, 0, true /* enableHeadroom */);
     cfg_.portPgConfigs() = portPgConfigMap;
+    applyNewConfig(cfg_);
+  };
+
+  auto verify = [&]() {
+    WITH_RETRIES({
+      EXPECT_EVENTUALLY_TRUE(checkSwHwPgCfgMatch(
+          masterLogicalInterfacePortIds()[0], true /*pfcEnable*/));
+    });
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
+}
+
+class AgentIngressBufferPoolTest : public AgentIngressBufferTest {
+  std::vector<production_features::ProductionFeature>
+  getProductionFeaturesVerified() const override {
+    auto features = AgentIngressBufferTest::getProductionFeaturesVerified();
+    features.push_back(production_features::ProductionFeature::
+                           SEPARATE_INGRESS_EGRESS_BUFFER_POOL);
+    return features;
+  }
+};
+
+// Create PG, Ingress pool config, associate with PFC config.
+// Modify the ingress pool params only and ensure that it is
+// getting re-programmed
+TEST_F(AgentIngressBufferPoolTest, validateIngressPoolParamChange) {
+  auto setup = [&]() {
+    setupHelper();
+    auto portId = masterLogicalInterfacePortIds()[0];
+    auto switchId = getSw()->getScopeResolver()->scope(portId).switchId();
+    auto asic = getSw()->getHwAsicTable()->getHwAsic(switchId);
+    // setup bufferPool
+    std::map<std::string, cfg::BufferPoolConfig> bufferPoolCfgMap;
+    bufferPoolCfgMap.insert(make_pair(
+        static_cast<std::string>(kBufferPoolName),
+        getBufferPoolConfig(asic->getPacketBufferUnitSize(), 1)));
+    cfg_.bufferPoolConfigs() = bufferPoolCfgMap;
+    // update one PG, and see ifs reflected in the HW
     applyNewConfig(cfg_);
   };
 
