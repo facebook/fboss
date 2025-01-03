@@ -837,8 +837,6 @@ class SwSwitch : public HwSwitchCallback {
   cfg::AgentConfig getAgentConfig() const;
 
   AdminDistance clientIdToAdminDistance(int clientId) const;
-  void publishRxPacket(RxPacket* packet, uint16_t ethertype);
-  void publishTxPacket(TxPacket* packet, uint16_t ethertype);
 
   /*
    * Clear PortStats of the specified port.

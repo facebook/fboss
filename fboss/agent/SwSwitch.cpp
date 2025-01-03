@@ -1145,30 +1145,6 @@ void SwSwitch::exitFatal() const noexcept {
   }
 }
 
-void SwSwitch::publishRxPacket(RxPacket* pkt, uint16_t ethertype) {
-  RxPacketData pubPkt;
-  pubPkt.srcPort = pkt->getSrcPort();
-  pubPkt.srcVlan = pkt->getSrcVlanIf();
-
-  for (const auto& r : pkt->getReasons()) {
-    RxReason reason;
-    reason.bytes = r.bytes;
-    reason.description = r.description;
-    pubPkt.reasons.push_back(reason);
-  }
-
-  folly::IOBuf buf_copy;
-  pkt->buf()->cloneInto(buf_copy);
-  pubPkt.packetData = buf_copy.moveToFbString();
-}
-
-void SwSwitch::publishTxPacket(TxPacket* pkt, uint16_t ethertype) {
-  TxPacketData pubPkt;
-  folly::IOBuf copy_buf;
-  pkt->buf()->cloneInto(copy_buf);
-  pubPkt.packetData = copy_buf.moveToFbString();
-}
-
 std::shared_ptr<SwitchState> SwSwitch::preInit(SwitchFlags flags) {
   auto begin = steady_clock::now();
   flags_ = flags;
