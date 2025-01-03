@@ -188,13 +188,15 @@ void AgentTest::waitForLinkStatus(
     badPorts.clear();
     for (const auto& port : portsToCheck) {
       if (*portStatus[port].up() != up) {
-        std::this_thread::sleep_for(msBetweenRetry);
         portStatus = sw()->getPortStatus();
         badPorts.push_back(port);
       }
     }
     if (badPorts.empty()) {
       return;
+    } else {
+      /* sleep override */
+      std::this_thread::sleep_for(msBetweenRetry);
     }
   }
 
