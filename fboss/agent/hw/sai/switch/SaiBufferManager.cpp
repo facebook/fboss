@@ -197,6 +197,14 @@ void SaiBufferManager::setupEgressBufferPool(
   } else {
     poolSize = getMaxEgressPoolBytes(platform_);
   }
+  if (FLAGS_egress_buffer_pool_size > 0) {
+    uint64_t newSize = FLAGS_egress_buffer_pool_size *
+        platform_->getAsic()->getNumMemoryBuffers();
+    XLOG(WARNING) << "Overriding egress buffer pool size from " << poolSize
+                  << " to " << newSize;
+    poolSize = newSize;
+  }
+
   SaiBufferPoolTraits::CreateAttributes attributes{
       SAI_BUFFER_POOL_TYPE_EGRESS,
       poolSize,

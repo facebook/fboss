@@ -58,6 +58,10 @@ using std::chrono::steady_clock;
 DEFINE_string(mac, "", "The local MAC address for this switch");
 DEFINE_string(mgmt_if, "eth0", "name of management interface");
 DEFINE_uint64(
+    egress_buffer_pool_size,
+    0,
+    "Egress buffer pool size override for testing");
+DEFINE_uint64(
     ingress_egress_buffer_pool_size,
     0,
     "Common ingress/egress buffer pool size override");
