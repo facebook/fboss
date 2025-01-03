@@ -144,7 +144,13 @@ SaiTamManager::SaiTamManager(
 void SaiTamManager::addMirrorOnDropReport(
     const std::shared_ptr<MirrorOnDropReport>& report) {
 #if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
-  XLOG(INFO) << "Creating MirrorOnDropReport " << report->getID();
+  XLOG(INFO) << "Creating MirrorOnDropReport " << report->getID()
+             << " srcIp=" << report->getLocalSrcIp().str()
+             << " srcPort=" << report->getLocalSrcPort()
+             << " collectorIp=" << report->getCollectorIp().str()
+             << " collectorPort=" << report->getCollectorPort()
+             << " srcMac=" << report->getSwitchMac()
+             << " dstMac=" << report->getFirstInterfaceMac();
 
   // Create report
   auto& reportStore = saiStore_->get<SaiTamReportTraits>();
