@@ -23,9 +23,8 @@ namespace {
 
 using facebook::fboss::utility::PfcBufferParams;
 
-static constexpr auto kGlobalSharedBytes{20000};
-static constexpr auto kPgLimitBytes{2200};
-static constexpr auto kPgResumeOffsetBytes{1800};
+// TODO(maxgg): Change the overall default to 20000 once CS00012382848 is fixed.
+static constexpr auto kSmallGlobalSharedSize{20000};
 static constexpr auto kGlobalIngressEgressBufferPoolSize{
     5064760}; // Keep a high pool size for DNX
 static constexpr auto kLosslessTrafficClass{2};
@@ -190,17 +189,16 @@ class AgentTrafficPfcTest : public AgentHwTest {
      * asics like Jericho2.
      */
     FLAGS_ingress_egress_buffer_pool_size = kGlobalIngressEgressBufferPoolSize;
+    // Some platforms (TH4, TH5) requires same egress/ingress buffer pool sizes.
+    FLAGS_egress_buffer_pool_size = PfcBufferParams::kGlobalSharedBytes +
+        PfcBufferParams::kGlobalHeadroomBytes;
+    FLAGS_skip_buffer_reservation = true;
+    FLAGS_qgroup_guarantee_enable = true;
   }
 
   void applyPlatformConfigOverrides(
       const cfg::SwitchConfig& sw,
       cfg::PlatformConfig& config) const override {
-    // These configs only work for Broadcom SDK.
-    if (utility::isSaiConfig(sw)) {
-      return;
-    }
-
-    // Equivalent to FLAGS_mmu_lossless_mode=true in hw tests.
     utility::modifyPlatformConfig(
         config,
         [](std::string& yamlCfg) {
@@ -264,19 +262,31 @@ class AgentTrafficPfcTest : public AgentHwTest {
   }
 
  protected:
-  cfg::MMUScalingFactor getDefaultMmuScalingFactor() {
-    auto asicType =
-        utility::checkSameAndGetAsic(getAgentEnsemble()->getL3Asics())
-            ->getAsicType();
-    switch (asicType) {
-      case cfg::AsicType::ASIC_TYPE_TOMAHAWK3:
-      case cfg::AsicType::ASIC_TYPE_TOMAHAWK4:
-      case cfg::AsicType::ASIC_TYPE_TOMAHAWK5:
-        return cfg::MMUScalingFactor::ONE_HALF;
-
+  PfcBufferParams defaultPfcBufferParams(
+      PfcBufferParams buffer = PfcBufferParams{}) {
+    auto asic = utility::checkSameAndGetAsic(getAgentEnsemble()->getL3Asics());
+    switch (asic->getAsicType()) {
+      case cfg::AsicType::ASIC_TYPE_JERICHO2:
+      case cfg::AsicType::ASIC_TYPE_JERICHO3:
+        buffer.globalHeadroom = kSmallGlobalSharedSize;
+        break;
       default:
-        return cfg::MMUScalingFactor::ONE_128TH;
+        buffer.globalHeadroom = PfcBufferParams::kGlobalHeadroomBytes;
+        break;
     }
+    if (!buffer.scalingFactor.has_value()) {
+      switch (asic->getAsicType()) {
+        case cfg::AsicType::ASIC_TYPE_TOMAHAWK3:
+        case cfg::AsicType::ASIC_TYPE_TOMAHAWK4:
+        case cfg::AsicType::ASIC_TYPE_TOMAHAWK5:
+          buffer.scalingFactor = cfg::MMUScalingFactor::ONE_HALF;
+          break;
+        default:
+          buffer.scalingFactor = cfg::MMUScalingFactor::ONE_128TH;
+          break;
+      }
+    }
+    return buffer;
   }
 
   void setupEcmpTraffic(const std::vector<PortID>& portIds) {
@@ -425,9 +435,6 @@ class AgentTrafficPfcTest : public AgentHwTest {
         // Apply PFC config to all ports
         portIdsToConfigure = masterLogicalInterfacePortIds();
       }
-      if (!testParams.buffer.scalingFactor.has_value()) {
-        testParams.buffer.scalingFactor = getDefaultMmuScalingFactor();
-      }
       utility::setupPfcBuffers(
           getAgentEnsemble(),
           cfg,
@@ -495,6 +502,9 @@ class AgentTrafficPfcGenTest
       // Force headroom 0 for lossless PG
       FLAGS_allow_zero_headroom_for_lossless_pg = true;
     }
+    // Some platforms (TH4, TH5) requires same egress/ingress buffer pool sizes.
+    FLAGS_egress_buffer_pool_size =
+        GetParam().buffer.globalShared + GetParam().buffer.globalHeadroom;
   }
 };
 
@@ -507,20 +517,18 @@ INSTANTIATE_TEST_SUITE_P(
         },
         TrafficTestParams{
             .name = "WithScaleCfg",
-            .buffer =
-                PfcBufferParams{
-                    .globalShared = kGlobalSharedBytes * 5,
-                    .pgLimit = kPgLimitBytes / 3,
-                    .resumeOffset = kPgResumeOffsetBytes / 3},
-            .scale = true},
+            .scale = true,
+        },
         TrafficTestParams{
             .name = "WithZeroPgHeadRoomCfg",
             .buffer = PfcBufferParams{.pgHeadroom = 0},
-            .expectDrop = true},
+            .expectDrop = true,
+        },
         TrafficTestParams{
             .name = "WithZeroGlobalHeadRoomCfg",
             .buffer = PfcBufferParams{.globalHeadroom = 0},
-            .expectDrop = true}),
+            .expectDrop = true,
+        }),
     [](const ::testing::TestParamInfo<TrafficTestParams>& info) {
       return info.param.name;
     });
@@ -528,15 +536,9 @@ INSTANTIATE_TEST_SUITE_P(
 TEST_P(AgentTrafficPfcGenTest, verifyPfc) {
   const int trafficClass = kLosslessTrafficClass;
   const int pfcPriority = kLosslessPriority;
-  TrafficTestParams trafficParams = GetParam();
-  auto asicType = utility::checkSameAndGetAsic(getAgentEnsemble()->getL3Asics())
-                      ->getAsicType();
-  if (asicType == cfg::AsicType::ASIC_TYPE_JERICHO2 ||
-      asicType == cfg::AsicType::ASIC_TYPE_JERICHO3) {
-    // Keep smaller global pool size
-    trafficParams.buffer.globalShared = kGlobalSharedBytes;
-  }
-  runTestWithCfg(trafficClass, pfcPriority, {}, trafficParams);
+  auto param = GetParam();
+  param.buffer = defaultPfcBufferParams(param.buffer);
+  runTestWithCfg(trafficClass, pfcPriority, {}, param);
 }
 
 // intent of this test is to send traffic so that it maps to
@@ -550,7 +552,7 @@ TEST_F(AgentTrafficPfcTest, verifyPfcWithMapChanges_0) {
       trafficClass,
       pfcPriority,
       {{trafficClass, pfcPriority}},
-      TrafficTestParams{});
+      TrafficTestParams{.buffer = defaultPfcBufferParams()});
 }
 
 // intent of this test is to send traffic so that it maps to
@@ -564,7 +566,7 @@ TEST_F(AgentTrafficPfcTest, verifyPfcWithMapChanges_1) {
       trafficClass,
       pfcPriority,
       {{trafficClass, pfcPriority}},
-      TrafficTestParams{});
+      TrafficTestParams{.buffer = defaultPfcBufferParams()});
 }
 
 TEST_F(AgentTrafficPfcTest, verifyBufferPoolWatermarks) {
@@ -574,7 +576,7 @@ TEST_F(AgentTrafficPfcTest, verifyBufferPoolWatermarks) {
       trafficClass,
       pfcPriority,
       {},
-      TrafficTestParams{},
+      TrafficTestParams{.buffer = defaultPfcBufferParams()},
       validateBufferPoolWatermarkCounters);
 }
 
@@ -585,7 +587,7 @@ TEST_F(AgentTrafficPfcTest, verifyIngressPriorityGroupWatermarks) {
       trafficClass,
       pfcPriority,
       {},
-      TrafficTestParams{},
+      TrafficTestParams{.buffer = defaultPfcBufferParams()},
       validateIngressPriorityGroupWatermarkCounters);
 }
 
@@ -593,13 +595,10 @@ class AgentTrafficPfcWatchdogTest : public AgentTrafficPfcTest {
  protected:
   void setupConfigAndEcmpTraffic(const std::vector<PortID>& portIds) {
     cfg::SwitchConfig cfg = getAgentEnsemble()->getCurrentConfig();
+    PfcBufferParams buffer = defaultPfcBufferParams();
+    buffer.scalingFactor = cfg::MMUScalingFactor::ONE_128TH;
     utility::setupPfcBuffers(
-        getAgentEnsemble(),
-        cfg,
-        portIds,
-        kLosslessPgIds,
-        {},
-        PfcBufferParams{.scalingFactor = cfg::MMUScalingFactor::ONE_128TH});
+        getAgentEnsemble(), cfg, portIds, kLosslessPgIds, {}, buffer);
     applyNewConfig(cfg);
     setupEcmpTraffic(portIds);
   }

@@ -10,8 +10,13 @@
 namespace facebook::fboss::utility {
 
 struct PfcBufferParams {
-  int globalShared = 20000;
-  int globalHeadroom = 5000; // keep this lower than globalShared
+  // TODO(maxgg): Change this back to 20000 once CS00012382848 is fixed.
+  static constexpr auto kGlobalSharedBytes{1000000};
+  static constexpr auto kGlobalHeadroomBytes{
+      5000}; // keep this lower than globalShared
+
+  int globalShared = kGlobalSharedBytes;
+  int globalHeadroom = kGlobalHeadroomBytes;
   int pgLimit = 2200;
   int pgHeadroom = 2200; // keep this lower than globalShared
   std::optional<facebook::fboss::cfg::MMUScalingFactor> scalingFactor;
