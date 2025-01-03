@@ -20,6 +20,9 @@
 #include "fboss/agent/hw/sai/switch/SaiSwitch.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
 #include "fboss/agent/hw/sai/switch/SaiVirtualRouterManager.h"
+#include "fboss/agent/test/TestEnsembleIf.h"
+
+#include "folly/testing/TestUtil.h"
 
 namespace facebook::fboss {
 class TestEnsembleIf;
@@ -226,8 +229,28 @@ bool validateFlowletSwitchingDisabled(const HwSwitch* hw) {
 #endif
 }
 
-void setEcmpMemberStatus(const TestEnsembleIf* /* unused */) {
-  // not applicable to SAI
+void runCint(TestEnsembleIf* ensemble, const std::string& cintStr) {
+  folly::test::TemporaryFile file;
+  XLOG(INFO) << " Cint file " << file.path().c_str();
+  folly::writeFull(file.fd(), cintStr.c_str(), cintStr.size());
+  auto cmd = folly::sformat("cint {}\n", file.path().c_str());
+  std::string out;
+  ensemble->runDiagCommand(cmd, out, std::nullopt);
+}
+
+void setEcmpMemberStatus(const TestEnsembleIf* ensemble) {
+  constexpr auto kSetEcmpMemberStatus = R"(
+  cint_reset();
+  bcm_l3_egress_ecmp_member_status_set(0, 100003, BCM_L3_ECMP_DYNAMIC_MEMBER_FORCE_UP);
+  bcm_l3_egress_ecmp_member_status_set(0, 100004, BCM_L3_ECMP_DYNAMIC_MEMBER_FORCE_UP);
+  bcm_l3_egress_ecmp_member_status_set(0, 100005, BCM_L3_ECMP_DYNAMIC_MEMBER_FORCE_UP);
+  bcm_l3_egress_ecmp_member_status_set(0, 100006, BCM_L3_ECMP_DYNAMIC_MEMBER_FORCE_UP);
+  bcm_l3_egress_ecmp_member_status_set(0, 100007, BCM_L3_ECMP_DYNAMIC_MEMBER_FORCE_UP);
+  bcm_l3_egress_ecmp_member_status_set(0, 100008, BCM_L3_ECMP_DYNAMIC_MEMBER_FORCE_UP);
+  bcm_l3_egress_ecmp_member_status_set(0, 100009, BCM_L3_ECMP_DYNAMIC_MEMBER_FORCE_UP);
+  bcm_l3_egress_ecmp_member_status_set(0, 100010, BCM_L3_ECMP_DYNAMIC_MEMBER_FORCE_UP);
+  )";
+  runCint(const_cast<TestEnsembleIf*>(ensemble), kSetEcmpMemberStatus);
 }
 
 bool validateFlowSetTable(
