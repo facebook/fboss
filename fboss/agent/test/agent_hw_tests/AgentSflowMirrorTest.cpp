@@ -290,21 +290,21 @@ class AgentSflowMirrorTest : public AgentHwTest {
     return pkt;
   }
 
-  int getSflowPacketHeaderLength() {
-    return getSflowPacketHeaderLength(
-        std::is_same_v<AddrT, folly::IPAddressV6>);
+  int getSflowPacketNonSflowHeaderLen() {
+    auto ipHeaderLen = std::is_same_v<AddrT, folly::IPAddressV6> ? 40 : 20;
+    auto asic = checkSameAndGetAsic();
+    auto vlanHeaderLen = asic->getSwitchType() == cfg::SwitchType::VOQ ? 0 : 4;
+    return 14 /* ethernet header */ + vlanHeaderLen + ipHeaderLen +
+        UDPHeader::size();
   }
 
-  int getSflowPacketHeaderLength(bool isV6) {
-    auto ipHeader = isV6 ? 40 : 20;
+  int getSflowPacketHeaderLength() {
     auto asic = checkSameAndGetAsic();
-    int slfowShimHeaderLength = asic->getSflowShimHeaderSize();
+    int sflowShimHeaderLength = asic->getSflowShimHeaderSize();
     if (asic->isSupported(HwAsic::Feature::SFLOW_SHIM_VERSION_FIELD)) {
-      slfowShimHeaderLength += 4;
+      sflowShimHeaderLength += 4;
     }
-    auto vlanHeader = asic->getSwitchType() == cfg::SwitchType::VOQ ? 0 : 4;
-    return 14 /* ethernet header */ + vlanHeader + ipHeader +
-        8 /* udp header */ + slfowShimHeaderLength;
+    return sflowShimHeaderLength + getSflowPacketNonSflowHeaderLen();
   }
 
   void verifySampledPacket(
@@ -330,7 +330,7 @@ class AgentSflowMirrorTest : public AgentHwTest {
 
     // captured packet has encap header on top
     ASSERT_GE(capturedPkt.length(), length);
-    EXPECT_GE(capturedPkt.length(), getSflowPacketHeaderLength(!isV4));
+    EXPECT_GE(capturedPkt.length(), getSflowPacketHeaderLength());
 
     auto payloadLength = length;
     if (checkSameAndGetAsic()->getAsicType() ==
@@ -342,7 +342,7 @@ class AgentSflowMirrorTest : public AgentHwTest {
       payloadLength = 512;
     }
     auto delta = capturedPkt.length() - payloadLength;
-    EXPECT_LE(delta, getSflowPacketHeaderLength(!isV4));
+    EXPECT_LE(delta, getSflowPacketHeaderLength());
     auto udpPayload = isV4 ? capturedPkt.v4PayLoad()->udpPayload()
                            : capturedPkt.v6PayLoad()->udpPayload();
     auto payload = udpPayload->payload();
@@ -383,6 +383,34 @@ class AgentSflowMirrorTest : public AgentHwTest {
     }
   }
 
+  void verifySflowPacketUdpChecksum(
+      const folly::IOBuf* capturedPktBuf,
+      const utility::EthFrame& capturedPkt,
+      const std::optional<utility::UDPDatagram>& udpPayload) {
+    uint16_t csum = 0;
+    if (udpPayload->header().csum) {
+      folly::io::Cursor pktCursor{capturedPktBuf};
+      pktCursor += getSflowPacketNonSflowHeaderLen();
+      auto udpHdr = UDPHeader(
+          udpPayload->header().srcPort,
+          udpPayload->header().dstPort,
+          udpPayload->header().length,
+          udpPayload->header().csum);
+      if (std::is_same_v<AddrT, folly::IPAddressV4>) {
+        csum = udpHdr.computeChecksum(
+            capturedPkt.v4PayLoad()->header(), pktCursor);
+      } else {
+        csum = udpHdr.computeChecksum(
+            capturedPkt.v6PayLoad()->header(), pktCursor);
+      }
+    }
+    XLOG(DBG2) << "Sflow packet expected UDP csum: " << csum
+               << ", csum in packet: " << udpPayload->header().csum;
+    // If sflow packet has non zero UDP csum, then make sure that
+    // its as expected!
+    EXPECT_EQ(udpPayload->header().csum, csum);
+  }
+
   void verifySampledPacketWithTruncate() {
     auto ports = getPortsForSampling();
     getAgentEnsemble()->bringDownPorts(
@@ -405,18 +433,19 @@ class AgentSflowMirrorTest : public AgentHwTest {
 
     // captured packet has encap header on top
     EXPECT_LE(capturedPkt.length(), length);
-    auto capturedHdrSize = getSflowPacketHeaderLength(true);
+    auto capturedHdrSize = getSflowPacketHeaderLength();
     EXPECT_GE(capturedPkt.length(), capturedHdrSize);
 
     EXPECT_LE(
         capturedPkt.length() - capturedHdrSize,
         getMirrorTruncateSize()); /* TODO: confirm length in CS00010399535 and
                                      CS00012130950 */
-    bool isV4 = std::is_same_v<AddrT, folly::IPAddressV4>;
-    auto udpPayload = isV4 ? capturedPkt.v4PayLoad()->udpPayload()
-                           : capturedPkt.v6PayLoad()->udpPayload();
+    auto udpPayload = std::is_same_v<AddrT, folly::IPAddressV4>
+        ? capturedPkt.v4PayLoad()->udpPayload()
+        : capturedPkt.v6PayLoad()->udpPayload();
     verifySflowExporterIp(udpPayload->payload());
-    EXPECT_EQ(udpPayload->header().csum, 0);
+    verifySflowPacketUdpChecksum(
+        capturedPktBuf->get(), capturedPkt, udpPayload);
   }
 
   uint64_t getSampleCount(const std::map<PortID, HwPortStats>& stats) {
