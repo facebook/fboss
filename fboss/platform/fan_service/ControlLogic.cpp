@@ -468,7 +468,7 @@ void ControlLogic::programLed(const Fan& fan, bool fanFailed) {
         (fanFailed ? "Fail" : "Good"),
         valueToWrite);
   } else {
-    XLOG(DBG1) << fmt::format(
+    XLOG(INFO) << fmt::format(
         "{}: FAN LED sysfs path is empty. It's likely that FAN LED is controlled by hardware.",
         *fan.fanName());
   }
