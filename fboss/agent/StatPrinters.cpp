@@ -8,7 +8,7 @@
  *
  */
 
-#include "fboss/agent/hw/HwStatPrinters.h"
+#include "fboss/agent/StatPrinters.h"
 #include <thrift/lib/cpp2/protocol/Serializer.h>
 
 namespace {

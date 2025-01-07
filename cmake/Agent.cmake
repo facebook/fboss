@@ -161,6 +161,16 @@ target_link_libraries(stats
   Folly::folly
 )
 
+add_library(stat_printers
+  fboss/agent/StatPrinters.cpp
+)
+
+target_link_libraries(stat_printers
+  FBThrift::thriftcpp2
+  hardware_stats_cpp2
+  Folly::folly
+)
+
 add_library(fboss_types
   fboss/agent/types.cpp
   fboss/agent/PortDescriptorTemplate.cpp

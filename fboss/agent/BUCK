@@ -476,6 +476,20 @@ cpp_library(
 )
 
 cpp_library(
+    name = "stat_printers",
+    srcs = [
+        "StatPrinters.cpp",
+    ],
+    headers = [
+        "StatPrinters.h",
+    ],
+    exported_deps = [
+        "//fboss/agent/hw:hardware_stats-cpp2-types",
+        "//thrift/lib/cpp2/protocol:protocol",
+    ],
+)
+
+cpp_library(
     name = "utils",
     srcs = [
         "AlpmUtils.cpp",

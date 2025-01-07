@@ -206,17 +206,6 @@ cpp_library(
 )
 
 cpp_library(
-    name = "hw_stat_printers",
-    srcs = [
-        "HwStatPrinters.cpp",
-    ],
-    exported_deps = [
-        ":hardware_stats-cpp2-types",
-        "//thrift/lib/cpp2/protocol:protocol",
-    ],
-)
-
-cpp_library(
     name = "stats_constants",
     headers = [
         "StatsConstants.h",

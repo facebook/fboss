@@ -60,16 +60,6 @@ add_library(prbs_stats_entry
   fboss/agent/hw/common/PrbsStatsEntry.h
 )
 
-add_library(hw_stat_printers
-  fboss/agent/hw/HwStatPrinters.cpp
-)
-
-target_link_libraries(hw_stat_printers
-  FBThrift::thriftcpp2
-  hardware_stats_cpp2
-  Folly::folly
-)
-
 target_link_libraries(hw_switch_warmboot_helper
   async_logger
   utils
