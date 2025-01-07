@@ -2095,7 +2095,8 @@ void SaiPortManager::setQosMapsOnPort(
   auto& port = portHandle->port;
   auto isPfcSupported =
       (portType != cfg::PortType::RECYCLE_PORT &&
-       portType != cfg::PortType::EVENTOR_PORT);
+       portType != cfg::PortType::EVENTOR_PORT &&
+       portType != cfg::PortType::MANAGEMENT_PORT);
   for (auto qosMapTypeToSaiId : qosMaps) {
     auto mapping = qosMapTypeToSaiId.second;
     switch (qosMapTypeToSaiId.first) {
@@ -2184,8 +2185,7 @@ SaiPortManager::getSaiIdsForQosMaps(const SaiQosMapHandle* qosMapHandle) {
 void SaiPortManager::setQosPolicy(
     PortID portID,
     const std::optional<std::string>& qosPolicy) {
-  if (getPortType(portID) == cfg::PortType::FABRIC_PORT ||
-      getPortType(portID) == cfg::PortType::MANAGEMENT_PORT) {
+  if (getPortType(portID) == cfg::PortType::FABRIC_PORT) {
     return;
   }
   XLOG(DBG2) << "set QoS policy " << (qosPolicy ? qosPolicy.value() : "null")

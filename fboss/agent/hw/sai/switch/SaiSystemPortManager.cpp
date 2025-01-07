@@ -361,6 +361,7 @@ std::shared_ptr<SystemPortMap> SaiSystemPortManager::constructSystemPorts(
   const std::set<cfg::PortType> kCreateSysPortsFor = {
       cfg::PortType::INTERFACE_PORT,
       cfg::PortType::RECYCLE_PORT,
+      cfg::PortType::MANAGEMENT_PORT,
       cfg::PortType::EVENTOR_PORT};
   for (const auto& portMap : std::as_const(*ports)) {
     for (const auto& port : std::as_const(*portMap.second)) {
