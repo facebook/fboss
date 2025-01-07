@@ -2928,7 +2928,7 @@ void SaiSwitch::packetRxCallback(
         hostifQueueIdOpt = attr_list[index].value.u8;
         break;
       default:
-        XLOG(DBG2) << "invalid attribute received";
+        XLOG_EVERY_MS(DBG3, 5000) << "invalid attribute received";
     }
   }
 
@@ -3364,8 +3364,8 @@ bool SaiSwitch::sendPacketSwitchedSync(std::unique_ptr<TxPacket> pkt) noexcept {
   auto& hostifApi = SaiApiTable::getInstance()->hostifApi();
   auto rv = hostifApi.send(attributes, saiSwitchId_, txPacket);
   if (rv != SAI_STATUS_SUCCESS) {
-    saiLogError(
-        rv, SAI_API_HOSTIF, "failed to send packet with pipeline lookup");
+    saiLogErrorEveryMs(
+        5000, rv, SAI_API_HOSTIF, "failed to send packet with pipeline lookup");
   }
   return rv == SAI_STATUS_SUCCESS;
 }
@@ -3424,7 +3424,8 @@ bool SaiSwitch::sendPacketOutOfPortSync(
   auto& hostifApi = SaiApiTable::getInstance()->hostifApi();
   auto rv = hostifApi.send(attributes, saiSwitchId_, txPacket);
   if (rv != SAI_STATUS_SUCCESS) {
-    saiLogError(rv, SAI_API_HOSTIF, "failed to send packet pipeline bypass");
+    saiLogErrorEveryMs(
+        5000, rv, SAI_API_HOSTIF, "failed to send packet pipeline bypass");
   }
   return rv == SAI_STATUS_SUCCESS;
 }

@@ -70,8 +70,35 @@ void _saiDoLog(
 }
 
 template <typename... Args>
+void _saiDoLogEveryMs(
+    int ms,
+    sai_status_t status,
+    sai_api_t apiType,
+    Args&&... args) {
+  if (status != SAI_STATUS_SUCCESS) {
+    auto msg = folly::to<std::string>(
+        "[",
+        saiApiTypeToString(apiType),
+        "] ",
+        folly::to<std::string>(std::forward<Args>(args)...),
+        ": ",
+        saiStatusToString(status));
+    XLOG_EVERY_MS(ERR, ms) << msg;
+  }
+}
+
+template <typename... Args>
 void saiLogError(sai_status_t status, sai_api_t apiType, Args&&... args) {
   _saiDoLog(false, status, apiType, std::forward<Args>(args)...);
+}
+
+template <typename... Args>
+void saiLogErrorEveryMs(
+    int ms,
+    sai_status_t status,
+    sai_api_t apiType,
+    Args&&... args) {
+  _saiDoLogEveryMs(ms, status, apiType, std::forward<Args>(args)...);
 }
 
 template <typename... Args>
