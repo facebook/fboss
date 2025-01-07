@@ -15,6 +15,12 @@
 #include "fboss/agent/test/utils/TrapPacketUtils.h"
 #include "fboss/lib/CommonUtils.h"
 
+// TODO(maxgg): remove once CS00012385223 is resolved
+DEFINE_bool(
+    mod_pp_test_use_pipeline_lookup,
+    false,
+    "Use pipeline lookup mode in packet processing drop test");
+
 namespace facebook::fboss {
 
 using namespace ::testing;
@@ -147,15 +153,20 @@ class AgentMirrorOnDropTest : public AgentHwTest {
 
   std::unique_ptr<TxPacket> sendPackets(
       int count,
-      PortID portId,
+      std::optional<PortID> portId,
       const folly::IPAddressV6& dstIp,
       int priority = 0) {
     auto pkt = makePacket(dstIp, priority);
     XLOG(DBG3) << "Sending " << count << " packets:\n"
                << PktUtil::hexDump(pkt->buf());
     for (int i = 0; i < count; ++i) {
-      getAgentEnsemble()->sendPacketAsync(
-          makePacket(dstIp, priority), PortDescriptor(portId), std::nullopt);
+      if (portId.has_value()) {
+        getAgentEnsemble()->sendPacketAsync(
+            makePacket(dstIp, priority), PortDescriptor(*portId), std::nullopt);
+      } else {
+        getAgentEnsemble()->sendPacketAsync(
+            makePacket(dstIp, priority), std::nullopt, std::nullopt);
+      }
     }
     return pkt; // return for later comparison
   }
@@ -297,7 +308,12 @@ TEST_F(AgentMirrorOnDropTest, PacketProcessingError) {
 
   auto verify = [&]() {
     utility::SwSwitchPacketSnooper snooper(getSw(), "snooper");
-    auto pkt = sendPackets(1, injectionPortId, kDropDestIp);
+    auto pkt = sendPackets(
+        1,
+        FLAGS_mod_pp_test_use_pipeline_lookup
+            ? std::nullopt
+            : std::make_optional<>(injectionPortId),
+        kDropDestIp);
 
     WITH_RETRIES_N(3, {
       XLOG(DBG3) << "Waiting for mirror packet...";
