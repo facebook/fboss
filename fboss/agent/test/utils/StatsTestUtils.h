@@ -8,34 +8,21 @@ namespace facebook::fboss {
 template <typename MapTypeT>
 std::string statsMapDelta(const MapTypeT& before, const MapTypeT& after) {
   std::stringstream ss;
-  auto bitr = before.begin();
-  auto aitr = after.begin();
-  while (bitr != before.end() && aitr != after.end()) {
-    if (*bitr == *aitr) {
-      bitr++;
-      aitr++;
-    } else if (bitr->first < aitr->first) {
-      ss << "Missing key in after: " << bitr->first << std::endl;
-      bitr++;
-    } else if (aitr->first < bitr->first) {
-      ss << "Missing key in before: " << aitr->first << std::endl;
-      aitr++;
-    } else {
-      CHECK_NE(aitr->second, bitr->second);
-      ss << " Stats did not match for : " << aitr->first
-         << " Before : " << bitr->second << std::endl
+  for (const auto& [key, beforeVal] : before) {
+    auto aitr = after.find(key);
+    if (aitr == after.end()) {
+      ss << "Missing key in after: " << key << std::endl;
+    } else if (beforeVal != aitr->second) {
+      ss << " Stats did not match for : " << key << " Before: " << beforeVal
+         << std::endl
          << " After: " << aitr->second << std::endl;
-      aitr++;
-      bitr++;
     }
   }
-  while (bitr != before.end()) {
-    ss << "Missing key in after: " << bitr->first << std::endl;
-    bitr++;
-  }
-  while (aitr != after.end()) {
-    ss << "Missing key in before: " << bitr->first << std::endl;
-    aitr++;
+  for (const auto& [key, afterVal] : after) {
+    auto bitr = before.find(key);
+    if (bitr == before.end()) {
+      ss << "Missing key in before: " << key << std::endl;
+    }
   }
   return ss.str();
 }
