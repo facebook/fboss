@@ -260,10 +260,6 @@ std::string errorType(sai_switch_error_type_t type) {
       return "SAI_SWITCH_ERROR_TYPE_RTP_TABLE_CHANGE";
     case SAI_SWITCH_ERROR_TYPE_FABRIC_AUTO_ISOLATION:
       return "SAI_SWITCH_ERROR_TYPE_FABRIC_AUTO_ISOLATION";
-#if defined(SAI_VERSION_11_7_0_0_DNX_ODP)
-    // TODO: Fix the 11.7 specific check added. Currently support is not
-    // available in 12.0 or 11.3, hence using the 11.7 specific check.
-    // ECC errors
     case SAI_SWITCH_ERROR_TYPE_FDA_ECC_ECC_2B_ERR_INT:
       return "SAI_SWITCH_ERROR_TYPE_FDA_ECC_ECC_2B_ERR_INT";
     case SAI_SWITCH_ERROR_TYPE_FDR_ECC_ECC_2B_ERR_INT:
@@ -319,7 +315,6 @@ std::string errorType(sai_switch_error_type_t type) {
       return "SAI_SWITCH_ERROR_TYPE_FDR_FDR_P_1_MAC_4_P_1_IFM_OVERFLOW_BY_MFIFO_MAC_4";
     case SAI_SWITCH_ERROR_TYPE_FDR_FDR_P_2_MAC_4_P_2_IFM_OVERFLOW_BY_MFIFO_MAC_4:
       return "SAI_SWITCH_ERROR_TYPE_FDR_FDR_P_2_MAC_4_P_2_IFM_OVERFLOW_BY_MFIFO_MAC_4";
-#endif // BRCM_SAI_SDK_DNX_GTE_12_0
 #endif
 #if defined(BRCM_SAI_SDK_DNX_GTE_11_7)
     case SAI_SWITCH_ERROR_TYPE_FIRMWARE_CRASH:
@@ -490,16 +485,12 @@ bool isEccError(sai_switch_error_type_t type) {
     case SAI_SWITCH_ERROR_TYPE_ALIGNER_ECC_ECC_2B_ERR_INT:
     case SAI_SWITCH_ERROR_TYPE_EPNI_ECC_ECC_2B_ERR_INT:
     case SAI_SWITCH_ERROR_TYPE_FQP_ECC_ECC_2B_ERR_INT:
-#if defined(SAI_VERSION_11_7_0_0_DNX_ODP)
-    // TODO: Fix the 11.7 specific check added. Currently support is not
-    // available in 12.0 or 11.3, hence using the 11.7 specific check.
     case SAI_SWITCH_ERROR_TYPE_FDA_ECC_ECC_2B_ERR_INT:
     case SAI_SWITCH_ERROR_TYPE_FDR_ECC_ECC_2B_ERR_INT:
     case SAI_SWITCH_ERROR_TYPE_FMAC_ECC_ECC_2B_ERR_INT:
     case SAI_SWITCH_ERROR_TYPE_FCR_ECC_ECC_2B_ERR_INT:
     case SAI_SWITCH_ERROR_TYPE_FCT_ECC_ECC_2B_ERR_INT:
     case SAI_SWITCH_ERROR_TYPE_FDT_ECC_ECC_2B_ERR_INT:
-#endif
       return true;
     default:
       break;
@@ -508,9 +499,6 @@ bool isEccError(sai_switch_error_type_t type) {
 }
 
 bool isFdaFifoOverflowError(sai_switch_error_type_t type) {
-#if defined(SAI_VERSION_11_7_0_0_DNX_ODP)
-  // TODO: Fix the 11.7 specific check added. Currently support is not
-  // available in 12.0 or 11.3, hence using the 11.7 specific check.
   switch (type) {
     case SAI_SWITCH_ERROR_TYPE_FDA_P_0_OFM_FIFO_OVFLW_DROP_INT:
     case SAI_SWITCH_ERROR_TYPE_FDA_P_1_OFM_FIFO_OVFLW_DROP_INT:
@@ -527,14 +515,10 @@ bool isFdaFifoOverflowError(sai_switch_error_type_t type) {
     default:
       break;
   }
-#endif
   return false;
 }
 
 bool isFdrFifoOverflowError(sai_switch_error_type_t type) {
-#if defined(SAI_VERSION_11_7_0_0_DNX_ODP)
-  // TODO: Fix the 11.7 specific check added. Currently support is not
-  // available in 12.0 or 11.3, hence using the 11.7 specific check.
   switch (type) {
     case SAI_SWITCH_ERROR_TYPE_FDR_FDR_P_1_MAC_0_P_1_IFM_OVERFLOW_BY_MFIFO_MAC_0:
     case SAI_SWITCH_ERROR_TYPE_FDR_FDR_P_2_MAC_0_P_2_IFM_OVERFLOW_BY_MFIFO_MAC_0:
@@ -550,7 +534,6 @@ bool isFdrFifoOverflowError(sai_switch_error_type_t type) {
     default:
       break;
   }
-#endif
   return false;
 }
 
