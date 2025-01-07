@@ -4,6 +4,7 @@
 
 #include <sstream>
 
+namespace facebook::fboss {
 template <typename MapTypeT>
 std::string statsMapDelta(const MapTypeT& before, const MapTypeT& after) {
   std::stringstream ss;
@@ -38,3 +39,4 @@ std::string statsMapDelta(const MapTypeT& before, const MapTypeT& after) {
   }
   return ss.str();
 }
+} // namespace facebook::fboss
