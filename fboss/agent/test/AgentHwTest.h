@@ -193,7 +193,7 @@ class AgentHwTest : public ::testing::Test {
     agentEnsemble_->bringDownPorts(ports);
   }
 
-  void checkNoStatsChange(int trys = 1);
+  void checkNoStatsChange(int trys = 10);
   /*
    * API to all flag overrides for individual tests. Primarily
    * used for features which we don't want to enable for
