@@ -1235,7 +1235,7 @@ phy::PhyInfo BcmPort::updateIPhyInfo() {
       if (hw_->getPlatform()->getAsic()->isSupported(
               HwAsic::Feature::FEC_DIAG_COUNTERS)) {
         rsFec.codewordStats() = codewordStats_;
-        utility::updateFecTail(rsFec, lastRsFec);
+        utility::updateFecTail(rsFec, lastRsFec, fecMode);
       }
       std::optional<uint64_t> correctedBitsFromHw;
 #if defined(BCM_SDK_VERSION_GTE_6_5_26)

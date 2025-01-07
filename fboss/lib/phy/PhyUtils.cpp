@@ -86,7 +86,8 @@ void updateCorrectedBitsAndPreFECBer(
 
 void updateFecTail(
     phy::RsFecInfo& fecInfo,
-    const phy::RsFecInfo& oldRsFecInfo) {
+    const phy::RsFecInfo& oldRsFecInfo,
+    phy::FecMode fecMode) {
   if (fecInfo.codewordStats()->empty()) {
     return;
   }
@@ -105,6 +106,21 @@ void updateFecTail(
     }
   }
   fecInfo.fecTail() = fecTail;
+
+  switch (fecMode) {
+    case phy::FecMode::CL91:
+    case phy::FecMode::RS528:
+      fecInfo.maxSupportedFecTail() = 7;
+      break;
+    case phy::FecMode::RS544:
+    case phy::FecMode::RS544_2N:
+    case phy::FecMode::RS545:
+      fecInfo.maxSupportedFecTail() = 15;
+      break;
+    case phy::FecMode::NONE:
+    case phy::FecMode::CL74:
+      break;
+  }
 }
 
 void updateSignalDetectChangedCount(

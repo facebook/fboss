@@ -432,6 +432,8 @@ struct RsFecInfo {
   // Stores cumulative counts
   5: map<i16, i64> codewordStats;
   6: optional i16 fecTail;
+  // maxSupportedFecTail = 7 for RS-528, 15 for RS-544
+  7: optional i16 maxSupportedFecTail;
 }
 
 struct PmdInfo {

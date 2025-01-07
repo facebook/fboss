@@ -1943,8 +1943,8 @@ void SaiSwitch::updatePcsInfo(
         speed /* operational Speed */);
     utility::updateFecTail(
         rsFec, /* current RsFecInfo to update */
-        lastRsFec /* previous RsFecInfo */
-    );
+        lastRsFec, /* previous RsFecInfo */
+        fecMode);
     pcsStats.rsFec() = rsFec;
     sideStats.pcs() = pcsStats;
   }
