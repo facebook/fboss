@@ -593,6 +593,19 @@ TEST_F(LinkTest, verifyIphyFecBerCounters) {
           if (hasCorrectedCodewords) {
             EXPECT_GT(countNonZeroBins, 0);
           }
+          // Expect the fec tail to be populated when codeword stats is since it
+          // is derived from that
+          EXPECT_TRUE(rsFecNow->fecTail().has_value());
+          EXPECT_TRUE(rsFecNow->maxSupportedFecTail().has_value());
+          // Codeword stats always has an extra stat for bin 0 (codewords which
+          // didn't need correction). Thus compare maxSupportedFecTail with
+          // codewordStats.size - 1
+          EXPECT_EQ(
+              rsFecNow->maxSupportedFecTail().value(),
+              rsFecNow->codewordStats()->size() - 1);
+          EXPECT_LE(
+              rsFecNow->fecTail().value(),
+              rsFecNow->maxSupportedFecTail().value());
         }
       }
       previousPhyInfo = currentPhyInfo;
