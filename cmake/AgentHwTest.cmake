@@ -297,7 +297,6 @@ target_link_libraries(hw_switch_test
   validated_shell_commands_cpp2
   hwswitch_matcher
   switchid_scope_resolver
-  hw_stat_printers
   port_stats_test_utils
   agent_hw_test_constants
   sai_switch_ensemble
