@@ -632,9 +632,19 @@ class ThriftStructNode : public NodeBaseT<
     auto op = pvlambda([](auto&& node, auto begin, auto end) {
       auto tok = *begin;
       if (begin == end) {
-        node.remove(tok);
+        if constexpr (std::is_same_v<
+                          typename folly::remove_cvref_t<
+                              decltype(node)>::CowType,
+                          NodeType>) {
+          node.remove(tok);
+        }
       } else {
-        node.modify(tok, false);
+        if constexpr (std::is_same_v<
+                          typename folly::remove_cvref_t<
+                              decltype(node)>::CowType,
+                          NodeType>) {
+          node.modify(tok, false);
+        }
       }
     });
 
