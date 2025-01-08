@@ -62,6 +62,7 @@ enum ProductionFeature {
   MIRROR_ON_DROP = 49,
   PAUSE = 50,
   SEPARATE_INGRESS_EGRESS_BUFFER_POOL = 51,
+  NIF_POLICER = 52,
   # production feature which is present on all platforms, keep it at the end
   HW_SWITCH = 65536,
 }
