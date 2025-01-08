@@ -384,6 +384,13 @@ TEST_F(AgentPacketSendReceiveTest, LldpPacketReceiveSrcPort) {
 
 class AgentPacketSendReceiveLagTest : public AgentPacketSendReceiveTest {
  protected:
+  std::vector<production_features::ProductionFeature>
+  getProductionFeaturesVerified() const override {
+    auto prodFeatures =
+        AgentPacketSendReceiveTest::getProductionFeaturesVerified();
+    prodFeatures.push_back(production_features::ProductionFeature::LAG);
+    return prodFeatures;
+  }
   cfg::SwitchConfig initialConfig(
       const AgentEnsemble& ensemble) const override {
     auto masterLogicalPortIds = ensemble.masterLogicalPortIds();
