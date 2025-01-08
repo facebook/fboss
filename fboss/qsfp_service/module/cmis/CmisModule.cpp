@@ -52,6 +52,8 @@ constexpr int kCdbSymErrHistMaxOffset = 1;
 constexpr int kCdbSymErrHistAvgOffset = 3;
 constexpr int kCdbSymErrHistCurOffset = 5;
 
+constexpr int kMaxFecTailRs544 = 15;
+
 std::array<std::string, 9> channelConfigErrorMsg = {
     "No status available, config under progress",
     "Config accepted and applied",
@@ -4340,6 +4342,10 @@ bool CmisModule::fillVdmPerfMonitorFecTail(VdmPerfMonitorStats& vdmStats) {
     if (auto fecTailMax =
             captureVdmFecTailValues(FEC_TAIL_MEDIA_IN_MAX, startLane)) {
       vdmStats.mediaPortVdmStats()[portName].fecTailMax() = fecTailMax.value();
+      // FIXME: We should check FEC type and set the max supported FEC tail. FEC
+      // Type is currently not available and hence hardcoding to 15 for now
+      vdmStats.mediaPortVdmStats()[portName].maxSupportedFecTail() =
+          kMaxFecTailRs544;
     }
     if (auto fecTailCurr =
             captureVdmFecTailValues(FEC_TAIL_MEDIA_IN_CURR, startLane)) {
@@ -4356,6 +4362,10 @@ bool CmisModule::fillVdmPerfMonitorFecTail(VdmPerfMonitorStats& vdmStats) {
     if (auto fecTailMax =
             captureVdmFecTailValues(FEC_TAIL_HOST_IN_MAX, startLane)) {
       vdmStats.hostPortVdmStats()[portName].fecTailMax() = fecTailMax.value();
+      // FIXME: We should check FEC type and set the max supported FEC tail. FEC
+      // Type is currently not available and hence hardcoding to 15 for now
+      vdmStats.hostPortVdmStats()[portName].maxSupportedFecTail() =
+          kMaxFecTailRs544;
     }
     if (auto fecTailCurr =
             captureVdmFecTailValues(FEC_TAIL_HOST_IN_CURR, startLane)) {
