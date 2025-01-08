@@ -327,6 +327,21 @@ TYPED_TEST(AgentNeighborTest, ResolvePendingEntry) {
   this->verifyAcrossWarmBoots(setup, verify);
 }
 
+TYPED_TEST(AgentNeighborTest, ResolveLinkLocalEntry) {
+  bool linkLocal = true;
+  auto setup = [this, linkLocal]() {
+    this->applyNewState([&](const std::shared_ptr<SwitchState>& in) {
+      auto state = this->addNeighbor(in, linkLocal);
+      return this->resolveNeighbor(state, std::nullopt, linkLocal);
+    });
+  };
+  // LL neighbors are not programmed in HW. So
+  // there is nothing to verify. However we must
+  // be able to come up and WB with LL neighbors
+  // present
+  this->verifyAcrossWarmBoots(setup, []() {});
+}
+
 TYPED_TEST(AgentNeighborTest, ResolvePendingEntryThenChangeLookupClass) {
   auto setup = [this]() {
     this->applyNewState([&](const std::shared_ptr<SwitchState>& in) {
