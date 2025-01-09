@@ -1309,7 +1309,8 @@ std::tuple<string, string> SaiTracer::declareVariable(
       varCounts_, object_type, "Unsupported Sai Object type in Sai Tracer")++;
   string varName = to<string>(varPrefix, num);
 
-  return std::make_tuple(to<string>(varType, varName), varName);
+  return std::make_tuple(
+      to<string>("[[maybe_unused]] ", varType, varName), varName);
 }
 
 string SaiTracer::getVariable(sai_object_id_t object_id) {
@@ -1785,40 +1786,48 @@ void SaiTracer::setupGlobals() {
   // TODO(zecheng): Handle list size that's larger than 512 bytes.
   vector<string> globalVar = {to<string>(
       to<string>(kGlobalVarStart),
-      "sai_attribute_t *s_a=(sai_attribute_t*)malloc(ATTR_SIZE * ",
+      "\n",
+      "[[maybe_unused]] sai_attribute_t *s_a=(sai_attribute_t*)malloc(ATTR_SIZE * ",
       FLAGS_default_list_size,
       ")")};
 
   if (FLAGS_enable_get_attr_log) {
     globalVar.push_back(to<string>(
-        "sai_attribute_t *get_attribute=(sai_attribute_t*)malloc(ATTR_SIZE * ",
+        "[[maybe_unused]] sai_attribute_t *get_attribute=(sai_attribute_t*)malloc(ATTR_SIZE * ",
         FLAGS_default_list_size,
         ")"));
   }
 
   for (int i = 0; i < FLAGS_default_list_count; i++) {
-    globalVar.push_back(
-        to<string>("int list_", i, "[", FLAGS_default_list_size, "]"));
+    globalVar.push_back(to<string>(
+        "[[maybe_unused]] int list_", i, "[", FLAGS_default_list_size, "]"));
   }
 
-  globalVar.push_back("uint8_t* mac");
-  globalVar.push_back("uint8_t* u");
-  globalVar.push_back("sai_status_t rv");
-  globalVar.push_back("sai_route_entry_t r_e");
-  globalVar.push_back("sai_neighbor_entry_t n_e");
-  globalVar.push_back("sai_fdb_entry_t f_e");
-  globalVar.push_back("sai_inseg_entry_t i_e");
-  globalVar.push_back("uint32_t expected_object_count");
-  globalVar.push_back("uint32_t object_count");
-  globalVar.push_back("std::vector<sai_object_key_t> object_list");
+  globalVar.push_back("[[maybe_unused]] uint8_t* mac");
+  globalVar.push_back("[[maybe_unused]] uint8_t* u");
+  globalVar.push_back("[[maybe_unused]] sai_status_t rv");
+  globalVar.push_back("[[maybe_unused]] sai_route_entry_t r_e");
+  globalVar.push_back("[[maybe_unused]] sai_neighbor_entry_t n_e");
+  globalVar.push_back("[[maybe_unused]] sai_fdb_entry_t f_e");
+  globalVar.push_back("[[maybe_unused]] sai_inseg_entry_t i_e");
+  globalVar.push_back("[[maybe_unused]] uint32_t expected_object_count");
+  globalVar.push_back("[[maybe_unused]] uint32_t object_count");
+  globalVar.push_back(
+      "[[maybe_unused]] std::vector<sai_object_key_t> object_list");
   globalVar.push_back(to<string>(
-      "sai_status_t object_statuses[", FLAGS_default_list_size, "]"));
-  globalVar.push_back(
-      to<string>("sai_object_id_t obj_list[", FLAGS_default_list_size, "]"));
-  globalVar.push_back(
-      to<string>("sai_stat_id_t counter_list[", FLAGS_default_list_size, "]"));
-  globalVar.push_back(
-      to<string>("uint64_t counter_vals[", FLAGS_default_list_size, "]"));
+      "[[maybe_unused]] sai_status_t object_statuses[",
+      FLAGS_default_list_size,
+      "]"));
+  globalVar.push_back(to<string>(
+      "[[maybe_unused]] sai_object_id_t obj_list[",
+      FLAGS_default_list_size,
+      "]"));
+  globalVar.push_back(to<string>(
+      "[[maybe_unused]] sai_stat_id_t counter_list[",
+      FLAGS_default_list_size,
+      "]"));
+  globalVar.push_back(to<string>(
+      "[[maybe_unused]] uint64_t counter_vals[", FLAGS_default_list_size, "]"));
   globalVar.push_back(to<string>(kGlobalVarEnd));
   writeToFile(globalVar);
 
