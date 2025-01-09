@@ -167,8 +167,13 @@ SaiHostifManager::makeHostifTrapAttributes(
   SaiHostifTrapTraits::Attributes::PacketAction packetAction{
       hostifPacketAction};
   SaiHostifTrapTraits::Attributes::TrapType trapType{hostifTrapId};
-  SaiHostifTrapTraits::Attributes::TrapPriority trapPriority{priority};
-  SaiHostifTrapTraits::Attributes::TrapGroup trapGroup{trapGroupId};
+  std::optional<SaiHostifTrapTraits::Attributes::TrapPriority> trapPriority{};
+  std::optional<SaiHostifTrapTraits::Attributes::TrapGroup> trapGroup{};
+  if (hostifPacketAction == SAI_PACKET_ACTION_TRAP ||
+      hostifPacketAction == SAI_PACKET_ACTION_COPY) {
+    trapPriority = priority;
+    trapGroup = SaiHostifTrapTraits::Attributes::TrapGroup(trapGroupId);
+  }
   return SaiHostifTrapTraits::CreateAttributes{
       trapType, packetAction, trapPriority, trapGroup};
 }
