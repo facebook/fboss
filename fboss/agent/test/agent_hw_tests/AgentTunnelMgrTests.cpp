@@ -21,6 +21,12 @@ class AgentTunnelMgrTest : public AgentHwTest {
     FLAGS_tun_intf = true;
   }
 
+  void SetUp() override {
+    // clear all kernel entries before starting the test
+    clearAllKernelEntries();
+    AgentHwTest::SetUp();
+  }
+
   // Clear any stale kernel entries
   void clearKernelEntries(const std::string& intfIp, bool isIPv4 = true) {
     std::string cmd;
@@ -96,14 +102,108 @@ class AgentTunnelMgrTest : public AgentHwTest {
     } while (iss);
   }
 
+  // Clear all stale kernel entries
+  void clearAllKernelEntries() {
+    std::string cmd;
+    cmd = folly::to<std::string>("ip rule list");
+    auto output = runShellCmd(cmd);
+
+    XLOG(DBG2) << "clearAllKernelEntries Cmd: " << cmd;
+    XLOG(DBG2) << "clearAllKernelEntries Output: \n" << output;
+
+    std::istringstream iss(output);
+    for (std::string line; std::getline(iss, line);) {
+      std::stringstream ss(line);
+      std::string word;
+      std::string lastWord;
+
+      while (ss >> word) {
+        lastWord = folly::copy(word);
+      }
+
+      if (lastWord != "local" && lastWord != "main" && lastWord != "default") {
+        XLOG(DBG2) << "tableId: " << lastWord;
+        cmd = folly::to<std::string>("ip rule delete table ", lastWord);
+        runShellCmd(cmd);
+      }
+    }
+
+    cmd = folly::to<std::string>("ip -6 rule list");
+    output = runShellCmd(cmd);
+
+    XLOG(DBG2) << "clearAllKernelEntries Cmd: " << cmd;
+    XLOG(DBG2) << "clearAllKernelEntries Output: \n" << output;
+
+    std::istringstream iss2(output);
+    for (std::string line; std::getline(iss2, line);) {
+      std::stringstream ss(line);
+      std::string word;
+      std::string lastWord;
+
+      while (ss >> word) {
+        lastWord = folly::copy(word);
+      }
+
+      if (lastWord != "local" && lastWord != "main" && lastWord != "default") {
+        XLOG(DBG2) << "tableId: " << lastWord;
+        cmd = folly::to<std::string>("ip -6 rule delete table ", lastWord);
+        runShellCmd(cmd);
+      }
+    }
+
+    XLOG(DBG2) << "clearAllKernelEntries Cmd: " << cmd;
+    XLOG(DBG2) << "clearAllKernelEntries Output: \n" << output;
+
+    // Get the String
+    cmd = folly::to<std::string>("ip addr list | grep -w fboss");
+    output = runShellCmd(cmd);
+
+    while (output.find(folly::to<std::string>("fboss")) != std::string::npos) {
+      // Break the output string into words
+      std::istringstream iss3(output);
+      do {
+        std::string subs;
+        // Get the word from the istringstream
+        iss3 >> subs;
+        // Delete the matching fboss interface from the kernel
+        if (subs.find("fboss") != std::string::npos) {
+          cmd = folly::to<std::string>("ip link delete ", subs);
+          runShellCmd(cmd);
+          XLOG(DBG2) << "clearKernelEntries Cmd: " << cmd;
+          break;
+        }
+      } while (iss3);
+    }
+
+    cmd = folly::to<std::string>("ip -6 addr list | grep -w fboss");
+    output = runShellCmd(cmd);
+
+    XLOG(DBG2) << "clearAllKernelEntries Cmd: " << cmd;
+    XLOG(DBG2) << "clearAllKernelEntries Output: \n" << output;
+
+    while (output.find(folly::to<std::string>("fboss")) != std::string::npos) {
+      // Break the output string into words
+      std::istringstream iss4(output);
+      do {
+        std::string subs;
+        // Get the word from the istringstream
+        iss4 >> subs;
+        // Delete the matching fboss interface from the kernel
+        if (subs.find("fboss") != std::string::npos) {
+          cmd = folly::to<std::string>("ip link delete ", subs);
+          runShellCmd(cmd);
+          XLOG(DBG2) << "clearKernelEntries Cmd: " << cmd;
+          break;
+        }
+      } while (iss4);
+    }
+  }
+
   void checkIpKernelEntriesRemoved(
       const std::string& intfIp,
       bool isIPv4 = true) {
     // Check that the source route rule entries are not present in the kernel
     std::string cmd;
-    // ipv6 address can match with other ipv6 addresses e.g. 1:: can match with
-    // 1::1. So, adding a space before and after the address to avoid matching
-    // with other addresses
     std::string searchIntfIp = intfIp;
     if (isIPv4) {
       cmd = folly::to<std::string>("ip rule list | grep -w ", searchIntfIp);
