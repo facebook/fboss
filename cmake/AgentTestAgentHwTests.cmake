@@ -35,6 +35,7 @@ add_library(agent_hw_test_src
   fboss/agent/test/agent_hw_tests/AgentVoqSwitchFullScaleDsfTests.cpp
   fboss/agent/test/agent_hw_tests/AgentVoqSwitchTests.cpp
   fboss/agent/test/agent_hw_tests/AgentVoqSwitchLineRateTests.cpp
+  fboss/agent/test/agent_hw_tests/AgentVoqSwitchWithFabricPortsTests.cpp
   fboss/agent/test/agent_hw_tests/AgentVoqSwitchInterruptsTests.cpp
   fboss/agent/test/agent_hw_tests/AgentFabricSwitchTests.cpp
   fboss/agent/test/agent_hw_tests/AgentPortBandWidthTests.cpp
