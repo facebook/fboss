@@ -173,7 +173,7 @@ cpp_binary(
     default_strip_mode = "full",
     strip_mode = "full",
     deps = [
-        "//fboss/platform/helpers:init",
+        "//fboss/platform/helpers:init_cli",
         "//fboss/platform/sensor_service/if:sensor_service-cpp2-clients",
         "//folly/logging:logging",
         "//thrift/lib/cpp2/async:rocket_client_channel",

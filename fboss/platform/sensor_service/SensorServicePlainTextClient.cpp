@@ -5,7 +5,7 @@
 #include <folly/logging/xlog.h>
 #include <thrift/lib/cpp2/async/RocketClientChannel.h>
 
-#include "fboss/platform/helpers/Init.h"
+#include "fboss/platform/helpers/InitCli.h"
 #include "fboss/platform/sensor_service/if/gen-cpp2/sensor_service_clients.h"
 
 using namespace facebook;
@@ -24,7 +24,7 @@ std::string tstoStr(int64_t unixTimestamp) {
 // A sample sensor service plain text thrift client to be used by vendors.
 // This is not for internal production use.
 int main(int argc, char** argv) {
-  helpers::init(&argc, &argv);
+  helpers::initCli(&argc, &argv, "sensor_service_client");
   folly::EventBase eb;
   folly::SocketAddress sockAddr("::1", 5970);
   auto socket = folly::AsyncSocket::newSocket(&eb, sockAddr, 5000);
