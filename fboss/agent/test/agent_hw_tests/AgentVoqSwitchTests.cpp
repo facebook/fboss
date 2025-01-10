@@ -1,5 +1,7 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
+#include "fboss/agent/test/agent_hw_tests/AgentVoqSwitchTests.h"
+
 #include "fboss/agent/DsfStateUpdaterUtil.h"
 #include "fboss/agent/FabricConnectivityManager.h"
 #include "fboss/agent/FbossHwUpdateError.h"
@@ -33,303 +35,274 @@ constexpr uint8_t kDefaultQueue = 0;
 
 using namespace facebook::fb303;
 namespace facebook::fboss {
-class AgentVoqSwitchTest : public AgentHwTest {
- public:
-  cfg::SwitchConfig initialConfig(
-      const AgentEnsemble& ensemble) const override {
-    // Increase the query timeout to be 5sec
-    FLAGS_hwswitch_query_timeout = 5000;
-    auto config = utility::onePortPerInterfaceConfig(
-        ensemble.getSw(),
-        ensemble.masterLogicalPortIds(),
-        true /*interfaceHasSubnet*/);
-    utility::addNetworkAIQosMaps(config, ensemble.getL3Asics());
-    utility::setDefaultCpuTrafficPolicyConfig(
-        config, ensemble.getL3Asics(), ensemble.isSai());
-    utility::addCpuQueueConfig(config, ensemble.getL3Asics(), ensemble.isSai());
-    return config;
-  }
 
-  void SetUp() override {
-    AgentHwTest::SetUp();
-    if (!IsSkipped()) {
-      ASSERT_TRUE(
-          std::any_of(getAsics().begin(), getAsics().end(), [](auto& iter) {
-            return iter.second->getSwitchType() == cfg::SwitchType::VOQ;
-          }));
-    }
-  }
+cfg::SwitchConfig AgentVoqSwitchTest::initialConfig(
+    const AgentEnsemble& ensemble) const {
+  // Increase the query timeout to be 5sec
+  FLAGS_hwswitch_query_timeout = 5000;
+  auto config = utility::onePortPerInterfaceConfig(
+      ensemble.getSw(),
+      ensemble.masterLogicalPortIds(),
+      true /*interfaceHasSubnet*/);
+  utility::addNetworkAIQosMaps(config, ensemble.getL3Asics());
+  utility::setDefaultCpuTrafficPolicyConfig(
+      config, ensemble.getL3Asics(), ensemble.isSai());
+  utility::addCpuQueueConfig(config, ensemble.getL3Asics(), ensemble.isSai());
+  return config;
+}
 
-  std::vector<production_features::ProductionFeature>
-  getProductionFeaturesVerified() const override {
-    return {production_features::ProductionFeature::VOQ};
-  }
+void AgentVoqSwitchTest::rxPacketToCpuHelper(
+    uint16_t l4SrcPort,
+    uint16_t l4DstPort,
+    uint8_t queueId) {
+  utility::EcmpSetupAnyNPorts6 ecmpHelper(getProgrammedState());
+  auto kPort = ecmpHelper.ecmpPortDescriptorAt(0);
 
- protected:
-  void
-  rxPacketToCpuHelper(uint16_t l4SrcPort, uint16_t l4DstPort, uint8_t queueId) {
-    utility::EcmpSetupAnyNPorts6 ecmpHelper(getProgrammedState());
-    auto kPort = ecmpHelper.ecmpPortDescriptorAt(0);
+  auto verify = [this, ecmpHelper, kPort, l4SrcPort, l4DstPort, queueId]() {
+    // TODO(skhare)
+    // Send to only one IPv6 address for ease of debugging.
+    // Once SAI implementation bugs are fixed, send to ALL interface
+    // addresses.
+    auto ipAddrs =
+        *(initialConfig(*getAgentEnsemble()).interfaces()[0].ipAddresses());
+    auto ipv6Addr =
+        std::find_if(ipAddrs.begin(), ipAddrs.end(), [](const auto& ipAddr) {
+          auto ip = folly::IPAddress::createNetwork(ipAddr, -1, false).first;
+          return ip.isV6();
+        });
 
-    auto verify = [this, ecmpHelper, kPort, l4SrcPort, l4DstPort, queueId]() {
-      // TODO(skhare)
-      // Send to only one IPv6 address for ease of debugging.
-      // Once SAI implementation bugs are fixed, send to ALL interface
-      // addresses.
-      auto ipAddrs =
-          *(initialConfig(*getAgentEnsemble()).interfaces()[0].ipAddresses());
-      auto ipv6Addr =
-          std::find_if(ipAddrs.begin(), ipAddrs.end(), [](const auto& ipAddr) {
-            auto ip = folly::IPAddress::createNetwork(ipAddr, -1, false).first;
-            return ip.isV6();
-          });
-
-      auto dstIp =
-          folly::IPAddress::createNetwork(*ipv6Addr, -1, false).first.asV6();
-      folly::IPAddressV6 kSrcIp("1::1");
-      const auto srcMac = folly::MacAddress("00:00:01:02:03:04");
-      const auto dstMac = utility::kLocalCpuMac();
-
-      auto createTxPacket =
-          [this, srcMac, dstMac, kSrcIp, dstIp, l4SrcPort, l4DstPort]() {
-            return utility::makeTCPTxPacket(
-                getSw(),
-                std::nullopt, // vlanID
-                srcMac,
-                dstMac,
-                kSrcIp,
-                dstIp,
-                l4SrcPort,
-                l4DstPort);
-          };
-
-      const PortID port = ecmpHelper.ecmpPortDescriptorAt(1).phyPortID();
-      auto switchId =
-          scopeResolver().scope(getProgrammedState(), port).switchId();
-      auto [beforeQueueOutPkts, beforeQueueOutBytes] =
-          utility::getCpuQueueOutPacketsAndBytes(getSw(), queueId, switchId);
-
-      auto txPacket = createTxPacket();
-      size_t txPacketSize = txPacket->buf()->length();
-
-      getSw()->sendPacketOutOfPortAsync(std::move(txPacket), port);
-      utility::SwSwitchPacketSnooper snooper(getSw(), "snoop");
-      txPacket = createTxPacket();
-      std::unique_ptr<folly::IOBuf> rxBuf;
-      WITH_RETRIES({
-        auto frameRx = snooper.waitForPacket(1);
-        ASSERT_EVENTUALLY_TRUE(frameRx.has_value());
-        CHECK(frameRx.has_value());
-        rxBuf = std::move(*frameRx);
-      });
-      WITH_RETRIES({
-        XLOG(DBG3) << "TX Packet Dump::" << std::endl
-                   << folly::hexDump(
-                          txPacket->buf()->data(), txPacket->buf()->length());
-        XLOG(DBG3) << "RX Packet Dump::" << std::endl
-                   << folly::hexDump(rxBuf->data(), rxBuf->length());
-
-        XLOG(DBG2) << "TX Packet Length: " << txPacket->buf()->length()
-                   << " RX Packet Length: " << rxBuf->length();
-        EXPECT_EVENTUALLY_EQ(txPacket->buf()->length(), rxBuf->length());
-        EXPECT_EVENTUALLY_EQ(
-            0, memcmp(txPacket->buf()->data(), rxBuf->data(), rxBuf->length()));
-
-        auto [afterQueueOutPkts, afterQueueOutBytes] =
-            utility::getCpuQueueOutPacketsAndBytes(getSw(), queueId, switchId);
-
-        XLOG(DBG2) << "Stats:: queueId: " << static_cast<int>(queueId)
-                   << " beforeQueueOutPkts: " << beforeQueueOutPkts
-                   << " beforeQueueOutBytes: " << beforeQueueOutBytes
-                   << " txPacketSize: " << txPacketSize
-                   << " afterQueueOutPkts: " << afterQueueOutPkts
-                   << " afterQueueOutBytes: " << afterQueueOutBytes;
-
-        EXPECT_EVENTUALLY_EQ(afterQueueOutPkts - 1, beforeQueueOutPkts);
-        // CS00012267635: debug why queue counter is 362, when txPacketSize is
-        // 322
-        EXPECT_EVENTUALLY_GE(afterQueueOutBytes, beforeQueueOutBytes);
-
-        for (auto i = 0; i <
-             utility::getCoppHighPriQueueId(getAgentEnsemble()->getL3Asics());
-             i++) {
-          auto [outPkts, outBytes] =
-              utility::getCpuQueueOutPacketsAndBytes(getSw(), i, switchId);
-          XLOG(DBG2) << "QueueID: " << i << " outPkts: " << outPkts
-                     << " outBytes: " << outBytes;
-        }
-      });
-    };
-
-    verifyAcrossWarmBoots([] {}, verify);
-  }
-  // API to send a local service discovery packet which is an IPv6
-  // multicast paket with UDP payload. This packet with a destination
-  // MAC as the unicast NIF port MAC helps recreate CS00012323788.
-  void sendLocalServiceDiscoveryMulticastPacket(
-      const PortID outPort,
-      const int numPackets) {
-    auto vlanId = utility::firstVlanID(getProgrammedState());
-    auto intfMac = utility::getFirstInterfaceMac(getProgrammedState());
-    auto srcIp = folly::IPAddressV6("fe80::ff:fe00:f0b");
-    auto dstIp = folly::IPAddressV6("ff15::efc0:988f");
-    auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
-    std::vector<uint8_t> serviceDiscoveryPayload = {
-        0x42, 0x54, 0x2d, 0x53, 0x45, 0x41, 0x52, 0x43, 0x48, 0x20, 0x2a, 0x20,
-        0x48, 0x54, 0x54, 0x50, 0x2f, 0x31, 0x2e, 0x31, 0x0d, 0x0a, 0x48, 0x6f,
-        0x73, 0x74, 0x3a, 0x20, 0x5b, 0x66, 0x66, 0x31, 0x35, 0x3a, 0x3a, 0x65,
-        0x66, 0x63, 0x30, 0x3a, 0x39, 0x38, 0x38, 0x66, 0x5d, 0x3a, 0x36, 0x37,
-        0x37, 0x31, 0x0d, 0x0a, 0x50, 0x6f, 0x72, 0x74, 0x3a, 0x20, 0x36, 0x38,
-        0x38, 0x31, 0x0d, 0x0a, 0x49, 0x6e, 0x66, 0x6f, 0x68, 0x61, 0x73, 0x68,
-        0x3a, 0x20, 0x61, 0x66, 0x31, 0x37, 0x34, 0x36, 0x35, 0x39, 0x64, 0x37,
-        0x31, 0x31, 0x38, 0x64, 0x32, 0x34, 0x34, 0x61, 0x30, 0x36, 0x31, 0x33};
-    for (int i = 0; i < numPackets; i++) {
-      auto txPacket = utility::makeUDPTxPacket(
-          getSw(),
-          vlanId,
-          srcMac,
-          intfMac,
-          srcIp,
-          dstIp,
-          6771,
-          6771,
-          0,
-          254,
-          serviceDiscoveryPayload);
-      getSw()->sendPacketOutOfPortAsync(std::move(txPacket), outPort);
-    }
-  }
-
-  int sendPacket(
-      const folly::IPAddress& dstIp,
-      std::optional<PortID> frontPanelPort,
-      std::optional<std::vector<uint8_t>> payload =
-          std::optional<std::vector<uint8_t>>(),
-      int dscp = 0x24) {
-    folly::IPAddress kSrcIp(dstIp.isV6() ? "1::1" : "1.0.0.1");
-    const auto srcMac = utility::kLocalCpuMac();
+    auto dstIp =
+        folly::IPAddress::createNetwork(*ipv6Addr, -1, false).first.asV6();
+    folly::IPAddressV6 kSrcIp("1::1");
+    const auto srcMac = folly::MacAddress("00:00:01:02:03:04");
     const auto dstMac = utility::kLocalCpuMac();
 
-    auto txPacket = utility::makeUDPTxPacket(
-        getSw(),
-        std::nullopt, // vlanID
-        srcMac,
-        dstMac,
-        kSrcIp,
-        dstIp,
-        8000, // l4 src port
-        8001, // l4 dst port
-        dscp << 2, // dscp
-        255, // hopLimit
-        payload);
-    size_t txPacketSize = txPacket->buf()->length();
+    auto createTxPacket =
+        [this, srcMac, dstMac, kSrcIp, dstIp, l4SrcPort, l4DstPort]() {
+          return utility::makeTCPTxPacket(
+              getSw(),
+              std::nullopt, // vlanID
+              srcMac,
+              dstMac,
+              kSrcIp,
+              dstIp,
+              l4SrcPort,
+              l4DstPort);
+        };
 
-    XLOG(DBG5) << "\n"
-               << folly::hexDump(
-                      txPacket->buf()->data(), txPacket->buf()->length());
-
-    if (frontPanelPort.has_value()) {
-      getSw()->sendPacketOutOfPortAsync(std::move(txPacket), *frontPanelPort);
-    } else {
-      getSw()->sendPacketSwitchedAsync(std::move(txPacket));
-    }
-    return txPacketSize;
-  }
-
-  SystemPortID getSystemPortID(
-      const PortDescriptor& port,
-      cfg::Scope portScope) {
+    const PortID port = ecmpHelper.ecmpPortDescriptorAt(1).phyPortID();
     auto switchId =
         scopeResolver().scope(getProgrammedState(), port).switchId();
-    const auto& dsfNode =
-        getProgrammedState()->getDsfNodes()->getNodeIf(switchId);
-    auto sysPortOffset = portScope == cfg::Scope::GLOBAL
-        ? dsfNode->getGlobalSystemPortOffset()
-        : dsfNode->getLocalSystemPortOffset();
-    CHECK(sysPortOffset.has_value());
-    return SystemPortID(port.intID() + *sysPortOffset);
-  }
+    auto [beforeQueueOutPkts, beforeQueueOutBytes] =
+        utility::getCpuQueueOutPacketsAndBytes(getSw(), queueId, switchId);
 
-  std::string kDscpAclName() const {
-    return "dscp_acl";
-  }
-  std::string kDscpAclCounterName() const {
-    return "dscp_acl_counter";
-  }
+    auto txPacket = createTxPacket();
+    size_t txPacketSize = txPacket->buf()->length();
 
-  void addDscpAclWithCounter() {
-    auto newCfg = initialConfig(*getAgentEnsemble());
-    auto* acl = utility::addAcl(&newCfg, kDscpAclName());
-    auto asic = utility::checkSameAndGetAsic(getAgentEnsemble()->getL3Asics());
-    acl->dscp() = 0x24;
-    utility::addEtherTypeToAcl(asic, acl, cfg::EtherType::IPv6);
-    utility::addAclStat(
-        &newCfg,
-        kDscpAclName(),
-        kDscpAclCounterName(),
-        utility::getAclCounterTypes(getAgentEnsemble()->getL3Asics()));
-    applyNewConfig(newCfg);
-  }
+    getSw()->sendPacketOutOfPortAsync(std::move(txPacket), port);
+    utility::SwSwitchPacketSnooper snooper(getSw(), "snoop");
+    txPacket = createTxPacket();
+    std::unique_ptr<folly::IOBuf> rxBuf;
+    WITH_RETRIES({
+      auto frameRx = snooper.waitForPacket(1);
+      ASSERT_EVENTUALLY_TRUE(frameRx.has_value());
+      CHECK(frameRx.has_value());
+      rxBuf = std::move(*frameRx);
+    });
+    WITH_RETRIES({
+      XLOG(DBG3) << "TX Packet Dump::" << std::endl
+                 << folly::hexDump(
+                        txPacket->buf()->data(), txPacket->buf()->length());
+      XLOG(DBG3) << "RX Packet Dump::" << std::endl
+                 << folly::hexDump(rxBuf->data(), rxBuf->length());
 
-  void addRemoveNeighbor(
-      PortDescriptor port,
-      bool add,
-      std::optional<int64_t> encapIdx = std::nullopt) {
-    utility::EcmpSetupAnyNPorts6 ecmpHelper(getProgrammedState());
-    if (add) {
-      applyNewState([&](const std::shared_ptr<SwitchState>& in) {
-        return ecmpHelper.resolveNextHops(in, {port});
-      });
-    } else {
-      applyNewState([&](const std::shared_ptr<SwitchState>& in) {
-        return ecmpHelper.unresolveNextHops(in, {port});
-      });
+      XLOG(DBG2) << "TX Packet Length: " << txPacket->buf()->length()
+                 << " RX Packet Length: " << rxBuf->length();
+      EXPECT_EVENTUALLY_EQ(txPacket->buf()->length(), rxBuf->length());
+      EXPECT_EVENTUALLY_EQ(
+          0, memcmp(txPacket->buf()->data(), rxBuf->data(), rxBuf->length()));
+
+      auto [afterQueueOutPkts, afterQueueOutBytes] =
+          utility::getCpuQueueOutPacketsAndBytes(getSw(), queueId, switchId);
+
+      XLOG(DBG2) << "Stats:: queueId: " << static_cast<int>(queueId)
+                 << " beforeQueueOutPkts: " << beforeQueueOutPkts
+                 << " beforeQueueOutBytes: " << beforeQueueOutBytes
+                 << " txPacketSize: " << txPacketSize
+                 << " afterQueueOutPkts: " << afterQueueOutPkts
+                 << " afterQueueOutBytes: " << afterQueueOutBytes;
+
+      EXPECT_EVENTUALLY_EQ(afterQueueOutPkts - 1, beforeQueueOutPkts);
+      // CS00012267635: debug why queue counter is 362, when txPacketSize is
+      // 322
+      EXPECT_EVENTUALLY_GE(afterQueueOutBytes, beforeQueueOutBytes);
+
+      for (auto i = 0;
+           i < utility::getCoppHighPriQueueId(getAgentEnsemble()->getL3Asics());
+           i++) {
+        auto [outPkts, outBytes] =
+            utility::getCpuQueueOutPacketsAndBytes(getSw(), i, switchId);
+        XLOG(DBG2) << "QueueID: " << i << " outPkts: " << outPkts
+                   << " outBytes: " << outBytes;
+      }
+    });
+  };
+
+  verifyAcrossWarmBoots([] {}, verify);
+}
+
+void AgentVoqSwitchTest::sendLocalServiceDiscoveryMulticastPacket(
+    const PortID outPort,
+    const int numPackets) {
+  auto vlanId = utility::firstVlanID(getProgrammedState());
+  auto intfMac = utility::getFirstInterfaceMac(getProgrammedState());
+  auto srcIp = folly::IPAddressV6("fe80::ff:fe00:f0b");
+  auto dstIp = folly::IPAddressV6("ff15::efc0:988f");
+  auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
+  std::vector<uint8_t> serviceDiscoveryPayload = {
+      0x42, 0x54, 0x2d, 0x53, 0x45, 0x41, 0x52, 0x43, 0x48, 0x20, 0x2a, 0x20,
+      0x48, 0x54, 0x54, 0x50, 0x2f, 0x31, 0x2e, 0x31, 0x0d, 0x0a, 0x48, 0x6f,
+      0x73, 0x74, 0x3a, 0x20, 0x5b, 0x66, 0x66, 0x31, 0x35, 0x3a, 0x3a, 0x65,
+      0x66, 0x63, 0x30, 0x3a, 0x39, 0x38, 0x38, 0x66, 0x5d, 0x3a, 0x36, 0x37,
+      0x37, 0x31, 0x0d, 0x0a, 0x50, 0x6f, 0x72, 0x74, 0x3a, 0x20, 0x36, 0x38,
+      0x38, 0x31, 0x0d, 0x0a, 0x49, 0x6e, 0x66, 0x6f, 0x68, 0x61, 0x73, 0x68,
+      0x3a, 0x20, 0x61, 0x66, 0x31, 0x37, 0x34, 0x36, 0x35, 0x39, 0x64, 0x37,
+      0x31, 0x31, 0x38, 0x64, 0x32, 0x34, 0x34, 0x61, 0x30, 0x36, 0x31, 0x33};
+  for (int i = 0; i < numPackets; i++) {
+    auto txPacket = utility::makeUDPTxPacket(
+        getSw(),
+        vlanId,
+        srcMac,
+        intfMac,
+        srcIp,
+        dstIp,
+        6771,
+        6771,
+        0,
+        254,
+        serviceDiscoveryPayload);
+    getSw()->sendPacketOutOfPortAsync(std::move(txPacket), outPort);
+  }
+}
+
+int AgentVoqSwitchTest::sendPacket(
+    const folly::IPAddress& dstIp,
+    std::optional<PortID> frontPanelPort,
+    std::optional<std::vector<uint8_t>> payload,
+    int dscp) {
+  folly::IPAddress kSrcIp(dstIp.isV6() ? "1::1" : "1.0.0.1");
+  const auto srcMac = utility::kLocalCpuMac();
+  const auto dstMac = utility::kLocalCpuMac();
+
+  auto txPacket = utility::makeUDPTxPacket(
+      getSw(),
+      std::nullopt, // vlanID
+      srcMac,
+      dstMac,
+      kSrcIp,
+      dstIp,
+      8000, // l4 src port
+      8001, // l4 dst port
+      dscp << 2, // dscp
+      255, // hopLimit
+      payload);
+  size_t txPacketSize = txPacket->buf()->length();
+
+  XLOG(DBG5) << "\n"
+             << folly::hexDump(
+                    txPacket->buf()->data(), txPacket->buf()->length());
+
+  if (frontPanelPort.has_value()) {
+    getSw()->sendPacketOutOfPortAsync(std::move(txPacket), *frontPanelPort);
+  } else {
+    getSw()->sendPacketSwitchedAsync(std::move(txPacket));
+  }
+  return txPacketSize;
+}
+
+SystemPortID AgentVoqSwitchTest::getSystemPortID(
+    const PortDescriptor& port,
+    cfg::Scope portScope) {
+  auto switchId = scopeResolver().scope(getProgrammedState(), port).switchId();
+  const auto& dsfNode =
+      getProgrammedState()->getDsfNodes()->getNodeIf(switchId);
+  auto sysPortOffset = portScope == cfg::Scope::GLOBAL
+      ? dsfNode->getGlobalSystemPortOffset()
+      : dsfNode->getLocalSystemPortOffset();
+  CHECK(sysPortOffset.has_value());
+  return SystemPortID(port.intID() + *sysPortOffset);
+}
+
+void AgentVoqSwitchTest::addDscpAclWithCounter() {
+  auto newCfg = initialConfig(*getAgentEnsemble());
+  auto* acl = utility::addAcl(&newCfg, kDscpAclName());
+  auto asic = utility::checkSameAndGetAsic(getAgentEnsemble()->getL3Asics());
+  acl->dscp() = 0x24;
+  utility::addEtherTypeToAcl(asic, acl, cfg::EtherType::IPv6);
+  utility::addAclStat(
+      &newCfg,
+      kDscpAclName(),
+      kDscpAclCounterName(),
+      utility::getAclCounterTypes(getAgentEnsemble()->getL3Asics()));
+  applyNewConfig(newCfg);
+}
+
+void AgentVoqSwitchTest::addRemoveNeighbor(
+    PortDescriptor port,
+    bool add,
+    std::optional<int64_t> encapIdx) {
+  utility::EcmpSetupAnyNPorts6 ecmpHelper(getProgrammedState());
+  if (add) {
+    applyNewState([&](const std::shared_ptr<SwitchState>& in) {
+      return ecmpHelper.resolveNextHops(in, {port});
+    });
+  } else {
+    applyNewState([&](const std::shared_ptr<SwitchState>& in) {
+      return ecmpHelper.unresolveNextHops(in, {port});
+    });
+  }
+}
+
+void AgentVoqSwitchTest::setForceTrafficOverFabric(bool force) {
+  applyNewState([&](const std::shared_ptr<SwitchState>& in) {
+    auto out = in->clone();
+    for (const auto& [_, switchSetting] :
+         std::as_const(*out->getSwitchSettings())) {
+      auto newSwitchSettings = switchSetting->modify(&out);
+      newSwitchSettings->setForceTrafficOverFabric(force);
     }
-  }
+    return out;
+  });
+}
 
-  void setForceTrafficOverFabric(bool force) {
-    applyNewState([&](const std::shared_ptr<SwitchState>& in) {
-      auto out = in->clone();
-      for (const auto& [_, switchSetting] :
-           std::as_const(*out->getSwitchSettings())) {
-        auto newSwitchSettings = switchSetting->modify(&out);
-        newSwitchSettings->setForceTrafficOverFabric(force);
-      }
-      return out;
-    });
-  }
+std::vector<PortDescriptor> AgentVoqSwitchTest::getInterfacePortSysPortDesc() {
+  auto ports = getProgrammedState()->getPorts()->getAllNodes();
+  std::vector<PortDescriptor> portDescs;
+  std::for_each(
+      ports->begin(), ports->end(), [this, &portDescs](const auto& idAndPort) {
+        const auto port = idAndPort.second;
+        if (port->getPortType() == cfg::PortType::INTERFACE_PORT) {
+          portDescs.push_back(PortDescriptor(getSystemPortID(
+              PortDescriptor(port->getID()), cfg::Scope::GLOBAL)));
+        }
+      });
+  return portDescs;
+}
 
-  std::vector<PortDescriptor> getInterfacePortSysPortDesc() {
-    auto ports = getProgrammedState()->getPorts()->getAllNodes();
-    std::vector<PortDescriptor> portDescs;
-    std::for_each(
-        ports->begin(),
-        ports->end(),
-        [this, &portDescs](const auto& idAndPort) {
-          const auto port = idAndPort.second;
-          if (port->getPortType() == cfg::PortType::INTERFACE_PORT) {
-            portDescs.push_back(PortDescriptor(getSystemPortID(
-                PortDescriptor(port->getID()), cfg::Scope::GLOBAL)));
-          }
-        });
-    return portDescs;
-  }
+// Resolve and return list of local nhops (only NIF ports)
+std::vector<PortDescriptor> AgentVoqSwitchTest::resolveLocalNhops(
+    utility::EcmpSetupTargetedPorts6& ecmpHelper) {
+  std::vector<PortDescriptor> portDescs = getInterfacePortSysPortDesc();
 
-  // Resolve and return list of local nhops (only NIF ports)
-  std::vector<PortDescriptor> resolveLocalNhops(
-      utility::EcmpSetupTargetedPorts6& ecmpHelper) {
-    std::vector<PortDescriptor> portDescs = getInterfacePortSysPortDesc();
-
-    applyNewState([&](const std::shared_ptr<SwitchState>& in) {
-      auto out = in->clone();
-      for (const auto& portDesc : portDescs) {
-        out = ecmpHelper.resolveNextHops(out, {portDesc});
-      }
-      return out;
-    });
-    return portDescs;
-  }
-};
+  applyNewState([&](const std::shared_ptr<SwitchState>& in) {
+    auto out = in->clone();
+    for (const auto& portDesc : portDescs) {
+      out = ecmpHelper.resolveNextHops(out, {portDesc});
+    }
+    return out;
+  });
+  return portDescs;
+}
 
 class AgentVoqSwitchLineRateTest : public AgentVoqSwitchTest {
  public:
