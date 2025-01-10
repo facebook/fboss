@@ -457,7 +457,8 @@ SwSwitch::SwSwitch(
       scopeResolver_(
           new SwitchIdScopeResolver(getSwitchInfoFromConfig(config))),
       switchStatsObserver_(new SwitchStatsObserver(this)),
-      resourceAccountant_(new ResourceAccountant(hwAsicTable_.get())),
+      resourceAccountant_(
+          new ResourceAccountant(hwAsicTable_.get(), scopeResolver_.get())),
       packetStreamMap_(new MultiSwitchPacketStreamMap()),
       swSwitchWarmbootHelper_(
           new SwSwitchWarmBootHelper(agentDirUtil_, hwAsicTable_.get())),

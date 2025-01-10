@@ -28,8 +28,10 @@ class ResourceAccountantTest : public ::testing::Test {
         {0, createSwitchInfo(cfg::SwitchType::NPU)}};
     asicTable_ =
         std::make_unique<HwAsicTable>(switchIdToSwitchInfo, std::nullopt);
-    resourceAccountant_ =
-        std::make_unique<ResourceAccountant>(asicTable_.get());
+    scopeResolver_ =
+        std::make_unique<SwitchIdScopeResolver>(switchIdToSwitchInfo);
+    resourceAccountant_ = std::make_unique<ResourceAccountant>(
+        asicTable_.get(), scopeResolver_.get());
     FLAGS_ecmp_width = getMaxEcmpMembers();
   }
 
@@ -63,6 +65,7 @@ class ResourceAccountantTest : public ::testing::Test {
 
   std::unique_ptr<ResourceAccountant> resourceAccountant_;
   std::unique_ptr<HwAsicTable> asicTable_;
+  std::unique_ptr<SwitchIdScopeResolver> scopeResolver_;
 };
 
 TEST_F(ResourceAccountantTest, getMemberCountForEcmpGroup) {
