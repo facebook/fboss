@@ -8,6 +8,7 @@
  *
  */
 #include "fboss/agent/hw/mock/MockHwSwitch.h"
+#include "fboss/agent/AgentFeatures.h"
 
 #include <folly/Memory.h>
 #include <folly/json/dynamic.h>
@@ -61,7 +62,11 @@ MockHwSwitch::MockHwSwitch(MockPlatform* platform) : platform_(platform) {
           Invoke([](const StateDelta& delta, const HwWriteBehaviorRAII&) {
             return delta.newState();
           }));
-  ON_CALL(*this, transactionsSupported()).WillByDefault(Return(false));
+  if (FLAGS_enable_hw_update_protection) {
+    ON_CALL(*this, transactionsSupported()).WillByDefault(Return(true));
+  } else {
+    ON_CALL(*this, transactionsSupported()).WillByDefault(Return(false));
+  }
   ON_CALL(*this, isValidStateUpdate(_)).WillByDefault(Return(true));
 }
 
