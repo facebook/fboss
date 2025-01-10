@@ -268,10 +268,9 @@ class AgentTrafficPfcTest : public AgentHwTest {
     switch (asic->getAsicType()) {
       case cfg::AsicType::ASIC_TYPE_JERICHO2:
       case cfg::AsicType::ASIC_TYPE_JERICHO3:
-        buffer.globalHeadroom = kSmallGlobalSharedSize;
+        buffer.globalShared = kSmallGlobalSharedSize;
         break;
       default:
-        buffer.globalHeadroom = PfcBufferParams::kGlobalHeadroomBytes;
         break;
     }
     if (!buffer.scalingFactor.has_value()) {

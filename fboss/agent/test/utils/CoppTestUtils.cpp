@@ -542,6 +542,7 @@ void addHighPriAclForNdp(
 
   cfg::AclEntry acl1;
   acl1.etherType() = cfg::EtherType::IPv6;
+  acl1.proto() = static_cast<uint8_t>(IP_PROTO::IP_PROTO_IPV6_ICMP);
   acl1.ttl() = ttl;
   acl1.icmpType() =
       static_cast<uint16_t>(ICMPv6Type::ICMPV6_TYPE_NDP_ROUTER_SOLICITATION);
@@ -551,6 +552,7 @@ void addHighPriAclForNdp(
 
   cfg::AclEntry acl2;
   acl2.etherType() = cfg::EtherType::IPv6;
+  acl2.proto() = static_cast<uint8_t>(IP_PROTO::IP_PROTO_IPV6_ICMP);
   acl2.ttl() = ttl;
   acl2.icmpType() =
       static_cast<uint16_t>(ICMPv6Type::ICMPV6_TYPE_NDP_ROUTER_ADVERTISEMENT);
@@ -560,6 +562,7 @@ void addHighPriAclForNdp(
 
   cfg::AclEntry acl3;
   acl3.etherType() = cfg::EtherType::IPv6;
+  acl3.proto() = static_cast<uint8_t>(IP_PROTO::IP_PROTO_IPV6_ICMP);
   acl3.ttl() = ttl;
   acl3.icmpType() =
       static_cast<uint16_t>(ICMPv6Type::ICMPV6_TYPE_NDP_NEIGHBOR_SOLICITATION);
@@ -569,6 +572,7 @@ void addHighPriAclForNdp(
 
   cfg::AclEntry acl4;
   acl4.etherType() = cfg::EtherType::IPv6;
+  acl4.proto() = static_cast<uint8_t>(IP_PROTO::IP_PROTO_IPV6_ICMP);
   acl4.ttl() = ttl;
   acl4.icmpType() =
       static_cast<uint16_t>(ICMPv6Type::ICMPV6_TYPE_NDP_NEIGHBOR_ADVERTISEMENT);
@@ -578,6 +582,7 @@ void addHighPriAclForNdp(
 
   cfg::AclEntry acl5;
   acl5.etherType() = cfg::EtherType::IPv6;
+  acl5.proto() = static_cast<uint8_t>(IP_PROTO::IP_PROTO_IPV6_ICMP);
   acl5.ttl() = ttl;
   acl5.icmpType() =
       static_cast<uint16_t>(ICMPv6Type::ICMPV6_TYPE_NDP_REDIRECT_MESSAGE);

@@ -528,6 +528,18 @@ TYPED_TEST(ThriftStructNodeTestSuite, ThriftStructNodeModifyPathTest) {
   visitResult = RootPathVisitor::visit(
       *node, path.begin(), path.end(), PathVisitMode::LEAF, processPath);
   EXPECT_EQ(visitResult, ThriftTraverseResult::OK);
+
+  // remove node
+  std::vector<std::string> keyPath = {
+      "mapOfI32ToMapOfStruct", "1", "2", "mapOfI32ToMapOfStruct", "3", "4"};
+  result = ThriftStructNode<
+      RootTestStruct,
+      ThriftStructResolver<RootTestStruct, enableHybridStorage>,
+      enableHybridStorage>::removePath(&node, keyPath.begin(), keyPath.end());
+
+  visitResult = RootPathVisitor::visit(
+      *node, path.begin(), path.end(), PathVisitMode::LEAF, processPath);
+  EXPECT_EQ(visitResult, ThriftTraverseResult::NON_EXISTENT_NODE);
 }
 
 TEST(ThriftStructNodeTests, ThriftStructNodeRemove) {
