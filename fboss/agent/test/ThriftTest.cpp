@@ -1070,6 +1070,11 @@ TYPED_TEST(ThriftTestAllSwitchTypes, getSwitchIndicesForInterfaces) {
 TEST_F(ThriftTest, getAndSetMacAddrsToBlock) {
   ThriftHandler handler(sw_);
 
+  auto cfgMacAddrsToBlock = std::make_unique<std::vector<cfg::MacAndVlan>>();
+  cfgMacAddrsToBlock->resize(FLAGS_max_mac_address_to_block + 1);
+  EXPECT_THROW(
+      handler.setMacAddrsToBlock(std::move(cfgMacAddrsToBlock)), FbossError);
+
   auto blockListVerify =
       [&handler](
           std::vector<std::pair<VlanID, folly::MacAddress>> macAddrsToBlock) {
@@ -1149,6 +1154,10 @@ TEST_F(ThriftTest, getAndSetMacAddrsToBlock) {
 
 TEST_F(ThriftTest, setNeighborsToBlockAndMacAddrsToBlock) {
   ThriftHandler handler(sw_);
+  auto neighborsToBlock = std::make_unique<std::vector<cfg::Neighbor>>();
+  neighborsToBlock->resize(FLAGS_max_neighbors_to_block + 1);
+  EXPECT_THROW(
+      handler.setNeighborsToBlock(std::move(neighborsToBlock)), FbossError);
 
   auto getNeighborsToBlock = []() {
     auto neighborsToBlock = std::make_unique<std::vector<cfg::Neighbor>>();

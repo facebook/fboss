@@ -214,3 +214,13 @@ DEFINE_bool(
     enable_route_resource_protection,
     true,
     "Enable route resource protection for Resource Accountant");
+
+DEFINE_int32(
+    max_mac_address_to_block,
+    10000,
+    "Max number of mac addresses to block");
+
+DEFINE_int32(
+    max_neighbors_to_block,
+    10000,
+    "Max number of neighbor entries to block");

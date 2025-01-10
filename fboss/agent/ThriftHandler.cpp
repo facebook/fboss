@@ -2814,6 +2814,13 @@ void ThriftHandler::setNeighborsToBlock(
   auto switchSettings =
       utility::getFirstNodeIf(sw_->getState()->getSwitchSettings());
   if (neighborsToBlock) {
+    if (neighborsToBlock->size() > FLAGS_max_neighbors_to_block) {
+      throw FbossError(
+          "Neighbor entries to block list size ",
+          neighborsToBlock->size(),
+          " exceeds limit ",
+          FLAGS_max_neighbors_to_block);
+    }
     if ((*neighborsToBlock).size() != 0 &&
         switchSettings->getMacAddrsToBlock()->size() != 0) {
       throw FbossError(
@@ -2877,6 +2884,13 @@ void ThriftHandler::setMacAddrsToBlock(
   std::vector<std::pair<VlanID, folly::MacAddress>> blockMacAddrs;
 
   if (macAddrsToBlock) {
+    if (macAddrsToBlock->size() > FLAGS_max_mac_address_to_block) {
+      throw FbossError(
+          "MAC addresses to block list size ",
+          macAddrsToBlock->size(),
+          " exceeds limit ",
+          FLAGS_max_mac_address_to_block);
+    }
     if ((*macAddrsToBlock).size() != 0 &&
         utility::getFirstNodeIf(sw_->getState()->getSwitchSettings())
                 ->getBlockNeighbors()

@@ -79,3 +79,5 @@ DECLARE_bool(enable_hw_update_protection);
 DECLARE_bool(fw_drained_unrecoverable_error);
 DECLARE_int32(neighbhor_resource_percentage);
 DECLARE_bool(enable_route_resource_protection);
+DECLARE_int32(max_mac_address_to_block);
+DECLARE_int32(max_neighbors_to_block);
