@@ -582,7 +582,7 @@
         },
         {
           "name": "SMB_NP_VDDC1_K0INT",
-          "sysfsPath": "/run/devmap/sensors/SMB_LTC3888-1_0X50/temp1_input",
+          "sysfsPath": "/run/devmap/sensors/SMB_LTC3888-1_0X50/temp2_input",
           "type": 3,
           "thresholds": {
             "upperCriticalVal": 120,
@@ -592,7 +592,7 @@
         },
         {
           "name": "SMB_NP_VDDC1_K0EXT",
-          "sysfsPath": "/run/devmap/sensors/SMB_LTC3888-1_0X50/temp2_input",
+          "sysfsPath": "/run/devmap/sensors/SMB_LTC3888-1_0X50/temp1_input",
           "type": 3,
           "thresholds": {
             "upperCriticalVal": 120,
@@ -632,7 +632,7 @@
         },
         {
           "name": "SMB_NP_CVDDC1_K1INT",
-          "sysfsPath": "/run/devmap/sensors/SMB_LTC3888-1_0X51/temp1_input",
+          "sysfsPath": "/run/devmap/sensors/SMB_LTC3888-1_0X51/temp2_input",
           "type": 3,
           "thresholds": {
             "upperCriticalVal": 120,
@@ -642,7 +642,7 @@
         },
         {
           "name": "SMB_NP_CVDDC1_K1EXT",
-          "sysfsPath": "/run/devmap/sensors/SMB_LTC3888-1_0X51/temp2_input",
+          "sysfsPath": "/run/devmap/sensors/SMB_LTC3888-1_0X51/temp1_input",
           "type": 3,
           "thresholds": {
             "upperCriticalVal": 120,
@@ -702,7 +702,7 @@
         },
         {
           "name": "SMB_NP_CVDDC2_K2INT",
-          "sysfsPath": "/run/devmap/sensors/SMB_LTC3888-1_0X52/temp1_input",
+          "sysfsPath": "/run/devmap/sensors/SMB_LTC3888-1_0X52/temp2_input",
           "type": 3,
           "thresholds": {
             "upperCriticalVal": 120,
@@ -712,7 +712,7 @@
         },
         {
           "name": "SMB_NP_CVDDC2_K2EXT",
-          "sysfsPath": "/run/devmap/sensors/SMB_LTC3888-1_0X52/temp2_input",
+          "sysfsPath": "/run/devmap/sensors/SMB_LTC3888-1_0X52/temp1_input",
           "type": 3,
           "thresholds": {
             "upperCriticalVal": 120,
@@ -772,7 +772,7 @@
         },
         {
           "name": "SMB_NP_IFG_VDDI1_K0INT",
-          "sysfsPath": "/run/devmap/sensors/SMB_LTC3888-1_0X53/temp1_input",
+          "sysfsPath": "/run/devmap/sensors/SMB_LTC3888-1_0X53/temp2_input",
           "type": 3,
           "thresholds": {
             "upperCriticalVal": 120,
@@ -782,7 +782,7 @@
         },
         {
           "name": "SMB_NP_IFG_VDDI1_K0EXT",
-          "sysfsPath": "/run/devmap/sensors/SMB_LTC3888-1_0X53/temp2_input",
+          "sysfsPath": "/run/devmap/sensors/SMB_LTC3888-1_0X53/temp1_input",
           "type": 3,
           "thresholds": {
             "upperCriticalVal": 120,
@@ -842,7 +842,7 @@
         },
         {
           "name": "SMB_NP_IFG_VDDS_K0INT",
-          "sysfsPath": "/run/devmap/sensors/SMB_LTC3888-1_0X54/temp1_input",
+          "sysfsPath": "/run/devmap/sensors/SMB_LTC3888-1_0X54/temp2_input",
           "type": 3,
           "thresholds": {
             "upperCriticalVal": 120,
@@ -852,7 +852,7 @@
         },
         {
           "name": "SMB_NP_IFG_VDDS_K0EXT",
-          "sysfsPath": "/run/devmap/sensors/SMB_LTC3888-1_0X54/temp2_input",
+          "sysfsPath": "/run/devmap/sensors/SMB_LTC3888-1_0X54/temp1_input",
           "type": 3,
           "thresholds": {
             "upperCriticalVal": 120,
@@ -892,7 +892,7 @@
         },
         {
           "name": "SMB_OSFP_P3V3_L_K0INT",
-          "sysfsPath": "/run/devmap/sensors/SMB_LTC3888-1_0X55/temp1_input",
+          "sysfsPath": "/run/devmap/sensors/SMB_LTC3888-1_0X55/temp2_input",
           "type": 3,
           "thresholds": {
             "upperCriticalVal": 120,
@@ -902,7 +902,7 @@
         },
         {
           "name": "SMB_OSFP_P3V3_L_K0EXT",
-          "sysfsPath": "/run/devmap/sensors/SMB_LTC3888-1_0X55/temp2_input",
+          "sysfsPath": "/run/devmap/sensors/SMB_LTC3888-1_0X55/temp1_input",
           "type": 3,
           "thresholds": {
             "upperCriticalVal": 120,
@@ -942,7 +942,7 @@
         },
         {
           "name": "SMB_OSFP_P3V3_R_K0INT",
-          "sysfsPath": "/run/devmap/sensors/SMB_LTC3888-1_0X56/temp1_input",
+          "sysfsPath": "/run/devmap/sensors/SMB_LTC3888-1_0X56/temp2_input",
           "type": 3,
           "thresholds": {
             "upperCriticalVal": 120,
@@ -952,7 +952,7 @@
         },
         {
           "name": "SMB_OSFP_P3V3_R_K0EXT",
-          "sysfsPath": "/run/devmap/sensors/SMB_LTC3888-1_0X56/temp2_input",
+          "sysfsPath": "/run/devmap/sensors/SMB_LTC3888-1_0X56/temp1_input",
           "type": 3,
           "thresholds": {
             "upperCriticalVal": 120,
