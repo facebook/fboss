@@ -32,6 +32,7 @@ add_library(agent_hw_test_src
   fboss/agent/test/agent_hw_tests/AgentQueuePerHostTests.cpp
   fboss/agent/test/agent_hw_tests/AgentQueuePerHostRouteTests.cpp
   fboss/agent/test/agent_hw_tests/AgentRouteTests.cpp
+  fboss/agent/test/agent_hw_tests/AgentVoqSwitchFullScaleDsfTests.cpp
   fboss/agent/test/agent_hw_tests/AgentVoqSwitchTests.cpp
   fboss/agent/test/agent_hw_tests/AgentVoqSwitchLineRateTests.cpp
   fboss/agent/test/agent_hw_tests/AgentVoqSwitchInterruptsTests.cpp

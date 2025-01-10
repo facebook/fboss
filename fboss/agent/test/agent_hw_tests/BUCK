@@ -73,6 +73,7 @@ cpp_library(
         "AgentTrunkLoadBalancerTests.cpp",
         "AgentTrunkTests.cpp",
         "AgentTunnelMgrTests.cpp",
+        "AgentVoqSwitchFullScaleDsfTests.cpp",
         "AgentVoqSwitchInterruptsTests.cpp",
         "AgentVoqSwitchLineRateTests.cpp",
         "AgentVoqSwitchTests.cpp",
