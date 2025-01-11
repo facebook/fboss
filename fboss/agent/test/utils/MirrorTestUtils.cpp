@@ -47,14 +47,19 @@ void addMirrorConfig(
     const AgentEnsemble& ensemble,
     const std::string& mirrorName,
     bool truncate,
-    uint8_t dscp) {
+    uint8_t dscp,
+    uint16_t mirrorToPortIndex) {
+  if (mirrorToPortIndex >= ensemble.masterLogicalInterfacePortIds().size()) {
+    throw FbossError("mirrorToPortIndex is out of range");
+  }
   auto mirrorToPort = ensemble.masterLogicalPortIds(
-      {cfg::PortType::INTERFACE_PORT})[kMirrorToPortIndex];
+      {cfg::PortType::INTERFACE_PORT})[mirrorToPortIndex];
   auto params = getMirrorTestParams<AddrT>();
   cfg::MirrorDestination destination;
   destination.egressPort() = cfg::MirrorEgressPort();
   destination.egressPort()->logicalID_ref() = mirrorToPort;
-  if (mirrorName == kIngressErspan || mirrorName == kEgressErspan) {
+  if (mirrorName.compare(0, kIngressErspan.length(), kIngressErspan) == 0 ||
+      mirrorName.compare(0, kEgressErspan.length(), kEgressErspan) == 0) {
     cfg::MirrorTunnel tunnel;
     cfg::GreTunnel greTunnel;
     greTunnel.ip() = params.mirrorDestinationIp.str();
@@ -74,13 +79,15 @@ template void addMirrorConfig<folly::IPAddressV4>(
     const AgentEnsemble& ensemble,
     const std::string& mirrorName,
     bool truncate,
-    uint8_t dscp);
+    uint8_t dscp,
+    uint16_t mirrorToPortIndex);
 template void addMirrorConfig<folly::IPAddressV6>(
     cfg::SwitchConfig* cfg,
     const AgentEnsemble& ensemble,
     const std::string& mirrorName,
     bool truncate,
-    uint8_t dscp);
+    uint8_t dscp,
+    uint16_t mirrorToPortIndex);
 
 void configureSflowMirror(
     cfg::SwitchConfig& config,

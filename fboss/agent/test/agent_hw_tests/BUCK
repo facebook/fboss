@@ -43,6 +43,7 @@ cpp_library(
         "AgentMacLearningTests.cpp",
         "AgentMemoryUsageTests.cpp",
         "AgentMirrorOnDropTests.cpp",
+        "AgentMirroringScaleTests.cpp",
         "AgentMirroringTests.cpp",
         "AgentMmuTuningTests.cpp",
         "AgentNeighborTests.cpp",
