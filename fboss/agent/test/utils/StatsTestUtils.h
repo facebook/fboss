@@ -2,9 +2,13 @@
 
 #pragma once
 
+#include <map>
 #include <sstream>
+#include "fboss/agent/StatPrinters.h"
+#include "fboss/agent/if/gen-cpp2/multiswitch_ctrl_types.h"
 
 namespace facebook::fboss {
+
 template <typename MapTypeT>
 std::string statsMapDelta(const MapTypeT& before, const MapTypeT& after) {
   std::stringstream ss;
@@ -26,4 +30,8 @@ std::string statsMapDelta(const MapTypeT& before, const MapTypeT& after) {
   }
   return ss.str();
 }
+
+std::string statsMapDelta(
+    const multiswitch::HwSwitchStats& before,
+    const multiswitch::HwSwitchStats& after);
 } // namespace facebook::fboss

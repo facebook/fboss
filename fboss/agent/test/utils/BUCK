@@ -281,8 +281,14 @@ cpp_library(
 
 cpp_library(
     name = "stats_test_utils",
+    srcs = [
+        "StatsTestUtils.cpp",
+    ],
     headers = ["StatsTestUtils.h"],
-    exported_deps = [],
+    exported_deps = [
+        "//fboss/agent:stat_printers",
+        "//fboss/agent/if:multiswitch_ctrl-cpp2-types",
+    ],
 )
 
 cpp_library(

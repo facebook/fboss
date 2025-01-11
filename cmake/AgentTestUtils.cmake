@@ -236,6 +236,11 @@ add_library(stats_test_utils
   fboss/agent/test/utils/StatsTestUtils.cpp
 )
 
+target_link_libraries(stats_test_utils
+  stat_printers
+  multiswitch_ctrl_cpp2
+)
+
 add_library(
   ecmp_dataplane_test_util
   fboss/agent/test/utils/EcmpDataPlaneTestUtil.cpp
