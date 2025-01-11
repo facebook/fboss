@@ -168,6 +168,7 @@ add_library(stat_printers
 target_link_libraries(stat_printers
   FBThrift::thriftcpp2
   hardware_stats_cpp2
+  phy_cpp2
   Folly::folly
 )
 

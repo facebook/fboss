@@ -485,6 +485,7 @@ cpp_library(
     ],
     exported_deps = [
         "//fboss/agent/hw:hardware_stats-cpp2-types",
+        "//fboss/lib/phy:phy-cpp2-types",
         "//thrift/lib/cpp2/protocol:protocol",
     ],
 )

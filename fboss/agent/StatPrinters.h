@@ -13,6 +13,8 @@
 #include <ostream>
 #include <string>
 #include "fboss/agent/hw/gen-cpp2/hardware_stats_types.h"
+#include "fboss/lib/phy/gen-cpp2/phy_types.h"
+
 namespace facebook::fboss {
 
 void toAppend(const HwPortStats& stats, folly::fbstring* result);
@@ -29,6 +31,9 @@ void toAppend(const HwSwitchDropStats& stats, folly::fbstring* result);
 void toAppend(const HwSwitchDramStats& stats, folly::fbstring* result);
 void toAppend(const HwSwitchFb303GlobalStats& stats, folly::fbstring* result);
 void toAppend(const HwFlowletStats& stats, folly::fbstring* result);
+void toAppend(const phy::PhyInfo& phy, folly::fbstring* result);
+void toAppend(const AclStats& stats, folly::fbstring* result);
+void toAppend(const HwSwitchWatermarkStats& stats, folly::fbstring* result);
 
 std::ostream& operator<<(std::ostream& os, const HwPortStats& stats);
 std::ostream& operator<<(std::ostream& os, const HwSysPortStats& stats);
@@ -48,4 +53,7 @@ std::ostream& operator<<(
     std::ostream& os,
     const HwSwitchFb303GlobalStats& stats);
 std::ostream& operator<<(std::ostream& os, const HwFlowletStats& stats);
+std::ostream& operator<<(std::ostream& os, const phy::PhyInfo& phy);
+std::ostream& operator<<(std::ostream& os, const AclStats& stats);
+std::ostream& operator<<(std::ostream& os, const HwSwitchWatermarkStats& stats);
 } // namespace facebook::fboss

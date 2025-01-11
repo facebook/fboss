@@ -69,6 +69,17 @@ void toAppend(const HwFlowletStats& stats, folly::fbstring* result) {
   result->append(toStr(stats));
 }
 
+void toAppend(const phy::PhyInfo& stats, folly::fbstring* result) {
+  result->append(toStr(stats));
+}
+
+void toAppend(const AclStats& stats, folly::fbstring* result) {
+  result->append(toStr(stats));
+}
+void toAppend(const HwSwitchWatermarkStats& stats, folly::fbstring* result) {
+  result->append(toStr(stats));
+}
+
 std::ostream& operator<<(std::ostream& os, const HwPortStats& stats) {
   os << toStr(stats);
   return os;
@@ -126,6 +137,21 @@ std::ostream& operator<<(
   return os;
 }
 std::ostream& operator<<(std::ostream& os, const HwFlowletStats& stats) {
+  os << toStr(stats);
+  return os;
+}
+
+std::ostream& operator<<(std::ostream& os, const phy::PhyInfo& stats) {
+  os << toStr(stats);
+  return os;
+}
+std::ostream& operator<<(std::ostream& os, const AclStats& stats) {
+  os << toStr(stats);
+  return os;
+}
+std::ostream& operator<<(
+    std::ostream& os,
+    const HwSwitchWatermarkStats& stats) {
   os << toStr(stats);
   return os;
 }
