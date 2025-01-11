@@ -315,7 +315,10 @@ void fillHwPortStats(
         break;
 #if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
       case SAI_PORT_STAT_IF_IN_LINK_DOWN_CELL_DROP:
-        hwPortStats.fabricLinkDownDroppedCells_() = value;
+        // FABRIC link down cell drop is a clear on read counter from SAI
+        // POV, so doing the counter accumulation here.
+        hwPortStats.fabricLinkDownDroppedCells_() =
+            hwPortStats.fabricLinkDownDroppedCells_().value_or(0) + value;
         break;
 #endif
 #if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
