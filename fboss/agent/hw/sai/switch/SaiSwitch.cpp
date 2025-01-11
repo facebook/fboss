@@ -2736,14 +2736,15 @@ void SaiSwitch::syncLinkStatesLocked(
     const std::lock_guard<std::mutex>& /* lock */) {
   for (const auto& portIdAndHandle : managerTable_->portManager()) {
     const auto& port = portIdAndHandle.second->port;
-    auto operStatus = SaiApiTable::getInstance()->portApi().getAttribute(
-        port->adapterKey(), SaiPortTraits::Attributes::OperStatus{});
+    auto operStatus = static_cast<sai_port_oper_status_t>(
+        SaiApiTable::getInstance()->portApi().getAttribute(
+            port->adapterKey(), SaiPortTraits::Attributes::OperStatus{}));
     XLOG(DBG2) << "Sending link state change notification for port "
                << portIdAndHandle.first << " with oper status: "
-               << (operStatus == SAI_PORT_OPER_STATUS_UP ? "UP" : "DOWN");
+               << (utility::isPortOperUp(operStatus) ? "UP" : "DOWN");
     callback_->linkStateChanged(
         portIdAndHandle.first,
-        operStatus == SAI_PORT_OPER_STATUS_UP,
+        utility::isPortOperUp(operStatus),
         managerTable_->portManager().getPortType(portIdAndHandle.first));
   }
 }
