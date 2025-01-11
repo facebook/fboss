@@ -1,6 +1,6 @@
 {
   "defaultCommandLineArgs": {
-    "firmware_upgrade_on_link_down": "true",
+    "firmware_upgrade_on_link_down": "false",
     "firmware_upgrade_on_tcvr_insert": "true",
     "firmware_upgrade_supported": "true",
     "mode": "tahan800bc",
@@ -240,7 +240,7 @@
           "versions": [
             {
               "fwType": 1,
-              "version": "36.242"
+              "version": "36.195"
             }
           ]
       },
@@ -248,7 +248,7 @@
           "versions": [
             {
               "fwType": 1,
-              "version": "36.242"
+              "version": "36.195"
             }
           ]
       },
