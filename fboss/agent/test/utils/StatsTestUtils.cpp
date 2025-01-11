@@ -54,4 +54,14 @@ std::string statsDelta(
       "Switch watermark stats");
   return ss.str();
 }
+
+std::string statsDelta(
+    const std::map<uint16_t, multiswitch::HwSwitchStats>& before,
+    const std::map<uint16_t, multiswitch::HwSwitchStats>& after) {
+  auto deltaPrinter = [](const multiswitch::HwSwitchStats& b,
+                         const multiswitch::HwSwitchStats& a) {
+    return statsDelta(b, a);
+  };
+  return statsMapDelta(before, after, deltaPrinter);
+}
 } // namespace facebook::fboss
