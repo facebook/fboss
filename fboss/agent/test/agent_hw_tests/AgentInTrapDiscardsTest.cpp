@@ -50,8 +50,9 @@ TEST_F(AgentInTrapDiscardsCounterTest, trapDrops) {
     auto portStatsBefore = getLatestPortStats(portId);
     pumpTraffic(true);
     pumpTraffic(false);
+    auto portStatsAfter = portStatsBefore;
     WITH_RETRIES({
-      auto portStatsAfter = getLatestPortStats(portId);
+      portStatsAfter = getLatestPortStats(portId);
       EXPECT_EVENTUALLY_EQ(
           2,
           *portStatsAfter.inDiscardsRaw_() - *portStatsBefore.inDiscardsRaw_());
@@ -61,7 +62,18 @@ TEST_F(AgentInTrapDiscardsCounterTest, trapDrops) {
           *portStatsAfter.inTrapDiscards_() -
               portStatsBefore.inTrapDiscards_().value_or(0));
     });
-    checkStatsStabilize();
+    checkStatsStabilize(
+        10,
+        [this, portId, portStatsAfter](
+            const std::map<uint16_t, multiswitch::HwSwitchStats>& switchStats) {
+          auto afterAfterPortStats = extractPortStats(portId, switchStats);
+          EXPECT_EQ(
+              afterAfterPortStats.inDiscardsRaw_(),
+              portStatsAfter.inDiscardsRaw_());
+          EXPECT_EQ(
+              afterAfterPortStats.inTrapDiscards_(),
+              portStatsAfter.inTrapDiscards_());
+        });
     getAgentEnsemble()->applyNewState(
         [](const std::shared_ptr<SwitchState>& in) {
           return setupMinAlpmRouteState(in);
