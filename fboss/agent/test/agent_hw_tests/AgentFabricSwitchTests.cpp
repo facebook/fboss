@@ -199,11 +199,18 @@ TEST_F(AgentFabricSwitchTest, fabricPortIsolate) {
               return fabricPortIds.find(portId) != fabricPortIds.end();
             }),
         undrainedPortIds.end());
-    // Only drained port will be inactive
-    utility::checkFabricPortsActiveState(
-        getAgentEnsemble(), drainedPortIds, false /*expectActive*/);
-    utility::checkFabricPortsActiveState(
-        getAgentEnsemble(), undrainedPortIds, true /*expectActive*/);
+    auto checkActiveInactiveState = [&]() {
+      // Only drained port will be inactive
+      utility::checkFabricPortsActiveState(
+          getAgentEnsemble(), drainedPortIds, false /*expectActive*/);
+      utility::checkFabricPortsActiveState(
+          getAgentEnsemble(), undrainedPortIds, true /*expectActive*/);
+    };
+    checkActiveInactiveState();
+    // Flap ports. Active/inactive state should restore after
+    bringDownPorts(masterLogicalFabricPortIds());
+    bringUpPorts(masterLogicalFabricPortIds());
+    checkActiveInactiveState();
   };
   verifyAcrossWarmBoots(setup, verify);
 }
