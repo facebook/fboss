@@ -52,9 +52,9 @@ void AgentVoqSwitchTest::rxPacketToCpuHelper(
     uint16_t l4DstPort,
     uint8_t queueId) {
   utility::EcmpSetupAnyNPorts6 ecmpHelper(getProgrammedState());
-  auto kPort = ecmpHelper.ecmpPortDescriptorAt(0);
+  auto kPortDesc = ecmpHelper.ecmpPortDescriptorAt(0);
 
-  auto verify = [this, ecmpHelper, kPort, l4SrcPort, l4DstPort, queueId]() {
+  auto verify = [this, ecmpHelper, kPortDesc, l4SrcPort, l4DstPort, queueId]() {
     // TODO(skhare)
     // Send to only one IPv6 address for ease of debugging.
     // Once SAI implementation bugs are fixed, send to ALL interface
@@ -243,10 +243,7 @@ void AgentVoqSwitchTest::addDscpAclWithCounter() {
   applyNewConfig(newCfg);
 }
 
-void AgentVoqSwitchTest::addRemoveNeighbor(
-    PortDescriptor port,
-    bool add,
-    std::optional<int64_t> encapIdx) {
+void AgentVoqSwitchTest::addRemoveNeighbor(PortDescriptor port, bool add) {
   utility::EcmpSetupAnyNPorts6 ecmpHelper(getProgrammedState());
   if (add) {
     applyNewState([&](const std::shared_ptr<SwitchState>& in) {
@@ -340,29 +337,29 @@ TEST_F(AgentVoqSwitchTest, fdrRciAndCoreRciWatermarks) {
 
 TEST_F(AgentVoqSwitchTest, addRemoveNeighbor) {
   auto setup = [this]() {
-    const PortDescriptor kPort(getAgentEnsemble()->masterLogicalPortIds(
+    const PortDescriptor kPortDesc(getAgentEnsemble()->masterLogicalPortIds(
         {cfg::PortType::INTERFACE_PORT})[0]);
     // Add neighbor
-    addRemoveNeighbor(kPort, true);
+    addRemoveNeighbor(kPortDesc, true);
     // Remove neighbor
-    addRemoveNeighbor(kPort, false);
+    addRemoveNeighbor(kPortDesc, false);
   };
   verifyAcrossWarmBoots(setup, [] {});
 }
 
 TEST_F(AgentVoqSwitchTest, sendPacketCpuAndFrontPanel) {
   utility::EcmpSetupAnyNPorts6 ecmpHelper(getProgrammedState());
-  const auto kPort = ecmpHelper.ecmpPortDescriptorAt(0);
+  const auto kPortDesc = ecmpHelper.ecmpPortDescriptorAt(0);
 
-  auto setup = [this, kPort, ecmpHelper]() {
+  auto setup = [this, kPortDesc, ecmpHelper]() {
     if (isSupportedOnAllAsics(HwAsic::Feature::ACL_TABLE_GROUP)) {
       addDscpAclWithCounter();
     }
-    addRemoveNeighbor(kPort, true /* add neighbor*/);
+    addRemoveNeighbor(kPortDesc, true /* add neighbor*/);
   };
 
-  auto verify = [this, kPort, ecmpHelper]() {
-    auto sendPacketCpuFrontPanelHelper = [this, kPort, ecmpHelper](
+  auto verify = [this, kPortDesc, ecmpHelper]() {
+    auto sendPacketCpuFrontPanelHelper = [this, kPortDesc, ecmpHelper](
                                              bool isFrontPanel) {
       auto getPortOutPktsBytes = [this](PortID port) {
         return std::make_pair(
@@ -370,13 +367,14 @@ TEST_F(AgentVoqSwitchTest, sendPacketCpuAndFrontPanel) {
             getLatestPortStats(port).get_outBytes_());
       };
 
-      auto getAllQueueOutPktsBytes = [kPort, this]() {
+      auto getAllQueueOutPktsBytes = [kPortDesc, this]() {
         return std::make_pair(
-            getLatestPortStats(kPort.phyPortID()).get_queueOutPackets_(),
-            getLatestPortStats(kPort.phyPortID()).get_queueOutBytes_());
+            getLatestPortStats(kPortDesc.phyPortID()).get_queueOutPackets_(),
+            getLatestPortStats(kPortDesc.phyPortID()).get_queueOutBytes_());
       };
-      auto getAllVoQOutBytes = [kPort, this]() {
-        return getLatestSysPortStats(getSystemPortID(kPort, cfg::Scope::GLOBAL))
+      auto getAllVoQOutBytes = [kPortDesc, this]() {
+        return getLatestSysPortStats(
+                   getSystemPortID(kPortDesc, cfg::Scope::GLOBAL))
             .get_queueOutBytes_();
       };
       auto getAclPackets = [this]() {
@@ -419,7 +417,7 @@ TEST_F(AgentVoqSwitchTest, sendPacketCpuAndFrontPanel) {
       }
 
       auto [beforeOutPkts, beforeOutBytes] =
-          getPortOutPktsBytes(kPort.phyPortID());
+          getPortOutPktsBytes(kPortDesc.phyPortID());
       auto beforeAclPkts =
           isSupportedOnAllAsics(HwAsic::Feature::ACL_TABLE_GROUP)
           ? getAclPackets()
@@ -433,7 +431,7 @@ TEST_F(AgentVoqSwitchTest, sendPacketCpuAndFrontPanel) {
       }
       auto beforeRecyclePkts = getRecyclePortPkts();
       auto beforeSwitchDropStats = getAggregatedSwitchDropStats();
-      auto txPacketSize = sendPacket(ecmpHelper.ip(kPort), frontPanelPort);
+      auto txPacketSize = sendPacket(ecmpHelper.ip(kPortDesc), frontPanelPort);
 
       auto [maxRetryCount, sleepTimeMsecs] =
           utility::getRetryCountAndDelay(getSw()->getHwAsicTable());
@@ -451,7 +449,8 @@ TEST_F(AgentVoqSwitchTest, sendPacketCpuAndFrontPanel) {
                 isSupportedOnAllAsics(HwAsic::Feature::ACL_TABLE_GROUP)
                 ? getAclPackets()
                 : 0;
-            auto portOutPktsAndBytes = getPortOutPktsBytes(kPort.phyPortID());
+            auto portOutPktsAndBytes =
+                getPortOutPktsBytes(kPortDesc.phyPortID());
             auto afterOutPkts = portOutPktsAndBytes.first;
             auto afterOutBytes = portOutPktsAndBytes.second;
             uint64_t afterFrontPanelOutBytes{0}, afterFrontPanelOutPkts{0};
@@ -565,21 +564,21 @@ TEST_F(AgentVoqSwitchTest, sendPacketCpuAndFrontPanel) {
 
 TEST_F(AgentVoqSwitchTest, trapPktsOnPort) {
   utility::EcmpSetupAnyNPorts6 ecmpHelper(getProgrammedState());
-  const auto kPort = ecmpHelper.ecmpPortDescriptorAt(0);
-  auto setup = [this, kPort, &ecmpHelper]() {
+  const auto kPortDesc = ecmpHelper.ecmpPortDescriptorAt(0);
+  auto setup = [this, kPortDesc, &ecmpHelper]() {
     auto cfg = initialConfig(*getAgentEnsemble());
     auto l3Asics = getAgentEnsemble()->getL3Asics();
     auto asic = utility::checkSameAndGetAsic(l3Asics);
-    utility::addTrapPacketAcl(asic, &cfg, kPort.phyPortID());
+    utility::addTrapPacketAcl(asic, &cfg, kPortDesc.phyPortID());
     applyNewConfig(cfg);
     applyNewState([=](const std::shared_ptr<SwitchState>& in) {
-      return ecmpHelper.resolveNextHops(in, {kPort});
+      return ecmpHelper.resolveNextHops(in, {kPortDesc});
     });
   };
-  auto verify = [this, kPort, &ecmpHelper]() {
+  auto verify = [this, kPortDesc, &ecmpHelper]() {
     utility::SwSwitchPacketSnooper snooper(getSw(), "snoop");
     auto frontPanelPort = ecmpHelper.ecmpPortDescriptorAt(1).phyPortID();
-    sendPacket(ecmpHelper.ip(kPort), frontPanelPort);
+    sendPacket(ecmpHelper.ip(kPortDesc), frontPanelPort);
     WITH_RETRIES({
       auto frameRx = snooper.waitForPacket(1);
       EXPECT_EVENTUALLY_TRUE(frameRx.has_value());
@@ -611,23 +610,23 @@ TEST_F(AgentVoqSwitchTest, rxPacketToCpuBgpSrcPort) {
 
 TEST_F(AgentVoqSwitchTest, localForwardingPostIsolate) {
   utility::EcmpSetupAnyNPorts6 ecmpHelper(getProgrammedState());
-  const auto kPort = ecmpHelper.ecmpPortDescriptorAt(0);
-  auto setup = [this, kPort]() {
+  const auto kPortDesc = ecmpHelper.ecmpPortDescriptorAt(0);
+  auto setup = [this, kPortDesc]() {
     auto newCfg = initialConfig(*getAgentEnsemble());
     *newCfg.switchSettings()->switchDrainState() =
         cfg::SwitchDrainState::DRAINED;
     applyNewConfig(newCfg);
-    addRemoveNeighbor(kPort, true /* add neighbor*/);
+    addRemoveNeighbor(kPortDesc, true /* add neighbor*/);
   };
 
-  auto verify = [this, kPort, &ecmpHelper]() {
+  auto verify = [this, kPortDesc, &ecmpHelper]() {
     auto sendPktAndVerify = [&](std::optional<PortID> portToSendFrom) {
       auto beforePkts =
-          getLatestPortStats(kPort.phyPortID()).get_outUnicastPkts_();
-      sendPacket(ecmpHelper.ip(kPort), portToSendFrom);
+          getLatestPortStats(kPortDesc.phyPortID()).get_outUnicastPkts_();
+      sendPacket(ecmpHelper.ip(kPortDesc), portToSendFrom);
       WITH_RETRIES({
         auto afterPkts =
-            getLatestPortStats(kPort.phyPortID()).get_outUnicastPkts_();
+            getLatestPortStats(kPortDesc.phyPortID()).get_outUnicastPkts_();
         XLOG(DBG2) << "Before pkts: " << beforePkts
                    << " After pkts: " << afterPkts;
         EXPECT_EVENTUALLY_GE(afterPkts, beforePkts + 1);
@@ -643,28 +642,29 @@ TEST_F(AgentVoqSwitchTest, localForwardingPostIsolate) {
 
 TEST_F(AgentVoqSwitchTest, stressLocalForwardingPostIsolate) {
   utility::EcmpSetupAnyNPorts6 ecmpHelper(getProgrammedState());
-  const auto kPort = ecmpHelper.ecmpPortDescriptorAt(0);
-  auto setup = [this, kPort]() {
+  const auto kPortDesc = ecmpHelper.ecmpPortDescriptorAt(0);
+  auto setup = [this, kPortDesc]() {
     auto newCfg = initialConfig(*getAgentEnsemble());
     *newCfg.switchSettings()->switchDrainState() =
         cfg::SwitchDrainState::DRAINED;
     applyNewConfig(newCfg);
-    addRemoveNeighbor(kPort, true /* add neighbor*/);
+    addRemoveNeighbor(kPortDesc, true /* add neighbor*/);
   };
 
-  auto verify = [this, kPort, &ecmpHelper]() {
+  auto verify = [this, kPortDesc, &ecmpHelper]() {
     auto beforePkts =
-        getLatestPortStats(kPort.phyPortID()).get_outUnicastPkts_();
+        getLatestPortStats(kPortDesc.phyPortID()).get_outUnicastPkts_();
     for (auto i = 0; i < 10000; ++i) {
       // CPU send
-      sendPacket(ecmpHelper.ip(kPort), std::nullopt);
+      sendPacket(ecmpHelper.ip(kPortDesc), std::nullopt);
       // Front panel send
       sendPacket(
-          ecmpHelper.ip(kPort), ecmpHelper.ecmpPortDescriptorAt(1).phyPortID());
+          ecmpHelper.ip(kPortDesc),
+          ecmpHelper.ecmpPortDescriptorAt(1).phyPortID());
     }
     WITH_RETRIES({
       auto afterPkts =
-          getLatestPortStats(kPort.phyPortID()).get_outUnicastPkts_();
+          getLatestPortStats(kPortDesc.phyPortID()).get_outUnicastPkts_();
       XLOG(DBG2) << "Before pkts: " << beforePkts
                  << " After pkts: " << afterPkts;
       EXPECT_EVENTUALLY_GE(afterPkts, beforePkts + 20000);
@@ -747,22 +747,22 @@ TEST_F(AgentVoqSwitchTest, packetIntegrityError) {
 
 TEST_F(AgentVoqSwitchTest, dramEnqueueDequeueBytes) {
   utility::EcmpSetupAnyNPorts6 ecmpHelper(getProgrammedState());
-  const auto kPort = ecmpHelper.ecmpPortDescriptorAt(0);
-  auto setup = [this, kPort]() {
-    addRemoveNeighbor(kPort, true /* add neighbor*/);
+  const auto kPortDesc = ecmpHelper.ecmpPortDescriptorAt(0);
+  auto setup = [this, kPortDesc]() {
+    addRemoveNeighbor(kPortDesc, true /* add neighbor*/);
   };
 
-  auto verify = [this, kPort, &ecmpHelper]() {
+  auto verify = [this, kPortDesc, &ecmpHelper]() {
     // Disable both port TX and credit watchdog
     utility::setCreditWatchdogAndPortTx(
-        getAgentEnsemble(), kPort.phyPortID(), false);
-    auto sendPkts = [this, kPort, &ecmpHelper]() {
+        getAgentEnsemble(), kPortDesc.phyPortID(), false);
+    auto sendPkts = [this, kPortDesc, &ecmpHelper]() {
       for (auto i = 0; i < 1000; ++i) {
-        sendPacket(ecmpHelper.ip(kPort), std::nullopt);
+        sendPacket(ecmpHelper.ip(kPortDesc), std::nullopt);
       }
     };
     int64_t dramEnqueuedBytes = 0;
-    auto switchId = scopeResolver().scope(kPort.phyPortID()).switchId();
+    auto switchId = scopeResolver().scope(kPortDesc.phyPortID()).switchId();
     auto switchIndex =
         getSw()->getSwitchInfoTable().getSwitchIndexFromSwitchId(switchId);
     WITH_RETRIES({
@@ -774,7 +774,7 @@ TEST_F(AgentVoqSwitchTest, dramEnqueueDequeueBytes) {
       EXPECT_EVENTUALLY_GT(dramEnqueuedBytes, 0);
     });
     // Enable port TX
-    utility::setPortTx(getAgentEnsemble(), kPort.phyPortID(), true);
+    utility::setPortTx(getAgentEnsemble(), kPortDesc.phyPortID(), true);
     WITH_RETRIES({
       auto switchStats = getSw()->getHwSwitchStatsExpensive()[switchIndex];
       auto dramDequeuedBytes =
@@ -792,7 +792,7 @@ TEST_F(AgentVoqSwitchTest, dramEnqueueDequeueBytes) {
 
 TEST_F(AgentVoqSwitchTest, verifyQueueLatencyWatermark) {
   utility::EcmpSetupAnyNPorts6 ecmpHelper(getProgrammedState());
-  const auto kPort = ecmpHelper.ecmpPortDescriptorAt(0);
+  const auto kPortDesc = ecmpHelper.ecmpPortDescriptorAt(0);
   const uint64_t kLocalVoqMaxExpectedLatencyNsec{10000};
   const uint64_t kRemoteL1VoqMaxExpectedLatencyNsec{100000};
   const uint64_t kRemoteL2VoqMaxExpectedLatencyNsec{100000};
@@ -807,31 +807,31 @@ TEST_F(AgentVoqSwitchTest, verifyQueueLatencyWatermark) {
         kRemoteL2VoqMaxExpectedLatencyNsec;
     cfg.switchSettings()->voqOutOfBoundsLatencyNsec() = kOutOfBoundsLatencyNsec;
     applyNewConfig(cfg);
-    addRemoveNeighbor(kPort, true /* add neighbor*/);
+    addRemoveNeighbor(kPortDesc, true /* add neighbor*/);
   };
 
   auto verify = [&]() {
     auto queueId{0};
     auto dscpForQueue =
         utility::kOlympicQueueToDscp().find(queueId)->second.at(0);
-    auto sendPkts = [this, kPort, &ecmpHelper, dscpForQueue]() {
+    auto sendPkts = [this, kPortDesc, &ecmpHelper, dscpForQueue]() {
       for (auto i = 0; i < 10000; ++i) {
         sendPacket(
-            ecmpHelper.ip(kPort),
+            ecmpHelper.ip(kPortDesc),
             std::nullopt,
             std::vector<uint8_t>(4000),
             dscpForQueue);
       }
     };
     auto waitForQueueLatencyWatermark =
-        [this, &kPort, &queueId](uint64_t expectedLatencyWatermarkNsec) {
+        [this, &kPortDesc, &queueId](uint64_t expectedLatencyWatermarkNsec) {
           uint64_t queueLatencyWatermarkNsec;
           WITH_RETRIES({
             queueLatencyWatermarkNsec =
                 getLatestSysPortStats(
-                    getSystemPortID(kPort, cfg::Scope::GLOBAL))
+                    getSystemPortID(kPortDesc, cfg::Scope::GLOBAL))
                     .queueLatencyWatermarkNsec_()[queueId];
-            XLOG(DBG2) << "Port: " << kPort.phyPortID()
+            XLOG(DBG2) << "Port: " << kPortDesc.phyPortID()
                        << " voq queueId: " << queueId
                        << " latency watermark: " << queueLatencyWatermarkNsec
                        << " nsec";
@@ -841,12 +841,12 @@ TEST_F(AgentVoqSwitchTest, verifyQueueLatencyWatermark) {
         };
     // Disable both port TX and credit watchdog
     utility::setCreditWatchdogAndPortTx(
-        getAgentEnsemble(), kPort.phyPortID(), false);
+        getAgentEnsemble(), kPortDesc.phyPortID(), false);
     // Send packets and let it sit in the VoQ
     sendPkts();
     sleep(1);
     // Enable port TX
-    utility::setPortTx(getAgentEnsemble(), kPort.phyPortID(), true);
+    utility::setPortTx(getAgentEnsemble(), kPortDesc.phyPortID(), true);
     // VoQ latency exceeded the configured max latency
     waitForQueueLatencyWatermark(kOutOfBoundsLatencyNsec);
     // Now, send packets without any delays

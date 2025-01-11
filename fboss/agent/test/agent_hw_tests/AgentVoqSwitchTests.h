@@ -55,10 +55,7 @@ class AgentVoqSwitchTest : public AgentHwTest {
   }
 
   void addDscpAclWithCounter();
-  void addRemoveNeighbor(
-      PortDescriptor port,
-      bool add,
-      std::optional<int64_t> encapIdx = std::nullopt);
+  void addRemoveNeighbor(PortDescriptor port, bool add);
   void setForceTrafficOverFabric(bool force);
   std::vector<PortDescriptor> getInterfacePortSysPortDesc();
   // Resolve and return list of local nhops (only NIF ports)
