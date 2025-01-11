@@ -464,7 +464,7 @@ cfg::SwitchConfig AgentHwTest::addCoppConfig(
 }
 
 void AgentHwTest::checkNoStatsChange(int trys) {
-  auto resetTimestamp = [this](auto& statsMap) {
+  auto resetDontCareValues = [](auto& statsMap) {
     for (auto& [_, stats] : statsMap) {
       stats.timestamp() = 0;
       for (auto& [_, portStats] : *stats.hwPortStats()) {
@@ -474,6 +474,9 @@ void AgentHwTest::checkNoStatsChange(int trys) {
         sysPortStats.timestamp_() = 0;
       }
       stats.teFlowStats()->timestamp() = 0;
+      // PhyInfo can be noisy and dependent on external
+      // physical params. Don't compare these
+      stats.phyInfo()->clear();
     }
   };
   auto timestampChanged = [](const auto& before, const auto& after) {
@@ -496,8 +499,8 @@ void AgentHwTest::checkNoStatsChange(int trys) {
                        std::chrono::milliseconds(100),
                        " fetch port stats");
                    EXPECT_EVENTUALLY_TRUE(timestampChanged(before, after));
-                   resetTimestamp(before);
-                   resetTimestamp(after);
+                   resetDontCareValues(before);
+                   resetDontCareValues(after);
 
                    // TODO: Utilize statsMapDelta to compare stats map
                    // differences
