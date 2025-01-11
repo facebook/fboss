@@ -463,7 +463,7 @@ cfg::SwitchConfig AgentHwTest::addCoppConfig(
   return config;
 }
 
-void AgentHwTest::checkNoStatsChange(int trys) {
+void AgentHwTest::checkStatsStabilize(int trys) {
   auto resetDontCareValues = [](auto& statsMap) {
     for (auto& [_, stats] : statsMap) {
       stats.timestamp() = 0;

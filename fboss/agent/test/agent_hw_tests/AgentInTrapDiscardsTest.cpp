@@ -61,7 +61,7 @@ TEST_F(AgentInTrapDiscardsCounterTest, trapDrops) {
           *portStatsAfter.inTrapDiscards_() -
               portStatsBefore.inTrapDiscards_().value_or(0));
     });
-    checkNoStatsChange();
+    checkStatsStabilize();
     getAgentEnsemble()->applyNewState(
         [](const std::shared_ptr<SwitchState>& in) {
           return setupMinAlpmRouteState(in);

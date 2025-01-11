@@ -193,7 +193,15 @@ class AgentHwTest : public ::testing::Test {
     agentEnsemble_->bringDownPorts(ports);
   }
 
-  void checkNoStatsChange(int trys = 10);
+  /*
+   * Check that stats stabilize after X rounds of collection.
+   * The extra retries are to allow for
+   * i. Pkts in flight
+   * ii. Dependent stats - for e.g. test asserted for port
+   * stats, but did not account for VOQ stats, which may
+   * increment async.
+   */
+  void checkStatsStabilize(int trys = 10);
   /*
    * API to all flag overrides for individual tests. Primarily
    * used for features which we don't want to enable for

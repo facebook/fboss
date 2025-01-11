@@ -740,7 +740,7 @@ TEST_F(AgentVoqSwitchTest, packetIntegrityError) {
     // accumulate its value in memory. If HW/SDK ever changed this to
     // not be clear on read, but cumulative, then our approach would
     // yield constantly increasing values. Assert against that.
-    checkNoStatsChange(30);
+    checkStatsStabilize(30);
   };
   verifyAcrossWarmBoots(setup, verify);
 }
@@ -785,7 +785,7 @@ TEST_F(AgentVoqSwitchTest, dramEnqueueDequeueBytes) {
     // Assert that Dram enqueue/dequeue bytes don't continuously increment
     // Eventually all pkts should be dequeued and we should stop getting
     // increments
-    checkNoStatsChange(60);
+    checkStatsStabilize(60);
   };
   verifyAcrossWarmBoots(setup, verify);
 }

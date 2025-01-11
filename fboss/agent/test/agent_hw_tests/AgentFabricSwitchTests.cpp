@@ -414,7 +414,7 @@ TEST_F(AgentFabricSwitchTest, reachDiscard) {
             *afterSwitchDrops.globalDrops(), *beforeSwitchDrops.globalDrops());
       });
     }
-    checkNoStatsChange();
+    checkStatsStabilize();
   };
   verifyAcrossWarmBoots([]() {}, verify);
 }
