@@ -502,9 +502,8 @@ void AgentHwTest::checkNoStatsChange(int trys) {
                    resetDontCareValues(before);
                    resetDontCareValues(after);
 
-                   // TODO: Utilize statsMapDelta to compare stats map
-                   // differences
-                   EXPECT_EVENTUALLY_EQ(before, after);
+                   EXPECT_EVENTUALLY_EQ(before, after)
+                       << statsDelta(before, after);
                  }));
 }
 
