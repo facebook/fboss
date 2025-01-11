@@ -46,7 +46,12 @@ std::string statsDelta(
       *before.switchDropStats(), *after.switchDropStats(), "Switch drop stats");
   compareAndPrint(
       *before.flowletStats(), *after.flowletStats(), "Flowlet stats");
-  // TODO print delta for phyInfo, AclStats and HwSwitchWatermarkStats
+  compareAndPrintMap(*before.phyInfo(), *after.phyInfo(), "Phy Info");
+  compareAndPrint(*before.aclStats(), *after.aclStats(), "Acl stats");
+  compareAndPrint(
+      *before.switchWatermarkStats(),
+      *after.switchWatermarkStats(),
+      "Switch watermark stats");
   return ss.str();
 }
 } // namespace facebook::fboss
