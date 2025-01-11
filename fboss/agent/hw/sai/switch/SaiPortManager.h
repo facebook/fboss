@@ -235,7 +235,7 @@ class SaiPortManager {
       const std::shared_ptr<Port>& oldPort,
       const std::shared_ptr<Port>& newPort);
 
-  bool isUp(PortID portID) const;
+  bool isPortUp(PortID portID) const;
 
   void setPtpTcEnable(bool enable);
   bool isPtpTcEnabled() const;

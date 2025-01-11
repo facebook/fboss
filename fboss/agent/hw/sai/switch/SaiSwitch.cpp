@@ -1640,7 +1640,7 @@ std::map<PortID, phy::PhyInfo> SaiSwitch::updateAllPhyInfoLocked() {
       phyChip.type() = chipType;
       bool isXphy = *phyChip.type() == phy::DataPlanePhyChipType::XPHY;
       phyParams.state()->phyChip() = phyChip;
-      phyParams.state()->linkState() = portManager.isUp(portID);
+      phyParams.state()->linkState() = portManager.isPortUp(portID);
       phyParams.state()->speed() = portManager.getSpeed(portID);
 
       if (isXphy) {

@@ -1960,7 +1960,7 @@ void SaiPortManager::updateStats(
     ** in periodic stat collection is that we may need to try multiple times
     ** since when port comes up, not everything  is synchronized immediately
     */
-    if (isUp(portId) && !curPortStats.cableLengthMeters().has_value()) {
+    if (isPortUp(portId) && !curPortStats.cableLengthMeters().has_value()) {
       std::optional<SaiPortTraits::Attributes::CablePropogationDelayNS> attrT =
           SaiPortTraits::Attributes::CablePropogationDelayNS{};
 
@@ -2491,7 +2491,7 @@ void SaiPortManager::changeBridgePort(
   return addBridgePort(newPort);
 }
 
-bool SaiPortManager::isUp(PortID portID) const {
+bool SaiPortManager::isPortUp(PortID portID) const {
   auto handle = getPortHandle(portID);
   auto saiPortId = handle->port->adapterKey();
   // Need to get Oper State from SDK since it's not part of the create
@@ -2500,7 +2500,7 @@ bool SaiPortManager::isUp(PortID portID) const {
   auto operStatus = SaiApiTable::getInstance()->portApi().getAttribute(
       saiPortId, SaiPortTraits::Attributes::OperStatus{});
   return GET_OPT_ATTR(Port, AdminState, handle->port->attributes()) &&
-      (operStatus == SAI_PORT_OPER_STATUS_UP);
+      utility::isPortOperUp(static_cast<sai_port_oper_status_t>(operStatus));
 }
 
 std::optional<SaiPortTraits::Attributes::PtpMode> SaiPortManager::getPtpMode()
