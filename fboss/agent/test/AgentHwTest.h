@@ -150,6 +150,12 @@ class AgentHwTest : public ::testing::Test {
       const std::function<void()>& stopSendFn = []() {},
       bool keepTrafficRunning = false);
 
+  std::map<PortID, HwPortStats> extractPortStats(
+      const std::vector<PortID>& ports,
+      const std::map<uint16_t, multiswitch::HwSwitchStats>& switch2Stats);
+  HwPortStats extractPortStats(
+      PortID port,
+      const std::map<uint16_t, multiswitch::HwSwitchStats>& switch2Stats);
   std::map<SystemPortID, HwSysPortStats> getLatestSysPortStats(
       const std::vector<SystemPortID>& ports);
 

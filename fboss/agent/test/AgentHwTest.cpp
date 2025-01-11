@@ -233,6 +233,29 @@ HwPortStats AgentHwTest::getLatestPortStats(const PortID& port) {
   return getLatestPortStats(std::vector<PortID>({port})).begin()->second;
 }
 
+std::map<PortID, HwPortStats> AgentHwTest::extractPortStats(
+    const std::vector<PortID>& ports,
+    const std::map<uint16_t, multiswitch::HwSwitchStats>& switch2Stats) {
+  std::map<PortID, HwPortStats> portStats;
+  for (auto portId : ports) {
+    auto portSwitchId = scopeResolver().scope(portId).switchId();
+    auto port = getProgrammedState()->getPort(portId);
+    const auto& switchStats =
+        switch2Stats.find(static_cast<uint16_t>(portSwitchId))->second;
+    portStats[portId] =
+        switchStats.hwPortStats()->find(port->getName())->second;
+  }
+  return portStats;
+}
+
+HwPortStats AgentHwTest::extractPortStats(
+    PortID port,
+    const std::map<uint16_t, multiswitch::HwSwitchStats>& switch2Stats) {
+  return extractPortStats(std::vector<PortID>({port}), switch2Stats)
+      .begin()
+      ->second;
+}
+
 std::map<PortID, HwPortStats> AgentHwTest::getNextUpdatedPortStats(
     const std::vector<PortID>& ports) {
   const auto lastPortStats = getLatestPortStats(ports);
