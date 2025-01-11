@@ -4,6 +4,7 @@
 
 #include "fboss/agent/FbossInit.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
+#include "fboss/agent/if/gen-cpp2/multiswitch_ctrl_types.h"
 #include "fboss/agent/test/AgentEnsemble.h"
 #include "fboss/agent/test/gen-cpp2/production_features_types.h"
 #include "fboss/agent/test/utils/AgentHwTestConstants.h"
@@ -200,8 +201,16 @@ class AgentHwTest : public ::testing::Test {
    * ii. Dependent stats - for e.g. test asserted for port
    * stats, but did not account for VOQ stats, which may
    * increment async.
+   * Optionally a test can pass in a lambda which asserts
+   * for the particular stats the test is interested in to
+   * not change anymore. This is test specific check
+   * which can't be generalized, hence the lambda
    */
-  void checkStatsStabilize(int trys = 10);
+  void checkStatsStabilize(
+      int trys = 10,
+      const std::function<
+          void(const std::map<uint16_t, multiswitch::HwSwitchStats>&)>&
+          assertForNoChange = [](const auto&) {});
   /*
    * API to all flag overrides for individual tests. Primarily
    * used for features which we don't want to enable for

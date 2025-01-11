@@ -463,7 +463,11 @@ cfg::SwitchConfig AgentHwTest::addCoppConfig(
   return config;
 }
 
-void AgentHwTest::checkStatsStabilize(int trys) {
+void AgentHwTest::checkStatsStabilize(
+    int trys,
+    const std::function<
+        void(const std::map<uint16_t, multiswitch::HwSwitchStats>&)>&
+        assertForNoChange) {
   auto resetDontCareValues = [](auto& statsMap) {
     for (auto& [_, stats] : statsMap) {
       stats.timestamp() = 0;
@@ -501,7 +505,7 @@ void AgentHwTest::checkStatsStabilize(int trys) {
                    EXPECT_EVENTUALLY_TRUE(timestampChanged(before, after));
                    resetDontCareValues(before);
                    resetDontCareValues(after);
-
+                   assertForNoChange(after);
                    EXPECT_EVENTUALLY_EQ(before, after)
                        << statsDelta(before, after);
                  }));

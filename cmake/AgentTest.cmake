@@ -142,6 +142,7 @@ target_link_libraries(agent_hw_test
   hw_copp_utils
   stats_test_utils
   hardware_stats_cpp2
+  multiswitch_ctrl_cpp2
   ${GTEST}
 )
 
