@@ -256,6 +256,14 @@ TEST_F(AgentVoqSwitchWithFabricPortsTest, fabricIsolate) {
       // Fabric reachability should be unchanged regardless of drain
       utility::checkPortFabricReachability(
           getAgentEnsemble(), SwitchID(0), fabricPortId);
+      // Flap port, active and reachability status should be unaffected
+      // after flap
+      bringDownPort(fabricPortId);
+      bringUpPort(fabricPortId);
+      utility::checkFabricPortsActiveState(
+          getAgentEnsemble(), fabricPortIds, expectActive);
+      utility::checkPortFabricReachability(
+          getAgentEnsemble(), SwitchID(0), fabricPortId);
     };
     drainPort(true);
     drainPort(false);
