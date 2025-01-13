@@ -38,6 +38,8 @@
 #include "fboss/cli/fboss2/commands/show/dsf/subscription/gen-cpp2/model_visitation.h"
 #include "fboss/cli/fboss2/commands/show/dsfnodes/CmdShowDsfNodes.h"
 #include "fboss/cli/fboss2/commands/show/dsfnodes/gen-cpp2/model_visitation.h"
+#include "fboss/cli/fboss2/commands/show/example/CmdShowExample.h"
+#include "fboss/cli/fboss2/commands/show/example/gen-cpp2/model_visitation.h"
 #include "fboss/cli/fboss2/commands/show/fabric/CmdShowFabric.h"
 #include "fboss/cli/fboss2/commands/show/fabric/gen-cpp2/model_visitation.h"
 #include "fboss/cli/fboss2/commands/show/fabric/reachability/CmdShowFabricReachability.h"
@@ -133,6 +135,7 @@ template void CmdHandler<CmdShowAgentSsl, CmdShowAgentSslTraits>::run();
 template void
 CmdHandler<CmdShowAggregatePort, CmdShowAggregatePortTraits>::run();
 template void CmdHandler<CmdShowArp, CmdShowArpTraits>::run();
+template void CmdHandler<CmdShowExample, CmdShowExampleTraits>::run();
 template void CmdHandler<CmdShowFabric, CmdShowFabricTraits>::run();
 template void CmdHandler<CmdShowFlowlet, CmdShowFlowletTraits>::run();
 template void CmdHandler<CmdShowDsf, CmdShowDsfTraits>::run();
