@@ -175,7 +175,7 @@ led::LedState BspLedManager::calculateLedState(
     return utility::constructLedState(led::LedColor::OFF, led::Blink::OFF);
   }
 
-  XLOG(DBG2) << fmt::format(
+  XLOG(DBG3) << fmt::format(
       "Port {:d}, anyPortUp={:s} allPortsUp={:s} anyCablingError = {:s} anyActivePort={:s} anyUndrainedPort={:s}",
       portId,
       (anyPortUp ? "True" : "False"),
