@@ -1390,21 +1390,25 @@ service FbossCtrl extends phy.FbossCommonPhyCtrl {
     1: list<switch_config.MacAndVlan> macAddrsToblock,
   ) throws (1: fboss.FbossBaseError error);
 
+  # Deprecated
   void addTeFlows(1: list<FlowEntry> teFlowEntries) throws (
     1: fboss.FbossBaseError error,
     2: FbossTeUpdateError teFlowError,
   );
 
+  # Deprecated
   void deleteTeFlows(1: list<TeFlow> teFlows) throws (
     1: fboss.FbossBaseError error,
     2: FbossTeUpdateError teFlowError,
   );
 
+  # Deprecated
   void syncTeFlows(1: list<FlowEntry> teFlowEntries) throws (
     1: fboss.FbossBaseError error,
     2: FbossTeUpdateError teFlowError,
   );
 
+  # Deprecated
   list<TeFlowDetails> getTeFlowTableDetails() throws (
     1: fboss.FbossBaseError error,
   );

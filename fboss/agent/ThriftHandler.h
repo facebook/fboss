@@ -122,9 +122,12 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
 
   void addTeFlows(
       std::unique_ptr<std::vector<FlowEntry>> teFlowEntries) override;
+  void addTeFlowsImpl(std::unique_ptr<std::vector<FlowEntry>> teFlowEntries);
   void deleteTeFlows(std::unique_ptr<std::vector<TeFlow>> teFlows) override;
+  void deleteTeFlowsImpl(std::unique_ptr<std::vector<TeFlow>> teFlows);
   void syncTeFlows(
       std::unique_ptr<std::vector<FlowEntry>> teFlowEntries) override;
+  void syncTeFlowsImpl(std::unique_ptr<std::vector<FlowEntry>> teFlowEntries);
 
   SwSwitch* getSw() const {
     return sw_;
@@ -279,6 +282,7 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
       std::map<std::string, std::int64_t>& routeCounters) override;
 
   void getTeFlowTableDetails(std::vector<TeFlowDetails>& flowTable) override;
+  void getTeFlowTableDetailsImpl(std::vector<TeFlowDetails>& flowTable);
   void getFabricConnectivity(
       std::map<std::string, FabricEndpoint>& connectivity) override;
   void getFabricReachability(

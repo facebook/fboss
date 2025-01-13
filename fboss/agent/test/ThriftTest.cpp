@@ -2756,7 +2756,7 @@ TYPED_TEST(ThriftTeFlowTest, addRemoveTeFlow) {
   auto teFlowEntries = std::make_unique<std::vector<FlowEntry>>();
   auto flowEntry = makeFlow("100::1");
   teFlowEntries->emplace_back(flowEntry);
-  handler.addTeFlows(std::move(teFlowEntries));
+  handler.addTeFlowsImpl(std::move(teFlowEntries));
   auto state = this->sw_->getState();
   auto teFlowTable = state->getTeFlowTable();
   auto verifyEntry = [&teFlowTable](
@@ -2784,14 +2784,14 @@ TYPED_TEST(ThriftTeFlowTest, addRemoveTeFlow) {
   auto flowEntry2 = makeFlow("100::1", kNhopAddrB, "counter1", "fboss55");
   auto newFlowEntries = std::make_unique<std::vector<FlowEntry>>();
   newFlowEntries->emplace_back(flowEntry2);
-  handler.addTeFlows(std::move(newFlowEntries));
+  handler.addTeFlowsImpl(std::move(newFlowEntries));
   state = this->sw_->getState();
   teFlowTable = state->getTeFlowTable();
   verifyEntry(*flowEntry.flow(), kNhopAddrB, "counter1", "fboss55");
 
   auto teFlows = std::make_unique<std::vector<TeFlow>>();
   teFlows->emplace_back(*flowEntry.flow());
-  handler.deleteTeFlows(std::move(teFlows));
+  handler.deleteTeFlowsImpl(std::move(teFlows));
   state = this->sw_->getState();
   teFlowTable = state->getTeFlowTable();
   auto tableEntry = teFlowTable->getNodeIf(getTeFlowStr(*flowEntry.flow()));
@@ -2803,7 +2803,7 @@ TYPED_TEST(ThriftTeFlowTest, addRemoveTeFlow) {
   for (const auto& prefix : testPrefixes) {
     bulkEntries->emplace_back(makeFlow(prefix));
   }
-  handler.addTeFlows(std::move(bulkEntries));
+  handler.addTeFlowsImpl(std::move(bulkEntries));
   state = this->sw_->getState();
   teFlowTable = state->getTeFlowTable();
   EXPECT_EQ(teFlowTable->numNodes(), 4);
@@ -2817,7 +2817,7 @@ TYPED_TEST(ThriftTeFlowTest, addRemoveTeFlow) {
     flow.srcPort() = 100;
     deletionFlows->emplace_back(flow);
   }
-  handler.deleteTeFlows(std::move(deletionFlows));
+  handler.deleteTeFlowsImpl(std::move(deletionFlows));
   state = this->sw_->getState();
   teFlowTable = state->getTeFlowTable();
   EXPECT_EQ(teFlowTable->numNodes(), 2);
@@ -2837,7 +2837,7 @@ TYPED_TEST(ThriftTeFlowTest, syncTeFlows) {
     auto flowEntry = makeFlow(prefix);
     teFlowEntries->emplace_back(flowEntry);
   }
-  handler.addTeFlows(std::move(teFlowEntries));
+  handler.addTeFlowsImpl(std::move(teFlowEntries));
   auto state = this->sw_->getState();
   auto teFlowTable = state->getTeFlowTable();
   EXPECT_EQ(teFlowTable->numNodes(), 4);
@@ -2861,7 +2861,7 @@ TYPED_TEST(ThriftTeFlowTest, syncTeFlows) {
     auto flowEntry = makeFlow(prefix);
     syncFlowEntries->emplace_back(flowEntry);
   }
-  handler.syncTeFlows(std::move(syncFlowEntries));
+  handler.syncTeFlowsImpl(std::move(syncFlowEntries));
   state = this->sw_->getState();
   teFlowTable = state->getTeFlowTable();
   EXPECT_EQ(teFlowTable->numNodes(), 3);
@@ -2891,7 +2891,7 @@ TYPED_TEST(ThriftTeFlowTest, syncTeFlows) {
     auto flowEntry = makeFlow(prefix);
     syncFlowEntries2->emplace_back(flowEntry);
   }
-  handler.syncTeFlows(std::move(syncFlowEntries2));
+  handler.syncTeFlowsImpl(std::move(syncFlowEntries2));
   state = this->sw_->getState();
   auto teFlowTableAfterSync = state->getTeFlowTable();
   // Ensure teflow table pointers and contents are same
@@ -2906,7 +2906,7 @@ TYPED_TEST(ThriftTeFlowTest, syncTeFlows) {
   auto flowEntry2 = makeFlow("104::1", kNhopAddrA, "counter1", "fboss1");
   updateEntries->emplace_back(flowEntry1);
   updateEntries->emplace_back(flowEntry2);
-  handler.syncTeFlows(std::move(updateEntries));
+  handler.syncTeFlowsImpl(std::move(updateEntries));
   state = this->sw_->getState();
   teFlowTable = state->getTeFlowTable();
   teflowEntryAfterSync = teFlowTable->getNodeIf(getTeFlowStr(flow));
@@ -2915,7 +2915,7 @@ TYPED_TEST(ThriftTeFlowTest, syncTeFlows) {
   EXPECT_NE(*teflowEntryBeforeSync, *teflowEntryAfterSync);
   // sync flows with no entries
   auto nullFlowEntries = std::make_unique<std::vector<FlowEntry>>();
-  handler.syncTeFlows(std::move(nullFlowEntries));
+  handler.syncTeFlowsImpl(std::move(nullFlowEntries));
   state = this->sw_->getState();
   teFlowTable = state->getTeFlowTable();
   EXPECT_EQ(teFlowTable->numNodes(), 0);
@@ -2929,13 +2929,13 @@ TYPED_TEST(ThriftTeFlowTest, getTeFlowDetails) {
     auto flowEntry = makeFlow(prefix);
     teFlowEntries->emplace_back(flowEntry);
   }
-  handler.addTeFlows(std::move(teFlowEntries));
+  handler.addTeFlowsImpl(std::move(teFlowEntries));
   auto state = this->sw_->getState();
   auto teFlowTable = state->getTeFlowTable();
   EXPECT_EQ(teFlowTable->numNodes(), 4);
 
   std::vector<TeFlowDetails> flowDetails;
-  handler.getTeFlowTableDetails(flowDetails);
+  handler.getTeFlowTableDetailsImpl(flowDetails);
   EXPECT_EQ(flowDetails.size(), teFlowTable->numNodes());
 
   auto idx = 0;
@@ -2971,7 +2971,7 @@ TYPED_TEST(ThriftTeFlowTest, teFlowUpdateHwProtection) {
   EXPECT_THROW(
       {
         try {
-          handler.addTeFlows(std::move(teFlowEntries));
+          handler.addTeFlowsImpl(std::move(teFlowEntries));
 
         } catch (const FbossTeUpdateError& flowError) {
           EXPECT_EQ(flowError.failedAddUpdateFlows()->size(), 1);
@@ -2995,7 +2995,7 @@ TYPED_TEST(ThriftTeFlowTest, teFlowSyncUpdateHwProtection) {
   EXPECT_THROW(
       {
         try {
-          handler.syncTeFlows(std::move(teFlowEntries));
+          handler.syncTeFlowsImpl(std::move(teFlowEntries));
 
         } catch (const FbossTeUpdateError& flowError) {
           EXPECT_EQ(flowError.failedAddUpdateFlows()->size(), 1);

@@ -2990,8 +2990,13 @@ void ThriftHandler::getActualSwitchDrainState(
 }
 
 void ThriftHandler::addTeFlows(
-    std::unique_ptr<std::vector<FlowEntry>> teFlowEntries) {
+    std::unique_ptr<std::vector<FlowEntry>> /*teFlowEntries*/) {
   auto log = LOG_THRIFT_CALL(DBG1);
+  throw FbossError("addTeFlows is deprecated");
+}
+
+void ThriftHandler::addTeFlowsImpl(
+    std::unique_ptr<std::vector<FlowEntry>> teFlowEntries) {
   ensureConfigured(__func__);
   auto updateFn = [=, teFlows = std::move(*teFlowEntries), this](
                       const std::shared_ptr<SwitchState>& state) {
@@ -3015,8 +3020,13 @@ void ThriftHandler::addTeFlows(
 }
 
 void ThriftHandler::deleteTeFlows(
-    std::unique_ptr<std::vector<TeFlow>> teFlows) {
+    std::unique_ptr<std::vector<TeFlow>> /*teFlows*/) {
   auto log = LOG_THRIFT_CALL(DBG1);
+  throw FbossError("deleteTeFlows is deprecated");
+}
+
+void ThriftHandler::deleteTeFlowsImpl(
+    std::unique_ptr<std::vector<TeFlow>> teFlows) {
   ensureConfigured(__func__);
   auto updateFn = [=, flows = std::move(*teFlows), this](
                       const std::shared_ptr<SwitchState>& state) {
@@ -3033,8 +3043,13 @@ void ThriftHandler::deleteTeFlows(
 }
 
 void ThriftHandler::syncTeFlows(
-    std::unique_ptr<std::vector<FlowEntry>> teFlowEntries) {
+    std::unique_ptr<std::vector<FlowEntry>> /*teFlowEntries*/) {
   auto log = LOG_THRIFT_CALL(DBG1);
+  throw FbossError("syncTeFlows is deprecated");
+}
+
+void ThriftHandler::syncTeFlowsImpl(
+    std::unique_ptr<std::vector<FlowEntry>> teFlowEntries) {
   ensureConfigured(__func__);
   auto updateFn = [=, teFlows = std::move(*teFlowEntries), this](
                       const std::shared_ptr<SwitchState>& state)
@@ -3062,8 +3077,13 @@ void ThriftHandler::syncTeFlows(
 }
 
 void ThriftHandler::getTeFlowTableDetails(
-    std::vector<TeFlowDetails>& flowTable) {
+    std::vector<TeFlowDetails>& /*flowTable*/) {
   auto log = LOG_THRIFT_CALL(DBG1);
+  throw FbossError("getTeFlowTableDetails is deprecated");
+}
+
+void ThriftHandler::getTeFlowTableDetailsImpl(
+    std::vector<TeFlowDetails>& flowTable) {
   ensureConfigured(__func__);
   auto multiTeFlowTable = sw_->getState()->getTeFlowTable();
   for (auto iter = multiTeFlowTable->cbegin(); iter != multiTeFlowTable->cend();
