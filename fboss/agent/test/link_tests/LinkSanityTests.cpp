@@ -3,6 +3,7 @@
 #include <folly/Random.h>
 #include <folly/Subprocess.h>
 #include <gtest/gtest.h>
+#include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/LldpManager.h"
 #include "fboss/agent/PlatformPort.h"
 #include "fboss/agent/SwSwitch.h"

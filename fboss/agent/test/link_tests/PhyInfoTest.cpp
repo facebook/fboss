@@ -7,13 +7,13 @@
 #include <thrift/lib/cpp2/protocol/DebugProtocol.h>
 
 #include <thrift/lib/cpp/util/EnumUtils.h>
+#include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/PlatformPort.h"
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/hw/test/HwTestPortUtils.h"
 #include "fboss/agent/test/link_tests/LinkTest.h"
 #include "fboss/lib/CommonUtils.h"
 #include "fboss/lib/phy/gen-cpp2/phy_types.h"
-#include "fboss/lib/phy/gen-cpp2/phy_types_custom_protocol.h"
 #include "fboss/lib/thrift_service_client/ThriftServiceClient.h"
 #include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
 

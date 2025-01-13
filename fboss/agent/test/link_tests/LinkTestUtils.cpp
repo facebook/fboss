@@ -8,11 +8,6 @@
 #include "fboss/lib/config/PlatformConfigUtils.h"
 #include "fboss/lib/thrift_service_client/ThriftServiceClient.h"
 
-DEFINE_bool(
-    link_stress_test,
-    false,
-    "enable to run stress tests (longer duration + more iterations)");
-
 namespace facebook::fboss::utility {
 const std::vector<std::string> kRestartQsfpService = {
     "/bin/systemctl",

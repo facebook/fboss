@@ -2,8 +2,8 @@
 
 #include <gtest/gtest.h>
 #include <chrono>
+#include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/PlatformPort.h"
-#include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/test/link_tests/LinkTest.h"
 #include "fboss/agent/test/link_tests/LinkTestUtils.h"
 #include "fboss/lib/CommonUtils.h"

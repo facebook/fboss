@@ -224,3 +224,8 @@ DEFINE_int32(
     max_neighbors_to_block,
     10000,
     "Max number of neighbor entries to block");
+
+DEFINE_bool(
+    link_stress_test,
+    false,
+    "enable to run stress tests (longer duration + more iterations)");

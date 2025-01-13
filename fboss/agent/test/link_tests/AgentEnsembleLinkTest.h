@@ -1,7 +1,6 @@
 // (c) Facebook, Inc. and its affiliates. Confidential and proprietary.
 
 #include "fboss/agent/LldpManager.h"
-#include "fboss/agent/Main.h"
 #include "fboss/agent/state/PortDescriptor.h"
 #include "fboss/agent/test/AgentEnsembleTest.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
@@ -12,7 +11,6 @@
 #include "fboss/agent/test/link_tests/gen-cpp2/link_test_production_features_types.h"
 
 DECLARE_string(config);
-DECLARE_bool(link_stress_test);
 DECLARE_bool(disable_neighbor_updates);
 DECLARE_bool(list_production_feature);
 
