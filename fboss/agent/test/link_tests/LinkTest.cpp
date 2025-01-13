@@ -306,8 +306,10 @@ std::vector<std::string> LinkTest::getPortName(
   return portNames;
 }
 
-std::optional<PortID> LinkTest::getPeerPortID(PortID portId) const {
-  for (auto portPair : getConnectedPairs()) {
+std::optional<PortID> LinkTest::getPeerPortID(
+    PortID portId,
+    const std::set<std::pair<PortID, PortID>>& connectedPairs) const {
+  for (auto portPair : connectedPairs) {
     if (portPair.first == portId) {
       return portPair.second;
     } else if (portPair.second == portId) {

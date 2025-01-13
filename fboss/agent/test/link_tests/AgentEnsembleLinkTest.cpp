@@ -286,8 +286,9 @@ bool AgentEnsembleLinkTest::checkReachabilityOnAllCabledPorts() const {
 }
 
 std::optional<PortID> AgentEnsembleLinkTest::getPeerPortID(
-    PortID portId) const {
-  for (auto portPair : getConnectedPairs()) {
+    PortID portId,
+    const std::set<std::pair<PortID, PortID>>& connectedPairs) const {
+  for (auto portPair : connectedPairs) {
     if (portPair.first == portId) {
       return portPair.second;
     } else if (portPair.second == portId) {

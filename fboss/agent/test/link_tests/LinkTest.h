@@ -92,7 +92,9 @@ class LinkTest : public AgentTest {
   std::vector<std::string> getPortName(
       const std::vector<PortID>& portIDs) const;
 
-  std::optional<PortID> getPeerPortID(PortID portId) const;
+  std::optional<PortID> getPeerPortID(
+      PortID portId,
+      const std::set<std::pair<PortID, PortID>>& connectedPairs) const;
 
   std::set<std::pair<PortID, PortID>> getConnectedOpticalPortPairWithFeature(
       TransceiverFeature feature,

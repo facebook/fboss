@@ -84,7 +84,9 @@ class AgentEnsembleLinkTest : public AgentEnsembleTest {
     createL3DataplaneFlood(getSingleVlanOrRoutedCabledPorts());
   }
 
-  std::optional<PortID> getPeerPortID(PortID portId) const;
+  std::optional<PortID> getPeerPortID(
+      PortID portId,
+      const std::set<std::pair<PortID, PortID>>& connectedPairs) const;
 
   std::set<std::pair<PortID, PortID>> getConnectedOpticalPortPairWithFeature(
       TransceiverFeature feature,
