@@ -9,6 +9,7 @@ cpp_library(
     ],
     headers = [
         "Tahan800bcPlatformMapping.h",
+        "Tahan800bcTestFixturePlatformMapping.h",
     ],
     exported_deps = [
         "//fboss/agent/platforms/common:platform_mapping",
