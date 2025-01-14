@@ -6,9 +6,7 @@
 
 #include "fboss/platform/helpers/PlatformNameLib.h"
 
-#ifndef IS_OSS
 #include "fboss/platform/config_lib/GeneratedConfig.h"
-#endif
 
 DEFINE_string(
     config_file,
@@ -20,7 +18,6 @@ using namespace facebook::fboss::platform;
 
 namespace {
 
-#ifndef IS_OSS
 std::string getPlatformName(const std::optional<std::string>& platformName) {
   auto platformStr = platformName
       ? *platformName
@@ -30,7 +27,6 @@ std::string getPlatformName(const std::optional<std::string>& platformName) {
   XLOG(INFO) << "The inferred platform is " << platformStr;
   return platformStr;
 }
-#endif
 
 std::optional<std::string> getConfigFromFile() {
   if (!FLAGS_config_file.empty()) {
@@ -53,11 +49,7 @@ std::string ConfigLib::getSensorServiceConfig(
   if (auto configJson = getConfigFromFile()) {
     return *configJson;
   }
-#ifndef IS_OSS
   return configs::sensor_service.at(getPlatformName(platformName));
-#else
-  throw std::runtime_error("config_file must be specified in OSS");
-#endif
 }
 
 std::string ConfigLib::getFanServiceConfig(
@@ -65,33 +57,21 @@ std::string ConfigLib::getFanServiceConfig(
   if (auto configJson = getConfigFromFile()) {
     return *configJson;
   }
-#ifndef IS_OSS
   return configs::fan_service.at(getPlatformName(platformName));
-#else
-  throw std::runtime_error("config_file must be specified in OSS");
-#endif
 }
 std::string ConfigLib::getWeutilConfig(
     const std::optional<std::string>& platformName) const {
   if (auto configJson = getConfigFromFile()) {
     return *configJson;
   }
-#ifndef IS_OSS
   return configs::weutil.at(getPlatformName(platformName));
-#else
-  throw std::runtime_error("config_file must be specified in OSS");
-#endif
 }
 std::string ConfigLib::getFwUtilConfig(
     const std::optional<std::string>& platformName) const {
   if (auto configJson = getConfigFromFile()) {
     return *configJson;
   }
-#ifndef IS_OSS
   return configs::fw_util.at(getPlatformName(platformName));
-#else
-  throw std::runtime_error("config_file must be specified in OSS");
-#endif
 }
 
 std::string ConfigLib::getPlatformManagerConfig(
@@ -99,11 +79,7 @@ std::string ConfigLib::getPlatformManagerConfig(
   if (auto configJson = getConfigFromFile()) {
     return *configJson;
   }
-#ifndef IS_OSS
   return configs::platform_manager.at(getPlatformName(platformName));
-#else
-  throw std::runtime_error("config_file must be specified in OSS");
-#endif
 }
 
 std::string ConfigLib::getLedManagerConfig(
@@ -111,11 +87,7 @@ std::string ConfigLib::getLedManagerConfig(
   if (auto configJson = getConfigFromFile()) {
     return *configJson;
   }
-#ifndef IS_OSS
   return configs::led_manager.at(getPlatformName(platformName));
-#else
-  throw std::runtime_error("config_file must be specified in OSS");
-#endif
 }
 
 } // namespace facebook::fboss::platform
