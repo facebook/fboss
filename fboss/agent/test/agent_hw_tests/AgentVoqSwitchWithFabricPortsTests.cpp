@@ -580,4 +580,72 @@ TEST_F(AgentVoqSwitchWithFabricPortsTest, fdrCellDrops) {
   };
   verifyAcrossWarmBoots(setup, verify);
 }
+
+TEST_F(AgentVoqSwitchWithFabricPortsTest, fabricLinkDownCellDropCounter) {
+  auto setup = [=, this]() {
+    // Before drain all fabric ports should be active
+    utility::checkFabricPortsActiveState(
+        getAgentEnsemble(),
+        masterLogicalFabricPortIds(),
+        true /*expectActive*/);
+  };
+
+  auto verify = [&]() {
+    auto fabPort = masterLogicalFabricPortIds()[0];
+    uint64_t prevStats{0};
+
+    // Trigger SAI_PORT_STAT_IF_IN_LINK_DOWN_CELL_DROP by following the
+    // suggestion in CS00012385619. If the Bucket-Link-Down-Threshold
+    // equals 63, the links will go down, followed by 61 that brings it
+    // back up.
+    WITH_RETRIES({
+      std::string out;
+      for (const auto& switchId : getSw()->getHwAsicTable()->getSwitchIDs()) {
+        getAgentEnsemble()->runDiagCommand(
+            "m FMAC_LEAKY_BUCKET_CONTROL_REGISTER(0) BKT_LINK_DN_TH_N=63\n",
+            out,
+            switchId);
+        getAgentEnsemble()->runDiagCommand(
+            "m FMAC_LEAKY_BUCKET_CONTROL_REGISTER(1) BKT_LINK_DN_TH_N=63\n",
+            out,
+            switchId);
+        getAgentEnsemble()->runDiagCommand(
+            "m FMAC_LEAKY_BUCKET_CONTROL_REGISTER(2) BKT_LINK_DN_TH_N=63\n",
+            out,
+            switchId);
+        getAgentEnsemble()->runDiagCommand(
+            "m FMAC_LEAKY_BUCKET_CONTROL_REGISTER(3) BKT_LINK_DN_TH_N=63\n",
+            out,
+            switchId);
+        getAgentEnsemble()->runDiagCommand(
+            "m FMAC_LEAKY_BUCKET_CONTROL_REGISTER(0) BKT_LINK_DN_TH_N=61\n",
+            out,
+            switchId);
+        getAgentEnsemble()->runDiagCommand(
+            "m FMAC_LEAKY_BUCKET_CONTROL_REGISTER(1) BKT_LINK_DN_TH_N=61\n",
+            out,
+            switchId);
+        getAgentEnsemble()->runDiagCommand(
+            "m FMAC_LEAKY_BUCKET_CONTROL_REGISTER(2) BKT_LINK_DN_TH_N=61\n",
+            out,
+            switchId);
+        getAgentEnsemble()->runDiagCommand(
+            "m FMAC_LEAKY_BUCKET_CONTROL_REGISTER(3) BKT_LINK_DN_TH_N=61\n",
+            out,
+            switchId);
+      }
+      uint64_t stats =
+          getLatestPortStats(fabPort).fabricLinkDownDroppedCells_().value();
+      XLOG(DBG2) << "Fabric link down cell drop counter : " << stats;
+      // Ensure counter doesn't go backward!
+      EXPECT_GE(stats, prevStats);
+      prevStats = stats;
+      // The fabric link down cell drop counter increments by max 1 per
+      // iteration, ensure that we can see a value of 3 eventually, which
+      // means the COR counter is being accumulated as expected in FBOSS.
+      EXPECT_EVENTUALLY_GE(stats, 3);
+    });
+  };
+  verifyAcrossWarmBoots(setup, verify);
+}
 } // namespace facebook::fboss
