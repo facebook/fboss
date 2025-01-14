@@ -9,13 +9,11 @@
  */
 
 #include "fboss/agent/platforms/common/tahan800bc/Tahan800bcPlatformMapping.h"
+#include "fboss/agent/platforms/common/tahan800bc/Tahan800bcTestFixturePlatformMapping.h"
 
 namespace facebook::fboss {
-Tahan800bcPlatformMapping::Tahan800bcPlatformMapping()
-    : PlatformMapping(getPlatformMappingStr()) {}
-
-Tahan800bcPlatformMapping::Tahan800bcPlatformMapping(
-    const std::string& platformMappingStr)
-    : PlatformMapping(platformMappingStr) {}
+const std::string Tahan800bcPlatformMapping::getPlatformMappingStr() {
+  return kJsonTestFixturePlatformMappingStr;
+}
 
 } // namespace facebook::fboss

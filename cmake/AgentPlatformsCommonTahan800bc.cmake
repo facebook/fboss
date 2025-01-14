@@ -5,6 +5,7 @@
 
 add_library(tahan800bc_platform_mapping
   fboss/agent/platforms/common/tahan800bc/Tahan800bcPlatformMapping.cpp
+  fboss/agent/platforms/common/tahan800bc/oss/Tahan800bcPlatformMapping.cpp
 )
 
 target_link_libraries(tahan800bc_platform_mapping

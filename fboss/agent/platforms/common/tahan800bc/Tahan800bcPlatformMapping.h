@@ -23,5 +23,6 @@ class Tahan800bcPlatformMapping : public PlatformMapping {
   Tahan800bcPlatformMapping(Tahan800bcPlatformMapping const&) = delete;
   Tahan800bcPlatformMapping& operator=(Tahan800bcPlatformMapping const&) =
       delete;
+  static const std::string getPlatformMappingStr();
 };
 } // namespace facebook::fboss
