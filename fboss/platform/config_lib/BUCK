@@ -8,7 +8,7 @@ oncall("fboss_platform")
 cpp_binary(
     name = "config_generator",
     srcs = [
-        "facebook/ConfigGenerator.cpp",
+        "ConfigGenerator.cpp",
     ],
     deps = [
         "//fboss/platform/data_corral_service/if:led_manager-cpp2-types",
@@ -66,7 +66,7 @@ cpp_library(
 cpp_unittest(
     name = "config_lib_test",
     srcs = [
-        "facebook/ConfigLibTest.cpp",
+        "ConfigLibTest.cpp",
     ],
     deps = [
         ":config_lib",
