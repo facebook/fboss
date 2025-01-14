@@ -95,6 +95,7 @@ struct HwPortStats {
   62: optional i64 cableLengthMeters;
   63: optional bool dataCellsFilterOn;
   64: map<i16, i64> egressGvoqWatermarkBytes_ = {};
+  65: map<i16, i64> pgInCongestionDiscards_ = {};
 }
 
 struct HwSysPortStats {
