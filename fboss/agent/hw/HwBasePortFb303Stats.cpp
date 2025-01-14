@@ -10,6 +10,7 @@
 
 #include "fboss/agent/hw/HwBasePortFb303Stats.h"
 
+#include "fboss/agent/gen-cpp2/switch_config_constants.h"
 #include "fboss/agent/hw/CounterUtils.h"
 #include "fboss/agent/hw/StatsConstants.h"
 
@@ -56,6 +57,13 @@ std::string HwBasePortFb303Stats::statName(
     folly::StringPiece portName,
     PfcPriority priority) {
   return folly::to<std::string>(portName, ".", statName, ".priority", priority);
+}
+
+std::string HwBasePortFb303Stats::pgStatName(
+    folly::StringPiece statName,
+    folly::StringPiece portName,
+    int priority) {
+  return folly::to<std::string>(portName, ".", statName, ".pg", priority);
 }
 
 int64_t HwBasePortFb303Stats::getCounterLastIncrement(
@@ -110,6 +118,15 @@ void HwBasePortFb303Stats::reinitStats(std::optional<std::string> oldPortName) {
       auto newStatName = statName(statKey, portName_);
       std::optional<std::string> oldStatName = oldPortName
           ? std::optional<std::string>(statName(statKey, *oldPortName))
+          : std::nullopt;
+      portCounters_.reinitStat(newStatName, oldStatName);
+    }
+  }
+  for (int i = 0; i <= cfg::switch_config_constants::PORT_PG_VALUE_MAX(); ++i) {
+    for (auto statKey : kPriorityGroupCounterStatKeys()) {
+      auto newStatName = pgStatName(statKey, portName_, i);
+      std::optional<std::string> oldStatName = oldPortName
+          ? std::optional<std::string>(pgStatName(statKey, *oldPortName, i))
           : std::nullopt;
       portCounters_.reinitStat(newStatName, oldStatName);
     }
@@ -241,6 +258,14 @@ void HwBasePortFb303Stats::updateStat(
     PfcPriority priority,
     int64_t val) {
   portCounters_.updateStat(now, statName(statKey, portName_, priority), val);
+}
+
+void HwBasePortFb303Stats::updatePgStat(
+    const std::chrono::seconds& now,
+    folly::StringPiece statKey,
+    int pg,
+    int64_t val) {
+  portCounters_.updateStat(now, pgStatName(statKey, portName_, pg), val);
 }
 
 void HwBasePortFb303Stats::updateQueueWatermarkStats(

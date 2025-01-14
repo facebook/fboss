@@ -10,6 +10,7 @@
 
 #include "fboss/agent/hw/HwPortFb303Stats.h"
 
+#include "fboss/agent/gen-cpp2/switch_config_constants.h"
 #include "fboss/agent/hw/StatsConstants.h"
 
 #include <fb303/ServiceData.h>
@@ -124,6 +125,14 @@ HwPortFb303Stats::kPfcMonotonicCounterStatKeys() const {
       kOutPfc(),
   };
   return kPfcKeys;
+}
+
+const std::vector<folly::StringPiece>&
+HwPortFb303Stats::kPriorityGroupCounterStatKeys() const {
+  static std::vector<folly::StringPiece> kPgKeys{
+      kInCongestionDiscards(),
+  };
+  return kPgKeys;
 }
 
 void HwPortFb303Stats::updateStats(
@@ -400,6 +409,14 @@ void HwPortFb303Stats::updateStats(
   if (getEnabledPfcPriorities().size()) {
     updateStat(timeRetrieved_, kInPfc(), inPfc);
     updateStat(timeRetrieved_, kOutPfc(), outPfc);
+  }
+
+  // PG stats
+  for (int i = 0; i <= cfg::switch_config_constants::PORT_PG_VALUE_MAX(); ++i) {
+    auto it = curPortStats.pgInCongestionDiscards_()->find(i);
+    if (it != curPortStats.pgInCongestionDiscards_()->end()) {
+      updatePgStat(timeRetrieved_, kInCongestionDiscards(), i, it->second);
+    }
   }
 
   portStats_ = curPortStats;
