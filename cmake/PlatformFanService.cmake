@@ -20,6 +20,15 @@ add_fbthrift_cpp_library(
     fboss_cpp2
 )
 
+add_library(fan_service_config_validator
+  fboss/platform/fan_service/ConfigValidator.cpp
+)
+
+target_link_libraries(fan_service_config_validator
+  fan_service_config_types_cpp2
+  Folly::folly
+  range-v3
+)
 
 add_library(fan_service_lib
   fboss/platform/fan_service/Bsp.cpp
@@ -28,7 +37,6 @@ add_library(fan_service_lib
   fboss/platform/fan_service/FsdbSensorSubscriber.cpp
   fboss/platform/fan_service/PidLogic.cpp
   fboss/platform/fan_service/SensorData.cpp
-  fboss/platform/fan_service/ConfigValidator.cpp
   fboss/platform/fan_service/oss/FsdbSensorSubscriber.cpp
   fboss/platform/fan_service/oss/DataFetcher.cpp
 )
@@ -40,11 +48,10 @@ target_link_libraries(fan_service_lib
   platform_config_lib
   platform_name_lib
   platform_utils
-  fan_service_config_types_cpp2
+  fan_service_config_validator
   gpiod_line
   sensor_service_cpp2
   fan_service_cpp2
-  Folly::folly
   qsfp_service_client
   qsfp_state_cpp2
   qsfp_stats_cpp2
@@ -52,7 +59,6 @@ target_link_libraries(fan_service_lib
   fsdb_stream_client
   fsdb_pub_sub
   fsdb_flags
-  range-v3
 )
 
 add_executable(fan_service
