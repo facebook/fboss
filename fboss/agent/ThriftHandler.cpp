@@ -599,30 +599,6 @@ void translateToFibError(const FbossHwUpdateError& updError) {
   throw fibError;
 }
 
-void translateToTeUpdateError(const FbossHwUpdateError& updError) {
-  FbossTeUpdateError teError;
-  StateDelta delta(updError.appliedState, updError.desiredState);
-
-  facebook::fboss::DeltaFunctions::forEachChanged(
-      delta.getTeFlowEntriesDelta(),
-      [&](const shared_ptr<TeFlowEntry>& removedTeFlowEntry,
-          const shared_ptr<TeFlowEntry>& addedTeFlowEntry) {
-        if (*removedTeFlowEntry != *addedTeFlowEntry) {
-          teError.failedAddUpdateFlows_ref()->push_back(
-              addedTeFlowEntry->getFlow()->toThrift());
-        }
-      },
-      [&](const shared_ptr<TeFlowEntry>& addedTeFlowEntry) {
-        teError.failedAddUpdateFlows_ref()->push_back(
-            addedTeFlowEntry->getFlow()->toThrift());
-      },
-      [&](const shared_ptr<TeFlowEntry>& deletedTeFlowEntry) {
-        teError.failedDeleteFlows_ref()->push_back(
-            deletedTeFlowEntry->getFlow()->toThrift());
-      });
-  throw teError;
-}
-
 cfg::PortLoopbackMode toLoopbackMode(PortLoopbackMode mode) {
   switch (mode) {
     case PortLoopbackMode::NONE:
@@ -2995,51 +2971,10 @@ void ThriftHandler::addTeFlows(
   throw FbossError("addTeFlows is deprecated");
 }
 
-void ThriftHandler::addTeFlowsImpl(
-    std::unique_ptr<std::vector<FlowEntry>> teFlowEntries) {
-  ensureConfigured(__func__);
-  auto updateFn = [=, teFlows = std::move(*teFlowEntries), this](
-                      const std::shared_ptr<SwitchState>& state) {
-    TeFlowSyncer teFlowSyncer;
-    auto newState = teFlowSyncer.programFlowEntries(
-        sw_->getScopeResolver()->scope(std::shared_ptr<TeFlowEntry>()),
-        state,
-        teFlows,
-        {},
-        false);
-    if (!sw_->isValidStateUpdate(StateDelta(state, newState))) {
-      throw FbossError("Invalid TE flow entries");
-    }
-    return newState;
-  };
-  try {
-    sw_->updateStateWithHwFailureProtection("addTEFlowEntries", updateFn);
-  } catch (const FbossHwUpdateError& ex) {
-    translateToTeUpdateError(ex);
-  }
-}
-
 void ThriftHandler::deleteTeFlows(
     std::unique_ptr<std::vector<TeFlow>> /*teFlows*/) {
   auto log = LOG_THRIFT_CALL(DBG1);
   throw FbossError("deleteTeFlows is deprecated");
-}
-
-void ThriftHandler::deleteTeFlowsImpl(
-    std::unique_ptr<std::vector<TeFlow>> teFlows) {
-  ensureConfigured(__func__);
-  auto updateFn = [=, flows = std::move(*teFlows), this](
-                      const std::shared_ptr<SwitchState>& state) {
-    TeFlowSyncer teFlowSyncer;
-    auto newState = teFlowSyncer.programFlowEntries(
-        sw_->getScopeResolver()->scope(std::shared_ptr<TeFlowEntry>()),
-        state,
-        {},
-        flows,
-        false);
-    return newState;
-  };
-  sw_->updateStateBlocking("deleteTeFlows", updateFn);
 }
 
 void ThriftHandler::syncTeFlows(
@@ -3048,51 +2983,10 @@ void ThriftHandler::syncTeFlows(
   throw FbossError("syncTeFlows is deprecated");
 }
 
-void ThriftHandler::syncTeFlowsImpl(
-    std::unique_ptr<std::vector<FlowEntry>> teFlowEntries) {
-  ensureConfigured(__func__);
-  auto updateFn = [=, teFlows = std::move(*teFlowEntries), this](
-                      const std::shared_ptr<SwitchState>& state)
-      -> shared_ptr<SwitchState> {
-    TeFlowSyncer teFlowSyncer;
-    auto newState = teFlowSyncer.programFlowEntries(
-        sw_->getScopeResolver()->scope(std::shared_ptr<TeFlowEntry>()),
-        state,
-        teFlows,
-        {},
-        true);
-    if (state == newState) {
-      return nullptr;
-    }
-    if (!sw_->isValidStateUpdate(StateDelta(state, newState))) {
-      throw FbossError("Invalid TE flows");
-    }
-    return newState;
-  };
-  try {
-    sw_->updateStateWithHwFailureProtection("syncTeFlows", updateFn);
-  } catch (const FbossHwUpdateError& ex) {
-    translateToTeUpdateError(ex);
-  }
-}
-
 void ThriftHandler::getTeFlowTableDetails(
     std::vector<TeFlowDetails>& /*flowTable*/) {
   auto log = LOG_THRIFT_CALL(DBG1);
   throw FbossError("getTeFlowTableDetails is deprecated");
-}
-
-void ThriftHandler::getTeFlowTableDetailsImpl(
-    std::vector<TeFlowDetails>& flowTable) {
-  ensureConfigured(__func__);
-  auto multiTeFlowTable = sw_->getState()->getTeFlowTable();
-  for (auto iter = multiTeFlowTable->cbegin(); iter != multiTeFlowTable->cend();
-       iter++) {
-    auto teFlowTable = iter->second;
-    for (const auto& [flowStr, flowEntry] : std::as_const(*teFlowTable)) {
-      flowTable.emplace_back(flowEntry->toDetails());
-    }
-  }
 }
 
 void ThriftHandler::getFabricReachability(
