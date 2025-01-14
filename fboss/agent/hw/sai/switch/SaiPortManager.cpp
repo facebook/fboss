@@ -1676,7 +1676,7 @@ bool SaiPortManager::rxSNRSupported() const {
 
 bool SaiPortManager::fecCodewordsStatsSupported(PortID portId) const {
 #if defined(BRCM_SAI_SDK_GTE_10_0) || defined(BRCM_SAI_SDK_DNX_GTE_11_0) || \
-    defined(TAJO_SDK_MORGAN)
+    defined(TAJO_SDK_GTE_24_4_90)
   return platform_->getAsic()->isSupported(
              HwAsic::Feature::SAI_FEC_CODEWORDS_STATS) &&
       utility::isReedSolomonFec(getFECMode(portId)) &&
