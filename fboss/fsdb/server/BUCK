@@ -74,6 +74,7 @@ cpp_library(
         "//common/services/cpp:acl_checker_module",
         "//common/services/cpp:light",
         "//common/services/cpp:thrift_acl_checker_module_config",
+        "//common/services/cpp:thrift_stats_module",
         "//fboss/facebook/bitsflow:bitsflow_helper",
         "//fboss/fsdb/common:flags",
         "//fboss/fsdb/common:utils",
