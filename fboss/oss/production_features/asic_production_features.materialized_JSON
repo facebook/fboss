@@ -7,6 +7,7 @@
         8,
         10,
         11,
+        52,
         13,
         16,
         20,
@@ -29,7 +30,8 @@
         41,
         40,
         44,
-        50
+        50,
+        51
     ],
     "jericho2": [
         2,
@@ -108,6 +110,7 @@
         8,
         10,
         11,
+        52,
         12,
         13,
         17,
@@ -124,7 +127,8 @@
         37,
         41,
         44,
-        46
+        46,
+        51
     ],
     "tomahawk3": [
         2,
@@ -135,6 +139,7 @@
         9,
         10,
         11,
+        52,
         12,
         13,
         14,
@@ -162,7 +167,8 @@
         40,
         42,
         44,
-        50
+        50,
+        51
     ],
     "tomahawk4": [
         2,
@@ -173,6 +179,7 @@
         9,
         10,
         11,
+        52,
         12,
         13,
         14,
@@ -199,7 +206,8 @@
         42,
         43,
         44,
-        50
+        50,
+        51
     ],
     "tomahawk5": [
         2,
@@ -210,6 +218,7 @@
         9,
         10,
         11,
+        52,
         12,
         13,
         14,
@@ -235,7 +244,8 @@
         40,
         42,
         44,
-        50
+        50,
+        51
     ],
     "yuba": [
         2,
@@ -244,6 +254,7 @@
         8,
         10,
         11,
+        52,
         16,
         20,
         21,
@@ -267,7 +278,8 @@
         25,
         42,
         44,
-        50
+        50,
+        51
     ]
   },
   "asicToFeatureNames": {
@@ -278,6 +290,7 @@
         "COPP",
         "DSCP_REMARKING",
         "L3_QOS",
+        "NIF_POLICER",
         "ECMP_LOAD_BALANCER",
         "SINGLE_ACL_TABLE",
         "ECN",
@@ -300,7 +313,8 @@
         "TH_ALPM_ROUTE_SCALE",
         "HUNDRED_THOUSAND_ROUTE_SCALE",
         "VLAN",
-        "PAUSE"
+        "PAUSE",
+        "SEPARATE_INGRESS_EGRESS_BUFFER_POOL"
     ],
     "jericho2": [
         "CPU_RX_TX",
@@ -379,6 +393,7 @@
         "COPP",
         "DSCP_REMARKING",
         "L3_QOS",
+        "NIF_POLICER",
         "ACL_COUNTER",
         "ECMP_LOAD_BALANCER",
         "MULTI_ACL_TABLE",
@@ -395,7 +410,8 @@
         "FSW_ROUTE_SCALE",
         "TH_ALPM_ROUTE_SCALE",
         "VLAN",
-        "LED_PROGRAMMING"
+        "LED_PROGRAMMING",
+        "SEPARATE_INGRESS_EGRESS_BUFFER_POOL"
     ],
     "tomahawk3": [
         "CPU_RX_TX",
@@ -406,6 +422,7 @@
         "LAG",
         "DSCP_REMARKING",
         "L3_QOS",
+        "NIF_POLICER",
         "ACL_COUNTER",
         "ECMP_LOAD_BALANCER",
         "LAG_LOAD_BALANCER",
@@ -433,7 +450,8 @@
         "HUNDRED_THOUSAND_ROUTE_SCALE",
         "PFC",
         "VLAN",
-        "PAUSE"
+        "PAUSE",
+        "SEPARATE_INGRESS_EGRESS_BUFFER_POOL"
     ],
     "tomahawk4": [
         "CPU_RX_TX",
@@ -444,6 +462,7 @@
         "LAG",
         "DSCP_REMARKING",
         "L3_QOS",
+        "NIF_POLICER",
         "ACL_COUNTER",
         "ECMP_LOAD_BALANCER",
         "LAG_LOAD_BALANCER",
@@ -470,7 +489,8 @@
         "PFC",
         "UDF_WR_IMMEDIATE_ACL",
         "VLAN",
-        "PAUSE"
+        "PAUSE",
+        "SEPARATE_INGRESS_EGRESS_BUFFER_POOL"
     ],
     "tomahawk5": [
         "CPU_RX_TX",
@@ -481,6 +501,7 @@
         "LAG",
         "DSCP_REMARKING",
         "L3_QOS",
+        "NIF_POLICER",
         "ACL_COUNTER",
         "ECMP_LOAD_BALANCER",
         "LAG_LOAD_BALANCER",
@@ -506,7 +527,8 @@
         "HUNDRED_THOUSAND_ROUTE_SCALE",
         "PFC",
         "VLAN",
-        "PAUSE"
+        "PAUSE",
+        "SEPARATE_INGRESS_EGRESS_BUFFER_POOL"
     ],
     "yuba": [
         "CPU_RX_TX",
@@ -515,6 +537,7 @@
         "COPP",
         "DSCP_REMARKING",
         "L3_QOS",
+        "NIF_POLICER",
         "SINGLE_ACL_TABLE",
         "ECN",
         "WRED",
@@ -538,7 +561,8 @@
         "MAC_LEARNING",
         "PFC",
         "VLAN",
-        "PAUSE"
+        "PAUSE",
+        "SEPARATE_INGRESS_EGRESS_BUFFER_POOL"
     ]
   }
 }
