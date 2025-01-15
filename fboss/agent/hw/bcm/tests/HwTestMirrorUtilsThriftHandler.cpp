@@ -52,8 +52,10 @@ bool HwTestThriftHandler::isMirrorProgrammed(
   }
 
   bcm_gport_t gport;
-  if (auto egressPort = mirror->get_egressPort()) {
-    BCM_GPORT_MODPORT_SET(gport, bcmSwitch->getUnit(), *egressPort);
+  if (auto cfgPortDesc = mirror->egressPortDesc()) {
+    auto egressPort =
+        PortDescriptor::fromCfgCfgPortDescriptor(*cfgPortDesc).phyPortID();
+    BCM_GPORT_MODPORT_SET(gport, bcmSwitch->getUnit(), egressPort);
     if (mirror_dest.gport != gport) {
       return false;
     }

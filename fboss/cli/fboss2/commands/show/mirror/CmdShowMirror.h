@@ -199,9 +199,9 @@ class CmdShowMirror : public CmdHandler<CmdShowMirror, CmdShowMirrorTraits> {
       mirrorDetails.mirror() = mirrorMapEntry["name"].asString();
       mirrorDetails.status() =
           (mirrorMapEntry["isResolved"].asBool()) ? "Active" : "Configured";
-      auto egressPort = mirrorMapEntry.find("egressPort");
-      if (egressPort != mirrorMapEntry.items().end()) {
-        std::string egressPortID = egressPort->second.asString();
+      auto egressPortDesc = mirrorMapEntry.find("egressPortDesc");
+      if (egressPortDesc != mirrorMapEntry.items().end()) {
+        std::string egressPortID = egressPortDesc->second["portId"].asString();
         mirrorDetails.egressPort() = egressPortID;
         mirrorDetails.egressPortName() =
             getEgressPortName(egressPortID, portInfoEntries);
