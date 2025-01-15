@@ -39,3 +39,12 @@ This will write the configs for each platform to a directory called `generated_c
 | generated_configs/montblanc.json   | fboss/lib/bsp/montblanc/MontblancBspPlatformMapping.cpp     |
 | generated_configs/morgan800cc.json | fboss/lib/bsp/morgan800cc/Morgan800ccBspPlatformMapping.cpp |
 | generated_configs/tahan800bc.json  | fboss/lib/bsp/tahan800bc/Tahan800bcBspPlatformMapping.cpp   |
+
+
+## Instructions (Meta-Internal)
+
+Running this script internally can be done via buck:
+
+```
+buck run fboss/lib/bsp/bspmapping:fboss-bspmapping-gen
+```
