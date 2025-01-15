@@ -207,9 +207,11 @@ TEST_F(AgentFabricSwitchTest, fabricPortIsolate) {
           getAgentEnsemble(), undrainedPortIds, true /*expectActive*/);
     };
     checkActiveInactiveState();
+    auto portsToFlap = drainedPortIds;
+    portsToFlap.push_back(*undrainedPortIds.begin());
     // Flap ports. Active/inactive state should restore after
-    bringDownPorts(masterLogicalFabricPortIds());
-    bringUpPorts(masterLogicalFabricPortIds());
+    bringDownPorts(portsToFlap);
+    bringUpPorts(portsToFlap);
     checkActiveInactiveState();
   };
   verifyAcrossWarmBoots(setup, verify);
