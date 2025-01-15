@@ -192,8 +192,7 @@ class AgentMirroringTest : public AgentHwTest {
     utility::addAclEntry(cfg, aclEntry, utility::kDefaultAclTable());
 
     cfg::MatchAction matchAction = cfg::MatchAction();
-    if (mirrorName == utility::kIngressErspan ||
-        mirrorName == utility::kEgressErspan) {
+    if (mirrorName == utility::kIngressErspan) {
       matchAction.ingressMirror() = mirrorName;
     } else {
       matchAction.egressMirror() = mirrorName;
