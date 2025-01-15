@@ -145,6 +145,10 @@ class FsdbSyncManager {
     return storage_.getState();
   }
 
+  uint64_t getPendingUpdatesQueueLength() const {
+    return storage_.getPendingUpdatesQueueLength();
+  }
+
  private:
   void processDelta(
       const std::shared_ptr<CowState>& oldState,

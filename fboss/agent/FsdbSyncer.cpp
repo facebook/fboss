@@ -27,6 +27,10 @@ const thriftpath::RootThriftPath<facebook::fboss::fsdb::FsdbOperStatsRoot>
 
 namespace facebook::fboss {
 
+uint64_t FsdbSyncer::getPendingUpdatesQueueLength() const {
+  return agentFsdbSyncManager_->getPendingUpdatesQueueLength();
+}
+
 std::vector<std::string> FsdbSyncer::getAgentStatePath() {
   return stateRoot.agent().tokens();
 }
