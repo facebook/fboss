@@ -14,6 +14,7 @@ include "fboss/qsfp_service/if/transceiver.thrift"
 include "common/network/if/Address.thrift"
 include "fboss/agent/if/ctrl.thrift"
 include "fboss/mka_service/if/mka_structs.thrift"
+include "thrift/annotation/thrift.thrift"
 
 struct VlanInfo {
   1: bool tagged;
@@ -656,6 +657,7 @@ struct QcmCfgFields {
 // eg: "Id:124,125,130" indicates a table applicable to SwitchIds 124, 125 and 130
 typedef string SwitchIdList
 
+@thrift.DeprecatedUnvalidatedAnnotations{items = {"thriftpath.root": "1"}}
 struct SwitchState {
   100: map<SwitchIdList, map<i16, PortFields>> portMaps;
   101: map<SwitchIdList, map<i16, VlanFields>> vlanMaps;
@@ -694,7 +696,7 @@ struct SwitchState {
   // Remote object maps
   600: map<SwitchIdList, map<i64, SystemPortFields>> remoteSystemPortMaps;
   601: map<SwitchIdList, map<i32, InterfaceFields>> remoteInterfaceMaps;
-} (thriftpath.root)
+}
 
 struct RouteTableFields {
   1: map<string, RouteFields> v4NetworkToRoute;

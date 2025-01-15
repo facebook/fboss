@@ -68,8 +68,9 @@ thrift_library(
     ],
     thrift_srcs = {"agent_config.thrift": []},
     deps = [
-        "//fboss/agent:platform_config",
-        "//fboss/agent:switch_config",
+        ":platform_config",
+        ":switch_config",
+        "//thrift/annotation:thrift",
     ],
 )
 
@@ -143,6 +144,7 @@ thrift_library(
         "//fboss/lib/phy:phy",
         "//fboss/mka_service/if:mka_structs",
         "//fboss/qsfp_service/if:transceiver",
+        "//thrift/annotation:thrift",
     ],
 )
 

@@ -69,6 +69,7 @@ thrift_library(
         "//fboss/lib/phy:link",
         "//fboss/lib/phy:prbs",
         "//thrift/annotation:cpp",
+        "//thrift/annotation:thrift",
     ],
 )
 
