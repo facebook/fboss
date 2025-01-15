@@ -1,0 +1,83 @@
+---
+id: Features_CLI_querying-clients
+title: Querying Clients
+---
+
+# Querying Clients
+
+This document will cover some basic information about the clients we use, along with some tips about using thrift in cpp.
+
+## Creating Clients
+
+We have a utility function in fboss2/utils/CmdClientUtils.h for creating clients:
+
+auto client = utils::createClient\<ClientType\>(hostInfo);
+
+Some of the currently supported clients include:
+
+* wedge_agent: `apache::thrift::Client\<FbossCtrl\>`
+
+* bgpd (FB Internal only): `apache::thrift::Client\<facebook::neteng::fboss::bgp::thrift::TBgpService\>`
+
+* qsfp_service: `facebook::fboss::QsfpServiceAsyncClient`
+
+* coop (FB Internal only): `::fboss::coop::CoopServiceAsyncClient`
+
+* bmc http: `BmcClient` (at fboss2/utils/clients/BmcClient.h)
+
+
+## Client Interfaces
+
+To find out the supported apis for each client, we may refer to the thrift file that declares them:
+
+* wedge_agent: [Internal](https://fburl.com/diffusion/1cas79xq) | [GitHub](https://github.com/facebook/fboss/blob/main/fboss/agent/if/ctrl.thrift)
+
+* bgpd: [Internal](https://fburl.com/diffusion/34ca76ed)
+
+* qsfp_service: [Internal](https://fburl.com/diffusion/64wjqjg8) | [GitHub](https://github.com/facebook/fboss/blob/main/fboss/qsfp_service/if/qsfp.thrift)
+
+* coop: [Internal](https://fburl.com/diffusion/m4xomajf)
+
+* bmc http: [Internal](https://fburl.com/diffusion/i3f9t292) | [GitHub](https://github.com/facebook/fboss/blob/main/fboss/cli/fboss2/utils/clients/BmcClient.h):
+  * This a normal cpp class, you can see the provided methods in the header
+
+
+Note that fb thrift clients also have some extra helpers (for example getCounters) that they inherit from fb303, you can see those at [fbcode/common/fb303/if/fb303.thrift](https://fburl.com/diffusion/vhrafz44) and [fbcode/fb303/thrift/fb303_core.thrift](https://fburl.com/diffusion/ikj341or)
+
+## Thrift Types
+
+Every thift service api has multiple versions that the client provides. The common ones that we will be using are:
+
+* `sync_XYZ(params, ret)` - This is a blocking call and execution will not continue until we get data back from the service. This requires us to declare an object of the return type and pass it in to be set
+
+* `fut = semifuture_XYZ(params)` - This is a non blocking call and good to use when we have multiple queries that don’t rely on eachother. A sample way to run these in parallel:
+```
+#include \<folly/executors/IOThreadPoolExecutor.h\>
+
+...
+
+folly::IOThreadPoolExecutor executor(numThreads);
+
+auto data1 = client->semifuture_ABC(params1).via(execution.getEventBase());
+auto data2 = client->semifuture_XYZ(params2).via(execution.getEventBase());
+
+data1.wait();
+data2.wait();
+```
+
+When dealing with thrift structs in cpp:
+
+* Make sure to use the namespace `namespace cpp2 ABC` that is declared at the top of the thrift files when using structs declared there (i.e. use ABC::MyStruct).
+
+* All members in your thrift struct will be private. To access them:
+
+   * If your attr is non-optional, use `myStruct.get_\<attr\>()`
+
+   * If your attr is optional
+```
+if (auto myData = myStruct.\<attr\>()) {
+  foo(\*myData);
+}
+```
+   * If you are setting your attr, use `myStruct.\<attr\>() = data`
+

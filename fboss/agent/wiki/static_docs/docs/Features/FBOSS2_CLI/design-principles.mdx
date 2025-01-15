@@ -1,0 +1,302 @@
+---
+id: Features_CLI_design-principles
+title: FBOSS2 CLI Design Principles
+---
+
+# FBOSS2 CLI Design Principles
+
+## Client Model
+
+All commands will be implemented within the same binary. This client binary queries servers (services such as wedge_agent, bgpd etc.) to gather data.
+
+An alternative *Thin-Client/Daemon* model was considered. In this model, a Thin Client passes input commands to a backend daemon which in turn queries one or more servers to gather data and return to the thin client.
+
+**Decision:** After comparing pros and cons of both the approaches, we choose the Client Model primarily because it involves lower maintenance cost and minimal dependencies vs. Thin Client Daemon model which involves maintaining and rolling out two inter-dependent binaries.
+
+## Programming Language: C++
+
+One of the key requirements on FBOSS CLI is that it must use a language [widely supported in FB infra](https://fb.workplace.com/groups/e/permalink/3858845117504976/). That limited our choice to Hack, C++, Python and to a lesser extent Rust.
+
+**Decision:** After comparing pros and cons of each of the candidates, we choose **C++** because:
+
+* C++ is widely supported in the FB infra.
+
+* Prototype showcased that C++ is orders of magnitude faster than Python.
+
+* We will support an easy to use framework for adding new subcommands.
+
+* For example, to implement a new subcommand, one could start with the example C++ code we will provide and only replace/implement below based on the subcommand being implemented:   * The server(s) to connect to e.g. facebook::fboss:FbossCtrlAsyncClient
+
+   * The method(s) to call e.g. sync_getAclTable
+
+   * A method to convert returned value to string e.g. std::vector\<AclEntryThrift\> to string
+
+   * The framework would handle the rest.
+
+
+
+## Syntax Tree
+
+`fboss [<--global-opt>...] <verb> <object> [<object-id>...] [<--local-opt>...] [<subcmd [<arg>...] [<--local-opt>...]]`
+
+## Global Options
+
+* Predefined, part of the framework, would seldom change
+
+* –color [no | yes]: by default color is yes for TTY, no for Pipe
+
+* -F, –fmt [tabular, csv, json, tsv], default will be tabular.
+
+* -f, –filter \<cond\> apply filters on top of the command output.   * \<cond\> will be constructed using key, value and operator. It will use a key to match the column header; value to match the field value, according to the operator given.
+
+   * Operators: ==, !=, \<, \<=, >, >=, =~(regex), !~ (not regex), =% (liike), !% (not like), =^ (stats with) , !^ (does not start with), and, or, not \<cond\> could be nested to construct complex conditions.
+
+   * Examples:      * –filter=”admin_state == enabled && link_state == up”
+
+      * –filter=”link_state == up && out_errors >= 0 || int_errors > 0”
+
+
+
+* –host: single host/space separated list of hosts, localhost if –host is unspecified.   * Example:      * fboss –host rsw1aa.12.prn3 rsw1bb.12.prn3 show port
+
+
+
+* –smc: single smc tier/space separated list of smc tiers. Run for every host in tier(s)
+
+* –file: single file. Run for every host in the file.
+
+* –host, –smc, –file can be combined to run query on multiple devices
+
+
+## Verbs
+
+* Predefined, part of the framework, would seldom change
+
+* List of supported verbs:   * **show** (for all show commands)
+
+   * **set**, **clear** (e.g. arp table, ndp table)
+
+   * **start**, **stop** (to start/stop events)
+
+   * **create** (to create objects)
+
+   * **debug** (to debug objects)
+
+   * **bounce** (to enable/disable objects)
+
+   * **stream** (to continuously stream)
+
+
+
+## Objects
+
+* What the verb is acting on.
+
+* Predefined list: agent, bgp, port, vlan, arp, ndp, acl.
+
+* Can add more going forward with a review process mentioned below.
+
+
+## Object-ids
+
+* Object ids can be optionally passed after Object.
+
+* Examples:   * show port eth1/1/1
+
+
+
+## Local Options
+
+* Optionally defined after each command/subcommand.
+
+* Useful to configure specific element(s) of a full CLI command with one or more properties.
+
+* Examples:   * start pcap –name test_capture –max 10000 –direction rxonly
+
+   * stop pcap –name test_capture
+
+
+
+## Subcommands
+
+* These follow objects/object-ids/local options and can be supplied with arguments and local options.
+
+
+## Arguments
+
+* Positional arguments are after commands/subcommands.
+
+* Object ids can also be considered as positional arguments for the object in a command.
+
+* For example, show port eth1/1/1 eth1/1/2 queue 2 3, where queue is subcommand, eth1/1/1 and eth1/1/2 are the positional args for port and 2 and 3 are the positional args for queue.
+
+
+## Example Commands
+
+* `fboss show vlan`
+
+* `fboss --host rsw1fn.10.vll1 show acl`
+
+* `fboss --fmt=json --smc fboss.feature.dctcp.on show agent version`
+
+* `fboss show port eth.*/1/1`
+
+* `fboss --filter “(adminstate == enabled and linkstate == up)” show port`
+
+
+## Help Command
+
+* Usage: fboss2 help \<objectname\>
+
+* Displays help about all the verbs and nested commands that can be applied on to a given object.
+
+* Example output for “fboss2 help interface” :
+
+
+```
+bounce  Shut/No-Shut Interface.
+clear   Clear   Interface Information
+    count   Clear Interface Counters
+    prbs    Clear PRBS Information
+        stats   Clear PRBS stats
+set     Set Interface information
+    prbs    Set PRBS properties
+        state   Set PRBS state
+show    Show Interface information
+    counters        Show Interface Counters
+        mka     Show Interface MKA counters
+    errors  Show Interface Error Counters
+    flaps   Show Interface Flap Counters
+    traffic Show Interface Traffic
+    status  Show Interface Status
+    phymap  Show External Phy Port Map
+    prbs    Show PRBS information
+            capabilities    Show PRBS capabilities
+            state   Show PRBS state
+            stats   Show PRBS stats
+```
+* The output is printed in a tree-like structure whose top level displays the verbs that can be applied on to the requested object (for instance, bounce, clear, set and show for interface). Each nested indent level displays help info of the subcommands that can be applied.
+
+
+## Filtering Support
+
+* Summary: Allows users to provide filtering options with show commands. So, you can query “fboss2 -H \<hostName\> –filter “linkState == Down” show port”. This will show the port information only for ones which have linkState as Down.
+
+* Syntax: fboss2 -H \<hostname\>  –filter “filter string” command
+
+* The filter string can be composed of an arbitrary number of filter predicates connected by logical ANDs and ORs (&&, ||). Each filter predicate must be of the form \<key op value\>
+
+* Semantics: The filter input is parsed in the DNF form - giving higher precedence to && over ||. This dictates the implicit parenthesization of the input. Explicit parenthesization is not yet supported!
+
+* Supported Operators: \<, >, ==, !=, \<=, >=
+
+* Show Commands on which filtering is currently enabled: port, acl, arp, ndp, aggregate-port
+
+* Note: The current parser expects a whitespace character between the key, op, and value in each filter predicate
+
+* Dev Notes: For now, we are only allowing filtering on commands whose thift structs have a certain structure. i.e., the outer thrift struct should be composed of a single list of inner thrift structs.   * For instace, the show port model has a single element which is a list of PortEntries. This makes it amenable to filtering
+
+
+* Examples (some output columns truncated for brevity):
+
+* fboss2 -H ssw036.s008.f01.vll2 –filter “linkState == Down” show port
+
+
+```
+ID   Name       AdminState  LinkState  Transceiver  TcvrID  Speed HwLogicalPortId
+-----------------------------------------------------------------------------------
+20   eth2/1/1   Enabled     Down       Present      0       100G    20
+22   eth2/3/1   Enabled     Down       Present      2       100G    22
+5    eth3/5/1   Enabled     Down       Present      20      100G    5
+7    eth3/7/1   Enabled     Down       Present      22      100G    7
+48   eth4/9/1   Enabled     Down       Present      40      100G    48
+50   eth4/11/1  Enabled     Down       Present      42      100G    50
+72   eth5/13/1  Enabled     Down       Present      60      100G    72
+74   eth5/15/1  Enabled     Down       Present      62      100G    74
+100  eth6/1/1   Enabled     Down       Present      64      100G    100
+102  eth6/3/1   Enabled     Down       Present      66      100G    102
+144  eth7/5/1   Enabled     Down       Present      84      100G    144
+146  eth7/7/1   Enabled     Down       Present      86      100G    146
+128  eth8/9/1   Enabled     Down       Present      104     100G    128
+130  eth8/11/1  Enabled     Down       Present      106     100G    130
+92   eth9/13/1  Enabled     Down       Present      124     100G    92
+```
+* fboss2 -H ssw036.s008.f01.vll2 –filter “id <= 10 && adminState == Enabled” show port
+
+
+```
+ID  Name      AdminState  LinkState  Transceiver  TcvrID  Speed
+----------------------------------------------------------------------------------
+1   eth2/5/1  Enabled     Up         Present      4       100G
+2   eth2/6/1  Enabled     Up         Present      5       100G
+3   eth2/7/1  Enabled     Up         Present      6       100G
+4   eth2/8/1  Enabled     Up         Present      7       100G
+5   eth3/5/1  Enabled     Down       Present      20      100G
+6   eth3/6/1  Enabled     Up         Present      21      100G
+7   eth3/7/1  Enabled     Down       Present      22      100G
+8   eth3/8/1  Enabled     Up         Present      23      100G
+9   eth4/5/1  Enabled     Up         Present      36      100G
+10  eth4/6/1  Enabled     Up         Present      37      100G
+```
+* fboss2 -H ssw036.s008.f01.vll2 –filter “linkState == Down && id >10 || tcvrID == 20” show port
+
+
+```
+ID   Name       AdminState  LinkState  Transceiver  TcvrID  Speed  HwLogicalPortId
+------------------------------------------------------------------------------------
+20   eth2/1/1   Enabled     Down       Present      0       100G    20
+22   eth2/3/1   Enabled     Down       Present      2       100G    22
+5    eth3/5/1   Enabled     Down       Present      20      100G    5
+48   eth4/9/1   Enabled     Down       Present      40      100G    48
+50   eth4/11/1  Enabled     Down       Present      42      100G    50
+72   eth5/13/1  Enabled     Down       Present      60      100G    72
+74   eth5/15/1  Enabled     Down       Present      62      100G    74
+100  eth6/1/1   Enabled     Down       Present      64      100G    100
+102  eth6/3/1   Enabled     Down       Present      66      100G    102
+144  eth7/5/1   Enabled     Down       Present      84      100G    144
+146  eth7/7/1   Enabled     Down       Present      86      100G    146
+128  eth8/9/1   Enabled     Down       Present      104     100G    128
+130  eth8/11/1  Enabled     Down       Present      106     100G    130
+92   eth9/13/1  Enabled     Down       Present      124     100G    92
+94   eth9/15/1  Enabled     Down       Present      126     100G    94
+```
+* See that output corresponds to the filter parsed in the DNF form as follows:   * (linkState == Down && id >10) || (tcvrID == 20)
+
+
+* Also, note that the filter string can be arbitrarily long and comprised of any number of predicates separated by logical operators!
+
+
+## Filter Validation
+
+* Filter validation is performed to make sure that the filter predicates passed through the command line are correct.
+
+* \4 things are checked as part of validation: valid filter keys, data types of the values, operators and also the values themselves (in the case where some keys are value restricted).
+
+* Examples:   * fboss2 -H ssw036.s008.f01.vll2 –filter “linkState == good” show port      * Output: Invalid filter value for key. linkState accepted values are: { Up Down }.
+
+
+   * fboss2 -H ssw036.s008.f01.vll2 –filter “linkState == Up && id != my_id” show port      * Output: Invalid filter value data type passed for key id.
+
+
+   * fboss2 -H ssw036.s008.f01.vll2 –filter “linkState == Up” show arp      * Output: Invalid filter key passed linkState. Filterable fields: { ifName ttl classID state vlan port mac ip }.
+
+
+   * fboss2 -H ssw036.s008.f01.vll2 –filter “State = Reachable” show ndp      * Output: Invalid operator passed for key State.
+
+
+
+
+## Output Format
+
+As mentioned above, every command will support different output formats viz. tabular, csv, json, tsv. Thus, it will be possible (but outside of the immediate scope of this CLI work) to develop tools that consume json (say) format, transform, process and print as desired.
+
+## Extending the CLI
+
+* We will support an easy to use framework for adding new subcommands.
+
+* We will develop the framework, implement several subcommands, and open it for collaboration.
+
+* We will provide examples for how to add new subcommands, write tests etc.
+
+* To keep the CLI syntax tree consistent, review requests that extend the CLI syntax (verbs, objects etc.) would require mandatory approval from the FBOSS CLI Committee, which we will form.
+

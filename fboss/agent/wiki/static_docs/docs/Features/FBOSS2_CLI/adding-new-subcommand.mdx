@@ -1,0 +1,122 @@
+---
+id: Features_CLI_adding-new-subcommand
+title: How to Add New Subcommand
+---
+
+# How to Add New Subcommand
+
+## Review from fboss2_cli Group
+
+Before creating a new command, please familiarize yourself with the [FBOSS2 CLI Design Principles](/Features/FBOSS2_CLI/design-principles.mdx).
+
+To keep the CLI syntax tree consistent, review requests that extend the CLI syntax (verbs, objects etc.) would require mandatory approval from fboss_cli group. https://www.internalfb.com/phabricator/project/view/fboss2_cli
+
+## Sample Subcommands
+
+See CmdShowExample (D30268450) for end-to-end implementation of a subcommand. You can copy and edit this sample subcommand when adding new commands.
+
+Other examples: 
+
+- Sample subcommand implementation (open source): [P407640625](https://www.internalfb.com/phabricator/paste/view/P407640625) 
+- Sample subcommand implementation (FB-internal): [P407649437](https://www.internalfb.com/phabricator/paste/view/P407649437)
+
+## What to Edit?
+
+**Define Traits and Command**
+
+Define a traits class deriving BaseCommandTraits and specify argument and return types. To specify argument types, define both ObjectArgType and ObjectArgTypeId.
+
+In the traits class, you can specify ParentCmd which lets you “inherit” parameters from the parent. As an example: CmdShowInterfaceCountersTraits has ParentCmd = CmdShowInterface, which enables the syntax `fboss2 interface [infIDs...] counters`. If CmdShowInterfaceCountersTraits defines its own param as well then we can get `fboss2 interace [intfIDs...] counters [counterIDs...]`. queryClient will get all paramenters in the parent command heirarchy in order.
+
+You can also specify local options for the specific command/subcommand by defining LocalOptions, which is a vector of LocalOption structs (consisting of two strings: name and help message). LocalOptions should be defined in the traits class.
+
+To access local options, call CmdLocalOptions::getInstance()->getLocalOption(`command_name`, `local_option`). `command_name` is the full command (separated by underscores) where the local option was defined and `local_option` is the name of the local option. Be sure to include CmdLocalOptions.h in the file where the command logic is implemented.
+
+Put command name, help text, handlers for command, object argument type, filters, and local options in kCommandTree() / kAdditionalCommandTree().
+
+**queryClient()**
+
+* use utils::createClient() to create desired client(s).
+
+* call method(s) on the client to implement subcommand e.g. sync_getLldpNeighbors()
+
+* choose the appropriate RetType for this subcommand. This type needs to be a primitive, thrift struct or basic container of thrift structs to allow json serialization
+
+* Refer to [Querying Clients](/Features/FBOSS2_CLI/querying-clients.mdx) for information about thrift clients
+
+
+**printOutput()**
+
+* a method that translates RetType into printable outupt.
+
+
+**model.thrift**
+
+* a thrift file to define the command output data structure
+
+
+**Command mock test**
+
+* all commands should be covered in mock-based unit test.
+
+
+## Manually Validate Your Changes
+
+To test your code against a device:
+
+1. Build fboss2: `buck build @mode/opt //fboss/cli/fboss2:fboss2`
+
+2. Run against snc lab device: `./buck-out/gen/fboss/cli/fboss2/fboss2 -H <host> <cmd>`
+
+3. If running against mpk lab devices which do now have certs, pass `--ssl-policy plaintext`
+
+
+## Adding and Running Emulation Based Tests
+
+Currently, FBOSS2 CLI tests are available in emulation tests under `WedgeAgentIntegrationTestConfig` at [wedge_agent_emulation](https://www.internalfb.com/intern/wiki/Fboss/howto/facebook/wedge_agent_emulation/). In this environment, there are 2 containers representing two FBOSS devices, each with wedge_agent, BGP/OpenR running and fboss2 CLIs could be run just like on production switches. New tests could be added using the existing infra in [test_agent_fboss2_cli_commands_run.py](https://www.internalfb.com/code/fbsource/fbcode/neteng/emulation/emulator/testing/wedge_agent/test_agent_fboss2_cli_commands_run.py), along the lines of [D34600954](https://www.internalfb.com/diff/D34600954) / [D35830674](https://www.internalfb.com/diff/D35830674).
+
+There are a few options available to run tests in emulation environment.
+
+1. To run a new/existing test and check if it passes or fails, below is an option where emulator refers to the emulator binary built as specified at [Getting Started](https://www.internalfb.com/intern/wiki/Net_Systems/Emulation/getting_started/). Here, debugging options are limited.
+```
+emulator tests execute --team wedge_agent_integ --test-filter TestFboss2ShowArp
+```
+
+2. Similar to the above option, use netcastle infrastructure instead of emulator directly.
+```
+netcastle --team emulation_wedge_agent_sim --test-config WedgeAgentIntegrationTestConfig  --run-disabled --use-latest-contbuild --regex TestFboss2ShowArp
+```
+
+3. For debugging fboss2 CLI working with other binaries, need access to the emulation environment and the containers in which the wedge_agent / routing protocol binaries are running. For this, follow the steps under `WedgeAgentIntegrationTestConfig` at [wedge_agent_emulation](https://www.internalfb.com/intern/wiki/Fboss/howto/facebook/wedge_agent_emulation) to setup the emulation environment. Specific tests can then be run by using the below with `--test-filter` option. Details to access the emulation containers from the above `WedgeAgentIntegrationTestConfig` could be used to login and debug further.
+```
+emulator --config ~/emulation/wedge_agent_tests.json tests execute --test-only --team wedge_agent_integ --test-filter <test_name_regex>
+```
+
+
+## Check with user group if
+
+* The subcommand needs to talk with an agent not supported by `utils::createClient()`. Today, the framework supports clients for wedge_agent, qsfp_service, bgp, coop, ect. You can see the full list in facebook/CmdClientUtils.cpp
+
+* The framework does not support verb, object, object arg type the new subcommand needs.
+
+
+## Diff Review and Deploy
+
+Add *fboss2_cli* as the group reviewer on your diff.
+
+Once the diff is accepted and shipped. The new version will be continuously built and deploy to fboss switches and devservers.
+
+## Choosing OSS vs. FB-internal
+
+If the subcommand can be open sourced (e.g. it talks with an agent that is available in the open source), then the subcommand implementation must be in the open source.
+
+This would mean most (if not all) the subcommands that talk with wedge_agent would be in the open source.
+
+If the subcommand talks with an agent not available in the open source e.g. show bgp-session needs to talk with bgpd which is not in open source, then the subcommand implementation remains in the closed source.
+
+## Further Reading
+
+* [Building FBOSS2 CLI](/Features/FBOSS2_CLI/building.mdx)
+
+* [FBOSS2 CLI Design](Features/FBOSS2_CLI/design.mdx)
+

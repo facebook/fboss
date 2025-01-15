@@ -1,0 +1,169 @@
+---
+id: Features_CLI_design
+title: FBOSS2 CLI Design
+---
+
+# FBOSS2 CLI Design
+
+FBOSS2 CLI Design/Implementation is split between the framework, subcommand implementation, and tests.
+
+The framework support includes parsing library, global option processing, local option processing, command handler logic common for all the subcommands, utils etc.
+
+The subcommand implementation is specific to every subcommand.
+
+Tests include mock tests as well as emulation tests.
+
+## Parsing Library
+
+FBOSS2 CLI uses a third party library, viz. https://github.com/CLIUtils/CLI11, v1.9.1 for parsing.
+
+At the moment, this is integrated as part of the FBOSS2 CLI sources under CLI11. In future, we would explore moving this to tp2 for FB-internal build and getdeps manifest for OSS build.
+
+In addition to the documentation on the CLI11 github, there is a tutorial on the library available here: https://cliutils.gitlab.io/CLI11Tutorial/
+
+## Global Options Processing
+
+These options are supplied with –\<option-name\> and are applicable to any subcommand.
+
+For example, list of hosts to query, secure vs. non-secure thrift connect, colored vs. no-colored output etc. are global options that apply to all the subcommands.
+
+The logic for processing these is under CmdGlobalOptions*.
+
+## Local Options Processing
+
+These options are also supplied with –\<option-name\> but are only applicable to a specific command/subcommand.
+
+For example, for start pcap, local options include the name of the packet capture, the maximum number of packets to capture, and the direction(s) of packets to capture.
+
+The logic for processing these is under CmdLocalOptions*.
+
+## Command List
+
+To make it easy to add support for new subcommands, the list of supported commands are listed at one place as a list.
+
+Every command in that list is programmed into parsing library and is thus available while running the CLI.
+
+The list is under CmdList*. The logic for programming this list into the parsing library is under CmdSubcommands*.
+
+## Command Handler
+
+This includes command handler logic common to all subcommand handling. It includes:
+
+* compiling list of hosts to query, and getting corresponding IP addresses.
+
+* spawning a thread to query each host.
+
+* calling subcommand specific logic to make the actual query.
+
+* joining the threads, and calling subcommand specific logic to print the output.
+
+* printing error if any as appropriate.
+
+
+This logic is under CmdHandler* and CmdHandlerImpl*.
+
+## Utils
+
+This includes a variety of utils methods e.g. creating secure as well as plaintext agent or bgp client, get IP from host, get all lists in smc tier etc.
+
+These utils are usually used by the Command Handler.
+
+This logic is under CmdUtils*, CmdClientUtils*, and CmdCommonUtils*.
+
+## Subcommand Implementation
+
+This logic is specific to every subcommand the CLI supports and thus has to be written separately.
+
+Each subcommand needs to support below:
+
+* Thrift model of the command output structs. e.g. struct ShowLldpModel and struct LldpEntry at commands/show/lldp/model.thrift
+
+* queryClient: this queries the client underneath e.g. sync_getLldpNeighbors() for show lldp implementation.
+
+* printOutput: interpret the data format of the subcommand specific client query and print.
+
+
+For example: CmdShowLldp.h, CmdShowAcl.h etc.
+
+## OSS vs. FB-internal
+
+FBOSS2 CLI is available in the open source: https://github.com/facebook/fboss
+
+However, certain aspects of the FBOSS2 CLI cannot be open sourced:
+
+* CLI Global options that are not applicable in the open source e.g. –smc
+
+* CLI subcommands that cannot be open sourced as those talk with the daemons not available in the open source e.g. show bgp-session talking with BGPD.
+
+
+We solve this as follows:
+
+* Common code sits under fboss/cli/fboss2/ and thus auto syncs to FBOSS github.
+
+* The code that cannot be open sourced sits under fboss/cli/fboss2/facebook and is thus not open sourced.
+
+* When the common code needs to invoke a method under closed source, the same method is also ‘implemented’ in fboss/cli/fboss2/oss. This method has empty definition (so no-op), but it allows us to keep common code in open source without any duplication.
+
+* FB-internal builds fboss2 binary that includes fboss/cli/fboss2 as well as fboss/cli/fboss2/facebook.
+
+* OSS builds fboss2 binary that includes fboss/cli/fboss2 as well as fboss/cli/fboss/oss.
+
+
+## Running FBOSS2 in Labs
+
+FB lab setups typically do not have access to all the FB services/network. In particular they don’t have ssl certificates installed. Run fboss2 with –ssl-policy plaintext argument to work around this.
+
+## Mock Tests
+
+FBOSS2 CLI requires each command to have mock-based unit tests.
+
+Each mock test consists of the followings parts:
+
+* Mock clients and method outputs
+
+* Tests:
+
+   * Mock clients and verify the data manipulation generates the correct thrift model output.
+
+   * Verify the format of the CLI output.
+
+
+The following steps describe how to add a mock test by using CmdShowAclTest as an example.
+
+* Add the mock method, e.g. getAclTable, in the class MockFbossCtrlAgent.
+
+* Setup the test data, e.g. createAclEntries
+
+* Define test fixture, e.g. CmdShowAclTestFixture
+
+* Add individual tests:
+
+   * Query the mocked server and verify the nomalized model output:
+
+      * TEST_F(CmdShowAclTestFixture, queryClient)
+
+   * Verify the format of the CLI output:
+
+      * TEST_F(CmdShowAclTestFixture, printOutput)
+
+
+## Emulation Tests
+
+* Run full fboss2 CLI against agent emulation
+
+* fake wedge_agent: fast, runs on devserver
+
+* Similar to current fboss CLI tests
+
+* Sanity Tests:
+
+   * Run all commands, check for exception
+
+   * Run individual command and validate the output.
+
+
+The following steps describe how to add an emulation test by using the command “show acl” as an example.
+
+* Add the command “show acl” to the command list defined in the test case test_all_cmds, which runs all possible commands and verifies that none of the subcommands throws exception, crashes or returns an error code.
+
+* Add the test case “test_show_acl” to run the command “show acl” and validate the output.
