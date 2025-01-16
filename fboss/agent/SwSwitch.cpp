@@ -525,6 +525,12 @@ bool SwSwitch::fsdbStatePublishReady() const {
       [](const auto& syncer) { return syncer->isReadyForStatePublishing(); });
 }
 
+uint64_t SwSwitch::fsdbPublishQueueLength() const {
+  return fsdbSyncer_.withRLock([](const auto& syncer) {
+    return syncer->getPendingUpdatesQueueLength();
+  });
+}
+
 void SwSwitch::stop(bool isGracefulStop, bool revertToMinAlpmState) {
   // Clean up connections to FSDB before stopping packet flow.
   runFsdbSyncFunction([isGracefulStop](auto& syncer) {
@@ -888,6 +894,7 @@ void SwSwitch::updateStats() {
   updateMultiSwitchGlobalFb303Stats();
   stats()->maxNumOfPhysicalHostsPerQueue(
       getLookupClassUpdater()->getMaxNumHostsPerQueue());
+  stats()->fsdbPublishQueueLength(fsdbPublishQueueLength());
 
   if (!isRunModeMultiSwitch()) {
     multiswitch::HwSwitchStats hwStats;

@@ -1071,6 +1071,8 @@ class SwSwitch : public HwSwitchCallback {
 
   void onSwitchRunStateChange(SwitchRunState newState);
 
+  uint64_t fsdbPublishQueueLength() const;
+
   // Sets the counter that tracks port status
   void setPortStatusCounter(PortID port, bool up);
   void setPortActiveStatusCounter(PortID port, bool isActive);

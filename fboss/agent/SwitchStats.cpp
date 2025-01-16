@@ -360,6 +360,13 @@ SwitchStats::SwitchStats(ThreadLocalStatsMap* map, int numSwitches)
           SUM,
           RATE),
       loPriPktsDropped_(map, kCounterPrefix + "lo_pri_pkts_dropped", SUM, RATE),
+      fsdbPublishQueueLength_(
+          map,
+          kCounterPrefix + "fsdb_publish_queue_length",
+          1,
+          0,
+          1000,
+          AVG),
       multiSwitchStatus_(map, kCounterPrefix + "multi_switch", SUM, RATE),
       neighborTableUpdateFailure_(
           map,

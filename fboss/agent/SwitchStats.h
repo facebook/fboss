@@ -440,6 +440,10 @@ class SwitchStats : public boost::noncopyable {
   }
   void failedDsfSubscription(const std::string& peerName, int value);
 
+  void fsdbPublishQueueLength(uint64_t value) {
+    fsdbPublishQueueLength_.addValue(value);
+  }
+
   void fillAgentStats(AgentStats& agentStats) const;
   void fillFabricReachabilityStats(
       FabricReachabilityStats& fabricReachabilityStats) const;
@@ -1050,6 +1054,11 @@ class SwitchStats : public boost::noncopyable {
   TLTimeseries loPriPktsReceived_;
   TLTimeseries midPriPktsDropped_;
   TLTimeseries loPriPktsDropped_;
+
+  /**
+   * Number of updates queued in FSDB publish queue
+   */
+  TLHistogram fsdbPublishQueueLength_;
 
   // TODO: delete this once multi_switch becomes default
   TLTimeseries multiSwitchStatus_;
