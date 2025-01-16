@@ -5304,10 +5304,14 @@ std::shared_ptr<Mirror> ThriftConfigApplier::createMirror(
   for (auto& switchIdAndSwitchInfo :
        *cfg_->switchSettings()->switchIdToSwitchInfo()) {
     if (switchIdAndSwitchInfo.second.asicType() ==
-            cfg::AsicType::ASIC_TYPE_JERICHO3 &&
-        !mirrorConfig->get_truncate()) {
-      throw FbossError(
-          "Jericho3 asic must have truncation enabled on mirror sessions");
+        cfg::AsicType::ASIC_TYPE_JERICHO3) {
+      auto tunnel = mirrorConfig->destination()->tunnel();
+      if (tunnel.has_value() && tunnel->sflowTunnel().has_value() &&
+          !mirrorConfig->truncate().value()) {
+        // J3 sflow uses eventor port and needs truncation!
+        throw FbossError(
+            "Jericho3 asic must have truncation enabled on sflow sessions");
+      }
     }
   }
 
