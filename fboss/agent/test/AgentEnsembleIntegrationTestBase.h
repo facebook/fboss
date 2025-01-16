@@ -7,7 +7,7 @@
 
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/test/AgentEnsembleTest.h"
-// #include "fboss/agent/test/AgentHwTest.h"
+#include "fboss/agent/test/utils/AsicUtils.h"
 
 DECLARE_bool(tun_intf);
 DECLARE_string(config);

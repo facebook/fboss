@@ -13,6 +13,7 @@
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/SwitchState.h"
+#include "fboss/agent/test/utils/AsicUtils.h"
 #include "fboss/agent/test/utils/QosTestUtils.h"
 #include "fboss/qsfp_service/lib/QsfpClient.h"
 
@@ -29,7 +30,7 @@ DECLARE_bool(disable_looped_fabric_ports);
 
 namespace facebook::fboss {
 
-void AgentEnsembleTest::setupAgentEnsemble() {
+void AgentEnsembleTest::setupAgentEnsemble(bool disableLinkStateToggler) {
   setVersionInfo();
   gflags::ParseCommandLineFlags(&argCount, &argVec, false);
   // TODO(Elangovan) add support for production features
@@ -47,7 +48,7 @@ void AgentEnsembleTest::setupAgentEnsemble() {
 
   agentEnsemble_ = createAgentEnsemble(
       initialConfigFn,
-      true /* disablelinkstatetoggler*/,
+      disableLinkStateToggler,
       platformConfigFn_,
       (HwSwitch::FeaturesDesired::PACKET_RX_DESIRED |
        HwSwitch::FeaturesDesired::LINKSCAN_DESIRED),
