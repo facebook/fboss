@@ -112,6 +112,10 @@ class HwSwitchHandler {
 
   virtual state::SwitchState reconstructSwitchState() = 0;
 
+  const cfg::SwitchInfo& getSwitchInfo() const {
+    return info_;
+  }
+
  protected:
   fsdb::OperDelta getFullSyncOperDelta(
       const std::shared_ptr<SwitchState>& state) const;

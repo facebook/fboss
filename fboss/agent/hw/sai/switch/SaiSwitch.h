@@ -86,6 +86,9 @@ class SaiSwitch : public HwSwitch {
    * port RIF is enough to get the egress port.
    */
   bool needL2EntryForNeighbor() const override {
+    if (asicType_ == cfg::AsicType::ASIC_TYPE_CHENAB) {
+      return false;
+    }
     return getSwitchType() == cfg::SwitchType::NPU;
   }
 

@@ -66,6 +66,9 @@ FabricReachabilityStats MultiSwitchHwSwitchHandler::getFabricReachabilityStats()
 
 bool MultiSwitchHwSwitchHandler::needL2EntryForNeighbor(
     const cfg::SwitchConfig* config) const {
+  if (cfg::AsicType::ASIC_TYPE_CHENAB == getSwitchInfo().asicType().value()) {
+    return false;
+  }
   // if config is not present, fall back to true
   // if sdk version is not set (for test configs), fall back to true
   // if sai, return true else false
