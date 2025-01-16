@@ -390,16 +390,14 @@ TEST_F(AgentFabricSwitchSelfLoopTest, portDrained) {
 TEST_F(AgentFabricSwitchTest, reachDiscard) {
   auto verify = [this]() {
     for (auto switchId : getFabricSwitchIdsWithPorts()) {
-      auto beforeSwitchDrops =
-          *getSw()->getHwSwitchStatsExpensive(switchId).switchDropStats();
+      auto beforeSwitchDrops = *getHwSwitchStats(switchId).switchDropStats();
       std::string out;
       getAgentEnsemble()->runDiagCommand(
           "TX 1 destination=-1 destinationModid=-1 flags=0x8000\n",
           out,
           switchId);
       WITH_RETRIES({
-        auto afterSwitchDrops =
-            *getSw()->getHwSwitchStatsExpensive(switchId).switchDropStats();
+        auto afterSwitchDrops = *getHwSwitchStats(switchId).switchDropStats();
         XLOG(INFO) << " Before reach drops: "
                    << *beforeSwitchDrops.globalReachabilityDrops()
                    << " After reach drops: "
