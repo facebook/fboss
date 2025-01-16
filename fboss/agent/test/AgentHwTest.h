@@ -142,6 +142,8 @@ class AgentHwTest : public ::testing::Test {
       const std::vector<PortID>& ports);
   HwPortStats getNextUpdatedPortStats(const PortID& port);
   HwPortStats getLastIncrementedPortStats(const PortID& port);
+  multiswitch::HwSwitchStats getHwSwitchStats(uint16_t switchIndex) const;
+  std::map<uint16_t, multiswitch::HwSwitchStats> getHwSwitchStats() const;
   std::map<PortID, std::pair<HwPortStats, HwPortStats>>
   sendTrafficAndCollectStats(
       const std::vector<PortID>& ports,

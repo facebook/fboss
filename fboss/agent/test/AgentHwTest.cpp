@@ -416,6 +416,30 @@ std::optional<HwSysPortStats> AgentHwTest::getLatestCpuSysPortStats() {
   return portStats;
 }
 
+multiswitch::HwSwitchStats AgentHwTest::getHwSwitchStats(
+    uint16_t switchIndex) const {
+  multiswitch::HwSwitchStats switchStats;
+  checkWithRetry(
+      [switchIndex, &switchStats, this]() {
+        auto switchIndex2Stats = getHwSwitchStats();
+        auto sitr = switchIndex2Stats.find(switchIndex);
+        if (sitr != switchIndex2Stats.end()) {
+          switchStats = std::move(sitr->second);
+          return true;
+        }
+        return false;
+      },
+      120,
+      std::chrono::milliseconds(1000),
+      " fetch multiswitch::HwSwitchStats");
+  return switchStats;
+}
+
+std::map<uint16_t, multiswitch::HwSwitchStats> AgentHwTest::getHwSwitchStats()
+    const {
+  return getSw()->getHwSwitchStatsExpensive();
+}
+
 HwSwitchDropStats AgentHwTest::getAggregatedSwitchDropStats() {
   HwSwitchDropStats hwSwitchDropStats;
   checkWithRetry([&hwSwitchDropStats, this]() {
