@@ -21,13 +21,7 @@ class AgentFabricSwitchTest : public AgentHwTest {
  public:
   cfg::SwitchConfig initialConfig(
       const AgentEnsemble& ensemble) const override {
-    auto config = utility::onePortPerInterfaceConfig(
-        ensemble.getSw(),
-        ensemble.masterLogicalPortIds(),
-        false /*interfaceHasSubnet*/,
-        false /*setInterfaceMac*/,
-        utility::kBaseVlanId,
-        true /*enable fabric ports*/);
+    auto config = AgentHwTest::initialConfig(ensemble);
     utility::populatePortExpectedNeighborsToSelf(
         ensemble.masterLogicalPortIds(), config);
     return config;
