@@ -486,13 +486,7 @@ class AgentBalancedInputModeTest : public AgentFabricSwitchTest {
  public:
   cfg::SwitchConfig initialConfig(
       const AgentEnsemble& ensemble) const override {
-    auto config = utility::onePortPerInterfaceConfig(
-        ensemble.getSw(),
-        ensemble.masterLogicalPortIds(),
-        false /*interfaceHasSubnet*/,
-        false /*setInterfaceMac*/,
-        utility::kBaseVlanId,
-        true /*enable fabric ports*/);
+    auto config = AgentFabricSwitchTest::initialConfig(ensemble);
     // Initialize local switch as level 2 (SDSW)
     const auto selfFabricLevel = 2;
     const auto remoteFabricLevel = 1;
