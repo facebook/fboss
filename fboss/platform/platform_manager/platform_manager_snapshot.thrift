@@ -1,6 +1,7 @@
 // Copyright (c) Meta Platforms, Inc. and affiliates.
 
 namespace cpp2 facebook.fboss.platform.platform_manager
+namespace py3 fboss.platform.platform_manager
 
 // The structs below are mostly a mirror of the structs defined in
 // platform_manager_config.thrift.  The structs below will reflect the
