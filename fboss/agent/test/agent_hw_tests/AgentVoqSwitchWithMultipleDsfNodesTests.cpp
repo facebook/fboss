@@ -599,24 +599,17 @@ TEST_F(AgentVoqSwitchWithMultipleDsfNodesTest, verifyDscpToVoqMapping) {
   verifyAcrossWarmBoots(setup, verify);
 };
 
-class AgentVoqShelSwitchTest : public AgentVoqSwitchWithMultipleDsfNodesTest {
- public:
-  cfg::SwitchConfig initialConfig(
-      const AgentEnsemble& ensemble) const override {
-    auto config =
-        AgentVoqSwitchWithMultipleDsfNodesTest::initialConfig(ensemble);
+class AgentVoqShelSwitchTest : public AgentVoqSwitchWithMultipleDsfNodesTest {};
+
+TEST_F(AgentVoqShelSwitchTest, init) {
+  auto setup = [this]() {
+    auto config = initialConfig(*getAgentEnsemble());
+    // Set SHEL configuration
     cfg::SelfHealingEcmpLagConfig shelConfig;
     shelConfig.shelSrcIp() = "2222::1";
     shelConfig.shelDstIp() = "2222::2";
     shelConfig.shelPeriodicIntervalMS() = 5000;
     config.switchSettings()->selfHealingEcmpLagConfig() = shelConfig;
-    return config;
-  }
-};
-
-TEST_F(AgentVoqShelSwitchTest, init) {
-  auto setup = [this]() {
-    auto config = initialConfig(*getAgentEnsemble());
     // Enable Conditional Entropy on Interface Ports
     for (auto& port : *config.ports()) {
       if (port.portType() == cfg::PortType::INTERFACE_PORT) {
