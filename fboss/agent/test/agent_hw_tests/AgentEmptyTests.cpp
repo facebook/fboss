@@ -11,6 +11,11 @@ class AgentEmptyTest : public AgentHwTest {
   getProductionFeaturesVerified() const override {
     return {};
   }
+  void setCmdLineFlagOverrides() const override {
+    AgentHwTest::setCmdLineFlagOverrides();
+    // check basic init with fabric ports enabled
+    FLAGS_hide_fabric_ports = false;
+  }
 };
 
 TEST_F(AgentEmptyTest, CheckInit) {
