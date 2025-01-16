@@ -143,6 +143,10 @@ class SaiPortManager {
       const std::shared_ptr<Port>& newPort);
 
   bool createOnlyAttributeChanged(
+      const std::shared_ptr<Port>& oldPort,
+      const std::shared_ptr<Port>& newPort);
+
+  bool createOnlyAttributeChanged(
       const SaiPortTraits::CreateAttributes& oldAttributes,
       const SaiPortTraits::CreateAttributes& newAttributes);
 

@@ -1395,6 +1395,13 @@ bool SaiPortManager::createOnlyAttributeChanged(
         std::get<SaiPortTraits::Attributes::Speed>(newAttributes)));
 }
 
+bool SaiPortManager::createOnlyAttributeChanged(
+    const std::shared_ptr<Port>& oldPort,
+    const std::shared_ptr<Port>& newPort) {
+  return createOnlyAttributeChanged(
+      attributesFromSwPort(oldPort), attributesFromSwPort(newPort));
+}
+
 cfg::PortType SaiPortManager::derivePortTypeOfLogicalPort(
     PortSaiId portSaiId) const {
   // TODO: An extension attribute has been added for MANAGEMENT port type,
