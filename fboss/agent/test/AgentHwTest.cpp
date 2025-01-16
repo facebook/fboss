@@ -31,6 +31,16 @@ constexpr auto kConfig = "config";
 } // namespace
 
 namespace facebook::fboss {
+namespace {
+bool haveL3Asics(const std::map<SwitchID, const HwAsic*>& asics) {
+  return std::any_of(asics.begin(), asics.end(), [](auto& iter) {
+    auto switchType = iter.second->getSwitchType();
+    return switchType == cfg::SwitchType::NPU ||
+        switchType == cfg::SwitchType::VOQ;
+  });
+}
+} // namespace
+
 void AgentHwTest::SetUp() {
   gflags::ParseCommandLineFlags(&kArgc, &kArgv, false);
   if (FLAGS_list_production_feature) {
@@ -190,10 +200,15 @@ void AgentHwTest::applySwitchDrainState(cfg::SwitchDrainState drainState) {
 
 cfg::SwitchConfig AgentHwTest::initialConfig(
     const AgentEnsemble& ensemble) const {
+  auto anyL3Asics =
+      haveL3Asics(ensemble.getSw()->getHwAsicTable()->getHwAsics());
   auto config = utility::onePortPerInterfaceConfig(
       ensemble.getSw(),
       ensemble.masterLogicalPortIds(),
-      true /*interfaceHasSubnet*/);
+      anyL3Asics /*interfaceHasSubnet*/,
+      anyL3Asics /*setInterfaceMac*/,
+      utility::kBaseVlanId,
+      !FLAGS_hide_fabric_ports /*enable fabric ports*/);
   return config;
 }
 
