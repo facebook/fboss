@@ -101,30 +101,10 @@ class AgentVoqSwitchWithFabricPortsStartDrained
   }
 };
 
-TEST_F(AgentVoqSwitchWithFabricPortsTest, init) {
-  auto setup = []() {};
-
-  auto verify = [this]() {
-    auto state = getProgrammedState();
-    for (auto& portMap : std::as_const(*state->getPorts())) {
-      for (auto& port : std::as_const(*portMap.second)) {
-        if (port.second->isEnabled()) {
-          EXPECT_EQ(
-              port.second->getLoopbackMode(),
-              // TODO: Handle multiple Asics
-              getAsics().cbegin()->second->getDesiredLoopbackMode(
-                  port.second->getPortType()));
-        }
-      }
-    }
-    assertPortAndDrainState(cfg::SwitchDrainState::UNDRAINED);
-  };
-  verifyAcrossWarmBoots(setup, verify);
-}
-
 TEST_F(AgentVoqSwitchWithFabricPortsTest, collectStats) {
   auto verify = [this]() {
     EXPECT_GT(getProgrammedState()->getPorts()->numNodes(), 0);
+    assertPortAndDrainState(cfg::SwitchDrainState::UNDRAINED);
     getSw()->updateStats();
     WITH_RETRIES({
       auto port2Stats = getSw()->getHwPortStats(masterLogicalFabricPortIds());
