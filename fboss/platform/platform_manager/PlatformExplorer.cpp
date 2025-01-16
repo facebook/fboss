@@ -631,7 +631,13 @@ void PlatformExplorer::createDeviceSymLink(
         linkParentPath.string() == "/run/devmap/watchdogs") {
       targetPath = devicePathResolver_.resolvePciSubDevCharDevPath(devicePath);
     } else if (linkParentPath.string() == "/run/devmap/xcvrs") {
-      targetPath = devicePathResolver_.resolvePciSubDevSysfsPath(devicePath);
+      auto xcvrName = linkPath.substr(linkParentPath.string().length() + 1);
+      if (xcvrName.starts_with("xcvr_ctrl")) {
+        targetPath = devicePathResolver_.resolvePciSubDevSysfsPath(devicePath);
+      }
+      if (xcvrName.starts_with("xcvr_io")) {
+        targetPath = devicePathResolver_.resolveI2cBusPath(devicePath);
+      }
     } else {
       throw std::runtime_error(
           fmt::format("Symbolic link {} is not supported.", linkPath));
