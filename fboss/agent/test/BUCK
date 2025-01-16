@@ -493,6 +493,23 @@ cpp_library(
 )
 
 cpp_library(
+    name = "agent_ensemble_integration_test_base",
+    srcs = [
+        "AgentEnsembleIntegrationTestBase.cpp",
+    ],
+    headers = [
+        "AgentEnsembleIntegrationTestBase.h",
+    ],
+    exported_deps = [
+        ":agent_ensemble_test",
+        "//fboss/agent:switch_config-cpp2-types",
+        "//folly:synchronized",
+        "//folly/gen:base",
+        "//folly/logging:logging",
+    ],
+)
+
+cpp_library(
     name = "agent_hw_test",
     srcs = [
         "AgentHwTest.cpp",
