@@ -51,6 +51,12 @@ class AgentDiagShellStressTest : public AgentHwTest {
     return {};
   }
 
+  void setCmdLineFlagOverrides() const override {
+    AgentHwTest::setCmdLineFlagOverrides();
+    // check diag shell with fabric ports enabled
+    FLAGS_hide_fabric_ports = false;
+  }
+
  private:
   static auto constexpr kNumDiagCmds = 500;
   static auto constexpr kNumRestarts = 20;
