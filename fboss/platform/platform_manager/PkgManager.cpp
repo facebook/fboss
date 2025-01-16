@@ -198,7 +198,15 @@ void PkgManager::processAll() const {
   if (FLAGS_reload_kmods) {
     unloadBspKmods();
   }
-  loadRequiredKmods();
+  try {
+    loadRequiredKmods();
+  } catch (const std::exception& ex) {
+    // This can happen when kmods are loaded from initramfs - causing conflicts
+    // We need to unload them before loading again.
+    XLOG(ERR) << fmt::format("Failed to load kmods. Unloading and retrying.");
+    unloadBspKmods();
+    loadRequiredKmods();
+  }
 }
 
 void PkgManager::processRpms() const {
