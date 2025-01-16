@@ -387,14 +387,10 @@ void SaiBufferManager::updateIngressBufferPoolStats() {
   if (!counterIdsToReadAndClear.size()) {
     // TODO: Request for per ITM buffer pool stats in SAI
     counterIdsToReadAndClear.push_back(SAI_BUFFER_POOL_STAT_WATERMARK_BYTES);
-    if ((platform_->getAsic()->getAsicType() ==
-         cfg::AsicType::ASIC_TYPE_JERICHO2) ||
-        (platform_->getAsic()->getAsicType() ==
-         cfg::AsicType::ASIC_TYPE_JERICHO3)) {
-      // TODO: Wait for the fix for CS00012274607 to enable this for all!
-      counterIdsToReadAndClear.push_back(
-          SAI_BUFFER_POOL_STAT_XOFF_ROOM_WATERMARK_BYTES);
-    }
+#if !defined(BRCM_SAI_SDK_XGS) || defined(BRCM_SAI_SDK_GTE_10_0)
+    counterIdsToReadAndClear.push_back(
+        SAI_BUFFER_POOL_STAT_XOFF_ROOM_WATERMARK_BYTES);
+#endif
   }
   ingressBufferPoolHandle->bufferPool->updateStats(
       counterIdsToReadAndClear, SAI_STATS_MODE_READ_AND_CLEAR);

@@ -184,6 +184,7 @@ cpp_library(
         "//common/stats:macros",
         "//fb303:service_data",
         "//fboss/agent:fboss-types",
+        "//fboss/agent:switch_config-cpp2-types",
         "//folly/container:f14_hash",
         "//folly/logging:logging",
         "//thrift/lib/cpp2/protocol:protocol",
