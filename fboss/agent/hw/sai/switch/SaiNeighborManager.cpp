@@ -405,13 +405,17 @@ void PortRifNeighbor::handleLinkDown() {
 }
 
 void SaiNeighborManager::handleLinkDown(const SaiPortDescriptor& port) {
-  CHECK(platform_->getAsic()->getSwitchType() == cfg::SwitchType::VOQ);
   for (auto& [nbrEntry, neighbor] : neighbors_) {
-    if (neighbor->getRifType() != cfg::InterfaceType::SYSTEM_PORT) {
-      continue;
-    }
-    if (neighbor->getSaiPortDesc() == port) {
-      neighbor->handleLinkDown();
+    switch (neighbor->getRifType()) {
+      case cfg::InterfaceType::VLAN:
+        // fdb entries are  reset on link down as a result next hop or next hop
+        // group are shrunk. no need to notify subscribers
+        continue;
+      case cfg::InterfaceType::PORT:
+      case cfg::InterfaceType::SYSTEM_PORT:
+        if (neighbor->getSaiPortDesc() == port) {
+          neighbor->handleLinkDown();
+        }
     }
   }
 }
