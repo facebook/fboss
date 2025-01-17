@@ -11,6 +11,7 @@ import sys
 import time
 from argparse import ArgumentParser
 from datetime import datetime
+from typing import List
 
 # Helper to run HwTests
 #
@@ -291,6 +292,10 @@ class TestRunner(abc.ABC):
 
     @abc.abstractmethod
     def add_subcommand_arguments(self, sub_parser: ArgumentParser):
+        pass
+
+    @abc.abstractmethod
+    def _filter_tests(self, tests: List[str]) -> List[str]:
         pass
 
     def setup_qsfp_service(self, is_warm_boot):
@@ -776,6 +781,9 @@ class BcmTestRunner(TestRunner):
     def _end_run(self):
         return
 
+    def _filter_tests(self, tests: List[str]) -> List[str]:
+        return tests
+
 
 class SaiTestRunner(TestRunner):
     def add_subcommand_arguments(self, sub_parser: ArgumentParser):
@@ -828,6 +836,9 @@ class SaiTestRunner(TestRunner):
     def _end_run(self):
         return
 
+    def _filter_tests(self, tests: List[str]) -> List[str]:
+        return tests
+
 
 class QsfpTestRunner(TestRunner):
     def add_subcommand_arguments(self, sub_parser: ArgumentParser):
@@ -874,6 +885,9 @@ class QsfpTestRunner(TestRunner):
     def _end_run(self):
         return
 
+    def _filter_tests(self, tests: List[str]) -> List[str]:
+        return tests
+
 
 class LinkTestRunner(TestRunner):
     def add_subcommand_arguments(self, sub_parser: ArgumentParser):
@@ -914,6 +928,9 @@ class LinkTestRunner(TestRunner):
 
     def _end_run(self):
         subprocess.run(CLEANUP_QSFP_SERVICE_CMD, shell=True)
+
+    def _filter_tests(self, tests: List[str]) -> List[str]:
+        return tests
 
 
 class SaiAgentTestRunner(TestRunner):
@@ -966,6 +983,9 @@ class SaiAgentTestRunner(TestRunner):
 
     def _end_run(self):
         return
+
+    def _filter_tests(self, tests: List[str]) -> List[str]:
+        return tests
 
 
 if __name__ == "__main__":
