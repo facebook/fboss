@@ -17,13 +17,6 @@
 namespace facebook::fboss {
 class AgentHwParityErrorTest : public AgentHwTest {
  protected:
-  cfg::SwitchConfig initialConfig(
-      const AgentEnsemble& ensemble) const override {
-    return utility::onePortPerInterfaceConfig(
-        ensemble.getSw(),
-        ensemble.masterLogicalPortIds(),
-        true /*interfaceHasSubnet*/);
-  }
   std::vector<production_features::ProductionFeature>
   getProductionFeaturesVerified() const override {
     return {production_features::ProductionFeature::HW_SWITCH};
