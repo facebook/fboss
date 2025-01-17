@@ -13,7 +13,7 @@ class AgentTunnelMgrTest : public AgentHwTest {
  public:
   std::vector<production_features::ProductionFeature>
   getProductionFeaturesVerified() const override {
-    return {};
+    return {production_features::ProductionFeature::CPU_RX_TX};
   }
 
   void setCmdLineFlagOverrides() const override {
