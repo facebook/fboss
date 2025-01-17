@@ -143,7 +143,26 @@
       "saiSdk": "sai"
     },
     "dsfNodes": {
-      
+      "0": {
+          "name": "fabricNode0",
+          "switchId": 0,
+          "type": 1,
+          "loopbackIps": [
+            
+          ],
+          "asicType": 16,
+          "platformType": 30
+      },
+      "2": {
+          "name": "fabricNode2",
+          "switchId": 2,
+          "type": 1,
+          "loopbackIps": [
+            
+          ],
+          "asicType": 16,
+          "platformType": 30
+      }
     },
     "defaultVoqConfig": [
       
