@@ -250,9 +250,10 @@ class AgentPortBandwidthPpsTest : public AgentPortBandwidthTest {
  public:
   std::vector<production_features::ProductionFeature>
   getProductionFeaturesVerified() const override {
-    return {
-        production_features::ProductionFeature::L3_QOS,
-        production_features::ProductionFeature::SCHEDULER_PPS};
+    auto prodFeatures = AgentPortBandwidthTest::getProductionFeaturesVerified();
+    prodFeatures.push_back(
+        production_features::ProductionFeature::SCHEDULER_PPS);
+    return prodFeatures;
   }
 };
 
