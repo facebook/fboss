@@ -34,13 +34,13 @@ TEST_F(AgentHwParityErrorTest, verifyParityError) {
         getSw()->getSwitchInfoTable().getSwitchIndexFromSwitchId(switchId);
     auto client = getAgentEnsemble()->getHwAgentTestClient(switchId);
     WITH_RETRIES({
-      auto switchStats = getSw()->getHwSwitchStatsExpensive()[switchIndex];
+      auto switchStats = getHwSwitchStats(switchIndex);
       auto asicErrors = switchStats.hwAsicErrors().value();
       EXPECT_EVENTUALLY_EQ(*asicErrors.correctedParityErrors(), 0);
     });
     client->sync_triggerParityError();
     WITH_RETRIES({
-      auto switchStats = getSw()->getHwSwitchStatsExpensive()[switchIndex];
+      auto switchStats = getHwSwitchStats(switchIndex);
       auto asicErrors = switchStats.hwAsicErrors().value();
       EXPECT_EVENTUALLY_GT(*asicErrors.correctedParityErrors(), 0);
     });
