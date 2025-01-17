@@ -155,7 +155,7 @@ utility::RouteDistributionGenerator::ThriftRouteChunks getRoutes(
   }
 }
 
-void initandExitBenchmarkHelper(
+void initAndExitBenchmarkHelper(
     cfg::PortSpeed uplinkSpeed,
     cfg::PortSpeed downlinkSpeed,
     cfg::SwitchType switchType) {
@@ -293,7 +293,8 @@ void initandExitBenchmarkHelper(
   }
   suspender.rehire();
   // Fabric switch does not support route programming
-  if (switchType != cfg::SwitchType::FABRIC) {
+  if (ensemble->getBootType() == BootType::COLD_BOOT &&
+      switchType != cfg::SwitchType::FABRIC) {
     auto routeChunks = getRoutes(ensemble.get());
     auto updater = ensemble->getSw()->getRouteUpdater();
     ensemble->programRoutes(RouterID(0), ClientID::BGPD, routeChunks);

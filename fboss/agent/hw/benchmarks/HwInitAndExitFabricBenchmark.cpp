@@ -13,7 +13,7 @@
 namespace facebook::fboss {
 
 BENCHMARK(HwInitAndExitFabricBenchmark) {
-  utility::initandExitBenchmarkHelper(
+  utility::initAndExitBenchmarkHelper(
       cfg::PortSpeed::DEFAULT /* uplinkSpeed */,
       cfg::PortSpeed::DEFAULT /* downlinkSpeed */,
       cfg::SwitchType::FABRIC);
