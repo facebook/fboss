@@ -229,3 +229,8 @@ DEFINE_bool(
     link_stress_test,
     false,
     "enable to run stress tests (longer duration + more iterations)");
+
+DEFINE_int32(
+    ecmp_resource_percentage,
+    75,
+    "Percentage of ECMP resources (out of 100) allowed to use before ResourceAccountant rejects the update.");

@@ -13,11 +13,6 @@
 #include "fboss/agent/state/DeltaFunctions.h"
 #include "fboss/agent/state/SwitchState.h"
 
-DEFINE_int32(
-    ecmp_resource_percentage,
-    75,
-    "Percentage of ECMP resources (out of 100) allowed to use before ResourceAccountant rejects the update.");
-
 namespace {
 constexpr auto kHundredPercentage = 100;
 } // namespace
