@@ -229,6 +229,9 @@ DNX_SIMULATOR_ASICS = ["j3"]
 
 ALL_SIMUALTOR_ASICS_STR = "|".join(XGS_SIMULATOR_ASICS + DNX_SIMULATOR_ASICS)
 
+GTEST_NAME_PREFIX = "[ RUN      ] "
+FEATURE_LIST_PREFIX = "Feature List: "
+
 
 def run_script(script_file: str):
     if not os.path.exists(script_file):
@@ -731,6 +734,7 @@ class TestRunner(abc.ABC):
 
     def run_test(self, args):
         tests_to_run = self._get_tests_to_run()
+        tests_to_run = self._filter_tests(tests_to_run)
 
         # Check if tests need to be run or only listed
         if args.list_tests is False:
@@ -1009,8 +1013,38 @@ class SaiAgentTestRunner(TestRunner):
     def _filter_tests(self, tests: List[str]) -> List[str]:
         if not args.enable_production_features:
             return tests
-        # TODO: add support for filtering tests by production features
-        return tests
+        asic = str(args.asic)
+        asic_production_features = json.load(open(args.production_features))
+        producition_features = {
+            feature for feature in asic_production_features["asicToFeatureNames"][asic]
+        }
+        tests_to_run = []
+        for test in tests:
+            cmd = [
+                self._get_test_binary_name(),
+                f"--gtest_filter={test}",
+                "--list_production_feature",
+            ]
+            ret = subprocess.run(
+                cmd,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                universal_newlines=True,
+            )
+            for line in ret.stdout.split("\n"):
+                if not line.startswith(FEATURE_LIST_PREFIX):
+                    continue
+                test_feature_str = line[len(FEATURE_LIST_PREFIX) :]
+                test_features = (
+                    set(test_feature_str.split(",")) if test_feature_str else set()
+                )
+                if "HW_SWITCH" in test_features:
+                    tests_to_run += ([test],)
+                    break
+                if test_features.issubset(producition_features):
+                    tests_to_run += ([test],)
+                    break
+        return tests_to_run
 
 
 if __name__ == "__main__":
