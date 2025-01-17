@@ -5,14 +5,10 @@
 #include <boost/assign.hpp>
 #include <boost/bimap.hpp>
 #include <cmath>
-#include <iomanip>
 #include <string>
 #include "common/time/Time.h"
 #include "fboss/agent/FbossError.h"
 #include "fboss/lib/phy/gen-cpp2/prbs_types.h"
-#include "fboss/lib/platforms/PlatformMode.h"
-#include "fboss/lib/usb/TransceiverI2CApi.h"
-#include "fboss/qsfp_service/StatsPublisher.h"
 #include "fboss/qsfp_service/if/gen-cpp2/qsfp_service_config_types.h"
 #include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
 #include "fboss/qsfp_service/lib/QsfpConfigParserHelper.h"
@@ -39,7 +35,7 @@ namespace {
 constexpr int kUsecBetweenPowerModeFlap = 100000;
 constexpr int kUsecBetweenLaneInit = 10000;
 constexpr int kUsecVdmLatchHold = 100000;
-constexpr int kUsecDiagSelectLatchWait = 10000;
+constexpr int kUsecDiagSelectLatchWait = 100000;
 constexpr int kUsecAfterAppProgramming = 500000;
 constexpr int kUsecDatapathStateUpdateTime = 5000000; // 5 seconds
 constexpr int kUsecDatapathStatePollTime = 500000; // 500 ms
