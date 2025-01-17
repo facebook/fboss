@@ -315,8 +315,16 @@ std::set<std::pair<PortID, PortID>> AgentEnsembleLinkTest::getConnectedPairs()
         XLOG(DBG2) << " No fabric end points on : " << getPortName(cabledPort);
         continue;
       }
-      neighborPort = PortID(fabricPortEndpoint->second.get_portId()) +
-          getRemotePortOffset(getSw()->getPlatformType());
+      auto portName = fabricPortEndpoint->second.portName();
+      if (!portName) {
+        XLOG(DBG2) << " No neighbor port name found on : "
+                   << getPortName(cabledPort);
+        continue;
+      }
+      neighborPort = getPortID(portName.value());
+      XLOG(DBG2) << "Get neighbor port " << portName.value()
+                 << " and neighbor port id " << neighborPort
+                 << " on : " << getPortName(cabledPort);
     } else {
       auto lldpNeighbors =
           getSw()->getLldpMgr()->getDB()->getNeighbors(cabledPort);
