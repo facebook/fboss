@@ -41,6 +41,14 @@ bool MultiSwitchHwSwitchHandler::sendPacketSwitchedAsync(
 
 bool MultiSwitchHwSwitchHandler::transactionsSupported(
     std::optional<cfg::SdkVersion> sdkVersion) const {
+  auto asicType = getSwitchInfo().asicType().value();
+  if (asicType == cfg::AsicType::ASIC_TYPE_CHENAB) {
+    return false;
+  }
+  if (asicType == cfg::AsicType::ASIC_TYPE_EBRO ||
+      asicType == cfg::AsicType::ASIC_TYPE_YUBA) {
+    return true;
+  }
   if (sdkVersion.has_value() && sdkVersion.value().saiSdk().has_value()) {
     return true;
   }
