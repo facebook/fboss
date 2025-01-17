@@ -60,6 +60,19 @@ class AgentMirroringScaleTest : public AgentHwTest {
  public:
   std::vector<production_features::ProductionFeature>
   getProductionFeaturesVerified() const override {
+    if constexpr (std::is_same<typename MirrorT::AddrT, folly::IPAddressV6>::
+                      value) {
+      if constexpr (MirrorT::mirrorType == MirrorType::INGRESS_ERSPAN) {
+        return {
+            production_features::ProductionFeature::ERSPANv6,
+            production_features::ProductionFeature::INGRESS_MIRRORING};
+      }
+      if constexpr (MirrorT::mirrorType == MirrorType::EGRESS_ERSPAN) {
+        return {
+            production_features::ProductionFeature::ERSPANv6,
+            production_features::ProductionFeature::EGRESS_MIRRORING};
+      }
+    }
     if constexpr (
         MirrorT::mirrorType == MirrorType::INGRESS_SPAN ||
         MirrorT::mirrorType == MirrorType::INGRESS_ERSPAN) {
