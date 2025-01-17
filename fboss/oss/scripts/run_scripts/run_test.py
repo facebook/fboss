@@ -165,6 +165,8 @@ OPT_ARG_SIMULATOR = "--simulator"
 OPT_ARG_SAI_LOGGING = "--sai_logging"
 OPT_ARG_FBOSS_LOGGING = "--fboss_logging"
 OPT_ARG_PRODUCTION_FEATURES = "--production-features"
+OPT_ARG_SETUP_CB = "--setup-for-coldboot"
+OPT_ARG_SETUP_WB = "--setup-for-warmboot"
 SUB_CMD_BCM = "bcm"
 SUB_CMD_SAI = "sai"
 SUB_CMD_QSFP = "qsfp"
@@ -215,6 +217,14 @@ XGS_SIMULATOR_ASICS = ["th3", "th4", "th4_b0", "th5"]
 DNX_SIMULATOR_ASICS = ["j3"]
 
 ALL_SIMUALTOR_ASICS_STR = "|".join(XGS_SIMULATOR_ASICS + DNX_SIMULATOR_ASICS)
+
+
+def run_script(script_file: str):
+    if not os.path.exists(script_file):
+        raise Exception(f"Script file {script_file} does not exist")
+    if not os.access(script_file, os.X_OK):
+        raise Exception(f"Script file {script_file} is not executable")
+    subprocess.run(script_file, shell=True)
 
 
 class TestRunner(abc.ABC):
@@ -803,10 +813,12 @@ class SaiTestRunner(TestRunner):
         return ["--config", conf_file, "--mgmt-if", args.mgmt_if]
 
     def _setup_coldboot_test(self):
-        return
+        if args.setup_for_coldboot:
+            run_script(args.setup_for_coldboot)
 
     def _setup_warmboot_test(self):
-        return
+        if args.setup_for_warmboot:
+            run_script(args.setup_for_warmboot)
 
     def _end_run(self):
         return
@@ -1019,6 +1031,19 @@ if __name__ == "__main__":
         type=str,
         default="DBG4",
         help=("Enable FBOSS logging (Options: INFO|ERR|DBG0-9)"),
+    )
+
+    ap.add_argument(
+        OPT_ARG_SETUP_CB,
+        type=str,
+        default=None,
+        help=("run script before cold boot run"),
+    )
+    ap.add_argument(
+        OPT_ARG_SETUP_WB,
+        type=str,
+        default=None,
+        help=("run script before warm boot run"),
     )
 
     # Add subparsers for different test types
