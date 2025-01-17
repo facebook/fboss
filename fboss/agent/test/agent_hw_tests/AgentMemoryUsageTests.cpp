@@ -29,6 +29,8 @@ class AgentMemoryUsageTest : public AgentHwTest {
     AgentHwTest::setCmdLineFlagOverrides();
     // Disable stats update to improve performance
     FLAGS_enable_stats_update_thread = false;
+    // enable running on fab switches as well
+    FLAGS_hide_fabric_ports = false;
   }
 
   void setupJeMalloc() {
