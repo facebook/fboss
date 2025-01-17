@@ -1,5 +1,44 @@
 {
   "asicToFeatures": {
+    "chenab": [
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        10,
+        11,
+        12,
+        13,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        23,
+        24,
+        25,
+        26,
+        27,
+        28,
+        31,
+        32,
+        33,
+        34,
+        35,
+        42,
+        43,
+        44,
+        45,
+        46,
+        47,
+        50,
+        51,
+        53
+    ],
     "ebro": [
         2,
         3,
@@ -31,7 +70,9 @@
         40,
         44,
         50,
-        51
+        51,
+        53,
+        54
     ],
     "jericho2": [
         2,
@@ -128,7 +169,8 @@
         41,
         44,
         46,
-        51
+        51,
+        54
     ],
     "tomahawk3": [
         2,
@@ -168,7 +210,9 @@
         42,
         44,
         50,
-        51
+        51,
+        53,
+        54
     ],
     "tomahawk4": [
         2,
@@ -207,7 +251,9 @@
         43,
         44,
         50,
-        51
+        51,
+        53,
+        54
     ],
     "tomahawk5": [
         2,
@@ -245,7 +291,9 @@
         42,
         44,
         50,
-        51
+        51,
+        53,
+        54
     ],
     "yuba": [
         2,
@@ -279,10 +327,51 @@
         42,
         44,
         50,
-        51
+        51,
+        53,
+        54
     ]
   },
   "asicToFeatureNames": {
+    "chenab": [
+        "CPU_RX_TX",
+        "L3_FORWARDING",
+        "ACL_PORT_IN_DISCARDS_COUNTER",
+        "NULL_ROUTE_IN_DISCARDS_COUNTER",
+        "EGRESS_FORWARDING_DISCARDS_COUNTER",
+        "PRBS",
+        "COPP",
+        "DSCP_REMARKING",
+        "L3_QOS",
+        "ACL_COUNTER",
+        "ECMP_LOAD_BALANCER",
+        "SINGLE_ACL_TABLE",
+        "MULTI_ACL_TABLE",
+        "BTH_OPCODE_ACL",
+        "DLB",
+        "ECN",
+        "WRED",
+        "JUMBO_FRAMES",
+        "TRAP_DISCARDS_COUNTER",
+        "MAC_LEARNING",
+        "SCHEDULER_PPS",
+        "ROUTE_COUNTERS",
+        "PORT_TX_DISABLE",
+        "MIRROR_PACKET_TRUNCATION",
+        "WIDE_ECMP",
+        "INTERFACE_NEIGHBOR_TABLE",
+        "INGRESS_MIRRORING",
+        "EGRESS_MIRRORING",
+        "PFC",
+        "UDF_WR_IMMEDIATE_ACL",
+        "VLAN",
+        "PORT_MTU_ERROR_TRAP",
+        "LED_PROGRAMMING",
+        "PFC_CAPTURE",
+        "PAUSE",
+        "SEPARATE_INGRESS_EGRESS_BUFFER_POOL",
+        "ERSPANv6"
+    ],
     "ebro": [
         "CPU_RX_TX",
         "L3_FORWARDING",
@@ -314,7 +403,9 @@
         "HUNDRED_THOUSAND_ROUTE_SCALE",
         "VLAN",
         "PAUSE",
-        "SEPARATE_INGRESS_EGRESS_BUFFER_POOL"
+        "SEPARATE_INGRESS_EGRESS_BUFFER_POOL",
+        "ERSPANv6",
+        "IP_IN_IP_DECAP"
     ],
     "jericho2": [
         "CPU_RX_TX",
@@ -411,7 +502,8 @@
         "TH_ALPM_ROUTE_SCALE",
         "VLAN",
         "LED_PROGRAMMING",
-        "SEPARATE_INGRESS_EGRESS_BUFFER_POOL"
+        "SEPARATE_INGRESS_EGRESS_BUFFER_POOL",
+        "IP_IN_IP_DECAP"
     ],
     "tomahawk3": [
         "CPU_RX_TX",
@@ -451,7 +543,9 @@
         "PFC",
         "VLAN",
         "PAUSE",
-        "SEPARATE_INGRESS_EGRESS_BUFFER_POOL"
+        "SEPARATE_INGRESS_EGRESS_BUFFER_POOL",
+        "ERSPANv6",
+        "IP_IN_IP_DECAP"
     ],
     "tomahawk4": [
         "CPU_RX_TX",
@@ -490,7 +584,9 @@
         "UDF_WR_IMMEDIATE_ACL",
         "VLAN",
         "PAUSE",
-        "SEPARATE_INGRESS_EGRESS_BUFFER_POOL"
+        "SEPARATE_INGRESS_EGRESS_BUFFER_POOL",
+        "ERSPANv6",
+        "IP_IN_IP_DECAP"
     ],
     "tomahawk5": [
         "CPU_RX_TX",
@@ -528,7 +624,9 @@
         "PFC",
         "VLAN",
         "PAUSE",
-        "SEPARATE_INGRESS_EGRESS_BUFFER_POOL"
+        "SEPARATE_INGRESS_EGRESS_BUFFER_POOL",
+        "ERSPANv6",
+        "IP_IN_IP_DECAP"
     ],
     "yuba": [
         "CPU_RX_TX",
@@ -562,7 +660,9 @@
         "PFC",
         "VLAN",
         "PAUSE",
-        "SEPARATE_INGRESS_EGRESS_BUFFER_POOL"
+        "SEPARATE_INGRESS_EGRESS_BUFFER_POOL",
+        "ERSPANv6",
+        "IP_IN_IP_DECAP"
     ]
   }
 }
