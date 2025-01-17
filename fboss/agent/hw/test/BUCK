@@ -80,6 +80,7 @@ cpp_unittest(
     ],
     deps = [
         "//fb303:service_data",
+        "//fboss/agent:switch_config-cpp2-types",
         "//fboss/agent/hw:hw_port_fb303_stats",
         "//fboss/agent/hw:stats_constants",
         "//folly/logging:logging",
