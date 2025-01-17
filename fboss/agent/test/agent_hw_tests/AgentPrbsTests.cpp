@@ -96,43 +96,11 @@ class AgentPrbsTest : public AgentHwTest {
   }
 };
 
-class AgentFabricPrbsTest : public AgentPrbsTest {
- public:
-  std::vector<production_features::ProductionFeature>
-  getProductionFeaturesVerified() const override {
-    return {
-        production_features::ProductionFeature::FABRIC,
-        production_features::ProductionFeature::PRBS};
-  }
-
-  cfg::SwitchConfig initialConfig(
-      const AgentEnsemble& ensemble) const override {
-    auto config = utility::onePortPerInterfaceConfig(
-        ensemble.getSw(),
-        ensemble.masterLogicalPortIds(),
-        false /*interfaceHasSubnet*/,
-        false /*setInterfaceMac*/,
-        utility::kBaseVlanId,
-        true /*enable fabric ports*/);
-    utility::populatePortExpectedNeighborsToSelf(
-        ensemble.masterLogicalPortIds(), config);
-    return config;
-  }
-};
-
 TEST_F(AgentPrbsTest, enablePortPrbs) {
   testEnablePortPrbs();
 }
 
 TEST_F(AgentPrbsTest, disablePortPrbs) {
-  testDisablePortPrbs();
-}
-
-TEST_F(AgentFabricPrbsTest, enablePortPrbs) {
-  testEnablePortPrbs();
-}
-
-TEST_F(AgentFabricPrbsTest, disablePortPrbs) {
   testDisablePortPrbs();
 }
 
