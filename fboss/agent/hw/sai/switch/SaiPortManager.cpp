@@ -530,7 +530,9 @@ void SaiPortManager::loadPortQueues(const Port& swPort) {
     return;
   }
   SaiPortHandle* portHandle = getPortHandle(swPort.getID());
-  CHECK(portHandle) << " Port handle must be created before loading queues";
+  CHECK(portHandle)
+      << " Port handle must be created before loading queues for port "
+      << swPort.getID();
   const auto& saiPort = portHandle->port;
   std::vector<sai_object_id_t> queueList;
   queueList.resize(1);
