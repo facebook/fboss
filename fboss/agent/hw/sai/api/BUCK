@@ -104,7 +104,7 @@ cpp_library(
         "WredApi.h",
         "fake/saifakeextensions.h",
     ],
-    tags = ["noautodeps"],
+    labels = ["noautodeps"],
     exported_deps = [
         "//fboss/lib:tuple_utils",
         "//folly:network_address",

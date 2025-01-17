@@ -222,7 +222,7 @@ all_replayer_binaries()
 cpp_library(
     name = "recursive_glob_headers",
     headers = ["SaiLog.h"],
-    tags = ["noautodeps"],
+    labels = ["noautodeps"],
 )
             """
         )
