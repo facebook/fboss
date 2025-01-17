@@ -166,6 +166,8 @@ OPT_ARG_SIMULATOR = "--simulator"
 OPT_ARG_SAI_LOGGING = "--sai_logging"
 OPT_ARG_FBOSS_LOGGING = "--fboss_logging"
 OPT_ARG_PRODUCTION_FEATURES = "--production-features"
+OPT_ARG_ENABLE_PRODUCTION_FEATURES = "--enable-production-features"
+OPT_ARG_ASIC = "--asic"
 OPT_ARG_SETUP_CB = "--setup-for-coldboot"
 OPT_ARG_SETUP_WB = "--setup-for-warmboot"
 SUB_CMD_BCM = "bcm"
@@ -188,6 +190,9 @@ LINK_KNOWN_BAD_TESTS = (
 )
 SAI_AGENT_TEST_KNOWN_BAD_TESTS = (
     "./share/hw_known_bad_tests/sai_agent_known_bad_tests.materialized_JSON"
+)
+ASIC_PRODUCTION_FEATURES = (
+    "./share/production_features/asic_production_features.materialized_JSON"
 )
 QSFP_SERVICE_FOR_TESTING = "qsfp_service_for_testing"
 QSFP_SERVICE_DIR = "/dev/shm/fboss/qsfp_service"
@@ -935,7 +940,24 @@ class LinkTestRunner(TestRunner):
 
 class SaiAgentTestRunner(TestRunner):
     def add_subcommand_arguments(self, sub_parser: ArgumentParser):
-        pass
+        sub_parser.add_argument(
+            OPT_ARG_PRODUCTION_FEATURES,
+            type=str,
+            help="production features json file",
+            default=ASIC_PRODUCTION_FEATURES,
+        )
+        sub_parser.add_argument(
+            OPT_ARG_ENABLE_PRODUCTION_FEATURES,
+            action="store_true",
+            help="enable/disable filtering by production feature",
+            default=False,
+        )
+        sub_parser.add_argument(
+            OPT_ARG_ASIC,
+            type=str,
+            help="Specify asic to filter production feature",
+            default=None,
+        )
 
     def _get_config_path(self):
         # TOOO Not available in OSS
@@ -985,6 +1007,9 @@ class SaiAgentTestRunner(TestRunner):
         return
 
     def _filter_tests(self, tests: List[str]) -> List[str]:
+        if not args.enable_production_features:
+            return tests
+        # TODO: add support for filtering tests by production features
         return tests
 
 
