@@ -171,6 +171,8 @@ SUB_CMD_BCM = "bcm"
 SUB_CMD_SAI = "sai"
 SUB_CMD_QSFP = "qsfp"
 SUB_CMD_LINK = "link"
+SUB_CMD_SAI_AGENT = "sai_agent"
+
 SAI_HW_KNOWN_BAD_TESTS = (
     "./share/hw_known_bad_tests/sai_known_bad_tests.materialized_JSON"
 )
@@ -182,6 +184,9 @@ QSFP_UNSUPPORTED_TESTS = (
 )
 LINK_KNOWN_BAD_TESTS = (
     "./share/link_known_bad_tests/fboss_link_known_bad_tests.materialized_JSON"
+)
+SAI_AGENT_TEST_KNOWN_BAD_TESTS = (
+    "./share/hw_known_bad_tests/sai_agent_known_bad_tests.materialized_JSON"
 )
 QSFP_SERVICE_FOR_TESTING = "qsfp_service_for_testing"
 QSFP_SERVICE_DIR = "/dev/shm/fboss/qsfp_service"
@@ -911,6 +916,58 @@ class LinkTestRunner(TestRunner):
         subprocess.run(CLEANUP_QSFP_SERVICE_CMD, shell=True)
 
 
+class SaiAgentTestRunner(TestRunner):
+    def add_subcommand_arguments(self, sub_parser: ArgumentParser):
+        pass
+
+    def _get_config_path(self):
+        # TOOO Not available in OSS
+        return ""
+
+    def _get_known_bad_tests_file(self):
+        return SAI_AGENT_TEST_KNOWN_BAD_TESTS
+
+    def _get_unsupported_tests_file(self):
+        return ""
+
+    def _get_test_binary_name(self):
+        return args.sai_bin if args.sai_bin else "sai_agent_test-sai_impl-1.13.0"
+
+    def _get_sai_replayer_logging_flags(
+        self, sai_replayer_logging_dir, test_prefix, test_to_run
+    ):
+        return [
+            "--enable-replayer",
+            "--enable_get_attr_log",
+            "--enable_packet_log",
+            "--sai-log",
+            os.path.join(
+                sai_replayer_logging_dir,
+                "replayer-log-" + test_prefix + test_to_run.replace("/", "-"),
+            ),
+        ]
+
+    def _get_sai_logging_flags(self, sai_logging):
+        return ["--enable_sai_log", sai_logging]
+
+    def _get_warmboot_check_file(self):
+        return AGENT_WARMBOOT_CHECK_FILE
+
+    def _get_test_run_args(self, conf_file):
+        return ["--config", conf_file, "--mgmt-if", args.mgmt_if]
+
+    def _setup_coldboot_test(self):
+        if args.setup_for_coldboot:
+            run_script(args.setup_for_coldboot)
+
+    def _setup_warmboot_test(self):
+        if args.setup_for_coldboot:
+            run_script(args.setup_for_warmboot)
+
+    def _end_run(self):
+        return
+
+
 if __name__ == "__main__":
     ap = ArgumentParser(description="Run tests.")
 
@@ -1066,6 +1123,14 @@ if __name__ == "__main__":
     # Add subparser for Link tests
     link_test_parser = subparsers.add_parser(SUB_CMD_LINK, help="run link tests")
     link_test_parser.set_defaults(func=LinkTestRunner().run_test)
+
+    # Add subparser for SAI Agent tests
+    sai_agent_test_parser = subparsers.add_parser(
+        SUB_CMD_SAI_AGENT, help="run sai agent tests"
+    )
+    sai_agent_test_runner = SaiAgentTestRunner()
+    sai_agent_test_parser.set_defaults(func=sai_agent_test_runner.run_test)
+    sai_agent_test_runner.add_subcommand_arguments(sai_agent_test_parser)
 
     # Parse the args
     args = ap.parse_known_args()
