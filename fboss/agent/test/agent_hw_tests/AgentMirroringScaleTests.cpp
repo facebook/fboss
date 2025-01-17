@@ -145,9 +145,7 @@ class AgentMirroringScaleTest : public AgentHwTest {
   }
 
   PortID getTrafficPort(const AgentEnsemble& ensemble, int portIndex) const {
-    if (portIndex >= ensemble.masterLogicalInterfacePortIds().size()) {
-      throw FbossError("portIndex is out of range");
-    }
+    CHECK_LE(portIndex, ensemble.masterLogicalInterfacePortIds().size());
     return ensemble.masterLogicalPortIds(
         {cfg::PortType::INTERFACE_PORT})[portIndex];
   }

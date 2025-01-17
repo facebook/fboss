@@ -49,9 +49,7 @@ void addMirrorConfig(
     bool truncate,
     uint8_t dscp,
     uint16_t mirrorToPortIndex) {
-  if (mirrorToPortIndex >= ensemble.masterLogicalInterfacePortIds().size()) {
-    throw FbossError("mirrorToPortIndex is out of range");
-  }
+  CHECK_LE(mirrorToPortIndex, ensemble.masterLogicalInterfacePortIds().size());
   auto mirrorToPort = ensemble.masterLogicalPortIds(
       {cfg::PortType::INTERFACE_PORT})[mirrorToPortIndex];
   auto params = getMirrorTestParams<AddrT>();
