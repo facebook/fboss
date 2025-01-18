@@ -385,6 +385,29 @@ enum MirrorOnDropReasonAggregation {
   INGRESS_GLOBAL_CONGESTION_DISCARDS = 6,
 }
 
+/**
+ * Aging group of an event, which controls the granularity at which MOD packets
+ * are sent:
+ * - At most one packet per interval will be generated for GLOBAL events
+ * - At most one packet per port pre interval will be generated for PORT events
+ * - ...and so on
+ */
+enum MirrorOnDropAgingGroup {
+  GLOBAL = 0,
+  PORT = 1,
+  PRIORITY_GROUP = 2,
+  VOQ = 3,
+}
+
+/**
+ * Configuration for each event ID under a MirrorOnDropReport. An event can have its own
+ * aging granularity setting and associated drop reasons.
+ */
+struct MirrorOnDropEventConfig {
+  1: list<MirrorOnDropReasonAggregation> dropReasonAggregations;
+  2: optional MirrorOnDropAgingGroup agingGroup; // defaults to 0 i.e. GLOBAL
+}
+
 struct MirrorOnDropReport {
   1: string name;
   /*
@@ -402,10 +425,14 @@ struct MirrorOnDropReport {
   // Contents of the dropped packet will be truncated when mirroring.
   7: i16 truncateSize = 128;
   8: byte dscp = 0;
-  // At most one mirrored packet will be sent per port/PG/VOQ within an interval. Granularity is not configurable as of now.
+  // At most one mirrored packet will be sent per port/PG/VOQ within an interval.
   9: optional i32 agingIntervalUsecs;
-  // Mapping from drop ID / event ID to groups of reasons.
-  10: map<byte, list<MirrorOnDropReasonAggregation>> eventIdToDropReasons;
+  10: map<
+    byte,
+    list<MirrorOnDropReasonAggregation>
+  > eventIdToDropReasons_DEPRECATED (deprecated);
+  // Configuration for each event ID.
+  11: map<byte, MirrorOnDropEventConfig> modEventToConfigMap;
 }
 
 /**

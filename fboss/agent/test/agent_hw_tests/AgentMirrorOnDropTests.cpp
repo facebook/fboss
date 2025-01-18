@@ -116,12 +116,23 @@ class AgentMirrorOnDropTest : public AgentHwTest {
     ecmpHelper.programRoutes(&routeUpdater, {port}, {route});
   }
 
+  cfg::MirrorOnDropEventConfig makeEventConfig(
+      std::optional<cfg::MirrorOnDropAgingGroup> group,
+      const std::vector<cfg::MirrorOnDropReasonAggregation>& reasonAggs) {
+    cfg::MirrorOnDropEventConfig eventCfg;
+    if (group.has_value()) {
+      eventCfg.agingGroup() = group.value();
+    }
+    eventCfg.dropReasonAggregations() = reasonAggs;
+    return eventCfg;
+  }
+
   void setupMirrorOnDrop(
       cfg::SwitchConfig* config,
       PortID portId,
       const folly::IPAddressV6& collectorIp,
-      const std::map<int8_t, std::vector<cfg::MirrorOnDropReasonAggregation>>&
-          eventIdToDropReasons) {
+      const std::map<int8_t, cfg::MirrorOnDropEventConfig>&
+          modEventToConfigMap) {
     cfg::MirrorOnDropReport report;
     report.name() = "mod-1";
     report.mirrorPortId() = portId;
@@ -132,7 +143,7 @@ class AgentMirrorOnDropTest : public AgentHwTest {
     report.truncateSize() = kTruncateSize;
     report.dscp() = 0;
     report.agingIntervalUsecs() = 100;
-    report.eventIdToDropReasons() = eventIdToDropReasons;
+    report.modEventToConfigMap() = modEventToConfigMap;
     config->mirrorOnDropReports()->push_back(report);
   }
 
@@ -273,8 +284,10 @@ TEST_F(AgentMirrorOnDropTest, ConfigChangePostWarmboot) {
         mirrorPortId,
         kCollectorIp_,
         {{0,
-          {cfg::MirrorOnDropReasonAggregation::
-               INGRESS_PACKET_PROCESSING_DISCARDS}}});
+          makeEventConfig(
+              std::nullopt, // use default aging group
+              {cfg::MirrorOnDropReasonAggregation::
+                   INGRESS_PACKET_PROCESSING_DISCARDS})}});
     applyNewConfig(config);
   };
 
@@ -285,9 +298,11 @@ TEST_F(AgentMirrorOnDropTest, ConfigChangePostWarmboot) {
         &config,
         mirrorPortId,
         kCollectorIp_,
-        {{1,
-          {cfg::MirrorOnDropReasonAggregation::
-               INGRESS_PACKET_PROCESSING_DISCARDS}}});
+        {{0,
+          makeEventConfig(
+              cfg::MirrorOnDropAgingGroup::PORT,
+              {cfg::MirrorOnDropReasonAggregation::
+                   INGRESS_PACKET_PROCESSING_DISCARDS})}});
     applyNewConfig(config);
   };
 
@@ -310,8 +325,10 @@ TEST_F(AgentMirrorOnDropTest, PacketProcessingError) {
         mirrorPortId,
         kCollectorIp_,
         {{kEventId,
-          {cfg::MirrorOnDropReasonAggregation::
-               INGRESS_PACKET_PROCESSING_DISCARDS}}});
+          makeEventConfig(
+              std::nullopt, // use default aging group
+              {cfg::MirrorOnDropReasonAggregation::
+                   INGRESS_PACKET_PROCESSING_DISCARDS})}});
     utility::addTrapPacketAcl(&config, kCollectorNextHopMac_);
     applyNewConfig(config);
 
@@ -364,15 +381,23 @@ TEST_F(AgentMirrorOnDropTest, MultipleEventIDs) {
         mirrorPortId,
         kCollectorIp_,
         // Sandwich PP drops between other reasons and see if it still works
-        {{0,
-          {cfg::MirrorOnDropReasonAggregation::
-               INGRESS_SOURCE_CONGESTION_DISCARDS}},
-         {1,
-          {cfg::MirrorOnDropReasonAggregation::
-               INGRESS_PACKET_PROCESSING_DISCARDS}},
-         {2,
-          {cfg::MirrorOnDropReasonAggregation::
-               INGRESS_DESTINATION_CONGESTION_DISCARDS}}});
+        {
+            {0,
+             makeEventConfig(
+                 cfg::MirrorOnDropAgingGroup::GLOBAL,
+                 {cfg::MirrorOnDropReasonAggregation::
+                      INGRESS_SOURCE_CONGESTION_DISCARDS})},
+            {1,
+             makeEventConfig(
+                 cfg::MirrorOnDropAgingGroup::PORT,
+                 {cfg::MirrorOnDropReasonAggregation::
+                      INGRESS_PACKET_PROCESSING_DISCARDS})},
+            {2,
+             makeEventConfig(
+                 cfg::MirrorOnDropAgingGroup::VOQ,
+                 {cfg::MirrorOnDropReasonAggregation::
+                      INGRESS_DESTINATION_CONGESTION_DISCARDS})},
+        });
     utility::addTrapPacketAcl(&config, kCollectorNextHopMac_);
     applyNewConfig(config);
 

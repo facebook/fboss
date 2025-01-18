@@ -335,7 +335,8 @@ struct MirrorOnDropReportFields {
   13: map<
     byte,
     list<switch_config.MirrorOnDropReasonAggregation>
-  > eventIdToDropReasons;
+  > eventIdToDropReasons_DEPRECATED;
+  14: map<byte, switch_config.MirrorOnDropEventConfig> modEventToConfigMap;
 }
 
 struct ControlPlaneFields {
