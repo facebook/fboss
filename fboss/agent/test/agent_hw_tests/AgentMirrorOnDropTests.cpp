@@ -11,6 +11,7 @@
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/test/utils/CoppTestUtils.h"
+#include "fboss/agent/test/utils/MirrorTestUtils.h"
 #include "fboss/agent/test/utils/PacketSnooper.h"
 #include "fboss/agent/test/utils/TrapPacketUtils.h"
 #include "fboss/lib/CommonUtils.h"
@@ -20,6 +21,8 @@ DEFINE_bool(
     mod_pp_test_use_pipeline_lookup,
     false,
     "Use pipeline lookup mode in packet processing drop test");
+
+const std::string kSflowMirror = "sflow_mirror";
 
 namespace facebook::fboss {
 
@@ -145,6 +148,41 @@ class AgentMirrorOnDropTest : public AgentHwTest {
     report.agingIntervalUsecs() = 100;
     report.modEventToConfigMap() = modEventToConfigMap;
     config->mirrorOnDropReports()->push_back(report);
+  }
+
+  void configureMirror(cfg::SwitchConfig& cfg) const {
+    utility::configureSflowMirror(
+        cfg,
+        kSflowMirror,
+        true /*truncate*/,
+        utility::getSflowMirrorDestination(false /*v4*/).str());
+  }
+
+  template <typename T = folly::IPAddressV6>
+  void resolveRouteForMirrorDestination(
+      PortID mirrorDestinationPort,
+      cfg::PortType portType) {
+    boost::container::flat_set<PortDescriptor> nhopPorts{
+        PortDescriptor(mirrorDestinationPort)};
+
+    applyNewState(
+        [&](const std::shared_ptr<SwitchState>& state) {
+          utility::EcmpSetupTargetedPorts<T> ecmpHelper(
+              state, RouterID(0), {portType});
+          auto newState = ecmpHelper.resolveNextHops(state, nhopPorts);
+          return newState;
+        },
+        "resolve mirror nexthop");
+
+    auto mirror = getSw()->getState()->getMirrors()->getNodeIf(kSflowMirror);
+    auto dip = mirror->getDestinationIp();
+
+    RoutePrefix<T> prefix(T(dip->str()), dip->bitCount());
+    utility::EcmpSetupTargetedPorts<T> ecmpHelper(
+        getProgrammedState(), RouterID(0), {portType});
+
+    ecmpHelper.programRoutes(
+        getAgentEnsemble()->getRouteUpdaterWrapper(), nhopPorts, {prefix});
   }
 
   // Create a packet that will be dropped. The entire packet is expected to be
@@ -307,6 +345,38 @@ TEST_F(AgentMirrorOnDropTest, ConfigChangePostWarmboot) {
   };
 
   verifyAcrossWarmBoots(setup, []() {}, setupWb, []() {});
+}
+
+TEST_F(AgentMirrorOnDropTest, ModWithSflowMirrorPresent) {
+  auto mirrorPortId = masterLogicalPortIds({cfg::PortType::RECYCLE_PORT})[0];
+  auto sampledPortId = masterLogicalInterfacePortIds()[1];
+  auto sflowPortId = masterLogicalInterfacePortIds()[2];
+  XLOG(DBG3) << "MoD port: " << portDesc(mirrorPortId);
+  XLOG(DBG3) << "Sampled port: " << portDesc(sampledPortId);
+  XLOG(DBG3) << "sFlow destination port: " << portDesc(sflowPortId);
+
+  auto setup = [&]() {
+    auto config = getAgentEnsemble()->getCurrentConfig();
+    configureMirror(config);
+    utility::configureSflowSampling(config, kSflowMirror, {sampledPortId}, 1);
+    setupMirrorOnDrop(
+        &config,
+        mirrorPortId,
+        kCollectorIp_,
+        {{0,
+          makeEventConfig(
+              std::nullopt,
+              {cfg::MirrorOnDropReasonAggregation::
+                   INGRESS_PACKET_PROCESSING_DISCARDS})}});
+    applyNewConfig(config);
+    resolveRouteForMirrorDestination(
+        sflowPortId, cfg::PortType::INTERFACE_PORT);
+
+    config.mirrorOnDropReports()->clear();
+    applyNewConfig(config);
+  };
+
+  verifyAcrossWarmBoots(setup, []() {});
 }
 
 TEST_F(AgentMirrorOnDropTest, PacketProcessingError) {
