@@ -110,7 +110,9 @@ TEST_F(AgentFabricSwitchTest, checkFabricConnectivityStats) {
       EXPECT_EVENTUALLY_EQ(
           *reachabilityStats.missingCount(),
           masterLogicalFabricPortIds().size());
-      EXPECT_EVENTUALLY_EQ(*reachabilityStats.mismatchCount(), 0);
+      EXPECT_EVENTUALLY_EQ(
+          *reachabilityStats.mismatchCount(),
+          masterLogicalFabricPortIds().size());
     });
   };
   verifyAcrossWarmBoots(setup, verify);
