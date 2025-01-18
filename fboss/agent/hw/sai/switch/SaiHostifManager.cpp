@@ -59,7 +59,11 @@ SaiHostifManager::SaiHostifManager(
 
 SaiHostifManager::~SaiHostifManager() {
   if (qosPolicy_) {
+#if !defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+    // TODO(daiweix): clear qos policy on J3 after resolving
+    // CS00012383840
     clearQosPolicy();
+#endif
   }
   // clear all user defined trap
   auto& store = saiStore_->get<SaiHostifUserDefinedTrapTraits>();
