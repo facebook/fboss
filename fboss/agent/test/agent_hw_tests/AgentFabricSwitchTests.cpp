@@ -108,9 +108,9 @@ TEST_F(AgentFabricSwitchTest, checkFabricConnectivityStats) {
     WITH_RETRIES({
       auto reachabilityStats = getAgentEnsemble()->getFabricReachabilityStats();
       EXPECT_EVENTUALLY_EQ(
-          reachabilityStats.missingCount(),
+          *reachabilityStats.missingCount(),
           masterLogicalFabricPortIds().size());
-      EXPECT_EVENTUALLY_EQ(reachabilityStats.mismatchCount(), 0);
+      EXPECT_EVENTUALLY_EQ(*reachabilityStats.mismatchCount(), 0);
     });
   };
   verifyAcrossWarmBoots(setup, verify);
