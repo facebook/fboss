@@ -4106,9 +4106,6 @@
           "test_name_regex": "AgentTrafficPfcTest/AgentTrafficPfcGenTest.*"
         },
         {
-          "test_name_regex": "warm_boot.AgentInTrapDiscardsCounterTest.trapDrops"
-        },
-        {
           "test_name_regex": "AgentAclCounterTest/0.VerifyCounterBumpOnL4DstportHitFrontPanel$"
         },
         {
@@ -4145,7 +4142,7 @@
           "test_name_regex": "AgentSendPacketToQueueTest.SendPacketOutOfPortToMCQueue$"
         },
         {
-          "test_name_regex": "AgentMirrorOnDropTest.UnbindModWithSflowMirrorPresent$"
+          "test_name_regex": "AgentMirrorOnDropTest.ModWithSflowMirrorPresent$"
         },
         {
           "test_name_regex": "AgentVoqSwitchLineRateTest.dramBlockedTime$"
@@ -4184,16 +4181,10 @@
           "test_name_regex": "AgentCoppTest/0.UnresolvedRoutesToLowPriQueue$"
         },
         {
-          "test_name_regex": "AgentPortBandwidthPpsTest.VerifyPps$"
-        },
-        {
           "test_name_regex": "AgentTrafficPfcTest/AgentTrafficPfcGenTest.verifyPfc/WithZeroGlobalHeadRoomCfg$"
         },
         {
           "test_name_regex": "AgentTrafficPfcWatchdogTest.*$"
-        },
-        {
-          "test_name_regex": "AgentVoqSwitchTest.rxPacketToCpu.*$"
         },
         {
           "test_name_regex": "MultiNodeAgentVoqSwitchTest.verifyInbandPing$"
@@ -4230,9 +4221,6 @@
         },
         {
           "test_name_regex": "AgentOlympicQosTests.VerifyDscpQueueMapping$"
-        },
-        {
-          "test_name_regex": "AgentPortBandwidthPpsTest.VerifyPpsDynamicChanges$"
         },
         {
           "test_name_regex": "AgentHwResourceStatsTest.aclStats$"
@@ -4651,9 +4639,6 @@
           "test_name_regex": "AgentTrafficPfcTest/AgentTrafficPfcGenTest.*"
         },
         {
-          "test_name_regex": "warm_boot.AgentInTrapDiscardsCounterTest.trapDrops"
-        },
-        {
           "test_name_regex": "AgentAclCounterTest/0.VerifyCounterBumpOnL4DstportHitFrontPanel$"
         },
         {
@@ -4690,7 +4675,7 @@
           "test_name_regex": "AgentSendPacketToQueueTest.SendPacketOutOfPortToMCQueue$"
         },
         {
-          "test_name_regex": "AgentMirrorOnDropTest.UnbindModWithSflowMirrorPresent$"
+          "test_name_regex": "AgentMirrorOnDropTest.ModWithSflowMirrorPresent$"
         },
         {
           "test_name_regex": "AgentVoqSwitchLineRateTest.dramBlockedTime$"
@@ -4729,16 +4714,10 @@
           "test_name_regex": "AgentCoppTest/0.UnresolvedRoutesToLowPriQueue$"
         },
         {
-          "test_name_regex": "AgentPortBandwidthPpsTest.VerifyPps$"
-        },
-        {
           "test_name_regex": "AgentTrafficPfcTest/AgentTrafficPfcGenTest.verifyPfc/WithZeroGlobalHeadRoomCfg$"
         },
         {
           "test_name_regex": "AgentTrafficPfcWatchdogTest.*$"
-        },
-        {
-          "test_name_regex": "AgentVoqSwitchTest.rxPacketToCpu.*$"
         },
         {
           "test_name_regex": "MultiNodeAgentVoqSwitchTest.verifyInbandPing$"
@@ -4775,9 +4754,6 @@
         },
         {
           "test_name_regex": "AgentOlympicQosTests.VerifyDscpQueueMapping$"
-        },
-        {
-          "test_name_regex": "AgentPortBandwidthPpsTest.VerifyPpsDynamicChanges$"
         },
         {
           "test_name_regex": "AgentHwResourceStatsTest.aclStats$"
@@ -5085,16 +5061,7 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot.AgentPortLedTest.TestLed$"
         },
         {
-          "test_name_regex": "AgentPrbsTest.*$"
-        },
-        {
-          "test_name_regex": "AgentFabricSwitchSelfLoopTest.*$"
-        },
-        {
           "test_name_regex": "AgentFabricSwitchTest.checkFabricConnectivityStats$"
-        },
-        {
-          "test_name_regex": "warm_boot.AgentFabricSwitchTest.dtlQueueWatermarks$"
         }
     ],
     "brcm/11.7.0.0_dnx_odp/11.7.0.0_dnx_odp/ramon3/multi_switch": [
@@ -5402,16 +5369,7 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentIngressBufferTest.validateIngressPoolParamChange$"
         },
         {
-          "test_name_regex": "AgentPrbsTest.*$"
-        },
-        {
-          "test_name_regex": "AgentFabricSwitchSelfLoopTest.*$"
-        },
-        {
           "test_name_regex": "AgentFabricSwitchTest.checkFabricConnectivityStats$"
-        },
-        {
-          "test_name_regex": "warm_boot.AgentFabricSwitchTest.dtlQueueWatermarks$"
         },
         {
           "test_name_regex": "AgentFabricSwitchTest.switchReachability"
@@ -5827,9 +5785,6 @@
           "test_name_regex": "AgentTrafficPfcTest/AgentTrafficPfcGenTest.*"
         },
         {
-          "test_name_regex": "warm_boot.AgentInTrapDiscardsCounterTest.trapDrops"
-        },
-        {
           "test_name_regex": "AgentAclCounterTest/0.VerifyCounterBumpOnL4DstportHitFrontPanel$"
         },
         {
@@ -5866,7 +5821,7 @@
           "test_name_regex": "AgentSendPacketToQueueTest.SendPacketOutOfPortToMCQueue$"
         },
         {
-          "test_name_regex": "AgentMirrorOnDropTest.UnbindModWithSflowMirrorPresent$"
+          "test_name_regex": "AgentMirrorOnDropTest.ModWithSflowMirrorPresent$"
         },
         {
           "test_name_regex": "AgentVoqSwitchLineRateTest.dramBlockedTime$"
@@ -5905,16 +5860,10 @@
           "test_name_regex": "AgentCoppTest/0.UnresolvedRoutesToLowPriQueue$"
         },
         {
-          "test_name_regex": "AgentPortBandwidthPpsTest.VerifyPps$"
-        },
-        {
           "test_name_regex": "AgentTrafficPfcTest/AgentTrafficPfcGenTest.verifyPfc/WithZeroGlobalHeadRoomCfg$"
         },
         {
           "test_name_regex": "AgentTrafficPfcWatchdogTest.*$"
-        },
-        {
-          "test_name_regex": "AgentVoqSwitchTest.rxPacketToCpu.*$"
         },
         {
           "test_name_regex": "MultiNodeAgentVoqSwitchTest.verifyInbandPing$"
@@ -5951,9 +5900,6 @@
         },
         {
           "test_name_regex": "AgentOlympicQosTests.VerifyDscpQueueMapping$"
-        },
-        {
-          "test_name_regex": "AgentPortBandwidthPpsTest.VerifyPpsDynamicChanges$"
         },
         {
           "test_name_regex": "AgentHwResourceStatsTest.aclStats$"
@@ -6372,9 +6318,6 @@
           "test_name_regex": "AgentTrafficPfcTest/AgentTrafficPfcGenTest.*"
         },
         {
-          "test_name_regex": "warm_boot.AgentInTrapDiscardsCounterTest.trapDrops"
-        },
-        {
           "test_name_regex": "AgentAclCounterTest/0.VerifyCounterBumpOnL4DstportHitFrontPanel$"
         },
         {
@@ -6411,7 +6354,7 @@
           "test_name_regex": "AgentSendPacketToQueueTest.SendPacketOutOfPortToMCQueue$"
         },
         {
-          "test_name_regex": "AgentMirrorOnDropTest.UnbindModWithSflowMirrorPresent$"
+          "test_name_regex": "AgentMirrorOnDropTest.ModWithSflowMirrorPresent$"
         },
         {
           "test_name_regex": "AgentVoqSwitchLineRateTest.dramBlockedTime$"
@@ -6450,16 +6393,10 @@
           "test_name_regex": "AgentCoppTest/0.UnresolvedRoutesToLowPriQueue$"
         },
         {
-          "test_name_regex": "AgentPortBandwidthPpsTest.VerifyPps$"
-        },
-        {
           "test_name_regex": "AgentTrafficPfcTest/AgentTrafficPfcGenTest.verifyPfc/WithZeroGlobalHeadRoomCfg$"
         },
         {
           "test_name_regex": "AgentTrafficPfcWatchdogTest.*$"
-        },
-        {
-          "test_name_regex": "AgentVoqSwitchTest.rxPacketToCpu.*$"
         },
         {
           "test_name_regex": "MultiNodeAgentVoqSwitchTest.verifyInbandPing$"
@@ -6496,9 +6433,6 @@
         },
         {
           "test_name_regex": "AgentOlympicQosTests.VerifyDscpQueueMapping$"
-        },
-        {
-          "test_name_regex": "AgentPortBandwidthPpsTest.VerifyPpsDynamicChanges$"
         },
         {
           "test_name_regex": "AgentHwResourceStatsTest.aclStats$"
@@ -6806,16 +6740,7 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot.AgentPortLedTest.TestLed$"
         },
         {
-          "test_name_regex": "AgentPrbsTest.*$"
-        },
-        {
-          "test_name_regex": "AgentFabricSwitchSelfLoopTest.*$"
-        },
-        {
           "test_name_regex": "AgentFabricSwitchTest.checkFabricConnectivityStats$"
-        },
-        {
-          "test_name_regex": "warm_boot.AgentFabricSwitchTest.dtlQueueWatermarks$"
         }
     ],
     "brcm/11.7.0.0_dnx_odp/12.0_ea_dnx_odp/ramon3/multi_switch": [
@@ -7123,16 +7048,7 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentIngressBufferTest.validateIngressPoolParamChange$"
         },
         {
-          "test_name_regex": "AgentPrbsTest.*$"
-        },
-        {
-          "test_name_regex": "AgentFabricSwitchSelfLoopTest.*$"
-        },
-        {
           "test_name_regex": "AgentFabricSwitchTest.checkFabricConnectivityStats$"
-        },
-        {
-          "test_name_regex": "warm_boot.AgentFabricSwitchTest.dtlQueueWatermarks$"
         },
         {
           "test_name_regex": "AgentFabricSwitchTest.switchReachability"
@@ -8446,9 +8362,6 @@
           "test_name_regex": "AgentTrafficPfcTest/AgentTrafficPfcGenTest.*"
         },
         {
-          "test_name_regex": "warm_boot.AgentInTrapDiscardsCounterTest.trapDrops"
-        },
-        {
           "test_name_regex": "AgentAclCounterTest/0.VerifyCounterBumpOnL4DstportHitFrontPanel$"
         },
         {
@@ -8485,7 +8398,7 @@
           "test_name_regex": "AgentSendPacketToQueueTest.SendPacketOutOfPortToMCQueue$"
         },
         {
-          "test_name_regex": "AgentMirrorOnDropTest.UnbindModWithSflowMirrorPresent$"
+          "test_name_regex": "AgentMirrorOnDropTest.ModWithSflowMirrorPresent$"
         },
         {
           "test_name_regex": "AgentVoqSwitchLineRateTest.dramBlockedTime$"
@@ -8524,16 +8437,10 @@
           "test_name_regex": "AgentCoppTest/0.UnresolvedRoutesToLowPriQueue$"
         },
         {
-          "test_name_regex": "AgentPortBandwidthPpsTest.VerifyPps$"
-        },
-        {
           "test_name_regex": "AgentTrafficPfcTest/AgentTrafficPfcGenTest.verifyPfc/WithZeroGlobalHeadRoomCfg$"
         },
         {
           "test_name_regex": "AgentTrafficPfcWatchdogTest.*$"
-        },
-        {
-          "test_name_regex": "AgentVoqSwitchTest.rxPacketToCpu.*$"
         },
         {
           "test_name_regex": "MultiNodeAgentVoqSwitchTest.verifyInbandPing$"
@@ -8570,9 +8477,6 @@
         },
         {
           "test_name_regex": "AgentOlympicQosTests.VerifyDscpQueueMapping$"
-        },
-        {
-          "test_name_regex": "AgentPortBandwidthPpsTest.VerifyPpsDynamicChanges$"
         },
         {
           "test_name_regex": "AgentHwResourceStatsTest.aclStats$"
@@ -8991,9 +8895,6 @@
           "test_name_regex": "AgentTrafficPfcTest/AgentTrafficPfcGenTest.*"
         },
         {
-          "test_name_regex": "warm_boot.AgentInTrapDiscardsCounterTest.trapDrops"
-        },
-        {
           "test_name_regex": "AgentAclCounterTest/0.VerifyCounterBumpOnL4DstportHitFrontPanel$"
         },
         {
@@ -9030,7 +8931,7 @@
           "test_name_regex": "AgentSendPacketToQueueTest.SendPacketOutOfPortToMCQueue$"
         },
         {
-          "test_name_regex": "AgentMirrorOnDropTest.UnbindModWithSflowMirrorPresent$"
+          "test_name_regex": "AgentMirrorOnDropTest.ModWithSflowMirrorPresent$"
         },
         {
           "test_name_regex": "AgentVoqSwitchLineRateTest.dramBlockedTime$"
@@ -9069,16 +8970,10 @@
           "test_name_regex": "AgentCoppTest/0.UnresolvedRoutesToLowPriQueue$"
         },
         {
-          "test_name_regex": "AgentPortBandwidthPpsTest.VerifyPps$"
-        },
-        {
           "test_name_regex": "AgentTrafficPfcTest/AgentTrafficPfcGenTest.verifyPfc/WithZeroGlobalHeadRoomCfg$"
         },
         {
           "test_name_regex": "AgentTrafficPfcWatchdogTest.*$"
-        },
-        {
-          "test_name_regex": "AgentVoqSwitchTest.rxPacketToCpu.*$"
         },
         {
           "test_name_regex": "MultiNodeAgentVoqSwitchTest.verifyInbandPing$"
@@ -9115,9 +9010,6 @@
         },
         {
           "test_name_regex": "AgentOlympicQosTests.VerifyDscpQueueMapping$"
-        },
-        {
-          "test_name_regex": "AgentPortBandwidthPpsTest.VerifyPpsDynamicChanges$"
         },
         {
           "test_name_regex": "AgentHwResourceStatsTest.aclStats$"
@@ -9425,16 +9317,7 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot.AgentPortLedTest.TestLed$"
         },
         {
-          "test_name_regex": "AgentPrbsTest.*$"
-        },
-        {
-          "test_name_regex": "AgentFabricSwitchSelfLoopTest.*$"
-        },
-        {
           "test_name_regex": "AgentFabricSwitchTest.checkFabricConnectivityStats$"
-        },
-        {
-          "test_name_regex": "warm_boot.AgentFabricSwitchTest.dtlQueueWatermarks$"
         }
     ],
     "brcm/12.0_ea_dnx_odp/12.0_ea_dnx_odp/ramon3/multi_switch": [
@@ -9742,16 +9625,7 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentIngressBufferTest.validateIngressPoolParamChange$"
         },
         {
-          "test_name_regex": "AgentPrbsTest.*$"
-        },
-        {
-          "test_name_regex": "AgentFabricSwitchSelfLoopTest.*$"
-        },
-        {
           "test_name_regex": "AgentFabricSwitchTest.checkFabricConnectivityStats$"
-        },
-        {
-          "test_name_regex": "warm_boot.AgentFabricSwitchTest.dtlQueueWatermarks$"
         },
         {
           "test_name_regex": "AgentFabricSwitchTest.switchReachability"
@@ -12164,6 +12038,226 @@
         },
         {
           "test_name_regex": "AgentTrafficPfcTest.verifyIngressPriorityGroupWatermarks$"
+        }
+    ],
+    "chenab/1.14.130/1.14.130/chenab/mono": [
+        {
+          "test_name_regex": "AgentCoppTest/[01].DstIpNetworkControlDscpToHighPriQ$"
+        },
+        {
+          "test_name_regex": "AgentCoppTest/[01].Ipv6LinkLocalUcastIpNetworkControlDscpToHighPriQ$"
+        },
+        {
+          "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ$"
+        },
+        {
+          "test_name_regex": "AgentCoppTest/[01].DhcpPacketToMidPriQ$"
+        },
+        {
+          "test_name_regex": "AgentCoppTest/0.VerifyCoppPpsLowPri$"
+        },
+        {
+          "test_name_regex": "AgentOlympicQosSchedulerTest.VerifyWRRForOlympicToOlympicV2$"
+        },
+        {
+          "test_name_regex": "AgentOlympicV2SPToWRRQosSchedulerTest.VerifyOlympicV2AllSPTrafficToWRR$"
+        },
+        {
+          "test_name_regex": "AgentUdfAclCounterTest.*$"
+        },
+        {
+          "test_name_regex": "AgentFlowlet.*$"
+        },
+        {
+          "test_name_regex": "AgentCoppQosTest.HighVsLowerPriorityCpuQueueTrafficPrioritization$"
+        },
+        {
+          "test_name_regex": "AgentCoppQueueStuckTest.CpuQueueHighRateTraffic$"
+        },
+        {
+          "test_name_regex": "AgentPacketFloodTest.*$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningMacMoveTest.*$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningBatchEntriesTest.*$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTestV[46].*$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorOnTrunkTestV[46].*$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTruncateTestV[46].*$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwAgingForPort$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwAgingForTrunk$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwLearningForPort$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwLearningForTrunk$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgress.*$"
+        },
+        {
+          "test_name_regex": "AgentIngressAclSpanMirroringTest.*$"
+        },
+        {
+          "test_name_regex": "AgentIngressAclErspanMirroringTest.*$"
+        },
+        {
+          "test_name_regex": "AgentEgressAclSpanMirroringTest.*$"
+        },
+        {
+          "test_name_regex": "AgentEgressAclErspanMirroringTest.*$"
+        },
+        {
+          "test_name_regex": "AgentHwAclQualifierTest.AclVlanIDQualifier$"
+        },
+        {
+          "test_name_regex": "AgentPortBandwidthTest.*$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentEcmpTestWithWBWrites.L2ResolveOneNhopThenLinkDownThenUp$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTestV6.verifyL4SrcPortRandomization$"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentSflowMirrorWithLineRateTrafficTest.VerifySflowEgressCongestion$"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentIngressBufferTest.validatePGQueueChanges$"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot.AgentTrafficPfcTest.verifyBufferPoolWatermarks$"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentTrafficPfcTest.verifyBufferPoolWatermarks$"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentHundredThousandRouteScaleTest.hundredThousandRouteScaleTest$"
+        },
+        {
+          "test_name_regex": "AgentTunnelMgrTest.*$"
+        }
+    ],
+    "chenab/1.14.130/1.14.130/chenab/multi_switch": [
+        {
+          "test_name_regex": "AgentCoppTest/[01].DstIpNetworkControlDscpToHighPriQ$"
+        },
+        {
+          "test_name_regex": "AgentCoppTest/[01].Ipv6LinkLocalUcastIpNetworkControlDscpToHighPriQ$"
+        },
+        {
+          "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ$"
+        },
+        {
+          "test_name_regex": "AgentCoppTest/[01].DhcpPacketToMidPriQ$"
+        },
+        {
+          "test_name_regex": "AgentCoppTest/0.VerifyCoppPpsLowPri$"
+        },
+        {
+          "test_name_regex": "AgentOlympicQosSchedulerTest.VerifyWRRForOlympicToOlympicV2$"
+        },
+        {
+          "test_name_regex": "AgentOlympicV2SPToWRRQosSchedulerTest.VerifyOlympicV2AllSPTrafficToWRR$"
+        },
+        {
+          "test_name_regex": "AgentUdfAclCounterTest.*$"
+        },
+        {
+          "test_name_regex": "AgentFlowlet.*$"
+        },
+        {
+          "test_name_regex": "AgentCoppQosTest.HighVsLowerPriorityCpuQueueTrafficPrioritization$"
+        },
+        {
+          "test_name_regex": "AgentCoppQueueStuckTest.CpuQueueHighRateTraffic$"
+        },
+        {
+          "test_name_regex": "AgentPacketFloodTest.*$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningMacMoveTest.*$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningBatchEntriesTest.*$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTestV[46].*$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorOnTrunkTestV[46].*$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTruncateTestV[46].*$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwAgingForPort$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwAgingForTrunk$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwLearningForPort$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningTest.VerifyHwLearningForTrunk$"
+        },
+        {
+          "test_name_regex": "AgentIngressEgress.*$"
+        },
+        {
+          "test_name_regex": "AgentIngressAclSpanMirroringTest.*$"
+        },
+        {
+          "test_name_regex": "AgentIngressAclErspanMirroringTest.*$"
+        },
+        {
+          "test_name_regex": "AgentEgressAclSpanMirroringTest.*$"
+        },
+        {
+          "test_name_regex": "AgentEgressAclErspanMirroringTest.*$"
+        },
+        {
+          "test_name_regex": "AgentHwAclQualifierTest.AclVlanIDQualifier$"
+        },
+        {
+          "test_name_regex": "AgentPortBandwidthTest.*$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentEcmpTestWithWBWrites.L2ResolveOneNhopThenLinkDownThenUp$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTestV6.verifyL4SrcPortRandomization$"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentSflowMirrorWithLineRateTrafficTest.VerifySflowEgressCongestion$"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentIngressBufferTest.validatePGQueueChanges$"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot.AgentTrafficPfcTest.verifyBufferPoolWatermarks$"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentTrafficPfcTest.verifyBufferPoolWatermarks$"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentHundredThousandRouteScaleTest.hundredThousandRouteScaleTest$"
+        },
+        {
+          "test_name_regex": "AgentTunnelMgrTest.*$"
         }
     ],
     "leaba/1.42.8/1.42.8/gibraltar/mono": [
