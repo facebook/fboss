@@ -168,8 +168,11 @@ OPT_ARG_FBOSS_LOGGING = "--fboss_logging"
 OPT_ARG_PRODUCTION_FEATURES = "--production-features"
 OPT_ARG_ENABLE_PRODUCTION_FEATURES = "--enable-production-features"
 OPT_ARG_ASIC = "--asic"
+OPT_KNOWN_BAD_TESTS_FILE = "--known-bad-tests-file"
+OPT_UNSUPPORTED_TESTS_FILE = "--unsupported-tests-file"
 OPT_ARG_SETUP_CB = "--setup-for-coldboot"
 OPT_ARG_SETUP_WB = "--setup-for-warmboot"
+OPT_AGENT_TEST_MODE = "--mode"
 SUB_CMD_BCM = "bcm"
 SUB_CMD_SAI = "sai"
 SUB_CMD_QSFP = "qsfp"
@@ -193,6 +196,9 @@ SAI_AGENT_TEST_KNOWN_BAD_TESTS = (
 )
 ASIC_PRODUCTION_FEATURES = (
     "./share/production_features/asic_production_features.materialized_JSON"
+)
+SAI_UNSUPPORTED_TESTS = (
+    "./share/sai_hw_unsupported_tests/sai_hw_unsupported_tests.materialized_JSON"
 )
 QSFP_SERVICE_FOR_TESTING = "qsfp_service_for_testing"
 QSFP_SERVICE_DIR = "/dev/shm/fboss/qsfp_service"
@@ -366,9 +372,11 @@ class TestRunner(abc.ABC):
 
         with open(known_bad_tests_file) as f:
             known_bad_test_json = json.load(f)
-            known_bad_test_structs = known_bad_test_json["known_bad_tests"][
-                args.skip_known_bad_tests
-            ]
+            known_bad_tests = known_bad_test_json["known_bad_tests"]
+            key = args.skip_known_bad_tests
+            if key not in known_bad_tests:
+                key = key + "/" + args.mode
+            known_bad_test_structs = known_bad_tests[key]
             known_bad_tests = []
             for test_struct in known_bad_test_structs:
                 known_bad_test = test_struct["test_name_regex"]
@@ -803,10 +811,14 @@ class SaiTestRunner(TestRunner):
         return ""
 
     def _get_known_bad_tests_file(self):
-        return SAI_HW_KNOWN_BAD_TESTS
+        if not args.known_bad_tests_file:
+            return SAI_HW_KNOWN_BAD_TESTS
+        return args.known_bad_tests_file
 
     def _get_unsupported_tests_file(self):
-        return ""
+        if not args.unsupported_tests_file:
+            return SAI_UNSUPPORTED_TESTS
+        return args.unsupported_tests_file
 
     def _get_test_binary_name(self):
         return args.sai_bin if args.sai_bin else "sai_test-sai_impl-1.13.0"
@@ -962,16 +974,26 @@ class SaiAgentTestRunner(TestRunner):
             help="Specify asic to filter production feature",
             default=None,
         )
+        sub_parser.add_argument(
+            OPT_AGENT_TEST_MODE,
+            type=str,
+            help="Specify asic to filter production feature",
+            default="mono",
+        )
 
     def _get_config_path(self):
         # TOOO Not available in OSS
         return ""
 
     def _get_known_bad_tests_file(self):
-        return SAI_AGENT_TEST_KNOWN_BAD_TESTS
+        if not args.known_bad_tests_file:
+            return SAI_AGENT_TEST_KNOWN_BAD_TESTS
+        return args.known_bad_tests_file
 
     def _get_unsupported_tests_file(self):
-        return ""
+        if not args.unsupported_tests_file:
+            return SAI_UNSUPPORTED_TESTS
+        return args.unsupported_tests_file
 
     def _get_test_binary_name(self):
         return args.sai_bin if args.sai_bin else "sai_agent_test-sai_impl-1.13.0"
@@ -1115,6 +1137,18 @@ if __name__ == "__main__":
             + OPT_ARG_SKIP_KNOWN_BAD_TESTS
             + "=brcm/8.2.0.0_odp/8.2.0.0_odp/tomahawk"
         ),
+    )
+    ap.add_argument(
+        OPT_KNOWN_BAD_TESTS_FILE,
+        type=str,
+        default=None,
+        help=("Specify file for storing the known bad tests. "),
+    )
+    ap.add_argument(
+        OPT_UNSUPPORTED_TESTS_FILE,
+        type=str,
+        default=None,
+        help=("Specify file for storing the unsupported tests. "),
     )
     ap.add_argument(
         OPT_ARG_MGT_IF,
