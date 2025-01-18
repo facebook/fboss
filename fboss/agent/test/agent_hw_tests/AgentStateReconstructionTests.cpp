@@ -9,6 +9,11 @@ class AgentStateReconstructionTests : public AgentHwTest {
   getProductionFeaturesVerified() const override {
     return {production_features::ProductionFeature::HW_SWITCH};
   };
+  void setCmdLineFlagOverrides() const override {
+    AgentHwTest::setCmdLineFlagOverrides();
+    // enable running on fab switches as well
+    FLAGS_hide_fabric_ports = false;
+  }
 };
 
 TEST_F(AgentStateReconstructionTests, test) {
