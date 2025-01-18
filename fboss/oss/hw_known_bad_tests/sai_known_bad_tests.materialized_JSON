@@ -9607,6 +9607,9 @@
           "test_name_regex": "HwTest_PROFILE_10G_1_NRZ_NOFEC_OPTICAL"
         }
     ],
+    "chenab/1.14.130/1.14.130/chenab": [
+        
+    ],
     "leaba/1.42.8/1.42.8/gibraltar": [
         {
           "test_name_regex": "HwTrafficPfcTest.*"
