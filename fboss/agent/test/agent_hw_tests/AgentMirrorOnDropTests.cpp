@@ -77,21 +77,8 @@ class AgentMirrorOnDropTest : public AgentHwTest {
   // MOD settings
   const int kTruncateSize = 128;
 
-  // MOD constants. TODO(maxgg): remove 11.7 after CS00012377720 closure.
-  const int kRouteMissingTrapID_11 = 0x0F1EF9;
-  const int kRouteMissingTrapID_12 = 0x10001B;
-
-  // TODO(maxgg): temp hack, remove once CS00012385223 is resolved.
-  int routeMissingTrapID() {
-    std::string out;
-    getAgentEnsemble()->runDiagCommand("\n", out);
-    getAgentEnsemble()->runDiagCommand("bcmsai ver\n", out);
-    if (out.find("11.7") != std::string::npos) {
-      return kRouteMissingTrapID_11;
-    } else {
-      return kRouteMissingTrapID_12;
-    }
-  }
+  // MOD constants.
+  const int kRouteMissingTrapID = 0x1B;
 
   std::string portDesc(PortID portId) {
     const auto& cfg = getAgentEnsemble()->getCurrentConfig();
@@ -247,7 +234,7 @@ class AgentMirrorOnDropTest : public AgentHwTest {
   }
 
   int32_t makeTrapDSPA(int trapId) {
-    return static_cast<int32_t>(trapId);
+    return (0x10 << 16) | trapId;
   }
 
   void validateMirrorOnDropPacket(
@@ -426,7 +413,7 @@ TEST_F(AgentMirrorOnDropTest, PacketProcessingError) {
             pkt->buf(),
             kEventId,
             makeSSPA(injectionPortId),
-            makeTrapDSPA(routeMissingTrapID()),
+            makeTrapDSPA(kRouteMissingTrapID),
             0 /*payloadOffset*/);
       }
     });
@@ -490,7 +477,7 @@ TEST_F(AgentMirrorOnDropTest, MultipleEventIDs) {
             pkt->buf(),
             kEventId,
             makeSSPA(injectionPortId),
-            makeTrapDSPA(routeMissingTrapID()),
+            makeTrapDSPA(kRouteMissingTrapID),
             0 /*payloadOffset*/);
       }
     });
