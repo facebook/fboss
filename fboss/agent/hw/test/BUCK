@@ -353,7 +353,6 @@ hw_dataplane_test_srcs = [
     "dataplane_tests/HwAqmTests.cpp",
     "dataplane_tests/HwHashPolarizationTests.cpp",
     "dataplane_tests/HwInPauseDiscardsTests.cpp",
-    "dataplane_tests/HwIpInIpTunnelTests.cpp",
     "dataplane_tests/HwLoadBalancerTests.cpp",
     "dataplane_tests/HwLoadBalancerTestsV6Flowlet.cpp",
     "dataplane_tests/HwLoadBalancerTestsV6Roce.cpp",
