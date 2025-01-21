@@ -40,6 +40,7 @@ add_library(agent_hw_test_src
   fboss/agent/test/agent_hw_tests/AgentVoqSwitchWithMultipleDsfNodesTests.cpp
   fboss/agent/test/agent_hw_tests/AgentVoqConditionalEntropyTests.cpp
   fboss/agent/test/agent_hw_tests/AgentVoqSwitchInterruptsTests.cpp
+  fboss/agent/test/agent_hw_tests/AgentVoqSwitchFirmwareTests.cpp
   fboss/agent/test/agent_hw_tests/AgentFabricSwitchTests.cpp
   fboss/agent/test/agent_hw_tests/AgentPortBandWidthTests.cpp
   fboss/agent/test/agent_hw_tests/AgentPortLedTests.cpp
