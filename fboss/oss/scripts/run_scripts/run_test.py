@@ -1061,10 +1061,10 @@ class SaiAgentTestRunner(TestRunner):
                     set(test_feature_str.split(",")) if test_feature_str else set()
                 )
                 if "HW_SWITCH" in test_features:
-                    tests_to_run += ([test],)
+                    tests_to_run += (test,)
                     break
                 if test_features.issubset(producition_features):
-                    tests_to_run += ([test],)
+                    tests_to_run += (test,)
                     break
         return tests_to_run
 
