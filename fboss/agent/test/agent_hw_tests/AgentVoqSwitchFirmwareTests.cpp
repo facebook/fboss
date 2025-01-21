@@ -17,7 +17,7 @@ DEFINE_string(
 
 namespace facebook::fboss {
 
-class AgentVoqSwitchFirmwareTest : public AgentVoqSwitchTest {
+class AgentVoqSwitchIsolationFirmwareTest : public AgentVoqSwitchTest {
  public:
   cfg::SwitchConfig initialConfig(
       const AgentEnsemble& ensemble) const override {
@@ -46,6 +46,52 @@ class AgentVoqSwitchFirmwareTest : public AgentVoqSwitchTest {
     return config;
   }
 
+ protected:
+  void setMinLinksConfig() {
+    auto config = getSw()->getConfig();
+    auto& switchSettings = *config.switchSettings();
+    switchSettings.minLinksToJoinVOQDomain() =
+        ceil(masterLogicalFabricPortIds().size() * 0.66);
+    switchSettings.minLinksToRemainInVOQDomain() =
+        *switchSettings.minLinksToJoinVOQDomain() -
+        masterLogicalFabricPortIds().size() / 8;
+    applyNewConfig(config);
+  }
+  void assertSwitchDrainState(bool expectDrained) const {
+    auto expectDrainState = expectDrained
+        ? cfg::SwitchDrainState::DRAINED_DUE_TO_ASIC_ERROR
+        : cfg::SwitchDrainState::UNDRAINED;
+    for (const auto& switchId : getSw()->getHwAsicTable()->getSwitchIDs()) {
+      // reachability should always be there regardless of drain state
+      utility::checkFabricConnectivity(getAgentEnsemble(), switchId);
+      HwSwitchMatcher matcher(std::unordered_set<SwitchID>({switchId}));
+      WITH_RETRIES({
+        const auto& switchSettings =
+            getProgrammedState()->getSwitchSettings()->getSwitchSettings(
+                matcher);
+        EXPECT_EVENTUALLY_EQ(switchSettings->isSwitchDrained(), expectDrained);
+        EXPECT_EVENTUALLY_EQ(
+            switchSettings->getActualSwitchDrainState(), expectDrainState);
+      });
+    }
+  }
+  void assertPortAndDrainState(bool expectDrained) const {
+    assertSwitchDrainState(expectDrained);
+    // Drained - expect inactive
+    // Undrained - expect active
+    utility::checkFabricPortsActiveState(
+        getAgentEnsemble(), masterLogicalFabricPortIds(), !expectDrained);
+  }
+  void forceIsoalte(int delay = 1) {
+    std::stringstream ss;
+    ss << "edk -c fi force_isolate 0 5 1 " << delay << std::endl;
+    for (const auto& switchId : getSw()->getHwAsicTable()->getSwitchIDs()) {
+      std::string out;
+      getAgentEnsemble()->runDiagCommand(ss.str(), out, switchId);
+      getAgentEnsemble()->runDiagCommand("quit\n", out, switchId);
+    }
+  }
+
  private:
   void setCmdLineFlagOverrides() const override {
     AgentHwTest::setCmdLineFlagOverrides();
@@ -57,5 +103,22 @@ class AgentVoqSwitchFirmwareTest : public AgentVoqSwitchTest {
     FLAGS_fw_drained_unrecoverable_error = true;
   }
 };
+
+TEST_F(AgentVoqSwitchIsolationFirmwareTest, forceIsolate) {
+  auto setup = [this]() {
+    assertPortAndDrainState(false /* not drained*/);
+    setMinLinksConfig();
+    forceIsoalte();
+  };
+
+  auto verify = [this]() {
+    assertSwitchDrainState(true /* drained */);
+    utility::checkFabricPortsActiveState(
+        getAgentEnsemble(),
+        masterLogicalFabricPortIds(),
+        true /* expect active*/);
+  };
+  verifyAcrossWarmBoots(setup, verify);
+}
 
 } // namespace facebook::fboss
