@@ -231,6 +231,9 @@ std::unordered_map<PortID, cfg::PortProfileID> getSafeProfileIDs(
           break;
       }
     }
+    if (asicType == cfg::AsicType::ASIC_TYPE_CHENAB) {
+      bestSpeed = cfg::PortSpeed::FOURHUNDREDG;
+    }
 
     auto bestProfile = cfg::PortProfileID::PROFILE_DEFAULT;
     // If bestSpeed is default - pick the largest speed from the safe profiles
