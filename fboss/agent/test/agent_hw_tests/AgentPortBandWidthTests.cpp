@@ -493,6 +493,7 @@ INSTANTIATE_TEST_CASE_P(
     ::testing::Values(
         cfg::PortSpeed::FORTYG,
         cfg::PortSpeed::HUNDREDG,
-        cfg::PortSpeed::TWOHUNDREDG));
+        cfg::PortSpeed::TWOHUNDREDG,
+        cfg::PortSpeed::FOURHUNDREDG));
 
 } // namespace facebook::fboss
