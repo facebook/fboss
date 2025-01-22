@@ -25,6 +25,7 @@
 namespace facebook::fboss::platform::platform_manager {
 namespace {
 constexpr auto kRootSlotPath = "/";
+const re2::RE2 kLegacyXcvrName = "xcvr_\\d+";
 
 std::string getSlotPath(
     const std::string& parentSlotPath,
@@ -632,11 +633,16 @@ void PlatformExplorer::createDeviceSymLink(
       targetPath = devicePathResolver_.resolvePciSubDevCharDevPath(devicePath);
     } else if (linkParentPath.string() == "/run/devmap/xcvrs") {
       auto xcvrName = linkPath.substr(linkParentPath.string().length() + 1);
+      // New XCVR paths
       if (xcvrName.starts_with("xcvr_ctrl")) {
         targetPath = devicePathResolver_.resolvePciSubDevSysfsPath(devicePath);
       }
       if (xcvrName.starts_with("xcvr_io")) {
         targetPath = devicePathResolver_.resolveI2cBusPath(devicePath);
+      }
+      // Legacy XCVR path
+      if (re2::RE2::FullMatch(xcvrName, kLegacyXcvrName)) {
+        targetPath = devicePathResolver_.resolvePciSubDevSysfsPath(devicePath);
       }
     } else {
       throw std::runtime_error(
