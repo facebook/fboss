@@ -1,0 +1,3404 @@
+{
+  "platformName": "minipack3n",
+  "rootPmUnitName": "MINIPACK3N_MCB",
+  "rootSlotType": "MCB_SLOT",
+  "slotTypeConfigs": {
+    "MCB_SLOT": {
+      "numOutgoingI2cBuses": 0,
+      "idpromConfig": {
+        "busName": "SMBus I801 adapter at 5000",
+        "address": "0x53",
+        "kernelDeviceName": "24c02"
+      },
+      "pmUnitName": "MINIPACK3N_MCB"
+    },
+    "SCM_SLOT": {
+      "numOutgoingI2cBuses": 4,
+      "idpromConfig": {
+        "busName": "INCOMING@2",
+        "address": "0x54",
+        "kernelDeviceName": "24c64"
+      },
+      "pmUnitName": "MINIPACK3N_SCM"
+    },
+    "RUNBMC_SLOT": {
+      "numOutgoingI2cBuses": 1,
+      "idpromConfig": {
+        "busName": "INCOMING@0",
+        "address": "0x51",
+        "kernelDeviceName": "24c64"
+      },
+      "pmUnitName": "MINIPACK3N_BMC"
+    },
+    "PDBLEFT_SLOT": {
+      "numOutgoingI2cBuses": 1,
+      "idpromConfig": {
+        "busName": "INCOMING@0",
+        "address": "0x55",
+        "kernelDeviceName": "24c02"
+      },
+      "pmUnitName": "MINIPACK3N_PDB_L"
+    },
+    "PDBRIGHT_SLOT": {
+      "numOutgoingI2cBuses": 1,
+      "idpromConfig": {
+        "busName": "INCOMING@0",
+        "address": "0x55",
+        "kernelDeviceName": "24c02"
+      },
+      "pmUnitName": "MINIPACK3N_PDB_R"
+    },
+    "SMB_SLOT": {
+      "numOutgoingI2cBuses": 6,
+      "idpromConfig": {
+        "busName": "INCOMING@3",
+        "address": "0x50",
+        "kernelDeviceName": "24c64"
+      },
+      "pmUnitName": "MINIPACK3N_SMB"
+    },
+    "FCBBOTTOM_SLOT": {
+      "numOutgoingI2cBuses": 1,
+      "idpromConfig": {
+        "busName": "INCOMING@0",
+        "address": "0x51",
+        "kernelDeviceName": "24c64"
+      },
+      "pmUnitName": "MINIPACK3N_FCB_B"
+    },
+    "FCBTOP_SLOT": {
+      "numOutgoingI2cBuses": 2,
+      "idpromConfig": {
+        "busName": "INCOMING@1",
+        "address": "0x51",
+        "kernelDeviceName": "24c64"
+      },
+      "pmUnitName": "MINIPACK3N_FCB_T"
+    },
+    "COMESE_SLOT": {
+      "numOutgoingI2cBuses": 2,
+      "idpromConfig": {
+        "busName": "INCOMING@1",
+        "address": "0x56",
+        "kernelDeviceName": "24c128"
+      },
+      "pmUnitName": "NETLAKE"
+    },
+    "OPTICL_SLOT": {
+      "numOutgoingI2cBuses": 1,
+      "idpromConfig": {
+        "busName": "INCOMING@0",
+        "address": "0x51",
+        "kernelDeviceName": "24c02"
+      },
+      "pmUnitName": "3_V_3_L_CARD"
+    },
+    "OPTICR_SLOT": {
+      "numOutgoingI2cBuses": 1,
+      "idpromConfig": {
+        "busName": "INCOMING@0",
+        "address": "0x51",
+        "kernelDeviceName": "24c02"
+      },
+      "pmUnitName": "3_V_3_R_CARD"
+    }
+  },
+  "i2cAdaptersFromCpu": [
+    "SMBus I801 adapter at 5000",
+    "SMBus iSMT adapter at 20fffa7b000"
+  ],
+  "pmUnitConfigs": {
+    "MINIPACK3N_MCB": {
+      "pluggedInSlotType": "MCB_SLOT",
+      "embeddedSensorConfigs": [
+        {
+          "pmUnitScopedName": "CPU_CORE_TEMP",
+          "sysfsPath": "/sys/bus/platform/devices/coretemp.0"
+        }
+      ],
+      "pciDeviceConfigs": [
+        {
+          "pmUnitScopedName": "MCB_IOB",
+          "vendorId": "0x1d9b",
+          "deviceId": "0x0011",
+          "subSystemVendorId": "0x10ee",
+          "subSystemDeviceId": "0x0007",
+          "i2cAdapterConfigs": [
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_IOB_I2C_MASTER_1",
+                "deviceName": "iob_i2c_master",
+                "csrOffset": "0x4000"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_IOB_I2C_MASTER_2",
+                "deviceName": "iob_i2c_master",
+                "csrOffset": "0x4100"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_IOB_I2C_MASTER_3",
+                "deviceName": "iob_i2c_master",
+                "csrOffset": "0x4200"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_IOB_I2C_MASTER_4",
+                "deviceName": "iob_i2c_master",
+                "csrOffset": "0x4300"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_IOB_I2C_MASTER_5",
+                "deviceName": "iob_i2c_master",
+                "csrOffset": "0x4400"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_IOB_I2C_MASTER_6",
+                "deviceName": "iob_i2c_master",
+                "csrOffset": "0x4500"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_IOB_I2C_MASTER_7",
+                "deviceName": "iob_i2c_master",
+                "csrOffset": "0x4600"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_IOB_I2C_MASTER_8",
+                "deviceName": "iob_i2c_master",
+                "csrOffset": "0x4700"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_IOB_I2C_MASTER_9",
+                "deviceName": "iob_i2c_master",
+                "csrOffset": "0x4800"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_IOB_I2C_MASTER_10",
+                "deviceName": "iob_i2c_master",
+                "csrOffset": "0x4900"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_IOB_I2C_MASTER_11",
+                "deviceName": "iob_i2c_master",
+                "csrOffset": "0x4a00"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_IOB_I2C_MASTER_12",
+                "deviceName": "iob_i2c_master",
+                "csrOffset": "0x4b00"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_IOB_I2C_MASTER_13",
+                "deviceName": "iob_i2c_master",
+                "csrOffset": "0x4c00"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_IOB_I2C_MASTER_14",
+                "deviceName": "iob_i2c_master",
+                "csrOffset": "0x4d00"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_IOB_I2C_MASTER_15",
+                "deviceName": "iob_i2c_master",
+                "csrOffset": "0x4e00"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_IOB_I2C_MASTER_16",
+                "deviceName": "iob_i2c_master",
+                "csrOffset": "0x4f00"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_IOB_I2C_MASTER_17",
+                "deviceName": "iob_i2c_master",
+                "csrOffset": "0x5000"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_IOB_I2C_MASTER_18",
+                "deviceName": "iob_i2c_master",
+                "csrOffset": "0x5100"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_IOB_I2C_MASTER_19",
+                "deviceName": "iob_i2c_master",
+                "csrOffset": "0x5200"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_IOB_I2C_MASTER_20",
+                "deviceName": "iob_i2c_master",
+                "csrOffset": "0x5300"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_IOB_I2C_MASTER_21",
+                "deviceName": "iob_i2c_master",
+                "csrOffset": "0x5400"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_IOB_I2C_MASTER_22",
+                "deviceName": "iob_i2c_master",
+                "csrOffset": "0x5500"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_IOB_I2C_MASTER_23",
+                "deviceName": "iob_i2c_master",
+                "csrOffset": "0x5600"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_IOB_I2C_MASTER_24",
+                "deviceName": "iob_i2c_master",
+                "csrOffset": "0x5700"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_IOB_I2C_MASTER_25",
+                "deviceName": "iob_i2c_master",
+                "csrOffset": "0x5800"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_IOB_I2C_MASTER_26",
+                "deviceName": "iob_i2c_master",
+                "csrOffset": "0x5900"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_IOB_I2C_MASTER_27",
+                "deviceName": "iob_i2c_master",
+                "csrOffset": "0x5a00"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+              "pmUnitScopedName": "SMB_DOM1_I2C_MASTER_1",
+              "deviceName": "dom1_i2c_master",
+              "csrOffset": "0x42000"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+              "pmUnitScopedName": "SMB_DOM1_I2C_MASTER_2",
+              "deviceName": "dom1_i2c_master",
+              "csrOffset": "0x42100"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+              "pmUnitScopedName": "SMB_DOM1_I2C_MASTER_3",
+              "deviceName": "dom1_i2c_master",
+              "csrOffset": "0x42200"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+              "pmUnitScopedName": "SMB_DOM1_I2C_MASTER_4",
+              "deviceName": "dom1_i2c_master",
+              "csrOffset": "0x42300"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+              "pmUnitScopedName": "SMB_DOM1_I2C_MASTER_5",
+              "deviceName": "dom1_i2c_master",
+              "csrOffset": "0x42400"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+              "pmUnitScopedName": "SMB_DOM1_I2C_MASTER_6",
+              "deviceName": "dom1_i2c_master",
+              "csrOffset": "0x42500"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+              "pmUnitScopedName": "SMB_DOM1_I2C_MASTER_7",
+              "deviceName": "dom1_i2c_master",
+              "csrOffset": "0x42600"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+              "pmUnitScopedName": "SMB_DOM1_I2C_MASTER_8",
+              "deviceName": "dom1_i2c_master",
+              "csrOffset": "0x42700"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+              "pmUnitScopedName": "SMB_DOM1_I2C_MASTER_9",
+              "deviceName": "dom1_i2c_master",
+              "csrOffset": "0x42800"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+              "pmUnitScopedName": "SMB_DOM1_I2C_MASTER_10",
+              "deviceName": "dom1_i2c_master",
+              "csrOffset": "0x42900"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+              "pmUnitScopedName": "SMB_DOM1_I2C_MASTER_11",
+              "deviceName": "dom1_i2c_master",
+              "csrOffset": "0x42a00"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+              "pmUnitScopedName": "SMB_DOM1_I2C_MASTER_12",
+              "deviceName": "dom1_i2c_master",
+              "csrOffset": "0x42b00"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+              "pmUnitScopedName": "SMB_DOM1_I2C_MASTER_13",
+              "deviceName": "dom1_i2c_master",
+              "csrOffset": "0x42c00"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+              "pmUnitScopedName": "SMB_DOM1_I2C_MASTER_14",
+              "deviceName": "dom1_i2c_master",
+              "csrOffset": "0x42d00"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+              "pmUnitScopedName": "SMB_DOM1_I2C_MASTER_15",
+              "deviceName": "dom1_i2c_master",
+              "csrOffset": "0x42e00"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+              "pmUnitScopedName": "SMB_DOM1_I2C_MASTER_16",
+              "deviceName": "dom1_i2c_master",
+              "csrOffset": "0x42f00"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+              "pmUnitScopedName": "SMB_DOM1_I2C_MASTER_17",
+              "deviceName": "dom1_i2c_master",
+              "csrOffset": "0x43000"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+              "pmUnitScopedName": "SMB_DOM1_I2C_MASTER_18",
+              "deviceName": "dom1_i2c_master",
+              "csrOffset": "0x43100"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+              "pmUnitScopedName": "SMB_DOM1_I2C_MASTER_19",
+              "deviceName": "dom1_i2c_master",
+              "csrOffset": "0x43200"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+              "pmUnitScopedName": "SMB_DOM1_I2C_MASTER_20",
+              "deviceName": "dom1_i2c_master",
+              "csrOffset": "0x43300"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+              "pmUnitScopedName": "SMB_DOM1_I2C_MASTER_21",
+              "deviceName": "dom1_i2c_master",
+              "csrOffset": "0x43400"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+              "pmUnitScopedName": "SMB_DOM1_I2C_MASTER_22",
+              "deviceName": "dom1_i2c_master",
+              "csrOffset": "0x43500"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+              "pmUnitScopedName": "SMB_DOM1_I2C_MASTER_23",
+              "deviceName": "dom1_i2c_master",
+              "csrOffset": "0x43600"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+              "pmUnitScopedName": "SMB_DOM1_I2C_MASTER_24",
+              "deviceName": "dom1_i2c_master",
+              "csrOffset": "0x43700"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+              "pmUnitScopedName": "SMB_DOM1_I2C_MASTER_25",
+              "deviceName": "dom1_i2c_master",
+              "csrOffset": "0x43800"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+              "pmUnitScopedName": "SMB_DOM1_I2C_MASTER_26",
+              "deviceName": "dom1_i2c_master",
+              "csrOffset": "0x43900"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+              "pmUnitScopedName": "SMB_DOM1_I2C_MASTER_27",
+              "deviceName": "dom1_i2c_master",
+              "csrOffset": "0x43a00"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+              "pmUnitScopedName": "SMB_DOM1_I2C_MASTER_28",
+              "deviceName": "dom1_i2c_master",
+              "csrOffset": "0x43b00"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+              "pmUnitScopedName": "SMB_DOM1_I2C_MASTER_29",
+              "deviceName": "dom1_i2c_master",
+              "csrOffset": "0x43c00"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+              "pmUnitScopedName": "SMB_DOM1_I2C_MASTER_30",
+              "deviceName": "dom1_i2c_master",
+              "csrOffset": "0x43d00"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+              "pmUnitScopedName": "SMB_DOM1_I2C_MASTER_31",
+              "deviceName": "dom1_i2c_master",
+              "csrOffset": "0x43e00"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+              "pmUnitScopedName": "SMB_DOM1_I2C_MASTER_32",
+              "deviceName": "dom1_i2c_master",
+              "csrOffset": "0x43f00"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+              "pmUnitScopedName": "SMB_DOM1_I2C_MASTER_33",
+              "deviceName": "dom1_i2c_master",
+              "csrOffset": "0x44000"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+              "pmUnitScopedName": "SMB_DOM1_I2C_MASTER_34",
+              "deviceName": "dom1_i2c_master",
+              "csrOffset": "0x44100"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+              "pmUnitScopedName": "SMB_DOM2_I2C_MASTER_1",
+              "deviceName": "dom2_i2c_master",
+              "csrOffset": "0x4a000"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+              "pmUnitScopedName": "SMB_DOM2_I2C_MASTER_2",
+              "deviceName": "dom2_i2c_master",
+              "csrOffset": "0x4a100"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+              "pmUnitScopedName": "SMB_DOM2_I2C_MASTER_3",
+              "deviceName": "dom2_i2c_master",
+              "csrOffset": "0x4a200"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+              "pmUnitScopedName": "SMB_DOM2_I2C_MASTER_4",
+              "deviceName": "dom2_i2c_master",
+              "csrOffset": "0x4a300"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+              "pmUnitScopedName": "SMB_DOM2_I2C_MASTER_5",
+              "deviceName": "dom2_i2c_master",
+              "csrOffset": "0x4a400"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+              "pmUnitScopedName": "SMB_DOM2_I2C_MASTER_6",
+              "deviceName": "dom2_i2c_master",
+              "csrOffset": "0x4a500"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+              "pmUnitScopedName": "SMB_DOM2_I2C_MASTER_7",
+              "deviceName": "dom2_i2c_master",
+              "csrOffset": "0x4a600"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+              "pmUnitScopedName": "SMB_DOM2_I2C_MASTER_8",
+              "deviceName": "dom2_i2c_master",
+              "csrOffset": "0x4a700"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+              "pmUnitScopedName": "SMB_DOM2_I2C_MASTER_9",
+              "deviceName": "dom2_i2c_master",
+              "csrOffset": "0x4a800"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+              "pmUnitScopedName": "SMB_DOM2_I2C_MASTER_10",
+              "deviceName": "dom2_i2c_master",
+              "csrOffset": "0x4a900"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+              "pmUnitScopedName": "SMB_DOM2_I2C_MASTER_11",
+              "deviceName": "dom2_i2c_master",
+              "csrOffset": "0x4aa00"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+              "pmUnitScopedName": "SMB_DOM2_I2C_MASTER_12",
+              "deviceName": "dom2_i2c_master",
+              "csrOffset": "0x4ab00"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+              "pmUnitScopedName": "SMB_DOM2_I2C_MASTER_13",
+              "deviceName": "dom2_i2c_master",
+              "csrOffset": "0x4ac00"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+              "pmUnitScopedName": "SMB_DOM2_I2C_MASTER_14",
+              "deviceName": "dom2_i2c_master",
+              "csrOffset": "0x4ad00"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+              "pmUnitScopedName": "SMB_DOM2_I2C_MASTER_15",
+              "deviceName": "dom2_i2c_master",
+              "csrOffset": "0x4ae00"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+              "pmUnitScopedName": "SMB_DOM2_I2C_MASTER_16",
+              "deviceName": "dom2_i2c_master",
+              "csrOffset": "0x4af00"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+              "pmUnitScopedName": "SMB_DOM2_I2C_MASTER_17",
+              "deviceName": "dom2_i2c_master",
+              "csrOffset": "0x4b000"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+              "pmUnitScopedName": "SMB_DOM2_I2C_MASTER_18",
+              "deviceName": "dom2_i2c_master",
+              "csrOffset": "0x4b100"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+              "pmUnitScopedName": "SMB_DOM2_I2C_MASTER_19",
+              "deviceName": "dom2_i2c_master",
+              "csrOffset": "0x4b200"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+              "pmUnitScopedName": "SMB_DOM2_I2C_MASTER_20",
+              "deviceName": "dom2_i2c_master",
+              "csrOffset": "0x4b300"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+              "pmUnitScopedName": "SMB_DOM2_I2C_MASTER_21",
+              "deviceName": "dom2_i2c_master",
+              "csrOffset": "0x4b400"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+              "pmUnitScopedName": "SMB_DOM2_I2C_MASTER_22",
+              "deviceName": "dom2_i2c_master",
+              "csrOffset": "0x4b500"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+              "pmUnitScopedName": "SMB_DOM2_I2C_MASTER_23",
+              "deviceName": "dom2_i2c_master",
+              "csrOffset": "0x4b600"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+              "pmUnitScopedName": "SMB_DOM2_I2C_MASTER_24",
+              "deviceName": "dom2_i2c_master",
+              "csrOffset": "0x4b700"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+              "pmUnitScopedName": "SMB_DOM2_I2C_MASTER_25",
+              "deviceName": "dom2_i2c_master",
+              "csrOffset": "0x4b800"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+              "pmUnitScopedName": "SMB_DOM2_I2C_MASTER_26",
+              "deviceName": "dom2_i2c_master",
+              "csrOffset": "0x4b900"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+              "pmUnitScopedName": "SMB_DOM2_I2C_MASTER_27",
+              "deviceName": "dom2_i2c_master",
+              "csrOffset": "0x4ba00"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+              "pmUnitScopedName": "SMB_DOM2_I2C_MASTER_28",
+              "deviceName": "dom2_i2c_master",
+              "csrOffset": "0x4bb00"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+              "pmUnitScopedName": "SMB_DOM2_I2C_MASTER_29",
+              "deviceName": "dom2_i2c_master",
+              "csrOffset": "0x4bc00"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+              "pmUnitScopedName": "SMB_DOM2_I2C_MASTER_30",
+              "deviceName": "dom2_i2c_master",
+              "csrOffset": "0x4bd00"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+              "pmUnitScopedName": "SMB_DOM2_I2C_MASTER_31",
+              "deviceName": "dom2_i2c_master",
+              "csrOffset": "0x4be00"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+              "pmUnitScopedName": "SMB_DOM2_I2C_MASTER_32",
+              "deviceName": "dom2_i2c_master",
+              "csrOffset": "0x4bf00"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+              "pmUnitScopedName": "SMB_DOM2_I2C_MASTER_33",
+              "deviceName": "dom2_i2c_master",
+              "csrOffset": "0x4c000"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+              "pmUnitScopedName": "SMB_DOM2_I2C_MASTER_34",
+              "deviceName": "dom2_i2c_master",
+              "csrOffset": "0x4c100"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+              "pmUnitScopedName": "SMB_DOM2_I2C_MASTER_35",
+              "deviceName": "dom2_i2c_master",
+              "csrOffset": "0x4cc00"
+              }
+            }
+          ],
+          "gpioChipConfigs": [
+            {
+              "pmUnitScopedName": "MCB_GPIO_CHIP_1",
+              "deviceName": "gpiochip",
+              "csrOffset": "0x0400"
+            }
+          ],
+          "spiMasterConfigs": [
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_SPI_MASTER_1",
+                "deviceName": "spi_master",
+                "csrOffset": "0x10000",
+                "iobufOffset": "0x12000"
+              },
+              "spiDeviceConfigs": [
+                {
+                  "pmUnitScopedName": "MCB_SPI_MASTER_1_DEVICE_1",
+                  "modalias": "spidev",
+                  "chipSelect": 0,
+                  "maxSpeedHz": 25000000
+                }
+              ]
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_SPI_MASTER_2",
+                "deviceName": "spi_master",
+                "csrOffset": "0x10080",
+                "iobufOffset": "0x12400"
+              },
+              "spiDeviceConfigs": [
+                {
+                  "pmUnitScopedName": "MCB_SPI_MASTER_2_DEVICE_1",
+                  "modalias": "spidev",
+                  "chipSelect": 0,
+                  "maxSpeedHz": 25000000
+                }
+              ]
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_SPI_MASTER_3",
+                "deviceName": "spi_master",
+                "csrOffset": "0x10100",
+                "iobufOffset": "0x12800"
+              },
+              "spiDeviceConfigs": [
+                {
+                  "pmUnitScopedName": "MCB_SPI_MASTER_3_DEVICE_1",
+                  "modalias": "spidev",
+                  "chipSelect": 0,
+                  "maxSpeedHz": 25000000
+                }
+              ]
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_SPI_MASTER_4",
+                "deviceName": "spi_master",
+                "csrOffset": "0x10180",
+                "iobufOffset": "0x12c00"
+              },
+              "spiDeviceConfigs": [
+                {
+                  "pmUnitScopedName": "MCB_SPI_MASTER_4_DEVICE_1",
+                  "modalias": "spidev",
+                  "chipSelect": 0,
+                  "maxSpeedHz": 25000000
+                }
+              ]
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_SPI_MASTER_5",
+                "deviceName": "spi_master",
+                "csrOffset": "0x10200",
+                "iobufOffset": "0x13000"
+              },
+              "spiDeviceConfigs": [
+                {
+                  "pmUnitScopedName": "MCB_SPI_MASTER_5_DEVICE_1",
+                  "modalias": "spidev",
+                  "chipSelect": 0,
+                  "maxSpeedHz": 25000000
+                }
+              ]
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_SPI_MASTER_6",
+                "deviceName": "spi_master",
+                "csrOffset": "0x10280",
+                "iobufOffset": "0x13400"
+              },
+              "spiDeviceConfigs": [
+                {
+                  "pmUnitScopedName": "MCB_SPI_MASTER_6_DEVICE_1",
+                  "modalias": "spidev",
+                  "chipSelect": 0,
+                  "maxSpeedHz": 25000000
+                }
+              ]
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_SPI_MASTER_7",
+                "deviceName": "spi_master",
+                "csrOffset": "0x10300",
+                "iobufOffset": "0x13800"
+              },
+              "spiDeviceConfigs": [
+                {
+                  "pmUnitScopedName": "MCB_SPI_MASTER_7_DEVICE_1",
+                  "modalias": "spidev",
+                  "chipSelect": 0,
+                  "maxSpeedHz": 25000000
+                }
+              ]
+            }
+          ],
+          "xcvrCtrlConfigs": [
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_DOM1_XCVR_CTRL_PORT_1",
+                "deviceName": "xcvr_ctrl",
+                "csrOffset": "0x40200"
+              },
+              "portNumber": 1
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_DOM1_XCVR_CTRL_PORT_2",
+                "deviceName": "xcvr_ctrl",
+                "csrOffset": "0x40204"
+              },
+              "portNumber": 2
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_DOM1_XCVR_CTRL_PORT_3",
+                "deviceName": "xcvr_ctrl",
+                "csrOffset": "0x40208"
+              },
+              "portNumber": 3
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_DOM1_XCVR_CTRL_PORT_4",
+                "deviceName": "xcvr_ctrl",
+                "csrOffset": "0x4020c"
+              },
+              "portNumber": 4
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_DOM1_XCVR_CTRL_PORT_5",
+                "deviceName": "xcvr_ctrl",
+                "csrOffset": "0x40210"
+              },
+              "portNumber": 5
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_DOM1_XCVR_CTRL_PORT_6",
+                "deviceName": "xcvr_ctrl",
+                "csrOffset": "0x40214"
+              },
+              "portNumber": 6
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_DOM1_XCVR_CTRL_PORT_7",
+                "deviceName": "xcvr_ctrl",
+                "csrOffset": "0x40218"
+              },
+              "portNumber": 7
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_DOM1_XCVR_CTRL_PORT_8",
+                "deviceName": "xcvr_ctrl",
+                "csrOffset": "0x4021c"
+              },
+              "portNumber": 8
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_DOM1_XCVR_CTRL_PORT_9",
+                "deviceName": "xcvr_ctrl",
+                "csrOffset": "0x40220"
+              },
+              "portNumber": 9
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_DOM1_XCVR_CTRL_PORT_10",
+                "deviceName": "xcvr_ctrl",
+                "csrOffset": "0x40224"
+              },
+              "portNumber": 10
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_DOM1_XCVR_CTRL_PORT_11",
+                "deviceName": "xcvr_ctrl",
+                "csrOffset": "0x40228"
+              },
+              "portNumber": 11
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_DOM1_XCVR_CTRL_PORT_12",
+                "deviceName": "xcvr_ctrl",
+                "csrOffset": "0x4022c"
+              },
+              "portNumber": 12
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_DOM1_XCVR_CTRL_PORT_13",
+                "deviceName": "xcvr_ctrl",
+                "csrOffset": "0x40230"
+              },
+              "portNumber": 13
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_DOM1_XCVR_CTRL_PORT_14",
+                "deviceName": "xcvr_ctrl",
+                "csrOffset": "0x40234"
+              },
+              "portNumber": 14
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_DOM1_XCVR_CTRL_PORT_15",
+                "deviceName": "xcvr_ctrl",
+                "csrOffset": "0x40238"
+              },
+              "portNumber": 15
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_DOM1_XCVR_CTRL_PORT_16",
+                "deviceName": "xcvr_ctrl",
+                "csrOffset": "0x4023c"
+              },
+              "portNumber": 16
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_DOM1_XCVR_CTRL_PORT_17",
+                "deviceName": "xcvr_ctrl",
+                "csrOffset": "0x40240"
+              },
+              "portNumber": 17
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_DOM1_XCVR_CTRL_PORT_18",
+                "deviceName": "xcvr_ctrl",
+                "csrOffset": "0x40244"
+              },
+              "portNumber": 18
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_DOM1_XCVR_CTRL_PORT_19",
+                "deviceName": "xcvr_ctrl",
+                "csrOffset": "0x40248"
+              },
+              "portNumber": 19
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_DOM1_XCVR_CTRL_PORT_20",
+                "deviceName": "xcvr_ctrl",
+                "csrOffset": "0x4024c"
+              },
+              "portNumber": 20
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_DOM1_XCVR_CTRL_PORT_21",
+                "deviceName": "xcvr_ctrl",
+                "csrOffset": "0x40250"
+              },
+              "portNumber": 21
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_DOM1_XCVR_CTRL_PORT_22",
+                "deviceName": "xcvr_ctrl",
+                "csrOffset": "0x40254"
+              },
+              "portNumber": 22
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_DOM1_XCVR_CTRL_PORT_23",
+                "deviceName": "xcvr_ctrl",
+                "csrOffset": "0x40258"
+              },
+              "portNumber": 23
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_DOM1_XCVR_CTRL_PORT_24",
+                "deviceName": "xcvr_ctrl",
+                "csrOffset": "0x4025c"
+              },
+              "portNumber": 24
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_DOM1_XCVR_CTRL_PORT_25",
+                "deviceName": "xcvr_ctrl",
+                "csrOffset": "0x40260"
+              },
+              "portNumber": 25
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_DOM1_XCVR_CTRL_PORT_26",
+                "deviceName": "xcvr_ctrl",
+                "csrOffset": "0x40264"
+              },
+              "portNumber": 26
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_DOM1_XCVR_CTRL_PORT_27",
+                "deviceName": "xcvr_ctrl",
+                "csrOffset": "0x40268"
+              },
+              "portNumber": 27
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_DOM1_XCVR_CTRL_PORT_28",
+                "deviceName": "xcvr_ctrl",
+                "csrOffset": "0x4026c"
+              },
+              "portNumber": 28
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_DOM1_XCVR_CTRL_PORT_29",
+                "deviceName": "xcvr_ctrl",
+                "csrOffset": "0x40270"
+              },
+              "portNumber": 29
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_DOM1_XCVR_CTRL_PORT_30",
+                "deviceName": "xcvr_ctrl",
+                "csrOffset": "0x40274"
+              },
+              "portNumber": 30
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_DOM1_XCVR_CTRL_PORT_31",
+                "deviceName": "xcvr_ctrl",
+                "csrOffset": "0x40278"
+              },
+              "portNumber": 31
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_DOM1_XCVR_CTRL_PORT_32",
+                "deviceName": "xcvr_ctrl",
+                "csrOffset": "0x4027c"
+              },
+              "portNumber": 32
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_DOM2_XCVR_CTRL_PORT_33",
+                "deviceName": "xcvr_ctrl",
+                "csrOffset": "0x48200"
+              },
+              "portNumber": 33
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_DOM2_XCVR_CTRL_PORT_34",
+                "deviceName": "xcvr_ctrl",
+                "csrOffset": "0x48204"
+              },
+              "portNumber": 34
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_DOM2_XCVR_CTRL_PORT_35",
+                "deviceName": "xcvr_ctrl",
+                "csrOffset": "0x48208"
+              },
+              "portNumber": 35
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_DOM2_XCVR_CTRL_PORT_36",
+                "deviceName": "xcvr_ctrl",
+                "csrOffset": "0x4820c"
+              },
+              "portNumber": 36
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_DOM2_XCVR_CTRL_PORT_37",
+                "deviceName": "xcvr_ctrl",
+                "csrOffset": "0x48210"
+              },
+              "portNumber": 37
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_DOM2_XCVR_CTRL_PORT_38",
+                "deviceName": "xcvr_ctrl",
+                "csrOffset": "0x48214"
+              },
+              "portNumber": 38
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_DOM2_XCVR_CTRL_PORT_39",
+                "deviceName": "xcvr_ctrl",
+                "csrOffset": "0x48218"
+              },
+              "portNumber": 39
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_DOM2_XCVR_CTRL_PORT_40",
+                "deviceName": "xcvr_ctrl",
+                "csrOffset": "0x4821c"
+              },
+              "portNumber": 40
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_DOM2_XCVR_CTRL_PORT_41",
+                "deviceName": "xcvr_ctrl",
+                "csrOffset": "0x48220"
+              },
+              "portNumber": 41
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_DOM2_XCVR_CTRL_PORT_42",
+                "deviceName": "xcvr_ctrl",
+                "csrOffset": "0x48224"
+              },
+              "portNumber": 42
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_DOM2_XCVR_CTRL_PORT_43",
+                "deviceName": "xcvr_ctrl",
+                "csrOffset": "0x48228"
+              },
+              "portNumber": 43
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_DOM2_XCVR_CTRL_PORT_44",
+                "deviceName": "xcvr_ctrl",
+                "csrOffset": "0x4822c"
+              },
+              "portNumber": 44
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_DOM2_XCVR_CTRL_PORT_45",
+                "deviceName": "xcvr_ctrl",
+                "csrOffset": "0x48230"
+              },
+              "portNumber": 45
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_DOM2_XCVR_CTRL_PORT_46",
+                "deviceName": "xcvr_ctrl",
+                "csrOffset": "0x48234"
+              },
+              "portNumber": 46
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_DOM2_XCVR_CTRL_PORT_47",
+                "deviceName": "xcvr_ctrl",
+                "csrOffset": "0x48238"
+              },
+              "portNumber": 47
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_DOM2_XCVR_CTRL_PORT_48",
+                "deviceName": "xcvr_ctrl",
+                "csrOffset": "0x4823c"
+              },
+              "portNumber": 48
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_DOM2_XCVR_CTRL_PORT_49",
+                "deviceName": "xcvr_ctrl",
+                "csrOffset": "0x48240"
+              },
+              "portNumber": 49
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_DOM2_XCVR_CTRL_PORT_50",
+                "deviceName": "xcvr_ctrl",
+                "csrOffset": "0x48244"
+              },
+              "portNumber": 50
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_DOM2_XCVR_CTRL_PORT_51",
+                "deviceName": "xcvr_ctrl",
+                "csrOffset": "0x48248"
+              },
+              "portNumber": 51
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_DOM2_XCVR_CTRL_PORT_52",
+                "deviceName": "xcvr_ctrl",
+                "csrOffset": "0x4824c"
+              },
+              "portNumber": 52
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_DOM2_XCVR_CTRL_PORT_53",
+                "deviceName": "xcvr_ctrl",
+                "csrOffset": "0x48250"
+              },
+              "portNumber": 53
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_DOM2_XCVR_CTRL_PORT_54",
+                "deviceName": "xcvr_ctrl",
+                "csrOffset": "0x48254"
+              },
+              "portNumber": 54
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_DOM2_XCVR_CTRL_PORT_55",
+                "deviceName": "xcvr_ctrl",
+                "csrOffset": "0x48258"
+              },
+              "portNumber": 55
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_DOM2_XCVR_CTRL_PORT_56",
+                "deviceName": "xcvr_ctrl",
+                "csrOffset": "0x4825c"
+              },
+              "portNumber": 56
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_DOM2_XCVR_CTRL_PORT_57",
+                "deviceName": "xcvr_ctrl",
+                "csrOffset": "0x48260"
+              },
+              "portNumber": 57
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_DOM2_XCVR_CTRL_PORT_58",
+                "deviceName": "xcvr_ctrl",
+                "csrOffset": "0x48264"
+              },
+              "portNumber": 58
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_DOM2_XCVR_CTRL_PORT_59",
+                "deviceName": "xcvr_ctrl",
+                "csrOffset": "0x48268"
+              },
+              "portNumber": 59
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_DOM2_XCVR_CTRL_PORT_60",
+                "deviceName": "xcvr_ctrl",
+                "csrOffset": "0x4826c"
+              },
+              "portNumber": 60
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_DOM2_XCVR_CTRL_PORT_61",
+                "deviceName": "xcvr_ctrl",
+                "csrOffset": "0x48270"
+              },
+              "portNumber": 61
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_DOM2_XCVR_CTRL_PORT_62",
+                "deviceName": "xcvr_ctrl",
+                "csrOffset": "0x48274"
+              },
+              "portNumber": 62
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_DOM2_XCVR_CTRL_PORT_63",
+                "deviceName": "xcvr_ctrl",
+                "csrOffset": "0x48278"
+              },
+              "portNumber": 63
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_DOM2_XCVR_CTRL_PORT_64",
+                "deviceName": "xcvr_ctrl",
+                "csrOffset": "0x4827c"
+              },
+              "portNumber": 64
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_DOM2_XCVR_CTRL_PORT_65",
+                "deviceName": "xcvr_ctrl",
+                "csrOffset": "0x48280"
+              },
+              "portNumber": 65
+            }
+          ],
+          "ledCtrlConfigs": [
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_LED_PORT_1_LED_1",
+                "deviceName": "port_led",
+                "csrOffset": "0x40410"
+              },
+              "portNumber": 1,
+              "ledId": 1
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_LED_PORT_2_LED_1",
+                "deviceName": "port_led",
+                "csrOffset": "0x40418"
+              },
+              "portNumber": 2,
+              "ledId": 1
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_LED_PORT_3_LED_1",
+                "deviceName": "port_led",
+                "csrOffset": "0x40420"
+              },
+              "portNumber": 3,
+              "ledId": 1
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_LED_PORT_4_LED_1",
+                "deviceName": "port_led",
+                "csrOffset": "0x40428"
+              },
+              "portNumber": 4,
+              "ledId": 1
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_LED_PORT_5_LED_1",
+                "deviceName": "port_led",
+                "csrOffset": "0x40430"
+              },
+              "portNumber": 5,
+              "ledId": 1
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_LED_PORT_6_LED_1",
+                "deviceName": "port_led",
+                "csrOffset": "0x40438"
+              },
+              "portNumber": 6,
+              "ledId": 1
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_LED_PORT_7_LED_1",
+                "deviceName": "port_led",
+                "csrOffset": "0x40440"
+              },
+              "portNumber": 7,
+              "ledId": 1
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_LED_PORT_8_LED_1",
+                "deviceName": "port_led",
+                "csrOffset": "0x40448"
+              },
+              "portNumber": 8,
+              "ledId": 1
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_LED_PORT_9_LED_1",
+                "deviceName": "port_led",
+                "csrOffset": "0x40450"
+              },
+              "portNumber": 9,
+              "ledId": 1
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_LED_PORT_10_LED_1",
+                "deviceName": "port_led",
+                "csrOffset": "0x40458"
+              },
+              "portNumber": 10,
+              "ledId": 1
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_LED_PORT_11_LED_1",
+                "deviceName": "port_led",
+                "csrOffset": "0x40460"
+              },
+              "portNumber": 11,
+              "ledId": 1
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_LED_PORT_12_LED_1",
+                "deviceName": "port_led",
+                "csrOffset": "0x40468"
+              },
+              "portNumber": 12,
+              "ledId": 1
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_LED_PORT_13_LED_1",
+                "deviceName": "port_led",
+                "csrOffset": "0x40470"
+              },
+              "portNumber": 13,
+              "ledId": 1
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_LED_PORT_14_LED_1",
+                "deviceName": "port_led",
+                "csrOffset": "0x40478"
+              },
+              "portNumber": 14,
+              "ledId": 1
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_LED_PORT_15_LED_1",
+                "deviceName": "port_led",
+                "csrOffset": "0x40480"
+              },
+              "portNumber": 15,
+              "ledId": 1
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_LED_PORT_16_LED_1",
+                "deviceName": "port_led",
+                "csrOffset": "0x40488"
+              },
+              "portNumber": 16,
+              "ledId": 1
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_LED_PORT_17_LED_1",
+                "deviceName": "port_led",
+                "csrOffset": "0x40490"
+              },
+              "portNumber": 17,
+              "ledId": 1
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_LED_PORT_18_LED_1",
+                "deviceName": "port_led",
+                "csrOffset": "0x40498"
+              },
+              "portNumber": 18,
+              "ledId": 1
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_LED_PORT_19_LED_1",
+                "deviceName": "port_led",
+                "csrOffset": "0x404a0"
+              },
+              "portNumber": 19,
+              "ledId": 1
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_LED_PORT_20_LED_1",
+                "deviceName": "port_led",
+                "csrOffset": "0x404a8"
+              },
+              "portNumber": 20,
+              "ledId": 1
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_LED_PORT_21_LED_1",
+                "deviceName": "port_led",
+                "csrOffset": "0x404b0"
+              },
+              "portNumber": 21,
+              "ledId": 1
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_LED_PORT_22_LED_1",
+                "deviceName": "port_led",
+                "csrOffset": "0x404b8"
+              },
+              "portNumber": 22,
+              "ledId": 1
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_LED_PORT_23_LED_1",
+                "deviceName": "port_led",
+                "csrOffset": "0x404c0"
+              },
+              "portNumber": 23,
+              "ledId": 1
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_LED_PORT_24_LED_1",
+                "deviceName": "port_led",
+                "csrOffset": "0x404c8"
+              },
+              "portNumber": 24,
+              "ledId": 1
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_LED_PORT_25_LED_1",
+                "deviceName": "port_led",
+                "csrOffset": "0x404d0"
+              },
+              "portNumber": 25,
+              "ledId": 1
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_LED_PORT_26_LED_1",
+                "deviceName": "port_led",
+                "csrOffset": "0x404d8"
+              },
+              "portNumber": 26,
+              "ledId": 1
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_LED_PORT_27_LED_1",
+                "deviceName": "port_led",
+                "csrOffset": "0x404e0"
+              },
+              "portNumber": 27,
+              "ledId": 1
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_LED_PORT_28_LED_1",
+                "deviceName": "port_led",
+                "csrOffset": "0x404e8"
+              },
+              "portNumber": 28,
+              "ledId": 1
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_LED_PORT_29_LED_1",
+                "deviceName": "port_led",
+                "csrOffset": "0x404f0"
+              },
+              "portNumber": 29,
+              "ledId": 1
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_LED_PORT_30_LED_1",
+                "deviceName": "port_led",
+                "csrOffset": "0x404f8"
+              },
+              "portNumber": 30,
+              "ledId": 1
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_LED_PORT_31_LED_1",
+                "deviceName": "port_led",
+                "csrOffset": "0x40500"
+              },
+              "portNumber": 31,
+              "ledId": 1
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_LED_PORT_32_LED_1",
+                "deviceName": "port_led",
+                "csrOffset": "0x40508"
+              },
+              "portNumber": 32,
+              "ledId": 1
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_LED_PORT_1_LED_2",
+                "deviceName": "port_led",
+                "csrOffset": "0x40414"
+              },
+              "portNumber": 1,
+              "ledId": 2
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_LED_PORT_2_LED_2",
+                "deviceName": "port_led",
+                "csrOffset": "0x4041c"
+              },
+              "portNumber": 2,
+              "ledId": 2
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_LED_PORT_3_LED_2",
+                "deviceName": "port_led",
+                "csrOffset": "0x40424"
+              },
+              "portNumber": 3,
+              "ledId": 2
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_LED_PORT_4_LED_2",
+                "deviceName": "port_led",
+                "csrOffset": "0x4042c"
+              },
+              "portNumber": 4,
+              "ledId": 2
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_LED_PORT_5_LED_2",
+                "deviceName": "port_led",
+                "csrOffset": "0x40434"
+              },
+              "portNumber": 5,
+              "ledId": 2
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_LED_PORT_6_LED_2",
+                "deviceName": "port_led",
+                "csrOffset": "0x4043c"
+              },
+              "portNumber": 6,
+              "ledId": 2
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_LED_PORT_7_LED_2",
+                "deviceName": "port_led",
+                "csrOffset": "0x40444"
+              },
+              "portNumber": 7,
+              "ledId": 2
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_LED_PORT_8_LED_2",
+                "deviceName": "port_led",
+                "csrOffset": "0x4044c"
+              },
+              "portNumber": 8,
+              "ledId": 2
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_LED_PORT_9_LED_2",
+                "deviceName": "port_led",
+                "csrOffset": "0x40454"
+              },
+              "portNumber": 9,
+              "ledId": 2
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_LED_PORT_10_LED_2",
+                "deviceName": "port_led",
+                "csrOffset": "0x4045c"
+              },
+              "portNumber": 10,
+              "ledId": 2
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_LED_PORT_11_LED_2",
+                "deviceName": "port_led",
+                "csrOffset": "0x40464"
+              },
+              "portNumber": 11,
+              "ledId": 2
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_LED_PORT_12_LED_2",
+                "deviceName": "port_led",
+                "csrOffset": "0x4046c"
+              },
+              "portNumber": 12,
+              "ledId": 2
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_LED_PORT_13_LED_2",
+                "deviceName": "port_led",
+                "csrOffset": "0x40474"
+              },
+              "portNumber": 13,
+              "ledId": 2
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_LED_PORT_14_LED_2",
+                "deviceName": "port_led",
+                "csrOffset": "0x4047c"
+              },
+              "portNumber": 14,
+              "ledId": 2
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_LED_PORT_15_LED_2",
+                "deviceName": "port_led",
+                "csrOffset": "0x40484"
+              },
+              "portNumber": 15,
+              "ledId": 2
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_LED_PORT_16_LED_2",
+                "deviceName": "port_led",
+                "csrOffset": "0x4048c"
+              },
+              "portNumber": 16,
+              "ledId": 2
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_LED_PORT_17_LED_2",
+                "deviceName": "port_led",
+                "csrOffset": "0x40494"
+              },
+              "portNumber": 17,
+              "ledId": 2
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_LED_PORT_18_LED_2",
+                "deviceName": "port_led",
+                "csrOffset": "0x4049c"
+              },
+              "portNumber": 18,
+              "ledId": 2
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_LED_PORT_19_LED_2",
+                "deviceName": "port_led",
+                "csrOffset": "0x404a4"
+              },
+              "portNumber": 19,
+              "ledId": 2
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_LED_PORT_20_LED_2",
+                "deviceName": "port_led",
+                "csrOffset": "0x404ac"
+              },
+              "portNumber": 20,
+              "ledId": 2
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_LED_PORT_21_LED_2",
+                "deviceName": "port_led",
+                "csrOffset": "0x404b4"
+              },
+              "portNumber": 21,
+              "ledId": 2
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_LED_PORT_22_LED_2",
+                "deviceName": "port_led",
+                "csrOffset": "0x404bc"
+              },
+              "portNumber": 22,
+              "ledId": 2
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_LED_PORT_23_LED_2",
+                "deviceName": "port_led",
+                "csrOffset": "0x404c4"
+              },
+              "portNumber": 23,
+              "ledId": 2
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_LED_PORT_24_LED_2",
+                "deviceName": "port_led",
+                "csrOffset": "0x404cc"
+              },
+              "portNumber": 24,
+              "ledId": 2
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_LED_PORT_25_LED_2",
+                "deviceName": "port_led",
+                "csrOffset": "0x404d4"
+              },
+              "portNumber": 25,
+              "ledId": 2
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_LED_PORT_26_LED_2",
+                "deviceName": "port_led",
+                "csrOffset": "0x404dc"
+              },
+              "portNumber": 26,
+              "ledId": 2
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_LED_PORT_27_LED_2",
+                "deviceName": "port_led",
+                "csrOffset": "0x404e4"
+              },
+              "portNumber": 27,
+              "ledId": 2
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_LED_PORT_28_LED_2",
+                "deviceName": "port_led",
+                "csrOffset": "0x404ec"
+              },
+              "portNumber": 28,
+              "ledId": 2
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_LED_PORT_29_LED_2",
+                "deviceName": "port_led",
+                "csrOffset": "0x404f4"
+              },
+              "portNumber": 29,
+              "ledId": 2
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_LED_PORT_30_LED_2",
+                "deviceName": "port_led",
+                "csrOffset": "0x404fc"
+              },
+              "portNumber": 30,
+              "ledId": 2
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_LED_PORT_31_LED_2",
+                "deviceName": "port_led",
+                "csrOffset": "0x40504"
+              },
+              "portNumber": 31,
+              "ledId": 2
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_LED_PORT_32_LED_2",
+                "deviceName": "port_led",
+                "csrOffset": "0x4050c"
+              },
+              "portNumber": 32,
+              "ledId": 2
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_LED_PORT_33_LED_1",
+                "deviceName": "port_led",
+                "csrOffset": "0x48508"
+              },
+              "portNumber": 33,
+              "ledId": 1
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_LED_PORT_34_LED_1",
+                "deviceName": "port_led",
+                "csrOffset": "0x48500"
+              },
+              "portNumber": 34,
+              "ledId": 1
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_LED_PORT_35_LED_1",
+                "deviceName": "port_led",
+                "csrOffset": "0x484f8"
+              },
+              "portNumber": 35,
+              "ledId": 1
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_LED_PORT_36_LED_1",
+                "deviceName": "port_led",
+                "csrOffset": "0x484f0"
+              },
+              "portNumber": 36,
+              "ledId": 1
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_LED_PORT_37_LED_1",
+                "deviceName": "port_led",
+                "csrOffset": "0x484e8"
+              },
+              "portNumber": 37,
+              "ledId": 1
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_LED_PORT_38_LED_1",
+                "deviceName": "port_led",
+                "csrOffset": "0x484e0"
+              },
+              "portNumber": 38,
+              "ledId": 1
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_LED_PORT_39_LED_1",
+                "deviceName": "port_led",
+                "csrOffset": "0x484d8"
+              },
+              "portNumber": 39,
+              "ledId": 1
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_LED_PORT_40_LED_1",
+                "deviceName": "port_led",
+                "csrOffset": "0x484d0"
+              },
+              "portNumber": 40,
+              "ledId": 1
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_LED_PORT_41_LED_1",
+                "deviceName": "port_led",
+                "csrOffset": "0x484c8"
+              },
+              "portNumber": 41,
+              "ledId": 1
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_LED_PORT_42_LED_1",
+                "deviceName": "port_led",
+                "csrOffset": "0x484c0"
+              },
+              "portNumber": 42,
+              "ledId": 1
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_LED_PORT_43_LED_1",
+                "deviceName": "port_led",
+                "csrOffset": "0x484b8"
+              },
+              "portNumber": 43,
+              "ledId": 1
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_LED_PORT_44_LED_1",
+                "deviceName": "port_led",
+                "csrOffset": "0x484b0"
+              },
+              "portNumber": 44,
+              "ledId": 1
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_LED_PORT_45_LED_1",
+                "deviceName": "port_led",
+                "csrOffset": "0x484a8"
+              },
+              "portNumber": 45,
+              "ledId": 1
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_LED_PORT_46_LED_1",
+                "deviceName": "port_led",
+                "csrOffset": "0x484a0"
+              },
+              "portNumber": 46,
+              "ledId": 1
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_LED_PORT_47_LED_1",
+                "deviceName": "port_led",
+                "csrOffset": "0x48498"
+              },
+              "portNumber": 47,
+              "ledId": 1
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_LED_PORT_48_LED_1",
+                "deviceName": "port_led",
+                "csrOffset": "0x48490"
+              },
+              "portNumber": 48,
+              "ledId": 1
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_LED_PORT_49_LED_1",
+                "deviceName": "port_led",
+                "csrOffset": "0x48488"
+              },
+              "portNumber": 49,
+              "ledId": 1
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_LED_PORT_50_LED_1",
+                "deviceName": "port_led",
+                "csrOffset": "0x48480"
+              },
+              "portNumber": 50,
+              "ledId": 1
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_LED_PORT_51_LED_1",
+                "deviceName": "port_led",
+                "csrOffset": "0x48478"
+              },
+              "portNumber": 51,
+              "ledId": 1
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_LED_PORT_52_LED_1",
+                "deviceName": "port_led",
+                "csrOffset": "0x48470"
+              },
+              "portNumber": 52,
+              "ledId": 1
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_LED_PORT_53_LED_1",
+                "deviceName": "port_led",
+                "csrOffset": "0x48468"
+              },
+              "portNumber": 53,
+              "ledId": 1
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_LED_PORT_54_LED_1",
+                "deviceName": "port_led",
+                "csrOffset": "0x48460"
+              },
+              "portNumber": 54,
+              "ledId": 1
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_LED_PORT_55_LED_1",
+                "deviceName": "port_led",
+                "csrOffset": "0x48458"
+              },
+              "portNumber": 55,
+              "ledId": 1
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_LED_PORT_56_LED_1",
+                "deviceName": "port_led",
+                "csrOffset": "0x48450"
+              },
+              "portNumber": 56,
+              "ledId": 1
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_LED_PORT_57_LED_1",
+                "deviceName": "port_led",
+                "csrOffset": "0x48448"
+              },
+              "portNumber": 57,
+              "ledId": 1
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_LED_PORT_58_LED_1",
+                "deviceName": "port_led",
+                "csrOffset": "0x48440"
+              },
+              "portNumber": 58,
+              "ledId": 1
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_LED_PORT_59_LED_1",
+                "deviceName": "port_led",
+                "csrOffset": "0x48438"
+              },
+              "portNumber": 59,
+              "ledId": 1
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_LED_PORT_60_LED_1",
+                "deviceName": "port_led",
+                "csrOffset": "0x48430"
+              },
+              "portNumber": 60,
+              "ledId": 1
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_LED_PORT_61_LED_1",
+                "deviceName": "port_led",
+                "csrOffset": "0x48428"
+              },
+              "portNumber": 61,
+              "ledId": 1
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_LED_PORT_62_LED_1",
+                "deviceName": "port_led",
+                "csrOffset": "0x48420"
+              },
+              "portNumber": 62,
+              "ledId": 1
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_LED_PORT_63_LED_1",
+                "deviceName": "port_led",
+                "csrOffset": "0x48418"
+              },
+              "portNumber": 63,
+              "ledId": 1
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_LED_PORT_64_LED_1",
+                "deviceName": "port_led",
+                "csrOffset": "0x48410"
+              },
+              "portNumber": 64,
+              "ledId": 1
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_LED_PORT_33_LED_2",
+                "deviceName": "port_led",
+                "csrOffset": "0x4850c"
+              },
+              "portNumber": 33,
+              "ledId": 2
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_LED_PORT_34_LED_2",
+                "deviceName": "port_led",
+                "csrOffset": "0x48504"
+              },
+              "portNumber": 34,
+              "ledId": 2
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_LED_PORT_35_LED_2",
+                "deviceName": "port_led",
+                "csrOffset": "0x484fc"
+              },
+              "portNumber": 35,
+              "ledId": 2
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_LED_PORT_36_LED_2",
+                "deviceName": "port_led",
+                "csrOffset": "0x484f4"
+              },
+              "portNumber": 36,
+              "ledId": 2
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_LED_PORT_37_LED_2",
+                "deviceName": "port_led",
+                "csrOffset": "0x484ec"
+              },
+              "portNumber": 37,
+              "ledId": 2
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_LED_PORT_38_LED_2",
+                "deviceName": "port_led",
+                "csrOffset": "0x484e4"
+              },
+              "portNumber": 38,
+              "ledId": 2
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_LED_PORT_39_LED_2",
+                "deviceName": "port_led",
+                "csrOffset": "0x484dc"
+              },
+              "portNumber": 39,
+              "ledId": 2
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_LED_PORT_40_LED_2",
+                "deviceName": "port_led",
+                "csrOffset": "0x484d4"
+              },
+              "portNumber": 40,
+              "ledId": 2
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_LED_PORT_41_LED_2",
+                "deviceName": "port_led",
+                "csrOffset": "0x484cc"
+              },
+              "portNumber": 41,
+              "ledId": 2
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_LED_PORT_42_LED_2",
+                "deviceName": "port_led",
+                "csrOffset": "0x484c4"
+              },
+              "portNumber": 42,
+              "ledId": 2
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_LED_PORT_43_LED_2",
+                "deviceName": "port_led",
+                "csrOffset": "0x484bc"
+              },
+              "portNumber": 43,
+              "ledId": 2
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_LED_PORT_44_LED_2",
+                "deviceName": "port_led",
+                "csrOffset": "0x484b4"
+              },
+              "portNumber": 44,
+              "ledId": 2
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_LED_PORT_45_LED_2",
+                "deviceName": "port_led",
+                "csrOffset": "0x484ac"
+              },
+              "portNumber": 45,
+              "ledId": 2
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_LED_PORT_46_LED_2",
+                "deviceName": "port_led",
+                "csrOffset": "0x484a4"
+              },
+              "portNumber": 46,
+              "ledId": 2
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_LED_PORT_47_LED_2",
+                "deviceName": "port_led",
+                "csrOffset": "0x4849c"
+              },
+              "portNumber": 47,
+              "ledId": 2
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_LED_PORT_48_LED_2",
+                "deviceName": "port_led",
+                "csrOffset": "0x48494"
+              },
+              "portNumber": 48,
+              "ledId": 2
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_LED_PORT_49_LED_2",
+                "deviceName": "port_led",
+                "csrOffset": "0x4848c"
+              },
+              "portNumber": 49,
+              "ledId": 2
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_LED_PORT_50_LED_2",
+                "deviceName": "port_led",
+                "csrOffset": "0x48484"
+              },
+              "portNumber": 50,
+              "ledId": 2
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_LED_PORT_51_LED_2",
+                "deviceName": "port_led",
+                "csrOffset": "0x4847c"
+              },
+              "portNumber": 51,
+              "ledId": 2
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_LED_PORT_52_LED_2",
+                "deviceName": "port_led",
+                "csrOffset": "0x48474"
+              },
+              "portNumber": 52,
+              "ledId": 2
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_LED_PORT_53_LED_2",
+                "deviceName": "port_led",
+                "csrOffset": "0x4846c"
+              },
+              "portNumber": 53,
+              "ledId": 2
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_LED_PORT_54_LED_2",
+                "deviceName": "port_led",
+                "csrOffset": "0x48464"
+              },
+              "portNumber": 54,
+              "ledId": 2
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_LED_PORT_55_LED_2",
+                "deviceName": "port_led",
+                "csrOffset": "0x4845c"
+              },
+              "portNumber": 55,
+              "ledId": 2
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_LED_PORT_56_LED_2",
+                "deviceName": "port_led",
+                "csrOffset": "0x48454"
+              },
+              "portNumber": 56,
+              "ledId": 2
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_LED_PORT_57_LED_2",
+                "deviceName": "port_led",
+                "csrOffset": "0x4844c"
+              },
+              "portNumber": 57,
+              "ledId": 2
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_LED_PORT_58_LED_2",
+                "deviceName": "port_led",
+                "csrOffset": "0x48444"
+              },
+              "portNumber": 58,
+              "ledId": 2
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_LED_PORT_59_LED_2",
+                "deviceName": "port_led",
+                "csrOffset": "0x4843c"
+              },
+              "portNumber": 59,
+              "ledId": 2
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_LED_PORT_60_LED_2",
+                "deviceName": "port_led",
+                "csrOffset": "0x48434"
+              },
+              "portNumber": 60,
+              "ledId": 2
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_LED_PORT_61_LED_2",
+                "deviceName": "port_led",
+                "csrOffset": "0x4842c"
+              },
+              "portNumber": 61,
+              "ledId": 2
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_LED_PORT_62_LED_2",
+                "deviceName": "port_led",
+                "csrOffset": "0x48424"
+              },
+              "portNumber": 62,
+              "ledId": 2
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_LED_PORT_63_LED_2",
+                "deviceName": "port_led",
+                "csrOffset": "0x4841c"
+              },
+              "portNumber": 63,
+              "ledId": 2
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_LED_PORT_64_LED_2",
+                "deviceName": "port_led",
+                "csrOffset": "0x48414"
+              },
+              "portNumber": 64,
+              "ledId": 2
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_LED_PORT_65_LED_1",
+                "deviceName": "port_led",
+                "csrOffset": "0x48510"
+              },
+              "portNumber": 65,
+              "ledId": 1
+            }
+          ],
+          "infoRomConfigs": [
+            {
+              "pmUnitScopedName": "MCB_IOB_INFO_ROM",
+              "deviceName": "fpga_info_iob",
+              "csrOffset": "0x0000"
+            },
+            {
+              "pmUnitScopedName": "SMB_DOM1_INFO_ROM",
+              "deviceName": "fpga_info_dom",
+              "csrOffset": "0x40000"
+            },
+            {
+              "pmUnitScopedName": "SMB_DOM2_INFO_ROM",
+              "deviceName": "fpga_info_dom",
+              "csrOffset": "0x48000"
+            }
+          ]
+        }
+      ],
+      "i2cDeviceConfigs": [
+        {
+          "busName": "MCB_IOB_I2C_MASTER_13",
+          "address": "0x4e",
+          "kernelDeviceName": "tmp1075",
+          "pmUnitScopedName": "MCB_TSENSOR"
+        },
+        {
+          "busName": "MCB_IOB_I2C_MASTER_14",
+          "address": "0x33",
+          "kernelDeviceName": "mp3n_fancpld",
+          "pmUnitScopedName": "MCB_FAN_CPLD",
+          "isWatchdog": true
+        },
+        {
+          "busName": "MCB_IOB_I2C_MASTER_14",
+          "address": "0x60",
+          "kernelDeviceName": "mp3n_mcbcpld",
+          "pmUnitScopedName": "MCB_CPLD"
+        },
+        {
+          "busName": "MCB_IOB_I2C_MASTER_19",
+          "address": "0x4c",
+          "kernelDeviceName": "tps25990",
+          "pmUnitScopedName": "MCB_VOLTAGE_MONITOR1"
+        },
+        {
+          "busName": "MCB_IOB_I2C_MASTER_20",
+          "address": "0x4c",
+          "kernelDeviceName": "tps25990",
+          "pmUnitScopedName": "MCB_VOLTAGE_MONITOR2"
+        },
+        {
+          "busName": "MCB_IOB_I2C_MASTER_21",
+          "address": "0x4c",
+          "kernelDeviceName": "tps25990",
+          "pmUnitScopedName": "MCB_VOLTAGE_MONITOR3"
+        },
+        {
+          "busName": "MCB_IOB_I2C_MASTER_22",
+          "address": "0x4c",
+          "kernelDeviceName": "tps25990",
+          "pmUnitScopedName": "MCB_VOLTAGE_MONITOR4"
+        },
+        {
+          "busName": "MCB_IOB_I2C_MASTER_23",
+          "address": "0x4c",
+          "kernelDeviceName": "tps25990",
+          "pmUnitScopedName": "MCB_VOLTAGE_MONITOR5"
+        },
+        {
+          "busName": "MCB_IOB_I2C_MASTER_24",
+          "address": "0x4c",
+          "kernelDeviceName": "tps25990",
+          "pmUnitScopedName": "MCB_VOLTAGE_MONITOR6"
+        },
+        {
+          "busName": "MCB_IOB_I2C_MASTER_25",
+          "address": "0x4c",
+          "kernelDeviceName": "tps25990",
+          "pmUnitScopedName": "MCB_VOLTAGE_MONITOR7"
+        },
+        {
+          "busName": "MCB_IOB_I2C_MASTER_26",
+          "address": "0x4c",
+          "kernelDeviceName": "tps25990",
+          "pmUnitScopedName": "MCB_VOLTAGE_MONITOR8"
+        },
+        {
+          "busName": "MCB_IOB_I2C_MASTER_27",
+          "address": "0x37",
+          "kernelDeviceName": "adc128d818",
+          "pmUnitScopedName": "MCB_VOLTAGE_MONITOR9",
+          "initRegSettings": [
+            {
+              "regOffset": 11,
+              "ioBuf": [2]
+            }
+          ]
+        },
+        {
+          "busName": "SMB_DOM1_I2C_MASTER_34",
+          "address": "0x48",
+          "kernelDeviceName": "tmp1075",
+          "pmUnitScopedName": "SMB_TSENSOR2"
+        },
+        {
+          "busName": "SMB_DOM1_I2C_MASTER_34",
+          "address": "0x49",
+          "kernelDeviceName": "tmp1075",
+          "pmUnitScopedName": "SMB_TSENSOR3"
+        },
+        {
+          "busName": "SMB_DOM2_I2C_MASTER_34",
+          "address": "0x4a",
+          "kernelDeviceName": "tmp1075",
+          "pmUnitScopedName": "SMB_TSENSOR5"
+        },
+        {
+          "busName": "SMB_DOM2_I2C_MASTER_34",
+          "address": "0x4b",
+          "kernelDeviceName": "tmp1075",
+          "pmUnitScopedName": "SMB_TSENSOR6"
+        }
+      ],
+      "outgoingSlotConfigs": {
+        "SCM_SLOT@0": {
+          "slotType": "SCM_SLOT",
+          "outgoingI2cBusNames": [
+            "MCB_IOB_I2C_MASTER_1",
+            "MCB_IOB_I2C_MASTER_2",
+            "MCB_IOB_I2C_MASTER_3",
+            "MCB_IOB_I2C_MASTER_18"
+          ]
+        },
+        "PDBLEFT_SLOT@0": {
+          "slotType": "PDBLEFT_SLOT",
+          "outgoingI2cBusNames": [
+            "MCB_IOB_I2C_MASTER_5"
+          ]
+        },
+        "PDBRIGHT_SLOT@0": {
+          "slotType": "PDBRIGHT_SLOT",
+          "outgoingI2cBusNames": [
+            "MCB_IOB_I2C_MASTER_6"
+          ]
+        },
+        "SMB_SLOT@0": {
+          "slotType": "SMB_SLOT",
+          "outgoingI2cBusNames": [
+            "MCB_IOB_I2C_MASTER_4",
+            "MCB_IOB_I2C_MASTER_7",
+            "MCB_IOB_I2C_MASTER_9",
+            "MCB_IOB_I2C_MASTER_10",
+            "MCB_IOB_I2C_MASTER_11",
+            "MCB_IOB_I2C_MASTER_12",
+            "SMB_DOM1_I2C_MASTER_33",
+            "SMB_DOM2_I2C_MASTER_33"
+          ]
+        },
+        "FCBBOTTOM_SLOT@0": {
+          "slotType": "FCBBOTTOM_SLOT",
+          "outgoingI2cBusNames": [
+            "MCB_IOB_I2C_MASTER_17"
+          ]
+        },
+        "FCBTOP_SLOT@0": {
+          "slotType": "FCBTOP_SLOT",
+          "outgoingI2cBusNames": [
+            "MCB_IOB_I2C_MASTER_15",
+            "MCB_IOB_I2C_MASTER_16"
+          ]
+        }
+      }
+    },
+    "MINIPACK3N_SCM": {
+      "pluggedInSlotType": "SCM_SLOT",
+      "embeddedSensorConfigs": [
+        {
+          "pmUnitScopedName": "SCM_M2_SSD_TEMP",
+          "sysfsPath": "/sys/class/nvme/nvme0"
+        }
+      ],
+      "i2cDeviceConfigs": [
+        {
+          "busName": "INCOMING@0",
+          "address": "0x70",
+          "kernelDeviceName": "pca9548",
+          "pmUnitScopedName": "SCM_MUX_A",
+          "numOutgoingChannels": 8
+        },
+        {
+          "busName": "INCOMING@1",
+          "address": "0x70",
+          "kernelDeviceName": "pca9546",
+          "pmUnitScopedName": "SCM_MUX_B",
+          "numOutgoingChannels": 4
+        },
+        {
+          "busName": "INCOMING@2",
+          "address": "0x35",
+          "kernelDeviceName": "mp3n_scmcpld",
+          "pmUnitScopedName": "SCM_CPLD",
+          "initRegSettings": [
+            {
+              "regOffset": 177,
+              "ioBuf": [2]
+            }
+          ]
+        },
+        {
+          "busName": "SCM_MUX_A@0",
+          "address": "0x44",
+          "kernelDeviceName": "lm25066",
+          "pmUnitScopedName": "SCM_SENSOR"
+        },
+        {
+          "busName": "SCM_MUX_A@1",
+          "address": "0x4c",
+          "kernelDeviceName": "lm75b",
+          "pmUnitScopedName": "SCM_TSENSOR1"
+        },
+        {
+          "busName": "SCM_MUX_A@1",
+          "address": "0x4d",
+          "kernelDeviceName": "lm75b",
+          "pmUnitScopedName": "SCM_TSENSOR2"
+        },
+        {
+          "busName": "SCM_MUX_A@2",
+          "address": "0x37",
+          "kernelDeviceName": "adc128d818",
+          "pmUnitScopedName": "SCM_VOLTAGE_MONITOR1",
+          "initRegSettings": [
+            {
+              "regOffset": 11,
+              "ioBuf": [2]
+            }
+          ]
+        },
+        {
+          "busName": "SCM_MUX_A@3",
+          "address": "0x4c",
+          "kernelDeviceName": "tps25990",
+          "pmUnitScopedName": "SCM_VOLTAGE_MONITOR2"
+        },
+        {
+          "busName": "INCOMING@3",
+          "address": "0x48",
+          "kernelDeviceName": "tmp75",
+          "pmUnitScopedName": "COME_TSENSOR1"
+        },
+        {
+          "busName": "INCOMING@3",
+          "address": "0x4a",
+          "kernelDeviceName": "tmp75",
+          "pmUnitScopedName": "COME_TSENSOR2"
+        }
+      ],
+      "outgoingSlotConfigs": {
+        "RUNBMC_SLOT@0": {
+          "slotType": "RUNBMC_SLOT",
+          "outgoingI2cBusNames": [
+            "SCM_MUX_A@7"
+          ]
+        },
+        "COMESE_SLOT@0": {
+          "slotType": "COMESE_SLOT",
+          "outgoingI2cBusNames": [
+            "SCM_MUX_B@1",
+            "INCOMING@3"
+          ]
+        }
+      }
+    },
+    "MINIPACK3N_BMC": {
+      "pluggedInSlotType": "RUNBMC_SLOT",
+      "i2cDeviceConfigs": [
+        {
+          "busName": "INCOMING@0",
+          "address": "0x4a",
+          "kernelDeviceName": "lm75b",
+          "pmUnitScopedName": "RUNBMC_THERMAL_SENSOR"
+        }
+      ]
+    },
+    "MINIPACK3N_PDB_L": {
+      "pluggedInSlotType": "PDBLEFT_SLOT",
+      "i2cDeviceConfigs": [
+        {
+          "busName": "INCOMING@0",
+          "address": "0x59",
+          "kernelDeviceName": "pmbus",
+          "pmUnitScopedName": "PDB_L_PMBUS"
+        },
+        {
+          "busName": "INCOMING@0",
+          "address": "0x51",
+          "kernelDeviceName": "24c02",
+          "pmUnitScopedName": "PSU1_EEPROM"
+        },
+        {
+          "busName": "INCOMING@0",
+          "address": "0x48",
+          "kernelDeviceName": "tmp1075",
+          "pmUnitScopedName": "PDB_L_TSENSOR"
+        }
+      ]
+    },
+    "MINIPACK3N_PDB_R": {
+      "pluggedInSlotType": "PDBRIGHT_SLOT",
+      "i2cDeviceConfigs": [
+        {
+          "busName": "INCOMING@0",
+          "address": "0x59",
+          "kernelDeviceName": "pmbus",
+          "pmUnitScopedName": "PDB_R_PMBUS"
+        },
+        {
+          "busName": "INCOMING@0",
+          "address": "0x51",
+          "kernelDeviceName": "24c02",
+          "pmUnitScopedName": "PSU2_EEPROM"
+        },
+        {
+          "busName": "INCOMING@0",
+          "address": "0x48",
+          "kernelDeviceName": "tmp1075",
+          "pmUnitScopedName": "PDB_R_TSENSOR"
+        }
+      ]
+    },
+    "MINIPACK3N_SMB": {
+      "pluggedInSlotType": "SMB_SLOT",
+      "i2cDeviceConfigs": [
+        {
+          "busName": "INCOMING@0",
+          "address": "0x62",
+          "kernelDeviceName": "mp2891",
+          "pmUnitScopedName": "SMB_VRM1"
+        },
+        {
+          "busName": "INCOMING@0",
+          "address": "0x66",
+          "kernelDeviceName": "mp2975",
+          "pmUnitScopedName": "SMB_VRM2"
+        },
+        {
+          "busName": "INCOMING@0",
+          "address": "0x6e",
+          "kernelDeviceName": "mp2975",
+          "pmUnitScopedName": "SMB_VRM3"
+        },
+        {
+          "busName": "INCOMING@1",
+          "address": "0x1f",
+          "kernelDeviceName": "adc128d818",
+          "pmUnitScopedName": "SMB_VOLTAGE_MONITOR1",
+          "initRegSettings": [
+            {
+              "regOffset": 11,
+              "ioBuf": [2]
+            }
+          ]
+        },
+        {
+          "busName": "INCOMING@3",
+          "address": "0x3e",
+          "kernelDeviceName": "mp3n_smbcpld",
+          "pmUnitScopedName": "SMB_CPLD"
+        },
+        {
+          "busName": "INCOMING@4",
+          "address": "0x63",
+          "kernelDeviceName": "mp2891",
+          "pmUnitScopedName": "SMB_VRM4"
+        },
+        {
+          "busName": "INCOMING@4",
+          "address": "0x64",
+          "kernelDeviceName": "mp2891",
+          "pmUnitScopedName": "SMB_VRM5"
+        },
+        {
+          "busName": "INCOMING@4",
+          "address": "0x65",
+          "kernelDeviceName": "mp2891",
+          "pmUnitScopedName": "SMB_VRM6"
+        },
+        {
+          "busName": "INCOMING@4",
+          "address": "0x66",
+          "kernelDeviceName": "mp2891",
+          "pmUnitScopedName": "SMB_VRM7"
+        },
+        {
+          "busName": "INCOMING@5",
+          "address": "0x67",
+          "kernelDeviceName": "mp2975",
+          "pmUnitScopedName": "SMB_VRM8"
+        },
+        {
+          "busName": "INCOMING@5",
+          "address": "0x68",
+          "kernelDeviceName": "mp2975",
+          "pmUnitScopedName": "SMB_VRM9"
+        },
+        {
+          "busName": "INCOMING@5",
+          "address": "0x69",
+          "kernelDeviceName": "mp2975",
+          "pmUnitScopedName": "SMB_VRM10"
+        },
+        {
+          "busName": "INCOMING@5",
+          "address": "0x6a",
+          "kernelDeviceName": "mp2975",
+          "pmUnitScopedName": "SMB_VRM11"
+        }
+      ],
+      "outgoingSlotConfigs": {
+        "OPTICL_SLOT@0": {
+          "slotType": "OPTICL_SLOT",
+          "outgoingI2cBusNames": [
+            "INCOMING@6"
+          ]
+        },
+        "OPTICR_SLOT@0": {
+          "slotType": "OPTICR_SLOT",
+          "outgoingI2cBusNames": [
+            "INCOMING@7"
+          ]
+        }
+      }
+    },
+    "MINIPACK3N_FCB_T": {
+      "pluggedInSlotType": "FCBTOP_SLOT",
+      "i2cDeviceConfigs": [
+        {
+          "busName": "INCOMING@0",
+          "address": "0x53",
+          "kernelDeviceName": "24c64",
+          "pmUnitScopedName": "FCB_T_IDPROM"
+        },
+        {
+          "busName": "INCOMING@1",
+          "address": "0x49",
+          "kernelDeviceName": "tmp1075",
+          "pmUnitScopedName": "FCB_T_TSENSOR1"
+        },
+        {
+          "busName": "INCOMING@1",
+          "address": "0x4b",
+          "kernelDeviceName": "tmp1075",
+          "pmUnitScopedName": "FCB_T_TSENSOR2"
+        }
+      ]
+    },
+    "MINIPACK3N_FCB_B": {
+      "pluggedInSlotType": "FCBBOTTOM_SLOT",
+      "i2cDeviceConfigs": [
+        {
+          "busName": "INCOMING@0",
+          "address": "0x49",
+          "kernelDeviceName": "tmp1075",
+          "pmUnitScopedName": "FCB_B_TSENSOR1"
+        },
+        {
+          "busName": "INCOMING@0",
+          "address": "0x4b",
+          "kernelDeviceName": "tmp1075",
+          "pmUnitScopedName": "FCB_B_TSENSOR2"
+        }
+      ]
+    },
+    "NETLAKE": {
+      "pluggedInSlotType": "COMESE_SLOT",
+      "i2cDeviceConfigs": [
+        {
+          "busName": "INCOMING@0",
+          "address": "0x11",
+          "kernelDeviceName": "mp9941",
+          "pmUnitScopedName": "COME_VOLTAGE_MONITOR1"
+        },
+        {
+          "busName": "INCOMING@0",
+          "address": "0x22",
+          "kernelDeviceName": "mp9941",
+          "pmUnitScopedName": "COME_VOLTAGE_MONITOR2"
+        },
+        {
+          "busName": "INCOMING@0",
+          "address": "0x45",
+          "kernelDeviceName": "mp9941",
+          "pmUnitScopedName": "COME_VOLTAGE_MONITOR3"
+        },
+        {
+          "busName": "INCOMING@0",
+          "address": "0x66",
+          "kernelDeviceName": "mp9941",
+          "pmUnitScopedName": "COME_VOLTAGE_MONITOR4"
+        },
+        {
+          "busName": "INCOMING@0",
+          "address": "0x76",
+          "kernelDeviceName": "mp2993",
+          "pmUnitScopedName": "COME_VOLTAGE_MONITOR5"
+        }
+      ]
+    },
+    "3_V_3_L_CARD": {
+      "pluggedInSlotType": "OPTICL_SLOT",
+      "i2cDeviceConfigs": [
+        {
+          "busName": "INCOMING@0",
+          "address": "0x70",
+          "kernelDeviceName": "pmbus",
+          "pmUnitScopedName": "3V3_L_MONITOR"
+        },
+        {
+          "busName": "INCOMING@0",
+          "address": "0x48",
+          "kernelDeviceName": "tmp1075",
+          "pmUnitScopedName": "SMB_TSENSOR1"
+        }
+      ]
+    },
+    "3_V_3_R_CARD": {
+      "pluggedInSlotType": "OPTICR_SLOT",
+      "i2cDeviceConfigs": [
+        {
+          "busName": "INCOMING@0",
+          "address": "0x70",
+          "kernelDeviceName": "pmbus",
+          "pmUnitScopedName": "3V3_R_MONITOR"
+        },
+        {
+          "busName": "INCOMING@0",
+          "address": "0x48",
+          "kernelDeviceName": "tmp1075",
+          "pmUnitScopedName": "SMB_TSENSOR4"
+        }
+      ]
+    }
+  },
+  "symbolicLinkToDevicePath": {
+    "/run/devmap/eeproms/MCB_EEPROM": "/[IDPROM]",
+    "/run/devmap/eeproms/COME_EEPROM": "/SCM_SLOT@0/COMESE_SLOT@0/[IDPROM]",
+    "/run/devmap/eeproms/SCM_EEPROM": "/SCM_SLOT@0/[IDPROM]",
+    "/run/devmap/eeproms/RUNBMC_EEPROM": "/SCM_SLOT@0/RUNBMC_SLOT@0/[IDPROM]",
+    "/run/devmap/eeproms/PSU1_EEPROM": "/PDBLEFT_SLOT@0/[PSU1_EEPROM]",
+    "/run/devmap/eeproms/PSU2_EEPROM": "/PDBRIGHT_SLOT@0/[PSU2_EEPROM]",
+    "/run/devmap/eeproms/PDB_L_EEPROM": "/PDBLEFT_SLOT@0/[IDPROM]",
+    "/run/devmap/eeproms/PDB_R_EEPROM": "/PDBRIGHT_SLOT@0/[IDPROM]",
+    "/run/devmap/eeproms/SMB_EEPROM": "/SMB_SLOT@0/[IDPROM]",
+    "/run/devmap/eeproms/FCB_B_EEPROM": "/FCBBOTTOM_SLOT@0/[IDPROM]",
+    "/run/devmap/eeproms/FCB_T_EEPROM": "/FCBTOP_SLOT@0/[IDPROM]",
+    "/run/devmap/eeproms/CHASSIS_EEPROM": "/FCBTOP_SLOT@0/[FCB_T_IDPROM]",
+    "/run/devmap/eeproms/3V3_L_EEPROM": "/SMB_SLOT@0/OPTICL_SLOT@0/[IDPROM]",
+    "/run/devmap/eeproms/3V3_R_EEPROM": "/SMB_SLOT@0/OPTICR_SLOT@0/[IDPROM]",
+    "/run/devmap/sensors/CPU_CORE_TEMP": "/[CPU_CORE_TEMP]",
+    "/run/devmap/sensors/SCM_M2_SSD_TEMP": "/SCM_SLOT@0/[SCM_M2_SSD_TEMP]",
+    "/run/devmap/sensors/MCB_TSENSOR": "/[MCB_TSENSOR]",
+    "/run/devmap/sensors/MCB_FAN_CPLD": "/[MCB_FAN_CPLD]",
+    "/run/devmap/sensors/MCB_VOLTAGE_MONITOR1": "/[MCB_VOLTAGE_MONITOR1]",
+    "/run/devmap/sensors/MCB_VOLTAGE_MONITOR2": "/[MCB_VOLTAGE_MONITOR2]",
+    "/run/devmap/sensors/MCB_VOLTAGE_MONITOR3": "/[MCB_VOLTAGE_MONITOR3]",
+    "/run/devmap/sensors/MCB_VOLTAGE_MONITOR4": "/[MCB_VOLTAGE_MONITOR4]",
+    "/run/devmap/sensors/MCB_VOLTAGE_MONITOR5": "/[MCB_VOLTAGE_MONITOR5]",
+    "/run/devmap/sensors/MCB_VOLTAGE_MONITOR6": "/[MCB_VOLTAGE_MONITOR6]",
+    "/run/devmap/sensors/MCB_VOLTAGE_MONITOR7": "/[MCB_VOLTAGE_MONITOR7]",
+    "/run/devmap/sensors/MCB_VOLTAGE_MONITOR8": "/[MCB_VOLTAGE_MONITOR8]",
+    "/run/devmap/sensors/MCB_VOLTAGE_MONITOR9": "/[MCB_VOLTAGE_MONITOR9]",
+    "/run/devmap/sensors/SCM_SENSOR": "/SCM_SLOT@0/[SCM_SENSOR]",
+    "/run/devmap/sensors/SCM_TSENSOR1": "/SCM_SLOT@0/[SCM_TSENSOR1]",
+    "/run/devmap/sensors/SCM_TSENSOR2": "/SCM_SLOT@0/[SCM_TSENSOR2]",
+    "/run/devmap/sensors/SCM_VOLTAGE_MONITOR1": "/SCM_SLOT@0/[SCM_VOLTAGE_MONITOR1]",
+    "/run/devmap/sensors/SCM_VOLTAGE_MONITOR2": "/SCM_SLOT@0/[SCM_VOLTAGE_MONITOR2]",
+    "/run/devmap/sensors/RUNBMC_THERMAL_SENSOR": "/SCM_SLOT@0/RUNBMC_SLOT@0/[RUNBMC_THERMAL_SENSOR]",
+    "/run/devmap/sensors/PDB_L_PMBUS": "/PDBLEFT_SLOT@0/[PDB_L_PMBUS]",
+    "/run/devmap/sensors/PDB_L_TSENSOR": "/PDBLEFT_SLOT@0/[PDB_L_TSENSOR]",
+    "/run/devmap/sensors/PDB_R_PMBUS": "/PDBRIGHT_SLOT@0/[PDB_R_PMBUS]",
+    "/run/devmap/sensors/PDB_R_TSENSOR": "/PDBRIGHT_SLOT@0/[PDB_R_TSENSOR]",
+    "/run/devmap/sensors/SMB_VRM1": "/SMB_SLOT@0/[SMB_VRM1]",
+    "/run/devmap/sensors/SMB_VOLTAGE_MONITOR1": "/SMB_SLOT@0/[SMB_VOLTAGE_MONITOR1]",
+    "/run/devmap/sensors/SMB_CPLD": "/SMB_SLOT@0/[SMB_CPLD]",
+    "/run/devmap/sensors/SMB_VRM2": "/SMB_SLOT@0/[SMB_VRM2]",
+    "/run/devmap/sensors/SMB_VRM3": "/SMB_SLOT@0/[SMB_VRM3]",
+    "/run/devmap/sensors/SMB_VRM4": "/SMB_SLOT@0/[SMB_VRM4]",
+    "/run/devmap/sensors/SMB_VRM5": "/SMB_SLOT@0/[SMB_VRM5]",
+    "/run/devmap/sensors/SMB_VRM6": "/SMB_SLOT@0/[SMB_VRM6]",
+    "/run/devmap/sensors/SMB_VRM7": "/SMB_SLOT@0/[SMB_VRM7]",
+    "/run/devmap/sensors/SMB_VRM8": "/SMB_SLOT@0/[SMB_VRM8]",
+    "/run/devmap/sensors/SMB_VRM9": "/SMB_SLOT@0/[SMB_VRM9]",
+    "/run/devmap/sensors/SMB_VRM10": "/SMB_SLOT@0/[SMB_VRM10]",
+    "/run/devmap/sensors/SMB_VRM11": "/SMB_SLOT@0/[SMB_VRM11]",
+    "/run/devmap/sensors/3V3_L_MONITOR": "/SMB_SLOT@0/OPTICL_SLOT@0/[3V3_L_MONITOR]",
+    "/run/devmap/sensors/SMB_TSENSOR1": "/SMB_SLOT@0/OPTICL_SLOT@0/[SMB_TSENSOR1]",
+    "/run/devmap/sensors/SMB_TSENSOR2": "/[SMB_TSENSOR2]",
+    "/run/devmap/sensors/SMB_TSENSOR3": "/[SMB_TSENSOR3]",
+    "/run/devmap/sensors/3V3_R_MONITOR": "/SMB_SLOT@0/OPTICR_SLOT@0/[3V3_R_MONITOR]",
+    "/run/devmap/sensors/SMB_TSENSOR4": "/SMB_SLOT@0/OPTICR_SLOT@0/[SMB_TSENSOR4]",
+    "/run/devmap/sensors/SMB_TSENSOR5": "/[SMB_TSENSOR5]",
+    "/run/devmap/sensors/SMB_TSENSOR6": "/[SMB_TSENSOR6]",
+    "/run/devmap/sensors/FCB_T_TSENSOR1": "/FCBTOP_SLOT@0/[FCB_T_TSENSOR1]",
+    "/run/devmap/sensors/FCB_T_TSENSOR2": "/FCBTOP_SLOT@0/[FCB_T_TSENSOR2]",
+    "/run/devmap/sensors/FCB_B_TSENSOR1": "/FCBBOTTOM_SLOT@0/[FCB_B_TSENSOR1]",
+    "/run/devmap/sensors/FCB_B_TSENSOR2": "/FCBBOTTOM_SLOT@0/[FCB_B_TSENSOR2]",
+    "/run/devmap/sensors/COME_TSENSOR1": "/SCM_SLOT@0/[COME_TSENSOR1]",
+    "/run/devmap/sensors/COME_TSENSOR2": "/SCM_SLOT@0/[COME_TSENSOR2]",
+    "/run/devmap/sensors/COME_VOLTAGE_MONITOR1": "/SCM_SLOT@0/COMESE_SLOT@0/[COME_VOLTAGE_MONITOR1]",
+    "/run/devmap/sensors/COME_VOLTAGE_MONITOR2": "/SCM_SLOT@0/COMESE_SLOT@0/[COME_VOLTAGE_MONITOR2]",
+    "/run/devmap/sensors/COME_VOLTAGE_MONITOR3": "/SCM_SLOT@0/COMESE_SLOT@0/[COME_VOLTAGE_MONITOR3]",
+    "/run/devmap/sensors/COME_VOLTAGE_MONITOR4": "/SCM_SLOT@0/COMESE_SLOT@0/[COME_VOLTAGE_MONITOR4]",
+    "/run/devmap/sensors/COME_VOLTAGE_MONITOR5": "/SCM_SLOT@0/COMESE_SLOT@0/[COME_VOLTAGE_MONITOR5]",
+    "/run/devmap/cplds/MCB_CPLD": "/[MCB_CPLD]",
+    "/run/devmap/cplds/SCM_CPLD": "/SCM_SLOT@0/[SCM_CPLD]",
+    "/run/devmap/cplds/SMB_CPLD": "/SMB_SLOT@0/[SMB_CPLD]",
+    "/run/devmap/fpgas/MCB_IOB_INFO_ROM": "/[MCB_IOB_INFO_ROM]",
+    "/run/devmap/fpgas/SMB_DOM1_INFO_ROM": "/[SMB_DOM1_INFO_ROM]",
+    "/run/devmap/fpgas/SMB_DOM2_INFO_ROM": "/[SMB_DOM2_INFO_ROM]",
+    "/run/devmap/watchdogs/FAN_WATCHDOG": "/[MCB_FAN_CPLD]",
+    "/run/devmap/i2c-busses/MCB_IOB_I2C_MASTER_1": "/[MCB_IOB_I2C_MASTER_1]",
+    "/run/devmap/i2c-busses/MCB_IOB_I2C_MASTER_2": "/[MCB_IOB_I2C_MASTER_2]",
+    "/run/devmap/i2c-busses/MCB_IOB_I2C_MASTER_3": "/[MCB_IOB_I2C_MASTER_3]",
+    "/run/devmap/i2c-busses/MCB_IOB_I2C_MASTER_4": "/[MCB_IOB_I2C_MASTER_4]",
+    "/run/devmap/i2c-busses/MCB_IOB_I2C_MASTER_5": "/[MCB_IOB_I2C_MASTER_5]",
+    "/run/devmap/i2c-busses/MCB_IOB_I2C_MASTER_6": "/[MCB_IOB_I2C_MASTER_6]",
+    "/run/devmap/i2c-busses/MCB_IOB_I2C_MASTER_7": "/[MCB_IOB_I2C_MASTER_7]",
+    "/run/devmap/i2c-busses/MCB_IOB_I2C_MASTER_8": "/[MCB_IOB_I2C_MASTER_8]",
+    "/run/devmap/i2c-busses/MCB_IOB_I2C_MASTER_9": "/[MCB_IOB_I2C_MASTER_9]",
+    "/run/devmap/i2c-busses/MCB_IOB_I2C_MASTER_10": "/[MCB_IOB_I2C_MASTER_10]",
+    "/run/devmap/i2c-busses/MCB_IOB_I2C_MASTER_11": "/[MCB_IOB_I2C_MASTER_11]",
+    "/run/devmap/i2c-busses/MCB_IOB_I2C_MASTER_12": "/[MCB_IOB_I2C_MASTER_12]",
+    "/run/devmap/i2c-busses/MCB_IOB_I2C_MASTER_13": "/[MCB_IOB_I2C_MASTER_13]",
+    "/run/devmap/i2c-busses/MCB_IOB_I2C_MASTER_14": "/[MCB_IOB_I2C_MASTER_14]",
+    "/run/devmap/i2c-busses/MCB_IOB_I2C_MASTER_15": "/[MCB_IOB_I2C_MASTER_15]",
+    "/run/devmap/i2c-busses/MCB_IOB_I2C_MASTER_16": "/[MCB_IOB_I2C_MASTER_16]",
+    "/run/devmap/i2c-busses/MCB_IOB_I2C_MASTER_17": "/[MCB_IOB_I2C_MASTER_17]",
+    "/run/devmap/i2c-busses/MCB_IOB_I2C_MASTER_18": "/[MCB_IOB_I2C_MASTER_18]",
+    "/run/devmap/i2c-busses/MCB_IOB_I2C_MASTER_19": "/[MCB_IOB_I2C_MASTER_19]",
+    "/run/devmap/i2c-busses/MCB_IOB_I2C_MASTER_20": "/[MCB_IOB_I2C_MASTER_20]",
+    "/run/devmap/i2c-busses/MCB_IOB_I2C_MASTER_21": "/[MCB_IOB_I2C_MASTER_21]",
+    "/run/devmap/i2c-busses/MCB_IOB_I2C_MASTER_22": "/[MCB_IOB_I2C_MASTER_22]",
+    "/run/devmap/i2c-busses/MCB_IOB_I2C_MASTER_23": "/[MCB_IOB_I2C_MASTER_23]",
+    "/run/devmap/i2c-busses/MCB_IOB_I2C_MASTER_24": "/[MCB_IOB_I2C_MASTER_24]",
+    "/run/devmap/i2c-busses/MCB_IOB_I2C_MASTER_25": "/[MCB_IOB_I2C_MASTER_25]",
+    "/run/devmap/i2c-busses/MCB_IOB_I2C_MASTER_26": "/[MCB_IOB_I2C_MASTER_26]",
+    "/run/devmap/i2c-busses/MCB_IOB_I2C_MASTER_27": "/[MCB_IOB_I2C_MASTER_27]",
+    "/run/devmap/i2c-busses/XCVR_1": "/[SMB_DOM1_I2C_MASTER_1]",
+    "/run/devmap/i2c-busses/XCVR_2": "/[SMB_DOM1_I2C_MASTER_2]",
+    "/run/devmap/i2c-busses/XCVR_3": "/[SMB_DOM1_I2C_MASTER_3]",
+    "/run/devmap/i2c-busses/XCVR_4": "/[SMB_DOM1_I2C_MASTER_4]",
+    "/run/devmap/i2c-busses/XCVR_5": "/[SMB_DOM1_I2C_MASTER_5]",
+    "/run/devmap/i2c-busses/XCVR_6": "/[SMB_DOM1_I2C_MASTER_6]",
+    "/run/devmap/i2c-busses/XCVR_7": "/[SMB_DOM1_I2C_MASTER_7]",
+    "/run/devmap/i2c-busses/XCVR_8": "/[SMB_DOM1_I2C_MASTER_8]",
+    "/run/devmap/i2c-busses/XCVR_9": "/[SMB_DOM1_I2C_MASTER_9]",
+    "/run/devmap/i2c-busses/XCVR_10": "/[SMB_DOM1_I2C_MASTER_10]",
+    "/run/devmap/i2c-busses/XCVR_11": "/[SMB_DOM1_I2C_MASTER_11]",
+    "/run/devmap/i2c-busses/XCVR_12": "/[SMB_DOM1_I2C_MASTER_12]",
+    "/run/devmap/i2c-busses/XCVR_13": "/[SMB_DOM1_I2C_MASTER_13]",
+    "/run/devmap/i2c-busses/XCVR_14": "/[SMB_DOM1_I2C_MASTER_14]",
+    "/run/devmap/i2c-busses/XCVR_15": "/[SMB_DOM1_I2C_MASTER_15]",
+    "/run/devmap/i2c-busses/XCVR_16": "/[SMB_DOM1_I2C_MASTER_16]",
+    "/run/devmap/i2c-busses/XCVR_17": "/[SMB_DOM1_I2C_MASTER_17]",
+    "/run/devmap/i2c-busses/XCVR_18": "/[SMB_DOM1_I2C_MASTER_18]",
+    "/run/devmap/i2c-busses/XCVR_19": "/[SMB_DOM1_I2C_MASTER_19]",
+    "/run/devmap/i2c-busses/XCVR_20": "/[SMB_DOM1_I2C_MASTER_20]",
+    "/run/devmap/i2c-busses/XCVR_21": "/[SMB_DOM1_I2C_MASTER_21]",
+    "/run/devmap/i2c-busses/XCVR_22": "/[SMB_DOM1_I2C_MASTER_22]",
+    "/run/devmap/i2c-busses/XCVR_23": "/[SMB_DOM1_I2C_MASTER_23]",
+    "/run/devmap/i2c-busses/XCVR_24": "/[SMB_DOM1_I2C_MASTER_24]",
+    "/run/devmap/i2c-busses/XCVR_25": "/[SMB_DOM1_I2C_MASTER_25]",
+    "/run/devmap/i2c-busses/XCVR_26": "/[SMB_DOM1_I2C_MASTER_26]",
+    "/run/devmap/i2c-busses/XCVR_27": "/[SMB_DOM1_I2C_MASTER_27]",
+    "/run/devmap/i2c-busses/XCVR_28": "/[SMB_DOM1_I2C_MASTER_28]",
+    "/run/devmap/i2c-busses/XCVR_29": "/[SMB_DOM1_I2C_MASTER_29]",
+    "/run/devmap/i2c-busses/XCVR_30": "/[SMB_DOM1_I2C_MASTER_30]",
+    "/run/devmap/i2c-busses/XCVR_31": "/[SMB_DOM1_I2C_MASTER_31]",
+    "/run/devmap/i2c-busses/XCVR_32": "/[SMB_DOM1_I2C_MASTER_32]",
+    "/run/devmap/i2c-busses/SMB_DOM1_I2C_MASTER_33": "/[SMB_DOM1_I2C_MASTER_33]",
+    "/run/devmap/i2c-busses/SMB_DOM1_I2C_MASTER_34": "/[SMB_DOM1_I2C_MASTER_34]",
+    "/run/devmap/i2c-busses/XCVR_33": "/[SMB_DOM2_I2C_MASTER_1]",
+    "/run/devmap/i2c-busses/XCVR_34": "/[SMB_DOM2_I2C_MASTER_2]",
+    "/run/devmap/i2c-busses/XCVR_35": "/[SMB_DOM2_I2C_MASTER_3]",
+    "/run/devmap/i2c-busses/XCVR_36": "/[SMB_DOM2_I2C_MASTER_4]",
+    "/run/devmap/i2c-busses/XCVR_37": "/[SMB_DOM2_I2C_MASTER_5]",
+    "/run/devmap/i2c-busses/XCVR_38": "/[SMB_DOM2_I2C_MASTER_6]",
+    "/run/devmap/i2c-busses/XCVR_39": "/[SMB_DOM2_I2C_MASTER_7]",
+    "/run/devmap/i2c-busses/XCVR_40": "/[SMB_DOM2_I2C_MASTER_8]",
+    "/run/devmap/i2c-busses/XCVR_41": "/[SMB_DOM2_I2C_MASTER_9]",
+    "/run/devmap/i2c-busses/XCVR_42": "/[SMB_DOM2_I2C_MASTER_10]",
+    "/run/devmap/i2c-busses/XCVR_43": "/[SMB_DOM2_I2C_MASTER_11]",
+    "/run/devmap/i2c-busses/XCVR_44": "/[SMB_DOM2_I2C_MASTER_12]",
+    "/run/devmap/i2c-busses/XCVR_45": "/[SMB_DOM2_I2C_MASTER_13]",
+    "/run/devmap/i2c-busses/XCVR_46": "/[SMB_DOM2_I2C_MASTER_14]",
+    "/run/devmap/i2c-busses/XCVR_47": "/[SMB_DOM2_I2C_MASTER_15]",
+    "/run/devmap/i2c-busses/XCVR_48": "/[SMB_DOM2_I2C_MASTER_16]",
+    "/run/devmap/i2c-busses/XCVR_49": "/[SMB_DOM2_I2C_MASTER_17]",
+    "/run/devmap/i2c-busses/XCVR_50": "/[SMB_DOM2_I2C_MASTER_18]",
+    "/run/devmap/i2c-busses/XCVR_51": "/[SMB_DOM2_I2C_MASTER_19]",
+    "/run/devmap/i2c-busses/XCVR_52": "/[SMB_DOM2_I2C_MASTER_20]",
+    "/run/devmap/i2c-busses/XCVR_53": "/[SMB_DOM2_I2C_MASTER_21]",
+    "/run/devmap/i2c-busses/XCVR_54": "/[SMB_DOM2_I2C_MASTER_22]",
+    "/run/devmap/i2c-busses/XCVR_55": "/[SMB_DOM2_I2C_MASTER_23]",
+    "/run/devmap/i2c-busses/XCVR_56": "/[SMB_DOM2_I2C_MASTER_24]",
+    "/run/devmap/i2c-busses/XCVR_57": "/[SMB_DOM2_I2C_MASTER_25]",
+    "/run/devmap/i2c-busses/XCVR_58": "/[SMB_DOM2_I2C_MASTER_26]",
+    "/run/devmap/i2c-busses/XCVR_59": "/[SMB_DOM2_I2C_MASTER_27]",
+    "/run/devmap/i2c-busses/XCVR_60": "/[SMB_DOM2_I2C_MASTER_28]",
+    "/run/devmap/i2c-busses/XCVR_61": "/[SMB_DOM2_I2C_MASTER_29]",
+    "/run/devmap/i2c-busses/XCVR_62": "/[SMB_DOM2_I2C_MASTER_30]",
+    "/run/devmap/i2c-busses/XCVR_63": "/[SMB_DOM2_I2C_MASTER_31]",
+    "/run/devmap/i2c-busses/XCVR_64": "/[SMB_DOM2_I2C_MASTER_32]",
+    "/run/devmap/i2c-busses/XCVR_65": "/[SMB_DOM2_I2C_MASTER_35]",
+    "/run/devmap/i2c-busses/SMB_DOM2_I2C_MASTER_33": "/[SMB_DOM2_I2C_MASTER_33]",
+    "/run/devmap/i2c-busses/SMB_DOM2_I2C_MASTER_34": "/[SMB_DOM2_I2C_MASTER_34]",
+    "/run/devmap/gpiochips/MCB_GPIO_CHIP_1": "/[MCB_GPIO_CHIP_1]",
+    "/run/devmap/xcvrs/xcvr_1": "/[SMB_DOM1_XCVR_CTRL_PORT_1]",
+    "/run/devmap/xcvrs/xcvr_2": "/[SMB_DOM1_XCVR_CTRL_PORT_2]",
+    "/run/devmap/xcvrs/xcvr_3": "/[SMB_DOM1_XCVR_CTRL_PORT_3]",
+    "/run/devmap/xcvrs/xcvr_4": "/[SMB_DOM1_XCVR_CTRL_PORT_4]",
+    "/run/devmap/xcvrs/xcvr_5": "/[SMB_DOM1_XCVR_CTRL_PORT_5]",
+    "/run/devmap/xcvrs/xcvr_6": "/[SMB_DOM1_XCVR_CTRL_PORT_6]",
+    "/run/devmap/xcvrs/xcvr_7": "/[SMB_DOM1_XCVR_CTRL_PORT_7]",
+    "/run/devmap/xcvrs/xcvr_8": "/[SMB_DOM1_XCVR_CTRL_PORT_8]",
+    "/run/devmap/xcvrs/xcvr_9": "/[SMB_DOM1_XCVR_CTRL_PORT_9]",
+    "/run/devmap/xcvrs/xcvr_10": "/[SMB_DOM1_XCVR_CTRL_PORT_10]",
+    "/run/devmap/xcvrs/xcvr_11": "/[SMB_DOM1_XCVR_CTRL_PORT_11]",
+    "/run/devmap/xcvrs/xcvr_12": "/[SMB_DOM1_XCVR_CTRL_PORT_12]",
+    "/run/devmap/xcvrs/xcvr_13": "/[SMB_DOM1_XCVR_CTRL_PORT_13]",
+    "/run/devmap/xcvrs/xcvr_14": "/[SMB_DOM1_XCVR_CTRL_PORT_14]",
+    "/run/devmap/xcvrs/xcvr_15": "/[SMB_DOM1_XCVR_CTRL_PORT_15]",
+    "/run/devmap/xcvrs/xcvr_16": "/[SMB_DOM1_XCVR_CTRL_PORT_16]",
+    "/run/devmap/xcvrs/xcvr_17": "/[SMB_DOM1_XCVR_CTRL_PORT_17]",
+    "/run/devmap/xcvrs/xcvr_18": "/[SMB_DOM1_XCVR_CTRL_PORT_18]",
+    "/run/devmap/xcvrs/xcvr_19": "/[SMB_DOM1_XCVR_CTRL_PORT_19]",
+    "/run/devmap/xcvrs/xcvr_20": "/[SMB_DOM1_XCVR_CTRL_PORT_20]",
+    "/run/devmap/xcvrs/xcvr_21": "/[SMB_DOM1_XCVR_CTRL_PORT_21]",
+    "/run/devmap/xcvrs/xcvr_22": "/[SMB_DOM1_XCVR_CTRL_PORT_22]",
+    "/run/devmap/xcvrs/xcvr_23": "/[SMB_DOM1_XCVR_CTRL_PORT_23]",
+    "/run/devmap/xcvrs/xcvr_24": "/[SMB_DOM1_XCVR_CTRL_PORT_24]",
+    "/run/devmap/xcvrs/xcvr_25": "/[SMB_DOM1_XCVR_CTRL_PORT_25]",
+    "/run/devmap/xcvrs/xcvr_26": "/[SMB_DOM1_XCVR_CTRL_PORT_26]",
+    "/run/devmap/xcvrs/xcvr_27": "/[SMB_DOM1_XCVR_CTRL_PORT_27]",
+    "/run/devmap/xcvrs/xcvr_28": "/[SMB_DOM1_XCVR_CTRL_PORT_28]",
+    "/run/devmap/xcvrs/xcvr_29": "/[SMB_DOM1_XCVR_CTRL_PORT_29]",
+    "/run/devmap/xcvrs/xcvr_30": "/[SMB_DOM1_XCVR_CTRL_PORT_30]",
+    "/run/devmap/xcvrs/xcvr_31": "/[SMB_DOM1_XCVR_CTRL_PORT_31]",
+    "/run/devmap/xcvrs/xcvr_32": "/[SMB_DOM1_XCVR_CTRL_PORT_32]",
+    "/run/devmap/xcvrs/xcvr_33": "/[SMB_DOM2_XCVR_CTRL_PORT_33]",
+    "/run/devmap/xcvrs/xcvr_34": "/[SMB_DOM2_XCVR_CTRL_PORT_34]",
+    "/run/devmap/xcvrs/xcvr_35": "/[SMB_DOM2_XCVR_CTRL_PORT_35]",
+    "/run/devmap/xcvrs/xcvr_36": "/[SMB_DOM2_XCVR_CTRL_PORT_36]",
+    "/run/devmap/xcvrs/xcvr_37": "/[SMB_DOM2_XCVR_CTRL_PORT_37]",
+    "/run/devmap/xcvrs/xcvr_38": "/[SMB_DOM2_XCVR_CTRL_PORT_38]",
+    "/run/devmap/xcvrs/xcvr_39": "/[SMB_DOM2_XCVR_CTRL_PORT_39]",
+    "/run/devmap/xcvrs/xcvr_40": "/[SMB_DOM2_XCVR_CTRL_PORT_40]",
+    "/run/devmap/xcvrs/xcvr_41": "/[SMB_DOM2_XCVR_CTRL_PORT_41]",
+    "/run/devmap/xcvrs/xcvr_42": "/[SMB_DOM2_XCVR_CTRL_PORT_42]",
+    "/run/devmap/xcvrs/xcvr_43": "/[SMB_DOM2_XCVR_CTRL_PORT_43]",
+    "/run/devmap/xcvrs/xcvr_44": "/[SMB_DOM2_XCVR_CTRL_PORT_44]",
+    "/run/devmap/xcvrs/xcvr_45": "/[SMB_DOM2_XCVR_CTRL_PORT_45]",
+    "/run/devmap/xcvrs/xcvr_46": "/[SMB_DOM2_XCVR_CTRL_PORT_46]",
+    "/run/devmap/xcvrs/xcvr_47": "/[SMB_DOM2_XCVR_CTRL_PORT_47]",
+    "/run/devmap/xcvrs/xcvr_48": "/[SMB_DOM2_XCVR_CTRL_PORT_48]",
+    "/run/devmap/xcvrs/xcvr_49": "/[SMB_DOM2_XCVR_CTRL_PORT_49]",
+    "/run/devmap/xcvrs/xcvr_50": "/[SMB_DOM2_XCVR_CTRL_PORT_50]",
+    "/run/devmap/xcvrs/xcvr_51": "/[SMB_DOM2_XCVR_CTRL_PORT_51]",
+    "/run/devmap/xcvrs/xcvr_52": "/[SMB_DOM2_XCVR_CTRL_PORT_52]",
+    "/run/devmap/xcvrs/xcvr_53": "/[SMB_DOM2_XCVR_CTRL_PORT_53]",
+    "/run/devmap/xcvrs/xcvr_54": "/[SMB_DOM2_XCVR_CTRL_PORT_54]",
+    "/run/devmap/xcvrs/xcvr_55": "/[SMB_DOM2_XCVR_CTRL_PORT_55]",
+    "/run/devmap/xcvrs/xcvr_56": "/[SMB_DOM2_XCVR_CTRL_PORT_56]",
+    "/run/devmap/xcvrs/xcvr_57": "/[SMB_DOM2_XCVR_CTRL_PORT_57]",
+    "/run/devmap/xcvrs/xcvr_58": "/[SMB_DOM2_XCVR_CTRL_PORT_58]",
+    "/run/devmap/xcvrs/xcvr_59": "/[SMB_DOM2_XCVR_CTRL_PORT_59]",
+    "/run/devmap/xcvrs/xcvr_60": "/[SMB_DOM2_XCVR_CTRL_PORT_60]",
+    "/run/devmap/xcvrs/xcvr_61": "/[SMB_DOM2_XCVR_CTRL_PORT_61]",
+    "/run/devmap/xcvrs/xcvr_62": "/[SMB_DOM2_XCVR_CTRL_PORT_62]",
+    "/run/devmap/xcvrs/xcvr_63": "/[SMB_DOM2_XCVR_CTRL_PORT_63]",
+    "/run/devmap/xcvrs/xcvr_64": "/[SMB_DOM2_XCVR_CTRL_PORT_64]",
+    "/run/devmap/xcvrs/xcvr_65": "/[SMB_DOM2_XCVR_CTRL_PORT_65]",
+    "/run/devmap/flashes/MCB_SPI_MASTER_1_DEVICE_1": "/[MCB_SPI_MASTER_1_DEVICE_1]",
+    "/run/devmap/flashes/MCB_SPI_MASTER_2_DEVICE_1": "/[MCB_SPI_MASTER_2_DEVICE_1]",
+    "/run/devmap/flashes/MCB_SPI_MASTER_3_DEVICE_1": "/[MCB_SPI_MASTER_3_DEVICE_1]",
+    "/run/devmap/flashes/MCB_SPI_MASTER_4_DEVICE_1": "/[MCB_SPI_MASTER_4_DEVICE_1]",
+    "/run/devmap/flashes/MCB_SPI_MASTER_5_DEVICE_1": "/[MCB_SPI_MASTER_5_DEVICE_1]",
+    "/run/devmap/flashes/MCB_SPI_MASTER_6_DEVICE_1": "/[MCB_SPI_MASTER_6_DEVICE_1]",
+    "/run/devmap/flashes/MCB_SPI_MASTER_7_DEVICE_1": "/[MCB_SPI_MASTER_7_DEVICE_1]"
+  },
+  "bspKmodsRpmName": "fboss_bsp_kmods",
+  "bspKmodsRpmVersion": "2.4.0-1",
+  "requiredKmodsToLoad": [
+    "i2c_i801",
+    "spidev",
+    "fboss_iob_pci"
+  ]
+}
