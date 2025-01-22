@@ -180,6 +180,8 @@ class HwSwitchFb303Stats {
   int64_t getFdaFifoOverflowErrors() const;
   int64_t getForwardingQueueProcessorErrors() const;
   int64_t getAllReassemblyContextsTakenError() const;
+  // FW Errors
+  int64_t getIsolationFirmwareCrashes() const;
 
   // Switch drops
   int64_t getPacketIntegrityDrops() const;
