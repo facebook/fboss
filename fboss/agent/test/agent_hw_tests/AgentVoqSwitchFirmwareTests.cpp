@@ -91,6 +91,14 @@ class AgentVoqSwitchIsolationFirmwareTest : public AgentVoqSwitchTest {
       getAgentEnsemble()->runDiagCommand("quit\n", out, switchId);
     }
   }
+  void forceCrash(int delay = 1) {
+    std::stringstream ss;
+    ss << "edk -c fi crash 0 5 " << delay << std::endl;
+    for (const auto& switchId : getSw()->getHwAsicTable()->getSwitchIDs()) {
+      std::string out;
+      getAgentEnsemble()->runDiagCommand(ss.str(), out, switchId);
+    }
+  }
 
  private:
   void setCmdLineFlagOverrides() const override {
@@ -121,4 +129,16 @@ TEST_F(AgentVoqSwitchIsolationFirmwareTest, forceIsolate) {
   verifyAcrossWarmBoots(setup, verify);
 }
 
+TEST_F(AgentVoqSwitchIsolationFirmwareTest, forceCrash) {
+  auto setup = [this]() {
+    assertPortAndDrainState(false /* not drained*/);
+    setMinLinksConfig();
+  };
+
+  auto verify = [this]() {
+    forceCrash();
+    // TODO - check crash count
+  };
+  verifyAcrossWarmBoots(setup, verify);
+}
 } // namespace facebook::fboss
