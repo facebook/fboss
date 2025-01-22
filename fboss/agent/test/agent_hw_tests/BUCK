@@ -1,6 +1,6 @@
 load("@fbcode_macros//build_defs:cpp_binary.bzl", "cpp_binary")
 load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
-load("//fboss:THIRD-PARTY-VERSIONS.bzl", "BCM_SDKS", "to_impl_suffix", "to_versions")
+load("//fboss:THIRD-PARTY-VERSIONS.bzl", "BCM_SDKS", "SAI_BRCM_DNX_IMPLS", "to_impl_suffix", "to_versions")
 load("//fboss/agent/hw/sai/impl:impl.bzl", "SAI_BRCM_IMPLS", "SAI_LEABA_IMPLS", "SAI_NVIDIA_IMPLS", "get_link_group_map", "to_impl_bin_name", "to_impl_lib_name")
 load("//fboss/agent/hw/sai/switch:switch.bzl", "sai_switch_dependent_name")
 
@@ -313,4 +313,35 @@ _sai_agent_scale_test_prefix = "sai_agent_scale_test"
         ] + (["//fboss/agent/platforms/sai:bcm-required-symbols"] if sai_impl.name == "fake" or sai_impl.name == "leaba" else []),
     )
     for sai_impl in SAI_BRCM_IMPLS + SAI_LEABA_IMPLS + SAI_NVIDIA_IMPLS
+]
+
+_sai_agent_multi_node_test_prefix = "sai_agent_multi_node"
+
+[
+    cpp_binary(
+        name = to_impl_bin_name(sai_impl, _sai_agent_multi_node_test_prefix),
+        srcs = [
+            "SaiAgentHwTest.cpp",
+        ],
+        link_group_map = get_link_group_map(
+            to_impl_bin_name(sai_impl, _sai_agent_multi_node_test_prefix),
+            sai_impl,
+        ),
+        linker_flags = [
+            "--export-dynamic",
+            "--unresolved-symbols=ignore-all",
+        ] if sai_impl.name == "nv_sai_sdk" else [],
+        versions = {
+            sai_impl.sdk_name: sai_impl.version,
+        },
+        deps = [
+            "fbsource//third-party/googletest:gtest",
+            ":agent_multi_node_src",
+            "//fboss/agent:main-sai-{}".format(to_impl_lib_name(sai_impl)),
+            "//fboss/agent/platforms/sai:{}".format(sai_switch_dependent_name("sai_platform", sai_impl, True)),
+            "//fboss/agent/test:mono_agent_ensemble",
+            "//fboss/agent/hw/sai/hw_test:{}".format(sai_switch_dependent_name("agent_hw_test_thrift_handler", sai_impl, True)),
+        ] + (["//fboss/agent/platforms/sai:bcm-required-symbols"] if sai_impl.name == "fake" or sai_impl.name == "leaba" else []),
+    )
+    for sai_impl in SAI_BRCM_DNX_IMPLS
 ]
