@@ -31,10 +31,11 @@ class MirrorOnDropReport : public ThriftStructNode<
       int16_t mtu,
       int16_t truncateSize,
       uint8_t dscp,
-      std::optional<int32_t> agingIntervalUsecs,
       std::string switchMac,
       std::string firstInterfaceMac,
-      std::map<int8_t, cfg::MirrorOnDropEventConfig> modEventToConfigMap);
+      std::map<int8_t, cfg::MirrorOnDropEventConfig> modEventToConfigMap,
+      std::map<cfg::MirrorOnDropAgingGroup, int32_t>
+          agingGroupAgingIntervalUsecs);
 
   std::string getID() const;
   PortID getMirrorPortId() const;
@@ -46,10 +47,11 @@ class MirrorOnDropReport : public ThriftStructNode<
   int16_t getMtu() const;
   int16_t getTruncateSize() const;
   uint8_t getDscp() const;
-  std::optional<uint32_t> getAgingIntervalUsecs() const;
   std::string getSwitchMac() const;
   std::string getFirstInterfaceMac() const;
   std::map<int8_t, cfg::MirrorOnDropEventConfig> getModEventToConfigMap() const;
+  std::map<cfg::MirrorOnDropAgingGroup, int32_t>
+  getAgingGroupAgingIntervalUsecs() const;
 
  private:
   // Inherit the constructors required for clone()

@@ -5510,12 +5510,6 @@ ThriftConfigApplier::createMirrorOnDropReport(
       ? folly::IPAddress(getSwitchIntfIP(new_, InterfaceID(systemPortId)))
       : folly::IPAddress(getSwitchIntfIPv6(new_, InterfaceID(systemPortId)));
 
-  uint8_t dscp = *config->dscp();
-  std::optional<int32_t> agingIntervalUsecs;
-  if (config->agingIntervalUsecs().has_value()) {
-    agingIntervalUsecs = config->agingIntervalUsecs().value();
-  }
-
   return std::make_shared<MirrorOnDropReport>(
       *config->name(),
       PortID(*config->mirrorPortId()),
@@ -5525,11 +5519,11 @@ ThriftConfigApplier::createMirrorOnDropReport(
       *config->collectorPort(),
       *config->mtu(),
       *config->truncateSize(),
-      dscp,
-      agingIntervalUsecs,
+      static_cast<uint8_t>(*config->dscp()),
       getLocalMacAddress().toString(),
       utility::getFirstInterfaceMac(new_).toString(),
-      *config->modEventToConfigMap());
+      *config->modEventToConfigMap(),
+      *config->agingGroupAgingIntervalUsecs());
 }
 
 std::shared_ptr<MirrorOnDropReport>

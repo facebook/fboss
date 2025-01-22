@@ -267,12 +267,15 @@ void SaiTamManager::addMirrorOnDropReport(
 
     // Create aging group
     auto& agingGroupStore = saiStore_->get<SaiTamEventAgingGroupTraits>();
-    sai_uint16_t agingInterval =
-        report->getAgingIntervalUsecs().value_or(kDefaultAgingIntervalUsecs);
+    auto groupType =
+        eventCfg.agingGroup().value_or(cfg::MirrorOnDropAgingGroup::GLOBAL);
+    auto agingIntervals = report->getAgingGroupAgingIntervalUsecs();
+    auto agingTimeIt = agingIntervals.find(groupType);
+    sai_uint32_t agingTime = agingTimeIt == agingIntervals.end()
+        ? kDefaultAgingIntervalUsecs
+        : agingTimeIt->second;
     auto agingGroupTraits = SaiTamEventAgingGroupTraits::CreateAttributes{
-        getMirrorOnDropAgingGroupType(eventCfg.agingGroup().value_or(
-            cfg::MirrorOnDropAgingGroup::GLOBAL)),
-        agingInterval};
+        getMirrorOnDropAgingGroupType(groupType), agingTime};
     auto agingGroup =
         agingGroupStore.setObject(agingGroupTraits, agingGroupTraits);
     agingGroups.push_back(agingGroup);

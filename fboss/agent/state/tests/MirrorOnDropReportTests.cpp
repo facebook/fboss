@@ -45,7 +45,6 @@ cfg::MirrorOnDropReport makeReportCfg(const std::string& ip) {
   report.mtu() = 1500;
   report.truncateSize() = 128;
   report.dscp() = 0;
-  report.agingIntervalUsecs() = 100;
   report.modEventToConfigMap()[0] = makeEventConfig(
       std::nullopt,
       {cfg::MirrorOnDropReasonAggregation::INGRESS_PACKET_PROCESSING_DISCARDS});
@@ -57,6 +56,8 @@ cfg::MirrorOnDropReport makeReportCfg(const std::string& ip) {
           cfg::MirrorOnDropReasonAggregation::
               INGRESS_DESTINATION_CONGESTION_DISCARDS,
       });
+  report.agingGroupAgingIntervalUsecs()[cfg::MirrorOnDropAgingGroup::PORT] =
+      100;
   return report;
 }
 
@@ -71,15 +72,19 @@ TEST_F(MirrorOnDropReportTest, CreateReportV4) {
   EXPECT_TRUE(report->getLocalSrcIp().isV4());
   EXPECT_FALSE(report->getSwitchMac().empty());
   EXPECT_FALSE(report->getFirstInterfaceMac().empty());
-  EXPECT_TRUE(report->getModEventToConfigMap().size() == 2);
-  EXPECT_TRUE(
+  EXPECT_EQ(report->getModEventToConfigMap().size(), 2);
+  EXPECT_EQ(
       report->getModEventToConfigMap()[0].agingGroup().value_or(
-          cfg::MirrorOnDropAgingGroup::GLOBAL) ==
+          cfg::MirrorOnDropAgingGroup::GLOBAL),
       cfg::MirrorOnDropAgingGroup::GLOBAL);
-  EXPECT_TRUE(
+  EXPECT_EQ(
       report->getModEventToConfigMap()[1].agingGroup().value_or(
-          cfg::MirrorOnDropAgingGroup::GLOBAL) ==
+          cfg::MirrorOnDropAgingGroup::GLOBAL),
       cfg::MirrorOnDropAgingGroup::PORT);
+  EXPECT_EQ(
+      report->getAgingGroupAgingIntervalUsecs()
+          [cfg::MirrorOnDropAgingGroup::PORT],
+      100);
 }
 
 TEST_F(MirrorOnDropReportTest, CreateReportV6) {
@@ -93,15 +98,19 @@ TEST_F(MirrorOnDropReportTest, CreateReportV6) {
   EXPECT_TRUE(report->getLocalSrcIp().isV6());
   EXPECT_FALSE(report->getSwitchMac().empty());
   EXPECT_FALSE(report->getFirstInterfaceMac().empty());
-  EXPECT_TRUE(report->getModEventToConfigMap().size() == 2);
-  EXPECT_TRUE(
+  EXPECT_EQ(report->getModEventToConfigMap().size(), 2);
+  EXPECT_EQ(
       report->getModEventToConfigMap()[0].agingGroup().value_or(
-          cfg::MirrorOnDropAgingGroup::GLOBAL) ==
+          cfg::MirrorOnDropAgingGroup::GLOBAL),
       cfg::MirrorOnDropAgingGroup::GLOBAL);
-  EXPECT_TRUE(
+  EXPECT_EQ(
       report->getModEventToConfigMap()[1].agingGroup().value_or(
-          cfg::MirrorOnDropAgingGroup::GLOBAL) ==
+          cfg::MirrorOnDropAgingGroup::GLOBAL),
       cfg::MirrorOnDropAgingGroup::PORT);
+  EXPECT_EQ(
+      report->getAgingGroupAgingIntervalUsecs()
+          [cfg::MirrorOnDropAgingGroup::PORT],
+      100);
 }
 
 } // namespace facebook::fboss

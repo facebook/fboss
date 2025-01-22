@@ -337,6 +337,10 @@ struct MirrorOnDropReportFields {
     list<switch_config.MirrorOnDropReasonAggregation>
   > eventIdToDropReasons_DEPRECATED;
   14: map<byte, switch_config.MirrorOnDropEventConfig> modEventToConfigMap;
+  15: map<
+    switch_config.MirrorOnDropAgingGroup,
+    i32
+  > agingGroupAgingIntervalUsecs;
 }
 
 struct ControlPlaneFields {

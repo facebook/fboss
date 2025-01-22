@@ -132,8 +132,11 @@ class AgentMirrorOnDropTest : public AgentHwTest {
     report.mtu() = 1500;
     report.truncateSize() = kTruncateSize;
     report.dscp() = 0;
-    report.agingIntervalUsecs() = 100;
     report.modEventToConfigMap() = modEventToConfigMap;
+    report.agingGroupAgingIntervalUsecs()[cfg::MirrorOnDropAgingGroup::GLOBAL] =
+        100;
+    report.agingGroupAgingIntervalUsecs()[cfg::MirrorOnDropAgingGroup::PORT] =
+        200;
     config->mirrorOnDropReports()->push_back(report);
   }
 

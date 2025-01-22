@@ -425,7 +425,6 @@ struct MirrorOnDropReport {
   // Contents of the dropped packet will be truncated when mirroring.
   7: i16 truncateSize = 128;
   8: byte dscp = 0;
-  // At most one mirrored packet will be sent per port/PG/VOQ within an interval.
   9: optional i32 agingIntervalUsecs;
   10: map<
     byte,
@@ -433,6 +432,8 @@ struct MirrorOnDropReport {
   > eventIdToDropReasons_DEPRECATED (deprecated);
   // Configuration for each event ID.
   11: map<byte, MirrorOnDropEventConfig> modEventToConfigMap;
+  // Aging interval (how often to send packets) for each aging group in usecs.
+  12: map<MirrorOnDropAgingGroup, i32> agingGroupAgingIntervalUsecs;
 }
 
 /**
