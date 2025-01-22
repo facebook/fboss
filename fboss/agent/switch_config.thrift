@@ -425,7 +425,7 @@ struct MirrorOnDropReport {
   // Contents of the dropped packet will be truncated when mirroring.
   7: i16 truncateSize = 128;
   8: byte dscp = 0;
-  9: optional i32 agingIntervalUsecs;
+  9: optional i32 agingIntervalUsecs_DEPRECATED (deprecated);
   10: map<
     byte,
     list<MirrorOnDropReasonAggregation>

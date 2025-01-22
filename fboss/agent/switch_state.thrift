@@ -329,7 +329,7 @@ struct MirrorOnDropReportFields {
   7: i16 mtu;
   8: i16 truncateSize;
   9: byte dscp;
-  10: optional i32 agingIntervalUsecs;
+  10: optional i32 agingIntervalUsecs_DEPRECATED;
   11: string switchMac; // Populated at runtime
   12: string firstInterfaceMac; // Populated at runtime
   13: map<

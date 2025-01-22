@@ -4823,7 +4823,7 @@ std::pair<strings::collectorPort, Child<::std::int16_t, ::apache::thrift::type_c
 std::pair<strings::mtu, Child<::std::int16_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i16_t>>,
 std::pair<strings::truncateSize, Child<::std::int16_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i16_t>>,
 std::pair<strings::dscp, Child<::std::int8_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::byte_t>>,
-std::pair<strings::agingIntervalUsecs, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
+std::pair<strings::agingIntervalUsecs_DEPRECATED, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
 std::pair<strings::switchMac, Child<::std::string, ::apache::thrift::type_class::string, ::apache::thrift::type::string_t>>,
 std::pair<strings::firstInterfaceMac, Child<::std::string, ::apache::thrift::type_class::string, ::apache::thrift::type::string_t>>,
 std::pair<strings::eventIdToDropReasons_DEPRECATED, ChildThriftPath<::std::map<::std::int8_t, ::std::vector<::facebook::fboss::cfg::MirrorOnDropReasonAggregation>>, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>,
@@ -4854,7 +4854,7 @@ std::pair<strings::collectorPort, std::integral_constant<apache::thrift::field_i
 std::pair<strings::mtu, std::integral_constant<apache::thrift::field_id_t, 7>>,
 std::pair<strings::truncateSize, std::integral_constant<apache::thrift::field_id_t, 8>>,
 std::pair<strings::dscp, std::integral_constant<apache::thrift::field_id_t, 9>>,
-std::pair<strings::agingIntervalUsecs, std::integral_constant<apache::thrift::field_id_t, 10>>,
+std::pair<strings::agingIntervalUsecs_DEPRECATED, std::integral_constant<apache::thrift::field_id_t, 10>>,
 std::pair<strings::switchMac, std::integral_constant<apache::thrift::field_id_t, 11>>,
 std::pair<strings::firstInterfaceMac, std::integral_constant<apache::thrift::field_id_t, 12>>,
 std::pair<strings::eventIdToDropReasons_DEPRECATED, std::integral_constant<apache::thrift::field_id_t, 13>>,
@@ -4874,7 +4874,7 @@ std::pair<strings::agingGroupAgingIntervalUsecs, std::integral_constant<apache::
     STRUCT_CHILD_GETTERS(mtu, 7);
     STRUCT_CHILD_GETTERS(truncateSize, 8);
     STRUCT_CHILD_GETTERS(dscp, 9);
-    STRUCT_CHILD_GETTERS(agingIntervalUsecs, 10);
+    STRUCT_CHILD_GETTERS(agingIntervalUsecs_DEPRECATED, 10);
     STRUCT_CHILD_GETTERS(switchMac, 11);
     STRUCT_CHILD_GETTERS(firstInterfaceMac, 12);
     STRUCT_CHILD_GETTERS(eventIdToDropReasons_DEPRECATED, 13);
@@ -4892,7 +4892,7 @@ std::pair<strings::agingGroupAgingIntervalUsecs, std::integral_constant<apache::
     else if constexpr (__id == 7) { return mtu(); }
     else if constexpr (__id == 8) { return truncateSize(); }
     else if constexpr (__id == 9) { return dscp(); }
-    else if constexpr (__id == 10) { return agingIntervalUsecs(); }
+    else if constexpr (__id == 10) { return agingIntervalUsecs_DEPRECATED(); }
     else if constexpr (__id == 11) { return switchMac(); }
     else if constexpr (__id == 12) { return firstInterfaceMac(); }
     else if constexpr (__id == 13) { return eventIdToDropReasons_DEPRECATED(); }
@@ -9341,7 +9341,7 @@ std::pair<strings::collectorPort, Child<::std::int16_t, ::apache::thrift::type_c
 std::pair<strings::mtu, Child<::std::int16_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i16_t>>,
 std::pair<strings::truncateSize, Child<::std::int16_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i16_t>>,
 std::pair<strings::dscp, Child<::std::int8_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::byte_t>>,
-std::pair<strings::agingIntervalUsecs, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
+std::pair<strings::agingIntervalUsecs_DEPRECATED, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
 std::pair<strings::eventIdToDropReasons_DEPRECATED, ChildThriftPath<::std::map<::std::int8_t, ::std::vector<::facebook::fboss::cfg::MirrorOnDropReasonAggregation>>, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>,
 std::pair<strings::modEventToConfigMap, ChildThriftPath<::std::map<::std::int8_t, ::facebook::fboss::cfg::MirrorOnDropEventConfig>, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>,
 std::pair<strings::agingGroupAgingIntervalUsecs, ChildThriftPath<::std::map<::facebook::fboss::cfg::MirrorOnDropAgingGroup, ::std::int32_t>, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>>;
@@ -9366,7 +9366,7 @@ std::pair<strings::collectorPort, std::integral_constant<apache::thrift::field_i
 std::pair<strings::mtu, std::integral_constant<apache::thrift::field_id_t, 6>>,
 std::pair<strings::truncateSize, std::integral_constant<apache::thrift::field_id_t, 7>>,
 std::pair<strings::dscp, std::integral_constant<apache::thrift::field_id_t, 8>>,
-std::pair<strings::agingIntervalUsecs, std::integral_constant<apache::thrift::field_id_t, 9>>,
+std::pair<strings::agingIntervalUsecs_DEPRECATED, std::integral_constant<apache::thrift::field_id_t, 9>>,
 std::pair<strings::eventIdToDropReasons_DEPRECATED, std::integral_constant<apache::thrift::field_id_t, 10>>,
 std::pair<strings::modEventToConfigMap, std::integral_constant<apache::thrift::field_id_t, 11>>,
 std::pair<strings::agingGroupAgingIntervalUsecs, std::integral_constant<apache::thrift::field_id_t, 12>>>::template type_of<Name>;
@@ -9383,7 +9383,7 @@ std::pair<strings::agingGroupAgingIntervalUsecs, std::integral_constant<apache::
     STRUCT_CHILD_GETTERS(mtu, 6);
     STRUCT_CHILD_GETTERS(truncateSize, 7);
     STRUCT_CHILD_GETTERS(dscp, 8);
-    STRUCT_CHILD_GETTERS(agingIntervalUsecs, 9);
+    STRUCT_CHILD_GETTERS(agingIntervalUsecs_DEPRECATED, 9);
     STRUCT_CHILD_GETTERS(eventIdToDropReasons_DEPRECATED, 10);
     STRUCT_CHILD_GETTERS(modEventToConfigMap, 11);
     STRUCT_CHILD_GETTERS(agingGroupAgingIntervalUsecs, 12);
@@ -9398,7 +9398,7 @@ std::pair<strings::agingGroupAgingIntervalUsecs, std::integral_constant<apache::
     else if constexpr (__id == 6) { return mtu(); }
     else if constexpr (__id == 7) { return truncateSize(); }
     else if constexpr (__id == 8) { return dscp(); }
-    else if constexpr (__id == 9) { return agingIntervalUsecs(); }
+    else if constexpr (__id == 9) { return agingIntervalUsecs_DEPRECATED(); }
     else if constexpr (__id == 10) { return eventIdToDropReasons_DEPRECATED(); }
     else if constexpr (__id == 11) { return modEventToConfigMap(); }
     else if constexpr (__id == 12) { return agingGroupAgingIntervalUsecs(); }
