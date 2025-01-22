@@ -36,9 +36,11 @@ class AgentVoqSwitchIsolationFirmwareTest : public AgentVoqSwitchTest {
     j3FwInfo.logPath() = "/tmp/edk.log";
     j3FwInfo.firmwareLoadType() =
         cfg::FirmwareLoadType::FIRMWARE_LOAD_TYPE_START;
+    auto fwCapableSwitchIndices = getFWCapableSwitchIndices(config);
     auto& switchSettings = *config.switchSettings();
-    for (auto& [id, switchInfo] : *switchSettings.switchIdToSwitchInfo()) {
-      if (switchInfo.asicType() == cfg::AsicType::ASIC_TYPE_JERICHO3) {
+    for (auto& [_, switchInfo] : *switchSettings.switchIdToSwitchInfo()) {
+      if (fwCapableSwitchIndices.find(*switchInfo.switchIndex()) !=
+          fwCapableSwitchIndices.end()) {
         switchInfo.firmwareNameToFirmwareInfo()->insert(
             std::make_pair("isolationFirmware", j3FwInfo));
       }
@@ -47,6 +49,17 @@ class AgentVoqSwitchIsolationFirmwareTest : public AgentVoqSwitchTest {
   }
 
  protected:
+  std::set<uint16_t> getFWCapableSwitchIndices(
+      const cfg::SwitchConfig& config) const {
+    std::set<uint16_t> switchIndices;
+    auto& switchSettings = *config.switchSettings();
+    for (auto& [id, switchInfo] : *switchSettings.switchIdToSwitchInfo()) {
+      if (switchInfo.asicType() == cfg::AsicType::ASIC_TYPE_JERICHO3) {
+        switchIndices.insert(*switchInfo.switchIndex());
+      }
+    }
+    return switchIndices;
+  }
   void setMinLinksConfig() {
     auto config = getSw()->getConfig();
     auto& switchSettings = *config.switchSettings();
