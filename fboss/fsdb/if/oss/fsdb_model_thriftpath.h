@@ -23320,7 +23320,8 @@ std::pair<strings::forwardingQueueProcessorErrors, Child<::std::int64_t, ::apach
 std::pair<strings::allReassemblyContextsTaken, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
 std::pair<strings::reassemblyErrors, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
 std::pair<strings::fdrFifoOverflowErrors, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
-std::pair<strings::fdaFifoOverflowErrors, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>>;
+std::pair<strings::fdaFifoOverflowErrors, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
+std::pair<strings::isolationFirmwareCrashes, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>>;
   using ChildrenById = fatal::tuple<   std::pair<std::integral_constant<apache::thrift::field_id_t, 1>, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 2>, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 3>, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
@@ -23333,7 +23334,8 @@ std::pair<strings::fdaFifoOverflowErrors, Child<::std::int64_t, ::apache::thrift
    std::pair<std::integral_constant<apache::thrift::field_id_t, 10>, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 11>, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 12>, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
-   std::pair<std::integral_constant<apache::thrift::field_id_t, 13>, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>>;
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 13>, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 14>, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>>;
   template <typename Name>
   using NameToId = fatal::tuple<std::pair<strings::parityErrors, std::integral_constant<apache::thrift::field_id_t, 1>>,
 std::pair<strings::correctedParityErrors, std::integral_constant<apache::thrift::field_id_t, 2>>,
@@ -23347,7 +23349,8 @@ std::pair<strings::forwardingQueueProcessorErrors, std::integral_constant<apache
 std::pair<strings::allReassemblyContextsTaken, std::integral_constant<apache::thrift::field_id_t, 10>>,
 std::pair<strings::reassemblyErrors, std::integral_constant<apache::thrift::field_id_t, 11>>,
 std::pair<strings::fdrFifoOverflowErrors, std::integral_constant<apache::thrift::field_id_t, 12>>,
-std::pair<strings::fdaFifoOverflowErrors, std::integral_constant<apache::thrift::field_id_t, 13>>>::template type_of<Name>;
+std::pair<strings::fdaFifoOverflowErrors, std::integral_constant<apache::thrift::field_id_t, 13>>,
+std::pair<strings::isolationFirmwareCrashes, std::integral_constant<apache::thrift::field_id_t, 14>>>::template type_of<Name>;
 
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
@@ -23366,6 +23369,7 @@ std::pair<strings::fdaFifoOverflowErrors, std::integral_constant<apache::thrift:
     STRUCT_CHILD_GETTERS(reassemblyErrors, 11);
     STRUCT_CHILD_GETTERS(fdrFifoOverflowErrors, 12);
     STRUCT_CHILD_GETTERS(fdaFifoOverflowErrors, 13);
+    STRUCT_CHILD_GETTERS(isolationFirmwareCrashes, 14);
 
   template <apache::thrift::field_id_t __id>
   auto operator()(const std::integral_constant<apache::thrift::field_id_t, __id>&) {
@@ -23382,6 +23386,7 @@ std::pair<strings::fdaFifoOverflowErrors, std::integral_constant<apache::thrift:
     else if constexpr (__id == 11) { return reassemblyErrors(); }
     else if constexpr (__id == 12) { return fdrFifoOverflowErrors(); }
     else if constexpr (__id == 13) { return fdaFifoOverflowErrors(); }
+    else if constexpr (__id == 14) { return isolationFirmwareCrashes(); }
   }
 
   template <typename T, T... Values>
