@@ -56,7 +56,6 @@ bool ChenabAsic::isSupportedNonFabric(Feature feature) const {
     case HwAsic::Feature::L3_MTU_ERROR_TRAP:
     case HwAsic::Feature::SAI_PORT_SERDES_PROGRAMMING:
     case HwAsic::Feature::PORT_WRED_COUNTER:
-    case HwAsic::Feature::BRIDGE_PORT_8021Q:
     case HwAsic::Feature::WARMBOOT:
     case HwAsic::Feature::PORT_SERDES_ZERO_PREEMPHASIS:
     case HwAsic::Feature::SAI_UDF_HASH:
@@ -199,6 +198,8 @@ bool ChenabAsic::isSupportedNonFabric(Feature feature) const {
     case HwAsic::Feature::SFLOWv4:
     case HwAsic::Feature::SFLOWv6:
     case HwAsic::Feature::SFLOW_SAMPLING:
+    case HwAsic::Feature::BRIDGE_PORT_8021Q: // no fdb entries required, using
+                                             // only pure l3 rifs
       return false;
   }
   return false;
