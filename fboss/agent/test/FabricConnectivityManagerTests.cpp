@@ -362,9 +362,17 @@ TEST_F(FabricConnectivityManagerTest, validateUnattachedEndpoint) {
       createPortNeighbor("fab1/2/4", "fdswA"));
   newState->getPorts()->addNode(swPort, getScope(swPort));
 
-  auto dsfNode = makeDsfNode(10, "fdswA");
   auto dsfNodeMap = std::make_shared<MultiSwitchDsfNodeMap>();
+
+  // create this node
+  auto dsfNode = makeDsfNode(10, "fdswA");
   dsfNodeMap->addNode(dsfNode, getScope(dsfNode));
+
+  // create dummy node with switch ID 0 to see if the unattached switch is
+  // matched to it
+  auto dummyNode = makeDsfNode(0, "fdswB");
+  dsfNodeMap->addNode(dummyNode, getScope(dummyNode));
+
   newState->resetDsfNodes(dsfNodeMap);
 
   std::map<PortID, FabricEndpoint> hwConnectivityMap;

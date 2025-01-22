@@ -431,8 +431,8 @@ FabricConnectivityManager::processConnectivityInfoForPort(
       // actual{switchID, portID} == expected{switchID, portID}
       iter->second.switchName() = iter->second.expectedSwitchName().value();
       iter->second.portName() = iter->second.expectedPortName().value();
-    } else {
-      // Miscabling:
+    } else if (*iter->second.isAttached()) {
+      // Attached but miscabled:
       //    - Connected to expected Switch but on wrong port
       //    - Connected to non-expected Switch
       // Expected switchName/portName are not set
