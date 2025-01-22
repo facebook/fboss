@@ -238,7 +238,8 @@ class AgentOlympicQosSchedulerTest : public AgentHwTest {
       auto hwAsic = utility::checkSameAndGetAsic(ensemble.getL3Asics());
       auto streamType =
           *hwAsic->getQueueStreamTypes(cfg::PortType::INTERFACE_PORT).begin();
-      utility::addNetworkAIQueueConfig(&cfg, streamType, hwAsic);
+      utility::addNetworkAIQueueConfig(
+          &cfg, streamType, cfg::QueueScheduling::STRICT_PRIORITY, hwAsic);
       // TODO(daiweix): enhance qos scheduler test cases to work with network ai
       // qos map and use addNetworkAIQosToConfig() here
     } else {
@@ -403,6 +404,22 @@ bool AgentOlympicQosSchedulerTest::verifySPHelper(
 }
 
 void AgentOlympicQosSchedulerTest::verifyWRR() {
+  auto setup = [=, this]() {
+    auto newCfg{initialConfig(*getAgentEnsemble())};
+    if (isDualStage3Q2QQos()) {
+      auto hwAsic =
+          utility::checkSameAndGetAsic(getAgentEnsemble()->getL3Asics());
+      auto streamType =
+          *hwAsic->getQueueStreamTypes(cfg::PortType::INTERFACE_PORT).begin();
+      utility::addNetworkAIQueueConfig(
+          &newCfg,
+          streamType,
+          cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN,
+          hwAsic);
+    }
+    applyNewConfig(newCfg);
+  };
+
   auto verify = [=, this]() {
     EXPECT_TRUE(verifyWRRHelper(
         utility::getMaxWeightWRRQueue(utility::kOlympicWRRQueueToWeight()),
@@ -411,7 +428,7 @@ void AgentOlympicQosSchedulerTest::verifyWRR() {
         utility::kOlympicQueueToDscp()));
   };
 
-  verifyAcrossWarmBoots([]() {}, verify);
+  verifyAcrossWarmBoots(setup, verify);
 }
 
 void AgentOlympicQosSchedulerTest::verifySP(bool frontPanelTraffic) {

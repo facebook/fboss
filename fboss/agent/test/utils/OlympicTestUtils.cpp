@@ -398,34 +398,47 @@ void addQueueWredConfig(
 void addNetworkAIQueueConfig(
     cfg::SwitchConfig* config,
     cfg::StreamType streamType,
+    cfg::QueueScheduling schedType,
     const HwAsic* hwAsic) {
   std::vector<cfg::PortQueue> portQueues;
   cfg::PortQueue queue0;
   queue0.id() = getNetworkAIQueueId(NetworkAIQueueType::RDMA);
   queue0.name() = "queue2.rdma";
   queue0.streamType() = streamType;
-  queue0.scheduling() = cfg::QueueScheduling::STRICT_PRIORITY;
+  queue0.scheduling() = schedType;
+  if (schedType == cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN) {
+    queue0.weight() = kOlympicBronzeWeight;
+  }
   portQueues.push_back(queue0);
 
   cfg::PortQueue queue1;
   queue1.id() = getNetworkAIQueueId(NetworkAIQueueType::MONITORING);
   queue1.name() = "queue6.monitoring";
   queue1.streamType() = streamType;
-  queue1.scheduling() = cfg::QueueScheduling::STRICT_PRIORITY;
+  queue1.scheduling() = schedType;
+  if (schedType == cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN) {
+    queue1.weight() = kOlympicSilverWeight;
+  }
   portQueues.push_back(queue1);
 
   cfg::PortQueue queue2;
   queue2.id() = getNetworkAIQueueId(NetworkAIQueueType::NC);
   queue2.name() = "queue7.nc";
   queue2.streamType() = streamType;
-  queue2.scheduling() = cfg::QueueScheduling::STRICT_PRIORITY;
+  queue2.scheduling() = schedType;
+  if (schedType == cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN) {
+    queue2.weight() = kOlympicGoldWeight;
+  }
   portQueues.push_back(queue2);
 
   cfg::PortQueue queue3;
   queue3.id() = getNetworkAIQueueId(NetworkAIQueueType::DEFAULT);
   queue3.name() = "queue0.default";
   queue3.streamType() = streamType;
-  queue3.scheduling() = cfg::QueueScheduling::STRICT_PRIORITY;
+  queue3.scheduling() = schedType;
+  if (schedType == cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN) {
+    queue3.weight() = kOlympicBronzeWeight;
+  }
   portQueues.push_back(queue3);
 
   config->defaultPortQueues() = portQueues;
@@ -703,7 +716,13 @@ const std::map<int, uint8_t> kOlympicWRRQueueToWeight() {
       {getOlympicQueueId(OlympicQueueType::ECN1), kOlympicEcn1Weight},
       {getOlympicQueueId(OlympicQueueType::BRONZE), kOlympicBronzeWeight},
   };
-  return wrrQueueToWeight;
+  const std::map<int, uint8_t> wrrQueueToWeight3Q2Q = {
+      {getNetworkAIQueueId(NetworkAIQueueType::RDMA), kOlympicBronzeWeight},
+      {getNetworkAIQueueId(NetworkAIQueueType::MONITORING),
+       kOlympicSilverWeight},
+      {getNetworkAIQueueId(NetworkAIQueueType::NC), kOlympicGoldWeight},
+  };
+  return isDualStage3Q2QQos() ? wrrQueueToWeight3Q2Q : wrrQueueToWeight;
 }
 
 const std::map<int, uint8_t> kOlympicV2WRRQueueToWeight() {
@@ -723,8 +742,12 @@ const std::vector<int> kOlympicWRRQueueIds() {
       getOlympicQueueId(OlympicQueueType::GOLD),
       getOlympicQueueId(OlympicQueueType::ECN1),
       getOlympicQueueId(OlympicQueueType::BRONZE)};
+  const std::vector<int> wrrQueueIds3Q2Q = {
+      getNetworkAIQueueId(NetworkAIQueueType::RDMA),
+      getNetworkAIQueueId(NetworkAIQueueType::MONITORING),
+      getNetworkAIQueueId(NetworkAIQueueType::NC)};
 
-  return wrrQueueIds;
+  return isDualStage3Q2QQos() ? wrrQueueIds3Q2Q : wrrQueueIds;
 }
 
 const std::vector<int> kOlympicV2WRRQueueIds() {
