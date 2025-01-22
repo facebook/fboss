@@ -5,6 +5,7 @@
 #include "fboss/agent/FabricConnectivityManager.h"
 #include "fboss/agent/test/utils/DsfConfigUtils.h"
 #include "fboss/agent/test/utils/FabricTestUtils.h"
+#include "fboss/lib/CommonUtils.h"
 
 // For Netcastle runs, netcastle sets up db directory under
 // /tmp and the isolation firmware is placed under that dir
@@ -150,7 +151,13 @@ TEST_F(AgentVoqSwitchIsolationFirmwareTest, forceCrash) {
 
   auto verify = [this]() {
     forceCrash();
-    // TODO - check crash count
+    WITH_RETRIES({
+      for (auto switchIdx : getFWCapableSwitchIndices(getSw()->getConfig())) {
+        auto switchStats = getHwSwitchStats(switchIdx);
+        auto asicErrors = switchStats.hwAsicErrors();
+        EXPECT_EVENTUALLY_GT(asicErrors->isolationFirmwareCrashes(), 0);
+      }
+    });
   };
   verifyAcrossWarmBoots(setup, verify);
 }
