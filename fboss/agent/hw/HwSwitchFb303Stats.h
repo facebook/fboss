@@ -113,6 +113,9 @@ class HwSwitchFb303Stats {
   void invalidQueueRxPackets() {
     invalidQueueRxPackets_.addValue(1);
   }
+  void isolationFirmwareCrash() {
+    isolationFirmwareCrashes_.addValue(1);
+  }
   void fabricReachabilityMissingCount(int64_t value);
   void fabricReachabilityMismatchCount(int64_t value);
   void virtualDevicesWithAsymmetricConnectivity(int64_t value);
@@ -269,6 +272,7 @@ class HwSwitchFb303Stats {
   TLTimeseries fdaFifoOverflowErrors_;
   TLTimeseries forwardingQueueProcessorErrors_;
   TLTimeseries allReassemblyContextsTaken_;
+  TLTimeseries isolationFirmwareCrashes_;
   TLTimeseries hwInitializedTimeMs_;
   TLTimeseries bootTimeMs_;
   TLTimeseries coldBoot_;

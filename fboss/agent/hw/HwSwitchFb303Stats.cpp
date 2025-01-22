@@ -221,6 +221,11 @@ HwSwitchFb303Stats::HwSwitchFb303Stats(
           getCounterPrefix() + vendor + ".allReassemblyContextsTaken.errors",
           SUM,
           RATE),
+      isolationFirmwareCrashes_(
+          map,
+          getCounterPrefix() + vendor + ".isolationFirmwareCrash",
+          SUM,
+          RATE),
       hwInitializedTimeMs_(
           map,
           getCounterPrefix() + vendor + ".hw_initialized_time_ms",
