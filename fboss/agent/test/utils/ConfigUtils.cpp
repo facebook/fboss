@@ -1449,7 +1449,8 @@ cfg::SwitchConfig onePortPerInterfaceConfig(
     bool interfaceHasSubnet,
     bool setInterfaceMac,
     int baseIntfId,
-    bool enableFabricPorts) {
+    bool enableFabricPorts,
+    const std::optional<cfg::InterfaceType>& intfType) {
   return onePortPerInterfaceConfigImpl(
       swSwitch,
       ports,
@@ -1457,7 +1458,7 @@ cfg::SwitchConfig onePortPerInterfaceConfig(
       setInterfaceMac,
       baseIntfId,
       enableFabricPorts,
-      cfg::InterfaceType::VLAN);
+      intfType ? *intfType : cfg::InterfaceType::VLAN);
 }
 
 cfg::SwitchConfig onePortPerInterfaceConfig(
@@ -1473,7 +1474,8 @@ cfg::SwitchConfig onePortPerInterfaceConfig(
     const std::optional<std::map<SwitchID, cfg::SwitchInfo>>&
         switchIdToSwitchInfo,
     const std::optional<std::map<SwitchID, const HwAsic*>>& hwAsicTable,
-    const std::optional<PlatformType> platformType) {
+    const std::optional<PlatformType> platformType,
+    const std::optional<cfg::InterfaceType>& intfType) {
   return onePortPerInterfaceConfigImpl(
       platformMapping,
       asic,
@@ -1487,7 +1489,7 @@ cfg::SwitchConfig onePortPerInterfaceConfig(
       switchIdToSwitchInfo,
       hwAsicTable,
       platformType,
-      cfg::InterfaceType::VLAN);
+      intfType ? *intfType : cfg::InterfaceType::VLAN);
 }
 
 cfg::SwitchConfig onePortPerInterfaceConfig(
@@ -1496,7 +1498,8 @@ cfg::SwitchConfig onePortPerInterfaceConfig(
     bool interfaceHasSubnet,
     bool setInterfaceMac,
     int baseIntfId,
-    bool enableFabricPorts) {
+    bool enableFabricPorts,
+    const std::optional<cfg::InterfaceType>& intfType) {
   return onePortPerInterfaceConfigImpl(
       ensemble,
       ports,
@@ -1504,7 +1507,7 @@ cfg::SwitchConfig onePortPerInterfaceConfig(
       setInterfaceMac,
       baseIntfId,
       enableFabricPorts,
-      cfg::InterfaceType::VLAN);
+      intfType ? *intfType : cfg::InterfaceType::VLAN);
 }
 
 } // namespace facebook::fboss::utility
