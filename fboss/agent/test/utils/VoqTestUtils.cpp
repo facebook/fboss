@@ -35,7 +35,7 @@ std::shared_ptr<SystemPort> makeRemoteSysPort(
     HwAsic::InterfaceNodeRole intfRole,
     cfg::PortType portType) {
   auto remoteSysPort = std::make_shared<SystemPort>(portId);
-  auto voqConfig = getDefaultVoqConfig();
+  auto voqConfig = getDefaultVoqConfig(portType);
   remoteSysPort->setName(folly::to<std::string>(
       "hwTestSwitch", remoteSwitchId, ":eth/", portId, "/1"));
   remoteSysPort->setSwitchId(remoteSwitchId);
@@ -445,11 +445,9 @@ void populateRemoteIntfAndSysPorts(
   }
 }
 
-QueueConfig getDefaultVoqConfig() {
+QueueConfig getDefaultVoqConfig(cfg::PortType portType) {
   QueueConfig queueCfg;
-  // TODO: One port should be mgt port with 2 queues in 3Q2Q mode
-  auto nameAndDefaultVoq =
-      getNameAndDefaultVoqCfg(cfg::PortType::INTERFACE_PORT);
+  auto nameAndDefaultVoq = getNameAndDefaultVoqCfg(portType);
   CHECK(nameAndDefaultVoq);
   for (const auto& cfgQueue : nameAndDefaultVoq.value().queueConfig) {
     queueCfg.push_back(makeSwitchStateVoq(cfgQueue));

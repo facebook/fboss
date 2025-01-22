@@ -49,7 +49,7 @@ std::shared_ptr<SwitchState> addRemoveRemoteNeighbor(
     bool add,
     std::optional<int64_t> encapIndex = std::nullopt);
 
-QueueConfig getDefaultVoqConfig();
+QueueConfig getDefaultVoqConfig(cfg::PortType portType);
 
 std::optional<uint64_t> getDummyEncapIndex(TestEnsembleIf* ensemble);
 
