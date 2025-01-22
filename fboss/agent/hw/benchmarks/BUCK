@@ -100,6 +100,7 @@ agent_benchmark_lib(
     srcs = ["HwStatsCollectionBenchmark.cpp"],
     extra_deps = [
         "//fboss/agent/hw/test:hw_switch_ensemble_factory",
+        "//fboss/agent/test/utils:olympic_qos_utils",
     ],
 )
 
