@@ -2931,7 +2931,8 @@ void SaiSwitch::packetRxCallback(
         hostifQueueIdOpt = attr_list[index].value.u8;
         break;
       default:
-        XLOG_EVERY_MS(DBG3, 5000) << "invalid attribute received";
+        XLOG_EVERY_MS(DBG3, 5000)
+            << "invalid attribute received: " << attr_list[index].id;
     }
   }
 
