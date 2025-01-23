@@ -1,6 +1,7 @@
 {
   "defaultCommandLineArgs": {
     "check_wb_handles": "true",
+    "enable_route_resource_protection": "false",
     "log_variable_name": "true",
     "mode": "meru400bfu",
     "skip_transceiver_programming": "true"

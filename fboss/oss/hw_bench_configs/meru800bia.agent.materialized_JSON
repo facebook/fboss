@@ -1,6 +1,7 @@
 {
   "defaultCommandLineArgs": {
     "check_wb_handles": "true",
+    "enable_route_resource_protection": "false",
     "intf_nbr_tables": "true",
     "log_variable_name": "true",
     "skip_transceiver_programming": "true"
