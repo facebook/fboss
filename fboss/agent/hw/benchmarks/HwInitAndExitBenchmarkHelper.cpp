@@ -22,8 +22,6 @@
 #include "fboss/agent/test/RouteScaleGenerators.h"
 #include "fboss/agent/test/utils/DsfConfigUtils.h"
 #include "fboss/agent/test/utils/FabricTestUtils.h"
-#include "fboss/agent/test/utils/LoadBalancerTestUtils.h"
-#include "fboss/agent/test/utils/OlympicTestUtils.h"
 #include "fboss/agent/test/utils/VoqTestUtils.h"
 
 #include "fboss/lib/FunctionCallTimeReporter.h"
@@ -213,14 +211,9 @@ void initAndExitBenchmarkHelper(
             true, /*setInterfaceMac*/
             utility::kBaseVlanId,
             true /*enable fabric ports*/);
-        utility::addNetworkAIQosMaps(config, ensemble.getL3Asics());
-        utility::setDefaultCpuTrafficPolicyConfig(
-            config, ensemble.getL3Asics(), ensemble.isSai());
-        utility::addCpuQueueConfig(
-            config, ensemble.getL3Asics(), ensemble.isSai());
+        utility::populatePortExpectedNeighborsToSelf(
+            ensemble.masterLogicalPortIds(), config);
         config.dsfNodes() = *utility::addRemoteIntfNodeCfg(*config.dsfNodes());
-        config.loadBalancers()->push_back(
-            utility::getEcmpFullHashConfig(ensemble.getL3Asics()));
         return config;
       };
 
@@ -258,10 +251,32 @@ void initAndExitBenchmarkHelper(
         ensemble = createAgentEnsemble(
             voqInitialConfig, false /*disableLinkStateToggler*/);
         if (ensemble->getSw()->getBootType() == BootType::COLD_BOOT) {
-          utility::setupRemoteIntfAndSysPorts(
-              ensemble->getSw(),
-              ensemble->getSw()->getHwAsicTable()->isFeatureSupportedOnAllAsic(
-                  HwAsic::Feature::RESERVED_ENCAP_INDEX_RANGE));
+          auto updateDsfStateFn =
+              [&ensemble](const std::shared_ptr<SwitchState>& in) {
+                std::map<SwitchID, std::shared_ptr<SystemPortMap>>
+                    switchId2SystemPorts;
+                std::map<SwitchID, std::shared_ptr<InterfaceMap>> switchId2Rifs;
+                utility::populateRemoteIntfAndSysPorts(
+                    switchId2SystemPorts,
+                    switchId2Rifs,
+                    ensemble->getSw()->getConfig(),
+                    ensemble->getSw()
+                        ->getHwAsicTable()
+                        ->isFeatureSupportedOnAllAsic(
+                            HwAsic::Feature::RESERVED_ENCAP_INDEX_RANGE));
+                return DsfStateUpdaterUtil::getUpdatedState(
+                    in,
+                    ensemble->getSw()->getScopeResolver(),
+                    ensemble->getSw()->getRib(),
+                    switchId2SystemPorts,
+                    switchId2Rifs);
+              };
+          ensemble->getSw()->getRib()->updateStateInRibThread(
+              [&ensemble, updateDsfStateFn]() {
+                ensemble->getSw()->updateStateWithHwFailureProtection(
+                    folly::sformat("Update state for node: {}", 0),
+                    updateDsfStateFn);
+              });
         }
         break;
       case cfg::SwitchType::NPU:
