@@ -64,12 +64,12 @@ class AgentMirroringScaleTest : public AgentHwTest {
                       value) {
       if constexpr (MirrorT::mirrorType == MirrorType::INGRESS_ERSPAN) {
         return {
-            production_features::ProductionFeature::ERSPANv6,
+            production_features::ProductionFeature::ERSPANV6_MIRRORING,
             production_features::ProductionFeature::INGRESS_MIRRORING};
       }
       if constexpr (MirrorT::mirrorType == MirrorType::EGRESS_ERSPAN) {
         return {
-            production_features::ProductionFeature::ERSPANv6,
+            production_features::ProductionFeature::ERSPANV6_MIRRORING,
             production_features::ProductionFeature::EGRESS_MIRRORING};
       }
     }

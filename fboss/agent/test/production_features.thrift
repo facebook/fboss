@@ -63,8 +63,9 @@ enum ProductionFeature {
   PAUSE = 50,
   SEPARATE_INGRESS_EGRESS_BUFFER_POOL = 51,
   NIF_POLICER = 52,
-  ERSPANv6 = 53,
+  ERSPANV6_MIRRORING = 53,
   IP_IN_IP_DECAP = 54,
+
   # production feature which is present on all platforms, keep it at the end
   HW_SWITCH = 65536,
 }
