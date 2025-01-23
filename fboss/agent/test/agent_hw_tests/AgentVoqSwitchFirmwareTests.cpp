@@ -96,7 +96,7 @@ class AgentVoqSwitchIsolationFirmwareTest : public AgentVoqSwitchTest {
     utility::checkFabricPortsActiveState(
         getAgentEnsemble(), masterLogicalFabricPortIds(), !expectDrained);
   }
-  void forceIsoalte(int delay = 1) {
+  void forceIsolate(int delay = 1) {
     std::stringstream ss;
     ss << "edk -c fi force_isolate 0 5 1 " << delay << std::endl;
     for (const auto& switchId : getSw()->getHwAsicTable()->getSwitchIDs()) {
@@ -125,7 +125,7 @@ class AgentVoqSwitchIsolationFirmwareTest : public AgentVoqSwitchTest {
       // We issue force isolation with retries, since the FW
       // just crashed. So our command to force isolate may
       // race with FW restarting
-      forceIsoalte();
+      forceIsolate();
       assertSwitchDrainState(true /* drained */);
     });
   }
@@ -146,7 +146,7 @@ TEST_F(AgentVoqSwitchIsolationFirmwareTest, forceIsolate) {
   auto setup = [this]() {
     assertPortAndDrainState(false /* not drained*/);
     setMinLinksConfig();
-    forceIsoalte();
+    forceIsolate();
   };
 
   auto verify = [this]() {
