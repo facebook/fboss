@@ -80,7 +80,7 @@ std::string Utils::resolveWatchdogCharDevPath(const std::string& sysfsPath) {
   if (!Utils().checkDeviceReadiness(
           [&]() -> bool { return fs::exists(watchdogDir); },
           fmt::format(
-              "Watchdog CharDevPath is not created. Waited for at most {}s",
+              "Watchdog SysfsPath is not created. Waited for at most {}s",
               kWatchdogDevCreationWaitSecs.count()),
           kWatchdogDevCreationWaitSecs)) {
     throw std::runtime_error(fmt::format(
