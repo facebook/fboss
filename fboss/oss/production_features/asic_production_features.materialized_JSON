@@ -370,7 +370,7 @@
         "PFC_CAPTURE",
         "PAUSE",
         "SEPARATE_INGRESS_EGRESS_BUFFER_POOL",
-        "ERSPANv6"
+        "ERSPANV6_MIRRORING"
     ],
     "ebro": [
         "CPU_RX_TX",
@@ -404,7 +404,7 @@
         "VLAN",
         "PAUSE",
         "SEPARATE_INGRESS_EGRESS_BUFFER_POOL",
-        "ERSPANv6",
+        "ERSPANV6_MIRRORING",
         "IP_IN_IP_DECAP"
     ],
     "jericho2": [
@@ -544,7 +544,7 @@
         "VLAN",
         "PAUSE",
         "SEPARATE_INGRESS_EGRESS_BUFFER_POOL",
-        "ERSPANv6",
+        "ERSPANV6_MIRRORING",
         "IP_IN_IP_DECAP"
     ],
     "tomahawk4": [
@@ -585,7 +585,7 @@
         "VLAN",
         "PAUSE",
         "SEPARATE_INGRESS_EGRESS_BUFFER_POOL",
-        "ERSPANv6",
+        "ERSPANV6_MIRRORING",
         "IP_IN_IP_DECAP"
     ],
     "tomahawk5": [
@@ -625,7 +625,7 @@
         "VLAN",
         "PAUSE",
         "SEPARATE_INGRESS_EGRESS_BUFFER_POOL",
-        "ERSPANv6",
+        "ERSPANV6_MIRRORING",
         "IP_IN_IP_DECAP"
     ],
     "yuba": [
@@ -661,7 +661,7 @@
         "VLAN",
         "PAUSE",
         "SEPARATE_INGRESS_EGRESS_BUFFER_POOL",
-        "ERSPANv6",
+        "ERSPANV6_MIRRORING",
         "IP_IN_IP_DECAP"
     ]
   }
