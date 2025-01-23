@@ -113,6 +113,22 @@ class AgentVoqSwitchIsolationFirmwareTest : public AgentVoqSwitchTest {
       getAgentEnsemble()->runDiagCommand(ss.str(), out, switchId);
     }
   }
+  /*
+   * Invoked post FW crash to
+   * - Induce a isolate event through FW
+   * - Verify that event takes effect
+   *   This is a concrete way of verifying that
+   *   FW is functional post a crash
+   */
+  void forceIsolatePostCrashAndVerify() {
+    WITH_RETRIES({
+      // We issue force isolation with retries, since the FW
+      // just crashed. So our command to force isolate may
+      // race with FW restarting
+      forceIsoalte();
+      assertSwitchDrainState(true /* drained */);
+    });
+  }
 
  private:
   void setCmdLineFlagOverrides() const override {
@@ -158,6 +174,7 @@ TEST_F(AgentVoqSwitchIsolationFirmwareTest, forceCrash) {
         EXPECT_EVENTUALLY_GT(asicErrors->isolationFirmwareCrashes(), 0);
       }
     });
+    forceIsolatePostCrashAndVerify();
   };
   verifyAcrossWarmBoots(setup, verify);
 }
