@@ -900,7 +900,7 @@ TEST_F(AgentSflowMirrorTestV6, MoveToV4) {
       setup, verify, setupPostWb, [=, this]() { verifySampledPacket(true); });
 }
 
-TEST_F(AgentSflowMirrorTestV6, verifyL4SrcPortRandomization) {
+TEST_F(AgentSflowMirrorTruncateTestV6, verifyL4SrcPortRandomization) {
   auto setup = [=, this]() {
     auto config = initialConfig(*getAgentEnsemble());
     configureMirror(config, false, 0);
