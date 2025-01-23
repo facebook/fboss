@@ -27,38 +27,28 @@ void addVoqAqmConfig(
     const HwAsic* asic,
     bool addWredConfig,
     bool addEcnConfig) {
-  std::vector<cfg::PortQueue> voqConfig;
-  std::vector<OlympicQueueType> kQueueTypes{
-      OlympicQueueType::SILVER,
-      OlympicQueueType::GOLD,
-      OlympicQueueType::ECN1,
-      OlympicQueueType::ICP,
-      OlympicQueueType::NC};
-  for (auto queueType : kQueueTypes) {
-    auto queueId = getOlympicQueueId(queueType);
-    cfg::PortQueue queue;
-    *queue.id() = queueId;
-    queue.streamType() = streamType;
-    queue.name() = folly::to<std::string>("queue", queueId);
-    *queue.scheduling() = cfg::QueueScheduling::INTERNAL;
-
+  auto nameAndDefaultVoqCfg =
+      getNameAndDefaultVoqCfg(cfg::PortType::INTERFACE_PORT);
+  CHECK(nameAndDefaultVoqCfg.has_value());
+  std::vector<cfg::PortQueue> voqs = nameAndDefaultVoqCfg->queueConfig;
+  for (auto& voq : voqs) {
+    auto voqId = voq.id();
     if (asic->scalingFactorBasedDynamicThresholdSupported()) {
-      queue.scalingFactor() = cfg::MMUScalingFactor::ONE;
+      voq.scalingFactor() = cfg::MMUScalingFactor::ONE;
     }
-    queue.reservedBytes() = 1500; // Set to possible MTU!
+    voq.reservedBytes() = 1500; // Set to possible MTU!
 
-    if (queueId == getOlympicQueueId(OlympicQueueType::ECN1)) {
-      queue.aqms() = {};
+    if (voqId == getOlympicQueueId(OlympicQueueType::ECN1)) {
+      voq.aqms() = {};
       if (addEcnConfig) {
-        queue.aqms()->push_back(kGetOlympicEcnConfig(asic));
+        voq.aqms()->push_back(kGetOlympicEcnConfig(asic));
       }
       if (addWredConfig) {
-        queue.aqms()->push_back(kGetWredConfig(asic));
+        voq.aqms()->push_back(kGetWredConfig(asic));
       }
     }
-    voqConfig.push_back(queue);
   }
-  config->defaultVoqConfig() = voqConfig;
+  config->defaultVoqConfig() = voqs;
 }
 
 // XXX This is FSW config, add RSW config. Prefix queue names with portName
