@@ -440,7 +440,9 @@ TEST_F(AgentMirrorOnDropTest, MultipleEventIDs) {
         &config,
         mirrorPortId,
         kCollectorIp_,
-        // Sandwich PP drops between other reasons and see if it still works
+        // Sandwich PP drops between other reasons and see if it still works.
+        // Ensure all aging group tests are tested.
+        // Also make sure to test multiple reason aggregations in one event.
         {
             {0,
              makeEventConfig(
@@ -451,12 +453,22 @@ TEST_F(AgentMirrorOnDropTest, MultipleEventIDs) {
              makeEventConfig(
                  cfg::MirrorOnDropAgingGroup::PORT,
                  {cfg::MirrorOnDropReasonAggregation::
-                      INGRESS_PACKET_PROCESSING_DISCARDS})},
+                      INGRESS_PACKET_PROCESSING_DISCARDS,
+                  cfg::MirrorOnDropReasonAggregation::
+                      INGRESS_QUEUE_RESOLUTION_DISCARDS})},
             {2,
              makeEventConfig(
                  cfg::MirrorOnDropAgingGroup::VOQ,
                  {cfg::MirrorOnDropReasonAggregation::
                       INGRESS_DESTINATION_CONGESTION_DISCARDS})},
+            {3,
+             makeEventConfig(
+                 cfg::MirrorOnDropAgingGroup::PRIORITY_GROUP,
+                 {
+                     cfg::MirrorOnDropReasonAggregation::INGRESS_MISC_DISCARDS,
+                     cfg::MirrorOnDropReasonAggregation::
+                         UNEXPECTED_REASON_DISCARDS,
+                 })},
         });
     utility::addTrapPacketAcl(&config, kCollectorNextHopMac_);
     applyNewConfig(config);
