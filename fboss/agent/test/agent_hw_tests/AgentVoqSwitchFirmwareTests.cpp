@@ -178,4 +178,17 @@ TEST_F(AgentVoqSwitchIsolationFirmwareTest, forceCrash) {
   };
   verifyAcrossWarmBoots(setup, verify);
 }
+
+TEST_F(AgentVoqSwitchIsolationFirmwareTest, forceCrashDuringWarmBoot) {
+  auto setup = [this]() {
+    assertPortAndDrainState(false /* not drained*/);
+    setMinLinksConfig();
+    // Force delayed crash - which most likely
+    // will now happen while switch is warm booting
+    forceCrash(20);
+  };
+
+  auto verifyPostWarmboot = [this]() { forceIsolatePostCrashAndVerify(); };
+  verifyAcrossWarmBoots(setup, []() {}, []() {}, verifyPostWarmboot);
+}
 } // namespace facebook::fboss
