@@ -110,17 +110,15 @@ uint16_t getPriorityFromPfcPktCounterId(sai_stat_id_t counterId) {
   throw FbossError("Got unexpected port counter id: ", counterId);
 }
 
-uint16_t getFecSymbolCountFromCounterId(sai_stat_id_t counterId) {
 #if SAI_API_VERSION >= SAI_VERSION(1, 11, 0)
+uint16_t getFecSymbolCountFromCounterId(sai_stat_id_t counterId) {
   if (counterId < SAI_PORT_STAT_IF_IN_FEC_CODEWORD_ERRORS_S0 ||
       counterId > SAI_PORT_STAT_IF_IN_FEC_CODEWORD_ERRORS_S16) {
     throw FbossError("Got unexpected FEC codeword counter id: ", counterId);
   }
   return counterId - SAI_PORT_STAT_IF_IN_FEC_CODEWORD_ERRORS_S0;
-#else
-  throw FbossError("FEC codewords not supported on this SAI version");
-#endif
 }
+#endif
 
 void fillHwPortStats(
     const folly::F14FastMap<sai_stat_id_t, uint64_t>& counterId2Value,
