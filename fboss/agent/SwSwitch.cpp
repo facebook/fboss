@@ -1236,12 +1236,12 @@ void SwSwitch::init(
   const auto initialStateDelta = StateDelta(emptyState, initialState);
 
   // Notify resource accountant of the initial state.
-  if (!resourceAccountant_->isValidRouteUpdate(initialStateDelta)) {
+  if (!resourceAccountant_->isValidUpdate(initialStateDelta)) {
     // If DLB is enabled and pre-warmboot state has >128 ECMP groups, any
     // failure is due to DLB resource check failure. Resource accounting will
     // not be enabled in this boot and stay disabled until next warmboot
     //
-    // This is the first invocation of isValidRouteUpdate. At this time,
+    // This is the first invocation of isValidUpdate. At this time,
     // ResourceAccountant::checkDlbResource_ is True by default. If the method
     // returns False, set checkDlbResource_ to False. This will disable further
     // DLB resource checks within resource accounting
@@ -1321,12 +1321,12 @@ void SwSwitch::init(const HwWriteBehavior& hwWriteBehavior, SwitchFlags flags) {
   }
   const auto initialStateDelta = StateDelta(emptyState, initialState);
   // Notify resource accountant of the initial state.
-  if (!resourceAccountant_->isValidRouteUpdate(initialStateDelta)) {
+  if (!resourceAccountant_->isValidUpdate(initialStateDelta)) {
     // If DLB is enabled and pre-warmboot state has >128 ECMP groups, any
     // failure is due to DLB resource check failure. Resource accounting will
     // not be enabled in this boot and stay disabled until next warmboot
     //
-    // This is the first invocation of isValidRouteUpdate. At this time,
+    // This is the first invocation of isValidUpdate. At this time,
     // ResourceAccountant::checkDlbResource_ is True by default. If the method
     // returns False, set checkDlbResource_ to False. This will disable further
     // DLB resource checks within resource accounting
