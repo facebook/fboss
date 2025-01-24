@@ -231,12 +231,11 @@ void ControlLogic::getSensorUpdate() {
     // STEP 1: Get reading.
     auto sensorEntry = pSensor_->getSensorEntry(sensorName);
     if (sensorEntry) {
-      float readValue = sensorEntry->value / *sensor.scale();
-      readCache.lastReadValue = readValue;
+      readCache.lastReadValue = sensorEntry->value;
       readCache.lastUpdatedTime = sensorEntry->lastUpdated;
       readCache.sensorFailed = false;
       XLOG(ERR) << fmt::format(
-          "{}: Sensor read value (after scaling) is {}", sensorName, readValue);
+          "{}: Sensor read value is {}", sensorName, sensorEntry->value);
     } else {
       XLOG(INFO) << fmt::format(
           "{}: Failure to get data (either wrong entry or read failure)",

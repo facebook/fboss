@@ -61,7 +61,6 @@
         "accessType": "ACCESS_TYPE_THRIFT"
       },
       "pwmCalcType": "SENSOR_PWM_CALC_TYPE_FOUR_LINEAR_TABLE",
-      "scale": 1.0,
       "normalUpTable": {
         "38": 45,
         "39": 50,
@@ -97,7 +96,6 @@
         "accessType": "ACCESS_TYPE_THRIFT"
       },
       "pwmCalcType": "SENSOR_PWM_CALC_TYPE_PID",
-      "scale": 1.0,
       "pidSetting": {
         "kp": -4,
         "ki": -0.06,
