@@ -83,6 +83,13 @@ int getSysPortIdsAllocated(
   }
   return portsConsumed;
 }
+
+cfg::InterfaceType getInterfaceType(const HwAsic& asic) {
+  if (asic.getAsicType() == cfg::AsicType::ASIC_TYPE_CHENAB) {
+    return cfg::InterfaceType::PORT;
+  }
+  return cfg::InterfaceType::VLAN;
+}
 } // namespace
 folly::MacAddress kLocalCpuMac() {
   static const folly::MacAddress kLocalMac(
@@ -585,7 +592,8 @@ cfg::SwitchConfig multiplePortsPerIntfConfig(
     }
     // For non NPU switch type vendor SAI impls don't support
     // tagging packet at port ingress.
-    if (switchType == cfg::SwitchType::NPU) {
+    if (switchType == cfg::SwitchType::NPU &&
+        intfType == cfg::InterfaceType::VLAN) {
       port2vlan[port] = VlanID(vlan);
       idx++;
       // If current vlan has portsPerIntf port,
@@ -629,6 +637,9 @@ cfg::SwitchConfig multiplePortsPerIntfConfig(
     if (setMac) {
       config.interfaces()[i].mac() = getLocalCpuMacStr();
     }
+    if (type == cfg::InterfaceType::PORT) {
+      config.interfaces()[i].portID() = intfId;
+    }
     config.interfaces()[i].mtu() = 9000;
     if (hasSubnet) {
       if (subnets) {
@@ -645,15 +656,28 @@ cfg::SwitchConfig multiplePortsPerIntfConfig(
       }
     }
   };
-  for (auto i = 0; i < vlans.size(); ++i) {
-    addInterface(
-        vlans[i],
-        vlans[i],
-        intfType,
-        setInterfaceMac,
-        interfaceHasSubnet,
-        std::nullopt,
-        cfg::Scope::LOCAL);
+  if (cfg::InterfaceType::VLAN == intfType) {
+    for (auto i = 0; i < vlans.size(); ++i) {
+      addInterface(
+          vlans[i],
+          vlans[i],
+          intfType,
+          setInterfaceMac,
+          interfaceHasSubnet,
+          std::nullopt,
+          cfg::Scope::LOCAL);
+    }
+  } else if (cfg::InterfaceType::PORT == intfType) {
+    for (auto i = 0; i < ports.size(); ++i) {
+      addInterface(
+          ports[i],
+          0,
+          intfType,
+          setInterfaceMac,
+          interfaceHasSubnet,
+          std::nullopt,
+          cfg::Scope::LOCAL);
+    }
   }
   // Create interfaces for local sys ports on VOQ switches
   if (switchType == cfg::SwitchType::VOQ) {
@@ -1455,6 +1479,12 @@ cfg::SwitchConfig onePortPerInterfaceConfig(
     int baseIntfId,
     bool enableFabricPorts,
     const std::optional<cfg::InterfaceType>& intfType) {
+  auto switchID = swSwitch->getScopeResolver()->scope(ports[0]).switchId();
+  auto asic = swSwitch->getHwAsicTable()->getHwAsicIf(switchID);
+  cfg::InterfaceType intfTypeVal = getInterfaceType(*asic);
+  if (intfType) {
+    intfTypeVal = intfType.value();
+  }
   return onePortPerInterfaceConfigImpl(
       swSwitch,
       ports,
@@ -1462,7 +1492,7 @@ cfg::SwitchConfig onePortPerInterfaceConfig(
       setInterfaceMac,
       baseIntfId,
       enableFabricPorts,
-      intfType ? *intfType : cfg::InterfaceType::VLAN);
+      intfTypeVal);
 }
 
 cfg::SwitchConfig onePortPerInterfaceConfig(
@@ -1480,6 +1510,10 @@ cfg::SwitchConfig onePortPerInterfaceConfig(
     const std::optional<std::map<SwitchID, const HwAsic*>>& hwAsicTable,
     const std::optional<PlatformType> platformType,
     const std::optional<cfg::InterfaceType>& intfType) {
+  cfg::InterfaceType intfTypeVal = getInterfaceType(*asic);
+  if (intfType) {
+    intfTypeVal = *intfType;
+  }
   return onePortPerInterfaceConfigImpl(
       platformMapping,
       asic,
@@ -1493,7 +1527,7 @@ cfg::SwitchConfig onePortPerInterfaceConfig(
       switchIdToSwitchInfo,
       hwAsicTable,
       platformType,
-      intfType ? *intfType : cfg::InterfaceType::VLAN);
+      intfTypeVal);
 }
 
 cfg::SwitchConfig onePortPerInterfaceConfig(
@@ -1504,6 +1538,12 @@ cfg::SwitchConfig onePortPerInterfaceConfig(
     int baseIntfId,
     bool enableFabricPorts,
     const std::optional<cfg::InterfaceType>& intfType) {
+  auto switchID = ensemble->scopeResolver().scope(ports[0]).switchId();
+  auto asic = ensemble->getHwAsicTable()->getHwAsicIf(switchID);
+  cfg::InterfaceType intfTypeVal = getInterfaceType(*asic);
+  if (intfType) {
+    intfTypeVal = intfType.value();
+  }
   return onePortPerInterfaceConfigImpl(
       ensemble,
       ports,
@@ -1511,7 +1551,7 @@ cfg::SwitchConfig onePortPerInterfaceConfig(
       setInterfaceMac,
       baseIntfId,
       enableFabricPorts,
-      intfType ? *intfType : cfg::InterfaceType::VLAN);
+      intfTypeVal);
 }
 
 } // namespace facebook::fboss::utility
