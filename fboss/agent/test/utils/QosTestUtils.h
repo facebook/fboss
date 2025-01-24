@@ -164,6 +164,8 @@ void sendPktAndVerifyQueueHit(
               sysportsStats.find(*sysPortId), sysportsStats.end());
           sysPortStatsBefore = sysportsStats[*sysPortId];
         }
+        XLOG(DBG2) << "send packet with dscp " << int(dscp) << " to queue "
+                   << q2dscps.first;
         sendPacket(dscp);
         verifyQueueHit(portStatsBefore, q2dscps.first, sw, portId);
         if (sysPortId) {
