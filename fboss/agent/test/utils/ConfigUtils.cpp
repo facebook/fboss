@@ -1269,8 +1269,9 @@ void configurePortGroup(
     }
 
     const auto& platPortEntry = platformMapping->getPlatformPort(portID);
-    auto profileID = platformMapping->getProfileIDBySpeedIf(portID, speed);
-    if (!profileID.has_value()) {
+    auto profiles = platformMapping->getAllPortProfilesBySpeed(portID, speed);
+
+    if (profiles.empty()) {
       XLOG(WARNING) << "Port " << static_cast<int>(portID)
                     << "Doesn't support speed " << static_cast<int>(speed)
                     << ", disabling it instead";
@@ -1279,14 +1280,17 @@ void configurePortGroup(
       continue;
     }
 
+    // configure with a last profile
+    auto profileID = profiles.back();
+
     auto supportedProfiles = *platPortEntry.supportedProfiles();
-    auto profile = supportedProfiles.find(profileID.value());
+    auto profile = supportedProfiles.find(profileID);
     if (profile == supportedProfiles.end()) {
       throw std::runtime_error(folly::to<std::string>(
-          "No profile ", profileID.value(), " found for port ", portID));
+          "No profile ", profileID, " found for port ", portID));
     }
 
-    cfgPort->profileID() = profileID.value();
+    cfgPort->profileID() = profileID;
     cfgPort->speed() = speed;
     cfgPort->state() = cfg::PortState::ENABLED;
     removeSubsumedPorts(config, profile->second, supportsAddRemovePort);
