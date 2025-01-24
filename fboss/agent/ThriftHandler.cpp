@@ -2920,6 +2920,7 @@ void ThriftHandler::publishLinkSnapshots(
 void ThriftHandler::getAllInterfacePhyInfo(
     std::map<std::string, phy::PhyInfo>& phyInfos) {
   auto log = LOG_THRIFT_CALL(DBG1);
+  ensureConfigured(__func__);
   auto portNames = std::make_unique<std::vector<std::string>>();
   std::shared_ptr<SwitchState> swState = sw_->getState();
   for (const auto& portMap : std::as_const(*swState->getPorts())) {
@@ -2934,6 +2935,7 @@ void ThriftHandler::getInterfacePhyInfo(
     std::map<std::string, phy::PhyInfo>& phyInfos,
     std::unique_ptr<std::vector<std::string>> portNames) {
   auto log = LOG_THRIFT_CALL(DBG1);
+  ensureConfigured(__func__);
   std::vector<PortID> portIDs;
   for (const auto& portName : *portNames) {
     portIDs.push_back(sw_->getPlatformMapping()->getPortID(portName));
