@@ -470,7 +470,9 @@ class AgentIngressAclSpanMirroringTest : public AgentMirroringTest<AddrT> {
  public:
   std::vector<production_features::ProductionFeature>
   getProductionFeaturesVerified() const override {
-    return {production_features::ProductionFeature::INGRESS_MIRRORING};
+    return {
+        production_features::ProductionFeature::INGRESS_MIRRORING,
+        production_features::ProductionFeature::INGRESS_ACL_MIRRORING};
   }
 
   cfg::SwitchConfig initialConfig(
@@ -492,7 +494,9 @@ class AgentIngressAclErspanMirroringTest : public AgentMirroringTest<AddrT> {
  public:
   std::vector<production_features::ProductionFeature>
   getProductionFeaturesVerified() const override {
-    return {production_features::ProductionFeature::INGRESS_MIRRORING};
+    return {
+        production_features::ProductionFeature::INGRESS_MIRRORING,
+        production_features::ProductionFeature::INGRESS_ACL_MIRRORING};
   }
 
   cfg::SwitchConfig initialConfig(
@@ -584,7 +588,9 @@ class AgentEgressAclSpanMirroringTest : public AgentMirroringTest<AddrT> {
  public:
   std::vector<production_features::ProductionFeature>
   getProductionFeaturesVerified() const override {
-    return {production_features::ProductionFeature::EGRESS_MIRRORING};
+    return {
+        production_features::ProductionFeature::EGRESS_MIRRORING,
+        production_features::ProductionFeature::EGRESS_ACL_MIRRORING};
   }
 
   cfg::SwitchConfig initialConfig(
@@ -606,7 +612,9 @@ class AgentEgressAclErspanMirroringTest : public AgentMirroringTest<AddrT> {
  public:
   std::vector<production_features::ProductionFeature>
   getProductionFeaturesVerified() const override {
-    return {production_features::ProductionFeature::EGRESS_MIRRORING};
+    return {
+        production_features::ProductionFeature::EGRESS_MIRRORING,
+        production_features::ProductionFeature::EGRESS_ACL_MIRRORING};
   }
 
   cfg::SwitchConfig initialConfig(
