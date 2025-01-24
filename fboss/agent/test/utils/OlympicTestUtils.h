@@ -118,7 +118,9 @@ void addNetworkAIQueueConfig(
     cfg::SwitchConfig* config,
     cfg::StreamType streamType,
     cfg::QueueScheduling schedType,
-    const HwAsic* hwAsic);
+    const HwAsic* hwAsic,
+    bool addWredConfig = false,
+    bool addEcnConfig = true);
 
 void addNetworkAIQosMaps(
     cfg::SwitchConfig& cfg,

@@ -21,6 +21,21 @@ namespace facebook::fboss::utility {
 
 namespace {
 
+int getTrafficClassToVoqId(const HwAsic* hwAsic, int trafficClass) {
+  if (hwAsic->isSupported(HwAsic::Feature::VOQ) && isDualStage3Q2QQos()) {
+    if (trafficClass == 7) {
+      // tc 7 -> nc voq 2
+      return 2;
+    } else if (trafficClass == 2) {
+      // tc 2 -> rdma voq 0
+      return 0;
+    }
+    // all other tc -> default voq 1
+    return 1;
+  }
+  return trafficClass;
+}
+
 void addVoqAqmConfig(
     cfg::SwitchConfig* config,
     cfg::StreamType streamType,
@@ -38,7 +53,7 @@ void addVoqAqmConfig(
     }
     voq.reservedBytes() = 1500; // Set to possible MTU!
 
-    if (voqId == getOlympicQueueId(OlympicQueueType::ECN1)) {
+    if (voqId == getTrafficClassToVoqId(asic, 2)) {
       voq.aqms() = {};
       if (addEcnConfig) {
         voq.aqms()->push_back(kGetOlympicEcnConfig(asic));
@@ -263,21 +278,6 @@ cfg::ActiveQueueManagement kGetWredConfig(
   return wredAQM;
 }
 
-int getTrafficClassToVoqId(const HwAsic* hwAsic, int trafficClass) {
-  if (hwAsic->isSupported(HwAsic::Feature::VOQ) && isDualStage3Q2QQos()) {
-    if (trafficClass == 7) {
-      // tc 7 -> nc voq 2
-      return 2;
-    } else if (trafficClass == 2) {
-      // tc 2 -> rdma voq 0
-      return 0;
-    }
-    // all other tc -> default voq 1
-    return 1;
-  }
-  return trafficClass;
-}
-
 int getTrafficClassToCpuVoqId(const HwAsic* hwAsic, int trafficClass) {
   if (hwAsic->isSupported(HwAsic::Feature::VOQ) && isDualStage3Q2QQos()) {
     if (trafficClass == 7) {
@@ -389,7 +389,9 @@ void addNetworkAIQueueConfig(
     cfg::SwitchConfig* config,
     cfg::StreamType streamType,
     cfg::QueueScheduling schedType,
-    const HwAsic* hwAsic) {
+    const HwAsic* hwAsic,
+    bool addWredConfig,
+    bool addEcnConfig) {
   std::vector<cfg::PortQueue> portQueues;
   cfg::PortQueue queue0;
   queue0.id() = getNetworkAIQueueId(NetworkAIQueueType::RDMA);
@@ -397,7 +399,14 @@ void addNetworkAIQueueConfig(
   queue0.streamType() = streamType;
   queue0.scheduling() = schedType;
   if (schedType == cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN) {
-    queue0.weight() = kOlympicBronzeWeight;
+    queue0.weight() = kOlympicEcn1Weight;
+  }
+  queue0.aqms() = {};
+  if (addEcnConfig) {
+    queue0.aqms()->push_back(kGetOlympicEcnConfig(hwAsic));
+  }
+  if (addWredConfig) {
+    queue0.aqms()->push_back(kGetWredConfig(hwAsic));
   }
   portQueues.push_back(queue0);
 
@@ -434,10 +443,7 @@ void addNetworkAIQueueConfig(
   config->defaultPortQueues() = portQueues;
 
   if (hwAsic->getSwitchType() == cfg::SwitchType::VOQ) {
-    auto nameAndDefaultVoqCfg =
-        getNameAndDefaultVoqCfg(cfg::PortType::INTERFACE_PORT);
-    CHECK(nameAndDefaultVoqCfg.has_value());
-    config->defaultVoqConfig() = nameAndDefaultVoqCfg->queueConfig;
+    addVoqAqmConfig(config, streamType, hwAsic, addWredConfig, addEcnConfig);
   }
 }
 
@@ -707,7 +713,7 @@ const std::map<int, uint8_t> kOlympicWRRQueueToWeight() {
       {getOlympicQueueId(OlympicQueueType::BRONZE), kOlympicBronzeWeight},
   };
   const std::map<int, uint8_t> wrrQueueToWeight3Q2Q = {
-      {getNetworkAIQueueId(NetworkAIQueueType::RDMA), kOlympicBronzeWeight},
+      {getNetworkAIQueueId(NetworkAIQueueType::RDMA), kOlympicEcn1Weight},
       {getNetworkAIQueueId(NetworkAIQueueType::MONITORING),
        kOlympicSilverWeight},
       {getNetworkAIQueueId(NetworkAIQueueType::NC), kOlympicGoldWeight},
