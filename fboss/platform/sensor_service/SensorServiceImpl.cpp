@@ -87,11 +87,13 @@ std::map<std::string, SensorData> SensorServiceImpl::getAllSensorData() {
 void SensorServiceImpl::fetchSensorData() {
   std::map<std::string, SensorData> polledData;
   uint readFailures{0};
-  XLOG(INFO) << "Reading SensorData using PM based sensor structs...";
+  XLOG(INFO) << fmt::format(
+      "Reading SensorData for {} PMUnits",
+      sensorConfig_.pmUnitSensorsList()->size());
   for (const auto& pmUnitSensors : *sensorConfig_.pmUnitSensorsList()) {
     auto pmSensors = resolveSensors(pmUnitSensors);
     XLOG(INFO) << fmt::format(
-        "Processing {} unit {} sensors",
+        "Processing {} PMUnit: {} sensors",
         *pmUnitSensors.pmUnitName(),
         pmSensors.size());
     for (const auto& sensor : pmSensors) {
@@ -122,7 +124,7 @@ void SensorServiceImpl::fetchSensorData() {
   fb303::fbData->setCounter(kTotalReadFailure, readFailures);
   fb303::fbData->setCounter(kHasReadFailure, readFailures > 0 ? 1 : 0);
   XLOG(INFO) << fmt::format(
-      "In Total, Processed {} Sensors. {} Failures.",
+      "Summary: Processed {} Sensors. {} Failures.",
       polledData.size(),
       readFailures);
   polledData_.swap(polledData);
