@@ -433,6 +433,7 @@ add_library(multi_port_traffic_test_utils
 )
 
 target_link_libraries(multi_port_traffic_test_utils
+  agent_hw_test
   qos_test_utils
   state
   ecmp_helper
