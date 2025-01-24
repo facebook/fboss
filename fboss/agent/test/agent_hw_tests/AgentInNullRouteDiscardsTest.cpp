@@ -92,7 +92,9 @@ TEST_F(AgentInNullRouteDiscardsCounterTest, nullRouteHit) {
           *portStatsAfter.inDiscardsRaw_(),
           *portStatsAfter.inDstNullDiscards_());
       // Route discards should not increment congestion discards
-      EXPECT_EQ(*portStatsAfter.inCongestionDiscards_(), 0);
+      EXPECT_EQ(
+          *portStatsAfter.inCongestionDiscards_(),
+          *portStatsBefore.inCongestionDiscards_());
       if (isVoqSwitch) {
         EXPECT_EVENTUALLY_EQ(
             *switchDropStatsAfter.ingressPacketPipelineRejectDrops() -
