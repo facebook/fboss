@@ -264,6 +264,21 @@ TEST_F(LedServiceTest, checkLedColorChange) {
       updateMap[swPort].operState = false;
       ledManager_->updateLedStatus(updateMap);
       checkLedColor(swPort, led::LedColor::OFF, ++testNum);
+
+      // 17 - set cabling error loop detected. Expect LED to be yellow similar
+      // to cabling error.
+      updateMap[swPort].operState = true;
+      updateMap[swPort].ledExternalState =
+          PortLedExternalState::CABLING_ERROR_LOOP_DETECTED;
+      ledManager_->updateLedStatus(updateMap);
+      checkLedColor(swPort, led::LedColor::YELLOW, ++testNum);
+
+      // 18 - Remove external led state and set oper state to false. Expect
+      // led to be OFF
+      updateMap[swPort].operState = false;
+      ledManager_->setExternalLedState(swPort, PortLedExternalState::NONE);
+      ledManager_->updateLedStatus(updateMap);
+      checkLedColor(swPort, led::LedColor::OFF, ++testNum);
     }
   }
 }
