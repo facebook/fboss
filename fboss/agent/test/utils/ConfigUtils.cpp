@@ -386,7 +386,7 @@ int getLocalSystemPortOffset(const cfg::SystemPortRanges& ranges) {
 }
 
 cfg::DsfNode dsfNodeConfig(
-    const HwAsic& myAsic,
+    const HwAsic& firstAsic,
     int64_t otherSwitchId,
     const std::optional<PlatformType> platformType,
     const std::optional<int> clusterId) {
@@ -436,10 +436,10 @@ cfg::DsfNode dsfNodeConfig(
   cfg::DsfNode dsfNode;
   dsfNode.switchId() = otherSwitchId;
   dsfNode.name() = folly::sformat("hwTestSwitch{}", *dsfNode.switchId());
-  switch (myAsic.getSwitchType()) {
+  switch (firstAsic.getSwitchType()) {
     case cfg::SwitchType::VOQ: {
       dsfNode.type() = cfg::DsfNodeType::INTERFACE_NODE;
-      auto sysPortRanges = getSystemPortRanges(myAsic, otherSwitchId);
+      auto sysPortRanges = getSystemPortRanges(firstAsic, otherSwitchId);
       dsfNode.systemPortRanges() = sysPortRanges;
       dsfNode.localSystemPortOffset() = getLocalSystemPortOffset(sysPortRanges);
       // In single-stage sys port ranges, 0th port is reserved for CPU.
@@ -448,8 +448,8 @@ cfg::DsfNode dsfNodeConfig(
       dsfNode.globalSystemPortOffset() = isDualStage3Q2QMode()
           ? *sysPortRanges.systemPortRanges()->begin()->minimum() - 1
           : *sysPortRanges.systemPortRanges()->begin()->minimum();
-      CHECK(myAsic.getInbandPortId().has_value());
-      dsfNode.inbandPortId() = *myAsic.getInbandPortId();
+      CHECK(firstAsic.getInbandPortId().has_value());
+      dsfNode.inbandPortId() = *firstAsic.getInbandPortId();
       dsfNode.nodeMac() = kLocalCpuMac().toString();
       dsfNode.loopbackIps() = getLoopbackIps(SwitchID(*dsfNode.switchId()));
     } break;
@@ -458,10 +458,10 @@ cfg::DsfNode dsfNodeConfig(
       break;
     case cfg::SwitchType::NPU:
     case cfg::SwitchType::PHY:
-      throw FbossError("Unexpected switch type: ", myAsic.getSwitchType());
+      throw FbossError("Unexpected switch type: ", firstAsic.getSwitchType());
   }
-  dsfNode.asicType() = myAsic.getAsicType();
-  dsfNode.platformType() = getPlatformType(myAsic, platformType);
+  dsfNode.asicType() = firstAsic.getAsicType();
+  dsfNode.platformType() = getPlatformType(firstAsic, platformType);
   if (clusterId.has_value()) {
     dsfNode.clusterId() = clusterId.value();
   }
@@ -919,6 +919,13 @@ void populateSwitchInfo(
     const std::optional<PlatformType> platformType) {
   std::map<long, cfg::SwitchInfo> newSwitchIdToSwitchInfo;
   std::map<long, cfg::DsfNode> newDsfNodes;
+  // save the firsthwAsic to create dsfNodeConfig
+  SwitchID switchId{0};
+  auto firstHwAsicTableItr = hwAsicTable.find(switchId);
+  if (firstHwAsicTableItr == hwAsicTable.end()) {
+    throw FbossError("HwAsic not found for SwitchID: ", switchId);
+  }
+  const auto& firstHwAsic = firstHwAsicTableItr->second;
   for (const auto& [switchId, switchInfo] : switchIdToSwitchInfo) {
     newSwitchIdToSwitchInfo.insert({switchId, switchInfo});
     auto hwAsicTableItr = hwAsicTable.find(switchId);
@@ -929,7 +936,7 @@ void populateSwitchInfo(
     if (hwAsic->getSwitchType() == cfg::SwitchType::VOQ ||
         hwAsic->getSwitchType() == cfg::SwitchType::FABRIC) {
       newDsfNodes.insert(
-          {switchId, dsfNodeConfig(*hwAsic, switchId, platformType)});
+          {switchId, dsfNodeConfig(*firstHwAsic, switchId, platformType)});
     }
   }
   config.switchSettings()->switchIdToSwitchInfo() = newSwitchIdToSwitchInfo;

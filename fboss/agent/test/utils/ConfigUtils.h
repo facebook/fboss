@@ -73,7 +73,7 @@ int getMaxRdsw();
 int getMaxEdsw();
 
 cfg::DsfNode dsfNodeConfig(
-    const HwAsic& myAsic,
+    const HwAsic& firstAsic,
     int64_t otherSwitchId = 4,
     const std::optional<PlatformType> platformType = std::nullopt,
     const std::optional<int> clusterId = std::nullopt);
