@@ -876,21 +876,4 @@ std::vector<PortID> PlatformMapping::getPlatformPorts(
   return portIds;
 }
 
-std::vector<cfg::PortProfileID> PlatformMapping::getAllPortProfilesBySpeed(
-    PortID portID,
-    cfg::PortSpeed speed) const {
-  std::vector<cfg::PortProfileID> profiles;
-  const auto& platformPortEntry = getPlatformPort(portID);
-  for (const auto& profile : *platformPortEntry.supportedProfiles()) {
-    auto profileID = profile.first;
-    if (auto profileCfg = getPortProfileConfig(
-            PlatformPortProfileConfigMatcher(profileID, portID))) {
-      if (*profileCfg->speed() == speed) {
-        profiles.push_back(profileID);
-      }
-    }
-  }
-  return profiles;
-}
-
 } // namespace facebook::fboss

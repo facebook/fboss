@@ -129,10 +129,6 @@ class PlatformMapping {
   std::map<std::string, std::vector<cfg::PortProfileID>> getAllPortProfiles()
       const;
 
-  std::vector<cfg::PortProfileID> getAllPortProfilesBySpeed(
-      PortID portID,
-      cfg::PortSpeed speed) const;
-
   const phy::DataPlanePhyChip& getPortIphyChip(PortID port) const;
 
   void setPlatformPort(int32_t portID, cfg::PlatformPortEntry port) {
