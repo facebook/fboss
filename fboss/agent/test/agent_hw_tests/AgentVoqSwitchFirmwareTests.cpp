@@ -159,6 +159,23 @@ TEST_F(AgentVoqSwitchIsolationFirmwareTest, forceIsolate) {
   verifyAcrossWarmBoots(setup, verify);
 }
 
+TEST_F(AgentVoqSwitchIsolationFirmwareTest, forceIsolateDuringWarmBoot) {
+  auto setup = [this]() {
+    assertPortAndDrainState(false /* not drained*/);
+    setMinLinksConfig();
+    forceIsolate(20);
+  };
+
+  auto verifyPostWarmboot = [this]() {
+    assertSwitchDrainState(true /* drained */);
+    utility::checkFabricPortsActiveState(
+        getAgentEnsemble(),
+        masterLogicalFabricPortIds(),
+        true /* expect active*/);
+  };
+  verifyAcrossWarmBoots(setup, []() {}, []() {}, verifyPostWarmboot);
+}
+
 TEST_F(AgentVoqSwitchIsolationFirmwareTest, forceCrash) {
   auto setup = [this]() {
     assertPortAndDrainState(false /* not drained*/);
