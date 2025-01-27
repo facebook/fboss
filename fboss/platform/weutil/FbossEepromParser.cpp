@@ -29,7 +29,8 @@ enum entryType {
   FIELD_LEGACY_MAC,
   FIELD_V4_MAC,
   FIELD_V5_MAC,
-  FIELD_DATE
+  FIELD_DATE,
+  FIELD_PRODUCTION_STATE,
 };
 
 typedef struct {
@@ -122,7 +123,7 @@ const std::vector<EepromFieldEntry> kFieldDictionaryV6 = {
     {5, "Meta PCB Part Number", FIELD_STRING, 12, VARIABLE},
     {6, "ODM/JDM PCBA Part Number", FIELD_STRING, VARIABLE, VARIABLE},
     {7, "ODM/JDM PCBA Serial Number", FIELD_STRING, VARIABLE, VARIABLE},
-    {8, "Production State", FIELD_BE_UINT, 1, VARIABLE},
+    {8, "Production State", FIELD_PRODUCTION_STATE, 1, VARIABLE},
     {9, "Production Sub-State", FIELD_BE_UINT, 1, VARIABLE},
     {10, "Re-Spin/Variant Indicator", FIELD_BE_UINT, 1, VARIABLE},
     {11, "Product Serial Number", FIELD_STRING, VARIABLE, VARIABLE},
@@ -401,6 +402,9 @@ std::unordered_map<int, std::string> FbossEepromParser::parseEepromBlobTLV(
       case FIELD_V5_MAC:
         value = parseV5Mac(itemLength, itemDataPtr);
         break;
+      case FIELD_PRODUCTION_STATE:
+        value = parseProductionState(itemLength, itemDataPtr);
+        break;
       default:
         std::cout << " Unknown field type " << itemType << " at position "
                   << cursor << " item number " << juice << std::endl;
@@ -596,6 +600,25 @@ std::string FbossEepromParser::parseDate(int len, unsigned char* ptr) {
   monthString = (monthString.length() == 1 ? "0" : "") + monthString;
   dayString = (dayString.length() == 1 ? "0" : "") + dayString;
   return monthString + "-" + dayString + "-" + yearString;
+}
+
+std::string FbossEepromParser::parseProductionState(
+    int len,
+    unsigned char* ptr) {
+  auto value = parseBeUint(len, ptr);
+  if (value == "0") {
+    throw std::runtime_error("Production State is not set!");
+  } else if (value == "1") {
+    return "EVT";
+  } else if (value == "2") {
+    return "DVT";
+  } else if (value == "3") {
+    return "PVT";
+  } else if (value == "4") {
+    return "MP";
+  } else {
+    throw std::runtime_error("Unknown Production State!");
+  }
 }
 
 } // namespace facebook::fboss::platform
