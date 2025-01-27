@@ -216,6 +216,7 @@ std::unordered_map<PortID, cfg::PortProfileID> getSafeProfileIDs(
     auto asicType = asic->getAsicType();
 
     auto bestSpeed = cfg::PortSpeed::DEFAULT;
+    auto bestProfile = cfg::PortProfileID::PROFILE_DEFAULT;
     if (asicType == cfg::AsicType::ASIC_TYPE_JERICHO3 &&
         FLAGS_dual_stage_rdsw_3q_2q) {
       // When using dual_stage_rdsw_3q_2q mapping. Pick NIF port
@@ -237,23 +238,34 @@ std::unordered_map<PortID, cfg::PortProfileID> getSafeProfileIDs(
         case cfg::PortType::CPU_PORT:
           break;
       }
-    }
-    if (asicType == cfg::AsicType::ASIC_TYPE_CHENAB) {
+    } else if (asicType == cfg::AsicType::ASIC_TYPE_CHENAB) {
+      // For chenab pick both profile and speed to be 400G, since that's what is
+      // expected in production and chenab does not support dynamic port profile
+      // change, as it may lead to recreation of ports by delete and add. the
+      // usecase of recreating ports by delete and add is not supported in
+      // chenab.
       bestSpeed = cfg::PortSpeed::FOURHUNDREDG;
+      bestProfile = cfg::PortProfileID::PROFILE_400G_4_PAM4_RS544X2N_OPTICAL;
     }
-
-    auto bestProfile = cfg::PortProfileID::PROFILE_DEFAULT;
     // If bestSpeed is default - pick the largest speed from the safe profiles
     auto pickMaxSpeed = bestSpeed == cfg::PortSpeed::DEFAULT;
-    for (auto profileID : safeProfiles) {
-      auto speed = getSpeed(profileID);
-      if (pickMaxSpeed) {
-        if (static_cast<int>(bestSpeed) < static_cast<int>(speed)) {
-          bestSpeed = speed;
+    auto pickBestProfile = bestProfile == cfg::PortProfileID::PROFILE_DEFAULT;
+    if (pickBestProfile) {
+      for (auto profileID : safeProfiles) {
+        auto speed = getSpeed(profileID);
+        if (pickMaxSpeed) {
+          if (static_cast<int>(bestSpeed) < static_cast<int>(speed)) {
+            bestSpeed = speed;
+            bestProfile = profileID;
+          }
+        } else if (speed == bestSpeed) {
           bestProfile = profileID;
         }
-      } else if (speed == bestSpeed) {
-        bestProfile = profileID;
+      }
+    } else {
+      if (getSpeed(bestProfile) != bestSpeed) {
+        throw FbossError(
+            "Invalid profile:", bestProfile, " for speed ", bestSpeed);
       }
     }
 
