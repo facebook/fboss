@@ -52,6 +52,12 @@ class AgentPortBandwidthTest : public AgentHwTest {
     return getPort0(*getAgentEnsemble(), switchID);
   }
 
+  const HwAsic* getHwAsic() {
+    auto asics = getAgentEnsemble()->getSw()->getHwAsicTable()->getL3Asics();
+    CHECK(!asics.empty());
+    return utility::checkSameAndGetAsic(asics);
+  }
+
   void _configureBandwidth(
       cfg::SwitchConfig* config,
       uint32_t maxPps,
@@ -411,17 +417,21 @@ void AgentPortBandwidthTest::verifyQueueShaper() {
 
 void AgentPortBandwidthTest::verifyPortRateTraffic(cfg::PortSpeed portSpeed) {
   auto setup = [&]() {
-    auto newCfg{initialConfig(*(this->getAgentEnsemble()))};
-    utility::configurePortGroup(
-        getAgentEnsemble()->getPlatformMapping(),
-        getAgentEnsemble()->getSw()->getPlatformSupportsAddRemovePort(),
-        newCfg,
-        portSpeed,
-        utility::getAllPortsInGroup(
-            getAgentEnsemble()->getPlatformMapping(), getPort0()));
-    XLOG(DBG0) << "Port " << getPort0() << " speed set to "
-               << static_cast<int>(portSpeed) << " bps";
-    applyNewConfig(newCfg);
+    auto port = getProgrammedState()->getPorts()->getNodeIf(getPort0());
+    if (port->getSpeed() != portSpeed ||
+        getHwAsic()->getAsicType() != cfg::AsicType::ASIC_TYPE_CHENAB) {
+      auto newCfg{initialConfig(*(this->getAgentEnsemble()))};
+      utility::configurePortGroup(
+          getAgentEnsemble()->getPlatformMapping(),
+          getAgentEnsemble()->getSw()->getPlatformSupportsAddRemovePort(),
+          newCfg,
+          portSpeed,
+          utility::getAllPortsInGroup(
+              getAgentEnsemble()->getPlatformMapping(), getPort0()));
+      XLOG(DBG0) << "Port " << getPort0() << " speed set to "
+                 << static_cast<int>(portSpeed) << " bps";
+      applyNewConfig(newCfg);
+    }
     setupHelper();
 
     auto pktsToSend = getAgentEnsemble()->getMinPktsForLineRate(getPort0());
