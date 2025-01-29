@@ -112,6 +112,7 @@ void HwTransceiverUtils::verifyPortNameToLaneMap(
         switch (profile) {
           case cfg::PortProfileID::PROFILE_400G_4_PAM4_RS544X2N_OPTICAL:
           case cfg::PortProfileID::PROFILE_200G_4_PAM4_RS544X2N_OPTICAL:
+          case cfg::PortProfileID::PROFILE_100G_4_NRZ_RS528_OPTICAL:
             if (std::find(
                     hostLaneMap[portName].begin(),
                     hostLaneMap[portName].end(),
