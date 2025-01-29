@@ -996,7 +996,7 @@ class SaiAgentTestRunner(TestRunner):
         return args.unsupported_tests_file
 
     def _get_test_binary_name(self):
-        return args.sai_bin if args.sai_bin else "sai_agent_test-sai_impl-1.13.0"
+        return args.sai_bin if args.sai_bin else "sai_agent_hw_test-sai_impl-1.13.0"
 
     def _get_sai_replayer_logging_flags(
         self, sai_replayer_logging_dir, test_prefix, test_to_run
