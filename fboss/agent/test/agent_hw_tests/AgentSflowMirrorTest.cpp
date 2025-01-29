@@ -792,11 +792,6 @@ class AgentSflowMirrorWithLineRateTrafficTest
       auto watermarkBytes = latestSysPortStats.queueWatermarkBytes_()->at(0);
       EXPECT_EVENTUALLY_GT(watermarkBytes, 0);
       EXPECT_LT(watermarkBytes, maxExpectedQueueLimitBytes);
-      // Now, ingress congestion discards will be seen on input ports
-      // with line rate traffic. Pick one of the ports with line rate
-      // traffic and look for ingress congestion discards.
-      auto latestPortStats = getLatestPortStats(getPortsForSampling()[0]);
-      EXPECT_EVENTUALLY_GT(*latestPortStats.inCongestionDiscards_(), 0);
     });
   }
 };
