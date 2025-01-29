@@ -73,6 +73,7 @@ bool ChenabAsic::isSupportedNonFabric(Feature feature) const {
     case HwAsic::Feature::L3_INTF_MTU:
     case HwAsic::Feature::EGRESS_ACL_TABLE:
     case HwAsic::Feature::SAI_USER_DEFINED_TRAP:
+    case HwAsic::Feature::ACL_ENTRY_ETHER_TYPE:
       return true;
     case HwAsic::Feature::PORT_MTU_ERROR_TRAP:
     case HwAsic::Feature::EVENTOR_PORT_FOR_SFLOW:
@@ -81,7 +82,6 @@ bool ChenabAsic::isSupportedNonFabric(Feature feature) const {
     case HwAsic::Feature::CABLE_PROPOGATION_DELAY:
     case HwAsic::Feature::DRAM_BLOCK_TIME:
     case HwAsic::Feature::VOQ_LATENCY_WATERMARK_BIN:
-    case HwAsic::Feature::ACL_ENTRY_ETHER_TYPE:
     case HwAsic::Feature::ACL_BYTE_COUNTER:
     case HwAsic::Feature::DATA_CELL_FILTER:
     case HwAsic::Feature::EGRESS_CORE_BUFFER_WATERMARK:
