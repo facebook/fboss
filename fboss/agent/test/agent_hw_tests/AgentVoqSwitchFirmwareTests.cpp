@@ -31,6 +31,12 @@ class AgentVoqSwitchIsolationFirmwareTest : public AgentVoqSwitchTest {
         true /*enable fabric ports*/);
     utility::populatePortExpectedNeighborsToSelf(
         ensemble.masterLogicalPortIds(), config);
+    config = addFwConfig(config);
+    return config;
+  }
+
+ protected:
+  cfg::SwitchConfig addFwConfig(cfg::SwitchConfig config) const {
     cfg::FirmwareInfo j3FwInfo;
     j3FwInfo.coreToUse() = 5;
     j3FwInfo.path() = FLAGS_isolation_firmware_path;
@@ -48,8 +54,6 @@ class AgentVoqSwitchIsolationFirmwareTest : public AgentVoqSwitchTest {
     }
     return config;
   }
-
- protected:
   std::set<uint16_t> getFWCapableSwitchIndices(
       const cfg::SwitchConfig& config) const {
     std::set<uint16_t> switchIndices;
