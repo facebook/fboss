@@ -545,6 +545,9 @@ TEST_F(AgentTunnelMgrTest, changeIPv4Address) {
     std::string intfIPv4;
     std::string intfIPv6;
     for (int i = 0; i < config.interfaces()->size(); i++) {
+      if (config.interfaces()[i].scope() == cfg::Scope::GLOBAL) {
+        continue;
+      }
       for (int j = 0; j < config.interfaces()[i].ipAddresses()->size(); j++) {
         std::string intfIP = folly::to<std::string>(
             folly::IPAddress::createNetwork(
@@ -622,6 +625,9 @@ TEST_F(AgentTunnelMgrTest, changeIPv6Address) {
     std::string intfIPv4;
     std::string intfIPv6;
     for (int i = 0; i < config.interfaces()->size(); i++) {
+      if (config.interfaces()[i].scope() == cfg::Scope::GLOBAL) {
+        continue;
+      }
       for (int j = 0; j < config.interfaces()[i].ipAddresses()->size(); j++) {
         std::string intfIP = folly::to<std::string>(
             folly::IPAddress::createNetwork(
@@ -698,6 +704,9 @@ TEST_F(AgentTunnelMgrTest, checkDuplicateEntries) {
     std::string intfIPv4;
     std::string intfIPv6;
     for (int i = 0; i < config.interfaces()->size(); i++) {
+      if (config.interfaces()[i].scope() == cfg::Scope::GLOBAL) {
+        continue;
+      }
       for (int j = 0; j < config.interfaces()[i].ipAddresses()->size(); j++) {
         std::string intfIP = folly::to<std::string>(
             folly::IPAddress::createNetwork(
