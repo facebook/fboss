@@ -136,6 +136,8 @@ class SaiRouteManager {
   std::shared_ptr<SaiObject<SaiRouteTraits>> getRouteObject(
       SaiRouteTraits::AdapterHostKey routeKey);
 
+  void checkMetadata(SaiRouteTraits::RouteEntry entry);
+
  private:
   SaiRouteHandle* getRouteHandleImpl(
       const SaiRouteTraits::RouteEntry& entry) const;

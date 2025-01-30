@@ -457,4 +457,6 @@ CpuCosQueueId hwQueueIdToCpuCosQueueId(
     const HwAsic* asic,
     HwSwitchFb303Stats* hwswitchStats);
 int numFabricLevels(const std::map<int64_t, cfg::DsfNode>& dsfNodes);
+
+const std::vector<cfg::AclLookupClass>& getToCpuClassIds();
 } // namespace facebook::fboss

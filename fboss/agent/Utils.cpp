@@ -1155,4 +1155,12 @@ int numFabricLevels(const std::map<int64_t, cfg::DsfNode>& dsfNodes) {
       });
   return maxFabricLevel;
 }
+
+const std::vector<cfg::AclLookupClass>& getToCpuClassIds() {
+  static const std::vector<cfg::AclLookupClass> toCpuClassIds = {
+      cfg::AclLookupClass::DST_CLASS_L3_LOCAL_1,
+      cfg::AclLookupClass::DST_CLASS_L3_LOCAL_2,
+  };
+  return toCpuClassIds;
+}
 } // namespace facebook::fboss
