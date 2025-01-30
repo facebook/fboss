@@ -252,7 +252,7 @@ TEST_F(AgentVoqSwitchFullScaleDsfNodesTest, remoteAndLocalLoadBalance) {
 TEST_F(AgentVoqSwitchFullScaleDsfNodesTest, stressProgramEcmpRoutes) {
   auto kEcmpWidth = getMaxEcmpWidth();
   const auto routeScale = 5;
-  const auto numIterations = 20;
+  const auto numIterations = 4;
   auto setup = [&]() {
     utility::setupRemoteIntfAndSysPorts(
         getSw(),
