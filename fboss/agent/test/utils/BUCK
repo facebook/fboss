@@ -257,6 +257,7 @@ cpp_library(
     undefined_symbols = True,
     exported_deps = [
         ":acl_test_utils",
+        ":asic_test_utils",
         ":config_utils",
         ":olympic_qos_utils",
         ":traffic_policy_utils",
