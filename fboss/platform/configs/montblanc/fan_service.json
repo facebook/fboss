@@ -7,10 +7,7 @@
   "pwmLowerThreshold": 25,
   "pwmUpperThreshold": 70,
   "watchdog": {
-    "access": {
-      "accessType": "ACCESS_TYPE_SYSFS",
-      "path": "/run/devmap/watchdogs/FAN_WATCHDOG"
-    },
+    "sysfsPath": "/run/devmap/watchdogs/FAN_WATCHDOG",
     "value": 0
   },
   "controlInterval": {

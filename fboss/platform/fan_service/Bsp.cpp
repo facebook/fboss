@@ -126,30 +126,20 @@ void Bsp::closeWatchdog() {
 }
 
 bool Bsp::writeToWatchdog(const std::string& value) {
-  int rc = true;
   std::string cmdLine;
   if (!config_.watchdog().has_value()) {
-    return rc;
+    return false;
   }
-  AccessMethod access = *config_.watchdog()->access();
-  if (*access.accessType() == constants::ACCESS_TYPE_UTIL()) {
-    cmdLine = fmt::format("{} {}", *access.path(), value);
-    auto [exitStatus, standardOut] = PlatformUtils().execCommand(cmdLine);
-    rc = exitStatus;
-  } else if (*access.accessType() == constants::ACCESS_TYPE_SYSFS()) {
-    try {
-      if (!watchdogFd_.has_value()) {
-        watchdogFd_ = open(access.path()->c_str(), O_WRONLY);
-      }
-      rc = writeFd(watchdogFd_.value(), value);
-    } catch (std::exception& e) {
-      XLOG(ERR) << "Could not write to watchdog: " << e.what();
-      return false;
+  try {
+    auto sysfsPath = config_.watchdog()->sysfsPath()->c_str();
+    if (!watchdogFd_.has_value()) {
+      watchdogFd_ = open(sysfsPath, O_WRONLY);
     }
-  } else {
-    throw facebook::fboss::FbossError("Invalid watchdog access type!");
+    return writeFd(watchdogFd_.value(), value);
+  } catch (std::exception& e) {
+    XLOG(ERR) << "Could not write to watchdog: " << e.what();
+    return false;
   }
-  return rc;
 }
 
 std::vector<std::pair<std::string, float>> Bsp::processOpticEntries(

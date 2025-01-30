@@ -83,7 +83,7 @@ struct Fan {
 }
 
 struct Watchdog {
-  1: AccessMethod access;
+  1: string sysfsPath;
   2: i32 value;
 }
 

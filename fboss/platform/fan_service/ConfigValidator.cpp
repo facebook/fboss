@@ -66,9 +66,8 @@ bool ConfigValidator::isValid(const FanServiceConfig& config) {
   }
 
   if (config.watchdog()) {
-    if (!accessMethodTypes.count(*config.watchdog()->access()->accessType())) {
-      XLOG(ERR) << "Invalid access method for watchdog config: "
-                << *config.watchdog()->access()->accessType();
+    if (!config.watchdog()->sysfsPath()->c_str()) {
+      XLOG(ERR) << "Watchdog sysfs path must have a non-empty value";
       return false;
     }
   }
