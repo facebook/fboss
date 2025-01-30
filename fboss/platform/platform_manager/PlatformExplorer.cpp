@@ -340,12 +340,12 @@ std::optional<std::string> PlatformExplorer::getPmUnitNameFromSlot(
       // I think we can refactor this simpler once I2CDevicePaths are also
       // stored in DataStore. 1/ Create IDPROMs 2/ Read contents from eepromPath
       // stored in DataStore.
-      productProductionStateInEeprom = eepromParser_.getProdutProductionState(
+      productProductionStateInEeprom =
+          eepromParser_.getProductionState(eepromPath, *idpromConfig.offset());
+      productVersionInEeprom = eepromParser_.getProductionSubState(
           eepromPath, *idpromConfig.offset());
-      productVersionInEeprom =
-          eepromParser_.getProductVersion(eepromPath, *idpromConfig.offset());
-      productSubVersionInEeprom = eepromParser_.getProductSubVersion(
-          eepromPath, *idpromConfig.offset());
+      productSubVersionInEeprom =
+          eepromParser_.getVariantVersion(eepromPath, *idpromConfig.offset());
       XLOG(INFO) << fmt::format(
           "Found ProductProductionState `{}` ProductVersion `{}` ProductSubVersion `{}` in IDPROM {} at {}",
           productProductionStateInEeprom
