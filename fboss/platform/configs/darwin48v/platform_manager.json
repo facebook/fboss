@@ -233,7 +233,7 @@
             {
               "pmUnitScopedName": "ROOK_CPU_CPLD_INFO_ROM",
               "deviceName": "fpga_info_iob",
-              "csrOffset": "0x0000"
+              "csrOffset": "0x100"
             }
           ],
           "desiredDriver": "scd"
@@ -313,7 +313,7 @@
             {
               "pmUnitScopedName": "SCD_FPGA_INFO_ROM",
               "deviceName": "fpga_info_iob",
-              "csrOffset": "0x0000"
+              "csrOffset": "0x100"
             }
           ]
         }
