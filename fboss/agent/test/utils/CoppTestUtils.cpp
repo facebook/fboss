@@ -685,7 +685,7 @@ void setTTLZeroCpuConfig(
     // don't configure if not supported
     return;
   }
-
+  excludeTTL1TrapConfig(config);
   std::vector<cfg::PacketRxReasonToQueue> rxReasons;
   bool addTtlRxReason = true;
   if (config.cpuTrafficPolicy().has_value() &&
