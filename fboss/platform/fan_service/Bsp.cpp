@@ -102,19 +102,31 @@ int Bsp::emergencyShutdown(bool enable) {
   return rc;
 }
 
-int Bsp::kickWatchdog() {
+void Bsp::kickWatchdog() {
+  if (!config_.watchdog()) {
+    return;
+  }
+  std::string valueStr = std::to_string(*config_.watchdog()->value());
+  writeToWatchdog(valueStr);
+}
+
+int Bsp::closeWatchdog() {
+  std::cout << "Closing Watchdog" << std::endl;
+  return writeToWatchdog("V");
+}
+
+int Bsp::writeToWatchdog(const std::string& value) {
   int rc = 0;
   bool sysfsSuccess = false;
   std::string cmdLine;
   if (config_.watchdog()) {
     AccessMethod access = *config_.watchdog()->access();
     if (*access.accessType() == constants::ACCESS_TYPE_UTIL()) {
-      cmdLine =
-          fmt::format("{} {}", *access.path(), *config_.watchdog()->value());
+      cmdLine = fmt::format("{} {}", *access.path(), value);
       auto [exitStatus, standardOut] = PlatformUtils().execCommand(cmdLine);
       rc = exitStatus;
     } else if (*access.accessType() == constants::ACCESS_TYPE_SYSFS()) {
-      sysfsSuccess = writeSysfs(*access.path(), *config_.watchdog()->value());
+      sysfsSuccess = facebook::fboss::writeSysfs(*access.path(), value);
       rc = sysfsSuccess ? 0 : -1;
     } else {
       throw facebook::fboss::FbossError("Invalid watchdog access type!");
@@ -338,6 +350,7 @@ Bsp::~Bsp() {
   }
   fsdbSensorSubscriber_.reset();
   fsdbPubSubMgr_.reset();
+  closeWatchdog();
 }
 
 } // namespace facebook::fboss::platform::fan_service

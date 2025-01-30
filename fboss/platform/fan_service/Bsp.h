@@ -36,7 +36,8 @@ class Bsp {
   virtual void getOpticsData(std::shared_ptr<SensorData> pSensorData);
   // emergencyShutdown: function to shutdown the platform upon overheat
   virtual int emergencyShutdown(bool enable);
-  int kickWatchdog();
+  void kickWatchdog();
+  int closeWatchdog();
   virtual bool setFanPwmSysfs(const std::string& path, int pwm);
   virtual bool setFanLedSysfs(const std::string& path, int pwm);
   virtual uint64_t getCurrentTime() const;
@@ -60,6 +61,7 @@ class Bsp {
   void getOpticsDataFromQsfpSvc(
       const Optic& opticsGroup,
       std::shared_ptr<SensorData> pSensorData);
+  int writeToWatchdog(const std::string& value);
   std::shared_ptr<std::thread> thread_{nullptr};
   // For communicating with qsfp_service
   folly::EventBase evb_;
