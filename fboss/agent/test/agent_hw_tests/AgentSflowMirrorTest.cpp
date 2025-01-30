@@ -38,6 +38,8 @@ namespace facebook::fboss {
 template <typename AddrT>
 class AgentSflowMirrorTest : public AgentHwTest {
  public:
+  // Index in the sample ports where data traffic is expected!
+  const int kDataTrafficPortIndex{0};
   std::vector<production_features::ProductionFeature>
   getProductionFeaturesVerified() const override {
     if constexpr (std::is_same_v<AddrT, folly::IPAddressV4>) {
@@ -63,6 +65,7 @@ class AgentSflowMirrorTest : public AgentHwTest {
     if (asic->isSupported(HwAsic::Feature::EVENTOR_PORT_FOR_SFLOW)) {
       utility::addEventorVoqConfig(&cfg, cfg::StreamType::UNICAST);
     }
+    utility::setTTLZeroCpuConfig(ensemble.getL3Asics(), cfg);
     return cfg;
   }
 
@@ -265,13 +268,38 @@ class AgentSflowMirrorTest : public AgentHwTest {
     }
   }
 
+  std::string getTrafficDestinationIp(int portIndex) {
+    return folly::to<std::string>(kIpStr, portIndex, "::1");
+  }
+
+  void setupEcmpTraffic() {
+    utility::EcmpSetupTargetedPorts6 ecmpHelper{
+        getProgrammedState(),
+        utility::getFirstInterfaceMac(getProgrammedState())};
+
+    const PortDescriptor port(getDataTrafficPort());
+    RoutePrefixV6 route{
+        folly::IPAddressV6(getTrafficDestinationIp(kDataTrafficPortIndex)),
+        128};
+
+    applyNewState([&](const std::shared_ptr<SwitchState>& state) {
+      return ecmpHelper.resolveNextHops(state, {port});
+    });
+
+    auto routeUpdater = getSw()->getRouteUpdater();
+    ecmpHelper.programRoutes(&routeUpdater, {port}, {route});
+
+    utility::ttlDecrementHandlingForLoopbackTraffic(
+        getAgentEnsemble(), ecmpHelper.getRouterId(), ecmpHelper.nhop(port));
+  }
+
   std::unique_ptr<facebook::fboss::TxPacket> genPacket(
       int portIndex,
       size_t payloadSize) {
     auto vlanId = utility::firstVlanID(getProgrammedState());
     auto intfMac = utility::getFirstInterfaceMac(getProgrammedState());
     folly::IPAddressV6 sip{"2401:db00:dead:beef::2401"};
-    folly::IPAddressV6 dip{folly::to<std::string>(kIpStr, portIndex, "::1")};
+    folly::IPAddressV6 dip{getTrafficDestinationIp(portIndex)};
     uint16_t sport = 9701;
     uint16_t dport = 9801;
     std::vector<uint8_t> payload(payloadSize, 0xff);
@@ -449,42 +477,43 @@ class AgentSflowMirrorTest : public AgentHwTest {
   }
 
   uint64_t getSampleCount(const std::map<PortID, HwPortStats>& stats) {
-    auto portStats = stats.at(getPortsForSampling()[0]);
+    const auto& portStats = stats.at(getNonSflowSampledInterfacePort());
     return *portStats.outUnicastPkts_();
+  }
+
+  const PortID getDataTrafficPort() {
+    return getPortsForSampling()[kDataTrafficPortIndex];
   }
 
   uint64_t getExpectedSampleCount(const std::map<PortID, HwPortStats>& stats) {
     uint64_t expectedSampleCount = 0;
-    uint64_t allPortRx = 0;
-    for (auto i = 1; i < getPortsForSampling().size(); i++) {
-      auto port = getPortsForSampling()[i];
-      auto portStats = stats.at(port);
-      allPortRx += *portStats.inUnicastPkts_();
-      expectedSampleCount +=
-          (*portStats.inUnicastPkts_() / FLAGS_sflow_test_rate);
-    }
-    XLOG(DBG2) << "total packets rx " << allPortRx;
+    auto port = getDataTrafficPort();
+    const auto& portStats = stats.at(port);
+    expectedSampleCount = (*portStats.inUnicastPkts_() / FLAGS_sflow_test_rate);
+    XLOG(DBG2) << "total packets rx " << *portStats.inUnicastPkts_();
     return expectedSampleCount;
   }
 
   void verifySampledPacketRate() {
-    auto ports = getPortsForSampling();
-
-    auto pkt = genPacket(1, 256);
-
-    for (auto i = 1; i < ports.size(); i++) {
+    auto trafficPort = getDataTrafficPort();
+    for (int i = 0; i < getAgentEnsemble()->getMinPktsForLineRate(trafficPort);
+         i++) {
+      auto pkt = genPacket(kDataTrafficPortIndex, 256 /*payloadSize*/);
       getAgentEnsemble()->sendPacketAsync(
-          std::move(pkt), PortDescriptor(ports[i]), std::nullopt);
-      getAgentEnsemble()->waitForLineRateOnPort(ports[i]);
+          std::move(pkt), PortDescriptor(trafficPort), std::nullopt);
     }
+    getAgentEnsemble()->waitForLineRateOnPort(trafficPort);
 
+    auto ports = getPortsForSampling();
     getAgentEnsemble()->bringDownPorts(
         std::vector<PortID>(ports.begin() + 1, ports.end()));
-
+    ports.push_back(getNonSflowSampledInterfacePort());
     WITH_RETRIES({
-      auto stats = getLatestPortStats(getPortsForSampling());
+      auto stats = getLatestPortStats(ports);
       auto actualSampleCount = getSampleCount(stats);
       auto expectedSampleCount = getExpectedSampleCount(stats);
+      XLOG(DBG2) << "Number of sflow samples expected: " << expectedSampleCount
+                 << ", samples seen: " << actualSampleCount;
       auto difference = (expectedSampleCount > actualSampleCount)
           ? (expectedSampleCount - actualSampleCount)
           : (actualSampleCount - expectedSampleCount);
@@ -493,8 +522,6 @@ class AgentSflowMirrorTest : public AgentHwTest {
       }
       auto percentError = (difference * 100) / actualSampleCount;
       EXPECT_EVENTUALLY_LE(percentError, kDefaultPercentErrorThreshold);
-      XLOG(DBG2) << "expected number of " << expectedSampleCount << " samples";
-      XLOG(DBG2) << "captured number of " << actualSampleCount << " samples";
     });
 
     getAgentEnsemble()->bringUpPorts(
@@ -527,9 +554,9 @@ class AgentSflowMirrorTest : public AgentHwTest {
       auto config = initialConfig(*getAgentEnsemble());
       configureMirror(config);
       configSampling(config, FLAGS_sflow_test_rate);
-      configureTrapAcl(config);
       applyNewConfig(config);
       resolveRouteForMirrorDestination();
+      setupEcmpTraffic();
     };
     auto verify = [=, this]() { verifySampledPacketRate(); };
     verifyAcrossWarmBoots(setup, verify);
