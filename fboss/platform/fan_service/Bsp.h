@@ -37,7 +37,7 @@ class Bsp {
   // emergencyShutdown: function to shutdown the platform upon overheat
   virtual int emergencyShutdown(bool enable);
   void kickWatchdog();
-  int closeWatchdog();
+  void closeWatchdog();
   virtual bool setFanPwmSysfs(const std::string& path, int pwm);
   virtual bool setFanLedSysfs(const std::string& path, int pwm);
   virtual uint64_t getCurrentTime() const;
@@ -61,7 +61,7 @@ class Bsp {
   void getOpticsDataFromQsfpSvc(
       const Optic& opticsGroup,
       std::shared_ptr<SensorData> pSensorData);
-  int writeToWatchdog(const std::string& value);
+  bool writeToWatchdog(const std::string& value);
   std::shared_ptr<std::thread> thread_{nullptr};
   // For communicating with qsfp_service
   folly::EventBase evb_;
@@ -73,6 +73,16 @@ class Bsp {
   int sensordThriftPort_{5970};
   int qsfpSvcThriftPort_{5910};
   bool initialSensorDataRead_{false};
+  std::optional<int> watchdogFd_;
+
+  bool writeFd(int fd, const std::string& val) {
+    auto ret = write(fd, val.c_str(), val.size());
+    if (ret < 0) {
+      XLOG(ERR) << "Failed to write to file descriptor " << fd << ": "
+                << folly::errnoStr(errno);
+    }
+    return ret > 0;
+  }
 
   // Low level access function for setting PWM and LED value
   virtual bool writeSysfs(const std::string& path, int value);

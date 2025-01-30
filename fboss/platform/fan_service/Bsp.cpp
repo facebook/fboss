@@ -107,30 +107,47 @@ void Bsp::kickWatchdog() {
     return;
   }
   std::string valueStr = std::to_string(*config_.watchdog()->value());
-  writeToWatchdog(valueStr);
+  if (!writeToWatchdog(valueStr)) {
+    XLOG(ERR) << "Failed to kick watchdog";
+  }
 }
 
-int Bsp::closeWatchdog() {
-  std::cout << "Closing Watchdog" << std::endl;
-  return writeToWatchdog("V");
+void Bsp::closeWatchdog() {
+  if (!watchdogFd_.has_value()) {
+    return;
+  }
+  std::cout << "Closing watchdog" << std::endl;
+  try {
+    writeToWatchdog("V");
+    close(watchdogFd_.value());
+  } catch (std::exception& e) {
+    XLOG(ERR) << "Error closing watchdog: " << e.what();
+  }
 }
 
-int Bsp::writeToWatchdog(const std::string& value) {
-  int rc = 0;
-  bool sysfsSuccess = false;
+bool Bsp::writeToWatchdog(const std::string& value) {
+  int rc = true;
   std::string cmdLine;
-  if (config_.watchdog()) {
-    AccessMethod access = *config_.watchdog()->access();
-    if (*access.accessType() == constants::ACCESS_TYPE_UTIL()) {
-      cmdLine = fmt::format("{} {}", *access.path(), value);
-      auto [exitStatus, standardOut] = PlatformUtils().execCommand(cmdLine);
-      rc = exitStatus;
-    } else if (*access.accessType() == constants::ACCESS_TYPE_SYSFS()) {
-      sysfsSuccess = facebook::fboss::writeSysfs(*access.path(), value);
-      rc = sysfsSuccess ? 0 : -1;
-    } else {
-      throw facebook::fboss::FbossError("Invalid watchdog access type!");
+  if (!config_.watchdog().has_value()) {
+    return rc;
+  }
+  AccessMethod access = *config_.watchdog()->access();
+  if (*access.accessType() == constants::ACCESS_TYPE_UTIL()) {
+    cmdLine = fmt::format("{} {}", *access.path(), value);
+    auto [exitStatus, standardOut] = PlatformUtils().execCommand(cmdLine);
+    rc = exitStatus;
+  } else if (*access.accessType() == constants::ACCESS_TYPE_SYSFS()) {
+    try {
+      if (!watchdogFd_.has_value()) {
+        watchdogFd_ = open(access.path()->c_str(), O_WRONLY);
+      }
+      rc = writeFd(watchdogFd_.value(), value);
+    } catch (std::exception& e) {
+      XLOG(ERR) << "Could not write to watchdog: " << e.what();
+      return false;
     }
+  } else {
+    throw facebook::fboss::FbossError("Invalid watchdog access type!");
   }
   return rc;
 }
