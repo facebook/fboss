@@ -146,6 +146,36 @@ class AgentVoqSwitchIsolationFirmwareTest : public AgentVoqSwitchTest {
   }
 };
 
+class AgentVoqSwitchIsolationFirmwareUpdateTest
+    : public AgentVoqSwitchIsolationFirmwareTest {
+ public:
+  cfg::SwitchConfig initialConfig(
+      const AgentEnsemble& ensemble) const override {
+    auto config = utility::onePortPerInterfaceConfig(
+        ensemble.getSw(),
+        ensemble.masterLogicalPortIds(),
+        true, /*interfaceHasSubnet*/
+        true, /*setInterfaceMac*/
+        utility::kBaseVlanId,
+        true /*enable fabric ports*/);
+    utility::populatePortExpectedNeighborsToSelf(
+        ensemble.masterLogicalPortIds(), config);
+    return config;
+  }
+  void tearDownAgentEnsemble(bool warmboot = false) override {
+    // We check for agentEnsemble not being NULL since the tests
+    // are also invoked for just listing their prod features.
+    // Then in such case, agentEnsemble is never setup
+    if (getAgentEnsemble() && getSw()->getBootType() == BootType::COLD_BOOT) {
+      auto agentConfig = getSw()->getAgentConfig();
+      const auto& configFileName = getAgentEnsemble()->configFileName();
+      agentConfig.sw() = addFwConfig(*agentConfig.sw());
+      AgentEnsemble::writeConfig(agentConfig, configFileName);
+    }
+    AgentHwTest::tearDownAgentEnsemble(warmboot);
+  }
+};
+
 TEST_F(AgentVoqSwitchIsolationFirmwareTest, forceIsolate) {
   auto setup = [this]() {
     assertPortAndDrainState(false /* not drained*/);
@@ -212,4 +242,18 @@ TEST_F(AgentVoqSwitchIsolationFirmwareTest, forceCrashDuringWarmBoot) {
   auto verifyPostWarmboot = [this]() { forceIsolatePostCrashAndVerify(); };
   verifyAcrossWarmBoots(setup, []() {}, []() {}, verifyPostWarmboot);
 }
+
+TEST_F(AgentVoqSwitchIsolationFirmwareUpdateTest, loadOnWarmboot) {
+  auto setup = [this]() {
+    assertPortAndDrainState(false /* not drained*/);
+    setMinLinksConfig();
+  };
+
+  auto verifyPostWarmboot = [this]() {
+    forceIsolate();
+    assertSwitchDrainState(true /* drained */);
+  };
+  verifyAcrossWarmBoots(setup, []() {}, []() {}, verifyPostWarmboot);
+}
+
 } // namespace facebook::fboss
