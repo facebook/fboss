@@ -3028,21 +3028,6 @@ void SaiPortManager::changeTxEnable(
   }
 }
 
-void SaiPortManager::updateConditionalEntropySeed(PortID portID, uint32_t seed)
-    const {
-// TODO(zecheng): Update flag when new 12.0 release has the attribute
-#if defined(BRCM_SAI_SDK_DNX_GTE_11_0) && !defined(BRCM_SAI_SDK_DNX_GTE_12_0)
-  auto portHandle = getPortHandle(portID);
-  if (!portHandle) {
-    throw FbossError(
-        "Cannot update conditional entropy seed on non existent port: ",
-        portID);
-  }
-  portHandle->port->setOptionalAttribute(
-      SaiPortTraits::Attributes::CondEntropyRehashSeed{seed});
-#endif
-}
-
 void SaiPortManager::changePortFlowletConfig(
     const std::shared_ptr<Port>& oldPort,
     const std::shared_ptr<Port>& newPort) {

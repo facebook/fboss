@@ -296,8 +296,6 @@ class SaiPortManager {
   bool rxFrequencyRPMSupported() const;
   bool rxSNRSupported() const;
   bool fecCodewordsStatsSupported(PortID portID) const;
-  // TODO(zecheng): Remove this once firmware support is ready
-  void updateConditionalEntropySeed(PortID portID, uint32_t seed) const;
 
  private:
   PortSaiId addPortImpl(const std::shared_ptr<Port>& swPort);
