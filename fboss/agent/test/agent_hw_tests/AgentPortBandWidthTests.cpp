@@ -118,8 +118,12 @@ class AgentPortBandwidthTest : public AgentHwTest {
         255 /* Hop limit */,
         payload);
 
+    std::optional<PortDescriptor> port{};
+    if (getHwAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_CHENAB) {
+      port = PortDescriptor(getPort0());
+    }
     getAgentEnsemble()->sendPacketAsync(
-        std::move(txPacket), std::nullopt, std::nullopt);
+        std::move(txPacket), port, std::nullopt);
   }
 
   void sendUdpPkts(uint8_t dscpVal, int cnt = 256, int payloadLen = 0) {
