@@ -852,4 +852,11 @@ if (GITHUB_ACTIONS_BUILD)
     sensor_service_hw_test
     weutil_hw_test
   )
+
+  add_custom_target(github_actions_fboss_other_services)
+  add_dependencies(github_actions_fboss_other_services
+    # Services
+    fboss2
+    fsdb
+  )
 endif()
