@@ -719,20 +719,20 @@ void setTTLZeroCpuConfig(
 }
 
 void excludeTTL1TrapConfig(cfg::SwitchConfig& config) {
-  std::vector<cfg::PacketRxReasonToQueue> rxReasons;
-  // Exclude TTL_1 trap since on some devices we disable it
-  // to set up data plane loops
-  CHECK(config.cpuTrafficPolicy().has_value());
-  CHECK(config.cpuTrafficPolicy()->rxReasonToQueueOrderedList().has_value());
-  if (config.cpuTrafficPolicy()->rxReasonToQueueOrderedList()->size()) {
+  if (config.cpuTrafficPolicy().has_value() &&
+      config.cpuTrafficPolicy()->rxReasonToQueueOrderedList().has_value() &&
+      config.cpuTrafficPolicy()->rxReasonToQueueOrderedList()->size()) {
+    std::vector<cfg::PacketRxReasonToQueue> rxReasons;
+    // Exclude TTL_1 trap since on some devices we disable it
+    // to set up data plane loops
     for (auto rxReasonAndQueue :
          *config.cpuTrafficPolicy()->rxReasonToQueueOrderedList()) {
       if (*rxReasonAndQueue.rxReason() != cfg::PacketRxReason::TTL_1) {
         rxReasons.push_back(rxReasonAndQueue);
       }
     }
+    config.cpuTrafficPolicy()->rxReasonToQueueOrderedList() = rxReasons;
   }
-  config.cpuTrafficPolicy()->rxReasonToQueueOrderedList() = rxReasons;
 }
 
 void setPortQueueSharedBytes(cfg::PortQueue& queue, bool isSai) {
