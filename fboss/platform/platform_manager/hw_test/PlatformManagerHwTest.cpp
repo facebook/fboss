@@ -25,9 +25,9 @@ const std::map<ExplorationStatus, std::vector<ExplorationStatus>>
         {ExplorationStatus::SUCCEEDED_WITH_EXPECTED_ERRORS, {}},
         {ExplorationStatus::FAILED, {}}};
 }; // namespace
-class CustomPlatformExplorer : public PlatformExplorer {
+class PlatformExplorerWrapper : public PlatformExplorer {
  public:
-  explicit CustomPlatformExplorer(const PlatformConfig& config)
+  explicit PlatformExplorerWrapper(const PlatformConfig& config)
       : PlatformExplorer(config) {
     // Store the initial PlatformManagerStatus defined in PlatformExplorer.
     updatedPmStatuses_.push_back(getPMStatus());
@@ -45,9 +45,6 @@ class CustomPlatformExplorer : public PlatformExplorer {
 };
 class PlatformManagerHwTest : public ::testing::Test {
  public:
-  void SetUp() override {
-    pkgManager_.processAll();
-  }
   PlatformManagerStatus getPmStatus() {
     PlatformManagerStatus pmStatus;
     pmClient_->sync_getLastPMStatus(pmStatus);
@@ -56,11 +53,26 @@ class PlatformManagerHwTest : public ::testing::Test {
   std::vector<PlatformManagerStatus> getUpdatedPmStatuses() {
     return platformExplorer_.updatedPmStatuses_;
   }
+  void explorationOk() {
+    auto now = std::chrono::duration_cast<std::chrono::seconds>(
+                   std::chrono::system_clock::now().time_since_epoch())
+                   .count();
+    pkgManager_.processAll();
+    platformExplorer_.explore();
+    auto pmStatus = getPmStatus();
+    EXPECT_TRUE(
+        *pmStatus.explorationStatus() == ExplorationStatus::SUCCEEDED ||
+        *pmStatus.explorationStatus() ==
+            ExplorationStatus::SUCCEEDED_WITH_EXPECTED_ERRORS)
+        << fmt::format(
+               "Ended with unexpected exploration status {}",
+               apache::thrift::util::enumNameSafe(
+                   *pmStatus.explorationStatus()));
+    EXPECT_GT(*pmStatus.lastExplorationTime(), now);
+  }
 
   PlatformConfig platformConfig_{ConfigUtils().getConfig()};
-  CustomPlatformExplorer platformExplorer_{platformConfig_};
-
- private:
+  PlatformExplorerWrapper platformExplorer_{platformConfig_};
   PkgManager pkgManager_{platformConfig_};
   std::unique_ptr<apache::thrift::Client<PlatformManagerService>> pmClient_{
       apache::thrift::makeTestClient<
@@ -68,26 +80,22 @@ class PlatformManagerHwTest : public ::testing::Test {
           std::make_unique<PlatformManagerHandler>(platformExplorer_))};
 };
 
-TEST_F(PlatformManagerHwTest, PmExplorationSuccess) {
-  auto pmStatus = getPmStatus();
-  EXPECT_EQ(*pmStatus.explorationStatus(), ExplorationStatus::UNSTARTED);
-  auto now = std::chrono::duration_cast<std::chrono::seconds>(
-                 std::chrono::system_clock::now().time_since_epoch())
-                 .count();
-  platformExplorer_.explore();
-  pmStatus = getPmStatus();
-  EXPECT_TRUE(
-      *pmStatus.explorationStatus() == ExplorationStatus::SUCCEEDED ||
-      *pmStatus.explorationStatus() ==
-          ExplorationStatus::SUCCEEDED_WITH_EXPECTED_ERRORS)
-      << fmt::format(
-             "Ended with unexpected exploration status {}",
-             apache::thrift::util::enumNameSafe(*pmStatus.explorationStatus()));
-  EXPECT_GT(*pmStatus.lastExplorationTime(), now);
+TEST_F(PlatformManagerHwTest, ExploreAsDeployed) {
+  explorationOk();
+}
+
+TEST_F(PlatformManagerHwTest, ExploreAfterUninstallingKmods) {
+  pkgManager_.removeInstalledRpms();
+  explorationOk();
+}
+
+TEST_F(PlatformManagerHwTest, ExploreAfterUnloadingKmods) {
+  pkgManager_.unloadBspKmods();
+  explorationOk();
 }
 
 TEST_F(PlatformManagerHwTest, PmExplorationStatusTransitions) {
-  platformExplorer_.explore();
+  explorationOk();
   std::optional<ExplorationStatus> currStatus;
   std::vector<ExplorationStatus> nextStatuses = {ExplorationStatus::UNSTARTED};
   auto updatedPmStatuses = getUpdatedPmStatuses();
@@ -122,7 +130,7 @@ TEST_F(PlatformManagerHwTest, PmExplorationStatusTransitions) {
 TEST_F(PlatformManagerHwTest, Symlinks) {
   std::filesystem::remove_all("/run/devmap");
   EXPECT_FALSE(std::filesystem::exists("/run/devmap"));
-  platformExplorer_.explore();
+  explorationOk();
   for (const auto& [symlink, devicePath] :
        *platformConfig_.symbolicLinkToDevicePath()) {
     // Skip unsupported device in this hardware.

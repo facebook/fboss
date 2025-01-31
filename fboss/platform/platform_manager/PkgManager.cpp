@@ -217,22 +217,9 @@ void PkgManager::processRpms() const {
     fb303::fbData->setCounter(kProcessRpmFailure, 1);
   };
 
+  removeInstalledRpms();
+
   int exitStatus{0};
-  if (auto installedRpms =
-          systemInterface_->getInstalledRpms(getKmodsRpmBaseWithKernelName());
-      !installedRpms.empty()) {
-    XLOG(INFO) << fmt::format(
-        "Removing old rpms: {}", folly::join(", ", installedRpms));
-    if (exitStatus = systemInterface_->removeRpms(installedRpms);
-        exitStatus != 0) {
-      throw std::runtime_error(fmt::format(
-          "Failed to remove old rpms ({}) with exit code {}",
-          folly::join(" ", installedRpms),
-          exitStatus));
-    }
-  } else {
-    XLOG(INFO) << "Skipping removing old rpms. Reason: No rpms installed.";
-  }
   auto bspKmodsRpmName = getKmodsRpmName();
   for (auto [success, attempt] = std::pair{false, 0}; attempt < 3 && !success;
        attempt++) {
@@ -349,6 +336,27 @@ void PkgManager::loadRequiredKmods() const {
     }
   }
   fb303::fbData->setCounter(kLoadKmodsFailure, 0);
+}
+
+void PkgManager::removeInstalledRpms() const {
+  auto installedRpms =
+      systemInterface_->getInstalledRpms(getKmodsRpmBaseWithKernelName());
+  if (installedRpms.empty()) {
+    XLOG(INFO) << "Skipping removing old rpms. Reason: No rpms installed.";
+    return;
+  }
+  int exitStatus{0};
+  XLOG(INFO) << fmt::format(
+      "Removing old rpms: {}", folly::join(", ", installedRpms));
+  if (exitStatus = systemInterface_->removeRpms(installedRpms);
+      exitStatus != 0) {
+    throw std::runtime_error(fmt::format(
+        "Failed to remove old rpms ({}) with exit code {}",
+        folly::join(" ", installedRpms),
+        exitStatus));
+  }
+  XLOG(INFO) << fmt::format(
+      "Removed old rpms: {}", folly::join(", ", installedRpms));
 }
 
 std::string PkgManager::getKmodsRpmName() const {
