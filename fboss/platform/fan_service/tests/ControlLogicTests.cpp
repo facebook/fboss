@@ -11,12 +11,9 @@
 #include "fboss/platform/fan_service/Bsp.h"
 #include "fboss/platform/fan_service/ControlLogic.h"
 #include "fboss/platform/fan_service/SensorData.h"
-#include "fboss/platform/fan_service/if/gen-cpp2/fan_service_config_constants.h"
 
 using namespace ::testing;
 using namespace facebook::fboss::platform::fan_service;
-namespace constants =
-    facebook::fboss::platform::fan_service::fan_service_config_constants;
 
 namespace {
 

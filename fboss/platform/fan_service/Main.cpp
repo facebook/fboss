@@ -2,7 +2,6 @@
 
 #include <csignal>
 #include <memory>
-#include <mutex>
 #include <string>
 
 #include <fb303/FollyLoggingHandler.h>

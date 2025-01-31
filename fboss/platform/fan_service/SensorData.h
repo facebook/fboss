@@ -9,7 +9,6 @@
 #include <unordered_map>
 #include <vector>
 
-#include "fboss/agent/FbossError.h"
 #include "fboss/platform/fan_service/if/gen-cpp2/fan_service_config_types.h"
 
 namespace facebook::fboss::platform::fan_service {

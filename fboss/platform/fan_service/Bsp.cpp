@@ -2,13 +2,16 @@
 
 #include "fboss/platform/fan_service/Bsp.h"
 
+#include <fstream>
 #include <string>
 
 #include <folly/logging/xlog.h>
 
 #include "common/time/Time.h"
+#include "fboss/agent/FbossError.h"
 #include "fboss/fsdb/common/Flags.h"
 #include "fboss/lib/CommonFileUtils.h"
+#include "fboss/platform/fan_service/DataFetcher.h"
 #include "fboss/platform/fan_service/FsdbSensorSubscriber.h"
 #include "fboss/platform/fan_service/if/gen-cpp2/fan_service_config_constants.h"
 #include "fboss/platform/fan_service/if/gen-cpp2/fan_service_config_types.h"

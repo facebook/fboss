@@ -8,21 +8,16 @@
 #pragma once
 
 #include <cstdint>
-#include <fstream>
-#include <sstream>
 
 #include <folly/coro/BlockingWait.h>
 #include <folly/io/async/EventBase.h>
 #include <folly/system/Shell.h>
 
 #include "fboss/fsdb/client/FsdbPubSubManager.h"
-#include "fboss/platform/fan_service/DataFetcher.h"
 #include "fboss/platform/fan_service/FsdbSensorSubscriber.h"
 #include "fboss/platform/fan_service/SensorData.h"
 #include "fboss/platform/fan_service/if/gen-cpp2/fan_service_config_types.h"
-#include "fboss/platform/sensor_service/if/gen-cpp2/sensor_service_types.h"
-#include "fboss/qsfp_service/if/gen-cpp2/qsfp_state_types.h"
-#include "fboss/qsfp_service/if/gen-cpp2/qsfp_stats_types.h"
+#include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
 
 namespace facebook::fboss::platform::fan_service {
 

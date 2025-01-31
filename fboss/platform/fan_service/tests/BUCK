@@ -12,6 +12,7 @@ cpp_unittest(
     ],
     deps = [
         "fbsource//third-party/googletest:gmock",
+        "//fboss/agent:fboss-error",
         "//fboss/platform/fan_service:config_validator",
         "//fboss/platform/fan_service:core",
         "//fboss/platform/fan_service:pid_logic_library",

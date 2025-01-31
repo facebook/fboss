@@ -8,7 +8,7 @@
 #include <folly/logging/xlog.h>
 #include <gpiod.h>
 
-#include "common/time/Time.h"
+#include "fboss/agent/FbossError.h"
 #include "fboss/lib/GpiodLine.h"
 #include "fboss/platform/fan_service/SensorData.h"
 #include "fboss/platform/fan_service/if/gen-cpp2/fan_service_config_constants.h"

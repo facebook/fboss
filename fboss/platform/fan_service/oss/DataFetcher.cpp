@@ -7,7 +7,9 @@
 
 #include <folly/logging/xlog.h>
 
+#include "fboss/platform/sensor_service/if/gen-cpp2/SensorServiceThriftAsyncClient.h"
 #include "fboss/platform/sensor_service/if/gen-cpp2/sensor_service_clients.h"
+#include "fboss/qsfp_service/lib/QsfpClient.h"
 
 using namespace facebook::fboss;
 using namespace facebook::fboss::platform::fan_service;
