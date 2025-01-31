@@ -6,11 +6,13 @@
 #include <folly/FileUtil.h>
 #include <folly/String.h>
 #include <folly/logging/xlog.h>
+#include <range/v3/range/conversion.hpp>
+#include <range/v3/view/drop.hpp>
+#include <range/v3/view/filter.hpp>
+#include <range/v3/view/split.hpp>
 #include <re2/re2.h>
 #include <sys/utsname.h>
 #include <thrift/lib/cpp2/protocol/Serializer.h>
-
-#include "fboss/platform/helpers/PlatformUtils.h"
 
 DEFINE_bool(
     enable_pkg_mgmnt,
@@ -37,14 +39,16 @@ const re2::RE2 kBspRpmNameRe = "(?P<KEYWORD>[a-z]+)_bsp_kmods";
 } // namespace
 
 namespace package_manager {
-SystemInterface::SystemInterface() {}
+SystemInterface::SystemInterface(
+    const std::shared_ptr<PlatformUtils>& platformUtils)
+    : platformUtils_(platformUtils) {}
 
 bool SystemInterface::loadKmod(const std::string& moduleName) const {
   int exitStatus{0};
   std::string standardOut{};
   auto unloadCmd = fmt::format("modprobe {}", moduleName);
   VLOG(1) << fmt::format("Running command ({})", unloadCmd);
-  std::tie(exitStatus, standardOut) = PlatformUtils().execCommand(unloadCmd);
+  std::tie(exitStatus, standardOut) = platformUtils_->execCommand(unloadCmd);
   return exitStatus == 0;
 }
 
@@ -53,7 +57,7 @@ bool SystemInterface::unloadKmod(const std::string& moduleName) const {
   std::string standardOut{};
   auto unloadCmd = fmt::format("rmmod {}", moduleName);
   VLOG(1) << fmt::format("Running command ({})", unloadCmd);
-  std::tie(exitStatus, standardOut) = PlatformUtils().execCommand(unloadCmd);
+  std::tie(exitStatus, standardOut) = platformUtils_->execCommand(unloadCmd);
   return exitStatus == 0;
 }
 
@@ -62,7 +66,7 @@ int SystemInterface::installRpm(const std::string& rpmFullName) const {
   std::string standardOut{};
   auto cmd = fmt::format("dnf install {} --assumeyes", rpmFullName);
   VLOG(1) << fmt::format("Running command ({})", cmd);
-  std::tie(exitStatus, standardOut) = PlatformUtils().execCommand(cmd);
+  std::tie(exitStatus, standardOut) = platformUtils_->execCommand(cmd);
   return exitStatus;
 }
 
@@ -71,7 +75,7 @@ int SystemInterface::installLocalRpm() const {
   std::string standardOut{};
   auto cmd = fmt::format("rpm -i --force {}", FLAGS_local_rpm_path);
   VLOG(1) << fmt::format("Running command ({})", cmd);
-  std::tie(exitStatus, standardOut) = PlatformUtils().execCommand(cmd);
+  std::tie(exitStatus, standardOut) = platformUtils_->execCommand(cmd);
   return exitStatus;
 }
 
@@ -80,7 +84,7 @@ int SystemInterface::depmod() const {
   std::string standardOut{};
   auto depmodCmd = "depmod -a";
   VLOG(1) << fmt::format("Running command ({})", depmodCmd);
-  std::tie(exitStatus, standardOut) = PlatformUtils().execCommand(depmodCmd);
+  std::tie(exitStatus, standardOut) = platformUtils_->execCommand(depmodCmd);
   return exitStatus;
 }
 
@@ -90,7 +94,7 @@ std::vector<std::string> SystemInterface::getInstalledRpms(
   int exitStatus{0};
   auto cmd = fmt::format("rpm -qa | grep ^{}", rpmBaseName);
   VLOG(1) << fmt::format("Running command ({})", cmd);
-  std::tie(exitStatus, standardOut) = PlatformUtils().execCommand(cmd);
+  std::tie(exitStatus, standardOut) = platformUtils_->execCommand(cmd);
   if (exitStatus) {
     return {};
   }
@@ -107,14 +111,29 @@ int SystemInterface::removeRpms(
       fmt::format("rpm -e --allmatches {}", folly::join(" ", installedRpms));
   VLOG(1) << fmt::format("Running command ({})", removeOldRpmsCmd);
   std::tie(exitStatus, standardOut) =
-      PlatformUtils().execCommand(removeOldRpmsCmd);
+      platformUtils_->execCommand(removeOldRpmsCmd);
   return exitStatus;
 }
 
-std::string SystemInterface::lsmod() const {
+std::set<std::string> SystemInterface::lsmod() const {
   VLOG(1) << "Running command (lsmod)";
-  auto result = PlatformUtils().execCommand("lsmod");
-  return result.second;
+  auto result = platformUtils_->execCommand("lsmod");
+  auto rows = result.second | ranges::views::split('\n') |
+      ranges::views::drop(1) | ranges::to<std::vector<std::string>>;
+  std::set<std::string> kmods;
+  // row -> kmod | size | used by | dependent kmods
+  for (const auto& row : rows) {
+    auto tokens = row | ranges::views::split(' ') |
+        ranges::views::filter(
+                      [](const auto& token) { return !token.empty(); }) |
+        ranges::to<std::vector<std::string>>;
+    if (tokens.empty()) {
+      XLOG(WARNING) << fmt::format("Failed to scan lsmod row -- {}", row);
+      continue;
+    }
+    kmods.emplace(tokens.front());
+  }
+  return kmods;
 }
 
 std::string SystemInterface::getHostKernelVersion() const {
@@ -299,7 +318,7 @@ void PkgManager::unloadBspKmods() const {
   XLOG(INFO) << "Unloading kernel modules based on kmods.json";
   const auto loadedKmods = systemInterface_->lsmod();
   for (const auto& kmod : *bspKmodsFile.bspKmods()) {
-    if (loadedKmods.find(kmod) != std::string::npos) {
+    if (loadedKmods.contains(kmod)) {
       XLOG(INFO) << fmt::format("Unloading {}", kmod);
       if (!systemInterface_->unloadKmod(kmod)) {
         throw std::runtime_error(fmt::format("Failed to unload ({})", kmod));
@@ -311,7 +330,7 @@ void PkgManager::unloadBspKmods() const {
   }
   XLOG(INFO) << "Unloading shared kernel modules";
   for (const auto& kmod : *bspKmodsFile.sharedKmods()) {
-    if (loadedKmods.find(kmod) != std::string::npos) {
+    if (loadedKmods.contains(kmod)) {
       XLOG(INFO) << fmt::format("Unloading {}", kmod);
       if (!systemInterface_->unloadKmod(kmod)) {
         throw std::runtime_error(fmt::format("Failed to unload ({})", kmod));
