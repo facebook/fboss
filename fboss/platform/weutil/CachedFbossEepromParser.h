@@ -40,27 +40,22 @@ class CachedFbossEepromParser {
     for (const auto& [key, value] : getContents(eepromFilePath, offset)) {
       // < V6 - "Product Production State"
       // = V6 - "Production State"
-      if (key == "Product Production State" || key == "Production State") {
-        try {
-            // Attempt conversion to integer first.
-            return std::stoi(value);
-        } catch (const std::invalid_argument& e) {
-            // If integer conversion fails, check for string values.
-            if (value == "0") {
-                 throw std::runtime_error("Production State is not set!");
-            } else if (value == "EVT") {
-                 return 1;
-            } else if (value == "DVT") {
-                 return 2;
-            } else if (value == "PVT") {
-                 return 3;
-            } else if (value == "MP") {
-                 return 4;
-            } else {
-                 throw std::runtime_error("Unknown Production State: " + value); // Include the value in the error message
-             }
-        } catch (const std::out_of_range& e) {
-             throw std::runtime_error("Production State value out of range: " + value); // Handle potential out-of-range errors
+      if (key == "Product Production State"){
+        return std::stoi(value);
+      } else if (key == "Production State") {
+        // If integer conversion fails, check for string values.
+        if (value == "0") {
+          throw std::runtime_error("Production State is not set!");
+        } else if (value == "EVT") {
+           return 1;
+        } else if (value == "DVT") {
+           return 2;
+        } else if (value == "PVT") {
+           return 3;
+        } else if (value == "MP") {
+           return 4;
+        } else {
+           throw std::runtime_error("Unknown Production State!"); 
         }
       }
     }
