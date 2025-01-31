@@ -146,6 +146,23 @@ class AgentVoqSwitchIsolationFirmwareTest : public AgentVoqSwitchTest {
   }
 };
 
+class AgentVoqSwitchIsolationFirmwareWBEventsTest
+    : public AgentVoqSwitchIsolationFirmwareTest {
+ public:
+  static constexpr auto kEventDelay = 20;
+  void tearDownAgentEnsemble(bool warmboot = false) override {
+    // We check for agentEnsemble not being NULL since the tests
+    // are also invoked for just listing their prod features.
+    // Then in such case, agentEnsemble is never setup
+    bool isColdBoot =
+        getAgentEnsemble() && getSw()->getBootType() == BootType::COLD_BOOT;
+    AgentHwTest::tearDownAgentEnsemble(warmboot);
+    if (isColdBoot) {
+      sleep(kEventDelay * 2);
+    }
+  }
+};
+
 class AgentVoqSwitchIsolationFirmwareUpdateTest
     : public AgentVoqSwitchIsolationFirmwareTest {
  public:
@@ -193,23 +210,6 @@ TEST_F(AgentVoqSwitchIsolationFirmwareTest, forceIsolate) {
   verifyAcrossWarmBoots(setup, verify);
 }
 
-TEST_F(AgentVoqSwitchIsolationFirmwareTest, forceIsolateDuringWarmBoot) {
-  auto setup = [this]() {
-    assertPortAndDrainState(false /* not drained*/);
-    setMinLinksConfig();
-    forceIsolate(20);
-  };
-
-  auto verifyPostWarmboot = [this]() {
-    assertSwitchDrainState(true /* drained */);
-    utility::checkFabricPortsActiveState(
-        getAgentEnsemble(),
-        masterLogicalFabricPortIds(),
-        true /* expect active*/);
-  };
-  verifyAcrossWarmBoots(setup, []() {}, []() {}, verifyPostWarmboot);
-}
-
 TEST_F(AgentVoqSwitchIsolationFirmwareTest, forceCrash) {
   auto setup = [this]() {
     assertPortAndDrainState(false /* not drained*/);
@@ -230,13 +230,32 @@ TEST_F(AgentVoqSwitchIsolationFirmwareTest, forceCrash) {
   verifyAcrossWarmBoots(setup, verify);
 }
 
-TEST_F(AgentVoqSwitchIsolationFirmwareTest, forceCrashDuringWarmBoot) {
+TEST_F(
+    AgentVoqSwitchIsolationFirmwareWBEventsTest,
+    forceIsolateDuringWarmBoot) {
+  auto setup = [this]() {
+    assertPortAndDrainState(false /* not drained*/);
+    setMinLinksConfig();
+    forceIsolate(kEventDelay);
+  };
+
+  auto verifyPostWarmboot = [this]() {
+    assertSwitchDrainState(true /* drained */);
+    utility::checkFabricPortsActiveState(
+        getAgentEnsemble(),
+        masterLogicalFabricPortIds(),
+        true /* expect active*/);
+  };
+  verifyAcrossWarmBoots(setup, []() {}, []() {}, verifyPostWarmboot);
+}
+
+TEST_F(AgentVoqSwitchIsolationFirmwareWBEventsTest, forceCrashDuringWarmBoot) {
   auto setup = [this]() {
     assertPortAndDrainState(false /* not drained*/);
     setMinLinksConfig();
     // Force delayed crash - which most likely
     // will now happen while switch is warm booting
-    forceCrash(20);
+    forceCrash(kEventDelay);
   };
 
   auto verifyPostWarmboot = [this]() { forceIsolatePostCrashAndVerify(); };
