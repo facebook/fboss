@@ -1203,7 +1203,7 @@ void ThriftConfigApplier::processUpdatedDsfNodes() {
 
     sysPort->setScope(cfg::Scope::GLOBAL);
     if (cfg_->switchSettings()->selfHealingEcmpLagConfig().has_value()) {
-      sysPort->setShelDestinationEnabled(true);
+      sysPort->setShelDestinationEnabled_DEPRECATED(true);
     }
     sysPort->resetPortQueues(getVoqConfig(localInbandPortId));
     if (auto dataPlaneTrafficPolicy = cfg_->dataPlaneTrafficPolicy()) {
@@ -1745,7 +1745,7 @@ shared_ptr<SystemPortMap> ThriftConfigApplier::updateSystemPorts(
           (int)port.second->getScope());
       sysPort->setScope(port.second->getScope());
       if (cfg_->switchSettings()->selfHealingEcmpLagConfig().has_value()) {
-        sysPort->setShelDestinationEnabled(
+        sysPort->setShelDestinationEnabled_DEPRECATED(
             port.second->getPortType() == cfg::PortType::RECYCLE_PORT &&
             port.second->getScope() == cfg::Scope::GLOBAL);
       }

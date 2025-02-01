@@ -101,7 +101,7 @@ SaiSystemPortManager::attributesFromSwSystemPort(
   std::optional<SaiSystemPortTraits::Attributes::ShelPktDstEnable>
       shelPktDstEnable = std::nullopt;
 #if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
-  if (swSystemPort->getShelDestinationEnabled()) {
+  if (swSystemPort->getShelDestinationEnabled_DEPRECATED()) {
     shelPktDstEnable = true;
   }
 #endif
@@ -247,8 +247,8 @@ void SaiSystemPortManager::changeSystemPort(
         newSystemPort->getPortQueues()->impl());
     changeQosPolicy(oldSystemPort, newSystemPort);
 
-    if (oldSystemPort->getShelDestinationEnabled() !=
-        newSystemPort->getShelDestinationEnabled()) {
+    if (oldSystemPort->getShelDestinationEnabled_DEPRECATED() !=
+        newSystemPort->getShelDestinationEnabled_DEPRECATED()) {
       handle->systemPort->setAttributes(newAttributes);
     }
   }

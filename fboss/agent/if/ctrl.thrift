@@ -432,7 +432,7 @@ struct SystemPortThrift {
    */
   13: optional common.LivenessStatus remoteSystemPortLivenessStatus;
   14: switch_config.Scope scope = switch_config.Scope.LOCAL;
-  15: bool shelDestinationEnabled = false;
+  15: bool shelDestinationEnabled_DEPRECATED = false;
 }
 
 struct PortHardwareDetails {

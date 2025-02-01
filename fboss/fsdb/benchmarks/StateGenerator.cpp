@@ -18,7 +18,7 @@ state::SystemPortFields fillSystemPortMap(int switchId, int portId) {
   sysPortFields.enabled_DEPRECATED() = true;
   sysPortFields.qosPolicy() = "defaultQosPolicy";
   sysPortFields.scope() = cfg::Scope::LOCAL;
-  sysPortFields.shelDestinationEnabled() = false;
+  sysPortFields.shelDestinationEnabled_DEPRECATED() = false;
 
   std::vector<PortQueueFields> portQueueFields;
   for (int queueId = 0; queueId < 8; ++queueId) {
