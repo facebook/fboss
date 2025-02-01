@@ -158,6 +158,12 @@ class AgentVoqSwitchIsolationFirmwareWBEventsTest
         getAgentEnsemble() && getSw()->getBootType() == BootType::COLD_BOOT;
     AgentHwTest::tearDownAgentEnsemble(warmboot);
     if (isColdBoot) {
+      WITH_RETRIES({
+        auto fwIsolated = fb303::fbData->getCounterIfExists(
+            "fw_drained_with_high_num_active_fabric_links.sum");
+        EXPECT_EVENTUALLY_TRUE(
+            fwIsolated.has_value() && fwIsolated.value() == 0);
+      });
       sleep(kEventDelay * 2);
     }
   }
