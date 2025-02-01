@@ -24,3 +24,11 @@ cpp_unittest(
         "//folly/testing:test_util",
     ],
 )
+
+cpp_unittest(
+    name = "content_validator_test",
+    srcs = ["ContentValidatorTest.cpp"],
+    deps = [
+        "//fboss/platform/weutil:eeprom_content_validator",
+    ],
+)

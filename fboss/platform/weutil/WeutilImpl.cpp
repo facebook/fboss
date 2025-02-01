@@ -1,6 +1,7 @@
 // (c) Facebook, Inc. and its affiliates. Confidential and proprietary.
 
 #include "fboss/platform/weutil/WeutilImpl.h"
+#include "fboss/platform/weutil/ContentValidator.h"
 
 #include <folly/Conv.h>
 #include <folly/Format.h>
@@ -33,6 +34,10 @@ WeutilImpl::WeutilImpl(const std::string& eepromPath, const uint16_t offset)
     : parser_(eepromPath, offset) {}
 
 std::vector<std::pair<std::string, std::string>> WeutilImpl::getContents() {
+  auto contents = parser_.getContents();
+  if (!ContentValidator().isValid(contents)) {
+    throw std::runtime_error("Invalid EEPROM contents");
+  }
   return parser_.getContents();
 }
 
