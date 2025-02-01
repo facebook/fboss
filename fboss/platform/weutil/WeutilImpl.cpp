@@ -11,6 +11,22 @@
 #include <utility>
 #include <vector>
 
+namespace {
+std::string getProductionStateString(const std::string& value) {
+  if (value == "1") {
+    return "EVT";
+  } else if (value == "2") {
+    return "DVT";
+  } else if (value == "3") {
+    return "PVT";
+  } else if (value == "4") {
+    return "MP";
+  }
+  throw std::runtime_error(
+      fmt::format("Invalid Production State with value: '{}'", value));
+}
+} // namespace
+
 namespace facebook::fboss::platform {
 
 WeutilImpl::WeutilImpl(const std::string& eepromPath, const uint16_t offset)
@@ -21,10 +37,13 @@ std::vector<std::pair<std::string, std::string>> WeutilImpl::getContents() {
 }
 
 void WeutilImpl::printInfo() {
-  for (const auto& item : getContents()) {
-    std::cout << item.first << ": " << item.second << std::endl;
+  for (auto [key, value] : getContents()) {
+    if (key == "Production State") {
+      std::cout << key << ": " << getProductionStateString(value) << std::endl;
+      continue;
+    }
+    std::cout << key << ": " << value << std::endl;
   }
-  return;
 }
 
 void WeutilImpl::printInfoJson() {

@@ -193,7 +193,7 @@ EepromContents expectedContentsV6 = {
     {"Meta PCB Part Number", "PCB12345678 "},
     {"ODM/JDM PCBA Part Number", "MYODM1234567"},
     {"ODM/JDM PCBA Serial Number", "OS123456789AB"},
-    {"Production State", "EVT"},
+    {"Production State", "1"},
     {"Production Sub-State", "0"},
     {"Re-Spin/Variant Indicator", "1"},
     {"Product Serial Number", "PS1234567890A"},
