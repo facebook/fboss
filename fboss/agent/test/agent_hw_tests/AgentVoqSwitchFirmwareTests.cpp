@@ -258,7 +258,15 @@ TEST_F(AgentVoqSwitchIsolationFirmwareWBEventsTest, forceCrashDuringWarmBoot) {
     forceCrash(kEventDelay);
   };
 
-  auto verifyPostWarmboot = [this]() { forceIsolatePostCrashAndVerify(); };
+  auto verifyPostWarmboot = [this]() {
+    forceIsolatePostCrashAndVerify();
+    // Force isolation causes the FW to PAUSE.
+    // If we overlap this with switch exit (non- warm boot)
+    // we end up racing FW operations with switch cleanup
+    // and this leads to a crash.
+    // This is being debugged in CS00012389455
+    sleep(5);
+  };
   verifyAcrossWarmBoots(setup, []() {}, []() {}, verifyPostWarmboot);
 }
 
