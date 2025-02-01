@@ -2566,7 +2566,7 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
       *portConf->conditionalEntropyRehash() ==
           orig->getConditionalEntropyRehash() &&
       portConf->selfHealingECMPLagEnable().value_or(false) ==
-          orig->getSelfHealingECMPLagEnable()) {
+          orig->getSelfHealingECMPLagEnable_DEPRECATED()) {
     return nullptr;
   }
 
@@ -2618,7 +2618,7 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
           newPort->getName(),
           " to have selfHealingEcmpLag enable");
     }
-    newPort->setSelfHealingECMPLagEnable(*selfHealingECMPLagEnable);
+    newPort->setSelfHealingECMPLagEnable_DEPRECATED(*selfHealingECMPLagEnable);
   }
   return newPort;
 }

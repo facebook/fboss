@@ -748,11 +748,13 @@ class Port : public ThriftStructNode<Port, state::PortFields> {
     set<switch_state_tags::conditionalEntropyRehash>(conditionalEntropyRehash);
   }
 
-  bool getSelfHealingECMPLagEnable() const {
-    return cref<switch_state_tags::selfHealingECMPLagEnable>()->cref();
+  bool getSelfHealingECMPLagEnable_DEPRECATED() const {
+    return cref<switch_state_tags::selfHealingECMPLagEnable_DEPRECATED>()
+        ->cref();
   }
-  void setSelfHealingECMPLagEnable(bool selfHealingECMPLagEnable) {
-    set<switch_state_tags::selfHealingECMPLagEnable>(selfHealingECMPLagEnable);
+  void setSelfHealingECMPLagEnable_DEPRECATED(bool selfHealingECMPLagEnable) {
+    set<switch_state_tags::selfHealingECMPLagEnable_DEPRECATED>(
+        selfHealingECMPLagEnable);
   }
 
  private:

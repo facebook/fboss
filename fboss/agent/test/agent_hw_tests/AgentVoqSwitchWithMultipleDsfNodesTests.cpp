@@ -620,7 +620,7 @@ TEST_F(AgentVoqShelSwitchTest, init) {
     for (const auto& portMap : std::as_const(*state->getPorts())) {
       for (const auto& port : std::as_const(*portMap.second)) {
         if (port.second->getPortType() == cfg::PortType::INTERFACE_PORT) {
-          EXPECT_TRUE(port.second->getSelfHealingECMPLagEnable());
+          EXPECT_TRUE(port.second->getSelfHealingECMPLagEnable_DEPRECATED());
         }
       }
     }

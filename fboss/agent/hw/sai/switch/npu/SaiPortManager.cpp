@@ -673,7 +673,7 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
   std::optional<SaiPortTraits::Attributes::ShelEnable> shelEnable{};
 #if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
   shelEnable = SaiPortTraits::Attributes::ShelEnable{
-      swPort->getSelfHealingECMPLagEnable()};
+      swPort->getSelfHealingECMPLagEnable_DEPRECATED()};
 #endif
 
   if (basicAttributeOnly) {

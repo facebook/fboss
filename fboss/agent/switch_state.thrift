@@ -137,7 +137,7 @@ struct PortFields {
   54: optional i32 reachabilityGroupId;
   // DSF Interface node to enable conditional entropy, rotating hash seed periodically to increase entropy.
   55: bool conditionalEntropyRehash = false;
-  56: bool selfHealingECMPLagEnable = false;
+  56: bool selfHealingECMPLagEnable_DEPRECATED = false;
 }
 
 typedef ctrl.SystemPortThrift SystemPortFields
