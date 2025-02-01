@@ -469,9 +469,9 @@ class AgentNeighborOnMultiplePortsTest : public AgentHwTest {
   static auto constexpr isIntfNbrTable = EnableIntfNbrTableT::intfNbrTable;
 
  protected:
-  void SetUp() override {
+  void setCmdLineFlagOverrides() const override {
     FLAGS_intf_nbr_tables = isIntfNbrTable;
-    AgentHwTest::SetUp();
+    AgentHwTest::setCmdLineFlagOverrides();
   }
 
   std::vector<production_features::ProductionFeature>
