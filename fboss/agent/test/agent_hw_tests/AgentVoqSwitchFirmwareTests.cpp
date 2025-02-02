@@ -149,6 +149,7 @@ class AgentVoqSwitchIsolationFirmwareTest : public AgentVoqSwitchTest {
 class AgentVoqSwitchIsolationFirmwareWBEventsTest
     : public AgentVoqSwitchIsolationFirmwareTest {
   static bool isColdBoot;
+  static uint16_t fwCapableSwitchIndex;
 
  public:
   static constexpr auto kEventDelay = 20;
@@ -158,6 +159,12 @@ class AgentVoqSwitchIsolationFirmwareWBEventsTest
     // Then in such case, agentEnsemble is never setup
     isColdBoot =
         getAgentEnsemble() && getSw()->getBootType() == BootType::COLD_BOOT;
+    if (isColdBoot) {
+      // We use just the first FW capable switch index for asserting for
+      // counter.
+      fwCapableSwitchIndex =
+          *getFWCapableSwitchIndices(getSw()->getConfig()).begin();
+    }
     std::atexit([]() {
       if (isColdBoot) {
         WITH_RETRIES({
@@ -165,6 +172,14 @@ class AgentVoqSwitchIsolationFirmwareWBEventsTest
               "fw_drained_with_high_num_active_fabric_links.sum");
           EXPECT_EVENTUALLY_TRUE(
               fwIsolated.has_value() && fwIsolated.value() == 0);
+          auto crashCounterRegex = std::string("(switch.") +
+              folly::to<std::string>(fwCapableSwitchIndex) + ".)?" +
+              "bcm.isolationFirmwareCrash.sum";
+          auto fwCrashedCounters =
+              fb303::fbData->getRegexCounters(crashCounterRegex);
+          EXPECT_EVENTUALLY_TRUE(
+              fwCrashedCounters.size() == 1 &&
+              fwCrashedCounters.begin()->second == 0);
         });
         sleep(kEventDelay * 2);
       }
@@ -174,6 +189,7 @@ class AgentVoqSwitchIsolationFirmwareWBEventsTest
 };
 
 bool AgentVoqSwitchIsolationFirmwareWBEventsTest::isColdBoot = false;
+uint16_t AgentVoqSwitchIsolationFirmwareWBEventsTest::fwCapableSwitchIndex = 0;
 
 class AgentVoqSwitchIsolationFirmwareUpdateTest
     : public AgentVoqSwitchIsolationFirmwareTest {
