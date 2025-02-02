@@ -148,26 +148,32 @@ class AgentVoqSwitchIsolationFirmwareTest : public AgentVoqSwitchTest {
 
 class AgentVoqSwitchIsolationFirmwareWBEventsTest
     : public AgentVoqSwitchIsolationFirmwareTest {
+  static bool isColdBoot;
+
  public:
   static constexpr auto kEventDelay = 20;
   void tearDownAgentEnsemble(bool warmboot = false) override {
     // We check for agentEnsemble not being NULL since the tests
     // are also invoked for just listing their prod features.
     // Then in such case, agentEnsemble is never setup
-    bool isColdBoot =
+    isColdBoot =
         getAgentEnsemble() && getSw()->getBootType() == BootType::COLD_BOOT;
+    std::atexit([]() {
+      if (isColdBoot) {
+        WITH_RETRIES({
+          auto fwIsolated = fb303::fbData->getCounterIfExists(
+              "fw_drained_with_high_num_active_fabric_links.sum");
+          EXPECT_EVENTUALLY_TRUE(
+              fwIsolated.has_value() && fwIsolated.value() == 0);
+        });
+        sleep(kEventDelay * 2);
+      }
+    });
     AgentHwTest::tearDownAgentEnsemble(warmboot);
-    if (isColdBoot) {
-      WITH_RETRIES({
-        auto fwIsolated = fb303::fbData->getCounterIfExists(
-            "fw_drained_with_high_num_active_fabric_links.sum");
-        EXPECT_EVENTUALLY_TRUE(
-            fwIsolated.has_value() && fwIsolated.value() == 0);
-      });
-      sleep(kEventDelay * 2);
-    }
   }
 };
+
+bool AgentVoqSwitchIsolationFirmwareWBEventsTest::isColdBoot = false;
 
 class AgentVoqSwitchIsolationFirmwareUpdateTest
     : public AgentVoqSwitchIsolationFirmwareTest {
