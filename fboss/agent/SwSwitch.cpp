@@ -2248,7 +2248,11 @@ void SwSwitch::linkActiveStateChangedOrFwIsolated(
     auto currentActualDrainState = switchSettings->getActualSwitchDrainState();
 
     if (newActualSwitchDrainState != currentActualDrainState) {
-      stats()->setDrainState(matcher.switchId(), newActualSwitchDrainState);
+      auto switchInfo = switchSettings->getSwitchIdToSwitchInfo()
+                            .find(matcher.switchId())
+                            ->second;
+      stats()->setDrainState(
+          *switchInfo.switchIndex(), newActualSwitchDrainState);
       auto newSwitchSettings = switchSettings->modify(&newState);
       newSwitchSettings->setActualSwitchDrainState(newActualSwitchDrainState);
     }
