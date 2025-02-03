@@ -373,8 +373,7 @@ class SaiPortManager {
       const bool portPfcWdEnabled);
   void programPfcWatchdogTimers(
       const std::shared_ptr<Port>& swPort,
-      std::vector<PfcPriority>& enabledPfcPriorities,
-      const bool portPfcWdEnabled);
+      std::vector<PfcPriority>& enabledPfcPriorities);
   void programPfcWatchdogPerQueueEnable(
       const std::shared_ptr<Port>& swPort,
       std::vector<PfcPriority>& enabledPfcPriorities,
