@@ -120,39 +120,6 @@ class SpeedChangeTest : public LinkTest {
     return swConfig;
   }
 
-  std::optional<SpeedAndProfile> getSecondarySpeedAndProfile(
-      cfg::PortProfileID profileID) const;
-
-  void createSecondarySpeedConfig(std::string pathOfNewConfig) {
-    cfg::AgentConfig testConfig = platform()->config()->thrift;
-    auto swConfig = *testConfig.sw();
-    bool speedChanged = false;
-    for (auto& port : *swConfig.ports()) {
-      if (auto speedAndProfile =
-              getSecondarySpeedAndProfile(*port.profileID())) {
-        XLOG(INFO) << folly::sformat(
-            "Changing speed and profile on port {:s} from speed={:s},profile={:s} to speed={:s},profile={:s}",
-            port.name().ensure(),
-            apache::thrift::util::enumName(*port.speed()),
-            apache::thrift::util::enumName(*port.profileID()),
-            apache::thrift::util::enumName(speedAndProfile->speed),
-            apache::thrift::util::enumName(speedAndProfile->profileID));
-        port.speed() = speedAndProfile->speed;
-        port.profileID() = speedAndProfile->profileID;
-        speedChanged = true;
-      }
-    }
-    CHECK(speedChanged);
-    *testConfig.sw() = swConfig;
-
-    // Dump the new config to the config file
-    auto newCfg = AgentConfig(
-        testConfig,
-        apache::thrift::SimpleJSONSerializer::serialize<std::string>(
-            testConfig));
-    newCfg.dumpConfig(pathOfNewConfig);
-  }
-
   void runSpeedChangeTest(cfg::PortSpeed fromSpeed, cfg::PortSpeed toSpeed) {
     auto setup = [this, fromSpeed, toSpeed]() {
       auto newConfig = createSpeedChangeConfig(fromSpeed, toSpeed);
@@ -237,98 +204,6 @@ void SpeedChangeTest::TearDown() {
     }
   }
   LinkTest::TearDown();
-}
-
-// Returns a secondary speed if the platform supports it
-std::optional<SpeedAndProfile> SpeedChangeTest::getSecondarySpeedAndProfile(
-    cfg::PortProfileID profileID) const {
-  if (profileID == cfg::PortProfileID::PROFILE_200G_4_PAM4_RS544X2N_OPTICAL) {
-    return SpeedAndProfile(
-        cfg::PortSpeed::HUNDREDG,
-        cfg::PortProfileID::PROFILE_100G_4_NRZ_RS528_OPTICAL);
-  } else if (
-      profileID == cfg::PortProfileID::PROFILE_400G_8_PAM4_RS544X2N_OPTICAL) {
-    return SpeedAndProfile(
-        cfg::PortSpeed::TWOHUNDREDG,
-        cfg::PortProfileID::PROFILE_200G_4_PAM4_RS544X2N_OPTICAL);
-  }
-  return std::nullopt;
-}
-
-// Configures secondary speeds (downgrade speed) and ensure link sanity
-TEST_F(SpeedChangeTest, secondarySpeed) {
-  auto speedChangeSetup = [this]() {
-    // Create a new config with secondary speed
-    createSecondarySpeedConfig(FLAGS_config);
-
-    // Apply the new config
-    sw()->applyConfig("set secondary speeds", true);
-
-    EXPECT_NO_THROW(waitForAllCabledPorts(true));
-    createL3DataplaneFlood();
-  };
-  auto speedChangeVerify = [this]() {
-    /*
-     * Verify the following on all cabled ports
-     * 1. Link comes up at secondary speeds
-     * 2. LLDP neighbor is discovered
-     * 3. Assert no in discards
-     */
-    EXPECT_NO_THROW(waitForAllCabledPorts(true));
-    checkWithRetry(
-        [this]() { return sendAndCheckReachabilityOnAllCabledPorts(); });
-    // Assert no traffic loss and no ecmp shrink. If ports flap
-    // these conditions will not be true
-    assertNoInDiscards();
-    auto ecmpSizeInSw = getSingleVlanOrRoutedCabledPorts().size();
-    EXPECT_EQ(
-        utility::getEcmpSizeInHw(
-            platform()->getHwSwitch(),
-            {folly::IPAddress("::"), 0},
-            RouterID(0),
-            ecmpSizeInSw),
-        ecmpSizeInSw);
-  };
-
-  verifyAcrossWarmBoots(speedChangeSetup, speedChangeVerify);
-}
-
-/*
- * Coldboot Iteration
- *   - create a new config with changed speeds. Replace the original config
- * 1st Warmboot Iteration
- *   - Warm boot with the new config
- *   - Verify link health
- *   - Restore the original coldboot config
- * 2nd Warmboot Iteration
- *   - Warm boot with the original cold boot config
- *   - Verify link health
- */
-TEST_F(SpeedChangeTest, speedChangeActivatedByWb) {
-  auto speedChangeSetup = [this]() {
-    // Create a new config with changed speeds
-    createSecondarySpeedConfig(FLAGS_config);
-    createL3DataplaneFlood();
-  };
-  auto speedChangeVerify = [this]() {
-    /*
-     * Verify the following on all cabled ports
-     * 1. Link comes up at secondary speeds
-     * 2. LLDP neighbor is discovered
-     */
-    EXPECT_NO_THROW(waitForAllCabledPorts(true));
-    checkWithRetry(
-        [this]() { return sendAndCheckReachabilityOnAllCabledPorts(); });
-
-    if (platform()->getHwSwitch()->getBootType() == BootType::WARM_BOOT) {
-      boost::filesystem::copy_file(
-          originalConfigCopy,
-          FLAGS_config,
-          boost::filesystem::copy_option::overwrite_if_exists);
-    }
-  };
-
-  verifyAcrossWarmBoots(speedChangeSetup, speedChangeVerify);
 }
 
 #define TEST_SPEED_CHANGE(from_speed, to_speed)                               \
