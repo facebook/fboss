@@ -14,6 +14,7 @@ include "fboss/agent/if/mpls.thrift"
 include "fboss/lib/if/fboss_common.thrift"
 include "thrift/annotation/cpp.thrift"
 include "thrift/annotation/python.thrift"
+include "thrift/annotation/thrift.thrift"
 
 @cpp.Type{name = "uint64_t"}
 typedef i64 u64
@@ -425,11 +426,13 @@ struct MirrorOnDropReport {
   // Contents of the dropped packet will be truncated when mirroring.
   7: i16 truncateSize = 128;
   8: byte dscp = 0;
-  9: optional i32 agingIntervalUsecs_DEPRECATED (deprecated);
+  @thrift.DeprecatedUnvalidatedAnnotations{items = {"deprecated": "1"}}
+  9: optional i32 agingIntervalUsecs_DEPRECATED;
+  @thrift.DeprecatedUnvalidatedAnnotations{items = {"deprecated": "1"}}
   10: map<
     byte,
     list<MirrorOnDropReasonAggregation>
-  > eventIdToDropReasons_DEPRECATED (deprecated);
+  > eventIdToDropReasons_DEPRECATED;
   // Configuration for each event ID.
   11: map<byte, MirrorOnDropEventConfig> modEventToConfigMap;
   // Aging interval (how often to send packets) for each aging group in usecs.
