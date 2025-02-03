@@ -41,6 +41,10 @@ class BspLedManager : public LedManager {
     platformMapping_ = std::make_unique<MappingType>();
   }
 
+  bool blinkingSupported() const override {
+    return true;
+  }
+
   // Forbidden copy constructor and assignment operator
   BspLedManager(BspLedManager const&) = delete;
   BspLedManager& operator=(BspLedManager const&) = delete;

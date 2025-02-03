@@ -93,6 +93,10 @@ class LedManager {
     return platformMapping_.get();
   }
 
+  virtual bool blinkingSupported() const {
+    return false;
+  }
+
   // Forbidden copy constructor and assignment operator
   LedManager(LedManager const&) = delete;
   LedManager& operator=(LedManager const&) = delete;
