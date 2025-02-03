@@ -40,7 +40,7 @@ class CachedFbossEepromParser {
     for (const auto& [key, value] : getContents(eepromFilePath, offset)) {
       // < V6 - "Product Production State"
       // = V6 - "Production State"
-      if (key == "Product Production State" || key == "Production State ") {
+      if (key == "Product Production State" || key == "Production State") {
         return std::stoi(value);
       }
     }
