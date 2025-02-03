@@ -19,7 +19,7 @@ jobs:
           --scratch-path
           ${{ github.workspace }}/build-output
           --target
-          github_acitons_fboss_other_services
+          github_actions_fboss_other_services
           --no-docker-output
           --no-system-deps
           --env-var
