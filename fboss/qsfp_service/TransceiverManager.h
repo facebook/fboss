@@ -108,18 +108,6 @@ class TransceiverManager {
 
   virtual PlatformType getPlatformType() const = 0;
 
-  int getSuccessfulOpticsFwUpgradeCount() const {
-    return successfulOpticsFwUpgradeCount_;
-  }
-
-  int getFailedOpticsFwUpgradeCount() const {
-    return failedOpticsFwUpgradeCount_;
-  }
-
-  int getExceededTimeLimitFwUpgradeCount() const {
-    return exceededTimeLimitFwUpgradeCount_;
-  }
-
   int getMaxTimeTakenForFwUpgrade() const {
     return maxTimeTakenForFwUpgrade_;
   }
@@ -982,9 +970,6 @@ class TransceiverManager {
 
   void initTcvrValidator();
 
-  std::atomic<int> successfulOpticsFwUpgradeCount_{0};
-  std::atomic<int> failedOpticsFwUpgradeCount_{0};
-  std::atomic<int> exceededTimeLimitFwUpgradeCount_{0};
   std::atomic<int> maxTimeTakenForFwUpgrade_{0};
 
   folly::Synchronized<std::unordered_set<TransceiverID>> tcvrsForFwUpgrade;

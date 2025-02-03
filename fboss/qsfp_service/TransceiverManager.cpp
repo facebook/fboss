@@ -85,6 +85,12 @@ constexpr auto kAgentConfigLastColdbootAppliedInMsKey =
 static constexpr auto kStateMachineThreadHeartbeatMissed =
     "state_machine_thread_heartbeat_missed";
 constexpr int kSecAfterModuleOutOfReset = 2;
+static constexpr auto kSuccessfulOpticsFirmwareUpgrade =
+    "qsfp.optics_firmware_upgrade.success";
+static constexpr auto kFailedOpticsFirmwareUpgrade =
+    "qsfp.optics_firmware_upgrade.failed";
+static constexpr auto kExceededTimeLimitFirmwareUpgrade =
+    "qsfp.optics_firmware_upgrade.exceeded_time_limit";
 
 std::map<int, facebook::fboss::NpuPortStatus> getNpuPortStatus(
     const std::map<int32_t, facebook::fboss::PortStatus>& portStatus) {
@@ -98,6 +104,21 @@ std::map<int, facebook::fboss::NpuPortStatus> getNpuPortStatus(
     npuPortStatus.emplace(portId, npuStatus);
   }
   return npuPortStatus;
+}
+
+void bumpSuccessfulFwUpgrade() {
+  facebook::tcData().addStatValue(
+      kSuccessfulOpticsFirmwareUpgrade, 1, facebook::fb303::SUM);
+}
+
+void bumpFailedFwUpgrade() {
+  facebook::tcData().addStatValue(
+      kFailedOpticsFirmwareUpgrade, 1, facebook::fb303::SUM);
+}
+
+void bumpTimeExceededFwUpgrade() {
+  facebook::tcData().addStatValue(
+      kExceededTimeLimitFirmwareUpgrade, 1, facebook::fb303::SUM);
 }
 } // namespace
 
@@ -143,6 +164,13 @@ TransceiverManager::TransceiverManager(
   resetFunctionMap_[std::make_pair(
       ResetType::HARD_RESET, ResetAction::CLEAR_RESET)] =
       &TransceiverManager::releaseTransceiverReset;
+
+  tcData().addStatExportType(
+      kSuccessfulOpticsFirmwareUpgrade, facebook::fb303::SUM);
+  tcData().addStatExportType(
+      kFailedOpticsFirmwareUpgrade, facebook::fb303::SUM);
+  tcData().addStatExportType(
+      kExceededTimeLimitFirmwareUpgrade, facebook::fb303::SUM);
 }
 
 TransceiverManager::~TransceiverManager() {
@@ -630,7 +658,6 @@ bool TransceiverManager::upgradeFirmware(Transceiver& tcvr) {
   } else {
     FW_LOG(ERR, tcvrID) << " No firmware version found to upgrade. partNumber="
                         << partNumber;
-    failedOpticsFwUpgradeCount_++;
     return false;
   }
 
@@ -640,7 +667,6 @@ bool TransceiverManager::upgradeFirmware(Transceiver& tcvr) {
                         << partNumber
                         << " fwStorageHandle=" << fwStorageHandleName
                         << ". Skipping fw upgrade";
-    failedOpticsFwUpgradeCount_++;
     return false;
   }
 
@@ -665,7 +691,7 @@ bool TransceiverManager::upgradeFirmware(Transceiver& tcvr) {
       std::chrono::duration_cast<std::chrono::seconds>(end - start).count());
 
   if (upgradeTime > FLAGS_firmware_upgrade_time_limit) {
-    exceededTimeLimitFwUpgradeCount_++;
+    bumpTimeExceededFwUpgrade();
     int prevMaxTime = maxTimeTakenForFwUpgrade_.load();
     while (prevMaxTime < upgradeTime &&
            !maxTimeTakenForFwUpgrade_.compare_exchange_weak(
@@ -704,9 +730,9 @@ void TransceiverManager::doTransceiverFirmwareUpgrade(TransceiverID tcvrID) {
 
   updateStateInFsdb(true);
   if (upgradeFirmware(*tcvrIt->second)) {
-    successfulOpticsFwUpgradeCount_++;
+    bumpSuccessfulFwUpgrade();
   } else {
-    failedOpticsFwUpgradeCount_++;
+    bumpFailedFwUpgrade();
   }
   // We will leave the fwUpgradeStatus as true for now because we still have a
   // lot to do after upgrading the firmware. The optic goes through reset, the
