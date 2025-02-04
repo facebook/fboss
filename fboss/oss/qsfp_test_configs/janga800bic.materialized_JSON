@@ -205,7 +205,7 @@
           "versions": [
             {
               "fwType": 1,
-              "version": "3.2"
+              "version": "3.4"
             }
           ]
       },
@@ -361,7 +361,7 @@
           "versions": [
             {
               "fwType": 1,
-              "version": "36.195"
+              "version": "36.196"
             }
           ]
       },
@@ -369,7 +369,7 @@
           "versions": [
             {
               "fwType": 1,
-              "version": "36.195"
+              "version": "36.196"
             }
           ]
       },
