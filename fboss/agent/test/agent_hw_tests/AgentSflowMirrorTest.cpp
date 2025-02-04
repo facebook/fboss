@@ -521,6 +521,7 @@ class AgentSflowMirrorTest : public AgentHwTest {
     getAgentEnsemble()->bringDownPorts(
         std::vector<PortID>(ports.begin() + 1, ports.end()));
     ports.push_back(getNonSflowSampledInterfacePort());
+    int percentError = 100;
     WITH_RETRIES({
       auto stats = getLatestPortStats(ports);
       auto actualSampleCount = getSampleCount(stats);
@@ -530,10 +531,9 @@ class AgentSflowMirrorTest : public AgentHwTest {
       auto difference = (expectedSampleCount > actualSampleCount)
           ? (expectedSampleCount - actualSampleCount)
           : (actualSampleCount - expectedSampleCount);
-      if (!actualSampleCount) {
-        continue;
+      if (actualSampleCount) {
+        percentError = (difference * 100) / actualSampleCount;
       }
-      auto percentError = (difference * 100) / actualSampleCount;
       EXPECT_EVENTUALLY_LE(percentError, kDefaultPercentErrorThreshold);
     });
 
