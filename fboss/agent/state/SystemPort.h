@@ -149,15 +149,6 @@ class SystemPort
         getRemoteSystemPortType().value() == RemoteSystemPortType::STATIC_ENTRY;
   }
 
-  bool getShelDestinationEnabled_DEPRECATED() const {
-    return cref<ctrl_if_tags::shelDestinationEnabled_DEPRECATED>()->cref();
-  }
-  void setShelDestinationEnabled_DEPRECATED(
-      bool shelDestinationEnabled_DEPRECATED) {
-    set<ctrl_if_tags::shelDestinationEnabled_DEPRECATED>(
-        shelDestinationEnabled_DEPRECATED);
-  }
-
   std::optional<bool> getShelDestinationEnabled() const {
     if (auto shelDestinationEnabled =
             cref<ctrl_if_tags::shelDestinationEnabled>()) {
