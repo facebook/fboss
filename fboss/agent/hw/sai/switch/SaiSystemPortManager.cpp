@@ -98,15 +98,11 @@ SaiSystemPortManager::attributesFromSwSystemPort(
     qosTcToQueueMap =
         SaiSystemPortTraits::Attributes::QosTcToQueueMap{qosMapId};
   }
-  std::optional<SaiSystemPortTraits::Attributes::ShelPktDstEnable>
-      shelPktDstEnable = std::nullopt;
-#if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
-  if (swSystemPort->getShelDestinationEnabled_DEPRECATED()) {
-    shelPktDstEnable = true;
-  }
-#endif
   return SaiSystemPortTraits::CreateAttributes{
-      config, true /*enabled*/, qosTcToQueueMap, shelPktDstEnable};
+      config,
+      true /*enabled*/,
+      qosTcToQueueMap,
+      std::nullopt /* shelPktDstEnable */};
 }
 
 SystemPortSaiId SaiSystemPortManager::addSystemPort(
@@ -246,11 +242,6 @@ void SaiSystemPortManager::changeSystemPort(
         oldSystemPort->getPortQueues()->impl(),
         newSystemPort->getPortQueues()->impl());
     changeQosPolicy(oldSystemPort, newSystemPort);
-
-    if (oldSystemPort->getShelDestinationEnabled_DEPRECATED() !=
-        newSystemPort->getShelDestinationEnabled_DEPRECATED()) {
-      handle->systemPort->setAttributes(newAttributes);
-    }
   }
 }
 
