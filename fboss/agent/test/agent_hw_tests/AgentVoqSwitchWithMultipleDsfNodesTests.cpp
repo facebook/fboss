@@ -595,32 +595,37 @@ TEST_F(AgentVoqSwitchWithMultipleDsfNodesTest, verifyDscpToVoqMapping) {
   verifyAcrossWarmBoots(setup, verify);
 };
 
-class AgentVoqShelSwitchTest : public AgentVoqSwitchWithMultipleDsfNodesTest {};
-
-TEST_F(AgentVoqShelSwitchTest, init) {
-  auto setup = [this]() {
-    auto config = initialConfig(*getAgentEnsemble());
+class AgentVoqShelSwitchTest : public AgentVoqSwitchWithMultipleDsfNodesTest {
+ public:
+  cfg::SwitchConfig initialConfig(
+      const AgentEnsemble& ensemble) const override {
+    auto config =
+        AgentVoqSwitchWithMultipleDsfNodesTest::initialConfig(ensemble);
     // Set SHEL configuration
     cfg::SelfHealingEcmpLagConfig shelConfig;
     shelConfig.shelSrcIp() = "2222::1";
     shelConfig.shelDstIp() = "2222::2";
     shelConfig.shelPeriodicIntervalMS() = 5000;
     config.switchSettings()->selfHealingEcmpLagConfig() = shelConfig;
-    // Enable Conditional Entropy on Interface Ports
+    // Enable selfHealingEcmpLag on Interface Ports
     for (auto& port : *config.ports()) {
       if (port.portType() == cfg::PortType::INTERFACE_PORT) {
         port.selfHealingECMPLagEnable() = true;
       }
     }
-    applyNewConfig(config);
-  };
+    return config;
+  }
+};
 
+TEST_F(AgentVoqShelSwitchTest, init) {
+  auto setup = []() {};
   auto verify = [this]() {
     auto state = getProgrammedState();
     for (const auto& portMap : std::as_const(*state->getPorts())) {
       for (const auto& port : std::as_const(*portMap.second)) {
         if (port.second->getPortType() == cfg::PortType::INTERFACE_PORT) {
-          EXPECT_TRUE(port.second->getSelfHealingECMPLagEnable_DEPRECATED());
+          EXPECT_TRUE(port.second->getSelfHealingECMPLagEnable().has_value());
+          EXPECT_TRUE(port.second->getSelfHealingECMPLagEnable().value());
         }
       }
     }
