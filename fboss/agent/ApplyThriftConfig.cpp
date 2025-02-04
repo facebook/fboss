@@ -1203,7 +1203,7 @@ void ThriftConfigApplier::processUpdatedDsfNodes() {
 
     sysPort->setScope(cfg::Scope::GLOBAL);
     if (cfg_->switchSettings()->selfHealingEcmpLagConfig().has_value()) {
-      sysPort->setShelDestinationEnabled_DEPRECATED(true);
+      sysPort->setShelDestinationEnabled(true);
     }
     sysPort->resetPortQueues(getVoqConfig(localInbandPortId));
     if (auto dataPlaneTrafficPolicy = cfg_->dataPlaneTrafficPolicy()) {
@@ -1745,7 +1745,7 @@ shared_ptr<SystemPortMap> ThriftConfigApplier::updateSystemPorts(
           (int)port.second->getScope());
       sysPort->setScope(port.second->getScope());
       if (cfg_->switchSettings()->selfHealingEcmpLagConfig().has_value()) {
-        sysPort->setShelDestinationEnabled_DEPRECATED(
+        sysPort->setShelDestinationEnabled(
             port.second->getPortType() == cfg::PortType::RECYCLE_PORT &&
             port.second->getScope() == cfg::Scope::GLOBAL);
       }
@@ -2566,7 +2566,7 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
       *portConf->conditionalEntropyRehash() ==
           orig->getConditionalEntropyRehash() &&
       portConf->selfHealingECMPLagEnable().value_or(false) ==
-          orig->getSelfHealingECMPLagEnable_DEPRECATED()) {
+          orig->getSelfHealingECMPLagEnable().value_or(false)) {
     return nullptr;
   }
 
@@ -2618,7 +2618,7 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
           newPort->getName(),
           " to have selfHealingEcmpLag enable");
     }
-    newPort->setSelfHealingECMPLagEnable_DEPRECATED(*selfHealingECMPLagEnable);
+    newPort->setSelfHealingECMPLagEnable(*selfHealingECMPLagEnable);
   }
   return newPort;
 }
