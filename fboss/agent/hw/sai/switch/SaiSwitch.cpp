@@ -910,6 +910,18 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChangedImplLocked(
       lockPolicy,
       &SaiSystemPortManager::changeSystemPortShelPktDstEnable);
 
+  processAddedDelta(
+      delta.getRemoteSystemPortsDelta(),
+      managerTable_->systemPortManager(),
+      lockPolicy,
+      &SaiSystemPortManager::addSystemPortShelPktDstEnable);
+
+  processChangedDelta(
+      delta.getRemoteSystemPortsDelta(),
+      managerTable_->systemPortManager(),
+      lockPolicy,
+      &SaiSystemPortManager::changeSystemPortShelPktDstEnable);
+
   for (const auto& vlanDelta : delta.getVlansDelta()) {
     processChangedDelta(
         vlanDelta.getArpDelta(),
