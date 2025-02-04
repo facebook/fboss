@@ -753,6 +753,7 @@ add_dependencies(fboss_platform_services
   rackmon
   rackmon_test
   platform_manager
+  platform_manager_hw_test
   fw_util
   weutil
   led_service
@@ -851,6 +852,7 @@ if (GITHUB_ACTIONS_BUILD)
     fan_service_hw_test
     sensor_service_hw_test
     weutil_hw_test
+    platform_manager_hw_test
   )
 
   add_custom_target(github_actions_fboss_other_services)
