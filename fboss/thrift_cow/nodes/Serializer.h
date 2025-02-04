@@ -287,4 +287,32 @@ class SerializableWrapper : public Serializable {
   TType& node_;
 };
 
+template <typename TC, typename TType>
+class WritableWrapper {
+ public:
+  using CowType = ThriftObject;
+  explicit WritableWrapper(TType& node) : node_(node) {}
+
+  bool remove(const std::string& token) {
+    throw std::runtime_error("Not implemented remove for writable wrapper yet");
+  }
+
+  bool remove(const std::string& token)
+    requires(std::is_same_v<
+             TType,
+             std::map<
+                 typename TType::key_type,
+                 typename TType::value_type::second_type>>)
+  {
+    if constexpr (std::is_same_v<typename TType::key_type, std::string>) {
+      return node_.erase(token);
+    } else if (auto key = folly::tryTo<typename TType::key_type>(token)) {
+      return node_.erase(key.value());
+    }
+    return false;
+  }
+
+  TType& node_;
+};
+
 } // namespace facebook::fboss::thrift_cow
