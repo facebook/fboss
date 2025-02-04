@@ -312,6 +312,19 @@ class WritableWrapper {
     return false;
   }
 
+  bool remove(const std::string& token)
+    requires(std::is_same_v<TType, std::vector<typename TType::value_type>>)
+  {
+    auto index = folly::tryTo<std::size_t>(token);
+    if (index.hasValue()) {
+      if (index.value() < node_.size()) {
+        node_.erase(node_.begin() + index.value());
+        return true;
+      }
+    }
+    return false;
+  }
+
   TType& node_;
 };
 

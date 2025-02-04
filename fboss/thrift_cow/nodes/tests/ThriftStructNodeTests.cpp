@@ -590,7 +590,7 @@ TYPED_TEST(
 
 TYPED_TEST(
     ThriftStructNodeTestSuite,
-    ThriftStructNodeRemovePathOnThriftContainerTest) {
+    ThriftStructNodeRemovePathOnThriftMapTest) {
   using Param = typename TestFixture::T;
   constexpr bool enableHybridStorage = Param::hybridStorage;
 
@@ -633,6 +633,53 @@ TYPED_TEST(
   visitResult = RootPathVisitor::visit(
       *node, path.begin(), path.end(), PathVisitMode::LEAF, processPath);
   EXPECT_EQ(visitResult, ThriftTraverseResult::NON_EXISTENT_NODE);
+}
+
+TYPED_TEST(
+    ThriftStructNodeTestSuite,
+    ThriftStructNodeRemovePathOnThriftListTest) {
+  using Param = typename TestFixture::T;
+  constexpr bool enableHybridStorage = Param::hybridStorage;
+
+  RootTestStruct root;
+  ParentTestStruct parent;
+  auto testStruct = createSimpleTestStruct();
+  parent.mapOfI32ToMapOfStruct() = {{3, {{"4", std::move(testStruct)}}}};
+  root.mapOfI32ToMapOfStruct() = {{1, {{"2", std::move(parent)}}}};
+
+  auto node = this->initNode(root);
+
+  std::vector<std::string> path{
+      "mapOfI32ToMapOfStruct",
+      "1",
+      "2",
+      "mapOfI32ToMapOfStruct",
+      "3",
+      "4",
+      "hybridMapOfI32ToStruct",
+      "20",
+      "listOfStruct",
+      "1"};
+  folly::dynamic dyn;
+  auto processPath = pvlambda([&dyn](auto& node, auto begin, auto end) {
+    EXPECT_EQ(begin, end);
+    dyn = node.toFollyDynamic();
+  });
+
+  // existing node
+  auto visitResult = RootPathVisitor::visit(
+      *node, path.begin(), path.end(), PathVisitMode::LEAF, processPath);
+  EXPECT_EQ(visitResult, ThriftTraverseResult::OK);
+
+  // remove node
+  auto result = ThriftStructNode<
+      RootTestStruct,
+      ThriftStructResolver<RootTestStruct, enableHybridStorage>,
+      enableHybridStorage>::removePath(&node, path.begin(), path.end());
+  EXPECT_EQ(result, ThriftTraverseResult::OK);
+  visitResult = RootPathVisitor::visit(
+      *node, path.begin(), path.end(), PathVisitMode::LEAF, processPath);
+  EXPECT_EQ(visitResult, ThriftTraverseResult::INVALID_ARRAY_INDEX);
 }
 
 TEST(ThriftStructNodeTests, ThriftStructNodeRemove) {
