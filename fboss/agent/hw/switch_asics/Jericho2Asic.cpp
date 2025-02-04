@@ -199,6 +199,7 @@ bool Jericho2Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::INGRESS_SRAM_MIN_BUFFER_WATERMARK:
     case HwAsic::Feature::FDR_FIFO_WATERMARK:
     case HwAsic::Feature::EGRESS_CELL_ERROR_STATS:
+    case HwAsic::Feature::SAMPLE_RATE_CONFIG_PER_MIRROR:
       return false;
   }
   return false;

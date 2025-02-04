@@ -201,6 +201,7 @@ class HwAsic {
     FDR_FIFO_WATERMARK,
     EGRESS_CELL_ERROR_STATS,
     CPU_QUEUE_WATERMARK_STATS,
+    SAMPLE_RATE_CONFIG_PER_MIRROR,
   };
 
   enum class AsicMode {
