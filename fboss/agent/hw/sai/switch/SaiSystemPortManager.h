@@ -97,6 +97,11 @@ class SaiSystemPortManager {
       const std::shared_ptr<SystemPort>& newSystemPort);
 
   void resetQosMaps();
+  void addSystemPortShelPktDstEnable(
+      const std::shared_ptr<SystemPort>& swSystemPort) const;
+  void changeSystemPortShelPktDstEnable(
+      const std::shared_ptr<SystemPort>& oldSystemPort,
+      const std::shared_ptr<SystemPort>& newSystemPort) const;
 
  private:
   void loadQueues(
