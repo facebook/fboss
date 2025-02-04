@@ -69,12 +69,14 @@ class AgentSflowMirrorTest : public AgentHwTest {
     return cfg;
   }
 
-  void configureMirror(
+  virtual void configureMirror(
       cfg::SwitchConfig& cfg,
-      bool v4,
+      std::optional<bool> isV4Addr = std::nullopt,
       uint32_t udpSrcPort = 6545,
       uint32_t udpDstPort = 6343,
       std::optional<int> sampleRate = std::nullopt) const {
+    bool v4 = isV4Addr.has_value() ? *isV4Addr
+                                   : std::is_same_v<AddrT, folly::IPAddressV4>;
     utility::configureSflowMirror(
         cfg,
         kSflowMirror,
@@ -86,17 +88,25 @@ class AgentSflowMirrorTest : public AgentHwTest {
         sampleRate);
   }
 
-  virtual void configureMirror(
+  void configSampling(cfg::SwitchConfig& config, int sampleRate) const {
+    auto ports = getPortsForSampling();
+    utility::configureSflowSampling(config, kSflowMirror, ports, sampleRate);
+  }
+
+  void configureMirrorWithSampling(
       cfg::SwitchConfig& cfg,
+      int sampleRate,
+      std::optional<bool> v4 = std::nullopt,
       uint32_t udpSrcPort = 6545,
-      uint32_t udpDstPort = 6343,
-      std::optional<int> sampleRate = std::nullopt) const {
-    configureMirror(
-        cfg,
-        std::is_same_v<AddrT, folly::IPAddressV4>,
-        udpSrcPort,
-        udpDstPort,
-        sampleRate);
+      uint32_t udpDstPort = 6343) const {
+    std::optional<int> sampleRateCfg;
+    auto asic = checkSameAndGetAsic();
+    if (asic->isSupported(HwAsic::Feature::SAMPLE_RATE_CONFIG_PER_MIRROR)) {
+      // Handle sampleRate config needed on mirror
+      sampleRateCfg = sampleRate;
+    }
+    configureMirror(cfg, v4, udpSrcPort, udpDstPort, sampleRateCfg);
+    configSampling(cfg, sampleRate);
   }
 
   void configureTrapAcl(cfg::SwitchConfig& cfg, bool isV4) const {
@@ -154,11 +164,6 @@ class AgentSflowMirrorTest : public AgentHwTest {
       return std::vector<PortID>(ports.begin(), ports.begin() + 16);
     }
     return ports;
-  }
-
-  void configSampling(cfg::SwitchConfig& config, int sampleRate) {
-    auto ports = getPortsForSampling();
-    utility::configureSflowSampling(config, kSflowMirror, ports, sampleRate);
   }
 
   const HwAsic* checkSameAndGetAsic() const {
@@ -541,8 +546,7 @@ class AgentSflowMirrorTest : public AgentHwTest {
     auto setup = [=, this]() {
       auto ports = getPortsForSampling();
       auto config = initialConfig(*getAgentEnsemble());
-      configureMirror(config);
-      configSampling(config, 1);
+      configureMirrorWithSampling(config, 1 /*sampleRate*/);
       configureTrapAcl(config);
       applyNewConfig(config);
       resolveRouteForMirrorDestination();
@@ -560,8 +564,7 @@ class AgentSflowMirrorTest : public AgentHwTest {
   void testSampledPacketRate(bool truncate = false) {
     auto setup = [=, this]() {
       auto config = initialConfig(*getAgentEnsemble());
-      configureMirror(config);
-      configSampling(config, FLAGS_sflow_test_rate);
+      configureMirrorWithSampling(config, FLAGS_sflow_test_rate /*sampleRate*/);
       applyNewConfig(config);
       resolveRouteForMirrorDestination();
       setupEcmpTraffic();
@@ -623,12 +626,14 @@ class AgentSflowMirrorTruncateTest : public AgentSflowMirrorTest<AddrT> {
     }
   }
 
-  void configureMirror(
+  virtual void configureMirror(
       cfg::SwitchConfig& cfg,
-      bool v4,
+      std::optional<bool> isV4Addr = std::nullopt,
       uint32_t udpSrcPort = 6545,
       uint32_t udpDstPort = 6343,
-      std::optional<int> sampleRate = std::nullopt) const {
+      std::optional<int> sampleRate = std::nullopt) const override {
+    bool v4 = isV4Addr.has_value() ? *isV4Addr
+                                   : std::is_same_v<AddrT, folly::IPAddressV4>;
     utility::configureSflowMirror(
         cfg,
         kSflowMirror,
@@ -637,19 +642,6 @@ class AgentSflowMirrorTruncateTest : public AgentSflowMirrorTest<AddrT> {
         udpSrcPort,
         udpDstPort,
         v4,
-        sampleRate);
-  }
-
-  virtual void configureMirror(
-      cfg::SwitchConfig& cfg,
-      uint32_t udpSrcPort = 6545,
-      uint32_t udpDstPort = 6343,
-      std::optional<int> sampleRate = std::nullopt) const override {
-    configureMirror(
-        cfg,
-        std::is_same_v<AddrT, folly::IPAddressV4>,
-        udpSrcPort,
-        udpDstPort,
         sampleRate);
   }
 };
@@ -716,9 +708,8 @@ class AgentSflowMirrorWithLineRateTrafficTest
           allPorts.begin(), allPorts.begin() + kNumDataTrafficPorts);
       std::vector<int> losslessPgIds = {kLosslessPriority};
       auto config = initialConfig(*getAgentEnsemble());
-      configureMirror(config);
       // Configure 1:1 sampling to ensure high rate on mirror egress port
-      configSampling(config, 1);
+      configureMirrorWithSampling(config, 1 /*sampleRate*/);
       // PFC buffer configurations to ensure we have lossless traffic
       const std::map<int, int> tcToPgOverride{};
       // We dont want PFC here, so set global shared threshold to be high
@@ -893,8 +884,7 @@ TEST_F(AgentSflowMirrorTestV4, MoveToV6) {
   // Test to migrate v4 mirror to v6
   auto setup = [=, this]() {
     auto config = initialConfig(*getAgentEnsemble());
-    configureMirror(config);
-    configSampling(config, 1);
+    configureMirrorWithSampling(config, 1 /* sampleRate */);
     configureTrapAcl(config);
     applyNewConfig(config);
     resolveRouteForMirrorDestination();
@@ -904,8 +894,7 @@ TEST_F(AgentSflowMirrorTestV4, MoveToV6) {
     auto config = initialConfig(*getAgentEnsemble());
     config.mirrors()->clear();
     /* move to v6 */
-    configureMirror(config, false /* v4 */);
-    configSampling(config, 1);
+    configureMirrorWithSampling(config, 1 /* sampleRate */, false /* v4 */);
     configureTrapAcl(config, false /* v4 */);
     applyNewConfig(config);
     resolveRouteForMirrorDestination(false /* v4 */);
@@ -918,8 +907,7 @@ TEST_F(AgentSflowMirrorTestV6, MoveToV4) {
   // Test to migrate v6 mirror to v4
   auto setup = [=, this]() {
     auto config = initialConfig(*getAgentEnsemble());
-    configureMirror(config);
-    configSampling(config, 1);
+    configureMirrorWithSampling(config, 1 /* sampleRate */);
     configureTrapAcl(config);
     applyNewConfig(config);
     resolveRouteForMirrorDestination();
@@ -929,8 +917,7 @@ TEST_F(AgentSflowMirrorTestV6, MoveToV4) {
     auto config = initialConfig(*getAgentEnsemble());
     config.mirrors()->clear();
     /* move to v4 */
-    configureMirror(config, true /* v4 */);
-    configSampling(config, 1);
+    configureMirrorWithSampling(config, 1 /* sampleRate */, true /* v4 */);
     configureTrapAcl(config, true /* v4 */);
     applyNewConfig(config);
     resolveRouteForMirrorDestination(true /* v4 */);
@@ -942,8 +929,8 @@ TEST_F(AgentSflowMirrorTestV6, MoveToV4) {
 TEST_F(AgentSflowMirrorTruncateTestV6, verifyL4SrcPortRandomization) {
   auto setup = [=, this]() {
     auto config = initialConfig(*getAgentEnsemble());
-    configureMirror(config, false, 0);
-    configSampling(config, 1);
+    configureMirrorWithSampling(
+        config, 1 /* sampleRate */, false /* v4 */, 0 /* udpSrcPort */);
     configureTrapAcl(config);
     applyNewConfig(config);
     resolveRouteForMirrorDestination();
