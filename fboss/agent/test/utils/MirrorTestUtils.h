@@ -61,7 +61,8 @@ void configureSflowMirror(
     const std::string& destinationIp,
     uint32_t udpSrcPort = 6545,
     uint32_t udpDstPort = 6343,
-    bool isV4 = false);
+    bool isV4 = false,
+    std::optional<int> sampleRate = std::nullopt);
 
 void configureSflowSampling(
     cfg::SwitchConfig& config,

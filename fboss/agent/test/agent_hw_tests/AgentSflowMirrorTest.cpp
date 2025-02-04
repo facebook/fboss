@@ -73,7 +73,8 @@ class AgentSflowMirrorTest : public AgentHwTest {
       cfg::SwitchConfig& cfg,
       bool v4,
       uint32_t udpSrcPort = 6545,
-      uint32_t udpDstPort = 6343) const {
+      uint32_t udpDstPort = 6343,
+      std::optional<int> sampleRate = std::nullopt) const {
     utility::configureSflowMirror(
         cfg,
         kSflowMirror,
@@ -81,14 +82,21 @@ class AgentSflowMirrorTest : public AgentHwTest {
         utility::getSflowMirrorDestination(v4).str(),
         udpSrcPort,
         udpDstPort,
-        v4);
+        v4,
+        sampleRate);
   }
 
   virtual void configureMirror(
       cfg::SwitchConfig& cfg,
       uint32_t udpSrcPort = 6545,
-      uint32_t udpDstPort = 6343) const {
-    configureMirror(cfg, std::is_same_v<AddrT, folly::IPAddressV4>);
+      uint32_t udpDstPort = 6343,
+      std::optional<int> sampleRate = std::nullopt) const {
+    configureMirror(
+        cfg,
+        std::is_same_v<AddrT, folly::IPAddressV4>,
+        udpSrcPort,
+        udpDstPort,
+        sampleRate);
   }
 
   void configureTrapAcl(cfg::SwitchConfig& cfg, bool isV4) const {
@@ -619,7 +627,8 @@ class AgentSflowMirrorTruncateTest : public AgentSflowMirrorTest<AddrT> {
       cfg::SwitchConfig& cfg,
       bool v4,
       uint32_t udpSrcPort = 6545,
-      uint32_t udpDstPort = 6343) const {
+      uint32_t udpDstPort = 6343,
+      std::optional<int> sampleRate = std::nullopt) const {
     utility::configureSflowMirror(
         cfg,
         kSflowMirror,
@@ -627,15 +636,21 @@ class AgentSflowMirrorTruncateTest : public AgentSflowMirrorTest<AddrT> {
         utility::getSflowMirrorDestination(v4).str(),
         udpSrcPort,
         udpDstPort,
-        v4);
+        v4,
+        sampleRate);
   }
 
   virtual void configureMirror(
       cfg::SwitchConfig& cfg,
       uint32_t udpSrcPort = 6545,
-      uint32_t udpDstPort = 6343) const override {
+      uint32_t udpDstPort = 6343,
+      std::optional<int> sampleRate = std::nullopt) const override {
     configureMirror(
-        cfg, std::is_same_v<AddrT, folly::IPAddressV4>, udpSrcPort, udpDstPort);
+        cfg,
+        std::is_same_v<AddrT, folly::IPAddressV4>,
+        udpSrcPort,
+        udpDstPort,
+        sampleRate);
   }
 };
 
