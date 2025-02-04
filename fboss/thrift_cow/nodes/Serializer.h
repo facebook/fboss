@@ -325,6 +325,17 @@ class WritableWrapper {
     return false;
   }
 
+  bool remove(const std::string& token)
+    requires(std::is_same_v<TType, std::set<typename TType::value_type>>)
+  {
+    if constexpr (std::is_same_v<typename TType::value_type, std::string>) {
+      return node_.erase(token);
+    } else if (auto key = folly::tryTo<typename TType::value_type>(token)) {
+      return node_.erase(key.value());
+    }
+    return false;
+  }
+
   TType& node_;
 };
 
