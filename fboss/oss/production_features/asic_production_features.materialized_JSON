@@ -20,7 +20,6 @@
         21,
         23,
         24,
-        25,
         26,
         27,
         28,
@@ -31,7 +30,6 @@
         35,
         42,
         43,
-        44,
         45,
         46,
         47,
@@ -140,7 +138,8 @@
         1
     ],
     "ramon3": [
-        1
+        1,
+        7
     ],
     "tomahawk": [
         2,
@@ -352,7 +351,6 @@
         "WRED",
         "JUMBO_FRAMES",
         "TRAP_DISCARDS_COUNTER",
-        "MAC_LEARNING",
         "SCHEDULER_PPS",
         "ROUTE_COUNTERS",
         "PORT_TX_DISABLE",
@@ -363,7 +361,6 @@
         "EGRESS_MIRRORING",
         "PFC",
         "UDF_WR_IMMEDIATE_ACL",
-        "VLAN",
         "PORT_MTU_ERROR_TRAP",
         "LED_PROGRAMMING",
         "PFC_CAPTURE",
@@ -472,7 +469,8 @@
         "FABRIC"
     ],
     "ramon3": [
-        "FABRIC"
+        "FABRIC",
+        "PRBS"
     ],
     "tomahawk": [
         "CPU_RX_TX",
