@@ -5,10 +5,12 @@
 
 #include "fboss/agent/TxPacket.h"
 #include "fboss/agent/Utils.h"
+#include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/packet/PktFactory.h"
 #include "fboss/agent/packet/PktUtil.h"
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
+#include "fboss/agent/test/utils/AclTestUtils.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/test/utils/CoppTestUtils.h"
 #include "fboss/agent/test/utils/MirrorTestUtils.h"
@@ -23,6 +25,8 @@ DEFINE_bool(
     "Use pipeline lookup mode in packet processing drop test");
 
 const std::string kSflowMirror = "sflow_mirror";
+const std::string kModPacketAcl = "mod_packet_acl";
+const std::string kModPacketAclCouter = "mod_packet_acl_counter";
 
 namespace facebook::fboss {
 
@@ -36,7 +40,9 @@ using namespace ::testing;
 // 5. The MoD packet will be routed and sent out of the port picked in (2).
 // 6. The MoD packet will be looped back and punted to the CPU by ACL.
 // 7. We capture the packet using PacketSnooper and verify the contents.
-class AgentMirrorOnDropTest : public AgentHwTest {
+class AgentMirrorOnDropTest
+    : public AgentHwTest,
+      public testing::WithParamInterface<cfg::PortType> {
  public:
   cfg::SwitchConfig initialConfig(
       const AgentEnsemble& ensemble) const override {
@@ -76,6 +82,7 @@ class AgentMirrorOnDropTest : public AgentHwTest {
 
   // MOD settings
   const int kTruncateSize = 128;
+  const int kEventorPayloadSize = 96;
 
   // MOD constants.
   const int kRouteMissingTrapID = 0x1B;
@@ -138,6 +145,16 @@ class AgentMirrorOnDropTest : public AgentHwTest {
     report.agingGroupAgingIntervalUsecs()[cfg::MirrorOnDropAgingGroup::PORT] =
         200;
     config->mirrorOnDropReports()->push_back(report);
+
+    // Also add an ACL for counting MOD packets
+    auto* acl = utility::addAcl(config, kModPacketAcl);
+    acl->dstIp() = kCollectorIp_.str();
+    acl->l4DstPort() = kMirrorDstPort;
+    utility::addAclStat(
+        config,
+        kModPacketAcl,
+        kModPacketAclCouter,
+        utility::getAclCounterTypes(getAgentEnsemble()->getL3Asics()));
   }
 
   void configureMirror(cfg::SwitchConfig& cfg) const {
@@ -243,6 +260,7 @@ class AgentMirrorOnDropTest : public AgentHwTest {
   void validateMirrorOnDropPacket(
       folly::IOBuf* recvBuf,
       folly::IOBuf* sentBuf,
+      cfg::PortType portType,
       int8_t eventId,
       int32_t sspa, // source system port aggregate
       int32_t dspa, // destination system port aggregate
@@ -274,6 +292,12 @@ class AgentMirrorOnDropTest : public AgentHwTest {
         folly::IOBuf::wrapBufferAsValue(content.data(), content.size());
     folly::io::Cursor cursor(&contentBuf);
 
+    if (portType == cfg::PortType::EVENTOR_PORT) {
+      // When mirroring through eventor port, an extra 12 byte eventor header
+      // will be added after MOD header.
+      cursor.skip(12); // eventor sequence number, timestamp, sample
+    }
+
     // Validate MoD header
     cursor.skip(3); // version, reserved fields
     EXPECT_EQ(cursor.readBE<int8_t>(), eventId);
@@ -283,12 +307,16 @@ class AgentMirrorOnDropTest : public AgentHwTest {
     EXPECT_EQ(cursor.readBE<int32_t>(), dspa);
     cursor.skip(8); // reserved fields
 
-    // Validate mirrored payload.
-    EXPECT_EQ(cursor.totalLength(), kTruncateSize);
-    auto payload = folly::IOBuf::copyBuffer(cursor.data(), kTruncateSize);
-    // Due to truncateSize, the original packet is expected to be longer than
-    // the mirror, so truncate the original to match.
-    sentBuf->trimEnd(sentBuf->length() - kTruncateSize);
+    // Eventor port limits the payload to 128 bytes, including the MOD header,
+    // so original packet payload is truncated to 96 bytes.
+    int truncateSize = portType == cfg::PortType::EVENTOR_PORT
+        ? kEventorPayloadSize
+        : kTruncateSize;
+    EXPECT_EQ(cursor.totalLength(), truncateSize);
+    auto payload = folly::IOBuf::copyBuffer(cursor.data(), truncateSize);
+    // Due to truncation, the original packet is expected to be longer than
+    // the mirror, so trim the original to match.
+    sentBuf->trimEnd(sentBuf->length() - truncateSize);
     // In some cases the mirrored payload could differ from the sent packet,
     // e.g. MAC can change when traffic is looped back externally. Chop some
     // bytes from the start if needed.
@@ -301,15 +329,25 @@ class AgentMirrorOnDropTest : public AgentHwTest {
   }
 };
 
-TEST_F(AgentMirrorOnDropTest, ConfigChangePostWarmboot) {
-  auto mirrorPortId = masterLogicalPortIds({cfg::PortType::RECYCLE_PORT})[0];
-  XLOG(DBG3) << "MoD port: " << portDesc(mirrorPortId);
+INSTANTIATE_TEST_SUITE_P(
+    AgentMirrorOnDropTest,
+    AgentMirrorOnDropTest,
+    testing::Values(cfg::PortType::RECYCLE_PORT, cfg::PortType::EVENTOR_PORT),
+    [](const ::testing::TestParamInfo<cfg::PortType>& info) {
+      return apache::thrift::util::enumNameSafe(info.param);
+    });
+
+TEST_P(AgentMirrorOnDropTest, ConfigChangePostWarmboot) {
+  auto mirrorPortId1 = masterLogicalPortIds({cfg::PortType::RECYCLE_PORT})[1];
+  auto mirrorPortId2 = masterLogicalPortIds({GetParam()})[0];
+  XLOG(DBG3) << "MoD port 1: " << portDesc(mirrorPortId1);
+  XLOG(DBG3) << "MoD port 2: " << portDesc(mirrorPortId2);
 
   auto setup = [&]() {
     auto config = getAgentEnsemble()->getCurrentConfig();
     setupMirrorOnDrop(
         &config,
-        mirrorPortId,
+        mirrorPortId1,
         kCollectorIp_,
         {{0,
           makeEventConfig(
@@ -324,7 +362,7 @@ TEST_F(AgentMirrorOnDropTest, ConfigChangePostWarmboot) {
     config.mirrorOnDropReports()->clear();
     setupMirrorOnDrop(
         &config,
-        mirrorPortId,
+        mirrorPortId2,
         kCollectorIp_,
         {{0,
           makeEventConfig(
@@ -337,8 +375,8 @@ TEST_F(AgentMirrorOnDropTest, ConfigChangePostWarmboot) {
   verifyAcrossWarmBoots(setup, []() {}, setupWb, []() {});
 }
 
-TEST_F(AgentMirrorOnDropTest, ModWithSflowMirrorPresent) {
-  auto mirrorPortId = masterLogicalPortIds({cfg::PortType::RECYCLE_PORT})[0];
+TEST_P(AgentMirrorOnDropTest, ModWithSflowMirrorPresent) {
+  auto mirrorPortId = masterLogicalPortIds({GetParam()})[0];
   auto sampledPortId = masterLogicalInterfacePortIds()[1];
   auto sflowPortId = masterLogicalInterfacePortIds()[2];
   XLOG(DBG3) << "MoD port: " << portDesc(mirrorPortId);
@@ -369,8 +407,8 @@ TEST_F(AgentMirrorOnDropTest, ModWithSflowMirrorPresent) {
   verifyAcrossWarmBoots(setup, []() {});
 }
 
-TEST_F(AgentMirrorOnDropTest, PacketProcessingError) {
-  auto mirrorPortId = masterLogicalPortIds({cfg::PortType::RECYCLE_PORT})[0];
+TEST_P(AgentMirrorOnDropTest, PacketProcessingError) {
+  auto mirrorPortId = masterLogicalPortIds({GetParam()})[0];
   auto injectionPortId = masterLogicalInterfacePortIds()[0];
   auto collectorPortId = masterLogicalInterfacePortIds()[1];
   XLOG(DBG3) << "MoD port: " << portDesc(mirrorPortId);
@@ -414,19 +452,29 @@ TEST_F(AgentMirrorOnDropTest, PacketProcessingError) {
         validateMirrorOnDropPacket(
             frameRx->get(),
             pkt->buf(),
+            GetParam(),
             kEventId,
             makeSSPA(injectionPortId),
             makeTrapDSPA(kRouteMissingTrapID),
             0 /*payloadOffset*/);
       }
     });
+
+    // See if ACL counters increased.
+    auto [maxRetryCount, sleepTimeMsecs] =
+        utility::getRetryCountAndDelay(getSw()->getHwAsicTable());
+    WITH_RETRIES_N_TIMED(
+        maxRetryCount, std::chrono::milliseconds(sleepTimeMsecs), {
+          EXPECT_EVENTUALLY_GT(
+              utility::getAclInOutPackets(getSw(), kModPacketAclCouter), 0);
+        });
   };
 
   verifyAcrossWarmBoots(setup, verify);
 }
 
-TEST_F(AgentMirrorOnDropTest, MultipleEventIDs) {
-  auto mirrorPortId = masterLogicalPortIds({cfg::PortType::RECYCLE_PORT})[0];
+TEST_P(AgentMirrorOnDropTest, MultipleEventIDs) {
+  auto mirrorPortId = masterLogicalPortIds({GetParam()})[0];
   auto injectionPortId = masterLogicalInterfacePortIds()[0];
   auto collectorPortId = masterLogicalInterfacePortIds()[1];
   XLOG(DBG3) << "MoD port: " << portDesc(mirrorPortId);
@@ -490,6 +538,7 @@ TEST_F(AgentMirrorOnDropTest, MultipleEventIDs) {
         validateMirrorOnDropPacket(
             frameRx->get(),
             pkt->buf(),
+            GetParam(),
             kEventId,
             makeSSPA(injectionPortId),
             makeTrapDSPA(kRouteMissingTrapID),
