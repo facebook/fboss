@@ -1564,8 +1564,11 @@ std::shared_ptr<Port> SaiPortManager::swPortFromAttributes(
   port->setScope(platform_->getPlatformMapping()->getPortScope(port->getID()));
 
 #if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
-  auto shelEnable = GET_OPT_ATTR(Port, ShelEnable, attributes);
-  port->setSelfHealingECMPLagEnable_DEPRECATED(shelEnable);
+  if (port->getPortType() == cfg::PortType::INTERFACE_PORT ||
+      port->getPortType() == cfg::PortType::MANAGEMENT_PORT) {
+    auto shelEnable = GET_OPT_ATTR(Port, ShelEnable, attributes);
+    port->setSelfHealingECMPLagEnable(shelEnable);
+  }
 #endif
 
   return port;
