@@ -14,6 +14,10 @@
 #include <sys/utsname.h>
 #include <thrift/lib/cpp2/protocol/Serializer.h>
 
+#include "fboss/platform/helpers/PlatformUtils.h"
+
+#include <fstream>
+
 DEFINE_bool(
     enable_pkg_mgmnt,
     true,
@@ -30,6 +34,7 @@ DEFINE_string(
     "",
     "Path to the local rpm file that needs to be installed on the system.");
 
+namespace fs = std::filesystem;
 namespace facebook::fboss::platform::platform_manager {
 namespace {
 constexpr auto kBspKmodsRpmName = "fboss_bsp_kmods_rpm";
@@ -278,6 +283,28 @@ void PkgManager::processLocalRpms() const {
   }
 }
 
+void PkgManager::closeWatchdogs() const {
+  const std::string watchdogsDir = "/run/devmap/watchdogs";
+  if (!fs::exists(watchdogsDir)) {
+    return;
+  }
+  XLOG(INFO) << "Closing Watchdogs";
+  try {
+    for (const auto& entry : fs::directory_iterator(watchdogsDir)) {
+      const std::string filePath = entry.path().string();
+      std::ofstream outFile(filePath);
+      if (!outFile) {
+        XLOG(ERR) << "Failed to open file: " << filePath;
+        continue;
+      }
+      outFile << "V" << std::endl;
+    }
+  } catch (const std::exception& e) {
+    XLOG(ERR) << "Failed to close watchdog: " << e.what();
+    return;
+  }
+}
+
 void PkgManager::unloadBspKmods() const {
   SCOPE_SUCCESS {
     fb303::fbData->setCounter(kUnloadKmodsFailure, 0);
@@ -312,6 +339,10 @@ void PkgManager::unloadBspKmods() const {
         bspKmodsFilePath,
         fmt::format("dnf install {} --assumeyes", getKmodsRpmName())));
   }
+  // Watchdogs would prevent module unloading if they are not stopped correctly.
+  // Try to close all of them before proceeding. This will help in cases where
+  // the watchdog managing service crashed.
+  closeWatchdogs();
   BspKmodsFile bspKmodsFile;
   apache::thrift::SimpleJSONSerializer::deserialize<BspKmodsFile>(
       *jsonBspKmodsFile, bspKmodsFile);

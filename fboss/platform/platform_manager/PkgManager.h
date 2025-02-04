@@ -64,6 +64,7 @@ class PkgManager {
  private:
   std::string getKmodsRpmName() const;
   std::string getKmodsRpmBaseWithKernelName() const;
+  void closeWatchdogs() const;
 
   const PlatformConfig& platformConfig_;
   const std::shared_ptr<package_manager::SystemInterface> systemInterface_;
