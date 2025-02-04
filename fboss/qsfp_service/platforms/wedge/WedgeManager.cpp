@@ -614,11 +614,16 @@ std::vector<TransceiverID> WedgeManager::updateTransceiverMap() {
       // here.
       // If the transceiver is held in reset, we dont create a new one in its
       // place until it is released from reset.
-      if (transceiversInReset->count(idx) == 0) {
-        tcvrsToCreate.insert(idx);
-      } else {
+      // Also only create transceivers that are defined in platform mapping
+      // (have non empty port list)
+      if (transceiversInReset->count(idx) != 0) {
         XLOG(INFO) << "TransceiverID=" << idx
-                   << " is held in reset. Not adding transceiver";
+                   << " is held in reset. Not creating transceiver";
+      } else if (getPortNames(static_cast<TransceiverID>(idx)).empty()) {
+        XLOG(INFO) << "TransceiverID=" << idx
+                   << " is not in platform mapping. Not creating transceiver";
+      } else {
+        tcvrsToCreate.insert(idx);
       }
     }
   } // end of scope for transceivers_.rlock
