@@ -3084,4 +3084,50 @@ void SaiPortManager::changePortFlowletConfig(
     XLOG(DBG4) << "Port flowlet setting unchanged for " << newPort->getName();
   }
 }
+
+void SaiPortManager::addPortShelEnable(
+    const std::shared_ptr<Port>& swPort) const {
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
+  if (!swPort->getSelfHealingECMPLagEnable().has_value()) {
+    return;
+  }
+  const auto portHandle = getPortHandle(swPort->getID());
+  CHECK(portHandle);
+
+  // Load current SDK value into SaiStore - this will avoid unnecessary hw
+  // writes.
+  auto gotShelEnable = SaiApiTable::getInstance()->portApi().getAttribute(
+      portHandle->port->adapterKey(), SaiPortTraits::Attributes::ShelEnable{});
+  std::optional<SaiPortTraits::Attributes::ShelEnable> shelEnableAttr =
+      gotShelEnable;
+  portHandle->port->setAttribute(shelEnableAttr, true /* skipHwWrite */);
+
+  shelEnableAttr = swPort->getSelfHealingECMPLagEnable();
+  portHandle->port->setAttribute(shelEnableAttr);
+#endif
+}
+
+void SaiPortManager::changePortShelEnable(
+    const std::shared_ptr<Port>& oldPort,
+    const std::shared_ptr<Port>& newPort) const {
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
+  if (oldPort->getSelfHealingECMPLagEnable() !=
+      newPort->getSelfHealingECMPLagEnable()) {
+    const auto portHandle = getPortHandle(newPort->getID());
+    CHECK(portHandle);
+
+    // Load current SDK value into SaiStore - this will avoid unnecessary hw
+    // writes.
+    auto gotShelEnable = SaiApiTable::getInstance()->portApi().getAttribute(
+        portHandle->port->adapterKey(),
+        SaiPortTraits::Attributes::ShelEnable{});
+    std::optional<SaiPortTraits::Attributes::ShelEnable> shelEnableAttr =
+        gotShelEnable;
+    portHandle->port->setAttribute(shelEnableAttr, true /* skipHwWrite */);
+
+    shelEnableAttr = newPort->getSelfHealingECMPLagEnable();
+    portHandle->port->setAttribute(shelEnableAttr);
+  }
+#endif
+}
 } // namespace facebook::fboss

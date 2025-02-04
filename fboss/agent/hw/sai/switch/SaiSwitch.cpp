@@ -885,6 +885,24 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChangedImplLocked(
       };
   processNeighborChangedAndAddedDeltaForIntfs(delta.getIntfsDelta());
   processNeighborChangedAndAddedDeltaForIntfs(delta.getRemoteIntfsDelta());
+
+  // For VOQ switches, it is required to configure eventor port's RIF prior to
+  // setting system port shelPktDstEnable or port shel enable. Therefore,
+  // process shel configuration on system port for shel destination and port for
+  // shel enable after router interface delta.
+  // TODO(zecheng): configure system port and port.
+  processAddedDelta(
+      delta.getPortsDelta(),
+      managerTable_->portManager(),
+      lockPolicy,
+      &SaiPortManager::addPortShelEnable);
+
+  processChangedDelta(
+      delta.getPortsDelta(),
+      managerTable_->portManager(),
+      lockPolicy,
+      &SaiPortManager::changePortShelEnable);
+
   for (const auto& vlanDelta : delta.getVlansDelta()) {
     processChangedDelta(
         vlanDelta.getArpDelta(),
