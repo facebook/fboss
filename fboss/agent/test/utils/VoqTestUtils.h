@@ -71,5 +71,7 @@ struct QueueConfigAndName {
 };
 std::optional<QueueConfigAndName> getNameAndDefaultVoqCfg(
     cfg::PortType portType);
+
+uint8_t getDefaultQueue();
 } // namespace utility
 } // namespace facebook::fboss

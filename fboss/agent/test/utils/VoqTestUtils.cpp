@@ -25,6 +25,8 @@ constexpr auto kNumPortPerCore = 10;
 constexpr auto kRemoteSysPortOffset = 7;
 constexpr auto kNumRdswSysPort = 44;
 constexpr auto kNumEdswSysPort = 26;
+constexpr uint8_t kDefaultQueue = 0;
+constexpr uint8_t kDualStage3Q2QDefaultQueue = 1;
 
 std::shared_ptr<SystemPort> makeRemoteSysPort(
     SystemPortID portId,
@@ -544,5 +546,9 @@ std::optional<QueueConfigAndName> getNameAndDefaultVoqCfg(
       break;
   }
   return std::nullopt;
+}
+
+uint8_t getDefaultQueue() {
+  return isDualStage3Q2QMode() ? kDualStage3Q2QDefaultQueue : kDefaultQueue;
 }
 } // namespace facebook::fboss::utility
