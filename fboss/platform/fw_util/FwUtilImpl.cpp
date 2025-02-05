@@ -109,29 +109,29 @@ void FwUtilImpl::doFirmwareAction(
       doPostUpgrade(fpd);
     }
   } else if (action == "read" && fwConfig.read().has_value()) {
-      // do pre upgrade operation
-      if (fwConfig.preUpgrade().has_value()) {
-        doPreUpgrade(fpd);
-      }
+    // do pre upgrade operation
+    if (fwConfig.preUpgrade().has_value()) {
+      doPreUpgrade(fpd);
+    }
 
-      performRead(fwConfig.read().value(), fpd);
+    performRead(fwConfig.read().value(), fpd);
 
-      // do post upgrade operation
-      if (fwConfig.postUpgrade().has_value()) {
-        doPostUpgrade(fpd);
-      }
+    // do post upgrade operation
+    if (fwConfig.postUpgrade().has_value()) {
+      doPostUpgrade(fpd);
+    }
   } else if (action == "verify" && fwConfig.verify().has_value()) {
-      // do pre upgrade operation
-      if (fwConfig.preUpgrade().has_value()) {
-        doPreUpgrade(fpd);
-      }
+    // do pre upgrade operation
+    if (fwConfig.preUpgrade().has_value()) {
+      doPreUpgrade(fpd);
+    }
 
-      performVerify(fwConfig.verify().value(), fpd);
+    performVerify(fwConfig.verify().value(), fpd);
 
-      // do post upgrade operation
-      if (fwConfig.postUpgrade().has_value()) {
-        doPostUpgrade(fpd);
-      }
+    // do post upgrade operation
+    if (fwConfig.postUpgrade().has_value()) {
+      doPostUpgrade(fpd);
+    }
   } else {
     XLOG(INFO) << "Invalid action: " << action
                << ". Please run ./fw-util --helpon=Flags for the right usage";
