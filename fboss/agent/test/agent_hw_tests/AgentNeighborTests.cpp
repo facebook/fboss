@@ -181,7 +181,11 @@ class AgentNeighborTest : public AgentHwTest {
         utility::checkSameAndGetAsic(getAgentEnsemble()->getL3Asics())
             ->getSwitchType();
     if (switchType == cfg::SwitchType::NPU) {
-      return InterfaceID(static_cast<int>(kVlanID()));
+      if (!isIntfNbrTable) {
+        return InterfaceID(static_cast<int>(kVlanID()));
+      } else {
+        return utility::firstInterfaceID(getProgrammedState());
+      }
     } else if (switchType == cfg::SwitchType::VOQ) {
       CHECK(!programToTrunk) << " Trunks not supported yet on VOQ switches";
       auto portId = this->portDescriptor().phyPortID();
@@ -481,6 +485,8 @@ class AgentNeighborOnMultiplePortsTest : public AgentHwTest {
     if (isIntfNbrTable) {
       features.push_back(
           production_features::ProductionFeature::INTERFACE_NEIGHBOR_TABLE);
+    } else {
+      features.push_back(production_features::ProductionFeature::VLAN);
     }
     return features;
   }
