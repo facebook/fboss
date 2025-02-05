@@ -59,13 +59,13 @@ class EbroAsic : public TajoAsic {
     // TODO - verify this
     return 4;
   }
-  uint64_t getDefaultReservedBytes(
+  std::optional<uint64_t> getDefaultReservedBytes(
       cfg::StreamType /*streamType*/,
       cfg::PortType /*portType*/) const override {
     // Concept of reserved bytes does not apply to GB
     return 0;
   }
-  cfg::MMUScalingFactor getDefaultScalingFactor(
+  std::optional<cfg::MMUScalingFactor> getDefaultScalingFactor(
       cfg::StreamType /*streamType*/,
       bool /*cpu*/) const override {
     // Concept of scaling factor does not apply returning the same value TH3

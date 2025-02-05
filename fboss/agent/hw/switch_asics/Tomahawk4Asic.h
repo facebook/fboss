@@ -45,13 +45,13 @@ class Tomahawk4Asic : public BroadcomXgsAsic {
   uint32_t getMMUCellSize() const {
     return 254;
   }
-  uint64_t getDefaultReservedBytes(
+  std::optional<uint64_t> getDefaultReservedBytes(
       cfg::StreamType /*streamType*/,
       cfg::PortType portType) const override {
     /* TODO: Mimicking TH3 size here, figure out the defaults for TH4*/
     return portType == cfg::PortType::CPU_PORT ? 1778 : 0;
   }
-  cfg::MMUScalingFactor getDefaultScalingFactor(
+  std::optional<cfg::MMUScalingFactor> getDefaultScalingFactor(
       cfg::StreamType /*streamType*/,
       bool /*cpu*/) const override {
     /* TODO: Mimicking TH3 size here, figure out the defaults for TH4*/

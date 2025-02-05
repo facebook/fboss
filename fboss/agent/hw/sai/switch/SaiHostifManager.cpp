@@ -603,12 +603,14 @@ void SaiHostifManager::changeCpuQueue(
         newPortQueue->getReservedBytes()
             ? *newPortQueue->getReservedBytes()
             : asic->getDefaultReservedBytes(
-                  newPortQueue->getStreamType(), cfg::PortType::CPU_PORT));
+                      newPortQueue->getStreamType(), cfg::PortType::CPU_PORT)
+                  .value());
     portQueue->setScalingFactor(
         newPortQueue->getScalingFactor()
             ? *newPortQueue->getScalingFactor()
             : asic->getDefaultScalingFactor(
-                  newPortQueue->getStreamType(), true /*cpu port*/));
+                      newPortQueue->getStreamType(), true /*cpu port*/)
+                  .value());
     managerTable_->queueManager().changeQueue(
         queueHandle, *portQueue, nullptr /*swPort*/, cfg::PortType::CPU_PORT);
     if (newPortQueue->getName().has_value()) {

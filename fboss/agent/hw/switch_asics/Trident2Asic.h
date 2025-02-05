@@ -47,12 +47,12 @@ class Trident2Asic : public BroadcomXgsAsic {
         {{cfg::PortType::INTERFACE_PORT, cfg::PortLoopbackMode::PHY}};
     return kLoopbackMode;
   }
-  uint64_t getDefaultReservedBytes(
+  std::optional<uint64_t> getDefaultReservedBytes(
       cfg::StreamType /*streamType*/,
       cfg::PortType portType) const override {
     return portType == cfg::PortType::CPU_PORT ? 1664 : 0;
   }
-  cfg::MMUScalingFactor getDefaultScalingFactor(
+  std::optional<cfg::MMUScalingFactor> getDefaultScalingFactor(
       cfg::StreamType /*streamType*/,
       bool /*cpu*/) const override {
     return cfg::MMUScalingFactor::TWO;

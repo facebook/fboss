@@ -38,10 +38,10 @@ class CredoPhyAsic : public HwAsic {
   uint64_t getMMUSizeBytes() const override;
   uint64_t getSramSizeBytes() const override;
   uint32_t getMaxMirrors() const override;
-  uint64_t getDefaultReservedBytes(
+  std::optional<uint64_t> getDefaultReservedBytes(
       cfg::StreamType streamType,
       cfg::PortType portType) const override;
-  cfg::MMUScalingFactor getDefaultScalingFactor(
+  std::optional<cfg::MMUScalingFactor> getDefaultScalingFactor(
       cfg::StreamType streamType,
       bool cpu) const override;
   int getMaxNumLogicalPorts() const override;

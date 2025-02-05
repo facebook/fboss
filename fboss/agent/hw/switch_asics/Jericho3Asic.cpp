@@ -265,7 +265,7 @@ int Jericho3Asic::getDefaultNumPortQueues(
       " combination");
 }
 
-uint64_t Jericho3Asic::getDefaultReservedBytes(
+std::optional<uint64_t> Jericho3Asic::getDefaultReservedBytes(
     cfg::StreamType streamType,
     cfg::PortType portType) const {
   switch (portType) {

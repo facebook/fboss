@@ -231,7 +231,8 @@ void getPortInfoHelper(
       pq.reservedBytes() = queue->getReservedBytes().value();
     } else if (asic->isSupported(HwAsic::Feature::BUFFER_POOL)) {
       pq.reservedBytes() = asic->getDefaultReservedBytes(
-          queue->getStreamType(), port->getPortType());
+                                   queue->getStreamType(), port->getPortType())
+                               .value();
     }
     if (queue->getScalingFactor()) {
       pq.scalingFactor() =
@@ -240,7 +241,8 @@ void getPortInfoHelper(
     } else if (asic->isSupported(HwAsic::Feature::BUFFER_POOL)) {
       pq.scalingFactor() =
           apache::thrift::TEnumTraits<cfg::MMUScalingFactor>::findName(
-              asic->getDefaultScalingFactor(queue->getStreamType(), false));
+              asic->getDefaultScalingFactor(queue->getStreamType(), false)
+                  .value());
     }
     if (const auto& aqms = queue->getAqms()) {
       std::vector<ActiveQueueManagement> aqmsThrift;

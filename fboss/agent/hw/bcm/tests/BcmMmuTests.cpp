@@ -54,8 +54,11 @@ class BcmMmuTests : public BcmTest {
   void addCpuQueues(cfg::SwitchConfig& cfg) {
     int highPriorityCpuQueue = utility::getCoppHighPriQueueId(this->getAsic());
     const int mmuBytesPerCell = getPlatform()->getMMUCellBytes();
-    const int reservedBytes = this->getAsic()->getDefaultReservedBytes(
-        cfg::StreamType::MULTICAST, cfg::PortType::CPU_PORT);
+    const int reservedBytes =
+        this->getAsic()
+            ->getDefaultReservedBytes(
+                cfg::StreamType::MULTICAST, cfg::PortType::CPU_PORT)
+            .value();
     std::vector<cfg::PortQueue> cpuQueues;
 
     utility::addCpuQueueConfig(
@@ -227,8 +230,10 @@ TEST_F(BcmMmuTests, CpuQueueReservedBytes) {
     const int numCpuQueues = NUM_CPU_COSQ(getUnit());
     const int mmuBytesPerCell = getPlatform()->getMMUCellBytes();
     const int defaultCpuReservedBytes =
-        this->getAsic()->getDefaultReservedBytes(
-            cfg::StreamType::MULTICAST, cfg::PortType::CPU_PORT);
+        this->getAsic()
+            ->getDefaultReservedBytes(
+                cfg::StreamType::MULTICAST, cfg::PortType::CPU_PORT)
+            .value();
     const int maxConfiguredCpuQueues =
         getHwSwitch()->getControlPlane()->getCPUQueues();
     for (int i = 0; i < numCpuQueues; ++i) {

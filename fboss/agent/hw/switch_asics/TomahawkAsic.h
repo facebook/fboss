@@ -33,7 +33,7 @@ class TomahawkAsic : public BroadcomXgsAsic {
     // No HBM!
     return getMMUSizeBytes();
   }
-  uint64_t getDefaultReservedBytes(
+  std::optional<uint64_t> getDefaultReservedBytes(
       cfg::StreamType /*streamType*/,
       cfg::PortType portType) const override {
     return portType == cfg::PortType::CPU_PORT ? 1664 : 0;
@@ -41,7 +41,7 @@ class TomahawkAsic : public BroadcomXgsAsic {
   uint32_t getMMUCellSize() const {
     return 208;
   }
-  cfg::MMUScalingFactor getDefaultScalingFactor(
+  std::optional<cfg::MMUScalingFactor> getDefaultScalingFactor(
       cfg::StreamType /*streamType*/,
       bool /*cpu*/) const override {
     return cfg::MMUScalingFactor::TWO;
