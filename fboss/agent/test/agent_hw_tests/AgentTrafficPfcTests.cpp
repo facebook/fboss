@@ -200,6 +200,10 @@ class AgentTrafficPfcTest : public AgentHwTest {
   void applyPlatformConfigOverrides(
       const cfg::SwitchConfig& sw,
       cfg::PlatformConfig& config) const override {
+    if (utility::checkSameAndGetAsicType(sw) ==
+        cfg::AsicType::ASIC_TYPE_CHENAB) {
+      return;
+    }
     utility::modifyPlatformConfig(
         config,
         [](std::string& yamlCfg) {
@@ -640,6 +644,12 @@ class AgentTrafficPfcWatchdogTest : public AgentTrafficPfcTest {
         case cfg::AsicType::ASIC_TYPE_TOMAHAWK5:
           pfcWatchdog.recoveryTimeMsecs() = 100;
           pfcWatchdog.detectionTimeMsecs() = 10;
+          break;
+        case cfg::AsicType::ASIC_TYPE_CHENAB:
+          // The Chenab ASIC requires recovery time>=200 and detection
+          // time>=200.
+          pfcWatchdog.recoveryTimeMsecs() = 1000;
+          pfcWatchdog.detectionTimeMsecs() = 200;
           break;
         default:
           pfcWatchdog.recoveryTimeMsecs() = 10;
