@@ -562,18 +562,21 @@ void SaiPortManager::loadPortQueues(const Port& swPort) {
     // practice. Need to refactor to avoid it.
     auto clonedPortQueue = portQueue->clone();
     if (platform_->getAsic()->isSupported(HwAsic::Feature::BUFFER_POOL)) {
-      clonedPortQueue->setReservedBytes(
-          portQueue->getReservedBytes()
-              ? *portQueue->getReservedBytes()
-              : asic->getDefaultReservedBytes(
-                        portQueue->getStreamType(), swPort.getPortType())
-                    .value());
-      clonedPortQueue->setScalingFactor(
-          portQueue->getScalingFactor()
-              ? *portQueue->getScalingFactor()
-              : asic->getDefaultScalingFactor(
-                        portQueue->getStreamType(), false /* not cpu port*/)
-                    .value());
+      if (auto reservedBytes = portQueue->getReservedBytes()) {
+        clonedPortQueue->setReservedBytes(*reservedBytes);
+      } else if (
+          auto defaultReservedBytes = asic->getDefaultReservedBytes(
+              portQueue->getStreamType(), swPort.getPortType())) {
+        clonedPortQueue->setReservedBytes(*defaultReservedBytes);
+      }
+
+      if (auto scalingFactor = portQueue->getScalingFactor()) {
+        clonedPortQueue->setScalingFactor(*scalingFactor);
+      } else if (
+          auto defaultScalingFactor = asic->getDefaultScalingFactor(
+              portQueue->getStreamType(), false /* not cpu port*/)) {
+        clonedPortQueue->setScalingFactor(*defaultScalingFactor);
+      }
     } else if (portQueue->getReservedBytes() || portQueue->getScalingFactor()) {
       throw FbossError("Reserved bytes, scaling factor setting not supported");
     }
@@ -1233,18 +1236,20 @@ void SaiPortManager::changeQueue(
          SaiApiTable::getInstance()->queueApi().getAttribute(
              queueHandle->queue->adapterKey(),
              SaiQueueTraits::Attributes::Type{}))) {
-      portQueue->setReservedBytes(
-          newPortQueue->getReservedBytes()
-              ? *newPortQueue->getReservedBytes()
-              : asic->getDefaultReservedBytes(
-                        newPortQueue->getStreamType(), swPort->getPortType())
-                    .value());
-      portQueue->setScalingFactor(
-          newPortQueue->getScalingFactor()
-              ? *newPortQueue->getScalingFactor()
-              : asic->getDefaultScalingFactor(
-                        newPortQueue->getStreamType(), false /* not cpu port*/)
-                    .value());
+      if (auto reservedBytes = newPortQueue->getReservedBytes()) {
+        portQueue->setReservedBytes(*reservedBytes);
+      } else if (
+          auto defaultReservedBytes = asic->getDefaultReservedBytes(
+              newPortQueue->getStreamType(), swPort->getPortType())) {
+        portQueue->setReservedBytes(*defaultReservedBytes);
+      }
+      if (auto scalingFactor = newPortQueue->getScalingFactor()) {
+        portQueue->setScalingFactor(*scalingFactor);
+      } else if (
+          auto defaultScalingFactor = asic->getDefaultScalingFactor(
+              newPortQueue->getStreamType(), false /* not cpu port */)) {
+        portQueue->setScalingFactor(*defaultScalingFactor);
+      }
     } else if (
         newPortQueue->getReservedBytes() || newPortQueue->getScalingFactor()) {
       throw FbossError("Reserved bytes, scaling factor setting not supported");
