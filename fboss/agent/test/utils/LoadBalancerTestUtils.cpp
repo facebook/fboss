@@ -12,6 +12,7 @@
 #include "fboss/agent/test/utils/AclTestUtils.h"
 #include "fboss/agent/test/utils/AsicUtils.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
+#include "fboss/agent/test/utils/VoqTestUtils.h"
 #include "fboss/lib/CommonUtils.h"
 
 #include <folly/gen/Base.h>
@@ -24,7 +25,6 @@ DEFINE_string(
     "CSV file with source IP, port and destination IP, port for load balancing test. See P827101297 for example.");
 
 namespace {
-constexpr uint8_t kDefaultQueue = 0;
 std::vector<std::string> kTrafficFields = {"sip", "dip", "sport", "dport"};
 } // namespace
 
@@ -378,8 +378,8 @@ bool isLoadBalancedImpl(
           return *portIdAndStats.second.outBytes_();
         } else if constexpr (std::is_same_v<PortStatsT, HwSysPortStats>) {
           const auto& stats = portIdAndStats.second;
-          return stats.queueOutBytes_()->at(kDefaultQueue) +
-              stats.queueOutDiscardBytes_()->at(kDefaultQueue);
+          return stats.queueOutBytes_()->at(getDefaultQueue()) +
+              stats.queueOutDiscardBytes_()->at(getDefaultQueue());
         }
         throw FbossError("Unsupported port stats type in isLoadBalancedImpl");
       }) |
@@ -399,8 +399,8 @@ bool isLoadBalancedImpl(
         portOutBytes = *portIdToStats.find(ecmpPorts[i])->second.outBytes_();
       } else if constexpr (std::is_same_v<PortStatsT, HwSysPortStats>) {
         const auto& stats = portIdToStats.find(ecmpPorts[i])->second;
-        portOutBytes = stats.queueOutBytes_()->at(kDefaultQueue) +
-            stats.queueOutDiscardBytes_()->at(kDefaultQueue);
+        portOutBytes = stats.queueOutBytes_()->at(getDefaultQueue()) +
+            stats.queueOutDiscardBytes_()->at(getDefaultQueue());
       } else {
         throw FbossError("Unsupported port stats type in isLoadBalancedImpl");
       }
