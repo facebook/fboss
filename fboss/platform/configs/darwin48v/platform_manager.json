@@ -233,7 +233,7 @@
             {
               "pmUnitScopedName": "ROOK_CPU_CPLD_INFO_ROM",
               "deviceName": "fpga_info_iob",
-              "csrOffset": "0x0000"
+              "csrOffset": "0x100"
             }
           ],
           "desiredDriver": "scd"
@@ -898,7 +898,7 @@
             {
               "pmUnitScopedName": "SCD_FPGA_INFO_ROM",
               "deviceName": "fpga_info_iob",
-              "csrOffset": "0x0000"
+              "csrOffset": "0x100"
             }
           ]
         }
@@ -1160,22 +1160,9 @@
     "/run/devmap/sensors/PSU_PMBUS": "/PSU_SLOT@0/[PSU_PMBUS]"
   },
   "bspKmodsRpmName": "arista_bsp_kmods",
-  "bspKmodsRpmVersion": "0.7.6-1",
-  "bspKmodsToReload": [
-    "scd",
-    "scd-leds",
-    "scd-smbus",
-    "scd-spi",
-    "scd-info",
-    "rook-fan-cpld",
-    "blackhawk-cpld",
-    "aslg4f4527",
-    "bp4a_lm90"
-  ],
-  "sharedKmodsToReload": [
+  "bspKmodsRpmVersion": "0.7.7-1",
+  "requiredKmodsToLoad": [
+    "i2c-i801",
     "scd"
-  ],
-  "upstreamKmodsToLoad": [
-    "i2c-i801"
   ]
 }
