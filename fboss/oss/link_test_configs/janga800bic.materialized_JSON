@@ -9445,7 +9445,7 @@
       },
       {
         "logicalID": 3202,
-        "state": 1,
+        "state": 2,
         "minFrameSize": 64,
         "maxFrameSize": 0,
         "parserType": 1,
@@ -9465,7 +9465,7 @@
         "sFlowEgressRate": 0,
         "loopbackMode": 0,
         "expectedLLDPValues": {
-          
+          "2": "fab1/30/1"
         },
         "lookupClasses": [
           
@@ -9481,7 +9481,7 @@
       },
       {
         "logicalID": 3203,
-        "state": 1,
+        "state": 2,
         "minFrameSize": 64,
         "maxFrameSize": 0,
         "parserType": 1,
@@ -9501,7 +9501,7 @@
         "sFlowEgressRate": 0,
         "loopbackMode": 0,
         "expectedLLDPValues": {
-          
+          "2": "fab1/30/2"
         },
         "lookupClasses": [
           
@@ -9517,7 +9517,7 @@
       },
       {
         "logicalID": 3200,
-        "state": 1,
+        "state": 2,
         "minFrameSize": 64,
         "maxFrameSize": 0,
         "parserType": 1,
@@ -9537,7 +9537,7 @@
         "sFlowEgressRate": 0,
         "loopbackMode": 0,
         "expectedLLDPValues": {
-          
+          "2": "fab1/30/3"
         },
         "lookupClasses": [
           
@@ -9553,7 +9553,7 @@
       },
       {
         "logicalID": 3201,
-        "state": 1,
+        "state": 2,
         "minFrameSize": 64,
         "maxFrameSize": 0,
         "parserType": 1,
@@ -9573,7 +9573,7 @@
         "sFlowEgressRate": 0,
         "loopbackMode": 0,
         "expectedLLDPValues": {
-          
+          "2": "fab1/30/4"
         },
         "lookupClasses": [
           
@@ -9589,7 +9589,7 @@
       },
       {
         "logicalID": 3205,
-        "state": 1,
+        "state": 2,
         "minFrameSize": 64,
         "maxFrameSize": 0,
         "parserType": 1,
@@ -9609,7 +9609,7 @@
         "sFlowEgressRate": 0,
         "loopbackMode": 0,
         "expectedLLDPValues": {
-          
+          "2": "fab1/30/5"
         },
         "lookupClasses": [
           
@@ -9625,7 +9625,7 @@
       },
       {
         "logicalID": 3207,
-        "state": 1,
+        "state": 2,
         "minFrameSize": 64,
         "maxFrameSize": 0,
         "parserType": 1,
@@ -9645,7 +9645,7 @@
         "sFlowEgressRate": 0,
         "loopbackMode": 0,
         "expectedLLDPValues": {
-          
+          "2": "fab1/30/6"
         },
         "lookupClasses": [
           
@@ -9661,7 +9661,7 @@
       },
       {
         "logicalID": 3204,
-        "state": 1,
+        "state": 2,
         "minFrameSize": 64,
         "maxFrameSize": 0,
         "parserType": 1,
@@ -9681,7 +9681,7 @@
         "sFlowEgressRate": 0,
         "loopbackMode": 0,
         "expectedLLDPValues": {
-          
+          "2": "fab1/30/7"
         },
         "lookupClasses": [
           
@@ -9697,7 +9697,7 @@
       },
       {
         "logicalID": 3206,
-        "state": 1,
+        "state": 2,
         "minFrameSize": 64,
         "maxFrameSize": 0,
         "parserType": 1,
@@ -9717,7 +9717,7 @@
         "sFlowEgressRate": 0,
         "loopbackMode": 0,
         "expectedLLDPValues": {
-          
+          "2": "fab1/30/8"
         },
         "lookupClasses": [
           
@@ -14240,7 +14240,7 @@
             },
             "localSystemPortOffset": 54,
             "globalSystemPortOffset": 54,
-            "inbandPortId": 2049
+            "inbandPortId": 1
         }
       },
       "vendorMacOuis": [
@@ -14297,7 +14297,7 @@
               }
             ]
           },
-          "inbandPortId": 2049
+          "inbandPortId": 1
       }
     },
     "defaultVoqConfig": [
