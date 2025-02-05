@@ -299,7 +299,8 @@ class AgentMirrorOnDropTest
     }
 
     // Validate MoD header
-    cursor.skip(3); // version, reserved fields
+    EXPECT_EQ(cursor.readBE<int8_t>() >> 4, 0); // higher 4 bits = version
+    cursor.skip(2); // reserved fields
     EXPECT_EQ(cursor.readBE<int8_t>(), eventId);
     cursor.skip(4); // sequence number
     cursor.skip(8); // timestamp
