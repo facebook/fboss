@@ -51,7 +51,8 @@ int main(int argc, char* argv[]) {
     exit(1);
   }
 
-  if (!FLAGS_fw_binary_file.empty() &&
+  // Check for file existence only for actions that require a binary file
+  if (!FLAGS_fw_binary_file.empty() && FLAGS_fw_action != "read" &&
       !std::filesystem::exists(FLAGS_fw_binary_file)) {
     XLOG(ERR) << "--fw_binary_file cannot be found in the specified path";
     exit(1);
