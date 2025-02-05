@@ -1,0 +1,1200 @@
+{
+  "defaultCommandLineArgs": {
+    
+  },
+  "transceiverConfigOverrides": [
+    
+  ],
+  "qsfpTestConfig": {
+    "cabledPortPairs": [
+      {
+        "aPortName": "eth1/1/1",
+        "zPortName": "eth1/5/1",
+        "profileID": 23
+      },
+      {
+        "aPortName": "eth1/3/1",
+        "zPortName": "eth1/7/1",
+        "profileID": 22
+      },
+      {
+        "aPortName": "eth1/9/1",
+        "zPortName": "eth1/13/1",
+        "profileID": 23
+      },
+      {
+        "aPortName": "eth1/11/1",
+        "zPortName": "eth1/15/1",
+        "profileID": 22
+      },
+      {
+        "aPortName": "eth1/17/1",
+        "zPortName": "eth1/21/1",
+        "profileID": 23
+      },
+      {
+        "aPortName": "eth1/19/1",
+        "zPortName": "eth1/23/1",
+        "profileID": 22
+      },
+      {
+        "aPortName": "eth1/25/1",
+        "zPortName": "eth1/29/1",
+        "profileID": 23
+      },
+      {
+        "aPortName": "eth1/27/1",
+        "zPortName": "eth1/31/1",
+        "profileID": 22
+      }
+    ]
+  },
+  "transceiverFirmwareVersions": {
+    "versionsMap": {
+      "EOLO-138HG-5H-B": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "3.4"
+            }
+          ]
+      },
+      "EOLO-168HG-02-1B": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "3.9"
+            }
+          ]
+      },
+      "EOLO-168HG-02-1T": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "3.9"
+            }
+          ]
+      },
+      "FTCD4313E2PCLFBC": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "3.5"
+            }
+          ]
+      },
+      "FTCD4313E2PCLFBE": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "3.5"
+            }
+          ]
+      },
+      "FTCE4717E1PCB-FB": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "1.16"
+            }
+          ]
+      },
+      "QDD-400G-XDR4": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "2.1"
+            },
+            {
+              "fwType": 2,
+              "version": "0.0"
+            }
+          ]
+      },
+      "SPTSHP3CLCKS": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "2.6"
+            }
+          ]
+      },
+      "T-DQ4CNT-NF2": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "234.147"
+            }
+          ]
+      },
+      "T-DQ4CNT-NFB": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "234.146"
+            }
+          ]
+      },
+      "T-DQ4CNT-NFM": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "234.147"
+            }
+          ]
+      },
+      "T-FX4FNT-HF4": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "7.146"
+            }
+          ]
+      },
+      "T-FX4FNT-HF5": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "7.146"
+            }
+          ]
+      },
+      "T-FX4FNT-HF9": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "106.1"
+            }
+          ]
+      },
+      "T-FX4FNT-HFE": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "106.1"
+            }
+          ]
+      },
+      "T-FX4FNT-HFP": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "7.146"
+            }
+          ]
+      },
+      "T-FX4FNT-HFS": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "7.146"
+            }
+          ]
+      },
+      "T-FX4FNT-HFU": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "106.1"
+            }
+          ]
+      },
+      "T-FX4FNT-HFV": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "106.1"
+            }
+          ]
+      },
+      "T-OH8CNH-NFL": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "36.196"
+            }
+          ]
+      },
+      "T-OH8CNH-NFM": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "36.196"
+            }
+          ]
+      },
+      "T-OL8CNT-NF2": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "103.133"
+            }
+          ]
+      },
+      "T-OL8CNT-NFL": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "103.133"
+            }
+          ]
+      }
+    }
+  },
+  "transceiverI2cLogging": {
+    "writeLog": true,
+    "readLog": true,
+    "disableOnFail": false,
+    "bufferSlots": 40960
+  },
+  "transceiverValidationConfig": [
+    {
+      "vendorName": "AMPHENOL",
+      "partNumberToTransceiverAttributes": {
+        "NDAAFS-F311": {
+            "mediaInterfaceCode": 2,
+            "supportedFirmwareVersions": [
+              
+            ],
+            "supportedPortProfiles": [
+              22,
+              21
+            ]
+        },
+        "NDAAFS-F313": {
+            "mediaInterfaceCode": 2,
+            "supportedFirmwareVersions": [
+              
+            ],
+            "supportedPortProfiles": [
+              22,
+              21
+            ]
+        },
+        "NDAAFS-F314": {
+            "mediaInterfaceCode": 2,
+            "supportedFirmwareVersions": [
+              
+            ],
+            "supportedPortProfiles": [
+              22,
+              21
+            ]
+        },
+        "NDAAFS-F315": {
+            "mediaInterfaceCode": 2,
+            "supportedFirmwareVersions": [
+              
+            ],
+            "supportedPortProfiles": [
+              22,
+              21
+            ]
+        },
+        "NDAAFS-F321": {
+            "mediaInterfaceCode": 2,
+            "supportedFirmwareVersions": [
+              
+            ],
+            "supportedPortProfiles": [
+              22,
+              21
+            ]
+        },
+        "NDAAFS-F323": {
+            "mediaInterfaceCode": 2,
+            "supportedFirmwareVersions": [
+              
+            ],
+            "supportedPortProfiles": [
+              22,
+              21
+            ]
+        },
+        "NDAAFS-F324": {
+            "mediaInterfaceCode": 2,
+            "supportedFirmwareVersions": [
+              
+            ],
+            "supportedPortProfiles": [
+              22,
+              21
+            ]
+        },
+        "NDAAFS-F325": {
+            "mediaInterfaceCode": 2,
+            "supportedFirmwareVersions": [
+              
+            ],
+            "supportedPortProfiles": [
+              22,
+              21
+            ]
+        },
+        "NDAAFT-F312": {
+            "mediaInterfaceCode": 2,
+            "supportedFirmwareVersions": [
+              
+            ],
+            "supportedPortProfiles": [
+              22,
+              21
+            ]
+        },
+        "NDAAFT-F313": {
+            "mediaInterfaceCode": 2,
+            "supportedFirmwareVersions": [
+              
+            ],
+            "supportedPortProfiles": [
+              22,
+              21
+            ]
+        },
+        "NDAAFT-F314": {
+            "mediaInterfaceCode": 2,
+            "supportedFirmwareVersions": [
+              
+            ],
+            "supportedPortProfiles": [
+              22,
+              21
+            ]
+        },
+        "NDAAFT-F315": {
+            "mediaInterfaceCode": 2,
+            "supportedFirmwareVersions": [
+              
+            ],
+            "supportedPortProfiles": [
+              22,
+              21
+            ]
+        },
+        "NDAAFT-F318": {
+            "mediaInterfaceCode": 2,
+            "supportedFirmwareVersions": [
+              
+            ],
+            "supportedPortProfiles": [
+              22,
+              21
+            ]
+        },
+        "NDAAFT-F322": {
+            "mediaInterfaceCode": 2,
+            "supportedFirmwareVersions": [
+              
+            ],
+            "supportedPortProfiles": [
+              22,
+              21
+            ]
+        },
+        "NDAAFT-F323": {
+            "mediaInterfaceCode": 2,
+            "supportedFirmwareVersions": [
+              
+            ],
+            "supportedPortProfiles": [
+              22,
+              21
+            ]
+        },
+        "NDAAFT-F324": {
+            "mediaInterfaceCode": 2,
+            "supportedFirmwareVersions": [
+              
+            ],
+            "supportedPortProfiles": [
+              22,
+              21
+            ]
+        },
+        "NDAAFT-F325": {
+            "mediaInterfaceCode": 2,
+            "supportedFirmwareVersions": [
+              
+            ],
+            "supportedPortProfiles": [
+              22,
+              21
+            ]
+        },
+        "NDAAFT-F328": {
+            "mediaInterfaceCode": 2,
+            "supportedFirmwareVersions": [
+              
+            ],
+            "supportedPortProfiles": [
+              22,
+              21
+            ]
+        },
+        "NDAAXS-F317": {
+            "mediaInterfaceCode": 9,
+            "supportedFirmwareVersions": [
+              
+            ],
+            "supportedPortProfiles": [
+              22
+            ]
+        }
+      }
+    },
+    {
+      "vendorName": "AOI",
+      "partNumberToTransceiverAttributes": {
+        "AQPLACQ4EDOA1294": {
+            "mediaInterfaceCode": 1,
+            "supportedFirmwareVersions": [
+              
+            ],
+            "supportedPortProfiles": [
+              23
+            ]
+        },
+        "AQPLBCQ4EDMA0877": {
+            "mediaInterfaceCode": 1,
+            "supportedFirmwareVersions": [
+              
+            ],
+            "supportedPortProfiles": [
+              23
+            ]
+        },
+        "AQPLBCQ4EDMA0966": {
+            "mediaInterfaceCode": 1,
+            "supportedFirmwareVersions": [
+              
+            ],
+            "supportedPortProfiles": [
+              23
+            ]
+        },
+        "AQPLBCQ4EDMA1105": {
+            "mediaInterfaceCode": 1,
+            "supportedFirmwareVersions": [
+              
+            ],
+            "supportedPortProfiles": [
+              23
+            ]
+        },
+        "AQPLBCQ4EDOA0967": {
+            "mediaInterfaceCode": 1,
+            "supportedFirmwareVersions": [
+              
+            ],
+            "supportedPortProfiles": [
+              23
+            ]
+        },
+        "AQPLBCQ4EDOA1106": {
+            "mediaInterfaceCode": 1,
+            "supportedFirmwareVersions": [
+              
+            ],
+            "supportedPortProfiles": [
+              23
+            ]
+        }
+      }
+    },
+    {
+      "vendorName": "COLORCHIP LTD",
+      "partNumberToTransceiverAttributes": {
+        "C100QSFPCWDM400B": {
+            "mediaInterfaceCode": 1,
+            "supportedFirmwareVersions": [
+              
+            ],
+            "supportedPortProfiles": [
+              23
+            ]
+        }
+      }
+    },
+    {
+      "vendorName": "FINISAR",
+      "partNumberToTransceiverAttributes": {
+        "FTCD4313E2PCLFB1": {
+            "mediaInterfaceCode": 5,
+            "supportedFirmwareVersions": [
+              
+            ],
+            "supportedPortProfiles": [
+              25,
+              26
+            ]
+        }
+      }
+    },
+    {
+      "vendorName": "FINISAR CORP.",
+      "partNumberToTransceiverAttributes": {
+        "FTCC1112E1PLL-FB": {
+            "mediaInterfaceCode": 4,
+            "supportedFirmwareVersions": [
+              
+            ],
+            "supportedPortProfiles": [
+              25
+            ]
+        },
+        "FTCC1112E1PLLFB1": {
+            "mediaInterfaceCode": 4,
+            "supportedFirmwareVersions": [
+              
+            ],
+            "supportedPortProfiles": [
+              23,
+              25
+            ]
+        },
+        "FTCC1112E1PLLFB2": {
+            "mediaInterfaceCode": 4,
+            "supportedFirmwareVersions": [
+              
+            ],
+            "supportedPortProfiles": [
+              23,
+              25
+            ]
+        },
+        "FTCC1112E1PLLFB6": {
+            "mediaInterfaceCode": 4,
+            "supportedFirmwareVersions": [
+              
+            ],
+            "supportedPortProfiles": [
+              23,
+              25
+            ]
+        },
+        "FTCC1112E1PLLFBA": {
+            "mediaInterfaceCode": 4,
+            "supportedFirmwareVersions": [
+              
+            ],
+            "supportedPortProfiles": [
+              25
+            ]
+        },
+        "FTCC1112E1QLLFB6": {
+            "mediaInterfaceCode": 4,
+            "supportedFirmwareVersions": [
+              
+            ],
+            "supportedPortProfiles": [
+              25
+            ]
+        },
+        "FTLC1152RGPL": {
+            "mediaInterfaceCode": 1,
+            "supportedFirmwareVersions": [
+              
+            ],
+            "supportedPortProfiles": [
+              23
+            ]
+        },
+        "FTLC1152RGPL6-FB": {
+            "mediaInterfaceCode": 1,
+            "supportedFirmwareVersions": [
+              
+            ],
+            "supportedPortProfiles": [
+              23
+            ]
+        },
+        "FTLC1157RGPL6-FB": {
+            "mediaInterfaceCode": 1,
+            "supportedFirmwareVersions": [
+              
+            ],
+            "supportedPortProfiles": [
+              23
+            ]
+        },
+        "FTLC1157RGPL6FB1": {
+            "mediaInterfaceCode": 1,
+            "supportedFirmwareVersions": [
+              
+            ],
+            "supportedPortProfiles": [
+              23
+            ]
+        }
+      }
+    },
+    {
+      "vendorName": "INNOLIGHT",
+      "partNumberToTransceiverAttributes": {
+        "T-DQ4CNT-NF2": {
+            "mediaInterfaceCode": 5,
+            "supportedFirmwareVersions": [
+              {
+                "applicationFirmwareVersion": "234.147",
+                "dspFirmwareVersion": ""
+              }
+            ],
+            "supportedPortProfiles": [
+              25,
+              26
+            ]
+        },
+        "T-FX4FNT-HF2": {
+            "mediaInterfaceCode": 4,
+            "supportedFirmwareVersions": [
+              
+            ],
+            "supportedPortProfiles": [
+              25
+            ]
+        },
+        "T-FX4FNT-HF3": {
+            "mediaInterfaceCode": 4,
+            "supportedFirmwareVersions": [
+              
+            ],
+            "supportedPortProfiles": [
+              25
+            ]
+        },
+        "T-FX4FNT-HF4": {
+            "mediaInterfaceCode": 4,
+            "supportedFirmwareVersions": [
+              {
+                "applicationFirmwareVersion": "7.146",
+                "dspFirmwareVersion": ""
+              }
+            ],
+            "supportedPortProfiles": [
+              25
+            ]
+        },
+        "T-FX4FNT-HF5": {
+            "mediaInterfaceCode": 4,
+            "supportedFirmwareVersions": [
+              {
+                "applicationFirmwareVersion": "7.146",
+                "dspFirmwareVersion": ""
+              }
+            ],
+            "supportedPortProfiles": [
+              25
+            ]
+        },
+        "T-FX4FNT-HF8": {
+            "mediaInterfaceCode": 4,
+            "supportedFirmwareVersions": [
+              
+            ],
+            "supportedPortProfiles": [
+              23,
+              25
+            ]
+        },
+        "T-FX4FNT-HF9": {
+            "mediaInterfaceCode": 4,
+            "supportedFirmwareVersions": [
+              {
+                "applicationFirmwareVersion": "106.1",
+                "dspFirmwareVersion": ""
+              }
+            ],
+            "supportedPortProfiles": [
+              23,
+              25
+            ]
+        },
+        "T-FX4FNT-HFB": {
+            "mediaInterfaceCode": 4,
+            "supportedFirmwareVersions": [
+              
+            ],
+            "supportedPortProfiles": [
+              25
+            ]
+        },
+        "T-FX4FNT-HFE": {
+            "mediaInterfaceCode": 4,
+            "supportedFirmwareVersions": [
+              {
+                "applicationFirmwareVersion": "106.1",
+                "dspFirmwareVersion": ""
+              }
+            ],
+            "supportedPortProfiles": [
+              23,
+              25
+            ]
+        },
+        "T-FX4FNT-HFM": {
+            "mediaInterfaceCode": 4,
+            "supportedFirmwareVersions": [
+              
+            ],
+            "supportedPortProfiles": [
+              25
+            ]
+        },
+        "T-FX4FNT-HFN": {
+            "mediaInterfaceCode": 4,
+            "supportedFirmwareVersions": [
+              
+            ],
+            "supportedPortProfiles": [
+              23,
+              25
+            ]
+        },
+        "T-FX4FNT-HFP": {
+            "mediaInterfaceCode": 4,
+            "supportedFirmwareVersions": [
+              {
+                "applicationFirmwareVersion": "7.146",
+                "dspFirmwareVersion": ""
+              }
+            ],
+            "supportedPortProfiles": [
+              23,
+              25
+            ]
+        },
+        "T-FX4FNT-HFS": {
+            "mediaInterfaceCode": 4,
+            "supportedFirmwareVersions": [
+              {
+                "applicationFirmwareVersion": "7.146",
+                "dspFirmwareVersion": ""
+              }
+            ],
+            "supportedPortProfiles": [
+              23,
+              25
+            ]
+        },
+        "T-FX4FNT-HFT": {
+            "mediaInterfaceCode": 4,
+            "supportedFirmwareVersions": [
+              
+            ],
+            "supportedPortProfiles": [
+              25
+            ]
+        },
+        "T-FX4FNT-HFU": {
+            "mediaInterfaceCode": 4,
+            "supportedFirmwareVersions": [
+              {
+                "applicationFirmwareVersion": "106.1",
+                "dspFirmwareVersion": ""
+              }
+            ],
+            "supportedPortProfiles": [
+              25
+            ]
+        },
+        "T-FX4FNT-HFV": {
+            "mediaInterfaceCode": 4,
+            "supportedFirmwareVersions": [
+              {
+                "applicationFirmwareVersion": "106.1",
+                "dspFirmwareVersion": ""
+              }
+            ],
+            "supportedPortProfiles": [
+              25
+            ]
+        },
+        "TR-FC13H-HF3": {
+            "mediaInterfaceCode": 1,
+            "supportedFirmwareVersions": [
+              
+            ],
+            "supportedPortProfiles": [
+              23
+            ]
+        },
+        "TR-FC13H-HFB": {
+            "mediaInterfaceCode": 1,
+            "supportedFirmwareVersions": [
+              
+            ],
+            "supportedPortProfiles": [
+              23
+            ]
+        },
+        "TR-FC13H-HFL": {
+            "mediaInterfaceCode": 1,
+            "supportedFirmwareVersions": [
+              
+            ],
+            "supportedPortProfiles": [
+              23
+            ]
+        }
+      }
+    },
+    {
+      "vendorName": "INTEL CORP",
+      "partNumberToTransceiverAttributes": {
+        "SPTSBP2CLCKS": {
+            "mediaInterfaceCode": 1,
+            "supportedFirmwareVersions": [
+              
+            ],
+            "supportedPortProfiles": [
+              23
+            ]
+        },
+        "SPTSBP2CLCKU": {
+            "mediaInterfaceCode": 1,
+            "supportedFirmwareVersions": [
+              
+            ],
+            "supportedPortProfiles": [
+              23
+            ]
+        },
+        "SPTSBP2CLCKV": {
+            "mediaInterfaceCode": 1,
+            "supportedFirmwareVersions": [
+              
+            ],
+            "supportedPortProfiles": [
+              23
+            ]
+        },
+        "SPTSBP2CLCSK": {
+            "mediaInterfaceCode": 1,
+            "supportedFirmwareVersions": [
+              
+            ],
+            "supportedPortProfiles": [
+              23
+            ]
+        },
+        "SPTSMP3CLCK10": {
+            "mediaInterfaceCode": 4,
+            "supportedFirmwareVersions": [
+              
+            ],
+            "supportedPortProfiles": [
+              23,
+              25
+            ]
+        },
+        "SPTSMP3CLCK11": {
+            "mediaInterfaceCode": 4,
+            "supportedFirmwareVersions": [
+              
+            ],
+            "supportedPortProfiles": [
+              23,
+              25
+            ]
+        },
+        "SPTSMP3CLCK2": {
+            "mediaInterfaceCode": 4,
+            "supportedFirmwareVersions": [
+              
+            ],
+            "supportedPortProfiles": [
+              25
+            ]
+        },
+        "SPTSMP3CLCK8": {
+            "mediaInterfaceCode": 4,
+            "supportedFirmwareVersions": [
+              
+            ],
+            "supportedPortProfiles": [
+              23,
+              25
+            ]
+        },
+        "SPTSMP3CLCK9": {
+            "mediaInterfaceCode": 4,
+            "supportedFirmwareVersions": [
+              
+            ],
+            "supportedPortProfiles": [
+              23,
+              25
+            ]
+        },
+        "SPTSMP3CLCKS": {
+            "mediaInterfaceCode": 4,
+            "supportedFirmwareVersions": [
+              
+            ],
+            "supportedPortProfiles": [
+              23,
+              25
+            ]
+        }
+      }
+    },
+    {
+      "vendorName": "LUXTERA",
+      "partNumberToTransceiverAttributes": {
+        "LUX426C4AD": {
+            "mediaInterfaceCode": 1,
+            "supportedFirmwareVersions": [
+              
+            ],
+            "supportedPortProfiles": [
+              23
+            ]
+        }
+      }
+    },
+    {
+      "vendorName": "MOLEX",
+      "partNumberToTransceiverAttributes": {
+        "1002976007": {
+            "mediaInterfaceCode": 2,
+            "supportedFirmwareVersions": [
+              
+            ],
+            "supportedPortProfiles": [
+              22,
+              21
+            ]
+        },
+        "1002976010": {
+            "mediaInterfaceCode": 2,
+            "supportedFirmwareVersions": [
+              
+            ],
+            "supportedPortProfiles": [
+              22,
+              21
+            ]
+        },
+        "1002976012": {
+            "mediaInterfaceCode": 2,
+            "supportedFirmwareVersions": [
+              
+            ],
+            "supportedPortProfiles": [
+              22,
+              21
+            ]
+        },
+        "1002976015": {
+            "mediaInterfaceCode": 2,
+            "supportedFirmwareVersions": [
+              
+            ],
+            "supportedPortProfiles": [
+              22,
+              21
+            ]
+        },
+        "1002976017": {
+            "mediaInterfaceCode": 2,
+            "supportedFirmwareVersions": [
+              
+            ],
+            "supportedPortProfiles": [
+              22,
+              21
+            ]
+        },
+        "1002976020": {
+            "mediaInterfaceCode": 2,
+            "supportedFirmwareVersions": [
+              
+            ],
+            "supportedPortProfiles": [
+              22,
+              21
+            ]
+        },
+        "1002976022": {
+            "mediaInterfaceCode": 2,
+            "supportedFirmwareVersions": [
+              
+            ],
+            "supportedPortProfiles": [
+              22,
+              21
+            ]
+        },
+        "1002976025": {
+            "mediaInterfaceCode": 2,
+            "supportedFirmwareVersions": [
+              
+            ],
+            "supportedPortProfiles": [
+              22,
+              21
+            ]
+        },
+        "1002976027": {
+            "mediaInterfaceCode": 2,
+            "supportedFirmwareVersions": [
+              
+            ],
+            "supportedPortProfiles": [
+              22,
+              21
+            ]
+        },
+        "1002976110": {
+            "mediaInterfaceCode": 2,
+            "supportedFirmwareVersions": [
+              
+            ],
+            "supportedPortProfiles": [
+              21
+            ]
+        },
+        "1002976117": {
+            "mediaInterfaceCode": 2,
+            "supportedFirmwareVersions": [
+              
+            ],
+            "supportedPortProfiles": [
+              21
+            ]
+        },
+        "1002976120": {
+            "mediaInterfaceCode": 2,
+            "supportedFirmwareVersions": [
+              
+            ],
+            "supportedPortProfiles": [
+              21
+            ]
+        },
+        "1002976122": {
+            "mediaInterfaceCode": 2,
+            "supportedFirmwareVersions": [
+              
+            ],
+            "supportedPortProfiles": [
+              21
+            ]
+        },
+        "1002976125": {
+            "mediaInterfaceCode": 2,
+            "supportedFirmwareVersions": [
+              
+            ],
+            "supportedPortProfiles": [
+              21
+            ]
+        },
+        "1002976127": {
+            "mediaInterfaceCode": 2,
+            "supportedFirmwareVersions": [
+              
+            ],
+            "supportedPortProfiles": [
+              21
+            ]
+        }
+      }
+    },
+    {
+      "vendorName": "TE CONNECTIVITY",
+      "partNumberToTransceiverAttributes": {
+        "2360402-1": {
+            "mediaInterfaceCode": 2,
+            "supportedFirmwareVersions": [
+              
+            ],
+            "supportedPortProfiles": [
+              22,
+              21
+            ]
+        },
+        "2360402-2": {
+            "mediaInterfaceCode": 2,
+            "supportedFirmwareVersions": [
+              
+            ],
+            "supportedPortProfiles": [
+              22,
+              21
+            ]
+        },
+        "2360402-3": {
+            "mediaInterfaceCode": 2,
+            "supportedFirmwareVersions": [
+              
+            ],
+            "supportedPortProfiles": [
+              22,
+              21
+            ]
+        },
+        "2360402-4": {
+            "mediaInterfaceCode": 2,
+            "supportedFirmwareVersions": [
+              
+            ],
+            "supportedPortProfiles": [
+              22,
+              21
+            ]
+        },
+        "2360402-5": {
+            "mediaInterfaceCode": 2,
+            "supportedFirmwareVersions": [
+              
+            ],
+            "supportedPortProfiles": [
+              22,
+              21
+            ]
+        },
+        "2360402-6": {
+            "mediaInterfaceCode": 2,
+            "supportedFirmwareVersions": [
+              
+            ],
+            "supportedPortProfiles": [
+              22,
+              21
+            ]
+        },
+        "2360402-7": {
+            "mediaInterfaceCode": 2,
+            "supportedFirmwareVersions": [
+              
+            ],
+            "supportedPortProfiles": [
+              22,
+              21
+            ]
+        },
+        "2360402-8": {
+            "mediaInterfaceCode": 2,
+            "supportedFirmwareVersions": [
+              
+            ],
+            "supportedPortProfiles": [
+              22,
+              21
+            ]
+        },
+        "2360402-9": {
+            "mediaInterfaceCode": 2,
+            "supportedFirmwareVersions": [
+              
+            ],
+            "supportedPortProfiles": [
+              22,
+              21
+            ]
+        }
+      }
+    }
+  ]
+}
