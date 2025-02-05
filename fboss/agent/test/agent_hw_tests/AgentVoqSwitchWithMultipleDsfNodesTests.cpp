@@ -14,9 +14,6 @@
 #include "fboss/agent/test/utils/VoqTestUtils.h"
 
 using namespace facebook::fb303;
-namespace {
-constexpr uint8_t kDefaultQueue = 0;
-} // namespace
 
 namespace facebook::fboss {
 
@@ -55,7 +52,7 @@ class AgentVoqSwitchWithMultipleDsfNodesTest : public AgentVoqSwitchTest {
       sendPkts();
       voqDiscardBytes =
           getLatestSysPortStats(sysPortId).get_queueOutDiscardBytes_().at(
-              kDefaultQueue);
+              utility::getDefaultQueue());
       XLOG(INFO) << " VOQ discard bytes: " << voqDiscardBytes;
       EXPECT_EVENTUALLY_GT(voqDiscardBytes, 0);
     });
@@ -269,7 +266,7 @@ TEST_F(AgentVoqSwitchWithMultipleDsfNodesTest, voqDelete) {
       }
       return getLatestSysPortStats(kRemoteSysPortId)
           .get_queueCreditWatchdogDeletedPackets_()
-          .at(kDefaultQueue);
+          .at(utility::getDefaultQueue());
     };
 
     auto voqDeletedPktsBefore = getVoQDeletedPkts();
