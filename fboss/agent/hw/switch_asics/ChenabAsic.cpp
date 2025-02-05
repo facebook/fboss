@@ -313,14 +313,18 @@ uint32_t ChenabAsic::getMaxMirrors() const {
 }
 std::optional<uint64_t> ChenabAsic::getDefaultReservedBytes(
     cfg::StreamType /*streamType*/,
-    cfg::PortType /*portType*/) const {
-  // Concept of reserved bytes does not apply to GB
+    cfg::PortType portType) const {
+  if (portType == cfg::PortType::CPU_PORT) {
+    return std::nullopt;
+  }
   return 0;
 }
 std::optional<cfg::MMUScalingFactor> ChenabAsic::getDefaultScalingFactor(
     cfg::StreamType /*streamType*/,
-    bool /*cpu*/) const {
-  // Concept of scaling factor does not apply returning the same value TH3
+    bool cpu) const {
+  if (cpu) {
+    return std::nullopt;
+  }
   return cfg::MMUScalingFactor::TWO;
 }
 int ChenabAsic::getMaxNumLogicalPorts() const {
