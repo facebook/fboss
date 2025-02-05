@@ -3,8 +3,19 @@
 # In general, libraries and binaries in fboss/foo/bar are built by
 # cmake/FooBar.cmake
 
-add_executable(thrift_cow_visitor_tests
+add_library(thrift_cow_visitor_test_utils
   fboss/thrift_cow/visitors/tests/VisitorTestUtils.cpp
+)
+
+target_link_libraries(thrift_cow_visitor_test_utils
+  switch_config_cpp2
+  thrift_cow_test_cpp2
+  thrift_cow_visitors
+  Folly::folly
+  FBThrift::thriftcpp2
+)
+
+add_executable(thrift_cow_visitor_tests
   fboss/thrift_cow/visitors/tests/DeltaVisitorTests.cpp
   fboss/thrift_cow/visitors/tests/PathVisitorTests.cpp
   fboss/thrift_cow/visitors/tests/RecurseVisitorTests.cpp
@@ -17,6 +28,7 @@ target_link_libraries(thrift_cow_visitor_tests
     thrift_cow_nodes
     thrift_cow_test_cpp2
     thrift_cow_visitors
+    thrift_cow_visitor_test_utils
     Folly::folly
     FBThrift::thriftcpp2
     state
