@@ -810,7 +810,8 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
       std::nullopt, // Shel Destination IP
       std::nullopt, // Shel Source MAC
       std::nullopt, // Shel Periodic Interval
-      maxSwitchId // Max switch Id
+      maxSwitchId, // Max switch Id
+      std::nullopt, // Sflow aggr number of samples
   };
 }
 

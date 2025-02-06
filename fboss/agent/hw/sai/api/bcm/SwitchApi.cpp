@@ -108,6 +108,15 @@ SaiSwitchTraits::Attributes::AttributeVoqDramBoundThWrapper::operator()() {
 #endif
 }
 
+std::optional<sai_attr_id_t>
+SaiSwitchTraits::Attributes::AttributeSflowAggrNofSamplesWrapper::operator()() {
+#if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+  return SAI_SWITCH_ATTR_SFLOW_AGGR_NOF_SAMPLES;
+#else
+  return std::nullopt;
+#endif
+}
+
 const std::vector<sai_stat_id_t>& SaiSwitchTraits::dramStats() {
 #if defined(BRCM_SAI_SDK_DNX)
   static const std::vector<sai_stat_id_t> stats{
