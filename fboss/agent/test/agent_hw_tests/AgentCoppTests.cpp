@@ -10,6 +10,7 @@
 #include "fboss/agent/LldpManager.h"
 #include "fboss/agent/SwRxPacket.h"
 #include "fboss/agent/TxPacket.h"
+#include "fboss/agent/VoqUtils.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/packet/DHCPv4Packet.h"
 #include "fboss/agent/packet/DHCPv6Packet.h"
@@ -37,7 +38,7 @@ DECLARE_bool(sai_user_defined_trap);
 
 namespace {
 constexpr auto kGetQueueOutPktsRetryTimes = 5;
-static auto const kIpForLowPriorityQueue = folly::IPAddress("4::1");
+static auto const kIpForLowPriorityQueue = folly::IPAddress("2401::1");
 
 /**
  * Link-local multicast network
@@ -1415,16 +1416,24 @@ class AgentCoppQosTest : public AgentHwTest {
       const AgentEnsemble& ensemble) const override {
     auto hwAsics = ensemble.getSw()->getHwAsicTable()->getL3Asics();
     auto asic = utility::checkSameAndGetAsic(hwAsics);
-    auto cfg = utility::twoL3IntfConfig(
+    auto cfg = utility::onePortPerInterfaceConfig(
         ensemble.getSw(),
-        ensemble.masterLogicalInterfacePortIds()[0],
-        ensemble.masterLogicalInterfacePortIds()[1],
-        asic->desiredLoopbackModes());
+        ensemble.masterLogicalPortIds(),
+        true /*interfaceHasSubnet*/);
     utility::setDefaultCpuTrafficPolicyConfig(
         cfg, ensemble.getL3Asics(), ensemble.isSai());
-    utility::excludeTTL1TrapConfig(cfg);
     addCustomCpuQueueConfig(cfg, ensemble.getL3Asics());
     utility::setTTLZeroCpuConfig(ensemble.getL3Asics(), cfg);
+    utility::addOlympicQosMaps(cfg, ensemble.getL3Asics());
+    if (isDualStage3Q2QQos()) {
+      auto hwAsic = utility::checkSameAndGetAsic(ensemble.getL3Asics());
+      auto streamType =
+          *hwAsic->getQueueStreamTypes(cfg::PortType::INTERFACE_PORT).begin();
+      utility::addNetworkAIQueueConfig(
+          &cfg, streamType, cfg::QueueScheduling::STRICT_PRIORITY, hwAsic);
+    } else {
+      utility::addOlympicQueueConfig(&cfg, ensemble.getL3Asics());
+    }
     auto prefix = folly::CIDRNetwork{kIpForLowPriorityQueue, 128};
     utility::addTrapPacketAcl(asic, &cfg, prefix);
     return cfg;
@@ -1667,6 +1676,36 @@ class AgentCoppQosTest : public AgentHwTest {
     cpuQueues.push_back(queue9);
 
     config.cpuQueues() = cpuQueues;
+    if (hwAsic->isSupported(HwAsic::Feature::VOQ)) {
+      std::vector<cfg::PortQueue> cpuVoqs;
+      cfg::PortQueue voq0;
+      voq0.id() = utility::kCoppLowPriQueueId;
+      voq0.name() = "cpuVoq-low";
+      voq0.streamType() = utility::getCpuDefaultStreamType(hwAsic);
+      voq0.scheduling() = cfg::QueueScheduling::INTERNAL;
+      voq0.maxDynamicSharedBytes() = 20 * 1024 * 1024;
+      cpuVoqs.push_back(voq0);
+
+      cfg::PortQueue voq1;
+      voq1.id() =
+          isDualStage3Q2QQos() ? 1 : utility::getCoppMidPriQueueId({hwAsic});
+      voq1.name() = "cpuVoq-mid";
+      voq1.streamType() = utility::getCpuDefaultStreamType(hwAsic);
+      voq1.scheduling() = cfg::QueueScheduling::INTERNAL;
+      voq1.maxDynamicSharedBytes() = 20 * 1024 * 1024;
+      cpuVoqs.push_back(voq1);
+
+      cfg::PortQueue voq2;
+      voq2.id() = isDualStage3Q2QQos()
+          ? 2
+          : getLocalPortNumVoqs(cfg::PortType::CPU_PORT, cfg::Scope::LOCAL) - 1;
+      voq2.name() = "cpuVoq-high";
+      voq2.streamType() = utility::getCpuDefaultStreamType(hwAsic);
+      voq2.scheduling() = cfg::QueueScheduling::INTERNAL;
+      cpuVoqs.push_back(voq2);
+
+      config.cpuVoqs() = cpuVoqs;
+    }
   }
 };
 

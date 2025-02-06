@@ -838,6 +838,7 @@ void addQosMapsHelper(
       cpuQosMap.trafficClassToQueueId()->emplace(
           q, getTrafficClassToCpuEgressQueueId(hwAsic, q));
     }
+    cpuQosMap.trafficClassToVoqId()->clear();
     for (int q = 0; q <= kOlympicHighestSPQueueId; q++) {
       cpuQosMap.trafficClassToVoqId()->emplace(
           q, getTrafficClassToCpuVoqId(hwAsic, q));
@@ -855,6 +856,9 @@ void addQosMapsHelper(
     cpuConfig = *cfg.cpuTrafficPolicy();
   }
   cfg::TrafficPolicyConfig cpuTrafficPolicy;
+  if (cpuConfig.trafficPolicy()) {
+    cpuTrafficPolicy = *cpuConfig.trafficPolicy();
+  }
   cpuTrafficPolicy.defaultQosPolicy() = cpuQosPolicyName;
   cpuConfig.trafficPolicy() = cpuTrafficPolicy;
   cfg.cpuTrafficPolicy() = cpuConfig;
