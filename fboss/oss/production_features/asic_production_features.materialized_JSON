@@ -168,7 +168,8 @@
         44,
         46,
         51,
-        54
+        54,
+        33
     ],
     "tomahawk3": [
         2,
@@ -210,7 +211,8 @@
         50,
         51,
         53,
-        54
+        54,
+        33
     ],
     "tomahawk4": [
         2,
@@ -251,7 +253,8 @@
         50,
         51,
         53,
-        54
+        54,
+        33
     ],
     "tomahawk5": [
         2,
@@ -291,7 +294,8 @@
         50,
         51,
         53,
-        54
+        54,
+        33
     ],
     "yuba": [
         2,
@@ -499,7 +503,8 @@
         "VLAN",
         "LED_PROGRAMMING",
         "SEPARATE_INGRESS_EGRESS_BUFFER_POOL",
-        "IP_IN_IP_DECAP"
+        "IP_IN_IP_DECAP",
+        "INTERFACE_NEIGHBOR_TABLE"
     ],
     "tomahawk3": [
         "CPU_RX_TX",
@@ -541,7 +546,8 @@
         "PAUSE",
         "SEPARATE_INGRESS_EGRESS_BUFFER_POOL",
         "ERSPANV6_MIRRORING",
-        "IP_IN_IP_DECAP"
+        "IP_IN_IP_DECAP",
+        "INTERFACE_NEIGHBOR_TABLE"
     ],
     "tomahawk4": [
         "CPU_RX_TX",
@@ -582,7 +588,8 @@
         "PAUSE",
         "SEPARATE_INGRESS_EGRESS_BUFFER_POOL",
         "ERSPANV6_MIRRORING",
-        "IP_IN_IP_DECAP"
+        "IP_IN_IP_DECAP",
+        "INTERFACE_NEIGHBOR_TABLE"
     ],
     "tomahawk5": [
         "CPU_RX_TX",
@@ -622,7 +629,8 @@
         "PAUSE",
         "SEPARATE_INGRESS_EGRESS_BUFFER_POOL",
         "ERSPANV6_MIRRORING",
-        "IP_IN_IP_DECAP"
+        "IP_IN_IP_DECAP",
+        "INTERFACE_NEIGHBOR_TABLE"
     ],
     "yuba": [
         "CPU_RX_TX",
