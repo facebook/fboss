@@ -66,6 +66,9 @@ struct Serializer {
   using Writer = typename Serializers::Writer;
   using TSerializer = apache::thrift::Serializer<Reader, Writer>;
 
+  // default size to serialize is 1KB instead of 16KB in writer::setOutput()
+  static const size_t maxGrowth = 1024;
+
   template <typename TC, typename TType>
   static folly::fbstring serialize(const TType& ttype)
     requires(detail::tc_is_struct_or_union<TC>)
@@ -90,7 +93,9 @@ struct Serializer {
     requires(detail::tc_is_struct_or_union<TC>)
   {
     folly::IOBufQueue queue;
-    TSerializer::serialize(ttype, &queue);
+    Writer writer;
+    writer.setOutput(&queue, maxGrowth);
+    apache::thrift::Cpp2Ops<TType>::write(&writer, &ttype);
     return queue.moveAsValue();
   }
 
@@ -100,7 +105,7 @@ struct Serializer {
   {
     folly::IOBufQueue queue;
     Writer writer;
-    writer.setOutput(&queue);
+    writer.setOutput(&queue, maxGrowth);
     apache::thrift::detail::pm::protocol_methods<TC, TType>::write(
         writer, ttype);
     return queue.moveAsValue();
