@@ -541,7 +541,10 @@ class AgentEcmpNeighborTest : public AgentEcmpTest {
           production_features::ProductionFeature::L3_FORWARDING,
           production_features::ProductionFeature::INTERFACE_NEIGHBOR_TABLE};
     } else {
-      return {production_features::ProductionFeature::L3_FORWARDING};
+      return {
+          production_features::ProductionFeature::L3_FORWARDING,
+          production_features::ProductionFeature::VLAN,
+          production_features::ProductionFeature::MAC_LEARNING};
     }
   }
 
