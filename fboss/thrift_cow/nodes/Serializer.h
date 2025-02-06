@@ -247,22 +247,20 @@ class SerializableWrapper : public Serializable {
   explicit SerializableWrapper(TType& node) : node_(node) {}
 
   folly::IOBuf encodeBuf(fsdb::OperProtocol proto) const override {
-    folly::IOBufQueue queue;
     switch (proto) {
       case fsdb::OperProtocol::BINARY:
-        apache::thrift::BinarySerializer::serialize(node_, &queue);
-        break;
-      case fsdb::OperProtocol::COMPACT:
-        apache::thrift::CompactSerializer::serialize(node_, &queue);
-        break;
+        return Serializer<fsdb::OperProtocol::BINARY>::template serializeBuf<
+            TC>(node_);
       case fsdb::OperProtocol::SIMPLE_JSON:
-        apache::thrift::SimpleJSONSerializer::serialize(node_, &queue);
-        break;
+        return Serializer<
+            fsdb::OperProtocol::SIMPLE_JSON>::template serializeBuf<TC>(node_);
+      case fsdb::OperProtocol::COMPACT:
+        return Serializer<fsdb::OperProtocol::COMPACT>::template serializeBuf<
+            TC>(node_);
       default:
         throw std::runtime_error(folly::to<std::string>(
             "Unknown protocol: ", static_cast<int>(proto)));
     }
-    return queue.moveAsValue();
   }
 
   void fromEncodedBuf(fsdb::OperProtocol proto, folly::IOBuf&& encoded)
