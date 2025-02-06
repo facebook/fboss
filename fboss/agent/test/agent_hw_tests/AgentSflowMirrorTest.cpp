@@ -829,6 +829,64 @@ class AgentSflowMirrorWithLineRateTrafficTest
   }
 };
 
+class AgentSflowMirrorTruncateWithSamplesPackingTestV6
+    : public AgentSflowMirrorTruncateTest<folly::IPAddressV6> {
+ public:
+  const int kNumSflowSamplesPacked{4};
+  std::vector<production_features::ProductionFeature>
+  getProductionFeaturesVerified() const override {
+    auto productionFeatures = AgentSflowMirrorTruncateTest<
+        folly::IPAddressV6>::getProductionFeaturesVerified();
+    productionFeatures.push_back(
+        production_features::ProductionFeature::SFLOW_SAMPLES_PACKING);
+    return productionFeatures;
+  }
+
+  cfg::SwitchConfig initialConfig(
+      const AgentEnsemble& ensemble) const override {
+    auto config =
+        AgentSflowMirrorTruncateTest<folly::IPAddressV6>::initialConfig(
+            ensemble);
+    config.switchSettings()->numberOfSflowSamplesPerPacket() =
+        kNumSflowSamplesPacked;
+    return config;
+  }
+
+  void verifySflowSamplePacking(uint8_t numSflowSamplesPacked) {
+    auto ports = getPortsForSampling();
+    getAgentEnsemble()->bringDownPorts(
+        std::vector<PortID>(ports.begin() + 2, ports.end()));
+    utility::SwSwitchPacketSnooper snooper(getSw(), "snooper");
+    // Send as many packets as the samples packed in a single
+    // packet and expect to receive a single sampled packet.
+    int numPacketsToSend{numSflowSamplesPacked};
+    for (auto i = 0; i < numPacketsToSend; i++) {
+      auto pkt = genPacket(1, 256);
+      XLOG(DBG2) << "Sending packet through port " << ports[1];
+      getAgentEnsemble()->sendPacketAsync(
+          std::move(pkt), PortDescriptor(ports[1]), std::nullopt);
+    }
+    WITH_RETRIES({
+      // Make sure that packets TXed from port stats!
+      auto portStats = getLatestPortStats(ports[1]);
+      EXPECT_EVENTUALLY_GE(*portStats.outUnicastPkts_(), numPacketsToSend);
+    });
+    int sflowPacketCount{0};
+    std::optional<std::unique_ptr<folly::IOBuf>> capturedPacketBuf;
+    // Should not expect to see more than number of packets sent
+    for (int i = 0; i < numPacketsToSend; i++) {
+      capturedPacketBuf = snooper.waitForPacket(1);
+      if (capturedPacketBuf.has_value()) {
+        sflowPacketCount++;
+      }
+    }
+    // Make sure that we received exactly one sflow packet
+    EXPECT_EQ(sflowPacketCount, 1);
+    // Verify packing!
+    // TODO: Inspect packet for the samples!
+  }
+};
+
 using AgentSflowMirrorTestV4 = AgentSflowMirrorTest<folly::IPAddressV4>;
 using AgentSflowMirrorTestV6 = AgentSflowMirrorTest<folly::IPAddressV6>;
 using AgentSflowMirrorTruncateTestV4 =
@@ -940,4 +998,22 @@ TEST_F(AgentSflowMirrorTruncateTestV6, verifyL4SrcPortRandomization) {
   };
   verifyAcrossWarmBoots(setup, verify);
 }
+
+TEST_F(
+    AgentSflowMirrorTruncateWithSamplesPackingTestV6,
+    verifySflowSamplesPacking) {
+  auto setup = [=, this]() {
+    auto config = initialConfig(*getAgentEnsemble());
+    configureMirror(config, false, 0);
+    configSampling(config, 1);
+    configureTrapAcl(config);
+    applyNewConfig(config);
+    resolveRouteForMirrorDestination();
+  };
+  auto verify = [=, this]() {
+    this->verifySflowSamplePacking(kNumSflowSamplesPacked);
+  };
+  verifyAcrossWarmBoots(setup, verify);
+}
+
 } // namespace facebook::fboss
