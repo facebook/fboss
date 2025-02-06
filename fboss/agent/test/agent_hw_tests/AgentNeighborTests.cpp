@@ -117,9 +117,9 @@ class AgentNeighborTest : public AgentHwTest {
       NdpTable>;
 
  protected:
-  void SetUp() override {
+  void setCmdLineFlagOverrides() const override {
     FLAGS_intf_nbr_tables = isIntfNbrTable;
-    AgentHwTest::SetUp();
+    AgentHwTest::setCmdLineFlagOverrides();
   }
 
   std::vector<production_features::ProductionFeature>
