@@ -196,6 +196,7 @@ bool EbroAsic::isSupportedNonFabric(Feature feature) const {
     case HwAsic::Feature::FDR_FIFO_WATERMARK:
     case HwAsic::Feature::EGRESS_CELL_ERROR_STATS:
     case HwAsic::Feature::SAMPLE_RATE_CONFIG_PER_MIRROR:
+    case HwAsic::Feature::SFLOW_SAMPLES_PACKING:
       return false;
     case HwAsic::Feature::SAI_ACL_ENTRY_SRC_PORT_QUALIFIER:
       /*

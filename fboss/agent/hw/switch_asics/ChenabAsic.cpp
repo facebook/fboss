@@ -201,6 +201,7 @@ bool ChenabAsic::isSupportedNonFabric(Feature feature) const {
     case HwAsic::Feature::BRIDGE_PORT_8021Q: // no fdb entries required, using
                                              // only pure l3 rifs
     case HwAsic::Feature::SAMPLE_RATE_CONFIG_PER_MIRROR:
+    case HwAsic::Feature::SFLOW_SAMPLES_PACKING:
       return false;
   }
   return false;
