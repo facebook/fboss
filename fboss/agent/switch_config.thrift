@@ -1842,6 +1842,8 @@ struct SwitchSettings {
   27: optional i32 remoteL1VoqMaxExpectedLatencyNsec;
   28: optional i32 remoteL2VoqMaxExpectedLatencyNsec;
   29: optional i32 voqOutOfBoundsLatencyNsec;
+  // Number of sflow samples to pack in a single packet being sent out
+  30: optional byte numberOfSflowSamplesPerPacket;
 }
 
 // Global buffer pool

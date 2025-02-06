@@ -437,6 +437,8 @@ struct SwitchSettingsFields {
   53: optional i32 remoteL1VoqMaxExpectedLatencyNsec;
   54: optional i32 remoteL2VoqMaxExpectedLatencyNsec;
   55: optional i32 voqOutOfBoundsLatencyNsec;
+  // Number of sflow samples to pack in a single packet being sent out
+  56: optional byte numberOfSflowSamplesPerPacket;
 }
 
 struct RoutePrefix {
