@@ -2001,9 +2001,6 @@
           "test_name_regex": "AgentSflowMirrorTestV4.MoveToV6$"
         },
         {
-          "test_name_regex": "AgentTrafficPfcWatchdogTest.*$"
-        },
-        {
           "test_name_regex": "AgentIngressBufferTest.validatePGParamChange$"
         },
         {
@@ -2427,9 +2424,6 @@
         },
         {
           "test_name_regex": "AgentSflowMirrorTestV4.MoveToV6$"
-        },
-        {
-          "test_name_regex": "AgentTrafficPfcWatchdogTest.*$"
         },
         {
           "test_name_regex": "AgentIngressBufferTest.validatePGParamChange$"
@@ -3166,9 +3160,6 @@
           "test_name_regex": "AgentPfcTest.*$"
         },
         {
-          "test_name_regex": "AgentTrafficPfcWatchdogTest.*$"
-        },
-        {
           "test_name_regex": "AgentSendPacketToQueueTest.SendPacketOutOfPortToDefaultUCQueue$"
         },
         {
@@ -3274,9 +3265,6 @@
         },
         {
           "test_name_regex": "AgentSflowMirrorTestV4.MoveToV6$"
-        },
-        {
-          "test_name_regex": "AgentTrafficPfcWatchdogTest.*$"
         },
         {
           "test_name_regex": "AgentIngressBufferTest.validatePGParamChange$"
@@ -3634,9 +3622,6 @@
         },
         {
           "test_name_regex": "AgentPfcTest.*$"
-        },
-        {
-          "test_name_regex": "AgentTrafficPfcWatchdogTest.*$"
         },
         {
           "test_name_regex": "AgentSendPacketToQueueTest.SendPacketOutOfPortToDefaultUCQueue$"
@@ -6761,9 +6746,6 @@
           "test_name_regex": "AgentPfcTest.*$"
         },
         {
-          "test_name_regex": "AgentTrafficPfcWatchdogTest.*$"
-        },
-        {
           "test_name_regex": "AgentSendPacketToQueueTest.SendPacketOutOfPortToDefaultUCQueue$"
         },
         {
@@ -6869,9 +6851,6 @@
         },
         {
           "test_name_regex": "AgentSflowMirrorTestV4.MoveToV6$"
-        },
-        {
-          "test_name_regex": "AgentTrafficPfcWatchdogTest.*$"
         },
         {
           "test_name_regex": "AgentIngressBufferTest.validatePGParamChange$"
@@ -7229,9 +7208,6 @@
         },
         {
           "test_name_regex": "AgentPfcTest.*$"
-        },
-        {
-          "test_name_regex": "AgentTrafficPfcWatchdogTest.*$"
         },
         {
           "test_name_regex": "AgentSendPacketToQueueTest.SendPacketOutOfPortToDefaultUCQueue$"
@@ -10259,9 +10235,6 @@
           "test_name_regex": "AgentSflowMirrorTestV4.MoveToV6$"
         },
         {
-          "test_name_regex": "AgentTrafficPfcWatchdogTest.*$"
-        },
-        {
           "test_name_regex": "AgentIngressBufferTest.validatePGParamChange$"
         },
         {
@@ -10667,9 +10640,6 @@
         },
         {
           "test_name_regex": "AgentSflowMirrorTestV4.MoveToV6$"
-        },
-        {
-          "test_name_regex": "AgentTrafficPfcWatchdogTest.*$"
         },
         {
           "test_name_regex": "AgentIngressBufferTest.validatePGParamChange$"
