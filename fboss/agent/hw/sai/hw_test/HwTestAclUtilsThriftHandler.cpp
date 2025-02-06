@@ -132,17 +132,18 @@ bool HwTestThriftHandler::isStatProgrammedInAclTable(
 
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 2)
     // Counter name must match what was previously configured
-    std::optional<SaiAclCounterTraits::Attributes::Label> optAttr;
-    auto aclCounterNameGot = SaiApiTable::getInstance()->aclApi().getAttribute(
-        AclCounterSaiId(aclCounterIdGot), optAttr);
-    if (aclCounterNameGot) {
-      std::string aclCounterNameGotStr(aclCounterNameGot->data());
-      if (*counterName != aclCounterNameGotStr) {
-        return false;
+    if (hwSwitch_->getPlatform()->getAsic()->isSupported(
+            HwAsic::Feature::ACL_COUNTER_LABEL)) {
+      std::optional<SaiAclCounterTraits::Attributes::Label> optAttr;
+      auto aclCounterNameGot =
+          SaiApiTable::getInstance()->aclApi().getAttribute(
+              AclCounterSaiId(aclCounterIdGot), optAttr);
+      if (aclCounterNameGot) {
+        std::string aclCounterNameGotStr(aclCounterNameGot->data());
+        if (*counterName != aclCounterNameGotStr) {
+          return false;
+        }
       }
-    } else if (hwSwitch_->getPlatform()->getAsic()->isSupported(
-                   HwAsic::Feature::ACL_COUNTER_LABEL)) {
-      return false;
     }
 
     // Verify that only the configured 'types' (byte/packet) of counters are
