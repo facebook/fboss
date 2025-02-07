@@ -2,6 +2,7 @@
 
 #include "fboss/platform/weutil/ContentValidator.h"
 
+#include <algorithm>
 #include <iostream>
 #include <map>
 
