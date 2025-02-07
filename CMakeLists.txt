@@ -200,11 +200,7 @@ include_directories(${FATAL_INCLUDE_DIR})
 find_library(NLOHMANN_JSON nlohmann-json)
 find_path(NLOHMANN_JSON_INCLUDE_DIRS NAMES nlohmann/json.hpp)
 include_directories(${NLOHMANN_JSON_INCLUDE_DIRS})
-
-# (TODO): Pinning python version to 3.8 to compile in lego-linux since
-# python 3.10 is causing link failures for sai test binary. Undo
-# this once lego-linux is compatible with python3.10
-find_package(Python3 3.8 EXACT COMPONENTS Interpreter Development)
+find_package(Python3 COMPONENTS Interpreter Development)
 include_directories(${Python3_INCLUDE_DIR})
 
 find_path(SAI_INCLUDE_DIR NAMES sai.h)
