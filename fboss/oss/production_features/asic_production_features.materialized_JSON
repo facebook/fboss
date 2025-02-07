@@ -132,7 +132,8 @@
         35,
         34,
         48,
-        49
+        49,
+        58
     ],
     "ramon": [
         1
@@ -467,7 +468,8 @@
         "EGRESS_MIRRORING",
         "INGRESS_MIRRORING",
         "LINERATE_SFLOW",
-        "MIRROR_ON_DROP"
+        "MIRROR_ON_DROP",
+        "SFLOW_SAMPLES_PACKING"
     ],
     "ramon": [
         "FABRIC"
