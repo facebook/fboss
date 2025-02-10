@@ -114,6 +114,9 @@
             "portIdRange": {
               "minimum": 0,
               "maximum": 2047
+            },
+            "firmwareNameToFirmwareInfo": {
+              
             }
         }
       },
@@ -132,6 +135,9 @@
       
     },
     "defaultVoqConfig": [
+      
+    ],
+    "mirrorOnDropReports": [
       
     ]
   },

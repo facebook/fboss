@@ -167,7 +167,10 @@
             },
             "localSystemPortOffset": 10,
             "globalSystemPortOffset": 10,
-            "inbandPortId": 1
+            "inbandPortId": 1,
+            "firmwareNameToFirmwareInfo": {
+              
+            }
         }
       },
       "vendorMacOuis": [
@@ -206,6 +209,9 @@
       }
     },
     "defaultVoqConfig": [
+      
+    ],
+    "mirrorOnDropReports": [
       
     ]
   },
