@@ -8099,7 +8099,15 @@
             },
             "localSystemPortOffset": 10,
             "globalSystemPortOffset": 10,
-            "inbandPortId": 1
+            "inbandPortId": 1,
+            "firmwareNameToFirmwareInfo": {
+              "isolationFW": {
+                  "coreToUse": 5,
+                  "path": "/tmp/db/jericho3ai_a0/fi-2.4.0.1-GA.elf",
+                  "logPath": "/tmp/edk.log",
+                  "firmwareLoadType": 0
+              }
+            }
         }
       },
       "vendorMacOuis": [
@@ -8161,6 +8169,9 @@
         "name": "cpuVoq-low",
         "maxDynamicSharedBytes": 20971520
       }
+    ],
+    "mirrorOnDropReports": [
+      
     ]
   },
   "platform": {

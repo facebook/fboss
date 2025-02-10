@@ -7229,7 +7229,10 @@
               "minimum": 0,
               "maximum": 2047
             },
-            "connectionHandle": "0c:00"
+            "connectionHandle": "0c:00",
+            "firmwareNameToFirmwareInfo": {
+              
+            }
         }
       },
       "vendorMacOuis": [
@@ -7247,6 +7250,9 @@
       
     },
     "defaultVoqConfig": [
+      
+    ],
+    "mirrorOnDropReports": [
       
     ]
   },
