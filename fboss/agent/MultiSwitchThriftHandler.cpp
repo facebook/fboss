@@ -304,6 +304,7 @@ MultiSwitchThriftHandler::co_notifyRxPacket(int64_t switchId) {
 
 folly::coro::Task<apache::thrift::ServerStream<multiswitch::TxPacket>>
 MultiSwitchThriftHandler::co_getTxPackets(int64_t switchId) {
+  ensureConfigured(__func__);
   auto switchIndex =
       sw_->getSwitchInfoTable().getSwitchIndexFromSwitchId(SwitchID(switchId));
   auto streamAndPublisher =
