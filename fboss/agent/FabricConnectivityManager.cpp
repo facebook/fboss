@@ -530,8 +530,6 @@ FabricConnectivityManager::getVirtualDeviceToRemoteConnectionGroups(
     }
     auto portName = fabricPortId2Name_.find(portId)->second;
     auto virtualDeviceId = portToVirtualDevice(portId);
-    //      platform_->getPlatformPort(portId)->getVirtualDeviceId();
-    // CHECK(virtualDeviceId.has_value());
     // get connections for virtual device
     auto& virtualDeviceRemoteEndpoints =
         virtualDevice2RemoteEndpoints[virtualDeviceId];
