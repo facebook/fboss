@@ -37,47 +37,6 @@ namespace {
 
 using namespace facebook::fboss;
 
-static const PlatformMapping* FOLLY_NULLABLE
-getPlatformMappingForDsfNode(const PlatformType platformType) {
-  switch (platformType) {
-    case PlatformType::PLATFORM_MERU400BIU: {
-      static Meru400biuPlatformMapping meru400biu;
-      return &meru400biu;
-    }
-    case PlatformType::PLATFORM_MERU400BIA: {
-      static Meru400biaPlatformMapping meru400bia;
-      return &meru400bia;
-    }
-    case PlatformType::PLATFORM_MERU400BFU: {
-      static Meru400bfuPlatformMapping meru400bfu;
-      return &meru400bfu;
-    }
-    case PlatformType::PLATFORM_MERU800BFA: {
-      static Meru800bfaPlatformMapping meru800bfa{
-          true /*multiNpuPlatformMapping*/};
-      return &meru800bfa;
-    }
-    case PlatformType::PLATFORM_MERU800BFA_P1: {
-      static Meru800bfaP1PlatformMapping meru800bfa{
-          true /*multiNpuPlatformMapping*/};
-      return &meru800bfa;
-    }
-    case PlatformType::PLATFORM_MERU800BIA:
-    case PlatformType::PLATFORM_MERU800BIAB: {
-      static Meru800biaPlatformMapping meru800bia;
-      return &meru800bia;
-    }
-    case PlatformType::PLATFORM_JANGA800BIC: {
-      static Janga800bicPlatformMapping janga800bic{
-          !FLAGS_janga_single_npu_for_testing /*multiNpuPlatformMapping*/};
-      return &janga800bic;
-    }
-    default:
-      break;
-  }
-  return nullptr;
-}
-
 std::string toStr(const RemoteEndpoint& r) {
   std::stringstream ss;
   ss << " switchId : " << *r.switchId() << " switch name: " << *r.switchName()
@@ -191,7 +150,7 @@ void FabricConnectivityManager::updateExpectedSwitchIdAndPortIdForPort(
     XLOG(WARN) << "no dsf node for switch id " << baseSwitchId;
     return;
   }
-  const auto platformMapping = getPlatformMappingForDsfNode(
+  const auto platformMapping = getPlatformMappingForPlatformType(
       switchIdToDsfNode_[baseSwitchId]->getPlatformType());
 
   if (!platformMapping) {
@@ -389,7 +348,7 @@ FabricConnectivityManager::getActualSwitchNameAndPortName(
     auto actualPortId = getActualPortIdForSwitch(
         PortID(portId), SwitchID(switchId), baseSwitchId, switchName.value());
     if (actualPortId.has_value()) {
-      const auto platformMapping = getPlatformMappingForDsfNode(
+      const auto platformMapping = getPlatformMappingForPlatformType(
           switchIdToDsfNode_[baseSwitchId]->getPlatformType());
       if (!platformMapping) {
         throw FbossError("Unable to find platform mapping for port: ", portId);
