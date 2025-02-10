@@ -720,13 +720,19 @@ SaiPortPfcInfo SaiPortManager::getPortPfcAttributes(
 std::vector<sai_map_t> SaiPortManager::preparePfcDeadlockQueueTimers(
     std::vector<PfcPriority>& enabledPfcPriorities,
     uint32_t timerVal) {
-  std::vector<sai_map_t> mapToValueList;
-  mapToValueList.reserve(enabledPfcPriorities.size());
-  for (const auto& pri : enabledPfcPriorities) {
+  std::vector<sai_map_t> mapToValueList(
+      cfg::switch_config_constants::PFC_PRIORITY_VALUE_MAX() + 1);
+  for (int pri = 0;
+       pri <= cfg::switch_config_constants::PFC_PRIORITY_VALUE_MAX();
+       pri++) {
+    // Quite a few ASICs have the timer supported at port level and hence
+    // setting the same timer value on all priorities irrespective of if
+    // PFC is enabled for that priority or not to simplify the SAI/SDK
+    // side handling.
     sai_map_t mapping{};
     mapping.key = pri;
     mapping.value = timerVal;
-    mapToValueList.push_back(mapping);
+    mapToValueList.at(pri) = mapping;
   }
   return mapToValueList;
 }
