@@ -446,6 +446,10 @@ InterfaceID getInbandPortIntfID(
 std::pair<std::string, std::string> getExpectedNeighborAndPortName(
     const cfg::Port& port);
 
+const facebook::fboss::PlatformMapping* FOLLY_NULLABLE
+getPlatformMappingForPlatformType(
+    const facebook::fboss::PlatformType platformType);
+
 int getRemoteSwitchID(
     const cfg::SwitchConfig* cfg,
     const cfg::Port& port,
