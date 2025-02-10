@@ -1044,7 +1044,8 @@ std::pair<std::string, std::string> getExpectedNeighborAndPortName(
 };
 
 const facebook::fboss::PlatformMapping* FOLLY_NULLABLE
-getPlatformMappingForDsfNode(const facebook::fboss::PlatformType platformType) {
+getPlatformMappingForPlatformType(
+    const facebook::fboss::PlatformType platformType) {
   switch (platformType) {
     case facebook::fboss::PlatformType::PLATFORM_MERU400BIU: {
       static facebook::fboss::Meru400biuPlatformMapping meru400biu;
@@ -1097,7 +1098,7 @@ int getRemoteSwitchID(
   CHECK(dsfNodeItr != cfg->dsfNodes()->end());
 
   const auto platformMapping =
-      getPlatformMappingForDsfNode(*dsfNodeItr->second.platformType());
+      getPlatformMappingForPlatformType(*dsfNodeItr->second.platformType());
 
   if (!platformMapping) {
     throw FbossError(
