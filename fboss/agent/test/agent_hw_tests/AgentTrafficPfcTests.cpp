@@ -651,6 +651,10 @@ class AgentTrafficPfcWatchdogTest : public AgentTrafficPfcTest {
           pfcWatchdog.recoveryTimeMsecs() = 1000;
           pfcWatchdog.detectionTimeMsecs() = 200;
           break;
+        case cfg::AsicType::ASIC_TYPE_YUBA:
+          pfcWatchdog.recoveryTimeMsecs() = 100;
+          pfcWatchdog.detectionTimeMsecs() = 25;
+          break;
         default:
           pfcWatchdog.recoveryTimeMsecs() = 10;
           pfcWatchdog.detectionTimeMsecs() = 1;

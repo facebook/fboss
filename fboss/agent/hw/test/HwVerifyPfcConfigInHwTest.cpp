@@ -313,6 +313,30 @@ class HwVerifyPfcConfigInHwTest : public HwTest {
            2000,
            cfg::PfcWatchdogRecoveryAction::DROP,
            "Verify PFC watchdog deadlock detection timer longer value"});
+    } else if (getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_YUBA) {
+      // YUBA supports a min timer value of 25msec and max of 10sec. In the
+      // supported range, timer value as a multiple of 25msec is expected.
+      wdParams.push_back(
+          {25,
+           100,
+           cfg::PfcWatchdogRecoveryAction::DROP,
+           "Verify PFC watchdog deadlock detection value 25ms, recovery value 100ms"});
+      wdParams.push_back(
+          {25,
+           1000,
+           cfg::PfcWatchdogRecoveryAction::DROP,
+           "Verify PFC watchdog deadlock detection value 25ms, recovery value 1000ms"});
+      wdParams.push_back(
+          {100,
+           10000,
+           cfg::PfcWatchdogRecoveryAction::DROP,
+           "Verify PFC watchdog deadlock detection value 100ms, recovery value 10s"});
+      // Production config
+      wdParams.push_back(
+          {200,
+           1000,
+           cfg::PfcWatchdogRecoveryAction::DROP,
+           "Verify PFC watchdog deadlock detection value 200ms, recovery value 1000ms"});
     } else {
       // TODO: Param combinations for a granularity of 1msec
       wdParams.push_back(
